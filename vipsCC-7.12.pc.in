@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: vipsCC-7.12
+Description: C++ API for vips image processing library
+Version: @VERSION@
+Requires: vips-7.12 = @VERSION@
+Libs: -L${libdir} -lvipsCC

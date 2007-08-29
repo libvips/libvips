@@ -1,0 +1,29 @@
+.TH IM_VIPSHOME 3 "8 March 2001"
+.SH NAME
+im_guess_prefix \- try to guess install directory
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B const char *im_guess_prefix( const char *argv0,
+.B     const char *env_name )
+
+.SH DESCRIPTION
+.B im_guess_prefix(3) 
+tries to guess the install directory. You should pass in the value of
+argv[0] (the name your program was run as) as a clue to help it out, plus
+the name of the environment variable you let the user override your package
+install area with (eg. "VIPSHOME"). 
+
+On success, 
+.B im_guess_prefix(3) 
+returns the prefix it discovered, and as a side effect, sets the environment
+variable (if it's not set).
+
+.B im_guess_prefix(3) 
+is useful for programs in the VIPS distribution and contrib which need to be
+able to find data files.
+
+Don't free the return string!
+
+.SH RETURN VALUE
+The function returns NULL on failure.

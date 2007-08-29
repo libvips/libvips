@@ -1,0 +1,90 @@
+.TH CONVERSIONS 3 "15 April 1991"
+.SH NAME
+im_c2amph, im_c2imag, im_c2ps, im_c2real, im_clip2fmt,
+im_ri2c \- conversion between image types
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_c2amph(in, out)
+.br
+IMAGE *in, *out;
+
+int im_c2rect(in, out)
+.br
+IMAGE *in, *out;
+
+int im_c2imag(in, out)
+.br
+IMAGE *in, *out;
+
+int im_c2ps(in, out)
+.br
+IMAGE *in, *out;
+
+int im_c2real(in, out)
+.br
+IMAGE *in, *out;
+
+int im_clip2fmt(in, out, ofmt)
+.br
+IMAGE *in, *out;
+.br
+int ofmt;
+
+int im_ri2c(in1, in2, out)
+.br
+IMAGE *in1, *in2, *out;
+.SH DESCRIPTION
+Each of the above functions converts the image held by the image descriptor in
+to another type image and writes the result on the image descriptor out.
+Sizes and the number of channels are identical to those of input.  Whenever
+required by the conversion, the element values are rounded by calling floor().
+
+.B im_c2amph()
+converts a complex (float or double) input to (amplitude, phase), with phase
+in degrees.  Output has the same format as input.
+
+.B im_c2rect()
+converts a complex (float or double) input in (amplitude, phase) form back to
+rectangular coordinates. Again, phase should be expressed in degrees.
+
+.B im_c2ps()
+convert a (float or double) complex image to amplitude (float or
+double) image.  Complex input (a,b) is mapped to sqrt( a*a+b*b ).
+
+.B im_clip2fmt()
+converts the input image to 'ofmt', where ofmt is the new value for
+BandFmt. For example, im_clip2fmt(in, out, FMTUSHORT) converts any image to
+unsigned short.
+
+The number of
+clipped values (if any), are printed in the standard error output. Before
+clipping rounding is carried out if necessary. When converting between real
+and complex types with these functions, the imaginary part of the output is
+set to zero. When converting from complex to real types, the imaginary part is
+ignored. Use im_c2ps(), im_c2real() etc. to get other behaviour.
+
+Legacy functions are available, called im_clip(), im_clip2c(), im_clip2d(),
+im_clip2f(), im_clip2i(), im_clip2s(), im_clip2ui(), im_clip2us(),
+im_clip2cm() and im_clip2dcm() which convert the input image to unsigned char,
+signed char, double, float, int, short, unsigned int, unsigned short,
+complex and double complex respectively.
+
+.B im_ri2c() 
+takes as inputs two non-complex images of equal sizes and number of
+channels.  The output is a complex image with the real part coming from in1
+and the imaginary part coming from in2.  Output is float complex (FMTCOMPLEX)
+only if none of the inputs is double.  If one or both inputs are double the
+result is double complex (FMTDPCOMPLEX).
+
+.B im_c2real() 
+and 
+.B im_c2imag() 
+extract the real or the imaginary part of a
+complex image respectively.  If input is be float complex or double complex,
+then output is float or double respectively.
+
+.SH RETURN VALUE
+The functions returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_scale(3).

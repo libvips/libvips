@@ -1,0 +1,26 @@
+.TH IM_MAKERW 3 "22 April 1992"
+.SH NAME
+im_makerw \- make an IMAGE writeable
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_makerw( image )
+.br
+IMAGE *image;
+.SH DESCRIPTION
+im_makerw(3) attempts to make image writeable, ready for an in-place operation.
+Its actions are just as those for im_incheck(3), except that descriptors which
+after im_incheck(3) end up as IM_MMAPIN descriptors, magically become
+IM_MMAPINRW descriptors.
+
+Extreme caution is urged! You can permanently damage valuable data with this
+call. 
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_mmapin(3), im_mmapinrw(3), im_fastlineuser(3).
+.SH COPYRIGHT
+.br
+National Gallery, 1992
+.SH AUTHOR
+J. Cupitt

@@ -1,0 +1,868 @@
+\section{Programming PIO functions}
+\label{sec:pio}
+
+The VIPS PIO system has a number of advantages over WIO, as summarised in
+the introduction. On the other hand, they are a bit more complicated.
+
+\subsection{Easy PIO with \texttt{im\_wrapone()} and \texttt{im\_wrapmany()}}
+\label{sec:wrapone}
+
+PIO is a very general image IO system, and because of this flexibility,
+can be complicated to program. As a convenience, VIPS offers an easy-to-use
+layer over PIO with the funtions \verb+im_wrapone()+ and \verb+im_wrapmany()+.
+
+If your image processing function is uninterested in coordinates, that is,
+if your input and output images are the same size, and each output pixel
+depends only upon the value of the corresponding pixel in the input image
+or images, then these functions are for you.
+
+Consider the \verb+invert()+ function of figure~\ref{fg:invert}. First,
+we have to write the core of this as a buffer-processing function:
+
+\begin{verbatim}
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <vips/vips.h>
+
+/* p points to a buffer of pixels which 
+ * need inverting, q points to the buffer 
+ * we should write the result to, and n 
+ * is the number of pels present.
+ */
+static void
+invert_buffer( unsigned char *p, 
+   unsigned char *q, int n )
+{
+   int i;
+
+   for( i = 0; i < n; i++ )
+      q[i] = 255 - p[i];
+}
+\end{verbatim}
+
+Now we have to wrap up this very primitive expression of the invert operation
+as a PIO function. We use \verb+im_wrapone()+ to do this. It has type:
+
+\begin{verbatim}
+int
+im_wrapone( IMAGE *in, IMAGE *out,
+   im_wrapone_fn fn, void *a, void *b )
+\end{verbatim}
+
+\noindent
+where:
+
+\begin{verbatim}
+void 
+(*im_wrapone_fn)(void *in, void *out, 
+   int n, void *a, void *b ) 
+\end{verbatim}
+   
+\noindent
+almost the same type as our buffer-processing function above. The values
+\verb+a+ and \verb+b+ are carried around by VIPS for whatever use you
+fancy. \verb+invert()+ can now be written as:
+
+\begin{verbatim}
+int
+invert( IMAGE *in, IMAGE *out )
+{
+   /* Check parameters.
+    */
+   if( in->BandFmt != IM_BANDFMT_UCHAR || 
+      in->Bands != 1 || 
+      in->Coding != IM_CODING_NONE ) {
+      im_error( "invert", "bad image" );
+      return( -1 );
+   }
+
+   /* Set fields in output image.
+    */
+   if( im_cp_desc( out, in ) )
+      return( -1 );
+
+   /* Process! We don't use either of the 
+    * user parameters in this function, 
+    * so leave them as NULL.
+    */
+   if( im_wrapone( in, out,
+      (im_wrapone_fn) invert_buffer, 
+      NULL, NULL ) )
+      return( -1 );
+
+   return( 0 );
+} 
+\end{verbatim}
+
+And that's all there is to it. This function will have all of the desirable
+properties of PIO functions, while being as easy to program as the WIO
+\verb+invert()+ earlier in this chapter.
+
+This version of \verb+invert()+ is not very general: it will only accept
+one-band unsigned char images. It is easy to modify for n-band images:
+
+\begin{verbatim}
+/* As before, but use one of the user 
+ * parameters to pass in the number of 
+ * bands in the image.
+ */
+static void
+invert_buffer( unsigned char *p, 
+   unsigned char *q, int n,
+   IMAGE *in )
+{
+   int i;
+   int sz = n * in->Bands;     
+
+   for( i = 0; i < sz; i++ )
+      q[i] = 255 - p[i];
+}
+\end{verbatim}
+
+We must also modify \verb+invert()+:
+
+\begin{verbatim}
+int
+invert( IMAGE *in, IMAGE *out )
+{
+   /* Check parameters.
+    */
+   if( in->BandFmt != IM_BANDFMT_UCHAR || 
+      in->Coding != IM_CODING_NONE ) {
+      im_error( "invert", "bad image" );
+      return( -1 );
+   }
+
+   /* Set fields in output image.
+    */
+   if( im_cp_desc( out, in ) )
+      return( -1 );
+
+   /* Process! The first user-parameter 
+    * is the number of bands involved.
+    */
+   if( im_wrapone( in, out,
+      (im_wrapone_fn)invert_buffer, 
+      in, NULL ) )
+      return( -1 );
+
+   return( 0 );
+}    
+\end{verbatim}
+
+There are two significant hidden traps here. First, inside the buffer
+processing functions, you may only read the contents of the user parameters
+\verb+a+ and \verb+b+, you may not write to them. This is because on a
+multi-CPU machine, several copies of your buffer-processing functions will
+be run in parallel --- if they all write to the same place, there will be
+complete confusion. If you need writeable parameters (for example, to count
+and report overflows), you can't use \verb+im_wrapone()+, you'll have to
+use the PIO system in all its gory detail, see below.
+
+Secondly, your buffer processing function may not be called immediately. VIPS
+may decide to delay evaluation of your operation until long after the call
+to \verb+invert()+ has returned. As a result, care is needed to ensure
+that you never read anything in your buffer-processing function that may
+have been freed. The best way to ensure this is to use the local resource
+allocators, such as \verb+im_open_local()+ and \verb+im_malloc()+. This issue
+is discussed at length in the sections below, and in \pref{sec:appl}.
+
+\verb+im_wrapone()+ is for operations which take exactly one input image. VIPS
+provides a second function, \verb+im_wrapmany()+, which works for any number
+of input images. The type of \verb+im_wrapmany()+ is slightly different:
+
+\begin{verbatim}
+int
+im_wrapmany( IMAGE **in, IMAGE *out,
+   im_wrapmany_fn fn, void *a, void *b ) 
+\end{verbatim}
+
+\noindent
+
+\begin{verbatim}
+void 
+(*im_wrapmany_fn)( void **in, void *out, 
+   int n, void *a, void *b )
+\end{verbatim}
+
+\noindent
+\verb+im_wrapmany()+ takes a \verb+NULL+-terminated array of input images,
+and creates a \verb+NULL+-terminated array of buffers for the use of your
+buffer processing function. A function to add two \verb+IM_BANDFMT_UCHAR+
+images to make a \verb+IM_BANDFMT_UCHAR+ image might be written as:
+
+\begin{verbatim}
+static void
+add_buffer( unsigned char **in, 
+   unsigned short *out, int n, 
+   IMAGE *in )
+{
+   int i;
+   int sz = n * in->Bands;
+   unsigned char *p1 = in[0];
+   unsigned char *p2 = in[1];
+
+   for( i = 0; i < sz; i++ )
+      out[i] = p1[i] + p2[i];
+} 
+\end{verbatim}
+
+This can be made into a PIO function with:
+
+\begin{verbatim}
+int
+add_uchar( IMAGE *i1, IMAGE *i2, 
+   IMAGE *out )
+{
+   IMAGE *invec[3];
+
+   /* Check parameters. We don't need to 
+    * check that i1 and i2 are the same 
+    * size, im_wrapmany() does that for 
+    * us.
+    */
+   if( i1->BandFmt != IM_BANDFMT_UCHAR ||
+      i1->Coding != IM_CODING_NONE ||
+      i2->BandFmt != IM_BANDFMT_UCHAR || 
+      i2->Coding != IM_CODING_NONE ||
+      i1->Bands != i2->Bands ) {
+      im_error( "add_uchar", "bad in" );
+      return( -1 );
+   }
+
+   /* Set fields in output image. As 
+    * input image, but we want a USHORT.
+    */
+   if( im_cp_desc( out, i1 ) )
+      return( -1 );
+   out->BandFmt = IM_BANDFMT_USHORT;
+   out->Bbits = IM_BBITS_SHORT;
+
+   /* Process! The first user-parameter 
+    * is the number of bands involved. 
+    * invec is a NULL-terminated array of 
+    * input images.
+    */
+   invec[0] = i1; invec[1] = i2; 
+   invec[2] = NULL;
+   if( im_wrapmany( invec, out,
+      (im_wrapone_fn)add_buffer, 
+      i1, NULL ) )
+      return( -1 );
+
+   return( 0 );
+}
+\end{verbatim}
+
+\subsection{Region descriptors}
+
+Regions are the next layer of abstraction above image descriptors. A region
+is a small part of an image, held in memory ready for processing. A region
+is defined as:
+
+\begin{verbatim}
+typedef struct {
+   Rect valid;   
+   IMAGE *im;
+
+   ... and some other private fields, 
+   ... used by VIPS for housekeeping
+} REGION; 
+\end{verbatim}
+
+\noindent
+where \verb+valid+ holds the sub-area of image \verb+im+ that this region
+represents, and \verb+Rect+ is defined as:
+
+\begin{verbatim}
+typedef struct {
+   int left, top;
+   int width, height;
+} Rect; 
+\end{verbatim}
+
+\noindent
+two macros are available for \verb+Rect+ calculations:
+
+\begin{verbatim}
+int IM_RECT_RIGHT( Rect *r )
+int IM_RECT_BOTTOM( Rect *r )
+\end{verbatim}
+
+\noindent
+where \verb+IM_RECT_RIGHT()+ returns \verb+left+ + \verb+width+, and
+\verb+IM_RECT_BOTTOM()+ returns \verb+top+ + \verb+height+.  A small library
+of C functions are also available for \verb+Rect+ algebra, see the manual
+pages for \verb+im_rect_intersectrect()+.
+
+Regions are created with \verb+im_region_create()+. This has type:
+
+\begin{verbatim}
+REGION *im_region_create( IMAGE *im ) 
+\end{verbatim}
+
+\noindent
+\verb+im_region_create()+ returns a pointer to a new region structure,
+or \verb+NULL+ on error. Regions returned by \verb+im_region_create()+
+are blank --- they contain no image data and cannot be read from or written
+to. See the next couple of sections for calls to fill regions with data.
+
+Regions are destroyed with \verb+im_region_free()+. It has type:
+
+\begin{verbatim}
+int im_region_free( REGION *reg ) 
+\end{verbatim}
+
+\noindent
+And, as usual, returns 0 on success and non-zero on error, setting
+\verb+im_error()+. You must free all regions you create. If you close
+an image without freeing all the regions defined on that image, the image is
+just marked for future closure --- it is not actually closed until the final
+region is freed. This behaviour helps to prevent dangling pointers, and it
+is not difficult to make sure you free all regions --- see the examples below.
+
+\subsection{Image input with regions}
+
+Before you can read from a region, you need to call \verb+im_prepare()+
+to fill the region with image data. It has type:
+
+\begin{verbatim}
+int im_prepare( REGION *reg, Rect *r ) 
+\end{verbatim}
+
+Area \verb+r+ of the image on which \verb+reg+ has been created is prepared
+and attached to the region.
+
+Exactly what this preparation involves depends upon the image --- it can
+vary from simply adjusting some pointers, to triggering the evaluation of a
+series of other functions. If it returns successfully, \verb+im_prepare()+
+guarantees that all pixels within \verb+reg->valid+ may be accessed. Note
+that this may be smaller or larger than \verb+r+, since \verb+im_prepare()+
+clips \verb+r+ against the size of the image.
+
+Programs can access image data in the region by calling the macro
+\verb+IM_REGION_ADDR()+. It has type
+
+\begin{verbatim}
+char *IM_REGION_ADDR( REGION *reg, 
+  int x, int y ) 
+\end{verbatim}
+
+Provided that point (x,y) lies inside \verb+reg->valid+,
+\verb+IM_REGION_ADDR()+ returns a pointer to pel $(x,y)$. Adding to the result
+of \verb+IM_REGION_ADDR()+ moves to the right along the line of pels, provided
+you stay strictly within \verb+reg->valid+. Add \verb+IM_REGION_LSKIP()+
+to move down a line, see below. \verb+IM_REGION_ADDR()+ has some other
+useful features --- see the manual page.
+
+Other macros are available to ease address calculation:
+
+\begin{verbatim}
+int IM_REGION_LSKIP( REGION *reg )
+int IM_REGION_N_ELEMENTS( REGION *reg )
+int IM_REGION_SIZEOF_LINE( REGION *reg )
+\end{verbatim}
+
+\noindent
+These find the number of bytes to add to the result of \verb+IM_REGION_ADDR()+
+to move down a line, the number of band elements across the region and the
+number of bytes across the region.
+
+\fref{fg:paverage} is a version of \verb+average()+ which uses
+regions rather than WIO input. Two things: first, we should really be
+using \verb+im_iterate()+, see \pref{sec:sequence}, to do the rectangle
+algebra for us. Secondly, note that we call \verb+im_pincheck()+ rather
+than \verb+im_incheck()+. \verb+im_pincheck()+ signals to the IO system
+that you are a PIO-aware function, giving \verb+im_prepare()+ much more
+flexibility in the sorts of preparation it can do. Also see the manual
+pages for \verb+im_poutcheck()+ and \verb+im_piocheck()+.
+
+\begin{fig2}
+\begin{verbatim}
+#include <stdio.h>
+#include <stdlib.h>
+#include <vips/vips.h>
+#include <vips/region.h>
+
+int
+average( IMAGE *im, double *out )
+{
+   int total, i, y;
+   REGION *reg;
+   Rect area, *r;
+
+   /* Check im.
+    */
+   if( im_pincheck( im ) )
+      return( -1 );
+   if( im->BandFmt != IM_BANDFMT_UCHAR || im->Coding != IM_CODING_NONE ) {
+      im_error( "average", "uncoded uchar images only" );
+      return( -1 );
+   }
+
+   /* Make a region on im which we can use for reading.
+    */
+   if( !(reg = im_region_create( im )) )
+      return( -1 );
+\end{verbatim}
+\caption{First PIO average of image}
+\label{fg:paverage}
+\end{fig2}
+
+\begin{fig2}
+\begin{verbatim}
+   /* Move area over the image in 100x100 pel chunks. 
+    * im_prepare() will clip against the edges of the image 
+    * for us.
+    */
+   total = 0;
+   r = &reg->valid;     
+   area.width = 100; area.height = 100;
+   for( area.top = 0; area.top < im->Ysize; area.top += 100 )
+      for( area.left = 0; area.left < im->Xsize; 
+          area.left += 100 ) {
+          /* Fill reg with pels.
+           */
+          if( im_prepare( reg, &area ) ) {
+             /* We must free the region!
+              */
+             im_region_free( reg );
+             return( -1 );
+          }
+
+          /* Loop over reg, adding to our total.
+           */
+          for( y = r->top; y < IM_RECT_BOTTOM( r ); y++ ) {
+             unsigned char *p = IM_REGION_ADDR( reg, r->left, y );
+
+             for( i = 0; i < IM_REGION_N_ELEMENTS( reg ); i++ )
+                 total += p[i];
+          }
+      }
+
+   /* Make sure we free the region.
+    */
+   im_region_free( reg );
+
+   /* Find average.
+    */
+   *out = (double) total / (IM_IMAGE_N_ELEMENTS( im ) * im->Ysize);
+
+   return( 0 );
+}    
+\end{verbatim}
+\caption{First PIO average of image (cont.)}
+\end{fig2}
+
+This version of \verb+average()+ can be called in exactly the same way as
+the previous one, but this version has the great advantage of not needing
+to have the whole of the input image available at once.
+
+We can do one better than this --- if the image is being split into small
+pieces, we can assign each piece to a separate thread of execution and get
+parallelism. To support this splitting of tasks, VIPS has the notion of
+a sequence.
+
+\subsection{Splitting into sequences}
+\label{sec:sequence}
+
+A sequence comes in three parts: a start function, a processing function,
+and a stop function. When VIPS starts up a new sequence, it runs the
+start function. Start functions return sequence values: a void pointer
+representing data local to this sequence. VIPS then repeatedly calls the
+processing function, passing in the sequence value and a new piece of image
+data for processing. Finally, when processing is complete, VIPS cleans up by
+calling the stop function, passing in the sequence value as an argument. The
+types look like this:
+
+\begin{verbatim}
+void *
+(*start_fn)( IMAGE *out, 
+   void *a, void *b )
+int 
+(*process_fn)( REGION *reg, 
+   void *seq, void *a, void *b )
+int 
+(*stop_fn)( void *seq, void *a, void *b ) 
+\end{verbatim}
+
+\noindent
+The values \verb+a+ and \verb+b+ are carried around by VIPS for your use.
+
+For functions like \verb+average()+ which consume images but produce no image
+output, VIPS provides \verb+im_iterate()+. This has type:
+
+\begin{verbatim}
+int im_iterate( IMAGE *in, 
+   void *(*start_fn)(), 
+   int (*process_fn)(), 
+   int (*stop_fn)(),
+   void *a, void *b ) 
+\end{verbatim}
+
+VIPS starts one or more sequences, runs one or more processing functions
+over image \verb+in+ until all of \verb+in+ has been consumed, and then closes
+all of the sequences down and returns. VIPS guarantees that the regions
+the \verb+process_fn()+ is given will be complete and disjoint, that is,
+every pixel in the image will be passed through exactly one sequence. To
+make it possible for the sequences to each contribute to the result of the
+function in an orderly manner, VIPS also guarantees that all start and stop
+functions are mutually exclusive.
+
+A note on types: \verb+<vips/region.h>+ declares prototypes for
+\verb+im_iterate()+ and \verb+im_generate()+ (see \pref{sec:generate}),
+but does not give prototypes for the function arguments. This loses a
+little type-safety, but gains some convenience.
+
+An example should make this clearer. This version of \verb+average()+
+is very similar to the average function in the VIPS library --- it is only
+missing polymorphism.
+
+\begin{fig2}
+\begin{verbatim}
+#include <stdio.h>
+#include <stdlib.h>
+#include <vips/vips.h>
+#include <vips/region.h>
+
+/* Start function for average(). We allocate a small piece of
+ * storage which this sequence will accumulate its total in. Our
+ * sequence value is just a pointer to this storage area.
+ *
+ * The first of the two pointers VIPS carries around for us is a
+ * pointer to the space where we store the grand total.
+ */
+static int *
+average_start( IMAGE *out )
+{
+   int *seq = IM_NEW( out, int );
+
+   if( !seq )
+      return( NULL );
+   *seq = 0;
+
+   return( seq );
+}
+
+/* Stop function for average(). Add the total which has 
+ * accumulated in our sequence value to the grand total for 
+ * the program.
+ */
+static int
+average_stop( int *seq, int *gtotal )
+{
+   /* Stop functions are mutually exclusive, so we can write 
+    * to gtotal without clashing with any other stop functions.
+    */
+   *gtotal += *seq;
+
+   return( 0 );
+}
+\end{verbatim}
+\caption{Final PIO average of image}
+\label{fg:p2average}
+\end{fig2}
+
+\begin{fig2}
+\begin{verbatim}
+/* Process function for average(). Total this region, and 
+ * add that total to the sequence value.
+ */
+static int
+average_process( REGION *reg, int *seq )
+{
+   int total, i, y;
+   Rect *r = &reg->valid;
+
+   /* Get the appropriate part of the input image ready.
+    */
+   if( im_prepare( reg, r ) )
+      return( -1 ); 
+
+   /* Loop over the region.
+    */
+   total = 0;
+   for( y = r->top; y < IM_RECT_BOTTOM( r ); y++ ) {
+      unsigned char *p = IM_REGION_ADDR( reg, r->left, y );
+
+      for( i = 0; i < IM_REGION_N_ELEMENTS( reg ); i++ )
+          total += p[i];
+   }
+
+   /* Add to the total for this sequence.
+    */
+   *seq += total;
+
+   return( 0 );
+}
+\end{verbatim}
+\caption{Final PIO average of image (cont.)}
+\end{fig2}
+
+\begin{fig2}
+\begin{verbatim}
+/* Find average of image.
+ */
+int
+average( IMAGE *im, double *out )
+{
+   /* Accumulate grand total here.
+    */
+   int gtotal = 0;
+   
+   /* Prepare im for PIO reading.
+    */
+   if( im_pincheck( im ) )
+      return( -1 );
+
+   /* Check it is the sort of thing we can process.
+    */
+   if( im->BandFmt != IM_BANDFMT_UCHAR || 
+      im->Coding != IM_CODING_NONE ) {
+      im_error( "average", "uncoded uchar images only" );
+      return( -1 );
+   }
+
+   /* Loop over the image in pieces, and possibly in parallel.
+    */
+   if( im_iterate( im, 
+      average_start, average_process, average_stop,
+      &gtotal, NULL ) )
+      return( -1 );
+
+   /* Calculate average.
+    */
+   *out = (double) gtotal / (IM_IMAGE_N_ELEMENTS( im ) * im->Ysize);
+
+   return( 0 );
+} 
+\end{verbatim}
+\caption{Final PIO average of image (cont.)}
+\end{fig2}
+
+There are a couple of variations on \verb+im_prepare()+: you can use
+\verb+im_prepare_to()+ to force writing to a particular place, and
+\verb+im_prepare_thread()+ to use threaded evaluation. See the man pages.
+
+\subsection{Output to regions}
+\label{sec:generate}
+
+Regions are written to in just the same way they are read from --- by
+writing to a pointer found with the \verb+IM_REGION_ADDR()+ macro.
+
+\verb+im_iterate()+ does input --- \verb+im_generate()+ does output. It
+has the same type as \verb+im_iterate()+:
+
+\begin{verbatim}
+int 
+im_generate( IMAGE *out,
+   void *(*start_fn)(), 
+   int (*process_fn)(), 
+   int (*stop_fn)(),
+   void *a, void *b )    
+\end{verbatim}
+
+The region given to the process function is ready for output. Each time
+the process function is called, it should fill in the pels in the region
+it was given. Note that, unlike \verb+im_iterate()+, the areas the process
+function is asked to produce are not guaranteed to be either disjoint or
+complete. Again, VIPS may start up many process functions if it sees fit.
+
+Here is \verb+invert()+, rewritten to use PIO. This piece of code makes use
+of a pair of standard start and stop functions provided by the VIPS library:
+\verb+im_start_one()+ and \verb+im_stop_one()+. They assume that the first
+of the two user arguments to \verb+im_generate()+ is the input image. They are
+defined as:
+
+\begin{verbatim}
+REGION *
+im_start_one( IMAGE *out, IMAGE *in )
+{
+   return( im_region_create( in ) );
+} 
+\end{verbatim}
+
+\noindent
+and:
+
+\begin{verbatim}
+int
+im_stop_one( REGION *seq )
+{
+   return( im_region_free( seq ) );
+} 
+\end{verbatim}
+
+They are useful for simple functions which expect only one input
+image. See the manual page for \verb+im_start_many()+ for many-input 
+functions.
+
+\begin{fig2}
+\begin{verbatim}
+#include <stdio.h>
+#include <stdlib.h>
+#include <vips/vips.h>
+#include <vips/region.h>
+
+/* Process function for invert(). Build the pixels in or 
+ * from the appropriate pixels in ir.
+ */
+static int
+invert_process( REGION *or, REGION *ir )
+{
+   Rect *r = &or->valid;
+   int i, y;
+
+   /* Ask for the part of ir we need to make or. In this 
+    * case, the two areas will be the same.
+    */
+   if( im_prepare( ir, r ) )
+      return( -1 );
+   
+   /* Loop over or writing pels calculated from ir.
+    */
+   for( y = r->top; y < IM_RECT_BOTTOM( r ); y++ ) {
+      unsigned char *p = IM_REGION_ADDR( ir, r->left, y );
+      unsigned char *q = IM_REGION_ADDR( or, r->left, y );
+
+      for( i = 0; i < IM_REGION_N_ELEMENTS( or ); i++ )
+          q[i] = 255 - p[i];
+   }
+
+   /* Success!
+    */
+   return( 0 );
+}
+\end{verbatim}
+\caption{PIO invert}
+\label{fg:p2invert}
+\end{fig2}
+
+\begin{fig2}
+\begin{verbatim}
+/* Invert an image.
+ */
+int
+invert( IMAGE *in, IMAGE *out )
+{
+   /* Check descriptors for PIO compatibility.
+    */
+   if( im_piocheck( in, out ) )
+      return( -1 );
+
+   /* Check input image for compatibility with us.
+    */
+   if( in->BandFmt != IM_BANDFMT_UCHAR || in->Coding != IM_CODING_NONE ) {
+      im_error( "invert", "uncoded uchar images only" );
+      return( -1 );
+   }
+
+   /* out inherits from in, as before.
+    */
+   if( im_cp_desc( out, in ) )
+      return( -1 );
+
+   /* Set demand hints for out.
+    */
+   if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) )
+      return( -1 );
+
+   /* Build out in pieces, and possibly in parallel!
+    */
+   if( im_generate( out,
+      im_start_one, invert_process, im_stop_one,
+      in, NULL ) )
+      return( -1 );
+
+   return( 0 );
+}    
+\end{verbatim}
+\caption{PIO invert (cont.)}
+\end{fig2}
+
+Functions have some choice about the way they write their output. Usually, they
+should just write to the region they were given by \verb+im_generate()+. They
+can, if they wish, set up the region for output to some other place. See
+the manual page for \verb+im_region_region()+.  See also the source for
+\verb+im_copy()+ and \verb+im_extract()+ for examples of these tricks.
+
+Note also the call to \verb+im_demand_hint()+. This function hints to the IO
+system, suggesting the sorts of shapes of region this function is happiest
+with. VIPS supports four basic shapes --- choosing the correct shape can
+have a dramatic effect on the speed of your function. See the man page for
+full details.
+
+\subsection{Callbacks}
+\label{sec:callback}
+
+VIPS lets you attach callbacks to image descriptors. These are functions
+you provide that VIPS will call when certain events occur. This release
+of VIPS supports three callbacks:
+
+\subsubsection{Close callbacks}
+
+These callbacks are invoked just before an image is closed. They are useful
+for freeing objects which are associated with the image. All callbacks are
+triggered in the reverse order to the order in which they were attached. This
+is sometimes important when freeing objects which contain pointers to
+other objects.
+
+Use \verb+im_add_close_callback()+ to add a close callback:
+
+\begin{verbatim}
+int 
+im_add_close_callback( IMAGE *im, 
+   int (*callback)(), 
+   void *a, void *b ) 
+\end{verbatim}
+   
+\noindent
+where \verb+callback()+ is a function supplied by you which has type:
+
+\begin{verbatim}
+int callback( void *a, void *b ) 
+\end{verbatim}
+
+\noindent
+and which returns 0 on success, and -1 on error, setting
+\verb+im_error()+. As with \verb+im_generate()+, the values \verb+a+
+and \verb+b+ are carried around for you by VIPS, and may be used as your
+function sees fit.
+
+\subsubsection{Eval callbacks}
+
+These are callbacks which are invoked by VIPS during evaluation. They
+are called each time a region is filled with data (for PIO functions), or
+each time \verb+im_writeline()+ is called (for WIO functions). The callback
+has access to a large struct containing information about the progress of
+evaluation, useful for user-interfaces built on top of VIPS. See the manual
+page for \verb+im_add_eval_callback()+ for full details.
+
+\subsubsection{Evalend callbacks}
+
+These are triggered after completion of evaluation of an image, just after all
+stop functions have been called. Evalend callbacks are useful for summarising
+the results of a computation, see the example in the section below.
+
+\subsection{Memory allocation revisited}
+
+When you are using PIO, memory allocation becomes rather more complicated than
+it was before. There are essentially two types of memory which your function
+might want to use for working space: memory which is associated with each
+instance of your function (remember that two copies of you function may be
+joined together in a pipeline and be running at the same time --- you can't
+just use global variables), and memory which is local to each sequence
+which VIPS starts on your argument image.
+
+The first type, memory local to this function instance, typically holds
+copies of any parameters passed to your image processing function, and links
+to any read-only tables used by sequences which you run over the image. This
+should be allocated in your main function.
+
+The second type of memory, memory local to a sequence, should be allocated
+in a start function. Because this space is private to a sequence, it may be
+written to. Start and stop functions are guaranteed
+to be single-threaded, so you may write to the function-local memory within 
+them.
+

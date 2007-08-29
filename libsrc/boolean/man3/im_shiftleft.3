@@ -1,0 +1,30 @@
+.TH SHIFT 3 "30 October 1992"
+.SH NAME
+im_shiftleft, im_shiftright \- bit shift operations
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_shiftleft( in, out, n )
+.br
+.B IMAGE *in, *out;
+.br
+.B int n;
+
+.B int im_shiftright( in, out, n )
+.br
+.B IMAGE *in, *out;
+.br
+.B int n;
+
+.SH DESCRIPTION
+Shift integer images n bits left or right. Shifts on signed images are
+sign-preserving.
+
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE ALSO
+im_ifthenelse(3), im_equal(3), im_andimage(3).
+.SH COPYRIGHT
+National Gallery, 1992
+.SH AUTHOR
+J. Cupitt

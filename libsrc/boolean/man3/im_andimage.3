@@ -1,0 +1,91 @@
+.TH IM_ANDIMAGE 3 "30 October 1992"
+.SH NAME
+im_andimage, im_andconst, im_and_vec, im_orimage, im_orconst, im_or_vec,
+im_eorimage, im_eorconst, im_eor_vec \- boolean
+operations on unsigned char images
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_andimage(a, b, out)
+.br
+.B IMAGE *a, *b, *out;
+
+.B int im_andconst(a, out, c)
+.br
+.B IMAGE *a, *out;
+.br
+.B double c;
+
+.B int im_and_vec(a, out, n, v)
+.br
+.B IMAGE *a, *out;
+.br
+.B int n;
+.br
+.B double *v;
+
+.B int im_orimage(a, b, out)
+.br
+.B IMAGE *a, *b, *out;
+
+.B int im_orconst(a, out, c)
+.br
+.B IMAGE *a, *out;
+.br
+.B double c;
+
+.B int im_or_vec(a, out, n, v)
+.br
+.B IMAGE *a, *out;
+.br
+.B int n;
+.br
+.B double *v;
+
+.B int im_eorimage(a, b, out)
+.br
+.B IMAGE *a, *b, *out;
+
+.B int im_eorconst(a, out, c)
+.br
+.B IMAGE *a, *out;
+.br
+.B double c;
+
+.B int im_eor_vec(a, out, n, v)
+.br
+.B IMAGE *a, *out;
+.br
+.B int n;
+.br
+.B double *v;
+
+.SH DESCRIPTION
+Perform bitwise logical operations on integer images.
+
+.B im_andimage(3)
+performs bitwise and between corresponding pixels in a and b, writing the
+result to out.  Both images must be the same size and have the same number
+of bands.  They can have any integer type.
+
+.B im_andconst(3) 
+performs bitwise and between pixels in a and a single 
+constant value. 
+.B im_and_vec(3) 
+lets you specify n constants, one per band.
+
+.B im_orimage(3) 
+and 
+.B im_eorimage(3) 
+behave similarly. Use im_eorconst( in, out, -1 ) or 
+.B im_invert(3) 
+as a not operator.
+
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE ALSO
+im_ifthenelse(3), im_equal(3).
+.SH COPYRIGHT
+National Gallery, 1992
+.SH AUTHOR
+J. Cupitt

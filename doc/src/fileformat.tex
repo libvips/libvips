@@ -1,0 +1,160 @@
+\section{The VIPS file format}
+
+VIPS has its own very simple file format. It is used inside VIPS to hold
+images during computation. You can save images in VIPS format if you want,
+but the VIPS format is not widely used and you may have problems reading
+your images into other packages.
+
+If you intend to keep an image, it's much better to save it as TIFF, 
+JPEG, PNG or PBM/PGM/PPM. VIPS can transparently read and write all these
+formats.
+
+\subsection{VIPS file header}
+\label{sec:header}
+
+All VIPS image files start with a 64-byte header giving basic information
+about the image dimensions, see \tref{fg:header}. This is followed by the 
+image data. This is usually just the pixel values in native format (ie. the
+byte order used by the machine that wrote the file) laid out left-to-right and
+top-to-bottom. After the image data comes a block of optional XML which holds
+extra image metadata, such as ICC profiles and image history.
+You can use the command-line program \verb+header+ to extract the XML from an
+image and \verb+edvips+ to replace it, see the man pages.
+
+The \ct{Type} field, the \ct{Xres}/\ct{Yres} fields, and the
+\ct{Xoffset}/\ct{Yoffset} fields are advisory. VIPS maintains their value
+(if you convert an image to \cielab{} colour space with \ct{im\_XYZ2Lab()},
+for example, VIPS will set \ct{Type} to be \ct{IM\_TYPE\_LAB}), but never
+uses these values itself in determining the action of an image processing
+function. These fields are to help the user, and to help application
+programs built on VIPS which are trying to present image data to the user
+in a meaningful way.
+
+The \ct{BandFmt}, \ct{Coding} and \ct{Type} fields can take the values
+shown in tables~\ref{fg:bandfmt}, \ref{fg:coding} and \ref{fg:type}. The C++
+and Python names for these values are slightly different, for historical
+reasons.
+
+\begin{tab2}
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+Bytes  & Represent 					 & VIPS name \\
+\hline
+0--3   & VIPS magic number (in hex, 08 f2 f6 b6) 	 & \\
+4--7   & Number of pels per horizontal line (integer) 	 & \ct{Xsize} \\
+8--11  & Number of horizontal lines (integer) 		 & \ct{Ysize} \\
+12--15 & Number of bands (integer) 			 & \ct{Bands} \\
+16--19 & Unused (legacy) 				 & \ct{Bbits} \\
+20--23 & Band format (eg. \ct{IM\_BANDFMT\_USHORT})	 & \ct{BandFmt} \\
+24--27 & Coding type (eg. \ct{IM\_CODING\_NONE})	 & \ct{Coding} \\
+28--31 & Type (eg. \ct{IM\_TYPE\_LAB})			 & \ct{Type} \\
+32--35 & Horizontal resolution (float, pixels mm$^{-1}$) & \ct{Xres} \\
+36--39 & Vertical resolution (float, pixels mm$^{-1}$)	 & \ct{Yres} \\
+40--43 & Unused (legacy)				 & \ct{Length} \\
+44--45 & Unused (legacy)				 & \ct{Compression} \\
+46--47 & Unused (legacy)				 & \ct{Level} \\
+48--51 & Horizontal offset of origin			 & \ct{Xoffset} \\
+52--55 & Vertical offset of origin			 & \ct{Yoffset} \\
+56--63 & For future expansion (all zeros for now)	 & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{VIPS header\label{fg:header}}
+\end{tab2}
+
+\begin{tab2}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\ct{BandFmt} 		    & C++ and Python name & Value & Meaning \\
+\hline
+\ct{IM\_BANDFMT\_NOTSET}    & \ct{FMTNOTSET}    & -1 & \\
+\ct{IM\_BANDFMT\_UCHAR}     & \ct{FMTUCHAR}     & 0  & Unsigned 8-bit int \\
+\ct{IM\_BANDFMT\_CHAR} 	    & \ct{FMTCHAR}      & 1  & Signed 8-bit int \\
+\ct{IM\_BANDFMT\_USHORT}    & \ct{FMTUSHORT}    & 2  & Unsigned 16-bit int \\
+\ct{IM\_BANDFMT\_SHORT}     & \ct{FMTSHORT}     & 3  & Signed 16-bit int \\
+\ct{IM\_BANDFMT\_UINT} 	    & \ct{FMTUINT}      & 4  & Unsigned 32-bit int \\
+\ct{IM\_BANDFMT\_INT} 	    & \ct{FMTINT}       & 5  & Signed 32-bit int \\
+\ct{IM\_BANDFMT\_FLOAT}     & \ct{FMTFLOAT}     & 6  & 32-bit IEEE float \\
+\ct{IM\_BANDFMT\_COMPLEX}   & \ct{FMTCOMPLEX}   & 7  & Complex (2 floats) \\
+\ct{IM\_BANDFMT\_DOUBLE}    & \ct{FMTDOUBLE}    & 8  & 64-bit IEEE double \\
+\ct{IM\_BANDFMT\_DPCOMPLEX} & \ct{FMTDPCOMPLEX} & 9  & Complex (2 doubles) \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Possible values for \ct{BandFmt}\label{fg:bandfmt}}
+\end{tab2}
+
+\begin{tab2}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\ct{Coding} & C++ and Python name & Value & Meaning \\
+\hline
+\ct{IM\_CODING\_NONE}  & \ct{NOCODING} & 0 & VIPS computation format \\
+\ct{IM\_CODING\_LABQ}  & \ct{LABQ} & 2 & LABQ storage format \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Possible values for \texttt{Coding}\label{fg:coding}}
+\end{tab2}
+
+\begin{tab2}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\ct{Type} & C++ and Python name & Value & Meaning \\
+\hline
+\ct{IM\_TYPE\_MULTIBAND} & \ct{MULTIBAND} & 0  & Some multiband image \\
+\ct{IM\_TYPE\_B\_W} 	 & \ct{B\_W}      & 1  & Some single band image \\
+\ct{IM\_TYPE\_HISTOGRAM} & \ct{HISTOGRAM} & 10 & Histogram or LUT \\
+\ct{IM\_TYPE\_FOURIER} 	 & \ct{FOURIER}   & 24 & Image in Fourier space \\
+\ct{IM\_TYPE\_XYZ} 	 & \ct{XYZ}       & 12 & \ciexyz{} colour space \\
+\ct{IM\_TYPE\_LAB} 	 & \ct{LAB}       & 13 & \cielab{} colour space \\ 
+\ct{IM\_TYPE\_CMYK} 	 & \ct{CMYK}      & 15 & \ct{im\_icc\_export()} \\
+\ct{IM\_TYPE\_LABQ} 	 & \ct{LABQ}      & 16 & 32-bit \cielab{} \\
+\ct{IM\_TYPE\_RGB} 	 & \ct{RGB}       & 17 & Some RGB \\
+\ct{IM\_TYPE\_UCS} 	 & \ct{UCS}       & 18 & \cieucs{} colour space \\
+\ct{IM\_TYPE\_LCH} 	 & \ct{LCH}       & 19 & \cielch{} colour space \\
+\ct{IM\_TYPE\_LABS} 	 & \ct{LABS}      & 21 & 48-bit \cielab{} \\
+\ct{IM\_TYPE\_sRGB} 	 & \ct{sRGB}      & 22 & sRGB colour space \\
+\ct{IM\_TYPE\_YXY} 	 & \ct{YXY}       & 23 & \cieyxy{} colour space \\
+\ct{IM\_TYPE\_RGB16} 	 & \ct{RGB16}     & 25 & 16-bit RGB \\
+\ct{IM\_TYPE\_GREY16} 	 & \ct{GREY16}    & 26 & 16-bit monochrome \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Possible values for \texttt{Type}\label{fg:type}}
+\end{tab2}
+
+\subsection{Computation formats}
+
+This type of image has \ct{Coding} set to \ct{IM\_CODING\_NONE}. The
+header is then followed by a large array of pixels, laid out left-to-right,
+top-to-bottom.  Each pixel contains the specified number of bands. Each band
+has the specified band format, which may be an 8-, 16- or 32-bit integer
+(either signed or unsigned), a single or double precision IEEE floating
+point number, or a pair of single or double precision floats forming a
+complex number.
+
+All values are stored in the host-machine's native number representation (that
+is, either most-significant first, as in SPARC and 680x0 machines, or
+least-significant first, for Intel and DEC machines). The VIPS library will 
+automatically byte-swap for you if necessary, but this can be slow.
+
+\subsection{Storage formats}
+
+All storage formats have other values for the \ct{Coding} field. This
+release supports only \ct{IM\_CODING\_LABQ} format. 
+
+\ct{IM\_CODING\_LABQ} stores $L^{*}$, $a^{*}$ and $b^{*}$ for each pixel,
+with 10 bits for $L^{*}$ and 11 bits for each of $a^{*}$ and $b^{*}$. These
+32 bits are packed into 4 bytes, with the most significant 8 bits of each
+value in the first 3 bytes, and the left-over bits packed into the final
+byte as 2:3:3.
+
+This format is a little awkward to process. Some VIPS functions can work
+directly on \ct{IM\_CODING\_LABQ} images (\ct{im\_extract()}, for example),
+but most will require you to unpack the image to one of the computation
+formats (for example with \ct{im\_LabQ2Lab()}) first.

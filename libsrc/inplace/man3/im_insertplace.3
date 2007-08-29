@@ -1,0 +1,27 @@
+.TH IM_INSERTPLACE 3 "30 October 1992"
+.SH NAME
+im_insertplace \- paste small images into big images
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+im_insertplace( big, small, x, y )
+.br
+IMAGE *big, *small;
+.br
+int x, y;
+
+.SH DESCRIPTION
+Paste image small into image big, with small's left-left-hand corner at (x,y)
+in image big. Image big must be large enough to hold all of small! No
+clipping. Images may have any type, but must both have the same type.
+
+This is an in-place operation. Big is damaged! Careful.
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_fastline(3), im_smudge(3).
+.SH COPYRIGHT
+.br
+National Gallery, 1992
+.SH AUTHOR
+J. Cupitt

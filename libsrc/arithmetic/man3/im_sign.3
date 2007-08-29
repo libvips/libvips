@@ -1,0 +1,19 @@
+.TH IM_SIGN 3 "July 2002"
+.SH NAME
+im_sign \- find the unit vector in the direction of value
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_sign( in, out )
+.br
+IMAGE *in, *out;
+.SH DESCRIPTION
+.B im_sign(3)
+finds the unit vector in the direction of the pixel value. For non-complex
+images, it returns a signed char image with values -1, 0, and 1 for negative,
+zero and positive pixels. For complex images it returns a
+complex normalised to length 1.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_abs(3), im_cmulnorm(3), im_c2amph(3)

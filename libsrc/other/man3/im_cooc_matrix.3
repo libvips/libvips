@@ -1,0 +1,88 @@
+.TH IM_COOC_MATRIX 3 "2 Dec 1991"
+.SH NAME
+im_cooc_matrix, im_cooc_asm, im_cooc_contrast, im_cooc_correlation, 
+im_cooc_entropy \- calculate the co-occurrence matrix and features on it
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_cooc_matrix(im, m, xp, yp, xs, ys, dx, dy, sym)
+.br
+.B IMAGE *im, *m;
+.br
+.B int xp, yp, xs, ys;
+.br
+.B int dx, dy;
+.br
+.B int sym;
+
+.br
+.B int im_cooc_asm(m, asmoment)
+.br
+.B IMAGE *m;
+.br
+.B double *asmoment;
+
+.br
+.B int im_cooc_contrast(m, contrast)
+.br
+.B IMAGE *m;
+.br
+.B double *contrast;
+
+.br
+.B int im_cooc_correlation(m, correlation)
+.br
+.B IMAGE *m;
+.br
+.B double *correlation;
+
+.br
+.B int im_cooc_entropy(m, entropy)
+.br
+.B IMAGE *m;
+.br
+.B double *entropy;
+
+.SH DESCRIPTION
+.B im_cooc_matrix()
+creates a 256 by 256 one channel co-occurrence matrix of the box determined by
+the parameters (xp, yp; xs, ys) within the image pointed by the IMAGE
+descriptor im.  The matrix is written onto the IMAGE descriptor m.  The
+displacement vector is determined by (dx, dy).  The user must ensure that
+there is enough border pixels around the box within im dictated by the
+displacement vector (dx,dy) or else the program fails.  All entries of the
+co-occurrence matrix are double normalised to the number of pairs involved.
+This function is a direct implementation of the paper:  Haralick R. M.,
+Shanmugan K. and Dinstein I., 'Textural features for image classification',
+IEEE Transactions on Systems, Man, and Cybernetics, Vol. SMC-3, No 6, Nov.
+1973, pp 610-621. Input im should be one band unsigned char image.
+
+If flag sym is 1, the created co-occurrence matrix is symmetric that is
+dispacement vectors (dx, dy), (-dx, -dy) create exactly the same matrix.  If
+sym is 0, the created co-occurrence matrix is not symmetric that is
+dispacement vectors (dx, dy), (-dx, -dy) create different matrices.
+
+.B im_cooc_asm()
+calculates the angular second moment of the co-occurrence matrix held by m.
+The result is returned into the location pointed by asmoment.
+
+.B im_cooc_contrast()
+calculates the contrast of the co-occurrence matrix held by m.
+The result is returned into the location pointed by contrast.
+
+.B im_cooc_correlation()
+calculates the correlation of the co-occurrence matrix held by m.
+The result is returned into the location pointed by correlation.
+
+.B im_cooc_entropy()
+calculates the entropy of the co-occurrence matrix held by m.
+The result is returned into the location pointed by entropy.
+.SH RETURNED VALUES
+All functions returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_glds_matrix(3)
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 2/12/1991

@@ -1,0 +1,21 @@
+.TH IM_PRINT 3 "January 2002"
+.SH NAME
+im_print \- print a string to stdout
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int
+.br
+im_print( const char *message )
+
+.SH DESCRIPTION
+.B im_print()
+prints the message to stdout, with a newline. Sometimes useful for debugging
+language bindings.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_system(3)
+.SH COPYRIGHT
+2002 The National Gallery 

@@ -1,0 +1,109 @@
+\section{Introduction}
+\mylabel{sec:oper}
+
+This chapter explains how to write image processing operations using the
+VIPS image I/O (input-output) system. For background, you should probably
+take a look at \pref{sec:appl}. This is supposed to be a tutorial, if you
+need detailed information on any particular function, use the on-line UNIX
+manual pages.
+
+\subsection{Why use VIPS?}
+
+If you use the VIPS image I/O system, you get a number of benefits:
+
+\begin{description}
+
+\item[Threading]
+If your computer has more than one CPU, the VIPS I/O system will automatically
+split your image processing operation into separate threads (provided you
+use PIO, see below). You should get an approximately linear speed-up as
+you add more CPUs.
+
+\item[Pipelining]
+Provided you use PIO (again, see below), VIPS can automatically join
+operations together. A sequence of image processing operations will all
+execute together, with image data flowing through the processing pipeline
+in small pieces. This makes it possible to perform complex processing on
+very large images with no need to worry about storage management.
+
+\item[Composition]
+Because VIPS can efficiently compose image processing operations, you can
+implement your new operation in small, reusable, easy-to-understand
+pieces. VIPS already has a lot of these: many new operations can be
+implemented by simply composing existing operations.
+
+\item[Large files]
+Provided you use PIO and as long as the underlying OS supports large files
+(that is, files larger than 2GB), VIPS operations can work on files larger
+than can be addressed with 32 bits on a plain 32-bit machine. VIPS operations
+only see 32 bit addresses; the VIPS I/O system transparently maps these to
+64 bit operations for I/O. Large file support is included on most unixes after
+about 1998.
+
+\item[Abstraction]
+VIPS operations see only arrays of numbers in native format. Details of
+representation (big/little endian, VIPS/TIFF/JPEG file format, etc.) are 
+hidden from you.
+
+\item[Interfaces]
+Once you have your image processing operation implemented, it automatically
+appears in all of the VIPS interfaces. VIPS comes with a GUI (\nip{}), a
+UNIX command-line interface (\vips{}) and a C++ and Python API.
+
+\item[Portability]
+VIPS operations can be compiled on most unixes, Mac OS X and Windows NT, 2000
+and XP without modification. Mostly.
+
+\end{description}
+
+\subsection{I/O styles}
+
+The I/O system supports three styles of input-output. 
+
+\begin{description}
+
+\item[Whole-image I/O (WIO)]
+This style is a largely a left-over from VIPS 6.x. WIO image-processing
+operations have all of the input image given to them in a large memory
+array. They can read any of the input pels at will with simple pointer
+arithmetic.
+
+\item[Partial-image I/O (PIO)]
+In this style operations only have a small part of the input image available
+to them at any time. When PIO operations are joined together into a pipeline,
+images flow through them in small pieces, with all the operations in a
+pipeline executing at the same time. 
+
+\item[In-place]
+The third style allows pels to be read and written anywhere in
+the image at any time, and is used by the VIPS in-place operations, such
+as \verb+im_fastline()+. You should only use it for operations which would
+just be impossibly inefficient to write with either of the other two styles.
+
+\end{description}
+
+WIO operations are easy to program, but slow and inflexible when images
+become large. PIO operations are harder to program, but scale well as images
+become larger, and are automatically parallelized by the VIPS I/O system.
+
+If you can face it, and if your algorithm can be expressed in this way, you
+should write your operations using PIO.  Whichever you choose, applications
+which call your operation will see no difference, except in execution speed.
+
+If your image processing operation performs no coordinate transformations,
+that is, if your output image is the same size as your input image or images,
+and if each output pixel depends only upon the pixel at the corresponding
+position in the input images, then you can use the \verb+im_wrapone()+
+and \verb+im_wrapmany()+ operations. These take a simple buffer-processing
+operation supplied by you and wrap it up as a full-blown PIO operation. 
+See~\pref{sec:wrapone}.
+
+\subsection{What's new in this version}
+
+The VIPS API is mostly unaltered since 7.3, so there are not many major
+changes. I've just reworked the text, reformatted, fixed a few typos,
+and changed the dates.
+
+VIPS has acquired some crud over the years. We are planning to clean all
+this stuff up at some stage (and break backwards-compatibility). Maybe for
+VIPS 8 :-(

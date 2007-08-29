@@ -1,0 +1,78 @@
+.TH IM_SGLDS_MATRIX 3 "10 May 1991"
+.SH NAME
+im_glds_matrix, im_glds_asm, im_glds_contrast, im_glds_mean, im_glds_entropy \- calculate the spatial grey level difference matrix and features on it
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_glds_matrix(im, m, xp, yp, xs, ys, dx, dy)
+.br
+.B IMAGE *im, *m;
+.br
+.B int xp, yp, xs, ys;
+.br
+.B int dx, dy;
+
+.B int im_glds_asm(m, asmoment)
+.br
+.B IMAGE *m;
+.br
+.B double *asmoment;
+
+.B int im_glds_contrast(m, contrast)
+.br
+.B IMAGE *m;
+.br
+.B double *contrast;
+
+.B int im_glds_entropy(m, entropy)
+.br
+.B IMAGE *m;
+.br
+.B double *entropy;
+
+.B int im_glds_mean(m, mean)
+.br
+.B IMAGE *m;
+.br
+.B double *mean;
+
+.SH DESCRIPTION
+.B im_glds_matrix()
+creates a 256 by 1 one channel spatial grey level difference matrix (sglds) of
+the box determined by the parameters (xp, yp; xs, ys) within the image pointed
+by the IMAGE descriptor im.  The matrix is written onto the IMAGE descriptor
+m.  The displacement vector is determined by (dx, dy).  The user must ensure
+that there is enough border pixels around the box within im dictated by the
+displacement vector (dx,dy) or else the program fails. im should be one-band
+unsigned char.
+
+All entries of the sgld matrix are double normalised to the number of pairs
+involved.  This function is a direct implementation of the paper:  Haralick R.
+M., Shanmugan K. and Dinstein I., 'Textural features for image
+classification', IEEE Transactions on Systems, Man, and Cybernetics, Vol.
+SMC-3, No 6, Nov. 1973, pp 610-621.
+
+.B im_glds_asm()
+calculates the angular second moment of the co-occurrence matrix held by m.
+The result is returned into the location pointed by asmoment.
+
+.B im_glds_contrast()
+calculates the contrast of the sglds matrix held by m.  The result is returned
+into the location pointed by contrast.
+
+.B im_glds_entropy()
+calculates the entropy of the sglds matrix held by m.  The result is returned
+into the location pointed by entropy.
+
+.B im_glds_mean()
+calculates the mean of the sglds matrix held by m.  The result is returned
+into the location pointed by mean.
+.SH RETURNED VALUES
+All functions returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_cooc_matrix(3)
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 10/05/1991

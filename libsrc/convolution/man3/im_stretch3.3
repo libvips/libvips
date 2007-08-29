@@ -1,0 +1,28 @@
+.TH IM_STRETCH3 3 "Sep 18 1997"
+.SH NAME
+im_stretch3 \-  stretch horizontally by 3%, displace sub-pixel
+mask
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_stretch3( in, out, xdisp, ydisp )
+.br
+IMAGE *in, *out;
+.br
+double xdisp, ydisp;
+
+.SH DESCRIPTION
+im_stretch3() stretches the input image by 3% horizontally, and displaces it
+by xdisp/ydisp. It uses bi-cubic interpolation, but runs quickly. It works
+only for unsigned short images.
+
+This function is part of the MARC acquisition software, but is generally
+useful for squaring up the pixels in images from the Kontron ProgRes camera
+range.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_conv(3), im_shrink(3).
+.SH COPYRIGHT
+The National Gallery, 1997

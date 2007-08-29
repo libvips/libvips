@@ -1,0 +1,28 @@
+.TH IM_ROTQUAD 3 "07 July 1990"
+.SH NAME
+im_rotquad \- rotates the four quadrants of an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_rotquad(in, out)
+.br
+.B IMAGE *in, *out;
+.SH DESCRIPTION
+im_rotquad rotates the four quadrants of the image held by the image
+descriptor in and writes the result on the image descriptor out.
+
+The function is used primarily to rotate a fourier transform in such a way
+that the coordinate (0,0) is near the centre of the image, the so-called
+optical transform.
+
+The function operates on any input;
+output has the same format, sizes and bands as input.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_fwfft(3), im_invfft(3), im_scaleps(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 06/07/1990

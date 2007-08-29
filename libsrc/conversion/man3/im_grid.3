@@ -1,0 +1,42 @@
+.TH IM_GRID 3 "4 August 2005"
+.SH NAME
+im_grid \- split a vertical image into a grid of smaller images
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int 
+.br
+im_grid( IMAGE *in, IMAGE *out, 
+.br
+  int tile_height, int across, int down )
+.SH DESCRIPTION
+.B im_grid(3)
+slices image
+.B in 
+into a set of tiles, each the same width as 
+.B in
+and of height
+.B tile_height
+and rearranges the tiles into a grid with
+.B across
+tiles across and 
+.B down
+tiles down.
+
+It is useful for loading volumetric images (for example, CT or PET scans)
+where more than 2 dimensions need to be displayed. 
+
+The current implementation is optimised for the case where image
+.B in
+is thin and tall and 
+.B across
+and 
+.B down
+are large.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_extract_area(3), im_zoom(3)
+.SH COPYRIGHT
+Imperial College 2005

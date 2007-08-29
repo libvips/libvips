@@ -1,0 +1,19 @@
+.TH BINFILE 1 "11 April 1990"
+.SH NAME
+im_binfile \- convert raw binary files to VIPS format
+.SH SYNOPSIS
+.B binfile in out xs ys b
+.SH DESCRIPTION
+.B binfile
+expects as input a raw UNIX file with its filename held by the string in
+and writes it to the vasari image file out by filling properly the header
+details.  It is expected that the file has sizes xs by ys and 
+has b bands.  It is an error if the file in has less than xs*ys*b data.
+The program is unable to check whether the supplied xs, ys and b are correct.
+.SH SEE\ ALSO
+im_binfile(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 11/04/1990

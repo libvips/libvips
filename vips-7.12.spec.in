@@ -1,0 +1,114 @@
+%define name @PACKAGE@
+%define version @VERSION@
+%define release 1
+%define default_install_prefix /usr/local
+
+Summary: an image processing library
+Name: %{name}
+Version: %{version}
+Release: %{release}
+License: LGPL
+Group: Development/Libraries
+Source: http://www.vips.ecs.soton.ac.uk/vips-7.12/%{name}-%{version}.tar.gz
+URL: http://www.vips.ecs.soton.ac.uk/
+BuildRoot: %{_tmppath}/%{name}-buildroot
+Provides: vips
+Prefix: %{default_install_prefix}
+
+%description
+VIPS is an image processing library. It is good for very large images (ie.
+larger than the amount of RAM in your machine), and for working with colour.
+It includes a C++ API, complete man pages, a command-line interface, automatic
+threading and an operation database. There are several user interfaces
+built on top of VIPS: for example "nip2".
+
+%package devel
+Summary:	Headers and links to develop with vips
+Requires:	vips = %{version}
+Group:		Development/Libraries
+
+%description devel
+These headers are needed to develop programs which want to use the vips
+library. Programs already linked against it only need the vips package.
+
+%package python
+Summary:	Python bindings to use vips
+Requires:	vips = %{version}
+Group:		Development/Libraries
+
+%description python
+Includes the necessary files to use and develop with vips and python
+
+%prep
+rm -rf $RPM_BUILD_ROOT
+%setup 
+
+%build
+# grr ... why do we have to set prefix by hand? if you don't do this, you get
+# /usr, despite the "Prefix:" tag above
+%define _prefix %{default_install_prefix}
+%configure
+
+%install
+%makeinstall
+
+# paste in the non-GPL stuff as a binary plugin
+# comment this out if you don't have it :-(
+# cp ~john/develop/transform-7.9/src/resample.plg ${RPM_BUILD_ROOT}%{_libdir}
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post
+ldconfig
+
+%files
+# don't list explicitly ... install to a private prefix and rely on naming the
+# dirs to pick up the files
+%attr(-, root, root)
+%doc AUTHORS THANKS README TODO COPYING ChangeLog
+%{_bindir}
+%{_libdir}/libvips*.so.*
+%doc %{_mandir}
+%doc %{_datadir}/doc/vips
+%{_datadir}/vips
+%{_datadir}/locale
+
+%files devel
+%{_includedir}/vips
+%{_libdir}/libvips*.so
+%{_libdir}/libvips*.a
+%{_libdir}/libvips*.la
+%{_libdir}/pkgconfig/*
+
+%files python
+%{_libdir}/python*
+
+%changelog -n vips
+* Fri Apr 27 2007 John Cupitt <jcupitt@gmail.com> 7.12
+- updated for 7.12
+
+* Fri Dec 29 2006 - plasmahh@projectiwear.org
+- Split up into library and devel package
+
+* Wed Jun 1 2005 John Cupitt <john.cupitt@ng-london.org.uk> 7.11
+- updated for 7.11
+
+* Tue Dec 14 2004 John Cupitt <john.cupitt@ng-london.org.uk> 7.10.8
+- updated for 7.10.8
+- now updated from configure
+- implicit deps and files
+
+* Wed Jul 16 2003 John Cupitt <john.cupitt@ng-london.org.uk> 7.8.10
+- updated for 7.8.10
+- updated %files
+- copies formatted docs to install area
+
+* Wed Mar 12 2003 John Cupitt <john.cupitt@ng-london.org.uk> 7.8.8
+- updated for 7.8.8, adding libdrfftw
+
+* Mon Feb 3 2003 John Cupitt <john.cupitt@ng-london.org.uk> 7.8.7-2
+- hack to change default install prefix to /usr/local
+
+* Thu Jan 30 2003 John Cupitt <john.cupitt@ng-london.org.uk> 7.8.7-1
+- first stab at an rpm package for vips

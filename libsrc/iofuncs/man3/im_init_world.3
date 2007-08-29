@@ -1,0 +1,47 @@
+.TH IM_INIT_WORLD 3 "11 April 1990"
+.SH NAME
+im_init_world, im_get_option_group \- start up VIPS
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_init_world( const char *argv0 )
+.br
+GOptionGroup *im_get_option_group( void );
+.SH DESCRIPTION
+.B im_init_world(3) 
+starts up the VIPS library. It:
+
+ - initialises any libraries that VIPS is using, including GObject
+ - starts up the threading system
+ - guesses where the VIPS data files are and sets up i18n
+ - loads any plugins
+
+The
+.B argv0
+argument is the value of 
+.B argv[0] 
+your program was passed by the host operating system. VIPS uses this with
+.B im_guess_prefix(3)
+to try to find the various VIPS data files.
+
+.SH EXAMPLE
+
+  int
+  main( int argc, char **argv )
+  {
+    if( im_init_world( argv[0] ) )
+      error_exit( "unable to start VIPS" );
+
+    return( 0 );
+  }
+
+.B im_get_option_group(3) 
+returns a 
+.B GOptionGroup
+containing various VIPS command-line options. It can be used with GOption to
+help parse argc/argv.
+
+.SH SEE ALSO
+im_guess_prefix(3), GOption(3)
+.SH COPYRIGHT
+Birkbeck College and the National Gallery (c) 1994

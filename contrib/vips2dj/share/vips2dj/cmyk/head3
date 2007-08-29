@@ -1,0 +1,12 @@
+%RBIIncludeStartNup
+/sD 16 dict def
+{/Courier findfont[10 0 0 -10 0 0]:mf setfont}stopped{$error/newerror F put}if
+%%EndSetup
+%%Page: 1 1
+%%BeginPageSetup
+%RBIIncludePageSlotInvocation
+mTSsetup
+pmSVsetup
+initializepage
+(FOTOG4; page: 1 of 1)setjob
+%%EndPageSetup

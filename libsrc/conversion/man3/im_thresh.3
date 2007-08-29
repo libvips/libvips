@@ -1,0 +1,46 @@
+.TH IM_THRESH 3 "26 April 1991"
+.SH NAME
+im_thresh, im_slice \- threshold an image
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_thresh(in, out, threshold)
+.br
+IMAGE *in, *out;
+.br
+double threshold;
+
+int im_slice(in, out, threshold1, threshold2)
+.br
+IMAGE *in, *out;
+.br
+double threshold1, threshold2;
+.SH DESCRIPTION
+These functions have been replaced with the relational and boolean
+packages - see 
+.B im_lessconst() 
+and 
+.B im_and() 
+for much better ways of doing this.
+
+These functions operate on any non-complex input.  The output image is a
+unsigned char image with the same sizes and the same number of channels as
+input.
+
+im_slice() thresholds the image held by image descriptor in and writes the
+result on the image descriptor out.  Output is a byte image with values less
+than threshold1) set to 0, values in [threshold1, threshold2) set to 128 and
+values greater than threshold2 set to 255  (x in range [a,b) means a<=x<b).
+
+im_threshold() thresholds the image held by image descriptor in and writes the
+result on the image descriptor out.  Output is a byte image with values less
+than threshold set to 0, and values greater or equal to threshold set to 255.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_dilate(3), im_erode(3), im_lessconst(3), im_and(3).
+.SH COPYRIGHT
+.br
+N. Dessipris,
+.SH AUTHOR
+N. Dessipris \- 26/04/1991

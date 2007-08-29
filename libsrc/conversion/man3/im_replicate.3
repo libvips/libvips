@@ -1,0 +1,31 @@
+.TH IM_REPLICATE 3 "6 October 2003"
+.SH NAME
+im_replicate \- replicate an image horizontally and vertically
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int 
+.br
+im_replicate( IMAGE *in, IMAGE *out, 
+.br
+  int across, int down )
+.SH DESCRIPTION
+.B im_replicate(3)
+repeats image 
+.B in 
+across and down a fixed number of times to make a new larger image.
+
+The current implementation is optimised for the case where image
+.B in
+is small and 
+.B across
+and 
+.B down
+are large.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_extract_area(3), im_zoom(3)
+.SH COPYRIGHT
+National Gallery 2003

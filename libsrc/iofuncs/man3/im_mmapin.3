@@ -1,0 +1,22 @@
+.TH IM_MMAPIN 3 "11 April 1990"
+.SH NAME
+im_mmapin \- memory maps a VASARI image file (read only) and returns
+an image descriptor.
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B IMAGE *im_mmapin(file_name)
+.br
+.B char *file_name;
+.SH DESCRIPTION
+.B im_mmapin(3)
+opens a file for input. It has been replaced by im_open( file_name, "r" ).
+.SH RETURN VALUE
+The function returns the image descriptor on success and NULL on error.
+.SH SEE ALSO
+im_open(3), im_close(3), im_mmapinrw(3), im_makerw(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 11/04/1990

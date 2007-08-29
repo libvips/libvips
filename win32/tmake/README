@@ -1,0 +1,16 @@
+Build system based on trolltech's tmake. Makes a vips.dll on win32.
+
+Copy the .pro and Makefiles in this area into the main VIPS libsrc tree,
+then either use the makefiles already there, (you'll need to edit them),
+or install tmake and regenerate them from the .pro files.
+
+	http://www.trolltech.com/download/tmake.html
+
+	tmake todo.pro -o makefile_todo
+	nmake -f makefile_todo tmake_all
+	nmake -f makefile_todo all
+	tmake vips.pro -o Makefile
+	nmake -f Makefile all
+
+You might need to edit the .pro files a little as well.
+

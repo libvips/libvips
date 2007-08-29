@@ -1,0 +1,30 @@
+.TH IM_ZEROX 3 "14 May 1991"
+.SH NAME
+im_zerox \- find the zero crossings of an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_zerox(in, out, flag)
+.br
+IMAGE *in, *out;
+.br
+int flag;
+
+.SH DESCRIPTION
+im_zerox() detects the positive and negative edges of zero crossings of an
+image held by the image descriptor in, depending on the flag.
+
+If flag is -1 the negative zero crossings are returned.
+If flag is 1 the positive zero crossings are returned.
+
+The output image is byte with zero crossing set to 255 and all other values
+set to zero. Input can have any number of channels, and be any non-complex type.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_conv(3).
+.SH COPYRIGHT
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 14/05/1991

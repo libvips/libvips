@@ -1,0 +1,28 @@
+.TH IM_REMOSAIC 3 "7 Nov 2001"
+.SH NAME
+im_remosaic \- rebuild a mosaic, substituting filenames
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_remosaic( IMAGE *in, IMAGE *out,
+.br
+    const char *old_str, const char *new_str )
+
+.SH DESCRIPTION
+.B im_remosaic(3)
+works rather as im_global_balance(). It takes apart the mosaiced image in and
+rebuilds it, substituting images.
+
+Unlike
+.B im_global_balance(3)
+images are substituted based on their filenames. The rightmost occurence of
+the string old_str is swapped for new_str, that file is opened, and that image
+substituted for the old image.
+
+It's convenient for multispectral images. You can mosaic one band, then use
+that mosaic as a template for mosaicing the others automatically.
+
+.SH RETURN VALUE
+Functions return 0 on success and -1 on error.
+.SH SEE ALSO
+im_global_balance(3)

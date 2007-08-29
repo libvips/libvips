@@ -1,0 +1,38 @@
+.TH IM_MEAN_STD 3 "10 May 1991"
+.SH NAME
+im_mean_std_double_buffer, im_mean_std_int_buffer \- calculates the mean and the std of data held by a by an int or double buffer
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_mean_std_int_buffer(buf, size, mean, std)
+.br
+.B int *buf;
+.br
+.B int size;
+.br
+.B double *mean, *std;
+
+int im_mean_std_double_buffer(buf, size, mean, std)
+.br
+.B double *buf;
+.br
+.B int size;
+.br
+.B double *mean, *std;
+
+.SH DESCRIPTION
+im_mean_std_int_buffer() and im_mean_std_double_buffer()
+calculate the mean and the standard deviation (std) of data held by the 
+integer or double buffer buf.  The buffer has size elements.  The results are
+returned to the locations pointed by mean and std.
+It is the responsibility of the calling function to ensure that there is
+enough data in the buffer.
+.SH RETURN VALUE
+Both functions returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_avg(3), im_stats(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 10/05/1991

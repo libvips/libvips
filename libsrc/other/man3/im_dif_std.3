@@ -1,0 +1,40 @@
+.TH IM_DIF_STD 3 "10 May 1991"
+.SH NAME
+im_dif_std \- calculate the mean and the standard deviation of the difference image for a given displacement vector
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_dif_std(im, xp, yp, xs, ys, dx, dy, mean, std)
+.br
+.B IMAGE *im;
+.br
+.B int xp, yp, xs, ys;
+.br
+.B int dx, dy;
+.br
+.B double *mean, *std;
+
+.SH DESCRIPTION
+.B im_dif_std()
+calculates the mean and the standard deviation of the difference image
+created by the displacement vector (dx,dy) on the box (xp,yp;xs,ys) defined
+on the image pointed by im.  More specifically the difference image is
+of an image given the dispacement vector (dx, dy) is defined as follows:
+For each point of the original image, the start of the vector (dx,dy) is
+set on that point. The difference image at this point is defined as the 
+difference of the values pointed by the vector (end value - start value).
+The function returns the mean and the standard deviation of the
+difference images measured on the area (xp,yp;xs,ys) of im.
+
+Input im should be one band unsigned char image and it should
+have been set by a call to im_mmapin(3) or im_setbuf(3).
+
+.SH RETURNED VALUES(3)
+The function returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_cooc_matrix(3), im_glds_matrix(3)
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 10/05/1991

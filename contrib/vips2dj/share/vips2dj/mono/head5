@@ -1,0 +1,27 @@
+level2 {
+/DeviceGray
+setcolorspace currentdict /PhotoshopDuotoneColorSpace undef currentdict /PhotoshopDuotoneAltColorSpace undef } if
+/picstr1 cols string def
+/_rowpadstr cols string def
+/rawreaddata {currentfile exch readhexstring pop} def
+/padreaddata { _topPad 0 gt       { /_topPad _topPad 1 sub def pop _rowpadstr }
+			 { _subImageRows 0 gt { /_subImageRows _subImageRows 1 sub def
+									dup _leftPad _picsubstr rawreaddata putinterval }
+								  { pop _rowpadstr } ifelse } ifelse } def
+/image2 level2 {/image load def} {{begin
+Width Height BitsPerComponent ImageMatrix
+/DataSource load image end} def} ifelse
+/beginimage {
+image2
+} def
+/readdata /rawreaddata load bind def
+12 dict begin
+/ImageType 1 def
+/Width cols def
+/Height rows def
+/ImageMatrix [cols 0 0 rows 0 0] def
+/BitsPerComponent 8 def
+/Decode [0 1] def
+/DataSource {picstr1 readdata} def
+currentdict end
+beginimage

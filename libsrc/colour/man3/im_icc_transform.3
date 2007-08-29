@@ -1,0 +1,118 @@
+.TH IM_ICC_*() 3 "April 2002"
+.SH NAME
+im_icc_present, im_icc_transform, im_icc_import, im_icc_import_embedded,
+im_icc_export,
+im_icc_export_depth \- transform images using ICC profiles
+.SH SYNOPSIS
+#include <vips/vips.h>
+.br
+#include <vips/colour.h>
+
+#define VIPS_INTENT_PERCEPTUAL (0)
+.br
+#define VIPS_INTENT_RELATIVE_COLORIMETRIC (1)
+.br
+#define VIPS_INTENT_SATURATION (2)
+.br
+#define VIPS_INTENT_ABSOLUTE_COLORIMETRIC (3)
+
+int
+.br
+im_icc_present( void )
+.br
+int
+.br
+im_icc_transform( IMAGE *in, IMAGE *out,
+.br
+  const char *input_profile_filename,
+.br
+  const char *output_profile_filename,
+.br
+  int intent )
+
+int
+.br
+im_icc_import( IMAGE *in, IMAGE *out,
+.br
+  const char *input_profile_filename, int intent )
+
+int
+.br
+im_icc_import_embedded( IMAGE *in, IMAGE *out,
+.br
+  int intent )
+
+int
+.br
+im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
+.br
+  const char *output_profile_filename, int intent )
+
+int
+.br
+im_icc_export( IMAGE *in, IMAGE *out,
+.br
+  const char *output_profile_filename, int intent )
+
+int
+.br
+im_icc_ac2rc( IMAGE *in, IMAGE *out,
+.br
+  const char *profile_filename )
+
+.SH DESCRIPTION
+.B im_icc_present(3)
+returns non-zero if there is an ICC library available. Calls to the other
+VIPS ICC functions will all fail with an error message if there is no library.
+
+.B im_icc_transform(3)
+maps between two images using an input and output profile and an intent. The
+input image must have a format matching the input profile (eg. 4 bands for a
+CMYK profile). The output image will have a form matching the output profile
+(eg. 3 bands for an RGB output profile). The input image must be 8 or 16 bit
+unsigned integer. The output image is always 8 bit unsigned int. The output
+profile is attached to the output image under the name 
+.B "icc-profile-data".
+Functions like
+.B im_vips2jpeg(3)
+will then attach the profile to the files they create.
+
+.B im_icc_import(3)
+takes an image to D50 Lab float (profile interconnect space) from device space.
+The input image must match the format expected by the profile: for example, a
+printer profile will usually need 4 band CMYK data. The input image must be 8
+or 16 bit unsigned integer.
+
+.B im_icc_import_embedded(3)
+takes an image to D50 Lab float (profile interconnect space) from device
+space, using the profile embedded in the image. If there is no embedded
+profile, an error is returned. Test for the presence of a profile with
+.B im_header_get_type(3).
+
+.B im_icc_export_depth(3)
+takes an image from D50 Lab float back to device space. The output image will
+match the format of the profile: for example, a screen profile will write 3
+band RGB data. The output image biut depth can be set to 8 or 16 with the
+depth parameter.  The profile is attached to the output image under 
+the name 
+.B "icc-profile-data".
+Functions like
+.B im_vips2jpeg(3)
+will then attach the profile to the files they create.
+
+.B im_icc_export(3)
+behaves just as 
+.B im_icc_export_depth(), 
+but with depth always 8 bit.
+
+.B im_icc_ac2rc(3)
+converts an image from D50 absolute to media relative colorimetry using the
+media white point found in the ICC profile.
+
+.SH RETURN VALUE
+The functions return 0 on success and -1 on error.
+.SH SEE ALSO
+im_LabQ2Lab(3), im_Lab2XYZ(3).
+.SH COPYRIGHT
+The National Gallery
+

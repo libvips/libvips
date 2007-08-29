@@ -1,0 +1,163 @@
+.TH IM_SHARPEN 3 "16 May 1995"
+.SH NAME
+im_sharpen \- simple coring edge enhancement
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int 
+.br
+im_sharpen( in, out, mask_radius, x1, y2, y3, m1, m2 )
+.br
+IMAGE *in, *out;
+.br
+int mask_radius;
+.br
+double x1, y2, y3;
+.br
+double m1, m2;
+
+.SH DESCRIPTION
+This function selectively sharpens the L* channel of a LABPACK coded image. It
+is suitable for preparing an image for printing, where edges need to be
+boosted to compensate for blurring introduced by the half-tone process, and
+also for giving any additional `crispening' required.
+
+The function operates as:
+
+  in    gaussian                                   out
+  --+-> blur with ----> subtract --> LUT --> add ---->
+    |   mask_radius        ^                  ^
+    |                      |                  |
+    +----------------------+                  |
+    |                                         |
+    +-----------------------------------------+
+
+In other words, the L* channel is smoothed with a gaussian average function of
+radius mask_radius and this smoothed image is subtracted from the
+original L* to generate a high-frequency signal.
+
+This high-frequency signal is passed through a look-up table specified by the
+x1, y2, y3, m1 and m2 parameters and added back to the original L* channel to
+generate the sharpened image.
+
+The LUT is shaped as:
+
+                      ^
+                   y2 |- - - - - -----------
+                      |         / 
+                      |        / slope m2
+                      |    .../    
+              -x1     | ...   |    
+  -------------------...---------------------->
+              |   ... |      x1           
+              |... slope m1
+              /       |
+             / m2     |
+            /         |
+           /          |
+          /           |
+         /            |
+  ______/ _ _ _ _ _ _ | -y3
+                      |
+
+When trying to understand the meaning of these parameters, it is helpful to
+imagine a cross-section through an image. Sharpening filters boost apparent
+sharpness by performing the following transformation. Consider a cross-section
+through a soft edge:
+
+                      ^
+                      |          ..........  
+                      |      ....      
+                      |   ...         
+                      | ..           
+                      |.           
+  --------------------+------------------->
+                     .|                        
+                   .. |
+                ...   |
+            ....      |
+  ..........          |
+                      |
+
+This becomes an enhanced edge, perhaps:
+
+                      ^
+                      |   ...    overshoot
+                      |  .   .   
+                      | .     ............  
+                      | .              
+                      |.           
+                       .             
+                      .            
+  --------------------+------------------->
+                      .                        
+                     .|
+                     .|
+                    . |
+  .............     . |
+               .   .  |
+    undershoot  ...   |
+                      |
+
+There are two features: the transition from black to white has become 
+steeper, and there are positive and negative undershoots and overshoots.
+
+As a general guide, some overshoot is good for printing (it helps exaggerate 
+the edge), but not too much, as you will start to see strong white fringes.
+Undershoot introduces black lines, which are less intrusive, so you can allow
+more under- than over-shoot.
+
+im_sharpen uses the x1 parameter to distinguish between low and high frequency
+areas. Pixels which differ by less than x1 L* units from their local average
+are sharpened by factor 1+m1, and pixels which differ by more than x1 are
+sharpened by factor 1+m2. y2 and y3 set limits on the amount of positive and
+negative sharpening we allow.
+
+For printing, we recommend the following settings:
+
+   mask_radius == 7
+   x1 == 1.5
+   y2 == 20         (don't brighten by more than 20 L*)
+   y3 == 50         (can darken by up to 50 L*)
+
+   m1 == 1          (some sharpening in flat areas)
+   m2 == 2          (more sharpening in jaggy areas)
+
+If you want more or less sharpening, we suggest you just change the m1 and m2
+parameters. For an extreme sharpen, you might try:
+
+   m1 == 2
+   m2 == 4
+
+And for a relatively gentle sharpen, perhaps:
+
+   m1 == 0.5
+   m2 == 1.5
+
+If you want to adjust the x1 parameter, it can be helpful visualise its
+effect by setting:
+
+   m1 == -2
+   m2 == 4
+
+In other words, heavily blur flat areas, and heavily sharpen elsewhere. This
+creates a terrible-looking image, but you will be able to see clearly what
+parts of your image are being classified as flat. 
+
+The y2 and y3 parameters need not usually be adjusted, unless you wish to
+reduce the strength of the finges.
+
+The mask_radius parameter changes the width of the fringe and can be adjusted
+according to the output printing resolution. As an approximate guideline, use
+3 for 4 pixels/mm (CRT display resolution), 5 for 8 pixels/mm, 7 for 12
+pixels/mm and 9 for 16 pixels/mm (300 dpi == 12 pixels/mm). These figures
+refer to the image raster, not the half-tone resolution.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_conv(3), im_compass(3), im_fastcor(3).
+.SH COPYRIGHT
+National Gallery and Birkbeck College, 1995
+.SH THANKS TO
+Lindsay!

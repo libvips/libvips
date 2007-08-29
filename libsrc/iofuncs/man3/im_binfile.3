@@ -1,0 +1,42 @@
+.TH IM_BINFILE 3 "11 April 1990"
+.SH NAME
+im_binfile, im_image \- wrap a raw binary file inside an IMAGE descriptor
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+IMAGE *im_binfile( name, xs, ys, b, off )
+.br
+char *in;
+.br
+IMAGE *out;
+.br
+int xs, ys, b, off;
+
+IMAGE *
+.br
+im_image( void *buffer, int width, int height, int bands, int format )
+
+.SH DESCRIPTION
+.B im_binfile(3)
+maps the file named, and returns an image descriptor which looks
+very like the sort of thing that 
+.B im_mmapin(3) 
+returns.
+
+The parameters specify the image width, height, number of bands and offset
+in bytes from the start of the file.
+
+.B im_image(3) 
+makes an IMAGE deriptor from an area of pixels in memory. The memory
+buffer will not be freed when the IMAGE is closed, use 
+.B im_add_close_callback()
+if you want this.
+
+.SH RETURN VALUE
+The functions return NULL on error.
+.SH SEE ALSO
+im_mmapin(3), im_openout(3), im_setbuf(3).
+.SH COPYRIGHT
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 11/04/1990

@@ -1,0 +1,52 @@
+.TH IM_LITECOR 3 "5 December 1991"
+.SH NAME
+im_litecor \- perform light correction
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_litecor(in, white, out, clip, factor)
+.br
+.B IMAGE *in, *out;
+.br
+.B int clip;
+.br
+.B double factor;
+.SH DESCRIPTION
+.B im_litecor(3)
+performs light correction on the image held by the IMAGE descriptor in,
+with respect to a reference white image held by the IMAGE descriptor white.
+The result is written onto the IMAGE descriptor out.  The function works
+on byte one channel images only.
+
+The flag clip can take two values 0 and 1.  If clip is 1 then the input is
+corrected with reference to the maximum value of white (maxw) as follows.
+
+ pel_out = factor * pel_in * maxw / pel_white.
+
+If clip is 0 then the output is scaled with the maximum possible output set
+to 255.  In this case factor is not used but it must be set to a dummy value.
+
+The basic reason for lighting correction is that the input frame does not
+have a uniform distribution of white light due to the optical response of
+the lens.  The function accepts a white image which is a simple multiple
+of the input image in size; for example it is possible that the white
+is a subsampled version of in; however the sizes of in must be an exact
+multiple of the white.  If clip is set to 0, lighting correction is
+carried out and the result is scaled between 0 and 255.  This can be used 
+to correct individual frames.
+
+If multiband images are grabbed, then flag should be set to 1, since
+no scaling must be done.  In this case the factor can reduce the number of
+clipped pels if overshooting occurs in the brightest band.  The program
+prints the number of clipped pels with im_warning(3).
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH BUGS
+clip==0 case not working too well.
+.SH SEE\ ALSO
+im_add(3), im_lintra(3), im_multiply(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 05/12/1991

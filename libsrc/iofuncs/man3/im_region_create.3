@@ -1,0 +1,40 @@
+.TH PREDICATES 3 "11 April 1990"
+.SH NAME
+im_region_create, im_region_free \- region creation and destruction
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+.br
+.B #include <vips/region.h>
+
+REGION *im_region_create( im )
+.br
+IMAGE *im;
+
+int im_region_free( reg )
+.br
+REGION *reg;
+.SH DESCRIPTION
+These functions create and destroy regions on images. Regions are used for
+PIO, see accompanying documentation. Regions have type
+
+    typedef struct {
+        Rect valid  /* Area of im represented */
+        IMAGE *im;  /* im we are defined on */
+
+        ... more fields, all private and used for
+        ... housekeeping
+    } REGION;
+
+im_region_create(3) returns a pointer to a new region, or NULL on error.
+Regions are made blank, with no input or output possible. See im_prepare(3),
+im_generate(3), im_start_one(3) and IM_REGION_ADDR(3).
+
+im_region_free(3) frees a region and any resources associated with that
+region.  When an image is closed, all regions which have been created on that
+image are automatically freed.
+.SH RETURN VALUE
+All int-valued functions return zero on success and non-zero on error.
+.SH COPYRIGHT
+National Gallery, 1993
+.SH AUTHOR
+J. Cupitt \- 23/7/93

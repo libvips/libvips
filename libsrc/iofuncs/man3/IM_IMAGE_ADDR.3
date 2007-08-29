@@ -1,0 +1,66 @@
+.TH MACROS 3 "11 April 1990"
+.SH NAME
+IM_IMAGE_ADDR, IM_IMAGE_SIZEOF_ELEMENT, IM_IMAGE_SIZEOF_PEL,
+IM_IMAGE_SIZEOF_LINE, IM_IMAGE_N_ELEMENTS \- 
+macros for images
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int IM_IMAGE_SIZEOF_ELEMENT( im ) 
+.br
+IMAGE *im;
+
+int IM_IMAGE_SIZEOF_PEL( im )
+.br
+IMAGE *im;
+
+int IM_IMAGE_SIZEOF_LINE( im )
+.br
+IMAGE *im;
+
+int IM_IMAGE_N_ELEMENTS( im )
+.br
+IMAGE *im;
+
+char *IM_IMAGE_ADDR( im, x, y )
+.br
+IMAGE *im;
+.br
+int x;
+.br
+int y;
+
+.SH DESCRIPTION
+These macros help to simplify address arithmetic for images. 
+
+IM_IMAGE_SIZEOF_ELEMENT(3) returns sizeof( one band element ).
+
+IM_IMAGE_SIZEOF_PEL(3) returns sizeof( one pel ).
+
+IM_IMAGE_SIZEOF_LINE(3) returns sizeof( one horizontal line of pels ).
+
+IM_IMAGE_N_ELEMENTS(3) returns the number of band elements across a horizontal line.
+
+IM_IMAGE_ADDR(3) returns a pointer to the pixel at position (x,y) in the
+image. The point (x,y) should lie within the image.
+
+If the macro DEBUG has been defined, then IM_IMAGE_ADDR(3) will also
+perform bounds checking. If you ask for the address of a pel outside the
+image,
+then IM_IMAGE_ADDR(3) will print an error message of the form:
+
+    IM_IMAGE_ADDR: point out of bounds, file "test.c", line 18
+    (point x=50, y=0 
+     should have been within Rect left=0, top=0, width=50, height=50)
+
+and call abort(3).
+
+DEBUG needs to be defined *before* vips.h is included. Either define DEBUG
+with -D in your Makefile, or have a #define DEBUG right at the top of your
+file.
+.SH COPYRIGHT
+National Gallery, 1993
+.SH SEE ALSO
+im_malloc(3), im_open_local(3).
+.SH AUTHOR
+J. Cupitt \- 23/7/93

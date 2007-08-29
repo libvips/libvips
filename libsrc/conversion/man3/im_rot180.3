@@ -1,0 +1,38 @@
+.TH IM_ROTATION 3 "5 December 1991"
+.SH NAME
+im_rot180, im_rot270, im_rot90, im_fliphor, im_flipver \- rotate and flip 
+an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_rot180(in, out)
+.br
+.B IMAGE *in, *out;
+
+.B int im_rot270(in, out)
+.br
+.B IMAGE *in, *out;
+
+.B int im_rot90(in, out)
+.br
+.B IMAGE *in, *out;
+
+.B int im_fliphor(in, out)
+.br
+.B IMAGE *in, *out;
+
+.B int im_flipver(in, out)
+.br
+.B IMAGE *in, *out;
+.SH DESCRIPTION
+im_rot180(), im_rot270() and im_rot90(), rotate the input image in by 180,
+270 and 90 degrees clockwise.  im_fliphor() and im_flipver(), flip in 
+horizontally and vertically respectively. All functions work for any size
+image, any type and any number of bands. All also work for LABPACK coded
+images.
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE\ ALSO
+rot180(1)
+.SH AUTHOR
+N. Dessipris \- 5/12/1991

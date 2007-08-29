@@ -1,0 +1,75 @@
+.TH IM_LU_DECOMP 3 "18 September 2006"
+.SH NAME
+ im_lu_decomp, im_lu_solve \- Solve SLEs by LU decomposition
+.SH SYNOPSIS
+.nf
+.B #include <vips/vips.h>
+.sp
+.BI "DOUBLEMASK *im_lu_decomp( const DOUBLEMASK " "*mat" ", const char " "*name" " );
+.br
+
+.BI "int im_lu_solve( const DOUBLEMASK " "*lu" ", double " "*vec" " );
+.fi
+.SH DESCRIPTION
+.B im_lu_decomp(3)
+allocates a DOUBLEMASK representing the LU decomposition of the matrix in 
+DOUBLEMASK 
+.IR "*mat" ", 
+and gives it the filename member
+.IR "name" ".
+.PP
+.B im_lu_solve(3)
+solves the system of linear equations (SLE) Ax=b, where matrix A has already
+been decomposed into LU form in DOUBLEMASK 
+.IR "*lu" ".
+Input vector b is in
+.I *vec
+and is overwritten with output vector x. 
+.PP
+DOUBLEMASK 
+.I *lu
+is unaltered by 
+.BR "im_matinv(3)" ",
+and can be used again to solve a different SLE containing matrix A.
+.SH NOTES
+The scale and offset members of 
+.I *mat
+are ignored.  If they are not set to 1.0 and zero respectively, you must first
+call 
+.BR "im_norm_dmask(3)" ".
+.PP
+To understand the decomposition A=LU, see Press et al. (1992).  For the exact 
+format used to represent the matrices L and U in 
+.IR "*lu" ",
+see the acompanying source code.
+.SH ERRORS
+If matrix
+.I *mat
+is singular (non-invertible), or close to singular then
+.B im_lu_decomp(3)
+will fail, calling
+.BR "im_error(3)" ".
+.SH RETURN VALUE
+.B im_lu_decomp(3)
+returns a pointer to the new DOUBLEMASK, or NULL on error.
+.PP
+.B im_lu_solve(3)
+always returns zero, unless 
+.I lu
+was not returned by 
+.BR "im_lu_decomp(3)" ",
+when it returns -1.
+.SH SEE ALSO
+im_create_dmask(3), im_free_dmask(3), im_norm_dmask(3), im_matinv(3)
+.SH REFERENCES
+PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
+Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
+.PP
+[Available online: 
+http://www.library.cornell.edu/nr/bookcpdf.html accessed 2006-09-19]
+.SH COPYRIGHT
+.br
+Copyright 2006, Tom Vajzovic.
+.SH AUTHOR
+Tom Vajzovic
+

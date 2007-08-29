@@ -1,0 +1,61 @@
+.TH IM_XYZ2disp 3 "2 Decemder 1992"
+.SH NAME
+im_LabQ2Lab, im_Lab2LabQ, im_LabQ2LabS, im_LabS2LabQ, im_Lab2LabS, im_LabS2Lab \- pack and unpack LABPACK images.
+.SH SYNOPSIS
+#include <vips/vips.h>
+.br
+#include <vips/colour.h>
+
+int im_LabQ2Lab(in, out)
+.br
+IMAGE *in, *out;
+
+int im_Lab2LabQ(in, out)
+.br
+IMAGE *in, *out;
+
+int im_Lab2LabS(in, out)
+.br
+IMAGE *in, *out;
+
+int im_LabS2LabQ(in, out)
+.br
+IMAGE *in, *out;
+
+int im_LabS2Lab(in, out)
+.br
+IMAGE *in, *out;
+
+int im_LabQ2LabS(in, out)
+.br
+IMAGE *in, *out;
+
+.SH DESCRIPTION
+These functions pack and unpack LAB images.
+
+LabQ is Lab packed in to 4 unsigned chars, with the Coding field set to
+LABPACK.  It counts as a coded type, since most operations will not give the
+correct result on an image of this type.  This is the MARC image type. Bits
+are allocated as 10 for L and 11 for each of a and b. The first three bytes
+contain the 8 most significant bits of Lab respectively, the final byte has
+2/3/3 bits (MSB on left) of Lab respectively.
+
+im_LabQ2Lab() and im_Lab2LabQ() convert LABPACK images to three band float
+images, scaled to look sensible to humans. This is the most convenient LAB
+format for development work, but is rather slow.
+
+im_LabQ2LabS() and im_LabS2LabQ() convert LABPACK to and from three band
+signed short images. L is shifted and masked to be in the range [0,32767], a
+and b are shifted and masked to lie in [-32768,32767]. This is the best
+computational LAB format, combining precision and speed. Programs such as
+conv(1X) and similarity(1X), which can operate directly on LABPACK images,
+unpack to LabS for computation.
+
+.SH RETURN VALUE
+The functions return 0 on success and -1 on error.
+.SH SEE ALSO 
+im_col_XYZ2rgb(3), im_dE_fromdisp(3), im_XYZ2disp(3).
+.SH COPYRIGHT
+National Gallery, 1990 - 1993
+.SH AUTHOR
+J. Cupitt \- 21/7/93

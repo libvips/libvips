@@ -1,0 +1,102 @@
+.TH ADDITION 3 "24 April 1991"
+.SH NAME
+im_add, im_gadd, im_gaddim, im_gfadd \- add two images
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_add(in1, in2, out)
+.br
+IMAGE *in1, *in2, *out;
+
+int im_gadd(a, in1, b, in2, c, out)
+.br
+double a, b, c;
+.br
+IMAGE *in1, *in2, *out;
+
+int im_gaddim(a, in1, b, in2, c, out)
+.br
+double a, b, c;
+.br
+IMAGE *in1, *in2, *out;
+
+int im_gfadd(a, in1, b, in2, c, out)
+.br
+double a, b, c;
+.br
+IMAGE *in1, *in2, *out;
+
+.SH DESCRIPTION
+These functions operate on two images held by image descriptors in1 and in2
+and write the result to the image descriptor out.  Input images in1 and in2
+should have the same channels and the same size; however they can be of
+different types.  Only the history of the image descriptor pointed by in1 is
+copied to out.
+
+.B im_add(3) 
+
+For two integer images, add the two images and write the output as
+
+ in1    - uchar   char   ushort  short  uint  int 
+ -------|-----------------------------------------
+ in2    |
+ uchar  | ushort  short  ushort  short  uint  int
+ char   | short   short  short   short  int   int
+ ushort | ushort  short  ushort  short  uint  int
+ short  | short   short  short   short  int   int
+ uint   | uint    int    uint    int    uint  int
+ int    | int     int    int     int    int   int
+
+If one or more of the images is a floating point type, the output is FMTFLOAT,
+unless one or more of the inputs is FMTDOUBLE, in which case the output is
+also FMTDOUBLE.
+
+If one or more of the images is a complex type, the output is FMTCOMPLEX,
+unless one or more of the inputs is FMTDPCOMPLEX, in which case the output is
+also FMTDPCOMPLEX.
+
+.B im_gadd(3) 
+performs generalised addition of two images by calling 
+.B im_gaddim(3)
+and 
+.B im_gfadd(3).
+These are very old and tired things, and should not be used.
+
+Input should be non complex.  Output depends on input according to function
+called.  The result at each point is: a * pel1 + b * pel2 + c, properly
+rounded if necessary.  Pel1 and pel2 are the
+corresponding pixels from in1 and in2 respectively.
+
+im_gaddim() performs generalised addition of in1 and in2, on the condition
+they are neither float nor double nor complex.  The format of the resultant
+image is given by the table:
+
+ in1    - uchar   char   ushort  short  uint  int 
+ -------|-----------------------------------------
+ in2    |
+ uchar  | ushort  short  ushort  short  uint  int
+ char   | short   short  short   short  int   int
+ ushort | ushort  short  ushort  short  uint  int
+ short  | short   short  short   short  int   int
+ uint   | uint    int    uint    int    uint  int
+ int    | int     int    int     int    int   int
+
+The result at each point is: a * pel1 + b * pel2 + c, properly rounded. Pel1
+and pel2 are the corresponding pixels from in1 and in2 respectively.
+
+.B im_gfadd(3) 
+adds the non-complex images pointed by in1 and in2.  Result is
+float except if one (or both) inputs is double.  In the latter case the result
+is double.  The result at each point is: a * pel1 + b * pel2 + c.  Pel1 and
+pel2 are the corresponding pixels from in1 and in2 respectively.
+
+.SH BUGS
+None of the functions checks the result for over/underflow.
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE ALSO
+im_subtract(3), im_lintra(3), im_multiply(3).
+.SH AUTHOR
+N. Dessipris \- 22/04/1991
+.br
+J. Cupitt, im_add(), \- 21/7/93

@@ -1,0 +1,18 @@
+.TH IM_ABS 3 "25 April 1991"
+.SH NAME
+im_abs \- finds the absolute value or the magnitude of an image
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_abs( in, out )
+.br
+IMAGE *in, *out;
+.SH DESCRIPTION
+.B im_abs(3)
+finds the absolute value of an image. Copy for UNSIGNED types, negate
+for int types, fabs(3) for float types, and calculate modulus for
+complex types. Any size, any number of bands. 
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_exp10tra(3), im_sign(3)

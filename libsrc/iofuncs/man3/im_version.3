@@ -1,0 +1,46 @@
+.TH IM_VERSION 3 "15 December 1999"
+.SH NAME
+im_version, im_version_string \- return VIPS version info
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_version( int flag )
+
+.B const char *im_version_string( void )
+
+.SH DESCRIPTION
+
+.B im_version(3) 
+returns the major version number if
+.B flag
+== 0, the minor version number if
+.B flag
+== 1, and the micro version number if 
+.B flag
+== 2.
+
+Major versions are supposed to represent very large changes to the
+library, minor versions indicate steady improvements (with odd minor
+versions indicating unstable and undocumented development releases),
+and micro versions indicating bug-fixes.
+
+.B im_version_string(3) 
+returns a static string representing the vips version number, and the date
+when the library was built.
+
+The version number always has three parts, separated by '.' characters. The
+first part is the major release, the second the minor release (odd minor
+values denote development releases), and the third the micro version number.
+
+The version number and the date are separated by a '-' character.
+
+The value of this string is constructed in 'configure.in'.
+
+A typical value for tthe string might be "7.7.0-Thu Dec 16 18:10:01 GMT 1999".
+
+.SH RETURN VALUE
+The function returns 0 on success and non-zero on error.
+.SH COPYRIGHT
+National Gallery
+.SH AUTHOR
+J. Cupitt \- 15/12/99

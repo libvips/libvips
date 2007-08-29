@@ -1,0 +1,34 @@
+.TH IM_HISTORY 3 "22 April 1991"
+.SH NAME
+im_histlin, im_updatehist, im_history_get \- manage image history
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_histlin( IMAGE *im, const char *fmt, ... );
+.br
+int im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] );
+.br
+const char *im_history_get( IMAGE *im );
+
+.br
+.SH DESCRIPTION
+.B im_histlin(3)
+formats its arguments as printf(3), appends " # time-and-date", and appends
+the whole line of text to the image history. The string is typically the
+command-line action that would be required to do whatever it is that you've
+just done to the image.
+
+.B im_updatehist(3)
+is given a standard argc/argv, formats them appropriately, and calls
+im_histlin(3) for you. Note that the program name is passed separately.
+
+.B im_history_get(3)
+returns the entire history of an image as a single C string, one action per
+line. No need to free, but you mustn't modify either.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_cp_desc(3).
+.SH COPYRIGHT
+Imperial College, London, 2007.

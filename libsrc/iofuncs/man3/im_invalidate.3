@@ -1,0 +1,16 @@
+.TH IM_INVALIDATE 3 "5 December 2006"
+.SH NAME
+im_invalidate \- flush caches related to an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B void im_invalidate( IMAGE *im )
+
+.SH DESCRIPTION
+.B im_invalidate(3)
+marks all caches related to the image as invalid and requring recalculation.
+It needs to be called if an image changes after being made: for example, after
+a paint action, or perhaps after a new frame has arrived from a video source.
+
+.SH SEE\ ALSO
+im_prepare(3), im_region_buffer(3).

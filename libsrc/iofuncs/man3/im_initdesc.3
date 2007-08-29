@@ -1,0 +1,45 @@
+.TH IM_INITDESC 3 "22 April 1991"
+.SH NAME
+im_initdesc \- initialises an image descriptor to specific values
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+void im_initdesc( IMAGE *image,
+     int xsize, int ysize,
+     int bands, int bandbits, int bandfmt,
+     int coding, int type,
+     float xres, float yres,
+     float xo, float yo )
+.SH DESCRIPTION
+.B im_initdesc(3)
+initialises the image descriptor according to the entered values.
+More specifically the Xsize, Ysize, Bands, BandFmt, Coding, Type,
+Xres, Yres, Xoffset and Yoffset members of the descriptor are initialised by the
+correspondingly entered arguments. The members  fd, baseaddr, data and 
+filename are not handled by this function.  The order of the args is
+the same as in vips/vips.h.  
+
+The
+.B bandbits
+parameter is deprecated and ignored by this function: you can always pass zero.
+
+Example: make a 512 by 512 one-band memory buffer.
+
+   if( !(im = im_open( "temp", "t" )) )
+        /* Error ...
+   im_initdesc( im,
+       512, 512,
+       1, 0, FMTUCHAR,
+       NOCODING, B_W,
+       1.0, 1.0,
+       0, 0 );
+   if( im_setupout( im ) )
+       /* Error ...
+
+.SH ALSO
+im_open(3), im_setupout(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 22/04/1991

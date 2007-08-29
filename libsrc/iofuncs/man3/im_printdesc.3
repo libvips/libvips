@@ -1,0 +1,66 @@
+.TH IM_PRINTDESC 3 "11 April 1990"
+.SH NAME
+im_printdesc, im_Type2char, im_char2Type, im_BandFmt2char, im_char2BandFmt,
+im_Coding2char, im_char2Coding, im_Compression2char, im_char2Compression
+\- decode image descriptors
+
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+.br
+.B #include <vips/util.h>
+
+.B void im_printdesc(image)
+.br
+.B IMAGE *image;
+
+char *im_Type2char( ty );
+.br
+int ty;
+
+char *im_BandFmt2char( bf );
+.br
+int bf;
+
+char *im_Coding2char( cod );
+.br
+int cod;
+
+char *im_Compression2char( comp );
+.br
+int comp;
+
+int im_char2Type( str );
+.br
+char *str;
+
+int im_char2BandFmt( str );
+.br
+char *str;
+
+int im_char2Coding( str );
+.br
+char *str;
+
+int im_char2Compression( str );
+.br
+char *str;
+
+.SH DESCRIPTION
+.B im_printdesc(3)
+prints the image descriptor pointed by image.
+
+.B im_printdesc(3) 
+exports the functions it uses to code and uncode the type fields
+in image headers. The functions which return char * return a static string of
+the form "<bad Type>" on error,
+
+The functions which return int return -1 on error, 
+setting 
+.B im_error(3).
+
+.SH SEE ALSO
+header(1).
+.SH COPYRIGHT
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 11/04/1990

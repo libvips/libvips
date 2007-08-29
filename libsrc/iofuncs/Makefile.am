@@ -1,0 +1,64 @@
+SUBDIRS = man3
+
+noinst_LTLIBRARIES = libiofuncs.la
+
+libiofuncs_la_SOURCES = \
+	meta.c \
+	base64.h \
+	base64.c \
+	callback.c \
+	debug.c \
+	dispatch_types.c \
+	error.c \
+	error_exit.c \
+	im_binfile.c \
+	im_bits_of_fmt.c \
+	im_close.c \
+	im_cp_desc.c \
+	im_debugim.c \
+	im_demand_hint.c \
+	im_desc_hd.c \
+	im_generate.c \
+	im_header.c \
+	im_histlin.c \
+	im_image.c \
+	im_init.c \
+	im_initdesc.c \
+	im_iocheck.c \
+	im_iterate.c \
+	im_makerw.c \
+	im_mapfile.c \
+	im_openin.c \
+	im_open.c \
+	im_openout.c \
+	im_partial.c \
+	im_piocheck.c \
+	im_prepare.c \
+	im_printdesc.c \
+	im_printlines.c \
+	im_readhist.c \
+	im_render.c \
+	im_setbox.c \
+	im_setbuf.c \
+	im_setupout.c \
+	im_unmapfile.c \
+	im_updatehist.c \
+	im_guess_prefix.c \
+	im_wrapmany.c \
+	im_wrapone.c \
+	im_writeline.c \
+	memory.c \
+	package.c \
+	predicate.c \
+	region.c \
+	rect.c \
+	semaphore.c \
+	threadgroup.c \
+	util.c \
+	im_init_world.c \
+	vbuf.c \
+	window.c \
+	buffer.c \
+	time.c
+
+INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

@@ -1,0 +1,147 @@
+- when we fork for 7.13 do this stuff ... don't do now, we'll break the other
+  packages
+
+  http://www.freshports.org/graphics/vips
+
+  freebsd packaging now does:
+
+  In both:
+        - use explict --mandir=${PREFIX}/man to avoid man-pages getting
+          into ${PREFIX}/shared/man incorrectly
+        - deal with the NOPORTDOCS situation by simply not-extracting
+          the extra documentation from the distribution tarball
+        - parallelize the build to scale with the number of CPUs
+
+  In vips:
+        - move the (giant) list of man-pages into a separate Makefile.man
+        - turn the pages, which contain only `.so other-page', into
+          MANLINKS (specified in Makefile.man)
+        - provide a "maintainance target" to regenerate the Makefile.man
+          during the next upgrade
+        - do not install the HTML-ized versions of man-pages
+        - create OPTIONS for use of devel/liboil and graphics/ImageMagick
+          (OPTION to use PYTHON awaits portmgr's decision/action)
+
+  In nip2:
+        - do install the HTML pages regardless of NOPORTDOCS -- these
+          are accessible to the user through the application GUI
+        - arrange for update-mime-database and update-desktop-database
+          to be run upon install (@exec) and uninstall (@unexec)
+        - LIB_DEPEND on math/gsl, which nip2 can use for extra functionality
+
+Python binding
+==============
+
+- python startup fails with plugins in vipslib:
+
+	Fatal Python error: can't initialise module vips
+	plugin: unable to open plugin "/home/john/vips/lib/resample.plg"
+	plugin: /home/john/vips/lib/resample.plg: undefined symbol: im_start_one
+
+  do we need to build plugins with -rpath etc. and more libs?
+
+  or do we need to make sure our python modules export all their im_ symbols?
+
+WONTFIX
+=======
+
+- TIFF load/save should use meta system for unknown tags
+
+- balance should use new meta stuff
+
+- magick2vips should spot ICC profiles and attach them as meta
+
+- magick should set some header field for n_frames and frame_height? see also
+  analyze
+
+- see TODO notes in openexr read (though they all need more openexr C API)
+
+  consider openexr write
+
+- matrix invert is a copypaste of NR :-( fix this
+
+- add GREYCstoration filter
+
+    http://www.haypocalc.com/wiki/Gimp_Plugin_GREYCstoration
+
+  actually, it has to be a plugin, since their code is GPL
+
+  and very memory-hungry for large images :-( needs 20x size of image to be
+  processed
+
+  could we rewrite with VIPS? how much more stuff would we need to add?
+
+  try again using the current version of the filter from the suthors rather
+  than the gimp plugin
+
+- im_csv2vips() could use "-" for filename to mean stdin
+
+  but then we'd have to read to a malloced buffer of some sort rather than an
+  image, since we might need to grow it during the read, since we couldn't
+  then seek
+
+- add erode/dilate 3x3 special case using a 512-bit LUT
+
+  ... nope, actually slower :-( we end up doing an inner loop like
+
+  	for( i = 0; i < 9; i++ )
+		bits |= (p[o[i]] != 0) << i;
+
+  which is horrible. Maybe if we had a one band true 1 bit image it'd be
+  quicker since we could get bits out in parallel and wouldn't have to worry
+  about converting non-zero to 1
+
+  could have a Coding type for bitpack? eg. relational produces a bitpack
+  image by default, boolean & morph can work on bitpack etc
+
+  maybe something for vips8 ... we could have a flag on operations for the
+  coding types they can accept, and if they are passed other type, they are
+  automatically converted
+
+- non-linear sharpen: replace each pixel by the lightest or darkest neighbour
+  depending on which is closer in value
+
+- can wrap other inplace funcs which use ink now we have vector_to_ink() in
+  inplace_dispatch.c
+
+  see also comments in nip2 TODO ... we could auto-wrap in vips_call.c
+
+  cleaner!
+
+- on win32, should not write matrix files in binary mode, we want CR/LF chars
+  so we can load into excel etc easily
+
+  how odd, we're doing
+
+	if( !(fp = fopen( name, "w" )) ) {
+
+  shouldn't be binary ... hmm
+
+Build
+=====
+
+- xmlFree() is still broken :-(
+
+  maybe we are not importing it correctly? im_readhist.c references
+
+	_imp__xmlFree
+
+  how is this made? look at gcc -E output ... maybe there's an extra define we
+  need to make it generate the right link code?
+
+  see what libxml2.dll.a is exporting that looks anything like xmlFree
+ 
+- can we make a fftw3.dll? also, magick.dll?
+
+  maybe just build with no-undefined? can we then link the DLL against the
+  static lib?
+
+- update gtk/glib/etc. on the PC to the latest versions, apparently much
+  quicker (esp. pango)
+
+
+
+
+This TODO list is now held on the VIPS Wiki
+
+   http://wiki.vips.ecs.soton.ac.uk/bin/view/Vips/TodoVips7

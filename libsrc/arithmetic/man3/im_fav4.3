@@ -1,0 +1,23 @@
+.TH IM_FAV4 3 "13 April 1992"
+.SH NAME
+im_fav4 \- averages four frames
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_fav4(in, out)
+.br
+.B IMAGE **in, *out;
+.SH DESCRIPTION
+.B im_fav4
+averages four input VIPS images, which must be unsigned byte images with any
+number of bands. This is useful for noise reduction by grabbing 4 frames 
+and averaging them. With 7 bit images this will give quite a convincing
+eighth bit.
+.SH RETURN VALUE
+returns 0 on success or -1 on error
+.SH SEE\ ALSO
+add(1)
+.SH COPYRIGHT
+.br
+K. Martinez 13/4/92
+

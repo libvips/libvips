@@ -1,0 +1,38 @@
+.TH IM_BUILDLUT 3 "June 2006"
+.SH NAME
+im_buildlut \- build a LUT from a set of x/y points
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int
+.br
+im_buildlut( DOUBLEMASK *input, IMAGE *output )
+
+.SH DESCRIPTION
+.B im_buildlut(3)
+constructs a LUT, interpolating a set of x/y points. Interpolation is strictly
+piecewise linear. For example, if the input is:
+
+  12  100
+  14  110
+  18  120
+
+we generate
+
+  100   (12)
+  105
+  110
+  112.5
+  115
+  117.5 (17)
+
+the x axis (12 .. 17) is implied. The x/y points don't need to be
+sorted: we do that. You can have several Ys ... each becomes a band in the 
+output LUT.
+
+.SH RETURN VALUE
+-1 on error, otherwise 0
+.SH SEE ALSO
+im_invertlut(3), im_identity(3).
+.SH COPYRIGHT
+2006, Imperial College

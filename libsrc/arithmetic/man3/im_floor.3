@@ -1,0 +1,17 @@
+.TH IM_FLOOR 3 "20 June 2002"
+.SH NAME
+im_floor \- for each pixel, find the largest integral value not greater than
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_floor( in, out )
+.br
+IMAGE *in, *out;
+.SH DESCRIPTION
+.B im_floor(3)
+finds the largest integral value not greater than. Copy for integer types,
+call floor(3) for float and complex types. Output type == input type.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_abs(3), im_clip2fmt(3), im_ceil(3)

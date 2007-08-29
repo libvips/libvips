@@ -1,0 +1,676 @@
+\section{Function dispatch and plug-ins}
+
+As image processing libraries increase in size it becomes progressively more
+difficult to build applications which present the operations the libbrary
+offers to the user. Every time a new operation is added, every user interface
+needs to be adapted --- a job which can rapidly become unmanageable.
+
+To address this problem VIPS includes a simple database which stores an
+abstract description of every image processing operation. User interfaces,
+rather than having special code wired into them for each operation, can
+simply interrogate the database and present what they find to the user.
+
+The operation database is extensible. You can define new operations, and even
+new types, and add them to VIPS. These new operations will then automatically
+appear in all VIPS user interfaces with no extra programming effort. Plugins
+can extend the database at runtime: when VIPS starts, it loads all the plugin
+in the VIPS library area.
+
+\subsection{Simple plugin example}
+
+As an example, consider this function:
+
+\begin{verbatim}
+#include <stdio.h>
+
+#include <vips/vips.h>
+
+/* The function we define. Call this 
+ * from other parts of your C 
+ * application. 
+ */
+int
+double_integer( int in )
+{
+  return( in * 2 );
+}
+\end{verbatim}
+
+\noindent
+The source for all the example code in this section is in the vips-examples
+package. 
+
+The first step is to make a layer over this function which will make it
+look like a standard VIPS function. VIPS insists on the following pattern:
+
+\begin{itemize}
+
+\item
+The function should be int-valued, and return 0 for success and non-zero
+for error. It should set \verb+im_error()+.
+
+\item
+The function should take a single argument: a pointer to a
+\verb+NULL+-terminated array of \verb+im_objects+.
+
+\item
+Each \verb+im_object+ represents one argument to the function (either output
+or input) in the form specified by the corresponding entry in the function's
+argument descriptor.
+
+\end{itemize}
+
+The argument descriptor is an array of structures, each describing one
+argument.  For this example, it is:
+
+\begin{verbatim}
+/* Describe the type of our function. 
+ * One input int, and one output int.
+ */
+static im_arg_desc arg_types[] = {
+  IM_INPUT_INT( "in" ),
+  IM_OUTPUT_INT( "out" )
+};
+\end{verbatim}
+
+\verb+IM_INPUT_INT()+ and \verb+IM_OUTPUT_INT()+ are macros defined in
+\verb+<vips/dispatch.h>+ which make argument types easy to define. Other
+macros available are listed in table~\ref{tab:type}.
+
+\begin{tab2}
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+Macro				& Meaning	& 
+	\texttt{im\_object} has type \\
+\hline
+\texttt{IM\_INPUT\_IMAGEVEC} 	& Vector of input images	& 
+	\texttt{IMAGE **} \\
+\texttt{IM\_INPUT\_IMAGE} 	& Input image			& 
+	\texttt{IMAGE *} \\
+\texttt{IM\_OUTPUT\_IMAGE} 	& Output image			& 
+	\texttt{IMAGE *} \\
+\texttt{IM\_RW\_IMAGE} 		& Read-write image		& 
+	\texttt{IMAGE *} \\
+\texttt{IM\_INPUT\_DOUBLE} 	& Input double			& 
+	\texttt{double *} \\
+\texttt{IM\_INPUT\_DOUBLEVEC} 	& Input vector of double	& 
+	\texttt{im\_realvec\_object *} \\
+\texttt{IM\_INPUT\_INTVEC} 	& Input vector of int		& 
+	\texttt{im\_intvec\_object *} \\
+\texttt{IM\_OUTPUT\_DOUBLE}	& Output double			& 
+	\texttt{double *} \\
+\texttt{IM\_INPUT\_INT} 	& Input int			& 
+	\texttt{int *} \\
+\texttt{IM\_OUTPUT\_INT} 	& Output int			& 
+	\texttt{int *} \\
+\texttt{IM\_INPUT\_STRING}	& Input string			& 
+	\texttt{char *} \\
+\texttt{IM\_OUTPUT\_STRING}	& Output string			& 
+	\texttt{char *} \\
+\texttt{IM\_INPUT\_DISPLAY}	& Input display			& 
+	\texttt{im\_col\_display *} \\
+\texttt{IM\_OUTPUT\_DISPLAY}	& Output display		& 
+	\texttt{im\_col\_display *} \\
+\texttt{IM\_OUTPUT\_COMPLEX} 	& Output complex		& 
+	\texttt{double *} \\
+\texttt{IM\_INPUT\_DMASK} 	& Input double array		& 
+	\texttt{im\_mask\_object *} \\
+\texttt{IM\_OUTPUT\_DMASK}	& Output double array to file	& 
+	\texttt{im\_mask\_object *} \\
+\texttt{IM\_OUTPUT\_DMASK\_STATS}& Output double array to screen & 
+	\\
+\texttt{IM\_INPUT\_IMASK}	& Input int array		& 
+	\texttt{im\_mask\_object *} \\
+\texttt{IM\_OUTPUT\_IMASK}	& Output int array to file	& 
+	\texttt{im\_mask\_object *} \\
+\texttt{IM\_INPUT\_GVALUE}	& Input GValue			& 
+	\texttt{GValue *} \\
+\texttt{IM\_OUTPUT\_GVALUE}	& Output GValue 		& 
+	\texttt{GValue *} \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Argument type macros\label{tab:type}}
+\end{tab2}
+
+The argument to the type macro is the name of the argument. These names
+are used by user-interface programs to provide feedback, and sometimes as
+variable names. The order in which you list the arguments is the order in
+which user-interfaces will present them to the user. You should use the
+following conventions when selecting names and an order for your arguments:
+
+\begin{itemize}
+
+\item
+Names should be entirely in lower-case and contain no special characters,
+apart from the digits 0-9 and the underscore character  `\_'.
+
+\item
+Names should indicate the function of the argument. For example,
+\verb+im_add()+ has the following argument names:
+
+\begin{verbatim}
+example% vips -help im_add
+vips: args: in1 in2 out 
+where:
+  in1 is of type "image"
+  in2 is of type "image"
+  out is of type "image"
+add two images, from package 
+  "arithmetic"
+flags: 
+  (PIO function) 
+  (no coordinate transformation) 
+  (point-to-point operation) 
+\end{verbatim}
+
+\item
+You should order arguments with large input objects first, then output
+objects, then any extra arguments or options. For example, \verb+im_extract()+
+has the following sequence of arguments:
+
+\begin{verbatim}
+example% vips -help im_extract
+vips: args: input output left top 
+  width height channel 
+where:
+  input is of type "image"
+  output is of type "image"
+  left is of type "integer"
+  top is of type "integer"
+  width is of type "integer"
+  height is of type "integer"
+  channel is of type "integer"
+extract area/band, from package 
+  "conversion"
+flags: 
+  (PIO function) 
+  (no coordinate transformation) 
+  (point-to-point operation) 
+\end{verbatim}
+
+\end{itemize}
+
+This function sits over \verb+double_integer()+, providing VIPS with an
+interface which it can call:
+
+\begin{verbatim}
+/* Call our function via a VIPS 
+ * im_object vector.
+ */
+static int
+double_vec( im_object *argv )
+{
+  int *in = (int *) argv[0];
+  int *out = (int *) argv[1];
+
+  *out = double_integer( *in );
+
+  /* Always succeed.
+   */
+  return( 0 );
+}
+\end{verbatim}
+
+Finally, these two pieces of information (the argument description and
+the VIPS-style function wrapper) can be gathered together into a function
+description.
+
+\begin{verbatim}
+/* Description of double_integer.
+ */ 
+static im_function double_desc = {
+  "double_integer",
+  "double an integer",
+  0,                 
+  double_vec,       
+  IM_NUMBER( arg_types ),
+  arg_types        
+};
+\end{verbatim}
+\label{sec:number}
+
+\verb+IM_NUMBER()+ is a macro which returns the number of elements in a
+static array. The \verb+flags+ field contains hints which user-interfaces
+can use for various optimisations. At present, the possible values are:
+
+\begin{description}
+
+\item[\texttt{IM\_FN\_PIO}]
+This function uses the VIPS PIO system (see \pref{sec:pio}).
+
+\item[\texttt{IM\_FN\_TRANSFORM}]
+This the function transforms coordinates.  
+
+\item[\texttt{IM\_FN\_PTOP}]
+This is a point-to-point operation, that is, it can be replaced with a
+look-up table.
+
+\item[\texttt{IM\_FN\_NOCACHE}]
+This operation has side effects and should not be cached. Useful for video
+grabbers, for example.
+
+\end{description}
+
+This function description now needs to be added to the VIPS function database.
+VIPS groups sets of related functions together in packages. There is only
+a single function in this example, so we can just write:
+
+\begin{verbatim}
+/* Group up all the functions in this 
+ * file.
+ */
+static im_function 
+  *function_list[] = {
+  &double_desc
+};
+
+/* Define the package_table symbol. 
+ * This is what VIPS looks for when 
+ * loading the plugin.
+ */
+im_package package_table = {
+  "example",        
+  IM_NUMBER( function_list ),
+  function_list    
+};
+\end{verbatim}
+
+The package has to be named \verb+package_table+, and has to be exported
+from the file (that is, not a static). VIPS looks for a symbol of this name
+when it opens your object file.
+
+This file needs to be made into a dynamically loadable object. On my machine,
+I can do this with:
+
+\begin{verbatim}
+example% gcc -fPIC -DPIC -c 
+  `pkg-config vips-7.12 --cflags` 
+  plug.c -o plug.o
+example% gcc -shared plug.o 
+  -o double.plg
+\end{verbatim}
+
+You can now use \verb+double.plg+ with any of the VIPS applications which
+support function dispatch. For example:
+
+\begin{verbatim}
+example% vips -plugin double.plg \
+  double_integer 12
+24
+example%
+\end{verbatim}
+
+If you copy \verb+double.plg+ into your VIPS library area (the directory where
+libvips is installed, or \verb+$VIPSHOME/lib+) it will be automatically 
+loaded by all VIPS programs as they start up.
+
+\subsection{A more complicated example}
+
+This section lists the source for \verb+im_extract()+'s function
+description. Almost all functions in the VIPS library have descriptors ---
+if you are not sure how to write a description, it's usually easiest to
+copy one from a similar function in the library.
+
+\begin{verbatim}
+/* Args to im_extract.
+ */
+static im_arg_desc 
+  extract_args[] = {
+  IM_INPUT_IMAGE( "input" ),
+  IM_OUTPUT_IMAGE( "output" ),
+  IM_INPUT_INT( "left" ),
+  IM_INPUT_INT( "top" ),
+  IM_INPUT_INT( "width" ),
+  IM_INPUT_INT( "height" ),
+  IM_INPUT_INT( "channel" )
+};
+
+/* Call im_extract via arg vector.
+ */
+static int
+extract_vec( im_object *argv )
+{
+  IMAGE_BOX box;
+
+  box.xstart = *((int *) argv[2]);
+  box.ystart = *((int *) argv[3]);
+  box.xsize = *((int *) argv[4]);
+  box.ysize = *((int *) argv[5]);
+  box.chsel = *((int *) argv[6]);
+
+  return( im_extract( 
+    argv[0], argv[1], &box ) );
+}
+
+/* Description of im_extract.
+ */
+static im_function 
+  extract_desc = {
+  "im_extract",
+  "extract area/band",
+  IM_FN_PIO | IM_FN_TRANSFORM, 
+  extract_vec,      
+  NUMBER( extract_args ),
+  extract_args     
+};
+\end{verbatim}
+
+\subsection{Adding new types}
+
+The VIPS type mechanism is extensible. User plug-ins can add new types
+and user-interfaces can (to a certain extent) provide interfaces to these
+user-defined types.
+
+Here is the definition of \verb+im_arg_desc+:
+
+\begin{verbatim}
+/* Describe a VIPS command argument.
+ */
+typedef struct {
+  char *name;         
+  im_type_desc *desc; 
+  im_print_obj_fn print;
+} im_arg_desc;
+\end{verbatim}
+
+The \verb+name+ field is the argument name above. The \verb+desc+ field
+points to a structure defining the argument type, and the \verb+print+ field
+is an (optionally \verb+NULL+) pointer to a function which VIPS will call
+for output arguments after your function successfully completes and before
+the object is destroyed. It can be used to print results to the terminal,
+or to copy results into a user-interface layer.
+
+\begin{verbatim}
+/* Success on an argument. This is 
+ * called if the image processing 
+ * function succeeds and should be 
+ * used to (for example) print 
+ * output.
+ */
+typedef int (*im_print_obj_fn)
+  ( im_object obj );
+\end{verbatim}
+
+\verb+im_type_desc+ is defined as:
+
+\begin{verbatim}
+/* Describe a VIPS type.
+ */
+typedef struct {
+  im_arg_type type;    
+  int size;         
+  im_type_flags flags;
+  im_init_obj_fn init;
+  im_dest_obj_fn dest;
+} im_type_desc;
+\end{verbatim}
+
+Where \verb+im_arg_type+ is defined as
+
+\begin{verbatim}
+/* Type names. You may define your 
+ * own, but if you use one of these, 
+ * then you should use the built-in 
+ * VIPS type converters.
+ */
+#define IM_TYPE_IMAGEVEC "imagevec"
+#define IM_TYPE_DOUBLEVEC "doublevec"
+#define IM_TYPE_INTVEC "intvec"	
+#define IM_TYPE_DOUBLE "double"
+#define IM_TYPE_INT "integer"
+#define IM_TYPE_COMPLEX "complex"
+#define IM_TYPE_STRING "string" 
+#define IM_TYPE_IMASK "intmask"
+#define IM_TYPE_DMASK "doublemask"
+#define IM_TYPE_IMAGE "image"    
+#define IM_TYPE_DISPLAY "display"
+#define IM_TYPE_GVALUE "gvalue"	
+typedef char *im_arg_type;     
+\end{verbatim}
+
+In other words, it's just a string. When you add a new type, you just need
+to choose a new unique string to name it. Be aware that the string is printed
+to the user by various parts of VIPS, and so needs to be ``human-readable''.
+The flags are:
+
+\begin{verbatim}
+/* These bits are ored together to 
+ * make the flags in a type 
+ * descriptor.
+ *
+ * IM_TYPE_OUTPUT: set to indicate 
+ * output, otherwise input.
+ *
+ * IM_TYPE_ARG: Two ways of making 
+ * an im_object --- with and without
+ * a command-line string to help you 
+ * along. Arguments with a string
+ * are thing like IMAGE descriptors, 
+ * which require a filename to 
+ * initialise. Arguments without are 
+ * things like output numbers, where 
+ * making the object simply involves 
+ * allocating storage.
+ */
+
+typedef enum {
+  IM_TYPE_OUTPUT = 0x1,
+  IM_TYPE_ARG = 0x2  
+} im_type_flags;
+\end{verbatim}
+
+And the \verb+init+ and \verb+destroy+ functions are:
+
+\begin{verbatim}
+/* Initialise and destroy objects. 
+ * The "str" argument to the init 
+ * function will not be supplied 
+ * if this is not an ARG type.
+ */
+typedef int (*im_init_obj_fn)
+  ( im_object *obj, char *str );
+typedef int (*im_dest_obj_fn)
+  ( im_object obj );
+\end{verbatim}
+
+As an example, here is the definition for a new type of unsigned
+integers. First, we need to define the \verb+init+ and \verb+print+
+functions. These transform objects of the type to and from string
+representation.
+
+\begin{verbatim}
+/* Init function for unsigned int 
+ * input.
+ */
+static int
+uint_init( im_object *obj, char *str )
+{
+  unsigned int *i = (int *) *obj;
+
+  if( sscanf( str, "%d", i ) != 1 || 
+    *i < 0 ) {
+    im_error( "uint_init", 
+      "bad format" );
+    return( -1 );
+  }
+
+  return( 0 );
+}
+
+/* Print function for unsigned int 
+ * output.
+ */
+static int
+uint_print( im_object obj )
+{
+  unsigned int *i = 
+    (unsigned int *) obj;
+
+  printf( "%d\n", (int) *i );
+
+  return( 0 );
+}
+\end{verbatim}
+
+Now we can define the type itself. We make two of these --- one for unsigned
+int used as input, and one for output.
+
+\begin{verbatim}
+/* Name our type.
+ */
+#define TYPE_UINT "uint"
+
+/* Input unsigned int type.
+ */
+static im_type_desc input_uint = {
+  TYPE_UINT,        /* Its an int */
+  sizeof( unsigned int ),/* Memory */
+  IM_TYPE_ARG,      /* Needs arg */
+  uint_init,        /* Init */
+  NULL              /* Destroy */
+};
+
+/* Output unsigned int type.
+ */
+static im_type_desc output_uint = {
+  TYPE_UINT,        /* It's an int */
+  sizeof( unsigned int ),/* Memory */
+  IM_TYPE_OUTPUT,   /* It's output */
+  NULL,             /* Init */
+  NULL              /* Destroy */
+};
+\end{verbatim}
+
+Finally, we can define two macros to make structures of type
+\verb+im_arg_desc+ for us.
+
+\begin{verbatim}
+#define INPUT_UINT( S ) \
+  { S, &input_uint, NULL }
+#define OUTPUT_UINT( S ) \
+  { S, &output_uint, uint_print }
+\end{verbatim}
+
+For more examples, see the definitions for the built-in VIPS types.
+
+\subsection{Using function dispatch in your application}
+
+VIPS provides a set of functions for adding new image processing functions
+to the VIPS function database, finding functions by name, and calling
+functions. See the manual pages for full details.
+
+\subsubsection{Adding and removing functions}
+
+\begin{verbatim}
+im_package *im_load_plugin( 
+  const char *name );
+\end{verbatim}
+
+This function opens the named file, searches it for a symbol named 
+\verb+package_table+, and adds any functions it finds to the VIPS function
+database. When you search for a function, any plug-ins are searched first,
+so you can override standard VIPS function with your own code.
+
+The function returns a pointer to the package it added, or \verb+NULL+
+on error.
+
+\begin{verbatim}
+int im_close_plugins( void )
+\end{verbatim}
+
+This function closes all plug-ins, removing then from the VIPS function
+database. It returns non-zero on error.
+
+\subsubsection{Searching the function database}
+
+\begin{verbatim}
+void *im_map_packages( 
+  im_list_map_fn fn, void *a )
+\end{verbatim}
+
+This function applies the argument function \verb+fn+ to every package
+in the database, starting with the most recently added package. As with
+\verb+im_list_map()+, the argument function should return \verb+NULL+
+to continue searching, or non-\verb+NULL+ to terminate the search
+early. \verb+im_map_packages()+ returns \verb+NULL+ if \verb+fn+ returned
+\verb+NULL+ for all arguments. The extra argument \verb+a+ is carried around
+by VIPS for your use.
+
+For example, this fragment of code prints the names of all loaded packages
+to \verb+fd+:
+
+\begin{verbatim}
+static void *
+print_package_name( im_package *pack, 
+  FILE *fp )
+{
+  (void) fprintf( fp, 
+    "package: \"%s\"\n", 
+    pack->name );
+
+  /* Continue search.
+   */
+  return( NULL );
+}
+
+static void
+print_packages( FILE *fp )
+{
+  (void) im_map_packages( 
+    (im_list_map_fn) 
+    print_package_name, fp );
+}
+\end{verbatim}
+
+VIPS defines three convenience functions based on \verb+im_map_packages()+
+which simplify searching for specific functions:
+
+\begin{verbatim}
+im_function *
+  im_find_function( char *name )
+im_package *
+  im_find_package( char *name )
+im_package *
+  im_package_of_function( char *name )
+\end{verbatim}
+
+\subsubsection{Building argument structures and running commands}
+
+\begin{verbatim}
+int im_free_vargv( im_function *fn, 
+  im_object *vargv )
+int im_allocate_vargv( 
+  im_function *fn, 
+  im_object *vargv )
+\end{verbatim}
+
+These two functions allocate space for and free VIPS argument lists. The
+allocate function simply calls \verb+im_malloc()+ to allocate any store
+that the types require (and also initializes it to zero). The free function
+just calls \verb+im_free()+ for any storage that was allocated.
+
+Note that neither of these functions calls the \verb+init+, \verb+dest+
+or \verb+print+ functions for the types --- that's up to you.
+
+\begin{verbatim}
+int im_run_command( char *name, 
+  int argc, char **argv )
+\end{verbatim}
+
+This function does everything. In effect,
+
+\begin{verbatim}
+im_run_command( "im_invert", 2, 
+  { "fred.v", "fred2.v", NULL } )
+\end{verbatim}
+
+is exactly equivalent to
+
+\begin{verbatim}
+system( "vips im_invert fred.v "
+  "fred2.v" )
+\end{verbatim}
+
+but no process is forked.

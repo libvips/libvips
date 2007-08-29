@@ -1,0 +1,19 @@
+VIPS SMP benchmark
+------------------
+
+This is adapted from the system used to generate images for POD:
+
+  http://cima.ng-london.org.uk/~john/POD
+
+Images from a 10k by 10k studio digital camera are colour processed, resized,
+cropped and sharpened. 
+
+This thing was originally processing images off a remote server over a 100mbit
+network. No attempt was made to make it quick (there was no point): you 
+could make it a lot faster very easily.
+
+See
+
+ http://www.vips.ecs.soton.ac.uk/index.php?title=Benchmarks
+
+for results.

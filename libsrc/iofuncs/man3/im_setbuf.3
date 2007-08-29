@@ -1,0 +1,21 @@
+.TH IM_SETBUF 3 "11 April 1990"
+.SH NAME
+im_setbuf \- sets an image descriptor to keep an image in ram
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B IMAGE *im_setbuf(buffer_name)
+.br
+.B char *buffer_image;
+.SH DESCRIPTION
+.B im_setbuf(3)
+returns an image descriptor which, when written to, will save pels in a memory
+buffer. It is generally more convenient to call im_open(3).
+.SH RETURN VALUE
+The function returns a valid image descriptor on success or NULL on error.
+.SH SEE\ ALSO
+im_close(3), im_open(3).
+.SH COPYRIGHT
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 11/04/1990

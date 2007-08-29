@@ -1,0 +1,51 @@
+translators
+-----------
+
+see this page for a howto:
+
+	http://developer.gnome.org/doc/tutorials/gnome-i18n/translator.html
+
+Things like 
+
+	msgid "/File/_Save Image As ..."
+
+are menu items. You only need to translate the last part (following the final
+"/"). The underscore character marks the accelerator (the underlined character
+in the menu item). So you could put:
+
+	msgstr "Sevy i_mago os ..."
+
+and it would display as "Sevy imago os ...", with the "m" underlined.
+
+tips
+----
+
+intltool-update --pot
+
+	make a new vips.pot translation template from the sources
+
+:%s/msgstr ""/msgstr "Malkovich"/
+:%s/msgstr\[0\] ""/msgstr[0] "Malkovich"/
+:%s/msgstr\[1\] ""/msgstr[1] "Malkovich"/
+:g/#, c-format/d
+
+add header
+
+# test translation file
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vips 7.9.3\n"
+"POT-Creation-Date: 2003-11-04 12:18+0000\n"
+"PO-Revision-Date: 2003-11-04 12:30+0000\n"
+"Last-Translator: john <EMAIL@ADDRESS>\n"
+"Language-Team: dk <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+	edits to make vips.pot into test.po
+
+msgfmt -cv -o /dev/null test.po
+
+	check translation for errors

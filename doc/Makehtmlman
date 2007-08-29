@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Make html in html/man from the man pages in the named 
+# directories
+
+# Config stuff
+out_dir=`pwd`/html/man
+
+# print usage and exit
+usage() {
+	echo usage: $0 dir1 dir2 ...
+	echo make html in $out_dir from the man pages in the
+	echo named directories
+
+	exit 1
+}
+
+# If a dir does not exist, make it
+makedir() {
+	if test ! -d "$1"; then
+		mkdir "$1"
+		status=$?
+		if test $status -ne 0 && test ! -d "$1"; then
+			exit $status
+		fi
+	fi
+}
+
+makedir `pwd`/html
+makedir `pwd`/html/man
+makedir $out_dir
+
+# echo the filename given a path
+filename() {
+	echo ${1/#*\//}
+}
+
+# echo the dirname given a path... make sure there's a trailing slash
+dirname() {
+	# break off the filename, then junk that many chars off the end of
+	# $1 to make the dirname
+	local file=`filename $1`
+	local dir=${1:0:$((${#1}-${#file}))}
+
+	# is dir "/"? return immediately
+	if test "$dir" == "/"; then
+		echo "/"
+		return
+	fi
+
+	# remove trailing slash, provided we're not removing everything
+	dir=${dir/%\//}
+
+	# if there's no dir, we must be in the current dir
+	if test "$dir" == ""; then
+		dir="."
+	fi
+
+	# finally add a trailing "/" back again
+	echo $dir/
+}
+
+# Need VIPSHOME
+export VIPSHOME=`vips im_guess_prefix im_version VIPSHOME`
+
+: ${VIPSHOME:?}
+
+if test $# -le 0; then
+	usage
+fi
+
+# Loop over args, adding source man pages
+for dir in $*; do
+	if test -d "$dir"; then
+		files="$files $dir/*.[0-9]"
+	else
+		echo "$0: directory $dir does not exist"
+		exit 1
+	fi
+done
+
+# Make output!
+let j=0
+for i in $files; do
+	file=`filename $i`
+	dir=`dirname $i`
+
+	( cd $dir/.. ; 
+		rman -f html -r '%s.%s.html' $dir$file > $out_dir/$file.html )
+	let j+=1
+done
+
+echo "$0: made $j pages of html"

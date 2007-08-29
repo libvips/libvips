@@ -1,0 +1,76 @@
+\section{The \texttt{VError} class}
+
+The \verb+VError+ class is the class thrown by the VIPS C++ API when an
+error is detected. It is derived from \verb+std::exception+ in the usual way.
+
+\subsection{Constructors}
+
+There are two constructors for \verb+VError+:
+
+\begin{verbatim}
+VError( std::string str );
+VError();
+\end{verbatim}
+
+The first form creates an error object initialised with the specified
+string, the last form creates an empty error object.
+
+\subsection{Projection functions}
+
+A function gives access to the string held by \verb+VError+:
+
+\begin{verbatim}
+const char *what();
+\end{verbatim}
+
+You can also send to an \verb+ostream+.
+
+\begin{verbatim}
+std::ostream& operator<<( 
+    std::ostream&, const error& );
+\end{verbatim}
+
+\subsection{Computing with \texttt{VError}}
+
+Two member functions let you append elements to an error:
+
+\begin{verbatim}
+VError &app( std::string txt );
+VError &app( const int i );
+\end{verbatim}
+
+For example:
+
+\begin{verbatim}
+VError wombat;
+int n = 12;
+
+wombat.app( "possum: no more than " ).
+	app( n ).app( " elements\n" );
+throw( wombat );
+\end{verbatim}
+
+\noindent
+will throw a \verb+VError+ with a diagnostic of:
+
+\begin{verbatim}
+possum: no more than 12 elements
+\end{verbatim}
+
+The member function \verb+perror()+ prints the error message to \verb+stdout+
+and exits with a code of 1.
+
+\begin{verbatim}
+void perror( const char * );
+void perror();
+\end{verbatim}
+
+\subsection{Convenience function}
+
+The convenience function \verb+verror+ creates an \verb+VError+ with the
+specified error string, and throws it. If you pass \verb+""+ for the string,
+verror uses the contents of the VIPS error buffer instead.
+
+\begin{verbatim}
+extern void verror( std::string str = "" );
+\end{verbatim}

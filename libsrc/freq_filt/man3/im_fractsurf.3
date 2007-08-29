@@ -1,0 +1,29 @@
+.TH IM_FRACTSURF 3 "10 May 1991"
+.SH NAME
+im_fractsurf \- creates a fractal surface
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_fractsurf(in, frdim, size)
+.br
+.B IMAGE *in;
+.br
+.B double frdim;
+.br
+.B int size;
+.SH DESCRIPTION
+.B im_fractsurf
+creates a fracta surface.  The program initially creates a gaussian
+noise image (im_gausnoise(3)) of sizes size x size.  The image is then
+filtered (im_flt_image_freq(3)) in order to force the power spectrum to
+decay according to the desired fractal dimension frdim.  The result is
+a one band float image and should be scaled for display.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_flt_image_freq(3), im_gausnoise(3)
+.SH COPYRIGHT
+.br
+N. Dessipris,
+.SH AUTHOR
+N. Dessipris \- 06/07/1990

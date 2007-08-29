@@ -1,0 +1,160 @@
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *OutputMode Best
+
+
+  << /PostRenderingEnhance true
+
+     /PostRenderingEnhanceDetails
+
+     << /PrintQuality 3
+
+     /Type 36 >>
+
+  >> systemdict /setpagedevice get exec
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPMaxDetail False
+
+
+  << /PostRenderingEnhance true
+
+     /PostRenderingEnhanceDetails
+
+     << /MaxQualityResolution false
+
+     /Type 36 >>
+
+  >> systemdict /setpagedevice get exec
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *MirrorPrint False
+<</MirrorPrint false>>setpagedevice
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPTransverse False
+
+
+userdict /HPCustTrans known
+
+  {
+
+    (<<) cvx exec
+
+    /Orientation
+
+    userdict /HPCustTrans get 
+
+    (>>) cvx exec setpagedevice
+
+  }
+
+  {
+
+     <</Orientation 0>> setpagedevice
+
+  } ifelse
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPPantone False
+
+
+/SpotColorMatching where {
+
+pop
+
+false SpotColorMatching
+
+} if
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPColorMan Native
+
+
+      /CMYKColorManagement where {
+
+      pop
+
+      /Native CMYKColorManagement
+
+      /sRGB RGBColorManagement
+
+      } if
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPCMYKEmulation None
+
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPRGBEmulation None
+
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPCyanBrightness leveleven
+ 
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPMagentaBrightness leveleven
+ 
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPYellowBrightness leveleven
+ 
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPBlackBrightness leveleven
+ 
+%%EndFeature
+
+
+}efcl
+
+(FOTOG4)setjob

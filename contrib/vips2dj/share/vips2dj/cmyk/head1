@@ -1,0 +1,686 @@
+%!PS-Adobe-3.0
+%%Title: (micro_65_macbeth.tif)
+%%Creator: (Adobe\250 Photoshop\250 6.0: AdobePS 8.7.0)
+%%CreationDate: (2:17 pm Monday, April 29, 2002)
+%%For: (FOTOG4)
+%%Routing: (mailto:Colin.White@ng-london.org.uk)
+%%Pages: 1
+%%DocumentFonts: 
+%%DocumentNeededResources: 
+%%DocumentSuppliedResources: 
+%%DocumentData: Clean7Bit
+%%PageOrder: Ascend
+%%Orientation: Portrait
+%%DocumentMedia: (Default) 612 792 0 () ()
+%RBINumCopies: 1
+%RBINupNess: 1 1
+%ADO_ImageableArea: 30 33 582 761
+%RBIDocumentSuppliedFonts: 
+[{
+%%BeginPluginPS: SetTime
+/HPDict /ProcSet findresource /SetTime get (20020429140835) exch exec
+%%EndPluginPS
+}stopped cleartomark
+[{
+%%BeginPluginPS: HPJobname
+/HPDict /ProcSet findresource /SetJobName get (micro_65_macbeth_tif) exch exec
+%%EndPluginPS
+}stopped cleartomark
+%%EndComments
+%%BeginDefaults
+%%ViewingOrientation: 1 0 0 1
+%%EndDefaults
+userdict/dscInfo 5 dict dup begin
+/Title(micro_65_macbeth.tif)def
+/Creator(Adobe\250 Photoshop\250 6.0: AdobePS 8.7.0)def
+/CreationDate(2:17 pm Monday, April 29, 2002)def
+/For(FOTOG4)def
+/Pages 1 def
+end put
+%%BeginProlog
+/md 178 dict def md begin/currentpacking where {pop /sc_oldpacking currentpacking def true setpacking}if
+%%BeginFile: lw8_feature-1.01
+%%Copyright: Copyright 1990-1999 Adobe Systems Incorporated and Apple Computer Incorporated. All Rights Reserved.
+/bd{bind def}bind def
+/ld{load def}bd
+/xs{exch store}bd
+/Z{0 def}bd
+/T true def
+/F false def
+/level2
+/languagelevel where
+{
+pop languagelevel 2 ge
+}{
+F
+}ifelse
+def
+/odictstk Z
+/oopstk Z
+/fcl
+{
+count oopstk sub dup 0 gt
+{
+{pop}repeat
+}{
+pop
+}ifelse
+countdictstack odictstk sub dup 0 gt
+{
+{end}repeat
+}{
+pop
+}ifelse
+}bd
+/sfcl2
+{
+/odictstk countdictstack store
+count/oopstk xs
+}bd
+/efcl2
+{
+stopped{$error/newerror F put}if
+fcl
+}bd
+/noload Z
+/startnoload
+{
+{/noload save store}if
+}bd
+/endnoload
+{
+{noload restore}if
+}bd
+/setcopies{
+level2
+{
+1 dict begin/NumCopies exch def currentdict end setpagedevice
+}{
+userdict/#copies 3 -1 roll put
+}ifelse
+}def
+level2 startnoload
+/ststpgdev{}def
+/dopgdev{}def
+/stpgdev{}def
+/buf Z
+/didstop T def
+/sfcl
+{
+/didstop T store
+/odictstk countdictstack store
+count/oopstk xs
+currentfile cvx stopped
+{
+$error/newerror F put
+didstop
+{
+save/didstop xs
+/buf vmstatus exch sub exch pop dup 0 lt{pop 0}if
+dup 64000 gt{pop 64000}if string store
+{
+currentfile buf readline
+{
+(}efcl)eq{exit}if
+}{
+/UnexpectedEOF errordict/rangecheck get exec
+}ifelse
+}loop
+didstop restore
+}if
+}if
+fcl
+}bd
+/efcl
+{
+/didstop F store
+exec
+stop
+}bd
+level2 endnoload level2 not startnoload
+/setpagedevice where{pop/realstpgdev/setpagedevice ld}if
+/SC_topddict Z
+/SC_spdict Z
+/$spusrdict F def
+/dopgdev
+{
+userdict/setpagedevice undef
+$spusrdict
+{
+userdict/setpagedevice/realstpgdev load put
+/$spusrdict F store
+}if
+SC_topddict realstpgdev
+}bd
+/stpgdev
+{
+SC_topddict dup 3 -1 roll
+{
+SC_spdict 2 index known
+{
+SC_spdict 2 index get
+dup 3 -1 roll
+{
+put dup
+}forall
+pop put dup
+}{
+put dup
+}ifelse
+}forall
+pop pop
+}bd
+/ststpgdev
+{
+/setpagedevice where
+{
+userdict eq
+{
+/$spusrdict T store
+}if
+}if
+userdict/setpagedevice/stpgdev load put
+/SC_topddict 0 dict store
+/SC_spdict 3 dict begin
+/InputAttributes 0 dict def
+/Policies 0 dict def
+/OutputAttributes 0 dict def
+currentdict
+end
+store
+}def
+/sfcl/sfcl2 ld
+/efcl/efcl2 ld
+level2 not endnoload
+%%EndFile
+%%BeginFile: lw8_basic-4.0
+/xdf{exch def}bd
+/:L/lineto
+/lw/setlinewidth
+/:M/moveto
+/rl/rlineto
+/rm/rmoveto
+/:C/curveto
+/:T/translate
+/:K/closepath
+/:mf/makefont
+/gS/gsave
+/gR/grestore
+/np/newpath
+12{ld}repeat
+/framewidth -1 def
+/QDframwid -1 def
+/numframes Z
+/mTS matrix def
+/$m matrix def
+/av 87 def
+/por T def
+/normland F def
+/psb-nosave{}def
+/pse-nosave{}def
+/us Z
+/psb{/us save store}bd
+/pse{us restore}bd
+/level3
+/languagelevel where
+{
+pop languagelevel 3 ge
+}{
+F
+}ifelse
+def
+level2 startnoload
+/setjob
+{
+statusdict/jobname 3 -1 roll put
+}bd
+/devg/DeviceGray def
+/devr/DeviceRGB def
+/devc/DeviceCMYK def
+level2 endnoload level2 not startnoload
+/setjob
+{
+1 dict begin/JobName xdf currentdict end setuserparams
+}bd
+/devg[/DeviceGray]def
+/devr[/DeviceRGB]def
+/devc[/DeviceCMYK]def
+level2 not endnoload
+/pm Z
+/mT Z
+/sD Z
+/mTSsetup{
+mT $m currentmatrix mTS concatmatrix pop
+}bd
+/pmSVsetup{
+/pm save store
+}bd
+/initializepage
+{
+mT concat
+}bd
+/endp
+{
+pm restore
+}bd
+/adjRect
+{
+dup 2 mul 6 2 roll
+4 index sub exch 5 -1 roll sub exch
+4 2 roll
+4 index add exch 5 -1 roll add exch
+4 2 roll
+}bd
+/frame1up
+{
+gS
+mTS setmatrix
+QDframwid lw
+/setstrokeadjust where{pop T setstrokeadjust}if
+clippath pathbbox
+2 index sub exch
+3 index sub exch
+currentlinewidth framewidth mul
+adjRect
+numframes dup 0 lt{pop 0}if
+{
+4 copy
+rS
+currentlinewidth framewidth
+mul 4 mul
+adjRect
+}repeat
+pop pop pop pop
+gR
+}bd
+/$c devr def
+/rectclip where
+{
+pop/rC/rectclip ld
+}{
+/rC
+{
+np 4 2 roll
+:M
+1 index 0 rl
+0 exch rl
+neg 0 rl
+:K
+clip np
+}bd
+}ifelse
+/rectfill where
+{
+pop/rF/rectfill ld
+}{
+/rF
+{
+gS
+np
+4 2 roll
+:M
+1 index 0 rl
+0 exch rl
+neg 0 rl
+fill
+gR
+}bd
+}ifelse
+/rectstroke where
+{
+pop/rS/rectstroke ld
+}{
+/rS
+{
+gS
+np
+4 2 roll
+:M
+1 index 0 rl
+0 exch rl
+neg 0 rl
+:K
+stroke
+gR
+}bd
+}ifelse
+%%EndFile
+%%BeginFile: lw8_level1_colorspace-2.0
+/G/setgray ld
+/:F1/setgray ld
+/:F/setrgbcolor ld
+/:F4/setcmykcolor where
+{
+pop
+/setcmykcolor ld
+}{
+{
+3
+{
+dup
+3 -1 roll add
+dup 1 gt{pop 1}if
+1 exch sub
+4 1 roll
+}repeat
+pop
+setrgbcolor
+}bd
+}ifelse
+/:Fx
+{
+counttomark
+{0{G}0{:F}{:F4}}
+exch get
+exec
+pop
+}bd
+/$cs Z
+/:rg{devr :ss}bd
+/:sc{$cs :ss}bd
+/:dc
+{
+dup type/arraytype eq{0 get}if
+dup/DeviceCMYK eq
+{
+pop devc
+}{
+/DeviceGray eq
+{
+devg
+}{
+devr
+}ifelse
+}ifelse
+/$cs xdf
+}bd
+/:sgl{}def
+/:dr{}bd
+/:fCRD{pop}bd
+/:ckcs{}bd
+/:ss{/$c xdf}bd
+%%EndFile
+%%BeginFile: lw8_uniform_graphics-2.0
+/@a
+{
+np :M 0 rl :L 0 exch rl 0 rl :L fill
+}bd
+/@b
+{
+np :M 0 rl 0 exch rl :L 0 rl 0 exch rl fill
+}bd
+/@c
+{
+moveto 0 rlineto stroke
+}bd
+/@w
+{
+moveto 0 exch rlineto stroke
+}bd
+/arct where
+{
+pop
+}{
+/arct
+{
+arcto pop pop pop pop
+}bd
+}ifelse
+/x1 Z
+/x2 Z
+/y1 Z
+/y2 Z
+/rad Z
+/@q
+{
+/rad xs
+/y2 xs
+/x2 xs
+/y1 xs
+/x1 xs
+np
+x2 x1 add 2 div y1 :M
+x2 y1 x2 y2 rad arct
+x2 y2 x1 y2 rad arct
+x1 y2 x1 y1 rad arct
+x1 y1 x2 y1 rad arct
+fill
+}bd
+/@s
+{
+/rad xs
+/y2 xs
+/x2 xs
+/y1 xs
+/x1 xs
+np
+x2 x1 add 2 div y1 :M
+x2 y1 x2 y2 rad arct
+x2 y2 x1 y2 rad arct
+x1 y2 x1 y1 rad arct
+x1 y1 x2 y1 rad arct
+:K
+stroke
+}bd
+/@i
+{
+np 0 360 arc fill
+}bd
+/@j
+{
+gS
+np
+:T
+scale
+0 0 .5 0 360 arc
+fill
+gR
+}bd
+/@e
+{
+np
+0 360 arc
+:K
+stroke
+}bd
+/@f
+{
+np
+$m currentmatrix
+pop
+:T
+scale
+0 0 .5 0 360 arc
+:K
+$m setmatrix
+stroke
+}bd
+/@k
+{
+gS
+np
+:T
+0 0 :M
+0 0 5 2 roll
+arc fill
+gR
+}bd
+/@l
+{
+gS
+np
+:T
+0 0 :M
+scale
+0 0 .5 5 -2 roll arc
+fill
+gR
+}bd
+/@m
+{
+np
+arc
+stroke
+}bd
+/@n
+{
+np
+$m currentmatrix
+pop
+:T
+scale
+0 0 .5 5 -2 roll arc
+$m setmatrix
+stroke
+}bd
+%%EndFile
+%%BeginFile: lw8_bubn-2.1
+/$t Z
+/$p Z
+/$s Z
+/$o 1. def
+/2state? F def
+/ps Z
+level2 startnoload
+/pushcolor/currentrgbcolor ld
+/popcolor/setrgbcolor ld
+/setcmykcolor where
+{
+pop/currentcmykcolor where
+{
+pop/pushcolor/currentcmykcolor ld
+/popcolor/setcmykcolor ld
+}if
+}if
+level2 endnoload level2 not startnoload
+/pushcolor
+{
+currentcolorspace $c eq
+{
+currentcolor currentcolorspace T
+}{
+currentcmykcolor F
+}ifelse
+}bd
+/popcolor
+{
+{
+setcolorspace setcolor
+}{
+setcmykcolor
+}ifelse
+}bd
+level2 not endnoload
+/pushstatic
+{
+2state?
+$o
+$t
+$p
+$s
+$cs
+ps
+}bd
+/popstatic
+{
+/ps xs
+/$cs xs
+/$s xs
+/$p xs
+/$t xs
+/$o xs
+/2state? xs
+}bd
+/pushgstate
+{
+currentpoint
+pushcolor
+currentlinewidth
+currentlinecap
+currentlinejoin
+currentdash exch aload length
+np clippath pathbbox
+$m currentmatrix aload pop
+}bd
+/popgstate
+{
+$m astore setmatrix
+2 index sub exch
+3 index sub exch
+rC
+array astore exch setdash
+setlinejoin
+setlinecap
+lw
+popcolor
+np :M
+}bd
+/bu
+{
+errordict/nocurrentpoint{pop 0 0}put
+2state?
+{
+pushgstate
+gR
+}if
+pushgstate
+gR
+pushgstate
+pushstatic
+pm restore
+mTS setmatrix
+}bd
+/bn
+{
+/pm save store
+popstatic
+popgstate
+gS
+popgstate
+2state?
+{
+gS
+popgstate
+}if
+}bd
+/cpat{pop 64 div setgray 8{pop}repeat}bd
+%%EndFile
+/currentpacking where {pop sc_oldpacking setpacking}if end
+%%EndProlog
+%%BeginSetup
+md begin
+%RBIIncludeNonPPDFeature: NumCopies 1
+%RBIBeginNonPPDFeature: WaitTimeout 600
+ 600/languagelevel where{pop languagelevel 2 ge}{false}ifelse{1 dict dup/WaitTimeout 4 -1 roll put setuserparams}{statusdict/waittimeout 3 -1 roll put}ifelse
+%RBIEndNonPPDFeature
+sfcl{
+%%BeginFeature: *HPColorAsGray No
+<< /ProcessColorModel /DeviceCMYK >> setpagedevice
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPIntent Colorimetric
+
+
+  userdict /UserRenderIntent (RelativeColorimetric) put
+
+  <<>> setpagedevice
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *HPAutoScaling Off
+ 
+%%EndFeature
+
+
+}efcl
+
+sfcl{
+%%BeginFeature: *PageSize Letter
+/HPDict /ProcSet findresource /SetMargins get [ 0 0 0 0 ] exch exec

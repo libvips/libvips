@@ -1,0 +1,30 @@
+.TH BATCH_RUBBER_SHEET 1 "2 Feb 2002"
+.SH NAME
+batch_rubber_sheet \- warp a set of images with a rubber-sheet transformation
+.SH SYNOPSIS
+.B batch_rubber_sheet matrix image1 image2 ...
+.SH DESCRIPTION
+The first argument specifies a file containing the transformation, subsequent
+arguments are image files to be transformed. The transformed image is written
+to a new file, named as the old file, but with "rsc_" prepended to the file
+name.
+
+For example:
+
+  batch_rubber_sheet lens.mat fred.jpg jim.png
+
+will read a transform from the file 
+.B lens.mat 
+and apply it to 
+.B fred.jpg 
+and
+.B jim.png, 
+writing files 
+.B rsc_fred.jpg 
+and 
+.B rsc_jim.png.
+.SH RETURN VALUE
+returns 0 on success and non-zero on error.
+.SH SEE ALSO
+The "Image=>Rubber" menu in nip.
+

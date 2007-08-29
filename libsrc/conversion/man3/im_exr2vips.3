@@ -1,0 +1,23 @@
+.TH IM_EXR 3 "3 Jan 2003"
+.SH NAME
+im_exr2vips, im_exr2vips_header \- convert OpenEXR images to VIPS format
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_exr2vips( const char *filename, IMAGE *out )
+
+int im_exr2vips_header( const char *filename, IMAGE *out )
+
+.SH DESCRIPTION
+.B im_exr2vips() 
+reads the OpenEXR image in filename, and writes the image out
+in VIPS format. 
+
+.B im_png2vips_header() 
+reads just the header information from the OpenEXR file. You can't read any
+pixels!
+
+.SH SEE ALSO
+im_isexr(3), im_vips2tiff(3)
+.SH COPYRIGHT
+Hey, you want this? You have it!

@@ -1,0 +1,39 @@
+.TH IM_BANDJOIN 3 "28 June 1990"
+.SH NAME
+im_bandjoin, im_gbandjoin \- join two or more images
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_bandjoin(im1, im2, imout)
+.br
+.B IMAGE *im1, *im2, *imout;
+
+.B int im_gbandjoin(imarray, imout, no)
+.br
+.B IMAGE *imarray[], *imout;
+.br
+.B int no;
+.SH DESCRIPTION
+These function perform a band-wise join of two or more images.  Input
+images should be of the same type and should have the same sizes.
+
+.B im_bandjoin()
+performs a band-wise join of two images. If the two images
+have n and m bands respectively, then the output image will have n+m
+bands, with the first n coming from the first image and the last m
+from the second.
+
+.B im_gbandjoin()
+performs a generalised band-wise join of no images.
+Input images can have any number of bands; for instance if imarray[0] has j
+bands, imarray[1] has k bands, ...., imarray[no-1] has z bands, output 
+has j+k+...+z bands.
+.SH RETURN VALUE
+The functions returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_lrjoin(3), im_lrmerge(3), im_insert(3).
+.SH COPYRIGHT
+.br
+J. Cupitt, N. Dessipris
+.SH AUTHOR
+J. Cupitt, N. Dessipris \- 25/04/1991

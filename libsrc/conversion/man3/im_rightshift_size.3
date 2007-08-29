@@ -1,0 +1,30 @@
+.TH IM_RIGHTSHIFT_SIZE 3 "12 August 2006"
+.SH NAME
+ im_rightshift_size \- Decrease size by a power-of-two factor
+.SH SYNOPSIS
+.nf
+.B #include <vips/vips.h>
+.sp
+.BI "int im_rightshift_size( IMAGE " "*in" ", IMAGE " "*out" ", int " "xshift" ", int " "yshift" ", int " "band_fmt" " );
+.fi
+.SH DESCRIPTION
+.B im_rightshift_size(3)
+decreases the size of an integer type image by a power-of-two factor, very quickly, by summing the values of
+adjacent pixels.  The sum is shifted to produce output of the specified band format.  
+.IR xshift " and "yshift
+are positive and give the base-two logarithms of the scale factors.
+.PP
+If the input image is a signed type, then 
+.I band_fmt
+must be one of IM_BANDFMT_CHAR, IM_BANDFMT_SHORT or IM_BANDFMT_INT.  If it is an unsigned type, then
+.I band_fmt
+must be one of IM_BANDFMT_UCHAR, IM_BANDFMT_USHORT or IM_BANDFMT_UINT.
+.SH RETURN VALUE
+The functions returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_affine(3)
+.SH COPYRIGHT
+.br
+Copyright 2006, Tom Vajzovic.
+.SH AUTHOR
+Tom Vajzovic

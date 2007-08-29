@@ -1,0 +1,359 @@
+.TH IM_FMASKPROF 3 "8 Oct 1991"
+.SH NAME
+im_create_fmask \- create a frequency domain filter mask according to args
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int 
+.br
+im_create_fmask( IMAGE *out, int xs, int ys, int type, double p1, ... )
+
+.SH DESCRIPTION
+im_create_fmask()
+creates a float one band image mask.  Sizes  xs and ys must be powers of 2,
+and must be square. Non-square masks may be added in a future version.
+
+There are 18 types of filter mask supported in this VIPS - they are listed
+below. For each type, you are expected to give the correct number of
+additional parameters. See the table.
+
+.br
+-----------------------------------------------------------
+.br
+| Filter mask;         type; num_args; parameters         |
+.br
+-----------------------------------------------------------
+.br
+| Ideal high pass;          0;  1; fc                     |
+.br
+| Ideal low pass;           1;  1; fc                     |
+.br
+| Butterworth high pass;    2;  3; order, fc, ac          |
+.br
+| Butterworth low pass;     3;  3; order, fc, ac          |
+.br
+| Gaussian low pass;        4;  2; fc, ac                 |
+.br
+| Gaussian high pass;       5;  2; fc, ac                 |
+.br
+|                                                         |
+.br
+| Ideal ring pass;          6;  2; fc, width              |
+.br
+| Ideal ring reject;        7;  2; fc, width              |
+.br
+| Butterworth ring pass;    8;  4; order, fc, width, ac   |
+.br
+| Butterworth ring reject;  9;  4; order, fc, width, ac   |
+.br
+| Gaussian ring pass;      10;  3; fc, width, ac          |
+.br
+| Gaussian ring reject;    11;  3; fc, width, ac          |
+.br
+|                                                         |
+.br
+| Ideal band pass;         12;  3; fcx, fcy, r            |
+.br
+| Ideal band reject;       13;  3; fcx, fcy, r            |
+.br
+| Butterworth band pass;   14;  5; order, fcx, fcy, r, ac |
+.br
+| Butterworth band reject; 15;  5; order, fcx, fcy, r, ac |
+.br
+| Gaussian band pass;      16;  4; fcx, fcy, r, ac        |
+.br
+| Gaussian band reject;    17;  4; fcx, fcy, r, ac        |
+.br
+|                                                         |
+.br
+| fractal filter mask;     18;  1; fractal_dimension      |
+.br
+-----------------------------------------------------------
+
+All masks are created with the four quadrants rotated so the (0,0) dc component
+is at the top left corner of the image.  In order to view a mask,
+the four quadrants must be rotated
+(im_rotquad(3)) and scaled (im_scale(3)).  If the masks
+are used for filtering in the frequency domain, there is no need for rotation.
+Function im_flt_imag_freq(3) creates a mask and filter a square image in the
+frequency domain.
+
+As a matter of convention the positive x axis is from left to right while the
+positive y axis is from top to bottom (on the image with the frequency (0,0)
+close to the centre i.e the four quadrants rotated).
+All produced filters are float images with the maximum value normalised to 1.0.
+Ideal and Butterworth filters are given in the book by Gonzalez and Wintz.
+
+HIGH PASS - LOW PASS FILTER MASKS (flag: 0 to 5)
+
+A high pass filter mask filters the low frequencies while allowing the high
+frequencies to get through.  The reverse happens with a low pass
+filter mask.  The transition is controlled by the frequency
+cutoff (fc). All masks are circularly symmetric and they are creating
+by duplicating one forth of them.
+
+Ideal high pass/low pass (argno=1):
+
+The variable fc determines the frequency cutoff which can be given either as
+percentage of the max spatial frequency (normalised by convention to 1.0) or
+in pixels. In the latter case it is assumed that the input image is
+square and that the maximum spatial frequency
+corresponds to xs/2 points horizontally and and ys/2 points vertically. 
+The following line of code creates an ideal circularly symmetric
+high pass filter mask:
+
+im_create_fmask(im, 128, 128, 0, .5);
+
+with all values above half the max spatial frequency 
+(corresponding to 32 pixels) set to 1.0 and the remaining set to 0.0.
+The dc value (corresponding to the frequency (0,0)) is set to 1.0.
+When the mask is properly scaled and has its four quadrants rotated it is a 
+black circle within a white square.  The radius of the circle is 
+determined by fc which is .5*max_spatial_frequency that is, for the example
+above .5*64=32.
+The centre of the circle is set to 1.0 (white), in order to allow
+the dc component to pass unaltered.
+A circularly symmetric ideal low pass filter mask is constructed in a similar
+way.
+
+Butterworth high pass/low pass (argno=3):
+
+Each mask needs three arguments: the order, fc and ac.  Order corresponds to
+the order of the Butterworth filter mask, fc is the frequency cutoff and 
+ac is the amplitude cutoff.  The same conventions are valid for both fc and ac
+as for the ideal high pass and low pass filter mask.
+The amplitude cutoff is determined by ac and corresponds to the percentage
+of the maximum amplitude at fc.  The maximum amplitude is always
+normalised to 1.0.
+If the transfer function of the filter is H(r) then H(fc) = ac*H(0).
+The transfer function at frequency (0,0) is also set to 1.0.
+
+The transfer function of the Butterworth high pass is:
+.br
+H(r)=1.0/(1.0+(1.0/ac-1.0)*pow((fc*fc)/(r*r),order)).
+.br
+For a Butterworth low pass:
+.br
+H(r)=1.0/(1.0+(1.0/ac-1.0)*pow((r*r)/(fc*fc),order)).
+.br
+Both masks are given in Gonzalez and Wintz (Digital Image Processing, 2nd edn,
+1987).
+By increasing the order, the filter becomes steeper introducing ringing.
+
+Gaussian high pass/low pass (argno=2):
+
+Each of these masks needs 2 arguments: fc and ac.  For both arguments the same
+conventions as for the Butterworth mask are valid.  The transfer function
+of a Gaussian high pass filter mask is given by the equation:
+.br
+H(r) = 1.0 - exp(log(ac)*r*r/(fc*fc)).
+.br
+The corresponding mask for a Gaussian high pass is:
+.br
+H(f) = exp(log(ac)*r*r/(fc*fc)).
+.br
+ac being the amplitude cutoff.
+.br
+
+
+RING PASS - RING REJECT FILTER MASKS (flag: 6 to 11)
+
+A  circularly symmetric ring pass filter mask allows all
+frequencies within a ring, to pass while blocking all other frequencies.
+The ring is specified by its width and it radius which corresponds to fc
+the frequency cutoff. The fc is centred within the width and, therefore,
+the ring starts at point fc-width/2 up to fc+width/2 along the positive
+horizontal x axis.  The reverse happens with a low pass
+filter mask.  The transition is controlled by the frequency
+cutoff (fc). All masks are circularly symmetric and they are creating
+by duplicating one forth of them.
+
+Ideal ring pass/ring reject filter masks (argno=2):
+
+An ideal ring pass filter mask has two arguments, the width and the frequency
+cutoff. The created mask when properly rotated, 
+is a white ring of internal radius fc-df
+and external radius fc+df, on a black square.  All band pass values
+within the ring are set to 1.0 while the remaining band reject frequencies 
+are set to 0.0.  The (0,0) frequency component is set to 1.0.
+Both fc and width must be either between 0.0 and 1.0, or between 1.0 and
+xs/2.  If both are between 0.0 and 1.0 then the program normalises then to the
+maximum spatial frequency which is xs/2=ys/2.
+
+An ideal ring reject filter mask is the reverse of the ideal ring pass filter
+mask, that is it allows all frequencies to get through apart from the
+frequencies within a ring specified  by the args of the function,
+in a similar way as the ideal ring pass filter.
+
+Butterworth ring pass/ring reject filter masks (argno=4):
+
+.br
+Each of these masks has 4 arguments: the order of the filter (order),
+the frequency cutoff (fc), the width (width) and the amplitude cutoff (ac).
+.br
+A Butterworth ring pass filter mask is a circularly symmetric ring shape mask.
+The profile of the mask along the horizontal positive axis is a shifted
+low pass Butterworth filter mask, with the maximum value set to 1.0.
+This mask is similar to the ideal ring pass but the transition 
+between band pass and band reject zones instead of a sharp brick
+wall, is a shifted Butterworth low pass filter
+mask. The transfer function of the mask is given by the equation:
+.br
+H(r)=1./(1.+cnst*pow(((r-fc)*(r-fc)/(w2)),order))
+.br
+where cnst=1/ac, w2 = width*width/4.
+.br
+Both fc and width should be either between 0.0 and 1.0 or between 1.0 and xs/2
+as in the case of the ideal ring pass or ring reject mask.  The amplitude
+cutoff should be always between 0.0 and 1.0.  It should be noted that:
+.br
+H(fc+df)=H(fc-df)=ac*H(fc)
+.br
+The value of H(0) at frequency (0,0) has been set to 1.0 in order to allow
+the dc component of the image to pass unaltered.
+
+For the case of the Butterworth ring reject filter mask, its transfer function
+is given by the equation:
+.br
+H(r)=1./(1.+cnst*pow((w2/((r-fc)*(r-fc))),order))
+.br
+where cnst=1/ac, w2 = width*width/4.
+.br
+
+Gaussian ring pass/ring reject filter masks (argno=3):
+
+Each of these masks takes three arguments: the frequency cutoff (fc), the width
+(width) and the amplitude cutoff (ac).  The conventions for the arguments
+are the same as for the Butterworth ring pass and ring reject masks above; 
+however the order is not needed.
+
+The transfer function of a Gaussian ring pass filter mask is:
+.br
+H(r)=exp(log(ac)*(r-fc) * (r-fc)/w2)
+.br
+where w2 = width*width/4.
+.br
+
+BAND PASS - BAND REJECT MASKS (flag:13 to 17) 
+
+These filter masks are used in order to eliminate spatial frequencies 
+around a given frequency.  Since the masks must be symmetrical 
+with respect to the origin, they cannot be realised by creating
+one forth and replicating it four times.
+
+Ideal band pass/band reject filter masks (argno=3):
+
+An ideal band reject filter mask takes three arguments: the coordinates
+of the centre of the one circle (fcx,fcy) and its radius r.  The produced
+filter mask has all values 0.0 except two disks centred at (fcx,fcy),
+(-fcx,-fcy) each one having radius r.  The two disks have values of 1.0.
+The value of the mask corresponding to (0,0) spatial frequency, as also
+set to 1.0.  
+
+All three arguments fcx, fcy and r should be either between 0 and 1 or
+between 1 and the max spatial frequency which is xs/2=ys/2.  In the
+case that the arguments are between 0.0 and 1.0 they are interpreted
+as percentage of the maximum spatial frequency.  For the case of band
+pass filter masks the value of the (0,0) frequency is set to 1.0 so that
+the dc component can pass unaltered.
+
+Butterworth band pass/band reject filter masks (argno=4):
+
+A Butterworth band pass/band reject 
+filter mask allows/rejects spatial frequencies
+around a given frequency.  The mask consists of the sum of two
+Butterworth shape filters centered at (fcx,fcy) and (-fcx,-fcy).
+The shape of each mask is determined by the parameters of the function.
+The arguments fcx, fcy and r obey the same conventions as for those
+of the ideal band pass / band reject masks.  The transfer function of the
+filter at point (0,0) is set to 1.0.
+
+The function works by adding the two Butterworth masks.
+As a result, if the whole mask is normalised with respect to
+frequency (fcx,fcy), the cutoff frequency at (fcx+||r||,fcy+||r||) will
+be different to that of (fcx-||r||,fcy-||r||), since the tail of
+the mask centered at (-fcx,-fcy) will give a different contribution
+to (fcx+||r||,fcy+||r||) than that to (fcx-||r||,fcy-||r||).
+In order to simplify the calculations, the function estimates the
+amplitude at a cutoff frequency ((fcx-||r||,fcy-||r||) as if the contribution
+comes only from the mask centred at (fcx,fcy).  The side effect of this 
+approach is that for big values of r the cutoff frequency of the filter mask
+is different at frequencies (fcx+||r||,fcy+||r||) and (fcx+||r||,fcy+||r||).
+
+More specifically, given that each disk has a Butterworth shape of radius r
+with centres at (x0, y0) and (-x0,-y0),
+the transfer function of a Butterworth band pass filter
+mask is given by the equation:
+.br
+H(d)=  { H1(d) + H2(d) }
+.br
+H1(d) = cnst1/(1 + cnst2 * pow((d-d0)/r, 2*order))
+.br
+H2(d) = cnst1/(1 + cnst2 * pow((d+d0)/r, 2*order))
+.br
+where
+.br
+cnst1=1./(1.+1./(1.+cnst1*pow(d02/((r/2)*(r/2)),order)))
+.br
+cnst2=1./ac - 1.,
+.br
+d02 = x0*x0+y0*y0.
+.br
+With this configuration for d=+d0, H(+d0) = 1.0; for d=-d0 H(-d0) = 1.0.
+If da=(xa,ya), then for d=+da, H1(+da)=ac and for d=-da, H1(-da)=ac.  In the
+latter case it is assumed that xa=x0*(1-radius/sqrt(x0*x0+y0*y0)) and that
+ya=y0*(1-radius/sqrt(x0*x0+y0*y0)).
+
+The transfer function of a Butterworth band reject filter H_bbr(d) is given
+by the equation:
+.br
+H_bbr(d) = 1.0 - H_bbp(d),
+.br
+where H_bbp(d) is the transfer function of the Butterworth bandpass filter
+defined above.
+
+Gaussian band pass/band reject filter masks (argno=3):
+
+For a Gaussian band pass or band reject filter mask, similar conventions 
+to those of the Butterworth filter masks, are valid however the order as an
+argument is not needed.
+
+The  transfer function of a Gaussian band pass filter mask is given by the
+equation
+.br
+H(d)=  { H1(d) + H2(d) }
+.br
+H1(d) = cnst1 * exp(-cnst2 * (d-d0)*(d-d0)/(r*r))
+.br
+H1(d) = cnst1 * exp(-cnst2 * (d+d0)*(d+d0)/(r*r))
+.br
+where
+.br
+cnst1=1/( 1+exp(-cnst*d02/((r/2)*(r/2))) ),
+.br
+d02 = x0*x0+y0*y0 and cnst2=-log(ac).
+
+The transfer function of a Gaussian band reject filter H_gbr(d) is given
+by the equation:
+.br
+H_gbr(d) = 1.0 - H_gbp(d),
+.br
+where H_gbp(d) is the transfer function of the Gaussian bandpass filter
+defined above.
+
+FRACTAL FILTER MASK (flag:18)
+
+The fractal filter mask should be used only to filter square images of
+white Gaussian noise in order to create fractal surfaces of a given fractal
+dimension.  The fractal dimension should be between 2.0 and 3.0.  The produced
+mask has a power spectrum which decays according to the rule entered by the
+parameter fractal dimension.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_flt_image_freq(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 10/08/1991

@@ -1,0 +1,48 @@
+.TH IM_CP_DESC 3 "11 April 1990"
+.SH NAME
+im_cp_desc, im_append_Hist \- copy most of an image descriptor to another
+image descriptor.
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_cp_desc_array( IMAGE *out, IMAGE *in[] );
+
+int im_cp_descv( IMAGE *out, IMAGE *in1, ... );
+
+.B int im_cp_desc( IMAGE *out,  IMAGE *in );
+
+.B int im_append_Hist( IMAGE *out, IMAGE *in );
+
+.SH DESCRIPTION
+.B im_cp_desc_array(3)
+takes an output image and a NULL-terminated list of input images, which must
+contain at least one input image. 
+
+It copies the fields describing the size, bands, type, resolution, and
+coding from the first input image to the output image. History and meta from
+all images are copied over. If two input images have the same meta tag, the
+earlier one takes precedence.
+
+.B im_cp_descv(3)
+is a varargs conveniece function for 
+.B im_cp_desc_array(3).
+
+.B im_cp_desc(3)
+is a convenience function which calls
+.B im_cp_descv( image1, image2, NULL ).
+
+.B im_append_Hist(3)
+appends the history attached to image2 to the end of the history on image1. It
+is used by image processing functions which take more than one image as input,
+and which need to make sure that all the input history appears in the output.
+
+The first line of image2 history is not copied, as this conventionally holds
+background information which is not part of the file history.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 11/04/1990

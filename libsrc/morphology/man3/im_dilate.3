@@ -1,0 +1,72 @@
+.TH IM_DILATE 3 "14 May 1991"
+.SH NAME
+im_dilate, im_dilate_raw, im_erode, im_erode_raw \- perform morphological operations on a white object against a black background
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_dilate(in, out, m)
+.br
+.B IMAGE *in, *out;
+.br
+.B INTMASK *m;
+
+.B int im_erode(in, out, m)
+.br
+.B IMAGE *in, *out;
+.br
+.B INTMASK *m;
+
+.B int im_dilate_raw(in, out, m)
+.br
+.B IMAGE *in, *out;
+.br
+.B INTMASK *m;
+
+.B int im_erode_raw(in, out, m)
+.br
+.B IMAGE *in, *out;
+.br
+.B INTMASK *m;
+
+.SH DESCRIPTION
+The above functions are applications of morphological operations on one
+channel binary images ie. images with pixels that are either 0 (black) or 255
+(white).  All functions assume that input images contain white objects against
+a black background.
+
+Mask coefficients can be either 0 (for object) or 255 (for background) or 128
+(for do not care).
+
+The mask should have odd length sides and the origin of the mask is at location
+(m-\>xsize/2,m-\>ysize/2) integer division.  All algorithms have been based on
+the book "Fundamentals of Digital Image Processing" by A.  Jain, pp 384-388,
+Prentice-Hall, 1989.  Essentially, im_dilate(3) sets pixels in the output if
+*any* part of the mask matches, whereas im_erode(3) sets pixels only if *all*
+of the mask matches.
+
+im_dilate(3)
+dilates the image pointed by in, according to the mask pointed by m and writes
+the result in the location pointed by the IMAGE descriptor out. The output
+image is the same size as the input, with a black border in the manner of
+im_conv(3).
+
+im_dilate_raw(3)
+works as im_dilate(3), but does not add a black border.
+
+im_erode(3)
+erodes the image pointed by in, according to the mask pointed by m and writes
+the result in the location pointed by the IMAGE descriptor out. Again, the
+output image is forced to have the same size as the input.
+
+im_erode_raw(3)
+works as im_erode(3), but does not add a black border.
+
+See the boolean operations im_and(3), im_or(3) and im_eor(3) for analogues
+of the usual set difference and set union operations.
+
+.SH RETURN VALUE
+All functions returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_read_imask(3), im_conv(3), im_and(3), im_rotate_imask(3).
+.SH COPYRIGHT
+1991-1995, Birkbeck College and the National Gallery

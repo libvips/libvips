@@ -1,0 +1,69 @@
+.TH WRAPPERS 3 "11 April 1990"
+.SH NAME
+im_wrapone, im_wrapmany \- easy interface to partial image IO system
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+.br
+.B #include <vips/region.h>
+
+int im_wrapone( IMAGE *in, IMAGE *out, 
+    im_wrapone_fn fn, void *a, void *b )
+.br
+int im_wrapmany( IMAGE **in, IMAGE *out, 
+    im_wrapmany_fn fn, void *a, void *b )
+
+where
+
+typedef void (*im_wrapone_fn)( void *in, void *out, int n,
+    void *a, void *b )
+.br
+typedef void (*im_wrapmany_fn)( void **in, void *out, int n,
+    void *a, void *b )
+
+.SH DESCRIPTION
+These functions provide a simple way to use the VIPS partial image IO system,
+provided that your image processing function involves no coordinate
+transformations, that is, that each output PEL depends only upon the
+corresponding PEL(s) in the input image(s).
+
+You should write your operation as a buffer processing function --- for
+example:
+
+    static void
+    invert_buffer( unsigned char *in, unsigned char *out, 
+        int width )
+    {
+        int x;
+
+        for( x = 0; x < width; x++ )
+            *out++ = 255 - *in++;
+    }
+
+This can now be turned into a full PIO image processing function by:
+
+    int
+    invert( IMAGE *in, IMAGE *out )
+    {
+        if( in->BandFmt != FMTUCHAR || 
+            in->Coding != NOCODING ||
+            in->Bands != 1 ) {
+            im_errormsg( "invert: bad input" );
+            return( -1 );
+        }
+        if( im_cp_desc( out, in ) )
+            return( -1 );
+        if( im_wrapone( in, out,
+            (im_wrapone_fn) invert_buffer, NULL, NULL ) )
+        return( 0 );
+    }
+
+im_wrapmany(3) works as im_wrapone(3), but allows many input images. All the
+inputs should be same Xsize and Ysize, but may vary in type. The array of
+input images should be NULL-terminated, as for im_start_many(3).
+
+.SH RETURN VALUE
+All int-valued functions return zero on success and non-zero on error.
+.SH COPYRIGHT
+National Gallery, 1995
+.SH AUTHOR
+J. Cupitt \- 9/2/95

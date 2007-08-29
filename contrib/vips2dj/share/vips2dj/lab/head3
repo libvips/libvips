@@ -1,0 +1,9 @@
+/sD 16 dict def
+300 level2{1 dict dup/WaitTimeout 4 -1 roll put setuserparams}{statusdict/waittimeout 3 -1 roll put}ifelse
+/Courier findfont[10 0 0 -10 0 0]:mf setfont
+%%EndSetup
+%%Page: 1 1
+%%BeginPageSetup
+initializepage
+(Johan Lammens; document: Lab_example; page: 1 of 1)setjob
+%%EndPageSetup

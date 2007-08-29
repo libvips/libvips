@@ -1,0 +1,101 @@
+.TH STATS 3 "24 April 1991"
+.SH NAME
+im_avg, im_deviate, im_min, im_minpos, im_max, im_maxpos \- find the mean, standard deviation, minimum and maximum of an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_avg(im, out)
+.br
+.B IMAGE *im;
+.br
+.B double *out;
+
+.B int im_deviate(im, out)
+.br
+.B IMAGE *im;
+.br
+.B double *out;
+
+.B int im_min(im, out)
+.br
+.B IMAGE *im;
+.br
+.B double *out;
+
+.B int im_minpos(im, xpos, ypos, min)
+.br
+.B IMAGE *im;
+.br
+.B int *xpos, *ypos;
+.br
+.B double *min;
+
+.B int im_max(im, out)
+.br
+.B IMAGE *im;
+.br
+.B double *out;
+
+.B int im_maxpos(im, xpos, ypos, max)
+.br
+.B IMAGE *im;
+.br
+.B int *xpos, *ypos;
+.br
+.B double *max;
+
+.SH DESCRIPTION
+These functions find the mean, standard deviation, minimum, maximum of an image.
+They operate on all bands of the input image. Use
+.B im_stats(3)
+if you need to calculate on bands separately.
+All computations are carried out in 
+double precision arithmetic.
+The standard deviation is calculated using the formula:
+
+ Var{E} = 1 / (N - 1) * (E{X^2} - E{X}^2 / N)
+ stdev{E} = sqrt(Var{E}).
+
+.B im_avg(3)
+finds the average of an image pointed by im.  Takes as input any non-complex
+image format and returns a double at the location pointed by out.
+
+.B im_deviate(3)
+finds the standard deviation of an image pointed by im.  Takes as 
+input any non-complex image format and returns
+a double at the location pointed by out.
+
+.B im_min(3)
+finds the the minimum value of the image pointed by im and returns it at the
+location pointed by out.  Takes as 
+input any image format and returns
+a double at the location pointed by out.  If input is complex 
+the min square amplitude (re*re+im*im) is returned.
+
+.B im_minpos(3)
+finds the the minimum value of the image pointed by im and returns it at the
+location pointed by out.  The coordinates of the last occurrence of 
+min is returned at locations pointed by xpos, ypos.  If input is complex
+the min square amplitude (re*re+im*im) is returned.
+
+.B im_max(3)
+finds the the maximum value of the image pointed by im and returns it at the
+location pointed by out.  If input is complex 
+the max square amplitude (re*re+im*im) is returned.
+
+.B im_maxpos(3)
+finds the the maximum value of the image pointed by im and returns it at the
+location pointed by max.  The coordinates of the last occurrence of 
+max is returned at locations pointed by xpos, ypos.  If input is complex 
+the max square amplitude (re*re+im*im) and its last occurrence is returned.
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE ALSO
+im_exptra(3), im_lintra(3), im_abs(3), im_stats(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 24/04/1991
+.br
+J. Cupitt \- 21/7/93

@@ -1,0 +1,30 @@
+.TH IM_RAW2VIPS 3 "4 August 2005"
+.SH NAME
+im_raw2vips \- wrap a raw binary file inside an IMAGE descriptor
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int
+.br
+im_raw2vips( const char *filename, IMAGE *out, 
+.br
+	int width, int height, int bpp, int offset )
+
+.SH DESCRIPTION
+.B im_raw2vips(3)
+mmaps the file named, setting image 
+.B out
+so that access to that image will read from the file.
+The parameters specify the image width, height, bytes per pixel and offset
+in bytes from the start of the file.
+
+Use functions like
+.B im_copy_morph(3)
+to set the pixel type, byte ordering and so on.
+
+.SH RETURN VALUE
+The functions return NULL on error.
+.SH SEE ALSO
+im_copy_morph(3), im_copy_swap(3).
+.SH COPYRIGHT
+Imperial College, 2005

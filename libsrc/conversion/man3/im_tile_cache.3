@@ -1,0 +1,45 @@
+.TH IM_TILE_CACHE 3 "19 May 2006"
+.SH NAME
+im_tile_cache \- cache an image, tilewise
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int
+.br
+im_tile_cache( IMAGE *in, IMAGE *out,
+.br
+	int tile_width, int tile_height, int max_tiles );
+
+.SH DESCRIPTION
+.B tile_cache(3) 
+behaves rather like 
+.B im_copy(3) 
+between images
+.B in
+and 
+.B out,
+except that it keeps a cache of computed pixels. This cache is made of up to
+.B max_tiles
+tiles (a value of -1 for
+.B max
+means any number of tiles), and each tile is of size
+.B tile_width
+by
+.B tile_height
+pixels. Each cache tile is made with a single call to 
+.B im_prepare(3).
+
+This is a lower-level operation than
+.B im_cache(3)
+since it does no subdivision. It is suitable for caching the output of
+operations like
+.B im_exr2vips(3)
+on tiled images.
+
+.SH RETURN VALUE
+The function returns 0 on success, and non-zero on error, setting
+im_error().
+.SH SEE ALSO
+im_prepare(3)
+.SH AUTHOR
+J Cupitt, 2006

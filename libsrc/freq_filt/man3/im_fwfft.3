@@ -1,0 +1,60 @@
+.TH IM_FWFFT 3 "14 May 1991"
+.SH NAME
+im_fwfft, im_invfft, im_invfftr \- forward and inverse fft on an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_fwfft(in, out)
+.br
+.B IMAGE *in, *out;
+
+.B int im_invfft(in, out)
+.br
+.B IMAGE *in, *out;
+
+.B int im_invfftr(in, out)
+.br
+.B IMAGE *in, *out;
+
+.SH DESCRIPTION
+.B im_fwfft()
+performs a forward fast Fourier Transform on the image held by the
+image descriptor in and writes the result to the image descriptor out.
+The image can be in any format and have any number of bands. The output is
+always complex.
+
+If VIPS has been built with support for libfftw, a high-speed FFT library,
+then fftwnd_one() is used to compute the transform. This produces a double
+precision complex result. The first transformation at a particular image
+size will be very slow as libfftw optimises itself for your machine,
+but subsequent transforms of images of that size are extremely fast.
+Unfortunately, libfftw does not have good out-of-memory behaviour. If you
+try to transform a very large image, your program will exit abruptly.
+
+If VIPS has not been built with libfftw support, VIPS uses its own fft
+routines. These are rather slow, are single precision only, and can only
+transform images whose sides are a power of two.
+
+.B im_invfft()
+performs the reverse transform.
+The input image must be complex, the output is always complex. The image may
+have any number of bands.
+
+Again, if libfftw was present when VIPS was
+compiled, that library is used to calculate the transform.
+
+.B im_invfftr()
+performs the reverse transform.
+The input image must be complex, the output is always real. The image may
+have any number of bands. It is about 2 x faster than
+.B im_invfft().
+
+Again, if libfftw was present when VIPS was
+compiled, that library is used to calculate the transform.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_rotquad(3), im_c2ps(3), im_scaleps(3), im_disp_ps(3).
+.SH COPYRIGHT
+1995, National Gallery and Birkbeck College

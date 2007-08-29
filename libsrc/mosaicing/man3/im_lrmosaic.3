@@ -1,0 +1,104 @@
+.TH IM_LRMOSAIC 3 "13 May 1991"
+.SH NAME
+im_lrmosaic, im_tbmosaic \- mosaic two images using a zero order procedure
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int 
+.br
+im_lrmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out, 
+.br
+	int bandno, 
+.br
+	int xref, int yref, int xsec, int ysec, 
+.br
+	int halfcorrelation, int halfarea,
+.br
+	int balancetype,
+.br
+	int mwidth )
+
+int 
+.br
+im_tbmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out, 
+.br
+	int bandno, 
+.br
+	int xref, int yref, int xsec, int ysec, 
+.br
+	int halfcorrelation, int halfarea,
+.br
+	int balancetype,
+.br
+	int mwidth )
+
+.SH DESCRIPTION
+im_lrmosaic() and im_tbmosaic() are used to mosaic two images (left-right and
+top-bottom respectively).  Both input images are held by the IMAGE descriptors
+reference and secondary whereas the output is written on the IMAGE descriptor
+out.
+
+In order to carry out mosaicing, the coordinates of one tie point are
+required.  The tie point is expected to be in the overlapping area and has
+coordinates (xref, yref) on the reference image and (xsec, ysec) on the
+secondary image. The tie-point is not used as a start point for the search,
+but is used to specify the overlap of the two images. 
+
+The functions split the overlap area into three parts (top, middle and bottom;
+or left, middle and right) and search the reference image in each part for the
+20 best high contrast points. These 60 points are then searched for in the
+secondary image, giving a set of 60 possible corrected vectors.
+
+A straight line is fitted through the 60 vectors, and points discarded which
+lie a significant distance from the line. The line is then refitted to the
+remaining points, and the process repeated until either all remaining points
+lie on a straight line, or too many points have been discarded.
+
+If a good straight line fit is found, ref and sec are joined. If no fit was
+found, the functions fail with an error message. Note that these functions 
+detect rotation: if the straight line found requires sec to be rotated, they
+also fail with an error message.
+
+Each function requires three more parameters:
+
+halfcorrelationsize - sets the size of the fragments of ref 
+   for which the function searches sec. The actual window
+   will be of size 2*halfcorrelationsize+1. We recommend a
+   value of 5.
+
+halfareasize - sets the size of the area of sec that is
+   searched. The actual area searched will be of size
+   2*halfareasize+1. We recommend a value of 14.
+
+balancetype - sets the style of the balancing the functions 
+   perform. Balancing finds the average value of pixels in
+   the overlap area, and scales the left and right images
+   (or top and bottom images) so as to make the images
+   match in average overlap. Possible values are:
+
+      0 - means do no balancing.
+
+      1 - means keep the left image unadjusted and adjust 
+      the contrast of the right image to match the left.
+
+      2 - means keep the right image unadjusted and scale 
+      the left image to match it.
+
+      3 - means adjust the contrast of both the left and 
+      right images to bring both averages to a middle
+      value. The middle value chosen is weighted by the
+      number of pixels in each image: large images will be
+      adjusted less than small images.
+
+Balancing is useful for mosaicing frames from photographic or video sources
+where exact colour control is impossible and exposure varies from frame to
+frame.  Balancing is only allowed for uncoded uchar images.
+
+The final "mwidth" parameter sets the maximum blend width, see im_lrmerge(3).
+
+See also im_global_balance() for a better way of balancing large mosaics.
+
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE ALSO
+im_lrmerge(3), im_tbmerge(3), im_global_balance(3).

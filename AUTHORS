@@ -1,0 +1,19 @@
+Authors of VIPS
+
+See also the files THANKS and ChangeLog
+
+Nicos Dessipris and Kirk Martinez started VIPS in 1990.
+
+John Cupitt started ip in late 1990, and took over maintenance of the VIPS 
+library in 1995.
+
+Ruven Pillay, Steve Perry, Lars Raffelt, David Saunders, Jean-Philippe
+Laurant, Ahmed Abood, Helene Chahine, Joe Padfield, Andrey Kiselev, Lev
+Serebryakov, Simon Goodall, Konrad Lang, Markus Wollgarten, Jesper Friis 
+and others contributed patches for the library and ip.
+
+Hans Breuer contributed many win32 compatibility fixes and a win32 build
+system. Dennis Lubert cleaned up the C++ API.
+
+Jose Manuel Menendez Garcia, Javier Alejandre Arenas, and Juan Torres Arjona 
+contributed the tmake VIPS.DLL build system and the MSVC project files.

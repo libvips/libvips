@@ -1,0 +1,36 @@
+.TH IM_IOCHECK 3 "11 April 1990"
+.SH NAME
+im_pincheck, im_poutcheck, im_piocheck \- checks image descriptors for 
+PIO
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_pincheck( in )
+.br
+IMAGE *in;
+
+int im_poutcheck( out )
+.br
+IMAGE *out;
+
+.B int im_piocheck( in,  out)
+.br
+.B IMAGE *in, *out;
+.SH DESCRIPTION
+.B im_pincheck(3)
+checks that an image descriptor is suitable for PIO input. If the descriptor is 
+IM_OPENOUT and the descriptor has been written to, it is automatically
+`rewound,' that is, it is closed and reopened as an IM_MMAPIN descriptor.
+
+im_poutcheck(3) checks that a descriptor is suitable for PIO output.
+
+im_piocheck(3) simply calls in_pincheck(3) for image in and im_poutcheck(3) for
+image out.
+.SH RETURN VALUE
+All functions returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_generate(3), im_open(3). 
+.SH COPYRIGHT
+National Gallery
+.SH AUTHOR
+J. Cupitt \- 23/7/93

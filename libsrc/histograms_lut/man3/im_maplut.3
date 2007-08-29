@@ -1,0 +1,46 @@
+.TH IM_MAPLUT 3 "10 May 1991"
+.SH NAME
+im_maplut \- map an image through a lookup table
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_maplut(in, out, lut)
+.br
+IMAGE *in, *out, *lut;
+
+.SH DESCRIPTION
+im_maplut() maps an image through another image, acting as a LUT (Look Up
+Table).  The lut may have any type, and the output image will be of that type.
+
+The input image must be an unsigned integer types, that is, it must be one of
+FMTUCHAR, FMTUSHORT or FMTUINT.
+
+If the input is FMTUCHAR, then the LUT must have 256 elements, in other words,
+lut->Xsize * lut->Ysize == 256.
+
+If the input is FMTUSHORT or FMTUINT, then the lut may have any number of
+elements, and input pels whose value is greater than lut->Xsize * lut->Ysize
+are mapped with the last LUT element. The function counts and prints the
+number of image elements which overflow in this way.
+
+As regards bands, there are three cases:
+
+   - If LUT has one band, then the input may have any number of bands, and
+   each band will pass through the same LUT.
+
+   - If LUT has the same number of bands as the input, then each band of the
+   input will be LUTed separately.
+
+   - If the input has one band, then the LUT may have any number of bands, and
+   the output will have the same number of bands as the LUT.
+
+.SH RETURN VALUE
+All functions returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_histgr(3), im_hsp(3), im_heq(3), im_identity(3).
+.SH COPYRIGHT
+1995, National Gallery and Birkbeck College
+.SH AUTHORS
+J. Cupitt, 1995
+.br
+N. Dessipris \- 10/05/1991

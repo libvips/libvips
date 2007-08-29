@@ -1,0 +1,32 @@
+.TH IM_DISP_PS 3 "23 May 1991"
+.SH NAME
+im_disp_ps \- creates a displayable power spectrum of an one band image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_disp_ps(in, out)
+.br
+.B IMAGE *in, *out;
+.SH DESCRIPTION
+im_disp_ps() creates a displayable power spectrum of the image held by the
+image descriptor in.  The resultant unsigned char image is written on the
+image descriptor out.  Input should be one band image of any non-complex
+type.
+
+The function finds the fourier transform of the input (if in is not complex)
+and then the amplitude power spectrum is created (im_c2ps(3)).  The power
+spectrum is passed through a non-linear transformation (im_scaleps(3)).  The
+final image has the four quadrants rotated in such a way that the coordinate
+(0,0) is near the centre of the image (im_rotquad(3)).
+
+Input should be a square image with size power of 2.
+The maximum size of the input image is dictated by the available RAM.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_fwfft(3), im_c2ps(3), im_scaleps(3), im_rotquad(3).
+.SH COPYRIGHT
+.br
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 23/05/1991

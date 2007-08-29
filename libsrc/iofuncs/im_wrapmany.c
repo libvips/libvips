@@ -1,0 +1,202 @@
+/* Wrap-up a buffer processing function as a PIO VIPS function.
+ *
+ * Given a NULL-terminated list of input images all of the same size, an
+ * output image and a buffer processing function, make a PIO image processing
+ * operation.
+ *
+ * 	int im_wrapmany( IMAGE **in, IMAGE *out, 
+ *		im_wrapmany_fn fn, void *a, void *b )
+ *
+ * where im_wrapmany_fn has type:
+ *
+ *	process_buffer( void **in, void *out, int n,
+ *		void *a, void *b )
+ *
+ * in is a NULL-terminated array of input buffers, out is an output buffer, n 
+ * is the number of pixels (note! not band-elements) and a and b are extra 
+ * arguments carried for the function
+ *
+ * Modified:
+ * 1/8/95 JC
+ *	- buffer functions now get their own copies of the input pointer
+ *	  array
+ * 28/7/97 JC
+ *	- amazing error ... only worked if ir and or had same valid
+ */
+
+/*
+
+    This file is part of VIPS.
+    
+    VIPS is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+ */
+
+/*
+
+    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /*HAVE_CONFIG_H*/
+#include <vips/intl.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <vips/vips.h>
+
+#ifdef WITH_DMALLOC
+#include <dmalloc.h>
+#endif /*WITH_DMALLOC*/
+
+typedef struct {
+	im_wrapmany_fn fn;	/* Function we call */ 
+	void *a, *b;		/* User values for function */
+} UserBundle;
+
+/* Maximum number of input images -- why not?
+ */
+#define IM_MAX_INPUT_IMAGES (64)
+
+/* Convert a REGION.
+ */
+static int
+process_region( REGION *or, REGION **ir, IMAGE *im, UserBundle *bun )
+{
+	PEL *p[IM_MAX_INPUT_IMAGES], *q;
+	int i, y;
+
+	/* Prepare all input regions and make buffer pointers.
+	 */
+	for( i = 0; ir[i]; i++ ) {
+		if( im_prepare( ir[i], &or->valid ) ) 
+			return( -1 );
+		p[i] = (PEL *) IM_REGION_ADDR( ir[i], 
+			or->valid.left, or->valid.top );
+	}
+	p[i] = NULL;
+	q = (PEL *) IM_REGION_ADDR( or, or->valid.left, or->valid.top );
+
+	/* Convert linewise.
+	 */
+	for( y = 0; y < or->valid.height; y++ ) {
+		PEL *p1[IM_MAX_INPUT_IMAGES];
+
+		/* Make a copy of p[] which the buffer function can mess up if
+		 * it wants.
+		 */
+		for( i = 0; ir[i]; i++ )
+			p1[i] = p[i];
+
+		/* Bizarre double-cast stops a bogus gcc 4.1 compiler warning.
+		 */
+		bun->fn( (void **) ((void *)p1), q, 
+			or->valid.width, bun->a, bun->b );
+
+		/* Move pointers on.
+		 */
+		for( i = 0; ir[i]; i++ )
+			p[i] += IM_REGION_LSKIP( ir[i] );
+		q += IM_REGION_LSKIP( or );
+	}
+
+	return( 0 );
+}
+
+/* Make a copy of an array of input images.
+ */
+static IMAGE **
+dupims( IMAGE *out, IMAGE **in )
+{
+	IMAGE **new;
+	int i, n;
+
+	/* Count input images.
+	 */
+	for( n = 0; in[n]; n++ )
+		;
+
+	/* Allocate new array.
+	 */
+	if( !(new = IM_ARRAY( out, n + 1, IMAGE * )) )
+		return( NULL );
+	
+	/* Copy.
+	 */
+	for( i = 0; i < n; i++ )
+		new[i] = in[i];
+	new[n] = NULL;
+
+	return( new );
+}
+
+/* Wrap up as a partial.
+ */
+int
+im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
+{
+	UserBundle *bun = IM_NEW( out, UserBundle );
+	int i, n;
+
+	/* Count input images.
+	 */
+	for( n = 0; in[n]; n++ )
+		;
+	if( n >= IM_MAX_INPUT_IMAGES - 1 ) {
+		im_error( "im_wrapmany", _( "too many input images" ) );
+		return( -1 );
+	}
+
+	/* Save args.
+	 */
+	if( !bun || !(in = dupims( out, in )) )
+		return( -1 );
+	bun->fn = fn;
+	bun->a = a;
+	bun->b = b;
+
+	/* Check descriptors --- make sure that our caller has done this
+	 * correctly.
+	 */
+	for( i = 0; i < n; i++ ) {
+		if( in[i]->Xsize != out->Xsize || in[i]->Ysize != out->Ysize ) {
+			im_error( "im_wrapmany", 
+				_( "descriptors differ in size" ) );
+			return( -1 );
+		}
+
+		/* Check io style.
+		 */
+		if( im_piocheck( in[i], out ) )
+			return( -1 );
+	}
+	
+	/* Hint demand style. Being a buffer processor, we are happiest with
+	 * thin strips.
+	 */
+        if( im_demand_hint_array( out, IM_THINSTRIP, in ) )
+                return( -1 );
+
+	/* Generate!
+	 */
+	if( im_generate( out,
+		im_start_many, process_region, im_stop_many, in, bun ) )
+		return( -1 );
+
+	return( 0 );
+}

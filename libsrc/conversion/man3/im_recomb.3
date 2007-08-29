@@ -1,0 +1,36 @@
+.TH IM_RECOMB 3 "11 April 1990"
+.SH NAME
+im_recomb \- matrix recombination of image
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_recomb(imagein, imageout, mat)
+.br
+IMAGE *imagein, *imageout;
+.br
+DOUBLEMASK *mat;
+
+.SH DESCRIPTION
+im_recomb() recombines the elements of an m band image to form an n band image
+using mat, an m by n matrix of floating point numbers.
+
+It calculates 
+
+  A = B x C
+
+where A is an n band output image, C is an m band input image and B
+is an m by n matrix of floats. Can be used with a 3 by 3 matrix to perform
+simple colour space transforms; 7 by 30 matrix to shrink 3rd order
+development of 3 filter system to XYZ etc.
+
+The output type is float unless the input type is double, in which case the
+output type is double. It does not work for complex image types. All
+intermediates are calculated as double.  Note that the width of the matrix
+should be equal to the number of bands in the input image.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_read_dmask(3), im_matinv(3), im_lintra(3)
+.SH COPYRIGHT
+National Gallery and Birkbeck College, 1990 - 1996

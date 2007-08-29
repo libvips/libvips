@@ -1,0 +1,53 @@
+.TH IM_HEQ 3 "10 May 1991"
+.SH NAME
+im_heq, im_lhisteq, im_lhisteq_raw, im_hsp \- process an image using grey level transformations
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_heq( in, out, bandno )
+.br
+IMAGE *in, *out;
+.br
+int bandno;
+
+int im_lhisteq( in, out, xw, yw )
+.br
+IMAGE *in, *out;
+.br
+int xw, yw;
+
+int im_hsp( in, ref, out )
+.br
+IMAGE *in, *ref, *out;
+
+.SH DESCRIPTION
+im_heq()
+histogram equalises the unsigned char image held by the IMAGE descriptor
+in.  The result is written to the IMAGE descriptor out.
+If bandno is -1 then all input bands are equalised independently.  In all
+other cases the input image is equalised using the histogram of bandno only.
+The latter processing produces better results.
+
+im_hsp()
+maps in to out with histogram specified by the ref.  All images should be
+unsigned char.  Each band of the output image is specified according to the
+distribution of grey levels of the reference image according to
+im_histspec(3).
+
+im_lhisteq()
+histogram equalises the one channel unsigned char image pointed to by the
+Image descriptor in.  The result is written to the IMAGE descriptor out.
+The histogram equalisation is based on a window of size xw by yw centered at
+the current location of each input pixel.  The produced image has a black
+border of sizes xw/2 (left), xw-xw/2 (right), yw/2 (top) and yw-yw/2 (bottom).
+
+im_lhisteq_raw()
+is as above, but does not add the black border to the output image.
+
+.SH RETURN VALUE
+All functions returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_histgr(3), im_histplot(3), im_histspec(3), im_lineprof(3),
+im_stdif(3).
+.SH COPYRIGHT
+1991--1996 The National Gallery and Birkbeck College

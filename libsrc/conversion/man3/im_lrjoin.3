@@ -1,0 +1,38 @@
+.TH JOIN 3 "25 April 1991"
+.SH NAME
+im_lrjoin, im_tbjoin \- join two images into one
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_lrjoin( IMAGE *im1, IMAGE *im2, IMAGE *imout )
+
+int im_tbjoin( IMAGE *im1, IMAGE *im2, IMAGE *imout )
+.SH DESCRIPTION
+These functions join two image left-right or top-bottom.  Both input images
+should have the same no of bands and the same BandFmt.  Output has the same no
+of bands and BandFmt as input.  Only the history of the first image is kept by
+the output image.
+
+im_lrjoin() joins two images held by image descriptors im1 and im2 and writes
+the resultant byte image on the image descriptor imout.  The number of the
+extracted channels are identical for all images.  The Xsize of imout is the
+sum of the Xsizes of im1 and im2; the Ysize of imout is the min of the Ysizes
+of im1 and im2.  When joining im1 is on the left side of imout and im2 is on
+the right side of imout.
+
+im_tbjoin() joins two images held by image descriptors im1 and im2 and writes
+the resultant byte image on the image descriptor imout.  The number of the
+extracted channels are identical for all images.  The Xsize of imout is the
+min of the Xsizes of im1 and im2; the Ysize of imout is the sum of the Ysizes
+of im1 and im2.  When joining im1 is on the top side of imout and im2 is on
+the bottom side of imout.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_extract(3), im_lrmerge(3), im_insert(3)
+.SH COPYRIGHT
+.br
+K. Martinez, N. Dessipris,
+.SH AUTHOR
+K. Martinez and N. Dessipris \- 25/04/1991

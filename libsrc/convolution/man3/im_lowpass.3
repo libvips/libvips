@@ -1,0 +1,26 @@
+.TH IM_CONV 3 "2 May 1991"
+.SH NAME
+im_lowpass \- remove high frequencies quickly
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_lowpass(in, out, x, y)
+.br
+IMAGE *in, *out;
+.br
+int x, y;
+.SH DESCRIPTION
+Expand image up to X by Y pixels. Linear interpolation. Used by lowpass(1X)
+for simple and nasty low-pass filtering. The result is very poor, but good
+enough for smoothing out whites. Any number of bands, output size == input
+size, any non-complex type.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_shrink(3), im_similarity_area(3).
+.SH COPYRIGHT
+.br
+National Gallery
+.SH AUTHOR
+Too embarrassed to say

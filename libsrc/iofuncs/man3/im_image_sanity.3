@@ -1,0 +1,19 @@
+.TH IM_IMAGE_SANITY 3 "Feb 2001"
+.SH NAME
+im_image_sanity \- check image descriptors for sanity
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_image_sanity( IMAGE *im )
+
+.SH DESCRIPTION
+.B im_image_sanity(3)
+performs a few simple checks on the IMAGE for bad fields. If it finds a
+problem, it returns -1, serts im_errorstring, and prints a warning message.
+
+It is called from various places within VIPS to try to catch errors early.
+
+.SH RETURN VALUE
+All functions returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_incheck(3).

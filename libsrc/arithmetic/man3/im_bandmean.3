@@ -1,0 +1,20 @@
+.TH IM_BANDMEAN 3 "18 July 2007"
+.SH NAME
+im_bandmean \- average bands in an image
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_bandmean( in, out )
+.br
+IMAGE *in, *out;
+.SH DESCRIPTION
+.B im_bandmean(3)
+writes a one-band image where each pixel is the average of the bands for that
+pixel in the input image. The output band format is the same as the input 
+band format.
+
+Any size, any number of bands, any type. 
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_add(3), im_mean(3), im_recomb(3)

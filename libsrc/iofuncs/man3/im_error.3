@@ -1,0 +1,84 @@
+.TH IM_ERRORMSG 3 "22 April 1991"
+.SH NAME
+im_error_buffer, im_verror, im_error, im_error_clear, im_warn, im_diag,
+error_exit \- handle error messages from VIPS
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+.B #include <vips/stdarg.h>
+
+.B const char *im_error_buffer( void )
+
+.B void im_verror( const char *domain, const char *fmt, va_list ap )
+
+.B void im_error( const char *domain, const char *fmt, ... )
+
+.B void im_error_system( int errno, const char *domain, const char *fmt, ... )
+
+.B void im_error_clear()
+
+.B void im_warn( const char *domain, const char *fmt, ... )
+
+.B void im_diag( const char *domain, const char *fmt, ... )
+
+.B void error_exit(  const char *fmt, ... )
+
+.SH DESCRIPTION
+.B im_error(3)
+formats its arguments as printf and appends the string, with a newline, to
+the error buffer. The
+.B domain
+argument indicates the error source and should not be marked for translation.
+
+For example, the call:
+
+  im_error( "mystuff", _( "bad argument %d" ), a );
+
+might appear in the error buffer as:
+
+  mystuff: bad argument 12
+
+.B im_verror(3)
+works exactly as
+.B im_error(3)
+but takes stdarg arguments.
+
+.B im_error_system(3)
+works exactly as
+.B im_error(3)
+but additionally will translate and append a system error code.
+
+.B im_error_buffer(3)
+returns a pointer to the start of the error buffer.
+
+.B im_error_clear(3)
+empties the error buffer.
+
+.B error_exit(3) 
+formats its arguments as printf and sends the result to the error output,
+together with the contents of the error log, before terminating with an error
+status.
+
+.B im_warn(3)
+works as 
+.B im_error(), 
+but output is sent to the list of warnings.
+
+If an environment variable IM_WARNING exists, messages are suppressed.
+Warnings should be used for non-critical recoverable errors such as values
+being clipped.
+
+.B im_diag(3)
+works as 
+.B im_error(), 
+but output is sent to the list of diagnosic errors.
+
+If an environment variable IM_DIAGNOSTICS exists, messages are suppressed.
+Diagnostics should be used to give extra feedback about the result of the
+operation.
+.SH SEE ALSO
+error_exit(3), im_intro(3).
+.SH COPYRIGHT
+.br
+Birkbeck College
+.SH AUTHOR
+N. Dessipris \- 22/04/1991

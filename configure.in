@@ -1,0 +1,382 @@
+# Process this file with autoconf to produce a configure script.
+AC_INIT(include/vips/colour.h)
+AM_CONFIG_HEADER(config.h)
+
+# user-visible library versioning
+IM_MAJOR_VERSION=7
+IM_MINOR_VERSION=12
+IM_MICRO_VERSION=5
+IM_VERSION=$IM_MAJOR_VERSION.$IM_MINOR_VERSION.$IM_MICRO_VERSION
+IM_VERSION_STRING=$IM_VERSION-`date`
+
+VERSION=$IM_VERSION
+PACKAGE=vips
+
+# libtool library versioning ... not user-visible (except as part of the
+# library file name) and does not correspond to major/minor/micro above
+
+# rules:
+# sources changed: increment revision
+# interface changed: increment current, reset revision to 0
+#   interface changes backwards compatible?: increment age
+#   interface changes not backwards compatible?: reset age to 0
+
+LIBRARY_CURRENT=14
+LIBRARY_REVISION=2
+LIBRARY_AGE=2
+
+AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
+
+# patched into include/vips/version.h
+AC_SUBST(IM_VERSION)
+AC_SUBST(IM_VERSION_STRING)
+AC_SUBST(IM_MAJOR_VERSION)
+AC_SUBST(IM_MINOR_VERSION)
+AC_SUBST(IM_MICRO_VERSION)
+
+# put into library name by libsrc/Makefile.am and libsrcCC/Makefile.am
+AC_SUBST(LIBRARY_CURRENT)
+AC_SUBST(LIBRARY_REVISION)
+AC_SUBST(LIBRARY_AGE)
+
+AC_CANONICAL_HOST
+
+AC_MSG_CHECKING([for native Win32])
+case "$host" in
+  *-*-mingw*)
+    vips_os_win32=yes
+    ;;
+  *)
+    vips_os_win32=no
+    ;;
+esac
+AC_MSG_RESULT([$vips_os_win32])
+
+if test x"$vips_os_win32" = "xyes"; then
+  AC_DEFINE(OS_WIN32,1,[native win32])
+
+  # makes gcc use win native alignment
+  VIPS_CFLAGS="-mms-bitfields $VIPS_CFLAGS"
+fi
+
+# Cygwin/mingw need binary open to avoid CR/LF madness
+# ... should be a better way to test for this
+AC_MSG_CHECKING([for binary open needed])
+case "$host_os" in
+  cygwin* | mingw*)
+    vips_binary_open=yes
+    ;;
+  *)
+    vips_binary_open=no
+    ;;
+esac
+AC_MSG_RESULT([$vips_binary_open])
+if test x"$vips_binary_open" = "xyes"; then
+  AC_DEFINE(BINARY_OPEN,1,[define to open non-text files in binary mode])
+fi
+
+# we want largefile support, if possible
+AC_SYS_LARGEFILE
+
+# Checks for programs.
+AC_PROG_AWK
+AC_PROG_CC
+AC_PROG_CC_STDC
+AC_C_CONST
+AC_PROG_RANLIB
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_CXX
+AM_WITH_DMALLOC
+
+# vips.c/im_guess_prefix.c need to know the exe suffix and (as a fallback)
+# the install prefix
+AC_DEFINE_UNQUOTED(IM_EXEEXT,"$EXEEXT",[extension for executable files])
+AC_DEFINE_UNQUOTED(IM_PREFIX,"$prefix",[configure-time install prefix])
+
+# i18n
+GETTEXT_PACKAGE=vips7
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
+        [The prefix for our gettext translation domains.])
+ALL_LINGUAS="en_GB malkovich"
+AC_PROG_INTLTOOL
+AM_GLIB_GNU_GETTEXT
+
+# Checks for libraries.
+
+# build list of pkg-config packages we used here
+PACKAGES_USED=""
+
+# Checks for header files.
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_CHECK_HEADERS([errno.h math.h fcntl.h limits.h stdlib.h string.h sys/file.h sys/ioctl.h sys/param.h sys/time.h sys/mman.h sys/types.h sys/stat.h unistd.h io.h direct.h windows.h])
+
+# uncomment to change which libs we build
+# AC_DISABLE_SHARED
+# AC_DISABLE_STATIC
+# couldn't get this working :-( maybe try again with the next libtool
+AC_LIBTOOL_WIN32_DLL
+AC_CHECK_TOOL(DLLWRAP, dllwrap)
+AC_CHECK_TOOL(DLLTOOL, dlltool)
+AC_CHECK_TOOL(OBJDUMP, objdump)
+AC_CHECK_TOOL(RANLIB, ranlib)
+AC_CHECK_TOOL(STRIP, strip)
+AC_CHECK_TOOL(AR, ar)
+AC_CHECK_TOOL(AS, as)
+AC_CHECK_TOOL(LD, ld)
+AC_PROVIDE(AC_LIBTOOL_WIN32_DLL)
+AC_PROG_LIBTOOL
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_MODE_T
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_FUNC_MEMCMP
+AC_FUNC_MMAP
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasecmp strchr strcspn strdup strerror strrchr strspn vsnprintf realpath mkstemp mktemp random rand])
+AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
+
+# have to have these
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 >= 2.4 libxml-2.0 gobject-2.0)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 libxml-2.0 gobject-2.0"
+
+# option to eval without threads
+AC_ARG_ENABLE(threads, AS_HELP_STRING([--enable-threads], [evaluate with threads (default: yes)]))
+
+if test "x$enable_threads" != "xno"; then
+  AC_DEFINE(HAVE_THREADS,1,[threaded evaluation])
+  PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
+  PACKAGES_USED="$PACKAGES_USED gthread-2.0"
+fi
+
+# optional supporting libraries
+
+# we can wrap fftw3 and fftw2 ... but just look for fftw3, since we can do
+# that with pkg-config
+AC_ARG_WITH([fftw3], AS_HELP_STRING([--without-fftw3], [build without fftw3 (default: test)]))
+
+if test "x$with_fftw3" != "xno"; then
+  PKG_CHECK_MODULES(FFTW3, fftw3,
+    [AC_DEFINE(HAVE_FFTW3,1,[define if you have fftw3 installed.])
+    PACKAGES_USED="$PACKAGES_USED fftw3"],
+    [AC_MSG_WARN([fftw3 not found; disabling fftw support])])
+fi
+
+# ImageMagic ... detect attribute iteration too
+AC_ARG_WITH([magick], AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
+
+if test "x$with_magick" != "xno"; then
+  PKG_CHECK_MODULES(MAGICK, ImageMagick, 
+    [AC_DEFINE(HAVE_MAGICK,1,[define if you have libMagick installed.])
+    PACKAGES_USED="$PACKAGES_USED ImageMagick"],
+    [AC_MSG_WARN([libMagick not found; disabling Magick support])])
+fi
+
+if test "x$with_magick" != "xno"; then
+  # we need ResetImageAttributeIterator() / GetNextImageAttribute() to get
+  # attrs, but that's 6.2+ I think ... test for them
+  save_LIBS=$LIBS
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(GetNextImageAttribute,
+    AC_DEFINE(HAVE_MAGICK_ATTR,1,[define if your imagemagick has attribute support.]))
+  LIBS=$save_LIBS
+fi
+
+# liboil
+AC_ARG_WITH([liboil], AS_HELP_STRING([--without-liboil], [build without liboil
+(default: test)]))
+
+if test "x$with_liboil" != "xno"; then
+  PKG_CHECK_MODULES(LIBOIL, liboil-0.3,
+    [AC_DEFINE(HAVE_LIBOIL,1,[define if you have liboil-0.3 installed.])
+    PACKAGES_USED="$PACKAGES_USED liboil-0.3"],
+    [AC_MSG_WARN([liboil not found; disabling liboil support])])
+fi
+
+# lcms
+AC_ARG_WITH([lcms], AS_HELP_STRING([--without-lcms], [build without lcms (default: test)]))
+
+if test "x$with_lcms" != "xno"; then
+  PKG_CHECK_MODULES(LCMS, lcms,
+    [AC_DEFINE(HAVE_LCMS,1,[define if you have lcms installed.])
+    PACKAGES_USED="$PACKAGES_USED lcms"],
+    [AC_MSG_WARN([lcms not found; disabling lcms support])])
+fi
+
+# OpenEXR
+AC_ARG_WITH([OpenEXR], AS_HELP_STRING([--without-OpenEXR], [build without OpenEXR (default: test)]))
+
+# require 1.2.2 since 1.2.1 has a broken ImfCloseTiledInputFile()
+if test "x$with_OpenEXR" != "xno"; then
+  PKG_CHECK_MODULES(OPENEXR, OpenEXR >= 1.2.2,
+    [AC_DEFINE(HAVE_OPENEXR,1,[define if you have OpenEXR >=1.2.2 installed.])
+    PACKAGES_USED="$PACKAGES_USED OpenEXR"],
+    [AC_MSG_WARN([OpenEXR not found; disabling OpenEXR support])])
+fi
+
+# pangoft2
+AC_ARG_WITH([pangoft2], AS_HELP_STRING([--without-pangoft2], [build without pangoft2 (default: test)]))
+
+if test "x$with_pangoft2" != "xno"; then
+  PKG_CHECK_MODULES(PANGOFT2, pangoft2,
+    [AC_DEFINE(HAVE_PANGOFT2,1,[define if you have pangoft2 installed.])
+    PACKAGES_USED="$PACKAGES_USED pangoft2"],
+    [AC_MSG_WARN([pangoft2 not found; disabling pangoft2 support])])
+fi
+
+# hmm, these don't have .pc files on ubuntu 5.10, how odd
+FIND_TIFF(,[AC_MSG_WARN([libtiff not found; disabling TIFF support])])
+FIND_ZIP(,[AC_MSG_WARN([libz not found; disabling ZIP support])])
+FIND_JPEG(,[AC_MSG_WARN([libjpeg not found; disabling JPEG support])])
+
+# look for PNG with pkg-config ... fall back to our tester
+PKG_CHECK_MODULES(PNG, libpng, 
+  [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
+  PACKAGES_USED="$PACKAGES_USED libpng"],
+  [FIND_PNG(,[AC_MSG_WARN([libpng not found; disabling PNG support])])])
+
+# libexif
+AC_ARG_WITH([libexif], AS_HELP_STRING([--without-libexif], [build without libexif (default: test)]))
+
+if test "x$with_libexif" != "xno"; then
+  PKG_CHECK_MODULES(EXIF, libexif >= 0.6,
+    [AC_DEFINE(HAVE_EXIF,1,[define if you have libexif >= 0.6 installed.])
+    PACKAGES_USED="$PACKAGES_USED libexif"],
+    [AC_MSG_WARN([libexif >= 0.6 not found; disabling exif support])
+    with_libexif=no])
+fi
+
+# some libexif packages need include <libexif/poop.h>, some just <poop.h>
+# how annoying
+if test "x$with_libexif" != "xno"; then
+  # cppflags not cflags because we want the preproc to see the -I as well
+  save_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="$EXIF_CFLAGS $CPPFLAGS"
+  AC_CHECK_HEADER(exif-data.h,
+    AC_DEFINE(UNTAGGED_EXIF,1,[libexif includes don't need libexif prefix]))
+  CPPFLAGS=$save_CPPFLAGS
+fi
+
+# Look for linux video
+AC_CHECK_HEADER(linux/videodev.h, 
+  AC_DEFINE(HAVE_VIDEODEV,1,[have video4linux 1]),[
+  AC_MSG_WARN([linux/videodev.h not found; disabling Linux video support])
+])
+
+# make python binding?
+AC_ARG_WITH([python], AS_HELP_STRING([--without-python], [build without Python bindings (default: test)]))
+
+if test "x$with_python" != "xno"; then
+  AM_PATH_PYTHON(2.2,,
+    [with_python=no
+     AC_MSG_WARN([Python not found; disabling Python binding])])
+fi
+
+if test "x$with_python" != "xno"; then
+  AM_CHECK_PYTHON_HEADERS(,
+    [with_python=no
+     AC_MSG_WARN([Python headers not found])])
+fi
+
+# need SWIG too
+if test "x$with_python" != "xno"; then
+  AC_CHECK_PROG(HAVE_SWIG, swig, [yes])
+
+  if test "x$HAVE_SWIG" != "xyes"; then
+    with_python=no
+    AC_MSG_WARN([SWIG not found; disabling Python binding])
+  else
+    with_python=yes
+  fi
+fi
+
+if test "x$with_python" = "xyes"; then
+  AM_CONDITIONAL(HAVE_PYTHON, true)
+else
+  AM_CONDITIONAL(HAVE_PYTHON, false)
+fi
+
+# Gather all up for VIPS_CFLAGS, VIPS_INCLUDES and VIPS_LIBS
+VIPS_CFLAGS="$VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $FFTW3_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $OPENEXR_CFLAGS $LIBOIL_CFLAGS"
+VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES $FFTW_INCLUDES $LCMS_INCLUDES" 
+VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $LCMS_LIBS $LIBOIL_LIBS $OPENEXR_LIBS $EXIF_LIBS -lm"
+
+AC_SUBST(VIPS_CFLAGS)
+AC_SUBST(VIPS_INCLUDES)
+AC_SUBST(VIPS_LIBS)
+AC_SUBST(PACKAGES_USED)
+
+AC_OUTPUT([
+	vips-7.12.pc
+	vipsCC-7.12.pc
+	vips-7.12.spec
+	Makefile 
+	include/vips/version.h 
+	include/Makefile 
+	include/vips/Makefile 
+	libsrc/Makefile 
+	libsrc/acquire/Makefile 
+	libsrc/arithmetic/Makefile 
+	libsrc/boolean/Makefile 
+	libsrc/colour/Makefile 
+	libsrc/conversion/Makefile 
+	libsrc/convolution/Makefile 
+	libsrc/freq_filt/Makefile 
+	libsrc/histograms_lut/Makefile 
+	libsrc/inplace/Makefile 
+	libsrc/iofuncs/Makefile 
+	libsrc/matrix/Makefile 
+	libsrc/morphology/Makefile 
+	libsrc/mosaicing/Makefile 
+	libsrc/other/Makefile 
+	libsrc/relational/Makefile 
+	libsrc/video/Makefile 
+	libsrc/acquire/man3/Makefile 
+	libsrc/arithmetic/man3/Makefile 
+	libsrc/boolean/man3/Makefile 
+	libsrc/colour/man3/Makefile 
+	libsrc/conversion/man3/Makefile 
+	libsrc/convolution/man3/Makefile 
+	libsrc/freq_filt/man3/Makefile 
+	libsrc/histograms_lut/man3/Makefile 
+	libsrc/inplace/man3/Makefile 
+	libsrc/iofuncs/man3/Makefile 
+	libsrc/matrix/man3/Makefile 
+	libsrc/morphology/man3/Makefile 
+	libsrc/mosaicing/man3/Makefile 
+	libsrc/other/man3/Makefile 
+	libsrc/relational/man3/Makefile 
+	libsrc/video/man3/Makefile 
+	libsrcCC/Makefile 
+	src/Makefile 
+	src/iofuncs/Makefile 
+	src/mosaicing/Makefile 
+	src/other/Makefile 
+	src/scripts/Makefile 
+	src/scripts/batch_crop 
+	src/scripts/batch_image_convert 
+	src/scripts/batch_rubber_sheet 
+	src/scripts/light_correct 
+	src/scripts/shrink_width 
+	src/iofuncs/man1/Makefile 
+	src/other/man1/Makefile 
+	src/scripts/man1/Makefile 
+	contrib/Makefile 
+	contrib/vips2dj/Makefile 
+	contrib/vips2dj/share/Makefile 
+	contrib/vips2dj/share/vips2dj/Makefile 
+	contrib/vips2dj/share/vips2dj/lab/Makefile 
+	contrib/vips2dj/share/vips2dj/cmyk/Makefile 
+	contrib/vips2dj/share/vips2dj/mono/Makefile 
+	contrib/vdump/Makefile 
+	contrib/mitsub/Makefile 
+	python/Makefile 
+	python/vipsCC/Makefile 
+	po/Makefile.in
+])

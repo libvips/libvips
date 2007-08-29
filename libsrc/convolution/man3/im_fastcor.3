@@ -1,0 +1,67 @@
+.TH IM_FASTCOR 3 "14 May 1991"
+.SH NAME
+im_fastcor, im_spcor \- correlate two images
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_fastcor(in, ref, out)
+.br
+.B IMAGE *in, *ref, *out;
+
+.B int im_spcor(in, ref, out)
+.br
+.B IMAGE *in, *ref, *out;
+.SH DESCRIPTION
+These functions calculate spatial correlation between two 
+one-band images held
+by the image descriptors 
+.B in 
+and 
+.B ref.
+The sizes of 
+.B ref 
+should be smaller than
+the sizes of 
+.B in.
+The correlation is carried out by overlapping 
+.B ref 
+on the top
+left corner of 
+.B in 
+and moving it over 
+.B in.
+
+The output image is the same size as the input. The edge pixels are calculated
+by expanding the input image using
+.B im_embed(3)
+in mode 1 (replicating edge pixels) just enough so that the output can match
+the input.
+
+.B im_spcor(3) 
+calculates the spatial correlation between 
+.B in
+and 
+.B ref
+using the
+correlation coefficient from Niblack "An Introduction to Digital Image
+Processing,", Prentice/Hall, pp 138.  The resultant coefficients are written
+as float numbers in 
+.B out. 
+The images must be char, short or ushort.
+
+.B im_fastcor(3) 
+simply returns the sum of squares of differences between 
+.B in
+and 
+.B ref. 
+This is much faster, but less useful. The resultant coefficients are written
+as unsigned int numbers in out which has a size of in.
+
+.SH BUGS
+The functions do not check for integer overflow.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_conv(3), im_lrmosaic(3).
+.SH COPYRIGHT
+The National Gallery and Birkbeck College, 1990-1997.

@@ -1,0 +1,118 @@
+.TH IM_META 3 "7 June 2005"
+.SH NAME
+im_meta_set_int, im_meta_get_int, im_meta_set_double, im_meta_get_double,
+im_meta_set_area, im_meta_get_area, im_meta_set_string, im_meta_get_string,
+im_meta_set_blob, im_meta_get_blob,
+im_meta_set, im_meta_get
+\- read and write extra header fields
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_meta_set_int( IMAGE *im, const char *field, int i );
+.br
+int im_meta_get_int( IMAGE *im, const char *field, int *i );
+.br
+int im_meta_set_double( IMAGE *im, const char *field, double d );
+.br
+int im_meta_get_double( IMAGE *im, const char *field, double *d );
+.br
+int im_meta_set_area( IMAGE *im, const char *field, 
+  im_callback_fn free_fn, void *data );
+.br
+int im_meta_get_area( IMAGE *im, const char *field, void **data );
+.br
+int im_meta_set_string( IMAGE *im, const char *field, 
+  const char *str );
+.br
+int im_meta_get_string( IMAGE *im, const char *field, char **str );
+.br
+int im_meta_set_blob( IMAGE *im, const char *field, 
+  im_callback_fn free_fn, void *blob, int blob_length );
+.br
+int im_meta_get_blob( IMAGE *im, const char *field, 
+  void **blob, int *blob_length );
+
+int im_meta_set( IMAGE *im, const char *field, GValue *value );
+.br
+int im_meta_get( IMAGE *im, const char *field, GValue *value_copy );
+.br
+GType im_meta_get_type( IMAGE *im, const char *field );
+
+#define IM_TYPE_SAVE_STRING (im_save_string_get_type())
+.br
+GType im_save_string_get_type( void );
+.br
+const char *im_save_string_get( const GValue *value );
+.br
+void im_save_string_set( GValue *value, const char *str );
+.br
+void im_save_string_setf( GValue *value, const char *fmt, ... );
+
+.SH DESCRIPTION
+These functions read and write extra image header fields. Writing to a field
+destroys any old value. You must read a field with the correct type of reader:
+you can't read an int field as a string. Fields are copied when images are
+processed, so you can use them to pass information to subsequent operations.
+Unless otherwise noted, image header fields created with these functions are
+also saved to disc when an image is saved in VIPS format, and automatically
+restored when the image is loaded again.
+
+.B im_meta_set_int(3)
+sets an integer field. Any existing field of any type with this name is 
+removed. It returns 0 for success, or -1 on error setting 
+.B im_error(3).
+
+.B im_meta_get_int(3)
+reads an integer field. It returns 0 for success, or -1 on error, setting
+.B im_error(3). 
+It can fail if the field does not exist, or if the field is not an int.
+
+.B im_meta_set_double(3)
+and
+.B im_meta_get_double(3)
+work exactly as 
+.B im_meta_set_int(3)
+and
+.B im_meta_get_int(3).
+
+.B im_meta_set_area(3)
+sets a field which is an area of memory. When the field is copied to a
+subsequent IMAGE, VIPS just copies the pointer. VIPS keeps a reference count
+and when the last IMAGE using this field is closed, VIPS will call 
+.B free_fn
+to release the memory. You can therefore use this function to attach very
+large areas of memory to images efficiently. Areas cannot be saved to VIPS
+files on disc, since there is no known length. 
+
+.B im_meta_set_string(3)
+is a convenience function over 
+.B im_meta_set_area(3). 
+It copies the string, and
+then shares that copy between all images derived from this IMAGE. 
+
+.B im_meta_set_blob(3)
+sets a field which is a blob (binary object). A blob is just like string, 
+except that rather than being NULL-terminated, you must pass an explicit 
+length. 
+
+.B im_meta_set(3),
+.B im_meta_get_type(3)
+and
+.B im_meta_get(3)
+operate at a lower level: they let you set image header fields as GValue. Use
+one of the convenience functions above if possible. 
+.B im_meta_get_type(3)
+returns 0 if the field is not defined.
+
+In order for the autoload/save to VIPS files to work, you need to use a GType
+with a transform defined to and from 
+.B IM_TYPE_SAVE_STRING.
+
+.SH RETURN VALUE
+The functions return 0 success and -1 on error.
+.SH SEE ALSO
+im_header_int(3), im_header_map(3).
+.SH COPYRIGHT
+The National Gallery, 2005.
+.SH AUTHOR
+Markus Wollgarten and John Cupitt

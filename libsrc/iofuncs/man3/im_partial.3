@@ -1,0 +1,24 @@
+.TH IM_OPENOUT 3 "22 April 1991"
+.SH NAME
+im_partial \- makes a PIO intermediate image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B IMAGE *im_partial(file_name)
+.br
+.B char *file_name;
+.SH DESCRIPTION
+.B im_partial(3)
+returns a descriptor which can be used to join PIO image processing
+operations together. 
+
+This function is obsolete --- you should call im_open(3) instead.
+.SH RETURN VALUE
+The function returns a valid image descriptor on success and NULL on error.
+.SH SEE ALSO
+im_open(3), im_close(3), im_mmapin(3), im_intro(3).
+.SH COPYRIGHT
+.br
+National Gallery, 1993
+.SH AUTHOR
+J.Cupitt \- 23/7/93

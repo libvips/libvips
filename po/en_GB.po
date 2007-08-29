@@ -1,0 +1,1045 @@
+# en_GB localisation for nip2
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nip2 7.9.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-06-08 14:51+0100\n"
+"PO-Revision-Date: 2003-11-04 18:57+0000\n"
+"Last-Translator: john.cupitt@ng-london.org.uk\n"
+"Language-Team: en_GB <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: libsrc/convolution/im_addgnoise.c:78
+msgid "too many bands"
+msgstr ""
+
+#: libsrc/convolution/im_sharpen.c:247
+msgid "input not 3-band short"
+msgstr ""
+
+#: libsrc/convolution/im_sharpen.c:258
+msgid "parameters out of range"
+msgstr ""
+
+#: libsrc/colour/im_icc_transform.c:200 libsrc/colour/im_icc_transform.c:210
+#, c-format
+msgid "unable to open profile \"%s\""
+msgstr ""
+
+#: libsrc/matrix/im_invmat.c:69
+msgid "singular matrix in ludcmp"
+msgstr ""
+
+#: libsrc/matrix/im_invmat.c:206
+msgid "singular matrix"
+msgstr ""
+
+#: libsrc/acquire/im_clamp.c:69
+msgid "bad input format"
+msgstr ""
+
+#: libsrc/acquire/im_clamp.c:74
+msgid "bad black format"
+msgstr ""
+
+#: libsrc/freq_filt/im_invfftr.c:89 libsrc/freq_filt/im_invfftr.c:171
+#: libsrc/freq_filt/im_invfft.c:94 libsrc/freq_filt/im_invfft.c:142
+#: libsrc/freq_filt/im_fwfft.c:112 libsrc/freq_filt/im_fwfft.c:217
+#: libsrc/freq_filt/im_fwfft.c:308 libsrc/freq_filt/im_fwfft.c:420
+msgid "one band uncoded only"
+msgstr ""
+
+#: libsrc/freq_filt/im_invfftr.c:126 libsrc/freq_filt/im_invfftr.c:209
+#: libsrc/freq_filt/im_invfft.c:106 libsrc/freq_filt/im_invfft.c:156
+#: libsrc/freq_filt/im_fwfft.c:123 libsrc/freq_filt/im_fwfft.c:228
+#: libsrc/freq_filt/im_fwfft.c:321 libsrc/freq_filt/im_fwfft.c:433
+msgid "unable to create transform plan"
+msgstr ""
+
+#: libsrc/freq_filt/im_invfftr.c:252 libsrc/freq_filt/im_invfft.c:199
+msgid "one band complex uncoded only"
+msgstr ""
+
+#: libsrc/freq_filt/im_invfftr.c:256 libsrc/freq_filt/im_invfft.c:203
+#: libsrc/freq_filt/im_fwfft.c:515
+msgid "sides must be power of 2"
+msgstr ""
+
+#: libsrc/freq_filt/im_invfftr.c:276 libsrc/freq_filt/im_invfft.c:223
+#: libsrc/freq_filt/im_fwfft.c:535
+msgid "fft_sp failed"
+msgstr ""
+
+#: libsrc/freq_filt/im_fwfft.c:511
+msgid "one band non-complex uncoded only"
+msgstr ""
+
+#: libsrc/conversion/im_extract.c:162
+msgid "bad extract area"
+msgstr ""
+
+#: libsrc/conversion/im_extract.c:167 libsrc/conversion/im_extract.c:252
+msgid "band selection out of range"
+msgstr ""
+
+#: libsrc/conversion/im_extract.c:172
+msgid "unknown image coding type"
+msgstr ""
+
+#: libsrc/conversion/im_extract.c:177
+msgid "can't extract band from IM_CODING_LABQ"
+msgstr ""
+
+#: libsrc/conversion/im_extract.c:256 libsrc/arithmetic/im_powtra.c:184
+#: libsrc/arithmetic/im_deviate.c:171 libsrc/arithmetic/im_multiply.c:186
+#: libsrc/arithmetic/im_ceil.c:92 libsrc/arithmetic/im_maxpos.c:94
+#: libsrc/arithmetic/im_costra.c:117 libsrc/arithmetic/im_costra.c:202
+#: libsrc/arithmetic/im_tantra.c:117 libsrc/arithmetic/im_tantra.c:203
+#: libsrc/arithmetic/im_measure.c:189 libsrc/arithmetic/im_sign.c:146
+#: libsrc/arithmetic/im_expntra.c:184 libsrc/arithmetic/im_logtra.c:123
+#: libsrc/arithmetic/im_abs.c:147 libsrc/arithmetic/im_add.c:254
+#: libsrc/arithmetic/im_avg.c:166 libsrc/arithmetic/im_max.c:232
+#: libsrc/arithmetic/im_min.c:231 libsrc/arithmetic/im_lintra.c:281
+#: libsrc/arithmetic/im_invert.c:117 libsrc/arithmetic/im_stats.c:238
+#: libsrc/arithmetic/im_floor.c:92 libsrc/arithmetic/im_remainder.c:103
+#: libsrc/arithmetic/im_remainder.c:212 libsrc/arithmetic/im_subtract.c:171
+#: libsrc/arithmetic/im_sintra.c:117 libsrc/arithmetic/im_sintra.c:202
+#: libsrc/arithmetic/im_log10tra.c:123 libsrc/arithmetic/im_divide.c:150
+msgid "not uncoded"
+msgstr ""
+
+#: libsrc/conversion/im_magick2vips.c:54 libsrc/conversion/im_magick2vips.c:61
+msgid "libMagick support disabled"
+msgstr ""
+
+#: libsrc/conversion/im_magick2vips.c:190
+#, c-format
+msgid "unsupported colorspace %d"
+msgstr ""
+
+#: libsrc/conversion/im_magick2vips.c:214
+#, c-format
+msgid "unsupported bit depth %d"
+msgstr ""
+
+#: libsrc/conversion/im_magick2vips.c:409
+msgid "unable to read pixels"
+msgstr ""
+
+#: libsrc/conversion/im_magick2vips.c:431
+#, c-format
+msgid ""
+"unable to read file \"%s\"\n"
+"libMagick error: %s %s"
+msgstr ""
+
+#: libsrc/conversion/im_magick2vips.c:456
+#, c-format
+msgid ""
+"unable to ping file \"%s\"\n"
+"libMagick error: %s %s"
+msgstr ""
+
+#: libsrc/conversion/im_magick2vips.c:467
+msgid "bad image size"
+msgstr ""
+
+#: libsrc/conversion/im_copy.c:138 libsrc/conversion/im_copy.c:275
+msgid "in must be uncoded"
+msgstr ""
+
+#: libsrc/conversion/im_copy.c:142
+msgid "Coding must be NONE or LABQ"
+msgstr ""
+
+#: libsrc/conversion/im_copy.c:146
+#, c-format
+msgid "BandFmt must be in range [0,%d]"
+msgstr ""
+
+#: libsrc/conversion/im_copy.c:169
+msgid "sizeof( pixel ) has changed"
+msgstr ""
+
+#: libsrc/conversion/im_copy.c:312
+msgid "unsupported image type"
+msgstr ""
+
+#: libsrc/conversion/im_ppm2vips.c:250
+msgid "internal error"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:131 libsrc/conversion/im_tiff2vips.c:144
+#: libsrc/conversion/im_vips2tiff.c:127
+msgid "TIFF support disabled"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:284 libsrc/conversion/im_tiff2vips.c:307
+#: libsrc/conversion/im_tiff2vips.c:326
+#, c-format
+msgid "required field %d missing"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:288
+#, c-format
+msgid "required field %d=%d, not %d"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:632
+msgid "read error"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1029
+#, fuzzy
+msgid "bad colormap"
+msgstr "False colour"
+
+#: libsrc/conversion/im_tiff2vips.c:1085 libsrc/conversion/im_tiff2vips.c:1135
+msgid "3 or 4 bands RGB TIFF only"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1284
+msgid "unknown resolution unit"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1360
+#, c-format
+msgid "unsupported sample format %d for lab image"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1370
+#, c-format
+msgid "unsupported depth %d for LAB image"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1417
+#, c-format
+msgid "unsupported sample format %d for greyscale image"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1426
+#, c-format
+msgid "unsupported depth %d for greyscale image"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1466
+#, c-format
+msgid "unsupported sample format %d for rgb image"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1475
+#, c-format
+msgid "unsupported depth %d for RGB image"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1489
+#, c-format
+msgid "unknown photometric interpretation %d"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1550
+#, c-format
+msgid "bad page number %d"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1577 libsrc/conversion/im_vips2tiff.c:265
+#, c-format
+msgid "unable to open \"%s\" for input"
+msgstr ""
+
+#: libsrc/conversion/im_tiff2vips.c:1627 libsrc/conversion/im_tiff2vips.c:1661
+#, c-format
+msgid "TIFF file does not contain page %d"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:228
+#, c-format
+msgid "TIFF error in \"%s\": "
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:245
+#, c-format
+msgid "unable to open \"%s\" for output"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:381
+#, c-format
+msgid "file \"%s\" too long"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:393
+#, c-format
+msgid "error reading from file \"%s\""
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:416
+#, c-format
+msgid "unable to read profile \"%s\""
+msgstr ""
+
+#. Out of space!
+#.
+#: libsrc/conversion/im_vips2tiff.c:688
+msgid "layer buffer exhausted -- try making TIFF output tiles smaller"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:919
+msgid "TIFF write tile failed"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:994
+msgid "internal error #9876345"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1109
+msgid "TIFF write failed"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1238
+msgid "bad JPEG quality parameter"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1244
+#, c-format
+msgid ""
+"unknown compression mode \"%s\"\n"
+"should be one of \"none\", \"packbits\", \"ccittfax4\", \"lzw\", \"deflate\" "
+"or \"jpeg\""
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1258
+msgid "bad tile sizes"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1265
+#, c-format
+msgid "bad tile size %dx%d"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1273
+msgid "tile size not a multiple of 16"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1282
+#, c-format
+msgid ""
+"unknown layout mode \"%s\"\n"
+"should be one of \"tile\" or \"strip\""
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1294
+#, c-format
+msgid ""
+"unknown multi-res mode \"%s\"\n"
+"should be one of \"flat\" or \"pyramid\""
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1306
+#, c-format
+msgid ""
+"unknown format \"%s\"\n"
+"should be one of \"onebit\" or \"manybit\""
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1318
+#, c-format
+msgid ""
+"unknown resolution unit \"%s\"\n"
+"should be one of \"res_cm\" or \"res_inch\""
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1327
+msgid "bad resolution values"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1342
+#, c-format
+msgid "unknown extra options \"%s\""
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1346
+msgid "can't have strip pyramid -- enabling tiling"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1356
+msgid "can only pyramid LABQ and non-complex images"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1372
+msgid "can't have 1-bit JPEG -- disabling JPEG"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1529
+msgid "unknown coding type"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1537
+msgid "unsigned 8-bit int, 16-bit int, and 32-bit float only"
+msgstr ""
+
+#: libsrc/conversion/im_vips2tiff.c:1543
+msgid "1 to 4 bands only"
+msgstr ""
+
+#: libsrc/arithmetic/im_powtra.c:188 libsrc/arithmetic/im_tantra.c:121
+#: libsrc/arithmetic/im_tantra.c:207 libsrc/arithmetic/im_expntra.c:188
+#: libsrc/arithmetic/im_logtra.c:127 libsrc/arithmetic/im_sintra.c:121
+#: libsrc/arithmetic/im_sintra.c:206 libsrc/arithmetic/im_log10tra.c:127
+msgid "not non-complex"
+msgstr ""
+
+#: libsrc/arithmetic/im_powtra.c:193 libsrc/arithmetic/im_expntra.c:193
+#: libsrc/arithmetic/im_lintra.c:290 libsrc/arithmetic/im_remainder.c:217
+#, c-format
+msgid "not 1 or %d elements in vector"
+msgstr ""
+
+#: libsrc/arithmetic/im_deviate.c:175 libsrc/arithmetic/im_costra.c:121
+#: libsrc/arithmetic/im_costra.c:206 libsrc/arithmetic/im_measure.c:193
+#: libsrc/arithmetic/im_avg.c:162 libsrc/arithmetic/im_stats.c:234
+msgid "bad input type"
+msgstr ""
+
+#: libsrc/arithmetic/im_multiply.c:177 libsrc/arithmetic/im_remainder.c:94
+msgid "not same size"
+msgstr ""
+
+#: libsrc/arithmetic/im_multiply.c:182 libsrc/arithmetic/im_add.c:250
+#: libsrc/arithmetic/im_remainder.c:99 libsrc/arithmetic/im_subtract.c:167
+#: libsrc/arithmetic/im_divide.c:146
+msgid "not same number of bands"
+msgstr ""
+
+#: libsrc/arithmetic/im_minpos.c:80
+msgid "input must be uncoded"
+msgstr ""
+
+#: libsrc/arithmetic/im_gadd.c:91 libsrc/arithmetic/im_gadd.c:107
+msgid "Unable to accept image1"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:79
+msgid "absolute value"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:98
+msgid "add two images"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:123
+msgid "average value of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:142
+msgid "multiply two complex images, normalising output"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:167
+msgid "standard deviation of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:186
+msgid "10^pel of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:205
+msgid "e^pel of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:234
+msgid "x^pel of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:263
+msgid "[x,y,z]^pel of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:299
+msgid "average of 4 images"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:318
+msgid "divide two images"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:352
+msgid "calculate a*in1 + b*in2 + c = outfile"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:371
+msgid "photographic negative"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:402
+msgid "calculate a*in + b = outfile"
+msgstr ""
+
+#: libsrc/arithmetic/arith_dispatch.c:427
+msgid "vectors not same length"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:438
+msgid "calculate a*in + b -> out, a and b vectors"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:470
+msgid "calculate max(white)*factor*(in/white), if clip == 1"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:489
+msgid "log10 of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:508
+msgid "ln of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:527
+msgid "tan of image (angles in degrees)"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:546
+msgid "atan of image (result in degrees)"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:565
+msgid "cos of image (angles in degrees)"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:584
+msgid "acos of image (result in degrees)"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:603
+msgid "round to smallest integal value not less than"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:622
+msgid "round to largest integal value not greater than"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:641
+msgid "round to nearest integal value"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:660
+msgid "sin of image (angles in degrees)"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:679
+msgid "unit vector in direction of value"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:698
+msgid "asin of image (result in degrees)"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:723
+msgid "maximum value of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:758
+msgid "position of maximum value of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:818
+msgid "measure averages of a grid of patches"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:843
+msgid "minimum value of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:871
+msgid "position of minimum value of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:890
+msgid "remainder after integer division"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:919
+msgid "remainder after integer division by a constant"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:948
+msgid "remainder after integer division by a vector of constants"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:968
+msgid "multiply two images"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:989
+msgid "pel^x ofbuildimage"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:1010
+msgid "pel^[x,y,z] of image"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:1041
+msgid "many image statistics in one pass"
+msgstr ""
+
+#. Name
+#: libsrc/arithmetic/arith_dispatch.c:1060
+msgid "subtract two images"
+msgstr ""
+
+#: libsrc/arithmetic/im_measure.c:106
+#, c-format
+msgid "patch %d is out of range"
+msgstr ""
+
+#: libsrc/arithmetic/im_measure.c:148
+#, c-format
+msgid "patch %d, band %d: avg = %g, sdev = %g"
+msgstr ""
+
+#: libsrc/arithmetic/im_abs.c:183
+msgid "unknown input type"
+msgstr ""
+
+#: libsrc/arithmetic/im_add.c:190
+#, c-format
+msgid "not one band or %d bands"
+msgstr ""
+
+#: libsrc/arithmetic/im_add.c:194
+msgid "bad bands"
+msgstr ""
+
+#: libsrc/arithmetic/im_invert.c:121
+msgid "not UCHAR"
+msgstr ""
+
+#: libsrc/arithmetic/im_remainder.c:239
+msgid "division by zero"
+msgstr ""
+
+#: libsrc/relational/im_blend.c:338
+msgid "images not uncoded"
+msgstr ""
+
+#: libsrc/relational/im_blend.c:344 libsrc/relational/im_ifthenelse.c:183
+msgid "size and format of then and else must match"
+msgstr ""
+
+#: libsrc/relational/im_blend.c:349 libsrc/relational/im_ifthenelse.c:188
+msgid "conditional image must be uchar"
+msgstr ""
+
+#: libsrc/relational/im_blend.c:354 libsrc/relational/im_ifthenelse.c:193
+msgid "conditional image must be one band or same as then and else images"
+msgstr ""
+
+#: libsrc/relational/im_ifthenelse.c:167
+msgid "then image must be uncoded or labpack"
+msgstr ""
+
+#: libsrc/relational/im_ifthenelse.c:172
+msgid "else image must be uncoded or labpack"
+msgstr ""
+
+#: libsrc/relational/im_ifthenelse.c:177
+msgid "condition image must be uncoded"
+msgstr ""
+
+#: libsrc/histograms_lut/im_maplut.c:112
+#, c-format
+msgid "%d overflows detected"
+msgstr ""
+
+#. Switch for input types. Has to be uint type!
+#.
+#: libsrc/histograms_lut/im_maplut.c:473
+msgid "bad input file"
+msgstr ""
+
+#. Switch for LUT types. One function for non-complex images, a
+#. * variant for complex ones. Another pair as well, in case the input is not
+#. * uchar.
+#.
+#: libsrc/histograms_lut/im_maplut.c:504
+msgid "bad lut file"
+msgstr ""
+
+#: libsrc/histograms_lut/im_maplut.c:554
+msgid "lut is not uncoded"
+msgstr ""
+
+#: libsrc/histograms_lut/im_maplut.c:558
+msgid "lut seems very large!"
+msgstr ""
+
+#: libsrc/histograms_lut/im_maplut.c:570
+msgid "input is not uncoded"
+msgstr ""
+
+#: libsrc/histograms_lut/im_maplut.c:574
+msgid "input is not some unsigned integer type"
+msgstr ""
+
+#: libsrc/histograms_lut/im_maplut.c:579
+msgid ""
+"lut should have 1 band, or same number of bands as input, or any number of "
+"bands if input has 1 band"
+msgstr ""
+
+#: libsrc/histograms_lut/im_maplut.c:586
+msgid "input is uchar and lut does not have 256 elements"
+msgstr ""
+
+#: libsrc/histograms_lut/im_histnD.c:212
+msgid " uncoded images only"
+msgstr ""
+
+#: libsrc/histograms_lut/im_histnD.c:218
+msgid " unsigned 8 or 16 bit images only"
+msgstr ""
+
+#: libsrc/histograms_lut/im_histnD.c:225
+#, c-format
+msgid " bins out of range [1,%d]"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:233
+msgid "bad in_max, out_max parameters"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:237
+msgid "bad Lb, Lw parameters"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:241
+msgid "Ps not in range [0.0,1.0]"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:245
+msgid "Pm not in range [0.0,1.0]"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:249
+msgid "Ph not in range [0.0,1.0]"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:253
+msgid "S not in range [-30,+30]"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:257
+msgid "M not in range [-30,+30]"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:261
+msgid "H not in range [-30,+30]"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:342 libsrc/histograms_lut/tone.c:390
+msgid "not 1 by n or n by 1 image"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:396
+msgid "not 1024-point IM_BANDFMT_SHORT lut"
+msgstr ""
+
+#: libsrc/histograms_lut/tone.c:413 libsrc/histograms_lut/tone.c:487
+msgid "input not LabS or LabQ"
+msgstr ""
+
+#: libsrc/inplace/im_insertplace.c:81
+msgid "inputs differ in format"
+msgstr ""
+
+#: libsrc/inplace/im_insertplace.c:85
+msgid "input should be uncoded or IM_CODING_LABQ"
+msgstr ""
+
+#: libsrc/inplace/im_insertplace.c:104
+msgid "small not inside big"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:134 libsrc/iofuncs/im_mapfile.c:301
+msgid "unable to CreateFileMapping"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:150 libsrc/iofuncs/im_mapfile.c:313
+msgid "unable to MapViewOfFile"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:177
+msgid "unable to mmap"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:178
+#, c-format
+msgid ""
+"map failed (%s), running very low on system resources, expect a crash soon"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:195 libsrc/iofuncs/im_mapfile.c:307
+msgid "unable to UnmapViewOfFile"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:201
+msgid "unable to munmap file"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:224 libsrc/iofuncs/im_mapfile.c:265
+msgid "unable to get file status"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:229
+msgid "file is less than 64 bytes"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:233
+msgid "not a regular file"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:270
+msgid "unable to read data"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:333
+#, c-format
+msgid "unable to mmap: \"%s\" - %s"
+msgstr ""
+
+#: libsrc/iofuncs/im_mapfile.c:343
+#, c-format
+msgid "unable to mmap \"%s\" to same address"
+msgstr ""
+
+#: libsrc/iofuncs/im_binfile.c:88 libsrc/iofuncs/im_render.c:1079
+msgid "bad parameters"
+msgstr ""
+
+#: libsrc/iofuncs/im_binfile.c:116
+#, c-format
+msgid "unable to open %s: file has been truncated"
+msgstr ""
+
+#: libsrc/iofuncs/im_binfile.c:126
+#, c-format
+msgid "%s is longer than expected"
+msgstr ""
+
+#: libsrc/iofuncs/error.c:114
+msgid "windows error"
+msgstr ""
+
+#: libsrc/iofuncs/error.c:123
+msgid "unix error"
+msgstr ""
+
+#: libsrc/iofuncs/error.c:149 libsrc/iofuncs/error.c:150
+#: libsrc/iofuncs/error.c:170 libsrc/iofuncs/error.c:171
+#, c-format
+msgid "%s: "
+msgstr ""
+
+#: libsrc/iofuncs/error.c:149
+msgid "vips diagnostic"
+msgstr ""
+
+#: libsrc/iofuncs/error.c:170
+msgid "vips warning"
+msgstr ""
+
+#: libsrc/iofuncs/im_readhist.c:163
+msgid "history file too large"
+msgstr ""
+
+#: libsrc/iofuncs/im_readhist.c:174
+msgid "unable to read"
+msgstr ""
+
+#: libsrc/iofuncs/im_header.c:102
+#, c-format
+msgid "no such int field \"%s\""
+msgstr ""
+
+#: libsrc/iofuncs/im_header.c:124
+#, c-format
+msgid "no such double field \"%s\""
+msgstr ""
+
+#: libsrc/iofuncs/im_header.c:146
+#, c-format
+msgid "no such string field \"%s\""
+msgstr ""
+
+#: libsrc/iofuncs/im_printdesc.c:112
+msgid "<bad Type>"
+msgstr ""
+
+#: libsrc/iofuncs/im_printdesc.c:118
+msgid "<bad BandFmt>"
+msgstr ""
+
+#: libsrc/iofuncs/im_printdesc.c:124
+msgid "<bad Coding>"
+msgstr ""
+
+#: libsrc/iofuncs/im_printdesc.c:130
+msgid "<bad Compression>"
+msgstr ""
+
+#: libsrc/iofuncs/im_printdesc.c:136
+msgid "<bad dtype>"
+msgstr ""
+
+#: libsrc/iofuncs/im_printdesc.c:142
+msgid "<bad dhint>"
+msgstr ""
+
+#: libsrc/iofuncs/im_render.c:511 libsrc/iofuncs/im_render.c:666
+#: libsrc/iofuncs/threadgroup.c:330
+msgid "unable to create thread"
+msgstr ""
+
+#: libsrc/iofuncs/package.c:436
+#, c-format
+msgid "unable to close plugin \"%s\""
+msgstr ""
+
+#: libsrc/iofuncs/package.c:438 libsrc/iofuncs/package.c:488
+#: libsrc/iofuncs/package.c:502
+#, c-format
+msgid "plugin error: %s"
+msgstr ""
+
+#: libsrc/iofuncs/package.c:462
+msgid "plugins not supported on this platform"
+msgstr ""
+
+#: libsrc/iofuncs/package.c:486
+#, c-format
+msgid "unable to open plugin \"%s\""
+msgstr ""
+
+#: libsrc/iofuncs/package.c:499
+#, c-format
+msgid "unable to find symbol \"package_table\" in plugin \"%s\""
+msgstr ""
+
+#: libsrc/iofuncs/package.c:513
+#, c-format
+msgid "corrupted package table in plugin \"%s\""
+msgstr ""
+
+#: libsrc/iofuncs/package.c:636 libsrc/iofuncs/package.c:692
+#, c-format
+msgid "function \"%s\" not found"
+msgstr ""
+
+#: libsrc/iofuncs/package.c:664
+#, c-format
+msgid "package \"%s\" not found"
+msgstr ""
+
+#: libsrc/iofuncs/package.c:802
+msgid "too few arguments"
+msgstr ""
+
+#: libsrc/iofuncs/package.c:824
+msgid "too many arguments"
+msgstr ""
+
+#: libsrc/iofuncs/package.c:1031
+msgid "flag not 0,1,2"
+msgstr ""
+
+#: libsrc/iofuncs/im_wrapmany.c:158
+msgid "too many input images"
+msgstr ""
+
+#: libsrc/iofuncs/im_wrapmany.c:176
+msgid "descriptors differ in size"
+msgstr ""
+
+#~ msgid "Edit color \"%s\""
+#~ msgstr "Edit colour \"%s\""
+
+#~ msgid "Set color"
+#~ msgstr "Set colour"
+
+#~ msgid "Double-click to edit this color, or drag-and-drop between colors"
+#~ msgstr "Double-click to edit this colour, or drag-and-drop between colours"
+
+#, fuzzy
+#~ msgid "Header for \"%s\""
+#~ msgstr "Edit colour \"%s\""
+
+#, fuzzy
+#~ msgid "Edit \"%s\""
+#~ msgstr "Edit colour \"%s\""
+
+#, fuzzy
+#~ msgid "Edit matrix \"%s\""
+#~ msgstr "Edit colour \"%s\""
+
+#, fuzzy
+#~ msgid "Set option"
+#~ msgstr "Set colour"
+
+#, fuzzy
+#~ msgid "Edit column item \"%s\""
+#~ msgstr "Edit colour \"%s\""
+
+#, fuzzy
+#~ msgid "Edit slider \"%s\""
+#~ msgstr "Edit colour \"%s\""
+
+#, fuzzy
+#~ msgid "Set Slider"
+#~ msgstr "Set colour"
+
+#, fuzzy
+#~ msgid "Set toggle"
+#~ msgstr "Set colour"

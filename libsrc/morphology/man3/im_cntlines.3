@@ -1,0 +1,57 @@
+.TH LINES 3 "14 May 1991"
+.SH NAME
+im_cntlines, im_profile \- calculate transitions between black and white pels horizontally or vertically
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_profile(in, out, dir)
+.br
+.B IMAGE *in, *out;
+.br
+.B int dir;
+
+.B int im_cntlines(in, nolines, dir)
+.br
+.B IMAGE *in;
+.br
+.B double *nolines;
+.br
+.B int dir;
+
+.SH DESCRIPTION
+
+.B im_profile(3)
+searches inward from the edge of the image and finds the first non-zero pixel.
+It outputs an image containing a list of the offsets for each row or column.
+
+If 
+.B dir
+==0, then
+.B im_profile(3)
+searches down from the top edge, writing an image as wide as the input
+image, but only 1 pixel high, containing the number of pixels down to the
+first non-zero pixel for each column of input pixels.
+
+If 
+.B dir
+==1, then
+.B im_profile(3)
+searches across from the left edge, writing an image as high as the input
+image, but only 1 pixel wide, containing the number of pixels across to the
+first non-zero pixel for each row of input pixels.
+
+.B im_cntlines(3)
+calculates the number of transitions between black and white pixels of
+an image.  If dir is 1 then all transitions across the
+vertical direction are calculated for all Xsize lines of the image.  If dir
+is 0 then all transitions along the horizontal direction for all Ysize
+lines are calculated.  The function returns the number of transitions
+divided by twice the number of the corresponding Xsize of Ysize lines.
+The program is primarily used to calculate the number of unbroken horizontal 
+(dir=0) or vertical lines (dir=1) that exist within an image.
+Input image in can have only one channel.
+
+.SH RETURN VALUE
+All functions returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_erode(3), im_dilate(3).

@@ -1,0 +1,47 @@
+.TH IM_TEXT 3 "20 May 2004"
+.SH NAME
+im_text \- render a utf-8 text string into an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_text( out, text, font, width, alignment, dpi )
+.br
+.B IMAGE *out;
+.br
+.B const char *text;
+.br
+.B const char *font;
+.br
+.B int width;
+.br
+.B int alignment;
+.br
+.B int dpi;
+
+.SH DESCRIPTION
+.B im_text(3)
+makes an image containing the text string rendered as a bitmap with Pango.
+The result is a one band 8 bit image with 0 - 255 as black to white. The
+string may contain Pango markup, for example "<i>The</i>Guardian".
+
+Fonts are specified pango-style as "family style size", for example "sans 12" 
+or "times italic 14".
+
+The
+.B width
+parameter, if greater than zero, gives the line width to wrap at.
+
+.B alignment
+can be 0, 1 or 2 for right, centre and left alignment.
+
+.B dpi
+is the resolution to render the text at. 300 is good for print, 100 for
+displays.
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_plotmask(3), im_insertplace(3)
+.SH COPYRIGHT
+.br
+National Gallery 2004

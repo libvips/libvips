@@ -1,0 +1,36 @@
+.TH IM_EMBED 3 "11 April 1995"
+.SH NAME
+im_embed \- extract a portion of an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_embed( in, out, type, x, y, w, h )
+.br
+IMAGE *in, *out;
+.br
+int type;
+.br
+int x, y, w, h;
+
+.SH DESCRIPTION
+im_embed() embeds in within a larger image (size w by h), with in's top
+left-hand corner at position (x,y) within the output image. The value of type
+controls what appears in the new pels. 
+
+ 0 - black pels (all bytes 0)
+ 1 - extend pels from image to edge
+ 2 - tile pels from image
+ 3 - mirror pels from image
+ 4 - white pels (all bytes 255)
+
+Works for any size image, any number of bands, any type. Works for LABPACK
+coded images too. 
+
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_insert(3), im_extract(3), im_region_region(3), im_fill_copy(3).
+.SH COPYRIGHT
+National Gallery, 1995.
+.SH AUTHOR
+J. Cupitt \- 11/04/1995

@@ -1,0 +1,24 @@
+.TH IM_STATS 3 "24 October 1992"
+.SH NAME
+im_stats \- calculate many image statistics in a single pass
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B DOUBLEMASK *im_stats(in)
+.br
+.B IMAGE *in;
+.SH DESCRIPTION
+Find many image statistics in a single pass through the PELs. Returns a
+DOUBLEMASK of 6 columns by n+1 (where n is number of bands in image in) rows.
+Columns are statistics, and are, in order: minimum, maximum, sum, sum of
+squares, mean, standard deviation. Row 0 has statistics for all bands
+together, row 1 has stats for band 1, and so on.
+
+Non-complex images only! 
+.SH RETURN VALUE
+NULL on error.
+.SH SEE\ ALSO
+im_avg(3), im_deviate(3)
+.SH COPYRIGHT
+.br
+National Gallery, 1992

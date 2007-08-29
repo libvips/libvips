@@ -1,0 +1,47 @@
+.TH REMAINDER 3 "May 2002"
+.SH NAME
+im_remainder, im_remainderconst, im_remainderconst_vec \- remainder after integer division
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
+.br
+
+int im_remainderconst( IMAGE *in, IMAGE *out, double c )
+.br
+
+int im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
+.SH DESCRIPTION
+.B im_remainder(3)
+calculates the remainder after integer division of two images. The output
+type is the same as the type of
+.B in1
+unless
+.B in1
+is float or complex, in which
+case the output type is signed integer.
+
+.B im_remainderconst(3)
+calculates the remainder after integer division of
+.B in
+by the constant
+.B c.
+The output
+type is the same as the type of
+.B in
+unless
+.B in
+is float or complex, in which
+case the output type is signed integer.
+
+.B im_remainderconst_vec(3)
+works as
+.B im_remainderconst(3),
+but lets you specify a constant per band.
+
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE ALSO
+im_add(3), im_lintra(3), im_divide(3)
+.SH COPYRIGHT
+National Gallery, 2002

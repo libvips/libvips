@@ -1,0 +1,36 @@
+.TH IM_HIST 3 "10 May 1991"
+.SH NAME
+im_hist \- create a displayable histogram from an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B int im_hist( in, plotofhist, bandno )
+.br
+.B IMAGE *in, *plotofhist;
+.br
+.B int bandno;
+.SH DESCRIPTION
+.B im_hist()
+creates a displayable histogram file for the image held by the image
+descriptor 
+.B in.
+The created displayable histogram is held in the IMAGE
+descriptor 
+.B plotofhist.  
+If 
+.B bandno
+== -1 a displayable histogram of all input bands
+is created else the histogram of bandno only is created.  
+
+See
+.B im_histplot(3)
+for rules on the size and scaling og the result.
+
+.SH RETURN VALUE
+All functions returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_histgr(3), im_histplot(3).
+.SH COPYRIGHT
+N. Dessipris
+.SH AUTHOR
+N. Dessipris \- 10/05/1991

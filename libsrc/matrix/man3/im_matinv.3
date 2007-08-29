@@ -1,0 +1,90 @@
+.TH IM_MATINV 3 "2 May 1991"
+.SH NAME
+im_matinv, im_matmul, im_mattrn \- matrix operations on DOUBLEMASKs
+
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+.B DOUBLEMASK *im_matinv( const DOUBLEMASK *in, const char *name );
+
+.B int im_matinv_inplace( DOUBLEMASK *mat );
+
+.B DOUBLEMASK *im_matmul( in1, in2, name )
+.br
+.B DOUBLEMASK *in1, *in2;
+.br
+.B char *name;
+
+.B DOUBLEMASK *im_matcat( in1, in2, name )
+.br
+.B DOUBLEMASK *in1, *in2;
+.br
+.B char *name;
+
+.B DOUBLEMASK *im_mattrn( in, name )
+.br
+.B DOUBLEMASK *in;
+.br
+.B char *name;
+
+.SH DESCRIPTION
+These functions treat DOUBLEMASKs as matricies, performing some of the basics
+of matrix algebra on them.
+
+There should be more matrix functions: those implemeneted are just sufficient
+for the Gallery's calibration routines. im_matadd, im_matidentity should
+really be added.
+
+None of these functions damage their arguments, except
+.BR "im_matinv_inplace(3)" ".
+
+.B im_matinv(3)
+inverts DOUBLEMASK
+.IR "in" ",
+returning a new DOUBLEMASK, called 
+.IR "name" ",
+which contains the inverse of in. If no inverse exists, NULL is returned and
+.B im_error(3)
+is called with a diagnostic message.
+
+.B im_matinv_inplace(3)
+is as
+.B im_matinv(3)
+except that it overwrites its input.
+
+.B im_matmul()
+multiples the matrices held in in1 and in2, returning their product in a
+matrix called name.
+
+.B im_matcat()
+returns a new matrix formed by appending matrix in2 to the end of matrix in1.
+The two matricies must be the same width. It is useful for combining several
+im_measure()s into a single matrix.
+
+.B im_mattrn()
+transposes matrix in, returning the transpose in new matrix called name.
+.SH NOTES
+.B DO NOT
+use matrix inversion to solve systems of linear equations (SLEs).  The 
+routines
+.B im_lu_decomp(3)
+and
+.B im_lu_solve(3)
+are more efficient, even for a single SLE.
+
+.SH RETURN VALUE
+The functions returns a new DOUBLEMASK on sucess, and NULL on failure.
+.PP
+.B im_matinv_inplace(3)
+returns zero on success, and -1 on failure.
+
+.SH SEE\ ALSO
+im_create_dmask(3), im_measure(3), etc.  im_lu_decomp(3), im_lu_solve(3)
+
+.SH COPYRIGHT
+National Gallery, 1992.  Tom Vajzovic, 2006
+.SH AUTHORS
+J. Cupitt
+.br
+Tom Vajzovic
+

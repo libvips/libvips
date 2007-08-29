@@ -1,0 +1,34 @@
+.TH IM_PROJECT 3 "10 April 2006"
+.SH NAME
+im_project \- find horizontal and vertical projections
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_histplot(IMAGE *in, IMAGE *hout, IMAGE *vout)
+
+.SH DESCRIPTION
+.B im_project(3) 
+finds the horizontal and vertical projections of an image, that is, the sum of
+each row and the sum of each column.
+
+The 
+.B hout
+result image is 1 x in->Ysize pixels, where each pixel is the sum of all the
+pixels in that row of the input image.
+The 
+.B vout
+result image is in->Xsize x 1 pixels, where each pixel is the sum of all the
+pixels in that column of the input image.
+
+The output images are of the largest appropriate type for the input image: so 
+unsigned integer images produce UINT output, and so on. The output images have
+the same number of bands as the input.
+
+The operation does not work for complex images, or for coded images.
+
+.SH RETURNED VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_histplot(3), im_histnorm(3), im_extract(3).
+.SH COPYRIGHT
+Imperial College, 2006

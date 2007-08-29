@@ -1,0 +1,105 @@
+\section{Introduction}
+\mylabel{sec:ref}
+
+This document introduces the functions available in the VIPS image
+processing library.  For detailed information on particular functions,
+refer to the UNIX on-line manual pages. Enter (for example):
+
+\begin{verbatim}
+example% man im_abs   
+\end{verbatim}
+
+for information on the function \verb+im_abs()+.
+
+All the comand-line vips operations will print help text too. For example:
+
+\begin{verbatim}
+example% vips im_extract
+usage: vips im_extract input output 
+  left top width height band
+where:
+        input is of type "image"
+        output is of type "image"
+        left is of type "integer"
+        top is of type "integer"
+        width is of type "integer"
+        height is of type "integer"
+        band is of type "integer"
+extract area/band, from package 
+  "conversion"
+flags: (PIO function) 
+  (coordinate transformer) 
+  (area operation) 
+  (result can be cached)
+vips: error calling function
+im_run_command: too few arguments
+\end{verbatim}
+
+Once you have found a function you need to use, you can call it from a C
+program (see \pref{sec:appl}), you can call
+it from C++ or Python (see \pref{sec:cpp}), you can call
+it from the \nip{} ((see the \emph{nip Manual}), or SIAM graphical
+user-interfaces, or you can run it from the UNIX command line with the
+\vips{} program. For example:
+
+\begin{verbatim}
+john% vips im_vips2tiff cam.v t1.tif none
+john% vips im_tiff2vips t1.tif t2.v.v 0
+john% vips im_equal cam.v t2.v t3.v
+john% vips im_min t3.v
+255   
+\end{verbatim}
+
+VIPS may have been set up at your site with a set of links which call the
+vips program for you. You may also be able to type:
+
+\begin{verbatim}
+john% im_vips2tiff cam.v t1.tif none
+john% im_tiff2vips t1.tif t2.v.v 0
+john% im_equal cam.v t2.v t3.v
+john% im_min t3.v
+\end{verbatim}
+
+There are a few VIPS programs which you cannot run with \vips{}, either
+because their arguments are a very strange, or because they are complete
+mini-applications (like \verb+vips2dj+). These programs are listed in
+table~\ref{tb:nondb}, see the man pages for full details.
+
+\begin{tab2}
+\centerline{
+\begin{tabular}{|l|l|}
+\hline
+Name & Description \\
+\hline
+\texttt{binfile} & Read RAW image \\
+\texttt{debugim} & Print an image pixel by pixel \\
+\texttt{edvips} & Change fields in a VIPS header \\
+\texttt{header} & Print fields from a VIPS header \\
+\texttt{printlines} & Print an image a line at a time \\
+\texttt{vips} & VIPS universal main program \\
+\texttt{vips-7.12} & VIPS wrapper script \\
+\texttt{find\_mosaic} & Analyse a set of images for overlaps \\
+\texttt{mergeup} & Join a set of images together \\
+\texttt{cooc\_features} & Calculate features of a co-occurence matrix \\
+\texttt{cooc} & Calculate a co-occurence matrix \\
+\texttt{glds\_features} & Calculate features of a grey-level 
+	distribution matrix \\
+\texttt{glds} & Calculate a grey-level distribution matrix \\
+\texttt{simcontr} & Demonstrate simultaneous contrast \\
+\texttt{sines} & Generate a sinusoidal test pattern \\
+\texttt{spatres} & Generate a spatial resolution test pattern \\
+\texttt{squares} & Generate some squares \\
+\texttt{batch\_crop} & Crop a lot of images \\
+\texttt{batch\_image\_convert} & File format convert a lot of images \\
+\texttt{batch\_rubber\_sheet} & Warp a lot of images \\
+\texttt{light\_correct} & Correct a set of images for shading errors \\
+\texttt{mitsub} & Format a VIPS image for output to a Mitsubishi 3600 \\
+\texttt{shrink\_width} & Shrink to a specific width \\
+\texttt{vdump} & VIPS to mono Postscript \\
+\texttt{vips2dj} & VIPS to high-quality colour Postscript \\
+\hline
+\end{tabular}
+}
+\caption{Miscellaneous programs}
+\label{tb:nondb}
+\end{tab2}

@@ -1,0 +1,845 @@
+\section{Core C API}
+
+VIPS is
+built on top of several other libraries, two of which, glib and gobject, are 
+exposed at various points in the C API.
+
+You can read up on glib at the GTK+ website:
+
+\begin{verbatim}
+http://www.gtk.org/api
+\end{verbatim}
+
+There's also an excellent book by Matthias Warkus, \emph{The Official 
+GNOME 2 Developer's Guide}, which covers the same material in a tutorial
+manner.
+
+\subsection{Startup}
+
+Before calling any VIPS function, you need to start VIPS up:
+
+\begin{verbatim}
+int im_init_world( const char *argv0 );
+\end{verbatim}
+
+The \verb+argv0+ argument is the value of \verb+argv[0]+ your program was passed
+by the host operating system. VIPS uses this with \verb+im_guess_prefix()+
+to try to find various VIPS data files.
+
+If you don't call this function, VIPS will call it for you the first time you
+use a VIPS function. But it won't be able to get the \verb+argv0+ value for
+you, so it may not be able to find it's data files.
+
+VIPS also offers the optional:
+
+\begin{verbatim}
+GOptionGroup *im_get_option_group( void );
+\end{verbatim}
+
+You can use this with GOption to parse your program's command-line arguments.
+It adds several useful VIPS flags, including \verb+--vips-concurrency+.
+
+\fref{fg:hello} shows both these functions in use. Again, the GOption stuff is
+optional and just lets VIPS add some flags to your program. You do need the
+\verb+im_init_world()+ though.
+
+\begin{fig2}
+\begin{verbatim}
+#include <stdio.h>
+#include <vips/vips.h>
+
+static gboolean print_stuff;
+
+static GOptionEntry options[] = {
+  { "print", 'p', 0, G_OPTION_ARG_NONE, &print_stuff,
+    "print \"hello world!\"", NULL },
+  { NULL }
+};
+
+int
+main( int argc, char **argv )
+{
+  GOptionContext *context;
+  GError *error = NULL;
+
+  if( im_init_world( argv[0] ) )
+    error_exit( "unable to start VIPS" );
+
+  context = g_option_context_new( "- my program" );
+  g_option_context_add_main_entries( context,
+    options, "main" );
+  g_option_context_add_group( context, im_get_option_group() );
+  if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
+    if( error ) {
+      fprintf( stderr, "%s\n", error->message );
+      g_error_free( error );
+    }
+    error_exit( "try \"%s --help\"", g_get_prgname() );
+  }
+  g_option_context_free( context );
+
+  if( print_stuff )
+    printf( "hello, world!\n" );
+
+  return( 0 );
+}
+\end{verbatim}
+\caption{Hello World for VIPS}
+\label{fg:hello}
+\end{fig2}
+
+\subsection{Image descriptors}
+
+The base level of the VIPS I/O system provides \verb+IMAGE+ descriptors.
+An image represented by a descriptor may be an image file on disc, an area
+of memory that has been allocated for the image, an output file, a delayed
+computation, and so on. Programs need (usually) only know that they have
+a descriptor, they do not see many of the details. \fref{fg:image}
+shows the definition of the \verb+IMAGE+ descriptor.
+
+\begin{fig2}
+\begin{verbatim}
+typedef struct {
+    /* Fields from image header.
+     */
+    int Xsize;             /* Pels per line */
+    int Ysize;             /* Lines */
+    int Bands;             /* Number of bands */
+    int Bbits;             /* Bits per band */
+    int BandFmt;           /* Band format */
+    int Coding;            /* Coding type */
+    int Type;              /* Type of file */
+    float XRes;            /* Horizontal res in pels/mm */
+    float YRes;            /* Vertical res in pels/mm  */
+    int Length;            /* Obsolete (unused) */
+    short Compression;     /* Obsolete (unused) */
+    short Level;           /* Obsolete (unused) */
+    int Xoffset;           /* Position of origin */    
+    int Yoffset;
+   
+    /* Derived fields that may be read by the user. 
+     */
+    char *filename;        /* File name */
+    struct time_info *time;/* Timing for eval callback */
+    int kill;              /* Set to non-zero to block eval */
+
+    ... and lots of other private fields used by VIPS for 
+    ... housekeeping.
+} IMAGE;
+\end{verbatim}
+\caption{The \texttt{IMAGE} descriptor}
+\label{fg:image}
+\end{fig2}
+
+The first set of fields simply come from the image file header:
+see \pref{sec:header} for a full description of all the fields. The next
+set are maintained for you by the VIPS I/O system. \verb+filename+ is the
+name of the file that this image came from.  If you have attached an eval
+callback to this image, \verb+time+ points to a set of timing statistics
+which can be used by user-interfaces built on VIPS to provide feedback
+about the progress of evaluation --- see \pref{sec:eval}. Finally, if you
+set \verb+kill+ to non-zero, VIPS will block any pipelines which use this
+descriptor as an intermediate. See \pref{sec:block}.
+
+The remaining fields are private and are used by VIPS for housekeeping.
+
+\subsection{Header fields}
+\label{sec:fields}
+
+You can access header fields either directly (as \verb+im->Xsize+, for
+example) or programmatically with \verb+im_header_int()+ and friends. For
+example:
+
+\begin{verbatim}
+int i;
+
+im_header_int( im, "Xsize", &i );
+\end{verbatim}
+
+There's also \verb+im_header_map()+ to loop over header fields, and
+\verb+im_header_get_type+ to test the type of fields. These functions work for
+image meta fields as well, see \pref{sec:meta}.
+
+\subsection{Opening and closing}
+
+Descriptors are created with \verb+im_open()+. This takes a file name
+and a string representing the mode with which the descriptor is to be opened:
+
+\begin{verbatim}
+IMAGE *im_open( const char *filename, 
+  const char *mode )
+\end{verbatim}
+
+The possible values for mode are:
+  
+\begin{description}
+
+\item[\texttt{"r"}]
+The file is opened read-only.
+If you open a non-VIPS image, or a VIPS image written on a machine with a
+different byte ordering, \verb+im_open()+ will automatically convert it to
+native VIPS format. If the underlying file does not support random access
+(JPEG, for example), the entire file will be converted in memory. 
+
+VIPS can read images in TIFF, JPEG, PPM/\-PGM/\-PBM, PNG and VIPS
+format, all in both big- and little-endian varieties. You can control the
+details of the conversion with extra characters embedded in the filename. For
+example:
+
+\begin{verbatim}
+fred = im_open( "fred.tif:2",
+  "r" );
+\end{verbatim}
+
+\noindent
+will read page 2 of a multi-page TIFF. See the man pages for details.
+
+If VIPS has been built with libMagick, it can also read any of the 80 or so
+libMagick-supported image file formats.
+
+\item[\texttt{"w"}]
+An \verb+IMAGE+ descriptor is created which, when written to, will write
+pixels to disc in the specified file.
+
+VIPS looks at the filename suffix to determine the save format. If there
+is no suffix, or the filename ends in \verb+".v"+, the image is written
+in VIPS native format. 
+
+If the filename ends in \verb+".tif"+ or \verb+".tiff"+, the image
+is written with \verb+im_vips2tiff()+.  If the filename ends in
+\verb+".jpg"+, \verb+".jpeg"+ or \verb+".jpe"+, the image is written with
+\verb+im_vips2jpg()+.  If the filename ends with \verb+".pbm"+, \verb+".pgm"+
+or \verb+".ppm"+, the image is written using \verb+im_vips2ppm()+.
+If the filename ends with \verb+".png"+, the image is written using
+\verb+im_vips2png()+.  Case is not considered when testing the suffix.
+
+If you want to control the details of the conversion to the disc format (such
+as setting the Q factor for a JPEG, for example), you embed extra control
+characters in the filename. For example:
+
+\begin{verbatim}
+fred = im_open( "fred.jpg:95", 
+  "w" );
+\end{verbatim}
+
+\noindent
+writes to \verb+fred+ will write a JPEG with Q 95. Again, see the man pages
+for the conversion functions for details.
+
+\item[\texttt{"t"}]
+As the \verb+"w"+ mode, but pels written to the descriptor will be saved
+in a temporary memory buffer.
+
+\item[\texttt{"p"}] 
+This creates a special partial image. Partial images are used to join VIPS
+operations together, see \pref{sec:joinup}.
+
+\item[\texttt{"rw"}]
+As the \verb+"r"+ mode, but the image is mapped into the caller's address
+space read-write. This mode is only provided for the use of paintbox-style
+applications which need to directly modify an image. Most programs should
+use the \verb+"w"+ mode for image output.
+
+\end{description}
+
+If an error occurs opening the image, \verb+im_open()+ calls
+\verb+im_error()+ with a string describing the cause of the error and
+returns \verb+NULL+. \verb+im_error()+ has type
+
+\begin{verbatim}
+void im_error( const char *domain,
+  const char *format, ... )
+\end{verbatim}
+
+\noindent
+The first argument is a string giving the name of the thing that raised
+the error (just \verb+"im_open"+, for example). The format and subsequent
+arguments work exactly as \verb+printf()+.  It formats the message and
+appends the string formed to the error log. You can get a pointer to the
+error text with \verb+im_error_buffer()+.
+
+\begin{verbatim}
+const char *im_error_buffer()
+\end{verbatim}
+
+\noindent
+Applications may display this string to give users feedback about the
+cause of the error. The VIPS exit function, \verb+error_exit()+, prints
+\verb+im_error_buffer()+ to \verb+stderr+ and terminates the program with an
+error code of 1.
+
+\begin{verbatim}
+void error_exit( const char *format, 
+  ... )
+\end{verbatim}
+
+\noindent
+There are other functions for handling errors: see the man page for
+\verb+im_error()+.
+
+If the file name given to \verb+im_open()+ ends with \verb+".v"+, VIPS
+looks in the same directory as the image for a file with the same name
+but with the extension \verb+".desc"+. If present, this file is read in
+and a pointer to the data put in the \verb+Hist+ field of the descriptor. See
+the notes on \verb+im_updatehist()+ in \pref{sec:examples}.  
+
+Descriptors are closed with \verb+im_close()+. It has type:
+
+\begin{verbatim}
+int im_close( IMAGE *im )
+\end{verbatim}
+
+\verb+im_close()+ returns 0 on success and non-zero on error.
+If the descriptor represents a disc file which
+has been written to and whose name ends in \verb+".v"+, VIPS writes the
+\verb+Hist+ field of the image descriptor to a file in the same directory
+whose name ends in \verb+".desc"+.
+
+\subsection{Examples}
+\label{sec:examples}
+
+As an example, \fref{fg:widthheight} will print the width and height
+of an image stored on disc.
+
+\begin{fig2}
+\begin{verbatim}
+#include <stdio.h>
+#include <vips/vips.h>
+
+int
+main( int argc, char **argv )
+{
+  IMAGE *im;
+
+  /* Check arguments.
+   */
+  if( im_init_world( argv[0] ) )
+    error_exit( "unable to start VIPS" );
+  if( argc != 2 )
+    error_exit( "usage: %s filename", argv[0] );
+
+  /* Open file.
+   */
+  if( !(im = im_open( argv[1], "r" )) )
+    error_exit( "unable to open %s for input", argv[1] );
+
+  /* Process.
+   */
+  printf( "width = %d, height = %d\n", im->Xsize, im->Ysize );
+
+  /* Close.
+   */
+  if( im_close( im ) )
+      error_exit( "unable to close %s", argv[1] );
+
+  return( 0 );
+}
+\end{verbatim}
+\label{fg:widthheight}
+\caption{Print width and height of an image}
+\end{fig2}
+
+To compile this example, use:
+
+\begin{verbatim}
+cc `pkg-config vips-7.12 \
+  --cflags --libs` myfunc.c 
+\end{verbatim}
+
+As a slightly more complicated example, \fref{fg:negative}
+will calculate the photographic negative of an image.
+
+\begin{fig2}
+\begin{verbatim}
+#include <stdio.h>
+#include <vips/vips.h>
+
+int
+main( int argc, char **argv )
+{
+  IMAGE *in, *out;
+
+  /* Check arguments.
+   */
+  if( im_init_world( argv[0] ) )
+    error_exit( "unable to start VIPS" );
+  if( argc != 3 )
+    error_exit( "usage: %s infile outfile", argv[0] );
+
+  /* Open images for read and write, invert, update the history with our
+   * args, and close.
+   */
+  if( !(in = im_open( argv[1], "r" )) ||
+    !(out = im_open( argv[2], "w" )) ||
+    im_invert( in, out ) ||
+    im_updatehist( out, argc, argv ) ||
+    im_close( in ) || 
+    im_close( out ) )
+    error_exit( argv[0] );
+  
+  return( 0 );
+}
+\end{verbatim}
+\label{fg:negative}
+\caption{Find photographic negative}
+\end{fig2}
+
+\subsection{Metadata}
+\label{sec:meta}
+
+VIPS lets you attach arbitrary metadata to an IMAGE. For example, ICC
+profiles, EXIF tags, whatever you like. VIPS will efficiently propogate
+metadata as images are processed (usually just by copying pointers) and will
+automatically save and load metadata from VIPS files (see
+\pref{sec:header}).
+
+A piece of metadata is a value and an identifying name. A set of
+convenience functions let you set and get int, double, string and blob. For
+example:
+
+\begin{verbatim}
+int im_meta_set_int( IMAGE *,
+  const char *field, int );
+int im_meta_get_int( IMAGE *,
+  const char *field, int * );
+\end{verbatim}
+
+So you can do:
+
+\begin{verbatim}
+if( im_meta_set_int( im, "poop", 42 ) )
+  return( -1 );
+\end{verbatim}
+
+\noindent
+to create an int called \verb+"poop"+, then at some later point (possibly much,
+much later), in an image distantly derived from \verb+im+, you can use:
+
+\begin{verbatim}
+int i;
+
+if( im_meta_get_int( im, "poop", &i ) )
+  return( -1 );
+\end{verbatim}
+
+\noindent
+And get the value 42 back. 
+
+You can use \verb+im_meta_set()+ and \verb+im_meta_get()+ to attach arbitrary
+\verb+GValue+ to images. 
+See the man page for \verb+im_meta_set()+ for full
+details. 
+
+You can test for a field being present with \verb+im_meta_get_type()+ (you'll
+get \verb+G_TYPE_INT+ back for \verb+"poop"+, for example, or 0 if it is not
+defined for this image).
+
+\subsection{History}
+\label{sec:history}
+
+VIPS tracks the history of an image, that is, the sequence of operations which
+have led to the creation of an image. You can view a VIPS image's history with
+the \verb+header+ command, or with \nip{}'s \ct{View Header} menu. Whenever an
+application performs an action, it should append a line of shell script to the
+history which would perform the same action.
+
+The call to \verb+im_updatehist()+ in \fref{fg:negative} adds a line to the
+image history noting the invocation of this program, its arguments, and the
+time and date at which it was run.  You may also find \verb+im_histlin()+
+helpful. It has type:
+
+\begin{verbatim}
+void im_histlin( IMAGE *im, 
+  const char *fmt, ... )
+\end{verbatim}
+
+\noindent
+It formats its arguments as \verb+printf()+ and appends the string formed
+to the image history.
+
+You read an image's history with \verb+im_history_get()+. It returns the
+entire history of an image, one action per line. No need to free the result.
+
+\begin{verbatim}
+const char *
+  im_history_get( IMAGE *im ); 
+\end{verbatim}
+
+\subsection{Eval callbacks}
+\label{sec:eval}
+
+VIPS lets you attach callbacks to image descriptors. These are functions
+you provide which VIPS will call when certain events occur. See
+\pref{sec:callback} for a full list.
+
+Eval callbacks are called repeatedly during evaluation and can be used by
+user-interface programs to give feedback about the progress of evaluation.
+
+\subsection{Detailed rules for descriptors}
+
+These rules are intended to answer awkward questions. 
+
+\begin{enumerate}
+
+\item
+You can output to a descriptor only once.
+
+\item
+You can use a descriptor as an input many times.
+
+\item
+You can only output to a descriptor that was opened with modes \verb+"w"+,
+\verb+"t"+ and \verb+"p"+.
+
+\item
+You can only use a descriptor as input if it was opened with modes \verb+"r"+
+or \verb+"rw"+.
+
+\item
+If you have output to a descriptor, you may subsequently use it as an
+input. \verb+"w"+ descriptors are automatically changed to \verb+"r"+
+descriptors. 
+
+If the function you are passing the descriptor to uses WIO (see
+\pref{sec:limit}), then \verb+"p"+ descriptors become \verb+"t"+.
+If the function you are passing the descriptor to uses PIO, then \verb+"p"+
+descriptors are unchanged.
+
+\end{enumerate}
+
+\subsection{Automatic resource deallocation}
+
+VIPS lets you allocate resources local to an image descriptor, that is,
+when the descriptor is closed, all resources which were allocated local to
+that descriptor are automatically released for you.
+
+\subsubsection{Local image descriptors}
+
+VIPS provides a function which will open a new image local to
+an existing image. \verb+im_open_local()+ has type:
+
+\begin{verbatim}
+IMAGE *im_open_local( IMAGE *im, 
+  const char *filename, 
+  const char *mode )
+\end{verbatim}
+
+It behaves exactly as \verb+im_open()+, except that you do not need to close
+the descriptor it returns. It will be closed automatically when its parent
+descriptor \verb+im+ is closed. 
+
+\begin{fig2}
+\begin{verbatim}
+/* Add another image to the accumulated total.
+ */
+static int
+sum1( IMAGE *acc, IMAGE **in, int nin, IMAGE *out )
+{
+    IMAGE *t;
+
+    if( nin == 0 )
+        /* All done ... copy to out.
+         */
+        return( im_copy( acc, out ) );
+
+    /* Make a new intermediate, and add to it..
+     */
+    return( !(t = im_open_local( out, "sum1:1", "p" )) || 
+        im_add( acc, in[0], t ) || 
+        sum1( t, in + 1, nin - 1, out ) );
+}
+
+/* Sum the array of images in[]. nin is the number of images in
+ * in[], out is the descriptor we write the final image to.
+ */
+int
+total( IMAGE **in, int nin, IMAGE *out )
+{
+    /* Check that we have at least one image.
+     */
+    if( nin <= 0 ) {
+        im_error( "total", "nin should be > 0" );
+        return( -1 );
+    }
+
+    /* More than 1, sum recursively.
+     */
+    return( sum1( in[0], in + 1, nin - 1, out ) );
+}
+\end{verbatim}
+\caption{Sum an array of images}
+\label{fg:addemup}
+\end{fig2}
+
+\fref{fg:addemup} is a function which will sum an array of images.
+We need never close any of the (unknown) number of intermediate images which
+we open. They will all be closed for us by our caller, when our caller
+finally closes \verb+out+. VIPS lets local images themselves have local
+images and automatically makes sure that all are closed in the correct order.
+
+It is very important that these intermediate images are made local to
+\verb+out+ rather than \verb+in+, for reasons which should become apparent
+in the section on combining operations below.
+
+There's also \verb+im_open_local_array()+ for when you need a lot of local
+descriptors, see the man page.
+
+\subsubsection{Local memory allocation}
+\label{sec:malloc}
+
+VIPS includes a set of functions for memory allocation local to an image
+descriptor. The base memory allocation function is \verb+im_malloc()+. It
+has type:
+
+\begin{verbatim}
+void *im_malloc( IMAGE *im, 
+  size_t size )
+\end{verbatim}
+
+It operates exactly as the standard \verb+malloc()+ C library function,
+except that the area of memory it allocates is local to image descriptor
+\verb+im+. If \verb+im_malloc()+ is unable to allocate memory, it returns
+\verb+NULL+. If you pass \verb+NULL+ instead of a valid image descriptor,
+then \verb+im_malloc()+ allocates memory globally and you must free it
+yourself at some stage.
+
+To free memory explicitly, use \verb+im_free()+:
+
+\begin{verbatim}
+int im_free( void *mem )
+\end{verbatim}
+
+\noindent
+\verb+im_free()+ always returns 0, so you can use it as an argument to a
+callback.
+
+Three macros make memory allocation even easier. \verb+IM_NEW()+ allocates
+a new object. You give it a descriptor and a type, and it returns a pointer
+to enough space to hold an object of that type. It has type:
+
+\begin{verbatim}
+type-name *IM_NEW( IMAGE *im, type-name )
+\end{verbatim}
+
+The second macro, \verb+IM_ARRAY()+, is very similar, but allocates
+space for an array of objects. Note that, unlike the usual \verb+calloc()+
+C library function, it does not initialise the array to zero. It has type:
+
+\begin{verbatim}
+type-name *IM_ARRAY( IMAGE *im, 
+  int n, type-name )
+\end{verbatim}
+
+Finally, \verb+IM_NUMBER()+ returns the number of elements in an array of
+defined size.  See the man pages for a series of examples, or
+see \pref{sec:number}.
+
+\subsubsection{Other local operations}
+
+The above facilities are implemented with the VIPS core function
+\verb+im_add_close_callback()+. You can use this facility to make your own
+local resource allocators for other types of object --- see the manual page
+for more help.
+
+\subsection{Error handling}
+
+All VIPS operations return 0 on success and non-zero on error, setting
+\verb+im_error()+. As a consequence, when a VIPS function fails, you do not
+need to generate an error message --- you can simply propogate the error back
+up to your caller. If however you detect some error yourself (for example,
+the bad parameter in the example above), you must call \verb+im_error()+
+to let your caller know what the problem was.
+
+VIPS provides two more functions for error message handling: \verb+im_warn()+
+and \verb+im_diag()+. These are intended to be used for less serious
+messages, as their names suggest. Currently, they simply format and print
+their arguments to \verb+stderr+, optionally supressed by the setting of an
+environment variable. Future releases of VIPS may allow more sophisticated
+trapping of these functions to allow their text to be easily presented to
+the user by VIPS applications. See the manual pages.
+
+\subsection{Joining operations together}
+\label{sec:joinup}
+
+VIPS lets you join image processing operations together so that they
+behave as a single unit. \fref{fg:join} shows the definition of the
+function \verb+im_Lab2disp()+ from the VIPS library. This function converts
+an image in \cielab{} colour space to an RGB image for a monitor. The
+monitor characteristics (gamma, phosphor type, etc.) are described by the
+\verb+im_col_display+ structure, see the man page for \verb+im_col_XYZ2rgb()+.
+
+\begin{fig2}
+\begin{verbatim}
+int 
+im_Lab2disp( IMAGE *in, IMAGE *out, struct im_col_display *disp )
+{	
+    IMAGE *t1;
+
+    if( !(t1 = im_open_local( out, "im_Lab2disp:1", "p" )) ||
+        im_Lab2XYZ( in, t1 ) ||
+        im_XYZ2disp( t1, out, disp ) )
+        return( -1 );
+
+    return( 0 );
+}
+\end{verbatim}
+\caption{Two image-processing operations joined together}
+\label{fg:join}
+\end{fig2}
+
+The special \verb+"p"+ mode (for partial) used to open the image descriptor
+used as the intermediate image in this function `glues' the two operations
+together. When you use \verb+im_Lab2disp()+, the two operations inside it
+will execute together and no extra storage is necessary for the intermediate
+image (\verb+t1+ in this example).  This is important if you want to process
+images larger than the amount of RAM you have on your machine.
+
+As an added bonus, if you have more than one CPU in your computer, the work
+will be automatically spread across the processors for you. You can control
+this parallelisation with the \verb+IM_CONCURRENCY+ environment variable and
+with \verb+im_concurrency_set()+. See the man page for \verb+im_generate()+.
+
+\subsubsection{How it works}
+
+When a VIPS function is asked to output to a \verb+"p"+ image descriptor,
+all the fields in the descriptor are set (the output image size and type
+are set, for example), but no image data is actually generated. Instead,
+the function attaches callbacks to the image descriptor which VIPS can use
+later to generate any piece of the output image that might be needed.
+
+When a VIPS function is asked to output to a \verb+"w"+ or a \verb+"t"+
+descriptor (a real disc file or a real memory buffer), it evaluates
+immediately and its evaluation in turn forces the evaluation of any earlier
+\verb+"p"+ images.
+
+In the example in \fref{fg:join}, whether or not any pixels are really
+processed when \verb+im_Lab2disp()+ is called depends upon the mode in
+which \verb+out+ was opened. If \verb+out+ is also a partial image, then
+no pixels will be calculated --- instead, a pipeline of VIPS operations
+will be constructed behind the scenes and attached to \verb+out+.
+
+Conversely, if \verb+out+ is a real image (that is, either \verb+"w"+
+or \verb+"t"+), then the final VIPS operation in the function
+(\verb+im_XYZ2disp()+) will output the entire image to \verb+out+, causing
+the earlier parts of \verb+im_Lab2disp()+ (and indeed possibly some earlier
+pieces of program, if \verb+in+ was also a \verb+"p"+ image) to run.
+
+When a VIPS pipeline does finally evaluate, all of the functions in the
+pipeline execute together, sucking image data through the system in small
+pieces. As a consequence, no intermediate images are generated, large
+amounts of RAM are not needed, and no slow disc I/O needs to be performed.
+
+Since VIPS partial I/O is demand-driven rather than data-driven this works
+even if some of the operations perform coordinate transformations.  We could,
+for example, include a call to \verb+im_affine()+, which performs
+arbitrary rotation and scaling, and everything would still work correctly.
+
+\subsubsection{Pitfalls with partials}
+
+To go with all of the benefits that partial image I/O brings, there are
+also some problems. The most serious is that you are often not quite certain
+when computation will happen. This can cause problems if you close an input
+file, thinking that it is finished with, when in fact that file has not
+been processed yet.  Doing this results in dangling pointers and an almost
+certain core-dump.
+
+You can prevent this from happening with careful use of
+\verb+im_open_local()+.  If you always open local to your output image,
+you can be sure that the input will not be closed before the output has been
+generated to a file or memory buffer.  You do not need to be so careful with
+non-image arguments. VIPS functions which take extra non-image arguments
+(a matrix, perhaps) are careful to make their own copy of the object before
+returning.
+
+\subsubsection{Non-image output}
+
+Some VIPS functions consume images, but make no image
+output. \verb+im_stats()+ for example, scans an image calculating various
+statistical values. When you use \verb+im_stats()+, it behaves as a data
+sink, sucking image data through any earlier pipeline stages.
+
+\subsubsection{Calculating twice}
+
+In some circumstances, the same image data can be generated twice.
+\fref{fg:thrmean} is a function which finds the mean value of an
+image, and writes a new image in which pixels less than the mean are set to
+0 and images greater than the mean are set to 255.
+
+\begin{fig2}
+\begin{verbatim}
+int
+threshold_at_mean( IMAGE *in, IMAGE *out )
+{
+    double mean;
+
+    if( im_avg( in, &mean ) ||
+        im_moreconst( in, out, mean ) )
+        return( -1 );
+
+    return( 0 );
+}
+\end{verbatim}
+\caption{Threshold an image at the mean value}
+\label{fg:thrmean}
+\end{fig2}
+
+This seems straightforward --- but consider if image \verb+in+ were a
+\verb+"p"+, and represented the output of a large pipeline of operations. The
+call to \verb+im_avg()+ would force the evaluation of the entire pipeline,
+and throw it all away, keeping only the average value. The subsequent call to
+\verb+im_moreconst()+ will cause the pipeline to be evaluated a second time.
+
+When designing a program, it is sensible to pay attention to these
+issues. It might be faster, in some cases, to output to a file before
+calling \verb+im_avg()+, find the average of the disc file, and then run
+\verb+im_moreconst()+ from that.
+
+\subsubsection{Blocking computation}
+\label{sec:block}
+
+\verb+IMAGE+ descriptors have a flag called \verb+kill+ which can be used
+to block computation.  If \verb+im->kill+ is set to a non-zero value,
+then any VIPS pipelines which use \verb+im+ as an intermediate will fail
+with an error message.  This is useful for user-interface writers ---
+suppose your interface is forced to close an image which many other images
+are using as a source of data. You can just set the \verb+kill+ flag in all
+of the deleted image's immediate children and prevent any dangling pointers
+from being followed.
+
+\subsubsection{Limitations}
+\label{sec:limit}
+
+Not all VIPS operations are partial-aware. These non-partial operations
+use a pre-VIPS7.0 I/O scheme in which the whole of the input image has to
+be present at the same time.  In some cases, this is because partial I/O
+simply makes no sense --- for example, a Fourier Transform can produce no
+output until it has seen all of the input.  \verb+im_fwfft()+ is therefore
+not a partial operation. In other cases, we have simply not got around to
+rewriting the old non-partial operation in the newer partial style.
+
+You can mix partial and non-partial VIPS operations freely, without worrying
+about which type they are. The only effect will be on the time your pipeline
+takes to execute, and the memory requirements of the intermediate images. VIPS
+uses the following rules when you mix the two styles of operation:
+
+\begin{enumerate}
+
+\item
+When a non-partial operation is asked to output to a partial image descriptor,
+the \verb+"p"+ descriptor is magically transformed into a \verb+"t"+
+descriptor.
+
+\item
+When a non-partial operation is asked to read from a \verb+"p"+ descriptor,
+the \verb+"p"+ descriptor is turned into a \verb+"t"+ type, and any earlier
+stages in the pipeline forced to evaluate into that memory buffer. 
+
+The non-partial operation then processes from the memory buffer.
+
+\end{enumerate}
+
+These rules have the consequence that you may only process very large images
+if you only use partial operations. If you use any non-partial operations,
+then parts of your pipelines will fall back to old whole-image I/O and you
+will need to think carefully about where your intermediates should be stored.
+

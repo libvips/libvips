@@ -1,0 +1,29 @@
+.TH IM_INSERT 3 "11 April 1990"
+.SH NAME
+im_insert \- insert one image into another
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_insert(in, ins, out, x, y)
+.br
+IMAGE *in, *insub, *out;
+.br
+int x, y;
+.SH DESCRIPTION
+im_insert()
+inserts one image into another. ins is inserted into image in at
+position x, y relative to the top left hand corner of in. out is made large
+enough to hold all of both in and ins. Any areas of out not coming from
+either in or ins are set to black (binary 0). If ins overlaps in,
+ins
+will appear on top of in. Both images must have the same number of
+bands and the same BandFmt.
+.SH RETURN VALUE
+The function returns 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_extract(3), im_lrjoin(3), im_lrmerge(3)
+.SH COPYRIGHT
+.br
+J. Cupitt,
+.SH AUTHOR
+J. Cupitt \- 11/04/1990

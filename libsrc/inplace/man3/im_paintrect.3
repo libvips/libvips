@@ -1,0 +1,126 @@
+.TH IM_AND 3 "30 October 1992"
+.SH NAME
+im_paintrect, im_plotmask, im_readpoint, im_plotpoint, im_fastline,
+im_fastlineuser \- suck pels up, and paint them down somewhere else
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+.br
+.B #include <vips/rect.h>
+
+int im_readpoint( im, x, y, ink )
+.br
+IMAGE *im;
+.br
+int x, y;
+.br
+PEL *ink;
+
+int im_plotpoint( im, x, y, ink )
+.br
+IMAGE *im;
+.br
+int x, y;
+.br
+PEL *ink;
+
+int im_plotmask( im, ix, iy, ink, mask, r )
+.br
+IMAGE *im;
+.br
+int ix, iy;
+.br
+PEL *ink;
+.br
+PEL *mask;
+.br
+Rect *r;
+
+int im_paintrect( im, r, ink )
+.br
+IMAGE *im;
+.br
+Rect *r;
+.br
+PEL *ink;
+
+int im_fastline( im, x1, y1, x2, y2, ink )
+.br
+IMAGE *im;
+.br
+int x1, y1, x2, y2;
+.br
+PEL *ink;
+
+int im_fastlineuser( im, x1, y1, x2, y2, 
+.br
+    plot_fn, client1, client2, client3 )
+.br
+IMAGE *im;
+.br
+int x1, y1, x2, y2;
+.br
+int (*plot_fn)();
+.br
+void *client1, *client2, *client3;
+
+int plot_fn( im, x, y, client1, client2, client3 )
+.br
+IMAGE *im;
+.br
+int x, y;
+.br
+void *client1, *client2, *client3;
+
+int im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
+.br
+  int n, int *x1v, int *y1v, int *x2v, int *y2v )
+
+.SH DESCRIPTION
+.B im_readpoint(3) 
+sucks a pel from position (x,y) into a buffer; all other
+functions paint that buffer back again in various ways. These functions will
+work for an image of any type, since they rely on 
+.B im_readpoint(3) 
+for their
+data. If you read a pel from one image and paint with it to another, it is
+your responsibility to check that the two images have identical pels.
+
+All these functions are `in place,' that is, they write directly to the
+output image! Be very careful, you can destroy data.
+
+.B im_plotmask(3) 
+takes an array of 0/255s and a Rect describing the size and
+offset of the array. It adds (ix,iy) to the array offset, and then paint pels
+into all array positions which are non-zero. Rect need not lie inside the
+image - the function clips carefully at the edges.
+
+.B im_paintrect(3) 
+fills the rectangle described with ink. The Rect can be any
+size and at any position - the function clipps against the edges of the
+image.
+
+.B im_fastline(3) 
+is a replacement for 
+.B im_line(3) 
+which plots the specified ink in
+the image. The start and end points must lie entirely inside the image.
+
+.B im_fastlineuser(3) 
+does not plot points, instead it calls a user plot function
+for every position along the line. There is no clipping - the endpoints may be
+anywhere at all. Three client values are carried around and passed into the
+user function.
+
+.B im_lineset(3)
+copies the image and draws a set of lines on the copy. The lines are drawn
+using the mask image as a brush to apply the ink image. Useful for nip2.
+
+.SH RETURN VALUE
+All functions return 0 on success and -1 on error.
+.SH SEE\ ALSO
+im_insertplace(3), im_smudge(3).
+.SH COPYRIGHT
+.br
+National Gallery, 1992
+.SH AUTHOR
+J. Cupitt

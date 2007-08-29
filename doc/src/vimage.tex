@@ -1,0 +1,279 @@
+\section{The \texttt{VImage} class}
+
+The \verb+VImage+ class is a layer over the VIPS \verb+IMAGE+ type. It
+automates almost all of the image creation and destruction issues that
+complicate the C API, it automates error handling, and it provides a
+convenient system for composing operations.
+
+\subsection{Constructors}
+
+There are two principal constructors for \verb+VImage+:
+
+\begin{verbatim}
+VImage::VImage( const char *name, 
+  const char *mode = "r" );
+VImage::VImage();
+\end{verbatim}
+
+The first form creates a new \verb+VImage+, linking it to the named file.
+\verb+mode+ sets the mode for the file: it can take the following values:
+
+\begin{description}
+
+\item[\texttt{"r"}]
+The named image file is opened read-only. This is the default mode.
+
+\item[\texttt{"w"}]
+A \verb+VImage+ is created which, when written to, will write pixels to disc
+in the specified file.
+
+\item[\texttt{"t"}]
+As the \verb'"w"' mode, but pixels written to the \verb+VImage+ will be saved
+in a temporary memory buffer.
+
+\item[\texttt{"p"}]
+This creates a special `partial' image. Partial images represent
+intermediate results, and are used to join VIPS operations together,
+see~\pref{sec:compute}.
+
+\item[\texttt{"rw"}]
+As the \verb'"r"' mode, but the image is mapped into your address space
+read-write. This mode is only provided for the use of paintbox-style
+applications, which need to directly modify an image. See \pref{sec:inplace}.
+
+\end{description}
+
+The second form of constructor is shorthand for:
+
+\begin{verbatim}
+VImage( "VImage:1", "p" )
+\end{verbatim}
+
+\noindent
+It is used for representing intermediate results of computations.
+
+Two further constructors are handy for wrapping \verb+VImage+ around existing
+images.
+
+\begin{verbatim}
+VImage( void *buffer, 
+  int width, int height, int bands, 
+  TBandFmt format );
+VImage( void *image );
+\end{verbatim}
+
+\noindent
+The first constructor makes a \verb+VImage+ from an area of memory (perhaps
+from another image processing system), and the second makes a \verb+VImage+
+from an \verb+IMAGE+. 
+
+In both these two cases, the VIPS C++ API does not assume responsibility
+for the resouces: it's up to you to make sure the buffer is freed.
+
+\subsection{File conversion}
+
+VIPS can read and write a number of different file formats. Information about
+file format conversion is taken from the filename. For example:
+
+\begin{verbatim}
+VImage jim( "fred.jpg" );
+\end{verbatim}
+
+\noindent
+This will decompress the file \verb+fred.jpg+ to a memory buffer, wrap a VIPS
+image around the buffer and build a reference to it called \verb+jim+.
+
+Options are passed to the file format converters embedded in the filename. For
+example:
+
+\begin{verbatim}
+VImage out( "jen.tif:deflate", "w" );
+\end{verbatim}
+
+\noindent
+
+\noindent
+Writing to the descriptor \verb+out+ will cause a TIFF image to be written to
+disc with deflate compression.
+
+See the manual page for \verb+im_open(3)+ for details of all the file formats
+and conversions available.
+
+\subsection{Projection functions}
+
+A set of member functions of \verb+VImage+ provide access to the fields in
+the header:
+
+\begin{verbatim}
+int Xsize();
+int Ysize();
+int Bands();
+TBandFmt BandFmt();
+TCoding Coding();
+TType Type();
+float Xres();
+float Yres();
+int Length();
+TCompression Compression();
+short Level();
+int Xoffset();
+int Yoffset();
+\end{verbatim}
+
+\noindent
+Where \verb+TBandFmt+, \verb+TCoding+, \verb+TType+ and \verb+TCompression+
+are \verb+enum+s for the types in the VIPS file header. See section~\pref{sec:header} for an explanation of all of these fields.
+
+The \verb+image()+ member function provides access to the \verb+IMAGE+
+descriptor underlying the C++ API. See the \pref{sec:appl} for details.
+
+\begin{verbatim}
+void *image();
+\end{verbatim}
+
+The \verb+data()+ member function returns a pointer to an array of pixel data
+for the image. 
+
+\begin{verbatim}
+void *data() const;
+\end{verbatim}
+
+\noindent
+This can be very slow and use huge amounts of RAM.
+
+Finally, two projection functions give access to the filename and history
+fields maintained by the VIPS IO system.
+
+\begin{verbatim}
+char *filename();
+char *Hist();
+\end{verbatim}
+
+\subsection{Assignment}
+
+\verb+VImage+ defines copy and assignment, with reference-counted
+pointer-style semantics.  For example, if you write:
+
+\begin{verbatim}
+VImage fred( "fred.v" );
+VImage jim( "jim.v" );
+
+fred = jim;
+\end{verbatim}
+
+This will automatically close the file \verb+fred.v+, and make the variable
+\verb+fred+ point to the image \verb+jim.v+ instead. Both \verb+jim+ and
+\verb+fred+ now point to the same underlying image object. 
+
+Internally, a \verb+VImage+ object is just a pointer to a reference-counting
+block, which in turn holds a pointer to the underlying VIPS \verb+IMAGE+ type.
+You can therefore efficiently pass \verb+VImage+ objects to functions by
+value, and return \verb+VImage+ objects as function results.
+
+\subsection{Computing with \texttt{VImage}s}
+\label{sec:compute}
+
+All VIPS image processing operations are member functions of the \verb+VImage+
+class. For example:
+
+\begin{verbatim}
+VImage fred( "fred.v" );
+VImage jim( "jim.v" );
+
+VImage result = fred.cos() + jim;
+\end{verbatim}
+
+Will apply \verb+im_costra()+ to \verb+fred.v+, making an image where each
+pixel is the cosine of the corresponding pixel in \verb+fred.v+; then add that
+image to \verb+jim.v+. Finally, the result will be held in \verb+result+.
+
+VIPS is a demand-driven image processing system: when it computes expressions
+like this, no actual pixels are calculated (although you can use the
+projection functions on images --- \verb+result.BandFmt()+ for example).  When
+you finally write the result to a file (or use some operation that needs pixel
+values, such as \verb+min()+, find minimum value), VIPS evaluates all of the
+operations you have called to that point in parallel. If you have more than one
+CPU in your machine, the load is spread over the available processors. This
+means that there is no limit to the size of the images you can process.
+
+\pref{sec:packages} lists all of the VIPS packages. These general
+rules apply:
+
+\begin{itemize}
+
+\item
+VIPS operation names become C++ member function names by dropping the
+\verb+im_+ prefix, and if present, the \verb+tra+ postfix, the \verb+const+
+postfix and the \verb+_vec+ postfix. For example, the
+VIPS operation \verb+im_extract()+ becomes \verb+extract()+, and
+\verb+im_costra()+ becomes \verb+cos()+.
+
+\item
+The \verb+VImage+ object to which you apply the member function is the first
+input image, the member function returns the first output. If there is no
+image input, the member is declared \verb+static+.
+
+\item
+\verb+INTMASK+ and \verb+DOUBLEMASK+ types become \verb+VMask+ objects,
+\verb+im_col_display+ types become \verb+VDisplay+ objects.
+
+\item
+Several C API functions can map to the same C++ API member. For example,
+\verb+im_andimage+, \verb+im_andimage_vec+ and \verb+im_andimageconst+ all map
+to the member \verb+andimage+. The API relies on overloading to
+discriminate between these functions.
+
+\end{itemize}
+
+This part of the C++ API is generated automatically from the VIPS function
+database, so it should all be up-to-date.
+
+There are a set of arithmetic operators defined for your convenience. You can
+generally write any arithmetic expression and include \verb+VImage+ in there.
+
+\begin{verbatim}
+VImage fred( "fred.v" );
+VImage jim( "jim.v" );
+
+Vimage v = int((fred + jim) / 2);
+\end{verbatim}
+
+\subsection{Writing results}
+
+Once you have computed some result, you can write it to a file with the member
+\verb+write()+. It takes the following forms:
+
+\begin{verbatim}
+VImage write( const char *name );
+VImage write( VImage out );
+VImage write();
+\end{verbatim}
+
+The first form simply writes the image to the named file. The second form
+writes the image to the specified \verb+VImage+ object, for example:
+
+\begin{verbatim}
+VImage fred( "fred.v" );
+VImage jim( "jim buffer", "t" );
+
+Vimage v = (fred + 42).write( jim );
+\end{verbatim}
+
+\noindent
+This creates a temporary memory buffer called \verb+jim+, and fills it with
+the result of adding 42 to every pixel in \verb+fred.v+.
+
+The final form of \verb+write()+ writes the image to a memory buffer, and
+returns that.
+
+\subsection{Type conversions}
+
+Two type conversions are defined: you can cast \verb+VImage+ to a
+\verb+VDMask+ and to a \verb+VIMask+.
+
+\begin{verbatim}
+operator VDMask();
+operator VIMask();
+\end{verbatim}
+
+These operations are slow and need a lot of memory! Emergencies only.
