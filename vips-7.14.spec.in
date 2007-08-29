@@ -85,6 +85,9 @@ ldconfig
 %{_libdir}/python*
 
 %changelog -n vips
+* Wed Aug 29 2007 John Cupitt <jcupitt@gmail.com> 7.14
+- updated for 7.14
+
 * Fri Apr 27 2007 John Cupitt <jcupitt@gmail.com> 7.12
 - updated for 7.12
 

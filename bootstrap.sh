@@ -7,7 +7,7 @@ rm -f Makefile Makefile.in aclocal.m4
 rm -rf autom4te.cache
 rm -f config.* configure depcomp
 rm -f install-sh intltool-* libtool ltmain.sh missing mkinstalldirs
-rm -f stamp-* vipsCC-7.12.pc vips-7.12.spec vips-7.12.pc
+rm -f stamp-* vipsCC-7.14.pc vips-7.14.spec vips-7.14.pc
 rm -f python/vipsCC/*.cxx
 rm -f python/vipsCC/VImage.h
 rm -f python/vipsCC/VImage.py python/vipsCC/VError.py python/vipsCC/VMask.py python/vipsCC/Display.py

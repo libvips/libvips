@@ -21,9 +21,9 @@ EXTRA_DIST = \
 	benchmark \
 	bootstrap.sh \
 	win32 \
-	vipsCC-7.12.pc.in \
-	vips-7.12.pc.in \
-	vips-7.12.spec.in \
+	vipsCC-7.14.pc.in \
+	vips-7.14.pc.in \
+	vips-7.14.spec.in \
 	acinclude.m4 \
 	depcomp \
 	intltool-extract.in \
@@ -32,7 +32,7 @@ EXTRA_DIST = \
 	$(P_DIST_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = vips-7.12.pc vipsCC-7.12.pc
+pkgconfig_DATA = vips-7.14.pc vipsCC-7.14.pc
 
 install-exec-hook:
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips
