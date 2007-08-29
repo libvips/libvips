@@ -4,6 +4,7 @@
 - libsrcCC link improvement from Pablo
 - support 32/64-bit ImageMagick as well (thanks Marcel)
 - better im_magick2vips() for Q8 ImageMagick
+- split repository to trunk/branches ready for a stable 7.12.x branch
 
 27/7/06 started 7.12.4
 - proto.h had vars called small, breaking on win32
