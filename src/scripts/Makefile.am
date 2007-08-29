@@ -6,12 +6,12 @@ bin_SCRIPTS = \
 	batch_image_convert \
 	batch_rubber_sheet \
 	batch_crop \
-	vips-7.12
+	vips-7.13
 
 noinst_SCRIPTS = post_install
 
 EXTRA_DIST = \
-	vips-7.12 \
+	vips-7.13 \
 	${noinst_SCRIPTS} \
 	light_correct.in \
 	shrink_width.in \

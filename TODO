@@ -1,3 +1,5 @@
+- can we use GraphicsMagick instead of ImageMagick?
+
 - when we fork for 7.13 do this stuff ... don't do now, we'll break the other
   packages
 
