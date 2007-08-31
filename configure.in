@@ -315,9 +315,9 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(PACKAGES_USED)
 
 AC_OUTPUT([
-	vips-7.${IM_MINOR_VERSION}.pc
-	vipsCC-7.${IM_MINOR_VERSION}.pc
-	vips-7.${IM_MINOR_VERSION}.spec
+	vips-7.13.pc
+	vipsCC-7.13.pc
+	vips-7.13.spec
 	Makefile 
 	include/vips/version.h 
 	include/Makefile 
