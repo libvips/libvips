@@ -1,35 +1,3 @@
-- when we fork for 7.13 do this stuff ... don't do now, we'll break the other
-  packages
-
-  http://www.freshports.org/graphics/vips
-  ftp://ftp.freebsd.org/pub/FreeBSD/ports/ports
-
-  freebsd packaging now does:
-
-  In both:
-        - use explict --mandir=${PREFIX}/man to avoid man-pages getting
-          into ${PREFIX}/shared/man incorrectly
-        - deal with the NOPORTDOCS situation by simply not-extracting
-          the extra documentation from the distribution tarball
-        - parallelize the build to scale with the number of CPUs
-
-  In vips:
-        - move the (giant) list of man-pages into a separate Makefile.man
-        - turn the pages, which contain only `.so other-page', into
-          MANLINKS (specified in Makefile.man)
-        - provide a "maintainance target" to regenerate the Makefile.man
-          during the next upgrade
-        - do not install the HTML-ized versions of man-pages
-        - create OPTIONS for use of devel/liboil and graphics/ImageMagick
-          (OPTION to use PYTHON awaits portmgr's decision/action)
-
-  In nip2:
-        - do install the HTML pages regardless of NOPORTDOCS -- these
-          are accessible to the user through the application GUI
-        - arrange for update-mime-database and update-desktop-database
-          to be run upon install (@exec) and uninstall (@unexec)
-        - LIB_DEPEND on math/gsl, which nip2 can use for extra functionality
-
 Python binding
 ==============
 
