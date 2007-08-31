@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libcolour.la
 
 libcolour_la_SOURCES = \

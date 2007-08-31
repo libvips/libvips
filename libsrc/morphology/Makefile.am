@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libmorphology.la
 
 libmorphology_la_SOURCES = \

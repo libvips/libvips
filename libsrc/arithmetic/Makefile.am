@@ -1,5 +1,3 @@
-SUBDIRS = man3 
-
 noinst_LTLIBRARIES = libarithmetic.la
 
 libarithmetic_la_SOURCES = \

@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libvideo.la
 
 libvideo_la_SOURCES = \

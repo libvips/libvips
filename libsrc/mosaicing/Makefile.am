@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libmosaicing.la
 
 libmosaicing_la_SOURCES = \

@@ -1,9 +1,8 @@
-- can we use GraphicsMagick instead of ImageMagick?
-
 - when we fork for 7.13 do this stuff ... don't do now, we'll break the other
   packages
 
   http://www.freshports.org/graphics/vips
+  ftp://ftp.freebsd.org/pub/FreeBSD/ports/ports
 
   freebsd packaging now does:
 
@@ -46,6 +45,11 @@ Python binding
 
 WONTFIX
 =======
+
+- can we use GraphicsMagick instead of ImageMagick?
+
+  no: current stable GraphicsMagick is missing (at least) QuantumRange and
+  GetNextImageAttribute() ... perhaps this will be fixed in 1.2
 
 - TIFF load/save should use meta system for unknown tags
 

@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libconvolution.la
 
 libconvolution_la_SOURCES = \

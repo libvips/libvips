@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = librelational.la
 
 librelational_la_SOURCES = \

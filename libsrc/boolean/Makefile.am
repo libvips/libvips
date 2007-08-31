@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libboolean.la
 
 libboolean_la_SOURCES = \

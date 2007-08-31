@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libacquire.la
 
 libacquire_la_SOURCES = \

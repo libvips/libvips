@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libinplace.la
 
 libinplace_la_SOURCES = \

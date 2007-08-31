@@ -13,6 +13,7 @@ SUBDIRS = \
 	include \
 	libsrcCC \
 	contrib \
+	man \
 	po \
 	$(P_COMPILE_DIR) 
 

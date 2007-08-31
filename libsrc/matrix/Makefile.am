@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libmatrix.la
 
 libmatrix_la_SOURCES = \

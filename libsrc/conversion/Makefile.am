@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libconversion.la
 
 libconversion_la_SOURCES = \

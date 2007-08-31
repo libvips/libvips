@@ -1,5 +1,3 @@
-SUBDIRS = man1
-
 bin_SCRIPTS = \
 	light_correct \
 	shrink_width \

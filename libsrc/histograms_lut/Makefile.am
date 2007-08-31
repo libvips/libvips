@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libhistograms_lut.la
 
 libhistograms_lut_la_SOURCES = \

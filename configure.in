@@ -99,7 +99,9 @@ GETTEXT_PACKAGE=vips7
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
         [The prefix for our gettext translation domains.])
-ALL_LINGUAS="en_GB malkovich"
+# the 'malkovich' one is there for testing only
+# ALL_LINGUAS="en_GB malkovich"
+ALL_LINGUAS="en_GB"
 AC_PROG_INTLTOOL
 AM_GLIB_GNU_GETTEXT
 
@@ -168,7 +170,7 @@ if test "x$with_fftw3" != "xno"; then
     [AC_MSG_WARN([fftw3 not found; disabling fftw support])])
 fi
 
-# ImageMagic ... detect attribute iteration too
+# ImageMagick ... detect attribute iteration too
 AC_ARG_WITH([magick], AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
 
 if test "x$with_magick" != "xno"; then
@@ -184,7 +186,7 @@ if test "x$with_magick" != "xno"; then
   save_LIBS=$LIBS
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(GetNextImageAttribute,
-    AC_DEFINE(HAVE_MAGICK_ATTR,1,[define if your imagemagick has attribute support.]))
+    AC_DEFINE(HAVE_MAGICK_ATTR,1,[define if your magick has attribute support.]))
   LIBS=$save_LIBS
 fi
 
@@ -337,22 +339,6 @@ AC_OUTPUT([
 	libsrc/other/Makefile 
 	libsrc/relational/Makefile 
 	libsrc/video/Makefile 
-	libsrc/acquire/man3/Makefile 
-	libsrc/arithmetic/man3/Makefile 
-	libsrc/boolean/man3/Makefile 
-	libsrc/colour/man3/Makefile 
-	libsrc/conversion/man3/Makefile 
-	libsrc/convolution/man3/Makefile 
-	libsrc/freq_filt/man3/Makefile 
-	libsrc/histograms_lut/man3/Makefile 
-	libsrc/inplace/man3/Makefile 
-	libsrc/iofuncs/man3/Makefile 
-	libsrc/matrix/man3/Makefile 
-	libsrc/morphology/man3/Makefile 
-	libsrc/mosaicing/man3/Makefile 
-	libsrc/other/man3/Makefile 
-	libsrc/relational/man3/Makefile 
-	libsrc/video/man3/Makefile 
 	libsrcCC/Makefile 
 	src/Makefile 
 	src/iofuncs/Makefile 
@@ -364,9 +350,7 @@ AC_OUTPUT([
 	src/scripts/batch_rubber_sheet 
 	src/scripts/light_correct 
 	src/scripts/shrink_width 
-	src/iofuncs/man1/Makefile 
-	src/other/man1/Makefile 
-	src/scripts/man1/Makefile 
+	man/Makefile 
 	contrib/Makefile 
 	contrib/vips2dj/Makefile 
 	contrib/vips2dj/share/Makefile 

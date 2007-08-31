@@ -1,5 +1,3 @@
-SUBDIRS = man3
-
 noinst_LTLIBRARIES = libfreq_filt.la
 
 libfreq_filt_la_SOURCES = \

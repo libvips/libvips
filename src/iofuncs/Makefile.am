@@ -1,5 +1,3 @@
-SUBDIRS = man1
-
 bin_PROGRAMS = \
 	vips \
 	binfile \
