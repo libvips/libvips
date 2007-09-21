@@ -2,6 +2,7 @@
 - we now have a trunk and the version is 7.13.x, woo!
 - move manpages into a separate man/ dir ... speeds up builds a lot on windows
 - don't install malkovich
+- don't fail on unknown args for python (thanks Simon)
 
 1/8/07 started 7.12.5
 - im_embed() is more general ... x and y can be negative

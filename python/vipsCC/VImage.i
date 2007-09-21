@@ -1,4 +1,8 @@
 /* SWIG interface file for vipsCC7
+ *
+ * 5/9/07
+ *      - use g_option_context_set_ignore_unknown_options() so we don't fail
+ *        on unrecognied -args (thanks Simon)
  */
 
 %module VImage
@@ -161,6 +165,7 @@ vips_fatal (const char *msg)
 	context = g_option_context_new ("- vips");
 	g_option_context_add_group (context, im_get_option_group());
 
+        g_option_context_set_ignore_unknown_options (context, TRUE);
 	if( !g_option_context_parse (context, 
 		&args->argc, &args->argv, &error)) {
 		g_option_context_free (context);
