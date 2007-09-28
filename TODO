@@ -1,6 +1,3 @@
-- im_scale() on a GREY16 image should change the Type? same for im_clip()? 
-  don't know
-
 Python binding
 ==============
 
