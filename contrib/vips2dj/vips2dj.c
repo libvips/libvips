@@ -51,7 +51,8 @@ PrinterGeometry printer_data[] = {
 	{ "2500cp", 2592, 2502, 3728, 51, 82 },
 	{ "3500cp", 3888, 3786, 5212, 51, 82 },
 	{ "5000ps", 4320, 4280, 5212, 20, 99 },
-	{ "4600dn", 594, 570, 817, 11, 15 }
+	{ "4600dn", 595, 570, 817, 11, 15 },
+	{ "4700n", 595, 569, 816, 17, 14 }
 };
 
 /* Print a geo entry.
@@ -213,7 +214,8 @@ main( int argc, char **argv )
 		printf( 
 "usage:\n"
 "\t%s [options] <image file>\n"
-"convert LAB, CMYK and mono image files to postscript\n"
+"convert RGB, LAB, CMYK and mono image files to postscript\n"
+"\tRGB converted to LAB, assuming sRGB\n"
 "\tLAB printed with printer colour management\n"
 "\tCMYK sent directly as dot percent\n"
 "\tmono prints as K only\n"
@@ -301,6 +303,21 @@ main( int argc, char **argv )
 
 	if( im == NULL ) 
 		error_exit( "no input image" );
+
+	/* Turn 3-band uchar images into LABQ. Yuk! But convenient.
+	 */
+	if( im->Coding == IM_CODING_NONE &&
+		im->Bands == 3 && im->BandFmt == IM_BANDFMT_UCHAR ) {
+		IMAGE *t[3];
+
+		if( im_open_local_array( im, t, 3, "vips2dj", "p" ) ||
+			im_sRGB2XYZ( im, t[0] ) ||
+			im_XYZ2Lab( t[0], t[1] ) ||
+			im_Lab2LabQ( t[1], t[2] ) )
+			error_exit( "error converting to LAB" );
+
+		im = t[2];
+	}
 
 	/* Stop used-before-set complaints on mode.
 	 */
