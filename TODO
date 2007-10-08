@@ -32,8 +32,6 @@ WONTFIX
 
   consider openexr write
 
-- matrix invert is a copypaste of NR :-( fix this
-
 - add GREYCstoration filter
 
     http://www.haypocalc.com/wiki/Gimp_Plugin_GREYCstoration
