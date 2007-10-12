@@ -3,6 +3,7 @@
 
 %module VMask
 %{
+#include <stdexcept>
 #include <vips/vipscpp.h>
 %}
 

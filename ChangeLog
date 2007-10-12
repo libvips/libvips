@@ -1,5 +1,6 @@
 28/9/07 started 7.13.1
 - vips2dj can print RGB images
+- oop, include <stdexcept> missing
 
 29/8/07 started 7.13.0
 - we now have a trunk and the version is 7.13.x, woo!
