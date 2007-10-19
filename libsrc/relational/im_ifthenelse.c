@@ -64,7 +64,7 @@
 #endif /*WITH_DMALLOC*/
 
 static int
-ifthenelse_gen( REGION *or, void *seq, void *a, void *b )
+ifthenelse_gen( REGION *or, void *seq, void *client1, void *client2 )
 {
 	REGION **ir = (REGION **) seq;
 	Rect *r = &or->valid;
