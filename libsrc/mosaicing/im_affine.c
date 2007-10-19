@@ -433,8 +433,12 @@ invert_rect( Transformation *trn,
 }
 
 static int
-affine_gen( REGION *or, REGION *ir, IMAGE *in, Transformation *trn )
+affine_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE *in = (IMAGE *) a;
+	Transformation *trn = (Transformation *) b;
+
 	/* Output area for this call.
 	 */
 	Rect *r = &or->valid;

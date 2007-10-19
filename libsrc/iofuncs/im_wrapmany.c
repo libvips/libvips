@@ -76,8 +76,11 @@ typedef struct {
 /* Convert a REGION.
  */
 static int
-process_region( REGION *or, REGION **ir, IMAGE *im, UserBundle *bun )
+process_region( REGION *or, void *seq, void *a, void *b )
 {
+	REGION **ir = (REGION **) seq;
+	UserBundle *bun = (UserBundle *) b;
+
 	PEL *p[IM_MAX_INPUT_IMAGES], *q;
 	int i, y;
 

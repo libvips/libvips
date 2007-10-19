@@ -59,7 +59,7 @@
 /* Generate function.
  */
 static int
-make_xy_gen( REGION *or )
+make_xy_gen( REGION *or, void *seq, void *a, void *b )
 {
 	Rect *r = &or->valid;
 	int le = r->left;

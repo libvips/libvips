@@ -4,6 +4,10 @@
 #ifndef IM_VIPS_INTL_H
 #define IM_VIPS_INTL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /*__cplusplus*/
+
 const char *im__gettext( const char *msgid );
 const char *im__ngettext( const char *msgid,
 	const char *plural, unsigned long int n );
@@ -38,6 +42,10 @@ const char *im__ngettext( const char *msgid,
 #define dngettext(D, S, P, N) ngettext(S, P, N)
 
 #endif /* ENABLE_NLS */
+
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 #endif /* IM_VIPS_INTL_H */
 

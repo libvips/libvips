@@ -16,6 +16,10 @@
  * Author: Tom Vajzovic
  *
  * Written on: 2006-09-25
+ * 15/10/07 JC
+ * 	- changed spelling of occurrences
+ * 	- check for !occurrences before using val
+ * 	- renamed avg as sum, a bit clearer
  */
 
 /*
@@ -62,30 +66,19 @@
 /** LOCAL TYPES **/
 
 typedef struct {
-  double x_avg;
-  double y_avg;
+  double x_sum;
+  double y_sum;
   double val;
-  unsigned int occurances;
+  unsigned int occurrences;
 
 } pos_avg_t;
 
 
 /** LOCAL FUNCTIONS DECLARATIONS **/
 
-static pos_avg_t *
-maxpos_avg_start( 
-    IMAGE *im 
-);
-static int /* should be void (always returns 0) */
-maxpos_avg_scan( 
-    REGION *reg, 
-    pos_avg_t *seq 
-);
-static int
-maxpos_avg_stop( 
-    pos_avg_t *seq, 
-    pos_avg_t *master 
-);
+static void *maxpos_avg_start( IMAGE *im , void *, void * );
+static int maxpos_avg_scan( REGION *reg, void *seq, void *, void * );
+static int maxpos_avg_stop( void *seq, void *, void * );
 
 
 /** EXPORTED FUNCTION **/
@@ -114,35 +107,36 @@ int im_maxpos_avg( IMAGE *im, double *xpos, double *ypos, double *out ){
     im_error( FUNCTION_NAME, _("invalid argument") );
     return -1;
   }
-  if( im_iterate( im, (void*)maxpos_avg_start, maxpos_avg_scan, maxpos_avg_stop, &master, NULL ) )
+  if( im_iterate( im, maxpos_avg_start, maxpos_avg_scan, maxpos_avg_stop, &master, NULL ) )
     return -1;
 
-  *xpos= master. x_avg / master. occurances;
-  *ypos= master. y_avg / master. occurances;
+  *xpos= master. x_sum / master. occurrences;
+  *ypos= master. y_sum / master. occurrences;
 
   return im_point_bilinear( im, *xpos, *ypos, 0, out );
 
 #undef FUNCTION_NAME
 }
 
-static pos_avg_t *maxpos_avg_start( IMAGE *im ){
+static void *maxpos_avg_start( IMAGE *im, void *a, void *b ){
   pos_avg_t *seq;
 
-  seq= im_malloc( NULL, sizeof( pos_avg_t ) );
+  seq= IM_NEW( NULL, pos_avg_t );
   if( ! seq )
     return NULL; 
 
-  seq-> x_avg= 0.0;
-  seq-> y_avg= 0.0;
+  seq-> x_sum= 0.0;
+  seq-> y_sum= 0.0;
   seq-> val= 0.0;
-  seq-> occurances= 0;
+  seq-> occurrences= 0;
 
-  return seq;
+  return (void *) seq;
 }
 
 /* should be void (always returns 0) */
-static int maxpos_avg_scan( REGION *reg, pos_avg_t *seq ){
-  
+static int maxpos_avg_scan( REGION *reg, void *vseq, void *a, void *b ) {
+
+  pos_avg_t *seq= (pos_avg_t *) vseq;
   const int right= reg-> valid. left + reg-> valid. width;
   const int bottom= reg-> valid. top + reg-> valid. height;
   int x;
@@ -154,16 +148,17 @@ static int maxpos_avg_scan( REGION *reg, pos_avg_t *seq ){
                                                                                                       \
   for( y= reg-> valid. top; y < bottom; ++y, read+= skip )                                            \
     for( x= reg-> valid. left; x < right; ++x )                                                       \
-      if( read[x] > seq-> val ){                                                                      \
+      if( !seq-> occurrences ||                                                                       \
+        read[x] > seq-> val ){                                                                        \
         seq-> val= read[x];                                                                           \
-        seq-> x_avg= x;                                                                               \
-        seq-> y_avg= y;                                                                               \
-        seq-> occurances= 1;                                                                          \
+        seq-> x_sum= x;                                                                               \
+        seq-> y_sum= y;                                                                               \
+        seq-> occurrences= 1;                                                                         \
       }                                                                                               \
       else if( read[x] == seq-> val ){                                                                \
-        seq-> x_avg+= x;                                                                              \
-        seq-> y_avg+= y;                                                                              \
-        ++ (seq-> occurances);                                                                        \
+        seq-> x_sum+= x;                                                                              \
+        seq-> y_sum+= y;                                                                              \
+        ++ (seq-> occurrences);                                                                       \
       }                                                                                               \
 }
 
@@ -183,19 +178,24 @@ static int maxpos_avg_scan( REGION *reg, pos_avg_t *seq ){
 }
 
 /* should be void (always returns 0) */
-static int maxpos_avg_stop( pos_avg_t *seq, pos_avg_t *master ){
+static int maxpos_avg_stop( void *vseq, void *a, void *b ) {
 
-  if( seq-> val > master-> val ){
+  pos_avg_t *seq = (pos_avg_t *) vseq;
+  pos_avg_t *master = (pos_avg_t *) a;
+
+  if( !master->occurrences ||
+      seq-> val > master-> val ){
     master-> val= seq-> val;
-    master-> x_avg= seq-> x_avg;
-    master-> y_avg= seq-> y_avg;
-    master-> occurances= seq-> occurances;
+    master-> x_sum= seq-> x_sum;
+    master-> y_sum= seq-> y_sum;
+    master-> occurrences= seq-> occurrences;
   }
   else if( seq-> val == master-> val ){
-    master-> x_avg+= seq-> x_avg;
-    master-> y_avg+= seq-> y_avg;
-    master-> occurances+= seq-> occurances;
+    master-> x_sum+= seq-> x_sum;
+    master-> y_sum+= seq-> y_sum;
+    master-> occurrences+= seq-> occurrences;
   }
-  return im_free( seq );
+  im_free( seq );
+  return 0;
 }
 

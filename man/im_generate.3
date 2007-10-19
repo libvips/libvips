@@ -82,7 +82,8 @@ REGION on this image and returns a pointer to the region as a sequence value.
 .B im_stop_one(3) 
 assumes the sequence value is a REGION pointer, and frees it.
 
-.B im_allocate_input_array(3) takes as arguments the output image and a list of
+.B im_allocate_input_array(3) 
+takes as arguments the output image and a list of
 input images, terminated with a NULL. It allocates a NULL-terminated array to
 hold the images, and attaches a close callback to the output image to free
 that array. Example:

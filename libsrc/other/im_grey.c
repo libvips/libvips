@@ -73,7 +73,7 @@
 /* Generate function.
  */
 static int
-fgrey_gen( REGION *or )
+fgrey_gen( REGION *or, void *seq, void *a, void *b )
 {
 	Rect *r = &or->valid;
 	int le = r->left;

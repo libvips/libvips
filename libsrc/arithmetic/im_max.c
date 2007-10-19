@@ -23,6 +23,8 @@
  *	- partialed
  * 3/4/02 JC
  *	- random wrong result for >1 thread :-( (thanks Joe)
+ * 15/10/07
+ * 	- oh, heh, seq->inf was not being set correctly, not that it mattered
  */
 
 /*
@@ -97,8 +99,9 @@ typedef struct _Seq {
 /* New sequence value.
  */
 static void *
-start_fn( MaxInfo *inf )
+max_start( IMAGE *in, void *a, void *b )
 {
+	MaxInfo *inf = (MaxInfo *) a;
 	Seq *seq = IM_NEW( NULL, Seq );
 
 	seq->inf = inf;
@@ -110,8 +113,11 @@ start_fn( MaxInfo *inf )
 /* Merge the sequence value back into the per-call state.
  */
 static int
-stop_fn( Seq *seq, MaxInfo *inf )
+max_stop( void *vseq, void *a, void *b )
 {
+	Seq *seq = (Seq *) vseq;
+	MaxInfo *inf = (MaxInfo *) a;
+
 	if( seq->valid ) {
 		if( !inf->valid )
 			/* Just copy.
@@ -133,8 +139,9 @@ stop_fn( Seq *seq, MaxInfo *inf )
 /* Loop over region, adding to seq.
  */
 static int
-scan_fn( REGION *reg, Seq *seq )
+max_scan( REGION *reg, void *vseq, void *a, void *b )
 {
+	Seq *seq = (Seq *) vseq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int le = r->left;
@@ -233,7 +240,7 @@ im_max( IMAGE *in, double *out )
 		return( -1 );
 	}
 
-	if( im_iterate( in, start_fn, scan_fn, stop_fn, &inf, NULL ) ) 
+	if( im_iterate( in, max_start, max_scan, max_stop, &inf, NULL ) ) 
 		return( -1 );
 
 	*out = inf.value;

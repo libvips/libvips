@@ -1,4 +1,4 @@
-/* @(#) Find the coordinates and values of the maxima of an image.
+/* @(#) Find the coordinates and values of the n maxima of an image.
  * @(#) 
  * @(#) int im_maxpos_vec(
  * @(#)   IMAGE *im,
@@ -8,7 +8,7 @@
  * @(#)   int n
  * @(#) );
  * @(#) 
- * @(#) Find the coordinates and values of the minima of an image.
+ * @(#) Find the coordinates and values of the n minima of an image.
  * @(#) 
  * @(#) int im_minpos_vec(
  * @(#)   IMAGE *im,

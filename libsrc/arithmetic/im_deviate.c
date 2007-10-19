@@ -83,7 +83,7 @@
  * accumulate the sum and the sum of squares.
  */
 static void *
-start_fn( IMAGE *out )
+start_fn( IMAGE *out, void *a, void *b )
 {
 	double *tmp;
 
@@ -98,8 +98,11 @@ start_fn( IMAGE *out )
 /* Stop function. Add this little sum to the main sum.
  */
 static int
-stop_fn( double *tmp, double *sum )
+stop_fn( void *seq, void *a, void *b )
 {
+	double *tmp = (double *) seq;
+	double *sum = (double *) a;
+
 	sum[0] += tmp[0];
 	sum[1] += tmp[1];
 
@@ -109,8 +112,9 @@ stop_fn( double *tmp, double *sum )
 /* Loop over region, adding information to the appropriate fields of tmp.
  */
 static int
-scan_fn( REGION *reg, double *tmp )
+scan_fn( REGION *reg, void *seq, void *a, void *b )
 {	
+	double *tmp = (double *) seq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int le = r->left;

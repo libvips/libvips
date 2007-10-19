@@ -141,28 +141,30 @@ int im_region_position( REGION *reg1, int x, int y );
 typedef int (*im_region_fill_fn)( REGION *, void * );
 int im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a );
 
-/* IMAGE functions which use regions. We do not strictly type the function
- * arguments to avoid hassle.
+/* IMAGE functions which use regions. 
  */
+typedef void *(*im_start_fn)( IMAGE *, void *, void * );
+typedef int (*im_generate_fn)( REGION *, void *, void *, void *);
+typedef int (*im_stop_fn)( void *, void *, void * );
 int im_prepare( REGION *reg, Rect *r );
 int im_prepare_many( REGION **reg, Rect *r );
 int im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y );
 int im_generate( IMAGE *im,
-	void *(*start_fn)(), int (*gen_fn)(), int (*stop_fn)(),
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *a, void *b
 );
 int im_iterate( IMAGE *im,
-	void *(*start_fn)(), int (*scan_fn)(), int (*stop_fn)(),
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *a, void *b
 );
 void im__copy_region( REGION *reg, REGION *dest, Rect *r, int x, int y );
 
 /* Convenience functions for im_generate()/im_iterate().
  */
-void *im_start_one( IMAGE *out, IMAGE *in, void *dummy );
-int im_stop_one( REGION *reg, void *dummy1, void *dummy2 );
-void *im_start_many( IMAGE *out, IMAGE **in, void *dummy );
-int im_stop_many( REGION **out, void *dummy1, void *dummy2 );
+void *im_start_one( IMAGE *out, void *in, void *dummy );
+int im_stop_one( void *seq, void *dummy1, void *dummy2 );
+void *im_start_many( IMAGE *out, void *in, void *dummy );
+int im_stop_many( void *seq, void *dummy1, void *dummy2 );
 IMAGE **im_allocate_input_array( IMAGE *out, ... );
 int im_demand_hint( IMAGE *im, im_demand_type hint, ... )
 	__attribute__((sentinel));

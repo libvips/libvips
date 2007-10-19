@@ -326,6 +326,7 @@ AC_OUTPUT([
 	libsrc/acquire/Makefile 
 	libsrc/arithmetic/Makefile 
 	libsrc/boolean/Makefile 
+	libsrc/cimg/Makefile 
 	libsrc/colour/Makefile 
 	libsrc/conversion/Makefile 
 	libsrc/convolution/Makefile 

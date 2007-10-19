@@ -272,11 +272,12 @@ typedef struct _OpenLazy {
  * on the new image.
  */
 static void *
-open_lazy_start( IMAGE *out, OpenLazy *lazy, void *dummy )
+open_lazy_start( IMAGE *out, void *a, void *dummy )
 {
+	OpenLazy *lazy = (OpenLazy *) a;
+
 	if( !lazy->lazy_im ) {
-		if( !(lazy->lazy_im = im_open_local( out, 
-				"open_lazy_start", "p" )) || 
+		if( !(lazy->lazy_im = im_open_local( out, "olstart", "p" )) || 
 			lazy->read_pixels( lazy->filename, lazy->lazy_im ) ) {
 			IM_FREEF( im_close, lazy->lazy_im );
 			return( NULL );
@@ -289,8 +290,10 @@ open_lazy_start( IMAGE *out, OpenLazy *lazy, void *dummy )
 /* Just copy.
  */
 static int
-open_lazy_generate( REGION *or, REGION *ir )
+open_lazy_generate( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+
         Rect *r = &or->valid;
 
         /* Ask for input we need.

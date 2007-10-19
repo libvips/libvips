@@ -100,14 +100,18 @@
 /* Start and stop functions for one image in, input image is first user data.
  */
 void *
-im_start_one( IMAGE *out, IMAGE *in, void *dummy )
+im_start_one( IMAGE *out, void *client, void *dummy )
 {
+	IMAGE *in = (IMAGE *) client;
+
 	return( im_region_create( in ) );
 }
 
 int
-im_stop_one( REGION *reg, void *dummy1, void *dummy2 )
+im_stop_one( void *seq, void *dummy1, void *dummy2 )
 {
+	REGION *reg = (REGION *) seq;
+
 	im_region_free( reg );
 
 	return( 0 );
@@ -117,23 +121,26 @@ im_stop_one( REGION *reg, void *dummy1, void *dummy2 )
  * null-terminated array of input images.
  */
 int
-im_stop_many( REGION **ar, void *dummy1, void *dummy2 )
+im_stop_many( void *seq, void *dummy1, void *dummy2 )
 {
-	int i;
+	REGION **ar = (REGION **) seq;
 
-        if( ! ar )
-          return 0;
+        if( ar ) {
+		int i;
 
-	for( i = 0; ar[i]; i++ )
-		im_region_free( ar[i] );
-	im_free( (char *) ar );
+		for( i = 0; ar[i]; i++ )
+			im_region_free( ar[i] );
+		im_free( (char *) ar );
+	}
 
 	return( 0 );
 }
 
 void *
-im_start_many( IMAGE *out, IMAGE **in, void *dummy )
+im_start_many( IMAGE *out, void *client, void *dummy )
 {
+	IMAGE **in = (IMAGE **) client;
+
 	int i, n;
 	REGION **ar;
 
@@ -704,7 +711,7 @@ eval_to_file( im_threadgroup_t *tg )
  */
 int
 im_generate( IMAGE *im,
-        void *(*start_fn)(), int (*gen_fn)(), int (*stop_fn)(),
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
         void *a, void *b )
 {
         int res;
@@ -729,9 +736,9 @@ im_generate( IMAGE *im,
                         return( -1 );
                 }
 
-                im->start = start_fn;
-                im->generate = gen_fn;
-                im->stop = stop_fn;
+                im->start = start;
+                im->generate = generate;
+                im->stop = stop;
                 im->client1 = a;
                 im->client2 = b;
  
@@ -759,9 +766,9 @@ im_generate( IMAGE *im,
 
                 /* Attach callbacks.
                  */
-                im->start = start_fn;
-                im->generate = gen_fn;
-                im->stop = stop_fn;
+                im->start = start;
+                im->generate = generate;
+                im->stop = stop;
                 im->client1 = a;
                 im->client2 = b;
  

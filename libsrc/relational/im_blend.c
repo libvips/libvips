@@ -214,8 +214,9 @@ blendn_buffer( PEL *qp, PEL *c, PEL *ap, PEL *bp, int width, IMAGE *im )
 }
 
 static int
-blend_gen( REGION *or, REGION **ir )
+blend_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION **ir = (REGION **) seq;
 	Rect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;

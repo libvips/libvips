@@ -6,6 +6,7 @@ SUBDIRS = \
 	colour \
 	conversion \
 	convolution \
+	cimg \
 	freq_filt \
 	histograms_lut \
 	inplace \
@@ -30,6 +31,7 @@ libvips_la_LIBADD = \
 	colour/libcolour.la \
 	conversion/libconversion.la \
 	convolution/libconvolution.la \
+	cimg/libcimg.la \
 	freq_filt/libfreq_filt.la \
 	histograms_lut/libhistograms_lut.la \
 	inplace/libinplace.la \

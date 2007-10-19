@@ -142,7 +142,8 @@ eval_to_image( im_threadgroup_t *tg, IMAGE *im )
 
 static int
 iterate( im_threadgroup_t *tg, IMAGE *im, 
-	void *(*start)(), int (*generate)(), int (*stop)(), void *b, void *c )
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
+	void *b, void *c )
 {	
 	int i;
 	int res;
@@ -193,7 +194,8 @@ iterate( im_threadgroup_t *tg, IMAGE *im,
  */
 int
 im_iterate( IMAGE *im, 
-	void *(*start)(), int (*generate)(), int (*stop)(), void *b, void *c )
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
+	void *b, void *c )
 {
 	IMAGE *t;
 	im_threadgroup_t *tg;

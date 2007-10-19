@@ -91,9 +91,9 @@ LINREG_SEQ( double );
 
 x_set *x_anal( IMAGE *im, double *xs, unsigned int n );
 
-#define LINREG_START_DECL( TYPE ) static linreg_seq_ ## TYPE *linreg_start_ ## TYPE( IMAGE *out, IMAGE **ins, x_set *x_vals )
-#define LINREG_GEN_DECL( TYPE ) static int linreg_gen_ ## TYPE( REGION *to_make, linreg_seq_ ## TYPE *seq, void *unrequired, x_set *x_vals )
-#define LINREG_STOP_DECL( TYPE ) static int linreg_stop_ ## TYPE( linreg_seq_ ## TYPE *seq )
+#define LINREG_START_DECL( TYPE ) static void * linreg_start_ ## TYPE( IMAGE *, void *, void * );
+#define LINREG_GEN_DECL( TYPE ) static int linreg_gen_ ## TYPE( REGION *, void *, void *, void * );
+#define LINREG_STOP_DECL( TYPE ) static int linreg_stop_ ## TYPE( void *, void *, void * );
 #define INCR_ALL_DECL( TYPE ) static void incr_all_ ## TYPE( TYPE **ptrs, unsigned int n )
 #define SKIP_ALL_DECL( TYPE ) static void skip_all_ ## TYPE( TYPE **ptrs, size_t *skips, unsigned int n )
 
@@ -211,7 +211,7 @@ int im_linreg( IMAGE **ins, IMAGE *out, double *xs ){
     return( -1 );
 
   switch( ins[ 0 ]-> BandFmt ){
-#define LINREG_RET( TYPE )  return im_generate( out, (void*) linreg_start_ ## TYPE, linreg_gen_ ## TYPE, linreg_stop_ ## TYPE, ins, x_vals )
+#define LINREG_RET( TYPE )  return im_generate( out, linreg_start_ ## TYPE, linreg_gen_ ## TYPE, linreg_stop_ ## TYPE, ins, x_vals )
 
     case IM_BANDFMT_CHAR:
       LINREG_RET( gint8 );
@@ -279,24 +279,23 @@ x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
   return( x_vals );
 }
 
-#define LINREG_START_DEFN( TYPE ) static linreg_seq_ ## TYPE *linreg_start_ ## TYPE( IMAGE *out, IMAGE **ins, x_set *x_vals ){ \
-  linreg_seq_ ## TYPE *seq= IM_NEW( NULL, linreg_seq_ ## TYPE );                                    \
+#define LINREG_START_DEFN( TYPE ) static void *linreg_start_ ## TYPE( IMAGE *out, void *a, void *b ){ \
+  IMAGE **ins= (IMAGE **) a; 			                                                    \
+  x_set *x_vals= (x_set *) b;                                                                       \
+  linreg_seq_ ## TYPE *seq= IM_NEW( out, linreg_seq_ ## TYPE );                                     \
                                                                                                     \
   if( ! seq )                                                                                       \
     return NULL;                                                                                    \
                                                                                                     \
   seq-> regs= im_start_many( NULL, ins, NULL );                                                     \
-  seq-> ptrs= IM_ARRAY( NULL, x_vals-> n, TYPE* );                                                  \
-  seq-> skips= IM_ARRAY( NULL, x_vals-> n, size_t );                                                \
+  seq-> ptrs= IM_ARRAY( out, x_vals-> n, TYPE* );                                                   \
+  seq-> skips= IM_ARRAY( out, x_vals-> n, size_t );                                                 \
                                                                                                     \
   if( ! seq-> ptrs || ! seq-> regs || ! seq-> skips ){                                              \
-    im_stop_many( seq-> regs, NULL, NULL );                                                         \
-    im_free( seq-> ptrs );                                                                          \
-    im_free( seq-> skips );                                                                         \
-    im_free( seq );                                                                                 \
+    linreg_stop_ ## TYPE( seq, NULL, NULL );                                                        \
     return NULL;                                                                                    \
   }                                                                                                 \
-  return seq;                                                                                       \
+  return (void *) seq;                                                                              \
 }
 
 #define N       ( (double) n )
@@ -313,7 +312,9 @@ x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
 #define d_dy_dx ( out[5] )
 #define R       ( out[6] )
 
-#define LINREG_GEN_DEFN( TYPE ) static int linreg_gen_ ## TYPE( REGION *to_make, linreg_seq_ ## TYPE *seq, void *unrequired, x_set *x_vals ){ \
+#define LINREG_GEN_DEFN( TYPE ) static int linreg_gen_ ## TYPE( REGION *to_make, void *vseq, void *unrequired, void *b ){ \
+  linreg_seq_ ## TYPE *seq= (linreg_seq_ ## TYPE *) vseq;                                           \
+  x_set *x_vals= (x_set *) b;                                                                       \
   unsigned int n= x_vals-> n;                                                                       \
   double *out= (double*) IM_REGION_ADDR_TOPLEFT( to_make );                                         \
   size_t out_skip= IM_REGION_LSKIP( to_make ) / sizeof( double );                                   \
@@ -364,11 +365,10 @@ x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
   return 0;                                                                                         \
 }
 
-#define LINREG_STOP_DEFN( TYPE ) static int linreg_stop_ ## TYPE( linreg_seq_ ## TYPE *seq ){       \
-  im_stop_many( seq-> regs, NULL, NULL );                                                           \
-  im_free( seq-> ptrs );                                                                            \
-  im_free( seq-> skips );                                                                           \
-  im_free( seq );                                                                                   \
+#define LINREG_STOP_DEFN( TYPE ) static int linreg_stop_ ## TYPE( void *vseq, void *a, void *b ){   \
+  linreg_seq_ ## TYPE *seq = (linreg_seq_ ## TYPE *) vseq;                                          \
+  if( seq-> regs )                                                                                  \
+    im_stop_many( seq-> regs, NULL, NULL );                                                         \
   return 0;                                                                                         \
 }
 

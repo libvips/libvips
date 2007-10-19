@@ -116,9 +116,9 @@ int im__attach_input( REGION *or, REGION *ir, Rect *area );
 int im__copy_input( REGION *or, REGION *ir, Rect *area, Rect *reg );
 Overlapping *im__build_mergestate( IMAGE *ref, IMAGE *sec, IMAGE *out, 
 	int dx, int dy, int mwidth );
-void *im__start_merge( IMAGE *out, Overlapping *ovlap );
-int im__merge_gen( REGION *or, MergeInfo *inf, Overlapping *ovlap );
-int im__stop_merge( MergeInfo *inf );
+void *im__start_merge( IMAGE *out, void *, void * );
+int im__merge_gen( REGION *or, void *seq, void *a, void * );
+int im__stop_merge( void *seq, void *, void * );
 void im__black_region( REGION *reg );
 int im__extract_area( IMAGE *in, IMAGE *out,
 	int x, int y, int w, int h );

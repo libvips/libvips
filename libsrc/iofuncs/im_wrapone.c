@@ -61,8 +61,11 @@ typedef struct {
 /* Build or->valid a line at a time from ir.
  */
 static int
-process_region( REGION *or, REGION *ir, IMAGE *im, UserBundle *bun )
+process_region( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	UserBundle *bun = (UserBundle *) b;
+
 	PEL *p, *q;
 	int y;
 

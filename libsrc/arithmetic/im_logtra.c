@@ -77,8 +77,9 @@
 /* logtra a small area.
  */
 static int
-logtra_gen( REGION *or, REGION *ir )
-{	
+logtra_gen( REGION *or, void *seq, void *a, void *b )
+{
+	REGION *ir = (REGION *) seq;
 	Rect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;

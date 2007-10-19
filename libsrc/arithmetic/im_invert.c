@@ -66,8 +66,10 @@
  * invert_gen(), or points to the memory we should write to and ir is blank.
  */
 static int
-invert_gen( REGION *or, REGION *ir, IMAGE *in )
+invert_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+
 	/* Left, right, top and bottom for the output region.
 	 */
 	int le = or->valid.left;

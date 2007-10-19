@@ -54,6 +54,7 @@
 /* Standard VIPS packages.
  */
 extern im_package im__arithmetic;
+extern im_package im__cimg;
 extern im_package im__boolean;
 extern im_package im__colour;
 extern im_package im__conversion;
@@ -396,6 +397,7 @@ static im_package im__iofuncs = {
 static im_package *built_in[] = {
 	&im__arithmetic,
 	&im__boolean,
+	&im__cimg,
 	&im__colour,
 	&im__conversion,
 	&im__convolution,

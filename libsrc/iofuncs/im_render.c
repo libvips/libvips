@@ -999,8 +999,9 @@ tile_copy( Tile *tile, REGION *to )
 /* Loop over the output region, filling with data from cache.
  */
 static int
-region_fill( REGION *out, void *seq, Render *render )
+region_fill( REGION *out, void *seq, void *a, void *b )
 {
+	Render *render = (Render *) a;
 	Rect *r = &out->valid;
 	int x, y;
 
@@ -1078,8 +1079,9 @@ tile_paint_mask( Tile *tile, REGION *to )
 /* The mask image is 255 .. 0 for the state of painted for each tile.
  */
 static int
-mask_fill( REGION *out, void *seq, Render *render )
+mask_fill( REGION *out, void *seq, void *a, void *b )
 {
+	Render *render = (Render *) a;
 	Rect *r = &out->valid;
 	int x, y;
 
@@ -1154,10 +1156,12 @@ im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
 	printf( "im_render: max = %d, %p\n", max, render );
 #endif /*DEBUG_MAKE*/
 
-	if( im_generate( out, NULL, region_fill, NULL, render, NULL ) )
+	if( im_generate( out, NULL, region_fill, NULL, 
+		render, NULL ) )
 		return( -1 );
 	if( mask && 
-		im_generate( mask, NULL, mask_fill, NULL, render, NULL ) )
+		im_generate( mask, NULL, mask_fill, NULL, 
+		render, NULL ) )
 		return( -1 );
 
 	return( 0 );

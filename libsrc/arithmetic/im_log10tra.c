@@ -77,8 +77,9 @@
 /* log10tra a small area.
  */
 static int
-log10tra_gen( REGION *or, REGION *ir )
+log10tra_gen( REGION *or, void *seq, void *a, void *b )
 {	
+	REGION *ir = (REGION *) seq;
 	Rect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;

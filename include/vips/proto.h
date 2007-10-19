@@ -358,6 +358,13 @@ int im_eor_vec( IMAGE *, IMAGE *, int, double * );
 int im_shiftleft( IMAGE *, IMAGE *, int );
 int im_shiftright( IMAGE *, IMAGE *, int );
 
+/* cimg
+ */
+int im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask, 
+	int iterations, float amplitude, float sharpness, float anisotropy, 
+	float alpha, float sigma, float dl, float da, float gauss_prec, 
+	int interpolation, int fast_approx );
+
 /* histogram
  */
 int im_maplut( IMAGE *, IMAGE *, IMAGE * );
