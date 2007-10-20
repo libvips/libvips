@@ -60,8 +60,9 @@
 /* Flip a small area.
  */
 static int
-flip_gen( REGION *or, REGION *ir )
-{	
+flip_gen( REGION *or, void *seq, void *a, void *b )
+{
+	REGION *ir = (REGION *) seq;
 	Rect *r = &or->valid;
 	Rect in;
 	char *p, *q;
@@ -124,7 +125,7 @@ im_fliphor( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_errormsg( "im_fliphor: in must be uncoded" );
+		im_error( "im_fliphor", _( "in must be uncoded" ) );
 		return( -1 );
 	}
 

@@ -89,16 +89,16 @@ static maxpos_list   *maxpos_list_alloc( int n );
 static void           maxpos_list_free( maxpos_list *list );
 
 static void           maxpos_list_init( maxpos_list *list, int n );
-static maxpos_list   *maxpos_vec_start( void *unrequired, int *n );
-static int            maxpos_vec_scan( REGION *reg, maxpos_list *list );
+static void          *maxpos_vec_start( IMAGE *unrequired, void *, void * );
+static int            maxpos_vec_scan( REGION *reg, void *seq, void *, void * );
 static void           add_to_maxpos_list( maxpos_list *list, int x, int y, double val );
-static int            maxpos_vec_stop( maxpos_list *list, int *n, maxpos_list *master_list );
+static int            maxpos_vec_stop( void *seq, void *, void * );
 
 static void           minpos_list_init( maxpos_list *list, int n );
-static maxpos_list   *minpos_vec_start( void *unrequired, int *n );
-static int            minpos_vec_scan( REGION *reg, maxpos_list *list );
+static void          *minpos_vec_start( IMAGE *unrequired, void *, void * );
+static int            minpos_vec_scan( REGION *reg, void *seq, void *, void * );
 static void           add_to_minpos_list( maxpos_list *list, int x, int y, double val );
-static int            minpos_vec_stop( maxpos_list *list, int *n, maxpos_list *master_list );
+static int            minpos_vec_stop( void *seq, void *, void * );
 
 
 /** EXPORTED FUNCTIONS **/
@@ -140,7 +140,7 @@ int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n ){
 
   maxpos_list_init( &master_list, n );
 
-  result= im_iterate( im, (void*)maxpos_vec_start, maxpos_vec_scan, maxpos_vec_stop, &n, &master_list );
+  result= im_iterate( im, maxpos_vec_start, maxpos_vec_scan, maxpos_vec_stop, &n, &master_list );
 
   im_free( pointers );
 
@@ -186,7 +186,7 @@ int im_minpos_vec( IMAGE *im, int *xpos, int *ypos, double *minima, int n ){
 
   minpos_list_init( &master_list, n );
 
-  result= im_iterate( im, (void*)minpos_vec_start, minpos_vec_scan, minpos_vec_stop, &n, &master_list );
+  result= im_iterate( im, minpos_vec_start, minpos_vec_scan, minpos_vec_stop, &n, &master_list );
 
   im_free( pointers );
 
@@ -240,8 +240,9 @@ static void maxpos_list_init( maxpos_list *list, int n ){
   list-> start= 0;
 }
 
-static maxpos_list *maxpos_vec_start( void *unrequired, int *n ){
+static void *maxpos_vec_start( IMAGE *unrequired, void *a, void *b ){
 
+  int *n = (int *) a;
   maxpos_list *list= maxpos_list_alloc( *n );
   
   if( ! list )
@@ -252,8 +253,10 @@ static maxpos_list *maxpos_vec_start( void *unrequired, int *n ){
   return list;
 }
 
-static int maxpos_vec_scan( REGION *reg, maxpos_list *list ){
+static int maxpos_vec_scan( REGION *reg, void *seq, void *a, void *b ){
   
+  maxpos_list *list = (maxpos_list *) seq;
+
 #define MAXPOS_VEC_SCAN( type ){                                                        \
                                                                                         \
   int y= reg-> valid. top;                                                              \
@@ -307,10 +310,13 @@ static void add_to_maxpos_list( maxpos_list *list, int x, int y, double val ){
   }
 }
 
-static int maxpos_vec_stop( maxpos_list *list, int *n, maxpos_list *master_list ){
+static int maxpos_vec_stop( void *seq, void *a, void *b ){
 
   /* reverse list */
   
+  maxpos_list *list = (maxpos_list *) seq;
+  maxpos_list *master_list = (maxpos_list *) b;
+
   int prev= -1;
   int pointer= list-> start;
 
@@ -356,8 +362,9 @@ static void minpos_list_init( maxpos_list *list, int n ){
   list-> start= 0;
 }
 
-static maxpos_list *minpos_vec_start( void *unrequired, int *n ){
+static void *minpos_vec_start( IMAGE *unrequired, void *a, void *b ){
 
+  int *n = (int *) a;
   maxpos_list *list= maxpos_list_alloc( *n );
   
   if( ! list )
@@ -368,8 +375,10 @@ static maxpos_list *minpos_vec_start( void *unrequired, int *n ){
   return list;
 }
 
-static int minpos_vec_scan( REGION *reg, maxpos_list *list ){
+static int minpos_vec_scan( REGION *reg, void *seq, void *a, void *b ){
   
+  maxpos_list *list = (maxpos_list *) seq;
+
 #define MINPOS_VEC_SCAN( type ){                                                        \
                                                                                         \
   int y= reg-> valid. top;                                                              \
@@ -423,10 +432,12 @@ static void add_to_minpos_list( maxpos_list *list, int x, int y, double val ){
   }
 }
 
-static int minpos_vec_stop( maxpos_list *list, int *n, maxpos_list *master_list ){
+static int minpos_vec_stop( void *seq, void *a, void *b ){
 
   /* reverse list */
   
+  maxpos_list *list = (maxpos_list *) seq;
+  maxpos_list *master_list = (maxpos_list *) b;
   int prev= -1;
   int pointer= list-> start;
 

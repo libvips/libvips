@@ -105,8 +105,10 @@ make_join( IMAGE *out, IMAGE **in, int nim )
 /* Perform join.  
  */
 static int
-join_bands( REGION *or, REGION **ir, IMAGE **in, Join *jn )
+join_bands( REGION *or, void *seq, void *a, void *b )
 {
+	REGION **ir = (REGION **) seq;
+	Join *jn = (Join *) b;
 	int x, y, z, i;
 	Rect *r = &or->valid;
         int le = r->left;

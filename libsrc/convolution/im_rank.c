@@ -92,14 +92,11 @@ typedef struct {
 /* Free a sequence value.
  */
 static int
-stop_rank( SeqInfo *seq, IMAGE *in, RankInfo *rnk )
+rank_stop( void *vseq, void *a, void *b )
 {
-	/* Free attached objects.
-	 */
-	if( seq->ir ) {
-		im_region_free( seq->ir );
-		seq->ir = NULL;
-	}
+	SeqInfo *seq = (SeqInfo *) vseq;
+
+	IM_FREEF( im_region_free, seq->ir );
 
 	return( 0 );
 }
@@ -107,11 +104,13 @@ stop_rank( SeqInfo *seq, IMAGE *in, RankInfo *rnk )
 /* Rank start function.
  */
 static void *
-start_rank( IMAGE *out, IMAGE *in, RankInfo *rnk )
+rank_start( IMAGE *out, void *a, void *b )
 {
-	SeqInfo *seq = IM_NEW( out, SeqInfo );
+	IMAGE *in = (IMAGE *) a;
+	RankInfo *rnk = (RankInfo *) b;
+	SeqInfo *seq;
 
-	if( !seq ) 
+	if( !(seq = IM_NEW( out, SeqInfo )) )
 		return( NULL );
 
 	/* Init!
@@ -125,7 +124,7 @@ start_rank( IMAGE *out, IMAGE *in, RankInfo *rnk )
 	seq->sort = IM_ARRAY( out, 
 		IM_IMAGE_SIZEOF_ELEMENT( in ) * rnk->n, PEL );
 	if( !seq->ir || !seq->sort ) {
-		stop_rank( seq, in, rnk );
+		rank_stop( seq, in, rnk );
 		return( NULL );
 	}
 
@@ -302,8 +301,11 @@ start_rank( IMAGE *out, IMAGE *in, RankInfo *rnk )
 /* Rank of a REGION.
  */
 static int
-gen_rank( REGION *or, SeqInfo *seq, IMAGE *in, RankInfo *rnk )
+rank_gen( REGION *or, void *vseq, void *a, void *b )
 {
+	SeqInfo *seq = (SeqInfo *) vseq;
+	IMAGE *in = (IMAGE *) a;
+	RankInfo *rnk = (RankInfo *) b;
 	REGION *ir = seq->ir;
 
 	Rect *r = &or->valid;
@@ -394,7 +396,7 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
 
 	/* Generate! 
 	 */
-	if( im_generate( out, start_rank, gen_rank, stop_rank, in, rnk ) )
+	if( im_generate( out, rank_start, rank_gen, rank_stop, in, rnk ) )
 		return( -1 );
 
 	out->Xoffset = -xsize / 2;

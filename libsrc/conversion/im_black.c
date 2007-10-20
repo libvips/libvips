@@ -66,7 +66,7 @@
 /* Generate function --- just black out the region.
  */
 static int
-black_gen( REGION *or )
+black_gen( REGION *or, void *seq, void *a, void *b )
 {
 	int y;
 	int sz = IM_REGION_SIZEOF_LINE( or );

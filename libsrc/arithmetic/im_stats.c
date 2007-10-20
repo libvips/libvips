@@ -65,7 +65,7 @@
 /* Make and initialise a DOUBLEMASK suitable for grabbing statistics.
  */
 static void *
-make_mask( IMAGE *im )
+make_mask( IMAGE *im, void *a, void *b )
 {
 	DOUBLEMASK *out;
 
@@ -79,7 +79,7 @@ make_mask( IMAGE *im )
 	 */
 	out->offset = 42;
 
-	return( (void *) out );
+	return( out );
 }
 
 /* Merge a temp DOUBLEMASK into the real DOUBLEMASK. Row 0 is unused, row 1
@@ -87,8 +87,10 @@ make_mask( IMAGE *im )
  * offset of out if 42, then it has not been inited yet and we just copy.
  */
 static int
-merge_mask( DOUBLEMASK *tmp, DOUBLEMASK *out )
+merge_mask( void *seq, void *a, void *b )
 {
+	DOUBLEMASK *tmp = (DOUBLEMASK *) seq;
+	DOUBLEMASK *out = (DOUBLEMASK *) a;
 	double *rowi, *rowo;
 	int z;
 
@@ -133,8 +135,9 @@ merge_mask( DOUBLEMASK *tmp, DOUBLEMASK *out )
  * We set max, min, sum, sum of squares. Our caller fills in the rest.
  */
 static int
-scan_fn( REGION *reg, DOUBLEMASK *tmp )
+scan_fn( REGION *reg, void *seq, void *a, void *b )
 {
+	DOUBLEMASK *tmp = (DOUBLEMASK *) seq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int bands = im->Bands;
@@ -243,7 +246,7 @@ im_stats( IMAGE *in )
 	 */
 	pels = (gint64) in->Xsize * in->Ysize;
 	vals = pels * in->Bands;
-	if( !(out = make_mask( in )) )
+	if( !(out = make_mask( in, NULL, NULL )) )
 		return( NULL );
 
 	/* Loop over input, calculating min, max, sum, sum^2 for each band

@@ -219,8 +219,10 @@ embed_paint_edge( Embed *embed, REGION *or, int i, Rect *r, PEL *p, int plsk )
 }
 
 static int
-embed_gen( REGION *or, REGION *ir, IMAGE *in, Embed *embed )
+embed_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	Embed *embed = (Embed *) b;
 	Rect *r = &or->valid;
 
 	Rect ovl;

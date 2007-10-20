@@ -103,8 +103,8 @@ int
 im_contrast_surface_raw (IMAGE * in, IMAGE * out, int half_win_size,
 			 int spacing);
 
-static int cont_surf_gen (REGION * to_make, REGION * make_from,
-			  void *unrequired, cont_surf_params_t * params);
+static int cont_surf_gen (REGION * to_make, void *seq, 
+			  void *a, void * b);
 
 static unsigned int calc_cont (REGION * reg, int win_size_less_one,
 			       int x_left, int y_top);
@@ -192,10 +192,12 @@ im_contrast_surface_raw (IMAGE * in, IMAGE * out, int half_win_size,
 
 /** LOCAL FUNCTIONS DEFINITIONS **/
 static int
-cont_surf_gen (REGION * to_make, REGION * make_from, void *unrequired,
-	       cont_surf_params_t * params)
+cont_surf_gen (REGION * to_make, void * seq, void *unrequired, void * b)
 {
   /* I don't need *in, but I will recieve it anyway since im_start_one() needs it */
+
+  REGION * make_from = (REGION *) seq;
+  cont_surf_params_t * params = (cont_surf_params_t *) b;
 
   unsigned int *row =
     (unsigned int *) IM_REGION_ADDR (to_make, to_make->valid.left,

@@ -244,8 +244,11 @@ paint_part( REGION *or, REGION *ir, const ZoomInfo *zm,
 /* Zoom a REGION.
  */
 static int
-zoom_gen( REGION *or, REGION *ir, IMAGE *in, ZoomInfo *zm )
+zoom_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	ZoomInfo *zm = (ZoomInfo *) b;
+
 	/* Output area we are building.
 	 */
 	const Rect *r = &or->valid;

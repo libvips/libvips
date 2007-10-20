@@ -66,15 +66,16 @@
 /* Bandjoin generate function.
  */
 static int
-bandjoin_gen( REGION *or, REGION **ir )
-{	
+bandjoin_gen( REGION *or, void *seq, void *a, void *b )
+{
+	REGION **ir = (REGION **) seq;
 	Rect *r = &or->valid;
 	int le = r->left;
 	int ri = IM_RECT_RIGHT(r);
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM(r);
 	int x, y, z;
-	int i1s = IM_IMAGE_SIZEOF_PEL( ir[0]->im );	/* sizeof LHS, RHS pels */
+	int i1s = IM_IMAGE_SIZEOF_PEL( ir[0]->im );
 	int i2s = IM_IMAGE_SIZEOF_PEL( ir[1]->im );
 
 	/* Ask for input we need.

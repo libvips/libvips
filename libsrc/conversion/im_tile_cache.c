@@ -317,8 +317,9 @@ copy_region( REGION *from, REGION *to, Rect *area )
 /* Loop over the output region, filling with data from cache.
  */
 static int
-fill_region( REGION *out, void *seq, Read *read )
+fill_region( REGION *out, void *seq, void *a, void *b )
 {
+	Read *read = (Read *) a;
 	const int tw = read->tile_width;
 	const int th = read->tile_height;
 	Rect *r = &out->valid;

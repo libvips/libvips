@@ -166,8 +166,10 @@ paste_region( REGION *or, REGION *ir, Rect *pos )
 /* Insert generate function.
  */
 static int
-insert_gen( REGION *or, REGION **ir, IMAGE **vec, InsertState *ins )
+insert_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION **ir = (REGION **) seq;
+	InsertState *ins = (InsertState *) b;
 	Rect ovl;
 
 	/* Does the rect we have been asked for fall entirely inside the

@@ -79,8 +79,10 @@
 /* Fastcor generate function.
  */
 static int
-fastcor_gen( REGION *or, REGION *ir, IMAGE *in, IMAGE *ref )
+fastcor_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE *ref = (IMAGE *) b;
 	Rect irect;
 	Rect *r = &or->valid;
 	int le = r->left;

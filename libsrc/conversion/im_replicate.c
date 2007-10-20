@@ -55,8 +55,10 @@
 #endif /*WITH_DMALLOC*/
 
 static int
-replicate_gen( REGION *or, REGION *ir, IMAGE *in )
+replicate_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE *in = (IMAGE *) a;
 	Rect *r = &or->valid;
 	int twidth = in->Xsize;
 	int theight = in->Ysize;

@@ -96,12 +96,11 @@ typedef struct {
 /* Free a sequence value.
  */
 static int
-shrink_stop( SeqInfo *seq, IMAGE *in, ShrinkInfo *st )
+shrink_stop( void *vseq, void *a, void *b )
 {
-	if( seq->ir ) {
-		im_region_free( seq->ir );
-		seq->ir = NULL;
-	}
+	SeqInfo *seq = (SeqInfo *) vseq;
+
+	IM_FREEF( im_region_free, seq->ir );
 
 	return( 0 );
 }
@@ -109,11 +108,13 @@ shrink_stop( SeqInfo *seq, IMAGE *in, ShrinkInfo *st )
 /* Make a sequence value.
  */
 static void *
-shrink_start( IMAGE *out, IMAGE *in, ShrinkInfo *st )
+shrink_start( IMAGE *out, void *a, void *b )
 {
-	SeqInfo *seq = IM_NEW( out, SeqInfo );
+	IMAGE *in = (IMAGE *) a;
+	ShrinkInfo *st = (ShrinkInfo *) b;
+	SeqInfo *seq;
 
-	if( !seq )
+	if( !(seq = IM_NEW( out, SeqInfo )) )
 		return( NULL );
 
 	/* Init!
@@ -141,7 +142,7 @@ shrink_start( IMAGE *out, IMAGE *in, ShrinkInfo *st )
 			int iy = y * st->yshrink; \
 			TYPE *p = (TYPE *) IM_REGION_ADDR( ir, ix, iy ); \
  			\
-			for( b = 0; b < ir->im->Bands; b++ ) { \
+			for( k = 0; k < ir->im->Bands; k++ ) { \
 				int sum = 0; \
 				int *t = seq->off; \
  				\
@@ -165,7 +166,7 @@ shrink_start( IMAGE *out, IMAGE *in, ShrinkInfo *st )
 			int iy = y * st->yshrink; \
 			TYPE *p = (TYPE *) IM_REGION_ADDR( ir, ix, iy ); \
  			\
-			for( b = 0; b < ir->im->Bands; b++ ) { \
+			for( k = 0; k < ir->im->Bands; k++ ) { \
 				double sum = 0; \
 				int *t = seq->off; \
  				\
@@ -181,10 +182,11 @@ shrink_start( IMAGE *out, IMAGE *in, ShrinkInfo *st )
 /* Shrink a REGION.
  */
 static int
-shrink_gen( REGION *or, SeqInfo *seq, IMAGE *in, ShrinkInfo *st )
+shrink_gen( REGION *or, void *vseq, void *a, void *b )
 {
+	SeqInfo *seq = (SeqInfo *) vseq;
+	ShrinkInfo *st = (ShrinkInfo *) b;
 	REGION *ir = seq->ir;
-
 	Rect *r = &or->valid;
 	Rect s;
 	int le = r->left;
@@ -192,7 +194,7 @@ shrink_gen( REGION *or, SeqInfo *seq, IMAGE *in, ShrinkInfo *st )
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM(r);
 
-	int x, y, z, b;
+	int x, y, z, k;
 
 	/* What part of the input image do we need? Very careful: round left
 	 * down, round right up.
@@ -209,7 +211,8 @@ shrink_gen( REGION *or, SeqInfo *seq, IMAGE *in, ShrinkInfo *st )
 	 */
 	for( z = 0, y = 0; y < st->mh; y++ )
 		for( x = 0; x < st->mw; x++ )
-			seq->off[z++] = (IM_REGION_ADDR( ir, x, y ) - IM_REGION_ADDR( ir, 0, 0 )) /
+			seq->off[z++] = (IM_REGION_ADDR( ir, x, y ) - 
+				IM_REGION_ADDR( ir, 0, 0 )) /
 				IM_IMAGE_SIZEOF_ELEMENT( ir->im );
 
 	switch( ir->im->BandFmt ) {
@@ -223,7 +226,7 @@ shrink_gen( REGION *or, SeqInfo *seq, IMAGE *in, ShrinkInfo *st )
         case IM_BANDFMT_DOUBLE:		fshrink(double); break;
 
         default:
-		im_errormsg( "im_shrink: unsupported input format" );
+		im_error( "im_shrink", _( "unsupported input format" ) );
                 return( -1 );
         }
  
@@ -238,11 +241,12 @@ shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 	/* Check parameters.
 	 */
 	if( !in || im_iscomplex( in ) ) {
-		im_errormsg( "im_shrink: non-complex input only" );
+		im_error( "im_shrink", _( "non-complex input only" ) );
 		return( -1 );
 	}
 	if( xshrink < 1.0 || yshrink < 1.0 ) {
-		im_errormsg( "im_shrink: shrink factors should both be >1" );
+		im_error( "im_shrink", 
+			_( "shrink factors should both be >1" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
@@ -257,7 +261,7 @@ shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 	out->Xres = in->Xres / xshrink;
 	out->Yres = in->Yres / yshrink;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_errormsg( "im_shrink: image has shrunk to nothing" );
+		im_error( "im_shrink", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
 
@@ -305,7 +309,7 @@ im_shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 			return( -1 );
 	}
 	else {
-		im_errormsg( "im_shrink: unknown coding type" );
+		im_error( "im_shrink", _( "unknown coding type" ) );
 		return( -1 );
 	}
 

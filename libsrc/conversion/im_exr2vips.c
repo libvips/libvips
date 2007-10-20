@@ -224,8 +224,10 @@ im_exr2vips_header( const char *name, IMAGE *out )
 }
 
 static int
-fill_region( REGION *out, ImfRgba *imf_buffer, Read *read )
+fill_region( REGION *out, void *seq, void *a, void *b )
 {
+	ImfRgba *imf_buffer = (ImfRgba *) seq;
+	Read *read = (Read *) a;
 	Rect *r = &out->valid;
 
 	const int tw = read->tile_width;
@@ -308,15 +310,16 @@ fill_region( REGION *out, ImfRgba *imf_buffer, Read *read )
 /* Allocate a tile buffer.
  */
 static void *
-seq_start( IMAGE *out, Read *read )
+seq_start( IMAGE *out, void *a, void *b )
 {
+	Read *read = (Read *) a;
 	ImfRgba *imf_buffer;
 
 	if( !(imf_buffer = IM_ARRAY( out,
 		read->tile_width * read->tile_height, ImfRgba )) )
 		return( NULL );
 
-	return( (void *) imf_buffer );
+	return( imf_buffer );
 }
 
 /* Read tilewise.

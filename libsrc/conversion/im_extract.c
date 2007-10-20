@@ -84,9 +84,10 @@
  * or->im->Bands.
  */
 static int
-extract_band( REGION *or, REGION *ir, IMAGE *in, IMAGE_BOX *box )
+extract_band( REGION *or, void *seq, void *a, void *b )
 {
-	Rect iarea;
+	REGION *ir = (REGION *) seq;
+	IMAGE_BOX *box = (IMAGE_BOX *) b;
 	Rect *r = &or->valid;
 	int le = r->left;
 	int ri = IM_RECT_RIGHT(r);
@@ -95,6 +96,7 @@ extract_band( REGION *or, REGION *ir, IMAGE *in, IMAGE_BOX *box )
 	int es = IM_IMAGE_SIZEOF_ELEMENT( ir->im );	
 	int ipel = IM_IMAGE_SIZEOF_PEL( ir->im );
 	int opel = IM_IMAGE_SIZEOF_PEL( or->im );
+	Rect iarea;
 	char *p, *q;
 	int x, y, z;
 
@@ -126,8 +128,10 @@ extract_band( REGION *or, REGION *ir, IMAGE *in, IMAGE_BOX *box )
 /* Extract an area. Can just use pointers.
  */
 static int
-extract_area( REGION *or, REGION *ir, IMAGE *in, IMAGE_BOX *box )
+extract_area( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE_BOX *box = (IMAGE_BOX *) b;
 	Rect iarea;
 
 	/* Ask for input we need. Translate from demand in or's space to

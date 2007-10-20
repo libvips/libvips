@@ -146,8 +146,11 @@ typedef struct {
 /* Destroy a sequence value.
  */
 static int
-stop_clip( ClipSequence *seq, IMAGE *in, Clip *clip )
+clip_stop( void *vseq, void *a, void *b )
 {
+	ClipSequence *seq = (ClipSequence *) vseq;
+	Clip *clip = (Clip *) b;
+
 	/* Add to global stats.
 	 */
 	clip->underflow += seq->underflow;
@@ -166,11 +169,12 @@ stop_clip( ClipSequence *seq, IMAGE *in, Clip *clip )
 /* Make a sequence value.
  */
 static void *
-start_clip( IMAGE *out, IMAGE *in, Clip *clip )
+clip_start( IMAGE *out, void *a, void *b )
 {
-	ClipSequence *seq = IM_NEW( out, ClipSequence );
+	IMAGE *in = (IMAGE *) a;
+	ClipSequence *seq;
 	 
-	if( !seq )
+	if( !(seq = IM_NEW( out, ClipSequence )) )
 		 return( NULL );
 
 	/* Init!
@@ -182,7 +186,7 @@ start_clip( IMAGE *out, IMAGE *in, Clip *clip )
 	if( !(seq->ir = im_region_create( in )) ) 
 		return( NULL );
 
-	return( (void *) seq );
+	return( seq );
 }
 
 /* Clip int types to an int type.
@@ -306,8 +310,10 @@ start_clip( IMAGE *out, IMAGE *in, Clip *clip )
 /* Clip a small area.
  */
 static int
-clip_gen( REGION *or, ClipSequence *seq, IMAGE *in, Clip *clip )
-{	
+clip_gen( REGION *or, void *vseq, void *a, void *b )
+{
+	ClipSequence *seq = (ClipSequence *) vseq;
+	Clip *clip = (Clip *) b;
 	REGION *ir = seq->ir;
 	Rect *r = &or->valid;
 	int le = r->left;
@@ -415,7 +421,7 @@ im_clip2fmt( IMAGE *in, IMAGE *out, int ofmt )
 	out->Bbits = im_bits_of_fmt( ofmt );
 
 	if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) ||
-		im_generate( out, start_clip, clip_gen, stop_clip, in, clip ) )
+		im_generate( out, clip_start, clip_gen, clip_stop, in, clip ) )
 		return( -1 );
 
 	return( 0 );

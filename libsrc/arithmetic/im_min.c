@@ -97,21 +97,25 @@ typedef struct _Seq {
 /* New sequence value.
  */
 static void *
-start_fn( MinInfo *inf )
+start_fn( IMAGE *im, void *a, void *b )
 {
+	MinInfo *inf = (MinInfo *) a;
 	Seq *seq = IM_NEW( NULL, Seq );
 
 	seq->inf = inf;
 	seq->valid = 0;
 
-	return( (void *) seq );
+	return( seq );
 }
 
 /* Merge the sequence value back into the per-call state.
  */
 static int
-stop_fn( Seq *seq, MinInfo *inf )
+stop_fn( void *vseq, void *a, void *b )
 {
+	Seq *seq = (Seq *) vseq;
+	MinInfo *inf = (MinInfo *) a;
+
 	if( seq->valid ) {
 		if( !inf->valid )
 			/* Just copy.
@@ -133,8 +137,9 @@ stop_fn( Seq *seq, MinInfo *inf )
 /* Loop over region, adding to seq.
  */
 static int
-scan_fn( REGION *reg, Seq *seq )
+scan_fn( REGION *reg, void *vseq, void *a, void *b )
 {
+	Seq *seq = (Seq *) vseq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int le = r->left;

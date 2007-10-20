@@ -70,8 +70,11 @@ typedef struct {
  * across the input.
  */
 static int
-line_shrink_gen( REGION *or, REGION *ir, IMAGE *in, SubsampleInfo *st )
+line_shrink_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE *in = (IMAGE *) a;
+	SubsampleInfo *st = (SubsampleInfo *) b;
 	Rect *r = &or->valid;
 
 	int le = r->left;
@@ -85,7 +88,7 @@ line_shrink_gen( REGION *or, REGION *ir, IMAGE *in, SubsampleInfo *st )
 
 	Rect s;
 	int x, y;
-	int z, b;
+	int z, k;
 
 	/* Loop down the region.
 	 */
@@ -118,8 +121,8 @@ line_shrink_gen( REGION *or, REGION *ir, IMAGE *in, SubsampleInfo *st )
 			 */
 			p = IM_REGION_ADDR( ir, s.left, s.top );
 			for( z = 0; z < ow; z++ ) {
-				for( b = 0; b < ps; b++ )
-					q[b] = p[b];
+				for( k = 0; k < ps; k++ )
+					q[k] = p[k];
 
 				q += ps;
 				p += ps * st->xshrink;
@@ -134,8 +137,11 @@ line_shrink_gen( REGION *or, REGION *ir, IMAGE *in, SubsampleInfo *st )
  * pipes.
  */
 static int
-point_shrink_gen( REGION *or, REGION *ir, IMAGE *in, SubsampleInfo *st )
+point_shrink_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE *in = (IMAGE *) a;
+	SubsampleInfo *st = (SubsampleInfo *) b;
 	Rect *r = &or->valid;
 
 	int le = r->left;
@@ -147,7 +153,7 @@ point_shrink_gen( REGION *or, REGION *ir, IMAGE *in, SubsampleInfo *st )
 
 	Rect s;
 	int x, y;
-	int b;
+	int k;
 
 	/* Loop down the region.
 	 */
@@ -170,8 +176,8 @@ point_shrink_gen( REGION *or, REGION *ir, IMAGE *in, SubsampleInfo *st )
 			/* Append new pels to output.
 			 */
 			p = IM_REGION_ADDR( ir, s.left, s.top );
-			for( b = 0; b < ps; b++ )
-				q[b] = p[b];
+			for( k = 0; k < ps; k++ )
+				q[k] = p[k];
 			q += ps;
 		}
 	}

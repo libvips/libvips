@@ -75,7 +75,7 @@
 /* function prototype macro */
 #define GEN_FUNC( SHIFT_MACRO, FROM_T, TO_T, SUM_T ) \
 static int gen_ ## SHIFT_MACRO ## _ ## FROM_T ## _to_ ## TO_T ## _with_ ## SUM_T( \
-          REGION *to_make, REGION *make_from, void *unrequired, int *params );
+          REGION *to_make, void *seq, void *a, void *b );
 
 /* macros to call function prototype macro for all possible combinations of types and macros */
 #define GEN_FUNCS_TO( SIGN, FROM_T, TO_T )    \
@@ -240,8 +240,10 @@ im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt 
 #undef GEN_FUNC
 #define GEN_FUNC( SHIFT_MACRO, FROM_T, TO_T, SUM_T ) \
 static int gen_ ## SHIFT_MACRO ## _ ## FROM_T ## _to_ ## TO_T ## _with_ ## SUM_T(                 \
-          REGION *to_make, REGION *make_from, void *unrequired, int *params ){                    \
+          REGION *to_make, void *seq, void *a, void *b ){                    \
                                                                                                   \
+  REGION *make_from = (REGION *) seq;                                                             \
+  int *params = (int *) b;                                                                        \
   int xshift= params[0];                                                                          \
   int yshift= params[1];                                                                          \
   int preshift= params[2];                                                                        \

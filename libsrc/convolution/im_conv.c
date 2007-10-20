@@ -184,19 +184,17 @@ typedef struct {
 /* Free a sequence value.
  */
 static int
-stop_conv( ConvSequence *seq, IMAGE *in, Conv *conv )
+conv_stop( void *vseq, void *a, void *b )
 {
+	ConvSequence *seq = (ConvSequence *) vseq;
+	Conv *conv = (Conv *) b;
+
 	/* Add local under/over counts to global counts.
 	 */
 	conv->overflow += seq->overflow;
 	conv->underflow += seq->underflow;
 
-	/* Free attached objects.
-	 */
-	if( seq->ir ) {
-		im_region_free( seq->ir );
-		seq->ir = NULL;
-	}
+	IM_FREEF( im_region_free, seq->ir );
 
 	return( 0 );
 }
@@ -204,11 +202,13 @@ stop_conv( ConvSequence *seq, IMAGE *in, Conv *conv )
 /* Convolution start function.
  */
 static void *
-start_conv( IMAGE *out, IMAGE *in, Conv *conv )
+conv_start( IMAGE *out, void *a, void *b )
 {
-	ConvSequence *seq = IM_NEW( out, ConvSequence );
+	IMAGE *in = (IMAGE *) a;
+	Conv *conv = (Conv *) b;
+	ConvSequence *seq;
 
-	if( !seq ) 
+	if( !(seq = IM_NEW( out, ConvSequence )) )
 		return( NULL );
 
 	/* Init!
@@ -225,11 +225,11 @@ start_conv( IMAGE *out, IMAGE *in, Conv *conv )
 	seq->offsets = IM_ARRAY( out, conv->nnz, int );
 	seq->pts = IM_ARRAY( out, conv->nnz, PEL * );
 	if( !seq->ir || !seq->offsets || !seq->pts ) {
-		stop_conv( seq, in, conv );
+		conv_stop( seq, in, conv );
 		return( NULL );
 	}
 
-	return( (void *) seq );
+	return( seq );
 }
 
 #define INNER sum += *t++ * (*p++)[x]
@@ -275,8 +275,11 @@ start_conv( IMAGE *out, IMAGE *in, Conv *conv )
 /* Convolve!
  */
 static int
-gen_conv( REGION *or, ConvSequence *seq, IMAGE *in, Conv *conv )
+conv_gen( REGION *or, void *vseq, void *a, void *b )
 {
+	ConvSequence *seq = (ConvSequence *) vseq;
+	IMAGE *in = (IMAGE *) a;
+	Conv *conv = (Conv *) b;
 	REGION *ir = seq->ir;
 	INTMASK *mask = conv->mask;
 	int rounding = (mask->scale + 1)/2;
@@ -397,7 +400,7 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
 		return( -1 );
 
-	if( im_generate( out, start_conv, gen_conv, stop_conv, in, conv ) )
+	if( im_generate( out, conv_start, conv_gen, conv_stop, in, conv ) )
 		return( -1 );
 
 	out->Xoffset = -mask->xsize / 2;

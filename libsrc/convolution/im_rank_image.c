@@ -97,15 +97,14 @@ typedef struct {
 /* Free a sequence value.
  */
 static int
-stop_rank( RankSequence *seq, IMAGE **in, Rank *rank )
+rank_stop( void *vseq, void *a, void *b )
 {
+	RankSequence *seq = (RankSequence *) vseq;
+	Rank *rank = (Rank *) b;
 	int i;
 
 	for( i = 0; i < rank->n; i++ ) 
-		if( seq->ir[i] ) {
-			im_region_free( seq->ir[i] );
-			seq->ir[i] = NULL;
-		}
+		IM_FREEF( im_region_free, seq->ir[i] );
 
 	return( 0 );
 }
@@ -113,8 +112,10 @@ stop_rank( RankSequence *seq, IMAGE **in, Rank *rank )
 /* Make a sequence value.
  */
 static void *
-start_rank( IMAGE *out, IMAGE **in, Rank *rank )
+rank_start( IMAGE *out, void *a, void *b )
 {
+	IMAGE **in = (IMAGE **) a;
+	Rank *rank = (Rank *) b;
 	RankSequence *seq;
 	int i;
 
@@ -134,13 +135,13 @@ start_rank( IMAGE *out, IMAGE **in, Rank *rank )
 	seq->sort = IM_ARRAY( out, 
 		rank->n * IM_IMAGE_SIZEOF_ELEMENT( in[0] ), PEL );
 	if( !seq->ir || !seq->pts || !seq->sort ) {
-		stop_rank( seq, in, rank );
+		rank_stop( seq, in, rank );
 		return( NULL );
 	}
 
 	for( i = 0; i < rank->n; i++ )
 		if( !(seq->ir[i] = im_region_create( in[i] )) ) {
-			stop_rank( seq, in, rank );
+			rank_stop( seq, in, rank );
 			return( NULL );
 		}
 	seq->ir[i] = NULL;
@@ -225,8 +226,10 @@ start_rank( IMAGE *out, IMAGE **in, Rank *rank )
 	} 
 
 static int
-find_rank( REGION *or, RankSequence *seq, IMAGE **in, Rank *rank )
+rank_gen( REGION *or, void *vseq, void *a, void *b )
 {
+	RankSequence *seq = (RankSequence *) vseq;
+	Rank *rank = (Rank *) b;
 	Rect *r = &or->valid;
         int le = r->left;
         int to = r->top;
@@ -314,7 +317,7 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 		im_cp_desc_array( out, rank->in ) ||
 		im_demand_hint_array( out, IM_THINSTRIP, rank->in )  ||
 		im_generate( out, 
-			start_rank, find_rank, stop_rank, rank->in, rank ) )
+			rank_start, rank_gen, rank_stop, rank->in, rank ) )
 		return( -1 );
 	
 	return( 0 );

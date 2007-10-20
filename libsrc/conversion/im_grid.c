@@ -63,8 +63,10 @@ typedef struct _Grid {
 } Grid;
 
 static int
-grid_gen( REGION *or, REGION *ir, IMAGE *in, Grid *grid )
+grid_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	Grid *grid = (Grid *) b;
 	Rect *r = &or->valid;
 	int twidth = grid->in->Xsize;
 	int theight = grid->tile_height;

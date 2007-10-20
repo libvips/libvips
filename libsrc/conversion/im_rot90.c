@@ -70,8 +70,11 @@
 /* Rotate a small piece.
  */
 static int
-rot90_gen( REGION *or, REGION *ir, IMAGE *in )
+rot90_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE *in = (IMAGE *) a;
+
 	/* Output area.
 	 */
 	Rect *r = &or->valid;

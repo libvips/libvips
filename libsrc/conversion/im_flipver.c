@@ -63,8 +63,9 @@
 /* Flip a small area.
  */
 static int
-flip_gen( REGION *or, REGION *ir )
+flip_gen( REGION *or, void *seq, void *a, void *b )
 {	
+	REGION *ir = (REGION *) seq;
 	Rect *r = &or->valid;
 	Rect in;
 	PEL *p, *q;

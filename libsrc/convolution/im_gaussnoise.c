@@ -80,8 +80,9 @@ typedef struct {
  */
 /*ARGSUSED*/
 static int
-gnoise_gen( REGION *or, void *dummy, GnoiseInfo *gin )
+gnoise_gen( REGION *or, void *seq, void *a, void *b )
 {
+	GnoiseInfo *gin = (GnoiseInfo *) a;
 	int x, y, i;
 	int sz = IM_REGION_N_ELEMENTS( or );
 

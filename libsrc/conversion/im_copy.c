@@ -98,8 +98,9 @@
 /* Copy a small area.
  */
 static int
-copy_gen( REGION *or, REGION *ir )
-{	
+copy_gen( REGION *or, void *seq, void *a, void *b )
+{
+	REGION *ir = (REGION *) seq;
 	Rect *r = &or->valid;
 
 	/* Ask for input we need.

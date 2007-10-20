@@ -1153,8 +1153,9 @@ parse_header( ReadTiff *rtiff, IMAGE *out )
  * to vips in parallel.
  */
 static void *
-seq_start( IMAGE *out, ReadTiff *rtiff )
+seq_start( IMAGE *out, void *a, void *b )
 {
+	ReadTiff *rtiff = (ReadTiff *) a;
 	tdata_t *buf;
 
 	if( !(buf = im_malloc( NULL, TIFFTileSize( rtiff->tiff ) )) )
@@ -1166,8 +1167,10 @@ seq_start( IMAGE *out, ReadTiff *rtiff )
 /* Loop over the output region, painting in tiles from the file.
  */
 static int
-fill_region( REGION *out, tdata_t *buf, ReadTiff *rtiff )
+fill_region( REGION *out, void *seq, void *a, void *b )
 {
+	tdata_t *buf = (tdata_t *) seq;
+	ReadTiff *rtiff = (ReadTiff *) a;
 	Rect *r = &out->valid;
 
 	/* Find top left of tiles we need.
@@ -1232,6 +1235,14 @@ fill_region( REGION *out, tdata_t *buf, ReadTiff *rtiff )
 	return( 0 );
 }
 
+static int
+seq_stop( void *seq, void *a, void *b )
+{
+	im_free( seq );
+
+	return( 0 );
+}
+
 /* Tile-type TIFF reader core - pass in a per-tile transform. Generate into
  * the im and do it all partially.
  */
@@ -1267,7 +1278,7 @@ read_tilewise( ReadTiff *rtiff, IMAGE *out )
 	 */
 	if( im_demand_hint( raw, IM_SMALLTILE, NULL ) ||
 		im_generate( raw, 
-			seq_start, fill_region, im_free, rtiff, NULL ) )
+			seq_start, fill_region, seq_stop, rtiff, NULL ) )
 		return( -1 );
 
 	/* Copy to out, adding a cache. Enough tiles for two complete rows.

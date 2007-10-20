@@ -69,8 +69,11 @@
 /* Rotate a small piece.
  */
 static int
-rot180_gen( REGION *or, REGION *ir, IMAGE *in )
+rot180_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE *in = (IMAGE *) a;
+
 	/* Output area.
 	 */
 	Rect *r = &or->valid;
