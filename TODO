@@ -4,6 +4,10 @@
 
   also, same problem as maxpos_avg re. uninit data?
 
+- im_spcor2() has a potential leak in the start function
+
+- zerox_gen() passes an int as a void*, hmm
+
 Python binding
 ==============
 

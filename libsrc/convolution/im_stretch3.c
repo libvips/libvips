@@ -86,22 +86,23 @@ typedef struct seq_info {
 } SeqInfo;
 
 static int
-stop_stretch( SeqInfo *seq )
+stretch_stop( void *vseq, void *a, void *b )
 {
-	if( seq->ir ) {
-		im_region_free( seq->ir );
-		seq->ir = NULL;
-	}
+	SeqInfo *seq = (SeqInfo *) vseq;
+
+	IM_FREEF( im_region_free, seq->ir );
 
 	return( 0 );
 }
 
 static void *
-start_stretch( IMAGE *out, IMAGE *in, StretchInfo *sin )
+stretch_start( IMAGE *out, void *a, void *b )
 {
-	SeqInfo *seq = IM_NEW( out, SeqInfo );
+	IMAGE *in = (IMAGE *) a;
+	StretchInfo *sin = (StretchInfo *) b;
+	SeqInfo *seq;
 
-        if( !seq )
+        if( !(seq = IM_NEW( out, SeqInfo )) )
 		return( NULL );
 
         seq->sin = sin;
@@ -110,7 +111,7 @@ start_stretch( IMAGE *out, IMAGE *in, StretchInfo *sin )
         seq->buf = IM_ARRAY( out, 4*seq->lsk, unsigned short );
 
         if( !seq->buf || !seq->ir ) {
-		stop_stretch( seq );
+		stretch_stop( seq, NULL, NULL );
         	return( NULL );
 	}
 
@@ -191,8 +192,10 @@ make_yline( StretchInfo *sin, int lsk, int boff,
 }
 
 static int
-stretch_gen( REGION *or, SeqInfo *seq, IMAGE *in, StretchInfo *sin )
+stretch_gen( REGION *or, void *vseq, void *a, void *b )
 { 
+	SeqInfo *seq = (SeqInfo *) vseq;
+	StretchInfo *sin = (StretchInfo *) b;
 	REGION *ir = seq->ir;
 	Rect *r = &or->valid;
 	Rect r1;
@@ -265,11 +268,12 @@ im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy )
         /* Check our args. 
 	 */
         if( in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_USHORT ) {
-        	im_errormsg( "im_stretch3: not uncoded unsigned short" );
+        	im_error( "im_stretch3", _( "not uncoded unsigned short" ) );
         	return( -1 );
         }
 	if( dx < 0 || dx >= 1.0 || dy < 0 || dy >= 1.0 ) {
-		im_errormsg( "im_stretch3: displacements out of range [0,1)" );
+		im_error( "im_stretch3", 
+			_( "displacements out of range [0,1)" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
@@ -316,7 +320,7 @@ im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy )
 	sin->yoff = (dy * 33.0) + 0.5;
 
         if( im_generate( out, 
-		start_stretch, stretch_gen, stop_stretch, in, sin ) )
+		stretch_start, stretch_gen, stretch_stop, in, sin ) )
         	return( -1 );
 
 	return( 0 );

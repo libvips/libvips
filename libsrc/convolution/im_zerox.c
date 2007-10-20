@@ -67,7 +67,7 @@
 #define loop( TYPE ) \
 	for( i = 0; i < ne; i++ ) { \
 		TYPE p1 = ((TYPE *)p)[i]; \
-		TYPE p2 = ((TYPE *)p)[i + b]; \
+		TYPE p2 = ((TYPE *)p)[i + ba]; \
 		\
 		if( flag == 1 && p1 > 0 && p2 <= 0 ) \
 			q[i] = 255; \
@@ -80,8 +80,11 @@
 /* Zerox generate function.
  */
 static int
-zerox_gen( REGION *or, REGION *ir, IMAGE *in, int flag )
+zerox_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	IMAGE *in = (IMAGE *) a;
+	int flag = (int) b;
 	Rect irect;
 	Rect *r = &or->valid;
 
@@ -90,8 +93,8 @@ zerox_gen( REGION *or, REGION *ir, IMAGE *in, int flag )
 	int le = r->left;
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM( r );
-	int b = in->Bands;
-	int ne = b * r->width;
+	int ba = in->Bands;
+	int ne = ba * r->width;
 
 	int i, y;
 

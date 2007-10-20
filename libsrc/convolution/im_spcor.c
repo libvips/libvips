@@ -109,9 +109,9 @@ typedef struct {
 
 } spcor2_w_inf;
 
-static spcor2_seq *spcor2_start( IMAGE *r, IMAGE *f );
-static int spcor2_gen( REGION *r, spcor2_seq *seq, void *unrequired, spcor2_w_inf *w_inf );
-static int spcor2_stop( spcor2_seq *seq );
+static void *spcor2_start( IMAGE *r, void *a, void *b );
+static int spcor2_gen( REGION *r, void *seq, void *a, void *b );
+static int spcor2_stop( void *seq, void *a, void *b );
 
 #define LOOP(IN) \
 { \
@@ -156,8 +156,10 @@ static int spcor2_stop( spcor2_seq *seq );
 /* spcor generate function.
  */
 static int
-spcor_gen( REGION *or, REGION *ir, IMAGE *in, SpcorInfo *inf )
+spcor_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	SpcorInfo *inf = (SpcorInfo *) b;
 	IMAGE *ref = inf->ref;
 	Rect irect;
 	Rect *r = &or->valid;
@@ -399,14 +401,15 @@ im_spcor2_raw(
 
   im_free_dmask( w_stats );
 
-  return im_generate( r, (void*)spcor2_start, spcor2_gen, spcor2_stop, f, w_inf );
+  return im_generate( r, spcor2_start, spcor2_gen, spcor2_stop, f, w_inf );
 
 #undef FUNCTION_NAME
 }
 
-static spcor2_seq *
-spcor2_start( IMAGE *r, IMAGE *f ){
+static void *
+spcor2_start( IMAGE *r, void *a, void *b ){
 
+  IMAGE *f= (IMAGE *) a;
   REGION *reg= im_region_create( f );
   spcor2_seq *seq;
 
@@ -427,11 +430,11 @@ spcor2_start( IMAGE *r, IMAGE *f ){
 static int 
 spcor2_gen( 
     REGION *r, 
-    spcor2_seq *seq, 
-    void *unrequired, 
-    spcor2_w_inf *w_inf 
+    void *vseq, void *a, void *b
 ){
 
+  spcor2_seq *seq= (spcor2_seq *) vseq; 
+  spcor2_w_inf *w_inf= (spcor2_w_inf *) b;
   Rect need= { 
     r-> valid. left, 
     r-> valid. top, 
@@ -521,7 +524,9 @@ spcor2_gen(
 }
 
 static int 
-spcor2_stop( spcor2_seq *seq ){
+spcor2_stop( void *vseq, void *a, void *b ){
+
+  spcor2_seq *seq= (spcor2_seq *) vseq;
 
   im_region_free( seq-> f );
   im_free( seq-> f_cols );
