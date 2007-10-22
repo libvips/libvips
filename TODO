@@ -1,11 +1,5 @@
 - test maxpos_avg, quite a few changes
 
-- test maxpos_vec, quite a few changes
-
-  also, same problem as maxpos_avg re. uninit data?
-
-- im_spcor2() has a potential leak in the start function
-
 Python binding
 ==============
 

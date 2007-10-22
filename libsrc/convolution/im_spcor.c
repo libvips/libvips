@@ -410,19 +410,18 @@ static void *
 spcor2_start( IMAGE *r, void *a, void *b ){
 
   IMAGE *f= (IMAGE *) a;
-  REGION *reg= im_region_create( f );
   spcor2_seq *seq;
 
-  if( ! reg )
-    return NULL;
-
-  seq= IM_NEW( NULL, spcor2_seq );
+  seq= IM_NEW( r, spcor2_seq );
   if( ! seq )
     return NULL;
     
-  seq-> f= reg;
+  seq-> f= im_region_create( f );
   seq-> f_cols= NULL;
   seq-> max_cols= 0;
+
+  if( ! seq-> f )
+    return NULL;
 
   return seq;
 }
@@ -528,9 +527,8 @@ spcor2_stop( void *vseq, void *a, void *b ){
 
   spcor2_seq *seq= (spcor2_seq *) vseq;
 
-  im_region_free( seq-> f );
-  im_free( seq-> f_cols );
-  im_free( seq );
+  IM_FREEF( im_region_free, seq-> f );
+  IM_FREE( seq-> f_cols );
 
   return 0;
 }
