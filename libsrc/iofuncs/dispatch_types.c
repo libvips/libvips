@@ -473,6 +473,34 @@ im_type_desc im__input_doublevec = {
 	doublevec_dest		/* Destroy function */
 };
 
+/* Print function for doublevec output.
+ */
+int
+im__dvprint( im_object obj )
+{
+	im_doublevec_object *dv = obj;
+	int i;
+
+	for( i = 0; i < dv->n; i++ ) {
+		if( i > 0 )
+			printf( "," );
+		printf( "%G", dv->vec[i] );
+	}
+	printf( "\n" );
+
+	return( 0 );
+}
+
+/* Output double vector type.
+ */
+im_type_desc im__output_doublevec = {
+	IM_TYPE_DOUBLEVEC,	/* Its an array of double */
+	sizeof( im_doublevec_object ), /* Memory to allocate in vec build */
+	IM_TYPE_OUTPUT,		/* Output type */
+	NULL,			/* Init function */
+	doublevec_dest		/* Destroy function */
+};
+
 /* im_intvec_object destroy function.
  */
 static int
@@ -536,6 +564,34 @@ im_type_desc im__input_intvec = {
 	sizeof( im_intvec_object ), /* Memory to allocate in vec build */
 	IM_TYPE_ARG,		/* It requires a command-line arg */
 	input_intvec_init,	/* Init function */
+	intvec_dest		/* Destroy function */
+};
+
+/* Print function for intvec output.
+ */
+int
+im__ivprint( im_object obj )
+{
+	im_intvec_object *iv = obj;
+	int i;
+
+	for( i = 0; i < iv->n; i++ ) {
+		if( i > 0 )
+			printf( "," );
+		printf( "%d", iv->vec[i] );
+	}
+	printf( "\n" );
+
+	return( 0 );
+}
+
+/* Output int vector type.
+ */
+im_type_desc im__output_intvec = {
+	IM_TYPE_INTVEC,		/* It's an array of int */
+	sizeof( im_intvec_object ), /* Memory to allocate in vec build */
+	IM_TYPE_OUTPUT,		/* Output arg */
+	NULL,			/* Init function */
 	intvec_dest		/* Destroy function */
 };
 

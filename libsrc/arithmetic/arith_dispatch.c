@@ -838,6 +838,84 @@ static im_function maxpos_avg_desc = {
   maxpos_avg_args
 };
 
+/* Args to im_min/maxpos_vec.
+ */
+static im_arg_desc maxpos_vec_args[] = {
+  IM_INPUT_IMAGE ("in"),
+  IM_INPUT_INT ("n"),
+  IM_OUTPUT_INTVEC("xes"),
+  IM_OUTPUT_INTVEC("yes"),
+  IM_OUTPUT_DOUBLEVEC("maxima")
+};
+
+/* Call im_maxpos_vec via arg vector.
+ */
+static int
+maxpos_vec_vec( im_object *argv )
+{
+  int n = *((int *) argv[1]);
+  im_intvec_object *xes = argv[2];
+  im_intvec_object *yes = argv[3];
+  im_doublevec_object *maxima = argv[4];
+
+  xes->vec = IM_ARRAY( NULL, n, int );
+  xes->n = n;
+  yes->vec = IM_ARRAY( NULL, n, int );
+  yes->n = n;
+  maxima->vec = IM_ARRAY( NULL, n, double );
+  maxima->n = n;
+  if( !xes->vec || !yes->vec || !maxima->vec ||
+    im_maxpos_vec( argv[0], xes->vec, yes->vec, maxima->vec, n ) )
+    return -1;
+
+  return 0;
+}
+
+/* Description of im_maxpos_vec.
+ */
+static im_function maxpos_vec_desc = {
+  "im_maxpos_vec",
+  "position and value of n maxima of image",
+  IM_FN_PIO,
+  maxpos_vec_vec,
+  IM_NUMBER( maxpos_vec_args ),
+  maxpos_vec_args
+};
+
+/* Call im_minpos_vec via arg vector.
+ */
+static int
+minpos_vec_vec( im_object *argv )
+{
+  int n = *((int *) argv[1]);
+  im_intvec_object *xes = argv[2];
+  im_intvec_object *yes = argv[3];
+  im_doublevec_object *minima = argv[4];
+
+  xes->vec = IM_ARRAY( NULL, n, int );
+  xes->n = n;
+  yes->vec = IM_ARRAY( NULL, n, int );
+  yes->n = n;
+  minima->vec = IM_ARRAY( NULL, n, double );
+  minima->n = n;
+  if( !xes->vec || !yes->vec || !minima->vec ||
+    im_minpos_vec( argv[0], xes->vec, yes->vec, minima->vec, n ) )
+    return -1;
+
+  return 0;
+}
+
+/* Description of im_minpos_vec.
+ */
+static im_function minpos_vec_desc = {
+  "im_minpos_vec",
+  "position and value of n minima of image",
+  IM_FN_PIO,
+  minpos_vec_vec,
+  IM_NUMBER( maxpos_vec_args ),
+  maxpos_vec_args
+};
+
 /* Args for measure.
  */
 static im_arg_desc measure_args[] = {
@@ -1221,9 +1299,11 @@ static im_function *arith_list[] = {
 	&max_desc,
 	&maxpos_desc,
 	&maxpos_avg_desc,
+	&maxpos_vec_desc,
 	&measure_desc,
 	&min_desc,
 	&minpos_desc,
+	&minpos_vec_desc,
 	&multiply_desc,
 	&powtra_desc,
 	&powtra_vec_desc,

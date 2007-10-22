@@ -886,9 +886,11 @@ print_args( im_function *fn, im_object *vargv )
 	/* Print all elements.
 	 */
 	for( i = 0; i < vargc; i++ )
-		if( fn->argv[i].print && vargv[i] )
+		if( fn->argv[i].print && vargv[i] ) {
+			printf( "%s: ", fn->argv[i].name );
 			if( fn->argv[i].print( vargv[i] ) )
 				return( -1 );
+		}
 
 	return( 0 );
 }

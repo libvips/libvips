@@ -6,8 +6,6 @@
 
 - im_spcor2() has a potential leak in the start function
 
-- zerox_gen() passes an int as a void*, hmm
-
 Python binding
 ==============
 
@@ -41,20 +39,6 @@ WONTFIX
 - see TODO notes in openexr read (though they all need more openexr C API)
 
   consider openexr write
-
-- add GREYCstoration filter
-
-    http://www.haypocalc.com/wiki/Gimp_Plugin_GREYCstoration
-
-  actually, it has to be a plugin, since their code is GPL
-
-  and very memory-hungry for large images :-( needs 20x size of image to be
-  processed
-
-  could we rewrite with VIPS? how much more stuff would we need to add?
-
-  try again using the current version of the filter from the suthors rather
-  than the gimp plugin
 
 - im_csv2vips() could use "-" for filename to mean stdin
 

@@ -106,7 +106,7 @@ static int            minpos_vec_stop( void *seq, void *, void * );
 int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n ){ 
 #define FUNCTION_NAME "im_maxpos_vec"
   /* number of sequences used is beyond my control at this level, but I note that */
-  /* effeciency decreases as more sequences are used - speed may still increase   */
+  /* efficiency decreases as more sequences are used - speed may still increase   */
   
   int result;
   int *pointers= im_malloc( NULL, n * sizeof( int* ) );

@@ -176,60 +176,79 @@ typedef struct {
 
 /* Built-in VIPS types.
  */
+extern im_type_desc im__input_int;
+extern im_type_desc im__input_intvec;
+extern im_type_desc im__input_imask;
+extern im_type_desc im__output_int;
+extern im_type_desc im__output_intvec;
+extern im_type_desc im__output_imask;
+
+extern im_type_desc im__input_double;
+extern im_type_desc im__input_doublevec;
+extern im_type_desc im__input_dmask;
+extern im_type_desc im__output_double;
+extern im_type_desc im__output_doublevec;
+extern im_type_desc im__output_dmask;
+extern im_type_desc im__output_dmask_screen;
+
+extern im_type_desc im__output_complex;
+
+extern im_type_desc im__input_string;
+extern im_type_desc im__output_string;
+
 extern im_type_desc im__input_imagevec;
 extern im_type_desc im__input_image;
 extern im_type_desc im__output_image;
 extern im_type_desc im__rw_image;
-extern im_type_desc im__input_doublevec;
-extern im_type_desc im__input_intvec;
-extern im_type_desc im__input_double;
-extern im_type_desc im__output_double;
-extern im_type_desc im__input_int;
-extern im_type_desc im__output_int;
-extern im_type_desc im__input_string;
-extern im_type_desc im__output_string;
-extern im_type_desc im__output_complex;
-extern im_type_desc im__input_dmask;
-extern im_type_desc im__output_dmask;
-extern im_type_desc im__output_dmask_screen;
+
 extern im_type_desc im__input_display;
 extern im_type_desc im__output_display;
-extern im_type_desc im__input_imask;
-extern im_type_desc im__output_imask;
+
 extern im_type_desc im__input_gvalue;
+extern im_type_desc im__output_gvalue;
 
 /* VIPS print functions.
  */
 int im__iprint( im_object obj );		/* int */
+int im__ivprint( im_object obj );		/* intvec */
 int im__dprint( im_object obj );		/* double */
+int im__dvprint( im_object obj );		/* doublevec */
+int im__dmsprint( im_object obj );		/* DOUBLEMASK as stats */
 int im__cprint( im_object obj );		/* complex */
 int im__sprint( im_object obj );		/* string */
 int im__displayprint( im_object obj );		/* im_col_display */
-int im__dmsprint( im_object obj );		/* DOUBLEMASK as stats */
 int im__gprint( im_object obj );		/* GValue */
 
 /* Macros for convenient creation.
  */
-#define IM_INPUT_IMAGEVEC( S ) { S, &im__input_imagevec, NULL }
-#define IM_INPUT_IMAGE( S ) { S, &im__input_image, NULL }
-#define IM_OUTPUT_IMAGE( S ) { S, &im__output_image, NULL }
-#define IM_RW_IMAGE( S ) { S, &im__rw_image, NULL }
+#define IM_INPUT_INT( S ) { S, &im__input_int, NULL }
+#define IM_INPUT_INTVEC( S ) { S, &im__input_intvec, NULL }
+#define IM_INPUT_IMASK( S ) { S, &im__input_imask, NULL }
+#define IM_OUTPUT_INT( S ) { S, &im__output_int, im__iprint }
+#define IM_OUTPUT_INTVEC( S ) { S, &im__output_intvec, im__ivprint }
+#define IM_OUTPUT_IMASK( S ) { S, &im__output_imask, NULL }
+
 #define IM_INPUT_DOUBLE( S ) { S, &im__input_double, NULL }
 #define IM_INPUT_DOUBLEVEC( S ) { S, &im__input_doublevec, NULL }
-#define IM_INPUT_INTVEC( S ) { S, &im__input_intvec, NULL }
-#define IM_OUTPUT_DOUBLE( S ) { S, &im__output_double, im__dprint }
-#define IM_INPUT_INT( S ) { S, &im__input_int, NULL }
-#define IM_OUTPUT_INT( S ) { S, &im__output_int, im__iprint }
-#define IM_INPUT_STRING( S ) { S, &im__input_string, NULL }
-#define IM_OUTPUT_STRING( S ) { S, &im__output_string, im__sprint }
-#define IM_INPUT_DISPLAY( S ) { S, &im__input_display, NULL }
-#define IM_OUTPUT_DISPLAY( S ) { S, &im__output_display, im__displayprint }
-#define IM_OUTPUT_COMPLEX( S ) { S, &im__output_complex, im__cprint }
 #define IM_INPUT_DMASK( S ) { S, &im__input_dmask, NULL }
+#define IM_OUTPUT_DOUBLE( S ) { S, &im__output_double, im__dprint }
+#define IM_OUTPUT_DOUBLEVEC( S ) { S, &im__output_doublevec, im__dvprint }
 #define IM_OUTPUT_DMASK( S ) { S, &im__output_dmask, NULL }
 #define IM_OUTPUT_DMASK_STATS( S ) { S, &im__output_dmask_screen, im__dmsprint }
-#define IM_INPUT_IMASK( S ) { S, &im__input_imask, NULL }
-#define IM_OUTPUT_IMASK( S ) { S, &im__output_imask, NULL }
+
+#define IM_OUTPUT_COMPLEX( S ) { S, &im__output_complex, im__cprint }
+
+#define IM_INPUT_STRING( S ) { S, &im__input_string, NULL }
+#define IM_OUTPUT_STRING( S ) { S, &im__output_string, im__sprint }
+
+#define IM_INPUT_IMAGE( S ) { S, &im__input_image, NULL }
+#define IM_INPUT_IMAGEVEC( S ) { S, &im__input_imagevec, NULL }
+#define IM_OUTPUT_IMAGE( S ) { S, &im__output_image, NULL }
+#define IM_RW_IMAGE( S ) { S, &im__rw_image, NULL }
+
+#define IM_INPUT_DISPLAY( S ) { S, &im__input_display, NULL }
+#define IM_OUTPUT_DISPLAY( S ) { S, &im__output_display, im__displayprint }
+
 #define IM_INPUT_GVALUE( S ) { S, &im__input_gvalue, NULL }
 #define IM_OUTPUT_GVALUE( S ) { S, &im__output_gvalue, im__gprint }
 

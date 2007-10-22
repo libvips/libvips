@@ -3,6 +3,7 @@
 - oop, include <stdexcept> missing
 - add protos for generate/iterate function args, fix warnings
 - add cimg package, we now have C++ source inside VIPS, sigh
+- added OUTPUT_DOUBLEVEC and OUTPUT_INTVEC, use for im_maxpos_vec() and friends
 
 29/8/07 started 7.13.0
 - we now have a trunk and the version is 7.13.x, woo!
