@@ -1,5 +1,8 @@
 // this file automatically generated from
-// VIPS library 7.12.2-Tue Jul 17 23:36:09 BST 2007
+// VIPS library 7.13.1-Fri Oct 19 17:37:22 BST 2007
+VDMask estpar( VImage, int, int, int, double& ) throw( VError );
+VImage transform( VDMask, int, int ) throw( VError );
+VImage transform_search( VImage, double, int, int, int, int, VDMask&, double& ) throw( VError );
 VImage abs() throw( VError );
 VImage acos() throw( VError );
 VImage add( VImage ) throw( VError );
@@ -56,6 +59,8 @@ VImage eorimage( int ) throw( VError );
 VImage eorimage( std::vector<double> ) throw( VError );
 VImage shiftleft( int ) throw( VError );
 VImage shiftright( int ) throw( VError );
+VImage greyc( int, double, double, double, double, double, double, double, double, int, int ) throw( VError );
+VImage greyc_mask( VImage, int, double, double, double, double, double, double, double, double, int, int ) throw( VError );
 VImage LCh2Lab() throw( VError );
 VImage LCh2UCS() throw( VError );
 VImage Lab2LCh() throw( VError );

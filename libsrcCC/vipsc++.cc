@@ -1,5 +1,68 @@
 // this file automatically generated from
-// VIPS library 7.12.2-Tue Jul 17 23:36:09 BST 2007
+// VIPS library 7.13.1-Fri Oct 19 17:37:22 BST 2007
+// im_estpar: estimate transform parms
+VDMask VImage::estpar( VImage dst, int order, int ipol, int wrap, double& avg_displ ) throw( VError )
+{
+	VImage src = *this;
+	VDMask params;
+
+	Vargv _vec( "im_estpar" );
+
+	_vec.data(0) = src.image();
+	_vec.data(1) = dst.image();
+	((im_mask_object*) _vec.data(2))->name = (char*)"noname";
+	*((int*) _vec.data(3)) = order;
+	*((int*) _vec.data(4)) = ipol;
+	*((int*) _vec.data(5)) = wrap;
+	_vec.call();
+	params.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(2))->mask );
+	avg_displ = *((double*)_vec.data(6));
+
+	return( params );
+}
+
+// im_transform: transform an image
+VImage VImage::transform( VDMask params, int ipol, int wrap ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_transform" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_mask_object*) _vec.data(2))->mask = params.mask().dptr;
+	*((int*) _vec.data(3)) = ipol;
+	*((int*) _vec.data(4)) = wrap;
+	_vec.call();
+
+	return( out );
+}
+
+// im_transform_search: search for a transform
+VImage VImage::transform_search( VImage dst, double error, int iterations, int order, int ipol, int wrap, VDMask& out_par, double& act_error ) throw( VError )
+{
+	VImage src = *this;
+	VImage out;
+
+	Vargv _vec( "im_transform_search" );
+
+	_vec.data(0) = src.image();
+	_vec.data(1) = dst.image();
+	_vec.data(2) = out.image();
+	*((double*) _vec.data(3)) = error;
+	*((int*) _vec.data(4)) = iterations;
+	*((int*) _vec.data(5)) = order;
+	*((int*) _vec.data(6)) = ipol;
+	*((int*) _vec.data(7)) = wrap;
+	((im_mask_object*) _vec.data(8))->name = (char*)"noname";
+	_vec.call();
+	out_par.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(8))->mask );
+	act_error = *((double*)_vec.data(9));
+
+	return( out );
+}
+
 // im_abs: absolute value
 VImage VImage::abs() throw( VError )
 {
@@ -971,6 +1034,62 @@ VImage VImage::shiftright( int c ) throw( VError )
 	out._ref->addref( in1._ref );
 
 	return( out );
+}
+
+// im_greyc: noise-removing filter
+VImage VImage::greyc( int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx ) throw( VError )
+{
+	VImage src = *this;
+	VImage dst;
+
+	Vargv _vec( "im_greyc" );
+
+	_vec.data(0) = src.image();
+	_vec.data(1) = dst.image();
+	*((int*) _vec.data(2)) = iterations;
+	*((double*) _vec.data(3)) = amplitude;
+	*((double*) _vec.data(4)) = sharpness;
+	*((double*) _vec.data(5)) = anisotropy;
+	*((double*) _vec.data(6)) = alpha;
+	*((double*) _vec.data(7)) = sigma;
+	*((double*) _vec.data(8)) = dl;
+	*((double*) _vec.data(9)) = da;
+	*((double*) _vec.data(10)) = gauss_prec;
+	*((int*) _vec.data(11)) = interpolation;
+	*((int*) _vec.data(12)) = fast_approx;
+	_vec.call();
+	dst._ref->addref( src._ref );
+
+	return( dst );
+}
+
+// im_greyc_mask: noise-removing filter, with a mask
+VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx ) throw( VError )
+{
+	VImage src = *this;
+	VImage dst;
+
+	Vargv _vec( "im_greyc_mask" );
+
+	_vec.data(0) = src.image();
+	_vec.data(1) = dst.image();
+	_vec.data(2) = mask.image();
+	*((int*) _vec.data(3)) = iterations;
+	*((double*) _vec.data(4)) = amplitude;
+	*((double*) _vec.data(5)) = sharpness;
+	*((double*) _vec.data(6)) = anisotropy;
+	*((double*) _vec.data(7)) = alpha;
+	*((double*) _vec.data(8)) = sigma;
+	*((double*) _vec.data(9)) = dl;
+	*((double*) _vec.data(10)) = da;
+	*((double*) _vec.data(11)) = gauss_prec;
+	*((int*) _vec.data(12)) = interpolation;
+	*((int*) _vec.data(13)) = fast_approx;
+	_vec.call();
+	dst._ref->addref( src._ref );
+	dst._ref->addref( mask._ref );
+
+	return( dst );
 }
 
 // im_LCh2Lab: convert LCh to Lab

@@ -481,11 +481,8 @@ im__dvprint( im_object obj )
 	im_doublevec_object *dv = obj;
 	int i;
 
-	for( i = 0; i < dv->n; i++ ) {
-		if( i > 0 )
-			printf( "," );
-		printf( "%G", dv->vec[i] );
-	}
+	for( i = 0; i < dv->n; i++ ) 
+		printf( "%G ", dv->vec[i] );
 	printf( "\n" );
 
 	return( 0 );
@@ -575,11 +572,8 @@ im__ivprint( im_object obj )
 	im_intvec_object *iv = obj;
 	int i;
 
-	for( i = 0; i < iv->n; i++ ) {
-		if( i > 0 )
-			printf( "," );
-		printf( "%d", iv->vec[i] );
-	}
+	for( i = 0; i < iv->n; i++ ) 
+		printf( "%d ", iv->vec[i] );
 	printf( "\n" );
 
 	return( 0 );
