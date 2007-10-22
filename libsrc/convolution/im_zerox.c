@@ -84,7 +84,7 @@ zerox_gen( REGION *or, void *seq, void *a, void *b )
 {
 	REGION *ir = (REGION *) seq;
 	IMAGE *in = (IMAGE *) a;
-	int flag = (int) b;
+	int flag = GPOINTER_TO_INT( b );
 	Rect irect;
 	Rect *r = &or->valid;
 

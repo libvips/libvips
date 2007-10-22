@@ -76,14 +76,11 @@ typedef struct {
 /* Stop function.
  */
 static int
-stop_erode( SeqInfo *seq, IMAGE *in )
+erode_stop( void *vseq, void *a, void *b )
 {
-	/* Free attached objects.
-	 */
-	if( seq->ir ) {
-		im_region_free( seq->ir );
-		seq->ir = NULL;
-	}
+	SeqInfo *seq = (SeqInfo *) vseq;
+
+	IM_FREEF( im_region_free, seq->ir );
 
 	return( 0 );
 }
@@ -91,12 +88,14 @@ stop_erode( SeqInfo *seq, IMAGE *in )
 /* Start function.
  */
 static void *
-start_erode( IMAGE *out, IMAGE *in, INTMASK *msk )
+erode_start( IMAGE *out, void *a, void *b )
 {
-	SeqInfo *seq = IM_NEW( out, SeqInfo );
+	IMAGE *in = (IMAGE *) a;
+	INTMASK *msk = (INTMASK *) b;
+	SeqInfo *seq;
 	int sz = msk->xsize * msk->ysize;
 
-	if( !seq ) 
+	if( !(seq = IM_NEW( out, SeqInfo )) )
 		return( NULL );
 
 	/* Init!
@@ -113,7 +112,7 @@ start_erode( IMAGE *out, IMAGE *in, INTMASK *msk )
 	seq->soff = IM_ARRAY( out, sz, int );
 	seq->coff = IM_ARRAY( out, sz, int );
 	if( !seq->ir || !seq->soff || !seq->coff ) {
-		stop_erode( seq, in );
+		erode_stop( seq, in, NULL );
 		return( NULL );
 	}
 
@@ -123,8 +122,10 @@ start_erode( IMAGE *out, IMAGE *in, INTMASK *msk )
 /* Erode!
  */
 static int
-gen_erode( REGION *or, SeqInfo *seq, IMAGE *in, INTMASK *msk )
+erode_gen( REGION *or, void *vseq, void *a, void *b )
 {
+	SeqInfo *seq = (SeqInfo *) vseq;
+	INTMASK *msk = (INTMASK *) b;
 	REGION *ir = seq->ir;
 
 	int *soff = seq->soff;
@@ -281,7 +282,7 @@ im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 
 	/* Generate! 
 	 */
-	if( im_generate( out, start_erode, gen_erode, stop_erode, in, msk ) )
+	if( im_generate( out, erode_start, erode_gen, erode_stop, in, msk ) )
 		return( -1 );
 
 	out->Xoffset = -m->xsize / 2;

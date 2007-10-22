@@ -76,14 +76,11 @@ typedef struct {
 /* Stop function.
  */
 static int
-stop_dilate( SeqInfo *seq, IMAGE *in )
+dilate_stop( void *vseq, void *a, void *b )
 {
-	/* Free attached objects.
-	 */
-	if( seq->ir ) {
-		im_region_free( seq->ir );
-		seq->ir = NULL;
-	}
+	SeqInfo *seq = (SeqInfo *) vseq;
+
+	IM_FREEF( im_region_free, seq->ir );
 
 	return( 0 );
 }
@@ -91,12 +88,14 @@ stop_dilate( SeqInfo *seq, IMAGE *in )
 /* Start function.
  */
 static void *
-start_dilate( IMAGE *out, IMAGE *in, INTMASK *msk )
+dilate_start( IMAGE *out, void *a, void *b )
 {
-	SeqInfo *seq = IM_NEW( out, SeqInfo );
+	IMAGE *in = (IMAGE *) a;
+	INTMASK *msk = (INTMASK *) b;
 	int sz = msk->xsize * msk->ysize;
+	SeqInfo *seq;
 
-	if( !seq ) 
+	if( !(seq = IM_NEW( out, SeqInfo )) )
 		return( NULL );
 
 	/* Init!
@@ -113,18 +112,20 @@ start_dilate( IMAGE *out, IMAGE *in, INTMASK *msk )
 	seq->soff = IM_ARRAY( out, sz, int );
 	seq->coff = IM_ARRAY( out, sz, int );
 	if( !seq->ir || !seq->soff || !seq->coff ) {
-		stop_dilate( seq, in );
+		dilate_stop( seq, in, NULL );
 		return( NULL );
 	}
 
-	return( (void *) seq );
+	return( seq );
 }
 
 /* Dilate!
  */
 static int
-gen_dilate( REGION *or, SeqInfo *seq, IMAGE *in, INTMASK *msk )
+dilate_gen( REGION *or, void *vseq, void *a, void *b )
 {
+	SeqInfo *seq = (SeqInfo *) vseq;
+	INTMASK *msk = (INTMASK *) b;
 	REGION *ir = seq->ir;
 
 	int *soff = seq->soff;
@@ -283,7 +284,7 @@ im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 
 	/* Generate! 
 	 */
-	if( im_generate( out, start_dilate, gen_dilate, stop_dilate, in, msk ) )
+	if( im_generate( out, dilate_start, dilate_gen, dilate_stop, in, msk ) )
 		return( -1 );
 
 	out->Xoffset = -m->xsize / 2;

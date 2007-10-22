@@ -91,8 +91,10 @@ typedef struct {
 /* stdif generate function.
  */
 static int
-stdif_gen( REGION *or, REGION *ir, IMAGE *in, StdifInfo *inf )
+stdif_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	StdifInfo *inf = (StdifInfo *) b;
 	Rect irect;
 
 	Rect *r = &or->valid;

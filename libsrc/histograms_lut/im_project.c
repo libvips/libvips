@@ -104,10 +104,11 @@ project_new( IMAGE *in, IMAGE *hout, IMAGE *vout )
 /* Build a sub-project, based on the main project.
  */
 static void *
-project_new_sub( IMAGE *out, Project *mproject )
+project_new_sub( IMAGE *out, void *a, void *b )
 {
-	return( (void *) 
-		project_new( mproject->in, mproject->hout, mproject->vout ) );
+	Project *mproject = (Project *) a;
+
+	return( project_new( mproject->in, mproject->hout, mproject->vout ) );
 }
 
 #define ADD_BUFFER( TYPE, Q, P, N ) { \
@@ -123,8 +124,10 @@ project_new_sub( IMAGE *out, Project *mproject )
 /* Join a sub-project onto the main project.
  */
 static int
-project_merge( Project *sproject, Project *mproject )
+project_merge( void *seq, void *a, void *b )
 {
+	Project *sproject = (Project *) seq;
+	Project *mproject = (Project *) a;
 	IMAGE *in = mproject->in;
 	IMAGE *out = mproject->hout;
 	int hsz = in->Xsize * in->Bands;
@@ -192,8 +195,9 @@ project_merge( Project *sproject, Project *mproject )
 /* Add a region to a project.
  */
 static int
-project_scan( REGION *reg, Project *project )
+project_scan( REGION *reg, void *seq, void *a, void *b )
 {
+	Project *project = (Project *) seq;
 	Rect *r = &reg->valid;
 	int le = r->left;
 	int to = r->top;

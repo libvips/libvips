@@ -109,8 +109,10 @@ build_hist( IMAGE *in, IMAGE *out, int bins )
 /* Build a sub-hist, based on the main hist.
  */
 static void *
-build_subhist( IMAGE *out, Histogram *mhist )
+build_subhist( IMAGE *out, void *a, void *b )
 {
+        Histogram *mhist = (Histogram *) a;
+
 	return( (void *) 
 		build_hist( mhist->in, mhist->out, mhist->bins ) );
 }
@@ -118,8 +120,10 @@ build_subhist( IMAGE *out, Histogram *mhist )
 /* Join a sub-hist onto the main hist.
  */
 static int
-merge_subhist( Histogram *shist, Histogram *mhist )
+merge_subhist( void *seq, void *a, void *b )
 {
+	Histogram *shist = (Histogram *) seq;
+        Histogram *mhist = (Histogram *) a;
 	int i, j, k;
 
 	/* Sanity!
@@ -157,8 +161,9 @@ merge_subhist( Histogram *shist, Histogram *mhist )
 }
 
 static int
-find_hist( REGION *reg, Histogram *hist )
+find_hist( REGION *reg, void *seq, void *a, void *b )
 {
+	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int le = r->left;

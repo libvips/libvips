@@ -74,8 +74,10 @@ typedef struct {
 /* lhist generate function.
  */
 static int
-lhist_gen( REGION *or, REGION *ir, IMAGE *in, LhistInfo *inf )
+lhist_gen( REGION *or, void *seq, void *a, void *b )
 {
+	REGION *ir = (REGION *) seq;
+	LhistInfo *inf = (LhistInfo *) inf;
 	Rect irect;
 
 	Rect *r = &or->valid;

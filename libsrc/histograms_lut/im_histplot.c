@@ -144,8 +144,8 @@ normalise( IMAGE *in, IMAGE *out )
 	TYPE *p1 = (TYPE *) p; \
 	\
 	for( x = le; x < ri; x++ ) { \
-		for( b = 0; b < nb; b++ )  \
-			q[b] = p1[b] < x ? 0 : 255; \
+		for( z = 0; z < nb; z++ )  \
+			q[z] = p1[z] < x ? 0 : 255; \
 		\
 		q += nb; \
 	} \
@@ -155,8 +155,9 @@ normalise( IMAGE *in, IMAGE *out )
 /* Generate function.
  */
 static int
-make_vert_gen( REGION *or, void *dummy, IMAGE *in )
+make_vert_gen( REGION *or, void *seq, void *a, void *b )
 {
+	IMAGE *in = (IMAGE *) a;
 	Rect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
@@ -164,7 +165,7 @@ make_vert_gen( REGION *or, void *dummy, IMAGE *in )
 	int bo = IM_RECT_BOTTOM( r );
 	int nb = in->Bands;
 
-	int x, y, b;
+	int x, y, z;
 
 	for( y = to; y < bo; y++ ) {
 		unsigned char *q = (unsigned char *) 
@@ -195,8 +196,8 @@ make_vert_gen( REGION *or, void *dummy, IMAGE *in )
 	TYPE *p1 = (TYPE *) p; \
 	\
 	for( y = to; y < bo; y++ ) { \
-		for( b = 0; b < nb; b++ )  \
-			q[b] = p1[b] < (ht - y) ? 0 : 255; \
+		for( z = 0; z < nb; z++ )  \
+			q[z] = p1[z] < (ht - y) ? 0 : 255; \
 		\
 		q += lsk; \
 	} \
@@ -206,8 +207,9 @@ make_vert_gen( REGION *or, void *dummy, IMAGE *in )
 /* Generate function.
  */
 static int
-make_horz_gen( REGION *or, void *dummy, IMAGE *in )
+make_horz_gen( REGION *or, void *seq, void *a, void *b )
 {
+	IMAGE *in = (IMAGE *) a;
 	Rect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
@@ -217,7 +219,7 @@ make_horz_gen( REGION *or, void *dummy, IMAGE *in )
 	int lsk = IM_REGION_LSKIP( or );
 	int ht = or->im->Ysize;
 
-	int x, y, b;
+	int x, y, z;
 
 	for( x = le; x < ri; x++ ) {
 		unsigned char *q = (unsigned char *) 

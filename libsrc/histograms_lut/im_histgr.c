@@ -109,8 +109,10 @@ build_hist( IMAGE *out, int bands, int which, int size )
 /* Build a sub-hist, based on the main hist.
  */
 static void *
-build_subhist( IMAGE *out, Histogram *mhist )
+build_subhist( IMAGE *out, void *a, void *b )
 {
+	Histogram *mhist = (Histogram *) a;
+
 	return( (void *) 
 		build_hist( out, mhist->bands, mhist->which, mhist->size ) );
 }
@@ -118,8 +120,10 @@ build_subhist( IMAGE *out, Histogram *mhist )
 /* Join a sub-hist onto the main hist.
  */
 static int
-merge_subhist( Histogram *shist, Histogram *mhist )
+merge_subhist( void *seq, void *a, void *b )
 {
+	Histogram *shist = (Histogram *) seq;
+	Histogram *mhist = (Histogram *) a;
 	int i, j;
 
 	/* Sanity!
@@ -146,8 +150,9 @@ merge_subhist( Histogram *shist, Histogram *mhist )
 /* Histogram of all bands of a uchar image.
  */
 static int
-find_uchar_hist( REGION *reg, Histogram *hist )
+find_uchar_hist( REGION *reg, void *seq, void *a, void *b )
 {
+	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int le = r->left;
@@ -177,8 +182,9 @@ find_uchar_hist( REGION *reg, Histogram *hist )
 /* Histogram of a selected band of a uchar image.
  */
 static int
-find_uchar_hist_extract( REGION *reg, Histogram *hist )
+find_uchar_hist_extract( REGION *reg, void *seq, void *a, void *b )
 {
+	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int le = r->left;
@@ -208,8 +214,9 @@ find_uchar_hist_extract( REGION *reg, Histogram *hist )
 /* Histogram of all bands of a ushort image.
  */
 static int
-find_ushort_hist( REGION *reg, Histogram *hist )
+find_ushort_hist( REGION *reg, void *seq, void *a, void *b )
 {
+	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int le = r->left;
@@ -249,8 +256,9 @@ find_ushort_hist( REGION *reg, Histogram *hist )
 /* Histogram of all bands of a ushort image.
  */
 static int
-find_ushort_hist_extract( REGION *reg, Histogram *hist )
+find_ushort_hist_extract( REGION *reg, void *seq, void *a, void *b )
 {
+	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
 	IMAGE *im = reg->im;
 	int le = r->left;
@@ -293,7 +301,7 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 	int size;		/* Length of hist */
 	int bands;		/* Number of bands in output */
 	Histogram *mhist;
-	int (*scanfn)( REGION *, Histogram * );
+	im_generate_fn scanfn;
 	int i, j;
 	unsigned int *obuffer, *q;
 

@@ -173,16 +173,16 @@ typedef struct {
 /* Destroy a sequence value.
  */
 static int
-stop_maplut( Seq *seq, IMAGE *in, LutInfo *st )
+maplut_stop( void *vseq, void *a, void *b )
 {
+	Seq *seq = (Seq *) vseq;
+	LutInfo *st = (LutInfo *) b;
+
 	/* Add to global stats.
 	 */
 	st->overflow += seq->overflow;
 	
-	if( seq->ir ) {
-		im_region_free( seq->ir );
-		seq->ir = NULL;
-	}
+	IM_FREEF( im_region_free, seq->ir );
 
 	return( 0 );
 }
@@ -190,11 +190,12 @@ stop_maplut( Seq *seq, IMAGE *in, LutInfo *st )
 /* Our start function.
  */
 static void *
-start_maplut( IMAGE *out, IMAGE *in, LutInfo *st )
+maplut_start( IMAGE *out, void *a, void *b )
 {
-	Seq *seq = IM_NEW( out, Seq );
-	 
-	if( !seq )
+	IMAGE *in = (IMAGE *) a;
+	Seq *seq;
+
+	if( !(seq = IM_NEW( out, Seq )) )
 		 return( NULL );
 
 	/* Init!
@@ -205,7 +206,7 @@ start_maplut( IMAGE *out, IMAGE *in, LutInfo *st )
 	if( !(seq->ir = im_region_create( in )) ) 
 		return( NULL );
 
-	return( (void *) seq );
+	return( seq );
 }
 
 /* Map through n non-complex luts.
@@ -508,8 +509,11 @@ start_maplut( IMAGE *out, IMAGE *in, LutInfo *st )
 /* Do a map.
  */
 static int 
-gen_map( REGION *or, Seq *seq, IMAGE *in, LutInfo *st )
+maplut_gen( REGION *or, void *vseq, void *a, void *b )
 {
+	Seq *seq = (Seq *) vseq;
+	IMAGE *in = (IMAGE *) a;
+	LutInfo *st = (LutInfo *) b;
 	REGION *ir = seq->ir;
 	Rect *r = &or->valid;
 	int le = r->left;
@@ -616,7 +620,7 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 
 	/* Process!
 	 */
-        if( im_generate( out, start_maplut, gen_map, stop_maplut, in, st ) )
+        if( im_generate( out, maplut_start, maplut_gen, maplut_stop, in, st ) )
                 return( -1 );
 
         return( 0 );

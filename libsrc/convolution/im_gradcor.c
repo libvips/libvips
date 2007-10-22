@@ -217,6 +217,10 @@ int im_grad_x( IMAGE *in, IMAGE *out ){
 #endif
 #undef RETURN_GENERATE
   }
+
+  /* Keep gcc happy.
+   */
+  return 0;
 #undef FUNCTION_NAME
 }
 
@@ -277,6 +281,10 @@ int im_grad_y( IMAGE *in, IMAGE *out ){
 #endif
 #undef RETURN_GENERATE
   }
+
+  /* Keep gcc happy.
+   */
+  return 0;
 #undef FUNCTION_NAME
 }
 
