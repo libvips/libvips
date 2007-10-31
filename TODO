@@ -1,5 +1,8 @@
 - missing libstdc++ in link? what if we configure with no openexr?
 
+  added -lstdc++ to VIPS_LIBS, but will this work on solaris etc.? maybe have
+  a configure option to turn off CImg
+
 - test maxpos_avg, quite a few changes
 
 - im_exr2vips can now use c++ api
