@@ -1,4 +1,8 @@
+- missing libstdc++ in link? what if we configure with no openexr?
+
 - test maxpos_avg, quite a few changes
+
+- im_exr2vips can now use c++ api
 
 Python binding
 ==============
