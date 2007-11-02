@@ -157,6 +157,8 @@ im_init( const char *filename )
 
 	im->history_list = NULL;
 
+	im->progress = NULL;
+
 	if( !(im->filename = im_strdup( NULL, filename )) ) {
 		im_close( im );
 		return( NULL );

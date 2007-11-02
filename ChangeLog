@@ -4,6 +4,8 @@
 - break im_wbuffer() out to a separate API
 - use im_wbuffer() to make im_vips2jpeg() compress in the background
 - also im_vips2png()
+- new system for propogating progress settings down pipelines unbreaks save
+  feedback in nip2
 
 28/9/07 started 7.13.1
 - vips2dj can print RGB images

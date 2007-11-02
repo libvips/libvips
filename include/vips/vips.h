@@ -326,6 +326,10 @@ typedef struct im__IMAGE {
 	 * efficiently.
 	 */
 	GSList *history_list;
+
+	/* The IMAGE (if any) we should signal eval progress on.
+	 */
+	struct im__IMAGE *progress;
 } IMAGE;
 
 /* Only define if IM_ENABLE_DEPRECATED is set.

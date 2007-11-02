@@ -475,6 +475,11 @@ im__link_make( IMAGE *parent, IMAGE *child )
 
 	parent->children = g_slist_prepend( parent->children, child );
 	child->parents = g_slist_prepend( child->parents, parent );
+
+	/* Propogate the progress indicator.
+	 */
+	if( !child->progress && parent->progress )
+		child->progress = parent->progress;
 }
 
 /* Break link.

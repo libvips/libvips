@@ -99,18 +99,26 @@ update_time( im_time_t *time, int w, int h )
 }
 
 /* Handle eval callbacks. w and h are the size of the tile we made this time.
+ * We signal progress on the ->progress IMAGE, see im_add_eval_callback(). We
+ * assume there's no geometry change between adding the feedback request and
+ * evaling the image.
  */
 int
 im__handle_eval( IMAGE *im, int w, int h )
 {
-	if( im->evalfns ) {
-		if( !im->time )
-			if( time_add( im ) )
+	if( im->progress ) {
+		if( !im->progress->time ) {
+			/* So we just check sanity first time around.
+			 */
+			im_image_sanity( im->progress );
+
+			if( time_add( im->progress ) )
 				return( -1 );
-		if( update_time( im->time, w, h ) )
+		}
+		if( update_time( im->progress->time, w, h ) )
 			return( -1 );
 		
-		if( im__trigger_callbacks( im->evalfns ) )
+		if( im__trigger_callbacks( im->progress->evalfns ) )
 			return( -1 );
 	}
 

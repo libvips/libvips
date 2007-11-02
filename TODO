@@ -1,5 +1,6 @@
-- wrap API around the double-buffered write stuff and get
-  jpeg/tiff/png/ppm/etc. all writing double-buffered as well
+- im__convert_saveable() is not propogating 'progress' for wtc2.jpg
+
+- done jpeg, png ... make others dbl-buf writes too
 
 - missing libstdc++ in link? what if we configure with no openexr?
 

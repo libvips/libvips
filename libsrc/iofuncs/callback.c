@@ -88,11 +88,18 @@ im_add_close_callback( IMAGE *im, int (*fn)(), void *a, void *b )
 	return( add_callback( im, &im->closefns, fn, a, b ) );
 }
 
-/* Add an eval callback to an IMAGE.
+/* Add an eval callback to an IMAGE. You must call this after opening the
+ * image, but before using it as an argument to an operation.
  */
 int
 im_add_eval_callback( IMAGE *im, int (*fn)(), void *a, void *b )
-{	
+{
+	/* Mark this image as needing progress feedback. im__link_make()
+	 * propogates this value to our children as we build a pipeline.
+	 * im__handle_eval() looks up the IMAGE it should signal on.
+	 */
+	im->progress = im;
+
 	return( add_callback( im, &im->evalfns, fn, a, b ) );
 }
 

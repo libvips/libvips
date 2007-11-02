@@ -195,8 +195,7 @@ write_vips( Write *write, int compress, int interlace )
 {
 	IMAGE *in = write->in;
 
-	Rect area;
-	int j, y, i, nb_passes;
+	int i, nb_passes;
 
         assert( in->BandFmt == IM_BANDFMT_UCHAR );
 	assert( in->Coding == IM_CODING_NONE );
