@@ -104,7 +104,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
-#include <vips/thread.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -297,6 +296,7 @@ im_close( IMAGE *im )
 	IM_FREEF( im__gslist_gvalue_free, im->history_list );
 	im__meta_destroy( im );
 	im__open_images = g_slist_remove( im__open_images, im );
+	im__time_destroy( im );
 	IM_FREE( im );
 
 	return( result );

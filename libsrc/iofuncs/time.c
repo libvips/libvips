@@ -38,39 +38,45 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <time.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/time.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Allocate a new time struct and fill in start values.
- */
-static int
-new_time( IMAGE *im )
+int
+im__time_destroy( IMAGE *im )
 {
-	struct time_info *tim = IM_NEW( im, struct time_info );
-
-	if( !tim )
-		return( -1 );
-
 	if( im->time ) {
-		im_errormsg( "new_time: sanity failure" );
-		return( -1 );
+		g_timer_destroy( im->time->start );
+		im_free( im->time );
+		im->time = NULL;
 	}
 
-	tim->im = im;
-	tim->start = time( NULL );
-	tim->run = 0;
-	tim->eta = 0;
-	tim->tpels = (gint64) im->Xsize * im->Ysize;
-	tim->npels = 0;
-	tim->percent = 0;
-	im->time = tim;
+	return( 0 );
+}
+
+/* Attach a new time struct and fill in start values.
+ */
+int
+time_add( IMAGE *im )
+{
+	im_time_t *time;
+
+	if( im__time_destroy( im ) ||
+		!(time = IM_NEW( NULL, im_time_t )) )
+		return( -1 );
+
+	time->im = im;
+	time->start = g_timer_new();
+	time->run = 0;
+	time->eta = 0;
+	time->tpels = (gint64) im->Xsize * im->Ysize;
+	time->npels = 0;
+	time->percent = 0;
+	im->time = time;
 
 	return( 0 );
 }
@@ -78,16 +84,16 @@ new_time( IMAGE *im )
 /* A new tile has been computed. Update time_info.
  */
 static int
-update_time( struct time_info *tim, int w, int h )
+update_time( im_time_t *time, int w, int h )
 {
 	float prop;
 
-	tim->run = time( NULL ) - tim->start;
-	tim->npels += w * h;
-	prop = (float) tim->npels / (float) tim->tpels;
-	tim->percent = 100 * prop;
+	time->run = g_timer_elapsed( time->start, NULL );
+	time->npels += w * h;
+	prop = (float) time->npels / (float) time->tpels;
+	time->percent = 100 * prop;
 	if( prop > 0 ) 
-		tim->eta = (1.0 / prop) * tim->run - tim->run;
+		time->eta = (1.0 / prop) * time->run - time->run;
 
 	return( 0 );
 }
@@ -99,7 +105,7 @@ im__handle_eval( IMAGE *im, int w, int h )
 {
 	if( im->evalfns ) {
 		if( !im->time )
-			if( new_time( im ) )
+			if( time_add( im ) )
 				return( -1 );
 		if( update_time( im->time, w, h ) )
 			return( -1 );

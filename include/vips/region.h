@@ -36,11 +36,11 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* Profiling madness only, who cares about portability.
+ */
 #ifdef TIME_THREAD
 #include <sys/time.h>
 #endif /*TIME_THREAD*/
-
-#include "rect.h"
 
 /* Per-thread buffer cache. Held in a GPrivate.
  */

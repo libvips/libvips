@@ -8,7 +8,6 @@ pkginclude_HEADERS = \
 	debug.h \
 	dispatch.h \
 	fmask.h \
-	history.h \
 	mosaic.h \
 	proto.h \
 	rect.h \
@@ -18,7 +17,6 @@ pkginclude_HEADERS = \
 	semaphore.h \
 	threadgroup.h \
 	thread.h \
-	time.h \
 	util.h \
 	meta.h \
 	version.h \

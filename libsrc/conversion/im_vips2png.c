@@ -10,6 +10,8 @@
  * 	- auto convert to sRGB/mono (with optional alpha) for save
  * 1/5/06
  * 	- from vips_png.c
+ * 2/11/07
+ * 	- use im_wbuffer() API for BG writes
  */
 
 /*
@@ -166,6 +168,26 @@ write_new( IMAGE *in )
 	return( write );
 }
 
+static int
+write_png_block( REGION *region, Rect *area, void *a, void *b )
+{
+	Write *write = (Write *) a;
+	int i;
+
+	/* Catch PNG errors. Yuk.
+	 */
+	if( setjmp( write->pPng->jmpbuf ) ) 
+		return( -1 );
+
+	for( i = 0; i < area->height; i++ ) 
+		write->row_pointer[i] = (png_bytep)
+			IM_REGION_ADDR( region, 0, area->top + i );
+
+	png_write_rows( write->pPng, write->row_pointer, area->height );
+
+	return( 0 );
+}
+
 /* Write a VIPS image to PNG.
  */
 static int
@@ -229,22 +251,13 @@ write_vips( Write *write, int compress, int interlace )
 	/* Write data.
 	 */
 	for( i = 0; i < nb_passes; i++ ) 
-		for( y = 0; y < in->Ysize; y += write->tg->nlines ) {
-			area.left = 0;
-			area.top = y;
-			area.width = in->Xsize;
-			area.height = IM_MIN( write->tg->nlines, 
-				in->Ysize - y );
+		if( im_wbuffer( write->tg, write_png_block, write, NULL ) )
+			return( -1 );
 
-			if( im_prepare_thread( write->tg, write->reg, &area ) )
-				return( -1 );
-
-			for( j = 0; j < area.height; j++ ) 
-				write->row_pointer[j] = (png_bytep)
-					IM_REGION_ADDR( write->reg, 0, y + j );
-			png_write_rows( write->pPng, 
-				write->row_pointer, area.height );
-		}
+	/* The setjmp() was held by our background writer: reset it.
+	 */
+	if( setjmp( write->pPng->jmpbuf ) ) 
+		return( -1 );
 
 	png_write_end( write->pPng, write->pInfo );
 
