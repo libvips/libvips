@@ -231,6 +231,19 @@ typedef struct {
 	size_t length;		/* Size of window */
 } im_window_t;
 
+/* Struct we keep a record of execution time in. Passed to eval callback, so
+ * it can assess progress.
+ */
+typedef struct {
+	struct im__IMAGE *im;	/* Image we are part of */
+	GTimer *start;		/* Start time */
+	int run;		/* Time we have been running */
+	int eta;		/* Estimated seconds of computation left */
+	gint64 tpels;		/* Number of pels we expect to calculate */
+	gint64 npels;		/* Number of pels calculated so far */
+	int percent;		/* Percent complete */
+} im_time_t;
+
 /* Image descriptor for subroutine i/o args 
  */
 typedef struct im__IMAGE {
@@ -256,7 +269,7 @@ typedef struct im__IMAGE {
 	char *Hist;		/* don't use ... call im_history_get() */
 	char *filename;		/* pointer to copy of filename */
 	char *data;		/* start of image data for WIO */
-	struct time_info *time;	/* time struct for eval callback */
+	im_time_t *time;	/* time struct for eval callback */
 	int kill;		/* set to non-zero to block partial eval */
 
 	/* Private fields.
@@ -455,6 +468,7 @@ typedef struct {
 #include <vips/semaphore.h>
 #include <vips/threadgroup.h>
 #include <vips/meta.h>
+#include <vips/util.h>
 
 #ifdef __cplusplus
 }

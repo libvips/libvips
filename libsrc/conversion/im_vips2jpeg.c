@@ -21,6 +21,8 @@
  * 	- add </libexif/ prefix if required
  * 19/1/07
  * 	- oop, libexif confusion
+ * 2/11/07
+ * 	- use im_wbuffer() API for BG writes
  */
 
 /*
@@ -515,15 +517,33 @@ write_profile_meta( Write *write )
 	return( 0 );
 }
 
+static int
+write_jpeg_block( REGION *region, Rect *area, void *a, void *b )
+{
+	Write *write = (Write *) a;
+	int i;
+
+	/* We are running in a background thread. We need to catch longjmp()s
+	 * here instead.
+	 */
+	if( setjmp( write->eman.jmp ) ) 
+		return( -1 );
+
+	for( i = 0; i < area->height; i++ )
+		write->row_pointer[i] = (JSAMPROW) 
+			IM_REGION_ADDR( region, 0, area->top + i );
+
+	jpeg_write_scanlines( &write->cinfo, write->row_pointer, area->height );
+
+	return( 0 );
+}
+
 /* Write a VIPS image to a JPEG compress struct.
  */
 static int
 write_vips( Write *write, int qfac, const char *profile )
 {
 	IMAGE *in = write->in;
-
-	Rect area;
-	int y, i;
 
 	/* Should have been converted for save.
 	 */
@@ -577,24 +597,16 @@ write_vips( Write *write, int qfac, const char *profile )
 		write_profile_meta( write ) )
 		return( -1 );
 
-	/* Write data.
+	/* Write data. Note that the write function grabs the longjmp()!
 	 */
-	for( y = 0; y < in->Ysize; y += write->tg->nlines ) {
-		area.left = 0;
-		area.top = y;
-		area.width = in->Xsize;
-		area.height = IM_MIN( write->tg->nlines, in->Ysize - y );
+	if( im_wbuffer( write->tg, write_jpeg_block, write, NULL ) )
+		return( -1 );
 
-                if( im_prepare_thread( write->tg, write->reg, &area ) )
-                        return( -1 );
-
-		for( i = 0; i < area.height; i++ )
-			write->row_pointer[i] = (JSAMPROW) 
-				IM_REGION_ADDR( write->reg, 0, y + i );
-
-		jpeg_write_scanlines( &write->cinfo, 
-			write->row_pointer, area.height );
-	}
+	/* We have to reinstate the setjmp() before we jpeg_finish_compress().
+	 * No need to destroy the write: our parent does that.
+	 */
+	if( setjmp( write->eman.jmp ) ) 
+		return( -1 );
 
 	jpeg_finish_compress( &write->cinfo );
 

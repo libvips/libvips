@@ -327,6 +327,28 @@ eval_to_memory( im_threadgroup_t *tg, REGION *or )
 	return( 0 );
 }
 
+/* A write function for VIPS images. Just write() the pixel data.
+ */
+static int
+write_vips( REGION *region, Rect *area, void *a, void *b )
+{
+	size_t nwritten, count;
+	void *buf;
+
+	count = region->bpl * area->height;
+	buf = IM_REGION_ADDR( region, 0, area->top );
+	do {
+		nwritten = write( region->im->fd, buf, count ); 
+		if( nwritten == (size_t) -1 ) 
+			return( errno );
+
+		buf = (void *) ((char *) buf + nwritten);
+		count -= nwritten;
+	} while( count > 0 );
+
+	return( 0 );
+}
+
 /* Attach a generate function to an image.
  */
 int
@@ -402,8 +424,7 @@ im_generate( IMAGE *im,
 			return( -1 );
 		}
                 if( im->dtype == IM_OPENOUT )
-                        res = im_wbuffer( tg, 
-				im_wbuffer_write_vips, NULL, NULL );
+                        res = im_wbuffer( tg, write_vips, NULL, NULL );
                 else
                         res = eval_to_memory( tg, or );
 

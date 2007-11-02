@@ -36,25 +36,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <sys/types.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif /*HAVE_SYS_TIME_H*/
-
-/* Struct we keep a record of execution time in. Passed to eval callback, so
- * it can assess progress.
- */
-struct time_info {
-	IMAGE *im;		/* Image we are part of */
-	time_t start;		/* Start time, in seconds */
-	int run;		/* Time we have been running */
-	int eta;		/* Estimated seconds of computation left */
-	gint64 tpels;		/* Number of pels we expect to calculate */
-	gint64 npels;		/* Number of pels calculated so far */
-	int percent;		/* Percent complete */
-};
-
-extern int im__handle_eval( IMAGE *im, int w, int h );
 
 #ifdef __cplusplus
 }

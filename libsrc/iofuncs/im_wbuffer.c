@@ -75,32 +75,6 @@ typedef struct _WriteBuffer {
 	void *b;
 } WriteBuffer;
 
-/* A write function for VIPS images. Just write() the pixel data.
- */
-int
-im_wbuffer_write_vips( REGION *region, Rect *area, void *a, void *b )
-{
-	size_t nwritten, count;
-	void *buf;
-
-	count = region->bpl * area->height;
-	buf = IM_REGION_ADDR( region, 0, area->top );
-	do {
-		nwritten = write( region->im->fd, buf, count ); 
-
-		/* Write failed? Note in wbuffer errno for the main 
-		 * thread to pick up.
-		 */
-		if( nwritten == (size_t) -1 ) 
-			return( errno );
-
-		buf = (void *) ((char *) buf + nwritten);
-		count -= nwritten;
-	} while( count > 0 );
-
-	return( 0 );
-}
-
 static void
 wbuffer_free( WriteBuffer *wbuffer )
 {
@@ -135,7 +109,7 @@ wbuffer_write( WriteBuffer *wbuffer )
 
 #ifdef DEBUG
 	printf( "wbuffer_write: %d bytes from wbuffer %p\n", 
-		region->bpl * area->height, wbuffer );
+		wbuffer->region->bpl * wbuffer->area.height, wbuffer );
 #endif /*DEBUG*/
 }
 

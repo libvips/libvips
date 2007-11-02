@@ -32,8 +32,6 @@ char *im_malloc( IMAGE *im, int size );
 int im_free( void *s );
 
 .B #include <vips/vips.h>
-.br
-.B #include <vips/time.h>
 
 int im_add_eval_callback( im, fn, a, b )
 .br
@@ -107,19 +105,19 @@ the image is written to. This works for both PIO and WIO images,
 although it is rather more successful with PIO image output.
 
 When the callback is triggered, the time field of the descriptor will point to
-a time_info structure, as defined in <vips/time.h>
+a 
+.B im_time_t 
+structure, see vips.h
 
-  #include <sys/timeb.h>
-
-  struct time_info {
-    IMAGE *im;    /* Image we are part of */
-    time_t start; /* Start time, in seconds */
-    int run;      /* Time we have been running */
-    int eta;      /* Seconds of computation left */
-    int ttiles;   /* Tiles we expect to calculate */
-    int ntiles;   /* Tiles calculated so far */
-    int percent;  /* Percent complete */
-  };
+  typedef struct {
+    IMAGE *im;     /* Image we are part of */
+    GTimer *start; /* Start time */
+    int run;       /* Time we have been running (secs) */
+    int eta;       /* Estimated seconds of computation left */
+    gint64 tpels;  /* Number of pels we expect to calculate */
+    gint64 npels;  /* Number of pels calculated so far */
+    int percent;   /* Percent complete */
+  } im_time_t;
 
 These fields are not exact! They should only be used to give approximate
 feedback to the user. It is possible to have

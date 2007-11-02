@@ -127,6 +127,12 @@ void im_threadgroup_trigger( im_thread_t *thr );
  */
 int im_prepare_thread( im_threadgroup_t *tg, REGION *oreg, Rect *r );
 
+/* Threaded, double-buffered eval to file.
+ */
+typedef int (*im_wbuffer_fn)( REGION *region, Rect *area, void *a, void *b );
+int im_wbuffer( im_threadgroup_t *tg, 
+	im_wbuffer_fn write_fn, void *a, void *b );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

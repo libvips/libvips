@@ -303,20 +303,6 @@ man_MANS = \
 	im_lineset.3 \
 	im_lintra.3 \
 	im_lintra_vec.3 \
-	im_list_add.3 \
-	im_list_append.3 \
-	im_list_eq.3 \
-	im_list_fix.3 \
-	im_list_fold.3 \
-	im_list_free.3 \
-	im_list_index.3 \
-	im_list_insert.3 \
-	im_list_len.3 \
-	im_list_map.3 \
-	im_list_map_rev.3 \
-	im_list_member.3 \
-	im_list_pos.3 \
-	im_list_remove.3 \
 	im_litecor.3 \
 	im_log10tra.3 \
 	im_log_dmask.3 \

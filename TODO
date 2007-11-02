@@ -1,3 +1,6 @@
+- wrap API around the double-buffered write stuff and get
+  jpeg/tiff/png/ppm/etc. all writing double-buffered as well
+
 - missing libstdc++ in link? what if we configure with no openexr?
 
   added -lstdc++ to VIPS_LIBS, but will this work on solaris etc.? maybe have

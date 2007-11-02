@@ -78,7 +78,6 @@ calls to
 escape points. Example: find the total of an array of images.
 
   #include <vips/vips.h>
-  #include <vips/region.h>
 
   int
   total( IMAGE **in, int nin, IMAGE *out )
@@ -111,7 +110,8 @@ This function will create many intermediate images, but does not need to close
 them. Any which are created will be closed automatically when out is closed by
 our caller.
 
-im_open_local(3) returns NULL on error, or if its first parameter is NULL.
+.B im_open_local(3) 
+returns NULL on error, or if its first parameter is NULL.
 
 .B im_open_local_array(3)
 will open an array of images, failing if any of the opens fail. It's handy if

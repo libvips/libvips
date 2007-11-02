@@ -53,6 +53,7 @@ void *im__read_extension_block( IMAGE *im, int *size );
 int im__readhist( IMAGE *image );
 int im__write_extension_block( IMAGE *im, void *buf, int size );
 int im__writehist( IMAGE *image );
+int im__handle_eval( IMAGE *im, int w, int h );
 
 extern int im__read_test;
 extern int im__mmap_limit;
