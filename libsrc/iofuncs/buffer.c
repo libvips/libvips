@@ -465,7 +465,7 @@ im_buffer_print( im_buffer_t *buffer )
 	printf( "bsize = %zd\n", buffer->bsize );
 }
 
-/* Make a parent/child link.
+/* Make a parent/child link. child is one of parent's inputs.
  */
 void 
 im__link_make( IMAGE *parent, IMAGE *child )
@@ -478,11 +478,11 @@ im__link_make( IMAGE *parent, IMAGE *child )
 
 	/* Propogate the progress indicator.
 	 */
-	if( !child->progress && parent->progress )
-		child->progress = parent->progress;
+	if( child->progress && !parent->progress ) 
+		parent->progress = child->progress;
 }
 
-/* Break link.
+/* Break link. child is one of parent's inputs.
  */
 static void *
 im__link_break( IMAGE *parent, IMAGE *child )
