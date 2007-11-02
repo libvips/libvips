@@ -1,0 +1,60 @@
+.TH IM_WBUFFER 3 "2 November 2007"
+.SH NAME
+im_wbuffer \- write an image with a background thread
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+typedef int (*im_wbuffer_fn)( REGION *region, Rect *area, void *a, void *b );
+
+int im_wbuffer( im_threadgroup_t *tg, 
+.br
+  im_wbuffer_fn write_fn, void *a, void *b );
+
+.SH DESCRIPTION
+.B im_wbuffer(3)
+uses the 
+.B im_threadgroup_t
+to loop down the image, calculating sets of scanlines. The number of scanlines
+calculated in one group varies with the image's demand style, but might
+typically be 64 lines.
+
+As each set of scanlines is completed, a background thread calls the supplied
+.B im_wbuffer_fn
+to write those lines to the output. This callback might use the JPEG library,
+for example, to compress the pixels before writing to disc. By writing in the
+background, the threads computing the image pixels are not interrupted and
+image compression may be overlapped with image calculation. Hopefully this
+will produce a speed improvement.
+
+.SH EXAMPLE
+
+  static int
+  write_vips( REGION *region, Rect *area, void *a, void *b )
+  {
+    size_t nwritten, count;
+    void *buf;
+  
+    count = region->bpl * area->height;
+    buf = IM_REGION_ADDR( region, 0, area->top );
+    do {
+      nwritten = write( region->im->fd, buf, count ); 
+      if( nwritten == (size_t) -1 ) 
+        return( errno );
+  
+      buf = (void *) ((char *) buf + nwritten);
+      count -= nwritten;
+    } while( count > 0 );
+  
+    return( 0 );
+  }
+
+    if( !(tg = im_threadgroup_create( im )) ) {
+
+.SH RETURN VALUE
+The function returns 0 on success and non-zero on error.
+.SH SEE ALSO
+im_threadgroup_create(3)
+.SH COPYRIGHT
+Imperial College, 2007
+.SH AUTHOR
+J. Cupitt \- 2/11/07
