@@ -531,7 +531,6 @@ man_MANS = \
 	im_vips2ppm.3 \
 	im_vips2tiff.3 \
 	im_warn.3 \
-	im_wbuffer.3 \
 	im_wrapmany.3 \
 	im_wrapone.3 \
 	im_write_dmask.3 \
