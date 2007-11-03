@@ -190,7 +190,6 @@ typedef struct {
 	IMAGE *in;
 	struct jpeg_compress_struct cinfo;
         ErrorManager eman;
-	REGION *reg;
 	im_threadgroup_t *tg;
 	JSAMPROW *row_pointer;
 	char *profile_bytes;
@@ -202,7 +201,6 @@ write_destroy( Write *write )
 {
 	jpeg_destroy_compress( &write->cinfo );
 	IM_FREEF( im_threadgroup_free, write->tg );
-	IM_FREEF( im_region_free, write->reg );
 	IM_FREEF( im_close, write->in );
 	IM_FREEF( fclose, write->eman.fp );
 	IM_FREE( write->row_pointer );
@@ -226,7 +224,6 @@ write_new( IMAGE *in )
 		return( NULL );
 	}
 
-	write->reg = im_region_create( write->in );
 	write->tg = im_threadgroup_create( write->in );
 
 	write->row_pointer = IM_ARRAY( NULL, write->tg->nlines, JSAMPROW );
@@ -238,7 +235,7 @@ write_new( IMAGE *in )
 	write->profile_bytes = NULL;
 	write->profile_length = 0;
 
-	if( !write->reg || !write->tg || !write->row_pointer ) {
+	if( !write->tg || !write->row_pointer ) {
 		write_destroy( write );
 		return( NULL );
 	}

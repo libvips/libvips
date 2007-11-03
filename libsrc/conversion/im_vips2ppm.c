@@ -4,6 +4,8 @@
  *	- better no-overshoot on tile loop
  * 9/9/05
  * 	- tiny cleanups
+ * 3/11/07
+ * 	- use im_wbuffer() for bg writes
  */
 
 /*
@@ -55,7 +57,6 @@
  */
 typedef struct {
 	IMAGE *in;
-	REGION *reg;
 	im_threadgroup_t *tg;
 	FILE *fp;
 	char *name;
@@ -65,7 +66,6 @@ static void
 write_destroy( Write *write )
 {
 	IM_FREEF( im_threadgroup_free, write->tg );
-	IM_FREEF( im_region_free, write->reg );
 	IM_FREEF( fclose, write->fp );
 	IM_FREE( write->name );
 
@@ -81,7 +81,6 @@ write_new( IMAGE *in, const char *name )
 		return( NULL );
 
 	write->in = in;
-	write->reg = im_region_create( write->in );
 	write->tg = im_threadgroup_create( write->in );
 	write->name = im_strdup( NULL, name );
 
@@ -94,7 +93,7 @@ write_new( IMAGE *in, const char *name )
 			_( "unable to open \"%s\" for output" ), name );
         }
 
-	if( !write->reg || !write->tg || !write->name || !write->fp ) {
+	if( !write->tg || !write->name || !write->fp ) {
 		write_destroy( write );
 		return( NULL );
 	}
@@ -168,6 +167,23 @@ write_ppm_line_binary( IMAGE *in, FILE *fp, PEL *p )
 }
 
 static int
+write_ppm_block( REGION *region, Rect *area, void *a, void *b )
+{
+	Write *write = (Write *) a;
+	write_fn fn = (write_fn) b;
+	int i;
+
+	for( i = 0; i < area->height; i++ ) {
+		PEL *p = (PEL *) IM_REGION_ADDR( region, 0, area->top + i );
+
+		if( fn( write->in, write->fp, p ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
 write_ppm( Write *write, int ascii ) 
 {
 	IMAGE *in = write->in;
@@ -176,8 +192,6 @@ write_ppm( Write *write, int ascii )
 	int max_value;
 	char *magic;
 	time_t timebuf;
-	int y, i;
-	Rect area;
 
 	switch( in->BandFmt ) {
 	case IM_BANDFMT_UCHAR:
@@ -213,22 +227,8 @@ write_ppm( Write *write, int ascii )
 	fprintf( write->fp, "%d %d\n", in->Xsize, in->Ysize );
 	fprintf( write->fp, "%d\n", max_value );
 
-	for( y = 0; y < in->Ysize; y += write->tg->nlines ) {
-		area.left = 0;
-		area.top = y;
-		area.width = in->Xsize;
-		area.height = IM_MIN( write->tg->nlines, in->Ysize - y );
-
-                if( im_prepare_thread( write->tg, write->reg, &area ) )
-                        return( -1 );
-
-		for( i = 0; i < area.height; i++ ) {
-			PEL *p = (PEL *) IM_REGION_ADDR( write->reg, 0, y + i );
-
-			if( fn( write->in, write->fp, p ) )
-				return( -1 );
-		}
-	}
+	if( im_wbuffer( write->tg, write_ppm_block, write, fn ) )
+		return( -1 );
 
 	return( 0 );
 }

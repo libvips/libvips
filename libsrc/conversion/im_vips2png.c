@@ -95,7 +95,6 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
  */
 typedef struct {
 	IMAGE *in;
-	REGION *reg;
 	im_threadgroup_t *tg;
 
 	FILE *fp;
@@ -107,7 +106,6 @@ typedef struct {
 static void
 write_destroy( Write *write )
 {
-	IM_FREEF( im_region_free, write->reg );
 	IM_FREEF( im_threadgroup_free, write->tg );
 	IM_FREEF( im_close, write->in );
 	IM_FREEF( fclose, write->fp );
@@ -134,14 +132,13 @@ write_new( IMAGE *in )
 		return( NULL );
 	}
 
-	write->reg = im_region_create( write->in );
 	write->tg = im_threadgroup_create( write->in );
 	write->row_pointer = IM_ARRAY( NULL, write->tg->nlines, png_bytep );
 	write->fp = NULL;
 	write->pPng = NULL;
 	write->pInfo = NULL;
 
-	if( !write->reg || !write->tg || !write->row_pointer ) {
+	if( !write->tg || !write->row_pointer ) {
 		write_destroy( write );
 		return( NULL );
 	}
