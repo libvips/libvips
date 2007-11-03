@@ -495,6 +495,11 @@ im__link_break( IMAGE *parent, IMAGE *child )
 	parent->children = g_slist_remove( parent->children, child );
 	child->parents = g_slist_remove( child->parents, parent );
 
+	/* Unlink the progress chain.
+	 */
+	if( parent->progress && parent->progress == child->progress ) 
+		parent->progress = NULL;
+
 	return( NULL );
 }
 

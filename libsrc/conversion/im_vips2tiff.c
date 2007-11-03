@@ -91,6 +91,8 @@
  * 18/7/07 Andrey Kiselev
  * 	- remove "b" option on TIFFOpen()
  * 	- support TIFFTAG_PREDICTOR types for lzw and deflate compression
+ * 3/11/07
+ * 	- use im_wbuffer() for background writes
  */
 
 /*
@@ -1037,57 +1039,52 @@ write_tif_tile( TiffWrite *tw )
 	return( 0 );
 }
 
+static int
+write_tif_block( REGION *region, Rect *area, void *a, void *b )
+{
+	TiffWrite *tw = (TiffWrite *) a;
+	IMAGE *im = tw->im;
+
+	int y;
+
+	for( y = 0; y < area->height; y++ ) {
+		PEL *p = (PEL *) IM_REGION_ADDR( region, 0, area->top + y );
+
+		/* Any repacking necessary.
+		 */
+		if( im->Coding == IM_CODING_LABQ ) {
+			LabQ2LabC( tw->tbuf, p, im->Xsize );
+			p = tw->tbuf;
+		}
+		else if( im->BandFmt == IM_BANDFMT_SHORT &&
+			im->Type == IM_TYPE_LABS ) {
+			LabS2Lab16( tw->tbuf, p, im->Xsize );
+			p = tw->tbuf;
+		}
+		else if( tw->onebit ) {
+			eightbit2onebit( tw->tbuf, p, im->Xsize );
+			p = tw->tbuf;
+		}
+
+		if( TIFFWriteScanline( tw->tif, p, area->top + y, 0 ) < 0 ) 
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 /* Write as scan-lines.
  */
 static int
 write_tif_strip( TiffWrite *tw )
 {
-	IMAGE *im = tw->im;
-	Rect area;
-	int y, y2;
+	g_assert( !tw->tbuf );
 
 	if( !(tw->tbuf = im_malloc( NULL, TIFFScanlineSize( tw->tif ) )) ) 
 		return( -1 );
 
-	/* Set up rect we ask for. 
-	 */
-	area.left = 0;
-	area.width = im->Xsize;
-
-	for( y = 0; y < im->Ysize; y += tw->tg->nlines ) {
-		area.top = y;
-		area.height = IM_MIN( tw->tg->nlines, im->Ysize - y );
-		if( im_prepare_thread( tw->tg, tw->reg, &area ) )
-			return( -1 );
-
-		for( y2 = 0; y2 < area.height; y2++ ) {
-			PEL *p = (PEL *) IM_REGION_ADDR( tw->reg, 0, y + y2 );
-
-			/* Any repacking necessary.
-			 */
-			if( im->Coding == IM_CODING_LABQ ) {
-				LabQ2LabC( tw->tbuf, p, im->Xsize );
-				p = tw->tbuf;
-			}
-			else if( im->BandFmt == IM_BANDFMT_SHORT &&
-				im->Type == IM_TYPE_LABS ) {
-				LabS2Lab16( tw->tbuf, p, im->Xsize );
-				p = tw->tbuf;
-			}
-			else if( tw->onebit ) {
-				eightbit2onebit( tw->tbuf, p, im->Xsize );
-				p = tw->tbuf;
-			}
-
-			/* Write to TIFF! easy.
-			 */
-			if( TIFFWriteScanline( tw->tif, p, y + y2, 0 ) < 0 ) {
-				im_error( "im_vips2tiff", 
-					_( "TIFF write failed" ) );
-				return( -1 );
-			}
-		}
-	}
+	if( im_wbuffer( tw->tg, write_tif_block, tw, NULL ) )
+		return( -1 );
 
 	return( 0 );
 }

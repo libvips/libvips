@@ -3,7 +3,7 @@
 - various include cleanups, updated man pages
 - break im_wbuffer() out to a separate API
 - use im_wbuffer() to make im_vips2jpeg() compress in the background
-- also im_vips2png()
+- also im_vips2png(), im_vips2tiff()
 - new system for propogating progress settings down pipelines unbreaks save
   feedback in nip2
 

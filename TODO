@@ -1,3 +1,5 @@
+- use im_wbuffer() to loop in im_iterate()?
+
 - talk about new progress system in im_add_eval_callback()?
 
 - done jpeg, png ... make others dbl-buf writes too
