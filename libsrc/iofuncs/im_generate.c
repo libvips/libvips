@@ -253,10 +253,6 @@ eval_to_region( REGION *or, im_threadgroup_t *tg )
 			thr->y = clipped.top;
 			im_threadgroup_trigger( thr );
 
-			/* Trigger any eval callbacks on our source image.
-			 */
-			im__handle_eval( tg->im, tg->pw, tg->ph );
-
 			/* Check for errors.
 			 */
 			if( im_threadgroup_iserror( tg ) ) {
@@ -316,13 +312,18 @@ eval_to_memory( im_threadgroup_t *tg, REGION *or )
 		pos.left = 0;
 		pos.top = y;
 		pos.width = im->Xsize;
-		pos.height = chunk;
+		pos.height = IM_MIN( chunk, im->Ysize - y );
 		if( (result = im_region_image( or, &pos )) ) 
 			break;
 
 		/* Ask for evaluation of this area.
 		 */
 		if( (result = eval_to_region( or, tg )) ) 
+			break;
+
+		/* Trigger any eval callbacks on our source image.
+		 */
+		if( (result = im__handle_eval( im, pos.width, pos.height )) )
 			break;
 
 #ifdef DEBUG_IO

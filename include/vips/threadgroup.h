@@ -98,6 +98,8 @@ typedef struct im__threadgroup_t {
 #endif /*DEBUG_HIGHWATER*/
 
 	int kill;		/* Set this to stop threadgroup early */
+
+	int progress;		/* Set this to get eval progress feedback */
 } im_threadgroup_t;
 
 void im_concurrency_set( int concurrency );
