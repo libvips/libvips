@@ -52,6 +52,8 @@
  *	- call im__writehist() to send history to XML after image data
  * 3/1/07
  * 	- free history_list 
+ * 7/11/07
+ * 	- added preclose, removed evalend triggers
  */
 
 /*
@@ -122,7 +124,9 @@
 int 
 im__close( IMAGE *im )
 {
-	int result = 0;
+	int result;
+
+	result = 0;
 
 	/* No action for NULL image.
 	 */
@@ -132,6 +136,11 @@ im__close( IMAGE *im )
 #ifdef DEBUG_IO
 	printf( "im__close: starting for %s ..\n", im->filename );
 #endif /*DEBUG_IO*/
+
+	/* Trigger all pre-close fns.
+	 */
+	result |= im__trigger_callbacks( im->preclosefns );
+	IM_FREEF( im_slist_free_all, im->preclosefns );
 
 	/* Free any regions defined on this image. This will, in turn, call
 	 * all stop functions still running, freeing all regions we have on 
@@ -157,9 +166,9 @@ im__close( IMAGE *im )
 	/* Make sure all evalend functions have been called, perform all close
 	 * callbacks, and free eval callbacks.
 	 */
-	result |= im__trigger_callbacks( im->evalendfns );
-	IM_FREEF( im_slist_free_all, im->evalendfns );
+	IM_FREEF( im_slist_free_all, im->evalstartfns );
 	IM_FREEF( im_slist_free_all, im->evalfns );
+	IM_FREEF( im_slist_free_all, im->evalendfns );
 	result |= im__trigger_callbacks( im->closefns );
 	IM_FREEF( im_slist_free_all, im->closefns );
 

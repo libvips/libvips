@@ -41,6 +41,8 @@
  *	- better how-many-pixels-calculated
  * 27/11/06
  * 	- merge background write stuff
+ * 7/11/07
+ * 	- new start/end eval callbacks
  */
 
 /*
@@ -284,11 +286,19 @@ eval_to_memory( im_threadgroup_t *tg, REGION *or )
 {
 	int y, chunk;
 	IMAGE *im = or->im;
+	int result;
+
+	result = 0;
 
 #ifdef DEBUG_IO
 	int ntiles = 0;
         printf( "eval_to_memory: partial image output to memory area\n" );
 #endif /*DEBUG_IO*/
+
+	/* Signal start of eval.
+	 */
+	if( im__start_eval( im ) )
+		return( -1 );
 
 	/* Choose a chunk size ... 1/100th of the height of the image, about.
 	 * This sets the granularity of user feedback on eval progress, but
@@ -307,24 +317,28 @@ eval_to_memory( im_threadgroup_t *tg, REGION *or )
 		pos.top = y;
 		pos.width = im->Xsize;
 		pos.height = chunk;
-		if( im_region_image( or, &pos ) ) 
-			return( -1 );
+		if( (result = im_region_image( or, &pos )) ) 
+			break;
 
 		/* Ask for evaluation of this area.
 		 */
-		if( eval_to_region( or, tg ) ) 
-			return( -1 );
+		if( (result = eval_to_region( or, tg )) ) 
+			break;
 
 #ifdef DEBUG_IO
 		ntiles++;
 #endif /*DEBUG_IO*/
 	}
 
+	/* Signal end of eval.
+	 */
+	result |= im__end_eval( im );
+
 #ifdef DEBUG_IO
-	printf( "eval_to_memory: success! %d patches written\n", ntiles );
+	printf( "eval_to_memory: %d patches written\n", ntiles );
 #endif /*DEBUG_IO*/
 
-	return( 0 );
+	return( result );
 }
 
 /* A write function for VIPS images. Just write() the pixel data.
@@ -413,7 +427,7 @@ im_generate( IMAGE *im,
                 im->stop = stop;
                 im->client1 = a;
                 im->client2 = b;
- 
+
                 /* Evaluate. Two output styles: to memory area (im_setbuf()
                  * or im_mmapinrw()) or to file (im_openout()).
                  */
@@ -433,13 +447,6 @@ im_generate( IMAGE *im,
 		im_threadgroup_free( tg );
 		im_region_free( or );
 
-		/* Evaluation is now complete, with all sequences finished.
-		 * Trigger evalend callbacks, then free them to make sure we
-		 * don't trigger twice.
-		 */
-		res |= im__trigger_callbacks( im->evalendfns );
-		IM_FREEF( im_slist_free_all, im->evalendfns );
- 
                 /* Error?
                  */
                 if( res )

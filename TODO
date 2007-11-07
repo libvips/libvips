@@ -1,6 +1,8 @@
-- test ppm writer
+- update docs, add pages for new cbs
 
 - talk about new progress system in im_add_eval_callback()?
+
+- test ppm writer
 
 - missing libstdc++ in link? what if we configure with no openexr?
 

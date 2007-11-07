@@ -352,7 +352,7 @@ im__convert_saveable( IMAGE *in, gboolean allow_alpha )
 {
 	IMAGE *out;
 
-	if( !(out = im_open( "im__convert_saveable", "p" )) )
+	if( !(out = im_open( "convert-for-save", "p" )) )
 		return( NULL );
 
 	/* If this is a IM_CODING_LABQ, we can go straight to RGB.

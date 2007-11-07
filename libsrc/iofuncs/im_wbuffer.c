@@ -2,6 +2,8 @@
  * 
  * 2/11/07
  * 	- cut from im_generate
+ * 7/11/07
+ * 	- trigger start/end eval callbacks
  */
 
 /*
@@ -407,19 +409,22 @@ im_wbuffer( im_threadgroup_t *tg,
 	im_wbuffer_fn write_fn, void *a, void *b )
 {
 	WriteBuffer *b1, *b2;
+	int result;
+
+	if( im__start_eval( tg->im ) )
+		return( -1 );
+
+	result = 0;
 
 	b1 = wbuffer_new( tg, write_fn, a, b );
 	b2 = wbuffer_new( tg, write_fn, a, b );
 
-	if( !b1 || !b2 || wbuffer_eval_to_file( b1, b2 ) ) {
-		IM_FREEF( wbuffer_free, b1 );
-		IM_FREEF( wbuffer_free, b2 );
+	if( !b1 || !b2 || wbuffer_eval_to_file( b1, b2 ) )  
+		result = -1;
 
-		return( -1 );
-	}
-
+	im__end_eval( tg->im );
 	wbuffer_free( b1 );
 	wbuffer_free( b2 );
 
-	return( 0 );
+	return( result );
 }

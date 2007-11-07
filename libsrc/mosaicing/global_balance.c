@@ -974,7 +974,7 @@ local_mask( IMAGE *out, DOUBLEMASK *mask )
 	if( !mask )
 		return( NULL );
 
-	if( im_add_evalend_callback( out, 
+	if( im_add_close_callback( out, 
 		(im_callback_fn) im_free_dmask, mask, NULL ) ) {
 		im_free_dmask( mask );
 		return( NULL );

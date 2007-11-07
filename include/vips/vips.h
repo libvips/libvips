@@ -35,6 +35,9 @@
  * 	- added RGB16, GREY16
  * 30/10/06
  * 	- added im_window_t
+ * 7/11/07
+ * 	- added preclose and evalstart callbacks
+ * 	- brought time struct in here
  */
 
 /*
@@ -236,12 +239,13 @@ typedef struct {
  */
 typedef struct {
 	struct im__IMAGE *im;	/* Image we are part of */
-	GTimer *start;		/* Start time */
+	time_t unused;		/* FIXME ... for compatibility */
 	int run;		/* Time we have been running */
 	int eta;		/* Estimated seconds of computation left */
 	gint64 tpels;		/* Number of pels we expect to calculate */
 	gint64 npels;		/* Number of pels calculated so far */
 	int percent;		/* Percent complete */
+	GTimer *start;		/* Start time */
 } im_time_t;
 
 /* Image descriptor for subroutine i/o args 
@@ -303,7 +307,7 @@ typedef struct im__IMAGE {
 	GSList *Meta_traverse;	/* Traverse order for Meta */
 
 	/* Part of mmap() read ... the sizeof() the header we skip from the
-	 * file start. Usually IM_SIZEOF_HEADER, but can be soomething else
+	 * file start. Usually IM_SIZEOF_HEADER, but can be something else
 	 * for binary file read.
 	 */
 	int sizeof_header;
@@ -330,6 +334,11 @@ typedef struct im__IMAGE {
 	/* The IMAGE (if any) we should signal eval progress on.
 	 */
 	struct im__IMAGE *progress;
+
+	/* Some more callbacks. Appended to IMAGE for binary compatibility.
+	 */
+	GSList *evalstartfns; 	/* list of start eval callbacks */
+	GSList *preclosefns; 	/* list of pre-close callbacks */
 } IMAGE;
 
 /* Only define if IM_ENABLE_DEPRECATED is set.

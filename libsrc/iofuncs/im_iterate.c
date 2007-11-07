@@ -21,6 +21,8 @@
  *	- read via a buffer image so we work with mmap window images
  * 27/11/06
  * 	- merge threadgroup stuff
+ * 7/11/07
+ * 	- new eval start/progress/end system
  */
 
 /*
@@ -199,12 +201,12 @@ im_iterate( IMAGE *im,
 {
 	IMAGE *t;
 	im_threadgroup_t *tg;
-	int res;
+	int result;
 
 	if( im_image_sanity( im ) )
 		return( -1 );
 
-	if( !(t = im_open( "im_iterate_buffer", "p" )) )
+	if( !(t = im_open( "iterate", "p" )) )
 		return( -1 );
 	if( im_copy( im, t ) ) {
 		im_close( t );
@@ -223,10 +225,19 @@ im_iterate( IMAGE *im,
 		im_diagnostics( "im_iterate: using %d threads", tg->nthr );
 #endif /*DEBUG_IO*/
 
-	res = iterate( tg, t, start, generate, stop, b, c );
+	/* Signal start of eval.
+	 */
+	if( im__start_eval( t ) )
+		return( -1 );
+
+	result = iterate( tg, t, start, generate, stop, b, c );
+
+	/* Signal end of eval.
+	 */
+	result |= im__end_eval( t );
 
 	im_threadgroup_free( tg );
 	im_close( t );
 
-	return( res );
+	return( result );
 }

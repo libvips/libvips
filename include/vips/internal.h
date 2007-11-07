@@ -37,6 +37,21 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* Default tile geometry.
+ */
+extern int im__tile_width;
+extern int im__tile_height;
+extern int im__fatstrip_height;
+extern int im__thinstrip_height;
+
+/* Default n threads.
+ */
+extern int im__concurrency;
+
+/* Give progress feedback.
+ */
+extern int im__progress;
+
 typedef int (*im__fftproc_fn)( IMAGE *, IMAGE *, IMAGE * );
 
 /* iofuncs
@@ -53,7 +68,9 @@ void *im__read_extension_block( IMAGE *im, int *size );
 int im__readhist( IMAGE *image );
 int im__write_extension_block( IMAGE *im, void *buf, int size );
 int im__writehist( IMAGE *image );
+int im__start_eval( IMAGE *im );
 int im__handle_eval( IMAGE *im, int w, int h );
+int im__end_eval( IMAGE *im );
 int im__time_destroy( IMAGE *im );
 
 extern int im__read_test;

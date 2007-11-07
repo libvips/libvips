@@ -27,6 +27,8 @@
  * 2/1/07
  * 	- init magic
  * 	- init history_list
+ * 7/11/07
+ * 	- added preclose and evalstart
  */
 
 /*
@@ -158,6 +160,9 @@ im_init( const char *filename )
 	im->history_list = NULL;
 
 	im->progress = NULL;
+
+	im->evalstartfns = NULL;
+	im->preclosefns = NULL;
 
 	if( !(im->filename = im_strdup( NULL, filename )) ) {
 		im_close( im );

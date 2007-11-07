@@ -23,6 +23,8 @@
  *	- better error messages
  * 31/10/03 JC
  *	- stop early on kill
+ * 7/11/07
+ * 	- add eval start/stop
  */
 
 /*
@@ -75,39 +77,52 @@
 #endif /*WITH_DMALLOC*/
 
 int
-im_writeline( int ypos, IMAGE *image, PEL *linebuffer )
+im_writeline( int ypos, IMAGE *im, PEL *linebuffer )
 {	
-	int linesize = IM_IMAGE_SIZEOF_LINE( image );
+	int linesize = IM_IMAGE_SIZEOF_LINE( im );
 	char *tmp;
+
+	/* Is this the start of eval?
+	 */
+	if( ypos == 0 )
+		im__start_eval( im );
 
 	/* Possible cases for output: FILE or SETBUF.
 	 */
-	switch( image->dtype ) {
+	switch( im->dtype ) {
 	case IM_SETBUF:
 	case IM_SETBUF_FOREIGN:
-		tmp = image->data + ypos * linesize;
+		tmp = im->data + ypos * linesize;
 		memcpy( tmp, linebuffer, linesize );
 
 		break;
 
 	case IM_OPENOUT:
-		if( im__write( image->fd, linebuffer, linesize ) )
+		/* Don't use ypos for this.
+		 */
+		if( im__write( im->fd, linebuffer, linesize ) )
 			return( -1 );
 
 		break;
 
 	default:
-		im_errormsg( "im_writeline: unable to output to a %s image",
-			im_dtype2char( image->dtype ) );
+		im_error( "im_writeline", 
+			_( "unable to output to a %s image" ),
+			im_dtype2char( im->dtype ) );
 		return( -1 );
 	}
 
 	/* Trigger evaluation callbacks for this image.
 	 */
-	if( im__handle_eval( image, image->Xsize, 1 ) )
+	if( im__handle_eval( im, im->Xsize, 1 ) )
 		return( -1 );
-	if( im__test_kill( image ) )
+	if( im__test_kill( im ) )
 		return( -1 );
+
+	/* Is this the end of eval?
+	 */
+	if( ypos == im->Ysize - 1 )
+		im__end_eval( im );
 
 	return( 0 );
 }

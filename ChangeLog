@@ -4,8 +4,11 @@
 - break im_wbuffer() out to a separate API
 - use im_wbuffer() to make im_vips2jpeg() compress in the background
 - also im_vips2png(), im_vips2tiff(), im_vips2ppm()
-- new system for propogating progress settings down pipelines unbreaks save
-  feedback in nip2
+- revised evaluation progress system
+- new evalstart/evalend/preclose callbacks fix over/underflow reporting
+- but the meaning of evalend has changed in a non-backwards-compatible way :(
+  use preclose instead ito get the old behaviour
+- added "--vips-progress" flag to turn on a simple eval progress tracker
 
 28/9/07 started 7.13.1
 - vips2dj can print RGB images

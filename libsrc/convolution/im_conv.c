@@ -59,6 +59,8 @@
  *	- sets Xoffset / Yoffset
  * 11/11/05
  * 	- simpler inner loop avoids gcc4 bug 
+ * 7/11/07
+ * 	- new evalstart/end callbacks
  */
 
 /*
@@ -119,18 +121,33 @@ typedef struct {
 } Conv;
 
 static int
-conv_destroy( Conv *conv )
+conv_close( Conv *conv )
+{
+	IM_FREEF( im_free_imask, conv->mask );
+
+        return( 0 );
+}
+
+static int
+conv_evalstart( Conv *conv )
+{
+	/* Reset underflow/overflow count.
+	 */
+	conv->overflow = 0;
+	conv->underflow = 0;
+
+        return( 0 );
+}
+
+static int
+conv_evalend( Conv *conv )
 {
 	/* Print underflow/overflow count.
 	 */
 	if( conv->overflow || conv->underflow )
-		im_warning( "im_conv: %d overflows and %d underflows detected",
+		im_warn( "im_conv", 
+			_( "%d overflows and %d underflows detected" ),
 			conv->overflow, conv->underflow );
-
-	if( conv->mask ) {
-		(void) im_free_imask( conv->mask );
-		conv->mask = NULL;
-	}
 
         return( 0 );
 }
@@ -154,7 +171,11 @@ conv_new( IMAGE *in, IMAGE *out, INTMASK *mask )
         conv->overflow = 0;
 
         if( im_add_close_callback( out, 
-		(im_callback_fn) conv_destroy, conv, NULL ) ||
+		(im_callback_fn) conv_close, conv, NULL ) ||
+		im_add_close_callback( out, 
+			(im_callback_fn) conv_evalstart, conv, NULL ) ||
+		im_add_close_callback( out, 
+			(im_callback_fn) conv_evalend, conv, NULL ) ||
         	!(conv->coeff = IM_ARRAY( out, ne, int )) ||
         	!(conv->mask = im_dup_imask( mask, "conv_mask" )) )
                 return( NULL );

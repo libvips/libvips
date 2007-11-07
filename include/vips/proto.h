@@ -74,6 +74,10 @@ typedef void *(*im_header_map_fn)( IMAGE *, const char *, GValue *, void * );
 int im_init_world( const char *argv0 );
 GOptionGroup *im_get_option_group( void );
 
+/* Turn progress feedback on and off.
+ */
+void im_progress_set( int progress );
+
 const char *im_error_buffer( void );
 int im_debugim( IMAGE * );
 int im_printlines( IMAGE * );
@@ -149,6 +153,8 @@ int im_ismagick( const char * );
 int im_isanalyze( const char *filename );
 
 int im_add_close_callback( IMAGE *, im_callback_fn, void *, void * );
+int im_add_preclose_callback( IMAGE *, im_callback_fn, void *, void * );
+int im_add_evalstart_callback( IMAGE *, im_callback_fn, void *, void * );
 int im_add_eval_callback( IMAGE *, im_callback_fn, void *, void * );
 int im_add_evalend_callback( IMAGE *, im_callback_fn, void *, void * );
 

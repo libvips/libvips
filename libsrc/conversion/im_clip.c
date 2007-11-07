@@ -43,6 +43,8 @@
  * 21/4/04 JC
  *	- now does floor(), not rint() ... you'll need to round yourself
  *	  before calling this if you want round-to-nearest
+ * 7/11/07
+ * 	- use new evalstart/evalend system
  */
 
 /*
@@ -100,7 +102,18 @@ typedef struct {
 } Clip;
 
 static int
-clip_destroy( Clip *clip )
+clip_evalstart( Clip *clip )
+{
+	/* Reset counts.
+	 */
+	clip->overflow = 0;
+	clip->underflow = 0;
+
+	return( 0 );
+}
+
+static int
+clip_evalend( Clip *clip )
 {
 	/* Print warnings, if necessary. 
 	 */
@@ -128,8 +141,10 @@ clip_new( IMAGE *in, IMAGE *out, int ofmt )
 	clip->underflow = 0;
 	clip->overflow = 0;
 
-	if( im_add_close_callback( out, 
-		(im_callback_fn) clip_destroy, clip, NULL ) )
+	if( im_add_evalstart_callback( out, 
+		(im_callback_fn) clip_evalstart, clip, NULL ) ||
+		im_add_evalend_callback( out, 
+			(im_callback_fn) clip_evalend, clip, NULL ) )
 		return( NULL );
 
 	return( clip );

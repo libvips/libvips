@@ -15,6 +15,8 @@
  * 8/6/07
  * 	- just warn if plugins fail to load correctly: too annoying to have
  * 	  VIPS refuse to start because of a dodgy plugin
+ * 7/11/07
+ * 	- progress feedback option
  */
 
 /*
@@ -190,16 +192,18 @@ im__ngettext( const char *msgid, const char *plural, unsigned long int n )
 static GOptionEntry option_entries[] = {
 	{ "vips-concurrency", 'c', 0, G_OPTION_ARG_INT, &im__concurrency, 
 		N_( "evaluate with N concurrent threads" ), "N" },
-	{ "vips-tile-width", 'c', 0, G_OPTION_ARG_INT, &im__tile_width, 
+	{ "vips-tile-width", 'w', 0, G_OPTION_ARG_INT, &im__tile_width, 
 		N_( "set tile width to N (DEBUG)" ), "N" },
-	{ "vips-tile-height", 'c', 0, G_OPTION_ARG_INT, &im__tile_height, 
+	{ "vips-tile-height", 'h', 0, G_OPTION_ARG_INT, &im__tile_height, 
 		N_( "set tile height to N (DEBUG)" ), "N" },
-	{ "vips-thinstrip-height", 'c', 0, 
+	{ "vips-thinstrip-height", 't', 0, 
 		G_OPTION_ARG_INT, &im__thinstrip_height, 
 		N_( "set thinstrip height to N (DEBUG)" ), "N" },
-	{ "vips-fatstrip-height", 'c', 0, 
+	{ "vips-fatstrip-height", 'f', 0, 
 		G_OPTION_ARG_INT, &im__fatstrip_height, 
 		N_( "set fatstrip height to N (DEBUG)" ), "N" },
+	{ "vips-progress", 'p', 0, G_OPTION_ARG_NONE, &im__progress, 
+		N_( "show progress feedback" ), NULL },
 	{ NULL }
 };
 

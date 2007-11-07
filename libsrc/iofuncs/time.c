@@ -29,6 +29,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -50,6 +54,10 @@ int
 im__time_destroy( IMAGE *im )
 {
 	if( im->time ) {
+#ifdef DEBUG
+		printf( "im__time_destroy: %s\n", im->filename );
+#endif /*DEBUG*/
+
 		g_timer_destroy( im->time->start );
 		im_free( im->time );
 		im->time = NULL;
@@ -68,6 +76,10 @@ time_add( IMAGE *im )
 	if( im__time_destroy( im ) ||
 		!(time = IM_NEW( NULL, im_time_t )) )
 		return( -1 );
+
+#ifdef DEBUG
+	printf( "time_add: %s\n", im->filename );
+#endif /*DEBUG*/
 
 	time->im = im;
 	time->start = g_timer_new();
@@ -98,6 +110,28 @@ update_time( im_time_t *time, int w, int h )
 	return( 0 );
 }
 
+int
+im__start_eval( IMAGE *im )
+{
+	im_image_sanity( im );
+
+	if( im->progress ) {
+#ifdef DEBUG
+		printf( "im__start_eval: %s\n", im->filename );
+#endif /*DEBUG*/
+
+		im_image_sanity( im->progress );
+
+		if( time_add( im->progress ) )
+			return( -1 );
+
+		if( im__trigger_callbacks( im->progress->evalstartfns ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 /* Handle eval callbacks. w and h are the size of the tile we made this time.
  * We signal progress on the ->progress IMAGE, see im_add_eval_callback(). We
  * assume there's no geometry change between adding the feedback request and
@@ -107,19 +141,32 @@ int
 im__handle_eval( IMAGE *im, int w, int h )
 {
 	if( im->progress ) {
-		if( !im->progress->time ) {
-			/* So we just check sanity first time around.
-			 */
-			im_image_sanity( im->progress );
-
-			if( time_add( im->progress ) )
-				return( -1 );
-		}
 		if( update_time( im->progress->time, w, h ) )
 			return( -1 );
 		
 		if( im__trigger_callbacks( im->progress->evalfns ) )
 			return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+im__end_eval( IMAGE *im )
+{
+	im_image_sanity( im );
+
+	if( im->progress ) {
+#ifdef DEBUG
+		printf( "im__end_eval: %s\n", im->filename );
+#endif /*DEBUG*/
+
+		im_image_sanity( im->progress );
+
+		if( im__trigger_callbacks( im->progress->evalendfns ) )
+			return( -1 );
+
+		im__time_destroy( im->progress );
 	}
 
 	return( 0 );

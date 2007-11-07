@@ -92,7 +92,7 @@ typedef struct {
 } Conv;
 
 static int
-conv_destroy( Conv *conv )
+conv_close( Conv *conv )
 {
 	if( conv->mask ) {
 		(void) im_free_dmask( conv->mask );
@@ -119,7 +119,7 @@ conv_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
         conv->coeff = NULL;
 
         if( im_add_close_callback( out, 
-		(im_callback_fn) conv_destroy, conv, NULL ) ||
+		(im_callback_fn) conv_close, conv, NULL ) ||
         	!(conv->coeff = IM_ARRAY( out, ne, double )) ||
         	!(conv->mask = im_dup_dmask( mask, "conv_mask" )) )
                 return( NULL );
@@ -285,13 +285,14 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	/* Check parameters.
 	 */
 	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
-		im_errormsg( "im_convf: input non-complex uncoded please!");
+		im_error( "im_convf", 
+			_( "non-complex uncoded only" ) );
 		return( -1 );
 	}
 	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
 		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
 		mask->scale == 0 ) {
-		im_errormsg( "im_convf: nonsense mask parameters" );
+		im_error( "im_convf", _( "nonsense mask parameters" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
@@ -311,7 +312,7 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	out->Xsize -= mask->xsize - 1;
 	out->Ysize -= mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_errormsg( "im_convf: image too small for mask" );
+		im_error( "im_convf", _( "image too small for mask" ) );
 		return( -1 );
 	}
 

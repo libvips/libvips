@@ -105,6 +105,7 @@ im_setupout( IMAGE *im )
 		printf( "im_setupout: old-style output for %s\n",
 			im->filename );
 #endif /*DEBUG_IO*/
+
 		im->dtype = IM_SETBUF;
 	}
 

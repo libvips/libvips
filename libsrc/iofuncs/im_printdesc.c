@@ -324,6 +324,10 @@ im_printdesc( IMAGE *image )
 		printf( "user eval callbacks attached\n" );
 	if( image->evalendfns )
 		printf( "user evalend callbacks attached\n" );
+	if( image->evalstartfns )
+		printf( "user evalstart callbacks attached\n" );
+	if( image->preclosefns )
+		printf( "user preclose callbacks attached\n" );
 	if( image->regions ) {
 		printf( "%d regions present\n", 
 			g_slist_length( image->regions ) );

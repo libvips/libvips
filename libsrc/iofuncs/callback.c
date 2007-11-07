@@ -80,16 +80,20 @@ add_callback( IMAGE *im, GSList **cblist, int (*fn)(), void *a, void *b )
 	return( 0 );
 }
 
-/* Add a close callback to an IMAGE.
- */
 int
 im_add_close_callback( IMAGE *im, int (*fn)(), void *a, void *b )
 {	
 	return( add_callback( im, &im->closefns, fn, a, b ) );
 }
 
+int
+im_add_preclose_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+{	
+	return( add_callback( im, &im->preclosefns, fn, a, b ) );
+}
+
 /* Add an eval callback to an IMAGE. You must call this after opening the
- * image, but before using it as an argument to an operation.
+ * image but before using it as an argument to an operation.
  */
 int
 im_add_eval_callback( IMAGE *im, int (*fn)(), void *a, void *b )
@@ -103,12 +107,16 @@ im_add_eval_callback( IMAGE *im, int (*fn)(), void *a, void *b )
 	return( add_callback( im, &im->evalfns, fn, a, b ) );
 }
 
-/* Add an eval end callback to an IMAGE.
- */
 int
 im_add_evalend_callback( IMAGE *im, int (*fn)(), void *a, void *b )
 {	
 	return( add_callback( im, &im->evalendfns, fn, a, b ) );
+}
+
+int
+im_add_evalstart_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+{	
+	return( add_callback( im, &im->evalstartfns, fn, a, b ) );
 }
 
 /* Perform a user callback. 

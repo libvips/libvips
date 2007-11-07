@@ -87,6 +87,9 @@ Modified:
  * 20/9/06
  * 	- test for NULL filename/mode, common if you forget to check argc
  * 	  (thanks bruno)
+ * 7/11/07
+ * 	- use preclose, not evalend, for delayed save
+ * 	- add simple cmd-line progress feedback
  */
 
 /*
@@ -163,6 +166,16 @@ static const char *im_suffix_csv[] = {
 	NULL
 };
 
+/* Progress feedback. Only really useful for testing, tbh.
+ */
+int im__progress = 0;
+
+void
+im_progress_set( int progress )
+{
+	im__progress = progress;
+}
+
 /* Open a VIPS image and byte-swap the image data if necessary.
  */
 static IMAGE *
@@ -213,7 +226,7 @@ read_vips( const char *filename )
 }
 
 /* Delayed save: if we write to TIFF or to JPEG format, actually do the write
- * to a "p" and on evalend do im_vips2tiff() or whatever. Track save
+ * to a "p" and on preclose do im_vips2tiff() or whatever. Track save
  * parameters here.
  */
 typedef struct {
@@ -222,7 +235,7 @@ typedef struct {
 	char *filename;		/* Save args */
 } SaveBlock;
 
-/* From evalend callback: invoke a delayed save.
+/* From preclose callback: invoke a delayed save.
  */
 static int
 invoke_sb( SaveBlock *sb )
@@ -246,7 +259,7 @@ attach_sb( IMAGE *out, int (*save_fn)(), const char *filename )
 	sb->save_fn = save_fn;
 	sb->filename = im_strdup( out, filename );
 
-	if( im_add_evalend_callback( out, 
+	if( im_add_preclose_callback( out, 
 		(im_callback_fn) invoke_sb, (void *) sb, NULL ) )
 		return( -1 );
 
@@ -277,7 +290,7 @@ open_lazy_start( IMAGE *out, void *a, void *dummy )
 	OpenLazy *lazy = (OpenLazy *) a;
 
 	if( !lazy->lazy_im ) {
-		if( !(lazy->lazy_im = im_open_local( out, "olstart", "p" )) || 
+		if( !(lazy->lazy_im = im_open_local( out, "read", "p" )) || 
 			lazy->read_pixels( lazy->filename, lazy->lazy_im ) ) {
 			IM_FREEF( im_close, lazy->lazy_im );
 			return( NULL );
@@ -347,6 +360,49 @@ open_sub( OpenLazyFn read_header, OpenLazyFn read_pixels, const char *filename )
 	}
 
 	return( im );
+}
+
+/* Progress feedback. 
+ */
+
+/* What we track during an eval.
+ */
+typedef struct {
+	IMAGE *im;
+
+	int last_percent;	/* The last %complete we displayed */
+} Progress;
+
+int
+evalstart_cb( Progress *progress )
+{
+	progress->last_percent = 0;
+
+	return( 0 );
+}
+
+int
+eval_cb( Progress *progress )
+{
+	IMAGE *im = progress->im;
+
+	if( im->time->percent != progress->last_percent ) {
+		printf( "%s: %d%% complete\r", 
+			im->filename, im->time->percent );
+		fflush( stdout );
+
+		progress->last_percent = im->time->percent;
+	}
+
+	return( 0 );
+}
+
+int
+evalend_cb( Progress *progress )
+{
+	printf( "\n" );
+
+	return( 0 );
 }
 
 IMAGE *
@@ -478,7 +534,7 @@ im_open( const char *filename, const char *mode )
 			im = im_openout( filename );
 		else if( im_filename_suffix_match( filename, 
 			im_suffix_tiff ) ) {
-			/* TIFF write. Save to a partial, and on evalend
+			/* TIFF write. Save to a partial, and on preclose
 			 * im_vips2tiff from that.
 			 */
 			if( !(im = im_open( "im_open:vips2tiff:1", "p" )) )
@@ -549,6 +605,20 @@ im_open( const char *filename, const char *mode )
 		im_error( "im_open", _( "bad mode \"%s\"" ), mode );
 		return( NULL );
         }
+
+	/* Attach progress feedback, if required.
+	 */
+	if( im__progress ) {
+		Progress *progress = IM_NEW( im, Progress );
+
+		progress->im = im;
+		im_add_evalstart_callback( im, 
+			(im_callback_fn) evalstart_cb, progress, NULL );
+		im_add_eval_callback( im, 
+			(im_callback_fn) eval_cb, progress, NULL );
+		im_add_evalend_callback( im, 
+			(im_callback_fn) evalend_cb, progress, NULL );
+	}
 
 #ifdef DEBUG_IO
 	printf( "im_open: success for %s (%p)\n", im->filename, im );

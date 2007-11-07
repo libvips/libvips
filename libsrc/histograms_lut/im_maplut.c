@@ -47,7 +47,9 @@
  *	- small speed ups
  * 30/6/04
  *	- heh, 1 band image + 3 band lut + >8bit output has been broken for 9
- *	years :-)
+ *	  years :-)
+ * 7/11/07
+ * 	- new eval start/end system
  */
 
 /*
@@ -103,16 +105,22 @@ typedef struct {
 	int overflow;		/* Number of overflows for non-uchar lut */
 } LutInfo;
 
+static int
+lut_start( LutInfo *st )
+{
+	st->overflow = 0;
+
+	return( 0 );
+}
+
 /* Print overflows, if any.
  */
 static int
-end_lut( LutInfo *st )
+lut_end( LutInfo *st )
 {
-	if( st->overflow ) {
+	if( st->overflow ) 
 		im_warn( "im_maplut", _( "%d overflows detected" ), 
 			st->overflow );
-		st->overflow = 0;
-	}
 
 	return( 0 );
 }
@@ -139,8 +147,10 @@ build_luts( IMAGE *out, IMAGE *lut )
 	st->clp = st->sz - 1;
 	st->overflow = 0;
 	st->table = NULL;
-	if( im_add_evalend_callback( out, 
-		(im_callback_fn) end_lut, st, NULL ) ) 
+	if( im_add_evalstart_callback( out, 
+		(im_callback_fn) lut_start, st, NULL ) || 
+		im_add_evalend_callback( out, 
+			(im_callback_fn) lut_end, st, NULL ) ) 
 		return( NULL );
 
 	/* Attach tables.

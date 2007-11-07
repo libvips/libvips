@@ -47,17 +47,6 @@ extern "C" {
  */
 #define IM__DEFAULT_STACK_SIZE (2 * 1024 * 1024)
 
-/* Default tile geometry.
- */
-extern int im__tile_width;
-extern int im__tile_height;
-extern int im__fatstrip_height;
-extern int im__thinstrip_height;
-
-/* Default n threads.
- */
-extern int im__concurrency;
-
 /* A work function.
  */
 typedef int (*im__work_fn)( REGION *, void *, void *, void * );
