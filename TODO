@@ -16,12 +16,6 @@
 
   is there a problem
 
-- update docs, add pages for new cbs
-
-  part of im_malloc.3
-
-  update nip2 for the new system ... seems to just be imageinfo_progress_add()
-
 - test ppm writer
 
 - missing libstdc++ in link? what if we configure with no openexr?

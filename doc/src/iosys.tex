@@ -120,7 +120,7 @@ typedef struct {
     /* Derived fields that may be read by the user. 
      */
     char *filename;        /* File name */
-    struct time_info *time;/* Timing for eval callback */
+    im_time_t *time;       /* Timing for eval callback */
     int kill;              /* Set to non-zero to block eval */
 
     ... and lots of other private fields used by VIPS for 
@@ -592,13 +592,12 @@ descriptor. The base memory allocation function is \verb+im_malloc()+. It
 has type:
 
 \begin{verbatim}
-void *im_malloc( IMAGE *im, 
-  size_t size )
+void *im_malloc( IMAGE *, size_t )
 \end{verbatim}
 
 It operates exactly as the standard \verb+malloc()+ C library function,
-except that the area of memory it allocates is local to image descriptor
-\verb+im+. If \verb+im_malloc()+ is unable to allocate memory, it returns
+except that the area of memory it allocates is local to an image.
+If \verb+im_malloc()+ is unable to allocate memory, it returns
 \verb+NULL+. If you pass \verb+NULL+ instead of a valid image descriptor,
 then \verb+im_malloc()+ allocates memory globally and you must free it
 yourself at some stage.
@@ -606,7 +605,7 @@ yourself at some stage.
 To free memory explicitly, use \verb+im_free()+:
 
 \begin{verbatim}
-int im_free( void *mem )
+int im_free( void * )
 \end{verbatim}
 
 \noindent
@@ -618,7 +617,7 @@ a new object. You give it a descriptor and a type, and it returns a pointer
 to enough space to hold an object of that type. It has type:
 
 \begin{verbatim}
-type-name *IM_NEW( IMAGE *im, type-name )
+type-name *IM_NEW( IMAGE *, type-name )
 \end{verbatim}
 
 The second macro, \verb+IM_ARRAY()+, is very similar, but allocates
@@ -626,8 +625,7 @@ space for an array of objects. Note that, unlike the usual \verb+calloc()+
 C library function, it does not initialise the array to zero. It has type:
 
 \begin{verbatim}
-type-name *IM_ARRAY( IMAGE *im, 
-  int n, type-name )
+type-name *IM_ARRAY( IMAGE *, int, type-name )
 \end{verbatim}
 
 Finally, \verb+IM_NUMBER()+ returns the number of elements in an array of

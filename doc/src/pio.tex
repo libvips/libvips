@@ -797,8 +797,7 @@ full details.
 \label{sec:callback}
 
 VIPS lets you attach callbacks to image descriptors. These are functions
-you provide that VIPS will call when certain events occur. This release
-of VIPS supports three callbacks:
+you provide that VIPS will call when certain events occur. 
 
 \subsubsection{Close callbacks}
 
@@ -806,44 +805,35 @@ These callbacks are invoked just before an image is closed. They are useful
 for freeing objects which are associated with the image. All callbacks are
 triggered in the reverse order to the order in which they were attached. This
 is sometimes important when freeing objects which contain pointers to
-other objects.
+other objects. Close callbacks are guaranteed to be called, and to be called
+exactly once.
 
 Use \verb+im_add_close_callback()+ to add a close callback:
 
 \begin{verbatim}
-int 
-im_add_close_callback( IMAGE *im, 
-   int (*callback)(), 
-   void *a, void *b ) 
+typedef int (*im_callback)( void *, void * )
+int im_add_close_callback( IMAGE *, 
+   im_callback_fn, 
+   void *, void * ) 
 \end{verbatim}
    
-\noindent
-where \verb+callback()+ is a function supplied by you which has type:
-
-\begin{verbatim}
-int callback( void *a, void *b ) 
-\end{verbatim}
-
-\noindent
-and which returns 0 on success, and -1 on error, setting
-\verb+im_error()+. As with \verb+im_generate()+, the values \verb+a+
-and \verb+b+ are carried around for you by VIPS, and may be used as your
+As with \verb+im_generate()+, the two \verb+void *+ pointers
+are carried around for you by VIPS and may be used as your
 function sees fit.
+
+\subsubsection{Preclose callbacks}
+
+Preclose callbacks are called before any shutdown has occured. Everything is
+still alive and your callback can do anything to the image. Preclose callbacks
+are guaranteed to be called, and to be called exactly once. See the manual
+page for \verb+im_add_preclose_callback()+ for full details.
 
 \subsubsection{Eval callbacks}
 
-These are callbacks which are invoked by VIPS during evaluation. They
-are called each time a region is filled with data (for PIO functions), or
-each time \verb+im_writeline()+ is called (for WIO functions). The callback
-has access to a large struct containing information about the progress of
-evaluation, useful for user-interfaces built on top of VIPS. See the manual
-page for \verb+im_add_eval_callback()+ for full details.
-
-\subsubsection{Evalend callbacks}
-
-These are triggered after completion of evaluation of an image, just after all
-stop functions have been called. Evalend callbacks are useful for summarising
-the results of a computation, see the example in the section below.
+These are callbacks which are invoked periodically by VIPS during evaluation.
+The callback has access to a struct containing information about the progress
+of evaluation, useful for user-interfaces built on top of VIPS. See the
+manual page for \verb+im_add_eval_callback()+ for full details.
 
 \subsection{Memory allocation revisited}
 

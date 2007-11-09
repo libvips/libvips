@@ -1,51 +1,25 @@
 .TH IM_AND 3 "30 October 1992"
 .SH NAME
 im_add_close_callback, im_add_eval_callback, im_malloc, im_free,
-im_add_evalend_callback \- add image callbacks
+im_add_evalend_callback, im_add_evalstart_callback, im_add_preclose_callback \- add image callbacks
 .SH SYNOPSIS
 .B #include <vips/vips.h>
 
-int im_add_close_callback( im, fn, a, b )
-.br
-IMAGE *im;
-.br
-int (*fn)();
-.br
-void *a, *b;
+typedef int (*im_callback_fn)( void *, void * );
 
-int im_add_evalend_callback( im, fn, a, b )
-.br
-IMAGE *im;
-.br
-int (*fn)();
-.br
-void *a, *b;
+int im_add_close_callback( IMAGE *, im_callback_fn, void *, void * );
 
-where
+int im_add_preclose_callback( IMAGE *, im_callback_fn, void *, void * );
 
-int fn( a, b )
-.br
-void *a, *b;
+int im_add_evalstart_callback( IMAGE *, im_callback_fn, void *, void * );
 
-char *im_malloc( IMAGE *im, int size );
+int im_add_eval_callback( IMAGE *, im_callback_fn, void *, void * );
 
-int im_free( void *s );
+int im_add_evalend_callback( IMAGE *, im_callback_fn, void *, void * );
 
-.B #include <vips/vips.h>
+void *im_malloc( IMAGE *, size_t );
 
-int im_add_eval_callback( im, fn, a, b )
-.br
-IMAGE *im;
-.br
-int (*fn)();
-.br
-void *a, *b;
-
-where
-
-int fn( a, b )
-.br
-void *a, *b;
+int im_free( void * );
 
 .SH DESCRIPTION
 These functions attach callbacks to images. Callbacks are functions, with
@@ -62,7 +36,8 @@ is closed by
 The callback is expected to return 0 for success and
 non-zero for failure. If the function fails, then the whole 
 .B im_close(3) 
-fails.
+fails. Close callbacks are guaranteed to be called exactly once, so they are a
+good place to release resources.
 
 This function is used by VIPS to implement 
 .B im_malloc(3). 
@@ -93,16 +68,27 @@ may even be circularity in your
 .B im_close(3) 
 lists. 
 
-.B im_add_evalend_callback(3) 
-adds a callback which will be triggered when VIPS
-has finished writing to the descriptor. If you want to output some diagnostics
-from your function (an overflow count, for example), this is the callback to
-use. 
+.B im_add_preclose_callback(3) 
+adds a callback which will be triggered when the image is closed, but before
+any closing has started. Everything is still alive and you can do anything
+with the image. Preclose callbacks are guaranteed to be called exactly once.
+
+.B im_add_evalstart_callback(3) 
+adds a callback which will be triggered just before image evaluation starts.
+It can be called many times. It's a good place to initalize data structures.
+Don't allocate resources here.
+
+Eval callbacks are inherited. That is, any images which use your image as
+input will inherit your eval callbacks. As a result, if you add an eval
+callback to an image, you will be notified if any later image uses your image
+for computation.
+
+If a later image adds eval callbacks, then the inheritance is broken, and that
+image will recieve notification instead.
 
 .B im_add_eval_callback(3) 
 adds a callback which will be triggered repeatedly as
-the image is written to. This works for both PIO and WIO images,
-although it is rather more successful with PIO image output.
+the image is evaluated. 
 
 When the callback is triggered, the time field of the descriptor will point to
 a 
@@ -111,12 +97,13 @@ structure, see vips.h
 
   typedef struct {
     IMAGE *im;     /* Image we are part of */
-    GTimer *start; /* Start time */
+    time_t unused; /* For compatibility */
     int run;       /* Time we have been running (secs) */
     int eta;       /* Estimated seconds of computation left */
     gint64 tpels;  /* Number of pels we expect to calculate */
     gint64 npels;  /* Number of pels calculated so far */
     int percent;   /* Percent complete */
+    GTimer *start; /* Start time */
   } im_time_t;
 
 These fields are not exact! They should only be used to give approximate
@@ -140,8 +127,14 @@ be used to provide a `cancel' feature in your user-interface.
   if( im_add_eval_callback( out, eval_cb, out, NULL ) )
     return( -1 );
 
-  ... now as we write to out, we will get %complete 
+  ... now as out is evaluated, we will get %complete 
   ... messages on stdout.
+
+.B im_add_evalend_callback(3) 
+adds a callback which will be triggered when VIPS
+has finished evaluating the image. If you want to output some diagnostics
+from your function (an overflow count, for example), this is the callback to
+use. Again, this can be called many times. 
 
 .SH RETURN VALUE
 All functions return 0 on success and non-zero on error.
