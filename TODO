@@ -1,3 +1,21 @@
+- try
+
+	im_max ~/pics/wtc.jpg
+	read: done in 8s          
+	iterate: done in 11s          
+	255
+
+	nip2 --vips-progress -e 'max (Image_file "~/pics/wtc.jpg")'
+	/home/john/.nip2-7.13.2/tmp/untitled-nip2-0-XOSIR1T.v: done in 18s
+	iterate: done in 20s          
+
+	nip2 --vips-progress ~/pics/wtc.jpg
+	/home/john/.nip2-7.13.2/tmp/untitled-nip2-0-X37AX1T.v: done in 23s
+	... then "max A1" at the cmd line
+	iterate: done in 32s          
+
+  is there a problem
+
 - update docs, add pages for new cbs
 
   part of im_malloc.3
