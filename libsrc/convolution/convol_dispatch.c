@@ -1007,44 +1007,6 @@ static im_function spcor_raw_desc = {
 	two_in_one_out 			/* Arg list */
 };
 
-/* Call im_spcor2 via arg vector.
- */
-static int
-spcor2_vec( im_object *argv )
-{
-	return( im_spcor2( argv[0], argv[1], argv[2] ) );
-}
-
-/* Description of im_spcor2.
- */ 
-static im_function spcor2_desc = {
-	"im_spcor2",	 		/* Name */
-	"normalised correlation of in2 within in1",
-	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-	spcor2_vec, 			/* Dispatch function */
-	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
-	two_in_one_out 			/* Arg list */
-};
-
-/* Call im_spcor2_raw via arg vector.
- */
-static int
-spcor2_raw_vec( im_object *argv )
-{
-	return( im_spcor2_raw( argv[0], argv[1], argv[2] ) );
-}
-
-/* Description of im_spcor2_raw.
- */ 
-static im_function spcor2_raw_desc = {
-	"im_spcor2_raw", 		/* Name */
-	"normalised correlation of in2 within in1, no black padding",
-	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-	spcor2_raw_vec, 		/* Dispatch function */
-	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
-	two_in_one_out 			/* Arg list */
-};
-
 /* Args for im_zerox.
  */
 static im_arg_desc zerox_args[] = {
@@ -1392,8 +1354,6 @@ static im_function *convol_list[] = {
 	&shrink_desc,
 	&spcor_desc,
 	&spcor_raw_desc,
-	&spcor2_desc,
-	&spcor2_raw_desc,
 	&stretch3_desc,
 	&zerox_desc
 };

@@ -17,7 +17,8 @@
  * @(#)
  * @(#) Returns 0 on sucess  and -1 on error.
  *
- * Copyright: 1990, N. Dessipris.
+ * Copyright: 1990, N. Dessipris; 2006, 2007 Nottingham Trent University.
+ *
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
@@ -39,6 +40,12 @@
  *	- sets Xoffset / Yoffset
  * 8/3/06 JC
  *	- use im_embed() with edge stretching on the input, not the output
+ *
+ * 2006-10-24 tcv
+ *      - add im_spcor2
+ *
+ * 2007-11-12 tcv
+ *      - make im_spcor a wrapper selecting either im__spcor1 or im__spcor2
  */
 
 /*
@@ -113,6 +120,11 @@ static void *spcor2_start( IMAGE *r, void *a, void *b );
 static int spcor2_gen( REGION *r, void *seq, void *a, void *b );
 static int spcor2_stop( void *seq, void *a, void *b );
 
+/* spcor1 generate function.
+ */
+static int
+spcor1_gen( REGION *or, void *seq, void *a, void *b )
+{
 #define LOOP(IN) \
 { \
 	IN *a = (IN *) p; \
@@ -152,12 +164,6 @@ static int spcor2_stop( void *seq, void *a, void *b );
 		} \
 	} \
 }
-
-/* spcor generate function.
- */
-static int
-spcor_gen( REGION *or, void *seq, void *a, void *b )
-{
 	REGION *ir = (REGION *) seq;
 	SpcorInfo *inf = (SpcorInfo *) b;
 	IMAGE *ref = inf->ref;
@@ -202,7 +208,7 @@ spcor_gen( REGION *or, void *seq, void *a, void *b )
 			case IM_BANDFMT_USHORT: LOOP(unsigned short); break;
 			case IM_BANDFMT_SHORT:	LOOP(signed short); break;
 			default:
-				error_exit( "im_spcor: internal error #7934" );
+				error_exit( "im_spcor1: internal error #7934" );
 
 				/* Keep gcc -Wall happy.
 				 */
@@ -219,6 +225,7 @@ spcor_gen( REGION *or, void *seq, void *a, void *b )
 	}
 
 	return( 0 );
+#undef LOOP
 }
 
 /* Pre-calculate stuff for our reference image.
@@ -252,8 +259,8 @@ make_inf( IMAGE *out, IMAGE *ref )
 	return( inf );
 }
 
-int 
-im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
+static int 
+im__spcor1_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
 	SpcorInfo *inf;
 
@@ -265,7 +272,7 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	/* Check sizes.
 	 */
 	if( in->Xsize < ref->Xsize || in->Ysize < ref->Ysize ) {
-		im_errormsg( "im_spcor_raw: ref not smaller than in" );
+		im_errormsg( "im_spcor1_raw: ref not smaller than in" );
 		return( -1 );
 	}
 
@@ -274,13 +281,13 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ||
 		ref->Coding != IM_CODING_NONE || ref->Bands != 1 ||
 		in->BandFmt != ref->BandFmt ) {
-		im_errormsg( "im_spcor_raw: input not uncoded 1 band" );
+		im_errormsg( "im_spcor1_raw: input not uncoded 1 band" );
 		return( -1 );
 	}
 	if( in->BandFmt != IM_BANDFMT_UCHAR && 
 		in->BandFmt != IM_BANDFMT_SHORT &&
 		in->BandFmt != IM_BANDFMT_USHORT ) {
-		im_errormsg( "im_spcor_raw: input not char/short/ushort" );
+		im_errormsg( "im_spcor1_raw: input not char/short/ushort" );
 		return( -1 );
 	}
 
@@ -307,7 +314,7 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	/* Write the correlation.
 	 */
 	if( im_generate( out,
-		im_start_one, spcor_gen, im_stop_one, in, inf ) )
+		im_start_one, spcor1_gen, im_stop_one, in, inf ) )
 		return( -1 );
 
 	out->Xoffset = -ref->Xsize / 2;
@@ -318,17 +325,17 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 /* The above, with the input expanded to make out the same size as in.
  */
-int 
-im_spcor( IMAGE *in, IMAGE *ref, IMAGE *out )
+static int
+im__spcor1( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
-	IMAGE *t1 = im_open_local( out, "im_spcor intermediate", "p" );
+	IMAGE *t1 = im_open_local( out, "im_spcor1 intermediate", "p" );
 
 	if( !t1 ||
 		im_embed( in, t1, 1, 
 			ref->Xsize / 2, ref->Ysize / 2, 
 			in->Xsize + ref->Xsize - 1, 
 			in->Ysize + ref->Ysize - 1 ) ||
-		im_spcor_raw( t1, ref, out ) ) 
+		im__spcor1_raw( t1, ref, out ) ) 
 		return( -1 );
 
 	out->Xoffset = 0;
@@ -337,13 +344,13 @@ im_spcor( IMAGE *in, IMAGE *ref, IMAGE *out )
 	return( 0 );
 }
 
-int
-im_spcor2_raw( 
+static int
+im__spcor2_raw( 
     IMAGE *f, 
     IMAGE *w, 
     IMAGE *r 
 ){
-#define FUNCTION_NAME "im_spcor_raw"
+#define FUNCTION_NAME "im_spcor2_raw"
 
   DOUBLEMASK *w_stats;
   spcor2_w_inf *w_inf;
@@ -533,8 +540,8 @@ spcor2_stop( void *vseq, void *a, void *b ){
   return 0;
 }
 
-int 
-im_spcor2( IMAGE *in, IMAGE *ref, IMAGE *out )
+static int 
+im__spcor2( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
 	IMAGE *t1 = im_open_local( out, "im_spcor2 intermediate", "p" );
 
@@ -543,11 +550,43 @@ im_spcor2( IMAGE *in, IMAGE *ref, IMAGE *out )
 			ref->Xsize / 2, ref->Ysize / 2, 
 			in->Xsize + ref->Xsize - 1, 
 			in->Ysize + ref->Ysize - 1 ) ||
-		im_spcor2_raw( t1, ref, out ) ) 
+		im__spcor2_raw( t1, ref, out ) ) 
 		return( -1 );
 
 	out->Xoffset = 0;
 	out->Yoffset = 0;
 
 	return( 0 );
+}
+
+int
+im_spcor_raw( 
+    IMAGE *f, 
+    IMAGE *w, 
+    IMAGE *r 
+){
+  if( im_incheck( w ))
+    return -1;
+
+  if( 3 <= w-> Xsize || 3 <= w-> Ysize )
+    return im__spcor2( f, w, r );
+
+  else
+    return im__spcor1( f, w, r );
+}
+
+int
+im_spcor( 
+    IMAGE *f, 
+    IMAGE *w, 
+    IMAGE *r 
+){
+  if( im_incheck( w ))
+    return -1;
+
+  if( 3 <= w-> Xsize || 3 <= w-> Ysize )
+    return im__spcor2( f, w, r );
+
+  else
+    return im__spcor1( f, w, r );
 }

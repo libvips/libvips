@@ -274,8 +274,6 @@ int im_fastcor( IMAGE *, IMAGE *, IMAGE * );
 int im_fastcor_raw( IMAGE *, IMAGE *, IMAGE * );
 int im_spcor( IMAGE *, IMAGE *, IMAGE * );
 int im_spcor_raw( IMAGE *, IMAGE *, IMAGE * );
-int im_spcor2( IMAGE *, IMAGE *, IMAGE * );
-int im_spcor2_raw( IMAGE *, IMAGE *, IMAGE * );
 int im_gradcor( IMAGE *, IMAGE *, IMAGE * );
 int im_gradcor_raw( IMAGE *, IMAGE *, IMAGE * );
 int im_contrast_surface( IMAGE *, IMAGE *, int, int );
