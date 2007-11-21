@@ -536,7 +536,7 @@ get_pixels( Image *image, int left, int top, int width, int height )
 static int
 magick_fill_region( REGION *out, void *seq, void *a, void *b )
 {
-	Read *read = (Read *) b;
+	Read *read = (Read *) a;
 	Rect *r = &out->valid;
 	int y;
 
