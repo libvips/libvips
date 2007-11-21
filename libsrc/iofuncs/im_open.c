@@ -389,8 +389,8 @@ eval_cb( Progress *progress )
 	if( im->time->percent != progress->last_percent ) {
 		/* \r at end returns to the start of this line.
 		 */
-		printf( _( "%s: %d%% complete\r" ), 
-			im->filename, im->time->percent );
+		printf( _( "%s %s: %d%% complete\r" ), 
+			g_get_prgname(), im->filename, im->time->percent );
 		fflush( stdout );
 
 		progress->last_percent = im->time->percent;
@@ -406,8 +406,8 @@ evalend_cb( Progress *progress )
 
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
-	printf( _( "%s: done in %ds          \n" ), 
-		im->filename, im->time->run );
+	printf( _( "%s %s: done in %ds          \n" ), 
+		g_get_prgname(), im->filename, im->time->run );
 
 	return( 0 );
 }
