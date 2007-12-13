@@ -32,6 +32,7 @@
 #include <vips/intl.h>
 
 #include <cstdlib>
+#include <cstring>
 #include <cstdio>
 
 #include <vips/vips.h>

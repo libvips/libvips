@@ -23,6 +23,8 @@
   added -lstdc++ to VIPS_LIBS, but will this work on solaris etc.? maybe have
   a configure option to turn off CImg
 
+  there must be an autoconf macro that finds the stdc++ library name
+
 - test maxpos_avg, quite a few changes
 
 - im_exr2vips can now use c++ api
