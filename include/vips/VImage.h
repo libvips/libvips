@@ -238,9 +238,13 @@ public:
 	void initdesc( int, int, int, TBandFmt, TCoding, TType, 
 		float = 1.0, float = 1.0, int = 0, int = 0 ) throw( VError );
 
+/* Bindings wrap databased operations at runtime using reflection.
+ */
+#ifndef SWIG
 	/* Insert automatically generated headers.
 	 */
 #include "vipsc++.h"
+#endif /*SWIG*/
 
 /* No point getting SWIG to wrap these ... we do this by hand later so we can
  * handle things like "a + 12" correctly.
@@ -389,7 +393,7 @@ public:
 
 VIPS_NAMESPACE_END
 
-// Other VIPS protos
+// Other VIPS protos we need 
 extern "C" {
 extern int im_init_world( const char *argv0 ); 
 extern void im__print_all(); 

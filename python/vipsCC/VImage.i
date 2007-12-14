@@ -13,6 +13,13 @@
  */
 %rename(__assign__) vips::VImage::operator=;
 
+/* We wrap the C++ VImage class as VImage_core, then write the user-visible
+ * VImage class ourselves with a %pythoncode (see below). Our hand-made VImage
+ * class wraps all the operators from the VIPS image operation database via
+ * __getattr__.
+ */
+%rename(VImage_core) VImage;
+
 %include "std_list.i"
 %include "std_complex.i"
 %include "std_vector.i"
@@ -31,11 +38,16 @@ namespace std {
 /* VImage defines a lot of other operator overloads ... but SWIGs autowrapping
  * doesn't work well for them. Do by hand later.
  */
+%include vips/VImage.h
 
-/* Need the expanded VImage.h in this directory. SWIG b0rks on #includes
- * inside class definitions.
+/* Now wrap SWIG's VImage_core with our own VImage class which does operations
+ * from the VIPS operation database.
  */
-%include VImage.h
+%pythoncode %{
+class VImage (VImage_core):
+        def __getattr__ (self, name):
+                print "VImage getattr: ", name
+%}
 
 /* Helper code for vips_init().
  */
