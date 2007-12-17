@@ -35,18 +35,41 @@ namespace std {
   %template(ImageVector) vector<VImage>;
 }
 
-/* VImage defines a lot of other operator overloads ... but SWIGs autowrapping
- * doesn't work well for them. Do by hand later.
- */
 %include vips/VImage.h
+
+/* Search for a VIPS operation that matches a name and a set of args.
+ */
+%inline %{
+
+/* We need to wrap by hand, hmm
+ */
+
+%}
 
 /* Now wrap SWIG's VImage_core with our own VImage class which does operations
  * from the VIPS operation database.
  */
 %pythoncode %{
+# proxy class to hold a method name during call
+class VImage_method:
+        def __init__ (self,name):
+                self.method = name
+            
+        def __call__ (self, obj_to_call, arguments):  
+                method = obj_to_call.__getattr__ (self.method)
+                print "VImage_method: calling ", self.method
+                print " with args ", arguments
+                method (arguments)
+
 class VImage (VImage_core):
+        def __init (self, *args):
+                VImage_core.__init__ (self, *args)
         def __getattr__ (self, name):
                 print "VImage getattr: ", name
+                if (is_a_valid_method (name)):
+                        return VImage_method (name)
+                else
+                        raise AttributeError
 %}
 
 /* Helper code for vips_init().
