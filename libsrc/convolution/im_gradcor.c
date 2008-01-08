@@ -1,6 +1,18 @@
-/* @(#) Like im_spcor(), but with a new metric.  Docs to follow.
+/* @(#) Like im_spcor(), but with a new metric.
  * @(#)
- * @(#) Returns 0 on sucess  and -1 on error.
+ * @(#) takes the gradient images of the two images, and takes the dot-product
+ * @(#) correlation of the two vector images.
+ * @(#)
+ * @(#) (vector images are never really used, the two components are
+ * @(#) calculated separately)
+ * @(#)
+ * @(#) The vector expression of this method is my (tcv) own creation. It is
+ * @(#) equivalent to the complex-number method of:
+ * @(#)
+ * @(#) ARGYRIOU, V. et al. 2003.  Estimation of sub-pixel motion using
+ * @(#) gradient cross correlation.  Electronics Letters, 39 (13).
+ * @(#)
+ * @(#) It's suitability for sub-pixel alignment is not (yet) tested.
  *
  * Copyright: 2007 Nottingham Trent University
  *
@@ -153,7 +165,8 @@ int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
     IMAGE *ygrad= im_open_local( out, FUNCTION_NAME ": ygrad", "t" );
     IMAGE **grads= im_allocate_input_array( out, xgrad, ygrad, NULL );
 
-    return im_grad_x( small, xgrad )
+    return ! xgrad || ! ygrad || ! grads
+      || im_grad_x( small, xgrad )
       || im_grad_y( small, ygrad )
       || im_generate( out, gradcor_start, gradcor_gen, gradcor_stop, (void*) large, (void*) grads );
   }

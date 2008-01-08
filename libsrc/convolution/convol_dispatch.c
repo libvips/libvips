@@ -702,7 +702,7 @@ grad_x_vec( im_object *argv )
  */ 
 static im_function grad_x_desc = {
 	"im_grad_x",	 		/* Name */
-	"x component of gradient of image",
+	"horizontal difference image",
 	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
 	grad_x_vec, 			/* Dispatch function */
 	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
@@ -721,7 +721,7 @@ grad_y_vec( im_object *argv )
  */ 
 static im_function grad_y_desc = {
 	"im_grad_y",	 		/* Name */
-	"y component of gradient of image",
+	"vertical difference image",
 	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
 	grad_y_vec, 			/* Dispatch function */
 	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
