@@ -206,7 +206,10 @@ man_MANS = \
 	im_glds_mean.3 \
 	im_global_balance.3 \
 	im_global_balance_float.3 \
+	im_gradcor.3 \
 	im_gradient.3 \
+	im_grad_x.3 \
+	im_grad_y.3 \
 	im_grey.3 \
 	im_grid.3 \
 	im_guess_prefix.3 \

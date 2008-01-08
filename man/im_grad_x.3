@@ -1,0 +1,29 @@
+.TH IM_GRAD_X 3 "08 January 2008"
+.SH NAME
+ im_grad_x, im_grad_y \- find horizontal or vertical differences
+.SH SYNOPSIS
+.nf
+.B #include <vips/vips.h>
+.sp
+.BI "int im_grad_x( IMAGE " "*in" ", IMAGE " "*out" " );
+.br
+
+.BI "int im_grad_y( IMAGE " "*in" ", IMAGE " "*out" " );
+.fi
+.SH DESCRIPTION
+.B im_grad_x(3)
+generates an image where the value of each pixel is the difference between horizontally ajacent pixels in the input
+image.  The output has the same height as the input and one pixel less width.
+.PP 
+.B im_grad_y(3)
+generates an image where the value of each pixel is the difference between vertically ajacent pixels in the input
+image.  The output has the same width as the input and one pixel less height.
+.PP 
+In both cases, the input can be any uncoded integer type, and the output is signed 32 bit integer.
+.SH RETURN VALUE
+The functions returns 0 on success and -1 on error.
+.SH COPYRIGHT
+.br
+Copyright 2008, Nottingham Trent University.
+.SH AUTHOR
+Tom Vajzovic
