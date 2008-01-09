@@ -105,19 +105,43 @@
 
 /* Complex abs operation: calculate modulus.
  */
-#define complexabs(TYPE)\
-	{\
-		TYPE *p = (TYPE *) in;\
-		TYPE *q = (TYPE *) out;\
-		\
-		for( x = 0; x < sz; x++ ) {\
-			double rp = p[0];\
-			double ip = p[1];\
-			\
-			p += 2;\
-			q[x] = sqrt( rp * rp + ip * ip );\
-		}\
-	}
+
+#ifdef HAVE_HYPOT
+
+#define complexabs(TYPE) {                                    \
+                TYPE *p = (TYPE *) in;                        \
+                TYPE *q = (TYPE *) out;                       \
+                TYPE *q_stop = q + sz;                        \
+                                                              \
+                while( q < q_stop )                           \
+                  *q++= hypot( *p++, *p++ );                  \
+        }
+
+#else /*HAVE_HYPOT*/
+
+#define complexabs(TYPE) {                                    \
+                TYPE *p = (TYPE *) in;                        \
+                TYPE *q = (TYPE *) out;                       \
+                TYPE *q_stop = q + sz;                        \
+                                                              \
+                while( q < q_stop ){                          \
+                  double rp = *p++;                           \
+                  double ip = *p++;                           \
+                  double abs_rp= fabs( rp );                  \
+                  double abs_ip= fabs( ip );                  \
+                                                              \
+                  if( abs_rp > abs_ip ){                      \
+                    double temp= ip / rp;                     \
+                    *q++= abs_rp * sqrt( 1.0 + temp * temp ); \
+                  }                                           \
+                  else {                                      \
+                    double temp= rp / ip;                     \
+                    *q++= abs_ip * sqrt( 1.0 + temp * temp ); \
+                  }                                           \
+                }                                             \
+        }
+
+#endif /*HAVE_HYPOT*/
 
 /* Abs a buffer of PELs.
  */
