@@ -1,14 +1,3 @@
-- oops:
-
-vec ($VIPSHOME/share/nip2/compat/7.10/_stdenv.def:58) refers to undefined
-symbol im_eor_vec
-vec ($VIPSHOME/share/nip2/compat/7.10/_stdenv.def:58) refers to undefined
-symbol im_or_vec
-vec ($VIPSHOME/share/nip2/compat/7.10/_stdenv.def:58) refers to undefined
-symbol im_and_vec
-
-  add compat hooks for these
-
 - write our own python extension to call a vips operation by name
 
 	result = vips_call ("name", args)
