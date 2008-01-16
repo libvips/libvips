@@ -1,3 +1,27 @@
+- oops:
+
+vec ($VIPSHOME/share/nip2/compat/7.10/_stdenv.def:58) refers to undefined
+symbol im_eor_vec
+vec ($VIPSHOME/share/nip2/compat/7.10/_stdenv.def:58) refers to undefined
+symbol im_or_vec
+vec ($VIPSHOME/share/nip2/compat/7.10/_stdenv.def:58) refers to undefined
+symbol im_and_vec
+
+  add compat hooks for these
+
+- write our own python extension to call a vips operation by name
+
+	result = vips_call ("name", args)
+
+  then call that from VImage_method
+
+- do we really need VImage_method? Can't we write
+
+	__getattr__ (self, name) = lambda (obj_to_call, arguments):
+
+  or something like that?
+
+
 - try
 
 	im_max ~/pics/wtc.jpg
@@ -41,6 +65,11 @@ Python binding
   do we need to build plugins with -rpath etc. and more libs?
 
   or do we need to make sure our python modules export all their im_ symbols?
+
+  check:
+
+  	http://www.swig.org/Doc1.3/SWIGDocumentation.html#Python_nn8
+	http://docs.python.org/dist/dist.html
 
 WONTFIX
 =======
