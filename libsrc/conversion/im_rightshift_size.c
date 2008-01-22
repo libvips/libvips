@@ -246,8 +246,8 @@ static int gen_ ## SHIFT_MACRO ## _ ## FROM_T ## _to_ ## TO_T ## _with_ ## SUM_T
   int *params = (int *) b;                                                                        \
   int xshift= params[0];                                                                          \
   int yshift= params[1];                                                                          \
-  int preshift= params[2];                                                                        \
-  int postshift= params[3];                                                                       \
+  int G_GNUC_UNUSED preshift= params[2];                                                          \
+  int G_GNUC_UNUSED postshift= params[3];                                                         \
   Rect need= {                                                                                    \
     to_make-> valid. left << xshift,                                                              \
     to_make-> valid. top << yshift,                                                               \
