@@ -506,6 +506,7 @@ int im_replicate( IMAGE *in, IMAGE *out, int across, int down );
 int im_grid( IMAGE *in, IMAGE *out, int tile_height, int across, int down );
 int im_msb ( IMAGE * in, IMAGE * out );
 int im_msb_band ( IMAGE * in, IMAGE * out, int band );
+int im_wrap( IMAGE *in, IMAGE *out, int x, int y );
 
 /* colour
  */

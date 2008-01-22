@@ -1878,6 +1878,35 @@ static im_function rightshift_size_desc = {
   rightshift_size_args		/* Arg list */
 };
 
+/* Args to im_wrap.
+ */
+static im_arg_desc wrap_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" )
+};
+
+/* Call im_wrap via arg vector.
+ */
+static int
+wrap_vec (im_object * argv)
+{
+  return im_wrap( (IMAGE*)argv[0], (IMAGE*)argv[1], *(int*)argv[2], *(int*)argv[3] );
+}
+
+/* Description of im_wrap.
+ */
+static im_function wrap_desc = {
+  "im_wrap",		/* Name */
+  "shift image origin, wrapping at sides",
+  IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
+  wrap_vec,		/* Dispatch function */
+  IM_NUMBER (wrap_args),	/* Size of arg list */
+  wrap_args		/* Arg list */
+};
+
+
 /* Package up all these functions.
  */
 static im_function *conv_list[] = {
@@ -1952,6 +1981,7 @@ static im_function *conv_list[] = {
 	&vips2png_desc,
 	&vips2ppm_desc,
 	&vips2tiff_desc,
+	&wrap_desc,
 	&zoom_desc
 };
 

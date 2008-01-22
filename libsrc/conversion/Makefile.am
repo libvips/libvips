@@ -55,6 +55,7 @@ libconversion_la_SOURCES = \
 	im_vips2jpeg.c \
 	im_vips2ppm.c \
 	im_vips2png.c \
+	im_wrap.c \
 	im_zoom.c
 
 INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
