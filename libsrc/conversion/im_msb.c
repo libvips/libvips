@@ -151,7 +151,7 @@ im_msb (IMAGE * in, IMAGE * out)
 
       width = SIZEOF_BAND (in->BandFmt);
 
-#ifdef WORDS_BIGENDIAN
+#if G_BYTE_ORDER == G_BIG_ENDIAN
       index = 0;
 #else
       index = width - 1;
@@ -239,7 +239,7 @@ im_msb_band (IMAGE * in, IMAGE * out, int band)
 
       width = SIZEOF_BAND (in->BandFmt);
 
-#ifdef WORDS_BIGENDIAN
+#if G_BYTE_ORDER == G_BIG_ENDIAN
       index = width * band;
 #else
       index = (width * (band + 1)) - 1;
