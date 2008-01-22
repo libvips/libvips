@@ -45,6 +45,7 @@ libiofuncs_la_SOURCES = \
 	im_wbuffer.c \
 	im_wrapmany.c \
 	im_wrapone.c \
+	im_wraptwo.c \
 	im_writeline.c \
 	memory.c \
 	package.c \

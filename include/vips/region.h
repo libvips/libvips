@@ -175,14 +175,19 @@ void im__find_demand_size( IMAGE *im, int *pw, int *ph );
 
 /* Buffer processing.
  */
-typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
-	void *a, void *b );
-int im_wrapmany( IMAGE **in, IMAGE *out,
-	im_wrapmany_fn fn, void *a, void *b );
 typedef void (*im_wrapone_fn)( void *in, void *out, int width,
 	void *a, void *b );
+typedef void (*im_wraptwo_fn)( void *in1, void *in2, void *out, 
+        int width, void *a, void *b );
+typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
+	void *a, void *b );
+
 int im_wrapone( IMAGE *in, IMAGE *out,
 	im_wrapone_fn fn, void *a, void *b );
+int im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out,
+	im_wraptwo_fn fn, void *a, void *b );
+int im_wrapmany( IMAGE **in, IMAGE *out,
+	im_wrapmany_fn fn, void *a, void *b );
 
 /* Internal VIPS functions shared by partials.
  */
