@@ -347,6 +347,7 @@ int im_fav4( IMAGE **, IMAGE * );
 int im_gadd( double, IMAGE *, double, IMAGE *, double, IMAGE *);
 int im_litecor( IMAGE *, IMAGE *, IMAGE *, int, double );
 int im_bandmean( IMAGE *in, IMAGE *out );
+int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out );
 
 /* boolean
  */

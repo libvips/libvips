@@ -1266,6 +1266,25 @@ static im_function linreg_desc = {
 	linreg_args 			/* Arg list */
 };
 
+/* Call im_cross_phase via arg vector.
+ */
+static int
+cross_phase_vec( im_object *argv )
+{
+	return( im_cross_phase( argv[0], argv[1], argv[2] ) );
+}
+
+/* Description of im_cross_phase.
+ */ 
+static im_function cross_phase_desc = {
+	"im_cross_phase", 			/* Name */
+	N_( "phase of cross power spectrum of two complex images" ),	/* Description */
+	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
+	cross_phase_vec, 			/* Dispatch function */
+	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
+	two_in_one_out 			/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *arith_list[] = {
@@ -1280,6 +1299,7 @@ static im_function *arith_list[] = {
 	&ceil_desc,
 	&cmulnorm_desc,
 	&costra_desc,
+	&cross_phase_desc,
 	&deviate_desc,
 	&divide_desc,
 	&exp10tra_desc,

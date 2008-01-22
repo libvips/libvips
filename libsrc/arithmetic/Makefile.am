@@ -9,6 +9,7 @@ libarithmetic_la_SOURCES = \
     im_bandmean.c \
     im_cmulnorm.c \
     im_costra.c \
+    im_cross_phase.c \
     im_deviate.c \
     im_divide.c \
     im_ceil.c \
