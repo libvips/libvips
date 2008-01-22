@@ -20,6 +20,7 @@ libconvolution_la_SOURCES = \
 	im_logmasks.c \
 	im_rank_image.c \
 	im_mpercent.c \
+	im_phasecor_fft.c \
 	im_rank.c \
 	im_resize_linear.c \
 	im_sharpen.c \

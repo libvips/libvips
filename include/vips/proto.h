@@ -270,6 +270,7 @@ int im_convsub( IMAGE *, IMAGE *, INTMASK *, int, int );
 int im_grad_x( IMAGE *in, IMAGE *out );
 int im_grad_y( IMAGE *in, IMAGE *out );
 
+int im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_fastcor( IMAGE *, IMAGE *, IMAGE * );
 int im_fastcor_raw( IMAGE *, IMAGE *, IMAGE * );
 int im_spcor( IMAGE *, IMAGE *, IMAGE * );

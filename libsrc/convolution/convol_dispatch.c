@@ -152,6 +152,25 @@ static im_function contrast_surface_raw_desc = {
 	contrast_surface_raw_args 	/* Arg list */
 };
 
+/* Call im_phasecor_fft via arg vector.
+ */
+static int
+phasecor_fft_vec( im_object *argv )
+{
+	return( im_phasecor_fft( argv[0], argv[1], argv[2] ) );
+}
+
+/* Description of im_phasecor_fft.
+ */ 
+static im_function phasecor_fft_desc = {
+	"im_phasecor_fft",	 		/* Name */
+	"non-normalised correlation of gradient of in2 within in1",
+	IM_FN_TRANSFORM,	/* Flags */
+	phasecor_fft_vec, 			/* Dispatch function */
+	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
+	two_in_one_out 			/* Arg list */
+};
+
 /* Args to im_rank.
  */
 static im_arg_desc rank_args[] = {
@@ -1342,6 +1361,7 @@ static im_function *convol_list[] = {
 	&log_imask_desc,
 	&maxvalue_desc,
 	&mpercent_desc,
+	&phasecor_fft_desc,
 	&rank_desc,
 	&rank_raw_desc,
 	&read_dmask_desc,
