@@ -22,6 +22,8 @@
  *	  array
  * 28/7/97 JC
  *	- amazing error ... only worked if ir and or had same valid
+ * 23/1/08
+ * 	- do im_wrapone() in terms of this
  */
 
 /*
@@ -67,7 +69,7 @@
 typedef struct {
 	im_wrapmany_fn fn;	/* Function we call */ 
 	void *a, *b;		/* User values for function */
-} UserBundle;
+} Bundle;
 
 /* Maximum number of input images -- why not?
  */
@@ -79,7 +81,7 @@ static int
 process_region( REGION *or, void *seq, void *a, void *b )
 {
 	REGION **ir = (REGION **) seq;
-	UserBundle *bun = (UserBundle *) b;
+	Bundle *bun = (Bundle *) b;
 
 	PEL *p[IM_MAX_INPUT_IMAGES], *q;
 	int i, y;
@@ -153,7 +155,7 @@ dupims( IMAGE *out, IMAGE **in )
 int
 im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 {
-	UserBundle *bun = IM_NEW( out, UserBundle );
+	Bundle *bun = IM_NEW( out, Bundle );
 	int i, n;
 
 	/* Count input images.
@@ -203,3 +205,55 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 
 	return( 0 );
 }
+
+static void
+wrapone_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
+{
+	((im_wrapone_fn) (bun->fn)) (ins[0], out, width, bun->a, bun->b );
+}
+
+int
+im_wrapone( IMAGE *in, IMAGE *out, im_wrapone_fn fn, void *a, void *b )
+{
+	Bundle *bun = IM_NEW( out, Bundle );
+	IMAGE *invec[2];
+
+	/* Heh, yuk. We cast back above.
+	 */
+	bun->fn = (im_wrapmany_fn) fn;
+	bun->a = a;
+	bun->b = b;
+	invec[0] = in; invec[1] = NULL;
+
+	return( im_wrapmany( invec, out, 
+		(im_wrapmany_fn) wrapone_gen, bun, NULL ) );
+}
+
+/*
+
+   commented out for now ... replace im_wraptwo with this?
+
+static void
+wraptwo_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
+{
+	((im_wraptwo_fn) (bun->fn)) (ins[0], ins[1], or, 
+		width, bun->a, bun->b );
+}
+
+int
+im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	im_wraptwo_fn fn, void *a, void *b )
+{
+	Bundle *bun = IM_NEW( out, Bundle );
+	IMAGE *invec[3];
+
+	bun->fn = (im_wrapmany_fn) fn;
+	bun->a = a;
+	bun->b = b;
+	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
+
+	return( im_wrapmany( invec, out, 
+		(im_wrapmany_fn) wraptwo_gen, bun, NULL ) );
+}
+
+ */

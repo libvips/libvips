@@ -1260,9 +1260,9 @@ linreg_vec( im_object *argv )
 static im_function linreg_desc = {
 	"im_linreg", 			/* Name */
 	N_( "pixelwise linear regression" ),
-	IM_FN_PIO | IM_FN_PTOP,			/* Flags */
+	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
 	linreg_vec, 			/* Dispatch function */
-	IM_NUMBER( linreg_args ), 		/* Size of arg list */
+	IM_NUMBER( linreg_args ), 	/* Size of arg list */
 	linreg_args 			/* Arg list */
 };
 
@@ -1280,7 +1280,7 @@ static im_function cross_phase_desc = {
 	"im_cross_phase", 			/* Name */
 	N_( "phase of cross power spectrum of two complex images" ),	/* Description */
 	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
-	cross_phase_vec, 			/* Dispatch function */
+	cross_phase_vec, 		/* Dispatch function */
 	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
 	two_in_one_out 			/* Arg list */
 };

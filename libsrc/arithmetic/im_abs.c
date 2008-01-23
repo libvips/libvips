@@ -108,13 +108,15 @@
 
 #ifdef HAVE_HYPOT
 
-#define complexabs(TYPE) {                                    \
-                TYPE *p = (TYPE *) in;                        \
-                TYPE *q = (TYPE *) out;                       \
-                TYPE *q_stop = q + sz;                        \
-                                                              \
-                while( q < q_stop )                           \
-                  *q++= hypot( *p++, *p++ );                  \
+#define complexabs(TYPE) { \
+                TYPE *p = (TYPE *) in; \
+                TYPE *q = (TYPE *) out; \
+                int i; \
+		\
+		for( i = 0; i < sz; i++ ) { \
+			q[i] = hypot( p[0], p[1] ); \
+			p += 2; \
+		} \
         }
 
 #else /*HAVE_HYPOT*/
@@ -147,8 +149,7 @@
  */
 static void
 abs_gen( PEL *in, PEL *out, int width, IMAGE *im )
-{	
-	int x;
+{
 	int sz = width * im->Bands;
 
 	/* Abs all input types.

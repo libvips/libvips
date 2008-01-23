@@ -68,8 +68,8 @@ class VImage (VImage_core):
                 print "VImage getattr: ", name
                 if (is_a_valid_method (name)):
                         return VImage_method (name)
-                else
-                        raise AttributeError
+                else:
+                        raise AttributeError ("unknown method %s" % name)
 %}
 
 /* Helper code for vips_init().
@@ -104,7 +104,7 @@ args_print (Args *args)
 	printf ("args_print: argc = %d\n", args->argc);
 	// +1 so we print the trailing NULL too
 	for (i = 0; i < args->argc + 1; i++)
-		printf( "\t%2d)\t%s\n", i, args->argv[i]);
+		printf ("\t%2d)\t%s\n", i, args->argv[i]);
 }
 #endif /*DEBUG*/
 
@@ -170,7 +170,7 @@ vips_fatal (const char *msg)
 	char buf[256];
 
 	im_snprintf (buf, 256, "%s\n%s", msg, im_error_buffer());
-	im_error_clear();
+	im_error_clear ();
 	Py_FatalError (buf);
 }
 
@@ -205,9 +205,9 @@ vips_fatal (const char *msg)
 		&args->argc, &args->argv, &error)) {
 		g_option_context_free (context);
 		args_free (args);
-		im_error( "vipsmodule", "%s", error->message);
+		im_error ("vipsmodule", "%s", error->message);
 		g_error_free (error);
-		vips_fatal ("can't initialise module vips_core");
+		vips_fatal ("can't initialise module vips");
 	}
 	g_option_context_free (context);
 

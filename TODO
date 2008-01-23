@@ -1,3 +1,5 @@
+- HAVE_HYPOT could define a hypot() macro?
+
 - write our own python extension to call a vips operation by name
 
 	result = vips_call ("name", args)

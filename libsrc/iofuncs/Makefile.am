@@ -44,7 +44,6 @@ libiofuncs_la_SOURCES = \
 	im_guess_prefix.c \
 	im_wbuffer.c \
 	im_wrapmany.c \
-	im_wrapone.c \
 	im_wraptwo.c \
 	im_writeline.c \
 	memory.c \
