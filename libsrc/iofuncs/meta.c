@@ -13,6 +13,8 @@
  * 	- added im__meta_destroy()
  * 1/9/05
  * 	- oop, hash table insert/replace confusion fixed
+ * 24/1/07
+ * 	- oop, im_save_string_setf() was leaking
  */
 
 /*
@@ -386,8 +388,8 @@ im_save_string_setf( GValue *value, const char *fmt, ... )
 	va_start( ap, fmt );
 	str = g_strdup_vprintf( fmt, ap );
 	va_end( ap );
-
 	im_save_string_set( value, str );
+	g_free( str );
 }
 
 /* Read/write int, double metadata.

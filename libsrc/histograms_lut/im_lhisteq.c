@@ -77,14 +77,14 @@ static int
 lhist_gen( REGION *or, void *seq, void *a, void *b )
 {
 	REGION *ir = (REGION *) seq;
-	LhistInfo *inf = (LhistInfo *) inf;
+	LhistInfo *inf = (LhistInfo *) b;
 	Rect irect;
 
 	Rect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int ri = IM_RECT_RIGHT(r);
+	int bo = IM_RECT_BOTTOM( r );
+	int ri = IM_RECT_RIGHT( r );
 
 	int x, y, i, j;
 	int lsk;
@@ -101,7 +101,7 @@ lhist_gen( REGION *or, void *seq, void *a, void *b )
 	if( im_prepare( ir, &irect ) )
 		return( -1 );
 	lsk = IM_REGION_LSKIP( ir );
-	coff = lsk * (inf->ywin/2) + inf->xwin/2;
+	coff = lsk * (inf->ywin / 2) + inf->xwin / 2;
 
 	for( y = to; y < bo; y++ ) {
 		/* Get input and output pointers for this line.
@@ -109,11 +109,11 @@ lhist_gen( REGION *or, void *seq, void *a, void *b )
 		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y );
 		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
 		PEL *p1, *p2;
-		int hist[ 256 ];
+		int hist[256];
 
 		/* Find histogram for start of this line.
 		 */
-		memset( hist, 0, 256 * sizeof(int) );
+		memset( hist, 0, 256 * sizeof( int ) );
 		for( p1 = p, j = 0; j < inf->ywin; j++, p1 += lsk )
 			for( p2 = p1, i = 0; i < inf->xwin; i++, p2++ )
 				hist[*p2]++;
@@ -155,11 +155,11 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
 		return( -1 );
 	if( in->Bbits != IM_BBITS_BYTE || in->BandFmt != IM_BANDFMT_UCHAR || 
 		in->Bands != 1 || in->Coding != IM_CODING_NONE ) { 
-		im_errormsg( "im_lhisteq: one band uchar uncoded only" ); 
+		im_error( "im_lhisteq", _( "one band uchar uncoded only" ) ); 
 		return( -1 ); 
 	}
 	if( xwin > in->Xsize || ywin > in->Ysize ) {
-		im_errormsg( "im_lhisteq: window too large" );
+		im_error( "im_lhisteq", _( "window too large" ) );
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 
