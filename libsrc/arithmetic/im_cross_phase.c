@@ -99,7 +99,7 @@ static void double_complex_phase( void *in1, void *in2, void *out, int n, void *
   double *a= (double*) in1;
   double *b= (double*) in2;
   double *o= (double*) out;
-  double *o_end= o + n * ((IMAGE*)im)-> Bands;
+  double *o_end= o + 2 * n * ((IMAGE*)im)-> Bands;
 
   for( ; o < o_end; a+= 2, b+= 2 ){
     double arg= atan2( a[1], a[0] ) - atan2( b[1], b[0] );
@@ -120,7 +120,7 @@ static void float_complex_phase( void *in1, void *in2, void *out, int n, void *i
   float *a= (float*) in1;
   float *b= (float*) in2;
   float *o= (float*) out;
-  float *o_end= o + n * ((IMAGE*)im)-> Bands;
+  float *o_end= o + 2 * n * ((IMAGE*)im)-> Bands;
 
   for( ; o < o_end; a+= 2, b+= 2 ){
     double arg= atan2( a[1], a[0] ) - atan2( b[1], b[0] );
