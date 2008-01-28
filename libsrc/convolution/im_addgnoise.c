@@ -22,6 +22,10 @@
  *	  same job
  & 1/5/01 JC
  *	- oops, failed for not-1-band images
+ *
+ * 2008-01-28 tcv:
+ *      - now works (was broken)
+ *      - no limit on bands
  */
 
 /*
@@ -56,41 +60,31 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <vips/vips.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define MAX_BANDS (200)
-
 int
-im_addgnoise( IMAGE *in, IMAGE *out, double sigma )
-{
-	IMAGE *noise[MAX_BANDS];
-	IMAGE *nb;
-	int i;
+im_addgnoise( IMAGE *in, IMAGE *out, double sigma ){
+#define FUNCTION_NAME "im_addgnoise"
 
-	if( in->Bands > MAX_BANDS ) {
-		im_error( "im_addgnoise", _( "too many bands" ) );
-		return( -1 );
-	}
+  if( im_piocheck( in, out ))
+    return -1;
+  {
+    int i;
+    IMAGE **temps= IM_ARRAY( out, in-> Bands, IMAGE* );
+    IMAGE *joined_temps= im_open_local( out, FUNCTION_NAME ": joined_temps", "p" );
 
-	/* Make n-band noise image.
-	 */
-	for( i = 0; i < in->Bands; i++ ) 
-		if( !(noise[i] = im_open_local( out, "im_addgnoise:2", "p" )) ||
-			im_gaussnoise( noise[i], in->Xsize, in->Ysize, 
-				0.0, sigma ) )
-			return( -1 );
+    if( ! temps || ! joined_temps || im_open_local_array( out, temps, in-> Bands, FUNCTION_NAME ": temps", "p" ))
+      return -1;
 
-	if( !(nb = im_open_local( out, "im_addgnoise:3", "p" )) ||
-		im_gbandjoin( noise, out, in->Bands ) ||
-		im_add( in, nb, out ) )
-		return( -1 );
+    for( i= 0; i < in-> Bands; ++i )
+      if( im_gaussnoise( temps[i], in-> Xsize, in-> Ysize, 0.0, sigma ))
+        return -1;
 
-	return( 0 );
+    return im_gbandjoin( temps, joined_temps, in-> Bands ) || im_add( in, joined_temps, out );
+  }
+#undef FUNCTION_NAME
 }
