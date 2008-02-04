@@ -80,29 +80,49 @@
 
 /* Complex divide.
  */
-#define cloop(TYPE) \
-{\
-	TYPE *p1 = (TYPE *) in[0];\
-	TYPE *p2 = (TYPE *) in[1];\
-	TYPE *q = (TYPE *) out;\
-	\
-	for( x = 0; x < sz; x++ ) {\
-		double x1 = p1[0];\
-		double y1 = p1[1];\
-		double x2 = p2[0];\
-		double y2 = p2[1];\
-		\
-		double quot = x2 * x2 + y2 * y2;\
-		\
-		p1 += 2;\
-		p2 += 2;\
-		\
-		q[0] = (x1 * x2 + y1 * y2) / quot;\
-		q[1] = (y1 * x2 - x1 * y2) / quot;\
-		\
-		q += 2;\
-	}\
+#ifdef USE_MODARG_DIV
+/* This is going to be much slower */
+
+#define cloop(TYPE)                                         \
+{                                                           \
+  TYPE *X= (TYPE*) in[0];                                   \
+  TYPE *Y= (TYPE*) in[1];                                   \
+  TYPE *Z= (TYPE*) out;                                     \
+  TYPE *Z_stop= Z + sz * 2;                                 \
+                                                            \
+  for( ; Z < Z_stop; X+= 2, Y+=2 ){                         \
+    double arg= atan2( X[1], X[0] ) - atan2( Y[1], Y[0] );  \
+    double mod= hypot( X[1], X[0] ) / hypot( Y[1], Y[0] );  \
+    *Z++= mod * cos( arg );                                 \
+    *Z++= mod * sin( arg );                                 \
+  }                                                         \
 }
+
+#else /* USE_MODARG_DIV */
+
+#define cloop(TYPE)                   \
+{                                     \
+  TYPE *X= (TYPE*) in[0];             \
+  TYPE *Y= (TYPE*) in[1];             \
+  TYPE *Z= (TYPE*) out;               \
+  TYPE *Z_stop= Z + sz * 2;           \
+                                      \
+  for( ; Z < Z_stop; X+= 2, Y+=2 )    \
+    if( fabs( Y[0] ) > fabs( Y[1] )){ \
+      double a= Y[1] / Y[0];          \
+      double b= Y[0] + Y[1] * a;      \
+      *Z++= ( X[0] + X[1] * a ) / b;  \
+      *Z++= ( X[1] - X[0] * a ) / b;  \
+    }                                 \
+    else {                            \
+      double a= Y[0] / Y[1];          \
+      double b= Y[1] + Y[0] * a;      \
+      *Z++= ( X[0] * a + X[1] ) / b;  \
+      *Z++= ( X[1] * a - X[0] ) / b;  \
+    }                                 \
+}
+
+#endif /* USE_MODARG_DIV */
 
 /* Real divide.
  */
