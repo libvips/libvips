@@ -1,9 +1,9 @@
 /* @(#) Find the phase of the cross power spectrum of two complex images,
- * @(#) expressed as a complex image where the modulus of each pixel is 
+ * @(#) expressed as a complex image where the modulus of each pixel is
  * @(#) one.
  * @(#)
- * @(#) I.E. find (a.b*)/|a.b*| where 
- * @(#) .  represents complex multiplication 
+ * @(#) I.E. find (a.b*)/|a.b*| where
+ * @(#) .  represents complex multiplication
  * @(#) *  represents the complex conjugate
  * @(#) || represents the complex modulus
  * @(#)
@@ -16,12 +16,17 @@
  *
  * Author: Tom Vajzovic
  * Written on: 2008-01-09
+ *
+ * 2008-02-04 tcv:
+ *   - exp( i.th ) == cos(th)+i.sin(th) NOT sin(th)+i.cos(th)
+ *   - add quadratic version (ifdef'd out ATM - still using trigonometric one)
+ *
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -58,8 +63,69 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-static void double_complex_phase( void *in1, void *in2, void *out, int n, void *im, void *unrequired );
-static void float_complex_phase( void *in1, void *in2, void *out, int n, void *im, void *unrequired );
+
+/* There doesn't seem to be much difference in speed between these two methods (on an Athlon64),
+ * so I use the modulus argument version, since atan2() is in c89 but hypot() is c99.
+ *
+ * If you think that it might be faster on your platform, uncomment the following:
+ */
+#define USE_MODARG_DIV
+
+#ifdef USE_MODARG_DIV
+
+#define COMPLEX_PHASE_FN( TYPE, ABS )                      \
+static void                                                \
+complex_phase_ ## TYPE ( void *in1, void *in2, void *out, int n, void *im, void *unrequired ){ \
+                                                           \
+  TYPE *X= (TYPE*) in1;                                    \
+  TYPE *Y= (TYPE*) in2;                                    \
+  TYPE *Z= (TYPE*) out;                                    \
+  TYPE *Z_stop= Z + 2 * n * ((IMAGE*)im)-> Bands;          \
+                                                           \
+  for( ; Z < Z_stop; X+= 2, Y+= 2 ){                       \
+    double arg= atan2( X[1], X[0] ) - atan2( Y[1], Y[0] ); \
+    *Z++= cos( arg );                                      \
+    *Z++= sin( arg );                                      \
+  }                                                        \
+}
+
+#else /* USE_MODARG_DIV */
+
+#define COMPLEX_PHASE_FN( TYPE, ABS )             \
+static void                                       \
+complex_phase_ ## TYPE ( void *in1, void *in2, void *out, int n, void *im, void *unrequired ){ \
+                                                  \
+  TYPE *X= (TYPE*) in1;                           \
+  TYPE *Y= (TYPE*) in2;                           \
+  TYPE *Z= (TYPE*) out;                           \
+  TYPE *Z_stop= Z + 2 * n * ((IMAGE*)im)-> Bands; \
+                                                  \
+  for( ; Z < Z_stop; X+= 2, Y+= 2 )               \
+                                                  \
+    if( ABS( Y[0] ) > ABS( Y[1] )){               \
+      double a= Y[1] / Y[0];                      \
+      double b= Y[0] + Y[1] * a;                  \
+      double re= ( X[0] + X[1] * a ) / b;         \
+      double im= ( X[1] - X[0] * a ) / b;         \
+      double mod= im__hypot( re, im );            \
+      *Z++= re / mod;                             \
+      *Z++= im / mod;                             \
+    }                                             \
+    else {                                        \
+      double a= Y[0] / Y[1];                      \
+      double b= Y[1] + Y[0] * a;                  \
+      double re= ( X[0] * a + X[1] ) / b;         \
+      double im= ( X[1] * a - X[0] ) / b;         \
+      double mod= im__hypot( re, im );            \
+      *Z++= re / mod;                             \
+      *Z++= im / mod;                             \
+    }                                             \
+}
+
+#endif /* USE_MODARG_DIV */
+
+COMPLEX_PHASE_FN( float, fabsf )
+COMPLEX_PHASE_FN( double, fabs )
 
 int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out ){
 #define FUNCTION_NAME "im_phase"
@@ -78,61 +144,15 @@ int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out ){
   if( a-> Coding || b-> Coding ){
     im_error( FUNCTION_NAME, "not uncoded" );
     return -1;
-  }      
+  }
   if( a-> BandFmt != b-> BandFmt ){
     im_error( FUNCTION_NAME, "formats differ" );
     return -1;
   }
   if( IM_BANDFMT_COMPLEX != a-> BandFmt && IM_BANDFMT_DPCOMPLEX != a-> BandFmt ){
     im_error( FUNCTION_NAME, "not complex format" );
-    return -1;   
-  }
-  if( im_cp_descv( out, a, b, NULL )
-    || im_wraptwo( a, b, out, 
-    IM_BANDFMT_COMPLEX == a-> BandFmt ? float_complex_phase : double_complex_phase, a, NULL ))
     return -1;
-
-  return 0;
-}
-
-static void double_complex_phase( void *in1, void *in2, void *out, int n, void *im, void *unrequired ){
-  double *a= (double*) in1;
-  double *b= (double*) in2;
-  double *o= (double*) out;
-  double *o_end= o + 2 * n * ((IMAGE*)im)-> Bands;
-
-  for( ; o < o_end; a+= 2, b+= 2 ){
-    double arg= atan2( a[1], a[0] ) - atan2( b[1], b[0] );
-    *o++= sin( arg );
-    *o++= cos( arg );
-#if 0
-    /* FIXME very prone to overflow */
-    double re= a[0] * b[0] + a[1] * b[1];
-    double im= a[1] * b[0] - a[0] * b[1];
-    double mod= hypot( re, im );    
-    *o++= re / mod;
-    *o++= im / mod;
-#endif    
   }
-}
-
-static void float_complex_phase( void *in1, void *in2, void *out, int n, void *im, void *unrequired ){
-  float *a= (float*) in1;
-  float *b= (float*) in2;
-  float *o= (float*) out;
-  float *o_end= o + 2 * n * ((IMAGE*)im)-> Bands;
-
-  for( ; o < o_end; a+= 2, b+= 2 ){
-    double arg= atan2( a[1], a[0] ) - atan2( b[1], b[0] );
-    *o++= sin( arg );
-    *o++= cos( arg );
-#if 0
-    /* FIXME very prone to overflow */
-    double re= (double)a[0] * (double)b[0] + (double)a[1] * (double)b[1];
-    double im= (double)a[1] * (double)b[0] - (double)a[0] * (double)b[1];
-    double mod= hypot( re, im );     
-    *o++= re / mod;
-    *o++= im / mod;
-#endif
-  }
+  return im_cp_descv( out, a, b, NULL ) || im_wraptwo( a, b, out,
+    IM_BANDFMT_COMPLEX == a-> BandFmt ? complex_phase_float : complex_phase_double, a, NULL );
 }
