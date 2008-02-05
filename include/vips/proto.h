@@ -664,6 +664,8 @@ int im_correl( IMAGE *ref, IMAGE *sec,
 int im_remosaic( IMAGE *in, IMAGE *out,
 	const char *old_str, const char *new_str );
 
+int im_align_bands( IMAGE *in, IMAGE *out );
+
 /* inplace
  */
 int im_plotmask( IMAGE *, int, int, PEL *, PEL *, Rect * );

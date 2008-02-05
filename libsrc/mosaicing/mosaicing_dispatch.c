@@ -814,10 +814,29 @@ static im_function remosaic_desc = {
 	remosaic_args 		/* Arg list */
 };
 
+static int align_bands_vec( im_object *argv ){
+  return im_align_bands( (IMAGE*)argv[0], (IMAGE*)argv[1] );
+}
+
+static im_arg_desc align_bands_arg_types[]= {
+  IM_INPUT_IMAGE( "in" ),
+  IM_OUTPUT_IMAGE( "out" )
+};
+
+static im_function align_bands_desc= {
+  "im_align_bands",
+  "align the bands of an image",
+  0,
+  align_bands_vec,
+  IM_NUMBER( align_bands_arg_types ),
+  align_bands_arg_types
+};
+
 /* Package up all these functions.
  */
 static im_function *mos_list[] = {
 	&affine_desc,
+        &align_bands_desc,
 	&correl_desc,
 	&find_lroverlap_desc,
 	&find_tboverlap_desc,
