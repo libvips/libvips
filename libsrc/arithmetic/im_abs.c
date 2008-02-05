@@ -81,6 +81,7 @@
 	{ \
 		TYPE *p = (TYPE *) in; \
 		TYPE *q = (TYPE *) out; \
+                int x; \
 		\
 		for( x = 0; x < sz; x++ ) { \
 			TYPE v = p[x]; \
