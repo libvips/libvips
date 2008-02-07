@@ -665,6 +665,7 @@ int im_remosaic( IMAGE *in, IMAGE *out,
 	const char *old_str, const char *new_str );
 
 int im_align_bands( IMAGE *in, IMAGE *out );
+int im_maxpos_subpel( IMAGE *in, double *x, double *y );
 
 /* inplace
  */

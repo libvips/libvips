@@ -832,6 +832,25 @@ static im_function align_bands_desc= {
   align_bands_arg_types
 };
 
+static int maxpos_subpel_vec( im_object *argv ){
+  return im_maxpos_subpel( (IMAGE*)argv[0], (double*)argv[1], (double*)argv[2] );
+}
+
+static im_arg_desc maxpos_subpel_arg_types[]= {
+  IM_INPUT_IMAGE( "im" ),
+  IM_OUTPUT_DOUBLE( "x" ),
+  IM_OUTPUT_DOUBLE( "y" )
+};
+
+static im_function maxpos_subpel_desc= {
+  "im_maxpos_subpel",
+  "subpixel position of maximum of (phase correlation) image",
+  IM_FN_PIO,
+  maxpos_subpel_vec,
+  IM_NUMBER( maxpos_subpel_arg_types ),
+  maxpos_subpel_arg_types
+};
+
 /* Package up all these functions.
  */
 static im_function *mos_list[] = {
@@ -848,6 +867,7 @@ static im_function *mos_list[] = {
 	&lrmosaic1_desc,
 	&match_linear_desc,
 	&match_linear_search_desc,
+        &maxpos_subpel_desc,
 	&remosaic_desc,
 	&similarity_area_desc,
 	&similarity_desc,

@@ -16,6 +16,7 @@ libmosaicing_la_SOURCES = \
 	im_lrcalcon.c \
 	im_lrmerge.c \
 	im_lrmosaic.c \
+	im_maxpos_subpel.c \
 	im_tbcalcon.c \
 	im_tbmerge.c \
 	im_remosaic.c \
