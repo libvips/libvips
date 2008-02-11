@@ -1,3 +1,6 @@
+- JPEG write should know about CMYK as well, maybe write all 4 band images as
+  CMYK?
+
 - HAVE_HYPOT could define a hypot() macro?
 
 - write our own python extension to call a vips operation by name
@@ -11,7 +14,6 @@
 	__getattr__ (self, name) = lambda (obj_to_call, arguments):
 
   or something like that?
-
 
 - try
 
