@@ -17,6 +17,9 @@
  * 	- cut from old vips_jpeg.c
  * 13/10/06
  * 	- add </libexif/ prefix if required
+ * 11/2/08
+ * 	- spot CMYK jpegs and set Type
+ * 	- spot Adobe CMYK JPEG and invert ink density
  */
 
 /*
@@ -424,12 +427,15 @@ read_exif( IMAGE *im, void *data, int data_length )
  */
 #define MAX_APP2_SECTIONS (10)
 
-/* Read a cinfo to a VIPS image.
+/* Read a cinfo to a VIPS image. Set invert_pels if the pixel reader needs to
+ * do 255-pel.
  */
 static int
-read_jpeg_header( struct jpeg_decompress_struct *cinfo, IMAGE *out )
+read_jpeg_header( struct jpeg_decompress_struct *cinfo, 
+	IMAGE *out, gboolean *invert_pels )
 {
 	jpeg_saved_marker_ptr p;
+	int type;
 
 	/* Capture app2 sections here for assembly.
 	 */
@@ -438,17 +444,38 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo, IMAGE *out )
 	int data_length;
 	int i;
 
-	/* Read JPEG header.
+	/* Read JPEG header. libjpeg will set out_color_space sanely for us 
+	 * for YUV YCCK etc.
 	 */
 	jpeg_read_header( cinfo, TRUE );
 	jpeg_calc_output_dimensions( cinfo );
+	*invert_pels = FALSE;
+	switch( cinfo->out_color_space ) {
+	case JCS_GRAYSCALE:
+		type = IM_TYPE_B_W;
+		break;
+
+	case JCS_CMYK:
+		type = IM_TYPE_CMYK;
+		/* Photoshop writes CMYK JPEG inverted :-( Hopefully this is a
+		 * reliable way to spot photoshop CMYK JPGs.
+		 */
+		if( cinfo->saw_Adobe_marker )
+			*invert_pels = TRUE;
+		break;
+
+	case JCS_RGB:
+	default:
+		type = IM_TYPE_sRGB;
+		break;
+	}
 
 	/* Set VIPS header.
 	 */
 	im_initdesc( out,
 		 cinfo->output_width, cinfo->output_height,
 		 cinfo->output_components,
-		 IM_BBITS_BYTE, IM_BANDFMT_UCHAR, IM_CODING_NONE, IM_TYPE_sRGB,
+		 IM_BBITS_BYTE, IM_BANDFMT_UCHAR, IM_CODING_NONE, type,
 		 1.0, 1.0, 0, 0 );
 
 	/* Look for EXIF and ICC profile.
@@ -533,81 +560,13 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo, IMAGE *out )
 	return( 0 );
 }
 
-/* Read a JPEG file header into a VIPS header.
- */
-int
-im_jpeg2vips_header( const char *name, IMAGE *out )
-{
-	struct jpeg_decompress_struct cinfo;
-        ErrorManager eman;
-	FILE *fp;
-
-	/* Make jpeg decompress object.
- 	 */
-        cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = new_error_exit;
-	eman.pub.output_message = new_output_message;
-	eman.fp = NULL;
-	if( setjmp( eman.jmp ) ) {
-		/* Here for longjmp() from new_error_exit().
-		 */
-		jpeg_destroy_decompress( &cinfo );
-
-		return( -1 );
-	}
-        jpeg_create_decompress( &cinfo );
-
-	/* Make input.
-	 */
-#ifdef BINARY_OPEN
-        if( !(fp = fopen( name, "rb" )) ) {
-#else /*BINARY_OPEN*/
-        if( !(fp = fopen( name, "r" )) ) {
-#endif /*BINARY_OPEN*/
-		jpeg_destroy_decompress( &cinfo );
-                im_error( "im_jpeg2vips_header", 
-			_( "unable to open \"%s\"" ), name );
-
-                return( -1 );
-        }
-	eman.fp = fp;
-        jpeg_stdio_src( &cinfo, fp );
-
-	/* Need to read in APP1 (EXIF metadata) and APP2 (ICC profile).
-	 */
-	jpeg_save_markers( &cinfo, JPEG_APP0 + 1, 0xffff );
-	jpeg_save_markers( &cinfo, JPEG_APP0 + 2, 0xffff );
-
-	/* Read!
-	 */
-	if( read_jpeg_header( &cinfo, out ) ) {
-		jpeg_destroy_decompress( &cinfo );
-		fclose( fp );
-		return( -1 );
-	}
-
-	/* Close and tidy.
-	 */
-	fclose( fp );
-	eman.fp = NULL;
-	jpeg_destroy_decompress( &cinfo );
-
-	if( eman.pub.num_warnings != 0 ) {
-		im_warn( "im_jpeg2vips_header", 
-			_( "read header gave %ld warnings" ), 
-			eman.pub.num_warnings );
-		im_warn( "im_jpeg2vips_header", "%s", im_error_buffer() );
-	}
-
-	return( 0 );
-}
-
 /* Read a cinfo to a VIPS image.
  */
 static int
-read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out )
+read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out, 
+	gboolean invert_pels )
 {
-	int y, sz;
+	int x, y, sz;
 	JSAMPROW row_pointer[1];
 
 	/* Check VIPS.
@@ -632,6 +591,10 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out )
 			im_error( "im_jpeg2vips", _( "truncated JPEG file" ) );
 			return( -1 );
 		}
+		if( invert_pels ) {
+			for( x = 0; x < sz; x++ )
+				row_pointer[0][x] = 255 - row_pointer[0][x];
+		}
 		if( im_writeline( y, out, row_pointer[0] ) )
 			return( -1 );
 	}
@@ -645,12 +608,14 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out )
 
 /* Read a JPEG file into a VIPS image.
  */
-int
-im_jpeg2vips( const char *name, IMAGE *out )
+static int
+jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 {
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
 	FILE *fp;
+	int result;
+	gboolean invert_pels;
 
 	/* Make jpeg compression object.
  	 */
@@ -689,12 +654,9 @@ im_jpeg2vips( const char *name, IMAGE *out )
 
 	/* Convert!
 	 */
-	if( read_jpeg_header( &cinfo, out ) ||
-		read_jpeg_image( &cinfo, out ) ) {
-		jpeg_destroy_decompress( &cinfo );
-		fclose( fp );
-		return( -1 );
-	}
+	result = read_jpeg_header( &cinfo, out, &invert_pels );
+	if( !header_only && !result )
+		result = read_jpeg_image( &cinfo, out, invert_pels );
 
 	/* Close and tidy.
 	 */
@@ -708,7 +670,21 @@ im_jpeg2vips( const char *name, IMAGE *out )
 		im_warn( "im_jpeg2vips", "%s", im_error_buffer() );
 	}
 
-	return( 0 );
+	return( result );
+}
+
+/* Read a JPEG file into a VIPS image.
+ */
+int
+im_jpeg2vips( const char *name, IMAGE *out )
+{
+	return( jpeg2vips( name, out, FALSE ) );
+}
+
+int
+im_jpeg2vips_header( const char *name, IMAGE *out )
+{
+	return( jpeg2vips( name, out, TRUE ) );
 }
 
 #endif /*HAVE_JPEG*/

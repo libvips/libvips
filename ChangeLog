@@ -1,5 +1,6 @@
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
+- better CMYK JPEG read
 
 12/12/07 started 7.13.3
 - added "include <cstring>" to VImage.cc to help gcc 4.3
