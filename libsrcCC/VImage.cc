@@ -141,7 +141,7 @@ void VImage::refblock::removeref() throw( VError )
 		delete this;
 }
 
-// Init with name ... means open for read.
+// Init with name ... mode defaults to "r"
 VImage::VImage( const char *name, const char *mode ) throw( VError )
 {
 	_ref = new refblock;
@@ -242,6 +242,22 @@ void *VImage::data() const throw( VError )
 void VImage::debug_print()
 {
 	im_printdesc( image() );
+}
+
+// Like jpeg2vips, but convert to a disc file rather than to memory
+// We can handle huge files without running out of RAM
+VImage VImage::convert2disc( const char* convert, 
+	const char* in, const char* disc ) throw( VError )
+{
+	VImage out( disc, "w" );
+
+	Vargv _vec( convert );
+
+	_vec.data(0) = (im_object) in;
+	_vec.data(1) = out.image();
+	_vec.call();
+
+	return( out );
 }
 
 // Write this to a VImage

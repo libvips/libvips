@@ -192,6 +192,15 @@ public:
 	VImage( im__IMAGE *image );
 	VImage() throw( VError );
 
+	// Convert to a disc file, eg:
+	// 	VImage fred = VImage::convert2disc( "im_jpeg2vips", 
+	// 		"file.jpg", "temp.v" );
+	// Runs im_jpeg2vips to the temp file, then opens that and returns
+	// it. Useful for opening very large files without using a lot of RAM.
+	// FIXME ... what a hack, replace this with something better
+	static VImage convert2disc( const char* convert, 
+		const char* in, const char* disc ) throw( VError );
+
 	// Copy constructor 
 	VImage( const VImage &a );
 
@@ -238,13 +247,9 @@ public:
 	void initdesc( int, int, int, TBandFmt, TCoding, TType, 
 		float = 1.0, float = 1.0, int = 0, int = 0 ) throw( VError );
 
-/* Bindings wrap databased operations at runtime using reflection.
- */
-#ifndef SWIG
 	/* Insert automatically generated headers.
 	 */
 #include "vipsc++.h"
-#endif /*SWIG*/
 
 /* No point getting SWIG to wrap these ... we do this by hand later so we can
  * handle things like "a + 12" correctly.

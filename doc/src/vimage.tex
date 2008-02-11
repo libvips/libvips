@@ -99,6 +99,25 @@ disc with deflate compression.
 See the manual page for \verb+im_open(3)+ for details of all the file formats
 and conversions available.
 
+\subsection{Large files}
+
+Opening large files in formats like JPEG which do not support random access
+can use large amounts of memory, since the file has to be decompressed before
+it can be used.
+
+The \verb+convert2disc()+ member lets you decompress to a disc file rather
+than to memory. For example:
+
+\begin{verbatim}
+VImage fred = VImage::convert2disc( "im_jpeg2vips", 
+  "file.jpg", "temp.v" );
+\end{verbatim}
+
+/noindent
+Will decompress to the file \verb+temp.v+, then open that and return a
+reference to it. You will need to delete the file once you are finished with
+it.
+
 \subsection{Projection functions}
 
 A set of member functions of \verb+VImage+ provide access to the fields in

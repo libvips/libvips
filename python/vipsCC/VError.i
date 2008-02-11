@@ -10,3 +10,10 @@
 %include "std_string.i"
 
 %include vips/VError.h
+
+%extend vips::VError {
+        const char *__str__ () {
+                return $self->what ();
+        }
+}
+
