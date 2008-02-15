@@ -4,6 +4,7 @@
 - add __str__ to VError in Python (thanks Ole)
 - revert the dynamic wrapping for Python :-( next version!
 - added VImage::convert2disc (thanks Ole)
+- you can now set the jpeg quality factor for tiff pyramids (thanks Joe)
 
 12/12/07 started 7.13.3
 - added "include <cstring>" to VImage.cc to help gcc 4.3

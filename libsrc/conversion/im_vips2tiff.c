@@ -93,6 +93,9 @@
  * 	- support TIFFTAG_PREDICTOR types for lzw and deflate compression
  * 3/11/07
  * 	- use im_wbuffer() for background writes
+ * 15/2/08
+ * 	- set TIFFTAG_JPEGQUALITY explicitly when we copy TIFF files, since 
+ * 	  libtiff doesn't keep this in the header (thanks Joe)
  */
 
 /*
@@ -1396,11 +1399,10 @@ make_tiff_write( IMAGE *im, const char *filename )
  * we might have set.
  */
 static int
-tiff_copy( TIFF *out, TIFF *in )
+tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 {
 	uint32 i32, i32a;
 	uint16 i16;
-	int i;
 	float f;
 	tdata_t buf;
 	ttile_t tile;
@@ -1412,11 +1414,18 @@ tiff_copy( TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_IMAGELENGTH, i32 );
 	CopyField( TIFFTAG_PLANARCONFIG, i16 );
 	CopyField( TIFFTAG_ORIENTATION, i16 );
-	CopyField( TIFFTAG_COMPRESSION, i16 );
 	CopyField( TIFFTAG_XRESOLUTION, f );
 	CopyField( TIFFTAG_YRESOLUTION, f );
 	CopyField( TIFFTAG_RESOLUTIONUNIT, i16 );
-	CopyField( TIFFTAG_JPEGQUALITY, i );
+	CopyField( TIFFTAG_COMPRESSION, i16 );
+	if( i16 == COMPRESSION_JPEG ) {
+		/* For some reason the jpeg Q is always 75 :-( so we can't
+		 * copy, we have to set explicitly.
+		int i;
+		CopyField( TIFFTAG_JPEGQUALITY, i );
+		 */
+		TIFFSetField( out, TIFFTAG_JPEGQUALITY, tw->jpqual );
+	}
         CopyField( TIFFTAG_PREDICTOR, i16 );
 	CopyField( TIFFTAG_SAMPLESPERPIXEL, i16 );
 	CopyField( TIFFTAG_BITSPERSAMPLE, i16 );
@@ -1433,6 +1442,10 @@ tiff_copy( TIFF *out, TIFF *in )
 	for( tile = 0; tile < n; tile++ ) {
 		tsize_t len;
 
+		/* It'd be good to use * TIFFReadRawTile()/TIFFWriteRawTile() 
+		 * here to save compression/decompression, but sadly it seems
+		 * not to work :-( investigate at some point.
+		 */
 		len = TIFFReadEncodedTile( in, tile, buf, (tsize_t) -1 );
 		if( len < 0 ||
 			TIFFWriteEncodedTile( out, tile, buf, len ) < 0 ) {
@@ -1448,14 +1461,14 @@ tiff_copy( TIFF *out, TIFF *in )
 /* Append a file to a TIFF file.
  */
 static int
-tiff_append( TIFF *out, const char *name )
+tiff_append( TiffWrite *tw, TIFF *out, const char *name )
 {
 	TIFF *in;
 
 	if( !(in = tiff_openin( name )) ) 
 		return( -1 );
 
-	if( tiff_copy( out, in ) ) {
+	if( tiff_copy( tw, out, in ) ) {
 		TIFFClose( in );
 		return( -1 );
 	}
@@ -1482,13 +1495,13 @@ gather_pyramid( TiffWrite *tw )
 	if( !(out = tiff_openout( tw->name )) ) 
 		return( -1 );
 
-	if( tiff_append( out, tw->bname ) ) {
+	if( tiff_append( tw, out, tw->bname ) ) {
 		TIFFClose( out );
 		return( -1 );
 	}
 
 	for( layer = tw->layer; layer; layer = layer->below ) 
-		if( tiff_append( out, layer->lname ) ) {
+		if( tiff_append( tw, out, layer->lname ) ) {
 			TIFFClose( out );
 			return( -1 );
 		}
