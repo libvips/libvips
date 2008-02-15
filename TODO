@@ -1,17 +1,9 @@
 - JPEG write should know about CMYK as well, maybe write all 4 band images as
   CMYK?
 
-- JPEG read could have a "subsample" param and use 
+  test CMYK JPEG write, also PNG write with new saveable
 
-unsigned int scale_num, scale_denom 
-	Scale the image by the fraction scale_num/scale_denom.
-	Default is 1/1, or no scaling.	Currently, the only supported
-	scaling ratios are 1/1, 1/2, 1/4, and 1/8.  (The library design
-	allows for arbitrary scaling ratios but this is not likely to
-	be implemented any time soon.)	Smaller scaling ratios permit
-	significantly faster decoding since fewer pixels need be processed
-	and a simpler IDCT method can be used.
-
+  can we use convert_saveable for PPM and friends as well?
 
 - HAVE_HYPOT could define a hypot() macro?
 

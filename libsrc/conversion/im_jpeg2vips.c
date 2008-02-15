@@ -20,6 +20,8 @@
  * 11/2/08
  * 	- spot CMYK jpegs and set Type
  * 	- spot Adobe CMYK JPEG and invert ink density
+ * 15/2/08
+ * 	- added "shrink" parameter
  */
 
 /*
@@ -432,7 +434,7 @@ read_exif( IMAGE *im, void *data, int data_length )
  */
 static int
 read_jpeg_header( struct jpeg_decompress_struct *cinfo, 
-	IMAGE *out, gboolean *invert_pels )
+	IMAGE *out, gboolean *invert_pels, int shrink )
 {
 	jpeg_saved_marker_ptr p;
 	int type;
@@ -448,6 +450,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 	 * for YUV YCCK etc.
 	 */
 	jpeg_read_header( cinfo, TRUE );
+	cinfo->scale_denom = shrink;
 	jpeg_calc_output_dimensions( cinfo );
 	*invert_pels = FALSE;
 	switch( cinfo->out_color_space ) {
@@ -611,11 +614,31 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 static int
 jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 {
+	char filename[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+	char *p, *q;
+	int shrink;
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
 	FILE *fp;
 	int result;
 	gboolean invert_pels;
+
+	/* Parse the filename.
+	 */
+	im_filename_split( name, filename, mode );
+	p = &mode[0];
+	shrink = 1;
+	if( (q = im_getnextoption( &p )) ) {
+		shrink = atoi( q );
+
+		if( shrink != 1 && shrink != 2 && 
+			shrink != 4 && shrink != 8 ) {
+			im_error( "im_jpeg2vips", 
+				_( "bad shrink factor %d" ), shrink );
+			return( -1 );
+		}
+	}
 
 	/* Make jpeg compression object.
  	 */
@@ -635,12 +658,13 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	/* Make input.
 	 */
 #ifdef BINARY_OPEN
-        if( !(fp = fopen( name, "rb" )) ) {
+        if( !(fp = fopen( filename, "rb" )) ) {
 #else /*BINARY_OPEN*/
-        if( !(fp = fopen( name, "r" )) ) {
+        if( !(fp = fopen( filename, "r" )) ) {
 #endif /*BINARY_OPEN*/
 		jpeg_destroy_decompress( &cinfo );
-                im_error( "im_jpeg2vips", _( "unable to open \"%s\"" ), name );
+                im_error( "im_jpeg2vips", 
+			_( "unable to open \"%s\"" ), filename );
 
                 return( -1 );
         }
@@ -654,7 +678,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 
 	/* Convert!
 	 */
-	result = read_jpeg_header( &cinfo, out, &invert_pels );
+	result = read_jpeg_header( &cinfo, out, &invert_pels, shrink );
 	if( !header_only && !result )
 		result = read_jpeg_image( &cinfo, out, invert_pels );
 

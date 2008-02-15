@@ -17,8 +17,21 @@ int im_vips2mimejpeg( IMAGE *in )
 .SH DESCRIPTION
 .B im_jpeg2vips() 
 reads the named jpeg file and writes it to the specified
-IMAGE. The entire image is read before returning. It will handle 1 and 3 band
-8-bit images only.
+IMAGE. The entire image is read before returning. It can read most 8-bit JPEG
+images, including CMYK. 
+
+You can embed options in the filename. They have the form:
+
+  filename.jpg:<shrink-factor>
+
+.B shrink-factor 
+will shrink the image by that factor during read. Allowed values are 1, 2, 4
+and 8. Shrinking during read is very much faster than decompressing the whole
+image and then shrinking. Example:
+
+  fred.jpg:8
+
+will return fred.jpg shrink by a factor of 8.
 
 Any embedded ICC profiles are ignored: you always just get the RGB from the
 file. Instead, the embedded profile will be attached to the image as metadata.

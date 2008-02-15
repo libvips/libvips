@@ -1,4 +1,4 @@
-/* Convert 1 or 3-band 8-bit VIPS images to/from JPEG.
+/* Convert 8-bit VIPS images to/from JPEG.
  *
  * 28/11/03 JC
  *	- better no-overshoot on tile loop
@@ -23,6 +23,8 @@
  * 	- oop, libexif confusion
  * 2/11/07
  * 	- use im_wbuffer() API for BG writes
+ * 15/2/08
+ * 	- write CMYK if Bands == 4 and Type == CMYK
  */
 
 /*
@@ -217,9 +219,9 @@ write_new( IMAGE *in )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 
-	if( !(write->in = im__convert_saveable( in, FALSE )) ) {
+	if( !(write->in = im__convert_saveable( in, IM__RGB_CMYK )) ) {
 		im_error( "im_vips2jpeg", 
-			_( "unable to convert to RGB for save" ) );
+			_( "unable to convert to saveable format" ) );
 		write_destroy( write );
 		return( NULL );
 	}
@@ -541,12 +543,13 @@ static int
 write_vips( Write *write, int qfac, const char *profile )
 {
 	IMAGE *in = write->in;
+	J_COLOR_SPACE space;
 
 	/* Should have been converted for save.
 	 */
         assert( in->BandFmt == IM_BANDFMT_UCHAR );
 	assert( in->Coding == IM_CODING_NONE );
-        assert( in->Bands == 1 || in->Bands == 3 );
+        assert( in->Bands == 1 || in->Bands == 3 || in->Bands == 4 );
 
         /* Check input image.
          */
@@ -561,14 +564,18 @@ write_vips( Write *write, int qfac, const char *profile )
 	 */
         write->cinfo.image_width = in->Xsize;
         write->cinfo.image_height = in->Ysize;
-	if( in->Bands == 3 ) {
-		write->cinfo.input_components = 3;
-		write->cinfo.in_color_space = JCS_RGB; 
-	}
-	else if( in->Bands == 1 ) {
-		write->cinfo.input_components = 1;
-		write->cinfo.in_color_space = JCS_GRAYSCALE; 
-	}
+	write->cinfo.input_components = in->Bands;
+	if( in->Bands == 4 && in->Type == IM_TYPE_CMYK )
+		space = JCS_CMYK;
+	else if( in->Bands == 3 )
+		space = JCS_RGB;
+	else if( in->Bands == 1 )
+		space = JCS_GRAYSCALE;
+	else 
+		/* Use luminance compression for all channels.
+		 */
+		space = JCS_UNKNOWN;
+	write->cinfo.in_color_space = space; 
 
 	/* Rest to default. 
 	 */

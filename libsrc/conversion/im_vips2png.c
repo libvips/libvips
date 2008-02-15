@@ -125,7 +125,7 @@ write_new( IMAGE *in )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 
-	if( !(write->in = im__convert_saveable( in, TRUE )) ) {
+	if( !(write->in = im__convert_saveable( in, IM__RGBA )) ) {
 		im_error( "im_vips2png", 
 			_( "unable to convert to RGB for save" ) );
 		write_destroy( write );

@@ -52,6 +52,8 @@
  * 2/11/06
  * 	- moved im__convert_saveable() here so it's always defined (was part
  * 	  of JPEG write code)
+ * 15/2/08
+ * 	- added im__saveable_t ... so we can have CMYK JPEG write
  */
 
 /*
@@ -90,6 +92,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -344,11 +347,12 @@ im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture )
 	}
 }
 
-/* Convert to 1 or 3 band uchar sRGB (or 2/4 band, if allow_alpha is set). 
- * Need to im_close() the return IMAGE.
+/* Convert to a saveable format. im__saveable_t gives the general type of image
+ * we make: vanilla 1/3 bands (PPM), with an optional alpha (like PNG), or
+ * with CMYK as an option (like JPEG). Need to im_close() the return IMAGE.
  */
 IMAGE *
-im__convert_saveable( IMAGE *in, gboolean allow_alpha )
+im__convert_saveable( IMAGE *in, im__saveable_t saveable )
 {
 	IMAGE *out;
 
@@ -375,11 +379,10 @@ im__convert_saveable( IMAGE *in, gboolean allow_alpha )
 		in = t;
 	}
 
-	/* Get the bands right. If we have >3, drop down to 3. If we have 2,
-	 * drop down to 1. If allow_alpha is on, we can also have 2/4 bands.
+	/* Get the bands right. 
 	 */
 	if( in->Coding == IM_CODING_NONE ) {
-		if( in->Bands == 2  && !allow_alpha ) {
+		if( in->Bands == 2 && saveable != IM__RGBA ) {
 			IMAGE *t = im_open_local( out, "conv:1", "p" );
 
 			if( !t || im_extract_band( in, t, 0 ) ) {
@@ -389,7 +392,7 @@ im__convert_saveable( IMAGE *in, gboolean allow_alpha )
 
 			in = t;
 		}
-		else if( in->Bands > 3 && !allow_alpha ) {
+		else if( in->Bands > 3 && saveable == IM__RGB ) {
 			IMAGE *t = im_open_local( out, "conv:1", "p" );
 
 			if( !t ||
@@ -400,7 +403,8 @@ im__convert_saveable( IMAGE *in, gboolean allow_alpha )
 
 			in = t;
 		}
-		else if( in->Bands > 4 && allow_alpha ) {
+		else if( in->Bands > 4 && 
+			(saveable == IM__RGB_CMYK || saveable == IM__RGBA) ) {
 			IMAGE *t = im_open_local( out, "conv:1", "p" );
 
 			if( !t ||

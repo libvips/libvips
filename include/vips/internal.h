@@ -77,7 +77,13 @@ extern int im__read_test;
 extern int im__mmap_limit;
 extern GMutex *im__global_lock;
 
-IMAGE *im__convert_saveable( IMAGE *in, gboolean allow_alpha );
+typedef enum {
+	IM__RGB,	/* 1 or 3 bands (like PPM) */
+	IM__RGBA,	/* 1, 2, 3 or 4 bands (like PNG) */
+	IM__RGB_CMYK	/* 1, 3 or 4 bands (like JPEG) */
+} im__saveable_t;
+
+IMAGE *im__convert_saveable( IMAGE *in, im__saveable_t saveable );
 
 void im__link_make( IMAGE *parent, IMAGE *child );
 void im__link_break_all( IMAGE *im );
