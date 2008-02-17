@@ -196,6 +196,7 @@ typedef struct {
 	JSAMPROW *row_pointer;
 	char *profile_bytes;
 	unsigned int profile_length;
+	IMAGE *inverted;
 } Write;
 
 static void
@@ -207,6 +208,7 @@ write_destroy( Write *write )
 	IM_FREEF( fclose, write->eman.fp );
 	IM_FREE( write->row_pointer );
 	IM_FREE( write->profile_bytes );
+	IM_FREEF( im_close, write->inverted );
 	im_free( write );
 }
 
@@ -226,22 +228,16 @@ write_new( IMAGE *in )
 		return( NULL );
 	}
 
-	write->tg = im_threadgroup_create( write->in );
-
-	write->row_pointer = IM_ARRAY( NULL, write->tg->nlines, JSAMPROW );
-
+	write->tg = NULL;
+	write->row_pointer = NULL;
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->eman.pub.error_exit = new_error_exit;
 	write->eman.pub.output_message = new_output_message;
 	write->eman.fp = NULL;
 	write->profile_bytes = NULL;
 	write->profile_length = 0;
+	write->inverted = NULL;
 
-	if( !write->tg || !write->row_pointer ) {
-		write_destroy( write );
-		return( NULL );
-	}
-	
         return( write );
 }
 
@@ -542,8 +538,12 @@ write_jpeg_block( REGION *region, Rect *area, void *a, void *b )
 static int
 write_vips( Write *write, int qfac, const char *profile )
 {
-	IMAGE *in = write->in;
+	IMAGE *in;
 	J_COLOR_SPACE space;
+
+	/* The image we'll be writing ... can change, see CMYK.
+	 */
+	in = write->in;
 
 	/* Should have been converted for save.
 	 */
@@ -565,8 +565,15 @@ write_vips( Write *write, int qfac, const char *profile )
         write->cinfo.image_width = in->Xsize;
         write->cinfo.image_height = in->Ysize;
 	write->cinfo.input_components = in->Bands;
-	if( in->Bands == 4 && in->Type == IM_TYPE_CMYK )
+	if( in->Bands == 4 && in->Type == IM_TYPE_CMYK ) {
 		space = JCS_CMYK;
+		/* IJG always sets an Adobe marker, so we should invert CMYK.
+		 */
+		if( !(write->inverted = im_open( "vips2jpeg_invert", "p" )) ||
+			im_invert( in, write->inverted ) )
+			return( -1 );
+		in = write->inverted;
+	}
 	else if( in->Bands == 3 )
 		space = JCS_RGB;
 	else if( in->Bands == 1 )
@@ -576,6 +583,13 @@ write_vips( Write *write, int qfac, const char *profile )
 		 */
 		space = JCS_UNKNOWN;
 	write->cinfo.in_color_space = space; 
+
+	/* Build VIPS output stuff now we know the image we'll be writing.
+	 */
+	write->tg = im_threadgroup_create( in );
+	write->row_pointer = IM_ARRAY( NULL, write->tg->nlines, JSAMPROW );
+	if( !write->tg || !write->row_pointer ) 
+		return( -1 );
 
 	/* Rest to default. 
 	 */
@@ -607,7 +621,6 @@ write_vips( Write *write, int qfac, const char *profile )
 		return( -1 );
 
 	/* We have to reinstate the setjmp() before we jpeg_finish_compress().
-	 * No need to destroy the write: our parent does that.
 	 */
 	if( setjmp( write->eman.jmp ) ) 
 		return( -1 );

@@ -1,9 +1,11 @@
 - JPEG write should know about CMYK as well, maybe write all 4 band images as
-  CMYK?
+  CMYK? probably need to test Type so we don't get confused by RGBA
 
   test CMYK JPEG write, also PNG write with new saveable
 
   can we use convert_saveable for PPM and friends as well?
+
+  should we invert CMYK on JPEG save?
 
 - HAVE_HYPOT could define a hypot() macro?
 
@@ -48,10 +50,12 @@
 
 - test maxpos_avg, quite a few changes
 
-- im_exr2vips can now use c++ api
+WONTFIX
+=======
 
-Python binding
-==============
+- HAVE_HYPOT could define a hypot() macro?
+
+- im_exr2vips can now use c++ api
 
 - python startup fails with plugins in vipslib:
 
@@ -68,8 +72,17 @@ Python binding
   	http://www.swig.org/Doc1.3/SWIGDocumentation.html#Python_nn8
 	http://docs.python.org/dist/dist.html
 
-WONTFIX
-=======
+- write our own python extension to call a vips operation by name
+
+	result = vips_call ("name", args)
+
+  then call that from VImage_method
+
+- do we really need VImage_method? Can't we write
+
+	__getattr__ (self, name) = lambda (obj_to_call, arguments):
+
+  or something like that?
 
 - can we use GraphicsMagick instead of ImageMagick?
 

@@ -460,10 +460,10 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 
 	case JCS_CMYK:
 		type = IM_TYPE_CMYK;
-		/* Photoshop writes CMYK JPEG inverted :-( Hopefully this is a
-		 * reliable way to spot photoshop CMYK JPGs.
+		/* Photoshop writes CMYK JPEG inverted :-( Maybe this is a
+		 * way to spot photoshop CMYK JPGs.
 		 */
-		if( cinfo->saw_Adobe_marker )
+		if( cinfo->saw_Adobe_marker ) 
 			*invert_pels = TRUE;
 		break;
 
