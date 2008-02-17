@@ -149,11 +149,11 @@ read_new( const char *filename, IMAGE *im )
 	read->frame_height = 0;
 	read->lock = g_mutex_new();
 
-        if( im_add_close_callback( im,
-                (im_callback_fn) read_destroy, read, NULL ) ) {
-                read_destroy( read );
-                return( NULL );
-        }
+	if( im_add_close_callback( im,
+		(im_callback_fn) read_destroy, read, NULL ) ) {
+		read_destroy( read );
+		return( NULL );
+	}
 
 	if( !read->filename || !read->image_info ) 
 		return( NULL );
