@@ -214,9 +214,9 @@ write_ppm( Write *write, int ascii )
 		magic = "P2";
 	else if( in->Bands == 1 && !ascii )
 		magic = "P5";
-	else if( (in->Bands == 3 || in->Bands == 4) && ascii )
+	else if( in->Bands == 3 && ascii )
 		magic = "P3";
-	else if( (in->Bands == 3 || in->Bands == 4) && !ascii )
+	else if( in->Bands == 3 && !ascii )
 		magic = "P6";
 	else
 		assert( 0 );
@@ -275,7 +275,7 @@ im_vips2ppm( IMAGE *in, const char *filename )
 			_( "uncoded or IM_CODING_LABQ only" ) );
 		return( -1 );
 	}
-	if( in->Coding == IM_CODING_NONE && in->Bands != 1 && in->Bands != 3 ) {
+	if( in->Bands != 1 && in->Bands != 3 ) {
 		im_error( "im_vips2ppm", _( "1 or 3 band images only" ) );
 		return( -1 );
 	}

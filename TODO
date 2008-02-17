@@ -1,13 +1,14 @@
-- JPEG write should know about CMYK as well, maybe write all 4 band images as
-  CMYK? probably need to test Type so we don't get confused by RGBA
+- missing libstdc++ in link? what if we configure with no openexr?
 
-  test CMYK JPEG write, also PNG write with new saveable
+  added -lstdc++ to VIPS_LIBS, but will this work on solaris etc.? maybe have
+  a configure option to turn off CImg
 
-  can we use convert_saveable for PPM and friends as well?
+  there must be an autoconf macro that finds the stdc++ library name
 
-  should we invert CMYK on JPEG save?
+- test maxpos_avg, quite a few changes
 
-- HAVE_HYPOT could define a hypot() macro?
+WONTFIX
+=======
 
 - write our own python extension to call a vips operation by name
 
@@ -20,38 +21,6 @@
 	__getattr__ (self, name) = lambda (obj_to_call, arguments):
 
   or something like that?
-
-- try
-
-	im_max ~/pics/wtc.jpg
-	read: done in 8s          
-	iterate: done in 11s          
-	255
-
-	nip2 --vips-progress -e 'max (Image_file "~/pics/wtc.jpg")'
-	/home/john/.nip2-7.13.2/tmp/untitled-nip2-0-XOSIR1T.v: done in 18s
-	iterate: done in 20s          
-
-	nip2 --vips-progress ~/pics/wtc.jpg
-	/home/john/.nip2-7.13.2/tmp/untitled-nip2-0-X37AX1T.v: done in 23s
-	... then "max A1" at the cmd line
-	iterate: done in 32s          
-
-  is there a problem
-
-- test ppm writer
-
-- missing libstdc++ in link? what if we configure with no openexr?
-
-  added -lstdc++ to VIPS_LIBS, but will this work on solaris etc.? maybe have
-  a configure option to turn off CImg
-
-  there must be an autoconf macro that finds the stdc++ library name
-
-- test maxpos_avg, quite a few changes
-
-WONTFIX
-=======
 
 - HAVE_HYPOT could define a hypot() macro?
 
