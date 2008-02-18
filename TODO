@@ -1,5 +1,3 @@
-- why do we need glib2.6? can we use 2.4? it would help sol10
-
 - missing libstdc++ in link? what if we configure with no openexr?
 
   added -lstdc++ to VIPS_LIBS, but will this work on solaris etc.? maybe have

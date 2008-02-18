@@ -189,7 +189,7 @@
 6/10/06 started 7.11.14
 - ifthenelse and affine dhints revised
 - buildlut no longer outputs x cods
-- configure asks for glib >= 2.6
+- configure asks for glib >= 2.6 (we need GOption)
 - configure uses AC_TOOL_CHECK to find tool names to help cross-compiling.
 - better configure test for libexif
 - add </libexif/ prefix if required
