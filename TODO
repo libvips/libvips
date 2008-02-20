@@ -8,6 +8,11 @@
   maybe just link with g++ instead of gcc? how can we do this? put a
   dummy.cpp into libsrc?
 
+  or do we only need to link the cimg convenience library with g++? libtool
+  should copy the libs up, shouldn't it?
+
+  add a --without-cimg option too
+
 - test maxpos_avg, quite a few changes
 
 WONTFIX

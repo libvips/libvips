@@ -96,6 +96,8 @@
  * 15/2/08
  * 	- set TIFFTAG_JPEGQUALITY explicitly when we copy TIFF files, since 
  * 	  libtiff doesn't keep this in the header (thanks Joe)
+ * 20/2/08
+ * 	- use tiff error handler from im_tiff2vips.c
  */
 
 /*
@@ -237,14 +239,10 @@ typedef struct tiff_write {
 	char *icc_profile;		/* Profile to embed */
 } TiffWrite;
 
-/* Handle TIFF errors here. 
+/* Use these from im_tiff2vips().
  */
-static void 
-vhandle( char *module, char *fmt, va_list ap )
-{
-	im_error( "im_vips2tiff", _( "TIFF error in \"%s\": " ), module );
-	im_verror( "im_vips2tiff", fmt, ap );
-}
+void im__thandler_error( char *module, char *fmt, va_list ap );
+void im__thandler_warning( char *module, char *fmt, va_list ap );
 
 /* Open TIFF for output.
  */
@@ -1527,7 +1525,8 @@ im_vips2tiff( IMAGE *im, const char *filename )
 
 	/* Override the default TIFF error handler.
 	 */
-	TIFFSetErrorHandler( (TIFFErrorHandler) vhandle );
+	TIFFSetErrorHandler( (TIFFErrorHandler) im__thandler_error );
+	TIFFSetWarningHandler( (TIFFErrorHandler) im__thandler_warning );
 
 	/* Check input image.
 	 */

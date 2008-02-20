@@ -12,6 +12,8 @@
  *	- i18n added, domain now separate arg
  * 14/2/07
  * 	- lock around error buffer changes
+ * 20/2/08
+ * 	- lock around warnings and diagnostics too, why not
  */
 
 /*
@@ -160,10 +162,12 @@ void
 im_vdiag( const char *domain, const char *fmt, va_list ap )
 {
 	if( !g_getenv( IM_DIAGNOSTICS ) ) {
+		g_mutex_lock( im__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "vips diagnostic" ) );
 		(void) fprintf( stderr, _( "%s: " ), domain );
 		(void) vfprintf( stderr, fmt, ap );
 		(void) fprintf( stderr, "\n" );
+		g_mutex_unlock( im__global_lock );
 	}
 }
 
@@ -181,10 +185,12 @@ void
 im_vwarn( const char *domain, const char *fmt, va_list ap )
 {	
 	if( !g_getenv( IM_WARNING ) ) {
+		g_mutex_lock( im__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "vips warning" ) );
 		(void) fprintf( stderr, _( "%s: " ), domain );
 		(void) vfprintf( stderr, fmt, ap );
 		(void) fprintf( stderr, "\n" );
+		g_mutex_unlock( im__global_lock );
 	}
 }
 

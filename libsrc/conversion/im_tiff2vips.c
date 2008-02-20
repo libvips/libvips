@@ -43,7 +43,7 @@
  *	- ooops, else missing for subsample stuff above
  * 2/10/99 JC
  *	- tiled 16-bit greyscale read was broken
- *	- added mutex for TIFF*() calls
+ *	- added mutex for TIFFReadTile() calls
  * 11/5/00 JC
  *	- removed TIFFmalloc/TIFFfree usage
  * 23/4/01 JC
@@ -225,16 +225,18 @@ typedef struct {
 	void *table;
 } YCbCrParams;
 
-/* Handle TIFF errors here. 
+/* Handle TIFF errors here. Shared with im_vips2tiff. These can be called from
+ * more than one thread, but im_error and im_warn have mutexes in, so that's
+ * OK.
  */
-static void 
-thandler_error( char *module, char *fmt, va_list ap )
+void 
+im__thandler_error( char *module, char *fmt, va_list ap )
 {
 	im_verror( module, fmt, ap );
 }
 
-static void 
-thandler_warning( char *module, char *fmt, va_list ap )
+void 
+im__thandler_warning( char *module, char *fmt, va_list ap )
 {
 	char buf[256];
 
@@ -1426,8 +1428,8 @@ im_istiffpyramid( const char *name )
 {
 	TIFF *tif;
 
-	TIFFSetErrorHandler( (TIFFErrorHandler) thandler_error );
-	TIFFSetWarningHandler( (TIFFErrorHandler) thandler_warning );
+	TIFFSetErrorHandler( (TIFFErrorHandler) im__thandler_error );
+	TIFFSetWarningHandler( (TIFFErrorHandler) im__thandler_warning );
 
 	if( (tif = get_directory( name, 2 )) ) {
 		/* We can see page 2 ... assume it is.
@@ -1448,8 +1450,8 @@ im_tiff2vips( const char *filename, IMAGE *out )
 	printf( "im_tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
 #endif /*DEBUG*/
 
-	TIFFSetErrorHandler( (TIFFErrorHandler) thandler_error );
-	TIFFSetWarningHandler( (TIFFErrorHandler) thandler_warning );
+	TIFFSetErrorHandler( (TIFFErrorHandler) im__thandler_error );
+	TIFFSetWarningHandler( (TIFFErrorHandler) im__thandler_warning );
 
 	if( !(rtiff = readtiff_new( filename, out )) )
 		return( -1 );
@@ -1479,8 +1481,8 @@ im_tiff2vips_header( const char *filename, IMAGE *out )
 {
 	ReadTiff *rtiff;
 
-	TIFFSetErrorHandler( (TIFFErrorHandler) thandler_error );
-	TIFFSetWarningHandler( (TIFFErrorHandler) thandler_warning );
+	TIFFSetErrorHandler( (TIFFErrorHandler) im__thandler_error );
+	TIFFSetWarningHandler( (TIFFErrorHandler) im__thandler_warning );
 
 	if( !(rtiff = readtiff_new( filename, out )) )
 		return( -1 );
