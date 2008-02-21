@@ -61,11 +61,6 @@ WONTFIX
 
   or something like that?
 
-- can we use GraphicsMagick instead of ImageMagick?
-
-  no: current stable GraphicsMagick is missing (at least) QuantumRange and
-  GetNextImageAttribute() ... perhaps this will be fixed in 1.2
-
 - TIFF load/save should use meta system for unknown tags
 
 - balance should use new meta stuff

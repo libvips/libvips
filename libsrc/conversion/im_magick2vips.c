@@ -16,6 +16,8 @@
  * 	- set RGB16/GREY16 if appropriate
  * 10/8/07
  * 	- support 32/64 bit imagemagick too
+ * 21/2/08 Bob Friesenhahn
+ * 	- use MaxRGB if QuantumRange is missing
  */
 
 /*
@@ -84,6 +86,12 @@ im_magick2vips_header( const char *filename, IMAGE *im )
 #include <vips/thread.h>
 
 #include <magick/api.h>
+
+/* pre-float Magick used to call this MaxRGB.
+ */
+#if !defined(QuantumRange)
+#  define QuantumRange MaxRGB
+#endif
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -211,7 +219,9 @@ parse_header( Read *read )
 	IMAGE *im = read->im;
 	Image *image = read->image;
 
+#ifdef HAVE_GETNEXTIMAGEATTRIBUTE
 	const ImageAttribute *attr;
+#endif /*HAVE_GETNEXTIMAGEATTRIBUTE*/
 	Image *p;
 	int i;
 
