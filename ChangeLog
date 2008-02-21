@@ -8,6 +8,7 @@
 - you can now shrink jpegs during read, see "man im_jpeg2vips"
 - added CMYK JPEG write
 - optionally use GraphicsMagick (thanks Bob Friesenhahn)
+- look for MAGICKCORE_HDRI_SUPPORT (thanks Marcel)
 
 12/12/07 started 7.13.3
 - added "include <cstring>" to VImage.cc to help gcc 4.3

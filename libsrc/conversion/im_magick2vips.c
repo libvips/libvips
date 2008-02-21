@@ -18,6 +18,7 @@
  * 	- support 32/64 bit imagemagick too
  * 21/2/08 Bob Friesenhahn
  * 	- use MaxRGB if QuantumRange is missing
+ * 	- look for MAGICKCORE_HDRI_SUPPORT (thanks Marcel)
  */
 
 /*
@@ -87,15 +88,21 @@ im_magick2vips_header( const char *filename, IMAGE *im )
 
 #include <magick/api.h>
 
+#ifdef WITH_DMALLOC
+#include <dmalloc.h>
+#endif /*WITH_DMALLOC*/
+
 /* pre-float Magick used to call this MaxRGB.
  */
 #if !defined(QuantumRange)
 #  define QuantumRange MaxRGB
 #endif
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
+/* And this used to be UseHDRI.
+ */
+#if MAGICKCORE_HDRI_SUPPORT
+#  define UseHDRI=1
+#endif
 
 /* What we track during a read call.
  */
