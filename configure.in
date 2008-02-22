@@ -196,12 +196,14 @@ if test x"$with_magick" != "xno"; then
 fi
 
 if test x"$with_magick" != "xno"; then
-  # we need ResetImageAttributeIterator() / GetNextImageAttribute() to get
-  # attrs, but that's 6.2+ I think ... test for them
+  # we need ResetImageAttributeIterator() / GetNextImageAttribute() to loop
+  # over attrs, but that's 6.2+ I think ... test for them
+  # graphicsmagick only has GetImageAttribute(), test for that as a fallback
   save_LIBS=$LIBS
   LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(GetNextImageAttribute,
-    AC_DEFINE(HAVE_MAGICK_ATTR,1,[define if your magick has attribute support.]))
+  AC_CHECK_FUNCS(GetNextImageAttribute GetImageAttribute,
+    AC_DEFINE(HAVE_MAGICK_ATTR,1,
+	      [define if your magick has attribute support.]))
   LIBS=$save_LIBS
 fi
 

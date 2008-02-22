@@ -16,9 +16,10 @@
  * 	- set RGB16/GREY16 if appropriate
  * 10/8/07
  * 	- support 32/64 bit imagemagick too
- * 21/2/08 Bob Friesenhahn
- * 	- use MaxRGB if QuantumRange is missing
+ * 21/2/08 
+ * 	- use MaxRGB if QuantumRange is missing (thanks Bob)
  * 	- look for MAGICKCORE_HDRI_SUPPORT (thanks Marcel)
+ * 	- use image->attributes if GetNextImageAttribute() is missing
  */
 
 /*
@@ -226,9 +227,9 @@ parse_header( Read *read )
 	IMAGE *im = read->im;
 	Image *image = read->image;
 
-#ifdef HAVE_GETNEXTIMAGEATTRIBUTE
+#ifdef HAVE_MAGICK_ATTR
 	const ImageAttribute *attr;
-#endif /*HAVE_GETNEXTIMAGEATTRIBUTE*/
+#endif /*HAVE_MAGICK_ATTR*/
 	Image *p;
 	int i;
 
@@ -328,11 +329,21 @@ parse_header( Read *read )
 	 */
 	im->Coding = IM_CODING_NONE;
 
+#ifdef HAVE_MAGICK_ATTR
 #ifdef HAVE_GETNEXTIMAGEATTRIBUTE
 	/* Gah, magick6.something and later only. Attach any attributes.
 	 */
 	ResetImageAttributeIterator( image );
 	while( (attr = GetNextImageAttribute( image )) ) {
+#elif defined(HAVE_GETIMAGEATTRIBUTE)
+	/* GraphicsMagick is missing the iterator: we have to loop ourselves.
+	 * ->attributes is marked as private in the header, but there's no
+	 * getter so we have to access it directly.
+	 */
+	for( attr = image->attributes; attr; attr = attr->next ) {
+#else /*stuff*/
+	#error attributes enabled, but no access funcs found
+#endif
 		char name_text[256];
 		VBuf name;
 
@@ -345,7 +356,7 @@ parse_header( Read *read )
 			attr->key, attr->value );
 #endif /*DEBUG*/
 	}
-#endif /*HAVE_GETNEXTIMAGEATTRIBUTE*/
+#endif /*HAVE_MAGICK_ATTR*/
 
 	/* Do we have a set of equal-sized frames? Append them.
 
