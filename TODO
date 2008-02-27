@@ -13,10 +13,10 @@
 
   add a --without-cimg option too
 
-- test maxpos_avg, quite a few changes
-
 WONTFIX
 =======
+
+- test maxpos_avg, quite a few changes
 
 - write our own python extension to call a vips operation by name
 

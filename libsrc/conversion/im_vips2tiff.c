@@ -98,6 +98,8 @@
  * 	  libtiff doesn't keep this in the header (thanks Joe)
  * 20/2/08
  * 	- use tiff error handler from im_tiff2vips.c
+ * 27/2/08
+ * 	- don't try to copy icc profiles when building pyramids (thanks Joe)
  */
 
 /*
@@ -367,10 +369,10 @@ pack2tiff( TiffWrite *tw, REGION *in, PEL *q, Rect *area )
 	}
 }
 
-/* Embed an ICC profile.
+/* Embed an ICC profile from a file.
  */
 static int
-embed_profile( TIFF *tif, const char *profile )
+embed_profile_file( TIFF *tif, const char *profile )
 {
 	char *buffer;
 	unsigned int length;
@@ -406,6 +408,18 @@ embed_profile_meta( TIFF *tif, IMAGE *im )
 	return( 0 );
 }
 
+static int
+embed_profile( TiffWrite *tw, TIFF *tif )
+{
+	if( tw->embed && embed_profile_file( tif, tw->icc_profile ) )
+		return( -1 );
+	if( !tw->embed && im_header_get_type( tw->im, IM_META_ICC_NAME ) &&
+		embed_profile_meta( tif, tw->im ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /* Write a TIFF header. width and height are the size of the IMAGE we are
  * writing (may have been shrunk!).
  */
@@ -430,20 +444,15 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
 		IM_CLIP( 0.01, tw->yres, 10000 ) );
 
-	if( tw->compression == COMPRESSION_JPEG ) {
+	if( tw->compression == COMPRESSION_JPEG ) 
 		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, tw->jpqual );
-		TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
-	}
 
 	if( tw->predictor != -1 ) 
 		TIFFSetField( tif, TIFFTAG_PREDICTOR, tw->predictor );
 
 	/* Attach ICC profile.
 	 */
-	if( tw->embed && embed_profile( tif, tw->icc_profile ) )
-		return( -1 );
-	if( !tw->embed && im_header_get_type( tw->im, IM_META_ICC_NAME ) &&
-		embed_profile_meta( tif, tw->im ) )
+	if( embed_profile( tw, tif ) )
 		return( -1 );
 
 	/* And colour fields.
@@ -1399,7 +1408,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 static int
 tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 {
-	uint32 i32, i32a;
+	uint32 i32;
 	uint16 i16;
 	float f;
 	tdata_t buf;
@@ -1416,15 +1425,6 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_YRESOLUTION, f );
 	CopyField( TIFFTAG_RESOLUTIONUNIT, i16 );
 	CopyField( TIFFTAG_COMPRESSION, i16 );
-	if( i16 == COMPRESSION_JPEG ) {
-		/* For some reason the jpeg Q is always 75 :-( so we can't
-		 * copy, we have to set explicitly.
-		int i;
-		CopyField( TIFFTAG_JPEGQUALITY, i );
-		 */
-		TIFFSetField( out, TIFFTAG_JPEGQUALITY, tw->jpqual );
-	}
-        CopyField( TIFFTAG_PREDICTOR, i16 );
 	CopyField( TIFFTAG_SAMPLESPERPIXEL, i16 );
 	CopyField( TIFFTAG_BITSPERSAMPLE, i16 );
 	CopyField( TIFFTAG_PHOTOMETRIC, i16 );
@@ -1432,15 +1432,26 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_TILELENGTH, i32 );
 	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );
 
-	if( TIFFGetField( in, TIFFTAG_ICCPROFILE, &i32, &i32a ) ) 
-		TIFFSetField( out, TIFFTAG_ICCPROFILE, i32, i32a );
+	if( tw->predictor != -1 ) 
+		TIFFSetField( out, TIFFTAG_PREDICTOR, tw->predictor );
+
+	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
+	 * Set explicitly from TiffWrite.
+	 */
+	if( tw->compression == COMPRESSION_JPEG ) 
+		TIFFSetField( out, TIFFTAG_JPEGQUALITY, tw->jpqual );
+
+	/* We can't copy profiles :( Set again from TiffWrite.
+	 */
+	if( embed_profile( tw, out ) )
+		return( -1 );
 
 	buf = im_malloc( NULL, TIFFTileSize( in ) );
 	n = TIFFNumberOfTiles( in );
 	for( tile = 0; tile < n; tile++ ) {
 		tsize_t len;
 
-		/* It'd be good to use * TIFFReadRawTile()/TIFFWriteRawTile() 
+		/* It'd be good to use TIFFReadRawTile()/TIFFWriteRawTile() 
 		 * here to save compression/decompression, but sadly it seems
 		 * not to work :-( investigate at some point.
 		 */

@@ -9,6 +9,7 @@
 - added CMYK JPEG write
 - optionally use GraphicsMagick (thanks Bob Friesenhahn)
 - look for MAGICKCORE_HDRI_SUPPORT (thanks Marcel)
+- set icc profiles in tiff pyramids explicitly (thanks Joe)
 
 12/12/07 started 7.13.3
 - added "include <cstring>" to VImage.cc to help gcc 4.3
