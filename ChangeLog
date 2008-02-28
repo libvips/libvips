@@ -10,12 +10,21 @@
 - optionally use GraphicsMagick (thanks Bob Friesenhahn)
 - look for MAGICKCORE_HDRI_SUPPORT (thanks Marcel)
 - set icc profiles in tiff pyramids explicitly (thanks Joe)
+- add im_maxpos_subpel 
+- make im_abs compile without liboil 
+- add im_align_bands 
+- fix type overflow in complex division 
+- fix im_cross_phase and im_addgnoise (Tom)
 
 12/12/07 started 7.13.3
 - added "include <cstring>" to VImage.cc to help gcc 4.3
 - started moving the python binding to dynamic wrapping
 - added im_wrap(), im_wraptwo(), im_phasecor_fft(), im_cross_phase() (Tom)
 - memleak plugged in im_save_string_setf()
+- bugfix in and docs for im_gradcor() (Tom)
+- use Glib macros to make im_msb work on big-endian platforms (Tom)
+- use Glib macros to get rid of needless compile warnings (Tom)
+- fix type overflow in im_c2ps/im_abs (Tom)
 
 31/10/07 started 7.13.2
 - build cimg on windows fixes
@@ -28,6 +37,7 @@
 - but the meaning of evalend has changed in a non-backwards-compatible way :(
   use preclose instead ito get the old behaviour
 - added "--vips-progress" flag to turn on a simple eval progress tracker
+- make im_spcor[12] static, im_spcor is wrapper (Tom)
 
 28/9/07 started 7.13.1
 - vips2dj can print RGB images
@@ -50,11 +60,11 @@
 - better im_magick2vips() for Q8 ImageMagick
 - split repository to trunk/branches ready for a stable 7.12.x branch
 
-27/7/06 started 7.12.4
+27/7/07 started 7.12.4
 - proto.h had vars called small, breaking on win32
 - more python fixing, we now have working matricies too
 
-17/7/06 started 7.12.3
+17/7/07 started 7.12.3
 - fix to VImage.i for gcc 4.2 (thanks Damir)
 - eek, off by 1 for more than 1 band hists
 - needed a slightly larger worst-case buffer in im__b64_encode()
@@ -63,12 +73,12 @@
 - remove .svn dirs from dist
 - now passes distcheck again
 
-17/7/06 started 7.12.2
+17/7/07 started 7.12.2
 - added im_bandmean()
 - added support for TIFFTAG_PREDICTOR (Andrey Kiselev)
 - fix TIFFOpen() mode snafu (Andrey Kiselev)
 
-11/5/06 started 7.12.1
+11/5/07 started 7.12.1
 - memory.c abort()s with DEBUG
 - oops, im_bits_of_fmt() manpage was not being installed
 - im_histcum() can do all image types
@@ -89,6 +99,9 @@
 - woo, got exceptions working in SWIG
 - soname version bumped to 12.x.x
 - oops, added vector ops to Python
+- check for overflow of int in return of strtol in dispatch system (Tom)
+- add im_[di]mask_[xy]size to dispatch system (Tom)
+- add im_gradcor(), im_grad_[xy] (Tom)
 
 26/3/07 started 7.11.21
 - ooo, added %include "std_except.i" & friends to VError.i, VImage.i
@@ -119,9 +132,6 @@
 - oop, IMAGE % vector<double> was broken
 
 21/12/06 started 7.11.19
-- added im_isscalar() (Tom)
-- added IM_REGION_ADDR_TOPLEFT() (Tom)
-- reduce size of im_rightshift_size.c to help compile (Tom)
 - added im_linreg() (Tom)
 - various C++ API polishes, plus a bugfix (Dennis Lubert)
 - vips.spec split to devel and python too (Dennis Lubert)
@@ -162,6 +172,10 @@
 - quiet libtoolize test (thanks Tom)
 - im_benchmarkn now regrows image each time
 - strip meta from sample2.v ... saves a lot of mem (esp. Hist)
+- added im_isscalar() (Tom)
+- added IM_REGION_ADDR_TOPLEFT() (Tom)
+- reduce size of im_rightshift_size.c to help compile (Tom)
+- make im_stop_many(NULL) safe (Tom)
 
 24/11/06 started 7.11.17
 - better benchmark script makes graphing easier
@@ -208,6 +222,7 @@
 - no longer derive VError from std::exception, can't get it to work with SWIG
 - added mmap window manager to share windows between regions ... big reduction
   in VM use for large workspaces and for SMP
+- add im_spcor2 (with sliding window) (Tom)
 
 15/9/06 started 7.11.12
 - python vips wrapper hooks into init to start vips
@@ -228,6 +243,9 @@
   happens a lot in nip2
 - added <vips/vips> C++ include ... include in a namespace
 - added im_benchmark / SMP benchmark script
+- add im_maxpos_avg() and im_point_bilinear() (Tom)
+- make im_region_free(NULL) safe (Tom)
+- link in manpages for im_contrast_surface (Tom)
 
 8/9/06 started 7.11.11
 - add im_norm_dmask()
@@ -238,6 +256,7 @@
 - python binding done!
 - oops, --without-python was broken (thanks Tom)
 - added python/test
+- add im_lu_decomp() im_lu_solve(), rewrite NR type functions in terms of these (Tom)
 
 23/6/06 started 7.11.10
 - still more im_affine() rounding/clipping tweaks
@@ -250,6 +269,10 @@
 - "header" now uses GOption, slightly different args, will loop over args
 - fixed assert() overenthusiasm in im_prepare()
 - im_csv2vips() now has separate whitespace / separator tables
+- add im_rightshift_size() (Tom)
+- add im_maxpos_vec(), im_minpos_vec() (Tom)
+- add im_norm_dmask() (Tom)
+- make im_free_[di]mask(NULL) safe (Tom)
 
 23/6/06 started 7.11.9
 - back on sourceforge CVS again
@@ -286,9 +309,10 @@
 - vips main prog uses GOption
 - im_icc_* locks around calls to cmsDoTransform() to avoid corruption on SMP
   machines
+- add im_prepare_many() (Tom)
 
 10/3/06 started 7.11.6
-- typo in manpage for im_rect_dup() (thanks Tom)
+- typo in manpage and header for im_rect_dup() (Tom)
 - don't abort image load if XML read fails
 - added im_video_test() ... test video source
 - oops, lcms .pc finder was not working

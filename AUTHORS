@@ -9,8 +9,8 @@ library in 1995.
 
 Ruven Pillay, Steve Perry, Lars Raffelt, David Saunders, Jean-Philippe
 Laurant, Ahmed Abood, Helene Chahine, Joe Padfield, Andrey Kiselev, Lev
-Serebryakov, Simon Goodall, Konrad Lang, Markus Wollgarten, Jesper Friis 
-and others contributed patches for the library and ip.
+Serebryakov, Simon Goodall, Konrad Lang, Markus Wollgarten, Jesper Friis,
+Tom Vajzovic and others contributed patches for the library and ip.
 
 Hans Breuer contributed many win32 compatibility fixes and a win32 build
 system. Dennis Lubert cleaned up the C++ API.
