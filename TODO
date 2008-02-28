@@ -11,8 +11,6 @@
   or do we only need to link the cimg convenience library with g++? libtool
   should copy the libs up, shouldn't it?
 
-  add a --without-cimg option too
-
 WONTFIX
 =======
 

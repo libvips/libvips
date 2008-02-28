@@ -1,3 +1,13 @@
+# only build in the cimg dir if it's enabled
+if WITH_CIMG
+C_COMPILE_DIR = cimg
+C_DIST_DIR =
+C_LIB = cimg/libcimg.la
+else
+C_COMPILE_DIR =
+C_DIST_DIR = cimg
+C_LIB = 
+endif
 
 SUBDIRS = \
 	acquire \
@@ -6,7 +16,7 @@ SUBDIRS = \
 	colour \
 	conversion \
 	convolution \
-	cimg \
+	$(C_COMPILE_DIR) \
 	freq_filt \
 	histograms_lut \
 	inplace \
@@ -31,7 +41,7 @@ libvips_la_LIBADD = \
 	colour/libcolour.la \
 	conversion/libconversion.la \
 	convolution/libconvolution.la \
-	cimg/libcimg.la \
+	$(C_LIB) \
 	freq_filt/libfreq_filt.la \
 	histograms_lut/libhistograms_lut.la \
 	inplace/libinplace.la \
@@ -57,4 +67,7 @@ libvips_la_LDFLAGS = \
 vips.def:
 	./makedef.pl $(prefix) > vips.def
 
-EXTRA_DIST = vips.def makedef.pl
+EXTRA_DIST = \
+	vips.def \
+	makedef.pl \
+	$(C_DIST_DIR)

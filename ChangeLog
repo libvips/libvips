@@ -10,6 +10,7 @@
 - optionally use GraphicsMagick (thanks Bob Friesenhahn)
 - look for MAGICKCORE_HDRI_SUPPORT (thanks Marcel)
 - set icc profiles in tiff pyramids explicitly (thanks Joe)
+- add --without-cimg configure option
 - add im_maxpos_subpel 
 - make im_abs compile without liboil 
 - add im_align_bands 
