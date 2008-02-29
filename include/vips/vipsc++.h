@@ -1,5 +1,5 @@
 // this file automatically generated from
-// VIPS library 7.13.1-Fri Oct 19 17:37:22 BST 2007
+// VIPS library 7.14.0-Fri Feb 29 12:02:58 GMT 2008
 VDMask estpar( VImage, int, int, int, double& ) throw( VError );
 VImage transform( VDMask, int, int ) throw( VError );
 VImage transform_search( VImage, double, int, int, int, int, VDMask&, double& ) throw( VError );
@@ -14,6 +14,7 @@ VImage bandmean() throw( VError );
 VImage ceil() throw( VError );
 VImage cmulnorm( VImage ) throw( VError );
 VImage cos() throw( VError );
+VImage cross_phase( VImage ) throw( VError );
 double deviate() throw( VError );
 VImage divide( VImage ) throw( VError );
 VImage exp10() throw( VError );
@@ -170,6 +171,7 @@ void vips2mimejpeg( int ) throw( VError );
 void vips2png( char* ) throw( VError );
 void vips2ppm( char* ) throw( VError );
 void vips2tiff( char* ) throw( VError );
+VImage wrap( int, int ) throw( VError );
 VImage zoom( int, int ) throw( VError );
 VImage addgnoise( double ) throw( VError );
 VImage compass( VIMask ) throw( VError );
@@ -197,6 +199,7 @@ static VImage rank_image( std::vector<VImage>, int ) throw( VError );
 VImage lindetect( VIMask ) throw( VError );
 static VImage maxvalue( std::vector<VImage> ) throw( VError );
 int mpercent( double ) throw( VError );
+VImage phasecor_fft( VImage ) throw( VError );
 VImage rank( int, int, int ) throw( VError );
 VImage rank_raw( int, int, int ) throw( VError );
 VImage resize_linear( int, int ) throw( VError );
@@ -204,8 +207,6 @@ VImage sharpen( int, double, double, double, double, double ) throw( VError );
 VImage shrink( double, double ) throw( VError );
 VImage spcor( VImage ) throw( VError );
 VImage spcor_raw( VImage ) throw( VError );
-VImage spcor2( VImage ) throw( VError );
-VImage spcor2_raw( VImage ) throw( VError );
 VImage stretch3( double, double ) throw( VError );
 VImage zerox( int ) throw( VError );
 static VImage create_fmask( int, int, int, double, double, double, double, double ) throw( VError );
@@ -261,6 +262,7 @@ VImage erode( VIMask ) throw( VError );
 VImage erode_raw( VIMask ) throw( VError );
 VImage profile( int ) throw( VError );
 VImage affine( double, double, double, double, double, double, int, int, int, int ) throw( VError );
+VImage align_bands() throw( VError );
 double correl( VImage, int, int, int, int, int, int, int&, int& ) throw( VError );
 int _find_lroverlap( VImage, int, int, int, int, int, int, int, int&, double&, double&, double&, double& ) throw( VError );
 int _find_tboverlap( VImage, int, int, int, int, int, int, int, int&, double&, double&, double&, double& ) throw( VError );
@@ -272,6 +274,7 @@ VImage lrmosaic( VImage, int, int, int, int, int, int, int, int, int ) throw( VE
 VImage lrmosaic1( VImage, int, int, int, int, int, int, int, int, int, int, int, int, int ) throw( VError );
 VImage match_linear( VImage, int, int, int, int, int, int, int, int ) throw( VError );
 VImage match_linear_search( VImage, int, int, int, int, int, int, int, int, int, int ) throw( VError );
+double maxpos_subpel( double& ) throw( VError );
 VImage remosaic( char*, char* ) throw( VError );
 VImage similarity_area( double, double, double, double, int, int, int, int ) throw( VError );
 VImage similarity( double, double, double, double ) throw( VError );

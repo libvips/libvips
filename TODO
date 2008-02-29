@@ -14,6 +14,16 @@
 WONTFIX
 =======
 
+- unsharp should work on GREY16? shuld be easy to add GREY16->LABS
+
+  no, labs is signed short, ranges are all differrent, and the scaling will be
+  wrong anyway
+
+  correct: import with ICC to labs, then process, then export to RGB, take
+  green?
+
+  yuk, can we add a 16bit path to vips's lab <--> rgb converter?
+
 - test maxpos_avg, quite a few changes
 
 - write our own python extension to call a vips operation by name

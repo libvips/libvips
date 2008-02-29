@@ -29,6 +29,8 @@
  *	- use GOption, loop over args
  * 4/1/07
  *	- use im_history_get()
+ * 29/2/08
+ * 	- don't stop on error
  */
 
 /*
@@ -77,6 +79,20 @@ static GOptionEntry main_option[] = {
 		"FIELD" },
 	{ NULL }
 };
+
+/* A non-fatal error. Print the vips error buffer and continue.
+ */
+static void
+print_error( const char *fmt, ... )
+{
+	va_list ap;
+
+        va_start( ap, fmt );
+        vfprintf( stderr, fmt, ap );
+        va_end( ap );
+        fprintf( stderr, "\n%s\n", im_error_buffer() );
+	im_error_clear();
+}
 
 /* Print header, or parts of header.
  */
@@ -163,11 +179,13 @@ main( int argc, char *argv[] )
 		IMAGE *im;
 
 		if( !(im = im_open( argv[i], "r" )) )
-			error_exit( "unable to open %s", argv[i] );
-		if( print_header( im ) )
-			error_exit( _( "unable to print header of \"%s\"" ),
-				argv[i] );
-		im_close( im );
+			print_error( "%s: unable to open", argv[i] );
+
+		if( im && print_header( im ) )
+			print_error( "%s: unable to print header", argv[i] );
+
+		if( im )
+			im_close( im );
 	}
 
 	return( 0 );

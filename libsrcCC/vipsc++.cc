@@ -1,5 +1,5 @@
 // this file automatically generated from
-// VIPS library 7.13.1-Fri Oct 19 17:37:22 BST 2007
+// VIPS library 7.14.0-Fri Feb 29 12:02:58 GMT 2008
 // im_estpar: estimate transform parms
 VDMask VImage::estpar( VImage dst, int order, int ipol, int wrap, double& avg_displ ) throw( VError )
 {
@@ -240,6 +240,24 @@ VImage VImage::cos() throw( VError )
 	_vec.data(1) = out.image();
 	_vec.call();
 	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_cross_phase: phase of cross power spectrum of two complex images
+VImage VImage::cross_phase( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_cross_phase" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
 
 	return( out );
 }
@@ -2890,6 +2908,24 @@ void VImage::vips2tiff( char* out ) throw( VError )
 	_vec.call();
 }
 
+// im_wrap: shift image origin, wrapping at sides
+VImage VImage::wrap( int x, int y ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_wrap" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = x;
+	*((int*) _vec.data(3)) = y;
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
 // im_zoom: simple zoom of an image by integer factors
 VImage VImage::zoom( int xfac, int yfac ) throw( VError )
 {
@@ -3206,7 +3242,7 @@ VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma ) thr
 	return( out );
 }
 
-// im_grad_x: x component of gradient of image
+// im_grad_x: horizontal difference image
 VImage VImage::grad_x() throw( VError )
 {
 	VImage in = *this;
@@ -3222,7 +3258,7 @@ VImage VImage::grad_x() throw( VError )
 	return( out );
 }
 
-// im_grad_y: y component of gradient of image
+// im_grad_y: vertical difference image
 VImage VImage::grad_y() throw( VError )
 {
 	VImage in = *this;
@@ -3363,6 +3399,22 @@ int VImage::mpercent( double percent ) throw( VError )
 	return( thresh );
 }
 
+// im_phasecor_fft: non-normalised correlation of gradient of in2 within in1
+VImage VImage::phasecor_fft( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_phasecor_fft" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+
+	return( out );
+}
+
 // im_rank: rank filter nth element of xsize/ysize window
 VImage VImage::rank( int xsize, int ysize, int n ) throw( VError )
 {
@@ -3483,42 +3535,6 @@ VImage VImage::spcor_raw( VImage in2 ) throw( VError )
 	VImage out;
 
 	Vargv _vec( "im_spcor_raw" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_spcor2: normalised correlation of in2 within in1
-VImage VImage::spcor2( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_spcor2" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_spcor2_raw: normalised correlation of in2 within in1, no black padding
-VImage VImage::spcor2_raw( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_spcor2_raw" );
 
 	_vec.data(0) = in1.image();
 	_vec.data(1) = in2.image();
@@ -4484,6 +4500,21 @@ VImage VImage::affine( double a, double b, double c, double d, double dx, double
 	return( out );
 }
 
+// im_align_bands: align the bands of an image
+VImage VImage::align_bands() throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_align_bands" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	_vec.call();
+
+	return( out );
+}
+
 // im_correl: search area around sec for match for area around ref
 double VImage::correl( VImage sec, int xref, int yref, int xsec, int ysec, int hwindowsize, int hsearchsize, int& x, int& y ) throw( VError )
 {
@@ -4756,6 +4787,22 @@ VImage VImage::match_linear_search( VImage sec, int xref1, int yref1, int xsec1,
 	out._ref->addref( sec._ref );
 
 	return( out );
+}
+
+// im_maxpos_subpel: subpixel position of maximum of (phase correlation) image
+double VImage::maxpos_subpel( double& y ) throw( VError )
+{
+	VImage im = *this;
+	double x;
+
+	Vargv _vec( "im_maxpos_subpel" );
+
+	_vec.data(0) = im.image();
+	_vec.call();
+	x = *((double*)_vec.data(1));
+	y = *((double*)_vec.data(2));
+
+	return( x );
 }
 
 // im_remosaic: automatically rebuild mosaic with new files

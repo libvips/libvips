@@ -180,11 +180,12 @@ if test x"$with_fftw3" != "xno"; then
 fi
 
 # ImageMagick ... detect attribute iteration too
-# Optionally look for GraphicsMagick instead 
+# Optionally look for GraphicsMagick instead ... use
+# --with-magickpackage=GraphicsMagick
 AC_ARG_WITH([magick], AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
 AC_ARG_WITH([magickpackage], AS_HELP_STRING([--with-magickpackage], [magickpackage to use (default: ImageMagick)]))
 
-if test x"$with_magickpackage" == "xno"; then
+if test x"$with_magickpackage" == "x"; then
   with_magickpackage=ImageMagick
 fi
 

@@ -29,9 +29,11 @@ im_asintra         - asin of image (result in degrees)
 im_atantra         - atan of image (result in degrees)
 im_avg             - average value of image
 im_point_bilinear  - interpolate value at single point, linearly
+im_bandmean        - average image bands
 im_ceil            - round to smallest integal value not less than
 im_cmulnorm        - multiply two complex images, normalising output
 im_costra          - cos of image (angles in degrees)
+im_cross_phase     - phase of cross power spectrum of two complex images
 im_deviate         - standard deviation of image
 im_divide          - divide two images
 im_exp10tra        - 10^pel of image
@@ -49,17 +51,19 @@ im_litecor         - calculate max(white)*factor*(in/white), if clip == 1
 im_log10tra        - log10 of image
 im_logtra          - ln of image
 im_max             - maximum value of image
-im_maxpos          - position of maximum in image
-im_maxpos_avg      - position of maximum, averaging in case of draw
+im_maxpos          - position of image max
+im_maxpos_avg      - position of image max, averagie in case of draw
+im_maxpos_vec      - position and value of n maxima of image
 im_measure         - measure averages of a grid of patches
 im_min             - minimum value of image
 im_minpos          - position of minimum value of image
+im_minpos_vec      - position and value of n minima of image
 im_multiply        - multiply two images
 im_powtra          - pel^x ofbuildimage
 im_powtra_vec      - pel^[x,y,z] of image
 im_remainder       - remainder after integer division
 im_remainderconst  - remainder after integer division by a constant
-im_remainderconst_vec - remainder after integer division by a vector 
+im_remainderconst_vec - remainder after integer division by vector 
 im_rint            - round to nearest integal value
 im_sign            - unit vector in direction of value
 im_sintra          - sin of image (angles in degrees)
@@ -326,7 +330,8 @@ im_flipver         - flip image top-bottom
 im_gbandjoin       - bandwise join of many images
 im_grid            - chop a tall thin image into a grid of images
 im_insert          - insert sub-image into main image at position
-im_insert_noexpand - insert sub-image into main image at position, no expansion
+im_insert_noexpand - insert sub-image into main image at position, no
+expansion
 im_jpeg2vips       - convert from jpeg
 im_lrjoin          - join two images left-right
 im_magick2vips     - load file with libMagick
@@ -342,12 +347,6 @@ im_recomb          - linear recombination with mask
 im_replicate       - replicate an image horizontally and vertically
 im_ri2c            - join two non-complex images to form complex
 im_rot180          - rotate image 180 degrees
-im_rot270          - rotate image 270 degrees clockwise
-im_rot90           - rotate image 90 degrees clockwise
-im_scale           - scale image linearly to fit range 0-255
-im_scaleps         - logarithmic scale of image to fit range 0-255
-im_rightshift_size - decrease size by a power-of-two factor
-im_slice           - slice an image using two thresholds
 \end{verbatim}
 \caption{Conversion functions}
 \label{fg:conversion}
@@ -355,6 +354,12 @@ im_slice           - slice an image using two thresholds
 
 \begin{fig2}
 \begin{verbatim}
+im_rot270          - rotate image 270 degrees clockwise
+im_rot90           - rotate image 90 degrees clockwise
+im_scale           - scale image linearly to fit range 0-255
+im_scaleps         - logarithmic scale of image to fit range 0-255
+im_rightshift_size - decrease size by a power-of-two factor
+im_slice           - slice an image using two thresholds
 im_subsample       - subsample image by integer factors
 im_system          - run command on image
 im_tbjoin          - join two images top-bottom
@@ -368,6 +373,7 @@ im_vips2mimejpeg   - convert to jpeg as mime type on stdout
 im_vips2png        - convert VIPS image to PNG file
 im_vips2ppm        - write a file in pbm/pgm/ppm format
 im_vips2tiff       - convert VIPS image to TIFF file
+im_wrap            - shift image origin, wrapping at sides
 im_zoom            - simple zoom of an image by integer factors
 \end{verbatim}
 \caption{Conversion functions (cont.)}
@@ -490,19 +496,28 @@ im_convsep_raw     - seperable convolution, no border
 im_convsepf        - seperable convolution, with DOUBLEMASK
 im_convsepf_raw    - seperable convolution, with DOUBLEMASK, no border
 im_convsub         - convolve uchar to uchar, sub-sampling by xskip, yskip
+im_dmask_xsize     - horizontal size of a doublemask
+im_dmask_ysize     - vertical size of a doublemask
 im_embed           - embed in within a set of borders
 im_fastcor         - fast correlate in2 within in1
 im_fastcor_raw     - fast correlate in2 within in1, no border
 im_gauss_dmask     - generate gaussian DOUBLEMASK
 im_gauss_imask     - generate gaussian INTMASK
-im_gaussnoise      - generate image of gaussian noise with specified statistics
+im_gaussnoise      - generate gaussian noise with specified statistics
+im_grad_x          - horizontal difference image
+im_grad_y          - vertical difference image
+im_gradcor         - unnormalised correlation of gradient 
+im_gradcor_raw     - unnormalised correlation of gradient, no padding
 im_gradient        - convolve with 2-way rotating mask
+im_imask_xsize     - horizontal size of an intmask
+im_imask_ysize     - vertical size of an intmask
 im_rank_image      - point-wise pixel rank
 im_lindetect       - convolve with 4-way rotating mask
 im_log_dmask       - generate laplacian of gaussian DOUBLEMASK
 im_log_imask       - generate laplacian of gaussian INTMASK
 im_maxvalue        - point-wise maximum value
 im_mpercent        - find threshold above which there are percent values
+im_phasecor_fft    - non-normalised correlation of gradient of in2 within in1
 im_rank            - rank filter nth element of xsize/ysize window
 im_rank_raw        - rank filter nth element of xsize/ysize window, no border
 im_read_dmask      - read matrix of double from file
@@ -514,11 +529,9 @@ im_rotate_imask90  - rotate INTMASK clockwise by 90 degrees
 im_sharpen         - sharpen high frequencies of L channel of LabQ
 im_shrink          - shrink image by xfac, yfac times
 im_spcor           - normalised correlation of in2 within in1
-im_spcor_raw       - normalised correlation of in2 within in1, no black padding
-im_spcor2          - normalised correlation of in2 within in1
-im_spcor2_raw      - normalised correlation of in2 within in1, no black padding
+im_spcor_raw       - normalised correlation of in2 within in1, no padding
 im_stretch3        - stretch 3%, sub-pixel displace by xdisp/ydisp
-im_zerox           - find +ve or -ve zero crossings in IM_BANDFMT_INT image
+im_zerox           - find +ve or -ve zero crossings in image
 \end{verbatim}
 \caption{Convolution functions}
 \label{fg:convolution}
@@ -530,7 +543,7 @@ im_zerox           - find +ve or -ve zero crossings in IM_BANDFMT_INT image
 See \fref{fg:inplace}.
 
 A few of the in-place operations are available from the command-line. Most are
-not. More will be added.
+not. 
 
 \begin{fig2}
 \begin{verbatim}
@@ -748,6 +761,7 @@ images.
 \begin{verbatim}
 example% vips --list mosaicing
 im_affine          - affine transform
+im_align_bands     - align the bands of an image
 im_correl          - search area around sec for match for area around ref
 im__find_lroverlap - search for left-right overlap of ref and sec
 im__find_tboverlap - search for top-bottom overlap of ref and sec
@@ -769,6 +783,23 @@ im_tbmosaic1       - first-order top-bottom mosaic of ref and sec
 \end{verbatim}
 \caption{Mosaic functions}
 \label{fg:mosaicing}
+\end{fig2}
+
+\subsection{CImg functions}
+
+See \fref{fg:cimg}.
+
+These operations wrap the anisotropic blur function from the CImg library.
+They are useful for removing noise from images.
+
+\begin{fig2}
+\begin{verbatim}
+example% vips --list cimg
+im_greyc           - noise-removing filter
+im_greyc_mask      - noise-removing filter, with a mask
+\end{verbatim}
+\caption{CImg functions}
+\label{fg:cimg}
 \end{fig2}
 
 \subsection{Other}
@@ -800,7 +831,7 @@ im_zone            - generate IM_BANDFMT_UCHAR [0,255] zone plate image
 
 \subsection{IO functions}
 
-See \fref{fg:other}.
+See \fref{fg:io}.
 
 These functions are related to the image IO system. 
 
