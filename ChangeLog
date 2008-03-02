@@ -18,6 +18,7 @@
 - fix im_cross_phase and im_addgnoise (Tom)
 - updated docs, C++ and python
 - header no longer stops on error
+- C++ dummy2.cpp helps OS X linking
 
 12/12/07 started 7.13.3
 - added "include <cstring>" to VImage.cc to help gcc 4.3

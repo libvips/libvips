@@ -31,7 +31,7 @@ SUBDIRS = \
 
 lib_LTLIBRARIES = libvips.la
 
-libvips_la_SOURCES = dummy.c
+libvips_la_SOURCES = dummy.c dummy2.cpp
 
 # DLLs need dependant libs there too ... put @VIPS_LIBS@ at the end
 libvips_la_LIBADD = \
