@@ -1,3 +1,6 @@
+7/3/08 started 7.15.0
+- MAGIC numbers should be unsigned
+
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
 - better CMYK JPEG read (thanks Ole)

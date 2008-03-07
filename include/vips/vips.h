@@ -93,8 +93,8 @@ extern "C" {
  *   intel order: byte 0 = b6
  *   SPARC order: byte 0 = 08
  */
-#define IM_MAGIC_INTEL (0xb6a6f208)
-#define IM_MAGIC_SPARC (0x08f2a6b6)
+#define IM_MAGIC_INTEL (0xb6a6f208U)
+#define IM_MAGIC_SPARC (0x08f2a6b6U)
 
 /* Private to iofuncs: the image size above which we switch from
  * mmap()-whole-image behaviour to mmap()-window, plus window margins.
