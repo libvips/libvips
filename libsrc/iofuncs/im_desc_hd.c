@@ -23,6 +23,8 @@
  * 	- use gunit32/16 for 2 and 4 byte quantities
  * 12/1/07
  * 	- override bbits in the file ... it's now deprecated
+ * 7/3/08
+ * 	- write MAGIC correctly on sparc/powerpc machines
  */
 
 /*
@@ -184,11 +186,14 @@ im__write_header_bytes( IMAGE *im, unsigned char *to )
 	int i;
 	unsigned char *q;
 
-	/* How odd, you'd think it would be the other way around.
+	/* Always write MSB first.
 	 */
-	magic = im_amiMSBfirst() ? IM_MAGIC_INTEL : IM_MAGIC_SPARC;
-	q = to;
-	im__write_4byte( &q, (unsigned char *) &magic );
+	magic = im_amiMSBfirst() ? IM_MAGIC_SPARC : IM_MAGIC_INTEL;
+	to[0] = (magic & 0xff000000) >> 24;
+	to[1] = (magic & 0xff0000) >> 16;
+	to[2] = (magic & 0xff00) >> 8;
+	to[3] = magic & 0xff;
+	q = to + 4;
 
 	for( i = 0; i < IM_NUMBER( fields ); i++ )
 		fields[i].write( &q,
