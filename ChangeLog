@@ -1,6 +1,6 @@
 7/3/08 started 7.15.0
-- MAGIC numbers should be unsigned
-- write MAGIC correctly on sparc/powerpc machines
+- MAGIC constants should be tagged as unsigned
+- write MAGIC correctly on sparc/powerpc machines (thanks Joe)
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

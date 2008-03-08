@@ -186,13 +186,13 @@ im__write_header_bytes( IMAGE *im, unsigned char *to )
 	int i;
 	unsigned char *q;
 
-	/* Always write MSB first.
+	/* Always write the magic number MSB first.
 	 */
 	magic = im_amiMSBfirst() ? IM_MAGIC_SPARC : IM_MAGIC_INTEL;
-	to[0] = (magic & 0xff000000) >> 24;
-	to[1] = (magic & 0xff0000) >> 16;
-	to[2] = (magic & 0xff00) >> 8;
-	to[3] = magic & 0xff;
+	to[0] = magic >> 24;
+	to[1] = magic >> 16;
+	to[2] = magic >> 8;
+	to[3] = magic;
 	q = to + 4;
 
 	for( i = 0; i < IM_NUMBER( fields ); i++ )
