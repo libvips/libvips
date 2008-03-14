@@ -28,6 +28,9 @@
  *	  should be simpler & more reliable
  * 23/4/07
  * 	- oop, race condition fixed
+ * 14/3/08
+ * 	- oop, still making fade threads even when not fading
+ * 	- more instrumenting
  */
 
 /*
@@ -59,9 +62,10 @@
 /* Turn on debugging output.
 #define DEBUG
 #define DEBUG_REUSE
-#define DEBUG_TG
 #define DEBUG_MAKE
 #define DEBUG_PAINT
+#define DEBUG_TG
+#define DEBUG_FADE
  */
 
 #ifdef HAVE_CONFIG_H
@@ -96,6 +100,16 @@ static const int have_threads = 1;
 #else /*!HAVE_THREADS*/
 static const int have_threads = 0;
 #endif /*HAVE_THREADS*/
+
+#ifdef DEBUG_TG
+static int threadgroup_count = 0;
+static int threadgroup_active = 0;
+#endif /*DEBUG_TG*/
+
+#ifdef DEBUG_FADE
+static int fade_count = 0;
+static int fade_active = 0;
+#endif /*DEBUG_FADE*/
 
 /* A manager thread. We have a fixed number of these taking jobs off the list
  * of current renders with dirty tiles, doing a tile, and putting the render 
@@ -263,6 +277,11 @@ render_free( Render *render )
 		(void) g_thread_join( render->fade_gthread );
 		render->fade_gthread = NULL;
 		render->fade_kill = 0;
+
+#ifdef DEBUG_FADE
+		fade_active -= 1;
+		printf( "render_free: %d fade active\n", fade_active );
+#endif /*DEBUG_FADE*/
 	}
 
 	IM_FREEF( im_threadgroup_free, render->tg );
@@ -352,7 +371,7 @@ render_dirty_get( void )
 	return( render );
 }
 
-/* Do a single tile. Take a dirty tile from the dirty list, fill with pixels,
+/* Do a single tile. Take a dirty tile from the dirty list, fill with pixels
  * and add to the fade list.
  */
 static void
@@ -384,6 +403,11 @@ render_dirty_process( Render *render )
 			printf( "render_paint_tile: "
 				"%p starting threadgroup\n",
 				render );
+			threadgroup_count += 1;
+			printf( "render_paint_tile: %d\n", threadgroup_count );
+			threadgroup_active += 1;
+			printf( "render_dirty_put: %d active\n", 
+				threadgroup_active );
 #endif /*DEBUG_TG*/
 		}
 
@@ -416,17 +440,31 @@ render_dirty_process( Render *render )
 				im_error_buffer() );
 #endif /*DEBUG_PAINT*/
 
-		g_mutex_lock( render->fade_lock );
-
-		render->fade = g_slist_prepend( render->fade, tile );
-		tile->time = render->time;
-		tile->state = TILE_PAINTED_FADING;
-
-		/* Hand tile over to another thread.
+		/* Are we fading? Hand the tile over to the fade thread.
 		 */
-		im__region_no_ownership( tile->region );
+		if( render->fade_gthread ) {
+			g_mutex_lock( render->fade_lock );
 
-		g_mutex_unlock( render->fade_lock );
+			render->fade = g_slist_prepend( render->fade, tile );
+			tile->time = render->time;
+			tile->state = TILE_PAINTED_FADING;
+
+			/* Hand tile over to another thread.
+			 */
+			im__region_no_ownership( tile->region );
+
+			g_mutex_unlock( render->fade_lock );
+		}
+		else {
+			/* Not fading. Tell the user we're done ourselves.
+			 */
+			tile->time = render->time;
+			tile->state = TILE_PAINTED;
+			im__region_no_ownership( tile->region );
+			if( render->notify ) 
+				render->notify( render->out, 
+					&tile->area, render->client );
+		}
 	}
 }
 
@@ -457,6 +495,8 @@ render_dirty_put( Render *render )
 		 */
 #ifdef DEBUG_TG
 		printf( "render_dirty_put: %p stopping threadgroup\n", render );
+		threadgroup_active -= 1;
+		printf( "render_dirty_put: %d active\n", threadgroup_active );
 #endif /*DEBUG_TG*/
 		IM_FREEF( im_threadgroup_free, render->tg );
 	}
@@ -571,12 +611,6 @@ render_fade( void *client )
 		GSList *p;
 		GSList *next;
 
-#ifdef OS_WIN32
-		Sleep( 1000 / render->fps );
-#else /*!OS_WIN32*/
-		usleep( 1000000 / render->fps );
-#endif /*!OS_WIN32*/
-
 		if( render->fade_kill )
 			break;
 
@@ -610,6 +644,15 @@ render_fade( void *client )
 					&tile->area, render->client );
 		}
 		g_mutex_unlock( render->fade_lock );
+
+		/* Sleep at the end of the loop, so if we have fading turned
+		 * off there's no wait.
+		 */
+#ifdef OS_WIN32
+		Sleep( 1000 / render->fps );
+#else /*!OS_WIN32*/
+		usleep( 1000000 / render->fps );
+#endif /*!OS_WIN32*/
 	}
 
 	return( NULL );
@@ -669,15 +712,23 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
                 return( NULL );
         }
 
-	/* Only need the fade thread for fps != 0.
+	/* Only need the fade thread if we're going to fade: ie. steps > 1.
 	 */
-	if( have_threads && fps && 
-		!(render->fade_gthread = g_thread_create_full( 
+	if( have_threads && steps > 1 ) {
+		if( !(render->fade_gthread = g_thread_create_full( 
 			render_fade, render, 
 			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-		im_error( "im_render", _( "unable to create thread" ) );
-		return( NULL );
+			im_error( "im_render", _( "unable to create thread" ) );
+			return( NULL );
+		}
+
+#ifdef DEBUG_FADE
+		fade_count += 1;
+		fade_active += 1;
+		printf( "render_new: creating fade thread %d\n", fade_count );
+		printf( "render_new: %d active\n", fade_active );
+#endif /*DEBUG_FADE*/
 	}
 
 	return( render );
@@ -1125,6 +1176,9 @@ im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
 	if( render_thread_create() )
 		return( -1 );
 
+	/* Don't allow fps == 0, since we divide by this value to get wait
+	 * time.
+	 */
 	if( width <= 0 || height <= 0 || max < -1 || fps <= 0 || steps < 0 ) {
 		im_error( "im_render", _( "bad parameters" ) );
 		return( -1 );

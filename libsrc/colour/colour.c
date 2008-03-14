@@ -21,6 +21,8 @@
  * 	- some reformatting
  * 23/7/07
  * 	- tiny cleanup for make_hI() prevents cond jump on ui in valgrind
+ * 14/3/08
+ * 	- more tiny cond jump valgrind fixes
  */
 
 /*
@@ -724,18 +726,22 @@ im_col_C2Cucs( float C )
 static void
 make_CI( void )
 {	
-	int i, j=0;
-	float C, Cl[ 3001];
+	int i;
+	float C;
+	float Cl[3001];
 
 	for( i = 0; i < 3001; i++ ) {
 		C = i / 10.0;
-		Cl[ i ] = (c4 * C + c5 * (log( c6 + c7 * C )) + c8);
+		Cl[i] = (c4 * C + c5 * (log( c6 + c7 * C )) + c8);
 	}
 
-	for( i = 0; i < 3001; i++ )
-	{
-		while ( (Cl[j]<=i/10.0) && ( j<3001) ) j++;
-		CI[i] = (j-1)/10.0 + (i/10.0-Cl[j-1]) / ((Cl[j]-Cl[j-1])*10.0);
+	for( i = 0; i < 3001; i++ ) {
+		int j;
+
+		for( j = 0; j < 3001 && Cl[j] <= i / 10.0; j++ )
+			;
+		CI[i] = (j - 1) / 10.0 + 
+			(i / 10.0 - Cl[j - 1]) / ((Cl[j] - Cl[j - 1]) * 10.0);
 	}
 
 }
@@ -868,7 +874,7 @@ make_hI( void )
 	}
 }
 
-/* Inverse of above using table.
+/* Inverse of above, using table.
  */
 float
 im_col_Chucs2h( float C, float hucs )
@@ -883,13 +889,14 @@ im_col_Chucs2h( float C, float hucs )
 	if( r > 100 )
 		r = 100;
 
-	known = floor(hucs);
+	known = floor( hucs );
 	if( known < 0 )
 		known = 0;
 	if( known > 360 )
 		known = 360;
 
-	return( hI[r][known] + (hI[r][known+1]-hI[r][known])*(hucs-known) );
+	return( hI[r][known] + 
+		(hI[r][(known + 1) % 360] - hI[r][known]) * (hucs - known) );
 }
 
 /* Make the lookup tables for ucs.
