@@ -13,18 +13,6 @@ WONTFIX
 
 - test maxpos_avg, quite a few changes
 
-- write our own python extension to call a vips operation by name
-
-	result = vips_call ("name", args)
-
-  then call that from VImage_method
-
-- do we really need VImage_method? Can't we write
-
-	__getattr__ (self, name) = lambda (obj_to_call, arguments):
-
-  or something like that?
-
 - HAVE_HYPOT could define a hypot() macro?
 
 - im_exr2vips can now use c++ api
