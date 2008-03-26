@@ -1,10 +1,13 @@
-VIPS 7.12
-=========
+VIPS 
+====
 
 VIPS is an image processing library. It's good for large images and for
 colour. There's a GUI as well, see the VIPS website:
 
 	http://www.vips.ecs.soton.ac.uk
+
+There are packages for most linuxes and OS X. There is a pre-compiled windows
+binary on the vips website.
 
 Getting VIPS from SVN
 =====================
@@ -25,8 +28,7 @@ then as root:
 
 	root% make install
 
-By default this will install files to /usr/local/bin, /usr/local/share/vips,
-/usr/local/include, /usr/local/lib and /usr/local/man. 
+By default this will install files to /usr/local.
 
 If you have problems, read on.
 
@@ -44,13 +46,9 @@ Microsoft toolchain. See the README in there for details.
 Building VIPS on OS X
 ---------------------
 
-I used macports to install all the dependencies. Fink also works.
+There are packages in macports.
 
 	http://www.macports.org
-
-You need to tell configure to use the msgfmt from macports. Something like:
-
-	GMSGFMT="/opt/local/bin/msgfmt" ./configure --prefix=/Users/john/vips
 
 Dependencies
 ============
@@ -65,8 +63,8 @@ Optional support libraries ... also try ./configure --help to see flags for
 controlling these libs. By default, if suitable versions are found, VIPS will
 build support for them automatically.
 
-VIPS looks for stuff in /usr. If you have installed you own versions of these
-libraries to /usr/local, vips will not see them. Use switches to VIPS
+VIPS looks for stuff in /usr. If you have installed your own versions of
+these libraries to /usr/local, vips will not see them. Use switches to VIPS
 configure like:
 
 	./configure --prefix=/home/john/vips \
@@ -111,7 +109,7 @@ large files
 libpng
 	if present, VIPS can load and save png files. Version 1.2+ preferred.
 
-libMagick
+libMagick, or optionally GraphicsMagick
 	if available, VIPS adds support for loading all libMagick supported
 	image file types (about 80 different formats). No saving though.
 

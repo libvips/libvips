@@ -1,3 +1,9 @@
+- should check for gettext in configure? see
+
+https://sourceforge.net/tracker/index.php?func=detail&aid=1836080&group_id=100050&atid=626186
+
+- docs include figures twice! yuk
+
 WONTFIX
 =======
 
