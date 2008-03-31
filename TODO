@@ -56,6 +56,8 @@ WONTFIX
 
 - magick2vips should spot ICC profiles and attach them as meta
 
+- also png2vips?
+
 - magick should set some header field for n_frames and frame_height? see also
   analyze
 
