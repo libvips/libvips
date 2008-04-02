@@ -89,7 +89,7 @@ im_disp2XYZ( IMAGE *in, IMAGE *out, struct im_col_display *d )
 	 */
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_UCHAR || 
 		in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_disp2XYZ: input not 3-band uncoded char" );
+		im_error( "im_disp2XYZ", _( "input not 3-band uncoded char" ) );
 		return( -1 );
 	}
 
