@@ -4,8 +4,12 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=1836080&group_id=10005
 
 - docs include figures twice! yuk
 
-WONTFIX
-=======
+  fixed? not sure, check again
+
+- check for <linux/video.h> more carefully: don't just test for file-exists,
+  try compiling a tiny prog
+
+  using icc, for example, breaks some linux headers
 
 - unsharp should work on GREY16? shuld be easy to add GREY16->LABS
 

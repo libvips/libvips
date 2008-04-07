@@ -3,6 +3,7 @@
 - write MAGIC correctly on sparc/powerpc machines (thanks Joe)
 - oop, we were still making fade threads even when not fading
 - tiny cond jump fixes for valgrind in colour.c
+- remove -lstdc++ to avoid being kicked out of Debian
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
