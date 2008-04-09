@@ -20,9 +20,14 @@ and it would display as "Sevy imago os ...", with the "m" underlined.
 tips
 ----
 
+cd vips-7.14.x ; find */* -name "*.c" > po/POTFILES.in
+cd vips-7.14.x ; find */* -name "*.cc" >> po/POTFILES.in
+
+	regenerate the list of files to search for strings
+
 intltool-update --pot
 
-	make a new vips.pot translation template from the sources
+	make a new vips7.pot translation template from the sources
 
 :%s/msgstr ""/msgstr "Malkovich"/
 :%s/msgstr\[0\] ""/msgstr[0] "Malkovich"/

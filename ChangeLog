@@ -3,7 +3,10 @@
 - write MAGIC correctly on sparc/powerpc machines (thanks Joe)
 - oop, we were still making fade threads even when not fading
 - tiny cond jump fixes for valgrind in colour.c
-- remove -lstdc++ to avoid being kicked out of Debian
+- remove -lstdc++ from libs, except on windows 
+- push Magick cflags earlier in the include order to make it easier to pick
+  GraphicsMagick over ImageMagick (thanks Mikhail)
+- fix the en_GB translation
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
