@@ -100,6 +100,8 @@
  * 	- use tiff error handler from im_tiff2vips.c
  * 27/2/08
  * 	- don't try to copy icc profiles when building pyramids (thanks Joe)
+ * 9/4/08
+ * 	- use IM_META_RESOLUTION_UNIT to set default resunit
  */
 
 /*
@@ -1193,11 +1195,19 @@ make_tiff_write( IMAGE *im, const char *filename )
 	tw->embed = 0;
 	tw->icc_profile = NULL;
 
-	/* Output resolution settings default to VIPS-alike.
+	/* Output resolution settings ... default to VIPS-alike.
 	 */
 	tw->resunit = RESUNIT_CENTIMETER;
 	tw->xres = im->Xres * 10;
 	tw->yres = im->Yres * 10;
+	if( im_meta_get_string( im, IM_META_RESOLUTION_UNIT, &p ) &&
+		strcmp( p, "in" ) ) {
+		tw->resunit = RESUNIT_INCH;
+		tw->xres /= 2.54;
+		tw->yres /= 2.54;
+		// do I need this?
+		g_free( p );
+	}
 
 	/* Parse mode string.
 	 */
@@ -1313,10 +1323,20 @@ make_tiff_write( IMAGE *im, const char *filename )
 		}
 	}
 	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "res_cm", q ) ) 
+		if( im_isprefix( "res_cm", q ) ) {
+			if( tw->resunit == RESUNIT_INCH ) {
+				tw->xres /= 2.54;
+				tw->yres /= 2.54;
+			}
 			tw->resunit = RESUNIT_CENTIMETER;
-		else if( im_isprefix( "res_inch", q ) ) 
+		}
+		else if( im_isprefix( "res_inch", q ) ) {
+			if( tw->resunit == RESUNIT_CENTIMETER ) {
+				tw->xres *= 2.54;
+				tw->yres *= 2.54;
+			}
 			tw->resunit = RESUNIT_INCH;
+		}
 		else {
 			im_error( "im_vips2tiff", _( "unknown resolution unit "
 				"\"%s\"\nshould be one of \"res_cm\" or "

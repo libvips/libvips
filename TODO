@@ -9,6 +9,8 @@
 	  save as a tiff with res_inch
 	  sets 10 pixels / inch ... wrong!
 
+- test, backport to 7.14
+
 - should check for gettext in configure? see
 
 https://sourceforge.net/tracker/index.php?func=detail&aid=1836080&group_id=100050&atid=626186

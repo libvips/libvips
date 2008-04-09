@@ -97,6 +97,8 @@
  * 	- removed 'broken' read option
  * 18/7/07 Andrey Kiselev
  * 	- remove "b" option on TIFFOpen()
+ * 9/4/08
+ * 	- set IM_META_RESOLUTION_UNIT
  */
 
 /*
@@ -915,6 +917,8 @@ parse_resolution( TIFF *tiff, IMAGE *out )
 			 */
 			x /= 10.0 * 2.54;
 			y /= 10.0 * 2.54;
+			im_meta_set_string( out, 
+				IM_META_RESOLUTION_UNIT, "in" );
 			break;
 
 		case RESUNIT_CENTIMETER:
@@ -922,6 +926,8 @@ parse_resolution( TIFF *tiff, IMAGE *out )
 			 */
 			x /= 10.0;
 			y /= 10.0;
+			im_meta_set_string( out, 
+				IM_META_RESOLUTION_UNIT, "cm" );
 			break;
 
 		default:
@@ -931,8 +937,8 @@ parse_resolution( TIFF *tiff, IMAGE *out )
 		}
 	}
 	else {
-		im_warning( "im_tiff2vips: no resolution information for "
-			"TIFF image \"%s\" -- defaulting to 1 pixel per mm", 
+		im_warn( "im_tiff2vips", _( "no resolution information for "
+			"TIFF image \"%s\" -- defaulting to 1 pixel per mm" ), 
 			TIFFFileName( tiff ) );
 		x = 1.0;
 		y = 1.0;

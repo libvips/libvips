@@ -39,6 +39,7 @@ extern "C" {
 #define IM_META_EXIF_NAME "exif-data"
 #define IM_META_ICC_NAME "icc-profile-data"
 #define IM_META_XML "xml-header"
+#define IM_META_RESOLUTION_UNIT "resolution-unit"
 
 /* Types we add for meta fields.
  */

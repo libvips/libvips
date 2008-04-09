@@ -7,6 +7,7 @@
 - push Magick cflags earlier in the include order to make it easier to pick
   GraphicsMagick over ImageMagick (thanks Mikhail)
 - fix the en_GB translation
+- use meta to preserve resunit between tiff load and save
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
