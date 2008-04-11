@@ -90,6 +90,12 @@ is a convenience function over
 It copies the string, and
 then shares that copy between all images derived from this IMAGE. 
 
+.B im_meta_get_string(3)
+is a convenience function over 
+.B im_meta_get_area(3). 
+It returns a pointer to the string being mananged by VIPS. Do not free the
+return result!
+
 .B im_meta_set_blob(3)
 sets a field which is a blob (binary object). A blob is just like string, 
 except that rather than being NULL-terminated, you must pass an explicit 

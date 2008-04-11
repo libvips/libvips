@@ -102,11 +102,15 @@ The default format is "multibit".
    "res_cm"   - output resolution unit is pixels per centimetre
    "res_inch" - output resolution unit is pixels per inch
 
-The default format is "res_cm".  The unit can optionally be followed by a
-":" character and the horizontal and vertical resolution, separated by a "x"
-character. You can have a single number with no "x" and set the horizontal
-and vertical resolutions together. The default unit is cm, and the default
-resolution is taken from the VIPS header.
+The default resolution unit is taken from the header field "resolution-unit"
+(IM_META_RESOLUTION_UNIT in C). If this field is not set, then VIPS defaults
+to cm.
+
+This may be overridden by the <resolution> option. The unit can optionally
+be followed by a ":" character and the horizontal and vertical resolution,
+separated by a "x" character. You can have a single number with no "x" and
+set the horizontal and vertical resolutions together. The default unit is
+cm, and the default resolution is taken from the VIPS header.
 
 <icc> is the filename of an ICC profile to embed in the TIFF file
 
