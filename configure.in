@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(config.h)
 # user-visible library versioning
 IM_MAJOR_VERSION=7
 IM_MINOR_VERSION=14
-IM_MICRO_VERSION=0
+IM_MICRO_VERSION=3
 IM_VERSION=$IM_MAJOR_VERSION.$IM_MINOR_VERSION.$IM_MICRO_VERSION
 IM_VERSION_STRING=$IM_VERSION-`date`
 
@@ -21,9 +21,9 @@ PACKAGE=vips
 #   interface changes backwards compatible?: increment age
 #   interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=19
+LIBRARY_CURRENT=20
 LIBRARY_REVISION=0
-LIBRARY_AGE=4
+LIBRARY_AGE=5
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
@@ -185,7 +185,7 @@ fi
 AC_ARG_WITH([magick], AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
 AC_ARG_WITH([magickpackage], AS_HELP_STRING([--with-magickpackage], [magickpackage to use (default: ImageMagick)]))
 
-if test x"$with_magickpackage" == "x"; then
+if test x"$with_magickpackage" = "x"; then
   with_magickpackage=ImageMagick
 fi
 
@@ -340,6 +340,8 @@ else
 fi
 
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES and VIPS_LIBS
+# sort includes to get longer, more specific dirs first
+# helps, for example, selecting graphicsmagick over imagemagick
 VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $FFTW3_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $OPENEXR_CFLAGS $LIBOIL_CFLAGS
 do
 	echo $i
