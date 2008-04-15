@@ -53,7 +53,9 @@ If the
 parameter points to a function, then tiles are not calculated immediately, but 
 are added to a job list and calculated as CPU becomes available. When a tile has
 been calculated, the notify function is passed the image which was being
-cached, the area of the image which is now available, and a client pointer. 
+cached, the area of the image which is now available, and a client pointer.
+The notify function will be called by a background thread, so you will usually
+need to implement some mechanism to interrupt your main thread and update.
 
 The
 .B mask
