@@ -99,6 +99,8 @@
  * 	- remove "b" option on TIFFOpen()
  * 9/4/08
  * 	- set IM_META_RESOLUTION_UNIT
+ * 17/4/08
+ * 	- allow CMYKA (thanks Doron)
  */
 
 /*
@@ -705,10 +707,10 @@ parse_palette( ReadTiff *rtiff, IMAGE *out )
 	return( 0 );
 }
 
-/* Per-scanline process function for 8-bit RGB/RGBA.
+/* Per-scanline process function for 8-bit RGB/RGBA/CMYK/CMYKA.
  */
 static void
-rgb8_line( PEL *q, PEL *p, int n, IMAGE *im )
+rgbcmyk8_line( PEL *q, PEL *p, int n, IMAGE *im )
 {
 	int x, b;
 
@@ -745,7 +747,7 @@ parse_rgb8( ReadTiff *rtiff, IMAGE *out )
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_sRGB; 
 
-	rtiff->sfn = (scanline_process_fn) rgb8_line;
+	rtiff->sfn = (scanline_process_fn) rgbcmyk8_line;
 	rtiff->client = out;
 
 	return( 0 );
@@ -857,42 +859,33 @@ parse_32f( ReadTiff *rtiff, int pm, IMAGE *out )
 	return( 0 );
 }
 
-/* Per-scanline process function for CMYK8.
- */
-static void
-cmyk8_line( PEL *q, PEL *p, int n, void *dummy )
-{
-	int x;
-
-	for( x = 0; x < n; x++ ) {
-		q[0] = p[0];
-		q[1] = p[1];
-		q[2] = p[2];
-		q[3] = p[3];
-
-		q += 4;
-		p += 4;
-	}
-}
-
 /* Read a CMYK image.
  */
 static int
 parse_cmyk( ReadTiff *rtiff, IMAGE *out )
 {
-	if( !tfequals( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 4 ) ||
-		!tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 8 ) ||
-		!tfequals( rtiff->tiff, TIFFTAG_INKSET, INKSET_CMYK ) )
-		return( -1 );
+	int bands;
 
-	out->Bands = 4; 
+	/* Check other TIFF fields to make sure we can read this. Can have 5
+	 * bands for CMYKA.
+	 */
+	if( !tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 8 ) ||
+		!tfequals( rtiff->tiff, TIFFTAG_INKSET, INKSET_CMYK ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, &bands ) )
+		return( -1 );
+	if( bands != 4 && bands != 5 ) {
+		im_error( "im_tiff2vips", _( "4 or 5 bands CMYK TIFF only" ) );
+		return( -1 );
+	}
+
+	out->Bands = bands; 
 	out->Bbits = 8; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_CMYK; 
 
-	rtiff->sfn = cmyk8_line;
-	rtiff->client = NULL;
+	rtiff->sfn = (scanline_process_fn) rgbcmyk8_line;
+	rtiff->client = out;
 
 	return( 0 );
 }

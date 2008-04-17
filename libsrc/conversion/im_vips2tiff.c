@@ -102,6 +102,8 @@
  * 	- don't try to copy icc profiles when building pyramids (thanks Joe)
  * 9/4/08
  * 	- use IM_META_RESOLUTION_UNIT to set default resunit
+ * 17/4/08
+ * 	- allow CMYKA (thanks Doron)
  */
 
 /*
@@ -503,6 +505,14 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 				tw->im->Bands == 4 ) {
 				v[0] = EXTRASAMPLE_ASSOCALPHA;
 				TIFFSetField( tif, TIFFTAG_EXTRASAMPLES, 1, v );
+			}
+			break;
+
+		case 5:
+			if( tw->im->Type == IM_TYPE_CMYK ) {
+				photometric = PHOTOMETRIC_SEPARATED;
+				TIFFSetField( tif, 
+					TIFFTAG_INKSET, INKSET_CMYK );
 			}
 			break;
 
@@ -1575,8 +1585,8 @@ im_vips2tiff( IMAGE *im, const char *filename )
 		return( -1 );
 	}
 	if( im->Coding == IM_CODING_NONE ) {
-		if( im->Bands < 1 || im->Bands > 4 ) {
-			im_error( "im_vips2tiff", _( "1 to 4 bands only" ) );
+		if( im->Bands < 1 || im->Bands > 5 ) {
+			im_error( "im_vips2tiff", _( "1 to 5 bands only" ) );
 			return( -1 );
 		}
 	}

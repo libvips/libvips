@@ -356,9 +356,9 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(PACKAGES_USED)
 
 AC_OUTPUT([
-	vips-7.14.pc
-	vipsCC-7.14.pc
-	vips-7.14.spec
+	vips-7.15.pc
+	vipsCC-7.15.pc
+	vips-7.15.spec
 	Makefile 
 	include/vips/version.h 
 	include/Makefile 

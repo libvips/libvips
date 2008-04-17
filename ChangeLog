@@ -9,6 +9,7 @@
 - fix the en_GB translation
 - use meta to preserve resunit between tiff load and save
 - small doc improvements
+- read and write CMYKA tiff (thanks Doron)
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

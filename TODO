@@ -1,16 +1,3 @@
-- set res_unit meta in im_tiff2vips, then use that to set res unit default in
-  im_vips2tiff
-
-- setting :res_inch as a tiff option does not multiply by 2.54 :-( ie.
-
-	  1 pixel per mm vips image
-	  save as a tiff with res_cm
-	  sets 10 pixels / cm
-	  save as a tiff with res_inch
-	  sets 10 pixels / inch ... wrong!
-
-- test, backport to 7.14
-
 - should check for gettext in configure? see
 
 https://sourceforge.net/tracker/index.php?func=detail&aid=1836080&group_id=100050&atid=626186
