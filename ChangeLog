@@ -10,6 +10,8 @@
 - use meta to preserve resunit between tiff load and save
 - small doc improvements
 - read and write CMYKA tiff (thanks Doron)
+- performance improvements for morphology ops, esp. when zooming out
+- oop, im_render() was broken for mask == NULL
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

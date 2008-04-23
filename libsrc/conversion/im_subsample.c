@@ -13,6 +13,9 @@
  *	- adapted from im_shrink()
  * 3/8/02 JC
  *	- fall back to im_copy() for x/y factors == 1
+ * 21/4/08
+ * 	- don't fall back to pixel-wise shrinks for smalltile, it kills
+ * 	  performance, just bring IM_MAX_WIDTH down instead
  */
 
 /*
@@ -57,7 +60,7 @@
 
 /* Maximum width of input we ask for.
  */
-#define IM_MAX_WIDTH (1000)
+#define IM_MAX_WIDTH (100)
 
 /* Our main parameter struct.
  */
@@ -133,8 +136,7 @@ line_shrink_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Fetch one pixel at a time ... good for very large shrinks, or for SMALLTILE
- * pipes.
+/* Fetch one pixel at a time ... good for very large shrinks.
  */
 static int
 point_shrink_gen( REGION *or, void *seq, void *a, void *b )
@@ -193,7 +195,7 @@ im_subsample( IMAGE *in, IMAGE *out, int xshrink, int yshrink )
 	/* Check parameters.
 	 */
 	if( xshrink < 1 || yshrink < 1 ) {
-		im_errormsg( "im_subsample: factors should both be >= 1" );
+		im_error( "im_subsample", _( "factors should both be >= 1" ) );
 		return( -1 );
 	}
 	if( xshrink == 1 && yshrink == 1 ) 
@@ -210,7 +212,7 @@ im_subsample( IMAGE *in, IMAGE *out, int xshrink, int yshrink )
 	out->Xres = in->Xres / xshrink;
 	out->Yres = in->Yres / yshrink;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_errormsg( "im_subsample: image has shrunk to nothing" );
+		im_error( "im_subsample", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
 
@@ -228,11 +230,9 @@ im_subsample( IMAGE *in, IMAGE *out, int xshrink, int yshrink )
 		return( -1 );
 
 	/* Generate! If this is a very large shrink, then it's
-	 * probably faster to do it a pixel at a time. If this is SMALLTILE,
-	 * then it will hate long lines and we should always do 1 pixel at a 
-	 * time.
+	 * probably faster to do it a pixel at a time. 
 	 */
-	if( in->dhint == IM_SMALLTILE || xshrink > 10 ) {
+	if( xshrink > 10 ) {
 		if( im_generate( out, 
 			im_start_one, point_shrink_gen, im_stop_one, in, st ) )
 			return( -1 );

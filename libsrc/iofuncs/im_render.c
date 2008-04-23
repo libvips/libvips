@@ -31,6 +31,8 @@
  * 14/3/08
  * 	- oop, still making fade threads even when not fading
  * 	- more instrumenting
+ * 23/4/08
+ * 	- oop, broken for mask == NULL
  */
 
 /*
@@ -1198,7 +1200,9 @@ im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
 	}
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
+	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
+		return( -1 );
+	if( mask && 
 		im_demand_hint( mask, IM_SMALLTILE, in, NULL ) )
 		return( -1 );
 

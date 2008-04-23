@@ -20,6 +20,9 @@
  *	- now uses im_embed() with edge stretching on the input, not
  *	  the output
  *	- sets Xoffset / Yoffset
+ * 21/4/08
+ * 	- only rebuild the buffer offsets if bpl changes
+ * 	- small cleanups
  */
 
 /*
@@ -48,6 +51,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -71,6 +78,7 @@ typedef struct {
 	int ss;			/* ... and number we check for set */
 	int *coff;		/* Offsets we check for clear */
 	int cs;			/* ... and number we check for clear */
+	int last_bpl;		/* Avoid recalcing offsets, if we can */
 } SeqInfo;
 
 /* Stop function.
@@ -105,6 +113,7 @@ dilate_start( IMAGE *out, void *a, void *b )
 	seq->ss = 0;
 	seq->coff = NULL;
 	seq->cs = 0;
+	seq->last_bpl = -1;
 
 	/* Attach region and arrays.
 	 */
@@ -141,7 +150,7 @@ dilate_gen( REGION *or, void *vseq, void *a, void *b )
 	int *t;
 
 	int x, y;
-	int found, i;
+	int result, i;
 
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
@@ -152,33 +161,46 @@ dilate_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-	/* Scan mask, building offsets we check when processing.
+#ifdef DEBUG
+	printf( "erode_gen: preparing %dx%d pixels\n", s.width, s.height );
+#endif /*DEBUG*/
+
+	/* Scan mask, building offsets we check when processing. Only do this
+	 * if the bpl has changed since the previous im_prepare().
 	 */
-	seq->ss = 0;
-	seq->cs = 0;
-	for( t = msk->coeff, y = 0; y < msk->ysize; y++ )
-		for( x = 0; x < msk->xsize; x++, t++ )
-			switch( *t ) {
-			case 255:
-				soff[seq->ss++] = 
-					IM_REGION_ADDR( ir, x + le, y + to ) - 
-					IM_REGION_ADDR( ir, le, to );
-				break;
+	if( seq->last_bpl != IM_REGION_LSKIP( ir ) ) {
+		seq->last_bpl = IM_REGION_LSKIP( ir );
 
-			case 128:
-				break;
+		seq->ss = 0;
+		seq->cs = 0;
+		for( t = msk->coeff, y = 0; y < msk->ysize; y++ )
+			for( x = 0; x < msk->xsize; x++, t++ )
+				switch( *t ) {
+				case 255:
+					soff[seq->ss++] = 
+						IM_REGION_ADDR( ir, 
+							x + le, y + to ) - 
+						IM_REGION_ADDR( ir, le, to );
+					break;
 
-			case 0:
-				coff[seq->cs++] = 
-					IM_REGION_ADDR( ir, x + le, y + to ) - 
-					IM_REGION_ADDR( ir, le, to );
-				break;
+				case 128:
+					break;
 
-			default:
-				im_errormsg( "im_dilate: bad mask element "
-					"(%d should be 0, 128 or 255)", *t );
-				return( -1 ); 
-			}
+				case 0:
+					coff[seq->cs++] = 
+						IM_REGION_ADDR( ir, 
+							x + le, y + to ) - 
+						IM_REGION_ADDR( ir, le, to );
+					break;
+
+				default:
+					im_error( "im_dilate", 
+						_( "bad mask element (%d "
+						"should be 0, 128 or 255)" ), 
+						*t );
+					return( -1 ); 
+				}
+	}
 
 	/* Dilate!
 	 */
@@ -191,35 +213,28 @@ dilate_gen( REGION *or, void *vseq, void *a, void *b )
 		for( x = 0; x < sz; x++, q++, p++ ) {
 			/* Search for a hit on the set list.
 			 */
-			found = 0;
+			result = 0;
 			for( i = 0; i < seq->ss; i++ )
 				if( p[soff[i]] ) {
-					/* Found a match! Set this output
-					 * pixel and continue.
+					/* Found a match! 
 					 */
-					*q = 255;
-					found = 1;
+					result = 255;
 					break;
 				}
 
 			/* No set pixels ... search for a hit in the clear
 			 * pixels.
 			 */
-			if( !found )
+			if( !result )
 				for( i = 0; i < seq->cs; i++ )
 					if( !p[coff[i]] ) {
-						/* Found a match! Set this 
-						 * output pixel and continue.
+						/* Found a match! 
 						 */
-						*q = 255;
-						found = 1;
+						result = 255;
 						break;
 					}
 
-			if( !found )
-				/* All matches failed. Clear this output pixel.
-				 */
-				*q = 0;
+			*q = result;
 
 		}
 	}
@@ -238,7 +253,7 @@ im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 	 */
 	if( m->xsize < 1 || !(m->xsize & 0x1) ||
 		m->ysize < 1 || !(m->ysize & 0x1) ) {
-		im_errormsg( "im_dilate: mask size not odd" ); 
+		im_error( "im_dilate", _( "mask size not odd" ) ); 
 		return( -1 ); 
 	}
 
@@ -248,7 +263,7 @@ im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 		return( -1 ); 
 	if( in->Coding != IM_CODING_NONE || in->Bbits != 8 || 
 		in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_errormsg( "im_dilate: uchar uncoded only" );
+		im_error( "im_dilate", _( "uchar uncoded only" ) );
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 
@@ -262,7 +277,7 @@ im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 	out->Xsize -= m->xsize - 1;
 	out->Ysize -= m->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_errormsg( "im_dilate: image too small for mask" );
+		im_error( "im_dilate", _( "image too small for mask" ) );
 		return( -1 );
 	}
 

@@ -34,7 +34,7 @@ https://sourceforge.net/tracker/index.php?func=detail&aid=1836080&group_id=10005
 
   how big should the table be for 16 bits? 256 times larger? too big!
 
-  we really just need a LUUT for pow() with the right exponent, eg. 2.4 for
+  we really just need a LUT for pow() with the right exponent, eg. 2.4 for
   sRGBs, and one for 1/2.4 ... see what calcul_tables does:
 
   	table->t_r2Yr[i] = yo + a * pow( i * table->ristep / f + c, ga );
