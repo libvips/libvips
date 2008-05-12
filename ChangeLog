@@ -13,6 +13,10 @@
 - performance improvements for morphology ops, esp. when zooming out
 - oop, im_render() was broken for mask == NULL
 - better support for multiple Python installs (thanks Jay)
+- better IM_SETSTR() stops some warnings
+- im_histcum() works for signed histograms
+- better rounding for im_conv(), im_convsep()
+- tiny speedup for im_conv()
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

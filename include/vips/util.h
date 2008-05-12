@@ -161,10 +161,10 @@ extern "C" {
 } while( 0 )
 #define IM_FREE( A ) IM_FREEF( im_free, A )
 #define IM_SETSTR( S, V ) do { \
-        if( (S) != (V) ) { \
-                if( !(S) || !(V) || strcmp( (S), (V) ) != 0 ) { \
-                        const char *sst = (V); \
-                        \
+        const char *sst = (V); \
+	\
+        if( (S) != sst ) { \
+                if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
                         IM_FREE( S ); \
                         if( sst ) \
                                 (S) = im_strdup( NULL, sst ); \

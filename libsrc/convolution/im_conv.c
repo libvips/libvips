@@ -61,6 +61,9 @@
  * 	- simpler inner loop avoids gcc4 bug 
  * 7/11/07
  * 	- new evalstart/end callbacks
+ * 12/5/08
+ * 	- int rounding was +1 too much, argh
+ * 	- only rebuild the buffer offsets if bpl changes
  */
 
 /*
@@ -200,6 +203,8 @@ typedef struct {
 
 	int underflow;		/* Underflow/overflow counts */
 	int overflow;
+
+	int last_bpl;		/* Avoid recalcing offsets, if we can */
 } ConvSequence;
 
 /* Free a sequence value.
@@ -239,6 +244,7 @@ conv_start( IMAGE *out, void *a, void *b )
 	seq->pts = NULL;
 	seq->underflow = 0;
 	seq->overflow = 0;
+	seq->last_bpl = -1;
 
 	/* Attach region and arrays.
 	 */
@@ -303,7 +309,11 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	Conv *conv = (Conv *) b;
 	REGION *ir = seq->ir;
 	INTMASK *mask = conv->mask;
-	int rounding = (mask->scale + 1)/2;
+
+	/* You might think this should be (scale+1)/2, but then we'd be adding
+	 * one for scale == 1.
+	 */
+	int rounding = mask->scale / 2;
 
 	Rect *r = &or->valid;
 	Rect s;
@@ -323,15 +333,21 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-        /* Fill offset array.
-         */
-	z = 0;
-        for( i = 0, y = 0; y < mask->ysize; y++ )
-                for( x = 0; x < mask->xsize; x++, i++ )
-                        if( mask->coeff[i] )
-                                seq->offsets[z++] = 
-					IM_REGION_ADDR( ir, x + le, y + to ) -
-                                        IM_REGION_ADDR( ir, le, to );
+        /* Fill offset array. Only do this if the bpl has changed since the 
+	 * previous im_prepare().
+	 */
+	if( seq->last_bpl != IM_REGION_LSKIP( ir ) ) {
+		seq->last_bpl = IM_REGION_LSKIP( ir );
+
+		z = 0;
+		for( i = 0, y = 0; y < mask->ysize; y++ )
+			for( x = 0; x < mask->xsize; x++, i++ )
+				if( mask->coeff[i] )
+					seq->offsets[z++] = 
+						IM_REGION_ADDR( ir, 
+							x + le, y + to ) -
+						IM_REGION_ADDR( ir, le, to );
+	}
 
 	for( y = to; y < bo; y++ ) { 
 		/* Init pts for this line of PELs.

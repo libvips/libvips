@@ -1,3 +1,10 @@
+- try
+
+	libsrc/convolution$ grep -l offsets *.c
+
+  could we do the don't calc offsets thing unless bpl; changes thing in more
+  places?
+
 - should check for gettext in configure? see
 
 https://sourceforge.net/tracker/index.php?func=detail&aid=1836080&group_id=100050&atid=626186

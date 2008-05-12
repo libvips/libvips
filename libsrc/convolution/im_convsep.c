@@ -27,6 +27,8 @@
  * 21/4/04
  *	- scale down int convolves at 1/2 way mark, much less likely to integer
  *	  overflow on intermediates
+ * 12/5/08
+ * 	- int rounding was +1 too much, argh
  */
 
 /*
@@ -304,7 +306,12 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	Conv *conv = (Conv *) b;
 	REGION *ir = seq->ir;
 	INTMASK *mask = conv->mask;
-	int rounding = (mask->scale + 1)/2;
+
+	/* You might think this should be (scale+1)/2, but then we'd be adding
+	 * one for scale == 1.
+	 */
+	int rounding = mask->scale / 2;
+
 	int bands = in->Bands;
 	int *coeff = conv->mask->coeff; 
 

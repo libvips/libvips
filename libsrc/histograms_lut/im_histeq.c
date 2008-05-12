@@ -25,6 +25,8 @@
  * 	- neater im_histnorm()
  * 23/7/07
  * 	- eek, off by 1 for more than 1 band hists
+ * 12/5/08
+ * 	- histcum works for signed hists now as well
  */
 
 /*
@@ -104,14 +106,14 @@ im_histcum( IMAGE *in, IMAGE *out )
 	if( im_incheck( in ) )
 		return( -1 );
 
-	/* int types -> uint, float/double stay as they are.
-	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Xsize = px;
 	out->Ysize = 1;
-	if( im_isint( in ) )
+	if( im_isuint( in ) )
 		out->BandFmt = IM_BANDFMT_UINT;
+	else if( im_isint( in ) )
+		out->BandFmt = IM_BANDFMT_INT;
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	if( !(outbuf = im_malloc( out, IM_IMAGE_SIZEOF_LINE( out ))) )
@@ -119,15 +121,15 @@ im_histcum( IMAGE *in, IMAGE *out )
 
         switch( in->BandFmt ) {
         case IM_BANDFMT_CHAR: 		
-		ACCUMULATE( signed char, unsigned int ); break; 
+		ACCUMULATE( signed char, signed int ); break; 
         case IM_BANDFMT_UCHAR: 		
 		ACCUMULATE( unsigned char, unsigned int ); break; 
         case IM_BANDFMT_SHORT: 		
-		ACCUMULATE( signed short, unsigned int ); break; 
+		ACCUMULATE( signed short, signed int ); break; 
         case IM_BANDFMT_USHORT: 	
 		ACCUMULATE( unsigned short, unsigned int ); break; 
         case IM_BANDFMT_INT: 		
-		ACCUMULATE( signed int, unsigned int ); break; 
+		ACCUMULATE( signed int, signed int ); break; 
         case IM_BANDFMT_UINT: 		
 		ACCUMULATE( unsigned int, unsigned int ); break; 
 

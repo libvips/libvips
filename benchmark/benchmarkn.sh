@@ -27,7 +27,7 @@ echo " by" `header -f Ysize temp.v` "pixels"
 echo "starting benchmark ..."
 echo "chain=$chain"
 
-for cpus in 1 2 3 ; do
+for cpus in 1 2 ; do
   export IM_CONCURRENCY=$cpus
 
   echo IM_CONCURRENCY=$IM_CONCURRENCY
