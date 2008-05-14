@@ -9,6 +9,8 @@
  *	- updated for 1 band $op n band image -> n band image case
  * 26/2/07
  * 	- oop, broken for _vec case :-(
+ * 14/5/08
+ * 	- better /0 test
  */
 
 /*
@@ -54,8 +56,7 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define loop(TYPE) \
-{\
+#define loop(TYPE) {\
 	TYPE *p1 = (TYPE *) in[0];\
 	TYPE *p2 = (TYPE *) in[1];\
 	TYPE *q = (TYPE *) out;\
@@ -139,8 +140,7 @@ typedef struct _Remainderconst {
 	int *c;
 } Remainderconst;
 
-#define const1_loop(TYPE) \
-{\
+#define const1_loop(TYPE) {\
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \
 	\
@@ -157,20 +157,19 @@ remainderconst1_buffer( PEL *in, PEL *out, int width, Remainderconst *rc )
 	int x;
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 		const1_loop( signed char ); break; 
-        case IM_BANDFMT_UCHAR: 		const1_loop( unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 		const1_loop( signed short ); break; 
-        case IM_BANDFMT_USHORT: 	const1_loop( unsigned short ); break; 
-        case IM_BANDFMT_INT: 		const1_loop( signed int ); break; 
-        case IM_BANDFMT_UINT: 		const1_loop( unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 	const1_loop( signed char ); break; 
+        case IM_BANDFMT_UCHAR: 	const1_loop( unsigned char ); break; 
+        case IM_BANDFMT_SHORT: 	const1_loop( signed short ); break; 
+        case IM_BANDFMT_USHORT:	const1_loop( unsigned short ); break; 
+        case IM_BANDFMT_INT: 	const1_loop( signed int ); break; 
+        case IM_BANDFMT_UINT: 	const1_loop( unsigned int ); break; 
 
         default:
 		assert( 0 );
         }
 }
 
-#define const_loop(TYPE) \
-{\
+#define const_loop(TYPE) {\
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \
 	\
@@ -188,12 +187,12 @@ remainderconst_buffer( PEL *in, PEL *out, int width, Remainderconst *rc )
 	int i, x, k; 
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 		const_loop( signed char ); break; 
-        case IM_BANDFMT_UCHAR: 		const_loop( unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 		const_loop( signed short ); break; 
-        case IM_BANDFMT_USHORT: 	const_loop( unsigned short ); break; 
-        case IM_BANDFMT_INT: 		const_loop( signed int ); break; 
-        case IM_BANDFMT_UINT: 		const_loop( unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 	const_loop( signed char ); break; 
+        case IM_BANDFMT_UCHAR: 	const_loop( unsigned char ); break; 
+        case IM_BANDFMT_SHORT: 	const_loop( signed short ); break; 
+        case IM_BANDFMT_USHORT:	const_loop( unsigned short ); break; 
+        case IM_BANDFMT_INT: 	const_loop( signed int ); break; 
+        case IM_BANDFMT_UINT: 	const_loop( unsigned int ); break; 
 
         default:
 		assert( 0 );
@@ -236,7 +235,7 @@ im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		 */
 		rc->c[i] = c[i];
 
-		if( c[i] == 0 ) {
+		if( rc->c[i] == 0 ) {
 			im_error( "im_remainderconst_vec",
 				_( "division by zero" ) );
 			return( -1 );
