@@ -284,10 +284,16 @@ if test x"$with_libexif" != "xno"; then
 fi
 
 # Look for linux video
+# try a compile as well: if we're using icc the header can break
 AC_CHECK_HEADER(linux/videodev.h, 
-  AC_DEFINE(HAVE_VIDEODEV,1,[have video4linux 1]),[
-  AC_MSG_WARN([linux/videodev.h not found; disabling Linux video support])
-])
+  AC_TRY_COMPILE([#include <linux/videodev.h>], [struct video_capability vc;],
+    with_videodev=yes))
+
+if test x"$with_videodev" = x"yes"; then
+  AC_DEFINE(HAVE_VIDEODEV,1,[have video4linux 1])
+else
+  AC_MSG_WARN([linux/videodev.h not functional; disabling Linux video support])
+fi
 
 # make python binding?
 AC_ARG_WITH([python], AS_HELP_STRING([--without-python], [build without Python bindings (default: test)]))

@@ -9,14 +9,18 @@
 
 https://sourceforge.net/tracker/index.php?func=detail&aid=1836080&group_id=100050&atid=626186
 
+
+  hmm, not clear, we are using 
+
+  	AM_GLIB_GNU_GETTEXT
+
+  already, isn't that enough?
+
+  do we need AM_GNU_GETTEXT too? check the gnome i18n howto
+
 - docs include figures twice! yuk
 
   fixed? not sure, check again
-
-- check for <linux/video.h> more carefully: don't just test for file-exists,
-  try compiling a tiny prog
-
-  using icc, for example, breaks some linux headers
 
 - unsharp should work on GREY16? shuld be easy to add GREY16->LABS
 
