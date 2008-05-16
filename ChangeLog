@@ -18,6 +18,7 @@
 - better rounding for im_conv(), im_convsep()
 - tiny speedup for im_conv()
 - better /0 test for remainderconst
+- revise i18n configure
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

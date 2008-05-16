@@ -48,5 +48,3 @@ const char *im__ngettext( const char *msgid,
 #endif /*__cplusplus*/
 
 #endif /* IM_VIPS_INTL_H */
-
-

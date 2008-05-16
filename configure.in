@@ -27,6 +27,10 @@ LIBRARY_AGE=6
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
+# we need intltool ... v0.21 is the first that works reasonably well,
+# apparently
+AC_PROG_INTLTOOL([0.21])
+
 # patched into include/vips/version.h
 AC_SUBST(IM_VERSION)
 AC_SUBST(IM_VERSION_STRING)
@@ -97,7 +101,7 @@ AC_PROG_CXX
 AM_WITH_DMALLOC
 
 # vips.c/im_guess_prefix.c need to know the exe suffix and (as a fallback)
-# the install prefix
+# the configure-time install prefix
 AC_DEFINE_UNQUOTED(IM_EXEEXT,"$EXEEXT",[extension for executable files])
 AC_DEFINE_UNQUOTED(IM_PREFIX,"$prefix",[configure-time install prefix])
 
@@ -109,7 +113,6 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
 # the 'malkovich' one is there for testing only
 # ALL_LINGUAS="en_GB malkovich"
 ALL_LINGUAS="en_GB"
-AC_PROG_INTLTOOL
 AM_GLIB_GNU_GETTEXT
 
 # Checks for libraries.
@@ -125,7 +128,6 @@ AC_CHECK_HEADERS([errno.h math.h fcntl.h limits.h stdlib.h string.h sys/file.h s
 # uncomment to change which libs we build
 # AC_DISABLE_SHARED
 # AC_DISABLE_STATIC
-# couldn't get this working :-( maybe try again with the next libtool
 AC_LIBTOOL_WIN32_DLL
 AC_CHECK_TOOL(DLLWRAP, dllwrap)
 AC_CHECK_TOOL(DLLTOOL, dlltool)

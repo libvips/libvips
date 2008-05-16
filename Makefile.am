@@ -32,6 +32,11 @@ EXTRA_DIST = \
 	intltool-update.in \
 	$(P_DIST_DIR)
 
+DISTCLEANFILES = \
+	intltool-extract \
+	intltool-merge \
+	intltool-update
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = vips-7.${IM_MINOR_VERSION}.pc vipsCC-7.${IM_MINOR_VERSION}.pc
 
@@ -48,10 +53,4 @@ uninstall-hook:
 # make sure we have write permission for 'rm'
 	-chmod -R u+w ${DESTDIR}$(datadir)/doc/vips
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips
-
-distclean-local:
-# need to remove expanded intltool files in build area to pass distcheck
-	-rm ${top_builddir}/intltool-extract \
-		${top_builddir}/intltool-merge \
-		${top_builddir}/intltool-update
 

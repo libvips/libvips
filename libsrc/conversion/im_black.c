@@ -68,13 +68,7 @@
 static int
 black_gen( REGION *or, void *seq, void *a, void *b )
 {
-	int y;
-	int sz = IM_REGION_SIZEOF_LINE( or );
-	int ls = IM_REGION_LSKIP( or );
-	char *q = IM_REGION_ADDR( or, or->valid.left, or->valid.top );
-
-	for( y = 0; y < or->valid.height; y++, q += ls )
-		memset( q, 0, sz );
+	im__black_region( or );
 
 	return( 0 );
 }
