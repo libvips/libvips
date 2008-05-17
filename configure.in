@@ -27,10 +27,6 @@ LIBRARY_AGE=6
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
-# we need intltool ... v0.21 is the first that works reasonably well,
-# apparently
-AC_PROG_INTLTOOL([0.21])
-
 # patched into include/vips/version.h
 AC_SUBST(IM_VERSION)
 AC_SUBST(IM_VERSION_STRING)

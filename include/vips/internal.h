@@ -138,6 +138,7 @@ int im__find_best_contrast( IMAGE *image,
 	int nbest, int hcorsize );
 int im__balance( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	IMAGE **ref_out, IMAGE **sec_out, int dx, int dy, int balancetype );
+void im__black_region( REGION *reg );
 
 #ifdef __cplusplus
 }

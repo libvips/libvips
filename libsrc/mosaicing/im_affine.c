@@ -118,6 +118,7 @@
 #include <limits.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "merge.h"
 

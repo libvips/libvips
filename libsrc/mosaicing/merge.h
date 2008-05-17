@@ -119,10 +119,6 @@ Overlapping *im__build_mergestate( IMAGE *ref, IMAGE *sec, IMAGE *out,
 void *im__start_merge( IMAGE *out, void *, void * );
 int im__merge_gen( REGION *or, void *seq, void *a, void * );
 int im__stop_merge( void *seq, void *, void * );
-void im__black_region( REGION *reg );
-int im__extract_area( IMAGE *in, IMAGE *out,
-	int x, int y, int w, int h );
-int im__extract_band( IMAGE *in, IMAGE *out, int band );
 int im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, 
 	int dx, int dy, int mwidth );
 int im__tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, 

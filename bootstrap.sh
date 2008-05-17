@@ -26,7 +26,7 @@ fi
 test -r aclocal.m4 || touch aclocal.m4
 glib-gettextize --force --copy
 test -r aclocal.m4 && chmod u+w aclocal.m4
-intltoolize --copy --force --automake
+# intltoolize --copy --force --automake
 aclocal 
 autoconf
 autoheader

@@ -27,15 +27,7 @@ EXTRA_DIST = \
 	vips-7.${IM_MINOR_VERSION}.spec.in \
 	acinclude.m4 \
 	depcomp \
-	intltool-extract.in \
-	intltool-merge.in \
-	intltool-update.in \
 	$(P_DIST_DIR)
-
-DISTCLEANFILES = \
-	intltool-extract \
-	intltool-merge \
-	intltool-update
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = vips-7.${IM_MINOR_VERSION}.pc vipsCC-7.${IM_MINOR_VERSION}.pc
