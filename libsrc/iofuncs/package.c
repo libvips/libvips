@@ -6,6 +6,8 @@
  *	- now uses g_module_*() instead of dlopen()
  * 9/8/04
  *	- uses glib dir scanning stuff instead of dirent.h
+ * 20/5/08
+ * 	- note_dependencies() does IMAGEVEC as well as IMAGE
  */
 
 /*
@@ -763,7 +765,7 @@ destroy_args( im_function *fn, im_object *vargv )
 	int i;
 	int vargc = fn->argc;
 
-	/* Destoy all elements with destroy functions.
+	/* Destroy all elements with destroy functions.
 	 */
 	for( i = 0; i < vargc; i++ )
 		if( vargv[i] ) 
@@ -856,8 +858,8 @@ region_local_image( IMAGE *main, IMAGE *sub )
         return( 0 );
 }
 
-/* i is an output image on a PIO function ... make all input images depend
- * on it.
+/* vargv[i] is an output image on a PIO function ... make all input images 
+ * depend on it.
  */
 static int
 note_dependencies( im_function *fn, im_object *vargv, int i )
@@ -867,10 +869,20 @@ note_dependencies( im_function *fn, im_object *vargv, int i )
 	for( j = 0; j < fn->argc; j++ ) {
 		im_type_desc *type = fn->argv[j].desc;
 
-		if( !(type->flags & IM_TYPE_OUTPUT) &&
-			strcmp( type->type, IM_TYPE_IMAGE ) == 0 ) {
-			if( region_local_image( vargv[i], vargv[j] ) )
-				return( -1 );
+		if( !(type->flags & IM_TYPE_OUTPUT) ) {
+			if( strcmp( type->type, IM_TYPE_IMAGE ) == 0 ) {
+				if( region_local_image( vargv[i], vargv[j] ) )
+					return( -1 );
+			}
+			else if( strcmp( type->type, IM_TYPE_IMAGEVEC ) == 0 ) {
+				im_imagevec_object *iv = vargv[j];
+				int k;
+
+				for( k = 0; k < iv->n; k++ )
+					if( region_local_image( vargv[i], 
+						iv->vec[k] ) )
+						return( -1 );
+			}
 		}
 	}
 
