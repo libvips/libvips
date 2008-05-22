@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libformat.la
 libformat_la_SOURCES = \
 	dbh.h \
 	format_dispatch.c \
+	is_a.c \
 	im_analyze2vips.c \
 	im_csv2vips.c \
 	im_exr2vips.c \
