@@ -375,6 +375,7 @@ AC_OUTPUT([
 	libsrc/colour/Makefile 
 	libsrc/conversion/Makefile 
 	libsrc/convolution/Makefile 
+	libsrc/format/Makefile 
 	libsrc/freq_filt/Makefile 
 	libsrc/histograms_lut/Makefile 
 	libsrc/inplace/Makefile 
