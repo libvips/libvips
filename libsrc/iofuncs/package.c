@@ -61,6 +61,7 @@ extern im_package im__boolean;
 extern im_package im__colour;
 extern im_package im__conversion;
 extern im_package im__convolution;
+extern im_package im__format;
 extern im_package im__freq_filt;
 extern im_package im__histograms_lut;
 extern im_package im__inplace;
@@ -405,6 +406,7 @@ static im_package *built_in[] = {
 	&im__colour,
 	&im__conversion,
 	&im__convolution,
+	&im__format,
 	&im__freq_filt,
 	&im__histograms_lut,
 	&im__inplace,

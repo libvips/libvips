@@ -37,7 +37,6 @@ libconversion_la_SOURCES = \
 	im_system.c \
 	im_print.c \
 	im_tbjoin.c \
-	im_tile_cache.c \
 	im_text.c \
 	im_thresh.c \
 	im_vips2mask.c \
