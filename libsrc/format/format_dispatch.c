@@ -418,5 +418,124 @@ im_package im__format = {
 	list
 };
 
+/* Suffix sets.
+ */
+static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
+static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+static const char *png_suffs[] = { ".png", NULL };
+static const char *csv_suffs[] = { ".csv", NULL };
+static const char *ppm_suffs[] = { ".ppm", ".pgm", ".pbm", NULL };
+static const char *exr_suffs[] = { ".exr", NULL };
+static const char *analyze_suffs[] = { ".img", ".hdr", NULL };
+static const char *magick_suffs[] = { NULL };
 
+/* VIPS image formats.
+ */
+static im_format jpeg_desc = {
+	"jpeg",			/* internal name */
+	N_( "JPEG" ),		/* i18n'd visible name */
+	0,			/* Priority */
+	jpeg_suffs,		/* Allowed suffixes */
+	im_isjpeg,		/* is_a */
+	im_jpeg2vips_header,	/* Load header only */
+	im_jpeg2vips,		/* Load */
+	im_vips2jpeg		/* Save */
+};
 
+static im_format tiff_desc = {
+	"tiff",			/* internal name */
+	N_( "TIFF" ),		/* i18n'd visible name */
+	0,			/* Priority */
+	tiff_suffs,		/* Allowed suffixes */
+	im_istiff,		/* is_a */
+	im_tiff2vips_header,	/* Load header only */
+	im_tiff2vips,		/* Load */
+	im_vips2tiff		/* Save */
+};
+
+static im_format png_desc = {
+	"png",			/* internal name */
+	N_( "PNG" ),		/* i18n'd visible name */
+	0,			/* Priority */
+	png_suffs,		/* Allowed suffixes */
+	im_ispng,			/* is_a */
+	im_png2vips_header,	/* Load header only */
+	im_png2vips,		/* Load */
+	im_vips2png		/* Save */
+};
+
+static im_format csv_desc = {
+	"csv",			/* internal name */
+	N_( "CSV" ),		/* i18n'd visible name */
+	0,			/* Priority */
+	csv_suffs,		/* Allowed suffixes */
+	NULL,			/* is_a */
+	im_csv2vips_header,	/* Load header only */
+	im_csv2vips,		/* Load */
+	im_vips2csv		/* Save */
+};
+
+static im_format ppm_desc = {
+	"ppm",			/* internal name */
+	N_( "PPM/PBM/PNM" ),		/* i18n'd visible name */
+	0,			/* Priority */
+	ppm_suffs,		/* Allowed suffixes */
+	im_isppm,			/* is_a */
+	im_ppm2vips_header,	/* Load header only */
+	im_ppm2vips,		/* Load */
+	im_vips2ppm		/* Save */
+};
+
+static im_format analyze_desc = {
+	"analyze",		/* internal name */
+	N_( "Analyze 6.0" ),	/* i18n'd visible name */
+	0,			/* Priority */
+	analyze_suffs,		/* Allowed suffixes */
+	im_isanalyze,		/* is_a */
+	im_analyze2vips_header,	/* Load header only */
+	im_analyze2vips,	/* Load */
+	NULL			/* Save */
+};
+
+static im_format exr_desc = {
+	"exr",			/* internal name */
+	N_( "OpenEXR" ),	/* i18n'd visible name */
+	0,			/* Priority */
+	exr_suffs,		/* Allowed suffixes */
+	im_isexr,			/* is_a */
+	im_exr2vips_header,	/* Load header only */
+	im_exr2vips,		/* Load */
+	NULL			/* Save */
+};
+
+static im_format magick_desc = {
+	"magick",		/* internal name */
+	N_( "ImageMagick-supported format" ),	/* i18n'd visible name */
+	-1000,			/* Priority */
+	magick_suffs,		/* Allowed suffixes */
+	im_ismagick,		/* is_a */
+	im_magick2vips_header,	/* Load header only */
+	im_magick2vips,		/* Load */
+	NULL			/* Save */
+};
+
+/* Package up all these formats.
+ */
+static im_format *format_list[] = {
+	&csv_desc,
+	&jpeg_desc,
+	&magick_desc,
+	&png_desc,
+	&exr_desc,
+	&ppm_desc,
+	&analyze_desc,
+	&tiff_desc
+};
+
+/* Package of format.
+ */
+im_format_package im__format_format = {
+	"format",
+	IM_NUMBER( format_list ),
+	format_list
+};

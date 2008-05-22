@@ -300,6 +300,12 @@ im_function *im_find_function( const char *name );
 im_package *im_find_package( const char *name );
 im_package *im_package_of_function( const char *name );
 
+/* Map over and find formats.
+ */
+void *im_map_formats( VSListMap2Fn fn, void *a, void *b );
+im_format *im_format_for_file( const char *filename );
+im_format *im_format_for_name( const char *filename );
+
 /* Allocate space for, and free im_object argument lists.
  */
 int im_free_vargv( im_function *fn, im_object *vargv );

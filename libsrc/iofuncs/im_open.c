@@ -225,6 +225,30 @@ read_vips( const char *filename )
 	return( im2 );
 }
 
+/*
+		else if( im_isvips( name ) ) {
+			if( mode[1] == 'w' ) {
+				if( !(im = im_init( filename )) )
+					return( NULL );
+				if( im_openinrw( im ) ) {
+					im_close( im );
+					return( NULL );
+				}
+				if( im->Bbits != IM_BBITS_BYTE &&
+					im_isMSBfirst( im ) != 
+						im_amiMSBfirst() ) {
+					im_close( im );
+					im_error( "im_open", _( "open for read-"
+						"write for native format "
+						"images only" ) );
+					return( NULL );
+				}
+			}
+			else 
+				im = read_vips( filename );
+		}
+ */
+
 /* Delayed save: if we write to TIFF or to JPEG format, actually do the write
  * to a "p" and on preclose do im_vips2tiff() or whatever. Track save
  * parameters here.
@@ -416,6 +440,7 @@ IMAGE *
 im_open( const char *filename, const char *mode )
 {
 	IMAGE *im;
+	im_format *format;
 
 	/* Pass in a nonsense name for argv0 ... this init world is only here
 	 * for old programs which are missing an im_init_world() call. We must
@@ -431,107 +456,11 @@ im_open( const char *filename, const char *mode )
 
 	switch( mode[0] ) {
         case 'r':
-{
-		char name[FILENAME_MAX];
-		char options[FILENAME_MAX];
-
-		/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
-		 * etc.
-		 */
-		im_filename_split( filename, name, options );
-
-		/* Check for other formats.
-
-			FIXME ... should have a table to avoid all this
-			repetition
-
-		 */
-		if( !im_existsf( "%s", name ) ) {
-			im_error( "im_open", 
-				_( "\"%s\" is not readable" ), name );
+		if( !(format = im_format_for_file( filename )) )
 			return( NULL );
-		}
-		else if( im_istiff( name ) ) {
-			/* If TIFF open fails, try going through libmagick.
-			 */
-			if( !(im = open_sub( 
-				im_tiff2vips_header, im_tiff2vips, 
-					filename )) &&
-				!(im = open_sub( 
-					im_magick2vips_header, im_magick2vips, 
-					filename )) )
-				return( NULL );
-		}
-		else if( im_isjpeg( name ) ) {
-			if( !(im = open_sub( 
-				im_jpeg2vips_header, im_jpeg2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_isexr( name ) ) {
-			if( !(im = open_sub( 
-				im_exr2vips_header, im_exr2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_isppm( name ) ) {
-			if( !(im = open_sub( 
-				im_ppm2vips_header, im_ppm2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_ispng( name ) ) {
-			if( !(im = open_sub( 
-				im_png2vips_header, im_png2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_filename_suffix_match( name, im_suffix_csv ) ) {
-			if( !(im = open_sub( 
-				im_csv2vips_header, im_csv2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_isvips( name ) ) {
-			if( mode[1] == 'w' ) {
-				/* Has to be native format for >8 bits.
-				 */
-				if( !(im = im_init( filename )) )
-					return( NULL );
-				if( im_openinrw( im ) ) {
-					im_close( im );
-					return( NULL );
-				}
-				if( im->Bbits != IM_BBITS_BYTE &&
-					im_isMSBfirst( im ) != 
-						im_amiMSBfirst() ) {
-					im_close( im );
-					im_error( "im_open", _( "open for read-"
-						"write for native format "
-						"images only" ) );
-					return( NULL );
-				}
-			}
-			else 
-				im = read_vips( filename );
-		}
-		else if( im_isanalyze( name ) ) {
-			if( !(im = open_sub( 
-				im_analyze2vips_header, im_analyze2vips, 
-					filename )) )
-				return( NULL );
-		}
-		else if( im_ismagick( name ) ) {
-			/* Have this last as it can be very slow to detect
-			 * failure.
-			 */
-			if( !(im = open_sub( 
-				im_magick2vips_header, im_magick2vips, 
-				filename )) )
-				return( NULL );
-		}
-		else {
-			im_error( "im_open", _( "\"%s\" is not "
-				"a supported format" ), filename );
+		if( !(im = open_sub( 
+			format->header, format->load, filename )) )
 			return( NULL );
-		}
-}
-
         	break;
 
 	case 'w':

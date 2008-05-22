@@ -1,3 +1,8 @@
+- read_vips() in im_open.c:179 needs moving to format and breaking into is_a,
+  header, load and save, as tiff etc.
+
+  make im_file2vips, im_vips2file?
+
 - pluggable formats
 
   for each format, store:
