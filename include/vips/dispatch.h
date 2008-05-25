@@ -143,34 +143,6 @@ typedef struct {
 	im_function **table;	/* Array of function descriptors */
 } im_package;
 
-/* Function protos for formats.
- */
-typedef gboolean (*im_format_is_a)( const char * );
-typedef int (*im_format_header)( const char *, IMAGE * );
-typedef int (*im_format_load)( const char *, IMAGE * );
-typedef int (*im_forrmat_save)( IMAGE *, const char * );
-
-/* A VIPS image format.
- */
-typedef struct {
-	const char *name;	/* Format name, same as mime */
-	const char *name_user;	/* I18n'd name for users */
-	int priority;		/* Keep formats sorted by this, default 0 */
-	const char *suffs[]; 	/* Allowed suffixes */
-	im_format_is_a is_a;	/* Filename is in format */
-	im_format_header header;/* Load header only from filename */
-	im_format_load load;	/* Load image from filename */
-	im_format_save save;	/* Save image to filename */
-} im_format;
-
-/* A set of VIPS formats forming a format package.
- */
-typedef struct {
-	char *name;		/* Package name (eg "magick") */
-	int nfuncs;		/* Number of formats in package */
-	im_format **table;	/* Array of formats */
-} im_format_package;
-
 /* Externs for dispatch.
  */
 
