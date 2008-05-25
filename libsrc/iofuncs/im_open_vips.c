@@ -1,7 +1,8 @@
-/* Read a VIPS file into a IMAGE *
+/* Read and write a VIPS file into an IMAGE *
  * 
  * 22/5/08
- * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c
+ * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c,
+ * 	  im_openout.c
  */
 
 /*
@@ -729,7 +730,7 @@ im_openinrw( IMAGE *image )
  * ":w" at the end of the filename means we open read-write.
  */
 IMAGE *
-im_open_vips( const char *filename )
+im_vips_open( const char *filename )
 {
 	char name[FILENAME_MAX];
 	char mode[FILENAME_MAX];
@@ -802,5 +803,17 @@ im_open_vips( const char *filename )
 	}
 
 	return( im );
+}
+
+IMAGE *
+im_vips_openout( const char *filename )
+{	
+	IMAGE *image;
+
+	if( !(image = im_init( filename )) ) 
+		return( NULL );
+	image->dtype = IM_OPENOUT;
+
+	return( image );
 }
 

@@ -1,3 +1,8 @@
+- when we open with a mmap window and later do im_incheck(), do we remap the
+  whole file?
+
+- remove a lot of stuff
+
 - read_vips() in im_open.c:179 needs moving to format and breaking into is_a,
   header, load and save, as tiff etc.
 

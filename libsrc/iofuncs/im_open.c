@@ -139,33 +139,6 @@ Modified:
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Suffix sets.
- */
-static const char *im_suffix_vips[] = {
-	"v", "",
-	NULL
-};
-static const char *im_suffix_tiff[] = {
-	"tif", "tiff",
-	NULL
-};
-static const char *im_suffix_jpeg[] = {
-	"jpeg", "jpg", "jfif", "jpe",
-	NULL
-};
-static const char *im_suffix_ppm[] = {
-	"ppm", "pbm", "pgm", 
-	NULL
-};
-static const char *im_suffix_png[] = {
-	"png", 
-	NULL
-};
-static const char *im_suffix_csv[] = {
-	"csv", 
-	NULL
-};
-
 /* Progress feedback. Only really useful for testing, tbh.
  */
 int im__progress = 0;
