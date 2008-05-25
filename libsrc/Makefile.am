@@ -17,7 +17,6 @@ SUBDIRS = \
 	conversion \
 	convolution \
 	$(C_COMPILE_DIR) \
-	format \
 	freq_filt \
 	histograms_lut \
 	inplace \
@@ -43,7 +42,6 @@ libvips_la_LIBADD = \
 	conversion/libconversion.la \
 	convolution/libconvolution.la \
 	$(C_LIB) \
-	format/libformat.la \
 	freq_filt/libfreq_filt.la \
 	histograms_lut/libhistograms_lut.la \
 	inplace/libinplace.la \

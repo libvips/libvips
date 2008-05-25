@@ -145,10 +145,10 @@ typedef struct {
 
 /* Function protos for formats.
  */
-typedef gboolean (*im_format_is_a_fn)( const char * );
-typedef int (*im_format_header_fn)( const char *, IMAGE * );
-typedef int (*im_format_load_fn)( const char *, IMAGE * );
-typedef int (*im_format_save_fn)( IMAGE *, const char * );
+typedef gboolean (*im_format_is_a)( const char * );
+typedef int (*im_format_header)( const char *, IMAGE * );
+typedef int (*im_format_load)( const char *, IMAGE * );
+typedef int (*im_forrmat_save)( IMAGE *, const char * );
 
 /* A VIPS image format.
  */
@@ -156,11 +156,11 @@ typedef struct {
 	const char *name;	/* Format name, same as mime */
 	const char *name_user;	/* I18n'd name for users */
 	int priority;		/* Keep formats sorted by this, default 0 */
-	const char **suffs; 	/* Allowed suffixes */
-	im_format_is_a_fn is_a;	/* Filename is in format */
-	im_format_header_fn header;/* Load header only from filename */
-	im_format_load_fn load;	/* Load image from filename */
-	im_format_save_fn save;	/* Save image to filename */
+	const char *suffs[]; 	/* Allowed suffixes */
+	im_format_is_a is_a;	/* Filename is in format */
+	im_format_header header;/* Load header only from filename */
+	im_format_load load;	/* Load image from filename */
+	im_format_save save;	/* Save image to filename */
 } im_format;
 
 /* A set of VIPS formats forming a format package.
@@ -299,12 +299,6 @@ void *im_map_packages( VSListMap2Fn fn, void *a );
 im_function *im_find_function( const char *name );
 im_package *im_find_package( const char *name );
 im_package *im_package_of_function( const char *name );
-
-/* Map over and find formats.
- */
-void *im_map_formats( VSListMap2Fn fn, void *a, void *b );
-im_format *im_format_for_file( const char *filename );
-im_format *im_format_for_name( const char *filename );
 
 /* Allocate space for, and free im_object argument lists.
  */

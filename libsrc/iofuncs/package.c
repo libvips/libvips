@@ -61,7 +61,6 @@ extern im_package im__boolean;
 extern im_package im__colour;
 extern im_package im__conversion;
 extern im_package im__convolution;
-extern im_package im__format;
 extern im_package im__freq_filt;
 extern im_package im__histograms_lut;
 extern im_package im__inplace;
@@ -71,8 +70,6 @@ extern im_package im__mosaicing;
 extern im_package im__other;
 extern im_package im__relational;
 extern im_package im__video;
-
-extern im_format_package im__format_format;
 
 /* im_guess_prefix() args.
  */
@@ -408,7 +405,6 @@ static im_package *built_in[] = {
 	&im__colour,
 	&im__conversion,
 	&im__convolution,
-	&im__format,
 	&im__freq_filt,
 	&im__histograms_lut,
 	&im__inplace,
@@ -421,56 +417,12 @@ static im_package *built_in[] = {
 	&im__video
 };
 
-/* List of loaded formats.
- */
-static GSList *format_list = NULL;
-
-static gint
-format_compare( im_format *a, im_format *b )
-{
-        return( a->priority - b->priority );
-}
-
-/* Sort the format list after a change.
- */
-static void
-format_sort( void )
-{
-	format_list = g_slist_sort( format_list, 
-		(GCompareFunc) format_compare );
-}
-
-/* Remove a package of formats.
- */
-static void
-format_remove( im_format_package *format )
-{
-	int i;
-
-	for( i = 0; i < format->nfuncs; i++ )
-		format_list = g_slist_remove( format_list, format->table[i] );
-	format_sort();
-}
-
-/* Add a package of formats.
- */
-static void
-format_add( im_format_package *format )
-{
-	int i;
-
-	for( i = 0; i < format->nfuncs; i++ )
-		format_list = g_slist_prepend( format_list, format->table[i] );
-	format_sort();
-}
-
 /* How we represent a loaded plugin.
  */
 typedef struct _Plugin {
 	GModule *module;		/* As loaded by g_module_open() */
 	char *name;			/* Name we loaded */
 	im_package *pack;		/* Package table */
-	im_format_package *format;	/* Package format table */
 } Plugin;
 
 /* List of loaded plugins.
@@ -484,8 +436,6 @@ plugin_free( Plugin *plug )
 {
 	char *name = plug->name ? plug->name : "<unknown>";
 
-	if( plug->format ) 
-		format_remove( plug->format );
 	if( plug->module ) {
 		if( !g_module_close( plug->module ) ) {
 			im_error( "plugin", 
@@ -525,7 +475,6 @@ im_load_plugin( const char *name )
 	plug->module = NULL;
 	plug->name = NULL;
 	plug->pack = NULL;
-	plug->format = NULL;
 	plugin_list = g_slist_prepend( plugin_list, plug );
 
 	/* Attach name.
@@ -560,43 +509,21 @@ im_load_plugin( const char *name )
 		return( NULL );
 	}
 
-	/* The format table is optional.
-	 */
-	if( !g_module_symbol( plug->module, 
-		"format_table", (gpointer *) ((void *) &plug->format) ) ) 
-		plug->format = NULL;
-
 	/* Sanity check.
 	 */
 	if( !plug->pack->name || plug->pack->nfuncs < 0 || 
 		plug->pack->nfuncs > 10000 ) {
 		im_error( "plugin",
-			_( "corrupted package table in plugin \"%s\"" ), name );
+			_( "corrupted package table in plugin \"%s\"" ), 
+				name );
 		plugin_free( plug );
 
 		return( NULL );
-	}
-	if( plug->format ) {
-		if( !plug->format->name || plug->format->nfuncs < 0 || 
-			plug->format->nfuncs > 10000 ) {
-
-			im_error( "plugin",
-				_( "corrupted format table in plugin \"%s\"" ),
-				name );
-			plugin_free( plug );
-
-			return( NULL );
-		}
 	}
 
 #ifdef DEBUG
 	printf( "added package \"%s\" ...\n", plug->pack->name );
 #endif /*DEBUG*/
-
-	/* Add any formats to our format list and sort again.
-	 */
-	if( plug->format ) 
-		format_add( plug->format );
 
 	return( plug->pack );
 }
@@ -769,89 +696,6 @@ im_package_of_function( const char *name )
 	}
 
 	return( pack );
-}
-
-/* Map a function over all formats. 
- */
-void *
-im_map_formats( VSListMap2Fn fn, void *a, void *b )
-{
-	return( im_slist_map2( format_list, fn, a, b ) );
-}
-
-/* Can this format open this file?
- */
-static void *
-format_for_file_sub( im_format *format, 
-	const char *filename, const char *name )
-{
-	if( format->is_a ) {
-		if( format->is_a( name ) ) 
-			return( format );
-	}
-	else if( im_filename_suffix_match( name, format->suffs ) )
-		return( format );
-
-	return( NULL );
-}
-
-im_format *
-im_format_for_file( const char *filename )
-{
-	char name[FILENAME_MAX];
-	char options[FILENAME_MAX];
-	im_format *format;
-
-	/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
-	 * etc.
-	 */
-	im_filename_split( filename, name, options );
-
-	if( !im_existsf( "%s", name ) ) {
-		im_error( "im_format_for_file", 
-			_( "\"%s\" is not readable" ), name );
-		return( NULL );
-	}
-
-	format = (im_format *) im_map_formats( 
-		(VSListMap2Fn) format_for_file_sub, 
-		(void *) filename, (void *) name );
-
-	if( !format ) {
-		im_error( "im_format_for_file", 
-			_( "\"%s\" is not in a supported format" ), name );
-		return( NULL );
-	}
-
-	return( format );
-}
-
-/* Can we write this filename with this format?
- */
-static void *
-format_for_name_sub( im_format *format, 
-	const char *filename, const char *name )
-{
-	if( im_filename_suffix_match( name, format->suffs ) )
-		return( format );
-
-	return( NULL );
-}
-
-im_format *
-im_format_for_name( const char *filename )
-{
-	char name[FILENAME_MAX];
-	char options[FILENAME_MAX];
-
-	/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
-	 * etc.
-	 */
-	im_filename_split( filename, name, options );
-
-	return( (im_format *) im_map_formats( 
-		(VSListMap2Fn) format_for_name_sub, 
-		(void *) filename, (void *) name ) );
 }
 
 /* Free any store we allocated for the argument list.
