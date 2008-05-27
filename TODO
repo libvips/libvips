@@ -1,28 +1,3 @@
-- pluggable formats
-
-  for each format, store:
-
-  	- format name , same as mime
-		"jpeg"
-	- priority ... keep formats sorted by this, magick is low (-1000?)
-		int priority = 0;
-	- i18n'd name for users to see
-		"JPEG"
-	- allowed suffixes
-		const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
-	- predicate (embedded options remove from filename)
-		gboolean (*is_a)(const char *filename)
-	- load header only
-		int (*header)(const char *filename, IMAGE *)
-	- load image
-		int (*load)(const char *filename, IMAGE *)
-	- save image
-		int (*save)(IMAGE *, const char *filename)
-
-  can we have the vips loader as part of this?
-
-  need to 
-
 - try
 
 	libsrc/convolution$ grep -l offsets *.c
@@ -158,32 +133,3 @@
 	if( !(fp = fopen( name, "w" )) ) {
 
   shouldn't be binary ... hmm
-
-Build
-=====
-
-- xmlFree() is still broken :-(
-
-  maybe we are not importing it correctly? im_readhist.c references
-
-	_imp__xmlFree
-
-  how is this made? look at gcc -E output ... maybe there's an extra define we
-  need to make it generate the right link code?
-
-  see what libxml2.dll.a is exporting that looks anything like xmlFree
- 
-- can we make a fftw3.dll? also, magick.dll?
-
-  maybe just build with no-undefined? can we then link the DLL against the
-  static lib?
-
-- update gtk/glib/etc. on the PC to the latest versions, apparently much
-  quicker (esp. pango)
-
-
-
-
-This TODO list is now held on the VIPS Wiki
-
-   http://wiki.vips.ecs.soton.ac.uk/bin/view/Vips/TodoVips7
