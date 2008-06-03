@@ -21,6 +21,7 @@
 - revise i18n configure, get rid of intltool 
 - command-line IMAGVEC input could segv with non-vips image output
 - added .tobuffer()/.frombuffer(), .tostring()/.fromstring() to Python binding
+- add PIL_mode_from_vips () and vips_from_PIL_mode () utility functions
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
