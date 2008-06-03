@@ -3,12 +3,22 @@
  * 5/9/07
  *      - use g_option_context_set_ignore_unknown_options() so we don't fail
  *        on unrecognied -args (thanks Simon)
+ * 3/8/08
+ *      - add .tobuffer() / .frombuffer (), .tostring (), .fromstring ()
+ *        methods
  */
 
 %module VImage
+
 %{
 #include <vips/vipscpp.h>
+
+/* We need the C API too for the args init and some of the
+ * frombuffer/tobuffer stuff.
+ */
+#include <vips/vips.h>
 %}
+
 /* Need to override assignment to get refcounting working.
  */
 %rename(__assign__) vips::VImage::operator=;
@@ -17,6 +27,8 @@
 %include "std_complex.i"
 %include "std_vector.i"
 %include "std_except.i"
+%include "std_string.i"
+%include "cstring.i"
 
 %import "VError.i"
 %import "VMask.i"
@@ -28,16 +40,111 @@ namespace std {
   %template(ImageVector) vector<VImage>;
 }
 
+/* To get image data to and from VImage (eg. when interfacing with PIL) we
+ * need to be able to import and export Python buffer() objects. Add new
+ * methods to construct from and return pointer/length pairs, then wrap them
+ * ourselves with a couple of typemaps.
+ */
+
+%{
+struct VBuffer {
+  void *data;
+  size_t size;
+};
+%}
+
+%typemap (out) VBuffer {
+  $result = PyBuffer_FromMemory ($1.data, $1.size);
+}
+
+%typemap (in) VBuffer {
+  const char *buffer;
+  Py_ssize_t buffer_len;
+
+  if (PyObject_AsCharBuffer ($input, &buffer, &buffer_len) == -1) {
+    PyErr_SetString (PyExc_TypeError,"Type error. Unable to get char pointer from buffer");
+    return NULL;
+  }
+
+  $1.data = (void *) buffer;
+  $1.size = buffer_len;
+}
+
 /* Need the expanded VImage.h in this directory, rather than the usual
  * vips/VImage.h. SWIG b0rks on #include inside class definitions.
  */
 %include VImage.h
 
+%extend vips::VImage {
+public:
+  VBuffer tobuffer () throw (VError)
+  {
+    VBuffer buffer;
+
+    buffer.data = $self->data ();
+    buffer.size = (size_t) $self->Xsize () * $self->Ysize () * 
+        IM_IMAGE_SIZEOF_PEL ($self->image ());
+
+    return buffer;
+  }
+
+  static VImage frombuffer (VBuffer buffer, int width, int height,
+    int bands, TBandFmt format) throw (VError)
+  {
+    return VImage (buffer.data, width, height, bands, format);
+  }
+
+  %cstring_output_allocate_size (char **buffer, int *buffer_len, im_free (*$1))
+
+  void tostring (char **buffer, int *buffer_len) throw (VError)
+  {
+    void *vips_memory;
+
+    /* Eval the vips image first. This may throw an exception and we want to
+     * make sure we do this before we try to malloc() space for the copy.
+     */
+    vips_memory = $self->data ();
+
+    /* We have to copy the image data to make a string that Python can
+     * manage. Use frombuffer() / tobuffer () if you want to avoid the copy
+     * and manage memory lifetime yourself.
+     */
+    *buffer_len = (size_t) $self->Xsize () * $self->Ysize () * 
+      IM_IMAGE_SIZEOF_PEL ($self->image ());
+    if (!(*buffer = (char *) im_malloc (NULL, *buffer_len))) 
+      verror ("Unable to allocate memory for image copy.");
+    memcpy (*buffer, vips_memory, *buffer_len);
+  }
+
+  static VImage fromstring (std::string buffer, int width, int height,
+    int bands, TBandFmt format) throw (VError)
+  {
+    void *vips_memory;
+    VImage result;
+
+    /* We have to copy the string, then add a callback to the VImage to free
+     * it when we free the VImage. Use frombuffer() / tobuffer () if you want 
+     * to avoid the copy and manage memory lifetime yourself.
+     */
+    if (!(vips_memory = im_malloc (NULL, buffer.length ()))) 
+      verror ("Unable to allocate memory for image copy.");
+
+    /* We have to use .c_str () since the string may not be contiguous.
+     */
+    memcpy (vips_memory, buffer.c_str (), buffer.length ());
+    result = VImage (vips_memory, width, height, bands, format);
+
+    if (im_add_close_callback (result.image (), 
+      (im_callback_fn) im_free, vips_memory, NULL))
+      verror ();
+
+    return result;
+  }
+}
+
 /* Helper code for vips_init().
  */
 %{
-#include <vips/vips.h>
-
 /* Turn on to print args.
 #define DEBUG
  */
