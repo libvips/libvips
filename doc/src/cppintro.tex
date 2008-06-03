@@ -64,23 +64,26 @@ invert: VIPS error: im_open:
 #include <vips/vips>
 
 int
-main( int argc, char **argv )
+main (int argc, char **argv)
 {
-        if( argc != 3 ) {
-                std::cerr << "usage: " << argv[0] << " infile outfile\n";
-                exit( 1 );
-        }
+  if (argc != 3)
+    {
+      std::cerr << "usage: " << argv[0] << " infile outfile\n";
+      exit (1);
+    }
 
-        try {
-                vips::VImage fred( argv[1] );
+  try
+  {
+    vips::VImage fred (argv[1]);
 
-                fred.invert().write( argv[2] );
-        }
-        catch( vips::VError e ) {
-                e.perror( argv[0] );
-        }
+    fred.invert ().write (argv[2]);
+  }
+  catch (vips::VError e)
+  {
+    e.perror (argv[0]);
+  }
 
-        return( 0 );
+  return (0);
 }
 \end{verbatim}
 \caption{\texttt{invert} program in C++}

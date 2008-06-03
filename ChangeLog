@@ -22,6 +22,7 @@
 - command-line IMAGVEC input could segv with non-vips image output
 - added .tobuffer()/.frombuffer(), .tostring()/.fromstring() to Python binding
 - add PIL_mode_from_vips () and vips_from_PIL_mode () utility functions
+- update docs for new Python stuff
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

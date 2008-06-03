@@ -70,6 +70,37 @@ from an \verb+IMAGE+.
 In both these two cases, the VIPS C++ API does not assume responsibility
 for the resouces: it's up to you to make sure the buffer is freed.
 
+The Python interface adds the usual \verb+frombuffer+ and
+\verb+fromstring+ methods. 
+
+\begin{verbatim}
+VImage.fromstring (string, 
+  width, height, bands, format) -> 
+  VImage
+\end{verbatim}
+
+\begin{verbatim}
+VImage.frombuffer (buffer, 
+  width, height, bands, format) -> 
+  VImage
+\end{verbatim}
+
+\noindent
+Use \verb+fromstring+ to avoid worries about object lifetime, but you'll see a
+lot of copies and high memory use. Use \verb+frombuffer+ for speed, but you
+have to manage object lifetime yourself.
+
+They are useful for moving images into VIPS from other image processing
+libraries. There's also a utility function, \verb+vips_from_PIL_mode+, which
+turns a PIL mode into a VIPS band, format, type triple.
+
+\begin{verbatim}
+VImage.vips_from_PIL_mode (mode) -> 
+  (bands, format, type) 
+\end{verbatim}
+
+See also \verb+tobuffer+ and \verb+tostring+ below.
+
 \subsection{File conversion}
 
 VIPS can read and write a number of different file formats. Information about
@@ -159,6 +190,26 @@ void *data() const;
 
 \noindent
 This can be very slow and use huge amounts of RAM.
+
+The Python interface adds \verb+tobuffer+ and \verb+tostring+. These
+operations call \verb+data()+ to generate the image pixels and then either
+copy it and return the copy as a string, or wrap the pixels up as a Python
+buffer object.
+
+Use \verb+tostring+ to avoid worries about object lifetime, but you'll see a
+lot of copies and high memory use. Use \verb+tobuffer+ for speed, but you
+have to manage object lifetime yourself.
+
+They are useful for moving images from VIPS into other image processing
+libraries. There's also a utility function, \verb+PIL_mode_from_vips+, which
+makes a PIL mode from a VIPS image.
+
+\begin{verbatim}
+VImage.PIL_mode_from_vips (vips-image) -> 
+  mode
+\end{verbatim}
+
+See also \verb+frombuffer+ and \verb+fromstring+ above.
 
 Finally, two projection functions give access to the filename and history
 fields maintained by the VIPS IO system.
