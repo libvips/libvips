@@ -31,10 +31,18 @@ the position of the transformed top-left-hand corner of the input image.
 Function im_affine resamples the transformed image using bilinear
 interpolation.
 
+You can use
+.B im_affine(3) 
+to resize an image with something like:
+
+  scale xfac yfac im
+    = im_affine im xfac 0 0 yfac 0 0 0 0 
+        (im.width * xfac) (im.height * yfac);
+
 .SH RETURN VALUE
 The functions return 0 on success and -1 on error.
 .SH BUGS
 As with most resamplers, im_affine(3) performs poorly at the edges of
 images.
-.SH SEE\ ALSO
+.SH SEE ALSO
 im_similarity(3)
