@@ -141,9 +141,13 @@ int
 im__handle_eval( IMAGE *im, int w, int h )
 {
 	if( im->progress ) {
-		if( update_time( im->progress->time, w, h ) )
-			return( -1 );
-		
+		/* Need to test ->time, it may have been shut down.
+		 */
+		if( im->progress->time ) {
+			if( update_time( im->progress->time, w, h ) )
+				return( -1 );
+		}
+
 		if( im__trigger_callbacks( im->progress->evalfns ) )
 			return( -1 );
 	}
