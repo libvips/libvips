@@ -77,9 +77,14 @@ imb_XYZ2Lab_tables( void )
 {
 	static int built_tables = 0;
 
+	int was_built;
 	int i;
 
-	if( built_tables ) 
+	g_mutex_lock( im__global_lock );
+	was_built = built_tables;
+	built_tables = 1;
+	g_mutex_unlock( im__global_lock );
+	if( was_built )
 		return;
 
 	for( i = 0; i < QUANT_ELEMENTS; i++ ) {
@@ -90,8 +95,6 @@ imb_XYZ2Lab_tables( void )
 		else 
 			cbrt_table[i] = cbrt( Y );
 	}
-
-	built_tables = 1;
 }
 
 /* Process a buffer of data.
@@ -146,16 +149,17 @@ imb_XYZ2Lab( float *p, float *q, int n, im_colour_temperature *temp )
 int 
 im_XYZ2Lab_temp( IMAGE *in, IMAGE *out,
 	double X0, double Y0, double Z0 )
-{	
-	im_colour_temperature *temp = IM_NEW( out, im_colour_temperature );
+{
+	im_colour_temperature *temp;
 
 	/* Check input image.
 	 */
-	if( !temp )
+	if( !(temp = IM_NEW( out, im_colour_temperature )) )
 		return( -1 );
-	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
+	if( in->Bands != 3 || 
+		in->BandFmt != IM_BANDFMT_FLOAT || 
 		in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_XYZ2Lab: 3-band uncoded float only" );
+		im_error( "im_XYZ2Lab", _( "not 3-band uncoded float" ) );
 		return( -1 );
 	}
 

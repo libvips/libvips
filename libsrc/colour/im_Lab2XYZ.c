@@ -67,11 +67,13 @@ imb_Lab2XYZ( float *p, float *q, int n, im_colour_temperature *temp )
 	int x;
 
 	for( x = 0; x < n; x++ ) {
-		float L = p[0];
-		float a = p[1];
-		float b = p[2];
+		float L, a, b;
 		float X, Y, Z;
 		double cby, tmp;
+
+		L = p[0];
+		a = p[1];
+		b = p[2];
 		p += 3;
 
 		if( L < 8.0 ) {
@@ -107,15 +109,16 @@ imb_Lab2XYZ( float *p, float *q, int n, im_colour_temperature *temp )
 int 
 im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 {	
-	im_colour_temperature *temp = IM_NEW( out, im_colour_temperature );
+	im_colour_temperature *temp;
 
 	/* Check input image.
 	 */
-	if( !temp )
+	if( !(temp = IM_NEW( out, im_colour_temperature )) )
 		return( -1 );
-	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
+	if( in->Bands != 3 || 
+		in->BandFmt != IM_BANDFMT_FLOAT || 
 		in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_Lab2XYZ: 3-band uncoded float input only" );
+		im_error( "im_Lab2XYZ", _( "not 3-band uncoded float" ) );
 		return( -1 );
 	}
 
