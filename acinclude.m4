@@ -35,34 +35,24 @@ AC_MSG_CHECKING(for ZIP)
 
 # Look for zlib.h 
 if test "$ZIP_INCLUDES" = ""; then
-	zip_save_LIBS="$LIBS"
-
-	LIBS="-lz $LIBS"
-
 	# Check the standard search path
 	AC_TRY_COMPILE([#include <zlib.h>],[int a;],[
 		ZIP_INCLUDES=""
 	], [
-		# zlib.h is not in the standard search path.
+		# zlib.h is not in the standard search path, try
+		# $prefix
+		zip_save_INCLUDES="$INCLUDES"
 
-		# A whole bunch of guesses
-		for dir in \
-			"${prefix}"/*/include /usr/*/include \
-			/usr/local/*/include \
-			"${prefix}"/include/* \
-			/usr/include/* /usr/local/include/* /*/include; do
-			if test -f "$dir/zlib.h"; then
-				ZIP_INCLUDES="-I$dir"
-				break
-			fi
-		done
+		INCLUDES="-I${prefix}/include $INCLUDES"
 
-		if test "$ZIP_INCLUDES" = ""; then
-			ZIP_INCLUDES=no
-		fi
+		AC_TRY_COMPILE([#include <zlib.h>],[int a;],[
+			ZIP_INCLUDES="-I${prefix}/include"
+		], [
+			ZIP_INCLUDES="no"
+		])
+
+		INCLUDES=$zip_save_INCLUDES
 	])
-
-	LIBS="$zip_save_LIBS"
 fi
 
 # Now for the libraries
@@ -77,22 +67,15 @@ if test "$ZIP_LIBS" = ""; then
 	AC_TRY_LINK([#include <zlib.h>],[zlibVersion()], [
 		ZIP_LIBS="-lz"
 	], [
-		# libz is not in the standard search path.
+		# libz is not in the standard search path, try $prefix
 
-		# A whole bunch of guesses
-		for dir in \
-			"${prefix}"/*/lib /usr/*/lib /usr/local/*/lib \
-			"${prefix}"/lib/* /usr/lib/* \
-			/usr/local/lib/* /*/lib; do
-			if test -d "$dir" && test "`ls $dir/libz.* 2> /dev/null`" != ""; then
-				ZIP_LIBS="-L$dir -lz"
-				break
-			fi
-		done
+		LIBS="-L${prefix}/lib $LIBS"
 
-		if test "$ZIP_LIBS" = ""; then
+		AC_TRY_LINK([#include <zlib.h>],[zlibVersion()], [
+			ZIP_LIBS="-L${prefix}/lib -lz"
+		], [
 			ZIP_LIBS=no
-		fi
+		])
 	])
 
 	LIBS="$zip_save_LIBS"
@@ -176,23 +159,19 @@ if test "$TIFF_INCLUDES" = ""; then
 	AC_TRY_COMPILE([#include <tiff.h>],[int a;],[
 		TIFF_INCLUDES=""
 	], [
-		# tiff.h is not in the standard search path.
+		# tiff.h is not in the standard search path, try
+		# $prefix
+		tiff_save_INCLUDES="$INCLUDES"
 
-		# A whole bunch of guesses
-		for dir in \
-			"${prefix}"/*/include /usr/*/include \
-			/usr/local/*/include "${prefix}"/include/* \
-			/usr/include/* /usr/local/include/* \
-			/opt/include /opt/*/include /*/include; do
-			if test -f "$dir/tiff.h"; then
-				TIFF_INCLUDES="-I$dir"
-				break
-			fi
-		done
+		INCLUDES="-I${prefix}/include $INCLUDES"
 
-		if test "$TIFF_INCLUDES" = ""; then
-			TIFF_INCLUDES=no
-		fi
+		AC_TRY_COMPILE([#include <tiff.h>],[int a;],[
+			TIFF_INCLUDES="-I${prefix}/include"
+		], [
+			TIFF_INCLUDES="no"
+		])
+
+		INCLUDES=$tiff_save_INCLUDES
 	])
 fi
 
@@ -205,26 +184,18 @@ if test "$TIFF_LIBS" = ""; then
 	INCLUDES="$TIFF_INCLUDES $INCLUDES"
 
 	# Try the standard search path first
-	AC_TRY_LINK([#include <tiff.h>],[TIFFGetVersion();], [
+	AC_TRY_LINK([#include <tiff.h>],[TIFFGetVersion()], [
 		TIFF_LIBS="-ltiff"
 	], [
-		# libtiff is not in the standard search path.
+		# libtiff is not in the standard search path, try $prefix
 
-		# A whole bunch of guesses
-		for dir in \
-			"${prefix}"/*/lib /usr/*/lib /usr/local/*/lib \
-			"${prefix}"/lib/* /usr/lib/* \
-			/usr/local/lib/* \
-			/opt/lib /opt/*/lib /*/lib; do
-			if test -d "$dir" && test "`ls $dir/libtiff.* 2> /dev/null`" != ""; then
-				TIFF_LIBS="-L$dir -ltiff"
-				break
-			fi
-		done
+		LIBS="-L${prefix}/lib $LIBS"
 
-		if test "$TIFF_LIBS" = ""; then
+		AC_TRY_LINK([#include <tiff.h>],[TIFFGetVersion()], [
+			TIFF_LIBS="-L${prefix}/lib -ltiff"
+		], [
 			TIFF_LIBS=no
-		fi
+		])
 	])
 
 	LIBS="$tiff_save_LIBS"
@@ -302,41 +273,28 @@ JPEG_LIBS="-L$withval -ljpeg")
 
 AC_MSG_CHECKING(for JPEG)
 
-# Look for jpeg.h 
+# Look for jpeglib.h 
 if test "$JPEG_INCLUDES" = ""; then
-	jpeg_save_LIBS="$LIBS"
-
-	LIBS="-ljpeg $LIBS"
-
 	# Check the standard search path
-	AC_TRY_COMPILE([
-		#include <stdio.h>
-		#include <jpeglib.h>],[int a],[
+	AC_TRY_COMPILE([#include <stdio.h>
+		#include <jpeglib.h>],[int a;],[
 		JPEG_INCLUDES=""
 	], [
-		# jpeg.h is not in the standard search path.
+		# jpeglib.h is not in the standard search path, try
+		# $prefix
+		jpeg_save_INCLUDES="$INCLUDES"
 
-		# A whole bunch of guesses
-		for dir in \
-			"${prefix}"/*/include \
-			/usr/local/include \
-			/usr/*/include \
-			/usr/local/*/include /usr/*/include \
-			"${prefix}"/include/* \
-			/usr/include/* /usr/local/include/* \
-			/opt/include /opt/*/include /*/include; do
-			if test -f "$dir/jpeglib.h"; then
-				JPEG_INCLUDES="-I$dir"
-				break
-			fi
-		done
+		INCLUDES="-I${prefix}/include $INCLUDES"
 
-		if test "$JPEG_INCLUDES" = ""; then
-			JPEG_INCLUDES=no
-		fi
+		AC_TRY_COMPILE([#include <stdio.h>
+			#include <jpeglib.h>],[int a;],[
+			JPEG_INCLUDES="-I${prefix}/include"
+		], [
+			JPEG_INCLUDES="no"
+		])
+
+		INCLUDES=$jpeg_save_INCLUDES
 	])
-
-	LIBS="$jpeg_save_LIBS"
 fi
 
 # Now for the libraries
@@ -348,30 +306,22 @@ if test "$JPEG_LIBS" = ""; then
 	INCLUDES="$JPEG_INCLUDES $INCLUDES"
 
 	# Try the standard search path first
-	AC_TRY_LINK([
-		#include <stdio.h>
-		#include <jpeglib.h>],[jpeg_abort((void*)0)], [
+	AC_TRY_LINK([#include <stdio.h>
+		#include <jpeglib.h>
+	],[jpeg_abort((void*)0)], [
 		JPEG_LIBS="-ljpeg"
 	], [
-		# libjpeg is not in the standard search path.
+		# libjpeg is not in the standard search path, try $prefix
 
-		# A whole bunch of guesses
-		for dir in \
-			"${prefix}"/*/lib \
-			/usr/local/lib \
-			/usr/*/lib \
-			"${prefix}"/lib/* /usr/lib/* \
-			/usr/local/lib/* \
-			/opt/lib /opt/*/lib /*/lib; do
-			if test -d "$dir" && test "`ls $dir/libjpeg.* 2> /dev/null`" != ""; then
-				JPEG_LIBS="-L$dir -ljpeg"
-				break
-			fi
-		done
+		LIBS="-L${prefix}/lib $LIBS"
 
-		if test "$JPEG_LIBS" = ""; then
+		AC_TRY_LINK([#include <stdio.h>
+			#include <jpeg.h>
+		],[jpeg_abort((void*)0)], [
+			JPEG_LIBS="-L${prefix}/lib -ljpeg"
+		], [
 			JPEG_LIBS=no
-		fi
+		])
 	])
 
 	LIBS="$jpeg_save_LIBS"
@@ -451,37 +401,24 @@ AC_MSG_CHECKING(for PNG)
 
 # Look for png.h 
 if test "$PNG_INCLUDES" = ""; then
-	png_save_LIBS="$LIBS"
-
-	LIBS="-lpng $LIBS"
-
 	# Check the standard search path
-	AC_TRY_COMPILE([
-		#include <png.h>],[int a],[
+	AC_TRY_COMPILE([#include <png.h>],[int a;],[
 		PNG_INCLUDES=""
 	], [
-		# png.h is not in the standard search path.
+		# png.h is not in the standard search path, try
+		# $prefix
+		png_save_INCLUDES="$INCLUDES"
 
-		# A whole bunch of guesses
-		for dir in \
-			"${prefix}"/*/include \
-			/usr/local/include \
-			/usr/*/include \
-			/usr/local/*/include /usr/*/include \
-			"${prefix}"/include/* \
-			/usr/include/* /usr/local/include/* /*/include; do
-			if test -f "$dir/png.h"; then
-				PNG_INCLUDES="-I$dir"
-				break
-			fi
-		done
+		INCLUDES="-I${prefix}/include $INCLUDES"
 
-		if test "$PNG_INCLUDES" = ""; then
-			PNG_INCLUDES=no
-		fi
+		AC_TRY_COMPILE([#include <png.h>],[int a;],[
+			PNG_INCLUDES="-I${prefix}/include"
+		], [
+			PNG_INCLUDES="no"
+		])
+
+		INCLUDES=$png_save_INCLUDES
 	])
-
-	LIBS="$png_save_LIBS"
 fi
 
 # Now for the libraries
@@ -493,28 +430,18 @@ if test "$PNG_LIBS" = ""; then
 	INCLUDES="$PNG_INCLUDES $INCLUDES"
 
 	# Try the standard search path first
-	AC_TRY_LINK([
-		#include <png.h>],[png_access_version_number()], [
+	AC_TRY_LINK([#include <png.h>],[png_access_version_number()], [
 		PNG_LIBS="-lpng"
 	], [
-		# libpng is not in the standard search path.
+		# libpng is not in the standard search path, try $prefix
 
-		# A whole bunch of guesses
-		for dir in \
-			"${prefix}"/*/lib \
-			/usr/local/lib \
-			/usr/*/lib \
-			"${prefix}"/lib/* /usr/lib/* \
-			/usr/local/lib/* /*/lib; do
-			if test -d "$dir" && test "`ls $dir/libpng.* 2> /dev/null`" != ""; then
-				PNG_LIBS="-L$dir -lpng"
-				break
-			fi
-		done
+		LIBS="-L${prefix}/lib $LIBS"
 
-		if test "$PNG_LIBS" = ""; then
+		AC_TRY_LINK([#include <png.h>],[png_access_version_number()], [
+			PNG_LIBS="-L${prefix}/lib -lpng"
+		], [
 			PNG_LIBS=no
-		fi
+		])
 	])
 
 	LIBS="$png_save_LIBS"

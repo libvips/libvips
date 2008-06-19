@@ -23,6 +23,10 @@
 - added .tobuffer()/.frombuffer(), .tostring()/.fromstring() to Python binding
 - add PIL_mode_from_vips () and vips_from_PIL_mode () utility functions
 - update docs for new Python stuff
+- FIND_ macros no longer search for stuff, you have to specify prefixes if the
+  packages are not on the default path (or in $prefix). This avoids some
+  accidents on some platforms
+- configure prints a summary of optional packages found at the end
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

@@ -162,6 +162,7 @@ if test x"$enable_threads" != "xno"; then
   AC_DEFINE(HAVE_THREADS,1,[threaded evaluation])
   PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
+  enable_threads=yes
 fi
 
 # optional supporting libraries
@@ -173,8 +174,10 @@ AC_ARG_WITH([fftw3], AS_HELP_STRING([--without-fftw3], [build without fftw3 (def
 if test x"$with_fftw3" != "xno"; then
   PKG_CHECK_MODULES(FFTW3, fftw3,
     [AC_DEFINE(HAVE_FFTW3,1,[define if you have fftw3 installed.])
-    PACKAGES_USED="$PACKAGES_USED fftw3"],
-    [AC_MSG_WARN([fftw3 not found; disabling fftw support])])
+     with_fftw3=yes
+     PACKAGES_USED="$PACKAGES_USED fftw3"],
+    [AC_MSG_WARN([fftw3 not found; disabling fftw support]) 
+     with_fftw3=no])
 fi
 
 # ImageMagick ... detect attribute iteration too
@@ -190,8 +193,11 @@ fi
 if test x"$with_magick" != "xno"; then
   PKG_CHECK_MODULES(MAGICK, $with_magickpackage, 
     [AC_DEFINE(HAVE_MAGICK,1,[define if you have libMagick installed.])
-    PACKAGES_USED="$PACKAGES_USED $with_magickpackage"],
-    [AC_MSG_WARN([libMagick not found; disabling Magick support])])
+     with_magick=yes
+     PACKAGES_USED="$PACKAGES_USED $with_magickpackage"],
+    [AC_MSG_WARN([libMagick not found; disabling Magick support])
+     with_magick=no
+    ])
 fi
 
 if test x"$with_magick" != "xno"; then
@@ -213,8 +219,11 @@ AC_ARG_WITH([liboil], AS_HELP_STRING([--without-liboil], [build without liboil
 if test x"$with_liboil" != "xno"; then
   PKG_CHECK_MODULES(LIBOIL, liboil-0.3,
     [AC_DEFINE(HAVE_LIBOIL,1,[define if you have liboil-0.3 installed.])
-    PACKAGES_USED="$PACKAGES_USED liboil-0.3"],
-    [AC_MSG_WARN([liboil not found; disabling liboil support])])
+     with_liboil=yes
+     PACKAGES_USED="$PACKAGES_USED liboil-0.3"],
+    [AC_MSG_WARN([liboil not found; disabling liboil support])
+     with_liboil=no
+    ])
 fi
 
 # lcms
@@ -223,8 +232,11 @@ AC_ARG_WITH([lcms], AS_HELP_STRING([--without-lcms], [build without lcms (defaul
 if test x"$with_lcms" != "xno"; then
   PKG_CHECK_MODULES(LCMS, lcms,
     [AC_DEFINE(HAVE_LCMS,1,[define if you have lcms installed.])
-    PACKAGES_USED="$PACKAGES_USED lcms"],
-    [AC_MSG_WARN([lcms not found; disabling lcms support])])
+     with_lcms=yes
+     PACKAGES_USED="$PACKAGES_USED lcms"],
+    [AC_MSG_WARN([lcms not found; disabling lcms support])
+     with_lcms=no
+    ])
 fi
 
 # OpenEXR
@@ -234,8 +246,11 @@ AC_ARG_WITH([OpenEXR], AS_HELP_STRING([--without-OpenEXR], [build without OpenEX
 if test x"$with_OpenEXR" != "xno"; then
   PKG_CHECK_MODULES(OPENEXR, OpenEXR >= 1.2.2,
     [AC_DEFINE(HAVE_OPENEXR,1,[define if you have OpenEXR >=1.2.2 installed.])
-    PACKAGES_USED="$PACKAGES_USED OpenEXR"],
-    [AC_MSG_WARN([OpenEXR not found; disabling OpenEXR support])])
+     with_OpenEXR=yes
+     PACKAGES_USED="$PACKAGES_USED OpenEXR"],
+    [AC_MSG_WARN([OpenEXR not found; disabling OpenEXR support])
+     with_OpenEXR=no
+    ])
 fi
 
 # pangoft2
@@ -244,20 +259,44 @@ AC_ARG_WITH([pangoft2], AS_HELP_STRING([--without-pangoft2], [build without pang
 if test x"$with_pangoft2" != "xno"; then
   PKG_CHECK_MODULES(PANGOFT2, pangoft2,
     [AC_DEFINE(HAVE_PANGOFT2,1,[define if you have pangoft2 installed.])
-    PACKAGES_USED="$PACKAGES_USED pangoft2"],
-    [AC_MSG_WARN([pangoft2 not found; disabling pangoft2 support])])
+     with_pangoft2=yes
+     PACKAGES_USED="$PACKAGES_USED pangoft2"],
+    [AC_MSG_WARN([pangoft2 not found; disabling pangoft2 support])
+     with_pangoft2=no
+    ])
 fi
 
 # hmm, these don't have .pc files on ubuntu 5.10, how odd
-FIND_TIFF(,[AC_MSG_WARN([libtiff not found; disabling TIFF support])])
-FIND_ZIP(,[AC_MSG_WARN([libz not found; disabling ZIP support])])
-FIND_JPEG(,[AC_MSG_WARN([libjpeg not found; disabling JPEG support])])
+FIND_TIFF(
+  [with_tiff=yes],
+  [AC_MSG_WARN([libtiff not found; disabling TIFF support])
+   with_tiff=no
+  ])
+FIND_ZIP(
+  [with_zip=yes],
+  [AC_MSG_WARN([libz not found; disabling ZIP support])
+   with_zip=no
+  ])
+FIND_JPEG(
+  [with_jpeg=yes],
+  [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
+   with_jpeg=no
+  ])
 
 # look for PNG with pkg-config ... fall back to our tester
-PKG_CHECK_MODULES(PNG, libpng, 
-  [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
-  PACKAGES_USED="$PACKAGES_USED libpng"],
-  [FIND_PNG(,[AC_MSG_WARN([libpng not found; disabling PNG support])])])
+AC_ARG_WITH([png], AS_HELP_STRING([--without-png], [build without libpng (default: test)]))
+
+if test x"$with_png" != "xno"; then
+  PKG_CHECK_MODULES(PNG, libpng, 
+    [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
+     with_png=yes
+     PACKAGES_USED="$PACKAGES_USED libpng"],
+    [FIND_PNG(,
+     [AC_MSG_WARN([libpng not found; disabling PNG support])
+      with_png=no
+     ])
+    ])
+fi
 
 # libexif
 AC_ARG_WITH([libexif], AS_HELP_STRING([--without-libexif], [build without libexif (default: test)]))
@@ -265,9 +304,11 @@ AC_ARG_WITH([libexif], AS_HELP_STRING([--without-libexif], [build without libexi
 if test x"$with_libexif" != "xno"; then
   PKG_CHECK_MODULES(EXIF, libexif >= 0.6,
     [AC_DEFINE(HAVE_EXIF,1,[define if you have libexif >= 0.6 installed.])
-    PACKAGES_USED="$PACKAGES_USED libexif"],
+     with_libexif=yes
+     PACKAGES_USED="$PACKAGES_USED libexif"],
     [AC_MSG_WARN([libexif >= 0.6 not found; disabling exif support])
-    with_libexif=no])
+     with_libexif=no
+    ])
 fi
 
 # some libexif packages need include <libexif/poop.h>, some just <poop.h>
@@ -289,8 +330,10 @@ AC_CHECK_HEADER(linux/videodev.h,
 
 if test x"$with_videodev" = x"yes"; then
   AC_DEFINE(HAVE_VIDEODEV,1,[have video4linux 1])
+  with_v4l=yes
 else
   AC_MSG_WARN([linux/videodev.h not functional; disabling Linux video support])
+  with_v4l=no
 fi
 
 # make python binding?
@@ -338,9 +381,11 @@ if test x"$with_cimg" != "xno"; then
   if test x"$vips_os_win32" = "xyes"; then
     CIMG_LIBS=-lstdc++
   fi
+  with_cimg=yes
 else
   AM_CONDITIONAL(WITH_CIMG, false)
   AC_MSG_WARN([disabling CImg binding])
+  with_cimg=no
 fi
 
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES and VIPS_LIBS
@@ -409,4 +454,25 @@ AC_OUTPUT([
 	python/Makefile 
 	python/vipsCC/Makefile 
 	po/Makefile.in
+])
+
+AC_MSG_RESULT([
+native win32:				$vips_os_win32
+open files in binary mode: 		$vips_binary_open
+
+evaluate with threads: 			$enable_threads
+use fftw3 for FFT: 			$with_fftw3
+Magick package: 			$with_magickpackage
+file import with libMagick: 		$with_magick
+accelerate loops with liboil: 		$with_liboil
+ICC profile support with lcms: 		$with_lcms
+file import with OpenEXR: 		$with_OpenEXR
+text rendering with pangoft2: 		$with_pangoft2
+file import/export with libpng: 	$with_png
+file import/export with libtiff:	$with_tiff
+file import/export with libjpeg:	$with_jpeg
+use libexif to load/save JPEG metadata: $with_libexif
+video4linux found: 			$with_v4l
+build Python binding: 			$with_python
+build CImg wrapper: 			$with_cimg
 ])
