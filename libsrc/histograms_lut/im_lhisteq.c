@@ -20,6 +20,8 @@
  *	- expand input rather than output with new im_embed() mode
  *	- _raw() output is one pixel larger
  *	- sets Xoffset/Yoffset
+ * 23/6/08
+ * 	- check for window too small as well
  */
 
 /*
@@ -160,6 +162,10 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
 	}
 	if( xwin > in->Xsize || ywin > in->Ysize ) {
 		im_error( "im_lhisteq", _( "window too large" ) );
+		return( -1 );
+	}
+	if( xwin <= 0 || ywin <= 0 ) {
+		im_error( "im_lhisteq", _( "window too small" ) );
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 
