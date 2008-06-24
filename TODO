@@ -1,7 +1,3 @@
-- FIND_TIFF etc. should not search so much
-
-- configure should summarize missing stuff at the end
-
 - try
 
 	libsrc/convolution$ grep -l offsets *.c
@@ -13,7 +9,7 @@
 
   fixed? not sure, check again
 
-- unsharp should work on GREY16? shuld be easy to add GREY16->LABS
+- unsharp should work on GREY16? should be easy to add GREY16->LABS
 
   no, labs is signed short, ranges are all differrent, and the scaling will be
   wrong anyway
