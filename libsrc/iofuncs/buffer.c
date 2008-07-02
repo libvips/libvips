@@ -563,6 +563,8 @@ im_invalidate_image( IMAGE *im )
 {
 	(void) im_slist_map2( im->regions,
 		(VSListMap2Fn) im_invalidate_region, NULL, NULL );
+	if( im__trigger_callbacks( im->invalidatefns ) )
+		return( im );
 
 	return( NULL );
 }

@@ -1,7 +1,8 @@
 .TH IM_AND 3 "30 October 1992"
 .SH NAME
 im_add_close_callback, im_add_eval_callback, im_malloc, im_free,
-im_add_evalend_callback, im_add_evalstart_callback, im_add_preclose_callback \- add image callbacks
+im_add_evalend_callback, im_add_evalstart_callback, im_add_preclose_callback,
+im_add_invalidate_callback \- add image callbacks
 .SH SYNOPSIS
 .B #include <vips/vips.h>
 
@@ -16,6 +17,8 @@ int im_add_evalstart_callback( IMAGE *, im_callback_fn, void *, void * );
 int im_add_eval_callback( IMAGE *, im_callback_fn, void *, void * );
 
 int im_add_evalend_callback( IMAGE *, im_callback_fn, void *, void * );
+
+int im_add_invalidate_callback( IMAGE *, im_callback_fn, void *, void * );
 
 void *im_malloc( IMAGE *, size_t );
 
@@ -135,6 +138,10 @@ adds a callback which will be triggered when VIPS
 has finished evaluating the image. If you want to output some diagnostics
 from your function (an overflow count, for example), this is the callback to
 use. Again, this can be called many times. 
+
+.B im_add_invalidate_callback(3) 
+adds a callback which will be triggered when VIPS invalidates the cache on an
+image. This is useful for removing images from other, higher-level caches.
 
 .SH RETURN VALUE
 All functions return 0 on success and non-zero on error.

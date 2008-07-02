@@ -28,6 +28,7 @@
   accidents on some platforms
 - configure prints a summary of optional packages found at the end
 - im_lhisteq() checks for window too small
+- added invalidate callbacks
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

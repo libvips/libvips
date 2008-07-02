@@ -38,6 +38,8 @@
  * 7/11/07
  * 	- added preclose and evalstart callbacks
  * 	- brought time struct in here
+ * 2/7/08
+ * 	- added invalidate callbacks
  */
 
 /*
@@ -339,6 +341,7 @@ typedef struct im__IMAGE {
 	 */
 	GSList *evalstartfns; 	/* list of start eval callbacks */
 	GSList *preclosefns; 	/* list of pre-close callbacks */
+	GSList *invalidatefns; 	/* list of invalidate callbacks */
 } IMAGE;
 
 /* Only define if IM_ENABLE_DEPRECATED is set.

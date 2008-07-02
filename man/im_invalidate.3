@@ -12,5 +12,8 @@ marks all caches related to the image as invalid and requring recalculation.
 It needs to be called if an image changes after being made: for example, after
 a paint action, or perhaps after a new frame has arrived from a video source.
 
+Any invalidate callbacks registered on any of the affected images are
+triggered.
+
 .SH SEE\ ALSO
-im_prepare(3), im_region_buffer(3).
+im_prepare(3), im_region_buffer(3), im_add_invalidate_callback(3).

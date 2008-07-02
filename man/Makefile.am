@@ -25,6 +25,7 @@ man_MANS = \
 	im_add_evalstart_callback.3 \
 	im_add_eval_callback.3 \
 	im_add_evalend_callback.3 \
+	im_add_invalidate_callback.3 \
 	im_addgnoise.3 \
 	im_affine.3 \
 	im_allocate_input_array.3 \
