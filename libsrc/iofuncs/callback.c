@@ -7,6 +7,8 @@
  *	- evalend callbacks added
  * 16/1/04 JC
  *	- now always calls all callbacks, even if some fail
+ * 2/7/08
+ *	- added invalidate callbacks
  */
 
 /*
@@ -117,6 +119,12 @@ int
 im_add_evalstart_callback( IMAGE *im, int (*fn)(), void *a, void *b )
 {	
 	return( add_callback( im, &im->evalstartfns, fn, a, b ) );
+}
+
+int
+im_add_invalidate_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+{	
+	return( add_callback( im, &im->invalidatefns, fn, a, b ) );
 }
 
 /* Perform a user callback. 
