@@ -1,3 +1,5 @@
+- wrap meta() stuff in C++, we need it in py as well
+
 - try
 
 	libsrc/convolution$ grep -l offsets *.c
