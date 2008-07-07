@@ -317,17 +317,19 @@ im_printdesc( IMAGE *image )
 	/* Print other (non-header) fields.
 	 */
 	if( image->generate )
-		printf( "user generate function attached\n" );
+		printf( "generate function attached\n" );
 	if( image->closefns )
-		printf( "user close callbacks attached\n" );
+		printf( "close callbacks attached\n" );
 	if( image->evalfns )
-		printf( "user eval callbacks attached\n" );
+		printf( "eval callbacks attached\n" );
 	if( image->evalendfns )
-		printf( "user evalend callbacks attached\n" );
+		printf( "evalend callbacks attached\n" );
 	if( image->evalstartfns )
-		printf( "user evalstart callbacks attached\n" );
+		printf( "evalstart callbacks attached\n" );
 	if( image->preclosefns )
-		printf( "user preclose callbacks attached\n" );
+		printf( "preclose callbacks attached\n" );
+	if( image->invalidatefns )
+		printf( "invalidate callbacks attached\n" );
 	if( image->regions ) {
 		printf( "%d regions present\n", 
 			g_slist_length( image->regions ) );

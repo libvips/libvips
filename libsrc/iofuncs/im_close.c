@@ -260,53 +260,44 @@ im_close( IMAGE *im )
 	if( !im )
 		return( result );
 
-	/* Are there any regions left on this image? If there are, just set
-	 * close_pending and return. The image will be then be closed when
-	 * the last region is freed (see im_region_free()). This prevents 
-	 * some dangling region pointers.
-	 */
-#ifdef DEBUG_IO
-	if( im->close_pending )
-		/* Strange! Just print a warning.
-		 */
-		printf( "im_close: im_close called twice on \"%s\"\n",
-			im->filename );
-#endif /*DEBUG_IO*/
 	if( im->regions ) {
+		/* There are regions left on this image. 
+		 * Set close_pending and return. The image will be then 
+		 * be closed when the last region is freed 
+		 * (see im_region_free()). 
+		 */
 #ifdef DEBUG_IO
 		printf( "im_close: pending close for \"%s\"\n", im->filename );
 #endif /*DEBUG_IO*/
+
 		im->close_pending = 1;
-		return( result );
 	}
+	else if( !im->closing )
+		/* Is this descriptor currently being closed somewhere else? 
+		 * This prevents infinite descent if a close callback
+		 * includes an im_close for this image. 
+		 */
+		im->closing = 1;
 
-	/* Is this descriptor currently being closed somewhere else? Immediate
-	 * return if it is. This prevents infinite descent if a close callback
-	 * includes an im_close for this image. This can happen sometimes!
-	 */
-	if( im->closing )
-		return( result );
-	im->closing = 1;
-
-	/* Free IMAGE resources.
-	 */
-	if( im__close( im ) ) 
-		result = -1;
+		if( im__close( im ) ) 
+			result = -1;
 
 #ifdef DEBUG_NEW
-	printf( "im_close: freeing IMAGE 0x%p, \"%s\"\n", im, im->filename );
+		printf( "im_close: freeing IMAGE 0x%p, \"%s\"\n", 
+			im, im->filename );
 #endif /*DEBUG_NEW*/
 
-	/* Final cleanup.
-	 */
-	IM_FREEF( g_mutex_free, im->sslock );
-	IM_FREE( im->filename );
-	IM_FREE( im->Hist );
-	IM_FREEF( im__gslist_gvalue_free, im->history_list );
-	im__meta_destroy( im );
-	im__open_images = g_slist_remove( im__open_images, im );
-	im__time_destroy( im );
-	IM_FREE( im );
+		/* Final cleanup.
+		 */
+		IM_FREEF( g_mutex_free, im->sslock );
+		IM_FREE( im->filename );
+		IM_FREE( im->Hist );
+		IM_FREEF( im__gslist_gvalue_free, im->history_list );
+		im__meta_destroy( im );
+		im__open_images = g_slist_remove( im__open_images, im );
+		im__time_destroy( im );
+		IM_FREE( im );
+	}
 
 	return( result );
 }

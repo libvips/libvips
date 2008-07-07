@@ -163,6 +163,7 @@ im_init( const char *filename )
 
 	im->evalstartfns = NULL;
 	im->preclosefns = NULL;
+	im->invalidatefns = NULL;
 
 	if( !(im->filename = im_strdup( NULL, filename )) ) {
 		im_close( im );
