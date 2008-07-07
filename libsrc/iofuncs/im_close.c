@@ -272,7 +272,7 @@ im_close( IMAGE *im )
 
 		im->close_pending = 1;
 	}
-	else if( !im->closing )
+	else if( !im->closing ) {
 		/* Is this descriptor currently being closed somewhere else? 
 		 * This prevents infinite descent if a close callback
 		 * includes an im_close for this image. 
