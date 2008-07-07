@@ -203,8 +203,7 @@ im_iterate( IMAGE *im,
 	im_threadgroup_t *tg;
 	int result;
 
-	if( im_image_sanity( im ) )
-		return( -1 );
+	im_image_sanity( im );
 
 	if( !(t = im_open( "iterate", "p" )) )
 		return( -1 );

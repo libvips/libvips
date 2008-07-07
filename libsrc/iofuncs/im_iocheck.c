@@ -147,8 +147,7 @@ convert_otom( IMAGE *im )
 int
 im_incheck( IMAGE *im )
 {	
-	if( im_image_sanity( im ) ) 
-		return( -1 );
+	im_image_sanity( im );
 
 #ifdef DEBUG_IO
 	printf( "im_incheck: old-style input for %s\n", im->filename );
@@ -174,7 +173,7 @@ im_incheck( IMAGE *im )
 
 	case IM_PARTIAL:
 #ifdef DEBUG_IO
-		printf( "im_incheck: converting partial image for old-style input\n" );
+		printf( "im_incheck: converting partial image to WIO\n" );
 #endif/*DEBUG_IO*/
 
 		/* Change to a setbuf, so our caller can use it.

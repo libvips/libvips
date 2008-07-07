@@ -375,8 +375,8 @@ im_generate( IMAGE *im,
 	REGION *or;
 	im_threadgroup_t *tg;
 
-	if( im_image_sanity( im ) )
-		return( -1 );
+	im_image_sanity( im );
+
 	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) {
 		im_error( "im_generate", _( "bad dimensions" ) );
 		return( -1 );
@@ -474,8 +474,7 @@ im_prepare_thread( im_threadgroup_t *tg, REGION *or, Rect *r )
 {
 	IMAGE *im = or->im;
 
-	if( im_image_sanity( im ) )
-		return( -1 );
+	im_image_sanity( im );
 
 	switch( im->dtype ) {
 	case IM_PARTIAL:

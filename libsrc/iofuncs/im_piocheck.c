@@ -77,8 +77,7 @@
 int
 im_pincheck( IMAGE *im )
 {	
-	if( im_image_sanity( im ) ) 
-		return( -1 );
+	im_image_sanity( im );
 
 #ifdef DEBUG_IO
 	printf( "im_pincheck: enabling partial input for %s\n", im->filename );

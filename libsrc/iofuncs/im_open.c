@@ -671,6 +671,8 @@ im_image_sanity( IMAGE *im )
 			im ? (im->filename ? im->filename : "") : "", 
 			im, msg );
 		im_printdesc( im );
+
+		return( -1 );
 	}
 
 	return( 0 );

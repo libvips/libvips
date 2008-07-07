@@ -108,8 +108,7 @@ im_cp_desc_array( IMAGE *out, IMAGE *in[] )
 	 */
 	im__meta_destroy( out );
 	for( i = ni - 1; i >= 0; i-- ) 
-		if( im_image_sanity( in[i] ) ||
-			im__meta_cp( out, in[i] ) )
+		if( im__meta_cp( out, in[i] ) )
 			return( -1 );
 
 	/* Merge hists first to last.

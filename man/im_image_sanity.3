@@ -9,7 +9,7 @@ int im_image_sanity( IMAGE *im )
 .SH DESCRIPTION
 .B im_image_sanity(3)
 performs a few simple checks on the IMAGE for bad fields. If it finds a
-problem, it returns -1, serts im_errorstring, and prints a warning message.
+problem it prints a warning message and returns -1.
 
 It is called from various places within VIPS to try to catch errors early.
 
