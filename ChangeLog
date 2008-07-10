@@ -29,6 +29,7 @@
 - configure prints a summary of optional packages found at the end
 - im_lhisteq() checks for window too small
 - added invalidate callbacks
+- now tests for MagickWand before ImageMagick (thanks Adam) 
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
