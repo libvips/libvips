@@ -30,6 +30,7 @@
 - im_lhisteq() checks for window too small
 - added invalidate callbacks
 - now tests for MagickWand before ImageMagick (thanks Adam) 
+- added "-rotate" option to vips2dj
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

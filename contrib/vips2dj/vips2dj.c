@@ -200,6 +200,7 @@ main( int argc, char **argv )
 	int height = -1;
 	int dpi = -1;
 	int max = 0;
+	int rotate = 0;
 	int one2one = 0;
 	PrinterGeometry *geo = find_printer( "2500cp" );
 	char *mode;
@@ -223,6 +224,7 @@ main( int argc, char **argv )
 "\t-printer <name>\tformat for printer <name>\n"
 "\t-3500cp\t\tfor HP 3500CP printer (default 2500cp)\n"
 "\t-max\t\tprint as large as possible\n"
+"\t-rotate\t\trotate, if necessary, to fill the page\n"
 "\t-1:1\t\tsize the image to print at 1:1 ... resolution in\n"
 "\t\t\timage header must be set for this\n"
 "\t-width <n>\tforce specified width, in points\n"
@@ -291,6 +293,8 @@ main( int argc, char **argv )
 				height = 3356;
 			else if( strcmp( argv[i]+1, "max" ) == 0 ) 
 				max = 1;
+			else if( strcmp( argv[i]+1, "rotate" ) == 0 ) 
+				rotate = 1;
 			else
 				error_exit( "bad flag" );
 		}
@@ -336,6 +340,24 @@ main( int argc, char **argv )
 	else 
 		error_exit( "unsupported image type "
 			"(IM_CODING_LABQ, mono, IM_TYPE_CMYK only)" );
+
+	/* Autorotate image to fill the page. We ought to get PS to do the
+	 * rotate, really.
+	 */
+	if( rotate ) {
+		float iaspect = (float) im->Xsize / im->Ysize;
+		float paspect = (float) geo->width / geo->length;
+
+		if( iaspect > paspect ) {
+			IMAGE *t[1];
+
+			if( im_open_local_array( im, t, 1, "vips2dj", "p" ) ||
+				im_rot90( im, t[0] ) )
+				error_exit( "error rotating" );
+
+			im = t[0];
+		}
+	}
 
 	/* Make sure width and height are both set.
 	 */
