@@ -113,14 +113,14 @@ update_time( im_time_t *time, int w, int h )
 int
 im__start_eval( IMAGE *im )
 {
-	im_image_sanity( im );
+	g_assert( !im_image_sanity( im ) );
 
 	if( im->progress ) {
 #ifdef DEBUG
 		printf( "im__start_eval: %s\n", im->filename );
 #endif /*DEBUG*/
 
-		im_image_sanity( im->progress );
+		g_assert( !im_image_sanity( im->progress ) );
 
 		if( time_add( im->progress ) )
 			return( -1 );
@@ -158,14 +158,14 @@ im__handle_eval( IMAGE *im, int w, int h )
 int
 im__end_eval( IMAGE *im )
 {
-	im_image_sanity( im );
+	g_assert( !im_image_sanity( im ) );
 
 	if( im->progress ) {
 #ifdef DEBUG
 		printf( "im__end_eval: %s\n", im->filename );
 #endif /*DEBUG*/
 
-		im_image_sanity( im->progress );
+		g_assert( !im_image_sanity( im->progress ) );
 
 		if( im__trigger_callbacks( im->progress->evalendfns ) )
 			return( -1 );

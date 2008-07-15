@@ -667,9 +667,9 @@ im_image_sanity( IMAGE *im )
 	const char *msg;
 
 	if( (msg = image_sanity( im )) ) {
-		im_warn( "im_image_sanity", "\"%s\" (%p) %s",
-			im ? (im->filename ? im->filename : "") : "", 
-			im, msg );
+		im_warn( "im_image_sanity", "%p", im );
+		im_warn( "im_image_sanity", "\"%s\" %s",
+			im ? (im->filename ? im->filename : "") : "", msg );
 		im_printdesc( im );
 
 		return( -1 );

@@ -147,7 +147,7 @@ convert_otom( IMAGE *im )
 int
 im_incheck( IMAGE *im )
 {	
-	im_image_sanity( im );
+	g_assert( !im_image_sanity( im ) );
 
 #ifdef DEBUG_IO
 	printf( "im_incheck: old-style input for %s\n", im->filename );

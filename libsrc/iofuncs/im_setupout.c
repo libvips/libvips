@@ -91,7 +91,7 @@
 int
 im_setupout( IMAGE *im )
 {	
-	im_image_sanity( im );
+	g_assert( !im_image_sanity( im ) );
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) {
 		im_error( "im_setupout", _( "bad dimensions" ) );

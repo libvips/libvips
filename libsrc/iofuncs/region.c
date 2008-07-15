@@ -214,7 +214,7 @@ im_region_create( IMAGE *im )
 {	
 	REGION *reg;
 
-	im_image_sanity( im );
+	g_assert( !im_image_sanity( im ) );
 
 	if( !(reg = IM_NEW( NULL, REGION )) )
 		return( NULL );
