@@ -32,6 +32,7 @@
 - now tests for MagickWand before ImageMagick (thanks Adam) 
 - added "-rotate" option to vips2dj
 - added man page for im_resize_linear
+- better jpeg-in-tiff YCbCr read (thanks Ole)
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
