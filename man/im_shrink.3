@@ -1,1 +1,45 @@
-.so man3/im_conv.3
+.TH SHRINK 3 "2 May 1991"
+.SH NAME
+im_shrink \-  shrink an image
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+int im_shrink(in, out, xfactor, yfactor)
+.br
+IMAGE *in, *out;
+.br
+double xfactor, yfactor;
+
+int im_resize_linear(in, out, X, Y)
+.br
+IMAGE *in, *out;
+.br
+int X, Y;
+
+.SH DESCRIPTION
+
+.B im_shrink(3)
+shrink the input image file by 
+.B xfactor 
+along the horizontal and
+.B yfactor 
+along the vertical direction.  The function does not perform subpixel
+interpolation and therefore the resultant image can present aliasing especially
+for small x and y factors. Any size image, any non-complex type, any number of
+bands.
+
+.B im_resize_linear(3)
+resizes the image to be
+.B X
+by
+.B Y
+pixels. It is slow, only does bilinear interpolation (and so will be
+inaccurate for factors greater than two), and uses WIO, so it has a 2GB image
+size limit and will use large amounts of memory. Use 
+.B im_shrink(3)
+in preference if possible.
+
+.SH RETURN VALUE
+The functions returns 0 on success and -1 on error.
+.SH SEE ALSO
+im_affine(3)

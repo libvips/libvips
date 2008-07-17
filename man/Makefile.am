@@ -450,6 +450,7 @@ man_MANS = \
 	im_render.3 \
 	im_render_fade.3 \
 	im_replicate.3 \
+	im_resize_linear.3 \
 	im_ri2c.3 \
 	im_rightshift_size.3 \
 	im_rint.3 \

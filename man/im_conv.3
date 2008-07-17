@@ -2,7 +2,7 @@
 .SH NAME
 im_conv, im_conv_raw, im_convf, im_convf_raw, 
 im_convsep, im_convsep_raw, im_convsepf, im_convsepf_raw,
-im_convsub, im_shrink \-  convolves an image with a generalised mask
+im_convsub \-  convolves an image with a generalised mask
 .SH SYNOPSIS
 #include <vips/vips.h>
 
@@ -136,12 +136,6 @@ During the covolution, values are rounded before division.
 Both input and output are bytes.  Output is clipped between 0 and 255.
 The function expects an integer mask.
 
-.B im_shrink(3)
-shrink the input image file by xfactor along the horizontal and
-yfactor along the vertical direction.  The function does not perform subpixel
-interpolation and therefore the resultant image can present aliasing especially
-for small x and y factors. Any size image, any non-complex type, any number of
-bands.
 .SH RETURN VALUE
 The functions returns 0 on success and -1 on error.
 .SH SEE ALSO
