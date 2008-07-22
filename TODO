@@ -1,7 +1,5 @@
 - wrap meta() stuff in C++, we need it in py as well
 
-- TIFF JPEG read needs to map ycbcr->rgb somehow
-
 - try
 
 	libsrc/convolution$ grep -l offsets *.c
