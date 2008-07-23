@@ -33,6 +33,7 @@
 - added "-rotate" option to vips2dj
 - added man page for im_resize_linear
 - better jpeg-in-tiff YCbCr read (thanks Ole)
+- oops, invalidatefns were not being freed on im__close()
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

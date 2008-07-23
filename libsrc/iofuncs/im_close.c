@@ -54,6 +54,8 @@
  * 	- free history_list 
  * 7/11/07
  * 	- added preclose, removed evalend triggers
+ * 23/7/08
+ * 	- im__close() will no longer free regions
  */
 
 /*
@@ -142,16 +144,17 @@ im__close( IMAGE *im )
 	result |= im__trigger_callbacks( im->preclosefns );
 	IM_FREEF( im_slist_free_all, im->preclosefns );
 
-	/* Free any regions defined on this image. This will, in turn, call
-	 * all stop functions still running, freeing all regions we have on 
-	 * other images, etc.
+	/* Should be no regions defined on the image. im_close() ought to put
+	 * us into a zombie state if there are, im__close() should not be
+	 * called on images with running regions.
 	 */
-#ifdef DEBUG_IO
-	printf( "im__close: freeing %d regions ..\n", 
-		g_slist_length( (List *) im->regions ) );
-#endif /*DEBUG_IO*/
-	while( im->regions )
-		im_region_free( (REGION *) im->regions->data );
+	if( im->regions ) {
+		GSList *p;
+
+		printf( "** im__close: leaked regions!\n" );
+		for( p = im->regions; p; p = p->next )
+			im_region_print( (REGION *) p->data );
+	}
 
 	/* That should mean we have no windows.
 	 */
@@ -163,12 +166,12 @@ im__close( IMAGE *im )
 			im_window_print( (im_window_t *) p->data );
 	}
 
-	/* Make sure all evalend functions have been called, perform all close
-	 * callbacks, and free eval callbacks.
+	/* Junk all callbacks, perform close callbacks.
 	 */
 	IM_FREEF( im_slist_free_all, im->evalstartfns );
 	IM_FREEF( im_slist_free_all, im->evalfns );
 	IM_FREEF( im_slist_free_all, im->evalendfns );
+	IM_FREEF( im_slist_free_all, im->invalidatefns );
 	result |= im__trigger_callbacks( im->closefns );
 	IM_FREEF( im_slist_free_all, im->closefns );
 

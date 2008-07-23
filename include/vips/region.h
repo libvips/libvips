@@ -141,6 +141,8 @@ int im_region_position( REGION *reg1, int x, int y );
 typedef int (*im_region_fill_fn)( REGION *, void * );
 int im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a );
 
+void im_region_print( REGION *region );
+
 /* IMAGE functions which use regions. 
  */
 typedef void *(*im_start_fn)( IMAGE *, void *, void * );

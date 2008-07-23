@@ -538,7 +538,7 @@ im__link_mapp( IMAGE *im, VSListMap2Fn fn, int *serial, void *a, void *b )
 		(VSListMap4Fn) im__link_mapp, fn, serial, a, b ) );
 }
 
-/* Apply a function to an image and all it's parents, direct and indirect.
+/* Apply a function to an image and all it's parents, direct and indirect. 
  */
 void *
 im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )

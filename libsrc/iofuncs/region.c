@@ -33,6 +33,8 @@
  * 	- im_region_image() only sets r, not whole image
  * 1'2'07
  * 	- gah, im_region_image() could still break (thanks Mikkel)
+ * 23/7/08
+ * 	- added im_region_print()
  */
 
 /*
@@ -600,4 +602,24 @@ im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a )
 	}
 
 	return( 0 );
+}
+
+/* Handy for debug.
+ */
+void
+im_region_print( REGION *region )
+{
+	printf( "REGION: %p, ", region );
+	printf( "im = %p, ", region->im );
+	printf( "valid.left = %d, ", region->valid.left );
+	printf( "valid.top = %d, ", region->valid.top );
+	printf( "valid.width = %d, ", region->valid.width );
+	printf( "valid.height = %d, ", region->valid.height );
+	printf( "type = %d, ", region->type );
+	printf( "data = %p, ", region->data );
+	printf( "bpl = %d, ", region->bpl );
+	printf( "seq = %p, ", region->seq );
+	printf( "thread = %p, ", region->thread );
+	printf( "window = %p, ", region->window );
+	printf( "buffer = %p\n", region->buffer );
 }
