@@ -241,6 +241,13 @@ public:
 		va_end( ap );
 	}
 
+	VIMask( int xsize, int ysize, int scale, int offset, 
+		std::vector<int> coeff )
+	{
+		ref->pmask = new _private_detail::VPIMask( xsize, ysize, 
+			scale, offset, coeff );
+	}
+
 	VIMask( const char *name )
 	{
 		ref->pmask = new _private_detail::VPIMask( name );
@@ -312,6 +319,13 @@ public:
 		ref->pmask = new _private_detail::VPDMask( xsize, ysize, 
 			scale, offset, ap );
 		va_end( ap );
+	}
+
+	VDMask( int xsize, int ysize, double scale, double offset, 
+		std::vector<double> coeff )
+	{
+		ref->pmask = new _private_detail::VPDMask( xsize, ysize, 
+			scale, offset, coeff );
 	}
 
 	VDMask( const char *name )

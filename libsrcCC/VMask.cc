@@ -164,7 +164,7 @@ _private_detail::VPIMask::VPIMask( int xsize, int ysize ) throw( VError )
 	type = _private_detail::VPMask::INT;
 }
 
-// Init from data
+// Init from varargs
 _private_detail::VPIMask::VPIMask( int xsize, int ysize, 
 	int scale, int offset, va_list ap )
 	throw( VError )
@@ -177,6 +177,21 @@ _private_detail::VPIMask::VPIMask( int xsize, int ysize,
 	data.iptr->offset = offset;
 	for( int i = 0; i < xsize * ysize; i++ )
 		data.iptr->coeff[i] = va_arg( ap, int );
+}
+
+// Init from vector
+_private_detail::VPIMask::VPIMask( int xsize, int ysize, 
+	int scale, int offset, std::vector<int> coeff )
+	throw( VError )
+{
+	if( !(data.iptr = im_create_imask( "VPIMask::VPIMask", xsize, ysize )) )
+		verror();
+	type = _private_detail::VPMask::INT;
+
+	data.iptr->scale = scale;
+	data.iptr->offset = offset;
+	for( int i = 0; i < xsize * ysize; i++ )
+		data.iptr->coeff[i] = coeff[i];
 }
 
 // Create from filename
@@ -310,7 +325,7 @@ _private_detail::VPDMask::VPDMask( int xsize, int ysize ) throw( VError )
 	type = _private_detail::VPMask::DOUBLE;
 }
 
-// Create from args
+// Create from varargs
 _private_detail::VPDMask::VPDMask( int xsize, int ysize, 
 	double scale, double offset, va_list ap ) throw( VError )
 {
@@ -322,6 +337,20 @@ _private_detail::VPDMask::VPDMask( int xsize, int ysize,
 	data.dptr->offset = offset;
 	for( int i = 0; i < xsize * ysize; i++ )
 		data.dptr->coeff[i] = va_arg( ap, double );
+}
+
+// Create from vector
+_private_detail::VPDMask::VPDMask( int xsize, int ysize, 
+	double scale, double offset, std::vector<double> coeff ) throw( VError )
+{
+	if( !(data.dptr = im_create_dmask( "VPDMask::VPDMask", xsize, ysize )) )
+		verror();
+	type = _private_detail::VPMask::DOUBLE;
+
+	data.dptr->scale = scale;
+	data.dptr->offset = offset;
+	for( int i = 0; i < xsize * ysize; i++ )
+		data.dptr->coeff[i] = coeff[i];
 }
 
 // Create from filename
