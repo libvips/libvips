@@ -104,8 +104,8 @@ public:
 class VPIMask : public VPMask {
 public:
 	VPIMask( int xsize, int ysize ) throw( VError );
-	VPIMask( int xsize, int ysize, int scale, int offset, va_list ap )
-		throw( VError );
+	VPIMask( int xsize, int ysize, int scale, int offset, 
+		std::vector<int> coeff ) throw( VError );
 	VPIMask( const char * )
 		throw( VError );
 	VPIMask( im__INTMASK * );
@@ -133,7 +133,8 @@ class VPDMask : public VPMask {
 public:
 	VPDMask( int xsize, int ysize ) throw( VError );
 	VPDMask( int xsize, int ysize, 
-		double scale, double offset, va_list ap ) throw( VError );
+		double scale, double offset, std::vector<double> coeff ) 
+		throw( VError );
 	VPDMask( const char * ) throw( VError );
 	VPDMask( im__DOUBLEMASK * );
 	VPDMask();
@@ -235,11 +236,16 @@ public:
 	VIMask( int xsize, int ysize, int scale, int offset, ... )
 	{
 		va_list ap;
+		int i;
+		std::vector<int> coeff( xsize * ysize );
 
 		va_start( ap, offset );
-		ref->pmask = new _private_detail::VPIMask( xsize, ysize, 
-			scale, offset, ap );
+		for( i = 0; i < xsize * ysize; i++ )
+			coeff[i] = va_arg( ap, int );
 		va_end( ap );
+
+		ref->pmask = new _private_detail::VPIMask( xsize, ysize, 
+			scale, offset, coeff );
 	}
 
 	VIMask( int xsize, int ysize, int scale, int offset, 
@@ -315,11 +321,16 @@ public:
 	VDMask( int xsize, int ysize, double scale, double offset, ... )
 	{
 		va_list ap;
+		int i;
+		std::vector<double> coeff( xsize * ysize );
 
 		va_start( ap, offset );
-		ref->pmask = new _private_detail::VPDMask( xsize, ysize, 
-			scale, offset, ap );
+		for( i = 0; i < xsize * ysize; i++ )
+			coeff[i] = va_arg( ap, double );
 		va_end( ap );
+
+		ref->pmask = new _private_detail::VPDMask( xsize, ysize, 
+			scale, offset, coeff );
 	}
 
 	VDMask( int xsize, int ysize, double scale, double offset, 

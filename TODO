@@ -1,12 +1,6 @@
-- im__close() has
-
-	g_assert( !im->regions );
-	while( im->regions )
-		im_region_free( (REGION *) im->regions->data );
-
-  remove the while() loop?
-
 - wrap meta() stuff in C++, we need it in py as well
+
+  need fred.get_int ("poop"); I think
 
 - try
 

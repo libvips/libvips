@@ -669,7 +669,8 @@ im_image_sanity( IMAGE *im )
 	if( (msg = image_sanity( im )) ) {
 		im_warn( "im_image_sanity", "%p", im );
 		im_warn( "im_image_sanity", "\"%s\" %s",
-			im ? (im->filename ? im->filename : "") : "", msg );
+			im ? (im->filename ? im->filename : "") : "", 
+			msg );
 		im_printdesc( im );
 
 		return( -1 );
