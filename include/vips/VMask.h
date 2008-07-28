@@ -47,6 +47,7 @@
 #ifndef SWIG
 # include <cstdarg>
 # include <iosfwd>
+# include <vector>
 #endif /*!SWIG*/
 
 /* Wrap pointers to these, but we don't want to import all the old C API. Just 
