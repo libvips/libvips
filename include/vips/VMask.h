@@ -233,6 +233,9 @@ public:
 		ref->pmask = new _private_detail::VPIMask( xsize, ysize );
 	}
 
+/* Don't wrap the varargs constructor. We want Python to use the vector one.
+ */
+#ifndef SWIG
 	VIMask( int xsize, int ysize, int scale, int offset, ... )
 	{
 		va_list ap;
@@ -247,6 +250,7 @@ public:
 		ref->pmask = new _private_detail::VPIMask( xsize, ysize, 
 			scale, offset, coeff );
 	}
+#endif /*!SWIG*/
 
 	VIMask( int xsize, int ysize, int scale, int offset, 
 		std::vector<int> coeff )
@@ -318,6 +322,9 @@ public:
 		ref->pmask = new _private_detail::VPDMask( xsize, ysize );
 	}
 
+/* Don't wrap the varargs constructor. We want Python to use the vector one.
+ */
+#ifndef SWIG
 	VDMask( int xsize, int ysize, double scale, double offset, ... )
 	{
 		va_list ap;
@@ -332,6 +339,7 @@ public:
 		ref->pmask = new _private_detail::VPDMask( xsize, ysize, 
 			scale, offset, coeff );
 	}
+#endif /*!SWIG*/
 
 	VDMask( int xsize, int ysize, double scale, double offset, 
 		std::vector<double> coeff )

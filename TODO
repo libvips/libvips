@@ -1,3 +1,7 @@
+- note new VMask constructor in docs
+
+  test new VMask constructor from python
+
 - wrap meta() stuff in C++, we need it in py as well
 
   need fred.get_int ("poop"); I think

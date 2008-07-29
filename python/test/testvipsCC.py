@@ -16,7 +16,12 @@ try:
 	a = VImage.VImage (sys.argv[1])
 	b = a.invert ()
 	c = b.lin ([1,2,3],[4,5,6])
-	c.write (sys.argv[2])
+	m = VMask.VIMask (3, 3, 1, 0, 
+		   	  [-1, -1, -1, 
+			   -1,  8, -1, 
+			   -1, -1, -1])
+	d = a.conv (m)
+	d.write (sys.argv[2])
 except VError.VError, e:
 	e.perror (sys.argv[0])
 
@@ -27,6 +32,8 @@ print 'starting shutdown ...'
 del b
 del a
 del c
+del d
+del m
 # sometimes have to do several GCs to get them all, not sure why
 for i in range(10):
 	gc.collect ()

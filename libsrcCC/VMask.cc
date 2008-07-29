@@ -169,13 +169,15 @@ _private_detail::VPIMask::VPIMask( int xsize, int ysize,
 	int scale, int offset, std::vector<int> coeff )
 	throw( VError )
 {
+	int i;
+
 	if( !(data.iptr = im_create_imask( "VPIMask::VPIMask", xsize, ysize )) )
 		verror();
 	type = _private_detail::VPMask::INT;
 
 	data.iptr->scale = scale;
 	data.iptr->offset = offset;
-	for( int i = 0; i < xsize * ysize; i++ )
+	for( i = 0; i < xsize * ysize; i++ )
 		data.iptr->coeff[i] = coeff[i];
 }
 
@@ -314,13 +316,15 @@ _private_detail::VPDMask::VPDMask( int xsize, int ysize ) throw( VError )
 _private_detail::VPDMask::VPDMask( int xsize, int ysize, 
 	double scale, double offset, std::vector<double> coeff ) throw( VError )
 {
+	int i;
+
 	if( !(data.dptr = im_create_dmask( "VPDMask::VPDMask", xsize, ysize )) )
 		verror();
 	type = _private_detail::VPMask::DOUBLE;
 
 	data.dptr->scale = scale;
 	data.dptr->offset = offset;
-	for( int i = 0; i < xsize * ysize; i++ )
+	for( i = 0; i < xsize * ysize; i++ )
 		data.dptr->coeff[i] = coeff[i];
 }
 

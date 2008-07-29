@@ -9,25 +9,41 @@ represent matricies of integers and doubles respectively.
 
 \subsection{Constructors}
 
-There are three constructors for \verb+VIMask+ and \verb+VDMask+:
+There are four constructors for \verb+VIMask+ and \verb+VDMask+:
 
 \begin{verbatim}
 VIMask( int xsize, int ysize );
 VIMask( int xsize, int ysize, 
   int scale, int offset, ... );
+VIMask( int xsize, int ysize, 
+  int scale, int offset, 
+  std::vector<int> coeff );
 VIMask( const char *name );
 VIMask();
 VDMask( int xsize, int ysize );
 VDMask( int xsize, int ysize, 
   double scale, double offset, ... );
+VDMask( int xsize, int ysize, 
+  double scale, double offset, 
+  std::vector<double> coeff );
 VDMask( const char *name );
 VDMask();
 \end{verbatim}
 
 The first form creates an empty matrix, with the specified dimensions;
 the second form initialises a matrix from a varargs list; the third form
-reads the matrix from the named file. The final form makes a mask object
-with no contents yet.
+sets the matrix from a vector of coefficients; the fourth from the named file. 
+The final form makes a mask object with no contents yet.
+
+The varargs constructors are not wrapped in Python --- use the vector
+constructor instead. For example:
+
+\begin{verbatim}
+m = VMask.VIMask (3, 3, 1, 0, 
+		  [-1, -1, -1,
+		   -1,  8, -1,
+		   -1, -1, -1])
+\end{verbatim}
 
 \subsection{Projection functions}
 
