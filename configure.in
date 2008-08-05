@@ -96,10 +96,29 @@ AC_PROG_LN_S
 AC_PROG_CXX
 AM_WITH_DMALLOC
 
+# we need a fully expanded version of $libdir
+# without this we get something like
+#    define IM_LIBDIR ${exec_prefix}/lib
+# argh
+test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+
+# set $expanded_value to the full-expanded value of the argument
+expand () {
+	eval expanded_value=$1
+
+	if test x"$expanded_value" != x"$1"; then
+		expand "$expanded_value"
+	fi
+}
+
+expand $libdir
+my_libdir=$expanded_value
+
 # vips.c/im_guess_prefix.c need to know the exe suffix and (as a fallback)
 # the configure-time install prefix
 AC_DEFINE_UNQUOTED(IM_EXEEXT,"$EXEEXT",[extension for executable files])
 AC_DEFINE_UNQUOTED(IM_PREFIX,"$prefix",[configure-time install prefix])
+AC_DEFINE_UNQUOTED(IM_LIBDIR,"$my_libdir",[configure-time library directory])
 
 # i18n
 GETTEXT_PACKAGE=vips7

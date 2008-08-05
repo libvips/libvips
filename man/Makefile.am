@@ -214,6 +214,7 @@ man_MANS = \
 	im_grey.3 \
 	im_grid.3 \
 	im_guess_prefix.3 \
+	im_guess_libdir.3 \
 	im_header.3 \
 	im_header_double.3 \
 	im_header_get.3 \

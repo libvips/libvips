@@ -1,7 +1,3 @@
-- we need im_guess_eprefix(), use it to find plugins
-
-  look for plugins in eprefix/lib/vips-7.15
-
 - note new VMask constructor in docs
 
   test new VMask constructor from python
@@ -9,6 +5,8 @@
 - wrap meta() stuff in C++, we need it in py as well
 
   need fred.get_int ("poop"); I think
+
+  add notes to docs on this
 
 - try
 

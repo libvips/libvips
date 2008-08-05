@@ -92,6 +92,7 @@ void *im_header_map( IMAGE *im, im_header_map_fn fn, void *a );
 const char *im_version_string( void );
 int im_version( int flag );
 const char *im_guess_prefix( const char *, const char * );
+const char *im_guess_libdir( const char *, const char * );
 IMAGE *im_init( const char * );
 IMAGE *im_openout( const char * );
 int im_openin( IMAGE *image );

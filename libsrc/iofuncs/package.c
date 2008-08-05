@@ -8,6 +8,8 @@
  *	- uses glib dir scanning stuff instead of dirent.h
  * 20/5/08
  * 	- note_dependencies() does IMAGEVEC as well as IMAGE
+ * 5/8/08
+ * 	- silent success in loading plugins if the dir isn't there
  */
 
 /*
@@ -105,6 +107,42 @@ static im_function guess_prefix_desc = {
 	guess_prefix_vec, 		/* Dispatch function */
 	IM_NUMBER( guess_prefix_args ), 	/* Size of arg list */
 	guess_prefix_args 		/* Arg list */
+};
+
+/* im_guess_libdir() args.
+ */
+static im_arg_desc guess_libdir_args[] = {
+	IM_INPUT_STRING( "argv0" ),
+	IM_INPUT_STRING( "env_name" ),
+	IM_OUTPUT_STRING( "LIBDIR" )
+};
+
+/* Call im_guess_libdir() via arg vector.
+ */
+static int
+guess_libdir_vec( im_object *argv )
+{
+	const char *libdir = im_guess_libdir( argv[0], argv[1] );
+
+	if( !libdir ) {
+		argv[2] = NULL;
+		return( -1 );
+	}
+
+	argv[2] = im_strdup( NULL, libdir );
+
+	return( 0 );
+}
+
+/* Description of im_guess_libdir.
+ */ 
+static im_function guess_libdir_desc = {
+	"im_guess_libdir", 		/* Name */
+	"guess library area",		/* Description */
+	0,				/* Flags */
+	guess_libdir_vec, 		/* Dispatch function */
+	IM_NUMBER( guess_libdir_args ), 	/* Size of arg list */
+	guess_libdir_args 		/* Arg list */
 };
 
 /* im_header_int() args.
@@ -378,6 +416,7 @@ static im_function *iofuncs_list[] = {
 	&binfile_desc,
 	&cache_desc,
 	&guess_prefix_desc,
+	&guess_libdir_desc,
 	&header_get_type_desc,
 	&header_int_desc,
 	&header_double_desc,
@@ -549,11 +588,10 @@ im_load_plugins( const char *fmt, ... )
         (void) im_vsnprintf( dir_name, PATH_MAX - 1, fmt, ap );
         va_end( ap );
 
-        if( !(dir = g_dir_open( dir_name, 0, NULL )) ) {
-		im_error( "plugin",
-			"unable to open directory \"%s\"", dir_name );
-                return( -1 );
-	}
+        if( !(dir = g_dir_open( dir_name, 0, NULL )) ) 
+		/* Silent success for dir not there.
+		 */
+                return( 0 );
 
         result = 0;
         while( (name = g_dir_read_name( dir )) )

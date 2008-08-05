@@ -14,7 +14,7 @@ starts up the VIPS library. It:
  - initialises any libraries that VIPS is using, including GObject
  - starts up the threading system
  - guesses where the VIPS data files are and sets up i18n
- - loads any plugins
+ - loads any plugins from libdir/vips-x.x
 
 The
 .B argv0
@@ -42,6 +42,6 @@ containing various VIPS command-line options. It can be used with GOption to
 help parse argc/argv.
 
 .SH SEE ALSO
-im_guess_prefix(3), GOption(3)
+im_guess_prefix(3), im_guess_libdir(3), GOption(3)
 .SH COPYRIGHT
 Birkbeck College and the National Gallery (c) 1994

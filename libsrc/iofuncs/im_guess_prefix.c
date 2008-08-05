@@ -39,6 +39,8 @@
  * 21/7/07
  * 	- fall back to configure-time prefix rather than returning an error
  * 	  (thanks Jay)
+ * 5/8/08
+ * 	- added im_guess_libdir()
  */
 
 /*
@@ -396,3 +398,31 @@ im_guess_prefix( const char *argv0, const char *env_name )
 
 	return( prefix );
 }
+
+const char *
+im_guess_libdir( const char *argv0, const char *env_name )
+{
+	const char *prefix = im_guess_prefix( argv0, env_name );
+        static char *libdir = NULL;
+
+	if( libdir )
+		return( libdir );
+
+	/* Have we been moved since configure? If not, use the configure-time
+	 * libdir.
+	 */
+	if( strcmp( prefix, IM_PREFIX ) == 0 ) 
+		libdir = IM_LIBDIR;
+	else
+		libdir = g_strdup_printf( "%s/lib", prefix );
+
+#ifdef DEBUG
+	printf( "im_guess_libdir: IM_PREFIX = %s\n", IM_PREFIX );
+	printf( "im_guess_libdir: IM_LIBDIR = %s\n", IM_LIBDIR );
+	printf( "im_guess_libdir: prefix = %s\n", prefix );
+	printf( "im_guess_libdir: libdir = %s\n", libdir );
+#endif /*DEBUG*/
+
+	return( libdir );
+}
+

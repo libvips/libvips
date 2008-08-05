@@ -17,6 +17,8 @@
  * 	  VIPS refuse to start because of a dodgy plugin
  * 7/11/07
  * 	- progress feedback option
+ * 5/8/08
+ * 	- load plugins from libdir/vips-x.x
  */
 
 /*
@@ -78,6 +80,7 @@ im_init_world( const char *argv0 )
 	static gboolean done = FALSE;
 	char *prgname;
 	const char *prefix;
+	const char *libdir;
 	char name[256];
 
 	/* Two stage done handling: 'done' means we've completed, 'started'
@@ -113,7 +116,8 @@ im_init_world( const char *argv0 )
 
 	/* Try to discover our prefix. 
 	 */
-	if( !(prefix = im_guess_prefix( argv0, "VIPSHOME" )) ) 
+	if( !(prefix = im_guess_prefix( argv0, "VIPSHOME" )) || 
+		!(libdir = im_guess_libdir( argv0, "VIPSHOME" )) ) 
 		return( -1 );
 
 	/* Get i18n .mo files from $VIPSHOME/share/locale/.
@@ -131,11 +135,12 @@ im_init_world( const char *argv0 )
 	 */
 	im__meta_init_types();
 
-	/* Load up any plugins in $VIPSHOME/lib. We don't error on failure,
+	/* Load up any plugins in the vips libdir. We don't error on failure,
 	 * it's too annoying to have VIPS refuse to start because of a broken
 	 * plugin.
 	 */
-	if( im_load_plugins( "%s/lib", prefix ) ) {
+	if( im_load_plugins( "%s/vips-%d.%d", 
+		libdir, IM_MAJOR_VERSION, IM_MINOR_VERSION ) ) {
 		im_warn( "im_init_world", "%s", im_errorstring() );
 		im_error_clear();
 	}

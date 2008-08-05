@@ -32,6 +32,8 @@ int im_meta_set_blob( IMAGE *im, const char *field,
 int im_meta_get_blob( IMAGE *im, const char *field, 
   void **blob, int *blob_length );
 
+typedef int (*im_callback_fn)( void *, void * );
+
 int im_meta_set( IMAGE *im, const char *field, GValue *value );
 .br
 int im_meta_get( IMAGE *im, const char *field, GValue *value_copy );

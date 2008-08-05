@@ -243,6 +243,15 @@ public:
 	const char *filename();
 	const char *Hist();
 
+	// metadata
+	int meta_get_int( const char *field ) throw( VError );
+	double meta_get_double( const char *field ) throw( VError );
+	const char *meta_get_string( const char *field ) throw( VError );
+
+	void meta_set( const char *field, int value ) throw( VError );
+	void meta_set( const char *field, double value ) throw( VError );
+	void meta_set( const char *field, const char *value ) throw( VError );
+
 	// Set header fields
 	void initdesc( int, int, int, TBandFmt, TCoding, TType, 
 		float = 1.0, float = 1.0, int = 0, int = 0 ) throw( VError );

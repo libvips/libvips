@@ -314,6 +314,62 @@ int VImage::Yoffset() { return( _ref->im->Yoffset ); }
 const char *VImage::filename() { return( _ref->im->filename ); }
 const char *VImage::Hist() { return( im_history_get( _ref->im ) ); }
 
+// metadata
+
+int VImage::meta_get_int( const char *field ) 
+	throw( VError )
+{
+	int result;
+
+	if( im_meta_get_int( _ref->im, field, &result ) )
+		verror();
+
+	return( result );
+}
+
+double VImage::meta_get_double( const char *field ) 
+	throw( VError )
+{
+	double result;
+
+	if( im_meta_get_double( _ref->im, field, &result ) )
+		verror();
+
+	return( result );
+}
+
+const char *VImage::meta_get_string( const char *field ) 
+	throw( VError )
+{
+	char *result;
+
+	if( im_meta_get_string( _ref->im, field, &result ) )
+		verror();
+
+	return( result );
+}
+
+void VImage::meta_set( const char *field, int value ) 
+	throw( VError )
+{
+	if( im_meta_set_int( _ref->im, field, value ) )
+		verror();
+}
+
+void VImage::meta_set( const char *field, double value ) 
+	throw( VError )
+{
+	if( im_meta_set_double( _ref->im, field, value ) )
+		verror();
+}
+
+void VImage::meta_set( const char *field, const char *value ) 
+	throw( VError )
+{
+	if( im_meta_set_string( _ref->im, field, value ) )
+		verror();
+}
+
 // Set header fields and setbuf() in one go.
 void VImage::initdesc( int x, int y, int b,
 	TBandFmt f, TCoding c, TType t, float xr, float yr, int xo, int yo )

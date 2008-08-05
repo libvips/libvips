@@ -35,6 +35,9 @@
 - better jpeg-in-tiff YCbCr read (thanks Ole)
 - oops, invalidatefns were not being freed on im__close()
 - VMask() can init from std::vector, so Python can init from []
+- added IM_LIBDIR, im_guess_libdir()
+- load plugins from libdir/vips-x.x on startup
+- added meta get/set int/double/string to C++ API
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable
