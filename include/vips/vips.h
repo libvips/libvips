@@ -43,7 +43,7 @@
  * 2/7/08
  * 	- added invalidate callbacks
  * 7/8/08
- * 	- remove time_t, thanks nicola
+ * 	- include <time.h>, thanks nicola
  */
 
 /*
@@ -89,6 +89,10 @@ extern "C" {
 
 #include <glib.h>
 #include <gmodule.h>
+
+/* Needed for 'unused' below. Remove this when we remove that.
+ */
+#include <time.h>
 
 #include <vips/version.h>
 #include <vips/rect.h>
@@ -243,13 +247,14 @@ typedef struct {
 /* Struct we keep a record of execution time in. Passed to eval callback, so
  * it can assess progress.
  *
- * The 'unused' field is there for binary compatibility, it used to be a
- * time_t. sizeof(time_t)==8 is checked in libsrc/iofuncs/im_init_world.c. 
- * We don't want to include time.h in vips.h if we don't have to.
+ * The 'unused' field is there for binary compatibility, remove this when we
+ * break ABI. Though, at least on windows, sizeof(time_t) can vary with
+ * compiler flags, so we might break ABI anyway. Remove the #include <time.h>
+ * when we remove this.
  */
 typedef struct {
 	struct im__IMAGE *im;	/* Image we are part of */
-	char unused[8];		/* FIXME ... for binary compatibility */
+	time_t unused;		/* FIXME ... for binary compatibility */
 	int run;		/* Time we have been running */
 	int eta;		/* Estimated seconds of computation left */
 	gint64 tpels;		/* Number of pels we expect to calculate */
