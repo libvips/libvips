@@ -72,7 +72,7 @@ static im_function circle_desc = {
 	"plot circle on image",
 	0,				/* Flags */
 	circle_vec, 			/* Dispatch function */
-	IM_NUMBER( circle_args ), 		/* Size of arg list */
+	IM_NUMBER( circle_args ), 	/* Size of arg list */
 	circle_args 			/* Arg list */
 };
 
