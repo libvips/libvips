@@ -19,6 +19,8 @@
  * 	- progress feedback option
  * 5/8/08
  * 	- load plugins from libdir/vips-x.x
+ * 7/8/08
+ * 	- check sizeof(time_t), thanks nicola
  */
 
 /*
@@ -59,6 +61,10 @@
 #include <vips/vips.h>
 #include <vips/thread.h>
 #include <vips/internal.h>
+
+/* Needed for the sizeof(time_t)==8 check, see vips.h
+ */
+#include <time.h>
 
 #ifdef HAVE_LIBOIL
 #include <liboil/liboil.h>
@@ -134,6 +140,13 @@ im_init_world( const char *argv0 )
 	/* Start up converters for builtin types.
 	 */
 	im__meta_init_types();
+
+	/* See vips.h ... we used to have a time_t in part of the header,
+	 * check this.
+	 */
+	if( sizeof( time_t ) != 8 ) 
+		im_warn( "im_init_world", _( "sizeof( time_t ) != 8: "
+			"ABI break possible" ) );
 
 	/* Load up any plugins in the vips libdir. We don't error on failure,
 	 * it's too annoying to have VIPS refuse to start because of a broken

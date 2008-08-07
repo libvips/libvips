@@ -38,8 +38,12 @@
  * 7/11/07
  * 	- added preclose and evalstart callbacks
  * 	- brought time struct in here
+ * 7/3/08
+ * 	- MAGIC values should be unsigned
  * 2/7/08
  * 	- added invalidate callbacks
+ * 7/8/08
+ * 	- remove time_t, thanks nicola
  */
 
 /*
@@ -238,10 +242,14 @@ typedef struct {
 
 /* Struct we keep a record of execution time in. Passed to eval callback, so
  * it can assess progress.
+ *
+ * The 'unused' field is there for binary compatibility, it used to be a
+ * time_t. sizeof(time_t)==8 is checked in libsrc/iofuncs/im_init_world.c. 
+ * We don't want to include time.h in vips.h if we don't have to.
  */
 typedef struct {
 	struct im__IMAGE *im;	/* Image we are part of */
-	time_t unused;		/* FIXME ... for compatibility */
+	char unused[8];		/* FIXME ... for binary compatibility */
 	int run;		/* Time we have been running */
 	int eta;		/* Estimated seconds of computation left */
 	gint64 tpels;		/* Number of pels we expect to calculate */
