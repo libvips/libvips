@@ -172,7 +172,45 @@ int Yoffset();
 
 \noindent
 Where \verb+TBandFmt+, \verb+TCoding+, \verb+TType+ and \verb+TCompression+
-are \verb+enum+s for the types in the VIPS file header. See section~\pref{sec:header} for an explanation of all of these fields.
+are \verb+enum+s for the types in the VIPS file header. See
+section~\pref{sec:header} for an explanation of all of these fields.
+
+Two functions give access to the filename and history
+fields maintained by the VIPS IO system.
+
+\begin{verbatim}
+char *filename();
+char *Hist();
+\end{verbatim}
+
+You can get and set extra metadata fields with \verb+meta_get()+ and
+\verb+meta_set()+. They read and write \verb+GValue+ objects, see 
+\pref{sec:meta}.
+
+\begin{verbatim}
+void meta_set( const char *field, GValue *value );
+void meta_get( const char *field, GValue *value_copy );
+GType meta_get_type( const char *field );
+\end{verbatim}
+
+A set of convenience functions build on these two to provide accessors for
+common types.
+
+\begin{verbatim}
+int meta_get_int( const char *field )
+double meta_get_double( const char *field )
+const char *meta_get_string( const char *field )
+void *meta_get_area( const char *field )
+void *meta_get_blob( const char *field, size_t *length ) 
+
+void meta_set( const char *field, int value ) 
+void meta_set( const char *field, double value )
+void meta_set( const char *field, const char *value )
+void meta_set( const char *field, 
+	VCallback free_fn, void *value ) 
+void meta_set( const char *field, 
+	VCallback free_fn, void *value, size_t length ) 
+\end{verbatim}
 
 The \verb+image()+ member function provides access to the \verb+IMAGE+
 descriptor underlying the C++ API. See the \pref{sec:appl} for details.
@@ -210,14 +248,6 @@ VImage.PIL_mode_from_vips (vips-image) ->
 \end{verbatim}
 
 See also \verb+frombuffer+ and \verb+fromstring+ above.
-
-Finally, two projection functions give access to the filename and history
-fields maintained by the VIPS IO system.
-
-\begin{verbatim}
-char *filename();
-char *Hist();
-\end{verbatim}
 
 \subsection{Assignment}
 

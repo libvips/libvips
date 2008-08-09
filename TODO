@@ -1,9 +1,3 @@
-- wrap meta() stuff in C++, we need it in py as well
-
-  need fred.get_int ("poop"); I think
-
-  add notes to docs on this
-
 - merge loadable format stuff, postpone new object parameter API to next
   version
 
