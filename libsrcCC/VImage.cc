@@ -316,6 +316,25 @@ const char *VImage::Hist() { return( im_history_get( _ref->im ) ); }
 
 // metadata
 
+// base functionality
+void VImage::meta_set( const char *field, GValue *value ) throw( VError )
+{
+	if( im_meta_set( _ref->im, field, value ) )
+		verror();
+}
+
+void VImage::meta_get( const char *field, GValue *value_copy ) throw( VError )
+{
+	if( im_meta_get( _ref->im, field, value_copy ) )
+		verror();
+}
+
+GType VImage::meta_get_type( const char *field ) throw( VError )
+{
+	return( im_meta_get_type( _ref->im, field ) );
+}
+
+// convenience functions
 int VImage::meta_get_int( const char *field ) 
 	throw( VError )
 {
@@ -349,6 +368,26 @@ const char *VImage::meta_get_string( const char *field )
 	return( result );
 }
 
+void *VImage::meta_get_area( const char *field ) throw( VError )
+{
+	void *result;
+
+	if( im_meta_get_area( _ref->im, field, &result ) )
+		verror();
+
+	return( result );
+}
+
+void *VImage::meta_get_blob( const char *field, size_t *length ) throw( VError )
+{
+	void *result;
+
+	if( im_meta_get_blob( _ref->im, field, &result, length ) )
+		verror();
+
+	return( result );
+}
+
 void VImage::meta_set( const char *field, int value ) 
 	throw( VError )
 {
@@ -367,6 +406,22 @@ void VImage::meta_set( const char *field, const char *value )
 	throw( VError )
 {
 	if( im_meta_set_string( _ref->im, field, value ) )
+		verror();
+}
+
+void VImage::meta_set( const char *field, 
+	VCallback free_fn, void *value ) 
+	throw( VError )
+{
+	if( im_meta_set_area( _ref->im, field, free_fn, value ) )
+		verror();
+}
+
+void VImage::meta_set( const char *field, 
+	VCallback free_fn, void *value, size_t length ) 
+	throw( VError )
+{
+	if( im_meta_set_blob( _ref->im, field, free_fn, value, length ) )
 		verror();
 }
 

@@ -56,6 +56,8 @@
  * 	- added preclose, removed evalend triggers
  * 23/7/08
  * 	- im__close() will no longer free regions
+ * 9/8/08
+ * 	- lock global image list (thanks lee)
  */
 
 /*
@@ -297,7 +299,9 @@ im_close( IMAGE *im )
 		IM_FREE( im->Hist );
 		IM_FREEF( im__gslist_gvalue_free, im->history_list );
 		im__meta_destroy( im );
+		g_mutex_lock( im__global_lock );
 		im__open_images = g_slist_remove( im__open_images, im );
+		g_mutex_unlock( im__global_lock );
 		im__time_destroy( im );
 		IM_FREE( im );
 	}

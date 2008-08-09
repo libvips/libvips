@@ -90,6 +90,8 @@ Modified:
  * 7/11/07
  * 	- use preclose, not evalend, for delayed save
  * 	- add simple cmd-line progress feedback
+ * 9/8/08
+ * 	- lock global image list (thanks lee)
  */
 
 /*
@@ -134,6 +136,7 @@ Modified:
 
 #include <vips/vips.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -643,8 +646,13 @@ image_sanity( IMAGE *im )
 		return( "NULL descriptor" );
 	if( !im->filename ) 
 		return( "NULL filename" );
-	if( !g_slist_find( im__open_images, im ) )
+
+	g_mutex_lock( im__global_lock );
+	if( !g_slist_find( im__open_images, im ) ) {
+		g_mutex_unlock( im__global_lock );
 		return( "not on open image list" );
+	}
+	g_mutex_unlock( im__global_lock );
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) 
 		return( "bad dimensions" );

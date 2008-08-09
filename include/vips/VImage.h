@@ -59,6 +59,10 @@ extern "C" {
 
 VIPS_NAMESPACE_START
 
+/* A VIPS callback, our name for im_callback_fn.
+ */
+typedef int (*VCallback)( void *, void * );
+
 /* VIPS image class.
  *
  * Slightly tricky: we have two sorts of sharing. Several VImage can share one
@@ -244,13 +248,35 @@ public:
 	const char *Hist();
 
 	// metadata
+#ifndef SWIG
+	// base functionality
+	// we don't wrap GValue, so we can't wrap these for now
+	void meta_set( const char *field, GValue *value ) throw( VError );
+	void meta_get( const char *field, GValue *value_copy ) throw( VError );
+	GType meta_get_type( const char *field ) throw( VError );
+#endif /*SWIG*/
+
+	// convenience functions
 	int meta_get_int( const char *field ) throw( VError );
 	double meta_get_double( const char *field ) throw( VError );
 	const char *meta_get_string( const char *field ) throw( VError );
+	void *meta_get_area( const char *field ) throw( VError );
+	void *meta_get_blob( const char *field, size_t *length ) 
+		throw( VError );
 
 	void meta_set( const char *field, int value ) throw( VError );
 	void meta_set( const char *field, double value ) throw( VError );
 	void meta_set( const char *field, const char *value ) throw( VError );
+
+#ifndef SWIG
+	// we don't wrap callbacks yet, so we can't wrap these for now
+	void meta_set( const char *field, 
+		VCallback free_fn, void *value ) 
+		throw( VError );
+	void meta_set( const char *field, 
+		VCallback free_fn, void *value, size_t length ) 
+		throw( VError );
+#endif /*SWIG*/
 
 	// Set header fields
 	void initdesc( int, int, int, TBandFmt, TCoding, TType, 

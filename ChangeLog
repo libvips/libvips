@@ -37,8 +37,9 @@
 - VMask() can init from std::vector, so Python can init from []
 - added IM_LIBDIR, im_guess_libdir()
 - load plugins from libdir/vips-x.x on startup
-- added meta get/set int/double/string to C++ API
+- added meta get/set int/double/string/area/blob/GValue to C++ API
 - include time_t in vips.h, thanks nicola
+- lock global image list (thanks lee)
 
 25/1/08 started 7.14.0
 - bump all version numbers for new stable

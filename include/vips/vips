@@ -31,6 +31,9 @@
 
 #include <vips/version.h>
 
+// VImage.h uses GValue for metadata
+#include <glib-object.h>
+
 // If we have already #included the C vips headers, we have to undef a load of
 // stuff to stop vips's stupid macros messing up our enums
 #ifdef IM_VIPS_H

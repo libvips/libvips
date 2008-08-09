@@ -29,6 +29,8 @@
  * 	- init history_list
  * 7/11/07
  * 	- added preclose and evalstart
+ * 9/8/08
+ * 	- lock global image list (thanks lee)
  */
 
 /*
@@ -73,6 +75,7 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 #include <vips/thread.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -170,7 +173,9 @@ im_init( const char *filename )
 		return( NULL );
 	}
 
+	g_mutex_lock( im__global_lock );
 	im__open_images = g_slist_prepend( im__open_images, im );
+	g_mutex_unlock( im__global_lock );
 
 	return( im );
 }

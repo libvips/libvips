@@ -27,10 +27,10 @@ int im_meta_set_string( IMAGE *im, const char *field,
 int im_meta_get_string( IMAGE *im, const char *field, char **str );
 .br
 int im_meta_set_blob( IMAGE *im, const char *field, 
-  im_callback_fn free_fn, void *blob, int blob_length );
+  im_callback_fn free_fn, void *blob, size_t blob_length );
 .br
 int im_meta_get_blob( IMAGE *im, const char *field, 
-  void **blob, int *blob_length );
+  void **blob, size_t *blob_length );
 
 typedef int (*im_callback_fn)( void *, void * );
 
