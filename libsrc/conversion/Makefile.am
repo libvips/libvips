@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libconversion.la
 libconversion_la_SOURCES = \
 	im_bernd.c \
 	conver_dispatch.c \
-	dbh.h \
 	im_bandjoin.c \
 	im_black.c \
 	im_c2amph.c \
