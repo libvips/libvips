@@ -144,18 +144,7 @@ int im_ispoweroftwo( int );
 
 int im_existsf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
-int im_istiff( const char * );
-int im_istifftiled( const char * );
-int im_istiffpyramid( const char * );
-int im_isjpeg( const char * );
 int im_isvips( const char * );
-int im_isexr( const char * );
-int im_isexrtiled( const char *name );
-int im_isppm( const char * );
-int im_isppmmmap( const char *filename );
-int im_ispng( const char * );
-int im_ismagick( const char * );
-int im_isanalyze( const char *filename );
 
 int im_add_close_callback( IMAGE *, im_callback_fn, void *, void * );
 int im_add_preclose_callback( IMAGE *, im_callback_fn, void *, void * );
@@ -482,29 +471,21 @@ int im_system( IMAGE *im, const char *cmd, char **out );
 int im_print( const char *message );
 int im_thresh( IMAGE *, IMAGE *, double );
 int im_jpeg2vips( const char *, IMAGE * );
-int im_jpeg2vips_header( const char *, IMAGE * );
 int im_vips2jpeg( IMAGE *, const char * );
 int im_vips2mimejpeg( IMAGE *, int );
 int im_vips2bufjpeg( IMAGE *, IMAGE *, int, char **, int * );
 int im_vips2tiff( IMAGE *, const char * );
 int im_bernd( const char *, int, int, int, int );
 int im_tiff2vips( const char *, IMAGE * );
-int im_tiff2vips_header( const char *, IMAGE * );
 int im_tile_cache( IMAGE *, IMAGE *, int, int, int );
 int im_magick2vips( const char *, IMAGE * );
-int im_magick2vips_header( const char *, IMAGE * );
 int im_png2vips( const char *, IMAGE * );
-int im_png2vips_header( const char *, IMAGE * );
 int im_exr2vips( const char *, IMAGE * );
-int im_exr2vips_header( const char *, IMAGE * );
 int im_ppm2vips( const char *, IMAGE * );
-int im_ppm2vips_header( const char *, IMAGE * );
 int im_vips2ppm( IMAGE *, const char * );
 int im_analyze2vips( const char *filename, IMAGE *out );
-int im_analyze2vips_header( const char *filename, IMAGE *out );
 int im_vips2csv( IMAGE *in, const char *filename );
 int im_csv2vips( const char *filename, IMAGE *out );
-int im_csv2vips_header( const char *filename, IMAGE *out );
 int im_vips2png( IMAGE *, const char * );
 int im_raw2vips( const char *filename, IMAGE *out,
 	int width, int height, int bpp, int offset );

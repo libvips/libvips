@@ -63,6 +63,7 @@ void im__write_2byte( unsigned char **to, unsigned char *from );
 
 int im__ftruncate( int fd, gint64 pos );
 int im__seek( int fd, gint64 pos );
+int im__get_bytes( const char *filename, unsigned char buf[], int len );
 
 int im__open_image_file( const char * );
 void im__format_init( void );
@@ -77,6 +78,15 @@ int im__start_eval( IMAGE *im );
 int im__handle_eval( IMAGE *im, int w, int h );
 int im__end_eval( IMAGE *im );
 int im__time_destroy( IMAGE *im );
+
+void im__tiff_register( void );
+void im__jpeg_register( void );
+void im__png_register( void );
+void im__csv_register( void );
+void im__ppm_register( void );
+void im__analyze_register( void );
+void im__exr_register( void );
+void im__magick_register( void );
 
 extern int im__read_test;
 extern int im__mmap_limit;

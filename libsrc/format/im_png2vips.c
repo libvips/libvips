@@ -60,11 +60,9 @@ im_png2vips( const char *name, IMAGE *out )
 	return( -1 );
 }
 
-int
-im_png2vips_header( const char *name, IMAGE *out )
+void
+im__png_register( void )
 {
-	im_error( "im_png2vips_header", _( "PNG support disabled" ) );
-	return( -1 );
 }
 
 #else /*HAVE_PNG*/
@@ -74,6 +72,7 @@ im_png2vips_header( const char *name, IMAGE *out )
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include <png.h>
 
@@ -336,8 +335,8 @@ png2vips( Read *read, int header_only )
 
 /* Read a PNG file header into a VIPS header.
  */
-int
-im_png2vips_header( const char *name, IMAGE *out )
+static int
+png2vips_header( const char *name, IMAGE *out )
 {
 	Read *read;
 
@@ -376,6 +375,32 @@ im_png2vips( const char *name, IMAGE *out )
 	read_destroy( read );
 
 	return( 0 );
+}
+
+static int
+ispng( const char *filename )
+{
+	unsigned char buf[8];
+
+	return( im__get_bytes( filename, buf, 8 ) &&
+		!png_sig_cmp( buf, 0, 8 ) );
+}
+
+static const char *png_suffs[] = { ".png", NULL };
+
+void
+im__png_register( void )
+{
+	im_format_register( 
+		"png",			/* internal name */
+		N_( "PNG" ),		/* i18n'd visible name */
+		png_suffs,		/* Allowed suffixes */
+		ispng,			/* is_a */
+		png2vips_header,	/* Load header only */
+		im_png2vips,		/* Load */
+		im_vips2png,		/* Save */
+		NULL			/* Flags */
+	);
 }
 
 #endif /*HAVE_PNG*/

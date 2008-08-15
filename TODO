@@ -1,5 +1,19 @@
-- is_a.c should be broken out into the respective loaders? that's how it
-  wouldbe for plugns
+- check man pages for im_isjpeg(), im_jpeg2vips_header() etc.
+
+- operations and jesper's types should all use the new register/unregister
+  model
+
+  support backwards compat by calling im_operation_register() automatically 
+  if we see a package_table symbol
+
+  package.c needs to have the format_table stuff removed
+
+  plugin init
+
+	  const char *g_module_check_init (GModule *)
+
+  null for success, or errormsg
+
 
 - something in vips.c to list the available formats, like 
 

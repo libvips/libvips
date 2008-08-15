@@ -69,10 +69,8 @@ im_magick2vips( const char *filename, IMAGE *im )
 }
 
 int
-im_magick2vips_header( const char *filename, IMAGE *im )
+im__magick_register( void )
 {
-	im_error( "im_magick2vips", _( "libMagick support disabled" ) );
-	return( -1 );
 }
 
 #else /*HAVE_MAGICK*/
@@ -619,8 +617,8 @@ im_magick2vips( const char *filename, IMAGE *im )
 	return( 0 );
 }
 
-int
-im_magick2vips_header( const char *filename, IMAGE *im )
+static int
+magick2vips_header( const char *filename, IMAGE *im )
 {
 	Read *read;
 
@@ -645,6 +643,41 @@ im_magick2vips_header( const char *filename, IMAGE *im )
 	}
 
 	return( 0 );
+}
+
+static int
+ismagick( const char *filename )
+{
+	IMAGE *im;
+	int result;
+
+	if( !(im = im_open( "dummy", "p" )) )
+		return( -1 );
+	result = magick2vips_header( filename, im );
+	im_clear_error_string();
+	im_close( im );
+
+	return( result == 0 );
+}
+
+static const char *magick_suffs[] = { NULL };
+
+void
+im__magick_register( void )
+{
+	im_format *format;
+
+	format = im_format_register( 
+		"magick",		/* internal name */
+		N_( "libMagick-supported" ),/* i18n'd visible name */
+		magick_suffs,		/* Allowed suffixes */
+		ismagick,		/* is_a */
+		magick2vips_header,	/* Load header only */
+		im_magick2vips,		/* Load */
+		NULL,			/* Save */
+		NULL			/* Flags */
+	);
+	im_format_set_priority( format, -1000 );
 }
 
 #endif /*HAVE_MAGICK*/

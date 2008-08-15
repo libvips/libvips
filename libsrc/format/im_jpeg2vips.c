@@ -65,19 +65,16 @@
 #include <vips/vips.h>
 
 int
-im_jpeg2vips_header( const char *name, IMAGE *out )
-{
-	im_error( "im_jpeg2vips_header", _( "JPEG support disabled" ) );
-
-	return( -1 );
-}
-
-int
 im_jpeg2vips( const char *name, IMAGE *out )
 {
 	im_error( "im_jpeg2vips", _( "JPEG support disabled" ) );
 
 	return( -1 );
+}
+
+void 
+im__jpeg_register( void )
+{
 }
 
 #else /*HAVE_JPEG*/
@@ -104,6 +101,7 @@ im_jpeg2vips( const char *name, IMAGE *out )
 
 #include <vips/vips.h>
 #include <vips/vbuf.h>
+#include <vips/internal.h>
 
 /* jpeglib includes jconfig.h, which can define HAVE_STDLIB_H ... which we
  * also define. Make sure it's turned off.
@@ -705,10 +703,39 @@ im_jpeg2vips( const char *name, IMAGE *out )
 	return( jpeg2vips( name, out, FALSE ) );
 }
 
-int
-im_jpeg2vips_header( const char *name, IMAGE *out )
+static int
+isjpeg( const char *filename )
+{
+	unsigned char buf[2];
+
+	if( im__get_bytes( filename, buf, 2 ) )
+		if( (int) buf[0] == 0xff && (int) buf[1] == 0xd8 )
+			return( 1 );
+
+	return( 0 );
+}
+
+static int
+jpeg2vips_header( const char *name, IMAGE *out )
 {
 	return( jpeg2vips( name, out, TRUE ) );
+}
+
+static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+
+void
+im__jpeg_register( void )
+{
+	im_format_register( 
+		"jpeg",			/* internal name */
+		N_( "JPEG" ),		/* i18n'd visible name */
+		jpeg_suffs,		/* Allowed suffixes */
+		isjpeg,			/* is_a */
+		jpeg2vips_header,	/* Load header only */
+		im_jpeg2vips,		/* Load */
+		im_vips2jpeg,		/* Save */
+		NULL			/* Flags */
+	);
 }
 
 #endif /*HAVE_JPEG*/

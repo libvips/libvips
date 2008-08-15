@@ -101,6 +101,8 @@
  * 	- set IM_META_RESOLUTION_UNIT
  * 17/4/08
  * 	- allow CMYKA (thanks Doron)
+ * 15/8/08
+ * 	- reorganise for image format system
  */
 
 /*
@@ -149,17 +151,9 @@ im_tiff2vips( const char *tiffile, IMAGE *im )
 	return( -1 );
 }
 
-int
-im_istiffpyramid( const char *name )
+void
+im__tiff_register( void )
 {
-	return( 0 );
-}
-
-int
-im_tiff2vips_header( const char *tiffile, IMAGE *im )
-{
-	im_error( "im_tiff2vips", _( "TIFF support disabled" ) );
-	return( -1 );
 }
 
 #else /*HAVE_TIFF*/
@@ -170,6 +164,7 @@ im_tiff2vips_header( const char *tiffile, IMAGE *im )
 #include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 #include <vips/thread.h>
 
 #include <tiffio.h>
@@ -1422,8 +1417,12 @@ get_directory( const char *filename, int page )
 	return( tif );
 }
 
-int
-im_istiffpyramid( const char *name )
+/* 
+
+	FIXME ... Unused for now, perhaps if we add another format flag.
+
+static int
+istiffpyramid( const char *name )
 {
 	TIFF *tif;
 
@@ -1431,14 +1430,14 @@ im_istiffpyramid( const char *name )
 	TIFFSetWarningHandler( (TIFFErrorHandler) im__thandler_warning );
 
 	if( (tif = get_directory( name, 2 )) ) {
-		/* We can see page 2 ... assume it is.
-		 */
+		// We can see page 2 ... assume it is.
 		TIFFClose( tif );
 		return( 1 );
 	}
 
 	return( 0 );
 }
+ */
 
 int
 im_tiff2vips( const char *filename, IMAGE *out )
@@ -1475,8 +1474,8 @@ im_tiff2vips( const char *filename, IMAGE *out )
 
 /* Just parse the header.
  */
-int
-im_tiff2vips_header( const char *filename, IMAGE *out )
+static int
+tiff2vips_header( const char *filename, IMAGE *out )
 {
 	ReadTiff *rtiff;
 
@@ -1497,6 +1496,77 @@ im_tiff2vips_header( const char *filename, IMAGE *out )
 		return( -1 );
 
 	return( 0 );
+}
+
+static int
+istiff( const char *filename )
+{
+	unsigned char buf[2];
+
+	if( im__get_bytes( filename, buf, 2 ) )
+		if( (buf[0] == 'M' && buf[1] == 'M') ||
+			(buf[0] == 'I' && buf[1] == 'I') ) 
+			return( 1 );
+
+	return( 0 );
+}
+
+static int
+istifftiled( const char *filename )
+{
+	TIFF *tif;
+	int tiled;
+
+	/* Override the default TIFF error handler.
+	 */
+	TIFFSetErrorHandler( (TIFFErrorHandler) im__thandler_error );
+	TIFFSetWarningHandler( (TIFFErrorHandler) im__thandler_warning );
+
+#ifdef BINARY_OPEN
+	if( !(tif = TIFFOpen( filename, "rb" )) ) {
+#else /*BINARY_OPEN*/
+	if( !(tif = TIFFOpen( filename, "r" )) ) {
+#endif /*BINARY_OPEN*/
+		/* Not a TIFF file ... return False.
+		 */
+		im_clear_error_string();
+		return( 0 );
+	}
+	tiled = TIFFIsTiled( tif );
+	TIFFClose( tif );
+
+	return( tiled );
+}
+
+/* TIFF flags function.
+ */
+static im_format_flags
+tiff_flags( const char *filename )
+{
+	im_format_flags flags;
+
+	flags = 0;
+	if( istifftiled( filename ) )
+		flags |= IM_FORMAT_FLAG_PARTIAL;
+
+	return( flags );
+}
+
+static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
+
+void
+im__tiff_register( void )
+{
+	im_format_register( 
+		"tiff",			/* internal name */
+		N_( "TIFF" ),		/* i18n'd visible name */
+		tiff_suffs,		/* Allowed suffixes */
+		istiff,			/* is_a */
+		tiff2vips_header,	/* Load header only */
+		im_tiff2vips,		/* Load */
+		im_vips2tiff,		/* Save */
+		tiff_flags		/* Flags */
+	);
 }
 
 #endif /*HAVE_TIFF*/

@@ -298,8 +298,8 @@ im_csv2vips( const char *filename, IMAGE *out )
 /* We can't just read the header of a CSV. Instead, we read to a temp image,
  * then copy just the header to the output.
  */
-int
-im_csv2vips_header( const char *filename, IMAGE *out )
+static int
+csv2vips_header( const char *filename, IMAGE *out )
 {
 	IMAGE *t;
 
@@ -313,4 +313,21 @@ im_csv2vips_header( const char *filename, IMAGE *out )
 	im_close( t );
 
 	return( 0 );
+}
+
+static const char *csv_suffs[] = { ".csv", NULL };
+
+void
+im__csv_register( void )
+{
+	im_format_register( 
+		"csv",			/* internal name */
+		N_( "CSV" ),		/* i18n'd visible name */
+		csv_suffs,		/* Allowed suffixes */
+		NULL,			/* is_a */
+		csv2vips_header,	/* Load header only */
+		im_csv2vips,		/* Load */
+		im_vips2csv,		/* Save */
+		NULL			/* Flags */
+	);
 }

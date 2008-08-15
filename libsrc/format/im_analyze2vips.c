@@ -484,8 +484,8 @@ attach_meta( IMAGE *out, struct dsr *d )
 	}
 }
 
-int
-im_isanalyze( const char *filename )
+static int
+isanalyze( const char *filename )
 {
 	char header[FILENAME_MAX];
 	char image[FILENAME_MAX];
@@ -511,8 +511,8 @@ im_isanalyze( const char *filename )
 	return( 1 );
 }
 
-int
-im_analyze2vips_header( const char *filename, IMAGE *out )
+static int
+analyze2vips_header( const char *filename, IMAGE *out )
 {
 	char header[FILENAME_MAX];
 	char image[FILENAME_MAX];
@@ -581,3 +581,25 @@ im_analyze2vips( const char *filename, IMAGE *out )
 	return( 0 );
 }
 
+static const char *analyze_suffs[] = { ".img", ".hdr", NULL };
+
+static im_format_flags
+analyze_flags( const char *filename )
+{
+	return( IM_FORMAT_FLAG_PARTIAL );
+}
+
+void
+im__analyze_register( void )
+{
+	im_format_register( 
+		"analyze",		/* internal name */
+		N_( "Analyze 6.0" ),	/* i18n'd visible name */
+		analyze_suffs,		/* Allowed suffixes */
+		isanalyze,		/* is_a */
+		analyze2vips_header,	/* Load header only */
+		im_analyze2vips,	/* Load */
+		NULL,			/* Save */
+		analyze_flags		/* Flags */
+	);
+}

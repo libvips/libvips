@@ -7,6 +7,7 @@ pkginclude_HEADERS = \
 	colour.h \
 	debug.h \
 	dispatch.h \
+	format.h \
 	fmask.h \
 	mosaic.h \
 	proto.h \

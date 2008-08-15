@@ -47,6 +47,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
+#include <fcntl.h>
 
 #ifdef OS_WIN32
 #include <windows.h>
@@ -1012,4 +1013,28 @@ im_isnative( im_arch_type arch )
   abort();
 }
 
+/* Read a few bytes from the start of a file. For sniffing file types.
+ */
+int
+im__get_bytes( const char *filename, unsigned char buf[], int len )
+{
+	int fd;
 
+	/* File may not even exist (for tmp images for example!)
+	 * so no hasty messages. And the file might be truncated, so no error
+	 * on read either.
+	 */
+#ifdef BINARY_OPEN
+	if( (fd = open( filename, O_RDONLY | O_BINARY )) == -1 )
+#else /*BINARY_OPEN*/
+	if( (fd = open( filename, O_RDONLY )) == -1 )
+#endif /*BINARY_OPEN*/
+		return( 0 );
+	if( read( fd, buf, len ) != len ) {
+		close( fd );
+		return( 0 );
+	}
+	close( fd );
+
+	return( 1 );
+}

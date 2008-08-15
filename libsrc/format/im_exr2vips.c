@@ -69,19 +69,7 @@ im_exr2vips( const char *name, IMAGE *out )
 	return( -1 );
 }
 
-int
-im_exr2vips_header( const char *name, IMAGE *out )
-{
-	im_error( "im_exr2vips_header", _( "OpenEXR support disabled" ) );
-	return( -1 );
-}
-
-int
-im_isexrtiled( const char *name )
-{
-	im_error( "im_isexrtiled", _( "OpenEXR support disabled" ) );
-	return( -1 );
-}
+int im__exr_register( void );
 
 #else /*HAVE_OPENEXR*/
 
@@ -92,6 +80,7 @@ im_isexrtiled( const char *name )
 
 #include <vips/vips.h>
 #include <vips/thread.h>
+#include <vips/internal.h>
 
 #include <ImfCRgbaFile.h>
 
@@ -199,7 +188,7 @@ read_new( const char *name, IMAGE *out )
 /* Read a OpenEXR file (header) into a VIPS (header).
  */
 static int
-exr2vips_header( Read *read, IMAGE *out )
+read_header( Read *read, IMAGE *out )
 {
 	/* 
 
@@ -218,13 +207,13 @@ exr2vips_header( Read *read, IMAGE *out )
 
 /* Read a OpenEXR file header into a VIPS header.
  */
-int
-im_exr2vips_header( const char *name, IMAGE *out )
+static int
+exr2vips_header( const char *name, IMAGE *out )
 {
 	Read *read;
 
 	if( !(read = read_new( name, out )) ||
-		exr2vips_header( read, out ) ) 
+		read_header( read, out ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -232,8 +221,8 @@ im_exr2vips_header( const char *name, IMAGE *out )
 
 /* Test for tiled EXR.
  */
-int
-im_isexrtiled( const char *name )
+static int
+isexrtiled( const char *name )
 {
 	Read *read;
 	int tiled;
@@ -350,7 +339,7 @@ seq_start( IMAGE *out, void *a, void *b )
 static int
 exr2vips_tiles( Read *read, IMAGE *out )
 {
-	if( exr2vips_header( read, out ) || 
+	if( read_header( read, out ) || 
 		im_poutcheck( out ) ||
 		im_demand_hint( out, IM_SMALLTILE, NULL ) ||
 		im_generate( out, seq_start, fill_region, NULL, read, NULL ) )
@@ -375,7 +364,7 @@ exr2vips_lines( Read *read, IMAGE *out )
 
 	if( !(imf_buffer = IM_ARRAY( out, width, ImfRgba )) ||
 		!(vips_buffer = IM_ARRAY( out, 4 * width, float )) ||
-		exr2vips_header( read, out ) ||
+		read_header( read, out ) ||
 		im_outcheck( out ) || 
 		im_setupout( out ) )
 		return( -1 );
@@ -445,6 +434,48 @@ im_exr2vips( const char *name, IMAGE *out )
 		return( -1 );
 
 	return( 0 );
+}
+
+static int
+isexr( const char *filename )
+{
+	unsigned char buf[4];
+
+	if( im__get_bytes( filename, buf, 4 ) )
+		if( buf[0] == 0x76 && buf[1] == 0x2f &&
+			buf[2] == 0x31 && buf[3] == 0x01 )
+			return( 1 );
+
+	return( 0 );
+}
+
+static const char *exr_suffs[] = { ".exr", NULL };
+
+static im_format_flags
+exr_flags( const char *filename )
+{
+	im_format_flags flags;
+
+	flags = 0;
+	if( isexrtiled( filename ) )
+		flags |= IM_FORMAT_FLAG_PARTIAL;
+
+	return( flags );
+}
+
+void
+im__exr_register( void )
+{
+	im_format_register( 
+		"exr",			/* internal name */
+		N_( "OpenEXR" ),	/* i18n'd visible name */
+		exr_suffs,		/* Allowed suffixes */
+		isexr,			/* is_a */
+		exr2vips_header,	/* Load header only */
+		im_exr2vips,		/* Load */
+		NULL,			/* Save */
+		exr_flags		/* Flags */
+	);
 }
 
 #endif /*HAVE_OPENEXR*/

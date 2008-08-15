@@ -59,6 +59,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -387,8 +388,8 @@ parse_ppm( FILE *fp, const char *filename, IMAGE *out )
 		return( read_ascii( fp, out ) );
 }
 
-int
-im_ppm2vips_header( const char *filename, IMAGE *out )
+static int
+ppm2vips_header( const char *filename, IMAGE *out )
 {
         FILE *fp;
 	int bits;
@@ -416,8 +417,8 @@ im_ppm2vips_header( const char *filename, IMAGE *out )
 
 /* Can this PPM file be read with a mmap?
  */
-int
-im_isppmmmap( const char *filename )
+static int
+isppmmmap( const char *filename )
 {
 	IMAGE *im;
         FILE *fp;
@@ -472,4 +473,47 @@ im_ppm2vips( const char *filename, IMAGE *out )
 	fclose( fp );
 
 	return( 0 );
+}
+
+static int
+isppm( const char *filename )
+{
+	unsigned char buf[2];
+
+	if( im__get_bytes( filename, buf, 2 ) )
+		if( buf[0] == 'P' && (buf[1] >= '1' || buf[1] <= '6') )
+			return( 1 );
+
+	return( 0 );
+}
+
+/* ppm flags function.
+ */
+static im_format_flags
+ppm_flags( const char *filename )
+{
+	im_format_flags flags;
+
+	flags = 0;
+	if( isppmmmap( filename ) )
+		flags |= IM_FORMAT_FLAG_PARTIAL;
+
+	return( flags );
+}
+
+static const char *ppm_suffs[] = { ".ppm", ".pgm", ".pbm", NULL };
+
+void
+im__ppm_register( void )
+{
+	im_format_register( 
+		"ppm",			/* internal name */
+		N_( "PPM/PBM/PNM" ),	/* i18n'd visible name */
+		ppm_suffs,		/* Allowed suffixes */
+		isppm,			/* is_a */
+		ppm2vips_header,	/* Load header only */
+		im_ppm2vips,		/* Load */
+		im_vips2ppm,		/* Save */
+		ppm_flags		/* Flags */
+	);
 }
