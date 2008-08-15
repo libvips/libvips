@@ -135,6 +135,10 @@ im_init_world( const char *argv0 )
 	 */
 	im__meta_init_types();
 
+	/* Add the base format load/save operations.
+	 */
+	im__format_init();
+
 	/* Load up any plugins in the vips libdir. We don't error on failure,
 	 * it's too annoying to have VIPS refuse to start because of a broken
 	 * plugin.

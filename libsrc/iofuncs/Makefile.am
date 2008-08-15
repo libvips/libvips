@@ -15,7 +15,6 @@ libiofuncs_la_SOURCES = \
 	im_cp_desc.c \
 	im_debugim.c \
 	im_demand_hint.c \
-	im_desc_hd.c \
 	im_generate.c \
 	im_header.c \
 	im_histlin.c \
@@ -26,15 +25,13 @@ libiofuncs_la_SOURCES = \
 	im_iterate.c \
 	im_makerw.c \
 	im_mapfile.c \
-	im_openin.c \
 	im_open.c \
-	im_openout.c \
+	im_open_vips.c \
 	im_partial.c \
 	im_piocheck.c \
 	im_prepare.c \
 	im_printdesc.c \
 	im_printlines.c \
-	im_readhist.c \
 	im_render.c \
 	im_setbox.c \
 	im_setbuf.c \
@@ -58,6 +55,6 @@ libiofuncs_la_SOURCES = \
 	vbuf.c \
 	window.c \
 	buffer.c \
-	time.c
+	time.c 
 
 INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

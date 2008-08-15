@@ -1,6 +1,4 @@
-/* VIPS function dispatch tables for conversion.
- *
- * J. Cupitt, 8/4/93.
+/* VIPS function dispatch tables for image format load/save.
  */
 
 /*
@@ -418,6 +416,56 @@ im_package im__format = {
 	list
 };
 
+/* TIFF flags function.
+ */
+static im_format_flags
+tiff_flags( const char *filename )
+{
+	im_format_flags flags;
+
+	flags = 0;
+	if( im_istifftiled( filename ) )
+		flags |= IM_FORMAT_FLAG_PARTIAL;
+
+	return( flags );
+}
+
+/* OpenEXR flags function.
+ */
+static im_format_flags
+exr_flags( const char *filename )
+{
+	im_format_flags flags;
+
+	flags = 0;
+	if( im_isexrtiled( filename ) )
+		flags |= IM_FORMAT_FLAG_PARTIAL;
+
+	return( flags );
+}
+
+/* ppm flags function.
+ */
+static im_format_flags
+ppm_flags( const char *filename )
+{
+	im_format_flags flags;
+
+	flags = 0;
+	if( im_isppmmmap( filename ) )
+		flags |= IM_FORMAT_FLAG_PARTIAL;
+
+	return( flags );
+}
+
+/* Analyze flags function.
+ */
+static im_format_flags
+analyze_flags( const char *filename )
+{
+	return( IM_FORMAT_FLAG_PARTIAL );
+}
+
 /* Suffix sets.
  */
 static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
@@ -439,7 +487,8 @@ static im_format jpeg_desc = {
 	im_isjpeg,		/* is_a */
 	im_jpeg2vips_header,	/* Load header only */
 	im_jpeg2vips,		/* Load */
-	im_vips2jpeg		/* Save */
+	im_vips2jpeg,		/* Save */
+	NULL			/* Flags */
 };
 
 static im_format tiff_desc = {
@@ -450,7 +499,8 @@ static im_format tiff_desc = {
 	im_istiff,		/* is_a */
 	im_tiff2vips_header,	/* Load header only */
 	im_tiff2vips,		/* Load */
-	im_vips2tiff		/* Save */
+	im_vips2tiff,		/* Save */
+	tiff_flags		/* Flags */
 };
 
 static im_format png_desc = {
@@ -461,7 +511,8 @@ static im_format png_desc = {
 	im_ispng,			/* is_a */
 	im_png2vips_header,	/* Load header only */
 	im_png2vips,		/* Load */
-	im_vips2png		/* Save */
+	im_vips2png,		/* Save */
+	NULL			/* Flags */
 };
 
 static im_format csv_desc = {
@@ -472,7 +523,8 @@ static im_format csv_desc = {
 	NULL,			/* is_a */
 	im_csv2vips_header,	/* Load header only */
 	im_csv2vips,		/* Load */
-	im_vips2csv		/* Save */
+	im_vips2csv,		/* Save */
+	NULL			/* Flags */
 };
 
 static im_format ppm_desc = {
@@ -483,7 +535,8 @@ static im_format ppm_desc = {
 	im_isppm,			/* is_a */
 	im_ppm2vips_header,	/* Load header only */
 	im_ppm2vips,		/* Load */
-	im_vips2ppm		/* Save */
+	im_vips2ppm,		/* Save */
+	ppm_flags		/* Flags */
 };
 
 static im_format analyze_desc = {
@@ -494,7 +547,8 @@ static im_format analyze_desc = {
 	im_isanalyze,		/* is_a */
 	im_analyze2vips_header,	/* Load header only */
 	im_analyze2vips,	/* Load */
-	NULL			/* Save */
+	NULL,			/* Save */
+	analyze_flags		/* Flags */
 };
 
 static im_format exr_desc = {
@@ -505,31 +559,43 @@ static im_format exr_desc = {
 	im_isexr,			/* is_a */
 	im_exr2vips_header,	/* Load header only */
 	im_exr2vips,		/* Load */
-	NULL			/* Save */
+	NULL,			/* Save */
+	exr_flags		/* Flags */
 };
 
 static im_format magick_desc = {
 	"magick",		/* internal name */
-	N_( "ImageMagick-supported format" ),	/* i18n'd visible name */
+	N_( "libMagick-supported" ),	/* i18n'd visible name */
 	-1000,			/* Priority */
 	magick_suffs,		/* Allowed suffixes */
 	im_ismagick,		/* is_a */
 	im_magick2vips_header,	/* Load header only */
 	im_magick2vips,		/* Load */
-	NULL			/* Save */
+	NULL,			/* Save */
+	NULL			/* Flags */
 };
 
 /* Package up all these formats.
  */
 static im_format *format_list[] = {
-	&csv_desc,
+#ifdef HAVE_JPEG
 	&jpeg_desc,
-	&magick_desc,
+#endif /*HAVE_JPEG*/
+#ifdef HAVE_TIFF
+	&tiff_desc,
+#endif /*HAVE_TIFF*/
+#ifdef HAVE_PNG
 	&png_desc,
+#endif /*HAVE_PNG*/
+#ifdef HAVE_OPENEXR
 	&exr_desc,
+#endif /*HAVE_OPENEXR*/
 	&ppm_desc,
 	&analyze_desc,
-	&tiff_desc
+	&csv_desc,
+#ifdef HAVE_MAGICK
+	&magick_desc
+#endif /*HAVE_MAGICK*/
 };
 
 /* Package of format.

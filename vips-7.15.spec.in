@@ -1,101 +1,206 @@
-%define name @PACKAGE@
-%define version @VERSION@
-%define release 1
-%define default_install_prefix /usr/local
+%{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
-Summary: an image processing library
-Name: %{name}
-Version: %{version}
-Release: %{release}
-License: LGPL
-Group: Development/Libraries
-Source: http://www.vips.ecs.soton.ac.uk/vips-7.12/%{name}-%{version}.tar.gz
-URL: http://www.vips.ecs.soton.ac.uk/
-BuildRoot: %{_tmppath}/%{name}-buildroot
-Provides: vips
-Prefix: %{default_install_prefix}
+Name:		@PACKAGE@
+Version:	@VERSION@
+Release:	1%{?dist}
+Summary: 	Library for processing large images
+
+Group:		System Environment/Libraries
+License:	LGPLv2+
+URL:		http://www.vips.ecs.soton.ac.uk/
+Source0:	http://www.vips.ecs.soton.ac.uk/supported/7.14/%{name}-%{version}.tar.gz
+
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildRequires:	libjpeg-devel libtiff-devel zlib-devel fftw-devel lcms-devel
+BuildRequires:	libpng-devel glib2-devel ImageMagick-devel pango-devel
+BuildRequires:	pkgconfig gettext perl(XML::Parser)
+BuildRequires:	libtool python-devel libxml2-devel liboil-devel
+BuildRequires:	OpenEXR-devel libexif-devel swig
+#Requires:
+
 
 %description
-VIPS is an image processing library. It is good for very large images (ie.
-larger than the amount of RAM in your machine), and for working with colour.
-It includes a C++ API, complete man pages, a command-line interface, automatic
-threading and an operation database. There are several user interfaces
-built on top of VIPS: for example "nip2".
+VIPS is an image processing library. It is good for very large images
+(even larger than the amount of RAM in your machine), and for working
+with color. It includes a C++ API, complete man pages, a command-line
+interface, automatic threading and an operation database. There are
+several user interfaces built on top of VIPS: for example "nip2".
+
+This package should be installed if you want to use a program compiled
+against VIPS.
+
 
 %package devel
-Summary:	Headers and links to develop with vips
-Requires:	vips = %{version}
+Summary:	Development tools for programs for processing large images
 Group:		Development/Libraries
+Requires:	%{name} = %{version}-%{release}, pkgconfig
+Requires:	libjpeg-devel libtiff-devel zlib-devel fftw-devel lcms-devel
+Requires:	libpng-devel glib2-devel ImageMagick-devel pango-devel
+Requires:	libxml2-devel liboil-devel OpenEXR-devel libexif-devel
 
 %description devel
-These headers are needed to develop programs which want to use the vips
-library. Programs already linked against it only need the vips package.
+The %{name}-devel package contains the header files and
+libraries necessary for developing programs using VIPS. It also
+contains a C++ API and development man pages.
+
+
+%package tools
+Summary:	Command-line tools for processing large images
+Group:		Applications/Multimedia
+Requires:	%{name} = %{version}-%{release}
+
+%description tools
+The %{name}-tools package contains command-line tools for working with VIPS.
+
 
 %package python
-Summary:	Python bindings to use vips
-Requires:	vips = %{version}
-Group:		Development/Libraries
+Summary:	Python support for the VIPS image processing library
+Group:		Development/Languages
+Requires:	%{name} = %{version}-%{release}
 
 %description python
-Includes the necessary files to use and develop with vips and python
+The %{name}-python package contains Python support for VIPS.
+
+
+%package doc
+Summary:	Documentation for VIPS image processing library
+Group:		Documentation
+Conflicts:	%{name} < %{version}-%{release}, %{name} > %{version}-%{release}
+
+%description doc
+The %{name}-doc package contains extensive documentation about VIPS in both
+HTML and PDF formats.
+
 
 %prep
-rm -rf $RPM_BUILD_ROOT
-%setup 
+%setup -q
+find . -name 'CVS' -type d -print0 | xargs -0r rm -rf
+find . -name '\.svn' -type d -print0 | xargs -0r rm -rf
+
+# make the version string consistent for multiarch
+export FAKE_BUILD_DATE=$(date -r %{SOURCE0})
+sed -i "s/\\(IM_VERSION_STRING=\\)\$IM_VERSION-\`date\`/\\1\"\$IM_VERSION-$FAKE_BUILD_DATE\"/g" \
+	configure
+unset FAKE_BUILD_DATE
+
 
 %build
-# grr ... why do we have to set prefix by hand? if you don't do this, you get
-# /usr, despite the "Prefix:" tag above
-%define _prefix %{default_install_prefix}
-%configure
+%configure --disable-static
+make %{?_smp_mflags} LIBTOOL=libtool
+
 
 %install
-%makeinstall
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+find $RPM_BUILD_ROOT \( -name '*.la' -o -name '*.a' \) -exec rm -f {} ';'
 
-# paste in the non-GPL stuff as a binary plugin
-# comment this out if you don't have it :-(
-# cp ~john/develop/transform-7.9/src/resample.plg ${RPM_BUILD_ROOT}%{_libdir}
+# delete doc (we will get it later with %doc)
+rm -rf ${RPM_BUILD_ROOT}%{_datadir}/doc/vips
+
+# malkovich??
+rm -rf ${RPM_BUILD_ROOT}%{_datadir}/locale/malkovich
+
+# locale stuff
+%find_lang vips7
+
+
+%post -p /sbin/ldconfig
+
+%postun -p /sbin/ldconfig
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post
-ldconfig
 
-%files
-# don't list explicitly ... install to a private prefix and rely on naming the
-# dirs to pick up the files
-%attr(-, root, root)
-%doc AUTHORS THANKS README TODO COPYING ChangeLog
-%{_bindir}
-%{_libdir}/libvips*.so.*
-%doc %{_mandir}
-%doc %{_datadir}/doc/vips
+%files -f vips7.lang
+%defattr(-,root,root,-)
+%doc AUTHORS NEWS THANKS TODO COPYING ChangeLog
+%{_libdir}/*.so.*
 %{_datadir}/vips
-%{_datadir}/locale
+
 
 %files devel
+%defattr(-,root,root,-)
 %{_includedir}/vips
-%{_libdir}/libvips*.so
-%{_libdir}/libvips*.a
-%{_libdir}/libvips*.la
+%{_libdir}/*.so
 %{_libdir}/pkgconfig/*
+%{_mandir}/man3/*
+
+
+%files tools
+%defattr(-,root,root,-)
+%{_bindir}/*
+%{_mandir}/man1/*
+
 
 %files python
-%{_libdir}/python*
+%defattr(-,root,root,-)
+%{python_sitearch}/*
 
-%changelog -n vips
-* Wed Aug 29 2007 John Cupitt <jcupitt@gmail.com> 7.14
-- updated for 7.14
 
-* Fri Apr 27 2007 John Cupitt <jcupitt@gmail.com> 7.12
-- updated for 7.12
+%files doc
+%defattr(-,root,root,-)
+%doc doc/html doc/pdf
 
-* Fri Dec 29 2006 - plasmahh@projectiwear.org
-- Split up into library and devel package
 
-* Wed Jun 1 2005 John Cupitt <john.cupitt@ng-london.org.uk> 7.11
-- updated for 7.11
+
+%changelog
+* Sat Jul 19 2008 Jesper Friis <jesper.friis(at)sintef.no> - 7.15.0-1
+- Replaced the distributed spec file with the one in the source rpm
+  package from Fedora to fix issues with harcoding BuildRoot in the
+  installed files
+
+* Sat Mar 15 2008 Adam Goode <adam@spicenitz.org> - 7.14.1-1
+- New release
+
+* Mon Mar 10 2008 Adam Goode <adam@spicenitz.org> - 7.14.0-1
+- New release
+- Remove GCC 4.3 patch (upstream)
+
+* Sat Feb  9 2008 Adam Goode <adam@spicenitz.org> - 7.12.5-5
+- Fix GCC 4.3 build
+
+* Sat Feb  9 2008 Adam Goode <adam@spicenitz.org> - 7.12.5-4
+- GCC 4.3 mass rebuild
+
+* Tue Oct 23 2007 Adam Goode <adam@spicenitz.org> - 7.12.5-3
+- Eliminate build differences in version.h to work on multiarch
+
+* Mon Oct 15 2007 Adam Goode <adam@spicenitz.org> - 7.12.5-2
+- Rebuild for OpenEXR update
+
+* Fri Sep 21 2007 Adam Goode <adam@spicenitz.org> - 7.12.5-1
+- New upstream release
+
+* Thu Aug 16 2007 Adam Goode <adam@spicenitz.org> - 7.12.4-2
+- Add Conflicts for doc
+- Update doc package description
+
+* Thu Aug 16 2007 Adam Goode <adam@spicenitz.org> - 7.12.4-1
+- New upstream release
+- Update License tag
+
+* Tue Jul 24 2007 Adam Goode <adam@spicenitz.org> - 7.12.2-1
+- New stable release 7.12
+
+* Sat May  5 2007 Adam Goode <adam@spicenitz.org> - 7.12.0-1
+- New upstream release
+
+* Thu Aug 31 2006 Adam Goode <adam@spicenitz.org> - 7.10.21-1
+- New upstream release
+
+* Fri Jul 28 2006 Adam Goode <adam@spicenitz.org> - 7.10.20-3
+- Include results of running automake in the patch for undefined symbols
+- No longer run automake or autoconf (autoconf was never actually necessary)
+
+* Mon Jul 24 2006 Adam Goode <adam@spicenitz.org> - 7.10.20-2
+- Eliminate undefined non-weak symbols in libvipsCC.so
+
+* Fri Jul 21 2006 Adam Goode <adam@spicenitz.org> - 7.10.20-1
+- New upstream release
+- Updated for FC5
 
 * Tue Dec 14 2004 John Cupitt <john.cupitt@ng-london.org.uk> 7.10.8
 - updated for 7.10.8
@@ -104,7 +209,7 @@ ldconfig
 
 * Wed Jul 16 2003 John Cupitt <john.cupitt@ng-london.org.uk> 7.8.10
 - updated for 7.8.10
-- updated %files
+- updated %%files
 - copies formatted docs to install area
 
 * Wed Mar 12 2003 John Cupitt <john.cupitt@ng-london.org.uk> 7.8.8

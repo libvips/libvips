@@ -314,9 +314,14 @@ int im_local_array( IMAGE *im, void **out, int n,
 	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
 
 gint64 im_file_length( int fd );
+int im__write( int fd, const void *buf, size_t count );
 
 char *im__file_read( FILE *fp, const char *name, unsigned int *length_out );
 char *im__file_read_name( const char *name, unsigned int *length_out );
+int im__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
+
+gboolean im_isnative( im_arch_type arch );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

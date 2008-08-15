@@ -76,6 +76,13 @@ im_exr2vips_header( const char *name, IMAGE *out )
 	return( -1 );
 }
 
+int
+im_isexrtiled( const char *name )
+{
+	im_error( "im_isexrtiled", _( "OpenEXR support disabled" ) );
+	return( -1 );
+}
+
 #else /*HAVE_OPENEXR*/
 
 #include <stdio.h>
@@ -166,7 +173,7 @@ read_new( const char *name, IMAGE *out )
 
 #ifdef DEBUG
 	if( read->tiles )
-		printf( "im_exr2vips: opening in tiles mode\n" );
+		printf( "im_exr2vips: opening in tiled mode\n" );
 	else
 		printf( "im_exr2vips: opening in scanline mode\n" );
 #endif /*DEBUG*/
@@ -221,6 +228,22 @@ im_exr2vips_header( const char *name, IMAGE *out )
 		return( -1 );
 
 	return( 0 );
+}
+
+/* Test for tiled EXR.
+ */
+int
+im_isexrtiled( const char *name )
+{
+	Read *read;
+	int tiled;
+
+	if( !(read = read_new( name, NULL )) )
+		return( -1 );
+	tiled = read->tiles != NULL;
+	read_destroy( read );
+
+	return( tiled );
 }
 
 static int

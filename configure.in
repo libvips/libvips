@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(config.h)
 # user-visible library versioning
 IM_MAJOR_VERSION=7
 IM_MINOR_VERSION=15
-IM_MICRO_VERSION=0
+IM_MICRO_VERSION=1
 IM_VERSION=$IM_MAJOR_VERSION.$IM_MINOR_VERSION.$IM_MICRO_VERSION
 IM_VERSION_STRING=$IM_VERSION-`date`
 
@@ -458,6 +458,7 @@ AC_OUTPUT([
 	libsrc/colour/Makefile 
 	libsrc/conversion/Makefile 
 	libsrc/convolution/Makefile 
+	libsrc/format/Makefile 
 	libsrc/freq_filt/Makefile 
 	libsrc/histograms_lut/Makefile 
 	libsrc/inplace/Makefile 
@@ -495,10 +496,12 @@ AC_OUTPUT([
 ])
 
 AC_MSG_RESULT([
+* general build options
 native win32:				$vips_os_win32
 open files in binary mode: 		$vips_binary_open
-
 evaluate with threads: 			$enable_threads
+
+* optional packages and modules
 use fftw3 for FFT: 			$with_fftw3
 Magick package: 			$with_magickpackage
 file import with libMagick: 		$with_magick

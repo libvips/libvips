@@ -492,6 +492,7 @@ typedef struct {
 
 #include <vips/proto.h>
 #include <vips/colour.h>
+/* #include <vips/vector.h> */
 #include <vips/dispatch.h>
 #include <vips/region.h>
 #include <vips/semaphore.h>

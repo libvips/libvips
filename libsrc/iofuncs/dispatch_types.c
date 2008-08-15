@@ -119,8 +119,8 @@ im_type_desc im__input_image = {
 	IM_TYPE_IMAGE,		/* Its an image */
 	0, 			/* No storage needed */
 	IM_TYPE_ARG,		/* It requires a command-line arg */
-	(im_init_obj_fn) input_image_init,	/* Init function */
-	(im_dest_obj_fn) im_close		/* Destroy function */
+	(im_init_obj_fn) input_image_init,/* Init function */
+	(im_dest_obj_fn) im_close/* Destroy function */
 };
 
 /* Init function for output images.
@@ -347,7 +347,7 @@ im_type_desc im__output_dmask = {
 	sizeof( im_mask_object ),/* Storage for mask object */
 	IM_TYPE_OUTPUT | IM_TYPE_ARG,	/* Flags */
 	mask_init,		/* Init function */
-	save_dmask_dest		/* Save and destroy function */
+	save_dmask_dest	/* Save and destroy function */
 };
 
 /* Input dmask type.
@@ -367,7 +367,7 @@ im_type_desc im__output_imask = {
 	sizeof( im_mask_object ),/* Storage for mask object */
 	IM_TYPE_OUTPUT | IM_TYPE_ARG,	/* Flags */
 	mask_init,		/* Init function */
-	save_imask_dest		/* Save and destroy function */
+	save_imask_dest	/* Save and destroy function */
 };
 
 /* Input imask type.
@@ -585,8 +585,8 @@ im_type_desc im__output_intvec = {
 	IM_TYPE_INTVEC,		/* It's an array of int */
 	sizeof( im_intvec_object ), /* Memory to allocate in vec build */
 	IM_TYPE_OUTPUT,		/* Output arg */
-	NULL,			/* Init function */
-	intvec_dest		/* Destroy function */
+	(im_init_obj_fn)NULL,			/* Init function */
+	(im_dest_obj_fn)intvec_dest		/* Destroy function */
 };
 
 /* Init function for int input.
@@ -632,7 +632,7 @@ im_type_desc im__input_string = {
 	0, 			/* Memory to allocate */
 	IM_TYPE_ARG,		/* It requires a command-line arg */
 	input_string_init,	/* Init function */
-	im_free			/* Destroy function */
+	im_free		/* Destroy function */
 };
 
 /* Output string type.
@@ -642,7 +642,7 @@ im_type_desc im__output_string = {
 	0,			/* Memory to allocate */
 	IM_TYPE_OUTPUT,		/* Its an output argument */
 	NULL,			/* Init function */
-	im_free			/* Destroy function */
+	im_free		/* Destroy function */
 };
 
 /* Output double type.
@@ -877,3 +877,4 @@ im_type_desc im__output_gvalue = {
 	(im_init_obj_fn) output_gvalue_init,	/* Init function */
 	(im_dest_obj_fn) gvalue_free 	/* Destroy function */
 };
+

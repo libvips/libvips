@@ -48,6 +48,10 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 
+#ifdef OS_WIN32
+#include <windows.h>
+#endif /*OS_WIN32*/
+
 #include <assert.h>
 
 #include <vips/vips.h>
@@ -477,7 +481,7 @@ im_skip_dir( const char *path )
 }
 
 /* Extract suffix from filename, ignoring any mode string. Suffix should be
- * FILENAME_MAX chars.
+ * FILENAME_MAX chars. Include the "." character, if any.
  */
 void
 im_filename_suffix( const char *path, char *suffix )
@@ -488,7 +492,7 @@ im_filename_suffix( const char *path, char *suffix )
 
 	im_filename_split( path, name, mode );
         if( (p = strrchr( name, '.' )) ) 
-                strcpy( suffix, p + 1 );
+                strcpy( suffix, p );
         else
                 strcpy( suffix, "" );
 }
@@ -913,3 +917,99 @@ im__gslist_gvalue_get( const GSList *list )
 
 	return( all );
 }
+
+/* Need our own seek(), since lseek() on win32 can't do long files.
+ */
+int
+im__seek( int fd, gint64 pos )
+{
+#ifdef OS_WIN32
+{
+	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
+	LARGE_INTEGER p;
+
+	p.QuadPart = pos;
+	if( !SetFilePointerEx( hFile, p, NULL, FILE_BEGIN ) ) {
+                im_error_system( GetLastError(), "im__seek", 
+			_( "unable to seek" ) );
+		return( -1 );
+	}
+}
+#else /*!OS_WIN32*/
+	if( lseek( fd, pos, SEEK_SET ) == (off_t) -1 ) {
+		im_error( "im__seek", _( "unable to seek" ) );
+		return( -1 );
+	}
+#endif /*OS_WIN32*/
+
+	return( 0 );
+}
+
+/* Need our own ftruncate(), since ftruncate() on win32 can't do long files.
+
+	DANGER ... this moves the file pointer to the end of file on win32,
+	but not on *nix; don't make any assumptions about the file pointer
+	position after calling this
+
+ */
+int
+im__ftruncate( int fd, gint64 pos )
+{
+#ifdef OS_WIN32
+{
+	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
+	LARGE_INTEGER p;
+
+	p.QuadPart = pos;
+	if( im__seek( fd, pos ) )
+		return( -1 );
+	if( !SetEndOfFile( hFile ) ) {
+                im_error_system( GetLastError(), "im__ftruncate", 
+			_( "unable to truncate" ) );
+		return( -1 );
+	}
+}
+#else /*!OS_WIN32*/
+	if( ftruncate( fd, pos ) ) {
+		im_error_system( errno, "im__ftruncate", 
+			_( "unable to truncate" ) );
+		return( -1 );
+	}
+#endif /*OS_WIN32*/
+
+	return( 0 );
+}
+
+
+/* Like fwrite(), but returns non-zero on error and sets error message.
+ */
+int
+im__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
+{
+  int n;
+  if( !data ) return( 0 );
+  if( (n = fwrite( data, size, nmemb, stream )) != nmemb ) {
+    im_error( "im__file_write", 
+	      _( "writing error (%d out of %d blocks written) ... disc full?" ),
+	      n, nmemb );
+    return( -1 );
+  }
+  return( 0 );
+}
+
+
+/* Check whether arch corresponds to native byte order.
+ */
+gboolean
+im_isnative( im_arch_type arch )
+{
+  switch ( arch ) {
+  case IM_ARCH_NATIVE: return( TRUE );
+  case IM_ARCH_BYTE_SWAPPED: return( FALSE );
+  case IM_ARCH_LSB_FIRST: return( !im_amiMSBfirst() );
+  case IM_ARCH_MSB_FIRST: return( im_amiMSBfirst() );
+  }  
+  abort();
+}
+
+

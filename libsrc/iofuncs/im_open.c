@@ -92,6 +92,8 @@ Modified:
  * 	- add simple cmd-line progress feedback
  * 9/8/08
  * 	- lock global image list (thanks lee)
+ * 25/5/08
+ * 	- break file format stuff out to the new pluggable image format system
  */
 
 /*
@@ -142,33 +144,6 @@ Modified:
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Suffix sets.
- */
-static const char *im_suffix_vips[] = {
-	"v", "",
-	NULL
-};
-static const char *im_suffix_tiff[] = {
-	"tif", "tiff",
-	NULL
-};
-static const char *im_suffix_jpeg[] = {
-	"jpeg", "jpg", "jfif", "jpe",
-	NULL
-};
-static const char *im_suffix_ppm[] = {
-	"ppm", "pbm", "pgm", 
-	NULL
-};
-static const char *im_suffix_png[] = {
-	"png", 
-	NULL
-};
-static const char *im_suffix_csv[] = {
-	"csv", 
-	NULL
-};
-
 /* Progress feedback. Only really useful for testing, tbh.
  */
 int im__progress = 0;
@@ -177,55 +152,6 @@ void
 im_progress_set( int progress )
 {
 	im__progress = progress;
-}
-
-/* Open a VIPS image and byte-swap the image data if necessary.
- */
-static IMAGE *
-read_vips( const char *filename )
-{
-	IMAGE *im, *im2;
-
-	if( !(im = im_init( filename )) )
-		return( NULL );
-	if( im_openin( im ) ) {
-		im_close( im );
-		return( NULL );
-	}
-
-	/* Already in native format?
-	 */
-	if( im_isMSBfirst( im ) == im_amiMSBfirst() ) 
-		return( im );
-
-	/* Not native ... but maybe does not need swapping? 
-	 */
-	if( im->Coding == IM_CODING_LABQ )
-		return( im );
-	if( im->Coding != IM_CODING_NONE ) {
-		im_close( im );
-		im_error( "im_open", _( "unknown coding type" ) );
-		return( NULL );
-	}
-	if( im->BandFmt == IM_BANDFMT_CHAR || im->BandFmt == IM_BANDFMT_UCHAR )
-		return( im );
-	
-	/* Needs swapping :( make a little pipeline up to do this for us.
-	 */
-	if( !(im2 = im_open( filename, "p" )) )
-		return( NULL );
-        if( im_add_close_callback( im2, 
-		(im_callback_fn) im_close, im, NULL ) ) {
-                im_close( im );
-                im_close( im2 );
-                return( NULL );
-        }
-	if( im_copy_swap( im, im2 ) ) {
-		im_close( im2 );
-		return( NULL );
-	}
-
-	return( im2 );
 }
 
 /* Delayed save: if we write to TIFF or to JPEG format, actually do the write
@@ -419,6 +345,9 @@ IMAGE *
 im_open( const char *filename, const char *mode )
 {
 	IMAGE *im;
+	im_format *format;
+	char name[FILENAME_MAX];
+	char mode2[FILENAME_MAX];
 
 	/* Pass in a nonsense name for argv0 ... this init world is only here
 	 * for old programs which are missing an im_init_world() call. We must
@@ -432,173 +361,43 @@ im_open( const char *filename, const char *mode )
 		return( NULL );
 	}
 
+	/*
+
+	 	FIXME ... we have to split the filename here because 
+		im_isvips() needs a filename without a mode extension
+
+		can we fold the vips open code into the format system somehow?
+		we need to consider large file and pipeline support carefully
+
+	 */
+	im_filename_split( filename, name, mode2 );
+
 	switch( mode[0] ) {
         case 'r':
-{
-		char name[FILENAME_MAX];
-		char options[FILENAME_MAX];
-
-		/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
-		 * etc.
-		 */
-		im_filename_split( filename, name, options );
-
-		/* Check for other formats.
-
-			FIXME ... should have a table to avoid all this
-			repetition
-
-		 */
-		if( !im_existsf( "%s", name ) ) {
-			im_error( "im_open", 
-				_( "\"%s\" is not readable" ), name );
+		if( im_isvips( name ) ) {
+			if( !(im = im_open_vips( filename )) )
+				return( NULL );
+		}
+		else if( (format = im_format_for_file( filename )) ) {
+			if( !(im = open_sub( 
+				format->header, format->load, filename )) )
+				return( NULL );
+		}
+		else
 			return( NULL );
-		}
-		else if( im_istiff( name ) ) {
-			/* If TIFF open fails, try going through libmagick.
-			 */
-			if( !(im = open_sub( 
-				im_tiff2vips_header, im_tiff2vips, 
-					filename )) &&
-				!(im = open_sub( 
-					im_magick2vips_header, im_magick2vips, 
-					filename )) )
-				return( NULL );
-		}
-		else if( im_isjpeg( name ) ) {
-			if( !(im = open_sub( 
-				im_jpeg2vips_header, im_jpeg2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_isexr( name ) ) {
-			if( !(im = open_sub( 
-				im_exr2vips_header, im_exr2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_isppm( name ) ) {
-			if( !(im = open_sub( 
-				im_ppm2vips_header, im_ppm2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_ispng( name ) ) {
-			if( !(im = open_sub( 
-				im_png2vips_header, im_png2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_filename_suffix_match( name, im_suffix_csv ) ) {
-			if( !(im = open_sub( 
-				im_csv2vips_header, im_csv2vips, filename )) )
-				return( NULL );
-		}
-		else if( im_isvips( name ) ) {
-			if( mode[1] == 'w' ) {
-				/* Has to be native format for >8 bits.
-				 */
-				if( !(im = im_init( filename )) )
-					return( NULL );
-				if( im_openinrw( im ) ) {
-					im_close( im );
-					return( NULL );
-				}
-				if( im->Bbits != IM_BBITS_BYTE &&
-					im_isMSBfirst( im ) != 
-						im_amiMSBfirst() ) {
-					im_close( im );
-					im_error( "im_open", _( "open for read-"
-						"write for native format "
-						"images only" ) );
-					return( NULL );
-				}
-			}
-			else 
-				im = read_vips( filename );
-		}
-		else if( im_isanalyze( name ) ) {
-			if( !(im = open_sub( 
-				im_analyze2vips_header, im_analyze2vips, 
-					filename )) )
-				return( NULL );
-		}
-		else if( im_ismagick( name ) ) {
-			/* Have this last as it can be very slow to detect
-			 * failure.
-			 */
-			if( !(im = open_sub( 
-				im_magick2vips_header, im_magick2vips, 
-				filename )) )
-				return( NULL );
-		}
-		else {
-			im_error( "im_open", _( "\"%s\" is not "
-				"a supported format" ), filename );
-			return( NULL );
-		}
-}
-
         	break;
 
 	case 'w':
-		/* Look at the suffix for format write.
-		 */
-		if( im_filename_suffix_match( filename, im_suffix_vips ) ) 
+		if( (format = im_format_for_name( filename )) ) {
+			if( !(im = im_open( "im_open:lazy_write:1", "p" )) )
+				return( NULL );
+			if( attach_sb( im, format->save, filename ) ) {
+				im_close( im );
+				return( NULL );
+			}
+		}
+		else
 			im = im_openout( filename );
-		else if( im_filename_suffix_match( filename, 
-			im_suffix_tiff ) ) {
-			/* TIFF write. Save to a partial, and on preclose
-			 * im_vips2tiff from that.
-			 */
-			if( !(im = im_open( "im_open:vips2tiff:1", "p" )) )
-				return( NULL );
-			if( attach_sb( im, im_vips2tiff, filename ) ) {
-				im_close( im );
-				return( NULL );
-			}
-		}
-		else if( im_filename_suffix_match( filename, 
-			im_suffix_jpeg ) ) {
-			/* JPEG write. 
-			 */
-			if( !(im = im_open( "im_open:vips2jpeg:1", "p" )) )
-				return( NULL );
-			if( attach_sb( im, im_vips2jpeg, filename ) ) {
-				im_close( im );
-				return( NULL );
-			}
-		}
-		else if( im_filename_suffix_match( filename, im_suffix_ppm ) ) {
-			/* ppm write. 
-			 */
-			if( !(im = im_open( "im_open:vips2ppm:1", "p" )) )
-				return( NULL );
-			if( attach_sb( im, im_vips2ppm, filename ) ) {
-				im_close( im );
-				return( NULL );
-			}
-		}
-		else if( im_filename_suffix_match( filename, im_suffix_png ) ) {
-			/* png write. 
-			 */
-			if( !(im = im_open( "im_open:vips2png:1", "p" )) )
-				return( NULL );
-			if( attach_sb( im, im_vips2png, filename ) ) {
-				im_close( im );
-				return( NULL );
-			}
-		}
-		else if( im_filename_suffix_match( filename, im_suffix_csv ) ) {
-			/* csv write. 
-			 */
-			if( !(im = im_open( "im_open:vips2csv:1", "p" )) )
-				return( NULL );
-			if( attach_sb( im, im_vips2csv, filename ) ) {
-				im_close( im );
-				return( NULL );
-			}
-		}
-		else {
-			im_error( "im_open", _( "unknown suffix for save" ) );
-			return( NULL );
-		}
         	break;
 
         case 't':
@@ -610,8 +409,6 @@ im_open( const char *filename, const char *mode )
                 break;
 
 	default:
-		/* Getting here means bad mode
-		 */
 		im_error( "im_open", _( "bad mode \"%s\"" ), mode );
 		return( NULL );
         }

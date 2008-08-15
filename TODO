@@ -1,5 +1,37 @@
-- merge loadable format stuff, postpone new object parameter API to next
-  version
+- is_a.c should be broken out into the respective loaders? that's how it
+  wouldbe for plugns
+
+- something in vips.c to list the available formats, like 
+
+	vips --list packages
+
+  perhaps
+
+	vips --list formats
+
+- add API to add operations and formats, can be used by plugins in module init
+  to register stuff
+
+- deprecate the current plugin init system
+
+- more cleanups to the handling of vips format images, esp. we have vips write
+  spread across many files atm
+
+- could remove a lot of crappy old API
+
+- it'd be nice to handle vips format images in the same im_format system, but
+  it's not clear if this is possible
+
+- we sometimes name types with a trailing _t, but only sometimes, argh
+
+  should im_format become im_format_t? what's the current naming convention?
+  should be add _t variants for all types?
+
+
+
+- when we open with a mmap window and later do im_incheck(), do we remap the
+  whole file?
+
 
 - try
 

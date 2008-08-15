@@ -95,8 +95,10 @@ const char *im_guess_prefix( const char *, const char * );
 const char *im_guess_libdir( const char *, const char * );
 IMAGE *im_init( const char * );
 IMAGE *im_openout( const char * );
+IMAGE *im_open_vips( const char * );
 int im_openin( IMAGE *image );
 int im_openinrw( IMAGE *image );
+IMAGE *im_vips_open( const char * );
 IMAGE *im_setbuf( const char * );
 IMAGE *im_partial( const char * );
 IMAGE *im_binfile( const char *, int, int, int, int );
@@ -148,7 +150,9 @@ int im_istiffpyramid( const char * );
 int im_isjpeg( const char * );
 int im_isvips( const char * );
 int im_isexr( const char * );
+int im_isexrtiled( const char *name );
 int im_isppm( const char * );
+int im_isppmmmap( const char *filename );
 int im_ispng( const char * );
 int im_ismagick( const char * );
 int im_isanalyze( const char *filename );
@@ -509,6 +513,7 @@ int im_grid( IMAGE *in, IMAGE *out, int tile_height, int across, int down );
 int im_msb ( IMAGE * in, IMAGE * out );
 int im_msb_band ( IMAGE * in, IMAGE * out, int band );
 int im_wrap( IMAGE *in, IMAGE *out, int x, int y );
+int im_vips2raw( IMAGE *in, int fd );
 
 /* colour
  */

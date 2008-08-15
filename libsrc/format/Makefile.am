@@ -18,6 +18,7 @@ libformat_la_SOURCES = \
 	im_vips2jpeg.c \
 	im_vips2png.c \
 	im_vips2ppm.c \
-	im_vips2tiff.c 
+	im_vips2tiff.c \
+	im_vips2raw.c 
 
 INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

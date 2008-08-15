@@ -1,3 +1,14 @@
+25/5/08 fork for loadable image format branch
+- image load/save in non-vips format code moved to own dir
+- simple format searching added
+- some cleanups for vips load
+- im_open() simplified
+- add im_format_flags
+- only consider formats with a save method in im_format_for_name()
+- oops, format sort order was reversed
+- im_filename_suffix() includes "." in suffix
+- merge back into trunk for 7.15.1
+
 7/3/08 started 7.15.0
 - MAGIC constants should be tagged as unsigned
 - write MAGIC correctly on sparc/powerpc machines (thanks Joe)

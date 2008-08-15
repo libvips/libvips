@@ -61,11 +61,16 @@ void im__read_2byte( int msb_first, unsigned char *to, unsigned char **from );
 void im__write_4byte( unsigned char **to, unsigned char *from );
 void im__write_2byte( unsigned char **to, unsigned char *from );
 
+int im__ftruncate( int fd, gint64 pos );
+int im__seek( int fd, gint64 pos );
+
+int im__open_image_file( const char * );
+void im__format_init( void );
+void im__type_init( void );
 int im__read_header_bytes( IMAGE *im, unsigned char *from );
 int im__write_header_bytes( IMAGE *im, unsigned char *to );
 int im__has_extension_block( IMAGE *im );
 void *im__read_extension_block( IMAGE *im, int *size );
-int im__readhist( IMAGE *image );
 int im__write_extension_block( IMAGE *im, void *buf, int size );
 int im__writehist( IMAGE *image );
 int im__start_eval( IMAGE *im );
@@ -98,13 +103,10 @@ char *im__gslist_gvalue_get( const GSList *list );
 void im__buffer_init( void );
 
 int im__cast_and_call();
-int im__read_header( IMAGE *image );
 int im__test_kill( IMAGE *im );
 void *im__mmap( int fd, int writeable, size_t length, gint64 offset );
 int im__munmap( void *start, size_t length );
 int im__write( int, const void *, size_t );
-int im__open_image_file( const char *filename );
-gint64 im__image_pixel_length( IMAGE *im );
 void im__change_suffix( const char *name, char *out, int mx,
         const char *new_suff, const char **olds, int nolds );
 void im__print_all( void );

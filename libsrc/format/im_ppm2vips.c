@@ -414,6 +414,41 @@ im_ppm2vips_header( const char *filename, IMAGE *out )
 	return( 0 );
 }
 
+/* Can this PPM file be read with a mmap?
+ */
+int
+im_isppmmmap( const char *filename )
+{
+	IMAGE *im;
+        FILE *fp;
+	int bits;
+	int ascii;
+
+#ifdef BINARY_OPEN
+	if( !(fp = fopen( filename, "rb" )) ) {
+#else /*BINARY_OPEN*/
+	if( !(fp = fopen( filename, "r" )) ) {
+#endif /*BINARY_OPEN*/
+                im_error( "im_ppm2vips_header",
+			_( "unable to open \"%s\"" ), filename );
+                return( -1 );
+        }
+
+	if( !(im = im_open( "temp", "p" )) ) {
+		fclose( fp );
+		return( 0 );
+	}
+	if( read_header( fp, im, &bits, &ascii ) ) {
+		im_close( im );
+		fclose( fp );
+		return( 0 );
+	}
+	im_close( im );
+	fclose( fp );
+
+	return( !ascii && bits >= 8 );
+}
+
 int
 im_ppm2vips( const char *filename, IMAGE *out )
 {

@@ -1,39 +1,8 @@
-/* @(#)  Reads one line of description and the history of the filename
- * @(#)  This is done by replacing the ending .v of the filename with .desc
- * @(#) and trying to read the new file.  If the file ending in .desc
- * @(#) does exist it is read and put into the Hist pointer of the
- * @(#) image descriptor
- * @(#)  If the .desc file does not exist or if the input file is not
- * @(#) ending with .v the Hist pointer in initialised to "filename\n" 
- * @(#) and history is kept from the current processing stage.
- * @(#)
- * @(#) int im_readhist(image)
- * @(#) IMAGE *image;
- * @(#)
- * @(#)  Returns either 0 (success) or -1 (fail)
- * Copyright: Nicos Dessipris
- * Written on: 15/01/1990
- * Modified on : 
- * 28/10/92 JC
- *	- no more wild freeing!
- *	- behaves itself, thank you
- * 13/1/94 JC
- *	- array-bounds write found and fixed 
- * 26/10/98 JC
- *	- binary open for stupid systems
- * 24/9/01 JC
- *	- slight clean up
- * 6/8/02 JC
- *	- another cleanup
- * 11/7/05
- *	- now read XML from after the image data rather than a separate
- *	  annoying file
- * 	- added im__writehist() to write XML to the image
- * 5/10/05
- * 	- added wrappers for seek/truncate with native win32 calls for long 
- * 	  file support
- * 3/1/07
- * 	- set history_list instead
+/* Read and write a VIPS file into an IMAGE *
+ * 
+ * 22/5/08
+ * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c,
+ * 	  im_openout.c
  */
 
 /*
@@ -72,6 +41,11 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -96,73 +70,229 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* Try to make an O_BINARY ... sometimes need the leading '_'.
+ */
+#ifdef BINARY_OPEN
+#ifndef O_BINARY
+#ifdef _O_BINARY
+#define O_BINARY _O_BINARY
+#endif /*_O_BINARY*/
+#endif /*!O_BINARY*/
+#endif /*BINARY_OPEN*/
+
 /* Our XML namespace.
  */
 #define NAMESPACE "http://www.vips.ecs.soton.ac.uk/vips" 
 
-/* Need our own seek(), since lseek() on win32 can't do long files.
+/* mmap() whole vs. window threshold ... an int, so we can tune easily from a
+ * debugger.
  */
-static int
-im__seek( int fd, gint64 pos )
-{
-#ifdef OS_WIN32
-{
-	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
-	LARGE_INTEGER p;
+#ifdef DEBUG
+int im__mmap_limit = 1;
+#else
+int im__mmap_limit = IM__MMAP_LIMIT;
+#endif /*DEBUG*/
 
-	p.QuadPart = pos;
-	if( !SetFilePointerEx( hFile, p, NULL, FILE_BEGIN ) ) {
-                im_error_system( GetLastError(), "im__seek", 
-			_( "unable to seek" ) );
-		return( -1 );
+/* Sort of open for read for image files. Shared with im_binfile().
+ */
+int
+im__open_image_file( const char *filename )
+{
+	int fd;
+
+	/* Try to open read-write, so that calls to im_makerw() will work.
+	 * When we later mmap this file, we set read-only, so there 
+	 * is little danger of scrubbing over files we own.
+	 */
+#ifdef BINARY_OPEN
+	if( (fd = open( filename, O_RDWR | O_BINARY )) == -1 ) {
+#else /*BINARY_OPEN*/
+	if( (fd = open( filename, O_RDWR )) == -1 ) {
+#endif /*BINARY_OPEN*/
+		/* Open read-write failed. Fall back to open read-only.
+		 */
+#ifdef BINARY_OPEN
+		if( (fd = open( filename, O_RDONLY | O_BINARY )) == -1 ) {
+#else /*BINARY_OPEN*/
+		if( (fd = open( filename, O_RDONLY )) == -1 ) {
+#endif /*BINARY_OPEN*/
+			im_error( "im__open_image_file", 
+				_( "unable to open \"%s\", %s" ),
+				filename, strerror( errno ) );
+			return( -1 );
+		}
 	}
+
+	return( fd );
 }
-#else /*!OS_WIN32*/
-	if( lseek( fd, pos, SEEK_SET ) == (off_t) -1 ) {
-		im_error( "im__seek", _( "unable to seek" ) );
+
+/* Predict the size of the header plus pixel data. Don't use off_t,
+ * it's sometimes only 32 bits (eg. on many windows build environments) and we
+ * want to always be 64 bit.
+ */
+static gint64
+im__image_pixel_length( IMAGE *im )
+{
+	gint64 psize;
+
+	switch( im->Coding ) {
+	case IM_CODING_LABQ:
+	case IM_CODING_NONE:
+		psize = (gint64) IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
+		break;
+
+	default:
+		psize = im->Length;
+		break;
+	}
+
+	return( psize + im->sizeof_header );
+}
+
+/* Read short/int/float LSB and MSB first.
+ */
+void
+im__read_4byte( int msb_first, unsigned char *to, unsigned char **from )
+{
+	unsigned char *p = *from;
+	int out;
+
+	if( msb_first )
+		out = p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
+	else
+		out = p[3] << 24 | p[2] << 16 | p[1] << 8 | p[0];
+
+	*from += 4;
+	*((guint32 *) to) = out;
+}
+
+void
+im__read_2byte( int msb_first, unsigned char *to, unsigned char **from )
+{
+	int out;
+	unsigned char *p = *from;
+
+	if( msb_first )
+		out = p[0] << 8 | p[1];
+	else
+		out = p[1] << 8 | p[0];
+
+	*from += 2;
+	*((guint16 *) to) = out;
+}
+
+/* We always write in native byte order.
+ */
+void
+im__write_4byte( unsigned char **to, unsigned char *from )
+{
+	*((guint32 *) *to) = *((guint32 *) from);
+	*to += 4;
+}
+
+void
+im__write_2byte( unsigned char **to, unsigned char *from )
+{
+	*((guint16 *) *to) = *((guint16 *) from);
+	*to += 2;
+}
+
+/* offset, read, write functions.
+ */
+typedef struct _FieldIO {
+	glong offset;
+	void (*read)( int msb_first, unsigned char *to, unsigned char **from );
+	void (*write)( unsigned char **to, unsigned char *from );
+} FieldIO;
+
+static FieldIO fields[] = {
+	{ G_STRUCT_OFFSET( IMAGE, Xsize ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Ysize ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Bands ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Bbits ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, BandFmt ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Coding ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Type ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Xres ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Yres ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Length ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Compression ), 
+		im__read_2byte, im__write_2byte },
+	{ G_STRUCT_OFFSET( IMAGE, Level ), 
+		im__read_2byte, im__write_2byte },
+	{ G_STRUCT_OFFSET( IMAGE, Xoffset ), 
+		im__read_4byte, im__write_4byte },
+	{ G_STRUCT_OFFSET( IMAGE, Yoffset ), 
+		im__read_4byte, im__write_4byte }
+};
+
+int
+im__read_header_bytes( IMAGE *im, unsigned char *from )
+{
+	int msb_first;
+	int i;
+
+	im__read_4byte( 1, (unsigned char *) &im->magic, &from );
+	if( im->magic != IM_MAGIC_INTEL && im->magic != IM_MAGIC_SPARC ) {
+		im_error( "im_open", _( "\"%s\" is not a VIPS image" ), 
+			im->filename );
 		return( -1 );
 	}
-#endif /*OS_WIN32*/
+	msb_first = im->magic == IM_MAGIC_SPARC;
+
+	for( i = 0; i < IM_NUMBER( fields ); i++ )
+		fields[i].read( msb_first,
+			&G_STRUCT_MEMBER( unsigned char, im, fields[i].offset ),
+			&from );
+
+	/* Set this ourselves ... bbits is deprecated in the file format.
+	 */
+	im->Bbits = im_bits_of_fmt( im->BandFmt );
 
 	return( 0 );
 }
 
-/* Need our own ftruncate(), since ftruncate() on win32 can't do long files.
-
-	DANGER ... this moves the file pointer to the end of file on win32,
-	but not on *nix; don't make any assumptions about the file pointer
-	position after calling this
-
- */
-static int
-im__ftruncate( int fd, gint64 pos )
+int
+im__write_header_bytes( IMAGE *im, unsigned char *to )
 {
-#ifdef OS_WIN32
-{
-	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
-	LARGE_INTEGER p;
+	guint32 magic;
+	int i;
+	unsigned char *q;
 
-	p.QuadPart = pos;
-	if( im__seek( fd, pos ) )
-		return( -1 );
-	if( !SetEndOfFile( hFile ) ) {
-                im_error_system( GetLastError(), "im__ftruncate", 
-			_( "unable to truncate" ) );
-		return( -1 );
-	}
-}
-#else /*!OS_WIN32*/
-	if( ftruncate( fd, pos ) ) {
-		im_error_system( errno, "im__ftruncate", 
-			_( "unable to truncate" ) );
-		return( -1 );
-	}
-#endif /*OS_WIN32*/
+	/* Always write the magic number MSB first.
+	 */
+	magic = im_amiMSBfirst() ? IM_MAGIC_SPARC : IM_MAGIC_INTEL;
+	to[0] = magic >> 24;
+	to[1] = magic >> 16;
+	to[2] = magic >> 8;
+	to[3] = magic;
+	q = to + 4;
+
+	for( i = 0; i < IM_NUMBER( fields ); i++ )
+		fields[i].write( &q,
+			&G_STRUCT_MEMBER( unsigned char, im, 
+				fields[i].offset ) );
+
+	/* Pad spares with zeros.
+	 */
+	while( q - to < im->sizeof_header )
+		*q++ = 0;
 
 	return( 0 );
 }
@@ -454,7 +584,7 @@ rebuild_header( IMAGE *im )
 /* Called at the end of im__read_header ... get any XML after the pixel data
  * and read it in.
  */
-int 
+static int 
 im__readhist( IMAGE *im )
 {
 	/* Junk any old xml meta.
@@ -751,3 +881,213 @@ im__writehist( IMAGE *im )
 
 	return( 0 );
 }
+
+/* Open the filename, read the header, some sanity checking.
+ */
+static int
+im__read_header( IMAGE *image )
+{
+	/* We don't use im->sizeof_header here, but we know we're reading a
+	 * VIPS image anyway.
+	 */
+	unsigned char header[IM_SIZEOF_HEADER];
+
+	gint64 length;
+	gint64 psize;
+
+	image->dtype = IM_OPENIN;
+	if( (image->fd = im__open_image_file( image->filename )) == -1 ) 
+		return( -1 );
+	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
+		im__read_header_bytes( image, header ) ) {
+		im_error( "im_openin", 
+			_( "unable to read header for \"%s\", %s" ),
+			image->filename, strerror( errno ) );
+		return( -1 );
+	}
+
+	/* Predict and check the file size.
+	 */
+	psize = im__image_pixel_length( image );
+	if( (length = im_file_length( image->fd )) == -1 ) 
+		return( -1 );
+	if( psize > length ) {
+		im_error( "im_openin", _( "unable to open \"%s\", %s" ),
+			image->filename, _( "file has been truncated" ) );
+		return( -1 );
+	}
+
+	/* Set demand style. Allow the most permissive sort.
+	 */
+	image->dhint = IM_THINSTRIP;
+
+	/* Set the history part of im descriptor. Don't return an error if this
+	 * fails (due to eg. corrupted XML) because it's probably mostly
+	 * harmless.
+	 */
+	if( im__readhist( image ) ) {
+		im_warn( "im_openin", _( "error reading XML: %s" ),
+			im_error_buffer() );
+		im_error_clear();
+	}
+
+	return( 0 );
+}
+
+/* Open, then mmap() small images, leave large images to have a rolling mmap()
+ * window for each region. This is old and deprecated API, use im_vips_open()
+ * in preference.
+ */
+int
+im_openin( IMAGE *image )
+{
+	gint64 size;
+
+#ifdef DEBUG
+	char *str;
+
+	if( (str = g_getenv( "IM_MMAP_LIMIT" )) ) {
+		im__mmap_limit = atoi( str );
+		printf( "im_openin: setting maplimit to %d from environment\n",
+			im__mmap_limit );
+	}
+#endif /*DEBUG*/
+
+	if( im__read_header( image ) )
+		return( -1 );
+
+	size = (gint64) IM_IMAGE_SIZEOF_LINE( image ) * image->Ysize + 
+		image->sizeof_header;
+	if( size < im__mmap_limit ) {
+		if( im_mapfile( image ) )
+			return( -1 );
+		image->data = image->baseaddr + image->sizeof_header;
+		image->dtype = IM_MMAPIN;
+
+#ifdef DEBUG
+		printf( "im_openin: completely mmap()ing \"%s\": it's small\n",
+			image->filename );
+#endif /*DEBUG*/
+	}
+	else {
+#ifdef DEBUG
+		printf( "im_openin: delaying mmap() of \"%s\": it's big!\n",
+			image->filename );
+#endif /*DEBUG*/
+	}
+
+	return( 0 );
+}
+
+/* Open, then mmap() read/write. This is old and deprecated API, uuse
+ * im_vips_open() in preference.
+ */
+int
+im_openinrw( IMAGE *image )
+{
+	if( im__read_header( image ) )
+		return( -1 );
+	if( im_mapfilerw( image ) ) 
+		return( -1 );
+	image->data = image->baseaddr + image->sizeof_header;
+	image->dtype = IM_MMAPINRW;
+
+#ifdef DEBUG
+	printf( "im_openin: completely mmap()ing \"%s\" read-write\n",
+		image->filename );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
+/* Open a VIPS image for reading and byte-swap the image data if necessary. A
+ * ":w" at the end of the filename means we open read-write.
+ */
+IMAGE *
+im_open_vips( const char *filename )
+{
+	char name[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+	IMAGE *im;
+
+	im_filename_split( filename, name, mode );
+
+	if( !(im = im_init( name )) )
+		return( NULL );
+	if( mode[0] == 'w' ) {
+		if( im_openinrw( im ) ) {
+			im_close( im );
+			return( NULL );
+		}
+		if( im->Bbits != IM_BBITS_BYTE &&
+			im_isMSBfirst( im ) != im_amiMSBfirst() ) {
+			im_close( im );
+			im_error( "im_open_vips", _( "open for read-write for "
+				"native format images only" ) );
+			return( NULL );
+		}
+	}
+	else {
+		if( im_openin( im ) ) {
+			im_close( im );
+			return( NULL );
+		}
+	}
+
+	/* Not in native format?
+	 */
+	if( im_isMSBfirst( im ) != im_amiMSBfirst() ) {
+		/* Does it need swapping? 
+		 */
+		switch( im->Coding ) {
+		case IM_CODING_LABQ:
+			break;
+
+		case IM_CODING_NONE:
+			if( im->BandFmt != IM_BANDFMT_CHAR &&
+				im->BandFmt != IM_BANDFMT_UCHAR ) {
+				IMAGE *im2;
+
+				/* Needs swapping :( make a little pipeline up 
+				 * to do this for us.
+				 */
+				if( !(im2 = im_open( filename, "p" )) ) {
+					im_close( im );
+					return( NULL );
+				}
+				if( im_add_close_callback( im2, 
+					(im_callback_fn)im_close, im, NULL ) ) {
+					im_close( im );
+					im_close( im2 );
+					return( NULL );
+				}
+				if( im_copy_swap( im, im2 ) ) {
+					im_close( im2 );
+					return( NULL );
+				}
+				im = im2;
+			}
+			break;
+
+		default:
+			im_close( im );
+			im_error( "im_open", _( "unknown coding type" ) );
+			return( NULL );
+		}
+	}
+
+	return( im );
+}
+
+IMAGE *
+im_openout( const char *filename )
+{	
+	IMAGE *image;
+
+	if( !(image = im_init( filename )) ) 
+		return( NULL );
+	image->dtype = IM_OPENOUT;
+
+	return( image );
+}
+
