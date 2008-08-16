@@ -1,12 +1,10 @@
 .TH IM_TIFF 3 "6 June 1994"
 .SH NAME
-im_tiff2vips, im_tiff2vips_header, im_tiff2vips \- convert TIFF images to and from VIPS format
+im_tiff2vips, im_tiff2vips \- convert TIFF images to and from VIPS format
 .SH SYNOPSIS
 #include <vips/vips.h>
 
 int im_tiff2vips( const char *filename, IMAGE *out )
-
-int im_tiff2vips_header( const char *filename, IMAGE *out )
 
 int im_vips2tiff( IMAGE *in, const char *filename ) 
 
@@ -28,16 +26,6 @@ example:
   "fred.tif:12"
 
 will read page 12 (numbering from page zero) from the TIFF image.
-
-Use 
-.B im_istifftiled(3) 
-and 
-.B im_istiffpyramid(3) 
-to find the TIFF image type before calling.
-
-.B im_tiff2vips_header(3) 
-reads just the header information from the TIFF file. You can't read any
-pixels!
 
 .B im_vips2tiff(3) 
 reads the image in and writes a TIFF file to the specified
@@ -121,36 +109,36 @@ JPEG coder.
 
 The call:
 
-   im_vips2tiff fred.v fred.tif 
+  im_vips2tiff fred.v fred.tif 
 
 Writes a striped, uncompressed TIFF image. Almost anything should be able to
 read this.
 
-   im_vips2tiff fred.v fred.tif:jpeg,tile,pyramid
+  im_vips2tiff fred.v fred.tif:jpeg,tile,pyramid
 
 Writes a tiled JPEG pyramid image. Although VIPS tries to follow the TIFF
 specification carefully, you may have trouble reading this on any system other
 than VIPS.
 
-   im_vips2tiff fred.v fred.tif:jpeg:25,tile:64x64
+  im_vips2tiff fred.v fred.tif:jpeg:25,tile:64x64
 
 Writes a highly compressed JPEG image, with a tile size of 64 by 64 pixels.
 
-   im_vips2tiff fred.v fred.tif:,tile
+  im_vips2tiff fred.v fred.tif:,tile
 
 Writes an uncompressed tiled image.
 
-   im_vips2tiff fred.v fred.tif:packbits,tile,,onebit
+  im_vips2tiff fred.v fred.tif:packbits,tile,,onebit
 
 Writes a tiled one bit TIFF image (provided fred.v is a one band 8 bit image)
 compressed with packbits.
 
-   im_vips2tiff fred.v fred.tif:,,,,res_inch:300
+  im_vips2tiff fred.v fred.tif:,,,,res_inch:300
 
 Writes fred.v as a tiff file, with the resolution in the tiff header set to
 300 dpi.
 
 .SH SEE ALSO
-im_istiff(3), im_istifftiled(3), im_istiffpyramid(3)
+im_open(3)
 .SH COPYRIGHT
 Hey, you want this? You have it!

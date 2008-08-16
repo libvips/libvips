@@ -1,7 +1,7 @@
 .TH IM_ISINT 3 "11 April 1990"
 .SH NAME
-im_isint, im_ispng, im_isuint, im_isfloat, im_isscalar, im_iscomplex, im_istiff, 
-istifftiled, im_isjpeg, im_isfile, im_ispartial, im_isvips, im_isMSBfirst, 
+im_isint, im_isuint, im_isfloat, im_isscalar, im_iscomplex, 
+im_isfile, im_ispartial, im_isvips, im_isMSBfirst, 
 im_fexists, im_amiMSBfirst \- classify image types
 .SH SYNOPSIS
 .B #include <vips/vips.h>
@@ -13,26 +13,6 @@ IMAGE *im;
 int im_amiMSBfirst( void )
 
 int im_fexists( const char *filename, ... )
-
-int im_istiff( filename )
-.br
-char *filename;
-
-int im_istifftiled( filename )
-.br
-char *filename;
-
-int im_isjpeg( filename )
-.br
-char *filename;
-
-int im_ispng( filename )
-.br
-char *filename;
-
-int im_isppm( filename )
-.br
-char *filename;
 
 int im_isvips( filename )
 .br
@@ -69,16 +49,6 @@ IMAGE *im;
 .SH DESCRIPTION
 im_fexists(3) returns non-zero if the named file exists and is readable. Args
 as printf(3).
-
-im_istiff(3) tests a file for tiff-ness.
-
-im_istifftiled(3) tests a file for tiff-tiled-ness.
-
-im_isjpeg(3) tests a file for jpeg-ness.
-
-im_ispng(3) tests a file for png-ness.
-
-im_isppm(3) tests a file for PPM/PGM/PBM-ness.
 
 im_isvips(3) tests a file for vips-ness.
 

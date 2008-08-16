@@ -6,8 +6,6 @@ im_csv2vips, im_vips2csv \- read and write CSV (comma separated values) files
 
 int im_csv2vips( const char *filename, IMAGE *out )
 
-int im_csv2vips_header( const char *filename, IMAGE *out );
-
 int im_vips2csv( IMAGE *in, const char *filename )
 
 .SH DESCRIPTION
@@ -40,12 +38,6 @@ never run together.
 
 The number of lines to read from the file. Default -1, meaning read to end of
 file.
-
-.B im_csv2vips_header(3) 
-works exactly as 
-.B im_csv2vips(3)
-but only sets the header of the output image. It is rather slow, since it has
-to read the whole input file.
 
 .B im_vips2csv(3)
 writes the VIPS image to the file as ascii text, one line of text per

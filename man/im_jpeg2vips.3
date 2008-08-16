@@ -6,8 +6,6 @@ im_jpeg2vips, im_vips2jpeg, im_vips2bufjpeg, im_vips2mimejpeg \- convert JPEG im
 
 int im_jpeg2vips( char *filename, IMAGE *out ) 
 
-int im_jpeg2vips_header( char *filename, IMAGE *out ) 
-
 int im_vips2jpeg( IMAGE *in, char *filename )
 
 int im_vips2bufjpeg( IMAGE *in, IMAGE *base, char **obuf, int *olen )
@@ -15,7 +13,7 @@ int im_vips2bufjpeg( IMAGE *in, IMAGE *base, char **obuf, int *olen )
 int im_vips2mimejpeg( IMAGE *in )
 
 .SH DESCRIPTION
-.B im_jpeg2vips() 
+.B im_jpeg2vips(3) 
 reads the named jpeg file and writes it to the specified
 IMAGE. The entire image is read before returning. It can read most 8-bit JPEG
 images, including CMYK. 
@@ -37,13 +35,7 @@ Any embedded ICC profiles are ignored: you always just get the RGB from the
 file. Instead, the embedded profile will be attached to the image as metadata.
 Any EXIF data is also attached as VIPS metadata.
 
-.B im_jpeg2vips_header()
-reads just the header of the JPEG file (including any EXIF data), and sets 
-the fields in the VIPS image.
-You can't read any pixels! This is only useful for printing header
-information.
-
-.B im_vips2jpeg() 
+.B im_vips2jpeg(3) 
 writes the IMAGE to filename in JPEG format. It uses the
 default settings of the IJG library. 
 
@@ -63,7 +55,7 @@ profile from the header will be attached.
 The image is automatically converted to RGB or Monochrome before saving. Any
 metadata attached to the image is saved as EXIF, if possible.
 
-.B im_vips2bufjpeg() 
+.B im_vips2bufjpeg(3) 
 returns the compressed image in a memory buffer. The buffer
 is allocated for you, local to IMAGE descriptor 
 .B base. 
@@ -74,10 +66,10 @@ parameter. You are responsible for
 freeing the buffer. The buffer is only allocated if the function returns
 successfully.
 
-.B im_vips2mimejpeg() 
+.B im_vips2mimejpeg(3) 
 writes the image to stdout as a MIME image/jpeg type. It
 outputs Content-Length and Content-Type fields making the result suitable for
 sending to a web browser.
 
 .SH SEE ALSO
-im_isjpeg(3).
+im_open(3).
