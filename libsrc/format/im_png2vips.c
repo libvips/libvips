@@ -60,11 +60,6 @@ im_png2vips( const char *name, IMAGE *out )
 	return( -1 );
 }
 
-void
-im__png_register( void )
-{
-}
-
 #else /*HAVE_PNG*/
 
 #include <stdio.h>
@@ -393,7 +388,7 @@ im__png_register( void )
 {
 	im_format_register( 
 		"png",			/* internal name */
-		N_( "PNG" ),		/* i18n'd visible name */
+		_( "PNG" ),		/* i18n'd visible name */
 		png_suffs,		/* Allowed suffixes */
 		ispng,			/* is_a */
 		png2vips_header,	/* Load header only */

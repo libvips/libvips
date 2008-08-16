@@ -69,8 +69,6 @@ im_exr2vips( const char *name, IMAGE *out )
 	return( -1 );
 }
 
-int im__exr_register( void );
-
 #else /*HAVE_OPENEXR*/
 
 #include <stdio.h>
@@ -468,7 +466,7 @@ im__exr_register( void )
 {
 	im_format_register( 
 		"exr",			/* internal name */
-		N_( "OpenEXR" ),	/* i18n'd visible name */
+		_( "OpenEXR" ),		/* i18n'd visible name */
 		exr_suffs,		/* Allowed suffixes */
 		isexr,			/* is_a */
 		exr2vips_header,	/* Load header only */

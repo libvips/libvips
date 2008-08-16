@@ -594,7 +594,7 @@ im__analyze_register( void )
 {
 	im_format_register( 
 		"analyze",		/* internal name */
-		N_( "Analyze 6.0" ),	/* i18n'd visible name */
+		_( "Analyze 6.0" ),	/* i18n'd visible name */
 		analyze_suffs,		/* Allowed suffixes */
 		isanalyze,		/* is_a */
 		analyze2vips_header,	/* Load header only */

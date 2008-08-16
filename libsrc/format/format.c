@@ -46,7 +46,7 @@
 static GSList *format_list = NULL;
 
 static gint
-format_compare( im_format *a, im_format *b )
+format_compare( im_format_t *a, im_format_t *b )
 {
         return( b->priority - a->priority );
 }
@@ -62,15 +62,15 @@ format_sort( void )
 
 /* Register/unregister formats.
  */
-im_format *im_format_register( 
+im_format_t *im_format_register( 
 	const char *name, const char *name_user, const char **suffs,
 	im_format_is_a_fn is_a, im_format_header_fn header,
 	im_format_load_fn load, im_format_save_fn save,
 	im_format_flags_fn flags )
 {
-	im_format *format;
+	im_format_t *format;
 
-	if( !(format = IM_NEW( NULL, im_format )) )
+	if( !(format = IM_NEW( NULL, im_format_t )) )
 		return( NULL );
 	format->name = name;
 	format->name_user = name_user;
@@ -90,7 +90,7 @@ im_format *im_format_register(
 	return( format );
 }
 
-void im_format_set_priority( im_format *format, int priority )
+void im_format_set_priority( im_format_t *format, int priority )
 {
 	g_assert( format );
 
@@ -98,7 +98,7 @@ void im_format_set_priority( im_format *format, int priority )
 	format_sort();
 }
 
-void im_format_unregister( im_format *format )
+void im_format_unregister( im_format_t *format )
 {
 	format_list = g_slist_remove( format_list, format );
 }
@@ -108,14 +108,24 @@ void im_format_unregister( im_format *format )
 void
 im__format_init( void )
 {
+#ifdef HAVE_JPEG
 	im__jpeg_register();
+#endif /*HAVE_JPEG*/
+#ifndef HAVE_PNG
 	im__png_register();
+#endif /*HAVE_PNG*/
 	im__csv_register();
 	im__ppm_register();
 	im__analyze_register();
+#ifdef HAVE_OPENEXR
 	im__exr_register();
+#endif /*HAVE_OPENEXR*/
+#ifdef HAVE_MAGICK
 	im__magick_register();
+#endif /*HAVE_MAGICK*/
+#ifdef HAVE_TIFF
 	im__tiff_register();
+#endif /*HAVE_TIFF*/
 }
 
 /* Map a function over all formats. 
@@ -129,7 +139,7 @@ im_format_map( VSListMap2Fn fn, void *a, void *b )
 /* Can this format open this file?
  */
 static void *
-format_for_file_sub( im_format *format, 
+format_for_file_sub( im_format_t *format, 
 	const char *filename, const char *name )
 {
 	if( format->is_a ) {
@@ -142,12 +152,12 @@ format_for_file_sub( im_format *format,
 	return( NULL );
 }
 
-im_format *
+im_format_t *
 im_format_for_file( const char *filename )
 {
 	char name[FILENAME_MAX];
 	char options[FILENAME_MAX];
-	im_format *format;
+	im_format_t *format;
 
 	/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
 	 * etc.
@@ -160,7 +170,7 @@ im_format_for_file( const char *filename )
 		return( NULL );
 	}
 
-	format = (im_format *) im_format_map( 
+	format = (im_format_t *) im_format_map( 
 		(VSListMap2Fn) format_for_file_sub, 
 		(void *) filename, (void *) name );
 
@@ -177,7 +187,7 @@ im_format_for_file( const char *filename )
  * method.
  */
 static void *
-format_for_name_sub( im_format *format, 
+format_for_name_sub( im_format_t *format, 
 	const char *filename, const char *name )
 {
 	if( format->save &&
@@ -187,7 +197,7 @@ format_for_name_sub( im_format *format,
 	return( NULL );
 }
 
-im_format *
+im_format_t *
 im_format_for_name( const char *filename )
 {
 	char name[FILENAME_MAX];
@@ -198,7 +208,7 @@ im_format_for_name( const char *filename )
 	 */
 	im_filename_split( filename, name, options );
 
-	return( (im_format *) im_format_map( 
+	return( (im_format_t *) im_format_map( 
 		(VSListMap2Fn) format_for_name_sub, 
 		(void *) filename, (void *) name ) );
 }

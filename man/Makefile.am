@@ -126,7 +126,6 @@ man_MANS = \
 	im_create_fmask.3 \
 	im_create_imask.3 \
 	im_csv2vips.3 \
-	im_csv2vips_header.3 \
 	im_dE00_fromLab.3 \
 	im_debugim.3 \
 	im_dECMC_fromdisp.3 \
@@ -164,7 +163,6 @@ man_MANS = \
 	im_expntra_vec.3 \
 	im_exptra.3 \
 	im_exr2vips.3 \
-	im_exr2vips_header.3 \
 	im_extract.3 \
 	im_extract_area.3 \
 	im_extract_areabands.3 \
@@ -267,19 +265,13 @@ man_MANS = \
 	im_isfile.3 \
 	im_isfloat.3 \
 	im_isint.3 \
-	im_isjpeg.3 \
 	im_isMSBfirst.3 \
 	im_ispartial.3 \
-	im_ispng.3 \
-	im_isppm.3 \
 	im_isscalar.3 \
-	im_istiff.3 \
-	im_istifftiled.3 \
 	im_isuint.3 \
 	im_isvips.3 \
 	im_iterate.3 \
 	im_jpeg2vips.3 \
-	im_jpeg2vips_header.3 \
 	im_Lab2disp.3 \
 	im_Lab2LabQ.3 \
 	im_Lab2LabS.3 \
@@ -322,7 +314,6 @@ man_MANS = \
 	im_lu_decomp.3 \
 	im_lu_solve.3 \
 	im_magick2vips.3 \
-	im_magick2vips_header.3 \
 	im_makerw.3 \
 	im_make_xy.3 \
 	im_malloc.3 \
@@ -396,12 +387,10 @@ man_MANS = \
 	im_plotmask.3 \
 	im_plotpoint.3 \
 	im_png2vips.3 \
-	im_png2vips_header.3 \
 	im_poutcheck.3 \
 	im_powtra.3 \
 	im_powtra_vec.3 \
 	im_ppm2vips.3 \
-	im_ppm2vips_header.3 \
 	im_prepare.3 \
 	im_prepare_many.3 \
 	im_prepare_to.3 \
@@ -502,7 +491,6 @@ man_MANS = \
 	im_text.3 \
 	im_thresh.3 \
 	im_tiff2vips.3 \
-	im_tiff2vips_header.3 \
 	im_tile_cache.3 \
 	im_tone_analyse.3 \
 	im_tone_build.3 \

@@ -68,11 +68,6 @@ im_magick2vips( const char *filename, IMAGE *im )
 	return( -1 );
 }
 
-int
-im__magick_register( void )
-{
-}
-
 #else /*HAVE_MAGICK*/
 
 #include <stdio.h>
@@ -665,11 +660,11 @@ static const char *magick_suffs[] = { NULL };
 void
 im__magick_register( void )
 {
-	im_format *format;
+	im_format_t *format;
 
 	format = im_format_register( 
 		"magick",		/* internal name */
-		N_( "libMagick-supported" ),/* i18n'd visible name */
+		_( "libMagick-supported" ),/* i18n'd visible name */
 		magick_suffs,		/* Allowed suffixes */
 		ismagick,		/* is_a */
 		magick2vips_header,	/* Load header only */

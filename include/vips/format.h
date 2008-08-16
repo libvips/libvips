@@ -52,7 +52,7 @@ typedef im_format_flags (*im_format_flags_fn)( const char * );
 
 /* A VIPS image format. 
  */
-typedef struct {
+typedef struct im__format_t {
 	const char *name;	/* Format name, same as mime */
 	const char *name_user;	/* I18n'd name for users */
 	int priority;		/* Keep formats sorted by this, default 0 */
@@ -62,23 +62,23 @@ typedef struct {
 	im_format_load_fn load;	/* Load image from filename */
 	im_format_save_fn save;	/* Save image to filename */
 	im_format_flags_fn flags;/* Get flags for filename */
-} im_format;
+} im_format_t;
 
 /* Register/unregister formats.
  */
-im_format *im_format_register( 
+im_format_t *im_format_register( 
 	const char *name, const char *name_user, const char **suffs,
 	im_format_is_a_fn is_a, im_format_header_fn header,
 	im_format_load_fn load, im_format_save_fn save,
 	im_format_flags_fn flags );
-void im_format_set_priority( im_format *format, int priority );
-void im_format_unregister( im_format *format );
+void im_format_set_priority( im_format_t *format, int priority );
+void im_format_unregister( im_format_t *format );
 
 /* Map over and find formats.
  */
 void *im_format_map( VSListMap2Fn fn, void *a, void *b );
-im_format *im_format_for_file( const char *filename );
-im_format *im_format_for_name( const char *filename );
+im_format_t *im_format_for_file( const char *filename );
+im_format_t *im_format_for_name( const char *filename );
 
 #ifdef __cplusplus
 }

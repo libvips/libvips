@@ -345,7 +345,7 @@ IMAGE *
 im_open( const char *filename, const char *mode )
 {
 	IMAGE *im;
-	im_format *format;
+	im_format_t *format;
 	char name[FILENAME_MAX];
 	char mode2[FILENAME_MAX];
 

@@ -67,6 +67,7 @@
 #include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "base64.h"
 

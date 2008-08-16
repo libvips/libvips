@@ -151,11 +151,6 @@ im_tiff2vips( const char *tiffile, IMAGE *im )
 	return( -1 );
 }
 
-void
-im__tiff_register( void )
-{
-}
-
 #else /*HAVE_TIFF*/
 
 #include <stdio.h>
@@ -1559,7 +1554,7 @@ im__tiff_register( void )
 {
 	im_format_register( 
 		"tiff",			/* internal name */
-		N_( "TIFF" ),		/* i18n'd visible name */
+		_( "TIFF" ),		/* i18n'd visible name */
 		tiff_suffs,		/* Allowed suffixes */
 		istiff,			/* is_a */
 		tiff2vips_header,	/* Load header only */

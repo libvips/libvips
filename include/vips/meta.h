@@ -65,19 +65,6 @@ void *im_blob_get( const GValue *value, size_t *data_length );
 int im_blob_set( GValue *value, im_callback_fn free_fn, 
 	void *data, size_t length ); 
 
-/* What we store in the Meta hash table. We can't just use GHashTable's 
- * key/value pairs, since we need to iterate over meta in Meta_traverse order.
- *
- * We don't refcount at this level ... large meta values are refcounted by
- * their GValue implementation, see eg. MetaArea below.
- */
-typedef struct _Meta {
-	IMAGE *im;
-
-	char *field;			/* strdup() of field name */
-	GValue value;			/* copy of value */
-} Meta;
-
 int im_meta_set( IMAGE *, const char *field, GValue * );
 int im_meta_get( IMAGE *, const char *field, GValue * );
 GType im_meta_get_type( IMAGE *im, const char *field );
@@ -94,12 +81,6 @@ int im_meta_set_blob( IMAGE *im, const char *field,
 	im_callback_fn free_fn, void *blob, size_t blob_length );
 int im_meta_get_blob( IMAGE *im, const char *field, 
 	void **blob, size_t *blob_length );
-
-/* Internal.
- */
-void im__meta_init_types( void );
-void im__meta_destroy( IMAGE *im );
-int im__meta_cp( IMAGE *, const IMAGE * );
 
 #ifdef __cplusplus
 }

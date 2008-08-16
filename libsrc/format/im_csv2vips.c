@@ -322,7 +322,7 @@ im__csv_register( void )
 {
 	im_format_register( 
 		"csv",			/* internal name */
-		N_( "CSV" ),		/* i18n'd visible name */
+		_( "CSV" ),		/* i18n'd visible name */
 		csv_suffs,		/* Allowed suffixes */
 		NULL,			/* is_a */
 		csv2vips_header,	/* Load header only */

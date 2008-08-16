@@ -63,7 +63,7 @@ typedef struct im__buffer_cache_list_t {
 
 /* What we track for each pixel buffer. 
  */
-typedef struct {
+typedef struct im__buffer_t {
 	int ref_count;		/* # of regions referencing us */
 	IMAGE *im;		/* IMAGE we are attached to */
 

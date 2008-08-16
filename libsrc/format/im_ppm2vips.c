@@ -508,7 +508,7 @@ im__ppm_register( void )
 {
 	im_format_register( 
 		"ppm",			/* internal name */
-		N_( "PPM/PBM/PNM" ),	/* i18n'd visible name */
+		_( "PPM/PBM/PNM" ),	/* i18n'd visible name */
 		ppm_suffs,		/* Allowed suffixes */
 		isppm,			/* is_a */
 		ppm2vips_header,	/* Load header only */

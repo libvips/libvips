@@ -1,12 +1,22 @@
 - check man pages for im_isjpeg(), im_jpeg2vips_header() etc.
 
+- write man pages for im_format api
+
 - operations and jesper's types should all use the new register/unregister
   model
 
   support backwards compat by calling im_operation_register() automatically 
   if we see a package_table symbol
 
-  package.c needs to have the format_table stuff removed
+  have new structs with new fields under new names? eg. jesper wants something 
+  to write to a string
+
+  check other use cases eg. nip2, python, c++, vips.c
+
+- add new type names, eg. im_region_t, im_image_t etc. and deprecate old
+  names?
+
+
 
   plugin init
 

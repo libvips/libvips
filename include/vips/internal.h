@@ -37,6 +37,23 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* What we store in the Meta hash table. We can't just use GHashTable's 
+ * key/value pairs, since we need to iterate over meta in Meta_traverse order.
+ *
+ * We don't refcount at this level ... large meta values are refcounted by
+ * their GValue implementation, see eg. MetaArea.
+ */
+typedef struct _Meta {
+	IMAGE *im;
+
+	char *field;			/* strdup() of field name */
+	GValue value;			/* copy of value */
+} Meta;
+
+void im__meta_init_types( void );
+void im__meta_destroy( IMAGE *im );
+int im__meta_cp( IMAGE *, const IMAGE * );
+
 /* Default tile geometry.
  */
 extern int im__tile_width;

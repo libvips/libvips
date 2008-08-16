@@ -72,11 +72,6 @@ im_jpeg2vips( const char *name, IMAGE *out )
 	return( -1 );
 }
 
-void 
-im__jpeg_register( void )
-{
-}
-
 #else /*HAVE_JPEG*/
 
 #include <stdio.h>
@@ -728,7 +723,7 @@ im__jpeg_register( void )
 {
 	im_format_register( 
 		"jpeg",			/* internal name */
-		N_( "JPEG" ),		/* i18n'd visible name */
+		_( "JPEG" ),		/* i18n'd visible name */
 		jpeg_suffs,		/* Allowed suffixes */
 		isjpeg,			/* is_a */
 		jpeg2vips_header,	/* Load header only */
