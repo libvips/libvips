@@ -181,6 +181,13 @@ man_MANS = \
 	im_flood_blob.3 \
 	im_floor.3 \
 	im_flt_imag_freq.3 \
+	im_format.3 \
+	im_format_for_file.3 \
+	im_format_for_name.3 \
+	im_format_map.3 \
+	im_format_register.3 \
+	im_format_set_priority.3 \
+	im_format_unregister.3 \
 	im_fractsurf.3 \
 	im_free.3 \
 	im_free_dmask.3 \

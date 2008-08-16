@@ -1,0 +1,156 @@
+.TH IM_FORMAT 3 "16 August 2008"
+.SH NAME
+im_format_register, im_format_set_priority, im_format_unregister,
+im_format_map, im_format_for_file, im_format_for_name \- 
+load and search image formats
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+typedef enum {
+.br
+  IM_FORMAT_FLAG_NONE = 0,
+.br
+  IM_FORMAT_FLAG_PARTIAL = 1
+.br
+} im_format_flags;
+
+typedef gboolean (*im_format_is_a_fn)( const char * );
+.br
+typedef int (*im_format_header_fn)( const char *, IMAGE * );
+.br
+typedef int (*im_format_load_fn)( const char *, IMAGE * );
+.br
+typedef int (*im_format_save_fn)( IMAGE *, const char * );
+.br
+typedef im_format_flags (*im_format_flags_fn)( const char * );
+
+typedef struct im__format_t {
+.br
+  const char *name;
+.br
+  const char *name_user;
+.br
+  int priority;        
+.br
+  const char **suffs; 
+.br
+  im_format_is_a_fn is_a;
+.br
+  im_format_header_fn header;
+.br
+  im_format_load_fn load;
+.br
+  im_format_save_fn save;
+.br
+  im_format_flags_fn flags;
+.br
+} im_format_t;
+
+im_format_t *im_format_register(
+.br
+  const char *name, const char *name_user, const char **suffs,
+.br
+  im_format_is_a_fn is_a, im_format_header_fn header,
+.br
+  im_format_load_fn load, im_format_save_fn save,
+.br
+  im_format_flags_fn flags );
+.br
+void im_format_set_priority( im_format_t *format, int priority );
+.br
+void im_format_unregister( im_format_t *format );
+
+void *im_format_map( VSListMap2Fn fn, void *a, void *b );
+.br
+im_format_t *im_format_for_file( const char *filename );
+.br
+im_format_t *im_format_for_name( const char *filename );
+
+.SH DESCRIPTION
+These functions register and unregister image formats, and search the table of 
+available image formats to find one suitable for loading or saving a file.
+
+.B im_format_register(3)
+registers an image format with vips. This might typically be called during
+module load, see the documentation for GModule.
+
+An image format has a number of
+components:
+
+.B name
+The internal name by which the format should be known. For example, the 
+OpenEXR image format is known within vips as "exr".
+
+.B name_user
+The name as it should be displayed to the user. It can be internationalised.
+For example, in English, the OpenEXR format is shown as "OpenEXR".
+
+.B suffs
+A NULL-terminated array of possible file-name suffixes for this format. This
+list is used to filter filenames when they are shown to the user, and to help
+select a format to sav a file as. For example, the JPEG format has the
+suffixes:
+.B { ".jpg", ".jpeg", ".jpe", NULL }
+
+.B is_a
+A function which tests whether a file is of the specified format. This is
+useful if you can guess a file type from the first few bytes in the file. If
+you leave this function NULL, vips will guess from the filename suffix for
+you.
+
+.B header
+Load only the image header, not any of the image pixels. vips will call this
+first on
+.B im_open(3)
+and delay loading pixels until asked. If you leave this NULL, vips will just
+use the 
+.B load 
+function.
+
+.B load
+Load the image from the file into the IMAGE. You can leave this function NULL
+if you only have a 
+.B save
+method implemented.
+
+.B save
+Write from the IMAGE to the file in this format. You can leave this function
+NULL if you only have a lload method implemented.
+
+.B flags
+A function which examines the file and sets various flags to indicated
+properties of the image. The only flag implemented at the moment is
+.B IM_FORMAT_FLAG_PARTIAL
+which may be set to indicate that the file can be read lazily.
+
+vips registers the format and returns a pointer to the
+.B im_format_t 
+it created. This may later be used to unregister the format.
+
+.B im_format_set_priority(3)
+sets a priority for the format. Priorities for formats default to zero: you
+mmay set a lower or higher number to set where in the format table your format
+is positioned. 
+
+.B im_format_unregister(3)
+removes a format from vips. It mmight typically be called during module
+unload, see the documentation for GModule.
+
+.B im_format_map(3)
+maps a function over the list of loaded formats. See 
+.B im_slist_map(3).
+
+.B im_format_for_file(3)
+looks at a file on disc and selects the 'best' formmat to use to load that 
+file.
+
+.B im_format_for_name(3)
+looks at a filename and picks a format to use to save that file based on the
+file extension.
+
+.SH RETURN VALUE
+The functions return 0 success and -1 on error.
+.SH SEE ALSO
+im_tiff2vips(3).
+.SH AUTHOR
+Jesper Friis and John Cupitt
