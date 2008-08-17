@@ -9,6 +9,7 @@
 - im_filename_suffix() includes "." in suffix
 - merge back into trunk for 7.15.1
 - remove im_ispng(), im_png2vips_header() etc. & friends
+- add "vips --list formats"
 
 7/3/08 started 7.15.0
 - MAGIC constants should be tagged as unsigned

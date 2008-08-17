@@ -24,6 +24,8 @@
  * 	- add --list packages
  * 26/2/07
  * 	- add input *VEC arg types to C++ binding
+ * 17/8/08
+ * 	- add --list formats
  */
 
 /*
@@ -148,7 +150,7 @@ map_name( const char *name, map_name_fn fn )
 static void *
 list_package( im_package *pack )
 {
-	printf( "%-18s - %d operations\n", pack->name, pack->nfuncs );
+	printf( "%-20s - %d operations\n", pack->name, pack->nfuncs );
 	
 	return( NULL );
 }
@@ -156,7 +158,37 @@ list_package( im_package *pack )
 static void *
 list_function( im_function *func )
 {
-	printf( "%-18s - %s\n", func->name, _( func->desc ) );
+	printf( "%-20s - %s\n", func->name, _( func->desc ) );
+	
+	return( NULL );
+}
+
+static void *
+list_format( im_format_t *format )
+{
+	const char **p;
+
+	printf( "%-20s - ", format->name_user );
+
+	printf( "(" );
+	for( p = format->suffs; *p; p++ ) {
+		printf( "%s", *p );
+		if( p[1] )
+			printf( ", " );
+	}
+	printf( ") " );
+
+	if( format->is_a )
+		printf( "is_a " );
+	if( format->header )
+		printf( "header " );
+	if( format->load )
+		printf( "load " );
+	if( format->save )
+		printf( "save " );
+	if( format->flags )
+		printf( "flags " );
+	printf( "\n" );
 	
 	return( NULL );
 }
@@ -166,6 +198,8 @@ print_list( const char *name )
 {
 	if( strcmp( name, "packages" ) == 0 ) 
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
+	else if( strcmp( name, "formats" ) == 0 ) 
+		im_format_map( (VSListMap2Fn) list_format, NULL, NULL );
 	else {
 		if( map_name( name, list_function ) )
 			error_exit( "unknown package \"%s\"", name ); 

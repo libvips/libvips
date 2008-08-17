@@ -1,6 +1,4 @@
-- check man pages for im_isjpeg(), im_jpeg2vips_header() etc.
-
-- write man pages for im_format api
+- needs docs in vips manual for format stuff I guess
 
 - operations and jesper's types should all use the new register/unregister
   model
@@ -11,10 +9,20 @@
   have new structs with new fields under new names? eg. jesper wants something 
   to write to a string
 
+  though we have to pass (almost) the same structs to UIs argh and we can't
+  change them
+
+  jesper wants to add another field to im_type_desc ... so, keep im_type_desc
+  as is and define a new struct im_type_t with the extra fields
+
+  when we load a package, call im_type_register with the known fields
+
   check other use cases eg. nip2, python, c++, vips.c
 
-- add new type names, eg. im_region_t, im_image_t etc. and deprecate old
-  names?
+  reread the plugin section in the vipsmanual and think about compat
+
+
+- junk package system?
 
 
 
@@ -24,19 +32,6 @@
 
   null for success, or errormsg
 
-
-- something in vips.c to list the available formats, like 
-
-	vips --list packages
-
-  perhaps
-
-	vips --list formats
-
-- add API to add operations and formats, can be used by plugins in module init
-  to register stuff
-
-- deprecate the current plugin init system
 
 - more cleanups to the handling of vips format images, esp. we have vips write
   spread across many files atm
@@ -50,6 +45,11 @@
 
   should im_format become im_format_t? what's the current naming convention?
   should be add _t variants for all types?
+
+  add new type names, eg. im_region_t, im_image_t etc. and deprecate old
+  names?
+
+  sigh or maybe VipsRegion, VipsImage
 
 
 
