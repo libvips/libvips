@@ -62,7 +62,8 @@ format_sort( void )
 
 /* Register/unregister formats.
  */
-im_format_t *im_format_register( 
+im_format_t *
+im_format_register( 
 	const char *name, const char *name_user, const char **suffs,
 	im_format_is_a_fn is_a, im_format_header_fn header,
 	im_format_load_fn load, im_format_save_fn save,
@@ -90,7 +91,8 @@ im_format_t *im_format_register(
 	return( format );
 }
 
-void im_format_set_priority( im_format_t *format, int priority )
+void 
+im_format_set_priority( im_format_t *format, int priority )
 {
 	g_assert( format );
 
@@ -98,9 +100,11 @@ void im_format_set_priority( im_format_t *format, int priority )
 	format_sort();
 }
 
-void im_format_unregister( im_format_t *format )
+void 
+im_format_unregister( im_format_t *format )
 {
 	format_list = g_slist_remove( format_list, format );
+	IM_FREE( format );
 }
 
 /* Called on startup: register the base vips formats.
