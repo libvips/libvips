@@ -50,7 +50,7 @@
 #include <time.h>
 
 #include <vips/vips.h>
-#include <vips/vbuf.h>
+#include <vips/buf.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -63,7 +63,7 @@ im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] )
 {	
 	int i;
 	char txt[IM_MAX_LINE];
-	VBuf buf;
+	im_buf_t buf;
 
 	im_buf_init_static( &buf, txt, IM_MAX_LINE );
 	im_buf_appends( &buf, name );

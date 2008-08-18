@@ -95,7 +95,7 @@ im_jpeg2vips( const char *name, IMAGE *out )
 #endif /*HAVE_EXIF*/
 
 #include <vips/vips.h>
-#include <vips/vbuf.h>
+#include <vips/buf.h>
 #include <vips/internal.h>
 
 /* jpeglib includes jconfig.h, which can define HAVE_STDLIB_H ... which we
@@ -247,9 +247,9 @@ static void
 attach_exif_entry( ExifEntry *entry, IMAGE *im )
 {
 	char name_text[256];
-	VBuf name;
+	im_buf_t name;
 	char value_text[256];
-	VBuf value;
+	im_buf_t value;
 	char exif_value[256];
 
 	im_buf_init_static( &name, name_text, 256 );

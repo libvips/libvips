@@ -1,4 +1,4 @@
-/* Some basic util functions.
+/* string buffers
  */
 
 /*
@@ -43,7 +43,7 @@
 #include <assert.h>
 
 #include <vips/vips.h>
-#include <vips/vbuf.h>
+#include <vips/buf.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -54,7 +54,7 @@
 #define MAX_STRSIZE (16000)
 
 void
-im_buf_rewind( VBuf *buf )
+im_buf_rewind( im_buf_t *buf )
 {
 	buf->i = 0;
 	buf->lasti = 0;
@@ -67,7 +67,7 @@ im_buf_rewind( VBuf *buf )
 /* Power on init.
  */
 void
-im_buf_init( VBuf *buf )
+im_buf_init( im_buf_t *buf )
 {
 	buf->base = NULL;
 	buf->mx = 0;
@@ -78,7 +78,7 @@ im_buf_init( VBuf *buf )
 /* Reset to power on state ... only needed for dynamic bufs.
  */
 void
-im_buf_destroy( VBuf *buf )
+im_buf_destroy( im_buf_t *buf )
 {
 	if( buf->dynamic ) {
 		if( buf->base ) {
@@ -93,7 +93,7 @@ im_buf_destroy( VBuf *buf )
 /* Set to a static string.
  */
 void
-im_buf_set_static( VBuf *buf, char *base, int mx )
+im_buf_set_static( im_buf_t *buf, char *base, int mx )
 {
 	assert( mx >= 4 );
 
@@ -106,7 +106,7 @@ im_buf_set_static( VBuf *buf, char *base, int mx )
 }
 
 void
-im_buf_init_static( VBuf *buf, char *base, int mx )
+im_buf_init_static( im_buf_t *buf, char *base, int mx )
 {
 	im_buf_init( buf );
 	im_buf_set_static( buf, base, mx );
@@ -115,7 +115,7 @@ im_buf_init_static( VBuf *buf, char *base, int mx )
 /* Set to a dynamic string.
  */
 void
-im_buf_set_dynamic( VBuf *buf, int mx )
+im_buf_set_dynamic( im_buf_t *buf, int mx )
 {
 	assert( mx >= 4 );
 
@@ -139,7 +139,7 @@ im_buf_set_dynamic( VBuf *buf, int mx )
 }
 
 void
-im_buf_init_dynamic( VBuf *buf, int mx )
+im_buf_init_dynamic( im_buf_t *buf, int mx )
 {
 	im_buf_init( buf );
 	im_buf_set_dynamic( buf, mx );
@@ -149,7 +149,7 @@ im_buf_init_dynamic( VBuf *buf, int mx )
  * FALSE on overflow.
  */
 gboolean
-im_buf_appendns( VBuf *buf, const char *str, int sz )
+im_buf_appendns( im_buf_t *buf, const char *str, int sz )
 {
 	int len;
 	int n;
@@ -191,7 +191,7 @@ im_buf_appendns( VBuf *buf, const char *str, int sz )
 /* Append a string to a buf. Error on overflow.
  */
 gboolean
-im_buf_appends( VBuf *buf, const char *str )
+im_buf_appends( im_buf_t *buf, const char *str )
 {
 	return( im_buf_appendns( buf, str, -1 ) );
 }
@@ -199,7 +199,7 @@ im_buf_appends( VBuf *buf, const char *str )
 /* Append a character to a buf. Error on overflow.
  */
 gboolean
-im_buf_appendc( VBuf *buf, char ch )
+im_buf_appendc( im_buf_t *buf, char ch )
 {
 	char tiny[2];
 
@@ -212,7 +212,7 @@ im_buf_appendc( VBuf *buf, char ch )
 /* Append a double, non-localised. Useful for config files etc.
  */
 gboolean
-im_buf_appendg( VBuf *buf, double g )
+im_buf_appendg( im_buf_t *buf, double g )
 {
 	char text[G_ASCII_DTOSTR_BUF_SIZE];
 
@@ -225,7 +225,7 @@ im_buf_appendg( VBuf *buf, double g )
 /* Swap the rightmost occurence of old for new.
  */
 gboolean
-im_buf_change( VBuf *buf, const char *old, const char *new )
+im_buf_change( im_buf_t *buf, const char *old, const char *new )
 {
 	int olen = strlen( old );
 	int nlen = strlen( new );
@@ -261,7 +261,7 @@ im_buf_change( VBuf *buf, const char *old, const char *new )
 /* Remove the last character.
  */
 gboolean
-im_buf_removec( VBuf *buf, char ch )
+im_buf_removec( im_buf_t *buf, char ch )
 {
 	if( buf->full )
 		return( FALSE );
@@ -277,7 +277,7 @@ im_buf_removec( VBuf *buf, char ch )
 /* Append to a buf, args as printf. FALSE on overflow.
  */
 gboolean
-im_buf_appendf( VBuf *buf, const char *fmt, ... )
+im_buf_appendf( im_buf_t *buf, const char *fmt, ... )
 {
 	va_list ap;
 	char str[MAX_STRSIZE];
@@ -292,7 +292,7 @@ im_buf_appendf( VBuf *buf, const char *fmt, ... )
 /* Append to a buf, args as vprintf. Error on overflow.
  */
 gboolean
-im_buf_vappendf( VBuf *buf, const char *fmt, va_list ap )
+im_buf_vappendf( im_buf_t *buf, const char *fmt, va_list ap )
 {
 	char str[MAX_STRSIZE];
 
@@ -304,7 +304,7 @@ im_buf_vappendf( VBuf *buf, const char *fmt, va_list ap )
 /* Read all text from buffer.
  */
 const char *
-im_buf_all( VBuf *buf )
+im_buf_all( im_buf_t *buf )
 {
 	buf->base[buf->i] = '\0';
 
@@ -312,13 +312,13 @@ im_buf_all( VBuf *buf )
 }
 
 gboolean
-im_buf_isempty( VBuf *buf )
+im_buf_isempty( im_buf_t *buf )
 {
 	return( buf->i == 0 );
 }
 
 gboolean
-im_buf_isfull( VBuf *buf )
+im_buf_isfull( im_buf_t *buf )
 {
 	return( buf->full );
 }
@@ -326,7 +326,7 @@ im_buf_isfull( VBuf *buf )
 /* Buffer length ... still need to do im_buf_all().
  */
 int
-im_buf_len( VBuf *buf )
+im_buf_len( im_buf_t *buf )
 {
 	return( buf->i );
 }

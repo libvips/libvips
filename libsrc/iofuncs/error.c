@@ -54,7 +54,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/vbuf.h>
+#include <vips/buf.h>
 #include <vips/thread.h>
 
 #ifdef OS_WIN32
@@ -70,7 +70,7 @@
  */
 #define IM_MAX_ERROR (10240)
 static char im_error_text[IM_MAX_ERROR] = "";
-static VBuf im_error_buf = 
+static im_buf_t im_error_buf = 
 	IM_BUF_STATIC( im_error_text, IM_MAX_ERROR );
 
 #define IM_DIAGNOSTICS "IM_DIAGNOSTICS"

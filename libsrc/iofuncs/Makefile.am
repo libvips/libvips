@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
+	type.c \
 	meta.c \
 	base64.h \
 	base64.c \
@@ -52,7 +53,7 @@ libiofuncs_la_SOURCES = \
 	threadgroup.c \
 	util.c \
 	im_init_world.c \
-	vbuf.c \
+	buf.c \
 	window.c \
 	buffer.c \
 	time.c 

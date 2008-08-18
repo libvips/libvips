@@ -49,7 +49,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vbuf.h>
+#include <vips/buf.h>
 
 #include "mosaic.h"
 #include "merge.h"
@@ -105,7 +105,7 @@ im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 {
 	Transformation trn;
 	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:1", "p" );
-	VBuf buf;
+	im_buf_t buf;
 	char text[1024];
 
 	/* Scale, rotate and displace sec.
@@ -147,7 +147,7 @@ im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 {
 	Transformation trn;
 	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:2", "p" );
-	VBuf buf;
+	im_buf_t buf;
 	char text[1024];
 
 	/* Scale, rotate and displace sec.

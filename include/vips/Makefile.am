@@ -8,6 +8,7 @@ pkginclude_HEADERS = \
 	debug.h \
 	dispatch.h \
 	format.h \
+	type.h \
 	fmask.h \
 	mosaic.h \
 	proto.h \
@@ -24,7 +25,7 @@ pkginclude_HEADERS = \
 	vips.h \
 	vips \
 	intl.h \
-	vbuf.h \
+	buf.h \
 	vipsc++.h 
 
 vipsc++.h:

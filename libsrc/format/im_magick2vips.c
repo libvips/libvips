@@ -77,7 +77,7 @@ im_magick2vips( const char *filename, IMAGE *im )
 #include <sys/types.h>
 
 #include <vips/vips.h>
-#include <vips/vbuf.h>
+#include <vips/buf.h>
 #include <vips/thread.h>
 
 #include <magick/api.h>
@@ -338,7 +338,7 @@ parse_header( Read *read )
 	#error attributes enabled, but no access funcs found
 #endif
 		char name_text[256];
-		VBuf name;
+		im_buf_t name;
 
 		im_buf_init_static( &name, name_text, 256 );
 		im_buf_appendf( &name, "magick-%s", attr->key );

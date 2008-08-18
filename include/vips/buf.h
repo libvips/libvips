@@ -27,8 +27,8 @@
 
  */
 
-#ifndef IM_VBUF_H
-#define IM_VBUF_H
+#ifndef IM_BUF_H
+#define IM_BUF_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,41 +44,41 @@ typedef struct {
         gboolean full;          /* String has filled, block writes */
         int lasti;              /* For read-recent */
         gboolean dynamic;       /* We own the string with malloc() */
-} VBuf;
+} im_buf_t;
 
 /* Static init of one of these.
  */
 #define IM_BUF_STATIC( TEXT, MAX ) \
         { &TEXT[0], MAX, 0, FALSE, 0, FALSE }
 
-void im_buf_rewind( VBuf *buf );
-void im_buf_destroy( VBuf *buf );
-void im_buf_init( VBuf *buf ); 
-void im_buf_set_static( VBuf *buf, char *base, int mx );
-void im_buf_set_dynamic( VBuf *buf, int mx );
-void im_buf_init_static( VBuf *buf, char *base, int mx );
-void im_buf_init_dynamic( VBuf *buf, int mx );
-gboolean im_buf_appendns( VBuf *buf, const char *str, int sz );
-gboolean im_buf_appends( VBuf *buf, const char *str );
-gboolean im_buf_appendline( VBuf *buf, const char *str );
-gboolean im_buf_appendf( VBuf *buf, const char *fmt, ... )
+void im_buf_rewind( im_buf_t *buf );
+void im_buf_destroy( im_buf_t *buf );
+void im_buf_init( im_buf_t *buf ); 
+void im_buf_set_static( im_buf_t *buf, char *base, int mx );
+void im_buf_set_dynamic( im_buf_t *buf, int mx );
+void im_buf_init_static( im_buf_t *buf, char *base, int mx );
+void im_buf_init_dynamic( im_buf_t *buf, int mx );
+gboolean im_buf_appendns( im_buf_t *buf, const char *str, int sz );
+gboolean im_buf_appends( im_buf_t *buf, const char *str );
+gboolean im_buf_appendline( im_buf_t *buf, const char *str );
+gboolean im_buf_appendf( im_buf_t *buf, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
-gboolean im_buf_vappendf( VBuf *buf, const char *fmt, va_list ap );
-gboolean im_buf_appendc( VBuf *buf, char ch );
-gboolean im_buf_appendg( VBuf *buf, double g );
-gboolean im_buf_appendsc( VBuf *buf, const char *str );
-gboolean im_buf_removec( VBuf *buf, char ch );
-gboolean im_buf_change( VBuf *buf, const char *old, const char * );
-gboolean im_buf_isempty( VBuf *buf );
-gboolean im_buf_isfull( VBuf *buf );
-const char *im_buf_all( VBuf *buf );
-gboolean im_buf_appendd( VBuf *buf, int d );
-int im_buf_len( VBuf *buf );
+gboolean im_buf_vappendf( im_buf_t *buf, const char *fmt, va_list ap );
+gboolean im_buf_appendc( im_buf_t *buf, char ch );
+gboolean im_buf_appendg( im_buf_t *buf, double g );
+gboolean im_buf_appendsc( im_buf_t *buf, const char *str );
+gboolean im_buf_removec( im_buf_t *buf, char ch );
+gboolean im_buf_change( im_buf_t *buf, const char *old, const char * );
+gboolean im_buf_isempty( im_buf_t *buf );
+gboolean im_buf_isfull( im_buf_t *buf );
+const char *im_buf_all( im_buf_t *buf );
+gboolean im_buf_appendd( im_buf_t *buf, int d );
+int im_buf_len( im_buf_t *buf );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_VBUF_H*/
+#endif /*IM_BUF_H*/
 
 

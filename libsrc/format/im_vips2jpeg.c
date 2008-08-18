@@ -115,7 +115,7 @@ im_vips2mimejpeg( IMAGE *in, int qfac )
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/vbuf.h>
+#include <vips/buf.h>
 
 /* jpeglib includes jconfig.h, which can define HAVE_STDLIB_H ... which we
  * also define. Make sure it's turned off.
