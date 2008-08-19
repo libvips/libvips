@@ -2,16 +2,31 @@
 
   should gvalues be inited to a specific type?
 
-  have a field in im_type_t for typeof or somesuch?
+- we need init functions which are parameterizied for the specific value
 
-  need im_object_t ... im_thing_t?
+	im_value_double_init( value, 12.3 )
 
-  should size be called sizeof
+  	im_value_array_init( value, 4, arrayptr )
 
-  when we compare two types, we need to consider the typeof pointer too ...
-  array<int> is not the same as array<double>
+	im_value_image_init( value, im_open( "poop", "r" ) )
 
-  I guess we can have array<array<double>>?:wq
+  the problem is that init will generally be done by the app: the app needs to
+  do the build-vips-value-from-my-data conversion, and since it is doing that
+  build, it needs to do the free as well
+
+  alternative: init from a GValue?
+
+  then we do GValue -> vips build, so we can free as well
+
+  apps need to do internal -> GValue, then call vips to dispatch
+
+  no point :( and slower
+
+  move all init/free stuff out of type, just have malloc/free with a sizeof
+
+  and perhaps some utility functions to build vips format structures and free
+  them
+
 
 
 - needs docs in vips manual for format stuff I guess

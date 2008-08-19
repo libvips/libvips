@@ -48,27 +48,18 @@ extern "C" {
 #define IM_TYPE_NAME_GVALUE "gvalue"	/* GValue wrapper */
 #define IM_TYPE_NAME_ARRAY "array"	/* Array of other values of some type */
 
+/* A VIPS type. 
+ */
+typedef struct im__type_t {
+	const char *name; 		/* Name of type, eg. "double" */
+	struct im__type_t *type_param;	/* What this is an array of */
+	size_t size;			/* sizeof( im_value_t ) repres. ) */
+} im_type_t;
+
 /* Pass (array of pointers to im_value_t) to operations as the argument list. 
  * Cast to the appropriate type for this argument, eg. (int *) or (IMAGE *).
  */
 typedef void im_value_t;
-
-/* The arg to the init function is a pointer to the value, since we can have
- * nothing allocated for eg. an IMAGE*.
- */
-typedef struct im__type_t im_type_t;
-typedef gboolean (*im_value_init_fn)( im_value_t **value, im_type_t *type );
-typedef void (*im_value_free_fn)( im_value_t *value, im_type_t *type );
-
-/* A VIPS type. 
- */
-struct im__type_t {
-	const char *name; 		/* Name of type, eg. "double" */
-	im_type_t *type_param;		/* What this is an array of */
-	size_t size;			/* sizeof( im_value_t ) repres. ) */
-	im_value_init_fn init; 		/* Init memory */
-	im_value_free_fn free;		/* Destroy value */
-};
 
 /* Various im_value_t values.
  */
@@ -119,8 +110,7 @@ typedef struct im__operation_t {
 /* Register/iterate over types.
  */
 im_type_t *im_type_register( const char *name, 
-	im_type_t *type_param, size_t size, 
-	im_value_init_fn init, im_value_free_fn free );
+	im_type_t *type_param, size_t size ); 
 void *im_type_map( VSListMap2Fn fn, void *a, void *b );
 im_type_t *im_type_lookup( const char *name, im_type_t *type_param );
 
