@@ -37,7 +37,7 @@ extern "C" {
 /* Type names. Old code might use "doublevec" etc. from before we had the
  * "array" type.
  */
-#define IM_TYPE_NAME_DOUBLE "double"	/* im_object is ptr to double */
+#define IM_TYPE_NAME_DOUBLE "double"	/* im_value_t is ptr to double */
 #define IM_TYPE_NAME_INT "integer"	/* 32-bit integer */
 #define IM_TYPE_NAME_COMPLEX "complex"	/* Pair of doubles */
 #define IM_TYPE_NAME_STRING "string"	/* Zero-terminated char array */
@@ -48,38 +48,39 @@ extern "C" {
 #define IM_TYPE_NAME_GVALUE "gvalue"	/* GValue wrapper */
 #define IM_TYPE_NAME_ARRAY "array"	/* Array of other values of some type */
 
-/* The arg to the init function is a pointer to the object.
+/* Pass (array of pointers to im_value_t) to operations as the argument list. 
+ * Cast to the appropriate type for this argument, eg. (int *) or (IMAGE *).
  */
-typedef void (*im_type_init_fn)( im_object *obj );
-typedef void (*im_type_free_fn)( im_object obj );
+typedef void im_value_t;
+
+/* The arg to the init function is a pointer to the value, since we can have
+ * nothing allocated for eg. an IMAGE*.
+ */
+typedef struct im__type_t im_type_t;
+typedef gboolean (*im_value_init_fn)( im_value_t **value, im_type_t *type );
+typedef void (*im_value_free_fn)( im_value_t *value, im_type_t *type );
 
 /* A VIPS type. 
  */
-typedef struct im__type_t {
+struct im__type_t {
 	const char *name; 		/* Name of type, eg. "double" */
-	size_t size;			/* sizeof( im_object repres. ) */
-	im_type_init_fn init; 		/* Init memory */
-	im_type_free_fn free;		/* Destroy object */
-} im_type_t;
+	im_type_t *type_param;		/* What this is an array of */
+	size_t size;			/* sizeof( im_value_t ) repres. ) */
+	im_value_init_fn init; 		/* Init memory */
+	im_value_free_fn free;		/* Destroy value */
+};
 
-/* A 'subclass' of im_type_t for array objects, eg. array-of-double.
- */
-typedef struct im__type_array_t {
-	im_type_t parent;		/* "array" */
-	im_type_t *type;		/* What this is an array of */
-} im_type_array_t;
-
-/* Various im_object values.
+/* Various im_value_t values.
  */
 typedef struct {
 	char *name;			/* Command-line name in */
 	void *mask;			/* Mask --- DOUBLE or INT */
-} im_object_mask_t;
+} im_value_mask_t;
 
 typedef struct {
 	int n;				/* Array length */
-	im_object *array;		/* Array */
-} im_object_array_t;
+	im_value_t **array;		/* Array */
+} im_value_array_t;
 
 /* An argument to a VIPS operation.
  */
@@ -102,7 +103,7 @@ typedef enum {
 
 /* Type of a VIPS dispatch funtion.
  */
-typedef int (*im_operation_dispatch_fn)( im_object *argv );
+typedef int (*im_operation_dispatch_fn)( im_value_t **argv );
 
 /* A VIPS operation.
  */
@@ -117,15 +118,11 @@ typedef struct im__operation_t {
 
 /* Register/iterate over types.
  */
-im_type_t *im_type_register( const char *name, size_t size,
-	im_type_init_fn init, im_type_free_fn free );
+im_type_t *im_type_register( const char *name, 
+	im_type_t *type_param, size_t size, 
+	im_value_init_fn init, im_value_free_fn free );
 void *im_type_map( VSListMap2Fn fn, void *a, void *b );
-im_type_t *im_type_lookup( const char *name );
-
-/* Create arguments.
- */
-im_argument_t *im_argument_new( const char *name, 
-	im_type_t *type, gboolean input );
+im_type_t *im_type_lookup( const char *name, im_type_t *type_param );
 
 /* Register/iterate/lookup operations.
  */
@@ -133,6 +130,11 @@ im_operation_t *im_operation_register( const char *name, const char *desc,
 	im_operation_flags flags, im_operation_dispatch_fn disp, int argc );
 void *im_operation_map( VSListMap2Fn fn, void *a, void *b );
 im_operation_t *im_operation_lookup( const char *name );
+
+/* Create arguments.
+ */
+im_argument_t *im_argument_new( const char *name, 
+	im_type_t *type, gboolean input );
 
 #ifdef __cplusplus
 }

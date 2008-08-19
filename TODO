@@ -4,9 +4,15 @@
 
   have a field in im_type_t for typeof or somesuch?
 
-  need im_object_t
+  need im_object_t ... im_thing_t?
 
   should size be called sizeof
+
+  when we compare two types, we need to consider the typeof pointer too ...
+  array<int> is not the same as array<double>
+
+  I guess we can have array<array<double>>?:wq
+
 
 - needs docs in vips manual for format stuff I guess
 
