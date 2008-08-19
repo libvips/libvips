@@ -51,6 +51,12 @@ im_type_register( const char *name, size_t size,
 {
 	im_type_t *type;
 
+	if( im_type_lookup( name ) ) {
+		im_error( "im_type_register", 
+			_( "type name already registered" ) ); 
+		return( NULL );
+	}
+
 	if( !(type = IM_NEW( NULL, im_type_t )) )
 		return( NULL );
 
@@ -152,5 +158,24 @@ im__type_init( void )
 		0, NULL, gvalue_free );
 	im_type_register( IM_TYPE_NAME_ARRAY, 
 		0, NULL, NULL );
+}
+
+/* Allocate an im_object.
+ */
+static im_object_t *
+im_object_new( im_type_t *type, im_object_t **object )
+{
+	im_object_t *object;
+
+	if( type->size ) {
+		if( !(*object = im_malloc( NULL, type->size )) )
+			return( NULL );
+		memset( *object, 0,, type->size );
+	}
+	else
+		*object = NULL;
+
+	if( type->init )
+		type->init( object );
 }
 

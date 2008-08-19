@@ -1,3 +1,13 @@
+- do we need init functions? maybe for arrays I guess
+
+  should gvalues be inited to a specific type?
+
+  have a field in im_type_t for typeof or somesuch?
+
+  need im_object_t
+
+  should size be called sizeof
+
 - needs docs in vips manual for format stuff I guess
 
 - operations and jesper's types should all use the new register/unregister
