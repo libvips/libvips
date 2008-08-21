@@ -291,6 +291,8 @@ void im_slist_free_all( GSList *list );
 
 void *im_map_equal( void *a, void *b );
 
+void *im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b );
+
 char *im_strncpy( char *dest, const char *src, int n );
 char *im_strrstr( const char *haystack, const char *needle );
 char *im_strdup( IMAGE *im, const char *str );

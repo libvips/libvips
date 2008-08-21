@@ -1,6 +1,16 @@
+- have vips -> gvalue and gvalue -> vips methods in type struct
+
+  converters need arg flags too, so they know whether it's read or write
+
+  is this enough? maybe
+
+
+
 - do we need init functions? maybe for arrays I guess
 
   should gvalues be inited to a specific type?
+
+  
 
 - we need init functions which are parameterizied for the specific value
 

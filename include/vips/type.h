@@ -48,6 +48,11 @@ extern "C" {
 #define IM_TYPE_NAME_GVALUE "gvalue"	/* GValue wrapper */
 #define IM_TYPE_NAME_ARRAY "array"	/* Array of other values of some type */
 
+/* Handy type lookups.
+ */
+#define IM_TYPE_IM (im_type_lookup( IM_TYPE_NAME_IMAGE, NULL ))
+#define IM_TYPE_AR( OF ) (im_type_lookup( IM_TYPE_NAME_ARRAY, OF ))
+
 /* A VIPS type. 
  */
 typedef struct im__type_t {
@@ -73,12 +78,20 @@ typedef struct {
 	im_value_t **array;		/* Array */
 } im_value_array_t;
 
+/* Flags for arguments. 
+ * operation,
+ */
+typedef enum {
+	IM_ARGUMENT_NONE = 0,		/* No flags set */
+	IM_ARGUMENT_OUTPUT = 0x1	/* Is an output arg */
+} im_argument_flags;
+
 /* An argument to a VIPS operation.
  */
 typedef struct im__argument_t {
 	const char *name; 		/* Eg. "in2" */
 	im_type_t *type;		/* Argument type */
-	gboolean input;			/* TRUE means arg to operation */
+	im_argument_flags flags;	/* Output/input etc. */
 } im_argument_t;
 
 /* Flags for operations. Various hints for UIs about the behaviour of the
@@ -118,13 +131,15 @@ im_type_t *im_type_lookup( const char *name, im_type_t *type_param );
  */
 im_operation_t *im_operation_register( const char *name, const char *desc, 
 	im_operation_flags flags, im_operation_dispatch_fn disp, int argc );
+im_operation_t *im_operation_registerv( const char *name, const char *desc,
+	im_operation_flags flags, im_operation_dispatch_fn disp, ... );
 void *im_operation_map( VSListMap2Fn fn, void *a, void *b );
 im_operation_t *im_operation_lookup( const char *name );
 
 /* Create arguments.
  */
 im_argument_t *im_argument_new( const char *name, 
-	im_type_t *type, gboolean input );
+	im_type_t *type, im_argument_flags flags );
 
 #ifdef __cplusplus
 }

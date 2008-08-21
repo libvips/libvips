@@ -212,6 +212,36 @@ im_slist_filter( GSList *list, VSListMap2Fn fn, void *a, void *b )
 	return( list );
 }
 
+typedef struct {
+	void *a;
+	void *b;
+	VSListMap2Fn fn;
+	void *result;
+} Pair;
+
+static gboolean
+im_hash_table_predicate( const char *key, im_type_t *type, Pair *pair )
+{
+	return( (pair->result == pair->fn( type, pair->a, pair->b )) );
+}
+
+/* Like slist map, but for a hash table.
+ */
+void *
+im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b )
+{
+	Pair pair;
+
+	pair.a = a;
+	pair.b = b;
+	pair.fn = fn;
+	pair.result = NULL;
+
+	g_hash_table_find( hash, (GHRFunc) im_hash_table_predicate, &pair ); 
+
+	return( pair.result );
+}
+
 /* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.
  */
 char *

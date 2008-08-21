@@ -34,6 +34,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <vips/vips.h>
 
@@ -90,34 +91,6 @@ im_type_register( const char *name,
 	return( type );
 }
 
-typedef struct {
-	void *a;
-	void *b;
-	VSListMap2Fn fn;
-	void *result;
-} Pair;
-
-static gboolean
-im_hash_table_predicate( const char *key, im_type_t *type, Pair *pair )
-{
-	return( (pair->result == pair->fn( type, pair->a, pair->b )) );
-}
-
-void *
-im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b )
-{
-	Pair pair;
-
-	pair.a = a;
-	pair.b = b;
-	pair.fn = fn;
-	pair.result = NULL;
-
-	g_hash_table_find( hash, (GHRFunc) im_hash_table_predicate, &pair ); 
-
-	return( pair.result );
-}
-
 void *
 im_type_map( VSListMap2Fn fn, void *a, void *b )
 {
@@ -127,12 +100,27 @@ im_type_map( VSListMap2Fn fn, void *a, void *b )
 im_type_t *
 im_type_lookup( const char *name, im_type_t *type_param )
 {
-	im_type_t type;
+	im_type_t tmp;
+	im_type_t *type;
 
-	type.name = name;
-	type.type_param = type_param;
+	/* Look for this exact type.
+	 */
+	tmp.name = name;
+	tmp.type_param = type_param;
+	if( !(type = (im_type_t *) 
+		g_hash_table_lookup( im_type_table, &tmp )) ) {
+		/* Not found. Look for just the name type, eg. "array".
+		 */
+		tmp.type_param = NULL;
+		if( (type = (im_type_t *) 
+			g_hash_table_lookup( im_type_table, &tmp )) )
+			/* Found it. Register a new compound type with this
+			 * param.
+			 */
+			type = im_type_register( name, type_param, type->size );
+	}
 
-	return( (im_type_t *) g_hash_table_lookup( im_type_table, &type ) );
+	return( type );
 }
 
 /* Register the base VIPS types.
@@ -239,7 +227,7 @@ im_value_imask_input_init( im_value_mask_t *value, const char *name )
 /* Create arguments.
  */
 im_argument_t *
-im_argument_new( const char *name, im_type_t *type, gboolean input )
+im_argument_new( const char *name, im_type_t *type, im_argument_flags flags )
 {
 	im_argument_t *argument;
 
@@ -247,7 +235,7 @@ im_argument_new( const char *name, im_type_t *type, gboolean input )
 		return( NULL );
 	argument->name = name;
 	argument->type = type;
-	argument->input = input;
+	argument->flags = flags;
 
 	return( argument );
 }
@@ -306,6 +294,30 @@ im_operation_register( const char *name, const char *desc,
 	return( operation );
 }
 
+im_operation_t *
+im_operation_registerv( const char *name, const char *desc,
+	im_operation_flags flags, im_operation_dispatch_fn disp, ... )
+{
+	im_operation_t *operation;
+	im_argument_t *argument;
+	va_list ap;
+	int argc;
+	int i;
+
+	va_start( ap, disp );
+	for( argc = 0; va_arg( ap, im_argument_t * ); argc++ ) 
+		;
+	va_end( ap );
+
+	operation = im_operation_register( name, desc, flags, disp, argc );
+	va_start( ap, disp );
+	for( i = 0; (argument = va_arg( ap, im_argument_t * )); i++ ) 
+		operation->argv[i] = argument;
+	va_end( ap );
+
+	return( operation );
+}
+
 void *
 im_operation_map( VSListMap2Fn fn, void *a, void *b )
 {
@@ -330,16 +342,11 @@ add_vec( im_value_t **argv )
 void
 im__operation_init( void )
 {
-	im_operation_t *operation;
-
-	operation = im_operation_register( "im_add", _( "add two images" ),
+	im_operation_registerv( "im_add", _( "add two images" ),
 		IM_FN_PIO | IM_FN_PTOP,
 		add_vec, 	
-		3 ); 
-	operation->argv[0] = im_argument_new( "in1", 
-		im_type_lookup( IM_TYPE_NAME_IMAGE, NULL ), TRUE );
-	operation->argv[1] = im_argument_new( "in2", 
-		im_type_lookup( IM_TYPE_NAME_IMAGE, NULL ), TRUE );
-	operation->argv[2] = im_argument_new( "out", 
-		im_type_lookup( IM_TYPE_NAME_IMAGE, NULL ), TRUE );
+		im_argument_new( "in1", IM_TYPE_IM, 0 ),
+		im_argument_new( "in2", IM_TYPE_IM, 0 ),
+		im_argument_new( "out", IM_TYPE_IM, IM_ARGUMENT_OUTPUT ),
+		NULL );
 }
