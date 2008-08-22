@@ -320,6 +320,7 @@ man_MANS = \
 	im_lrmosaic.3 \
 	im_lu_decomp.3 \
 	im_lu_solve.3 \
+	IM_MACROS.3 \
 	im_magick2vips.3 \
 	im_makerw.3 \
 	im_make_xy.3 \
@@ -334,7 +335,6 @@ man_MANS = \
 	im_matmul.3 \
 	im_mattrn.3 \
 	im_max.3 \
-	IM_MAX.3 \
 	im_maxpos.3 \
 	im_maxpos_vec.3 \
 	im_maxvalue.3 \
@@ -356,7 +356,6 @@ man_MANS = \
 	im_meta_set_int.3 \
 	im_meta_set_string.3 \
 	im_min.3 \
-	IM_MIN.3 \
 	im_minpos.3 \
 	im_minpos_vec.3 \
 	im_mmapin.3 \
@@ -451,7 +450,6 @@ man_MANS = \
 	im_ri2c.3 \
 	im_rightshift_size.3 \
 	im_rint.3 \
-	IM_RINT.3 \
 	im_rot180.3 \
 	im_rot270.3 \
 	im_rot90.3 \

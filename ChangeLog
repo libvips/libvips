@@ -12,6 +12,8 @@
 - add "vips --list formats"
 - rename VBuf as im_buf_t for consistency
 - add type.[hc], start of new type system
+- removed man pages for IM_MIN, MAX and RINT to avoid case confusion on 
+  OS X / win
 
 7/3/08 started 7.15.0
 - MAGIC constants should be tagged as unsigned
