@@ -1011,23 +1011,25 @@ im__ftruncate( int fd, gint64 pos )
 	return( 0 );
 }
 
-
 /* Like fwrite(), but returns non-zero on error and sets error message.
  */
 int
 im__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 {
-  int n;
-  if( !data ) return( 0 );
-  if( (n = fwrite( data, size, nmemb, stream )) != nmemb ) {
-    im_error( "im__file_write", 
-	      _( "writing error (%d out of %d blocks written) ... disc full?" ),
-	      n, nmemb );
-    return( -1 );
-  }
-  return( 0 );
-}
+	size_t n;
 
+	if( !data ) 
+		return( 0 );
+
+	if( (n = fwrite( data, size, nmemb, stream )) != nmemb ) {
+		im_error( "im__file_write", 
+			_( "writing error (%zd out of %zd blocks written) "
+			"... disc full?" ), n, nmemb );
+		return( -1 );
+	}
+
+	return( 0 );
+}
 
 /* Check whether arch corresponds to native byte order.
  */
