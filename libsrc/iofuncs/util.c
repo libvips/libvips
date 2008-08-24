@@ -220,9 +220,9 @@ typedef struct {
 } Pair;
 
 static gboolean
-im_hash_table_predicate( const char *key, im_type_t *type, Pair *pair )
+im_hash_table_predicate( const char *key, void *value, Pair *pair )
 {
-	return( (pair->result == pair->fn( type, pair->a, pair->b )) );
+	return( (pair->result == pair->fn( value, pair->a, pair->b )) );
 }
 
 /* Like slist map, but for a hash table.
