@@ -82,15 +82,8 @@
 - it'd be nice to handle vips format images in the same im_format system, but
   it's not clear if this is possible
 
-- we sometimes name types with a trailing _t, but only sometimes, argh
-
-  should im_format become im_format_t? what's the current naming convention?
-  should be add _t variants for all types?
-
-  add new type names, eg. im_region_t, im_image_t etc. and deprecate old
+- add new type names, eg. im_region_t, im_image_t etc. and deprecate old
   names?
-
-  sigh or maybe VipsRegion, VipsImage
 
 
 
