@@ -149,6 +149,14 @@ im_init_world( const char *argv0 )
 		im_error_clear();
 	}
 
+	/* Also load from libdir. This is old and slightly broken behaviour
+	 * :-( kept for back compat convenience.
+	 */
+	if( im_load_plugins( "%s", libdir ) ) {
+		im_warn( "im_init_world", "%s", im_errorstring() );
+		im_error_clear();
+	}
+
 	/* Start up the buffer cache.
 	 */
 	im__buffer_init();

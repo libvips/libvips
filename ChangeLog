@@ -1,3 +1,6 @@
+24/8/08 fork for stable 7.16 branch
+- load plgs from libdir as well as libdir/vips-x.x for compat
+
 25/5/08 fork for loadable image format branch
 - image load/save in non-vips format code moved to own dir
 - simple format searching added
