@@ -115,7 +115,7 @@ im__format_init( void )
 #ifdef HAVE_JPEG
 	im__jpeg_register();
 #endif /*HAVE_JPEG*/
-#ifndef HAVE_PNG
+#ifdef HAVE_PNG
 	im__png_register();
 #endif /*HAVE_PNG*/
 	im__csv_register();
