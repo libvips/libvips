@@ -45,6 +45,8 @@
  *	  before calling this if you want round-to-nearest
  * 7/11/07
  * 	- use new evalstart/evalend system
+ * 26/8/08
+ * 	- oops, complex->complex conversion was broken
  */
 
 /*
@@ -272,15 +274,29 @@ clip_start( IMAGE *out, void *a, void *b )
 	}\
 }
 
-/* Clip any to a complex type ... set imaginary to zero.
+/* Clip any non-complex to a complex type ... set imaginary to zero.
  */
-#define IM_CLIP_ANY_COMPLEX( ITYPE, OTYPE ) { \
+#define IM_CLIP_REAL_COMPLEX( ITYPE, OTYPE ) { \
 	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
 	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
 	\
 	for( x = 0; x < sz; x++ ) {\
 		q[0] = p[x];\
 		q[1] = 0.0;\
+		q += 2;\
+	}\
+}
+
+/* Clip any complex to a complex type.
+ */
+#define IM_CLIP_COMPLEX_COMPLEX( ITYPE, OTYPE ) { \
+	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
+	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
+	\
+	for( x = 0; x < sz; x++ ) {\
+		q[0] = p[0];\
+		q[1] = p[1];\
+		p += 2;\
 		q += 2;\
 	}\
 }
@@ -344,53 +360,63 @@ clip_gen( REGION *or, void *vseq, void *a, void *b )
 		switch( clip->in->BandFmt ) { 
 		case IM_BANDFMT_UCHAR: 
 			BAND_SWITCH_INNER( unsigned char,
-				IM_CLIP_INT_INT, IM_CLIP_REAL_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_INT_INT, 
+				IM_CLIP_REAL_FLOAT, 
+				IM_CLIP_REAL_COMPLEX );
 			break; 
 		case IM_BANDFMT_CHAR: 
 			BAND_SWITCH_INNER( signed char,
-				IM_CLIP_INT_INT, IM_CLIP_REAL_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_INT_INT, 
+				IM_CLIP_REAL_FLOAT, 
+				IM_CLIP_REAL_COMPLEX );
 			break; 
 		case IM_BANDFMT_USHORT: 
 			BAND_SWITCH_INNER( unsigned short,
-				IM_CLIP_INT_INT, IM_CLIP_REAL_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_INT_INT, 
+				IM_CLIP_REAL_FLOAT, 
+				IM_CLIP_REAL_COMPLEX );
 			break; 
 		case IM_BANDFMT_SHORT: 
 			BAND_SWITCH_INNER( signed short,
-				IM_CLIP_INT_INT, IM_CLIP_REAL_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_INT_INT, 
+				IM_CLIP_REAL_FLOAT, 
+				IM_CLIP_REAL_COMPLEX );
 			break; 
 		case IM_BANDFMT_UINT: 
 			BAND_SWITCH_INNER( unsigned int,
-				IM_CLIP_INT_INT, IM_CLIP_REAL_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_INT_INT, 
+				IM_CLIP_REAL_FLOAT, 
+				IM_CLIP_REAL_COMPLEX );
 			break; 
 		case IM_BANDFMT_INT: 
 			BAND_SWITCH_INNER( signed int,
-				IM_CLIP_INT_INT, IM_CLIP_REAL_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_INT_INT, 
+				IM_CLIP_REAL_FLOAT, 
+				IM_CLIP_REAL_COMPLEX );
 			break; 
 		case IM_BANDFMT_FLOAT: 
 			BAND_SWITCH_INNER( float,
-				IM_CLIP_FLOAT_INT, IM_CLIP_REAL_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_FLOAT_INT, 
+				IM_CLIP_REAL_FLOAT, 
+				IM_CLIP_REAL_COMPLEX );
 			break; 
 		case IM_BANDFMT_DOUBLE: 
 			BAND_SWITCH_INNER( double,
-				IM_CLIP_FLOAT_INT, IM_CLIP_REAL_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_FLOAT_INT, 
+				IM_CLIP_REAL_FLOAT, 
+				IM_CLIP_REAL_COMPLEX );
 			break; 
 		case IM_BANDFMT_COMPLEX: 
 			BAND_SWITCH_INNER( float,
-				IM_CLIP_COMPLEX_INT, IM_CLIP_COMPLEX_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_COMPLEX_INT, 
+				IM_CLIP_COMPLEX_FLOAT, 
+				IM_CLIP_COMPLEX_COMPLEX );
 			break; 
 		case IM_BANDFMT_DPCOMPLEX: 
 			BAND_SWITCH_INNER( double,
-				IM_CLIP_COMPLEX_INT, IM_CLIP_COMPLEX_FLOAT, 
-				IM_CLIP_ANY_COMPLEX );
+				IM_CLIP_COMPLEX_INT, 
+				IM_CLIP_COMPLEX_FLOAT, 
+				IM_CLIP_COMPLEX_COMPLEX );
 			break; 
 		default: 
 			assert( 0 ); 

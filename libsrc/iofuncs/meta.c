@@ -15,6 +15,8 @@
  * 	- oop, hash table insert/replace confusion fixed
  * 24/1/07
  * 	- oop, im_save_string_setf() was leaking
+ * 26/8/08
+ * 	- added string <-> refstring transforms
  */
 
 /*
@@ -705,12 +707,18 @@ im_ref_string_set( GValue *value, const char *str )
 	return( 0 );
 }
 
-/* Transform a refstring to a G_TYPE_STRING.
+/* Transform a refstring to a G_TYPE_STRING and back.
  */
 static void
 transform_ref_string_g_string( const GValue *src_value, GValue *dest_value )
 {
 	g_value_set_string( dest_value, im_ref_string_get( src_value ) );
+}
+
+static void
+transform_g_string_ref_string( const GValue *src_value, GValue *dest_value )
+{
+	im_ref_string_set( dest_value, g_value_get_string( src_value ) );
 }
 
 /* To a save string.
@@ -738,6 +746,8 @@ im_ref_string_get_type( void )
 			(GBoxedFreeFunc) area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
 			transform_ref_string_g_string );
+		g_value_register_transform_func( G_TYPE_STRING, type,
+			transform_g_string_ref_string );
 		g_value_register_transform_func( type, IM_TYPE_SAVE_STRING,
 			transform_ref_string_save_string );
 		g_value_register_transform_func( IM_TYPE_SAVE_STRING, type,

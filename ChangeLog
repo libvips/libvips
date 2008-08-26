@@ -1,5 +1,7 @@
 24/8/08 fork for stable 7.16 branch
 - load plgs from libdir as well as libdir/vips-x.x for compat
+- complex -> complex conversion was broken
+- refstring <-> gstring transforms
 
 25/5/08 fork for loadable image format branch
 - image load/save in non-vips format code moved to own dir
