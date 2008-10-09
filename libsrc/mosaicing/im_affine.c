@@ -167,10 +167,10 @@ affine_interpol_calc( void )
 
 			/* Weights.
 			 */
-			c1 = Xd*Yd;
-			c2 = X*Yd;
-			c3 = X*Y;
-			c4 = Xd*Y;
+			c1 = Xd * Yd;
+			c2 = X * Yd;
+			c3 = X * Y;
+			c4 = Xd * Y;
 
 			im_affine_linear_double[x][y][0] = c1;
 			im_affine_linear_double[x][y][1] = c2;
@@ -625,7 +625,7 @@ affine( IMAGE *in, IMAGE *out, Transformation *trn )
 	double edge;
 
 	if( im_iscomplex( in ) ) {
-		im_errormsg( "im_affine: complex input not supported" );
+		im_error( "im_affine", _( "complex input not supported" ) );
 		return( -1 );
 	}
 
@@ -668,7 +668,7 @@ affine( IMAGE *in, IMAGE *out, Transformation *trn )
 	if( trn2->oarea.left < -edge || trn2->oarea.top < -edge ||
 		IM_RECT_RIGHT( &trn2->oarea ) > edge || 
 		IM_RECT_BOTTOM( &trn2->oarea ) > edge ) {
-		im_errormsg( "im_affine: output coordinates out of range" );
+		im_error( "im_affine", _( "output coordinates out of range" ) );
 		return( -1 );
 	}
 
@@ -728,7 +728,7 @@ im__affine( IMAGE *in, IMAGE *out, Transformation *trn )
 			return( -1 );
 	}
 	else {
-		im_errormsg( "im_affine: unknown coding type" );
+		im_error( "im_affine", _( "unknown coding type" ) );
 		return( -1 );
 	}
 
@@ -742,7 +742,8 @@ im__affine( IMAGE *in, IMAGE *out, Transformation *trn )
 
 int 
 im_affine( IMAGE *in, IMAGE *out, 
-	double a, double b, double c, double d, double dx, double dy, 
+	double a, double b, double c, double d, 
+	double dx, double dy, 
 	int ox, int oy, int ow, int oh )
 {
 	Transformation trn;
