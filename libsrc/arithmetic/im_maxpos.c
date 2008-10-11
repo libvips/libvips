@@ -146,5 +146,6 @@ im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out )
 	*out = m;
 	*xpos = xp / in->Bands;
 	*ypos = yp;
+
 	return( 0 );
 }

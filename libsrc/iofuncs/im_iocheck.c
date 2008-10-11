@@ -159,7 +159,7 @@ im_incheck( IMAGE *im )
 		/* Should have been written to.
 		 */
 		if( !im->data ) {
-			im_errormsg( "im_incheck: no image data" );
+			im_error( "im_incheck", _( "no image data" ) );
 			return( -1 );
 		}
 
@@ -202,7 +202,8 @@ im_incheck( IMAGE *im )
 		printf( "im_incheck: auto-rewind of %s\n", im->filename );
 #endif/*DEBUG_IO*/
 		if( im__close( im ) || im_openin( im ) ) {
-			im_errormsg( "im_incheck: auto-rewind for %s failed",
+			im_error( "im_incheck", 
+				_( "auto-rewind for %s failed" ),
 				im->filename );
 			return( -1 );
 		}
@@ -210,7 +211,7 @@ im_incheck( IMAGE *im )
 		break;
 
 	default:
-		im_errormsg( "im_incheck: image not readable" );
+		im_error( "im_incheck", _( "image not readable" ) );
 		return( -1 );
 	}
 
@@ -231,7 +232,7 @@ im_outcheck( IMAGE *im )
 		/* Make sure nothing is attached.
 		 */
 		if( im->generate ) {
-			im_errormsg( "im_outcheck: image already written" );
+			im_error( "im_outcheck", _( "image already written" ) );
 			return( -1 );
 		}
 
@@ -246,7 +247,7 @@ im_outcheck( IMAGE *im )
 		/* Check that it has not been im_setupout().
 		 */
 		if( im->data ) {
-			im_errormsg( "im_outcheck: image already written" );
+			im_error( "im_outcheck", _( "image already written" ) );
 			return( -1 );
 		}
 
@@ -259,7 +260,7 @@ im_outcheck( IMAGE *im )
 		break;
 
 	default:
-		im_errormsg( "im_outcheck: image not writeable" );
+		im_error( "im_outcheck", _( "image not writeable" ) );
 		return( -1 );
 	}
 
@@ -281,7 +282,7 @@ im_rwcheck( IMAGE *im )
 	 * generate im_partial() files.
 	 */
 	if( im_incheck( im ) ) {
-		im_errormsg( "im_rwcheck: unable to rewind file" );
+		im_error( "im_rwcheck", _( "unable to rewind file" ) );
 		return( -1 );
 	}
 
@@ -304,7 +305,7 @@ im_rwcheck( IMAGE *im )
 		break;
 
 	default:
-		im_errormsg( "im_rwcheck: bad file type" );
+		im_error( "im_rwcheck", _( "bad file type" ) );
 		return( -1 );
 	}
 

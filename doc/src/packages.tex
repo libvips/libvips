@@ -22,54 +22,54 @@ in the manual pages.
 \begin{fig2}
 \begin{verbatim}
 john% vips --list arithmetic
-im_abs             - absolute value
-im_acostra         - acos of image (result in degrees)
-im_add             - add two images
-im_asintra         - asin of image (result in degrees)
-im_atantra         - atan of image (result in degrees)
-im_avg             - average value of image
-im_point_bilinear  - interpolate value at single point, linearly
-im_bandmean        - average image bands
-im_ceil            - round to smallest integal value not less than
-im_cmulnorm        - multiply two complex images, normalising output
-im_costra          - cos of image (angles in degrees)
-im_cross_phase     - phase of cross power spectrum of two complex images
-im_deviate         - standard deviation of image
-im_divide          - divide two images
-im_exp10tra        - 10^pel of image
-im_expntra         - x^pel of image
-im_expntra_vec     - [x,y,z]^pel of image
-im_exptra          - e^pel of image
-im_fav4            - average of 4 images
-im_floor           - round to largest integal value not greater than
-im_gadd            - calculate a*in1 + b*in2 + c = outfile
-im_invert          - photographic negative
-im_lintra          - calculate a*in + b = outfile
-im_linreg          - pixelwise linear regression
-im_lintra_vec      - calculate a*in + b -> out, a and b vectors
-im_litecor         - calculate max(white)*factor*(in/white), if clip == 1
-im_log10tra        - log10 of image
-im_logtra          - ln of image
-im_max             - maximum value of image
-im_maxpos          - position of image max
-im_maxpos_avg      - position of image max, averagie in case of draw
-im_maxpos_vec      - position and value of n maxima of image
-im_measure         - measure averages of a grid of patches
-im_min             - minimum value of image
-im_minpos          - position of minimum value of image
-im_minpos_vec      - position and value of n minima of image
-im_multiply        - multiply two images
-im_powtra          - pel^x ofbuildimage
-im_powtra_vec      - pel^[x,y,z] of image
-im_remainder       - remainder after integer division
-im_remainderconst  - remainder after integer division by a constant
-im_remainderconst_vec - remainder after integer division by vector 
-im_rint            - round to nearest integal value
-im_sign            - unit vector in direction of value
-im_sintra          - sin of image (angles in degrees)
-im_stats           - many image statistics in one pass
-im_subtract        - subtract two images
-im_tantra          - tan of image (angles in degrees)
+im_abs               - absolute value
+im_acostra           - acos of image (result in degrees)
+im_add               - add two images
+im_asintra           - asin of image (result in degrees)
+im_atantra           - atan of image (result in degrees)
+im_avg               - average value of image
+im_point_bilinear    - interpolate value at single point, linearly
+im_bandmean          - average image bands
+im_ceil              - round to smallest integal value not less than
+im_cmulnorm          - multiply two complex images, normalising output
+im_costra            - cos of image (angles in degrees)
+im_cross_phase       - phase of cross power spectrum of two complex images
+im_deviate           - standard deviation of image
+im_divide            - divide two images
+im_exp10tra          - 10^pel of image
+im_expntra           - x^pel of image
+im_expntra_vec       - [x,y,z]^pel of image
+im_exptra            - e^pel of image
+im_fav4              - average of 4 images
+im_floor             - round to largest integal value not greater than
+im_gadd              - calculate a*in1 + b*in2 + c = outfile
+im_invert            - photographic negative
+im_lintra            - calculate a*in + b = outfile
+im_linreg            - pixelwise linear regression
+im_lintra_vec        - calculate a*in + b -> out, a and b vectors
+im_litecor           - calculate max(white)*factor*(in/white), if clip == 1
+im_log10tra          - log10 of image
+im_logtra            - ln of image
+im_max               - maximum value of image
+im_maxpos            - position of maximum value of image
+im_maxpos_avg        - position of maximum value of image, averaging in case of draw
+im_maxpos_vec        - position and value of n maxima of image
+im_measure           - measure averages of a grid of patches
+im_min               - minimum value of image
+im_minpos            - position of minimum value of image
+im_minpos_vec        - position and value of n minima of image
+im_multiply          - multiply two images
+im_powtra            - pel^x ofbuildimage
+im_powtra_vec        - pel^[x,y,z] of image
+im_remainder         - remainder after integer division
+im_remainderconst    - remainder after integer division by a constant
+im_remainderconst_vec - remainder after int division by vector of constants
+im_rint              - round to nearest integal value
+im_sign              - unit vector in direction of value
+im_sintra            - sin of image (angles in degrees)
+im_stats             - many image statistics in one pass
+im_subtract          - subtract two images
+im_tantra            - tan of image (angles in degrees)
 \end{verbatim}
 \caption{Arithmetic functions}
 \label{fg:arithmetic}
@@ -93,26 +93,26 @@ condition is true (or false) for a whole image.
 \begin{fig2}
 \begin{verbatim}
 john% vips --list relational
-im_blend           - use cond image to blend between images in1 and in2
-im_equal           - two images equal in value
-im_equal_vec       - image equals doublevec
-im_equalconst      - image equals const
-im_ifthenelse      - use cond image to choose pels from image in1 or in2
-im_less            - in1 less than in2 in value
-im_less_vec        - in less than doublevec
-im_lessconst       - in less than const
-im_lesseq          - in1 less than or equal to in2 in value
-im_lesseq_vec      - in less than or equal to doublevec
-im_lesseqconst     - in less than or equal to const
-im_more            - in1 more than in2 in value
-im_more_vec        - in more than doublevec
-im_moreconst       - in more than const
-im_moreeq          - in1 more than or equal to in2 in value
-im_moreeq_vec      - in more than or equal to doublevec
-im_moreeqconst     - in more than or equal to const
-im_notequal        - two images not equal in value
-im_notequal_vec    - image does not equal doublevec
-im_notequalconst   - image does not equal const
+im_blend             - use cond image to blend between images in1 and in2
+im_equal             - two images equal in value
+im_equal_vec         - image equals doublevec
+im_equalconst        - image equals const
+im_ifthenelse        - use cond image to choose pels from image in1 or in2
+im_less              - in1 less than in2 in value
+im_less_vec          - in less than doublevec
+im_lessconst         - in less than const
+im_lesseq            - in1 less than or equal to in2 in value
+im_lesseq_vec        - in less than or equal to doublevec
+im_lesseqconst       - in less than or equal to const
+im_more              - in1 more than in2 in value
+im_more_vec          - in more than doublevec
+im_moreconst         - in more than const
+im_moreeq            - in1 more than or equal to in2 in value
+im_moreeq_vec        - in more than or equal to doublevec
+im_moreeqconst       - in more than or equal to const
+im_notequal          - two images not equal in value
+im_notequal_vec      - image does not equal doublevec
+im_notequalconst     - image does not equal const
 \end{verbatim}
 \caption{Relational functions}
 \label{fg:relational}
@@ -130,17 +130,17 @@ the relational and morphological functions. You can use
 \begin{fig2}
 \begin{verbatim}
 john% vips --list boolean
-im_andimage        - bitwise and of two images
-im_andimageconst   - bitwise and of an image with a constant
-im_andimage_vec    - bitwise and of an image with a vector constant
-im_orimage         - bitwise or of two images
-im_orimageconst    - bitwise or of an image with a constant
-im_orimage_vec     - bitwise or of an image with a vector constant
-im_eorimage        - bitwise eor of two images
-im_eorimageconst   - bitwise eor of an image with a constant
-im_eorimage_vec    - bitwise eor of an image with a vector constant
-im_shiftleft       - shift integer image n bits to left
-im_shiftright      - shift integer image n bits to right
+im_andimage          - bitwise and of two images
+im_andimageconst     - bitwise and of an image with a constant
+im_andimage_vec      - bitwise and of an image with a vector constant
+im_orimage           - bitwise or of two images
+im_orimageconst      - bitwise or of an image with a constant
+im_orimage_vec       - bitwise or of an image with a vector constant
+im_eorimage          - bitwise eor of two images
+im_eorimageconst     - bitwise eor of an image with a constant
+im_eorimage_vec      - bitwise eor of an image with a vector constant
+im_shiftleft         - shift integer image n bits to left
+im_shiftright        - shift integer image n bits to right
 \end{verbatim}
 \caption{Boolean functions}
 \label{fg:boolean}
@@ -229,48 +229,48 @@ or \verb+disp+ colour space.
 \begin{fig2}
 \begin{verbatim}
 example% vips --list colour
-im_LCh2Lab         - convert LCh to Lab
-im_LCh2UCS         - convert LCh to UCS
-im_Lab2LCh         - convert Lab to LCh
-im_Lab2LabQ        - convert Lab to LabQ
-im_Lab2LabS        - convert Lab to LabS
-im_Lab2UCS         - convert Lab to UCS
-im_Lab2XYZ         - convert D65 Lab to XYZ
-im_Lab2XYZ_temp    - convert Lab to XYZ, with a specified colour temperature
-im_Lab2disp        - convert Lab to displayable
-im_LabQ2LabS       - convert LabQ to LabS
-im_LabQ2Lab        - convert LabQ to Lab
-im_LabQ2XYZ        - convert LabQ to XYZ
-im_LabQ2disp       - convert LabQ to displayable
-im_LabS2LabQ       - convert LabS to LabQ
-im_LabS2Lab        - convert LabS to Lab
-im_UCS2LCh         - convert UCS to LCh
-im_UCS2Lab         - convert UCS to Lab
-im_UCS2XYZ         - convert UCS to XYZ
-im_XYZ2Lab         - convert D65 XYZ to Lab
-im_XYZ2Lab_temp    - convert XYZ to Lab, with a specified colour temperature
-im_XYZ2UCS         - convert XYZ to UCS
-im_XYZ2Yxy         - convert XYZ to Yxy
-im_XYZ2disp        - convert XYZ to displayble
-im_XYZ2sRGB        - convert XYZ to sRGB
-im_Yxy2XYZ         - convert Yxy to XYZ
-im_dE00_fromLab    - calculate delta-E CIE2000 for two Lab images
-im_dECMC_fromLab   - calculate delta-E CMC(1:1) for two Lab images
-im_dECMC_fromdisp  - calculate delta-E CMC(1:1) for two displayable images
-im_dE_fromLab      - calculate delta-E for two Lab images
-im_dE_fromXYZ      - calculate delta-E for two XYZ images
-im_dE_fromdisp     - calculate delta-E for two displayable images
-im_disp2Lab        - convert displayable to Lab
-im_disp2XYZ        - convert displayable to XYZ
-im_icc_ac2rc       - convert LAB from AC to RC using a profile
-im_icc_export      - convert LAB to 8-bit device with a profile
-im_icc_export_depth - convert LAB to device with a profile
-im_icc_import      - convert device to LAB with a profile
-im_icc_import_embedded - convert device to LAB using the embedded profile
-im_icc_present     - test for presence of ICC library
-im_icc_transform   - convert between two device images with a pair of profiles
-im_lab_morph       - morph colourspace of a LAB image
-im_sRGB2XYZ        - convert sRGB to XYZ
+im_LCh2Lab           - convert LCh to Lab
+im_LCh2UCS           - convert LCh to UCS
+im_Lab2LCh           - convert Lab to LCh
+im_Lab2LabQ          - convert Lab to LabQ
+im_Lab2LabS          - convert Lab to LabS
+im_Lab2UCS           - convert Lab to UCS
+im_Lab2XYZ           - convert D65 Lab to XYZ
+im_Lab2XYZ_temp      - convert Lab to XYZ, with a specified colour temperature
+im_Lab2disp          - convert Lab to displayable
+im_LabQ2LabS         - convert LabQ to LabS
+im_LabQ2Lab          - convert LabQ to Lab
+im_LabQ2XYZ          - convert LabQ to XYZ
+im_LabQ2disp         - convert LabQ to displayable
+im_LabS2LabQ         - convert LabS to LabQ
+im_LabS2Lab          - convert LabS to Lab
+im_UCS2LCh           - convert UCS to LCh
+im_UCS2Lab           - convert UCS to Lab
+im_UCS2XYZ           - convert UCS to XYZ
+im_XYZ2Lab           - convert D65 XYZ to Lab
+im_XYZ2Lab_temp      - convert XYZ to Lab, with a specified colour temperature
+im_XYZ2UCS           - convert XYZ to UCS
+im_XYZ2Yxy           - convert XYZ to Yxy
+im_XYZ2disp          - convert XYZ to displayble
+im_XYZ2sRGB          - convert XYZ to sRGB
+im_Yxy2XYZ           - convert Yxy to XYZ
+im_dE00_fromLab      - calculate delta-E CIE2000 for two Lab images
+im_dECMC_fromLab     - calculate delta-E CMC(1:1) for two Lab images
+im_dECMC_fromdisp    - calculate delta-E CMC(1:1) for two displayable images
+im_dE_fromLab        - calculate delta-E for two Lab images
+im_dE_fromXYZ        - calculate delta-E for two XYZ images
+im_dE_fromdisp       - calculate delta-E for two displayable images
+im_disp2Lab          - convert displayable to Lab
+im_disp2XYZ          - convert displayable to XYZ
+im_icc_ac2rc         - convert LAB from AC to RC using an ICC profile
+im_icc_export        - convert a float LAB to an 8-bit device image with an ICC profile
+im_icc_export_depth  - convert a float LAB to device space with an ICC profile
+im_icc_import        - convert a device image to float LAB with an ICC profile
+im_icc_import_embedded - convert a device image to float LAB using the embedded profile
+im_icc_present       - test for presence of ICC library
+im_icc_transform     - convert between two device images with a pair of ICC profiles
+im_lab_morph         - morph colourspace of a LAB image
+im_sRGB2XYZ          - convert sRGB to XYZ
 \end{verbatim}
 \caption{Colour functions}
 \label{fg:colour}
@@ -294,59 +294,50 @@ join of many images at the same time. See the manual pages.
 \begin{fig2}
 \begin{verbatim}
 example% vips --list conversion
-im_bandjoin        - bandwise join of two images
-im_bernd           - extract from pyramid as jpeg
-im_black           - generate black image
-im_c2amph          - convert real and imaginary to phase and amplitude
-im_c2imag          - extract imaginary part of complex image
-im_c2ps            - find power spectrum of complex image
-im_c2real          - extract real part of complex image
-im_c2rect          - convert phase and amplitude to real and imaginary
-im_clip2c          - convert to signed 8-bit integer
-im_clip2cm         - convert to complex
-im_clip2d          - convert to double-precision float
-im_clip2dcm        - convert to double complex
-im_clip2f          - convert to single-precision float
-im_clip2fmt        - convert image format to ofmt
-im_clip2i          - convert to signed 32-bit integer
-im_clip2s          - convert to signed 16-bit integer
-im_clip2ui         - convert to unsigned 32-bit integer
-im_clip2us         - convert to unsigned 16-bit integer
-im_clip            - convert to unsigned 8-bit integer
-im_copy            - copy image
-im_copy_morph      - copy image, setting pixel layout
-im_copy_swap       - copy image, swapping byte order
-im_copy_set        - copy image, setting informational fields
-im_copy_set_meta   - copy image, setting a meta field
-im_csv2vips        - read a file in csv format
-im_extract_area    - extract area
+im_bandjoin          - bandwise join of two images
+im_bernd             - extract from pyramid as jpeg
+im_black             - generate black image
+im_c2amph            - convert real and imaginary to phase and amplitude
+im_c2imag            - extract imaginary part of complex image
+im_c2ps              - find power spectrum of complex image
+im_c2real            - extract real part of complex image
+im_c2rect            - convert phase and amplitude to real and imaginary
+im_clip2c            - convert to signed 8-bit integer
+im_clip2cm           - convert to complex
+im_clip2d            - convert to double-precision float
+im_clip2dcm          - convert to double complex
+im_clip2f            - convert to single-precision float
+im_clip2fmt          - convert image format to ofmt
+im_clip2i            - convert to signed 32-bit integer
+im_clip2s            - convert to signed 16-bit integer
+im_clip2ui           - convert to unsigned 32-bit integer
+im_clip2us           - convert to unsigned 16-bit integer
+im_clip              - convert to unsigned 8-bit integer
+im_copy              - copy image
+im_copy_morph        - copy image, setting pixel layout
+im_copy_swap         - copy image, swapping byte order
+im_copy_set          - copy image, setting informational fields
+im_copy_set_meta     - copy image, setting a meta field
+im_extract_area      - extract area
 im_extract_areabands - extract area and bands
-im_extract_band    - extract band
-im_extract_bands   - extract several bands
-im_extract         - extract area/band
-im_falsecolour     - turn luminance changes into chrominance changes
-im_fliphor         - flip image left-right
-im_flipver         - flip image top-bottom
-im_gbandjoin       - bandwise join of many images
-im_grid            - chop a tall thin image into a grid of images
-im_insert          - insert sub-image into main image at position
-im_insert_noexpand - insert sub-image into main image at position, no
-expansion
-im_jpeg2vips       - convert from jpeg
-im_lrjoin          - join two images left-right
-im_magick2vips     - load file with libMagick
-im_mask2vips       - convert DOUBLEMASK to VIPS image
-im_msb             - convert to uchar by discarding bits
-im_msb_band        - convert to single band uchar by discarding bits
-im_png2vips        - convert PNG file to VIPS image
-im_exr2vips        - convert an OpenEXR file to VIPS
-im_ppm2vips        - read a file in pbm/pgm/ppm format
-im_analyze2vips    - read a file in analyze format
-im_print           - print string to stdout
-im_recomb          - linear recombination with mask
-im_replicate       - replicate an image horizontally and vertically
-im_ri2c            - join two non-complex images to form complex
-im_rot180          - rotate image 180 degrees
+im_extract_band      - extract band
+im_extract_bands     - extract several bands
+im_extract           - extract area/band
+im_falsecolour       - turn luminance changes into chrominance changes
+im_fliphor           - flip image left-right
+im_flipver           - flip image top-bottom
+im_gbandjoin         - bandwise join of many images
+im_grid              - chop a tall thin image into a grid of images
+im_insert            - insert sub-image into main image at position
+im_insert_noexpand   - insert sub-image into main image at position, no expansion
+im_lrjoin            - join two images left-right
+im_mask2vips         - convert DOUBLEMASK to VIPS image
+im_msb               - convert to uchar by discarding bits
+im_msb_band          - convert to single band uchar by discarding bits
+im_print             - print string to stdout
+im_recomb            - linear recombination with mask
+im_replicate         - replicate an image horizontally and vertically
+im_ri2c              - join two non-complex images to form complex
 \end{verbatim}
 \caption{Conversion functions}
 \label{fg:conversion}
@@ -354,27 +345,21 @@ im_rot180          - rotate image 180 degrees
 
 \begin{fig2}
 \begin{verbatim}
-im_rot270          - rotate image 270 degrees clockwise
-im_rot90           - rotate image 90 degrees clockwise
-im_scale           - scale image linearly to fit range 0-255
-im_scaleps         - logarithmic scale of image to fit range 0-255
-im_rightshift_size - decrease size by a power-of-two factor
-im_slice           - slice an image using two thresholds
-im_subsample       - subsample image by integer factors
-im_system          - run command on image
-im_tbjoin          - join two images top-bottom
-im_text            - generate text image
-im_thresh          - slice an image at a threshold
-im_tiff2vips       - convert TIFF file to VIPS image
-im_vips2csv        - write an image in csv format
-im_vips2jpeg       - convert to jpeg
-im_vips2mask       - convert VIPS image to DOUBLEMASK
-im_vips2mimejpeg   - convert to jpeg as mime type on stdout
-im_vips2png        - convert VIPS image to PNG file
-im_vips2ppm        - write a file in pbm/pgm/ppm format
-im_vips2tiff       - convert VIPS image to TIFF file
-im_wrap            - shift image origin, wrapping at sides
-im_zoom            - simple zoom of an image by integer factors
+im_rot180            - rotate image 180 degrees
+im_rot270            - rotate image 270 degrees clockwise
+im_rot90             - rotate image 90 degrees clockwise
+im_scale             - scale image linearly to fit range 0-255
+im_scaleps           - logarithmic scale of image to fit range 0-255
+im_rightshift_size   - decrease size by a power-of-two factor
+im_slice             - slice an image using two thresholds
+im_subsample         - subsample image by integer factors
+im_system            - run command on image
+im_tbjoin            - join two images top-bottom
+im_text              - generate text image
+im_thresh            - slice an image at a threshold
+im_vips2mask         - convert VIPS image to DOUBLEMASK
+im_wrap              - shift image origin, wrapping at sides
+im_zoom              - simple zoom of an image by integer factors
 \end{verbatim}
 \caption{Conversion functions (cont.)}
 \end{fig2}
@@ -483,55 +468,55 @@ expect.
 \begin{fig2}
 \begin{verbatim}
 example% vips --list convolution
-im_addgnoise       - add gaussian noise with mean 0 and std. dev. sigma
-im_compass         - convolve with 8-way rotating integer mask
-im_contrast_surface - find high-contrast points in an image
+im_addgnoise         - add gaussian noise with mean 0 and std. dev. sigma
+im_compass           - convolve with 8-way rotating integer mask
+im_contrast_surface  - find high-contrast points in an image
 im_contrast_surface_raw - find high-contrast points in an image
-im_conv            - convolve
-im_conv_raw        - convolve, no border
-im_convf           - convolve, with DOUBLEMASK
-im_convf_raw       - convolve, with DOUBLEMASK, no border
-im_convsep         - seperable convolution
-im_convsep_raw     - seperable convolution, no border
-im_convsepf        - seperable convolution, with DOUBLEMASK
-im_convsepf_raw    - seperable convolution, with DOUBLEMASK, no border
-im_convsub         - convolve uchar to uchar, sub-sampling by xskip, yskip
-im_dmask_xsize     - horizontal size of a doublemask
-im_dmask_ysize     - vertical size of a doublemask
-im_embed           - embed in within a set of borders
-im_fastcor         - fast correlate in2 within in1
-im_fastcor_raw     - fast correlate in2 within in1, no border
-im_gauss_dmask     - generate gaussian DOUBLEMASK
-im_gauss_imask     - generate gaussian INTMASK
-im_gaussnoise      - generate gaussian noise with specified statistics
-im_grad_x          - horizontal difference image
-im_grad_y          - vertical difference image
-im_gradcor         - unnormalised correlation of gradient 
-im_gradcor_raw     - unnormalised correlation of gradient, no padding
-im_gradient        - convolve with 2-way rotating mask
-im_imask_xsize     - horizontal size of an intmask
-im_imask_ysize     - vertical size of an intmask
-im_rank_image      - point-wise pixel rank
-im_lindetect       - convolve with 4-way rotating mask
-im_log_dmask       - generate laplacian of gaussian DOUBLEMASK
-im_log_imask       - generate laplacian of gaussian INTMASK
-im_maxvalue        - point-wise maximum value
-im_mpercent        - find threshold above which there are percent values
-im_phasecor_fft    - non-normalised correlation of gradient of in2 within in1
-im_rank            - rank filter nth element of xsize/ysize window
-im_rank_raw        - rank filter nth element of xsize/ysize window, no border
-im_read_dmask      - read matrix of double from file
-im_resize_linear   - resize to X by Y pixels with linear interpolation
-im_rotate_dmask45  - rotate DOUBLEMASK clockwise by 45 degrees
-im_rotate_dmask90  - rotate DOUBLEMASK clockwise by 90 degrees
-im_rotate_imask45  - rotate INTMASK clockwise by 45 degrees
-im_rotate_imask90  - rotate INTMASK clockwise by 90 degrees
-im_sharpen         - sharpen high frequencies of L channel of LabQ
-im_shrink          - shrink image by xfac, yfac times
-im_spcor           - normalised correlation of in2 within in1
-im_spcor_raw       - normalised correlation of in2 within in1, no padding
-im_stretch3        - stretch 3%, sub-pixel displace by xdisp/ydisp
-im_zerox           - find +ve or -ve zero crossings in image
+im_conv              - convolve
+im_conv_raw          - convolve, no border
+im_convf             - convolve, with DOUBLEMASK
+im_convf_raw         - convolve, with DOUBLEMASK, no border
+im_convsep           - seperable convolution
+im_convsep_raw       - seperable convolution, no border
+im_convsepf          - seperable convolution, with DOUBLEMASK
+im_convsepf_raw      - seperable convolution, with DOUBLEMASK, no border
+im_convsub           - convolve uchar to uchar, sub-sampling by xskip, yskip
+im_dmask_xsize       - horizontal size of a doublemask
+im_dmask_ysize       - vertical size of a doublemask
+im_embed             - embed in within a set of borders
+im_fastcor           - fast correlate in2 within in1
+im_fastcor_raw       - fast correlate in2 within in1, no border
+im_gauss_dmask       - generate gaussian DOUBLEMASK
+im_gauss_imask       - generate gaussian INTMASK
+im_gaussnoise        - generate image of gaussian noise with specified statistics
+im_grad_x            - horizontal difference image
+im_grad_y            - vertical difference image
+im_gradcor           - non-normalised correlation of gradient of in2 within in1
+im_gradcor_raw       - non-normalised correlation of gradient of in2 within in1, no padding
+im_gradient          - convolve with 2-way rotating mask
+im_imask_xsize       - horizontal size of an intmask
+im_imask_ysize       - vertical size of an intmask
+im_rank_image        - point-wise pixel rank
+im_lindetect         - convolve with 4-way rotating mask
+im_log_dmask         - generate laplacian of gaussian DOUBLEMASK
+im_log_imask         - generate laplacian of gaussian INTMASK
+im_maxvalue          - point-wise maximum value
+im_mpercent          - find threshold above which there are percent values
+im_phasecor_fft      - non-normalised correlation of gradient of in2 within in1
+im_rank              - rank filter nth element of xsize/ysize window
+im_rank_raw          - rank filter nth element of xsize/ysize window, no border
+im_read_dmask        - read matrix of double from file
+im_resize_linear     - resize to X by Y pixels with linear interpolation
+im_rotate_dmask45    - rotate DOUBLEMASK clockwise by 45 degrees
+im_rotate_dmask90    - rotate DOUBLEMASK clockwise by 90 degrees
+im_rotate_imask45    - rotate INTMASK clockwise by 45 degrees
+im_rotate_imask90    - rotate INTMASK clockwise by 90 degrees
+im_sharpen           - sharpen high frequencies of L channel of LabQ
+im_shrink            - shrink image by xfac, yfac times
+im_spcor             - normalised correlation of in2 within in1
+im_spcor_raw         - normalised correlation of in2 within in1, no black padding
+im_stretch3          - stretch 3%, sub-pixel displace by xdisp/ydisp
+im_zerox             - find +ve or -ve zero crossings in image
 \end{verbatim}
 \caption{Convolution functions}
 \label{fg:convolution}
@@ -627,32 +612,32 @@ functions are useful combinations of these basic operations.
 \begin{fig2}
 \begin{verbatim}
 example% vips --list histograms_lut
-im_gammacorrect    - gamma-correct image
-im_heq             - histogram-equalise image
-im_hist            - find and graph histogram of image
-im_histcum         - turn histogram to cumulative histogram
-im_histeq          - form histogram equalistion LUT
-im_histgr          - find histogram of image
-im_histnD          - find 1D, 2D or 3D histogram of image
-im_histnorm        - form normalised histogram
-im_histplot        - plot graph of histogram
-im_histspec        - find histogram which will make pdf of in match ref
-im_hsp             - match stats of in to stats of ref
-im_identity        - generate identity histogram
-im_identity_ushort - generate ushort identity histogram
-im_ismonotonic     - test LUT for monotonicity
-im_lhisteq         - local histogram equalisation
-im_lhisteq_raw     - local histogram equalisation, no border
-im_invertlut       - generate correction table from set of measures
-im_buildlut        - generate LUT table from set of x/y positions
-im_maplut          - map image through LUT
-im_project         - find horizontal and vertical projections of an image
-im_stdif           - statistical differencing
-im_stdif_raw       - statistical differencing, no border
-im_tone_analyse    - analyse in and create LUT for tone adjustment
-im_tone_build      - create LUT for tone adjustment of LabS images
-im_tone_build_range - create LUT for tone adjustment
-im_tone_map        - map L channel of LabS or LabQ image through LUT
+im_gammacorrect      - gamma-correct image
+im_heq               - histogram-equalise image
+im_hist              - find and graph histogram of image
+im_histcum           - turn histogram to cumulative histogram
+im_histeq            - form histogram equalistion LUT
+im_histgr            - find histogram of image
+im_histnD            - find 1D, 2D or 3D histogram of image
+im_histnorm          - form normalised histogram
+im_histplot          - plot graph of histogram
+im_histspec          - find histogram which will make pdf of in match ref
+im_hsp               - match stats of in to stats of ref
+im_identity          - generate identity histogram
+im_identity_ushort   - generate ushort identity histogram
+im_ismonotonic       - test LUT for monotonicity
+im_lhisteq           - local histogram equalisation
+im_lhisteq_raw       - local histogram equalisation, no border
+im_invertlut         - generate correction table from set of measures
+im_buildlut          - generate LUT table from set of x/y positions
+im_maplut            - map image through LUT
+im_project           - find horizontal and vertical projections of an image
+im_stdif             - statistical differencing
+im_stdif_raw         - statistical differencing, no border
+im_tone_analyse      - analyse in and create LUT for tone adjustment
+im_tone_build        - create LUT for tone adjustment of LabS images
+im_tone_build_range  - create LUT for tone adjustment
+im_tone_map          - map L channel of LabS or LabQ image through LUT
 \end{verbatim}
 \caption{Histogram/LUT functions}
 \label{fg:hist}
@@ -760,26 +745,27 @@ images.
 \begin{fig2}
 \begin{verbatim}
 example% vips --list mosaicing
-im_affine          - affine transform
-im_align_bands     - align the bands of an image
-im_correl          - search area around sec for match for area around ref
-im__find_lroverlap - search for left-right overlap of ref and sec
-im__find_tboverlap - search for top-bottom overlap of ref and sec
-im_global_balance  - automatically rebuild mosaic with balancing
-im_global_balancef - automatically rebuild mosaic with balancing, float output
-im_lrmerge         - left-right merge of in1 and in2
-im_lrmerge1        - first-order left-right merge of ref and sec
-im_lrmosaic        - left-right mosaic of ref and sec
-im_lrmosaic1       - first-order left-right mosaic of ref and sec
-im_match_linear    - resample ref so that tie-points match
+im_affine            - affine transform
+im_align_bands       - align the bands of an image
+im_correl            - search area around sec for match for area around ref
+im__find_lroverlap   - search for left-right overlap of ref and sec
+im__find_tboverlap   - search for top-bottom overlap of ref and sec
+im_global_balance    - automatically rebuild mosaic with balancing
+im_global_balancef   - automatically rebuild mosaic with balancing, float output
+im_lrmerge           - left-right merge of in1 and in2
+im_lrmerge1          - first-order left-right merge of ref and sec
+im_lrmosaic          - left-right mosaic of ref and sec
+im_lrmosaic1         - first-order left-right mosaic of ref and sec
+im_match_linear      - resample ref so that tie-points match
 im_match_linear_search - search sec, then resample so that tie-points match
-im_remosaic        - automatically rebuild mosaic with new files
-im_similarity_area - output area xywh of similarity transformation
-im_similarity      - similarity transformation
-im_tbmerge         - top-bottom merge of in1 and in2
-im_tbmerge1        - first-order top-bottom merge of in1 and in2
-im_tbmosaic        - top-bottom mosaic of in1 and in2
-im_tbmosaic1       - first-order top-bottom mosaic of ref and sec
+im_maxpos_subpel     - subpixel position of maximum of (phase correlation) image
+im_remosaic          - automatically rebuild mosaic with new files
+im_similarity_area   - output area xywh of similarity transformation
+im_similarity        - similarity transformation
+im_tbmerge           - top-bottom merge of in1 and in2
+im_tbmerge1          - first-order top-bottom merge of in1 and in2
+im_tbmosaic          - top-bottom mosaic of in1 and in2
+im_tbmosaic1         - first-order top-bottom mosaic of ref and sec
 \end{verbatim}
 \caption{Mosaic functions}
 \label{fg:mosaicing}
@@ -851,4 +837,33 @@ im_version_string  - VIPS version string
 \end{verbatim}
 \caption{IO functions}
 \label{fg:io}
+\end{fig2}
+
+\subsection{Format functions}
+
+See \fref{fg:format}.
+
+These functions convert to and from various image formats. See
+\pref{sec:format} for a nice API over these functions.
+
+\begin{fig2}
+\begin{verbatim}
+example% vips --list format
+im_csv2vips          - read a file in csv format
+im_jpeg2vips         - convert from jpeg
+im_magick2vips       - load file with libMagick
+im_png2vips          - convert PNG file to VIPS image
+im_exr2vips          - convert an OpenEXR file to VIPS
+im_ppm2vips          - read a file in pbm/pgm/ppm format
+im_analyze2vips      - read a file in analyze format
+im_tiff2vips         - convert TIFF file to VIPS image
+im_vips2csv          - write an image in csv format
+im_vips2jpeg         - convert to jpeg
+im_vips2mimejpeg     - convert to jpeg as mime type on stdout
+im_vips2png          - convert VIPS image to PNG file
+im_vips2ppm          - write a file in pbm/pgm/ppm format
+im_vips2tiff         - convert VIPS image to TIFF file
+\end{verbatim}
+\caption{Format functions}
+\label{fg:format}
 \end{fig2}

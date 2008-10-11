@@ -80,6 +80,11 @@ void *im_format_map( VSListMap2Fn fn, void *a, void *b );
 im_format_t *im_format_for_file( const char *filename );
 im_format_t *im_format_for_name( const char *filename );
 
+/* Write an image convenience function.
+ */
+int im_format_read( const char *name, IMAGE *out );
+int im_format_write( IMAGE *im, const char *name );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

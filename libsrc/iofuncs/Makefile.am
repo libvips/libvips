@@ -1,7 +1,6 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
-	type.c \
 	meta.c \
 	base64.h \
 	base64.c \

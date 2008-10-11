@@ -201,7 +201,8 @@ public:
 	// 		"file.jpg", "temp.v" );
 	// Runs im_jpeg2vips to the temp file, then opens that and returns
 	// it. Useful for opening very large files without using a lot of RAM.
-	// FIXME ... what a hack, replace this with something better
+	// Now superceeded by the format API, though that's not yet wrapped in
+	// C++
 	static VImage convert2disc( const char* convert, 
 		const char* in, const char* disc ) throw( VError );
 

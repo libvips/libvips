@@ -17,8 +17,10 @@ INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 AM_LDFLAGS = @LDFLAGS@ 
 LDADD = @VIPS_CFLAGS@ ${top_builddir}/libsrc/libvips.la @VIPS_LIBS@
 
+if ENABLE_LINKS
 install-exec-hook:
 	${top_srcdir}/src/scripts/post_install ${DESTDIR}${bindir}
+endif
 
 uninstall-hook:
 	${RM} ${bindir}/im_*

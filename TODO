@@ -1,78 +1,32 @@
-- have vips -> gvalue and gvalue -> vips methods in type struct
+- update the Portfiles on the mac and on the website from the macports ones
 
-  converters need arg flags too, so they know whether it's read or write
+WONTFIX for 7.16
+================
 
-  is this enough? maybe
+- we shouldn't need to call im_invalidate() in gtkdisp4 :( how can we fix
+  this?
 
+  will im_invalidate() trash the render cache too?
 
+- we should wrap the format API, also im_render*(), see gtkdisp.cc for sample
+  code
 
-- do we need init functions? maybe for arrays I guess
+- have a base VObject class and put the ref stuff in there ... share between
+  VMask, VDisplay, VImage
 
-  should gvalues be inited to a specific type?
+- need an im_init_world() for C++ which does cmd-line args too, so C++ progs
+  can get --vips-progress and stuff automatically
 
-  
+- examine yafr and add as another interpolation option for im_affine
 
-- we need init functions which are parameterizied for the specific value
+- how much slower wouuld we get if we did a function call + switch for 
+  interpolate in im_affine()? it would let us break out the interpolation 
+  stuff from the transformer
 
-	im_value_double_init( value, 12.3 )
+- we need another version of im_affine() with an 'interpolate' option :-(
 
-  	im_value_array_init( value, 4, arrayptr )
-
-	im_value_image_init( value, im_open( "poop", "r" ) )
-
-  the problem is that init will generally be done by the app: the app needs to
-  do the build-vips-value-from-my-data conversion, and since it is doing that
-  build, it needs to do the free as well
-
-  alternative: init from a GValue?
-
-  then we do GValue -> vips build, so we can free as well
-
-  apps need to do internal -> GValue, then call vips to dispatch
-
-  no point :( and slower
-
-  move all init/free stuff out of type, just have malloc/free with a sizeof
-
-  and perhaps some utility functions to build vips format structures and free
-  them
-
-
-
-- needs docs in vips manual for format stuff I guess
-
-- operations and jesper's types should all use the new register/unregister
-  model
-
-  support backwards compat by calling im_operation_register() automatically 
-  if we see a package_table symbol
-
-  have new structs with new fields under new names? eg. jesper wants something 
-  to write to a string
-
-  though we have to pass (almost) the same structs to UIs argh and we can't
-  change them
-
-  jesper wants to add another field to im_type_desc ... so, keep im_type_desc
-  as is and define a new struct im_type_t with the extra fields
-
-  when we load a package, call im_type_register with the known fields
-
-  check other use cases eg. nip2, python, c++, vips.c
-
-  reread the plugin section in the vipsmanual and think about compat
-
-
-- junk package system?
-
-
-
-  plugin init
-
-	  const char *g_module_check_init (GModule *)
-
-  null for success, or errormsg
-
+  or maybe have im_interpolate_t as another object which we pass to
+  im_affine()
 
 - more cleanups to the handling of vips format images, esp. we have vips write
   spread across many files atm
@@ -85,22 +39,12 @@
 - add new type names, eg. im_region_t, im_image_t etc. and deprecate old
   names?
 
-
-
-- when we open with a mmap window and later do im_incheck(), do we remap the
-  whole file?
-
-
 - try
 
 	libsrc/convolution$ grep -l offsets *.c
 
   could we do the don't calc offsets thing unless bpl; changes thing in more
   places?
-
-- docs include figures twice! yuk
-
-  fixed? not sure, check again
 
 - unsharp should work on GREY16? should be easy to add GREY16->LABS
 
@@ -142,6 +86,10 @@
 
 - im_exr2vips can now use c++ api
 
+  see TODO notes in openexr read (though they all need more openexr C API)
+
+  consider openexr write
+
 - python startup fails with plugins in vipslib:
 
 	Fatal Python error: can't initialise module vips
@@ -179,10 +127,6 @@
 
 - magick should set some header field for n_frames and frame_height? see also
   analyze
-
-- see TODO notes in openexr read (though they all need more openexr C API)
-
-  consider openexr write
 
 - im_csv2vips() could use "-" for filename to mean stdin
 

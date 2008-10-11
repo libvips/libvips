@@ -4,8 +4,8 @@ AM_CONFIG_HEADER(config.h)
 
 # user-visible library versioning
 IM_MAJOR_VERSION=7
-IM_MINOR_VERSION=15
-IM_MICRO_VERSION=1
+IM_MINOR_VERSION=17
+IM_MICRO_VERSION=0
 IM_VERSION=$IM_MAJOR_VERSION.$IM_MINOR_VERSION.$IM_MICRO_VERSION
 IM_VERSION_STRING=$IM_VERSION-`date`
 
@@ -21,9 +21,9 @@ PACKAGE=vips
 #   interface changes backwards compatible?: increment age
 #   interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=21
-LIBRARY_REVISION=0
-LIBRARY_AGE=6
+LIBRARY_CURRENT=22
+LIBRARY_REVISION=1
+LIBRARY_AGE=7
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
@@ -130,6 +130,11 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
 ALL_LINGUAS="en_GB"
 AM_GLIB_GNU_GETTEXT
 
+# C++ fails to compile mysteriously without gettext ... fail here
+if test x"$gt_cv_have_gettext" != x"yes"; then
+  AC_MSG_ERROR([gettext not found])
+fi
+
 # Checks for libraries.
 
 # build list of pkg-config packages we used here
@@ -174,6 +179,19 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 >= 2.4 libxml-2.0 gobject-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 libxml-2.0 gobject-2.0"
 
+# option to make im_* symlinks
+AC_ARG_ENABLE(links, 
+  AS_HELP_STRING([--enable-links], [make links for operations (default: no)]))
+
+if test x"$enable_links" = x"yes"; then
+  # tested by src/iofuncs/Makefile.am:install-exec-hook
+  AM_CONDITIONAL(ENABLE_LINKS, true)
+  enable_links=yes
+else
+  AM_CONDITIONAL(ENABLE_LINKS, false)
+  enable_links=no
+fi
+
 # option to eval without threads
 AC_ARG_ENABLE(threads, 
   AS_HELP_STRING([--enable-threads], [evaluate with threads (default: yes)]))
@@ -216,7 +234,10 @@ if test x"$with_magickpackage" = "x"; then
   PKG_CHECK_MODULES(MAGICK_WAND, MagickWand,
     [with_magickpackage=MagickWand],
     [PKG_CHECK_MODULES(IMAGE_MAGICK, ImageMagick,
-     [with_magickpackage=ImageMagick],)])
+     [with_magickpackage=ImageMagick],
+     [AC_MSG_WARN([neither MagickWand nor ImageMagick found; disabling Magick support])
+      with_magick=no
+     ])])
 fi
 
 if test x"$with_magick" != "xno"; then
@@ -224,7 +245,7 @@ if test x"$with_magick" != "xno"; then
     [AC_DEFINE(HAVE_MAGICK,1,[define if you have libMagick installed.])
      with_magick=yes
      PACKAGES_USED="$PACKAGES_USED $with_magickpackage"],
-    [AC_MSG_WARN([libMagick not found; disabling Magick support])
+    [AC_MSG_WARN([$with_magickpackage not found; disabling Magick support])
      with_magick=no
     ])
 fi
@@ -358,10 +379,19 @@ if test x"$with_libexif" != "xno"; then
 fi
 
 # Look for linux video
-# try a compile as well: if we're using icc the header can break
-AC_CHECK_HEADER(linux/videodev.h, 
-  AC_TRY_COMPILE([#include <linux/videodev.h>], [struct video_capability vc;],
-    with_videodev=yes))
+AC_ARG_WITH([v4l], 
+  AS_HELP_STRING([--without-v4l], [build without video4linux (default: test)]))
+
+if test x"$with_v4l" != "xno"; then
+  # try a compile as well: if we're using icc the header can break
+  # even try assigning to vc.type: if this works, surely the header is
+  # functional
+  AC_CHECK_HEADER(linux/videodev.h, 
+    [AC_TRY_COMPILE([#include <linux/videodev.h>], 
+		    [struct video_capability vc; vc.type = 12], 
+		     with_videodev=yes)
+    ])
+fi
 
 if test x"$with_videodev" = x"yes"; then
   AC_DEFINE(HAVE_VIDEODEV,1,[have video4linux 1])
@@ -388,20 +418,12 @@ if test x"$with_python" != "xno"; then
      AC_MSG_WARN([Python headers not found])])
 fi
 
-# need SWIG too
-if test x"$with_python" != "xno"; then
-  AC_CHECK_PROG(HAVE_SWIG, swig, [yes])
+# we don't check for swig: we include the generated bindings in the
+# distribution
 
-  if test x"$HAVE_SWIG" != "xyes"; then
-    with_python=no
-    AC_MSG_WARN([SWIG not found; disabling Python binding])
-  else
-    with_python=yes
-  fi
-fi
-
-if test x"$with_python" = "xyes"; then
+if test x"$with_python" != x"no"; then
   AM_CONDITIONAL(HAVE_PYTHON, true)
+  with_python=yes
 else
   AM_CONDITIONAL(HAVE_PYTHON, false)
 fi
@@ -443,9 +465,9 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(PACKAGES_USED)
 
 AC_OUTPUT([
-	vips-7.15.pc
-	vipsCC-7.15.pc
-	vips-7.15.spec
+	vips-7.16.pc
+	vipsCC-7.16.pc
+	vips-7.16.spec
 	Makefile 
 	include/vips/version.h 
 	include/Makefile 
@@ -500,6 +522,7 @@ AC_MSG_RESULT([
 native win32:				$vips_os_win32
 open files in binary mode: 		$vips_binary_open
 evaluate with threads: 			$enable_threads
+make symlinks for commands in bin: 	$enable_links
 
 * optional packages and modules
 use fftw3 for FFT: 			$with_fftw3

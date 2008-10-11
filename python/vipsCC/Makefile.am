@@ -1,5 +1,5 @@
 # Let make substitute the value of PYTHON_INCLUDES rather than auto*
-# # this makes it easier to support multiple python installs
+# this makes it easier to support multiple python installs
 INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ $(PYTHON_INCLUDES)
 
 # we install to a directory inside the python area, since we are a module
@@ -44,9 +44,10 @@ vmaskmodule_la_LDFLAGS = -module -avoid-version
 vmaskmodule_la_LIBADD = ../../libsrcCC/libvipsCC.la $(VIPS_LIBS)
 nodist_vmaskmodule_la_SOURCES = vmaskmodule.cxx 
 
-CLEANFILES = \
-	vimagemodule.cxx VImage.h \
+CLEANFILES = VImage.h 
+
+EXTRA_DIST = \
+	VImage.i VDisplay.i VError.i VMask.i __init__.py \
+	vimagemodule.cxx \
 	verrormodule.cxx vdisplaymodule.cxx vmaskmodule.cxx \
 	VImage.py VDisplay.py VError.py VMask.py
-
-EXTRA_DIST = VImage.i VDisplay.i VError.i VMask.i __init__.py

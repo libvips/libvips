@@ -35,13 +35,12 @@ If you have problems, read on.
 Building VIPS on win32
 ----------------------
 
-Probably the easiest route is to use mingw/msys. This provides a GNU-style
+The easiest route is to use mingw/msys. This provides a GNU-style
 build environment for win32. 
 
 	http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_windows
 
-Alternatively, vips-7.x/win32 contains sample build systems using the
-Microsoft toolchain. See the README in there for details.
+You can also cross-compile from a unix system to windows.
 
 Building VIPS on OS X
 ---------------------
@@ -53,7 +52,7 @@ There are packages in macports.
 Dependencies
 ============
 
-VIPS has to have glib-2.x and libxml-2.0. The build system needs perl, 
+VIPS has to have gettext, glib-2.x and libxml-2.0. The build system needs 
 pkg-config and gnu make.
 
 Optional dependencies
@@ -63,13 +62,23 @@ Optional support libraries ... also try ./configure --help to see flags for
 controlling these libs. By default, if suitable versions are found, VIPS will
 build support for them automatically.
 
-VIPS looks for stuff in /usr. If you have installed your own versions of
-these libraries to /usr/local, vips will not see them. Use switches to VIPS
-configure like:
+VIPS looks for stuff with pkg-config, so make sure pkg-config can find these
+extra libraries. libtiff and libjpeg do not generally use pkg-config, so 
+VIPS looks for them in the default path and in $prefix. If you have installed
+your own versions of these libraries in a different location, vips will not see
+them. Use switches to VIPS configure like:
 
-	./configure --prefix=/home/john/vips \
-		--with-tiff-includes=/home/john/vips/include \
-		--with-tiff-libraries=/home/john/vips/lib 
+	./configure --prefix=/Users/john/vips \
+		--with-tiff-includes=/opt/local/include \
+		--with-tiff-libraries=/opt/local/lib \
+		--with-jpeg-includes=/opt/local/include \
+		--with-jpeg-libraries=/opt/local/lib
+
+or perhaps:
+
+	CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+		CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+		./configure --without-python --prefix=/Users/john/vips 
 
 to get VIPS to see your builds.
 

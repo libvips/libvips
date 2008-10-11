@@ -20,8 +20,9 @@ and it would display as "Sevy imago os ...", with the "m" underlined.
 tips
 ----
 
-cd vips-7.14.x ; find */* -name "*.c" > po/POTFILES.in
-cd vips-7.14.x ; find */* -name "*.cc" >> po/POTFILES.in
+cd vips-7.x.x ; find */* -name "*.c" > po/POTFILES.in
+cd vips-7.x.x ; find */* -name "*.cc" >> po/POTFILES.in
+cd vips-7.x.x ; find */* -name "*.h" >> po/POTFILES.in
 
 	regenerate the list of files to search for strings
 
@@ -37,14 +38,15 @@ intltool-update --pot
 add header
 
 # test translation file
-#
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: vips 7.9.3\n"
-"POT-Creation-Date: 2003-11-04 12:18+0000\n"
-"PO-Revision-Date: 2003-11-04 12:30+0000\n"
-"Last-Translator: john <EMAIL@ADDRESS>\n"
-"Language-Team: dk <LL@li.org>\n"
+"Project-Id-Version: vips 7.16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: Fri Sep  5 10:27:43 BST 2008\n"
+"PO-Revision-Date: Fri Sep  5 10:27:43 BST 2008\n"
+"Last-Translator: john <jcupitt@gmail.com>\n"
+"Language-Team: \n" 
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"

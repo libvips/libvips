@@ -302,9 +302,11 @@ example% vips -plugin double.plg \
 example%
 \end{verbatim}
 
-If you copy \verb+double.plg+ into your VIPS library area (the directory where
-libvips is installed, or \verb+$VIPSHOME/lib+) it will be automatically 
-loaded by all VIPS programs as they start up.
+When VIPS starts up, it looks for a directory in the library directory called
+\verb+vips-+, with the vips major and minor versions numbers as extensions,
+and loads all files in there with the suffix \verb+.plg+. So for example, on
+my machine, the plugin directory is \verb+/usr/lib/vips-7.16+ and any plugins
+in that directory are automatically loaded into any VIPS programs on startup.
 
 \subsection{A more complicated example}
 

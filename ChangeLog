@@ -1,8 +1,38 @@
-24/8/08 fork for stable 7.16 branch
+11/10/08 merge 7.16 back into trunk for 7.17.0
+
+11/9/08 started 7.16.3
+- oop typo in manpage for im_project()
+- doc fixes
+- returning non-zero from eval callbacks was not always stopping computation
+
+11/9/08 started 7.16.2
+- added --without-v4l option
+- added -no-undefined to libsrcCC build, so we get a libvipsCC.dll
+- removed the swig dependency: we include the generated bindings in the
+  distribution tarball
+
+6/9/08 started 7.16.1
+- trigger eval callbacks on tiled tiff write
+- added vips as an im_format_t
+- added im_format_write()/_read() convenience functions
+- more cleanups for the format API, argh
+- removed win32/ directory now mingw finally makes DLLs correctly
+- removed the windowed spcor for now, it has some edge effects
+
+24/8/08 branch for 7.16
+- renames and version numbers
 - load plgs from libdir as well as libdir/vips-x.x for compat
 - complex -> complex conversion was broken
 - refstring <-> gstring transforms
+- better behaviour with Magick non-presence
+- added --enable-links switch to configure ... we no longer make the bin/im_*
+  links by default
+- started a 'format' section in the docs
+- configure fails if no gettext found
+- revised po/
+- released as 7.16.0!
 
+>>>>>>> .merge-right.r488
 25/5/08 fork for loadable image format branch
 - image load/save in non-vips format code moved to own dir
 - simple format searching added

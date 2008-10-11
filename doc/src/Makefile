@@ -6,6 +6,7 @@ SRC = \
 	cppintro.tex \
 	fileformat.tex \
 	func.tex \
+	format.tex \
 	iosys.tex \
 	ipio.tex \
 	mydefs.tex \
@@ -44,6 +45,8 @@ html:
 	mkdir vipsmanual
 	htlatex vipsmanual.tex html.cfg,3 "" -dvipsmanual/
 	cp -r figs vipsmanual
+	-rm vipsmanual/figs/*.svg
+	-rm vipsmanual/*.png
 
 .PHONEY: clean 
 clean:

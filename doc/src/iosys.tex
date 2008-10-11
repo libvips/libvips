@@ -22,9 +22,10 @@ Before calling any VIPS function, you need to start VIPS up:
 int im_init_world( const char *argv0 );
 \end{verbatim}
 
-The \verb+argv0+ argument is the value of \verb+argv[0]+ your program was passed
-by the host operating system. VIPS uses this with \verb+im_guess_prefix()+
-to try to find various VIPS data files.
+The \verb+argv0+ argument is the value of \verb+argv[0]+ your
+program was passed by the host operating system. VIPS uses this with
+\verb+im_guess_prefix()+ and \verb+im_guess_libdir()+ to try to find various 
+VIPS data files.
 
 If you don't call this function, VIPS will call it for you the first time you
 use a VIPS function. But it won't be able to get the \verb+argv0+ value for
@@ -161,9 +162,14 @@ There's also \verb+im_header_map()+ to loop over header fields, and
 image meta fields as well, see \pref{sec:meta}.
 
 \subsection{Opening and closing}
+\label{sec:open}
 
-Descriptors are created with \verb+im_open()+. This takes a file name
-and a string representing the mode with which the descriptor is to be opened:
+Descriptors are created with \verb+im_open()+. You can also read images with
+the format system: see \pref{sec:format}. The two APIs are complimentary,
+though \verb+im_open()+ is more useful.
+
+\verb+im_open()+ takes a file name and a string representing the mode with
+which the descriptor is to be opened:
 
 \begin{verbatim}
 IMAGE *im_open( const char *filename, 

@@ -104,6 +104,8 @@
  * 	- use IM_META_RESOLUTION_UNIT to set default resunit
  * 17/4/08
  * 	- allow CMYKA (thanks Doron)
+ * 5/9/08
+ *	- trigger eval callbacks during tile write
  */
 
 /*
@@ -164,6 +166,7 @@ im_vips2tiff( IMAGE *im, const char *filename )
 #include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include <tiffio.h>
 
@@ -1056,6 +1059,15 @@ write_tif_tile( TiffWrite *tw )
 			 */
 			if( tw->layer && new_tile( tw->layer, tw->reg, &area ) )
 				return( -1 );
+
+			/* Trigger any eval callbacks on our source image.
+			 */
+			im__handle_eval( im, area.width, area.height );
+
+                        /* Check for errors.
+                         */
+                        if( im_threadgroup_iserror( tw->tg ) ) 
+                                return( -1 );
 		}
 
 	return( 0 );
@@ -1619,8 +1631,19 @@ im_vips2tiff( IMAGE *im, const char *filename )
 		return( -1 );
 	}
 
-	if( tw->tile ) 
+
+	if( tw->tile ) {
+		/* The strip writer uses wbuffer and does start/end for us, we
+		 * have our own loop for tile writing and so we need to call
+		 * ourselves.
+		 */
+		if( im__start_eval( im ) ) {
+			free_tiff_write( tw );
+			return( -1 );
+		}
 		res = write_tif_tile( tw );
+		im__end_eval( im );
+	}
 	else
 		res = write_tif_strip( tw );
 	if( res ) {

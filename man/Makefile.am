@@ -188,6 +188,8 @@ man_MANS = \
 	im_format_register.3 \
 	im_format_set_priority.3 \
 	im_format_unregister.3 \
+	im_format_read.3 \
+	im_format_write.3 \
 	im_fractsurf.3 \
 	im_free.3 \
 	im_free_dmask.3 \

@@ -16,7 +16,7 @@ ZIP_INCLUDES=""
 ZIP_LIBS=""
 
 AC_ARG_WITH(zip, 
-[  --without-zip      do not use libz])
+  AS_HELP_STRING([--without-zip], [build without libx (default: test)]))
 # Treat --without-zip like --without-zip-includes --without-zip-libraries.
 if test "$with_zip" = "no"; then
   ZIP_INCLUDES=no
@@ -24,11 +24,11 @@ if test "$with_zip" = "no"; then
 fi
 
 AC_ARG_WITH(zip-includes,
-[  --with-zip-includes=DIR  ZIP include files are in DIR],
-ZIP_INCLUDES="-I$withval")
+  AS_HELP_STRING([--with-zip-includes=DIR], [libz includes are in DIR]),
+  ZIP_INCLUDES="-I$withval")
 AC_ARG_WITH(zip-libraries,
-[  --with-zip-libraries=DIR  ZIP libraries are in DIR],
-ZIP_LIBS="-L$withval -lz")
+  AS_HELP_STRING([--with-zip-libraries=DIR], [libz libraries are in DIR]),
+  ZIP_LIBS="-L$withval -lz")
 
 AC_MSG_CHECKING(for ZIP)
 
@@ -134,7 +134,7 @@ TIFF_INCLUDES=""
 TIFF_LIBS=""
 
 AC_ARG_WITH(tiff, 
-[  --without-tiff    do not use libtiff])
+  AS_HELP_STRING([--without-tiff], [build without libtiff (default: test)]))
 # Treat --without-tiff like --without-tiff-includes --without-tiff-libraries.
 if test "$with_tiff" = "no"; then
   TIFF_INCLUDES=no
@@ -142,11 +142,11 @@ if test "$with_tiff" = "no"; then
 fi
 
 AC_ARG_WITH(tiff-includes,
-[  --with-tiff-includes=DIR  TIFF include files are in DIR],
-TIFF_INCLUDES="-I$withval")
+  AS_HELP_STRING([--with-tiff-includes=DIR], [libtiff includes are in DIR]),
+  TIFF_INCLUDES="-I$withval")
 AC_ARG_WITH(tiff-libraries,
-[  --with-tiff-libraries=DIR  TIFF libraries are in DIR],
-TIFF_LIBS="-L$withval -ltiff")
+  AS_HELP_STRING([--with-tiff-libraries=DIR], [libtiff libraries are in DIR]),
+  TIFF_LIBS="-L$withval -ltiff")
 
 AC_MSG_CHECKING(for TIFF)
 
@@ -252,7 +252,7 @@ JPEG_INCLUDES=""
 JPEG_LIBS=""
 
 AC_ARG_WITH(jpeg, 
-[  --without-jpeg    do not use libjpeg])
+  AS_HELP_STRING([--without-jpeg], [build without libjpeg (default: test)]))
 # Treat --without-jpeg like --without-jpeg-includes --without-jpeg-libraries.
 if test "$with_jpeg" = "no"; then
   JPEG_INCLUDES=no
@@ -260,11 +260,11 @@ if test "$with_jpeg" = "no"; then
 fi
 
 AC_ARG_WITH(jpeg-includes,
-[  --with-jpeg-includes=DIR  JPEG include files are in DIR],
-JPEG_INCLUDES="-I$withval")
+  AS_HELP_STRING([--with-jpeg-includes=DIR], [libjpeg includes are in DIR]),
+  JPEG_INCLUDES="-I$withval")
 AC_ARG_WITH(jpeg-libraries,
-[  --with-jpeg-libraries=DIR  JPEG libraries are in DIR],
-JPEG_LIBS="-L$withval -ljpeg")
+  AS_HELP_STRING([--with-jpeg-libraries=DIR], [libjpeg libraries are in DIR]),
+  JPEG_LIBS="-L$withval -ljpeg")
 
 AC_MSG_CHECKING(for JPEG)
 
@@ -376,7 +376,7 @@ PNG_INCLUDES=""
 PNG_LIBS=""
 
 AC_ARG_WITH(png, 
-[  --without-png            do not use libpng])
+  AS_HELP_STRING([--without-png], [build without libpng (default: test)]))
 # Treat --without-png like --without-png-includes --without-png-libraries.
 if test "$with_png" = "no"; then
   PNG_INCLUDES=no
@@ -384,13 +384,13 @@ if test "$with_png" = "no"; then
 fi
 
 AC_ARG_WITH(png-includes,
-[  --with-png-includes=DIR  PNG include files are in DIR],
-PNG_INCLUDES="-I$withval")
+  AS_HELP_STRING([--with-png-includes=DIR], [libpng includes are in DIR]),
+  PNG_INCLUDES="-I$withval")
 AC_ARG_WITH(png-libraries,
-[  --with-png-libraries=DIR  PNG libraries are in DIR],
-PNG_LIBS="-L$withval -lpng")
+  AS_HELP_STRING([--with-png-libraries=DIR], [libpng libraries are in DIR]),
+  PNG_LIBS="-L$withval -lpng")
 
-AC_MSG_CHECKING(for PNG)
+AC_MSG_CHECKING(for libpng)
 
 # Look for png.h 
 if test "$PNG_INCLUDES" = ""; then

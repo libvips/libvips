@@ -285,13 +285,11 @@ wbuffer_fill( WriteBuffer *wbuffer )
 			im_semaphore_upn( &wbuffer->nwrite, -1 );
 			im_threadgroup_trigger( thr );
 
-			/* Trigger any eval callbacks on our source image.
+			/* Trigger any eval callbacks on our source image and
+			 * check for errors.
 			 */
-			im__handle_eval( tg->im, tg->pw, tg->ph );
-
-			/* Check for errors.
-			 */
-			if( im_threadgroup_iserror( tg ) ) {
+			if( im__handle_eval( tg->im, tg->pw, tg->ph ) ||
+				im_threadgroup_iserror( tg ) ) {
 				/* Don't kill threads yet ... we may want to
 				 * get some error stuff out of them.
 				 */

@@ -237,7 +237,7 @@ build_node( SymbolTable *st, char *name )
 	else {
 		/* Clear the error buffer to lessen confusion.
 		 */
-		im_clear_error_string();
+		im_error_clear();
 	}
 
 	st->table[n] = g_slist_prepend( st->table[n], node );

@@ -9,6 +9,7 @@ libvipsCC_la_SOURCES = \
 	VMask.cc
 
 libvipsCC_la_LDFLAGS = \
+	-no-undefined \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@
 
 libvipsCC_la_LIBADD = \

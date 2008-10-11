@@ -21,7 +21,6 @@ EXTRA_DIST = \
 	doc \
 	benchmark \
 	bootstrap.sh \
-	win32 \
 	vipsCC-7.${IM_MINOR_VERSION}.pc.in \
 	vips-7.${IM_MINOR_VERSION}.pc.in \
 	vips-7.${IM_MINOR_VERSION}.spec.in \

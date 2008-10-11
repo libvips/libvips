@@ -1,7 +1,7 @@
 .TH IM_FORMAT 3 "16 August 2008"
 .SH NAME
 im_format_register, im_format_set_priority, im_format_unregister,
-im_format_map, im_format_for_file, im_format_for_name \- 
+im_format_map, im_format_for_file, im_format_for_name, im_format_write \- 
 load and search image formats
 .SH SYNOPSIS
 #include <vips/vips.h>
@@ -66,24 +66,39 @@ im_format_t *im_format_for_file( const char *filename );
 .br
 im_format_t *im_format_for_name( const char *filename );
 
+int im_format_write( IMAGE *im, const char *filename );
+
+int im_format_read( const char *filename, IMAGE *out );
+
 .SH DESCRIPTION
 These functions register and unregister image formats, and search the table of 
 available image formats to find one suitable for loading or saving a file.
+
+.B im_open(3) 
+will do something similar, but that returns a descriptor to the file rather
+than copying to a descriptor you supply. 
+
+The two APIs are useful in different circumstances: 
+.B im_open(3) 
+is good if you want to directly manipulate a file on disc, for example with
+the paintbox functions. The format API is useful for controlling how a image
+is unpacked, since you can specify a destination for the copy.
 
 .B im_format_register(3)
 registers an image format with vips. This might typically be called during
 module load, see the documentation for GModule.
 
-An image format has a number of
-components:
+An image format has a number of components:
 
 .B name
 The internal name by which the format should be known. For example, the 
-OpenEXR image format is known within vips as "exr".
+OpenEXR image format is known within vips as "exr". You can identify formats
+by testing this field with 
+.B strcmp(3).
 
 .B name_user
 The name as it should be displayed to the user. It can be internationalised.
-For example, in English, the OpenEXR format is shown as "OpenEXR".
+For example, in English, the "analyze" format is shown as "Analyze 6.0".
 
 .B suffs
 A NULL-terminated array of possible file-name suffixes for this format. This
@@ -141,16 +156,26 @@ maps a function over the list of loaded formats. See
 .B im_slist_map(3).
 
 .B im_format_for_file(3)
-looks at a file on disc and selects the 'best' formmat to use to load that 
-file.
+looks at a file on disc and selects the 'best' format to use to load that 
+file. If no suitable format is found, it returns NULL and sets an error
+message.
 
 .B im_format_for_name(3)
 looks at a filename and picks a format to use to save that file based on the
-file extension.
+file extension. If no suitable format is found, it returns NULL and sets an
+error message.
+
+.B im_format_read(3)
+is a convenience function which copies the image from the file into the IMAGE. 
+error, it returns non-zero and sets an error message.
+
+.B im_format_write(3)
+is a convenience function which copies the image to the file in the
+appropriate format. On error, it returns non-zero and sets an error message.
 
 .SH RETURN VALUE
 The functions return 0 success and -1 on error.
 .SH SEE ALSO
-im_tiff2vips(3).
+im_tiff2vips(3), im_open(3).
 .SH AUTHOR
 Jesper Friis and John Cupitt

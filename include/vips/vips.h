@@ -495,7 +495,6 @@ typedef struct {
 /* #include <vips/vector.h> */
 #include <vips/format.h>
 #include <vips/dispatch.h>
-#include <vips/type.h>
 #include <vips/region.h>
 #include <vips/semaphore.h>
 #include <vips/threadgroup.h>

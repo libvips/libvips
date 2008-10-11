@@ -122,32 +122,13 @@ VImage out( "jen.tif:deflate", "w" );
 \end{verbatim}
 
 \noindent
-
-\noindent
 Writing to the descriptor \verb+out+ will cause a TIFF image to be written to
 disc with deflate compression.
 
 See the manual page for \verb+im_open(3)+ for details of all the file formats
-and conversions available.
-
-\subsection{Large files}
-
-Opening large files in formats like JPEG which do not support random access
-can use large amounts of memory, since the file has to be decompressed before
-it can be used.
-
-The \verb+convert2disc()+ member lets you decompress to a disc file rather
-than to memory. For example:
-
-\begin{verbatim}
-VImage fred = VImage::convert2disc( "im_jpeg2vips", 
-  "file.jpg", "temp.v" );
-\end{verbatim}
-
-\noindent
-Will decompress to the file \verb+temp.v+, then open that and return a
-reference to it. You will need to delete the file once you are finished with
-it.
+and conversions available. See the man page for \verb+im_format(3)+ for a
+lower-level API which lets you control more of the detail of reading and
+writing data and is more suitable for large files.
 
 \subsection{Projection functions}
 
@@ -312,6 +293,18 @@ VIPS operation \verb+im_extract()+ becomes \verb+extract()+, and
 The \verb+VImage+ object to which you apply the member function is the first
 input image, the member function returns the first output. If there is no
 image input, the member is declared \verb+static+.
+
+For example, \verb+im_project(3)+ returns two images. You can call it from
+Python like this:
+
+\begin{verbatim}
+hout = VImage.VImage ()
+vout = im.project (hout)
+\end{verbatim}
+
+\noindent
+In other words, \verb+.project()+ writes the second result to the 
+\verb+VImage+ you pass as an argument.
 
 \item
 \verb+INTMASK+ and \verb+DOUBLEMASK+ types become \verb+VMask+ objects,

@@ -1524,7 +1524,7 @@ istifftiled( const char *filename )
 #endif /*BINARY_OPEN*/
 		/* Not a TIFF file ... return False.
 		 */
-		im_clear_error_string();
+		im_error_clear();
 		return( 0 );
 	}
 	tiled = TIFFIsTiled( tif );

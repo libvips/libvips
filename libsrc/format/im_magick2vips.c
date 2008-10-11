@@ -649,7 +649,7 @@ ismagick( const char *filename )
 	if( !(im = im_open( "dummy", "p" )) )
 		return( -1 );
 	result = magick2vips_header( filename, im );
-	im_clear_error_string();
+	im_error_clear();
 	im_close( im );
 
 	return( result == 0 );

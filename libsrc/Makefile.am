@@ -56,20 +56,9 @@ libvips_la_LIBADD = \
 	video/libvideo.la \
 	@VIPS_LIBS@
 
-# use "-no-undefined" because we need to be able to generate dlls as well
-
-# commented out
-#	-no-undefined 
-# because I can't get libtool DLL builds working :-( 
-
 libvips_la_LDFLAGS = \
 	-no-undefined \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@ 
 
-vips.def:
-	./makedef.pl $(prefix) > vips.def
-
 EXTRA_DIST = \
-	vips.def \
-	makedef.pl \
 	$(C_DIST_DIR)

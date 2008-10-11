@@ -316,10 +316,9 @@ eval_cb( Progress *progress )
 	IMAGE *im = progress->im;
 
 	if( im->time->percent != progress->last_percent ) {
-		/* \r at end returns to the start of this line.
-		 */
-		printf( _( "%s %s: %d%% complete\r" ), 
+		printf( _( "%s %s: %d%% complete" ), 
 			g_get_prgname(), im->filename, im->time->percent );
+		printf( "\r" ); 
 		fflush( stdout );
 
 		progress->last_percent = im->time->percent;
@@ -346,8 +345,6 @@ im_open( const char *filename, const char *mode )
 {
 	IMAGE *im;
 	im_format_t *format;
-	char name[FILENAME_MAX];
-	char mode2[FILENAME_MAX];
 
 	/* Pass in a nonsense name for argv0 ... this init world is only here
 	 * for old programs which are missing an im_init_world() call. We must
@@ -363,41 +360,56 @@ im_open( const char *filename, const char *mode )
 
 	/*
 
-	 	FIXME ... we have to split the filename here because 
-		im_isvips() needs a filename without a mode extension
+		we can't use the vips handler in the format system, since we
+		want to be able to open the image directly rather than
+		copying to an existing descriptor
 
-		can we fold the vips open code into the format system somehow?
-		we need to consider large file and pipeline support carefully
+		if we don't do this, things like paintbox apps won't work
 
 	 */
-	im_filename_split( filename, name, mode2 );
 
 	switch( mode[0] ) {
         case 'r':
-		if( im_isvips( name ) ) {
-			if( !(im = im_open_vips( filename )) )
-				return( NULL );
-		}
-		else if( (format = im_format_for_file( filename )) ) {
-			if( !(im = open_sub( 
+		if( (format = im_format_for_file( filename )) ) {
+			if( strcmp( format->name, "vips" ) == 0 ) {
+				if( !(im = im_open_vips( filename )) )
+					return( NULL );
+			}
+			else if( !(im = open_sub( 
 				format->header, format->load, filename )) )
 				return( NULL );
 		}
-		else
+		else {
+			im_error( "im_open", 
+				_( "\"%s\" is not in a recognised format" ),
+				filename );
 			return( NULL );
+		}
         	break;
 
 	case 'w':
 		if( (format = im_format_for_name( filename )) ) {
-			if( !(im = im_open( "im_open:lazy_write:1", "p" )) )
-				return( NULL );
-			if( attach_sb( im, format->save, filename ) ) {
-				im_close( im );
-				return( NULL );
+			if( strcmp( format->name, "vips" ) == 0 ) 
+				im = im_openout( filename );
+			else {
+				if( !(im = im_open( "im_open:lw:1", "p" )) )
+					return( NULL );
+				if( attach_sb( im, format->save, filename ) ) {
+					im_close( im );
+					return( NULL );
+				}
 			}
 		}
-		else
-			im = im_openout( filename );
+		else {
+			char suffix[FILENAME_MAX];
+
+			im_filename_suffix( filename, suffix );
+			im_error( "im_open", 
+				_( "unsupported filetype \"%s\"" ), 
+				suffix );
+
+			return( NULL );
+		}
         	break;
 
         case 't':

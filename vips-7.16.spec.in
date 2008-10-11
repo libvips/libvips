@@ -14,7 +14,7 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	libjpeg-devel libtiff-devel zlib-devel fftw-devel lcms-devel
 BuildRequires:	libpng-devel glib2-devel ImageMagick-devel pango-devel
-BuildRequires:	pkgconfig gettext perl(XML::Parser)
+BuildRequires:	pkgconfig gettext 
 BuildRequires:	libtool python-devel libxml2-devel liboil-devel
 BuildRequires:	OpenEXR-devel libexif-devel swig
 #Requires:
@@ -147,6 +147,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Sep 4 2008 John Cupitt <jcupitt@gmail.com> - 7.16.0
+- Removed perl(XML::Parser) from BuildRequires since we no longer use
+  intltool
+
 * Sat Jul 19 2008 Jesper Friis <jesper.friis(at)sintef.no> - 7.15.0-1
 - Replaced the distributed spec file with the one in the source rpm
   package from Fedora to fix issues with harcoding BuildRoot in the
