@@ -4,6 +4,7 @@ pkginclude_HEADERS = \
 	VImage.h \
 	VMask.h \
 	vipscpp.h \
+	vobject.h \
 	colour.h \
 	debug.h \
 	dispatch.h \

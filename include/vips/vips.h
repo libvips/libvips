@@ -89,11 +89,13 @@ extern "C" {
 
 #include <glib.h>
 #include <gmodule.h>
+#include <glib-object.h>
 
 /* Needed for 'unused' below. Remove this when we remove that.
  */
 #include <time.h>
 
+#include <vips/vobject.h>
 #include <vips/version.h>
 #include <vips/rect.h>
 
