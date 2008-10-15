@@ -11,6 +11,7 @@ pkginclude_HEADERS = \
 	format.h \
 	fmask.h \
 	mosaic.h \
+	vinterpolate.h \
 	proto.h \
 	rect.h \
 	region.h \

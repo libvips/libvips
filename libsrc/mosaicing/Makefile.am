@@ -11,6 +11,7 @@ libmosaicing_la_SOURCES = \
 	im_avgdxdy.c \
 	im_chkpair.c \
 	im_clinear.c \
+	vinterpolate.c \
 	im_improve.c \
 	im_initialize.c \
 	im_lrcalcon.c \

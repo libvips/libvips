@@ -96,6 +96,7 @@ extern "C" {
 #include <time.h>
 
 #include <vips/vobject.h>
+
 #include <vips/version.h>
 #include <vips/rect.h>
 
@@ -498,6 +499,7 @@ typedef struct {
 #include <vips/format.h>
 #include <vips/dispatch.h>
 #include <vips/region.h>
+#include <vips/vinterpolate.h>
 #include <vips/semaphore.h>
 #include <vips/threadgroup.h>
 #include <vips/meta.h>

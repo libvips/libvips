@@ -1,12 +1,12 @@
-/* Various interpolators.
+/* im_interpolate ... abstract base class for various interpolators
  *
- * J.Cupitt, 15/10/08
+ * J. Cupitt, 15/10/08
  */
 
 /*
 
     This file is part of VIPS.
-
+    
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -29,41 +29,22 @@
 
  */
 
-#ifndef IM_INTERPOLATE_H
-#define IM_INTERPOLATE_H
+/*
+#define DEBUG
+ */
 
-#ifdef __cplusplus
-extern "C" {
-#endif /*__cplusplus*/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /*HAVE_CONFIG_H*/
+#include <vips/intl.h>
 
-#define TYPE_MODEL (model_get_type())
-#define MODEL( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), TYPE_MODEL, Model ))
-#define MODEL_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), TYPE_MODEL, ModelClass))
-#define IS_MODEL( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), TYPE_MODEL ))
-#define IS_MODEL_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), TYPE_MODEL ))
-#define MODEL_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), TYPE_MODEL, ModelClass ))
+#include <stdio.h>
 
-struct _Model {
-	iContainer parent;
+#include <vips/vips.h>
+#include <vips/internal.h>
 
-	/* My instance vars.
-	 */
-};
+#ifdef WITH_DMALLOC
+#include <dmalloc.h>
+#endif /*WITH_DMALLOC*/
 
-typedef struct _ModelClass {
-	iContainerClass parent_class;
-
-} ModelClass;
-
-
-#ifdef __cplusplus
-}
-#endif /*__cplusplus*/
-
-#endif /*IM_REGION_H*/
 
