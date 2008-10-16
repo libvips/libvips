@@ -27,28 +27,35 @@
 
  */
 
-#define TYPE_VOBJECT (vobject_get_type())
-#define VOBJECT( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), TYPE_VOBJECT, VObject ))
-#define VOBJECT_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), TYPE_VOBJECT, VObjectClass))
-#define IS_VOBJECT( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), TYPE_VOBJECT ))
-#define IS_VOBJECT_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), TYPE_VOBJECT ))
-#define VOBJECT_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), TYPE_VOBJECT, VObjectClass ))
+#ifndef VIPS_OBJECT_H
+#define VIPS_OBJECT_H
 
-/* Handy vobject_destroy() shortcut.
+#ifdef __cplusplus
+extern "C" {
+#endif /*__cplusplus*/
+
+#define VIPS_TYPE_OBJECT (vips_object_get_type())
+#define VIPS_OBJECT( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), VIPS_TYPE_OBJECT, VipsObject ))
+#define VIPS_OBJECT_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), VIPS_TYPE_OBJECT, VipsObjectClass))
+#define VIPS_IS_OBJECT( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_OBJECT ))
+#define VIPS_IS_OBJECT_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_OBJECT ))
+#define VIPS_OBJECT_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), VIPS_TYPE_OBJECT, VipsObjectClass ))
+
+/* Handy vips_object_destroy() shortcut.
  */
 #define IDESTROY( O ) { \
 	if( O ) { \
-		(void) vobject_destroy( VOBJECT( O ) ); \
+		(void) vips_object_destroy( VIPS_OBJECT( O ) ); \
 		( O ) = NULL; \
 	} \
 }
 
-typedef struct _VObject {
+typedef struct _VipsObject {
 	GObject parent_object;
 
 	/* True when created ... the 1 reference that gobject makes is
@@ -61,24 +68,31 @@ typedef struct _VObject {
 	/* Stop destroy loops with this.
 	 */
 	gboolean in_destruction;
-} VObject;
+} VipsObject;
 
-typedef struct _VObjectClass {
+typedef struct _VipsObjectClass {
 	GObjectClass parent_class;
 
 	/* End object's lifetime, just like gtk_object_destroy.
 	 */
-	void (*destroy)( VObject * );
+	void (*destroy)( VipsObject * );
 
 	/* Something about the object has changed. Should use glib's properties
 	 * but fix this later.
 	 */
-	void (*changed)( VObject * );
-} VObjectClass;
+	void (*changed)( VipsObject * );
+} VipsObjectClass;
 
-void *vobject_destroy( VObject *vobject );
-void *vobject_changed( VObject *vobject );
-void vobject_sink( VObject *vobject );
+void *vips_object_destroy( VipsObject *vips_object );
+void *vips_object_changed( VipsObject *vips_object );
+void vips_object_sink( VipsObject *vips_object );
 
-GType vobject_get_type( void );
+GType vips_object_get_type( void );
+
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
+
+#endif /*VIPS_OBJECT_H*/
+
 
