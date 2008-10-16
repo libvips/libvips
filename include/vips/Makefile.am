@@ -4,14 +4,14 @@ pkginclude_HEADERS = \
 	VImage.h \
 	VMask.h \
 	vipscpp.h \
-	vobject.h \
 	colour.h \
 	debug.h \
 	dispatch.h \
 	format.h \
 	fmask.h \
 	mosaic.h \
-	vinterpolate.h \
+	interpolate.h \
+	object.h \
 	proto.h \
 	rect.h \
 	region.h \
