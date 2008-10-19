@@ -183,9 +183,9 @@ vips_object_init( VipsObject *vips_object )
 GType
 vips_object_get_type( void )
 {
-	static GType vips_object_type = 0;
+	static GType type = 0;
 
-	if( !vips_object_type ) {
+	if( !type ) {
 		static const GTypeInfo info = {
 			sizeof( VipsObjectClass ),
 			NULL,           /* base_init */
@@ -198,11 +198,11 @@ vips_object_get_type( void )
 			(GInstanceInitFunc) vips_object_init,
 		};
 
-		vips_object_type = g_type_register_static( G_TYPE_OBJECT, 
+		type = g_type_register_static( G_TYPE_OBJECT, 
 			"VipsObject", &info, 0 );
 	}
 
-	return( vips_object_type );
+	return( type );
 }
 
 void

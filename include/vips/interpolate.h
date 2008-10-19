@@ -65,17 +65,114 @@ typedef struct _VipsInterpolateClass {
 	void (*interpolate)( VipsInterpolate *, REGION *out, REGION *in,
 		int out_x, int out_y, double in_x, double in_y );
 
-	/* This interpolator needs a window of pixels this big.
+	/* This interpolator needs a window this many pixels across and down.
 	 */
-	int window;
+	int (*get_window_size)( VipsInterpolate * );
 
+	/* Or just set this if you want  constant.
+	 */
+	int window_size;
 } VipsInterpolateClass;
 
-VipsInterpolate *vips_interpolate_bilinear_new( void );
+GType vips_interpolate_get_type( void );
+void vips_interpolate( VipsInterpolate *interpolate, REGION *out, REGION *in,
+        int out_x, int out_y, double in_x, double in_y );
+int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 
-/* Convenience: return a static bilinear, so no need to free it.
+/* Nearest class starts.
  */
-VipsInterpolate *vips_interpolate_bilinear();
+
+#define VIPS_TYPE_INTERPOLATE_NEAREST (vips_interpolate_nearest_get_type())
+#define VIPS_INTERPOLATE_NEAREST( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearest ))
+#define VIPS_INTERPOLATE_NEAREST_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearestClass))
+#define VIPS_IS_INTERPOLATE_NEAREST( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NEAREST ))
+#define VIPS_IS_INTERPOLATE_NEAREST_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NEAREST ))
+#define VIPS_INTERPOLATE_NEAREST_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearestClass ))
+
+typedef struct _VipsInterpolateNearest {
+	VipsObject parent_object;
+
+} VipsInterpolateNearest;
+
+typedef struct _VipsInterpolateNearestClass {
+	VipsObjectClass parent_class;
+
+} VipsInterpolateNearestClass;
+
+VipsInterpolateNearest *vips_interpolate_nearest_new( void );
+GType vips_interpolate_nearest_get_type( void );
+
+/* Convenience: return a static fast nearest, so no need to free it.
+ */
+VipsInterpolate *vips_interpolate_nearest_static( void );
+
+/* Bilinear class starts.
+ */
+
+/* How many bits of precision we keep for transformations, ie. how many
+ * pre-computed matricies we have.
+ */
+#define VIPS_TRANSFORM_SHIFT (5)
+#define VIPS_TRANSFORM_SCALE (1 << VIPS_TRANSFORM_SHIFT)
+
+/* How many bits of precision we keep for interpolation, ie. where the decimal
+ * is in the fixed-point tables.
+ */
+#define VIPS_INTERPOLATE_SHIFT (13)
+#define VIPS_INTERPOLATE_SCALE (1 << VIPS_INTERPOLATE_SHIFT)
+
+#define VIPS_TYPE_INTERPOLATE_BILINEAR (vips_interpolate_bilinear_get_type())
+#define VIPS_INTERPOLATE_BILINEAR( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinear ))
+#define VIPS_INTERPOLATE_BILINEAR_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinearClass))
+#define VIPS_IS_INTERPOLATE_BILINEAR( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_BILINEAR ))
+#define VIPS_IS_INTERPOLATE_BILINEAR_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_BILINEAR ))
+#define VIPS_INTERPOLATE_BILINEAR_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinearClass ))
+
+typedef struct _VipsInterpolateBilinear {
+	VipsObject parent_object;
+
+	/* Set this to not use tables ...slightly more accurate.
+	 */
+	gboolean slow;
+} VipsInterpolateBilinear;
+
+typedef struct _VipsInterpolateBilinearClass {
+	VipsObjectClass parent_class;
+
+	/* Precalculated interpolation matricies. int (used for pel sizes up 
+	 * to short), and double (for all others). We go to scale + 1, so
+	 * we can round-to-nearest safely.
+ 	 */
+	int matrix_int[VIPS_TRANSFORM_SCALE + 1][2];
+	double matrix_double[VIPS_TRANSFORM_SCALE + 1][2];
+} VipsInterpolateBilinearClass;
+
+GType vips_interpolate_bilinear_get_type( void );
+void vips_interpolate_bilinear_set_slow( VipsInterpolateBilinear *, gboolean );
+VipsInterpolateBilinear *vips_interpolate_bilinear_new( void );
+
+/* Convenience: return a static fast bilinear, so no need to free it.
+ */
+VipsInterpolate *vips_interpolate_bilinear_static( void );
+
+/* Yafr class starts.
+ */
 
 #define VIPS_TYPE_INTERPOLATE_YAFR (vips_interpolate_yafr_get_type())
 #define VIPS_INTERPOLATE_YAFR( obj ) \

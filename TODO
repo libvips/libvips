@@ -1,5 +1,17 @@
 - update the Portfiles on the mac and on the website from the macports ones
 
+- im_render should use a hash for tile lookup ... or+shift x/y together
+
+- eval callbacks shouldn't set an errormsg? or maybe it should for debugging
+  and stuff
+
+- bilinear should be a true subclass of interpolate ... and put the tables
+  into the base class
+
+- add 'name' to vipsobbject, and vips_object_print() ... handy for debugging
+
+  make 'print' into a virtual method so subclasses can add stuff if they want
+
 WONTFIX for 7.16
 ================
 
