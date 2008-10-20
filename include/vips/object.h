@@ -46,46 +46,28 @@ extern "C" {
 #define VIPS_OBJECT_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), VIPS_TYPE_OBJECT, VipsObjectClass ))
 
-/* Handy vips_object_destroy() shortcut.
- */
-#define IDESTROY( O ) { \
-	if( O ) { \
-		(void) vips_object_destroy( VIPS_OBJECT( O ) ); \
-		( O ) = NULL; \
-	} \
-}
-
 typedef struct _VipsObject {
 	GObject parent_object;
 
-	/* True when created ... the 1 reference that gobject makes is
-	 * 'floating' and not owned by anyone. Do _sink() after every _ref()
-	 * to transfer ownership to the parent container. Upshot: no need to
-	 * _unref() after _add() in _new().
+	/* Optional instance name.
 	 */
-	gboolean floating;
-
-	/* Stop destroy loops with this.
-	 */
-	gboolean in_destruction;
+	char *name;
 } VipsObject;
 
 typedef struct _VipsObjectClass {
 	GObjectClass parent_class;
 
-	/* End object's lifetime, just like gtk_object_destroy.
-	 */
-	void (*destroy)( VipsObject * );
-
 	/* Something about the object has changed. Should use glib's properties
 	 * but fix this later.
 	 */
 	void (*changed)( VipsObject * );
+
+	/* Try to print something about the object, handy for debugging.
+	 */
+	void (*print)( VipsObject *, im_buf_t * );
 } VipsObjectClass;
 
-void *vips_object_destroy( VipsObject *vips_object );
 void *vips_object_changed( VipsObject *vips_object );
-void vips_object_sink( VipsObject *vips_object );
 
 GType vips_object_get_type( void );
 

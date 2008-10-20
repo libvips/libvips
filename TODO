@@ -1,3 +1,15 @@
+- vips_object_print, set_name etc. need writing
+
+- build nip2
+
+- test im_affinei
+
+- check mosaic1, global_balance, similarity etc. use of im__affine
+  
+  how can we move them to im_affinei ?
+
+- rename Transformation -> Transform
+
 - update the Portfiles on the mac and on the website from the macports ones
 
 - im_render should use a hash for tile lookup ... or+shift x/y together

@@ -50,7 +50,6 @@
 /* Our signals. 
  */
 enum {
-	SIG_DESTROY,	/* End lifetime */
 	SIG_CHANGED,	/* VipsObject has changed somehow */
 	SIG_LAST
 };
@@ -59,55 +58,37 @@ static GObjectClass *parent_class = NULL;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
-/* Don't emit "destroy" immediately, do it from the _dispose handler.
- */
 void *
-vips_object_destroy( VipsObject *vips_object )
+vips_object_changed( VipsObject *object )
 {
-#ifdef DEBUG
-	printf( "vips_object_destroy: " );
-	vips_object_print( vips_object );
-#endif /*DEBUG*/
-
-	if( !vips_object->in_destruction )
-		g_object_run_dispose( G_OBJECT( vips_object ) );
-
-	return( NULL );
-}
-
-void *
-vips_object_changed( VipsObject *vips_object )
-{
-	g_return_val_if_fail( vips_object != NULL, NULL );
-	g_return_val_if_fail( VIPS_IS_OBJECT( vips_object ), NULL );
+	g_return_val_if_fail( object != NULL, NULL );
+	g_return_val_if_fail( VIPS_IS_OBJECT( object ), NULL );
 
 #ifdef DEBUG
 	printf( "vips_object_changed: " );
-	vips_object_print( vips_object );
+	vips_object_print( object );
 #endif /*DEBUG*/
 
-	g_signal_emit( G_OBJECT( vips_object ), 
+	g_signal_emit( G_OBJECT( object ), 
 		vips_object_signals[SIG_CHANGED], 0 );
 
 	return( NULL );
 }
 
+void
+vips_object_print( VipsObject *object )
+{
+}
+
 static void
 vips_object_dispose( GObject *gobject )
 {
-	VipsObject *vips_object = VIPS_OBJECT( gobject );
-
 #ifdef DEBUG
-	printf( "vips_object_dispose: " );
-	vips_object_print( vips_object );
-#endif /*DEBUG*/
+	VipsObject *object = VIPS_OBJECT( gobject );
 
-	if( !vips_object->in_destruction ) {
-		vips_object->in_destruction = TRUE;
-		g_signal_emit( G_OBJECT( vips_object ), 
-			vips_object_signals[SIG_DESTROY], 0 );
-		vips_object->in_destruction = FALSE;
-	}
+	printf( "vips_object_dispose: " );
+	vips_object_print( object );
+#endif /*DEBUG*/
 
 	G_OBJECT_CLASS( parent_class )->dispose( gobject );
 }
@@ -116,26 +97,27 @@ static void
 vips_object_finalize( GObject *gobject )
 {
 #ifdef DEBUG
-	VipsObject *vips_object = VIPS_OBJECT( gobject );
+	VipsObject *object = VIPS_OBJECT( gobject );
 
 	printf( "vips_object_finalize: " );
-	vips_object_print( vips_object );
+	vips_object_print( object );
 #endif /*DEBUG*/
-
-	/* Unlike GTK, we allow floating objects to be finalized. Handy if a
-	 * _new() fails. So don't assert( !vips_object->floating );
-	 */
 
 	G_OBJECT_CLASS( parent_class )->finalize( gobject );
 }
 
 static void
-vips_object_real_destroy( VipsObject *vips_object )
+vips_object_real_destroy( VipsObject *object )
 {
 }
 
 static void
-vips_object_real_changed( VipsObject *vips_object )
+vips_object_real_changed( VipsObject *object )
+{
+}
+
+static void
+vips_object_real_print( VipsObject *object )
 {
 }
 
@@ -149,16 +131,9 @@ vips_object_class_init( VipsObjectClass *class )
 	gobject_class->dispose = vips_object_dispose;
 	gobject_class->finalize = vips_object_finalize;
 
-	class->destroy = vips_object_real_destroy;
 	class->changed = vips_object_real_changed;
+	class->print = vips_object_real_print;
 
-	vips_object_signals[SIG_DESTROY] = g_signal_new( "destroy",
-		G_TYPE_FROM_CLASS( gobject_class ),
-		G_SIGNAL_RUN_CLEANUP | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-		G_STRUCT_OFFSET( VipsObjectClass, destroy ), 
-		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
 	vips_object_signals[SIG_CHANGED] = g_signal_new( "changed",
 		G_OBJECT_CLASS_TYPE( gobject_class ),
 		G_SIGNAL_RUN_FIRST,
@@ -169,15 +144,14 @@ vips_object_class_init( VipsObjectClass *class )
 }
 
 static void
-vips_object_init( VipsObject *vips_object )
+vips_object_init( VipsObject *object )
 {
 #ifdef DEBUG
 	printf( "vips_object_init: " );
-	vips_object_print( vips_object );
+	vips_object_print( object );
 #endif /*DEBUG*/
 
-	vips_object->floating = TRUE;
-	vips_object->in_destruction = FALSE;
+	object->name = NULL;
 }
 
 GType
@@ -206,12 +180,7 @@ vips_object_get_type( void )
 }
 
 void
-vips_object_sink( VipsObject *vips_object )
+vips_object_set_name( VipsObject *object, const char *name )
 {
-	g_assert( VIPS_IS_OBJECT( vips_object ) ); 
-
-	if( vips_object->floating ) {
-		vips_object->floating = FALSE;
-		g_object_unref( G_OBJECT( vips_object ) );
-	}
 }
+

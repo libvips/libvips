@@ -96,9 +96,14 @@ typedef struct _MergeInfo {
 /* Params for similarity transformation.
  */
 typedef struct {
+	/* Geometry.
+	 */
 	Rect iarea;			/* Area in input we can use */
 	Rect oarea;			/* Area in output we generate */
-	double a, b, c, d;		/* Transform */
+
+	/* The transform.
+	 */
+	double a, b, c, d;		
 	double dx, dy;
 
 	double ia, ib, ic, id;		/* Inverse of matrix abcd */
@@ -133,6 +138,12 @@ int im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 /* similarity() stuff, used by mosaic1.
  */
 int im__affine( IMAGE *in, IMAGE *out, Transformation *trn );
+
+int 
+im_affinei( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
+	double a, double b, double c, double d, 
+	double dx, double dy, 
+	int ox, int oy, int ow, int oh );
 
 void im__transform_init( Transformation *trn );
 int im__transform_calc_inverse( Transformation *trn );

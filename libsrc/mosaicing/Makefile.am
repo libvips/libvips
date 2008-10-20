@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libmosaicing.la
 
 libmosaicing_la_SOURCES = \
+	im_affinei.c \
 	im_affine.c \
 	im_align_bands.c \
 	match.c \

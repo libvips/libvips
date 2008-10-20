@@ -39,6 +39,8 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#include "merge.h"
+
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
@@ -514,6 +516,72 @@ static im_function affine_desc = {
 	affine_args 			/* Arg list */
 };
 
+/* affinei args
+ */
+static im_arg_desc affinei_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "interpolate" ),
+	IM_INPUT_DOUBLE( "a" ),
+	IM_INPUT_DOUBLE( "b" ),
+	IM_INPUT_DOUBLE( "c" ),
+	IM_INPUT_DOUBLE( "d" ),
+	IM_INPUT_DOUBLE( "dx" ),
+	IM_INPUT_DOUBLE( "dy" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" ),
+	IM_INPUT_INT( "w" ),
+	IM_INPUT_INT( "h" )
+};
+
+/* Call im_affinei via arg vector.
+ */
+static int
+affinei_vec( im_object *argv )
+{
+	int interpol = *((int *) argv[2]);
+	double a = *((double *) argv[3]);
+	double b = *((double *) argv[4]);
+	double c = *((double *) argv[5]);
+	double d = *((double *) argv[6]);
+	double dx = *((double *) argv[7]);
+	double dy = *((double *) argv[8]);
+	int x = *((int *) argv[9]);
+	int y = *((int *) argv[10]);
+	int w = *((int *) argv[11]);
+	int h = *((int *) argv[12]);
+
+	VipsInterpolate *interpolate;
+
+	switch( interpol ) {
+	case 1:
+		interpolate = vips_interpolate_nearest_static();
+		break;
+
+	case 2:
+		interpolate = vips_interpolate_bilinear_static();
+		break;
+
+	default:
+		im_error( "affinei_vec", _( "b ad interpolation" ) );
+		return( -1 );
+	}
+
+	return( im_affinei( argv[0], argv[1], interpolate, 
+		a, b, c, d, dx, dy, x, y, w, h ) );
+}
+
+/* Description of im_affinei.
+ */ 
+static im_function affinei_desc = {
+	"im_affinei", 			/* Name */
+	"affine transform",
+	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
+	affinei_vec, 			/* Dispatch function */
+	IM_NUMBER( affinei_args ),	/* Size of arg list */
+	affinei_args 			/* Arg list */
+};
+
 /* similarity args
  */
 static im_arg_desc similarity_args[] = {
@@ -855,6 +923,7 @@ static im_function maxpos_subpel_desc= {
  */
 static im_function *mos_list[] = {
 	&affine_desc,
+	&affinei_desc,
         &align_bands_desc,
 	&correl_desc,
 	&find_lroverlap_desc,
