@@ -39,6 +39,7 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -78,6 +79,13 @@ vips_object_changed( VipsObject *object )
 void
 vips_object_print( VipsObject *object )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+	im_buf_t buf;
+	char str[1000];
+
+	im_buf_init_static( &buf, str, 1000 );
+	object_class->print( object, &buf );
+	printf( "%s (%p)\n", im_buf_all( &buf ), object );
 }
 
 static void
@@ -96,29 +104,36 @@ vips_object_dispose( GObject *gobject )
 static void
 vips_object_finalize( GObject *gobject )
 {
-#ifdef DEBUG
 	VipsObject *object = VIPS_OBJECT( gobject );
 
+#ifdef DEBUG
 	printf( "vips_object_finalize: " );
 	vips_object_print( object );
 #endif /*DEBUG*/
+
+	IM_FREE( object->name );
 
 	G_OBJECT_CLASS( parent_class )->finalize( gobject );
 }
 
 static void
-vips_object_real_destroy( VipsObject *object )
-{
-}
-
-static void
 vips_object_real_changed( VipsObject *object )
 {
+#ifdef DEBUG
+	VipsObject *object = VIPS_OBJECT( gobject );
+
+	printf( "vips_object_real_changed: " );
+	vips_object_print( object );
+#endif /*DEBUG*/
 }
 
 static void
-vips_object_real_print( VipsObject *object )
+vips_object_real_print( VipsObject *object, im_buf_t *buf )
 {
+        im_buf_appendf( buf, "%s(", G_OBJECT_TYPE_NAME( object ) );
+	if( object->name )
+		im_buf_appendf( buf, "\"%s\"", object->name );
+        im_buf_appendf( buf, ")" );
 }
 
 static void
@@ -182,5 +197,7 @@ vips_object_get_type( void )
 void
 vips_object_set_name( VipsObject *object, const char *name )
 {
+	IM_SETSTR( object->name, name );
+	vips_object_changed( object );
 }
 

@@ -1,5 +1,9 @@
 - vips_object_print, set_name etc. need writing
 
+- im_buf_t -> VipsBuf
+
+  now always included in vips.h
+
 - build nip2
 
 - test im_affinei

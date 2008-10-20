@@ -95,6 +95,7 @@ extern "C" {
  */
 #include <time.h>
 
+#include <vips/buf.h>
 #include <vips/object.h>
 
 #include <vips/version.h>

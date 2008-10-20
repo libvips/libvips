@@ -68,6 +68,7 @@ typedef struct _VipsObjectClass {
 } VipsObjectClass;
 
 void *vips_object_changed( VipsObject *vips_object );
+void vips_object_print( VipsObject *object );
 
 GType vips_object_get_type( void );
 
