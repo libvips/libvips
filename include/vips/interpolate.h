@@ -147,9 +147,6 @@ VipsInterpolate *vips_interpolate_nearest_static( void );
 typedef struct _VipsInterpolateBilinear {
 	VipsInterpolate parent_object;
 
-	/* Set this to not use tables ...slightly more accurate.
-	 */
-	gboolean slow;
 } VipsInterpolateBilinear;
 
 typedef struct _VipsInterpolateBilinearClass {
@@ -164,12 +161,50 @@ typedef struct _VipsInterpolateBilinearClass {
 } VipsInterpolateBilinearClass;
 
 GType vips_interpolate_bilinear_get_type( void );
-void vips_interpolate_bilinear_set_slow( VipsInterpolateBilinear *, gboolean );
 VipsInterpolate *vips_interpolate_bilinear_new( void );
 
 /* Convenience: return a static fast bilinear, so no need to free it.
  */
 VipsInterpolate *vips_interpolate_bilinear_static( void );
+
+/* Slow bilinear class starts.
+ */
+
+#define VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW \
+	(vips_interpolate_bilinear_slow_get_type())
+#define VIPS_INTERPOLATE_BILINEAR_SLOW( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW, VipsInterpolateBilinearSlow ))
+#define VIPS_INTERPOLATE_BILINEAR_SLOW_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW, \
+	VipsInterpolateBilinearSlowClass))
+#define VIPS_IS_INTERPOLATE_BILINEAR_SLOW( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW ))
+#define VIPS_IS_INTERPOLATE_BILINEAR_SLOW_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW ))
+#define VIPS_INTERPOLATE_BILINEAR_SLOW_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW, VipsInterpolateBilinearSlowClass ))
+
+typedef struct _VipsInterpolateBilinearSlow {
+	VipsInterpolate parent_object;
+
+} VipsInterpolateBilinearSlow;
+
+typedef struct _VipsInterpolateBilinearSlowClass {
+	VipsInterpolateClass parent_class;
+
+} VipsInterpolateBilinearSlowClass;
+
+GType vips_interpolate_bilinear_slow_get_type( void );
+VipsInterpolate *vips_interpolate_bilinear_slow_new( void );
+
+/* Convenience: return a static fast bilinear_slow, so no need to free it.
+ */
+VipsInterpolate *vips_interpolate_bilinear_slow_static( void );
 
 /* Yafr class starts.
  */
@@ -192,6 +227,36 @@ VipsInterpolate *vips_interpolate_bilinear_static( void );
 typedef struct _VipsInterpolateYafr {
 	VipsInterpolate parent_object;
 
+	/* "sharpening" is a continuous method parameter which is
+	 * proportional to the amount of "diagonal straightening" which the
+	 * nonlinear correction part of the method may add to the underlying
+	 * linear scheme. You may also think of it as a sharpening
+	 * parameter: higher values correspond to more sharpening, and
+	 * negative values lead to strange looking effects.
+	 *
+	 * The default value is sharpening = 29/32 when the scheme being
+	 * "straightened" is Catmull-Rom---as is the case here. This value
+	 * fixes key pixel values near the diagonal boundary between two
+	 * monochrome regions (the diagonal boundary pixel values being set
+	 * to the halfway colour).
+	 *
+	 * If resampling seems to add unwanted texture artifacts, push
+	 * sharpening toward 0. It is not generally not recommended to set
+	 * sharpening to a value larger than 4.
+	 *
+	 * Sharpening is halved because the .5 which has to do with the
+	 * relative coordinates of the evaluation points (which has to do
+	 * with .5*rite_width etc) is folded into the constant to save
+	 * flops. Consequently, the largest recommended value of
+	 * sharpening_over_two is 2=4/2.
+	 *
+	 * In order to simplify interfacing with users, the parameter which
+	 * should be set by the user is normalized so that user_sharpening =
+	 * 1 when sharpening is equal to the recommended value. Consistently
+	 * with the above discussion, values of user_sharpening between 0
+	 * and about 3.625 give good results.
+	 */
+	double sharpening;
 } VipsInterpolateYafr;
 
 typedef struct _VipsInterpolateYafrClass {
@@ -199,8 +264,10 @@ typedef struct _VipsInterpolateYafrClass {
 
 } VipsInterpolateYafrClass;
 
+GType vips_interpolate_yafr_get_type( void );
 VipsInterpolate *vips_interpolate_yafr_new( void );
-void vips_interpolate_yafr_set_thing( VipsInterpolateYafr *, double thing );
+void vips_interpolate_yafr_set_sharpening( VipsInterpolateYafr *, 
+	double sharpening );
 
 /* Convenience: return a static default yafr, so no need to free it.
  */

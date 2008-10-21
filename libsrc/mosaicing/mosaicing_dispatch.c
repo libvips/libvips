@@ -565,13 +565,21 @@ affinei_vec( im_object *argv )
 		break;
 
 	case 3:
-		interpolate = vips_interpolate_bilinear_new();
-		vips_interpolate_bilinear_set_slow( 
-			VIPS_INTERPOLATE_BILINEAR( interpolate ), TRUE );
+		interpolate = vips_interpolate_bilinear_slow_new();
+		break;
+
+	case 4:
+		interpolate = vips_interpolate_yafr_new();
+		break;
+
+	case 5:
+		interpolate = vips_interpolate_yafr_new();
+		vips_interpolate_yafr_set_sharpening( 
+			VIPS_INTERPOLATE_YAFR( interpolate ), 2.0 );
 		break;
 
 	default:
-		im_error( "affinei_vec", _( "b ad interpolation" ) );
+		im_error( "affinei_vec", _( "bad interpolation" ) );
 		return( -1 );
 	}
 
