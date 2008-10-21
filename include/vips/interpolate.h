@@ -98,16 +98,16 @@ int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearestClass ))
 
 typedef struct _VipsInterpolateNearest {
-	VipsObject parent_object;
+	VipsInterpolate parent_object;
 
 } VipsInterpolateNearest;
 
 typedef struct _VipsInterpolateNearestClass {
-	VipsObjectClass parent_class;
+	VipsInterpolateClass parent_class;
 
 } VipsInterpolateNearestClass;
 
-VipsInterpolateNearest *vips_interpolate_nearest_new( void );
+VipsInterpolate *vips_interpolate_nearest_new( void );
 GType vips_interpolate_nearest_get_type( void );
 
 /* Convenience: return a static fast nearest, so no need to free it.
@@ -145,7 +145,7 @@ VipsInterpolate *vips_interpolate_nearest_static( void );
 	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinearClass ))
 
 typedef struct _VipsInterpolateBilinear {
-	VipsObject parent_object;
+	VipsInterpolate parent_object;
 
 	/* Set this to not use tables ...slightly more accurate.
 	 */
@@ -153,7 +153,7 @@ typedef struct _VipsInterpolateBilinear {
 } VipsInterpolateBilinear;
 
 typedef struct _VipsInterpolateBilinearClass {
-	VipsObjectClass parent_class;
+	VipsInterpolateClass parent_class;
 
 	/* Precalculated interpolation matricies. int (used for pel sizes up 
 	 * to short), and double (for all others). We go to scale + 1, so
@@ -165,7 +165,7 @@ typedef struct _VipsInterpolateBilinearClass {
 
 GType vips_interpolate_bilinear_get_type( void );
 void vips_interpolate_bilinear_set_slow( VipsInterpolateBilinear *, gboolean );
-VipsInterpolateBilinear *vips_interpolate_bilinear_new( void );
+VipsInterpolate *vips_interpolate_bilinear_new( void );
 
 /* Convenience: return a static fast bilinear, so no need to free it.
  */
@@ -190,17 +190,21 @@ VipsInterpolate *vips_interpolate_bilinear_static( void );
 	VIPS_TYPE_INTERPOLATE_YAFR, VipsInterpolateYafrClass ))
 
 typedef struct _VipsInterpolateYafr {
-	VipsObject parent_object;
+	VipsInterpolate parent_object;
 
 } VipsInterpolateYafr;
 
 typedef struct _VipsInterpolateYafrClass {
-	VipsObjectClass parent_class;
+	VipsInterpolateClass parent_class;
 
 } VipsInterpolateYafrClass;
 
-VipsInterpolateYafr *vips_interpolate_yafr_new( void );
+VipsInterpolate *vips_interpolate_yafr_new( void );
 void vips_interpolate_yafr_set_thing( VipsInterpolateYafr *, double thing );
+
+/* Convenience: return a static default yafr, so no need to free it.
+ */
+VipsInterpolate *vips_interpolate_yafr_static( void );
 
 #ifdef __cplusplus
 }

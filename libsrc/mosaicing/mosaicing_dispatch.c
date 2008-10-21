@@ -553,13 +553,21 @@ affinei_vec( im_object *argv )
 
 	VipsInterpolate *interpolate;
 
+	int result;
+
 	switch( interpol ) {
 	case 1:
-		interpolate = vips_interpolate_nearest_static();
+		interpolate = vips_interpolate_nearest_new();
 		break;
 
 	case 2:
-		interpolate = vips_interpolate_bilinear_static();
+		interpolate = vips_interpolate_bilinear_new();
+		break;
+
+	case 3:
+		interpolate = vips_interpolate_bilinear_new();
+		vips_interpolate_bilinear_set_slow( 
+			VIPS_INTERPOLATE_BILINEAR( interpolate ), TRUE );
 		break;
 
 	default:
@@ -567,8 +575,12 @@ affinei_vec( im_object *argv )
 		return( -1 );
 	}
 
-	return( im_affinei( argv[0], argv[1], interpolate, 
-		a, b, c, d, dx, dy, x, y, w, h ) );
+	result = im_affinei( argv[0], argv[1], interpolate, 
+		a, b, c, d, dx, dy, x, y, w, h );
+
+	g_object_unref( interpolate );
+
+	return( result );
 }
 
 /* Description of im_affinei.

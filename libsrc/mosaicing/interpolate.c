@@ -109,13 +109,13 @@ vips_interpolate_get_type( void )
 
 	if( !type ) {
 		static const GTypeInfo info = {
-			sizeof( VipsObjectClass ),
+			sizeof( VipsInterpolateClass ),
 			NULL,           /* base_init */
 			NULL,           /* base_finalize */
 			(GClassInitFunc) vips_interpolate_class_init,
 			NULL,           /* class_finalize */
 			NULL,           /* class_data */
-			sizeof( VipsObject ),
+			sizeof( VipsInterpolate ),
 			32,             /* n_preallocs */
 			(GInstanceInitFunc) vips_interpolate_init,
 		};
@@ -229,13 +229,13 @@ vips_interpolate_nearest_get_type( void )
 
 	if( !type ) {
 		static const GTypeInfo info = {
-			sizeof( VipsObjectClass ),
+			sizeof( VipsInterpolateNearestClass ),
 			NULL,           /* base_init */
 			NULL,           /* base_finalize */
 			(GClassInitFunc) vips_interpolate_nearest_class_init,
 			NULL,           /* class_finalize */
 			NULL,           /* class_data */
-			sizeof( VipsObject ),
+			sizeof( VipsInterpolateNearest ),
 			32,             /* n_preallocs */
 			(GInstanceInitFunc) vips_interpolate_nearest_init,
 		};
@@ -247,10 +247,11 @@ vips_interpolate_nearest_get_type( void )
 	return( type );
 }
 
-VipsInterpolateNearest *
+VipsInterpolate *
 vips_interpolate_nearest_new( void )
 {
-	return( g_object_new( VIPS_TYPE_INTERPOLATE_NEAREST, NULL ) );
+	return( VIPS_INTERPOLATE( g_object_new( 
+		VIPS_TYPE_INTERPOLATE_NEAREST, NULL ) ) );
 }
 
 /* Convenience: return a static nearest you don't need to free.
@@ -261,14 +262,18 @@ vips_interpolate_nearest_static( void )
 	static VipsInterpolate *interpolate = NULL;
 
 	if( !interpolate )
-		interpolate = 
-			VIPS_INTERPOLATE( vips_interpolate_nearest_new() );
+		interpolate = vips_interpolate_nearest_new();
 
 	return( interpolate );
 }
 
 /* VipsInterpolateBilinear class
  */
+
+/* in this class, name vars in the 2x2 grid as eg.
+ * p1  p2
+ * p3  p4
+ */ 
 
 #ifdef DEBUG
 static void
@@ -297,19 +302,11 @@ vips_interpolate_bilinear_finalize( GObject *gobject )
 	const int c3 = (m4 * m1) >> VIPS_INTERPOLATE_SHIFT; \
 	const int c4 = (m4 * m2) >> VIPS_INTERPOLATE_SHIFT; \
  	\
-	/* var points to \
-	 * p1  (x_int,   y_int) \
-	 * p2  (x_int+1, y_int) \
-	 * p3  (x_int,   y_int+1) \
-	 * p4  (x_int+1, y_int+1) \
-	 */ \
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
 	const TYPE *tp3 = (TYPE *) p3; \
 	const TYPE *tp4 = (TYPE *) p4; \
 	\
-	/* Interpolate each band. \
-	 */ \
 	for( z = 0; z < b; z++ ) \
 		tq[z] = (c1 * tp1[z] + c2 * tp2[z] + \
 			 c3 * tp3[z] + c4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; \
@@ -330,19 +327,11 @@ vips_interpolate_bilinear_finalize( GObject *gobject )
 	const double c3 = m4 * m1; \
 	const double c4 = m4 * m2; \
 	\
-	/* var points to \
-	 * p1  (x_int,   y_int) \
-	 * p2  (x_int+1, y_int) \
-	 * p3  (x_int,   y_int+1) \
-	 * p4  (x_int+1, y_int+1) \
-	 */ \
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
 	const TYPE *tp3 = (TYPE *) p3; \
 	const TYPE *tp4 = (TYPE *) p4; \
 	\
-	/* Interpolate each band. \
-	 */ \
 	for( z = 0; z < b; z++ ) \
 		tq[z] = c1 * tp1[z] + c2 * tp2[z] + \
 			c3 * tp3[z] + c4 * tp4[z]; \
@@ -353,19 +342,11 @@ vips_interpolate_bilinear_finalize( GObject *gobject )
 #define BILINEAR_SLOW( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
  	\
-	/* var points to \
-	 * p1  (x_int,   y_int) \
-	 * p2  (x_int+1, y_int) \
-	 * p3  (x_int,   y_int+1) \
-	 * p4  (x_int+1, y_int+1) \
-	 */ \
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
 	const TYPE *tp3 = (TYPE *) p3; \
 	const TYPE *tp4 = (TYPE *) p4; \
 	\
-	/* Interpolate each band. \
-	 */ \
 	for( z = 0; z < b; z++ ) \
 		tq[z] = c1 * tp1[z] + c2 * tp2[z] + \
 			c3 * tp3[z] + c4 * tp4[z]; \
@@ -433,19 +414,13 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 		 */
 		const double c1 = Xd * Yd;
 		const double c2 = X * Yd;
-		const double c3 = X * Y;
-		const double c4 = Xd * Y;
+		const double c3 = Xd * Y;
+		const double c4 = X * Y;
 
-		/* var points to 
-		 * p1  (x_int,   y_int) 
-		 * p2  (x_int+1, y_int) 
-		 * p3  (x_int,   y_int+1) 
-		 * p4  (x_int+1, y_int+1) 
-		 */ 
 		const PEL *p1 = (PEL *) IM_REGION_ADDR( in, xi, yi ); 
 		const PEL *p2 = p1 + ps;
 		const PEL *p3 = p1 + ls; 
-		const PEL *p4 = p1 + ls + ps; 
+		const PEL *p4 = p3 + ps; 
 
 		SWITCH_INTERPOLATE( in->im->BandFmt, 
 			BILINEAR_SLOW, BILINEAR_SLOW );
@@ -471,20 +446,39 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 		const int in_x_int = sxi >> VIPS_TRANSFORM_SHIFT;
 		const int in_y_int = syi >> VIPS_TRANSFORM_SHIFT;
 
-		/* var points to 
-		 * p1  (x_int,   y_int) 
-		 * p2  (x_int+1, y_int) 
-		 * p3  (x_int,   y_int+1) 
-		 * p4  (x_int+1, y_int+1) 
-		 */ 
 		const PEL *p1 = (PEL *) 
 			IM_REGION_ADDR( in, in_x_int, in_y_int ); 
 		const PEL *p2 = p1 + ps;
 		const PEL *p3 = p1 + ls; 
-		const PEL *p4 = p1 + ls + ps; 
+		const PEL *p4 = p3 + ps; 
 
+{
+	unsigned char *tq = (unsigned char *) q; 
+
+	const int m1 = class->matrix_int[xi][0]; 
+	const int m2 = class->matrix_int[xi][1]; 
+	const int m3 = class->matrix_int[yi][0]; 
+	const int m4 = class->matrix_int[yi][1]; 
+
+	const int c1 = (m3 * m1) >> VIPS_INTERPOLATE_SHIFT; 
+	const int c2 = (m3 * m2) >> VIPS_INTERPOLATE_SHIFT; 
+	const int c3 = (m4 * m1) >> VIPS_INTERPOLATE_SHIFT; 
+	const int c4 = (m4 * m2) >> VIPS_INTERPOLATE_SHIFT; 
+
+	const unsigned char *tp1 = (unsigned char *) p1; 
+	const unsigned char *tp2 = (unsigned char *) p2; 
+	const unsigned char *tp3 = (unsigned char *) p3; 
+	const unsigned char *tp4 = (unsigned char *) p4; 
+
+	for( z = 0; z < b; z++ ) 
+		tq[z] = (c1 * tp1[z] + c2 * tp2[z] + 
+			 c3 * tp3[z] + c4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; 
+}
+
+		/*
 		SWITCH_INTERPOLATE( in->im->BandFmt, 
 			BILINEAR_INT, BILINEAR_FLOAT );
+		 */
 	}
 }
 
@@ -510,8 +504,10 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 	/* Calculate the interpolation matricies.
 	 */
 	for( x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		const double c1 = (double) x / VIPS_TRANSFORM_SCALE;
-		const double c2 = 1.0 - c1;	
+		/* At x == 0, we want to give all the weight to the LH pixel.
+		 */
+		const double c2 = (double) x / VIPS_TRANSFORM_SCALE;
+		const double c1 = 1.0 - c2;	
 
 		class->matrix_double[x][0] = c1;
 		class->matrix_double[x][1] = c2;
@@ -539,13 +535,13 @@ vips_interpolate_bilinear_get_type( void )
 
 	if( !type ) {
 		static const GTypeInfo info = {
-			sizeof( VipsObjectClass ),
+			sizeof( VipsInterpolateBilinearClass ),
 			NULL,           /* base_init */
 			NULL,           /* base_finalize */
 			(GClassInitFunc) vips_interpolate_bilinear_class_init,
 			NULL,           /* class_finalize */
 			NULL,           /* class_data */
-			sizeof( VipsObject ),
+			sizeof( VipsInterpolateBilinear ),
 			32,             /* n_preallocs */
 			(GInstanceInitFunc) vips_interpolate_bilinear_init,
 		};
@@ -564,12 +560,12 @@ vips_interpolate_bilinear_set_slow( VipsInterpolateBilinear *bilinear,
 	bilinear->slow = slow;
 }
 
-VipsInterpolateBilinear *
+VipsInterpolate *
 vips_interpolate_bilinear_new( void )
 {
-	return( g_object_new( VIPS_TYPE_INTERPOLATE_BILINEAR, NULL ) );
+	return( VIPS_INTERPOLATE( g_object_new( 
+		VIPS_TYPE_INTERPOLATE_BILINEAR, NULL ) ) );
 }
-
 
 /* Convenience: return a static bilinear you don't need to free.
  */
@@ -579,8 +575,7 @@ vips_interpolate_bilinear_static( void )
 	static VipsInterpolate *interpolate = NULL;
 
 	if( !interpolate )
-		interpolate = 
-			VIPS_INTERPOLATE( vips_interpolate_bilinear_new() );
+		interpolate = vips_interpolate_bilinear_new();
 
 	return( interpolate );
 }
