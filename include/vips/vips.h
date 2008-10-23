@@ -502,6 +502,7 @@ typedef struct {
 #include <vips/region.h>
 #include <vips/interpolate.h>
 #include <vips/yafr.h>
+#include <vips/yafrtest.h>
 #include <vips/semaphore.h>
 #include <vips/threadgroup.h>
 #include <vips/meta.h>

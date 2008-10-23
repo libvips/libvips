@@ -25,6 +25,7 @@ pkginclude_HEADERS = \
 	version.h \
 	vips.h \
 	yafr.h \
+	yafrtest.h \
 	vips \
 	intl.h \
 	buf.h \
