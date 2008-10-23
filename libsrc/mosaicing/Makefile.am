@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libmosaicing.la
 
 libmosaicing_la_SOURCES = \
+	yafrtest.cpp \
 	im_affinei.c \
 	im_affine.c \
 	im_align_bands.c \
@@ -14,7 +15,6 @@ libmosaicing_la_SOURCES = \
 	im_clinear.c \
 	interpolate.c \
 	yafr.c \
-	yafrtest.c \
 	im_improve.c \
 	im_initialize.c \
 	im_lrcalcon.c \

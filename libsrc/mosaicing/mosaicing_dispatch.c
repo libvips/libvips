@@ -578,6 +578,10 @@ affinei_vec( im_object *argv )
 			VIPS_INTERPOLATE_YAFR( interpolate ), 2.0 );
 		break;
 
+	case 6:
+		interpolate = vips_interpolate_yafr_test_new();
+		break;
+
 	default:
 		im_error( "affinei_vec", _( "bad interpolation" ) );
 		return( -1 );
