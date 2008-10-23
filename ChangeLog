@@ -2,6 +2,8 @@
 - merge vips-7.16 brach back into trunk
 - bumped version number to 7.17.0
 - re-added type.[hc]
+- added vipsinterpolate and im_affinei
+- added yafr-smooth interpolation
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

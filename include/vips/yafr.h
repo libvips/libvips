@@ -27,8 +27,8 @@
 
  */
 
-#ifndef VIPS_INTERPOLATE_H
-#define VIPS_INTERPOLATE_H
+#ifndef VIPS_YAFR_H
+#define VIPS_YAFR_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,5 +102,5 @@ VipsInterpolate *vips_interpolate_yafr_static( void );
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_INTERPOLATE_H*/
+#endif /*VIPS_YAFR_H*/
 

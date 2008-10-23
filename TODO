@@ -6,8 +6,6 @@
 
 - build nip2
 
-- test im_affinei
-
 - check mosaic1, global_balance, similarity etc. use of im__affine
   
   how can we move them to im_affinei ?

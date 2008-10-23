@@ -55,6 +55,15 @@ static VipsInterpolateClass *vips_interpolate_yafr_parent_class = NULL;
 /* Copy-paste of gegl-sampler-yafr-smooth.c starts
  */
 
+/*
+ * 2008 (c) Nicolas Robidoux (developer of Yet Another Fast
+ * Resampler).
+ *
+ * Acknowledgement: N. Robidoux's research on YAFR funded in part by
+ * an NSERC (National Science and Engineering Research Council of
+ * Canada) Discovery Grant.
+ */
+
 #ifndef restrict
 #ifdef __restrict
 #define restrict __restrict
@@ -566,7 +575,7 @@ vips_interpolate_yafr_interpolate( VipsInterpolate *interpolate,
 	 */
 	const int channels = in->im->Bands; 
 	const int pixels_per_buffer_row = 
-		IM_REGION_LSKIP( in ) / sizeof( float ); 
+		IM_REGION_LSKIP( in ) / (sizeof( float ) * channels); 
 
 	/* Where we write the result.
 	 */
