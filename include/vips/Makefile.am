@@ -24,6 +24,7 @@ pkginclude_HEADERS = \
 	meta.h \
 	version.h \
 	vips.h \
+	yafr.h \
 	vips \
 	intl.h \
 	buf.h \

@@ -13,6 +13,7 @@ libmosaicing_la_SOURCES = \
 	im_chkpair.c \
 	im_clinear.c \
 	interpolate.c \
+	yafr.c \
 	im_improve.c \
 	im_initialize.c \
 	im_lrcalcon.c \
