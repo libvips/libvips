@@ -163,8 +163,8 @@ typedef struct _VipsInterpolateBilinearClass {
 	 * to short), and double (for all others). We go to scale + 1, so
 	 * we can round-to-nearest safely.
  	 */
-	int matrix_int[VIPS_TRANSFORM_SCALE + 1][2];
-	double matrix_double[VIPS_TRANSFORM_SCALE + 1][2];
+	int matrixi[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
+	double matrixd[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
 } VipsInterpolateBilinearClass;
 
 GType vips_interpolate_bilinear_get_type( void );

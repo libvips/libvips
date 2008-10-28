@@ -4,6 +4,7 @@
 - re-added type.[hc]
 - added vipsinterpolate and im_affinei
 - added yafr-smooth interpolation
+- added yafrtest
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

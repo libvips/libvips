@@ -278,15 +278,10 @@ vips_interpolate_nearest_static( void )
 #define BILINEAR_INT( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
  	\
-	const int m1 = class->matrix_int[xi][0]; \
-	const int m2 = class->matrix_int[xi][1]; \
-	const int m3 = class->matrix_int[yi][0]; \
-	const int m4 = class->matrix_int[yi][1]; \
-	\
-	const int c1 = (m3 * m1) >> VIPS_INTERPOLATE_SHIFT; \
-	const int c2 = (m3 * m2) >> VIPS_INTERPOLATE_SHIFT; \
-	const int c3 = (m4 * m1) >> VIPS_INTERPOLATE_SHIFT; \
-	const int c4 = (m4 * m2) >> VIPS_INTERPOLATE_SHIFT; \
+	const int c1 = class->matrixi[xi][yi][0]; \
+	const int c2 = class->matrixi[xi][yi][1]; \
+	const int c3 = class->matrixi[xi][yi][2]; \
+	const int c4 = class->matrixi[xi][yi][3]; \
  	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
@@ -303,15 +298,10 @@ vips_interpolate_nearest_static( void )
 #define BILINEAR_FLOAT( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
  	\
-	const double m1 = class->matrix_double[xi][0]; \
-	const double m2 = class->matrix_double[xi][1]; \
-	const double m3 = class->matrix_double[yi][0]; \
-	const double m4 = class->matrix_double[yi][1]; \
-	\
-	const double c1 = m3 * m1; \
-	const double c2 = m3 * m2; \
-	const double c3 = m4 * m1; \
-	const double c4 = m4 * m2; \
+	const double c1 = class->matrixd[xi][yi][0]; \
+	const double c2 = class->matrixd[xi][yi][1]; \
+	const double c3 = class->matrixd[xi][yi][2]; \
+	const double c4 = class->matrixd[xi][yi][3]; \
 	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
@@ -392,7 +382,7 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 {
 	VipsInterpolateClass *interpolate_class = 
 		(VipsInterpolateClass *) class;
-	int x;
+	int x, y;
 
 	vips_interpolate_bilinear_parent_class = 
 		g_type_class_peek_parent( class );
@@ -402,18 +392,35 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 
 	/* Calculate the interpolation matricies.
 	 */
-	for( x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		/* At x == 0, we want to give all the weight to the LH pixel.
-		 */
-		const double c2 = (double) x / VIPS_TRANSFORM_SCALE;
-		const double c1 = 1.0 - c2;	
+	for( x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ )
+		for( y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+			double X, Y, Xd, Yd;
+			double c1, c2, c3, c4;
 
-		class->matrix_double[x][0] = c1;
-		class->matrix_double[x][1] = c2;
+			/* Interpolation errors.
+			 */
+			X = (double) x / VIPS_TRANSFORM_SCALE;
+			Y = (double) y / VIPS_TRANSFORM_SCALE;
+			Xd = 1.0 - X;	
+			Yd = 1.0 - Y;
 
-		class->matrix_int[x][0] = c1 * VIPS_INTERPOLATE_SCALE;
-		class->matrix_int[x][1] = c2 * VIPS_INTERPOLATE_SCALE;
-	}
+			/* Weights.
+			 */
+			c1 = Xd * Yd;
+			c2 = X * Yd;
+			c3 = Xd * Y;
+			c4 = X * Y;
+
+			class->matrixd[x][y][0] = c1;
+			class->matrixd[x][y][1] = c2;
+			class->matrixd[x][y][2] = c3;
+			class->matrixd[x][y][3] = c4;
+
+			class->matrixi[x][y][0] = c1 * VIPS_INTERPOLATE_SCALE;
+			class->matrixi[x][y][1] = c2 * VIPS_INTERPOLATE_SCALE;
+			class->matrixi[x][y][2] = c3 * VIPS_INTERPOLATE_SCALE;
+			class->matrixi[x][y][3] = c4 * VIPS_INTERPOLATE_SCALE;
+		}
 }
 
 static void
