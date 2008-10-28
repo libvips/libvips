@@ -142,6 +142,19 @@ vips_interpolate( VipsInterpolate *interpolate, REGION *out, REGION *in,
 	class->interpolate( interpolate, out, in, out_x, out_y, in_x, in_y );
 }
 
+/* As above, but return the function pointer. Use this to cache method
+ * dispatch.
+ */
+VipsInterpolateMethod 
+vips_interpolate_get_method( VipsInterpolate *interpolate )
+{
+	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
+
+	g_assert( class->interpolate );
+
+	return( class->interpolate );
+}
+
 /* Get this interpolator's required window size.
  */
 int

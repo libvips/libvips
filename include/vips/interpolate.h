@@ -56,14 +56,20 @@ typedef struct _VipsInterpolate {
 
 } VipsInterpolate;
 
+/* An interpolation function. This is a class method, but we have a lookup
+ * function for it to speed up dispatch.
+ */
+typedef void (*VipsInterpolateMethod)( VipsInterpolate *, 
+	REGION *out, REGION *in,
+	int out_x, int out_y, double in_x, double in_y );
+
 typedef struct _VipsInterpolateClass {
 	VipsObjectClass parent_class;
 
 	/* Write to pixel out(x,y), interpolating from in(x,y). The caller has
 	 * to set the regions up.
 	 */
-	void (*interpolate)( VipsInterpolate *, REGION *out, REGION *in,
-		int out_x, int out_y, double in_x, double in_y );
+	VipsInterpolateMethod  interpolate;
 
 	/* This interpolator needs a window this many pixels across and down.
 	 */
@@ -77,6 +83,7 @@ typedef struct _VipsInterpolateClass {
 GType vips_interpolate_get_type( void );
 void vips_interpolate( VipsInterpolate *interpolate, REGION *out, REGION *in,
         int out_x, int out_y, double in_x, double in_y );
+VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate * );
 int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 
 /* Nearest class starts.

@@ -213,6 +213,8 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 	const int window_size = 
 		vips_interpolate_get_window_size( affine->interpolate );
 	const int half_window_size = window_size / 2;
+	VipsInterpolateMethod interpolate = 
+		vips_interpolate_get_method( affine->interpolate );
 
 	/* Output area for this call.
 	 */
@@ -322,7 +324,8 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 					q[z] = 0;
 			}
 			else {
-				vips_interpolate( affine->interpolate, or, ir, 
+				interpolate( affine->interpolate, 
+					or, ir, 
 					x, y, ix, iy );
 			}
 

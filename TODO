@@ -1,3 +1,19 @@
+- built with O2, experiment with 
+
+    - floorf()
+    - try commenting out the thing that calculates cardinal_one etc. to get
+	an idea of the possible speedup with LUTs
+    - time for uchar vs. vips-bilinear and new bilinear and float yafr
+    - can we build and time gegl?
+
+
+  add a vips_interpolate_get_method() which returns the function pointer, use
+  that in the inner loop instead of function dispatch
+
+  done ... try editing im_affinei and time
+
+
+
 - vips_object_print, set_name etc. need writing
 
 - im_buf_t -> VipsBuf

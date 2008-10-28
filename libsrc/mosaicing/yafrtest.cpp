@@ -1,4 +1,4 @@
-/* vipsinterpolateyafr_test ... yarf as a vips interpolate class
+/* vipsinterpolateyafr_test ... yafr as a vips interpolate class
  */
 
 /*
@@ -118,8 +118,8 @@ static VipsInterpolateClass *vips_interpolate_yafr_test_parent_class = NULL;
  * the interior of the bichromatic region.
  */
 
-/* Pointers to write to / read from, how much to add to move right a pixel,
- * how much to add to move down a line.
+/* Pointers to write to / read from, channel number, number of channels,
+ * how many bytes to add to move down a line.
  */
 
 /* T is the type of pixels we are reading and writing.
@@ -128,12 +128,12 @@ static VipsInterpolateClass *vips_interpolate_yafr_test_parent_class = NULL;
  * for others we need float or even double.
  */
 
-template <typename T, typename D> static inline void
+template <typename T, typename D> static void inline
 catrom_yafr_test(
-	PEL *out, PEL *in,
+	PEL *pout, const PEL *pin, 
 	const int channels, 
-	const int pixels_per_buffer_row,
-	const float sharpening,
+	const int lskip,
+	const double sharpening,
 
 	const float cardinal_one,
 	const float cardinal_two,
@@ -205,26 +205,27 @@ catrom_yafr_test(
 	 * consideration. The in pointer is assumed
 	 * to point to uno_one when catrom_yafr_test is entered.
 	 */
+	const int pel_skip = lskip / sizeof( T );
 
-	const T uno_one = in[ 0                                        ];
-	const T uno_two = in[                                  channels];
-	const T uno_thr = in[ 2                              * channels];
-	const T uno_fou = in[ 3                              * channels];
+	const T uno_one = in[0                          ];
+	const T uno_two = in[    channels               ];
+	const T uno_thr = in[2 * channels               ];
+	const T uno_fou = in[3 * channels               ];
 
-	const T dos_one = in[         pixels_per_buffer_row  * channels];
-	const T dos_two = in[(1 +     pixels_per_buffer_row) * channels];
-	const T dos_thr = in[(2 +     pixels_per_buffer_row) * channels];
-	const T dos_fou = in[(3 +     pixels_per_buffer_row) * channels];
+	const T dos_one = in[                   pel_skip];
+	const T dos_two = in[    channels +     pel_skip];
+	const T dos_thr = in[2 * channels +     pel_skip];
+	const T dos_fou = in[3 * channels +     pel_skip];
 
-	const T tre_one = in[     2 * pixels_per_buffer_row  * channels];
-	const T tre_two = in[(1 + 2 * pixels_per_buffer_row) * channels];
-	const T tre_thr = in[(2 + 2 * pixels_per_buffer_row) * channels];
-	const T tre_fou = in[(3 + 2 * pixels_per_buffer_row) * channels];
+	const T tre_one = in[               2 * pel_skip];
+	const T tre_two = in[    channels + 2 * pel_skip];
+	const T tre_thr = in[2 * channels + 2 * pel_skip];
+	const T tre_fou = in[3 * channels + 2 * pel_skip];
 
-	const T qua_one = in[     3 * pixels_per_buffer_row  * channels];
-	const T qua_two = in[(1 + 3 * pixels_per_buffer_row) * channels];
-	const T qua_thr = in[(2 + 3 * pixels_per_buffer_row) * channels];
-	const T qua_fou = in[(3 + 3 * pixels_per_buffer_row) * channels];
+	const T qua_one = in[               3 * pel_skip];
+	const T qua_two = in[    channels + 3 * pel_skip];
+	const T qua_thr = in[2 * channels + 3 * pel_skip];
+	const T qua_fou = in[3 * channels + 3 * pel_skip];
 
 	/*
 	 * Computation of the YAFR_TEST correction:
@@ -548,8 +549,8 @@ vips_interpolate_yafr_test_interpolate( VipsInterpolate *interpolate,
 	/* Pel size and line size.
 	 */
 	const int channels = in->im->Bands; 
-	const int pixels_per_buffer_row = 
-		IM_REGION_LSKIP( in ) / (sizeof( float ) * channels); 
+	const int lskip = IM_REGION_LSKIP( in );
+	const int esize = IM_IMAGE_SIZEOF_ELEMENT( in->im );
 
 	/* Where we write the result.
 	 */
@@ -558,8 +559,8 @@ vips_interpolate_yafr_test_interpolate( VipsInterpolate *interpolate,
 /* Put this in a macro to save some typing.
  */
 #define CALL(T, D) \
-	catrom_yafr_test<T, D>(q + z, p + z, \
-		   channels, pixels_per_buffer_row, \
+	catrom_yafr_test<T, D>(q + z * esize, p + z * esize, \
+		   channels, lskip, \
 		   yafr_test->sharpening, \
 		   cardinal_one, \
 		   cardinal_two, \
@@ -612,21 +613,22 @@ vips_interpolate_yafr_test_interpolate( VipsInterpolate *interpolate,
 
 	case IM_BANDFMT_DOUBLE:
 		for( int z = 0; z < channels; z++ ) 
-			CALL( float, float );
+			CALL( double, double );
 		break;
-	
+
 	default:
+		break;
 	}
 }
 
 static void
-vips_interpolate_yafr_test_class_init( VipsInterpolateYafrTestClass *class )
+vips_interpolate_yafr_test_class_init( VipsInterpolateYafrTestClass *iclass )
 {
 	VipsInterpolateClass *interpolate_class = 
-		VIPS_INTERPOLATE_CLASS( class );
+		VIPS_INTERPOLATE_CLASS( iclass );
 
 	vips_interpolate_yafr_test_parent_class = 
-		g_type_class_peek_parent( class );
+		VIPS_INTERPOLATE_CLASS( g_type_class_peek_parent( iclass ) );
 
 	interpolate_class->interpolate = vips_interpolate_yafr_test_interpolate;
 	interpolate_class->window_size = 4;
@@ -644,7 +646,7 @@ vips_interpolate_yafr_test_init( VipsInterpolateYafrTest *yafr_test )
 }
 
 GType
-vips_interpolate_yafr_test_get_type( void )
+vips_interpolate_yafr_test_get_type()
 {
 	static GType type = 0;
 
@@ -662,7 +664,8 @@ vips_interpolate_yafr_test_get_type( void )
 		};
 
 		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
-			"VipsInterpolateYafrTest", &info, 0 );
+			"VipsInterpolateYafrTest", &info, 
+			(GTypeFlags) 0 );
 	}
 
 	return( type );
