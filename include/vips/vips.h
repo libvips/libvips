@@ -501,7 +501,8 @@ typedef struct {
 #include <vips/dispatch.h>
 #include <vips/region.h>
 #include <vips/interpolate.h>
-#include <vips/yafr.h>
+#include <vips/yafrsmooth.h>
+#include <vips/yafrnohalo.h>
 #include <vips/yafrtest.h>
 #include <vips/semaphore.h>
 #include <vips/threadgroup.h>

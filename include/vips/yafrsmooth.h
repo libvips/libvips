@@ -1,4 +1,4 @@
-/* YAFR interpolator.
+/* YAFRSMOOTH interpolator.
  */
 
 /*
@@ -27,29 +27,30 @@
 
  */
 
-#ifndef VIPS_YAFR_H
-#define VIPS_YAFR_H
+#ifndef VIPS_YAFRSMOOTH_H
+#define VIPS_YAFRSMOOTH_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#define VIPS_TYPE_INTERPOLATE_YAFR (vips_interpolate_yafr_get_type())
-#define VIPS_INTERPOLATE_YAFR( obj ) \
+#define VIPS_TYPE_INTERPOLATE_YAFRSMOOTH \
+	(vips_interpolate_yafrsmooth_get_type())
+#define VIPS_INTERPOLATE_YAFRSMOOTH( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_YAFR, VipsInterpolateYafr ))
-#define VIPS_INTERPOLATE_YAFR_CLASS( klass ) \
+	VIPS_TYPE_INTERPOLATE_YAFRSMOOTH, VipsInterpolateYafrsmooth ))
+#define VIPS_INTERPOLATE_YAFRSMOOTH_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_YAFR, VipsInterpolateYafrClass))
-#define VIPS_IS_INTERPOLATE_YAFR( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_YAFR ))
-#define VIPS_IS_INTERPOLATE_YAFR_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_YAFR ))
-#define VIPS_INTERPOLATE_YAFR_GET_CLASS( obj ) \
+	VIPS_TYPE_INTERPOLATE_YAFRSMOOTH, VipsInterpolateYafrsmoothClass))
+#define VIPS_IS_INTERPOLATE_YAFRSMOOTH( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_YAFRSMOOTH ))
+#define VIPS_IS_INTERPOLATE_YAFRSMOOTH_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_YAFRSMOOTH ))
+#define VIPS_INTERPOLATE_YAFRSMOOTH_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_YAFR, VipsInterpolateYafrClass ))
+	VIPS_TYPE_INTERPOLATE_YAFRSMOOTH, VipsInterpolateYafrsmoothClass ))
 
-typedef struct _VipsInterpolateYafr {
+typedef struct _VipsInterpolateYafrsmooth {
 	VipsInterpolate parent_object;
 
 	/* "sharpening" is a continuous method parameter which is
@@ -82,25 +83,25 @@ typedef struct _VipsInterpolateYafr {
 	 * and about 3.625 give good results.
 	 */
 	double sharpening;
-} VipsInterpolateYafr;
+} VipsInterpolateYafrsmooth;
 
-typedef struct _VipsInterpolateYafrClass {
+typedef struct _VipsInterpolateYafrsmoothClass {
 	VipsInterpolateClass parent_class;
 
-} VipsInterpolateYafrClass;
+} VipsInterpolateYafrsmoothClass;
 
-GType vips_interpolate_yafr_get_type( void );
-VipsInterpolate *vips_interpolate_yafr_new( void );
-void vips_interpolate_yafr_set_sharpening( VipsInterpolateYafr *, 
+GType vips_interpolate_yafrsmooth_get_type( void );
+VipsInterpolate *vips_interpolate_yafrsmooth_new( void );
+void vips_interpolate_yafrsmooth_set_sharpening( VipsInterpolateYafrsmooth *, 
 	double sharpening );
 
-/* Convenience: return a static default yafr, so no need to free it.
+/* Convenience: return a static default yafrsmooth, so no need to free it.
  */
-VipsInterpolate *vips_interpolate_yafr_static( void );
+VipsInterpolate *vips_interpolate_yafrsmooth_static( void );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_YAFR_H*/
+#endif /*VIPS_YAFRSMOOTH_H*/
 

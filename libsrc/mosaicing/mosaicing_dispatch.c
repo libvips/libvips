@@ -569,17 +569,21 @@ affinei_vec( im_object *argv )
 		break;
 
 	case 4:
-		interpolate = vips_interpolate_yafr_new();
+		interpolate = vips_interpolate_yafrsmooth_new();
 		break;
 
 	case 5:
-		interpolate = vips_interpolate_yafr_new();
-		vips_interpolate_yafr_set_sharpening( 
-			VIPS_INTERPOLATE_YAFR( interpolate ), 2.0 );
+		interpolate = vips_interpolate_yafrsmooth_new();
+		vips_interpolate_yafrsmooth_set_sharpening( 
+			VIPS_INTERPOLATE_YAFRSMOOTH( interpolate ), 2.0 );
 		break;
 
 	case 6:
 		interpolate = vips_interpolate_yafr_test_new();
+		break;
+
+	case 7:
+		interpolate = vips_interpolate_yafrnohalo_new();
 		break;
 
 	default:

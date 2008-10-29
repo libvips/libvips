@@ -1,4 +1,4 @@
-/* vipsinterpolateyafr ... yarf as a vips interpolate class
+/* yafrsmooth ... yafr-smooth as a vips interpolate class
  */
 
 /*
@@ -50,16 +50,16 @@
  */
 #define FLOOR( V ) ((V) >= 0 ? (int)(V) : (int)((V) - 1))
 
-static VipsInterpolateClass *vips_interpolate_yafr_parent_class = NULL;
+static VipsInterpolateClass *vips_interpolate_yafrsmooth_parent_class = NULL;
 
-/* Copy-paste of gegl-sampler-yafr-smooth.c starts
+/* Copy-paste of gegl-sampler-yafrsmooth-smooth.c starts
  */
 
 /*
  * 2008 (c) Nicolas Robidoux (developer of Yet Another Fast
  * Resampler).
  *
- * Acknowledgement: N. Robidoux's research on YAFR funded in part by
+ * Acknowledgement: N. Robidoux's research on YAFRSMOOTH funded in part by
  * an NSERC (National Science and Engineering Research Council of
  * Canada) Discovery Grant.
  */
@@ -85,7 +85,7 @@ static VipsInterpolateClass *vips_interpolate_yafr_parent_class = NULL;
 #endif
 
 /*
- * YAFR = Yet Another Fast Resampler
+ * YAFRSMOOTH = Yet Another Fast Resampler
  *
  * Yet Another Fast Resampler is a nonlinear resampler which consists
  * of a linear scheme (in this version, Catmull-Rom) plus a nonlinear
@@ -94,26 +94,26 @@ static VipsInterpolateClass *vips_interpolate_yafr_parent_class = NULL;
  *
  * Key properties:
  *
- * YAFR (smooth) is interpolatory:
+ * YAFRSMOOTH (smooth) is interpolatory:
  *
  * If asked for the value at the center of an input pixel, it will
  * return the corresponding value, unchanged.
  *
- * YAFR (smooth) preserves local averages:
+ * YAFRSMOOTH (smooth) preserves local averages:
  *
  * The average of the reconstructed intensity surface over any region
  * is the same as the average of the piecewise constant surface with
  * values over pixel areas equal to the input pixel values (the
  * "nearest neighbour" surface), except for a small amount of blur at
- * the boundary of the region. More precicely: YAFR (smooth) is a box
+ * the boundary of the region. More precicely: YAFRSMOOTH (smooth) is a box
  * filtered exact area method.
  *
- * Main weaknesses of YAFR (smooth):
+ * Main weaknesses of YAFRSMOOTH (smooth):
  *
- * Weakness 1: YAFR (smooth) improves on Catmull-Rom only for images
+ * Weakness 1: YAFRSMOOTH (smooth) improves on Catmull-Rom only for images
  * with at least a little bit of smoothness.
  *
- * Weakness 2: Catmull-Rom introduces a lot of haloing. YAFR (smooth)
+ * Weakness 2: Catmull-Rom introduces a lot of haloing. YAFRSMOOTH (smooth)
  * is based on Catmull-Rom, and consequently it too introduces a lot
  * of haloing.
  *
@@ -121,11 +121,11 @@ static VipsInterpolateClass *vips_interpolate_yafr_parent_class = NULL;
  *
  * If a portion of the image is such that every pixel has immediate
  * neighbours in the horizontal and vertical directions which have
- * exactly the same pixel value, then YAFR (smooth) boils down to
+ * exactly the same pixel value, then YAFRSMOOTH (smooth) boils down to
  * Catmull-Rom, and the computation of the correction is a waste.
  * Extreme case: If all the pixels are either pure black or pure white
  * in some region, as in some text images (more generally, if the
- * region is "bichromatic"), then the YAFR (smooth) correction is 0 in
+ * region is "bichromatic"), then the YAFRSMOOTH (smooth) correction is 0 in
  * the interior of the bichromatic region.
  */
 
@@ -134,7 +134,7 @@ static VipsInterpolateClass *vips_interpolate_yafr_parent_class = NULL;
  */
 
 static inline void
-catrom_yafr (float* restrict out, const float* restrict in, 
+catrom_yafrsmooth (float* restrict out, const float* restrict in, 
 	     const int channels, 
 	     const int pixels_per_buffer_row,
 	     const float sharpening,
@@ -206,7 +206,7 @@ catrom_yafr (float* restrict out, const float* restrict in,
   /*
    * Load the useful pixel values for the channel under
    * consideration. The in pointer is assumed
-   * to point to uno_one when catrom_yafr is entered.
+   * to point to uno_one when catrom_yafrsmooth is entered.
    */
   const float uno_one = in[   0                                          ];
   const float uno_two = in[                                     channels ];
@@ -229,7 +229,7 @@ catrom_yafr (float* restrict out, const float* restrict in,
   const float qua_fou = in[ ( 3 + 3 * pixels_per_buffer_row ) * channels ];
 
   /*
-   * Computation of the YAFR correction:
+   * Computation of the YAFRSMOOTH correction:
    *
    * Basically, if two consecutive pixel value differences have the
    * same sign, the smallest one (in absolute value) is taken to be
@@ -312,7 +312,7 @@ catrom_yafr (float* restrict out, const float* restrict in,
   const float deux_rite_times_troi_rite = deux_rite * troi_rite;
 
   /*
-   * Branching parts of the computation of the YAFR correction (could
+   * Branching parts of the computation of the YAFRSMOOTH correction (could
    * be unbranched using arithmetic branching and C99 math intrinsics,
    * although the compiler may be smart enough to remove the branching
    * on its own):
@@ -346,7 +346,7 @@ catrom_yafr (float* restrict out, const float* restrict in,
   const float deux_rite_vs_troi_rite =
     deux_rite_squared < troi_rite_squared ? deux_rite : troi_rite;
   /*
-   * The YAFR correction computation will resume after the computation
+   * The YAFRSMOOTH correction computation will resume after the computation
    * of the Catmull-Rom baseline.
    */
 
@@ -399,7 +399,7 @@ catrom_yafr (float* restrict out, const float* restrict in,
     );
 
   /*
-   * Computation of the YAFR slopes.
+   * Computation of the YAFRSMOOTH slopes.
    */
   /*
    * "up":
@@ -431,9 +431,9 @@ catrom_yafr (float* restrict out, const float* restrict in,
     deux_rite_times_troi_rite < 0.f ? 0.f : deux_rite_vs_troi_rite;
 
   /*
-   * Assemble the unweighted YAFR correction:
+   * Assemble the unweighted YAFRSMOOTH correction:
    */
-  const float unweighted_yafr_correction =
+  const float unweighted_yafrsmooth_correction =
     left_width_times_up__height_times_rite_width
     *
     ( mx_left__up - mx_rite__up )
@@ -451,20 +451,21 @@ catrom_yafr (float* restrict out, const float* restrict in,
     ( my_rite__up - my_rite_dow );
 
   /*
-   * Add the Catmull-Rom baseline and the weighted YAFR correction:
+   * Add the Catmull-Rom baseline and the weighted YAFRSMOOTH correction:
    */
   const float newval =
-    sharpening_over_two * unweighted_yafr_correction + catmull_rom;
+    sharpening_over_two * unweighted_yafrsmooth_correction + catmull_rom;
 
   *out = newval;
 }
 
 static void
-vips_interpolate_yafr_interpolate( VipsInterpolate *interpolate, 
+vips_interpolate_yafrsmooth_interpolate( VipsInterpolate *interpolate, 
 	REGION *out, REGION *in, 
 	int out_x, int out_y, double x, double y )
 {
-	VipsInterpolateYafr *yafr = VIPS_INTERPOLATE_YAFR( interpolate );
+	VipsInterpolateYafrsmooth *yafrsmooth = 
+		VIPS_INTERPOLATE_YAFRSMOOTH( interpolate );
 
   /*
    * Note: The computation is structured to foster software
@@ -583,9 +584,9 @@ vips_interpolate_yafr_interpolate( VipsInterpolate *interpolate,
 	int z;
 
 	for( z = 0; z < channels; z++ ) 
-		catrom_yafr ((float *) q + z, (float *) p + z,
+		catrom_yafrsmooth ((float *) q + z, (float *) p + z,
 			   channels, pixels_per_buffer_row,
-			   yafr->sharpening,
+			   yafrsmooth->sharpening,
 			   cardinal_one,
                            cardinal_two,
                            cardinal_thr,
@@ -601,77 +602,79 @@ vips_interpolate_yafr_interpolate( VipsInterpolate *interpolate,
 }
 
 static void
-vips_interpolate_yafr_class_init( VipsInterpolateYafrClass *class )
+vips_interpolate_yafrsmooth_class_init( VipsInterpolateYafrsmoothClass *class )
 {
 	VipsInterpolateClass *interpolate_class = 
 		VIPS_INTERPOLATE_CLASS( class );
 
-	vips_interpolate_yafr_parent_class = 
+	vips_interpolate_yafrsmooth_parent_class = 
 		g_type_class_peek_parent( class );
 
-	interpolate_class->interpolate = vips_interpolate_yafr_interpolate;
+	interpolate_class->interpolate = 
+		vips_interpolate_yafrsmooth_interpolate;
 	interpolate_class->window_size = 4;
 }
 
 static void
-vips_interpolate_yafr_init( VipsInterpolateYafr *yafr )
+vips_interpolate_yafrsmooth_init( VipsInterpolateYafrsmooth *yafrsmooth )
 {
 #ifdef DEBUG
-	printf( "vips_interpolate_yafr_init: " );
-	vips_object_print( VIPS_OBJECT( yafr ) );
+	printf( "vips_interpolate_yafrsmooth_init: " );
+	vips_object_print( VIPS_OBJECT( yafrsmooth ) );
 #endif /*DEBUG*/
 
-	yafr->sharpening = 1.0;
+	yafrsmooth->sharpening = 1.0;
 }
 
 GType
-vips_interpolate_yafr_get_type( void )
+vips_interpolate_yafrsmooth_get_type( void )
 {
 	static GType type = 0;
 
 	if( !type ) {
 		static const GTypeInfo info = {
-			sizeof( VipsInterpolateYafrClass ),
+			sizeof( VipsInterpolateYafrsmoothClass ),
 			NULL,           /* base_init */
 			NULL,           /* base_finalize */
-			(GClassInitFunc) vips_interpolate_yafr_class_init,
+			(GClassInitFunc) vips_interpolate_yafrsmooth_class_init,
 			NULL,           /* class_finalize */
 			NULL,           /* class_data */
-			sizeof( VipsInterpolateYafr ),
+			sizeof( VipsInterpolateYafrsmooth ),
 			32,             /* n_preallocs */
-			(GInstanceInitFunc) vips_interpolate_yafr_init,
+			(GInstanceInitFunc) vips_interpolate_yafrsmooth_init,
 		};
 
 		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
-			"VipsInterpolateYafr", &info, 0 );
+			"VipsInterpolateYafrsmooth", &info, 0 );
 	}
 
 	return( type );
 }
 
 VipsInterpolate *
-vips_interpolate_yafr_new( void )
+vips_interpolate_yafrsmooth_new( void )
 {
 	return( VIPS_INTERPOLATE( g_object_new( 
-		VIPS_TYPE_INTERPOLATE_YAFR, NULL ) ) );
+		VIPS_TYPE_INTERPOLATE_YAFRSMOOTH, NULL ) ) );
 }
 
 void
-vips_interpolate_yafr_set_sharpening( VipsInterpolateYafr *yafr, 
+vips_interpolate_yafrsmooth_set_sharpening( 
+	VipsInterpolateYafrsmooth *yafrsmooth, 
 	double sharpening )
 {
-	yafr->sharpening = sharpening; 
+	yafrsmooth->sharpening = sharpening; 
 }
 
-/* Convenience: return a static yafr you don't need to free.
+/* Convenience: return a static yafrsmooth you don't need to free.
  */
 VipsInterpolate *
-vips_interpolate_yafr_static( void )
+vips_interpolate_yafrsmooth_static( void )
 {
 	static VipsInterpolate *interpolate = NULL;
 
 	if( !interpolate )
-		interpolate = vips_interpolate_yafr_new();
+		interpolate = vips_interpolate_yafrsmooth_new();
 
 	return( interpolate );
 }
