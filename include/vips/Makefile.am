@@ -24,7 +24,7 @@ pkginclude_HEADERS = \
 	meta.h \
 	version.h \
 	vips.h \
-	yafr.h \
+	yafrsmooth.h \
 	yafrtest.h \
 	vips \
 	intl.h \
