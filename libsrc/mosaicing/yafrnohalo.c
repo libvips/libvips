@@ -1,19 +1,61 @@
-/* This file is part of GEGL
- *
- * GEGL is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- *
- * GEGL is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General
- * Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with GEGL; if not, see
- * <http://www.gnu.org/licenses/>.
- *
+/* yafrnohalo ... yafr-nohalo as a vips interpolate class
+ */
+
+/*
+
+    This file is part of VIPS.
+    
+    VIPS is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+ */
+
+/*
+
+    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
+ */
+
+/*
+#define DEBUG
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /*HAVE_CONFIG_H*/
+#include <vips/intl.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <vips/vips.h>
+#include <vips/internal.h>
+
+#ifdef WITH_DMALLOC
+#include <dmalloc.h>
+#endif /*WITH_DMALLOC*/
+
+/* "fast" floor() ... on my laptop, anyway.
+ */
+#define FLOOR( V ) ((V) >= 0 ? (int)(V) : (int)((V) - 1))
+
+static VipsInterpolateClass *vips_interpolate_yafrnohalo_parent_class = NULL;
+
+/* Copy-paste of gegl-sampler-yafr-nohalo.c starts
+ */
+
+/*
  * 2008 (c) Nicolas Robidoux (developer of Yet Another Fast
  * Resampler).
  *
@@ -21,13 +63,6 @@
  * an NSERC (National Science and Engineering Research Council of
  * Canada) Discovery Grant.
  */
-
-#include <glib-object.h>
-#include "gegl-types.h"
-#include "gegl-buffer-private.h"
-#include "gegl-sampler-yafr.h"
-
-#include <math.h>
 
 #ifndef restrict
 #ifdef __restrict
@@ -48,29 +83,6 @@
 #define unlikely(x) (x)
 #endif
 #endif
-
-enum
-{
-  PROP_0,
-  PROP_LAST
-};
-
-static void gegl_sampler_yafr_get (      GeglSampler *self,
-                                   const gdouble      x,
-                                   const gdouble      y,
-                                         void        *output);
-
-static void set_property (      GObject    *gobject,
-                                guint       property_id,
-                          const GValue     *value,
-                                GParamSpec *pspec);
-
-static void get_property (GObject    *gobject,
-                          guint       property_id,
-                          GValue     *value,
-                          GParamSpec *pspec);
-
-G_DEFINE_TYPE (GeglSamplerYafr, gegl_sampler_yafr, GEGL_TYPE_SAMPLER)
 
 /*
  * YAFR = Yet Another Fast Resampler
@@ -124,32 +136,17 @@ G_DEFINE_TYPE (GeglSamplerYafr, gegl_sampler_yafr, GEGL_TYPE_SAMPLER)
  * parameter is much less noticeable than the one for bilinear.
  */
 
-static void
-gegl_sampler_yafr_class_init (GeglSamplerYafrClass *klass)
-{
-  GeglSamplerClass *sampler_class = GEGL_SAMPLER_CLASS (klass);
-  GObjectClass     *object_class  = G_OBJECT_CLASS (klass);
+/* Pointers to write to / read from, how much to add to move right a pixel,
+ * how much to add to move down a line.
+ */
 
-  object_class->set_property = set_property;
-  object_class->get_property = get_property;
+static inline void
+bilinear_yafrnohalo (float* restrict out, const float* restrict in, 
+	     const int channels, 
+	     const int pixels_per_buffer_row,
+	     const float user_sharpening,
 
-  sampler_class->get = gegl_sampler_yafr_get;
- }
-
-static void
-gegl_sampler_yafr_init (GeglSamplerYafr *self)
-{
-  /*
-   * The computation stencil is 4x4, and sticks out one column to the
-   * left and one row above the requested integer position:
-   */
-  GEGL_SAMPLER (self)->context_rect = (GeglRectangle){-1,-1,4,4};
-
-  GEGL_SAMPLER (self)->interpolate_format = babl_format ("RaGaBaA float");
-}
-
-static inline gfloat
-bilinear_yafr (const gfloat c_horizo_left___up,
+	       const gfloat c_horizo_left___up,
                const gfloat c_horizo_left_down,
                const gfloat c_horizo_rite___up,
                const gfloat c_horizo_rite_down,
@@ -168,8 +165,7 @@ bilinear_yafr (const gfloat c_horizo_left___up,
                const gfloat left_width_times___up_hight,
                const gfloat rite_width_times___up_hight,
                const gfloat left_width_times_down_hight,
-               const gfloat rite_width_times_down_hight,
-               const gfloat* restrict this_channels_uno_one_bptr)
+               const gfloat rite_width_times_down_hight)
 {
 
   /*
@@ -196,13 +192,12 @@ bilinear_yafr (const gfloat c_horizo_left___up,
    * with the above discussion, values of user_sharpening between 0
    * and about 1.5 give good results.
    */
-  const gfloat user_sharpening = 1.f;
   const gfloat sharpening = user_sharpening * ( 4.f / 3.f );
 
   /*
    * The input pixel values are described by the following stencil.
-   * Spanish abbreviations are used to label positions from top to
-   * bottom, English ones to label positions from left to right,:
+   *  Spanish abbreviations are used to label positions from top to
+   *  bottom, English ones to label positions from left to right,:
    *
    *   (ix-1,iy-1)     (ix,iy-1)       (ix+1,iy-1)     (ix+2,iy-1)
    *   =uno_one        =uno_two        =uno_thr        = uno_fou
@@ -219,46 +214,28 @@ bilinear_yafr (const gfloat c_horizo_left___up,
 
   /*
    * Load the useful pixel values for the channel under
-   * consideration. The this_channels_uno_one_bptr pointer is assumed
-   * to point to uno_one when bilinear_yafr is entered.
+   * consideration. The in pointer is assumed
+   * to point to uno_one when bilinear_yafrnohalo is entered.
    */
-  const gint channels = 4;
-  const gint pixels_per_buffer_row = 64;
-  const gfloat uno_one =
-    this_channels_uno_one_bptr[   0                                          ];
-  const gfloat uno_two =
-    this_channels_uno_one_bptr[                                     channels ];
-  const gfloat uno_thr =
-    this_channels_uno_one_bptr[   2                               * channels ];
-  const gfloat uno_fou =
-    this_channels_uno_one_bptr[   3                               * channels ];
+  const float uno_one = in[   0                                          ];
+  const float uno_two = in[                                     channels ];
+  const float uno_thr = in[   2                               * channels ];
+  const float uno_fou = in[   3                               * channels ];
 
-  const gfloat dos_one =
-    this_channels_uno_one_bptr[           pixels_per_buffer_row   * channels ];
-  const gfloat dos_two =
-    this_channels_uno_one_bptr[ ( 1 +     pixels_per_buffer_row ) * channels ];
-  const gfloat dos_thr =
-    this_channels_uno_one_bptr[ ( 2 +     pixels_per_buffer_row ) * channels ];
-  const gfloat dos_fou =
-    this_channels_uno_one_bptr[ ( 3 +     pixels_per_buffer_row ) * channels ];
+  const float dos_one = in[           pixels_per_buffer_row   * channels ];
+  const float dos_two = in[ ( 1 +     pixels_per_buffer_row ) * channels ];
+  const float dos_thr = in[ ( 2 +     pixels_per_buffer_row ) * channels ];
+  const float dos_fou = in[ ( 3 +     pixels_per_buffer_row ) * channels ];
 
-  const gfloat tre_one =
-    this_channels_uno_one_bptr[       2 * pixels_per_buffer_row   * channels ];
-  const gfloat tre_two =
-    this_channels_uno_one_bptr[ ( 1 + 2 * pixels_per_buffer_row ) * channels ];
-  const gfloat tre_thr =
-    this_channels_uno_one_bptr[ ( 2 + 2 * pixels_per_buffer_row ) * channels ];
-  const gfloat tre_fou =
-    this_channels_uno_one_bptr[ ( 3 + 2 * pixels_per_buffer_row ) * channels ];
+  const float tre_one = in[       2 * pixels_per_buffer_row   * channels ];
+  const float tre_two = in[ ( 1 + 2 * pixels_per_buffer_row ) * channels ];
+  const float tre_thr = in[ ( 2 + 2 * pixels_per_buffer_row ) * channels ];
+  const float tre_fou = in[ ( 3 + 2 * pixels_per_buffer_row ) * channels ];
 
-  const gfloat qua_one =
-    this_channels_uno_one_bptr[       3 * pixels_per_buffer_row   * channels ];
-  const gfloat qua_two =
-    this_channels_uno_one_bptr[ ( 1 + 3 * pixels_per_buffer_row ) * channels ];
-  const gfloat qua_thr =
-    this_channels_uno_one_bptr[ ( 2 + 3 * pixels_per_buffer_row ) * channels ];
-  const gfloat qua_fou =
-    this_channels_uno_one_bptr[ ( 3 + 3 * pixels_per_buffer_row ) * channels ];
+  const float qua_one = in[       3 * pixels_per_buffer_row   * channels ];
+  const float qua_two = in[ ( 1 + 3 * pixels_per_buffer_row ) * channels ];
+  const float qua_thr = in[ ( 2 + 3 * pixels_per_buffer_row ) * channels ];
+  const float qua_fou = in[ ( 3 + 3 * pixels_per_buffer_row ) * channels ];
 
   /*
    * Bilinear (piecewise constant histopolant pieces) baseline
@@ -704,15 +681,22 @@ bilinear_yafr (const gfloat c_horizo_left___up,
    */
   const gfloat newval = sharpening * unweighted_yafr_correction + bilinear;
 
-  return newval;
+  *out = newval;
 }
 
 static void
-gegl_sampler_yafr_get (      GeglSampler *self,
-                       const gdouble      x,
-                       const gdouble      y,
-                             void        *output)
+vips_interpolate_yafrnohalo_interpolate( VipsInterpolate *interpolate, 
+	REGION *out, REGION *in, 
+	int out_x, int out_y, double x, double y )
 {
+	VipsInterpolateYafrnohalo *yafrnohalo = 
+		VIPS_INTERPOLATE_YAFRNOHALO( interpolate );
+
+  /*
+   * Note: The computation is structured to foster software
+   * pipelining.
+   */
+
   /*
    * x is understood to increase from left to right, y, from top to
    * bottom.  Consequently, ix and iy are the indices of the pixel
@@ -720,15 +704,10 @@ gegl_sampler_yafr_get (      GeglSampler *self,
    *
    * floor is used to make sure that the transition through 0 is
    * smooth. If it is known that negative x and y will never be used,
-   * simple integer casting (which truncates) could be used instead.
+   * cast (which truncates) could be used instead.
    */
-  const gint ix = floorf (x);
-  const gint iy = floorf (y);
-
-  /*
-   * Pointer to enlarged input stencil values:
-   */
-  const gfloat* restrict sampler_bptr = gegl_sampler_get_ptr (self, ix, iy);
+  const gint ix = FLOOR (x);
+  const gint iy = FLOOR (y);
 
   /*
    * Each (channel's) output pixel value is obtained by combining four
@@ -737,12 +716,12 @@ gegl_sampler_yafr_get (      GeglSampler *self,
    * positions which have coordinates and labels as follows:
    *
    *                   (ix,iy)         (ix+1,iy)
-   *                   =left___up       =rite___up
+   *                   =left__up       =rite__up
    *
    *                          <- (x,y) is somewhere in the convex hull
    *
    *                   (ix,iy+1)       (ix+1,iy+1)
-   *                   =left_down       =rite_down
+   *                   =left_dow       =rite_dow
    */
   /*
    * rite_width is the width of the overlaps of the unit averaging box
@@ -984,129 +963,125 @@ gegl_sampler_yafr_get (      GeglSampler *self,
     down_down_overlap_times_down_down_overlap;
 
   /*
-   * The newval array will contain the four (one per channel)
-   * computed resampled values:
-   */
-  gfloat newval[4];
-
-  /*
    * Set the tile pointer to the first relevant value. Since the
    * pointer initially points to dos_two, we need to rewind it one
    * tile row, then go back one additional pixel.
    */
-  const gint channels = 4;
-  const gint pixels_per_buffer_row = 64;
-  sampler_bptr -= ( pixels_per_buffer_row + 1 ) * channels;
+  const PEL *p = (PEL *) IM_REGION_ADDR( in, ix - 1, iy - 1 ); 
 
-  newval[0] = bilinear_yafr (c_horizo_left___up,
-                             c_horizo_left_down,
-                             c_horizo_rite___up,
-                             c_horizo_rite_down,
-                             c_vertic_left___up,
-                             c_vertic_rite___up,
-                             c_vertic_left_down,
-                             c_vertic_rite_down,
-                             c_settin_left___up,
-                             c_settin_rite___up,
-                             c_settin_left_down,
-                             c_settin_rite_down,
-                             c_rising_left___up,
-                             c_rising_rite___up,
-                             c_rising_left_down,
-                             c_rising_rite_down,
-                             left_width_times___up_hight,
-                             rite_width_times___up_hight,
-                             left_width_times_down_hight,
-                             rite_width_times_down_hight,
-                             sampler_bptr++);
+	/* Pel size and line size.
+	 */
+	const int channels = in->im->Bands; 
+	const int pixels_per_buffer_row = 
+		IM_REGION_LSKIP( in ) / (sizeof( float ) * channels); 
 
-  newval[1] = bilinear_yafr (c_horizo_left___up,
-                             c_horizo_left_down,
-                             c_horizo_rite___up,
-                             c_horizo_rite_down,
-                             c_vertic_left___up,
-                             c_vertic_rite___up,
-                             c_vertic_left_down,
-                             c_vertic_rite_down,
-                             c_settin_left___up,
-                             c_settin_rite___up,
-                             c_settin_left_down,
-                             c_settin_rite_down,
-                             c_rising_left___up,
-                             c_rising_rite___up,
-                             c_rising_left_down,
-                             c_rising_rite_down,
-                             left_width_times___up_hight,
-                             rite_width_times___up_hight,
-                             left_width_times_down_hight,
-                             rite_width_times_down_hight,
-                             sampler_bptr++);
-  newval[2] = bilinear_yafr (c_horizo_left___up,
-                             c_horizo_left_down,
-                             c_horizo_rite___up,
-                             c_horizo_rite_down,
-                             c_vertic_left___up,
-                             c_vertic_rite___up,
-                             c_vertic_left_down,
-                             c_vertic_rite_down,
-                             c_settin_left___up,
-                             c_settin_rite___up,
-                             c_settin_left_down,
-                             c_settin_rite_down,
-                             c_rising_left___up,
-                             c_rising_rite___up,
-                             c_rising_left_down,
-                             c_rising_rite_down,
-                             left_width_times___up_hight,
-                             rite_width_times___up_hight,
-                             left_width_times_down_hight,
-                             rite_width_times_down_hight,
-                             sampler_bptr++);
-  newval[3] = bilinear_yafr (c_horizo_left___up,
-                             c_horizo_left_down,
-                             c_horizo_rite___up,
-                             c_horizo_rite_down,
-                             c_vertic_left___up,
-                             c_vertic_rite___up,
-                             c_vertic_left_down,
-                             c_vertic_rite_down,
-                             c_settin_left___up,
-                             c_settin_rite___up,
-                             c_settin_left_down,
-                             c_settin_rite_down,
-                             c_rising_left___up,
-                             c_rising_rite___up,
-                             c_rising_left_down,
-                             c_rising_rite_down,
-                             left_width_times___up_hight,
-                             rite_width_times___up_hight,
-                             left_width_times_down_hight,
-                             rite_width_times_down_hight,
-                             sampler_bptr);
+	/* Where we write the result.
+	 */
+	PEL *q = (PEL *) IM_REGION_ADDR( out, out_x, out_y ); 
+	int z;
 
-  /*
-   * Ship out the newval (computed new pixel values):
-   */
-  babl_process (babl_fish (self->interpolate_format, self->format),
-                newval,
-                output,
-                1);
+	for( z = 0; z < channels; z++ ) 
+		bilinear_yafrnohalo ((float *) q + z, (float *) p + z,
+			   channels, pixels_per_buffer_row,
+			   yafrnohalo->sharpening,
+			     c_horizo_left___up,
+                             c_horizo_left_down,
+                             c_horizo_rite___up,
+                             c_horizo_rite_down,
+                             c_vertic_left___up,
+                             c_vertic_rite___up,
+                             c_vertic_left_down,
+                             c_vertic_rite_down,
+                             c_settin_left___up,
+                             c_settin_rite___up,
+                             c_settin_left_down,
+                             c_settin_rite_down,
+                             c_rising_left___up,
+                             c_rising_rite___up,
+                             c_rising_left_down,
+                             c_rising_rite_down,
+                             left_width_times___up_hight,
+                             rite_width_times___up_hight,
+                             left_width_times_down_hight,
+                             rite_width_times_down_hight);
 }
 
 static void
-set_property (      GObject      *gobject,
-                    guint         property_id,
-              const GValue       *value,
-                    GParamSpec   *pspec)
+vips_interpolate_yafrnohalo_class_init( VipsInterpolateYafrnohaloClass *class )
 {
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, property_id, pspec);
+	VipsInterpolateClass *interpolate_class = 
+		VIPS_INTERPOLATE_CLASS( class );
+
+	vips_interpolate_yafrnohalo_parent_class = 
+		g_type_class_peek_parent( class );
+
+	interpolate_class->interpolate = 
+		vips_interpolate_yafrnohalo_interpolate;
+	interpolate_class->window_size = 4;
 }
 
 static void
-get_property (GObject    *gobject,
-              guint       property_id,
-              GValue     *value,
-              GParamSpec *pspec)
+vips_interpolate_yafrnohalo_init( VipsInterpolateYafrnohalo *yafrnohalo )
 {
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, property_id, pspec);
+#ifdef DEBUG
+	printf( "vips_interpolate_yafrnohalo_init: " );
+	vips_object_print( VIPS_OBJECT( yafrnohalo ) );
+#endif /*DEBUG*/
+
+	yafrnohalo->sharpening = 1.0;
 }
+
+GType
+vips_interpolate_yafrnohalo_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		static const GTypeInfo info = {
+			sizeof( VipsInterpolateYafrnohaloClass ),
+			NULL,           /* base_init */
+			NULL,           /* base_finalize */
+			(GClassInitFunc) vips_interpolate_yafrnohalo_class_init,
+			NULL,           /* class_finalize */
+			NULL,           /* class_data */
+			sizeof( VipsInterpolateYafrnohalo ),
+			32,             /* n_preallocs */
+			(GInstanceInitFunc) vips_interpolate_yafrnohalo_init,
+		};
+
+		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
+			"VipsInterpolateYafrnohalo", &info, 0 );
+	}
+
+	return( type );
+}
+
+VipsInterpolate *
+vips_interpolate_yafrnohalo_new( void )
+{
+	return( VIPS_INTERPOLATE( g_object_new( 
+		VIPS_TYPE_INTERPOLATE_YAFRNOHALO, NULL ) ) );
+}
+
+void
+vips_interpolate_yafrnohalo_set_sharpening( 
+	VipsInterpolateYafrnohalo *yafrnohalo, 
+	double sharpening )
+{
+	yafrnohalo->sharpening = sharpening; 
+}
+
+/* Convenience: return a static yafrnohalo you don't need to free.
+ */
+VipsInterpolate *
+vips_interpolate_yafrnohalo_static( void )
+{
+	static VipsInterpolate *interpolate = NULL;
+
+	if( !interpolate )
+		interpolate = vips_interpolate_yafrnohalo_new();
+
+	return( interpolate );
+}
+
+
