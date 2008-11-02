@@ -195,7 +195,8 @@ im_subsample( IMAGE *in, IMAGE *out, int xshrink, int yshrink )
 	/* Check parameters.
 	 */
 	if( xshrink < 1 || yshrink < 1 ) {
-		im_error( "im_subsample", _( "factors should both be >= 1" ) );
+		im_error( "im_subsample", 
+			"%s", _( "factors should both be >= 1" ) );
 		return( -1 );
 	}
 	if( xshrink == 1 && yshrink == 1 ) 
@@ -212,7 +213,8 @@ im_subsample( IMAGE *in, IMAGE *out, int xshrink, int yshrink )
 	out->Xres = in->Xres / xshrink;
 	out->Yres = in->Yres / yshrink;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_error( "im_subsample", _( "image has shrunk to nothing" ) );
+		im_error( "im_subsample", 
+			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
 

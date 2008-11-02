@@ -140,7 +140,7 @@ im_msb (IMAGE * in, IMAGE * out)
 
       if (!IM_ANY_INT (in))
 	{
-	  im_error (FUNCTION_NAME, _("char, short or int only"));
+	  im_error (FUNCTION_NAME, "%s", _("char, short or int only"));
 	  return -1;
 	}
 
@@ -176,7 +176,7 @@ im_msb (IMAGE * in, IMAGE * out)
 
   else
     {
-      im_error (FUNCTION_NAME, _("unknown coding"));
+      im_error (FUNCTION_NAME, "%s", _("unknown coding"));
       return -1;
     }
 
@@ -210,7 +210,7 @@ im_msb_band (IMAGE * in, IMAGE * out, int band)
 
   if (band < 0)
     {
-      im_error (FUNCTION_NAME, _("bad arguments"));
+      im_error (FUNCTION_NAME, "%s", _("bad arguments"));
       return -1;
     }
 
@@ -227,13 +227,14 @@ im_msb_band (IMAGE * in, IMAGE * out, int band)
 
       if (!IM_ANY_INT (in))
 	{
-	  im_error (FUNCTION_NAME, _("char, short or int only"));
+	  im_error (FUNCTION_NAME, "%s", _("char, short or int only"));
 	  return -1;
 	}
 
       if (band >= in->Bands)
 	{
-	  im_error (FUNCTION_NAME, _("image does not have that many bands"));
+	  im_error (FUNCTION_NAME,
+	    "%s", _("image does not have that many bands"));
 	  return -1;
 	}
 
@@ -259,7 +260,8 @@ im_msb_band (IMAGE * in, IMAGE * out, int band)
 
       if (band > 2)
 	{
-	  im_error (FUNCTION_NAME, _("image does not have that many bands"));
+	  im_error (FUNCTION_NAME, 
+	    "%s", _("image does not have that many bands"));
 	  return -1;
 	}
       width = 4;
@@ -273,7 +275,7 @@ im_msb_band (IMAGE * in, IMAGE * out, int band)
     }
   else
     {
-      im_error (FUNCTION_NAME, _("unknown coding"));
+      im_error (FUNCTION_NAME, "%s", _("unknown coding"));
       return -1;
     }
 

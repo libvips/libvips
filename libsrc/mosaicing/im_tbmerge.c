@@ -159,7 +159,7 @@ find_top( REGION *ir, int *pos, int x, int y, int h )
 	case IM_BANDFMT_DPCOMPLEX:tsearch( double ); break;
 
 	default:
-		im_error( "im_tbmerge", _( "internal error" ) );
+		im_error( "im_tbmerge", "%s", _( "internal error" ) );
 		return( -1 );
 	}
 
@@ -213,7 +213,7 @@ find_bot( REGION *ir, int *pos, int x, int y, int h )
 	case IM_BANDFMT_DPCOMPLEX:rsearch( double ); break;
 
 	default:
-		im_error( "im_tbmerge", _( "internal error" ) );
+		im_error( "im_tbmerge", "%s", _( "internal error" ) );
 		return( -1 );
 	}
 
@@ -531,7 +531,7 @@ tb_blend( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 			fblend( double, im->Bands*2, pr, ps, q ); break;
 
 		default:
-			im_error( "im_tbmerge", _( "internal error" ) );
+			im_error( "im_tbmerge", "%s", _( "internal error" ) );
 			return( -1 );
 		}
 	}
@@ -629,7 +629,7 @@ build_tbstate( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 		break;
 
 	default:
-		im_error( "im_tbmerge", _( "unknown coding type" ) );
+		im_error( "im_tbmerge", "%s", _( "unknown coding type" ) );
 		return( NULL );
 	}
 
@@ -647,7 +647,7 @@ build_tbstate( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	 */
 	if( IM_RECT_BOTTOM( &ovlap->rarea ) > IM_RECT_BOTTOM( &ovlap->sarea ) ||
 		ovlap->rarea.top > ovlap->sarea.top ) {
-		im_error( "im_tbmerge", _( "too much overlap" ) );
+		im_error( "im_tbmerge", "%s", _( "too much overlap" ) );
 		return( NULL );
 	}
 
@@ -668,12 +668,13 @@ im__tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	if( ref->Bands != sec->Bands || ref->Bbits != sec->Bbits ||
 		ref->BandFmt != sec->BandFmt ||
 		ref->Coding != sec->Coding ) {
-		im_error( "im_tbmerge", _( "input images incompatible" ) );
+		im_error( "im_tbmerge", 
+			"%s", _( "input images incompatible" ) );
 		return( -1 );
 	}
 	if( ref->Coding != IM_CODING_NONE && ref->Coding != IM_CODING_LABQ ) {
 		im_error( "im_tbmerge", 
-			_( "inputs not uncoded or IM_CODING_LABQ" ) );
+			"%s", _( "inputs not uncoded or IM_CODING_LABQ" ) );
 		return( -1 );
 	}
 	if( dy > 0 || dy < 1 - ref->Ysize ) {

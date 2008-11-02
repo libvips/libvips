@@ -310,7 +310,7 @@ read_chunk( int fd, gint64 offset, size_t length )
 		return( NULL );
 	if( read( fd, buf, length ) != length ) {
 		im_free( buf );
-		im_error( "im_readhist", _( "unable to read history" ) );
+		im_error( "im_readhist", "%s", _( "unable to read history" ) );
 		return( NULL );
 	}
 	buf[length] = '\0';
@@ -347,7 +347,7 @@ im__read_extension_block( IMAGE *im, int *size )
 		return( NULL );
 	if( length - psize > 10 * 1024 * 1024 ) {
 		im_error( "im_readhist",
-			_( "more than a 10 megabytes of XML? "
+			"%s", _( "more than a 10 megabytes of XML? "
 			"sufferin' succotash!" ) );
 		return( NULL );
 	}
@@ -394,7 +394,8 @@ read_xml( IMAGE *im )
 	if( !(node = xmlDocGetRootElement( doc )) ||
 		!node->nsDef ||
 		!im_isprefix( NAMESPACE, (char *) node->nsDef->href ) ) {
-		im_error( "im__readhist", _( "incorrect namespace in XML" ) );
+		im_error( "im__readhist", 
+			"%s", _( "incorrect namespace in XML" ) );
 		xmlFreeDoc( doc );
 		return( NULL );
 	}
@@ -515,8 +516,9 @@ rebuild_header_meta( IMAGE *im, xmlNode *i )
 			g_value_init( &value, gtype );
 			if( !g_value_transform( &save_value, &value ) ) {
 				g_value_unset( &save_value );
-				im_error( "im__readhist", _( "error "
-					"transforming from save format" ) );
+				im_error( "im__readhist", 
+					"%s", _( "error transforming from "
+					"save format" ) );
 				return( -1 );
 			}
 			if( im_meta_set( im, name, &value ) ) {
@@ -670,7 +672,7 @@ save_fields_meta( Meta *meta, xmlNode *node )
 
 		g_value_init( &save_value, IM_TYPE_SAVE_STRING );
 		if( !g_value_transform( &meta->value, &save_value ) ) {
-			im_error( "im__writehist", 
+			im_error( "im__writehist", "%s", 
 				_( "error transforming to save format" ) );
 			return( node );
 		}
@@ -719,7 +721,7 @@ im__write_extension_block( IMAGE *im, void *buf, int size )
 		return( -1 );
 	if( length - psize < 0 ) {
 		im_error( "im__write_extension_block",
-			_( "file has been truncated" ) );
+			"%s", _( "file has been truncated" ) );
 		return( -1 );
 	}
 
@@ -833,7 +835,7 @@ im__writehist( IMAGE *im )
 			NULL, (xmlChar *) "root", NULL )) ||
                 set_sprop( doc->children, "xmlns", namespace ) ||
 		save_fields( im, doc->children ) ) {
-		im_error( "im__writehist", _( "xml save error" ) );
+		im_error( "im__writehist", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
                 return( -1 );
         }
@@ -842,7 +844,7 @@ im__writehist( IMAGE *im )
 	 */
 	xmlDocDumpMemory( doc, (xmlChar **) ((char *) &dump), &dump_size );
 	if( !dump ) {
-		im_error( "im__writehist", _( "xml save error" ) );
+		im_error( "im__writehist", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
                 return( -1 );
 	}
@@ -865,7 +867,7 @@ im__writehist( IMAGE *im )
 
 	xmlDocDumpMemory( doc, (xmlChar **) &dump2, &dump_size2 );
 	if( !dump2 ) {
-		im_error( "im__writehist", _( "xml save error" ) );
+		im_error( "im__writehist", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
 		xmlFree( dump );
                 return( -1 );
@@ -1022,7 +1024,8 @@ im_open_vips( const char *filename )
 		if( im->Bbits != IM_BBITS_BYTE &&
 			im_isMSBfirst( im ) != im_amiMSBfirst() ) {
 			im_close( im );
-			im_error( "im_open_vips", _( "open for read-write for "
+			im_error( "im_open_vips", "%s", 
+				_( "open for read-write for "
 				"native format images only" ) );
 			return( NULL );
 		}
@@ -1071,7 +1074,7 @@ im_open_vips( const char *filename )
 
 		default:
 			im_close( im );
-			im_error( "im_open", _( "unknown coding type" ) );
+			im_error( "im_open", "%s", _( "unknown coding type" ) );
 			return( NULL );
 		}
 	}

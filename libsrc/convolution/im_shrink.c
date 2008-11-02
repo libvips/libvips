@@ -226,7 +226,7 @@ shrink_gen( REGION *or, void *vseq, void *a, void *b )
         case IM_BANDFMT_DOUBLE:		fshrink(double); break;
 
         default:
-		im_error( "im_shrink", _( "unsupported input format" ) );
+		im_error( "im_shrink", "%s", _( "unsupported input format" ) );
                 return( -1 );
         }
  
@@ -241,12 +241,12 @@ shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 	/* Check parameters.
 	 */
 	if( !in || im_iscomplex( in ) ) {
-		im_error( "im_shrink", _( "non-complex input only" ) );
+		im_error( "im_shrink", "%s", _( "non-complex input only" ) );
 		return( -1 );
 	}
 	if( xshrink < 1.0 || yshrink < 1.0 ) {
 		im_error( "im_shrink", 
-			_( "shrink factors should both be >1" ) );
+			"%s", _( "shrink factors should both be >1" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
@@ -261,7 +261,8 @@ shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 	out->Xres = in->Xres / xshrink;
 	out->Yres = in->Yres / yshrink;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_error( "im_shrink", _( "image has shrunk to nothing" ) );
+		im_error( "im_shrink", 
+			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
 
@@ -309,7 +310,7 @@ im_shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 			return( -1 );
 	}
 	else {
-		im_error( "im_shrink", _( "unknown coding type" ) );
+		im_error( "im_shrink", "%s", _( "unknown coding type" ) );
 		return( -1 );
 	}
 

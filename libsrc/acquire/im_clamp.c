@@ -67,12 +67,12 @@ if( im_iocheck( in, out ) )
 	return( -1 );
 if( in->Bbits != 8 || 
 	in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR ) {
-	im_error( "im_clamp", _( "bad input format" ) ); 
+	im_error( "im_clamp", "%s", _( "bad input format" ) ); 
 	return( -1 );
 }
 if(  black->Bbits != 8 || 
 	black->Coding != IM_CODING_NONE || black->BandFmt != IM_BANDFMT_UCHAR ) { 
-	im_error( "im_clamp", _( "bad black format" ) );
+	im_error( "im_clamp", "%s", _( "bad black format" ) );
 	return( -1 );
 }
 

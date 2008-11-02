@@ -121,11 +121,11 @@ im_logtra( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_logtra", _( "not uncoded" ) );
+		im_error( "im_logtra", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_logtra", _( "not non-complex" ) );
+		im_error( "im_logtra", "%s", _( "not non-complex" ) );
 		return( -1 );
 	}
 

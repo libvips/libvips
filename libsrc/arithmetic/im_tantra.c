@@ -114,11 +114,11 @@ im_tantra( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_tantra", _( "not uncoded" ) );
+		im_error( "im_tantra", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_tantra", _( "not non-complex" ) );
+		im_error( "im_tantra", "%s", _( "not non-complex" ) );
 		return( -1 );
 	}
 
@@ -200,11 +200,11 @@ im_atantra( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_atantra", _( "not uncoded" ) );
+		im_error( "im_atantra", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_atantra", _( "not non-complex" ) );
+		im_error( "im_atantra", "%s", _( "not non-complex" ) );
 		return( -1 );
 	}
 

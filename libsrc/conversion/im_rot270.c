@@ -138,7 +138,8 @@ im_rot270( IMAGE *in, IMAGE *out )
 	if( im_piocheck( in, out ) ) 
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_rot270", _( "uncoded or IM_CODING_LABQ only" ) );
+		im_error( "im_rot270", 
+			"%s", _( "uncoded or IM_CODING_LABQ only" ) );
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 

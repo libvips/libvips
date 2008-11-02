@@ -689,7 +689,7 @@ find_new_tile( PyramidLayer *layer )
 
 	/* Out of space!
 	 */
-	im_error( "im_vips2tiff", _( "layer buffer exhausted -- "
+	im_error( "im_vips2tiff", "%s", _( "layer buffer exhausted -- "
 		"try making TIFF output tiles smaller" ) );
 
 	return( -1 );
@@ -920,7 +920,7 @@ save_tile( TiffWrite *tw, TIFF *tif, PEL *tbuf, REGION *reg, Rect *area )
 	/* Write to TIFF! easy.
 	 */
 	if( TIFFWriteTile( tif, tbuf, area->left, area->top, 0, 0 ) < 0 ) {
-		im_error( "im_vips2tiff", _( "TIFF write tile failed" ) );
+		im_error( "im_vips2tiff", "%s", _( "TIFF write tile failed" ) );
 		return( -1 );
 	}
 
@@ -995,7 +995,8 @@ new_tile( PyramidLayer *layer, REGION *tile, Rect *area )
 		else
 			bit = PYR_TL;
 	if( layer->tiles[t].bits & bit ) {
-		im_error( "im_vips2tiff", _( "internal error #9876345" ) );
+		im_error( "im_vips2tiff", 
+			"%s", _( "internal error #9876345" ) );
 		return( -1 );
 	}
 	layer->tiles[t].bits |= bit;
@@ -1246,7 +1247,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 			if( (r = im_getsuboption( q )) ) 
 				if( sscanf( r, "%d", &tw->predictor ) != 1 ) {
 					im_error( "im_vips2tiff",
-						_( "bad predictor "
+						"%s", _( "bad predictor "
 							"parameter" ) );
 					return( NULL );
 				}
@@ -1257,7 +1258,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 			if( (r = im_getsuboption( q )) ) 
 				if( sscanf( r, "%d", &tw->predictor ) != 1 ) {
 					im_error( "im_vips2tiff",
-						_( "bad predictor "
+						"%s", _( "bad predictor "
 							"parameter" ) );
 					return( NULL );
 				}
@@ -1268,7 +1269,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 			if( (r = im_getsuboption( q )) ) 
 				if( sscanf( r, "%d", &tw->jpqual ) != 1 ) {
 					im_error( "im_vips2tiff",
-						_( "bad JPEG quality "
+						"%s", _( "bad JPEG quality "
 							"parameter" ) );
 					return( NULL );
 				}
@@ -1288,23 +1289,24 @@ make_tiff_write( IMAGE *im, const char *filename )
 			if( (r = im_getsuboption( q )) ) {
 				if( sscanf( r, "%dx%d", 
 					&tw->tilew, &tw->tileh ) != 2 ) {
-					im_error( "im_vips2tiff", _( "bad tile "
-						"sizes" ) );
+					im_error( "im_vips2tiff", "%s", 
+						_( "bad tile sizes" ) );
 					return( NULL );
 				}
 
 				if( tw->tilew < 10 || tw->tileh < 10 || 
 					tw->tilew > 1000 || tw->tileh > 1000 ) {
-					im_error( "im_vips2tiff", _( "bad tile "
-						"size %dx%d" ), 
+					im_error( "im_vips2tiff", 
+						_( "bad tile size %dx%d" ), 
 						tw->tilew, tw->tileh );
 					return( NULL );
 				}
 
 				if( (tw->tilew & 0xf) != 0 || 
 					(tw->tileh & 0xf) != 0 ) {
-					im_error( "im_vips2tiff", _( "tile "
-						"size not a multiple of 16" ) );
+					im_error( "im_vips2tiff", "%s", 
+						_( "tile size not a "
+						"multiple of 16" ) );
 					return( NULL );
 				}
 			}
@@ -1367,8 +1369,8 @@ make_tiff_write( IMAGE *im, const char *filename )
 		if( (r = im_getsuboption( q )) ) {
 			if( sscanf( r, "%fx%f", &tw->xres, &tw->yres ) != 2 ) {
 				if( sscanf( r, "%f", &tw->xres ) != 1 ) {
-					im_error( "im_vips2tiff", _( "bad "
-						"resolution values" ) );
+					im_error( "im_vips2tiff", "%s", 
+						_( "bad resolution values" ) );
 					return( NULL );
 				}
 
@@ -1386,7 +1388,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 		return( NULL );
 	}
 	if( !tw->tile && tw->pyramid ) {
-		im_warn( "im_vips2tiff", _( "can't have strip pyramid -- "
+		im_warn( "im_vips2tiff", "%s", _( "can't have strip pyramid -- "
 			"enabling tiling" ) );
 		tw->tile = 1;
 	}
@@ -1396,7 +1398,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 	if( tw->pyramid ) {
 		if( im->Coding == IM_CODING_NONE && im_iscomplex( im ) ) {
 			im_error( "im_vips2tiff", 
-				_( "can only pyramid LABQ and "
+				"%s", _( "can only pyramid LABQ and "
 				"non-complex images" ) );
 			return( NULL );
 		}
@@ -1412,7 +1414,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 	}
 
 	if( tw->onebit && tw->compression == COMPRESSION_JPEG ) {
-		im_warn( "im_vips2tiff", _( "can't have 1-bit JPEG -- "
+		im_warn( "im_vips2tiff", "%s", _( "can't have 1-bit JPEG -- "
 			"disabling JPEG" ) );
 		tw->compression = COMPRESSION_NONE;
 	}
@@ -1584,7 +1586,7 @@ im_vips2tiff( IMAGE *im, const char *filename )
 	if( im_pincheck( im ) )
 		return( -1 );
 	if( im->Coding != IM_CODING_LABQ && im->Coding != IM_CODING_NONE ) {
-		im_error( "im_vips2tiff", _( "unknown coding type" ) );
+		im_error( "im_vips2tiff", "%s", _( "unknown coding type" ) );
 		return( -1 );
 	}
 	if( im->BandFmt != IM_BANDFMT_UCHAR && 
@@ -1592,13 +1594,15 @@ im_vips2tiff( IMAGE *im, const char *filename )
 			im->Type == IM_TYPE_LABS) &&
 		im->BandFmt != IM_BANDFMT_USHORT &&
 		im->BandFmt != IM_BANDFMT_FLOAT ) {
-		im_error( "im_vips2tiff", _( "unsigned 8-bit int, 16-bit int, "
+		im_error( "im_vips2tiff", "%s", 
+			_( "unsigned 8-bit int, 16-bit int, "
 			"and 32-bit float only" ) );
 		return( -1 );
 	}
 	if( im->Coding == IM_CODING_NONE ) {
 		if( im->Bands < 1 || im->Bands > 5 ) {
-			im_error( "im_vips2tiff", _( "1 to 5 bands only" ) );
+			im_error( "im_vips2tiff", "%s", 
+				_( "1 to 5 bands only" ) );
 			return( -1 );
 		}
 	}

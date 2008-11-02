@@ -96,11 +96,11 @@ im_histcum( IMAGE *in, IMAGE *out )
 	int b, x;
 
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_histcum", _( "input coded" ) );
+		im_error( "im_histcum", "%s", _( "input coded" ) );
 		return( -1 );
 	}
 	if( px > 65536 ) {
-		im_error( "im_histcum", _( "input too large" ) );
+		im_error( "im_histcum", "%s", _( "input too large" ) );
 		return( -1 );
 	}
 	if( im_incheck( in ) )

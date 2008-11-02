@@ -230,35 +230,42 @@ im_tone_build_range( IMAGE *out,
 	if( in_max < 0 || in_max > 65535 ||
 		out_max < 0 || out_max > 65535 ) {
 		im_error( "im_tone_build", 
-			_( "bad in_max, out_max parameters" ) );
+			"%s", _( "bad in_max, out_max parameters" ) );
 		return( -1 );
 	}
 	if( Lb < 0 || Lb > 100 || Lw < 0 || Lw > 100 || Lb > Lw ) {
-		im_error( "im_tone_build", _( "bad Lb, Lw parameters" ) );
+		im_error( "im_tone_build", 
+			"%s", _( "bad Lb, Lw parameters" ) );
 		return( -1 );
 	}
 	if( Ps < 0.0 || Ps > 1.0 ) {
-		im_error( "im_tone_build", _( "Ps not in range [0.0,1.0]" ) );
+		im_error( "im_tone_build", 
+			"%s", _( "Ps not in range [0.0,1.0]" ) );
 		return( -1 );
 	}
 	if( Pm < 0.0 || Pm > 1.0 ) {
-		im_error( "im_tone_build", _( "Pm not in range [0.0,1.0]" ) );
+		im_error( "im_tone_build", 
+			"%s", _( "Pm not in range [0.0,1.0]" ) );
 		return( -1 );
 	}
 	if( Ph < 0.0 || Ph > 1.0 ) {
-		im_error( "im_tone_build", _( "Ph not in range [0.0,1.0]" ) );
+		im_error( "im_tone_build", 
+			"%s", _( "Ph not in range [0.0,1.0]" ) );
 		return( -1 );
 	}
 	if( S < -30 || S > 30 ) {
-		im_error( "im_tone_build", _( "S not in range [-30,+30]" ) );
+		im_error( "im_tone_build", 
+			"%s", _( "S not in range [-30,+30]" ) );
 		return( -1 );
 	}
 	if( M < -30 || M > 30 ) {
-		im_error( "im_tone_build", _( "M not in range [-30,+30]" ) );
+		im_error( "im_tone_build", 
+			"%s", _( "M not in range [-30,+30]" ) );
 		return( -1 );
 	}
 	if( H < -30 || H > 30 ) {
-		im_error( "im_tone_build", _( "H not in range [-30,+30]" ) );
+		im_error( "im_tone_build", 
+			"%s", _( "H not in range [-30,+30]" ) );
 		return( -1 );
 	}
 
@@ -339,7 +346,8 @@ im_ismonotonic( IMAGE *lut, int *out )
 	/* Can be either a horizontal or vertical LUT.
 	 */
 	if( lut->Xsize != 1 && lut->Ysize != 1 ) {
-		im_error( "im_ismonotonic", _( "not 1 by n or n by 1 image" ) );
+		im_error( "im_ismonotonic", 
+			"%s", _( "not 1 by n or n by 1 image" ) );
 		return( -1 );
 	}
 
@@ -387,13 +395,14 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 	/* Need a 1024-point IM_BANDFMT_SHORT lut.
 	 */
 	if( lut->Xsize != 1 && lut->Ysize != 1 ) {
-		im_error( "im_tone_map", _( "not 1 by n or n by 1 image" ) );
+		im_error( "im_tone_map", 
+			"%s", _( "not 1 by n or n by 1 image" ) );
 		return( -1 );
 	}
 	if( lut->Xsize*lut->Ysize != 1024 || 
 		lut->BandFmt != IM_BANDFMT_SHORT ) {
 		im_error( "im_tone_map", 
-			_( "not 1024-point IM_BANDFMT_SHORT lut" ) );
+			"%s", _( "not 1024-point IM_BANDFMT_SHORT lut" ) );
 		return( -1 );
 	}
 
@@ -410,7 +419,8 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 	 */
 	if( t1->Coding != IM_CODING_NONE || t1->BandFmt != IM_BANDFMT_SHORT || 
 		t1->Bands != 3 ) {
-		im_error( "im_tone_map", _( "input not LabS or LabQ" ) );
+		im_error( "im_tone_map", 
+			"%s", _( "input not LabS or LabQ" ) );
 		return( -1 );
 	}
 
@@ -484,7 +494,8 @@ im_tone_analyse(
 	 */
 	if( t1->Coding != IM_CODING_NONE || t1->BandFmt != IM_BANDFMT_SHORT || 
 		t1->Bands != 3 ) {
-		im_error( "im_tone_analyse", _( "input not LabS or LabQ" ) );
+		im_error( "im_tone_analyse", 
+			"%s", _( "input not LabS or LabQ" ) );
 		return( -1 );
 	}
 

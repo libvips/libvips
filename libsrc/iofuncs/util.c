@@ -662,7 +662,7 @@ im_file_length( int fd )
 	if( fstat( fd, &st ) == -1 ) {
 #endif /*OS_WIN32*/
 		im_error_system( errno, "im_file_length", 
-			_( "unable to get file stats" ) );
+			"%s", _( "unable to get file stats" ) );
 		return( -1 );
 	}
 
@@ -679,7 +679,7 @@ im__write( int fd, const void *buf, size_t count )
 
 		if( nwritten == (size_t) -1 ) {
                         im_error_system( errno, "im__write", 
-				_( "write failed" ) );
+				"%s", _( "write failed" ) );
                         return( -1 ); 
 		}
 
@@ -723,7 +723,7 @@ im__file_read( FILE *fp, const char *name, unsigned int *length_out )
 			size += 1024;
 			if( !(str = realloc( str, size )) ) {
 				im_error( "im__file_read", 
-					_( "out of memory" ) );
+					"%s", _( "out of memory" ) );
 				return( NULL );
 			}
 
@@ -962,13 +962,13 @@ im__seek( int fd, gint64 pos )
 	p.QuadPart = pos;
 	if( !SetFilePointerEx( hFile, p, NULL, FILE_BEGIN ) ) {
                 im_error_system( GetLastError(), "im__seek", 
-			_( "unable to seek" ) );
+			"%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 }
 #else /*!OS_WIN32*/
 	if( lseek( fd, pos, SEEK_SET ) == (off_t) -1 ) {
-		im_error( "im__seek", _( "unable to seek" ) );
+		im_error( "im__seek", "%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 #endif /*OS_WIN32*/
@@ -996,14 +996,14 @@ im__ftruncate( int fd, gint64 pos )
 		return( -1 );
 	if( !SetEndOfFile( hFile ) ) {
                 im_error_system( GetLastError(), "im__ftruncate", 
-			_( "unable to truncate" ) );
+			"%s", _( "unable to truncate" ) );
 		return( -1 );
 	}
 }
 #else /*!OS_WIN32*/
 	if( ftruncate( fd, pos ) ) {
 		im_error_system( errno, "im__ftruncate", 
-			_( "unable to truncate" ) );
+			"%s", _( "unable to truncate" ) );
 		return( -1 );
 	}
 #endif /*OS_WIN32*/

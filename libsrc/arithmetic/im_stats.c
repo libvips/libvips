@@ -234,11 +234,11 @@ im_stats( IMAGE *in )
 	if( im_pincheck( in ) )
 		return( NULL );
 	if( im_iscomplex( in ) ) {
-		im_error( "im_stats", _( "bad input type" ) );
+		im_error( "im_stats", "%s", _( "bad input type" ) );
 		return( NULL );
 	}
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_stats", _( "not uncoded" ) );
+		im_error( "im_stats", "%s", _( "not uncoded" ) );
 		return( NULL );
 	}
 

@@ -253,7 +253,8 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	 */
 	if( in->Xsize < ref->Xsize || 
 		in->Ysize < ref->Ysize ) {
-		im_error( "im_spcor_raw", _( "ref not smaller than in" ) );
+		im_error( "im_spcor_raw", 
+			"%s", _( "ref not smaller than in" ) );
 		return( -1 );
 	}
 
@@ -264,14 +265,16 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 		ref->Coding != IM_CODING_NONE || 
 		ref->Bands != 1 ||
 		in->BandFmt != ref->BandFmt ) {
-		im_error( "im_spcor_raw", _( "input not uncoded 1 band" ) );
+		im_error( "im_spcor_raw", 
+			"%s", _( "input not uncoded 1 band" ) );
 		return( -1 );
 	}
 	if( in->BandFmt != IM_BANDFMT_UCHAR && 
 		in->BandFmt != IM_BANDFMT_CHAR &&
 		in->BandFmt != IM_BANDFMT_SHORT &&
 		in->BandFmt != IM_BANDFMT_USHORT ) {
-		im_error( "im_spcor_raw", _( "input not char/uchar/short/ushort" ) );
+		im_error( "im_spcor_raw", 
+			"%s", _( "input not char/uchar/short/ushort" ) );
 		return( -1 );
 	}
 

@@ -412,17 +412,17 @@ im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	if( mask->Bands != 1 || mask->BandFmt != IM_BANDFMT_UCHAR ||
 		mask->Coding != IM_CODING_NONE ) {
 		im_error( "im_lineset", 
-			_( "mask image not 1 band 8 bit uncoded" ) );
+			"%s", _( "mask image not 1 band 8 bit uncoded" ) );
 		return( -1 );
 	}
 	if( ink->Bands != in->Bands || ink->BandFmt != in->BandFmt ||
 		ink->Coding != in->Coding ) {
 		im_error( "im_lineset", 
-			_( "ink image does not match in image" ) );
+			"%s", _( "ink image does not match in image" ) );
 		return( -1 );
 	}
 	if( ink->Xsize != 1 || ink->Ysize != 1 ) {
-		im_error( "im_lineset", _( "ink image not 1x1 pixels" ) );
+		im_error( "im_lineset", "%s", _( "ink image not 1x1 pixels" ) );
 		return( -1 );
 	}
 

@@ -268,12 +268,13 @@ im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy )
         /* Check our args. 
 	 */
         if( in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_USHORT ) {
-        	im_error( "im_stretch3", _( "not uncoded unsigned short" ) );
+        	im_error( "im_stretch3", 
+			"%s", _( "not uncoded unsigned short" ) );
         	return( -1 );
         }
 	if( dx < 0 || dx >= 1.0 || dy < 0 || dy >= 1.0 ) {
 		im_error( "im_stretch3", 
-			_( "displacements out of range [0,1)" ) );
+			"%s", _( "displacements out of range [0,1)" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )

@@ -466,7 +466,7 @@ threadgroup_thread_new( im_threadgroup_t *tg )
 		IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 		G_THREAD_PRIORITY_NORMAL, NULL )) ) {
 		im_error( "threadgroup_thread_new", 
-			_( "unable to create thread" ) );
+			"%s", _( "unable to create thread" ) );
 		thread_free( thr );
 		return( NULL );
 	}

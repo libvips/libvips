@@ -125,7 +125,7 @@ im_vips2csv( IMAGE *in, const char *filename )
 	if( im_incheck( in ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_vips2csv", _( "input must be uncoded" ) );
+		im_error( "im_vips2csv", "%s", _( "input must be uncoded" ) );
 		return( -1 );
 	}
 

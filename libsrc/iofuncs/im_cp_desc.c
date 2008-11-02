@@ -137,7 +137,8 @@ im_cp_descv( IMAGE *out, IMAGE *in1, ... )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		im_error( "im_cp_descv", _( "too many images" ) );
+		im_error( "im_cp_descv", 
+			"%s", _( "too many images" ) );
 		return( -1 );
 	}
 

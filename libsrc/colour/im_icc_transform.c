@@ -251,7 +251,7 @@ icc_new_file( IMAGE *in, IMAGE *out,
 
 	if( !icc->in_profile || !icc->out_profile ) {
 		im_error( "im_icc_transform", 
-			_( "unable to create profiles" ) );
+			"%s", _( "unable to create profiles" ) );
 		return( NULL );
 	}
 
@@ -269,7 +269,8 @@ icc_new_mem( IMAGE *in, IMAGE *out,
 		 return( NULL );
 
 	if( !(icc->in_profile = cmsOpenProfileFromMem( data, data_length )) ) {
-		im_error( "im_icc_transform", _( "unable to read profile" ) );
+		im_error( "im_icc_transform", 
+			"%s", _( "unable to read profile" ) );
 		return( NULL );
 	}
 	icc->out_profile = cmsCreateLabProfile( NULL );
@@ -382,7 +383,7 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 	DWORD out_icc_format;
 
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_icc_transform", _( "uncoded input only" ) );
+		im_error( "im_icc_transform", "%s", _( "uncoded input only" ) );
 		return( -1 ); 
 	}
 
@@ -409,7 +410,8 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 	switch( cmsGetColorSpace( icc->in_profile ) ) {
 	case icSigCmykData:
 		if( in->Bands != 4 ) {
-			im_error( "im_icc_transform", _( "CMYK input profile "
+			im_error( "im_icc_transform", 
+				"%s", _( "CMYK input profile "
 				"needs a 4 band input image" ) );
 			return( -1 );
 		}
@@ -418,7 +420,8 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 
 	case icSigRgbData:
 		if( in->Bands != 3 ) {
-			im_error( "im_icc_transform", _( "RGB input profile "
+			im_error( "im_icc_transform", 
+				"%s", _( "RGB input profile "
 				"needs a 3 band input image" ) );
 			return( -1 );
 		}
@@ -470,7 +473,7 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 
 	default:
 		im_error( "im_icc_transform", 
-			_( "uchar or ushort input only" ) );
+			"%s", _( "uchar or ushort input only" ) );
 		return( -1 );
 	}
 
@@ -517,7 +520,7 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 	DWORD icc_format;
 
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_icc_import", _( "uncoded input only" ) );
+		im_error( "im_icc_import", "%s", _( "uncoded input only" ) );
 		return( -1 ); 
 	}
 
@@ -540,7 +543,8 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 	switch( cmsGetColorSpace( icc->in_profile ) ) {
 	case icSigCmykData:
 		if( in->Bands != 4 ) {
-			im_error( "im_icc_import", _( "CMYK profile needs a "
+			im_error( "im_icc_import", 
+				"%s", _( "CMYK profile needs a "
 				"4 band input image" ) );
 			return( -1 );
 		}
@@ -549,7 +553,8 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 
 	case icSigRgbData:
 		if( in->Bands != 3 ) {
-			im_error( "im_icc_import", _( "RGB profile needs a "
+			im_error( "im_icc_import", 
+				"%s", _( "RGB profile needs a "
 				"3 band input image" ) );
 			return( -1 );
 		}
@@ -573,7 +578,7 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 
 	default:
 		im_error( "im_icc_transform",
-			_( "uchar or ushort input only" ) );
+			"%s", _( "uchar or ushort input only" ) );
 		return( -1 );
 	}
 
@@ -612,7 +617,7 @@ im_icc_import_embedded( IMAGE *in, IMAGE *out, int intent )
 
 	if( im_header_get_type( in, IM_META_ICC_NAME ) == 0 ) {
 		im_error( "im_icc_import_embedded", 
-			_( "no embedded profile" ) );
+			"%s", _( "no embedded profile" ) );
 		return( -1 );
 	}
 
@@ -668,12 +673,12 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
 		in->Coding != IM_CODING_NONE ) {
 		im_error( "im_icc_export", 
-			_( "3-band uncoded Lab float only" ) );
+			"%s", _( "3-band uncoded Lab float only" ) );
 		return( -1 ); 
 	}
 
 	if( depth != 8 && depth != 16 ) {
-		im_error( "im_icc_export", _( "unsupported bit depth" ) );
+		im_error( "im_icc_export", "%s", _( "unsupported bit depth" ) );
 		return( -1 ); 
 	}
 
@@ -758,7 +763,7 @@ im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename )
 		return( -1 );
 
 	if( !cmsTakeMediaWhitePoint( &media, profile ) ) {
-		im_error( "im_icc_ac2rc", _( "unable to get media "
+		im_error( "im_icc_ac2rc", "%s", _( "unable to get media "
 			"white point" ) );
 		return( -1 );
 	}

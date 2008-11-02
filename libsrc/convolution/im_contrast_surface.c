@@ -144,20 +144,20 @@ im_contrast_surface_raw (IMAGE * in, IMAGE * out, int half_win_size,
   if (IM_CODING_NONE != in->Coding || IM_BANDFMT_UCHAR != in->BandFmt
       || 1 != in->Bands)
     {
-      im_error (FUNCTION_NAME, _("one band uncoded uchar only"));
+      im_error (FUNCTION_NAME, "%s", _("one band uncoded uchar only"));
       return -1;
     }
 
   if (half_win_size < 1 || spacing < 1)
     {
-      im_error (FUNCTION_NAME, _("bad parameters"));
+      im_error (FUNCTION_NAME, "%s", _("bad parameters"));
       return -1;
     }
 
   if (DOUBLE (half_win_size) >= LESSER (in->Xsize, in->Ysize))
     {
       im_error (FUNCTION_NAME,
-		_("parameters would result in zero size output image"));
+		"%s", _("parameters would result in zero size output image"));
       return -1;
     }
 

@@ -218,7 +218,7 @@ im_abs( IMAGE *in, IMAGE *out )
 	/* Check args.
 	 */
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_abs", _( "not uncoded" ) );
+		im_error( "im_abs", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 
@@ -254,7 +254,7 @@ im_abs( IMAGE *in, IMAGE *out )
 			break;
 
 		default:
-			im_error( "im_abs", _( "unknown input type" ) );
+			im_error( "im_abs", "%s", _( "unknown input type" ) );
                         return( -1 );
 	}
 

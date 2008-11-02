@@ -453,7 +453,8 @@ lintra_vec_vec( im_object *argv )
 	im_doublevec_object *dvb = (im_doublevec_object *) argv[2];
 
 	if( dva->n != dvb->n ) {
-		im_error( "im_lintra_vec", _( "vectors not same length" ) );
+		im_error( "im_lintra_vec", 
+			"%s", _( "vectors not equal length" ) );
 		return( -1 );
 	}
 

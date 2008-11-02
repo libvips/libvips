@@ -163,7 +163,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 	for( n = 0; in[n]; n++ )
 		;
 	if( n >= IM_MAX_INPUT_IMAGES - 1 ) {
-		im_error( "im_wrapmany", _( "too many input images" ) );
+		im_error( "im_wrapmany", "%s", _( "too many input images" ) );
 		return( -1 );
 	}
 
@@ -181,7 +181,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 	for( i = 0; i < n; i++ ) {
 		if( in[i]->Xsize != out->Xsize || in[i]->Ysize != out->Ysize ) {
 			im_error( "im_wrapmany", 
-				_( "descriptors differ in size" ) );
+				"%s", _( "descriptors differ in size" ) );
 			return( -1 );
 		}
 

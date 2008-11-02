@@ -172,7 +172,7 @@ im_gbandjoin( IMAGE **in, IMAGE *out, int nim )
 	/* Check it out!
 	 */
 	if( nim < 1 ) {
-		im_error( "im_gbandjoin", _( "zero input images!" ) );
+		im_error( "im_gbandjoin", "%s", _( "zero input images!" ) );
 		return( -1 );
 	}
 	if( nim == 1 ) 
@@ -187,19 +187,20 @@ im_gbandjoin( IMAGE **in, IMAGE *out, int nim )
 			return( -1 );
 
 		if( in[i]->Coding != IM_CODING_NONE )	{
-			im_error( "im_gbandjoin", _( "uncoded input only" ) );
+			im_error( "im_gbandjoin", 
+				"%s", _( "uncoded input only" ) );
 			return( -1 );
 		}
 
 		if( in[0]->BandFmt != in[i]->BandFmt ) {
 			im_error( "im_gbandjoin", 
-				_( "input images differ in format" ) );
+				"%s", _( "input images differ in format" ) );
 			return( -1 );
 		}
 		if( in[0]->Xsize != in[i]->Xsize ||
 		    in[0]->Ysize != in[i]->Ysize ) {
 			im_error( "im_gbandjoin", 
-				_( "input images differ in size" ) );
+				"%s", _( "input images differ in size" ) );
 			return( -1 );
 		}
 	}

@@ -139,7 +139,8 @@ write_ppm_line_ascii( IMAGE *in, FILE *fp, PEL *p )
 	}
 
 	if( !fprintf( fp, "\n" ) ) {
-		im_error( "im_vips2ppm", _( "write error ... disc full?" ) );
+		im_error( "im_vips2ppm", 
+			"%s", _( "write error ... disc full?" ) );
 		return( -1 );
 	}
 
@@ -156,7 +157,7 @@ write_ppm_line_binary( IMAGE *in, FILE *fp, PEL *p )
 	for( x = 0; x < in->Xsize; x++ ) {
 		if( !fwrite( p, 1, nb, fp ) ) {
 			im_error( "im_vips2ppm", 
-				_( "write error ... disc full?" ) );
+				"%s", _( "write error ... disc full?" ) );
 			return( -1 );
 		}
 
@@ -255,7 +256,7 @@ im_vips2ppm( IMAGE *in, const char *filename )
 			ascii = 1;
 		else {
 			im_error( "im_vips2ppm", 
-				_( "bad mode string, "
+				"%s", _( "bad mode string, "
 					"should be \"binary\" or \"ascii\"" ) );
 			return( -1 );
 		}
@@ -263,20 +264,21 @@ im_vips2ppm( IMAGE *in, const char *filename )
 
 	if( in->Bbits > 8 && !ascii ) {
 		im_error( "im_vips2ppm", 
-			_( "can't write binary >8 bit images" ) );
+			"%s", _( "can't write binary >8 bit images" ) );
 		return( -1 );
 	}
 	if( !im_isuint( in ) ) {
-		im_error( "im_vips2ppm", _( "unsigned int formats only" ) );
+		im_error( "im_vips2ppm", 
+			"%s", _( "unsigned int formats only" ) );
 		return( -1 );
 	}
 	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
 		im_error( "im_vips2ppm", 
-			_( "uncoded or IM_CODING_LABQ only" ) );
+			"%s", _( "uncoded or IM_CODING_LABQ only" ) );
 		return( -1 );
 	}
 	if( in->Bands != 1 && in->Bands != 3 ) {
-		im_error( "im_vips2ppm", _( "1 or 3 band images only" ) );
+		im_error( "im_vips2ppm", "%s", _( "1 or 3 band images only" ) );
 		return( -1 );
 	}
 

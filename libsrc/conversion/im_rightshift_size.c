@@ -111,34 +111,34 @@ im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt 
     return -1;
 
   if( xshift < 0 || yshift < 0 ){
-    im_error( FUNCTION_NAME, _( "bad arguments" ) );
+    im_error( FUNCTION_NAME, "%s", _( "bad arguments" ) );
     return -1;
   }
   if( ! xshift && ! yshift ){
-    im_warn( FUNCTION_NAME, _( "shift by zero: falling back to im_copy" ) );
+    im_warn( FUNCTION_NAME, "%s", _( "shift by zero: falling back to im_copy" ) );
     return im_copy( in, out );
   }
   if( ! in-> Xsize >> xshift || ! in-> Ysize >> yshift ){
-    im_error( FUNCTION_NAME, _( "would result in zero size output image" ) );
+    im_error( FUNCTION_NAME, "%s", _( "would result in zero size output image" ) );
     return -1;
   }
   if( ! im_isint( in ) ){
-    im_error( FUNCTION_NAME, _( "integer type images only" ) );
+    im_error( FUNCTION_NAME, "%s", _( "integer type images only" ) );
     return -1;
   }
   if( IM_CODING_NONE != in->Coding ){
-    im_error( FUNCTION_NAME, _( "uncoded images only" ) );
+    im_error( FUNCTION_NAME, "%s", _( "uncoded images only" ) );
     return -1;
   }
   if( im_isuint( in ) ){
     if( IM_BANDFMT_UCHAR != band_fmt && IM_BANDFMT_USHORT != band_fmt && IM_BANDFMT_UINT != band_fmt ){
-      im_error( FUNCTION_NAME, _( "unsigned input means that output must be unsigned int, short or char" ) );
+      im_error( FUNCTION_NAME, "%s", _( "unsigned input means that output must be unsigned int, short or char" ) );
       return -1;
     }
   }
   else {
     if( IM_BANDFMT_CHAR != band_fmt && IM_BANDFMT_SHORT != band_fmt && IM_BANDFMT_INT != band_fmt ){
-      im_error( FUNCTION_NAME, _( "signed input means that output must be signed int, short or char" ) );
+      im_error( FUNCTION_NAME, "%s", _( "signed input means that output must be signed int, short or char" ) );
       return -1;
     }
   }

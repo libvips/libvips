@@ -246,7 +246,7 @@ im_sharpen( IMAGE *in, IMAGE *out,
 	if( in->Coding != IM_CODING_NONE ||
 		in->Bands != 3 || 
 		in->BandFmt != IM_BANDFMT_SHORT ) {
-		im_error( "im_sharpen", _( "input not 3-band short" ) );
+		im_error( "im_sharpen", "%s", _( "input not 3-band short" ) );
 	  	return( -1 );
   	}
 
@@ -257,7 +257,7 @@ im_sharpen( IMAGE *in, IMAGE *out,
 	 */
 	if( x1 < 0 || x2 < 0 || x1 > 99 || x2 > 99 || x1 > x2 ||
 		x3 < 0 || x3 > 99 || x1 > x3 ) {
-		im_error( "im_sharpen", _( "parameters out of range" ) );
+		im_error( "im_sharpen", "%s", _( "parameters out of range" ) );
 		return( -1 );
 	}
 

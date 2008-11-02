@@ -89,7 +89,7 @@ im_ceil( IMAGE *in, IMAGE *out )
 	/* Check args.
 	 */
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_ceil", _( "not uncoded" ) );
+		im_error( "im_ceil", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 

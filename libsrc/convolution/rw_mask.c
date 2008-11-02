@@ -138,7 +138,7 @@ im_create_imask( const char *filename, int xs, int ys )
 	/* Check args.
 	 */
 	if( xs <= 0 || ys <= 0 || filename == NULL ) { 
-		im_error( "im_create_imask", _( "bad arguments" ) ); 
+		im_error( "im_create_imask", "%s", _( "bad arguments" ) ); 
 		return( NULL );
 	}
 
@@ -195,7 +195,7 @@ im_create_dmask( const char *filename, int xs, int ys )
 	/* Check args.
 	 */
 	if( xs <= 0 || ys <= 0 || filename == NULL ) { 
-		im_error( "im_create_dmask", _( "bad arguments" ) ); 
+		im_error( "im_create_dmask", "%s", _( "bad arguments" ) ); 
 		return( NULL );
 	}
 
@@ -265,7 +265,7 @@ static int
 get_line( FILE *fp, char *buf )
 {
 	if( !fgets( buf, IM_MAX_LINE, fp ) ) {
-		im_error( "read_mask", _( "unexpected EOF" ) );
+		im_error( "read_mask", "%s", _( "unexpected EOF" ) );
 		return( -1 );
 	}
 
@@ -303,11 +303,13 @@ read_header( FILE *fp, int *xs, int *ys, double *scale, double *offset )
 		ceil( v[1] ) != v[1] ||
 		v[0] <= 0 ||
 		v[1] <= 0 ) {
-		im_error( "read_header", _( "error reading matrix header" ) );
+		im_error( "read_header", 
+			"%s", _( "error reading matrix header" ) );
 		return( -1 );
 	}
 	if( i == 4 && v[2] == 0 ) {
-		im_error( "read_header", _( "scale should be non-zero" ) );
+		im_error( "read_header", 
+			"%s", _( "scale should be non-zero" ) );
 		return( -1 );
 	}
 
@@ -387,7 +389,7 @@ im_read_imask( const char *maskfile )
 		ceil( dmask->offset ) != dmask->offset ) {
 		im_free_dmask( dmask );
 		im_error( "im_read_imask", 
-			_( "scale and offset should be int" ) );
+			"%s", _( "scale and offset should be int" ) );
 
 		return( NULL );
 	}
@@ -429,7 +431,7 @@ im_scale_dmask( DOUBLEMASK *m, const char *name )
 	int isum;
 
 	if( !name || m->xsize <= 0 || m->ysize <= 0 ) {
-		im_error( "im_scale_dmask", _( "bad args" ) );
+		im_error( "im_scale_dmask", "%s", _( "bad arguments" ) );
 		return( NULL );
 	}
 	if( !(out = im_create_imask( name, m->xsize, m->ysize )) )
@@ -554,7 +556,7 @@ write_line( FILE *fp, const char *fmt, ... )
 
 	va_start( ap, fmt );
 	if( !vfprintf( fp, fmt, ap ) ) {
-		im_error( "write_mask", _( "write error, disc full?" ) );
+		im_error( "write_mask", "%s", _( "write error, disc full?" ) );
 		return( -1 );
 	}
 	va_end( ap );
@@ -612,7 +614,7 @@ int
 im_write_imask( INTMASK *m )
 {
 	if( !m->filename ) { 
-		im_error( "im_write_imask", _( "filename not set" ) );
+		im_error( "im_write_imask", "%s", _( "filename not set" ) );
 		return( -1 );
 	}
 
@@ -663,7 +665,7 @@ int
 im_write_dmask( DOUBLEMASK *m )
 {
 	if( !m->filename ) { 
-		im_error( "im_write_dmask", _( "filename not set" ) );
+		im_error( "im_write_dmask", "%s", _( "filename not set" ) );
 		return( -1 );
 	}
 

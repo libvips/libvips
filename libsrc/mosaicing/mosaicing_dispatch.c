@@ -587,7 +587,7 @@ affinei_vec( im_object *argv )
 		break;
 
 	default:
-		im_error( "affinei_vec", _( "bad interpolation" ) );
+		im_error( "affinei_vec", "%s", _( "bad interpolation" ) );
 		return( -1 );
 	}
 

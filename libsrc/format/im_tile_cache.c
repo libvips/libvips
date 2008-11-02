@@ -370,7 +370,7 @@ im_tile_cache( IMAGE *in, IMAGE *out,
 	Read *read;
 
 	if( tile_width <= 0 || tile_height <= 0 || max_tiles < -1 ) {
-		im_error( "im_tile_cache", _( "bad parameters" ) );
+		im_error( "im_tile_cache", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )

@@ -226,7 +226,7 @@ im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r )
 
 			default:
 				im_error( "im_plotmask", 
-					_( "internal error" ) );
+					"%s", _( "internal error" ) );
 				return( -1 );
 			}
 		}

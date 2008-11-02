@@ -181,11 +181,11 @@ im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e )
 	/* Check args.
 	 */
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_expntra_vec", _( "not uncoded" ) );
+		im_error( "im_expntra_vec", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_expntra_vec", _( "not non-complex" ) );
+		im_error( "im_expntra_vec", "%s", _( "not non-complex" ) );
 		return( -1 );
 	}
 	if( n != 1 && n != in->Bands ) {

@@ -346,7 +346,8 @@ affinei( IMAGE *in, IMAGE *out,
 	double edge;
 
 	if( im_iscomplex( in ) ) {
-		im_error( "im_affinei", _( "complex input not supported" ) );
+		im_error( "im_affinei", 
+			"%s", _( "complex input not supported" ) );
 		return( -1 );
 	}
 
@@ -402,7 +403,7 @@ affinei( IMAGE *in, IMAGE *out,
 		IM_RECT_RIGHT( &affine->trn.oarea ) > edge || 
 		IM_RECT_BOTTOM( &affine->trn.oarea ) > edge ) {
 		im_error( "im_affinei", 
-			_( "output coordinates out of range" ) );
+			"%s", _( "output coordinates out of range" ) );
 		return( -1 );
 	}
 
@@ -459,7 +460,7 @@ im__affinei( IMAGE *in, IMAGE *out,
 			return( -1 );
 	}
 	else {
-		im_error( "im_affinei", _( "unknown coding type" ) );
+		im_error( "im_affinei", "%s", _( "unknown coding type" ) );
 		return( -1 );
 	}
 

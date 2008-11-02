@@ -317,7 +317,7 @@ im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out )
 	/* Check args.
 	 */
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_lintra_vec", _( "not uncoded" ) );
+		im_error( "im_lintra_vec", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 

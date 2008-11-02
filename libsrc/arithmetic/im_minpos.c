@@ -77,7 +77,7 @@ im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE )
 		{
-		im_error("im_minpos", _("input must be uncoded"));
+		im_error("im_minpos", "%s", _("input must be uncoded"));
 		return( -1 );
 		}
 

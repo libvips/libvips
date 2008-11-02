@@ -114,11 +114,11 @@ im_sintra( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_sintra", _( "not uncoded" ) );
+		im_error( "im_sintra", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_sintra", _( "not non-complex" ) );
+		im_error( "im_sintra", "%s", _( "not non-complex" ) );
 		return( -1 );
 	}
 
@@ -199,11 +199,11 @@ im_asintra( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_asintra", _( "not uncoded" ) );
+		im_error( "im_asintra", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_asintra", _( "not non-complex" ) );
+		im_error( "im_asintra", "%s", _( "not non-complex" ) );
 		return( -1 );
 	}
 

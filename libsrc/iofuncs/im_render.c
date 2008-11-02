@@ -563,7 +563,8 @@ render_thread_create( void )
 			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
 			im_free( thread );
-			im_error( "im_render", _( "unable to create thread" ) );
+			im_error( "im_render", 
+				"%s", _( "unable to create thread" ) );
 			return( -1 );
 		}
 
@@ -721,7 +722,8 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 			render_fade, render, 
 			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-			im_error( "im_render", _( "unable to create thread" ) );
+			im_error( "im_render", 
+				"%s", _( "unable to create thread" ) );
 			return( NULL );
 		}
 
@@ -1182,7 +1184,8 @@ im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
 	 * time.
 	 */
 	if( width <= 0 || height <= 0 || max < -1 || fps <= 0 || steps < 0 ) {
-		im_error( "im_render", _( "bad parameters" ) );
+		im_error( "im_render", 
+			"%s", _( "bad parameters" ) );
 		return( -1 );
 	}
 	if( im_pincheck( in ) || im_poutcheck( out ) )

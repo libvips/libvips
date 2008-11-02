@@ -286,13 +286,13 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	 */
 	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
 		im_error( "im_convf", 
-			_( "non-complex uncoded only" ) );
+			"%s", _( "non-complex uncoded only" ) );
 		return( -1 );
 	}
 	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
 		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
 		mask->scale == 0 ) {
-		im_error( "im_convf", _( "nonsense mask parameters" ) );
+		im_error( "im_convf", "%s", _( "nonsense mask parameters" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
@@ -312,7 +312,7 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	out->Xsize -= mask->xsize - 1;
 	out->Ysize -= mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_error( "im_convf", _( "image too small for mask" ) );
+		im_error( "im_convf", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
 

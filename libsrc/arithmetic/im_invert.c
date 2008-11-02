@@ -116,11 +116,11 @@ im_invert( IMAGE *in, IMAGE *out )
 	/* Check args.
 	 */
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_invert", _( "not uncoded" ) );
+		im_error( "im_invert", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_invert", _( "not UCHAR" ) );
+		im_error( "im_invert", "%s", _( "not UCHAR" ) );
 		return( -1 );
 	}
         if( im_piocheck( in, out ) )

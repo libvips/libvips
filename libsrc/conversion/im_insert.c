@@ -231,16 +231,16 @@ im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 		return( -1 );
 	if( main->BandFmt != sub->BandFmt || main->Bands != sub->Bands ||
 		main->Coding != sub->Coding ) {
-		im_error( "im_insert", _( "inputs differ in format" ) ); 
+		im_error( "im_insert", "%s", _( "inputs differ in format" ) ); 
 		return( -1 ); 
 	}
 	if( main->Coding != IM_CODING_NONE && main->Coding != IM_CODING_LABQ ) {
-		im_error( "im_insert", 
+		im_error( "im_insert", "%s", 
 			_( "input should be uncoded or IM_CODING_LABQ" ) ); 
 		return( -1 ); 
 	}
 	if( x > RANGE || x < -RANGE || y > RANGE || y < -RANGE ) {
-		im_error( "im_insert", _( "xy out of range" ) );
+		im_error( "im_insert", "%s", _( "xy out of range" ) );
 		return( -1 ); 
 	}
 
@@ -321,16 +321,16 @@ im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 	if( main->BandFmt != sub->BandFmt || main->Bands != sub->Bands ||
 		main->Coding != sub->Coding ) {
 		im_error( "im_insert_noexpand", 
-			_( "inputs differ in format" ) ); 
+			"%s", _( "inputs differ in format" ) ); 
 		return( -1 ); 
 	}
 	if( main->Coding != IM_CODING_NONE && main->Coding != IM_CODING_LABQ ) {
-		im_error( "im_insert_noexpand", 
+		im_error( "im_insert_noexpand", "%s", 
 			_( "input should be uncoded or IM_CODING_LABQ" ) ); 
 		return( -1 ); 
 	}
 	if( x > RANGE || x < -RANGE || y > RANGE || y < -RANGE ) {
-		im_error( "im_insert", _( "xy out of range" ) );
+		im_error( "im_insert", "%s", _( "xy out of range" ) );
 		return( -1 ); 
 	}
 

@@ -148,12 +148,12 @@ im_grid( IMAGE *in, IMAGE *out, int tile_height, int across, int down )
 	if( !grid || im_piocheck( in, out ) )
 		return( -1 );
 	if( across <= 0 || down <= 0 ) {
-		im_error( "im_grid", _( "bad parameters" ) );
+		im_error( "im_grid", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
 	if( in->Ysize % tile_height != 0 ||
 		in->Ysize / tile_height != across * down ) {
-		im_error( "im_grid", _( "bad grid geometry" ) );
+		im_error( "im_grid", "%s", _( "bad grid geometry" ) );
 		return( -1 );
 	}
 

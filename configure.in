@@ -157,7 +157,7 @@ AC_CHECK_TOOL(STRIP, strip)
 AC_CHECK_TOOL(AR, ar)
 AC_CHECK_TOOL(AS, as)
 AC_CHECK_TOOL(LD, ld)
-AC_PROVIDE(AC_LIBTOOL_WIN32_DLL)
+AC_PROVIDE([AC_LIBTOOL_WIN32_DLL])
 AC_PROG_LIBTOOL
 
 # Checks for typedefs, structures, and compiler characteristics.

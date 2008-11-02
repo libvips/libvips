@@ -95,16 +95,17 @@ im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	if( im_piocheck( in1, out ) || im_pincheck( in2 ) )
 		return( -1 );
 	if( in1->Xsize != in2->Xsize || in1->Ysize != in2->Ysize ) {
-		im_error( "im_remainder", _( "not same size" ) );
+		im_error( "im_remainder", "%s", _( "not same size" ) );
 		return( -1 );
 	}
 	if( in1->Bands != in2->Bands &&
 		(in1->Bands != 1 && in2->Bands != 1) ) {
-		im_error( "im_remainder", _( "not same number of bands" ) );
+		im_error( "im_remainder", 
+			"%s", _( "not same number of bands" ) );
 		return( -1 );
 	}
 	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_error( "im_remainder", _( "not uncoded" ) );
+		im_error( "im_remainder", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_cp_descv( out, in1, in2, NULL ) )
@@ -210,7 +211,7 @@ im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_remainderconst_vec", _( "not uncoded" ) );
+		im_error( "im_remainderconst_vec", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( n != 1 && n != in->Bands ) {
@@ -237,7 +238,7 @@ im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 
 		if( rc->c[i] == 0 ) {
 			im_error( "im_remainderconst_vec",
-				_( "division by zero" ) );
+				"%s", _( "division by zero" ) );
 			return( -1 );
 		}
 	}

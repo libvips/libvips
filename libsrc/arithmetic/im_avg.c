@@ -184,11 +184,11 @@ im_avg( IMAGE *in, double *out )
 	if( im_pincheck( in ) )
 		return( -1 );
 	if( im_iscomplex( in ) ) {
-		im_error( "im_avg", _( "bad input type" ) );
+		im_error( "im_avg", "%s", _( "bad input type" ) );
 		return( -1 );
 	}
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_avg", _( "not uncoded" ) );
+		im_error( "im_avg", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 

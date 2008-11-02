@@ -163,20 +163,21 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
 		return( -1 );
         if( band < 0 || nbands < 1 || band + nbands > in->Bands ) {
                 im_error( "im_extract_areabands", 
-                        _( "band selection out of range" ) );
+                        "%s", _( "band selection out of range" ) );
                 return( -1 );
         }
 	if( left + width > in->Xsize ||
 		top + height > in->Ysize ||
 		left < 0 || top < 0 ||
 		width <= 0 || height <= 0 ) {
-		im_error( "im_extract_areabands", _( "bad extract area" ) );
+		im_error( "im_extract_areabands", 
+			"%s", _( "bad extract area" ) );
 		return( -1 );
 	}
         if( in->Coding != IM_CODING_NONE ) {
 		if( in->Coding != IM_CODING_LABQ ) {
 			im_error( "im_extract_areabands", 
-				_( "unknown coding" ) );
+				"%s", _( "unknown coding" ) );
 			return( -1 );
 		}
 
@@ -184,7 +185,7 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
 		 */
 		if( band != 0 || nbands != in->Bands ) {
 			im_error( "im_extract_areabands", 
-				_( "can only extract areas from LABQ" ) );
+				"%s", _( "can only extract areas from LABQ" ) );
 			return( -1 );
 		}
         }

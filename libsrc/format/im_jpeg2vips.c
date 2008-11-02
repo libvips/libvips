@@ -335,7 +335,8 @@ set_vips_resolution( IMAGE *im, ExifData *ed )
 	if( get_entry_rational( ed, EXIF_TAG_X_RESOLUTION, &xres ) ||
 		get_entry_rational( ed, EXIF_TAG_Y_RESOLUTION, &yres ) ||
 		get_entry_short( ed, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
-		im_warn( "im_jpeg2vips", _( "error reading resolution" ) );
+		im_warn( "im_jpeg2vips", 
+			"%s", _( "error reading resolution" ) );
 		return;
 	}
 
@@ -355,7 +356,7 @@ set_vips_resolution( IMAGE *im, ExifData *ed )
 		break;
 
 	default:
-		im_warn( "im_jpeg2vips", _( "bad resolution unit" ) );
+		im_warn( "im_jpeg2vips", "%s", _( "bad resolution unit" ) );
 		return;
 	}
 
@@ -584,7 +585,8 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 	 */
 	for( y = 0; y < out->Ysize; y++ ) {
 		if( jpeg_read_scanlines( cinfo, &row_pointer[0], 1 ) != 1 ) {
-			im_error( "im_jpeg2vips", _( "truncated JPEG file" ) );
+			im_error( "im_jpeg2vips", 
+				"%s", _( "truncated JPEG file" ) );
 			return( -1 );
 		}
 		if( invert_pels ) {

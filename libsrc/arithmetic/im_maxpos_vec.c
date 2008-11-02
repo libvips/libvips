@@ -119,22 +119,22 @@ int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n ){
     return -1;
 
   if( ! ( im_isint( im ) || im_isfloat( im ) ) ){
-    im_error( FUNCTION_NAME, _( "scalar images only" ) );
+    im_error( FUNCTION_NAME, "%s", _( "scalar images only" ) );
     return -1;
   }
 
   if( 1 != im-> Bands ){
-    im_error( FUNCTION_NAME, _( "single band images only" ) );
+    im_error( FUNCTION_NAME, "%s", _( "single band images only" ) );
     return -1;
   }
 
   if( IM_CODING_NONE != im-> Coding ){
-    im_error( FUNCTION_NAME, _( "uncoded images only" ) );
+    im_error( FUNCTION_NAME, "%s", _( "uncoded images only" ) );
     return -1;
   }
 
   if( ! xpos || ! ypos || ! maxima || n < 1 ){
-    im_error( FUNCTION_NAME, _( "invalid argument" ) );
+    im_error( FUNCTION_NAME, "%s", _( "invalid argument" ) );
     return -1;
   }
 
@@ -165,22 +165,22 @@ int im_minpos_vec( IMAGE *im, int *xpos, int *ypos, double *minima, int n ){
     return -1;
 
   if( ! ( im_isint( im ) || im_isfloat( im ) ) ){
-    im_error( FUNCTION_NAME, _( "scalar images only" ) );
+    im_error( FUNCTION_NAME, "%s", _( "scalar images only" ) );
     return -1;
   }
 
   if( 1 != im-> Bands ){
-    im_error( FUNCTION_NAME, _( "single band images only" ) );
+    im_error( FUNCTION_NAME, "%s", _( "single band images only" ) );
     return -1;
   }
 
   if( IM_CODING_NONE != im-> Coding ){
-    im_error( FUNCTION_NAME, _( "uncoded images only" ) );
+    im_error( FUNCTION_NAME, "%s", _( "uncoded images only" ) );
     return -1;
   }
 
   if( ! xpos || ! ypos || ! minima || n < 1 ){
-    im_error( FUNCTION_NAME, _( "invalid argument" ) );
+    im_error( FUNCTION_NAME, "%s", _( "invalid argument" ) );
     return -1;
   }
 

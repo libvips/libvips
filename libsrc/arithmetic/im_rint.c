@@ -89,7 +89,7 @@ im_rint( IMAGE *in, IMAGE *out )
 	/* Check args.
 	 */
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_rint", _( "not uncoded" ) );
+		im_error( "im_rint", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 

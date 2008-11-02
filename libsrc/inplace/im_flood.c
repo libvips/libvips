@@ -326,7 +326,8 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	if( im_rwcheck( im ) )
 		return( -1 );
 	if( im->Coding != IM_CODING_NONE && im->Coding != IM_CODING_LABQ ) {
-		im_error( "im_flood", _( "uncoded or IM_CODING_LABQ only" ) );
+		im_error( "im_flood", 
+			"%s", _( "uncoded or IM_CODING_LABQ only" ) );
 		return( -1 );
 	}
 	if( !(st = build_state( im, x, y, ink, dout )) )
@@ -372,7 +373,8 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	if( im_rwcheck( im ) )
 		return( -1 );
 	if( im->Coding != IM_CODING_NONE && im->Coding != IM_CODING_LABQ ) {
-		im_error( "im_flood", _( "uncoded or IM_CODING_LABQ only" ) );
+		im_error( "im_flood", 
+			"%s", _( "uncoded or IM_CODING_LABQ only" ) );
 		return( -1 );
 	}
 	if( !(st = build_state( im, x, y, ink, dout )) )

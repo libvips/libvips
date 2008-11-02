@@ -171,7 +171,7 @@ greyc_gen( REGION *out, REGION **in, IMAGE **arry, Greyc *greyc )
 		if( msk )
 			delete( msk );
 
-		im_error( "GREYCstoration", e.message );
+		im_error( "GREYCstoration", "%s", e.message );
 
 		return( -1 );
 	}
@@ -203,22 +203,23 @@ im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
 	if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "GREYCstoration", _( "uncoded only" ) );
+		im_error( "GREYCstoration", "%s", _( "uncoded only" ) );
 		return( -1 );
 	}
 	if( mask ) {
 		if( mask->Coding != IM_CODING_NONE ) {
-			im_error( "GREYCstoration", _( "uncoded only" ) );
+			im_error( "GREYCstoration", "%s", _( "uncoded only" ) );
 			return( -1 );
 		}
 		if( mask->Xsize != in->Xsize ||
 			mask->Ysize != in->Ysize ) {
 			im_error( "GREYCstoration", 
-				_( "mask size does not match input" ) );
+				"%s", _( "mask size does not match input" ) );
 			return( -1 );
 		}
 		if( mask->BandFmt != IM_BANDFMT_UCHAR ) {
-			im_error( "GREYCstoration", _( "mask must be uchar" ) );
+			im_error( "GREYCstoration", 
+				"%s", _( "mask must be uchar" ) );
 			return( -1 );
 		}
 	}
@@ -278,7 +279,8 @@ im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
 
 	default:
 		im_error( "GREYCstoration", 
-			_( "unsupported type: uchar, ushort and float only" ) );
+			"%s", _( "unsupported type: "
+			"uchar, ushort and float only" ) );
 		return( -1 );
 	}
 

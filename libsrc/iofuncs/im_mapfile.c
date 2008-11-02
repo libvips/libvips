@@ -137,7 +137,7 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
         if( !(hMMFile = CreateFileMapping( hFile,
 		NULL, flProtect, 0, 0, NULL )) ) {
                 im_error_system( GetLastError(), "im_mapfile", 
-			_( "unable to CreateFileMapping" ) );
+			"%s", _( "unable to CreateFileMapping" ) );
                 return( NULL );
         }
 
@@ -147,7 +147,7 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
         if( !(baseaddr = (char *)MapViewOfFile( hMMFile, dwDesiredAccess, 
 		dwFileOffsetHigh, dwFileOffsetLow, length )) ) {
                 im_error_system( GetLastError(), "im_mapfile",
-			_( "unable to MapViewOfFile" ) );
+			"%s", _( "unable to MapViewOfFile" ) );
 		CloseHandle( hMMFile );
                 return( NULL );
         }
@@ -174,7 +174,8 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 
 	baseaddr = mmap( 0, length, prot, MAP_SHARED, fd, (off_t) offset );
 	if( baseaddr == MAP_FAILED ) { 
-		im_error_system( errno, "im_mapfile", _( "unable to mmap" ) );
+		im_error_system( errno, "im_mapfile", 
+			"%s", _( "unable to mmap" ) );
 		im_warn( "im_mapfile", _( "map failed (%s), "
 			"running very low on system resources, "
 			"expect a crash soon" ), strerror( errno ) );
@@ -192,13 +193,13 @@ im__munmap( void *start, size_t length )
 #ifdef OS_WIN32
 	if( !UnmapViewOfFile( start ) ) {
 		im_error_system( GetLastError(), "im_mapfile",
-			_( "unable to UnmapViewOfFile" ) );
+			"%s", _( "unable to UnmapViewOfFile" ) );
 		return( -1 );
 	}
 #else /*!OS_WIN32*/
 	if( munmap( start, length ) < 0 ) {
 		im_error_system( errno, "im_mapfile", 
-			_( "unable to munmap file" ) );
+			"%s", _( "unable to munmap file" ) );
 		return( -1 );
 	}
 #endif /*OS_WIN32*/
@@ -221,16 +222,19 @@ im_mapfile( IMAGE *im )
 	if( (length = im_file_length( im->fd )) == -1 ) 
 		return( -1 );
 	if( fstat( im->fd, &st ) == -1 ) {
-		im_error( "im_mapfile", _( "unable to get file status" ) );
+		im_error( "im_mapfile", 
+			"%s", _( "unable to get file status" ) );
 		return( -1 );
 	}
 	m = (mode_t) st.st_mode;
 	if( length < 64 ) {
-		im_error( "im_mapfile", _( "file is less than 64 bytes" ) );
+		im_error( "im_mapfile", 
+			"%s", _( "file is less than 64 bytes" ) );
 		return( -1 ); 
 	}
 	if( !S_ISREG( m ) ) {
-		im_error( "im_mapfile", _( "not a regular file" ) ); 
+		im_error( "im_mapfile", 
+			"%s", _( "not a regular file" ) ); 
 		return( -1 ); 
 	}
 
@@ -262,12 +266,14 @@ im_mapfilerw( IMAGE *im )
 	if( (length = im_file_length( im->fd )) == -1 ) 
 		return( -1 );
 	if( fstat( im->fd, &st ) == -1 ) {
-		im_error( "im_mapfilerw", _( "unable to get file status" ) );
+		im_error( "im_mapfilerw", 
+			"%s", _( "unable to get file status" ) );
 		return( -1 );
 	}
 	m = (mode_t) st.st_mode;
 	if( length < 64 || !S_ISREG( m ) ) {
-		im_error( "im_mapfile", _( "unable to read data" ) ); 
+		im_error( "im_mapfile", 
+			"%s", _( "unable to read data" ) ); 
 		return( -1 ); 
 	}
 
@@ -298,19 +304,19 @@ im_remapfilerw( IMAGE *image )
         if( !(hMMFile = CreateFileMapping( hFile,
 		NULL, PAGE_READWRITE, 0, 0, NULL )) ) {
                 im_error_system( GetLastError(), "im_mapfile", 
-			_( "unable to CreateFileMapping" ) );
+			"%s", _( "unable to CreateFileMapping" ) );
                 return( -1 );
         }
 
 	if( !UnmapViewOfFile( image->baseaddr ) ) {
 		im_error_system( GetLastError(), "im_mapfile", 
-			_( "unable to UnmapViewOfFile" ) );
+			"%s", _( "unable to UnmapViewOfFile" ) );
 		return( -1 );
 	}
         if( !(baseaddr = (char *)MapViewOfFileEx( hMMFile, FILE_MAP_WRITE, 
 		0, 0, 0, image->baseaddr )) ) {
                 im_error_system( GetLastError(), "im_mapfile",
-			_( "unable to MapViewOfFile" ) );
+			"%s", _( "unable to MapViewOfFile" ) );
 		CloseHandle( hMMFile );
                 return( -1 );
         }

@@ -91,7 +91,7 @@ im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out )
 	if( im_incheck( in ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_maxpos", _( "not uncoded" ) );
+		im_error( "im_maxpos", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 

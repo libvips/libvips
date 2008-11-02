@@ -190,16 +190,17 @@ im_multiply( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		return( -1 );
 
 	if( in1->Xsize != in2->Xsize || in1->Ysize != in2->Ysize ) {
-		im_error( "im_multiply", _( "not same size" ) );
+		im_error( "im_multiply", "%s", _( "not same size" ) );
 		return( -1 );
 	}
 	if( in1->Bands != in2->Bands &&
 		(in1->Bands != 1 && in2->Bands != 1) ) {
-		im_error( "im_multiply", _( "not same number of bands" ) );
+		im_error( "im_multiply", 
+			"%s", _( "not same number of bands" ) );
 		return( -1 );
 	}
 	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_error( "im_multiply", _( "not uncoded" ) );
+		im_error( "im_multiply", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_cp_descv( out, in1, in2, NULL ) )

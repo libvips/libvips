@@ -186,11 +186,11 @@ im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v,
 	}
 
 	if( im->Coding != IM_CODING_NONE ) {
-		im_error( "im_measure", _( "not uncoded" ) );
+		im_error( "im_measure", "%s", _( "not uncoded" ) );
 		return( NULL );
 	}
 	if( im_iscomplex( im ) ) {
-		im_error( "im_measure", _( "bad input type" ) );
+		im_error( "im_measure", "%s", _( "bad input type" ) );
 		return( NULL );
 	}
 

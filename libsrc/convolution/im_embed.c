@@ -355,7 +355,7 @@ embed_new( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 	 * test.
 	 */
 	if( im_rect_isempty( &embed->rsub ) ) {
-		im_error( "im_embed", _( "bad dimensions" ) );
+		im_error( "im_embed", "%s", _( "bad dimensions" ) );
 		return( NULL );
 	}
 
@@ -436,15 +436,15 @@ im_embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 	if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_embed", _( "unknown image coding type" ) );
+		im_error( "im_embed", "%s", _( "unknown image coding type" ) );
 		return( -1 );
 	}
 	if( flag < 0 || flag > 4 ) {
-		im_error( "im_embed", _( "unknown flag" ) );
+		im_error( "im_embed", "%s", _( "unknown flag" ) );
 		return( -1 );
 	}
 	if( w <= 0 || h <= 0 ) {
-		im_error( "im_embed", _( "bad dimensions" ) );
+		im_error( "im_embed", "%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
 

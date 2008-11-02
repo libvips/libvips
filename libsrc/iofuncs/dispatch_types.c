@@ -70,7 +70,8 @@ input_display_init( im_object *obj, char *str )
 
 		im_error( "input_display", 
 			_( "unknown display type \"%s\"" ), str );
-		im_error( "input_display", _( "display should be one of:\n" ) );
+		im_error( "input_display", 
+			"%s", _( "display should be one of:\n" ) );
                 for( i = 0; (scr = im_col_displays( i )); i++ )
 			im_error( "input_display", 
 				"  '%s'\n", scr->d_name );
@@ -597,7 +598,8 @@ input_int_init( im_object *obj, char *str )
 	int *i = (int *) *obj;
 
 	if( sscanf( str, "%d", i ) != 1 ) {
-		im_error( "input_int", _( "bad format" ) );
+		im_error( "input_int", 
+			"%s", _( "bad format" ) );
 		return( -1 );
 	}
 

@@ -481,7 +481,7 @@ maplut_start( IMAGE *out, void *a, void *b )
 	case IM_BANDFMT_USHORT:		GEN( unsigned short, OUT ); break; \
 	case IM_BANDFMT_UINT:		GEN( unsigned int, OUT ); break; \
 	default: \
-		im_error( "im_maplut", _( "bad input file" ) ); \
+		im_error( "im_maplut", "%s", _( "bad input file" ) ); \
 		return( -1 ); \
 	}
 
@@ -512,7 +512,7 @@ maplut_start( IMAGE *out, void *a, void *b )
 	case IM_BANDFMT_DPCOMPLEX:	inner_switch( UCHAR_FC, GEN_FC, \
 					double ); break; \
 	default: \
-		im_error( "im_maplut", _( "bad lut file" ) ); \
+		im_error( "im_maplut", "%s", _( "bad lut file" ) ); \
 		return( -1 ); \
 	}
 
@@ -565,11 +565,11 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 	/* Check lut.
 	 */
 	if( lut->Coding != IM_CODING_NONE ) {
-                im_error( "im_maplut", _( "lut is not uncoded" ) );
+                im_error( "im_maplut", "%s", _( "lut is not uncoded" ) );
                 return( -1 );
 	}
 	if( lut->Xsize * lut->Ysize > 100000 ) {
-                im_error( "im_maplut", _( "lut seems very large!" ) );
+                im_error( "im_maplut", "%s", _( "lut seems very large!" ) );
                 return( -1 );
 	}
 
@@ -581,24 +581,24 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 	/* Check args.
 	 */
         if( in->Coding != IM_CODING_NONE ) {
-                im_error( "im_maplut", _( "input is not uncoded" ) );
+                im_error( "im_maplut", "%s", _( "input is not uncoded" ) );
                 return( -1 );
 	}
         if( !im_isuint( in ) ) {
-                im_error( "im_maplut", _( "input is not some unsigned "
-			"integer type" ) );
+                im_error( "im_maplut", "%s", 
+			_( "input is not some unsigned integer type" ) );
                 return( -1 );
 	}
 	if( in->Bands != 1 && lut->Bands != 1 && lut->Bands != in->Bands ) {
-                im_error( "im_maplut", _( "lut should have 1 band, or same "
-			"number of bands as input, or any number of bands "
-			"if input has 1 band" ) );
+                im_error( "im_maplut", "%s", _( "lut should have 1 band, "
+			"or same number of bands as input, "
+			"or any number of bands if input has 1 band" ) );
                 return( -1 );
 	}
 	if( in->BandFmt == IM_BANDFMT_UCHAR && 
 		lut->Xsize * lut->Ysize != 256 ) {
-		im_error( "im_maplut", _( "input is uchar and lut does not "
-			"have 256 elements" ) );
+		im_error( "im_maplut", "%s", _( "input is uchar and lut "
+			"does not have 256 elements" ) );
 		return( -1 );
 	}
 

@@ -336,8 +336,8 @@ im_falsecolour( IMAGE *in, IMAGE *out )
 		return( -1 );
 	if( in->Bands != 1 || in->Coding != IM_CODING_NONE ||
 		in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_falsecolour", _( "input image not one band "
-			"uchar uncoded" ) );
+		im_error( "im_falsecolour", 
+			"%s", _( "input image not one band uchar uncoded" ) );
 		return( -1 );
 	}
 

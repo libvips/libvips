@@ -139,7 +139,8 @@ im_XYZ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d )
 	 */
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
 		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_XYZ2disp", _( "3-band uncoded float only" ) );
+		im_error( "im_XYZ2disp", 
+			"%s", _( "3-band uncoded float only" ) );
 		return( -1 );
 	}
 

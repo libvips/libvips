@@ -180,7 +180,8 @@ im_demand_hint( IMAGE *im, im_demand_type hint, ... )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		im_error( "im_demand_hint", _( "too many images" ) );
+		im_error( "im_demand_hint", 
+			"%s", _( "too many images" ) );
 		return( -1 );
 	}
 

@@ -80,12 +80,13 @@ im_insertplace( IMAGE *big, IMAGE *small, int x, int y )
 	 */
         if( big->BandFmt != small->BandFmt || big->Bands != small->Bands ||
                 big->Coding != small->Coding ) {
-                im_error( "im_insertplace", _( "inputs differ in format" ) );
+                im_error( "im_insertplace", 
+			"%s", _( "inputs differ in format" ) );
                 return( -1 );
         }
         if( big->Coding != IM_CODING_NONE && big->Coding != IM_CODING_LABQ ) {
-                im_error( "im_insertplace", _( "input should be uncoded "
-                        "or IM_CODING_LABQ" ) );
+                im_error( "im_insertplace", "%s", 
+			_( "input should be uncoded or IM_CODING_LABQ" ) );
                 return( -1 );
         }
 
@@ -103,7 +104,8 @@ im_insertplace( IMAGE *big, IMAGE *small, int x, int y )
 	/* Small fits inside big?
 	 */
 	if( !im_rect_includesrect( &br, &sr ) ) {
-		im_error( "im_insertplace", _( "small not inside big" ) );
+		im_error( "im_insertplace", 
+			"%s", _( "small not inside big" ) );
 		return( -1 );
 	}
 

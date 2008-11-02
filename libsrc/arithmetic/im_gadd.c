@@ -88,7 +88,7 @@ double a, b, c;
 		case IM_BANDFMT_DOUBLE:	
 			flagfloat = 1;
 			break;
-		default: im_error("im_gadd",_("Unable to accept image1"));
+		default: im_error("im_gadd","%s", _("Unable to accept image1"));
 			return(-1);
 		}
 	switch(in2->BandFmt) {
@@ -104,7 +104,7 @@ double a, b, c;
 		case IM_BANDFMT_DOUBLE:	
 			flagfloat = 1;
 			break;
-		default: im_error("im_gadd",_("Unable to accept image1"));
+		default: im_error("im_gadd","%s", _("Unable to accept image1"));
 			return(-1);
 		}
 	/* Select output routines */

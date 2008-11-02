@@ -207,7 +207,7 @@ char2enum( EnumTable *etable, const char *name )
 		if( g_ascii_strcasecmp( etable->names[i], name ) == 0 )
 			return( i );
 
-	im_error( "char2enum", _( etable->error ) );
+	im_error( "char2enum", "%s", _( etable->error ) );
 
 	return( -1 );
 }

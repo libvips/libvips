@@ -575,7 +575,7 @@ magick_fill_region( REGION *out, void *seq, void *a, void *b )
 
 		if( !pixels ) {
 			im_error( "im_magick2vips", 
-				_( "unable to read pixels" ) );
+				"%s", _( "unable to read pixels" ) );
 			return( -1 );
 		}
 
@@ -633,7 +633,7 @@ magick2vips_header( const char *filename, IMAGE *im )
 		return( -1 );
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 ) {
-		im_error( "im_magick2vips", _( "bad image size" ) );
+		im_error( "im_magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );
 	}
 

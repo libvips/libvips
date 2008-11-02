@@ -167,7 +167,7 @@ lineset_vec( im_object *argv )
 	im_intvec_object *y2v = (im_intvec_object *) argv[7];
 
 	if( x1v->n != y1v->n || x1v->n != x2v->n || x1v->n != y2v->n ) {
-		im_error( "im_lineset", _( "vectors not same length" ) );
+		im_error( "im_lineset", "%s", _( "vectors not same length" ) );
 		return( -1 );
 	}
 
@@ -236,7 +236,8 @@ flood_blob_copy_vec( im_object *argv )
 	PEL *ink;
 
 	if( dv->n != in->Bands ) {
-		im_error( "im_flood_blob_copy", _( "bad vector length" ) );
+		im_error( "im_flood_blob_copy", 
+			"%s", _( "bad vector length" ) );
 		return( -1 );
 	}
 	if( !(ink = vector_to_ink( in, dv->vec )) )

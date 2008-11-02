@@ -114,11 +114,11 @@ im_costra( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_costra", _( "not uncoded" ) );
+		im_error( "im_costra", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_costra", _( "bad input type" ) );
+		im_error( "im_costra", "%s", _( "bad input type" ) );
 		return( -1 );
 	}
 
@@ -199,11 +199,11 @@ im_acostra( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_acostra", _( "not uncoded" ) );
+		im_error( "im_acostra", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_acostra", _( "bad input type" ) );
+		im_error( "im_acostra", "%s", _( "bad input type" ) );
 		return( -1 );
 	}
 

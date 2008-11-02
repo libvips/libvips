@@ -157,15 +157,16 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
 		return( -1 );
 	if( in->Bbits != IM_BBITS_BYTE || in->BandFmt != IM_BANDFMT_UCHAR || 
 		in->Bands != 1 || in->Coding != IM_CODING_NONE ) { 
-		im_error( "im_lhisteq", _( "one band uchar uncoded only" ) ); 
+		im_error( "im_lhisteq", 
+			"%s", _( "one band uchar uncoded only" ) ); 
 		return( -1 ); 
 	}
 	if( xwin > in->Xsize || ywin > in->Ysize ) {
-		im_error( "im_lhisteq", _( "window too large" ) );
+		im_error( "im_lhisteq", "%s", _( "window too large" ) );
 		return( -1 );
 	}
 	if( xwin <= 0 || ywin <= 0 ) {
-		im_error( "im_lhisteq", _( "window too small" ) );
+		im_error( "im_lhisteq", "%s", _( "window too small" ) );
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 

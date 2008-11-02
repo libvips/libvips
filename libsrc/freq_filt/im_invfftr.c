@@ -169,7 +169,8 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		im_poutcheck( out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_invfft", _( "one band uncoded only" ) );
+                im_error( "im_invfft", 
+			"%s", _( "one band uncoded only" ) );
                 return( -1 );
 	}
 
@@ -207,7 +208,8 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	if( !(plan = fftw_plan_dft_c2r_2d( in->Ysize, in->Xsize,
 		(fftw_complex *) planner_scratch, (double *) real->data,
 		0 )) ) {
-                im_error( "im_invfft", _( "unable to create transform plan" ) );
+                im_error( "im_invfft", 
+			"%s", _( "unable to create transform plan" ) );
 		return( -1 );
 	}
 
@@ -250,11 +252,13 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
                 return( -1 );
         if( in->Coding != IM_CODING_NONE || 
 		in->Bands != 1 || !im_iscomplex( in ) ) {
-                im_error( "im_invfft", _( "one band complex uncoded only" ) );
+                im_error( "im_invfft", 
+			"%s", _( "one band complex uncoded only" ) );
                 return( -1 );
 	}
 	if( !bpx || !bpy ) {
-		im_error( "im_invfft", _( "sides must be power of 2" ) );
+		im_error( "im_invfft", 
+			"%s", _( "sides must be power of 2" ) );
 		return( -1 );
 	}
 
@@ -274,7 +278,8 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
 	if( im__fft_sp( (float *) real->data, (float *) imag->data, 
 		bpx - 1, bpy - 1 ) ) {
-                im_error( "im_invfft", _( "fft_sp failed" ) );
+                im_error( "im_invfft", 
+			"%s", _( "fft_sp failed" ) );
                 return( -1 );
 	}
 

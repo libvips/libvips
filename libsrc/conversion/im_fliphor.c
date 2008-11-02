@@ -125,7 +125,7 @@ im_fliphor( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_fliphor", _( "in must be uncoded" ) );
+		im_error( "im_fliphor", "%s", _( "in must be uncoded" ) );
 		return( -1 );
 	}
 

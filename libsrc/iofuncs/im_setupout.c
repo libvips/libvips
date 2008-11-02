@@ -94,7 +94,8 @@ im_setupout( IMAGE *im )
 	g_assert( !im_image_sanity( im ) );
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) {
-		im_error( "im_setupout", _( "bad dimensions" ) );
+		im_error( "im_setupout", 
+			"%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
 
@@ -122,7 +123,8 @@ im_setupout( IMAGE *im )
 		if( im->data ) {
 			/* Sanity failure!
 			 */
-			im_error( "im_setupout", _( "called twice!" ) );
+			im_error( "im_setupout", 
+				"%s", _( "called twice!" ) );
 			return( -1 );
 		}
 		if( !(im->data = im_malloc( NULL, 
@@ -152,7 +154,8 @@ im_setupout( IMAGE *im )
 	}
 
 	default:
-		im_error( "im_setupout", _( "bad image descriptor" ) );
+		im_error( "im_setupout", 
+			"%s", _( "bad image descriptor" ) );
 		return( -1 );
 	}
 

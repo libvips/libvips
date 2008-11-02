@@ -223,7 +223,7 @@ write_new( IMAGE *in )
 
 	if( !(write->in = im__convert_saveable( in, IM__RGB_CMYK )) ) {
 		im_error( "im_vips2jpeg", 
-			_( "unable to convert to saveable format" ) );
+			"%s", _( "unable to convert to saveable format" ) );
 		write_destroy( write );
 		return( NULL );
 	}
@@ -324,7 +324,7 @@ set_exif_resolution( ExifData *ed, IMAGE *im )
 		write_tag( ed, EXIF_TAG_RESOLUTION_UNIT, EXIF_FORMAT_SHORT, 
 			write_short, &unit ) ) {
 		im_error( "im_jpeg2vips", 
-			_( "error setting JPEG resolution" ) );
+			"%s", _( "error setting JPEG resolution" ) );
 		return( -1 );
 	}
 
@@ -367,7 +367,7 @@ write_exif( Write *write )
 	 */
 	exif_data_save_data( ed, &data, &idl );
 	if( !idl ) {
-		im_error( "im_jpeg2vips", _( "error saving EXIF" ) );
+		im_error( "im_jpeg2vips", "%s", _( "error saving EXIF" ) );
 		exif_data_free( ed );
 		return( -1 );
 	}
@@ -556,7 +556,8 @@ write_vips( Write *write, int qfac, const char *profile )
 	if( im_pincheck( in ) )
 		return( -1 );
         if( qfac < 0 || qfac > 100 ) {
-                im_error( "im_vips2jpeg", _( "qfac should be in 0-100" ) );
+                im_error( "im_vips2jpeg", 
+			"%s", _( "qfac should be in 0-100" ) );
                 return( -1 );
         }
 
@@ -886,7 +887,8 @@ im_vips2mimejpeg( IMAGE *in, int qfac )
 	im_close( base );
 
 	if( ferror( stdout ) ) {
-		im_error( "im_vips2mimejpeg", _( "error writing output" ) );
+		im_error( "im_vips2mimejpeg", 
+			"%s", _( "error writing output" ) );
 		return( -1 );
 	}
 

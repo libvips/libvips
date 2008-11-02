@@ -90,11 +90,11 @@ normalise( IMAGE *in, IMAGE *out )
 	double min, max;
 
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_histplot", _( "uncoded only" ) );
+		im_error( "im_histplot", "%s", _( "uncoded only" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_histplot", _( "non-complex only" ) );
+		im_error( "im_histplot", "%s", _( "non-complex only" ) );
 		return( -1 );
 	}
 
@@ -184,7 +184,8 @@ make_vert_gen( REGION *or, void *seq, void *a, void *b )
 		case IM_BANDFMT_DOUBLE:	VERT( double ); break; 
 
 		default:
-			im_error( "im_histplot", _( "internal error #8255" ) );
+			im_error( "im_histplot", 
+				"%s", _( "internal error #8255" ) );
 			return( -1 );
 		}
 	}
@@ -238,7 +239,8 @@ make_horz_gen( REGION *or, void *seq, void *a, void *b )
 		case IM_BANDFMT_DOUBLE:	HORZ( double ); break; 
 
 		default:
-			im_error( "im_histplot", _( "internal error #8255" ) );
+			im_error( "im_histplot", 
+				"%s", _( "internal error #8255" ) );
 			return( -1 );
 		}
 	}
@@ -267,7 +269,7 @@ plot( IMAGE *in, IMAGE *out )
 		im_max( in, &max ) )
 		return( -1 );
 	if( max < 0 ) {
-		im_errormsg( "im_histplot: internal error #8254" );
+		im_error( "im_histplot", "%s", _( "internal error #8254" ) );
 		return( -1 );
 	}
 	if( in->BandFmt == IM_BANDFMT_UCHAR )
@@ -326,7 +328,7 @@ im_histplot( IMAGE *hist, IMAGE *histplot )
 	if( !norm )
 		return( -1 );
 	if( hist->Xsize != 1 && hist->Ysize != 1 ) {
-		im_error( "im_histplot", _( "Xsize or Ysize not 1" ) );
+		im_error( "im_histplot", "%s", _( "Xsize or Ysize not 1" ) );
 		return( -1 );
 	}
 

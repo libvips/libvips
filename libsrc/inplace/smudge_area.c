@@ -182,7 +182,7 @@ im_smudge( IMAGE *im, int ix, int iy, Rect *r )
 		break;
 
 	default:
-		im_error( "im_smudge", _( "unknown band format" ) );
+		im_error( "im_smudge", "%s", _( "unknown band format" ) );
 		return( -1 );
 
 	}
@@ -309,7 +309,7 @@ im_smear( IMAGE *im, int ix, int iy, Rect *r )
 		break;
 
 	default:
-		im_error( "im_smear", _( "unknown band format" ) );
+		im_error( "im_smear", "%s", _( "unknown band format" ) );
 		return( -1 );
 	}
 

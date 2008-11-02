@@ -131,7 +131,8 @@ build_state( State *state, DOUBLEMASK *input )
 		double v = input->coeff[y * input->xsize];
 
 		if( floor( v ) != v ) {
-			im_error( "im_buildlut", _( "x value not an int" ) );
+			im_error( "im_buildlut", 
+				"%s", _( "x value not an int" ) );
 			return( -1 );
 		}
 
@@ -143,7 +144,7 @@ build_state( State *state, DOUBLEMASK *input )
 	state->lut_size = xhigh - xlow;
 
 	if( state->lut_size < 1 ) {
-		im_error( "im_buildlut", _( "x range too small" ) );
+		im_error( "im_buildlut", "%s", _( "x range too small" ) );
 		return( -1 );
 	}
 
@@ -214,7 +215,7 @@ im_buildlut( DOUBLEMASK *input, IMAGE *output )
 	State state;
 
 	if( !input || input->xsize < 2 || input->ysize < 1 ) {
-		im_error( "im_buildlut", _( "bad input matrix size" ) );
+		im_error( "im_buildlut", "%s", _( "bad input matrix size" ) );
 		return( -1 );
 	}
 

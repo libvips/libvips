@@ -378,7 +378,8 @@ im_generate( IMAGE *im,
 	g_assert( !im_image_sanity( im ) );
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) {
-		im_error( "im_generate", _( "bad dimensions" ) );
+		im_error( "im_generate", 
+			"%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
  
@@ -389,7 +390,8 @@ im_generate( IMAGE *im,
                 /* Output to partial image. Just attach functions and return.
                  */
                 if( im->generate || im->start || im->stop ) {
-                        im_error( "im_generate", _( "func already attached" ) );
+                        im_error( "im_generate", 
+				"%s", _( "func already attached" ) );
                         return( -1 );
                 }
 
@@ -412,7 +414,8 @@ im_generate( IMAGE *im,
                 /* Eval now .. sanity check.
                  */
                 if( im->generate || im->start || im->stop ) {
-                        im_error( "im_generate", _( "func already attached" ) );
+                        im_error( "im_generate", 
+				"%s", _( "func already attached" ) );
                         return( -1 );
                 }
 

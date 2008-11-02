@@ -438,11 +438,11 @@ im_clip2fmt( IMAGE *in, IMAGE *out, int ofmt )
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_clip2fmt", _( "in must be uncoded" ) );
+		im_error( "im_clip2fmt", "%s", _( "in must be uncoded" ) );
 		return( -1 );
 	}
 	if( ofmt < 0 || ofmt > IM_BANDFMT_DPCOMPLEX ) {
-		im_error( "im_clip2fmt", _( "ofmt out of range" ) );
+		im_error( "im_clip2fmt", "%s", _( "ofmt out of range" ) );
 		return( -1 );
 	}
 

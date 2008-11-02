@@ -131,11 +131,11 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
         if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_copy", _( "in must be uncoded" ) );
+		im_error( "im_copy", "%s", _( "in must be uncoded" ) );
 		return( -1 );
 	}
 	if( Coding != IM_CODING_NONE && Coding != IM_CODING_LABQ ) {
-		im_error( "im_copy", _( "Coding must be NONE or LABQ" ) );
+		im_error( "im_copy", "%s", _( "Coding must be NONE or LABQ" ) );
 		return( -1 );
 	}
 	if( BandFmt < 0 || BandFmt > IM_BANDFMT_DPCOMPLEX ) {
@@ -162,7 +162,7 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
 	 * changed Bands and BandFmt ... bad!
 	 */
 	if( IM_IMAGE_SIZEOF_PEL( in ) != IM_IMAGE_SIZEOF_PEL( out ) ) {
-		im_error( "im_copy", _( "sizeof( pixel ) has changed" ) );
+		im_error( "im_copy", "%s", _( "sizeof( pixel ) has changed" ) );
 		return( -1 );
 	}
 
@@ -278,7 +278,7 @@ im_copy_swap( IMAGE *in, IMAGE *out )
         if( im_piocheck( in, out ) )
                 return( -1 );
         if( in->Coding != IM_CODING_NONE ) {
-                im_error( "im_copy_swap", _( "in must be uncoded" ) );
+                im_error( "im_copy_swap", "%s", _( "in must be uncoded" ) );
                 return( -1 );
         }
         if( im_cp_desc( out, in ) )
@@ -315,7 +315,7 @@ im_copy_swap( IMAGE *in, IMAGE *out )
 		break;
 
 	default:
-		im_error( "im_copy_swap", _( "unsupported image type" ) );
+		im_error( "im_copy_swap", "%s", _( "unsupported image type" ) );
 		return( -1 );
 	}
 

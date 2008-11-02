@@ -72,19 +72,19 @@ int im_point_bilinear( IMAGE *im, double x, double y, int band, double *val ){
     return -1;
 
   if( im-> Coding ){
-    im_error( FUNCTION_NAME, _("uncoded images only") );
+    im_error( FUNCTION_NAME, "%s", _("uncoded images only") );
     return -1;
   }
   if( !( im_isint( im ) || im_isfloat( im ) ) ){
-    im_error( FUNCTION_NAME, _("scalar images only") );
+    im_error( FUNCTION_NAME, "%s", _("scalar images only") );
     return -1;
   }
   if( band >= im-> Bands || x < 0.0 || y < 0.0 || x > im-> Xsize || y > im-> Ysize ){
-    im_error( FUNCTION_NAME, _("coords outside image") );
+    im_error( FUNCTION_NAME, "%s", _("coords outside image") );
     return -1;
   }
   if( ! val ){
-    im_error( FUNCTION_NAME, _("invalid arguments") );
+    im_error( FUNCTION_NAME, "%s", _("invalid arguments") );
     return -1;
   }
 
@@ -94,7 +94,7 @@ int im_point_bilinear( IMAGE *im, double x, double y, int band, double *val ){
     return -1;
 
   if( ! im_rect_includesrect( &reg-> valid, &need ) ){
-    im_error( FUNCTION_NAME, _("coords outside image") );
+    im_error( FUNCTION_NAME, "%s", _("coords outside image") );
     im_region_free( reg );
     return -1;
   }

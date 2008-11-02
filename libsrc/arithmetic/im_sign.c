@@ -143,7 +143,7 @@ int
 im_sign( IMAGE *in, IMAGE *out )
 {
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_sign", _( "not uncoded" ) );
+		im_error( "im_sign", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
         if( im_cp_desc( out, in ) )

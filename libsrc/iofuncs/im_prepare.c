@@ -225,7 +225,8 @@ im_prepare_to_generate( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	char *p;
 
 	if( !im->generate ) {
-		im_error( "im_prepare_to", _( "incomplete header" ) );
+		im_error( "im_prepare_to", 
+			"%s", _( "incomplete header" ) );
 		return( -1 );
 	}
 
@@ -273,7 +274,8 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	 */
 	if( !dest->data || dest->im->BandFmt != reg->im->BandFmt ||
 		dest->im->Bands != reg->im->Bands ) {
-		im_error( "im_prepare_to", _( "inappropriate region type" ) );
+		im_error( "im_prepare_to", 
+			"%s", _( "inappropriate region type" ) );
 		return( -1 );
 	}
 
@@ -298,7 +300,8 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Test that dest->valid is large enough.
 	 */
 	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
-		im_error( "im_prepare_to", _( "dest too small" ) );
+		im_error( "im_prepare_to", 
+			"%s", _( "dest too small" ) );
 		return( -1 );
 	}
 
@@ -315,7 +318,8 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	y = clipped2.top;
 
 	if( im_rect_isempty( &final ) ) {
-		im_error( "im_prepare_to", _( "valid clipped to nothing" ) );
+		im_error( "im_prepare_to", 
+			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
 

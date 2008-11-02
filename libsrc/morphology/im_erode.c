@@ -249,7 +249,7 @@ im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 	 */
 	if( m->xsize < 1 || !(m->xsize & 0x1) ||
 		m->ysize < 1 || !(m->ysize & 0x1) ) {
-		im_error( "im_erode", _( "mask size not odd" ) ); 
+		im_error( "im_erode", "%s", _( "mask size not odd" ) ); 
 		return( -1 ); 
 	}
 
@@ -259,7 +259,7 @@ im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 		return( -1 ); 
 	if( in->Coding != IM_CODING_NONE || in->Bbits != 8 || 
 		in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_erode", _( "1-band uchar uncoded only" ) );
+		im_error( "im_erode", "%s", _( "1-band uchar uncoded only" ) );
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 
@@ -273,7 +273,7 @@ im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 	out->Xsize -= m->xsize - 1;
 	out->Ysize -= m->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_error( "im_erode", _( "image too small for mask" ) );
+		im_error( "im_erode", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
 

@@ -83,7 +83,7 @@ im_vips2mask( IMAGE *in, const char *outname )
 	if( im_incheck( in ) ) 
 		return( NULL );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_vips2mask", _( "uncoded images only" ) );
+		im_error( "im_vips2mask", "%s", _( "uncoded images only" ) );
 		return( NULL );
 	}
 	if( in->Bands == 1 ) {
@@ -100,7 +100,7 @@ im_vips2mask( IMAGE *in, const char *outname )
 	}
 	else {
 		im_error( "im_vips2mask", 
-			_( "one band, nx1, or 1xn images only" ) );
+			"%s", _( "one band, nx1, or 1xn images only" ) );
 		return( NULL );
 	}
 

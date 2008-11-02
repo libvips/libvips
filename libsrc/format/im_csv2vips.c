@@ -172,7 +172,7 @@ read_csv( FILE *fp, IMAGE *out,
 	for( i = 0; i < start_skip; i++ )
 		if( skip_line( fp ) == EOF ) {
 			im_error( "im_csv2vips", 
-				_( "end of file while skipping start" ) );
+				"%s", _( "end of file while skipping start" ) );
 			return( -1 );
 		}
 
@@ -180,7 +180,8 @@ read_csv( FILE *fp, IMAGE *out,
 	 * fgetpos() the first time we use it: assume it's working after this.
 	 */
 	if( fgetpos( fp, &pos ) ) {
-		im_error_system( errno, "im_csv2vips", _( "unable to seek" ) );
+		im_error_system( errno, "im_csv2vips", 
+			"%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 	for( columns = 0; (ch = read_double( fp, whitemap, sepmap,
@@ -189,7 +190,7 @@ read_csv( FILE *fp, IMAGE *out,
 	fsetpos( fp, &pos );
 
 	if( columns == 0 ) {
-		im_error( "im_csv2vips", _( "empty line" ) );
+		im_error( "im_csv2vips", "%s", _( "empty line" ) );
 		return( -1 );
 	}
 	if( ch == -2 ) 
@@ -223,12 +224,12 @@ read_csv( FILE *fp, IMAGE *out,
 				y + start_skip + 1, x + 1, &d );
 			if( ch == EOF ) {
 				im_error( "im_csv2vips", 
-					_( "unexpected end of file" ) );
+					"%s", _( "unexpected end of file" ) );
 				return( -1 );
 			}
 			else if( ch == '\n' ) {
 				im_error( "im_csv2vips", 
-					_( "unexpected end of line" ) );
+					"%s", _( "unexpected end of line" ) );
 				return( -1 );
 			}
 			else if( ch )

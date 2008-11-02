@@ -143,7 +143,7 @@ break_items( char *line, char **out )
 		out[i] = line = p + 1;
 
 		if( !(p = strchr( line, '>' )) ) {
-			im_error( "break_files", _( "no matching '>'" ) );
+			im_error( "break_files", "%s", _( "no matching '>'" ) );
 			return( -1 );
 		}
 
@@ -152,7 +152,7 @@ break_items( char *line, char **out )
 	}
 
 	if( i == MAX_ITEMS ) {
-		im_error( "break_files", _( "too many items" ) );
+		im_error( "break_files", "%s", _( "too many items" ) );
 		return( -1 );
 	}
 
@@ -447,7 +447,8 @@ propogate_transform( JoinNode *node, Transformation *trn )
 		return( 0 );
 
 	if( node->dirty && node->arg1 && node->arg2 ) {
-		im_error( "im_global_balance", _( "circularity detected" ) );
+		im_error( "im_global_balance", 
+			"%s", _( "circularity detected" ) );
 		return( -1 );
 	}
 	node->dirty = 1;
@@ -586,7 +587,7 @@ process_line( SymbolTable *st, const char *text )
 			return( -1 );
 		if( nitems != 5 && nitems != 6 ) {
 			im_error( "global_balance", 
-				_( "bad number of args in join line" ) );
+				"%s", _( "bad number of args in join line" ) );
 			return( -1 );
 		}
 
@@ -628,7 +629,7 @@ process_line( SymbolTable *st, const char *text )
 			return( -1 );
 		if( nitems != 7 && nitems != 8 ) {
 			im_error( "global_balance", 
-				_( "bad number of args in join1 line" ) );
+				"%s", _( "bad number of args in join1 line" ) );
 			return( -1 );
 		}
 
@@ -664,7 +665,7 @@ process_line( SymbolTable *st, const char *text )
 			return( -1 );
 		if( nitems != 2 ) {
 			im_error( "global_balance", 
-				_( "bad number of args in copy line" ) );
+				"%s", _( "bad number of args in copy line" ) );
 			return( -1 );
 		}
 
@@ -722,7 +723,7 @@ find_root( SymbolTable *st )
 	 */
 	if( !root ) {
 		im_error( "im_global_balance", 
-			_( "mosaic root not found in desc file\n"
+			"%s", _( "mosaic root not found in desc file\n"
 			"is this really a mosaiced image?" ) );
 		return( NULL );
 	}
@@ -732,7 +733,8 @@ find_root( SymbolTable *st )
 	 */
 	root->dirty = 1;
 	if( (notroot = im__map_table( st, is_root, NULL, NULL )) ) {
-		im_error( "im_global_balance", _( "more than one root" ) );
+		im_error( "im_global_balance", 
+			"%s", _( "more than one root" ) );
 		return( NULL );
 	}
 
@@ -1069,7 +1071,7 @@ find_image_stats( IMAGE *in, IMAGE *mask, Rect *area )
 
 #ifdef DEBUG
 	if( count == 0 )
-		im_warn( "global_balance", _( "empty overlap!" ) );
+		im_warn( "global_balance", "%s", _( "empty overlap!" ) );
 #endif /*DEBUG*/
 
 	return( stats );

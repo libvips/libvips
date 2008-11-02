@@ -673,7 +673,7 @@ parse_palette( ReadTiff *rtiff, IMAGE *out )
 	 */
 	if( !TIFFGetField( rtiff->tiff, 
 		TIFFTAG_COLORMAP, &tred, &tgreen, &tblue ) ) {
-		im_error( "im_tiff2vips", _( "bad colormap" ) );
+		im_error( "im_tiff2vips", "%s", _( "bad colormap" ) );
 		return( -1 );
 	}
 	for( i = 0; i < 256; i++ ) {
@@ -727,7 +727,8 @@ parse_rgb8( ReadTiff *rtiff, IMAGE *out )
 		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, &bands ) )
 		return( -1 );
 	if( bands != 3 && bands != 4 ) {
-		im_error( "im_tiff2vips", _( "3 or 4 bands RGB TIFF only" ) );
+		im_error( "im_tiff2vips", 
+			"%s", _( "3 or 4 bands RGB TIFF only" ) );
 		return( -1 );
 	}
 
@@ -775,7 +776,8 @@ parse_rgb16( ReadTiff *rtiff, IMAGE *out )
 		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, &bands ) )
 		return( -1 );
 	if( bands != 3 && bands != 4 ) {
-		im_error( "im_tiff2vips", _( "3 or 4 bands RGB TIFF only" ) );
+		im_error( "im_tiff2vips", 
+			"%s", _( "3 or 4 bands RGB TIFF only" ) );
 		return( -1 );
 	}
 
@@ -864,7 +866,8 @@ parse_cmyk( ReadTiff *rtiff, IMAGE *out )
 		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, &bands ) )
 		return( -1 );
 	if( bands != 4 && bands != 5 ) {
-		im_error( "im_tiff2vips", _( "4 or 5 bands CMYK TIFF only" ) );
+		im_error( "im_tiff2vips", 
+			"%s", _( "4 or 5 bands CMYK TIFF only" ) );
 		return( -1 );
 	}
 
@@ -915,7 +918,7 @@ parse_resolution( TIFF *tiff, IMAGE *out )
 
 		default:
 			im_error( "im_tiff2vips", 
-				_( "unknown resolution unit" ) );
+				"%s", _( "unknown resolution unit" ) );
 			return( -1 );
 		}
 	}
@@ -1313,7 +1316,7 @@ read_scanlinewise( ReadTiff *rtiff, IMAGE *out )
 		/* Read TIFF scanline.
 		 */
 		if( TIFFReadScanline( rtiff->tiff, tbuf, y, 0 ) < 0 ) {
-			im_error( "im_tiff2vips", _( "read error" ) );
+			im_error( "im_tiff2vips", "%s", _( "read error" ) );
 			return( -1 );
 		}
 

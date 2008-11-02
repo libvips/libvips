@@ -219,7 +219,7 @@ find_first( REGION *ir, int *pos, int x, int y, int w )
 	case IM_BANDFMT_DPCOMPLEX:lsearch( double ); break;
 
 	default:
-		im_error( "im_lrmerge", _( "internal error" ) );
+		im_error( "im_lrmerge", "%s", _( "internal error" ) );
 		return( -1 );
 	}
 
@@ -268,7 +268,7 @@ find_last( REGION *ir, int *pos, int x, int y, int w )
 	case IM_BANDFMT_DPCOMPLEX:rsearch( double ); break;
 
 	default:
-		im_error( "im_lrmerge", _( "internal error" ) );
+		im_error( "im_lrmerge", "%s", _( "internal error" ) );
 		return( -1 );
 	}
 
@@ -609,7 +609,7 @@ lr_blend( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 			fblend( double, im->Bands*2, pr, ps, q ); break;
 
 		default:
-			im_error( "im_lrmerge", _( "internal error" ) );
+			im_error( "im_lrmerge", "%s", _( "internal error" ) );
 			return( -1 );
 		}
 	}
@@ -707,7 +707,8 @@ im__build_mergestate( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	if( !ovlap )
 		return( NULL );
 	if( mwidth < -1 ) {
-		im_error( "im_lr/tbmerge", _( "mwidth must be -1 or >= 0" ) );
+		im_error( "im_lr/tbmerge", 
+			"%s", _( "mwidth must be -1 or >= 0" ) );
 		return( NULL );
 	}
 
@@ -736,7 +737,7 @@ im__build_mergestate( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	 */
    	im_rect_intersectrect( &ovlap->rarea, &ovlap->sarea, &ovlap->overlap );
 	if( im_rect_isempty( &ovlap->overlap ) ) {
-		im_error( "im_lr/tbmerge", _( "no overlap" ) );
+		im_error( "im_lr/tbmerge", "%s", _( "no overlap" ) );
 		return( NULL );
 	}
 
@@ -806,7 +807,7 @@ build_lrstate( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 		break;
 
 	default:
-		im_error( "im_lrmerge", _( "unknown coding type" ) );
+		im_error( "im_lrmerge", "%s", _( "unknown coding type" ) );
 		return( NULL );
 	}
 
@@ -823,7 +824,7 @@ build_lrstate( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	 */
 	if( IM_RECT_RIGHT( &ovlap->rarea ) > IM_RECT_RIGHT( &ovlap->sarea ) ||
 		ovlap->rarea.left > ovlap->sarea.left ) {
-		im_error( "im_lrmerge", _( "too much overlap" ) );
+		im_error( "im_lrmerge", "%s", _( "too much overlap" ) );
 		return( NULL );
 	}
 
@@ -1067,12 +1068,13 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	if( ref->Bands != sec->Bands || ref->Bbits != sec->Bbits ||
 		ref->BandFmt != sec->BandFmt ||
 		ref->Coding != sec->Coding ) {
-		im_error( "im_lrmerge", _( "input images incompatible" ) );
+		im_error( "im_lrmerge", 
+			"%s", _( "input images incompatible" ) );
 		return( -1 );
 	}
 	if( ref->Coding != IM_CODING_NONE && ref->Coding != IM_CODING_LABQ ) {
 		im_error( "im_lrmerge", 
-			_( "inputs not uncoded or IM_CODING_LABQ" ) );
+			"%s", _( "inputs not uncoded or IM_CODING_LABQ" ) );
 		return( -1 );
 	}
 	if( dx > 0 || dx < 1 - ref->Xsize ) {

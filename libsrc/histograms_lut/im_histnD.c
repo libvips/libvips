@@ -214,13 +214,13 @@ im_histnD( IMAGE *in, IMAGE *out, int bins )
 	if( im_pincheck( in ) || im_outcheck( out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_histnD", _( " uncoded images only" ) );
+		im_error( "im_histnD", "%s", _( " uncoded images only" ) );
 		return( -1 );
 	}
 	if( in->BandFmt != IM_BANDFMT_UCHAR && 
 		in->BandFmt != IM_BANDFMT_USHORT ) {
 		im_error( "im_histnD", 
-			_( " unsigned 8 or 16 bit images only" ) );
+			"%s", _( " unsigned 8 or 16 bit images only" ) );
 		return( -1 );
 	}
 

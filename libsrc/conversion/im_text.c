@@ -142,7 +142,8 @@ text_layout_render_to_image( PangoLayout *layout, IMAGE *out )
 	/* Can happen for "", for example.
 	 */
 	if( width == 0 || height == 0 ) {
-		im_error( "im_text", _( "no text to render" ) );
+		im_error( "im_text", 
+			"%s", _( "no text to render" ) );
 		return( -1 );
 	}
 
@@ -197,7 +198,8 @@ im_text( IMAGE *out, const char *text, const char *font,
 	PangoContext *context;
 
 	if( !pango_parse_markup( text, -1, 0, NULL, NULL, NULL, NULL ) ) {
-		im_error( "im_text", _( "invalid markup in text" ) );
+		im_error( "im_text", 
+			"%s", _( "invalid markup in text" ) );
 		return( -1 );
 	}
 
@@ -229,7 +231,8 @@ int
 im_text( IMAGE *out, const char *text, const char *font, 
 	int width, int alignment, int dpi )
 {
-	im_error( "im_text", _( "pangoft2 support disabled" ) );
+	im_error( "im_text", 
+		"%s", _( "pangoft2 support disabled" ) );
 
 	return( -1 );
 }

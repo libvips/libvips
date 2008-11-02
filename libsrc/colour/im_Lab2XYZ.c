@@ -118,7 +118,7 @@ im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 	if( in->Bands != 3 || 
 		in->BandFmt != IM_BANDFMT_FLOAT || 
 		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_Lab2XYZ", _( "not 3-band uncoded float" ) );
+		im_error( "im_Lab2XYZ", "%s", _( "not 3-band uncoded float" ) );
 		return( -1 );
 	}
 

@@ -54,7 +54,7 @@
 /*
  * TODO:
  * Test for pixel size and use memcpy() on individual pixels once they reach
- * sizes of the order of tens of bytes.  char-wise copy is quiker than 
+ * sizes of the order of tens of bytes. char-wise copy is quicker than 
  * memcpy() for smaller pixels.
  *
  * Also, I haven't tested it but int-wise copying may be faster still, as 
@@ -124,7 +124,7 @@ paint_whole( REGION *or, REGION *ir, ZoomInfo *zm,
 
 	/* We know this!
 	 */
-	assert( right > left && bottom > top && 
+	g_assert( right > left && bottom > top && 
 		right % zm->xfac == 0 &&
 		left % zm->xfac == 0 &&
 		top % zm->yfac == 0 &&
@@ -190,7 +190,7 @@ paint_part( REGION *or, REGION *ir, const ZoomInfo *zm,
 
 	/* Only know this.
 	 */
-	assert( right - left >= 0 && bottom - top >= 0 );
+	g_assert( right - left >= 0 && bottom - top >= 0 );
 
 	/* Have to loop over output.
 	 */
@@ -325,18 +325,18 @@ im_zoom( IMAGE *in, IMAGE *out, int xfac, int yfac )
 	/* Check arguments.
 	 */
 	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_zoom", _( "unknown coding type" ) );
+		im_error( "im_zoom", "%s", _( "unknown coding type" ) );
 		return( -1 );
 	}
 	if( xfac <= 0 || yfac <= 0 ) { 
-		im_error( "im_zoom", _( "zoom factors should be >= 0" ) );
+		im_error( "im_zoom", "%s", _( "zoom factors should be >= 0" ) );
 		return( -1 );
 	}
 	if( (double) in->Xsize * xfac > (double) INT_MAX / 2 || 
 		(double) in->Ysize * yfac > (double) INT_MAX / 2 ) { 
 		/* Make sure we won't get integer overflow.
  		 */
-		im_error( "im_zoom", _( "zoom factors too large" ) );
+		im_error( "im_zoom", "%s", _( "zoom factors too large" ) );
 		return( -1 );
 	}
 	if( xfac == 1 && yfac == 1 ) 
@@ -359,7 +359,7 @@ im_zoom( IMAGE *in, IMAGE *out, int xfac, int yfac )
 	zm->yfac = yfac;
 
 	/* Set demand hints. THINSTRIP will prevent us from using
-	 * paint_whole() too much ... so go for FATSTRIP.
+	 * paint_whole() much ... so go for FATSTRIP.
 	 */
 	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
 		return( -1 );

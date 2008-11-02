@@ -269,7 +269,7 @@ png2vips( Read *read, int header_only )
 	case PNG_COLOR_TYPE_RGB_ALPHA: bands = 4; break;
 
 	default:
-		im_error( "im_png2vips", _( "unsupported colour type" ) );
+		im_error( "im_png2vips", "%s", _( "unsupported colour type" ) );
 		return( -1 );
 	}
 

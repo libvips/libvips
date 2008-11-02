@@ -255,11 +255,11 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 	if( im_pincheck( in ) || im_outcheck( hout ) || im_outcheck( vout ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_project", _( "uncoded images only" ) );
+		im_error( "im_project", "%s", _( "uncoded images only" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_error( "im_project", _( "non-complex images only" ) );
+		im_error( "im_project", "%s", _( "non-complex images only" ) );
 		return( -1 );
 	}
 

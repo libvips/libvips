@@ -173,7 +173,7 @@ wbuffer_new( im_threadgroup_t *tg, im_wbuffer_fn write_fn, void *a, void *b )
 	 */
 	if( !(wbuffer->thread = g_thread_create( wbuffer_write_thread, wbuffer, 
 		TRUE, NULL )) ) {
-		im_error( "wbuffer_new", _( "unable to create thread" ) );
+		im_error( "wbuffer_new", "%s", _( "unable to create thread" ) );
 		wbuffer_free( wbuffer );
 		return( NULL );
 	}
@@ -354,7 +354,7 @@ wbuffer_eval_to_file( WriteBuffer *b1, WriteBuffer *b2 )
 			if( b2->write_errno ) {
 				im_error_system( b2->write_errno, 
 					"im__eval_to_file", 
-					_( "write failed" ) );
+					"%s", _( "write failed" ) );
 				return( -1 ); 
 			}
 		}
@@ -391,7 +391,7 @@ wbuffer_eval_to_file( WriteBuffer *b1, WriteBuffer *b2 )
 	if( b1->write_errno || b2->write_errno ) {
 		im_error_system( 
 			b1->write_errno ? b1->write_errno : b2->write_errno,
-			"im__eval_to_file", _( "write failed" ) );
+			"im__eval_to_file", "%s", _( "write failed" ) );
 		return( -1 ); 
 	}
 

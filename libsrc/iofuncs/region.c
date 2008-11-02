@@ -335,7 +335,8 @@ im_region_buffer( REGION *reg, Rect *r )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &clipped ) ) {
-		im_error( "im_region_buffer", _( "valid clipped to nothing" ) );
+		im_error( "im_region_buffer", 
+			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
 
@@ -389,7 +390,8 @@ im_region_image( REGION *reg, Rect *r )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &clipped ) ) {
-		im_error( "im_region_image", _( "valid clipped to nothing" ) );
+		im_error( "im_region_image", 
+			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
 
@@ -434,7 +436,8 @@ im_region_image( REGION *reg, Rect *r )
 		reg->data = reg->window->data;
 	}
 	else {
-		im_error( "im_region_image", _( "bad image type" ) );
+		im_error( "im_region_image", 
+			"%s", _( "bad image type" ) );
 		return( -1 );
 	}
 
@@ -469,7 +472,7 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 		IM_IMAGE_SIZEOF_PEL( dest->im ) != 
 			IM_IMAGE_SIZEOF_PEL( reg->im ) ) {
 		im_error( "im_region_region", 
-			_( "inappropriate region type" ) );
+			"%s", _( "inappropriate region type" ) );
 		return( -1 );
 	}
 	im__region_check_ownership( reg );
@@ -501,7 +504,8 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Test that dest->valid is large enough.
 	 */
 	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
-		im_error( "im_region_region", _( "dest too small" ) );
+		im_error( "im_region_region", 
+			"%s", _( "dest too small" ) );
 		return( -1 );
 	}
 
@@ -519,7 +523,8 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &final ) ) {
-		im_error( "im_region_region", _( "valid clipped to nothing" ) );
+		im_error( "im_region_region", 
+			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
 
@@ -569,7 +574,8 @@ im_region_position( REGION *reg, int x, int y )
 	req.height = reg->valid.height;
 	im_rect_intersectrect( &image, &req, &clipped );
 	if( x < 0 || y < 0 || im_rect_isempty( &clipped ) ) {
-		im_error( "im_region_position", _( "bad position" ) );
+		im_error( "im_region_position", 
+			"%s", _( "bad position" ) );
 		return( -1 );
 	}
 

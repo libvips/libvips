@@ -127,7 +127,7 @@ write_new( IMAGE *in )
 
 	if( !(write->in = im__convert_saveable( in, IM__RGBA )) ) {
 		im_error( "im_vips2png", 
-			_( "unable to convert to RGB for save" ) );
+			"%s", _( "unable to convert to RGB for save" ) );
 		write_destroy( write );
 		return( NULL );
 	}
@@ -208,7 +208,8 @@ write_vips( Write *write, int compress, int interlace )
 	if( im_pincheck( in ) )
 		return( -1 );
 	if( compress < 0 || compress > 9 ) {
-		im_error( "im_vips2png", _( "compress should be in [0,9]" ) );
+		im_error( "im_vips2png", 
+			"%s", _( "compress should be in [0,9]" ) );
 		return( -1 );
 	}
 

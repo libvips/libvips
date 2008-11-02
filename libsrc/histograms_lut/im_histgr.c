@@ -126,10 +126,7 @@ merge_subhist( void *seq, void *a, void *b )
 	Histogram *mhist = (Histogram *) a;
 	int i, j;
 
-	/* Sanity!
-	 */
-	if( shist->bands != mhist->bands || shist->size != mhist->size )
-		error_exit( "sanity failure in merge_subhist" );
+	g_assert( shist->bands == mhist->bands && shist->size == mhist->size );
 
 	/* Add on sub-data.
 	 */
@@ -310,7 +307,7 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 	if( im_pincheck( in ) || im_outcheck( out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_histgr", _( "uncoded images only" ) );
+		im_error( "im_histgr", "%s", _( "uncoded images only" ) );
 		return( -1 );
 	}
 
@@ -322,14 +319,14 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 		in->BandFmt == IM_BANDFMT_USHORT )
 		size = 65536;
 	else {
-		im_error( "im_histgr", _( "input not uchar or ushort" ) );
+		im_error( "im_histgr", "%s", _( "input not uchar or ushort" ) );
 		return( -1 );
 	}
 
 	/* How many output bands?
 	 */
 	if( bandno > in->Bands || bandno < -1 ) {
-		im_error( "im_histgr", _( "bad band parameter" ) );
+		im_error( "im_histgr", "%s", _( "bad band parameter" ) );
 		return( -1 );
 	}
 	if( bandno == -1 ) 

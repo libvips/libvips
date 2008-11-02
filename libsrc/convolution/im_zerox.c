@@ -135,17 +135,17 @@ im_zerox( IMAGE *in, IMAGE *out, int flag )
 	if( !t1 )
 		return( -1 );
 	if( flag != -1 && flag != 1 ) {
-		im_error( "im_zerox", _( "flag not -1 ot 1" ) );
+		im_error( "im_zerox", "%s", _( "flag not -1 ot 1" ) );
 		return( -1 );
 	}
         if( im_piocheck( in, t1 ) )
 		return( -1 );
 	if( im_iscomplex( in ) || in->Coding != IM_CODING_NONE ) {
-		im_error( "im_zerox", _( "non-complex uncoded only" ) );
+		im_error( "im_zerox", "%s", _( "non-complex uncoded only" ) );
 		return( -1 );
 	}
 	if( in->Xsize < 2 ) {
-		im_error( "im_zerox", _( "image too narrow" ) );
+		im_error( "im_zerox", "%s", _( "image too narrow" ) );
 		return( -1 );
 	}
 	if( im_isuint( in ) )

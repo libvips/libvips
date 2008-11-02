@@ -233,7 +233,7 @@ im_min( IMAGE *in, double *out )
 	if( im_pincheck( in ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_min", _( "not uncoded" ) );
+		im_error( "im_min", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 

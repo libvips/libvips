@@ -89,7 +89,8 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 	/* Check parameters.
 	 */
 	if( xs <= 0 || ys <= 0 || bands <=0 ) {
-		im_error( "im_binfile", _( "bad parameters" ) );
+		im_error( "im_binfile", 
+			"%s", _( "bad parameters" ) );
 		return( NULL );
 	}
 

@@ -165,13 +165,13 @@ im__b64_encode( const unsigned char *data, size_t data_length )
 	int cursor;
 
 	if( data_length <= 0 ) {
-		im_error( "im__b64_encode", _( "too little data" ) );
+		im_error( "im__b64_encode", "%s", _( "too little data" ) );
 		return( NULL );
 	}
 	if( output_data_length > 1024 * 1024 ) {
 		/* We shouldn't really be used for large amounts of data.
 		 */
-		im_error( "im__b64_encode", _( "too much data" ) );
+		im_error( "im__b64_encode", "%s", _( "too much data" ) );
 		return( NULL );
 	}
 	if( !(buffer = im_malloc( NULL, output_data_length )) ) 
@@ -236,7 +236,7 @@ im__b64_decode( const char *buffer, size_t *data_length )
 	if( output_data_length > 1024 * 1024 ) {
 		/* We shouldn't really be used for large amounts of data.
 		 */
-		im_error( "im__b64_decode", _( "too much data" ) );
+		im_error( "im__b64_decode", "%s", _( "too much data" ) );
 		return( NULL );
 	}
 

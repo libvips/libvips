@@ -133,7 +133,7 @@ im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	im_buf_appendf( &buf, "> <" );
 	im_buf_appendg( &buf, dy );
 	im_buf_appendf( &buf, "> <%d>", mwidth );
-	if( im_histlin( out, im_buf_all( &buf ) ) )
+	if( im_histlin( out, "%s", im_buf_all( &buf ) ) )
 		return( -1 );
 
 	return( 0 );
@@ -175,7 +175,7 @@ im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	im_buf_appendf( &buf, "> <" );
 	im_buf_appendg( &buf, dy );
 	im_buf_appendf( &buf, "> <%d>", mwidth );
-	if( im_histlin( out, im_buf_all( &buf ) ) )
+	if( im_histlin( out, "%s", im_buf_all( &buf ) ) )
 		return( -1 );
 
 	return( 0 );

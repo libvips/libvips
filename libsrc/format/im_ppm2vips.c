@@ -111,7 +111,7 @@ read_uint( FILE *fp )
 	buf[i] = '\0';
 
 	if( i == 0 ) {
-		im_error( "im_ppm2vips", _( "bad unsigned int" ) );
+		im_error( "im_ppm2vips", "%s", _( "bad unsigned int" ) );
 		return( -1 );
 	}
 
@@ -161,7 +161,7 @@ read_header( FILE *fp, IMAGE *out, int *bits, int *ascii )
 		if( strcmp( magic_names[i], buf ) == 0 ) 
 			break;
 	if( i == IM_NUMBER( magic_names ) ) {
-		im_error( "im_ppm2vips", _( "bad magic number" ) );
+		im_error( "im_ppm2vips", "%s", _( "bad magic number" ) );
 		return( -1 );
 	}
 	*bits = lookup_bits[i];
@@ -190,7 +190,7 @@ read_header( FILE *fp, IMAGE *out, int *bits, int *ascii )
 	 * character before the data starts.
 	 */
 	if( !*ascii && !isspace( fgetc( fp ) ) ) {
-		im_error( "im_ppm2vips", 
+		im_error( "im_ppm2vips", "%s", 
 			_( "not whitespace before start of binary data" ) );
 		return( -1 );
 	}

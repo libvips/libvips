@@ -307,7 +307,7 @@ read_header( const char *header )
 		return( NULL );
 	if( len != sizeof( struct dsr ) ) {
 		im_error( "im_analyze2vips", 
-			_( "header file size incorrect" ) );
+			"%s", _( "header file size incorrect" ) );
 		im_free( d );
 		return( NULL );
 	}
@@ -352,7 +352,7 @@ read_header( const char *header )
 
 	if( len != d->hk.sizeof_hdr ) {
 		im_error( "im_analyze2vips", 
-			_( "header file size incorrect" ) );
+			"%s", _( "header file size incorrect" ) );
 		im_free( d );
 		return( NULL );
 	}

@@ -192,7 +192,7 @@ im__bandup( IMAGE *in, IMAGE *out, int n )
 		return( -1 );
 	}
 	if( n > 256 || n < 1 ) {
-		im_error( "im__bandup", _( "bad bands" ) );
+		im_error( "im__bandup", "%s", _( "bad bands" ) );
 		return( -1 );
 	}
 
@@ -248,11 +248,11 @@ im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		return( -1 );
 	if( in1->Bands != in2->Bands &&
 		(in1->Bands != 1 && in2->Bands != 1) ) {
-		im_error( "im_add", _( "not same number of bands" ) );
+		im_error( "im_add", "%s", _( "not same number of bands" ) );
 		return( -1 );
 	}
 	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_error( "im_add", _( "not uncoded" ) );
+		im_error( "im_add", "%s", _( "not uncoded" ) );
 		return( -1 );
 	}
 	if( im_cp_descv( out, in1, in2, NULL ) )

@@ -306,7 +306,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	if( !real || !half_complex || im_pincheck( in ) || im_outcheck( out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_fwfft", _( "one band uncoded only" ) );
+                im_error( "im_fwfft", "%s", _( "one band uncoded only" ) );
                 return( -1 );
 	}
 	if( im_clip2d( in, real ) )
@@ -319,7 +319,8 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	if( !(plan = fftw_plan_dft_r2c_2d( in->Ysize, in->Xsize,
 		planner_scratch, (fftw_complex *) half_complex,
 		0 )) ) {
-                im_error( "im_fwfft", _( "unable to create transform plan" ) );
+                im_error( "im_fwfft", 
+			"%s", _( "unable to create transform plan" ) );
 		return( -1 );
 	}
 
@@ -418,7 +419,8 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	if( !cmplx || im_pincheck( in ) || im_outcheck( out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_fwfft", _( "one band uncoded only" ) );
+                im_error( "im_fwfft", 
+			"%s", _( "one band uncoded only" ) );
                 return( -1 );
 	}
 	if( im_clip2dcm( in, cmplx ) )
@@ -431,7 +433,8 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		(fftw_complex *) planner_scratch,
 		FFTW_FORWARD, 
 		0 )) ) {
-                im_error( "im_fwfft", _( "unable to create transform plan" ) );
+                im_error( "im_fwfft", 
+			"%s", _( "unable to create transform plan" ) );
 		return( -1 );
 	}
 
@@ -509,11 +512,12 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( in->Coding != IM_CODING_NONE || in->Bands != 1 || 
 		im_iscomplex( in ) ) {
                 im_error( "im_fwfft", 
-			_( "one band non-complex uncoded only" ) );
+			"%s", _( "one band non-complex uncoded only" ) );
                 return( -1 );
 	}
 	if( !bpx || !bpy ) {
-		im_error( "im_fwfft", _( "sides must be power of 2" ) );
+		im_error( "im_fwfft", 
+			"%s", _( "sides must be power of 2" ) );
 		return( -1 );
 	}
 
@@ -533,7 +537,8 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
 	if( im__fft_sp( (float *) real->data, (float *) imag->data, 
 		bpx - 1, bpy - 1 ) ) {
-                im_error( "im_fwfft", _( "fft_sp failed" ) );
+                im_error( "im_fwfft", 
+			"%s", _( "fft_sp failed" ) );
                 return( -1 );
 	}	
 

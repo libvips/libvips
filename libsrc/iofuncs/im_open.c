@@ -354,7 +354,7 @@ im_open( const char *filename, const char *mode )
 		im_error_clear();
 
 	if( !filename || !mode ) {
-		im_error( "im_open", _( "NULL filename or mode" ) );
+		im_error( "im_open", "%s", _( "NULL filename or mode" ) );
 		return( NULL );
 	}
 

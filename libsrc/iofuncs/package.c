@@ -504,7 +504,7 @@ im_load_plugin( const char *name )
 
 	if( !g_module_supported() ) {
 		im_error( "plugin",	
-			_( "plugins not supported on this platform" ) );
+			"%s", _( "plugins not supported on this platform" ) );
 		return( NULL );
 	}
 
@@ -839,7 +839,7 @@ build_args( im_function *fn, im_object *vargv, int argc, char **argv )
 		if( type->flags & IM_TYPE_ARG ) {
 			if( !argv[j] ) {
 				im_error( "im_run_command",
-					_( "too few arguments" ) );
+					"%s", _( "too few arguments" ) );
 				return( -1 );
 			}
 			str = argv[j++];
@@ -860,7 +860,7 @@ build_args( im_function *fn, im_object *vargv, int argc, char **argv )
 	/* Have we used up all the command-line args?
 	 */
 	if( argv[j] ) {
-		im_error( "im_run_command", _( "too many arguments" ) );
+		im_error( "im_run_command", "%s", _( "too many arguments" ) );
 		return( -1 );
 	}
 
@@ -1077,7 +1077,7 @@ im_version( int flag )
 		return( IM_MICRO_VERSION );
 
 	default:
-		im_error( "im_version", _( "flag not 0,1,2" ) );
+		im_error( "im_version", "%s", _( "flag not 0,1,2" ) );
 		return( -1 );
 	}
 }
