@@ -327,24 +327,25 @@ im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	 */
         if( a->Coding != IM_CODING_NONE || b->Coding != IM_CODING_NONE ||
 		c->Coding != IM_CODING_NONE ) {
-                im_error( "im_blend", _( "images not uncoded" ) );
+                im_error( "im_blend", "%s", _( "images not uncoded" ) );
                 return( -1 );
         }
 	if( a->BandFmt != b->BandFmt ||
 		a->Bands != b->Bands ) {
 		im_error( "im_blend", 
-			_( "size and format of then and else must match" ) );
+			"%s", _( "size and format of then and else "
+			"must match" ) );
 		return( -1 );
 	}
 	if( c->BandFmt != IM_BANDFMT_UCHAR ) {
 		im_error( "im_blend", 
-			_( "conditional image must be uchar" ) );
+			"%s", _( "conditional image must be uchar" ) );
 		return( -1 );
 	}
 	if( c->Bands != 1 && c->Bands != a->Bands ) {
 		im_error( "im_blend", 
-			_( "conditional image must be one band or same as "
-			"then and else images" ) );
+			"%s", _( "conditional image must be one band or "
+			"same as then and else images" ) );
 		return( -1 );
 	}
         if( im_piocheck( c, out ) || im_pincheck( a ) || im_pincheck( b ) )

@@ -42,7 +42,7 @@ int
 im_video_test( IMAGE *im, int brightness, int error )
 {
 	if( error ) {
-		im_error( "im_video_test", _( "error requested" ) );
+		im_error( "im_video_test", "%s", _( "error requested" ) );
 		return( -1 );
 	}
 	else

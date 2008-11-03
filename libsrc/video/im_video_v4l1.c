@@ -243,7 +243,7 @@ static int
 lgrab_ioctl( LGrab *lg, int request, void *argp )
 {
 	if( !lg->fd ) {
-		im_error( "lgrab_ioctl", _( "no file descriptor" ) );
+		im_error( "lgrab_ioctl", "%s", _( "no file descriptor" ) );
 		return( -1 );
 	}
 
@@ -304,7 +304,8 @@ lgrab_new( const char *device )
 	}
 
         if( lgrab_ioctl( lg, VIDIOCGCAP, &lg->capability ) ) {
-		im_error( "lgrab_new", _( "cannot get video capability" ) );
+		im_error( "lgrab_new", 
+			"%s", _( "cannot get video capability" ) );
 		lgrab_destroy( lg );
 		return( NULL );
 	}
@@ -312,7 +313,8 @@ lgrab_new( const char *device )
         /* Check that it can capture to memory.
 	 */
         if( !(lg->capability.type & VID_TYPE_CAPTURE) ) {
-                im_error( "lgrab_new", _( "card cannot capture to memory" ) );
+                im_error( "lgrab_new", 
+			"%s", _( "card cannot capture to memory" ) );
 		lgrab_destroy( lg );
 		return( NULL );
 	}
@@ -458,7 +460,7 @@ lgrab_set_capture_size( LGrab *lg, int width, int height )
 	if( !(lg->capture_buffer = mmap( 0, lg->capture_size, 
 		PROT_READ | PROT_WRITE, MAP_SHARED, lg->fd, 0 )) ) {
 		im_error( "lgrab_set_capture_size", 
-			_( "unable to map memory" ) );
+			"%s", _( "unable to map memory" ) );
 		return( -1 );
 	}
 
@@ -670,7 +672,7 @@ im_video_v4l1( IMAGE *im, const char *device,
 	int ngrabs )
 {
 	im_error( "im_video_v4l1", 
-		_( "compiled without im_video_v4l1 support" ) );
+		"%s", _( "compiled without im_video_v4l1 support" ) );
 	return( -1 );
 }
 

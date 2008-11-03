@@ -119,7 +119,7 @@ main( int argc, char **argv )
 	unsigned char header[IM_SIZEOF_HEADER];
 
 	if( im_init_world( argv[0] ) )
-	        error_exit( _( "unable to start VIPS" ) );
+	        error_exit( "%s", _( "unable to start VIPS" ) );
 
 	context = g_option_context_new( 
 		_( "vipsfile - edit vipsfile header" ) );
@@ -186,7 +186,7 @@ main( int argc, char **argv )
 		unsigned int size;
 
 		if( !(xml = im__file_read( stdin, "stdin", &size )) )
-			error_exit( _( "could not get ext data" ) );
+			error_exit( "%s", _( "could not get ext data" ) );
 
 		/* Strip trailing whitespace ... we can get stray \n at the 
 		 * end, eg. "echo | edvips --setext fred.v".
@@ -195,7 +195,7 @@ main( int argc, char **argv )
 			size -= 1;
 
 		if( im__write_extension_block( im, xml, size ) )
-			error_exit( _( "could not set extension" ) );
+			error_exit( "%s", _( "could not set extension" ) );
 		im_free( xml );
 	}
 
