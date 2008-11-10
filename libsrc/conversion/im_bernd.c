@@ -65,13 +65,11 @@ extract( IMAGE *in, int x, int y, int w, int h )
 		im_vips2bufjpeg( t1, in, 75, &buf, &len ) )
 		return( -1 );
 
-	fwrite( buf, sizeof( char ), len, stdout );
-	fflush( stdout );
-
-	if( ferror( stdout ) ) {
-		im_errormsg( "im_bernd: error writing output" );
+	if( fwrite( buf, sizeof( char ), len, stdout ) != len ) {
+		im_error( "im_bernd", "%s", _( "error writing output" ) );
 		return( -1 );
 	}
+	fflush( stdout );
 
 	return( 0 );
 }

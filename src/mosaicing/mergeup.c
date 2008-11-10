@@ -534,14 +534,17 @@ char **argv;
 	k = 0;
 	for( i=0; i<height; i++ ){
 		for( j=0; j<width; j++ ){
-			fscanf(fp,"%d %d ", &hxdisp[k] , &hydisp[k] );
+			if(fscanf(fp,"%d %d ", &hxdisp[k] , &hydisp[k])!=2)
+				error_exit("argh");
 			k++;
 		}
-		fscanf(fp,"\n");
+		if(fscanf(fp,"\n")!=0)
+			error_exit("argh3");
 	}
 
 	for( i=0; i<height; i++ )
-                fscanf(fp,"%d %d\n", &vxdisp[i] , &vydisp[i] );
+		if(fscanf(fp,"%d %d\n", &vxdisp[i] , &vydisp[i])!=2)
+			error_exit("argh2");
 
 	merge_analysis(width,height,in,xoverlap,yoverlap,vxdisp,vydisp,hxdisp,hydisp,hrect,vrect);
 	merge_up( width, height, in, out, xoverlap, yoverlap, hxdisp, hydisp, vrect );

@@ -881,16 +881,14 @@ im_vips2mimejpeg( IMAGE *in, int qfac )
 	printf( "Content-length: %d\r\n", len );
 	printf( "Content-type: image/jpeg\r\n" );
 	printf( "\r\n" );
-	fwrite( buf, sizeof( char ), len, stdout );
-	fflush( stdout );
-
-	im_close( base );
-
-	if( ferror( stdout ) ) {
+	if( fwrite( buf, sizeof( char ), len, stdout ) != len ) {
 		im_error( "im_vips2mimejpeg", 
 			"%s", _( "error writing output" ) );
 		return( -1 );
 	}
+
+	fflush( stdout );
+	im_close( base );
 
 	return( 0 );
 }
