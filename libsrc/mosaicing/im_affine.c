@@ -1,8 +1,9 @@
-/* @(#) im_affine() ... affine transform, bi-linear interpolation.
+/* @(#) im_affine() ... affine transform with a supplied interpolator.
  * @(#)
- * @(#) int im_affine(in, out, a, b, c, d, dx, dy, w, h, x, y)
+ * @(#) int im_affinei(in, out, interpolate, a, b, c, d, dx, dy, w, h, x, y)
  * @(#)
  * @(#) IMAGE *in, *out;
+ * @(#) VipsInterpolate *interpolate;
  * @(#) double a, b, c, d, dx, dy;
  * @(#) int w, h, x, y;
  * @(#)
@@ -73,6 +74,17 @@
  * 	- still more tweaking, gah again
  * 7/10/06
  * 	- set THINSTRIP for no-rotate affines
+ * 20/10/08
+ * 	- version with interpolate parameter, from im_affine()
+ * 30/10/08
+ * 	- allow complex image types
+ * 4/11/08
+ * 	- take an interpolator as a param
+ * 	- replace im_affine with this, provide an im_affine() compat wrapper
+ * 	- break transform stuff out to transform.c
+ * 	- revise clipping / transform stuff, again
+ * 	- now do corner rather than centre: this way the identity transform
+ * 	  returns the input exactly
  */
 
 /*
@@ -120,6 +132,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#include "transform.h"
 #include "merge.h"
 
 #ifdef WITH_DMALLOC
@@ -130,343 +143,106 @@
  */
 #define FLOOR( V ) ((V) >= 0 ? (int)(V) : (int)((V) - 1))
 
-/* Precalculate a whole bunch of interpolation matricies. int (used for pel
- * sizes up to short), and double (for all others). We go to scale + 1, so
- * we can round-to-nearest safely.
-
- 	FIXME ... should use seperable tables really
-
+/* Per-call state.
  */
-static int im_affine_linear_int
-	[TRANSFORM_SCALE + 1][TRANSFORM_SCALE + 1][4];
-static double im_affine_linear_double
-	[TRANSFORM_SCALE + 1][TRANSFORM_SCALE + 1][4];
-
-/* Make sure the interpolation tables are built.
- */
-static void
-affine_interpol_calc( void )
-{
-	static int calced = 0;
-	int x, y;
-
-	if( calced )
-		return;
-
-	for( x = 0; x < TRANSFORM_SCALE + 1; x++ )
-		for( y = 0; y < TRANSFORM_SCALE + 1; y++ ) {
-			double X, Y, Xd, Yd;
-			double c1, c2, c3, c4;
-
-			/* Interpolation errors.
-			 */
-			X = (double) x / TRANSFORM_SCALE;
-			Y = (double) y / TRANSFORM_SCALE;
-			Xd = 1.0 - X;	
-			Yd = 1.0 - Y;
-
-			/* Weights.
-			 */
-			c1 = Xd * Yd;
-			c2 = X * Yd;
-			c3 = X * Y;
-			c4 = Xd * Y;
-
-			im_affine_linear_double[x][y][0] = c1;
-			im_affine_linear_double[x][y][1] = c2;
-			im_affine_linear_double[x][y][2] = c3;
-			im_affine_linear_double[x][y][3] = c4;
-
-			im_affine_linear_int[x][y][0] = c1 * INTERPOL_SCALE;
-			im_affine_linear_int[x][y][1] = c2 * INTERPOL_SCALE;
-			im_affine_linear_int[x][y][2] = c3 * INTERPOL_SCALE;
-			im_affine_linear_int[x][y][3] = c4 * INTERPOL_SCALE;
-		}
-
-	calced = 1;
-}
-
-/* Calculate the inverse transformation.
- */
-int
-im__transform_calc_inverse( Transformation *trn )
-{
-	DOUBLEMASK *msk, *msk2;
-
-	if( !(msk = im_create_dmaskv( "boink", 2, 2, 
-		trn->a, trn->b, trn->c, trn->d )) )
-		return( -1 );
-	if( !(msk2 = im_matinv( msk, "boink2" )) ) {
-		(void) im_free_dmask( msk );
-		return( -1 );
-	}
-	trn->ia = msk2->coeff[0];
-	trn->ib = msk2->coeff[1];
-	trn->ic = msk2->coeff[2];
-	trn->id = msk2->coeff[3];
-	(void) im_free_dmask( msk );
-	(void) im_free_dmask( msk2 );
-
-	return( 0 );
-}
-
-/* Init a Transform.
- */
-void
-im__transform_init( Transformation *trn )
-{
-	trn->oarea.left = 0;
-	trn->oarea.top = 0;
-	trn->oarea.width = -1;
-	trn->oarea.height = -1;
-	trn->iarea.left = 0;
-	trn->iarea.top = 0;
-	trn->iarea.width = -1;
-	trn->iarea.height = -1;
-	trn->a = 1.0;	/* Identity transform */
-	trn->b = 0.0;
-	trn->c = 0.0;
-	trn->d = 1.0;
-	trn->dx = 0.0;
-	trn->dy = 0.0;
-
-	(void) im__transform_calc_inverse( trn );
-}
-
-/* Test for transform is identity function.
- */
-int
-im__transform_isidentity( Transformation *trn )
-{
-	if( trn->a == 1.0 && trn->b == 0.0 && trn->c == 0.0 &&
-		trn->d == 1.0 && trn->dx == 0.0 && trn->dy == 0.0 )
-		return( 1 );
-	else
-		return( 0 );
-}
-
-/* Map a pixel coordinate through the transform. 
- */
-void
-im__transform_forward( Transformation *trn, 
-	double x, double y,		/* In input space */
-	double *ox, double *oy )	/* In output space */
-{
-	*ox = trn->a * x + trn->b * y + trn->dx;
-	*oy = trn->c * x + trn->d * y + trn->dy;
-}
-
-/* Map a pixel coordinate through the inverse transform. 
- */
-void
-im__transform_inverse( Transformation *trn, 
-	double x, double y,		/* In output space */
-	double *ox, double *oy )	/* In input space */
-{
-	double mx = x - trn->dx;
-	double my = y - trn->dy;
-
-	*ox = trn->ia * mx + trn->ib * my;
-	*oy = trn->ic * mx + trn->id * my;
-}
-
-/* Combine two transformations. out can be one of the ins.
- */
-int
-im__transform_add( Transformation *in1, Transformation *in2, 
-	Transformation *out )
-{
-	out->a = in1->a * in2->a + in1->c * in2->b;
-	out->b = in1->b * in2->a + in1->d * in2->b;
-	out->c = in1->a * in2->c + in1->c * in2->d;
-	out->d = in1->b * in2->c + in1->d * in2->d;
-
-	out->dx = in1->dx * in2->a + in1->dy * in2->b + in2->dx;
-	out->dy = in1->dx * in2->c + in1->dy * in2->d + in2->dy;
-
-	if( im__transform_calc_inverse( out ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-void 
-im__transform_print( Transformation *trn )
-{
-	printf( "im__transform_print:\n" );
-	printf( " iarea: left=%d, top=%d, width=%d, height=%d\n",
-		trn->iarea.left,
-		trn->iarea.top,
-		trn->iarea.width,
-		trn->iarea.height );
-	printf( " oarea: left=%d, top=%d, width=%d, height=%d\n",
-		trn->oarea.left,
-		trn->oarea.top,
-		trn->oarea.width,
-		trn->oarea.height );
-	printf( " mat: a=%g, b=%g, c=%g, d=%g\n",
-		trn->a, trn->b, trn->c, trn->d );
-	printf( " off: dx=%g, dy=%g\n",
-		trn->dx, trn->dy );
-}
-
-/* Map a point through the inverse transform. Used for clipping calculations,
- * so it takes account of iarea and oarea.
- */
-static void
-invert_point( Transformation *trn, 
-	double x, double y,		/* In output space */
-	double *ox, double *oy )	/* In input space */
-{
-	double xin = x - trn->oarea.left - trn->dx;
-	double yin = y - trn->oarea.top - trn->dy;
-
-	/* Find the inverse transform of current (x, y) 
-	 */
-	*ox = trn->ia * xin + trn->ib * yin;
-	*oy = trn->ic * xin + trn->id * yin;
-}
-
-/* Given a bounding box for an area in the output image, set the bounding box
- * for the corresponding pixels in the input image.
- */
-static void
-invert_rect( Transformation *trn, 
-	Rect *in, 		/* In output space */
-	Rect *out )		/* In input space */
-{	
-	double x1, y1;		/* Map corners */
-	double x2, y2;
-	double x3, y3;
-	double x4, y4;
-	double left, right, top, bottom;
-
-	/* Map input Rect.
-	 */
-	invert_point( trn, in->left, in->top, &x1, &y1 );
-	invert_point( trn, in->left, IM_RECT_BOTTOM(in), &x2, &y2 );
-	invert_point( trn, IM_RECT_RIGHT(in), in->top, &x3, &y3 );
-	invert_point( trn, IM_RECT_RIGHT(in), IM_RECT_BOTTOM(in), &x4, &y4 );
-
-	/* Find bounding box for these four corners.
-	 */
-	left = IM_MIN( x1, IM_MIN( x2, IM_MIN( x3, x4 ) ) );
-	right = IM_MAX( x1, IM_MAX( x2, IM_MAX( x3, x4 ) ) );
-	top = IM_MIN( y1, IM_MIN( y2, IM_MIN( y3, y4 ) ) );
-	bottom = IM_MAX( y1, IM_MAX( y2, IM_MAX( y3, y4 ) ) );
-
-	/* Set output Rect.
-	 */
-	out->left = left;
-	out->top = top;
-	out->width = right - left + 1;
-	out->height = bottom - top + 1;
-
-	/* Add a border for interpolation. You'd think +1 would do it, but 
-	 * we need to allow for rounding clipping as well.
-
-		FIXME ... will need adjusting when we add bicubic
-
-	 */
-	im_rect_marginadjust( out, 2 );
-}
-
-/* Interpolate a section ... int8/16 types.
- */
-#define DO_IPEL(TYPE) { \
-	TYPE *tq = (TYPE *) q; \
- 	\
-	int c1 = im_affine_linear_int[xi][yi][0]; \
-	int c2 = im_affine_linear_int[xi][yi][1]; \
-	int c3 = im_affine_linear_int[xi][yi][2]; \
-	int c4 = im_affine_linear_int[xi][yi][3]; \
- 	\
-	/* p1 points to location (x_int, y_int) \
-	 * p2  "      "   "      (x_int+1, y_int) \
-	 * p4  "      "   "      (x_int+1, y_int+1) \
-	 * p3  "      "   "      (x_int, y_int+1) \
-	 */ \
-	PEL *p1 = (PEL *) IM_REGION_ADDR( ir, x_int, y_int ); \
-	PEL *p2 = p1 + ofs2; \
-	PEL *p3 = p1 + ofs3; \
-	PEL *p4 = p1 + ofs4; \
-	TYPE *tp1 = (TYPE *) p1; \
-	TYPE *tp2 = (TYPE *) p2; \
-	TYPE *tp3 = (TYPE *) p3; \
-	TYPE *tp4 = (TYPE *) p4; \
-	\
-	/* Interpolate each band. \
-	 */ \
-	for( z = 0; z < in->Bands; z++ )  \
-		tq[z] = (c1*tp1[z] + c2*tp2[z] +  \
-			c3*tp3[z] + c4*tp4[z]) >> INTERPOL_SHIFT; \
-}
-
-/* Interpolate a pel ... int32 and float types.
- */
-#define DO_FPEL(TYPE) { \
-	TYPE *tq = (TYPE *) q; \
- 	\
-	double c1 = im_affine_linear_double[xi][yi][0]; \
-	double c2 = im_affine_linear_double[xi][yi][1]; \
-	double c3 = im_affine_linear_double[xi][yi][2]; \
-	double c4 = im_affine_linear_double[xi][yi][3]; \
-	\
-	/* p1 points to location (x_int, y_int) \
-	 * p2  "      "   "      (x_int+1, y_int) \
-	 * p4  "      "   "      (x_int+1, y_int+1) \
-	 * p3  "      "   "      (x_int, y_int+1) \
-	 */ \
-	PEL *p1 = (PEL *) IM_REGION_ADDR( ir, x_int, y_int ); \
-	PEL *p2 = p1 + ofs2; \
-	PEL *p3 = p1 + ofs3; \
-	PEL *p4 = p1 + ofs4; \
-	TYPE *tp1 = (TYPE *) p1; \
-	TYPE *tp2 = (TYPE *) p2; \
-	TYPE *tp3 = (TYPE *) p3; \
-	TYPE *tp4 = (TYPE *) p4; \
-	\
-	/* Interpolate each band. \
-	 */ \
-	for( z = 0; z < in->Bands; z++ )  \
-		tq[z] = c1*tp1[z] + c2*tp2[z] +  \
-			c3*tp3[z] + c4*tp4[z]; \
-}
+typedef struct _Affine {
+	IMAGE *in;
+	IMAGE *out;
+	VipsInterpolate *interpolate;
+	Transformation trn;
+} Affine;
 
 static int
-affine_gen( REGION *or, void *seq, void *a, void *b )
+affine_free( Affine *affine )
+{
+	IM_FREEF( g_object_unref, affine->interpolate );
+
+	return( 0 );
+}
+
+/* We have five (!!) coordinate systems. Working forward through them, there
+ * are:
+ *
+ * 1. The original input image
+ *
+ * 2. This is embedded in a larger image to provide borders for the
+ * interpolator. iarea->left/top give the offset. These are the coordinates we
+ * pass to IM_REGION_ADDR()/im_prepare() for the input image.
+ *
+ * 3. We need point (0, 0) in (1) to be at (0, 0) for the transformation. So
+ * shift everything up and left to make the displaced input image. This is the
+ * space that the transformation maps from, and can have negative pixels 
+ * (up and left of the image, for interpolation).
+ *
+ * 4. Output transform space. This is the where the transform maps to. Pixels
+ * can be negative, since a rotated image can go up and left of the origin.
+ *
+ * 5. Output image space. This is the wh of the xywh passed to im_affine()
+ * below. These are the coordinates we pass to IM_REGION_ADDR() for the 
+ * output image, and that affinei_gen() is asked for.
+ */
+
+static int
+affinei_gen( REGION *or, void *seq, void *a, void *b )
 {
 	REGION *ir = (REGION *) seq;
-	IMAGE *in = (IMAGE *) a;
-	Transformation *trn = (Transformation *) b;
+	const IMAGE *in = (IMAGE *) a;
+	const Affine *affine = (Affine *) b;
+	const int window_size = 
+		vips_interpolate_get_window_size( affine->interpolate );
+	const int half_window_size = window_size / 2;
+	const VipsInterpolateMethod interpolate = 
+		vips_interpolate_get_method( affine->interpolate );
 
-	/* Output area for this call.
+	/* Area we generate in the output image.
 	 */
-	Rect *r = &or->valid;
-	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	Rect *iarea = &trn->iarea;
-	Rect *oarea = &trn->oarea;
+	const Rect *r = &or->valid;
+	const int le = r->left;
+	const int ri = IM_RECT_RIGHT( r );
+	const int to = r->top;
+	const int bo = IM_RECT_BOTTOM( r );
+
+	const Rect *iarea = &affine->trn.iarea;
+	const Rect *oarea = &affine->trn.oarea;
+
 	int ps = IM_IMAGE_SIZEOF_PEL( in );
 	int x, y, z;
 	
-	/* Interpolation variables. 
-	 */
-	int ofs2, ofs3, ofs4;
+	Rect image, want, need, clipped;
 
-	/* Clipping Rects.
+#ifdef DEBUG
+	printf( "affine: generating left=%d, top=%d, width=%d, height=%d\n", 
+		r->left,
+		r->top,
+		r->width,
+		r->height );
+#endif /*DEBUG*/
+
+	/* We are generating this chunk of the transformed image.
 	 */
-	Rect image, need, clipped;
+	want = *r;
+	want.left += oarea->left;
+	want.top += oarea->top;
 
 	/* Find the area of the input image we need.
+	 */
+	im__transform_invert_rect( &affine->trn, &want, &need );
+
+	/* Now go to space (2) above.
+	 */
+	need.left += iarea->left;
+	need.top += iarea->top;
+
+	/* Add a border for interpolation. 
+	 */
+	im_rect_marginadjust( &need, half_window_size );
+
+	/* Clip against the size of (2).
 	 */
 	image.left = 0;
 	image.top = 0;
 	image.width = in->Xsize;
 	image.height = in->Ysize;
-	invert_rect( trn, r, &need );
 	im_rect_intersectrect( &need, &image, &clipped );
 
 	/* Outside input image? All black.
@@ -490,49 +266,43 @@ affine_gen( REGION *or, void *seq, void *a, void *b )
 		clipped.height );
 #endif /*DEBUG*/
 
-	/* Calculate pel offsets.
-	 */
-	ofs2 = IM_IMAGE_SIZEOF_PEL( in );
-	ofs3 = ofs2 + IM_REGION_LSKIP( ir ); 
-	ofs4 = IM_REGION_LSKIP( ir );
-
-	/* Resample!
+	/* Resample! x/y loop over pixels in the output image (5).
 	 */
 	for( y = to; y < bo; y++ ) {
-		/* Continuous cods in output space.
+		/* Input clipping rectangle. 
 		 */
-		double oy = y - oarea->top - trn->dy;
-		double ox;
+		const int ile = iarea->left;
+		const int ito = iarea->top;
+		const int iri = iarea->left + iarea->width;
+		const int ibo = iarea->top + iarea->height;
 
-		/* Input clipping rectangle.
-		 */
-		int ile = iarea->left;
-		int ito = iarea->top;
-		int iri = iarea->left + iarea->width;
-		int ibo = iarea->top + iarea->height;
-	
 		/* Derivative of matrix.
 		 */
-		double dx = trn->ia;
-		double dy = trn->ic;
+		const double ddx = affine->trn.ia;
+		const double ddy = affine->trn.ic;
+
+		/* Continuous cods in transformed space.
+		 */
+		const double ox = le + oarea->left - affine->trn.dx;
+		const double oy = y + oarea->top - affine->trn.dy;
 
 		/* Continuous cods in input space.
 		 */
 		double ix, iy;
 
 		PEL *q;
-		
-		q = (PEL *) IM_REGION_ADDR( or, le, y );
-		ox = le - oarea->left - trn->dx;
 
-		ix = trn->ia * ox + trn->ib * oy;
-		iy = trn->ic * ox + trn->id * oy;
+		/* To (3).
+		 */
+		ix = affine->trn.ia * ox + affine->trn.ib * oy;
+		iy = affine->trn.ic * ox + affine->trn.id * oy;
 
-		/* Offset ix/iy input by iarea.left/top ... so we skip the
-		 * image edges we added for interpolation. 
+		/* Now move to (2).
 		 */
 		ix += iarea->left;
 		iy += iarea->top;
+
+		q = (PEL *) IM_REGION_ADDR( or, le, y );
 
 		for( x = le; x < ri; x++ ) {
 			int fx, fy; 	
@@ -540,77 +310,19 @@ affine_gen( REGION *or, void *seq, void *a, void *b )
 			fx = FLOOR( ix );
 			fy = FLOOR( iy );
 
-			/* Clipping! Use >= for right/bottom, since IPOL needs
-			 * to see one pixel more each way.
+			/* Clipping! 
 			 */
 			if( fx < ile || fx >= iri || fy < ito || fy >= ibo ) {
 				for( z = 0; z < ps; z++ ) 
 					q[z] = 0;
 			}
 			else {
-				double sx, sy;
-				int x_int, y_int;
-				int xi, yi;
-
-				/* Subtract 0.5 to centre the bilinear.
-
-				 	FIXME ... need to adjust for bicubic.
-
-				 */
-				sx = ix - 0.5;
-				sy = iy - 0.5;
-
-				/* Now go to scaled int. 
-				 */
-				sx *= TRANSFORM_SCALE;
-				sy *= TRANSFORM_SCALE;
-				x_int = FLOOR( sx );
-				y_int = FLOOR( sy );
-
-				/* Get index into interpolation table and 
-				 * unscaled integer position.
-				 */
-				xi = x_int & (TRANSFORM_SCALE - 1);
-				yi = y_int & (TRANSFORM_SCALE - 1);
-				x_int = x_int >> TRANSFORM_SHIFT;
-				y_int = y_int >> TRANSFORM_SHIFT;
-
-				/* Interpolate for each input type.
-				 */
-				switch( in->BandFmt ) {
-				case IM_BANDFMT_UCHAR: 	
-					DO_IPEL( unsigned char ); 
-					break;
-				case IM_BANDFMT_CHAR: 	
-					DO_IPEL( char ); 
-					break; 
-				case IM_BANDFMT_USHORT: 
-					DO_IPEL( unsigned short ); 
-					break; 
-				case IM_BANDFMT_SHORT: 	
-					DO_IPEL( short ); 
-					break; 
-				case IM_BANDFMT_UINT: 	
-					DO_FPEL( unsigned int ); 
-					break; 
-				case IM_BANDFMT_INT: 	
-					DO_FPEL( int );  
-					break; 
-				case IM_BANDFMT_FLOAT: 	
-					DO_FPEL( float ); 
-					break; 
-				case IM_BANDFMT_DOUBLE:	
-					DO_FPEL( double ); 
-					break; 
-
-				default:
-					error_exit( "im_affine: panic!");
-					/*NOTREACHED*/
-				}
+				interpolate( affine->interpolate, 
+					q, ir, ix, iy );
 			}
 
-			ix += dx;
-			iy += dy;
+			ix += ddx;
+			iy += ddy;
 			q += ps;
 		}
 	}
@@ -619,28 +331,11 @@ affine_gen( REGION *or, void *seq, void *a, void *b )
 }
 
 static int 
-affine( IMAGE *in, IMAGE *out, Transformation *trn )
+affinei( IMAGE *in, IMAGE *out, 
+	VipsInterpolate *interpolate, Transformation *trn )
 {
-	Transformation *trn2;
+	Affine *affine;
 	double edge;
-
-	if( im_iscomplex( in ) ) {
-		im_error( "im_affine", 
-			"%s", _( "complex input not supported" ) );
-		return( -1 );
-	}
-
-	/* We output at (0,0), so displace output by that amount -ve to get
-	 * output at (ox,oy). Alter our copy of trn.
-	 */
-	if( !(trn2 = IM_NEW( out, Transformation )) )
-		return( -1 );
-	*trn2 = *trn;
-	trn2->oarea.left = -trn->oarea.left;
-	trn2->oarea.top = -trn->oarea.top;
-
-	if( im__transform_calc_inverse( trn2 ) )
-		return( -1 );
 
 	/* Make output image.
 	 */
@@ -648,12 +343,30 @@ affine( IMAGE *in, IMAGE *out, Transformation *trn )
 		return( -1 );
 	if( im_cp_desc( out, in ) ) 
 		return( -1 );
-	out->Xsize = trn2->oarea.width;
-	out->Ysize = trn2->oarea.height;
+
+	/* Need a copy of the params for the lifetime of out.
+	 */
+	if( !(affine = IM_NEW( out, Affine )) )
+		return( -1 );
+	affine->interpolate = NULL;
+	if( im_add_close_callback( out, 
+		(im_callback_fn) affine_free, affine, NULL ) )
+		return( -1 );
+	affine->in = in;
+	affine->out = out;
+	affine->interpolate = interpolate;
+	g_object_ref( interpolate );
+	affine->trn = *trn;
+
+	if( im__transform_calc_inverse( &affine->trn ) )
+		return( -1 );
+
+	out->Xsize = affine->trn.oarea.width;
+	out->Ysize = affine->trn.oarea.height;
 
 	/* Normally SMALLTILE ... except if this is a size up/down affine.
 	 */
-	if( trn->b == 0.0 && trn->c == 0.0 ) {
+	if( affine->trn.b == 0.0 && affine->trn.c == 0.0 ) {
 		if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
 			return( -1 );
 	}
@@ -665,11 +378,11 @@ affine( IMAGE *in, IMAGE *out, Transformation *trn )
 	/* Check for coordinate overflow ... we want to be able to hold the
 	 * output space inside INT_MAX / TRANSFORM_SCALE.
 	 */
-	edge = INT_MAX / TRANSFORM_SCALE;
-	if( trn2->oarea.left < -edge || trn2->oarea.top < -edge ||
-		IM_RECT_RIGHT( &trn2->oarea ) > edge || 
-		IM_RECT_BOTTOM( &trn2->oarea ) > edge ) {
-		im_error( "im_affine", 
+	edge = INT_MAX / VIPS_TRANSFORM_SCALE;
+	if( affine->trn.oarea.left < -edge || affine->trn.oarea.top < -edge ||
+		IM_RECT_RIGHT( &affine->trn.oarea ) > edge || 
+		IM_RECT_BOTTOM( &affine->trn.oarea ) > edge ) {
+		im_error( "im_affinei", 
 			"%s", _( "output coordinates out of range" ) );
 		return( -1 );
 	}
@@ -677,7 +390,7 @@ affine( IMAGE *in, IMAGE *out, Transformation *trn )
 	/* Generate!
 	 */
 	if( im_generate( out, 
-		im_start_one, affine_gen, im_stop_one, in, trn2 ) )
+		im_start_one, affinei_gen, im_stop_one, in, affine ) )
 		return( -1 );
 
 	return( 0 );
@@ -685,53 +398,48 @@ affine( IMAGE *in, IMAGE *out, Transformation *trn )
 
 /* As above, but do IM_CODING_LABQ too. And embed the input.
  */
-int 
-im__affine( IMAGE *in, IMAGE *out, Transformation *trn )
+static int 
+im__affinei( IMAGE *in, IMAGE *out, 
+	VipsInterpolate *interpolate, Transformation *trn )
 {
 	IMAGE *t3 = im_open_local( out, "im_affine:3", "p" );
+	const int window_size = vips_interpolate_get_window_size( interpolate );
 	Transformation trn2;
 
-#ifdef DEBUG_GEOMETRY
-	printf( "im__affine: %s\n", in->filename );
-	im__transform_print( trn );
-#endif /*DEBUG_GEOMETRY*/
-
 	/* Add new pixels around the input so we can interpolate at the edges.
-	 * Bilinear needs 0.5 pixels on all edges.
-
-	 	FIXME ... will need to fiddle with this when we add bicubic
-
 	 */
 	if( !t3 ||
 		im_embed( in, t3, 1, 
-			1, 1, in->Xsize + 2, in->Ysize + 2 ) )
+			window_size / 2, window_size / 2, 
+			in->Xsize + window_size, in->Ysize + window_size ) )
 		return( -1 );
 
 	/* Set iarea so we know what part of the input we can take.
 	 */
 	trn2 = *trn;
-	trn2.iarea.left += 1;
-	trn2.iarea.top += 1;
+	trn2.iarea.left += window_size / 2;
+	trn2.iarea.top += window_size / 2;
 
-	affine_interpol_calc();
+#ifdef DEBUG_GEOMETRY
+	printf( "im__affinei: %s\n", in->filename );
+	im__transform_print( &trn2 );
+#endif /*DEBUG_GEOMETRY*/
 
 	if( in->Coding == IM_CODING_LABQ ) {
-		IMAGE *t1 = im_open_local( out, "im_affine:1", "p" );
-		IMAGE *t2 = im_open_local( out, "im_affine:2", "p" );
+		IMAGE *t[2];
 
-		if( !t1 || !t2 ||
-			im_LabQ2LabS( t3, t1 ) ||
-			affine( t1, t2, &trn2 ) ||
-			im_LabS2LabQ( t2, out ) )
+		if( im_open_local_array( out, t, 2, "im_affine:2", "p" ) ||
+			im_LabQ2LabS( t3, t[0] ) ||
+			affinei( t[0], t[1], interpolate, &trn2 ) ||
+			im_LabS2LabQ( t[1], out ) )
 			return( -1 );
 	}
 	else if( in->Coding == IM_CODING_NONE ) {
-		if( affine( t3, out, &trn2 ) )
+		if( affinei( t3, out, interpolate, &trn2 ) )
 			return( -1 );
 	}
 	else {
-		im_error( "im_affine", 
-			"%s", _( "unknown coding type" ) );
+		im_error( "im_affinei", "%s", _( "unknown coding type" ) );
 		return( -1 );
 	}
 
@@ -744,21 +452,22 @@ im__affine( IMAGE *in, IMAGE *out, Transformation *trn )
 }
 
 int 
-im_affine( IMAGE *in, IMAGE *out, 
-	double a, double b, double c, double d, 
-	double dx, double dy, 
+im_affinei( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
+	double a, double b, double c, double d, double dx, double dy, 
 	int ox, int oy, int ow, int oh )
 {
 	Transformation trn;
+
+	trn.iarea.left = 0;
+	trn.iarea.top = 0;
+	trn.iarea.width = in->Xsize;
+	trn.iarea.height = in->Ysize;
 
 	trn.oarea.left = ox;
 	trn.oarea.top = oy;
 	trn.oarea.width = ow;
 	trn.oarea.height = oh;
-	trn.iarea.left = 0;
-	trn.iarea.top = 0;
-	trn.iarea.width = in->Xsize;
-	trn.iarea.height = in->Ysize;
+
 	trn.a = a;
 	trn.b = b;
 	trn.c = c;
@@ -766,5 +475,26 @@ im_affine( IMAGE *in, IMAGE *out,
 	trn.dx = dx;
 	trn.dy = dy;
 
-	return( im__affine( in, out, &trn ) );
+	return( im__affinei( in, out, interpolate, &trn ) );
+}
+
+/* Provide the old im__affine()/im_affine() as bilinear affinei.
+ */
+
+int 
+im__affine( IMAGE *in, IMAGE *out, Transformation *trn )
+{
+	return( im__affinei( in, out, 
+		vips_interpolate_bilinear_static(), trn ) );
+}
+
+int 
+im_affine( IMAGE *in, IMAGE *out, 
+	double a, double b, double c, double d, double dx, double dy, 
+	int ox, int oy, int ow, int oh )
+{
+	return( im_affinei( in, out, 
+		vips_interpolate_bicubic_static(), 
+		a, b, c, d, dx, dy, 
+		ox, oy, ow, oh ) );
 }

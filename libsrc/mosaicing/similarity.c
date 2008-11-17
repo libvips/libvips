@@ -65,14 +65,13 @@
 
 #include <vips/vips.h>
 
+#include "transform.h"
 #include "merge.h"
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Call point from VIPS.
- */
 int 
 im_similarity_area( IMAGE *in, IMAGE *out, 
 	double a, double b, double dx, double dy, 
@@ -96,40 +95,6 @@ im_similarity_area( IMAGE *in, IMAGE *out,
 	trn.dy = dy;
 
 	return( im__affine( in, out, &trn ) );
-}
-
-/* Set output area of trn so that it just holds all of our input pels.
- */
-void
-im__transform_set_area( Transformation *trn )
-{
-	double xA, xB, xC, xD;
-	double yA, yB, yC, yD;	
-	int xmin, xmax, ymin, ymax;
-
-	im__transform_forward( trn, 
-		trn->iarea.left, trn->iarea.top, 
-		&xA, &yA );
-	im__transform_forward( trn, 
-		IM_RECT_RIGHT( &trn->iarea ) - 1, trn->iarea.top, 
-		&xB, &yB );
-	im__transform_forward( trn, 
-		trn->iarea.left, IM_RECT_BOTTOM( &trn->iarea ) - 1, 
-		&xC, &yC );
-	im__transform_forward( trn, 
-		IM_RECT_RIGHT( &trn->iarea ) - 1, 
-			IM_RECT_BOTTOM( &trn->iarea ) - 1, 
-		&xD, &yD );
-
-	xmin = IM_MIN( xA, IM_MIN( xB, IM_MIN( xC, xD ) ) );
-	ymin = IM_MIN( yA, IM_MIN( yB, IM_MIN( yC, yD ) ) );
-	xmax = IM_MAX( xA, IM_MAX( xB, IM_MAX( xC, xD ) ) );
-	ymax = IM_MAX( yA, IM_MAX( yB, IM_MAX( yC, yD ) ) );
-
-	trn->oarea.left = xmin;
-	trn->oarea.top = ymin;
-	trn->oarea.width = xmax - xmin + 1;
-	trn->oarea.height = ymax - ymin + 1;
 }
 
 /* Output the rect holding all our input PELs.

@@ -51,6 +51,7 @@
 
 #include <vips/vips.h>
 
+#include "transform.h"
 #include "merge.h"
 #include "global_balance.h"
 

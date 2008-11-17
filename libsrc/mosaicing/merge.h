@@ -36,16 +36,6 @@
  */
 #define BLEND_SCALE (4096)
 
-/* How many bits of precision we keep for transformations in im_affine().
- */
-#define TRANSFORM_SHIFT (5)
-#define TRANSFORM_SCALE (1<<TRANSFORM_SHIFT)
-
-/* How many bits of precision we keep for interpolation.
- */
-#define INTERPOL_SHIFT (13)
-#define INTERPOL_SCALE (1<<INTERPOL_SHIFT)
-
 /* Keep state for each call in one of these.
  */
 typedef struct _Overlapping {
@@ -93,22 +83,6 @@ typedef struct _MergeInfo {
 	float *merge;
 } MergeInfo;
 
-/* Params for similarity transformation.
- */
-typedef struct {
-	/* Geometry.
-	 */
-	Rect iarea;			/* Area in input we can use */
-	Rect oarea;			/* Area in output we generate */
-
-	/* The transform.
-	 */
-	double a, b, c, d;		
-	double dx, dy;
-
-	double ia, ib, ic, id;		/* Inverse of matrix abcd */
-} Transformation;
-
 /* Functions shared between lr and tb.
  */
 extern double *im__coef1;
@@ -139,20 +113,3 @@ int im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
  */
 int im__affine( IMAGE *in, IMAGE *out, Transformation *trn );
 
-int 
-im_affinei( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
-	double a, double b, double c, double d, 
-	double dx, double dy, 
-	int ox, int oy, int ow, int oh );
-
-void im__transform_init( Transformation *trn );
-int im__transform_calc_inverse( Transformation *trn );
-int im__transform_isidentity( Transformation *trn );
-void im__transform_forward( Transformation *trn, 
-	double x, double y, double *ox, double *oy );
-void im__transform_inverse( Transformation *trn, 
-	double x, double y, double *ox, double *oy );
-void im__transform_set_area( Transformation * );
-int im__transform_add( Transformation *in1, Transformation *in2, 
-	Transformation *out );
-void im__transform_print( Transformation *trn );

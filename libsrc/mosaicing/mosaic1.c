@@ -52,6 +52,7 @@
 #include <vips/buf.h>
 
 #include "mosaic.h"
+#include "transform.h"
 #include "merge.h"
 
 #ifdef WITH_DMALLOC
@@ -281,8 +282,8 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 
 	/* Map points on sec to rotated image.
 	 */
-	im__transform_forward( &trn, xs1, ys1, &xs3, &ys3 );
-	im__transform_forward( &trn, xs2, ys2, &xs4, &ys4 );
+	im__transform_forward_point( &trn, xs1, ys1, &xs3, &ys3 );
+	im__transform_forward_point( &trn, xs2, ys2, &xs4, &ys4 );
 
 	/* Refine tie-points on rotated image. Remember the clip
 	 * im__transform_set_area() has set, and move the sec tie-points 
@@ -315,8 +316,8 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 
 	/* ... and now back to input space again.
 	 */
-	im__transform_inverse( &trn, xs5, ys5, &xs7, &ys7 );
-	im__transform_inverse( &trn, xs6, ys6, &xs8, &ys8 );
+	im__transform_invert_point( &trn, xs5, ys5, &xs7, &ys7 );
+	im__transform_invert_point( &trn, xs6, ys6, &xs8, &ys8 );
 
 	/* Recalc the transform using the refined points.
 	 */

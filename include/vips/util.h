@@ -38,6 +38,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <stdio.h>
+
 /* Some platforms don't have M_PI in math.h :-(
  */
 #define IM_PI (3.14159265358979323846)
@@ -269,6 +271,11 @@ extern "C" {
 		(im_construct_fn) im_open, (im_callback_fn) im_close, \
 		(void *) (NAME), (void *) (MODE), NULL ))
 
+/* Basic function types.
+ */
+typedef int (*im_callback_fn)( void *, void * );
+typedef void *(*im_construct_fn)( void *, void *, void * );
+
 /* strtok replacement.
  */
 char *im__break_token( char *str, char *brk );
@@ -321,8 +328,6 @@ int im__write( int fd, const void *buf, size_t count );
 char *im__file_read( FILE *fp, const char *name, unsigned int *length_out );
 char *im__file_read_name( const char *name, unsigned int *length_out );
 int im__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
-
-gboolean im_isnative( im_arch_type arch );
 
 #ifdef __cplusplus
 }

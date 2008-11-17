@@ -1,4 +1,4 @@
-/* YAFRSMOOTH interpolator.
+/* Yafrsmooth (catmull-rom) interpolator.
  */
 
 /*
@@ -88,6 +88,17 @@ typedef struct _VipsInterpolateYafrsmooth {
 typedef struct _VipsInterpolateYafrsmoothClass {
 	VipsInterpolateClass parent_class;
 
+	/* Precalculated interpolation matricies. int (used for pel sizes up 
+	 * to short), and double (for all others). We go to scale + 1, so
+	 * we can round-to-nearest safely.
+	 */
+
+	/* We could keep a large set of 2d 4x4 matricies, but this actually
+	 * works out slower, since for many resizes the thing will no longer
+	 * fit in L1.
+	 */
+	int matrixi[VIPS_TRANSFORM_SCALE + 1][4];
+	double matrixf[VIPS_TRANSFORM_SCALE + 1][4];
 } VipsInterpolateYafrsmoothClass;
 
 GType vips_interpolate_yafrsmooth_get_type( void );

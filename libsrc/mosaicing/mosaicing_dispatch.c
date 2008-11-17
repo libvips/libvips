@@ -39,6 +39,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#include "transform.h"
 #include "merge.h"
 
 #ifdef WITH_DMALLOC
@@ -565,7 +566,7 @@ affinei_vec( im_object *argv )
 		break;
 
 	case 3:
-		interpolate = vips_interpolate_bilinear_slow_new();
+		interpolate = vips_interpolate_bicubic_new();
 		break;
 
 	case 4:
@@ -573,16 +574,6 @@ affinei_vec( im_object *argv )
 		break;
 
 	case 5:
-		interpolate = vips_interpolate_yafrsmooth_new();
-		vips_interpolate_yafrsmooth_set_sharpening( 
-			VIPS_INTERPOLATE_YAFRSMOOTH( interpolate ), 2.0 );
-		break;
-
-	case 6:
-		interpolate = vips_interpolate_yafr_test_new();
-		break;
-
-	case 7:
 		interpolate = vips_interpolate_yafrnohalo_new();
 		break;
 

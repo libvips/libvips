@@ -57,11 +57,11 @@ typedef struct _VipsInterpolate {
 } VipsInterpolate;
 
 /* An interpolation function. This is a class method, but we have a lookup
- * function for it to speed up dispatch.
+ * function for it to speed up dispatch. Write to the memory at "out",
+ * interpolate the value at position (x, y) in "in".
  */
 typedef void (*VipsInterpolateMethod)( VipsInterpolate *, 
-	REGION *out, REGION *in,
-	int out_x, int out_y, double in_x, double in_y );
+	PEL *out, REGION *in, double x, double y );
 
 typedef struct _VipsInterpolateClass {
 	VipsObjectClass parent_class;
@@ -69,7 +69,7 @@ typedef struct _VipsInterpolateClass {
 	/* Write to pixel out(x,y), interpolating from in(x,y). The caller has
 	 * to set the regions up.
 	 */
-	VipsInterpolateMethod  interpolate;
+	VipsInterpolateMethod interpolate;
 
 	/* This interpolator needs a window this many pixels across and down.
 	 */
@@ -81,8 +81,8 @@ typedef struct _VipsInterpolateClass {
 } VipsInterpolateClass;
 
 GType vips_interpolate_get_type( void );
-void vips_interpolate( VipsInterpolate *interpolate, REGION *out, REGION *in,
-        int out_x, int out_y, double in_x, double in_y );
+void vips_interpolate( VipsInterpolate *interpolate, 
+	PEL *out, REGION *in, double x, double y );
 VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate * );
 int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 
@@ -131,9 +131,11 @@ VipsInterpolate *vips_interpolate_nearest_static( void );
 #define VIPS_TRANSFORM_SCALE (1 << VIPS_TRANSFORM_SHIFT)
 
 /* How many bits of precision we keep for interpolation, ie. where the decimal
- * is in the fixed-point tables.
+ * is in the fixed-point tables. For 16-bit pixels, we need 16 bits for the
+ * data, 4 bits to add 16 values together, another bit for the sign and some
+ * other stuff, so say 24 total. That leaves 8 bits for the fractional part.
  */
-#define VIPS_INTERPOLATE_SHIFT (13)
+#define VIPS_INTERPOLATE_SHIFT (8)
 #define VIPS_INTERPOLATE_SCALE (1 << VIPS_INTERPOLATE_SHIFT)
 
 #define VIPS_TYPE_INTERPOLATE_BILINEAR (vips_interpolate_bilinear_get_type())
@@ -160,58 +162,20 @@ typedef struct _VipsInterpolateBilinearClass {
 	VipsInterpolateClass parent_class;
 
 	/* Precalculated interpolation matricies. int (used for pel sizes up 
-	 * to short), and double (for all others). We go to scale + 1, so
-	 * we can round-to-nearest safely.
+	 * to short), and float (for all others). We go to scale + 1, so
+	 * we can round-to-nearest safely. Don't bother with double, since
+	 * this is an approximation anyway.
  	 */
 	int matrixi[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
-	double matrixd[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
+	float matrixd[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
 } VipsInterpolateBilinearClass;
 
 GType vips_interpolate_bilinear_get_type( void );
 VipsInterpolate *vips_interpolate_bilinear_new( void );
 
-/* Convenience: return a static fast bilinear, so no need to free it.
+/* Convenience: return a static bilinear, so no need to free it.
  */
 VipsInterpolate *vips_interpolate_bilinear_static( void );
-
-/* Slow bilinear class starts.
- */
-
-#define VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW \
-	(vips_interpolate_bilinear_slow_get_type())
-#define VIPS_INTERPOLATE_BILINEAR_SLOW( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW, VipsInterpolateBilinearSlow ))
-#define VIPS_INTERPOLATE_BILINEAR_SLOW_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW, \
-	VipsInterpolateBilinearSlowClass))
-#define VIPS_IS_INTERPOLATE_BILINEAR_SLOW( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), \
-	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW ))
-#define VIPS_IS_INTERPOLATE_BILINEAR_SLOW_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), \
-	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW ))
-#define VIPS_INTERPOLATE_BILINEAR_SLOW_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW, VipsInterpolateBilinearSlowClass ))
-
-typedef struct _VipsInterpolateBilinearSlow {
-	VipsInterpolate parent_object;
-
-} VipsInterpolateBilinearSlow;
-
-typedef struct _VipsInterpolateBilinearSlowClass {
-	VipsInterpolateClass parent_class;
-
-} VipsInterpolateBilinearSlowClass;
-
-GType vips_interpolate_bilinear_slow_get_type( void );
-VipsInterpolate *vips_interpolate_bilinear_slow_new( void );
-
-/* Convenience: return a static fast bilinear_slow, so no need to free it.
- */
-VipsInterpolate *vips_interpolate_bilinear_slow_static( void );
 
 #ifdef __cplusplus
 }

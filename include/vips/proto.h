@@ -52,7 +52,6 @@ extern "C" {
 
 /* Need these for some protos.
  */
-#include <stdio.h>
 #include <stdarg.h>
 #include <sys/types.h>
 #include <glib-object.h>
@@ -64,10 +63,6 @@ extern "C" {
 #    define __attribute__(x)  /*NOTHING*/
 #  endif
 #endif /*SWIG*/
-
-typedef int (*im_callback_fn)( void *, void * );
-typedef void *(*im_construct_fn)( void *, void *, void * );
-typedef void *(*im_header_map_fn)( IMAGE *, const char *, GValue *, void * );
 
 /* iofuncs
  */
@@ -87,6 +82,7 @@ int im_header_double( IMAGE *im, const char *field, double *out );
 int im_header_string( IMAGE *im, const char *field, char **out );
 GType im_header_get_type( IMAGE *im, const char *field );
 int im_header_get( IMAGE *im, const char *field, GValue *value_copy );
+typedef void *(*im_header_map_fn)( IMAGE *, const char *, GValue *, void * );
 void *im_header_map( IMAGE *im, im_header_map_fn fn, void *a );
 
 const char *im_version_string( void );
@@ -415,6 +411,8 @@ typedef enum {
 	IM_ARCH_MSB_FIRST
 } im_arch_type;
 
+gboolean im_isnative( im_arch_type arch );
+
 DOUBLEMASK *im_vips2mask( IMAGE *, const char * );
 int im_mask2vips( DOUBLEMASK *, IMAGE * );
 int im_copy_set( IMAGE *, IMAGE *, int, float, float, int, int );
@@ -637,6 +635,19 @@ int im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	int xr2, int yr2, int xs2, int ys2,
 	int hwindowsize, int hsearchsize );
 
+int im_affinei( IMAGE *in, IMAGE *out, 
+	VipsInterpolate *interpolate,
+	double a, double b, double c, double d, double dx, double dy, 
+	int ox, int oy, int ow, int oh );
+int im_correl( IMAGE *ref, IMAGE *sec,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	double *correlation, int *x, int *y );
+int im_remosaic( IMAGE *in, IMAGE *out,
+	const char *old_str, const char *new_str );
+
+/* Old stuff, for compat.
+ */
 int im_affine( IMAGE *in, IMAGE *out,
 	double a, double b, double c, double d, double dx, double dy,
 	int ox, int oy, int ow, int oh );
@@ -645,12 +656,6 @@ int im_similarity( IMAGE *in, IMAGE *out,
 int im_similarity_area( IMAGE *in, IMAGE *out,
 	double a, double b, double dx, double dy,
 	int ox, int oy, int ow, int oh );
-int im_correl( IMAGE *ref, IMAGE *sec,
-	int xref, int yref, int xsec, int ysec,
-	int hwindowsize, int hsearchsize,
-	double *correlation, int *x, int *y );
-int im_remosaic( IMAGE *in, IMAGE *out,
-	const char *old_str, const char *new_str );
 
 int im_align_bands( IMAGE *in, IMAGE *out );
 int im_maxpos_subpel( IMAGE *in, double *x, double *y );

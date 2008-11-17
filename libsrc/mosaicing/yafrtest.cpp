@@ -435,8 +435,7 @@ catrom_yafr_test(
 
 static void
 vips_interpolate_yafr_test_interpolate( VipsInterpolate *interpolate, 
-	REGION *out, REGION *in, 
-	int out_x, int out_y, double x, double y )
+	PEL *out, REGION *in, double x, double y )
 {
 	VipsInterpolateYafrTest *yafr_test = 
 		VIPS_INTERPOLATE_YAFR_TEST( interpolate );
@@ -552,14 +551,10 @@ vips_interpolate_yafr_test_interpolate( VipsInterpolate *interpolate,
 	const int lskip = IM_REGION_LSKIP( in );
 	const int esize = IM_IMAGE_SIZEOF_ELEMENT( in->im );
 
-	/* Where we write the result.
-	 */
-	PEL *q = (PEL *) IM_REGION_ADDR( out, out_x, out_y ); 
-
 /* Put this in a macro to save some typing.
  */
 #define CALL(T, D) \
-	catrom_yafr_test<T, D>(q + z * esize, p + z * esize, \
+	catrom_yafr_test<T, D>(out + z * esize, p + z * esize, \
 		   channels, lskip, \
 		   yafr_test->sharpening, \
 		   cardinal_one, \

@@ -55,7 +55,6 @@
 static VipsInterpolateClass *vips_interpolate_parent_class = NULL;
 static VipsInterpolateClass *vips_interpolate_nearest_parent_class = NULL;
 static VipsInterpolateClass *vips_interpolate_bilinear_parent_class = NULL;
-static VipsInterpolateClass *vips_interpolate_bilinear_slow_parent_class = NULL;
 
 #ifdef DEBUG
 static void
@@ -133,13 +132,13 @@ vips_interpolate_get_type( void )
  * in_x, in_y in REGION in. Don't do this as a signal ffor speed.
  */
 void
-vips_interpolate( VipsInterpolate *interpolate, REGION *out, REGION *in,
-	int out_x, int out_y, double in_x, double in_y )
+vips_interpolate( VipsInterpolate *interpolate, 
+	PEL *out, REGION *in, double x, double y )
 {
 	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
 
 	g_assert( class->interpolate );
-	class->interpolate( interpolate, out, in, out_x, out_y, in_x, in_y );
+	class->interpolate( interpolate, out, in, x, y );
 }
 
 /* As above, but return the function pointer. Use this to cache method
@@ -171,30 +170,22 @@ vips_interpolate_get_window_size( VipsInterpolate *interpolate )
 
 static void
 vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate, 
-	REGION *out, REGION *in, 
-	int out_x, int out_y, double in_x, double in_y )
+	PEL *out, REGION *in, double x, double y )
 {
 	/* Pel size and line size.
 	 */
 	const int ps = IM_IMAGE_SIZEOF_PEL( in->im );
 	int z;
 
-	PEL *q = (PEL *) IM_REGION_ADDR( out, out_x, out_y ); 
-
-	/* Subtract 0.5 to centre the nearest.
-	 */
-	const double cx = in_x - 0.5;
-	const double cy = in_y - 0.5;
-
 	/* Top left corner we interpolate from.
 	 */
-	const int xi = FLOOR( cx );
-	const int yi = FLOOR( cy );
+	const int xi = FLOOR( x );
+	const int yi = FLOOR( y );
 
 	const PEL *p = (PEL *) IM_REGION_ADDR( in, xi, yi ); 
 
 	for( z = 0; z < ps; z++ )
-		q[z] = p[z];
+		out[z] = p[z];
 }
 
 static void
@@ -276,7 +267,7 @@ vips_interpolate_nearest_static( void )
 /* Interpolate a section ... int8/16 types.
  */
 #define BILINEAR_INT( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
+	TYPE *tq = (TYPE *) out; \
  	\
 	const int c1 = class->matrixi[xi][yi][0]; \
 	const int c2 = class->matrixi[xi][yi][1]; \
@@ -296,7 +287,7 @@ vips_interpolate_nearest_static( void )
 /* Interpolate a pel ... int32 and float types.
  */
 #define BILINEAR_FLOAT( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
+	TYPE *tq = (TYPE *) out; \
  	\
 	const double c1 = class->matrixd[xi][yi][0]; \
 	const double c2 = class->matrixd[xi][yi][1]; \
@@ -333,8 +324,7 @@ vips_interpolate_nearest_static( void )
 
 static void
 vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate, 
-	REGION *out, REGION *in, 
-	int out_x, int out_y, double in_x, double in_y )
+	PEL *out, REGION *in, double x, double y )
 {
 	VipsInterpolateBilinearClass *class = 
 		VIPS_INTERPOLATE_BILINEAR_GET_CLASS( interpolate );
@@ -345,15 +335,10 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int ls = IM_REGION_LSKIP( in ); 
 	const int b = in->im->Bands; 
 
-	/* Subtract 0.5 to centre the bilinear.
-	 */
-	const double cx = in_x - 0.5;
-	const double cy = in_y - 0.5;
-
 	/* Now go to scaled int. 
 	 */
-	const double sx = cx * VIPS_TRANSFORM_SCALE;
-	const double sy = cy * VIPS_TRANSFORM_SCALE;
+	const double sx = x * VIPS_TRANSFORM_SCALE;
+	const double sy = y * VIPS_TRANSFORM_SCALE;
 	const int sxi = FLOOR( sx );
 	const int syi = FLOOR( sy );
 
@@ -362,15 +347,14 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	 */
 	const int xi = sxi & (VIPS_TRANSFORM_SCALE - 1);
 	const int yi = syi & (VIPS_TRANSFORM_SCALE - 1);
-	const int in_x_int = sxi >> VIPS_TRANSFORM_SHIFT;
-	const int in_y_int = syi >> VIPS_TRANSFORM_SHIFT;
+	const int x_int = sxi >> VIPS_TRANSFORM_SHIFT;
+	const int y_int = syi >> VIPS_TRANSFORM_SHIFT;
 
-	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, in_x_int, in_y_int ); 
+	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, x_int, y_int ); 
 	const PEL *p2 = p1 + ps;
 	const PEL *p3 = p1 + ls; 
 	const PEL *p4 = p3 + ps; 
 
-	PEL *q = (PEL *) IM_REGION_ADDR( out, out_x, out_y ); 
 	int z;
 
 	SWITCH_INTERPOLATE( in->im->BandFmt, 
@@ -474,154 +458,6 @@ vips_interpolate_bilinear_static( void )
 
 	if( !interpolate )
 		interpolate = vips_interpolate_bilinear_new();
-
-	return( interpolate );
-}
-
-/* VipsInterpolateBilinearSlow class
- */
-
-/* Slow mode is really just for testing ... it doesn't use the pre-calculated 
- * interpolation factors or the fixed-point arithmetic.
- */
-
-/* in this class, name vars in the 2x2 grid as eg.
- * p1  p2
- * p3  p4
- */ 
-
-/* Interpolate a pel ... don't use the pre-calcuated matricies.
- */
-#define BILINEAR_SLOW( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
- 	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
-	\
-	for( z = 0; z < b; z++ ) \
-		tq[z] = c1 * tp1[z] + c2 * tp2[z] + \
-			c3 * tp3[z] + c4 * tp4[z]; \
-}
-
-static void
-vips_interpolate_bilinear_slow_interpolate( VipsInterpolate *interpolate, 
-	REGION *out, REGION *in, 
-	int out_x, int out_y, double in_x, double in_y )
-{
-	/* Pel size and line size.
-	 */
-	const int ps = IM_IMAGE_SIZEOF_PEL( in->im );
-	const int ls = IM_REGION_LSKIP( in ); 
-	const int b = in->im->Bands; 
-
-	/* Subtract 0.5 to centre the bilinear.
-	 */
-	const double cx = in_x - 0.5;
-	const double cy = in_y - 0.5;
-
-	/* Top left corner we interpolate from.
-	 */
-	const int xi = FLOOR( cx );
-	const int yi = FLOOR( cy );
-
-	/* Fractional part.
-	 */
-	const double X = cx - xi;
-	const double Y = cy - yi;
-	
-	/* Residual.
-	 */
-	const double Xd = 1.0 - X;	
-	const double Yd = 1.0 - Y;
-
-	/* Weights.
-	 */
-	const double c1 = Xd * Yd;
-	const double c2 = X * Yd;
-	const double c3 = Xd * Y;
-	const double c4 = X * Y;
-
-	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, xi, yi ); 
-	const PEL *p2 = p1 + ps;
-	const PEL *p3 = p1 + ls; 
-	const PEL *p4 = p3 + ps; 
-
-	PEL *q = (PEL *) IM_REGION_ADDR( out, out_x, out_y ); 
-	int z;
-
-	SWITCH_INTERPOLATE( in->im->BandFmt, 
-		BILINEAR_SLOW, BILINEAR_SLOW );
-}
-
-static void
-vips_interpolate_bilinear_slow_class_init( VipsInterpolateBilinearSlowClass *class )
-{
-	VipsInterpolateClass *interpolate_class = 
-		(VipsInterpolateClass *) class;
-
-	vips_interpolate_bilinear_slow_parent_class = 
-		g_type_class_peek_parent( class );
-
-	interpolate_class->interpolate = 
-		vips_interpolate_bilinear_slow_interpolate;
-	interpolate_class->window_size = 2;
-}
-
-static void
-vips_interpolate_bilinear_slow_init( 
-	VipsInterpolateBilinearSlow *bilinear_slow )
-{
-#ifdef DEBUG
-	printf( "vips_interpolate_bilinear_slow_init: " );
-	vips_object_print( VIPS_OBJECT( bilinear_slow ) );
-#endif /*DEBUG*/
-
-}
-
-GType
-vips_interpolate_bilinear_slow_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		static const GTypeInfo info = {
-			sizeof( VipsInterpolateBilinearSlowClass ),
-			NULL,           /* base_init */
-			NULL,           /* base_finalize */
-			(GClassInitFunc) 
-				vips_interpolate_bilinear_slow_class_init,
-			NULL,           /* class_finalize */
-			NULL,           /* class_data */
-			sizeof( VipsInterpolateBilinearSlow ),
-			32,             /* n_preallocs */
-			(GInstanceInitFunc) vips_interpolate_bilinear_slow_init,
-		};
-
-		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
-			"VipsInterpolateBilinearSlow", &info, 0 );
-	}
-
-	return( type );
-}
-
-VipsInterpolate *
-vips_interpolate_bilinear_slow_new( void )
-{
-	return( VIPS_INTERPOLATE( g_object_new( 
-		VIPS_TYPE_INTERPOLATE_BILINEAR_SLOW, NULL ) ) );
-}
-
-/* Convenience: return a static bilinear_slow you don't need to free.
- */
-VipsInterpolate *
-vips_interpolate_bilinear_slow_static( void )
-{
-	static VipsInterpolate *interpolate = NULL;
-
-	if( !interpolate )
-		interpolate = vips_interpolate_bilinear_slow_new();
 
 	return( interpolate );
 }

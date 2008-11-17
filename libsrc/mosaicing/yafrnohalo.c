@@ -686,8 +686,7 @@ bilinear_yafrnohalo (float* restrict out, const float* restrict in,
 
 static void
 vips_interpolate_yafrnohalo_interpolate( VipsInterpolate *interpolate, 
-	REGION *out, REGION *in, 
-	int out_x, int out_y, double x, double y )
+	PEL *out, REGION *in, double x, double y )
 {
 	VipsInterpolateYafrnohalo *yafrnohalo = 
 		VIPS_INTERPOLATE_YAFRNOHALO( interpolate );
@@ -977,11 +976,10 @@ vips_interpolate_yafrnohalo_interpolate( VipsInterpolate *interpolate,
 
 	/* Where we write the result.
 	 */
-	PEL *q = (PEL *) IM_REGION_ADDR( out, out_x, out_y ); 
 	int z;
 
 	for( z = 0; z < channels; z++ ) 
-		bilinear_yafrnohalo ((float *) q + z, (float *) p + z,
+		bilinear_yafrnohalo ((float *) out + z, (float *) p + z,
 			   channels, pixels_per_buffer_row,
 			   yafrnohalo->sharpening,
 			     c_horizo_left___up,

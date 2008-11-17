@@ -461,8 +461,7 @@ catrom_yafrsmooth (float* restrict out, const float* restrict in,
 
 static void
 vips_interpolate_yafrsmooth_interpolate( VipsInterpolate *interpolate, 
-	REGION *out, REGION *in, 
-	int out_x, int out_y, double x, double y )
+	PEL *out, REGION *in, double x, double y )
 {
 	VipsInterpolateYafrsmooth *yafrsmooth = 
 		VIPS_INTERPOLATE_YAFRSMOOTH( interpolate );
@@ -580,11 +579,10 @@ vips_interpolate_yafrsmooth_interpolate( VipsInterpolate *interpolate,
 
 	/* Where we write the result.
 	 */
-	PEL *q = (PEL *) IM_REGION_ADDR( out, out_x, out_y ); 
 	int z;
 
 	for( z = 0; z < channels; z++ ) 
-		catrom_yafrsmooth ((float *) q + z, (float *) p + z,
+		catrom_yafrsmooth ((float *) out + z, (float *) p + z,
 			   channels, pixels_per_buffer_row,
 			   yafrsmooth->sharpening,
 			   cardinal_one,
@@ -602,13 +600,13 @@ vips_interpolate_yafrsmooth_interpolate( VipsInterpolate *interpolate,
 }
 
 static void
-vips_interpolate_yafrsmooth_class_init( VipsInterpolateYafrsmoothClass *class )
+vips_interpolate_yafrsmooth_class_init( VipsInterpolateYafrsmoothClass *iclass )
 {
 	VipsInterpolateClass *interpolate_class = 
-		VIPS_INTERPOLATE_CLASS( class );
+		VIPS_INTERPOLATE_CLASS( iclass );
 
 	vips_interpolate_yafrsmooth_parent_class = 
-		g_type_class_peek_parent( class );
+		VIPS_INTERPOLATE_CLASS( g_type_class_peek_parent( iclass ) );
 
 	interpolate_class->interpolate = 
 		vips_interpolate_yafrsmooth_interpolate;
@@ -645,7 +643,8 @@ vips_interpolate_yafrsmooth_get_type( void )
 		};
 
 		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
-			"VipsInterpolateYafrsmooth", &info, 0 );
+			"VipsInterpolateYafrsmooth", &info, 
+			(GTypeFlags) 0 );
 	}
 
 	return( type );

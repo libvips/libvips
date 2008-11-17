@@ -6,6 +6,11 @@
 - added yafrsmooth interpolation
 - added yafrtest
 - added yafrnohalo
+- ubuntu 8.10 changes
+- interpolators get an output pointer, not region
+- tuning for bicubic
+- revised transform / clip code, we now do corner not centre
+- yafr-smooth reworked along the lines of bicubic
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

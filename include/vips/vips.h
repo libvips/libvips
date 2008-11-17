@@ -494,7 +494,7 @@ typedef struct {
 	 (X) * IM_IMAGE_SIZEOF_PEL(I))
 #endif /*DEBUG*/
 
-#include <vips/proto.h>
+#include <vips/util.h>
 #include <vips/colour.h>
 /* #include <vips/vector.h> */
 #include <vips/format.h>
@@ -504,10 +504,11 @@ typedef struct {
 #include <vips/yafrsmooth.h>
 #include <vips/yafrnohalo.h>
 #include <vips/yafrtest.h>
+#include <vips/bicubic.h>
 #include <vips/semaphore.h>
 #include <vips/threadgroup.h>
 #include <vips/meta.h>
-#include <vips/util.h>
+#include <vips/proto.h>
 
 #ifdef __cplusplus
 }

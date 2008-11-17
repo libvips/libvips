@@ -3,6 +3,7 @@ pkginclude_HEADERS = \
 	VError.h \
 	VImage.h \
 	VMask.h \
+	bicubic.h \
 	vipscpp.h \
 	colour.h \
 	debug.h \

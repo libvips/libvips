@@ -134,6 +134,7 @@
 #include <vips/vips.h>
 #include <vips/thread.h>
 
+#include "transform.h"
 #include "merge.h"
 
 #ifdef WITH_DMALLOC
