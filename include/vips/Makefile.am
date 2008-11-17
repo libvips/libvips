@@ -27,7 +27,6 @@ pkginclude_HEADERS = \
 	vips.h \
 	yafrsmooth.h \
 	yafrnohalo.h \
-	yafrtest.h \
 	vips \
 	intl.h \
 	buf.h \

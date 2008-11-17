@@ -503,7 +503,6 @@ typedef struct {
 #include <vips/interpolate.h>
 #include <vips/yafrsmooth.h>
 #include <vips/yafrnohalo.h>
-#include <vips/yafrtest.h>
 #include <vips/bicubic.h>
 #include <vips/semaphore.h>
 #include <vips/threadgroup.h>
