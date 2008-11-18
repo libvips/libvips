@@ -478,6 +478,28 @@ im_affinei( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
 	return( im__affinei( in, out, interpolate, &trn ) );
 }
 
+int 
+im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
+	double a, double b, double c, double d, double dx, double dy ) 
+{
+	Transformation trn;
+
+	trn.iarea.left = 0;
+	trn.iarea.top = 0;
+	trn.iarea.width = in->Xsize;
+	trn.iarea.height = in->Ysize;
+	trn.a = a;
+	trn.b = b;
+	trn.c = c;
+	trn.d = d;
+	trn.dx = dx;
+	trn.dy = dy;
+
+	im__transform_set_area( &trn );
+
+	return( im__affinei( in, out, interpolate, &trn ) );
+}
+
 /* Provide the old im__affine()/im_affine() as bilinear affinei.
  */
 

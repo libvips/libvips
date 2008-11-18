@@ -639,6 +639,8 @@ int im_affinei( IMAGE *in, IMAGE *out,
 	VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy, 
 	int ox, int oy, int ow, int oh );
+int im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
+	double a, double b, double c, double d, double dx, double dy ) ;
 int im_correl( IMAGE *ref, IMAGE *sec,
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,

@@ -535,26 +535,10 @@ static im_arg_desc affinei_args[] = {
 	IM_INPUT_INT( "h" )
 };
 
-/* Call im_affinei via arg vector.
- */
-static int
-affinei_vec( im_object *argv )
+static VipsInterpolate *
+get_interpolate( int interpol )
 {
-	int interpol = *((int *) argv[2]);
-	double a = *((double *) argv[3]);
-	double b = *((double *) argv[4]);
-	double c = *((double *) argv[5]);
-	double d = *((double *) argv[6]);
-	double dx = *((double *) argv[7]);
-	double dy = *((double *) argv[8]);
-	int x = *((int *) argv[9]);
-	int y = *((int *) argv[10]);
-	int w = *((int *) argv[11]);
-	int h = *((int *) argv[12]);
-
 	VipsInterpolate *interpolate;
-
-	int result;
 
 	switch( interpol ) {
 	case 1:
@@ -579,12 +563,35 @@ affinei_vec( im_object *argv )
 
 	default:
 		im_error( "affinei_vec", "%s", _( "bad interpolation" ) );
-		return( -1 );
+		interpolate = NULL;
 	}
 
+	return( interpolate );
+}
+
+/* Call im_affinei via arg vector.
+ */
+static int
+affinei_vec( im_object *argv )
+{
+	int interpol = *((int *) argv[2]);
+	double a = *((double *) argv[3]);
+	double b = *((double *) argv[4]);
+	double c = *((double *) argv[5]);
+	double d = *((double *) argv[6]);
+	double dx = *((double *) argv[7]);
+	double dy = *((double *) argv[8]);
+	int x = *((int *) argv[9]);
+	int y = *((int *) argv[10]);
+	int w = *((int *) argv[11]);
+	int h = *((int *) argv[12]);
+	VipsInterpolate *interpolate;
+	int result;
+
+	if( !(interpolate = get_interpolate( interpol )) )
+		return( -1 );
 	result = im_affinei( argv[0], argv[1], interpolate, 
 		a, b, c, d, dx, dy, x, y, w, h );
-
 	g_object_unref( interpolate );
 
 	return( result );
@@ -599,6 +606,55 @@ static im_function affinei_desc = {
 	affinei_vec, 			/* Dispatch function */
 	IM_NUMBER( affinei_args ),	/* Size of arg list */
 	affinei_args 			/* Arg list */
+};
+
+/* affinei args
+ */
+static im_arg_desc affinei_all_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "interpolate" ),
+	IM_INPUT_DOUBLE( "a" ),
+	IM_INPUT_DOUBLE( "b" ),
+	IM_INPUT_DOUBLE( "c" ),
+	IM_INPUT_DOUBLE( "d" ),
+	IM_INPUT_DOUBLE( "dx" ),
+	IM_INPUT_DOUBLE( "dy" )
+};
+
+/* Call im_affinei via arg vector.
+ */
+static int
+affinei_all_vec( im_object *argv )
+{
+	int interpol = *((int *) argv[2]);
+	double a = *((double *) argv[3]);
+	double b = *((double *) argv[4]);
+	double c = *((double *) argv[5]);
+	double d = *((double *) argv[6]);
+	double dx = *((double *) argv[7]);
+	double dy = *((double *) argv[8]);
+	VipsInterpolate *interpolate;
+	int result;
+
+	if( !(interpolate = get_interpolate( interpol )) )
+		return( -1 );
+	result = im_affinei_all( argv[0], argv[1], interpolate, 
+		a, b, c, d, dx, dy );
+	g_object_unref( interpolate );
+
+	return( result );
+}
+
+/* Description of im_affinei.
+ */ 
+static im_function affinei_all_desc = {
+	"im_affinei_all", 		/* Name */
+	"affine transform of whole image",
+	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
+	affinei_all_vec, 		/* Dispatch function */
+	IM_NUMBER( affinei_all_args ),	/* Size of arg list */
+	affinei_all_args 		/* Arg list */
 };
 
 /* similarity args
@@ -943,6 +999,7 @@ static im_function maxpos_subpel_desc= {
 static im_function *mos_list[] = {
 	&affine_desc,
 	&affinei_desc,
+	&affinei_all_desc,
         &align_bands_desc,
 	&correl_desc,
 	&find_lroverlap_desc,
