@@ -1,5 +1,11 @@
 - make a new package for "resample"? im_shrink & friends could go in there too
 
+  or maybe "transform"? flip/rot90/embed etc. as well?
+
+- make a "deprecated" package too
+
+- im_affinei and im_affinei_all need docs
+
 - try walking the class hierarchy below VipsInterpolate and see if we can see
   all the interpolators
 
@@ -8,108 +14,27 @@
   	nickname, eg. "bicubic"
 	caption, eg. "catmull-rom bicubic interpolation"
 
+  can we write a find-by-nickname function? eg.
+
+  	GType vips_get_type (const char *base, const char *nickname)
+
+  then 
+
+  	vips_get_type ("VipsInterpolator", "bicubic")
+
+  would get us the GType for VipsInterpolatorBicubic
+
+- redo the format system in this way too?
+
+  need a way to init a package: the init would register all the types that
+  package uses to they appear to introspection
+
 - how to expose things like yafrsmooth's "sharpening" parameter to
   nip2/C++/Python?
 
-  look at vips8, can we use the parametter code there?
+  look at vips8, can we use the parameter code there?
 
   would need to be added to VipsObject I guess
-
-- repeat the benchmarks with the final code, how close are we? do we need to
-  repeat all of them because of the errors in the code we were testing?
-
-  user time, laptop, 8-bit data
-
-	bilinear					15.1 (was 16)
-	bicubic, fixed-point, tables			26.5 (was 29.5)
-	bicubic, floating-point, tables			35.8 (no change)
-	bicubic, floating-point, no tables		38.3 (was 44.2)
-	yafrsmooth, fixed-point, tables			114
-	yafrsmooth, from gegl				149
-
-- we need an introspection thing to list interpolation classes
-
-  how do we list the subclasses of VipsInterpolate? it'll need some extra
-  stuff to present interpolations to the user (caption?)
-
-  we should add params as gobject properties
-
-
-
-
-
-
-
-- benchmarking notes:
-
-	time vips im_affinei wtc.v wtc2.v 2 0.97 0 0 0.97 0 0 0 0 10000 10000
-
-  user time, opteron, 8-bit data
-
-  	old-vips					3.0
-	bilinear					3.0
-	bicubic, fixed-point, separate tables		8.3
-	bicubic, fixed-point, tables			10.9
-	bicubic, floating-point, separate tables	12.8
-	bicubic, floating-point, tables			14.2
-	bicubic, floating-point, no tables, separate	15.0
-	bicubic, floating-point, no tables		17.6
-	yafr-smooth					36.3
-
-  user time, opteron, float data (real time is huge, thanks to very large file
-  read/write)
-
-	bicubic, fp, tables 				8.2
-	bicubic, fp, tables, separate 			9.7
-	bicubic, fp, no tables, separate		10.0
-	bicubic, fp, no tables				13.2
-
-  user time, opteron, 8 bit -> float, -> 8-bit
-
-	bicubic, fp, no tables				16
-
-  user time, laptop, 8-bit data
-
-  	old-vips					14.7
-	bilinear					16.0
-	bicubic, fixed-point, tables			29.5
-	bicubic, floating-point, tables			35.8
-	bicubic, floating-point, no tables		44.2
-
-  user time, laptop, float data
-
-	bicubic, fp, tables 				32.2
-	bicubic, fp, no tables 				51.5
-
-  user time, laptop, 8 bit -> float, -> 8-bit
-
-	bicubic, fp, no tables 				69
-
-- still to check:
-  
-	range clipping
-
-	think again about centred vs non-centred pixels
-
-	coordinate clipping
-
-	image margins
-
-	don't use tables for large expansions? we'll get banding
-
-	put bicubic's improvements into yafrsmooth / yafrnohalo
-
-- think about position of . in int path 
-
-	16 bit needs 16 for mantissa, plus 4 for adding the 16 components
-	together, plus a bit of overflow for safety, plus a sign bit 
-	... so 8 bits for the fractional part sounds about right
-
-	for 8 bit data, we need 8 + 4 + 1 + 1, say 16 bits for the fractional
-	part
-
-	but better to keep it all with the same point position, or we need to
-	have two copies of the tables
 
 - vips_object_print, set_name etc. need writing
 
