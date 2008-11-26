@@ -65,6 +65,15 @@ typedef struct _VipsObjectClass {
 	/* Try to print something about the object, handy for debugging.
 	 */
 	void (*print)( VipsObject *, im_buf_t * );
+
+	/* Class nickname, eg. "VipsInterpolateBicubic" has "bicubic" as a
+	 * nickname. Not internationalised. 
+	 */
+	const char *nickname;
+
+	/* Class description. Used for help messages, so internationalised.
+	 */
+	const char *description;
 } VipsObjectClass;
 
 void *vips_object_changed( VipsObject *vips_object );

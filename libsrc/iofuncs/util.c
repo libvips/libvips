@@ -242,6 +242,101 @@ im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b )
 	return( pair.result );
 }
 
+/* Map over all a type's children.
+ */
+void *
+im_type_map( GType base, VTypeMap2Fn fn, void *a, void *b )
+{
+	GType *child;
+	guint n_children;
+	int i;
+	void *result;
+
+	child = g_type_children( base, &n_children );
+	result = NULL;
+	for( i = 0; i < n_children && !result; i++ )
+		result = fn( child[i], a, b );
+	g_free( child );
+
+	return( result );
+}
+
+/* Loop over all the concrete subtypes of a base type.
+ */
+void *
+im_type_map_concrete_all( GType base, VTypeMapFn fn, void *a )
+{
+	void *result;
+
+	result = NULL;
+	if( !G_TYPE_IS_ABSTRACT( base ) )
+		result = fn( base, a );
+	if( !result )
+		result = im_type_map( base, 
+			(VTypeMap2Fn) im_type_map_concrete_all, fn, a );
+
+	return( result );
+}
+
+static GType
+test_name( GType type, const char *nickname )
+{
+	GTypeClass *class;
+	VipsObjectClass *vips_class;
+
+	/* Does this class exist? Try to create if not.
+	 */
+	if( !(class = g_type_class_peek( type )) ) 
+		/* We don't unref, so the class is never finalized. This will
+		 * make the peek work next time around and save us from
+		 * constantly building and destroying classes.
+		 */
+		if( !(class = g_type_class_ref( type )) ) 
+			return( 0 );
+
+	if( !VIPS_IS_OBJECT_CLASS( class ) )
+		return( 0 );
+	vips_class = VIPS_OBJECT_CLASS( class );
+	if( strcasecmp( vips_class->nickname, nickname ) != 0 )
+		return( 0 );
+
+	return( type );
+}
+
+/* Find a GType ... search below base, return the first match on a nickname or
+ * a name.
+ */
+GType
+im_type_find( const char *basename, const char *nickname )
+{
+	GType base;
+	GType type;
+
+	if( !(base = g_type_from_name( basename )) ) {
+		im_error( "im_type_find", 
+			_( "base type \"%s\" not found" ), basename ); 
+		return( 0 );
+	}
+
+	/* Users can pass the real name instead of a nickname, provided the
+	 * real name names a subclass of base.
+	 */
+	if( (type = g_type_from_name( nickname )) ) 
+		if( g_type_is_a( type, base ) )
+			return( type );
+
+	/* Nope, need to search.
+	 */
+	if( (type = (GType) im_type_map_concrete_all( base, 
+		(VTypeMapFn) test_name, (void *) nickname )) ) 
+		return( type );
+
+	im_error( "im_type_find", 
+		_( "type \"%s\" not found" ), nickname ); 
+
+	return( 0 );
+}
+
 /* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.
  */
 char *

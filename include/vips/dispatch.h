@@ -55,6 +55,7 @@ extern "C" {
 #define IM_TYPE_IMAGE "image"           /* IMAGE descriptor */
 #define IM_TYPE_DISPLAY "display"	/* Display descriptor */
 #define IM_TYPE_GVALUE "gvalue"		/* GValue wrapper */
+#define IM_TYPE_GOBJECT "gobject"	/* A GObject of a specified class */
 typedef char *im_arg_type;              /* Type of argument id */
 
 /* Internal representation of an argument to an image processing function.

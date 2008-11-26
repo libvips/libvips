@@ -13,6 +13,7 @@
 - yafr-smooth reworked along the lines of bicubic
 - cleanups after yafr hacking
 - added affinei_all
+- don't set im_error() on failed callback
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

@@ -148,6 +148,8 @@ vips_object_class_init( VipsObjectClass *class )
 
 	class->changed = vips_object_real_changed;
 	class->print = vips_object_real_print;
+	class->nickname = "object";
+	class->description = _( "VIPS base class" );
 
 	vips_object_signals[SIG_CHANGED] = g_signal_new( "changed",
 		G_OBJECT_CLASS_TYPE( gobject_class ),

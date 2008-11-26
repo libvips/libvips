@@ -9,6 +9,8 @@
  *	- now always calls all callbacks, even if some fail
  * 2/7/08
  *	- added invalidate callbacks
+ * 26/11/08
+ * 	- don't set im_error() on callback failed, that's the user's job
  */
 
 /*
@@ -135,8 +137,9 @@ call_callback( VCallback *cbs, int *result )
 	int res;
 
 	if( (res = cbs->fn( cbs->a, cbs->b )) ) {
-		im_error( "im__trigger_callbacks", _( "user callback "
-			"failed for %s" ), cbs->im->filename );
+		/* We don't set im_error() here, that's the callback's
+		 * responsibility.
+		 */
 		*result = res;
 
 #ifdef DEBUG_IO

@@ -380,11 +380,15 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 static void
 vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( iclass );
 	VipsInterpolateClass *interpolate_class = 
 		VIPS_INTERPOLATE_CLASS( iclass );
 
 	vips_interpolate_bicubic_parent_class = 
 		VIPS_INTERPOLATE_CLASS( g_type_class_peek_parent( iclass ) );
+
+	object_class->nickname = "bicubic";
+	object_class->description = _( "Bicubic interpolation (Catmull-Rom)" );
 
 	interpolate_class->interpolate = vips_interpolate_bicubic_interpolate;
 	interpolate_class->window_size = 4;

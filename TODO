@@ -1,5 +1,6 @@
-- make a new package for "resample"? im_shrink & friends could go in there too
+- started adding 
 
+#define IM_TYPE_GOBJECT "gobject"       /* A GObject of a specified class */
   or maybe "transform"? flip/rot90/embed etc. as well?
 
 - make a "deprecated" package too
@@ -9,11 +10,41 @@
 - try walking the class hierarchy below VipsInterpolate and see if we can see
   all the interpolators
 
-  classes need some extra fields
+  want bicubic args to be
 
-  	nickname, eg. "bicubic"
-	caption, eg. "catmull-rom bicubic interpolation"
+  	IM_GOBJECT( "VipsInterpolate", "interpolate" );
 
+  ie. pass a gobject which is a sub-type of VipsInterpolate in an arg called
+  "interpolate"
+
+  then we need to create an object of that class, get the param list, set from
+  any args, call object_init, and pass
+
+  on return, unref the object
+
+  so 
+  
+  	im_affinei_all in.v out.v "yafrsmooth(2.4)" 0.9 0 0 0.9 0 0
+
+  creates a yafrsmooth, sets the param,
+
+
+  in nip2, 
+
+  	inter = g_object_new "VipsInterpolateBicubic" [$sharpness => 2.4];
+
+  also need something to return a list of GTypes below a name etc., find class
+  description:w
+
+
+  need k
+
+
+
+- make a new package for "resample"? im_shrink & friends could go in there too
+
+- how to expose things like yafrsmooth's "sharpening" parameter to
+  nip2/C++/Python?
   can we write a find-by-nickname function? eg.
 
   	GType vips_get_type (const char *base, const char *nickname)
@@ -53,9 +84,6 @@
 - update the Portfiles on the mac and on the website from the macports ones
 
 - im_render should use a hash for tile lookup ... or+shift x/y together
-
-- eval callbacks shouldn't set an errormsg? or maybe it should for debugging
-  and stuff
 
 - bilinear should be a true subclass of interpolate ... and put the tables
   into the base class
