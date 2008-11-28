@@ -1,70 +1,25 @@
-.TH IM_FORMAT 3 "16 August 2008"
+.TH VIPS_FORMAT 3 "16 August 2008"
 .SH NAME
-im_format_register, im_format_set_priority, im_format_unregister,
-im_format_map, im_format_for_file, im_format_for_name, im_format_write \- 
+VipsFormat, 
+vips_format_map, vips_format_for_file, vips_format_for_name, 
+vips_format_write \- 
 load and search image formats
 .SH SYNOPSIS
 #include <vips/vips.h>
 
 typedef enum {
 .br
-  IM_FORMAT_FLAG_NONE = 0,
+  VIPS_FORMAT_FLAG_NONE = 0,
 .br
-  IM_FORMAT_FLAG_PARTIAL = 1
+  VIPS_FORMAT_FLAG_PARTIAL = 1
 .br
-} im_format_flags;
+} VipsFormatFlags;
 
-typedef gboolean (*im_format_is_a_fn)( const char * );
+void *vips_format_map( VSListMap2Fn fn, void *a, void *b );
 .br
-typedef int (*im_format_header_fn)( const char *, IMAGE * );
+VipsFormatClass *vips_format_for_file( const char *filename );
 .br
-typedef int (*im_format_load_fn)( const char *, IMAGE * );
-.br
-typedef int (*im_format_save_fn)( IMAGE *, const char * );
-.br
-typedef im_format_flags (*im_format_flags_fn)( const char * );
-
-typedef struct im__format_t {
-.br
-  const char *name;
-.br
-  const char *name_user;
-.br
-  int priority;        
-.br
-  const char **suffs; 
-.br
-  im_format_is_a_fn is_a;
-.br
-  im_format_header_fn header;
-.br
-  im_format_load_fn load;
-.br
-  im_format_save_fn save;
-.br
-  im_format_flags_fn flags;
-.br
-} im_format_t;
-
-im_format_t *im_format_register(
-.br
-  const char *name, const char *name_user, const char **suffs,
-.br
-  im_format_is_a_fn is_a, im_format_header_fn header,
-.br
-  im_format_load_fn load, im_format_save_fn save,
-.br
-  im_format_flags_fn flags );
-.br
-void im_format_set_priority( im_format_t *format, int priority );
-.br
-void im_format_unregister( im_format_t *format );
-
-void *im_format_map( VSListMap2Fn fn, void *a, void *b );
-.br
-im_format_t *im_format_for_file( const char *filename );
-.br
-im_format_t *im_format_for_name( const char *filename );
+VipsFormatClass *vips_format_for_name( const char *filename );
 
 int im_format_write( IMAGE *im, const char *filename );
 
