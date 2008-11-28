@@ -54,8 +54,8 @@ extern "C" {
  * im_format_flags_fn(). 0 is default.
  */
 typedef enum {
-	VIPS_FORMAT_FLAG_NONE = 0,	/* No flags set */
-	VIPS_FORMAT_FLAG_PARTIAL = 1	/* Lazy read OK (eg. tiled tiff) */
+	VIPS_FORMAT_NONE = 0,		/* No flags set */
+	VIPS_FORMAT_PARTIAL = 1		/* Lazy read OK (eg. tiled tiff) */
 } VipsFormatFlags;
 
 /* Function protos for formats.

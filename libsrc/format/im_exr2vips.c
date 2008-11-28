@@ -456,7 +456,7 @@ exr_flags( const char *filename )
 
 	flags = 0;
 	if( isexrtiled( filename ) )
-		flags |= VIPS_FORMAT_FLAG_PARTIAL;
+		flags |= VIPS_FORMAT_PARTIAL;
 
 	return( flags );
 }

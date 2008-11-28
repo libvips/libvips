@@ -586,7 +586,7 @@ static const char *analyze_suffs[] = { ".img", ".hdr", NULL };
 static VipsFormatFlags
 analyze_flags( const char *filename )
 {
-	return( VIPS_FORMAT_FLAG_PARTIAL );
+	return( VIPS_FORMAT_PARTIAL );
 }
 
 /* analyze format adds no new members.

@@ -1545,7 +1545,7 @@ tiff_flags( const char *filename )
 
 	flags = 0;
 	if( istifftiled( filename ) )
-		flags |= VIPS_FORMAT_FLAG_PARTIAL;
+		flags |= VIPS_FORMAT_PARTIAL;
 
 	return( flags );
 }

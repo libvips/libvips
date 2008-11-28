@@ -6,13 +6,6 @@
 
   user G_DEFINE_ABSTRACT_TYPE for VipsObject
 
-- we have 
-  
-  	VipsFormatFlags
-	VIPS_FORMAT_FLAG_PARTIAL
-
-  is this right? should we use singular or plural?
-
 
 
 

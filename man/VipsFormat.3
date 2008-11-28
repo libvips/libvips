@@ -9,11 +9,31 @@ load and search image formats
 
 typedef enum {
 .br
-  VIPS_FORMAT_FLAG_NONE = 0,
+  VIPS_FORMAT_NONE = 0,
 .br
-  VIPS_FORMAT_FLAG_PARTIAL = 1
+  VIPS_FORMAT_PARTIAL = 1
 .br
 } VipsFormatFlags;
+
+typedef struct _VipsFormatClass {
+.br
+  VipsObjectClass parent_class;
+
+  gboolean (*is_a)( const char * );
+.br
+  int (*header)( const char *, IMAGE * );
+.br
+  int (*load)( const char *, IMAGE * );
+.br
+  int (*save)( IMAGE *, const char * );
+.br
+  VipsFormatFlags (*get_flags)( const char * );
+.br
+  int priority;
+.br
+  const char **suffs;
+.br
+} VipsFormatClass;
 
 void *vips_format_map( VSListMap2Fn fn, void *a, void *b );
 .br
@@ -21,12 +41,12 @@ VipsFormatClass *vips_format_for_file( const char *filename );
 .br
 VipsFormatClass *vips_format_for_name( const char *filename );
 
-int im_format_write( IMAGE *im, const char *filename );
+int vips_format_write( IMAGE *im, const char *filename );
 
-int im_format_read( const char *filename, IMAGE *out );
+int vips_format_read( const char *filename, IMAGE *out );
 
 .SH DESCRIPTION
-These functions register and unregister image formats, and search the table of 
+These functions search the 
 available image formats to find one suitable for loading or saving a file.
 
 .B im_open(3) 
@@ -36,39 +56,29 @@ than copying to a descriptor you supply.
 The two APIs are useful in different circumstances: 
 .B im_open(3) 
 is good if you want to directly manipulate a file on disc, for example with
-the paintbox functions. The format API is useful for controlling how a image
+the paintbox functions. On the other hand, this format API is useful for 
+controlling how a image
 is unpacked, since you can specify a destination for the copy.
 
-.B im_format_register(3)
-registers an image format with vips. This might typically be called during
-module load, see the documentation for GModule.
+Image formats are subclasses of
+.B VipsFormat
+as outlined above. They are expected to implement at least one of the methods.
+They should also set values for the
+.B nickname
+and 
+.B description
+members of 
+.B VipsObject.
 
-An image format has a number of components:
+Other members are:
 
-.B name
-The internal name by which the format should be known. For example, the 
-OpenEXR image format is known within vips as "exr". You can identify formats
-by testing this field with 
-.B strcmp(3).
-
-.B name_user
-The name as it should be displayed to the user. It can be internationalised.
-For example, in English, the "analyze" format is shown as "Analyze 6.0".
-
-.B suffs
-A NULL-terminated array of possible file-name suffixes for this format. This
-list is used to filter filenames when they are shown to the user, and to help
-select a format to sav a file as. For example, the JPEG format has the
-suffixes:
-.B { ".jpg", ".jpeg", ".jpe", NULL }
-
-.B is_a
+.B is_a()
 A function which tests whether a file is of the specified format. This is
 useful if you can guess a file type from the first few bytes in the file. If
 you leave this function NULL, vips will guess from the filename suffix for
 you.
 
-.B header
+.B header()
 Load only the image header, not any of the image pixels. vips will call this
 first on
 .B im_open(3)
@@ -77,54 +87,53 @@ use the
 .B load 
 function.
 
-.B load
+.B load()
 Load the image from the file into the IMAGE. You can leave this function NULL
 if you only have a 
-.B save
+.B save()
 method implemented.
 
-.B save
+.B save()
 Write from the IMAGE to the file in this format. You can leave this function
-NULL if you only have a lload method implemented.
+NULL if you only have a load method implemented.
 
-.B flags
-A function which examines the file and sets various flags to indicated
+.B get_flags()
+A function which examines the file and sets various flags to indicate
 properties of the image. The only flag implemented at the moment is
-.B IM_FORMAT_FLAG_PARTIAL
+.B VIPS_FORMAT_PARTIAL
 which may be set to indicate that the file can be read lazily.
 
-vips registers the format and returns a pointer to the
-.B im_format_t 
-it created. This may later be used to unregister the format.
-
-.B im_format_set_priority(3)
+.B priority
 sets a priority for the format. Priorities for formats default to zero: you
 mmay set a lower or higher number to set where in the format table your format
 is positioned. 
 
-.B im_format_unregister(3)
-removes a format from vips. It mmight typically be called during module
-unload, see the documentation for GModule.
+.B suffs
+A NULL-terminated array of possible file-name suffixes for this format. This
+list is used to filter filenames when they are shown to the user, and to help
+select a format to sav a file as. For example, the JPEG format has the
+suffixes:
+.B { ".jpg", ".jpeg", ".jpe", NULL }
 
-.B im_format_map(3)
-maps a function over the list of loaded formats. See 
+.B vips_format_map(3)
+maps a function over the list of available formats. See 
 .B im_slist_map(3).
 
-.B im_format_for_file(3)
+.B vips_format_for_file(3)
 looks at a file on disc and selects the 'best' format to use to load that 
 file. If no suitable format is found, it returns NULL and sets an error
 message.
 
-.B im_format_for_name(3)
+.B vips_format_for_name(3)
 looks at a filename and picks a format to use to save that file based on the
 file extension. If no suitable format is found, it returns NULL and sets an
 error message.
 
-.B im_format_read(3)
+.B vips_format_read(3)
 is a convenience function which copies the image from the file into the IMAGE. 
 error, it returns non-zero and sets an error message.
 
-.B im_format_write(3)
+.B vips_format_write(3)
 is a convenience function which copies the image to the file in the
 appropriate format. On error, it returns non-zero and sets an error message.
 

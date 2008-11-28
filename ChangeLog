@@ -15,6 +15,8 @@
 - added affinei_all
 - don't set im_error() on failed callback
 - moved im_format_t to VipsFormat, now sits over VipsObject
+- IM_FORMAT_FLAG_PARTIAL -> VIPS_FORMAT_PARTIAL
+- updated docs
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

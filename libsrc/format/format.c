@@ -125,7 +125,7 @@ vips2file( IMAGE *im, const char *filename )
 static VipsFormatFlags
 vips_flags( const char *filename )
 {
-	return( VIPS_FORMAT_FLAG_PARTIAL );
+	return( VIPS_FORMAT_PARTIAL );
 }
 
 /* Vips format adds no new members.

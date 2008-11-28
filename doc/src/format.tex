@@ -1,11 +1,11 @@
 \section{Image formats}
 \label{sec:format}
 
-VIPS has a simple system for adding support for new image file formats. You
-can register a new format and it will automatically be supported by all
-the VIPS interfaces. You can ask VIPS to find a format to load a file with,
+VIPS has a simple system for adding support for new image file formats. 
+You can ask VIPS to find a format to load a file with,
 or to select a image file writer based on a filename. Convenience functions
-copy a file to an \verb+IMAGE+, or an \verb+IMAGE+ to a file.
+copy a file to an \verb+IMAGE+, or an \verb+IMAGE+ to a file. New formats may
+be added to VIPS by simply defining a new subclass of \verb+VipsFormat+.
 
 This is a parallel API to \verb+im_open()+, see \pref{sec:open}. The
 format system is useful for images which are large or slow to open,
@@ -18,7 +18,7 @@ images if you use \verb+im_open()+.
 
 \subsection{How a format is represented}
 
-See the man page for \verb+im_format+ for full details, but briefly, an image
+See the man page for \verb+VipsFormat+ for full details, but briefly, an image
 format consists of the following items:
 
 \begin{itemize}
@@ -33,7 +33,7 @@ height and does not read any pixel data) and a function which loads the pixel
 data
 
 \item
-A function which will write an IMAGE to a file in the format
+A function which will write an \verb+IMAGE+ to a file in the format
 
 \item
 And finally a function which examines a file in the format and returns flags
@@ -44,20 +44,11 @@ version is one indicating that the file can be opened lazily
 
 \subsection{The format table}
 
-VIPS keeps a table of known formats, sorted by insert order and priority. You
-register new formats with \verb+im_format_register()+ and, optionally,
-unregister with \verb+im_format_unregister()+. You can call these operations
-from a plugin's init function.
-
-Any of the functions may be left NULL and VIPS will try to make do with what
-you do supply. Of course a format with all functions as NULL will not be very
-useful.
-
-The priority system is useful if a file can be read by several possible format
-loaders. For example, the libMagick loader can read TIFF files, but not as
-well as VIPS' native TIFF reader. To make sure the VIPS TIFF reader is tried
-first, the libMagick format is given a low priority. Most of the time, you
-won't need this.
+The interface to the format system is defined by the abstract base class
+\verb+VipsFormat+. Formats subclass this and implement some or all of the
+methods. Any of the functions may be left NULL and VIPS will try to make do 
+with what you do supply. Of course a format with all functions as NULL will 
+not be very useful.
 
 A switch to the \verb+vips+ command-line program is handy for listing the
 supported formats. Try:
@@ -86,21 +77,40 @@ is_myformat( const char *filename )
   return( 0 );
 }
 
+// This format adds no new members.
+typedef VipsFormat VipsFormatMyformat;
+typedef VipsFormatClass VipsFormatMyformatClass;
+
+static void
+vips_format_myformat_class_init( VipsFormatVipsClass *class )
+{
+  VipsObjectClass *object_class = (VipsObjectClass *) class;
+  VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+  object_class->nickname = "myformat";
+  object_class->description = _( "My format" );
+
+  format_class->is_a = is_myformat;
+  format_class->header = my_header;
+  format_class->load = my_read;
+  format_class->save = my_write;
+  format_class->get_flags = my_get_flags;
+  format_class->priority = 100;
+  format_class->suffs = my_suffs;
+}
+
+static void
+vips_format_vips_init( VipsFormatVips *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatVips, vips_format_vips, VIPS_TYPE_FORMAT );
+
 char *
 g_module_check_init( GModule *self )
 {
-  im_format_t *format;
-
-  format = im_format_register( "myformat",
-    _( "My image format" ),
-    my_suffs,
-    is_myformat,
-    read_myformat_header,
-    read_myformat_image,
-    write_myformat,
-    NULL
-  };
-  im_format_set_priority( format, 100 );
+  // register the type
+  vips_format_vips_get_type(); 
 }
 \end{verbatim}
 \caption{Registering a format in a plugin}
@@ -109,22 +119,21 @@ g_module_check_init( GModule *self )
 
 \subsection{Finding a format}
 
-You can loop over the format table in order with \verb+im_format_map()+. Like
+You can loop over the format table in order with \verb+vips_format_map()+. Like
 all the map functions in VIPS, this take a function and applies it to every
-element in the table until it returns non-zero, or until the table has been
-all covered.
+element in the table until it returns non-zero, or until the table ends. 
 
-You find an \verb+im_format_t+ to use to open a file with
-\verb+im_format_for_file()+. This searches the VIPS format table and returns
+You find an \verb+VipsFormatClass+ to use to open a file with
+\verb+vips_format_for_file()+. This searches the type system and returns
 the first format whose test function returns true, setting an error message
 and returning NULL if no format is found.
 
-You find a format to write a file with \verb+im_format_for_name()+. This
+You find a format to write a file with \verb+vips_format_for_name()+. This
 returns the first format with a save function whose suffix list matches the
 suffix of the supplied filename.
 
 \subsection{Convenience functions}
 
-A pair of convenience functions, \verb+im_format_write()+ and
-\verb+im_format_read()+, will copy an image to and from disc using the
+A pair of convenience functions, \verb+vips_format_write()+ and
+\verb+vips_format_read()+, will copy an image to and from disc using the
 appropriate format.
