@@ -1,26 +1,12 @@
-- format/ now uses VipsFormat
-
-  im_format docs need redoing
-
-  nip2 needs revising
-
-  user G_DEFINE_ABSTRACT_TYPE for VipsObject
-
-
-
-
 - started adding 
 
 #define IM_TYPE_GOBJECT "gobject"       /* A GObject of a specified class */
-
-  or maybe "transform"? flip/rot90/embed etc. as well?
 
 - make a "deprecated" package too
 
 - im_affinei and im_affinei_all need docs
 
-- try walking the class hierarchy below VipsInterpolate and see if we can see
-  all the interpolators
+- all the interpolators
 
   want bicubic args to be
 

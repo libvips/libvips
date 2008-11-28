@@ -55,9 +55,9 @@ enum {
 	SIG_LAST
 };
 
-static GObjectClass *parent_class = NULL;
-
 static guint vips_object_signals[SIG_LAST] = { 0 };
+
+G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
 
 void *
 vips_object_changed( VipsObject *object )
@@ -98,7 +98,7 @@ vips_object_dispose( GObject *gobject )
 	vips_object_print( object );
 #endif /*DEBUG*/
 
-	G_OBJECT_CLASS( parent_class )->dispose( gobject );
+	G_OBJECT_CLASS( vips_object_parent_class )->dispose( gobject );
 }
 
 static void
@@ -113,7 +113,7 @@ vips_object_finalize( GObject *gobject )
 
 	IM_FREE( object->name );
 
-	G_OBJECT_CLASS( parent_class )->finalize( gobject );
+	G_OBJECT_CLASS( vips_object_parent_class )->finalize( gobject );
 }
 
 static void
@@ -141,8 +141,6 @@ vips_object_class_init( VipsObjectClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 
-	parent_class = g_type_class_peek_parent( class );
-
 	gobject_class->dispose = vips_object_dispose;
 	gobject_class->finalize = vips_object_finalize;
 
@@ -167,33 +165,6 @@ vips_object_init( VipsObject *object )
 	printf( "vips_object_init: " );
 	vips_object_print( object );
 #endif /*DEBUG*/
-
-	object->name = NULL;
-}
-
-GType
-vips_object_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		static const GTypeInfo info = {
-			sizeof( VipsObjectClass ),
-			NULL,           /* base_init */
-			NULL,           /* base_finalize */
-			(GClassInitFunc) vips_object_class_init,
-			NULL,           /* class_finalize */
-			NULL,           /* class_data */
-			sizeof( VipsObject ),
-			32,             /* n_preallocs */
-			(GInstanceInitFunc) vips_object_init,
-		};
-
-		type = g_type_register_static( G_TYPE_OBJECT, 
-			"VipsObject", &info, 0 );
-	}
-
-	return( type );
 }
 
 void
