@@ -300,11 +300,13 @@ void *im_map_equal( void *a, void *b );
 
 void *im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b );
 
-typedef void *(*VTypeMapFn)( GType, void * );
-typedef void *(*VTypeMap2Fn)( GType, void *, void * );
-void *im_type_map( GType base, VTypeMap2Fn fn, void *a, void *b );
-void *im_type_map_concrete_all( GType base, VTypeMapFn fn, void *a );
-GType im_type_find( const char *basename, const char *nickname );
+typedef void *(*VipsTypeMap)( GType, void * );
+typedef void *(*VipsTypeMap2)( GType, void *, void * );
+typedef void *(*VipsClassMap)( VipsObjectClass *, void * );
+void *vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b );
+void *vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a );
+void *vips_class_map_concrete_all( GType base, VipsClassMap fn, void *a );
+GType vips_type_find( const char *basename, const char *nickname );
 
 char *im_strncpy( char *dest, const char *src, int n );
 char *im_strrstr( const char *haystack, const char *needle );

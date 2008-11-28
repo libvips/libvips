@@ -720,19 +720,32 @@ jpeg2vips_header( const char *name, IMAGE *out )
 
 static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
 
-void
-im__jpeg_register( void )
+/* jpeg format adds no new members.
+ */
+typedef VipsFormat VipsFormatJpeg;
+typedef VipsFormatClass VipsFormatJpegClass;
+
+static void
+vips_format_jpeg_class_init( VipsFormatJpegClass *class )
 {
-	im_format_register( 
-		"jpeg",			/* internal name */
-		_( "JPEG" ),		/* i18n'd visible name */
-		jpeg_suffs,		/* Allowed suffixes */
-		isjpeg,			/* is_a */
-		jpeg2vips_header,	/* Load header only */
-		im_jpeg2vips,		/* Load */
-		im_vips2jpeg,		/* Save */
-		NULL			/* Flags */
-	);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "jpeg";
+	object_class->description = _( "JPEG" );
+
+	format_class->is_a = isjpeg;
+	format_class->header = jpeg2vips_header;
+	format_class->load = im_jpeg2vips;
+	format_class->save = im_vips2jpeg;
+	format_class->suffs = jpeg_suffs;
 }
+
+static void
+vips_format_jpeg_init( VipsFormatJpeg *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatJpeg, vips_format_jpeg, VIPS_TYPE_FORMAT );
 
 #endif /*HAVE_JPEG*/

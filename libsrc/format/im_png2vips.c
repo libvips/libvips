@@ -383,19 +383,32 @@ ispng( const char *filename )
 
 static const char *png_suffs[] = { ".png", NULL };
 
-void
-im__png_register( void )
+/* png format adds no new members.
+ */
+typedef VipsFormat VipsFormatPng;
+typedef VipsFormatClass VipsFormatPngClass;
+
+static void
+vips_format_png_class_init( VipsFormatPngClass *class )
 {
-	im_format_register( 
-		"png",			/* internal name */
-		_( "PNG" ),		/* i18n'd visible name */
-		png_suffs,		/* Allowed suffixes */
-		ispng,			/* is_a */
-		png2vips_header,	/* Load header only */
-		im_png2vips,		/* Load */
-		im_vips2png,		/* Save */
-		NULL			/* Flags */
-	);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "png";
+	object_class->description = _( "PNG" );
+
+	format_class->is_a = ispng;
+	format_class->header = png2vips_header;
+	format_class->load = im_png2vips;
+	format_class->save = im_vips2png;
+	format_class->suffs = png_suffs;
 }
+
+static void
+vips_format_png_init( VipsFormatPng *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatPng, vips_format_png, VIPS_TYPE_FORMAT );
 
 #endif /*HAVE_PNG*/

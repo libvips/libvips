@@ -657,22 +657,36 @@ ismagick( const char *filename )
 
 static const char *magick_suffs[] = { NULL };
 
-void
-im__magick_register( void )
-{
-	im_format_t *format;
+/* magick format adds no new members.
+ */
+typedef VipsFormat VipsFormatMagick;
+typedef VipsFormatClass VipsFormatMagickClass;
 
-	format = im_format_register( 
-		"magick",		/* internal name */
-		_( "libMagick-supported" ),/* i18n'd visible name */
-		magick_suffs,		/* Allowed suffixes */
-		ismagick,		/* is_a */
-		magick2vips_header,	/* Load header only */
-		im_magick2vips,		/* Load */
-		NULL,			/* Save */
-		NULL			/* Flags */
-	);
-	im_format_set_priority( format, -1000 );
+static void
+vips_format_magick_class_init( VipsFormatMagickClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "magick";
+	object_class->description = _( "libMagick-supported" );
+
+	format_class->is_a = ismagick;
+	format_class->header = magick2vips_header;
+	format_class->load = im_magick2vips;
+	format_class->suffs = magick_suffs;
+
+	/* This can be very slow :-( Use our own jpeg/tiff/png etc. loaders in
+	 * preference if we can.
+	 */
+	format_class->priority = -1000;
 }
+
+static void
+vips_format_magick_init( VipsFormatMagick *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatMagick, vips_format_magick, VIPS_TYPE_FORMAT );
 
 #endif /*HAVE_MAGICK*/

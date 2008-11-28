@@ -318,17 +318,29 @@ csv2vips_header( const char *filename, IMAGE *out )
 
 static const char *csv_suffs[] = { ".csv", NULL };
 
-void
-im__csv_register( void )
+/* csv format adds no new members.
+ */
+typedef VipsFormat VipsFormatCsv;
+typedef VipsFormatClass VipsFormatCsvClass;
+
+static void
+vips_format_csv_class_init( VipsFormatCsvClass *class )
 {
-	im_format_register( 
-		"csv",			/* internal name */
-		_( "CSV" ),		/* i18n'd visible name */
-		csv_suffs,		/* Allowed suffixes */
-		NULL,			/* is_a */
-		csv2vips_header,	/* Load header only */
-		im_csv2vips,		/* Load */
-		im_vips2csv,		/* Save */
-		NULL			/* Flags */
-	);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "csv";
+	object_class->description = _( "CSV" );
+
+	format_class->header = csv2vips_header;
+	format_class->load = im_csv2vips;
+	format_class->save = im_vips2csv;
+	format_class->suffs = csv_suffs;
 }
+
+static void
+vips_format_csv_init( VipsFormatCsv *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatCsv, vips_format_csv, VIPS_TYPE_FORMAT );

@@ -245,7 +245,7 @@ im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b )
 /* Map over all a type's children.
  */
 void *
-im_type_map( GType base, VTypeMap2Fn fn, void *a, void *b )
+vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b )
 {
 	GType *child;
 	guint n_children;
@@ -264,7 +264,7 @@ im_type_map( GType base, VTypeMap2Fn fn, void *a, void *b )
 /* Loop over all the concrete subtypes of a base type.
  */
 void *
-im_type_map_concrete_all( GType base, VTypeMapFn fn, void *a )
+vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a )
 {
 	void *result;
 
@@ -272,69 +272,83 @@ im_type_map_concrete_all( GType base, VTypeMapFn fn, void *a )
 	if( !G_TYPE_IS_ABSTRACT( base ) )
 		result = fn( base, a );
 	if( !result )
-		result = im_type_map( base, 
-			(VTypeMap2Fn) im_type_map_concrete_all, fn, a );
+		result = vips_type_map( base, 
+			(VipsTypeMap2) vips_type_map_concrete_all, fn, a );
 
 	return( result );
 }
 
-static GType
-test_name( GType type, const char *nickname )
+/* Loop over all the subclasses of a base type.
+ */
+void *
+vips_class_map_concrete_all( GType type, VipsClassMap fn, void *a )
 {
-	GTypeClass *class;
-	VipsObjectClass *vips_class;
+	void *result;
 
-	/* Does this class exist? Try to create if not.
-	 */
-	if( !(class = g_type_class_peek( type )) ) 
-		/* We don't unref, so the class is never finalized. This will
-		 * make the peek work next time around and save us from
-		 * constantly building and destroying classes.
+	result = NULL;
+	if( !G_TYPE_IS_ABSTRACT( type ) ) {
+		GTypeClass *class;
+
+		/* Does this class exist? Try to create if not.
 		 */
-		if( !(class = g_type_class_ref( type )) ) 
-			return( 0 );
+		if( !(class = g_type_class_peek( type )) ) 
+			/* We don't unref, so the class is never finalized. 
+			 * This will make the peek work next time around and 
+			 * save us from constantly building and destroying 
+			 * classes.
+			 */
+			if( !(class = g_type_class_ref( type )) ) {
+				im_error( "vips_class_map_concrete_all",
+					"%s", _( "unable to build class" ) );
+				return( NULL );
+			}
 
-	if( !VIPS_IS_OBJECT_CLASS( class ) )
-		return( 0 );
-	vips_class = VIPS_OBJECT_CLASS( class );
-	if( strcasecmp( vips_class->nickname, nickname ) != 0 )
-		return( 0 );
+		result = fn( VIPS_OBJECT_CLASS( class ), a );
+	}
+	if( !result )
+		result = vips_type_map( type, 
+			(VipsTypeMap2) vips_class_map_concrete_all, fn, a );
 
-	return( type );
+	return( result );
 }
 
-/* Find a GType ... search below base, return the first match on a nickname or
+static void *
+test_name( VipsObjectClass *class, const char *nickname )
+{
+	if( strcasecmp( class->nickname, nickname ) != 0 )
+		return( class );
+
+	/* Check the class name too, why not.
+	 */
+	if( strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) != 0 )
+		return( class );
+
+	return( NULL );
+}
+
+/* Find a class ... search below base, return the first match on a nickname or
  * a name.
  */
-GType
-im_type_find( const char *basename, const char *nickname )
+VipsObjectClass *
+vips_class_find( const char *basename, const char *nickname )
 {
+	VipsObjectClass *class;
 	GType base;
-	GType type;
 
 	if( !(base = g_type_from_name( basename )) ) {
-		im_error( "im_type_find", 
-			_( "base type \"%s\" not found" ), basename ); 
-		return( 0 );
+		im_error( "vips_class_find", 
+			_( "base class \"%s\" not found" ), basename ); 
+		return( NULL );
 	}
 
-	/* Users can pass the real name instead of a nickname, provided the
-	 * real name names a subclass of base.
-	 */
-	if( (type = g_type_from_name( nickname )) ) 
-		if( g_type_is_a( type, base ) )
-			return( type );
+	if( !(class = vips_class_map_concrete_all( base, 
+		(VipsClassMap) test_name, (void *) nickname )) ) {
+		im_error( "vips_class_find", 
+			_( "class \"%s\" not found" ), nickname ); 
+		return( NULL );
+	}
 
-	/* Nope, need to search.
-	 */
-	if( (type = (GType) im_type_map_concrete_all( base, 
-		(VTypeMapFn) test_name, (void *) nickname )) ) 
-		return( type );
-
-	im_error( "im_type_find", 
-		_( "type \"%s\" not found" ), nickname ); 
-
-	return( 0 );
+	return( class );
 }
 
 /* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.

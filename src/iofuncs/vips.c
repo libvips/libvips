@@ -164,11 +164,12 @@ list_function( im_function *func )
 }
 
 static void *
-list_format( im_format_t *format )
+list_format( VipsFormatClass *format )
 {
 	const char **p;
 
-	printf( "%-20s - ", format->name_user );
+	printf( "%-20s - ", 
+		VIPS_OBJECT_CLASS( format )->description );
 
 	printf( "(" );
 	for( p = format->suffs; *p; p++ ) {
@@ -186,8 +187,8 @@ list_format( im_format_t *format )
 		printf( "load " );
 	if( format->save )
 		printf( "save " );
-	if( format->flags )
-		printf( "flags " );
+	if( format->get_flags )
+		printf( "get_flags " );
 	printf( "\n" );
 	
 	return( NULL );
@@ -199,7 +200,7 @@ print_list( const char *name )
 	if( strcmp( name, "packages" ) == 0 ) 
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
 	else if( strcmp( name, "formats" ) == 0 ) 
-		im_format_map( (VSListMap2Fn) list_format, NULL, NULL );
+		vips_format_map( (VSListMap2Fn) list_format, NULL, NULL );
 	else {
 		if( map_name( name, list_function ) )
 			error_exit( "unknown package \"%s\"", name ); 

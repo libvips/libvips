@@ -583,23 +583,37 @@ im_analyze2vips( const char *filename, IMAGE *out )
 
 static const char *analyze_suffs[] = { ".img", ".hdr", NULL };
 
-static im_format_flags
+static VipsFormatFlags
 analyze_flags( const char *filename )
 {
-	return( IM_FORMAT_FLAG_PARTIAL );
+	return( VIPS_FORMAT_FLAG_PARTIAL );
 }
 
-void
-im__analyze_register( void )
+/* analyze format adds no new members.
+ */
+typedef VipsFormat VipsFormatAnalyze;
+typedef VipsFormatClass VipsFormatAnalyzeClass;
+
+static void
+vips_format_analyze_class_init( VipsFormatAnalyzeClass *class )
 {
-	im_format_register( 
-		"analyze",		/* internal name */
-		_( "Analyze 6.0" ),	/* i18n'd visible name */
-		analyze_suffs,		/* Allowed suffixes */
-		isanalyze,		/* is_a */
-		analyze2vips_header,	/* Load header only */
-		im_analyze2vips,	/* Load */
-		NULL,			/* Save */
-		analyze_flags		/* Flags */
-	);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "analyze";
+	object_class->description = _( "Analyze 6.0" );
+
+	format_class->is_a = isanalyze;
+	format_class->header = analyze2vips_header;
+	format_class->load = im_analyze2vips;
+	format_class->get_flags = analyze_flags;
+	format_class->suffs = analyze_suffs;
 }
+
+static void
+vips_format_analyze_init( VipsFormatAnalyze *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatAnalyze, vips_format_analyze, VIPS_TYPE_FORMAT );
+

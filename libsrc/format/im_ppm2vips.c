@@ -489,31 +489,46 @@ isppm( const char *filename )
 
 /* ppm flags function.
  */
-static im_format_flags
+static VipsFormatFlags
 ppm_flags( const char *filename )
 {
-	im_format_flags flags;
+	VipsFormatFlags flags;
 
 	flags = 0;
 	if( isppmmmap( filename ) )
-		flags |= IM_FORMAT_FLAG_PARTIAL;
+		flags |= VIPS_FORMAT_FLAG_PARTIAL;
 
 	return( flags );
 }
 
 static const char *ppm_suffs[] = { ".ppm", ".pgm", ".pbm", NULL };
 
-void
-im__ppm_register( void )
+/* ppm format adds no new members.
+ */
+typedef VipsFormat VipsFormatPpm;
+typedef VipsFormatClass VipsFormatPpmClass;
+
+static void
+vips_format_ppm_class_init( VipsFormatPpmClass *class )
 {
-	im_format_register( 
-		"ppm",			/* internal name */
-		_( "PPM/PBM/PNM" ),	/* i18n'd visible name */
-		ppm_suffs,		/* Allowed suffixes */
-		isppm,			/* is_a */
-		ppm2vips_header,	/* Load header only */
-		im_ppm2vips,		/* Load */
-		im_vips2ppm,		/* Save */
-		ppm_flags		/* Flags */
-	);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "ppm";
+	object_class->description = _( "PPM/PBM/PNM" );
+
+	format_class->is_a = isppm;
+	format_class->header = ppm2vips_header;
+	format_class->load = im_ppm2vips;
+	format_class->save = im_vips2ppm;
+	format_class->get_flags = ppm_flags;
+	format_class->suffs = ppm_suffs;
 }
+
+static void
+vips_format_ppm_init( VipsFormatPpm *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatPpm, vips_format_ppm, VIPS_TYPE_FORMAT );
+

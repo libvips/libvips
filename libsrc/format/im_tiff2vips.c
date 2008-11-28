@@ -1538,33 +1538,47 @@ istifftiled( const char *filename )
 
 /* TIFF flags function.
  */
-static im_format_flags
+static VipsFormatFlags
 tiff_flags( const char *filename )
 {
-	im_format_flags flags;
+	VipsFormatFlags flags;
 
 	flags = 0;
 	if( istifftiled( filename ) )
-		flags |= IM_FORMAT_FLAG_PARTIAL;
+		flags |= VIPS_FORMAT_FLAG_PARTIAL;
 
 	return( flags );
 }
 
 static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
 
-void
-im__tiff_register( void )
+/* tiff format adds no new members.
+ */
+typedef VipsFormat VipsFormatTiff;
+typedef VipsFormatClass VipsFormatTiffClass;
+
+static void
+vips_format_tiff_class_init( VipsFormatTiffClass *class )
 {
-	im_format_register( 
-		"tiff",			/* internal name */
-		_( "TIFF" ),		/* i18n'd visible name */
-		tiff_suffs,		/* Allowed suffixes */
-		istiff,			/* is_a */
-		tiff2vips_header,	/* Load header only */
-		im_tiff2vips,		/* Load */
-		im_vips2tiff,		/* Save */
-		tiff_flags		/* Flags */
-	);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "tiff";
+	object_class->description = _( "TIFF" );
+
+	format_class->is_a = istiff;
+	format_class->header = tiff2vips_header;
+	format_class->load = im_tiff2vips;
+	format_class->save = im_vips2tiff;
+	format_class->get_flags = tiff_flags;
+	format_class->suffs = tiff_suffs;
 }
+
+static void
+vips_format_tiff_init( VipsFormatTiff *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatTiff, vips_format_tiff, VIPS_TYPE_FORMAT );
 
 #endif /*HAVE_TIFF*/

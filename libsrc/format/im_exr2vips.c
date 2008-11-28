@@ -449,31 +449,44 @@ isexr( const char *filename )
 
 static const char *exr_suffs[] = { ".exr", NULL };
 
-static im_format_flags
+static VipsFormatFlags
 exr_flags( const char *filename )
 {
-	im_format_flags flags;
+	VipsFormatFlags flags;
 
 	flags = 0;
 	if( isexrtiled( filename ) )
-		flags |= IM_FORMAT_FLAG_PARTIAL;
+		flags |= VIPS_FORMAT_FLAG_PARTIAL;
 
 	return( flags );
 }
 
-void
-im__exr_register( void )
+/* exr format adds no new members.
+ */
+typedef VipsFormat VipsFormatExr;
+typedef VipsFormatClass VipsFormatExrClass;
+
+static void
+vips_format_exr_class_init( VipsFormatExrClass *class )
 {
-	im_format_register( 
-		"exr",			/* internal name */
-		_( "OpenEXR" ),		/* i18n'd visible name */
-		exr_suffs,		/* Allowed suffixes */
-		isexr,			/* is_a */
-		exr2vips_header,	/* Load header only */
-		im_exr2vips,		/* Load */
-		NULL,			/* Save */
-		exr_flags		/* Flags */
-	);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "exr";
+	object_class->description = _( "OpenEXR" );
+
+	format_class->is_a = isexr;
+	format_class->header = exr2vips_header;
+	format_class->load = im_exr2vips;
+	format_class->get_flags = exr_flags;
+	format_class->suffs = exr_suffs;
 }
+
+static void
+vips_format_exr_init( VipsFormatExr *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatExr, vips_format_exr, VIPS_TYPE_FORMAT );
 
 #endif /*HAVE_OPENEXR*/

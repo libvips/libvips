@@ -41,71 +41,60 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* List of loaded formats.
+/* To iterate over supported formats, we build a temp list of subclasses of 
+ * VipsFormat, sort by priority, iterate, and free.
  */
-static GSList *format_list = NULL;
+
+static void *
+format_add_class( VipsFormatClass *format, GSList **formats )
+{
+	/* Append so we don't reverse the list of formats.
+	 */
+	*formats = g_slist_append( *formats, format );
+
+	return( NULL );
+}
 
 static gint
-format_compare( im_format_t *a, im_format_t *b )
+format_compare( VipsFormatClass *a, VipsFormatClass *b )
 {
         return( b->priority - a->priority );
 }
 
-/* Sort the format list after a change.
+void *
+vips_format_map( VSListMap2Fn fn, void *a, void *b )
+{
+	GSList *formats;
+	void *result;
+
+	formats = NULL;
+	(void) vips_class_map_concrete_all( g_type_from_name( "VipsFormat" ), 
+		(VipsClassMap) format_add_class, (void *) &formats );
+
+	formats = g_slist_sort( formats, (GCompareFunc) format_compare );
+	result = im_slist_map2( formats, fn, a, b );
+	g_slist_free( formats );
+
+	return( result );
+}
+
+/* Abstract base class for image formats.
  */
+
 static void
-format_sort( void )
+vips_format_class_init( VipsFormatClass *class )
 {
-	format_list = g_slist_sort( format_list, 
-		(GCompareFunc) format_compare );
 }
 
-/* Register/unregister formats.
+static void
+vips_format_init( VipsFormat *object )
+{
+}
+
+G_DEFINE_ABSTRACT_TYPE( VipsFormat, vips_format, VIPS_TYPE_OBJECT );
+
+/* VIPS format class.
  */
-im_format_t *
-im_format_register( 
-	const char *name, const char *name_user, const char **suffs,
-	im_format_is_a_fn is_a, im_format_header_fn header,
-	im_format_load_fn load, im_format_save_fn save,
-	im_format_flags_fn flags )
-{
-	im_format_t *format;
-
-	if( !(format = IM_NEW( NULL, im_format_t )) )
-		return( NULL );
-	format->name = name;
-	format->name_user = name_user;
-	format->priority = 0;
-	format->suffs = suffs; 
-	format->is_a = is_a;
-	format->header = header;
-	format->load = load;
-	format->save = save;
-	format->flags = flags;
-
-	/* Append, so we keep the ordering where possible.
-	 */
-	format_list = g_slist_append( format_list, format );
-	format_sort();
-
-	return( format );
-}
-
-void 
-im_format_set_priority( im_format_t *format, int priority )
-{
-	g_assert( format );
-
-	format->priority = priority;
-	format_sort();
-}
-
-void 
-im_format_unregister( im_format_t *format )
-{
-	format_list = g_slist_remove( format_list, format );
-	IM_FREE( format );
-}
 
 static const char *vips_suffs[] = { ".v", NULL };
 
@@ -133,60 +122,80 @@ vips2file( IMAGE *im, const char *filename )
 	return( 0 );
 }
 
-static im_format_flags
+static VipsFormatFlags
 vips_flags( const char *filename )
 {
-	return( IM_FORMAT_FLAG_PARTIAL );
+	return( VIPS_FORMAT_FLAG_PARTIAL );
 }
+
+/* Vips format adds no new members.
+ */
+typedef VipsFormat VipsFormatVips;
+typedef VipsFormatClass VipsFormatVipsClass;
+
+static void
+vips_format_vips_class_init( VipsFormatVipsClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "vips";
+	object_class->description = _( "VIPS" );
+
+	format_class->is_a = im_isvips;
+	format_class->header = file2vips;
+	format_class->load = file2vips;
+	format_class->save = vips2file;
+	format_class->get_flags = vips_flags;
+	format_class->suffs = vips_suffs;
+}
+
+static void
+vips_format_vips_init( VipsFormatVips *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatVips, vips_format_vips, VIPS_TYPE_FORMAT );
 
 /* Called on startup: register the base vips formats.
  */
 void
 im__format_init( void )
 {
-	im_format_register( 
-		"vips",			/* internal name */
-		_( "VIPS" ),		/* i18n'd visible name */
-		vips_suffs,		/* Allowed suffixes */
-		im_isvips,		/* is_a */
-		file2vips,		/* Load header only */
-		file2vips,		/* Load */
-		vips2file,		/* Save */
-		vips_flags		/* Flags */
-	);
+	extern GType vips_format_csv_get_type();
+	extern GType vips_format_ppm_get_type();
+	extern GType vips_format_analyze_get_type();
 
+	vips_format_vips_get_type();
 #ifdef HAVE_JPEG
-	im__jpeg_register();
+	extern GType vips_format_jpeg_get_type();
+	vips_format_jpeg_get_type();
 #endif /*HAVE_JPEG*/
 #ifdef HAVE_PNG
-	im__png_register();
+	extern GType vips_format_png_get_type();
+	vips_format_png_get_type();
 #endif /*HAVE_PNG*/
-	im__csv_register();
-	im__ppm_register();
-	im__analyze_register();
+	vips_format_csv_get_type();
+	vips_format_ppm_get_type();
+	vips_format_analyze_get_type();
 #ifdef HAVE_OPENEXR
-	im__exr_register();
+	extern GType vips_format_exr_get_type();
+	vips_format_exr_get_type();
 #endif /*HAVE_OPENEXR*/
 #ifdef HAVE_MAGICK
-	im__magick_register();
+	extern GType vips_format_magick_get_type();
+	vips_format_magick_get_type();
 #endif /*HAVE_MAGICK*/
 #ifdef HAVE_TIFF
-	im__tiff_register();
+	extern GType vips_format_tiff_get_type();
+	vips_format_tiff_get_type();
 #endif /*HAVE_TIFF*/
-}
-
-/* Map a function over all formats. 
- */
-void *
-im_format_map( VSListMap2Fn fn, void *a, void *b )
-{
-	return( im_slist_map2( format_list, fn, a, b ) );
 }
 
 /* Can this format open this file?
  */
 static void *
-format_for_file_sub( im_format_t *format, 
+format_for_file_sub( VipsFormatClass *format, 
 	const char *name, const char *filename )
 {
 	if( format->is_a ) {
@@ -199,12 +208,12 @@ format_for_file_sub( im_format_t *format,
 	return( NULL );
 }
 
-im_format_t *
-im_format_for_file( const char *name )
+VipsFormatClass *
+vips_format_for_file( const char *name )
 {
 	char filename[FILENAME_MAX];
 	char options[FILENAME_MAX];
-	im_format_t *format;
+	VipsFormatClass *format;
 
 	/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
 	 * etc.
@@ -212,15 +221,15 @@ im_format_for_file( const char *name )
 	im_filename_split( name, filename, options );
 
 	if( !im_existsf( "%s", filename ) ) {
-		im_error( "im_format_for_file", 
+		im_error( "vips_format_for_file", 
 			_( "\"%s\" is not readable" ), filename );
 		return( NULL );
 	}
 
-	if( !(format = (im_format_t *) im_format_map( 
+	if( !(format = (VipsFormatClass *) vips_format_map( 
 		(VSListMap2Fn) format_for_file_sub, 
 		(void *) name, (void *) filename )) ) {
-		im_error( "im_format_for_file", 
+		im_error( "vips_format_for_file", 
 			_( "\"%s\" is not in a supported format" ), filename );
 		return( NULL );
 	}
@@ -232,7 +241,7 @@ im_format_for_file( const char *name )
  * method.
  */
 static void *
-format_for_name_sub( im_format_t *format, const char *name )
+format_for_name_sub( VipsFormatClass *format, const char *name )
 {
 	if( format->save &&
 		im_filename_suffix_match( name, format->suffs ) )
@@ -241,17 +250,17 @@ format_for_name_sub( im_format_t *format, const char *name )
 	return( NULL );
 }
 
-im_format_t *
-im_format_for_name( const char *name )
+VipsFormatClass *
+vips_format_for_name( const char *name )
 {
-	im_format_t *format;
+	VipsFormatClass *format;
 
-	if( !(format = (im_format_t *) im_format_map( 
+	if( !(format = (VipsFormatClass *) vips_format_map( 
 		(VSListMap2Fn) format_for_name_sub, (void *) name, NULL )) ) {
 		char suffix[FILENAME_MAX];
 
 		im_filename_suffix( name, suffix );
-		im_error( "im_format_for_name",
+		im_error( "vips_format_for_name",
 			_( "\"%s\" is not a supported image format." ), 
 			suffix );
 
@@ -262,11 +271,11 @@ im_format_for_name( const char *name )
 }
 
 int
-im_format_read( const char *name, IMAGE *out )
+vips_format_read( const char *name, IMAGE *out )
 {
-	im_format_t *format;
+	VipsFormatClass *format;
 
-	if( !(format = im_format_for_file( name )) || 
+	if( !(format = vips_format_for_file( name )) || 
 		format->load( name, out ) )
 		return( -1 );
 
@@ -274,11 +283,11 @@ im_format_read( const char *name, IMAGE *out )
 }
 
 int
-im_format_write( IMAGE *im, const char *name )
+vips_format_write( IMAGE *im, const char *name )
 {
-	im_format_t *format;
+	VipsFormatClass *format;
 
-	if( !(format = im_format_for_name( name )) || 
+	if( !(format = vips_format_for_name( name )) || 
 		format->save( im, name ) ) 
 		return( -1 );
 

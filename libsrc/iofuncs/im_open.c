@@ -344,7 +344,7 @@ IMAGE *
 im_open( const char *filename, const char *mode )
 {
 	IMAGE *im;
-	im_format_t *format;
+	VipsFormatClass *format;
 
 	/* Pass in a nonsense name for argv0 ... this init world is only here
 	 * for old programs which are missing an im_init_world() call. We must
@@ -370,8 +370,9 @@ im_open( const char *filename, const char *mode )
 
 	switch( mode[0] ) {
         case 'r':
-		if( (format = im_format_for_file( filename )) ) {
-			if( strcmp( format->name, "vips" ) == 0 ) {
+		if( (format = vips_format_for_file( filename )) ) {
+			if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, 
+				"vips" ) == 0 ) {
 				if( !(im = im_open_vips( filename )) )
 					return( NULL );
 			}
@@ -388,8 +389,9 @@ im_open( const char *filename, const char *mode )
         	break;
 
 	case 'w':
-		if( (format = im_format_for_name( filename )) ) {
-			if( strcmp( format->name, "vips" ) == 0 ) 
+		if( (format = vips_format_for_name( filename )) ) {
+			if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, 
+				"vips" ) == 0 ) 
 				im = im_openout( filename );
 			else {
 				if( !(im = im_open( "im_open:lw:1", "p" )) )
