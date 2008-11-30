@@ -81,17 +81,49 @@ vips_format_map( VSListMap2Fn fn, void *a, void *b )
 /* Abstract base class for image formats.
  */
 
+G_DEFINE_ABSTRACT_TYPE( VipsFormat, vips_format, VIPS_TYPE_OBJECT );
+
+static void
+vips_format_print_class( VipsObjectClass *object_class, im_buf_t *buf )
+{
+	VipsFormatClass *class = VIPS_FORMAT_CLASS( object_class );
+	const char **p;
+
+	VIPS_OBJECT_CLASS( vips_format_parent_class )->
+		print_class( object_class, buf );
+
+	im_buf_appends( buf, ", (" );
+	for( p = class->suffs; *p; p++ ) {
+		im_buf_appendf( buf, "%s", *p );
+		if( p[1] )
+			im_buf_appends( buf, ", " );
+	}
+	im_buf_appends( buf, ") " );
+	
+	if( class->is_a )
+		im_buf_appends( buf, "is_a " );
+	if( class->header )
+		im_buf_appends( buf, "header " );
+	if( class->load )
+		im_buf_appends( buf, "load " );
+	if( class->save )
+		im_buf_appends( buf, "save " );
+	if( class->get_flags )
+		im_buf_appends( buf, "get_flags " );
+}
+
 static void
 vips_format_class_init( VipsFormatClass *class )
 {
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	object_class->print_class = vips_format_print_class;
 }
 
 static void
 vips_format_init( VipsFormat *object )
 {
 }
-
-G_DEFINE_ABSTRACT_TYPE( VipsFormat, vips_format, VIPS_TYPE_OBJECT );
 
 /* VIPS format class.
  */

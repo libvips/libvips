@@ -166,42 +166,9 @@ list_function( im_function *func )
 }
 
 static void *
-list_format( VipsFormatClass *class )
+list_class( VipsObjectClass *class )
 {
-	const char **p;
-
-	printf( "%-20s - ", 
-		VIPS_OBJECT_CLASS( class )->description );
-
-	printf( "(" );
-	for( p = class->suffs; *p; p++ ) {
-		printf( "%s", *p );
-		if( p[1] )
-			printf( ", " );
-	}
-	printf( ") " );
-
-	if( class->is_a )
-		printf( "is_a " );
-	if( class->header )
-		printf( "header " );
-	if( class->load )
-		printf( "load " );
-	if( class->save )
-		printf( "save " );
-	if( class->get_flags )
-		printf( "get_flags " );
-	printf( "\n" );
-
-	return( NULL );
-}
-
-static void *
-list_interpolate( VipsInterpolateClass *class )
-{
-	printf( "%-20s - %s\n", 
-		VIPS_OBJECT_CLASS( class )->nickname,
-		VIPS_OBJECT_CLASS( class )->description );
+	vips_object_print_class( class );
 
 	return( NULL );
 }
@@ -211,13 +178,9 @@ print_list( const char *name )
 {
 	if( strcmp( name, "packages" ) == 0 ) 
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
-	else if( strcmp( name, "formats" ) == 0 ) 
-		vips_format_map( (VSListMap2Fn) list_format, NULL, NULL );
-	else if( strcmp( name, "interpolators" ) == 0 ) {
-		vips_class_map_concrete_all( 
-			g_type_from_name( "VipsInterpolate" ), 
-			(VipsClassMap) list_interpolate, NULL );
-	}
+	else if( strcmp( name, "classes" ) == 0 ) 
+		vips_class_map_concrete_all( g_type_from_name( "VipsObject" ), 
+			(VipsClassMap) list_class, NULL );
 	else {
 		if( map_name( name, list_function ) )
 			error_exit( "unknown package \"%s\"", name ); 

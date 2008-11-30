@@ -62,6 +62,10 @@ typedef struct _VipsObjectClass {
 	 */
 	void (*changed)( VipsObject * );
 
+	/* Try to print something about the class, handy for help displays.
+	 */
+	void (*print_class)( struct _VipsObjectClass *, im_buf_t * );
+
 	/* Try to print something about the object, handy for debugging.
 	 */
 	void (*print)( VipsObject *, im_buf_t * );
@@ -76,7 +80,8 @@ typedef struct _VipsObjectClass {
 	const char *description;
 } VipsObjectClass;
 
-void *vips_object_changed( VipsObject *vips_object );
+void *vips_object_changed( VipsObject *object );
+void vips_object_print_class( VipsObjectClass *klass );
 void vips_object_print( VipsObject *object );
 
 GType vips_object_get_type( void );

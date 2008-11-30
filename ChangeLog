@@ -18,7 +18,7 @@
 - IM_FORMAT_FLAG_PARTIAL -> VIPS_FORMAT_PARTIAL
 - updated docs
 - interpolators use type introspection
-- added vips --list interpolators
+- added vips --list classes, does formats too
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()
@@ -52,7 +52,6 @@
 - revised po/
 - released as 7.16.0!
 
->>>>>>> .merge-right.r488
 25/5/08 fork for loadable image format branch
 - image load/save in non-vips format code moved to own dir
 - simple format searching added

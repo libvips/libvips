@@ -77,15 +77,27 @@ vips_object_changed( VipsObject *object )
 }
 
 void
-vips_object_print( VipsObject *object )
+vips_object_print_class( VipsObjectClass *class )
 {
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 	im_buf_t buf;
 	char str[1000];
 
 	im_buf_init_static( &buf, str, 1000 );
-	object_class->print( object, &buf );
-	printf( "%s (%p)\n", im_buf_all( &buf ), object );
+	class->print_class( class, &buf );
+	printf( "%s\n", im_buf_all( &buf ) );
+}
+
+void
+vips_object_print( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	im_buf_t buf;
+	char str[1000];
+
+	vips_object_print_class( class );
+	im_buf_init_static( &buf, str, 1000 );
+	class->print( object, &buf );
+	printf( "\n%s (%p)\n", im_buf_all( &buf ), object );
 }
 
 static void
@@ -128,12 +140,20 @@ vips_object_real_changed( VipsObject *object )
 }
 
 static void
+vips_object_real_print_class( VipsObjectClass *class, im_buf_t *buf )
+{
+	im_buf_appendf( buf, "%s", G_OBJECT_CLASS_NAME( class ) );
+	if( class->nickname )
+		im_buf_appendf( buf, " (%s)", class->nickname );
+	if( class->description )
+		im_buf_appendf( buf, ", %s", class->description );
+}
+
+static void
 vips_object_real_print( VipsObject *object, im_buf_t *buf )
 {
-        im_buf_appendf( buf, "%s(", G_OBJECT_TYPE_NAME( object ) );
 	if( object->name )
 		im_buf_appendf( buf, "\"%s\"", object->name );
-        im_buf_appendf( buf, ")" );
 }
 
 static void
@@ -145,6 +165,7 @@ vips_object_class_init( VipsObjectClass *class )
 	gobject_class->finalize = vips_object_finalize;
 
 	class->changed = vips_object_real_changed;
+	class->print_class = vips_object_real_print_class;
 	class->print = vips_object_real_print;
 	class->nickname = "object";
 	class->description = _( "VIPS base class" );
