@@ -17,6 +17,8 @@
 - moved im_format_t to VipsFormat, now sits over VipsObject
 - IM_FORMAT_FLAG_PARTIAL -> VIPS_FORMAT_PARTIAL
 - updated docs
+- interpolators use type introspection
+- added vips --list interpolators
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

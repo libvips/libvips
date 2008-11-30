@@ -306,6 +306,7 @@ typedef void *(*VipsClassMap)( VipsObjectClass *, void * );
 void *vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b );
 void *vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a );
 void *vips_class_map_concrete_all( GType base, VipsClassMap fn, void *a );
+VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
 GType vips_type_find( const char *basename, const char *nickname );
 
 char *im_strncpy( char *dest, const char *src, int n );

@@ -128,7 +128,79 @@
  */
 #define SMOOTH_SHARPENING_SCALE (0.453125f)
 
-static VipsInterpolateClass *vips_interpolate_yafrsmooth_parent_class = NULL;
+#define VIPS_TYPE_INTERPOLATE_YAFRSMOOTH \
+	(vips_interpolate_yafrsmooth_get_type())
+#define VIPS_INTERPOLATE_YAFRSMOOTH( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_YAFRSMOOTH, VipsInterpolateYafrsmooth ))
+#define VIPS_INTERPOLATE_YAFRSMOOTH_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_YAFRSMOOTH, VipsInterpolateYafrsmoothClass))
+#define VIPS_IS_INTERPOLATE_YAFRSMOOTH( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_YAFRSMOOTH ))
+#define VIPS_IS_INTERPOLATE_YAFRSMOOTH_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_YAFRSMOOTH ))
+#define VIPS_INTERPOLATE_YAFRSMOOTH_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_YAFRSMOOTH, VipsInterpolateYafrsmoothClass ))
+
+typedef struct _VipsInterpolateYafrsmooth {
+	VipsInterpolate parent_object;
+
+	/* "sharpening" is a continuous method parameter which is
+	 * proportional to the amount of "diagonal straightening" which the
+	 * nonlinear correction part of the method may add to the underlying
+	 * linear scheme. You may also think of it as a sharpening
+	 * parameter: higher values correspond to more sharpening, and
+	 * negative values lead to strange looking effects.
+	 *
+	 * The default value is sharpening = 29/32 when the scheme being
+	 * "straightened" is Catmull-Rom---as is the case here. This value
+	 * fixes key pixel values near the diagonal boundary between two
+	 * monochrome regions (the diagonal boundary pixel values being set
+	 * to the halfway colour).
+	 *
+	 * If resampling seems to add unwanted texture artifacts, push
+	 * sharpening toward 0. It is not generally not recommended to set
+	 * sharpening to a value larger than 4.
+	 *
+	 * Sharpening is halved because the .5 which has to do with the
+	 * relative coordinates of the evaluation points (which has to do
+	 * with .5*rite_width etc) is folded into the constant to save
+	 * flops. Consequently, the largest recommended value of
+	 * sharpening_over_two is 2=4/2.
+	 *
+	 * In order to simplify interfacing with users, the parameter which
+	 * should be set by the user is normalized so that user_sharpening =
+	 * 1 when sharpening is equal to the recommended value. Consistently
+	 * with the above discussion, values of user_sharpening between 0
+	 * and about 3.625 give good results.
+	 */
+	double sharpening;
+} VipsInterpolateYafrsmooth;
+
+typedef struct _VipsInterpolateYafrsmoothClass {
+	VipsInterpolateClass parent_class;
+
+	/* Precalculated interpolation matricies. int (used for pel sizes up 
+	 * to short), and double (for all others). We go to scale + 1, so
+	 * we can round-to-nearest safely.
+	 */
+
+	/* We could keep a large set of 2d 4x4 matricies, but this actually
+	 * works out slower, since for many resizes the thing will no longer
+	 * fit in L1.
+	 */
+	int matrixi[VIPS_TRANSFORM_SCALE + 1][4];
+	double matrixf[VIPS_TRANSFORM_SCALE + 1][4];
+} VipsInterpolateYafrsmoothClass;
+
+/* We need C linkage for this.
+ */
+extern "C" {
+G_DEFINE_TYPE( VipsInterpolateYafrsmooth, vips_interpolate_yafrsmooth, 
+	VIPS_TYPE_INTERPOLATE );
+}
 
 /* T is the type of pixels we are computing, D is a type large enough to hold
  * (Ta - Tb) ** 2.
@@ -668,11 +740,12 @@ vips_interpolate_yafrsmooth_interpolate( VipsInterpolate *interpolate,
 static void
 vips_interpolate_yafrsmooth_class_init( VipsInterpolateYafrsmoothClass *iclass )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( iclass );
 	VipsInterpolateClass *interpolate_class = 
 		VIPS_INTERPOLATE_CLASS( iclass );
 
-	vips_interpolate_yafrsmooth_parent_class = 
-		VIPS_INTERPOLATE_CLASS( g_type_class_peek_parent( iclass ) );
+	object_class->nickname = "yafrsmooth";
+	object_class->description = _( "YAFR smooth interpolation" );
 
 	interpolate_class->interpolate = 
 		vips_interpolate_yafrsmooth_interpolate;
@@ -701,59 +774,3 @@ vips_interpolate_yafrsmooth_init( VipsInterpolateYafrsmooth *yafrsmooth )
 
 	yafrsmooth->sharpening = 1.0;
 }
-
-GType
-vips_interpolate_yafrsmooth_get_type()
-{
-	static GType type = 0;
-
-	if( !type ) {
-		static const GTypeInfo info = {
-			sizeof( VipsInterpolateYafrsmoothClass ),
-			NULL,           /* base_init */
-			NULL,           /* base_finalize */
-			(GClassInitFunc) vips_interpolate_yafrsmooth_class_init,
-			NULL,           /* class_finalize */
-			NULL,           /* class_data */
-			sizeof( VipsInterpolateYafrsmooth ),
-			32,             /* n_preallocs */
-			(GInstanceInitFunc) vips_interpolate_yafrsmooth_init,
-		};
-
-		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
-			"VipsInterpolateYafrsmooth", &info, 
-			(GTypeFlags) 0 );
-	}
-
-	return( type );
-}
-
-VipsInterpolate *
-vips_interpolate_yafrsmooth_new( void )
-{
-	return( VIPS_INTERPOLATE( g_object_new( 
-		VIPS_TYPE_INTERPOLATE_YAFRSMOOTH, NULL ) ) );
-}
-
-void
-vips_interpolate_yafrsmooth_set_sharpening( 
-	VipsInterpolateYafrsmooth *yafrsmooth, 
-	double sharpening )
-{
-	yafrsmooth->sharpening = sharpening; 
-}
-
-/* Convenience: return a static yafrsmooth you don't need to free.
- */
-VipsInterpolate *
-vips_interpolate_yafrsmooth_static( void )
-{
-	static VipsInterpolate *interpolate = NULL;
-
-	if( !interpolate )
-		interpolate = vips_interpolate_yafrsmooth_new();
-
-	return( interpolate );
-}
-
-

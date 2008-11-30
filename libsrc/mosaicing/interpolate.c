@@ -52,9 +52,7 @@
  */
 #define FLOOR( V ) ((V) >= 0 ? (int)(V) : (int)((V) - 1))
 
-static VipsInterpolateClass *vips_interpolate_parent_class = NULL;
-static VipsInterpolateClass *vips_interpolate_nearest_parent_class = NULL;
-static VipsInterpolateClass *vips_interpolate_bilinear_parent_class = NULL;
+G_DEFINE_ABSTRACT_TYPE( VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT );
 
 #ifdef DEBUG
 static void
@@ -84,8 +82,6 @@ vips_interpolate_class_init( VipsInterpolateClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 #endif /*DEBUG*/
 
-	vips_interpolate_parent_class = g_type_class_peek_parent( class );
-
 #ifdef DEBUG
 	gobject_class->finalize = vips_interpolate_finalize;
 #endif /*DEBUG*/
@@ -101,31 +97,6 @@ vips_interpolate_init( VipsInterpolate *interpolate )
 	printf( "vips_interpolate_init: " );
 	vips_object_print( VIPS_OBJECT( interpolate ) );
 #endif /*DEBUG*/
-}
-
-GType
-vips_interpolate_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		static const GTypeInfo info = {
-			sizeof( VipsInterpolateClass ),
-			NULL,           /* base_init */
-			NULL,           /* base_finalize */
-			(GClassInitFunc) vips_interpolate_class_init,
-			NULL,           /* class_finalize */
-			NULL,           /* class_data */
-			sizeof( VipsInterpolate ),
-			32,             /* n_preallocs */
-			(GInstanceInitFunc) vips_interpolate_init,
-		};
-
-		type = g_type_register_static( VIPS_TYPE_OBJECT, 
-			"VipsInterpolate", &info, 0 );
-	}
-
-	return( type );
 }
 
 /* Set the point out_x, out_y in REGION out to be the point interpolated at
@@ -168,6 +139,29 @@ vips_interpolate_get_window_size( VipsInterpolate *interpolate )
 /* VipsInterpolateNearest class
  */
 
+#define VIPS_TYPE_INTERPOLATE_NEAREST (vips_interpolate_nearest_get_type())
+#define VIPS_INTERPOLATE_NEAREST( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearest ))
+#define VIPS_INTERPOLATE_NEAREST_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearestClass))
+#define VIPS_IS_INTERPOLATE_NEAREST( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NEAREST ))
+#define VIPS_IS_INTERPOLATE_NEAREST_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NEAREST ))
+#define VIPS_INTERPOLATE_NEAREST_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearestClass ))
+
+/* No new members.
+ */
+typedef VipsInterpolate VipsInterpolateNearest;
+typedef VipsInterpolateClass VipsInterpolateNearestClass;
+
+G_DEFINE_TYPE( VipsInterpolateNearest, vips_interpolate_nearest, 
+	VIPS_TYPE_INTERPOLATE );
+
 static void
 vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate, 
 	PEL *out, REGION *in, double x, double y )
@@ -191,11 +185,12 @@ vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 static void
 vips_interpolate_nearest_class_init( VipsInterpolateNearestClass *class )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	VipsInterpolateClass *interpolate_class = 
 		VIPS_INTERPOLATE_CLASS( class );
 
-	vips_interpolate_nearest_parent_class = 
-		g_type_class_peek_parent( class );
+	object_class->nickname = "nearest";
+	object_class->description = _( "Nearest-neighbour interpolation" );
 
 	interpolate_class->interpolate = vips_interpolate_nearest_interpolate;
 	interpolate_class->window_size = 1;
@@ -208,32 +203,6 @@ vips_interpolate_nearest_init( VipsInterpolateNearest *nearest )
 	printf( "vips_interpolate_nearest_init: " );
 	vips_object_print( VIPS_OBJECT( nearest ) );
 #endif /*DEBUG*/
-
-}
-
-GType
-vips_interpolate_nearest_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		static const GTypeInfo info = {
-			sizeof( VipsInterpolateNearestClass ),
-			NULL,           /* base_init */
-			NULL,           /* base_finalize */
-			(GClassInitFunc) vips_interpolate_nearest_class_init,
-			NULL,           /* class_finalize */
-			NULL,           /* class_data */
-			sizeof( VipsInterpolateNearest ),
-			32,             /* n_preallocs */
-			(GInstanceInitFunc) vips_interpolate_nearest_init,
-		};
-
-		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
-			"VipsInterpolateNearest", &info, 0 );
-	}
-
-	return( type );
 }
 
 VipsInterpolate *
@@ -258,6 +227,38 @@ vips_interpolate_nearest_static( void )
 
 /* VipsInterpolateBilinear class
  */
+
+#define VIPS_TYPE_INTERPOLATE_BILINEAR (vips_interpolate_bilinear_get_type())
+#define VIPS_INTERPOLATE_BILINEAR( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinear ))
+#define VIPS_INTERPOLATE_BILINEAR_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinearClass))
+#define VIPS_IS_INTERPOLATE_BILINEAR( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_BILINEAR ))
+#define VIPS_IS_INTERPOLATE_BILINEAR_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_BILINEAR ))
+#define VIPS_INTERPOLATE_BILINEAR_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinearClass ))
+
+typedef VipsInterpolate VipsInterpolateBilinear;
+
+typedef struct _VipsInterpolateBilinearClass {
+	VipsInterpolateClass parent_class;
+
+	/* Precalculated interpolation matricies. int (used for pel sizes up 
+	 * to short), and float (for all others). We go to scale + 1, so
+	 * we can round-to-nearest safely. Don't bother with double, since
+	 * this is an approximation anyway.
+ 	 */
+	int matrixi[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
+	float matrixd[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
+} VipsInterpolateBilinearClass;
+
+G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear, 
+	VIPS_TYPE_INTERPOLATE );
 
 /* in this class, name vars in the 2x2 grid as eg.
  * p1  p2
@@ -364,12 +365,13 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 static void
 vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	VipsInterpolateClass *interpolate_class = 
 		(VipsInterpolateClass *) class;
 	int x, y;
 
-	vips_interpolate_bilinear_parent_class = 
-		g_type_class_peek_parent( class );
+	object_class->nickname = "bilinear";
+	object_class->description = _( "Bilinear interpolation" );
 
 	interpolate_class->interpolate = vips_interpolate_bilinear_interpolate;
 	interpolate_class->window_size = 2;
@@ -417,31 +419,6 @@ vips_interpolate_bilinear_init( VipsInterpolateBilinear *bilinear )
 
 }
 
-GType
-vips_interpolate_bilinear_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		static const GTypeInfo info = {
-			sizeof( VipsInterpolateBilinearClass ),
-			NULL,           /* base_init */
-			NULL,           /* base_finalize */
-			(GClassInitFunc) vips_interpolate_bilinear_class_init,
-			NULL,           /* class_finalize */
-			NULL,           /* class_data */
-			sizeof( VipsInterpolateBilinear ),
-			32,             /* n_preallocs */
-			(GInstanceInitFunc) vips_interpolate_bilinear_init,
-		};
-
-		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
-			"VipsInterpolateBilinear", &info, 0 );
-	}
-
-	return( type );
-}
-
 VipsInterpolate *
 vips_interpolate_bilinear_new( void )
 {
@@ -462,3 +439,31 @@ vips_interpolate_bilinear_static( void )
 	return( interpolate );
 }
 
+/* Called on startup: register the base vips interpolators.
+ */
+void
+vips__interpolate_init( void )
+{
+	extern GType vips_interpolate_bicubic_get_type( void );
+	extern GType vips_interpolate_yafrsmooth_get_type( void );
+	extern GType vips_interpolate_yafrnohalo_get_type( void );
+
+	vips_interpolate_nearest_get_type();
+	vips_interpolate_bilinear_get_type();
+	vips_interpolate_bicubic_get_type();
+	vips_interpolate_yafrsmooth_get_type();
+	vips_interpolate_yafrnohalo_get_type();
+}
+
+/* Make an interpolator from a nickname.
+ */
+VipsInterpolate *
+vips_interpolate_new( const char *nickname )
+{
+	GType type;
+
+	if( !(type = vips_type_find( "VipsInterpolate", nickname )) )
+		return( NULL );
+
+	return( VIPS_INTERPOLATE( g_object_new( type, NULL ) ) );
+}

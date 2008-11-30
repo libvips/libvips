@@ -50,7 +50,58 @@
  */
 #define FLOOR( V ) ((V) >= 0 ? (int)(V) : (int)((V) - 1))
 
-static VipsInterpolateClass *vips_interpolate_yafrnohalo_parent_class = NULL;
+#define VIPS_TYPE_INTERPOLATE_YAFRNOHALO \
+	(vips_interpolate_yafrnohalo_get_type())
+#define VIPS_INTERPOLATE_YAFRNOHALO( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_YAFRNOHALO, VipsInterpolateYafrnohalo ))
+#define VIPS_INTERPOLATE_YAFRNOHALO_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_YAFRNOHALO, VipsInterpolateYafrnohaloClass))
+#define VIPS_IS_INTERPOLATE_YAFRNOHALO( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_YAFRNOHALO ))
+#define VIPS_IS_INTERPOLATE_YAFRNOHALO_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_YAFRNOHALO ))
+#define VIPS_INTERPOLATE_YAFRNOHALO_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_YAFRNOHALO, VipsInterpolateYafrnohaloClass ))
+
+typedef struct _VipsInterpolateYafrnohalo {
+	VipsInterpolate parent_object;
+
+	/* "sharpening" is a continuous method parameter which is
+	 * proportional to the amount of "diagonal straightening" which the
+	 * nonlinear correction part of the method may add to the underlying
+	 * linear scheme. You may also think of it as a sharpening
+	 * parameter: higher values correspond to more sharpening, and
+	 * negative values lead to strange looking effects.
+	 *
+	 * The default value is sharpening = 4/3 when the scheme being
+	 * "straightened" is bilinear---as is the case here. This value
+	 * fixes key pixel values near the diagonal boundary between two
+	 * monochrome regions (the diagonal boundary pixel values being set
+	 * to the halfway colour).
+	 *
+	 * If resampling seems to add unwanted texture artifacts, push
+	 * sharpening toward 0. It is not generally not recommended to set
+	 * sharpening to a value larger than 2.
+	 *
+	 * In order to simplify interfacing with users, the parameter which
+	 * should be set by the user is normalized so that user_sharpening =
+	 * 1 when sharpening is equal to the recommended value. Consistently
+	 * with the above discussion, values of user_sharpening between 0
+	 * and about 1.5 give good results.
+	 */
+	double sharpening;
+} VipsInterpolateYafrnohalo;
+
+typedef struct _VipsInterpolateYafrnohaloClass {
+	VipsInterpolateClass parent_class;
+
+} VipsInterpolateYafrnohaloClass;
+
+G_DEFINE_TYPE( VipsInterpolateYafrnohalo, vips_interpolate_yafrnohalo, 
+	VIPS_TYPE_INTERPOLATE );
 
 /* Copy-paste of gegl-sampler-yafr-nohalo.c starts
  */
@@ -1007,11 +1058,12 @@ vips_interpolate_yafrnohalo_interpolate( VipsInterpolate *interpolate,
 static void
 vips_interpolate_yafrnohalo_class_init( VipsInterpolateYafrnohaloClass *class )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	VipsInterpolateClass *interpolate_class = 
 		VIPS_INTERPOLATE_CLASS( class );
 
-	vips_interpolate_yafrnohalo_parent_class = 
-		g_type_class_peek_parent( class );
+	object_class->nickname = "yafrnohalo";
+	object_class->description = _( "YAFR nohalo interpolation" );
 
 	interpolate_class->interpolate = 
 		vips_interpolate_yafrnohalo_interpolate;
@@ -1028,58 +1080,3 @@ vips_interpolate_yafrnohalo_init( VipsInterpolateYafrnohalo *yafrnohalo )
 
 	yafrnohalo->sharpening = 1.0;
 }
-
-GType
-vips_interpolate_yafrnohalo_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		static const GTypeInfo info = {
-			sizeof( VipsInterpolateYafrnohaloClass ),
-			NULL,           /* base_init */
-			NULL,           /* base_finalize */
-			(GClassInitFunc) vips_interpolate_yafrnohalo_class_init,
-			NULL,           /* class_finalize */
-			NULL,           /* class_data */
-			sizeof( VipsInterpolateYafrnohalo ),
-			32,             /* n_preallocs */
-			(GInstanceInitFunc) vips_interpolate_yafrnohalo_init,
-		};
-
-		type = g_type_register_static( VIPS_TYPE_INTERPOLATE, 
-			"VipsInterpolateYafrnohalo", &info, 0 );
-	}
-
-	return( type );
-}
-
-VipsInterpolate *
-vips_interpolate_yafrnohalo_new( void )
-{
-	return( VIPS_INTERPOLATE( g_object_new( 
-		VIPS_TYPE_INTERPOLATE_YAFRNOHALO, NULL ) ) );
-}
-
-void
-vips_interpolate_yafrnohalo_set_sharpening( 
-	VipsInterpolateYafrnohalo *yafrnohalo, 
-	double sharpening )
-{
-	yafrnohalo->sharpening = sharpening; 
-}
-
-/* Convenience: return a static yafrnohalo you don't need to free.
- */
-VipsInterpolate *
-vips_interpolate_yafrnohalo_static( void )
-{
-	static VipsInterpolate *interpolate = NULL;
-
-	if( !interpolate )
-		interpolate = vips_interpolate_yafrnohalo_new();
-
-	return( interpolate );
-}
-
-

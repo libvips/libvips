@@ -26,6 +26,8 @@
  * 	- add input *VEC arg types to C++ binding
  * 17/8/08
  * 	- add --list formats
+ * 29/11/08
+ * 	- add --list interpolators
  */
 
 /*
@@ -164,33 +166,43 @@ list_function( im_function *func )
 }
 
 static void *
-list_format( VipsFormatClass *format )
+list_format( VipsFormatClass *class )
 {
 	const char **p;
 
 	printf( "%-20s - ", 
-		VIPS_OBJECT_CLASS( format )->description );
+		VIPS_OBJECT_CLASS( class )->description );
 
 	printf( "(" );
-	for( p = format->suffs; *p; p++ ) {
+	for( p = class->suffs; *p; p++ ) {
 		printf( "%s", *p );
 		if( p[1] )
 			printf( ", " );
 	}
 	printf( ") " );
 
-	if( format->is_a )
+	if( class->is_a )
 		printf( "is_a " );
-	if( format->header )
+	if( class->header )
 		printf( "header " );
-	if( format->load )
+	if( class->load )
 		printf( "load " );
-	if( format->save )
+	if( class->save )
 		printf( "save " );
-	if( format->get_flags )
+	if( class->get_flags )
 		printf( "get_flags " );
 	printf( "\n" );
-	
+
+	return( NULL );
+}
+
+static void *
+list_interpolate( VipsInterpolateClass *class )
+{
+	printf( "%-20s - %s\n", 
+		VIPS_OBJECT_CLASS( class )->nickname,
+		VIPS_OBJECT_CLASS( class )->description );
+
 	return( NULL );
 }
 
@@ -201,6 +213,11 @@ print_list( const char *name )
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
 	else if( strcmp( name, "formats" ) == 0 ) 
 		vips_format_map( (VSListMap2Fn) list_format, NULL, NULL );
+	else if( strcmp( name, "interpolators" ) == 0 ) {
+		vips_class_map_concrete_all( 
+			g_type_from_name( "VipsInterpolate" ), 
+			(VipsClassMap) list_interpolate, NULL );
+	}
 	else {
 		if( map_name( name, list_function ) )
 			error_exit( "unknown package \"%s\"", name ); 

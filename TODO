@@ -1,3 +1,7 @@
+- nip2 Interpolate needs updating to new affinei thing
+
+
+
 - started adding 
 
 #define IM_TYPE_GOBJECT "gobject"       /* A GObject of a specified class */

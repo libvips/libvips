@@ -75,7 +75,7 @@ typedef struct _VipsInterpolateClass {
 	 */
 	int (*get_window_size)( VipsInterpolate * );
 
-	/* Or just set this if you want  constant.
+	/* Or just set this if you want a constant.
 	 */
 	int window_size;
 } VipsInterpolateClass;
@@ -85,44 +85,6 @@ void vips_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y );
 VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate * );
 int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
-
-/* Nearest class starts.
- */
-
-#define VIPS_TYPE_INTERPOLATE_NEAREST (vips_interpolate_nearest_get_type())
-#define VIPS_INTERPOLATE_NEAREST( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearest ))
-#define VIPS_INTERPOLATE_NEAREST_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearestClass))
-#define VIPS_IS_INTERPOLATE_NEAREST( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NEAREST ))
-#define VIPS_IS_INTERPOLATE_NEAREST_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NEAREST ))
-#define VIPS_INTERPOLATE_NEAREST_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_NEAREST, VipsInterpolateNearestClass ))
-
-typedef struct _VipsInterpolateNearest {
-	VipsInterpolate parent_object;
-
-} VipsInterpolateNearest;
-
-typedef struct _VipsInterpolateNearestClass {
-	VipsInterpolateClass parent_class;
-
-} VipsInterpolateNearestClass;
-
-VipsInterpolate *vips_interpolate_nearest_new( void );
-GType vips_interpolate_nearest_get_type( void );
-
-/* Convenience: return a static fast nearest, so no need to free it.
- */
-VipsInterpolate *vips_interpolate_nearest_static( void );
-
-/* Bilinear class starts.
- */
 
 /* How many bits of precision we keep for transformations, ie. how many
  * pre-computed matricies we have.
@@ -138,44 +100,20 @@ VipsInterpolate *vips_interpolate_nearest_static( void );
 #define VIPS_INTERPOLATE_SHIFT (8)
 #define VIPS_INTERPOLATE_SCALE (1 << VIPS_INTERPOLATE_SHIFT)
 
-#define VIPS_TYPE_INTERPOLATE_BILINEAR (vips_interpolate_bilinear_get_type())
-#define VIPS_INTERPOLATE_BILINEAR( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinear ))
-#define VIPS_INTERPOLATE_BILINEAR_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinearClass))
-#define VIPS_IS_INTERPOLATE_BILINEAR( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_BILINEAR ))
-#define VIPS_IS_INTERPOLATE_BILINEAR_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_BILINEAR ))
-#define VIPS_INTERPOLATE_BILINEAR_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinearClass ))
-
-typedef struct _VipsInterpolateBilinear {
-	VipsInterpolate parent_object;
-
-} VipsInterpolateBilinear;
-
-typedef struct _VipsInterpolateBilinearClass {
-	VipsInterpolateClass parent_class;
-
-	/* Precalculated interpolation matricies. int (used for pel sizes up 
-	 * to short), and float (for all others). We go to scale + 1, so
-	 * we can round-to-nearest safely. Don't bother with double, since
-	 * this is an approximation anyway.
- 	 */
-	int matrixi[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
-	float matrixd[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
-} VipsInterpolateBilinearClass;
-
-GType vips_interpolate_bilinear_get_type( void );
-VipsInterpolate *vips_interpolate_bilinear_new( void );
-
-/* Convenience: return a static bilinear, so no need to free it.
+/* Convenience: return static interpolators, no need to unref.
  */
+VipsInterpolate *vips_interpolate_nearest_static( void );
 VipsInterpolate *vips_interpolate_bilinear_static( void );
+VipsInterpolate *vips_interpolate_bicubic_static( void );
+
+/* Convenience: make an interpolator from a nickname. g_object_unref() when 
+ * you're done with it.
+ */
+VipsInterpolate *vips_interpolate_new( const char *nickname );
+
+/* Register base vips types, called during startup.
+ */
+void vips__interpolate_init( void );
 
 #ifdef __cplusplus
 }

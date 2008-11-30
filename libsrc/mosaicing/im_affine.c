@@ -516,7 +516,7 @@ im_affine( IMAGE *in, IMAGE *out,
 	int ox, int oy, int ow, int oh )
 {
 	return( im_affinei( in, out, 
-		vips_interpolate_bicubic_static(), 
+		vips_interpolate_bilinear_static(), 
 		a, b, c, d, dx, dy, 
 		ox, oy, ow, oh ) );
 }

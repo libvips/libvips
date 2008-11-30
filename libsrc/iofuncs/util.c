@@ -315,12 +315,12 @@ vips_class_map_concrete_all( GType type, VipsClassMap fn, void *a )
 static void *
 test_name( VipsObjectClass *class, const char *nickname )
 {
-	if( strcasecmp( class->nickname, nickname ) != 0 )
+	if( strcasecmp( class->nickname, nickname ) == 0 )
 		return( class );
 
 	/* Check the class name too, why not.
 	 */
-	if( strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) != 0 )
+	if( strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) == 0 )
 		return( class );
 
 	return( NULL );
@@ -349,6 +349,20 @@ vips_class_find( const char *basename, const char *nickname )
 	}
 
 	return( class );
+}
+
+GType
+vips_type_find( const char *basename, const char *nickname )
+{
+	VipsObjectClass *class;
+
+	if( !(class = vips_class_find( "VipsInterpolate", nickname )) )
+		return( 0 );
+
+	/* FIXME ... we've not supposed to use G_TYPE_FROM_CLASS(), I think. 
+	 * I'm not * sure what the alternative is.
+	 */
+	return(  G_TYPE_FROM_CLASS( class ) );
 }
 
 /* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.

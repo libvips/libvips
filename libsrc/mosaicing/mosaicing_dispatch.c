@@ -522,7 +522,7 @@ static im_function affine_desc = {
 static im_arg_desc affinei_args[] = {
 	IM_INPUT_IMAGE( "in" ),
 	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_INT( "interpolate" ),
+	IM_INPUT_STRING( "interpolate" ),
 	IM_INPUT_DOUBLE( "a" ),
 	IM_INPUT_DOUBLE( "b" ),
 	IM_INPUT_DOUBLE( "c" ),
@@ -535,46 +535,12 @@ static im_arg_desc affinei_args[] = {
 	IM_INPUT_INT( "h" )
 };
 
-static VipsInterpolate *
-get_interpolate( int interpol )
-{
-	VipsInterpolate *interpolate;
-
-	switch( interpol ) {
-	case 1:
-		interpolate = vips_interpolate_nearest_new();
-		break;
-
-	case 2:
-		interpolate = vips_interpolate_bilinear_new();
-		break;
-
-	case 3:
-		interpolate = vips_interpolate_bicubic_new();
-		break;
-
-	case 4:
-		interpolate = vips_interpolate_yafrsmooth_new();
-		break;
-
-	case 5:
-		interpolate = vips_interpolate_yafrnohalo_new();
-		break;
-
-	default:
-		im_error( "affinei_vec", "%s", _( "bad interpolation" ) );
-		interpolate = NULL;
-	}
-
-	return( interpolate );
-}
-
 /* Call im_affinei via arg vector.
  */
 static int
 affinei_vec( im_object *argv )
 {
-	int interpol = *((int *) argv[2]);
+	const char *interpol = argv[2];
 	double a = *((double *) argv[3]);
 	double b = *((double *) argv[4]);
 	double c = *((double *) argv[5]);
@@ -588,7 +554,7 @@ affinei_vec( im_object *argv )
 	VipsInterpolate *interpolate;
 	int result;
 
-	if( !(interpolate = get_interpolate( interpol )) )
+	if( !(interpolate = vips_interpolate_new( interpol )) )
 		return( -1 );
 	result = im_affinei( argv[0], argv[1], interpolate, 
 		a, b, c, d, dx, dy, x, y, w, h );
@@ -613,7 +579,7 @@ static im_function affinei_desc = {
 static im_arg_desc affinei_all_args[] = {
 	IM_INPUT_IMAGE( "in" ),
 	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_INT( "interpolate" ),
+	IM_INPUT_STRING( "interpolate" ),
 	IM_INPUT_DOUBLE( "a" ),
 	IM_INPUT_DOUBLE( "b" ),
 	IM_INPUT_DOUBLE( "c" ),
@@ -627,7 +593,7 @@ static im_arg_desc affinei_all_args[] = {
 static int
 affinei_all_vec( im_object *argv )
 {
-	int interpol = *((int *) argv[2]);
+	const char *interpol = argv[2];
 	double a = *((double *) argv[3]);
 	double b = *((double *) argv[4]);
 	double c = *((double *) argv[5]);
@@ -637,7 +603,7 @@ affinei_all_vec( im_object *argv )
 	VipsInterpolate *interpolate;
 	int result;
 
-	if( !(interpolate = get_interpolate( interpol )) )
+	if( !(interpolate = vips_interpolate_new( interpol )) )
 		return( -1 );
 	result = im_affinei_all( argv[0], argv[1], interpolate, 
 		a, b, c, d, dx, dy );
