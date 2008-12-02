@@ -937,3 +937,4 @@ im__meta_init_types( void )
 	g_value_register_transform_func( IM_TYPE_SAVE_STRING, G_TYPE_DOUBLE,
 		transform_save_string_double );
 }
+

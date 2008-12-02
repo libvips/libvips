@@ -19,6 +19,7 @@
 - updated docs
 - interpolators use type introspection
 - added vips --list classes, does formats too
+- copy/pasted some vips8 arg stuff, needs much hacking
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()
