@@ -62,6 +62,9 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif /*HAVE_SYS_PARAM_H*/
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

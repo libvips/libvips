@@ -19,6 +19,7 @@
 - updated docs
 - interpolators use type introspection
 - added vips --list classes, does formats too
+- include sys/param.h to get PATH_MAX in more places
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

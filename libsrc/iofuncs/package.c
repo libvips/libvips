@@ -45,6 +45,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif /*HAVE_SYS_PARAM_H*/
 #include <string.h>
 #include <stdarg.h>
 #include <limits.h>
