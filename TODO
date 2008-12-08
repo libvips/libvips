@@ -6,12 +6,8 @@
 
   nickname, description etc need to be properties so nip2 can read them
 
-
-
-
-
   add a g_get_children( "classname" ) -> ["child1-name", ..] to nip2, see old 
-  vips8.c code?
+  vips8.c cooe?
 
 
 

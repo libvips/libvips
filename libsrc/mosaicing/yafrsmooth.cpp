@@ -128,14 +128,6 @@
  */
 #define SMOOTH_SHARPENING_SCALE (0.453125f)
 
-/* Properties.
- */
-enum {
-	PROP_SHARPENING = 1,
-	PROP_LAST
-};
-
-
 #define VIPS_TYPE_INTERPOLATE_YAFRSMOOTH \
 	(vips_interpolate_yafrsmooth_get_type())
 #define VIPS_INTERPOLATE_YAFRSMOOTH( obj ) \
@@ -748,12 +740,9 @@ vips_interpolate_yafrsmooth_interpolate( VipsInterpolate *interpolate,
 static void
 vips_interpolate_yafrsmooth_class_init( VipsInterpolateYafrsmoothClass *iclass )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( iclass );
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( iclass );
 	VipsInterpolateClass *interpolate_class = 
 		VIPS_INTERPOLATE_CLASS( iclass );
-
-	GParamSpec *pspec;
 
 	object_class->nickname = "yafrsmooth";
 	object_class->description = _( "YAFR smooth interpolation" );
@@ -773,19 +762,6 @@ vips_interpolate_yafrsmooth_class_init( VipsInterpolateYafrsmoothClass *iclass )
 			iclass->matrixi[x][i] = 
 				iclass->matrixf[x][i] * VIPS_INTERPOLATE_SCALE;
 	}
-
-	/* Create properties.
-	 */
-	pspec = g_param_spec_double( "sharpening", 
-		_( "Sharpening" ),
-		_( "Degree of extra edge enhancement" ),
-		0, 4, 1, 
-		(GParamFlags) G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, 
-		PROP_SHARPENING, pspec );
-	vips_object_class_install_argument( object_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE,
-		G_STRUCT_OFFSET( VipsInterpolateYafrsmooth, sharpening ) );
 }
 
 static void

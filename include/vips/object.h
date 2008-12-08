@@ -34,130 +34,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-typedef struct _VipsObject VipsObject;
-typedef struct _VipsObjectClass VipsObjectClass;
-
-/* Track extra stuff for arguments to objects
- */
-
-/* Flags we associate with each argument.
- */
-typedef enum _VipsArgumentFlags {
-	VIPS_ARGUMENT_NONE = 0,
-
-	/* Must be set before _build().
-	 */
-	VIPS_ARGUMENT_REQUIRED = 1,
-
-	/* Can only be set before _build().
-	 */
-	VIPS_ARGUMENT_CONSTRUCT = 2,
-
-	/* Can only be set once.
-	 */
-	VIPS_ARGUMENT_SET_ONCE = 4,
-
-	/* Have input & output flags. Both set is an error; neither set is OK.
-	 */
-
-	/* Is an input argument (one we depend on) ... if it's a gobject, we 
-	 * should ref it. In our _dispose(), we should unref it.
-	 */
-	VIPS_ARGUMENT_INPUT = 8,
-
-	/* Is an output argument (one that depends on us) ... if it's a
-	 * gobject, we should ref ourselves. We watch "destroy" on the
-	 * argument: if it goes, we unref ourselves. If we dispose, we
-	 * disconnect the signal.
-	 */
-	VIPS_ARGUMENT_OUTPUT = 16
-} VipsArgumentFlags;
-
-/* Useful flag combinations. User-visible ones are:
-
-VIPS_ARGUMENT_REQURED_INPUT 	Eg. the "left" argument for an add operation
-
-VIPS_ARGUMENT_OPTIONAL_INPUT 	Eg. the "caption" for an object
-
-VIPS_ARGUMENT_REQURED_OUTPUT 	Eg. the "result" of an add operation
-
-VIPS_ARGUMENT_OPTIONAL_OUTPUT 	Eg. the "width" of an image
-
-   Other combinations are used internally, eg. supplying the cast-table for an 
-   arithmetic operation
-
- */
-
-#define VIPS_ARGUMENT_REQUIRED_INPUT \
-	(VIPS_ARGUMENT_INPUT | VIPS_ARGUMENT_REQUIRED | \
-	 VIPS_ARGUMENT_CONSTRUCT | VIPS_ARGUMENT_SET_ONCE)
-
-#define VIPS_ARGUMENT_OPTIONAL_INPUT \
-	(VIPS_ARGUMENT_INPUT | \
-	 VIPS_ARGUMENT_CONSTRUCT | VIPS_ARGUMENT_SET_ONCE)
-
-#define VIPS_ARGUMENT_REQUIRED_OUTPUT \
-	(VIPS_ARGUMENT_OUTPUT | VIPS_ARGUMENT_REQUIRED | \
-	 VIPS_ARGUMENT_SET_ONCE)
-
-#define VIPS_ARGUMENT_OPTIONAL_OUTPUT \
-	(VIPS_ARGUMENT_OUTPUT | \
-	 VIPS_ARGUMENT_SET_ONCE)
-
-/* Keep one of these for every argument.
- */
-typedef struct _VipsArgument {
-	GParamSpec *pspec;	/* pspec for this argument */
-
-	/* More stuff, see below */
-} VipsArgument;
-
-/* Keep one of these in the class struct for every argument.
- */
-typedef struct _VipsArgumentClass {
-	VipsArgument parent;
-
-	/* The class of the object we are an arg for.
-	 */
-	VipsObjectClass *object_class;
-
-	VipsArgumentFlags flags;
-	guint offset;		/* G_STRUCT_OFFSET of member in object */
-} VipsArgumentClass;
-
-/* Keep one of these in the object struct for every argument instance.
- */
-typedef struct _VipsArgumentInstance {
-	VipsArgument parent;
-
-	/* The object we are attached to.
-	 */
-	VipsObject *object;
-
-	/* Has been set.
-	 */
-	gboolean assigned;
-
-	/* If this is an output argument, keep the id of our "destroy" handler
-	 * here.
-	 */
-	gulong destroy_id;	
-} VipsArgumentInstance;
-
-/* Need to look up our VipsArgument structs from a pspec. Just hash the
- * pointer (ie. we assume pspecs are never shared, is this correct?)
- */
-typedef GHashTable VipsArgumentTable;
-
-VipsArgumentInstance *vips__argument_get_instance( VipsArgumentClass *,
-	VipsObject *);
-VipsArgument *vips__argument_table_lookup( VipsArgumentTable *, 
-	GParamSpec *);
-typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
-	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
-void *vips__argument_map( VipsObject *object, 
-	VipsArgumentMapFn fn, void *a, void *b );
-
 #define VIPS_TYPE_OBJECT (vips_object_get_type())
 #define VIPS_OBJECT( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), VIPS_TYPE_OBJECT, VipsObject ))
@@ -170,17 +46,15 @@ void *vips__argument_map( VipsObject *object,
 #define VIPS_OBJECT_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), VIPS_TYPE_OBJECT, VipsObjectClass ))
 
-struct _VipsObject {
+typedef struct _VipsObject {
 	GObject parent_object;
 
-	char *name;			/* Optional instance name */
-
-	/* Table of argument instances for this class and any derived classes.
+	/* Optional instance name.
 	 */
-	VipsArgumentTable *argument_table;
-};
+	char *name;
+} VipsObject;
 
-struct _VipsObjectClass {
+typedef struct _VipsObjectClass {
 	GObjectClass parent_class;
 
 	/* Something about the object has changed. Should use glib's properties
@@ -204,24 +78,13 @@ struct _VipsObjectClass {
 	/* Class description. Used for help messages, so internationalised.
 	 */
 	const char *description;
-
-	/* Table of arguments for this class and any derived classes. Order
-	 * is important, so keep a traverse list too. We can't rely on the
-	 * ordering given by g_object_class_list_properties() since it comes
-	 * from a hash :-(
-	 */
-	VipsArgumentTable *argument_table;
-	GSList *argument_table_traverse;
-};
+} VipsObjectClass;
 
 void *vips_object_changed( VipsObject *object );
 void vips_object_print_class( VipsObjectClass *klass );
 void vips_object_print( VipsObject *object );
 
 GType vips_object_get_type( void );
-
-void vips_object_class_install_argument( VipsObjectClass *,
-	GParamSpec *pspec, VipsArgumentFlags flags, guint offset );
 
 #ifdef __cplusplus
 }
