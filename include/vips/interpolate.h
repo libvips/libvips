@@ -94,10 +94,10 @@ int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 
 /* How many bits of precision we keep for interpolation, ie. where the decimal
  * is in the fixed-point tables. For 16-bit pixels, we need 16 bits for the
- * data, 4 bits to add 16 values together, another bit for the sign and some
- * other stuff, so say 24 total. That leaves 8 bits for the fractional part.
+ * data and 4 bits to add 16 values together. That leaves 12 bits for the 
+ * fractional part.
  */
-#define VIPS_INTERPOLATE_SHIFT (8)
+#define VIPS_INTERPOLATE_SHIFT (12)
 #define VIPS_INTERPOLATE_SCALE (1 << VIPS_INTERPOLATE_SHIFT)
 
 /* Convenience: return static interpolators, no need to unref.
