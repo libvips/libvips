@@ -22,6 +22,8 @@
 - include sys/param.h to get PATH_MAX in more places
 - VIPS_INTERPOLATE_SHIFT bumped to 12, we need the extra precision for u16 gel
   data
+- added vips_format_get_flags()
+- oop, forgot to check for cancel during tiled tiff write
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

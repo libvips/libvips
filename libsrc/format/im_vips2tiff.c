@@ -1061,13 +1061,11 @@ write_tif_tile( TiffWrite *tw )
 			if( tw->layer && new_tile( tw->layer, tw->reg, &area ) )
 				return( -1 );
 
-			/* Trigger any eval callbacks on our source image.
+			/* Trigger any eval callbacks on our source image and
+                         * check for errors.
 			 */
-			im__handle_eval( im, area.width, area.height );
-
-                        /* Check for errors.
-                         */
-                        if( im_threadgroup_iserror( tw->tg ) ) 
+			if( im__handle_eval( im, area.width, area.height ) ||
+				im_threadgroup_iserror( tw->tg ) ) 
                                 return( -1 );
 		}
 

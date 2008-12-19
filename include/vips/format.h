@@ -110,6 +110,8 @@ void *vips_format_map( VSListMap2Fn fn, void *a, void *b );
 VipsFormatClass *vips_format_for_file( const char *filename );
 VipsFormatClass *vips_format_for_name( const char *filename );
 
+VipsFormatFlags vips_format_get_flags( VipsFormatClass *format );
+
 /* Read/write an image convenience functions.
  */
 int vips_format_read( const char *name, IMAGE *out );
