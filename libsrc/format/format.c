@@ -126,7 +126,7 @@ vips_format_init( VipsFormat *object )
 }
 
 VipsFormatFlags
-vips_format_get_flags( VipsFormatClass *format )
+vips_format_get_flags( VipsFormatClass *format, const char *filename )
 {
 	return( format->get_flags ? format->get_flags( filename ) : 0 );
 }
