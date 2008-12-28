@@ -103,6 +103,9 @@
  * 	- allow CMYKA (thanks Doron)
  * 15/8/08
  * 	- reorganise for image format system
+ * 20/12/08
+ * 	- dont read with mmap: no performance advantage with libtiff, chews up 
+ * 	  VM wastefully
  */
 
 /*
@@ -1395,9 +1398,10 @@ get_directory( const char *filename, int page )
 	TIFF *tif;
 	int i;
 
-	/* No need to use "b" and it means something different anyway.
+	/* No mmap --- no performance advantage with libtiff, and it burns up
+	 * our VM if the tiff file is large.
 	 */
-	if( !(tif = TIFFOpen( filename, "r" )) ) {
+	if( !(tif = TIFFOpen( filename, "rm" )) ) {
 		im_error( "im_tiff2vips", 
 			_( "unable to open \"%s\" for input" ),
 			filename );
@@ -1520,11 +1524,7 @@ istifftiled( const char *filename )
 	TIFFSetErrorHandler( (TIFFErrorHandler) im__thandler_error );
 	TIFFSetWarningHandler( (TIFFErrorHandler) im__thandler_warning );
 
-#ifdef BINARY_OPEN
-	if( !(tif = TIFFOpen( filename, "rb" )) ) {
-#else /*BINARY_OPEN*/
-	if( !(tif = TIFFOpen( filename, "r" )) ) {
-#endif /*BINARY_OPEN*/
+	if( !(tif = TIFFOpen( filename, "rm" )) ) {
 		/* Not a TIFF file ... return False.
 		 */
 		im_error_clear();

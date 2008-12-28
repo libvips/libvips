@@ -32,6 +32,8 @@
  *	- more typedef
  * 3/7/95 JC
  *	- IM_CODING_LABQ handling added here
+ * 20/12/08
+ * 	- fall back to im_copy() for 1/1 shrink
  */
 
 /*
@@ -296,7 +298,10 @@ shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 int
 im_shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 {
-	if( in->Coding == IM_CODING_LABQ ) {
+	if( xshrink == 1 && yshrink == 1 ) {
+		return( im_copy( in, out ) );
+	}
+	else if( in->Coding == IM_CODING_LABQ ) {
 		IMAGE *t[2];
 
 		if( im_open_local_array( out, t, 2, "im_shrink:1", "p" ) ||
