@@ -56,6 +56,10 @@
 
  */
 
+/*
+#define DEBUG_FATAL
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -861,6 +865,18 @@ main( int argc, char **argv )
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( "unable to start VIPS" );
+#ifdef DEBUG_FATAL
+	/* Set masks for debugging ... stop on any problem. 
+	 */
+	g_log_set_always_fatal(
+		G_LOG_FLAG_RECURSION |
+		G_LOG_FLAG_FATAL |
+		G_LOG_LEVEL_ERROR |
+		G_LOG_LEVEL_CRITICAL |
+		G_LOG_LEVEL_WARNING );
+
+	fprintf( stderr, "*** DEBUG_FATAL: will abort() on first warning\n" );
+#endif /*!DEBUG_FATAL*/
 
         context = g_option_context_new( _( "- VIPS driver program" ) );
 

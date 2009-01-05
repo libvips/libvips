@@ -55,7 +55,7 @@ extern "C" {
 #define IM_TYPE_IMAGE "image"           /* IMAGE descriptor */
 #define IM_TYPE_DISPLAY "display"	/* Display descriptor */
 #define IM_TYPE_GVALUE "gvalue"		/* GValue wrapper */
-#define IM_TYPE_GOBJECT "gobject"	/* A GObject of a specified class */
+#define IM_TYPE_INTERPOLATE "interpolate"/* A subclass of VipsInterpolate */
 typedef char *im_arg_type;              /* Type of argument id */
 
 /* Internal representation of an argument to an image processing function.
@@ -210,6 +210,8 @@ extern im_type_desc im__output_display;
 extern im_type_desc im__input_gvalue;
 extern im_type_desc im__output_gvalue;
 
+extern im_type_desc im__input_interpolate;
+
 /* VIPS print functions.
  */
 int im__iprint( im_object obj );		/* int */
@@ -254,6 +256,8 @@ int im__gprint( im_object obj );		/* GValue */
 
 #define IM_INPUT_GVALUE( S ) { S, &im__input_gvalue, NULL }
 #define IM_OUTPUT_GVALUE( S ) { S, &im__output_gvalue, im__gprint }
+
+#define IM_INPUT_INTERPOLATE( S ) { S, &im__input_interpolate, NULL }
 
 /* Add a plug-in package.
  */

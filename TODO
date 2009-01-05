@@ -1,61 +1,14 @@
+- try making vips_add(), an operator as a class
 
+- nickname, description etc need to be properties so nip2 can read them
 
+  arg, they are class properties, argh, can we support these?
 
-- add params
-
-  use property system
-
-  use construtors, see docs for g_object_new(), rather than vips8 build funcs
-
-  nickname, description etc need to be properties so nip2 can read them
-
-  add a g_get_children( "classname" ) -> ["child1-name", ..] to nip2, see old 
-  vips8.c cooe?
-
-
-
-- started adding 
-
-#define IM_TYPE_GOBJECT "gobject"       /* A GObject of a specified class */
+- make a new package for "resample"? im_shrink & friends could go in there too
 
 - make a "deprecated" package too
 
 - im_affinei and im_affinei_all need docs
-
-- all the interpolators
-
-  want bicubic args to be
-
-  	IM_GOBJECT( "VipsInterpolate", "interpolate" );
-
-  ie. pass a gobject which is a sub-type of VipsInterpolate in an arg called
-  "interpolate"
-
-  then we need to create an object of that class, get the param list, set from
-  any args, call object_init, and pass
-
-  on return, unref the object
-
-  so 
-  
-  	im_affinei_all in.v out.v "yafrsmooth(2.4)" 0.9 0 0 0.9 0 0
-
-  creates a yafrsmooth, sets the param,
-
-
-  in nip2, 
-
-  	inter = g_object_new "VipsInterpolateBicubic" [$sharpness => 2.4];
-
-  also need something to return a list of GTypes below a name etc., find class
-  description:w
-
-
-  need k
-
-
-
-- make a new package for "resample"? im_shrink & friends could go in there too
 
 - how to expose things like yafrsmooth's "sharpening" parameter to
   nip2/C++/Python?
@@ -68,6 +21,18 @@
   	vips_get_type ("VipsInterpolator", "bicubic")
 
   would get us the GType for VipsInterpolatorBicubic
+
+  add a g_get_children( "classname" ) -> ["child1-name", ..] to nip2, see old 
+  vips8.c code?
+
+  in nip2, 
+
+  	inter = g_object_new "yafrsmooth" [$sharpness => 2.4];
+
+  also need something to return a list of GTypes below a name etc., find class
+  description:w
+
+  need k
 
 - redo the format system in this way too?
 
@@ -87,13 +52,19 @@
 
   now always included in vips.h
 
-- build nip2
-
 - check mosaic1, global_balance, similarity etc. use of im__affine
   
   how can we move them to im_affinei ?
 
-- rename Transformation -> Transform
+
+
+
+
+
+
+
+
+
 
 - update the Portfiles on the mac and on the website from the macports ones
 

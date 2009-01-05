@@ -740,9 +740,13 @@ vips_interpolate_yafrsmooth_interpolate( VipsInterpolate *interpolate,
 static void
 vips_interpolate_yafrsmooth_class_init( VipsInterpolateYafrsmoothClass *iclass )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( iclass );
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( iclass );
 	VipsInterpolateClass *interpolate_class = 
 		VIPS_INTERPOLATE_CLASS( iclass );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "yafrsmooth";
 	object_class->description = _( "YAFR smooth interpolation" );

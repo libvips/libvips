@@ -338,6 +338,21 @@ char *im__file_read( FILE *fp, const char *name, unsigned int *length_out );
 char *im__file_read_name( const char *name, unsigned int *length_out );
 int im__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
 
+typedef enum {
+ 	VIPS_TOKEN_LEFT = 1,	/* ({[ */
+	VIPS_TOKEN_RIGHT,	/* ]}) */
+	VIPS_TOKEN_STRING,	/* string or "str\"ing" */
+	VIPS_TOKEN_EQUALS,	/* = */
+	VIPS_TOKEN_COMMA	/* , */
+} VipsToken;
+
+const char *vips__token_get( const char *buffer, 
+	VipsToken *token, char *string, int size );
+const char *vips__token_must( const char *buffer, VipsToken *token, 
+	char *string, int size );
+const char *vips__token_need( const char *buffer, VipsToken need_token, 
+	char *string, int size );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

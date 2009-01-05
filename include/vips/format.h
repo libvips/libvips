@@ -1,4 +1,4 @@
-/* Abstract base type for supported image formats. Subclass this to add a new
+/* Base type for supported image formats. Subclass this to add a new
  * format.
  */
 
@@ -50,15 +50,14 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_FORMAT, VipsFormatClass ))
 
-/* Image file properties. OR these together to get the result of
- * im_format_flags_fn(). 0 is default.
+/* Image file properties. 
  */
 typedef enum {
 	VIPS_FORMAT_NONE = 0,		/* No flags set */
 	VIPS_FORMAT_PARTIAL = 1		/* Lazy read OK (eg. tiled tiff) */
 } VipsFormatFlags;
 
-/* Function protos for formats.
+/* Don't instantiate these things, just use the class stuff.
  */
 
 typedef struct _VipsFormat {

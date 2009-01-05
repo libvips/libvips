@@ -874,9 +874,31 @@ output_gvalue_init( im_object *obj )
 
 im_type_desc im__output_gvalue = {
 	IM_TYPE_GVALUE,	
-	sizeof( GValue ),       /* Need some storage */
-	IM_TYPE_OUTPUT,		/* No arg needed (just print) */
+	sizeof( GValue ),       	/* Need some storage */
+	IM_TYPE_OUTPUT,			/* No arg needed (just print) */
 	(im_init_obj_fn) output_gvalue_init,	/* Init function */
 	(im_dest_obj_fn) gvalue_free 	/* Destroy function */
+};
+
+/* Init function for input interpolate.
+ */
+static int
+input_interpolate_init( im_object *obj, char *str )
+{
+	VipsObject *object;
+
+	if( !(object = vips_object_new_from_string( "VipsInterpolate", str )) )
+		return( -1 );
+	*obj = object;
+
+	return( 0 );
+}
+
+im_type_desc im__input_interpolate = {
+	IM_TYPE_INTERPOLATE,	
+	0,      		/* No storage required */
+	IM_TYPE_ARG,		/* It requires a command-line arg */
+	(im_init_obj_fn) input_interpolate_init,/* Init function */
+	(im_dest_obj_fn) g_object_unref	/* Destroy function */
 };
 

@@ -362,7 +362,7 @@ vips_type_find( const char *basename, const char *nickname )
 	/* FIXME ... we've not supposed to use G_TYPE_FROM_CLASS(), I think. 
 	 * I'm not * sure what the alternative is.
 	 */
-	return(  G_TYPE_FROM_CLASS( class ) );
+	return( G_TYPE_FROM_CLASS( class ) );
 }
 
 /* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.
@@ -1159,13 +1159,19 @@ im__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 gboolean
 im_isnative( im_arch_type arch )
 {
-  switch ( arch ) {
-  case IM_ARCH_NATIVE: return( TRUE );
-  case IM_ARCH_BYTE_SWAPPED: return( FALSE );
-  case IM_ARCH_LSB_FIRST: return( !im_amiMSBfirst() );
-  case IM_ARCH_MSB_FIRST: return( im_amiMSBfirst() );
-  }  
-  abort();
+	switch( arch ) {
+	case IM_ARCH_NATIVE: 		
+		return( TRUE );
+	case IM_ARCH_BYTE_SWAPPED: 	
+		return( FALSE );
+	case IM_ARCH_LSB_FIRST: 	
+		return( !im_amiMSBfirst() );
+	case IM_ARCH_MSB_FIRST: 	
+		return( im_amiMSBfirst() );
+
+	default:
+		g_assert( 0 );
+	}  
 }
 
 /* Read a few bytes from the start of a file. For sniffing file types.
@@ -1192,4 +1198,165 @@ im__get_bytes( const char *filename, unsigned char buf[], int len )
 	close( fd );
 
 	return( 1 );
+}
+
+/* Break a command-line argument into tokens separated by whitespace. Strings
+ * can't be adjacent, so "hello world" (without quotes) is a single string.
+ * Strings are written (with \" escaped) into string, which must be size 
+ * characters large.
+ */
+const char *
+vips__token_get( const char *p, VipsToken *token, char *string, int size )
+{
+	const char *q;
+	int ch;
+	int n;
+
+	/* Parse this token with p.
+	 */
+	if( !p )
+		return( NULL );
+
+	/* Skip initial whitespace.
+	 */
+        p += strspn( p, " \t\n\r" );
+	if( !p[0] )
+		return( NULL );
+
+	switch( (ch = p[0]) ) {
+	case '{':
+	case '[':
+	case '(':
+		*token = VIPS_TOKEN_LEFT;
+		p += 1;
+		break;
+
+	case ')':
+	case ']':
+	case '}':
+		*token = VIPS_TOKEN_RIGHT;
+		p += 1;
+		break;
+
+	case '=':
+		*token = VIPS_TOKEN_EQUALS;
+		p += 1;
+		break;
+
+	case ',':
+		*token = VIPS_TOKEN_COMMA;
+		p += 1;
+		break;
+
+	case '"':
+	case '\'':
+		/* Parse a quoted string. Copy up to ", interpret any \",
+		 * error if no closing ".
+		 */
+		*token = VIPS_TOKEN_STRING;
+
+		do {
+			/* Number of characters until the next quote
+			 * character or end of string.
+			 */
+			if( (q = strchr( p + 1, ch )) )
+				n = q - p + 1;
+			else
+				n = strlen( p + 1 );
+
+			g_assert( size > n + 1 );
+			memcpy( string, p + 1, n );
+			string[n] = '\0';
+
+			/* p[n + 1] might not be " if there's no closing ".
+			 */
+			if( p[n + 1] == ch && p[n] == '\\' ) 
+				/* An escaped ": overwrite the '\' with '"'
+				 */
+				string[n - 1] = ch;
+
+			string += n;
+			size -= n;
+			p += n + 1;
+		} while( p[0] && p[-1] == '\\' );
+
+		p += 1;
+
+		break;
+
+	default:
+		/* It's an unquoted string: read up to the next non-string
+		 * character. We don't allow two strings next to each other,
+		 * so the next break must be bracket, equals, comma.
+		 */
+		*token = VIPS_TOKEN_STRING;
+		n = strcspn( p, "[{()}]=," );
+		g_assert( size > n + 1 );
+		memcpy( string, p, n );
+		string[n] = '\0';
+		p += n;
+
+		/* We remove leading whitespace, so we trim trailing
+		 * whitespace from unquoted strings too.
+		 */
+		while( isspace( string[n - 1] ) ) {
+			string[n - 1] = '\0';
+			n -= 1;
+		}
+
+		break;
+	}
+
+	return( p );
+}
+
+/* We expect a token.
+ */
+const char *
+vips__token_must( const char *p, VipsToken *token, 
+	char *string, int size )
+{
+	if( !(p = vips__token_get( p, token, string, size )) ) {
+		im_error( "get_token", "%s", _( "unexpected end of string" ) );
+		return( NULL );
+	}
+
+	return( p );
+}
+
+/* Turn a VipsToken into a string.
+ */
+static const char *
+vips__token_string( VipsToken token )
+{
+	switch( token ) {
+ 	case VIPS_TOKEN_LEFT:	return( _( "opening brace" ) );
+	case VIPS_TOKEN_RIGHT:	return( _( "closing brace" ) );
+	case VIPS_TOKEN_STRING:	return( _( "string" ) );
+	case VIPS_TOKEN_EQUALS:	return( "=" );
+	case VIPS_TOKEN_COMMA:	return( "," );
+
+	default:
+		g_assert( 0 );
+	}
+}
+
+/* We expect a certain token.
+ */
+const char *
+vips__token_need( const char *p, VipsToken need_token, 
+	char *string, int size )
+{
+	VipsToken token;
+
+	if( !(p = vips__token_must( p, &token, string, size )) ) 
+		return( NULL );
+	if( token != need_token ) {
+		im_error( "get_token", _( "expected %s, saw %s" ), 
+			vips__token_string( need_token ), 
+			vips__token_string( token ) );
+		return( NULL );
+	}
+
+	return( p );
 }

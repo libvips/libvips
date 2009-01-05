@@ -579,7 +579,7 @@ static im_function affinei_desc = {
 static im_arg_desc affinei_all_args[] = {
 	IM_INPUT_IMAGE( "in" ),
 	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_STRING( "interpolate" ),
+	IM_INPUT_INTERPOLATE( "interpolate" ),
 	IM_INPUT_DOUBLE( "a" ),
 	IM_INPUT_DOUBLE( "b" ),
 	IM_INPUT_DOUBLE( "c" ),
@@ -593,23 +593,16 @@ static im_arg_desc affinei_all_args[] = {
 static int
 affinei_all_vec( im_object *argv )
 {
-	const char *interpol = argv[2];
+	VipsInterpolate *interpolate = VIPS_INTERPOLATE( argv[2] );
 	double a = *((double *) argv[3]);
 	double b = *((double *) argv[4]);
 	double c = *((double *) argv[5]);
 	double d = *((double *) argv[6]);
 	double dx = *((double *) argv[7]);
 	double dy = *((double *) argv[8]);
-	VipsInterpolate *interpolate;
-	int result;
 
-	if( !(interpolate = vips_interpolate_new( interpol )) )
-		return( -1 );
-	result = im_affinei_all( argv[0], argv[1], interpolate, 
-		a, b, c, d, dx, dy );
-	g_object_unref( interpolate );
-
-	return( result );
+	return( im_affinei_all( argv[0], argv[1], interpolate, 
+		a, b, c, d, dx, dy ) );
 }
 
 /* Description of im_affinei.
