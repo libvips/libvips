@@ -10,8 +10,11 @@
 
 - im_affinei and im_affinei_all need docs
 
+- update format docs
+
 - how to expose things like yafrsmooth's "sharpening" parameter to
   nip2/C++/Python?
+
   can we write a find-by-nickname function? eg.
 
   	GType vips_get_type (const char *base, const char *nickname)
@@ -33,18 +36,6 @@
   description:w
 
   need k
-
-- redo the format system in this way too?
-
-  need a way to init a package: the init would register all the types that
-  package uses to they appear to introspection
-
-- how to expose things like yafrsmooth's "sharpening" parameter to
-  nip2/C++/Python?
-
-  look at vips8, can we use the parameter code there?
-
-  would need to be added to VipsObject I guess
 
 - vips_object_print, set_name etc. need writing
 
