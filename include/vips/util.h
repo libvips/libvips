@@ -155,13 +155,24 @@ extern "C" {
 #define IM_NEW(IM,A) ((A *)im_malloc((IM),sizeof(A)))
 #define IM_NUMBER(R) ((int)(sizeof(R)/sizeof(R[0])))
 #define IM_ARRAY(IM,N,T) ((T *)im_malloc((IM),(N) * sizeof(T)))
+
 #define IM_FREEF( F, S ) do { \
         if( S ) { \
                 (void) F( (S) ); \
                 (S) = 0; \
         } \
 } while( 0 )
-#define IM_FREE( A ) IM_FREEF( im_free, A )
+
+/* Can't just use IM_FREEF(), we want the extra cast to void on the argument
+ * to im_free() to make sure we can work for "const char *" variables.
+ */
+#define IM_FREE( S ) do { \
+        if( S ) { \
+                (void) im_free( (void *) (S) ); \
+                (S) = 0; \
+        } \
+} while( 0 )
+
 #define IM_SETSTR( S, V ) do { \
         const char *sst = (V); \
 	\

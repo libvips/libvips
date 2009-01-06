@@ -27,6 +27,7 @@
   data
 - added string->double transform for cmdline args
 - merged class-params branch back into trunk
+- IM_FREE() can do "const char*" variables
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()
