@@ -574,7 +574,7 @@ static im_function affinei_desc = {
 	affinei_args 			/* Arg list */
 };
 
-/* affinei args
+/* affinei_all args
  */
 static im_arg_desc affinei_all_args[] = {
 	IM_INPUT_IMAGE( "in" ),
@@ -588,7 +588,7 @@ static im_arg_desc affinei_all_args[] = {
 	IM_INPUT_DOUBLE( "dy" )
 };
 
-/* Call im_affinei via arg vector.
+/* Call im_affinei_all via arg vector.
  */
 static int
 affinei_all_vec( im_object *argv )
@@ -605,9 +605,9 @@ affinei_all_vec( im_object *argv )
 		a, b, c, d, dx, dy ) );
 }
 
-/* Description of im_affinei.
+/* Description of im_affinei_all.
  */ 
-static im_function affinei_all_desc = {
+static im_function af_all_all_all_allfinei_all_desc = {
 	"im_affinei_all", 		/* Name */
 	"affine transform of whole image",
 	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
