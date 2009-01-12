@@ -465,6 +465,5 @@ vips_interpolate_new( const char *nickname )
 	if( !(type = vips_type_find( "VipsInterpolate", nickname )) )
 		return( NULL );
 
-	return( VIPS_INTERPOLATE( g_object_new( type, 
-		"sharpening", 2.0, NULL ) ) );
+	return( VIPS_INTERPOLATE( g_object_new( type, NULL ) ) );
 }
