@@ -607,7 +607,7 @@ affinei_all_vec( im_object *argv )
 
 /* Description of im_affinei_all.
  */ 
-static im_function af_all_all_all_allfinei_all_desc = {
+static im_function affinei_all_desc = {
 	"im_affinei_all", 		/* Name */
 	"affine transform of whole image",
 	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
