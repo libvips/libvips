@@ -1,4 +1,4 @@
-
+- maybe IM_INTERPOLATE() isn't a good idea? maybe just IM_GOBJECT?
 
 
 - try making vips_add(), an operator as a class

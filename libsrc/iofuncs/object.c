@@ -30,8 +30,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1015,7 +1015,6 @@ vips_object_to_string_optional( VipsObject *object,
 void
 vips_object_to_string( VipsObject *object, VipsBuf *buf )
 {
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 	gboolean first;
 
 	/* Nicknames are not guaranteed to be unique, so use the full type
