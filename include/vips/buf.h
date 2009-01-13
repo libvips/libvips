@@ -27,58 +27,59 @@
 
  */
 
-#ifndef IM_BUF_H
-#define IM_BUF_H
+#ifndef VIPS_BUF_H
+#define VIPS_BUF_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
 /* A string in the process of being written to ... multiple calls to 
- * buf_append add to it, on overflow append "..." and block further writes.
+ * vips_buf_append add to it, on overflow append "..." and block further writes.
  */
 typedef struct {
-        char *base;             /* String base */
-        int mx;                 /* Maximum length */
-        int i;                  /* Current write point */
-        gboolean full;          /* String has filled, block writes */
-        int lasti;              /* For read-recent */
-        gboolean dynamic;       /* We own the string with malloc() */
-} im_buf_t;
+	char *base;		/* String base */
+	int mx;			/* Maximum length */
+	int i;			/* Current write point */
+	gboolean full;		/* String has filled, block writes */
+	int lasti;		/* For read-recent */
+	gboolean dynamic;	/* We own the string with malloc() */
+} VipsBuf;
 
 /* Static init of one of these.
  */
-#define IM_BUF_STATIC( TEXT, MAX ) \
-        { &TEXT[0], MAX, 0, FALSE, 0, FALSE }
+#define VIPS_BUF_STATIC( TEXT, MAX ) \
+	{ &TEXT[0], MAX, 0, FALSE, 0, FALSE }
 
-void im_buf_rewind( im_buf_t *buf );
-void im_buf_destroy( im_buf_t *buf );
-void im_buf_init( im_buf_t *buf ); 
-void im_buf_set_static( im_buf_t *buf, char *base, int mx );
-void im_buf_set_dynamic( im_buf_t *buf, int mx );
-void im_buf_init_static( im_buf_t *buf, char *base, int mx );
-void im_buf_init_dynamic( im_buf_t *buf, int mx );
-gboolean im_buf_appendns( im_buf_t *buf, const char *str, int sz );
-gboolean im_buf_appends( im_buf_t *buf, const char *str );
-gboolean im_buf_appendline( im_buf_t *buf, const char *str );
-gboolean im_buf_appendf( im_buf_t *buf, const char *fmt, ... )
+/* Init and append to one of the above.
+ */
+void vips_buf_rewind( VipsBuf *buf );
+void vips_buf_destroy( VipsBuf *buf );
+void vips_buf_init( VipsBuf *buf );
+void vips_buf_set_static( VipsBuf *buf, char *base, int mx );
+void vips_buf_set_dynamic( VipsBuf *buf, int mx );
+void vips_buf_init_static( VipsBuf *buf, char *base, int mx );
+void vips_buf_init_dynamic( VipsBuf *buf, int mx );
+gboolean vips_buf_appendns( VipsBuf *buf, const char *str, int sz );
+gboolean vips_buf_appends( VipsBuf *buf, const char *str );
+gboolean vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
-gboolean im_buf_vappendf( im_buf_t *buf, const char *fmt, va_list ap );
-gboolean im_buf_appendc( im_buf_t *buf, char ch );
-gboolean im_buf_appendg( im_buf_t *buf, double g );
-gboolean im_buf_appendsc( im_buf_t *buf, const char *str );
-gboolean im_buf_removec( im_buf_t *buf, char ch );
-gboolean im_buf_change( im_buf_t *buf, const char *old, const char * );
-gboolean im_buf_isempty( im_buf_t *buf );
-gboolean im_buf_isfull( im_buf_t *buf );
-const char *im_buf_all( im_buf_t *buf );
-gboolean im_buf_appendd( im_buf_t *buf, int d );
-int im_buf_len( im_buf_t *buf );
+gboolean vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap );
+gboolean vips_buf_appendc( VipsBuf *buf, char ch );
+gboolean vips_buf_appendsc( VipsBuf *buf, gboolean quote, const char *str );
+void vips_buf_appendgv( VipsBuf *buf, GValue *value );
+gboolean vips_buf_removec( VipsBuf *buf, char ch );
+gboolean vips_buf_change( VipsBuf *buf, const char *old, const char * );
+gboolean vips_buf_is_empty( VipsBuf *buf );
+gboolean vips_buf_is_full( VipsBuf *buf );
+const char *vips_buf_all( VipsBuf *buf );
+const char *vips_buf_firstline( VipsBuf *buf );
+gboolean vips_buf_appendg( VipsBuf *buf, double g );
+gboolean vips_buf_appendd( VipsBuf *buf, int d );
+int vips_buf_len( VipsBuf *buf );
+
+#endif /*VIPS_BUF_H*/
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
-
-#endif /*IM_BUF_H*/
-
-

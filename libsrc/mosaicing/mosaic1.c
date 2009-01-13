@@ -106,7 +106,7 @@ im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 {
 	Transformation trn;
 	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:1", "p" );
-	im_buf_t buf;
+	VipsBuf buf;
 	char text[1024];
 
 	/* Scale, rotate and displace sec.
@@ -123,18 +123,18 @@ im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	/* Note parameters in history file ... for global balance to pick up
 	 * later.
 	 */
-	im_buf_init_static( &buf, text, 1024 );
-	im_buf_appendf( &buf, "#LRROTSCALE <%s> <%s> <%s> <",
+	vips_buf_init_static( &buf, text, 1024 );
+	vips_buf_appendf( &buf, "#LRROTSCALE <%s> <%s> <%s> <",
 		ref->filename, sec->filename, out->filename ); 
-	im_buf_appendg( &buf, a );
-	im_buf_appendf( &buf, "> <" );
-	im_buf_appendg( &buf, b );
-	im_buf_appendf( &buf, "> <" );
-	im_buf_appendg( &buf, dx );
-	im_buf_appendf( &buf, "> <" );
-	im_buf_appendg( &buf, dy );
-	im_buf_appendf( &buf, "> <%d>", mwidth );
-	if( im_histlin( out, "%s", im_buf_all( &buf ) ) )
+	vips_buf_appendg( &buf, a );
+	vips_buf_appendf( &buf, "> <" );
+	vips_buf_appendg( &buf, b );
+	vips_buf_appendf( &buf, "> <" );
+	vips_buf_appendg( &buf, dx );
+	vips_buf_appendf( &buf, "> <" );
+	vips_buf_appendg( &buf, dy );
+	vips_buf_appendf( &buf, "> <%d>", mwidth );
+	if( im_histlin( out, "%s", vips_buf_all( &buf ) ) )
 		return( -1 );
 
 	return( 0 );
@@ -148,7 +148,7 @@ im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 {
 	Transformation trn;
 	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:2", "p" );
-	im_buf_t buf;
+	VipsBuf buf;
 	char text[1024];
 
 	/* Scale, rotate and displace sec.
@@ -165,18 +165,18 @@ im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	/* Note parameters in history file ... for global balance to pick up
 	 * later.
 	 */
-	im_buf_init_static( &buf, text, 1024 );
-	im_buf_appendf( &buf, "#TBROTSCALE <%s> <%s> <%s> <",
+	vips_buf_init_static( &buf, text, 1024 );
+	vips_buf_appendf( &buf, "#TBROTSCALE <%s> <%s> <%s> <",
 		ref->filename, sec->filename, out->filename ); 
-	im_buf_appendg( &buf, a );
-	im_buf_appendf( &buf, "> <" );
-	im_buf_appendg( &buf, b );
-	im_buf_appendf( &buf, "> <" );
-	im_buf_appendg( &buf, dx );
-	im_buf_appendf( &buf, "> <" );
-	im_buf_appendg( &buf, dy );
-	im_buf_appendf( &buf, "> <%d>", mwidth );
-	if( im_histlin( out, "%s", im_buf_all( &buf ) ) )
+	vips_buf_appendg( &buf, a );
+	vips_buf_appendf( &buf, "> <" );
+	vips_buf_appendg( &buf, b );
+	vips_buf_appendf( &buf, "> <" );
+	vips_buf_appendg( &buf, dx );
+	vips_buf_appendf( &buf, "> <" );
+	vips_buf_appendg( &buf, dy );
+	vips_buf_appendf( &buf, "> <%d>", mwidth );
+	if( im_histlin( out, "%s", vips_buf_all( &buf ) ) )
 		return( -1 );
 
 	return( 0 );

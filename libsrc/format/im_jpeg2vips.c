@@ -247,16 +247,16 @@ static void
 attach_exif_entry( ExifEntry *entry, IMAGE *im )
 {
 	char name_text[256];
-	im_buf_t name;
+	VipsBuf name;
 	char value_text[256];
-	im_buf_t value;
+	VipsBuf value;
 	char exif_value[256];
 
-	im_buf_init_static( &name, name_text, 256 );
-	im_buf_init_static( &value, value_text, 256 );
+	vips_buf_init_static( &name, name_text, 256 );
+	vips_buf_init_static( &value, value_text, 256 );
 
-	im_buf_appendf( &name, "exif-%s", exif_tag_get_title( entry->tag ) );
-	im_buf_appendf( &value, "%s (%s, %d bytes)", 
+	vips_buf_appendf( &name, "exif-%s", exif_tag_get_title( entry->tag ) );
+	vips_buf_appendf( &value, "%s (%s, %d bytes)", 
 		exif_entry_get_value( entry, exif_value, 256 ),
 		exif_format_get_name( entry->format ),
 		entry->size );
@@ -264,7 +264,7 @@ attach_exif_entry( ExifEntry *entry, IMAGE *im )
 	/* Can't do anything sensible with the error return.
 	 */
 	(void) im_meta_set_string( im, 
-		im_buf_all( &name ), im_buf_all( &value ) );
+		vips_buf_all( &name ), vips_buf_all( &value ) );
 }
 
 static void

@@ -63,17 +63,17 @@ im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] )
 {	
 	int i;
 	char txt[IM_MAX_LINE];
-	im_buf_t buf;
+	VipsBuf buf;
 
-	im_buf_init_static( &buf, txt, IM_MAX_LINE );
-	im_buf_appends( &buf, name );
+	vips_buf_init_static( &buf, txt, IM_MAX_LINE );
+	vips_buf_appends( &buf, name );
 
 	for( i = 0; i < argc; i++ ) {
-		im_buf_appends( &buf, " " );
-		im_buf_appends( &buf, argv[i] );
+		vips_buf_appends( &buf, " " );
+		vips_buf_appends( &buf, argv[i] );
 	}
 
-	if( im_histlin( out, "%s", im_buf_all( &buf ) ) ) 
+	if( im_histlin( out, "%s", vips_buf_all( &buf ) ) ) 
 		return( -1 );
 
 	return( 0 );

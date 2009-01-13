@@ -338,11 +338,11 @@ parse_header( Read *read )
 	#error attributes enabled, but no access funcs found
 #endif
 		char name_text[256];
-		im_buf_t name;
+		VipsBuf name;
 
-		im_buf_init_static( &name, name_text, 256 );
-		im_buf_appendf( &name, "magick-%s", attr->key );
-		im_meta_set_string( im, im_buf_all( &name ), attr->value );
+		vips_buf_init_static( &name, name_text, 256 );
+		vips_buf_appendf( &name, "magick-%s", attr->key );
+		im_meta_set_string( im, vips_buf_all( &name ), attr->value );
 
 #ifdef DEBUG
 		printf( "key = \"%s\", value = \"%s\"\n", 

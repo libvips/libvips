@@ -196,11 +196,11 @@ struct _VipsObjectClass {
 
 	/* Try to print something about the class, handy for help displays.
 	 */
-	void (*print_class)( struct _VipsObjectClass *, im_buf_t * );
+	void (*print_class)( struct _VipsObjectClass *, VipsBuf * );
 
 	/* Try to print something about the object, handy for debugging.
 	 */
-	void (*print)( VipsObject *, im_buf_t * );
+	void (*print)( VipsObject *, VipsBuf * );
 
 	/* Class nickname, eg. "VipsInterpolateBicubic" has "bicubic" as a
 	 * nickname. Not internationalised. 
@@ -236,6 +236,7 @@ void vips_object_class_install_argument( VipsObjectClass *,
 	GParamSpec *pspec, VipsArgumentFlags flags, guint offset );
 
 VipsObject *vips_object_new_from_string( const char *base, const char *str );
+void vips_object_to_string( VipsObject *object, VipsBuf *buf );
 
 #ifdef __cplusplus
 }

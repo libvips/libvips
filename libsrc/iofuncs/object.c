@@ -92,25 +92,25 @@ vips_object_build( VipsObject *object )
 void
 vips_object_print_class( VipsObjectClass *class )
 {
-	im_buf_t buf;
+	VipsBuf buf;
 	char str[1000];
 
-	im_buf_init_static( &buf, str, 1000 );
+	vips_buf_init_static( &buf, str, 1000 );
 	class->print_class( class, &buf );
-	printf( "%s\n", im_buf_all( &buf ) );
+	printf( "%s\n", vips_buf_all( &buf ) );
 }
 
 void
 vips_object_print( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	im_buf_t buf;
+	VipsBuf buf;
 	char str[1000];
 
 	vips_object_print_class( class );
-	im_buf_init_static( &buf, str, 1000 );
+	vips_buf_init_static( &buf, str, 1000 );
 	class->print( object, &buf );
-	printf( "\n%s (%p)\n", im_buf_all( &buf ), object );
+	printf( "\n%s (%p)\n", vips_buf_all( &buf ), object );
 }
 
 /* Extra stuff we track for properties to do our argument handling.
@@ -459,7 +459,7 @@ vips_object_set_property( GObject *gobject,
 
 	str_value = g_strdup_value_contents( value );
 	printf( "vips_object_set_property: %s.%s = %s\n", 
-		object->name, pspec->name, str_value );
+		object->name, g_param_spec_get_name( pspec ), str_value );
 	g_free( str_value );
 }
 #endif /*DEBUG*/
@@ -472,8 +472,10 @@ vips_object_set_property( GObject *gobject,
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_CONSTRUCT && 
 		object->constructed ) {
-		g_warning( "%s: can't assign '%s' after construct", G_STRLOC,
-			((VipsArgument *) argument_class)->pspec->name);
+		g_warning( "%s: %s can't assign '%s' after construct", 
+			G_STRLOC,
+			G_OBJECT_TYPE_NAME( gobject ),
+			g_param_spec_get_name( pspec ) );
 		return;
 	}
 
@@ -481,8 +483,10 @@ vips_object_set_property( GObject *gobject,
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_SET_ONCE &&
 		argument_instance->assigned ) {
-		g_warning( "%s: can only assign '%s' once", G_STRLOC,
-			((VipsArgument *)argument_class)->pspec->name );
+		g_warning( "%s: %s can only assign '%s' once", 
+			G_STRLOC,
+			G_OBJECT_TYPE_NAME( gobject ),
+			g_param_spec_get_name( pspec ) );
 		return;
 	}
 
@@ -548,8 +552,10 @@ vips_object_set_property( GObject *gobject,
 		*member = g_value_dup_boxed( value );
 	}
 	else {
-		g_warning( "%s: '%s' has unimplemented type", G_STRLOC,
-			((VipsArgument *) argument_class)->pspec->name );
+		g_warning( "%s: %s unimplemented property type %s", 
+			G_STRLOC, 
+			G_OBJECT_TYPE_NAME( gobject ),
+			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 	}
 
 	/* Note that it's now been set. 
@@ -612,6 +618,12 @@ vips_object_get_property( GObject *gobject,
 
 		g_value_set_pointer( value, *member );
 	}
+	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
+		double *member = &G_STRUCT_MEMBER( double, object, 
+			argument_class->offset );
+
+		g_value_set_double( value, *member );
+	}
 	else if( G_IS_PARAM_SPEC_BOXED( pspec ) ) {
 		gpointer *member = &G_STRUCT_MEMBER( gpointer, object, 
 			argument_class->offset );
@@ -622,7 +634,10 @@ vips_object_get_property( GObject *gobject,
 		g_value_set_boxed( value, *member );
 	}
 	else {
-		g_warning( "%s: unimplemented property type", G_STRLOC );
+		g_warning( "%s: %s unimplemented property type %s", 
+			G_STRLOC, 
+			G_OBJECT_TYPE_NAME( gobject ),
+			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 	}
 }
 
@@ -639,7 +654,7 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 		!argument_instance->assigned ) {
 		im_error( "check_required", 
 			_( "required construct param %s to %s %s not set" ),
-			pspec->name,
+			g_param_spec_get_name( pspec ),
 			G_OBJECT_TYPE_NAME( object ),
 			object->name );
 		*result = -1;
@@ -679,20 +694,20 @@ vips_object_real_changed( VipsObject *object )
 }
 
 static void
-vips_object_real_print_class( VipsObjectClass *class, im_buf_t *buf )
+vips_object_real_print_class( VipsObjectClass *class, VipsBuf *buf )
 {
-	im_buf_appendf( buf, "%s", G_OBJECT_CLASS_NAME( class ) );
+	vips_buf_appendf( buf, "%s", G_OBJECT_CLASS_NAME( class ) );
 	if( class->nickname )
-		im_buf_appendf( buf, " (%s)", class->nickname );
+		vips_buf_appendf( buf, " (%s)", class->nickname );
 	if( class->description )
-		im_buf_appendf( buf, ", %s", class->description );
+		vips_buf_appendf( buf, ", %s", class->description );
 }
 
 static void
-vips_object_real_print( VipsObject *object, im_buf_t *buf )
+vips_object_real_print( VipsObject *object, VipsBuf *buf )
 {
 	if( object->name )
-		im_buf_appendf( buf, "\"%s\"", object->name );
+		vips_buf_appendf( buf, "\"%s\"", object->name );
 }
 
 static void
@@ -910,7 +925,7 @@ vips_object_new_from_string( const char *basename, const char *p )
 		if( token == VIPS_TOKEN_LEFT &&
 			vips_object_set_args( object, p ) ) {
 			im_error( "object_new", "%s",
-				_( "bad object arguents" ) );
+				_( "bad object arguments" ) );
 			g_object_unref( object );
 			return( NULL );
 		}
@@ -924,3 +939,94 @@ vips_object_new_from_string( const char *basename, const char *p )
 	return( object );
 }
 
+static void
+vips_object_print_arg( VipsObject *object, GParamSpec *pspec, VipsBuf *buf )
+{
+	GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+	const char *name = g_param_spec_get_name( pspec );
+	GValue value = { 0 };
+	char *str_value;
+
+	g_value_init( &value, type );
+	g_object_get_property( G_OBJECT( object ), name, &value );
+	str_value = g_strdup_value_contents( &value );
+	vips_buf_appends( buf, str_value );
+	g_free( str_value );
+	g_value_unset( &value );
+
+}
+
+static void *
+vips_object_to_string_required( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class, 
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	VipsBuf *buf = (VipsBuf *) a;
+	gboolean *first = (gboolean *) b;
+
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) ) {
+		if( *first ) {
+			vips_buf_appends( buf, "(" );
+			*first = FALSE;
+		}
+		else {
+			vips_buf_appends( buf, "," );
+		}
+
+		vips_object_print_arg( object, pspec, buf ); 
+	}
+
+	return( NULL );
+}
+
+static void *
+vips_object_to_string_optional( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class, 
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	VipsBuf *buf = (VipsBuf *) a;
+	gboolean *first = (gboolean *) b;
+
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		argument_instance->assigned ) {
+		if( *first ) {
+			vips_buf_appends( buf, "(" );
+			*first = FALSE;
+		}
+		else {
+			vips_buf_appends( buf, "," );
+		}
+
+		vips_buf_appends( buf, g_param_spec_get_name( pspec ) );
+		vips_buf_appends( buf, "=" );
+		vips_object_print_arg( object, pspec, buf ); 
+	}
+
+	return( NULL );
+}
+
+/* The inverse of vips_object_new_from_string(): turn an object into eg.
+ * "VipsInterpolateYafrsmooth(sharpening=12)".
+ */
+void
+vips_object_to_string( VipsObject *object, VipsBuf *buf )
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+	gboolean first;
+
+	/* Nicknames are not guaranteed to be unique, so use the full type
+	 * name.
+	 */
+	vips_buf_appends( buf, G_OBJECT_TYPE_NAME( object ) );
+	first = TRUE;
+	(void) vips_argument_map( object, 
+		vips_object_to_string_required, buf, &first );
+	(void) vips_argument_map( object, 
+		vips_object_to_string_optional, buf, &first );
+	if( !first ) 
+		vips_buf_appends( buf, ")" );
+}

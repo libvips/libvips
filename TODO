@@ -1,3 +1,6 @@
+
+
+
 - try making vips_add(), an operator as a class
 
 - nickname, description etc need to be properties so nip2 can read them
@@ -13,7 +16,7 @@
 - update format docs
 
 - how to expose things like yafrsmooth's "sharpening" parameter to
-  nip2/C++/Python?
+  C++/Python?
 
   can we write a find-by-nickname function? eg.
 
@@ -25,23 +28,7 @@
 
   would get us the GType for VipsInterpolatorBicubic
 
-  add a g_get_children( "classname" ) -> ["child1-name", ..] to nip2, see old 
-  vips8.c code?
-
-  in nip2, 
-
-  	inter = g_object_new "yafrsmooth" [$sharpness => 2.4];
-
-  also need something to return a list of GTypes below a name etc., find class
-  description:w
-
-  need k
-
 - vips_object_print, set_name etc. need writing
-
-- im_buf_t -> VipsBuf
-
-  now always included in vips.h
 
 - check mosaic1, global_balance, similarity etc. use of im__affine
   

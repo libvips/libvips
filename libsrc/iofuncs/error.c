@@ -70,8 +70,8 @@
  */
 #define IM_MAX_ERROR (10240)
 static char im_error_text[IM_MAX_ERROR] = "";
-static im_buf_t im_error_buf = 
-	IM_BUF_STATIC( im_error_text, IM_MAX_ERROR );
+static VipsBuf im_error_buf = 
+	VIPS_BUF_STATIC( im_error_text, IM_MAX_ERROR );
 
 #define IM_DIAGNOSTICS "IM_DIAGNOSTICS"
 #define IM_WARNING "IM_WARNING"
@@ -82,7 +82,7 @@ im_error_buffer( void )
 	const char *msg;
 
 	g_mutex_lock( im__global_lock );
-	msg = im_buf_all( &im_error_buf );
+	msg = vips_buf_all( &im_error_buf );
 	g_mutex_unlock( im__global_lock );
 
 	return( msg );
@@ -92,9 +92,9 @@ void
 im_verror( const char *domain, const char *fmt, va_list ap )
 {
 	g_mutex_lock( im__global_lock );
-	im_buf_appendf( &im_error_buf, "%s: ", domain );
-	im_buf_vappendf( &im_error_buf, fmt, ap );
-	im_buf_appends( &im_error_buf, "\n" );
+	vips_buf_appendf( &im_error_buf, "%s: ", domain );
+	vips_buf_vappendf( &im_error_buf, fmt, ap );
+	vips_buf_appends( &im_error_buf, "\n" );
 	g_mutex_unlock( im__global_lock );
 }
 
@@ -154,7 +154,7 @@ void
 im_error_clear( void )
 {
 	g_mutex_lock( im__global_lock );
-	im_buf_rewind( &im_error_buf );
+	vips_buf_rewind( &im_error_buf );
 	g_mutex_unlock( im__global_lock );
 }
 

@@ -54,7 +54,7 @@
 #define MAX_STRSIZE (16000)
 
 void
-im_buf_rewind( im_buf_t *buf )
+vips_buf_rewind( VipsBuf *buf )
 {
 	buf->i = 0;
 	buf->lasti = 0;
@@ -67,64 +67,61 @@ im_buf_rewind( im_buf_t *buf )
 /* Power on init.
  */
 void
-im_buf_init( im_buf_t *buf )
+vips_buf_init( VipsBuf *buf )
 {
 	buf->base = NULL;
 	buf->mx = 0;
 	buf->dynamic = FALSE;
-	im_buf_rewind( buf );
+	vips_buf_rewind( buf );
 }
 
 /* Reset to power on state ... only needed for dynamic bufs.
  */
 void
-im_buf_destroy( im_buf_t *buf )
+vips_buf_destroy( VipsBuf *buf )
 {
 	if( buf->dynamic ) {
-		if( buf->base ) {
-			im_free( buf->base );
-			buf->base = NULL;
-		}
+		IM_FREE( buf->base );
 	}
 
-	im_buf_init( buf );
+	vips_buf_init( buf );
 }
 
 /* Set to a static string.
  */
 void
-im_buf_set_static( im_buf_t *buf, char *base, int mx )
+vips_buf_set_static( VipsBuf *buf, char *base, int mx )
 {
-	assert( mx >= 4 );
+	g_assert( mx >= 4 );
 
-	im_buf_destroy( buf );
+	vips_buf_destroy( buf );
 
 	buf->base = base;
 	buf->mx = mx;
 	buf->dynamic = FALSE;
-	im_buf_rewind( buf );
+	vips_buf_rewind( buf );
 }
 
 void
-im_buf_init_static( im_buf_t *buf, char *base, int mx )
+vips_buf_init_static( VipsBuf *buf, char *base, int mx )
 {
-	im_buf_init( buf );
-	im_buf_set_static( buf, base, mx );
+	vips_buf_init( buf );
+	vips_buf_set_static( buf, base, mx );
 }
 
 /* Set to a dynamic string.
  */
 void
-im_buf_set_dynamic( im_buf_t *buf, int mx )
+vips_buf_set_dynamic( VipsBuf *buf, int mx )
 {
-	assert( mx >= 4 );
+	g_assert( mx >= 4 );
 
 	if( buf->mx == mx && buf->dynamic ) 
 		/* No change?
 		 */
-		im_buf_rewind( buf );
+		vips_buf_rewind( buf );
 	else {
-		im_buf_destroy( buf );
+		vips_buf_destroy( buf );
 
 		if( !(buf->base = IM_ARRAY( NULL, mx, char )) )
 			/* No error return, so just block writes.
@@ -133,23 +130,23 @@ im_buf_set_dynamic( im_buf_t *buf, int mx )
 		else {
 			buf->mx = mx;
 			buf->dynamic = TRUE;
-			im_buf_rewind( buf );
+			vips_buf_rewind( buf );
 		}
 	}
 }
 
 void
-im_buf_init_dynamic( im_buf_t *buf, int mx )
+vips_buf_init_dynamic( VipsBuf *buf, int mx )
 {
-	im_buf_init( buf );
-	im_buf_set_dynamic( buf, mx );
+	vips_buf_init( buf );
+	vips_buf_set_dynamic( buf, mx );
 }
 
 /* Append at most sz chars from string to buf. sz < 0 means unlimited.
- * FALSE on overflow.
+ * Error on overflow.
  */
 gboolean
-im_buf_appendns( im_buf_t *buf, const char *str, int sz )
+vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 {
 	int len;
 	int n;
@@ -191,41 +188,28 @@ im_buf_appendns( im_buf_t *buf, const char *str, int sz )
 /* Append a string to a buf. Error on overflow.
  */
 gboolean
-im_buf_appends( im_buf_t *buf, const char *str )
+vips_buf_appends( VipsBuf *buf, const char *str )
 {
-	return( im_buf_appendns( buf, str, -1 ) );
+	return( vips_buf_appendns( buf, str, -1 ) );
 }
 
 /* Append a character to a buf. Error on overflow.
  */
 gboolean
-im_buf_appendc( im_buf_t *buf, char ch )
+vips_buf_appendc( VipsBuf *buf, char ch )
 {
 	char tiny[2];
 
 	tiny[0] = ch;
 	tiny[1] = '\0';
 
-	return( im_buf_appendns( buf, tiny, 1 ) );
+	return( vips_buf_appendns( buf, tiny, 1 ) );
 }
-
-/* Append a double, non-localised. Useful for config files etc.
- */
-gboolean
-im_buf_appendg( im_buf_t *buf, double g )
-{
-	char text[G_ASCII_DTOSTR_BUF_SIZE];
-
-	g_ascii_dtostr( text, sizeof( text ), g );
-
-	return( im_buf_appends( buf, text ) );
-}
-
 
 /* Swap the rightmost occurence of old for new.
  */
 gboolean
-im_buf_change( im_buf_t *buf, const char *old, const char *new )
+vips_buf_change( VipsBuf *buf, const char *old, const char *new )
 {
 	int olen = strlen( old );
 	int nlen = strlen( new );
@@ -243,7 +227,7 @@ im_buf_change( im_buf_t *buf, const char *old, const char *new )
 	for( i = buf->i - olen; i > 0; i-- )
 		if( im_isprefix( old, buf->base + i ) )
 			break;
-	assert( i >= 0 );
+	g_assert( i >= 0 );
 
 	/* Move tail of buffer to make right-size space for new.
 	 */
@@ -258,75 +242,126 @@ im_buf_change( im_buf_t *buf, const char *old, const char *new )
 	return( TRUE );
 }
 
-/* Remove the last character.
+/* Remove the last character, if it's ch.
  */
 gboolean
-im_buf_removec( im_buf_t *buf, char ch )
+vips_buf_removec( VipsBuf *buf, char ch )
 {
 	if( buf->full )
 		return( FALSE );
-
 	if( buf->i <= 0 ) 
 		return( FALSE );
-	buf->i -= 1;
-	assert( buf->base[buf->i] == ch );
+	if( buf->base[buf->i - 1] == ch )
+		buf->i -= 1;
 
 	return( TRUE );
 }
 
-/* Append to a buf, args as printf. FALSE on overflow.
+/* Append to a buf, args as printf. Error on overflow.
  */
 gboolean
-im_buf_appendf( im_buf_t *buf, const char *fmt, ... )
+vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
 {
-	va_list ap;
 	char str[MAX_STRSIZE];
+	va_list ap;
 
         va_start( ap, fmt );
         (void) im_vsnprintf( str, MAX_STRSIZE, fmt, ap );
         va_end( ap );
 
-	return( im_buf_appends( buf, str ) );
+	return( vips_buf_appends( buf, str ) );
 }
 
 /* Append to a buf, args as vprintf. Error on overflow.
  */
 gboolean
-im_buf_vappendf( im_buf_t *buf, const char *fmt, va_list ap )
+vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap )
 {
 	char str[MAX_STRSIZE];
 
         (void) im_vsnprintf( str, MAX_STRSIZE, fmt, ap );
 
-	return( im_buf_appends( buf, str ) );
+	return( vips_buf_appends( buf, str ) );
+}
+
+/* Append a double, non-localised. Useful for config files etc.
+ */
+gboolean
+vips_buf_appendg( VipsBuf *buf, double g )
+{
+	char text[G_ASCII_DTOSTR_BUF_SIZE];
+
+	g_ascii_dtostr( text, sizeof( text ), g );
+
+	return( vips_buf_appends( buf, text ) );
+}
+
+/* Append a number ... if the number is -ve, add brackets. Needed for
+ * building function arguments.
+ */
+gboolean
+vips_buf_appendd( VipsBuf *buf, int d )
+{
+	if( d < 0 )
+		return( vips_buf_appendf( buf, " (%d)", d ) );
+	else
+		return( vips_buf_appendf( buf, " %d", d ) );
+}
+
+void
+vips_buf_appendgv( VipsBuf *buf, GValue *value )
+{
+	char *str_value;
+
+	str_value = g_strdup_value_contents( value );
+	vips_buf_appends( buf, str_value );
+	g_free( str_value );
 }
 
 /* Read all text from buffer.
  */
 const char *
-im_buf_all( im_buf_t *buf )
+vips_buf_all( VipsBuf *buf )
 {
 	buf->base[buf->i] = '\0';
 
 	return( buf->base );
 }
 
+/* Trim to just the first line (excluding "\n").
+ */
+const char *
+vips_buf_firstline( VipsBuf *buf )
+{
+	char *p;
+
+	if( (p = strchr( vips_buf_all( buf ), '\n' )) )
+		*p = '\0';
+
+	return( vips_buf_all( buf ) );
+}
+
+/* Test for buffer empty.
+ */
 gboolean
-im_buf_isempty( im_buf_t *buf )
+vips_buf_is_empty( VipsBuf *buf )
 {
 	return( buf->i == 0 );
 }
 
+/* Test for buffer full.
+ */
 gboolean
-im_buf_isfull( im_buf_t *buf )
+vips_buf_is_full( VipsBuf *buf )
 {
 	return( buf->full );
 }
 
-/* Buffer length ... still need to do im_buf_all().
+/* VipsBuffer length ... still need to do vips_buf_all().
  */
 int
-im_buf_len( im_buf_t *buf )
+vips_buf_len( VipsBuf *buf )
 {
 	return( buf->i );
 }
+
