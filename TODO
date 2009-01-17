@@ -1,6 +1,5 @@
 - maybe IM_INTERPOLATE() isn't a good idea? maybe just IM_GOBJECT?
 
-
 - try making vips_add(), an operator as a class
 
 - nickname, description etc need to be properties so nip2 can read them
