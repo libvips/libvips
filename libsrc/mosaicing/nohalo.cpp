@@ -267,380 +267,355 @@
  * #define FAST_PSEUDO_FLOOR(x) ( (x)>=0 ? (int)(x) : (int)(x)-1 )
  */
 
-enum
+#define VIPS_TYPE_INTERPOLATE_NOHALO \
+	(vips_interpolate_nohalo_get_type())
+#define VIPS_INTERPOLATE_NOHALO( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohalo ))
+#define VIPS_INTERPOLATE_NOHALO_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass))
+#define VIPS_IS_INTERPOLATE_NOHALO( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NOHALO ))
+#define VIPS_IS_INTERPOLATE_NOHALO_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NOHALO ))
+#define VIPS_INTERPOLATE_NOHALO_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass ))
+
+typedef struct _VipsInterpolateNohalo {
+	VipsInterpolate parent_object;
+
+} VipsInterpolateNohalo;
+
+typedef struct _VipsInterpolateNohaloClass {
+	VipsInterpolateClass parent_class;
+
+} VipsInterpolateNohaloClass;
+
+/* Calculate the four results surrounding the target point, our caller does
+ * bilinear interpolation of them.
+ */
+
+static void inline
+nohalo1( 
+	const double dos_thr,
+	const double dos_fou,
+	const double tre_two,
+	const double tre_thr,
+	const double tre_fou,
+	const double tre_fiv,
+	const double qua_two,
+	const double qua_thr,
+	const double qua_fou,
+	const double qua_fiv,
+	const double cin_thr,
+	const double cin_fou,
+	double *r1,
+	double *r2,
+	double *r3,
+	double *r4 )
 {
-  PROP_0,
-  PROP_LAST
-};
+	/*
+	 * The potentially needed input pixel values are described by the
+	 * following stencil, where (ix,iy) are the coordinates of the
+	 * closest input pixel center (with ties resolved arbitrarily).
+	 *
+	 * Spanish abbreviations are used to label positions from top to
+	 * bottom (rows), English ones to label positions from left to right
+	 * (columns). 
+	 *
+	 *               (ix-1,iy-2)  (ix,iy-2)    (ix+1,iy-2)
+	 *               = uno_two    = uno_thr    = uno_fou
+	 *
+	 *  (ix-2,iy-1)  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)   (ix+2,iy-1)
+	 *  = dos_one    = dos_two    = dos_thr    = dos_fou     = dos_fiv
+	 *
+	 *  (ix-2,iy)    (ix-1,iy)    (ix,iy)      (ix+1,iy)     (ix+2,iy)  
+	 *  = tre_one    = tre_two    = tre_thr    = tre_fou     = tre_fiv
+	 *
+	 *  (ix-2,iy+1)  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)   (ix+2,iy+1)
+	 *  = qua_one    = qua_two    = qua_thr    = qua_fou     = qua_fiv
+	 *
+	 *               (ix-1,iy+2)  (ix,iy+2)    (ix+1,iy+2)
+	 *               = cin_two    = cin_thr    = cin_fou
+	 *
+	 * Once symmetry has been used to assume that the sampling point is
+	 * to the right and bottom of tre_thr---this is done by implicitly
+	 * reflecting the data if this is not initially the case---the
+	 * needed input values are named thus:
+	 *
+	 *                              dos_thr      dos_fou
+	 *
+	 *                 tre_two      tre_thr      tre_fou       tre_fiv
+	 *
+	 *                 qua_two      qua_thr      qua_fou       qua_fiv
+	 *
+	 *                              cin_thr      cin_fou
+	 *
+	 * (If, for exammple, relative_x_is_left is 1 but relative_y_is___up
+	 * = 0, then dos_fou in this post-reflexion reduced stencil really
+	 * corresponds to dos_two in the unreduced one, etc.)
+	 *
+	 * Given that the reflexions are performed "outside of the
+	 * function," the above 12 input values are the only ones "seen" by
+	 * this function.
+	 */
 
-static void gegl_sampler_yafr_get (      GeglSampler* restrict self,
-                                   const gdouble               absolute_x,
-                                   const gdouble               absolute_y,
-                                         void*        restrict output);
+	/*
+	 * Computation of the nonlinear slopes: If two consecutive pixel
+	 * value differences have the same sign, the smallest one (in
+	 * absolute value) is taken to be the corresponding slope; if the
+	 * two consecutive pixel value differences don't have the same sign,
+	 * the corresponding slope is set to 0.
+	 */
 
-static void set_property (GObject*    gobject,
-                          guint       property_id,
-                          GValue*     value,
-                          GParamSpec* pspec);
+	/*
+	 * Tre(s) horizontal differences:
+	 */
+	const double deux_tre = tre_thr - tre_two;
+	const double troi_tre = tre_fou - tre_thr;
+	const double quat_tre = tre_fiv - tre_fou;
+	/*
+	 * Qua(ttro) horizontal differences:
+	 */
+	const double deux_qua = qua_thr - qua_two;
+	const double troi_qua = qua_fou - qua_thr;
+	const double quat_qua = qua_fiv - qua_fou;
+	/*
+	 * Thr(ee) vertical differences:
+	 */
+	const double deux_thr = tre_thr - dos_thr;
+	const double troi_thr = qua_thr - tre_thr;
+	const double quat_thr = cin_thr - qua_thr;
+	/*
+	 * Fou(r) vertical differences:
+	 */
+	const double deux_fou = tre_fou - dos_fou;
+	const double troi_fou = qua_fou - tre_fou;
+	const double quat_fou = cin_fou - qua_fou;
 
-static void get_property (GObject*    gobject,
-                          guint       property_id,
-                          GValue*     value,
-                          GParamSpec* pspec);
+	/*
+	 * Tre:
+	 */
+	const int sign_deux_tre = 2 * (deux_tre >= 0.) - 1;
+	const int sign_troi_tre = 2 * (troi_tre >= 0.) - 1;
+	const int sign_quat_tre = 2 * (quat_tre >= 0.) - 1;
+	/*
+	 * Qua:
+	 */
+	const int sign_deux_qua = 2 * (deux_qua >= 0.) - 1;
+	const int sign_troi_qua = 2 * (troi_qua >= 0.) - 1;
+	const int sign_quat_qua = 2 * (quat_qua >= 0.) - 1;
+	/*
+	 * Thr:
+	 */
+	const int sign_deux_thr = 2 * (deux_thr >= 0.) - 1;
+	const int sign_troi_thr = 2 * (troi_thr >= 0.) - 1;
+	const int sign_quat_thr = 2 * (quat_thr >= 0.) - 1;
+	/*
+	 * Fou:
+	 */
+	const int sign_deux_fou = 2 * (deux_fou >= 0.) - 1;
+	const int sign_troi_fou = 2 * (troi_fou >= 0.) - 1;
+	const int sign_quat_fou = 2 * (quat_fou >= 0.) - 1;
 
-G_DEFINE_TYPE( GeglSamplerYafr, gegl_sampler_yafr, GEGL_TYPE_SAMPLER )
+	/*
+	 * Tre:
+	 */
+	const double abs_deux_tre = sign_deux_tre * deux_tre;
+	const double abs_troi_tre = sign_troi_tre * troi_tre;
+	const double abs_quat_tre = sign_quat_tre * quat_tre;
+	/*
+	 * Qua:
+	 */
+	const double abs_deux_qua = sign_deux_qua * deux_qua;
+	const double abs_troi_qua = sign_troi_qua * troi_qua;
+	const double abs_quat_qua = sign_quat_qua * quat_qua;
+	/*
+	 * Thr:
+	 */
+	const double abs_deux_thr = sign_deux_thr * deux_thr;
+	const double abs_troi_thr = sign_troi_thr * troi_thr;
+	const double abs_quat_thr = sign_quat_thr * quat_thr;
+	/*
+	 * Fou:
+	 */
+	const double abs_deux_fou = sign_deux_fou * deux_fou;
+	const double abs_troi_fou = sign_troi_fou * troi_fou;
+	const double abs_quat_fou = sign_quat_fou * quat_fou;
 
-static void
-gegl_sampler_yafr_class_init (GeglSamplerYafrClass *klass)
-{
-  GeglSamplerClass *sampler_class = GEGL_SAMPLER_CLASS (klass);
-  GObjectClass *object_class  = G_OBJECT_CLASS (klass);
-  object_class->set_property = set_property;
-  object_class->get_property = get_property;
-  sampler_class->get = gegl_sampler_yafr_get;
- }
+	/*
+	 * Tre:
+	 */
+	const double twice_tre_thr_horizo =
+		(1 + sign_deux_tre * sign_troi_tre) * (
+			(abs_deux_tre <= abs_troi_tre) * 
+			(deux_tre - troi_tre) +
+			troi_tre
+		);
+	const double twice_tre_fou_horizo =
+		(1 + sign_troi_tre * sign_quat_tre) * (
+			(abs_troi_tre <= abs_quat_tre) *
+			(troi_tre - quat_tre) +
+			quat_tre
+		);
+	/*
+	 * Qua:
+	 */
+	const double twice_qua_thr_horizo =
+		(1 + sign_deux_qua * sign_troi_qua) * (
+			(abs_deux_qua <= abs_troi_qua) *
+			(deux_qua - troi_qua) +
+			troi_qua
+		);
+	const double twice_qua_fou_horizo =
+		(1 + sign_troi_qua * sign_quat_qua) * (
+			(abs_troi_qua <= abs_quat_qua) *
+			(troi_qua - quat_qua) +
+			quat_qua
+		);
+	/*
+	 * Thr:
+	 */
+	const double twice_tre_thr_vertic =
+		(1 + sign_deux_thr * sign_troi_thr) * (
+			(abs_deux_thr <= abs_troi_thr) *
+			(deux_thr - troi_thr) +
+			troi_thr
+		    );
+	const double twice_qua_thr_vertic =
+		(1 + sign_troi_thr * sign_quat_thr) * (
+			(abs_troi_thr <= abs_quat_thr) * 
+			(troi_thr - quat_thr) +
+			quat_thr
+		);
+	/*
+	 * Fou:
+	 */
+	const double twice_tre_fou_vertic =
+		(1 + sign_deux_fou * sign_troi_fou) * (
+			(abs_deux_fou <= abs_troi_fou) *
+			(deux_fou - troi_fou) +
+			troi_fou
+		);
+	const double twice_qua_fou_vertic =
+		(1 + sign_troi_fou * sign_quat_fou) * (
+			(abs_troi_fou <= abs_quat_fou) *
+			(troi_fou - quat_fou) +
+			quat_fou
+		);
 
-static void
-gegl_sampler_yafr_init (GeglSamplerYafr *self)
-{
-  /*
-   * context_rect is a five-by-five stencil centered around the
-   * nearest input pixel center. See comment below about using a
-   * "non-centered" stencil (one based at the corner) instead.
-   */
-  GEGL_SAMPLER (self)->context_rect = (GeglRectangle){0,0,5,5};
-  GEGL_SAMPLER (self)->interpolate_format = babl_format ("RaGaBaA float");
+	/*
+	 * Compute the needed "horizontal" (at the boundary between two
+	 * input pixel areas) double resolution pixel value:
+	 */
+	/*
+	 * Tre:
+	 */
+	const double tre_thrfou =
+		.5 * (tre_thr + tre_fou) +
+		.125 * (twice_tre_thr_horizo - twice_tre_fou_horizo);
+
+	/*
+	 * Compute the needed "vertical" double resolution pixel value:
+	 */
+	/*
+	 * Thr:
+	 */
+	const double trequa_thr =
+		.5 * (tre_thr + qua_thr) +
+		.125 * (twice_tre_thr_vertic - twice_qua_thr_vertic);
+
+	/*
+	 * Compute the "diagonal" (at the boundary between four input pixel
+	 * areas) double resolution pixel value:
+	 */
+	const double trequa_thrfou =
+		.25 * (qua_fou - tre_thr) +
+		.5 * (tre_thrfou + trequa_thr) +
+		.0625 * (
+			(twice_qua_thr_horizo + twice_tre_fou_vertic) -
+			(twice_qua_fou_horizo + twice_qua_fou_vertic)
+		);
+
+	*r1 = tre_thr;
+	*r2 = tre_thrfou;
+	*r3 = trequa_thr;
+	*r4 = trequa_thrfou;
 }
 
-static inline IN_AND_OUT_TYPE
-nohalo1 (const gdouble w_times_z,
-         const gdouble x_times_z,
-         const gdouble w_times_y,
-         const gdouble x_times_y,
-         const gdouble  dos_thr,
-         const gdouble  dos_fou,
-         const gdouble  tre_two,
-         const gdouble  tre_thr,
-         const gdouble  tre_fou,
-         const gdouble  tre_fiv,
-         const gdouble  qua_two,
-         const gdouble  qua_thr,
-         const gdouble  qua_fou,
-         const gdouble  qua_fiv,
-         const gdouble  cin_thr,
-         const gdouble  cin_fou)
+/* Interpolate for float and double types.
+ */
+template <typename IN_AND_OUT_TYPE> static IN_AND_OUT_TYPE inline
+interpolate_float( 
+	const double w_times_z,
+	const double x_times_z,
+	const double w_times_y,
+	const double x_times_y,
+	const double tre_thr,
+	const double tre_thrfou,
+	const double trequa_thr,
+	const double trequa_thrfou )
 {
-  /*
-   * The potentially needed input pixel values are described by the
-   * following stencil, where (ix,iy) are the coordinates of the
-   * closest input pixel center (with ties resolved arbitrarily).
-   *
-   * Spanish abbreviations are used to label positions from top to
-   * bottom (rows), English ones to label positions from left to right
-   * (columns). 
-   *
-   *               (ix-1,iy-2)  (ix,iy-2)    (ix+1,iy-2)
-   *               = uno_two    = uno_thr    = uno_fou
-   *
-   *  (ix-2,iy-1)  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)   (ix+2,iy-1)
-   *  = dos_one    = dos_two    = dos_thr    = dos_fou     = dos_fiv
-   *
-   *  (ix-2,iy)    (ix-1,iy)    (ix,iy)      (ix+1,iy)     (ix+2,iy)  
-   *  = tre_one    = tre_two    = tre_thr    = tre_fou     = tre_fiv
-   *
-   *  (ix-2,iy+1)  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)   (ix+2,iy+1)
-   *  = qua_one    = qua_two    = qua_thr    = qua_fou     = qua_fiv
-   *
-   *               (ix-1,iy+2)  (ix,iy+2)    (ix+1,iy+2)
-   *               = cin_two    = cin_thr    = cin_fou
-   *
-   * Once symmetry has been used to assume that the sampling point is
-   * to the right and bottom of tre_thr---this is done by implicitly
-   * reflecting the data if this is not initially the case---the
-   * needed input values are named thus:
-   *
-   *                              dos_thr      dos_fou
-   *
-   *                 tre_two      tre_thr      tre_fou       tre_fiv
-   *
-   *                 qua_two      qua_thr      qua_fou       qua_fiv
-   *
-   *                              cin_thr      cin_fou
-   *
-   * (If, for exammple, relative_x_is_left is 1 but relative_y_is___up
-   * = 0, then dos_fou in this post-reflexion reduced stencil really
-   * corresponds to dos_two in the unreduced one, etc.)
-   *
-   * Given that the reflexions are performed "outside of the
-   * function," the above 12 input values are the only ones "seen" by
-   * this function.
-   */
+	const IN_AND_OUT_TYPE newval =
+		w_times_z * tre_thr +
+		x_times_z * tre_thrfou +
+		w_times_y * trequa_thr +
+		x_times_y * trequa_thrfou;
 
-  /*
-   * Computation of the nonlinear slopes: If two consecutive pixel
-   * value differences have the same sign, the smallest one (in
-   * absolute value) is taken to be the corresponding slope; if the
-   * two consecutive pixel value differences don't have the same sign,
-   * the corresponding slope is set to 0.
-   */
-  /*
-   * Tre(s) horizontal differences:
-   */
-  const gdouble deux_tre = tre_thr - tre_two;
-  const gdouble troi_tre = tre_fou - tre_thr;
-  const gdouble quat_tre = tre_fiv - tre_fou;
-  /*
-   * Qua(ttro) horizontal differences:
-   */
-  const gdouble deux_qua = qua_thr - qua_two;
-  const gdouble troi_qua = qua_fou - qua_thr;
-  const gdouble quat_qua = qua_fiv - qua_fou;
-  /*
-   * Thr(ee) vertical differences:
-   */
-  const gdouble deux_thr = tre_thr - dos_thr;
-  const gdouble troi_thr = qua_thr - tre_thr;
-  const gdouble quat_thr = cin_thr - qua_thr;
-  /*
-   * Fou(r) vertical differences:
-   */
-  const gdouble deux_fou = tre_fou - dos_fou;
-  const gdouble troi_fou = qua_fou - tre_fou;
-  const gdouble quat_fou = cin_fou - qua_fou;
+	return( newval );
+}
 
-  /*
-   * Tre:
-   */
-  const gint sign_deux_tre = 2 * ( deux_tre >= 0. ) - 1;
-  const gint sign_troi_tre = 2 * ( troi_tre >= 0. ) - 1;
-  const gint sign_quat_tre = 2 * ( quat_tre >= 0. ) - 1;
-  /*
-   * Qua:
-   */
-  const gint sign_deux_qua = 2 * ( deux_qua >= 0. ) - 1;
-  const gint sign_troi_qua = 2 * ( troi_qua >= 0. ) - 1;
-  const gint sign_quat_qua = 2 * ( quat_qua >= 0. ) - 1;
-  /*
-   * Thr:
-   */
-  const gint sign_deux_thr = 2 * ( deux_thr >= 0. ) - 1;
-  const gint sign_troi_thr = 2 * ( troi_thr >= 0. ) - 1;
-  const gint sign_quat_thr = 2 * ( quat_thr >= 0. ) - 1;
-  /*
-   * Fou:
-   */
-  const gint sign_deux_fou = 2 * ( deux_fou >= 0. ) - 1;
-  const gint sign_troi_fou = 2 * ( troi_fou >= 0. ) - 1;
-  const gint sign_quat_fou = 2 * ( quat_fou >= 0. ) - 1;
+/* Interpolate for signed integer types.
+ */
+template <typename IN_AND_OUT_TYPE> static IN_AND_OUT_TYPE inline
+nohalo_signed( 
+	const double w_times_z,
+	const double x_times_z,
+	const double w_times_y,
+	const double x_times_y,
+	const double tre_thr,
+	const double tre_thrfou,
+	const double trequa_thr,
+	const double trequa_thrfou )
+{
+	const double val =
+		(w_times_z / 16) * tre_thr +
+		(x_times_z / 16) * tre_thrfou +
+		(w_times_y / 16) * trequa_thr +
+		(x_times_y / 16) * trequa_thrfou;
 
-  /*
-   * Tre:
-   */
-  const gdouble abs_deux_tre = sign_deux_tre * deux_tre;
-  const gdouble abs_troi_tre = sign_troi_tre * troi_tre;
-  const gdouble abs_quat_tre = sign_quat_tre * quat_tre;
-  /*
-   * Qua:
-   */
-  const gdouble abs_deux_qua = sign_deux_qua * deux_qua;
-  const gdouble abs_troi_qua = sign_troi_qua * troi_qua;
-  const gdouble abs_quat_qua = sign_quat_qua * quat_qua;
-  /*
-   * Thr:
-   */
-  const gdouble abs_deux_thr = sign_deux_thr * deux_thr;
-  const gdouble abs_troi_thr = sign_troi_thr * troi_thr;
-  const gdouble abs_quat_thr = sign_quat_thr * quat_thr;
-  /*
-   * Fou:
-   */
-  const gdouble abs_deux_fou = sign_deux_fou * deux_fou;
-  const gdouble abs_troi_fou = sign_troi_fou * troi_fou;
-  const gdouble abs_quat_fou = sign_quat_fou * quat_fou;
+	const int sign_of_val = 2 * ( val >= 0. ) - 1;
 
-  /*
-   * Tre:
-   */
-  const gdouble twice_tre_thr_horizo =
-    ( 1 + sign_deux_tre * sign_troi_tre )
-    *
-    (
-      ( abs_deux_tre <= abs_troi_tre )
-      *
-      ( deux_tre - troi_tre )
-      +
-      troi_tre
-    );
-  const gdouble twice_tre_fou_horizo =
-    ( 1 + sign_troi_tre * sign_quat_tre )
-    *
-    (
-      ( abs_troi_tre <= abs_quat_tre )
-      *
-      ( troi_tre - quat_tre )
-      +
-      quat_tre
-    );
-  /*
-   * Qua:
-   */
-  const gdouble twice_qua_thr_horizo =
-    ( 1 + sign_deux_qua * sign_troi_qua )
-    *
-    (
-      ( abs_deux_qua <= abs_troi_qua )
-      *
-      ( deux_qua - troi_qua )
-      +
-      troi_qua
-    );
-   const gdouble twice_qua_fou_horizo =
-     ( 1 + sign_troi_qua * sign_quat_qua )
-     *
-     (
-       ( abs_troi_qua <= abs_quat_qua )
-       *
-       ( troi_qua - quat_qua )
-       +
-       quat_qua
-     );
-  /*
-   * Thr:
-   */
-  const gdouble twice_tre_thr_vertic =
-    ( 1 + sign_deux_thr * sign_troi_thr )
-    *
-    (
-      ( abs_deux_thr <= abs_troi_thr )
-      *
-      ( deux_thr - troi_thr )
-      +
-      troi_thr
-    );
-  const gdouble twice_qua_thr_vertic =
-    ( 1 + sign_troi_thr * sign_quat_thr )
-    *
-    (
-      ( abs_troi_thr <= abs_quat_thr )
-      *
-      ( troi_thr - quat_thr )
-      +
-      quat_thr
-    );
-  /*
-   * Fou:
-   */
-  const gdouble twice_tre_fou_vertic =
-    ( 1 + sign_deux_fou * sign_troi_fou )
-    *
-    (
-      ( abs_deux_fou <= abs_troi_fou )
-      *
-      ( deux_fou - troi_fou )
-      +
-      troi_fou
-    );
-  const gdouble twice_qua_fou_vertic =
-    ( 1 + sign_troi_fou * sign_quat_fou )
-    *
-    (
-      ( abs_troi_fou <= abs_quat_fou )
-      *
-      ( troi_fou - quat_fou )
-      +
-      quat_fou
-    );
+	const int rounded_abs_val = .5 + sign_of_val * val;
 
-  /*
-   * Compute the needed "horizontal" (at the boundary between two
-   * input pixel areas) double resolution pixel value:
-   */
-  /*
-   * Tre:
-   */
-  const gdouble tre_thrfou =
-    .5 * ( tre_thr + tre_fou )
-    +
-    .125 * ( twice_tre_thr_horizo - twice_tre_fou_horizo );
-  
-  /*
-   * Compute the needed "vertical" double resolution pixel value:
-   */
-  /*
-   * Thr:
-   */
-  const gdouble trequa_thr =
-    .5 * ( tre_thr + qua_thr )
-    +
-    .125 * ( twice_tre_thr_vertic - twice_qua_thr_vertic );
+	const IN_AND_OUT_TYPE newval = sign_of_val * rounded_abs_val;
 
-  /*
-   * Compute the "diagonal" (at the boundary between four input pixel
-   * areas) double resolution pixel value:
-   */
-  const gdouble trequa_thrfou =
-    .25 * ( qua_fou - tre_thr )
-    +
-    .5 * ( tre_thrfou + trequa_thr )
-    +
-    .0625
-    *
-    (
-      ( twice_qua_thr_horizo + twice_tre_fou_vertic )
-      -
-      ( twice_qua_fou_horizo + twice_qua_fou_vertic )
-    );
+	return( newval );
+}
 
-  /*
-   * Compute the output pixel values, doing the final interpolation
-   * step with bilinear:
-   */
-  const IN_AND_OUT_TYPE newval =
-    w_times_z * tre_thr
-    +
-    x_times_z * tre_thrfou
-    +
-    w_times_y * trequa_thr
-    +
-    x_times_y * trequa_thrfou;
-  /*
-   * The above works if with gfloats and gdoubles. However, in order
-   * to get correct rounding when one uses "full" integers, use the
-   * following two versions:
-   */
-  /*
-   * If the IN_AND_OUT_TYPE is unsigned integer, use this:
-   */
-  const IN_AND_OUT_TYPE newval =
-    .5
-    +
-    w_times_z_over_sixteen * tre_thr
-    +
-    x_times_z_over_sixteen * tre_thrfou
-    +
-    w_times_y_over_sixteen * trequa_thr
-    +
-    x_times_y_over_sixteen * trequa_thrfou;
+/* Interpolate for unsigned integer types.
+ */
+template <typename IN_AND_OUT_TYPE> static IN_AND_OUT_TYPE inline
+nohalo_unsigned( 
+	const double w_times_z,
+	const double x_times_z,
+	const double w_times_y,
+	const double x_times_y,
+	const double tre_thr,
+	const double tre_thrfou,
+	const double trequa_thr,
+	const double trequa_thrfou )
+{
+	const IN_AND_OUT_TYPE newval =
+		(w_times_z / 16) * tre_thr +
+		(x_times_z / 16) * tre_thrfou +
+		(w_times_y / 16) * trequa_thr +
+		(x_times_y / 16) * trequa_thrfou + 
+		0.5
 
-  /*
-   * If the IN_AND_OUT_TYPE is signed integer, use this:
-   */
-  const gdouble val =
-    w_times_z_over_sixteen * tre_thr
-    +
-    x_times_z_over_sixteen * tre_thrfou
-    +
-    w_times_y_over_sixteen * trequa_thr
-    +
-    x_times_y_over_sixteen * trequa_thrfou;
-
-  const int sign_of_val = 2 * ( val >= 0. ) - 1;
-
-  const int rounded_abs_val = .5 + sign_of_val * val;
-
-  const IN_AND_OUT_TYPE newval = sign_of_val * rounded_abs_val;
-
-  return newval;
+	return( newval );
 }
 
 static void
@@ -890,19 +865,38 @@ gegl_sampler_yafr_get (      GeglSampler* restrict self,
 }
 
 static void
-set_property (GObject*    gobject,
-              guint       property_id,
-              GValue*     value,
-              GParamSpec* pspec)
+vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate, 
+	PEL *out, REGION *in, double x, double y )
 {
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, property_id, pspec);
+	VipsInterpolateNohaloClass *nohalo_class = 
+		VIPS_INTERPOLATE_NOHALO_GET_CLASS( interpolate );
+	VipsInterpolateNohalo *nohalo = VIPS_INTERPOLATE_NOHALO( interpolate );
+}
+
+/* We need C linkage for this.
+ */
+extern "C" {
+G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo, 
+	VIPS_TYPE_INTERPOLATE );
 }
 
 static void
-get_property (GObject*    gobject,
-              guint       property_id,
-              GValue*     value,
-              GParamSpec* pspec)
+vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
 {
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, property_id, pspec);
+	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
+	VipsInterpolateClass *interpolate_class = 
+		VIPS_INTERPOLATE_CLASS( klass );
+
+	object_class->nickname = "nohalo";
+	object_class->description = _( "nohalo interpolation" );
+
+	interpolate_class->interpolate = 
+		vips_interpolate_nohalo_interpolate;
+	interpolate_class->window_size = 5;
+}
+
+static void
+vips_interpolate_nohalo_init( VipsInterpolateNohalo *nohalo )
+{
 }
