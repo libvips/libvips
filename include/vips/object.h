@@ -179,6 +179,12 @@ struct _VipsObject {
 	/* Table of argument instances for this class and any derived classes.
 	 */
 	VipsArgumentTable *argument_table;
+
+	/* Class properties (see below), duplicated in the instance so we can
+	 * get at them easily via the property system.
+	 */
+	char *nickname;
+	char *description;
 };
 
 struct _VipsObjectClass {

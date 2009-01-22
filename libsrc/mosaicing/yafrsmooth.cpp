@@ -131,7 +131,7 @@
 /* Properties.
  */
 enum {
-	PROP_SHARPENING = 1,
+	PROP_SHARPENING,
 	PROP_LAST
 };
 

@@ -2,10 +2,6 @@
 
 - try making vips_add(), an operator as a class
 
-- nickname, description etc need to be properties so nip2 can read them
-
-  arg, they are class properties, argh, can we support these?
-
 - make a new package for "resample"? im_shrink & friends could go in there too
 
 - make a "deprecated" package too

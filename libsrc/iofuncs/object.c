@@ -55,6 +55,14 @@ enum {
 	SIG_LAST
 };
 
+/* Properties.
+ */
+enum {
+	PROP_NICKNAME,	/* Class properties as object props */
+	PROP_DESCRIPTION,
+	PROP_LAST
+};
+
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
@@ -718,27 +726,29 @@ transform_string_double( const GValue *src_value, GValue *dest_value )
 }
 
 static void
-vips_object_class_init( VipsObjectClass *class )
+vips_object_class_init( VipsObjectClass *object_class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS( object_class );
+
+	GParamSpec *pspec;
 
 	gobject_class->dispose = vips_object_dispose;
 	gobject_class->finalize = vips_object_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	class->build = vips_object_real_build;
-	class->changed = vips_object_real_changed;
-	class->print_class = vips_object_real_print_class;
-	class->print = vips_object_real_print;
-	class->nickname = "object";
-	class->description = _( "VIPS base class" );
+	object_class->build = vips_object_real_build;
+	object_class->changed = vips_object_real_changed;
+	object_class->print_class = vips_object_real_print_class;
+	object_class->print = vips_object_real_print;
+	object_class->nickname = "object";
+	object_class->description = _( "VIPS base class" );
 
 	/* Table of VipsArgumentClass ... we can just g_free() them.
 	 */
-	class->argument_table = g_hash_table_new_full( 
+	object_class->argument_table = g_hash_table_new_full( 
 		g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) g_free );
-	class->argument_table_traverse = NULL;
+	object_class->argument_table_traverse = NULL;
 
 	vips_object_signals[SIG_CHANGED] = g_signal_new( "changed",
 		G_OBJECT_CLASS_TYPE( gobject_class ),
@@ -752,15 +762,49 @@ vips_object_class_init( VipsObjectClass *class )
 	 */
 	g_value_register_transform_func( G_TYPE_STRING, G_TYPE_DOUBLE,
 		transform_string_double );
+
+	/* Create properties.
+	 */
+	pspec = g_param_spec_string( "nickname", 
+		_( "Nickname" ),
+		_( "Class nickname" ),
+		"",
+		(GParamFlags) G_PARAM_READABLE );
+	g_object_class_install_property( gobject_class, 
+		PROP_NICKNAME, pspec );
+	vips_object_class_install_argument( object_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE,
+		G_STRUCT_OFFSET( VipsObject, nickname ) );
+
+	pspec = g_param_spec_string( "description", 
+		_( "Description" ),
+		_( "Class description" ),
+		"",
+		(GParamFlags) G_PARAM_READABLE );
+	g_object_class_install_property( gobject_class, 
+		PROP_DESCRIPTION, pspec );
+	vips_object_class_install_argument( object_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE,
+		G_STRUCT_OFFSET( VipsObject, description ) );
+
 }
 
 static void
 vips_object_init( VipsObject *object )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+
 #ifdef DEBUG
 	printf( "vips_object_init: " );
 	vips_object_print( object );
 #endif /*DEBUG*/
+
+	/* It'd be nice if this just copied a pointer rather than did a
+	 * strdup().
+	 */
+	g_object_set( object, 
+		"nickname", object_class->nickname,
+		"description", object_class->description, NULL );
 }
 
 void
