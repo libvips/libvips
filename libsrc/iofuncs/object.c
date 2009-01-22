@@ -58,7 +58,7 @@ enum {
 /* Properties.
  */
 enum {
-	PROP_NICKNAME,	/* Class properties as object props */
+	PROP_NICKNAME = 1,/* Class properties as object props */
 	PROP_DESCRIPTION,
 	PROP_LAST
 };
