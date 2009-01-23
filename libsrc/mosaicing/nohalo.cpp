@@ -313,8 +313,7 @@ nohalo1(
 	const double cin_fou,
 	double *r1,
 	double *r2,
-	double *r3,
-	double *r4 )
+	double *r3 )
 {
 	/* Start of copy-paste from Nicolas's source.
 	 */
@@ -584,10 +583,9 @@ nohalo1(
 	/* End of copy-paste from Nicolas's source.
 	 */
 
-	*r1 = tre_thr;
-	*r2 = tre_thrfou;
-	*r3 = trequa_thr;
-	*r4 = trequa_thrfou;
+	*r1 = tre_thrfou;
+	*r2 = trequa_thr;
+	*r3 = trequa_thrfou;
 }
 
 /* Float/double version. 
@@ -606,6 +604,7 @@ nohalo_float( PEL *pout, const PEL *pin,
 	const int b1 = bands;
 	const int b2 = 2 * b1;
 	const int b3 = 3 * b1;
+	const int b4 = 4 * b1;
 
 	const int l1 = lskip / sizeof( T );
 	const int l2 = 2 * l1;
@@ -613,23 +612,22 @@ nohalo_float( PEL *pout, const PEL *pin,
 
 	for( int z = 0; z < bands; z++ ) {
 
-		const T dos_two = in[b1];
 		const T dos_thr = in[b2];
+		const T dos_fou = in[b3];
 
-		const T tre_one = in[l1];
 		const T tre_two = in[b1 + l1];
 		const T tre_thr = in[b2 + l1];
 		const T tre_fou = in[b3 + l1];
+		const T tre_fiv = in[b4 + l1];
 
-		const T qua_one = in[l2];
 		const T qua_two = in[b1 + l2];
 		const T qua_thr = in[b2 + l2];
 		const T qua_fou = in[b3 + l2];
+		const T qua_fiv = in[b4 + l2];
 
-		const T cin_two = in[b1 + l3];
 		const T cin_thr = in[b2 + l3];
+		const T cin_fou = in[b3 + l3];
 
-		double tre_thr;
 		double tre_thrfou;
 		double trequa_thr;
 		double trequa_thrfou;
@@ -639,7 +637,6 @@ nohalo_float( PEL *pout, const PEL *pin,
 			tre_two, tre_thr, tre_fou, tre_fiv,
 			qua_two, qua_thr, qua_fou, qua_fiv,
 			cin_thr, cin_fou,
-			&tre_thr,
 			&tre_thrfou,
 			&trequa_thr,
 			&trequa_thrfou );
@@ -661,19 +658,23 @@ nohalo_float( PEL *pout, const PEL *pin,
 	}
 }
 
+/* We need C linkage for this.
+ */
+extern "C" {
+G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo, 
+	VIPS_TYPE_INTERPOLATE );
+}
+
 static void
 vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate, 
 	PEL *out, REGION *in, double absolute_x, double absolute_y )
 {
-	VipsInterpolateNohaloClass *nohalo_class = 
-		VIPS_INTERPOLATE_NOHALO_GET_CLASS( interpolate );
-	VipsInterpolateNohalo *nohalo = VIPS_INTERPOLATE_NOHALO( interpolate );
-
 	/* VIPS versions of Nicolas's pixel addressing values.
+	 * values_per_tile_row is really how much to add to skip down a row.
 	 */
 	const int channels_per_pixel = in->im->Bands;
 	const int values_per_tile_row = 
-		IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in );
+		IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
 
 	/* Copy-paste of Nicolas's pixel addressing code starts.
 	 */
@@ -707,12 +708,6 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const int relative_x_is_left = ( relative_x < 0. );
   const int relative_y_is___up = ( relative_y < 0. );
 
-  const int basic_x_reflexion_shift = ( 5 - 1 ) * channels_per_pixel;
-  const int basic_y_reflexion_shift = ( 5 - 1 ) * values_per_tile_row;
-
-  const int x_reflexion_shift = basic_x_reflexion_shift * relative_x_is_left;
-  const int y_reflexion_shift = basic_y_reflexion_shift * relative_y_is___up;
-
   /*
    * The direction of movement within the (extended) possibly
    * reflected stencil is then determined by the following signs:
@@ -739,23 +734,9 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const double y = ( 2 * sign_of_relative_y ) * relative_y;
 
   /*
-   * Basic shifts:
-   */
-  const int shift_2_pixels = 2 * shift_1_pixel;
-  const int shift_2_rows   = 2 * shift_1_row;
-
-  /*
    * FIRST BILINEAR WEIGHT:
    */
   const double x_times_y = x * y;
-
-  /*
-   * More basic shifts:
-   */
-  const int shift_3_pixels = shift_2_pixels + shift_1_pixel;
-  const int shift_3_rows   = shift_2_rows + shift_1_row;
-  const int shift_4_rows   = 2 * shift_2_rows;
-  const int shift_4_pixels = 2 * shift_2_pixels;
 
   /*
    * SECOND AND THIRD BILINEAR WEIGHTS:
@@ -766,101 +747,81 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const double x_times_z = x - x_times_y;
 
   /*
-   * OVERALL SHIFTS:
-   */
-  const int dos_thr_shift = shift_1_row  + shift_2_pixels;
-  const int dos_fou_shift = shift_1_row  + shift_3_pixels;
-
-  const int tre_two_shift = shift_2_rows + shift_1_pixel;
-  const int tre_thr_shift = shift_2_rows + shift_2_pixels;
-  const int tre_fou_shift = shift_2_rows + shift_3_pixels;
-  const int tre_fiv_shift = shift_2_rows + shift_4_pixels;
-
-  const int qua_two_shift = shift_3_rows + shift_1_pixel;
-  const int qua_thr_shift = shift_3_rows + shift_2_pixels;
-  const int qua_fou_shift = shift_3_rows + shift_3_pixels;
-  const int qua_fiv_shift = shift_3_rows + shift_4_pixels;
-
-  const int cin_thr_shift = shift_4_rows + shift_2_pixels;
-  const int cin_fou_shift = shift_4_rows + shift_3_pixels;
-
-  /*
    * LAST BILINEAR WEIGHT:
    */
   const double w_times_z = 1. - ( x + w_times_y );
 
-  /*
-   * gegl_sampler_get_ptr (self, ix-2, iy-2) should give me access to
-   * a 5 by 5 black of pixel data, where the leftmost/topmost pixel is
-   * located at (ix-2,iy-2)---that is, the data runs from "absolute
-   * indices" ix-2 to ix+2 and iy-2 to iy+2. Note that the four
-   * corners of this 5x5 block are never used.
-   *
-   * Adding x_reflexion_shift and y_reflexion_shift to the input data
-   * pointer, otherwise pointing to the (first channel of the) top
-   * left of the five by five stencil, will bring it to the desired
-   * corner:
-   */
-  const PEL * restrict in =
-    IM_REGION_ADDR (self, ix-2, iy-2)
-    +
-    (
-      x_reflexion_shift
-      +
-      y_reflexion_shift
-    );
+	/* We need to shift and reflect the pointer. IM_REGION_ADDR() is
+	 * an untyped pointer to the top-left of our 5x5 window. 
+	 */
+	const PEL * restrict p =
+		(PEL *) IM_REGION_ADDR( in, ix - 2, iy - 2 ) + 
+		IM_IMAGE_SIZEOF_ELEMENT( in->im ) * (
+			relative_x_is_left * 4 * channels_per_pixel + 
+			relative_y_is___up * 4 * values_per_tile_row
+		);
 
 	switch( in->im->BandFmt ) {
 	/*
 	case IM_BANDFMT_UCHAR:
-		nohalo_unsigned<unsigned char>( out, p, bands, lskip,
+		nohalo_unsigned<unsigned char>( out, p, 
+			shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 
 	case IM_BANDFMT_CHAR:
-		nohalo_signed<signed char>( out, p, bands, lskip,
+		nohalo_signed<signed char>( out, p, 
+			shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 
 	case IM_BANDFMT_USHORT:
-		nohalo_unsigned<unsigned short>( out, p, bands, lskip,
+		nohalo_unsigned<unsigned short>( out, p, 
+			shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 
 	case IM_BANDFMT_SHORT:
-		nohalo_signed<signed short>( out, p, bands, lskip,
+		nohalo_signed<signed short>( out, p, 
+			shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 
 	case IM_BANDFMT_UINT:
-		nohalo_unsigned<unsigned int>( out, p, bands, lskip,
+		nohalo_unsigned<unsigned int>( out, p, 
+			shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 
 	case IM_BANDFMT_INT:
-		nohalo_signed<signed int>( out, p, bands, lskip,
+		nohalo_signed<signed int>( out, p, 
+			shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 	 */
 
 	case IM_BANDFMT_FLOAT:
-		nohalo_float<float>( out, p, bands, lskip,
+		nohalo_float<float>( out, p, 
+			shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 
 	/*
 	case IM_BANDFMT_DOUBLE:
-		nohalo_float<double>( out, p, bands, lskip,
+		nohalo_float<double>( out, p, 
+			shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 
 	case IM_BANDFMT_COMPLEX:
-		nohalo_float<float>( out, p, bands * 2, lskip,
+		nohalo_float<float>( out, p, 
+			2 * shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 
 	case IM_BANDFMT_DPCOMPLEX:
-		nohalo_float<double>( out, p, bands * 2, lskip,
+		nohalo_float<double>( out, p, 
+			2 * shift_1_pixel, shift_1_row,
 			w_times_z, x_times_z, w_times_y, x_times_y );
 		break;
 	 */
@@ -870,23 +831,15 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 	}
 }
 
-/* We need C linkage for this.
- */
-extern "C" {
-G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo, 
-	VIPS_TYPE_INTERPOLATE );
-}
-
 static void
 vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
 	VipsInterpolateClass *interpolate_class = 
 		VIPS_INTERPOLATE_CLASS( klass );
 
 	object_class->nickname = "nohalo";
-	object_class->description = _( "nohalo interpolation" );
+	object_class->description = _( "Bilinear plus edge enhance" );
 
 	interpolate_class->interpolate = 
 		vips_interpolate_nohalo_interpolate;

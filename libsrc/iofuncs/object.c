@@ -674,6 +674,8 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 static int
 vips_object_real_build( VipsObject *object )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+
 	int result;
 
 	g_assert( !object->constructed );
@@ -688,6 +690,14 @@ vips_object_real_build( VipsObject *object )
 	/* ... more checks go here.
 	 */
 	object->constructed = TRUE;
+
+	/* It'd be nice if this just copied a pointer rather than did a
+	 * strdup(). Set these here rather than in object_init, so that the
+	 * class gets a chance to set them.
+	 */
+	g_object_set( object, 
+		"nickname", object_class->nickname,
+		"description", object_class->description, NULL );
 
 	return( result );
 }
@@ -769,7 +779,7 @@ vips_object_class_init( VipsObjectClass *object_class )
 		_( "Nickname" ),
 		_( "Class nickname" ),
 		"",
-		(GParamFlags) G_PARAM_READABLE );
+		(GParamFlags) G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, 
 		PROP_NICKNAME, pspec );
 	vips_object_class_install_argument( object_class, pspec,
@@ -780,7 +790,7 @@ vips_object_class_init( VipsObjectClass *object_class )
 		_( "Description" ),
 		_( "Class description" ),
 		"",
-		(GParamFlags) G_PARAM_READABLE );
+		(GParamFlags) G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, 
 		PROP_DESCRIPTION, pspec );
 	vips_object_class_install_argument( object_class, pspec,
@@ -792,19 +802,10 @@ vips_object_class_init( VipsObjectClass *object_class )
 static void
 vips_object_init( VipsObject *object )
 {
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
-
 #ifdef DEBUG
 	printf( "vips_object_init: " );
 	vips_object_print( object );
 #endif /*DEBUG*/
-
-	/* It'd be nice if this just copied a pointer rather than did a
-	 * strdup().
-	 */
-	g_object_set( object, 
-		"nickname", object_class->nickname,
-		"description", object_class->description, NULL );
 }
 
 void

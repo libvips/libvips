@@ -1,3 +1,15 @@
+- make properties for nickname etc. so we can get class properties from
+  objects
+
+- dir on a Managedgobject should list properties
+
+- (get_member "poop" (Managedgobject)) should work
+
+- dir on a gtype should also list properties? how should we list subclasses?
+
+
+
+
 - maybe IM_INTERPOLATE() isn't a good idea? maybe just IM_GOBJECT?
 
 - try making vips_add(), an operator as a class

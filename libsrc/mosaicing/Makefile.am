@@ -15,6 +15,7 @@ libmosaicing_la_SOURCES = \
 	interpolate.c \
 	yafrsmooth.cpp \
 	yafrnohalo.c \
+	nohalo.cpp \
 	im_improve.c \
 	im_initialize.c \
 	im_lrcalcon.c \
