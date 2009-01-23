@@ -43,6 +43,79 @@
 #endif
 #endif
 
+/* Bilinear for float and double types.
+ */
+template <typename T> static T inline
+bilinear_float( 
+	const double w_times_z,
+	const double x_times_z,
+	const double w_times_y,
+	const double x_times_y,
+	const double tre_thr,
+	const double tre_thrfou,
+	const double trequa_thr,
+	const double trequa_thrfou )
+{
+	const T newval =
+		w_times_z * tre_thr +
+		x_times_z * tre_thrfou +
+		w_times_y * trequa_thr +
+		x_times_y * trequa_thrfou;
+
+	return( newval );
+}
+
+/* Interpolate for signed integer types.
+ */
+template <typename T> static T inline
+bilinear_signed( 
+	const double w_times_z,
+	const double x_times_z,
+	const double w_times_y,
+	const double x_times_y,
+	const double tre_thr,
+	const double tre_thrfou,
+	const double trequa_thr,
+	const double trequa_thrfou )
+{
+	const double val =
+		(w_times_z / 16) * tre_thr +
+		(x_times_z / 16) * tre_thrfou +
+		(w_times_y / 16) * trequa_thr +
+		(x_times_y / 16) * trequa_thrfou;
+
+	const int sign_of_val = 2 * ( val >= 0. ) - 1;
+
+	const int rounded_abs_val = .5 + sign_of_val * val;
+
+	const T newval = sign_of_val * rounded_abs_val;
+
+	return( newval );
+}
+
+/* Interpolate for unsigned integer types.
+ */
+template <typename T> static T inline
+bilinear_unsigned( 
+	const double w_times_z,
+	const double x_times_z,
+	const double w_times_y,
+	const double x_times_y,
+	const double tre_thr,
+	const double tre_thrfou,
+	const double trequa_thr,
+	const double trequa_thrfou )
+{
+	const T newval =
+		(w_times_z / 16) * tre_thr +
+		(x_times_z / 16) * tre_thrfou +
+		(w_times_y / 16) * trequa_thr +
+		(x_times_y / 16) * trequa_thrfou + 
+		0.5;
+
+	return( newval );
+}
+
 /* Fixed-point integer bicubic, used for 8 and 16-bit types.
  */
 template <typename T> static int inline
@@ -117,7 +190,7 @@ bicubic_float(
 
 /* Given an offset in [0,1] (we can have x == 1 when building tables), 
  * calculate c0, c1, c2, c3, the catmull-rom coefficients. This is called 
- * from the interpolator, as well as from the table builder. 
+ * from the interpolator as well as from the table builder. 
  */
 static void inline
 calculate_coefficients_catmull( const double x, double c[4] )
