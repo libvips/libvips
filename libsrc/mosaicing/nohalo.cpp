@@ -609,24 +609,25 @@ nohalo_float( PEL *pout, const PEL *pin,
 	const int l1 = lskip / sizeof( T );
 	const int l2 = 2 * l1;
 	const int l3 = 3 * l1;
+	const int l4 = 4 * l1;
 
 	for( int z = 0; z < bands; z++ ) {
 
-		const T dos_thr = in[b2];
-		const T dos_fou = in[b3];
+		const T dos_thr = in[b2 + l1];
+		const T dos_fou = in[b3 + l1];
 
-		const T tre_two = in[b1 + l1];
-		const T tre_thr = in[b2 + l1];
-		const T tre_fou = in[b3 + l1];
-		const T tre_fiv = in[b4 + l1];
+		const T tre_two = in[b1 + l2];
+		const T tre_thr = in[b2 + l2];
+		const T tre_fou = in[b3 + l2];
+		const T tre_fiv = in[b4 + l2];
 
-		const T qua_two = in[b1 + l2];
-		const T qua_thr = in[b2 + l2];
-		const T qua_fou = in[b3 + l2];
-		const T qua_fiv = in[b4 + l2];
+		const T qua_two = in[b1 + l3];
+		const T qua_thr = in[b2 + l3];
+		const T qua_fou = in[b3 + l3];
+		const T qua_fiv = in[b4 + l3];
 
-		const T cin_thr = in[b2 + l3];
-		const T cin_fou = in[b3 + l3];
+		const T cin_thr = in[b2 + l4];
+		const T cin_fou = in[b3 + l4];
 
 		double tre_thrfou;
 		double trequa_thr;
