@@ -297,7 +297,7 @@ typedef struct _VipsInterpolateNohaloClass {
  * bilinear interpolation of them.
  */
 
-static void inline
+static void 
 nohalo1( 
 	const double dos_thr,
 	const double dos_fou,
@@ -606,7 +606,7 @@ nohalo_float( PEL *pout, const PEL *pin,
 	const int b3 = 3 * b1;
 	const int b4 = 4 * b1;
 
-	const int l1 = lskip / sizeof( T );
+	const int l1 = lskip;
 	const int l2 = 2 * l1;
 	const int l3 = 3 * l1;
 	const int l4 = 4 * l1;
@@ -677,7 +677,7 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 	const int values_per_tile_row = 
 		IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
 
-	/* Copy-paste of Nicolas's pixel addressing code starts.
+	/* Copy-paste of Nicolas's pixel addressing code starts. 
 	 */
 
   /*
@@ -689,8 +689,8 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
    * picks one of the two possibilities for integer values, can be
    * used.
    */
-  const int ix = FAST_PSEUDO_FLOOR (absolute_x + .5);
-  const int iy = FAST_PSEUDO_FLOOR (absolute_y + .5);
+  const int ix = FAST_PSEUDO_FLOOR (absolute_x + 0.5);
+  const int iy = FAST_PSEUDO_FLOOR (absolute_y + 0.5);
 
   /*
    * x is the x-coordinate of the sampling point relative to the
@@ -752,15 +752,33 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
    */
   const double w_times_z = 1. - ( x + w_times_y );
 
-	/* We need to shift and reflect the pointer. IM_REGION_ADDR() is
-	 * an untyped pointer to the top-left of our 5x5 window. 
+	/* We need to shift and reflect the start point.
 	 */
+	const int target_x = ix - 2 + relative_x_is_left * 4;
+	const int target_y = iy - 2 + relative_y_is___up * 4;
+
 	const PEL * restrict p =
-		(PEL *) IM_REGION_ADDR( in, ix - 2, iy - 2 ) + 
-		IM_IMAGE_SIZEOF_ELEMENT( in->im ) * (
-			relative_x_is_left * 4 * channels_per_pixel + 
-			relative_y_is___up * 4 * values_per_tile_row
-		);
+		(PEL *) IM_REGION_ADDR( in, target_x, target_y );
+
+	
+#ifdef DEBUG
+	/* And test that all of the bytes we look at are within the window.
+	 */
+	const int other_x = target_x + 4 * sign_of_relative_x;
+	const int other_y = target_y + 4 * sign_of_relative_y;
+
+	const PEL * restrict q =
+		(PEL *) IM_REGION_ADDR( in, other_x, other_y ); 
+
+	printf( "vips_interpolate_nohalo_interpolate:\n" );
+	printf( "\tabsolute_x = %g, absolute_y = %g\n", 
+		absolute_x, absolute_y );
+	printf( "\ttarget_x = %d, target_y = %d\n", 
+		target_x, target_y ); 
+	printf( "\tother_x = %d, other_y = %d\n", 
+		other_x, other_y ); 
+	printf( "\tp = %p, q = %p\n", p, q ); 
+#endif /*DEBUG*/
 
 	switch( in->im->BandFmt ) {
 	/*
