@@ -31,6 +31,7 @@
 - im_buf_t renamed as VipsBuf
 - added vips_object_to_string()
 - added "nickname" and "description" properties to VipsObject
+- shift/and/or/eor ops were broken for non-int types
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

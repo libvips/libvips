@@ -112,18 +112,20 @@ static int iformat[10][10] = {
 /* DM */ { I,  I,  I,  I,  I,  I,  I,  I,  I,  I }
 };
 
-/* Check args. Cast inputs to matching integer format.
+/* Check args. Cast inputs to matching integer format. 
  */
 static int
-check( char *name, IMAGE **in, IMAGE *out )
+check( IMAGE **in, IMAGE *out )
 {
 	int i, n;
+	int fmt;
 
 	/* Count args.
 	 */
 	for( n = 0; in[n]; n++ ) {
 		if( in[n]->Coding != IM_CODING_NONE ) {
-			im_errormsg( "%s: uncoded images only", name );
+			im_error( "boolean", 
+				"%s", _( "uncoded images only" ) );
 			return( -1 );
 		}
 	}
@@ -134,24 +136,20 @@ check( char *name, IMAGE **in, IMAGE *out )
 		if( in[0]->Bands != in[i]->Bands ||
 			in[0]->Xsize != in[i]->Xsize ||
 			in[0]->Ysize != in[i]->Ysize ) {
-			im_errormsg( "%s: images differ in size", name );
+			im_error( "boolean", 
+				"%s", _( "images differ in size" ) );
 			return( -1 );
 		}
-
-	/* Prepare the output image.
-	 */
-	if( im_cp_desc_array( out, in ) )
-		return( -1 );
 
 	/* Calculate type conversion ... just 1ary and 2ary.
 	 */
 	switch( n ) {
 	case 1:
-		out->BandFmt = iformat[0][in[0]->BandFmt];
+		fmt = iformat[0][in[0]->BandFmt];
 		break;
 
 	case 2:
-		out->BandFmt = iformat[in[1]->BandFmt][in[0]->BandFmt];
+		fmt = iformat[in[1]->BandFmt][in[0]->BandFmt];
 		break;
 
 	default:
@@ -159,12 +157,17 @@ check( char *name, IMAGE **in, IMAGE *out )
 	}
 
 	for( i = 0; i < n; i++ ) {
-		IMAGE *t = im_open_local( out, name, "p" );
+		IMAGE *t = im_open_local( out, "check-1", "p" );
 
-		if( !t || im_clip2fmt( in[i], t, out->BandFmt ) )
+		if( !t || im_clip2fmt( in[i], t, fmt ) )
 			return( -1 );
 		in[i] = t;
 	}
+
+	/* Prepare the output image.
+	 */
+	if( im_cp_desc_array( out, in ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -172,8 +175,7 @@ check( char *name, IMAGE **in, IMAGE *out )
 /* A selection of main loops. As with im_add(), only implement monotype
  * operations. TYPE is some integer type, signed or unsigned.
  */
-#define AND2( TYPE ) \
-{ \
+#define AND2( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	TYPE *tp1 = (TYPE *) p1; \
 	TYPE *tp2 = (TYPE *) p2; \
@@ -182,8 +184,7 @@ check( char *name, IMAGE **in, IMAGE *out )
 		tq[x] = tp1[x] & tp2[x]; \
 }
 
-#define OR2( TYPE ) \
-{ \
+#define OR2( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	TYPE *tp1 = (TYPE *) p1; \
 	TYPE *tp2 = (TYPE *) p2; \
@@ -192,8 +193,7 @@ check( char *name, IMAGE **in, IMAGE *out )
 		tq[x] = tp1[x] | tp2[x]; \
 }
 
-#define EOR2( TYPE ) \
-{ \
+#define EOR2( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	TYPE *tp1 = (TYPE *) p1; \
 	TYPE *tp2 = (TYPE *) p2; \
@@ -202,8 +202,7 @@ check( char *name, IMAGE **in, IMAGE *out )
 		tq[x] = tp1[x] ^ tp2[x]; \
 }
 
-#define ANDCONST( TYPE ) \
-{ \
+#define ANDCONST( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	TYPE *tp = (TYPE *) p; \
 	TYPE *tc = (TYPE *) c; \
@@ -213,8 +212,7 @@ check( char *name, IMAGE **in, IMAGE *out )
 			tq[i] = tp[i] & tc[b]; \
 }
 
-#define ORCONST( TYPE ) \
-{ \
+#define ORCONST( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	TYPE *tp = (TYPE *) p; \
 	TYPE *tc = (TYPE *) c; \
@@ -224,8 +222,7 @@ check( char *name, IMAGE **in, IMAGE *out )
 			tq[i] = tp[i] | tc[b]; \
 }
 
-#define EORCONST( TYPE ) \
-{ \
+#define EORCONST( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	TYPE *tp = (TYPE *) p; \
 	TYPE *tc = (TYPE *) c; \
@@ -370,7 +367,7 @@ im_andimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	/* Check images.
 	 */
 	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( check( "im_andimage", invec, out ) )
+	if( check( invec, out ) )
 		return( -1 );
 
 	/* Process!
@@ -387,7 +384,7 @@ im_orimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	IMAGE *invec[3];
 
 	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( check( "im_orimage", invec, out ) )
+	if( check( invec, out ) )
 		return( -1 );
 
 	if( im_wrapmany( invec, out, (im_wrapmany_fn) or_buffer, out, NULL ) )
@@ -402,7 +399,7 @@ im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	IMAGE *invec[3];
 
 	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( check( "im_eorimage", invec, out ) )
+	if( check( invec, out ) )
 		return( -1 );
 
 	if( im_wrapmany( invec, out, (im_wrapmany_fn) eor_buffer, out, NULL ) )
@@ -413,8 +410,7 @@ im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 /* Cast a vector of double to a vector of TYPE.
  */
-#define CAST( TYPE ) \
-{ \
+#define CAST( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	\
 	for( i = 0; i < out->Bands; i++ ) \
@@ -424,7 +420,7 @@ im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 /* Make a pixel of output type from a realvec.
  */
 static PEL *
-make_pixel( IMAGE *out, double *p )
+make_pixel( IMAGE *out, int fmt, double *p )
 {
 	PEL *q;
 	int i;
@@ -432,7 +428,7 @@ make_pixel( IMAGE *out, double *p )
 	if( !(q = IM_ARRAY( out, IM_IMAGE_SIZEOF_PEL( out ), PEL )) )
 		return( NULL );
 
-        switch( out->BandFmt ) {
+        switch( fmt ) {
         case IM_BANDFMT_CHAR:	CAST( signed char ); break;
         case IM_BANDFMT_UCHAR:  CAST( unsigned char ); break;
         case IM_BANDFMT_SHORT:  CAST( signed short ); break;
@@ -454,14 +450,15 @@ im_and_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	PEL *cb;
 
 	invec[0] = in; invec[1] = NULL;
-	if( check( "im_andconst", invec, out ) )
+	if( check( invec, out ) )
 		return( -1 );
 	in = invec[0];
 	if( n != in->Bands ) {
-		im_errormsg( "im_and_vec: vec size does not match bands" );
+		im_error( "im_and_vec", 
+			"%s", _( "vec size does not match bands" ) );
 		return( -1 );
 	}
-	if( !(cb = make_pixel( out, c )) )
+	if( !(cb = make_pixel( out, in->BandFmt, c )) )
 		return( -1 );
 
 	if( im_wrapone( in, out, 
@@ -478,14 +475,15 @@ im_or_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	PEL *cb;
 
 	invec[0] = in; invec[1] = NULL;
-	if( check( "im_orconst", invec, out ) )
+	if( check( invec, out ) )
 		return( -1 );
 	in = invec[0];
 	if( n != in->Bands ) {
-		im_errormsg( "im_or_vec: vec size does not match bands" );
+		im_error( "im_or_vec", 
+			"%s", _( "vec size does not match bands" ) );
 		return( -1 );
 	}
-	if( !(cb = make_pixel( out, c )) )
+	if( !(cb = make_pixel( out, in->BandFmt, c )) )
 		return( -1 );
 
 	if( im_wrapone( in, out, 
@@ -502,14 +500,15 @@ im_eor_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	PEL *cb;
 
 	invec[0] = in; invec[1] = NULL;
-	if( check( "im_eorconst", invec, out ) )
+	if( check( invec, out ) )
 		return( -1 );
 	in = invec[0];
 	if( n != in->Bands ) {
-		im_errormsg( "im_eor_vec: vec size does not match bands" );
+		im_error( "im_eor_vec", 
+			"%s", _( "vec size does not match bands" ) );
 		return( -1 );
 	}
-	if( !(cb = make_pixel( out, c )) )
+	if( !(cb = make_pixel( out, in->BandFmt, c )) )
 		return( -1 );
 
 	if( im_wrapone( in, out, 
@@ -521,8 +520,7 @@ im_eor_vec( IMAGE *in, IMAGE *out, int n, double *c )
 
 /* Cast a double to a vector of TYPE.
  */
-#define CCAST( TYPE ) \
-{ \
+#define CCAST( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	\
 	for( i = 0; i < in->Bands; i++ ) \
@@ -571,22 +569,12 @@ im_eorconst( IMAGE *in, IMAGE *out, double c )
 
 /* Assorted shift operations.
  */
-#define SHIFTL( TYPE ) \
-{\
+#define SHIFTL( TYPE ) { \
 	TYPE *pt = (TYPE *) p;\
 	TYPE *qt = (TYPE *) q;\
 	\
 	for( x = 0; x < ne; x++ )\
 		qt[x] = pt[x] << n;\
-}
-
-#define SHIFTR( TYPE ) \
-{\
-	TYPE *pt = (TYPE *) p;\
-	TYPE *qt = (TYPE *) q;\
-	\
-	for( x = 0; x < ne; x++ )\
-		qt[x] = pt[x] >> n;\
 }
 
 /* The above as buffer ops.
@@ -598,35 +586,15 @@ shiftleft_buffer( PEL *p, PEL *q, int len, IMAGE *in, int n )
 	int ne = len * in->Bands;
 
         switch( in->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	SHIFTL(unsigned char); break;
-        case IM_BANDFMT_CHAR: 	SHIFTL(signed char); break; 
-        case IM_BANDFMT_USHORT:	SHIFTL(unsigned short); break; 
-        case IM_BANDFMT_SHORT: 	SHIFTL(signed short); break; 
-        case IM_BANDFMT_UINT: 	SHIFTL(unsigned int); break; 
-        case IM_BANDFMT_INT: 	SHIFTL(signed int);  break; 
+        case IM_BANDFMT_UCHAR: 	SHIFTL( unsigned char ); break;
+        case IM_BANDFMT_CHAR: 	SHIFTL( signed char ); break; 
+        case IM_BANDFMT_USHORT:	SHIFTL( unsigned short ); break; 
+        case IM_BANDFMT_SHORT: 	SHIFTL( signed short ); break; 
+        case IM_BANDFMT_UINT: 	SHIFTL( unsigned int ); break; 
+        case IM_BANDFMT_INT: 	SHIFTL( signed int );  break; 
 
 	default:
 		error_exit( "im_shiftleft: internal error" );
-		/*NOTREACHED*/
-	}
-}
-
-static void
-shiftright_buffer( PEL *p, PEL *q, int len, IMAGE *in, int n )
-{
-	int x;
-	int ne = len * in->Bands;
-
-        switch( in->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	SHIFTR(unsigned char); break;
-        case IM_BANDFMT_CHAR: 	SHIFTR(signed char); break; 
-        case IM_BANDFMT_USHORT:	SHIFTR(unsigned short); break; 
-        case IM_BANDFMT_SHORT: 	SHIFTR(signed short); break; 
-        case IM_BANDFMT_UINT: 	SHIFTR(unsigned int); break; 
-        case IM_BANDFMT_INT: 	SHIFTR(signed int);  break; 
-
-	default:
-		error_exit( "im_shiftright: internal error" );
 		/*NOTREACHED*/
 	}
 }
@@ -639,7 +607,7 @@ im_shiftleft( IMAGE *in, IMAGE *out, int n )
 	IMAGE *invec[2];
 
 	invec[0] = in; invec[1] = NULL;
-	if( check( "im_shiftleft", invec, out ) )
+	if( check( invec, out ) )
 		return( -1 );
 	in = invec[0];
 
@@ -650,13 +618,41 @@ im_shiftleft( IMAGE *in, IMAGE *out, int n )
 	return( 0 );
 }
 
+#define SHIFTR( TYPE ) { \
+	TYPE *pt = (TYPE *) p; \
+	TYPE *qt = (TYPE *) q; \
+	\
+	for( x = 0; x < ne; x++ ) \
+		qt[x] = pt[x] >> n; \
+}
+
+static void
+shiftright_buffer( PEL *p, PEL *q, int len, IMAGE *in, int n )
+{
+	int x;
+	int ne = len * in->Bands;
+
+        switch( in->BandFmt ) {
+        case IM_BANDFMT_UCHAR: 	SHIFTR( unsigned char ); break;
+        case IM_BANDFMT_CHAR: 	SHIFTR( signed char ); break; 
+        case IM_BANDFMT_USHORT:	SHIFTR( unsigned short ); break; 
+        case IM_BANDFMT_SHORT: 	SHIFTR( signed short ); break; 
+        case IM_BANDFMT_UINT: 	SHIFTR( unsigned int ); break; 
+        case IM_BANDFMT_INT: 	SHIFTR( signed int );  break; 
+
+	default:
+		error_exit( "im_shiftright: internal error" );
+		/*NOTREACHED*/
+	}
+}
+
 int 
 im_shiftright( IMAGE *in, IMAGE *out, int n )
 {
 	IMAGE *invec[2];
 
 	invec[0] = in; invec[1] = NULL;
-	if( check( "im_shiftleft", invec, out ) )
+	if( check( invec, out ) )
 		return( -1 );
 	in = invec[0];
 
