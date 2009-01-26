@@ -778,7 +778,29 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 	printf( "\tother_x = %d, other_y = %d\n", 
 		other_x, other_y ); 
 	printf( "\tp = %p, q = %p\n", p, q ); 
+	printf( "\tshift_1_pixel = %s, shift_1_row = %s\n", 
+		shift_1_pixel, shift_1_row );
 #endif /*DEBUG*/
+
+{
+	/* Top-left corner of our window.
+	 */
+	const PEL * restrict tl =
+		(PEL *) IM_REGION_ADDR( in, ix - 2, iy - 2 ); 
+
+	/* Bottom-right corner of our window.
+	 */
+	const PEL * restrict br =
+		(PEL *) IM_REGION_ADDR( in, ix + 2, iy + 2 ); 
+
+	/* Last pixel we address.
+	 */
+	const PEL * restrict last = p + 4 * shift_1_pixel + 4 * shift_1_row;
+
+	g_assert( last >= tl );
+	g_assert( last <= br );
+
+}
 
 	switch( in->im->BandFmt ) {
 	/*
