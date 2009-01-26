@@ -267,6 +267,8 @@
  * #define FAST_PSEUDO_FLOOR(x) ( (x)>=0 ? (int)(x) : (int)(x)-1 )
  */
 
+#define FAST_MIN(a,b) ( (a) <= (b) ? (a) : (b) )
+
 #define VIPS_TYPE_INTERPOLATE_NOHALO \
 	(vips_interpolate_nohalo_get_type())
 #define VIPS_INTERPOLATE_NOHALO( obj ) \
@@ -298,7 +300,7 @@ typedef struct _VipsInterpolateNohaloClass {
  */
 
 static void 
-nohalo1( 
+nohalo_sharp_level_1( 
 	const double dos_thr,
 	const double dos_fou,
 	const double tre_two,
@@ -325,7 +327,7 @@ nohalo1(
    *
    * Spanish abbreviations are used to label positions from top to
    * bottom (rows), English ones to label positions from left to right
-   * (columns). 
+   * (columns).
    *
    *               (ix-1,iy-2)  (ix,iy-2)    (ix+1,iy-2)
    *               = uno_two    = uno_thr    = uno_fou
@@ -333,7 +335,7 @@ nohalo1(
    *  (ix-2,iy-1)  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)   (ix+2,iy-1)
    *  = dos_one    = dos_two    = dos_thr    = dos_fou     = dos_fiv
    *
-   *  (ix-2,iy)    (ix-1,iy)    (ix,iy)      (ix+1,iy)     (ix+2,iy)  
+   *  (ix-2,iy)    (ix-1,iy)    (ix,iy)      (ix+1,iy)     (ix+2,iy)
    *  = tre_one    = tre_two    = tre_thr    = tre_fou     = tre_fiv
    *
    *  (ix-2,iy+1)  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)   (ix+2,iy+1)
@@ -345,8 +347,8 @@ nohalo1(
    * The above is the "enlarged" stencil: about half the values will
    * not be used.  Once symmetry has been used to assume that the
    * sampling point is to the right and bottom of tre_thr---this is
-   * done by implicitly reflecting the data if this is not initially
-   * the case---the actually used input values are named thus:
+   * done by implicitly reflecting the data if needed---the actually
+   * used input values are named thus:
    *
    *                              dos_thr      dos_fou
    *
@@ -360,9 +362,9 @@ nohalo1(
    * = 0, then dos_fou in this post-reflexion reduced stencil really
    * corresponds to dos_two in the "enlarged" one, etc.)
    *
-   * Given that the reflexions are performed "outside of the nohalo1
-   * function," the above 12 input values are the only ones "seen" by
-   * it.
+   * Given that the reflexions are performed "outside of the
+   * nohalo_sharp_level_1 function," the above 12 input values are the
+   * only ones which are read from the buffer.
    */
 
   /*
@@ -400,203 +402,160 @@ nohalo1(
   /*
    * Tre:
    */
-  const int sign_deux_tre = 2 * ( deux_tre >= 0. ) - 1;
-  const int sign_troi_tre = 2 * ( troi_tre >= 0. ) - 1;
-  const int sign_quat_tre = 2 * ( quat_tre >= 0. ) - 1;
+  const double half_sign_deux_tre = deux_tre >= 0. ? .5 : -.5;
+  const double half_sign_troi_tre = troi_tre >= 0. ? .5 : -.5;
+  const double half_sign_quat_tre = quat_tre >= 0. ? .5 : -.5;
   /*
    * Qua:
    */
-  const int sign_deux_qua = 2 * ( deux_qua >= 0. ) - 1;
-  const int sign_troi_qua = 2 * ( troi_qua >= 0. ) - 1;
-  const int sign_quat_qua = 2 * ( quat_qua >= 0. ) - 1;
+  const double half_sign_deux_qua = deux_qua >= 0. ? .5 : -.5;
+  const double half_sign_troi_qua = troi_qua >= 0. ? .5 : -.5;
+  const double half_sign_quat_qua = quat_qua >= 0. ? .5 : -.5;
   /*
    * Thr:
    */
-  const int sign_deux_thr = 2 * ( deux_thr >= 0. ) - 1;
-  const int sign_troi_thr = 2 * ( troi_thr >= 0. ) - 1;
-  const int sign_quat_thr = 2 * ( quat_thr >= 0. ) - 1;
+  const double half_sign_deux_thr = deux_thr >= 0. ? .5 : -.5;
+  const double half_sign_troi_thr = troi_thr >= 0. ? .5 : -.5;
+  const double half_sign_quat_thr = quat_thr >= 0. ? .5 : -.5;
   /*
    * Fou:
    */
-  const int sign_deux_fou = 2 * ( deux_fou >= 0. ) - 1;
-  const int sign_troi_fou = 2 * ( troi_fou >= 0. ) - 1;
-  const int sign_quat_fou = 2 * ( quat_fou >= 0. ) - 1;
+  const double half_sign_deux_fou = deux_fou >= 0. ? .5 : -.5;
+  const double half_sign_troi_fou = troi_fou >= 0. ? .5 : -.5;
+  const double half_sign_quat_fou = quat_fou >= 0. ? .5 : -.5;
+
+  /*
+   * Useful later:
+   */
+  const double tre_thr_plus_tre_fou  = tre_thr + tre_fou;
+  const double tre_thr_plus_qua_thr  = tre_thr + qua_thr;
+  const double qua_fou_minus_tre_thr = qua_fou - tre_thr;
 
   /*
    * Tre:
    */
-  const double abs_deux_tre = sign_deux_tre * deux_tre;
-  const double abs_troi_tre = sign_troi_tre * troi_tre;
-  const double abs_quat_tre = sign_quat_tre * quat_tre;
-  /*
-   * Qua:
-   */
-  const double abs_deux_qua = sign_deux_qua * deux_qua;
-  const double abs_troi_qua = sign_troi_qua * troi_qua;
-  const double abs_quat_qua = sign_quat_qua * quat_qua;
+  const double half_abs_deux_tre = half_sign_deux_tre * deux_tre;
+  const double sign_tre_thr_horizo = half_sign_deux_tre + half_sign_troi_tre;
+  const double half_abs_troi_tre = half_sign_troi_tre * troi_tre;
+  const double sign_tre_fou_horizo = half_sign_troi_tre + half_sign_quat_tre;
+  const double half_abs_quat_tre = half_sign_quat_tre * quat_tre;
   /*
    * Thr:
    */
-  const double abs_deux_thr = sign_deux_thr * deux_thr;
-  const double abs_troi_thr = sign_troi_thr * troi_thr;
-  const double abs_quat_thr = sign_quat_thr * quat_thr;
+  const double half_abs_deux_thr = half_sign_deux_thr * deux_thr;
+  const double sign_tre_thr_vertic = half_sign_deux_thr + half_sign_troi_thr;
+  const double half_abs_troi_thr = half_sign_troi_thr * troi_thr;
+  const double sign_qua_thr_vertic = half_sign_troi_thr + half_sign_quat_thr;
+  const double half_abs_quat_thr = half_sign_quat_thr * quat_thr;
+  /*
+   * Qua:
+   */
+  const double half_abs_deux_qua = half_sign_deux_qua * deux_qua;
+  const double sign_qua_thr_horizo = half_sign_deux_qua + half_sign_troi_qua;
+  const double half_abs_troi_qua = half_sign_troi_qua * troi_qua;
+  const double sign_qua_fou_horizo = half_sign_troi_qua + half_sign_quat_qua;
+  const double half_abs_quat_qua = half_sign_quat_qua * quat_qua;
   /*
    * Fou:
    */
-  const double abs_deux_fou = sign_deux_fou * deux_fou;
-  const double abs_troi_fou = sign_troi_fou * troi_fou;
-  const double abs_quat_fou = sign_quat_fou * quat_fou;
+  const double half_abs_deux_fou = half_sign_deux_fou * deux_fou;
+  const double sign_tre_fou_vertic = half_sign_deux_fou + half_sign_troi_fou;
+  const double half_abs_troi_fou = half_sign_troi_fou * troi_fou;
+  const double sign_qua_fou_vertic = half_sign_troi_fou + half_sign_quat_fou;
+  const double half_abs_quat_fou = half_sign_quat_fou * quat_fou;
 
   /*
    * Tre:
    */
-  const double twice_tre_thr_horizo =
-    ( 1 + sign_deux_tre * sign_troi_tre )
-    *
-    (
-      ( abs_deux_tre <= abs_troi_tre )
-      *
-      ( deux_tre - troi_tre )
-      +
-      troi_tre
-    );
-  const double twice_tre_fou_horizo =
-    ( 1 + sign_troi_tre * sign_quat_tre )
-    *
-    (
-      ( abs_troi_tre <= abs_quat_tre )
-      *
-      ( troi_tre - quat_tre )
-      +
-      quat_tre
-    );
-  /*
-   * Qua:
-   */
-  const double twice_qua_thr_horizo =
-    ( 1 + sign_deux_qua * sign_troi_qua )
-    *
-    (
-      ( abs_deux_qua <= abs_troi_qua )
-      *
-      ( deux_qua - troi_qua )
-      +
-      troi_qua
-    );
-   const double twice_qua_fou_horizo =
-     ( 1 + sign_troi_qua * sign_quat_qua )
-     *
-     (
-       ( abs_troi_qua <= abs_quat_qua )
-       *
-       ( troi_qua - quat_qua )
-       +
-       quat_qua
-     );
+  const double half_size_tre_thr_horizo =
+    FAST_MIN( half_abs_deux_tre, half_abs_troi_tre );
+  const double half_size_tre_fou_horizo =
+    FAST_MIN( half_abs_quat_tre, half_abs_troi_tre );
   /*
    * Thr:
    */
-  const double twice_tre_thr_vertic =
-    ( 1 + sign_deux_thr * sign_troi_thr )
-    *
-    (
-      ( abs_deux_thr <= abs_troi_thr )
-      *
-      ( deux_thr - troi_thr )
-      +
-      troi_thr
-    );
-  const double twice_qua_thr_vertic =
-    ( 1 + sign_troi_thr * sign_quat_thr )
-    *
-    (
-      ( abs_troi_thr <= abs_quat_thr )
-      *
-      ( troi_thr - quat_thr )
-      +
-      quat_thr
-    );
+  const double half_size_tre_thr_vertic =
+    FAST_MIN( half_abs_deux_thr, half_abs_troi_thr );
+  const double half_size_qua_thr_vertic =
+    FAST_MIN( half_abs_quat_thr, half_abs_troi_thr );
+  /*
+   * Qua:
+   */
+  const double half_size_qua_thr_horizo =
+    FAST_MIN( half_abs_deux_qua, half_abs_troi_qua );
+  const double half_size_qua_fou_horizo =
+    FAST_MIN( half_abs_quat_qua, half_abs_troi_qua );
   /*
    * Fou:
    */
-  const double twice_tre_fou_vertic =
-    ( 1 + sign_deux_fou * sign_troi_fou )
-    *
-    (
-      ( abs_deux_fou <= abs_troi_fou )
-      *
-      ( deux_fou - troi_fou )
-      +
-      troi_fou
-    );
-  const double twice_qua_fou_vertic =
-    ( 1 + sign_troi_fou * sign_quat_fou )
-    *
-    (
-      ( abs_troi_fou <= abs_quat_fou )
-      *
-      ( troi_fou - quat_fou )
-      +
-      quat_fou
-    );
+  const double half_size_tre_fou_vertic =
+    FAST_MIN( half_abs_deux_fou, half_abs_troi_fou );
+  const double half_size_qua_fou_vertic =
+    FAST_MIN( half_abs_quat_fou, half_abs_troi_fou );
 
   /*
-   * Compute the needed "horizontal" (at the boundary between two
-   * input pixel areas) double resolution pixel value:
+   * Compute the needed "right" (at the boundary between two input
+   * pixel areas) double resolution pixel value:
    */
   /*
    * Tre:
    */
-  const double tre_thrfou =
-    .5 * ( tre_thr + tre_fou )
+  const double two_times_tre_thrfou =
+    tre_thr_plus_tre_fou
     +
-    .125 * ( twice_tre_thr_horizo - twice_tre_fou_horizo );
-  
+    sign_tre_thr_horizo * half_size_tre_thr_horizo
+    -
+    sign_tre_fou_horizo * half_size_tre_fou_horizo;
+
   /*
-   * Compute the needed "vertical" double resolution pixel value:
+   * Compute the needed "down" double resolution pixel value:
    */
   /*
    * Thr:
    */
-  const double trequa_thr =
-    .5 * ( tre_thr + qua_thr )
+  const double two_times_trequa_thr =
+    tre_thr_plus_qua_thr
     +
-    .125 * ( twice_tre_thr_vertic - twice_qua_thr_vertic );
+    sign_tre_thr_vertic * half_size_tre_thr_vertic
+    -
+    sign_qua_thr_vertic * half_size_qua_thr_vertic;
 
   /*
-   * Compute the "diagonal" (at the boundary between four input pixel
-   * areas) double resolution pixel value:
+   * Compute the "diagonal" (at the boundary between four input
+   * pixel areas) double resolution pixel value:
    */
-  const double trequa_thrfou =
-    .25 * ( qua_fou - tre_thr )
+  const double four_times_trequa_thrfou =
+    qua_fou_minus_tre_thr
     +
-    .5 * ( tre_thrfou + trequa_thr )
+    sign_qua_thr_horizo * half_size_qua_thr_horizo
+    -
+    sign_qua_fou_horizo * half_size_qua_fou_horizo
     +
-    .0625
-    *
-    (
-      ( twice_qua_thr_horizo + twice_tre_fou_vertic )
-      -
-      ( twice_qua_fou_horizo + twice_qua_fou_vertic )
-    );
+    sign_tre_fou_vertic * half_size_tre_fou_vertic
+    -
+    sign_qua_fou_vertic * half_size_qua_fou_vertic
+    +
+    two_times_tre_thrfou
+    +
+    two_times_trequa_thr;
 
-	/* End of copy-paste from Nicolas's source.
+	/* End of copy-paste from Nicolas' source.
 	 */
 
-	*r1 = tre_thrfou;
-	*r2 = trequa_thr;
-	*r3 = trequa_thrfou;
+	*r1 = two_times_tre_thrfou;
+	*r2 = two_times_trequa_thr;
+	*r3 = four_times_trequa_thrfou;
 }
 
 /* Float/double version. 
  */
 template <typename T> static void inline
-nohalo_float( PEL *pout, const PEL *pin, 
+nohalo_sharp_level_1_float( PEL *pout, const PEL *pin, 
 	const int bands, const int lskip,
 	const double w_times_z,
-	const double x_times_z,
-	const double w_times_y,
-	const double x_times_y )
+	const double x_times_z_over_2,
+	const double w_times_y_over_2,
+	const double x_times_y_over_4 )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
@@ -629,28 +588,28 @@ nohalo_float( PEL *pout, const PEL *pin,
 		const T cin_thr = in[b2 + l4];
 		const T cin_fou = in[b3 + l4];
 
-		double tre_thrfou;
-		double trequa_thr;
-		double trequa_thrfou;
+		double two_times_tre_thrfou;
+		double two_times_trequa_thr;
+		double four_times_trequa_thrfou;
 
-		nohalo1( 
+		nohalo_sharp_level_1( 
 			dos_thr, dos_fou,
 			tre_two, tre_thr, tre_fou, tre_fiv,
 			qua_two, qua_thr, qua_fou, qua_fiv,
 			cin_thr, cin_fou,
-			&tre_thrfou,
-			&trequa_thr,
-			&trequa_thrfou );
+			&two_times_tre_thrfou,
+			&two_times_trequa_thr,
+			&four_times_trequa_thrfou );
 
 		const T result = bilinear_float<T>(
 			w_times_z,
-			x_times_z,
-			w_times_y,
-			x_times_y,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4,
 			tre_thr,
-			tre_thrfou,
-			trequa_thr,
-			trequa_thrfou );
+			two_times_tre_thrfou,
+			two_times_trequa_thr,
+			four_times_trequa_thrfou );
 
 		*out = result;
 
@@ -692,6 +651,9 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const int ix = FAST_PSEUDO_FLOOR (absolute_x + 0.5);
   const int iy = FAST_PSEUDO_FLOOR (absolute_y + 0.5);
 
+	/* FIXME ... this ^^^ will go outsie the 5x5 stencil, argh
+	 */
+
   /*
    * x is the x-coordinate of the sampling point relative to the
    * position of the tre_thr pixel center. Similarly for y. Range of
@@ -701,13 +663,18 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const double relative_y = absolute_y - iy;
 
   /*
+   * Start of the computation of values needed to extract the properly
+   * reflected needed values:
+   */
+  const int relative_x_is_left = ( relative_x < 0. );
+  const int relative_y_is___up = ( relative_y < 0. );
+
+  /*
    * "DIRTY" TRICK: In order to minimize the number of computed
    * "double density" pixels, we use symmetry to appropriately "flip
    * the data." (An alternative approach is to "compute everything and
    * select by zeroing coefficients.")
    */
-  const int relative_x_is_left = ( relative_x < 0. );
-  const int relative_y_is___up = ( relative_y < 0. );
 
   /*
    * The direction of movement within the (extended) possibly
@@ -717,7 +684,7 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const int sign_of_relative_y = 1 - 2 * relative_y_is___up;
 
   /*
-   * Unit shifts:
+   * Basic shifts:
    */
   const int shift_1_pixel  = sign_of_relative_x * channels_per_pixel;
   const int shift_1_row    = sign_of_relative_y * values_per_tile_row;
@@ -735,22 +702,22 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const double y = ( 2 * sign_of_relative_y ) * relative_y;
 
   /*
-   * FIRST BILINEAR WEIGHT:
+   * BILINEAR WEIGHTS:
+   *
+   * (w = 1-x and z = 1-y.)
    */
   const double x_times_y = x * y;
-
-  /*
-   * SECOND AND THIRD BILINEAR WEIGHTS:
-   *
-   * (Note: w = 1-x and z = 1-y.)
-   */
   const double w_times_y = y - x_times_y;
   const double x_times_z = x - x_times_y;
+  const double w_times_z = 1. - x - w_times_y;
 
   /*
-   * LAST BILINEAR WEIGHT:
+   * WEIGHTED BILINEAR WEIGHTS (with forthcoming coefficient
+   * "folded in"):
    */
-  const double w_times_z = 1. - ( x + w_times_y );
+  const double x_times_y_over_4 = .25 * x_times_y;
+  const double w_times_y_over_2 = .5  * w_times_y;
+  const double x_times_z_over_2 = .5  * x_times_z;
 
 	/* We need to shift and reflect the start point.
 	 */
@@ -842,9 +809,12 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 	 */
 
 	case IM_BANDFMT_FLOAT:
-		nohalo_float<float>( out, p, 
+		nohalo_sharp_level_1_float<float>( out, p, 
 			shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
 		break;
 
 	/*
