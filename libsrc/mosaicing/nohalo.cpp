@@ -547,11 +547,17 @@ nohalo_sharp_level_1(
 	*r3 = four_times_trequa_thrfou;
 }
 
-/* Float/double version. 
+/* Call nohalo1, with an interpolator as a param.
  */
-template <typename T> static void inline
-nohalo_sharp_level_1_float( PEL *pout, const PEL *pin, 
-	const int bands, const int lskip,
+template <typename T, 
+	 inline T interpolate( 
+		const double c1, const double c2, 
+		const double c3, const double c4,
+		const double v1, const double v2, 
+		const double v3, const double v4 )> 
+static void inline
+nohalo_sharp_level_1_interpolate( PEL *pout, const PEL *pin, const int bands, 
+	const int pskip, const int lskip,
 	const double w_times_z,
 	const double x_times_z_over_2,
 	const double w_times_y_over_2,
@@ -560,7 +566,7 @@ nohalo_sharp_level_1_float( PEL *pout, const PEL *pin,
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
 
-	const int b1 = bands;
+	const int b1 = pskip;
 	const int b2 = 2 * b1;
 	const int b3 = 3 * b1;
 	const int b4 = 4 * b1;
@@ -571,7 +577,75 @@ nohalo_sharp_level_1_float( PEL *pout, const PEL *pin,
 	const int l4 = 4 * l1;
 
 	for( int z = 0; z < bands; z++ ) {
+		const T dos_thr = in[b2 + l1];
+		const T dos_fou = in[b3 + l1];
 
+		const T tre_two = in[b1 + l2];
+		const T tre_thr = in[b2 + l2];
+		const T tre_fou = in[b3 + l2];
+		const T tre_fiv = in[b4 + l2];
+
+		const T qua_two = in[b1 + l3];
+		const T qua_thr = in[b2 + l3];
+		const T qua_fou = in[b3 + l3];
+		const T qua_fiv = in[b4 + l3];
+
+		const T cin_thr = in[b2 + l4];
+		const T cin_fou = in[b3 + l4];
+
+		double two_times_tre_thrfou;
+		double two_times_trequa_thr;
+		double four_times_trequa_thrfou;
+
+		nohalo_sharp_level_1( 
+			dos_thr, dos_fou,
+			tre_two, tre_thr, tre_fou, tre_fiv,
+			qua_two, qua_thr, qua_fou, qua_fiv,
+			cin_thr, cin_fou,
+			&two_times_tre_thrfou,
+			&two_times_trequa_thr,
+			&four_times_trequa_thrfou );
+
+		const T result = interpolate(
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4,
+			tre_thr,
+			two_times_tre_thrfou,
+			two_times_trequa_thr,
+			four_times_trequa_thrfou );
+
+		out[z] = result;
+
+		in += 1;
+	}
+}
+
+/* Float/double version. 
+ */
+template <typename T> static void inline
+nohalo_sharp_level_1_float( PEL *pout, const PEL *pin, const int bands, 
+	const int pskip, const int lskip,
+	const double w_times_z,
+	const double x_times_z_over_2,
+	const double w_times_y_over_2,
+	const double x_times_y_over_4 )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int b1 = pskip;
+	const int b2 = 2 * b1;
+	const int b3 = 3 * b1;
+	const int b4 = 4 * b1;
+
+	const int l1 = lskip;
+	const int l2 = 2 * l1;
+	const int l3 = 3 * l1;
+	const int l4 = 4 * l1;
+
+	for( int z = 0; z < bands; z++ ) {
 		const T dos_thr = in[b2 + l1];
 		const T dos_fou = in[b3 + l1];
 
@@ -611,10 +685,147 @@ nohalo_sharp_level_1_float( PEL *pout, const PEL *pin,
 			two_times_trequa_thr,
 			four_times_trequa_thrfou );
 
-		*out = result;
+		out[z] = result;
 
 		in += 1;
-		out += 1;
+	}
+}
+
+/* Signed int version.
+ */
+template <typename T> static void inline
+nohalo_sharp_level_1_signed( PEL *pout, const PEL *pin, const int bands, 
+	const int pskip, const int lskip,
+	const double w_times_z,
+	const double x_times_z_over_2,
+	const double w_times_y_over_2,
+	const double x_times_y_over_4 )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int b1 = pskip;
+	const int b2 = 2 * b1;
+	const int b3 = 3 * b1;
+	const int b4 = 4 * b1;
+
+	const int l1 = lskip;
+	const int l2 = 2 * l1;
+	const int l3 = 3 * l1;
+	const int l4 = 4 * l1;
+
+	for( int z = 0; z < bands; z++ ) {
+		const T dos_thr = in[b2 + l1];
+		const T dos_fou = in[b3 + l1];
+
+		const T tre_two = in[b1 + l2];
+		const T tre_thr = in[b2 + l2];
+		const T tre_fou = in[b3 + l2];
+		const T tre_fiv = in[b4 + l2];
+
+		const T qua_two = in[b1 + l3];
+		const T qua_thr = in[b2 + l3];
+		const T qua_fou = in[b3 + l3];
+		const T qua_fiv = in[b4 + l3];
+
+		const T cin_thr = in[b2 + l4];
+		const T cin_fou = in[b3 + l4];
+
+		double two_times_tre_thrfou;
+		double two_times_trequa_thr;
+		double four_times_trequa_thrfou;
+
+		nohalo_sharp_level_1( 
+			dos_thr, dos_fou,
+			tre_two, tre_thr, tre_fou, tre_fiv,
+			qua_two, qua_thr, qua_fou, qua_fiv,
+			cin_thr, cin_fou,
+			&two_times_tre_thrfou,
+			&two_times_trequa_thr,
+			&four_times_trequa_thrfou );
+
+		const T result = bilinear_signed<T>(
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4,
+			tre_thr,
+			two_times_tre_thrfou,
+			two_times_trequa_thr,
+			four_times_trequa_thrfou );
+
+		out[z] = result;
+
+		in += 1;
+	}
+}
+
+/* Unsigned int version.
+ */
+template <typename T> static void inline
+nohalo_sharp_level_1_unsigned( PEL *pout, const PEL *pin, const int bands, 
+	const int pskip, const int lskip,
+	const double w_times_z,
+	const double x_times_z_over_2,
+	const double w_times_y_over_2,
+	const double x_times_y_over_4 )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int b1 = pskip;
+	const int b2 = 2 * b1;
+	const int b3 = 3 * b1;
+	const int b4 = 4 * b1;
+
+	const int l1 = lskip;
+	const int l2 = 2 * l1;
+	const int l3 = 3 * l1;
+	const int l4 = 4 * l1;
+
+	for( int z = 0; z < bands; z++ ) {
+		const T dos_thr = in[b2 + l1];
+		const T dos_fou = in[b3 + l1];
+
+		const T tre_two = in[b1 + l2];
+		const T tre_thr = in[b2 + l2];
+		const T tre_fou = in[b3 + l2];
+		const T tre_fiv = in[b4 + l2];
+
+		const T qua_two = in[b1 + l3];
+		const T qua_thr = in[b2 + l3];
+		const T qua_fou = in[b3 + l3];
+		const T qua_fiv = in[b4 + l3];
+
+		const T cin_thr = in[b2 + l4];
+		const T cin_fou = in[b3 + l4];
+
+		double two_times_tre_thrfou;
+		double two_times_trequa_thr;
+		double four_times_trequa_thrfou;
+
+		nohalo_sharp_level_1( 
+			dos_thr, dos_fou,
+			tre_two, tre_thr, tre_fou, tre_fiv,
+			qua_two, qua_thr, qua_fou, qua_fiv,
+			cin_thr, cin_fou,
+			&two_times_tre_thrfou,
+			&two_times_trequa_thr,
+			&four_times_trequa_thrfou );
+
+		const T result = bilinear_unsigned<T>(
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4,
+			tre_thr,
+			two_times_tre_thrfou,
+			two_times_trequa_thr,
+			four_times_trequa_thrfou );
+
+		out[z] = result;
+
+		in += 1;
 	}
 }
 
@@ -729,26 +940,6 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 
 	
 #ifdef DEBUG
-	/* And test that all of the bytes we look at are within the window.
-	 */
-	const int other_x = target_x + 4 * sign_of_relative_x;
-	const int other_y = target_y + 4 * sign_of_relative_y;
-
-	const PEL * restrict q =
-		(PEL *) IM_REGION_ADDR( in, other_x, other_y ); 
-
-	printf( "vips_interpolate_nohalo_interpolate:\n" );
-	printf( "\tabsolute_x = %g, absolute_y = %g\n", 
-		absolute_x, absolute_y );
-	printf( "\ttarget_x = %d, target_y = %d\n", 
-		target_x, target_y ); 
-	printf( "\tother_x = %d, other_y = %d\n", 
-		other_x, other_y ); 
-	printf( "\tp = %p, q = %p\n", p, q ); 
-	printf( "\tshift_1_pixel = %s, shift_1_row = %s\n", 
-		shift_1_pixel, shift_1_row );
-#endif /*DEBUG*/
-
 {
 	/* Top-left corner of our window.
 	 */
@@ -762,82 +953,124 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 
 	/* Last pixel we address.
 	 */
-	const PEL * restrict last = p + 4 * shift_1_pixel + 4 * shift_1_row;
+	const PEL * restrict last = p + 
+		IM_IMAGE_SIZEOF_ELEMENT( in->im ) * (
+			4 * shift_1_pixel  +
+			4 * shift_1_row
+		);
 
 	g_assert( last >= tl );
 	g_assert( last <= br );
 
 }
+#endif /*DEBUG*/
+
+#define CALL( T, inter ) \
+	nohalo_sharp_level_1_interpolate<T, inter<T>>( \
+		out, p, \
+		channels_per_pixel, shift_1_pixel, shift_1_row, \
+		w_times_z, \
+		x_times_z_over_2, \
+		w_times_y_over_2, \
+		x_times_y_over_4 );
 
 	switch( in->im->BandFmt ) {
-	/*
 	case IM_BANDFMT_UCHAR:
-		nohalo_unsigned<unsigned char>( out, p, 
-			shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
+		//CALL( unsigned char, bilinear_unsigned );
+
+	nohalo_sharp_level_1_interpolate<unsigned char, bilinear_unsigned<unsigned char > >( 
+		out, p, 
+		channels_per_pixel, shift_1_pixel, shift_1_row, 
+		w_times_z, 
+		x_times_z_over_2, 
+		w_times_y_over_2, 
+		x_times_y_over_4 );
+
 		break;
 
 	case IM_BANDFMT_CHAR:
-		nohalo_signed<signed char>( out, p, 
-			shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
-		break;
-
-	case IM_BANDFMT_USHORT:
-		nohalo_unsigned<unsigned short>( out, p, 
-			shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
-		break;
-
-	case IM_BANDFMT_SHORT:
-		nohalo_signed<signed short>( out, p, 
-			shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
-		break;
-
-	case IM_BANDFMT_UINT:
-		nohalo_unsigned<unsigned int>( out, p, 
-			shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
-		break;
-
-	case IM_BANDFMT_INT:
-		nohalo_signed<signed int>( out, p, 
-			shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
-		break;
-	 */
-
-	case IM_BANDFMT_FLOAT:
-		nohalo_sharp_level_1_float<float>( out, p, 
-			shift_1_pixel, shift_1_row,
+		nohalo_sharp_level_1_signed<signed char>( out, p, 
+			channels_per_pixel, shift_1_pixel, shift_1_row,
 			w_times_z,
 			x_times_z_over_2,
 			w_times_y_over_2,
 			x_times_y_over_4 );
 		break;
 
-	/*
+	case IM_BANDFMT_USHORT:
+		nohalo_sharp_level_1_signed<unsigned short>( out, p, 
+			channels_per_pixel, shift_1_pixel, shift_1_row,
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
+		break;
+
+	case IM_BANDFMT_SHORT:
+		nohalo_sharp_level_1_signed<short>( out, p, 
+			channels_per_pixel, shift_1_pixel, shift_1_row,
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
+		break;
+
+	case IM_BANDFMT_UINT:
+		nohalo_sharp_level_1_signed<unsigned int>( out, p, 
+			channels_per_pixel, shift_1_pixel, shift_1_row,
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
+		break;
+
+	case IM_BANDFMT_INT:
+		nohalo_sharp_level_1_signed<int>( out, p, 
+			channels_per_pixel, shift_1_pixel, shift_1_row,
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
+		break;
+
+	case IM_BANDFMT_FLOAT:
+		nohalo_sharp_level_1_float<float>( out, p, 
+			channels_per_pixel, shift_1_pixel, shift_1_row,
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
+		break;
+
 	case IM_BANDFMT_DOUBLE:
-		nohalo_float<double>( out, p, 
-			shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
+		nohalo_sharp_level_1_float<double>( out, p, 
+			channels_per_pixel, shift_1_pixel, shift_1_row,
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
 		break;
 
 	case IM_BANDFMT_COMPLEX:
-		nohalo_float<float>( out, p, 
-			2 * shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
+		nohalo_sharp_level_1_float<float>( out, p, 
+			channels_per_pixel * 2, shift_1_pixel * 2, shift_1_row,
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
 		break;
 
 	case IM_BANDFMT_DPCOMPLEX:
-		nohalo_float<double>( out, p, 
-			2 * shift_1_pixel, shift_1_row,
-			w_times_z, x_times_z, w_times_y, x_times_y );
+		nohalo_sharp_level_1_float<double>( out, p, 
+			channels_per_pixel * 2, shift_1_pixel * 2, shift_1_row,
+			w_times_z,
+			x_times_z_over_2,
+			w_times_y_over_2,
+			x_times_y_over_4 );
 		break;
-	 */
 
 	default:
+		g_assert( 0 );
 		break;
 	}
 }
@@ -854,7 +1087,10 @@ vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
 
 	interpolate_class->interpolate = 
 		vips_interpolate_nohalo_interpolate;
-	interpolate_class->window_size = 5;
+
+	/* Should be 5, but round-to-nearest FIXME above makes this 7.
+	 */
+	interpolate_class->window_size = 7;
 }
 
 static void
