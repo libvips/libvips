@@ -299,7 +299,7 @@ typedef struct _VipsInterpolateNohaloClass {
  * bilinear interpolation of them.
  */
 
-static void 
+static void inline
 nohalo_sharp_level_1( 
 	const double dos_thr,
 	const double dos_fou,
@@ -862,9 +862,6 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const int ix = FAST_PSEUDO_FLOOR (absolute_x + 0.5);
   const int iy = FAST_PSEUDO_FLOOR (absolute_y + 0.5);
 
-	/* FIXME ... this ^^^ will go outsie the 5x5 stencil, argh
-	 */
-
   /*
    * x is the x-coordinate of the sampling point relative to the
    * position of the tre_thr pixel center. Similarly for y. Range of
@@ -1096,10 +1093,7 @@ vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
 
 	interpolate_class->interpolate = 
 		vips_interpolate_nohalo_interpolate;
-
-	/* Should be 5, but round-to-nearest FIXME above makes this 7.
-	 */
-	interpolate_class->window_size = 7;
+	interpolate_class->window_size = 5;
 }
 
 static void

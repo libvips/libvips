@@ -79,10 +79,10 @@ bilinear_signed(
 	const double trequa_thrfou )
 {
 	const double val =
-		(w_times_z / 16) * tre_thr +
-		(x_times_z / 16) * tre_thrfou +
-		(w_times_y / 16) * trequa_thr +
-		(x_times_y / 16) * trequa_thrfou;
+		w_times_z * tre_thr +
+		x_times_z * tre_thrfou +
+		w_times_y * trequa_thr +
+		x_times_y * trequa_thrfou;
 
 	const int sign_of_val = 2 * ( val >= 0. ) - 1;
 
@@ -107,10 +107,10 @@ bilinear_unsigned(
 	const double trequa_thrfou )
 {
 	const T newval =
-		(w_times_z / 16) * tre_thr +
-		(x_times_z / 16) * tre_thrfou +
-		(w_times_y / 16) * trequa_thr +
-		(x_times_y / 16) * trequa_thrfou + 
+		w_times_z * tre_thr +
+		x_times_z * tre_thrfou +
+		w_times_y * trequa_thr +
+		x_times_y * trequa_thrfou + 
 		0.5;
 
 	return( newval );
