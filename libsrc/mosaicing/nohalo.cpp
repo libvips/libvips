@@ -550,7 +550,7 @@ nohalo_sharp_level_1(
 /* Call nohalo1, with an interpolator as a param.
  */
 template <typename T, 
-	 inline T interpolate( 
+	 T interpolate( 
 		const double c1, const double c2, 
 		const double c3, const double c4,
 		const double v1, const double v2, 
@@ -976,6 +976,7 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 
 	switch( in->im->BandFmt ) {
 	case IM_BANDFMT_UCHAR:
+		/*
 		//CALL( unsigned char, bilinear_unsigned );
 
 	nohalo_sharp_level_1_interpolate<unsigned char, bilinear_unsigned<unsigned char > >( 
@@ -985,6 +986,14 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 		x_times_z_over_2, 
 		w_times_y_over_2, 
 		x_times_y_over_4 );
+		 */
+
+		nohalo_sharp_level_1_unsigned<unsigned char>( out, p, 
+			channels_per_pixel, shift_1_pixel, shift_1_row, 
+			w_times_z, 
+			x_times_z_over_2, 
+			w_times_y_over_2, 
+			x_times_y_over_4 );
 
 		break;
 
