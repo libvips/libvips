@@ -52,16 +52,16 @@
  *
  * The key parameter, which may be described as a "quality" parameter,
  * is an integer which specifies the number of "levels" of binary
- * subdivision which are performed. If level = 0 can be thought of as
- * being plain vanilla bilinear resampling; level = 1 is the first
- * "non-classical" method.
+ * subdivision which are performed. level = 0 can be thought of as
+ * being plain vanilla bilinear resampling; level = 1 is then the
+ * first "non-classical" method of the familiy.
  *
- * Besides increasing computational cost, increasing the number of
- * levels increases the quality of the resampled pixel value unless
- * the resampled location happens to be exactly where a subdivided
- * grid point (for this level) is located, in which case further
- * levels do not change the answer, and consequently do not increase
- * its quality.
+ * Although it increases computational cost, additional levels
+ * increase the quality of the resampled pixel value unless the
+ * resampled location happens to be exactly where a subdivided grid
+ * point (for this level) is located, in which case further levels do
+ * not change the answer, and consequently do not increase its
+ * quality.
  *
  * ============================================================
  * WARNING: THIS CODE ONLY IMPLEMENTS THE LOWEST QUALITY NOHALO
@@ -145,7 +145,13 @@
  * input pixel values (in the stencil) are obtained from a function of
  * the form f(x,y) = a + b*x + c*y (a, b, c constants), then the
  * computed pixel value is exactly the value of f(x,y) at the
- * asked-for sampling location.
+ * asked-for sampling location. The boundary condition which is
+ * emulated by VIPS throught the "extend" extension of the input
+ * image---this corresponds to the nearest neighbour abyss
+ * policy---does NOT make this resampler exact on linears at the
+ * boundary. It does, however, guarantee that no clamping is required
+ * even when resampled values are computed at positions outside of the
+ * extent of the input image (when extrapolation is required).
  *
  * ===================
  * Nohalo is nonlinear
@@ -183,8 +189,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -526,7 +532,7 @@ nohalo_sharp_level_1(
  */
 #define NOHALO_SHARP_LEVEL_1_INTER( inter ) \
 template <typename T> static void inline \
-nohalo_sharp_level_1_ ## inter( PEL *pout, const PEL *pin, const int bands,  \
+nohalo_sharp_level_1_ ## inter( PEL *pout, const PEL *pin, const int bands, \
 	const int pskip, const int lskip, \
 	const double w_times_z, \
 	const double x_times_z_over_2, \
@@ -701,18 +707,27 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 	const PEL * restrict p =
 		(PEL *) IM_REGION_ADDR( in, target_x, target_y );
 
-	
+/* Optional bounds checking.
+ */
 #ifdef DEBUG
 {
+	/* Corner of pixel we are interpolating. No round up here!
+	 */
+	const int vix = FAST_PSEUDO_FLOOR (absolute_x);
+	const int viy = FAST_PSEUDO_FLOOR (absolute_y);
+
 	/* Top-left corner of our window.
 	 */
 	const PEL * restrict tl =
-		(PEL *) IM_REGION_ADDR( in, ix - 2, iy - 2 ); 
+		(PEL *) IM_REGION_ADDR( in, vix - 2, viy - 2 ); 
 
 	/* Bottom-right corner of our window.
 	 */
 	const PEL * restrict br =
-		(PEL *) IM_REGION_ADDR( in, ix + 2, iy + 2 ); 
+		(PEL *) IM_REGION_ADDR( in, vix + 2, viy + 2 ); 
+
+	g_assert( p >= tl );
+	g_assert( p <= br );
 
 	/* Last pixel we address.
 	 */
@@ -724,7 +739,6 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 
 	g_assert( last >= tl );
 	g_assert( last <= br );
-
 }
 #endif /*DEBUG*/
 
