@@ -189,8 +189,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -542,15 +542,15 @@ nohalo_sharp_level_1_ ## inter( PEL *pout, const PEL *pin, const int bands, \
 	T* restrict out = (T *) pout; \
 	const T* restrict in = (T *) pin; \
  	\
-	const int b1 = pskip; \
-	const int b2 = 2 * b1; \
-	const int b3 = 3 * b1; \
-	const int b4 = 4 * b1; \
+	const int b1 =     pskip; \
+	const int b2 = 2 * pskip; \
+	const int b3 = 3 * pskip; \
+	const int b4 = 4 * pskip; \
  	\
-	const int l1 = lskip; \
-	const int l2 = 2 * l1; \
-	const int l3 = 3 * l1; \
-	const int l4 = 4 * l1; \
+	const int l1 =     lskip; \
+	const int l2 = 2 * lskip; \
+	const int l3 = 3 * lskip; \
+	const int l4 = 4 * lskip; \
  	\
 	for( int z = 0; z < bands; z++ ) { \
 		const T dos_thr = in[b2 + l1]; \
@@ -669,6 +669,14 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const int shift_1_pixel  = sign_of_relative_x * bands;
   const int shift_1_row    = sign_of_relative_y * lskip;
 
+  /*                                                                  
+   * Movement within the "actually used" stencil is based on the       
+   * corner of the extended 5x5 stencil which is farthest from it     
+   * (and the sampling position).                                     
+   */                                                                 
+  const int reflection_shift_x = 4 * relative_x_is_left;
+  const int reflection_shift_y = 4 * relative_y_is___up;
+
   /*
    * POST REFLEXION/POST RESCALING "DOUBLE DENSITY" COORDINATES:
    *
@@ -701,8 +709,8 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 
 	/* We need to shift and reflect the start point.
 	 */
-	const int target_x = ix - 2 + relative_x_is_left * 4;
-	const int target_y = iy - 2 + relative_y_is___up * 4;
+	const int target_x = ix - 2 + reflection_shift_x;
+	const int target_y = iy - 2 + reflection_shift_y;
 
 	const PEL * restrict p =
 		(PEL *) IM_REGION_ADDR( in, target_x, target_y );
@@ -713,8 +721,8 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 {
 	/* Corner of pixel we are interpolating. No round up here!
 	 */
-	const int vix = FAST_PSEUDO_FLOOR (absolute_x);
-	const int viy = FAST_PSEUDO_FLOOR (absolute_y);
+	const int vix = FAST_PSEUDO_FLOOR( absolute_x );
+	const int viy = FAST_PSEUDO_FLOOR( absolute_y );
 
 	/* Top-left corner of our window.
 	 */
@@ -726,17 +734,26 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 	const PEL * restrict br =
 		(PEL *) IM_REGION_ADDR( in, vix + 2, viy + 2 ); 
 
-	g_assert( p >= tl );
-	g_assert( p <= br );
+	/* First pixel we address: 
+	 * 	const T dos_thr = in[b2 + l1]; 
+	 */
+	const PEL * restrict first = p + 
+		IM_IMAGE_SIZEOF_ELEMENT( in->im ) * (
+			2 * shift_1_pixel +
+			1 * shift_1_row
+		);
 
 	/* Last pixel we address.
+	 *	const T cin_fou = in[b3 + l4]; 
 	 */
 	const PEL * restrict last = p + 
 		IM_IMAGE_SIZEOF_ELEMENT( in->im ) * (
-			4 * shift_1_pixel  +
+			3 * shift_1_pixel +
 			4 * shift_1_row
 		);
 
+	g_assert( first >= tl );
+	g_assert( first <= br );
 	g_assert( last >= tl );
 	g_assert( last <= br );
 }
