@@ -531,7 +531,7 @@ nohalo_sharp_level_1(
  * clean way to do it.
  */
 #define NOHALO_SHARP_LEVEL_1_INTER( inter ) \
-template <typename T> static void inline \
+template <typename T> static void \
 nohalo_sharp_level_1_ ## inter( PEL *pout, const PEL *pin, const int bands, \
 	const int pskip, const int lskip, \
 	const double w_times_z, \
@@ -543,14 +543,14 @@ nohalo_sharp_level_1_ ## inter( PEL *pout, const PEL *pin, const int bands, \
 	const T* restrict in = (T *) pin; \
  	\
 	const int b1 =     pskip; \
-	const int b2 = 2 * pskip; \
-	const int b3 = 3 * pskip; \
-	const int b4 = 4 * pskip; \
+	const int b2 = 2 * b1; \
+	const int b3 = 3 * b1; \
+	const int b4 = 4 * b1; \
  	\
 	const int l1 =     lskip; \
-	const int l2 = 2 * lskip; \
-	const int l3 = 3 * lskip; \
-	const int l4 = 4 * lskip; \
+	const int l2 = 2 * l1; \
+	const int l3 = 3 * l1; \
+	const int l4 = 4 * l1; \
  	\
 	for( int z = 0; z < bands; z++ ) { \
 		const T dos_thr = in[b2 + l1]; \
@@ -591,7 +591,7 @@ nohalo_sharp_level_1_ ## inter( PEL *pout, const PEL *pin, const int bands, \
 			two_times_tre_thrfou, \
 			two_times_trequa_thr, \
 			four_times_trequa_thrfou ); \
- 				\
+ 		\
 		out[z] = result; \
  		\
 		in += 1; \

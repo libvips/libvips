@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: vips 7.16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-11-13 23:17+0000\n"
+"POT-Creation-Date: 2009-01-29 16:00+0000\n"
 "PO-Revision-Date: Fri Sep  5 10:27:43 BST 2008\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
@@ -56,7 +56,7 @@ msgstr ""
 
 #: libsrc/arithmetic/im_maxpos_avg.c:95 libsrc/arithmetic/im_maxpos_vec.c:132
 #: libsrc/arithmetic/im_maxpos_vec.c:178
-#: libsrc/arithmetic/im_point_bilinear.c:75
+#: libsrc/arithmetic/im_point_bilinear.c:75 libsrc/boolean/boolean.c:128
 #: libsrc/conversion/im_rightshift_size.c:130
 #: libsrc/conversion/im_vips2mask.c:86 libsrc/histograms_lut/im_project.c:258
 #: libsrc/histograms_lut/im_histgr.c:310
@@ -369,6 +369,15 @@ msgstr ""
 msgid "invalid arguments"
 msgstr ""
 
+#: libsrc/boolean/boolean.c:140
+msgid "images differ in size"
+msgstr ""
+
+#: libsrc/boolean/boolean.c:458 libsrc/boolean/boolean.c:483
+#: libsrc/boolean/boolean.c:508
+msgid "vec size does not match bands"
+msgstr ""
+
 #: libsrc/colour/im_disp2XYZ.c:93
 msgid "input not 3-band uncoded char"
 msgstr ""
@@ -582,8 +591,8 @@ msgstr ""
 msgid "can only extract areas from LABQ"
 msgstr ""
 
-#: libsrc/conversion/im_zoom.c:328 libsrc/convolution/im_shrink.c:313
-#: libsrc/format/im_vips2tiff.c:1589 libsrc/format/im_file2vips.c:758
+#: libsrc/conversion/im_zoom.c:328 libsrc/convolution/im_shrink.c:318
+#: libsrc/format/im_vips2tiff.c:1587 libsrc/format/im_file2vips.c:758
 #: libsrc/iofuncs/im_open_vips.c:1077 libsrc/mosaicing/im_tbmerge.c:633
 #: libsrc/mosaicing/im_affine.c:442 libsrc/mosaicing/im_lrmerge.c:811
 msgid "unknown coding type"
@@ -639,7 +648,7 @@ msgstr ""
 msgid "factors should both be >= 1"
 msgstr ""
 
-#: libsrc/conversion/im_subsample.c:217 libsrc/convolution/im_shrink.c:265
+#: libsrc/conversion/im_subsample.c:217 libsrc/convolution/im_shrink.c:267
 msgid "image has shrunk to nothing"
 msgstr ""
 
@@ -724,16 +733,16 @@ msgstr ""
 msgid "input not char/uchar/short/ushort"
 msgstr ""
 
-#: libsrc/convolution/im_shrink.c:229
+#: libsrc/convolution/im_shrink.c:231
 #, fuzzy
 msgid "unsupported input format"
 msgstr "unsupported colourspace %d"
 
-#: libsrc/convolution/im_shrink.c:244
+#: libsrc/convolution/im_shrink.c:246
 msgid "non-complex input only"
 msgstr ""
 
-#: libsrc/convolution/im_shrink.c:249
+#: libsrc/convolution/im_shrink.c:251
 msgid "shrink factors should both be >1"
 msgstr ""
 
@@ -817,8 +826,7 @@ msgstr ""
 msgid "bad image size"
 msgstr ""
 
-#. internal name
-#: libsrc/format/im_magick2vips.c:667
+#: libsrc/format/im_magick2vips.c:672
 msgid "libMagick-supported"
 msgstr ""
 
@@ -841,8 +849,8 @@ msgstr ""
 msgid "end of file while skipping start"
 msgstr ""
 
-#: libsrc/format/im_csv2vips.c:184 libsrc/iofuncs/util.c:965
-#: libsrc/iofuncs/util.c:971
+#: libsrc/format/im_csv2vips.c:184 libsrc/iofuncs/util.c:1088
+#: libsrc/iofuncs/util.c:1094
 msgid "unable to seek"
 msgstr ""
 
@@ -858,27 +866,25 @@ msgstr ""
 msgid "unexpected end of line"
 msgstr ""
 
-#. internal name
-#: libsrc/format/im_csv2vips.c:326
+#: libsrc/format/im_csv2vips.c:333
 msgid "CSV"
 msgstr ""
 
-#. internal name
-#: libsrc/format/format.c:149
+#: libsrc/format/format.c:181
 msgid "VIPS"
 msgstr ""
 
-#: libsrc/format/format.c:216
+#: libsrc/format/format.c:263
 #, c-format
 msgid "\"%s\" is not readable"
 msgstr ""
 
-#: libsrc/format/format.c:224
+#: libsrc/format/format.c:271
 #, c-format
 msgid "\"%s\" is not in a supported format"
 msgstr ""
 
-#: libsrc/format/format.c:255
+#: libsrc/format/format.c:302
 #, fuzzy, c-format
 msgid "\"%s\" is not a supported image format."
 msgstr "unsupported colourspace %d"
@@ -897,16 +903,15 @@ msgstr ""
 msgid "datatype %d not supported"
 msgstr ""
 
-#. internal name
-#: libsrc/format/im_analyze2vips.c:597
+#: libsrc/format/im_analyze2vips.c:604
 msgid "Analyze 6.0"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:153 libsrc/format/im_tiff2vips.c:150
+#: libsrc/format/im_vips2tiff.c:153 libsrc/format/im_tiff2vips.c:153
 msgid "TIFF support disabled"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:281 libsrc/format/im_tiff2vips.c:1402
+#: libsrc/format/im_vips2tiff.c:281 libsrc/format/im_tiff2vips.c:1406
 #, c-format
 msgid "unable to open \"%s\" for input"
 msgstr ""
@@ -925,15 +930,15 @@ msgstr ""
 msgid "internal error #9876345"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1250 libsrc/format/im_vips2tiff.c:1261
+#: libsrc/format/im_vips2tiff.c:1248 libsrc/format/im_vips2tiff.c:1259
 msgid "bad predictor parameter"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1272
+#: libsrc/format/im_vips2tiff.c:1270
 msgid "bad JPEG quality parameter"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1278
+#: libsrc/format/im_vips2tiff.c:1276
 #, c-format
 msgid ""
 "unknown compression mode \"%s\"\n"
@@ -941,73 +946,73 @@ msgid ""
 "or \"jpeg\""
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1293
+#: libsrc/format/im_vips2tiff.c:1291
 msgid "bad tile sizes"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1300
+#: libsrc/format/im_vips2tiff.c:1298
 #, c-format
 msgid "bad tile size %dx%d"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1308
+#: libsrc/format/im_vips2tiff.c:1306
 msgid "tile size not a multiple of 16"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1317
+#: libsrc/format/im_vips2tiff.c:1315
 #, c-format
 msgid ""
 "unknown layout mode \"%s\"\n"
 "should be one of \"tile\" or \"strip\""
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1329
+#: libsrc/format/im_vips2tiff.c:1327
 #, c-format
 msgid ""
 "unknown multi-res mode \"%s\"\n"
 "should be one of \"flat\" or \"pyramid\""
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1341
+#: libsrc/format/im_vips2tiff.c:1339
 #, c-format
 msgid ""
 "unknown format \"%s\"\n"
 "should be one of \"onebit\" or \"manybit\""
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1363
+#: libsrc/format/im_vips2tiff.c:1361
 #, c-format
 msgid ""
 "unknown resolution unit \"%s\"\n"
 "should be one of \"res_cm\" or \"res_inch\""
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1373
+#: libsrc/format/im_vips2tiff.c:1371
 msgid "bad resolution values"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1387 libsrc/format/im_vips2jpeg.c:664
+#: libsrc/format/im_vips2tiff.c:1385 libsrc/format/im_vips2jpeg.c:664
 #, c-format
 msgid "unknown extra options \"%s\""
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1391
+#: libsrc/format/im_vips2tiff.c:1389
 msgid "can't have strip pyramid -- enabling tiling"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1401
+#: libsrc/format/im_vips2tiff.c:1399
 msgid "can only pyramid LABQ and non-complex images"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1417
+#: libsrc/format/im_vips2tiff.c:1415
 msgid "can't have 1-bit JPEG -- disabling JPEG"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1598
+#: libsrc/format/im_vips2tiff.c:1596
 msgid "unsigned 8-bit int, 16-bit int, and 32-bit float only"
 msgstr ""
 
-#: libsrc/format/im_vips2tiff.c:1605
+#: libsrc/format/im_vips2tiff.c:1603
 msgid "1 to 5 bands only"
 msgstr ""
 
@@ -1023,8 +1028,7 @@ msgstr ""
 msgid "not whitespace before start of binary data"
 msgstr ""
 
-#. internal name
-#: libsrc/format/im_ppm2vips.c:511
+#: libsrc/format/im_ppm2vips.c:518
 msgid "PPM/PBM/PNM"
 msgstr ""
 
@@ -1060,8 +1064,7 @@ msgstr ""
 msgid "read gave %ld warnings"
 msgstr ""
 
-#. internal name
-#: libsrc/format/im_jpeg2vips.c:728
+#: libsrc/format/im_jpeg2vips.c:735
 msgid "JPEG"
 msgstr ""
 
@@ -1084,8 +1087,7 @@ msgstr ""
 msgid "unsupported colour type"
 msgstr "unsupported colourspace %d"
 
-#. internal name
-#: libsrc/format/im_png2vips.c:391
+#: libsrc/format/im_png2vips.c:398
 msgid "PNG"
 msgstr ""
 
@@ -1138,91 +1140,90 @@ msgstr ""
 msgid "qfac should be in 0-100"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:263 libsrc/format/im_tiff2vips.c:286
-#: libsrc/format/im_tiff2vips.c:305
+#: libsrc/format/im_tiff2vips.c:266 libsrc/format/im_tiff2vips.c:289
+#: libsrc/format/im_tiff2vips.c:308
 #, c-format
 msgid "required field %d missing"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:267
+#: libsrc/format/im_tiff2vips.c:270
 #, c-format
 msgid "required field %d=%d, not %d"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:676
+#: libsrc/format/im_tiff2vips.c:679
 msgid "bad colormap"
 msgstr "bad colourmap"
 
-#: libsrc/format/im_tiff2vips.c:731 libsrc/format/im_tiff2vips.c:780
+#: libsrc/format/im_tiff2vips.c:734 libsrc/format/im_tiff2vips.c:783
 msgid "3 or 4 bands RGB TIFF only"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:870
+#: libsrc/format/im_tiff2vips.c:873
 msgid "4 or 5 bands CMYK TIFF only"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:921
+#: libsrc/format/im_tiff2vips.c:924
 msgid "unknown resolution unit"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:926
+#: libsrc/format/im_tiff2vips.c:929
 #, c-format
 msgid ""
 "no resolution information for TIFF image \"%s\" -- defaulting to 1 pixel per "
 "mm"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:993
+#: libsrc/format/im_tiff2vips.c:996
 #, c-format
 msgid "unsupported sample format %d for lab image"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1003
+#: libsrc/format/im_tiff2vips.c:1006
 #, c-format
 msgid "unsupported depth %d for LAB image"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1050
+#: libsrc/format/im_tiff2vips.c:1053
 #, c-format
 msgid "unsupported sample format %d for greyscale image"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1059
+#: libsrc/format/im_tiff2vips.c:1062
 #, c-format
 msgid "unsupported depth %d for greyscale image"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1099
+#: libsrc/format/im_tiff2vips.c:1102
 #, c-format
 msgid "unsupported sample format %d for rgb image"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1108
+#: libsrc/format/im_tiff2vips.c:1111
 #, c-format
 msgid "unsupported depth %d for RGB image"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1122
+#: libsrc/format/im_tiff2vips.c:1125
 #, c-format
 msgid "unknown photometric interpretation %d"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1319
+#: libsrc/format/im_tiff2vips.c:1322
 msgid "read error"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1381
+#: libsrc/format/im_tiff2vips.c:1384
 #, c-format
 msgid "bad page number %d"
 msgstr ""
 
-#: libsrc/format/im_tiff2vips.c:1456 libsrc/format/im_tiff2vips.c:1488
+#: libsrc/format/im_tiff2vips.c:1460 libsrc/format/im_tiff2vips.c:1492
 #, c-format
 msgid "TIFF file does not contain page %d"
 msgstr ""
 
-#. internal name
-#: libsrc/format/im_tiff2vips.c:1560
+#: libsrc/format/im_tiff2vips.c:1567
 msgid "TIFF"
 msgstr ""
 
@@ -1235,8 +1236,7 @@ msgstr ""
 msgid "EXR error: %s"
 msgstr ""
 
-#. internal name
-#: libsrc/format/im_exr2vips.c:469
+#: libsrc/format/im_exr2vips.c:476
 msgid "OpenEXR"
 msgstr ""
 
@@ -1532,17 +1532,17 @@ msgstr ""
 msgid "NULL filename or mode"
 msgstr ""
 
-#: libsrc/iofuncs/im_open.c:384
+#: libsrc/iofuncs/im_open.c:385
 #, c-format
 msgid "\"%s\" is not in a recognised format"
 msgstr ""
 
-#: libsrc/iofuncs/im_open.c:408
+#: libsrc/iofuncs/im_open.c:410
 #, fuzzy, c-format
 msgid "unsupported filetype \"%s\""
 msgstr "unsupported colourspace %d"
 
-#: libsrc/iofuncs/im_open.c:424
+#: libsrc/iofuncs/im_open.c:426
 #, c-format
 msgid "bad mode \"%s\""
 msgstr ""
@@ -1554,43 +1554,78 @@ msgstr ""
 msgid "unable to output to a %s image"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:665
+#: libsrc/iofuncs/util.c:302
+msgid "unable to build class"
+msgstr ""
+
+#: libsrc/iofuncs/util.c:340
+#, c-format
+msgid "base class \"%s\" not found"
+msgstr ""
+
+#: libsrc/iofuncs/util.c:347
+#, c-format
+msgid "class \"%s\" not found"
+msgstr ""
+
+#: libsrc/iofuncs/util.c:788
 msgid "unable to get file stats"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:682 libsrc/iofuncs/im_wbuffer.c:357
+#: libsrc/iofuncs/util.c:805 libsrc/iofuncs/im_wbuffer.c:357
 #: libsrc/iofuncs/im_wbuffer.c:394
 msgid "write failed"
 msgstr ""
 
 #. Seems crazy!
 #.
-#: libsrc/iofuncs/util.c:709
+#: libsrc/iofuncs/util.c:832
 #, c-format
 msgid "\"%s\" too long"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:726
+#: libsrc/iofuncs/util.c:849
 msgid "out of memory"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:752
+#: libsrc/iofuncs/util.c:875
 #, c-format
 msgid "error reading from file \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/util.c:779
+#: libsrc/iofuncs/util.c:902
 #, c-format
 msgid "unable to open file \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/util.c:999 libsrc/iofuncs/util.c:1006
+#: libsrc/iofuncs/util.c:1122 libsrc/iofuncs/util.c:1129
 msgid "unable to truncate"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:1026
+#: libsrc/iofuncs/util.c:1149
 #, c-format
 msgid "writing error (%zd out of %zd blocks written) ... disc full?"
+msgstr ""
+
+#: libsrc/iofuncs/util.c:1320
+msgid "unexpected end of string"
+msgstr ""
+
+#: libsrc/iofuncs/util.c:1333
+msgid "opening brace"
+msgstr ""
+
+#: libsrc/iofuncs/util.c:1334
+msgid "closing brace"
+msgstr ""
+
+#: libsrc/iofuncs/util.c:1335
+msgid "string"
+msgstr ""
+
+#: libsrc/iofuncs/util.c:1355
+#, c-format
+msgid "expected %s, saw %s"
 msgstr ""
 
 #: libsrc/iofuncs/im_iocheck.c:163
@@ -1674,45 +1709,45 @@ msgstr ""
 msgid "unable to mmap \"%s\" to same address"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:482
+#: libsrc/iofuncs/package.c:485
 #, c-format
 msgid "unable to close plugin \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/package.c:507
+#: libsrc/iofuncs/package.c:510
 msgid "plugins not supported on this platform"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:530
+#: libsrc/iofuncs/package.c:533
 #, c-format
 msgid "unable to open plugin \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/package.c:544
+#: libsrc/iofuncs/package.c:547
 #, c-format
 msgid "unable to find symbol \"package_table\" in plugin \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/package.c:557
+#: libsrc/iofuncs/package.c:560
 #, c-format
 msgid "corrupted package table in plugin \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/package.c:677 libsrc/iofuncs/package.c:704
-#: libsrc/iofuncs/package.c:732
+#: libsrc/iofuncs/package.c:680 libsrc/iofuncs/package.c:707
+#: libsrc/iofuncs/package.c:735
 #, c-format
 msgid "\"%s\" not found"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:842
+#: libsrc/iofuncs/package.c:845
 msgid "too few arguments"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:863
+#: libsrc/iofuncs/package.c:866
 msgid "too many arguments"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:1080
+#: libsrc/iofuncs/package.c:1083
 msgid "flag not 0,1,2"
 msgstr ""
 
@@ -1780,41 +1815,36 @@ msgstr ""
 msgid "valid clipped to nothing"
 msgstr ""
 
-#: libsrc/iofuncs/im_init_world.c:211
+#: libsrc/iofuncs/im_init_world.c:209
 msgid "evaluate with N concurrent threads"
 msgstr ""
 
-#: libsrc/iofuncs/im_init_world.c:213
+#: libsrc/iofuncs/im_init_world.c:211
 msgid "set tile width to N (DEBUG)"
 msgstr ""
 
-#: libsrc/iofuncs/im_init_world.c:215
+#: libsrc/iofuncs/im_init_world.c:213
 msgid "set tile height to N (DEBUG)"
 msgstr ""
 
-#: libsrc/iofuncs/im_init_world.c:218
+#: libsrc/iofuncs/im_init_world.c:216
 msgid "set thinstrip height to N (DEBUG)"
 msgstr ""
 
-#: libsrc/iofuncs/im_init_world.c:221
+#: libsrc/iofuncs/im_init_world.c:219
 msgid "set fatstrip height to N (DEBUG)"
 msgstr ""
 
-#: libsrc/iofuncs/im_init_world.c:223
+#: libsrc/iofuncs/im_init_world.c:221
 msgid "show progress feedback"
 msgstr ""
 
-#: libsrc/iofuncs/im_init_world.c:236
+#: libsrc/iofuncs/im_init_world.c:234
 msgid "VIPS Options"
 msgstr ""
 
-#: libsrc/iofuncs/im_init_world.c:236
+#: libsrc/iofuncs/im_init_world.c:234
 msgid "Show VIPS options"
-msgstr ""
-
-#: libsrc/iofuncs/callback.c:138
-#, c-format
-msgid "user callback failed for %s"
 msgstr ""
 
 #: libsrc/iofuncs/im_iterate.c:161
@@ -2072,10 +2102,6 @@ msgstr ""
 msgid "substitute image \"%s\" is not the same size as \"%s\""
 msgstr ""
 
-#: libsrc/mosaicing/mosaicing_dispatch.c:581
-msgid "bad interpolation"
-msgstr ""
-
 #: libsrc/mosaicing/im_lrmerge.c:712
 msgid "mwidth must be -1 or >= 0"
 msgstr ""
@@ -2151,40 +2177,40 @@ msgstr ""
 msgid "error requested"
 msgstr ""
 
-#: src/iofuncs/vips.c:83
+#: src/iofuncs/vips.c:89
 msgid "list operations in PACKAGE (or \"all\", \"packages\")"
 msgstr ""
 
-#: src/iofuncs/vips.c:86
+#: src/iofuncs/vips.c:92
 msgid "show usage message for OPERATION"
 msgstr ""
 
-#: src/iofuncs/vips.c:89
+#: src/iofuncs/vips.c:95
 msgid "load PLUGIN"
 msgstr ""
 
-#: src/iofuncs/vips.c:92
+#: src/iofuncs/vips.c:98
 msgid "print link lines for all operations"
 msgstr ""
 
-#: src/iofuncs/vips.c:94
+#: src/iofuncs/vips.c:100
 msgid "print C++ decls for PACKAGE (or \"all\")"
 msgstr ""
 
-#: src/iofuncs/vips.c:97
+#: src/iofuncs/vips.c:103
 msgid "print C++ binding for PACKAGE (or \"all\")"
 msgstr ""
 
-#: src/iofuncs/vips.c:100
+#: src/iofuncs/vips.c:106
 msgid "print im_version_string"
 msgstr ""
 
-#: src/iofuncs/vips.c:143
+#: src/iofuncs/vips.c:149
 #, c-format
 msgid "no package or function \"%s\""
 msgstr ""
 
-#: src/iofuncs/vips.c:884
+#: src/iofuncs/vips.c:881
 msgid "- VIPS driver program"
 msgstr ""
 
