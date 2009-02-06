@@ -300,6 +300,8 @@ nohalo_sharp_level_1(
 	 */
 
   /*
+   * THE ENLARGED STENCIL (prior to entering this function):
+   *
    * The potentially needed input pixel values are described by the
    * following stencil, where (ix,iy) are the coordinates of the
    * closest input pixel center (with ties resolved arbitrarily).
@@ -322,6 +324,8 @@ nohalo_sharp_level_1(
    *
    *               (ix-1,iy+2)  (ix,iy+2)    (ix+1,iy+2)
    *               = cin_two    = cin_thr    = cin_fou
+   *
+   * THE STENCIL OF ACTUALLY READ VALUES:
    *
    * The above is the "enlarged" stencil: about half the values will
    * not be used.  Once symmetry has been used to assume that the
@@ -530,73 +534,98 @@ nohalo_sharp_level_1(
  * It'd be nice to do this with templates somehow :-( but I can't see a 
  * clean way to do it.
  */
-#define NOHALO_SHARP_LEVEL_1_INTER( inter ) \
-template <typename T> static void \
-nohalo_sharp_level_1_ ## inter( PEL *pout, const PEL *pin, const int bands, \
-	const int pskip, const int lskip, \
-	const double w_times_z, \
-	const double x_times_z_over_2, \
-	const double w_times_y_over_2, \
-	const double x_times_y_over_4 ) \
-{ \
-	T* restrict out = (T *) pout; \
-	const T* restrict in = (T *) pin; \
- 	\
-	const int b1 =     pskip; \
-	const int b2 = 2 * b1; \
-	const int b3 = 3 * b1; \
-	const int b4 = 4 * b1; \
- 	\
-	const int l1 =     lskip; \
-	const int l2 = 2 * l1; \
-	const int l3 = 3 * l1; \
-	const int l4 = 4 * l1; \
- 	\
-	for( int z = 0; z < bands; z++ ) { \
-		const T dos_thr = in[b2 + l1]; \
-		const T dos_fou = in[b3 + l1]; \
- 		\
-		const T tre_two = in[b1 + l2]; \
-		const T tre_thr = in[b2 + l2]; \
-		const T tre_fou = in[b3 + l2]; \
-		const T tre_fiv = in[b4 + l2]; \
- 		\
-		const T qua_two = in[b1 + l3]; \
-		const T qua_thr = in[b2 + l3]; \
-		const T qua_fou = in[b3 + l3]; \
-		const T qua_fiv = in[b4 + l3]; \
- 		\
-		const T cin_thr = in[b2 + l4]; \
-		const T cin_fou = in[b3 + l4]; \
- 		\
-		double two_times_tre_thrfou; \
-		double two_times_trequa_thr; \
-		double four_times_trequa_thrfou; \
- 		\
-		nohalo_sharp_level_1(  \
-			dos_thr, dos_fou, \
-			tre_two, tre_thr, tre_fou, tre_fiv, \
-			qua_two, qua_thr, qua_fou, qua_fiv, \
-			cin_thr, cin_fou, \
-			&two_times_tre_thrfou, \
-			&two_times_trequa_thr, \
-			&four_times_trequa_thrfou ); \
- 		\
-		const T result = bilinear_ ## inter<T>( \
-			w_times_z, \
-			x_times_z_over_2, \
-			w_times_y_over_2, \
-			x_times_y_over_4, \
-			tre_thr, \
-			two_times_tre_thrfou, \
-			two_times_trequa_thr, \
-			four_times_trequa_thrfou ); \
- 		\
-		out[z] = result; \
- 		\
-		in += 1; \
-	} \
-} 
+#define NOHALO_SHARP_LEVEL_1_INTER( inter )                             \
+  template <typename T> static void inline                              \
+  nohalo_sharp_level_1_ ## inter( PEL *pout,                            \
+                                  const PEL *pin,                       \
+                                  const int bands,                      \
+                                  const int lskip,                      \
+                                  const double relative_x,              \
+                                  const double relative_y )             \
+  {                                                                     \
+    T* restrict out = (T *) pout;                                       \
+    const T* restrict in = (T *) pin;                                   \
+                                                                        \
+    const int relative_x_is_left = ( relative_x < 0. );                 \
+    const int relative_y_is___up = ( relative_y < 0. );                 \
+                                                                        \
+    const int corner_reflection_shift =                                 \
+        ( -2 + 4 * relative_x_is_left ) * bands                         \
+        +                                                               \
+        ( -2 + 4 * relative_y_is___up ) * lskip;                        \
+                                                                        \
+    const int sign_of_relative_x = 1 - 2 * relative_x_is_left;          \
+    const int sign_of_relative_y = 1 - 2 * relative_y_is___up;          \
+                                                                        \
+    const double x = ( 2 * sign_of_relative_x ) * relative_x;           \
+    const double y = ( 2 * sign_of_relative_y ) * relative_y;           \
+                                                                        \
+    const double x_times_y = x * y;                                     \
+    const double w_times_y = y - x_times_y;                             \
+    const double x_times_z = x - x_times_y;                             \
+    const double w_times_z = 1. - x - w_times_y;                        \
+                                                                        \
+    const double x_times_y_over_4 = .25 * x_times_y;                    \
+    const double w_times_y_over_2 = .5  * w_times_y;                    \
+    const double x_times_z_over_2 = .5  * x_times_z;                    \
+                                                                        \
+    const int shift_1_pixel  = sign_of_relative_x * bands;              \
+    const int shift_1_row    = sign_of_relative_y * lskip;              \
+                                                                        \
+    const int b1 =     shift_1_pixel + corner_reflection_shift;         \
+    const int b2 = 2 * shift_1_pixel + corner_reflection_shift;         \
+    const int b3 = 3 * shift_1_pixel + corner_reflection_shift;         \
+    const int b4 = 4 * shift_1_pixel + corner_reflection_shift;         \
+                                                                        \
+    const int l1 =     shift_1_row;                                     \
+    const int l2 = 2 * shift_1_row;                                     \
+    const int l3 = 3 * shift_1_row;                                     \
+    const int l4 = 4 * shift_1_row;                                     \
+                                                                        \
+    for( int z = 0; z < bands; z++ ) {                                  \
+      const T dos_thr = in[b2 + l1];                                    \
+      const T dos_fou = in[b3 + l1];                                    \
+                                                                        \
+      const T tre_two = in[b1 + l2];                                    \
+      const T tre_thr = in[b2 + l2];                                    \
+      const T tre_fou = in[b3 + l2];                                    \
+      const T tre_fiv = in[b4 + l2];                                    \
+                                                                        \
+      const T qua_two = in[b1 + l3];                                    \
+      const T qua_thr = in[b2 + l3];                                    \
+      const T qua_fou = in[b3 + l3];                                    \
+      const T qua_fiv = in[b4 + l3];                                    \
+                                                                        \
+      const T cin_thr = in[b2 + l4];                                    \
+      const T cin_fou = in[b3 + l4];                                    \
+                                                                        \
+      double two_times_tre_thrfou;                                      \
+      double two_times_trequa_thr;                                      \
+      double four_times_trequa_thrfou;                                  \
+                                                                        \
+      nohalo_sharp_level_1( dos_thr, dos_fou,                           \
+                            tre_two, tre_thr, tre_fou, tre_fiv,         \
+                            qua_two, qua_thr, qua_fou, qua_fiv,         \
+                            cin_thr, cin_fou,                           \
+                            &two_times_tre_thrfou,                      \
+                            &two_times_trequa_thr,                      \
+                            &four_times_trequa_thrfou );                \
+                                                                        \
+      const T result = bilinear_ ## inter<T>(                           \
+                                             w_times_z,                 \
+                                             x_times_z_over_2,          \
+                                             w_times_y_over_2,          \
+                                             x_times_y_over_4,          \
+                                             tre_thr,                   \
+                                             two_times_tre_thrfou,      \
+                                             two_times_trequa_thr,      \
+                                             four_times_trequa_thrfou ); \
+                                                                        \
+      out[z] = result;                                                  \
+                                                                        \
+      in += 1;                                                          \
+    }                                                                   \
+  } 
 
 NOHALO_SHARP_LEVEL_1_INTER( float )
 NOHALO_SHARP_LEVEL_1_INTER( signed )
@@ -611,17 +640,11 @@ G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo,
 
 static void
 vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate, 
-	PEL *out, REGION *in, double absolute_x, double absolute_y )
+                                     PEL *out,
+                                     REGION *in,
+                                     double absolute_x,
+                                     double absolute_y )
 {
-	/* VIPS versions of Nicolas's pixel addressing values.
-	 */
-	const int bands = in->im->Bands;
-	const int lskip = 
-		IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
-
-	/* Copy-paste of Nicolas's pixel addressing code starts. 
-	 */
-
   /*
    * floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
    * transition through 0 is smooth. If it is known that absolute_x
@@ -634,138 +657,33 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const int ix = FAST_PSEUDO_FLOOR (absolute_x + 0.5);
   const int iy = FAST_PSEUDO_FLOOR (absolute_y + 0.5);
 
+	/* Move the pointer to (the first band of) the central
+           pixel of the extended 5x5 stencil (tre_thr):
+	 */
+	const PEL * restrict p =
+		(PEL *) IM_REGION_ADDR( in, ix, iy );
+
+	/* VIPS versions of Nicolas's pixel addressing values.
+	 */
+	const int bands = in->im->Bands;
+	const int lskip = 
+		IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
+
   /*
    * x is the x-coordinate of the sampling point relative to the
    * position of the tre_thr pixel center. Similarly for y. Range of
-   * values: [-.5,.5].
+   * values: (-.5,.5].
    */
   const double relative_x = absolute_x - ix;
   const double relative_y = absolute_y - iy;
 
-  /*
-   * Start of the computation of values needed to extract the properly
-   * reflected needed values:
-   */
-  const int relative_x_is_left = ( relative_x < 0. );
-  const int relative_y_is___up = ( relative_y < 0. );
-
-  /*
-   * "DIRTY" TRICK: In order to minimize the number of computed
-   * "double density" pixels, we use symmetry to appropriately "flip
-   * the data." (An alternative approach is to "compute everything and
-   * select by zeroing coefficients.")
-   */
-
-  /*
-   * The direction of movement within the (extended) possibly
-   * reflected stencil is then determined by the following signs:
-   */
-  const int sign_of_relative_x = 1 - 2 * relative_x_is_left;
-  const int sign_of_relative_y = 1 - 2 * relative_y_is___up;
-
-  /*
-   * Basic shifts:
-   */
-  const int shift_1_pixel  = sign_of_relative_x * bands;
-  const int shift_1_row    = sign_of_relative_y * lskip;
-
-  /*                                                                  
-   * Movement within the "actually used" stencil is based on the       
-   * corner of the extended 5x5 stencil which is farthest from it     
-   * (and the sampling position).                                     
-   */                                                                 
-  const int reflection_shift_x = 4 * relative_x_is_left;
-  const int reflection_shift_y = 4 * relative_y_is___up;
-
-  /*
-   * POST REFLEXION/POST RESCALING "DOUBLE DENSITY" COORDINATES:
-   *
-   * With the appropriate reflexions, we can assume that the
-   * coordinates are positive (that we are in the bottom right
-   * quadrant (in quadrant III) relative to tre_thr). It is also
-   * convenient to scale things by 2, so that the "double density
-   * pixels" are 1---instead of 1/2---apart:
-   */
-  const double x = ( 2 * sign_of_relative_x ) * relative_x;
-  const double y = ( 2 * sign_of_relative_y ) * relative_y;
-
-  /*
-   * BILINEAR WEIGHTS:
-   *
-   * (w = 1-x and z = 1-y.)
-   */
-  const double x_times_y = x * y;
-  const double w_times_y = y - x_times_y;
-  const double x_times_z = x - x_times_y;
-  const double w_times_z = 1. - x - w_times_y;
-
-  /*
-   * WEIGHTED BILINEAR WEIGHTS (with forthcoming coefficient
-   * "folded in"):
-   */
-  const double x_times_y_over_4 = .25 * x_times_y;
-  const double w_times_y_over_2 = .5  * w_times_y;
-  const double x_times_z_over_2 = .5  * x_times_z;
-
-	/* We need to shift and reflect the start point.
-	 */
-	const int target_x = ix - 2 + reflection_shift_x;
-	const int target_y = iy - 2 + reflection_shift_y;
-
-	const PEL * restrict p =
-		(PEL *) IM_REGION_ADDR( in, target_x, target_y );
-
-/* Optional bounds checking.
- */
-#ifdef DEBUG
-{
-	/* Corner of pixel we are interpolating. No round up here!
-	 */
-	const int vix = FAST_PSEUDO_FLOOR( absolute_x );
-	const int viy = FAST_PSEUDO_FLOOR( absolute_y );
-
-	/* Top-left corner of our window.
-	 */
-	const PEL * restrict tl =
-		(PEL *) IM_REGION_ADDR( in, vix - 2, viy - 2 ); 
-
-	/* Bottom-right corner of our window.
-	 */
-	const PEL * restrict br =
-		(PEL *) IM_REGION_ADDR( in, vix + 2, viy + 2 ); 
-
-	/* First pixel we address: 
-	 * 	const T dos_thr = in[b2 + l1]; 
-	 */
-	const PEL * restrict first = p + 
-		IM_IMAGE_SIZEOF_ELEMENT( in->im ) * (
-			2 * shift_1_pixel +
-			1 * shift_1_row
-		);
-
-	/* Last pixel we address.
-	 *	const T cin_fou = in[b3 + l4]; 
-	 */
-	const PEL * restrict last = p + 
-		IM_IMAGE_SIZEOF_ELEMENT( in->im ) * (
-			3 * shift_1_pixel +
-			4 * shift_1_row
-		);
-
-	g_assert( first >= tl );
-	g_assert( first <= br );
-	g_assert( last >= tl );
-	g_assert( last <= br );
-}
-#endif /*DEBUG*/
-
-#define CALL( T, inter ) \
-	nohalo_sharp_level_1_ ## inter<T>( out, p, \
-		bands, shift_1_pixel, shift_1_row, \
-		w_times_z, \
-		x_times_z_over_2, \
-		w_times_y_over_2, \
-		x_times_y_over_4 );
+#define CALL( T, inter )                                         \
+  nohalo_sharp_level_1_ ## inter<T>( out,                        \
+                                     p,                          \
+                                     bands,                      \
+                                     lskip,                      \
+                                     relative_x,                 \
+                                     relative_y );
 
 	switch( in->im->BandFmt ) {
 	case IM_BANDFMT_UCHAR:
@@ -801,21 +719,21 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 		break;
 
 	case IM_BANDFMT_COMPLEX:
-		nohalo_sharp_level_1_float<float>( out, p, 
-			bands * 2, shift_1_pixel * 2, shift_1_row,
-			w_times_z,
-			x_times_z_over_2,
-			w_times_y_over_2,
-			x_times_y_over_4 );
+		nohalo_sharp_level_1_float<float>( out,
+                                                   p, 
+                                                   bands * 2,
+                                                   lskip,
+                                                   relative_x,
+                                                   relative_y );
 		break;
 
 	case IM_BANDFMT_DPCOMPLEX:
-		nohalo_sharp_level_1_float<double>( out, p, 
-			bands * 2, shift_1_pixel * 2, shift_1_row,
-			w_times_z,
-			x_times_z_over_2,
-			w_times_y_over_2,
-			x_times_y_over_4 );
+		nohalo_sharp_level_1_float<double>( out,
+                                                    p, 
+                                                    bands * 2,
+                                                    lskip,
+                                                    relative_x,
+                                                    relative_y );
 		break;
 
 	default:
