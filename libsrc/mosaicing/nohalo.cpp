@@ -534,97 +534,97 @@ nohalo_sharp_level_1(
  * It'd be nice to do this with templates somehow :-( but I can't see a 
  * clean way to do it.
  */
-#define NOHALO_SHARP_LEVEL_1_INTER( inter )                             \
-  template <typename T> static void inline                              \
-  nohalo_sharp_level_1_ ## inter( PEL *pout,                            \
-                                  const PEL *pin,                       \
-                                  const int bands,                      \
-                                  const int lskip,                      \
-                                  const double relative_x,              \
-                                  const double relative_y )             \
-  {                                                                     \
-    T* restrict out = (T *) pout;                                       \
-    const T* restrict in = (T *) pin;                                   \
-                                                                        \
-    const int relative_x_is_left = ( relative_x < 0. );                 \
-    const int relative_y_is___up = ( relative_y < 0. );                 \
-                                                                        \
-    const int corner_reflection_shift =                                 \
-        ( -2 + 4 * relative_x_is_left ) * bands                         \
-        +                                                               \
-        ( -2 + 4 * relative_y_is___up ) * lskip;                        \
-                                                                        \
-    const int sign_of_relative_x = 1 - 2 * relative_x_is_left;          \
-    const int sign_of_relative_y = 1 - 2 * relative_y_is___up;          \
-                                                                        \
-    const double x = ( 2 * sign_of_relative_x ) * relative_x;           \
-    const double y = ( 2 * sign_of_relative_y ) * relative_y;           \
-                                                                        \
-    const double x_times_y = x * y;                                     \
-    const double w_times_y = y - x_times_y;                             \
-    const double x_times_z = x - x_times_y;                             \
-    const double w_times_z = 1. - x - w_times_y;                        \
-                                                                        \
-    const double x_times_y_over_4 = .25 * x_times_y;                    \
-    const double w_times_y_over_2 = .5  * w_times_y;                    \
-    const double x_times_z_over_2 = .5  * x_times_z;                    \
-                                                                        \
-    const int shift_1_pixel  = sign_of_relative_x * bands;              \
-    const int shift_1_row    = sign_of_relative_y * lskip;              \
-                                                                        \
-    const int b1 =     shift_1_pixel + corner_reflection_shift;         \
-    const int b2 = 2 * shift_1_pixel + corner_reflection_shift;         \
-    const int b3 = 3 * shift_1_pixel + corner_reflection_shift;         \
-    const int b4 = 4 * shift_1_pixel + corner_reflection_shift;         \
-                                                                        \
-    const int l1 =     shift_1_row;                                     \
-    const int l2 = 2 * shift_1_row;                                     \
-    const int l3 = 3 * shift_1_row;                                     \
-    const int l4 = 4 * shift_1_row;                                     \
-                                                                        \
-    for( int z = 0; z < bands; z++ ) {                                  \
-      const T dos_thr = in[b2 + l1];                                    \
-      const T dos_fou = in[b3 + l1];                                    \
-                                                                        \
-      const T tre_two = in[b1 + l2];                                    \
-      const T tre_thr = in[b2 + l2];                                    \
-      const T tre_fou = in[b3 + l2];                                    \
-      const T tre_fiv = in[b4 + l2];                                    \
-                                                                        \
-      const T qua_two = in[b1 + l3];                                    \
-      const T qua_thr = in[b2 + l3];                                    \
-      const T qua_fou = in[b3 + l3];                                    \
-      const T qua_fiv = in[b4 + l3];                                    \
-                                                                        \
-      const T cin_thr = in[b2 + l4];                                    \
-      const T cin_fou = in[b3 + l4];                                    \
-                                                                        \
-      double two_times_tre_thrfou;                                      \
-      double two_times_trequa_thr;                                      \
-      double four_times_trequa_thrfou;                                  \
-                                                                        \
-      nohalo_sharp_level_1( dos_thr, dos_fou,                           \
-                            tre_two, tre_thr, tre_fou, tre_fiv,         \
-                            qua_two, qua_thr, qua_fou, qua_fiv,         \
-                            cin_thr, cin_fou,                           \
-                            &two_times_tre_thrfou,                      \
-                            &two_times_trequa_thr,                      \
-                            &four_times_trequa_thrfou );                \
-                                                                        \
-      const T result = bilinear_ ## inter<T>(                           \
-                                             w_times_z,                 \
-                                             x_times_z_over_2,          \
-                                             w_times_y_over_2,          \
-                                             x_times_y_over_4,          \
-                                             tre_thr,                   \
-                                             two_times_tre_thrfou,      \
-                                             two_times_trequa_thr,      \
+#define NOHALO_SHARP_LEVEL_1_INTER( inter ) \
+  template <typename T> static void inline \
+  nohalo_sharp_level_1_ ## inter( PEL *pout, \
+                                  const PEL *pin, \
+                                  const int bands, \
+                                  const int lskip, \
+                                  const double relative_x, \
+                                  const double relative_y ) \
+  { \
+    T* restrict out = (T *) pout; \
+    const T* restrict in = (T *) pin; \
+    \
+    const int relative_x_is_left = ( relative_x < 0. ); \
+    const int relative_y_is___up = ( relative_y < 0. ); \
+    \
+    const int corner_reflection_shift = \
+        ( -2 + 4 * relative_x_is_left ) * bands \
+        + \
+        ( -2 + 4 * relative_y_is___up ) * lskip; \
+    \
+    const int sign_of_relative_x = 1 - 2 * relative_x_is_left; \
+    const int sign_of_relative_y = 1 - 2 * relative_y_is___up; \
+    \
+    const double x = ( 2 * sign_of_relative_x ) * relative_x; \
+    const double y = ( 2 * sign_of_relative_y ) * relative_y; \
+    \
+    const double x_times_y = x * y; \
+    const double w_times_y = y - x_times_y; \
+    const double x_times_z = x - x_times_y; \
+    const double w_times_z = 1. - x - w_times_y; \
+    \
+    const double x_times_y_over_4 = .25 * x_times_y; \
+    const double w_times_y_over_2 = .5  * w_times_y; \
+    const double x_times_z_over_2 = .5  * x_times_z; \
+    \
+    const int shift_1_pixel  = sign_of_relative_x * bands; \
+    const int shift_1_row    = sign_of_relative_y * lskip; \
+    \
+    const int b1 =     shift_1_pixel + corner_reflection_shift; \
+    const int b2 = 2 * shift_1_pixel + corner_reflection_shift; \
+    const int b3 = 3 * shift_1_pixel + corner_reflection_shift; \
+    const int b4 = 4 * shift_1_pixel + corner_reflection_shift; \
+    \
+    const int l1 =     shift_1_row; \
+    const int l2 = 2 * shift_1_row; \
+    const int l3 = 3 * shift_1_row; \
+    const int l4 = 4 * shift_1_row; \
+    \
+    for( int z = 0; z < bands; z++ ) { \
+      const T dos_thr = in[b2 + l1]; \
+      const T dos_fou = in[b3 + l1]; \
+      \
+      const T tre_two = in[b1 + l2]; \
+      const T tre_thr = in[b2 + l2]; \
+      const T tre_fou = in[b3 + l2]; \
+      const T tre_fiv = in[b4 + l2]; \
+                                     \
+      const T qua_two = in[b1 + l3]; \
+      const T qua_thr = in[b2 + l3]; \
+      const T qua_fou = in[b3 + l3]; \
+      const T qua_fiv = in[b4 + l3]; \
+                                     \
+      const T cin_thr = in[b2 + l4]; \
+      const T cin_fou = in[b3 + l4]; \
+                                     \
+      double two_times_tre_thrfou;   \
+      double two_times_trequa_thr;   \
+      double four_times_trequa_thrfou; \
+      \
+      nohalo_sharp_level_1( dos_thr, dos_fou, \
+                            tre_two, tre_thr, tre_fou, tre_fiv, \
+                            qua_two, qua_thr, qua_fou, qua_fiv, \
+                            cin_thr, cin_fou, \
+                            &two_times_tre_thrfou, \
+                            &two_times_trequa_thr, \
+                            &four_times_trequa_thrfou ); \
+      \
+      const T result = bilinear_ ## inter<T>( \
+                                             w_times_z, \
+                                             x_times_z_over_2, \
+                                             w_times_y_over_2, \
+                                             x_times_y_over_4, \
+                                             tre_thr, \
+                                             two_times_tre_thrfou, \
+                                             two_times_trequa_thr, \
                                              four_times_trequa_thrfou ); \
-                                                                        \
-      out[z] = result;                                                  \
-                                                                        \
-      in += 1;                                                          \
-    }                                                                   \
+      \
+      out[z] = result; \
+      \
+      in += 1; \
+    } \
   } 
 
 NOHALO_SHARP_LEVEL_1_INTER( float )
@@ -677,12 +677,12 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const double relative_x = absolute_x - ix;
   const double relative_y = absolute_y - iy;
 
-#define CALL( T, inter )                                         \
-  nohalo_sharp_level_1_ ## inter<T>( out,                        \
-                                     p,                          \
-                                     bands,                      \
-                                     lskip,                      \
-                                     relative_x,                 \
+#define CALL( T, inter )      \
+  nohalo_sharp_level_1_ ## inter<T>( out, \
+                                     p, \
+                                     bands, \
+                                     lskip, \
+                                     relative_x, \
                                      relative_y );
 
 	switch( in->im->BandFmt ) {
