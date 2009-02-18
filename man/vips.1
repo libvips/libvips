@@ -23,7 +23,8 @@ then you can use that link to call an operation directly. For example:
 .SH OPTIONS
 .TP
 .B -l PACKAGE, --list=PACKAGE
-List operations defined in PACKAGE.
+List operations defined in PACKAGE. PACKAGE can also be "classes", "packages"
+or "all".
 
 .TP
 .B -u OPERATION, --usage=OPERATION     
@@ -44,11 +45,6 @@ Print C++ header for PACKAGE. PACKAGE can also be a function name, or "all".
 .TP
 .B -c PACKAGE, --cppc=PACKAGE        
 Print C++ binding for PACKAGE. PACKAGE can also be a function name, or "all".
-
-.TP
-.B -s PACKAGE, --swig=PACKAGE        
-Print SWIG declaration for PACKAGE. PACKAGE can also be a function name, 
-or "all".
 
 .SH RETURN VALUE
 returns 0 on success and non-zero on error.

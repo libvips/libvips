@@ -100,7 +100,7 @@ vips_interpolate_init( VipsInterpolate *interpolate )
 }
 
 /* Set the point out_x, out_y in REGION out to be the point interpolated at
- * in_x, in_y in REGION in. Don't do this as a signal ffor speed.
+ * in_x, in_y in REGION in. Don't do this as a signal for speed.
  */
 void
 vips_interpolate( VipsInterpolate *interpolate, 

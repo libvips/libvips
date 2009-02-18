@@ -33,6 +33,7 @@
 - added "nickname" and "description" properties to VipsObject
 - shift/and/or/eor ops were broken for non-int types
 - added nohalo interpolator
+- updated format docs
 - IM_INPUT_INTERPOLATE() now used by affinei and affinei_all
 
 11/9/08 started 7.16.3

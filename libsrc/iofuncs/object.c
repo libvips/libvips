@@ -220,7 +220,8 @@ vips_argument_init2( VipsObject *object, GParamSpec *pspec,
 
 /* Create a VipsArgumentInstance for each installed argument property. Ideally
  * we'd do this during _init() but g_object_class_find_property() does not seem
- * to work then :-( so we have to delay it until first access.
+ * to work then :-( so we have to delay it until first access. See
+ * vips__argument_get_instance().
  */
 static void
 vips_argument_init( VipsObject *object )
@@ -699,6 +700,10 @@ vips_object_real_build( VipsObject *object )
 		"nickname", object_class->nickname,
 		"description", object_class->description, NULL );
 
+	/* Signal changed, since all properties should now be set.
+	 */
+	vips_object_changed( object );
+
 	return( result );
 }
 
@@ -953,6 +958,41 @@ vips_object_set_args( VipsObject *object, const char *p )
 }
 
 VipsObject *
+vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
+{
+	VipsObject *object;
+
+	object = VIPS_OBJECT( g_object_new( type, NULL ) );
+
+	if( set( object, a, b ) ||
+		vips_object_build( object ) ) {
+		g_object_unref( object );
+		return( NULL );
+	}
+
+	return( object );
+}
+
+static void *
+vips_object_new_from_string_set( VipsObject *object, void *a, void *b )
+{
+	const char *p = (const char *) a;
+	VipsToken token;
+	char string[PATH_MAX];
+
+	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
+		if( token == VIPS_TOKEN_LEFT &&
+			vips_object_set_args( object, p ) ) {
+			im_error( "object_new", "%s",
+				_( "bad object arguments" ) );
+			return( object );
+		}
+	}
+
+	return( NULL );
+}
+
+VipsObject *
 vips_object_new_from_string( const char *basename, const char *p )
 {
 	VipsToken token;
@@ -964,24 +1004,8 @@ vips_object_new_from_string( const char *basename, const char *p )
 		!(type = vips_type_find( basename, string )) ) 
 		return( NULL );
 
-	object = VIPS_OBJECT( g_object_new( type, NULL ) );
-
-	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
-		if( token == VIPS_TOKEN_LEFT &&
-			vips_object_set_args( object, p ) ) {
-			im_error( "object_new", "%s",
-				_( "bad object arguments" ) );
-			g_object_unref( object );
-			return( NULL );
-		}
-	}
-
-	if( vips_object_build( object ) ) {
-		g_object_unref( object );
-		return( NULL );
-	}
-
-	return( object );
+	return( vips_object_new( type, 
+		vips_object_new_from_string_set, (void *) p, NULL ) ); 
 }
 
 static void

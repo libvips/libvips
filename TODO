@@ -1,16 +1,17 @@
-- make properties for nickname etc. so we can get class properties from
-  objects
 
-- dir on a Managedgobject should list properties
+- interpolate.c never calls vips_object_build() for bilinear etc., is this OK?
 
-- (get_member "poop" (Managedgobject)) should work
+  try to add this
 
-- dir on a gtype should also list properties? how should we list subclasses?
+- need to write interpolate docs ... manpages and tutorial
 
+  difficult without docs for vips_object
 
+- need a section for vipsobject in the tutorial
 
+  also a manpage?
 
-- maybe IM_INTERPOLATE() isn't a good idea? maybe just IM_GOBJECT?
+  not really stable yet :( don't document
 
 - try making vips_add(), an operator as a class
 
@@ -18,9 +19,7 @@
 
 - make a "deprecated" package too
 
-- im_affinei and im_affinei_all need docs
-
-- update format docs
+- remove yafrnohalo.c
 
 - how to expose things like yafrsmooth's "sharpening" parameter to
   C++/Python?

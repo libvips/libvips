@@ -1,0 +1,58 @@
+.TH IM_AFFINEI 3 "8 February 2009"
+.SH NAME
+im_affinei \- apply an affine transform to an image
+.SH SYNOPSIS
+.B #include <vips/vips.h>
+
+int im_affinei(in, out, interpolate, a, b, c, d, dx, dy, x, y, w, h)
+.br
+.B IMAGE *in, *out;
+.br
+.B VipsInterpolate *interpolate;
+.br
+.B double a, b, c, d, dx, dy;
+.br
+.B int x, y;
+.br
+.B int w, h;
+
+int im_affinei_all(in, out, interpolate, a, b, c, d, dx, dy)
+.br
+.B IMAGE *in, *out;
+.br
+.B VipsInterpolate *interpolate;
+.br
+.B double a, b, c, d, dx, dy;
+
+.SH DESCRIPTION
+.B im_affinei()
+applies an affine transformation on the image held by the IMAGE descriptor
+in and puts the result at the location pointed by the IMAGE descriptor out. in
+many have any number of bands, be any size, and have any non-complex type.
+
+The transformation is described by a, b, c, d, dx, dy.  The point (x,y) in 
+the input is mapped onto point (X,Y) in the output by
+
+  X = a * x + b * y + dx
+  Y = c * x + d * y + dy
+
+The area of the output image given by w, h, x, y is generated. (0,0) is 
+the position of the transformed top-left-hand corner of the input image.
+
+Points are generated using the supplied interpolator. See 
+.B VipsInterpolate(3)
+for a list of the interpolators that come with vips. 
+
+.B im_affinei_all(3) 
+is a convenience function that transforms the whole of the input image. It
+calls 
+.B im_affine(3) 
+for you, with x y w h set to exactly enclose the transformed image.
+
+.SH RETURN VALUE
+The functions return 0 on success and -1 on error.
+.SH BUGS
+As with most resamplers, im_affine(3) performs poorly at the edges of
+images.
+.SH SEE ALSO
+im_similarity(3)

@@ -28,6 +28,8 @@
  * 	- add --list formats
  * 29/11/08
  * 	- add --list interpolators
+ * 9/2/09
+ * 	- and now we just have --list packages/classes/package-name
  */
 
 /*
@@ -86,7 +88,8 @@ static gboolean *main_option_version;
 
 static GOptionEntry main_option[] = {
 	{ "list", 'l', 0, G_OPTION_ARG_STRING, &main_option_list, 
-		N_( "list operations in PACKAGE (or \"all\", \"packages\")" ),
+		N_( "list operations in PACKAGE "
+			"(or \"all\", \"packages\", \"classes\")" ),
 		"PACKAGE" },
 	{ "usage", 'u', 0, G_OPTION_ARG_STRING, &main_option_usage, 
 		N_( "show usage message for OPERATION" ), 

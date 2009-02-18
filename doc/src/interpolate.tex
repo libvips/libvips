@@ -1,0 +1,110 @@
+\section{Interpolators}
+\label{sec:interpolate}
+
+VIPS has a general system for representing pixel interpolators. You can select
+an interpolator to pass to other VIPS operations, such as \verb+im_affinei()+,
+you can add new interpolators, and you can write operations which take a
+general interpolator as a parameter. 
+
+An interpolator is a function of the form:
+
+\begin{verbatim}
+typedef void (*VipsInterpolateMethod)( VipsInterpolate *,
+  PEL *out, REGION *in, double x, double y );
+\end{verbatim}
+
+\noindent
+Given the set of input pixels \verb+in+, it has to calculate a value for the
+fractional position $(x, y)$ and write this value to the memory pointed to by
+\verb+out+.
+
+VIPS uses corner convention, so the value of pixel $(0, 0)$ is the value of
+the surface the interpolator fits at the fractional position $(0.0, 0.0)$.
+
+\subsection{How an interpolator is represented}
+
+See the man page for \verb+VipsInterpolate+ for full details, but briefly,
+an interpolator is a subclass of \verb+VipsInterpolate+ implementing the 
+following items:
+
+\begin{itemize}
+\item
+An interpolation method, with the type signature above.
+
+\item
+A function \verb+get_window_size()+ which returns the size of the area of
+pixels that the interpolator needs in order to calculate a value. For example,
+a bilinear interpolator needs the four pixels surrounding the point to be
+calculated, or a 2 by 2 window, so window size should be 2.
+
+\item
+Or if the window size is constant, you can leave \verb+get_window_size()+
+NULL and just set the int value \verb+window_size+.
+
+\end{itemize}
+
+A switch to the \verb+vips+ command-line program is handy for listing the
+supported interpolators. Try:
+
+\begin{verbatim}
+vips --list classes
+\end{verbatim}
+
+\noindent
+And look for subclasses of \verb+VipsInterpolate+.
+
+\subsection{A sample interpolator}
+
+As an example, \fref{fg:newinterpolator} shows how to register a new
+interpolator in a plugin.
+
+\begin{fig2}
+\begin{verbatim}
+// This interpolator adds no new members.
+typedef VipsInterpolate VipsInterpolateMyinterpolator;
+typedef VipsInterpolateClass VipsInterpolateMyinterpolator;
+
+
+static void
+vips_interpolate_myinterpolator_interpolate( VipsInterpolate *interpolate, 
+	PEL *out, REGION *in, double x, double y )
+{
+	VipsInterpolateBilinearClass *class = 
+		VIPS_INTERPOLATE_BILINEAR_GET_CLASS( interpolate );
+
+static void
+vips_interpolate_myinterpolator_class_init( 
+	VipsInterpolateMyinterpolatorClass *class )
+{
+  VipsObjectClass *object_class = (VipsObjectClass *) class;
+  VipsInterpolateClass *interpolate_class = (VipsInterpolateClass *) class;
+
+  object_class->nickname = "myinterpolator";
+  object_class->description = _( "My interpolator" );
+
+  interpolate_class->interpolate = my_interpolate;
+}
+
+static void
+vips_interpolate_myinterpolate_init( VipsInterpolateMyinterpolate *object )
+{
+}
+
+G_DEFINE_TYPE( VipsInterpolateMyinterpolator, vips_interpolate_myinterpolator, 
+	VIPS_TYPE_INTERPOLATE );
+
+char *
+g_module_check_init( GModule *self )
+{
+  // register the type
+  vips_format_myformat_get_type(); 
+}
+\end{verbatim}
+\caption{Registering an interpolator in a plugin}
+\label{fg:newinterpolator}
+\end{fig2}
+
+\subsection{Passing an interpolator to a VIPS operation}
+
+\subsection{Writing a VIPS operation that takes an interpolator as an argument}
+

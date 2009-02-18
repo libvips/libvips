@@ -15,7 +15,11 @@ int im_affine(in, out, a, b, c, d, dx, dy, x, y, w, h)
 .B int w, h;
 
 .SH DESCRIPTION
-.B im_affine()
+This function is deprecated. See
+.B im_affine(3)
+for the replacement.
+
+.B im_affine(3)
 applies an affine transformation on the image held by the IMAGE descriptor
 in and puts the result at the location pointed by the IMAGE descriptor out. in
 many have any number of bands, be any size, and have any non-complex type.
@@ -23,26 +27,15 @@ many have any number of bands, be any size, and have any non-complex type.
 The transformation is described by a, b, c, d, dx, dy.  The point (x,y) in 
 the input is mapped onto point (X,Y) in the output by
 
-  X = a * x + b * y + dx
-  Y = c * x + d * y + dy
+ X = a * x + b * y + dx
+ Y = c * x + d * y + dy
 
 The area of the output image given by w, h, x, y is generated. (0,0) is 
 the position of the transformed top-left-hand corner of the input image.
 Function im_affine resamples the transformed image using bilinear
 interpolation.
 
-You can use
-.B im_affine(3) 
-to resize an image with something like:
-
-  scale xfac yfac im
-    = im_affine im xfac 0 0 yfac 0 0 0 0 
-        (im.width * xfac) (im.height * yfac);
-
 .SH RETURN VALUE
 The functions return 0 on success and -1 on error.
-.SH BUGS
-As with most resamplers, im_affine(3) performs poorly at the edges of
-images.
 .SH SEE ALSO
 im_similarity(3)
