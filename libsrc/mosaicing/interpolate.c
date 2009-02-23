@@ -208,8 +208,9 @@ vips_interpolate_nearest_init( VipsInterpolateNearest *nearest )
 VipsInterpolate *
 vips_interpolate_nearest_new( void )
 {
-	return( VIPS_INTERPOLATE( g_object_new( 
-		VIPS_TYPE_INTERPOLATE_NEAREST, NULL ) ) );
+
+	return( VIPS_INTERPOLATE( vips_object_new( 
+		VIPS_TYPE_INTERPOLATE_NEAREST, NULL, NULL, NULL ) ) );
 }
 
 /* Convenience: return a static nearest you don't need to free.
@@ -422,8 +423,8 @@ vips_interpolate_bilinear_init( VipsInterpolateBilinear *bilinear )
 VipsInterpolate *
 vips_interpolate_bilinear_new( void )
 {
-	return( VIPS_INTERPOLATE( g_object_new( 
-		VIPS_TYPE_INTERPOLATE_BILINEAR, NULL ) ) );
+	return( VIPS_INTERPOLATE( vips_object_new( 
+		VIPS_TYPE_INTERPOLATE_BILINEAR, NULL, NULL, NULL ) ) );
 }
 
 /* Convenience: return a static bilinear you don't need to free.
@@ -467,5 +468,5 @@ vips_interpolate_new( const char *nickname )
 	if( !(type = vips_type_find( "VipsInterpolate", nickname )) )
 		return( NULL );
 
-	return( VIPS_INTERPOLATE( g_object_new( type, NULL ) ) );
+	return( VIPS_INTERPOLATE( vips_object_new( type, NULL, NULL, NULL ) ) );
 }

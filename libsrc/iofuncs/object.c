@@ -964,8 +964,12 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 
 	object = VIPS_OBJECT( g_object_new( type, NULL ) );
 
-	if( set( object, a, b ) ||
-		vips_object_build( object ) ) {
+	if( set && set( object, a, b ) ) {
+		g_object_unref( object );
+		return( NULL );
+	}
+
+	if( vips_object_build( object ) ) {
 		g_object_unref( object );
 		return( NULL );
 	}

@@ -1,7 +1,4 @@
 
-- interpolate.c never calls vips_object_build() for bilinear etc., is this OK?
-
-  try to add this
 
 - need to write interpolate docs ... manpages and tutorial
 
