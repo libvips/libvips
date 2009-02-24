@@ -8,6 +8,12 @@
 
 
 
+- im_render should use a hash for tile lookup ... or+shift x/y together
+
+  get rid of the fading stuff, too complicated, a bit useless
+
+
+
 - check mosaic1, global_balance, similarity etc. use of im__affine
   
   how can we move them to im_affinei ?
@@ -15,8 +21,6 @@
 - make a "deprecated" package too
 
 - update the Portfiles on the mac and on the website from the macports ones
-
-- im_render should use a hash for tile lookup ... or+shift x/y together
 
 
 
