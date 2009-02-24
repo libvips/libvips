@@ -44,8 +44,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-
-#include "transform.h"
+#include <vips/transform.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>

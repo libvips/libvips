@@ -490,6 +490,7 @@ AC_OUTPUT([
 	libsrc/mosaicing/Makefile 
 	libsrc/other/Makefile 
 	libsrc/relational/Makefile 
+	libsrc/resample/Makefile 
 	libsrc/video/Makefile 
 	libsrcCC/Makefile 
 	src/Makefile 

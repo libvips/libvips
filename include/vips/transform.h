@@ -65,3 +65,5 @@ void im__transform_invert_rect( const Transformation *trn,
 	const Rect *in, Rect *out );
 
 void im__transform_set_area( Transformation * );
+
+int im__affine( IMAGE *in, IMAGE *out, Transformation *trn );

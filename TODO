@@ -1,17 +1,18 @@
 
-- vips_object_print, set_name etc. need writing
 
-  make 'print' into a virtual method so subclasses can add stuff if they want
+- move im_shrink & friends to resample?
+
+  match_linear, match_linear_search?
+
+  what about im_stretch3.c, im_resize_linear
+
+
 
 - check mosaic1, global_balance, similarity etc. use of im__affine
   
   how can we move them to im_affinei ?
 
-- make a new package for "resample"? im_shrink & friends could go in there too
-
 - make a "deprecated" package too
-
-- remove yafrnohalo.c
 
 - update the Portfiles on the mac and on the website from the macports ones
 

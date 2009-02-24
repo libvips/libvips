@@ -38,8 +38,8 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/transform.h>
 
-#include "transform.h"
 #include "merge.h"
 
 #ifdef WITH_DMALLOC

@@ -103,8 +103,8 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/transform.h>
 
-#include "transform.h"
 #include "merge.h"
 #include "global_balance.h"
 

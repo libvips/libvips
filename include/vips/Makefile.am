@@ -18,6 +18,7 @@ pkginclude_HEADERS = \
 	r_access.h \
 	struct.h \
 	semaphore.h \
+	transform.h \
 	threadgroup.h \
 	thread.h \
 	util.h \

@@ -109,7 +109,3 @@ int im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	double a, double b, double dx, double dy, 
 	int mwidth );
 
-/* similarity() stuff, used by mosaic1.
- */
-int im__affine( IMAGE *in, IMAGE *out, Transformation *trn );
-

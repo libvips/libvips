@@ -36,6 +36,8 @@
 - updated format docs
 - IM_INPUT_INTERPOLATE() now used by affinei and affinei_all
 - added vips_object_new
+- resamplers/interpolators now in a resample package
+- removed yafrnohalo.c
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()

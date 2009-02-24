@@ -64,9 +64,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
-
-#include "transform.h"
-#include "merge.h"
+#include <vips/transform.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>

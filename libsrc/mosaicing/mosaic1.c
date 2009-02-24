@@ -50,9 +50,9 @@
 
 #include <vips/vips.h>
 #include <vips/buf.h>
+#include <vips/transform.h>
 
 #include "mosaic.h"
-#include "transform.h"
 #include "merge.h"
 
 #ifdef WITH_DMALLOC

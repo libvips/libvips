@@ -12,6 +12,7 @@ endif
 SUBDIRS = \
 	acquire \
 	arithmetic \
+	resample \
 	boolean \
 	colour \
 	conversion \
@@ -37,6 +38,7 @@ libvips_la_SOURCES = dummy.c dummy2.cc
 # DLLs need dependant libs there too ... put @VIPS_LIBS@ at the end
 libvips_la_LIBADD = \
 	acquire/libacquire.la \
+	resample/libresample.la \
 	arithmetic/libarithmetic.la \
 	boolean/libboolean.la \
 	colour/libcolour.la \

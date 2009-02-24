@@ -1,21 +1,14 @@
 noinst_LTLIBRARIES = libmosaicing.la
 
 libmosaicing_la_SOURCES = \
-	im_affine.c \
 	im_align_bands.c \
-	bicubic.cpp \
 	match.c \
 	mosaic1.c  \
 	mosaicing_dispatch.c \
-	similarity.c \
 	global_balance.c \
 	im_avgdxdy.c \
 	im_chkpair.c \
 	im_clinear.c \
-	interpolate.c \
-	yafrsmooth.cpp \
-	yafrnohalo.c \
-	nohalo.cpp \
 	im_improve.c \
 	im_initialize.c \
 	im_lrcalcon.c \
@@ -26,9 +19,6 @@ libmosaicing_la_SOURCES = \
 	im_tbmerge.c \
 	im_remosaic.c \
 	im_tbmosaic.c \
-	templates.h \
-	transform.h \
-	transform.c \
 	merge.h \
 	global_balance.h \
 	mosaic.h
