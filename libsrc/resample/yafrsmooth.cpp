@@ -759,7 +759,7 @@ vips_interpolate_yafrsmooth_class_init( VipsInterpolateYafrsmoothClass *iclass )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "yafrsmooth";
-	object_class->description = _( "YAFR smooth interpolation" );
+	object_class->description = _( "Bicubic plus edge enhance" );
 
 	interpolate_class->interpolate = 
 		vips_interpolate_yafrsmooth_interpolate;
