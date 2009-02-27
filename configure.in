@@ -305,6 +305,20 @@ if test x"$with_OpenEXR" != "xno"; then
     ])
 fi
 
+# matio
+AC_ARG_WITH([matio], 
+  AS_HELP_STRING([--without-matio], [build without matio (default: test)]))
+
+if test x"$with_matio" != "xno"; then
+  PKG_CHECK_MODULES(MATIO, matio,
+    [AC_DEFINE(HAVE_MATIO,1,[define if you have matio installed.])
+     with_matio=yes
+     PACKAGES_USED="$PACKAGES_USED matio"],
+    [AC_MSG_WARN([matio not found; disabling matio support])
+     with_matio=no
+    ])
+fi
+
 # pangoft2
 AC_ARG_WITH([pangoft2], 
   AS_HELP_STRING([--without-pangoft2], 
@@ -451,13 +465,13 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES and VIPS_LIBS
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $FFTW3_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $OPENEXR_CFLAGS $LIBOIL_CFLAGS
-do
-	echo $i
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $FFTW3_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $OPENEXR_CFLAGS $LIBOIL_CFLAGS 
+do 
+  echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES $FFTW_INCLUDES $LCMS_INCLUDES" 
-VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $LCMS_LIBS $LIBOIL_LIBS $OPENEXR_LIBS $EXIF_LIBS -lm $CIMG_LIBS"
+VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $LCMS_LIBS $LIBOIL_LIBS $OPENEXR_LIBS $MATIO_LIBS $EXIF_LIBS -lm $CIMG_LIBS"
 
 AC_SUBST(VIPS_CFLAGS)
 AC_SUBST(VIPS_INCLUDES)
@@ -465,9 +479,9 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(PACKAGES_USED)
 
 AC_OUTPUT([
-	vips-7.17.pc
-	vipsCC-7.17.pc
-	vips-7.17.spec
+	vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.pc
+	vipsCC-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.pc
+	vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.spec
 	Makefile 
 	include/vips/version.h 
 	include/Makefile 
@@ -532,6 +546,7 @@ file import with libMagick: 		$with_magick
 accelerate loops with liboil: 		$with_liboil
 ICC profile support with lcms: 		$with_lcms
 file import with OpenEXR: 		$with_OpenEXR
+file import with matio: 		$with_matio
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
 file import/export with libtiff:	$with_tiff

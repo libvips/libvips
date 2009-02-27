@@ -107,24 +107,12 @@ typedef struct {
 static void
 read_destroy( Read *read )
 {
-	if( read->name ) {
-		im_free( read->name );
-		read->name = NULL;
-	}
-	if( read->fp ) {
-		fclose( read->fp );
-		read->fp = NULL;
-	}
+	IM_FREE( read->name );
+	IM_FREEF( fclose, read->fp );
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
-	if( read->row_pointer ) {
-		im_free( read->row_pointer );
-		read->row_pointer = NULL;
-	}
-	if( read->data ) {
-		im_free( read->data );
-		read->data = NULL;
-	}
+	IM_FREE( read->row_pointer );
+	IM_FREE( read->data );
 
 	im_free( read );
 }

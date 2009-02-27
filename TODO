@@ -22,7 +22,11 @@
 
 - update the Portfiles on the mac and on the website from the macports ones
 
-- can we add .mat file import? see libmatio, and PDFs on sourceforge
+- try
+
+	vips im_copy skdjjfhwlfj t.v
+
+  stupid error message (does not say "file not found")
 
 - add HDR support?
 
