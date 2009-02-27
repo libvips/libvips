@@ -609,41 +609,6 @@ static im_function affinei_all_desc = {
 	affinei_all_args 		/* Arg list */
 };
 
-/* similarity args
- */
-static im_arg_desc similarity_args[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_DOUBLE( "a" ),
-	IM_INPUT_DOUBLE( "b" ),
-	IM_INPUT_DOUBLE( "dx" ),
-	IM_INPUT_DOUBLE( "dy" )
-};
-
-/* Call im_similarity via arg vector.
- */
-static int
-similarity_vec( im_object *argv )
-{
-	double a = *((double *) argv[2]);
-	double b = *((double *) argv[3]);
-	double dx = *((double *) argv[4]);
-	double dy = *((double *) argv[5]);
-
-	return( im_similarity( argv[0], argv[1], a, b, dx, dy ) );
-}
-
-/* Description of im_similarity.
- */ 
-static im_function similarity_desc = {
-	"im_similarity", 		/* Name */
-	"similarity transformation",
-	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
-	similarity_vec, 		/* Dispatch function */
-	IM_NUMBER( similarity_args ), 	/* Size of arg list */
-	similarity_args 		/* Arg list */
-};
-
 /* match_linear args
  */
 static im_arg_desc match_linear_args[] = {
@@ -787,50 +752,6 @@ static im_function correl_desc = {
 	correl_args 			/* Arg list */
 };
 
-/* similarity_area args
- */
-static im_arg_desc similarity_area_args[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_DOUBLE( "a" ),
-	IM_INPUT_DOUBLE( "b" ),
-	IM_INPUT_DOUBLE( "dx" ),
-	IM_INPUT_DOUBLE( "dy" ),
-	IM_INPUT_INT( "x" ),
-	IM_INPUT_INT( "y" ),
-	IM_INPUT_INT( "w" ),
-	IM_INPUT_INT( "h" )
-};
-
-/* Call im_similarity_area via arg vector.
- */
-static int
-similarity_area_vec( im_object *argv )
-{
-	double a = *((double *) argv[2]);
-	double b = *((double *) argv[3]);
-	double dx = *((double *) argv[4]);
-	double dy = *((double *) argv[5]);
-	int x = *((int *) argv[6]);
-	int y = *((int *) argv[7]);
-	int w = *((int *) argv[8]);
-	int h = *((int *) argv[9]);
-
-	return( im_similarity_area( argv[0], argv[1], a, b, dx, dy,
-		x, y, w, h ) );
-}
-
-/* Description of im_similarity_area.
- */ 
-static im_function similarity_area_desc = {
-	"im_similarity_area", 		/* Name */
-	"output area xywh of similarity transformation",
-	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
-	similarity_area_vec, 		/* Dispatch function */
-	IM_NUMBER( similarity_area_args ), /* Size of arg list */
-	similarity_area_args 		/* Arg list */
-};
-
 /* global_balance args
  */
 static im_arg_desc global_balance_args[] = {
@@ -966,8 +887,6 @@ static im_function *mos_list[] = {
 	&match_linear_search_desc,
         &maxpos_subpel_desc,
 	&remosaic_desc,
-	&similarity_area_desc,
-	&similarity_desc,
 	&tbmerge_desc,
 	&tbmerge1_desc,
 	&tbmosaic_desc,
