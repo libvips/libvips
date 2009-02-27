@@ -28,6 +28,19 @@
  */
 
 /*
+
+	Remaining issues:
+
+* it transposes images, I think, since Matlab seems to use column-major order
+* will colour images work? no idea, needs testing
+* it will not do complex images
+* it will not handle sparse matricies
+* it loads the first variable in the file with between 1 and 3 dimensions, is this sensible behaviour?
+* load only, no save
+
+ */
+
+/*
 #define DEBUG
  */
 
