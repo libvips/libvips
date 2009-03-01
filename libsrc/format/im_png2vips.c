@@ -12,6 +12,8 @@
  * 	- from vips_png.c
  * 8/5/06
  * 	- set RGB16/GREY16 if appropriate
+ * 28/2/09
+ * 	- small cleanups
  */
 
 /*

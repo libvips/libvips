@@ -203,6 +203,7 @@ im__format_init( void )
 	extern GType vips_format_csv_get_type();
 	extern GType vips_format_ppm_get_type();
 	extern GType vips_format_analyze_get_type();
+	extern GType vips_format_rad_get_type();
 
 	vips_format_vips_get_type();
 #ifdef HAVE_JPEG
@@ -213,10 +214,6 @@ im__format_init( void )
 	extern GType vips_format_png_get_type();
 	vips_format_png_get_type();
 #endif /*HAVE_PNG*/
-#ifdef HAVE_MATIO
-	extern GType vips_format_mat_get_type();
-	vips_format_mat_get_type();
-#endif /*HAVE_MATIO*/
 	vips_format_csv_get_type();
 	vips_format_ppm_get_type();
 	vips_format_analyze_get_type();
@@ -224,6 +221,11 @@ im__format_init( void )
 	extern GType vips_format_exr_get_type();
 	vips_format_exr_get_type();
 #endif /*HAVE_OPENEXR*/
+#ifdef HAVE_MATIO
+	extern GType vips_format_mat_get_type();
+	vips_format_mat_get_type();
+#endif /*HAVE_MATIO*/
+	vips_format_rad_get_type();
 #ifdef HAVE_MAGICK
 	extern GType vips_format_magick_get_type();
 	vips_format_magick_get_type();

@@ -33,8 +33,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -306,8 +306,6 @@ read_header( const char *header )
 	if( !(d = (struct dsr *) im__file_read_name( header, &len )) )
 		return( NULL );
 	if( len != sizeof( struct dsr ) ) {
-		im_error( "im_analyze2vips", 
-			"%s", _( "header file size incorrect" ) );
 		im_free( d );
 		return( NULL );
 	}
@@ -351,8 +349,6 @@ read_header( const char *header )
 	}
 
 	if( len != d->hk.sizeof_hdr ) {
-		im_error( "im_analyze2vips", 
-			"%s", _( "header file size incorrect" ) );
 		im_free( d );
 		return( NULL );
 	}
@@ -522,8 +518,11 @@ analyze2vips_header( const char *filename, IMAGE *out )
 	int fmt;
 
 	generate_filenames( filename, header, image );
-	if( !(d = read_header( header )) )
+	if( !(d = read_header( header )) ) {
+		im_error( "im_analyze2vips", 
+			"%s", _( "header file size incorrect" ) );
 		return( -1 );
+	}
 
 #ifdef DEBUG
 	print_dsr( d );
@@ -559,8 +558,11 @@ im_analyze2vips( const char *filename, IMAGE *out )
 		IM_ARCH_NATIVE : IM_ARCH_BYTE_SWAPPED;
 
 	generate_filenames( filename, header, image );
-	if( !(d = read_header( header )) )
+	if( !(d = read_header( header )) ) {
+		im_error( "im_analyze2vips", 
+			"%s", _( "header file size incorrect" ) );
 		return( -1 );
+	}
 
 #ifdef DEBUG
 	print_dsr( d );
