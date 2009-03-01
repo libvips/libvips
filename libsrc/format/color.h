@@ -200,43 +200,6 @@ extern COLOR  cblack, cwhite;	/* black (0,0,0) and white (1,1,1) */
 
 #define  cpcolormat(md,ms)	memcpy((void *)md,(void *)ms,sizeof(COLORMAT))
 
-					/* defined in color.c */
-extern char	*tempbuffer(unsigned int len);
-extern int	fwritecolrs(COLR *scanline, int len, FILE *fp);
-extern int	freadcolrs(COLR *scanline, int len, FILE *fp);
-extern int	fwritescan(COLOR *scanline, int len, FILE *fp);
-extern int	freadscan(COLOR *scanline, int len, FILE *fp);
-extern void	setcolr(COLR clr, double r, double g, double b);
-extern void	colr_color(COLOR col, COLR clr);
-extern int	bigdiff(COLOR c1, COLOR c2, double md);
-					/* defined in spec_rgb.c */
-extern void	spec_rgb(COLOR col, int s, int e);
-extern void	spec_cie(COLOR col, int s, int e);
-extern void	cie_rgb(COLOR rgb, COLOR xyz);
-extern int	clipgamut(COLOR col, double brt, int gamut,
-				COLOR lower, COLOR upper);
-extern void	colortrans(COLOR c2, COLORMAT mat, COLOR c1);
-extern void	multcolormat(COLORMAT m3, COLORMAT m2,
-					COLORMAT m1);
-extern int	colorprimsOK(RGBPRIMS pr);
-extern int	compxyz2rgbmat(COLORMAT mat, RGBPRIMS pr);
-extern int	comprgb2xyzmat(COLORMAT mat, RGBPRIMS pr);
-extern int	comprgb2rgbmat(COLORMAT mat, RGBPRIMS pr1, RGBPRIMS pr2);
-extern int	compxyzWBmat(COLORMAT mat, float wht1[2],
-				float wht2[2]);
-extern int	compxyz2rgbWBmat(COLORMAT mat, RGBPRIMS pr);
-extern int	comprgb2xyzWBmat(COLORMAT mat, RGBPRIMS pr);
-extern int	comprgb2rgbWBmat(COLORMAT mat, RGBPRIMS pr1, RGBPRIMS pr2);
-					/* defined in colrops.c */
-extern int	setcolrcor(double (*f)(double, double), double a2);
-extern int	setcolrinv(double (*f)(double, double), double a2);
-extern int	setcolrgam(double g);
-extern int	colrs_gambs(COLR *scan, int len);
-extern int	gambs_colrs(COLR *scan, int len);
-extern void	shiftcolrs(COLR *scan, int len, int adjust);
-extern void	normcolrs(COLR *scan, int len, int adjust);
-
-
 #ifdef __cplusplus
 }
 #endif

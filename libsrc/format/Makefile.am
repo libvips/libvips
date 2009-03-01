@@ -1,13 +1,9 @@
 noinst_LTLIBRARIES = libformat.la
 
 libformat_la_SOURCES = \
-	color.h \
-	color.c \
-	copyright.h \
 	dbh.h \
 	format.c \
 	format_dispatch.c \
-	header.c \
 	im_analyze2vips.c \
 	im_csv2vips.c \
 	im_exr2vips.c \
@@ -25,9 +21,6 @@ libformat_la_SOURCES = \
 	im_vips2png.c \
 	im_vips2ppm.c \
 	im_vips2tiff.c \
-	im_vips2raw.c \
-	resolu.c \
-	resolu.h \
-	rtio.h 
+	im_vips2raw.c 
 
 INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
