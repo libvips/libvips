@@ -29,7 +29,7 @@
 
 /*
 
-    Sections of this reader come from Greg Ward and Radiance with kind 
+    Sections of this reader from Greg Ward and Radiance with kind 
     permission. The Radience copyright notice appears below.
 
  */
