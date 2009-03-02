@@ -29,6 +29,22 @@
 
 /*
 
+	Remaining issues:
+
++ the whole image is unpacked to a 3-band float and so will (potentially) 
+  need a fair bit of memory
+
+  we could just read RGBE/XYZE and leave it at 4 bytes per pixel, then 
+  unpack on the fly with an operator along the lines of LabQ2Lab
+
++ it ignores some header fields, like VIEW and DATE
+
++ it will not rotate/flip as the FORMAT string asks
+
+ */
+
+/*
+
     Sections of this reader from Greg Ward and Radiance with kind 
     permission. The Radience copyright notice appears below.
 
@@ -936,8 +952,7 @@ rad2vips_get_data( Read *read, FILE *fin, IMAGE *im )
 
 	for( y = 0; y < im->Ysize; y++ ) {
 		if( freadscan( read->buf, im->Xsize, fin ) ) {
-			im_error( "rad2vips", "%s",
-				_( "read error" ) );
+			im_error( "rad2vips", "%s", _( "read error" ) );
 			return( -1 );
 		}
 		if( im_writeline( y, im, (void *) read->buf ) )
