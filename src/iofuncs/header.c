@@ -90,7 +90,7 @@ print_error( const char *fmt, ... )
         va_start( ap, fmt );
         vfprintf( stderr, fmt, ap );
         va_end( ap );
-        fprintf( stderr, "\n%s\n", im_error_buffer() );
+        fprintf( stderr, "\n%s", im_error_buffer() );
 	im_error_clear();
 }
 

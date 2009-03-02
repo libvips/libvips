@@ -380,12 +380,8 @@ im_open( const char *filename, const char *mode )
 				format->header, format->load, filename )) )
 				return( NULL );
 		}
-		else {
-			im_error( "im_open", 
-				_( "\"%s\" is not in a recognised format" ),
-				filename );
+		else 
 			return( NULL );
-		}
         	break;
 
 	case 'w':

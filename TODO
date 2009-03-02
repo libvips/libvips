@@ -1,5 +1,8 @@
 
 
+- im_rad2vips should be radiance.c? same for im_mat2vips? new naming
+  convention
+
 - move im_shrink & friends to resample?
 
   match_linear, match_linear_search?
@@ -22,11 +25,6 @@
 
 - update the Portfiles on the mac and on the website from the macports ones
 
-- try
-
-	vips im_copy skdjjfhwlfj t.v
-
-  stupid error message (does not say "file not found")
 
 
 

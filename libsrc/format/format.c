@@ -265,16 +265,16 @@ vips_format_for_file( const char *name )
 	im_filename_split( name, filename, options );
 
 	if( !im_existsf( "%s", filename ) ) {
-		im_error( "vips_format_for_file", 
-			_( "\"%s\" is not readable" ), filename );
+		im_error( "format_for_file", 
+			_( "file \"%s\" not found" ), filename );
 		return( NULL );
 	}
 
 	if( !(format = (VipsFormatClass *) vips_format_map( 
 		(VSListMap2Fn) format_for_file_sub, 
 		(void *) name, (void *) filename )) ) {
-		im_error( "vips_format_for_file", 
-			_( "\"%s\" is not in a supported format" ), filename );
+		im_error( "format_for_file", 
+			_( "file \"%s\" not a known format" ), filename );
 		return( NULL );
 	}
 

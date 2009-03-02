@@ -999,10 +999,8 @@ vips_object_new_from_string_set( VipsObject *object, void *a, void *b )
 VipsObject *
 vips_object_new_from_string( const char *basename, const char *p )
 {
-	VipsToken token;
 	char string[PATH_MAX];
 	GType type;
-	VipsObject *object;
 
 	if( !(p = vips__token_need( p, VIPS_TOKEN_STRING, string, PATH_MAX )) ||
 		!(type = vips_type_find( basename, string )) ) 

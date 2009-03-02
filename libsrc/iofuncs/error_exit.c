@@ -69,7 +69,7 @@ error_exit( const char *fmt, ... )
 	va_end( ap );
 
 	fprintf( stderr, "\n" );
-	fprintf( stderr, "%s", im_errorstring() );
+	fprintf( stderr, "%s", im_error_buffer() );
 
 	exit( 1 );
 }
