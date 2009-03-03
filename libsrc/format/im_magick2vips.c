@@ -20,6 +20,8 @@
  * 	- use MaxRGB if QuantumRange is missing (thanks Bob)
  * 	- look for MAGICKCORE_HDRI_SUPPORT (thanks Marcel)
  * 	- use image->attributes if GetNextImageAttribute() is missing
+ * 3/3/09
+ * 	- allow funky bit depths, like 14 (thanks Mikkel)
  */
 
 /*
@@ -232,42 +234,30 @@ parse_header( Read *read )
 	if( (im->Bands = get_bands( image )) < 0 )
 		return( -1 );
 
-	switch( image->depth ) {
-	case 8:
-		im->BandFmt = IM_BANDFMT_UCHAR;
-		im->Bbits = IM_BBITS_BYTE;
-		break;
-
-	case 16:
-		im->BandFmt = IM_BANDFMT_USHORT;
-		im->Bbits = IM_BBITS_SHORT;
-		break;
-
-#ifdef UseHDRI
-	case 32:
-		im->BandFmt = IM_BANDFMT_FLOAT;
-		im->Bbits = IM_BBITS_FLOAT;
-		break;
-
-	case 64:
-		im->BandFmt = IM_BANDFMT_DOUBLE;
-		im->Bbits = IM_BBITS_DOUBLE;
-		break;
-#else /*!UseHDRI*/
-	case 32:
-		im->BandFmt = IM_BANDFMT_UINT;
-		im->Bbits = IM_BBITS_INT;
-		break;
-
-	/* No 64-bit int format in VIPS.
+	/* Depth can be 'fractional'. 
 	 */
+	im->BandFmt = -1;
+	if( image->depth >= 1 && image->depth <= 8 ) 
+		im->BandFmt = IM_BANDFMT_UCHAR;
+	if( image->depth >= 9 && image->depth <= 16 ) 
+		im->BandFmt = IM_BANDFMT_USHORT;
+#ifdef UseHDRI
+	if( image->depth == 32 )
+		im->BandFmt = IM_BANDFMT_FLOAT;
+	if( image->depth == 64 )
+		im->BandFmt = IM_BANDFMT_DOUBLE;
+#else /*!UseHDRI*/
+	if( image->depth == 32 )
+		im->BandFmt = IM_BANDFMT_UINT;
 #endif /*UseHDRI*/
 
-	default:
+	if( im->BandFmt == -1 ) {
 		im_error( "im_magick2vips", _( "unsupported bit depth %d" ),
 			(int) image->depth );
 		return( -1 );
 	}
+
+	im->Bbits = im_bits_of_fmt( im->BandFmt );
 
 	switch( image->colorspace ) {
 	case GRAYColorspace:
