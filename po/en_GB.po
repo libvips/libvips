@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: vips 7.16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-02 18:02+0000\n"
+"POT-Creation-Date: 2009-03-03 17:05+0000\n"
 "PO-Revision-Date: Fri Sep  5 10:27:43 BST 2008\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
@@ -12,11 +12,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libsrc/acquire/im_clamp.c:70 vips-7.17.1/libsrc/acquire/im_clamp.c:70
+#: libsrc/acquire/im_clamp.c:70
 msgid "bad input format"
 msgstr ""
 
-#: libsrc/acquire/im_clamp.c:75 vips-7.17.1/libsrc/acquire/im_clamp.c:75
+#: libsrc/acquire/im_clamp.c:75
 #, fuzzy
 msgid "bad black format"
 msgstr "bad colourmap"
@@ -36,36 +36,6 @@ msgstr "bad colourmap"
 #: libsrc/arithmetic/im_sintra.c:202 libsrc/arithmetic/im_expntra.c:184
 #: libsrc/arithmetic/im_tantra.c:117 libsrc/arithmetic/im_tantra.c:203
 #: libsrc/arithmetic/im_divide.c:186 libsrc/arithmetic/im_floor.c:106
-#: vips-7.17.1/libsrc/arithmetic/im_logtra.c:124
-#: vips-7.17.1/libsrc/arithmetic/im_sign.c:146
-#: vips-7.17.1/libsrc/arithmetic/im_subtract.c:187
-#: vips-7.17.1/libsrc/arithmetic/im_max.c:239
-#: vips-7.17.1/libsrc/arithmetic/im_remainder.c:108
-#: vips-7.17.1/libsrc/arithmetic/im_remainder.c:214
-#: vips-7.17.1/libsrc/arithmetic/im_multiply.c:203
-#: vips-7.17.1/libsrc/arithmetic/im_abs.c:221
-#: vips-7.17.1/libsrc/arithmetic/im_ceil.c:92
-#: vips-7.17.1/libsrc/arithmetic/im_avg.c:191
-#: vips-7.17.1/libsrc/arithmetic/im_add.c:255
-#: vips-7.17.1/libsrc/arithmetic/im_min.c:236
-#: vips-7.17.1/libsrc/arithmetic/im_deviate.c:199
-#: vips-7.17.1/libsrc/arithmetic/im_stats.c:241
-#: vips-7.17.1/libsrc/arithmetic/im_lintra.c:320
-#: vips-7.17.1/libsrc/arithmetic/im_measure.c:189
-#: vips-7.17.1/libsrc/arithmetic/im_log10tra.c:124
-#: vips-7.17.1/libsrc/arithmetic/im_powtra.c:184
-#: vips-7.17.1/libsrc/arithmetic/im_costra.c:117
-#: vips-7.17.1/libsrc/arithmetic/im_costra.c:202
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos.c:94
-#: vips-7.17.1/libsrc/arithmetic/im_invert.c:119
-#: vips-7.17.1/libsrc/arithmetic/im_rint.c:92
-#: vips-7.17.1/libsrc/arithmetic/im_sintra.c:117
-#: vips-7.17.1/libsrc/arithmetic/im_sintra.c:202
-#: vips-7.17.1/libsrc/arithmetic/im_expntra.c:184
-#: vips-7.17.1/libsrc/arithmetic/im_tantra.c:117
-#: vips-7.17.1/libsrc/arithmetic/im_tantra.c:203
-#: vips-7.17.1/libsrc/arithmetic/im_divide.c:186
-#: vips-7.17.1/libsrc/arithmetic/im_floor.c:106
 msgid "not uncoded"
 msgstr ""
 
@@ -73,26 +43,14 @@ msgstr ""
 #: libsrc/arithmetic/im_powtra.c:188 libsrc/arithmetic/im_sintra.c:121
 #: libsrc/arithmetic/im_sintra.c:206 libsrc/arithmetic/im_expntra.c:188
 #: libsrc/arithmetic/im_tantra.c:121 libsrc/arithmetic/im_tantra.c:207
-#: vips-7.17.1/libsrc/arithmetic/im_logtra.c:128
-#: vips-7.17.1/libsrc/arithmetic/im_log10tra.c:128
-#: vips-7.17.1/libsrc/arithmetic/im_powtra.c:188
-#: vips-7.17.1/libsrc/arithmetic/im_sintra.c:121
-#: vips-7.17.1/libsrc/arithmetic/im_sintra.c:206
-#: vips-7.17.1/libsrc/arithmetic/im_expntra.c:188
-#: vips-7.17.1/libsrc/arithmetic/im_tantra.c:121
-#: vips-7.17.1/libsrc/arithmetic/im_tantra.c:207
 msgid "not non-complex"
 msgstr ""
 
 #: libsrc/arithmetic/im_gadd.c:91 libsrc/arithmetic/im_gadd.c:107
-#: vips-7.17.1/libsrc/arithmetic/im_gadd.c:91
-#: vips-7.17.1/libsrc/arithmetic/im_gadd.c:107
 msgid "Unable to accept image1"
 msgstr ""
 
 #: libsrc/arithmetic/im_minpos.c:80 libsrc/format/im_vips2csv.c:128
-#: vips-7.17.1/libsrc/format/im_vips2csv.c:128
-#: vips-7.17.1/libsrc/arithmetic/im_minpos.c:80
 msgid "input must be uncoded"
 msgstr ""
 
@@ -102,502 +60,391 @@ msgstr ""
 #: libsrc/conversion/im_rightshift_size.c:130
 #: libsrc/conversion/im_vips2mask.c:86 libsrc/histograms_lut/im_project.c:258
 #: libsrc/histograms_lut/im_histgr.c:310
-#: vips-7.17.1/libsrc/histograms_lut/im_project.c:258
-#: vips-7.17.1/libsrc/histograms_lut/im_histgr.c:310
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_avg.c:95
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_vec.c:132
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_vec.c:178
-#: vips-7.17.1/libsrc/arithmetic/im_point_bilinear.c:75
-#: vips-7.17.1/libsrc/boolean/boolean.c:128
-#: vips-7.17.1/libsrc/conversion/im_rightshift_size.c:130
-#: vips-7.17.1/libsrc/conversion/im_vips2mask.c:86
 msgid "uncoded images only"
 msgstr ""
 
 #: libsrc/arithmetic/im_maxpos_avg.c:99 libsrc/arithmetic/im_maxpos_vec.c:122
 #: libsrc/arithmetic/im_maxpos_vec.c:168
 #: libsrc/arithmetic/im_point_bilinear.c:79
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_avg.c:99
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_vec.c:122
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_vec.c:168
-#: vips-7.17.1/libsrc/arithmetic/im_point_bilinear.c:79
 msgid "scalar images only"
 msgstr ""
 
 #: libsrc/arithmetic/im_maxpos_avg.c:103 libsrc/arithmetic/im_maxpos_vec.c:127
 #: libsrc/arithmetic/im_maxpos_vec.c:173
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_avg.c:103
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_vec.c:127
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_vec.c:173
 msgid "single band images only"
 msgstr ""
 
 #: libsrc/arithmetic/im_maxpos_avg.c:107 libsrc/arithmetic/im_maxpos_vec.c:137
 #: libsrc/arithmetic/im_maxpos_vec.c:183
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_avg.c:107
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_vec.c:137
-#: vips-7.17.1/libsrc/arithmetic/im_maxpos_vec.c:183
 msgid "invalid argument"
 msgstr ""
 
 #: libsrc/arithmetic/im_subtract.c:183 libsrc/arithmetic/im_remainder.c:104
 #: libsrc/arithmetic/im_multiply.c:199 libsrc/arithmetic/im_add.c:251
 #: libsrc/arithmetic/im_divide.c:182
-#: vips-7.17.1/libsrc/arithmetic/im_subtract.c:183
-#: vips-7.17.1/libsrc/arithmetic/im_remainder.c:104
-#: vips-7.17.1/libsrc/arithmetic/im_multiply.c:199
-#: vips-7.17.1/libsrc/arithmetic/im_add.c:251
-#: vips-7.17.1/libsrc/arithmetic/im_divide.c:182
 msgid "not same number of bands"
 msgstr ""
 
 #: libsrc/arithmetic/im_remainder.c:98 libsrc/arithmetic/im_multiply.c:193
-#: vips-7.17.1/libsrc/arithmetic/im_remainder.c:98
-#: vips-7.17.1/libsrc/arithmetic/im_multiply.c:193
 msgid "not same size"
 msgstr ""
 
 #: libsrc/arithmetic/im_remainder.c:219 libsrc/arithmetic/im_lintra.c:329
 #: libsrc/arithmetic/im_powtra.c:193 libsrc/arithmetic/im_expntra.c:193
-#: vips-7.17.1/libsrc/arithmetic/im_remainder.c:219
-#: vips-7.17.1/libsrc/arithmetic/im_lintra.c:329
-#: vips-7.17.1/libsrc/arithmetic/im_powtra.c:193
-#: vips-7.17.1/libsrc/arithmetic/im_expntra.c:193
 #, c-format
 msgid "not 1 or %d elements in vector"
 msgstr ""
 
 #: libsrc/arithmetic/im_remainder.c:241
-#: vips-7.17.1/libsrc/arithmetic/im_remainder.c:241
 msgid "division by zero"
 msgstr ""
 
-#: libsrc/arithmetic/im_abs.c:257 vips-7.17.1/libsrc/arithmetic/im_abs.c:257
+#: libsrc/arithmetic/im_abs.c:257
 msgid "unknown input type"
 msgstr ""
 
 #: libsrc/arithmetic/im_avg.c:187 libsrc/arithmetic/im_deviate.c:203
 #: libsrc/arithmetic/im_stats.c:237 libsrc/arithmetic/im_measure.c:193
 #: libsrc/arithmetic/im_costra.c:121 libsrc/arithmetic/im_costra.c:206
-#: vips-7.17.1/libsrc/arithmetic/im_avg.c:187
-#: vips-7.17.1/libsrc/arithmetic/im_deviate.c:203
-#: vips-7.17.1/libsrc/arithmetic/im_stats.c:237
-#: vips-7.17.1/libsrc/arithmetic/im_measure.c:193
-#: vips-7.17.1/libsrc/arithmetic/im_costra.c:121
-#: vips-7.17.1/libsrc/arithmetic/im_costra.c:206
 msgid "bad input type"
 msgstr ""
 
 #: libsrc/arithmetic/im_bandmean.c:142
-#: vips-7.17.1/libsrc/arithmetic/im_bandmean.c:142
 msgid "uncoded multiband only"
 msgstr ""
 
-#: libsrc/arithmetic/im_add.c:191 vips-7.17.1/libsrc/arithmetic/im_add.c:191
+#: libsrc/arithmetic/im_add.c:191
 #, c-format
 msgid "not one band or %d bands"
 msgstr ""
 
-#: libsrc/arithmetic/im_add.c:195 vips-7.17.1/libsrc/arithmetic/im_add.c:195
+#: libsrc/arithmetic/im_add.c:195
 msgid "bad bands"
 msgstr ""
 
 #: libsrc/arithmetic/im_measure.c:106
-#: vips-7.17.1/libsrc/arithmetic/im_measure.c:106
 #, c-format
 msgid "patch %d is out of range"
 msgstr ""
 
 #: libsrc/arithmetic/im_measure.c:148
-#: vips-7.17.1/libsrc/arithmetic/im_measure.c:148
 #, c-format
 msgid "patch %d, band %d: avg = %g, sdev = %g"
 msgstr ""
 
 #: libsrc/arithmetic/im_invert.c:123
-#: vips-7.17.1/libsrc/arithmetic/im_invert.c:123
 msgid "not UCHAR"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:79
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:79
 msgid "absolute value"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:98 libsrc/iofuncs/type.c:345
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:98
 msgid "add two images"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:123
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:123
 msgid "average value of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:171
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:171
 msgid "multiply two complex images, normalising output"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:196
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:196
 msgid "standard deviation of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:215
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:215
 msgid "10^pel of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:234
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:234
 msgid "e^pel of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:263
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:263
 msgid "x^pel of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:292
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:292
 msgid "[x,y,z]^pel of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:328
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:328
 msgid "average of 4 images"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:347
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:347
 msgid "divide two images"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:381
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:381
 msgid "calculate a*in1 + b*in2 + c = outfile"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:400
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:400
 msgid "photographic negative"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:431
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:431
 msgid "calculate a*in + b = outfile"
 msgstr ""
 
 #: libsrc/arithmetic/arith_dispatch.c:457
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:457
 msgid "vectors not equal length"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:468
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:468
 msgid "calculate a*in + b -> out, a and b vectors"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:500
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:500
 msgid "calculate max(white)*factor*(in/white), if clip == 1"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:519
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:519
 msgid "log10 of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:538
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:538
 msgid "ln of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:557
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:557
 msgid "tan of image (angles in degrees)"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:576
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:576
 msgid "atan of image (result in degrees)"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:595
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:595
 msgid "cos of image (angles in degrees)"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:614
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:614
 msgid "acos of image (result in degrees)"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:633
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:633
 msgid "round to smallest integal value not less than"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:652
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:652
 msgid "round to largest integal value not greater than"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:671
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:671
 msgid "round to nearest integal value"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:690
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:690
 msgid "sin of image (angles in degrees)"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:709
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:709
 msgid "average image bands"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:728
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:728
 msgid "unit vector in direction of value"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:747
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:747
 msgid "asin of image (result in degrees)"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:772
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:772
 msgid "maximum value of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:807
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:807
 msgid "position of maximum value of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:973
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:973
 msgid "measure averages of a grid of patches"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:998
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:998
 msgid "minimum value of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1026
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1026
 msgid "position of minimum value of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1045
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1045
 msgid "remainder after integer division"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1074
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1074
 msgid "remainder after integer division by a constant"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1103
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1103
 msgid "remainder after integer division by a vector of constants"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1123
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1123
 msgid "multiply two images"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1144
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1144
 msgid "pel^x ofbuildimage"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1165
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1165
 msgid "pel^[x,y,z] of image"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1196
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1196
 msgid "many image statistics in one pass"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1215
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1215
 msgid "subtract two images"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1263
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1263
 msgid "pixelwise linear regression"
 msgstr ""
 
 #. Name
 #: libsrc/arithmetic/arith_dispatch.c:1282
-#: vips-7.17.1/libsrc/arithmetic/arith_dispatch.c:1282
 msgid "phase of cross power spectrum of two complex images"
 msgstr ""
 
 #: libsrc/arithmetic/im_point_bilinear.c:83
 #: libsrc/arithmetic/im_point_bilinear.c:97
-#: vips-7.17.1/libsrc/arithmetic/im_point_bilinear.c:83
-#: vips-7.17.1/libsrc/arithmetic/im_point_bilinear.c:97
 msgid "coords outside image"
 msgstr ""
 
 #: libsrc/arithmetic/im_point_bilinear.c:87
-#: vips-7.17.1/libsrc/arithmetic/im_point_bilinear.c:87
 msgid "invalid arguments"
 msgstr ""
 
-#: libsrc/boolean/boolean.c:140 vips-7.17.1/libsrc/boolean/boolean.c:140
+#: libsrc/boolean/boolean.c:140
 msgid "images differ in size"
 msgstr ""
 
 #: libsrc/boolean/boolean.c:458 libsrc/boolean/boolean.c:483
-#: libsrc/boolean/boolean.c:508 vips-7.17.1/libsrc/boolean/boolean.c:458
-#: vips-7.17.1/libsrc/boolean/boolean.c:483
-#: vips-7.17.1/libsrc/boolean/boolean.c:508
+#: libsrc/boolean/boolean.c:508
 msgid "vec size does not match bands"
 msgstr ""
 
-#: libsrc/colour/im_disp2XYZ.c:93 vips-7.17.1/libsrc/colour/im_disp2XYZ.c:93
+#: libsrc/colour/im_disp2XYZ.c:93
 msgid "input not 3-band uncoded char"
 msgstr ""
 
-#: libsrc/colour/im_XYZ2disp.c:143 vips-7.17.1/libsrc/colour/im_XYZ2disp.c:143
+#: libsrc/colour/im_rad2float.c:178
+msgid "not a 4-band uchar uncoded image"
+msgstr ""
+
+#: libsrc/colour/im_XYZ2disp.c:143
 msgid "3-band uncoded float only"
 msgstr ""
 
 #: libsrc/colour/im_Lab2XYZ.c:121 libsrc/colour/im_XYZ2Lab.c:163
-#: vips-7.17.1/libsrc/colour/im_Lab2XYZ.c:121
-#: vips-7.17.1/libsrc/colour/im_XYZ2Lab.c:163
 msgid "not 3-band uncoded float"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:63
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:63
 msgid "lcms library not linked to this VIPS"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:73 libsrc/colour/im_icc_transform.c:82
 #: libsrc/colour/im_icc_transform.c:92 libsrc/colour/im_icc_transform.c:102
 #: libsrc/colour/im_icc_transform.c:111
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:73
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:82
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:92
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:102
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:111
 msgid "lmcs library not linked to this VIPS"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:233 libsrc/colour/im_icc_transform.c:243
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:233
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:243
 #, c-format
 msgid "unable to open profile \"%s\""
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:254
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:254
 msgid "unable to create profiles"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:273
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:273
 msgid "unable to read profile"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:386 libsrc/colour/im_icc_transform.c:523
 #: libsrc/conversion/im_gbandjoin.c:191
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:386
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:523
-#: vips-7.17.1/libsrc/conversion/im_gbandjoin.c:191
 msgid "uncoded input only"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:414
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:414
 msgid "CMYK input profile needs a 4 band input image"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:424
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:424
 msgid "RGB input profile needs a 3 band input image"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:432 libsrc/colour/im_icc_transform.c:565
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:432
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:565
 #, fuzzy, c-format
 msgid "unimplemented input colour space 0x%x"
 msgstr "unsupported colourspace %d"
 
 #: libsrc/colour/im_icc_transform.c:460 libsrc/colour/im_icc_transform.c:723
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:460
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:723
 #, fuzzy, c-format
 msgid "unimplemented output colour space 0x%x"
 msgstr "unsupported colourspace %d"
 
 #: libsrc/colour/im_icc_transform.c:476 libsrc/colour/im_icc_transform.c:581
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:476
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:581
 msgid "uchar or ushort input only"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:529
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:529
 #, c-format
 msgid ""
 "intent %d (%s) not supported by profile; falling back to default intent "
@@ -605,193 +452,146 @@ msgid ""
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:547
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:547
 msgid "CMYK profile needs a 4 band input image"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:557
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:557
 msgid "RGB profile needs a 3 band input image"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:620
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:620
 msgid "no embedded profile"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:676
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:676
 msgid "3-band uncoded Lab float only"
 msgstr ""
 
 #: libsrc/colour/im_icc_transform.c:681
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:681
 #, fuzzy
 msgid "unsupported bit depth"
 msgstr "unsupported colourspace %d"
 
 #: libsrc/colour/im_icc_transform.c:766
-#: vips-7.17.1/libsrc/colour/im_icc_transform.c:766
 msgid "unable to get media white point"
 msgstr ""
 
 #: libsrc/conversion/im_rot90.c:142 libsrc/conversion/im_rot180.c:140
 #: libsrc/conversion/im_rot270.c:142 libsrc/format/im_vips2ppm.c:277
 #: libsrc/inplace/im_flood.c:330 libsrc/inplace/im_flood.c:377
-#: vips-7.17.1/libsrc/format/im_vips2ppm.c:277
-#: vips-7.17.1/libsrc/inplace/im_flood.c:330
-#: vips-7.17.1/libsrc/inplace/im_flood.c:377
-#: vips-7.17.1/libsrc/conversion/im_rot90.c:142
-#: vips-7.17.1/libsrc/conversion/im_rot180.c:140
-#: vips-7.17.1/libsrc/conversion/im_rot270.c:142
 msgid "uncoded or IM_CODING_LABQ only"
 msgstr ""
 
 #: libsrc/conversion/im_rightshift_size.c:114 libsrc/conversion/im_msb.c:213
 #: libsrc/convolution/rw_mask.c:141 libsrc/convolution/rw_mask.c:198
 #: libsrc/convolution/rw_mask.c:434
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:141
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:198
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:434
-#: vips-7.17.1/libsrc/conversion/im_rightshift_size.c:114
-#: vips-7.17.1/libsrc/conversion/im_msb.c:213
 msgid "bad arguments"
 msgstr ""
 
 #: libsrc/conversion/im_rightshift_size.c:118
-#: vips-7.17.1/libsrc/conversion/im_rightshift_size.c:118
 msgid "shift by zero: falling back to im_copy"
 msgstr ""
 
 #: libsrc/conversion/im_rightshift_size.c:122
-#: vips-7.17.1/libsrc/conversion/im_rightshift_size.c:122
 msgid "would result in zero size output image"
 msgstr ""
 
 #: libsrc/conversion/im_rightshift_size.c:126
-#: vips-7.17.1/libsrc/conversion/im_rightshift_size.c:126
 msgid "integer type images only"
 msgstr ""
 
 #: libsrc/conversion/im_rightshift_size.c:135
-#: vips-7.17.1/libsrc/conversion/im_rightshift_size.c:135
 msgid "unsigned input means that output must be unsigned int, short or char"
 msgstr ""
 
 #: libsrc/conversion/im_rightshift_size.c:141
-#: vips-7.17.1/libsrc/conversion/im_rightshift_size.c:141
 msgid "signed input means that output must be signed int, short or char"
 msgstr ""
 
 #: libsrc/conversion/im_insert.c:234 libsrc/conversion/im_insert.c:324
 #: libsrc/inplace/im_insertplace.c:84
-#: vips-7.17.1/libsrc/inplace/im_insertplace.c:84
-#: vips-7.17.1/libsrc/conversion/im_insert.c:234
-#: vips-7.17.1/libsrc/conversion/im_insert.c:324
 msgid "inputs differ in format"
 msgstr ""
 
 #: libsrc/conversion/im_insert.c:239 libsrc/conversion/im_insert.c:329
 #: libsrc/inplace/im_insertplace.c:89
-#: vips-7.17.1/libsrc/inplace/im_insertplace.c:89
-#: vips-7.17.1/libsrc/conversion/im_insert.c:239
-#: vips-7.17.1/libsrc/conversion/im_insert.c:329
 msgid "input should be uncoded or IM_CODING_LABQ"
 msgstr ""
 
 #: libsrc/conversion/im_insert.c:243 libsrc/conversion/im_insert.c:333
-#: vips-7.17.1/libsrc/conversion/im_insert.c:243
-#: vips-7.17.1/libsrc/conversion/im_insert.c:333
 msgid "xy out of range"
 msgstr ""
 
 #: libsrc/conversion/im_falsecolour.c:340
-#: vips-7.17.1/libsrc/conversion/im_falsecolour.c:340
 msgid "input image not one band uchar uncoded"
 msgstr ""
 
-#: libsrc/conversion/im_text.c:146 vips-7.17.1/libsrc/conversion/im_text.c:146
+#: libsrc/conversion/im_text.c:146
 msgid "no text to render"
 msgstr ""
 
-#: libsrc/conversion/im_text.c:202 vips-7.17.1/libsrc/conversion/im_text.c:202
+#: libsrc/conversion/im_text.c:202
 msgid "invalid markup in text"
 msgstr ""
 
-#: libsrc/conversion/im_text.c:235 vips-7.17.1/libsrc/conversion/im_text.c:235
+#: libsrc/conversion/im_text.c:235
 msgid "pangoft2 support disabled"
 msgstr ""
 
 #: libsrc/conversion/im_msb.c:143 libsrc/conversion/im_msb.c:230
-#: vips-7.17.1/libsrc/conversion/im_msb.c:143
-#: vips-7.17.1/libsrc/conversion/im_msb.c:230
 msgid "char, short or int only"
 msgstr ""
 
 #: libsrc/conversion/im_msb.c:179 libsrc/conversion/im_msb.c:278
 #: libsrc/conversion/im_extract.c:180
-#: vips-7.17.1/libsrc/conversion/im_msb.c:179
-#: vips-7.17.1/libsrc/conversion/im_msb.c:278
-#: vips-7.17.1/libsrc/conversion/im_extract.c:180
 msgid "unknown coding"
 msgstr ""
 
 #: libsrc/conversion/im_msb.c:237 libsrc/conversion/im_msb.c:264
-#: vips-7.17.1/libsrc/conversion/im_msb.c:237
-#: vips-7.17.1/libsrc/conversion/im_msb.c:264
 msgid "image does not have that many bands"
 msgstr ""
 
 #: libsrc/conversion/im_bernd.c:69 libsrc/format/im_vips2jpeg.c:886
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:886
-#: vips-7.17.1/libsrc/conversion/im_bernd.c:69
 msgid "error writing output"
 msgstr ""
 
 #: libsrc/conversion/im_copy.c:134 libsrc/conversion/im_copy.c:281
 #: libsrc/conversion/im_clip.c:441 libsrc/conversion/im_fliphor.c:128
-#: vips-7.17.1/libsrc/conversion/im_copy.c:134
-#: vips-7.17.1/libsrc/conversion/im_copy.c:281
-#: vips-7.17.1/libsrc/conversion/im_clip.c:441
-#: vips-7.17.1/libsrc/conversion/im_fliphor.c:128
 msgid "in must be uncoded"
 msgstr ""
 
-#: libsrc/conversion/im_copy.c:138 vips-7.17.1/libsrc/conversion/im_copy.c:138
+#: libsrc/conversion/im_copy.c:138
 msgid "Coding must be NONE or LABQ"
 msgstr ""
 
-#: libsrc/conversion/im_copy.c:142 vips-7.17.1/libsrc/conversion/im_copy.c:142
+#: libsrc/conversion/im_copy.c:142
 #, c-format
 msgid "BandFmt must be in range [0,%d]"
 msgstr ""
 
-#: libsrc/conversion/im_copy.c:165 vips-7.17.1/libsrc/conversion/im_copy.c:165
+#: libsrc/conversion/im_copy.c:165
 msgid "sizeof( pixel ) has changed"
 msgstr ""
 
-#: libsrc/conversion/im_copy.c:318 vips-7.17.1/libsrc/conversion/im_copy.c:318
+#: libsrc/conversion/im_copy.c:318
 #, fuzzy
 msgid "unsupported image type"
 msgstr "unsupported colourspace %d"
 
-#: libsrc/conversion/im_copy.c:345 vips-7.17.1/libsrc/conversion/im_copy.c:345
+#: libsrc/conversion/im_copy.c:345
 #, c-format
 msgid "bad architecture: %d"
 msgstr ""
 
 #: libsrc/conversion/im_extract.c:166
-#: vips-7.17.1/libsrc/conversion/im_extract.c:166
 msgid "band selection out of range"
 msgstr ""
 
 #: libsrc/conversion/im_extract.c:174
-#: vips-7.17.1/libsrc/conversion/im_extract.c:174
 msgid "bad extract area"
 msgstr ""
 
 #: libsrc/conversion/im_extract.c:188
-#: vips-7.17.1/libsrc/conversion/im_extract.c:188
 msgid "can only extract areas from LABQ"
 msgstr ""
 
@@ -799,37 +599,29 @@ msgstr ""
 #: libsrc/format/im_vips2tiff.c:1587 libsrc/format/im_file2vips.c:758
 #: libsrc/iofuncs/im_open_vips.c:1077 libsrc/mosaicing/im_tbmerge.c:633
 #: libsrc/mosaicing/im_lrmerge.c:811 libsrc/resample/im_affine.c:440
-#: vips-7.17.1/libsrc/mosaicing/im_tbmerge.c:633
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:811
-#: vips-7.17.1/libsrc/convolution/im_shrink.c:318
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1587
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:1077
-#: vips-7.17.1/libsrc/conversion/im_zoom.c:328
-#: vips-7.17.1/libsrc/resample/im_affine.c:440
 msgid "unknown coding type"
 msgstr ""
 
-#: libsrc/conversion/im_zoom.c:332 vips-7.17.1/libsrc/conversion/im_zoom.c:332
+#: libsrc/conversion/im_zoom.c:332
 msgid "zoom factors should be >= 0"
 msgstr ""
 
 #. Make sure we won't get integer overflow.
 #.
-#: libsrc/conversion/im_zoom.c:339 vips-7.17.1/libsrc/conversion/im_zoom.c:339
+#: libsrc/conversion/im_zoom.c:339
 msgid "zoom factors too large"
 msgstr ""
 
-#: libsrc/conversion/im_clip.c:124 vips-7.17.1/libsrc/conversion/im_clip.c:124
+#: libsrc/conversion/im_clip.c:124
 #, c-format
 msgid "%d underflows and %d overflows detected"
 msgstr ""
 
-#: libsrc/conversion/im_clip.c:445 vips-7.17.1/libsrc/conversion/im_clip.c:445
+#: libsrc/conversion/im_clip.c:445
 msgid "ofmt out of range"
 msgstr ""
 
 #: libsrc/conversion/im_vips2mask.c:103
-#: vips-7.17.1/libsrc/conversion/im_vips2mask.c:103
 msgid "one band, nx1, or 1xn images only"
 msgstr ""
 
@@ -837,226 +629,168 @@ msgstr ""
 #: libsrc/convolution/im_contrast_surface.c:153
 #: libsrc/format/im_tile_cache.c:373 libsrc/iofuncs/im_render.c:1188
 #: libsrc/iofuncs/im_binfile.c:93
-#: vips-7.17.1/libsrc/convolution/im_contrast_surface.c:153
-#: vips-7.17.1/libsrc/format/im_tile_cache.c:373
-#: vips-7.17.1/libsrc/iofuncs/im_render.c:1188
-#: vips-7.17.1/libsrc/iofuncs/im_binfile.c:93
-#: vips-7.17.1/libsrc/conversion/im_grid.c:151
 msgid "bad parameters"
 msgstr ""
 
-#: libsrc/conversion/im_grid.c:156 vips-7.17.1/libsrc/conversion/im_grid.c:156
+#: libsrc/conversion/im_grid.c:156
 msgid "bad grid geometry"
 msgstr ""
 
 #: libsrc/conversion/im_gbandjoin.c:175
-#: vips-7.17.1/libsrc/conversion/im_gbandjoin.c:175
 msgid "zero input images!"
 msgstr ""
 
 #: libsrc/conversion/im_gbandjoin.c:197
-#: vips-7.17.1/libsrc/conversion/im_gbandjoin.c:197
 msgid "input images differ in format"
 msgstr ""
 
 #: libsrc/conversion/im_gbandjoin.c:203
-#: vips-7.17.1/libsrc/conversion/im_gbandjoin.c:203
 msgid "input images differ in size"
 msgstr ""
 
 #: libsrc/conversion/im_subsample.c:199
-#: vips-7.17.1/libsrc/conversion/im_subsample.c:199
 msgid "factors should both be >= 1"
 msgstr ""
 
 #: libsrc/conversion/im_subsample.c:217 libsrc/convolution/im_shrink.c:267
-#: vips-7.17.1/libsrc/convolution/im_shrink.c:267
-#: vips-7.17.1/libsrc/conversion/im_subsample.c:217
 msgid "image has shrunk to nothing"
 msgstr ""
 
 #: libsrc/convolution/im_contrast_surface.c:147
-#: vips-7.17.1/libsrc/convolution/im_contrast_surface.c:147
 msgid "one band uncoded uchar only"
 msgstr ""
 
 #: libsrc/convolution/im_contrast_surface.c:160
-#: vips-7.17.1/libsrc/convolution/im_contrast_surface.c:160
 msgid "parameters would result in zero size output image"
 msgstr ""
 
 #: libsrc/convolution/im_zerox.c:138
-#: vips-7.17.1/libsrc/convolution/im_zerox.c:138
 msgid "flag not -1 ot 1"
 msgstr ""
 
 #: libsrc/convolution/im_zerox.c:144 libsrc/convolution/im_convsepf.c:290
 #: libsrc/convolution/im_convsep.c:383 libsrc/convolution/im_convf.c:289
-#: vips-7.17.1/libsrc/convolution/im_zerox.c:144
-#: vips-7.17.1/libsrc/convolution/im_convsepf.c:290
-#: vips-7.17.1/libsrc/convolution/im_convsep.c:383
-#: vips-7.17.1/libsrc/convolution/im_convf.c:289
 msgid "non-complex uncoded only"
 msgstr ""
 
 #: libsrc/convolution/im_zerox.c:148
-#: vips-7.17.1/libsrc/convolution/im_zerox.c:148
 msgid "image too narrow"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:254
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:254
 #, c-format
 msgid "Unable to open \"%s\" for input"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:268
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:268
 msgid "unexpected EOF"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:307
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:307
 msgid "error reading matrix header"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:312
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:312
 msgid "scale should be non-zero"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:392
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:392
 msgid "scale and offset should be int"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:400
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:400
 #, c-format
 msgid "cofficient at position (%d, %d) is not int"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:542 libsrc/format/im_vips2tiff.c:265
-#: libsrc/format/im_vips2ppm.c:93 vips-7.17.1/libsrc/convolution/rw_mask.c:542
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:265
-#: vips-7.17.1/libsrc/format/im_vips2ppm.c:93
+#: libsrc/format/im_vips2ppm.c:93
 #, c-format
 msgid "unable to open \"%s\" for output"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:559
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:559
 msgid "write error, disc full?"
 msgstr ""
 
 #: libsrc/convolution/rw_mask.c:617 libsrc/convolution/rw_mask.c:668
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:617
-#: vips-7.17.1/libsrc/convolution/rw_mask.c:668
 msgid "filename not set"
 msgstr ""
 
 #: libsrc/convolution/im_sharpen.c:249
-#: vips-7.17.1/libsrc/convolution/im_sharpen.c:249
 msgid "input not 3-band short"
 msgstr ""
 
 #: libsrc/convolution/im_sharpen.c:260
-#: vips-7.17.1/libsrc/convolution/im_sharpen.c:260
 msgid "parameters out of range"
 msgstr ""
 
 #: libsrc/convolution/im_spcor.c:257
-#: vips-7.17.1/libsrc/convolution/im_spcor.c:257
 msgid "ref not smaller than in"
 msgstr ""
 
 #: libsrc/convolution/im_spcor.c:269
-#: vips-7.17.1/libsrc/convolution/im_spcor.c:269
 msgid "input not uncoded 1 band"
 msgstr ""
 
 #: libsrc/convolution/im_spcor.c:277
-#: vips-7.17.1/libsrc/convolution/im_spcor.c:277
 msgid "input not char/uchar/short/ushort"
 msgstr ""
 
 #: libsrc/convolution/im_shrink.c:231
-#: vips-7.17.1/libsrc/convolution/im_shrink.c:231
 #, fuzzy
 msgid "unsupported input format"
 msgstr "unsupported colourspace %d"
 
 #: libsrc/convolution/im_shrink.c:246
-#: vips-7.17.1/libsrc/convolution/im_shrink.c:246
 msgid "non-complex input only"
 msgstr ""
 
 #: libsrc/convolution/im_shrink.c:251
-#: vips-7.17.1/libsrc/convolution/im_shrink.c:251
 msgid "shrink factors should both be >1"
 msgstr ""
 
 #: libsrc/convolution/im_convsepf.c:296
-#: vips-7.17.1/libsrc/convolution/im_convsepf.c:296
 msgid "bad mask parameters"
 msgstr ""
 
 #: libsrc/convolution/im_convsepf.c:301 libsrc/convolution/im_convsep.c:394
-#: vips-7.17.1/libsrc/convolution/im_convsepf.c:301
-#: vips-7.17.1/libsrc/convolution/im_convsep.c:394
 msgid "expect 1xN or Nx1 input mask"
 msgstr ""
 
 #: libsrc/convolution/im_convsepf.c:322 libsrc/convolution/im_convsep.c:410
 #: libsrc/convolution/im_convf.c:315 libsrc/morphology/im_dilate.c:280
 #: libsrc/morphology/im_erode.c:276
-#: vips-7.17.1/libsrc/convolution/im_convsepf.c:322
-#: vips-7.17.1/libsrc/convolution/im_convsep.c:410
-#: vips-7.17.1/libsrc/convolution/im_convf.c:315
-#: vips-7.17.1/libsrc/morphology/im_dilate.c:280
-#: vips-7.17.1/libsrc/morphology/im_erode.c:276
 msgid "image too small for mask"
 msgstr ""
 
 #: libsrc/convolution/im_embed.c:358 libsrc/convolution/im_embed.c:447
 #: libsrc/iofuncs/im_generate.c:382 libsrc/iofuncs/im_setupout.c:98
-#: vips-7.17.1/libsrc/convolution/im_embed.c:358
-#: vips-7.17.1/libsrc/convolution/im_embed.c:447
-#: vips-7.17.1/libsrc/iofuncs/im_generate.c:382
-#: vips-7.17.1/libsrc/iofuncs/im_setupout.c:98
 msgid "bad dimensions"
 msgstr ""
 
 #: libsrc/convolution/im_embed.c:439
-#: vips-7.17.1/libsrc/convolution/im_embed.c:439
 msgid "unknown image coding type"
 msgstr ""
 
 #: libsrc/convolution/im_embed.c:443
-#: vips-7.17.1/libsrc/convolution/im_embed.c:443
 msgid "unknown flag"
 msgstr ""
 
 #: libsrc/convolution/im_stretch3.c:272
-#: vips-7.17.1/libsrc/convolution/im_stretch3.c:272
 msgid "not uncoded unsigned short"
 msgstr ""
 
 #: libsrc/convolution/im_stretch3.c:277
-#: vips-7.17.1/libsrc/convolution/im_stretch3.c:277
 msgid "displacements out of range [0,1)"
 msgstr ""
 
 #: libsrc/convolution/im_convsep.c:98 libsrc/convolution/im_conv.c:152
-#: vips-7.17.1/libsrc/convolution/im_convsep.c:98
-#: vips-7.17.1/libsrc/convolution/im_conv.c:152
 #, c-format
 msgid "%d overflows and %d underflows detected"
 msgstr ""
 
 #: libsrc/convolution/im_convsep.c:389 libsrc/convolution/im_convf.c:295
-#: vips-7.17.1/libsrc/convolution/im_convsep.c:389
-#: vips-7.17.1/libsrc/convolution/im_convf.c:295
 msgid "nonsense mask parameters"
 msgstr ""
 
@@ -1067,193 +801,157 @@ msgstr ""
 #: libsrc/format/im_vips2png.c:302 libsrc/format/im_vips2jpeg.c:693
 #: libsrc/mosaicing/global_balance.c:1203
 #: libsrc/mosaicing/global_balance.c:1537
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:1203
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:1537
-#: vips-7.17.1/libsrc/format/matlab.c:111
-#: vips-7.17.1/libsrc/format/im_vips2csv.c:133
-#: vips-7.17.1/libsrc/format/im_csv2vips.c:286
-#: vips-7.17.1/libsrc/format/im_ppm2vips.c:404
-#: vips-7.17.1/libsrc/format/im_ppm2vips.c:434
-#: vips-7.17.1/libsrc/format/im_ppm2vips.c:464
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:662
-#: vips-7.17.1/libsrc/format/im_png2vips.c:144
-#: vips-7.17.1/libsrc/format/im_vips2png.c:302
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:693
 #, c-format
 msgid "unable to open \"%s\""
 msgstr ""
 
-#: libsrc/format/matlab.c:119 vips-7.17.1/libsrc/format/matlab.c:119
+#: libsrc/format/matlab.c:119
 #, c-format
 msgid "no matrix variables in \"%s\""
 msgstr ""
 
-#: libsrc/format/matlab.c:177 vips-7.17.1/libsrc/format/matlab.c:177
+#: libsrc/format/matlab.c:177
 #, fuzzy, c-format
 msgid "unsupported bands %d\n"
 msgstr "unsupported colourspace %d"
 
-#: libsrc/format/matlab.c:191 vips-7.17.1/libsrc/format/matlab.c:191
+#: libsrc/format/matlab.c:191
 #, fuzzy, c-format
 msgid "unsupported class type %d\n"
 msgstr "unsupported colourspace %d"
 
-#: libsrc/format/matlab.c:231 vips-7.17.1/libsrc/format/matlab.c:231
+#: libsrc/format/matlab.c:231
 msgid "Mat_VarReadDataAll failed"
 msgstr ""
 
-#: libsrc/format/matlab.c:293 vips-7.17.1/libsrc/format/matlab.c:293
+#: libsrc/format/matlab.c:293
 msgid "Matlab"
 msgstr ""
 
-#: libsrc/format/im_magick2vips.c:67
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:67
+#: libsrc/format/im_magick2vips.c:69
 msgid "libMagick support disabled"
 msgstr ""
 
-#: libsrc/format/im_magick2vips.c:202 libsrc/format/im_magick2vips.c:299
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:202
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:299
+#: libsrc/format/im_magick2vips.c:204 libsrc/format/im_magick2vips.c:289
 #, c-format
 msgid "unsupported colorspace %d"
 msgstr "unsupported colourspace %d"
 
-#: libsrc/format/im_magick2vips.c:267
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:267
+#: libsrc/format/im_magick2vips.c:255
 #, fuzzy, c-format
 msgid "unsupported bit depth %d"
 msgstr "unsupported colourspace %d"
 
-#: libsrc/format/im_magick2vips.c:578
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:578
+#: libsrc/format/im_magick2vips.c:568
 msgid "unable to read pixels"
 msgstr ""
 
-#: libsrc/format/im_magick2vips.c:600
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:600
+#: libsrc/format/im_magick2vips.c:590
 #, c-format
 msgid ""
 "unable to read file \"%s\"\n"
 "libMagick error: %s %s"
 msgstr ""
 
-#: libsrc/format/im_magick2vips.c:625
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:625
+#: libsrc/format/im_magick2vips.c:615
 #, c-format
 msgid ""
 "unable to ping file \"%s\"\n"
 "libMagick error: %s %s"
 msgstr ""
 
-#: libsrc/format/im_magick2vips.c:636
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:636
+#: libsrc/format/im_magick2vips.c:626
 msgid "bad image size"
 msgstr ""
 
-#: libsrc/format/im_magick2vips.c:672
-#: vips-7.17.1/libsrc/format/im_magick2vips.c:672
+#: libsrc/format/im_magick2vips.c:662
 msgid "libMagick-supported"
 msgstr ""
 
-#: libsrc/format/im_csv2vips.c:122 vips-7.17.1/libsrc/format/im_csv2vips.c:122
+#: libsrc/format/im_csv2vips.c:122
 #, c-format
 msgid "error parsing number, line %d, column %d"
 msgstr ""
 
-#: libsrc/format/im_csv2vips.c:175 vips-7.17.1/libsrc/format/im_csv2vips.c:175
+#: libsrc/format/im_csv2vips.c:175
 msgid "end of file while skipping start"
 msgstr ""
 
 #: libsrc/format/im_csv2vips.c:184 libsrc/iofuncs/util.c:1088
-#: libsrc/iofuncs/util.c:1094 vips-7.17.1/libsrc/format/im_csv2vips.c:184
-#: vips-7.17.1/libsrc/iofuncs/util.c:1088
-#: vips-7.17.1/libsrc/iofuncs/util.c:1094
+#: libsrc/iofuncs/util.c:1094
 msgid "unable to seek"
 msgstr ""
 
-#: libsrc/format/im_csv2vips.c:193 vips-7.17.1/libsrc/format/im_csv2vips.c:193
+#: libsrc/format/im_csv2vips.c:193
 msgid "empty line"
 msgstr ""
 
-#: libsrc/format/im_csv2vips.c:227 vips-7.17.1/libsrc/format/im_csv2vips.c:227
+#: libsrc/format/im_csv2vips.c:227
 msgid "unexpected end of file"
 msgstr ""
 
-#: libsrc/format/im_csv2vips.c:232 vips-7.17.1/libsrc/format/im_csv2vips.c:232
+#: libsrc/format/im_csv2vips.c:232
 msgid "unexpected end of line"
 msgstr ""
 
-#: libsrc/format/im_csv2vips.c:333 vips-7.17.1/libsrc/format/im_csv2vips.c:333
+#: libsrc/format/im_csv2vips.c:333
 msgid "CSV"
 msgstr ""
 
-#: libsrc/format/radiance.c:873 vips-7.17.1/libsrc/format/radiance.c:873
+#: libsrc/format/radiance.c:807
 msgid "error reading radiance header"
 msgstr ""
 
-#: libsrc/format/radiance.c:955 libsrc/format/im_tiff2vips.c:1322
-#: vips-7.17.1/libsrc/format/radiance.c:955
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1322
+#: libsrc/format/radiance.c:889 libsrc/format/im_tiff2vips.c:1322
 msgid "read error"
 msgstr ""
 
-#: libsrc/format/radiance.c:1000 vips-7.17.1/libsrc/format/radiance.c:1000
+#: libsrc/format/radiance.c:934
 msgid "Radiance"
 msgstr ""
 
-#: libsrc/format/format.c:181 vips-7.17.1/libsrc/format/format.c:181
+#: libsrc/format/format.c:181
 msgid "VIPS"
 msgstr ""
 
 #: libsrc/format/format.c:269 libsrc/mosaicing/im_remosaic.c:80
-#: vips-7.17.1/libsrc/mosaicing/im_remosaic.c:80
-#: vips-7.17.1/libsrc/format/format.c:269
 #, c-format
 msgid "file \"%s\" not found"
 msgstr ""
 
-#: libsrc/format/format.c:277 vips-7.17.1/libsrc/format/format.c:277
+#: libsrc/format/format.c:277
 #, c-format
 msgid "file \"%s\" not a known format"
 msgstr ""
 
-#: libsrc/format/format.c:308 vips-7.17.1/libsrc/format/format.c:308
+#: libsrc/format/format.c:308
 #, fuzzy, c-format
 msgid "\"%s\" is not a supported image format."
 msgstr "unsupported colourspace %d"
 
 #: libsrc/format/im_analyze2vips.c:369
-#: vips-7.17.1/libsrc/format/im_analyze2vips.c:369
 #, c-format
 msgid "%d-dimensional images not supported"
 msgstr ""
 
 #: libsrc/format/im_analyze2vips.c:422
-#: vips-7.17.1/libsrc/format/im_analyze2vips.c:422
 #, c-format
 msgid "datatype %d not supported"
 msgstr ""
 
 #: libsrc/format/im_analyze2vips.c:523 libsrc/format/im_analyze2vips.c:563
-#: vips-7.17.1/libsrc/format/im_analyze2vips.c:523
-#: vips-7.17.1/libsrc/format/im_analyze2vips.c:563
 msgid "header file size incorrect"
 msgstr ""
 
 #: libsrc/format/im_analyze2vips.c:606
-#: vips-7.17.1/libsrc/format/im_analyze2vips.c:606
 msgid "Analyze 6.0"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:153 libsrc/format/im_tiff2vips.c:153
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:153
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:153
 msgid "TIFF support disabled"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:281 libsrc/format/im_tiff2vips.c:1406
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:281
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1406
 #, c-format
 msgid "unable to open \"%s\" for input"
 msgstr ""
@@ -1261,33 +959,26 @@ msgstr ""
 #. Out of space!
 #.
 #: libsrc/format/im_vips2tiff.c:692
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:692
 msgid "layer buffer exhausted -- try making TIFF output tiles smaller"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:923
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:923
 msgid "TIFF write tile failed"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:999
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:999
 msgid "internal error #9876345"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1248 libsrc/format/im_vips2tiff.c:1259
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1248
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1259
 msgid "bad predictor parameter"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1270
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1270
 msgid "bad JPEG quality parameter"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1276
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1276
 #, c-format
 msgid ""
 "unknown compression mode \"%s\"\n"
@@ -1296,23 +987,19 @@ msgid ""
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1291
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1291
 msgid "bad tile sizes"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1298
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1298
 #, c-format
 msgid "bad tile size %dx%d"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1306
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1306
 msgid "tile size not a multiple of 16"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1315
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1315
 #, c-format
 msgid ""
 "unknown layout mode \"%s\"\n"
@@ -1320,7 +1007,6 @@ msgid ""
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1327
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1327
 #, c-format
 msgid ""
 "unknown multi-res mode \"%s\"\n"
@@ -1328,7 +1014,6 @@ msgid ""
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1339
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1339
 #, c-format
 msgid ""
 "unknown format \"%s\"\n"
@@ -1336,7 +1021,6 @@ msgid ""
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1361
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1361
 #, c-format
 msgid ""
 "unknown resolution unit \"%s\"\n"
@@ -1344,228 +1028,186 @@ msgid ""
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1371
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1371
 msgid "bad resolution values"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1385 libsrc/format/im_vips2jpeg.c:664
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1385
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:664
 #, c-format
 msgid "unknown extra options \"%s\""
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1389
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1389
 msgid "can't have strip pyramid -- enabling tiling"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1399
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1399
 msgid "can only pyramid LABQ and non-complex images"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1415
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1415
 msgid "can't have 1-bit JPEG -- disabling JPEG"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1596
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1596
 msgid "unsigned 8-bit int, 16-bit int, and 32-bit float only"
 msgstr ""
 
 #: libsrc/format/im_vips2tiff.c:1603
-#: vips-7.17.1/libsrc/format/im_vips2tiff.c:1603
 msgid "1 to 5 bands only"
 msgstr ""
 
-#: libsrc/format/im_ppm2vips.c:114 vips-7.17.1/libsrc/format/im_ppm2vips.c:114
+#: libsrc/format/im_ppm2vips.c:114
 msgid "bad unsigned int"
 msgstr ""
 
-#: libsrc/format/im_ppm2vips.c:164 vips-7.17.1/libsrc/format/im_ppm2vips.c:164
+#: libsrc/format/im_ppm2vips.c:164
 msgid "bad magic number"
 msgstr ""
 
-#: libsrc/format/im_ppm2vips.c:194 vips-7.17.1/libsrc/format/im_ppm2vips.c:194
+#: libsrc/format/im_ppm2vips.c:194
 msgid "not whitespace before start of binary data"
 msgstr ""
 
-#: libsrc/format/im_ppm2vips.c:518 vips-7.17.1/libsrc/format/im_ppm2vips.c:518
+#: libsrc/format/im_ppm2vips.c:518
 msgid "PPM/PBM/PNM"
 msgstr ""
 
 #: libsrc/format/im_jpeg2vips.c:70 libsrc/format/im_vips2jpeg.c:73
 #: libsrc/format/im_vips2jpeg.c:81 libsrc/format/im_vips2jpeg.c:89
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:70
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:73
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:81
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:89
 msgid "JPEG support disabled"
 msgstr ""
 
 #: libsrc/format/im_jpeg2vips.c:136 libsrc/format/im_vips2jpeg.c:155
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:136
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:155
 #, c-format
 msgid "%s"
 msgstr ""
 
 #: libsrc/format/im_jpeg2vips.c:339
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:339
 msgid "error reading resolution"
 msgstr ""
 
 #: libsrc/format/im_jpeg2vips.c:359
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:359
 msgid "bad resolution unit"
 msgstr ""
 
 #: libsrc/format/im_jpeg2vips.c:589
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:589
 msgid "truncated JPEG file"
 msgstr ""
 
 #: libsrc/format/im_jpeg2vips.c:633
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:633
 #, c-format
 msgid "bad shrink factor %d"
 msgstr ""
 
 #: libsrc/format/im_jpeg2vips.c:687
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:687
 #, c-format
 msgid "read gave %ld warnings"
 msgstr ""
 
 #: libsrc/format/im_jpeg2vips.c:735
-#: vips-7.17.1/libsrc/format/im_jpeg2vips.c:735
 msgid "JPEG"
 msgstr ""
 
 #: libsrc/format/im_png2vips.c:61 libsrc/format/im_vips2png.c:59
-#: vips-7.17.1/libsrc/format/im_png2vips.c:61
-#: vips-7.17.1/libsrc/format/im_vips2png.c:59
 msgid "PNG support disabled"
 msgstr ""
 
 #: libsrc/format/im_png2vips.c:87 libsrc/format/im_vips2png.c:85
-#: vips-7.17.1/libsrc/format/im_png2vips.c:87
-#: vips-7.17.1/libsrc/format/im_vips2png.c:85
 #, c-format
 msgid "PNG error: \"%s\""
 msgstr ""
 
 #: libsrc/format/im_png2vips.c:93 libsrc/format/im_vips2png.c:91
-#: vips-7.17.1/libsrc/format/im_png2vips.c:93
-#: vips-7.17.1/libsrc/format/im_vips2png.c:91
 #, c-format
 msgid "PNG warning: \"%s\""
 msgstr ""
 
-#: libsrc/format/im_png2vips.c:262 vips-7.17.1/libsrc/format/im_png2vips.c:262
+#: libsrc/format/im_png2vips.c:262
 #, fuzzy
 msgid "unsupported colour type"
 msgstr "unsupported colourspace %d"
 
-#: libsrc/format/im_png2vips.c:388 vips-7.17.1/libsrc/format/im_png2vips.c:388
+#: libsrc/format/im_png2vips.c:388
 msgid "PNG"
 msgstr ""
 
 #: libsrc/format/im_vips2ppm.c:143 libsrc/format/im_vips2ppm.c:160
-#: vips-7.17.1/libsrc/format/im_vips2ppm.c:143
-#: vips-7.17.1/libsrc/format/im_vips2ppm.c:160
 msgid "write error ... disc full?"
 msgstr ""
 
-#: libsrc/format/im_vips2ppm.c:259 vips-7.17.1/libsrc/format/im_vips2ppm.c:259
+#: libsrc/format/im_vips2ppm.c:259
 msgid "bad mode string, should be \"binary\" or \"ascii\""
 msgstr ""
 
-#: libsrc/format/im_vips2ppm.c:267 vips-7.17.1/libsrc/format/im_vips2ppm.c:267
+#: libsrc/format/im_vips2ppm.c:267
 msgid "can't write binary >8 bit images"
 msgstr ""
 
-#: libsrc/format/im_vips2ppm.c:272 vips-7.17.1/libsrc/format/im_vips2ppm.c:272
+#: libsrc/format/im_vips2ppm.c:272
 msgid "unsigned int formats only"
 msgstr ""
 
-#: libsrc/format/im_vips2ppm.c:281 vips-7.17.1/libsrc/format/im_vips2ppm.c:281
+#: libsrc/format/im_vips2ppm.c:281
 msgid "1 or 3 band images only"
 msgstr ""
 
-#: libsrc/format/im_vips2png.c:130 vips-7.17.1/libsrc/format/im_vips2png.c:130
+#: libsrc/format/im_vips2png.c:130
 msgid "unable to convert to RGB for save"
 msgstr ""
 
-#: libsrc/format/im_vips2png.c:212 vips-7.17.1/libsrc/format/im_vips2png.c:212
+#: libsrc/format/im_vips2png.c:212
 msgid "compress should be in [0,9]"
 msgstr ""
 
-#: libsrc/format/im_vips2png.c:312 vips-7.17.1/libsrc/format/im_vips2png.c:312
+#: libsrc/format/im_vips2png.c:312
 #, c-format
 msgid "unable to write \"%s\""
 msgstr ""
 
 #: libsrc/format/im_vips2jpeg.c:226
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:226
 msgid "unable to convert to saveable format"
 msgstr ""
 
 #: libsrc/format/im_vips2jpeg.c:327
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:327
 msgid "error setting JPEG resolution"
 msgstr ""
 
 #: libsrc/format/im_vips2jpeg.c:370
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:370
 msgid "error saving EXIF"
 msgstr ""
 
 #: libsrc/format/im_vips2jpeg.c:560
-#: vips-7.17.1/libsrc/format/im_vips2jpeg.c:560
 msgid "qfac should be in 0-100"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:266 libsrc/format/im_tiff2vips.c:289
 #: libsrc/format/im_tiff2vips.c:308
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:266
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:289
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:308
 #, c-format
 msgid "required field %d missing"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:270
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:270
 #, c-format
 msgid "required field %d=%d, not %d"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:679
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:679
 msgid "bad colormap"
 msgstr "bad colourmap"
 
 #: libsrc/format/im_tiff2vips.c:734 libsrc/format/im_tiff2vips.c:783
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:734
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:783
 msgid "3 or 4 bands RGB TIFF only"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:873
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:873
 msgid "4 or 5 bands CMYK TIFF only"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:924
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:924
 msgid "unknown resolution unit"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:929
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:929
 #, c-format
 msgid ""
 "no resolution information for TIFF image \"%s\" -- defaulting to 1 pixel per "
@@ -1573,127 +1215,105 @@ msgid ""
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:996
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:996
 #, c-format
 msgid "unsupported sample format %d for lab image"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1006
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1006
 #, c-format
 msgid "unsupported depth %d for LAB image"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1053
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1053
 #, c-format
 msgid "unsupported sample format %d for greyscale image"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1062
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1062
 #, c-format
 msgid "unsupported depth %d for greyscale image"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1102
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1102
 #, c-format
 msgid "unsupported sample format %d for rgb image"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1111
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1111
 #, c-format
 msgid "unsupported depth %d for RGB image"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1125
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1125
 #, c-format
 msgid "unknown photometric interpretation %d"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1384
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1384
 #, c-format
 msgid "bad page number %d"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1460 libsrc/format/im_tiff2vips.c:1492
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1460
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1492
 #, c-format
 msgid "TIFF file does not contain page %d"
 msgstr ""
 
 #: libsrc/format/im_tiff2vips.c:1567
-#: vips-7.17.1/libsrc/format/im_tiff2vips.c:1567
 msgid "TIFF"
 msgstr ""
 
-#: libsrc/format/im_exr2vips.c:68 vips-7.17.1/libsrc/format/im_exr2vips.c:68
+#: libsrc/format/im_exr2vips.c:68
 msgid "OpenEXR support disabled"
 msgstr ""
 
-#: libsrc/format/im_exr2vips.c:110 vips-7.17.1/libsrc/format/im_exr2vips.c:110
+#: libsrc/format/im_exr2vips.c:110
 #, c-format
 msgid "EXR error: %s"
 msgstr ""
 
-#: libsrc/format/im_exr2vips.c:476 vips-7.17.1/libsrc/format/im_exr2vips.c:476
+#: libsrc/format/im_exr2vips.c:476
 msgid "OpenEXR"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:125 libsrc/format/im_file2vips.c:642
 #: libsrc/iofuncs/im_open_vips.c:126 libsrc/iofuncs/im_open_vips.c:917
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:126
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:917
 #, c-format
 msgid "unable to open \"%s\", %s"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:252 libsrc/iofuncs/im_open_vips.c:253
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:253
 #, c-format
 msgid "\"%s\" is not a VIPS image"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:312 libsrc/iofuncs/im_open_vips.c:313
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:313
 msgid "unable to read history"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:349 libsrc/iofuncs/im_open_vips.c:350
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:350
 msgid "more than a 10 megabytes of XML? sufferin' succotash!"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:396 libsrc/iofuncs/im_open_vips.c:398
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:398
 msgid "incorrect namespace in XML"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:517 libsrc/iofuncs/im_open_vips.c:520
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:520
 msgid "error transforming from save format"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:631 libsrc/iofuncs/im_open_vips.c:906
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:906
 #, c-format
 msgid "unable to read header for \"%s\", %s"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:643 libsrc/iofuncs/im_open_vips.c:724
 #: libsrc/iofuncs/im_open_vips.c:918
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:724
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:918
 msgid "file has been truncated"
 msgstr ""
 
 #: libsrc/format/im_file2vips.c:656 libsrc/iofuncs/im_open_vips.c:931
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:931
 #, c-format
 msgid "error reading XML: %s"
 msgstr ""
@@ -1702,14 +1322,6 @@ msgstr ""
 #: libsrc/freq_filt/im_fwfft.c:113 libsrc/freq_filt/im_fwfft.c:218
 #: libsrc/freq_filt/im_fwfft.c:309 libsrc/freq_filt/im_fwfft.c:423
 #: libsrc/freq_filt/im_invfftr.c:90 libsrc/freq_filt/im_invfftr.c:173
-#: vips-7.17.1/libsrc/freq_filt/im_invfft.c:95
-#: vips-7.17.1/libsrc/freq_filt/im_invfft.c:145
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:113
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:218
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:309
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:423
-#: vips-7.17.1/libsrc/freq_filt/im_invfftr.c:90
-#: vips-7.17.1/libsrc/freq_filt/im_invfftr.c:173
 msgid "one band uncoded only"
 msgstr ""
 
@@ -1717,50 +1329,32 @@ msgstr ""
 #: libsrc/freq_filt/im_fwfft.c:124 libsrc/freq_filt/im_fwfft.c:229
 #: libsrc/freq_filt/im_fwfft.c:323 libsrc/freq_filt/im_fwfft.c:437
 #: libsrc/freq_filt/im_invfftr.c:127 libsrc/freq_filt/im_invfftr.c:212
-#: vips-7.17.1/libsrc/freq_filt/im_invfft.c:108
-#: vips-7.17.1/libsrc/freq_filt/im_invfft.c:160
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:124
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:229
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:323
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:437
-#: vips-7.17.1/libsrc/freq_filt/im_invfftr.c:127
-#: vips-7.17.1/libsrc/freq_filt/im_invfftr.c:212
 msgid "unable to create transform plan"
 msgstr ""
 
 #: libsrc/freq_filt/im_invfft.c:204 libsrc/freq_filt/im_invfftr.c:256
-#: vips-7.17.1/libsrc/freq_filt/im_invfft.c:204
-#: vips-7.17.1/libsrc/freq_filt/im_invfftr.c:256
 msgid "one band complex uncoded only"
 msgstr ""
 
 #: libsrc/freq_filt/im_invfft.c:209 libsrc/freq_filt/im_fwfft.c:520
 #: libsrc/freq_filt/im_invfftr.c:261
-#: vips-7.17.1/libsrc/freq_filt/im_invfft.c:209
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:520
-#: vips-7.17.1/libsrc/freq_filt/im_invfftr.c:261
 msgid "sides must be power of 2"
 msgstr ""
 
 #: libsrc/freq_filt/im_invfft.c:230 libsrc/freq_filt/im_fwfft.c:541
 #: libsrc/freq_filt/im_invfftr.c:282
-#: vips-7.17.1/libsrc/freq_filt/im_invfft.c:230
-#: vips-7.17.1/libsrc/freq_filt/im_fwfft.c:541
-#: vips-7.17.1/libsrc/freq_filt/im_invfftr.c:282
 msgid "fft_sp failed"
 msgstr ""
 
-#: libsrc/freq_filt/im_fwfft.c:515 vips-7.17.1/libsrc/freq_filt/im_fwfft.c:515
+#: libsrc/freq_filt/im_fwfft.c:515
 msgid "one band non-complex uncoded only"
 msgstr ""
 
 #: libsrc/histograms_lut/im_project.c:262
-#: vips-7.17.1/libsrc/histograms_lut/im_project.c:262
 msgid "non-complex images only"
 msgstr ""
 
 #: libsrc/histograms_lut/im_maplut.c:122
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:122
 #, c-format
 msgid "%d overflows detected"
 msgstr ""
@@ -1768,7 +1362,6 @@ msgstr ""
 #. Switch for input types. Has to be uint type!
 #.
 #: libsrc/histograms_lut/im_maplut.c:484
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:484
 msgid "bad input file"
 msgstr ""
 
@@ -1777,210 +1370,166 @@ msgstr ""
 #. * uchar.
 #.
 #: libsrc/histograms_lut/im_maplut.c:515
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:515
 msgid "bad lut file"
 msgstr ""
 
 #: libsrc/histograms_lut/im_maplut.c:568
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:568
 msgid "lut is not uncoded"
 msgstr ""
 
 #: libsrc/histograms_lut/im_maplut.c:572
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:572
 msgid "lut seems very large!"
 msgstr ""
 
 #: libsrc/histograms_lut/im_maplut.c:584
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:584
 msgid "input is not uncoded"
 msgstr ""
 
 #: libsrc/histograms_lut/im_maplut.c:589
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:589
 msgid "input is not some unsigned integer type"
 msgstr ""
 
 #: libsrc/histograms_lut/im_maplut.c:593
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:593
 msgid ""
 "lut should have 1 band, or same number of bands as input, or any number of "
 "bands if input has 1 band"
 msgstr ""
 
 #: libsrc/histograms_lut/im_maplut.c:600
-#: vips-7.17.1/libsrc/histograms_lut/im_maplut.c:600
 msgid "input is uchar and lut does not have 256 elements"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histgr.c:322
-#: vips-7.17.1/libsrc/histograms_lut/im_histgr.c:322
 msgid "input not uchar or ushort"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histgr.c:329
-#: vips-7.17.1/libsrc/histograms_lut/im_histgr.c:329
 msgid "bad band parameter"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histnD.c:217
-#: vips-7.17.1/libsrc/histograms_lut/im_histnD.c:217
 msgid " uncoded images only"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histnD.c:223
-#: vips-7.17.1/libsrc/histograms_lut/im_histnD.c:223
 msgid " unsigned 8 or 16 bit images only"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histnD.c:230
-#: vips-7.17.1/libsrc/histograms_lut/im_histnD.c:230
 #, c-format
 msgid " bins out of range [1,%d]"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:233
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:233
 msgid "bad in_max, out_max parameters"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:238
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:238
 msgid "bad Lb, Lw parameters"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:243
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:243
 msgid "Ps not in range [0.0,1.0]"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:248
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:248
 msgid "Pm not in range [0.0,1.0]"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:253
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:253
 msgid "Ph not in range [0.0,1.0]"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:258
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:258
 msgid "S not in range [-30,+30]"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:263
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:263
 msgid "M not in range [-30,+30]"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:268
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:268
 msgid "H not in range [-30,+30]"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:350 libsrc/histograms_lut/tone.c:399
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:350
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:399
 msgid "not 1 by n or n by 1 image"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:405
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:405
 msgid "not 1024-point IM_BANDFMT_SHORT lut"
 msgstr ""
 
 #: libsrc/histograms_lut/tone.c:423 libsrc/histograms_lut/tone.c:498
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:423
-#: vips-7.17.1/libsrc/histograms_lut/tone.c:498
 msgid "input not LabS or LabQ"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histplot.c:93
-#: vips-7.17.1/libsrc/histograms_lut/im_histplot.c:93
 msgid "uncoded only"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histplot.c:97
-#: vips-7.17.1/libsrc/histograms_lut/im_histplot.c:97
 msgid "non-complex only"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histplot.c:188
 #: libsrc/histograms_lut/im_histplot.c:243
-#: vips-7.17.1/libsrc/histograms_lut/im_histplot.c:188
-#: vips-7.17.1/libsrc/histograms_lut/im_histplot.c:243
 msgid "internal error #8255"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histplot.c:272
-#: vips-7.17.1/libsrc/histograms_lut/im_histplot.c:272
 msgid "internal error #8254"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histplot.c:331
-#: vips-7.17.1/libsrc/histograms_lut/im_histplot.c:331
 msgid "Xsize or Ysize not 1"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histeq.c:99
-#: vips-7.17.1/libsrc/histograms_lut/im_histeq.c:99
 msgid "input coded"
 msgstr ""
 
 #: libsrc/histograms_lut/im_histeq.c:103
-#: vips-7.17.1/libsrc/histograms_lut/im_histeq.c:103
 msgid "input too large"
 msgstr ""
 
 #: libsrc/histograms_lut/im_lhisteq.c:161
-#: vips-7.17.1/libsrc/histograms_lut/im_lhisteq.c:161
 msgid "one band uchar uncoded only"
 msgstr ""
 
 #: libsrc/histograms_lut/im_lhisteq.c:165
-#: vips-7.17.1/libsrc/histograms_lut/im_lhisteq.c:165
 msgid "window too large"
 msgstr ""
 
 #: libsrc/histograms_lut/im_lhisteq.c:169
-#: vips-7.17.1/libsrc/histograms_lut/im_lhisteq.c:169
 msgid "window too small"
 msgstr ""
 
 #: libsrc/histograms_lut/im_buildlut.c:135
-#: vips-7.17.1/libsrc/histograms_lut/im_buildlut.c:135
 msgid "x value not an int"
 msgstr ""
 
 #: libsrc/histograms_lut/im_buildlut.c:147
-#: vips-7.17.1/libsrc/histograms_lut/im_buildlut.c:147
 msgid "x range too small"
 msgstr ""
 
 #: libsrc/histograms_lut/im_buildlut.c:218
-#: vips-7.17.1/libsrc/histograms_lut/im_buildlut.c:218
 msgid "bad input matrix size"
 msgstr ""
 
 #: libsrc/inplace/inplace_dispatch.c:170
-#: vips-7.17.1/libsrc/inplace/inplace_dispatch.c:170
 msgid "vectors not same length"
 msgstr ""
 
 #: libsrc/inplace/inplace_dispatch.c:240
-#: vips-7.17.1/libsrc/inplace/inplace_dispatch.c:240
 msgid "bad vector length"
 msgstr ""
 
 #: libsrc/inplace/smudge_area.c:185 libsrc/inplace/smudge_area.c:312
-#: vips-7.17.1/libsrc/inplace/smudge_area.c:185
-#: vips-7.17.1/libsrc/inplace/smudge_area.c:312
 msgid "unknown band format"
 msgstr ""
 
 #: libsrc/inplace/im_insertplace.c:108
-#: vips-7.17.1/libsrc/inplace/im_insertplace.c:108
 msgid "small not inside big"
 msgstr ""
 
@@ -1988,50 +1537,43 @@ msgstr ""
 #: libsrc/mosaicing/im_tbmerge.c:217 libsrc/mosaicing/im_tbmerge.c:535
 #: libsrc/mosaicing/im_lrmerge.c:223 libsrc/mosaicing/im_lrmerge.c:272
 #: libsrc/mosaicing/im_lrmerge.c:613
-#: vips-7.17.1/libsrc/mosaicing/im_tbmerge.c:163
-#: vips-7.17.1/libsrc/mosaicing/im_tbmerge.c:217
-#: vips-7.17.1/libsrc/mosaicing/im_tbmerge.c:535
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:223
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:272
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:613
-#: vips-7.17.1/libsrc/inplace/im_plotmask.c:229
 msgid "internal error"
 msgstr ""
 
-#: libsrc/inplace/line_draw.c:415 vips-7.17.1/libsrc/inplace/line_draw.c:415
+#: libsrc/inplace/line_draw.c:415
 msgid "mask image not 1 band 8 bit uncoded"
 msgstr ""
 
-#: libsrc/inplace/line_draw.c:421 vips-7.17.1/libsrc/inplace/line_draw.c:421
+#: libsrc/inplace/line_draw.c:421
 msgid "ink image does not match in image"
 msgstr ""
 
-#: libsrc/inplace/line_draw.c:425 vips-7.17.1/libsrc/inplace/line_draw.c:425
+#: libsrc/inplace/line_draw.c:425
 msgid "ink image not 1x1 pixels"
 msgstr ""
 
-#: libsrc/iofuncs/im_open.c:319 vips-7.17.1/libsrc/iofuncs/im_open.c:319
+#: libsrc/iofuncs/im_open.c:319
 #, c-format
 msgid "%s %s: %d%% complete"
 msgstr ""
 
 #. Spaces at end help to erase the %complete message we overwrite.
 #.
-#: libsrc/iofuncs/im_open.c:337 vips-7.17.1/libsrc/iofuncs/im_open.c:337
+#: libsrc/iofuncs/im_open.c:337
 #, c-format
 msgid "%s %s: done in %ds          \n"
 msgstr ""
 
-#: libsrc/iofuncs/im_open.c:357 vips-7.17.1/libsrc/iofuncs/im_open.c:357
+#: libsrc/iofuncs/im_open.c:357
 msgid "NULL filename or mode"
 msgstr ""
 
-#: libsrc/iofuncs/im_open.c:406 vips-7.17.1/libsrc/iofuncs/im_open.c:406
+#: libsrc/iofuncs/im_open.c:406
 #, fuzzy, c-format
 msgid "unsupported filetype \"%s\""
 msgstr "unsupported colourspace %d"
 
-#: libsrc/iofuncs/im_open.c:422 vips-7.17.1/libsrc/iofuncs/im_open.c:422
+#: libsrc/iofuncs/im_open.c:422
 #, c-format
 msgid "bad mode \"%s\""
 msgstr ""
@@ -2039,367 +1581,318 @@ msgstr ""
 #. Not a known output style.
 #.
 #: libsrc/iofuncs/im_writeline.c:110 libsrc/iofuncs/im_generate.c:464
-#: vips-7.17.1/libsrc/iofuncs/im_writeline.c:110
-#: vips-7.17.1/libsrc/iofuncs/im_generate.c:464
 #, c-format
 msgid "unable to output to a %s image"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:302 vips-7.17.1/libsrc/iofuncs/util.c:302
+#: libsrc/iofuncs/util.c:302
 msgid "unable to build class"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:340 vips-7.17.1/libsrc/iofuncs/util.c:340
+#: libsrc/iofuncs/util.c:340
 #, c-format
 msgid "base class \"%s\" not found"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:347 vips-7.17.1/libsrc/iofuncs/util.c:347
+#: libsrc/iofuncs/util.c:347
 #, c-format
 msgid "class \"%s\" not found"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:788 vips-7.17.1/libsrc/iofuncs/util.c:788
+#: libsrc/iofuncs/util.c:788
 msgid "unable to get file stats"
 msgstr ""
 
 #: libsrc/iofuncs/util.c:805 libsrc/iofuncs/im_wbuffer.c:357
-#: libsrc/iofuncs/im_wbuffer.c:394 vips-7.17.1/libsrc/iofuncs/util.c:805
-#: vips-7.17.1/libsrc/iofuncs/im_wbuffer.c:357
-#: vips-7.17.1/libsrc/iofuncs/im_wbuffer.c:394
+#: libsrc/iofuncs/im_wbuffer.c:394
 msgid "write failed"
 msgstr ""
 
 #. Seems crazy!
 #.
-#: libsrc/iofuncs/util.c:832 vips-7.17.1/libsrc/iofuncs/util.c:832
+#: libsrc/iofuncs/util.c:832
 #, c-format
 msgid "\"%s\" too long"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:849 vips-7.17.1/libsrc/iofuncs/util.c:849
+#: libsrc/iofuncs/util.c:849
 msgid "out of memory"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:875 vips-7.17.1/libsrc/iofuncs/util.c:875
+#: libsrc/iofuncs/util.c:875
 #, c-format
 msgid "error reading from file \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/util.c:902 vips-7.17.1/libsrc/iofuncs/util.c:902
+#: libsrc/iofuncs/util.c:902
 #, c-format
 msgid "unable to open file \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/util.c:1122 libsrc/iofuncs/util.c:1129
-#: vips-7.17.1/libsrc/iofuncs/util.c:1122
-#: vips-7.17.1/libsrc/iofuncs/util.c:1129
 msgid "unable to truncate"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:1149 vips-7.17.1/libsrc/iofuncs/util.c:1149
+#: libsrc/iofuncs/util.c:1149
 #, c-format
 msgid "writing error (%zd out of %zd blocks written) ... disc full?"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:1320 vips-7.17.1/libsrc/iofuncs/util.c:1320
+#: libsrc/iofuncs/util.c:1320
 msgid "unexpected end of string"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:1333 vips-7.17.1/libsrc/iofuncs/util.c:1333
+#: libsrc/iofuncs/util.c:1333
 msgid "opening brace"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:1334 vips-7.17.1/libsrc/iofuncs/util.c:1334
+#: libsrc/iofuncs/util.c:1334
 msgid "closing brace"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:1335 vips-7.17.1/libsrc/iofuncs/util.c:1335
+#: libsrc/iofuncs/util.c:1335
 msgid "string"
 msgstr ""
 
-#: libsrc/iofuncs/util.c:1355 vips-7.17.1/libsrc/iofuncs/util.c:1355
+#: libsrc/iofuncs/util.c:1355
 #, c-format
 msgid "expected %s, saw %s"
 msgstr ""
 
-#: libsrc/iofuncs/im_iocheck.c:163 vips-7.17.1/libsrc/iofuncs/im_iocheck.c:163
+#: libsrc/iofuncs/im_iocheck.c:163
 msgid "no image data"
 msgstr ""
 
-#: libsrc/iofuncs/im_iocheck.c:207 vips-7.17.1/libsrc/iofuncs/im_iocheck.c:207
+#: libsrc/iofuncs/im_iocheck.c:207
 #, c-format
 msgid "auto-rewind for %s failed"
 msgstr ""
 
-#: libsrc/iofuncs/im_iocheck.c:216 vips-7.17.1/libsrc/iofuncs/im_iocheck.c:216
+#: libsrc/iofuncs/im_iocheck.c:216
 msgid "image not readable"
 msgstr ""
 
 #: libsrc/iofuncs/im_iocheck.c:238 libsrc/iofuncs/im_iocheck.c:254
-#: vips-7.17.1/libsrc/iofuncs/im_iocheck.c:238
-#: vips-7.17.1/libsrc/iofuncs/im_iocheck.c:254
 msgid "image already written"
 msgstr ""
 
-#: libsrc/iofuncs/im_iocheck.c:268 vips-7.17.1/libsrc/iofuncs/im_iocheck.c:268
+#: libsrc/iofuncs/im_iocheck.c:268
 msgid "image not writeable"
 msgstr ""
 
-#: libsrc/iofuncs/im_iocheck.c:291 vips-7.17.1/libsrc/iofuncs/im_iocheck.c:291
+#: libsrc/iofuncs/im_iocheck.c:291
 msgid "unable to rewind file"
 msgstr ""
 
-#: libsrc/iofuncs/im_iocheck.c:315 vips-7.17.1/libsrc/iofuncs/im_iocheck.c:315
+#: libsrc/iofuncs/im_iocheck.c:315
 msgid "bad file type"
 msgstr ""
 
 #: libsrc/iofuncs/im_mapfile.c:140 libsrc/iofuncs/im_mapfile.c:307
-#: vips-7.17.1/libsrc/iofuncs/im_mapfile.c:140
-#: vips-7.17.1/libsrc/iofuncs/im_mapfile.c:307
 msgid "unable to CreateFileMapping"
 msgstr ""
 
 #: libsrc/iofuncs/im_mapfile.c:150 libsrc/iofuncs/im_mapfile.c:319
-#: vips-7.17.1/libsrc/iofuncs/im_mapfile.c:150
-#: vips-7.17.1/libsrc/iofuncs/im_mapfile.c:319
 msgid "unable to MapViewOfFile"
 msgstr ""
 
-#: libsrc/iofuncs/im_mapfile.c:178 vips-7.17.1/libsrc/iofuncs/im_mapfile.c:178
+#: libsrc/iofuncs/im_mapfile.c:178
 msgid "unable to mmap"
 msgstr ""
 
-#: libsrc/iofuncs/im_mapfile.c:179 vips-7.17.1/libsrc/iofuncs/im_mapfile.c:179
+#: libsrc/iofuncs/im_mapfile.c:179
 #, c-format
 msgid ""
 "map failed (%s), running very low on system resources, expect a crash soon"
 msgstr ""
 
 #: libsrc/iofuncs/im_mapfile.c:196 libsrc/iofuncs/im_mapfile.c:313
-#: vips-7.17.1/libsrc/iofuncs/im_mapfile.c:196
-#: vips-7.17.1/libsrc/iofuncs/im_mapfile.c:313
 msgid "unable to UnmapViewOfFile"
 msgstr ""
 
-#: libsrc/iofuncs/im_mapfile.c:202 vips-7.17.1/libsrc/iofuncs/im_mapfile.c:202
+#: libsrc/iofuncs/im_mapfile.c:202
 msgid "unable to munmap file"
 msgstr ""
 
 #: libsrc/iofuncs/im_mapfile.c:226 libsrc/iofuncs/im_mapfile.c:270
-#: vips-7.17.1/libsrc/iofuncs/im_mapfile.c:226
-#: vips-7.17.1/libsrc/iofuncs/im_mapfile.c:270
 msgid "unable to get file status"
 msgstr ""
 
-#: libsrc/iofuncs/im_mapfile.c:232 vips-7.17.1/libsrc/iofuncs/im_mapfile.c:232
+#: libsrc/iofuncs/im_mapfile.c:232
 msgid "file is less than 64 bytes"
 msgstr ""
 
-#: libsrc/iofuncs/im_mapfile.c:237 vips-7.17.1/libsrc/iofuncs/im_mapfile.c:237
+#: libsrc/iofuncs/im_mapfile.c:237
 msgid "not a regular file"
 msgstr ""
 
-#: libsrc/iofuncs/im_mapfile.c:276 vips-7.17.1/libsrc/iofuncs/im_mapfile.c:276
+#: libsrc/iofuncs/im_mapfile.c:276
 msgid "unable to read data"
 msgstr ""
 
-#: libsrc/iofuncs/im_mapfile.c:339 vips-7.17.1/libsrc/iofuncs/im_mapfile.c:339
+#: libsrc/iofuncs/im_mapfile.c:339
 #, c-format
 msgid "unable to mmap: \"%s\" - %s"
 msgstr ""
 
-#: libsrc/iofuncs/im_mapfile.c:349 vips-7.17.1/libsrc/iofuncs/im_mapfile.c:349
+#: libsrc/iofuncs/im_mapfile.c:349
 #, c-format
 msgid "unable to mmap \"%s\" to same address"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:487 vips-7.17.1/libsrc/iofuncs/package.c:487
+#: libsrc/iofuncs/package.c:487
 #, c-format
 msgid "unable to close plugin \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/package.c:512 vips-7.17.1/libsrc/iofuncs/package.c:512
+#: libsrc/iofuncs/package.c:512
 msgid "plugins not supported on this platform"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:535 vips-7.17.1/libsrc/iofuncs/package.c:535
+#: libsrc/iofuncs/package.c:535
 #, c-format
 msgid "unable to open plugin \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/package.c:549 vips-7.17.1/libsrc/iofuncs/package.c:549
+#: libsrc/iofuncs/package.c:549
 #, c-format
 msgid "unable to find symbol \"package_table\" in plugin \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/package.c:562 vips-7.17.1/libsrc/iofuncs/package.c:562
+#: libsrc/iofuncs/package.c:562
 #, c-format
 msgid "corrupted package table in plugin \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/package.c:682 libsrc/iofuncs/package.c:709
-#: libsrc/iofuncs/package.c:737 vips-7.17.1/libsrc/iofuncs/package.c:682
-#: vips-7.17.1/libsrc/iofuncs/package.c:709
-#: vips-7.17.1/libsrc/iofuncs/package.c:737
+#: libsrc/iofuncs/package.c:737
 #, c-format
 msgid "\"%s\" not found"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:847 vips-7.17.1/libsrc/iofuncs/package.c:847
+#: libsrc/iofuncs/package.c:847
 msgid "too few arguments"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:868 vips-7.17.1/libsrc/iofuncs/package.c:868
+#: libsrc/iofuncs/package.c:868
 msgid "too many arguments"
 msgstr ""
 
-#: libsrc/iofuncs/package.c:1085 vips-7.17.1/libsrc/iofuncs/package.c:1085
+#: libsrc/iofuncs/package.c:1085
 msgid "flag not 0,1,2"
 msgstr ""
 
 #: libsrc/iofuncs/im_wrapmany.c:166
-#: vips-7.17.1/libsrc/iofuncs/im_wrapmany.c:166
 msgid "too many input images"
 msgstr ""
 
 #: libsrc/iofuncs/im_wrapmany.c:184
-#: vips-7.17.1/libsrc/iofuncs/im_wrapmany.c:184
 msgid "descriptors differ in size"
 msgstr ""
 
 #: libsrc/iofuncs/im_open_vips.c:628
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:628
 #, c-format
 msgid "unable to set property \"%s\" to value \"%s\"."
 msgstr ""
 
 #: libsrc/iofuncs/im_open_vips.c:676
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:676
 msgid "error transforming to save format"
 msgstr ""
 
 #: libsrc/iofuncs/im_open_vips.c:838 libsrc/iofuncs/im_open_vips.c:847
 #: libsrc/iofuncs/im_open_vips.c:870
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:838
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:847
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:870
 msgid "xml save error"
 msgstr ""
 
 #: libsrc/iofuncs/im_open_vips.c:1028
-#: vips-7.17.1/libsrc/iofuncs/im_open_vips.c:1028
 msgid "open for read-write for native format images only"
 msgstr ""
 
-#: libsrc/iofuncs/meta.c:294 vips-7.17.1/libsrc/iofuncs/meta.c:294
+#: libsrc/iofuncs/meta.c:294
 #, c-format
 msgid "field \"%s\" not found"
 msgstr ""
 
-#: libsrc/iofuncs/meta.c:339 vips-7.17.1/libsrc/iofuncs/meta.c:339
+#: libsrc/iofuncs/meta.c:339
 #, c-format
 msgid "field \"%s\" is of type %s, not %s"
 msgstr ""
 
-#: libsrc/iofuncs/im_prepare.c:98 vips-7.17.1/libsrc/iofuncs/im_prepare.c:98
+#: libsrc/iofuncs/im_prepare.c:98
 #, c-format
 msgid "killed for image \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/im_prepare.c:164 libsrc/iofuncs/im_prepare.c:372
 #: libsrc/iofuncs/im_generate.c:503
-#: vips-7.17.1/libsrc/iofuncs/im_prepare.c:164
-#: vips-7.17.1/libsrc/iofuncs/im_prepare.c:372
-#: vips-7.17.1/libsrc/iofuncs/im_generate.c:503
 #, c-format
 msgid "unable to input from a %s image"
 msgstr ""
 
-#: libsrc/iofuncs/im_prepare.c:229 vips-7.17.1/libsrc/iofuncs/im_prepare.c:229
+#: libsrc/iofuncs/im_prepare.c:229
 msgid "incomplete header"
 msgstr ""
 
 #: libsrc/iofuncs/im_prepare.c:278 libsrc/iofuncs/region.c:475
-#: vips-7.17.1/libsrc/iofuncs/im_prepare.c:278
-#: vips-7.17.1/libsrc/iofuncs/region.c:475
 msgid "inappropriate region type"
 msgstr ""
 
 #: libsrc/iofuncs/im_prepare.c:304 libsrc/iofuncs/region.c:508
-#: vips-7.17.1/libsrc/iofuncs/im_prepare.c:304
-#: vips-7.17.1/libsrc/iofuncs/region.c:508
 msgid "dest too small"
 msgstr ""
 
 #: libsrc/iofuncs/im_prepare.c:322 libsrc/iofuncs/region.c:339
 #: libsrc/iofuncs/region.c:394 libsrc/iofuncs/region.c:527
-#: vips-7.17.1/libsrc/iofuncs/im_prepare.c:322
-#: vips-7.17.1/libsrc/iofuncs/region.c:339
-#: vips-7.17.1/libsrc/iofuncs/region.c:394
-#: vips-7.17.1/libsrc/iofuncs/region.c:527
 msgid "valid clipped to nothing"
 msgstr ""
 
 #: libsrc/iofuncs/im_init_world.c:209
-#: vips-7.17.1/libsrc/iofuncs/im_init_world.c:209
 msgid "evaluate with N concurrent threads"
 msgstr ""
 
 #: libsrc/iofuncs/im_init_world.c:211
-#: vips-7.17.1/libsrc/iofuncs/im_init_world.c:211
 msgid "set tile width to N (DEBUG)"
 msgstr ""
 
 #: libsrc/iofuncs/im_init_world.c:213
-#: vips-7.17.1/libsrc/iofuncs/im_init_world.c:213
 msgid "set tile height to N (DEBUG)"
 msgstr ""
 
 #: libsrc/iofuncs/im_init_world.c:216
-#: vips-7.17.1/libsrc/iofuncs/im_init_world.c:216
 msgid "set thinstrip height to N (DEBUG)"
 msgstr ""
 
 #: libsrc/iofuncs/im_init_world.c:219
-#: vips-7.17.1/libsrc/iofuncs/im_init_world.c:219
 msgid "set fatstrip height to N (DEBUG)"
 msgstr ""
 
 #: libsrc/iofuncs/im_init_world.c:221
-#: vips-7.17.1/libsrc/iofuncs/im_init_world.c:221
 msgid "show progress feedback"
 msgstr ""
 
 #: libsrc/iofuncs/im_init_world.c:234
-#: vips-7.17.1/libsrc/iofuncs/im_init_world.c:234
 msgid "VIPS Options"
 msgstr ""
 
 #: libsrc/iofuncs/im_init_world.c:234
-#: vips-7.17.1/libsrc/iofuncs/im_init_world.c:234
 msgid "Show VIPS options"
 msgstr ""
 
-#: libsrc/iofuncs/im_iterate.c:161 vips-7.17.1/libsrc/iofuncs/im_iterate.c:161
+#: libsrc/iofuncs/im_iterate.c:161
 #, c-format
 msgid "start function failed for image \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/im_iterate.c:183 vips-7.17.1/libsrc/iofuncs/im_iterate.c:183
+#: libsrc/iofuncs/im_iterate.c:183
 #, c-format
 msgid "stop function failed for image \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/im_cp_desc.c:141 libsrc/iofuncs/im_demand_hint.c:184
-#: vips-7.17.1/libsrc/iofuncs/im_cp_desc.c:141
-#: vips-7.17.1/libsrc/iofuncs/im_demand_hint.c:184
 msgid "too many images"
 msgstr ""
 
 #: libsrc/iofuncs/memory.c:162 libsrc/iofuncs/memory.c:165
-#: vips-7.17.1/libsrc/iofuncs/memory.c:162
-#: vips-7.17.1/libsrc/iofuncs/memory.c:165
 #, c-format
 msgid "out of memory --- size == %dMB"
 msgstr ""
@@ -2414,582 +1907,508 @@ msgstr ""
 
 #: libsrc/iofuncs/im_render.c:567 libsrc/iofuncs/im_render.c:726
 #: libsrc/iofuncs/threadgroup.c:469 libsrc/iofuncs/im_wbuffer.c:176
-#: vips-7.17.1/libsrc/iofuncs/im_render.c:567
-#: vips-7.17.1/libsrc/iofuncs/im_render.c:726
-#: vips-7.17.1/libsrc/iofuncs/threadgroup.c:469
-#: vips-7.17.1/libsrc/iofuncs/im_wbuffer.c:176
 msgid "unable to create thread"
 msgstr ""
 
 #: libsrc/iofuncs/im_generate.c:394 libsrc/iofuncs/im_generate.c:418
-#: vips-7.17.1/libsrc/iofuncs/im_generate.c:394
-#: vips-7.17.1/libsrc/iofuncs/im_generate.c:418
 msgid "func already attached"
 msgstr ""
 
-#: libsrc/iofuncs/im_header.c:107 vips-7.17.1/libsrc/iofuncs/im_header.c:107
+#: libsrc/iofuncs/im_header.c:107
 #, c-format
 msgid "no such int field \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/im_header.c:129 vips-7.17.1/libsrc/iofuncs/im_header.c:129
+#: libsrc/iofuncs/im_header.c:129
 #, c-format
 msgid "no such double field \"%s\""
 msgstr ""
 
-#: libsrc/iofuncs/im_header.c:151 vips-7.17.1/libsrc/iofuncs/im_header.c:151
+#: libsrc/iofuncs/im_header.c:151
 #, c-format
 msgid "no such string field \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/threadgroup.c:145
-#: vips-7.17.1/libsrc/iofuncs/threadgroup.c:145
 #, c-format
 msgid "threads clipped to %d"
 msgstr ""
 
-#: libsrc/iofuncs/error.c:128 vips-7.17.1/libsrc/iofuncs/error.c:128
+#: libsrc/iofuncs/error.c:128
 msgid "windows error"
 msgstr ""
 
-#: libsrc/iofuncs/error.c:137 vips-7.17.1/libsrc/iofuncs/error.c:137
+#: libsrc/iofuncs/error.c:137
 msgid "unix error"
 msgstr ""
 
 #: libsrc/iofuncs/error.c:166 libsrc/iofuncs/error.c:167
 #: libsrc/iofuncs/error.c:189 libsrc/iofuncs/error.c:190
-#: vips-7.17.1/libsrc/iofuncs/error.c:166
-#: vips-7.17.1/libsrc/iofuncs/error.c:167
-#: vips-7.17.1/libsrc/iofuncs/error.c:189
-#: vips-7.17.1/libsrc/iofuncs/error.c:190
 #, c-format
 msgid "%s: "
 msgstr ""
 
-#: libsrc/iofuncs/error.c:166 vips-7.17.1/libsrc/iofuncs/error.c:166
+#: libsrc/iofuncs/error.c:166
 msgid "vips diagnostic"
 msgstr ""
 
-#: libsrc/iofuncs/error.c:189 vips-7.17.1/libsrc/iofuncs/error.c:189
+#: libsrc/iofuncs/error.c:189
 msgid "vips warning"
 msgstr ""
 
 #: libsrc/iofuncs/im_printdesc.c:157
-#: vips-7.17.1/libsrc/iofuncs/im_printdesc.c:157
 msgid "<bad Type>"
 msgstr ""
 
 #: libsrc/iofuncs/im_printdesc.c:163
-#: vips-7.17.1/libsrc/iofuncs/im_printdesc.c:163
 msgid "<bad BandFmt>"
 msgstr ""
 
 #: libsrc/iofuncs/im_printdesc.c:169
-#: vips-7.17.1/libsrc/iofuncs/im_printdesc.c:169
 msgid "<bad Coding>"
 msgstr ""
 
 #: libsrc/iofuncs/im_printdesc.c:175
-#: vips-7.17.1/libsrc/iofuncs/im_printdesc.c:175
 msgid "<bad Compression>"
 msgstr ""
 
 #: libsrc/iofuncs/im_printdesc.c:181
-#: vips-7.17.1/libsrc/iofuncs/im_printdesc.c:181
 msgid "<bad dtype>"
 msgstr ""
 
 #: libsrc/iofuncs/im_printdesc.c:187
-#: vips-7.17.1/libsrc/iofuncs/im_printdesc.c:187
 msgid "<bad dhint>"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:665 vips-7.17.1/libsrc/iofuncs/object.c:665
+#: libsrc/iofuncs/object.c:665
 #, c-format
 msgid "required construct param %s to %s %s not set"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:760 vips-7.17.1/libsrc/iofuncs/object.c:760
+#: libsrc/iofuncs/object.c:760
 msgid "VIPS base class"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:784 vips-7.17.1/libsrc/iofuncs/object.c:784
+#: libsrc/iofuncs/object.c:784
 msgid "Nickname"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:785 vips-7.17.1/libsrc/iofuncs/object.c:785
+#: libsrc/iofuncs/object.c:785
 msgid "Class nickname"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:795 vips-7.17.1/libsrc/iofuncs/object.c:795
+#: libsrc/iofuncs/object.c:795
 msgid "Description"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:796 vips-7.17.1/libsrc/iofuncs/object.c:796
+#: libsrc/iofuncs/object.c:796
 msgid "Class description"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:897 vips-7.17.1/libsrc/iofuncs/object.c:897
+#: libsrc/iofuncs/object.c:897
 #, c-format
 msgid "no unset required arguments for %s"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:946 vips-7.17.1/libsrc/iofuncs/object.c:946
+#: libsrc/iofuncs/object.c:946
 msgid "not , or ) after parameter"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:953 vips-7.17.1/libsrc/iofuncs/object.c:953
+#: libsrc/iofuncs/object.c:953
 msgid "extra tokens after ')'"
 msgstr ""
 
-#: libsrc/iofuncs/object.c:991 vips-7.17.1/libsrc/iofuncs/object.c:991
+#: libsrc/iofuncs/object.c:991
 msgid "bad object arguments"
 msgstr ""
 
-#: libsrc/iofuncs/base64.c:168 vips-7.17.1/libsrc/iofuncs/base64.c:168
+#: libsrc/iofuncs/base64.c:168
 msgid "too little data"
 msgstr ""
 
 #. We shouldn't really be used for large amounts of data.
 #.
 #: libsrc/iofuncs/base64.c:174 libsrc/iofuncs/base64.c:239
-#: vips-7.17.1/libsrc/iofuncs/base64.c:174
-#: vips-7.17.1/libsrc/iofuncs/base64.c:239
 msgid "too much data"
 msgstr ""
 
-#: libsrc/iofuncs/im_binfile.c:123 vips-7.17.1/libsrc/iofuncs/im_binfile.c:123
+#: libsrc/iofuncs/im_binfile.c:123
 #, c-format
 msgid "unable to open %s: file has been truncated"
 msgstr ""
 
-#: libsrc/iofuncs/im_binfile.c:133 vips-7.17.1/libsrc/iofuncs/im_binfile.c:133
+#: libsrc/iofuncs/im_binfile.c:133
 #, c-format
 msgid "%s is longer than expected"
 msgstr ""
 
 #: libsrc/iofuncs/im_setupout.c:127
-#: vips-7.17.1/libsrc/iofuncs/im_setupout.c:127
 msgid "called twice!"
 msgstr ""
 
 #: libsrc/iofuncs/im_setupout.c:145
-#: vips-7.17.1/libsrc/iofuncs/im_setupout.c:145
 #, c-format
 msgid "unable to write to \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/im_setupout.c:158
-#: vips-7.17.1/libsrc/iofuncs/im_setupout.c:158
 msgid "bad image descriptor"
 msgstr ""
 
 #: libsrc/iofuncs/im_bits_of_fmt.c:61
-#: vips-7.17.1/libsrc/iofuncs/im_bits_of_fmt.c:61
 #, fuzzy, c-format
 msgid "unsupported band format: %d"
 msgstr "unsupported colourspace %d"
 
 #: libsrc/iofuncs/dispatch_types.c:72
-#: vips-7.17.1/libsrc/iofuncs/dispatch_types.c:72
 #, c-format
 msgid "unknown display type \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/dispatch_types.c:74
-#: vips-7.17.1/libsrc/iofuncs/dispatch_types.c:74
 msgid "display should be one of:\n"
 msgstr ""
 
 #: libsrc/iofuncs/dispatch_types.c:456
-#: vips-7.17.1/libsrc/iofuncs/dispatch_types.c:456
 #, c-format
 msgid "bad double \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/dispatch_types.c:542
-#: vips-7.17.1/libsrc/iofuncs/dispatch_types.c:542
 #, c-format
 msgid "bad integer \"%s\""
 msgstr ""
 
 #: libsrc/iofuncs/dispatch_types.c:602
-#: vips-7.17.1/libsrc/iofuncs/dispatch_types.c:602
 #, fuzzy
 msgid "bad format"
 msgstr "bad colourmap"
 
-#: libsrc/iofuncs/region.c:124 vips-7.17.1/libsrc/iofuncs/region.c:124
+#: libsrc/iofuncs/region.c:124
 #, c-format
 msgid "start function failed for image %s"
 msgstr ""
 
-#: libsrc/iofuncs/region.c:440 vips-7.17.1/libsrc/iofuncs/region.c:440
+#: libsrc/iofuncs/region.c:440
 msgid "bad image type"
 msgstr ""
 
-#: libsrc/iofuncs/region.c:578 vips-7.17.1/libsrc/iofuncs/region.c:578
+#: libsrc/iofuncs/region.c:578
 msgid "bad position"
 msgstr ""
 
 #: libsrc/morphology/im_dilate.c:198 libsrc/morphology/im_erode.c:198
-#: vips-7.17.1/libsrc/morphology/im_dilate.c:198
-#: vips-7.17.1/libsrc/morphology/im_erode.c:198
 #, c-format
 msgid "bad mask element (%d should be 0, 128 or 255)"
 msgstr ""
 
 #: libsrc/morphology/im_dilate.c:256 libsrc/morphology/im_erode.c:252
-#: vips-7.17.1/libsrc/morphology/im_dilate.c:256
-#: vips-7.17.1/libsrc/morphology/im_erode.c:252
 msgid "mask size not odd"
 msgstr ""
 
 #: libsrc/morphology/im_dilate.c:266
-#: vips-7.17.1/libsrc/morphology/im_dilate.c:266
 msgid "uchar uncoded only"
 msgstr ""
 
 #: libsrc/morphology/im_erode.c:262
-#: vips-7.17.1/libsrc/morphology/im_erode.c:262
 msgid "1-band uchar uncoded only"
 msgstr ""
 
 #: libsrc/mosaicing/im_tbmerge.c:651 libsrc/mosaicing/im_lrmerge.c:828
-#: vips-7.17.1/libsrc/mosaicing/im_tbmerge.c:651
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:828
 msgid "too much overlap"
 msgstr ""
 
 #: libsrc/mosaicing/im_tbmerge.c:673 libsrc/mosaicing/im_lrmerge.c:1073
-#: vips-7.17.1/libsrc/mosaicing/im_tbmerge.c:673
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:1073
 msgid "input images incompatible"
 msgstr ""
 
 #: libsrc/mosaicing/im_tbmerge.c:678 libsrc/mosaicing/im_lrmerge.c:1078
-#: vips-7.17.1/libsrc/mosaicing/im_tbmerge.c:678
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:1078
 msgid "inputs not uncoded or IM_CODING_LABQ"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:147
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:147
 msgid "no matching '>'"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:156
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:156
 msgid "too many items"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:452
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:452
 msgid "circularity detected"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:486 libsrc/mosaicing/global_balance.c:542
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:486
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:542
 #, c-format
 msgid "image \"%s\" used twice as output"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:591
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:591
 msgid "bad number of args in join line"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:633
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:633
 msgid "bad number of args in join1 line"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:669
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:669
 msgid "bad number of args in copy line"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:727
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:727
 msgid ""
 "mosaic root not found in desc file\n"
 "is this really a mosaiced image?"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:738
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:738
 msgid "more than one root"
 msgstr ""
 
 #: libsrc/mosaicing/global_balance.c:1075
-#: vips-7.17.1/libsrc/mosaicing/global_balance.c:1075
 msgid "empty overlap!"
 msgstr ""
 
 #: libsrc/mosaicing/im_remosaic.c:108
-#: vips-7.17.1/libsrc/mosaicing/im_remosaic.c:108
 #, c-format
 msgid "substitute image \"%s\" is not the same size as \"%s\""
 msgstr ""
 
 #: libsrc/mosaicing/im_lrmerge.c:712
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:712
 msgid "mwidth must be -1 or >= 0"
 msgstr ""
 
 #: libsrc/mosaicing/im_lrmerge.c:741
-#: vips-7.17.1/libsrc/mosaicing/im_lrmerge.c:741
 msgid "no overlap"
 msgstr ""
 
 #: libsrc/relational/im_ifthenelse.c:170
-#: vips-7.17.1/libsrc/relational/im_ifthenelse.c:170
 msgid "then image must be uncoded or labpack"
 msgstr ""
 
 #: libsrc/relational/im_ifthenelse.c:175
-#: vips-7.17.1/libsrc/relational/im_ifthenelse.c:175
 msgid "else image must be uncoded or labpack"
 msgstr ""
 
 #: libsrc/relational/im_ifthenelse.c:180
-#: vips-7.17.1/libsrc/relational/im_ifthenelse.c:180
 msgid "condition image must be uncoded"
 msgstr ""
 
 #: libsrc/relational/im_ifthenelse.c:186 libsrc/relational/im_blend.c:336
-#: vips-7.17.1/libsrc/relational/im_ifthenelse.c:186
-#: vips-7.17.1/libsrc/relational/im_blend.c:336
 msgid "size and format of then and else must match"
 msgstr ""
 
 #: libsrc/relational/im_ifthenelse.c:192 libsrc/relational/im_blend.c:342
-#: vips-7.17.1/libsrc/relational/im_ifthenelse.c:192
-#: vips-7.17.1/libsrc/relational/im_blend.c:342
 msgid "conditional image must be uchar"
 msgstr ""
 
 #: libsrc/relational/im_ifthenelse.c:197 libsrc/relational/im_blend.c:347
-#: vips-7.17.1/libsrc/relational/im_ifthenelse.c:197
-#: vips-7.17.1/libsrc/relational/im_blend.c:347
 msgid "conditional image must be one band or same as then and else images"
 msgstr ""
 
 #: libsrc/relational/im_blend.c:330
-#: vips-7.17.1/libsrc/relational/im_blend.c:330
 msgid "images not uncoded"
 msgstr ""
 
-#: libsrc/resample/im_affine.c:384 vips-7.17.1/libsrc/resample/im_affine.c:384
+#: libsrc/resample/im_affine.c:384
 msgid "output coordinates out of range"
 msgstr ""
 
 #: libsrc/resample/interpolate.c:193
-#: vips-7.17.1/libsrc/resample/interpolate.c:193
 msgid "Nearest-neighbour interpolation"
 msgstr ""
 
 #: libsrc/resample/interpolate.c:375
-#: vips-7.17.1/libsrc/resample/interpolate.c:375
 msgid "Bilinear interpolation"
 msgstr ""
 
 #: libsrc/video/im_video_v4l1.c:246
-#: vips-7.17.1/libsrc/video/im_video_v4l1.c:246
 msgid "no file descriptor"
 msgstr ""
 
 #: libsrc/video/im_video_v4l1.c:251
-#: vips-7.17.1/libsrc/video/im_video_v4l1.c:251
 #, c-format
 msgid "ioctl(0x%x) failed: %s"
 msgstr ""
 
 #: libsrc/video/im_video_v4l1.c:300
-#: vips-7.17.1/libsrc/video/im_video_v4l1.c:300
 #, c-format
 msgid "cannot open video device \"%s\""
 msgstr ""
 
 #: libsrc/video/im_video_v4l1.c:308
-#: vips-7.17.1/libsrc/video/im_video_v4l1.c:308
 msgid "cannot get video capability"
 msgstr ""
 
 #: libsrc/video/im_video_v4l1.c:317
-#: vips-7.17.1/libsrc/video/im_video_v4l1.c:317
 msgid "card cannot capture to memory"
 msgstr ""
 
 #: libsrc/video/im_video_v4l1.c:463
-#: vips-7.17.1/libsrc/video/im_video_v4l1.c:463
 msgid "unable to map memory"
 msgstr ""
 
 #: libsrc/video/im_video_v4l1.c:475
-#: vips-7.17.1/libsrc/video/im_video_v4l1.c:475
 #, c-format
 msgid "channel not between 0 and %d"
 msgstr ""
 
 #: libsrc/video/im_video_v4l1.c:675
-#: vips-7.17.1/libsrc/video/im_video_v4l1.c:675
 msgid "compiled without im_video_v4l1 support"
 msgstr ""
 
-#: libsrc/video/im_video_test.c:45 vips-7.17.1/libsrc/video/im_video_test.c:45
+#: libsrc/video/im_video_test.c:45
 msgid "error requested"
 msgstr ""
 
-#: src/iofuncs/vips.c:91 vips-7.17.1/src/iofuncs/vips.c:91
+#: src/iofuncs/vips.c:91
 msgid "list operations in PACKAGE (or \"all\", \"packages\", \"classes\")"
 msgstr ""
 
-#: src/iofuncs/vips.c:95 vips-7.17.1/src/iofuncs/vips.c:95
+#: src/iofuncs/vips.c:95
 msgid "show usage message for OPERATION"
 msgstr ""
 
-#: src/iofuncs/vips.c:98 vips-7.17.1/src/iofuncs/vips.c:98
+#: src/iofuncs/vips.c:98
 msgid "load PLUGIN"
 msgstr ""
 
-#: src/iofuncs/vips.c:101 vips-7.17.1/src/iofuncs/vips.c:101
+#: src/iofuncs/vips.c:101
 msgid "print link lines for all operations"
 msgstr ""
 
-#: src/iofuncs/vips.c:103 vips-7.17.1/src/iofuncs/vips.c:103
+#: src/iofuncs/vips.c:103
 msgid "print C++ decls for PACKAGE (or \"all\")"
 msgstr ""
 
-#: src/iofuncs/vips.c:106 vips-7.17.1/src/iofuncs/vips.c:106
+#: src/iofuncs/vips.c:106
 msgid "print C++ binding for PACKAGE (or \"all\")"
 msgstr ""
 
-#: src/iofuncs/vips.c:109 vips-7.17.1/src/iofuncs/vips.c:109
+#: src/iofuncs/vips.c:109
 msgid "print im_version_string"
 msgstr ""
 
-#: src/iofuncs/vips.c:152 vips-7.17.1/src/iofuncs/vips.c:152
+#: src/iofuncs/vips.c:152
 #, c-format
 msgid "no package or function \"%s\""
 msgstr ""
 
-#: src/iofuncs/vips.c:884 vips-7.17.1/src/iofuncs/vips.c:884
+#: src/iofuncs/vips.c:884
 msgid "- VIPS driver program"
 msgstr ""
 
-#: src/iofuncs/header.c:77 vips-7.17.1/src/iofuncs/header.c:77
+#: src/iofuncs/header.c:77
 msgid ""
 "print value of FIELD (\"getext\" reads extension block, \"Hist\" reads image "
 "history)"
 msgstr ""
 
-#: src/iofuncs/header.c:161 vips-7.17.1/src/iofuncs/header.c:161
+#: src/iofuncs/header.c:161
 msgid "- print image header"
 msgstr ""
 
-#: src/iofuncs/edvips.c:79 vips-7.17.1/src/iofuncs/edvips.c:79
+#: src/iofuncs/edvips.c:79
 msgid "set Xsize to N"
 msgstr ""
 
-#: src/iofuncs/edvips.c:81 vips-7.17.1/src/iofuncs/edvips.c:81
+#: src/iofuncs/edvips.c:81
 msgid "set Ysize to N"
 msgstr ""
 
-#: src/iofuncs/edvips.c:83 vips-7.17.1/src/iofuncs/edvips.c:83
+#: src/iofuncs/edvips.c:83
 msgid "set Bands to N"
 msgstr ""
 
-#: src/iofuncs/edvips.c:85 vips-7.17.1/src/iofuncs/edvips.c:85
+#: src/iofuncs/edvips.c:85
 msgid "set BandFmt to F (eg. IM_BANDFMT_UCHAR)"
 msgstr ""
 
-#: src/iofuncs/edvips.c:87 vips-7.17.1/src/iofuncs/edvips.c:87
+#: src/iofuncs/edvips.c:87
 msgid "set Type to T (eg. IM_TYPE_XYZ)"
 msgstr ""
 
-#: src/iofuncs/edvips.c:89 vips-7.17.1/src/iofuncs/edvips.c:89
+#: src/iofuncs/edvips.c:89
 msgid "set Coding to C (eg. IM_CODING_LABQ)"
 msgstr ""
 
-#: src/iofuncs/edvips.c:91 vips-7.17.1/src/iofuncs/edvips.c:91
+#: src/iofuncs/edvips.c:91
 msgid "set Xres to R pixels/mm"
 msgstr ""
 
-#: src/iofuncs/edvips.c:93 vips-7.17.1/src/iofuncs/edvips.c:93
+#: src/iofuncs/edvips.c:93
 msgid "set Yres to R pixels/mm"
 msgstr ""
 
-#: src/iofuncs/edvips.c:95 vips-7.17.1/src/iofuncs/edvips.c:95
+#: src/iofuncs/edvips.c:95
 msgid "set Xoffset to N"
 msgstr ""
 
-#: src/iofuncs/edvips.c:97 vips-7.17.1/src/iofuncs/edvips.c:97
+#: src/iofuncs/edvips.c:97
 msgid "set Yoffset to N"
 msgstr ""
 
-#: src/iofuncs/edvips.c:99 vips-7.17.1/src/iofuncs/edvips.c:99
+#: src/iofuncs/edvips.c:99
 msgid "replace extension block with stdin"
 msgstr ""
 
-#: src/iofuncs/edvips.c:110 vips-7.17.1/src/iofuncs/edvips.c:110
+#: src/iofuncs/edvips.c:110
 #, c-format
 msgid "'%s' is not a positive integer"
 msgstr ""
 
-#: src/iofuncs/edvips.c:122 vips-7.17.1/src/iofuncs/edvips.c:122
+#: src/iofuncs/edvips.c:122
 msgid "unable to start VIPS"
 msgstr ""
 
-#: src/iofuncs/edvips.c:125 vips-7.17.1/src/iofuncs/edvips.c:125
+#: src/iofuncs/edvips.c:125
 msgid "vipsfile - edit vipsfile header"
 msgstr ""
 
-#: src/iofuncs/edvips.c:137 vips-7.17.1/src/iofuncs/edvips.c:137
+#: src/iofuncs/edvips.c:137
 #, c-format
 msgid "usage: %s [OPTION...] vipsfile\n"
 msgstr ""
 
-#: src/iofuncs/edvips.c:144 vips-7.17.1/src/iofuncs/edvips.c:144
+#: src/iofuncs/edvips.c:144
 #, c-format
 msgid "could not open image %s"
 msgstr ""
 
-#: src/iofuncs/edvips.c:147 vips-7.17.1/src/iofuncs/edvips.c:147
+#: src/iofuncs/edvips.c:147
 #, c-format
 msgid "could not read VIPS header for %s"
 msgstr ""
 
-#: src/iofuncs/edvips.c:158 vips-7.17.1/src/iofuncs/edvips.c:158
+#: src/iofuncs/edvips.c:158
 #, fuzzy, c-format
 msgid "bad format %s"
 msgstr "bad colourmap"
 
-#: src/iofuncs/edvips.c:163 vips-7.17.1/src/iofuncs/edvips.c:163
+#: src/iofuncs/edvips.c:163
 #, c-format
 msgid "bad type %s"
 msgstr ""
 
-#: src/iofuncs/edvips.c:167 vips-7.17.1/src/iofuncs/edvips.c:167
+#: src/iofuncs/edvips.c:167
 #, c-format
 msgid "bad coding %s"
 msgstr ""
 
-#: src/iofuncs/edvips.c:179 vips-7.17.1/src/iofuncs/edvips.c:179
+#: src/iofuncs/edvips.c:179
 #, c-format
 msgid "could not seek on %s"
 msgstr ""
 
-#: src/iofuncs/edvips.c:182 vips-7.17.1/src/iofuncs/edvips.c:182
+#: src/iofuncs/edvips.c:182
 #, c-format
 msgid "could not write to %s"
 msgstr ""
 
-#: src/iofuncs/edvips.c:189 vips-7.17.1/src/iofuncs/edvips.c:189
+#: src/iofuncs/edvips.c:189
 msgid "could not get ext data"
 msgstr ""
 
-#: src/iofuncs/edvips.c:198 vips-7.17.1/src/iofuncs/edvips.c:198
+#: src/iofuncs/edvips.c:198
 msgid "could not set extension"
 msgstr ""

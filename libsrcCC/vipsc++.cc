@@ -1,68 +1,5 @@
 // this file automatically generated from
-// VIPS library 7.14.0-Fri Feb 29 12:02:58 GMT 2008
-// im_estpar: estimate transform parms
-VDMask VImage::estpar( VImage dst, int order, int ipol, int wrap, double& avg_displ ) throw( VError )
-{
-	VImage src = *this;
-	VDMask params;
-
-	Vargv _vec( "im_estpar" );
-
-	_vec.data(0) = src.image();
-	_vec.data(1) = dst.image();
-	((im_mask_object*) _vec.data(2))->name = (char*)"noname";
-	*((int*) _vec.data(3)) = order;
-	*((int*) _vec.data(4)) = ipol;
-	*((int*) _vec.data(5)) = wrap;
-	_vec.call();
-	params.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(2))->mask );
-	avg_displ = *((double*)_vec.data(6));
-
-	return( params );
-}
-
-// im_transform: transform an image
-VImage VImage::transform( VDMask params, int ipol, int wrap ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_transform" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = params.mask().dptr;
-	*((int*) _vec.data(3)) = ipol;
-	*((int*) _vec.data(4)) = wrap;
-	_vec.call();
-
-	return( out );
-}
-
-// im_transform_search: search for a transform
-VImage VImage::transform_search( VImage dst, double error, int iterations, int order, int ipol, int wrap, VDMask& out_par, double& act_error ) throw( VError )
-{
-	VImage src = *this;
-	VImage out;
-
-	Vargv _vec( "im_transform_search" );
-
-	_vec.data(0) = src.image();
-	_vec.data(1) = dst.image();
-	_vec.data(2) = out.image();
-	*((double*) _vec.data(3)) = error;
-	*((int*) _vec.data(4)) = iterations;
-	*((int*) _vec.data(5)) = order;
-	*((int*) _vec.data(6)) = ipol;
-	*((int*) _vec.data(7)) = wrap;
-	((im_mask_object*) _vec.data(8))->name = (char*)"noname";
-	_vec.call();
-	out_par.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(8))->mask );
-	act_error = *((double*)_vec.data(9));
-
-	return( out );
-}
-
+// VIPS library 7.17.2-Tue Mar  3 14:42:34 GMT 2009
 // im_abs: absolute value
 VImage VImage::abs() throw( VError )
 {
@@ -1792,6 +1729,22 @@ VImage VImage::lab_morph( VDMask greyscale, double L_offset, double L_scale, dou
 	return( out );
 }
 
+// im_rad2float: convert Radiance packed to float
+VImage VImage::rad2float() throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_rad2float" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
 // im_sRGB2XYZ: convert sRGB to XYZ
 VImage VImage::sRGB2XYZ() throw( VError )
 {
@@ -2171,20 +2124,6 @@ VImage VImage::copy_set( int Type, double Xres, double Yres, int Xoffset, int Yo
 	return( output );
 }
 
-// im_csv2vips: read a file in csv format
-VImage VImage::csv2vips( char* filename ) throw( VError )
-{
-	VImage im;
-
-	Vargv _vec( "im_csv2vips" );
-
-	_vec.data(0) = (im_object) filename;
-	_vec.data(1) = im.image();
-	_vec.call();
-
-	return( im );
-}
-
 // im_extract_area: extract area
 VImage VImage::extract_area( int left, int top, int width, int height ) throw( VError )
 {
@@ -2409,20 +2348,6 @@ VImage VImage::insert_noexpand( VImage sub, int x, int y ) throw( VError )
 	return( out );
 }
 
-// im_jpeg2vips: convert from jpeg
-VImage VImage::jpeg2vips( char* in ) throw( VError )
-{
-	VImage out;
-
-	Vargv _vec( "im_jpeg2vips" );
-
-	_vec.data(0) = (im_object) in;
-	_vec.data(1) = out.image();
-	_vec.call();
-
-	return( out );
-}
-
 // im_lrjoin: join two images left-right
 VImage VImage::lrjoin( VImage in2 ) throw( VError )
 {
@@ -2437,20 +2362,6 @@ VImage VImage::lrjoin( VImage in2 ) throw( VError )
 	_vec.call();
 	out._ref->addref( in1._ref );
 	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_magick2vips: load file with libMagick
-VImage VImage::magick2vips( char* in ) throw( VError )
-{
-	VImage out;
-
-	Vargv _vec( "im_magick2vips" );
-
-	_vec.data(0) = (im_object) in;
-	_vec.data(1) = out.image();
-	_vec.call();
 
 	return( out );
 }
@@ -2500,62 +2411,6 @@ VImage VImage::msb_band( int band ) throw( VError )
 	out._ref->addref( in._ref );
 
 	return( out );
-}
-
-// im_png2vips: convert PNG file to VIPS image
-VImage VImage::png2vips( char* in ) throw( VError )
-{
-	VImage out;
-
-	Vargv _vec( "im_png2vips" );
-
-	_vec.data(0) = (im_object) in;
-	_vec.data(1) = out.image();
-	_vec.call();
-
-	return( out );
-}
-
-// im_exr2vips: convert an OpenEXR file to VIPS
-VImage VImage::exr2vips( char* in ) throw( VError )
-{
-	VImage out;
-
-	Vargv _vec( "im_exr2vips" );
-
-	_vec.data(0) = (im_object) in;
-	_vec.data(1) = out.image();
-	_vec.call();
-
-	return( out );
-}
-
-// im_ppm2vips: read a file in pbm/pgm/ppm format
-VImage VImage::ppm2vips( char* filename ) throw( VError )
-{
-	VImage im;
-
-	Vargv _vec( "im_ppm2vips" );
-
-	_vec.data(0) = (im_object) filename;
-	_vec.data(1) = im.image();
-	_vec.call();
-
-	return( im );
-}
-
-// im_analyze2vips: read a file in analyze format
-VImage VImage::analyze2vips( char* filename ) throw( VError )
-{
-	VImage im;
-
-	Vargv _vec( "im_analyze2vips" );
-
-	_vec.data(0) = (im_object) filename;
-	_vec.data(1) = im.image();
-	_vec.call();
-
-	return( im );
 }
 
 // im_recomb: linear recombination with mask
@@ -2812,42 +2667,6 @@ VImage VImage::thresh( double threshold ) throw( VError )
 	return( output );
 }
 
-// im_tiff2vips: convert TIFF file to VIPS image
-VImage VImage::tiff2vips( char* in ) throw( VError )
-{
-	VImage out;
-
-	Vargv _vec( "im_tiff2vips" );
-
-	_vec.data(0) = (im_object) in;
-	_vec.data(1) = out.image();
-	_vec.call();
-
-	return( out );
-}
-
-// im_vips2csv: write an image in csv format
-void VImage::vips2csv( char* filename ) throw( VError )
-{
-	VImage in = *this;
-	Vargv _vec( "im_vips2csv" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = (im_object) filename;
-	_vec.call();
-}
-
-// im_vips2jpeg: convert to jpeg
-void VImage::vips2jpeg( char* out ) throw( VError )
-{
-	VImage in = *this;
-	Vargv _vec( "im_vips2jpeg" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = (im_object) out;
-	_vec.call();
-}
-
 // im_vips2mask: convert VIPS image to DOUBLEMASK
 VDMask VImage::vips2mask() throw( VError )
 {
@@ -2862,50 +2681,6 @@ VDMask VImage::vips2mask() throw( VError )
 	output.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(1))->mask );
 
 	return( output );
-}
-
-// im_vips2mimejpeg: convert to jpeg as mime type on stdout
-void VImage::vips2mimejpeg( int qfac ) throw( VError )
-{
-	VImage in = *this;
-	Vargv _vec( "im_vips2mimejpeg" );
-
-	_vec.data(0) = in.image();
-	*((int*) _vec.data(1)) = qfac;
-	_vec.call();
-}
-
-// im_vips2png: convert VIPS image to PNG file
-void VImage::vips2png( char* out ) throw( VError )
-{
-	VImage in = *this;
-	Vargv _vec( "im_vips2png" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = (im_object) out;
-	_vec.call();
-}
-
-// im_vips2ppm: write a file in pbm/pgm/ppm format
-void VImage::vips2ppm( char* filename ) throw( VError )
-{
-	VImage im = *this;
-	Vargv _vec( "im_vips2ppm" );
-
-	_vec.data(0) = im.image();
-	_vec.data(1) = (im_object) filename;
-	_vec.call();
-}
-
-// im_vips2tiff: convert VIPS image to TIFF file
-void VImage::vips2tiff( char* out ) throw( VError )
-{
-	VImage in = *this;
-	Vargv _vec( "im_vips2tiff" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = (im_object) out;
-	_vec.call();
 }
 
 // im_wrap: shift image origin, wrapping at sides
@@ -3579,6 +3354,184 @@ VImage VImage::zerox( int flag ) throw( VError )
 	out._ref->addref( in._ref );
 
 	return( out );
+}
+
+// im_csv2vips: read a file in csv format
+VImage VImage::csv2vips( char* filename ) throw( VError )
+{
+	VImage im;
+
+	Vargv _vec( "im_csv2vips" );
+
+	_vec.data(0) = (im_object) filename;
+	_vec.data(1) = im.image();
+	_vec.call();
+
+	return( im );
+}
+
+// im_jpeg2vips: convert from jpeg
+VImage VImage::jpeg2vips( char* in ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_jpeg2vips" );
+
+	_vec.data(0) = (im_object) in;
+	_vec.data(1) = out.image();
+	_vec.call();
+
+	return( out );
+}
+
+// im_magick2vips: load file with libMagick
+VImage VImage::magick2vips( char* in ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_magick2vips" );
+
+	_vec.data(0) = (im_object) in;
+	_vec.data(1) = out.image();
+	_vec.call();
+
+	return( out );
+}
+
+// im_png2vips: convert PNG file to VIPS image
+VImage VImage::png2vips( char* in ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_png2vips" );
+
+	_vec.data(0) = (im_object) in;
+	_vec.data(1) = out.image();
+	_vec.call();
+
+	return( out );
+}
+
+// im_exr2vips: convert an OpenEXR file to VIPS
+VImage VImage::exr2vips( char* in ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_exr2vips" );
+
+	_vec.data(0) = (im_object) in;
+	_vec.data(1) = out.image();
+	_vec.call();
+
+	return( out );
+}
+
+// im_ppm2vips: read a file in pbm/pgm/ppm format
+VImage VImage::ppm2vips( char* filename ) throw( VError )
+{
+	VImage im;
+
+	Vargv _vec( "im_ppm2vips" );
+
+	_vec.data(0) = (im_object) filename;
+	_vec.data(1) = im.image();
+	_vec.call();
+
+	return( im );
+}
+
+// im_analyze2vips: read a file in analyze format
+VImage VImage::analyze2vips( char* filename ) throw( VError )
+{
+	VImage im;
+
+	Vargv _vec( "im_analyze2vips" );
+
+	_vec.data(0) = (im_object) filename;
+	_vec.data(1) = im.image();
+	_vec.call();
+
+	return( im );
+}
+
+// im_tiff2vips: convert TIFF file to VIPS image
+VImage VImage::tiff2vips( char* in ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_tiff2vips" );
+
+	_vec.data(0) = (im_object) in;
+	_vec.data(1) = out.image();
+	_vec.call();
+
+	return( out );
+}
+
+// im_vips2csv: write an image in csv format
+void VImage::vips2csv( char* filename ) throw( VError )
+{
+	VImage in = *this;
+	Vargv _vec( "im_vips2csv" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = (im_object) filename;
+	_vec.call();
+}
+
+// im_vips2jpeg: convert to jpeg
+void VImage::vips2jpeg( char* out ) throw( VError )
+{
+	VImage in = *this;
+	Vargv _vec( "im_vips2jpeg" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = (im_object) out;
+	_vec.call();
+}
+
+// im_vips2mimejpeg: convert to jpeg as mime type on stdout
+void VImage::vips2mimejpeg( int qfac ) throw( VError )
+{
+	VImage in = *this;
+	Vargv _vec( "im_vips2mimejpeg" );
+
+	_vec.data(0) = in.image();
+	*((int*) _vec.data(1)) = qfac;
+	_vec.call();
+}
+
+// im_vips2png: convert VIPS image to PNG file
+void VImage::vips2png( char* out ) throw( VError )
+{
+	VImage in = *this;
+	Vargv _vec( "im_vips2png" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = (im_object) out;
+	_vec.call();
+}
+
+// im_vips2ppm: write a file in pbm/pgm/ppm format
+void VImage::vips2ppm( char* filename ) throw( VError )
+{
+	VImage im = *this;
+	Vargv _vec( "im_vips2ppm" );
+
+	_vec.data(0) = im.image();
+	_vec.data(1) = (im_object) filename;
+	_vec.call();
+}
+
+// im_vips2tiff: convert VIPS image to TIFF file
+void VImage::vips2tiff( char* out ) throw( VError )
+{
+	VImage in = *this;
+	Vargv _vec( "im_vips2tiff" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = (im_object) out;
+	_vec.call();
 }
 
 // im_create_fmask: create frequency domain filter mask
@@ -4474,32 +4427,6 @@ VImage VImage::profile( int direction ) throw( VError )
 	return( out );
 }
 
-// im_affine: affine transform
-VImage VImage::affine( double a, double b, double c, double d, double dx, double dy, int x, int y, int w, int h ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_affine" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = a;
-	*((double*) _vec.data(3)) = b;
-	*((double*) _vec.data(4)) = c;
-	*((double*) _vec.data(5)) = d;
-	*((double*) _vec.data(6)) = dx;
-	*((double*) _vec.data(7)) = dy;
-	*((int*) _vec.data(8)) = x;
-	*((int*) _vec.data(9)) = y;
-	*((int*) _vec.data(10)) = w;
-	*((int*) _vec.data(11)) = h;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
 // im_align_bands: align the bands of an image
 VImage VImage::align_bands() throw( VError )
 {
@@ -4817,50 +4744,6 @@ VImage VImage::remosaic( char* old_str, char* new_str ) throw( VError )
 	_vec.data(1) = out.image();
 	_vec.data(2) = (im_object) old_str;
 	_vec.data(3) = (im_object) new_str;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_similarity_area: output area xywh of similarity transformation
-VImage VImage::similarity_area( double a, double b, double dx, double dy, int x, int y, int w, int h ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_similarity_area" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = a;
-	*((double*) _vec.data(3)) = b;
-	*((double*) _vec.data(4)) = dx;
-	*((double*) _vec.data(5)) = dy;
-	*((int*) _vec.data(6)) = x;
-	*((int*) _vec.data(7)) = y;
-	*((int*) _vec.data(8)) = w;
-	*((int*) _vec.data(9)) = h;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_similarity: similarity transformation
-VImage VImage::similarity( double a, double b, double dx, double dy ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_similarity" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = a;
-	*((double*) _vec.data(3)) = b;
-	*((double*) _vec.data(4)) = dx;
-	*((double*) _vec.data(5)) = dy;
 	_vec.call();
 	out._ref->addref( in._ref );
 
@@ -5490,6 +5373,76 @@ VImage VImage::notequal( double c ) throw( VError )
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
 	*((double*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_affine: affine transform
+VImage VImage::affine( double a, double b, double c, double d, double dx, double dy, int x, int y, int w, int h ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_affine" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = a;
+	*((double*) _vec.data(3)) = b;
+	*((double*) _vec.data(4)) = c;
+	*((double*) _vec.data(5)) = d;
+	*((double*) _vec.data(6)) = dx;
+	*((double*) _vec.data(7)) = dy;
+	*((int*) _vec.data(8)) = x;
+	*((int*) _vec.data(9)) = y;
+	*((int*) _vec.data(10)) = w;
+	*((int*) _vec.data(11)) = h;
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_similarity_area: output area xywh of similarity transformation
+VImage VImage::similarity_area( double a, double b, double dx, double dy, int x, int y, int w, int h ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_similarity_area" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = a;
+	*((double*) _vec.data(3)) = b;
+	*((double*) _vec.data(4)) = dx;
+	*((double*) _vec.data(5)) = dy;
+	*((int*) _vec.data(6)) = x;
+	*((int*) _vec.data(7)) = y;
+	*((int*) _vec.data(8)) = w;
+	*((int*) _vec.data(9)) = h;
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_similarity: similarity transformation
+VImage VImage::similarity( double a, double b, double dx, double dy ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_similarity" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = a;
+	*((double*) _vec.data(3)) = b;
+	*((double*) _vec.data(4)) = dx;
+	*((double*) _vec.data(5)) = dy;
 	_vec.call();
 	out._ref->addref( in._ref );
 

@@ -25,6 +25,7 @@ libcolour_la_SOURCES = \
 	im_dE00_fromLab.c \
 	im_dECMC_fromLab.c \
 	im_dE_fromLab.c \
-	im_disp2XYZ.c
+	im_disp2XYZ.c \
+	im_rad2float.c
 
 INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

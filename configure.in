@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(config.h)
 # user-visible library versioning
 IM_MAJOR_VERSION=7
 IM_MINOR_VERSION=17
-IM_MICRO_VERSION=1
+IM_MICRO_VERSION=2
 IM_VERSION=$IM_MAJOR_VERSION.$IM_MINOR_VERSION.$IM_MICRO_VERSION
 IM_VERSION_STRING=$IM_VERSION-`date`
 
@@ -21,9 +21,9 @@ PACKAGE=vips
 #   interface changes backwards compatible?: increment age
 #   interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=23
+LIBRARY_CURRENT=24
 LIBRARY_REVISION=0
-LIBRARY_AGE=8
+LIBRARY_AGE=9
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 

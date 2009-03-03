@@ -574,24 +574,6 @@ char  *buf;
 #define  MINRUN		4	/* minimum run length */
 
 
-static char *
-tempbuffer(len)			/* get a temporary buffer */
-unsigned int  len;
-{
-	static char  *tempbuf = NULL;
-	static unsigned  tempbuflen = 0;
-
-	if (len > tempbuflen) {
-		if (tempbuflen > 0)
-			tempbuf = (char *)realloc((void *)tempbuf, len);
-		else
-			tempbuf = (char *)malloc(len);
-		tempbuflen = tempbuf==NULL ? 0 : len;
-	}
-	return(tempbuf);
-}
-
-
 
 static int
 oldreadcolrs(scanline, len, fp)		/* read in an old colr scanline */
@@ -686,54 +668,6 @@ register FILE  *fp;
 
 
 
-static void
-colr_color(col, clr)		/* convert short to float color */
-register COLOR  col;
-register COLR  clr;
-{
-	double  f;
-	
-	if (clr[EXP] == 0)
-		col[RED] = col[GRN] = col[BLU] = 0.0;
-	else {
-		f = ldexp(1.0, (int)clr[EXP]-(COLXS+8));
-		col[RED] = (clr[RED] + 0.5)*f;
-		col[GRN] = (clr[GRN] + 0.5)*f;
-		col[BLU] = (clr[BLU] + 0.5)*f;
-	}
-}
-
-static int
-freadscan(scanline, len, fp)		/* read in a scanline */
-register COLOR  *scanline;
-int  len;
-FILE  *fp;
-{
-	register COLR  *clrscan;
-
-	if ((clrscan = (COLR *)tempbuffer(len*sizeof(COLR))) == NULL)
-		return(-1);
-	if (freadcolrs(clrscan, len, fp) < 0)
-		return(-1);
-					/* convert scanline */
-	colr_color(scanline[0], clrscan[0]);
-	while (--len > 0) {
-		scanline++; clrscan++;
-		if (clrscan[0][RED] == clrscan[-1][RED] &&
-			    clrscan[0][GRN] == clrscan[-1][GRN] &&
-			    clrscan[0][BLU] == clrscan[-1][BLU] &&
-			    clrscan[0][EXP] == clrscan[-1][EXP])
-			copycolor(scanline[0], scanline[-1]);
-		else
-			colr_color(scanline[0], clrscan[0]);
-	}
-	return(0);
-}
-
-
-
-
-
 
 
 /* End copy-paste from Radiance sources.
@@ -752,7 +686,7 @@ typedef struct {
 	double aspect;
 	RGBPRIMS prims;
 
-	COLOR *buf;
+	COLR *buf;
 } Read;
 
 static int
@@ -768,11 +702,11 @@ israd( const char *filename )
 
 	if( !(fin = fopen( filename, "r" )) )
 		return( 0 );
-	strcpy( format, "*" );
+	strcpy( format, PICFMT );
 	result = checkheader( fin, format, NULL );
 	fclose( fin );
 
-	return( result );
+	return( result == 1 );
 }
 
 static void
@@ -876,8 +810,8 @@ rad2vips_get_header( Read *read, FILE *fin, IMAGE *out )
 	out->Xsize = scanlen( &rs );
 	out->Ysize = numscans( &rs );
 
-	out->Bands = 3;
-	out->BandFmt = IM_BANDFMT_FLOAT;
+	out->Bands = 4;
+	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	out->Coding = IM_CODING_NONE;
@@ -947,11 +881,11 @@ rad2vips_get_data( Read *read, FILE *fin, IMAGE *im )
 	if( im_outcheck( im ) ||
 		im_setupout( im ) )
 		return( -1 );
-	if( !(read->buf = IM_ARRAY( NULL, im->Xsize, COLOR )) )
+	if( !(read->buf = IM_ARRAY( NULL, im->Xsize, COLR )) )
 		return( -1 );
 
 	for( y = 0; y < im->Ysize; y++ ) {
-		if( freadscan( read->buf, im->Xsize, fin ) ) {
+		if( freadcolrs( read->buf, im->Xsize, fin ) ) {
 			im_error( "rad2vips", "%s", _( "read error" ) );
 			return( -1 );
 		}

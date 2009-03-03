@@ -499,6 +499,7 @@ int im_vips2raw( IMAGE *in, int fd );
 int im_Lab2LCh( IMAGE *, IMAGE * );
 int im_LCh2Lab( IMAGE *, IMAGE * );
 int im_LabQ2XYZ( IMAGE *, IMAGE * );
+int im_rad2float( IMAGE *, IMAGE * );
 int im_LCh2UCS( IMAGE *, IMAGE * );
 int im_Lab2LCh( IMAGE *, IMAGE * );
 int im_Lab2LabQ( IMAGE *, IMAGE * );

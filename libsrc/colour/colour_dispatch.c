@@ -467,6 +467,25 @@ static im_function LabQ2Lab_desc = {
 	one_in_one_out 			/* Arg list */
 };
 
+/* Call im_rad2float() via arg vector.
+ */
+static int
+rad2float_vec( im_object *argv )
+{
+	return( im_rad2float( argv[0], argv[1] ) );
+}
+
+/* Description of im_LabQ2Lab.
+ */ 
+static im_function rad2float_desc = {
+	"im_rad2float", 		/* Name */
+	"convert Radiance packed to float",	/* Description */
+	IM_FN_PIO,			/* Flags */
+	rad2float_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
 /* Call im_LabQ2LabS() via arg vector.
  */
 static int
@@ -1000,6 +1019,7 @@ static im_function *colour_list[] = {
 	&icc_present_desc,
 	&icc_transform_desc,
 	&morph_desc,
+	&rad2float_desc,
 	&sRGB2XYZ_desc
 };
 

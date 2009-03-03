@@ -1,3 +1,9 @@
+3/3/09 started 7.17.2
+- im_magick2vips.c: allow funky bit depths, like 14 (thanks Mikkel)
+- isradiance was returning TRUE too often
+- radiance loader now loads packed RGBE/XYZE instead of unpacking to float
+- added im_rad2float()
+
 11/10/08 started 7.17.0
 - merge vips-7.16 brach back into trunk
 - bumped version number to 7.17.0
@@ -42,7 +48,6 @@
 - added Matlab save file read
 - added Radiance file read
 - better file-not-found messages
-- im_magick2vips.c: allow funky bit depths, like 14 (thanks Mikkel)
 
 11/9/08 started 7.16.3
 - oop typo in manpage for im_project()
