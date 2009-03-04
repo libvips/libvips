@@ -478,10 +478,13 @@ AC_SUBST(VIPS_INCLUDES)
 AC_SUBST(VIPS_LIBS)
 AC_SUBST(PACKAGES_USED)
 
+# you'd think we could have 
+#	vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.pc
+# in AC_OUTPUT, but that seems to break for some combinations of sh/m4
 AC_OUTPUT([
-	vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.pc
-	vipsCC-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.pc
-	vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.spec
+	vips-7.17.pc
+	vipsCC-7.17.pc
+	vips-7.17.spec
 	Makefile 
 	include/vips/version.h 
 	include/Makefile 
