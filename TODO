@@ -10,7 +10,13 @@
 
 - im_render should use a hash for tile lookup ... or+shift x/y together
 
-  get rid of the fading stuff, too complicated, a bit useless
+  load wtc.jpg, rotate 42 degrees, zoom in and out quickly for a while, quit
+
+  tiles are leaked :(
+
+  does not leak if you wait for repaint to finish before zooming/unzooming
+
+  problem with waiting for paint to finish in render_kill?
 
 
 

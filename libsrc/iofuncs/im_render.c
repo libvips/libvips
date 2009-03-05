@@ -33,6 +33,9 @@
  * 	- more instrumenting
  * 23/4/08
  * 	- oop, broken for mask == NULL
+ * 5/3/09
+ * 	- remove all the fading stuff, a bit useless and it adds a lot of
+ * 	  complexity
  */
 
 /*
@@ -67,7 +70,6 @@
 #define DEBUG_MAKE
 #define DEBUG_PAINT
 #define DEBUG_TG
-#define DEBUG_FADE
  */
 
 #ifdef HAVE_CONFIG_H
@@ -83,12 +85,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
-
-/* Need Sleep() on win32.
- */
-#ifdef OS_WIN32
-#include <windows.h>
-#endif /*OS_WIN32*/
 
 #include <vips/vips.h>
 #include <vips/thread.h>
@@ -108,11 +104,6 @@ static int threadgroup_count = 0;
 static int threadgroup_active = 0;
 #endif /*DEBUG_TG*/
 
-#ifdef DEBUG_FADE
-static int fade_count = 0;
-static int fade_active = 0;
-#endif /*DEBUG_FADE*/
-
 /* A manager thread. We have a fixed number of these taking jobs off the list
  * of current renders with dirty tiles, doing a tile, and putting the render 
  * back.
@@ -131,7 +122,6 @@ typedef void (*notify_fn)( IMAGE *, Rect *, void * );
 typedef enum {
 	TILE_DIRTY,		/* On the dirty list .. contains no pixels */
 	TILE_WORKING,		/* Currently being worked on */
-	TILE_PAINTED_FADING,	/* Painted, on fade list */
 	TILE_PAINTED		/* Painted, ready for reuse */
 } TileState;
 
@@ -161,7 +151,7 @@ typedef struct {
  */
 typedef struct _Render {
 	/* Reference count this, since we use these things from several
-	 * threads. Can't easily use the gobject ref count system, since we
+	 * threads. Can't easily use the gobject ref count system since we
 	 * need a lock around operations.
 	 */
 	int ref_count;
@@ -174,8 +164,6 @@ typedef struct _Render {
 	IMAGE *mask;		/* Set valid pixels here */
 	int width, height;	/* Tile size */
 	int max;		/* Maximum number of tiles */
-	int fps;		/* FPS for fade in */
-	int steps;		/* Steps fade occurs in */
 	int priority;		/* Larger numbers done sooner */
 	notify_fn notify;	/* Tell caller about paints here */
 	void *client;
@@ -195,14 +183,6 @@ typedef struct _Render {
 	 */
 	GMutex *dirty_lock;	/* Lock before we read/write the dirty list */
 	GSList *dirty;		/* Tiles which need painting */
-
-	/* List of painted tiles being faded in. Plus a fade-in thread.
-	 */
-	GMutex *fade_lock;	/* Lock before we read/write the fade list */
-	GSList *fade;		/* Tiles which are being faded */
-	GThread *fade_gthread;	/* Fade tiles in thread */
-	int time;		/* Increment each frame */
-	int fade_kill;		/* Set to ask fade thread to exit */
 
 	/* Render thread stuff.
 	 */
@@ -233,9 +213,9 @@ render_dirty_remove( Render *render )
 	if( g_slist_find( render_dirty_all, render ) ) {
 		render_dirty_all = g_slist_remove( render_dirty_all, render );
 
-		/* We know this can't block, since there is at least 1 item in
+		/* We know this can't block since there is at least 1 item in
 		 * the render_dirty_all list (us). Except that
-		 * render_dirty_get() does a _down() before it locks, so this
+		 * render_dirty_get() does a _down() before it locks so this
 		 * could block if we run inbetween :-( possible deadlock.
 		 */
 		im_semaphore_down( &render_dirty_sem );
@@ -272,20 +252,6 @@ render_free( Render *render )
 
 	render_dirty_remove( render );
 
-	/* Kill fade thread.
-	 */
-	if( render->fade_gthread ) {
-		render->fade_kill = 1;
-		(void) g_thread_join( render->fade_gthread );
-		render->fade_gthread = NULL;
-		render->fade_kill = 0;
-
-#ifdef DEBUG_FADE
-		fade_active -= 1;
-		printf( "render_free: %d fade active\n", fade_active );
-#endif /*DEBUG_FADE*/
-	}
-
 	IM_FREEF( im_threadgroup_free, render->tg );
 
 	/* Free cache.
@@ -295,12 +261,10 @@ render_free( Render *render )
 	IM_FREEF( g_slist_free, render->cache );
 	render->ntiles = 0;
 	IM_FREEF( g_slist_free, render->dirty );
-	IM_FREEF( g_slist_free, render->fade );
 
 	g_mutex_free( render->ref_count_lock );
 	g_mutex_free( render->dirty_lock );
 	g_mutex_free( render->read_lock );
-	g_mutex_free( render->fade_lock );
 
 	im_free( render );
 
@@ -373,8 +337,8 @@ render_dirty_get( void )
 	return( render );
 }
 
-/* Do a single tile. Take a dirty tile from the dirty list, fill with pixels
- * and add to the fade list.
+/* Do a single tile. Take a dirty tile from the dirty list and fill with 
+ * pixels.
  */
 static void
 render_dirty_process( Render *render )
@@ -442,31 +406,13 @@ render_dirty_process( Render *render )
 				im_error_buffer() );
 #endif /*DEBUG_PAINT*/
 
-		/* Are we fading? Hand the tile over to the fade thread.
+		/* All done.
 		 */
-		if( render->fade_gthread ) {
-			g_mutex_lock( render->fade_lock );
-
-			render->fade = g_slist_prepend( render->fade, tile );
-			tile->time = render->time;
-			tile->state = TILE_PAINTED_FADING;
-
-			/* Hand tile over to another thread.
-			 */
-			im__region_no_ownership( tile->region );
-
-			g_mutex_unlock( render->fade_lock );
-		}
-		else {
-			/* Not fading. Tell the user we're done ourselves.
-			 */
-			tile->time = render->time;
-			tile->state = TILE_PAINTED;
-			im__region_no_ownership( tile->region );
-			if( render->notify ) 
-				render->notify( render->out, 
-					&tile->area, render->client );
-		}
+		tile->state = TILE_PAINTED;
+		im__region_no_ownership( tile->region );
+		if( render->notify ) 
+			render->notify( render->out, 
+				&tile->area, render->client );
 	}
 }
 
@@ -519,7 +465,15 @@ render_thread_main( void *client )
 		Render *render;
 
 		if( (render = render_dirty_get()) ) {
-			render_dirty_process( render );
+			/* Loop here if this is the only dirty render, rather
+			 * than bouncing back to _put()/_get(). We don't
+			 * lock before testing since this is just a trivial
+			 * optimisation and does not affect integrity.
+			 */
+			do {
+				render_dirty_process( render );
+			} while( !render_dirty_all && render->dirty );
+
 			render_dirty_put( render );
 
 			assert( render->ref_count == 1 ||
@@ -603,68 +557,9 @@ tile_print( Tile *tile )
 }
 #endif /*DEBUG*/
 
-/* Come here for the fade work thread.
- */
-static void *
-render_fade( void *client )
-{
-	Render *render = (Render *) client;
-
-	for(;;) {
-		GSList *p;
-		GSList *next;
-
-		if( render->fade_kill )
-			break;
-
-		/* Increment frame counter. Used to set bg/fg ratio for fade.
-		 */
-		render->time += 1;
-
-		g_mutex_lock( render->fade_lock );
-		for( p = render->fade; p; p = next ) {
-			Tile *tile = (Tile *) p->data;
-
-			assert( tile->state == TILE_PAINTED_FADING );
-
-			/* We remove the current element as we scan :-( so get
-			 * next beforehand.
-			 */
-			next = p->next;
-
-			if( render->time - tile->time > render->steps ) {
-				/* Tile is solid ... comes off the fade list.
-				 */
-				render->fade = g_slist_remove( render->fade,
-					tile );
-				tile->state = TILE_PAINTED;
-			}
-
-			/* Ask client to update.
-			 */
-			if( render->notify ) 
-				render->notify( render->out, 
-					&tile->area, render->client );
-		}
-		g_mutex_unlock( render->fade_lock );
-
-		/* Sleep at the end of the loop, so if we have fading turned
-		 * off there's no wait.
-		 */
-#ifdef OS_WIN32
-		Sleep( 1000 / render->fps );
-#else /*!OS_WIN32*/
-		usleep( 1000000 / render->fps );
-#endif /*!OS_WIN32*/
-	}
-
-	return( NULL );
-}
-
 static Render *
 render_new( IMAGE *in, IMAGE *out, IMAGE *mask, 
 	int width, int height, int max, 
-	int fps, int steps,
 	int priority,
 	notify_fn notify, void *client )
 {
@@ -685,8 +580,6 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	render->width = width;
 	render->height = height;
 	render->max = max;
-	render->fps = fps;
-	render->steps = steps;
 	render->priority = priority;
 	render->notify = notify;
 	render->client = client;
@@ -700,12 +593,6 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	render->dirty_lock = g_mutex_new();
 	render->dirty = NULL;
 
-	render->fade_lock = g_mutex_new();
-	render->fade = NULL;
-	render->fade_gthread = NULL;
-	render->time = 0;
-	render->fade_kill = 0;
-
 	render->tg = NULL;
 	render->render_kill = FALSE;
 
@@ -714,26 +601,6 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
                 (void) render_unref( render );
                 return( NULL );
         }
-
-	/* Only need the fade thread if we're going to fade: ie. steps > 1.
-	 */
-	if( have_threads && steps > 1 ) {
-		if( !(render->fade_gthread = g_thread_create_full( 
-			render_fade, render, 
-			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
-			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-			im_error( "im_render", 
-				"%s", _( "unable to create thread" ) );
-			return( NULL );
-		}
-
-#ifdef DEBUG_FADE
-		fade_count += 1;
-		fade_active += 1;
-		printf( "render_new: creating fade thread %d\n", fade_count );
-		printf( "render_new: %d active\n", fade_active );
-#endif /*DEBUG_FADE*/
-	}
 
 	return( render );
 }
@@ -859,7 +726,7 @@ tile_set_dirty( Tile *tile, Rect *area )
 		render_dirty_put( render );
 	else {
 		/* No threads, or no notify ... paint the tile ourselves, 
-		 * sychronously. No need to notify the client, since they'll 
+		 * sychronously. No need to notify the client since they'll 
 		 * never see black tiles.
 		 */
 #ifdef DEBUG_PAINT
@@ -878,8 +745,6 @@ tile_set_dirty( Tile *tile, Rect *area )
 			im_prepare_thread( render->tg, 
 				tile->region, &tile->area );
 
-		/* Can't fade in synchronous mode .. straight to painted.
-		 */
 		tile->state = TILE_PAINTED;
 		render->dirty = g_slist_remove( render->dirty, tile );
 	}
@@ -978,8 +843,7 @@ render_tile_get( Render *render, Rect *area )
 	}
 	else {
 		/* Need to reuse a tile. Try for an old painted tile first, 
-		 * then if that fails, reuse a dirty tile. Don't search the 
-		 * fading list, though we could maybe scavenge there.
+		 * then if that fails, reuse a dirty tile. 
 		 */
 		if( !(tile = render_tile_get_painted( render )) &&
 			!(tile = render_tile_get_dirty( render )) ) 
@@ -1020,8 +884,7 @@ tile_copy( Tile *tile, REGION *to )
 	/* If the tile is painted, copy over the pixels. Otherwise, fill with
 	 * zero. 
 	 */
-	if( tile->state == TILE_PAINTED || 
-		tile->state == TILE_PAINTED_FADING ) {
+	if( tile->state == TILE_PAINTED ) {
 #ifdef DEBUG_PAINT
 		printf( "tile_copy: copying calculated pixels for %dx%d\n",
 			tile->area.left, tile->area.top ); 
@@ -1095,12 +958,12 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Paint the state of the 'painted' flag for a tile. Fade too.
+/* Paint the state of the 'painted' flag for a tile. 
  */
 static void
 tile_paint_mask( Tile *tile, REGION *to )
 {
-	int mask;
+	int mask = tile->state == TILE_PAINTED ? 255 : 0;
 
 	Rect ovlap;
 	int y;
@@ -1111,18 +974,6 @@ tile_paint_mask( Tile *tile, REGION *to )
 	im_rect_intersectrect( &tile->area, &to->valid, &ovlap );
 	assert( !im_rect_isempty( &ovlap ) );
 	len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
-
-	if( tile->state == TILE_PAINTED_FADING ) {
-		Render *render = tile->render;
-		int age = render->time - tile->time;
-		double opacity = IM_CLIP( 0, (double) age / render->steps, 1 );
-
-		mask = 255 * pow( opacity, 4 );
-	}
-	else if( tile->state == TILE_PAINTED )
-		mask = 255;
-	else 
-		mask = 0;
 
 	for( y = ovlap.top; y < IM_RECT_BOTTOM( &ovlap ); y++ ) {
 		PEL *q = (PEL *) IM_REGION_ADDR( to, ovlap.left, y );
@@ -1166,6 +1017,9 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/* fps and steps are there for backwards compat only and no longer do
+ * anything.
+ */
 int
 im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask, 
 	int width, int height, int max, 
@@ -1180,12 +1034,8 @@ im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
 	if( render_thread_create() )
 		return( -1 );
 
-	/* Don't allow fps == 0, since we divide by this value to get wait
-	 * time.
-	 */
-	if( width <= 0 || height <= 0 || max < -1 || fps <= 0 || steps < 0 ) {
-		im_error( "im_render", 
-			"%s", _( "bad parameters" ) );
+	if( width <= 0 || height <= 0 || max < -1 ) {
+		im_error( "im_render", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
 	if( im_pincheck( in ) || im_poutcheck( out ) )
@@ -1210,7 +1060,7 @@ im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
 		return( -1 );
 
 	if( !(render = render_new( in, out, mask, 
-		width, height, max, fps, steps, priority, notify, client )) )
+		width, height, max, priority, notify, client )) )
 		return( -1 );
 
 #ifdef DEBUG_MAKE
