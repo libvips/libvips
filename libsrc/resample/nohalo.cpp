@@ -682,21 +682,13 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 		break;
 
 	case IM_BANDFMT_COMPLEX:
-		nohalo_sharp_level_1_float<float>( out,
-                                                   p,
-                                                   bands * 2,
-                                                   lskip,
-                                                   relative_x,
-                                                   relative_y );
+		bands *= 2;
+		CALL( float, float );
 		break;
 
 	case IM_BANDFMT_DPCOMPLEX:
-		nohalo_sharp_level_1_float<double>( out,
-                                                    p,
-                                                    bands * 2,
-                                                    lskip,
-                                                    relative_x,
-                                                    relative_y );
+		bands *= 2;
+		CALL( double, float );
 		break;
 
 	default:
