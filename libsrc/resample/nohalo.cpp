@@ -627,9 +627,10 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
   const PEL * restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
 
   /*
-   * VIPS versions of Nicolas's pixel addressing values:
+   * VIPS versions of Nicolas's pixel addressing values. Double bands for
+   * complex images.
    */
-  const int bands = in->im->Bands;
+  const int bands = in->im->Bands * (im_iscomplex( in->im ) ? 2 : 1);
   const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
 
   /*
@@ -673,21 +674,15 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
 		CALL( signed int, signed );
 		break;
 
+	/* Complex images handled by doubling of bands, see above.
+	 */
 	case IM_BANDFMT_FLOAT:
+	case IM_BANDFMT_COMPLEX:
 		CALL( float, float );
 		break;
 
 	case IM_BANDFMT_DOUBLE:
-		CALL( double, float );
-		break;
-
-	case IM_BANDFMT_COMPLEX:
-		bands *= 2;
-		CALL( float, float );
-		break;
-
 	case IM_BANDFMT_DPCOMPLEX:
-		bands *= 2;
 		CALL( double, float );
 		break;
 
