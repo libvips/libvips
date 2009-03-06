@@ -1,9 +1,12 @@
+6/3/09 started 7.17.3
+- revised nohalo
+- remove fading stuff from im_render() -- cleaner and simpler
+
 3/3/09 started 7.17.2
 - im_magick2vips.c: allow funky bit depths, like 14 (thanks Mikkel)
 - isradiance was returning TRUE too often
 - radiance loader now loads packed RGBE/XYZE instead of unpacking to float
 - added im_rad2float()
-- remove fading stuff from im_render() -- cleaner and simpler
 
 11/10/08 started 7.17.0
 - merge vips-7.16 brach back into trunk
