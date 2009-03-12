@@ -1,5 +1,4 @@
 
-
 - move im_shrink & friends to resample?
 
   match_linear, match_linear_search?
