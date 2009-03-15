@@ -221,13 +221,13 @@
  *
  * FAST_PSEUDO_FLOOR(0.5) = 0
  *
- * FAST_PSEUDO_FLOOR(0.f) = 0
+ * FAST_PSEUDO_FLOOR(0.) = 0
  *
  * FAST_PSEUDO_FLOOR(-.5) = -1
  *
  * as expected, but
  *
- * FAST_PSEUDO_FLOOR(-1.f) = -2
+ * FAST_PSEUDO_FLOOR(-1.) = -2
  *
  * The locations of the discontinuities of FAST_PSEUDO_FLOOR are the
  * same as floor and floorf; it is just that at negative integers the
@@ -361,8 +361,8 @@ nohalo_sharp_level_1(
   /*
    * Useful sums:
    */
-  const double twice_dos_two_plus_dos_thr = 2.f * ( dos_two + dos_thr );
-  const double twice_dos_two_plus_tre_two = 2.f * ( dos_two + tre_two );
+  const double twice_dos_two_plus_dos_thr = 2. * ( dos_two + dos_thr );
+  const double twice_dos_two_plus_tre_two = 2. * ( dos_two + tre_two );
 
   /*
    * Products useful for minmod:
@@ -416,7 +416,7 @@ nohalo_sharp_level_1(
   const double eight_times_dostre_twothr =
     four_times_dos_twothr
     +
-    2.f * deux_thr_plus_deux_dos
+    2. * deux_thr_plus_deux_dos
     +
     four_times_dostre_two
     +
