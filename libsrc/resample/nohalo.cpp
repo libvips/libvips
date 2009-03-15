@@ -359,6 +359,12 @@ nohalo_sharp_level_1(
   const double troi_thr = qua_thr - tre_thr;
 
   /*
+   * Useful sums:
+   */
+  const double twice_dos_two_plus_dos_thr = 2.f * ( dos_two + dos_thr );
+  const double twice_dos_two_plus_tre_two = 2.f * ( dos_two + tre_two );
+
+  /*
    * Products useful for minmod:
    */
   const double deux_dos_prem_dos = deux_dos * prem_dos;
@@ -378,61 +384,56 @@ nohalo_sharp_level_1(
   const double deux_thr_troi_thr = deux_thr * troi_thr;
 
   /*
+   * Useful sum:
+   */
+  const double deux_thr_plus_deux_dos = deux_thr + deux_dos;
+
+  /*
    * Compute the needed "right" (at the boundary between one input
    * pixel areas) double resolution pixel value:
    */
-  const double two_times_dos_twothr =
-    dos_two + dos_thr
+  const double four_times_dos_twothr =
+    twice_dos_two_plus_dos_thr
     +
-    .5
-    *
-    (
-      FAST_MINMOD( deux_dos, prem_dos, deux_dos_prem_dos, deux_dos_deux_dos )
-      -
-      FAST_MINMOD( deux_dos, troi_dos, deux_dos_troi_dos, deux_dos_deux_dos )
-    );
+    FAST_MINMOD( deux_dos, prem_dos, deux_dos_prem_dos, deux_dos_deux_dos )
+    -
+    FAST_MINMOD( deux_dos, troi_dos, deux_dos_troi_dos, deux_dos_deux_dos );
 
   /*
    * Compute the needed "down" double resolution pixel value:
    */
-  const double two_times_dostre_two =
-    dos_two + tre_two
+  const double four_times_dostre_two =
+    twice_dos_two_plus_tre_two
     +
-    .5
-    *
-    (
-      FAST_MINMOD( deux_two, prem_two, deux_two_prem_two, deux_two_deux_two )
-      -
-      FAST_MINMOD( deux_two, troi_two, deux_two_troi_two, deux_two_deux_two )
-    );
+    FAST_MINMOD( deux_two, prem_two, deux_two_prem_two, deux_two_deux_two )
+    -
+    FAST_MINMOD( deux_two, troi_two, deux_two_troi_two, deux_two_deux_two );
 
   /*
    * Compute the "diagonal" (at the boundary between thrr input
    * pixel areas) double resolution pixel value:
    */
-  const double four_times_dostre_twothr =
-    deux_thr + deux_dos
+  const double eight_times_dostre_twothr =
+    four_times_dos_twothr
     +
-    .5
-    *
-    (
-      FAST_MINMOD( deux_tre, prem_tre, deux_tre_prem_tre, deux_tre_deux_tre )
-      -
-      FAST_MINMOD( deux_tre, troi_tre, deux_tre_troi_tre, deux_tre_deux_tre )
-      +
-      FAST_MINMOD( deux_thr, prem_thr, deux_thr_prem_thr, deux_thr_deux_thr )
-      -
-      FAST_MINMOD( deux_thr, troi_thr, deux_thr_troi_thr, deux_thr_deux_thr )
-    )
+    2.f * deux_thr_plus_deux_dos
     +
-    two_times_dos_twothr + two_times_dostre_two;
+    four_times_dostre_two
+    +
+    FAST_MINMOD( deux_tre, prem_tre, deux_tre_prem_tre, deux_tre_deux_tre )
+    -
+    FAST_MINMOD( deux_tre, troi_tre, deux_tre_troi_tre, deux_tre_deux_tre )
+    +
+    FAST_MINMOD( deux_thr, prem_thr, deux_thr_prem_thr, deux_thr_deux_thr )
+    -
+    FAST_MINMOD( deux_thr, troi_thr, deux_thr_troi_thr, deux_thr_deux_thr );
 
   /*
    * Return the first newly computed double density values:
    */
-  *r1 = two_times_dos_twothr;
-  *r2 = two_times_dostre_two;
-  *r3 = four_times_dostre_twothr;
+  *r1 = four_times_dos_twothr;
+  *r2 = four_times_dostre_two;
+  *r3 = eight_times_dostre_twothr;
 }
 
 /* Call nohalo_sharp_level_1 with an interpolator as a parameter.
@@ -486,14 +487,14 @@ nohalo_sharp_level_1(
     const double x = 1. - w; \
     const double w_times_z = w * z; \
     const double x_times_z = x * z; \
-    const double w_times_y_over_2 = .5  * ( w - w_times_z ); \
-    const double x_times_z_over_2 = .5  * x_times_z; \
-    const double x_times_y_over_4 = .25 * ( x - x_times_z ); \
+    const double w_times_y_over_4 = .25  * ( w - w_times_z ); \
+    const double x_times_z_over_4 = .25  * x_times_z; \
+    const double x_times_y_over_8 = .125 * ( x - x_times_z ); \
     \
     for( int band = 0; band < bands; band++ ) { \
-      double two_times_dos_twothr; \
-      double two_times_dostre_two; \
-      double four_times_dostre_twothr; \
+      double four_times_dos_twothr; \
+      double four_times_dostre_two; \
+      double eight_times_dostre_twothr; \
       \
       const double dos_two = in[dos_two_shift]; \
       \
@@ -503,21 +504,21 @@ nohalo_sharp_level_1(
                             in[tre_one_shift], in[tre_two_shift], \
                             in[tre_thr_shift], in[tre_fou_shift], \
                             in[qua_two_shift], in[qua_thr_shift], \
-                            &two_times_dos_twothr, \
-                            &two_times_dostre_two, \
-                            &four_times_dostre_twothr ); \
+                            &four_times_dos_twothr, \
+                            &four_times_dostre_two, \
+                            &eight_times_dostre_twothr ); \
       \
       in += 1; \
       \
       const T result = bilinear_ ## inter<T>( \
                                              w_times_z, \
-                                             x_times_z_over_2, \
-                                             w_times_y_over_2, \
-                                             x_times_y_over_4, \
+                                             x_times_z_over_4, \
+                                             w_times_y_over_4, \
+                                             x_times_y_over_8, \
                                              dos_two, \
-                                             two_times_dos_twothr, \
-                                             two_times_dostre_two, \
-                                             four_times_dostre_twothr ); \
+                                             four_times_dos_twothr, \
+                                             four_times_dostre_two, \
+                                             eight_times_dostre_twothr ); \
       \
       out[band] = result; \
     } \
@@ -545,10 +546,11 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
    * VIPS versions of Nicolas's pixel addressing values. Double bands for
    * complex images.
    */
-  const int bands_actual = in->im->Bands;
   const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
+  const int bands_actual = in->im->Bands;
   const int bands =
     ( im_iscomplex( in->im ) ? 2 * bands_actual : bands_actual );
+
   /*
    * floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
    * transition through 0 is smooth. If it is known that absolute_x
