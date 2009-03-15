@@ -40,7 +40,7 @@
  */
 
 /* Hacked for vips by J. Cupitt, 20/1/09
- * Tweaks by N. Robidoux, 03/3/09
+ * Tweaks by N. Robidoux and J. Cupitt 5-15/03/09
  */
 
 /*
@@ -234,14 +234,17 @@
  * function is discontinuous on the right instead of the left.
  */
 #define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
-/*
- * Alternative (if conditional move is fast and correctly identified
- * by the compiler):
- *
- * #define FAST_PSEUDO_FLOOR(x) ( (x)>=0 ? (int)(x) : (int)(x)-1 )
- */
 
-#define FAST_MIN(a,b) ( (a) <= (b) ? (a) : (b) )
+/*
+ * FAST_MINMOD is an implementation of the minmod function which only
+ * needs two conditional moves. (Most implementations need at least
+ * three branches.) In the Nohalo code, the square of the first
+ * argument is used in two different minmod computations. The product
+ * is also precomputed to keep it out of branching way. (Nicolas: I
+ * think that this may be the first two branch minmod.)
+ */
+#define FAST_MINMOD(a,b,ab,aa) \
+        ( (ab)>=0. ? ( (ab)-(aa)>=0. ? (a) : (b) ) : 0. )
 
 #define VIPS_TYPE_INTERPOLATE_NOHALO \
 	(vips_interpolate_nohalo_get_type())
@@ -356,145 +359,76 @@ nohalo_sharp_level_1(
   const double troi_thr = qua_thr - tre_thr;
 
   /*
-   * Useful later:
+   * Products useful for minmod:
    */
-  const double dos_two_plus_dos_thr  = dos_two + dos_thr;
-  const double dos_two_plus_tre_two  = dos_two + tre_two;
+  const double deux_dos_prem_dos = deux_dos * prem_dos;
+  const double deux_dos_deux_dos = deux_dos * deux_dos;
+  const double deux_dos_troi_dos = deux_dos * troi_dos;
 
-  /*
-   * Dos:
-   */
-  const double half_sign_prem_dos = prem_dos >= 0. ? .5 : -.5;
-  const double half_sign_deux_dos = deux_dos >= 0. ? .5 : -.5;
-  const double half_sign_troi_dos = troi_dos >= 0. ? .5 : -.5;
-  /*
-   * Tre:
-   */
-  const double half_sign_prem_tre = prem_tre >= 0. ? .5 : -.5;
-  const double half_sign_deux_tre = deux_tre >= 0. ? .5 : -.5;
-  const double half_sign_troi_tre = troi_tre >= 0. ? .5 : -.5;
-  /*
-   * Two:
-   */
-  const double half_sign_prem_two = prem_two >= 0. ? .5 : -.5;
-  const double half_sign_deux_two = deux_two >= 0. ? .5 : -.5;
-  const double half_sign_troi_two = troi_two >= 0. ? .5 : -.5;
-  /*
-   * Thr:
-   */
-  const double half_sign_prem_thr = prem_thr >= 0. ? .5 : -.5;
-  const double half_sign_deux_thr = deux_thr >= 0. ? .5 : -.5;
-  const double half_sign_troi_thr = troi_thr >= 0. ? .5 : -.5;
+  const double deux_two_prem_two = deux_two * prem_two;
+  const double deux_two_deux_two = deux_two * deux_two;
+  const double deux_two_troi_two = deux_two * troi_two;
 
-  /*
-   * Dos:
-   */
-  const double half_abs_prem_dos = half_sign_prem_dos * prem_dos;
-  const double sign_dos_two_horizo = half_sign_prem_dos + half_sign_deux_dos;
-  const double half_abs_deux_dos = half_sign_deux_dos * deux_dos;
-  const double sign_dos_thr_horizo = half_sign_deux_dos + half_sign_troi_dos;
-  const double half_abs_troi_dos = half_sign_troi_dos * troi_dos;
-  /*
-   * Two:
-   */
-  const double half_abs_prem_two = half_sign_prem_two * prem_two;
-  const double sign_dos_two_vertic = half_sign_prem_two + half_sign_deux_two;
-  const double half_abs_deux_two = half_sign_deux_two * deux_two;
-  const double sign_tre_two_vertic = half_sign_deux_two + half_sign_troi_two;
-  const double half_abs_troi_two = half_sign_troi_two * troi_two;
-  /*
-   * Tre:
-   */
-  const double half_abs_prem_tre = half_sign_prem_tre * prem_tre;
-  const double sign_tre_two_horizo = half_sign_prem_tre + half_sign_deux_tre;
-  const double half_abs_deux_tre = half_sign_deux_tre * deux_tre;
-  const double sign_tre_thr_horizo = half_sign_deux_tre + half_sign_troi_tre;
-  const double half_abs_troi_tre = half_sign_troi_tre * troi_tre;
-  /*
-   * Thr:
-   */
-  const double half_abs_prem_thr = half_sign_prem_thr * prem_thr;
-  const double sign_dos_thr_vertic = half_sign_prem_thr + half_sign_deux_thr;
-  const double half_abs_deux_thr = half_sign_deux_thr * deux_thr;
-  const double sign_tre_thr_vertic = half_sign_deux_thr + half_sign_troi_thr;
-  const double half_abs_troi_thr = half_sign_troi_thr * troi_thr;
+  const double deux_tre_prem_tre = deux_tre * prem_tre;
+  const double deux_tre_deux_tre = deux_tre * deux_tre;
+  const double deux_tre_troi_tre = deux_tre * troi_tre;
 
-  /*
-   * Useful later:
-   */
-  const double tre_thr_minus_dos_two = deux_thr + deux_dos;
-
-  /*
-   * Dos:
-   */
-  const double half_size_dos_two_horizo =
-    FAST_MIN( half_abs_prem_dos, half_abs_deux_dos );
-  const double half_size_dos_thr_horizo =
-    FAST_MIN( half_abs_troi_dos, half_abs_deux_dos );
-  /*
-   * Two:
-   */
-  const double half_size_dos_two_vertic =
-    FAST_MIN( half_abs_prem_two, half_abs_deux_two );
-  const double half_size_tre_two_vertic =
-    FAST_MIN( half_abs_troi_two, half_abs_deux_two );
-  /*
-   * Tre:
-   */
-  const double half_size_tre_two_horizo =
-    FAST_MIN( half_abs_prem_tre, half_abs_deux_tre );
-  const double half_size_tre_thr_horizo =
-    FAST_MIN( half_abs_troi_tre, half_abs_deux_tre );
-  /*
-   * Thr:
-   */
-  const double half_size_dos_thr_vertic =
-    FAST_MIN( half_abs_prem_thr, half_abs_deux_thr );
-  const double half_size_tre_thr_vertic =
-    FAST_MIN( half_abs_troi_thr, half_abs_deux_thr );
+  const double deux_thr_prem_thr = deux_thr * prem_thr;
+  const double deux_thr_deux_thr = deux_thr * deux_thr;
+  const double deux_thr_troi_thr = deux_thr * troi_thr;
 
   /*
    * Compute the needed "right" (at the boundary between one input
    * pixel areas) double resolution pixel value:
    */
   const double two_times_dos_twothr =
-    dos_two_plus_dos_thr
+    dos_two + dos_thr
     +
-    sign_dos_two_horizo * half_size_dos_two_horizo
-    -
-    sign_dos_thr_horizo * half_size_dos_thr_horizo;
+    .5
+    *
+    (
+      FAST_MINMOD( deux_dos, prem_dos, deux_dos_prem_dos, deux_dos_deux_dos )
+      -
+      FAST_MINMOD( deux_dos, troi_dos, deux_dos_troi_dos, deux_dos_deux_dos )
+    );
 
   /*
    * Compute the needed "down" double resolution pixel value:
    */
   const double two_times_dostre_two =
-    dos_two_plus_tre_two
+    dos_two + tre_two
     +
-    sign_dos_two_vertic * half_size_dos_two_vertic
-    -
-    sign_tre_two_vertic * half_size_tre_two_vertic;
+    .5
+    *
+    (
+      FAST_MINMOD( deux_two, prem_two, deux_two_prem_two, deux_two_deux_two )
+      -
+      FAST_MINMOD( deux_two, troi_two, deux_two_troi_two, deux_two_deux_two )
+    );
 
   /*
    * Compute the "diagonal" (at the boundary between thrr input
    * pixel areas) double resolution pixel value:
    */
   const double four_times_dostre_twothr =
-    tre_thr_minus_dos_two
+    deux_thr + deux_dos
     +
-    sign_tre_two_horizo * half_size_tre_two_horizo
-    -
-    sign_tre_thr_horizo * half_size_tre_thr_horizo
+    .5
+    *
+    (
+      FAST_MINMOD( deux_tre, prem_tre, deux_tre_prem_tre, deux_tre_deux_tre )
+      -
+      FAST_MINMOD( deux_tre, troi_tre, deux_tre_troi_tre, deux_tre_deux_tre )
+      +
+      FAST_MINMOD( deux_thr, prem_thr, deux_thr_prem_thr, deux_thr_deux_thr )
+      -
+      FAST_MINMOD( deux_thr, troi_thr, deux_thr_troi_thr, deux_thr_deux_thr )
+    )
     +
-    sign_dos_thr_vertic * half_size_dos_thr_vertic
-    -
-    sign_tre_thr_vertic * half_size_tre_thr_vertic
-    +
-    two_times_dos_twothr
-    +
-    two_times_dostre_two;
+    two_times_dos_twothr + two_times_dostre_two;
 
   /*
-   * Return the newly computed double density values:
+   * Return the first newly computed double density values:
    */
   *r1 = two_times_dos_twothr;
   *r2 = two_times_dostre_two;
@@ -608,6 +542,14 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
                                      double           absolute_y )
 {
   /*
+   * VIPS versions of Nicolas's pixel addressing values. Double bands for
+   * complex images.
+   */
+  const int bands_actual = in->im->Bands;
+  const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
+  const int bands =
+    ( im_iscomplex( in->im ) ? 2 * bands_actual : bands_actual );
+  /*
    * floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
    * transition through 0 is smooth. If it is known that absolute_x
    * and absolute_y will never be less than 0, plain cast---that is,
@@ -615,9 +557,15 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
    * any function which agrees with floor for non-integer values, and
    * picks one of the two possibilities for integer values, can be
    * used. FAST_PSEUDO_FLOOR fits the bill.
+   *
+   * Then, x is the x-coordinate of the sampling point relative to the
+   * position of the center of the convex hull of the 2x2 block of
+   * closest pixels. Similarly for y. Range of values: [-.5,.5).
    */
-  const int ix = FAST_PSEUDO_FLOOR (absolute_x);
   const int iy = FAST_PSEUDO_FLOOR (absolute_y);
+  const double relative_y = ( absolute_y - .5 ) - iy;
+  const int ix = FAST_PSEUDO_FLOOR (absolute_x);
+  const double relative_x = ( absolute_x - .5 ) - ix;
 
   /*
    * Move the pointer to (the first band of) the top/left pixel
@@ -625,21 +573,6 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
    * sampling location in its convex hull:
    */
   const PEL * restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
-
-  /*
-   * VIPS versions of Nicolas's pixel addressing values. Double bands for
-   * complex images.
-   */
-  const int bands = in->im->Bands * (im_iscomplex( in->im ) ? 2 : 1);
-  const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
-
-  /*
-   * x is the x-coordinate of the sampling point relative to the
-   * position of the center of the convex hull of the 2x2 block of
-   * closest pixels. Similarly for y. Range of values: [-.5,.5).
-   */
-  const double relative_x = absolute_x - ix - .5;
-  const double relative_y = absolute_y - iy - .5;
 
 #define CALL( T, inter ) \
   nohalo_sharp_level_1_ ## inter<T>( out, \
