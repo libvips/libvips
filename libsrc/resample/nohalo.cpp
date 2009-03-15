@@ -546,8 +546,8 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
    * VIPS versions of Nicolas's pixel addressing values. Double bands for
    * complex images.
    */
-  const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
   const int bands_actual = in->im->Bands;
+  const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
   const int bands =
     ( im_iscomplex( in->im ) ? 2 * bands_actual : bands_actual );
 
