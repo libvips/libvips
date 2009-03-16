@@ -238,10 +238,10 @@
 /*
  * FAST_MINMOD is an implementation of the minmod function which only
  * needs two conditional moves. (Most implementations need at least
- * three branches.) In the Nohalo code, the square of the first
- * argument is used in two different minmod computations. The product
- * is also precomputed to keep it out of branching way. (Nicolas: I
- * think that this may be the first two branch minmod.)
+ * three branches.) The product of the two arguments and a useful
+ * difference involving them are also precomputed to keep them out of
+ * branching way.  (Nicolas: I think that this may be the first two
+ * branch minmod.)
  */
 #define FAST_MINMOD(a,b,ab,abminusaa) \
         ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )
