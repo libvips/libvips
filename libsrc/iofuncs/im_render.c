@@ -34,7 +34,7 @@
  * 23/4/08
  * 	- oop, broken for mask == NULL
  * 5/3/09
- * 	- remove all the fading stuff, a bit useless and it adds a lot of
+ * 	- remove all the fading stuff, a bit useless and it adds 
  * 	  complexity
  */
 
@@ -67,9 +67,9 @@
 /* Turn on debugging output.
 #define DEBUG
 #define DEBUG_REUSE
-#define DEBUG_MAKE
 #define DEBUG_PAINT
 #define DEBUG_TG
+#define DEBUG_MAKE
  */
 
 #ifdef HAVE_CONFIG_H

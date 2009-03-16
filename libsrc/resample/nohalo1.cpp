@@ -1,4 +1,11 @@
 /* nohalo interpolator
+ *
+ * Hacked for vips by J. Cupitt, 20/1/09
+ * Tweaks by N. Robidoux and J. Cupitt 5-15/03/09
+ *
+ * 16/3/09
+ * 	- rename as nohalo1
+ * 	- move "restrict" support to configure
  */
 
 /*
@@ -37,10 +44,6 @@
  * Nicolas Robidoux's research on nohalo funded in part by an NSERC
  * (National Science and Engineering Research Council of Canada)
  * Discovery Grant.
- */
-
-/* Hacked for vips by J. Cupitt, 20/1/09
- * Tweaks by N. Robidoux and J. Cupitt 5-15/03/09
  */
 
 /*
@@ -200,18 +203,6 @@
 
 #include "templates.h"
 
-#ifndef vips_restrict
-#ifdef __restrict
-#define vips_restrict __restrict
-#else
-#ifdef __restrict__
-#define vips_restrict __restrict__
-#else
-#define vips_restrict
-#endif
-#endif
-#endif
-
 /*
  * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
  * found to be faster on several linux boxes than the library
@@ -245,48 +236,48 @@
 #define FAST_MINMOD(a,b,ab,abminusaa) \
         ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )
 
-#define VIPS_TYPE_INTERPOLATE_NOHALO \
-	(vips_interpolate_nohalo_get_type())
-#define VIPS_INTERPOLATE_NOHALO( obj ) \
+#define VIPS_TYPE_INTERPOLATE_NOHALO1 \
+	(vips_interpolate_nohalo1_get_type())
+#define VIPS_INTERPOLATE_NOHALO1( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohalo ))
-#define VIPS_INTERPOLATE_NOHALO_CLASS( klass ) \
+	VIPS_TYPE_INTERPOLATE_NOHALO1, VipsInterpolateNohalo1 ))
+#define VIPS_INTERPOLATE_NOHALO1_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass))
-#define VIPS_IS_INTERPOLATE_NOHALO( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NOHALO ))
-#define VIPS_IS_INTERPOLATE_NOHALO_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NOHALO ))
-#define VIPS_INTERPOLATE_NOHALO_GET_CLASS( obj ) \
+	VIPS_TYPE_INTERPOLATE_NOHALO1, VipsInterpolateNohalo1Class))
+#define VIPS_IS_INTERPOLATE_NOHALO1( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NOHALO1 ))
+#define VIPS_IS_INTERPOLATE_NOHALO1_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NOHALO1 ))
+#define VIPS_INTERPOLATE_NOHALO1_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass ))
+	VIPS_TYPE_INTERPOLATE_NOHALO1, VipsInterpolateNohalo1Class ))
 
-typedef struct _VipsInterpolateNohalo {
+typedef struct _VipsInterpolateNohalo1 {
 	VipsInterpolate parent_object;
 
-} VipsInterpolateNohalo;
+} VipsInterpolateNohalo1;
 
-typedef struct _VipsInterpolateNohaloClass {
+typedef struct _VipsInterpolateNohalo1Class {
 	VipsInterpolateClass parent_class;
 
-} VipsInterpolateNohaloClass;
+} VipsInterpolateNohalo1Class;
 
 static void inline
-nohalo_sharp_level_1( const double                uno_two,
-                      const double                uno_thr,
-                      const double                dos_one,
-                      const double                dos_two,
-                      const double                dos_thr,
-                      const double                dos_fou,
-                      const double                tre_one,
-                      const double                tre_two,
-                      const double                tre_thr,
-                      const double                tre_fou,
-                      const double                qua_two,
-                      const double                qua_thr,
-                            double* vips_restrict r1,
-                            double* vips_restrict r2,
-                            double* vips_restrict r3 )
+nohalo1( const double           uno_two,
+         const double           uno_thr,
+         const double           dos_one,
+         const double           dos_two,
+         const double           dos_thr,
+         const double           dos_fou,
+         const double           tre_one,
+         const double           tre_two,
+         const double           tre_thr,
+         const double           tre_fou,
+         const double           qua_two,
+         const double           qua_thr,
+               double* restrict r1,
+               double* restrict r2,
+               double* restrict r3 )
 {
   /*
    * This function calculates the missing three double density pixel
@@ -460,20 +451,20 @@ nohalo_sharp_level_1( const double                uno_two,
   *r3 = eight_times_dostre_twothr;
 }
 
-/* Call nohalo_sharp_level_1 with an interpolator as a parameter.
+/* Call nohalo1 with an interpolator as a parameter.
  * It'd be nice to do this with templates somehow :-( but I can't see a
  * clean way to do it.
  */
-#define NOHALO_SHARP_LEVEL_1_INTER( inter ) \
+#define NOHALO1_INTER( inter ) \
   template <typename T> static void inline \
-  nohalo_sharp_level_1_ ## inter(       PEL*   vips_restrict pout, \
-                                  const PEL*   vips_restrict pin, \
-                                  const int                  bands, \
-                                  const int                  lskip, \
-                                  const double               relative_x, \
-                                  const double               relative_y ) \
+  nohalo1_ ## inter(       PEL*   restrict pout, \
+                     const PEL*   restrict pin, \
+                     const int             bands, \
+                     const int             lskip, \
+                     const double          relative_x, \
+                     const double          relative_y ) \
   { \
-    T* vips_restrict out = (T *) pout; \
+    T* restrict out = (T *) pout; \
     \
     const int relative_x_is_rite = ( relative_x >= 0. ); \
     const int relative_y_is_down = ( relative_y >= 0. ); \
@@ -484,7 +475,7 @@ nohalo_sharp_level_1( const double                uno_two,
     const int corner_reflection_shift = \
       relative_x_is_rite * bands + relative_y_is_down * lskip; \
     \
-    const T* vips_restrict in = ( (T *) pin ) + corner_reflection_shift; \
+    const T* restrict in = ( (T *) pin ) + corner_reflection_shift; \
     \
     const int shift_1_pixel  = sign_of_relative_x * bands; \
     const int shift_1_row    = sign_of_relative_y * lskip; \
@@ -525,15 +516,15 @@ nohalo_sharp_level_1( const double                uno_two,
         \
         const double dos_two = in[dos_two_shift]; \
         \
-        nohalo_sharp_level_1( in[uno_two_shift], in[uno_thr_shift], \
-                              in[dos_one_shift], dos_two, \
-                              in[dos_thr_shift], in[dos_fou_shift], \
-                              in[tre_one_shift], in[tre_two_shift], \
-                              in[tre_thr_shift], in[tre_fou_shift], \
-                              in[qua_two_shift], in[qua_thr_shift], \
-                              &four_times_dos_twothr, \
-                              &four_times_dostre_two, \
-                              &eight_times_dostre_twothr ); \
+        nohalo1( in[uno_two_shift], in[uno_thr_shift], \
+                 in[dos_one_shift], dos_two, \
+                 in[dos_thr_shift], in[dos_fou_shift], \
+                 in[tre_one_shift], in[tre_two_shift], \
+                 in[tre_thr_shift], in[tre_fou_shift], \
+                 in[qua_two_shift], in[qua_thr_shift], \
+                 &four_times_dos_twothr, \
+                 &four_times_dostre_two, \
+                 &eight_times_dostre_twothr ); \
         \
         const T result = bilinear_ ## inter<T>( w_times_z, \
                                                 x_times_z_over_4, \
@@ -549,23 +540,23 @@ nohalo_sharp_level_1( const double                uno_two,
       } while (--band); \
   }
 
-NOHALO_SHARP_LEVEL_1_INTER( float )
-NOHALO_SHARP_LEVEL_1_INTER( signed )
-NOHALO_SHARP_LEVEL_1_INTER( unsigned )
+NOHALO1_INTER( float )
+NOHALO1_INTER( signed )
+NOHALO1_INTER( unsigned )
 
 /* We need C linkage for this.
  */
 extern "C" {
-G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo,
+G_DEFINE_TYPE( VipsInterpolateNohalo1, vips_interpolate_nohalo1,
 	VIPS_TYPE_INTERPOLATE );
 }
 
 static void
-vips_interpolate_nohalo_interpolate( VipsInterpolate* vips_restrict interpolate,
-                                     PEL*             vips_restrict out,
-                                     REGION*          vips_restrict in,
-                                     double                         absolute_x,
-                                     double                         absolute_y )
+vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
+                                      PEL*             restrict out,
+                                      REGION*          restrict in,
+                                      double                    absolute_x,
+                                      double                    absolute_y )
 {
   /*
    * VIPS versions of Nicolas's pixel addressing values. Double bands for
@@ -601,75 +592,74 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate* vips_restrict interpolate,
    * of the 2x2 group of pixel centers which contains the
    * sampling location in its convex hull:
    */
-  const PEL * vips_restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
+  const PEL* restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
 
 #define CALL( T, inter ) \
-  nohalo_sharp_level_1_ ## inter<T>( out, \
-                                     p, \
-                                     bands, \
-                                     lskip, \
-                                     relative_x, \
-                                     relative_y );
+  nohalo1_ ## inter<T>( out, \
+                        p, \
+                        bands, \
+                        lskip, \
+                        relative_x, \
+                        relative_y );
 
-	switch( in->im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:
-		CALL( unsigned char, unsigned );
-		break;
+  switch( in->im->BandFmt ) {
+  case IM_BANDFMT_UCHAR:
+    CALL( unsigned char, unsigned );
+    break;
 
-	case IM_BANDFMT_CHAR:
-		CALL( signed char, signed );
-		break;
-
-	case IM_BANDFMT_USHORT:
-		CALL( unsigned short, unsigned );
-		break;
-
-	case IM_BANDFMT_SHORT:
-		CALL( signed short, signed );
-		break;
-
-	case IM_BANDFMT_UINT:
-		CALL( unsigned int, unsigned );
-		break;
-
-	case IM_BANDFMT_INT:
-		CALL( signed int, signed );
-		break;
-
-	/* Complex images handled by doubling of bands, see above.
-	 */
-	case IM_BANDFMT_FLOAT:
-	case IM_BANDFMT_COMPLEX:
-		CALL( float, float );
-		break;
-
-	case IM_BANDFMT_DOUBLE:
-	case IM_BANDFMT_DPCOMPLEX:
-		CALL( double, float );
-		break;
-
-	default:
-		g_assert( 0 );
-		break;
-	}
+  case IM_BANDFMT_CHAR:
+    CALL( signed char, signed );
+    break;
+  
+  case IM_BANDFMT_USHORT:
+    CALL( unsigned short, unsigned );
+    break;
+  
+  case IM_BANDFMT_SHORT:
+    CALL( signed short, signed );
+    break;
+  
+  case IM_BANDFMT_UINT:
+    CALL( unsigned int, unsigned );
+    break;
+  
+  case IM_BANDFMT_INT:
+    CALL( signed int, signed );
+    break;
+  
+  /* Complex images handled by doubling of bands, see above.
+   */
+  case IM_BANDFMT_FLOAT:
+  case IM_BANDFMT_COMPLEX:
+    CALL( float, float );
+    break;
+  
+  case IM_BANDFMT_DOUBLE:
+  case IM_BANDFMT_DPCOMPLEX:
+    CALL( double, float );
+    break;
+  
+  default:
+    g_assert( 0 );
+    break;
+  }
 }
 
 static void
-vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
+vips_interpolate_nohalo1_class_init( VipsInterpolateNohalo1Class *klass )
 {
-	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
-	VipsInterpolateClass *interpolate_class =
-		VIPS_INTERPOLATE_CLASS( klass );
+  VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
+  VipsInterpolateClass *interpolate_class =
+    VIPS_INTERPOLATE_CLASS( klass );
 
-	object_class->nickname = "nohalo";
-	object_class->description = _( "Edge-enhancing bilinear" );
+  object_class->nickname = "nohalo1";
+  object_class->description = _( "Edge-enhancing bilinear" );
 
-	interpolate_class->interpolate =
-		vips_interpolate_nohalo_interpolate;
-	interpolate_class->window_size = 4;
+  interpolate_class->interpolate = vips_interpolate_nohalo1_interpolate;
+  interpolate_class->window_size = 4;
 }
 
 static void
-vips_interpolate_nohalo_init( VipsInterpolateNohalo *nohalo )
+vips_interpolate_nohalo1_init( VipsInterpolateNohalo1 *nohalo )
 {
 }

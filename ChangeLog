@@ -1,6 +1,7 @@
 6/3/09 started 7.17.3
 - revised nohalo
 - remove fading stuff from im_render() -- cleaner and simpler
+- configure spots support for "restrict"
 
 3/3/09 started 7.17.2
 - im_magick2vips.c: allow funky bit depths, like 14 (thanks Mikkel)

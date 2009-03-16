@@ -6,7 +6,7 @@ libresample_la_SOURCES = \
 	similarity.c \
 	interpolate.c \
 	yafrsmooth.cpp \
-	nohalo.cpp \
+	nohalo1.cpp \
 	templates.h \
 	transform.c \
 	resample_dispatch.c
