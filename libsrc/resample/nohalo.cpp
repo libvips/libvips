@@ -243,8 +243,8 @@
  * is also precomputed to keep it out of branching way. (Nicolas: I
  * think that this may be the first two branch minmod.)
  */
-#define FAST_MINMOD(a,b,ab,abmaa) \
-        ( (ab)>=0. ? ( (abmaa)>=0. ? (a) : (b) ) : 0. )
+#define FAST_MINMOD(a,b,ab,abminusaa) \
+        ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )
 
 #define VIPS_TYPE_INTERPOLATE_NOHALO \
 	(vips_interpolate_nohalo_get_type())
