@@ -243,8 +243,8 @@
  * is also precomputed to keep it out of branching way. (Nicolas: I
  * think that this may be the first two branch minmod.)
  */
-#define FAST_MINMOD(a,b,ab,aa) \
-        ( (ab)>=0. ? ( (ab)-(aa)>=0. ? (a) : (b) ) : 0. )
+#define FAST_MINMOD(a,b,ab,abmaa) \
+        ( (ab)>=0. ? ( (abmaa)>=0. ? (a) : (b) ) : 0. )
 
 #define VIPS_TYPE_INTERPOLATE_NOHALO \
 	(vips_interpolate_nohalo_get_type())
@@ -366,21 +366,21 @@ nohalo_sharp_level_1( const double                uno_two,
   /*
    * Products useful for minmod:
    */
-  const double deux_dos_prem_dos = deux_dos * prem_dos;
-  const double deux_dos_deux_dos = deux_dos * deux_dos;
-  const double deux_dos_troi_dos = deux_dos * troi_dos;
+  const double deux_prem_dos = deux_dos * prem_dos;
+  const double deux_deux_dos = deux_dos * deux_dos;
+  const double deux_troi_dos = deux_dos * troi_dos;
 
-  const double deux_two_prem_two = deux_two * prem_two;
-  const double deux_two_deux_two = deux_two * deux_two;
-  const double deux_two_troi_two = deux_two * troi_two;
+  const double deux_prem_two = deux_two * prem_two;
+  const double deux_deux_two = deux_two * deux_two;
+  const double deux_troi_two = deux_two * troi_two;
 
-  const double deux_tre_prem_tre = deux_tre * prem_tre;
-  const double deux_tre_deux_tre = deux_tre * deux_tre;
-  const double deux_tre_troi_tre = deux_tre * troi_tre;
+  const double deux_prem_tre = deux_tre * prem_tre;
+  const double deux_deux_tre = deux_tre * deux_tre;
+  const double deux_troi_tre = deux_tre * troi_tre;
 
-  const double deux_thr_prem_thr = deux_thr * prem_thr;
-  const double deux_thr_deux_thr = deux_thr * deux_thr;
-  const double deux_thr_troi_thr = deux_thr * troi_thr;
+  const double deux_prem_thr = deux_thr * prem_thr;
+  const double deux_deux_thr = deux_thr * deux_thr;
+  const double deux_troi_thr = deux_thr * troi_thr;
 
   /*
    * Useful sum:
@@ -388,13 +388,30 @@ nohalo_sharp_level_1( const double                uno_two,
   const double deux_thr_plus_deux_dos = deux_thr + deux_dos;
 
   /*
+   * Differences useful for minmod:
+   */
+  const double deux_prem_minus_deux_deux_dos = deux_prem_dos - deux_deux_dos;
+  const double deux_troi_minus_deux_deux_dos = deux_troi_dos - deux_deux_dos;
+
+  const double deux_prem_minus_deux_deux_two = deux_prem_two - deux_deux_two;
+  const double deux_troi_minus_deux_deux_two = deux_troi_two - deux_deux_two;
+
+  const double deux_prem_minus_deux_deux_tre = deux_prem_tre - deux_deux_tre;
+  const double deux_troi_minus_deux_deux_tre = deux_troi_tre - deux_deux_tre;
+
+  const double deux_prem_minus_deux_deux_thr = deux_prem_thr - deux_deux_thr;
+  const double deux_troi_minus_deux_deux_thr = deux_troi_thr - deux_deux_thr;
+
+  /*
    * Compute the needed "right" (at the boundary between one input
    * pixel areas) double resolution pixel value:
    */
   const double four_times_dos_twothr =
-    FAST_MINMOD( deux_dos, prem_dos, deux_dos_prem_dos, deux_dos_deux_dos )
+    FAST_MINMOD( deux_dos, prem_dos, deux_prem_dos,
+                 deux_prem_minus_deux_deux_dos )
     -
-    FAST_MINMOD( deux_dos, troi_dos, deux_dos_troi_dos, deux_dos_deux_dos )
+    FAST_MINMOD( deux_dos, troi_dos, deux_troi_dos,
+                 deux_troi_minus_deux_deux_dos )
     +
     2. * dos_two_plus_dos_thr;
 
@@ -402,9 +419,11 @@ nohalo_sharp_level_1( const double                uno_two,
    * Compute the needed "down" double resolution pixel value:
    */
   const double four_times_dostre_two =
-    FAST_MINMOD( deux_two, prem_two, deux_two_prem_two, deux_two_deux_two )
+    FAST_MINMOD( deux_two, prem_two, deux_prem_two,
+                 deux_prem_minus_deux_deux_two )
     -
-    FAST_MINMOD( deux_two, troi_two, deux_two_troi_two, deux_two_deux_two )
+    FAST_MINMOD( deux_two, troi_two, deux_troi_two,
+                 deux_troi_minus_deux_deux_two )
     +
     2. * dos_two_plus_tre_two;
 
@@ -422,13 +441,17 @@ nohalo_sharp_level_1( const double                uno_two,
   const double eight_times_dostre_twothr =
     piece_of_eight_times_dostre_twothr
     +
-    FAST_MINMOD( deux_tre, prem_tre, deux_tre_prem_tre, deux_tre_deux_tre )
+    FAST_MINMOD( deux_tre, prem_tre, deux_prem_tre,
+                 deux_prem_minus_deux_deux_tre )
     -
-    FAST_MINMOD( deux_tre, troi_tre, deux_tre_troi_tre, deux_tre_deux_tre )
+    FAST_MINMOD( deux_tre, troi_tre, deux_troi_tre,
+                 deux_troi_minus_deux_deux_tre )
     +
-    FAST_MINMOD( deux_thr, prem_thr, deux_thr_prem_thr, deux_thr_deux_thr )
+    FAST_MINMOD( deux_thr, prem_thr, deux_prem_thr,
+                 deux_prem_minus_deux_deux_thr )
     -
-    FAST_MINMOD( deux_thr, troi_thr, deux_thr_troi_thr, deux_thr_deux_thr );
+    FAST_MINMOD( deux_thr, troi_thr, deux_troi_thr,
+                 deux_troi_minus_deux_deux_thr );
 
   /*
    * Return the first newly computed double density values:
