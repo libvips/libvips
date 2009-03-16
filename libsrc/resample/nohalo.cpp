@@ -200,14 +200,14 @@
 
 #include "templates.h"
 
-#ifndef restrict
+#ifndef vips_restrict
 #ifdef __restrict
-#define restrict __restrict
+#define vips_restrict __restrict
 #else
 #ifdef __restrict__
-#define restrict __restrict__
+#define vips_restrict __restrict__
 #else
-#define restrict
+#define vips_restrict
 #endif
 #endif
 #endif
@@ -273,22 +273,21 @@ typedef struct _VipsInterpolateNohaloClass {
 } VipsInterpolateNohaloClass;
 
 static void inline
-nohalo_sharp_level_1(
-	const double uno_two,
-	const double uno_thr,
-	const double dos_one,
-	const double dos_two,
-	const double dos_thr,
-	const double dos_fou,
-	const double tre_one,
-	const double tre_two,
-	const double tre_thr,
-	const double tre_fou,
-	const double qua_two,
-	const double qua_thr,
-	double *r1,
-	double *r2,
-	double *r3 )
+nohalo_sharp_level_1( const double                uno_two,
+                      const double                uno_thr,
+                      const double                dos_one,
+                      const double                dos_two,
+                      const double                dos_thr,
+                      const double                dos_fou,
+                      const double                tre_one,
+                      const double                tre_two,
+                      const double                tre_thr,
+                      const double                tre_fou,
+                      const double                qua_two,
+                      const double                qua_thr,
+                            double* vips_restrict r1,
+                            double* vips_restrict r2,
+                            double* vips_restrict r3 )
 {
   /*
    * This function calculates the missing three double density pixel
@@ -445,14 +444,14 @@ nohalo_sharp_level_1(
  */
 #define NOHALO_SHARP_LEVEL_1_INTER( inter ) \
   template <typename T> static void inline \
-  nohalo_sharp_level_1_ ## inter(       PEL    *pout, \
-                                  const PEL    *pin, \
-                                  const int     bands, \
-                                  const int     lskip, \
-                                  const double  relative_x, \
-                                  const double  relative_y ) \
+  nohalo_sharp_level_1_ ## inter(       PEL*   vips_restrict pout, \
+                                  const PEL*   vips_restrict pin, \
+                                  const int                  bands, \
+                                  const int                  lskip, \
+                                  const double               relative_x, \
+                                  const double               relative_y ) \
   { \
-    T* restrict out = (T *) pout; \
+    T* vips_restrict out = (T *) pout; \
     \
     const int relative_x_is_rite = ( relative_x >= 0. ); \
     const int relative_y_is_down = ( relative_y >= 0. ); \
@@ -463,7 +462,7 @@ nohalo_sharp_level_1(
     const int corner_reflection_shift = \
       relative_x_is_rite * bands + relative_y_is_down * lskip; \
     \
-    const T* restrict in = ( (T *) pin ) + corner_reflection_shift; \
+    const T* vips_restrict in = ( (T *) pin ) + corner_reflection_shift; \
     \
     const int shift_1_pixel  = sign_of_relative_x * bands; \
     const int shift_1_row    = sign_of_relative_y * lskip; \
@@ -494,37 +493,38 @@ nohalo_sharp_level_1(
     const double x_times_z_over_4 = .25  * x_times_z; \
     const double x_times_y_over_8 = .125 * ( x - x_times_z ); \
     \
-    for( int band = 0; band < bands; band++ ) { \
-      double four_times_dos_twothr; \
-      double four_times_dostre_two; \
-      double eight_times_dostre_twothr; \
-      \
-      const double dos_two = in[dos_two_shift]; \
-      \
-      nohalo_sharp_level_1( in[uno_two_shift], in[uno_thr_shift], \
-                            in[dos_one_shift], dos_two, \
-                            in[dos_thr_shift], in[dos_fou_shift], \
-                            in[tre_one_shift], in[tre_two_shift], \
-                            in[tre_thr_shift], in[tre_fou_shift], \
-                            in[qua_two_shift], in[qua_thr_shift], \
-                            &four_times_dos_twothr, \
-                            &four_times_dostre_two, \
-                            &eight_times_dostre_twothr ); \
-      \
-      in += 1; \
-      \
-      const T result = bilinear_ ## inter<T>( \
-                                             w_times_z, \
-                                             x_times_z_over_4, \
-                                             w_times_y_over_4, \
-                                             x_times_y_over_8, \
-                                             dos_two, \
-                                             four_times_dos_twothr, \
-                                             four_times_dostre_two, \
-                                             eight_times_dostre_twothr ); \
-      \
-      out[band] = result; \
-    } \
+    int band = bands; \
+    \
+    do \
+      { \
+        double four_times_dos_twothr; \
+        double four_times_dostre_two; \
+        double eight_times_dostre_twothr; \
+        \
+        const double dos_two = in[dos_two_shift]; \
+        \
+        nohalo_sharp_level_1( in[uno_two_shift], in[uno_thr_shift], \
+                              in[dos_one_shift], dos_two, \
+                              in[dos_thr_shift], in[dos_fou_shift], \
+                              in[tre_one_shift], in[tre_two_shift], \
+                              in[tre_thr_shift], in[tre_fou_shift], \
+                              in[qua_two_shift], in[qua_thr_shift], \
+                              &four_times_dos_twothr, \
+                              &four_times_dostre_two, \
+                              &eight_times_dostre_twothr ); \
+        \
+        const T result = bilinear_ ## inter<T>( w_times_z, \
+                                                x_times_z_over_4, \
+                                                w_times_y_over_4, \
+                                                x_times_y_over_8, \
+                                                dos_two, \
+                                                four_times_dos_twothr, \
+                                                four_times_dostre_two, \
+                                                eight_times_dostre_twothr ); \
+        \
+        in++; \
+        *out++ = result; \
+      } while (--band); \
   }
 
 NOHALO_SHARP_LEVEL_1_INTER( float )
@@ -539,11 +539,11 @@ G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo,
 }
 
 static void
-vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
-                                     PEL             *out,
-                                     REGION          *in,
-                                     double           absolute_x,
-                                     double           absolute_y )
+vips_interpolate_nohalo_interpolate( VipsInterpolate* vips_restrict interpolate,
+                                     PEL*             vips_restrict out,
+                                     REGION*          vips_restrict in,
+                                     double                         absolute_x,
+                                     double                         absolute_y )
 {
   /*
    * VIPS versions of Nicolas's pixel addressing values. Double bands for
@@ -567,17 +567,19 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate *interpolate,
    * position of the center of the convex hull of the 2x2 block of
    * closest pixels. Similarly for y. Range of values: [-.5,.5).
    */
-  const int iy = FAST_PSEUDO_FLOOR (absolute_y);
-  const double relative_y = ( absolute_y - .5 ) - iy;
-  const int ix = FAST_PSEUDO_FLOOR (absolute_x);
-  const double relative_x = ( absolute_x - .5 ) - ix;
+  const double absolute_y_minus_half = absolute_y - .5;
+  const double absolute_x_minus_half = absolute_x - .5;
+  const int iy                       = FAST_PSEUDO_FLOOR (absolute_y);
+  const double relative_y            = absolute_y_minus_half - iy;
+  const int ix                       = FAST_PSEUDO_FLOOR (absolute_x);
+  const double relative_x            = absolute_x_minus_half - ix;
 
   /*
    * Move the pointer to (the first band of) the top/left pixel
    * of the 2x2 group of pixel centers which contains the
    * sampling location in its convex hull:
    */
-  const PEL * restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
+  const PEL * vips_restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
 
 #define CALL( T, inter ) \
   nohalo_sharp_level_1_ ## inter<T>( out, \
