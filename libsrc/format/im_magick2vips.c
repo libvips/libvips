@@ -22,6 +22,8 @@
  * 	- use image->attributes if GetNextImageAttribute() is missing
  * 3/3/09
  * 	- allow funky bit depths, like 14 (thanks Mikkel)
+ * 17/3/09
+ * 	- reset dcm:display-range to help DICOM read
  */
 
 /*
@@ -584,6 +586,15 @@ im_magick2vips( const char *filename, IMAGE *im )
 
 	if( !(read = read_new( filename, im )) )
 		return( -1 );
+
+	/* When reading DICOM images, we want to ignore any
+	 * window_center/_width setting, since it may put pixels outside the
+	 * 0-65535 range and lose data. 
+	 *
+	 * These window settings are attached as vips metadata, so our caller
+	 * can interpret them if it wants.
+	 */
+  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
 
 	read->image = ReadImage( read->image_info, &read->exception );
 	if( !read->image ) {

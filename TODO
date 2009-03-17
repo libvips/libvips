@@ -1,3 +1,18 @@
+- need to set 
+
+	-define dcm:display-range=reset 
+
+  to stop window_width/_height screwing up our data in magick read
+
+
+  use
+
+  	SetImageOption (image_info, "dcm:display-range", "reset");
+
+  somewhere
+
+
+
 
 - move im_shrink & friends to resample?
 
