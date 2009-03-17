@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: vips 7.16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-03 17:05+0000\n"
+"POT-Creation-Date: 2009-03-06 11:14+0000\n"
 "PO-Revision-Date: Fri Sep  5 10:27:43 BST 2008\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
@@ -627,7 +627,7 @@ msgstr ""
 
 #: libsrc/conversion/im_grid.c:151
 #: libsrc/convolution/im_contrast_surface.c:153
-#: libsrc/format/im_tile_cache.c:373 libsrc/iofuncs/im_render.c:1188
+#: libsrc/format/im_tile_cache.c:373 libsrc/iofuncs/im_render.c:1038
 #: libsrc/iofuncs/im_binfile.c:93
 msgid "bad parameters"
 msgstr ""
@@ -1905,8 +1905,8 @@ msgstr ""
 msgid "operation name already registered"
 msgstr ""
 
-#: libsrc/iofuncs/im_render.c:567 libsrc/iofuncs/im_render.c:726
-#: libsrc/iofuncs/threadgroup.c:469 libsrc/iofuncs/im_wbuffer.c:176
+#: libsrc/iofuncs/im_render.c:521 libsrc/iofuncs/threadgroup.c:469
+#: libsrc/iofuncs/im_wbuffer.c:176
 msgid "unable to create thread"
 msgstr ""
 
