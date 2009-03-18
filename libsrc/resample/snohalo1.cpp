@@ -1,11 +1,5 @@
-/* nohalo level 1 interpolator
+/* snohalo (smooth nohalo) level 1 interpolator
  *
- * Hacked for vips by J. Cupitt, 20/1/09
- * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
- *
- * 16/3/09
- * 	- rename as nohalo1
- * 	- move "restrict" support to configure
  */
 
 /*
@@ -37,158 +31,6 @@
 
 /*
  * 2009 (c) Nicolas Robidoux
- *
- * Nicolas thanks Geert Jordaens, John Cupitt, Minglun Gong, Øyvind
- * Kolås and Sven Neumann for useful comments and code.
- *
- * Nicolas Robidoux's research on nohalo funded in part by an NSERC
- * (National Science and Engineering Research Council of Canada)
- * Discovery Grant.
- */
-
-/*
- * ================
- * NOHALO RESAMPLER
- * ================
- *
- * "Nohalo" is a family of parameterized resamplers with a mission:
- * smoothly straightening oblique lines without undesirable
- * side-effects. In particular, without much blurring and with
- * absolutely no added haloing.
- *
- * The key parameter, which may be described as a "quality" parameter,
- * is an integer which specifies the number of "levels" of binary
- * subdivision which are performed. level = 0 can be thought of as
- * being plain vanilla bilinear resampling; level = 1 is then the
- * first "non-classical" method of the familiy.
- *
- * Although it increases computational cost, additional levels
- * increase the quality of the resampled pixel value unless the
- * resampled location happens to be exactly where a subdivided grid
- * point (for this level) is located, in which case further levels do
- * not change the answer, and consequently do not increase its
- * quality.
- *
- * ===================================================
- * THIS CODE ONLY IMPLEMENTS THE LOWEST QUALITY NOHALO
- * ===================================================
- *
- * This code implement nohalo for (quality) level = 1.  Nohalo for
- * higher quality levels will be implemented later.
- *
- * Key properties:
- *
- * =======================
- * Nohalo is interpolatory
- * =======================
- *
- * That is, nohalo preserves point values: If asked for the value at
- * the center of an input pixel, the sampler returns the corresponding
- * value, unchanged. In addition, because nohalo is continuous, if
- * asked for a value at a location "very close" to the center of an
- * input pixel, then the sampler returns a value "very close" to
- * it. (Nohalo is not smoothing like, say, B-Spline
- * pseudo-interpolation.)
- *
- * ========================================================
- * Nohalo is co-monotone (this is why it's called "nohalo")
- * ========================================================
- *
- * What monotonicity more or less means here is that the resampled
- * value is in the range of the four closest input values. This
- * property is why there is no added haloing. It also implies that
- * clamping is unnecessary (provided abyss values are within the range
- * of acceptable values, which is always the case). (Note: plain
- * vanilla bilinear is also co-monotone.)
- *
- * Note: If the abyss policy is an extrapolating one---for example,
- * linear or bilinear extrapolation---clamping is still unnecessary
- * unless one attempts to resample outside of the convex hull of the
- * input pixel positions. Consequence: the "corner" image size
- * convention does not require clamping when using linear
- * extrapolation abyss policy when performing image resizing, but the
- * "center" one does, when upscaling, at locations very close to the
- * boundary. If computing values at locations outside of the convex
- * hull of the pixel locations of the input image, nearest neighbour
- * abyss policy is most likely better anyway, because linear
- * extrapolation produces "streaks" if positions far outside the
- * original image boundary are resampled.
- *
- * ========================
- * Nohalo is a local method
- * ========================
- *
- * The value of the reconstructed intensity surface at any point
- * depends on the values of (at most) 12 nearby input values, located
- * in a "cross" centered at the closest four input pixel centers.
- *
- * ===========================================================
- * When level = infinity, nohalo's intensity surface is smooth
- * ===========================================================
- *
- * It is conjectured that the intensity surface is infinitely
- * differentiable. Consequently, "Mach banding" (primarily caused by
- * sharp "ridges" in the reconstructed intensity surface and
- * particularly noticeable, for example, when using bilinear
- * resampling) is (essentially) absent, even at high magnifications,
- * WHEN THE LEVEL IS HIGH (more or less when 2^(level+1) is at least
- * the largest local magnification factor, which means that the level
- * 1 nohalo does not show much Mach banding up to a magnification of
- * about 4).
- *
- * ===============================
- * Nohalo is second order accurate
- * ===============================
- *
- * (Except possibly near the boundary: it is easy to make this
- * property carry over everywhere but this requires a tuned abyss
- * policy---linear extrapolation, say---or building the boundary
- * conditions inside the sampler.)  Nohalo is exact on linear
- * intensity profiles, meaning that if the input pixel values (in the
- * stencil) are obtained from a function of the form f(x,y) = a + b*x
- * + c*y (a, b, c constants), then the computed pixel value is exactly
- * the value of f(x,y) at the asked-for sampling location. The
- * boundary condition which is emulated by VIPS throught the "extend"
- * extension of the input image---this corresponds to the nearest
- * neighbour abyss policy---does NOT make this resampler exact on
- * linears at the boundary. It does, however, guarantee that no
- * clamping is required even when resampled values are computed at
- * positions outside of the extent of the input image (when
- * extrapolation is required).
- *
- * ===================
- * Nohalo is nonlinear
- * ===================
- *
- * In particular, resampling a sum of images may not be the same as
- * summing the resamples. (This occurs even without taking into account
- * over and underflow issues: images can only take values within a
- * banded range, and consequently no sampler is truly linear.)
- *
- * ====================
- * Weaknesses of nohalo
- * ====================
- *
- * In some cases, the first level nonlinear computation is wasted:
- *
- * If a region is bichromatic, the nonlinear component of the level 1
- * nohalo is zero in the interior of the region, and consequently
- * nohalo boils down to bilinear. For such images, either stick to
- * bilinear, or use a higher level (quality) setting. (There is no
- * real harm in using nohalo when it boils down to bilinear if one
- * does not mind wasting cycles.)
- *
- * Low quality levels do NOT produce a continuously differentiable
- * intensity surface:
- *
- * With a "finite" level is used (that is, in practice), the nohalo
- * intensity surface is only continuous: there are gradient
- * discontinuities because the "final interpolation step" is performed
- * with bilinear. (Exception: if the "corner" image size convention is
- * used and the magnification factor is 2, that is, if the resampled
- * points sit exactly on the binary subdivided grid, then nohalo level
- * 1 gives the same result as as level=infinity, and consequently the
- * intensity surface can be treated as if smooth.)
  */
 
 #ifdef HAVE_CONFIG_H
@@ -237,48 +79,70 @@
 #define FAST_MINMOD(a,b,ab,abminusaa) \
         ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )
 
-#define VIPS_TYPE_INTERPOLATE_NOHALO1 \
-	(vips_interpolate_nohalo1_get_type())
-#define VIPS_INTERPOLATE_NOHALO1( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_NOHALO1, VipsInterpolateNohalo1 ))
-#define VIPS_INTERPOLATE_NOHALO1_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_NOHALO1, VipsInterpolateNohalo1Class))
-#define VIPS_IS_INTERPOLATE_NOHALO1( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NOHALO1 ))
-#define VIPS_IS_INTERPOLATE_NOHALO1_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NOHALO1 ))
-#define VIPS_INTERPOLATE_NOHALO1_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_NOHALO1, VipsInterpolateNohalo1Class ))
+/* Properties.
+ */
+enum {
+	PROP_SHARPENING = 1,
+	PROP_LAST
+};
 
-typedef struct _VipsInterpolateNohalo1 {
+#define VIPS_TYPE_INTERPOLATE_SNOHALO1 \
+	(vips_interpolate_snohalo1_get_type())
+#define VIPS_INTERPOLATE_SNOHALO1( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_INTERPOLATE_SNOHALO1, VipsInterpolateSnohalo1 ))
+#define VIPS_INTERPOLATE_SNOHALO1_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_INTERPOLATE_SNOHALO1, VipsInterpolateSnohalo1Class))
+#define VIPS_IS_INTERPOLATE_SNOHALO1( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_SNOHALO1 ))
+#define VIPS_IS_INTERPOLATE_SNOHALO1_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_SNOHALO1 ))
+#define VIPS_INTERPOLATE_SNOHALO1_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_INTERPOLATE_SNOHALO1, VipsInterpolateSnohalo1Class ))
+
+typedef struct _VipsInterpolateSnohalo1 {
 	VipsInterpolate parent_object;
 
-} VipsInterpolateNohalo1;
+	double sharpening;
+} VipsInterpolateSnohalo1;
 
-typedef struct _VipsInterpolateNohalo1Class {
+typedef struct _VipsInterpolateSnohalo1Class {
 	VipsInterpolateClass parent_class;
 
-} VipsInterpolateNohalo1Class;
+} VipsInterpolateSnohalo1Class;
 
 static void inline
-nohalo1( const double           uno_two,
-         const double           uno_thr,
-         const double           dos_one,
-         const double           dos_two,
-         const double           dos_thr,
-         const double           dos_fou,
-         const double           tre_one,
-         const double           tre_two,
-         const double           tre_thr,
-         const double           tre_fou,
-         const double           qua_two,
-         const double           qua_thr,
-               double* restrict r1,
-               double* restrict r2,
-               double* restrict r3 )
+snohalo1( const double           theta,
+          const double           zer_two_in,
+          const double           zer_thr_in,
+          const double           uno_one_in,
+          const double           uno_two_in,
+          const double           uno_thr_in,
+          const double           uno_fou_in,
+          const double           dos_zer_in,
+          const double           dos_one_in,
+          const double           dos_two_in,
+          const double           dos_thr_in,
+          const double           dos_fou_in,
+          const double           dos_fiv_in,
+          const double           tre_zer_in,
+          const double           tre_one_in,
+          const double           tre_two_in,
+          const double           tre_thr_in,
+          const double           tre_fou_in,
+          const double           tre_fiv_in,
+          const double           qua_one_in,
+          const double           qua_two_in,
+          const double           qua_thr_in,
+          const double           qua_fou_in,
+          const double           cin_two_in,
+          const double           cin_thr_in,
+                double* restrict r0,
+                double* restrict r1,
+                double* restrict r2,
+                double* restrict r3 )
 {
   /*
    * This function calculates the missing three double density pixel
@@ -288,7 +152,7 @@ nohalo1( const double           uno_two,
   /*
    * THE STENCIL OF INPUT VALUES:
    *
-   * Nohalo's stencil is the same as, say, Catmull-Rom, with the
+   * Snohalo's stencil is the same as, say, Catmull-Rom, with the
    * exception that the four corner values are not used:
    *
    *               (ix,iy-1)    (ix+1,iy-1)
@@ -302,25 +166,95 @@ nohalo1( const double           uno_two,
    *
    *               (ix,iy+2)    (ix+1,iy+2)
    *               = qua_two    = qua_thr
-   *
-   * Here, ix is the floor of the requested left-to-right location, iy
-   * is the floor of the requested up-to-down location. 
-   * 
-   * Pointer arithmetic is used to implicitly reflect the input
-   * stencil so that the requested pixel location is closer to
-   * dos_two, The above consequently corresponds to the case in which
-   * absolute_x is closer to ix than ix+1, and absolute_y is closer to
-   * iy than iy+1. For example, if relative_x_is_rite = 1 but
-   * relative_y_is_down = 0 (see below), then dos_two corresponds to
-   * (ix+1,iy), dos_thr corresponds to (ix,iy) etc. Consequently, the
-   * three missing double density values (corresponding to r1, r2 and
-   * r3) are halfway between dos_two and dos_thr, halfway between
-   * dos_two and tre_two, and at the average of the four central
-   * positions.
-   *
-   * The following code assumes that the stencil reflection has
-   * already been performed.
    */
+
+  const double beta  = 1. + -.5 * theta;
+  const double gamma = .125     * theta;
+  
+  /*
+   * Computation of the blurred pixel values:
+   */
+  const double uno_one_plus_zer_two_in = uno_one_in + zer_two_in;
+  const double uno_two_plus_zer_thr_in = uno_two_in + zer_thr_in;
+
+  const double dos_zer_plus_uno_one_in = dos_zer_in + uno_one_in;
+  const double dos_one_plus_uno_two_in = dos_one_in + uno_two_in;
+  const double dos_two_plus_uno_thr_in = dos_two_in + uno_thr_in;
+  const double dos_thr_plus_uno_fou_in = dos_thr_in + uno_fou_in;
+
+  const double tre_zer_plus_dos_one_in = tre_zer_in + dos_one_in;
+  const double tre_one_plus_dos_two_in = tre_one_in + dos_two_in;
+  const double tre_two_plus_dos_thr_in = tre_two_in + dos_thr_in;
+  const double tre_thr_plus_dos_fou_in = tre_thr_in + dos_fou_in;
+  const double tre_fou_plus_dos_fiv_in = tre_fou_in + dos_fiv_in;
+
+  const double uno_two =
+    beta * uno_two_in
+    +
+    ( uno_one_plus_zer_two_in + dos_two_plus_uno_thr_in ) * gamma;
+
+  const double uno_thr =
+    beta * uno_thr_in 
+    +
+    ( uno_two_plus_zer_thr_in + dos_thr_plus_uno_fou_in ) * gamma;
+
+  const double qua_one_plus_tre_two_in = qua_one_in + tre_two_in;
+  const double qua_two_plus_tre_thr_in = qua_two_in + tre_thr_in;
+  const double qua_thr_plus_tre_fou_in = qua_thr_in + tre_fou_in;
+  const double qua_fou_plus_tre_fiv_in = qua_fou_in + tre_fiv_in;
+
+  const double dos_one =
+    beta * dos_one_in
+    +
+    ( dos_zer_plus_uno_one_in + tre_one_plus_dos_two_in ) * gamma;
+
+  const double dos_two =
+    beta * dos_two_in
+    +
+    ( dos_one_plus_uno_two_in + tre_two_plus_dos_thr_in ) * gamma;
+
+  const double dos_thr =
+    beta * dos_thr_in 
+    +
+    ( dos_two_plus_uno_thr_in + tre_thr_plus_dos_fou_in ) * gamma;
+
+  const double dos_fou =
+    beta * dos_fou_in 
+    +
+    ( dos_thr_plus_uno_fou_in + tre_fou_plus_dos_fiv_in ) * gamma;
+
+  const double cin_two_plus_qua_thr_in = cin_two_in + qua_thr_in;
+  const double cin_thr_plus_qua_fou_in = cin_thr_in + qua_fou_in;
+
+  const double tre_one =
+    beta * tre_one_in
+    +
+    ( tre_zer_plus_dos_one_in + qua_one_plus_tre_two_in ) * gamma;
+
+  const double tre_two =
+    beta * tre_two_in
+    +
+    ( tre_one_plus_dos_two_in + qua_two_plus_tre_thr_in ) * gamma;
+
+  const double tre_thr =
+    beta * tre_thr_in 
+    +
+    ( tre_two_plus_dos_thr_in + qua_thr_plus_tre_fou_in ) * gamma;
+
+  const double tre_fou =
+    beta * tre_fou_in 
+    +
+    ( tre_thr_plus_dos_fou_in + qua_fou_plus_tre_fiv_in ) * gamma;
+
+  const double qua_two =
+    beta * qua_two_in
+    +
+    ( qua_one_plus_tre_two_in + cin_two_plus_qua_thr_in ) * gamma;
+
+  const double qua_thr =
+    beta * qua_thr_in 
+    +
+    ( qua_two_plus_tre_thr_in + cin_thr_plus_qua_fou_in ) * gamma;
 
   /*
    * Computation of the nonlinear slopes: If two consecutive pixel
@@ -447,23 +381,25 @@ nohalo1( const double           uno_two,
   /*
    * Return the first newly computed double density values:
    */
+  *r0 = dos_two;
   *r1 = four_times_dos_twothr;
   *r2 = four_times_dostre_two;
   *r3 = eight_times_dostre_twothr;
 }
 
-/* Call nohalo1 with an interpolator as a parameter.
+/* Call snohalo1 with an interpolator as a parameter.
  * It'd be nice to do this with templates somehow :-( but I can't see a
  * clean way to do it.
  */
-#define NOHALO1_INTER( inter ) \
+#define SNOHALO1_INTER( inter ) \
   template <typename T> static void inline \
-  nohalo1_ ## inter(       PEL*   restrict pout, \
-                     const PEL*   restrict pin, \
-                     const int             bands, \
-                     const int             lskip, \
-                     const double          relative_x, \
-                     const double          relative_y ) \
+  snohalo1_ ## inter(       PEL*   restrict pout, \
+                      const PEL*   restrict pin, \
+                      const int             bands, \
+                      const int             lskip, \
+                      const double          sharpening, \
+                      const double          relative_x, \
+                      const double          relative_y ) \
   { \
     T* restrict out = (T *) pout; \
     \
@@ -484,32 +420,52 @@ nohalo1( const double           uno_two,
     const int shift_forw_1_pixel = -shift_back_1_pixel; \
     const int shift_forw_1_row   = -shift_back_1_row; \
     \
+    const int shift_back_2_pixel = 2 * shift_back_1_pixel; \
+    const int shift_back_2_row   = 2 * shift_back_2_row; \
+    \
     const double w = ( 2 * sign_of_relative_x ) * relative_x; \
     const double z = ( 2 * sign_of_relative_y ) * relative_y; \
     \
     const int shift_forw_2_pixel = 2 * shift_forw_1_pixel; \
     const int shift_forw_2_row   = 2 * shift_forw_1_row; \
     \
+    const int shift_forw_3_pixel = 3 * shift_forw_1_pixel; \
+    const int shift_forw_3_row   = 3 * shift_forw_1_row; \
+    \
+    const int zer_two_shift =                      shift_back_2_row; \
+    const int zer_thr_shift = shift_forw_1_pixel + shift_back_2_row; \
+    \
+    const int uno_one_shift = shift_back_1_pixel + shift_back_1_row; \
     const int uno_two_shift =                      shift_back_1_row; \
     const int uno_thr_shift = shift_forw_1_pixel + shift_back_1_row; \
+    const int uno_fou_shift = shift_forw_2_pixel + shift_back_1_row; \
     \
     const double x = 1. - w; \
     const double w_times_z = w * z; \
     \
+    const int dos_zer_shift = shift_back_2_pixel; \
     const int dos_one_shift = shift_back_1_pixel; \
     const int dos_two_shift = 0; \
     const int dos_thr_shift = shift_forw_1_pixel; \
     const int dos_fou_shift = shift_forw_2_pixel; \
+    const int dos_fiv_shift = shift_forw_3_pixel; \
     \
+    const int tre_zer_shift = shift_back_2_pixel + shift_forw_1_row; \
     const int tre_one_shift = shift_back_1_pixel + shift_forw_1_row; \
     const int tre_two_shift =                      shift_forw_1_row; \
     const int tre_thr_shift = shift_forw_1_pixel + shift_forw_1_row; \
     const int tre_fou_shift = shift_forw_2_pixel + shift_forw_1_row; \
+    const int tre_fiv_shift = shift_forw_3_pixel + shift_forw_1_row; \
     \
     const double x_times_z = x * z; \
     \
+    const int qua_one_shift = shift_back_1_pixel + shift_forw_2_row; \
     const int qua_two_shift =                      shift_forw_2_row; \
     const int qua_thr_shift = shift_forw_1_pixel + shift_forw_2_row; \
+    const int qua_fou_shift = shift_forw_2_pixel + shift_forw_2_row; \
+    \
+    const int cin_two_shift =                      shift_forw_3_row; \
+    const int cin_thr_shift = shift_forw_1_pixel + shift_forw_3_row; \
     \
     const double w_times_y_over_4 = .25  * ( w - w_times_z ); \
     const double x_times_z_over_4 = .25  * x_times_z; \
@@ -519,21 +475,28 @@ nohalo1( const double           uno_two,
     \
     do \
       { \
+        double dos_two; \
         double four_times_dos_twothr; \
         double four_times_dostre_two; \
         double eight_times_dostre_twothr; \
         \
-        const double dos_two = in[dos_two_shift]; \
-        \
-        nohalo1( in[uno_two_shift], in[uno_thr_shift], \
-                 in[dos_one_shift], dos_two, \
-                 in[dos_thr_shift], in[dos_fou_shift], \
-                 in[tre_one_shift], in[tre_two_shift], \
-                 in[tre_thr_shift], in[tre_fou_shift], \
-                 in[qua_two_shift], in[qua_thr_shift], \
-                 &four_times_dos_twothr, \
-                 &four_times_dostre_two, \
-                 &eight_times_dostre_twothr ); \
+        snohalo1( sharpening, \
+                  in[zer_two_shift], in[zer_thr_shift], \
+                  in[uno_one_shift], in[uno_two_shift], \
+                  in[uno_thr_shift], in[uno_fou_shift], \
+                  in[dos_zer_shift], in[dos_one_shift], \
+                  in[dos_two_shift], in[dos_thr_shift], \
+                  in[dos_fou_shift], in[dos_fiv_shift], \
+                  in[tre_zer_shift], in[tre_one_shift], \
+                  in[tre_two_shift], in[tre_thr_shift], \
+                  in[tre_fou_shift], in[tre_fiv_shift], \
+                  in[qua_one_shift], in[qua_two_shift], \
+                  in[qua_thr_shift], in[qua_fou_shift], \
+                  in[cin_two_shift], in[cin_thr_shift], \
+                  &dos_two, \
+                  &four_times_dos_twothr, \
+                  &four_times_dostre_two, \
+                  &eight_times_dostre_twothr ); \
         \
         const T result = bilinear_ ## inter<T>( w_times_z, \
                                                 x_times_z_over_4, \
@@ -549,24 +512,28 @@ nohalo1( const double           uno_two,
       } while (--band); \
   }
 
-NOHALO1_INTER( float )
-NOHALO1_INTER( signed )
-NOHALO1_INTER( unsigned )
+SNOHALO1_INTER( float )
+SNOHALO1_INTER( signed )
+SNOHALO1_INTER( unsigned )
 
 /* We need C linkage for this.
  */
 extern "C" {
-G_DEFINE_TYPE( VipsInterpolateNohalo1, vips_interpolate_nohalo1,
+G_DEFINE_TYPE( VipsInterpolateSnohalo1, vips_interpolate_snohalo1,
 	VIPS_TYPE_INTERPOLATE );
 }
 
 static void
-vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
-                                      PEL*             restrict out,
-                                      REGION*          restrict in,
-                                      double                    absolute_x,
-                                      double                    absolute_y )
+vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
+                                       PEL*             restrict out,
+                                       REGION*          restrict in,
+                                       double                    absolute_x,
+                                       double                    absolute_y )
 {
+  VipsInterpolateSnohalo1Class *snohalo1_class = 
+    VIPS_INTERPOLATE_SNOHALO1_GET_CLASS( interpolate );
+  VipsInterpolateSnohalo1 *snohalo1 = 
+    VIPS_INTERPOLATE_SNOHALO1( interpolate );
   /*
    * VIPS versions of Nicolas's pixel addressing values.
    */
@@ -607,10 +574,11 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
     ( im_iscomplex( in->im ) ? 2 * actual_bands : actual_bands );
 
 #define CALL( T, inter ) \
-  nohalo1_ ## inter<T>( out, \
+  snohalo1_ ## inter<T>( out, \
                         p, \
                         bands, \
                         lskip, \
+    			snohalo1->sharpening, \
                         relative_x, \
                         relative_y );
 
@@ -658,20 +626,42 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
 }
 
 static void
-vips_interpolate_nohalo1_class_init( VipsInterpolateNohalo1Class *klass )
+vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
 {
+  GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
   VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
   VipsInterpolateClass *interpolate_class =
     VIPS_INTERPOLATE_CLASS( klass );
 
-  object_class->nickname = "nohalo1";
-  object_class->description = _( "Edge-enhancing bilinear" );
+  GParamSpec *pspec;
 
-  interpolate_class->interpolate = vips_interpolate_nohalo1_interpolate;
-  interpolate_class->window_size = 4;
+  gobject_class->set_property = vips_object_set_property;
+  gobject_class->get_property = vips_object_get_property;
+
+  object_class->nickname = "snohalo1";
+  object_class->description = _( "Strong antialiasing" );
+
+  interpolate_class->interpolate =
+    vips_interpolate_snohalo1_interpolate;
+  interpolate_class->window_size = 6;
+
+  /* Create properties.
+   */
+  pspec =
+    g_param_spec_double( "sharpening", 
+                         _( "Sharpening" ),
+                         _( "Antialiasing" ),
+                         0, 4, 1, 
+                         (GParamFlags) G_PARAM_READWRITE );
+  g_object_class_install_property( gobject_class, 
+                                   PROP_SHARPENING, pspec );
+  vips_object_class_install_argument( object_class, pspec,
+        VIPS_ARGUMENT_SET_ONCE,
+        G_STRUCT_OFFSET( VipsInterpolateSnohalo1, sharpening ) );
+
 }
 
 static void
-vips_interpolate_nohalo1_init( VipsInterpolateNohalo1 *nohalo1 )
+vips_interpolate_snohalo1_init( VipsInterpolateSnohalo1 *snohalo1 )
 {
 }
