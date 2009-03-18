@@ -82,7 +82,7 @@
 /* Properties.
  */
 enum {
-	PROP_SHARPENING = 1,
+	PROP_BLUR = 1,
 	PROP_LAST
 };
 
@@ -105,7 +105,7 @@ enum {
 typedef struct _VipsInterpolateSnohalo1 {
 	VipsInterpolate parent_object;
 
-	double sharpening;
+	double blur;
 } VipsInterpolateSnohalo1;
 
 typedef struct _VipsInterpolateSnohalo1Class {
@@ -144,32 +144,8 @@ snohalo1( const double           theta,
                 double* restrict r2,
                 double* restrict r3 )
 {
-  /*
-   * This function calculates the missing three double density pixel
-   * values. The caller does bilinear interpolation on them and
-   * dos_two.
-   */
-  /*
-   * THE STENCIL OF INPUT VALUES:
-   *
-   * Snohalo's stencil is the same as, say, Catmull-Rom, with the
-   * exception that the four corner values are not used:
-   *
-   *               (ix,iy-1)    (ix+1,iy-1)
-   *               = uno_two    = uno_thr
-   *
-   *  (ix-1,iy)    (ix,iy)      (ix+1,iy)    (ix+2,iy)
-   *  = dos_one    = dos_two    = dos_thr    = dos_fou
-   *
-   *  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)  (ix+2,iy+1)
-   *  = tre_one    = tre_two    = tre_thr    = tre_fou
-   *
-   *               (ix,iy+2)    (ix+1,iy+2)
-   *               = qua_two    = qua_thr
-   */
-
   const double beta  = 1. + -.5 * theta;
-  const double gamma = .125     * theta;
+  const double gamma = .125 * theta;
   
   /*
    * Computation of the blurred pixel values:
@@ -188,6 +164,14 @@ snohalo1( const double           theta,
   const double tre_thr_plus_dos_fou_in = tre_thr_in + dos_fou_in;
   const double tre_fou_plus_dos_fiv_in = tre_fou_in + dos_fiv_in;
 
+  const double qua_one_plus_tre_two_in = qua_one_in + tre_two_in;
+  const double qua_two_plus_tre_thr_in = qua_two_in + tre_thr_in;
+  const double qua_thr_plus_tre_fou_in = qua_thr_in + tre_fou_in;
+  const double qua_fou_plus_tre_fiv_in = qua_fou_in + tre_fiv_in;
+
+  const double cin_two_plus_qua_thr_in = cin_two_in + qua_thr_in;
+  const double cin_thr_plus_qua_fou_in = cin_thr_in + qua_fou_in;
+
   const double uno_two =
     beta * uno_two_in
     +
@@ -197,11 +181,6 @@ snohalo1( const double           theta,
     beta * uno_thr_in 
     +
     ( uno_two_plus_zer_thr_in + dos_thr_plus_uno_fou_in ) * gamma;
-
-  const double qua_one_plus_tre_two_in = qua_one_in + tre_two_in;
-  const double qua_two_plus_tre_thr_in = qua_two_in + tre_thr_in;
-  const double qua_thr_plus_tre_fou_in = qua_thr_in + tre_fou_in;
-  const double qua_fou_plus_tre_fiv_in = qua_fou_in + tre_fiv_in;
 
   const double dos_one =
     beta * dos_one_in
@@ -222,9 +201,6 @@ snohalo1( const double           theta,
     beta * dos_fou_in 
     +
     ( dos_thr_plus_uno_fou_in + tre_fou_plus_dos_fiv_in ) * gamma;
-
-  const double cin_two_plus_qua_thr_in = cin_two_in + qua_thr_in;
-  const double cin_thr_plus_qua_fou_in = cin_thr_in + qua_fou_in;
 
   const double tre_one =
     beta * tre_one_in
@@ -257,14 +233,6 @@ snohalo1( const double           theta,
     ( qua_two_plus_tre_thr_in + cin_thr_plus_qua_fou_in ) * gamma;
 
   /*
-   * Computation of the nonlinear slopes: If two consecutive pixel
-   * value differences have the same sign, the smallest one (in
-   * absolute value) is taken to be the corresponding slope; if the
-   * two consecutive pixel value differences don't have the same sign,
-   * the corresponding slope is set to 0. In other words, apply minmod
-   * to comsecutive differences.
-   */
-  /*
    * Dos(s) horizontal differences:
    */
   const double prem_dos = dos_two - dos_one;
@@ -289,6 +257,9 @@ snohalo1( const double           theta,
   const double deux_thr = tre_thr - dos_thr;
   const double troi_thr = qua_thr - tre_thr;
 
+  /*
+   * Apply minmod to comsecutive differences:
+   */
   /*
    * Products and differences useful for minmod:
    */
@@ -397,7 +368,7 @@ snohalo1( const double           theta,
                       const PEL*   restrict pin, \
                       const int             bands, \
                       const int             lskip, \
-                      const double          sharpening, \
+                      const double          blur, \
                       const double          relative_x, \
                       const double          relative_y ) \
   { \
@@ -480,7 +451,7 @@ snohalo1( const double           theta,
         double four_times_dostre_two; \
         double eight_times_dostre_twothr; \
         \
-        snohalo1( sharpening, \
+        snohalo1( blur, \
                   in[zer_two_shift], in[zer_thr_shift], \
                   in[uno_one_shift], in[uno_two_shift], \
                   in[uno_thr_shift], in[uno_fou_shift], \
@@ -578,7 +549,7 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
                         p, \
                         bands, \
                         lskip, \
-    			snohalo1->sharpening, \
+    			snohalo1->blur, \
                         relative_x, \
                         relative_y );
 
@@ -639,7 +610,7 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
   gobject_class->get_property = vips_object_get_property;
 
   object_class->nickname = "snohalo1";
-  object_class->description = _( "Strong antialiasing" );
+  object_class->description = _( "Nohalo level 1 with antialiasing blur" );
 
   interpolate_class->interpolate =
     vips_interpolate_snohalo1_interpolate;
@@ -648,16 +619,16 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
   /* Create properties.
    */
   pspec =
-    g_param_spec_double( "sharpening", 
-                         _( "Sharpening" ),
-                         _( "Antialiasing" ),
+    g_param_spec_double( "blur", 
+                         _( "Blur" ),
+                         _( "Amount of diagonal straightening blur" ),
                          0, 4, 1, 
                          (GParamFlags) G_PARAM_READWRITE );
   g_object_class_install_property( gobject_class, 
-                                   PROP_SHARPENING, pspec );
+                                   PROP_BLUR, pspec );
   vips_object_class_install_argument( object_class, pspec,
         VIPS_ARGUMENT_SET_ONCE,
-        G_STRUCT_OFFSET( VipsInterpolateSnohalo1, sharpening ) );
+        G_STRUCT_OFFSET( VipsInterpolateSnohalo1, blur ) );
 
 }
 
