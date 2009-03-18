@@ -1,7 +1,7 @@
-/* nohalo interpolator
+/* nohalo level 1 interpolator
  *
  * Hacked for vips by J. Cupitt, 20/1/09
- * Tweaks by N. Robidoux and J. Cupitt 5-15/03/09
+ * Tweaks by N. Robidoux and J. Cupitt 3/09
  *
  * 16/3/09
  * 	- rename as nohalo1
@@ -53,7 +53,8 @@
  *
  * "Nohalo" is a family of parameterized resamplers with a mission:
  * smoothly straightening oblique lines without undesirable
- * side-effects.
+ * side-effects. In particular, without much blurring and with
+ * absolutely no added haloing.
  *
  * The key parameter, which may be described as a "quality" parameter,
  * is an integer which specifies the number of "levels" of binary
@@ -93,12 +94,12 @@
  * Nohalo is co-monotone (this is why it's called "nohalo")
  * ========================================================
  *
- * What monotonicity means here is that the resampled value is in the
- * range of the four closest input values. Consequently, nohalo does
- * not add haloing. It also means that clamping is unnecessary
- * (provided abyss values are within the range of acceptable values,
- * which is always the case). (Note: plain vanilla bilinear is also
- * co-monotone.)
+ * What monotonicity more or less means here is that the resampled
+ * value is in the range of the four closest input values. This
+ * property is why there is no added haloing. It also implies that
+ * clamping is unnecessary (provided abyss values are within the range
+ * of acceptable values, which is always the case). (Note: plain
+ * vanilla bilinear is also co-monotone.)
  *
  * Note: If the abyss policy is an extrapolating one---for example,
  * linear or bilinear extrapolation---clamping is still unnecessary
@@ -290,37 +291,44 @@ nohalo1( const double           uno_two,
    * Nohalo's stencil is the same as, say, Catmull-Rom, with the
    * exception that the four corner values are not used:
    *
-   *               (ix-1,iy-2)  (ix,iy-2)
+   *               (ix,iy-1)    (ix+1,iy-1)
    *               = uno_two    = uno_thr
    *
-   *  (ix-2,iy-1)  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)
+   *  (ix-1,iy)    (ix,iy)      (ix+1,iy)    (ix+2,iy)
    *  = dos_one    = dos_two    = dos_thr    = dos_fou
    *
-   *  (ix-2,iy)    (ix-1,iy)    (ix,iy)      (ix+1,iy)
+   *  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)  (ix+2,iy+1)
    *  = tre_one    = tre_two    = tre_thr    = tre_fou
    *
-   *               (ix-1,iy+1)  (ix,iy+1)
+   *               (ix,iy+2)    (ix+1,iy+2)
    *               = qua_two    = qua_thr
    *
-   * The indices associated with the values shown above are in the
-   * case that the resampling point is closer to (ix-1,iy-1) than the
-   * other three central positions. Pointer arithmetic is used to
-   * implicitly reflect the input stencil in the other three cases,
-   * For example, if the sampling position is closer to dos_two (that
-   * is, if relative_x_is_rite = 1 but relative_y_is_down = 0 below),
-   * then dos_two corresponds to (ix,iy-1), dos_thr corresponds to
-   * (ix-1,iy-1) etc. Consequently, the three missing double density
-   * values are halfway between dos_two and dos_thr, halfway between
+   * Here, ix is the floor of the requested left-to-right location, iy
+   * is the floor of the requested up-to-down location. 
+   * 
+   * Pointer arithmetic is used to implicitly reflect the input
+   * stencil so that the requested pixel location is closer to
+   * dos_two, The above consequently corresponds to the case in which
+   * absolute_x is closer to ix than ix+1, and absolute_y is closer to
+   * iy than iy+1. For example, if relative_x_is_rite = 1 but
+   * relative_y_is_down = 0 (see below), then dos_two corresponds to
+   * (ix+1,iy), dos_thr corresponds to (ix,iy) etc. Consequently, the
+   * three missing double density values (corresponding to r1, r2 and
+   * r3) are halfway between dos_two and dos_thr, halfway between
    * dos_two and tre_two, and at the average of the four central
    * positions.
+   *
+   * The following code assumes that the stencil reflection has
+   * already been performed.
    */
+
   /*
    * Computation of the nonlinear slopes: If two consecutive pixel
    * value differences have the same sign, the smallest one (in
    * absolute value) is taken to be the corresponding slope; if the
    * two consecutive pixel value differences don't have the same sign,
-   * the corresponding slope is set to 0. (In other words, apply
-   * minmod to comsecutive slopes.)
+   * the corresponding slope is set to 0. In other words, apply minmod
+   * to comsecutive differences.
    */
   /*
    * Dos(s) horizontal differences:
@@ -348,13 +356,7 @@ nohalo1( const double           uno_two,
   const double troi_thr = qua_thr - tre_thr;
 
   /*
-   * Useful sums:
-   */
-  const double dos_two_plus_dos_thr = dos_two + dos_thr;
-  const double dos_two_plus_tre_two = dos_two + tre_two;
-
-  /*
-   * Products useful for minmod:
+   * Products and differences useful for minmod:
    */
   const double deux_prem_dos = deux_dos * prem_dos;
   const double deux_deux_dos = deux_dos * deux_dos;
@@ -364,6 +366,12 @@ nohalo1( const double           uno_two,
   const double deux_deux_two = deux_two * deux_two;
   const double deux_troi_two = deux_two * troi_two;
 
+  const double deux_prem_minus_deux_deux_dos = deux_prem_dos - deux_deux_dos;
+  const double deux_troi_minus_deux_deux_dos = deux_troi_dos - deux_deux_dos;
+
+  const double deux_prem_minus_deux_deux_two = deux_prem_two - deux_deux_two;
+  const double deux_troi_minus_deux_deux_two = deux_troi_two - deux_deux_two;
+
   const double deux_prem_tre = deux_tre * prem_tre;
   const double deux_deux_tre = deux_tre * deux_tre;
   const double deux_troi_tre = deux_tre * troi_tre;
@@ -372,25 +380,18 @@ nohalo1( const double           uno_two,
   const double deux_deux_thr = deux_thr * deux_thr;
   const double deux_troi_thr = deux_thr * troi_thr;
 
-  /*
-   * Useful sum:
-   */
-  const double deux_thr_plus_deux_dos = deux_thr + deux_dos;
-
-  /*
-   * Differences useful for minmod:
-   */
-  const double deux_prem_minus_deux_deux_dos = deux_prem_dos - deux_deux_dos;
-  const double deux_troi_minus_deux_deux_dos = deux_troi_dos - deux_deux_dos;
-
-  const double deux_prem_minus_deux_deux_two = deux_prem_two - deux_deux_two;
-  const double deux_troi_minus_deux_deux_two = deux_troi_two - deux_deux_two;
-
   const double deux_prem_minus_deux_deux_tre = deux_prem_tre - deux_deux_tre;
   const double deux_troi_minus_deux_deux_tre = deux_troi_tre - deux_deux_tre;
 
   const double deux_prem_minus_deux_deux_thr = deux_prem_thr - deux_deux_thr;
   const double deux_troi_minus_deux_deux_thr = deux_troi_thr - deux_deux_thr;
+
+  /*
+   * Useful sums:
+   */
+  const double dos_two_plus_dos_thr = dos_two + dos_thr;
+  const double dos_two_plus_tre_two = dos_two + tre_two;
+  const double deux_thr_plus_deux_dos = deux_thr + deux_dos;
 
   /*
    * Compute the needed "right" (at the boundary between one input
@@ -429,13 +430,13 @@ nohalo1( const double           uno_two,
     2. * deux_thr_plus_deux_dos;
 
   const double eight_times_dostre_twothr =
-    piece_of_eight_times_dostre_twothr
-    +
     FAST_MINMOD( deux_tre, prem_tre, deux_prem_tre,
                  deux_prem_minus_deux_deux_tre )
     -
     FAST_MINMOD( deux_tre, troi_tre, deux_troi_tre,
                  deux_troi_minus_deux_deux_tre )
+    +
+    piece_of_eight_times_dostre_twothr
     +
     FAST_MINMOD( deux_thr, prem_thr, deux_prem_thr,
                  deux_prem_minus_deux_deux_thr )
@@ -466,22 +467,19 @@ nohalo1( const double           uno_two,
   { \
     T* restrict out = (T *) pout; \
     \
-    const int relative_x_is_rite = ( relative_x >= 0. ); \
     const int relative_y_is_down = ( relative_y >= 0. ); \
+    const int relative_x_is_rite = ( relative_x >= 0. ); \
     \
-    const int sign_of_relative_x = 2 * relative_x_is_rite - 1; \
     const int sign_of_relative_y = 2 * relative_y_is_down - 1; \
+    const int sign_of_relative_x = 2 * relative_x_is_rite - 1; \
     \
     const int corner_reflection_shift = \
-      relative_x_is_rite * bands + relative_y_is_down * lskip; \
+      relative_y_is_down * lskip + relative_x_is_rite * bands; \
+    \
+    const int shift_1_row    = sign_of_relative_y * lskip; \
+    const int shift_1_pixel  = sign_of_relative_x * bands; \
     \
     const T* restrict in = ( (T *) pin ) + corner_reflection_shift; \
-    \
-    const int shift_1_pixel  = sign_of_relative_x * bands; \
-    const int shift_1_row    = sign_of_relative_y * lskip; \
-    \
-    const double w = ( 2 * sign_of_relative_x ) * relative_x; \
-    const double z = ( 2 * sign_of_relative_y ) * relative_y; \
     \
     const int uno_two_shift = shift_1_row; \
     const int uno_thr_shift = shift_1_row - shift_1_pixel; \
@@ -489,19 +487,25 @@ nohalo1( const double           uno_two,
     const int dos_one_shift = shift_1_pixel; \
     const int dos_two_shift = 0; \
     const int dos_thr_shift = -shift_1_pixel; \
-    const int dos_fou_shift = -2 * shift_1_pixel; \
+    \
+    const double w = ( 2 * sign_of_relative_x ) * relative_x; \
+    const double z = ( 2 * sign_of_relative_y ) * relative_y; \
+    \
+    const int dos_fou_shift = 2 * dos_thr_shift; \
+    \
+    const double x = 1. - w; \
     \
     const int tre_one_shift = dos_one_shift - shift_1_row; \
     const int tre_two_shift = -shift_1_row; \
     const int tre_thr_shift = dos_thr_shift - shift_1_row; \
     const int tre_fou_shift = dos_fou_shift - shift_1_row; \
     \
+    const double w_times_z = w * z; \
+    const double x_times_z = x * z; \
+    \
     const int qua_two_shift = tre_two_shift - shift_1_row; \
     const int qua_thr_shift = tre_thr_shift - shift_1_row; \
     \
-    const double x = 1. - w; \
-    const double w_times_z = w * z; \
-    const double x_times_z = x * z; \
     const double w_times_y_over_4 = .25  * ( w - w_times_z ); \
     const double x_times_z_over_4 = .25  * x_times_z; \
     const double x_times_y_over_8 = .125 * ( x - x_times_z ); \
@@ -559,14 +563,13 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
                                       double                    absolute_y )
 {
   /*
-   * VIPS versions of Nicolas's pixel addressing values. Double bands for
-   * complex images.
+   * VIPS versions of Nicolas's pixel addressing values.
    */
+  const int actual_bands = in->im->Bands;
   const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
-  const int bands_actual = in->im->Bands;
-  const int bands =
-    ( im_iscomplex( in->im ) ? 2 * bands_actual : bands_actual );
 
+  const double absolute_y_minus_half = absolute_y - .5;
+  const double absolute_x_minus_half = absolute_x - .5;
   /*
    * floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
    * transition through 0 is smooth. If it is known that absolute_x
@@ -580,19 +583,23 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
    * position of the center of the convex hull of the 2x2 block of
    * closest pixels. Similarly for y. Range of values: [-.5,.5).
    */
-  const double absolute_y_minus_half = absolute_y - .5;
-  const double absolute_x_minus_half = absolute_x - .5;
   const int iy                       = FAST_PSEUDO_FLOOR (absolute_y);
   const double relative_y            = absolute_y_minus_half - iy;
   const int ix                       = FAST_PSEUDO_FLOOR (absolute_x);
   const double relative_x            = absolute_x_minus_half - ix;
 
   /*
-   * Move the pointer to (the first band of) the top/left pixel
-   * of the 2x2 group of pixel centers which contains the
-   * sampling location in its convex hull:
+   * Move the pointer to (the first band of) the top/left pixel of the
+   * 2x2 group of pixel centers which contains the sampling location
+   * in its convex hull:
    */
   const PEL* restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
+
+  /*
+   * Double bands for complex images:
+   */
+  const int bands =
+    ( im_iscomplex( in->im ) ? 2 * actual_bands : actual_bands );
 
 #define CALL( T, inter ) \
   nohalo1_ ## inter<T>( out, \
