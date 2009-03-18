@@ -234,6 +234,7 @@ DOUBLEMASK *im_rotate_dmask45( DOUBLEMASK *, const char * );
 INTMASK *im_log_imask( const char *, double, double );
 DOUBLEMASK *im_log_dmask( const char *, double, double );
 INTMASK *im_gauss_imask( const char *, double, double );
+INTMASK *im_gauss_imask_sep( const char *, double, double );
 DOUBLEMASK *im_gauss_dmask( const char *, double, double );
 
 int im_rank( IMAGE *, IMAGE *, int, int, int );

@@ -27,6 +27,9 @@
  *	- ansified, mem leaks plugged
  * 20/11/98 JC
  *	- mask too large check added
+ * 18/3/09
+ * 	- bumped max mask size *40
+ * 	- added _sep variant
  */
 
 /*
@@ -69,7 +72,7 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define IM_MAXMASK 256
+#define IM_MAXMASK 5000
 
 DOUBLEMASK *
 im_gauss_dmask( const char *filename, double sigma, double min_ampl )
@@ -96,7 +99,7 @@ im_gauss_dmask( const char *filename, double sigma, double min_ampl )
 			break;
 	}
 	if( x == max_x ) {
-		im_errormsg( "im_gauss_dmask: mask too large" );
+		im_error( "im_gauss_dmask", "%s", _( "mask too large" ) );
 		return( NULL );
 	}
 
@@ -179,4 +182,29 @@ im_gauss_imask( const char *filename, double sigma, double min_amplitude )
 	im_free_dmask( dm );
 
 	return( im ) ;
+}
+
+/* Just return the central line of the mask. This helps nip, which really
+ * struggles with large matrix manipulations.
+ */
+INTMASK *
+im_gauss_imask_sep( const char *filename, double sigma, double min_amplitude )
+{
+	INTMASK *im;
+	INTMASK *im2;
+	int i;
+
+	if( !(im = im_gauss_imask( filename, sigma, min_amplitude )) )
+		return( NULL );
+	if( !(im2 = im_create_imask( filename, im->xsize, 1 )) ) {
+		im_free_imask( im );
+		return( NULL );
+	}
+
+	for( i = 0; i < im->xsize; i++ )
+		im2->coeff[i] = im->coeff[i + im->xsize * (im->ysize / 2)];
+
+	im_free_imask( im );
+
+	return( im2 ) ;
 }

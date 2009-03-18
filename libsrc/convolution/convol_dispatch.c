@@ -672,6 +672,33 @@ static im_function gauss_imask_desc = {
 	gauss_imask_args 		/* Arg list */
 };
 
+/* Call im_gauss_imask_sep via arg vector.
+ */
+static int
+gauss_imask_sep_vec( im_object *argv )
+{
+	im_mask_object *mo = argv[0];
+	double sigma = *((double *) argv[1]);
+	double min_amp = *((double *) argv[2]);
+
+	if( !(mo->mask = 
+		im_gauss_imask_sep( mo->name, sigma, min_amp )) )
+		return( -1 );
+	
+	return( 0 );
+}
+
+/* Description of im_gauss_imask_sep.
+ */ 
+static im_function gauss_imask_sep_desc = {
+	"im_gauss_imask_sep", 		/* Name */
+	"generate separable gaussian INTMASK",
+	0,				/* Flags */
+	gauss_imask_sep_vec, 		/* Dispatch function */
+	IM_NUMBER( gauss_imask_args ), 	/* Size of arg list */
+	gauss_imask_args 		/* Arg list */
+};
+
 /* Args for im_gaussnoise.
  */
 static im_arg_desc gaussnoise_args[] = {
@@ -1347,6 +1374,7 @@ static im_function *convol_list[] = {
 	&fastcor_raw_desc,
 	&gauss_dmask_desc,
 	&gauss_imask_desc,
+	&gauss_imask_sep_desc,
 	&gaussnoise_desc,
         &grad_x_desc,
         &grad_y_desc,
