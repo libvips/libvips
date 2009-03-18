@@ -501,8 +501,6 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
                                        double                    absolute_x,
                                        double                    absolute_y )
 {
-  VipsInterpolateSnohalo1Class *snohalo1_class = 
-    VIPS_INTERPOLATE_SNOHALO1_GET_CLASS( interpolate );
   VipsInterpolateSnohalo1 *snohalo1 = 
     VIPS_INTERPOLATE_SNOHALO1( interpolate );
   /*

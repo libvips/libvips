@@ -1,18 +1,14 @@
 /* @(#) Build a LUT from a set of x/y points. Eg. if input is
  * @(#) 
- * @(#)   12  100
- * @(#)   14  110
- * @(#)   18  120
+ * @(#)   0   0
+ * @(#)   255 100
  * @(#) 
  * @(#) we generate
  * @(#) 
- * @(#)   100	(12)
- * @(#)   105
- * @(#)   110
- * @(#)   112.5
- * @(#)   115
- * @(#)   117.5
- * @(#)   120	(18)
+ * @(#)   0   0
+ * @(#)   1   0.4
+ * @(#)   .. etc. linear interpolation
+ * @(#)   255 100
  * @(#)
  * @(#) The x/y points don't need to be sorted: we do that. You can have 
  * @(#) several Ys ... each becomes a band in the output LUT. 
@@ -21,6 +17,8 @@
  * 	- from im_invertlut()
  * 9/10/06
  * 	- don't output x values
+ * 18/3/09
+ * 	- saner limit and rounding behaviour
  */
 
 /*
@@ -141,7 +139,7 @@ build_state( State *state, DOUBLEMASK *input )
 		if( v > xhigh )
 			xhigh = v;
 	}
-	state->lut_size = xhigh - xlow;
+	state->lut_size = xhigh - xlow + 1;
 
 	if( state->lut_size < 1 ) {
 		im_error( "im_buildlut", "%s", _( "x range too small" ) );
@@ -202,7 +200,7 @@ buildlut( State *state, IMAGE *output )
 			const int dx = x2 - x1;
 			const double dy = y2 - y1;
 			
-			for( i = 0; i < dx; i++, x += xsize - 1 )
+			for( i = 0; i <= dx; i++, x += xsize - 1 )
 				odata[x] = y1 + i * dy / dx;
 		}
 

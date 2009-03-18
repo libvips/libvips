@@ -13,18 +13,19 @@ im_buildlut( DOUBLEMASK *input, IMAGE *output )
 constructs a LUT, interpolating a set of x/y points. Interpolation is strictly
 piecewise linear. For example, if the input is:
 
-  12  100
-  14  110
-  18  120
+  0 	0
+  128	20
+  255 	100
 
 we generate
 
-  100   (12)
-  105
-  110
-  112.5
-  115
-  117.5 (17)
+  0	0
+  1	0.01
+  .. etc. linear interpolation
+  128	20
+  129	20.5
+  .. etc. linear interpolation
+  255	100
 
 the x axis (12 .. 17) is implied. The x/y points don't need to be
 sorted: we do that. You can have several Ys ... each becomes a band in the 
