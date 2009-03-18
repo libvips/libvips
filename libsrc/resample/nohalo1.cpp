@@ -436,13 +436,13 @@ nohalo1( const double           uno_two,
     FAST_MINMOD( deux_tre, troi_tre, deux_troi_tre,
                  deux_troi_minus_deux_deux_tre )
     +
-    piece_of_eight_times_dostre_twothr
-    +
     FAST_MINMOD( deux_thr, prem_thr, deux_prem_thr,
                  deux_prem_minus_deux_deux_thr )
     -
     FAST_MINMOD( deux_thr, troi_thr, deux_troi_thr,
-                 deux_troi_minus_deux_deux_thr );
+                 deux_troi_minus_deux_deux_thr )
+    +
+    piece_of_eight_times_dostre_twothr;
 
   /*
    * Return the first newly computed double density values:
