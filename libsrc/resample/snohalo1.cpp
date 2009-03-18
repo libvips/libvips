@@ -114,7 +114,7 @@ typedef struct _VipsInterpolateSnohalo1Class {
 } VipsInterpolateSnohalo1Class;
 
 static void inline
-snohalo1( const double           theta,
+snohalo1( const double           blur,
           const double           zer_two_in,
           const double           zer_thr_in,
           const double           uno_one_in,
@@ -144,8 +144,8 @@ snohalo1( const double           theta,
                 double* restrict r2,
                 double* restrict r3 )
 {
-  const double beta  = 1. + -.5 * theta;
-  const double gamma = .125 * theta;
+  const double beta  = 1. + -.5 * blur;
+  const double gamma = .125 * blur;
   
   /*
    * Computation of the blurred pixel values:
@@ -526,10 +526,10 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
    * position of the center of the convex hull of the 2x2 block of
    * closest pixels. Similarly for y. Range of values: [-.5,.5).
    */
-  const int iy                       = FAST_PSEUDO_FLOOR (absolute_y);
-  const double relative_y            = absolute_y_minus_half - iy;
-  const int ix                       = FAST_PSEUDO_FLOOR (absolute_x);
-  const double relative_x            = absolute_x_minus_half - ix;
+  const int iy            = FAST_PSEUDO_FLOOR (absolute_y);
+  const double relative_y = absolute_y_minus_half - iy;
+  const int ix            = FAST_PSEUDO_FLOOR (absolute_x);
+  const double relative_x = absolute_x_minus_half - ix;
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the
