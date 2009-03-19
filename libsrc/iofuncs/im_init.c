@@ -31,6 +31,8 @@
  * 	- added preclose and evalstart
  * 9/8/08
  * 	- lock global image list (thanks lee)
+ * 19/3/09
+ *	- add nodata 
  */
 
 /*
@@ -167,6 +169,8 @@ im_init( const char *filename )
 	im->evalstartfns = NULL;
 	im->preclosefns = NULL;
 	im->invalidatefns = NULL;
+
+	im->nodata = 0;
 
 	if( !(im->filename = im_strdup( NULL, filename )) ) {
 		im_close( im );

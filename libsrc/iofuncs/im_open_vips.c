@@ -3,6 +3,8 @@
  * 22/5/08
  * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c,
  * 	  im_openout.c
+ * 19/3/09
+ *	- block mmaps of nodata images
  */
 
 /*
@@ -914,9 +916,9 @@ im__read_header( IMAGE *image )
 	if( (length = im_file_length( image->fd )) == -1 ) 
 		return( -1 );
 	if( psize > length ) {
-		im_error( "im_openin", _( "unable to open \"%s\", %s" ),
+		im_warn( "im_openin", _( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
-		return( -1 );
+		image->nodata = 1;
 	}
 
 	/* Set demand style. Allow the most permissive sort.
@@ -960,7 +962,7 @@ im_openin( IMAGE *image )
 
 	size = (gint64) IM_IMAGE_SIZEOF_LINE( image ) * image->Ysize + 
 		image->sizeof_header;
-	if( size < im__mmap_limit ) {
+	if( size < im__mmap_limit && !image->nodata ) {
 		if( im_mapfile( image ) )
 			return( -1 );
 		image->data = image->baseaddr + image->sizeof_header;
@@ -981,7 +983,7 @@ im_openin( IMAGE *image )
 	return( 0 );
 }
 
-/* Open, then mmap() read/write. This is old and deprecated API, uuse
+/* Open, then mmap() read/write. This is old and deprecated API, use
  * im_vips_open() in preference.
  */
 int

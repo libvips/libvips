@@ -2,6 +2,8 @@
  * 
  * 30/10/06
  *	- from region.c
+ * 19/3/09
+ *	- block mmaps of nodata images
  */
 
 /*
@@ -216,6 +218,15 @@ im_window_set( im_window_t *window, int top, int height )
 	void *baseaddr;
 	gint64 start, end, pagestart;
 	size_t length, pagelength;
+
+	/* Make sure this image has data.
+	 */
+	if( window->im->nodata ) {
+		im_error( "im_window_set", 
+			_( "unable to read data for \"%s\", %s" ),
+			window->im->filename, _( "file has been truncated" ) );
+		return( -1 );
+	}
 
 	/* Calculate start and length for our window.
 	 */

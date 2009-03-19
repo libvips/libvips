@@ -359,6 +359,11 @@ typedef struct im__IMAGE {
 	GSList *evalstartfns; 	/* list of start eval callbacks */
 	GSList *preclosefns; 	/* list of pre-close callbacks */
 	GSList *invalidatefns; 	/* list of invalidate callbacks */
+
+	/* Set this to indicate a truncated file. We've been able to read the
+	 * header, but don't try mapping any of it or you'll crash.
+	 */
+	int nodata;
 } IMAGE;
 
 /* Only define if IM_ENABLE_DEPRECATED is set.
