@@ -44,6 +44,9 @@ WONTFIX for 7.18
 	http://en.wikipedia.org/wiki/Bilateral_filter
 	http://www.shellandslate.com/fastmedian.html
 
+  also a mail from Martin Breidt has links to several fast free C
+  implementations
+
 - try making vips_add(), an operator as a class
 
 - need to write interpolate docs ... manpages and tutorial
