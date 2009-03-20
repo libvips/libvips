@@ -210,7 +210,6 @@ im__munmap( void *start, size_t length )
 int
 im_mapfile( IMAGE *im )
 {
-	gint64 length;
 	struct stat st;
 	mode_t m;
 
@@ -219,15 +218,14 @@ im_mapfile( IMAGE *im )
 	/* Check the size of the file; if it is less than 64 bytes, then flag
 	 * an error.
 	 */
-	if( (length = im_file_length( im->fd )) == -1 ) 
-		return( -1 );
+	g_assert( im->file_length > 0 );
 	if( fstat( im->fd, &st ) == -1 ) {
 		im_error( "im_mapfile", 
 			"%s", _( "unable to get file status" ) );
 		return( -1 );
 	}
 	m = (mode_t) st.st_mode;
-	if( length < 64 ) {
+	if( im->file_length < 64 ) {
 		im_error( "im_mapfile", 
 			"%s", _( "file is less than 64 bytes" ) );
 		return( -1 ); 
@@ -238,13 +236,10 @@ im_mapfile( IMAGE *im )
 		return( -1 ); 
 	}
 
-	if( !(im->baseaddr = im__mmap( im->fd, 0, length, 0 )) )
+	if( !(im->baseaddr = im__mmap( im->fd, 0, im->file_length, 0 )) )
 		return( -1 );
 
-	/* im__mmap() will fail for >2GB, so this is safe even for large
-	 * files.
-	 */
-	im->length = length;
+	im->length = im->file_length;
 
 	return( 0 );
 }
@@ -254,7 +249,6 @@ im_mapfile( IMAGE *im )
 int
 im_mapfilerw( IMAGE *im )
 {
-	gint64 length;
 	struct stat st;
 	mode_t m;
 
@@ -263,27 +257,23 @@ im_mapfilerw( IMAGE *im )
 	/* Check the size of the file if it is less than 64 bytes return
 	 * make also sure that it is a regular file
 	 */
-	if( (length = im_file_length( im->fd )) == -1 ) 
-		return( -1 );
+	g_assert( im->file_length > 0 );
 	if( fstat( im->fd, &st ) == -1 ) {
 		im_error( "im_mapfilerw", 
 			"%s", _( "unable to get file status" ) );
 		return( -1 );
 	}
 	m = (mode_t) st.st_mode;
-	if( length < 64 || !S_ISREG( m ) ) {
+	if( im->file_length < 64 || !S_ISREG( m ) ) {
 		im_error( "im_mapfile", 
 			"%s", _( "unable to read data" ) ); 
 		return( -1 ); 
 	}
 
-	if( !(im->baseaddr = im__mmap( im->fd, 1, length, 0 )) )
+	if( !(im->baseaddr = im__mmap( im->fd, 1, im->file_length, 0 )) )
 		return( -1 );
 
-	/* im__mmap() will fail for >2GB, so this is safe even for large
-	 * files.
-	 */
-	im->length = length;
+	im->length = im->file_length;
 
 	return( 0 );
 }

@@ -83,7 +83,6 @@ IMAGE *
 im_binfile( const char *name, int xs, int ys, int bands, int offset )
 {
 	IMAGE *im;
-	gint64 length;
 	gint64 psize;
 
 	/* Check parameters.
@@ -112,14 +111,14 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 	/* Read the file length and check against what we think 
 	 * the size should be.
 	 */
-	if( (length = im_file_length( im->fd )) == -1 ) {
+	if( (im->file_length = im_file_length( im->fd )) == -1 ) {
 		im_close( im );
 		return( NULL );
 	}
 
 	/* Very common, so special message.
 	 */
-	if( psize > length ) {
+	if( psize > im->file_length ) {
 		im_error( "im_binfile", _( "unable to open %s: "
 			"file has been truncated" ), im->filename );
 		im_close( im );
@@ -129,7 +128,7 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 	/* Just wierd. Only print a warning for this, since we should
 	 * still be able to process it without coredumps.
 	 */
-	if( psize < length )
+	if( psize < im->file_length )
 		im_warn( "im_binfile", _( "%s is longer than expected" ),
 			im->filename );
 

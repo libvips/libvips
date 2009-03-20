@@ -360,10 +360,11 @@ typedef struct im__IMAGE {
 	GSList *preclosefns; 	/* list of pre-close callbacks */
 	GSList *invalidatefns; 	/* list of invalidate callbacks */
 
-	/* Set this to indicate a truncated file. We've been able to read the
-	 * header, but don't try reading outside the file size.
+	/* Record the file length here. We use this to stop ourselves mapping
+	 * things beyond the end of the file in the case that the file has
+	 * been truncated.
 	 */
-	int nodata;
+	size_t file_length;
 } IMAGE;
 
 /* Only define if IM_ENABLE_DEPRECATED is set.

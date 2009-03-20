@@ -325,14 +325,12 @@ read_chunk( int fd, gint64 offset, size_t length )
 int
 im__has_extension_block( IMAGE *im )
 {
-	gint64 length;
 	gint64 psize;
 
 	psize = im__image_pixel_length( im );
-	if( (length = im_file_length( im->fd )) == -1 ) 
-		return( 0 );
+	g_assert( im->file_length > 0 );
 
-	return( length - psize > 0 );
+	return( im->file_length - psize > 0 );
 }
 
 /* Read everything after the pixels into memory.
@@ -340,29 +338,27 @@ im__has_extension_block( IMAGE *im )
 void *
 im__read_extension_block( IMAGE *im, int *size )
 {
-	gint64 length;
 	gint64 psize;
 	void *buf;
 
 	psize = im__image_pixel_length( im );
-	if( (length = im_file_length( im->fd )) == -1 ) 
-		return( NULL );
-	if( length - psize > 10 * 1024 * 1024 ) {
+	g_assert( im->file_length > 0 );
+	if( im->file_length - psize > 10 * 1024 * 1024 ) {
 		im_error( "im_readhist",
 			"%s", _( "more than a 10 megabytes of XML? "
 			"sufferin' succotash!" ) );
 		return( NULL );
 	}
-	if( length - psize == 0 )
+	if( im->file_length - psize == 0 )
 		return( NULL );
-	if( !(buf = read_chunk( im->fd, psize, length - psize )) )
+	if( !(buf = read_chunk( im->fd, psize, im->file_length - psize )) )
 		return( NULL );
 	if( size )
-		*size = length - psize;
+		*size = im->file_length - psize;
 
 #ifdef DEBUG
 	printf( "im__read_extension_block: read %d bytes from %s\n",
-		(int) (length - psize), im->filename );
+		(int) (im->file_length - psize), im->filename );
 	printf( "data: \"%s\"\n", (char *) buf );
 #endif /*DEBUG*/
 
@@ -896,7 +892,6 @@ im__read_header( IMAGE *image )
 	 */
 	unsigned char header[IM_SIZEOF_HEADER];
 
-	gint64 length;
 	gint64 psize;
 
 	image->dtype = IM_OPENIN;
@@ -913,13 +908,11 @@ im__read_header( IMAGE *image )
 	/* Predict and check the file size.
 	 */
 	psize = im__image_pixel_length( image );
-	if( (length = im_file_length( image->fd )) == -1 ) 
+	if( (image->file_length = im_file_length( image->fd )) == -1 ) 
 		return( -1 );
-	if( psize > length ) {
+	if( psize > image->file_length ) 
 		im_warn( "im_openin", _( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
-		image->nodata = 1;
-	}
 
 	/* Set demand style. Allow the most permissive sort.
 	 */
@@ -960,9 +953,13 @@ im_openin( IMAGE *image )
 	if( im__read_header( image ) )
 		return( -1 );
 
+	/* Make sure we can map the whole thing without running over the VM
+	 * limit or running out of file.
+	 */
 	size = (gint64) IM_IMAGE_SIZEOF_LINE( image ) * image->Ysize + 
 		image->sizeof_header;
-	if( size < im__mmap_limit && !image->nodata ) {
+	if( size < im__mmap_limit && 
+		image->file_length >= size ) {
 		if( im_mapfile( image ) )
 			return( -1 );
 		image->data = image->baseaddr + image->sizeof_header;

@@ -219,15 +219,6 @@ im_window_set( im_window_t *window, int top, int height )
 	gint64 start, end, pagestart;
 	size_t length, pagelength;
 
-	/* Make sure this image has data.
-	 */
-	if( window->im->nodata ) {
-		im_error( "im_window_set", 
-			_( "unable to read data for \"%s\", %s" ),
-			window->im->filename, _( "file has been truncated" ) );
-		return( -1 );
-	}
-
 	/* Calculate start and length for our window.
 	 */
 	start = window->im->sizeof_header + 
@@ -237,6 +228,15 @@ im_window_set( im_window_t *window, int top, int height )
 	pagestart = start - start % pagesize;
 	end = start + length;
 	pagelength = end - pagestart;
+
+	/* Make sure we have enough file.
+	 */
+	if( end > window->im->file_length ) {
+		im_error( "im_window_set", 
+			_( "unable to read data for \"%s\", %s" ),
+			window->im->filename, _( "file has been truncated" ) );
+		return( -1 );
+	}
 
 	if( !(baseaddr = im__mmap( window->im->fd, 0, pagelength, pagestart )) )
 		return( -1 ); 

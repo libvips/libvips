@@ -32,7 +32,7 @@
  * 9/8/08
  * 	- lock global image list (thanks lee)
  * 19/3/09
- *	- add nodata 
+ *	- add file_length 
  */
 
 /*
@@ -170,7 +170,7 @@ im_init( const char *filename )
 	im->preclosefns = NULL;
 	im->invalidatefns = NULL;
 
-	im->nodata = 0;
+	im->file_length = 0;
 
 	if( !(im->filename = im_strdup( NULL, filename )) ) {
 		im_close( im );
