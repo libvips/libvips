@@ -361,7 +361,7 @@ typedef struct im__IMAGE {
 	GSList *invalidatefns; 	/* list of invalidate callbacks */
 
 	/* Set this to indicate a truncated file. We've been able to read the
-	 * header, but don't try mapping any of it or you'll crash.
+	 * header, but don't try reading outside the file size.
 	 */
 	int nodata;
 } IMAGE;
