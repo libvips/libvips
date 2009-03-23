@@ -1,9 +1,3 @@
-- try
-
-	 vips im_affinei_all ~/in.v ~/out.v bilinear 1.0928961748633881 0 0 1 0 0
-
-  where in.v is a 366 pixel wide image, and 1.092... is (400 / 366)
-
 
 - mask subscript in Pythion seems to be broken
 
@@ -19,6 +13,8 @@
 	<Swig Object of type 'int *' at 0x2443e08>
 	>>> mask(0,0)
 	<Swig Object of type 'int *' at 0x2444d30>
+
+  trying to do a gaussian blur in Python
 
 - radiance writer? the reader is OK, apparently
 
