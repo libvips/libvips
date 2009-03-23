@@ -1,3 +1,10 @@
+- try
+
+	 vips im_affinei_all ~/in.v ~/out.v bilinear 1.0928961748633881 0 0 1 0 0
+
+  where in.v is a 366 pixel wide image, and 1.092... is (400 / 366)
+
+
 - mask subscript in Pythion seems to be broken
 
 	>>> from vipsCC import *

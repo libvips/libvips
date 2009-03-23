@@ -6,6 +6,8 @@
 - saner im_buildlut() behaviour
 - added im_gauss_imask_sep()
 - allow open of truncated images, but block pixel access
+- revising rounding on im_affine*() coordinate transforms to make them more
+  stable
 
 3/3/09 started 7.17.2
 - im_magick2vips.c: allow funky bit depths, like 14 (thanks Mikkel)

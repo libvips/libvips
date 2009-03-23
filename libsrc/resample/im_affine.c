@@ -231,9 +231,9 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 	need.left += iarea->left;
 	need.top += iarea->top;
 
-	/* Add a border for interpolation. 
+	/* Add a border for interpolation. Plus one for rounding errors.
 	 */
-	im_rect_marginadjust( &need, half_window_size );
+	im_rect_marginadjust( &need, half_window_size + 1 );
 
 	/* Clip against the size of (2).
 	 */

@@ -181,7 +181,7 @@ typedef void (*transform_fn)( const Transformation *,
  */
 static void
 transform_rect( const Transformation *trn, transform_fn transform,
-	const Rect *in, 		/* In input space */
+	const Rect *in,		/* In input space */
 	Rect *out )		/* In output space */
 {
 	double x1, y1;		/* Map corners */
@@ -197,17 +197,18 @@ transform_rect( const Transformation *trn, transform_fn transform,
 	transform( trn, IM_RECT_RIGHT( in ), in->top, &x2, &y2 );
 	transform( trn, IM_RECT_RIGHT( in ), IM_RECT_BOTTOM( in ), &x4, &y4 );
 
-	/* Find bounding box for these four corners.
+	/* Find bounding box for these four corners. Round-to-nearest to try
+	 * to stop rounding errors growing images.
 	 */
 	left = IM_MIN( x1, IM_MIN( x2, IM_MIN( x3, x4 ) ) );
 	right = IM_MAX( x1, IM_MAX( x2, IM_MAX( x3, x4 ) ) );
 	top = IM_MIN( y1, IM_MIN( y2, IM_MIN( y3, y4 ) ) );
 	bottom = IM_MAX( y1, IM_MAX( y2, IM_MAX( y3, y4 ) ) );
 
-	out->left = floor( left );
-	out->top = floor( top );
-	out->width = ceil( right ) - out->left;
-	out->height = ceil( bottom ) - out->top;
+	out->left = IM_RINT( left );
+	out->top = IM_RINT( top );
+	out->width = IM_RINT( right - left );
+	out->height = IM_RINT( bottom - top );
 }
 
 /* Given an area in the input image, calculate the bounding box for those
