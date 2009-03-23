@@ -1,4 +1,7 @@
 /* Read Radiance (.hdr) files 
+ *
+ * 23/3/09
+ * 	- add radiance write
  */
 
 /*
@@ -30,12 +33,6 @@
 /*
 
 	Remaining issues:
-
-+ the whole image is unpacked to a 3-band float and so will (potentially) 
-  need a fair bit of memory
-
-  we could just read RGBE/XYZE and leave it at 4 bytes per pixel, then 
-  unpack on the fly with an operator along the lines of LabQ2Lab
 
 + it ignores some header fields, like VIEW and DATE
 
@@ -666,6 +663,103 @@ register FILE  *fp;
 	return(0);
 }
 
+static void
+fputformat(		/* put out a format value */
+	char  *s,
+	FILE  *fp
+)
+{
+	fputs(FMTSTR, fp);
+	fputs(s, fp);
+	putc('\n', fp);
+}
+
+char *
+resolu2str(buf, rp)		/* convert resolution struct to line */
+char  *buf;
+register RESOLU  *rp;
+{
+	if (rp->rt&YMAJOR)
+		sprintf(buf, "%cY %d %cX %d\n",
+				rp->rt&YDECR ? '-' : '+', rp->yr,
+				rp->rt&XDECR ? '-' : '+', rp->xr);
+	else
+		sprintf(buf, "%cX %d %cY %d\n",
+				rp->rt&XDECR ? '-' : '+', rp->xr,
+				rp->rt&YDECR ? '-' : '+', rp->yr);
+	return(buf);
+}
+
+static void
+fputresolu(ord, sl, ns, fp)		/* put out picture dimensions */
+int  ord;			/* scanline ordering */
+int  sl, ns;			/* scanline length and number */
+FILE  *fp;
+{
+	RESOLU  rs;
+
+	if ((rs.rt = ord) & YMAJOR) {
+		rs.xr = sl;
+		rs.yr = ns;
+	} else {
+		rs.xr = ns;
+		rs.yr = sl;
+	}
+	fputsresolu(&rs, fp);
+}
+
+static int
+fwritecolrs(scanline, len, fp)		/* write out a colr scanline */
+register COLR  *scanline;
+int  len;
+register FILE  *fp;
+{
+	register int  i, j, beg, cnt = 1;
+	int  c2;
+	
+	if ((len < MINELEN) | (len > MAXELEN))	/* OOBs, write out flat */
+		return(fwrite((char *)scanline,sizeof(COLR),len,fp) - len);
+					/* put magic header */
+	putc(2, fp);
+	putc(2, fp);
+	putc(len>>8, fp);
+	putc(len&255, fp);
+					/* put components seperately */
+	for (i = 0; i < 4; i++) {
+	    for (j = 0; j < len; j += cnt) {	/* find next run */
+		for (beg = j; beg < len; beg += cnt) {
+		    for (cnt = 1; cnt < 127 && beg+cnt < len &&
+			    scanline[beg+cnt][i] == scanline[beg][i]; cnt++)
+			;
+		    if (cnt >= MINRUN)
+			break;			/* long enough */
+		}
+		if (beg-j > 1 && beg-j < MINRUN) {
+		    c2 = j+1;
+		    while (scanline[c2++][i] == scanline[j][i])
+			if (c2 == beg) {	/* short run */
+			    putc(128+beg-j, fp);
+			    putc(scanline[j][i], fp);
+			    j = beg;
+			    break;
+			}
+		}
+		while (j < beg) {		/* write out non-run */
+		    if ((c2 = beg-j) > 128) c2 = 128;
+		    putc(c2, fp);
+		    while (c2--)
+			putc(scanline[j++][i], fp);
+		}
+		if (cnt >= MINRUN) {		/* write out run */
+		    putc(128+cnt, fp);
+		    putc(scanline[beg][i], fp);
+		} else
+		    cnt = 0;
+	    }
+	}
+	return(ferror(fp) ? -1 : 0);
+}
+
 
 
 
@@ -673,7 +767,7 @@ register FILE  *fp;
 /* End copy-paste from Radiance sources.
  */
 
-/* What we track during an radiance-file read.
+/* What we track during radiance file read.
  */
 typedef struct {
 	char *filename;
@@ -685,6 +779,7 @@ typedef struct {
 	COLOR colcor;
 	double aspect;
 	RGBPRIMS prims;
+	RESOLU rs;
 
 	COLR *buf;
 } Read;
@@ -700,7 +795,7 @@ israd( const char *filename )
 	printf( "israd: \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( !(fin = fopen( filename, "r" )) )
+        if( !(fin = im__file_open_read( filename )) ) 
 		return( 0 );
 	strcpy( format, PICFMT );
 	result = checkheader( fin, format, NULL );
@@ -746,7 +841,7 @@ read_new( const char *filename, IMAGE *out )
 	read->prims[3][1] = CIE_y_w;
 	read->buf = NULL;
 
-	if( !(read->fin = fopen( filename, "r" )) ) {
+	if( !(read->fin = im__file_open_read( filename )) ) {
 		read_destroy( read );
 		return( NULL );
 	}
@@ -798,17 +893,16 @@ static const char *colcor_name[3] = {
 static int
 rad2vips_get_header( Read *read, FILE *fin, IMAGE *out )
 {
-	RESOLU rs;
 	int i, j;
 
 	if( getheader( fin, (gethfunc *) rad2vips_process_line, read ) ||
-		!fgetsresolu( &rs, fin ) ) {
+		!fgetsresolu( &read->rs, fin ) ) {
 		im_error( "rad2vips", 
 			"%s", _( "error reading radiance header" ) );
 		return( -1 );
 	}
-	out->Xsize = scanlen( &rs );
-	out->Ysize = numscans( &rs );
+	out->Xsize = scanlen( &read->rs );
+	out->Ysize = numscans( &read->rs );
 
 	out->Bands = 4;
 	out->BandFmt = IM_BANDFMT_UCHAR;
@@ -917,6 +1011,180 @@ rad2vips( const char *filename, IMAGE *out )
 	return( 0 );
 }
 
+/* What we track during an radiance-file write.
+ */
+typedef struct {
+	IMAGE *in;
+	char *filename;
+
+	im_threadgroup_t *tg;
+	FILE *fout;
+	char format[256];
+	double expos;
+	COLOR colcor;
+	double aspect;
+	RGBPRIMS prims;
+	RESOLU rs;
+} Write;
+
+static void
+write_destroy( Write *write )
+{
+	IM_FREEF( im_threadgroup_free, write->tg );
+	IM_FREE( write->filename );
+	IM_FREEF( fclose, write->fout );
+
+	im_free( write );
+}
+
+static Write *
+write_new( IMAGE *in, const char *filename )
+{
+	Write *write;
+	int i;
+
+	if( !(write = IM_NEW( NULL, Write )) )
+		return( NULL );
+
+	write->in = in;
+	write->filename = im_strdup( NULL, filename );
+	write->tg = im_threadgroup_create( write->in );
+        write->fout = im__file_open_write( filename );
+	strcpy( write->format, COLRFMT );
+	write->expos = 1.0;
+	for( i = 0; i < 3; i++ )
+		write->colcor[i] = 1.0;
+	write->aspect = 1.0;
+	write->prims[0][0] = CIE_x_r;
+	write->prims[0][1] = CIE_y_r;
+	write->prims[1][0] = CIE_x_g;
+	write->prims[1][1] = CIE_y_g;
+	write->prims[2][0] = CIE_x_b;
+	write->prims[2][1] = CIE_y_b;
+	write->prims[3][0] = CIE_x_w;
+	write->prims[3][1] = CIE_y_w;
+
+        if( !write->filename || !write->tg || !write->fout ) {
+		write_destroy( write );
+		return( NULL );
+	}
+
+	return( write );
+}
+
+static int
+vips2rad_put_header( Write *write )
+{
+	char *str;
+	int i, j;
+	double d;
+
+	(void) im_meta_get_double( write->in, "rad-expos", &write->expos );
+	(void) im_meta_get_double( write->in, "rad-aspect", &write->aspect );
+
+	if( im_meta_get_string( write->in, "rad-format", &str ) )
+		im_strncpy( write->format, str, 256 );
+	if( write->in->Type == IM_TYPE_RGB )
+		strcpy( write->format, COLRFMT );
+	if( write->in->Type == IM_TYPE_XYZ )
+		strcpy( write->format, CIEFMT );
+
+	for( i = 0; i < 3; i++ )
+		if( im_meta_get_double( write->in, colcor_name[i], &d ) )
+			write->colcor[i] = d;
+	for( i = 0; i < 4; i++ )
+		for( j = 0; j < 2; j++ )
+			if( im_meta_get_double( write->in, 
+				prims_name[i][j], &d ) )
+				write->prims[i][j] = d;
+
+	/* Make y decreasing for consistency with vips.
+	 */
+	write->rs.rt = YDECR | YMAJOR;
+	write->rs.xr = write->in->Xsize;
+	write->rs.yr = write->in->Ysize;
+
+	fprintf( write->fout, "#?RADIANCE\n" );
+	fprintf( write->fout, "#generated by libvips\n" );
+
+	fputformat( write->format, write->fout );
+	fputexpos( write->expos, write->fout );
+	fputcolcor( write->colcor, write->fout );
+	fputaspect( write->aspect, write->fout );
+	fputprims( write->prims, write->fout );
+	fputresolu( &write->rs, write->fout );
+
+	return( 0 );
+}
+
+static int
+vips2rad_put_data_block( REGION *region, Rect *area, void *a, void *b )
+{
+	Write *write = (Write *) a;
+	int i;
+
+	for( i = 0; i < area->height; i++ ) {
+		PEL *p = (PEL *) IM_REGION_ADDR( region, 0, area->top + i );
+
+		if( fwritecolrs( p, area->width, write->fout ) ) 
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+vips2rad_put_data( Write *write )
+{
+	if( im_wbuffer( write->tg, vips2rad_put_data_block, write, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips2rad( IMAGE *in, const char *filename )
+{
+	Write *write;
+
+#ifdef DEBUG
+	printf( "vips2rad: writing \"%s\"\n", filename );
+#endif /*DEBUG*/
+
+	if( im_pincheck( in ) )
+		return( -1 );
+	if( in->Coding != IM_CODING_NONE ) {
+		im_error( "vip2rad", "%s", _( "uncoded only" ) );
+		return( -1 );
+	}
+	if( in->BandFmt == IM_BANDFMT_FLOAT &&
+		in->Bands == 3 ) { 
+		IMAGE *t;
+
+		if( !(t = im_open_local( in, "vips2rad", "p" )) ||
+			im_float2rad( in, t ) ||
+			vips2rad( t, filename ) )
+			return( -1 );
+
+		return( 0 );
+	}
+	if( in->BandFmt != IM_BANDFMT_UCHAR ||
+		in->Bands == 4 ) { 
+		im_error( "vip2rad", "%s", _( "4 band uchar only" ) );
+		return( -1 );
+	}
+	if( !(write = write_new( in, filename )) )
+		return( -1 );
+	if( vips2rad_put_header( write ) ||
+		vips2rad_put_data( write ) ) {
+		write_destroy( write );
+		return( -1 );
+	}
+	write_destroy( write );
+
+	return( 0 );
+}
+
 static const char *rad_suffs[] = { ".hdr", NULL };
 
 /* rad format adds no new members.
@@ -936,7 +1204,7 @@ vips_format_rad_class_init( VipsFormatRadClass *class )
 	format_class->is_a = israd;
 	format_class->header = rad2vips_header;
 	format_class->load = rad2vips;
-	format_class->save = NULL;
+	format_class->save = vips2rad;
 	format_class->suffs = rad_suffs;
 }
 

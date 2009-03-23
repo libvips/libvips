@@ -293,14 +293,8 @@ im_vips2png( IMAGE *in, const char *filename )
 
 	/* Make output.
 	 */
-#ifdef BINARY_OPEN
-        if( !(write->fp = fopen( name, "wb" )) ) {
-#else /*BINARY_OPEN*/
-        if( !(write->fp = fopen( name, "w" )) ) {
-#endif /*BINARY_OPEN*/
+        if( !(write->fp = im__file_open_write( name )) ) {
 		write_destroy( write );
-		im_error( "im_vips2png", _( "unable to open \"%s\"" ), name );
-
 		return( -1 );
 	}
 	png_init_io( write->pPng, write->fp );

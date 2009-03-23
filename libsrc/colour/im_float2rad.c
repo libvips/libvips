@@ -1,6 +1,6 @@
-/* Convert Radiance 32bit packed format to float.
- * 3/3/09
- * 	- from LabQ2Lab and Radiance sources
+/* Convert float to Radiance 32bit packed format
+ * 23/3/09
+ * 	- from im_rad2float and Radiance sources
  */
 
 /*
@@ -131,62 +131,77 @@ typedef COLORV  COLOR[3];	/* red, green, blue (or X,Y,Z) */
 #define  copycolor(c1,c2)	((c1)[0]=(c2)[0],(c1)[1]=(c2)[1],(c1)[2]=(c2)[2])
 
 static void
-colr_color(col, clr)		/* convert short to float color */
-register COLOR  col;
+setcolr(clr, r, g, b)           /* assign a short color value */
 register COLR  clr;
+double  r, g, b;
 {
-	double  f;
-	
-	if (clr[EXP] == 0)
-		col[RED] = col[GRN] = col[BLU] = 0.0;
-	else {
-		f = ldexp(1.0, (int)clr[EXP]-(COLXS+8));
-		col[RED] = (clr[RED] + 0.5)*f;
-		col[GRN] = (clr[GRN] + 0.5)*f;
-		col[BLU] = (clr[BLU] + 0.5)*f;
-	}
+        double  d;
+        int  e;
+
+        d = r > g ? r : g;
+        if (b > d) d = b;
+
+        if (d <= 1e-32) {
+                clr[RED] = clr[GRN] = clr[BLU] = 0;
+                clr[EXP] = 0;
+                return;
+        }
+
+        d = frexp(d, &e) * 255.9999 / d;
+
+        if (r > 0.0)
+                clr[RED] = r * d;
+        else
+                clr[RED] = 0;
+        if (g > 0.0)
+                clr[GRN] = g * d;
+        else
+                clr[GRN] = 0;
+        if (b > 0.0)
+                clr[BLU] = b * d;
+        else
+                clr[BLU] = 0;
+
+        clr[EXP] = e + COLXS;
 }
+
+
+
 
 /* End copy-paste from Radiance sources.
  */
 
 
 static void
-rad2float( COLR *inp, COLOR *outbuf, int n )        
+float2rad( COLOR *inp, COLR *outbuf, int n )        
 {
-	colr_color(outbuf[0], inp[0]);
-	while (--n > 0) {
-		outbuf++; inp++;
-		if (inp[0][RED] == inp[-1][RED] &&
-			    inp[0][GRN] == inp[-1][GRN] &&
-			    inp[0][BLU] == inp[-1][BLU] &&
-			    inp[0][EXP] == inp[-1][EXP])
-			copycolor(outbuf[0], outbuf[-1]);
-		else
-			colr_color(outbuf[0], inp[0]);
+	while (n-- > 0) {
+		setcolr( outbuf, inp[RED], inp[GRN], inp[BLU] );
+		inp++;
+		outbuf++;
 	}
 }
 
 int
-im_rad2float( IMAGE *in, IMAGE *out )
+im_float2rad( IMAGE *in, IMAGE *out )
 {
-	/* Must be 4-band uchar.
+	/* Must be 3-band float.
 	 */
-	if( in->Bands != 4 || in->BandFmt != IM_BANDFMT_UCHAR ||
+	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT ||
 		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_rad2float", "%s",
-			_( "not a 4-band uchar uncoded image" ) );
+		im_error( "im_float2rad", "%s",
+			_( "not a 3-band float uncoded image" ) );
 		return( -1 );
 	}
 
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	out->Bands = 3;
-	out->BandFmt = IM_BANDFMT_FLOAT;
+	out->Bands = 4;
+	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	if( im_wrapone( in, out, 
-		(im_wrapone_fn) rad2float, NULL, NULL ) )
+		(im_wrapone_fn) float2rad, NULL, NULL ) )
 		return( -1 );
 
 	return( 0 );

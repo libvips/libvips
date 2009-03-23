@@ -395,16 +395,8 @@ ppm2vips_header( const char *filename, IMAGE *out )
 	int bits;
 	int ascii;
 
-#ifdef BINARY_OPEN
-	if( !(fp = fopen( filename, "rb" )) ) {
-#else /*BINARY_OPEN*/
-	if( !(fp = fopen( filename, "r" )) ) {
-#endif /*BINARY_OPEN*/
-                im_error( "im_ppm2vips_header",
-			_( "unable to open \"%s\"" ), filename );
+	if( !(fp = im__file_open_read( filename )) ) 
                 return( -1 );
-        }
-
 	if( read_header( fp, out, &bits, &ascii ) ) {
 		fclose( fp );
 		return( -1 );
@@ -425,15 +417,8 @@ isppmmmap( const char *filename )
 	int bits;
 	int ascii;
 
-#ifdef BINARY_OPEN
-	if( !(fp = fopen( filename, "rb" )) ) {
-#else /*BINARY_OPEN*/
-	if( !(fp = fopen( filename, "r" )) ) {
-#endif /*BINARY_OPEN*/
-                im_error( "im_ppm2vips_header",
-			_( "unable to open \"%s\"" ), filename );
+	if( !(fp = im__file_open_read( filename )) ) 
                 return( -1 );
-        }
 
 	if( !(im = im_open( "temp", "p" )) ) {
 		fclose( fp );
@@ -455,21 +440,12 @@ im_ppm2vips( const char *filename, IMAGE *out )
 {
         FILE *fp;
 
-#ifdef BINARY_OPEN
-	if( !(fp = fopen( filename, "rb" )) ) {
-#else /*BINARY_OPEN*/
-	if( !(fp = fopen( filename, "r" )) ) {
-#endif /*BINARY_OPEN*/
-                im_error( "im_ppm2vips", 
-			_( "unable to open \"%s\"" ), filename );
+	if( !(fp = im__file_open_read( filename )) ) 
                 return( -1 );
-        }
-
 	if( parse_ppm( fp, filename, out ) ) {
 		fclose( fp );
 		return( -1 );
 	}
-
 	fclose( fp );
 
 	return( 0 );

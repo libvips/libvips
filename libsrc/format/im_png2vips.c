@@ -135,13 +135,8 @@ read_new( const char *name, IMAGE *out )
 	read->row_pointer = NULL;
 	read->data = NULL;
 
-#ifdef BINARY_OPEN
-        if( !(read->fp = fopen( name, "rb" )) ) {
-#else /*BINARY_OPEN*/
-        if( !(read->fp = fopen( name, "r" )) ) {
-#endif /*BINARY_OPEN*/
+        if( !(read->fp = im__file_open_read( name )) ) {
 		read_destroy( read );
-		im_error( "im_png2vips", _( "unable to open \"%s\"" ), name );
 		return( NULL );
 	}
 

@@ -1,4 +1,8 @@
-- radiance writer? the reader is OK, apparently
+- rad2floatt/float2rad/radiance read/write all need docs
+
+- same for matio?
+
+
 
 - doc strings would be nice, read the SWIG notes on this
 

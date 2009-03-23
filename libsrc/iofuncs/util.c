@@ -885,6 +885,44 @@ im__file_read( FILE *fp, const char *name, unsigned int *length_out )
         return( str );
 }
 
+FILE *
+im__file_open_read( const char *filename )
+{
+	FILE *fp;
+
+#ifdef BINARY_OPEN
+        if( !(fp = fopen( filename, "rb" )) ) {
+#else /*BINARY_OPEN*/
+        if( !(fp = fopen( filename, "r" )) ) {
+#endif /*BINARY_OPEN*/
+		im_error( "im__file_open_read", 
+			_( "unable to open file \"%s\" for reading" ), 
+			filename );
+		return( NULL );
+	}
+
+	return( fp );
+}
+
+FILE *
+im__file_open_write( const char *filename )
+{
+	FILE *fp;
+
+#ifdef BINARY_OPEN
+        if( !(fp = fopen( filename, "wb" )) ) {
+#else /*BINARY_OPEN*/
+        if( !(fp = fopen( filename, "w" )) ) {
+#endif /*BINARY_OPEN*/
+		im_error( "im__file_open_write", 
+			_( "unable to open file \"%s\" for writing" ), 
+			filename );
+		return( NULL );
+	}
+
+	return( fp );
+}
+
 /* Load from a filename as a string.
  */
 char *
@@ -893,15 +931,8 @@ im__file_read_name( const char *name, unsigned int *length_out )
 	FILE *fp;
 	char *buffer;
 
-#ifdef BINARY_OPEN
-        if( !(fp = fopen( name, "rb" )) ) {
-#else /*BINARY_OPEN*/
-        if( !(fp = fopen( name, "r" )) ) {
-#endif /*BINARY_OPEN*/
-		im_error( "im__file_read_name", 
-			_( "unable to open file \"%s\"" ), name );
+        if( !(fp = im__file_open_read( name )) ) 
 		return( NULL );
-	}
 	if( !(buffer = im__file_read( fp, name, length_out )) ) {
 		fclose( fp );
 		return( NULL );

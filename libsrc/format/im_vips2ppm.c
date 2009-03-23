@@ -83,15 +83,7 @@ write_new( IMAGE *in, const char *name )
 	write->in = in;
 	write->tg = im_threadgroup_create( write->in );
 	write->name = im_strdup( NULL, name );
-
-#ifdef BINARY_OPEN
-	if( !(write->fp = fopen( name, "wb" )) ) {
-#else /*BINARY_OPEN*/
-	if( !(write->fp = fopen( name, "w" )) ) {
-#endif /*BINARY_OPEN*/
-                im_error( "im_vips2ppm", 
-			_( "unable to open \"%s\" for output" ), name );
-        }
+        write->fp = im__file_open_write( name );
 
 	if( !write->tg || !write->name || !write->fp ) {
 		write_destroy( write );

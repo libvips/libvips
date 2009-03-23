@@ -20,6 +20,7 @@ libcolour_la_SOURCES = \
 	im_UCS2LCh.c \
 	im_XYZ2Lab.c \
 	im_XYZ2Yxy.c \
+	im_float2rad.c \
 	im_Yxy2XYZ.c \
 	im_XYZ2disp.c \
 	im_dE00_fromLab.c \

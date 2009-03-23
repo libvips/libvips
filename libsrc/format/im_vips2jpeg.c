@@ -683,15 +683,8 @@ im_vips2jpeg( IMAGE *in, const char *filename )
 
 	/* Make output.
 	 */
-#ifdef BINARY_OPEN
-        if( !(write->eman.fp = fopen( name, "wb" )) ) {
-#else /*BINARY_OPEN*/
-        if( !(write->eman.fp = fopen( name, "w" )) ) {
-#endif /*BINARY_OPEN*/
+        if( !(write->eman.fp = im__file_open_write( name )) ) {
 		write_destroy( write );
-                im_error( "im_vips2jpeg", 
-			_( "unable to open \"%s\"" ), name );
-
                 return( -1 );
         }
         jpeg_stdio_dest( &write->cinfo, write->eman.fp );

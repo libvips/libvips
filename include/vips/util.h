@@ -345,6 +345,8 @@ int im_local_array( IMAGE *im, void **out, int n,
 gint64 im_file_length( int fd );
 int im__write( int fd, const void *buf, size_t count );
 
+FILE *im__file_open_read( const char *filename );
+FILE *im__file_open_write( const char *filename );
 char *im__file_read( FILE *fp, const char *name, unsigned int *length_out );
 char *im__file_read_name( const char *name, unsigned int *length_out );
 int im__file_write( void *data, size_t size, size_t nmemb, FILE *stream );

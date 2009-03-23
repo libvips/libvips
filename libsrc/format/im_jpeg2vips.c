@@ -652,17 +652,8 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 
 	/* Make input.
 	 */
-#ifdef BINARY_OPEN
-        if( !(fp = fopen( filename, "rb" )) ) {
-#else /*BINARY_OPEN*/
-        if( !(fp = fopen( filename, "r" )) ) {
-#endif /*BINARY_OPEN*/
-		jpeg_destroy_decompress( &cinfo );
-                im_error( "im_jpeg2vips", 
-			_( "unable to open \"%s\"" ), filename );
-
+        if( !(fp = im__file_open_read( filename )) ) 
                 return( -1 );
-        }
 	eman.fp = fp;
         jpeg_stdio_src( &cinfo, fp );
 
