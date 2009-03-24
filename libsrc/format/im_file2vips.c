@@ -142,6 +142,7 @@ im__image_pixel_length( IMAGE *im )
 
 	switch( im->Coding ) {
 	case IM_CODING_LABQ:
+	case IM_CODING_RAD:
 	case IM_CODING_NONE:
 		psize = (gint64) IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
 		break;
@@ -752,6 +753,8 @@ im_file2vips( const char *filename, IMAGE *im )
 	/* Not native ... but maybe does not need swapping? 
 	 */
 	if( im->Coding == IM_CODING_LABQ )
+		return( im );
+	if( im->Coding == IM_CODING_RAD )
 		return( im );
 	if( im->Coding != IM_CODING_NONE ) {
 		im_close( im );

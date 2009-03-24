@@ -23,6 +23,8 @@
  * 	  zoom on large images
  * 3/8/02 JC
  *	- fall back to im_copy() for x & y factors == 1
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -324,7 +326,9 @@ im_zoom( IMAGE *in, IMAGE *out, int xfac, int yfac )
 
 	/* Check arguments.
 	 */
-	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
+	if( in->Coding != IM_CODING_NONE && 
+		in->Coding != IM_CODING_LABQ &&
+		in->Coding != IM_CODING_RAD ) {
 		im_error( "im_zoom", "%s", _( "unknown coding type" ) );
 		return( -1 );
 	}

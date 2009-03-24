@@ -16,6 +16,8 @@
  *	- rewritten
  * 14/4/04 
  *	- sets Xoffset / Yoffset
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -124,8 +126,11 @@ im_fliphor( IMAGE *in, IMAGE *out )
 	 */
         if( im_piocheck( in, out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_fliphor", "%s", _( "in must be uncoded" ) );
+	if( in->Coding != IM_CODING_NONE && 
+		in->Coding != IM_CODING_LABQ &&
+		in->Coding != IM_CODING_RAD ) {
+		im_error( "im_fliphor", "%s", 
+			_( "Coding must be NONE, LABQ or RAD" ) );
 		return( -1 );
 	}
 

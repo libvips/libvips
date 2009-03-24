@@ -54,6 +54,8 @@
  * 	  of JPEG write code)
  * 15/2/08
  * 	- added im__saveable_t ... so we can have CMYK JPEG write
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -130,12 +132,18 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
 	 */
         if( im_piocheck( in, out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_copy", "%s", _( "in must be uncoded" ) );
+	if( in->Coding != IM_CODING_NONE && 
+		in->Coding != IM_CODING_LABQ &&
+		in->Coding != IM_CODING_RAD ) {
+		im_error( "im_copy", "%s", 
+			_( "in must be NONE, LABQ or RAD" ) );
 		return( -1 );
 	}
-	if( Coding != IM_CODING_NONE && Coding != IM_CODING_LABQ ) {
-		im_error( "im_copy", "%s", _( "Coding must be NONE or LABQ" ) );
+	if( Coding != IM_CODING_NONE && 
+		Coding != IM_CODING_LABQ &&
+		Coding != IM_CODING_RAD ) {
+		im_error( "im_copy", "%s", 
+			_( "Coding must be NONE, LABQ or RAD" ) );
 		return( -1 );
 	}
 	if( BandFmt < 0 || BandFmt > IM_BANDFMT_DPCOMPLEX ) {
@@ -359,7 +367,7 @@ im__convert_saveable( IMAGE *in, im__saveable_t saveable )
 	if( !(out = im_open( "convert-for-save", "p" )) )
 		return( NULL );
 
-	/* If this is a IM_CODING_LABQ, we can go straight to RGB.
+	/* If this is an IM_CODING_LABQ, we can go straight to RGB.
 	 */
 	if( in->Coding == IM_CODING_LABQ ) {
 		IMAGE *t = im_open_local( out, "conv:1", "p" );
@@ -372,6 +380,21 @@ im__convert_saveable( IMAGE *in, im__saveable_t saveable )
 				im_col_displays( 7 ) );
 
 		if( !t || im_LabQ2disp_table( in, t, table ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t;
+	}
+
+	/* If this is an IM_CODING_RAD, we go to float RGB or XYZ. We should
+	 * probably un-gamma-correct the RGB :(
+	 */
+	if( in->Coding == IM_CODING_RAD ) {
+		IMAGE *t;
+
+		if( !(t = im_open_local( out, "conv:1", "p" )) || 
+			im_rad2float( in, t ) ) {
 			im_close( out );
 			return( NULL );
 		}

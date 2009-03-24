@@ -24,6 +24,8 @@
  *	- speed-up ... replace memcpy() with a loop for small pixels
  * 14/4/04
  *	- sets Xoffset / Yoffset
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -137,9 +139,11 @@ im_rot270( IMAGE *in, IMAGE *out )
 	 */
 	if( im_piocheck( in, out ) ) 
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_rot270", 
-			"%s", _( "uncoded or IM_CODING_LABQ only" ) );
+	if( in->Coding != IM_CODING_NONE && 
+		in->Coding != IM_CODING_LABQ &&
+		in->Coding != IM_CODING_RAD ) {
+		im_error( "im_rot270", "%s", 
+			_( "Coding should be NONE, LABQ or RAD" ) ); 
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 

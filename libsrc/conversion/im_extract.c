@@ -39,6 +39,8 @@
  *	- nope, -ve the origin
  * 17/7/04
  *	- added im_extract_bands(), remove many bands from image
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -175,7 +177,8 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
 		return( -1 );
 	}
         if( in->Coding != IM_CODING_NONE ) {
-		if( in->Coding != IM_CODING_LABQ ) {
+		if( in->Coding != IM_CODING_LABQ &&
+			in->Coding != IM_CODING_RAD ) {
 			im_error( "im_extract_areabands", 
 				"%s", _( "unknown coding" ) );
 			return( -1 );
@@ -184,8 +187,8 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
 		/* We only do area extract for coding == labq.
 		 */
 		if( band != 0 || nbands != in->Bands ) {
-			im_error( "im_extract_areabands", 
-				"%s", _( "can only extract areas from LABQ" ) );
+			im_error( "im_extract_areabands", "%s", 
+				_( "only extract areas from LABQ and RAD" ) );
 			return( -1 );
 		}
         }

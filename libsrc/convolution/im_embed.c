@@ -29,6 +29,8 @@
  * 	- degenerate to im_copy() for 0/0/w/h
  * 1/8/07
  * 	- more general ... x and y can be negative
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -435,7 +437,9 @@ im_embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 {
 	if( im_piocheck( in, out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
+	if( in->Coding != IM_CODING_NONE && 
+		in->Coding != IM_CODING_LABQ &&
+		in->Coding != IM_CODING_RAD ) {
 		im_error( "im_embed", "%s", _( "unknown image coding type" ) );
 		return( -1 );
 	}

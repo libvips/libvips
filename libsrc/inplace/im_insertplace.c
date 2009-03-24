@@ -19,6 +19,8 @@
  *	- smarter pixel size calculations
  * 5/12/06
  * 	- im_invalidate() after paint
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -80,13 +82,15 @@ im_insertplace( IMAGE *big, IMAGE *small, int x, int y )
 	 */
         if( big->BandFmt != small->BandFmt || big->Bands != small->Bands ||
                 big->Coding != small->Coding ) {
-                im_error( "im_insertplace", 
-			"%s", _( "inputs differ in format" ) );
+                im_error( "im_insertplace", "%s", 
+			_( "inputs differ in format" ) );
                 return( -1 );
         }
-        if( big->Coding != IM_CODING_NONE && big->Coding != IM_CODING_LABQ ) {
+        if( big->Coding != IM_CODING_NONE && 
+		big->Coding != IM_CODING_LABQ &&
+		big->Coding != IM_CODING_RAD ) {
                 im_error( "im_insertplace", "%s", 
-			_( "input should be uncoded or IM_CODING_LABQ" ) );
+			_( "Coding should be NONE, LABQ or RAD" ) ); 
                 return( -1 );
         }
 

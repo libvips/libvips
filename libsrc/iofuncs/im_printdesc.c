@@ -118,7 +118,8 @@ static const char *im_Coding[] = {
 	"IM_CODING_NONE", 
 	"COLQUANT8", 
 	"IM_CODING_LABQ", 
-	"IM_CODING_LABQ_COMPRESSED"
+	"IM_CODING_LABQ_COMPRESSED",
+	"IM_CODING_RAD"
 };
 
 static const char *im_Compression[] = {

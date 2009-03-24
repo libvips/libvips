@@ -38,6 +38,8 @@
  *	- sets Xoffset / Yoffset
  * 3/7/06
  * 	- add sanity range checks
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -234,9 +236,11 @@ im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 		im_error( "im_insert", "%s", _( "inputs differ in format" ) ); 
 		return( -1 ); 
 	}
-	if( main->Coding != IM_CODING_NONE && main->Coding != IM_CODING_LABQ ) {
+	if( main->Coding != IM_CODING_NONE && 
+		main->Coding != IM_CODING_RAD &&
+		main->Coding != IM_CODING_LABQ ) {
 		im_error( "im_insert", "%s", 
-			_( "input should be uncoded or IM_CODING_LABQ" ) ); 
+			_( "Coding should be NONE, LABQ or RAD" ) ); 
 		return( -1 ); 
 	}
 	if( x > RANGE || x < -RANGE || y > RANGE || y < -RANGE ) {
@@ -324,9 +328,11 @@ im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 			"%s", _( "inputs differ in format" ) ); 
 		return( -1 ); 
 	}
-	if( main->Coding != IM_CODING_NONE && main->Coding != IM_CODING_LABQ ) {
+	if( main->Coding != IM_CODING_NONE && 
+		main->Coding != IM_CODING_LABQ &&
+		main->Coding != IM_CODING_RAD ) {
 		im_error( "im_insert_noexpand", "%s", 
-			_( "input should be uncoded or IM_CODING_LABQ" ) ); 
+			_( "Coding should be NONE, LABQ or RAD" ) ); 
 		return( -1 ); 
 	}
 	if( x > RANGE || x < -RANGE || y > RANGE || y < -RANGE ) {

@@ -892,7 +892,7 @@ rad2vips_get_header( Read *read, FILE *fin, IMAGE *out )
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
-	out->Coding = IM_CODING_NONE;
+	out->Coding = IM_CODING_RAD;
 	out->Xres = 1.0;
 	out->Yres = read->aspect;
 	out->Xoffset = 0.0;
@@ -1136,22 +1136,23 @@ vips2rad( IMAGE *in, const char *filename )
 	printf( "vips2rad: writing \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( im_pincheck( in ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "vip2rad", "%s", _( "uncoded only" ) );
-		return( -1 );
-	}
 	if( in->BandFmt == IM_BANDFMT_FLOAT &&
-		in->Bands == 3 ) { 
+		in->Bands == 3 && 
+		in->Coding == IM_CODING_NONE ) { 
 		IMAGE *t;
 
 		if( !(t = im_open_local( in, "vips2rad", "p" )) ||
-			im_float2rad( in, t ) ||
-			vips2rad( t, filename ) )
+			im_float2rad( in, t ) )
 			return( -1 );
 
-		return( 0 );
+		in = t;
+	}
+
+	if( im_pincheck( in ) )
+		return( -1 );
+	if( in->Coding != IM_CODING_RAD ) {
+		im_error( "vip2rad", "%s", _( "Radiance coding only" ) );
+		return( -1 );
 	}
 	if( in->BandFmt != IM_BANDFMT_UCHAR || in->Bands != 4 ) { 
 		im_error( "vip2rad", "%s", _( "4 band uchar only" ) );

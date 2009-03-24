@@ -173,9 +173,9 @@ im_rad2float( IMAGE *in, IMAGE *out )
 	/* Must be 4-band uchar.
 	 */
 	if( in->Bands != 4 || in->BandFmt != IM_BANDFMT_UCHAR ||
-		in->Coding != IM_CODING_NONE ) {
+		in->Coding != IM_CODING_RAD ) {
 		im_error( "im_rad2float", "%s",
-			_( "not a 4-band uchar uncoded image" ) );
+			_( "4-band uchar Radiance-coded images only" ) );
 		return( -1 );
 	}
 
@@ -184,6 +184,7 @@ im_rad2float( IMAGE *in, IMAGE *out )
 	out->Bands = 3;
 	out->BandFmt = IM_BANDFMT_FLOAT;
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
+	out->Coding = IM_CODING_NONE;
 
 	if( im_wrapone( in, out, 
 		(im_wrapone_fn) rad2float, NULL, NULL ) )

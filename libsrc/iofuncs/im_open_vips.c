@@ -145,6 +145,7 @@ im__image_pixel_length( IMAGE *im )
 
 	switch( im->Coding ) {
 	case IM_CODING_LABQ:
+	case IM_CODING_RAD:
 	case IM_CODING_NONE:
 		psize = (gint64) IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
 		break;
@@ -1043,6 +1044,7 @@ im_open_vips( const char *filename )
 		 */
 		switch( im->Coding ) {
 		case IM_CODING_LABQ:
+		case IM_CODING_RAD:
 			break;
 
 		case IM_CODING_NONE:

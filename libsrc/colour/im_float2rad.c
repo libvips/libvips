@@ -188,7 +188,7 @@ im_float2rad( IMAGE *in, IMAGE *out )
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT ||
 		in->Coding != IM_CODING_NONE ) {
 		im_error( "im_float2rad", "%s",
-			_( "not a 3-band float uncoded image" ) );
+			_( "3-band float uncoded only" ) );
 		return( -1 );
 	}
 
@@ -197,6 +197,7 @@ im_float2rad( IMAGE *in, IMAGE *out )
 	out->Bands = 4;
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
+	out->Coding = IM_CODING_RAD;
 
 	if( im_wrapone( in, out, 
 		(im_wrapone_fn) float2rad, NULL, NULL ) )

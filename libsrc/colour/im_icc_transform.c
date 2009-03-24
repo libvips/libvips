@@ -668,6 +668,17 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 		in = t1;
 	}
 
+	/* Do IM_CODING_RAD.
+	 */
+	if( in->Coding == IM_CODING_RAD ) {
+		IMAGE *t1 = im_open_local( out, "im_icc_export:1", "p" );
+
+		if( !t1 || im_rad2float( in, t1 ) )
+			return( -1 );
+
+		in = t1;
+	}
+
 	/* Check input image.
 	 */
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
@@ -784,6 +795,17 @@ im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename )
 		IMAGE *t1 = im_open_local( out, "im_icc_ac2rc-1", "p" );
 
 		if( !t1 || im_LabQ2Lab( in, t1 ) )
+			return( -1 );
+
+		in = t1;
+	}
+
+	/* Do IM_CODING_RAD.
+	 */
+	if( in->Coding == IM_CODING_RAD ) {
+		IMAGE *t1 = im_open_local( out, "im_icc_export:1", "p" );
+
+		if( !t1 || im_rad2float( in, t1 ) )
 			return( -1 );
 
 		in = t1;

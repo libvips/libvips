@@ -18,6 +18,8 @@
  *	- ahem, memcpy() line size calc was wrong, occasional segvs
  * 14/4/04 
  *	- sets Xoffset / Yoffset
+ * 24/3/09
+ * 	- added IM_CODING_RAD support
  */
 
 /*
@@ -115,8 +117,11 @@ im_flipver( IMAGE *in, IMAGE *out )
 	 */
         if( im_piocheck( in, out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_errormsg( "im_flipver: in must be uncoded" );
+	if( in->Coding != IM_CODING_NONE && 
+		in->Coding != IM_CODING_LABQ &&
+		in->Coding != IM_CODING_RAD ) {
+		im_error( "im_flipver", "%s", 
+			_( "Coding must be NONE, LABQ or RAD" ) );
 		return( -1 );
 	}
 
