@@ -119,6 +119,8 @@ static const char *im_Coding[] = {
 	"COLQUANT8", 
 	"IM_CODING_LABQ", 
 	"IM_CODING_LABQ_COMPRESSED",
+	"RGB_COMPRESSED",
+	"LUM_COMPRESSED",
 	"IM_CODING_RAD"
 };
 

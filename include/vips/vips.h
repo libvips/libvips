@@ -466,7 +466,7 @@ typedef struct {
 
 #define IM_CODING_NONE			(0)			
 #define IM_CODING_LABQ			(2)				
-#define IM_CODING_RAD			(4)				
+#define IM_CODING_RAD			(6)				
 
 #define IM_IMAGE_SIZEOF_ELEMENT(I)	((I)->Bbits >> 3)
 #define IM_IMAGE_SIZEOF_PEL(I) 	\

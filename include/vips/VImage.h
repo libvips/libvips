@@ -176,7 +176,8 @@ public:
 		LABPACK               = 2,
 		LABPACK_COMPRESSED    = 3,
 		RGB_COMPRESSED        = 4,
-		LUM_COMPRESSED        = 5
+		LUM_COMPRESSED        = 5,
+		RAD        	      = 6
 	};
 
 	// Compression type
