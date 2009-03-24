@@ -148,12 +148,6 @@ Modified:
  */
 int im__progress = 0;
 
-void
-im_progress_set( int progress )
-{
-	im__progress = progress;
-}
-
 /* Delayed save: if we write to TIFF or to JPEG format, actually do the write
  * to a "p" and on preclose do im_vips2tiff() or whatever. Track save
  * parameters here.
@@ -425,7 +419,7 @@ im_open( const char *filename, const char *mode )
 
 	/* Attach progress feedback, if required.
 	 */
-	if( im__progress ) {
+	if( im__progress || g_getenv( "IM_PROGRESS" ) ) {
 		Progress *progress = IM_NEW( im, Progress );
 
 		progress->im = im;

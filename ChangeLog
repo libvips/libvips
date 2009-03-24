@@ -12,6 +12,7 @@
 - added im_float2rad()
 - added IM_CODING_RAD, support where it makes sense (extract, flip, rotate,
   etc.)
+- IM_PROGRESS env var
 
 3/3/09 started 7.17.2
 - im_magick2vips.c: allow funky bit depths, like 14 (thanks Mikkel)
