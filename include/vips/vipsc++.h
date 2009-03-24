@@ -1,5 +1,8 @@
 // this file automatically generated from
-// VIPS library 7.17.2-Tue Mar  3 14:42:34 GMT 2009
+// VIPS library 7.17.3-Thu Mar 19 13:54:43 GMT 2009
+VDMask estpar( VImage, int, int, int, double& ) throw( VError );
+VImage transform( VDMask, int, int ) throw( VError );
+VImage transform_search( VImage, double, int, int, int, int, VDMask&, double& ) throw( VError );
 VImage abs() throw( VError );
 VImage acos() throw( VError );
 VImage add( VImage ) throw( VError );
@@ -92,6 +95,7 @@ VImage dE_fromXYZ( VImage ) throw( VError );
 VImage dE_fromdisp( VImage, VDisplay ) throw( VError );
 VImage disp2Lab( VDisplay ) throw( VError );
 VImage disp2XYZ( VDisplay ) throw( VError );
+VImage float2rad() throw( VError );
 VImage icc_ac2rc( char* ) throw( VError );
 VImage icc_export( char*, int ) throw( VError );
 VImage icc_export_depth( int, char*, int ) throw( VError );

@@ -1,5 +1,68 @@
 // this file automatically generated from
-// VIPS library 7.17.2-Tue Mar  3 14:42:34 GMT 2009
+// VIPS library 7.17.3-Thu Mar 19 13:54:43 GMT 2009
+// im_estpar: estimate transform parms
+VDMask VImage::estpar( VImage dst, int order, int ipol, int wrap, double& avg_displ ) throw( VError )
+{
+	VImage src = *this;
+	VDMask params;
+
+	Vargv _vec( "im_estpar" );
+
+	_vec.data(0) = src.image();
+	_vec.data(1) = dst.image();
+	((im_mask_object*) _vec.data(2))->name = (char*)"noname";
+	*((int*) _vec.data(3)) = order;
+	*((int*) _vec.data(4)) = ipol;
+	*((int*) _vec.data(5)) = wrap;
+	_vec.call();
+	params.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(2))->mask );
+	avg_displ = *((double*)_vec.data(6));
+
+	return( params );
+}
+
+// im_transform: transform an image
+VImage VImage::transform( VDMask params, int ipol, int wrap ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_transform" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_mask_object*) _vec.data(2))->mask = params.mask().dptr;
+	*((int*) _vec.data(3)) = ipol;
+	*((int*) _vec.data(4)) = wrap;
+	_vec.call();
+
+	return( out );
+}
+
+// im_transform_search: search for a transform
+VImage VImage::transform_search( VImage dst, double error, int iterations, int order, int ipol, int wrap, VDMask& out_par, double& act_error ) throw( VError )
+{
+	VImage src = *this;
+	VImage out;
+
+	Vargv _vec( "im_transform_search" );
+
+	_vec.data(0) = src.image();
+	_vec.data(1) = dst.image();
+	_vec.data(2) = out.image();
+	*((double*) _vec.data(3)) = error;
+	*((int*) _vec.data(4)) = iterations;
+	*((int*) _vec.data(5)) = order;
+	*((int*) _vec.data(6)) = ipol;
+	*((int*) _vec.data(7)) = wrap;
+	((im_mask_object*) _vec.data(8))->name = (char*)"noname";
+	_vec.call();
+	out_par.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(8))->mask );
+	act_error = *((double*)_vec.data(9));
+
+	return( out );
+}
+
 // im_abs: absolute value
 VImage VImage::abs() throw( VError )
 {
@@ -1594,6 +1657,22 @@ VImage VImage::disp2XYZ( VDisplay disp ) throw( VError )
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
 	_vec.data(2) = disp.disp();
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_float2rad: convert float to Radiance packed
+VImage VImage::float2rad() throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_float2rad" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
 	_vec.call();
 	out._ref->addref( in._ref );
 

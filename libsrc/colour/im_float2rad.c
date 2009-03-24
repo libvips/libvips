@@ -131,9 +131,7 @@ typedef COLORV  COLOR[3];	/* red, green, blue (or X,Y,Z) */
 #define  copycolor(c1,c2)	((c1)[0]=(c2)[0],(c1)[1]=(c2)[1],(c1)[2]=(c2)[2])
 
 static void
-setcolr(clr, r, g, b)           /* assign a short color value */
-register COLR  clr;
-double  r, g, b;
+setcolr( COLR clr, double r, double g, double b )           /* assign a short color value */
 {
         double  d;
         int  e;
@@ -176,7 +174,7 @@ static void
 float2rad( COLOR *inp, COLR *outbuf, int n )        
 {
 	while (n-- > 0) {
-		setcolr( outbuf, inp[RED], inp[GRN], inp[BLU] );
+		setcolr( outbuf[0], inp[0][RED], inp[0][GRN], inp[0][BLU] );
 		inp++;
 		outbuf++;
 	}
