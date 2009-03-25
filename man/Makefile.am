@@ -20,6 +20,8 @@ man_MANS = \
 	im_abs.3 \
 	im_acostra.3 \
 	im_add.3 \
+	im_rad2float.3 \
+	im_float2rad.3 \
 	im_add_preclose_callback.3 \
 	im_add_close_callback.3 \
 	im_add_evalstart_callback.3 \
