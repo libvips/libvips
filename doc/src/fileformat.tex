@@ -94,6 +94,7 @@ Bytes  & Represent 					 & VIPS name \\
 \hline
 \ct{IM\_CODING\_NONE}  & \ct{NOCODING} & 0 & VIPS computation format \\
 \ct{IM\_CODING\_LABQ}  & \ct{LABQ} & 2 & LABQ storage format \\
+\ct{IM\_CODING\_RAD}  & \ct{RAD} & 6 & Radiance storage format \\
 \hline
 \end{tabular}
 \end{center}
@@ -146,7 +147,7 @@ automatically byte-swap for you if necessary, but this can be slow.
 \subsection{Storage formats}
 
 All storage formats have other values for the \ct{Coding} field. This
-release supports only \ct{IM\_CODING\_LABQ} format. 
+release supports \ct{IM\_CODING\_LABQ} and \ct{IM\_CODING\_RAD}.
 
 \ct{IM\_CODING\_LABQ} stores $L^{*}$, $a^{*}$ and $b^{*}$ for each pixel,
 with 10 bits for $L^{*}$ and 11 bits for each of $a^{*}$ and $b^{*}$. These
@@ -155,6 +156,18 @@ value in the first 3 bytes, and the left-over bits packed into the final
 byte as 2:3:3.
 
 This format is a little awkward to process. Some VIPS functions can work
-directly on \ct{IM\_CODING\_LABQ} images (\ct{im\_extract()}, for example),
-but most will require you to unpack the image to one of the computation
-formats (for example with \ct{im\_LabQ2Lab()}) first.
+directly on \ct{IM\_CODING\_LABQ} images (\ct{im\_extract\_area()}, for
+example), but most will require you to unpack the image to one of the
+computation formats (for example with \ct{im\_LabQ2Lab()}) first.
+
+\ct{IM\_CODING\_RAD} stores $RGB$ or $XYZ$ float images as 8 bytes of mantissa
+and then 8 bytes of exponent, shared between the three channels. This coding
+style is used by the Radiance family of programs (and the HDR format) commonly
+used for HDR imaging. This style of image is generated when you load an HDR
+image.
+
+This format is a little awkward to process. Some VIPS functions can work
+directly on \ct{IM\_CODING\_RAD} images (\ct{im\_extract\_area()}, for
+example), but most will require you to unpack the image to one of the
+computation formats with \ct{im\_rad2float()} first.
+

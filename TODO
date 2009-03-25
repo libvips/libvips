@@ -1,4 +1,8 @@
-- rad2floatt/float2rad/radiance read/write all need docs
+- radiance read/write needs docs
+
+  maybe have an im_format(3) page with all the built-in formats?
+
+  hard until we document vips_object :(
 
 - same for matio?
 
