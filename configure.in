@@ -4,8 +4,8 @@ AM_CONFIG_HEADER(config.h)
 
 # user-visible library versioning
 IM_MAJOR_VERSION=7
-IM_MINOR_VERSION=17
-IM_MICRO_VERSION=3
+IM_MINOR_VERSION=18
+IM_MICRO_VERSION=0
 IM_VERSION=$IM_MAJOR_VERSION.$IM_MINOR_VERSION.$IM_MICRO_VERSION
 IM_VERSION_STRING=$IM_VERSION-`date`
 
@@ -483,9 +483,9 @@ AC_SUBST(PACKAGES_USED)
 #	vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.pc
 # in AC_OUTPUT, but that seems to break for some combinations of sh/m4
 AC_OUTPUT([
-	vips-7.17.pc
-	vipsCC-7.17.pc
-	vips-7.17.spec
+	vips-7.18.pc
+	vipsCC-7.18.pc
+	vips-7.18.spec
 	Makefile 
 	include/vips/version.h 
 	include/Makefile 

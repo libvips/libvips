@@ -1,27 +1,15 @@
-- radiance read/write needs docs
+- read through docs for 7.18 stuff
 
-  maybe have an im_format(3) page with all the built-in formats?
+- update function list in refs
 
-  hard until we document vips_object :(
-
-- same for matio?
-
-- doc strings would be nice, read the SWIG notes on this
-
-
-
-
-
-
-
+WONTFIX for 7.18
+================
 
 - move im_shrink & friends to resample?
 
   match_linear, match_linear_search?
 
   what about im_stretch3.c, im_resize_linear
-
-
 
 - im_render should use a hash for tile lookup ... or+shift x/y together
 
@@ -33,8 +21,6 @@
 
   problem with waiting for paint to finish in render_kill?
 
-
-
 - check mosaic1, global_balance, similarity etc. use of im__affine
   
   how can we move them to im_affinei ?
@@ -43,12 +29,15 @@
 
 - update the Portfiles on the mac and on the website from the macports ones
 
+- radiance read/write needs docs
 
+  maybe have an im_format(3) page with all the built-in formats?
 
+  hard until we document vips_object :(
 
+- same for matio?
 
-WONTFIX for 7.18
-================
+- doc strings would be nice, read the SWIG notes on this
 
 - bilateral filtering, see:
 

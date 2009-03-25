@@ -1,3 +1,6 @@
+25/3/09 started 7.18.0
+- revised version numbers
+
 6/3/09 started 7.17.3
 - revised nohalo
 - remove fading stuff from im_render() -- cleaner and simpler
