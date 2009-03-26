@@ -1,4 +1,15 @@
+- VipsFormat.3 man page should list all formats, since eg. radiance does not
+  have a separate im_rad2vips page
+
+  also matlab read
+
+- need man pages for im_affinei, im_affinei_all
+
+  page for VipsInterpolate.3? along the lines of VipsFormat
+
 - read through docs for 7.18 stuff
+
+  :set spell
 
 - update function list in refs
 

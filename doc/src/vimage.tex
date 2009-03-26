@@ -25,7 +25,7 @@ The named image file is opened read-only. This is the default mode.
 
 \item[\texttt{"w"}]
 A \verb+VImage+ is created which, when written to, will write pixels to disc
-in the specified file.
+in the specified file. Any existing file of this name is deleted.
 
 \item[\texttt{"t"}]
 As the \verb'"w"' mode, but pixels written to the \verb+VImage+ will be saved
@@ -38,8 +38,8 @@ see~\pref{sec:compute}.
 
 \item[\texttt{"rw"}]
 As the \verb'"r"' mode, but the image is mapped into your address space
-read-write. This mode is only provided for the use of paintbox-style
-applications, which need to directly modify an image. See \pref{sec:inplace}.
+read-write. This mode is useful for paintbox-style
+applications which need to directly modify an image. See \pref{sec:inplace}.
 
 \end{description}
 
@@ -68,7 +68,7 @@ from another image processing system), and the second makes a \verb+VImage+
 from an \verb+IMAGE+. 
 
 In both these two cases, the VIPS C++ API does not assume responsibility
-for the resouces: it's up to you to make sure the buffer is freed.
+for the resources: it's up to you to make sure the buffer is freed.
 
 The Python interface adds the usual \verb+frombuffer+ and
 \verb+fromstring+ methods. 
@@ -126,7 +126,7 @@ Writing to the descriptor \verb+out+ will cause a TIFF image to be written to
 disc with deflate compression.
 
 See the manual page for \verb+im_open(3)+ for details of all the file formats
-and conversions available. See the man page for \verb+im_format(3)+ for a
+and conversions available. See the man page for \verb+VipsFormat(3)+ for a
 lower-level API which lets you control more of the detail of reading and
 writing data and is more suitable for large files.
 
@@ -232,7 +232,7 @@ See also \verb+frombuffer+ and \verb+fromstring+ above.
 
 \subsection{Assignment}
 
-\verb+VImage+ defines copy and assignment, with reference-counted
+\verb+VImage+ defines copy and assignment, with reference-counted,
 pointer-style semantics.  For example, if you write:
 
 \begin{verbatim}

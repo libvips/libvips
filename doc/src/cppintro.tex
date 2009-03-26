@@ -7,7 +7,8 @@ far easier to use: almost all creation, destruction and error handling issues
 are handled for you automatically.
 
 The Python interface is a very simple wrapping of this C++ API generated
-automatically with SWIG. The two interfaces are identical, except for language
+automatically with SWIG. It adds a few utility methods noted below, but
+otherwise the two interfaces are identical other than language
 syntax.
 
 \subsection{If you've used the C API}
@@ -19,7 +20,7 @@ A typical build line for the C++ program might be:
 
 \begin{verbatim}
 g++ invert.cc \
-  `pkg-config vipsCC-7.14 \
+  `pkg-config vipsCC-7.18 \
     --cflags --libs` 
 \end{verbatim}
 
@@ -50,10 +51,9 @@ later. If you run this program with a bad input file, for example, you get the
 following output:
 
 \begin{verbatim}
-example% invert jim fred
-invert: VIPS error: im_open: 
-  "jim" is not a supported 
-  format
+$ invert jim fred
+invert: VIPS error: format_for_file: 
+  file "jim" not found
 \end{verbatim}
 
 \end{itemize}
@@ -69,7 +69,7 @@ main (int argc, char **argv)
   if (argc != 3)
     {
       std::cerr << "usage: " << argv[0] << " infile outfile\n";
-      exit (1);
+      return (1);
     }
 
   try

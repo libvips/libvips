@@ -6,8 +6,8 @@ but the VIPS format is not widely used and you may have problems reading
 your images into other packages.
 
 If you intend to keep an image, it's much better to save it as TIFF, 
-JPEG, PNG or PBM/PGM/PPM. VIPS can transparently read and write all these
-formats.
+JPEG, PNG, PBM/PGM/PPM or HDR. VIPS can transparently read and write all
+these formats.
 
 \subsection{VIPS file header}
 \label{sec:header}
@@ -26,7 +26,7 @@ The \ct{Type} field, the \ct{Xres}/\ct{Yres} fields, and the
 (if you convert an image to \cielab{} colour space with \ct{im\_XYZ2Lab()},
 for example, VIPS will set \ct{Type} to be \ct{IM\_TYPE\_LAB}), but never
 uses these values itself in determining the action of an image processing
-function. These fields are to help the user, and to help application
+function. These fields are to help the user and to help application
 programs built on VIPS which are trying to present image data to the user
 in a meaningful way.
 
@@ -141,8 +141,8 @@ complex number.
 
 All values are stored in the host-machine's native number representation (that
 is, either most-significant first, as in SPARC and 680x0 machines, or
-least-significant first, for Intel and DEC machines). The VIPS library will 
-automatically byte-swap for you if necessary, but this can be slow.
+least-significant first, for Intel and DEC machines). If necessary, the VIPS 
+library will automatically byte-swap for you during read.
 
 \subsection{Storage formats}
 
