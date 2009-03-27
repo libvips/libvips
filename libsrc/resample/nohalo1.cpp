@@ -422,27 +422,24 @@ nohalo1( const double           uno_two,
    * Compute the "diagonal" (at the boundary between thrr input
    * pixel areas) double resolution pixel value:
    */
-  const double piece_of_eight_times_dostre_twothr =
-    four_times_dos_twothr
-    +
-    four_times_dostre_two
-    +
-    2. * deux_thr_plus_deux_dos;
-
   const double eight_times_dostre_twothr =
     FAST_MINMOD( deux_tre, prem_tre, deux_prem_tre,
                  deux_prem_minus_deux_deux_tre )
+    +
+    2. * deux_thr_plus_deux_dos
     -
     FAST_MINMOD( deux_tre, troi_tre, deux_troi_tre,
                  deux_troi_minus_deux_deux_tre )
     +
+    four_times_dos_twothr
+    +
     FAST_MINMOD( deux_thr, prem_thr, deux_prem_thr,
                  deux_prem_minus_deux_deux_thr )
+    +
+    four_times_dostre_two
     -
     FAST_MINMOD( deux_thr, troi_thr, deux_troi_thr,
-                 deux_troi_minus_deux_deux_thr )
-    +
-    piece_of_eight_times_dostre_twothr;
+                 deux_troi_minus_deux_deux_thr );
 
   /*
    * Return the first newly computed double density values:
@@ -588,10 +585,10 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
    * position of the center of the convex hull of the 2x2 block of
    * closest pixels. Similarly for y. Range of values: [-.5,.5).
    */
-  const int iy                       = FAST_PSEUDO_FLOOR (absolute_y);
-  const double relative_y            = absolute_y_minus_half - iy;
-  const int ix                       = FAST_PSEUDO_FLOOR (absolute_x);
-  const double relative_x            = absolute_x_minus_half - ix;
+  const int iy = FAST_PSEUDO_FLOOR (absolute_y);
+  const double relative_y = absolute_y_minus_half - iy;
+  const int ix = FAST_PSEUDO_FLOOR (absolute_x);
+  const double relative_x = absolute_x_minus_half - ix;
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the

@@ -305,11 +305,11 @@ snohalo1( const double           blur,
   const double four_times_dos_twothr =
     FAST_MINMOD( deux_dos, prem_dos, deux_prem_dos,
                  deux_prem_minus_deux_deux_dos )
+    +
+    2. * dos_two_plus_dos_thr
     -
     FAST_MINMOD( deux_dos, troi_dos, deux_troi_dos,
-                 deux_troi_minus_deux_deux_dos )
-    +
-    2. * dos_two_plus_dos_thr;
+                 deux_troi_minus_deux_deux_dos );
 
   /*
    * Compute the needed "down" double resolution pixel value:
@@ -317,37 +317,34 @@ snohalo1( const double           blur,
   const double four_times_dostre_two =
     FAST_MINMOD( deux_two, prem_two, deux_prem_two,
                  deux_prem_minus_deux_deux_two )
+    +
+    2. * dos_two_plus_tre_two
     -
     FAST_MINMOD( deux_two, troi_two, deux_troi_two,
-                 deux_troi_minus_deux_deux_two )
-    +
-    2. * dos_two_plus_tre_two;
+                 deux_troi_minus_deux_deux_two );
 
   /*
    * Compute the "diagonal" (at the boundary between thrr input
    * pixel areas) double resolution pixel value:
    */
-  const double piece_of_eight_times_dostre_twothr =
-    four_times_dos_twothr
-    +
-    four_times_dostre_two
-    +
-    2. * deux_thr_plus_deux_dos;
-
   const double eight_times_dostre_twothr =
     FAST_MINMOD( deux_tre, prem_tre, deux_prem_tre,
                  deux_prem_minus_deux_deux_tre )
+    +
+    2. * deux_thr_plus_deux_dos
     -
     FAST_MINMOD( deux_tre, troi_tre, deux_troi_tre,
                  deux_troi_minus_deux_deux_tre )
     +
+    four_times_dos_twothr
+    +
     FAST_MINMOD( deux_thr, prem_thr, deux_prem_thr,
                  deux_prem_minus_deux_deux_thr )
+    +
+    four_times_dostre_two
     -
     FAST_MINMOD( deux_thr, troi_thr, deux_troi_thr,
-                 deux_troi_minus_deux_deux_thr )
-    +
-    piece_of_eight_times_dostre_twothr;
+                 deux_troi_minus_deux_deux_thr );
 
   /*
    * Return the first newly computed double density values:
@@ -524,9 +521,9 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
    * position of the center of the convex hull of the 2x2 block of
    * closest pixels. Similarly for y. Range of values: [-.5,.5).
    */
-  const int iy            = FAST_PSEUDO_FLOOR (absolute_y);
+  const int iy = FAST_PSEUDO_FLOOR (absolute_y);
   const double relative_y = absolute_y_minus_half - iy;
-  const int ix            = FAST_PSEUDO_FLOOR (absolute_x);
+  const int ix = FAST_PSEUDO_FLOOR (absolute_x);
   const double relative_x = absolute_x_minus_half - ix;
 
   /*
@@ -544,12 +541,12 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
 
 #define CALL( T, inter ) \
   snohalo1_ ## inter<T>( out, \
-                        p, \
-                        bands, \
-                        lskip, \
-    			snohalo1->blur, \
-                        relative_x, \
-                        relative_y );
+                         p, \
+                         bands, \
+                         lskip, \
+                         snohalo1->blur, \
+                         relative_x, \
+                         relative_y );
 
   switch( in->im->BandFmt ) {
   case IM_BANDFMT_UCHAR:
