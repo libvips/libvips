@@ -1,17 +1,21 @@
+- im_rank.3 has a note about a black border, argh
+
+  any other references to this?
+
 - VipsFormat.3 man page should list all formats, since eg. radiance does not
   have a separate im_rad2vips page
 
   also matlab read
 
+- wrap im_gauss_mask_line or whatever it's called in C++/Python?
+
 - need man pages for im_affinei, im_affinei_all
 
   page for VipsInterpolate.3? along the lines of VipsFormat
 
-- read through docs for 7.18 stuff
+- Mention vips --list-classes or whatever in VipsFormat man page
 
-  :set spell
-
-- update function list in refs
+  also in VipsInterpolate
 
 WONTFIX for 7.18
 ================

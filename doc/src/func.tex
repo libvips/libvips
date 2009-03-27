@@ -1,5 +1,8 @@
 \section{Function dispatch and plug-ins}
 
+(This chapter is on the verge of being deprecated. We have started building a
+replacement based on \verb+GObject+, see \pref{sec:object}.)
+
 As image processing libraries increase in size it becomes progressively more
 difficult to build applications which present the operations the library
 offers to the user. Every time a new operation is added, every user interface
@@ -13,7 +16,7 @@ simply interrogate the database and present what they find to the user.
 The operation database is extensible. You can define new operations, and even
 new types, and add them to VIPS. These new operations will then automatically
 appear in all VIPS user interfaces with no extra programming effort. Plugins
-can extend the database at runtime: when VIPS starts, it loads all the plugin
+can extend the database at runtime: when VIPS starts, it loads all the plugins
 in the VIPS library area.
 
 \subsection{Simple plugin example}
@@ -84,50 +87,66 @@ macros available are listed in table~\ref{tab:type}.
 Macro				& Meaning	& 
 	\texttt{im\_object} has type \\
 \hline
-\texttt{IM\_INPUT\_IMAGEVEC} 	& Vector of input images	& 
-	\texttt{IMAGE **} \\
-\texttt{IM\_INPUT\_IMAGE} 	& Input image			& 
-	\texttt{IMAGE *} \\
-\texttt{IM\_OUTPUT\_IMAGE} 	& Output image			& 
-	\texttt{IMAGE *} \\
-\texttt{IM\_RW\_IMAGE} 		& Read-write image		& 
-	\texttt{IMAGE *} \\
+\texttt{IM\_INPUT\_INT} 	& Input int			& 
+	\texttt{int *} \\
+\texttt{IM\_INPUT\_INTVEC} 	& Input vector of int		& 
+	\texttt{im\_intvec\_object *} \\
+\texttt{IM\_INPUT\_IMASK}	& Input int array		& 
+	\texttt{im\_mask\_object *} \\
+
+\texttt{IM\_OUTPUT\_INT} 	& Output int			& 
+	\texttt{int *} \\
+\texttt{IM\_INPUT\_INTVEC} 	& Output vector of int		& 
+	\texttt{im\_intvec\_object *} \\
+\texttt{IM\_OUTPUT\_IMASK}	& Output int array to file	& 
+	\texttt{im\_mask\_object *} \\
+
 \texttt{IM\_INPUT\_DOUBLE} 	& Input double			& 
 	\texttt{double *} \\
 \texttt{IM\_INPUT\_DOUBLEVEC} 	& Input vector of double	& 
 	\texttt{im\_realvec\_object *} \\
-\texttt{IM\_INPUT\_INTVEC} 	& Input vector of int		& 
-	\texttt{im\_intvec\_object *} \\
-\texttt{IM\_OUTPUT\_DOUBLE}	& Output double			& 
-	\texttt{double *} \\
-\texttt{IM\_INPUT\_INT} 	& Input int			& 
-	\texttt{int *} \\
-\texttt{IM\_OUTPUT\_INT} 	& Output int			& 
-	\texttt{int *} \\
-\texttt{IM\_INPUT\_STRING}	& Input string			& 
-	\texttt{char *} \\
-\texttt{IM\_OUTPUT\_STRING}	& Output string			& 
-	\texttt{char *} \\
-\texttt{IM\_INPUT\_DISPLAY}	& Input display			& 
-	\texttt{im\_col\_display *} \\
-\texttt{IM\_OUTPUT\_DISPLAY}	& Output display		& 
-	\texttt{im\_col\_display *} \\
-\texttt{IM\_OUTPUT\_COMPLEX} 	& Output complex		& 
-	\texttt{double *} \\
 \texttt{IM\_INPUT\_DMASK} 	& Input double array		& 
 	\texttt{im\_mask\_object *} \\
+
+\texttt{IM\_OUTPUT\_DOUBLE}	& Output double			& 
+	\texttt{double *} \\
+\texttt{IM\_OUTPUT\_DOUBLEVEC} 	& Output vector of double	& 
+	\texttt{im\_realvec\_object *} \\
 \texttt{IM\_OUTPUT\_DMASK}	& Output double array to file	& 
 	\texttt{im\_mask\_object *} \\
 \texttt{IM\_OUTPUT\_DMASK\_STATS}& Output double array to screen & 
 	\\
-\texttt{IM\_INPUT\_IMASK}	& Input int array		& 
-	\texttt{im\_mask\_object *} \\
-\texttt{IM\_OUTPUT\_IMASK}	& Output int array to file	& 
-	\texttt{im\_mask\_object *} \\
+
+\texttt{IM\_OUTPUT\_COMPLEX} 	& Output complex		& 
+	\texttt{double *} \\
+
+\texttt{IM\_INPUT\_STRING}	& Input string			& 
+	\texttt{char *} \\
+\texttt{IM\_OUTPUT\_STRING}	& Output string			& 
+	\texttt{char *} \\
+
+\texttt{IM\_INPUT\_IMAGE} 	& Input image			& 
+	\texttt{IMAGE *} \\
+\texttt{IM\_INPUT\_IMAGEVEC} 	& Vector of input images	& 
+	\texttt{IMAGE **} \\
+\texttt{IM\_OUTPUT\_IMAGE} 	& Output image			& 
+	\texttt{IMAGE *} \\
+\texttt{IM\_RW\_IMAGE} 		& Read-write image		& 
+	\texttt{IMAGE *} \\
+
+\texttt{IM\_INPUT\_DISPLAY}	& Input display			& 
+	\texttt{im\_col\_display *} \\
+\texttt{IM\_OUTPUT\_DISPLAY}	& Output display		& 
+	\texttt{im\_col\_display *} \\
+
+
 \texttt{IM\_INPUT\_GVALUE}	& Input GValue			& 
 	\texttt{GValue *} \\
 \texttt{IM\_OUTPUT\_GVALUE}	& Output GValue 		& 
 	\texttt{GValue *} \\
+
+\texttt{IM\_INPUT\_INTERPOLATE}	& Input VipsInterpolate		& 
+	\texttt{VipsInterpolate *} \\
 \hline
 \end{tabular}
 \end{center}

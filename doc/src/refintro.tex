@@ -43,10 +43,10 @@ user-interfaces, or you can run it from the UNIX command line with the
 \vips{} program. For example:
 
 \begin{verbatim}
-john% vips im_vips2tiff cam.v t1.tif none
-john% vips im_tiff2vips t1.tif t2.v.v 0
-john% vips im_equal cam.v t2.v t3.v
-john% vips im_min t3.v
+$ vips im_vips2tiff cam.v t1.tif none
+$ vips im_tiff2vips t1.tif t2.v.v 0
+$ vips im_equal cam.v t2.v t3.v
+$ vips im_min t3.v
 255   
 \end{verbatim}
 
@@ -54,10 +54,10 @@ VIPS may have been set up at your site with a set of links which call the
 vips program for you. You may also be able to type:
 
 \begin{verbatim}
-john% im_vips2tiff cam.v t1.tif none
-john% im_tiff2vips t1.tif t2.v.v 0
-john% im_equal cam.v t2.v t3.v
-john% im_min t3.v
+$ im_vips2tiff cam.v t1.tif none
+$ im_tiff2vips t1.tif t2.v.v 0
+$ im_equal cam.v t2.v t3.v
+$ im_min t3.v
 \end{verbatim}
 
 There are a few VIPS programs which you cannot run with \vips{}, either

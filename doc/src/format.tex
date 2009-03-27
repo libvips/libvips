@@ -1,11 +1,11 @@
 \section{Image formats}
 \label{sec:format}
 
-VIPS has a simple system for adding support for new image file formats. 
-You can ask VIPS to find a format to load a file with
-or to select a image file writer based on a filename. Convenience functions
-copy a file to an \verb+IMAGE+, or an \verb+IMAGE+ to a file. New formats may
-be added to VIPS by simply defining a new subclass of \verb+VipsFormat+.
+VIPS has a simple system for adding support for new image file formats.
+You can ask VIPS to find a format to load a file with or to select a image
+file writer based on a filename. Convenience functions copy a file to an
+\verb+IMAGE+, or an \verb+IMAGE+ to a file. New formats may be added to
+VIPS by simply defining a new subclass of \verb+VipsFormat+. 
 
 This is a parallel API to \verb+im_open()+, see \pref{sec:open}. The
 format system is useful for images which are large or slow to open,
@@ -41,16 +41,6 @@ indicating how VIPS should deal with the file. The only flag in the current
 version is one indicating that the file can be opened lazily
 
 \end{itemize}
-
-A switch to the \verb+vips+ command-line program is handy for listing the
-supported formats. Try:
-
-\begin{verbatim}
-vips --list classes
-\end{verbatim}
-
-\noindent
-And look for subclasses of \verb+VipsFormat+.
 
 \subsection{The format class}
 

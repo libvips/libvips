@@ -37,8 +37,8 @@ Provided you use PIO and as long as the underlying OS supports large files
 (that is, files larger than 2GB), VIPS operations can work on files larger
 than can be addressed with 32 bits on a plain 32-bit machine. VIPS operations
 only see 32 bit addresses; the VIPS I/O system transparently maps these to
-64 bit operations for I/O. Large file support is included on most unixes after
-about 1998.
+64 bit operations for I/O. Large file support is included on most machines
+after about 1998.
 
 \item[Abstraction]
 VIPS operations see only arrays of numbers in native format. Details of
@@ -98,12 +98,3 @@ and \verb+im_wrapmany()+ operations. These take a simple buffer-processing
 operation supplied by you and wrap it up as a full-blown PIO operation. 
 See~\pref{sec:wrapone}.
 
-\subsection{What's new in this version}
-
-The VIPS API is mostly unaltered since 7.3, so there are not many major
-changes. I've just reworked the text, reformatted, fixed a few typos,
-and changed the dates.
-
-VIPS has acquired some crud over the years. We are planning to clean all
-this stuff up at some stage (and break backwards-compatibility). Maybe for
-VIPS 8 :-(

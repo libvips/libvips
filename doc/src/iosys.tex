@@ -1,13 +1,12 @@
 \section{Core C API}
 
-VIPS is
-built on top of several other libraries, two of which, glib and gobject, are 
-exposed at various points in the C API.
+VIPS is built on top of several other libraries, two of which, glib and
+gobject, are exposed at various points in the C API.
 
 You can read up on glib at the GTK+ website:
 
 \begin{verbatim}
-http://www.gtk.org/api
+http://www.gtk.org
 \end{verbatim}
 
 There's also an excellent book by Matthias Warkus, \emph{The Official 
@@ -168,6 +167,15 @@ Descriptors are created with \verb+im_open()+. You can also read images with
 the format system: see \pref{sec:format}. The two APIs are complimentary,
 though \verb+im_open()+ is more useful.
 
+At the command-line, try:
+
+\begin{verbatim}
+$ vips --list classes
+\end{verbatim}
+
+/noindent
+to see a list of all the supported file formats.
+
 \verb+im_open()+ takes a file name and a string representing the mode with
 which the descriptor is to be opened:
 
@@ -187,10 +195,8 @@ different byte ordering, \verb+im_open()+ will automatically convert it to
 native VIPS format. If the underlying file does not support random access
 (JPEG, for example), the entire file will be converted in memory. 
 
-VIPS can read images in TIFF, JPEG, PPM/\-PGM/\-PBM, PNG and VIPS
-format, all in both big- and little-endian varieties. You can control the
-details of the conversion with extra characters embedded in the filename. For
-example:
+VIPS can read images in many file formats. You can control the details of
+the conversion with extra characters embedded in the filename. For example:
 
 \begin{verbatim}
 fred = im_open( "fred.tif:2",
@@ -200,24 +206,14 @@ fred = im_open( "fred.tif:2",
 \noindent
 will read page 2 of a multi-page TIFF. See the man pages for details.
 
-If VIPS has been built with libMagick, it can also read any of the 80 or so
-libMagick-supported image file formats.
-
 \item[\texttt{"w"}]
 An \verb+IMAGE+ descriptor is created which, when written to, will write
-pixels to disc in the specified file.
+pixels to disc in the specified file. Any existing file of that name is
+deleted.
 
 VIPS looks at the filename suffix to determine the save format. If there
 is no suffix, or the filename ends in \verb+".v"+, the image is written
 in VIPS native format. 
-
-If the filename ends in \verb+".tif"+ or \verb+".tiff"+, the image
-is written with \verb+im_vips2tiff()+.  If the filename ends in
-\verb+".jpg"+, \verb+".jpeg"+ or \verb+".jpe"+, the image is written with
-\verb+im_vips2jpg()+.  If the filename ends with \verb+".pbm"+, \verb+".pgm"+
-or \verb+".ppm"+, the image is written using \verb+im_vips2ppm()+.
-If the filename ends with \verb+".png"+, the image is written using
-\verb+im_vips2png()+.  Case is not considered when testing the suffix.
 
 If you want to control the details of the conversion to the disc format (such
 as setting the Q factor for a JPEG, for example), you embed extra control
@@ -283,23 +279,13 @@ void error_exit( const char *format,
 There are other functions for handling errors: see the man page for
 \verb+im_error()+.
 
-If the file name given to \verb+im_open()+ ends with \verb+".v"+, VIPS
-looks in the same directory as the image for a file with the same name
-but with the extension \verb+".desc"+. If present, this file is read in
-and a pointer to the data put in the \verb+Hist+ field of the descriptor. See
-the notes on \verb+im_updatehist()+ in \pref{sec:examples}.  
-
 Descriptors are closed with \verb+im_close()+. It has type:
 
 \begin{verbatim}
 int im_close( IMAGE *im )
 \end{verbatim}
 
-\verb+im_close()+ returns 0 on success and non-zero on error.
-If the descriptor represents a disc file which
-has been written to and whose name ends in \verb+".v"+, VIPS writes the
-\verb+Hist+ field of the image descriptor to a file in the same directory
-whose name ends in \verb+".desc"+.
+\verb+im_close()+ returns 0 on success and non-zero on error.  
 
 \subsection{Examples}
 \label{sec:examples}
@@ -394,10 +380,10 @@ main( int argc, char **argv )
 \label{sec:meta}
 
 VIPS lets you attach arbitrary metadata to an IMAGE. For example, ICC
-profiles, EXIF tags, whatever you like. VIPS will efficiently propogate
-metadata as images are processed (usually just by copying pointers) and will
-automatically save and load metadata from VIPS files (see
-\pref{sec:header}).
+profiles, EXIF tags, image history, whatever you like. VIPS will efficiently
+propagate metadata as images are processed (usually just by copying
+pointers) and will automatically save and load metadata from VIPS files
+(see \pref{sec:header}).
 
 A piece of metadata is a value and an identifying name. A set of
 convenience functions let you set and get int, double, string and blob. For
@@ -432,9 +418,8 @@ if( im_meta_get_int( im, "poop", &i ) )
 And get the value 42 back. 
 
 You can use \verb+im_meta_set()+ and \verb+im_meta_get()+ to attach arbitrary
-\verb+GValue+ to images. 
-See the man page for \verb+im_meta_set()+ for full
-details. 
+\verb+GValue+ to images.  See the man page for \verb+im_meta_set()+ for
+full details.
 
 You can test for a field being present with \verb+im_meta_get_type()+ (you'll
 get \verb+G_TYPE_INT+ back for \verb+"poop"+, for example, or 0 if it is not
@@ -476,7 +461,7 @@ const char *
 
 VIPS lets you attach callbacks to image descriptors. These are functions
 you provide which VIPS will call when certain events occur. See
-\pref{sec:callback} for a full list.
+\pref{sec:callback} for more detail.
 
 Eval callbacks are called repeatedly during evaluation and can be used by
 user-interface programs to give feedback about the progress of evaluation.
@@ -649,7 +634,7 @@ for more help.
 
 All VIPS operations return 0 on success and non-zero on error, setting
 \verb+im_error()+. As a consequence, when a VIPS function fails, you do not
-need to generate an error message --- you can simply propogate the error back
+need to generate an error message --- you can simply propagate the error back
 up to your caller. If however you detect some error yourself (for example,
 the bad parameter in the example above), you must call \verb+im_error()+
 to let your caller know what the problem was.
@@ -657,7 +642,7 @@ to let your caller know what the problem was.
 VIPS provides two more functions for error message handling: \verb+im_warn()+
 and \verb+im_diag()+. These are intended to be used for less serious
 messages, as their names suggest. Currently, they simply format and print
-their arguments to \verb+stderr+, optionally supressed by the setting of an
+their arguments to \verb+stderr+, optionally suppressed by the setting of an
 environment variable. Future releases of VIPS may allow more sophisticated
 trapping of these functions to allow their text to be easily presented to
 the user by VIPS applications. See the manual pages.
@@ -700,8 +685,9 @@ images larger than the amount of RAM you have on your machine.
 
 As an added bonus, if you have more than one CPU in your computer, the work
 will be automatically spread across the processors for you. You can control
-this parallelisation with the \verb+IM_CONCURRENCY+ environment variable and
-with \verb+im_concurrency_set()+. See the man page for \verb+im_generate()+.
+this parallelization with the \verb+IM_CONCURRENCY+ environment variable,
+\verb+im_concurrency_set()+, and with the \verb+--vips-concurrency+
+command-line switch. See the man page for \verb+im_generate()+.
 
 \subsubsection{How it works}
 
@@ -796,7 +782,8 @@ and throw it all away, keeping only the average value. The subsequent call to
 When designing a program, it is sensible to pay attention to these
 issues. It might be faster, in some cases, to output to a file before
 calling \verb+im_avg()+, find the average of the disc file, and then run
-\verb+im_moreconst()+ from that.
+\verb+im_moreconst()+ from that. There's also \verb+im_cache()+ which can keep
+recent parts of a very large image.
 
 \subsubsection{Blocking computation}
 \label{sec:block}
@@ -814,7 +801,7 @@ from being followed.
 \label{sec:limit}
 
 Not all VIPS operations are partial-aware. These non-partial operations
-use a pre-VIPS7.0 I/O scheme in which the whole of the input image has to
+use a pre-VIPS 7.0 I/O scheme in which the whole of the input image has to
 be present at the same time.  In some cases, this is because partial I/O
 simply makes no sense --- for example, a Fourier Transform can produce no
 output until it has seen all of the input.  \verb+im_fwfft()+ is therefore

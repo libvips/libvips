@@ -14,7 +14,7 @@ typedef void (*VipsInterpolateMethod)( VipsInterpolate *,
 \end{verbatim}
 
 \noindent
-Given the set of input pixels \verb+in+, it has to calculate a value for the
+given the set of input pixels \verb+in+, it has to calculate a value for the
 fractional position $(x, y)$ and write this value to the memory pointed to by
 \verb+out+.
 
@@ -43,16 +43,6 @@ NULL and just set the int value \verb+window_size+.
 
 \end{itemize}
 
-A switch to the \verb+vips+ command-line program is handy for listing the
-supported interpolators. Try:
-
-\begin{verbatim}
-vips --list classes
-\end{verbatim}
-
-\noindent
-And look for subclasses of \verb+VipsInterpolate+.
-
 \subsection{A sample interpolator}
 
 As an example, \fref{fg:newinterpolator} shows how to register a new
@@ -61,20 +51,27 @@ interpolator in a plugin.
 \begin{fig2}
 \begin{verbatim}
 // This interpolator adds no new members.
-typedef VipsInterpolate VipsInterpolateMyinterpolator;
-typedef VipsInterpolateClass VipsInterpolateMyinterpolator;
+typedef VipsInterpolate Myinterpolator;
+typedef VipsInterpolateClass MyinterpolatorClass;
 
+G_DEFINE_TYPE( Myinterpolator, myinterpolator, VIPS_TYPE_INTERPOLATE );
 
 static void
-vips_interpolate_myinterpolator_interpolate( VipsInterpolate *interpolate, 
+myinterpolator_interpolate( VipsInterpolate *interpolate, 
 	PEL *out, REGION *in, double x, double y )
 {
-	VipsInterpolateBilinearClass *class = 
-		VIPS_INTERPOLATE_BILINEAR_GET_CLASS( interpolate );
+  MyinterpolatorClass *class = 
+    MYINTERPOLATOR_GET_CLASS( interpolate );
+
+  /* Nearest-neighbor.
+   */
+  memcpy( out, 
+    IM_REGION_ADDR( in, floor( x ), floor( y ) ),
+    IM_IMAGE_SIZEOF_PEL( in->im ) );
+}
 
 static void
-vips_interpolate_myinterpolator_class_init( 
-	VipsInterpolateMyinterpolatorClass *class )
+myinterpolator_class_init( MyinterpolatorClass *class )
 {
   VipsObjectClass *object_class = (VipsObjectClass *) class;
   VipsInterpolateClass *interpolate_class = (VipsInterpolateClass *) class;
@@ -82,29 +79,56 @@ vips_interpolate_myinterpolator_class_init(
   object_class->nickname = "myinterpolator";
   object_class->description = _( "My interpolator" );
 
-  interpolate_class->interpolate = my_interpolate;
+  interpolate_class->interpolate = myinterpolator_interpolate;
 }
 
 static void
-vips_interpolate_myinterpolate_init( VipsInterpolateMyinterpolate *object )
+myinterpolate_init( Myinterpolate *object )
 {
 }
-
-G_DEFINE_TYPE( VipsInterpolateMyinterpolator, vips_interpolate_myinterpolator, 
-	VIPS_TYPE_INTERPOLATE );
 
 char *
 g_module_check_init( GModule *self )
 {
   // register the type
-  vips_format_myformat_get_type(); 
+  myinterpolator_get_type(); 
 }
 \end{verbatim}
 \caption{Registering an interpolator in a plugin}
 \label{fg:newinterpolator}
 \end{fig2}
 
-\subsection{Passing an interpolator to a VIPS operation}
-
 \subsection{Writing a VIPS operation that takes an interpolator as an argument}
 
+Operations just take a \verb+VipsInterpolate+ as an argument, for example:
+
+\begin{verbatim}
+int im_affinei_all( IMAGE *in, IMAGE *out, 
+  VipsInterpolate *interpolate,
+  double a, double b, double c, double d, 
+  double dx, double dy );
+\end{verbatim}
+
+To use the interpolator, use \verb+vips_interpolate()+:
+
+\begin{verbatim}
+void vips_interpolate( VipsInterpolate *interpolate,
+  PEL *out, REGION *in, double x, double y );
+\end{verbatim}
+
+\noindent
+This looks up the interpolate method for the object and calls it for you.
+
+You can save the cost of the lookup in an inner loop with
+\verb+vips_interpolate_get_method()+:
+
+\begin{verbatim}
+VipsInterpolateMethod 
+  vips_interpolate_get_method( 
+    VipsInterpolate *interpolate );
+\end{verbatim}
+
+\subsection{Passing an interpolator to a VIPS operation}
+
+You can build an instance of a \verb+VipsInterpolator+ with
+the \verb+vips_object_*()+ family of functions, see \pref{sec:object}.
