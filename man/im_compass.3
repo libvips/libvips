@@ -61,12 +61,12 @@ using look-up tables. The output is integer.  coefficients.  The size of the
 output image and the number of channels are the same as the corresponding of
 the input.
 
-If the sizes of the mask are xm and ym and the sizes of the image are xs and ys,
-then there is a black border at the output image as follows:
+The output image is the same size as the input. The edge pixels are calculated
+by expanding the input image using
+.B im_embed(3)
+in mode 1 (replicating edge pixels) just enough so that the output can match
+the input.
 
-The top ym/2 lines black, bottom ys-ym/2-ym lines black; each of the remaining
-lines has the initial xm/2 pels blank, and the final
-xs-xm/2-xm pels black (division over 2 is integer division).
 The output at each point is divided by scale and then the offset is added.
 Both offset and scale are held in mask.
 

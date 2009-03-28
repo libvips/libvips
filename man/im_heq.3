@@ -21,28 +21,32 @@ int im_hsp( in, ref, out )
 IMAGE *in, *ref, *out;
 
 .SH DESCRIPTION
-im_heq()
+.B im_heq(3)
 histogram equalises the unsigned char image held by the IMAGE descriptor
 in.  The result is written to the IMAGE descriptor out.
 If bandno is -1 then all input bands are equalised independently.  In all
 other cases the input image is equalised using the histogram of bandno only.
 The latter processing produces better results.
 
-im_hsp()
+.B im_hsp(3)
 maps in to out with histogram specified by the ref.  All images should be
 unsigned char.  Each band of the output image is specified according to the
 distribution of grey levels of the reference image according to
 im_histspec(3).
 
-im_lhisteq()
+.B im_lhisteq(3)
 histogram equalises the one channel unsigned char image pointed to by the
 Image descriptor in.  The result is written to the IMAGE descriptor out.
 The histogram equalisation is based on a window of size xw by yw centered at
-the current location of each input pixel.  The produced image has a black
-border of sizes xw/2 (left), xw-xw/2 (right), yw/2 (top) and yw-yw/2 (bottom).
+the current location of each input pixel. 
 
-im_lhisteq_raw()
-is as above, but does not add the black border to the output image.
+In the manner of 
+.B im_conv(3)
+the input image is expanded so that the output image is the same size as the
+input.
+
+.B im_lhisteq_raw(3)
+is as above, but does not expand the input.
 
 .SH RETURN VALUE
 All functions returns 0 on success and -1 on error.

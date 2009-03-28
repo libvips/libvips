@@ -40,33 +40,42 @@ Mask coefficients can be either 0 (for object) or 255 (for background) or 128
 The mask should have odd length sides and the origin of the mask is at location
 (m-\>xsize/2,m-\>ysize/2) integer division.  All algorithms have been based on
 the book "Fundamentals of Digital Image Processing" by A.  Jain, pp 384-388,
-Prentice-Hall, 1989.  Essentially, im_dilate(3) sets pixels in the output if
-*any* part of the mask matches, whereas im_erode(3) sets pixels only if *all*
+Prentice-Hall, 1989.  Essentially, 
+.B im_dilate(3) 
+sets pixels in the output if
+*any* part of the mask matches, whereas 
+.B im_erode(3) 
+sets pixels only if *all*
 of the mask matches.
 
-im_dilate(3)
+.B im_dilate(3)
 dilates the image pointed by in, according to the mask pointed by m and writes
 the result in the location pointed by the IMAGE descriptor out. The output
-image is the same size as the input, with a black border in the manner of
-im_conv(3).
+image is the same size as the input, in the manner of
+.B im_conv(3).
 
-im_dilate_raw(3)
-works as im_dilate(3), but does not add a black border.
+.B im_dilate_raw(3)
+works as im_dilate(3), but does not expand the input.
 
-im_erode(3)
+.B im_erode(3)
 erodes the image pointed by in, according to the mask pointed by m and writes
 the result in the location pointed by the IMAGE descriptor out. Again, the
 output image is forced to have the same size as the input.
 
-im_erode_raw(3)
-works as im_erode(3), but does not add a black border.
+.B im_erode_raw(3)
+works as im_erode(3), but does not expand the input.
 
-See the boolean operations im_and(3), im_or(3) and im_eor(3) for analogues
+See the boolean operations 
+.B im_andimage(3), 
+.B im_orimage(3) 
+and 
+.B im_eorimage(3) 
+for analogues
 of the usual set difference and set union operations.
 
 .SH RETURN VALUE
 All functions returns 0 on success and -1 on error.
 .SH SEE ALSO
-im_read_imask(3), im_conv(3), im_and(3), im_rotate_imask(3).
+im_read_imask(3), im_conv(3), im_andimage(3), im_rotate_imask(3).
 .SH COPYRIGHT
 1991-1995, Birkbeck College and the National Gallery

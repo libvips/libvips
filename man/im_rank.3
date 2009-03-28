@@ -23,12 +23,14 @@ is passed over the image. At each position, the pixels inside the window are
 sorted into ascending order and the pixel at the nth position is output. n
 numbers from 0.
 
-It works for any non-complex image type, with any number of bands.  A black
-border is added to the output image to make it the same size as the
-input.
+It works for any non-complex image type, with any number of bands. 
+The input
+is expanded by copying edge pixels before performing the operation so that the
+output image has the same size as the input. Edge pixels in the output image
+are therefore only approximate.
 
 .B im_rank_raw()
-works just as im_rank(), but does not add the border.
+works just as im_rank(), but does not expand the input.
 .SH EXAMPLES
 For a median filter with mask size m (3 for 3x3, 5 for 5x5, etc.) use
 
