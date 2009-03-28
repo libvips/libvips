@@ -1,7 +1,3 @@
-- VipsFormat.3 man page should list all formats, since eg. radiance does not
-  have a separate im_rad2vips page
-
-  also matlab read
 
 - wrap im_gauss_mask_line or whatever it's called in C++/Python?
 

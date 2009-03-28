@@ -517,6 +517,7 @@ man_MANS = \
 	im_vips2mimejpeg.3 \
 	im_vips2png.3 \
 	im_vips2ppm.3 \
+	im_vips2raw.3 \
 	im_vips2tiff.3 \
 	im_warn.3 \
 	im_wrapmany.3 \

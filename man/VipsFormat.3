@@ -84,18 +84,20 @@ first on
 .B im_open(3)
 and delay loading pixels until asked. If you leave this NULL, vips will just
 use the 
-.B load 
+.B load()
 function.
 
 .B load()
 Load the image from the file into the IMAGE. You can leave this function NULL
 if you only have a 
 .B save()
-method implemented.
+method implemented. Load options may be embedded in the filename, see the
+loaders below.
 
 .B save()
 Write from the IMAGE to the file in this format. You can leave this function
-NULL if you only have a load method implemented.
+NULL if you only have a load method implemented. Save options may be embedded
+in the filename, see the savers below.
 
 .B get_flags()
 A function which examines the file and sets various flags to indicate
@@ -136,6 +138,31 @@ error, it returns non-zero and sets an error message.
 .B vips_format_write(3)
 is a convenience function which copies the image to the file in the
 appropriate format. On error, it returns non-zero and sets an error message.
+
+.SH SUPPORTED FORMATS
+
+See the following manpages for details on each of the converters and the
+options they implement. 
+
+.B im_analyze2vips(3)
+.B im_csv2vips(3)
+.B im_exr2vips(3)
+.B im_jpeg2vips(3)
+.B im_magick2vips(3)
+.B im_png2vips(3)
+.B im_ppm2vips(3)
+.B im_tiff2vips(3)
+.B im_vips2csv(3)
+.B im_vips2jpeg(3)
+.B im_vips2png(3)
+.B im_vips2ppm(3)
+.B im_vips2tiff(3)
+
+You can also load Matlab .mat files and load or save Radiance HDR files. See 
+.B im_binfile(3) 
+and
+.B im_raw2vips(3)
+for RAW file read.
 
 .SH RETURN VALUE
 The functions return 0 success and -1 on error.
