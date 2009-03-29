@@ -1,0 +1,56 @@
+.TH VIPS_INTERPOLATE 3 "28 March 2009"
+.SH NAME
+VipsInterpolate, 
+vips_interpolate,
+vips_interpolate_get_method,
+vips_interpolate_get_window_size
+\- 
+base class for VIPS interpolators
+.SH SYNOPSIS
+#include <vips/vips.h>
+
+typedef void (*VipsInterpolateMethod)( VipsInterpolate *, 
+.br
+  PEL *out, REGION *in, double x, double y );
+
+typedef struct _VipsInterpolateClass {
+.br
+  VipsObjectClass parent_class;
+
+  VipsInterpolateMethod interpolate;
+.br
+  int (*get_window_size)( VipsInterpolate * );
+.br
+  int window_size;
+.br
+} VipsInterpolateClass;
+
+void vips_interpolate( VipsInterpolate *interpolate, 
+.br
+  PEL *out, REGION *in, double x, double y );
+.br
+VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate * );
+.br
+int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
+
+.SH DESCRIPTION
+.B VipsInterpolate
+is the base class for VIPS interpolators. It provides a simple framework that
+subclasses use to implement the various interpolators that VIPS ships with.
+You can add new interpolators by subclassing
+.B VipsInterpolate.
+You can use any interpolator in your code via the methods of 
+.B VipsInterpolate.
+
+.B vips_interpolate(3)
+
+
+.SH SUPPORTED INTERPOLATORS
+
+.SH RETURN VALUE
+Unless otherwise noted, functions return 0 success and -1 on error.
+.SH SEE ALSO
+VipsFormat(3), VipsInterpolate(3),
+vips_type_find(3).
+.SH AUTHOR
+John Cupitt

@@ -173,7 +173,6 @@ void *vips_argument_map( VipsObject *object,
 struct _VipsObject {
 	GObject parent_object;
 
-	char *name;			/* Optional instance name */
 	gboolean constructed;		/* Construct done and checked */
 
 	/* Table of argument instances for this class and any derived classes.
@@ -194,11 +193,6 @@ struct _VipsObjectClass {
 	 * now build the thing.
 	 */
 	int (*build)( VipsObject *object );
-
-	/* Something about the object has changed. Should use glib's properties
-	 * but fix this later.
-	 */
-	void (*changed)( VipsObject * );
 
 	/* Try to print something about the class, handy for help displays.
 	 */
@@ -232,7 +226,6 @@ void vips_object_get_property( GObject *gobject,
 	guint property_id, GValue *value, GParamSpec *pspec );
 
 int vips_object_build( VipsObject *object );
-void *vips_object_changed( VipsObject *object );
 void vips_object_print_class( VipsObjectClass *klass );
 void vips_object_print( VipsObject *object );
 

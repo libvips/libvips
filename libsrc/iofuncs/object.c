@@ -48,13 +48,6 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Our signals. 
- */
-enum {
-	SIG_CHANGED,	/* VipsObject has changed somehow */
-	SIG_LAST
-};
-
 /* Properties.
  */
 enum {
@@ -63,26 +56,7 @@ enum {
 	PROP_LAST
 };
 
-static guint vips_object_signals[SIG_LAST] = { 0 };
-
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
-
-void *
-vips_object_changed( VipsObject *object )
-{
-	g_return_val_if_fail( object != NULL, NULL );
-	g_return_val_if_fail( VIPS_IS_OBJECT( object ), NULL );
-
-#ifdef DEBUG
-	printf( "vips_object_changed: " );
-	vips_object_print( object );
-#endif /*DEBUG*/
-
-	g_signal_emit( G_OBJECT( object ), 
-		vips_object_signals[SIG_CHANGED], 0 );
-
-	return( NULL );
-}
 
 int
 vips_object_build( VipsObject *object )
@@ -317,8 +291,9 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 	void *a, void *b )
 {
 #ifdef DEBUG
-	printf( "vips_object_dispose_argument: %s.%s\n", 
-		object->name, pspec->name );
+	printf( "vips_object_dispose_argument: " );
+	vips_object_print( object );
+	printf( ".%s\n", pspec->name );
 #endif /*DEBUG*/
 
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
@@ -374,7 +349,6 @@ vips_object_finalize( GObject *gobject )
 #endif /*DEBUG*/
 
 	IM_FREEF( vips_argument_table_destroy, object->argument_table );
-	IM_FREE( object->name );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->finalize( gobject );
 }
@@ -467,8 +441,9 @@ vips_object_set_property( GObject *gobject,
 	char *str_value;
 
 	str_value = g_strdup_value_contents( value );
-	printf( "vips_object_set_property: %s.%s = %s\n", 
-		object->name, g_param_spec_get_name( pspec ), str_value );
+	printf( "vips_object_set_property: " );
+	vips_object_print( object );
+	printf( ".%s = %s\n", g_param_spec_get_name( pspec ), str_value );
 	g_free( str_value );
 }
 #endif /*DEBUG*/
@@ -662,10 +637,9 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		!argument_instance->assigned ) {
 		im_error( "check_required", 
-			_( "required construct param %s to %s %s not set" ),
+			_( "required construct param %s to %s not set" ),
 			g_param_spec_get_name( pspec ),
-			G_OBJECT_TYPE_NAME( object ),
-			object->name );
+			G_OBJECT_TYPE_NAME( object ) );
 		*result = -1;
 	}
 
@@ -700,20 +674,7 @@ vips_object_real_build( VipsObject *object )
 		"nickname", object_class->nickname,
 		"description", object_class->description, NULL );
 
-	/* Signal changed, since all properties should now be set.
-	 */
-	vips_object_changed( object );
-
 	return( result );
-}
-
-static void
-vips_object_real_changed( VipsObject *object )
-{
-#ifdef DEBUG
-	printf( "vips_object_real_changed: " );
-	vips_object_print( object );
-#endif /*DEBUG*/
 }
 
 static void
@@ -729,8 +690,7 @@ vips_object_real_print_class( VipsObjectClass *class, VipsBuf *buf )
 static void
 vips_object_real_print( VipsObject *object, VipsBuf *buf )
 {
-	if( object->name )
-		vips_buf_appendf( buf, "\"%s\"", object->name );
+	vips_buf_appendf( buf, " (%p)", object );
 }
 
 static void
@@ -753,7 +713,6 @@ vips_object_class_init( VipsObjectClass *object_class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->build = vips_object_real_build;
-	object_class->changed = vips_object_real_changed;
 	object_class->print_class = vips_object_real_print_class;
 	object_class->print = vips_object_real_print;
 	object_class->nickname = "object";
@@ -764,14 +723,6 @@ vips_object_class_init( VipsObjectClass *object_class )
 	object_class->argument_table = g_hash_table_new_full( 
 		g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) g_free );
 	object_class->argument_table_traverse = NULL;
-
-	vips_object_signals[SIG_CHANGED] = g_signal_new( "changed",
-		G_OBJECT_CLASS_TYPE( gobject_class ),
-		G_SIGNAL_RUN_FIRST,
-		G_STRUCT_OFFSET( VipsObjectClass, changed ),
-		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
 
 	/* For setting double arguments from the command-line.
 	 */
@@ -811,13 +762,6 @@ vips_object_init( VipsObject *object )
 	printf( "vips_object_init: " );
 	vips_object_print( object );
 #endif /*DEBUG*/
-}
-
-void
-vips_object_set_name( VipsObject *object, const char *name )
-{
-	IM_SETSTR( object->name, name );
-	vips_object_changed( object );
 }
 
 /* Add a vipsargument ... automate some stuff with this.

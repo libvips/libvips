@@ -183,7 +183,9 @@ man_MANS = \
 	im_flood_blob.3 \
 	im_floor.3 \
 	im_flt_imag_freq.3 \
+	VipsObject.3 \
 	VipsFormat.3 \
+	VipsInterpolate.3 \
 	vips_format_for_file.3 \
 	vips_format_for_name.3 \
 	vips_format_map.3 \
