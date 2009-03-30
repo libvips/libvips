@@ -299,6 +299,7 @@ public:
 
 	// VIMask build functions
 	static VIMask gauss( double, double ) throw( VError );
+	static VIMask gauss_sep( double, double ) throw( VError );
 	static VIMask log( double, double ) throw( VError );
 
 	// VIMask manipulation

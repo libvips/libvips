@@ -464,6 +464,18 @@ VIMask VIMask::gauss( double sig, double minamp ) throw( VError )
 	return( out );
 }
 
+VIMask VIMask::gauss_sep( double sig, double minamp ) throw( VError )
+{
+	VIMask out;
+	INTMASK *msk;
+
+	if( !(msk = im_gauss_imask_sep( "VIMask::gauss", sig, minamp )) )
+		verror();
+	out.embed( msk );
+
+	return( out );
+}
+
 VDMask VDMask::gauss( double sig, double minamp ) throw( VError )
 {
 	VDMask out;

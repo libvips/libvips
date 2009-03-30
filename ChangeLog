@@ -4,6 +4,7 @@
 - revised manpages
 - removed name and "changed" from vipsobject since we don't use them yet
 - explicitly link with stdc++ for nohalo etc stuff
+- wrap im_gauss_imask_sep in C++/Python
 
 6/3/09 started 7.17.3
 - revised nohalo

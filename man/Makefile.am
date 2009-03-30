@@ -30,6 +30,8 @@ man_MANS = \
 	im_add_invalidate_callback.3 \
 	im_addgnoise.3 \
 	im_affine.3 \
+	im_affinei.3 \
+	im_affinei_all.3 \
 	im_allocate_input_array.3 \
 	im_amiMSBfirst.3 \
 	im_analyze2vips.3 \

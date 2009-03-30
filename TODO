@@ -1,16 +1,7 @@
-
-- writing man page for VipsInterpolate
-
-- wrap im_gauss_mask_line or whatever it's called in C++/Python?
-
-- need man pages for im_affinei, im_affinei_all
-
-- Mention vips --list-classes or whatever in VipsFormat man page
-
-  also in VipsInterpolate
-
 WONTFIX for 7.18
 ================
+
+- try adding "restrict" to im_conv? other interpolators?
 
 - move im_shrink & friends to resample?
 

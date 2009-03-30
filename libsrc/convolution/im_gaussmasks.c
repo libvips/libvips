@@ -30,6 +30,8 @@
  * 18/3/09
  * 	- bumped max mask size *40
  * 	- added _sep variant
+ * 30/3/09
+ * 	- set scale in _sep variant, why not
  */
 
 /*
@@ -193,6 +195,7 @@ im_gauss_imask_sep( const char *filename, double sigma, double min_amplitude )
 	INTMASK *im;
 	INTMASK *im2;
 	int i;
+	int sum;
 
 	if( !(im = im_gauss_imask( filename, sigma, min_amplitude )) )
 		return( NULL );
@@ -201,8 +204,12 @@ im_gauss_imask_sep( const char *filename, double sigma, double min_amplitude )
 		return( NULL );
 	}
 
-	for( i = 0; i < im->xsize; i++ )
+	sum = 0;
+	for( i = 0; i < im->xsize; i++ ) {
 		im2->coeff[i] = im->coeff[i + im->xsize * (im->ysize / 2)];
+		sum += im2->coeff[i];
+	}
+	im2->scale = sum;
 
 	im_free_imask( im );
 
