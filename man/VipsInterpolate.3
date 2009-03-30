@@ -38,19 +38,39 @@ int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 is the base class for VIPS interpolators. It provides a simple framework that
 subclasses use to implement the various interpolators that VIPS ships with.
 You can add new interpolators by subclassing
-.B VipsInterpolate.
+.B VipsInterpolated
+and implementing an 
+.B interpolate
+method.
 You can use any interpolator in your code via the methods of 
 .B VipsInterpolate.
 
 .B vips_interpolate(3)
+looks up the interpolate method for the object and calls it for you.
 
+.B vips_interpolate_get_method(3)
+just does the lookup and returns a pointer to the interpolate function. You
+can use this to take the lookup out of an inner loop.
+
+.B vips_interpolate_get_window_size(3)
+either calls 
+.B get_window_size()
+or if it is NULL, returns 
+.B window_size.
 
 .SH SUPPORTED INTERPOLATORS
+
+You can list the supported interpolators with
+
+  $ vips --list classes
+
+look for subclasses of 
+.B VipsInterpolate.
 
 .SH RETURN VALUE
 Unless otherwise noted, functions return 0 success and -1 on error.
 .SH SEE ALSO
-VipsFormat(3), VipsInterpolate(3),
-vips_type_find(3).
+VipsObject(3), VipsInterpolate(3),
+vips_type_find(3), vips(1).
 .SH AUTHOR
 John Cupitt

@@ -164,9 +164,16 @@ and
 .B im_raw2vips(3)
 for RAW file read.
 
+You can list the supported formats with
+
+  $ vips --list classes
+
+look for subclasses of 
+.B VipsFormat.
+
 .SH RETURN VALUE
 The functions return 0 success and -1 on error.
 .SH SEE ALSO
-im_tiff2vips(3), im_open(3).
+im_tiff2vips(3), im_open(3), vips(1).
 .SH AUTHOR
 Jesper Friis and John Cupitt
