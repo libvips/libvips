@@ -19,6 +19,8 @@
  * 	- don't output x values
  * 18/3/09
  * 	- saner limit and rounding behaviour
+ * 30/3/09
+ * 	- argh, fixed again
  */
 
 /*
@@ -72,6 +74,7 @@ typedef struct _State {
 	DOUBLEMASK *input;	/* Input mask */
 	int lut_size;		/* Number of output elements to generate */
 	double **data;		/* Rows of unpacked matrix */
+	double *buf;		/* Ouput buffer */
 } State;
 
 /* Use this to sort our input rows by the first column.
@@ -97,18 +100,14 @@ compare( const void *a, const void *b )
 static void
 free_state( State *state )
 {
-	if( state->data ) {
-		int i;
+	int i;
 
-		for( i = 0; i < state->input->ysize; i++ )
-			if( state->data[i] ) {
-				im_free( state->data[i] );
-				state->data[i] = NULL;
-			}
+	if( state->data )
+		for( i = 0; i < state->input->ysize; i++ ) 
+			IM_FREE( state->data[i] );
 
-		im_free( state->data );
-		state->data = NULL;
-	}
+	IM_FREE( state->data );
+	IM_FREE( state->buf );
 }
 
 /* Fill our state.
@@ -150,7 +149,6 @@ build_state( State *state, DOUBLEMASK *input )
 		return( -1 );
 	for( y = 0; y < input->ysize; y++ ) 
 		state->data[y] = NULL;
-
 	for( y = 0; y < input->ysize; y++ ) 
 		if( !(state->data[y] = IM_ARRAY( NULL, input->xsize, double )) )
 			return( -1 );
@@ -158,6 +156,10 @@ build_state( State *state, DOUBLEMASK *input )
 	for( i = 0, y = 0; y < input->ysize; y++ ) 
 		for( x = 0; x < input->xsize; x++, i++ ) 
 			state->data[y][x] = input->coeff[i];
+
+	if( !(state->buf = IM_ARRAY( NULL, 
+		state->lut_size * (input->xsize - 1), double )) )
+		return( -1 );
 
 	/* Sort by 1st column in input.
 	 */
@@ -179,30 +181,36 @@ build_state( State *state, DOUBLEMASK *input )
 }
 
 static int
-buildlut( State *state, IMAGE *output )
+buildlut( State *state )
 {
 	const DOUBLEMASK *input = state->input;
 	const int ysize = input->ysize;
 	const int xsize = input->xsize;
+	const int bands = xsize - 1;
 
-	double *odata = (double *) output->data;
-
-	int b, y, i, x;
+	int b, i, x;
 
 	/* Do each output channel separately.
 	 */
-	for( b = 0; b < xsize - 1; b++ ) 
-		for( x = b, y = 0; y < ysize - 1; y++ ) {
-			const int x1 = state->data[y][0];
-			const int x2 = state->data[y + 1][0];
-			const double y1 = state->data[y][b + 1];
-			const double y2 = state->data[y + 1][b + 1];
+	for( b = 0; b < bands; b++ ) {
+		for( i = 0; i < ysize - 1; i++ ) {
+			const int x1 = state->data[i][0];
+			const int x2 = state->data[i + 1][0];
 			const int dx = x2 - x1;
+			const double y1 = state->data[i][b + 1];
+			const double y2 = state->data[i + 1][b + 1];
 			const double dy = y2 - y1;
-			
-			for( i = 0; i <= dx; i++, x += xsize - 1 )
-				odata[x] = y1 + i * dy / dx;
+
+			for( x = 0; x < dx; x++ ) 
+				state->buf[b + (x + x1) * bands] = 
+					y1 + x * dy / dx;
 		}
+
+		/* We are inclusive: pop the final value in by hand.
+		 */
+		state->buf[b + (int) state->data[ysize - 1][0] * bands] =
+			state->data[ysize - 1][b + 1];
+	}
 
 	return( 0 );
 }
@@ -217,7 +225,8 @@ im_buildlut( DOUBLEMASK *input, IMAGE *output )
 		return( -1 );
 	}
 
-	if( build_state( &state, input ) ) {
+	if( build_state( &state, input ) ||
+		buildlut( &state ) ) {
 		free_state( &state );
                 return( -1 );
 	}
@@ -226,10 +235,8 @@ im_buildlut( DOUBLEMASK *input, IMAGE *output )
                 state.lut_size, 1, input->xsize - 1, 
 		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE,
                 IM_CODING_NONE, IM_TYPE_HISTOGRAM, 1.0, 1.0, 0, 0 );
-        if( im_setupout( output ) )
-                return( -1 );
-
-	if( buildlut( &state, output ) ) {
+        if( im_setupout( output ) ||
+		im_writeline( 0, output, (PEL *) state.buf ) ) {
 		free_state( &state );
 		return( -1 );
 	}
