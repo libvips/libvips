@@ -58,7 +58,8 @@
 int
 im_png2vips( const char *name, IMAGE *out )
 {
-	im_error( "im_png2vips", _( "PNG support disabled" ) );
+	im_error( "im_png2vips", "%s",
+		_( "PNG support disabled" ) );
 	return( -1 );
 }
 

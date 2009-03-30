@@ -65,7 +65,8 @@
 int
 im_exr2vips( const char *name, IMAGE *out )
 {
-	im_error( "im_exr2vips", _( "OpenEXR support disabled" ) );
+	im_error( "im_exr2vips", "%s",
+		_( "OpenEXR support disabled" ) );
 	return( -1 );
 }
 

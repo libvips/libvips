@@ -451,11 +451,6 @@ AC_ARG_WITH([cimg],
 if test x"$with_cimg" != "xno"; then
   AM_CONDITIONAL(WITH_CIMG, true)
   AC_DEFINE(WITH_CIMG,1,[include cimg package])
-
-  # we have to explicitly link with stdc++ on mingw for some reason, yuk!
-  if test x"$vips_os_win32" = "xyes"; then
-    CIMG_LIBS=-lstdc++
-  fi
   with_cimg=yes
 else
   AM_CONDITIONAL(WITH_CIMG, false)
@@ -472,7 +467,8 @@ do
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES $FFTW_INCLUDES $LCMS_INCLUDES" 
-VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $LCMS_LIBS $LIBOIL_LIBS $OPENEXR_LIBS $MATIO_LIBS $EXIF_LIBS -lm $CIMG_LIBS"
+# need -lstdc++ for (eg.) the C++ format loaders
+VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $LCMS_LIBS $LIBOIL_LIBS $OPENEXR_LIBS $MATIO_LIBS $EXIF_LIBS -lstdc++ -lm"
 
 AC_SUBST(VIPS_CFLAGS)
 AC_SUBST(VIPS_INCLUDES)

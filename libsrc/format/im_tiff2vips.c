@@ -150,7 +150,8 @@
 int
 im_tiff2vips( const char *tiffile, IMAGE *im )
 {
-	im_error( "im_tiff2vips", _( "TIFF support disabled" ) );
+	im_error( "im_tiff2vips", "%s",
+		_( "TIFF support disabled" ) );
 	return( -1 );
 }
 

@@ -59,7 +59,7 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 	const char *output_profile_filename,
 	int intent )
 {
-	im_error( "im_icc_transform", 
+	im_error( "im_icc_transform", "%s",
 		_( "lcms library not linked to this VIPS" ) );
 
 	return( -1 );
@@ -69,7 +69,7 @@ int
 im_icc_import( IMAGE *in, IMAGE *out, 
 	const char *input_profile_filename, int intent )
 {
-	im_error( "im_icc_import", 
+	im_error( "im_icc_import", "%s",
 		_( "lmcs library not linked to this VIPS" ) );
 
 	return( -1 );
@@ -78,7 +78,7 @@ im_icc_import( IMAGE *in, IMAGE *out,
 int
 im_icc_import_embedded( IMAGE *in, IMAGE *out, int intent )
 {
-	im_error( "im_icc_import",
+	im_error( "im_icc_import", "%s",
 		_( "lmcs library not linked to this VIPS" ) );
 
 	return( -1 );
@@ -88,7 +88,7 @@ int
 im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 	const char *output_profile_filename, int intent )
 {
-	im_error( "im_icc_export_depth", 
+	im_error( "im_icc_export_depth", "%s", 
 		_( "lmcs library not linked to this VIPS" ) );
 
 	return( -1 );
@@ -98,7 +98,7 @@ int
 im_icc_export( IMAGE *in, IMAGE *out, 
 	const char *output_profile_filename, int intent )
 {
-	im_error( "im_icc_export", 
+	im_error( "im_icc_export", "%s", 
 		_( "lmcs library not linked to this VIPS" ) );
 
 	return( -1 );
@@ -107,7 +107,7 @@ im_icc_export( IMAGE *in, IMAGE *out,
 int
 im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename )
 {
-	im_error( "im_icc_ac2rc", 
+	im_error( "im_icc_ac2rc", "%s", 
 		_( "lmcs library not linked to this VIPS" ) );
 
 	return( -1 );

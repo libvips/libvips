@@ -3,6 +3,7 @@
 - updated vipsmanual
 - revised manpages
 - removed name and "changed" from vipsobject since we don't use them yet
+- explicitly link with stdc++ for nohalo etc stuff
 
 6/3/09 started 7.17.3
 - revised nohalo

@@ -67,7 +67,8 @@
 int
 im_jpeg2vips( const char *name, IMAGE *out )
 {
-	im_error( "im_jpeg2vips", _( "JPEG support disabled" ) );
+	im_error( "im_jpeg2vips", "%s",
+		_( "JPEG support disabled" ) );
 
 	return( -1 );
 }

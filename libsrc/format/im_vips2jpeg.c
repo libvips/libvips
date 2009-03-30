@@ -70,7 +70,8 @@
 int
 im_vips2jpeg( IMAGE *in, const char *filename )
 {
-	im_error( "im_vips2jpeg", _( "JPEG support disabled" ) );
+	im_error( "im_vips2jpeg", "%s",
+		_( "JPEG support disabled" ) );
 
 	return( -1 );
 }
@@ -78,7 +79,8 @@ im_vips2jpeg( IMAGE *in, const char *filename )
 int
 im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen )
 {
-	im_error( "im_vips2bufjpeg", _( "JPEG support disabled" ) );
+	im_error( "im_vips2bufjpeg", "%s",
+		_( "JPEG support disabled" ) );
 
 	return( -1 );
 }
@@ -86,7 +88,8 @@ im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen )
 int
 im_vips2mimejpeg( IMAGE *in, int qfac )
 {
-	im_error( "im_vips2mimejpeg", _( "JPEG support disabled" ) );
+	im_error( "im_vips2mimejpeg", "%s",
+		_( "JPEG support disabled" ) );
 
 	return( -1 );
 }

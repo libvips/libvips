@@ -68,7 +68,8 @@
 int
 im_magick2vips( const char *filename, IMAGE *im )
 {
-	im_error( "im_magick2vips", _( "libMagick support disabled" ) );
+	im_error( "im_magick2vips", "%s",
+		_( "libMagick support disabled" ) );
 	return( -1 );
 }
 
