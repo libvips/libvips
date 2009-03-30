@@ -132,3 +132,32 @@ VipsInterpolateMethod
 
 You can build an instance of a \verb+VipsInterpolator+ with
 the \verb+vips_object_*()+ family of functions, see \pref{sec:object}.
+
+Convenience functions return a static instance of one of the standard
+interpolators:
+
+\begin{verbatim}
+VipsInterpolate *vips_interpolate_nearest_static( void );
+VipsInterpolate *vips_interpolate_bilinear_static( void );
+VipsInterpolate *vips_interpolate_bicubic_static( void );
+\end{verbatim}
+
+\noindent
+Don't free the result.
+
+Finally, \verb+vips_interpolate_new()+ makes a \verb+VipsInterpolate+ from a
+nickname:
+
+\begin{verbatim}
+VipsInterpolate *vips_interpolate_new( const char *nickname );
+\end{verbatim}
+
+For example:
+
+\begin{verbatim}
+VipsInterpolate *interpolate = vips_interpolate_new( "nohalo" );
+\end{verbatim}
+
+\noindent
+You must drop your ref after you're done with the object with
+\verb+g_object_unref()+.

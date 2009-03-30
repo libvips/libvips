@@ -1,11 +1,3 @@
-
-- does vips_interpolate_binlinear_static() stioll exist? add a note to
-  VipsInterpolate.3 if it does
-
-  manual too?
-
-- im_gauss_imask_sep needs docs, C++ docs as well
-
 WONTFIX for 7.18
 ================
 

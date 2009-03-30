@@ -33,6 +33,14 @@ VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate * );
 .br
 int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 
+VipsInterpolate *vips_interpolate_nearest_static( void );
+.br
+VipsInterpolate *vips_interpolate_bilinear_static( void );
+.br
+VipsInterpolate *vips_interpolate_bicubic_static( void );
+
+VipsInterpolate *vips_interpolate_new( const char *nickname );
+
 .SH DESCRIPTION
 .B VipsInterpolate
 is the base class for VIPS interpolators. It provides a simple framework that
@@ -57,6 +65,22 @@ either calls
 .B get_window_size()
 or if it is NULL, returns 
 .B window_size.
+
+.B vips_interpolate_nearest_static(3),
+.B vips_interpolate_bilinear_static(3)
+and
+.B vips_interpolate_bicubic_static(3)
+are convenience functions which return a pointer to a static instance of a
+nearest-neighbour, bilinear and bicubic interpolator. You can pass these to
+any function which needs a 
+.B VipsInterpolator
+as an argument. No need to free the result.
+
+.B vips_interpolate_new(3)
+is a convenience function which makes an interpolator from a nickname. Free
+the result with 
+.B g_object_unref(3)
+when you're done with it.
 
 .SH SUPPORTED INTERPOLATORS
 

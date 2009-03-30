@@ -15,6 +15,13 @@ double sigma, min_amplitude;
 char *name;
 .br
 double sigma, min_amplitude;
+
+.B INTMASK im_gauss_imask_sep( name, sigma, min_amplitude )
+.br
+char *name;
+.br
+double sigma, min_amplitude;
+
 .SH DESCRIPTION
 Both functions create a circularly symmetric Gaussian mask of sigma.  The size
 of the mask is determined by the variable min_amplitude; if for instance the
@@ -30,17 +37,25 @@ The program uses the following equation:
 The generated mask has odd size and its maximum value is normalised to
 either 100 (gauss_imask) or to 1.0 (gauss_dmask).
 
-.B im_gauss_dmask()
+.B im_gauss_dmask(3)
 creates a DOUBLEMASK laplacian of Gaussian mask with maximum value normalised 
 to 1.0.
 
-.B im_gauss_imask()
+.B im_gauss_imask(3)
 creates a INTMASK laplacian of Gaussian mask with maximum value normalised
 to 100.
+
+.B im_gauss_imask_sep(3)
+returns the centre line of 
+.B im_gauss_imask(3). 
+It is convenient for use with
+.B im_conv_sep(3)
+for building fast gaussian blur or sharpen.
+
 .SH RETURNED VALUE:
 The functions return NULL on erorr.
 .SH SEE ALSO
-im_log_dmask(3), im_conv(3)
+im_log_dmask(3), im_conv(3), im_conv_sep(3).
 .SH COPYRIGHT
 .br
 N. Dessipris

@@ -205,6 +205,7 @@ man_MANS = \
 	im_gammacorrect.3 \
 	im_gauss_dmask.3 \
 	im_gauss_imask.3 \
+	im_gauss_imask_sep.3 \
 	im_gaussnoise.3 \
 	im_gbandjoin.3 \
 	im_generate.3 \
