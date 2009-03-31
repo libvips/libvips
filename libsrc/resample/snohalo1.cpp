@@ -534,19 +534,6 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
   const PEL* restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
 
   /*
-   * Clamp blur parameter to [0,1]:
-   */
-  const double requested_blur = snohalo1->blur;
-  const double blur =
-    ( 
-      requested_blur >= 0.
-      ?
-      ( requested_blur <= 1. ? requested_blur : 1. )
-      :
-      0.
-    );
-
-  /*
    * Double bands for complex images:
    */
   const int bands =
@@ -557,7 +544,7 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
                          p, \
                          bands, \
                          lskip, \
-                         blur, \
+                         snohalo1->blur, \
                          relative_x, \
                          relative_y );
 
@@ -629,8 +616,8 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
   pspec =
     g_param_spec_double( "blur", 
                          _( "Blur" ),
-                         _( "Antialiasing blur amount: 0. = none, 1. = max" ),
-                         0, 4, 1, 
+                       _( "Antialiasing (diagonal straightening) blur amount" ),
+                         0., 1., 1., 
                          (GParamFlags) G_PARAM_READWRITE );
   g_object_class_install_property( gobject_class, 
                                    PROP_BLUR, pspec );
