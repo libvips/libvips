@@ -17,3 +17,6 @@ system. Dennis Lubert cleaned up the C++ API.
 
 Jose Manuel Menendez Garcia, Javier Alejandre Arenas, and Juan Torres Arjona 
 contributed the tmake VIPS.DLL build system and the MSVC project files.
+
+Nicolas Robidoux contributed the nohalo interpolators and helped design the
+VipsInterpolate class.
