@@ -534,11 +534,17 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
   const PEL* restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
 
   /*
-   * Restrict blur parameter to [0,1]:
+   * Clamp blur parameter to [0,1]:
    */
-  const double actual_blur = snohalo1->blur;
+  const double requested_blur = snohalo1->blur;
   const double blur =
-    ( actual_blur >= 0. ? ( actual_blur <= 1. ? actual_blur : 1. ) : 0. );
+    ( 
+      requested_blur >= 0.
+      ?
+      ( requested_blur <= 1. ? requested_blur : 1. )
+      :
+      0.
+    );
 
   /*
    * Double bands for complex images:
