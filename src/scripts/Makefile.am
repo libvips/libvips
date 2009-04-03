@@ -4,7 +4,7 @@ bin_SCRIPTS = \
 	batch_image_convert \
 	batch_rubber_sheet \
 	batch_crop \
-	vips-7.18
+	vips-7.19
 
 noinst_SCRIPTS = post_install
 
