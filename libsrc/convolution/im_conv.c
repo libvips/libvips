@@ -64,6 +64,9 @@
  * 12/5/08
  * 	- int rounding was +1 too much, argh
  * 	- only rebuild the buffer offsets if bpl changes
+ * 5/4/09
+ * 	- tiny speedup ... change ++ to +=1 in inner loop
+ * 	- add restrict, though it doesn't seem to help gcc
  */
 
 /*
@@ -114,12 +117,12 @@
 typedef struct {
 	IMAGE *in;
 	IMAGE *out;
-	INTMASK *mask;	/* Copy of mask arg */
+	INTMASK *mask;		/* Copy of mask arg */
 
-	int nnz;	/* Number of non-zero mask elements */
-	int *coeff;	/* Array of non-zero mask coefficients */
+	int nnz;		/* Number of non-zero mask elements */
+	int * restrict coeff;	/* Array of non-zero mask coefficients */
 
-	int underflow;	/* Global underflow/overflow counts */
+	int underflow;		/* Global underflow/overflow counts */
 	int overflow;
 } Conv;
 
@@ -199,7 +202,7 @@ typedef struct {
 	REGION *ir;		/* Input region */
 
 	int *offsets;		/* Offsets for each non-zero matrix element */
-	PEL **pts;		/* Per-non-zero mask element image pointers */
+	PEL * restrict * restrict pts;	/* Per-non-zero mask element pointers */
 
 	int underflow;		/* Underflow/overflow counts */
 	int overflow;
@@ -259,7 +262,11 @@ conv_start( IMAGE *out, void *a, void *b )
 	return( seq );
 }
 
-#define INNER sum += *t++ * (*p++)[x]
+#define INNER { \
+	sum += *t * (*p)[x]; \
+	t += 1; \
+	p += 1; \
+}
 
 /* INT and FLOAT inner loops.
  */
@@ -267,11 +274,14 @@ conv_start( IMAGE *out, void *a, void *b )
 	TYPE *q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
 	\
 	for( x = 0; x < sz; x++ ) {  \
-		int sum = 0; \
-		int *t = conv->coeff; \
-		TYPE **p = (TYPE **) seq->pts; \
+		int * restrict t; \
+		TYPE ** restrict p; \
+		int sum; \
  		\
 		z = 0; \
+		sum = 0; \
+		t = conv->coeff; \
+		p = (TYPE **) seq->pts; \
 		IM_UNROLL( conv->nnz, INNER ); \
  		\
 		sum = ((sum + rounding) / mask->scale) + mask->offset; \
@@ -286,11 +296,14 @@ conv_start( IMAGE *out, void *a, void *b )
 	TYPE *q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
 	\
 	for( x = 0; x < sz; x++ ) {  \
-		double sum = 0; \
-		int *t = conv->coeff; \
-		TYPE **p = (TYPE **) seq->pts; \
+		int * restrict t; \
+		TYPE ** restrict p; \
+		double sum; \
  		\
 		z = 0; \
+		sum = 0; \
+		t = conv->coeff; \
+		p = (TYPE **) seq->pts; \
 		IM_UNROLL( conv->nnz, INNER ); \
  		\
 		sum = (sum / mask->scale) + mask->offset; \
@@ -405,13 +418,13 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	/* Check parameters.
 	 */
 	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
-		im_errormsg( "im_conv: input non-complex uncoded please!");
+		im_error( "im_conv", "%s", _( "non-complex uncoded only" ) );
 		return( -1 );
 	}
 	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
 		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
 		mask->scale == 0 ) {
-		im_errormsg( "im_conv: nonsense mask parameters" );
+		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
@@ -427,7 +440,7 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	out->Xsize -= mask->xsize - 1;
 	out->Ysize -= mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_errormsg( "im_conv: image too small for mask" );
+		im_error( "im_conv", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
 
