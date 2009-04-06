@@ -1,6 +1,7 @@
 3/4/09 started 7.19.0
 - version bump
 - tiny conv speedup
+- catch lcms error messages
 
 25/3/09 started 7.18.0
 - revised version numbers

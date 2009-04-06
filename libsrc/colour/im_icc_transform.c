@@ -9,6 +9,8 @@
  * 	- lock around cmsDoTransform
  * 23/1/07
  * 	- set RGB16 on 16-bit RGB export
+ * 6/4/09
+ * 	- catch lcms error messages
  */
 
 /*
@@ -173,6 +175,19 @@ typedef struct {
 	GMutex *lock;
 } Icc;
 
+/* Error from lcms.
+ */
+static int 
+icc_error( int code, const char *text )
+{
+	if( code == LCMS_ERRC_WARNING )
+		im_warn( "im_icc", "%s", text );
+	else
+		im_error( "im_icc", "%s", text );
+
+	return( 0 );
+}
+
 static int
 icc_destroy( Icc *icc )
 {
@@ -192,6 +207,7 @@ icc_new( IMAGE *in, IMAGE *out, int intent )
 	/* Ask lcms not to abort on error.
 	 */
 	cmsErrorAction( LCMS_ERROR_IGNORE );
+	cmsSetErrorHandler( icc_error );
 
 	if( !(icc = IM_NEW( out, Icc )) )
 		 return( NULL );
@@ -328,24 +344,6 @@ decode_lab( WORD *fixed, float *lab, int n )
                 fixed += 3;
         }
 }
-
-/*
-
-	lcms calls this on error ... but only for dynamically linked 
-	programs :-(
-
-void 
-cmsSignalError( int code, const char *fmt, ... )
-{
-	va_list ap;
-
-	im_error( "im_icc", "error code #%d from little cms: " );
-
-	va_start( ap, fmt );
-	im_verrormsg( fmt, ap );
-	va_end( ap );
-}
- */
 
 static void
 transform_buf( PEL *in, PEL *out, int n, Icc *icc )
