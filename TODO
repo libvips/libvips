@@ -1,20 +1,8 @@
-- restrict in im_conv
-
-  before
-
-  $ time vips im_conv wtc.v t.v mask.con 
-  vips warning: im_conv: 59722 overflows and 675925 underflows detected
-
-  real	0m13.303s
-  user	0m11.013s
-  sys	0m1.120s
-
-
+- import ~/summer-demo/summer.tif fails with "unable to read embedded
+  profile", is this a bug? better err msg would be good
 
 WONTFIX for 7.18
 ================
-
-- try adding "restrict" to im_conv? other interpolators?
 
 - can we use conv_sep to speed up the memuse benchmarks?
 
