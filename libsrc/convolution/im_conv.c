@@ -65,7 +65,7 @@
  * 	- int rounding was +1 too much, argh
  * 	- only rebuild the buffer offsets if bpl changes
  * 5/4/09
- * 	- tiny speedup ... change ++ to +=1 in inner loop
+ * 	- tiny speedups and cleanups
  * 	- add restrict, though it doesn't seem to help gcc
  */
 
@@ -120,7 +120,7 @@ typedef struct {
 	INTMASK *mask;		/* Copy of mask arg */
 
 	int nnz;		/* Number of non-zero mask elements */
-	int * restrict coeff;	/* Array of non-zero mask coefficients */
+	int *coeff;		/* Array of non-zero mask coefficients */
 
 	int underflow;		/* Global underflow/overflow counts */
 	int overflow;
@@ -202,7 +202,7 @@ typedef struct {
 	REGION *ir;		/* Input region */
 
 	int *offsets;		/* Offsets for each non-zero matrix element */
-	PEL * restrict * restrict pts;	/* Per-non-zero mask element pointers */
+	PEL **pts;		/* Per-non-zero mask element pointers */
 
 	int underflow;		/* Underflow/overflow counts */
 	int overflow;
@@ -263,25 +263,22 @@ conv_start( IMAGE *out, void *a, void *b )
 }
 
 #define INNER { \
-	sum += *t * (*p)[x]; \
-	t += 1; \
-	p += 1; \
+	sum += t[i] * p[i][x]; \
+	i += 1; \
 }
 
 /* INT and FLOAT inner loops.
  */
 #define CONV_INT( TYPE, IM_CLIP ) { \
-	TYPE *q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
+	TYPE ** restrict p = (TYPE **) seq->pts; \
+	TYPE * restrict q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
 	\
 	for( x = 0; x < sz; x++ ) {  \
-		int * restrict t; \
-		TYPE ** restrict p; \
 		int sum; \
+		int i; \
  		\
-		z = 0; \
 		sum = 0; \
-		t = conv->coeff; \
-		p = (TYPE **) seq->pts; \
+		i = 0; \
 		IM_UNROLL( conv->nnz, INNER ); \
  		\
 		sum = ((sum + rounding) / mask->scale) + mask->offset; \
@@ -293,17 +290,15 @@ conv_start( IMAGE *out, void *a, void *b )
 } 
 
 #define CONV_FLOAT( TYPE ) { \
-	TYPE *q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
+	TYPE ** restrict p = (TYPE **) seq->pts; \
+	TYPE * restrict q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
 	\
 	for( x = 0; x < sz; x++ ) {  \
-		int * restrict t; \
-		TYPE ** restrict p; \
 		double sum; \
+		int i; \
  		\
-		z = 0; \
 		sum = 0; \
-		t = conv->coeff; \
-		p = (TYPE **) seq->pts; \
+		i = 0; \
 		IM_UNROLL( conv->nnz, INNER ); \
  		\
 		sum = (sum / mask->scale) + mask->offset; \
@@ -322,6 +317,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	Conv *conv = (Conv *) b;
 	REGION *ir = seq->ir;
 	INTMASK *mask = conv->mask;
+	int * restrict t = conv->coeff; 
 
 	/* You might think this should be (scale+1)/2, but then we'd be adding
 	 * one for scale == 1.
