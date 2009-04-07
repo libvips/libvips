@@ -2,6 +2,7 @@
 - version bump
 - tiny conv speedup
 - catch lcms error messages
+- fix includes for gtk+-3.0
 
 25/3/09 started 7.18.0
 - revised version numbers
