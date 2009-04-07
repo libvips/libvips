@@ -3,6 +3,23 @@
 
   trying to catch errors now, but is it working? not sure
 
+- gtk3.0 tests:
+
+	build with
+
+	#define G_DISABLE_DEPRECATED
+	#define G_DISABLE_SINGLE_INCLUDES
+	#define GDK_DISABLE_DEPRECATED 
+	#define GTK_DISABLE_DEPRECATED
+	#define GDK_DISABLE_SINGLE_INCLUDES 
+	#define GTK_DISABLE_SINGLE_INCLUDES
+
+	paste into config.h, somehow
+
+  change to im_vips2raw.c
+
+- same for nip2
+
 WONTFIX for 7.18
 ================
 

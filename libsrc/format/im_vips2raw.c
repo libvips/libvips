@@ -43,8 +43,7 @@
 #include <time.h>
 #include <limits.h>
 
-#include <glib/gstring.h>
-
+#include <glib.h>
 #include <vips/vips.h>
 
 #ifdef WITH_DMALLOC
