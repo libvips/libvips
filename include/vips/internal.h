@@ -81,6 +81,7 @@ void im__write_2byte( unsigned char **to, unsigned char *from );
 int im__ftruncate( int fd, gint64 pos );
 int im__seek( int fd, gint64 pos );
 int im__get_bytes( const char *filename, unsigned char buf[], int len );
+gint64 im__image_pixel_length( IMAGE *im );
 
 int im__open_image_file( const char * );
 void im__format_init( void );

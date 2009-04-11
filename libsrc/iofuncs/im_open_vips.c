@@ -138,7 +138,7 @@ im__open_image_file( const char *filename )
  * it's sometimes only 32 bits (eg. on many windows build environments) and we
  * want to always be 64 bit.
  */
-static gint64
+gint64
 im__image_pixel_length( IMAGE *im )
 {
 	gint64 psize;

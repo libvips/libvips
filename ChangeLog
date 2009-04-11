@@ -3,6 +3,7 @@
 - tiny conv speedup
 - catch lcms error messages
 - fix includes for gtk+-3.0
+- report virtual memory too in im__print_all()
 
 25/3/09 started 7.18.0
 - revised version numbers
@@ -356,6 +357,7 @@
 - make im_stop_many(NULL) safe (Tom)
 
 24/11/06 started 7.11.17
+1;5Q
 - better benchmark script makes graphing easier
 - double-buffer image file writes
 - reuse write threads

@@ -41,6 +41,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -51,7 +52,7 @@
 GSList *im__open_images = NULL;
 
 static void *
-print_one_line_region( REGION *r, int *n2, int *total )
+print_one_line_region( REGION *r, int *n2, gint64 *total )
 {
 	if( r->type == IM_REGION_BUFFER && r->buffer ) {
 		printf( "\t*** %d) %zd malloced bytes\n", 
@@ -67,7 +68,7 @@ print_one_line_region( REGION *r, int *n2, int *total )
 /* Print a one-line description of an image, with an index.
  */
 static void *
-print_one_line( IMAGE *im, int *n, int *total )
+print_one_line( IMAGE *im, int *n, gint64 *total )
 {
 	printf( "%2d) %p, %s, %s: %dx%d, %d bands, %s\n",
 		*n, 
@@ -78,25 +79,34 @@ print_one_line( IMAGE *im, int *n, int *total )
 	*n += 1;
 
 	if( im->dtype == IM_SETBUF && im->data ) {
-		int size = IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
+		gint64 size = (gint64) IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
 
-		printf( "\t*** %d malloced bytes\n", size );
+		printf( "\t*** %lld malloced bytes\n", size );
 		*total += size;
 	}
 
 	if( im->regions ) {
 		int n2;
-		int total2;
+		gint64 total2;
 
 		printf( "\t%d regions\n", g_slist_length( im->regions ) );
+
 		n2 = 0;
 		total2 = 0;
 		(void) im_slist_map2( im->regions, 
 			(VSListMap2Fn) print_one_line_region, &n2, &total2 );
 		if( total2 )
-			printf( "\t*** using total of %d bytes\n", total2 );
+			printf( "\t*** using total of %lld bytes\n", total2 );
 		*total += total2;
 	}
+
+	return( NULL );
+}
+
+static void *
+add_virtual( IMAGE *im, gint64 *total, void *dummy )
+{
+	*total += im__image_pixel_length( im );
 
 	return( NULL );
 }
@@ -106,15 +116,24 @@ print_one_line( IMAGE *im, int *n, int *total )
 void
 im__print_all( void )
 {
-	int n = 0;
-	int total = 0;
-
 	if( im__open_images ) {
+		int n = 0;
+		gint64 total = 0;
+
+		total = 0;
 		printf( "%d images\n", g_slist_length( im__open_images ) );
 		(void) im_slist_map2( im__open_images, 
 			(VSListMap2Fn) print_one_line, &n, &total );
 		if( total )
-			printf( "\n\t*** all-image total = %d bytes\n", total );
+			printf( "\n\t*** all-image total = %lld real bytes\n", 
+				total );
+
+		total = 0;
+		(void) im_slist_map2( im__open_images, 
+			(VSListMap2Fn) add_virtual, &total, NULL );
+		if( total )
+			printf( "\n\t*** virtual total = %lld bytes\n", 
+				total );
 	}
 }
 
