@@ -480,9 +480,9 @@ snohalo1( const double           blur,
       } while (--band); \
   }
 
-SNOHALO1_INTER( float )
-SNOHALO1_INTER( signed )
-SNOHALO1_INTER( unsigned )
+SNOHALO1_INTER( fptypes )
+SNOHALO1_INTER( hassign )
+SNOHALO1_INTER( nosign )
 
 /* We need C linkage for this.
  */
@@ -550,39 +550,39 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
 
   switch( in->im->BandFmt ) {
   case IM_BANDFMT_UCHAR:
-    CALL( unsigned char, unsigned );
+    CALL( unsigned char, nosign );
     break;
 
   case IM_BANDFMT_CHAR:
-    CALL( signed char, signed );
+    CALL( signed char, hassign );
     break;
   
   case IM_BANDFMT_USHORT:
-    CALL( unsigned short, unsigned );
+    CALL( unsigned short, nosign );
     break;
   
   case IM_BANDFMT_SHORT:
-    CALL( signed short, signed );
+    CALL( signed short, hassign );
     break;
   
   case IM_BANDFMT_UINT:
-    CALL( unsigned int, unsigned );
+    CALL( unsigned int, nosign );
     break;
   
   case IM_BANDFMT_INT:
-    CALL( signed int, signed );
+    CALL( signed int, hassign );
     break;
   
   /* Complex images handled by doubling of bands, see above.
    */
   case IM_BANDFMT_FLOAT:
   case IM_BANDFMT_COMPLEX:
-    CALL( float, float );
+    CALL( float, fptypes );
     break;
   
   case IM_BANDFMT_DOUBLE:
   case IM_BANDFMT_DPCOMPLEX:
-    CALL( double, float );
+    CALL( double, fptypes );
     break;
   
   default:

@@ -46,7 +46,7 @@
 /* Bilinear for float and double types.
  */
 template <typename T> static T inline
-bilinear_float( 
+bilinear_fptypes( 
 	const double w_times_z,
 	const double x_times_z,
 	const double w_times_y,
@@ -68,7 +68,7 @@ bilinear_float(
 /* Interpolate for signed integer types.
  */
 template <typename T> static T inline
-bilinear_signed( 
+bilinear_hassign( 
 	const double w_times_z,
 	const double x_times_z,
 	const double w_times_y,
@@ -96,7 +96,7 @@ bilinear_signed(
 /* Interpolate for unsigned integer types.
  */
 template <typename T> static T inline
-bilinear_unsigned( 
+bilinear_nosign( 
 	const double w_times_z,
 	const double x_times_z,
 	const double w_times_y,
