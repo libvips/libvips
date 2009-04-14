@@ -81,7 +81,7 @@ print_one_line( IMAGE *im, int *n, gint64 *total )
 	if( im->dtype == IM_SETBUF && im->data ) {
 		gint64 size = (gint64) IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
 
-		printf( "\t*** %lld malloced bytes\n", size );
+		printf( "\t*** %" G_GINT64_FORMAT " malloced bytes\n", size );
 		*total += size;
 	}
 
@@ -96,7 +96,8 @@ print_one_line( IMAGE *im, int *n, gint64 *total )
 		(void) im_slist_map2( im->regions, 
 			(VSListMap2Fn) print_one_line_region, &n2, &total2 );
 		if( total2 )
-			printf( "\t*** using total of %lld bytes\n", total2 );
+			printf( "\t*** using total of %" G_GINT64_FORMAT 
+				" bytes\n", total2 );
 		*total += total2;
 	}
 
@@ -125,14 +126,16 @@ im__print_all( void )
 		(void) im_slist_map2( im__open_images, 
 			(VSListMap2Fn) print_one_line, &n, &total );
 		if( total )
-			printf( "\n\t*** all-image total = %lld real bytes\n", 
+			printf( "\n\t*** all-image total = %" G_GINT64_FORMAT 
+				" real bytes\n", 
 				total );
 
 		total = 0;
 		(void) im_slist_map2( im__open_images, 
 			(VSListMap2Fn) add_virtual, &total, NULL );
 		if( total )
-			printf( "\n\t*** virtual total = %lld bytes\n", 
+			printf( "\n\t*** virtual total = %" G_GINT64_FORMAT
+				" bytes\n", 
 				total );
 	}
 }
