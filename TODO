@@ -3,6 +3,12 @@
 
   trying to catch errors now, but is it working? not sure
 
+- use
+
+	http://library.gnome.org/devel/glib/stable/glib-Byte-Order-Macros.html
+
+  for swapping ... they are asm macros so we should see a speedup
+
 WONTFIX for 7.18
 ================
 
