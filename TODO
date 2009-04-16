@@ -3,6 +3,8 @@
 
   trying to catch errors now, but is it working? not sure
 
+- look into G_GNUC_DEPRECATED for back compat in vips8
+
 - use
 
 	http://library.gnome.org/devel/glib/stable/glib-Byte-Order-Macros.html
