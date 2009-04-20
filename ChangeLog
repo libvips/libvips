@@ -5,6 +5,7 @@
 - fix includes for gtk+-3.0
 - report virtual memory too in im__print_all()
 - cosmetic changes to nohalo
+- im_magick2vips() needs to invert alpha
 
 25/3/09 started 7.18.0
 - revised version numbers

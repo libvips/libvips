@@ -24,6 +24,9 @@
  * 	- allow funky bit depths, like 14 (thanks Mikkel)
  * 17/3/09
  * 	- reset dcm:display-range to help DICOM read
+ * 20/4/09
+ * 	- argh libMagick uses 255 == transparent ... we must invert all 
+ * 	  alpha channels
  */
 
 /*
@@ -401,7 +404,7 @@ parse_header( Read *read )
 	\
 	for( x = 0; x < n; x++ ) { \
 		q[0] = pixels[x].green / SCALE( MAX ); \
-		q[1] = pixels[x].opacity / SCALE( MAX ); \
+		q[1] = MAX - pixels[x].opacity / SCALE( MAX ); \
 		\
 		q += 2; \
 	} \
@@ -426,7 +429,7 @@ parse_header( Read *read )
 		q[0] = pixels[x].red / SCALE( MAX ); \
 		q[1] = pixels[x].green / SCALE( MAX ); \
 		q[2] = pixels[x].blue / SCALE( MAX ); \
-		q[3] = pixels[x].opacity / SCALE( MAX ); \
+		q[3] = MAX - pixels[x].opacity / SCALE( MAX ); \
 		\
 		q += 4; \
 	} \
