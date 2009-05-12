@@ -2,6 +2,9 @@
  *
  * 2006-09-21 tcv
  * random access to images and regions
+ *
+ * 12/5/09
+ *	- add casts to IM__VALUE_FROM_ARRAY() to remove confusion about the type of the result
  */
 
 #ifndef IM_R_ACCESS_H
@@ -25,14 +28,14 @@
 #define IM__DOUBLE_FROM_ARRAY(vptr,i)  IM__TYPE_FROM_ARRAY( double,  (vptr), (i) )
 
 #define IM__VALUE_FROM_ARRAY(band_fmt,vptr,i)  (                                 \
-     ( IM_BANDFMT_DOUBLE == (band_fmt) ) ? IM__DOUBLE_FROM_ARRAY( (vptr), (i) )  \
-   :  ( IM_BANDFMT_FLOAT == (band_fmt) ) ?  IM__FLOAT_FROM_ARRAY( (vptr), (i) )  \
-   :    ( IM_BANDFMT_INT == (band_fmt) ) ?    IM__INT_FROM_ARRAY( (vptr), (i) )  \
-   :   ( IM_BANDFMT_UINT == (band_fmt) ) ?   IM__UINT_FROM_ARRAY( (vptr), (i) )  \
-   :  ( IM_BANDFMT_SHORT == (band_fmt) ) ?  IM__SHORT_FROM_ARRAY( (vptr), (i) )  \
-   : ( IM_BANDFMT_USHORT == (band_fmt) ) ? IM__USHORT_FROM_ARRAY( (vptr), (i) )  \
-   :   ( IM_BANDFMT_CHAR == (band_fmt) ) ?   IM__CHAR_FROM_ARRAY( (vptr), (i) )  \
-   :                                        IM__UCHAR_FROM_ARRAY( (vptr), (i) ) )
+     ( IM_BANDFMT_DOUBLE == (band_fmt) ) ? (double) IM__DOUBLE_FROM_ARRAY( (vptr), (i) )  \
+   :  ( IM_BANDFMT_FLOAT == (band_fmt) ) ?  (double) IM__FLOAT_FROM_ARRAY( (vptr), (i) )  \
+   :    ( IM_BANDFMT_INT == (band_fmt) ) ?    (double) IM__INT_FROM_ARRAY( (vptr), (i) )  \
+   :   ( IM_BANDFMT_UINT == (band_fmt) ) ?   (double) IM__UINT_FROM_ARRAY( (vptr), (i) )  \
+   :  ( IM_BANDFMT_SHORT == (band_fmt) ) ?  (double) IM__SHORT_FROM_ARRAY( (vptr), (i) )  \
+   : ( IM_BANDFMT_USHORT == (band_fmt) ) ? (double) IM__USHORT_FROM_ARRAY( (vptr), (i) )  \
+   :   ( IM_BANDFMT_CHAR == (band_fmt) ) ?   (double) IM__CHAR_FROM_ARRAY( (vptr), (i) )  \
+   :                                        (double) IM__UCHAR_FROM_ARRAY( (vptr), (i) ) )
 
 #define IM__ARRAY_ASSIGNMENT(band_fmt,vptr,i,val)  (                                        \
      ( IM_BANDFMT_DOUBLE == (band_fmt) ) ? ( IM__DOUBLE_FROM_ARRAY( (vptr), (i) )= (val) )  \

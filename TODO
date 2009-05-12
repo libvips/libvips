@@ -1,3 +1,11 @@
+- IMAGE->file_length should be gint64 rather than size_t?
+
+  if we make this change, need to remove extra casts from various uses
+
+- rename "header" program? or maybe use "vips header" instead?
+
+  it's disabled on ubuntu due to a name clash
+
 - import ~/summer-demo/summer.tif fails with "unable to read embedded
   profile", is this a bug? better err msg would be good
 

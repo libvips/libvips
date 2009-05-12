@@ -29,6 +29,8 @@
  * 	- use int64 for size calcs so we can map >31 bit files on 64 bit
  * 	  machines
  * 	- delay mmap() for large files, cf. im_openin()
+ * 12/5/09
+ *	- fix signed/unsigned warnings
  */
 
 /*
@@ -84,6 +86,7 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 {
 	IMAGE *im;
 	gint64 psize;
+	gint64 rsize;
 
 	/* Check parameters.
 	 */
@@ -108,17 +111,18 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 	 */
 	psize = (gint64) xs * ys * bands + offset;
 
-	/* Read the file length and check against what we think 
+	/* Read the real file length and check against what we think 
 	 * the size should be.
 	 */
-	if( (im->file_length = im_file_length( im->fd )) == -1 ) {
+	if( (rsize = im_file_length( im->fd )) == -1 ) {
 		im_close( im );
 		return( NULL );
 	}
+	im->file_length = (size_t) rsize;
 
 	/* Very common, so special message.
 	 */
-	if( psize > im->file_length ) {
+	if( psize > rsize ) {
 		im_error( "im_binfile", _( "unable to open %s: "
 			"file has been truncated" ), im->filename );
 		im_close( im );
@@ -128,7 +132,7 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 	/* Just wierd. Only print a warning for this, since we should
 	 * still be able to process it without coredumps.
 	 */
-	if( psize < im->file_length )
+	if( psize < rsize )
 		im_warn( "im_binfile", _( "%s is longer than expected" ),
 			im->filename );
 

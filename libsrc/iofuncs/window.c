@@ -231,7 +231,7 @@ im_window_set( im_window_t *window, int top, int height )
 
 	/* Make sure we have enough file.
 	 */
-	if( end > window->im->file_length ) {
+	if( end > (gint64) window->im->file_length ) {
 		im_error( "im_window_set", 
 			_( "unable to read data for \"%s\", %s" ),
 			window->im->filename, _( "file has been truncated" ) );

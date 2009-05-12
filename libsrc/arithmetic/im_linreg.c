@@ -13,6 +13,9 @@
  * Author: Tom Vajzovic
  *
  * Written on: 2006-12-26
+ *
+ * 12/5/09
+ *	- make x_anal() static, fix some signed/unsigned warnings
  */
 
 /*
@@ -89,7 +92,7 @@ LINREG_SEQ( double );
 
 /** LOCAL FUNCTION DECLARATIONS **/
 
-x_set *x_anal( IMAGE *im, double *xs, unsigned int n );
+static x_set *x_anal( IMAGE *im, double *xs, unsigned int n );
 
 #define LINREG_START_DECL( TYPE ) static void * linreg_start_ ## TYPE( IMAGE *, void *, void * );
 #define LINREG_GEN_DECL( TYPE ) static int linreg_gen_ ## TYPE( REGION *, void *, void *, void * );
@@ -246,8 +249,8 @@ int im_linreg( IMAGE **ins, IMAGE *out, double *xs ){
 
 /** LOCAL FUNCTION DECLARATIONS **/
 
-x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
-  int i;
+static x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
+  unsigned int i;
 
   x_set *x_vals= IM_NEW( im, x_set );
 
@@ -321,7 +324,7 @@ x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
   double *out_end= out + out_skip * to_make-> valid. height;                                        \
   double *out_stop;                                                                                 \
   size_t out_n= IM_REGION_N_ELEMENTS( to_make );                                                    \
-  int i;                                                                                            \
+  unsigned int i;                                                                                            \
                                                                                                     \
   out_skip-= out_n;                                                                                 \
                                                                                                     \

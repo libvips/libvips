@@ -101,10 +101,10 @@ int im_point_bilinear( IMAGE *im, double x, double y, int band, double *val ){
 
   if( x_frac )
     if( y_frac )
-      *val=      x_frac      *      y_frac      * IM_REGION_VALUE( reg, ((int)x + 1), ((int)y + 1), band )
-          +      x_frac      * ( 1.0 - y_frac ) * IM_REGION_VALUE( reg, ((int)x + 1),    (int)y   , band )
-          + ( 1.0 - x_frac ) *      y_frac      * IM_REGION_VALUE( reg,    (int)x,    ((int)y + 1), band )
-          + ( 1.0 - x_frac ) * ( 1.0 - y_frac ) * IM_REGION_VALUE( reg,    (int)x,       (int)y   , band );
+      *val=      x_frac      *      y_frac      * (double) IM_REGION_VALUE( reg, ((int)x + 1), ((int)y + 1), band )
+          +      x_frac      * ( 1.0 - y_frac ) * (double) IM_REGION_VALUE( reg, ((int)x + 1),    (int)y   , band )
+          + ( 1.0 - x_frac ) *      y_frac      * (double) IM_REGION_VALUE( reg,    (int)x,    ((int)y + 1), band )
+          + ( 1.0 - x_frac ) * ( 1.0 - y_frac ) * (double) IM_REGION_VALUE( reg,    (int)x,       (int)y   , band );
 
     else
       *val=      x_frac      * IM_REGION_VALUE( reg, ((int)x + 1), (int)y, band )

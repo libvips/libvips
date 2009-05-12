@@ -12,6 +12,8 @@
  *	- from im_tiff2vips and im_vips2jpeg, plus some stuff from Steve
  * 11/7/01 JC
  *	- page number now in filename
+ * 12/5/09
+ *	- fix signed/unsigned warning
  */
 
 /*
@@ -57,15 +59,16 @@
 static int
 extract( IMAGE *in, int x, int y, int w, int h )
 {
+	IMAGE *t1;
 	int len;
 	char *buf;
-	IMAGE *t1 = im_open_local( in, "im_bernd:2", "p" );
 
-	if( im_extract_area( in, t1, x, y, w, h ) ||
+	if( !(t1 = im_open_local( in, "im_bernd:2", "p" )) ||
+		im_extract_area( in, t1, x, y, w, h ) ||
 		im_vips2bufjpeg( t1, in, 75, &buf, &len ) )
 		return( -1 );
 
-	if( fwrite( buf, sizeof( char ), len, stdout ) != len ) {
+	if( fwrite( buf, sizeof( char ), len, stdout ) != (size_t) len ) {
 		im_error( "im_bernd", "%s", _( "error writing output" ) );
 		return( -1 );
 	}

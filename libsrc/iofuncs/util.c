@@ -249,7 +249,7 @@ vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b )
 {
 	GType *child;
 	guint n_children;
-	int i;
+	unsigned int i;
 	void *result;
 
 	child = g_type_children( base, &n_children );
@@ -1098,7 +1098,7 @@ im__gslist_gvalue_get( const GSList *list )
 		q += 1;
 	}
 
-	assert( q - all == length );
+	g_assert( (size_t) (q - all) == length );
 
 	return( all );
 }

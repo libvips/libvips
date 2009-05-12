@@ -803,7 +803,7 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 static int
 vips_object_set_arg( VipsObject *object, const char *name, const char *value )
 {
-	GValue gvalue = { 0, };
+	GValue gvalue = { 0 };
 
 	g_value_init( &gvalue, G_TYPE_STRING );
 	g_value_set_string( &gvalue, value );

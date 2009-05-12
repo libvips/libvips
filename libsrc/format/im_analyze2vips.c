@@ -4,6 +4,8 @@
  * 	- dbh.h header from Ralph Myers
  * 22/8/05
  * 	- better byteswapper
+ * 12/5/09
+ *	- fix signed/unsigned warning
  */
 
 /*
@@ -312,7 +314,7 @@ read_header( const char *header )
 
 	/* Ouch! Should check at configure time I guess.
 	 */
-	assert( sizeof( struct dsr ) == 348 );
+	g_assert( sizeof( struct dsr ) == 348 );
 
 	/* dsr headers are always SPARC byte order (MSB first). Do we need to 
 	 * swap?
@@ -348,7 +350,7 @@ read_header( const char *header )
 		}
 	}
 
-	if( len != d->hk.sizeof_hdr ) {
+	if( (int) len != d->hk.sizeof_hdr ) {
 		im_free( d );
 		return( NULL );
 	}

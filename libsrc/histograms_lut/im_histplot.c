@@ -38,6 +38,8 @@
  * 14/12/05
  * 	- redone plot function in C, also use incheck() to cache calcs
  * 	- much, much faster!
+ * 12/5/09
+ *	- fix signed/unsigned warning
  */
 
 /*
@@ -145,7 +147,7 @@ normalise( IMAGE *in, IMAGE *out )
 	\
 	for( x = le; x < ri; x++ ) { \
 		for( z = 0; z < nb; z++ )  \
-			q[z] = p1[z] < x ? 0 : 255; \
+			q[z] = p1[z] < ((TYPE) x) ? 0 : 255; \
 		\
 		q += nb; \
 	} \
@@ -198,7 +200,7 @@ make_vert_gen( REGION *or, void *seq, void *a, void *b )
 	\
 	for( y = to; y < bo; y++ ) { \
 		for( z = 0; z < nb; z++ )  \
-			q[z] = p1[z] < (ht - y) ? 0 : 255; \
+			q[z] = p1[z] < ((TYPE) (ht - y)) ? 0 : 255; \
 		\
 		q += lsk; \
 	} \

@@ -284,8 +284,8 @@ im_threadgroup_wait( im_threadgroup_t *tg )
 
 	g_mutex_lock( tg->idle_lock );
 
-	assert( tg->idle );
-	assert( g_slist_length( tg->idle ) == tg->nthr );
+	g_assert( tg->idle );
+	g_assert( g_slist_length( tg->idle ) == (unsigned int) tg->nthr );
 
 	g_mutex_unlock( tg->idle_lock );
 

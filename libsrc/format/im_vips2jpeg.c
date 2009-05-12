@@ -25,6 +25,8 @@
  * 	- use im_wbuffer() API for BG writes
  * 15/2/08
  * 	- write CMYK if Bands == 4 and Type == CMYK
+ * 12/5/09
+ *	- fix signed/unsigned warning
  */
 
 /*
@@ -815,6 +817,9 @@ buf_dest( j_compress_ptr cinfo, IMAGE *out, char **obuf, int *olen )
 /* As above, but save to a buffer. The buffer is allocated relative to out.
  * On success, buf is set to the output buffer and len to the size of the
  * compressed image.
+
+ 	FIXME ... argh, the retuen length should really be a size_t, but we can't fix this now sadly
+
  */
 int
 im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen )
@@ -877,7 +882,7 @@ im_vips2mimejpeg( IMAGE *in, int qfac )
 	printf( "Content-length: %d\r\n", len );
 	printf( "Content-type: image/jpeg\r\n" );
 	printf( "\r\n" );
-	if( fwrite( buf, sizeof( char ), len, stdout ) != len ) {
+	if( fwrite( buf, sizeof( char ), len, stdout ) != (size_t) len ) {
 		im_error( "im_vips2mimejpeg", 
 			"%s", _( "error writing output" ) );
 		return( -1 );

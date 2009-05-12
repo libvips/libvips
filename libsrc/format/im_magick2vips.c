@@ -27,6 +27,8 @@
  * 20/4/09
  * 	- argh libMagick uses 255 == transparent ... we must invert all 
  * 	  alpha channels
+ * 12/5/09
+ *	- fix signed/unsigned warnings
  */
 
 /*
@@ -355,9 +357,9 @@ parse_header( Read *read )
 	 */
 	read->n_frames = 0;
 	for( p = image; p; (p = GetNextImageInList( p )) ) {
-		if( p->columns != im->Xsize ||
-			p->rows != im->Ysize ||
-			p->depth != im->Bbits ||
+		if( p->columns != (unsigned int) im->Xsize ||
+			p->rows != (unsigned int) im->Ysize ||
+			p->depth != (unsigned int) im->Bbits ||
 			get_bands( p ) != im->Bands )
 			break;
 

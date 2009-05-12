@@ -5,6 +5,8 @@
  * 	  im_openout.c
  * 19/3/09
  *	- block mmaps of nodata images
+ * 12/5/09
+ *	- fix signed/unsigned warnings
  */
 
 /*
@@ -311,7 +313,7 @@ read_chunk( int fd, gint64 offset, size_t length )
 		return( NULL );
 	if( !(buf = im_malloc( NULL, length + 1 )) )
 		return( NULL );
-	if( read( fd, buf, length ) != length ) {
+	if( read( fd, buf, length ) != (ssize_t) length ) {
 		im_free( buf );
 		im_error( "im_readhist", "%s", _( "unable to read history" ) );
 		return( NULL );
@@ -894,6 +896,7 @@ im__read_header( IMAGE *image )
 	unsigned char header[IM_SIZEOF_HEADER];
 
 	gint64 psize;
+	gint64 rsize;
 
 	image->dtype = IM_OPENIN;
 	if( (image->fd = im__open_image_file( image->filename )) == -1 ) 
@@ -909,9 +912,10 @@ im__read_header( IMAGE *image )
 	/* Predict and check the file size.
 	 */
 	psize = im__image_pixel_length( image );
-	if( (image->file_length = im_file_length( image->fd )) == -1 ) 
+	if( (rsize = im_file_length( image->fd )) == -1 ) 
 		return( -1 );
-	if( psize > image->file_length ) 
+	image->file_length = rsize;
+	if( psize > rsize ) 
 		im_warn( "im_openin", _( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
 
@@ -960,7 +964,7 @@ im_openin( IMAGE *image )
 	size = (gint64) IM_IMAGE_SIZEOF_LINE( image ) * image->Ysize + 
 		image->sizeof_header;
 	if( size < im__mmap_limit && 
-		image->file_length >= size ) {
+		(gint64) image->file_length >= size ) {
 		if( im_mapfile( image ) )
 			return( -1 );
 		image->data = image->baseaddr + image->sizeof_header;

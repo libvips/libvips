@@ -59,6 +59,9 @@ Modified on:
 23/7/07 JC
 	- oop, needed a slightly larger worst-case buffer in im__b64_encode()
 
+12/5/09
+	- fix signed/unsigned warning
+
  */
 
 /*
@@ -262,7 +265,7 @@ im__b64_decode( const char *buffer, size_t *data_length )
 		}
 	}
 
-	assert( p - data < output_data_length );
+	g_assert( (size_t) (p - data) < output_data_length );
 
 	if( data_length )
 		*data_length = p - data;
