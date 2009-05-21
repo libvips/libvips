@@ -1,3 +1,6 @@
+- vip2dj -rotate STILL does not always work, eg. try
+  /data/john/study2/small0.v ... should NOT rotate, but it does
+
 - IMAGE->file_length should be gint64 rather than size_t?
 
   if we make this change, need to remove extra casts from various uses
