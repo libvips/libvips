@@ -1,7 +1,10 @@
 /* nohalo level 1 interpolator
  *
  * Hacked for vips by J. Cupitt, 20/1/09
+ *
  * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
+ *
+ * Tweaks by N. Robidoux 25/5/09
  *
  * 16/3/09
  * 	- rename as nohalo1
@@ -39,9 +42,9 @@
  * 2009 (c) Nicolas Robidoux
  *
  * Nicolas thanks Geert Jordaens, John Cupitt, Minglun Gong, Øyvind
- * Kolås and Sven Neumann for useful comments and code.
+ * Kolås, Ralf Meyer and Sven Neumann for useful comments and code.
  *
- * Nicolas Robidoux's research on nohalo funded in part by an NSERC
+ * Nicolas Robidoux's research on Nohalo funded in part by an NSERC
  * (National Science and Engineering Research Council of Canada)
  * Discovery Grant.
  */
@@ -356,7 +359,7 @@ nohalo1( const double           uno_two,
   const double troi_thr = qua_thr - tre_thr;
 
   /*
-   * Products and differences useful for minmod:
+   * Products useful for minmod:
    */
   const double deux_prem_dos = deux_dos * prem_dos;
   const double deux_deux_dos = deux_dos * deux_dos;
@@ -366,12 +369,6 @@ nohalo1( const double           uno_two,
   const double deux_deux_two = deux_two * deux_two;
   const double deux_troi_two = deux_two * troi_two;
 
-  const double deux_prem_minus_deux_deux_dos = deux_prem_dos - deux_deux_dos;
-  const double deux_troi_minus_deux_deux_dos = deux_troi_dos - deux_deux_dos;
-
-  const double deux_prem_minus_deux_deux_two = deux_prem_two - deux_deux_two;
-  const double deux_troi_minus_deux_deux_two = deux_troi_two - deux_deux_two;
-
   const double deux_prem_tre = deux_tre * prem_tre;
   const double deux_deux_tre = deux_tre * deux_tre;
   const double deux_troi_tre = deux_tre * troi_tre;
@@ -380,6 +377,15 @@ nohalo1( const double           uno_two,
   const double deux_deux_thr = deux_thr * deux_thr;
   const double deux_troi_thr = deux_thr * troi_thr;
 
+  /*
+   * Differences useful for minmod:
+   */
+  const double deux_prem_minus_deux_deux_dos = deux_prem_dos - deux_deux_dos;
+  const double deux_troi_minus_deux_deux_dos = deux_troi_dos - deux_deux_dos;
+
+  const double deux_prem_minus_deux_deux_two = deux_prem_two - deux_deux_two;
+  const double deux_troi_minus_deux_deux_two = deux_troi_two - deux_deux_two;
+
   const double deux_prem_minus_deux_deux_tre = deux_prem_tre - deux_deux_tre;
   const double deux_troi_minus_deux_deux_tre = deux_troi_tre - deux_deux_tre;
 
@@ -387,59 +393,60 @@ nohalo1( const double           uno_two,
   const double deux_troi_minus_deux_deux_thr = deux_troi_thr - deux_deux_thr;
 
   /*
-   * Useful sums:
+   * Useful terms computer here to put "space" between the computation
+   * of components of flag variables and their use:
    */
-  const double dos_two_plus_dos_thr = dos_two + dos_thr;
-  const double dos_two_plus_tre_two = dos_two + tre_two;
-  const double deux_thr_plus_deux_dos = deux_thr + deux_dos;
+  const double twice_dos_two_plus_dos_thr = ( dos_two + dos_thr ) * 2.;
+  const double twice_dos_two_plus_tre_two = ( dos_two + tre_two ) * 2.;
+  const double twice_deux_thr_plus_deux_dos = ( deux_thr + deux_dos ) * 2.;
 
   /*
    * Compute the needed "right" (at the boundary between one input
    * pixel areas) double resolution pixel value:
    */
   const double four_times_dos_twothr =
+    twice_dos_two_plus_dos_thr
+    +
     FAST_MINMOD( deux_dos, prem_dos, deux_prem_dos,
                  deux_prem_minus_deux_deux_dos )
     -
     FAST_MINMOD( deux_dos, troi_dos, deux_troi_dos,
-                 deux_troi_minus_deux_deux_dos )
-    +
-    2. * dos_two_plus_dos_thr;
+                 deux_troi_minus_deux_deux_dos );
 
   /*
    * Compute the needed "down" double resolution pixel value:
    */
   const double four_times_dostre_two =
+    twice_dos_two_plus_tre_two
+    +
     FAST_MINMOD( deux_two, prem_two, deux_prem_two,
                  deux_prem_minus_deux_deux_two )
     -
     FAST_MINMOD( deux_two, troi_two, deux_troi_two,
-                 deux_troi_minus_deux_deux_two )
-    +
-    2. * dos_two_plus_tre_two;
+                 deux_troi_minus_deux_deux_two );
 
   /*
    * Compute the "diagonal" (at the boundary between thrr input
    * pixel areas) double resolution pixel value:
    */
   const double eight_times_dostre_twothr =
+    twice_deux_thr_plus_deux_dos
+    +
     FAST_MINMOD( deux_tre, prem_tre, deux_prem_tre,
                  deux_prem_minus_deux_deux_tre )
-    +
-    2. * deux_thr_plus_deux_dos
     -
     FAST_MINMOD( deux_tre, troi_tre, deux_troi_tre,
                  deux_troi_minus_deux_deux_tre )
     +
-    four_times_dos_twothr
-    +
     FAST_MINMOD( deux_thr, prem_thr, deux_prem_thr,
                  deux_prem_minus_deux_deux_thr )
-    +
-    four_times_dostre_two
     -
     FAST_MINMOD( deux_thr, troi_thr, deux_troi_thr,
-                 deux_troi_minus_deux_deux_thr );
+                 deux_troi_minus_deux_deux_thr )
+    +
+    four_times_dos_twothr
+    +
+    four_times_dostre_two;
 
   /*
    * Return the first newly computed double density values:
@@ -450,8 +457,8 @@ nohalo1( const double           uno_two,
 }
 
 /* Call nohalo1 with an interpolator as a parameter.
- * It'd be nice to do this with templates somehow :-( but I can't see a
- * clean way to do it.
+ * It'd be nice to do this with templates somehow :-( but I can't see
+ * a clean way to do it.
  */
 #define NOHALO1_INTER( inter ) \
   template <typename T> static void inline \
