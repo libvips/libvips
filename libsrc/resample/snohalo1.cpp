@@ -1,5 +1,8 @@
 /* snohalo (smooth nohalo) level 1 interpolator
  *
+ * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
+ *
+ * Tweaks by N. Robidoux 25/5/09
  */
 
 /*
@@ -175,62 +178,62 @@ snohalo1( const double           blur,
   const double uno_two =
     beta * uno_two_in
     +
-    ( uno_one_plus_zer_two_in + dos_two_plus_uno_thr_in ) * gamma;
+    gamma * ( uno_one_plus_zer_two_in + dos_two_plus_uno_thr_in );
 
   const double uno_thr =
     beta * uno_thr_in 
     +
-    ( uno_two_plus_zer_thr_in + dos_thr_plus_uno_fou_in ) * gamma;
+    gamma * ( uno_two_plus_zer_thr_in + dos_thr_plus_uno_fou_in );
 
   const double dos_one =
     beta * dos_one_in
     +
-    ( dos_zer_plus_uno_one_in + tre_one_plus_dos_two_in ) * gamma;
+    gamma * ( dos_zer_plus_uno_one_in + tre_one_plus_dos_two_in );
 
   const double dos_two =
     beta * dos_two_in
     +
-    ( dos_one_plus_uno_two_in + tre_two_plus_dos_thr_in ) * gamma;
+    gamma * ( dos_one_plus_uno_two_in + tre_two_plus_dos_thr_in );
 
   const double dos_thr =
     beta * dos_thr_in 
     +
-    ( dos_two_plus_uno_thr_in + tre_thr_plus_dos_fou_in ) * gamma;
+    gamma * ( dos_two_plus_uno_thr_in + tre_thr_plus_dos_fou_in );
 
   const double dos_fou =
     beta * dos_fou_in 
     +
-    ( dos_thr_plus_uno_fou_in + tre_fou_plus_dos_fiv_in ) * gamma;
+    gamma * ( dos_thr_plus_uno_fou_in + tre_fou_plus_dos_fiv_in );
 
   const double tre_one =
     beta * tre_one_in
     +
-    ( tre_zer_plus_dos_one_in + qua_one_plus_tre_two_in ) * gamma;
+    gamma * ( tre_zer_plus_dos_one_in + qua_one_plus_tre_two_in );
 
   const double tre_two =
     beta * tre_two_in
     +
-    ( tre_one_plus_dos_two_in + qua_two_plus_tre_thr_in ) * gamma;
+    gamma * ( tre_one_plus_dos_two_in + qua_two_plus_tre_thr_in );
 
   const double tre_thr =
     beta * tre_thr_in 
     +
-    ( tre_two_plus_dos_thr_in + qua_thr_plus_tre_fou_in ) * gamma;
+    gamma * ( tre_two_plus_dos_thr_in + qua_thr_plus_tre_fou_in );
 
   const double tre_fou =
     beta * tre_fou_in 
     +
-    ( tre_thr_plus_dos_fou_in + qua_fou_plus_tre_fiv_in ) * gamma;
+    gamma * ( tre_thr_plus_dos_fou_in + qua_fou_plus_tre_fiv_in );
 
   const double qua_two =
     beta * qua_two_in
     +
-    ( qua_one_plus_tre_two_in + cin_two_plus_qua_thr_in ) * gamma;
+    gamma * ( qua_one_plus_tre_two_in + cin_two_plus_qua_thr_in );
 
   const double qua_thr =
     beta * qua_thr_in 
     +
-    ( qua_two_plus_tre_thr_in + cin_thr_plus_qua_fou_in ) * gamma;
+    gamma * ( qua_two_plus_tre_thr_in + cin_thr_plus_qua_fou_in );
 
   /*
    * Dos(s) horizontal differences:
@@ -258,10 +261,7 @@ snohalo1( const double           blur,
   const double troi_thr = qua_thr - tre_thr;
 
   /*
-   * Apply minmod to comsecutive differences:
-   */
-  /*
-   * Products and differences useful for minmod:
+   * Products useful for minmod:
    */
   const double deux_prem_dos = deux_dos * prem_dos;
   const double deux_deux_dos = deux_dos * deux_dos;
@@ -271,12 +271,6 @@ snohalo1( const double           blur,
   const double deux_deux_two = deux_two * deux_two;
   const double deux_troi_two = deux_two * troi_two;
 
-  const double deux_prem_minus_deux_deux_dos = deux_prem_dos - deux_deux_dos;
-  const double deux_troi_minus_deux_deux_dos = deux_troi_dos - deux_deux_dos;
-
-  const double deux_prem_minus_deux_deux_two = deux_prem_two - deux_deux_two;
-  const double deux_troi_minus_deux_deux_two = deux_troi_two - deux_deux_two;
-
   const double deux_prem_tre = deux_tre * prem_tre;
   const double deux_deux_tre = deux_tre * deux_tre;
   const double deux_troi_tre = deux_tre * troi_tre;
@@ -285,6 +279,15 @@ snohalo1( const double           blur,
   const double deux_deux_thr = deux_thr * deux_thr;
   const double deux_troi_thr = deux_thr * troi_thr;
 
+  /*
+   * Differences useful for minmod:
+   */
+  const double deux_prem_minus_deux_deux_dos = deux_prem_dos - deux_deux_dos;
+  const double deux_troi_minus_deux_deux_dos = deux_troi_dos - deux_deux_dos;
+
+  const double deux_prem_minus_deux_deux_two = deux_prem_two - deux_deux_two;
+  const double deux_troi_minus_deux_deux_two = deux_troi_two - deux_deux_two;
+
   const double deux_prem_minus_deux_deux_tre = deux_prem_tre - deux_deux_tre;
   const double deux_troi_minus_deux_deux_tre = deux_troi_tre - deux_deux_tre;
 
@@ -292,21 +295,22 @@ snohalo1( const double           blur,
   const double deux_troi_minus_deux_deux_thr = deux_troi_thr - deux_deux_thr;
 
   /*
-   * Useful sums:
+   * The following terms are computed here to put "space" between the
+   * computation of components of flag variables and their use:
    */
-  const double dos_two_plus_dos_thr = dos_two + dos_thr;
-  const double dos_two_plus_tre_two = dos_two + tre_two;
-  const double deux_thr_plus_deux_dos = deux_thr + deux_dos;
+  const double twice_dos_two_plus_dos_thr = ( dos_two + dos_thr ) * 2.;
+  const double twice_dos_two_plus_tre_two = ( dos_two + tre_two ) * 2.;
+  const double twice_deux_thr_plus_deux_dos = ( deux_thr + deux_dos ) * 2.;
 
   /*
    * Compute the needed "right" (at the boundary between one input
    * pixel areas) double resolution pixel value:
    */
   const double four_times_dos_twothr =
+    twice_dos_two_plus_dos_thr
+    +
     FAST_MINMOD( deux_dos, prem_dos, deux_prem_dos,
                  deux_prem_minus_deux_deux_dos )
-    +
-    2. * dos_two_plus_dos_thr
     -
     FAST_MINMOD( deux_dos, troi_dos, deux_troi_dos,
                  deux_troi_minus_deux_deux_dos );
@@ -315,10 +319,10 @@ snohalo1( const double           blur,
    * Compute the needed "down" double resolution pixel value:
    */
   const double four_times_dostre_two =
+    twice_dos_two_plus_tre_two
+    +
     FAST_MINMOD( deux_two, prem_two, deux_prem_two,
                  deux_prem_minus_deux_deux_two )
-    +
-    2. * dos_two_plus_tre_two
     -
     FAST_MINMOD( deux_two, troi_two, deux_troi_two,
                  deux_troi_minus_deux_deux_two );
@@ -328,23 +332,23 @@ snohalo1( const double           blur,
    * pixel areas) double resolution pixel value:
    */
   const double eight_times_dostre_twothr =
+    twice_deux_thr_plus_deux_dos
+    +
     FAST_MINMOD( deux_tre, prem_tre, deux_prem_tre,
                  deux_prem_minus_deux_deux_tre )
-    +
-    2. * deux_thr_plus_deux_dos
     -
     FAST_MINMOD( deux_tre, troi_tre, deux_troi_tre,
                  deux_troi_minus_deux_deux_tre )
     +
-    four_times_dos_twothr
-    +
     FAST_MINMOD( deux_thr, prem_thr, deux_prem_thr,
                  deux_prem_minus_deux_deux_thr )
-    +
-    four_times_dostre_two
     -
     FAST_MINMOD( deux_thr, troi_thr, deux_troi_thr,
-                 deux_troi_minus_deux_deux_thr );
+                 deux_troi_minus_deux_deux_thr )
+    +
+    four_times_dos_twothr
+    +
+    four_times_dostre_two;
 
   /*
    * Return the first newly computed double density values:

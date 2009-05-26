@@ -2,13 +2,13 @@
  *
  * Hacked for vips by J. Cupitt, 20/1/09
  *
- * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
- *
- * Tweaks by N. Robidoux 25/5/09
- *
  * 16/3/09
  * 	- rename as nohalo1
  * 	- move "restrict" support to configure
+ *
+ * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
+ *
+ * Tweaks by N. Robidoux 25/5/09
  */
 
 /*
@@ -393,8 +393,8 @@ nohalo1( const double           uno_two,
   const double deux_troi_minus_deux_deux_thr = deux_troi_thr - deux_deux_thr;
 
   /*
-   * Useful terms computer here to put "space" between the computation
-   * of components of flag variables and their use:
+   * The following terms are computed here to put "space" between the
+   * computation of components of flag variables and their use:
    */
   const double twice_dos_two_plus_dos_thr = ( dos_two + dos_thr ) * 2.;
   const double twice_dos_two_plus_tre_two = ( dos_two + tre_two ) * 2.;
