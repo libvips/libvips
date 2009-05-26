@@ -1,3 +1,12 @@
+- all the messages like:
+
+	(nip2:31883): GLib-GObject-WARNING **: IA__g_object_set_property:
+	object class `VipsInterpolateBilinear' has no property named
+	`sharpening'
+
+  are v. annoying, can we suppress them? don't set unless the property exists
+  in the vips generic property setter? or do it in nip2?
+
 - vip2dj -rotate STILL does not always work, eg. try
   /data/john/study2/small0.v ... should NOT rotate, but it does
 
