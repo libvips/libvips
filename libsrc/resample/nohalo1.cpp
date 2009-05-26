@@ -2,9 +2,7 @@
  *
  * Hacked for vips by J. Cupitt, 20/1/09
  *
- * 16/3/09
- * 	- rename as nohalo1
- * 	- move "restrict" support to configure
+ * Rename as nohalo1 and move "restrict" support to configure, 16/3/09
  *
  * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
  *
@@ -234,8 +232,8 @@
  * FAST_MINMOD is an implementation of the minmod function which only
  * needs two conditional moves.  (Nicolas: I think that this may be
  * the very first two branch minmod.) The product of the two arguments
- * and a useful difference involving them are also precomputed to keep
- * them out of branching way.
+ * and a useful difference involving them are precomputed as far ahead
+ * of branching as possible.
  */
 #define FAST_MINMOD(a,b,ab,abminusaa) \
         ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )

@@ -76,8 +76,8 @@
  * FAST_MINMOD is an implementation of the minmod function which only
  * needs two conditional moves.  (Nicolas: I think that this may be
  * the very first two branch minmod.) The product of the two arguments
- * and a useful difference involving them are also precomputed to keep
- * them out of branching way.
+ * and a useful difference involving them are precomputed as far ahead
+ * of branching as possible.
  */
 #define FAST_MINMOD(a,b,ab,abminusaa) \
         ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )
