@@ -1,8 +1,10 @@
-/* snohalo (smooth nohalo) level 1 interpolator
+/* snohalo level 1 interpolator
+ *
+ * (smooth nohalo = nohalo with custom antialiasing blur)
  *
  * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
  *
- * Tweaks by N. Robidoux 25/5/09
+ * Tweaks by N. Robidoux 25-28/5/09
  */
 
 /*
@@ -485,7 +487,7 @@ snohalo1( const double           blur,
   }
 
 SNOHALO1_INTER( fptypes )
-SNOHALO1_INTER( hassign )
+SNOHALO1_INTER( withsign )
 SNOHALO1_INTER( nosign )
 
 /* We need C linkage for this.
@@ -558,7 +560,7 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
     break;
 
   case IM_BANDFMT_CHAR:
-    CALL( signed char, hassign );
+    CALL( signed char, withsign );
     break;
   
   case IM_BANDFMT_USHORT:
@@ -566,7 +568,7 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
     break;
   
   case IM_BANDFMT_SHORT:
-    CALL( signed short, hassign );
+    CALL( signed short, withsign );
     break;
   
   case IM_BANDFMT_UINT:
@@ -574,7 +576,7 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
     break;
   
   case IM_BANDFMT_INT:
-    CALL( signed int, hassign );
+    CALL( signed int, withsign );
     break;
   
   /* Complex images handled by doubling of bands, see above.

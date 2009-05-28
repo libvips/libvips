@@ -2,11 +2,12 @@
  *
  * Hacked for vips by J. Cupitt, 20/1/09
  *
- * Rename as nohalo1 and move "restrict" support to configure, 16/3/09
+ * Rename as nohalo1 and move "restrict" support to configure by
+ *   J. Cupitt, 16/3/09
  *
  * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
  *
- * Tweaks by N. Robidoux 25/5/09
+ * Tweaks by N. Robidoux 25-28/5/09
  */
 
 /*
@@ -39,8 +40,8 @@
 /*
  * 2009 (c) Nicolas Robidoux
  *
- * Nicolas thanks Geert Jordaens, John Cupitt, Minglun Gong, Øyvind
- * Kolås, Ralf Meyer and Sven Neumann for useful comments and code.
+ * Nicolas thanks John Cupitt, Geert Jordaens, Øyvind Kolås, Ralf
+ * Meyer, Minglun Gong, and Sven Neumann for useful comments and code.
  *
  * Nicolas Robidoux's research on Nohalo funded in part by an NSERC
  * (National Science and Engineering Research Council of Canada)
@@ -91,9 +92,9 @@
  * it. (Nohalo is not smoothing like, say, B-Spline
  * pseudo-interpolation.)
  *
- * ========================================================
- * Nohalo is co-monotone (this is why it's called "nohalo")
- * ========================================================
+ * ==================================================================
+ * Nohalo is co-monotone (this is why it's called "nohalo" = no halo)
+ * ==================================================================
  *
  * What monotonicity more or less means here is that the resampled
  * value is in the range of the four closest input values. This
@@ -105,15 +106,21 @@
  * Note: If the abyss policy is an extrapolating one---for example,
  * linear or bilinear extrapolation---clamping is still unnecessary
  * unless one attempts to resample outside of the convex hull of the
- * input pixel positions. Consequence: the "corner" image size
- * convention does not require clamping when using linear
+ * input pixel positions. Consequence: the usual "interpolatory" image
+ * size convention (oft associated with "pixel center-based
+ * coordinates") does not require clamping when using linear
  * extrapolation abyss policy when performing image resizing, but the
- * "center" one does, when upscaling, at locations very close to the
- * boundary. If computing values at locations outside of the convex
- * hull of the pixel locations of the input image, nearest neighbour
- * abyss policy is most likely better anyway, because linear
- * extrapolation produces "streaks" if positions far outside the
- * original image boundary are resampled.
+ * usual "exact area" image size convention (oft associated with
+ * "pixel corner-based coordinates) does require clamping at locations
+ * very close to the boundary when upscaling. If computing values at
+ * locations outside of the convex hull of the pixel center locations
+ * of the input image, nearest neighbour abyss policy is most likely
+ * better anyway, because linear extrapolation produces "streaks" if
+ * positions far outside the original image boundary are sampled. Note
+ * that the nearest neighbor abyss policy ("clamp" in GPU parlance) is
+ * the most common one. Again, for this abyss policy, nohalo is
+ * monotone through and through and no pixel value clamping is
+ * necessary.
  *
  * ========================
  * Nohalo is a local method
@@ -189,7 +196,19 @@
  * used and the magnification factor is 2, that is, if the resampled
  * points sit exactly on the binary subdivided grid, then nohalo level
  * 1 gives the same result as as level=infinity, and consequently the
- * intensity surface can be treated as if smooth.)
+ * intensity surface can be treated as if smooth.) Note that these
+ * gradient discontinuities are nearly invisible when the
+ * magnification ratio is modest.
+ *
+ * ============================
+ * CONVENTIONS USED IN THE CODE
+ * ============================
+ *
+ * This code uses the "center-based coordinate convention, for which,
+ * the very first actual image pixel is understood to be located at
+ * (0,0), and the last one at (N-1,M-1), where M is the number of
+ * pixel rows of the input image, and N is its number of pixel
+ * columns.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -552,7 +571,7 @@ nohalo1( const double           uno_two,
   }
 
 NOHALO1_INTER( fptypes )
-NOHALO1_INTER( hassign )
+NOHALO1_INTER( withsign )
 NOHALO1_INTER( nosign )
 
 /* We need C linkage for this.
@@ -570,7 +589,7 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
                                       double                    absolute_y )
 {
   /*
-   * VIPS versions of Nicolas's pixel addressing values.
+   * Unit buffer pointer shifts:
    */
   const int actual_bands = in->im->Bands;
   const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
@@ -622,7 +641,7 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
     break;
 
   case IM_BANDFMT_CHAR:
-    CALL( signed char, hassign );
+    CALL( signed char, withsign );
     break;
   
   case IM_BANDFMT_USHORT:
@@ -630,7 +649,7 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
     break;
   
   case IM_BANDFMT_SHORT:
-    CALL( signed short, hassign );
+    CALL( signed short, withsign );
     break;
   
   case IM_BANDFMT_UINT:
@@ -638,7 +657,7 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
     break;
   
   case IM_BANDFMT_INT:
-    CALL( signed int, hassign );
+    CALL( signed int, withsign );
     break;
   
   /* Complex images handled by doubling of bands, see above.

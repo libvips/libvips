@@ -68,7 +68,7 @@ bilinear_fptypes(
 /* Interpolate for signed integer types.
  */
 template <typename T> static T inline
-bilinear_hassign( 
+bilinear_withsign( 
 	const double w_times_z,
 	const double x_times_z,
 	const double w_times_y,
