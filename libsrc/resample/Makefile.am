@@ -8,6 +8,7 @@ libresample_la_SOURCES = \
 	yafrsmooth.cpp \
 	nohalo1.cpp \
 	snohalo1.cpp \
+	nohalo2.cpp \
 	templates.h \
 	transform.c \
 	resample_dispatch.c
