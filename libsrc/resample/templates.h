@@ -27,10 +27,43 @@
 
  */
 
-/* "fast" floor() ... on my laptop, anyway.
+/*
+ * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
+ * found to be faster on several linux boxes than the library
+ * version. It returns the floor of its argument unless the argument
+ * is a negative integer, in which case it returns one less than the
+ * floor. For example:
+ *
+ * FAST_PSEUDO_FLOOR(0.5) = 0
+ *
+ * FAST_PSEUDO_FLOOR(0.) = 0
+ *
+ * FAST_PSEUDO_FLOOR(-.5) = -1
+ *
+ * as expected, but
+ *
+ * FAST_PSEUDO_FLOOR(-1.) = -2
+ *
+ * The locations of the discontinuities of FAST_PSEUDO_FLOOR are the
+ * same as floor and floorf; it is just that at negative integers the
+ * function is discontinuous on the right instead of the left.
  */
-#define FLOOR( V ) ((V) >= 0 ? (int)(V) : (int)((V) - 1))
+#define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
 
+/*
+ * FAST_MINMOD is an implementation of the minmod function which only
+ * needs two conditional moves.  (Nicolas: I think that this may be
+ * the very first two branch minmod.) The product of the two arguments
+ * and a useful difference involving them are precomputed as far ahead
+ * of branching as possible.
+ */
+#define FAST_MINMOD(a,b,ab,abminusaa) \
+        ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )
+
+/*
+ * Comment from Nicolas: I don't understand why the following restrict
+ * defs cannot be offloaded to config files.
+ */
 #ifndef restrict
 #ifdef __restrict
 #define restrict __restrict
@@ -43,7 +76,15 @@
 #endif
 #endif
 
-/* Bilinear for float and double types.
+/*
+ * Various bilinear implementation templates. Note that no clampling
+ * is used: There is an assumption that the data is such that
+ * over/underflow is not an issue:
+ */
+/* 
+ * Bilinear interpolation for float and double types. The first four
+ * inputs are weights, the last four are the corresponding pixel
+ * values:
  */
 template <typename T> static T inline
 bilinear_fptypes( 
@@ -65,7 +106,8 @@ bilinear_fptypes(
 	return( newval );
 }
 
-/* Interpolate for signed integer types.
+/* 
+ * Bilinear interpolation for signed integer types:
  */
 template <typename T> static T inline
 bilinear_withsign( 
@@ -93,7 +135,8 @@ bilinear_withsign(
 	return( newval );
 }
 
-/* Interpolate for unsigned integer types.
+/*
+ * Bilinear Interpolation for unsigned integer types:
  */
 template <typename T> static T inline
 bilinear_nosign( 
@@ -116,6 +159,10 @@ bilinear_nosign(
 	return( newval );
 }
 
+/*
+ * Bicubic (Catmull-Rom) interpolation templates:
+ */
+
 /* Fixed-point integer bicubic, used for 8 and 16-bit types.
  */
 template <typename T> static int inline
@@ -124,7 +171,7 @@ bicubic_int(
 	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
 	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
-	const int *cx, const int *cy )
+	const int* restrict cx, const int* restrict cy )
 {
 	const int r0 = 
 		(cx[0] * uno_one +
@@ -164,24 +211,24 @@ bicubic_float(
 	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
 	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
-	const double *cx, const double *cy )
+	const double* restrict cx, const double* restrict cy )
 {
 	return( 
 		cy[0] * (cx[0] * uno_one +
 			 cx[1] * uno_two +
 			 cx[2] * uno_thr +
-			 cx[3] * uno_fou) +
-
+			 cx[3] * uno_fou)
+                +
 		cy[1] * (cx[0] * dos_one +
 			 cx[1] * dos_two +
 			 cx[2] * dos_thr +
-			 cx[3] * dos_fou) +
-
+			 cx[3] * dos_fou)
+                +
 		cy[2] * (cx[0] * tre_one +
 			 cx[1] * tre_two +
 			 cx[2] * tre_thr +
-			 cx[3] * tre_fou) +
-
+			 cx[3] * tre_fou)
+                +
 		cy[3] * (cx[0] * qua_one +
 			 cx[1] * qua_two +
 			 cx[2] * qua_thr +
@@ -195,14 +242,14 @@ bicubic_float(
 static void inline
 calculate_coefficients_catmull( const double x, double c[4] )
 {
-	const double dx = 1.f - x;
+	const double dx = 1. - x;
 	const double x2 = dx * x;
-	const double mx2 = -.5f * x2;
+	const double mx2 = -.5 * x2;
 
 	g_assert( x >= 0 && x <= 1 );
 
 	c[0] = mx2 * dx;
-	c[1] = x2 * (-1.5f * x + 1.f) + dx;
-	c[2] = 1.f - (mx2 + c[1]);
+	c[1] = x2 * (-1.5 * x + 1.) + dx;
+	c[2] = 1. - (mx2 + c[1]);
 	c[3] = mx2 * x;
 }

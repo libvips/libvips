@@ -48,9 +48,28 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* "fast" floor() ... on my laptop, anyway.
+/*
+ * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
+ * found to be faster on several linux boxes than the library
+ * version. It returns the floor of its argument unless the argument
+ * is a negative integer, in which case it returns one less than the
+ * floor. For example:
+ *
+ * FAST_PSEUDO_FLOOR(0.5) = 0
+ *
+ * FAST_PSEUDO_FLOOR(0.) = 0
+ *
+ * FAST_PSEUDO_FLOOR(-.5) = -1
+ *
+ * as expected, but
+ *
+ * FAST_PSEUDO_FLOOR(-1.) = -2
+ *
+ * The locations of the discontinuities of FAST_PSEUDO_FLOOR are the
+ * same as floor and floorf; it is just that at negative integers the
+ * function is discontinuous on the right instead of the left.
  */
-#define FLOOR( V ) ((V) >= 0 ? (int)(V) : (int)((V) - 1))
+#define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
 
 G_DEFINE_ABSTRACT_TYPE( VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT );
 
@@ -173,8 +192,8 @@ vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 
 	/* Top left corner we interpolate from.
 	 */
-	const int xi = FLOOR( x );
-	const int yi = FLOOR( y );
+	const int xi = FAST_PSEUDO_FLOOR( x );
+	const int yi = FAST_PSEUDO_FLOOR( y );
 
 	const PEL *p = (PEL *) IM_REGION_ADDR( in, xi, yi ); 
 
@@ -341,8 +360,8 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	 */
 	const double sx = x * VIPS_TRANSFORM_SCALE;
 	const double sy = y * VIPS_TRANSFORM_SCALE;
-	const int sxi = FLOOR( sx );
-	const int syi = FLOOR( sy );
+	const int sxi = FAST_PSEUDO_FLOOR( sx );
+	const int syi = FAST_PSEUDO_FLOOR( sy );
 
 	/* Get index into interpolation table and unscaled integer 
 	 * position.

@@ -314,8 +314,8 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	 */
 	const double sx = x * VIPS_TRANSFORM_SCALE;
 	const double sy = y * VIPS_TRANSFORM_SCALE;
-	const int sxi = FLOOR( sx );
-	const int syi = FLOOR( sy );
+	const int sxi = FAST_PSEUDO_FLOOR( sx );
+	const int syi = FAST_PSEUDO_FLOOR( sy );
 
 	/* Get index into interpolation table and unscaled integer 
 	 * position.

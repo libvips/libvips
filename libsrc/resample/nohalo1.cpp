@@ -224,39 +224,6 @@
 
 #include "templates.h"
 
-/*
- * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
- * found to be faster on several linux boxes than the library
- * version. It returns the floor of its argument unless the argument
- * is a negative integer, in which case it returns one less than the
- * floor. For example:
- *
- * FAST_PSEUDO_FLOOR(0.5) = 0
- *
- * FAST_PSEUDO_FLOOR(0.) = 0
- *
- * FAST_PSEUDO_FLOOR(-.5) = -1
- *
- * as expected, but
- *
- * FAST_PSEUDO_FLOOR(-1.) = -2
- *
- * The locations of the discontinuities of FAST_PSEUDO_FLOOR are the
- * same as floor and floorf; it is just that at negative integers the
- * function is discontinuous on the right instead of the left.
- */
-#define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
-
-/*
- * FAST_MINMOD is an implementation of the minmod function which only
- * needs two conditional moves.  (Nicolas: I think that this may be
- * the very first two branch minmod.) The product of the two arguments
- * and a useful difference involving them are precomputed as far ahead
- * of branching as possible.
- */
-#define FAST_MINMOD(a,b,ab,abminusaa) \
-        ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )
-
 #define VIPS_TYPE_INTERPOLATE_NOHALO1 \
 	(vips_interpolate_nohalo1_get_type())
 #define VIPS_INTERPOLATE_NOHALO1( obj ) \
