@@ -586,17 +586,17 @@ nohalo_step1( const double           uno_thr,
    */
   const double d_dostre_times_trequa_two = d_dostre_two * d_trequa_two;
   const double d_trequa_two_sq           = d_trequa_two * d_trequa_two;
-  const double d_trequa_times_quacin_two = d_quacin_two * d_trequa_two;
+  const double d_trequa_times_quacin_two = d_trequa_two * d_quacin_two;
 
   const double d_unodos_times_dostre_thr = d_unodos_thr * d_dostre_thr;
   const double d_dostre_thr_sq           = d_dostre_thr * d_dostre_thr;
-  const double d_dostre_times_trequa_thr = d_trequa_thr * d_dostre_thr;
+  const double d_dostre_times_trequa_thr = d_dostre_thr * d_trequa_thr;
   const double d_trequa_times_quacin_thr = d_trequa_thr * d_quacin_thr;
   const double d_quacin_thr_sq           = d_quacin_thr * d_quacin_thr;
 
   const double d_unodos_times_dostre_fou = d_unodos_fou * d_dostre_fou;
   const double d_dostre_fou_sq           = d_dostre_fou * d_dostre_fou;
-  const double d_dostre_times_trequa_fou = d_trequa_fou * d_dostre_fou;
+  const double d_dostre_times_trequa_fou = d_dostre_fou * d_trequa_fou;
   const double d_trequa_times_quacin_fou = d_trequa_fou * d_quacin_fou;
   const double d_quacin_fou_sq           = d_quacin_fou * d_quacin_fou;
   /*
@@ -604,17 +604,17 @@ nohalo_step1( const double           uno_thr,
    */
   const double d_dos_twothr_times_thrfou = d_dos_twothr * d_dos_thrfou;
   const double d_dos_thrfou_sq           = d_dos_thrfou * d_dos_thrfou;
-  const double d_dos_thrfou_times_foufiv = d_dos_foufiv * d_dos_thrfou;
+  const double d_dos_thrfou_times_foufiv = d_dos_thrfou * d_dos_foufiv;
 
   const double d_tre_onetwo_times_twothr = d_tre_onetwo * d_tre_twothr;
   const double d_tre_twothr_sq           = d_tre_twothr * d_tre_twothr;
-  const double d_tre_twothr_times_thrfou = d_tre_thrfou * d_tre_twothr;
+  const double d_tre_twothr_times_thrfou = d_tre_twothr * d_tre_thrfou;
   const double d_tre_thrfou_times_foufiv = d_tre_thrfou * d_tre_foufiv;
   const double d_tre_foufiv_sq           = d_tre_foufiv * d_tre_foufiv;
 
   const double d_qua_onetwo_times_twothr = d_qua_onetwo * d_qua_twothr;
   const double d_qua_twothr_sq           = d_qua_twothr * d_qua_twothr;
-  const double d_qua_twothr_times_thrfou = d_qua_thrfou * d_qua_twothr;
+  const double d_qua_twothr_times_thrfou = d_qua_twothr * d_qua_thrfou;
   const double d_qua_thrfou_times_foufiv = d_qua_thrfou * d_qua_foufiv;
   const double d_qua_foufiv_sq           = d_qua_foufiv * d_qua_foufiv;
 
