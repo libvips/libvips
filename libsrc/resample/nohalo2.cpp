@@ -195,6 +195,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*
+ * THIS CODE ALMOST CERTAINLY HAS A SMALL BUG. Nicolas Robidoux May
+ * 31, 2009.
+ */
+
+
 #include <vips/vips.h>
 #include <vips/internal.h>
 
