@@ -896,17 +896,17 @@ nohalo_step1( const double           uno_thr,
       \
       const int relative_x_is_rite_1 = ( relative_x_1 >= 0. ); \
       const int relative_y_is_down_1 = ( relative_y_1 >= 0. ); \
-      const int relative_x_is_left_1 = !relative_x_is_rite_1; \
-      const int relative_y_is___up_1 = !relative_y_is_down_1; \
+      const int relative_x_is_left_1 = 1 - relative_x_is_rite_1; \
+      const int relative_y_is___up_1 = 1 - relative_y_is_down_1; \
       \
       const double is_bot_rite_1 = \
-        relative_x_is_rite_1 && relative_y_is_down_1; \
+        relative_x_is_rite_1 * relative_y_is_down_1; \
       const double is_bot_left_1 = \
-        relative_x_is_left_1 && relative_y_is_down_1; \
+        relative_x_is_left_1 * relative_y_is_down_1; \
       const double is_top_rite_1 = \
-        relative_x_is_rite_1 && relative_y_is___up_1;\
+        relative_x_is_rite_1 * relative_y_is___up_1;\
       const double is_top_left_1 = \
-        relative_x_is_left_1 && relative_y_is___up_1; \
+        relative_x_is_left_1 * relative_y_is___up_1; \
       \
       const int sign_of_relative_x_1 = 2 * relative_x_is_rite_1 - 1; \
       const int sign_of_relative_y_1 = 2 * relative_y_is_down_1 - 1; \
