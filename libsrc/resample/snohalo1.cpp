@@ -297,7 +297,7 @@ snohalo1( const double           blur,
                  deux_troi_minus_deux_deux_two );
 
   /*
-   * Compute the "diagonal" (at the boundary between thrr input
+   * Compute the "diagonal" (at the boundary between four input
    * pixel areas) double resolution pixel value:
    */
   const double eight_times_dostre_twothr =
