@@ -22,6 +22,8 @@
  * 	- spot Adobe CMYK JPEG and invert ink density
  * 15/2/08
  * 	- added "shrink" parameter
+ * 16/6/09
+ *	- added "fail" option ... fail on any warnings
  */
 
 /*
@@ -134,10 +136,10 @@ new_output_message( j_common_ptr cinfo )
 	char buffer[JMSG_LENGTH_MAX];
 
 	(*cinfo->err->format_message)( cinfo, buffer );
-	im_error( "vips_jpeg", _( "%s" ), buffer );
+	im_error( "im_jpeg2vips", _( "%s" ), buffer );
 
 #ifdef DEBUG
-	printf( "vips_jpeg.c: new_output_message: \"%s\"\n", buffer );
+	printf( "im_jpeg2vips: new_output_message: \"%s\"\n", buffer );
 #endif /*DEBUG*/
 }
 
@@ -149,7 +151,7 @@ new_error_exit( j_common_ptr cinfo )
 	ErrorManager *eman = (ErrorManager *) cinfo->err;
 
 #ifdef DEBUG
-	printf( "vips_jpeg.c: new_error_exit\n" );
+	printf( "im_jpeg2vips: new_error_exit\n" );
 #endif /*DEBUG*/
 
 	/* Close the fp if necessary.
@@ -585,11 +587,11 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 	/* Process image.
 	 */
 	for( y = 0; y < out->Ysize; y++ ) {
-		if( jpeg_read_scanlines( cinfo, &row_pointer[0], 1 ) != 1 ) {
-			im_error( "im_jpeg2vips", 
-				"%s", _( "truncated JPEG file" ) );
-			return( -1 );
-		}
+		/* We set an error handler that longjmps() out, so I don't
+		 * think this can fail.
+		 */
+		jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
+
 		if( invert_pels ) {
 			for( x = 0; x < sz; x++ )
 				row_pointer[0][x] = 255 - row_pointer[0][x];
@@ -619,6 +621,12 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	FILE *fp;
 	int result;
 	gboolean invert_pels;
+	gboolean fail_on_warn;
+
+	/* By default, we ignore any warnings. We want to get as much of
+	 * the user's data as we can.
+	 */
+	fail_on_warn = FALSE;
 
 	/* Parse the filename.
 	 */
@@ -634,6 +642,10 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 				_( "bad shrink factor %d" ), shrink );
 			return( -1 );
 		}
+	}
+	if( (q = im_getnextoption( &p )) ) {
+		if( im_isprefix( "fail", q ) ) 
+			fail_on_warn = TRUE;
 	}
 
 	/* Make jpeg compression object.
@@ -676,9 +688,15 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	jpeg_destroy_decompress( &cinfo );
 
 	if( eman.pub.num_warnings != 0 ) {
-		im_warn( "im_jpeg2vips", _( "read gave %ld warnings" ), 
-			eman.pub.num_warnings );
-		im_warn( "im_jpeg2vips", "%s", im_error_buffer() );
+		if( fail_on_warn ) {
+			im_error( "im_jpeg2vips", "%s", im_error_buffer() );
+			result = -1;
+		}
+		else {
+			im_warn( "im_jpeg2vips", _( "read gave %ld warnings" ), 
+				eman.pub.num_warnings );
+			im_warn( "im_jpeg2vips", "%s", im_error_buffer() );
+		}
 	}
 
 	return( result );

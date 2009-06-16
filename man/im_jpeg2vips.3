@@ -20,7 +20,7 @@ images, including CMYK.
 
 You can embed options in the filename. They have the form:
 
-  filename.jpg:<shrink-factor>
+  filename.jpg:<shrink-factor>,<fail>
 
 .B shrink-factor 
 will shrink the image by that factor during read. Allowed values are 1, 2, 4
@@ -30,6 +30,15 @@ image and then shrinking. Example:
   fred.jpg:8
 
 will return fred.jpg shrink by a factor of 8.
+
+.B fail
+makes the JPEG reader fail on any warnings. This can be useful for detecting
+truncated files, for example: normally reading these produces a warning, but
+no fatal error.  Example:
+
+  fred.jpg:,fail
+
+will read fred.jpg, failing with a fatal error if the file has been truncated.
 
 Any embedded ICC profiles are ignored: you always just get the RGB from the
 file. Instead, the embedded profile will be attached to the image as metadata.
