@@ -1,13 +1,8 @@
-/* @(#) Find the absolute value of an image. Copy for UNSIGNED types, negate
- * @(#) for int types, fabs() for float types, and calculate modulus for
- * @(#) complex types.
- * @(#)
- * @(#) int 
- * @(#) im_abs( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/** Find the absolute value of an image. 
+ * Acts as a copy for UNSIGNED types, negate
+ * for int types, fabs() for float types, and calculate modulus for
+ * complex types.
+ *\file im_abs.c
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
@@ -210,7 +205,11 @@ abs_gen( PEL *in, PEL *out, int width, IMAGE *im )
         }
 }
 
-/* Abs of image.
+/** Abs of image.
+ *@param in is input IMAGE
+ *@param out is output IMAGE
+ *@return 0 on success, -1 on failure
+ *@see IMAGE
  */
 int 
 im_abs( IMAGE *in, IMAGE *out )
