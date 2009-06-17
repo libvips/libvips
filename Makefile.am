@@ -45,3 +45,5 @@ uninstall-hook:
 	-chmod -R u+w ${DESTDIR}$(datadir)/doc/vips
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips
 
+doxygen:
+	doxygen Doxyfile
