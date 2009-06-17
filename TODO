@@ -1,3 +1,14 @@
+- look at gtk-doc? installed now
+
+- gbandjoin in Python seems to be broken
+
+    a = VImage.VImage.gbandjoin ([a, a, a])
+
+  fails with a typecheck error
+
+  probably all IMAGEVEC wrappers are duff like this ... the proto should take
+  a std::allocator too?
+
 - all the messages like:
 
 	(nip2:31883): GLib-GObject-WARNING **: IA__g_object_set_property:
