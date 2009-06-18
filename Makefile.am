@@ -46,4 +46,4 @@ uninstall-hook:
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips
 
 doxygen:
-	doxygen Doxyfile
+	doxygen doc/Doxyfile

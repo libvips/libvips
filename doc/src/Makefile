@@ -28,12 +28,12 @@ all: $(PDF) html
 
 install: all $(PDF) html
 	-rm -rf ${destdir}/pdf/*.pdf
-	-rm -rf ${destdir}/html/vips*
-	-rm -rf ${destdir}/html/figs
+	-rm -rf ${destdir}/html/manual/vips*
+	-rm -rf ${destdir}/html/manual/figs
 	$(mkinstalldirs) ${destdir}/pdf
-	$(mkinstalldirs) ${destdir}/html
+	$(mkinstalldirs) ${destdir}/html/manual
 	-cp $(PDF) ${destdir}/pdf
-	-cp -r vipsmanual/* ${destdir}/html
+	-cp -r vipsmanual/* ${destdir}/html/manual
 
 $(PDF): $(SRC) 
 	pdflatex vipsmanual.tex
