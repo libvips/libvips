@@ -527,7 +527,6 @@ AC_OUTPUT([
 	contrib/vips2dj/share/vips2dj/mono/Makefile 
 	contrib/vdump/Makefile 
 	contrib/mitsub/Makefile 
-	doc/Doxyfile
 	python/Makefile 
 	python/vipsCC/Makefile 
 	po/Makefile.in

@@ -1,7 +1,6 @@
-/** Header file for VIPS Image Processing Library.
- *@author N. Dessipris, K. Martinez, J. Cupitt
- *@file vips.h
- *@date Sept 94
+/* @(#) Header file for Birkbeck/VIPS Image Processing Library
+ * Authors: N. Dessipris, K. Martinez, Birkbeck College, London.
+ * Sept 94
  *
  * 15/7/96 JC
  * 	- now does C++ extern stuff
@@ -211,7 +210,7 @@ typedef unsigned char PEL;			/* useful datum		*/
 
 #endif /*IM_ENABLE_DEPRECATED*/
 
-/** Types of image descriptor we may have. The type field is advisory only: it
+/* Types of image descriptor we may have. The type field is advisory only: it
  * does not imply that any fields in IMAGE have valid data.
  */
 typedef enum {
@@ -225,8 +224,7 @@ typedef enum {
 	IM_PARTIAL		/* partial image */
 } im_desc_type;
 
-/** Demand style from im_generate(). 
- *@see im_demand_hint().
+/* Demand style from im_generate(). See im_demand_hint().
  */
 typedef enum {
 	IM_SMALLTILE,	
@@ -250,7 +248,7 @@ typedef struct {
 	size_t length;		/* Size of window */
 } im_window_t;
 
-/** Struct we keep a record of execution time in. Passed to eval callback, so
+/* Struct we keep a record of execution time in. Passed to eval callback, so
  * it can assess progress.
  *
  * The 'unused' field is there for binary compatibility, remove this when we
@@ -259,31 +257,30 @@ typedef struct {
  * when we remove this.
  */
 typedef struct {
-	struct im__IMAGE *im;	/**< Image we are part of */
-	time_t unused;		/**< FIXME ... for binary compatibility */
-	int run;		/**< Time we have been running */
-	int eta;		/**< Estimated seconds of computation left */
-	gint64 tpels;		/**< Number of pels we expect to calculate */
-	gint64 npels;		/**< Number of pels calculated so far */
-	int percent;		/**< Percent complete */
-	GTimer *start;		/**< Start time */
+	struct im__IMAGE *im;	/* Image we are part of */
+	time_t unused;		/* FIXME ... for binary compatibility */
+	int run;		/* Time we have been running */
+	int eta;		/* Estimated seconds of computation left */
+	gint64 tpels;		/* Number of pels we expect to calculate */
+	gint64 npels;		/* Number of pels calculated so far */
+	int percent;		/* Percent complete */
+	GTimer *start;		/* Start time */
 } im_time_t;
 
-/** 
- * main Image struct for handling images in VIPS.
- *@struct im__IMAGE
- *@typedef IMAGE
+/* Image descriptor for subroutine i/o args 
  */
 typedef struct im__IMAGE {
-	int Xsize; /**< width of image in pels*/
-	int Ysize; /**< height in pels*/
-	int Bands; /**< number of bands*/
-	int Bbits; /**< bits per band*/
-	int BandFmt; /**< code for band format*/
-	int Coding; /**< coding type*/
-	int Type; /**< type of image*/
-	float Xres; /**< X resolution in pels/mm*/
-	float Yres; /**< Y resolution in pels/mm*/
+	/* Fields from file header.
+	 */
+	int Xsize;
+	int Ysize;
+	int Bands;
+	int Bbits;
+	int BandFmt;
+	int Coding;
+	int Type;
+	float Xres;
+	float Yres;
 	int Length;
 	short Compression;
 	short Level;
