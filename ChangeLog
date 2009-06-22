@@ -9,7 +9,7 @@
 - now (more or less) passes -Wextra
 - added "fail" option to im_jpeg2vips: fail with an error on any warning
   (thank you Ole)
-- started moving to doxygen 
+- im_buildlut() could segv for non-zero based tables (thanks Jack)
 
 25/3/09 started 7.18.0
 - revised version numbers

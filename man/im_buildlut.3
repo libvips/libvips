@@ -17,19 +17,24 @@ piecewise linear. For example, if the input is:
   128	20
   255 	100
 
-we generate
+we generate the values:
 
-  0	0
-  1	0.01
-  .. etc. linear interpolation
-  128	20
-  129	20.5
-  .. etc. linear interpolation
-  255	100
+  index  value
 
-the x axis (12 .. 17) is implied. The x/y points don't need to be
-sorted: we do that. You can have several Ys ... each becomes a band in the 
-output LUT.
+  0	 0
+  1	 0.01
+  .. etc. linear interpolation
+  128	 20
+  129	 20.5
+  .. etc. linear interpolation
+  255	 100
+
+(we don't generate the index column, that's just there to show the
+position in the table)
+
+The x/y points don't need to be
+sorted: we do that. You can have several Ys: each becomes a band in the 
+output LUT. X can start at any integer value, including negatives. 
 
 .SH RETURN VALUE
 -1 on error, otherwise 0

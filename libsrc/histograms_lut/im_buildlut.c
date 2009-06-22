@@ -5,13 +5,18 @@
  * @(#) 
  * @(#) we generate
  * @(#) 
- * @(#)   0   0
- * @(#)   1   0.4
+ * @(#)   index  value
+ * @(#)   0      0
+ * @(#)   1      0.4
  * @(#)   .. etc. linear interpolation
- * @(#)   255 100
+ * @(#)   255    100
+ * @(#)
+ * @(#) (we don't generate the index column, that's just there to show the
+ * @(#) position in the table)
  * @(#)
  * @(#) The x/y points don't need to be sorted: we do that. You can have 
- * @(#) several Ys ... each becomes a band in the output LUT. 
+ * @(#) several Ys: each becomes a band in the output LUT. You don't need to
+ * @(#) start at zero: any integer will do, including negatives.
  *
  * Written on: 26/9/06
  * 	- from im_invertlut()
@@ -21,6 +26,8 @@
  * 	- saner limit and rounding behaviour
  * 30/3/09
  * 	- argh, fixed again
+ * 22/6/09
+ *	- more fixes for tables that don't start at zero (thanks Jack)
  */
 
 /*
@@ -49,6 +56,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -64,14 +75,11 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/*
-#define DEBUG
- */
-
 /* Our state.
  */
 typedef struct _State {
 	DOUBLEMASK *input;	/* Input mask */
+	int xlow;		/* Index 0 in output is this x */
 	int lut_size;		/* Number of output elements to generate */
 	double **data;		/* Rows of unpacked matrix */
 	double *buf;		/* Ouput buffer */
@@ -138,6 +146,7 @@ build_state( State *state, DOUBLEMASK *input )
 		if( v > xhigh )
 			xhigh = v;
 	}
+	state->xlow = xlow;
 	state->lut_size = xhigh - xlow + 1;
 
 	if( state->lut_size < 1 ) {
@@ -183,10 +192,12 @@ build_state( State *state, DOUBLEMASK *input )
 static int
 buildlut( State *state )
 {
+	const int xlow = state->xlow;
 	const DOUBLEMASK *input = state->input;
 	const int ysize = input->ysize;
 	const int xsize = input->xsize;
 	const int bands = xsize - 1;
+	const int xlast = state->data[ysize - 1][0];
 
 	int b, i, x;
 
@@ -202,13 +213,13 @@ buildlut( State *state )
 			const double dy = y2 - y1;
 
 			for( x = 0; x < dx; x++ ) 
-				state->buf[b + (x + x1) * bands] = 
+				state->buf[b + (x + x1 - xlow) * bands] = 
 					y1 + x * dy / dx;
 		}
 
 		/* We are inclusive: pop the final value in by hand.
 		 */
-		state->buf[b + (int) state->data[ysize - 1][0] * bands] =
+		state->buf[b + (xlast - xlow) * bands] =
 			state->data[ysize - 1][b + 1];
 	}
 
