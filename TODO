@@ -1,5 +1,11 @@
 - look at gtk-doc? installed now
 
+- try the new liboil thing:
+
+	http://www.schleef.org/orc/
+
+  pick something like abs and time it
+
 - gbandjoin in Python seems to be broken
 
     a = VImage.VImage.gbandjoin ([a, a, a])

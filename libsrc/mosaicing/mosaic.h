@@ -1,12 +1,10 @@
-/*!\file mosaic.h
- * \brief Local definitions used by the mosaicing program.
- *
- * If IM_MAXPOINTS change please ensure that it is still a multiple of
- * AREAS or else AREAS must change as well.  Initial setup is for
- * IM_MAXPOINTS = 60, AREAS = 3.
- *  
+/* @(#) Local definitions used by the mosaicing program 
+ * @(#) If IM_MAXPOINTS change please ensure that it is still a multiple of
+ * @(#) AREAS or else AREAS must change as well.  Initial setup is for
+ * @(#) IM_MAXPOINTS = 60, AREAS = 3.
+ * @(#) 
  * Copyright: 1990, 1991 N. Dessipris
- * @Author: Nicos Dessipris, K Martinez, J Cupitt
+ * Author: Nicos Dessipris
  * Written on: 07/11/1989
  * Modified on : 29/11/1989
  */
@@ -39,35 +37,33 @@
 
 #define IM_MAXPOINTS (60)	/* IM_MAXPOINTS % AREAS must be zero */
 #define AREAS (3)	
-/**
-* mosaic struct used to define all the parameters
-*/
-typedef struct {
-        char *reference;	/**< filename of reference image*/
-        char *secondary;	/**< filename of secondary image*/
-        int deltax;		/**< initial estimate of displacement */
-        int deltay;		/**< initial estimate of displacement */
-        int nopoints;   	/**< must be multiple of AREAS and <= IM_MAXPOINTS */
-        int halfcorsize;	/**< half the correlation area size: recommended 5 */
-        int halfareasize;	/**< recommended 8 */
 
-	/** x, y_reference and contrast found by im_calcon() 
+typedef struct {
+        char *reference;	/* filename of reference */
+        char *secondary;	/* filename of secondary */
+        int deltax;		/* initial estimate of displacement */
+        int deltay;		/* initial estimate of displacement */
+        int nopoints;   	/* must be multiple of AREAS and <= IM_MAXPOINTS */
+        int halfcorsize;	/* recommended 5 */
+        int halfareasize;	/* recommended 8 */
+
+	/* x, y_reference and contrast found by im_calcon() 
 	 */
         int x_reference[IM_MAXPOINTS], y_reference[IM_MAXPOINTS]; 
         int contrast[IM_MAXPOINTS];
 
-	/** x, y_secondary and correlation set by im_chkpair() 
+	/* x, y_secondary and correlation set by im_chkpair() 
 	 */
         int x_secondary[IM_MAXPOINTS], y_secondary[IM_MAXPOINTS];
 
-	/** returns the corrected best correlation
+	/* returns the corrected best correlation
 	 * as detected in 2*halfareasize+1
 	 * centered at point (x2, y2) and using
 	 * correlation area 2*halfareasize+1 
 	 */
         double correlation[IM_MAXPOINTS];
 
-	/** Coefficients calculated by im_clinear() 
+	/* Coefficients calculated by im_clinear() 
 	 */
 	double l_scale, l_angle, l_deltax, l_deltay;
 
