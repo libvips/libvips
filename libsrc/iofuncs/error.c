@@ -70,8 +70,7 @@
  */
 #define IM_MAX_ERROR (10240)
 static char im_error_text[IM_MAX_ERROR] = "";
-static VipsBuf im_error_buf = 
-	VIPS_BUF_STATIC( im_error_text, IM_MAX_ERROR );
+static VipsBuf im_error_buf = VIPS_BUF_STATIC( im_error_text );
 
 #define IM_DIAGNOSTICS "IM_DIAGNOSTICS"
 #define IM_WARNING "IM_WARNING"

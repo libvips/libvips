@@ -48,8 +48,8 @@ typedef struct {
 
 /* Static init of one of these.
  */
-#define VIPS_BUF_STATIC( TEXT, MAX ) \
-	{ &TEXT[0], MAX, 0, FALSE, 0, FALSE }
+#define VIPS_BUF_STATIC( TEXT ) \
+	{ &TEXT[0], sizeof( TEXT ), 0, FALSE, 0, FALSE }
 
 /* Init and append to one of the above.
  */
