@@ -1,3 +1,13 @@
+- 1-bit PNG readis broken?
+
+> The bug is that 1bit depth PNG addresses are incorrectly interpreted.  At
+> least the greyscale ones.  I don't recall whether indexed 1 bit works.  You
+> can make a 1 bit image of that type as follows:
+>
+> pngcrush -c 0 -bit_depth 1 *.png
+
+- COPYInG file should be lgpl2.1+? seems to be plain 2.1 atm
+
 - look at gtk-doc? installed now
 
 - try the new liboil thing:
