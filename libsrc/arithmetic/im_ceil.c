@@ -53,14 +53,13 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define ceil_loop(TYPE)\
-	{\
-		TYPE *p = (TYPE *) in;\
-		TYPE *q = (TYPE *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = ceil( p[x] );\
-	}
+#define ceil_loop( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = ceil( p[x] ); \
+}
 
 /* Ceil a buffer of PELs.
  */
@@ -85,13 +84,9 @@ ceil_gen( PEL *in, PEL *out, int width, IMAGE *im )
  */
 int 
 im_ceil( IMAGE *in, IMAGE *out )
-{	
-	/* Check args.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_ceil", "%s", _( "not uncoded" ) );
+{
+	if( im_check_uncoded( "im_ceil", in ) )
 		return( -1 );
-	}
 
 	/* Is this one of the int types? Degenerate to im_copy() if it
 	 * is.
@@ -106,8 +101,7 @@ im_ceil( IMAGE *in, IMAGE *out )
 
 	/* Generate!
 	 */
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) ceil_gen, in, NULL ) )
+	if( im_wrapone( in, out, (im_wrapone_fn) ceil_gen, in, NULL ) )
 		return( -1 );
 
 	return( 0 );

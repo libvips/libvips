@@ -315,7 +315,7 @@ nohalo1( const double           uno_two,
    * absolute value) is taken to be the corresponding slope; if the
    * two consecutive pixel value differences don't have the same sign,
    * the corresponding slope is set to 0. In other words, apply minmod
-   * to comsecutive differences.
+   * to consecutive differences.
    */
   /*
    * Dos(s) horizontal differences:

@@ -123,8 +123,8 @@ bandmean_buffer( PEL *p, PEL *q, int n, IMAGE *in )
         case IM_BANDFMT_UINT: 	ILOOP( unsigned int, unsigned int ); break; 
         case IM_BANDFMT_FLOAT: 	FLOOP( float ); break; 
         case IM_BANDFMT_DOUBLE:	FLOOP( double ); break; 
-        case IM_BANDFMT_COMPLEX:	CLOOP( float ); break;
-        case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break;
+        case IM_BANDFMT_COMPLEX:CLOOP( float ); break;
+        case IM_BANDFMT_DPCOMPLEX:CLOOP( double ); break;
 
         default:
 		assert( 0 );
@@ -134,24 +134,16 @@ bandmean_buffer( PEL *p, PEL *q, int n, IMAGE *in )
 int
 im_bandmean( IMAGE *in, IMAGE *out )
 {
-	/* Check input params 
-	 */
 	if( in->Bands == 1 ) 
 		return( im_copy( in, out ) );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_bandmean", "%s", _( "uncoded multiband only" ) );
+	if( im_check_uncoded( "im_bandmean", in ) ) 
 		return( -1 );
-	}
 
-	/* Prepare output image.
-	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Bands = 1;
 	out->Type = IM_TYPE_B_W;
 
-	/* And process!
-	 */
 	if( im_wrapone( in, out, 
 		(im_wrapone_fn) bandmean_buffer, in, NULL ) )	
 		return( -1 );

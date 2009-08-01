@@ -133,26 +133,15 @@ int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out ){
   if( im_pincheck( a ) || im_pincheck( b ) || im_poutcheck( out ))
     return -1;
 
-  if( a-> Xsize != b-> Xsize || a-> Ysize != b-> Ysize ){
-    im_error( FUNCTION_NAME, "not same size" );
+  if( im_check_size( FUNCTION_NAME, a, b ) ||
+    im_check_bands( FUNCTION_NAME, a, b ) ||
+    im_check_uncoded( FUNCTION_NAME, a ) ||
+    im_check_uncoded( FUNCTION_NAME, b ) ||
+    im_check_format( FUNCTION_NAME, a, b ) ||
+    im_check_complex( FUNCTION_NAME, a ) ||
+    im_check_complex( FUNCTION_NAME, b ) )
     return -1;
-  }
-  if( a-> Bands != b-> Bands ){
-    im_error( FUNCTION_NAME, "numbers of bands differ" );
-    return -1;
-  }
-  if( a-> Coding || b-> Coding ){
-    im_error( FUNCTION_NAME, "not uncoded" );
-    return -1;
-  }
-  if( a-> BandFmt != b-> BandFmt ){
-    im_error( FUNCTION_NAME, "formats differ" );
-    return -1;
-  }
-  if( IM_BANDFMT_COMPLEX != a-> BandFmt && IM_BANDFMT_DPCOMPLEX != a-> BandFmt ){
-    im_error( FUNCTION_NAME, "not complex format" );
-    return -1;
-  }
+
   return im_cp_descv( out, a, b, NULL ) || im_wraptwo( a, b, out,
     IM_BANDFMT_COMPLEX == a-> BandFmt ? complex_phase_float : complex_phase_double, a, NULL );
 }

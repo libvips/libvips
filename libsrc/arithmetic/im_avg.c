@@ -181,16 +181,10 @@ im_avg( IMAGE *in, double *out )
 
 	/* Check our args. 
 	 */
-	if( im_pincheck( in ) )
+	if( im_pincheck( in ) ||
+		im_check_noncomplex( "im_avg", in ) ||
+		im_check_uncoded( "im_avg", in ) ) 
 		return( -1 );
-	if( im_iscomplex( in ) ) {
-		im_error( "im_avg", "%s", _( "bad input type" ) );
-		return( -1 );
-	}
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_avg", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
 
 	/* Loop over input, summing pixels.
 	 */

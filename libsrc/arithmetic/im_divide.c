@@ -173,19 +173,12 @@ divide_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 int 
 im_divide( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {	
-	/* Basic checks.
-	 */
-	if( im_piocheck( in1, out ) || im_pincheck( in2 ) )
+	if( im_piocheck( in1, out ) || 
+		im_pincheck( in2 ) ||
+		im_check_bands_1orn( "im_divide", in1, in2 ) ||
+		im_check_uncoded( "im_divide", in1 ) ||
+		im_check_uncoded( "im_divide", in2 ) )
 		return( -1 );
-	if( in1->Bands != in2->Bands &&
-		(in1->Bands != 1 && in2->Bands != 1) ) {
-		im_error( "im_divide", "%s", _( "not same number of bands" ) );
-		return( -1 );
-	}
-	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_error( "im_divide", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
 	if( im_cp_descv( out, in1, in2, NULL ) )
 		return( -1 );
 

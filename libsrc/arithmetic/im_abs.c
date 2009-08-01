@@ -26,6 +26,8 @@
  *	- tiny speed up
  * 8/12/06
  * 	- add liboil support
+ * 29/7/09
+ * 	- small cleanups and speedups
  */
 
 /*
@@ -77,73 +79,77 @@
 
 /* Integer abs operation: just test and negate.
  */
-#define intabs(TYPE) \
-	{ \
-		TYPE *p = (TYPE *) in; \
-		TYPE *q = (TYPE *) out; \
-                int x; \
+#define intabs( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		TYPE v = p[x]; \
 		\
-		for( x = 0; x < sz; x++ ) { \
-			TYPE v = p[x]; \
-			\
-			if( v < 0 ) \
-				q[x] = 0 - v; \
-			else \
-				q[x] = v; \
-		} \
-	}
+		if( v < 0 ) \
+			q[x] = 0 - v; \
+		else \
+			q[x] = v; \
+	} \
+}
 
 /* Float abs operation: call fabs().
  */
-#define floatabs(TYPE)\
-	{\
-		TYPE *p = (TYPE *) in;\
-		TYPE *q = (TYPE *) out;\
-                int x; \
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = fabs( p[x] );\
-	}
+#define floatabs( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = fabs( p[x] ); \
+}
 
 /* Complex abs operation: calculate modulus.
  */
 
 #ifdef HAVE_HYPOT
 
-#define complexabs(TYPE) { \
-                TYPE *p = (TYPE *) in; \
-                TYPE *q = (TYPE *) out; \
-                int i; \
-		\
-		for( i = 0; i < sz; i++ ) { \
-			q[i] = hypot( p[0], p[1] ); \
-			p += 2; \
-		} \
-        }
+#define complexabs( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int i; \
+	\
+	for( i = 0; i < sz; i++ ) { \
+		q[i] = hypot( p[0], p[1] ); \
+		p += 2; \
+	} \
+}
 
 #else /*HAVE_HYPOT*/
 
-#define complexabs(TYPE) {                                    \
-                TYPE *p = (TYPE *) in;                        \
-                TYPE *q = (TYPE *) out;                       \
-                TYPE *q_stop = q + sz;                        \
-                                                              \
-                while( q < q_stop ){                          \
-                  double rp = *p++;                           \
-                  double ip = *p++;                           \
-                  double abs_rp= fabs( rp );                  \
-                  double abs_ip= fabs( ip );                  \
-                                                              \
-                  if( abs_rp > abs_ip ){                      \
-                    double temp= ip / rp;                     \
-                    *q++= abs_rp * sqrt( 1.0 + temp * temp ); \
-                  }                                           \
-                  else {                                      \
-                    double temp= rp / ip;                     \
-                    *q++= abs_ip * sqrt( 1.0 + temp * temp ); \
-                  }                                           \
-                }                                             \
-        }
+#define complexabs( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int i; \
+	\
+	for( i = 0; i < sz; i++ ) { \
+		double rp = p[0]; \
+		double ip = p[1]; \
+		double abs_rp = fabs( rp ); \
+		double abs_ip = fabs( ip ); \
+		double result;
+		\
+		if( abs_rp > abs_ip ) { \
+			double temp = ip / rp; \
+			\
+			result = abs_rp * sqrt( 1.0 + temp * temp ); \
+		} \
+		else { \
+			double temp = rp / ip; \
+			\
+			result = abs_ip * sqrt( 1.0 + temp * temp ); \
+		} \
+		\
+		p += 2; \
+		q[i] = result; \
+	} \
+}
 
 #endif /*HAVE_HYPOT*/
 
@@ -154,8 +160,6 @@ abs_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {
 	int sz = width * im->Bands;
 
-	/* Abs all input types.
-         */
         switch( im->BandFmt ) {
         case IM_BANDFMT_CHAR: 		
 #ifdef HAVE_LIBOIL
@@ -214,13 +218,9 @@ abs_gen( PEL *in, PEL *out, int width, IMAGE *im )
  */
 int 
 im_abs( IMAGE *in, IMAGE *out )
-{	
-	/* Check args.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_abs", "%s", _( "not uncoded" ) );
+{
+	if( im_check_uncoded( "im_abs", in ) ) 
 		return( -1 );
-	}
 
 	/* Is this one of the unsigned types? Degenerate to im_copy() if it
 	 * is.
@@ -233,16 +233,8 @@ im_abs( IMAGE *in, IMAGE *out )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	switch( in->BandFmt ) {
-                case IM_BANDFMT_CHAR:
-                case IM_BANDFMT_SHORT:
-                case IM_BANDFMT_INT:
-		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:
-			/* No action.
-			 */
-			break;
 
+	switch( in->BandFmt ) {
 		case IM_BANDFMT_COMPLEX:
 			out->Bbits = IM_BBITS_FLOAT;
 			out->BandFmt = IM_BANDFMT_FLOAT;
@@ -254,14 +246,10 @@ im_abs( IMAGE *in, IMAGE *out )
 			break;
 
 		default:
-			im_error( "im_abs", "%s", _( "unknown input type" ) );
-                        return( -1 );
+			break;
 	}
 
-	/* Generate!
-	 */
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) abs_gen, in, NULL ) )
+	if( im_wrapone( in, out, (im_wrapone_fn) abs_gen, in, NULL ) )
 		return( -1 );
 
 	return( 0 );

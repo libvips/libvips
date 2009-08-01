@@ -1,3 +1,28 @@
+- make some check functions like
+
+	int
+	im_check_isuncoded( IMAGE *im )
+	{
+		if( im->Coding != IM_CODING_NONE ) {
+			im_error( "im_check_isuncoded", "%s", 
+				_( "image should be uncoded" ) );
+			return( -1 )
+		}
+
+		return( 0 );
+	}
+
+  then operations can start with
+
+  	if( im_check_isuncoded( in ) || 
+		im_check_isuchar( in ) || 
+		im_check_ismono( in ) )
+		return( -1 );
+	
+
+
+  reached im_expntra() in arith
+
 - 1-bit PNG readis broken?
 
 > The bug is that 1bit depth PNG addresses are incorrectly interpreted.  At

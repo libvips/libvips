@@ -241,20 +241,14 @@ im__cast_and_call( IMAGE *in1, IMAGE *in2, IMAGE *out,
 
 int 
 im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{	
-	/* Basic checks.
-	 */
-	if( im_piocheck( in1, out ) || im_pincheck( in2 ) )
+{
+	if( im_piocheck( in1, out ) || 
+		im_pincheck( in2 ) ||
+		im_check_bands_1orn( "im_add", in1, in2 ) ||
+		im_check_uncoded( "im_add", in1 ) ||
+		im_check_uncoded( "im_add", in2 ) )
 		return( -1 );
-	if( in1->Bands != in2->Bands &&
-		(in1->Bands != 1 && in2->Bands != 1) ) {
-		im_error( "im_add", "%s", _( "not same number of bands" ) );
-		return( -1 );
-	}
-	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_error( "im_add", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
+
 	if( im_cp_descv( out, in1, in2, NULL ) )
 		return( -1 );
 

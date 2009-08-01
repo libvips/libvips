@@ -180,19 +180,10 @@ im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e )
 
 	/* Check args.
 	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_expntra_vec", "%s", _( "not uncoded" ) );
+	if( im_check_uncoded( "im_expntra_vec", in ) ||
+		im_check_noncomplex( "im_expntra_vec", in ) ||
+		im_check_vector( "im_expntra_vec", n, in ) )
 		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_expntra_vec", "%s", _( "not non-complex" ) );
-		return( -1 );
-	}
-	if( n != 1 && n != in->Bands ) {
-		im_error( "im_expntra_vec", 
-			_( "not 1 or %d elements in vector" ), in->Bands );
-		return( -1 );
-	}
 
 	/* Prepare output header.
 	 */

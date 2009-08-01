@@ -138,6 +138,15 @@ int im_amiMSBfirst( void );
 
 int im_ispoweroftwo( int );
 
+int im_check_uncoded( const char *domain, IMAGE *im );
+int im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_noncomplex( const char *domain, IMAGE *im );
+int im_check_complex( const char *domain, IMAGE *im );
+int im_check_size( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_bands( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_format( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_vector( const char *domain, int n, IMAGE *im );
+
 int im_existsf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int im_isvips( const char * );
