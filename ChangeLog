@@ -11,6 +11,8 @@
   (thank you Ole)
 - im_buildlut() could segv for non-zero based tables (thanks Jack)
 - VIPS_BUF_STATIC() does not take length arg
+- check for SetImageOption() so we work with GraphicsMagick too
+- "header" sets a non-zero exit code if anything failed
 - add and use im_check_uncoded() and friends
 
 25/3/09 started 7.18.0

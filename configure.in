@@ -263,6 +263,17 @@ if test x"$with_magick" != "xno"; then
   LIBS=$save_LIBS
 fi
 
+if test x"$with_magick" != "xno"; then
+  # we SetImageOption to disable some DICOM read processing, but that's only
+  # in more recent imagemagicks and not in graphicsmagick
+  save_LIBS=$LIBS
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(SetImageOption,
+    AC_DEFINE(HAVE_SETIMAGEOPTION,1,
+	      [define if your magick has SetImageOption.]))
+  LIBS=$save_LIBS
+fi
+
 # liboil
 AC_ARG_WITH([liboil], 
   AS_HELP_STRING([--without-liboil], [build without liboil (default: test)]))

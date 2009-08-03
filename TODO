@@ -23,7 +23,10 @@
 
   reached im_expntra() in arith
 
-- 1-bit PNG readis broken?
+
+
+
+- 1-bit PNG read is broken?
 
 > The bug is that 1bit depth PNG addresses are incorrectly interpreted.  At
 > least the greyscale ones.  I don't recall whether indexed 1 bit works.  You

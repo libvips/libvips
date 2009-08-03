@@ -29,6 +29,8 @@
  * 	  alpha channels
  * 12/5/09
  *	- fix signed/unsigned warnings
+ * 23/7/09
+ * 	- SetImageOption() is optional (to help GM)
  */
 
 /*
@@ -593,6 +595,7 @@ im_magick2vips( const char *filename, IMAGE *im )
 	if( !(read = read_new( filename, im )) )
 		return( -1 );
 
+#ifdef HAVE_SETIMAGEOPTION
 	/* When reading DICOM images, we want to ignore any
 	 * window_center/_width setting, since it may put pixels outside the
 	 * 0-65535 range and lose data. 
@@ -601,6 +604,7 @@ im_magick2vips( const char *filename, IMAGE *im )
 	 * can interpret them if it wants.
 	 */
   	SetImageOption( read->image_info, "dcm:display-range", "reset" );
+#endif /*HAVE_SETIMAGEOPTION*/
 
 	read->image = ReadImage( read->image_info, &read->exception );
 	if( !read->image ) {
