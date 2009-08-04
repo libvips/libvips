@@ -170,8 +170,7 @@ mat2vips_get_header( matvar_t *var, IMAGE *im )
 		break;
 
 	default:
-		im_error( "mat2vips", _( "unsupported bands %d\n" ),
-			var->rank );
+		im_error( "mat2vips", _( "unsupported rank %d\n" ), var->rank );
 		return( -1 );
 	}
 
