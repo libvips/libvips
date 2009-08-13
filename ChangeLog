@@ -15,6 +15,7 @@
 - "header" sets a non-zero exit code if anything failed
 - add and use im_check_uncoded() and friends
 - matlab load handles column-major and plane-separated images (thanks Mikhail)
+- JPEG save allows "none" for profile, meaning don't attach a profile
 
 25/3/09 started 7.18.0
 - revised version numbers

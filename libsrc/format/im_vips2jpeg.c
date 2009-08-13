@@ -27,6 +27,8 @@
  * 	- write CMYK if Bands == 4 and Type == CMYK
  * 12/5/09
  *	- fix signed/unsigned warning
+ * 13/8/09
+ * 	- allow "none" for profile, meaning don't embed one
  */
 
 /*
@@ -612,8 +614,10 @@ write_vips( Write *write, int qfac, const char *profile )
 		return( -1 );
 
 	/* A profile supplied as an argument overrides an embedded profile.
+	 * "none" means don't attach a profile.
 	 */
 	if( profile && 
+		strcmp( profile, "none" ) != 0 &&
 		write_profile_file( write, profile ) )
 		return( -1 );
 	if( !profile && 

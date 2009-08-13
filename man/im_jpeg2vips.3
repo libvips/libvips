@@ -33,7 +33,7 @@ will return fred.jpg shrink by a factor of 8.
 
 .B fail
 makes the JPEG reader fail on any warnings. This can be useful for detecting
-truncated files, for example: normally reading these produces a warning, but
+truncated files, for example. Normally reading these produces a warning, but
 no fatal error.  Example:
 
   fred.jpg:,fail
@@ -42,7 +42,8 @@ will read fred.jpg, failing with a fatal error if the file has been truncated.
 
 Any embedded ICC profiles are ignored: you always just get the RGB from the
 file. Instead, the embedded profile will be attached to the image as metadata.
-Any EXIF data is also attached as VIPS metadata.
+You need to use something like im_icc_import(3) to get CIE values from the
+file. Any EXIF data is also attached as VIPS metadata.
 
 .B im_vips2jpeg(3) 
 writes the IMAGE to filename in JPEG format. It uses the
@@ -53,16 +54,17 @@ A compression factor may be encoded in the filename: for example,
 "fred.jpg:25" will write with factor 25.
 
 An ICC profile may also be specified. For example,
-"fred.jpg:25,/home/john/srgb.icc" will embed the profile stored in the file
+"fred.jpg:,/home/john/srgb.icc" will embed the profile stored in the file
 "/home/john/srgb.icc" into the JPEG image. This does not affect the pixels
-which are written; just the way they are tagged. 
+which are written, just the way they are tagged. You can use the special
+string "none" to mean "don't attach a profile".
 
 If no profile is specified in the save string and the VIPS header contains an 
 ICC profile named IM_META_ICC_NAME ("icc-profile-data"), the
-profile from the header will be attached.
+profile from the VIPS header will be attached.
 
-The image is automatically converted to RGB or Monochrome before saving. Any
-metadata attached to the image is saved as EXIF, if possible.
+The image is automatically converted to RGB, Monochrome or CMYK before saving. 
+Any metadata attached to the image is saved as EXIF, if possible.
 
 .B im_vips2bufjpeg(3) 
 returns the compressed image in a memory buffer. The buffer
