@@ -9,6 +9,11 @@
 - now (more or less) passes -Wextra
 - added "fail" option to im_jpeg2vips: fail with an error on any warning
   (thank you Ole)
+- started gtk-doc changes
+- renamed im_meta_get_type() and im_header_get_type() as 
+  im_meta_get_typeof() and im_header_get_typeof() to prevent confusion with
+  GObject type definers (was breaking gtkdoc object scan)
+- revised more names, limited documented API
 - im_buildlut() could segv for non-zero based tables (thanks Jack)
 - VIPS_BUF_STATIC() does not take length arg
 - check for SetImageOption() so we work with GraphicsMagick too

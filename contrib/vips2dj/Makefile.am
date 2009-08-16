@@ -9,9 +9,9 @@ vips2dj_SOURCES = \
 	vips2ah.c \
 	vips2dj.c
 
-INCLUDES = -I${top_srcdir}/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
+INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 AM_LDFLAGS = @LDFLAGS@
-LDADD = @VIPS_CFLAGS@ ${top_builddir}/libsrc/libvips.la @VIPS_LIBS@
+LDADD = @VIPS_CFLAGS@ ${top_builddir}/libvips/libvips.la @VIPS_LIBS@
 
 EXTRA_DIST = ${vips2dj_DEPENDENCIES}
 

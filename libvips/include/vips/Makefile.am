@@ -1,0 +1,33 @@
+pkginclude_HEADERS = \
+	arithmetic.h \
+	colour.h \
+	debug.h \
+	dispatch.h \
+	format.h \
+	fmask.h \
+	mosaic.h \
+	interpolate.h \
+	object.h \
+	almostdeprecated.h \
+	proto.h \
+	image.h \
+	rect.h \
+	region.h \
+	r_access.h \
+	struct.h \
+	private.h \
+	semaphore.h \
+	transform.h \
+	threadgroup.h \
+	thread.h \
+	util.h \
+	meta.h \
+	version.h \
+	vips.h \
+	intl.h \
+	buf.h 
+
+vipsc++.h:
+	vips --cpph all > vipsc++.h
+
+EXTRA_DIST = version.h.in internal.h

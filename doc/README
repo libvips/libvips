@@ -1,6 +1,6 @@
 VIPS documentation
 
-edit Makefile and change "prefix" to be your install prefix (eg.
+edit makefile.tex and change "prefix" to be your install prefix (eg.
 "/usr/local/vips-7.8") ... the HTML man page maker will pull manual pages from
 this area
 

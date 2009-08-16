@@ -1,6 +1,7 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(include/vips/colour.h)
+AC_INIT(libvips/include/vips/colour.h)
 AM_CONFIG_HEADER(config.h)
+AC_CONFIG_MACRO_DIR(m4)
 
 # user-visible library versioning
 IM_MAJOR_VERSION=7
@@ -203,6 +204,9 @@ if test x"$enable_threads" != "xno"; then
   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
   enable_threads=yes
 fi
+
+# check for gtk-doc
+GTK_DOC_CHECK(1.9)
 
 # optional supporting libraries
 
@@ -494,41 +498,42 @@ AC_OUTPUT([
 	vipsCC-7.19.pc
 	vips-7.19.spec
 	Makefile 
-	include/vips/version.h 
-	include/Makefile 
-	include/vips/Makefile 
-	libsrc/Makefile 
-	libsrc/acquire/Makefile 
-	libsrc/arithmetic/Makefile 
-	libsrc/boolean/Makefile 
-	libsrc/cimg/Makefile 
-	libsrc/colour/Makefile 
-	libsrc/conversion/Makefile 
-	libsrc/convolution/Makefile 
-	libsrc/format/Makefile 
-	libsrc/freq_filt/Makefile 
-	libsrc/histograms_lut/Makefile 
-	libsrc/inplace/Makefile 
-	libsrc/iofuncs/Makefile 
-	libsrc/matrix/Makefile 
-	libsrc/morphology/Makefile 
-	libsrc/mosaicing/Makefile 
-	libsrc/other/Makefile 
-	libsrc/relational/Makefile 
-	libsrc/resample/Makefile 
-	libsrc/video/Makefile 
-	libsrcCC/Makefile 
-	src/Makefile 
-	src/iofuncs/Makefile 
-	src/mosaicing/Makefile 
-	src/other/Makefile 
-	src/scripts/Makefile 
-	src/scripts/batch_crop 
-	src/scripts/batch_image_convert 
-	src/scripts/batch_rubber_sheet 
-	src/scripts/light_correct 
-	src/scripts/shrink_width 
-	man/Makefile 
+	libvips/include/vips/version.h 
+	libvips/include/Makefile 
+	libvips/include/vips/Makefile 
+	libvips/Makefile 
+	libvips/acquire/Makefile 
+	libvips/arithmetic/Makefile 
+	libvips/boolean/Makefile 
+	libvips/cimg/Makefile 
+	libvips/colour/Makefile 
+	libvips/conversion/Makefile 
+	libvips/convolution/Makefile 
+	libvips/format/Makefile 
+	libvips/freq_filt/Makefile 
+	libvips/histograms_lut/Makefile 
+	libvips/inplace/Makefile 
+	libvips/iofuncs/Makefile 
+	libvips/matrix/Makefile 
+	libvips/morphology/Makefile 
+	libvips/mosaicing/Makefile 
+	libvips/other/Makefile 
+	libvips/relational/Makefile 
+	libvips/resample/Makefile 
+	libvips/video/Makefile 
+	libvipsCC/include/Makefile 
+	libvipsCC/include/vipsCC/Makefile 
+	libvipsCC/Makefile 
+	tools/Makefile 
+	tools/iofuncs/Makefile 
+	tools/mosaicing/Makefile 
+	tools/other/Makefile 
+	tools/scripts/Makefile 
+	tools/scripts/batch_crop 
+	tools/scripts/batch_image_convert 
+	tools/scripts/batch_rubber_sheet 
+	tools/scripts/light_correct 
+	tools/scripts/shrink_width 
 	contrib/Makefile 
 	contrib/vips2dj/Makefile 
 	contrib/vips2dj/share/Makefile 
@@ -538,8 +543,12 @@ AC_OUTPUT([
 	contrib/vips2dj/share/vips2dj/mono/Makefile 
 	contrib/vdump/Makefile 
 	contrib/mitsub/Makefile 
-	python/Makefile 
-	python/vipsCC/Makefile 
+	swig/Makefile 
+	swig/vipsCC/Makefile 
+	man/Makefile
+	doc/Makefile
+	doc/reference/Makefile
+	doc/reference/VIPS-docs.sgml
 	po/Makefile.in
 ])
 
@@ -549,6 +558,7 @@ native win32:				$vips_os_win32
 open files in binary mode: 		$vips_binary_open
 evaluate with threads: 			$enable_threads
 make symlinks for commands in bin: 	$enable_links
+build docs with gtkdoc 			$enable_gtk_doc
 
 * optional packages and modules
 use fftw3 for FFT: 			$with_fftw3

@@ -1,24 +1,24 @@
 # only build in the python dir if we can
 if HAVE_PYTHON
-P_COMPILE_DIR = python
+P_COMPILE_DIR = swig
 P_DIST_DIR =
 else
 P_COMPILE_DIR =
-P_DIST_DIR = python
+P_DIST_DIR = swig
 endif
 
 SUBDIRS = \
-	libsrc \
-	src \
-	include \
-	libsrcCC \
+	libvips \
+	tools \
+	libvipsCC \
 	contrib \
 	man \
 	po \
+	doc \
 	$(P_COMPILE_DIR) 
 
 EXTRA_DIST = \
-	doc \
+	m4 \
 	benchmark \
 	bootstrap.sh \
 	vipsCC-7.${IM_MINOR_VERSION}.pc.in \
@@ -45,3 +45,4 @@ uninstall-hook:
 	-chmod -R u+w ${DESTDIR}$(datadir)/doc/vips
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips
 
+DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc

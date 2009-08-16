@@ -8,10 +8,13 @@ rm -rf autom4te.cache
 rm -f config.* configure depcomp
 rm -f install-sh intltool-* libtool ltmain.sh missing mkinstalldirs
 rm -f stamp-* vipsCC-7.19.pc vips-7.19.spec vips-7.19.pc
-rm -f python/vipsCC/*.cxx
-rm -f python/vipsCC/VImage.h
-rm -f python/vipsCC/VImage.py python/vipsCC/VError.py python/vipsCC/VMask.py python/vipsCC/Display.py
+rm -f swig/vipsCC/*.cxx
+rm -f swig/vipsCC/VImage.h
+rm -f swig/vipsCC/VImage.py python/vipsCC/VError.py python/vipsCC/VMask.py python/vipsCC/Display.py
 rm -f benchmark/temp*
+( cd doc ; mkdir poop ; mv reference/VIPS-docs.sgml.in poop ; mv reference/Makefile.am poop ; rm -rf reference/* ; mv poop/* reference ; rmdir poop )
+
+gtkdocize --copy --docdir doc/reference --flavour no-tmpl || exit 1
 
 # some systems need libtoolize, some glibtoolize ... how annoying
 echo testing for glibtoolize ...
@@ -32,4 +35,3 @@ autoconf
 autoheader
 $LIBTOOLIZE --copy --force --automake
 automake --add-missing --copy
-

@@ -36,7 +36,59 @@
 
 - COPYInG file should be lgpl2.1+? seems to be plain 2.1 atm
 
-- look at gtk-doc? installed now
+- need a separate sectrion in ref docs for vips, vipsCC (and python?)
+
+- try the new liboil thing:
+
+	http://www.schleef.org/orc/
+
+  pick something like abs and time it
+
+
+- im__cast_and_call() no longer does
+
+	out->Bbits = im_bits_of_fmt( out->BandFmt );
+
+  make sure we do this for each use of im__cast_and_call()
+
+- im__cast_and_call() no longer casts input to output type, it casts inputs 
+  up to the smallest common type
+  
+  so we need to change all the buffer processors from 
+  
+  	T op T -> T
+
+  to 
+
+  	T1 op T1 -> T2
+
+
+
+
+
+
+- split proto.h into headers for arithmetic etc.
+
+- move headers into libsrc/arithmetic, can we get them installed into the
+  right prefix?
+
+- move VImage.h into libsrcCC
+
+- rename libsrc as libvips
+
+- rename src as vipstools
+
+- rename libsrcCC as libvipsCC
+
+- rename python as SWIG
+
+- rename vipsCC in SWIG as pyvips
+
+
+
+
+
+
 
 - try the new liboil thing:
 

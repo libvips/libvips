@@ -1,0 +1,109 @@
+// Include file to get all VIPS C++ bindings
+
+/*
+
+    This file is part of VIPS.
+    
+    VIPS is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+ */
+
+/*
+
+    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
+ */
+
+#ifndef IM_VIPS
+#define IM_VIPS
+
+#include <vips/version.h>
+
+// VImage.h uses GValue for metadata
+#include <glib-object.h>
+
+// If we have already #included the C vips headers, we have to undef a load of
+// stuff to stop vips's stupid macros messing up our enums
+#ifdef IM_VIPS_H
+#ifdef IM_ENABLE_DEPRECATED
+
+#undef MULTIBAND
+#undef B_W
+#undef LUMINACE
+#undef XRAY
+#undef IR
+#undef YUV
+#undef RED_ONLY
+#undef GREEN_ONLY
+#undef BLUE_ONLY
+#undef POWER_SPECTRUM
+#undef HISTOGRAM
+
+#undef LUT
+#undef XYZ
+#undef LAB
+#undef CMC
+#undef CMYK
+#undef LABQ
+#undef RGB
+#undef UCS
+#undef LCH
+#undef LABS
+#undef sRGB
+
+#undef FMTNOTSET
+#undef FMTUCHAR
+#undef FMTCHAR
+#undef FMTUSHORT
+#undef FMTSHORT
+#undef FMTUINT
+#undef FMTINT
+#undef FMTFLOAT
+#undef FMTCOMPLEX
+#undef FMTDOUBLE
+#undef FMTDPCOMPLEX
+
+#undef NOCODING
+#undef COLQUANT
+#undef LABPACK
+#undef LABPACK_COMPRESSED
+#undef RGB_COMPRESSED
+#undef LUM_COMPRESSED
+
+#undef NO_COMPRESSION
+#undef TCSF_COMPRESSION
+#undef JPEG_COMPRESSION
+
+#endif /*IM_ENABLE_DEPRECATED*/
+#endif /*IM_VIPS_H*/
+
+#ifdef IM_RECT_H
+#ifdef IM_ENABLE_DEPRECATED
+
+#undef right
+#undef bottom
+
+#endif /*IM_ENABLE_DEPRECATED*/
+#endif /*IM_RECT_H*/
+
+#define VIPS_NAMESPACE_START namespace vips {
+#define VIPS_NAMESPACE_END }
+
+#include <vipsCC/VError.h>
+#include <vipsCC/VDisplay.h>
+#include <vipsCC/VMask.h>
+#include <vipsCC/VImage.h>
+
+#endif /*IM_VIPS*/
