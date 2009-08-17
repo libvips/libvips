@@ -34,9 +34,8 @@
 >
 > pngcrush -c 0 -bit_depth 1 *.png
 
-- COPYInG file should be lgpl2.1+? seems to be plain 2.1 atm
+- need a separate section in ref docs for vips, vipsCC (and python?)
 
-- need a separate sectrion in ref docs for vips, vipsCC (and python?)
 
 - try the new liboil thing:
 
@@ -61,11 +60,6 @@
   to 
 
   	T1 op T1 -> T2
-
-
-
-
-
 
 - split proto.h into headers for arithmetic etc.
 
