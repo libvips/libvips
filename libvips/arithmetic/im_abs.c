@@ -68,33 +68,31 @@
 
 /* Integer abs operation: just test and negate.
  */
-#define intabs(TYPE) \
-	{ \
-		TYPE *p = (TYPE *) in; \
-		TYPE *q = (TYPE *) out; \
-                int x; \
+#define intabs(TYPE) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		TYPE v = p[x]; \
 		\
-		for( x = 0; x < sz; x++ ) { \
-			TYPE v = p[x]; \
-			\
-			if( v < 0 ) \
-				q[x] = 0 - v; \
-			else \
-				q[x] = v; \
-		} \
-	}
+		if( v < 0 ) \
+			q[x] = 0 - v; \
+		else \
+			q[x] = v; \
+	} \
+}
 
 /* Float abs operation: call fabs().
  */
-#define floatabs(TYPE)\
-	{\
-		TYPE *p = (TYPE *) in;\
-		TYPE *q = (TYPE *) out;\
-                int x; \
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = fabs( p[x] );\
-	}
+#define floatabs(TYPE) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = fabs( p[x] ); \
+}
 
 /* Complex abs operation: calculate modulus.
  */
@@ -102,39 +100,43 @@
 #ifdef HAVE_HYPOT
 
 #define complexabs(TYPE) { \
-                TYPE *p = (TYPE *) in; \
-                TYPE *q = (TYPE *) out; \
-                int i; \
-		\
-		for( i = 0; i < sz; i++ ) { \
-			q[i] = hypot( p[0], p[1] ); \
-			p += 2; \
-		} \
-        }
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		q[x] = hypot( p[0], p[1] ); \
+		p += 2; \
+	} \
+}
 
 #else /*HAVE_HYPOT*/
 
-#define complexabs(TYPE) {                                    \
-                TYPE *p = (TYPE *) in;                        \
-                TYPE *q = (TYPE *) out;                       \
-                TYPE *q_stop = q + sz;                        \
-                                                              \
-                while( q < q_stop ){                          \
-                  double rp = *p++;                           \
-                  double ip = *p++;                           \
-                  double abs_rp= fabs( rp );                  \
-                  double abs_ip= fabs( ip );                  \
-                                                              \
-                  if( abs_rp > abs_ip ){                      \
-                    double temp= ip / rp;                     \
-                    *q++= abs_rp * sqrt( 1.0 + temp * temp ); \
-                  }                                           \
-                  else {                                      \
-                    double temp= rp / ip;                     \
-                    *q++= abs_ip * sqrt( 1.0 + temp * temp ); \
-                  }                                           \
-                }                                             \
-        }
+#define complexabs(TYPE) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double rp = p[0]; \
+		double ip = p[1]; \
+		double abs_rp = fabs( rp ); \
+		double abs_ip = fabs( ip ); \
+		\
+		if( abs_rp > abs_ip ) { \
+			double temp = ip / rp; \
+			\
+			q[x]= abs_rp * sqrt( 1.0 + temp * temp ); \
+		} \
+		else { \
+			double temp = rp / ip; \
+			\
+			q[x]= abs_ip * sqrt( 1.0 + temp * temp ); \
+		} \
+		\
+		p += 2; \
+	} \
+}
 
 #endif /*HAVE_HYPOT*/
 

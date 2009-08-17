@@ -152,50 +152,50 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
  * Use temp variables of same type for min/max for faster comparisons.
  * Use double to sum bands.
  */
-#define non_complex_loop(TYPE) \
-	{	TYPE *p, *q; \
-		TYPE value, small, big; \
-		double *row; \
- 		\
-		/* Have min and max been initialised? \
+#define non_complex_loop(TYPE) { \
+	TYPE *p, *q; \
+	TYPE value, small, big; \
+	double *row; \
+ 	\
+	/* Have min and max been initialised? \
+	 */ \
+	if( tmp->offset == 42 ) { \
+		/* Init min and max for each band. \
 		 */ \
-		if( tmp->offset == 42 ) { \
-			/* Init min and max for each band. \
-			 */ \
-			p = (TYPE *) IM_REGION_ADDR( reg, le, to ); \
-			for( z = 1; z < bands + 1; z++ ) { \
-				row = tmp->coeff + z * 6; \
-				row[0] = p[z - 1]; \
-				row[1] = p[z - 1]; \
-			} \
-			tmp->offset = 0; \
+		p = (TYPE *) IM_REGION_ADDR( reg, le, to ); \
+		for( z = 1; z < bands + 1; z++ ) { \
+			row = tmp->coeff + z * 6; \
+			row[0] = p[z - 1]; \
+			row[1] = p[z - 1]; \
 		} \
-		\
-		for( y = to; y < bo; y++ ) { \
-			p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
- 			\
-			for( z = 0; z < bands; z++ ) { \
-				q = p + z; \
-				row = tmp->coeff + (z + 1)*6; \
-				small = row[0]; \
-				big = row[1]; \
-				\
-				for( x = le; x < ri; x++ ) { \
-					value = *q; \
-					q += bands; \
-					row[2] += value;\
-					row[3] += (double)value*(double)value;\
-					if( value > big ) \
-						big = value; \
-					else if( value < small ) \
-						small = value;\
-				}\
- 				\
-				row[0] = small; \
-				row[1] = big; \
+		tmp->offset = 0; \
+	} \
+	\
+	for( y = to; y < bo; y++ ) { \
+		p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
+ 		\
+		for( z = 0; z < bands; z++ ) { \
+			q = p + z; \
+			row = tmp->coeff + (z + 1)*6; \
+			small = row[0]; \
+			big = row[1]; \
+			\
+			for( x = le; x < ri; x++ ) { \
+				value = *q; \
+				q += bands; \
+				row[2] += value;\
+				row[3] += (double)value*(double)value;\
+				if( value > big ) \
+					big = value; \
+				else if( value < small ) \
+					small = value;\
 			}\
+ 			\
+			row[0] = small; \
+			row[1] = big; \
 		}\
-	} 
+	}\
+} 
 
 	/* Now generate code for all types. 
 	 */
@@ -216,11 +216,20 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Find the statistics of an image. Take any non-complex format. Write the
- * stats to a DOUBLEMASK of size 6 by (in->Bands+1). We hold a row for each 
- * band, plus one row for all bands. Row n has 6 elements, which are, in 
- * order, (minimum, maximum, sum, sum^2, mean, deviation) for band n. Row 0 has 
- * the figures for all bands together.
+/**
+ * im_stats:
+ * @in: image to analyze
+ *
+ * Find many image statistics in a single pass through the image. Works for
+ * any uncoded, non-complex image. Returns a
+ * #DOUBLEMASK of 6 columns by n+1 (where n is number of bands in image @in) 
+ * rows.
+ *
+ * Columns are statistics, and are, in order: minimum, maximum, sum, sum of
+ * squares, mean, standard deviation. Row 0 has statistics for all bands
+ * together, row 1 has stats for band 1, and so on.
+ * 
+ * Returns: a #DOUBLEMASK holding the image statistics
  */
 DOUBLEMASK *
 im_stats( IMAGE *in )

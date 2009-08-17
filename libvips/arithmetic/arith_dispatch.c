@@ -57,9 +57,9 @@
  * of bands.
  *
  * For binary operations, if the number of bands differs, one of the images 
- * must have one band. So you can add a 1 band image to a 3 band image, for 
- * example, and the 1 band image will be added 3 times, but you can't add a 
- * 2 band image to a 3 band image. 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
  *
  * Arithmetic operations try to preserve precision by increasing the number of
  * bits in the output image when necessary. Generally, this follows the ANSI C

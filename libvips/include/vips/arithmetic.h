@@ -39,9 +39,9 @@ extern "C" {
 
 /* arithmetic
  */
-DOUBLEMASK *im_measure( IMAGE *, IMAGE_BOX *,
-	int, int, int *, int, const char * );
-DOUBLEMASK *im_stats( IMAGE * );
+DOUBLEMASK *im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
+	int *sel, int nsel, const char *name );
+DOUBLEMASK *im_stats( IMAGE *in );
 int im_abs( IMAGE *in, IMAGE *out );
 int im_max( IMAGE *in, double *out );
 int im_min( IMAGE *in, double *out );

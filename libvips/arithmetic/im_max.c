@@ -1,11 +1,4 @@
-/* @(#) Function to find the maximim of an image. Works for any 
- * @(#) image type. Returns a double.
- * @(#)
- * @(#) int im_max(in, max)
- * @(#) IMAGE *in;
- * @(#) double *max;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
+/* im_max.c
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -224,6 +217,20 @@ max_scan( REGION *reg, void *vseq, void *a, void *b )
 	return( 0 );
 }
 
+/** 
+ * im_max:
+ * @in: input #IMAGE
+ * @out: output double
+ *
+ * Finds the the maximum value of image #in and returns it at the
+ * location pointed by out.  If input is complex, the max square amplitude 
+ * (re*re+im*im) is returned. im_max() finds the maximum of all bands: if you
+ * want to find the maximum of each band separately, use im_stats().
+ *
+ * See also: im_maxpos(), im_min(), im_stats().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_max( IMAGE *in, double *out )
 {	

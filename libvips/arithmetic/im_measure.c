@@ -1,21 +1,4 @@
-/* Analyse a grid of colour patches, producing a DOUBLEMASK of averages.
- * Pass an IMAGE, an IMAGE_BOX, the number of horizontal and vertical
- * patches, an array giving the numbers of the patches to measure (patches are
- * numbered left-to-right, top-to-bottom) and the name we should give the
- * output mask. Return a DOUBLEMASK in which rows are patches and columns are 
- * bands. 
- *
- * Example: 6 band image of 4x2 block of colour patches.
- * 
- *	+---+---+---+---+
- *	| 1 | 2 | 3 | 4 |
- *	+---+---+---+---+
- *	| 5 | 6 | 7 | 8 |
- *	+---+---+---+---+
- *
- * Then call im_measure( im, box, 4, 2, { 2, 4 }, 2, "fred" ) makes a mask
- * "fred" which has 6 columns, two rows. The first row contains the averages
- * for patch 2, the second for patch 4.
+/* im_measure.c
  *
  * Modified: 
  * 19/8/94 JC
@@ -158,7 +141,36 @@ measure_patches( IMAGE *im, double *coeff, IMAGE_BOX *box,
 	return( 0 );
 }
 
-/* Measure up image.
+/**
+ * im_measure:
+ * @im: image to measure
+ * @box: box containing chart
+ * @h: patches across chart
+ * @v: patches down chart
+ * @sel: array of patch numbers to measure (numbered from 1 in row-major order)
+ * @nsel: length of patch number array
+ * @name: name to give to returned @DOUBLEMASK
+ *
+ * Analyse a grid of colour patches, producing a #DOUBLEMASK of patch averages.
+ * The operations issues a warning if any patch has a deviation more than 20% of
+ * the mean. Only the central 50% of each patch is averaged.
+ *
+ * Example: 6 band image of 4x2 block of colour patches.
+ * 
+ *	+---+---+---+---+
+ *	| 1 | 2 | 3 | 4 |
+ *	+---+---+---+---+
+ *	| 5 | 6 | 7 | 8 |
+ *	+---+---+---+---+
+ *
+ * Then call im_measure( im, box, 4, 2, { 2, 4 }, 2, "fred" ) makes a mask
+ * "fred" which has 6 columns, two rows. The first row contains the averages
+ * for patch 2, the second for patch 4.
+ *
+ * Returns: #DOUBLEMASK with a row for each selected patch, a column for each
+ * image band. 
+ *
+ * Related: im_avg(), im_deviate(), im_stats().
  */
 DOUBLEMASK *
 im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 

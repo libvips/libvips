@@ -37,12 +37,6 @@
 - need a separate section in ref docs for vips, vipsCC (and python?)
 
 
-- try the new liboil thing:
-
-	http://www.schleef.org/orc/
-
-  pick something like abs and time it
-
 
 - im__cast_and_call() no longer does
 
@@ -62,19 +56,6 @@
   	T1 op T1 -> T2
 
 - split proto.h into headers for arithmetic etc.
-
-- move headers into libsrc/arithmetic, can we get them installed into the
-  right prefix?
-
-- move VImage.h into libsrcCC
-
-- rename libsrc as libvips
-
-- rename src as vipstools
-
-- rename libsrcCC as libvipsCC
-
-- rename python as SWIG
 
 - rename vipsCC in SWIG as pyvips
 
