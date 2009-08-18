@@ -193,16 +193,10 @@ im_deviate( IMAGE *in, double *out )
 
 	/* Check our args. 
 	 */
-	if( im_pincheck( in ) )
+	if( im_pincheck( in ) ||
+		im_check_uncoded( "im_deviate", in ) ||
+		im_check_noncomplex( "im_deviate", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_deviate", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_deviate", "%s", _( "bad input type" ) );
-		return( -1 );
-	}
 
 	/* Loop over input, summing pixels.
 	 */
@@ -211,7 +205,7 @@ im_deviate( IMAGE *in, double *out )
 
 	/*
 	  
-	   	NOTE: NR suggests a two-pass algorithm to minimise roundoff. 
+		NOTE: NR suggests a two-pass algorithm to minimise roundoff. 
 		But that's too expensive for us :-( so do it the old one-pass 
 		way.
 

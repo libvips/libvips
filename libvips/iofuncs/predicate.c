@@ -26,6 +26,8 @@
  * 	- cleanups
  * 22/5/08
  * 	- image format stuff broken out 
+ * 29/7/09
+ * 	- check funcs added
  */
 
 /*
@@ -352,6 +354,100 @@ im_isvips( const char *filename )
 			/* INTEL-order VIPS image.
 			 */
 			return( 1 );
+	}
+
+	return( 0 );
+}
+
+int
+im_check_uncoded( const char *domain, IMAGE *im )
+{
+	if( im->Coding != IM_CODING_NONE ) {
+		im_error( domain, "%s", _( "image must be uncoded" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
+{
+	if( im1->Bands != im2->Bands &&
+		(im1->Bands != 1 && im2->Bands != 1) ) {
+		im_error( domain, "%s", 
+			_( "images must have the same number of bands, "
+			"or one muct be single-band" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+im_check_noncomplex( const char *domain, IMAGE *im )
+{
+	if( im_iscomplex( im ) ) {
+		im_error( domain, "%s", _( "image must be non-complex" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+im_check_complex( const char *domain, IMAGE *im )
+{
+	if( !im_iscomplex( im ) ) {
+		im_error( domain, "%s", _( "image must be complex" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+im_check_size( const char *domain, IMAGE *im1, IMAGE *im2 )
+{
+	if( im1->Xsize != im2->Xsize || im1->Ysize != im2->Ysize ) {
+		im_error( domain, "%s", _( "images must match in size" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+im_check_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
+{
+	if( im1->Bands != im2->Bands ) {
+		im_error( domain, "%s", 
+			_( "images must have the same number of bands" ) ); 
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+im_check_format( const char *domain, IMAGE *im1, IMAGE *im2 )
+{
+	if( im1->BandFmt != im2->BandFmt ) {
+		im_error( domain, "%s", 
+			_( "images must have the same band format" ) ); 
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+im_check_vector( const char *domain, int n, IMAGE *im )
+{
+	if( n != 1 && n != im->Bands ) {
+		im_error( domain, 
+			_( "vector must have 1 or %d elements" ), im->Bands );
+		return( -1 );
 	}
 
 	return( 0 );

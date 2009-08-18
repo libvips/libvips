@@ -86,12 +86,8 @@ ceil_gen( PEL *in, PEL *out, int width, IMAGE *im )
 int 
 im_ceil( IMAGE *in, IMAGE *out )
 {	
-	/* Check args.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_ceil", "%s", _( "not uncoded" ) );
+	if( im_check_uncoded( "im_ceil", in ) )
 		return( -1 );
-	}
 
 	/* Is this one of the int types? Degenerate to im_copy() if it
 	 * is.

@@ -70,14 +70,13 @@
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define loop( IN, OUT )\
-	{\
-		IN *p = (IN *) in;\
-		OUT *q = (OUT *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = cos( IM_RAD( (double) p[x] ) );\
-	}
+#define loop( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = cos( IM_RAD( (double) p[x] ) ); \
+}
 
 /* cos a buffer of PELs.
  */
@@ -109,18 +108,10 @@ costra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 int 
 im_costra( IMAGE *in, IMAGE *out )
 {	
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_costra", in ) ||
+		im_check_noncomplex( "im_costra", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_costra", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_costra", "%s", _( "bad input type" ) );
-		return( -1 );
-	}
 
 	/* Prepare output header.
 	 */
@@ -155,14 +146,13 @@ im_costra( IMAGE *in, IMAGE *out )
 
 /* And acos().
  */
-#define aloop( IN, OUT )\
-	{\
-		IN *p = (IN *) in;\
-		OUT *q = (OUT *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = IM_DEG( acos( (double) p[x] ) );\
-	}
+#define aloop( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = IM_DEG( acos( (double) p[x] ) ); \
+}
 
 /* acos a buffer of PELs.
  */
@@ -193,19 +183,11 @@ acostra_gen( PEL *in, PEL *out, int width, IMAGE *im )
  */
 int 
 im_acostra( IMAGE *in, IMAGE *out )
-{	
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
+{
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_acostra", in ) ||
+		im_check_noncomplex( "im_acostra", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_acostra", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_acostra", "%s", _( "bad input type" ) );
-		return( -1 );
-	}
 
 	/* Prepare output header.
 	 */

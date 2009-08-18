@@ -138,10 +138,8 @@ im_bandmean( IMAGE *in, IMAGE *out )
 	 */
 	if( in->Bands == 1 ) 
 		return( im_copy( in, out ) );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_bandmean", "%s", _( "uncoded multiband only" ) );
+	if( im_check_uncoded( "im_bandmean", in ) ) 
 		return( -1 );
-	}
 
 	/* Prepare output image.
 	 */

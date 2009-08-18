@@ -80,22 +80,21 @@ typedef struct {
 
 /* Define what we do for each band element type. Single constant.
  */
-#define loop1(IN, OUT)\
-{\
-	IN *p = (IN *) in;\
-	OUT *q = (OUT *) out;\
+#define loop1(IN, OUT) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
 	\
-	for( x = 0; x < sz; x++ ) {\
-		double f = (double) p[x];\
+	for( x = 0; x < sz; x++ ) { \
+		double f = (double) p[x]; \
 		\
-		if( e == 0.0 && f < 0.0 ) {\
-			/* Division by zero! Difficult to report tho'\
-			 */\
-			q[x] = 0.0;\
-		}\
-		else\
-			q[x] = pow( e, f );\
-	}\
+		if( e == 0.0 && f < 0.0 ) { \
+			/* Division by zero! Difficult to report tho' \
+			 */ \
+			q[x] = 0.0; \
+		} \
+		else \
+			q[x] = pow( e, f ); \
+	} \
 }
 
 /* Expntra a buffer.
@@ -128,22 +127,21 @@ expntra1_gen( PEL *in, PEL *out, int width, IMAGE *im, ExpntraInfo *inf )
 
 /* Define what we do for each band element type. One constant per band.
  */
-#define loopn(IN, OUT)\
-{\
-	IN *p = (IN *) in;\
-	OUT *q = (OUT *) out;\
+#define loopn(IN, OUT) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
 	\
-	for( i = 0, x = 0; x < width; x++ )\
-		for( k = 0; k < im->Bands; k++, i++ ) {\
-			double e = inf->e[k];\
-			double f = (double) p[i];\
+	for( i = 0, x = 0; x < width; x++ ) \
+		for( k = 0; k < im->Bands; k++, i++ ) { \
+			double e = inf->e[k]; \
+			double f = (double) p[i]; \
 			\
-			if( e == 0.0 && f < 0.0 ) {\
-				q[i] = 0.0;\
-			}\
-			else\
-				q[i] = pow( e, f );\
-		}\
+			if( e == 0.0 && f < 0.0 ) { \
+				q[i] = 0.0; \
+			} \
+			else \
+				q[i] = pow( e, f ); \
+		} \
 }
 
 /* Expntra a buffer.
@@ -178,21 +176,11 @@ im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e )
 	ExpntraInfo *inf;
 	int i;
 
-	/* Check args.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_expntra_vec", "%s", _( "not uncoded" ) );
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_expntra", in ) ||
+		im_check_noncomplex( "im_expntra", in ) ||
+		im_check_vector( "im_expntra_vec", n, in ) )
 		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_expntra_vec", "%s", _( "not non-complex" ) );
-		return( -1 );
-	}
-	if( n != 1 && n != in->Bands ) {
-		im_error( "im_expntra_vec", 
-			_( "not 1 or %d elements in vector" ), in->Bands );
-		return( -1 );
-	}
 
 	/* Prepare output header.
 	 */

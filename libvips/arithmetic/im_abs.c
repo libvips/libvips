@@ -221,12 +221,8 @@ abs_gen( PEL *in, PEL *out, int width, IMAGE *im )
 int 
 im_abs( IMAGE *in, IMAGE *out )
 {	
-	/* Check args.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_abs", "%s", _( "not uncoded" ) );
+	if( im_check_uncoded( "im_abs", in ) ) 
 		return( -1 );
-	}
 
 	/* Is this one of the unsigned types? Degenerate to im_copy() if it
 	 * is.
