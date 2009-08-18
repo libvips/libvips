@@ -131,7 +131,10 @@ char *im__gslist_gvalue_get( const GSList *list );
 
 void im__buffer_init( void );
 
-int im__cast_and_call();
+int im__cast_and_call( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	im_wrapmany_fn fn, void *a );
+VipsBandFmt im__format_common( IMAGE *in1, IMAGE *in2 );
+
 int im__test_kill( IMAGE *im );
 void *im__mmap( int fd, int writeable, size_t length, gint64 offset );
 int im__munmap( void *start, size_t length );

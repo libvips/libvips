@@ -9,10 +9,12 @@ AUTOMAKE_OPTIONS = 1.6
 # of using the various options.
 
 # The name of the module, e.g. 'glib'.
-DOC_MODULE=VIPS
+# (vips: we put the version in the module name rather than defining
+# DOC_MODULE_VERSION to avoid some broken links)
+DOC_MODULE=libvips
 
 # Uncomment for versioned docs and specify the version of the module, e.g. '2'.
-DOC_MODULE_VERSION=7
+#DOC_MODULE_VERSION=7
 
 # The top-level SGML file. You can change this if you want to.
 DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
@@ -92,10 +94,10 @@ include $(top_srcdir)/gtk-doc.make
 # Files not to distribute
 # for --rebuild-types in $(SCAN_OPTIONS), e.g. $(DOC_MODULE).types
 # for --rebuild-sections in $(SCAN_OPTIONS) e.g. $(DOC_MODULE)-sections.txt
-DISTCLEANFILES = VIPS.types
+DISTCLEANFILES = libvips.types
 
 # Comment this out if you want your docs-status tested during 'make check'
 if ENABLE_GTK_DOC
-#TESTS_ENVIRONMENT = cd $(srcsrc)
-#TESTS = $(GTKDOC_CHECK)
+TESTS_ENVIRONMENT = cd $(srcsrc)
+TESTS = $(GTKDOC_CHECK)
 endif

@@ -20,6 +20,11 @@
  *	- ... so 1 band + 4 band image -> 4 band image
  * 8/12/06
  * 	- add liboil support
+ * 18/8/08
+ * 	- revise upcasting system
+ * 	- im__cast_and_call() no longer sets bbits for you
+ * 	- add gtkdoc comments
+ * 	- remove separate complex case, just double size
  */
 
 /*
@@ -69,33 +74,7 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Complex add.
- */
-#define cloop(TYPE) { \
-	TYPE *p1 = (TYPE *) in[0]; \
-	TYPE *p2 = (TYPE *) in[1]; \
-	TYPE *q = (TYPE *) out; \
-	\
-	for( x = 0; x < sz; x++ ) { \
-		double rp1 = p1[0]; \
-		double ip1 = p1[1]; \
-		\
-		double rp2 = p2[0]; \
-		double ip2 = p2[1]; \
-		\
-		p1 += 2; \
-		p2 += 2; \
-		\
-		q[0] = rp1 + rp2; \
-		q[1] = ip1 + ip2; \
-		\
-		q += 2; \
-	} \
-}
-
-/* Real add.
- */
-#define rloop(IN, OUT) { \
+#define LOOP( IN, OUT ) { \
 	IN *p1 = (IN *) in[0]; \
 	IN *p2 = (IN *) in[1]; \
 	OUT *q = (OUT *) out; \
@@ -107,31 +86,35 @@
 static void
 add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 {
-	int x;
-	int sz = width * im->Bands;
+	/* Complex just doubles the size.
+	 */
+	const int sz = width * im->Bands * (im_iscomplex( im ) ? 2 : 1);
 
-	/* Add all input types. Kep types here in sync with bandfmt_add[] below.
+	int x;
+
+	/* Add all input types. Keep types here in sync with bandfmt_add[] 
+	 * below.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	rloop( unsigned char, unsigned short ); break; 
-        case IM_BANDFMT_CHAR: 	rloop( signed char, signed short ); break; 
-        case IM_BANDFMT_USHORT: rloop( unsigned short, unsigned int ); break; 
-        case IM_BANDFMT_SHORT: 	rloop( signed short, signed int ); break; 
-        case IM_BANDFMT_UINT: 	rloop( unsigned int, unsigned int ); break; 
-        case IM_BANDFMT_INT: 	rloop( signed int, signed int ); break; 
+        case IM_BANDFMT_UCHAR: 	LOOP( unsigned char, unsigned short ); break; 
+        case IM_BANDFMT_CHAR: 	LOOP( signed char, signed short ); break; 
+        case IM_BANDFMT_USHORT: LOOP( unsigned short, unsigned int ); break; 
+        case IM_BANDFMT_SHORT: 	LOOP( signed short, signed int ); break; 
+        case IM_BANDFMT_UINT: 	LOOP( unsigned int, unsigned int ); break; 
+        case IM_BANDFMT_INT: 	LOOP( signed int, signed int ); break; 
 
         case IM_BANDFMT_FLOAT: 		
 #ifdef HAVE_LIBOIL
 		oil_add_f32( (float *) out, 
 			(float *) in[0], (float *) in[1], sz );
 #else /*!HAVE_LIBOIL*/
-		rloop( float, float ); 
+		LOOP( float, float ); 
 #endif /*HAVE_LIBOIL*/
 		break; 
 
-        case IM_BANDFMT_DOUBLE:	rloop( double, double ); break; 
-        case IM_BANDFMT_COMPLEX:cloop( float ); break;
-        case IM_BANDFMT_DPCOMPLEX:cloop( double ); break;
+        case IM_BANDFMT_DOUBLE:	LOOP( double, double ); break; 
+        case IM_BANDFMT_COMPLEX:LOOP( float, float ); break;
+        case IM_BANDFMT_DPCOMPLEX:LOOP( double, double ); break;
 
         default:
 		assert( 0 );
@@ -147,9 +130,9 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 #define UI IM_BANDFMT_UINT
 #define I IM_BANDFMT_INT
 #define F IM_BANDFMT_FLOAT
-#define M IM_BANDFMT_COMPLEX
+#define X IM_BANDFMT_COMPLEX
 #define D IM_BANDFMT_DOUBLE
-#define DM IM_BANDFMT_DPCOMPLEX
+#define DX IM_BANDFMT_DPCOMPLEX
 
 /* For two integer types, the "largest", ie. one which can represent the
  * full range of both.
@@ -166,7 +149,7 @@ static int bandfmt_largest[6][6] = {
 
 /* For two formats, find one which can represent the full range of both.
  */
-static VipsBandFmt
+VipsBandFmt
 im__format_common( IMAGE *in1, IMAGE *in2 )
 {
 	if( im_iscomplex( in1 ) || im_iscomplex( in2 ) ) {
@@ -260,8 +243,8 @@ im__cast_and_call( IMAGE *in1, IMAGE *in2, IMAGE *out,
  * match the case statement in add_buffer() above.
  */
 static int bandfmt_add[10] = {
-/* UC  C   US  S   UI  I  F  M  D  DM */
-   US, S,  UI, I,  UI, I, F, M, D, DM
+/* UC  C   US  S   UI  I  F  X  D  DX */
+   US, S,  UI, I,  UI, I, F, X, D, DX
 };
 
 /**
@@ -270,10 +253,13 @@ static int bandfmt_add[10] = {
  * @in2: input image 2
  * @out: output image
  *
- * This operation adds corresponding pixels in images @in1 and 
- * @in2 and writes the result to the image descriptor @out. The images must be
- * the same size, but may have any type. If one of the images has a single
- * band, it is added to every band of the other image.
+ * This operation calculates @in1 + @in2 and writes the result to @out. 
+ * The images must be the same size. They may have any format. 
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
  *
  * The two input images are cast up to the smallest common type (see table 
  * Smallest common format in 

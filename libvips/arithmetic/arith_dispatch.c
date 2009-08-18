@@ -53,7 +53,7 @@
  * These operations perform pixel arithmetic, that is, they perform an
  * arithmetic operation, such as addition, on every pixel in an image or a
  * pair of images. All (except in a few cases noted below) will work with 
- * images of any type (or any mixture of types), of any size and of any number 
+ * images of any type or any mixture of types, of any size and of any number 
  * of bands.
  *
  * For binary operations, if the number of bands differs, one of the images 
