@@ -1,28 +1,3 @@
-- make some check functions like
-
-	int
-	im_check_isuncoded( IMAGE *im )
-	{
-		if( im->Coding != IM_CODING_NONE ) {
-			im_error( "im_check_isuncoded", "%s", 
-				_( "image should be uncoded" ) );
-			return( -1 )
-		}
-
-		return( 0 );
-	}
-
-  then operations can start with
-
-  	if( im_check_isuncoded( in ) || 
-		im_check_isuchar( in ) || 
-		im_check_ismono( in ) )
-		return( -1 );
-	
-
-
-  reached im_expntra() in arith
-
 
 
 
@@ -34,8 +9,9 @@
 >
 > pngcrush -c 0 -bit_depth 1 *.png
 
-- need a separate section in ref docs for vips, vipsCC (and python?)
 
+
+- im_multiply() should do proper complex multiplication, since im_divide does
 
 
 - im__cast_and_call() no longer does
@@ -55,9 +31,13 @@
 
   	T1 op T1 -> T2
 
-- split proto.h into headers for arithmetic etc.
+  done add/sub/mul, doing div
+  
+  others?
 
-- rename vipsCC in SWIG as pyvips
+
+
+- rename vipsCC in SWIG as pyvips?
 
 
 
