@@ -31,6 +31,8 @@
  *	- use im_history_get()
  * 29/2/08
  * 	- don't stop on error
+ * 23/7/09
+ * 	- ... but do return an error code if anything failed
  */
 
 /*
@@ -121,7 +123,7 @@ print_header( IMAGE *im )
 		if( im_header_get( im, main_option_field, &value ) )
 			return( -1 );
 
-		/* Display the save form, if there is one. This was we display
+		/* Display the save form, if there is one. This way we display
 		 * something useful for ICC profiles, xml fields, etc.
 		 */
 		type = G_VALUE_TYPE( &value );
@@ -154,6 +156,7 @@ main( int argc, char *argv[] )
 	GOptionContext *context;
 	GError *error = NULL;
 	int i;
+	int result;
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( "unable to start VIPS" );
@@ -175,18 +178,24 @@ main( int argc, char *argv[] )
 
 	g_option_context_free( context );
 
+	result = 0;
+
 	for( i = 1; i < argc; i++ ) {
 		IMAGE *im;
 
-		if( !(im = im_open( argv[i], "r" )) )
+		if( !(im = im_open( argv[i], "r" )) ) {
 			print_error( "%s: unable to open", argv[i] );
+			result = 1;
+		}
 
-		if( im && print_header( im ) )
+		if( im && print_header( im ) ) {
 			print_error( "%s: unable to print header", argv[i] );
+			result = 1;
+		}
 
 		if( im )
 			im_close( im );
 	}
 
-	return( 0 );
+	return( result );
 }
