@@ -1,4 +1,7 @@
 /* Read matlab save files with libmatio
+ *
+ * 4/8/09
+ *	- transpose on load, assemble planes into bands (thanks Mikhail)
  */
 
 /*
@@ -31,10 +34,6 @@
 
 	Remaining issues:
 
-+ it transposes images, I think, since Matlab seems to use column-major order
-
-+ will colour images work? no idea, needs testing
-
 + it will not do complex images
 
 + it will not handle sparse matricies
@@ -43,9 +42,6 @@
   is this sensible behaviour?
 
 + load only, no save
-
-+ could use much less memory --- we use Mat_VarReadDataAll() to read the 
-  whole variable into mem, then copy to a vips buffer, yuk
 
  */
 
@@ -174,8 +170,7 @@ mat2vips_get_header( matvar_t *var, IMAGE *im )
 		break;
 
 	default:
-		im_error( "mat2vips", _( "unsupported bands %d\n" ),
-			var->rank );
+		im_error( "mat2vips", _( "unsupported rank %d\n" ), var->rank );
 		return( -1 );
 	}
 
@@ -226,6 +221,13 @@ static int
 mat2vips_get_data( mat_t *mat, matvar_t *var, IMAGE *im )
 {
 	int y;
+	PEL *buffer;
+	const int es = IM_IMAGE_SIZEOF_ELEMENT( im );
+
+	/* Matlab images are plane-separate, so we have to assemble bands in
+	 * image-size chunks.
+	 */
+	const int is = es * im->Xsize * im->Ysize;
 
 	if( Mat_VarReadDataAll( mat, var ) ) {
 		im_error( "mat2vips", "%s", _( "Mat_VarReadDataAll failed" ) );
@@ -235,10 +237,37 @@ mat2vips_get_data( mat_t *mat, matvar_t *var, IMAGE *im )
 		im_setupout( im ) )
 		return( -1 );
 
-	for( y = 0; y < im->Ysize; y++ )
-		if( im_writeline( y, im, 
-			var->data + y * IM_IMAGE_SIZEOF_LINE( im ) ) )
+	/* Matlab images are in columns, so we have to transpose into
+	 * scanlines with this buffer.
+	 */
+	if( !(buffer = IM_ARRAY( im, IM_IMAGE_SIZEOF_LINE( im ), PEL )) )
+		return( -1 );
+
+	for( y = 0; y < im->Ysize; y++ ) {
+		const PEL *p = var->data + y * es;
+		int x;
+		PEL *q;
+
+		q = buffer;
+		for( x = 0; x < im->Xsize; x++ ) {
+			int b;
+
+			for( b = 0; b < im->Bands; b++ ) {
+				const PEL *p2 = p + b * is;
+				int z;
+
+				for( z = 0; z < es; z++ )
+					q[z] = p2[z];
+
+				q += es;
+			}
+
+			p += es * im->Ysize;
+		}
+
+		if( im_writeline( y, im, buffer ) )
 			return( -1 );
+	}
 
 	return( 0 );
 }
