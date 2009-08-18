@@ -1,12 +1,4 @@
-/* @(#) Find the average of an image. Takes any non-complex image format, 
- * @(#) returns a double. Finds the average of all bands.
- * @(#)
- * @(#) int 
- * @(#) im_avg( im, out )
- * @(#) IMAGE *im;
- * @(#) double *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error.
+/* im_avg.c
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -29,6 +21,8 @@
  *	- use 64 bit arithmetic 
  * 8/12/06
  * 	- add liboil support
+ * 18/8/09
+ * 	- gtkdoc, minor reformatting
  */
 
 /*
@@ -123,27 +117,27 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 
 /* Sum pels in this section.
  */
-#define loop(TYPE) \
-	{	TYPE *p;\
- 		\
-		for( y = to; y < bo; y++ ) { \
-			p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
-			\
-			for( x = 0; x < sz; x++ ) \
-				sum += *p++;\
-		}\
-	}
+#define LOOP( TYPE ) { \
+	TYPE *p; \
+	\
+	for( y = to; y < bo; y++ ) { \
+		p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
+		\
+		for( x = 0; x < sz; x++ ) \
+			sum += *p++; \
+	} \
+}
 
 	/* Now generate code for all types. 
 	 */
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:		loop(unsigned char); break; 
-	case IM_BANDFMT_CHAR:		loop(signed char); break; 
-	case IM_BANDFMT_USHORT:		loop(unsigned short); break; 
-	case IM_BANDFMT_SHORT:		loop(signed short); break; 
-	case IM_BANDFMT_UINT:		loop(unsigned int); break;
-	case IM_BANDFMT_INT:		loop(signed int); break; 
-	case IM_BANDFMT_FLOAT:		loop(float); break; 
+	case IM_BANDFMT_UCHAR:	LOOP( unsigned char ); break; 
+	case IM_BANDFMT_CHAR:	LOOP( signed char ); break; 
+	case IM_BANDFMT_USHORT:	LOOP( unsigned short ); break; 
+	case IM_BANDFMT_SHORT:	LOOP( signed short ); break; 
+	case IM_BANDFMT_UINT:	LOOP( unsigned int ); break;
+	case IM_BANDFMT_INT:	LOOP( signed int ); break; 
+	case IM_BANDFMT_FLOAT:	LOOP( float ); break; 
 
 	case IM_BANDFMT_DOUBLE:	
 #ifdef HAVE_LIBOIL
@@ -156,7 +150,7 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 			sum += t;
 		}
 #else /*!HAVE_LIBOIL*/
-		loop(double); 
+		LOOP( double ); 
 #endif /*HAVE_LIBOIL*/
 		break; 
 
@@ -171,11 +165,24 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Find the average of an image.
+/**
+ * im_avg:
+ * @in: input #IMAGE
+ * @out: output pixel average
+ *
+ * This operation finds the average value in an image. It operates on all 
+ * bands of the input image: use im_stats() if you need to calculate an 
+ * average for each band.
+ *
+ * Non-complex images only.
+ *
+ * See also: im_stats(), im_bandmean(), im_deviate(), im_rank()
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_avg( IMAGE *in, double *out )
-{	
+{
 	double sum = 0.0;
 	gint64 vals, pels;
 

@@ -29,6 +29,10 @@
  *	- updated for 1 band $op n band image -> n band image case
  * 8/12/06
  * 	- add liboil support
+ * 18/8/08
+ * 	- revise upcasting system
+ * 	- add gtkdoc comments
+ * 	- remove separate complex case, just double size
  */
 
 /*
@@ -78,77 +82,49 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Swap two IMAGE pointers.
- */
-#define SWAP(A,B) { \
-	IMAGE *t; \
-	t = (A); (A) = (B); (B) = t; \
-}
-
-/* Complex multiply.
- */
-#define cloop(TYPE) \
-{\
-	TYPE *p1 = (TYPE *) in[0];\
-	TYPE *p2 = (TYPE *) in[1];\
-	TYPE *q = (TYPE *) out;\
+#define LOOP( IN, OUT ) { \
+	IN *p1 = (IN *) in[0]; \
+	IN *p2 = (IN *) in[1]; \
+	OUT *q = (OUT *) out; \
 	\
-	for( x = 0; x < sz; x++ ) {\
-		double x1 = p1[0];\
-		double y1 = p1[1];\
-		double x2 = p2[0];\
-		double y2 = p2[1];\
-		\
-		p1 += 2;\
-		p2 += 2;\
-		\
-		q[0] = x1 * x2 - y1 * y2;\
-		q[1] = x1 * y2 + x2 * y1;\
-		\
-		q += 2;\
-	}\
-}
-
-/* Real multiply.
- */
-#define rloop(TYPE) \
-{\
-	TYPE *p1 = (TYPE *) in[0];\
-	TYPE *p2 = (TYPE *) in[1];\
-	TYPE *q = (TYPE *) out;\
-	\
-	for( x = 0; x < sz; x++ )\
-		q[x] = p1[x] * p2[x];\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = p1[x] * p2[x]; \
 }
 
 static void
 multiply_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 {
-	int x;
-	int sz = width * im->Bands;
+	/* Complex just doubles the size.
+	 */
+	const int sz = width * im->Bands * (im_iscomplex( im ) ? 2 : 1);
 
-	/* Multiply all input types.
+	int x;
+
+	/* Multiply all input types. Keep types here in sync with 
+	 * bandfmt_multiply[] below.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 		rloop( signed char ); break; 
-        case IM_BANDFMT_UCHAR: 		rloop( unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 		rloop( signed short ); break; 
-        case IM_BANDFMT_USHORT: 	rloop( unsigned short ); break; 
-        case IM_BANDFMT_INT: 		rloop( signed int ); break; 
-        case IM_BANDFMT_UINT: 		rloop( unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 	LOOP( signed char, signed short ); break; 
+        case IM_BANDFMT_UCHAR: 	LOOP( unsigned char, unsigned short ); break; 
+        case IM_BANDFMT_SHORT: 	LOOP( signed short, signed int ); break; 
+        case IM_BANDFMT_USHORT:	LOOP( unsigned short, unsigned int ); break; 
+        case IM_BANDFMT_INT: 	LOOP( signed int, signed int ); break; 
+        case IM_BANDFMT_UINT: 	LOOP( unsigned int, unsigned int ); break; 
 
         case IM_BANDFMT_FLOAT: 	
+        case IM_BANDFMT_COMPLEX:
 #ifdef HAVE_LIBOIL
 		oil_multiply_f32( (float *) out, 
 			(float *) in[0], (float *) in[1], sz );
 #else /*!HAVE_LIBOIL*/
-		rloop( float ); 
+		LOOP( float, float ); 
 #endif /*HAVE_LIBOIL*/
 		break; 
 
-        case IM_BANDFMT_DOUBLE:		rloop( double ); break; 
-        case IM_BANDFMT_COMPLEX:	cloop( float ); break;
-        case IM_BANDFMT_DPCOMPLEX:	cloop( double ); break;
+        case IM_BANDFMT_DOUBLE:	
+        case IM_BANDFMT_DPCOMPLEX:
+		LOOP( double, double ); 
+		break;
 
         default:
 		assert( 0 );
@@ -164,45 +140,108 @@ multiply_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 #define UI IM_BANDFMT_UINT
 #define I IM_BANDFMT_INT
 #define F IM_BANDFMT_FLOAT
-#define M IM_BANDFMT_COMPLEX
+#define X IM_BANDFMT_COMPLEX
 #define D IM_BANDFMT_DOUBLE
-#define DM IM_BANDFMT_DPCOMPLEX
+#define DX IM_BANDFMT_DPCOMPLEX
 
-/* Type conversions for two integer inputs. Rules for float and complex 
- * encoded with ifs. We are sign and value preserving. 
+/* Type promotion for multiplication. Sign and value preserving. Make sure 
+ * these match the case statement in multiply_buffer() above.
  */
-static int iformat[6][6] = {
-        /* UC  C   US  S   UI  I */
-/* UC */ { US, S,  UI, I,  UI, I },
-/* C */  { S,  S,  I,  I,  I,  I },
-/* US */ { UI, I,  UI, I,  UI, I },
-/* S */  { I,  I,  I,  I,  I,  I },
-/* UI */ { UI, I,  UI, I,  UI, I },
-/* I */  { I,  I,  I,  I,  I,  I }
+static int bandfmt_multiply[10] = {
+/* UC  C   US  S   UI  I  F  X  D  DX */
+   US, S,  UI, I,  UI, I, F, X, D, DX
 };
 
+/**
+ * im_multiply:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 * @in2 and writes the result to @out. 
+ * The images must be the same size. They may have any format. 
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
+ * following table is used to determine the output type:
+ *
+ * <table>
+ *   <title>im_add() type promotion</title>
+ *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+ *     <thead>
+ *       <row>
+ *         <entry>input type</entry>
+ *         <entry>output type</entry>
+ *       </row>
+ *     </thead>
+ *     <tbody>
+ *       <row>
+ *         <entry>uchar</entry>
+ *         <entry>ushort</entry>
+ *       </row>
+ *       <row>
+ *         <entry>char</entry>
+ *         <entry>short</entry>
+ *       </row>
+ *       <row>
+ *         <entry>ushort</entry>
+ *         <entry>uint</entry>
+ *       </row>
+ *       <row>
+ *         <entry>short</entry>
+ *         <entry>int</entry>
+ *       </row>
+ *       <row>
+ *         <entry>uint</entry>
+ *         <entry>uint</entry>
+ *       </row>
+ *       <row>
+ *         <entry>int</entry>
+ *         <entry>int</entry>
+ *       </row>
+ *       <row>
+ *         <entry>float</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double</entry>
+ *         <entry>double</entry>
+ *       </row>
+ *       <row>
+ *         <entry>complex</entry>
+ *         <entry>complex</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double complex</entry>
+ *         <entry>double complex</entry>
+ *       </row>
+ *     </tbody>
+ *   </tgroup>
+ * </table>
+ *
+ * In other words, the output type is just large enough to hold the whole
+ * range of possible values.
+ *
+ * See also: im_divide(), im_lintra().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_multiply( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {	
-	/* Basic checks.
-	 */
-	if( im_piocheck( in1, out ) || im_pincheck( in2 ) )
+	if( im_piocheck( in1, out ) || 
+		im_pincheck( in2 ) ||
+		im_check_bands_1orn( "im_multiply", in1, in2 ) ||
+		im_check_uncoded( "im_multiply", in1 ) ||
+		im_check_uncoded( "im_multiply", in2 ) )
 		return( -1 );
 
-	if( in1->Xsize != in2->Xsize || in1->Ysize != in2->Ysize ) {
-		im_error( "im_multiply", "%s", _( "not same size" ) );
-		return( -1 );
-	}
-	if( in1->Bands != in2->Bands &&
-		(in1->Bands != 1 && in2->Bands != 1) ) {
-		im_error( "im_multiply", 
-			"%s", _( "not same number of bands" ) );
-		return( -1 );
-	}
-	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_error( "im_multiply", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
 	if( im_cp_descv( out, in1, in2, NULL ) )
 		return( -1 );
 
@@ -210,45 +249,10 @@ im_multiply( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	 */
 	out->Bands = IM_MAX( in1->Bands, in2->Bands );
 
-	/* Swap arguments to get the largest on the left. 
-	 */
-	if( in1->Bbits < in2->Bbits )
-		SWAP( in1, in2 );
-
 	/* What output type will we write? int, float or complex.
 	 */
-	if( im_iscomplex( in1 ) || im_iscomplex( in2 ) ) {
-		/* Make sure we have complex on the left. 
-		 */
-		if( !im_iscomplex( in1 ) )
-			SWAP( in1, in2 );
-
-		/* What kind of complex?
-		 */
-		if( in1->BandFmt == IM_BANDFMT_DPCOMPLEX )
-			/* Output will be DPCOMPLEX. 
-			 */
-			out->BandFmt = IM_BANDFMT_DPCOMPLEX;
-		else
-			out->BandFmt = IM_BANDFMT_COMPLEX;
-	}
-	else if( im_isfloat( in1 ) || im_isfloat( in2 ) ) {
-		/* Make sure we have float on the left. 
-		 */
-		if( !im_isfloat( in1 ) )
-			SWAP( in1, in2 );
-		
-		/* What kind of float?
-		 */
-		if( in1->BandFmt == IM_BANDFMT_DOUBLE )
-			out->BandFmt = IM_BANDFMT_DOUBLE;
-		else
-			out->BandFmt = IM_BANDFMT_FLOAT;
-	}
-	else 
-		/* Must be int+int = int.
-		 */
-		out->BandFmt = iformat[in2->BandFmt][in1->BandFmt];
+	out->BandFmt = bandfmt_multiply[im__format_common( in1, in2 )];
+	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	/* And process!
 	 */

@@ -152,25 +152,38 @@ measure_patches( IMAGE *im, double *coeff, IMAGE_BOX *box,
  * @name: name to give to returned @DOUBLEMASK
  *
  * Analyse a grid of colour patches, producing a #DOUBLEMASK of patch averages.
- * The operations issues a warning if any patch has a deviation more than 20% of
- * the mean. Only the central 50% of each patch is averaged.
+ * The mask has a row for each measured patch, and a column for each image
+ * band. The operations issues a warning if any patch has a deviation more 
+ * than 20% of
+ * the mean. Only the central 50% of each patch is averaged. If @sel is %NULL
+ * then all patches are measured.
  *
  * Example: 6 band image of 4x2 block of colour patches.
- * 
- *	+---+---+---+---+
- *	| 1 | 2 | 3 | 4 |
- *	+---+---+---+---+
- *	| 5 | 6 | 7 | 8 |
- *	+---+---+---+---+
+ *
+ * <tgroup cols='4' align='left' colsep='1' rowsep='1'>
+ *   <tbody>
+ *     <row>
+ *       <entry>1</entry>
+ *       <entry>2</entry>
+ *       <entry>3</entry>
+ *       <entry>4</entry>
+ *     </row>
+ *     <row>
+ *       <entry>5</entry>
+ *       <entry>6</entry>
+ *       <entry>7</entry>
+ *       <entry>8</entry>
+ *     </row>
+ *   </tbody>
+ * </tgroup>
  *
  * Then call im_measure( im, box, 4, 2, { 2, 4 }, 2, "fred" ) makes a mask
  * "fred" which has 6 columns, two rows. The first row contains the averages
  * for patch 2, the second for patch 4.
  *
- * Returns: #DOUBLEMASK with a row for each selected patch, a column for each
- * image band. 
- *
- * Related: im_avg(), im_deviate(), im_stats().
+ * See also: im_avg(), im_deviate(), im_stats().
+ * 
+ * Returns: #DOUBLEMASK of measurements.
  */
 DOUBLEMASK *
 im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
@@ -197,13 +210,20 @@ im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v,
 		return( mask );
 	}
 
-	if( im->Coding != IM_CODING_NONE ) {
-		im_error( "im_measure", "%s", _( "not uncoded" ) );
+	if( im_check_uncoded( "im_measure", im ) ||
+		im_check_noncomplex( "im_measure", im ) )
 		return( NULL );
-	}
-	if( im_iscomplex( im ) ) {
-		im_error( "im_measure", "%s", _( "bad input type" ) );
-		return( NULL );
+
+	/* Default to all patches if sel == NULL.
+	 */
+	if( sel == NULL ) {
+		int i;
+
+		nsel = h * v;
+		if( !(sel = IM_ARRAY( im, nsel, int )) )
+			return( NULL );
+		for( i = 0; i < nsel; i++ )
+			sel[i] = i + 1;
 	}
 
 	/* What size mask do we need?

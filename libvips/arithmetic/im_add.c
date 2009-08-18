@@ -104,6 +104,7 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
         case IM_BANDFMT_INT: 	LOOP( signed int, signed int ); break; 
 
         case IM_BANDFMT_FLOAT: 		
+        case IM_BANDFMT_COMPLEX:
 #ifdef HAVE_LIBOIL
 		oil_add_f32( (float *) out, 
 			(float *) in[0], (float *) in[1], sz );
@@ -112,9 +113,10 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 #endif /*HAVE_LIBOIL*/
 		break; 
 
-        case IM_BANDFMT_DOUBLE:	LOOP( double, double ); break; 
-        case IM_BANDFMT_COMPLEX:LOOP( float, float ); break;
-        case IM_BANDFMT_DPCOMPLEX:LOOP( double, double ); break;
+        case IM_BANDFMT_DOUBLE:	
+        case IM_BANDFMT_DPCOMPLEX:
+		LOOP( double, double ); 
+		break;
 
         default:
 		assert( 0 );

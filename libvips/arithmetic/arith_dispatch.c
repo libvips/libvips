@@ -1127,9 +1127,7 @@ static int
 measure_vec( im_object *argv )
 {
 	IMAGE_BOX box;
-	int h, v, i;
-	int *sel;
-	int nsel;
+	int h, v;
 	im_mask_object *mo = argv[1];
 
 	box.xstart = *((int *) argv[2]);
@@ -1141,18 +1139,10 @@ measure_vec( im_object *argv )
 	h = *((int *) argv[6]);
 	v = *((int *) argv[7]);
 
-	nsel = h * v;
-	if( !(sel = IM_ARRAY( NULL, nsel, int )) )
-		return( -1 );
-	for( i = 0; i < nsel; i++ )
-		sel[i] = i + 1;
-
 	if( !(mo->mask = 
-		im_measure( argv[0], &box, h, v, sel, nsel, mo->name )) ) {
-		im_free( sel );
+		im_measure( argv[0], &box, h, v, NULL, 0, mo->name )) ) {
 		return( -1 );
 	}
-	im_free( sel );
 
 	return( 0 );
 }

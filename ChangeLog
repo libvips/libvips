@@ -21,13 +21,15 @@
 - add and use im_check_uncoded() and friends
 - matlab load handles column-major and plane-separated images (thanks Mikhail)
 - JPEG save allows "none" for profile, meaning don't attach a profile
+- saner, simpler, faster typecasting for im_add(), im_subtract()
+- im_measure() allows sel == NULL, meaning all patches
 
 25/3/09 started 7.18.0
 - revised version numbers
 - updated vipsmanual
 - revised manpages
 - removed name and "changed" from vipsobject since we don't use them yet
-- explicitly link with stdc++ for nohalo etc stuff
+- explicitly link with stdc++ for nohalo etc. stuff
 - wrap im_gauss_imask_sep in C++/Python
 
 6/3/09 started 7.17.3

@@ -1,15 +1,12 @@
-/* @(#) Average the bands in an image.
- * @(#)
- * @(#) int 
- * @(#) im_bandmean(in, out)
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
+/* im_bandmean.c
  *
  * Author: Simon Goodall
  * Written on: 17/7/07
  * 17/7/07 JC
  * 	- hacked about a bit
+ * 18/8/09
+ * 	- gtkdoc
+ * 	- get rid of the complex case, just double the width
  */
 
 /*
@@ -58,13 +55,13 @@
 	TYPE *p1 = (TYPE *) p; \
 	TYPE *q1 = (TYPE *) q; \
 	\
-	for( i = 0; i < n; i++ ) { \
+	for( i = 0; i < sz; i++ ) { \
 		STYPE sum; \
 		\
 		sum = 0; \
 		for( j = 0; j < b; j++ ) \
 			sum += p1[j]; \
-		*q1++ = sum > 0 ? (sum + b / 2) / b : (sum - b / 2) / b; \
+		q1[i] = sum > 0 ? (sum + b / 2) / b : (sum - b / 2) / b; \
 		p1 += b; \
 	} \
 }
@@ -75,44 +72,26 @@
 	TYPE *p1 = (TYPE *) p; \
 	TYPE *q1 = (TYPE *) q; \
 	\
-	for( i = 0; i < n; i++ ) { \
+	for( i = 0; i < sz; i++ ) { \
 		TYPE sum; \
 		\
 		sum = 0; \
 		for( j = 0; j < b; j++ ) \
 			sum += p1[j]; \
-		*q1++ = sum / b; \
+		q1[i] = sum / b; \
 		p1 += b; \
-	} \
-}
-
-/* Complex loop. Mean reals and imaginaries separately.
- */
-#define CLOOP( TYPE ) { \
-	TYPE *p1 = (TYPE *) p; \
-	TYPE *q1 = (TYPE *) q; \
-	\
-	for( i = 0; i < n * 2; i += 2 ) { \
-		TYPE sum; \
-		\
-		sum = 0; \
-		for( j = 0; j < b; j++ ) \
-			sum += p1[j * 2]; \
-		q1[0] = sum / b; \
-		sum = 0; \
-		for( j = 0; j < b; j++ ) \
-			sum += p1[j * 2 + 1]; \
-		q1[1] = sum / b; \
-		p1 += b; \
-		q1 += 2; \
 	} \
 }
 
 static void
 bandmean_buffer( PEL *p, PEL *q, int n, IMAGE *in )
 {
-	int i, j;
+	/* Complex just doubles the size.
+	 */
+	const int sz = n * (im_iscomplex( in ) ? 2 : 1);
 	const int b = in->Bands;
+
+	int i, j;
 
         switch( in->BandFmt ) {
         case IM_BANDFMT_CHAR: 	ILOOP( signed char, int ); break; 
@@ -123,14 +102,28 @@ bandmean_buffer( PEL *p, PEL *q, int n, IMAGE *in )
         case IM_BANDFMT_UINT: 	ILOOP( unsigned int, unsigned int ); break; 
         case IM_BANDFMT_FLOAT: 	FLOOP( float ); break; 
         case IM_BANDFMT_DOUBLE:	FLOOP( double ); break; 
-        case IM_BANDFMT_COMPLEX:	CLOOP( float ); break;
-        case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break;
+        case IM_BANDFMT_COMPLEX:FLOOP( float ); break;
+        case IM_BANDFMT_DPCOMPLEX:FLOOP( double ); break;
 
         default:
 		assert( 0 );
         }
 }
 
+/**
+ * im_bandmean:
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * im_bandmean() writes a one-band image where each pixel is the average of 
+ * the bands for that pixel in the input image. The output band format is 
+ * the same as the input band format. Integer types use round-to-nearest
+ * averaging.
+ *
+ * See also: im_add(), im_avg(), im_recomb()
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_bandmean( IMAGE *in, IMAGE *out )
 {
