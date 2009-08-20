@@ -21,7 +21,8 @@
 - add and use im_check_uncoded() and friends
 - matlab load handles column-major and plane-separated images (thanks Mikhail)
 - JPEG save allows "none" for profile, meaning don't attach a profile
-- saner, simpler, faster typecasting for im_add(), im_subtract()
+- saner, simpler, faster typecasting for im_add(), im_subtract(),
+  im_multiply(), im_divide()
 - im_measure() allows sel == NULL, meaning all patches
 
 25/3/09 started 7.18.0

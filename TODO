@@ -1,4 +1,4 @@
-
+- revising im_remainder()
 
 
 - 1-bit PNG read is broken?
@@ -9,9 +9,6 @@
 >
 > pngcrush -c 0 -bit_depth 1 *.png
 
-
-
-- im_multiply() should do proper complex multiplication, since im_divide does
 
 
 - im__cast_and_call() no longer does

@@ -1,4 +1,4 @@
-/* @(#) Remainder after integer division
+/* im_remainder.c
  *
  * 2/8/99 JC
  *	- im_divide adapted to make im_remainder
@@ -56,16 +56,16 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define loop(TYPE) {\
-	TYPE *p1 = (TYPE *) in[0];\
-	TYPE *p2 = (TYPE *) in[1];\
-	TYPE *q = (TYPE *) out;\
+#define LOOP(TYPE) { \
+	TYPE *p1 = (TYPE *) in[0]; \
+	TYPE *p2 = (TYPE *) in[1]; \
+	TYPE *q = (TYPE *) out; \
 	\
-	for( x = 0; x < sz; x++ )\
-		if( p2[x] )\
-			q[x] = p1[x] % p2[x];\
-		else\
-			q[x] = -1;\
+	for( x = 0; x < sz; x++ ) \
+		if( p2[x] ) \
+			q[x] = p1[x] % p2[x]; \
+		else \
+			q[x] = -1; \
 }
 
 static void
@@ -75,39 +75,38 @@ remainder_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 	int sz = width * im->Bands;
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 		loop( signed char ); break; 
-        case IM_BANDFMT_UCHAR: 		loop( unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 		loop( signed short ); break; 
-        case IM_BANDFMT_USHORT: 	loop( unsigned short ); break; 
-        case IM_BANDFMT_INT: 		loop( signed int ); break; 
-        case IM_BANDFMT_UINT: 		loop( unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 		LOOP( signed char ); break; 
+        case IM_BANDFMT_UCHAR: 		LOOP( unsigned char ); break; 
+        case IM_BANDFMT_SHORT: 		LOOP( signed short ); break; 
+        case IM_BANDFMT_USHORT: 	LOOP( unsigned short ); break; 
+        case IM_BANDFMT_INT: 		LOOP( signed int ); break; 
+        case IM_BANDFMT_UINT: 		LOOP( unsigned int ); break; 
 
         default:
 		assert( 0 );
         }
 }
 
+/*
+.B im_remainder(3)
+calculates the remainder after integer division of two images. The output
+type is the same as the type of
+.B in1
+unless
+.B in1
+is float or complex, in which
+case the output type is signed integer.
+ */
 int 
 im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {	
-	/* Basic checks.
-	 */
-	if( im_piocheck( in1, out ) || im_pincheck( in2 ) )
+	if( im_piocheck( in1, out ) || 
+		im_pincheck( in2 ) ||
+		im_check_bands_1orn( "im_remainder", in1, in2 ) ||
+		im_check_uncoded( "im_remainder", in1 ) ||
+		im_check_uncoded( "im_remainder", in2 ) )
 		return( -1 );
-	if( in1->Xsize != in2->Xsize || in1->Ysize != in2->Ysize ) {
-		im_error( "im_remainder", "%s", _( "not same size" ) );
-		return( -1 );
-	}
-	if( in1->Bands != in2->Bands &&
-		(in1->Bands != 1 && in2->Bands != 1) ) {
-		im_error( "im_remainder", 
-			"%s", _( "not same number of bands" ) );
-		return( -1 );
-	}
-	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_error( "im_remainder", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
+
 	if( im_cp_descv( out, in1, in2, NULL ) )
 		return( -1 );
 
@@ -120,6 +119,7 @@ im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	 */
 	if( im_isfloat( in1 ) || im_iscomplex( in1 ) ) 
 		out->BandFmt = IM_BANDFMT_INT;
+	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	/* And process!
 	 */

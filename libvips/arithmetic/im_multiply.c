@@ -1,13 +1,4 @@
-/* @(#) Multiply two images
- * @(#) Images must have the same no of bands and can be of any type
- * @(#) No check for overflow is carried out.
- * @(#)
- * @(#) int 
- * @(#) im_multiply(in1, in2, out)
- * @(#) IMAGE *in1, *in2, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_multiply.c
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -32,7 +23,6 @@
  * 18/8/08
  * 	- revise upcasting system
  * 	- add gtkdoc comments
- * 	- remove separate complex case, just double size
  */
 
 /*
@@ -82,7 +72,32 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define LOOP( IN, OUT ) { \
+/* Complex multiply.
+ */
+#define CLOOP( TYPE ) { \
+	TYPE *p1 = (TYPE *) in[0]; \
+	TYPE *p2 = (TYPE *) in[1]; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double x1 = p1[0]; \
+		double y1 = p1[1]; \
+		double x2 = p2[0]; \
+		double y2 = p2[1]; \
+		\
+		p1 += 2; \
+		p2 += 2; \
+		\
+		q[0] = x1 * x2 - y1 * y2; \
+		q[1] = x1 * y2 + x2 * y1; \
+		\
+		q += 2; \
+	} \
+}
+
+/* Real multiply.
+ */
+#define RLOOP( IN, OUT ) { \
 	IN *p1 = (IN *) in[0]; \
 	IN *p2 = (IN *) in[1]; \
 	OUT *q = (OUT *) out; \
@@ -94,9 +109,7 @@
 static void
 multiply_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 {
-	/* Complex just doubles the size.
-	 */
-	const int sz = width * im->Bands * (im_iscomplex( im ) ? 2 : 1);
+	const int sz = width * im->Bands;
 
 	int x;
 
@@ -104,27 +117,25 @@ multiply_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 	 * bandfmt_multiply[] below.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 	LOOP( signed char, signed short ); break; 
-        case IM_BANDFMT_UCHAR: 	LOOP( unsigned char, unsigned short ); break; 
-        case IM_BANDFMT_SHORT: 	LOOP( signed short, signed int ); break; 
-        case IM_BANDFMT_USHORT:	LOOP( unsigned short, unsigned int ); break; 
-        case IM_BANDFMT_INT: 	LOOP( signed int, signed int ); break; 
-        case IM_BANDFMT_UINT: 	LOOP( unsigned int, unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 	RLOOP( signed char, signed short ); break; 
+        case IM_BANDFMT_UCHAR: 	RLOOP( unsigned char, unsigned short ); break; 
+        case IM_BANDFMT_SHORT: 	RLOOP( signed short, signed int ); break; 
+        case IM_BANDFMT_USHORT:	RLOOP( unsigned short, unsigned int ); break; 
+        case IM_BANDFMT_INT: 	RLOOP( signed int, signed int ); break; 
+        case IM_BANDFMT_UINT: 	RLOOP( unsigned int, unsigned int ); break; 
 
         case IM_BANDFMT_FLOAT: 	
-        case IM_BANDFMT_COMPLEX:
 #ifdef HAVE_LIBOIL
 		oil_multiply_f32( (float *) out, 
 			(float *) in[0], (float *) in[1], sz );
 #else /*!HAVE_LIBOIL*/
-		LOOP( float, float ); 
+		RLOOP( float, float ); 
 #endif /*HAVE_LIBOIL*/
 		break; 
 
-        case IM_BANDFMT_DOUBLE:	
-        case IM_BANDFMT_DPCOMPLEX:
-		LOOP( double, double ); 
-		break;
+        case IM_BANDFMT_COMPLEX: CLOOP( float ); break; 
+        case IM_BANDFMT_DOUBLE:	RLOOP( double, double ); break;
+        case IM_BANDFMT_DPCOMPLEX: CLOOP( double ); break;
 
         default:
 		assert( 0 );
@@ -172,7 +183,7 @@ static int bandfmt_multiply[10] = {
  * following table is used to determine the output type:
  *
  * <table>
- *   <title>im_add() type promotion</title>
+ *   <title>im_multiply() type promotion</title>
  *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
  *     <thead>
  *       <row>

@@ -1,13 +1,4 @@
-/* @(#) Divide two images
- * @(#) Images must have the same no of bands and can be of any type
- * @(#) No check for overflow is carried out.
- * @(#)
- * @(#) int 
- * @(#) im_divide(in1, in2, out)
- * @(#) IMAGE *in1, *in2, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_divide.c
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -29,6 +20,9 @@
  *	- updated for 1 band $op n band image -> n band image case
  * 8/12/06
  * 	- add liboil support
+ * 18/8/08
+ * 	- revise upcasting system
+ * 	- add gtkdoc comments
  */
 
 /*
@@ -83,57 +77,66 @@
 #ifdef USE_MODARG_DIV
 /* This is going to be much slower */
 
-#define cloop(TYPE)                                         \
-{                                                           \
-  TYPE *X= (TYPE*) in[0];                                   \
-  TYPE *Y= (TYPE*) in[1];                                   \
-  TYPE *Z= (TYPE*) out;                                     \
-  TYPE *Z_stop= Z + sz * 2;                                 \
-                                                            \
-  for( ; Z < Z_stop; X+= 2, Y+=2 ){                         \
-    double arg= atan2( X[1], X[0] ) - atan2( Y[1], Y[0] );  \
-    double mod= hypot( X[1], X[0] ) / hypot( Y[1], Y[0] );  \
-    *Z++= mod * cos( arg );                                 \
-    *Z++= mod * sin( arg );                                 \
-  }                                                         \
+#define CLOOP( TYPE ) { \
+	TYPE *X = (TYPE *) in[0]; \
+	TYPE *Y = (TYPE *) in[1]; \
+	TYPE *Z = (TYPE *) out; \
+	int i; \
+        \
+	for( i = 0; i < sz; i++ ) { \
+		double arg = atan2( X[1], X[0] ) - atan2( Y[1], Y[0] ); \
+		double mod = hypot( X[1], X[0] ) / hypot( Y[1], Y[0] ); \
+		\
+		Z[0] = mod * cos( arg ); \
+		Z[1] = mod * sin( arg ); \
+		\
+		X += 2; \
+		Y += 2; \
+		Z += 2; \
+	} \
 }
 
 #else /* USE_MODARG_DIV */
 
-#define cloop(TYPE)                   \
-{                                     \
-  TYPE *X= (TYPE*) in[0];             \
-  TYPE *Y= (TYPE*) in[1];             \
-  TYPE *Z= (TYPE*) out;               \
-  TYPE *Z_stop= Z + sz * 2;           \
-                                      \
-  for( ; Z < Z_stop; X+= 2, Y+=2 )    \
-    if( fabs( Y[0] ) > fabs( Y[1] )){ \
-      double a= Y[1] / Y[0];          \
-      double b= Y[0] + Y[1] * a;      \
-      *Z++= ( X[0] + X[1] * a ) / b;  \
-      *Z++= ( X[1] - X[0] * a ) / b;  \
-    }                                 \
-    else {                            \
-      double a= Y[0] / Y[1];          \
-      double b= Y[1] + Y[0] * a;      \
-      *Z++= ( X[0] * a + X[1] ) / b;  \
-      *Z++= ( X[1] * a - X[0] ) / b;  \
-    }                                 \
+#define CLOOP( TYPE ) {                                     \
+	TYPE *X = (TYPE *) in[0]; \
+	TYPE *Y = (TYPE *) in[1]; \
+	TYPE *Z = (TYPE *) out; \
+	int i; \
+        \
+	for( i = 0; i < sz; i++ ) { \
+		if( fabs( Y[0] ) > fabs( Y[1] ) ) { \
+			double a = Y[1] / Y[0]; \
+			double b = Y[0] + Y[1] * a; \
+			\
+			Z[0] = (X[0] + X[1] * a) / b;  \
+			Z[1] = (X[1] - X[0] * a) / b;  \
+		} \
+		else { \
+			double a = Y[0] / Y[1]; \
+			double b = Y[1] + Y[0] * a; \
+			\
+			Z[0] = (X[0] * a + X[1]) / b; \
+			Z[1] = (X[1] * a - X[0]) / b; \
+		} \
+		\
+		X += 2; \
+		Y += 2; \
+		Z += 2; \
+	} \
 }
 
 #endif /* USE_MODARG_DIV */
 
 /* Real divide.
  */
-#define rloop(TYPE) \
-{\
-	TYPE *p1 = (TYPE *) in[0];\
-	TYPE *p2 = (TYPE *) in[1];\
-	TYPE *q = (TYPE *) out;\
+#define RLOOP( IN, OUT ) { \
+	IN *p1 = (IN *) in[0]; \
+	IN *p2 = (IN *) in[1]; \
+	OUT *q = (OUT *) out; \
 	\
-	for( x = 0; x < sz; x++ )\
-		q[x] = p1[x] / p2[x];\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = p1[x] / p2[x]; \
 }
 
 static void
@@ -145,31 +148,126 @@ divide_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 	/* Divide all input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 		rloop( signed char ); break; 
-        case IM_BANDFMT_UCHAR: 		rloop( unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 		rloop( signed short ); break; 
-        case IM_BANDFMT_USHORT: 	rloop( unsigned short ); break; 
-        case IM_BANDFMT_INT: 		rloop( signed int ); break; 
-        case IM_BANDFMT_UINT: 		rloop( unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 	RLOOP( signed char, float ); break; 
+        case IM_BANDFMT_UCHAR: 	RLOOP( unsigned char, float ); break; 
+        case IM_BANDFMT_SHORT: 	RLOOP( signed short, float ); break; 
+        case IM_BANDFMT_USHORT:	RLOOP( unsigned short, float ); break; 
+        case IM_BANDFMT_INT: 	RLOOP( signed int, float ); break; 
+        case IM_BANDFMT_UINT: 	RLOOP( unsigned int, float ); break; 
 
         case IM_BANDFMT_FLOAT: 		
 #ifdef HAVE_LIBOIL
 		oil_divide_f32( (float *) out, 
 			(float *) in[0], (float *) in[1], sz );
 #else /*!HAVE_LIBOIL*/
-		rloop( float ); 
+		RLOOP( float, float ); 
 #endif /*HAVE_LIBOIL*/
 		break; 
 
-        case IM_BANDFMT_DOUBLE:		rloop( double ); break; 
-        case IM_BANDFMT_COMPLEX:	cloop( float ); break;
-        case IM_BANDFMT_DPCOMPLEX:	cloop( double ); break;
+        case IM_BANDFMT_DOUBLE:		RLOOP( double, double ); break;
+        case IM_BANDFMT_COMPLEX:	CLOOP( float ); break;
+        case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break;
 
         default:
 		assert( 0 );
         }
 }
 
+/* Save a bit of typing.
+ */
+#define F IM_BANDFMT_FLOAT
+#define X IM_BANDFMT_COMPLEX
+#define D IM_BANDFMT_DOUBLE
+#define DX IM_BANDFMT_DPCOMPLEX
+
+/* Type promotion for division. Sign and value preserving. Make sure 
+ * these match the case statement in divide_buffer() above.
+ */
+static int bandfmt_divide[10] = {
+/* UC  C   US  S   UI  I  F  X  D  DX */
+   F,  F,  F,  F,  F,  F, F, X, D, DX
+};
+
+/**
+ * im_divide:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 / @in2 and writes the result to @out. 
+ * The images must be the same size. They may have any format. 
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
+ * following table is used to determine the output type:
+ *
+ * <table>
+ *   <title>im_divide() type promotion</title>
+ *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+ *     <thead>
+ *       <row>
+ *         <entry>input type</entry>
+ *         <entry>output type</entry>
+ *       </row>
+ *     </thead>
+ *     <tbody>
+ *       <row>
+ *         <entry>uchar</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>char</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>ushort</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>short</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>uint</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>int</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>float</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double</entry>
+ *         <entry>double</entry>
+ *       </row>
+ *       <row>
+ *         <entry>complex</entry>
+ *         <entry>complex</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double complex</entry>
+ *         <entry>double complex</entry>
+ *       </row>
+ *     </tbody>
+ *   </tgroup>
+ * </table>
+ *
+ * In other words, the output type is just large enough to hold the whole
+ * range of possible values.
+ *
+ * See also: im_multiply(), im_lintra().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_divide( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
@@ -187,34 +285,10 @@ im_divide( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	 */
 	out->Bands = IM_MAX( in1->Bands, in2->Bands );
 
-	/* What output type will we write? float, double or complex.
+	/* What output type will we write? int, float or complex.
 	 */
-	if( im_iscomplex( in1 ) || im_iscomplex( in2 ) ) {
-		/* What kind of complex?
-		 */
-		if( in1->BandFmt == IM_BANDFMT_DPCOMPLEX || 
-			in2->BandFmt == IM_BANDFMT_DPCOMPLEX )
-			/* Output will be DPCOMPLEX. 
-			 */
-			out->BandFmt = IM_BANDFMT_DPCOMPLEX;
-		else
-			out->BandFmt = IM_BANDFMT_COMPLEX;
-
-	}
-	else if( im_isfloat( in1 ) || im_isfloat( in2 ) ) {
-		/* What kind of float?
-		 */
-		if( in1->BandFmt == IM_BANDFMT_DOUBLE || 
-			in2->BandFmt ==  IM_BANDFMT_DOUBLE )
-			out->BandFmt = IM_BANDFMT_DOUBLE;
-		else
-			out->BandFmt = IM_BANDFMT_FLOAT;
-	}
-	else {
-		/* An int type -- output must be just float.
-		 */
-		out->BandFmt = IM_BANDFMT_FLOAT;
-	}
+	out->BandFmt = bandfmt_divide[im__format_common( in1, in2 )];
+	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	/* And process!
 	 */
