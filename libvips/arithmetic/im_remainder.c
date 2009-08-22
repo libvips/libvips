@@ -56,16 +56,32 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define LOOP(TYPE) { \
-	TYPE *p1 = (TYPE *) in[0]; \
-	TYPE *p2 = (TYPE *) in[1]; \
-	TYPE *q = (TYPE *) out; \
+#define RLOOP( IN, OUT ) { \
+	IN *p1 = (IN *) in[0]; \
+	IN *p2 = (IN *) in[1]; \
+	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		if( p2[x] ) \
-			q[x] = p1[x] % p2[x]; \
+			q[x] = (int) p1[x] % (int) p2[x]; \
 		else \
 			q[x] = -1; \
+}
+
+#define CLOOP( IN ) { \
+	IN *p1 = (IN *) in[0]; \
+	IN *p2 = (IN *) in[1]; \
+	signed int *q = (signed int *) out; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		if( p2[0] ) \
+			q[x] = (int) p1[0] % (int) p2[0]; \
+		else \
+			q[x] = -1; \
+		\
+		p1 += 2; \
+		p2 += 2; \
+	} \
 }
 
 static void
@@ -75,17 +91,42 @@ remainder_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 	int sz = width * im->Bands;
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 		LOOP( signed char ); break; 
-        case IM_BANDFMT_UCHAR: 		LOOP( unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 		LOOP( signed short ); break; 
-        case IM_BANDFMT_USHORT: 	LOOP( unsigned short ); break; 
-        case IM_BANDFMT_INT: 		LOOP( signed int ); break; 
-        case IM_BANDFMT_UINT: 		LOOP( unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 	RLOOP( signed char, signed char ); break; 
+        case IM_BANDFMT_UCHAR: 	RLOOP( unsigned char, unsigned char ); break; 
+        case IM_BANDFMT_SHORT: 	RLOOP( signed short, signed short ); break; 
+        case IM_BANDFMT_USHORT:	RLOOP( unsigned short, unsigned short ); break; 
+        case IM_BANDFMT_INT: 	RLOOP( signed int, signed int ); break; 
+        case IM_BANDFMT_UINT: 	RLOOP( unsigned int, unsigned int ); break; 
+        case IM_BANDFMT_FLOAT: 	RLOOP( float, signed int ); break; 
+        case IM_BANDFMT_COMPLEX:CLOOP( float ); break; 
+        case IM_BANDFMT_DOUBLE:	RLOOP( double, signed int ); break;
+        case IM_BANDFMT_DPCOMPLEX: CLOOP( double ); break;
 
         default:
 		assert( 0 );
         }
 }
+
+/* Save a bit of typing.
+ */
+#define UC IM_BANDFMT_UCHAR
+#define C IM_BANDFMT_CHAR
+#define US IM_BANDFMT_USHORT
+#define S IM_BANDFMT_SHORT
+#define UI IM_BANDFMT_UINT
+#define I IM_BANDFMT_INT
+#define F IM_BANDFMT_FLOAT
+#define X IM_BANDFMT_COMPLEX
+#define D IM_BANDFMT_DOUBLE
+#define DX IM_BANDFMT_DPCOMPLEX
+
+/* Type promotion for remainder. Same as input, except float/complex which are
+ * signed int. Keep in sync with remainder_buffer() above.
+ */
+static int bandfmt_remainder[10] = {
+/* UC  C   US  S   UI  I  F  X  D  DX */
+   UC, C,  US, S,  UI, I, I, I, I, I
+};
 
 /*
 .B im_remainder(3)
@@ -117,8 +158,7 @@ im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	/* What output type will we write? Same as LHS type, except float
 	 * and double become signed int.
 	 */
-	if( im_isfloat( in1 ) || im_iscomplex( in1 ) ) 
-		out->BandFmt = IM_BANDFMT_INT;
+	out->BandFmt = bandfmt_remainder[im__format_common( in1, in2 )];
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	/* And process!
