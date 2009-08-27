@@ -407,6 +407,17 @@ im_check_complex( const char *domain, IMAGE *im )
 }
 
 int
+im_check_int( const char *domain, IMAGE *im )
+{
+	if( !im_isint( im ) ) {
+		im_error( domain, "%s", _( "image must be integer" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
 im_check_size( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Xsize != im2->Xsize || im1->Ysize != im2->Ysize ) {

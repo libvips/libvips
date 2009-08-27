@@ -140,6 +140,7 @@ int im_check_uncoded( const char *domain, IMAGE *im );
 int im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_noncomplex( const char *domain, IMAGE *im );
 int im_check_complex( const char *domain, IMAGE *im );
+int im_check_int( const char *domain, IMAGE *im );
 int im_check_size( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_bands( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_format( const char *domain, IMAGE *im1, IMAGE *im2 );

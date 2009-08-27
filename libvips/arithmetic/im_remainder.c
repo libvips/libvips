@@ -11,6 +11,9 @@
  * 	- oop, broken for _vec case :-(
  * 14/5/08
  * 	- better /0 test
+ * 27/8/08
+ * 	- revise upcasting system
+ * 	- add gtkdoc comments
  */
 
 /*
@@ -56,7 +59,9 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define RLOOP( IN, OUT ) { \
+/* Integer remainder-after-division.
+ */
+#define ILOOP( IN, OUT ) { \
 	IN *p1 = (IN *) in[0]; \
 	IN *p2 = (IN *) in[1]; \
 	OUT *q = (OUT *) out; \
@@ -68,19 +73,21 @@
 			q[x] = -1; \
 }
 
-#define CLOOP( IN ) { \
+/* Float remainder-after-division.
+ */
+#define FLOOP( IN, OUT ) { \
 	IN *p1 = (IN *) in[0]; \
 	IN *p2 = (IN *) in[1]; \
-	signed int *q = (signed int *) out; \
+	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		if( p2[0] ) \
-			q[x] = (int) p1[0] % (int) p2[0]; \
+		double a = p1[x]; \
+		double b = p2[x]; \
+		\
+		if( b ) \
+			q[x] = a - b * floor (a / b); \
 		else \
 			q[x] = -1; \
-		\
-		p1 += 2; \
-		p2 += 2; \
 	} \
 }
 
@@ -91,16 +98,14 @@ remainder_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 	int sz = width * im->Bands;
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 	RLOOP( signed char, signed char ); break; 
-        case IM_BANDFMT_UCHAR: 	RLOOP( unsigned char, unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 	RLOOP( signed short, signed short ); break; 
-        case IM_BANDFMT_USHORT:	RLOOP( unsigned short, unsigned short ); break; 
-        case IM_BANDFMT_INT: 	RLOOP( signed int, signed int ); break; 
-        case IM_BANDFMT_UINT: 	RLOOP( unsigned int, unsigned int ); break; 
-        case IM_BANDFMT_FLOAT: 	RLOOP( float, signed int ); break; 
-        case IM_BANDFMT_COMPLEX:CLOOP( float ); break; 
-        case IM_BANDFMT_DOUBLE:	RLOOP( double, signed int ); break;
-        case IM_BANDFMT_DPCOMPLEX: CLOOP( double ); break;
+        case IM_BANDFMT_CHAR: 	ILOOP( signed char, signed char ); break; 
+        case IM_BANDFMT_UCHAR: 	ILOOP( unsigned char, unsigned char ); break; 
+        case IM_BANDFMT_SHORT: 	ILOOP( signed short, signed short ); break; 
+        case IM_BANDFMT_USHORT:	ILOOP( unsigned short, unsigned short ); break; 
+        case IM_BANDFMT_INT: 	ILOOP( signed int, signed int ); break; 
+        case IM_BANDFMT_UINT: 	ILOOP( unsigned int, unsigned int ); break; 
+        case IM_BANDFMT_FLOAT: 	FLOOP( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	FLOOP( double, double ); break;
 
         default:
 		assert( 0 );
@@ -125,18 +130,33 @@ remainder_buffer( PEL **in, PEL *out, int width, IMAGE *im )
  */
 static int bandfmt_remainder[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
-   UC, C,  US, S,  UI, I, I, I, I, I
+   UC, C,  US, S,  UI, I, F, X, D, DX
 };
 
-/*
-.B im_remainder(3)
-calculates the remainder after integer division of two images. The output
-type is the same as the type of
-.B in1
-unless
-.B in1
-is float or complex, in which
-case the output type is signed integer.
+/**
+ * im_remainder:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 % @in2 (remainder after division) and writes 
+ * the result to @out. The images must be the same size. They may have any 
+ * non-complex format. For float types, im_remainder() calculates a - b * 
+ * floor (a / b).
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>), and that format is the
+ * result type.
+ *
+ * See also: im_remainderconst(), im_divide().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
@@ -145,7 +165,9 @@ im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		im_pincheck( in2 ) ||
 		im_check_bands_1orn( "im_remainder", in1, in2 ) ||
 		im_check_uncoded( "im_remainder", in1 ) ||
-		im_check_uncoded( "im_remainder", in2 ) )
+		im_check_uncoded( "im_remainder", in2 ) ||
+		im_check_noncomplex( "im_remainder", in1 ) ||
+		im_check_noncomplex( "im_remainder", in2 ) )
 		return( -1 );
 
 	if( im_cp_descv( out, in1, in2, NULL ) )
@@ -155,8 +177,7 @@ im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	 */
 	out->Bands = IM_MAX( in1->Bands, in2->Bands );
 
-	/* What output type will we write? Same as LHS type, except float
-	 * and double become signed int.
+	/* What output type will we write? Same as LHS type.
 	 */
 	out->BandFmt = bandfmt_remainder[im__format_common( in1, in2 )];
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
@@ -181,7 +202,9 @@ typedef struct _Remainderconst {
 	int *c;
 } Remainderconst;
 
-#define const1_loop(TYPE) {\
+/* Integer remainder-after-divide.
+ */
+#define ICONST1LOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \
 	\
@@ -198,19 +221,19 @@ remainderconst1_buffer( PEL *in, PEL *out, int width, Remainderconst *rc )
 	int x;
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 	const1_loop( signed char ); break; 
-        case IM_BANDFMT_UCHAR: 	const1_loop( unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 	const1_loop( signed short ); break; 
-        case IM_BANDFMT_USHORT:	const1_loop( unsigned short ); break; 
-        case IM_BANDFMT_INT: 	const1_loop( signed int ); break; 
-        case IM_BANDFMT_UINT: 	const1_loop( unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 	ICONST1LOOP( signed char ); break; 
+        case IM_BANDFMT_UCHAR: 	ICONST1LOOP( unsigned char ); break; 
+        case IM_BANDFMT_SHORT: 	ICONST1LOOP( signed short ); break; 
+        case IM_BANDFMT_USHORT:	ICONST1LOOP( unsigned short ); break; 
+        case IM_BANDFMT_INT: 	ICONST1LOOP( signed int ); break; 
+        case IM_BANDFMT_UINT: 	ICONST1LOOP( unsigned int ); break; 
 
         default:
 		assert( 0 );
         }
 }
 
-#define const_loop(TYPE) {\
+#define ICONSTLOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \
 	\
@@ -228,18 +251,37 @@ remainderconst_buffer( PEL *in, PEL *out, int width, Remainderconst *rc )
 	int i, x, k; 
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 	const_loop( signed char ); break; 
-        case IM_BANDFMT_UCHAR: 	const_loop( unsigned char ); break; 
-        case IM_BANDFMT_SHORT: 	const_loop( signed short ); break; 
-        case IM_BANDFMT_USHORT:	const_loop( unsigned short ); break; 
-        case IM_BANDFMT_INT: 	const_loop( signed int ); break; 
-        case IM_BANDFMT_UINT: 	const_loop( unsigned int ); break; 
+        case IM_BANDFMT_CHAR: 	ICONSTLOOP( signed char ); break; 
+        case IM_BANDFMT_UCHAR: 	ICONSTLOOP( unsigned char ); break; 
+        case IM_BANDFMT_SHORT: 	ICONSTLOOP( signed short ); break; 
+        case IM_BANDFMT_USHORT:	ICONSTLOOP( unsigned short ); break; 
+        case IM_BANDFMT_INT: 	ICONSTLOOP( signed int ); break; 
+        case IM_BANDFMT_UINT: 	ICONSTLOOP( unsigned int ); break; 
 
         default:
 		assert( 0 );
         }
 }
 
+/**
+ * im_remainderconst_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: number of elements in array
+ * @c: array of constants
+ *
+ * This operation calculates @in % @c (remainder after division by constant) 
+ * and writes the result to @out. The image must be one of the integer types. 
+ *
+ * If the array of constants has one element, that constant is used for each
+ * image band. If the array has more than one element, it must have the same
+ * number of elements as there are bands in the image, and one array element
+ * is used for each band.
+ *
+ * See also: im_remainder(), im_divide().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
@@ -248,21 +290,15 @@ im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 
 	/* Basic checks.
 	 */
-	if( im_piocheck( in, out ) )
+	if( im_piocheck( in, out ) ||
+		im_check_vector( "im_remainder", n, in ) ||
+		im_check_uncoded( "im_remainder", in ) ||
+		im_check_int( "im_remainder", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_remainderconst_vec", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( n != 1 && n != in->Bands ) {
-		im_error( "im_remainderconst_vec",
-			_( "not 1 or %d elements in vector" ), in->Bands );
-		return( -1 );
-	}
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 
-	/* Make space for a little buffer.
+	/* Take a copy of the parameters.
 	 */
 	if( !(rc = IM_NEW( out, Remainderconst )) ||
 		!(rc->c = IM_ARRAY( out, n, int )) )
@@ -274,6 +310,10 @@ im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		/* Cast down to int ... we pass in double for consistency with
 		 * the other _vec functions.
 		 */
+		if( c[i] != (int) c[i] )
+			im_warn( "im_remainderconst_vec", 
+				_( "float constant %g truncated to integer" ), 
+				c[i] );
 		rc->c[i] = c[i];
 
 		if( rc->c[i] == 0 ) {
@@ -281,20 +321,6 @@ im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 				"%s", _( "division by zero" ) );
 			return( -1 );
 		}
-	}
-
-	/* What output type will we write? Same as input type, except float
-	 * and double become signed int.
-	 */
-	if( im_isfloat( in ) || im_iscomplex( in ) ) {
-		IMAGE *t = im_open_local( out, "im_remainderconst:1", "p" );
-
-		out->BandFmt = IM_BANDFMT_INT;
-		out->Bbits = IM_BBITS_INT;
-		if( !t || im_clip2fmt( in, t, out->BandFmt ) )
-			return( -1 );
-
-		rc->in = in = t;
 	}
 
 	if( n == 1 ) {
@@ -311,6 +337,19 @@ im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	return( 0 );
 }
 
+/**
+ * im_remainderconst:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in % @c (remainder after division by constant) 
+ * and writes the result to @out. The image must be one of the integer types. 
+ *
+ * See also: im_remainderconst_vec(), im_divide().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_remainderconst( IMAGE *in, IMAGE *out, double c )
 {

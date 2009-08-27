@@ -22,7 +22,8 @@
 - matlab load handles column-major and plane-separated images (thanks Mikhail)
 - JPEG save allows "none" for profile, meaning don't attach a profile
 - saner, simpler, faster typecasting for im_add(), im_subtract(),
-  im_multiply(), im_divide()
+  im_multiply(), im_divide(), im_remainder()
+- im_remainder() has a float result for float types
 - im_measure() allows sel == NULL, meaning all patches
 
 25/3/09 started 7.18.0

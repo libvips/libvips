@@ -9,24 +9,14 @@ colour. There's a GUI as well, see the VIPS website:
 There are packages for most linuxes and OS X. There is a pre-compiled windows
 binary on the vips website.
 
-Getting VIPS from SVN
-=====================
-
-Enter:
-
-	svn co https://vips.svn.sourceforge.net/svnroot/vips/vips7
-
 Building VIPS from source
 =========================
 
 In the VIPS directory, you should just be able to do:
 
-	user% ./configure
-	user% make
-
-then as root: 
-
-	root% make install
+	$ ./configure
+	$ make
+	$ sudo make install
 
 By default this will install files to /usr/local.
 
@@ -48,6 +38,20 @@ Building VIPS on OS X
 There are packages in macports.
 
 	http://www.macports.org
+
+Building VIPS from SVN
+----------------------
+
+Checkout the latest sources with:
+
+	svn co https://vips.svn.sourceforge.net/svnroot/vips/vips7
+
+Then:
+
+	$ ./bootstrap.sh
+	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" ./configure --prefix=/home/john/vips --enable-gtk-doc
+	$ make
+	$ make install
 
 Dependencies
 ============
