@@ -1,12 +1,4 @@
-/* @(#) Find cos of any non-complex image. Output is always float for integer 
- * @(#) input and double for double input. All angles in degrees.
- * @(#)
- * @(#) int 
- * @(#) im_costra( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_costra
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
@@ -23,6 +15,9 @@
  *	- adapted for im_wrapone()
  * 26/1/96 JC
  *	- im_acostra() added
+ * 30/8/09
+ * 	- gtkdoc
+ * 	- tiny cleanups
  */
 
 /*
@@ -83,8 +78,9 @@
 static void
 costra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {	
+	const int sz = width * im->Bands;
+
 	int x;
-	int sz = width * im->Bands;
 
 	/* Switch for all input types.
          */
@@ -99,11 +95,22 @@ costra_gen( PEL *in, PEL *out, int width, IMAGE *im )
         case IM_BANDFMT_DOUBLE:	loop( double, double ); break; 
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
-/* Cos transform.
+/**
+ * im_costra
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * For each pixel, call <function>cos(3)</function> (cosine). Angles are 
+ * expressed in degrees. The output type is float, unless the input is 
+ * double, in which case the output is double.  Non-complex images only.
+ *
+ * See also: im_acostra(), im_sintra(), im_tantra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_costra( IMAGE *in, IMAGE *out )
@@ -117,23 +124,9 @@ im_costra( IMAGE *in, IMAGE *out )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR:
-                case IM_BANDFMT_CHAR:
-                case IM_BANDFMT_USHORT:
-                case IM_BANDFMT_SHORT:
-                case IM_BANDFMT_UINT:
-                case IM_BANDFMT_INT:
-			out->Bbits = IM_BBITS_FLOAT;
-			out->BandFmt = IM_BANDFMT_FLOAT;
-			break;
-
-		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:
-			break;
-
-		default:
-			assert( 0 );
+	if( im_isint( in ) ) {
+		out->Bbits = IM_BBITS_FLOAT;
+		out->BandFmt = IM_BANDFMT_FLOAT;
 	}
 
 	/* Generate!
@@ -159,8 +152,9 @@ im_costra( IMAGE *in, IMAGE *out )
 static void
 acostra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {	
+	const int sz = width * im->Bands;
+
 	int x;
-	int sz = width * im->Bands;
 
 	/* Switch for all input types.
          */
@@ -179,7 +173,20 @@ acostra_gen( PEL *in, PEL *out, int width, IMAGE *im )
         }
 }
 
-/* Acos transform.
+
+/**
+ * im_acostra
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * For each pixel, call <function>acos(3)</function> (arc or inverse cosine). 
+ * Angles are expressed in
+ * degrees. The output type is float, unless the input is double, in which 
+ * case the output is double.  Non-complex images only.
+ *
+ * See also: im_costra(), im_asintra(), im_atantra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_acostra( IMAGE *in, IMAGE *out )
@@ -193,23 +200,9 @@ im_acostra( IMAGE *in, IMAGE *out )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR:
-                case IM_BANDFMT_CHAR:
-                case IM_BANDFMT_USHORT:
-                case IM_BANDFMT_SHORT:
-                case IM_BANDFMT_UINT:
-                case IM_BANDFMT_INT:
-			out->Bbits = IM_BBITS_FLOAT;
-			out->BandFmt = IM_BANDFMT_FLOAT;
-			break;
-
-		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:
-			break;
-
-		default:
-			assert( 0 );
+	if( im_isint( in ) ) {
+		out->Bbits = IM_BBITS_FLOAT;
+		out->BandFmt = IM_BANDFMT_FLOAT;
 	}
 
 	/* Generate!

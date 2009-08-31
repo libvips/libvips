@@ -1,16 +1,4 @@
-/* @(#)  Multiplies two complex images. complex output is normalised to 1
- * @(#)  Inputs can be complex double or complex float
- * @(#)  Result (double complex or float complex) depends on inputs
- * @(#) Function im_cmulnorm() assumes that the both input files
- * @(#) are either memory mapped or in a buffer.
- * @(#) Images must have the same no of bands and must be complex
- * @(#)  No check for overflow is carried out.
- * @(#)
- * @(#) int im_cmulnorm(in1, in2, out)
- * @(#) IMAGE *in1, *in2, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_cmulnorm.c
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -21,6 +9,9 @@
  *	- thrown away and redone in terms of im_multiply()
  * 9/7/02 JC
  *	- im_sign() broken out, done in terms of that
+ * 28/8/09
+ * 	- gtkdoc
+ * 	- tiny polish
  */
 
 /*
@@ -63,12 +54,31 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_cmulnorm
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * im_cmulnorm() multiplies two complex images. The complex output is
+ * normalised to 1 by dividing both the real and the imaginary part of each
+ * pel with the norm. This is useful for phase correlation.  
+ *
+ * This operation used to be important, but now simply calls im_multiply() 
+ * then im_sign().
+ *
+ * See also: im_multiply(), im_sign().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_cmulnorm( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *t1 = im_open_local( out, "im_cmulnorm:1", "p" );
+	IMAGE *t1;
 
-	if( !t1 || im_multiply( in1, in2, t1 ) || im_sign( t1, out ) )
+	if( !(t1 = im_open_local( out, "im_cmulnorm:1", "p" )) ||
+		im_multiply( in1, in2, t1 ) || 
+		im_sign( t1, out ) )
 		return( -1 );
 	
 	return( 0 );

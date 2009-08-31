@@ -1,14 +1,10 @@
-/* @(#) ceil() an image ... no promotion, so output type == input type
- * @(#)
- * @(#) int 
- * @(#) im_ceil( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_ceil.c 
  *
  * 20/6/02 JC
  *	- adapted from im_abs()
+ * 29/8/09
+ * 	- gtkdoc
+ * 	- tiny cleanups
  */
 
 /*
@@ -45,7 +41,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -53,35 +48,54 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define ceil_loop(TYPE)\
-	{\
-		TYPE *p = (TYPE *) in;\
-		TYPE *q = (TYPE *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = ceil( p[x] );\
-	}
+#define LOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = ceil( p[x] ); \
+}
 
 /* Ceil a buffer of PELs.
  */
 static void
 ceil_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {	
+	/* Complex just doubles the size.
+	 */
+	const int sz = width * im->Bands * (im_iscomplex( im ) ? 2 : 1);
+
 	int x;
-	int sz = width * im->Bands;
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_FLOAT: 		ceil_loop(float); break; 
-        case IM_BANDFMT_DOUBLE:		ceil_loop(double); break; 
-        case IM_BANDFMT_COMPLEX:	sz *= 2; ceil_loop(float); break;
-        case IM_BANDFMT_DPCOMPLEX:	sz *= 2; ceil_loop(double); break;
+        case IM_BANDFMT_COMPLEX:	
+        case IM_BANDFMT_FLOAT: 		
+		LOOP( float ); 
+		break; 
+
+        case IM_BANDFMT_DOUBLE:		
+        case IM_BANDFMT_DPCOMPLEX:	
+		LOOP( double ); 
+		break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
-/* Ceil of image.
+/**
+ * im_ceil:
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * For each pixel, find the smallest integral value not less than.
+ * Copy for integer types, call <function>ceil(3)</function> for float and 
+ * complex types. 
+ * Output type == input type.
+ *
+ * See also: im_floor(), im_rint(), im_clip2fmt()
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_ceil( IMAGE *in, IMAGE *out )

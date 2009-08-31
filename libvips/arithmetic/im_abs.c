@@ -17,6 +17,9 @@
  *	- tiny speed up
  * 8/12/06
  * 	- add liboil support
+ * 28/8/09
+ * 	- gtkdoc
+ * 	- tiny polish
  */
 
 /*
