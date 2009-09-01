@@ -1,6 +1,5 @@
 - make im__math and common up code between the trig/log funcs
 
-
 - 1-bit PNG read is broken?
 
 > The bug is that 1bit depth PNG addresses are incorrectly interpreted.  At

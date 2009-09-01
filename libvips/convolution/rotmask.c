@@ -47,16 +47,6 @@
  * @(#) by 90 degrees clockwise.
  * @(#) The filename member of the returned mask is set to name
  * @(#)
- * @(#) Prints a mask.  Used mainly for debugging purposes
- * @(#)
- * @(#) Usage
- * @(#) void im_print_dmask( m )
- * @(#) DOUBLEMASK *m;
- * @(#)
- * @(#) Usage
- * @(#) void im_print_imask( m )
- * @(#) INTMASK *m;
- * @(#)
  *
  * 
  * Author: N. Dessipris (Copyright, N. Dessipris 1991)
@@ -319,38 +309,4 @@ INTMASK *
 im_rotate_imask45( INTMASK *m, const char *name )
 {
 	return( rotimask( im_offsets45, m, name ) );
-}
-
-void 
-im_print_imask( INTMASK *m )
-{
-        int i, j, k;
-	int *pm = m->coeff;
-
-        fprintf( stderr, " %s: %d %d %d %d\n",
-		m->filename, m->xsize, m->ysize, m->scale, m->offset );
-
-        for( k = 0, j = 0; j < m->ysize; j++ ) {
-                for( i = 0; i < m->xsize; i++, k++ )
-                        fprintf( stderr, "%d\t", pm[k] );
-
-                fprintf( stderr, "\n" );
-	}
-}
-
-void 
-im_print_dmask( DOUBLEMASK *m )
-{
-        int i, j, k;
-	double *pm = m->coeff;
-
-        fprintf( stderr, " %s: %d %d %f %f\n",
-		m->filename, m->xsize, m->ysize, m->scale, m->offset );
-
-        for( k = 0, j = 0; j < m->ysize; j++ ) {
-                for( i = 0; i < m->xsize; i++, k++ )
-                        fprintf( stderr, "%f\t", pm[k] );
-
-                fprintf( stderr, "\n" );
-	}
 }

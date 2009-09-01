@@ -5,6 +5,16 @@
  * @(#)  The mask coefficients can be either int (INTMASK) 
  * @(#) or double (DOUBLEMASK).  
  * @(#)
+ * @(#) Prints a mask.  Used mainly for debugging purposes
+ * @(#)
+ * @(#) Usage
+ * @(#) void im_print_dmask( m )
+ * @(#) DOUBLEMASK *m;
+ * @(#)
+ * @(#) Usage
+ * @(#) void im_print_imask( m )
+ * @(#) INTMASK *m;
+ * @(#)
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -45,6 +55,8 @@
  *    - use g_ascii_strtod() and friends
  * 2006-09-08 tcv
  *    - add im_norm_dmask()
+ * 1/9/09
+ * 	- move im_print_*mask() here
  */
 
 /*
@@ -724,4 +736,38 @@ im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask )
 	for( y = 0; y < mask->ysize; y++ )
 		for( x = 0; x < mask->xsize; x++ )
 			*p++ = matrix[x][y];
+}
+
+void 
+im_print_imask( INTMASK *m )
+{
+        int i, j, k;
+	int *pm = m->coeff;
+
+        printf( "%s: %d %d %d %d\n",
+		m->filename, m->xsize, m->ysize, m->scale, m->offset );
+
+        for( k = 0, j = 0; j < m->ysize; j++ ) {
+                for( i = 0; i < m->xsize; i++, k++ )
+                        printf( "%d\t", pm[k] );
+
+                printf( "\n" );
+	}
+}
+
+void 
+im_print_dmask( DOUBLEMASK *m )
+{
+        int i, j, k;
+	double *pm = m->coeff;
+
+        printf( "%s: %d %d %f %f\n",
+		m->filename, m->xsize, m->ysize, m->scale, m->offset );
+
+        for( k = 0, j = 0; j < m->ysize; j++ ) {
+                for( i = 0; i < m->xsize; i++, k++ )
+                        printf( "%f\t", pm[k] );
+
+                printf( "\n" );
+	}
 }
