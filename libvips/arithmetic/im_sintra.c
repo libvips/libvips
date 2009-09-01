@@ -23,6 +23,10 @@
  *	- adapted for im_wrapone()
  * 26/1/96 JC
  *	- im_asintra() added
+ * 30/8/09
+ * 	- gtkdoc
+ * 	- tiny cleanups
+ * 	- use im__math()
  */
 
 /*
@@ -59,9 +63,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -70,170 +74,112 @@
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define loop( IN, OUT )\
-	{\
-		IN *p = (IN *) in;\
-		OUT *q = (OUT *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = sin( IM_RAD( (double) p[x] ) );\
-	}
+#define SIN( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = sin( IM_RAD( (double) p[x] ) ); \
+}
 
-/* sin a buffer of PELs.
+/* sin() a buffer of PELs.
  */
 static void
 sintra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {	
+	const int sz = width * im->Bands;
+
 	int x;
-	int sz = width * im->Bands;
 
 	/* Switch for all input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	loop( unsigned char, float ); break; 
-        case IM_BANDFMT_CHAR: 	loop( signed char, float ); break; 
-        case IM_BANDFMT_USHORT: loop( unsigned short, float ); break; 
-        case IM_BANDFMT_SHORT: 	loop( signed short, float ); break; 
-        case IM_BANDFMT_UINT: 	loop( unsigned int, float ); break; 
-        case IM_BANDFMT_INT: 	loop( signed int, float );  break; 
-        case IM_BANDFMT_FLOAT: 	loop( float, float ); break; 
-        case IM_BANDFMT_DOUBLE:	loop( double, double ); break; 
+        case IM_BANDFMT_UCHAR: 	SIN( unsigned char, float ); break; 
+        case IM_BANDFMT_CHAR: 	SIN( signed char, float ); break; 
+        case IM_BANDFMT_USHORT: SIN( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	SIN( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	SIN( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	SIN( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	SIN( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	SIN( double, double ); break; 
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
-/* Sin transform.
+/**
+ * im_sintra
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * For each pixel, call <function>sin(3)</function> (sine). Angles are 
+ * expressed in degrees. The output type is float, unless the input is 
+ * double, in which case the output is double.  Non-complex images only.
+ *
+ * See also: im_asintra(), im_costra(), im_tantra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_sintra( IMAGE *in, IMAGE *out )
-{	
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_sintra", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_sintra", "%s", _( "not non-complex" ) );
-		return( -1 );
-	}
-
-	/* Prepare output header.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR:
-                case IM_BANDFMT_CHAR:
-                case IM_BANDFMT_USHORT:
-                case IM_BANDFMT_SHORT:
-                case IM_BANDFMT_UINT:
-                case IM_BANDFMT_INT:
-			out->Bbits = IM_BBITS_FLOAT;
-			out->BandFmt = IM_BANDFMT_FLOAT;
-			break;
-
-		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:
-			break;
-
-		default:
-			assert( 0 );
-	}
-
-	/* Generate!
-	 */
-	if( im_wrapone( in, out, (im_wrapone_fn) sintra_gen, in, NULL ) )
-		return( -1 );
-
-	return( 0 );
+{
+	return( im__math( "im_sintra", in, out, (im_wrapone_fn) sintra_gen ) );
 }
 
 /* And asin().
  */
-#define aloop( IN, OUT )\
-	{\
-		IN *p = (IN *) in;\
-		OUT *q = (OUT *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = IM_DEG( asin( (double) p[x] ) );\
-	}
+#define ASIN( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = IM_DEG( asin( (double) p[x] ) ); \
+}
 
 /* asin a buffer of PELs.
  */
 static void
 asintra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {	
+	const int sz = width * im->Bands;
+
 	int x;
-	int sz = width * im->Bands;
 
 	/* Switch for all input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	aloop( unsigned char, float ); break; 
-        case IM_BANDFMT_CHAR: 	aloop( signed char, float ); break; 
-        case IM_BANDFMT_USHORT: aloop( unsigned short, float ); break; 
-        case IM_BANDFMT_SHORT: 	aloop( signed short, float ); break; 
-        case IM_BANDFMT_UINT: 	aloop( unsigned int, float ); break; 
-        case IM_BANDFMT_INT: 	aloop( signed int, float );  break; 
-        case IM_BANDFMT_FLOAT: 	aloop( float, float ); break; 
-        case IM_BANDFMT_DOUBLE:	aloop( double, double ); break; 
+        case IM_BANDFMT_UCHAR: 	ASIN( unsigned char, float ); break; 
+        case IM_BANDFMT_CHAR: 	ASIN( signed char, float ); break; 
+        case IM_BANDFMT_USHORT: ASIN( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	ASIN( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	ASIN( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	ASIN( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	ASIN( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	ASIN( double, double ); break; 
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
-/* Asin transform.
+/**
+ * im_asintra
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * For each pixel, call <function>asin(3)</function> (arc, or inverse sine). 
+ * Angles are 
+ * expressed in degrees. The output type is float, unless the input is 
+ * double, in which case the output is double.  Non-complex images only.
+ *
+ * See also: im_asintra(), im_costra(), im_tantra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_asintra( IMAGE *in, IMAGE *out )
 {
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_asintra", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_asintra", "%s", _( "not non-complex" ) );
-		return( -1 );
-	}
-
-	/* Prepare output header.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR:
-                case IM_BANDFMT_CHAR:
-                case IM_BANDFMT_USHORT:
-                case IM_BANDFMT_SHORT:
-                case IM_BANDFMT_UINT:
-                case IM_BANDFMT_INT:
-			out->Bbits = IM_BBITS_FLOAT;
-			out->BandFmt = IM_BANDFMT_FLOAT;
-			break;
-
-		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:
-			break;
-
-		default:
-			assert( 0 );
-	}
-
-	/* Generate!
-	 */
-	if( im_wrapone( in, out, (im_wrapone_fn) asintra_gen, in, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__math( "im_asintra", in, out, 
+		(im_wrapone_fn) asintra_gen ) );
 }

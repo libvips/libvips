@@ -18,6 +18,10 @@
  * 1/7/93 JC
  *	- adapted for partial v2
  *	- ANSIfied
+ * 30/8/09
+ * 	- gtkdoc
+ * 	- tiny cleanups
+ * 	- use im__math()
  */
 
 /*
@@ -54,9 +58,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -65,103 +69,56 @@
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define loop(IN, OUT)\
-	for( y = to; y < bo; y++ ) {\
-		IN *p = (IN *) IM_REGION_ADDR( ir, le, y );\
-		OUT *q = (OUT *) IM_REGION_ADDR( or, le, y );\
-		\
-		for( x = 0; x < sz; x++ )\
-			*q++ = log10( *p++ );\
-	}
-
-/* log10tra a small area.
- */
-static int
-log10tra_gen( REGION *or, void *seq, void *a, void *b )
-{	
-	REGION *ir = (REGION *) seq;
-	Rect *r = &or->valid;
-	int le = r->left;
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int sz = IM_REGION_N_ELEMENTS( or );
-	int x, y;
-
-	/* Ask for input we need.
-	 */
-	if( im_prepare( ir, r ) )
-		return( -1 );
-
-	/* log10tra all input types.
-         */
-        switch( ir->im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 		loop(unsigned char, float); break;
-        case IM_BANDFMT_CHAR: 		loop(signed char, float); break; 
-        case IM_BANDFMT_USHORT: 	loop(unsigned short, float); break; 
-        case IM_BANDFMT_SHORT: 		loop(signed short, float); break; 
-        case IM_BANDFMT_UINT: 		loop(unsigned int, float); break; 
-        case IM_BANDFMT_INT: 		loop(signed int, float);  break; 
-        case IM_BANDFMT_FLOAT: 		loop(float, float); break; 
-        case IM_BANDFMT_DOUBLE:		loop(double, double); break; 
-
-        default:
-		assert( 0 );
-        }
- 
-	return( 0 );
+#define LOG10( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = log10( p[x] ); \
 }
 
-/* Log 10 transform.
+/* log10() a buffer of PELs.
+ */
+static void
+log10tra_gen( PEL *in, PEL *out, int width, IMAGE *im )
+{	
+	const int sz = width * im->Bands;
+
+	int x;
+
+	/* Switch for all input types.
+         */
+        switch( im->BandFmt ) {
+        case IM_BANDFMT_UCHAR: 	LOG10( unsigned char, float ); break; 
+        case IM_BANDFMT_CHAR: 	LOG10( signed char, float ); break; 
+        case IM_BANDFMT_USHORT: LOG10( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	LOG10( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	LOG10( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	LOG10( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	LOG10( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	LOG10( double, double ); break; 
+
+        default:
+		g_assert( 0 );
+        }
+}
+
+/**
+ * im_log10tra
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * For each pixel, call <function>log10(3)</function> (base 10 logarithm). 
+ * The output type is float, unless the input is 
+ * double, in which case the output is double.  Non-complex images only.
+ *
+ * See also: im_exp10tra(), im_logntra(), im_sintra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_log10tra( IMAGE *in, IMAGE *out )
-{	
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_log10tra", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_log10tra", "%s", _( "not non-complex" ) );
-		return( -1 );
-	}
-
-	/* Prepare output header.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR:
-                case IM_BANDFMT_CHAR:
-                case IM_BANDFMT_USHORT:
-                case IM_BANDFMT_SHORT:
-                case IM_BANDFMT_UINT:
-                case IM_BANDFMT_INT:
-			out->Bbits = IM_BBITS_FLOAT;
-			out->BandFmt = IM_BANDFMT_FLOAT;
-			break;
-
-		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:
-			break;
-
-		default:
-			assert( 0 );
-	}
-
-	/* Set demand hints.
-	 */
-	if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) )
-		 return( -1 );
-
-	/* Generate!
-	 */
-	if( im_generate( out, 
-		im_start_one, log10tra_gen, im_stop_one, in, NULL ) )
-		return( -1 );
-
-	return( 0 );
+{
+	return( im__math( "im_log10tra", in, out, 
+		(im_wrapone_fn) log10tra_gen ) );
 }

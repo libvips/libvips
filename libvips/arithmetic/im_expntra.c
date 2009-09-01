@@ -28,6 +28,9 @@
  *	- M_E removed, as not everywhere
  * 6/7/98 JC
  *	- _vec version added
+ * 30/8/09
+ * 	- gtkdoc
+ * 	- tiny cleanups
  */
 
 /*
@@ -63,9 +66,9 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -80,18 +83,17 @@ typedef struct {
 
 /* Define what we do for each band element type. Single constant.
  */
-#define loop1(IN, OUT) { \
+#define POW1( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		double f = (double) p[x]; \
 		\
-		if( e == 0.0 && f < 0.0 ) { \
+		if( e == 0.0 && f < 0.0 ) \
 			/* Division by zero! Difficult to report tho' \
 			 */ \
 			q[x] = 0.0; \
-		} \
 		else \
 			q[x] = pow( e, f ); \
 	} \
@@ -102,24 +104,25 @@ typedef struct {
 static int
 expntra1_gen( PEL *in, PEL *out, int width, IMAGE *im, ExpntraInfo *inf )
 {
-	int sz = width * im->Bands;
-	double e = inf->e[0];
+	const int sz = width * im->Bands;
+	const double e = inf->e[0];
+
 	int x;
 
 	/* Expntra all non-complex input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 		loop1(unsigned char, float); break;
-        case IM_BANDFMT_CHAR: 		loop1(signed char, float); break; 
-        case IM_BANDFMT_USHORT: 	loop1(unsigned short, float); break; 
-        case IM_BANDFMT_SHORT: 		loop1(signed short, float); break; 
-        case IM_BANDFMT_UINT: 		loop1(unsigned int, float); break; 
-        case IM_BANDFMT_INT: 		loop1(signed int, float);  break; 
-        case IM_BANDFMT_FLOAT: 		loop1(float, float); break; 
-        case IM_BANDFMT_DOUBLE:		loop1(double, double); break; 
+        case IM_BANDFMT_UCHAR: 	POW1( unsigned char, float ); break;
+        case IM_BANDFMT_CHAR: 	POW1( signed char, float ); break; 
+        case IM_BANDFMT_USHORT:	POW1( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	POW1( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	POW1( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	POW1( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	POW1( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	POW1( double, double ); break; 
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 
 	return( 0 );
@@ -127,7 +130,7 @@ expntra1_gen( PEL *in, PEL *out, int width, IMAGE *im, ExpntraInfo *inf )
 
 /* Define what we do for each band element type. One constant per band.
  */
-#define loopn(IN, OUT) { \
+#define POWN( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \
 	\
@@ -136,9 +139,8 @@ expntra1_gen( PEL *in, PEL *out, int width, IMAGE *im, ExpntraInfo *inf )
 			double e = inf->e[k]; \
 			double f = (double) p[i]; \
 			\
-			if( e == 0.0 && f < 0.0 ) { \
+			if( e == 0.0 && f < 0.0 ) \
 				q[i] = 0.0; \
-			} \
 			else \
 				q[i] = pow( e, f ); \
 		} \
@@ -154,22 +156,43 @@ expntran_gen( PEL *in, PEL *out, int width, IMAGE *im, ExpntraInfo *inf )
 	/* Expntra all non-complex input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 		loopn(unsigned char, float); break;
-        case IM_BANDFMT_CHAR: 		loopn(signed char, float); break; 
-        case IM_BANDFMT_USHORT: 	loopn(unsigned short, float); break; 
-        case IM_BANDFMT_SHORT: 		loopn(signed short, float); break; 
-        case IM_BANDFMT_UINT: 		loopn(unsigned int, float); break; 
-        case IM_BANDFMT_INT: 		loopn(signed int, float);  break; 
-        case IM_BANDFMT_FLOAT: 		loopn(float, float); break; 
-        case IM_BANDFMT_DOUBLE:		loopn(double, double); break; 
+        case IM_BANDFMT_UCHAR:	POWN( unsigned char, float ); break;
+        case IM_BANDFMT_CHAR: 	POWN( signed char, float ); break; 
+        case IM_BANDFMT_USHORT:	POWN( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	POWN( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	POWN( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	POWN( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	POWN( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	POWN( double, double ); break; 
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 
 	return( 0 );
 }
 
+/**
+ * im_expntra_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: number of elements in array
+ * @b: array of constants
+ *
+ * im_expntra_vec() transforms element x of input to 
+ * <function>pow</function>(@b, x) in output. 
+ * It detects division by zero, setting those pixels to zero in the output. 
+ * Beware: it does this silently!
+ *
+ * If the array of constants has one element, that constant is used for each
+ * image band. If the array has more than one element, it must have the same
+ * number of elements as there are bands in the image, and one array element
+ * is used for each band.
+ *
+ * See also: im_logtra(), im_powtra()
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e )
 {
@@ -177,8 +200,8 @@ im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e )
 	int i;
 
 	if( im_piocheck( in, out ) ||
-		im_check_uncoded( "im_expntra", in ) ||
-		im_check_noncomplex( "im_expntra", in ) ||
+		im_check_uncoded( "im_expntra_vec", in ) ||
+		im_check_noncomplex( "im_expntra_vec", in ) ||
 		im_check_vector( "im_expntra_vec", n, in ) )
 		return( -1 );
 
@@ -216,13 +239,40 @@ im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e )
 	return( 0 );
 }
 
+/**
+ * im_expntra:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @b: base
+ *
+ * im_expntra() transforms element x of input to 
+ * <function>pow</function>(@b, x) in output. 
+ * It detects division by zero, setting those pixels to zero in the output. 
+ * Beware: it does this silently!
+ *
+ * See also: im_logtra(), im_powtra()
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
-im_expntra( IMAGE *in, IMAGE *out, double e )
+im_expntra( IMAGE *in, IMAGE *out, double b )
 {
-	return( im_expntra_vec( in, out, 1, &e ) );
+	return( im_expntra_vec( in, out, 1, &b ) );
 }
 
-/* Define im_exptra() and im_exp10tra() in terms of im_expntra().
+/**
+ * im_exptra:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ *
+ * im_exptra() transforms element x of input to 
+ * <function>pow</function>(e, x) in output. 
+ * It detects division by zero, setting those pixels to zero in the output. 
+ * Beware: it does this silently!
+ *
+ * See also: im_logtra(), im_powtra()
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_exptra( IMAGE *in, IMAGE *out )
@@ -230,6 +280,20 @@ im_exptra( IMAGE *in, IMAGE *out )
 	return( im_expntra( in, out, 2.7182818284590452354 ) );
 }
 
+/**
+ * im_exp10tra:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ *
+ * im_exptra() transforms element x of input to 
+ * <function>pow</function>(10, x) in output. 
+ * It detects division by zero, setting those pixels to zero in the output. 
+ * Beware: it does this silently!
+ *
+ * See also: im_logtra(), im_powtra()
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_exp10tra( IMAGE *in, IMAGE *out )
 {

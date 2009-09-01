@@ -23,6 +23,10 @@
  *	- adapted for im_wrapone()
  * 26/1/96 JC
  * 	- atan() added
+ * 30/8/09
+ * 	- gtkdoc
+ * 	- tiny cleanups
+ * 	- use im__math()
  */
 
 /*
@@ -59,9 +63,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -70,171 +74,114 @@
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define loop( IN, OUT )\
-	{\
-		IN *p = (IN *) in;\
-		OUT *q = (OUT *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = tan( IM_RAD( (double) p[x] ) );\
-	}
+#define TAN( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = tan( IM_RAD( (double) p[x] ) ); \
+}
 
 /* tan a buffer of PELs.
  */
 static void
 tantra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {	
+	const int sz = width * im->Bands;
+
 	int x;
-	int sz = width * im->Bands;
 
 	/* Switch for all input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	loop( unsigned char, float ); break; 
-        case IM_BANDFMT_CHAR: 	loop( signed char, float ); break; 
-        case IM_BANDFMT_USHORT: loop( unsigned short, float ); break; 
-        case IM_BANDFMT_SHORT: 	loop( signed short, float ); break; 
-        case IM_BANDFMT_UINT: 	loop( unsigned int, float ); break; 
-        case IM_BANDFMT_INT: 	loop( signed int, float );  break; 
-        case IM_BANDFMT_FLOAT: 	loop( float, float ); break; 
-        case IM_BANDFMT_DOUBLE:	loop( double, double ); break; 
+        case IM_BANDFMT_UCHAR: 	TAN( unsigned char, float ); break; 
+        case IM_BANDFMT_CHAR: 	TAN( signed char, float ); break; 
+        case IM_BANDFMT_USHORT: TAN( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	TAN( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	TAN( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	TAN( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	TAN( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	TAN( double, double ); break; 
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
-/* Tan transform.
+/**
+ * im_tantra
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * For each pixel, call <function>tan(3)</function> (tangent). Angles are 
+ * expressed in degrees. The output type is float, unless the input is 
+ * double, in which case the output is double.  Non-complex images only.
+ *
+ * See also: im_atantra(), im_sintra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_tantra( IMAGE *in, IMAGE *out )
-{	
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_tantra", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_tantra", "%s", _( "not non-complex" ) );
-		return( -1 );
-	}
-
-	/* Prepare output header.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR:
-                case IM_BANDFMT_CHAR:
-                case IM_BANDFMT_USHORT:
-                case IM_BANDFMT_SHORT:
-                case IM_BANDFMT_UINT:
-                case IM_BANDFMT_INT:
-			out->Bbits = IM_BBITS_FLOAT;
-			out->BandFmt = IM_BANDFMT_FLOAT;
-			break;
-
-		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:
-			break;
-
-		default:
-			assert( 0 );
-	}
-
-	/* Generate!
-	 */
-	if( im_wrapone( in, out, (im_wrapone_fn) tantra_gen, in, NULL ) )
-		return( -1 );
-
-	return( 0 );
+{
+	return( im__math( "im_tantra", in, out, (im_wrapone_fn) tantra_gen ) );
 }
 
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define aloop( IN, OUT )\
-	{\
-		IN *p = (IN *) in;\
-		OUT *q = (OUT *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = IM_DEG( atan( (double) p[x] ) );\
-	}
+#define ATAN( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = IM_DEG( atan( (double) p[x] ) ); \
+}
 
 /* atan a buffer of PELs.
  */
 static void
 atantra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {	
+	const int sz = width * im->Bands;
+
 	int x;
-	int sz = width * im->Bands;
 
 	/* Switch for all input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	aloop( unsigned char, float ); break; 
-        case IM_BANDFMT_CHAR: 	aloop( signed char, float ); break; 
-        case IM_BANDFMT_USHORT: aloop( unsigned short, float ); break; 
-        case IM_BANDFMT_SHORT: 	aloop( signed short, float ); break; 
-        case IM_BANDFMT_UINT: 	aloop( unsigned int, float ); break; 
-        case IM_BANDFMT_INT: 	aloop( signed int, float );  break; 
-        case IM_BANDFMT_FLOAT: 	aloop( float, float ); break; 
-        case IM_BANDFMT_DOUBLE:	aloop( double, double ); break; 
+        case IM_BANDFMT_UCHAR: 	ATAN( unsigned char, float ); break; 
+        case IM_BANDFMT_CHAR: 	ATAN( signed char, float ); break; 
+        case IM_BANDFMT_USHORT: ATAN( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	ATAN( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	ATAN( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	ATAN( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	ATAN( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	ATAN( double, double ); break; 
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
-/* Atan transform.
+/**
+ * im_atantra
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * For each pixel, call <function>atan(3)</function> (arc or inverse tangent). 
+ * Angles are 
+ * expressed in degrees. The output type is float, unless the input is 
+ * double, in which case the output is double.  Non-complex images only.
+ *
+ * See also: im_tantra(), im_sintra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_atantra( IMAGE *in, IMAGE *out )
-{	
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_atantra", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_atantra", "%s", _( "not non-complex" ) );
-		return( -1 );
-	}
-
-	/* Prepare output header.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR:
-                case IM_BANDFMT_CHAR:
-                case IM_BANDFMT_USHORT:
-                case IM_BANDFMT_SHORT:
-                case IM_BANDFMT_UINT:
-                case IM_BANDFMT_INT:
-			out->Bbits = IM_BBITS_FLOAT;
-			out->BandFmt = IM_BANDFMT_FLOAT;
-			break;
-
-		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:
-			break;
-
-		default:
-			assert( 0 );
-	}
-
-	/* Generate!
-	 */
-	if( im_wrapone( in, out, (im_wrapone_fn) atantra_gen, in, NULL ) )
-		return( -1 );
-
-	return( 0 );
+{
+	return( im__math( "im_atantra", in, out, 
+		(im_wrapone_fn) atantra_gen ) );
 }
+

@@ -18,6 +18,7 @@
  * 30/8/09
  * 	- gtkdoc
  * 	- tiny cleanups
+ * 	- make im__math(), share with other math-style functions
  */
 
 /*
@@ -54,7 +55,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -65,7 +65,7 @@
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define loop( IN, OUT ) { \
+#define COS( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \
 	\
@@ -85,18 +85,42 @@ costra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 	/* Switch for all input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	loop( unsigned char, float ); break; 
-        case IM_BANDFMT_CHAR: 	loop( signed char, float ); break; 
-        case IM_BANDFMT_USHORT: loop( unsigned short, float ); break; 
-        case IM_BANDFMT_SHORT: 	loop( signed short, float ); break; 
-        case IM_BANDFMT_UINT: 	loop( unsigned int, float ); break; 
-        case IM_BANDFMT_INT: 	loop( signed int, float );  break; 
-        case IM_BANDFMT_FLOAT: 	loop( float, float ); break; 
-        case IM_BANDFMT_DOUBLE:	loop( double, double ); break; 
+        case IM_BANDFMT_UCHAR: 	COS( unsigned char, float ); break; 
+        case IM_BANDFMT_CHAR: 	COS( signed char, float ); break; 
+        case IM_BANDFMT_USHORT: COS( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	COS( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	COS( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	COS( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	COS( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	COS( double, double ); break; 
 
         default:
 		g_assert( 0 );
         }
+}
+
+/* Do a math (eg. sin(), acos(), log()) type-function. No complex, everything
+ * goes to float except double.
+ */
+int 
+im__math( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen )
+{
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( name, in ) ||
+		im_check_noncomplex( name, in ) )
+		return( -1 );
+
+	if( im_cp_desc( out, in ) )
+		return( -1 );
+	if( im_isint( in ) ) {
+		out->Bbits = IM_BBITS_FLOAT;
+		out->BandFmt = IM_BANDFMT_FLOAT;
+	}
+
+	if( im_wrapone( in, out, gen, in, NULL ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 /**
@@ -114,32 +138,13 @@ costra_gen( PEL *in, PEL *out, int width, IMAGE *im )
  */
 int 
 im_costra( IMAGE *in, IMAGE *out )
-{	
-	if( im_piocheck( in, out ) ||
-		im_check_uncoded( "im_costra", in ) ||
-		im_check_noncomplex( "im_costra", in ) )
-		return( -1 );
-
-	/* Prepare output header.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	if( im_isint( in ) ) {
-		out->Bbits = IM_BBITS_FLOAT;
-		out->BandFmt = IM_BANDFMT_FLOAT;
-	}
-
-	/* Generate!
-	 */
-	if( im_wrapone( in, out, (im_wrapone_fn) costra_gen, in, NULL ) )
-		return( -1 );
-
-	return( 0 );
+{
+	return( im__math( "im_costra", in, out, (im_wrapone_fn) costra_gen ) );
 }
 
 /* And acos().
  */
-#define aloop( IN, OUT ) { \
+#define ACOS( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \
 	\
@@ -159,17 +164,17 @@ acostra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 	/* Switch for all input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	aloop( unsigned char, float ); break; 
-        case IM_BANDFMT_CHAR: 	aloop( signed char, float ); break; 
-        case IM_BANDFMT_USHORT: aloop( unsigned short, float ); break; 
-        case IM_BANDFMT_SHORT: 	aloop( signed short, float ); break; 
-        case IM_BANDFMT_UINT: 	aloop( unsigned int, float ); break; 
-        case IM_BANDFMT_INT: 	aloop( signed int, float );  break; 
-        case IM_BANDFMT_FLOAT: 	aloop( float, float ); break; 
-        case IM_BANDFMT_DOUBLE:	aloop( double, double ); break; 
+        case IM_BANDFMT_UCHAR: 	ACOS( unsigned char, float ); break; 
+        case IM_BANDFMT_CHAR: 	ACOS( signed char, float ); break; 
+        case IM_BANDFMT_USHORT: ACOS( unsigned short, float ); break; 
+        case IM_BANDFMT_SHORT: 	ACOS( signed short, float ); break; 
+        case IM_BANDFMT_UINT: 	ACOS( unsigned int, float ); break; 
+        case IM_BANDFMT_INT: 	ACOS( signed int, float );  break; 
+        case IM_BANDFMT_FLOAT: 	ACOS( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	ACOS( double, double ); break; 
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
@@ -191,24 +196,6 @@ acostra_gen( PEL *in, PEL *out, int width, IMAGE *im )
 int 
 im_acostra( IMAGE *in, IMAGE *out )
 {
-	if( im_piocheck( in, out ) ||
-		im_check_uncoded( "im_acostra", in ) ||
-		im_check_noncomplex( "im_acostra", in ) )
-		return( -1 );
-
-	/* Prepare output header.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	if( im_isint( in ) ) {
-		out->Bbits = IM_BBITS_FLOAT;
-		out->BandFmt = IM_BANDFMT_FLOAT;
-	}
-
-	/* Generate!
-	 */
-	if( im_wrapone( in, out, (im_wrapone_fn) acostra_gen, in, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__math( "im_acostra", in, out, 
+		(im_wrapone_fn) acostra_gen ) );
 }
