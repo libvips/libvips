@@ -1,4 +1,4 @@
-- make im__math and common up code between the trig/log funcs
+- im_stats() needs a rewrite ... scrap the stupid 42 thing
 
 - 1-bit PNG read is broken?
 
