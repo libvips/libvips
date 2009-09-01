@@ -18,6 +18,10 @@
  * 13/1/05
  *	- use 64 bit arithmetic 
 
+1/9/09
+	- argh nope min/max was broken again for >1CPU in short pipelines on 
+	  some architectures
+
 */
 
 /*
@@ -44,6 +48,10 @@
 
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
+ */
+
+/*
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -79,12 +87,16 @@ make_mask( IMAGE *im, void *a, void *b )
 	 */
 	out->offset = 42;
 
+#ifdef DEBUG
+	printf( "make_mask: created %p\n", out );
+#endif /*DEBUG*/
+
 	return( out );
 }
 
 /* Merge a temp DOUBLEMASK into the real DOUBLEMASK. Row 0 is unused, row 1
  * has the stats for band 1. These are: (minimum, maximum, sum, sum^2). If the
- * offset of out if 42, then it has not been inited yet and we just copy.
+ * offset of out is 42, then it has not been inited yet and we just copy.
  */
 static int
 merge_mask( void *seq, void *a, void *b )
@@ -94,21 +106,20 @@ merge_mask( void *seq, void *a, void *b )
 	double *rowi, *rowo;
 	int z;
 
-	/* Merge, or just copy?
-	 */
-	if( out->offset != 42 )
-		/* Add info from tmp.
-		 */
-		for( z = 1; z < tmp->ysize; z++ ) {
-			rowi = tmp->coeff + z * 6;
-			rowo = out->coeff + z * 6;
+#ifdef DEBUG
+	printf( "merge_mask: tmp = %p, out = %p\n", tmp, out );
+	im_print_dmask( tmp );
+	im_print_dmask( out );
+#endif /*DEBUG*/
 
-			rowo[0] = IM_MIN( rowi[0], rowo[0] );
-			rowo[1] = IM_MAX( rowi[1], rowo[1] );
-			rowo[2] += rowi[2];
-			rowo[3] += rowi[3];
-		}
-	else {
+	/* Merge, or just copy? Also, tmp might be uninited, so allow for that
+	 * too.
+	 */
+	if( out->offset == 42 && tmp->offset != 42 ) {
+#ifdef DEBUG
+		printf( "merge_mask: copying\n", tmp );
+#endif /*DEBUG*/
+
 		/* Copy info from tmp.
 		 */
 		for( z = 1; z < tmp->ysize; z++ ) {
@@ -122,6 +133,23 @@ merge_mask( void *seq, void *a, void *b )
 		}
 
 		out->offset = 0;
+	}
+	else if( out->offset != 42 && tmp->offset != 42 ) {
+#ifdef DEBUG
+		printf( "merge_mask: merging\n" );
+#endif /*DEBUG*/
+
+		/* Add info from tmp.
+		 */
+		for( z = 1; z < tmp->ysize; z++ ) {
+			rowi = tmp->coeff + z * 6;
+			rowo = out->coeff + z * 6;
+
+			rowo[0] = IM_MIN( rowi[0], rowo[0] );
+			rowo[1] = IM_MAX( rowi[1], rowo[1] );
+			rowo[2] += rowi[2];
+			rowo[3] += rowi[3];
+		}
 	}
 
 	/* Can now free tmp.
@@ -152,50 +180,50 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
  * Use temp variables of same type for min/max for faster comparisons.
  * Use double to sum bands.
  */
-#define non_complex_loop(TYPE) { \
-	TYPE *p, *q; \
-	TYPE value, small, big; \
-	double *row; \
- 	\
-	/* Have min and max been initialised? \
-	 */ \
-	if( tmp->offset == 42 ) { \
-		/* Init min and max for each band. \
-		 */ \
-		p = (TYPE *) IM_REGION_ADDR( reg, le, to ); \
-		for( z = 1; z < bands + 1; z++ ) { \
-			row = tmp->coeff + z * 6; \
-			row[0] = p[z - 1]; \
-			row[1] = p[z - 1]; \
-		} \
-		tmp->offset = 0; \
-	} \
-	\
-	for( y = to; y < bo; y++ ) { \
-		p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
+#define non_complex_loop(TYPE) \
+	{	TYPE *p, *q; \
+		TYPE value, small, big; \
+		double *row; \
  		\
-		for( z = 0; z < bands; z++ ) { \
-			q = p + z; \
-			row = tmp->coeff + (z + 1)*6; \
-			small = row[0]; \
-			big = row[1]; \
-			\
-			for( x = le; x < ri; x++ ) { \
-				value = *q; \
-				q += bands; \
-				row[2] += value;\
-				row[3] += (double)value*(double)value;\
-				if( value > big ) \
-					big = value; \
-				else if( value < small ) \
-					small = value;\
-			}\
+		/* Have min and max been initialised? \
+		 */ \
+		if( tmp->offset == 42 ) { \
+			/* Init min and max for each band. \
+			 */ \
+			p = (TYPE *) IM_REGION_ADDR( reg, le, to ); \
+			for( z = 0; z < bands; z++ ) { \
+				row = tmp->coeff + (z + 1) * 6; \
+				row[0] = p[z]; \
+				row[1] = p[z]; \
+			} \
+			tmp->offset = 0; \
+		} \
+		\
+		for( y = to; y < bo; y++ ) { \
+			p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
  			\
-			row[0] = small; \
-			row[1] = big; \
+			for( z = 0; z < bands; z++ ) { \
+				q = p + z; \
+				row = tmp->coeff + (z + 1)*6; \
+				small = row[0]; \
+				big = row[1]; \
+				\
+				for( x = le; x < ri; x++ ) { \
+					value = *q; \
+					q += bands; \
+					row[2] += value;\
+					row[3] += (double)value*(double)value;\
+					if( value > big ) \
+						big = value; \
+					else if( value < small ) \
+						small = value;\
+				}\
+ 				\
+				row[0] = small; \
+				row[1] = big; \
+			}\
 		}\
-	}\
-} 
+	} 
 
 	/* Now generate code for all types. 
 	 */
@@ -216,20 +244,11 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/**
- * im_stats:
- * @in: image to analyze
- *
- * Find many image statistics in a single pass through the image. Works for
- * any uncoded, non-complex image. Returns a
- * #DOUBLEMASK of 6 columns by n+1 (where n is number of bands in image @in) 
- * rows.
- *
- * Columns are statistics, and are, in order: minimum, maximum, sum, sum of
- * squares, mean, standard deviation. Row 0 has statistics for all bands
- * together, row 1 has stats for band 1, and so on.
- * 
- * Returns: a #DOUBLEMASK holding the image statistics
+/* Find the statistics of an image. Take any non-complex format. Write the
+ * stats to a DOUBLEMASK of size 6 by (in->Bands+1). We hold a row for each 
+ * band, plus one row for all bands. Row n has 6 elements, which are, in 
+ * order, (minimum, maximum, sum, sum^2, mean, deviation) for band n. Row 0 has 
+ * the figures for all bands together.
  */
 DOUBLEMASK *
 im_stats( IMAGE *in )
@@ -284,6 +303,11 @@ im_stats( IMAGE *in )
 	base[4] = base[2] / vals;
 	base[5] = sqrt( fabs( base[3] - (base[2] * base[2] / vals) ) / 
 		(vals - 1) );
+
+#ifdef DEBUG
+	printf( "im_stats:\n" );
+	im_print_dmask( out );
+#endif /*DEBUG*/
 
 	return( out );
 }
