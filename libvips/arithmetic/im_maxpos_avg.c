@@ -1,14 +1,4 @@
-/* @(#) Function to find the maximum of an image.  Returns coords and value at
- * @(#) double precision.  In the event of a draw, returns average of all 
- * @(#) drawing coords, and interpolated value at that position.
- * @(#)
- * @(#) int im_maxpos_avg(
- * @(#)   IMAGE *im,
- * @(#)   double *xpos,
- * @(#)   double *ypos,
- * @(#)   double *out
- * @(#) );
- * @(#) 
+/* im_maxpos_avg.c
  *
  * Copyright: 2006, The Nottingham Trent University
  * Copyright: 2006, Tom Vajzovic
@@ -20,6 +10,8 @@
  * 	- changed spelling of occurrences
  * 	- check for !occurrences before using val
  * 	- renamed avg as sum, a bit clearer
+ * 2/9/09
+ * 	- gtkdoc comment
  */
 
 /*
@@ -83,30 +75,37 @@ static int maxpos_avg_stop( void *seq, void *, void * );
 
 /** EXPORTED FUNCTION **/
 
+/** 
+ * im_maxpos_avg:
+ * @im: image to scan
+ * @xpos: returned X position
+ * @ypos: returned Y position
+ * @out: returned value
+ *
+ * Function to find the maximum of an image.  Returns coords and value at
+ * double precision.  In the event of a draw, returns average of all 
+ * drawing coords, and interpolated value at that position.
+ *
+ * See also: im_maxpos(), im_min(), im_stats().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int im_maxpos_avg( IMAGE *im, double *xpos, double *ypos, double *out ){
 #define FUNCTION_NAME "im_maxpos_avg"
 
   pos_avg_t master= { 0.0, 0.0, 0.0, 0 };
 
-  if( im_pincheck( im ) )
+  if( im_pincheck( im ) ||
+    im_check_uncoded( FUNCTION_NAME, im ) ||
+    im_check_noncomplex( FUNCTION_NAME, im ) ||
+    im_check_mono( FUNCTION_NAME, im ) )
     return -1;
 
-  if( im-> Coding ){
-    im_error( FUNCTION_NAME, "%s", _("uncoded images only") );
-    return -1;
-  }
-  if( !( im_isint( im ) || im_isfloat( im ) ) ){
-    im_error( FUNCTION_NAME, "%s", _("scalar images only") );
-    return -1;
-  }
-  if( 1 != im-> Bands ){
-    im_error( FUNCTION_NAME, "%s", _("single band images only") );
-    return -1;
-  }
   if( ! xpos || ! ypos || ! out ){
     im_error( FUNCTION_NAME, "%s", _("invalid argument") );
     return -1;
   }
+
   if( im_iterate( im, maxpos_avg_start, maxpos_avg_scan, maxpos_avg_stop, &master, NULL ) )
     return -1;
 

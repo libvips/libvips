@@ -240,12 +240,9 @@ im_max( IMAGE *in, double *out )
 	inf.out = out;
 	inf.valid = 0;
 
-	if( im_pincheck( in ) )
+	if( im_pincheck( in ) ||
+		im_check_uncoded( "im_max", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_max", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
 
 	if( im_iterate( in, max_start, max_scan, max_stop, &inf, NULL ) ) 
 		return( -1 );
