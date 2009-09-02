@@ -1,13 +1,4 @@
-/* @(#) Invert a UCHAR image. Very simple new-style VIPS routine. See
- * @(#) im_exptra() for the next level of complexity. This function is not
- * @(#) as quick as it could be - it is intended to be an example rather than
- * @(#) to be useful. This should really be written with im_wrapone().
- * @(#)
- * @(#) int
- * @(#) im_invert( IMAGE *in, IMAGE *out )
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* im_invert.c
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -20,6 +11,8 @@
  *      - ANSIfied
  * 22/2/95 JC
  *	- tidied up again
+ * 2/9/09
+ * 	- gtk-doc comment
  */
 
 /*
@@ -83,8 +76,8 @@ invert_gen( REGION *or, void *seq, void *a, void *b )
 	 */
 	if( im_prepare( ir, &or->valid ) )
 		return( -1 );
-	
-	/* Loop over output, writing input.
+
+	/* Loop over output.
 	 */
 	for( y = to; y < bo; y++ ) {
 		/* Point p and q at the start of the line of pels we must
@@ -106,24 +99,32 @@ invert_gen( REGION *or, void *seq, void *a, void *b )
         return( 0 );
 }
 
-/* Invert IMAGE in to IMAGE out. Any number of bands, unsigned char pels
- * only. See im_exptra() for an example of a VIPS function which can process
+/**
+ * im_invert:
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * this operation calculates (255 - @in).
+ * The operation works on uchar images only. The input can have any no of 
+ * channels.
+ *
+ * This is not a generally useful program -- it is included as an example of 
+ * a very simple new-style IO function. 
+ * See im_exptra() for an example of a VIPS function which can process
  * any input image type.
+ *
+ * See also: im_exptra(), im_lintra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_invert( IMAGE *in, IMAGE *out )
 {
 	/* Check args.
 	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_invert", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
-	if( in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_invert", "%s", _( "not UCHAR" ) );
-		return( -1 );
-	}
-        if( im_piocheck( in, out ) )
+	if( im_check_uncoded( "im_invert", in ) || 
+		im_check_uchar( "im_invert", in ) || 
+		im_piocheck( in, out ) )
 		return( -1 );
 
 	/* Prepare the output header.

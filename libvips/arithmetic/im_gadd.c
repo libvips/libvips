@@ -67,6 +67,11 @@ extern int im_gaddim();
 /* This function works on either mmaped files or on images in buffer
  */
 
+/**
+ * im_gadd:
+ *
+ * Deprecated.
+ */
 int im_gadd(a, in1, b, in2, c, out)
 IMAGE *in1, *in2, *out;
 double a, b, c;

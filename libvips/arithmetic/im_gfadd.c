@@ -126,6 +126,11 @@ static int array[8][8] = {
 #define outfloat_2float(IN2, OUT)\
 		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break; 
 
+/**
+ * im_gfadd:
+ *
+ * Deprecated.
+ */
 int im_gfadd(a, in1, b, in2, c, out)
 double a, b, c;
 IMAGE *in1, *in2, *out;

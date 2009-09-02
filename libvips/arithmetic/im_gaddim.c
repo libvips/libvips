@@ -115,6 +115,12 @@ static int array[6][6] = {
 
 
 
+
+/**
+ * im_gaddim:
+ *
+ * Deprecated.
+ */
 int im_gaddim(a, in1, b, in2, c, out)
 IMAGE *in1, *in2, *out;
 double a, b, c;

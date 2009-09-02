@@ -1,12 +1,4 @@
-/* @(#) Find the standard deviation of an image. Takes any non-complex image 
- * @(#) format, returns a double. Finds the deviation of all bands.
- * @(#)
- * @(#) int 
- * @(#) im_deviate( im, out )
- * @(#) IMAGE *im;
- * @(#) double *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error.
+/* im_deviate.c
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -30,6 +22,9 @@
  *	- use 64 bit arithmetic 
  * 8/12/06
  * 	- add liboil support
+ * 2/9/09
+ * 	- gtk-doc comment
+ * 	- minor reformatting
  */
 
 /*
@@ -66,7 +61,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -109,6 +103,23 @@ stop_fn( void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/* Sum pels in this section.
+ */
+#define LOOP( TYPE ) { \
+	TYPE *p; \
+	\
+	for( y = to; y < bo; y++ ) { \
+		p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
+		\
+		for( x = 0; x < sz; x++ ) { \
+			TYPE v = p[x]; \
+			\
+			s += v; \
+			s2 += (double) v * (double) v; \
+		} \
+	} \
+}
+
 /* Loop over region, adding information to the appropriate fields of tmp.
  */
 static int
@@ -125,33 +136,16 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 	double s2 = 0.0;
 	int x, y;
 
-/* Sum pels in this section.
- */
-#define loop(TYPE) \
-	{	TYPE *p; \
- 		\
-		for( y = to; y < bo; y++ ) { \
-			p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
-			\
-			for( x = 0; x < sz; x++ ) { \
-				TYPE v = p[x]; \
-				\
-				s += v; \
-				s2 += (double) v * (double) v; \
-			}\
-		}\
-	}
-
 	/* Now generate code for all types. 
 	 */
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:		loop(unsigned char); break; 
-	case IM_BANDFMT_CHAR:		loop(signed char); break; 
-	case IM_BANDFMT_USHORT:		loop(unsigned short); break; 
-	case IM_BANDFMT_SHORT:		loop(signed short); break; 
-	case IM_BANDFMT_UINT:		loop(unsigned int); break; 
-	case IM_BANDFMT_INT:		loop(signed int); break; 
-	case IM_BANDFMT_FLOAT:		loop(float); break; 
+	case IM_BANDFMT_UCHAR:	LOOP( unsigned char ); break; 
+	case IM_BANDFMT_CHAR:	LOOP( signed char ); break; 
+	case IM_BANDFMT_USHORT:	LOOP( unsigned short ); break; 
+	case IM_BANDFMT_SHORT:	LOOP( signed short ); break; 
+	case IM_BANDFMT_UINT:	LOOP( unsigned int ); break; 
+	case IM_BANDFMT_INT:	LOOP( signed int ); break; 
+	case IM_BANDFMT_FLOAT:	LOOP( float ); break; 
 
 	case IM_BANDFMT_DOUBLE:	
 #ifdef HAVE_LIBOIL
@@ -167,12 +161,12 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 			s2 += t2;
 		}
 #else /*!HAVE_LIBOIL*/
-		loop(double); 
+		LOOP( double ); 
 #endif /*HAVE_LIBOIL*/
 		break; 
 
 	default: 
-		assert( 0 );
+		g_assert( 0 );
 	}
 
 	/* Add to sum for this sequence.
@@ -183,11 +177,24 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Find the average of an image.
+/**
+ * im_deviate:
+ * @in: input #IMAGE
+ * @out: output pixel standard deviation
+ *
+ * This operation finds the standard deviation of all pixels in @in. It 
+ * operates on all bands of the input image: use im_stats() if you need 
+ * to calculate an average for each band. 
+ *
+ * Non-complex images only.
+ *
+ * See also: im_stats(), im_bandmean(), im_avg(), im_rank()
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_deviate( IMAGE *in, double *out )
-{	
+{
 	double sum[2] = { 0.0, 0.0 };
 	gint64 N;
 

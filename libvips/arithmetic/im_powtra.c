@@ -176,7 +176,7 @@ powtran_gen( PEL *in, PEL *out, int width, IMAGE *im, PowtraInfo *inf )
  * @in: input #IMAGE 
  * @out: output #IMAGE
  * @n: number of elements in array
- * @b: array of constants
+ * @e: array of constants
  *
  * im_powtra_vec() transforms element x of input to 
  * <function>pow</function>(x, @b) in output. 

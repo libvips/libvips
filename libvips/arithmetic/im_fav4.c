@@ -45,10 +45,14 @@ Copyright (C) 1992, Kirk Martinez, History of Art Dept, Birkbeck College
 #define ARGS "fav4: frame average 4 frames\nARGS: im1 im2 im3 im4 outfile"
 #define NFRAMES 4
 
-/* @(#) Optimised 4 frame average
-Copyright (C) 1992, Kirk Martinez, History of Art Dept, Birkbeck College
-CHAR images only!
-ARGS: array of 4 source images and output image
+/**
+ * im_fav4:
+ * @in: array of 4 input #IMAGE s
+ * @out: output #IMAGE
+ *
+ * Average four identical images. 
+ *
+ * Deprecated.
 */
 int
 im_fav4( IMAGE **in, IMAGE *out)

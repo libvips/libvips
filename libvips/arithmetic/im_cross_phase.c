@@ -1,16 +1,4 @@
-/* @(#) Find the phase of the cross power spectrum of two complex images,
- * @(#) expressed as a complex image where the modulus of each pixel is
- * @(#) one.
- * @(#)
- * @(#) I.E. find (a.b*)/|a.b*| where
- * @(#) .  represents complex multiplication
- * @(#) *  represents the complex conjugate
- * @(#) || represents the complex modulus
- * @(#)
- * @(#) int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out );
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* im_cross_phase.c
  *
  * Copyright: 2008, Nottingham Trent University
  *
@@ -20,7 +8,8 @@
  * 2008-02-04 tcv:
  *   - exp( i.th ) == cos(th)+i.sin(th) NOT sin(th)+i.cos(th)
  *   - add quadratic version (ifdef'd out ATM - still using trigonometric one)
- *
+ * 2/9/09
+ * 	- gtk-doc comment
  */
 
 /*
@@ -127,6 +116,25 @@ complex_phase_ ## TYPE ( void *in1, void *in2, void *out, int n, void *im, void 
 COMPLEX_PHASE_FN( float, fabsf )
 COMPLEX_PHASE_FN( double, fabs )
 
+/**
+ * im_cross_phase:
+ * @a: input #IMAGE 1
+ * @b: input #IMAGE 2
+ * @out: output #IMAGE 
+ *
+ * Find the phase of the cross power spectrum of two complex images,
+ * expressed as a complex image where the modulus of each pixel is
+ * one.
+ * 
+ * I.E. find (a.b*)/|a.b*| where
+ *  .  represents complex multiplication
+ *  *  represents the complex conjugate
+ *  || represents the complex modulus
+ * 
+ * See also: im_multiply(), im_sign().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out ){
 #define FUNCTION_NAME "im_phase"
 

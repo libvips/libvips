@@ -177,7 +177,7 @@ expntran_gen( PEL *in, PEL *out, int width, IMAGE *im, ExpntraInfo *inf )
  * @in: input #IMAGE 
  * @out: output #IMAGE
  * @n: number of elements in array
- * @b: array of constants
+ * @e: array of constants
  *
  * im_expntra_vec() transforms element x of input to 
  * <function>pow</function>(@b, x) in output. 
@@ -243,7 +243,7 @@ im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e )
  * im_expntra:
  * @in: input #IMAGE 
  * @out: output #IMAGE
- * @b: base
+ * @e: base
  *
  * im_expntra() transforms element x of input to 
  * <function>pow</function>(@b, x) in output. 
@@ -255,9 +255,9 @@ im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e )
  * Returns: 0 on success, -1 on error
  */
 int 
-im_expntra( IMAGE *in, IMAGE *out, double b )
+im_expntra( IMAGE *in, IMAGE *out, double e )
 {
-	return( im_expntra_vec( in, out, 1, &b ) );
+	return( im_expntra_vec( in, out, 1, &e ) );
 }
 
 /**
