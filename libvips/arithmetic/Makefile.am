@@ -7,7 +7,6 @@ libarithmetic_la_SOURCES = \
     im_avg.c \
     im_point_bilinear.c \
     im_bandmean.c \
-    im_cmulnorm.c \
     im_costra.c \
     im_cross_phase.c \
     im_deviate.c \
@@ -15,14 +14,9 @@ libarithmetic_la_SOURCES = \
     im_ceil.c \
     im_floor.c \
     im_expntra.c \
-    im_fav4.c \
-    im_gadd.c \
-    im_gaddim.c \
-    im_gfadd.c \
     im_invert.c \
     im_linreg.c \
     im_lintra.c \
-    im_litecor.c \
     im_log10tra.c \
     im_logtra.c \
     im_max.c \

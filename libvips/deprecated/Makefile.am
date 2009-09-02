@@ -1,0 +1,12 @@
+noinst_LTLIBRARIES = libdeprecated.la
+
+libdeprecated_la_SOURCES = \
+    deprecated_dispatch.c \
+    im_fav4.c \
+    im_gadd.c \
+    im_gaddim.c \
+    im_cmulnorm.c \
+    im_gfadd.c \
+    im_litecor.c 
+
+INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

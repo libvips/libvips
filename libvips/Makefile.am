@@ -17,6 +17,7 @@ SUBDIRS = \
 	boolean \
 	colour \
 	conversion \
+	deprecated \
 	convolution \
 	$(C_COMPILE_DIR) \
 	format \
@@ -45,6 +46,7 @@ libvips_la_LIBADD = \
 	colour/libcolour.la \
 	conversion/libconversion.la \
 	convolution/libconvolution.la \
+	deprecated/libdeprecated.la \
 	$(C_LIB) \
 	format/libformat.la \
 	freq_filt/libfreq_filt.la \

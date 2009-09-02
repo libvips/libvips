@@ -409,7 +409,7 @@ im_check_complex( const char *domain, IMAGE *im )
 int
 im_check_uchar( const char *domain, IMAGE *im )
 {
-	if( im->BandFmt != IM_FORMAT_UCHAR ) {
+	if( im->BandFmt != IM_BANDFMT_UCHAR ) {
 		im_error( domain, "%s", _( "image must be uchar" ) );
 		return( -1 );
 	}

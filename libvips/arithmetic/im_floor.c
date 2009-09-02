@@ -90,7 +90,7 @@ floor_gen( PEL *in, PEL *out, int width, IMAGE *im )
 		break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 

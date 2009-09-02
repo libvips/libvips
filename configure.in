@@ -509,6 +509,7 @@ AC_OUTPUT([
 	libvips/colour/Makefile 
 	libvips/conversion/Makefile 
 	libvips/convolution/Makefile 
+	libvips/deprecated/Makefile 
 	libvips/format/Makefile 
 	libvips/freq_filt/Makefile 
 	libvips/histograms_lut/Makefile 
