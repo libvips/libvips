@@ -141,13 +141,13 @@ stats_stop( void *seq, void *a, void *b )
 				small = value;\
 			\
 			q += im->Bands; \
-		}\
+		} \
 		\
 		row[0] = small; \
 		row[1] = big; \
 		row[2] = sum; \
 		row[3] = sum2; \
-	}\
+	} \
 } 
 
 /* Loop over region, adding to seq.
@@ -164,7 +164,46 @@ stats_scan( void *in, int n, void *seq, void *a, void *b )
 	/* Now generate code for all types. 
 	 */
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:	LOOP( unsigned char ); break; 
+	case IM_BANDFMT_UCHAR:	
+		/*
+		LOOP( unsigned char ); break; 
+		 */
+
+	for( z = 0; z < im->Bands; z++ ) { 
+		PEL *q = (PEL *) in + z; 
+		double *row = stats + z * 4; 
+		PEL small, big; 
+		double sum, sum2; 
+
+		printf( "z = %d\n", z );
+		
+		small = row[0]; 
+		big = row[1]; 
+		sum = row[2]; 
+		sum2 = row[3]; 
+		
+		for( x = 0; x < n; x++ ) { 
+			PEL value = *q; 
+
+			printf( "value = %d\n", value );
+			
+			sum += value;
+			sum2 += (double) value * (double) value;
+			if( value > big ) 
+				big = value; 
+			else if( value < small ) 
+				small = value;
+			
+			q += im->Bands; 
+		}
+		
+		row[0] = small; 
+		row[1] = big; 
+		row[2] = sum; 
+		row[3] = sum2; 
+	}
+		break;
+
 	case IM_BANDFMT_CHAR:	LOOP( signed char ); break; 
 	case IM_BANDFMT_USHORT:	LOOP( unsigned short ); break; 
 	case IM_BANDFMT_SHORT:	LOOP( signed short ); break; 
