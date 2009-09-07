@@ -1,4 +1,17 @@
-- im_stats() needs a rewrite ... scrap the stupid 42 thing
+- new im_max() needs testing
+
+  im_avg() needs to work for complex: return modulus
+
+  use im_max() model to rewrite im_min(), im_stats()
+
+- im_minpos(), im_maxpos() need partialing
+
+- im_maxpos_vec needs gtkdoc
+
+
+
+
+
 
 - 1-bit PNG read is broken?
 
@@ -7,29 +20,6 @@
 > can make a 1 bit image of that type as follows:
 >
 > pngcrush -c 0 -bit_depth 1 *.png
-
-
-
-- im__cast_and_call() no longer does
-
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
-
-  make sure we do this for each use of im__cast_and_call()
-
-- im__cast_and_call() no longer casts input to output type, it casts inputs 
-  up to the smallest common type
-  
-  so we need to change all the buffer processors from 
-  
-  	T op T -> T
-
-  to 
-
-  	T1 op T1 -> T2
-
-  done add/sub/mul, doing div
-  
-  others?
 
 
 

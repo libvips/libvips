@@ -1,12 +1,4 @@
-/* @(#) Function to find perform pixelwise linear regression on an array of 
- * @(#) single band images.
- * @(#)
- * @(#) int im_linreg(
- * @(#)   IMAGE **ins,
- * @(#)   IMAGE *out,
- * @(#)   double *xs
- * @(#) );
- * @(#) 
+/* im_linreg.c
  *
  * Copyright: 2006, The Nottingham Trent University
  *
@@ -16,6 +8,8 @@
  *
  * 12/5/09
  *	- make x_anal() static, fix some signed/unsigned warnings
+ * 3/9/09
+ * 	- gtkdoc comment
  */
 
 /*
@@ -148,6 +142,16 @@ SKIP_ALL_DECL( double );
 
 /** EXPORTED FUNCTION DEFINITION **/
 
+/** im_linreg:
+ * @ins: NULL-terminated array of input images
+ * @out: results of analysis
+ * @xs:	X position of each image (pixel value is Y)
+ *
+ * Function to find perform pixelwise linear regression on an array of 
+ * single band images. The output is a seven-band douuble image
+ *
+ * TODO: figure out how this works and fix up these docs!
+ */
 int im_linreg( IMAGE **ins, IMAGE *out, double *xs ){
 #define FUNCTION_NAME "im_linreg"
   int n;

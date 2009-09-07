@@ -1,15 +1,4 @@
-/* @(#) Function to find the maximum of an image. Works for any 
- * @(#) image type. Returns a double and the location of max.
- * @(#)
- * @(#) Function im_maxpos() assumes that input
- * @(#) is either memory mapped or in a buffer.
- * @(#)
- * @(#) int im_maxpos(in, xpos, ypos, max)
- * @(#) IMAGE *in;
- * @(#) int *xpos, *ypos;
- * @(#) double *max;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
+/* im_maxpos.c
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -21,6 +10,8 @@
  *	- im_incheck() call added
  * 20/6/95 JC
  *	- now returns double for value, like im_max()
+ * 4/9/09
+ * 	- gtkdoc comment
  */
 
 /*
@@ -55,7 +46,6 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -77,8 +67,22 @@
 	case IM_BANDFMT_COMPLEX:	loopcmplx(float); break; \
 	case IM_BANDFMT_DPCOMPLEX:	loopcmplx(double); break; 
 
-/* Find the position of the maximum of an image. Take any format, returns a 
- * float and its position.
+/**
+ * im_maxpos:
+ * @in: image to search
+ * @xpos: returned x position of maximum
+ * @ypos: returned y position of maximum
+ * @out: returned pixel value at that position
+ *
+ * Function to find the maximum of an image. Works for any 
+ * image type. Returns a double and the location of max.
+ *
+ * This is not a PIO operation! It may use a lot of memory and take a while.
+ * Needs a rewrite.
+ *
+ * See also: im_minpos(), im_min(), im_stats(), im_maxpos_avg().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out )
@@ -135,7 +139,7 @@ im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out )
 	switch( in->BandFmt ) {
 		im_for_all_types();
 		default: { 
-			assert( 0 );
+			g_assert( 0 );
 			return( -1 );
 		}
 	}

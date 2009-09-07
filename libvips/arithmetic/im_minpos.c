@@ -1,15 +1,4 @@
-/* @(#) Function to find the minimim of an image. Works for any 
- * @(#) image type. Returns a double and the location of min
- * @(#)
- * @(#) Function im_minpos() assumes that input
- * @(#) is either memory mapped or in a buffer.
- * @(#)
- * @(#) int im_minpos(in, xpos, ypos, out)
- * @(#) IMAGE *in;
- * @(#) int *xpos, *ypos;
- * @(#) double *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
+/* im_minpos.c
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -22,6 +11,8 @@
  *	- im_incheck() added
  * 20/6/95 JC
  *	- now returns double for value, like im_max()
+ * 4/9/09
+ * 	- gtkdoc comment
  */
 
 /*
@@ -56,7 +47,6 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -64,7 +54,23 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Find the minimum of an image. Take any format, returns a double.  */
+/**
+ * im_minpos:
+ * @in: image to search
+ * @xpos: returned x position of minimum
+ * @ypos: returned y position of minimum
+ * @out: returned pixel value at that position
+ *
+ * Function to find the minimum of an image. Works for any 
+ * image type. Returns a double and the location of min.
+ *
+ * This is not a PIO operation! It may use a lot of memory and take a while.
+ * Needs a rewrite.
+ *
+ * See also: im_maxpos(), im_max(), im_stats(), im_maxpos_avg().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
 {
@@ -131,7 +137,7 @@ im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
 	case IM_BANDFMT_DPCOMPLEX:	loopcmplx(double); break; 
 
 	default: 
-		assert( 0 );
+		g_assert( 0 );
 	}
 
 	/* Take out bands on x.

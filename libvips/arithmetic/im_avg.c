@@ -100,6 +100,19 @@ stop_fn( void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/* Sum pels in this section.
+ */
+#define LOOP( TYPE ) { \
+	TYPE *p; \
+	\
+	for( y = to; y < bo; y++ ) { \
+		p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
+		\
+		for( x = 0; x < sz; x++ ) \
+			sum += *p++; \
+	} \
+}
+
 /* Loop over region, accumulating a sum in *tmp.
  */
 static int
@@ -114,19 +127,6 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 	int sz = IM_REGION_N_ELEMENTS( reg );
 	double sum = 0.0;
 	int x, y;
-
-/* Sum pels in this section.
- */
-#define LOOP( TYPE ) { \
-	TYPE *p; \
-	\
-	for( y = to; y < bo; y++ ) { \
-		p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
-		\
-		for( x = 0; x < sz; x++ ) \
-			sum += *p++; \
-	} \
-}
 
 	/* Now generate code for all types. 
 	 */

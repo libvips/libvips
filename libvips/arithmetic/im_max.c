@@ -18,6 +18,9 @@
  *	- random wrong result for >1 thread :-( (thanks Joe)
  * 15/10/07
  * 	- oh, heh, seq->inf was not being set correctly, not that it mattered
+ * 4/9/09
+ * 	- rewrite with im__value(), much simpler and fixes a race condition
+ * 	- gtkdoc comment
  */
 
 /*
@@ -58,7 +61,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -66,39 +68,15 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Per-call state.
- */
-typedef struct _MaxInfo {
-	/* Parameters.
-	 */
-	IMAGE *in;
-	double *out;
-
-	/* Global max so far.
-	 */
-	double value;
-	int valid;		/* zero means value is unset */
-} MaxInfo;
-
-/* Per thread state.
- */
-typedef struct _Seq {
-	MaxInfo *inf;
-
-	double value;
-	int valid;		/* zero means value is unset */
-} Seq;
-
 /* New sequence value.
  */
 static void *
 max_start( IMAGE *in, void *a, void *b )
 {
-	MaxInfo *inf = (MaxInfo *) a;
-	Seq *seq = IM_NEW( NULL, Seq );
+	double *value = (double *) a;
+	double *seq = IM_NEW( NULL, double );
 
-	seq->inf = inf;
-	seq->valid = 0;
+	*seq = *value;
 
 	return( (void *) seq );
 }
@@ -108,47 +86,19 @@ max_start( IMAGE *in, void *a, void *b )
 static int
 max_stop( void *vseq, void *a, void *b )
 {
-	Seq *seq = (Seq *) vseq;
-	MaxInfo *inf = (MaxInfo *) a;
+	double *seq = (double *) vseq;
+	double *value = (double *) a;
 
-	if( seq->valid ) {
-		if( !inf->valid )
-			/* Just copy.
-			 */
-			inf->value = seq->value;
-		else 
-			/* Merge.
-			 */
-			inf->value = IM_MAX( inf->value, seq->value );
-
-		inf->valid = 1;
-	}
+	/* Merge.
+	 */
+	*value = IM_MAX( *value, *seq );
 
 	im_free( seq );
 
 	return( 0 );
 }
 
-/* Loop over region, adding to seq.
- */
-static int
-max_scan( REGION *reg, void *vseq, void *a, void *b )
-{
-	Seq *seq = (Seq *) vseq;
-	Rect *r = &reg->valid;
-	IMAGE *im = reg->im;
-	int le = r->left;
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int nel = IM_REGION_N_ELEMENTS( reg );
-
-	int x, y;
-
-	double m;
-
-#define loop(TYPE) { \
-	m = *((TYPE *) IM_REGION_ADDR( reg, le, to )); \
-	\
+#define LOOP( TYPE ) { \
 	for( y = to; y < bo; y++ ) { \
 		TYPE *p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
 		\
@@ -161,22 +111,17 @@ max_scan( REGION *reg, void *vseq, void *a, void *b )
 	} \
 } 
 
-#define complex_loop(TYPE) { \
-	TYPE *p = (TYPE *) IM_REGION_ADDR( reg, le, to ); \
-	double real = p[0]; \
-	double imag = p[1]; \
-	\
-	m = real * real + imag * imag; \
-	\
+#define CLOOP( TYPE ) { \
 	for( y = to; y < bo; y++ ) { \
 		TYPE *p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
 		\
-		for( x = 0; x < nel * 2; x += 2 ) { \
-			double mod; \
+		for( x = 0; x < nel; x++ ) { \
+			double mod, re, im; \
 			\
-			real = p[x]; \
-			imag = p[x + 1]; \
-			mod = real * real + imag * imag; \
+			re = p[0]; \
+			im = p[1]; \
+			p += 2; \
+			mod = re * re + im * im; \
 			\
 			if( mod > m ) \
 				m = mod; \
@@ -184,35 +129,64 @@ max_scan( REGION *reg, void *vseq, void *a, void *b )
 	} \
 } 
 
+/* Loop over region, adding to seq.
+ */
+static int
+max_scan( REGION *reg, void *vseq, void *a, void *b )
+{
+	double *seq = (double *) vseq;
+	Rect *r = &reg->valid;
+	IMAGE *im = reg->im;
+	int le = r->left;
+	int to = r->top;
+	int bo = IM_RECT_BOTTOM(r);
+	int nel = IM_REGION_N_ELEMENTS( reg );
+
+	int x, y;
+	double m;
+
+	m = *seq;
+
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:		loop( unsigned char ); break; 
-	case IM_BANDFMT_CHAR:		loop( signed char ); break; 
-	case IM_BANDFMT_USHORT:		loop( unsigned short ); break; 
-	case IM_BANDFMT_SHORT:		loop( signed short ); break; 
-	case IM_BANDFMT_UINT:		loop( unsigned int ); break;
-	case IM_BANDFMT_INT:		loop( signed int ); break; 
-	case IM_BANDFMT_FLOAT:		loop( float ); break; 
-	case IM_BANDFMT_DOUBLE:		loop( double ); break; 
-	case IM_BANDFMT_COMPLEX:	complex_loop( float ); break; 
-	case IM_BANDFMT_DPCOMPLEX:	complex_loop( double ); break; 
+	case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
+	case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
+	case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
+	case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
+	case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
+	case IM_BANDFMT_INT:		LOOP( signed int ); break; 
+	case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
+	case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
+	case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
+	case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
 
 	default:  
-		assert( 0 );
+		g_assert( 0 );
 	}
 
-	if( seq->valid ) {
-		seq->value = IM_MAX( seq->value, m ); 
-	}
-	else {
-		seq->value = m;
-		seq->valid = 1;
-	}
+	*seq = m; 
 
 #ifdef DEBUG
         printf( "im_max: left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height );
-	printf( "   (max = %g)\n", seq->value );
+	printf( "   (max = %g)\n", *seq );
 #endif /*DEBUG*/
+
+	return( 0 );
+}
+
+/* Get the value of pixel (0, 0). Use this to init the min/max value for
+ * threads. Shared with im_min(), im_stats() etc. This will return mod for
+ * complex.
+ */
+int
+im__value( IMAGE *im, double *value )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( im, "im__value", "p" )) ||
+		im_extract_area( im, t, 0, 0, 1, 1 ) ||
+		im_avg( t, value ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -223,8 +197,8 @@ max_scan( REGION *reg, void *vseq, void *a, void *b )
  * @out: output double
  *
  * Finds the the maximum value of image #in and returns it at the
- * location pointed by out.  If input is complex, the max square amplitude 
- * (re*re+im*im) is returned. im_max() finds the maximum of all bands: if you
+ * location pointed by out.  If input is complex, the max modulus
+ * is returned. im_max() finds the maximum of all bands: if you
  * want to find the maximum of each band separately, use im_stats().
  *
  * See also: im_maxpos(), im_min(), im_stats().
@@ -233,21 +207,29 @@ max_scan( REGION *reg, void *vseq, void *a, void *b )
  */
 int
 im_max( IMAGE *in, double *out )
-{	
-	MaxInfo inf;
-
-	inf.in = in;
-	inf.out = out;
-	inf.valid = 0;
+{
+	double value;
 
 	if( im_pincheck( in ) ||
 		im_check_uncoded( "im_max", in ) )
 		return( -1 );
 
-	if( im_iterate( in, max_start, max_scan, max_stop, &inf, NULL ) ) 
+	if( im__value( in, &value ) )
+		return( -1 );
+	/* We use square mod for scanning, for speed.
+	 */
+	if( im_iscomplex( in ) )
+		value *= value;
+
+	if( im_iterate( in, max_start, max_scan, max_stop, &value, NULL ) ) 
 		return( -1 );
 
-	*out = inf.value;
+	/* Back to modulus.
+	 */
+	if( im_iscomplex( in ) )
+		value = sqrt( value );
+
+	*out = value;
 
 	return( 0 );
 }

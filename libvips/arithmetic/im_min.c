@@ -1,11 +1,4 @@
-/* @(#) Function to find the minimum of an image. Works for any 
- * @(#) image type. Returns a double.
- * @(#)
- * @(#) int im_min(in, min)
- * @(#) IMAGE *in;
- * @(#) double *min;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
+/* im_min.c
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -221,6 +214,20 @@ scan_fn( REGION *reg, void *vseq, void *a, void *b )
 	return( 0 );
 }
 
+/** 
+ * im_min:
+ * @in: input #IMAGE
+ * @out: output double
+ *
+ * Finds the the minimum value of image @in and returns it at the
+ * location pointed by @out.  If input is complex, the min square amplitude 
+ * (re*re+im*im) is returned. im_min() finds the maximum of all bands: if you
+ * want to find the maximum of each band separately, use im_stats().
+ *
+ * See also: im_minpos(), im_max(), im_stats().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_min( IMAGE *in, double *out )
 {	
@@ -230,12 +237,9 @@ im_min( IMAGE *in, double *out )
 	inf.out = out;
 	inf.valid = 0;
 
-	if( im_pincheck( in ) )
+	if( im_pincheck( in ) ||
+		im_check_uncoded( "im_min", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_min", "%s", _( "not uncoded" ) );
-		return( -1 );
-	}
 
 	if( im_iterate( in, start_fn, scan_fn, stop_fn, &inf, NULL ) ) 
 		return( -1 );
