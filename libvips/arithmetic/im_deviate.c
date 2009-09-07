@@ -25,6 +25,8 @@
  * 2/9/09
  * 	- gtk-doc comment
  * 	- minor reformatting
+ * 4/9/09
+ * 	- use im__wrapscan()
  */
 
 /*
@@ -77,28 +79,30 @@
  * accumulate the sum and the sum of squares.
  */
 static void *
-start_fn( IMAGE *out, void *a, void *b )
+deviate_start( IMAGE *out, void *a, void *b )
 {
-	double *tmp;
+	double *ss2;
 
-	if( !(tmp = IM_ARRAY( out, 2, double )) )
+	if( !(ss2 = IM_ARRAY( NULL, 2, double )) )
 		return( NULL );
-	tmp[0] = 0.0;
-	tmp[1] = 0.0;
+	ss2[0] = 0.0;
+	ss2[1] = 0.0;
 
-	return( (void *) tmp );
+	return( (void *) ss2 );
 }
 
 /* Stop function. Add this little sum to the main sum.
  */
 static int
-stop_fn( void *seq, void *a, void *b )
+deviate_stop( void *seq, void *a, void *b )
 {
-	double *tmp = (double *) seq;
-	double *sum = (double *) a;
+	double *ss2 = (double *) seq;
+	double *global_ss2 = (double *) b;
 
-	sum[0] += tmp[0];
-	sum[1] += tmp[1];
+	global_ss2[0] += ss2[0];
+	global_ss2[1] += ss2[1];
+
+	im_free( seq );
 
 	return( 0 );
 }
@@ -106,60 +110,56 @@ stop_fn( void *seq, void *a, void *b )
 /* Sum pels in this section.
  */
 #define LOOP( TYPE ) { \
-	TYPE *p; \
+	TYPE *p = (TYPE *) in; \
 	\
-	for( y = to; y < bo; y++ ) { \
-		p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
+	for( x = 0; x < sz; x++ ) { \
+		TYPE v = p[x]; \
 		\
-		for( x = 0; x < sz; x++ ) { \
-			TYPE v = p[x]; \
-			\
-			s += v; \
-			s2 += (double) v * (double) v; \
-		} \
+		s += v; \
+		s2 += (double) v * (double) v; \
 	} \
 }
 
-/* Loop over region, adding information to the appropriate fields of tmp.
+/* Loop over region, accumulating a sum in *tmp.
  */
 static int
-scan_fn( REGION *reg, void *seq, void *a, void *b )
-{	
-	double *tmp = (double *) seq;
-	Rect *r = &reg->valid;
-	IMAGE *im = reg->im;
-	int le = r->left;
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int sz = IM_REGION_N_ELEMENTS( reg );
-	double s = 0.0;
-	double s2 = 0.0;
-	int x, y;
+deviate_scan( void *in, int n, void *seq, void *a, void *b )
+{
+	const IMAGE *im = (IMAGE *) a;
+	const int sz = n * im->Bands;
+
+	double *ss2 = (double *) seq;
+
+	int x;
+	double s, s2;
+
+	s = ss2[0];
+	s2 = ss2[1];
 
 	/* Now generate code for all types. 
 	 */
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:	LOOP( unsigned char ); break; 
-	case IM_BANDFMT_CHAR:	LOOP( signed char ); break; 
-	case IM_BANDFMT_USHORT:	LOOP( unsigned short ); break; 
-	case IM_BANDFMT_SHORT:	LOOP( signed short ); break; 
-	case IM_BANDFMT_UINT:	LOOP( unsigned int ); break; 
-	case IM_BANDFMT_INT:	LOOP( signed int ); break; 
-	case IM_BANDFMT_FLOAT:	LOOP( float ); break; 
+	case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
+	case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
+	case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
+	case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
+	case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
+	case IM_BANDFMT_INT:		LOOP( signed int ); break; 
+	case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
 
 	case IM_BANDFMT_DOUBLE:	
 #ifdef HAVE_LIBOIL
-		for( y = to; y < bo; y++ ) { 
-			double *p = (double *) IM_REGION_ADDR( reg, le, y ); 
-			double t;
-			double t2;
+{
+		double *p = (double *) in;
+		double t;
+		double t2;
 
-			oil_sum_f64( &t, p, sizeof( double ), sz );
-			oil_squaresum_f64( &t2, p, sz );
+		oil_sum_f64( &t, p, sizeof( double ), sz );
+		oil_squaresum_f64( &t2, p, sz );
 
-			s += t;
-			s2 += t2;
-		}
+		s += t;
+		s2 += t2;
+}
 #else /*!HAVE_LIBOIL*/
 		LOOP( double ); 
 #endif /*HAVE_LIBOIL*/
@@ -169,10 +169,8 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 		g_assert( 0 );
 	}
 
-	/* Add to sum for this sequence.
-	 */
-	tmp[0] += s;
-	tmp[1] += s2;
+	ss2[0] += s;
+	ss2[1] += s2;
 
 	return( 0 );
 }
@@ -195,7 +193,7 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 int
 im_deviate( IMAGE *in, double *out )
 {
-	double sum[2] = { 0.0, 0.0 };
+	double global_ss2[2];
 	gint64 N;
 
 	/* Check our args. 
@@ -207,8 +205,10 @@ im_deviate( IMAGE *in, double *out )
 
 	/* Loop over input, summing pixels.
 	 */
-	if( im_iterate( in, start_fn, scan_fn, stop_fn, &sum, NULL ) )
-		return( -1 );
+	global_ss2[0] = 0.0;
+	global_ss2[1] = 0.0;
+	if( im__wrapscan( in, 
+		deviate_start, deviate_scan, deviate_stop, in, &global_ss2 ) ) 
 
 	/*
 	  
@@ -221,7 +221,8 @@ im_deviate( IMAGE *in, double *out )
 	/* Calculate and return deviation. Add a fabs to stop sqrt(<=0).
 	 */
 	N = (gint64) in->Xsize * in->Ysize * in->Bands;
-	*out = sqrt( fabs( sum[1] - (sum[0] * sum[0] / N) ) / (N - 1) );
+	*out = sqrt( fabs( global_ss2[1] - 
+		(global_ss2[0] * global_ss2[0] / N) ) / (N - 1) );
 
 	return( 0 );
 }

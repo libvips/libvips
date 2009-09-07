@@ -23,6 +23,9 @@
  * 	- add liboil support
  * 18/8/09
  * 	- gtkdoc, minor reformatting
+ * 7/9/09
+ * 	- rewrite for im__wrapiter()
+ * 	- add complex case (needed for im_max())
  */
 
 /*
@@ -59,7 +62,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -72,30 +74,32 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Start function: allocate space for a double in which we can accululate the
+/* Start function: allocate space for a double in which we can accumulate the
  * sum.
  */
 static void *
-start_fn( IMAGE *out, void *a, void *b )
+avg_start( IMAGE *out, void *a, void *b )
 {
-	double *tmp;
+	double *sum;
 
-	if( !(tmp = IM_ARRAY( out, 1, double )) ) 
+	if( !(sum = IM_NEW( NULL, double )) ) 
 		return( NULL );
-	*tmp = 0.0;
+	*sum = 0.0;
 
-	return( (void *) tmp );
+	return( (void *) sum );
 }
 
 /* Stop function. Add this little sum to the main sum.
  */
 static int
-stop_fn( void *seq, void *a, void *b )
+avg_stop( void *seq, void *a, void *b )
 {
-	double *tmp = (double *) seq;
-	double *sum = (double *) a;
+	double *sum = (double *) seq;
+	double *global_sum = (double *) b;
 
-	*sum += *tmp;
+	*global_sum += *sum;
+
+	im_free( seq );
 
 	return( 0 );
 }
@@ -103,64 +107,76 @@ stop_fn( void *seq, void *a, void *b )
 /* Sum pels in this section.
  */
 #define LOOP( TYPE ) { \
-	TYPE *p; \
+	TYPE *p = (TYPE *) in; \
 	\
-	for( y = to; y < bo; y++ ) { \
-		p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
-		\
-		for( x = 0; x < sz; x++ ) \
-			sum += *p++; \
-	} \
+	for( x = 0; x < sz; x++ ) \
+		m += p[x]; \
 }
+
+#define CLOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double mod, re, im; \
+		\
+		re = p[0]; \
+		im = p[1]; \
+		p += 2; \
+		mod = re * re + im * im; \
+		\
+		m += mod; \
+	} \
+} 
 
 /* Loop over region, accumulating a sum in *tmp.
  */
 static int
-scan_fn( REGION *reg, void *seq, void *a, void *b )
-{	
-	double *tmp = (double *) seq;
-	Rect *r = &reg->valid;
-	IMAGE *im = reg->im;
-	int le = r->left;
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int sz = IM_REGION_N_ELEMENTS( reg );
-	double sum = 0.0;
-	int x, y;
+avg_scan( void *in, int n, void *seq, void *a, void *b )
+{
+	const IMAGE *im = (IMAGE *) a;
+	const int sz = n * im->Bands;
+
+	double *sum = (double *) seq;
+
+	int x;
+	double m;
+
+	m = *sum;
 
 	/* Now generate code for all types. 
 	 */
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:	LOOP( unsigned char ); break; 
-	case IM_BANDFMT_CHAR:	LOOP( signed char ); break; 
-	case IM_BANDFMT_USHORT:	LOOP( unsigned short ); break; 
-	case IM_BANDFMT_SHORT:	LOOP( signed short ); break; 
-	case IM_BANDFMT_UINT:	LOOP( unsigned int ); break;
-	case IM_BANDFMT_INT:	LOOP( signed int ); break; 
-	case IM_BANDFMT_FLOAT:	LOOP( float ); break; 
+	case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
+	case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
+	case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
+	case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
+	case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
+	case IM_BANDFMT_INT:		LOOP( signed int ); break; 
+	case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
 
 	case IM_BANDFMT_DOUBLE:	
 #ifdef HAVE_LIBOIL
-		for( y = to; y < bo; y++ ) { 
-			double *p = (double *) IM_REGION_ADDR( reg, le, y ); 
-			double t;
+{ 
+		double *p = (double *) in;
+		double t;
 
-			oil_sum_f64( &t, p, sizeof( double ), sz );
+		oil_sum_f64( &t, p, sizeof( double ), sz );
 
-			sum += t;
-		}
+		m += t;
+}
 #else /*!HAVE_LIBOIL*/
 		LOOP( double ); 
 #endif /*HAVE_LIBOIL*/
 		break; 
 
+	case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
+	case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
+
 	default: 
-		assert( 0 );
+		g_assert( 0 );
 	}
 
-	/* Add to sum for this sequence.
-	 */
-	*tmp += sum;
+	*sum = m;
 
 	return( 0 );
 }
@@ -172,9 +188,7 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
  *
  * This operation finds the average value in an image. It operates on all 
  * bands of the input image: use im_stats() if you need to calculate an 
- * average for each band.
- *
- * Non-complex images only.
+ * average for each band. For complex images, return the average modulus.
  *
  * See also: im_stats(), im_bandmean(), im_deviate(), im_rank()
  *
@@ -183,7 +197,7 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
 int
 im_avg( IMAGE *in, double *out )
 {
-	double sum = 0.0;
+	double global_sum;
 	gint64 vals, pels;
 
 	/* Check our args. 
@@ -195,14 +209,35 @@ im_avg( IMAGE *in, double *out )
 
 	/* Loop over input, summing pixels.
 	 */
-	if( im_iterate( in, start_fn, scan_fn, stop_fn, &sum, NULL ) )
+	global_sum = 0.0;
+	if( im__wrapscan( in, 
+		avg_start, avg_scan, avg_stop, in, &global_sum ) ) 
 		return( -1 );
 
-	/* Calculate and return average. 
+	/* Calculate and return average. For complex, we accumulate re*re +
+	 * im*im, so we need to sqrt.
 	 */
 	pels = (gint64) in->Xsize * in->Ysize;
 	vals = pels * in->Bands;
-	*out = sum / vals;
+	*out = global_sum / vals;
+	if( im_iscomplex( in ) )
+		*out = sqrt( *out );
+
+	return( 0 );
+}
+
+/* Get the value of pixel (0, 0). Use this to init the min/max value for
+ * im_max()/im_stats()/etc. 
+ */
+int
+im__value( IMAGE *im, double *value )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( im, "im__value", "p" )) ||
+		im_extract_area( im, t, 0, 0, 1, 1 ) ||
+		im_avg( t, value ) )
+		return( -1 );
 
 	return( 0 );
 }

@@ -26,8 +26,9 @@
 - im_remainder() has a float result for float types
 - im_measure() allows sel == NULL, meaning all patches
 - added "deprecated" package
-- faster, simpler, better im_max()
+- faster, simpler, better im_max(), im_min, im_avg(), im_deviate()
 - im_max() returns true modulus, not square of modulus, for complex images
+- im_avg() works for complex, returning average modulus
 
 25/3/09 started 7.18.0
 - revised version numbers

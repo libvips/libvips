@@ -17,12 +17,12 @@
 
  * 13/1/05
  *	- use 64 bit arithmetic 
-
-1/9/09
-	- argh nope min/max was broken again for >1CPU in short pipelines on 
-	  some architectures
-
-*/
+ * 1/9/09
+ *	- argh nope min/max was broken again for >1CPU in short pipelines on 
+ *  	  some architectures
+ * 7/9/09
+ * 	- rework based on new im__wrapscan() / im_max() ideas for a proper fix
+ */
 
 /*
 
@@ -62,183 +62,119 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Make and initialise a DOUBLEMASK suitable for grabbing statistics.
+/* Track min/max/sum/sum-of-squares for each thread during a scan.
  */
 static void *
-make_mask( IMAGE *im, void *a, void *b )
+stats_start( IMAGE *im, void *a, void *b )
 {
-	DOUBLEMASK *out;
+	double *global_stats = (double *) b;
 
-	/* Make temp output.
-	 */
-	if( !(out = im_create_dmask( "stats", 6, im->Bands + 1 )) )
+	double *stats;
+	int i;
+
+	if( !(stats = IM_ARRAY( NULL, 4 * im->Bands, double )) )
 		return( NULL );
-	
-	/* Set offset to magic value: 42 indicates we have not yet initialised
-	 * max and min for this mask.
-	 */
-	out->offset = 42;
 
-#ifdef DEBUG
-	printf( "make_mask: created %p\n", out );
-#endif /*DEBUG*/
+	for( i = 0; i < 4 * im->Bands; i++ )
+		stats[i] = global_stats[i];
 
-	return( out );
+	return( stats );
 }
 
-/* Merge a temp DOUBLEMASK into the real DOUBLEMASK. Row 0 is unused, row 1
- * has the stats for band 1. These are: (minimum, maximum, sum, sum^2). If the
- * offset of out is 42, then it has not been inited yet and we just copy.
+/* Merge a thread's output back into the global stats.
  */
 static int
-merge_mask( void *seq, void *a, void *b )
+stats_stop( void *seq, void *a, void *b )
 {
-	DOUBLEMASK *tmp = (DOUBLEMASK *) seq;
-	DOUBLEMASK *out = (DOUBLEMASK *) a;
-	double *rowi, *rowo;
-	int z;
+	const IMAGE *im = (IMAGE *) a;
+	double *global_stats = (double *) b;
+	double *stats = (double *) seq;
 
-#ifdef DEBUG
-	printf( "merge_mask: tmp = %p, out = %p\n", tmp, out );
-	im_print_dmask( tmp );
-	im_print_dmask( out );
-#endif /*DEBUG*/
+	int i;
 
-	/* Merge, or just copy? Also, tmp might be uninited, so allow for that
-	 * too.
-	 */
-	if( out->offset == 42 && tmp->offset != 42 ) {
-#ifdef DEBUG
-		printf( "merge_mask: copying\n", tmp );
-#endif /*DEBUG*/
+	for( i = 0; i < 4 * im->Bands; i += 4 ) {
+		global_stats[0] = IM_MIN( global_stats[0], stats[0] );
+		global_stats[1] = IM_MAX( global_stats[1], stats[1] );
+		global_stats[2] += stats[2];
+		global_stats[3] += stats[3];
 
-		/* Copy info from tmp.
-		 */
-		for( z = 1; z < tmp->ysize; z++ ) {
-			rowi = tmp->coeff + z * 6;
-			rowo = out->coeff + z * 6;
-
-			rowo[0] = rowi[0];
-			rowo[1] = rowi[1];
-			rowo[2] = rowi[2];
-			rowo[3] = rowi[3];
-		}
-
-		out->offset = 0;
-	}
-	else if( out->offset != 42 && tmp->offset != 42 ) {
-#ifdef DEBUG
-		printf( "merge_mask: merging\n" );
-#endif /*DEBUG*/
-
-		/* Add info from tmp.
-		 */
-		for( z = 1; z < tmp->ysize; z++ ) {
-			rowi = tmp->coeff + z * 6;
-			rowo = out->coeff + z * 6;
-
-			rowo[0] = IM_MIN( rowi[0], rowo[0] );
-			rowo[1] = IM_MAX( rowi[1], rowo[1] );
-			rowo[2] += rowi[2];
-			rowo[3] += rowi[3];
-		}
+		global_stats += 4;
+		stats += 4;
 	}
 
-	/* Can now free tmp.
-	 */
-	im_free_dmask( tmp );
+	im_free( seq );
 
 	return( 0 );
 }
 
-/* Loop over region, adding information to the appropriate fields of tmp.
- * We set max, min, sum, sum of squares. Our caller fills in the rest.
+/* We scan lines bands times to avoid repeating band loops.
+ * Use temp variables of same type for min/max for faster comparisons.
+ */
+#define LOOP( TYPE ) { \
+	for( z = 0; z < im->Bands; z++ ) { \
+		TYPE *q = (TYPE *) in + z; \
+		double *row = stats + z * 4; \
+		TYPE small, big; \
+		double sum, sum2; \
+		\
+		small = row[0]; \
+		big = row[1]; \
+		sum = row[2]; \
+		sum2 = row[3]; \
+		\
+		for( x = 0; x < n; x++ ) { \
+			TYPE value = *q; \
+			\
+			sum += value;\
+			sum2 += (double) value * (double) value;\
+			if( value > big ) \
+				big = value; \
+			else if( value < small ) \
+				small = value;\
+			\
+			q += im->Bands; \
+		}\
+		\
+		row[0] = small; \
+		row[1] = big; \
+		row[2] = sum; \
+		row[3] = sum2; \
+	}\
+} 
+
+/* Loop over region, adding to seq.
  */
 static int
-scan_fn( REGION *reg, void *seq, void *a, void *b )
+stats_scan( void *in, int n, void *seq, void *a, void *b )
 {
-	DOUBLEMASK *tmp = (DOUBLEMASK *) seq;
-	Rect *r = &reg->valid;
-	IMAGE *im = reg->im;
-	int bands = im->Bands;
-	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int x, y, z;
+	const IMAGE *im = (IMAGE *) a;
 
-/* What type? First define the loop we want to perform for all types.
- * We scan lines bands times to avoid repeating band loops.
- * Use temp variables of same type for min/max for faster comparisons.
- * Use double to sum bands.
- */
-#define non_complex_loop(TYPE) \
-	{	TYPE *p, *q; \
-		TYPE value, small, big; \
-		double *row; \
- 		\
-		/* Have min and max been initialised? \
-		 */ \
-		if( tmp->offset == 42 ) { \
-			/* Init min and max for each band. \
-			 */ \
-			p = (TYPE *) IM_REGION_ADDR( reg, le, to ); \
-			for( z = 0; z < bands; z++ ) { \
-				row = tmp->coeff + (z + 1) * 6; \
-				row[0] = p[z]; \
-				row[1] = p[z]; \
-			} \
-			tmp->offset = 0; \
-		} \
-		\
-		for( y = to; y < bo; y++ ) { \
-			p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
- 			\
-			for( z = 0; z < bands; z++ ) { \
-				q = p + z; \
-				row = tmp->coeff + (z + 1)*6; \
-				small = row[0]; \
-				big = row[1]; \
-				\
-				for( x = le; x < ri; x++ ) { \
-					value = *q; \
-					q += bands; \
-					row[2] += value;\
-					row[3] += (double)value*(double)value;\
-					if( value > big ) \
-						big = value; \
-					else if( value < small ) \
-						small = value;\
-				}\
- 				\
-				row[0] = small; \
-				row[1] = big; \
-			}\
-		}\
-	} 
+	double *stats = (double *) seq;
+
+	int x, z;
 
 	/* Now generate code for all types. 
 	 */
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:	non_complex_loop(unsigned char); break; 
-	case IM_BANDFMT_CHAR:	non_complex_loop(signed char); break; 
-	case IM_BANDFMT_USHORT:	non_complex_loop(unsigned short); break; 
-	case IM_BANDFMT_SHORT:	non_complex_loop(signed short); break; 
-	case IM_BANDFMT_UINT:	non_complex_loop(unsigned int); break; 
-	case IM_BANDFMT_INT:	non_complex_loop(signed int); break; 
-	case IM_BANDFMT_DOUBLE:	non_complex_loop(double); break;
-	case IM_BANDFMT_FLOAT:	non_complex_loop(float); break; 
+	case IM_BANDFMT_UCHAR:	LOOP( unsigned char ); break; 
+	case IM_BANDFMT_CHAR:	LOOP( signed char ); break; 
+	case IM_BANDFMT_USHORT:	LOOP( unsigned short ); break; 
+	case IM_BANDFMT_SHORT:	LOOP( signed short ); break; 
+	case IM_BANDFMT_UINT:	LOOP( unsigned int ); break; 
+	case IM_BANDFMT_INT:	LOOP( signed int ); break; 
+	case IM_BANDFMT_DOUBLE:	LOOP( double ); break;
+	case IM_BANDFMT_FLOAT:	LOOP( float ); break; 
 
 	default: 
-		assert( 0 );
+		g_assert( 0 );
 	}
 
 	return( 0 );
@@ -251,58 +187,69 @@ scan_fn( REGION *reg, void *seq, void *a, void *b )
  * the figures for all bands together.
  */
 DOUBLEMASK *
-im_stats( IMAGE *in )
+im_stats( IMAGE *im )
 {	
 	DOUBLEMASK *out;
-	double *row, *base;
+	double *row;
 	gint64 pels, vals, z;
+	double *global_stats;
+	int i, j;
+	double value;
 
-	/* Check our args. 
-	 */
-	if( im_pincheck( in ) )
+	if( im_pincheck( im ) ||
+		im_check_noncomplex( "im_stats", im ) ||
+		im_check_uncoded( "im_stats", im ) )
 		return( NULL );
-	if( im_iscomplex( in ) ) {
-		im_error( "im_stats", "%s", _( "bad input type" ) );
-		return( NULL );
-	}
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_stats", "%s", _( "not uncoded" ) );
-		return( NULL );
-	}
 
-	/* Make output.
-	 */
-	pels = (gint64) in->Xsize * in->Ysize;
-	vals = pels * in->Bands;
-	if( !(out = make_mask( in, NULL, NULL )) )
+	if( !(global_stats = IM_ARRAY( im, 4 * im->Bands, double )) )
 		return( NULL );
+	if( im__value( im, &value ) )
+		return( NULL );
+	for( i = 0; i < 4 * im->Bands; i += 4 ) {
+		global_stats[i + 0] = value;
+		global_stats[i + 1] = value;
+		global_stats[i + 2] = 0.0;
+		global_stats[i + 3] = 0.0;
+	}
 
 	/* Loop over input, calculating min, max, sum, sum^2 for each band
 	 * separately.
 	 */
-	if( im_iterate( in, make_mask, scan_fn, merge_mask, out, NULL ) ) {
-		im_free_dmask( out );
+	if( im__wrapscan( im, stats_start, stats_scan, stats_stop, 
+		im, &global_stats ) ) 
 		return( NULL );
-	}
 
 	/* Calculate mean, deviation, plus overall stats.
 	 */
-	base = out->coeff;
-	base[0] = base[6];	/* Init global max/min */
-	base[1] = base[7];
-	for( z = 0; z < in->Bands; z++ ) {
-		row = base + (z + 1) * 6;
-		base[0] = IM_MIN( base[0], row[0] );
-		base[1] = IM_MAX( base[1], row[1] );
-		base[2] += row[2];
-		base[3] += row[3];
+	if( !(out = im_create_dmask( "stats", 6, im->Bands + 1 )) )
+		return( NULL );
+
+	/* Init global max/min/sum/sum2.
+	 */
+	out->coeff[0] = value;
+	out->coeff[1] = value;
+	out->coeff[2] = 0.0;
+	out->coeff[3] = 0.0;
+
+	pels = (gint64) im->Xsize * im->Ysize;
+	vals = pels * im->Bands;
+
+	for( i = 0; i < im->Bands; i++ ) {
+		row = out->coeff + (z + 1) * 6;
+		for( j = 0; j < 4; j++ )
+			row[j] = global_stats[i * 4 + j];
+
+		out->coeff[0] = IM_MIN( out->coeff[0], row[0] );
+		out->coeff[1] = IM_MAX( out->coeff[1], row[1] );
+		out->coeff[2] += row[2];
+		out->coeff[3] += row[3];
 		row[4] = row[2] / pels;
 		row[5] = sqrt( fabs( row[3] - (row[2] * row[2] / pels) ) / 
 			(pels - 1) );
 	} 
-	base[4] = base[2] / vals;
-	base[5] = sqrt( fabs( base[3] - (base[2] * base[2] / vals) ) / 
-		(vals - 1) );
+	out->coeff[4] = out->coeff[2] / vals;
+	out->coeff[5] = sqrt( fabs( out->coeff[3] - 
+		(out->coeff[2] * out->coeff[2] / vals) ) / (vals - 1) );
 
 #ifdef DEBUG
 	printf( "im_stats:\n" );

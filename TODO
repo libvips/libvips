@@ -1,8 +1,4 @@
-- new im_max() needs testing
-
-  im_avg() needs to work for complex: return modulus
-
-  use im_max() model to rewrite im_min(), im_stats()
+- im_stats() needs debugging
 
 - im_minpos(), im_maxpos() need partialing
 

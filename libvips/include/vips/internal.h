@@ -136,6 +136,10 @@ int im__cast_and_call( IMAGE *in1, IMAGE *in2, IMAGE *out,
 VipsBandFmt im__format_common( IMAGE *in1, IMAGE *in2 );
 int im__math( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen );
 int im__value( IMAGE *im, double *value );
+typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );
+int im__wrapscan( IMAGE *in, 
+	im_start_fn start, im__wrapscan_fn scan, im_stop_fn stop,
+	void *a, void *b );
 
 int im__test_kill( IMAGE *im );
 void *im__mmap( int fd, int writeable, size_t length, gint64 offset );

@@ -16,6 +16,8 @@
  *	- partialed, based in im_max()
  * 3/4/02 JC
  *	- random wrong result for >1 thread :-( (thanks Joe)
+ * 4/9/09
+ * 	- rewrite from im_max()
  */
 
 /*
@@ -56,160 +58,105 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Per-call state.
- */
-typedef struct _MinInfo {
-	/* Parameters.
-	 */
-	IMAGE *in;
-	double *out;
-
-	/* Global min so far.
-	 */
-	double value;
-	int valid;		/* zero means value is unset */
-} MinInfo;
-
-/* Per thread state.
- */
-typedef struct _Seq {
-	MinInfo *inf;
-
-	double value;
-	int valid;		/* zero means value is unset */
-} Seq;
-
 /* New sequence value.
  */
 static void *
-start_fn( IMAGE *im, void *a, void *b )
+min_start( IMAGE *in, void *a, void *b )
 {
-	MinInfo *inf = (MinInfo *) a;
-	Seq *seq = IM_NEW( NULL, Seq );
+	double *global_min = (double *) b;
+	double *min;
 
-	seq->inf = inf;
-	seq->valid = 0;
+	if( !(min = IM_NEW( NULL, double )) ) 
+		return( NULL );
+	*min = *global_min;
 
-	return( seq );
+	return( (void *) min );
 }
 
 /* Merge the sequence value back into the per-call state.
  */
 static int
-stop_fn( void *vseq, void *a, void *b )
+min_stop( void *seq, void *a, void *b )
 {
-	Seq *seq = (Seq *) vseq;
-	MinInfo *inf = (MinInfo *) a;
+	double *min = (double *) seq;
+	double *global_min = (double *) b;
 
-	if( seq->valid ) {
-		if( !inf->valid )
-			/* Just copy.
-			 */
-			inf->value = seq->value;
-		else 
-			/* Merge.
-			 */
-			inf->value = IM_MIN( inf->value, seq->value );
-
-		inf->valid = 1;
-	}
+	/* Merge.
+	 */
+	*global_min = IM_MIN( *global_min, *min );
 
 	im_free( seq );
 
 	return( 0 );
 }
 
+#define LOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double v = p[x]; \
+		\
+		if( v < m ) \
+			m = v; \
+	} \
+} 
+
+#define CLOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double mod, re, im; \
+		\
+		re = p[0]; \
+		im = p[1]; \
+		p += 2; \
+		mod = re * re + im * im; \
+		\
+		if( mod < m ) \
+			m = mod; \
+	} \
+} 
+
 /* Loop over region, adding to seq.
  */
 static int
-scan_fn( REGION *reg, void *vseq, void *a, void *b )
+min_scan( void *in, int n, void *seq, void *a, void *b )
 {
-	Seq *seq = (Seq *) vseq;
-	Rect *r = &reg->valid;
-	IMAGE *im = reg->im;
-	int le = r->left;
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int nel = IM_REGION_N_ELEMENTS( reg );
+	const IMAGE *im = (IMAGE *) a;
+	const int sz = n * im->Bands;
 
-	int x, y;
+	double *min = (double *) seq;
 
+	int x;
 	double m;
 
-#ifdef DEBUG
-	printf( "im_min: left = %d, top = %d, width = %d, height = %d\n",
-		r->left, r->top, r->width, r->height );
-#endif /*DEBUG*/
-
-#define loop(TYPE) { \
-	m = *((TYPE *) IM_REGION_ADDR( reg, le, to )); \
-	\
-	for( y = to; y < bo; y++ ) { \
-		TYPE *p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
-		\
-		for( x = 0; x < nel; x++ ) { \
-			double v = p[x]; \
-			\
-			if( v < m ) \
-				m = v; \
-		} \
-	} \
-} 
-
-#define complex_loop(TYPE) { \
-	TYPE *p = (TYPE *) IM_REGION_ADDR( reg, le, to ); \
-	double real = p[0]; \
-	double imag = p[1]; \
-	\
-	m = real * real + imag * imag; \
-	\
-	for( y = to; y < bo; y++ ) { \
-		TYPE *p = (TYPE *) IM_REGION_ADDR( reg, le, y ); \
-		\
-		for( x = 0; x < nel * 2; x += 2 ) { \
-			double mod; \
-			\
-			real = p[x]; \
-			imag = p[x + 1]; \
-			mod = real * real + imag * imag; \
-			\
-			if( mod < m ) \
-				m = mod; \
-		} \
-	} \
-} 
+	m = *min;
 
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:		loop( unsigned char ); break; 
-	case IM_BANDFMT_CHAR:		loop( signed char ); break; 
-	case IM_BANDFMT_USHORT:		loop( unsigned short ); break; 
-	case IM_BANDFMT_SHORT:		loop( signed short ); break; 
-	case IM_BANDFMT_UINT:		loop( unsigned int ); break;
-	case IM_BANDFMT_INT:		loop( signed int ); break; 
-	case IM_BANDFMT_FLOAT:		loop( float ); break; 
-	case IM_BANDFMT_DOUBLE:		loop( double ); break; 
-	case IM_BANDFMT_COMPLEX:	complex_loop( float ); break; 
-	case IM_BANDFMT_DPCOMPLEX:	complex_loop( double ); break; 
+	case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
+	case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
+	case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
+	case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
+	case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
+	case IM_BANDFMT_INT:		LOOP( signed int ); break; 
+	case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
+	case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
+	case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
+	case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
 
 	default:  
-		assert( 0 );
+		g_assert( 0 );
 	}
 
-	if( seq->valid ) {
-		seq->value = IM_MIN( seq->value, m ); 
-	}
-	else {
-		seq->value = m;
-		seq->valid = 1;
-	}
+	*min = m; 
 
 	return( 0 );
 }
@@ -219,10 +166,10 @@ scan_fn( REGION *reg, void *vseq, void *a, void *b )
  * @in: input #IMAGE
  * @out: output double
  *
- * Finds the the minimum value of image @in and returns it at the
- * location pointed by @out.  If input is complex, the min square amplitude 
- * (re*re+im*im) is returned. im_min() finds the maximum of all bands: if you
- * want to find the maximum of each band separately, use im_stats().
+ * Finds the the minimum value of image #in and returns it at the
+ * location pointed by out.  If input is complex, the min modulus
+ * is returned. im_min() finds the minimum of all bands: if you
+ * want to find the minimum of each band separately, use im_stats().
  *
  * See also: im_minpos(), im_max(), im_stats().
  *
@@ -230,21 +177,30 @@ scan_fn( REGION *reg, void *vseq, void *a, void *b )
  */
 int
 im_min( IMAGE *in, double *out )
-{	
-	MinInfo inf;
-
-	inf.in = in;
-	inf.out = out;
-	inf.valid = 0;
+{
+	double global_min;
 
 	if( im_pincheck( in ) ||
 		im_check_uncoded( "im_min", in ) )
 		return( -1 );
 
-	if( im_iterate( in, start_fn, scan_fn, stop_fn, &inf, NULL ) ) 
+	if( im__value( in, &global_min ) )
+		return( -1 );
+	/* We use square mod for scanning, for speed.
+	 */
+	if( im_iscomplex( in ) )
+		global_min *= global_min;
+
+	if( im__wrapscan( in, min_start, min_scan, min_stop, 
+		in, &global_min ) ) 
 		return( -1 );
 
-	*out = inf.value;
+	/* Back to modulus.
+	 */
+	if( im_iscomplex( in ) )
+		global_min = sqrt( global_min );
+
+	*out = global_min;
 
 	return( 0 );
 }
