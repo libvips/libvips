@@ -12,12 +12,15 @@
  * 	- renamed avg as sum, a bit clearer
  * 2/9/09
  * 	- gtkdoc comment
+ * 8/9/08
+ * 	- rewrite from im_maxpos()
+ * 	- now handles many bands, complex, faster
  */
 
 /*
 
     This file is part of VIPS.
-
+    
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -40,40 +43,163 @@
 
  */
 
-
-/** HEADERS **/
+/*
+#define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
-#endif /*WITH_DMALLOC */
+#endif /*WITH_DMALLOC*/
 
+/* A position and maximum.
+ */
+typedef struct _Maxposavg {
+	int xpos;
+	int ypos;
+	double max;
+	int occurences;
+} Maxposavg;
 
-/** LOCAL TYPES **/
+/* New sequence value.
+ */
+static void *
+maxposavg_start( IMAGE *in, void *a, void *b )
+{
+	Maxposavg *global_maxposavg = (Maxposavg *) b;
+	Maxposavg *maxposavg;
 
-typedef struct {
-  double x_sum;
-  double y_sum;
-  double val;
-  unsigned int occurrences;
+	if( !(maxposavg = IM_NEW( NULL, Maxposavg )) ) 
+		return( NULL );
+	*maxposavg = *global_maxposavg;
 
-} pos_avg_t;
+	return( (void *) maxposavg );
+}
 
+/* Merge the sequence value back into the per-call state.
+ */
+static int
+maxposavg_stop( void *seq, void *a, void *b )
+{
+	Maxposavg *global_maxposavg = (Maxposavg *) b;
+	Maxposavg *maxposavg = (Maxposavg *) seq;
 
-/** LOCAL FUNCTIONS DECLARATIONS **/
+	/* Merge.
+	 */
+	if( maxposavg->max > global_maxposavg->max ) 
+		*global_maxposavg = *maxposavg;
 
-static void *maxpos_avg_start( IMAGE *im , void *, void * );
-static int maxpos_avg_scan( REGION *reg, void *seq, void *, void * );
-static int maxpos_avg_stop( void *seq, void *, void * );
+	im_free( seq );
 
+	return( 0 );
+}
 
-/** EXPORTED FUNCTION **/
+#define LOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE m; \
+	\
+	m = max; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		TYPE v = p[x]; \
+		\
+		if( v == m ) { \
+			xpos += r->left + x / reg->im->Bands; \
+			ypos += r->top + y; \
+			occurences += 1; \
+		} \
+		else if( v > m ) { \
+			m = v; \
+			xpos = r->left + x / reg->im->Bands; \
+			ypos = r->top + y; \
+			occurences = 1; \
+		} \
+	} \
+	\
+	max = m; \
+} 
+
+#define CLOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double mod, re, im; \
+		\
+		re = p[0]; \
+		im = p[1]; \
+		p += 2; \
+		mod = re * re + im * im; \
+		\
+		if( mod == max ) { \
+			xpos += r->left + x / reg->im->Bands; \
+			ypos += r->top + y; \
+			occurences += 1; \
+		} \
+		else if( mod > max ) { \
+			max = mod; \
+			xpos = r->left + x / reg->im->Bands; \
+			ypos = r->top + y; \
+			occurences = 1; \
+		} \
+	} \
+} 
+
+/* Loop over region, adding to seq.
+ */
+static int
+maxposavg_scan( REGION *reg, void *seq, void *a, void *b )
+{
+	const Rect *r = &reg->valid;
+	const int sz = IM_REGION_N_ELEMENTS( reg );
+	Maxposavg *maxposavg = (Maxposavg *) seq;
+
+	int x, y;
+	double max;
+	int xpos, ypos, occurences;
+
+	xpos = maxposavg->xpos;
+	ypos = maxposavg->ypos;
+	max = maxposavg->max;
+	occurences = maxposavg->occurences;
+
+	for( y = 0; y < r->height; y++ ) { 
+		PEL *in = (PEL *) IM_REGION_ADDR( reg, r->left, r->top + y ); 
+
+		switch( reg->im->BandFmt ) {
+		case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
+		case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
+		case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
+		case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
+		case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
+		case IM_BANDFMT_INT:		LOOP( signed int ); break; 
+		case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
+		case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
+		case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
+		case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
+
+		default:  
+			g_assert( 0 );
+		}
+	} 
+
+	maxposavg->xpos = xpos;
+	maxposavg->ypos = ypos;
+	maxposavg->max = max;
+	maxposavg->occurences = occurences;
+
+	return( 0 );
+}
 
 /** 
  * im_maxpos_avg:
@@ -84,117 +210,52 @@ static int maxpos_avg_stop( void *seq, void *, void * );
  *
  * Function to find the maximum of an image.  Returns coords and value at
  * double precision.  In the event of a draw, returns average of all 
- * drawing coords, and interpolated value at that position.
+ * drawing coords.
  *
  * See also: im_maxpos(), im_min(), im_stats().
  *
  * Returns: 0 on success, -1 on error
  */
-int im_maxpos_avg( IMAGE *im, double *xpos, double *ypos, double *out ){
-#define FUNCTION_NAME "im_maxpos_avg"
+int
+im_maxpos_avg( IMAGE *in, double *xpos, double *ypos, double *out )
+{
+	Maxposavg *global_maxposavg;
 
-  pos_avg_t master= { 0.0, 0.0, 0.0, 0 };
+	if( im_pincheck( in ) ||
+		im_check_uncoded( "im_maxpos_avg", in ) )
+		return( -1 );
 
-  if( im_pincheck( im ) ||
-    im_check_uncoded( FUNCTION_NAME, im ) ||
-    im_check_noncomplex( FUNCTION_NAME, im ) ||
-    im_check_mono( FUNCTION_NAME, im ) )
-    return -1;
+	if( !(global_maxposavg = IM_NEW( in, Maxposavg )) ) 
+		return( -1 );
+	if( im__value( in, &global_maxposavg->max ) )
+		return( -1 );
+	global_maxposavg->xpos = 0;
+	global_maxposavg->ypos = 0;
+	global_maxposavg->occurences = 1;
 
-  if( ! xpos || ! ypos || ! out ){
-    im_error( FUNCTION_NAME, "%s", _("invalid argument") );
-    return -1;
-  }
+	/* We use square mod for scanning, for speed.
+	 */
+	if( im_iscomplex( in ) )
+		global_maxposavg->max *= global_maxposavg->max;
 
-  if( im_iterate( im, maxpos_avg_start, maxpos_avg_scan, maxpos_avg_stop, &master, NULL ) )
-    return -1;
+	if( im_iterate( in, maxposavg_start, maxposavg_scan, maxposavg_stop, 
+		in, global_maxposavg ) ) 
+		return( -1 );
 
-  *xpos= master. x_sum / master. occurrences;
-  *ypos= master. y_sum / master. occurrences;
+	/* Back to modulus.
+	 */
+	if( im_iscomplex( in ) )
+		global_maxposavg->max = sqrt( global_maxposavg->max );
 
-  return im_point_bilinear( im, *xpos, *ypos, 0, out );
+	if( xpos )
+		*xpos = (double) global_maxposavg->xpos / 
+			global_maxposavg->occurences;
+	if( ypos )
+		*ypos = (double) global_maxposavg->ypos / 
+			global_maxposavg->occurences;
+	if( out )
+		*out = global_maxposavg->max;
 
-#undef FUNCTION_NAME
-}
-
-static void *maxpos_avg_start( IMAGE *im, void *a, void *b ){
-  pos_avg_t *seq;
-
-  seq= IM_NEW( NULL, pos_avg_t );
-  if( ! seq )
-    return NULL; 
-
-  seq-> x_sum= 0.0;
-  seq-> y_sum= 0.0;
-  seq-> val= 0.0;
-  seq-> occurrences= 0;
-
-  return (void *) seq;
-}
-
-/* should be void (always returns 0) */
-static int maxpos_avg_scan( REGION *reg, void *vseq, void *a, void *b ) {
-
-  pos_avg_t *seq= (pos_avg_t *) vseq;
-  const int right= reg-> valid. left + reg-> valid. width;
-  const int bottom= reg-> valid. top + reg-> valid. height;
-  int x;
-  int y;
-
-#define LOOPS(type){                                                                                  \
-  type *read= (type*) IM_REGION_ADDR( reg, reg-> valid. left, reg-> valid. top ) - reg-> valid. left; \
-  size_t skip= IM_REGION_LSKIP( reg ) / sizeof( type );                                               \
-                                                                                                      \
-  for( y= reg-> valid. top; y < bottom; ++y, read+= skip )                                            \
-    for( x= reg-> valid. left; x < right; ++x )                                                       \
-      if( !seq-> occurrences ||                                                                       \
-        read[x] > seq-> val ){                                                                        \
-        seq-> val= read[x];                                                                           \
-        seq-> x_sum= x;                                                                               \
-        seq-> y_sum= y;                                                                               \
-        seq-> occurrences= 1;                                                                         \
-      }                                                                                               \
-      else if( read[x] == seq-> val ){                                                                \
-        seq-> x_sum+= x;                                                                              \
-        seq-> y_sum+= y;                                                                              \
-        ++ (seq-> occurrences);                                                                       \
-      }                                                                                               \
-}
-
-  switch( reg-> im-> BandFmt ){
-    case IM_BANDFMT_CHAR:   LOOPS( gint8 )   break;
-    case IM_BANDFMT_UCHAR:  LOOPS( guint8 )  break;
-    case IM_BANDFMT_SHORT:  LOOPS( gint16 )  break;
-    case IM_BANDFMT_USHORT: LOOPS( guint16 ) break;
-    case IM_BANDFMT_INT:    LOOPS( gint32 )  break;
-    case IM_BANDFMT_UINT:   LOOPS( guint32 ) break;
-    case IM_BANDFMT_FLOAT:  LOOPS( float )   break;
-    case IM_BANDFMT_DOUBLE: LOOPS( double )  break;
-  }
-
-  return 0;
-#undef LOOPS
-}
-
-/* should be void (always returns 0) */
-static int maxpos_avg_stop( void *vseq, void *a, void *b ) {
-
-  pos_avg_t *seq = (pos_avg_t *) vseq;
-  pos_avg_t *master = (pos_avg_t *) a;
-
-  if( !master->occurrences ||
-      seq-> val > master-> val ){
-    master-> val= seq-> val;
-    master-> x_sum= seq-> x_sum;
-    master-> y_sum= seq-> y_sum;
-    master-> occurrences= seq-> occurrences;
-  }
-  else if( seq-> val == master-> val ){
-    master-> x_sum+= seq-> x_sum;
-    master-> y_sum+= seq-> y_sum;
-    master-> occurrences+= seq-> occurrences;
-  }
-  im_free( seq );
-  return 0;
+	return( 0 );
 }
 
