@@ -305,7 +305,7 @@ im__value( IMAGE *im, double *value )
 	IMAGE *t;
 
 	if( !(t = im_open_local( im, "im__value", "p" )) ||
-		im_extract_area( im, t, 0, 0, 1, 1 ) ||
+		im_extract_areabands( im, t, 0, 0, 1, 1, 0, 1 ) ||
 		im_avg( t, value ) )
 		return( -1 );
 

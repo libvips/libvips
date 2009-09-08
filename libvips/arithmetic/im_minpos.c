@@ -96,7 +96,7 @@ minpos_stop( void *seq, void *a, void *b )
 
 	/* Merge.
 	 */
-	if( minpos->min > global_minpos->min ) 
+	if( minpos->min < global_minpos->min ) 
 		*global_minpos = *minpos;
 
 	im_free( seq );
