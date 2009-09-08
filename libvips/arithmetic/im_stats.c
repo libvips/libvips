@@ -1,4 +1,5 @@
-/* @(#) im_stats: find general image statistics for all bands separately
+/* im_stats.c
+ *
 (C) Kirk Martinez 1993
 23/4/93 J.Cupitt
 	- adapted to partial images
@@ -22,6 +23,7 @@
  *  	  some architectures
  * 7/9/09
  * 	- rework based on new im__wrapscan() / im_max() ideas for a proper fix
+ * 	- gtkdoc comment
  */
 
 /*
@@ -180,11 +182,19 @@ stats_scan( void *in, int n, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Find the statistics of an image. Take any non-complex format. Write the
- * stats to a DOUBLEMASK of size 6 by (in->Bands+1). We hold a row for each 
- * band, plus one row for all bands. Row n has 6 elements, which are, in 
- * order, (minimum, maximum, sum, sum^2, mean, deviation) for band n. Row 0 has 
- * the figures for all bands together.
+/**
+ * im_stats:
+ * @in: image to scan
+ *
+ * Find many image statistics in a single pass through the data. Returns a
+ * #DOUBLEMASK of 6 columns by n + 1 (where n is number of bands in image @in) 
+ * rows. Columns are statistics, and are, in order: minimum, maximum, sum, 
+ * sum of squares, mean, standard deviation. Row 0 has statistics for all 
+ * bands together, row 1 has stats for band 1, and so on.
+ *
+ * See also: im_maxpos(), im_min(), im_deviate().
+ *
+ * Returns: 0 on success, -1 on error
  */
 DOUBLEMASK *
 im_stats( IMAGE *im )

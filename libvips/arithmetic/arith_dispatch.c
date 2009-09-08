@@ -44,7 +44,8 @@
 
 /** 
  * SECTION: arithmetic
- * @short_description: operations which perform pixel arithmetic, trig, log
+ * @short_description: operations which perform pixel arithmetic, trig, log,
+ * stats
  *
  * @see_also: <link linkend="VIPS-iofuncs">iofuncs</link>
  * @stability: Stable

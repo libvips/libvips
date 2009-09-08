@@ -12,6 +12,9 @@
  *	- now returns double for value, like im_max()
  * 4/9/09
  * 	- gtkdoc comment
+ * 8/9/09
+ * 	- rewrite based on im_max() to get partial
+ * 	- move im_max() in here as a convenience function
  */
 
 /*
@@ -40,32 +43,143 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Useful: Call a macro with the name, type pairs for all VIPS functions.  
+/* A position and maximum.
  */
-#define im_for_all_types() \
-	case IM_BANDFMT_UCHAR:		loop(unsigned char); break; \
-	case IM_BANDFMT_CHAR:		loop(signed char); break; \
-	case IM_BANDFMT_USHORT:		loop(unsigned short); break; \
-	case IM_BANDFMT_SHORT:		loop(signed short); break; \
-	case IM_BANDFMT_UINT:		loop(unsigned int); break; \
-	case IM_BANDFMT_INT:		loop(signed int); break; \
-	case IM_BANDFMT_FLOAT:		loop(float); break; \
-	case IM_BANDFMT_DOUBLE:		loop(double); break; \
-	case IM_BANDFMT_COMPLEX:	loopcmplx(float); break; \
-	case IM_BANDFMT_DPCOMPLEX:	loopcmplx(double); break; 
+typedef struct _Maxpos {
+	int xpos;
+	int ypos;
+	double max;
+} Maxpos;
+
+/* New sequence value.
+ */
+static void *
+maxpos_start( IMAGE *in, void *a, void *b )
+{
+	Maxpos *global_maxpos = (Maxpos *) b;
+	Maxpos *maxpos;
+
+	if( !(maxpos = IM_NEW( NULL, Maxpos )) ) 
+		return( NULL );
+	*maxpos = *global_maxpos;
+
+	return( (void *) maxpos );
+}
+
+/* Merge the sequence value back into the per-call state.
+ */
+static int
+maxpos_stop( void *seq, void *a, void *b )
+{
+	Maxpos *global_maxpos = (Maxpos *) b;
+	Maxpos *maxpos = (Maxpos *) seq;
+
+	/* Merge.
+	 */
+	if( maxpos->max > global_maxpos->max ) 
+		*global_maxpos = *maxpos;
+
+	im_free( seq );
+
+	return( 0 );
+}
+
+#define LOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double v = p[x]; \
+		\
+		if( v > max ) { \
+			max = v; \
+			xpos = r->left + x / reg->im->Bands; \
+			ypos = r->top + y; \
+		} \
+	} \
+} 
+
+#define CLOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double mod, re, im; \
+		\
+		re = p[0]; \
+		im = p[1]; \
+		p += 2; \
+		mod = re * re + im * im; \
+		\
+		if( mod > max ) { \
+			max = mod; \
+			xpos = r->left + x / reg->im->Bands; \
+			ypos = r->top + y; \
+		} \
+	} \
+} 
+
+/* Loop over region, adding to seq.
+ */
+static int
+maxpos_scan( REGION *reg, void *seq, void *a, void *b )
+{
+	const Rect *r = &reg->valid;
+	const int sz = IM_REGION_N_ELEMENTS( reg );
+	Maxpos *maxpos = (Maxpos *) seq;
+
+	int x, y;
+	double max;
+	int xpos, ypos;
+
+	xpos = maxpos->xpos;
+	ypos = maxpos->ypos;
+	max = maxpos->max;
+
+	for( y = 0; y < r->height; y++ ) { 
+		PEL *in = (PEL *) IM_REGION_ADDR( reg, r->left, r->top + y ); 
+
+		switch( reg->im->BandFmt ) {
+		case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
+		case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
+		case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
+		case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
+		case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
+		case IM_BANDFMT_INT:		LOOP( signed int ); break; 
+		case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
+		case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
+		case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
+		case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
+
+		default:  
+			g_assert( 0 );
+		}
+	} 
+
+	maxpos->xpos = xpos;
+	maxpos->ypos = ypos;
+	maxpos->max = max;
+
+	return( 0 );
+}
 
 /**
  * im_maxpos:
@@ -75,10 +189,8 @@
  * @out: returned pixel value at that position
  *
  * Function to find the maximum of an image. Works for any 
- * image type. Returns a double and the location of max.
- *
- * This is not a PIO operation! It may use a lot of memory and take a while.
- * Needs a rewrite.
+ * image type. Returns a double and the location of max. For complex images,
+ * finds the pixel with the highest modulus.
  *
  * See also: im_minpos(), im_min(), im_stats(), im_maxpos_avg().
  *
@@ -87,69 +199,59 @@
 int
 im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out )
 {
-	double m;
-	int xp=0, yp=0;
-	int os;
+	Maxpos *global_maxpos;
 
-/* Check our args. */
-	if( im_incheck( in ) )
+	if( im_pincheck( in ) ||
+		im_check_uncoded( "im_maxpos", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_maxpos", "%s", _( "not uncoded" ) );
+
+	if( !(global_maxpos = IM_NEW( in, Maxpos )) ) 
 		return( -1 );
-	}
+	if( im__value( in, &global_maxpos->max ) )
+		return( -1 );
+	global_maxpos->xpos = 0;
+	global_maxpos->ypos = 0;
 
-/* What type? First define the loop we want to perform for all types. */
-#define loop(TYPE) \
-	{	TYPE *p = (TYPE *) in->data; \
-		int x, y; \
-		m = (double) *p; \
-		\
-		for ( y=0; y<in->Ysize; y++ ) \
-			for ( x=0; x<os; x++ ) {\
-				if( (double) *p > m ) {\
-					m = (double) *p; \
-					xp = x; yp = y; \
-				}\
-				p++ ;\
-			}\
-	} 
-
-#define loopcmplx(TYPE) \
-	{	TYPE *p = (TYPE *) in->data; \
-		double re=(double)*p;\
-		double im=(double)*(p+1);\
-		double mod = re * re + im * im;\
-		int x, y; \
-		m = mod; \
-		\
-		for ( y=0; y<in->Ysize; y++ ) \
-			for ( x=0; x<os; x++ ) {\
-				re = (double)*p++; im = (double)*p++; \
-				mod = re * re + im * im; \
-				if( mod > m ) {\
-					m = mod; \
-					xp = x; yp = y; \
-				}\
-			}\
-	} 
-
-/* Now generate code for all types. */
-	os = in->Xsize * in->Bands;
-	switch( in->BandFmt ) {
-		im_for_all_types();
-		default: { 
-			g_assert( 0 );
-			return( -1 );
-		}
-	}
-
-	/* Return maxima and position of maxima. Nasty: we divide the xpos by
-	 * the number of bands to get the position in pixels.
+	/* We use square mod for scanning, for speed.
 	 */
-	*out = m;
-	*xpos = xp / in->Bands;
-	*ypos = yp;
+	if( im_iscomplex( in ) )
+		global_maxpos->max *= global_maxpos->max;
+
+	if( im_iterate( in, maxpos_start, maxpos_scan, maxpos_stop, 
+		in, global_maxpos ) ) 
+		return( -1 );
+
+	/* Back to modulus.
+	 */
+	if( im_iscomplex( in ) )
+		global_maxpos->max = sqrt( global_maxpos->max );
+
+	if( xpos )
+		*xpos = global_maxpos->xpos;
+	if( ypos )
+		*ypos = global_maxpos->ypos;
+	if( out )
+		*out = global_maxpos->max;
 
 	return( 0 );
+}
+
+/** 
+ * im_max:
+ * @in: input #IMAGE
+ * @out: output double
+ *
+ * Finds the the maximum value of image #in and returns it at the
+ * location pointed by out.  If input is complex, the max modulus
+ * is returned. im_max() finds the maximum of all bands: if you
+ * want to find the maximum of each band separately, use im_stats().
+ *
+ * See also: im_maxpos(), im_min(), im_stats().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_max( IMAGE *in, double *out )
+{
+	return( im_maxpos( in, NULL, NULL, out ) );
 }

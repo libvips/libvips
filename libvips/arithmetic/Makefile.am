@@ -19,7 +19,6 @@ libarithmetic_la_SOURCES = \
     im_lintra.c \
     im_log10tra.c \
     im_logtra.c \
-    im_max.c \
     im_maxpos.c \
     im_maxpos_avg.c \
     im_maxpos_vec.c \
