@@ -164,46 +164,7 @@ stats_scan( void *in, int n, void *seq, void *a, void *b )
 	/* Now generate code for all types. 
 	 */
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:	
-		/*
-		LOOP( unsigned char ); break; 
-		 */
-
-	for( z = 0; z < im->Bands; z++ ) { 
-		PEL *q = (PEL *) in + z; 
-		double *row = stats + z * 4; 
-		PEL small, big; 
-		double sum, sum2; 
-
-		printf( "z = %d\n", z );
-		
-		small = row[0]; 
-		big = row[1]; 
-		sum = row[2]; 
-		sum2 = row[3]; 
-		
-		for( x = 0; x < n; x++ ) { 
-			PEL value = *q; 
-
-			printf( "value = %d\n", value );
-			
-			sum += value;
-			sum2 += (double) value * (double) value;
-			if( value > big ) 
-				big = value; 
-			else if( value < small ) 
-				small = value;
-			
-			q += im->Bands; 
-		}
-		
-		row[0] = small; 
-		row[1] = big; 
-		row[2] = sum; 
-		row[3] = sum2; 
-	}
-		break;
-
+	case IM_BANDFMT_UCHAR:	LOOP( unsigned char ); break;
 	case IM_BANDFMT_CHAR:	LOOP( signed char ); break; 
 	case IM_BANDFMT_USHORT:	LOOP( unsigned short ); break; 
 	case IM_BANDFMT_SHORT:	LOOP( signed short ); break; 
@@ -230,7 +191,7 @@ im_stats( IMAGE *im )
 {	
 	DOUBLEMASK *out;
 	double *row;
-	gint64 pels, vals, z;
+	gint64 pels, vals;
 	double *global_stats;
 	int i, j;
 	double value;
@@ -255,7 +216,7 @@ im_stats( IMAGE *im )
 	 * separately.
 	 */
 	if( im__wrapscan( im, stats_start, stats_scan, stats_stop, 
-		im, &global_stats ) ) 
+		im, global_stats ) ) 
 		return( NULL );
 
 	/* Calculate mean, deviation, plus overall stats.
@@ -274,7 +235,7 @@ im_stats( IMAGE *im )
 	vals = pels * im->Bands;
 
 	for( i = 0; i < im->Bands; i++ ) {
-		row = out->coeff + (z + 1) * 6;
+		row = out->coeff + (i + 1) * 6;
 		for( j = 0; j < 4; j++ )
 			row[j] = global_stats[i * 4 + j];
 

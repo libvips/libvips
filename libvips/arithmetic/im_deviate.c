@@ -169,8 +169,8 @@ deviate_scan( void *in, int n, void *seq, void *a, void *b )
 		g_assert( 0 );
 	}
 
-	ss2[0] += s;
-	ss2[1] += s2;
+	ss2[0] = s;
+	ss2[1] = s2;
 
 	return( 0 );
 }
@@ -194,7 +194,8 @@ int
 im_deviate( IMAGE *in, double *out )
 {
 	double global_ss2[2];
-	gint64 N;
+	double s, s2;
+	gint64 vals;
 
 	/* Check our args. 
 	 */
@@ -208,7 +209,8 @@ im_deviate( IMAGE *in, double *out )
 	global_ss2[0] = 0.0;
 	global_ss2[1] = 0.0;
 	if( im__wrapscan( in, 
-		deviate_start, deviate_scan, deviate_stop, in, &global_ss2 ) ) 
+		deviate_start, deviate_scan, deviate_stop, in, global_ss2 ) ) 
+		return( -1 );
 
 	/*
 	  
@@ -220,9 +222,10 @@ im_deviate( IMAGE *in, double *out )
 
 	/* Calculate and return deviation. Add a fabs to stop sqrt(<=0).
 	 */
-	N = (gint64) in->Xsize * in->Ysize * in->Bands;
-	*out = sqrt( fabs( global_ss2[1] - 
-		(global_ss2[0] * global_ss2[0] / N) ) / (N - 1) );
+	vals = (gint64) in->Xsize * (gint64) in->Ysize * (gint64) in->Bands;
+	s = global_ss2[0];
+	s2 = global_ss2[1];
+	*out = sqrt( fabs( s2 - (s * s / vals) ) / (vals - 1) );
 
 	return( 0 );
 }
