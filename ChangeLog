@@ -30,7 +30,7 @@
 - im_max() returns true modulus, not square of modulus, for complex images
 - im_avg() works for complex, returning average modulus
 - im_maxpos()/im_minpos() are partial and work for complex
-- im_max()/im_min() are now a convenience functions
+- im_max()/im_min() are now convenience functions
 
 25/3/09 started 7.18.0
 - revised version numbers
