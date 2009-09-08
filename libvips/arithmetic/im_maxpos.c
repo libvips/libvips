@@ -106,16 +106,21 @@ maxpos_stop( void *seq, void *a, void *b )
 
 #define LOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
+	TYPE m; \
+	\
+	m = max; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		double v = p[x]; \
+		TYPE v = p[x]; \
 		\
-		if( v > max ) { \
-			max = v; \
+		if( v > m ) { \
+			m = v; \
 			xpos = r->left + x / reg->im->Bands; \
 			ypos = r->top + y; \
 		} \
 	} \
+	\
+	max = m; \
 } 
 
 #define CLOOP( TYPE ) { \

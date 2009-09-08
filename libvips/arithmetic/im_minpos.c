@@ -13,6 +13,8 @@
  *	- now returns double for value, like im_max()
  * 4/9/09
  * 	- gtkdoc comment
+ * 8/9/09
+ * 	- rewrite, from im_maxpos()
  */
 
 /*
@@ -41,18 +43,148 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/* A position and minimum.
+ */
+typedef struct _Minpos {
+	int xpos;
+	int ypos;
+	double min;
+} Minpos;
+
+/* New sequence value.
+ */
+static void *
+minpos_start( IMAGE *in, void *a, void *b )
+{
+	Minpos *global_minpos = (Minpos *) b;
+	Minpos *minpos;
+
+	if( !(minpos = IM_NEW( NULL, Minpos )) ) 
+		return( NULL );
+	*minpos = *global_minpos;
+
+	return( (void *) minpos );
+}
+
+/* Merge the sequence value back into the per-call state.
+ */
+static int
+minpos_stop( void *seq, void *a, void *b )
+{
+	Minpos *global_minpos = (Minpos *) b;
+	Minpos *minpos = (Minpos *) seq;
+
+	/* Merge.
+	 */
+	if( minpos->min > global_minpos->min ) 
+		*global_minpos = *minpos;
+
+	im_free( seq );
+
+	return( 0 );
+}
+
+#define LOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE m; \
+	\
+	m = min; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		TYPE v = p[x]; \
+		\
+		if( v < m ) { \
+			m = v; \
+			xpos = r->left + x / reg->im->Bands; \
+			ypos = r->top + y; \
+		} \
+	} \
+	\
+	min = m; \
+} 
+
+#define CLOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		double mod, re, im; \
+		\
+		re = p[0]; \
+		im = p[1]; \
+		p += 2; \
+		mod = re * re + im * im; \
+		\
+		if( mod < min ) { \
+			min = mod; \
+			xpos = r->left + x / reg->im->Bands; \
+			ypos = r->top + y; \
+		} \
+	} \
+} 
+
+/* Loop over region, adding to seq.
+ */
+static int
+minpos_scan( REGION *reg, void *seq, void *a, void *b )
+{
+	const Rect *r = &reg->valid;
+	const int sz = IM_REGION_N_ELEMENTS( reg );
+	Minpos *minpos = (Minpos *) seq;
+
+	int x, y;
+	double min;
+	int xpos, ypos;
+
+	xpos = minpos->xpos;
+	ypos = minpos->ypos;
+	min = minpos->min;
+
+	for( y = 0; y < r->height; y++ ) { 
+		PEL *in = (PEL *) IM_REGION_ADDR( reg, r->left, r->top + y ); 
+
+		switch( reg->im->BandFmt ) {
+		case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
+		case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
+		case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
+		case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
+		case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
+		case IM_BANDFMT_INT:		LOOP( signed int ); break; 
+		case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
+		case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
+		case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
+		case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
+
+		default:  
+			g_assert( 0 );
+		}
+	} 
+
+	minpos->xpos = xpos;
+	minpos->ypos = ypos;
+	minpos->min = min;
+
+	return( 0 );
+}
 
 /**
  * im_minpos:
@@ -62,88 +194,69 @@
  * @out: returned pixel value at that position
  *
  * Function to find the minimum of an image. Works for any 
- * image type. Returns a double and the location of min.
+ * image type. Returns a double and the location of min. For complex images,
+ * finds the pixel with the smallest modulus.
  *
- * This is not a PIO operation! It may use a lot of memory and take a while.
- * Needs a rewrite.
- *
- * See also: im_maxpos(), im_max(), im_stats(), im_maxpos_avg().
+ * See also: im_maxpos(), im_min(), im_stats(), im_maxpos_avg().
  *
  * Returns: 0 on success, -1 on error
  */
 int
 im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
 {
-	double m;
-	int xp=0, yp=0;
-	int os;
+	Minpos *global_minpos;
 
-/* Check our args. */
-	if( im_incheck( in ) )
+	if( im_pincheck( in ) ||
+		im_check_uncoded( "im_minpos", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE )
-		{
-		im_error("im_minpos", "%s", _("input must be uncoded"));
+
+	if( !(global_minpos = IM_NEW( in, Minpos )) ) 
 		return( -1 );
-		}
+	if( im__value( in, &global_minpos->min ) )
+		return( -1 );
+	global_minpos->xpos = 0;
+	global_minpos->ypos = 0;
 
-/* What type? First define the loop we want to perform for all types. */
-#define loop(TYPE) \
-	{	TYPE *p = (TYPE *) in->data; \
-		int x, y; \
-		m = (double) *p; \
-		\
-		for ( y=0; y<in->Ysize; y++ ) \
-			for ( x=0; x<os; x++ ) {\
-				if( (double) *p < m ) {\
-					m = (double) *p; \
-					xp = x; yp = y; \
-				}\
-			p++ ;\
-			}\
-	} 
-
-#define loopcmplx(TYPE) \
-	{	TYPE *p = (TYPE *) in->data; \
-		double re=(double)*p;\
-		double im=(double)*(p+1);\
-		double mod = re * re + im * im;\
-		int x, y; \
-		m = mod; \
-		\
-		for ( y=0; y<in->Ysize; y++ ) \
-			for ( x=0; x<os; x++ ) {\
-				re = (double)*p++; im = (double)*p++; \
-				mod = re * re + im * im; \
-				if( mod < m ) {\
-					m = mod; \
-					xp = x; yp = y; \
-				}\
-			}\
-	} 
-
-/* Now generate code for all types. */
-	os = in->Xsize * in->Bands;
-	switch( in->BandFmt ) {
-	case IM_BANDFMT_UCHAR:		loop(unsigned char); break; 
-	case IM_BANDFMT_CHAR:		loop(signed char); break; 
-	case IM_BANDFMT_USHORT:		loop(unsigned short); break; 
-	case IM_BANDFMT_SHORT:		loop(signed short); break; 
-	case IM_BANDFMT_UINT:		loop(unsigned int); break; 
-	case IM_BANDFMT_INT:		loop(signed int); break; 
-	case IM_BANDFMT_FLOAT:		loop(float); break; 
-	case IM_BANDFMT_DOUBLE:		loop(double); break; 
-	case IM_BANDFMT_COMPLEX:	loopcmplx(float); break; 
-	case IM_BANDFMT_DPCOMPLEX:	loopcmplx(double); break; 
-
-	default: 
-		g_assert( 0 );
-	}
-
-	/* Take out bands on x.
+	/* We use square mod for scanning, for speed.
 	 */
-	*out = m;
-	*xpos = xp / in->Bands;
-	*ypos = yp;
+	if( im_iscomplex( in ) )
+		global_minpos->min *= global_minpos->min;
+
+	if( im_iterate( in, minpos_start, minpos_scan, minpos_stop, 
+		in, global_minpos ) ) 
+		return( -1 );
+
+	/* Back to modulus.
+	 */
+	if( im_iscomplex( in ) )
+		global_minpos->min = sqrt( global_minpos->min );
+
+	if( xpos )
+		*xpos = global_minpos->xpos;
+	if( ypos )
+		*ypos = global_minpos->ypos;
+	if( out )
+		*out = global_minpos->min;
+
 	return( 0 );
+}
+
+/** 
+ * im_min:
+ * @in: input #IMAGE
+ * @out: output double
+ *
+ * Finds the the minimum value of image #in and returns it at the
+ * location pointed by @out.  If input is complex, the min modulus
+ * is returned. im_min() finds the minimum of all bands: if you
+ * want to find the minimum of each band separately, use im_stats().
+ *
+ * See also: im_minpos(), im_min(), im_stats().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_min( IMAGE *in, double *out )
+{
+	return( im_minpos( in, NULL, NULL, out ) );
 }

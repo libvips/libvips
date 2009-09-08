@@ -23,7 +23,6 @@ libarithmetic_la_SOURCES = \
     im_maxpos_avg.c \
     im_maxpos_vec.c \
     im_measure.c \
-    im_min.c \
     im_minpos.c \
     im_multiply.c \
     im_powtra.c \
