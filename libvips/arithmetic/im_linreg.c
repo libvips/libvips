@@ -142,7 +142,8 @@ SKIP_ALL_DECL( double );
 
 /** EXPORTED FUNCTION DEFINITION **/
 
-/** im_linreg:
+/** 
+ * im_linreg:
  * @ins: NULL-terminated array of input images
  * @out: results of analysis
  * @xs:	X position of each image (pixel value is Y)

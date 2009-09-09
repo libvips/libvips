@@ -1,6 +1,3 @@
-- im_maxpos_vec(), im_minpos_vec(), im_linreg() need gtkdoc
-
-
 
 
 
@@ -11,8 +8,6 @@
 > can make a 1 bit image of that type as follows:
 >
 > pngcrush -c 0 -bit_depth 1 *.png
-
-
 
 - rename vipsCC in SWIG as pyvips?
 

@@ -1,23 +1,4 @@
-/* @(#) Find the coordinates and values of the n maxima of an image.
- * @(#) 
- * @(#) int im_maxpos_vec(
- * @(#)   IMAGE *im,
- * @(#)   int *xpos,
- * @(#)   int *ypos,
- * @(#)   double *maxima,
- * @(#)   int n
- * @(#) );
- * @(#) 
- * @(#) Find the coordinates and values of the n minima of an image.
- * @(#) 
- * @(#) int im_minpos_vec(
- * @(#)   IMAGE *im,
- * @(#)   int *xpos,
- * @(#)   int *ypos,
- * @(#)   double *minima,
- * @(#)   int n
- * @(#) );
- * @(#) 
+/* im_maxpos_vec.c
  *
  * Copyright: 2006, The Nottingham Trent University
  * Copyright: 2006, Tom Vajzovic
@@ -25,6 +6,9 @@
  * Author: Tom Vajzovic
  *
  * Written on: 2006-09-01
+ *
+ * 9/9/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -103,6 +87,24 @@ static int            minpos_vec_stop( void *seq, void *, void * );
 
 /** EXPORTED FUNCTIONS **/
 
+/**
+ * im_maxpos_vec:
+ * @im: image to scan
+ * @xpos: array to return x positions
+ * @ypos: array to return y positions
+ * @maxima: array to return values
+ * @n: number of maxima to search for
+ *
+ * Find the coordinates and values of the n maxima of an image.
+ *
+ * For 8 and 16-bit images, it's much faster to find the histogram and then
+ * calculate a threshold from that. See im_mpercent().
+ *
+ * See also: im_minpos(), im_min(), im_stats(), im_maxpos_avg().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+
 int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n ){ 
 #define FUNCTION_NAME "im_maxpos_vec"
   /* number of sequences used is beyond my control at this level, but I note that */
@@ -148,6 +150,24 @@ int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n ){
 #undef FUNCTION_NAME
 }
 
+
+/**
+ * im_minpos_vec:
+ * @im: image to scan
+ * @xpos: array to return x positions
+ * @ypos: array to return y positions
+ * @maxima: array to return values
+ * @n: number of minima to search for
+ *
+ * Find the coordinates and values of the n minima of an image.
+ *
+ * For 8 and 16-bit images, it's much faster to find the histogram and then
+ * calculate a threshold from that. See im_mpercent().
+ *
+ * See also: im_minpos(), im_min(), im_stats(), im_maxpos_avg().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 
 int im_minpos_vec( IMAGE *im, int *xpos, int *ypos, double *minima, int n ){ 
 #define FUNCTION_NAME "im_minpos_vec"
