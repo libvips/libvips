@@ -59,7 +59,7 @@
  * @out: return interpolated value
  *
  * Find the value at (@x, @y) in given band of image.
- * Use bilinear interpolation if @x or @y are non-integral. 
+ * Non-integral values are calculated using the supplied @interpolate.
  *
  * See also: im_avg(), #VipsInterpolate
  *

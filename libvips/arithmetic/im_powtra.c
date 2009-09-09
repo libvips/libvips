@@ -239,7 +239,7 @@ im_powtra_vec( IMAGE *in, IMAGE *out, int n, double *e )
 }
 
 /**
- * im_powntra:
+ * im_powtra:
  * @in: input #IMAGE 
  * @out: output #IMAGE
  * @e: exponent

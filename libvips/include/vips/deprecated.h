@@ -307,6 +307,13 @@ typedef struct {
  */
 typedef VipsDemandType im_demand_type;
 
+/* Deprecated operations.
+ */
+int im_cmulnorm( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_fav4( IMAGE **, IMAGE * );
+int im_gadd( double, IMAGE *, double, IMAGE *, double, IMAGE *);
+int im_litecor( IMAGE *, IMAGE *, IMAGE *, int, double );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

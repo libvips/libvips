@@ -84,10 +84,6 @@ int im_tantra( IMAGE *in, IMAGE *out );
 int im_asintra( IMAGE *in, IMAGE *out );
 int im_acostra( IMAGE *in, IMAGE *out );
 int im_atantra( IMAGE *in, IMAGE *out );
-int im_cmulnorm( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_fav4( IMAGE **, IMAGE * );
-int im_gadd( double, IMAGE *, double, IMAGE *, double, IMAGE *);
-int im_litecor( IMAGE *, IMAGE *, IMAGE *, int, double );
 int im_bandmean( IMAGE *in, IMAGE *out );
 int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out );
 
