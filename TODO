@@ -1,4 +1,4 @@
-- im_lintra(), im_maxpos_vec(), im_minpos_vec(), im_linreg() need gtkdoc
+- im_maxpos_vec(), im_minpos_vec(), im_linreg() need gtkdoc
 
 
 

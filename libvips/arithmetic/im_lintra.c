@@ -41,6 +41,8 @@
  *	- added 1 band image * n band vector case
  * 8/12/06
  * 	- add liboil support
+ * 9/9/09
+ * 	- gtkdoc comment, minor reformat
  */
 
 /*
@@ -100,7 +102,7 @@ typedef struct {
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define LOOP(IN, OUT) { \
+#define LOOP( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \
 	\
@@ -110,7 +112,7 @@ typedef struct {
 
 /* Complex input, complex output. 
  */
-#define LOOPCMPLX(IN, OUT) {\
+#define LOOPCMPLX( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \
 	\
@@ -188,31 +190,29 @@ lintra1_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define LOOPN(IN, OUT)\
-	{\
-		IN *p = (IN *) in;\
-		OUT *q = (OUT *) out;\
-		\
-		for( i = 0, x = 0; x < width; x++ )\
-			for( k = 0; k < nb; k++, i++ )\
-				q[i] = a[k] * (OUT) p[i] + b[k];\
-	}
+#define LOOPN( IN, OUT ) {\
+	IN *p = (IN *) in;\
+	OUT *q = (OUT *) out;\
+	\
+	for( i = 0, x = 0; x < width; x++ )\
+		for( k = 0; k < nb; k++, i++ )\
+			q[i] = a[k] * (OUT) p[i] + b[k];\
+}
 
 /* Complex input, complex output. 
  */
-#define LOOPCMPLXN(IN, OUT)\
-	{\
-		IN *p = (IN *) in;\
-		OUT *q = (OUT *) out;\
-		\
-		for( x = 0; x < width; x++ ) \
-			for( k = 0; k < nb; k++ ) {\
-				q[0] = a[k] * p[0] + b[k];\
-				q[1] = a[k] * p[1];\
-				q += 2;\
-				p += 2;\
-			}\
-	}
+#define LOOPCMPLXN( IN, OUT ) {\
+	IN *p = (IN *) in;\
+	OUT *q = (OUT *) out;\
+	\
+	for( x = 0; x < width; x++ ) \
+		for( k = 0; k < nb; k++ ) {\
+			q[0] = a[k] * p[0] + b[k];\
+			q[1] = a[k] * p[1];\
+			q += 2;\
+			p += 2;\
+		}\
+}
 
 /* Lintra a buffer, n set of scale/offset.
  */
@@ -247,7 +247,7 @@ lintran_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
 
 /* 1 band image, n band vector.
  */
-#define LOOPNV(IN, OUT) { \
+#define LOOPNV( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \
 	\
@@ -259,7 +259,7 @@ lintran_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
 	} \
 }
 
-#define LOOPCMPLXNV(IN, OUT) { \
+#define LOOPCMPLXNV( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \
 	\
@@ -306,7 +306,28 @@ lintranv_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
 	return( 0 );
 }
 
-/* Linear transform n bands.
+/**
+ * im_lintra_vec:
+ * @n: array size
+ * @a: array of constants for multiplication
+ * @in: image to transform
+ * @b: array of constants for addition
+ * @out: output image
+ *
+ * Pass an image through a linear transform - ie. @out = @in * @a + @b. Output
+ * is always float for integer input, double for double input, complex for
+ * complex input and double complex for double complex input.
+ *
+ * If the arrays of constants have just one element, that constant are used for 
+ * all image bands. If the arrays have more than one element and they have 
+ * the same number of elements as there are bands in the image, then 
+ * one array element is used for each band. If the arrays have more than one
+ * element and the image only has a single band, the result is a many-bband
+ * image where each band corresponds to one array element.
+ *
+ * See also: im_add(), im_lintra().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out )
@@ -314,21 +335,10 @@ im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out )
 	LintraInfo *inf;
 	int i;
 
-	/* Check args.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_lintra_vec", "%s", _( "not uncoded" ) );
+	if( im_piocheck( in, out ) ||
+		im_check_vector( "im_lintra_vec", n, in ) ||
+		im_check_uncoded( "lintra_vec", in ) )
 		return( -1 );
-	}
-
-	/* If n and bands differ, one of them must be one (and we multiplex
-	 * the other).
-	 */
-	if( n != in->Bands && (n != 1 && in->Bands != 1) ) {
-		im_error( "im_lintra_vec", 
-			_( "not 1 or %d elements in vector" ), in->Bands );
-		return( -1 );
-	}
 
 	/* Prepare output header.
 	 */
@@ -374,7 +384,20 @@ im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out )
 	return( 0 );
 }
 
-/* Linear transform.
+/**
+ * im_lintra:
+ * @a: constant for multiplication
+ * @in: image to transform
+ * @b: constant for addition
+ * @out: output image
+ *
+ * Pass an image through a linear transform - ie. @out = @in * @a + @b. Output
+ * is always float for integer input, double for double input, complex for
+ * complex input and double complex for double complex input.
+ *
+ * See also: im_add(), im_lintra_vec().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_lintra( double a, IMAGE *in, double b, IMAGE *out )
