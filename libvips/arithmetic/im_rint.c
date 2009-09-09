@@ -1,14 +1,9 @@
-/* @(#) rint() an image ... no promotion, so output type == input type
- * @(#)
- * @(#) int 
- * @(#) im_rint( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_rint.c
  *
  * 20/6/02 JC
  *	- adapted from im_floor()
+ * 9/9/09
+ * 	- updated from new im_floor()
  */
 
 /*
@@ -53,45 +48,63 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define rint_loop(TYPE)\
-	{\
-		TYPE *p = (TYPE *) in;\
-		TYPE *q = (TYPE *) out;\
-		\
-		for( x = 0; x < sz; x++ )\
-			q[x] = IM_RINT( p[x] );\
-	}
+#define RINT( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = IM_RINT( p[x] );\
+}
 
-/* rint a buffer of PELs.
+/* RINT a buffer of PELs.
  */
 static void
 rint_gen( PEL *in, PEL *out, int width, IMAGE *im )
 {	
+	/* Complex just doubles the size.
+	 */
+	const int sz = width * im->Bands * (im_iscomplex( im ) ? 2 : 1);
+
 	int x;
-	int sz = width * im->Bands;
 
         switch( im->BandFmt ) {
-        case IM_BANDFMT_FLOAT: 		rint_loop(float); break; 
-        case IM_BANDFMT_DOUBLE:		rint_loop(double); break; 
-        case IM_BANDFMT_COMPLEX:	sz *= 2; rint_loop(float); break;
-        case IM_BANDFMT_DPCOMPLEX:	sz *= 2; rint_loop(double); break;
+        case IM_BANDFMT_COMPLEX:	
+        case IM_BANDFMT_FLOAT: 		
+		RINT( float ); 
+		break; 
+
+        case IM_BANDFMT_DOUBLE:
+        case IM_BANDFMT_DPCOMPLEX:	
+		RINT( double ); 
+		break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
-/* rint of image.
+/**
+ * im_rint:
+ * @in: input #IMAGE
+ * @out: output #IMAGE
+ *
+ * Finds the nearest integral value. Copy for integer types, 
+ * call IM_RINT() for float and complex types. Output type == input type.
+ *
+ * IM_RINT() is a pseudo-round-to-nearest. It is much faster than
+ * <function>rint</function>(3), but does not give the same result for
+ * negative integral values.
+ *
+ * See also: im_ceil(), im_floor(), im_clip2fmt()
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_rint( IMAGE *in, IMAGE *out )
-{	
-	/* Check args.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_rint", "%s", _( "not uncoded" ) );
+{
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_rint", in ) )
 		return( -1 );
-	}
 
 	/* Is this one of the int types? Degenerate to im_copy() if it
 	 * is.

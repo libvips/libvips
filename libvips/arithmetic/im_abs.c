@@ -224,7 +224,8 @@ abs_gen( PEL *in, PEL *out, int width, IMAGE *im )
 int 
 im_abs( IMAGE *in, IMAGE *out )
 {	
-	if( im_check_uncoded( "im_abs", in ) ) 
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_abs", in ) ) 
 		return( -1 );
 
 	/* Is this one of the unsigned types? Degenerate to im_copy() if it

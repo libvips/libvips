@@ -100,7 +100,8 @@ ceil_gen( PEL *in, PEL *out, int width, IMAGE *im )
 int 
 im_ceil( IMAGE *in, IMAGE *out )
 {	
-	if( im_check_uncoded( "im_ceil", in ) )
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_ceil", in ) )
 		return( -1 );
 
 	/* Is this one of the int types? Degenerate to im_copy() if it
