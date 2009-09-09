@@ -60,7 +60,9 @@ int im_lintra( double a, IMAGE *in, double b, IMAGE *out );
 int im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out );
 int im_multiply( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_divide( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_point_bilinear( IMAGE *im, double x, double y, int band, double *val );
+int im_point( IMAGE *im, VipsInterpolate *interpolate, 
+	double x, double y, int band, double *out );
+int im_point_bilinear( IMAGE *im, double x, double y, int band, double *out );
 int im_powtra( IMAGE *in, IMAGE *out, double e );
 int im_powtra_vec( IMAGE *in, IMAGE *out, int n, double *e );
 int im_exptra( IMAGE *in, IMAGE *out );

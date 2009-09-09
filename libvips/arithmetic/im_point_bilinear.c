@@ -1,20 +1,13 @@
-/* @(#) Find the value at (x,y) in given band of image.
- * @(#) Use bilinear interpolation if x or y are non-integral.
- * @(#) 
- * @(#) int im_maxpos_vec(
- * @(#)   IMAGE *im,
- * @(#)   double x,
- * @(#)   double y,
- * @(#)   int band,
- * @(#)   double *val
- * @(#) );
- * @(#) 
+/* im_point_bilinear.c
  *
  * Copyright: 2006, The Nottingham Trent University
  *
  * Author: Tom Vajzovic
  *
  * Written on: 2006-09-26
+ *
+ * 9/9/09
+ * 	- rewrite in terms of im_affinei() and im_avg()
  */
 
 /*
@@ -43,85 +36,81 @@
 
  */
 
-/** HEADERS **/
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 #include <vips/intl.h>
 
+#include <math.h>
+
 #include <vips/vips.h>
-#include <vips/r_access.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC */
 
+/**
+ * im_point:
+ * @im: image to read from
+ * @interpolate: interpolator to sample points with
+ * @x: x position to interpolate
+ * @y: y position to interpolate
+ * @band: band to read
+ * @out: return interpolated value
+ *
+ * Find the value at (@x, @y) in given band of image.
+ * Use bilinear interpolation if @x or @y are non-integral. 
+ *
+ * See also: im_avg(), #VipsInterpolate
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_point( IMAGE *im, VipsInterpolate *interpolate, 
+	double x, double y, int band, double *out )
+{
+	IMAGE *t[2];
 
-/** EXPORTED FUNCTION **/
+	if( band >= im->Bands || 
+		x < 0.0 || y < 0.0 || 
+		x > im->Xsize || y > im->Ysize ) {
+		im_error( "im_point_bilinear", "%s", 
+			_( "coords outside image" ) );
+		return( -1 );
+	}
 
-int im_point_bilinear( IMAGE *im, double x, double y, int band, double *val ){
-#define FUNCTION_NAME "im_point_bilinear"
+	if( im_open_local_array( im, t, 2, "im_point_bilinear", "p" ) ||
+		im_extract_band( im, t[0], band ) ||
+		im_affinei( t[0], t[1], 
+			interpolate,
+			1, 0, 0, 1,
+			x - floor( x ), y - floor( y ),
+			floor( x ), floor( y ), 1, 1 ) ||
+		im_avg( t[1], out ) )
+		return( -1 );
 
-  double x_frac= x - (int) x;
-  double y_frac= y - (int) y;
-  Rect need= { x, y, ( x_frac ? 2 : 1 ), ( y_frac ? 2 : 1 ) };
-  REGION *reg;
+	return( 0 );
+}
 
-  if( im_pincheck( im ) )
-    return -1;
-
-  if( im-> Coding ){
-    im_error( FUNCTION_NAME, "%s", _("uncoded images only") );
-    return -1;
-  }
-  if( !( im_isint( im ) || im_isfloat( im ) ) ){
-    im_error( FUNCTION_NAME, "%s", _("scalar images only") );
-    return -1;
-  }
-  if( band >= im-> Bands || x < 0.0 || y < 0.0 || x > im-> Xsize || y > im-> Ysize ){
-    im_error( FUNCTION_NAME, "%s", _("coords outside image") );
-    return -1;
-  }
-  if( ! val ){
-    im_error( FUNCTION_NAME, "%s", _("invalid arguments") );
-    return -1;
-  }
-
-  reg= im_region_create( im );
-
-  if( ! reg || im_prepare( reg, &need ) )
-    return -1;
-
-  if( ! im_rect_includesrect( &reg-> valid, &need ) ){
-    im_error( FUNCTION_NAME, "%s", _("coords outside image") );
-    im_region_free( reg );
-    return -1;
-  }
-
-  if( x_frac )
-    if( y_frac )
-      *val=      x_frac      *      y_frac      * (double) IM_REGION_VALUE( reg, ((int)x + 1), ((int)y + 1), band )
-          +      x_frac      * ( 1.0 - y_frac ) * (double) IM_REGION_VALUE( reg, ((int)x + 1),    (int)y   , band )
-          + ( 1.0 - x_frac ) *      y_frac      * (double) IM_REGION_VALUE( reg,    (int)x,    ((int)y + 1), band )
-          + ( 1.0 - x_frac ) * ( 1.0 - y_frac ) * (double) IM_REGION_VALUE( reg,    (int)x,       (int)y   , band );
-
-    else
-      *val=      x_frac      * IM_REGION_VALUE( reg, ((int)x + 1), (int)y, band )
-          + ( 1.0 - x_frac ) * IM_REGION_VALUE( reg,    (int)x,    (int)y, band );
-
-  else
-    if( y_frac )
-      *val=      y_frac      * IM_REGION_VALUE( reg, (int)x, ((int)y + 1), band )
-          + ( 1.0 - y_frac ) * IM_REGION_VALUE( reg, (int)x,    (int)y   , band );
-
-    else
-      *val= IM_REGION_VALUE( reg, (int)x, (int)y, band );
-
-  im_region_free( reg );
-
-  return 0;
-
-#undef FUNCTION_NAME
+/**
+ * im_point_bilinear:
+ * @im: image to read from
+ * @x: x position to interpolate
+ * @y: y position to interpolate
+ * @band: band to read
+ * @out: return interpolated value
+ *
+ * Find the value at (@x,@y) in given band of image.
+ * Use bilinear interpolation if @x or @y are non-integral. 
+ *
+ * See also: im_avg(), im_point().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_point_bilinear( IMAGE *im, double x, double y, int band, double *out )
+{
+	return( im_point( im, vips_interpolate_bilinear_static(),
+		x, y, band, out ) ); 
 }
 

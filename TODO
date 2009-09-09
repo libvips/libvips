@@ -1,3 +1,11 @@
+- try
+
+	$ vips im_point kylie110.jpg bilinear 0 0 0 
+	(vips:8895): GLib-GObject-WARNING **: invalid unclassed pointer in cast to
+	`VipsInterpolate'
+	Segmentation fault
+
+  how odd
 
 - im_maxpos_vec needs gtkdoc
 

@@ -32,6 +32,7 @@
 - im_maxpos()/im_minpos() are partial and work for complex
 - im_max()/im_min() are now convenience functions
 - im_maxpos_avg() handles complex and multi-band images
+- added im_point(), rewrite im_point_bilinear() in terms of this
 
 25/3/09 started 7.18.0
 - revised version numbers

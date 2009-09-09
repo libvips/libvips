@@ -319,6 +319,41 @@ static im_function avg_desc = {
 	image_in_num_out 		/* Arg list */
 };
 
+/* Args to im_point.
+ */
+static im_arg_desc point_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_INPUT_INTERPOLATE( "interpolate" ),
+	IM_INPUT_DOUBLE( "x" ),
+	IM_INPUT_DOUBLE( "y" ),
+	IM_INPUT_INT( "band" ),
+	IM_OUTPUT_DOUBLE( "out" )
+};
+
+/* Call im_point via arg vector.
+ */
+static int
+point_vec( im_object *argv )
+{
+	VipsInterpolate *interpolate = VIPS_INTERPOLATE( argv[2] );
+	double x = *((double *) argv[2]);
+	double y = *((double *) argv[3]);
+	int band = *((double *) argv[4]);
+
+	return( im_point( argv[0], interpolate, x, y, band, argv[5] ) );
+}
+
+/* Description of im_point.
+ */
+static im_function point_desc = {
+	"im_point",
+	"interpolate value at single point",
+	IM_FN_PIO,
+	point_vec,
+	IM_NUMBER( point_args ),
+	point_args
+};
+
 /* Args to im_point_bilinear.
  */
 static im_arg_desc point_bilinear_args[] = {
@@ -1356,6 +1391,7 @@ static im_function *arith_list[] = {
 	&asintra_desc,
 	&atantra_desc,
 	&avg_desc,
+        &point_desc,
         &point_bilinear_desc,
         &bandmean_desc,
 	&ceil_desc,
