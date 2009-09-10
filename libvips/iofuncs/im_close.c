@@ -44,7 +44,7 @@
  * 16/1/04 JC
  *	- frees as much as possible on im_close() failure
  * 6/6/05 Markus Wollgarten
- *	- free Meta  on close
+ *	- free Meta on close
  * 30/6/05 JC
  *	- actually, free Meta on final close, so we carry meta over on an
  *	  im__close()/im_openin() pair (eg. see im_pincheck())
@@ -57,7 +57,12 @@
  * 23/7/08
  * 	- im__close() will no longer free regions
  * 9/8/08
- * 	- lock global image list (thanks lee)
+ * 	- lock global image list (thanks Lee)
+ * 8/9/09
+ * 	- move close callbacks *after* we have released resources --- we
+ * 	  can now write close callbacks that unlink() temporary files
+ * 	- use preclose callbacks if you want to run before resources are
+ * 	  released
  */
 
 /*
@@ -168,15 +173,6 @@ im__close( IMAGE *im )
 			im_window_print( (im_window_t *) p->data );
 	}
 
-	/* Junk all callbacks, perform close callbacks.
-	 */
-	IM_FREEF( im_slist_free_all, im->evalstartfns );
-	IM_FREEF( im_slist_free_all, im->evalfns );
-	IM_FREEF( im_slist_free_all, im->evalendfns );
-	IM_FREEF( im_slist_free_all, im->invalidatefns );
-	result |= im__trigger_callbacks( im->closefns );
-	IM_FREEF( im_slist_free_all, im->closefns );
-
 	/* Junk generate functions. 
 	 */
 	im->start = NULL;
@@ -208,14 +204,11 @@ im__close( IMAGE *im )
 		printf( "im__close: closing output file ..\n" );
 #endif /*DEBUG_IO*/
 
-		if( im->dtype == IM_OPENOUT && im__writehist( im ) ) {
-			im_errormsg( "im_close: unable to write metadata "
-				"for %s", im->filename );
+		if( im->dtype == IM_OPENOUT && im__writehist( im ) ) 
 			result = -1;
-		}
 		if( close( im->fd ) == -1 ) {
-			im_errormsg( "im_close: unable to close fd (2) "
-				"for %s", im->filename );
+			im_error( "im_close", _( "unable to close fd for %s" ), 
+				im->filename );
 			result = -1;
 		}
 		im->fd = -1;
@@ -236,6 +229,15 @@ im__close( IMAGE *im )
 
 		im->data = NULL;
 	}
+
+	/* Junk all callbacks, perform close callbacks.
+	 */
+	IM_FREEF( im_slist_free_all, im->evalstartfns );
+	IM_FREEF( im_slist_free_all, im->evalfns );
+	IM_FREEF( im_slist_free_all, im->evalendfns );
+	IM_FREEF( im_slist_free_all, im->invalidatefns );
+	result |= im__trigger_callbacks( im->closefns );
+	IM_FREEF( im_slist_free_all, im->closefns );
 
 	/* Reset other state.
 	 */

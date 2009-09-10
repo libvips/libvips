@@ -8,6 +8,10 @@
  *	- out can be NULL
  * 23/12/04
  *	- use g_mkstemp()
+ * 8/9/09
+ * 	- add .v suffix (thanks Roland)
+ * 	- use vipsbuf
+ * 	- rewrite to make it simpler
  */
 
 /*
@@ -62,87 +66,7 @@
 #ifdef OS_WIN32
 #define popen(b,m) _popen(b,m)
 #define pclose(f) _pclose(f)
-#define mktemp(f) _mktemp(f)
 #endif /*OS_WIN32*/
-
-/* A string being written to ... multiple calls to buf_append add to it, on
- * overflow append "..." and block further writes.
- */
-typedef struct {
-        char *base;             /* String base */
-        int mx;                 /* Maximum length */
-        int i;                  /* Current write point */
-        int full;              	/* String has filled, block writes */
-        int lasti;              /* For read-recent */
-} BufInfo;
-
-/* Set to start state.
- */
-static void
-buf_rewind( BufInfo *buf )
-{
-        buf->i = 0;
-        buf->lasti = 0;
-        buf->full = 0;
-
-        strcpy( buf->base, "" );
-}
-
-/* Init a buf struct.
- */
-static void
-buf_init( BufInfo *buf, char *base, int mx )
-{
-        buf->base = base;
-        buf->mx = mx;
-        buf_rewind( buf );
-}
-
-/* Append string to buf. Error on overflow.
- */
-static int
-buf_appends( BufInfo *buf, const char *str )
-{
-        int len;
-        int avail;
-        int cpy;
-
-        if( buf->full )
-                return( 0 );
-
-        /* Amount we want to copy.
-         */
-        len = strlen( str );
-
-        /* Space available.
-         */
-        avail = buf->mx - buf->i - 4;
-
-        /* Amount we actually copy.
-         */
-        cpy = IM_MIN( len, avail );
-
-        strncpy( buf->base + buf->i, str, cpy );
-        buf->i += cpy;
-
-        if( buf->i >= buf->mx - 4 ) {
-                buf->full = 1;
-                strcpy( buf->base + buf->mx - 4, "..." );
-                buf->i = buf->mx - 1;
-                return( 0 );
-        }
-
-        return( 1 );
-}
-
-/* Read all text from buffer.
- */
-static char *
-buf_all( BufInfo *buf )
-{
-        buf->base[buf->i] = '\0';
-        return( buf->base );
-}
 
 /* Do popen(), with printf-style args.
  */
@@ -151,12 +75,53 @@ popenf( const char *fmt, const char *mode, ... )
 {
         va_list args;
 	char buf[IM_MAX_STRSIZE];
+	FILE *fp;
 
         va_start( args, mode );
         (void) im_vsnprintf( buf, IM_MAX_STRSIZE, fmt, args );
         va_end( args );
 
-        return( popen( buf, mode ) );
+        if( !(fp = popen( buf, mode )) ) {
+		im_error( "popenf", "%s", strerror( errno ) );
+		return( NULL );
+	}
+
+	return( fp );
+}
+
+/* Make a disc IMAGE which will be automatically unlinked on im_close().
+ */
+static IMAGE *
+system_temp( void )
+{
+	const char *tmpd;
+	char name[IM_MAX_STRSIZE];
+	int fd;
+	IMAGE *disc;
+
+	if( !(tmpd = g_getenv( "TMPDIR" )) )
+		tmpd = "/tmp";
+	strcpy( name, tmpd );
+	strcat( name, "/vips_XXXXXX.v" );
+
+	if( (fd = g_mkstemp( name )) == -1 ) {
+		im_error( "im_system", 
+			_( "unable to make temp file %s" ), name );
+		return( NULL );
+	}
+	close( fd );
+
+	if( !(disc = im_open( name, "w" )) ) {
+		unlink( name );
+		return( NULL );
+	}
+	if( im_add_close_callback( disc, 
+		(im_callback_fn) unlink, disc->filename, NULL ) ) {
+		im_close( disc );
+		unlink( name );
+	}
+
+	return( disc );
 }
 
 /* Run a command on an IMAGE ... copy to tmp (if necessary), run 
@@ -165,61 +130,33 @@ popenf( const char *fmt, const char *mode, ... )
 int
 im_system( IMAGE *im, const char *cmd, char **out )
 {
-	char *filename = im->filename;
-	int delete = 0;
 	FILE *fp;
 
 	if( !im_isfile( im ) ) {
-		const char *tmpd;
-		char name[IM_MAX_STRSIZE];
 		IMAGE *disc;
 
-		if( !(tmpd = g_getenv( "TMPDIR" )) )
-			tmpd = "/tmp";
-		strcpy( name, tmpd );
-		strcat( name, "/vips_XXXXXX" );
-
-		close( g_mkstemp( name ) );
-		filename = im_strdup( NULL, name );
-
-		if( !(disc = im_open( filename, "w" )) ) {
-			unlink( filename );
-			free( filename );
+		if( !(disc = system_temp()) )
 			return( -1 );
-		}
-		if( im_copy( im, disc ) ) {
+		if( im_copy( im, disc ) ||
+			im_system( disc, cmd, out ) ) {
 			im_close( disc );
-			unlink( filename );
-			free( filename );
 			return( -1 );
 		}
 		im_close( disc );
-		delete = 1;
 	}
-
-	if( (fp = popenf( cmd, "r", filename )) ) {
+	else if( (fp = popenf( cmd, "r", im->filename )) ) {
 		char line[IM_MAX_STRSIZE];
-		BufInfo buf;
-		char txt_buffer[IM_MAX_STRSIZE];
+		VipsBuf buf;
+		char str[IM_MAX_STRSIZE];
 
-		buf_init( &buf, txt_buffer, IM_MAX_STRSIZE );
+		vips_buf_init_static( &buf, str, IM_MAX_STRSIZE );
 		while( fgets( line, IM_MAX_STRSIZE, fp ) ) 
-			if( !buf_appends( &buf, line ) )
+			if( !vips_buf_appends( &buf, line ) )
 				break; 
 		pclose( fp );
 
 		if( out )
-			*out = im_strdup( NULL, buf_all( &buf ) );
-	}
-
-	if( delete ) {
-		unlink( filename );
-		im_free( filename );
-	}
-
-	if( !fp ) {
-		im_errormsg( "popen: %s", strerror( errno ) );
-		return( -1 );
+			*out = im_strdup( NULL, vips_buf_all( &buf ) );
 	}
 
 	return( 0 );

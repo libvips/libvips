@@ -29,6 +29,8 @@
 - faster, simpler, better im_max(), im_min, im_avg(), im_deviate()
 - im_max() returns true modulus, not square of modulus, for complex images
 - im_avg() works for complex, returning average modulus
+- im_system() fix (thanks Roland)
+- im_system() rewrite
 - im_maxpos()/im_minpos() are partial and work for complex
 - im_max()/im_min() are now convenience functions
 - im_maxpos_avg() handles complex and multi-band images

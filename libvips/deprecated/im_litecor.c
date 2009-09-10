@@ -65,6 +65,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/dispatch.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
