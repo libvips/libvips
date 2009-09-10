@@ -279,34 +279,6 @@ void im_diagnostics( const char *fmt, ... )
 void im_warning( const char *fmt, ... )
 	__attribute__((format(printf, 1, 2)));
 
-/* Was public, now deprecated.
- */
-typedef enum {
-	IM_BBITS_BYTE = 8,
-	IM_BBITS_SHORT = 16,
-	IM_BBITS_INT = 32,
-	IM_BBITS_FLOAT = 32,
-	IM_BBITS_COMPLEX = 64,
-	IM_BBITS_DOUBLE = 64,
-	IM_BBITS_DPCOMPLEX = 128
-} VipsBBits;
-
-/* Used to define a region of interest for im_extract() etc. Too boring to be
- * public API, see im_extract_area() etc.
- */
-typedef struct { 
-	int xstart;
-	int ystart;
-	int xsize;
-	int ysize;
-	int chsel;      /* 1 2 3 or 0, for r g b or all respectively
-			 *(channel select)	*/
-} IMAGE_BOX;
-
-/* Compatibility typedefs.
- */
-typedef VipsDemandType im_demand_type;
-
 /* Deprecated operations.
  */
 int im_cmulnorm( IMAGE *in1, IMAGE *in2, IMAGE *out );

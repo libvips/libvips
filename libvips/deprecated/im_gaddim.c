@@ -57,6 +57,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/deprecated.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>

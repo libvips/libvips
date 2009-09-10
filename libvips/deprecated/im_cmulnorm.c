@@ -46,7 +46,7 @@
 #include <vips/intl.h>
 
 #include <vips/vips.h>
-#include <vips/dispatch.h>
+#include <vips/deprecated.h>
 
 #include <stdio.h>
 #include <stdlib.h>
