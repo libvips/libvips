@@ -94,6 +94,12 @@ vips_interpolate_real_get_window_size( VipsInterpolate *interpolate )
 	return( class->window_size );
 }
 
+static int
+vips_interpolate_real_get_window_offset( VipsInterpolate *interpolate )
+{
+	return( vips_interpolate_get_window_size( interpolate ) / 2 );
+}
+
 static void
 vips_interpolate_class_init( VipsInterpolateClass *class )
 {
@@ -106,6 +112,7 @@ vips_interpolate_class_init( VipsInterpolateClass *class )
 #endif /*DEBUG*/
 	class->interpolate = NULL;
 	class->get_window_size = vips_interpolate_real_get_window_size;
+	class->get_window_size = vips_interpolate_real_get_window_offset;
 	class->window_size = -1;
 }
 
@@ -152,7 +159,20 @@ vips_interpolate_get_window_size( VipsInterpolate *interpolate )
 	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
 
 	g_assert( class->get_window_size );
+
 	return( class->get_window_size( interpolate ) );
+}
+
+/* Get this interpolator's required window offset.
+ */
+int
+vips_interpolate_get_window_offset( VipsInterpolate *interpolate )
+{
+	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
+
+	g_assert( class->get_window_offset );
+
+	return( class->get_window_offset( interpolate ) );
 }
 
 /* VipsInterpolateNearest class

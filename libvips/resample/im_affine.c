@@ -186,9 +186,8 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 	REGION *ir = (REGION *) seq;
 	const IMAGE *in = (IMAGE *) a;
 	const Affine *affine = (Affine *) b;
-	const int window_size = 
-		vips_interpolate_get_window_size( affine->interpolate );
-	const int half_window_size = window_size / 2;
+	const int window_offset = 
+		vips_interpolate_get_window_offset( affine->interpolate );
 	const VipsInterpolateMethod interpolate = 
 		vips_interpolate_get_method( affine->interpolate );
 
@@ -233,7 +232,7 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 
 	/* Add a border for interpolation. Plus one for rounding errors.
 	 */
-	im_rect_marginadjust( &need, half_window_size + 1 );
+	im_rect_marginadjust( &need, window_offset + 1 );
 
 	/* Clip against the size of (2).
 	 */
@@ -401,22 +400,25 @@ im__affinei( IMAGE *in, IMAGE *out,
 	VipsInterpolate *interpolate, Transformation *trn )
 {
 	IMAGE *t3 = im_open_local( out, "im_affine:3", "p" );
-	const int window_size = vips_interpolate_get_window_size( interpolate );
+	const int window_size = 
+		vips_interpolate_get_window_size( interpolate );
+	const int window_offset = 
+		vips_interpolate_get_window_offset( interpolate );
 	Transformation trn2;
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( !t3 ||
 		im_embed( in, t3, 1, 
-			window_size / 2, window_size / 2, 
+			window_offset, window_offset, 
 			in->Xsize + window_size, in->Ysize + window_size ) )
 		return( -1 );
 
 	/* Set iarea so we know what part of the input we can take.
 	 */
 	trn2 = *trn;
-	trn2.iarea.left += window_size / 2;
-	trn2.iarea.top += window_size / 2;
+	trn2.iarea.left += window_offset;
+	trn2.iarea.top += window_offset;
 
 #ifdef DEBUG_GEOMETRY
 	printf( "im__affinei: %s\n", in->filename );

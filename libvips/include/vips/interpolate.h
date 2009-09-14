@@ -78,6 +78,11 @@ typedef struct _VipsInterpolateClass {
 	/* Or just set this if you want a constant.
 	 */
 	int window_size;
+
+	/* Stencils are offset by this much. Default to window_size / 2 
+	 * (centering) if undefined. 
+	 */
+	int (*get_window_offset)( VipsInterpolate * );
 } VipsInterpolateClass;
 
 GType vips_interpolate_get_type( void );
@@ -85,6 +90,7 @@ void vips_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y );
 VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate * );
 int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
+int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );
 
 /* How many bits of precision we keep for transformations, ie. how many
  * pre-computed matricies we have.
