@@ -42,6 +42,35 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: boolean
+ * @short_description: boolean algebra on images, bitshifts
+ * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * These operations perform boolean operations, such as bitwise-and, on
+ * every pixel in an image or pair of images. 
+ * All (except in a few cases noted below) will work with 
+ * images of any type or any mixture of types, of any size and of any number 
+ * of bands.
+ *
+ * For binary operations, if the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * In the same way, for operations that take an array constant, such as 
+ * im_andimage_vec(), you can mix single-element arrays or single-band images
+ * freely.
+ *
+ * The output type is the same as the input type for integer types. Float and
+ * complex types are cast to signed int.
+ *
+ * You might think im_andimage() would be called "im_and", but that causes
+ * problems when we try and make a C++ binding and drop the "im_" prefix.
+ */
+
 /* Two images in, one out.
  */
 static im_arg_desc two_in_one_out[] = {

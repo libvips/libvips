@@ -45,7 +45,7 @@
 /** 
  * SECTION: arithmetic
  * @short_description: operations which perform pixel arithmetic, trig, log, statistics
- * @see_also: <link linkend="VIPS-iofuncs">iofuncs</link>
+ * @see_also: <link linkend="libvips-boolean">boolean</link>
  * @stability: Stable
  * @include: vips/vips.h
  *
@@ -60,15 +60,9 @@
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * In the same way, for operations that take a constant, such as 
- * im_remainderconst_vec(), the constant can either a vector with a single
- * element (in which case the same constant is used for all image bands) or a
- * vector with the same number of elements as there are bandsin the image (in
- * which case one element is used for each band).
- *
- * im_lintra_vec() supports an additional mode where you can use a
- * many-element vector with a single-band image to generate a multi-band
- * image. No other operations support this yet.
+ * In the same way, for operations that take an array constant, such as 
+ * im_remainderconst_vec(), you can mix single-element arrays or single-band 
+ * images freely.
  *
  * Arithmetic operations try to preserve precision by increasing the number of
  * bits in the output image when necessary. Generally, this follows the ANSI C

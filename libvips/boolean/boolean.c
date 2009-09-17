@@ -1,24 +1,4 @@
-/* @(#) Bitwise operations on VASARI images. Inputs must be some 
- * @(#) integer type and have the same size and number of bands. Use
- * @(#) im_eorconst( in, out, -1 ) for im_not.
- * @(#)
- * @(#) int im_andimage( a, b, out )	int im_andconst( a, out, c )
- * @(#) IMAGE *a, *b, *out;		IMAGE *a, *out;
- * @(#)					unsigned char c;
- * @(#)
- * @(#) int im_orimage( a, b, out )	int im_orconst( a, out, c )
- * @(#) IMAGE *a, *b, *out;		IMAGE *a, *out;
- * @(#)					unsigned char c;
- * @(#)
- * @(#) int im_eorimage( a, b, out )	int im_eorconst( a, out, c )
- * @(#) IMAGE *a, *b, *out;		IMAGE *a, *out;
- * @(#)					unsigned char c;
- * @(#)
- * @(#) int im_shiftleft( in, out, n )	int im_shiftright( in, out, n )
- * @(#) IMAGE *in, *out;		IMAGE *in, *out;
- * @(#)	int n;				int n;
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail).
+/* boolean.c
  *
  * Modified: 
  * 15/12/94 JC
@@ -153,6 +133,20 @@ NAME ## _buffer( PEL **p, PEL *q, int n, IMAGE *im ) \
 
 BINARY_BUFFER( AND, & )
 
+/**
+ * im_andimage:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 & @in2 and writes the result to @out. 
+ * The images must be the same size. They may have any format. They may differ
+ * in their number of bands, see above.
+ *
+ * See also: im_orimage().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_andimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
@@ -164,6 +158,20 @@ im_andimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 BINARY_BUFFER( OR, | )
 
+/**
+ * im_orimage:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 | @in2 and writes the result to @out. 
+ * The images must be the same size. They may have any format. They may differ
+ * in their number of bands, see above.
+ *
+ * See also: im_eorimage().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_orimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
@@ -175,6 +183,20 @@ im_orimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 BINARY_BUFFER( EOR, ^ )
 
+/**
+ * im_eorimage:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 ^ @in2 and writes the result to @out. 
+ * The images must be the same size. They may have any format. They may differ
+ * in their number of bands, see above.
+ *
+ * See also: im_eorimage_vec(), im_andimage().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
