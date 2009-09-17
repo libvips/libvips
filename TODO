@@ -1,4 +1,48 @@
+- look at im_remainderconst_vec()
 
+  put that functionality into something like im__cast_and_call(), then share
+  with im_andimage_const_vec()
+
+  working in im__arith_binary_const()
+
+
+- experimenting with                 
+
+	png_set_shift( read->pPng, 2 );
+
+  in im_png2vips.c
+
+  test image in gmail
+
+
+- Joe's new def
+
+
+- we have im_andimage(), but im_and_vec(), argh
+
+  shouldn't it be im_andimageconst_vec()? won't we have C++ problems the way
+  things are?
+
+
+
+Something like:
+
+const char *im_system_image( IMAGE *in, const char *command, char **log );
+
+Actions:
+
+- create two empty temporary files
+- write the image to the first
+- call system() on the expanded command
+- capture stdout/stderr into log
+- delete the temp input file
+- return the output filename, or NULL if the command failed (log is still
+  returned in this case)
+
+  The caller would open the output file, either with im_open(), or with it's
+  own system (nip2 has it's own open file thing to give progress feedback and
+  use disc for format conversion), and be responsible for deleting the temp
+  output file at some point.
 
 
 - 1-bit PNG read is broken?

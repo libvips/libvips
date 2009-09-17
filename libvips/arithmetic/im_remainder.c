@@ -160,38 +160,84 @@ static int bandfmt_remainder[10] = {
  */
 int 
 im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{	
-	if( im_piocheck( in1, out ) || 
-		im_pincheck( in2 ) ||
-		im_check_bands_1orn( "im_remainder", in1, in2 ) ||
-		im_check_uncoded( "im_remainder", in1 ) ||
-		im_check_uncoded( "im_remainder", in2 ) ||
-		im_check_noncomplex( "im_remainder", in1 ) ||
-		im_check_noncomplex( "im_remainder", in2 ) )
+{
+	return( im__arith_binary( "im_remainder", 
+		in1, in2, out, 
+		bandfmt_remainder,
+		(im_wrapmany_fn) remainder_buffer, NULL ) );
+}
+
+/* Cast a vector of double to a vector of TYPE.
+ */
+#define CAST( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( i = 0; i < n; i++ ) \
+		tq[i] = (TYPE) p[i]; \
+}
+
+/* Make a pixel of output type from a realvec.
+ */
+static PEL *
+make_pixel( IMAGE *out, int n, double *p )
+{
+	PEL *q;
+	int i;
+
+	g_assert( n == out->Bands );
+
+	if( !(q = IM_ARRAY( out, IM_IMAGE_SIZEOF_PEL( out ), PEL )) )
+		return( NULL );
+
+        switch( out->BandFmt ) {
+        case IM_BANDFMT_CHAR:	CAST( signed char ); break;
+        case IM_BANDFMT_UCHAR:  CAST( unsigned char ); break;
+        case IM_BANDFMT_SHORT:  CAST( signed short ); break;
+        case IM_BANDFMT_USHORT: CAST( unsigned short ); break;
+        case IM_BANDFMT_INT:    CAST( signed int ); break;
+        case IM_BANDFMT_UINT:   CAST( unsigned int ); break;
+
+        default:
+                g_assert( 0 );
+        }
+
+	return( q );
+}
+
+int 
+im__arith_binary_const( const char *name,
+	IMAGE *in, IMAGE *out, int n, double *c,
+	int format_table[10], 
+	im_wrapone_fn fn, void *a )
+{
+	int i;
+	PEL *vector;
+
+	if( im_piocheck( in, out ) ||
+		im_check_vector( name, n, in ) ||
+		im_check_uncoded( name, in ) )
 		return( -1 );
-
-	if( im_cp_descv( out, in1, in2, NULL ) )
+	if( im_cp_desc( out, in ) )
 		return( -1 );
-
-	/* What number of bands will we write?
-	 */
-	out->Bands = IM_MAX( in1->Bands, in2->Bands );
-
-	/* What output type will we write? Same as LHS type.
-	 */
-	out->BandFmt = bandfmt_remainder[im__format_common( in1, in2 )];
+	out->BandFmt = format_table[in->BandFmt];
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
-	/* And process!
+	/* Cast vector to output type.
 	 */
-	if( im__cast_and_call( in1, in2, out, 
-		(im_wrapmany_fn) remainder_buffer, NULL ) )
+
+	/*
+	need to handle case where vector == 1 but bands == (eg.) 3
+	 */
+
+	if( !(vector = make_pixel( out, n, c )) )
 		return( -1 );
 
-	/* Success!
-	 */
+	if( im_wrapone( in, out, fn, a, vector ) )
+		return( -1 );
+
 	return( 0 );
 }
+
 
 /* Parameters saved here.
  */

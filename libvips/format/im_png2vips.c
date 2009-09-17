@@ -283,8 +283,10 @@ png2vips( Read *read, int header_only )
 
 	/* Expand <8 bit images to full bytes.
 	 */
-	if( read->pInfo->bit_depth < 8 )
+	if( read->pInfo->bit_depth < 8 ) {
 		png_set_packing( read->pPng );
+	        png_set_shift( read->pPng, 2 );
+	}
 
 	/* If we're an INTEL byte order machine and this is 16bits, we need
 	 * to swap bytes.

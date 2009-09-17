@@ -238,32 +238,8 @@ static int bandfmt_subtract[10] = {
 int 
 im_subtract( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {	
-	if( im_piocheck( in1, out ) || 
-		im_pincheck( in2 ) ||
-		im_check_bands_1orn( "im_subtract", in1, in2 ) ||
-		im_check_uncoded( "im_subtract", in1 ) ||
-		im_check_uncoded( "im_subtract", in2 ) )
-		return( -1 );
-
-	if( im_cp_descv( out, in1, in2, NULL ) )
-		return( -1 );
-
-	/* What number of bands will we write?
-	 */
-	out->Bands = IM_MAX( in1->Bands, in2->Bands );
-
-	/* What output type will we write? int, float or complex.
-	 */
-	out->BandFmt = bandfmt_subtract[im__format_common( in1, in2 )];
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
-
-	/* And process!
-	 */
-	if( im__cast_and_call( in1, in2, out, 
-		(im_wrapmany_fn) subtract_buffer, NULL ) )
-		return( -1 );
-
-	/* Success!
-	 */
-	return( 0 );
+	return( im__arith_binary( "im_subtract", 
+		in1, in2, out, 
+		bandfmt_subtract,
+		(im_wrapmany_fn) subtract_buffer, NULL ) );
 }

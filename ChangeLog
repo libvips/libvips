@@ -35,6 +35,8 @@
 - im_max()/im_min() are now convenience functions
 - im_maxpos_avg() handles complex and multi-band images
 - added im_point(), rewrite im_point_bilinear() in terms of this
+- close callbacks now happen *after* images have closed resources (such as
+  open files) ... this lets them delete temps and stuff. Expect breakage :(
 - added vips_interpolate_get_window_offset()
 
 25/3/09 started 7.18.0

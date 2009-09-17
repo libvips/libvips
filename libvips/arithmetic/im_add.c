@@ -25,6 +25,9 @@
  * 	- im__cast_and_call() no longer sets bbits for you
  * 	- add gtkdoc comments
  * 	- remove separate complex case, just double size
+ * 11/9/09
+ * 	- im__cast_and_call() becomes im__arith_binary()
+ * 	- more of operation scaffold moved inside
  */
 
 /*
@@ -151,7 +154,7 @@ static int bandfmt_largest[6][6] = {
 
 /* For two formats, find one which can represent the full range of both.
  */
-VipsBandFmt
+static VipsBandFmt
 im__format_common( IMAGE *in1, IMAGE *in2 )
 {
 	if( im_iscomplex( in1 ) || im_iscomplex( in2 ) ) {
@@ -206,15 +209,42 @@ im__bandup( IMAGE *in, IMAGE *out, int n )
 	return( im_gbandjoin( bands, out, n ) );
 }
 
-/* Cast in1 and in2 up to a common type and number of bands, then call the
- * function. Also used by subtract, multiply, divide, etc.
+/* The common part of most binary arithmetic, relational and boolean
+ * operators. We:
+ *
+ * - check in and out
+ * - cast in1 and in2 up to a common format
+ * - cast the common format to the output format with the supplied table
+ * - equalise bands
+ * - run the supplied buffer operation 
  */
 int
-im__cast_and_call( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+im__arith_binary( const char *name, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	int format_table[10], 
 	im_wrapmany_fn fn, void *a )
 {
 	VipsBandFmt fmt;
 	IMAGE *t[5];
+
+	if( im_piocheck( in1, out ) || 
+		im_pincheck( in2 ) ||
+		im_check_bands_1orn( name, in1, in2 ) ||
+		im_check_uncoded( name, in1 ) ||
+		im_check_uncoded( name, in2 ) )
+		return( -1 );
+
+	if( im_cp_descv( out, in1, in2, NULL ) )
+		return( -1 );
+
+	/* What number of bands will we write?
+	 */
+	out->Bands = IM_MAX( in1->Bands, in2->Bands );
+
+	/* What output type will we write? int, float or complex.
+	 */
+	out->BandFmt = format_table[im__format_common( in1, in2 )];
+	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	if( im_open_local_array( out, t, 4, "type cast:1", "p" ) )
 		return( -1 );
@@ -331,33 +361,9 @@ static int bandfmt_add[10] = {
  */
 int 
 im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{	
-	if( im_piocheck( in1, out ) || 
-		im_pincheck( in2 ) ||
-		im_check_bands_1orn( "im_add", in1, in2 ) ||
-		im_check_uncoded( "im_add", in1 ) ||
-		im_check_uncoded( "im_add", in2 ) )
-		return( -1 );
-
-	if( im_cp_descv( out, in1, in2, NULL ) )
-		return( -1 );
-
-	/* What number of bands will we write?
-	 */
-	out->Bands = IM_MAX( in1->Bands, in2->Bands );
-
-	/* What output type will we write? int, float or complex.
-	 */
-	out->BandFmt = bandfmt_add[im__format_common( in1, in2 )];
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
-
-	/* And process!
-	 */
-	if( im__cast_and_call( in1, in2, out, 
-		(im_wrapmany_fn) add_buffer, NULL ) )
-		return( -1 );
-
-	/* Success!
-	 */
-	return( 0 );
+{
+	return( im__arith_binary( "im_add",
+		in1, in2, out, 
+		bandfmt_add,
+		(im_wrapmany_fn) add_buffer, NULL ) );
 }

@@ -131,9 +131,10 @@ char *im__gslist_gvalue_get( const GSList *list );
 
 void im__buffer_init( void );
 
-int im__cast_and_call( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+int im__arith_binary( const char *name, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	int format_table[10], 
 	im_wrapmany_fn fn, void *a );
-VipsBandFmt im__format_common( IMAGE *in1, IMAGE *in2 );
 int im__math( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen );
 int im__value( IMAGE *im, double *value );
 typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );

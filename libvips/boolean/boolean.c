@@ -40,6 +40,9 @@
  *	  layer if operator names are turned on
  * 30/6/04
  *	- now cast float/complex args to int
+ * 11/9/09
+ * 	- use new im__cast_and__call()
+ * 	- therefore now supports 1-band $op n-band 
  */
 
 /*
@@ -75,7 +78,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -83,102 +85,13 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Save a bit of typing.
- */
-#define UC IM_BANDFMT_UCHAR
-#define C IM_BANDFMT_CHAR
-#define US IM_BANDFMT_USHORT
-#define S IM_BANDFMT_SHORT
-#define UI IM_BANDFMT_UINT
-#define I IM_BANDFMT_INT
-#define F IM_BANDFMT_FLOAT
-#define M IM_BANDFMT_COMPLEX
-#define D IM_BANDFMT_DOUBLE
-#define DM IM_BANDFMT_DPCOMPLEX
-
-/* Type conversions for boolean.
- */
-static int iformat[10][10] = {
-        /* UC  C   US  S   UI  I   F   M   D   DM */
-/* UC */ { UC, C,  US, S,  UI, I,  I,  I,  I,  I },
-/* C */  { C,  C,  S,  S,  I,  I,  I,  I,  I,  I },
-/* US */ { US, S,  US, S,  UI, I,  I,  I,  I,  I },
-/* S */  { S,  S,  S,  S,  I,  I,  I,  I,  I,  I },
-/* UI */ { UI, I,  UI, I,  UI, I,  I,  I,  I,  I },
-/* I */  { I,  I,  I,  I,  I,  I,  I,  I,  I,  I },
-/* F */  { I,  I,  I,  I,  I,  I,  I,  I,  I,  I },
-/* M */  { I,  I,  I,  I,  I,  I,  I,  I,  I,  I },
-/* D */  { I,  I,  I,  I,  I,  I,  I,  I,  I,  I },
-/* DM */ { I,  I,  I,  I,  I,  I,  I,  I,  I,  I }
-};
-
-/* Check args. Cast inputs to matching integer format. 
- */
-static int
-check( IMAGE **in, IMAGE *out )
-{
-	int i, n;
-	int fmt;
-
-	/* Count args.
-	 */
-	for( n = 0; in[n]; n++ ) {
-		if( in[n]->Coding != IM_CODING_NONE ) {
-			im_error( "boolean", 
-				"%s", _( "uncoded images only" ) );
-			return( -1 );
-		}
-	}
-
-	/* Check sizes match.
-	 */
-	for( i = 1; i < n; i++ )
-		if( in[0]->Bands != in[i]->Bands ||
-			in[0]->Xsize != in[i]->Xsize ||
-			in[0]->Ysize != in[i]->Ysize ) {
-			im_error( "boolean", 
-				"%s", _( "images differ in size" ) );
-			return( -1 );
-		}
-
-	/* Calculate type conversion ... just 1ary and 2ary.
-	 */
-	switch( n ) {
-	case 1:
-		fmt = iformat[0][in[0]->BandFmt];
-		break;
-
-	case 2:
-		fmt = iformat[in[1]->BandFmt][in[0]->BandFmt];
-		break;
-
-	default:
-		assert( FALSE );
-	}
-
-	for( i = 0; i < n; i++ ) {
-		IMAGE *t = im_open_local( out, "check-1", "p" );
-
-		if( !t || im_clip2fmt( in[i], t, fmt ) )
-			return( -1 );
-		in[i] = t;
-	}
-
-	/* Prepare the output image.
-	 */
-	if( im_cp_desc_array( out, in ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* A selection of main loops. As with im_add(), only implement monotype
- * operations. TYPE is some integer type, signed or unsigned.
+/* A selection of main loops. Only implement monotype operations, ie. input 
+ * type == output type. Float types are cast to int before we come here.
  */
 #define AND2( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
-	TYPE *tp1 = (TYPE *) p1; \
-	TYPE *tp2 = (TYPE *) p2; \
+	TYPE *tp1 = (TYPE *) p[0]; \
+	TYPE *tp2 = (TYPE *) p[1]; \
  	\
 	for( x = 0; x < ne; x++ )  \
 		tq[x] = tp1[x] & tp2[x]; \
@@ -186,8 +99,8 @@ check( IMAGE **in, IMAGE *out )
 
 #define OR2( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
-	TYPE *tp1 = (TYPE *) p1; \
-	TYPE *tp2 = (TYPE *) p2; \
+	TYPE *tp1 = (TYPE *) p[0]; \
+	TYPE *tp2 = (TYPE *) p[1]; \
  	\
 	for( x = 0; x < ne; x++ )  \
 		tq[x] = tp1[x] | tp2[x]; \
@@ -195,8 +108,8 @@ check( IMAGE **in, IMAGE *out )
 
 #define EOR2( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
-	TYPE *tp1 = (TYPE *) p1; \
-	TYPE *tp2 = (TYPE *) p2; \
+	TYPE *tp1 = (TYPE *) p[0]; \
+	TYPE *tp2 = (TYPE *) p[1]; \
  	\
 	for( x = 0; x < ne; x++ )  \
 		tq[x] = tp1[x] ^ tp2[x]; \
@@ -237,11 +150,9 @@ check( IMAGE **in, IMAGE *out )
 static void
 and_buffer( PEL **p, PEL *q, int n, IMAGE *im )
 {
+	const int ne = n * im->Bands;
+
 	int x;
-	int bands = im->Bands;
-	int ne = n * bands;
-	PEL *p1 = p[0];
-	PEL *p2 = p[1];
 
         switch( im->BandFmt ) {
         case IM_BANDFMT_CHAR:	AND2( signed char ); break;
@@ -252,20 +163,18 @@ and_buffer( PEL **p, PEL *q, int n, IMAGE *im )
         case IM_BANDFMT_UINT:   AND2( unsigned int ); break;
 
         default:
-                error_exit( "im_and: internal error" );
+                g_assert( 0 );
         }
 }
 
 static void
-or_buffer( PEL **p, PEL *q, int n, IMAGE *in1 )
+or_buffer( PEL **p, PEL *q, int n, IMAGE *im )
 {
-	int x;
-	int bands = in1->Bands;
-	int ne = n * bands;
-	PEL *p1 = p[0];
-	PEL *p2 = p[1];
+	const int ne = n * im->Bands;
 
-        switch( in1->BandFmt ) {
+	int x;
+
+        switch( im->BandFmt ) {
         case IM_BANDFMT_CHAR:	OR2( signed char ); break;
         case IM_BANDFMT_UCHAR:  OR2( unsigned char ); break;
         case IM_BANDFMT_SHORT:  OR2( signed short ); break;
@@ -274,20 +183,18 @@ or_buffer( PEL **p, PEL *q, int n, IMAGE *in1 )
         case IM_BANDFMT_UINT:   OR2( unsigned int ); break;
 
         default:
-                error_exit( "im_or: internal error" );
+                g_assert( 0 );
         }
 }
 
 static void
 eor_buffer( PEL **p, PEL *q, int n, IMAGE *in1 )
 {
-	int x;
-	int bands = in1->Bands;
-	int ne = n * bands;
-	PEL *p1 = p[0];
-	PEL *p2 = p[1];
+	const int ne = n * im->Bands;
 
-        switch( in1->BandFmt ) {
+	int x;
+
+        switch( im->BandFmt ) {
         case IM_BANDFMT_CHAR:	EOR2( signed char ); break;
         case IM_BANDFMT_UCHAR:  EOR2( unsigned char ); break;
         case IM_BANDFMT_SHORT:  EOR2( signed short ); break;
@@ -296,7 +203,7 @@ eor_buffer( PEL **p, PEL *q, int n, IMAGE *in1 )
         case IM_BANDFMT_UINT:   EOR2( unsigned int ); break;
 
         default:
-                error_exit( "im_eor: internal error" );
+                g_assert( 0 );
         }
 }
 
@@ -315,7 +222,7 @@ andconst_buffer( PEL *p, PEL *q, int n, IMAGE *in, PEL *c )
         case IM_BANDFMT_UINT:   ANDCONST( unsigned int ); break;
 
         default:
-                error_exit( "im_andconst: internal error" );
+                g_assert( 0 );
         }
 }
 
@@ -334,7 +241,7 @@ orconst_buffer( PEL *p, PEL *q, int n, IMAGE *in, PEL *c )
         case IM_BANDFMT_UINT:   ORCONST( unsigned int ); break;
 
         default:
-                error_exit( "im_orconst: internal error" );
+                g_assert( 0 );
         }
 }
 
@@ -353,94 +260,53 @@ eorconst_buffer( PEL *p, PEL *q, int n, IMAGE *in, PEL *c )
         case IM_BANDFMT_UINT:   EORCONST( unsigned int ); break;
 
         default:
-                error_exit( "im_eorconst: internal error" );
+                g_assert( 0 );
         }
 }
+
+/* Save a bit of typing.
+ */
+#define UC IM_BANDFMT_UCHAR
+#define C IM_BANDFMT_CHAR
+#define US IM_BANDFMT_USHORT
+#define S IM_BANDFMT_SHORT
+#define UI IM_BANDFMT_UINT
+#define I IM_BANDFMT_INT
+
+/* Type conversions for boolean. 
+ */
+static int bandfmt_bool[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   UC, C,  US, S,  UI, I,  I,  I,  I,  I },
+};
 
 /* The above, wrapped up as im_*() functions.
  */
 int 
 im_andimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *invec[3];
-
-	/* Check images.
-	 */
-	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( check( invec, out ) )
-		return( -1 );
-
-	/* Process!
-	 */
-	if( im_wrapmany( invec, out, (im_wrapmany_fn) and_buffer, out, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__arith_binary( "im_andimage",
+		in1, in2, out, 
+		bandfmt_bool,
+		(im_wrapmany_fn) and_buffer, NULL ) );
 }
 
 int 
 im_orimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{	
-	IMAGE *invec[3];
-
-	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( check( invec, out ) )
-		return( -1 );
-
-	if( im_wrapmany( invec, out, (im_wrapmany_fn) or_buffer, out, NULL ) )
-		return( -1 );
-
-	return( 0 );
+{
+	return( im__arith_binary( "im_orimage",
+		in1, in2, out, 
+		bandfmt_bool,
+		(im_wrapmany_fn) or_buffer, NULL ) );
 }
 
 int 
 im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{	
-	IMAGE *invec[3];
-
-	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( check( invec, out ) )
-		return( -1 );
-
-	if( im_wrapmany( invec, out, (im_wrapmany_fn) eor_buffer, out, NULL ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* Cast a vector of double to a vector of TYPE.
- */
-#define CAST( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	\
-	for( i = 0; i < out->Bands; i++ ) \
-		tq[i] = (TYPE) p[i]; \
-}
-
-/* Make a pixel of output type from a realvec.
- */
-static PEL *
-make_pixel( IMAGE *out, int fmt, double *p )
 {
-	PEL *q;
-	int i;
-
-	if( !(q = IM_ARRAY( out, IM_IMAGE_SIZEOF_PEL( out ), PEL )) )
-		return( NULL );
-
-        switch( fmt ) {
-        case IM_BANDFMT_CHAR:	CAST( signed char ); break;
-        case IM_BANDFMT_UCHAR:  CAST( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  CAST( signed short ); break;
-        case IM_BANDFMT_USHORT: CAST( unsigned short ); break;
-        case IM_BANDFMT_INT:    CAST( signed int ); break;
-        case IM_BANDFMT_UINT:   CAST( unsigned int ); break;
-
-        default:
-                error_exit( "make_pixel: internal error" );
-        }
-
-	return( q );
+	return( im__arith_binary( "im_eorimage",
+		in1, in2, out, 
+		bandfmt_bool,
+		(im_wrapmany_fn) eor_buffer, NULL ) );
 }
 
 int 
@@ -594,8 +460,7 @@ shiftleft_buffer( PEL *p, PEL *q, int len, IMAGE *in, int n )
         case IM_BANDFMT_INT: 	SHIFTL( signed int );  break; 
 
 	default:
-		error_exit( "im_shiftleft: internal error" );
-		/*NOTREACHED*/
+                g_assert( 0 );
 	}
 }
 
@@ -641,8 +506,7 @@ shiftright_buffer( PEL *p, PEL *q, int len, IMAGE *in, int n )
         case IM_BANDFMT_INT: 	SHIFTR( signed int );  break; 
 
 	default:
-		error_exit( "im_shiftright: internal error" );
-		/*NOTREACHED*/
+                g_assert( 0 );
 	}
 }
 
