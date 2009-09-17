@@ -285,7 +285,7 @@ png2vips( Read *read, int header_only )
 	 */
 	if( read->pInfo->bit_depth < 8 ) {
 		png_set_packing( read->pPng );
-	        png_set_shift( read->pPng, 2 );
+	        png_set_shift( read->pPng, &(read->pInfo->sig_bit) );
 	}
 
 	/* If we're an INTEL byte order machine and this is 16bits, we need

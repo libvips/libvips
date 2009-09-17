@@ -186,7 +186,7 @@ im__format_common( IMAGE *in1, IMAGE *in2 )
 
 /* Make an n-band image. Input 1 or n bands.
  */
-static int
+int
 im__bandup( IMAGE *in, IMAGE *out, int n )
 {
 	IMAGE *bands[256];

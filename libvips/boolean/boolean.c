@@ -43,6 +43,9 @@
  * 11/9/09
  * 	- use new im__cast_and__call()
  * 	- therefore now supports 1-band $op n-band 
+ * 17/9/09
+ * 	- moved to im__arith_binary*()
+ * 	- renamed im_eor_vec() as im_eorimage_vec() for C++ sanity
  */
 
 /*
@@ -80,189 +83,11 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
-
-/* A selection of main loops. Only implement monotype operations, ie. input 
- * type == output type. Float types are cast to int before we come here.
- */
-#define AND2( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	TYPE *tp1 = (TYPE *) p[0]; \
-	TYPE *tp2 = (TYPE *) p[1]; \
- 	\
-	for( x = 0; x < ne; x++ )  \
-		tq[x] = tp1[x] & tp2[x]; \
-}
-
-#define OR2( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	TYPE *tp1 = (TYPE *) p[0]; \
-	TYPE *tp2 = (TYPE *) p[1]; \
- 	\
-	for( x = 0; x < ne; x++ )  \
-		tq[x] = tp1[x] | tp2[x]; \
-}
-
-#define EOR2( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	TYPE *tp1 = (TYPE *) p[0]; \
-	TYPE *tp2 = (TYPE *) p[1]; \
- 	\
-	for( x = 0; x < ne; x++ )  \
-		tq[x] = tp1[x] ^ tp2[x]; \
-}
-
-#define ANDCONST( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	TYPE *tp = (TYPE *) p; \
-	TYPE *tc = (TYPE *) c; \
- 	\
-	for( i = 0, x = 0; x < n; x++ ) \
-		for( b = 0; b < bands; b++, i++ ) \
-			tq[i] = tp[i] & tc[b]; \
-}
-
-#define ORCONST( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	TYPE *tp = (TYPE *) p; \
-	TYPE *tc = (TYPE *) c; \
- 	\
-	for( i = 0, x = 0; x < n; x++ ) \
-		for( b = 0; b < bands; b++, i++ ) \
-			tq[i] = tp[i] | tc[b]; \
-}
-
-#define EORCONST( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	TYPE *tp = (TYPE *) p; \
-	TYPE *tc = (TYPE *) c; \
- 	\
-	for( i = 0, x = 0; x < n; x++ ) \
-		for( b = 0; b < bands; b++, i++ ) \
-			tq[i] = tp[i] ^ tc[b]; \
-}
-
-/* The above, wrapped up as buffer processing functions.
- */
-static void
-and_buffer( PEL **p, PEL *q, int n, IMAGE *im )
-{
-	const int ne = n * im->Bands;
-
-	int x;
-
-        switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR:	AND2( signed char ); break;
-        case IM_BANDFMT_UCHAR:  AND2( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  AND2( signed short ); break;
-        case IM_BANDFMT_USHORT: AND2( unsigned short ); break;
-        case IM_BANDFMT_INT:    AND2( signed int ); break;
-        case IM_BANDFMT_UINT:   AND2( unsigned int ); break;
-
-        default:
-                g_assert( 0 );
-        }
-}
-
-static void
-or_buffer( PEL **p, PEL *q, int n, IMAGE *im )
-{
-	const int ne = n * im->Bands;
-
-	int x;
-
-        switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR:	OR2( signed char ); break;
-        case IM_BANDFMT_UCHAR:  OR2( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  OR2( signed short ); break;
-        case IM_BANDFMT_USHORT: OR2( unsigned short ); break;
-        case IM_BANDFMT_INT:    OR2( signed int ); break;
-        case IM_BANDFMT_UINT:   OR2( unsigned int ); break;
-
-        default:
-                g_assert( 0 );
-        }
-}
-
-static void
-eor_buffer( PEL **p, PEL *q, int n, IMAGE *in1 )
-{
-	const int ne = n * im->Bands;
-
-	int x;
-
-        switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR:	EOR2( signed char ); break;
-        case IM_BANDFMT_UCHAR:  EOR2( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  EOR2( signed short ); break;
-        case IM_BANDFMT_USHORT: EOR2( unsigned short ); break;
-        case IM_BANDFMT_INT:    EOR2( signed int ); break;
-        case IM_BANDFMT_UINT:   EOR2( unsigned int ); break;
-
-        default:
-                g_assert( 0 );
-        }
-}
-
-static void
-andconst_buffer( PEL *p, PEL *q, int n, IMAGE *in, PEL *c )
-{
-	int x, i, b;
-	int bands = in->Bands;
-
-        switch( in->BandFmt ) {
-        case IM_BANDFMT_CHAR:	ANDCONST( signed char ); break;
-        case IM_BANDFMT_UCHAR:  ANDCONST( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  ANDCONST( signed short ); break;
-        case IM_BANDFMT_USHORT: ANDCONST( unsigned short ); break;
-        case IM_BANDFMT_INT:    ANDCONST( signed int ); break;
-        case IM_BANDFMT_UINT:   ANDCONST( unsigned int ); break;
-
-        default:
-                g_assert( 0 );
-        }
-}
-
-static void
-orconst_buffer( PEL *p, PEL *q, int n, IMAGE *in, PEL *c )
-{
-	int x, i, b;
-	int bands = in->Bands;
-
-        switch( in->BandFmt ) {
-        case IM_BANDFMT_CHAR:	ORCONST( signed char ); break;
-        case IM_BANDFMT_UCHAR:  ORCONST( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  ORCONST( signed short ); break;
-        case IM_BANDFMT_USHORT: ORCONST( unsigned short ); break;
-        case IM_BANDFMT_INT:    ORCONST( signed int ); break;
-        case IM_BANDFMT_UINT:   ORCONST( unsigned int ); break;
-
-        default:
-                g_assert( 0 );
-        }
-}
-
-static void
-eorconst_buffer( PEL *p, PEL *q, int n, IMAGE *in, PEL *c )
-{
-	int x, i, b;
-	int bands = in->Bands;
-
-        switch( in->BandFmt ) {
-        case IM_BANDFMT_CHAR:	EORCONST( signed char ); break;
-        case IM_BANDFMT_UCHAR:  EORCONST( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  EORCONST( signed short ); break;
-        case IM_BANDFMT_USHORT: EORCONST( unsigned short ); break;
-        case IM_BANDFMT_INT:    EORCONST( signed int ); break;
-        case IM_BANDFMT_UINT:   EORCONST( unsigned int ); break;
-
-        default:
-                g_assert( 0 );
-        }
-}
 
 /* Save a bit of typing.
  */
@@ -277,19 +102,67 @@ eorconst_buffer( PEL *p, PEL *q, int n, IMAGE *in, PEL *c )
  */
 static int bandfmt_bool[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  I,  I,  I,  I },
+   UC, C,  US, S,  UI, I,  I,  I,  I,  I,
 };
 
-/* The above, wrapped up as im_*() functions.
- */
+#define BINARY( IN, OUT, OP ) { \
+	OUT *tq = (OUT *) q; \
+	IN *tp1 = (IN *) p[0]; \
+	IN *tp2 = (IN *) p[1]; \
+ 	\
+	for( i = 0; i < ne; i++ )  \
+		tq[i] = (OUT) tp1[i] OP (OUT) tp2[i]; \
+}
+
+#define BINARY_BUFFER( NAME, OP ) \
+static void \
+NAME ## _buffer( PEL **p, PEL *q, int n, IMAGE *im ) \
+{ \
+	/* Complex just doubles the size. \
+	 */ \
+	const int ne = n * im->Bands * (im_iscomplex( im ) ? 2 : 1); \
+	\
+	int i; \
+	\
+        switch( im->BandFmt ) { \
+        case IM_BANDFMT_CHAR:	\
+		BINARY( signed char, signed char, OP ); break; \
+        case IM_BANDFMT_UCHAR:  \
+		BINARY( unsigned char, unsigned char, OP ); break; \
+        case IM_BANDFMT_SHORT:  \
+		BINARY( signed short, signed short, OP ); break; \
+        case IM_BANDFMT_USHORT: \
+		BINARY( unsigned short, unsigned short, OP ); break; \
+        case IM_BANDFMT_INT:    \
+		BINARY( signed int, signed int, OP ); break; \
+        case IM_BANDFMT_UINT:   \
+		BINARY( unsigned int, unsigned int, OP ); break; \
+        case IM_BANDFMT_FLOAT:  \
+		BINARY( float, signed int, OP ); break; \
+        case IM_BANDFMT_COMPLEX: \
+		BINARY( float, signed int, OP ); break; \
+        case IM_BANDFMT_DOUBLE: \
+		BINARY( double, signed int, OP ); break; \
+        case IM_BANDFMT_DPCOMPLEX: \
+		BINARY( double, signed int, OP ); break; \
+	\
+        default: \
+                g_assert( 0 ); \
+        } \
+}
+
+BINARY_BUFFER( AND, & )
+
 int 
 im_andimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
 	return( im__arith_binary( "im_andimage",
 		in1, in2, out, 
 		bandfmt_bool,
-		(im_wrapmany_fn) and_buffer, NULL ) );
+		(im_wrapmany_fn) AND_buffer, NULL ) );
 }
+
+BINARY_BUFFER( OR, | )
 
 int 
 im_orimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
@@ -297,8 +170,10 @@ im_orimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	return( im__arith_binary( "im_orimage",
 		in1, in2, out, 
 		bandfmt_bool,
-		(im_wrapmany_fn) or_buffer, NULL ) );
+		(im_wrapmany_fn) OR_buffer, NULL ) );
 }
+
+BINARY_BUFFER( EOR, ^ )
 
 int 
 im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
@@ -306,223 +181,219 @@ im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	return( im__arith_binary( "im_eorimage",
 		in1, in2, out, 
 		bandfmt_bool,
-		(im_wrapmany_fn) eor_buffer, NULL ) );
+		(im_wrapmany_fn) EOR_buffer, NULL ) );
+}
+
+#define CONST1( IN, OUT, OP ) { \
+	OUT *tq = (OUT *) q; \
+	IN *tp = (IN *) p; \
+	IN tc = *((IN *) vector); \
+ 	\
+	for( i = 0; i < ne; i++ ) \
+		tq[i] = (OUT) tp[i] OP (OUT) tc; \
+}
+
+#define CONST1_BUFFER( NAME, OP ) \
+static void \
+NAME ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
+{ \
+	/* Complex just doubles the size. \
+	 */ \
+	const int ne = n * im->Bands * (im_iscomplex( im ) ? 2 : 1); \
+	\
+	int i; \
+	\
+        switch( im->BandFmt ) { \
+        case IM_BANDFMT_CHAR: \
+		CONST1( signed char, signed char, OP ); break; \
+        case IM_BANDFMT_UCHAR:  \
+		CONST1( unsigned char, unsigned char, OP ); break; \
+        case IM_BANDFMT_SHORT:  \
+		CONST1( signed short, signed short, OP ); break; \
+        case IM_BANDFMT_USHORT: \
+		CONST1( unsigned short, unsigned short, OP ); break; \
+        case IM_BANDFMT_INT: \
+		CONST1( signed int, signed int, OP ); break; \
+        case IM_BANDFMT_UINT: \
+		CONST1( unsigned int, unsigned int, OP ); break; \
+        case IM_BANDFMT_FLOAT: \
+		CONST1( float, signed int, OP ); break; \
+        case IM_BANDFMT_COMPLEX: \
+		CONST1( float, signed int, OP ); break; \
+        case IM_BANDFMT_DOUBLE: \
+		CONST1( double, signed int, OP ); break; \
+        case IM_BANDFMT_DPCOMPLEX: \
+		CONST1( double, signed int, OP ); break; \
+	\
+        default: \
+                g_assert( 0 ); \
+        } \
+}
+
+#define CONSTN( IN, OUT, OP ) { \
+	OUT *tq = (OUT *) q; \
+	IN *tp = (IN *) p; \
+	IN *tc = (IN *) vector; \
+ 	\
+	for( i = 0, x = 0; x < n; x++ ) \
+		for( b = 0; b < bands; b++, i++ ) \
+			tq[i] = (OUT) tp[i] OP (OUT) tc[b]; \
+}
+
+#define CONSTN_BUFFER( NAME, OP ) \
+static void \
+NAME ## n_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
+{ \
+	const int bands = im->Bands; \
+	\
+	int i, x, b; \
+	\
+        switch( im->BandFmt ) { \
+        case IM_BANDFMT_CHAR: \
+		CONSTN( signed char, signed char, OP ); break; \
+        case IM_BANDFMT_UCHAR:  \
+		CONSTN( unsigned char, unsigned char, OP ); break; \
+        case IM_BANDFMT_SHORT:  \
+		CONSTN( signed short, signed short, OP ); break; \
+        case IM_BANDFMT_USHORT: \
+		CONSTN( unsigned short, unsigned short, OP ); break; \
+        case IM_BANDFMT_INT: \
+		CONSTN( signed int, signed int, OP ); break; \
+        case IM_BANDFMT_UINT: \
+		CONSTN( unsigned int, unsigned int, OP ); break; \
+        case IM_BANDFMT_FLOAT: \
+		CONSTN( float, signed int, OP ); break; \
+        case IM_BANDFMT_COMPLEX: \
+		CONSTN( float, signed int, OP ); break; \
+        case IM_BANDFMT_DOUBLE: \
+		CONSTN( double, signed int, OP ); break; \
+        case IM_BANDFMT_DPCOMPLEX: \
+		CONSTN( double, signed int, OP ); break; \
+	\
+        default: \
+                g_assert( 0 ); \
+        } \
+}
+
+CONST1_BUFFER( AND, & )
+
+CONSTN_BUFFER( AND, & )
+
+int 
+im_andimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_andimage", 
+		in, out, n, c, 
+		bandfmt_bool,
+		(im_wrapone_fn) AND1_buffer, 
+		(im_wrapone_fn) ANDn_buffer ) );
+}
+
+CONST1_BUFFER( OR, | )
+
+CONSTN_BUFFER( OR, | )
+
+int 
+im_orimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_orimage", 
+		in, out, n, c, 
+		bandfmt_bool,
+		(im_wrapone_fn) OR1_buffer, 
+		(im_wrapone_fn) ORn_buffer ) );
+}
+
+CONST1_BUFFER( EOR, ^ )
+
+CONSTN_BUFFER( EOR, ^ )
+
+int 
+im_eorimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_eorimage", 
+		in, out, n, c, 
+		bandfmt_bool,
+		(im_wrapone_fn) EOR1_buffer, 
+		(im_wrapone_fn) EORn_buffer ) );
+}
+
+CONST1_BUFFER( SHIFTL, << )
+
+CONSTN_BUFFER( SHIFTL, << )
+
+int 
+im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_shiftleft", 
+		in, out, n, c, 
+		bandfmt_bool,
+		(im_wrapone_fn) SHIFTL1_buffer, 
+		(im_wrapone_fn) SHIFTLn_buffer ) );
+}
+
+CONST1_BUFFER( SHIFTR, >> )
+
+CONSTN_BUFFER( SHIFTR, >> )
+
+int 
+im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_shiftright", 
+		in, out, n, c, 
+		bandfmt_bool,
+		(im_wrapone_fn) SHIFTR1_buffer, 
+		(im_wrapone_fn) SHIFTRn_buffer ) );
 }
 
 int 
 im_and_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
-	IMAGE *invec[2];
-	PEL *cb;
-
-	invec[0] = in; invec[1] = NULL;
-	if( check( invec, out ) )
-		return( -1 );
-	in = invec[0];
-	if( n != in->Bands ) {
-		im_error( "im_and_vec", 
-			"%s", _( "vec size does not match bands" ) );
-		return( -1 );
-	}
-	if( !(cb = make_pixel( out, in->BandFmt, c )) )
-		return( -1 );
-
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) andconst_buffer, (void *) in, (void *) cb ) )
-		return( -1 );
-
-	return( 0 );
+	return( im_andimage_vec( in, out, n, c ) ); 
 }
 
 int 
 im_or_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
-	IMAGE *invec[2];
-	PEL *cb;
-
-	invec[0] = in; invec[1] = NULL;
-	if( check( invec, out ) )
-		return( -1 );
-	in = invec[0];
-	if( n != in->Bands ) {
-		im_error( "im_or_vec", 
-			"%s", _( "vec size does not match bands" ) );
-		return( -1 );
-	}
-	if( !(cb = make_pixel( out, in->BandFmt, c )) )
-		return( -1 );
-
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) orconst_buffer, (void *) in, (void *) cb ) )
-		return( -1 );
-
-	return( 0 );
+	return( im_orimage_vec( in, out, n, c ) ); 
 }
 
 int 
 im_eor_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
-	IMAGE *invec[2];
-	PEL *cb;
-
-	invec[0] = in; invec[1] = NULL;
-	if( check( invec, out ) )
-		return( -1 );
-	in = invec[0];
-	if( n != in->Bands ) {
-		im_error( "im_eor_vec", 
-			"%s", _( "vec size does not match bands" ) );
-		return( -1 );
-	}
-	if( !(cb = make_pixel( out, in->BandFmt, c )) )
-		return( -1 );
-
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) eorconst_buffer, (void *) in, (void *) cb ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* Cast a double to a vector of TYPE.
- */
-#define CCAST( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	\
-	for( i = 0; i < in->Bands; i++ ) \
-		tq[i] = (TYPE) p; \
-}
-
-/* Make a pixel of output type from a single double.
- */
-static double *
-make_pixel_const( IMAGE *in, IMAGE *out, double p )
-{
-	double *q;
-	int i;
-
-	if( !(q = IM_ARRAY( out, in->Bands, double )) )
-		return( NULL );
-	for( i = 0; i < in->Bands; i++ ) 
-		q[i] = p; 
-
-	return( q );
+	return( im_eorimage_vec( in, out, n, c ) ); 
 }
 
 int 
 im_andconst( IMAGE *in, IMAGE *out, double c )
 {
-	double *v = make_pixel_const( in, out, c );
-
-	return( !v || im_and_vec( in, out, in->Bands, v ) ); 
+	return( im_andimage_vec( in, out, 1, &c ) ); 
 }
 
 int 
 im_orconst( IMAGE *in, IMAGE *out, double c )
 {
-	double *v = make_pixel_const( in, out, c );
-
-	return( !v || im_or_vec( in, out, in->Bands, v ) );
+	return( im_orimage_vec( in, out, 1, &c ) );
 }
 
 int 
 im_eorconst( IMAGE *in, IMAGE *out, double c )
 {
-	double *v = make_pixel_const( in, out, c );
-
-	return( !v || im_eor_vec( in, out, in->Bands, v ) );
+	return( im_eorimage_vec( in, out, 1, &c ) );
 }
 
-/* Assorted shift operations.
- */
-#define SHIFTL( TYPE ) { \
-	TYPE *pt = (TYPE *) p;\
-	TYPE *qt = (TYPE *) q;\
-	\
-	for( x = 0; x < ne; x++ )\
-		qt[x] = pt[x] << n;\
-}
-
-/* The above as buffer ops.
- */
-static void
-shiftleft_buffer( PEL *p, PEL *q, int len, IMAGE *in, int n )
-{
-	int x;
-	int ne = len * in->Bands;
-
-        switch( in->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	SHIFTL( unsigned char ); break;
-        case IM_BANDFMT_CHAR: 	SHIFTL( signed char ); break; 
-        case IM_BANDFMT_USHORT:	SHIFTL( unsigned short ); break; 
-        case IM_BANDFMT_SHORT: 	SHIFTL( signed short ); break; 
-        case IM_BANDFMT_UINT: 	SHIFTL( unsigned int ); break; 
-        case IM_BANDFMT_INT: 	SHIFTL( signed int );  break; 
-
-	default:
-                g_assert( 0 );
-	}
-}
-
-/* The above as im_*() functions.
- */
 int 
 im_shiftleft( IMAGE *in, IMAGE *out, int n )
 {
-	IMAGE *invec[2];
+	double c = n;
 
-	invec[0] = in; invec[1] = NULL;
-	if( check( invec, out ) )
-		return( -1 );
-	in = invec[0];
-
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) shiftleft_buffer, in, GINT_TO_POINTER( n ) ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-#define SHIFTR( TYPE ) { \
-	TYPE *pt = (TYPE *) p; \
-	TYPE *qt = (TYPE *) q; \
-	\
-	for( x = 0; x < ne; x++ ) \
-		qt[x] = pt[x] >> n; \
-}
-
-static void
-shiftright_buffer( PEL *p, PEL *q, int len, IMAGE *in, int n )
-{
-	int x;
-	int ne = len * in->Bands;
-
-        switch( in->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	SHIFTR( unsigned char ); break;
-        case IM_BANDFMT_CHAR: 	SHIFTR( signed char ); break; 
-        case IM_BANDFMT_USHORT:	SHIFTR( unsigned short ); break; 
-        case IM_BANDFMT_SHORT: 	SHIFTR( signed short ); break; 
-        case IM_BANDFMT_UINT: 	SHIFTR( unsigned int ); break; 
-        case IM_BANDFMT_INT: 	SHIFTR( signed int );  break; 
-
-	default:
-                g_assert( 0 );
-	}
+	return( im_shiftleft_vec( in, out, 1, &c ) );
 }
 
 int 
 im_shiftright( IMAGE *in, IMAGE *out, int n )
 {
-	IMAGE *invec[2];
+	double c = n;
 
-	invec[0] = in; invec[1] = NULL;
-	if( check( invec, out ) )
-		return( -1 );
-	in = invec[0];
-
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) shiftright_buffer, in, GINT_TO_POINTER( n ) ) )
-		return( -1 );
-
-	return( 0 );
+	return( im_shiftright_vec( in, out, 1, &c ) );
 }
+

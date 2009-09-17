@@ -38,6 +38,7 @@
 - close callbacks now happen *after* images have closed resources (such as
   open files) ... this lets them delete temps and stuff. Expect breakage :(
 - added vips_interpolate_get_window_offset()
+- boolean revised: smaller, more general, faster
 
 25/3/09 started 7.18.0
 - revised version numbers
