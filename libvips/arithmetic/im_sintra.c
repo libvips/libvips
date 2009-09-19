@@ -1,12 +1,4 @@
-/* @(#) Find sin of any non-complex image. Output is always float for integer 
- * @(#) input and double for double input. All angles in degrees.
- * @(#)
- * @(#) int 
- * @(#) im_sintra( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_sintra.c
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris

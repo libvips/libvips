@@ -7,7 +7,6 @@ libarithmetic_la_SOURCES = \
     im_avg.c \
     im_point_bilinear.c \
     im_bandmean.c \
-    im_costra.c \
     im_cross_phase.c \
     im_deviate.c \
     im_divide.c \
@@ -17,8 +16,6 @@ libarithmetic_la_SOURCES = \
     im_invert.c \
     im_linreg.c \
     im_lintra.c \
-    im_log10tra.c \
-    im_logtra.c \
     im_maxpos.c \
     im_maxpos_avg.c \
     im_maxpos_vec.c \
@@ -29,9 +26,8 @@ libarithmetic_la_SOURCES = \
     im_remainder.c \
     im_rint.c \
     im_sign.c \
-    im_sintra.c \
+    math.c \
     im_stats.c \
-    im_subtract.c \
-    im_tantra.c 
+    im_subtract.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

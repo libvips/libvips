@@ -99,30 +99,6 @@ costra_gen( PEL *in, PEL *out, int width, IMAGE *im )
         }
 }
 
-/* Do a math (eg. sin(), acos(), log()) type-function. No complex, everything
- * goes to float except double.
- */
-int 
-im__math( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen )
-{
-	if( im_piocheck( in, out ) ||
-		im_check_uncoded( name, in ) ||
-		im_check_noncomplex( name, in ) )
-		return( -1 );
-
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	if( im_isint( in ) ) {
-		out->Bbits = IM_BBITS_FLOAT;
-		out->BandFmt = IM_BANDFMT_FLOAT;
-	}
-
-	if( im_wrapone( in, out, gen, in, NULL ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 /**
  * im_costra
  * @in: input #IMAGE
