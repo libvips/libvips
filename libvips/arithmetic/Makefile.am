@@ -10,8 +10,6 @@ libarithmetic_la_SOURCES = \
     im_cross_phase.c \
     im_deviate.c \
     im_divide.c \
-    im_ceil.c \
-    im_floor.c \
     im_expntra.c \
     im_invert.c \
     im_linreg.c \
@@ -24,7 +22,7 @@ libarithmetic_la_SOURCES = \
     im_multiply.c \
     im_powtra.c \
     im_remainder.c \
-    im_rint.c \
+    round.c \
     im_sign.c \
     math.c \
     im_stats.c \
