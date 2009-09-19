@@ -1,9 +1,22 @@
-- look at im_remainderconst_vec()
+- move im_and_vec() to deprecated
 
-  put that functionality into something like im__cast_and_call(), then share
-  with im_andimage_const_vec()
+- shouldn't it be im_remainder_vec()?
 
-  working in im__arith_binary_const()
+- im_add(), im_subtract() etc. could all be in one file and share macros like
+  boolean.c
+
+  quite hard, because of things like complex *, / and liboil
+
+- rint/ceil/floor can all common up too
+
+- powtra, expntra as well
+
+- im__math() no longer needs to be global?
+
+- booolean needs gtkdoc
+
+- test boolean
+
 
 
 - experimenting with                 
@@ -17,11 +30,6 @@
 
 - Joe's new def
 
-
-- we have im_andimage(), but im_and_vec(), argh
-
-  shouldn't it be im_andimageconst_vec()? won't we have C++ problems the way
-  things are?
 
 
 
