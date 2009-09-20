@@ -140,7 +140,6 @@ int im__arith_binary_const( const char *name,
 	IMAGE *in, IMAGE *out, int n, double *c,
 	int format_table[10], 
 	im_wrapone_fn fn1, im_wrapone_fn fnn );
-int im__math( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen );
 int im__value( IMAGE *im, double *value );
 typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );
 int im__wrapscan( IMAGE *in, 

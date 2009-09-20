@@ -57,6 +57,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -75,9 +76,9 @@
 
 /* Operator with a single constant on a buffer.
  */
-#define CONST1_BUFFER( NAME, FUN ) \
+#define CONST1_BUFFER( FUN ) \
 static void \
-NAME ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
+FUN ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
 { \
 	/* Complex just doubles the size. \
 	 */ \
@@ -165,12 +166,12 @@ FUN ## n_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
 	double x = (double) (X); \
 	double e = (double) (E); \
 	\
-	if( f == 0.0 && e < 0.0 ) \
+	if( x == 0.0 && e < 0.0 ) \
 		/* Division by zero! Difficult to report tho' \
 		 */ \
 		(Y) = 0.0; \
 	else \
-		(Y) = pow( f, e ); \
+		(Y) = pow( x, e ); \
 }
 
 CONST1_BUFFER( POW )
@@ -179,12 +180,10 @@ CONSTN_BUFFER( POW )
 
 /* Save a bit of typing.
  */
-#define UC IM_BANDFMT_UCHAR
-#define C IM_BANDFMT_CHAR
-#define US IM_BANDFMT_USHORT
-#define S IM_BANDFMT_SHORT
-#define UI IM_BANDFMT_UINT
-#define I IM_BANDFMT_INT
+#define F IM_BANDFMT_FLOAT
+#define X IM_BANDFMT_COMPLEX
+#define D IM_BANDFMT_DOUBLE
+#define DX IM_BANDFMT_DPCOMPLEX
 
 /* Type conversions for boolean. 
  */
