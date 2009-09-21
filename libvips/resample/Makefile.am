@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libresample.la
 libresample_la_SOURCES = \
 	im_affine.c \
 	bicubic.cpp \
-	similarity.c \
 	interpolate.c \
 	yafrsmooth.cpp \
 	nohalo1.cpp \

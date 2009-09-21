@@ -2,7 +2,7 @@
 
 	im_remainderconst_vec
 
-- move resample / im_affine, im_similarity, im_similarity_area to deprecated
+- have a -DIM_ENABLE_DEPRECATED option which includes deprecated.h for you
 
 - we have tools/ and contrib/ argh
 

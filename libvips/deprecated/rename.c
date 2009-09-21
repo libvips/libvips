@@ -139,3 +139,23 @@ im_affine( IMAGE *in, IMAGE *out,
 		a, b, c, d, dx, dy, 
 		ox, oy, ow, oh ) );
 }
+
+int 
+im_similarity_area( IMAGE *in, IMAGE *out, 
+	double a, double b, double dx, double dy, 
+	int ox, int oy, int ow, int oh )
+{
+	return( im_affinei( in, out, 
+		vips_interpolate_bilinear_static(), 
+		a, -b, b, a, dx, dy, 
+		ox, oy, ow, oh ) );
+}
+
+int 
+im_similarity( IMAGE *in, IMAGE *out, 
+	double a, double b, double dx, double dy )
+{
+	return( im_affinei_all( in, out, 
+		vips_interpolate_bilinear_static(), 
+		a, -b, b, a, dx, dy ) ); 
+}
