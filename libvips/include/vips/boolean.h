@@ -37,19 +37,23 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_andimage( IMAGE *, IMAGE *, IMAGE * );
-int im_andimage_vec( IMAGE *, IMAGE *, int, double * );
-int im_andimageconst( IMAGE *, IMAGE *, double );
-int im_orimage( IMAGE *, IMAGE *, IMAGE * );
-int im_orimage_vec( IMAGE *, IMAGE *, int, double * );
-int im_orimageconst( IMAGE *, IMAGE *, double );
-int im_eorimage( IMAGE *, IMAGE *, IMAGE * );
-int im_eorimage_vec( IMAGE *, IMAGE *, int, double * );
-int im_eorimageconst( IMAGE *, IMAGE *, double );
+int im_andimage( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_orimage( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out );
+
+int im_andimage_vec( IMAGE *in, IMAGE *out, int n, double *c );
+int im_andimageconst( IMAGE *in, IMAGE *out, double c );
+
+int im_orimage_vec( IMAGE *in, IMAGE *out, int n, double *c );
+int im_orimageconst( IMAGE *in, IMAGE *out, double c );
+
+int im_eorimage_vec( IMAGE *in, IMAGE *out, int n, double *c );
+int im_eorimageconst( IMAGE *in, IMAGE *out, double c );
+
 int im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_shiftleft( IMAGE *, IMAGE *, int );
+int im_shiftleft( IMAGE *in, IMAGE *out, int n );
 int im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_shiftright( IMAGE *, IMAGE *, int );
+int im_shiftright( IMAGE *in, IMAGE *out, int n );
 
 #ifdef __cplusplus
 }

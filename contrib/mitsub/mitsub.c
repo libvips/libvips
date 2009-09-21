@@ -141,7 +141,7 @@ main( int argc, char *argv[] )
 		double factor = IM_MAX( x_factor, y_factor );
 		IMAGE *sh = im_open( "shrink", "t" );
 
-		im_diag( "mitsub", "%s", _( "shrinking by %g ..." ), factor );
+		im_diag( "mitsub", _( "shrinking by %g ..." ), factor );
 		if( !sh || im_shrink( vips, sh, factor, factor ) )
 			error_exit( "mitsub: shrink failed" );
 

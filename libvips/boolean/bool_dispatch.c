@@ -52,12 +52,12 @@
  * These operations perform boolean operations, such as bitwise-and, on
  * every pixel in an image or pair of images. 
  * All will work with 
- * images of any type or any mixture of types, of any size and of any number 
+ * images of any type or any mixture of types of any size and of any number 
  * of bands.
  *
  * For binary operations, if the number of bands differs, one of the images 
  * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
+ * one-band image by joining n copies of the one-band image together and then
  * the two n-band images are operated upon.
  *
  * In the same way, for operations that take an array constant, such as 
@@ -67,7 +67,7 @@
  * The output type is the same as the input type for integer types. Float and
  * complex types are cast to signed int.
  *
- * For binary operations, the images must match in size.
+ * For binary operations on pairs of images, the images must match in size.
  *
  * You might think im_andimage() would be called "im_and", but that causes
  * problems when we try and make a C++ binding and drop the "im_" prefix.

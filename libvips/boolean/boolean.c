@@ -482,9 +482,9 @@ im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c )
  * im_shiftleft:
  * @in: input #IMAGE 
  * @out: output #IMAGE
- * @c: constant
+ * @n: constant
  *
- * This operation calculates @in1 << @c (left-shift by @c bits)
+ * This operation calculates @in1 << @n (left-shift by @n bits)
  * and writes the result to @out. 
  *
  * See also: im_andimage(), im_orimageconst().
@@ -532,9 +532,9 @@ im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c )
  * im_shiftright:
  * @in: input #IMAGE 
  * @out: output #IMAGE
- * @c: constant
+ * @n: constant
  *
- * This operation calculates @in1 >> @c (right-shift by @c bits)
+ * This operation calculates @in1 >> @n (right-shift by @n bits)
  * and writes the result to @out. 
  *
  * See also: im_andimage(), im_orimageconst().
