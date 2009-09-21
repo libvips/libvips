@@ -1,23 +1,13 @@
-- need in deprecated_dispatch.c
+- test new bool/arith stuff
 
-	im_remainderconst_vec
-
-- have a -DIM_ENABLE_DEPRECATED option which includes deprecated.h for you
+- relational next
 
 - we have tools/ and contrib/ argh
 
 
 
-- experimenting with                 
 
-	png_set_shift( read->pPng, 2 );
-
-  in im_png2vips.c
-
-  test image in gmail
-
-
-- Joe's new def
+- Joe's new defs
 
 
 
@@ -42,13 +32,16 @@ Actions:
   output file at some point.
 
 
+
 - 1-bit PNG read is broken?
 
-> The bug is that 1bit depth PNG addresses are incorrectly interpreted.  At
-> least the greyscale ones.  I don't recall whether indexed 1 bit works.  You
-> can make a 1 bit image of that type as follows:
->
-> pngcrush -c 0 -bit_depth 1 *.png
+  experimenting with                 
+
+	png_set_shift( read->pPng, 2 );
+
+  in im_png2vips.c
+
+  test image in gmail
 
 - rename vipsCC in SWIG as pyvips?
 
