@@ -61,7 +61,7 @@
  * the two n-band images are operated upon.
  *
  * In the same way, for operations that take an array constant, such as 
- * im_remainderconst_vec(), you can mix single-element arrays or single-band 
+ * im_remainder_vec(), you can mix single-element arrays or single-band 
  * images freely.
  *
  * Arithmetic operations try to preserve precision by increasing the number of
@@ -1176,7 +1176,7 @@ static im_function remainderconst_desc = {
 	remainderconst_args 		/* Arg list */
 };
 
-/* Call im_remainderconst_vec via arg vector.
+/* Call im_remainder_vec via arg vector.
  */
 static int
 remainder_vec_vec( im_object *argv )
@@ -1194,9 +1194,9 @@ static im_arg_desc remainder_vec_args[] = {
 	IM_INPUT_DOUBLEVEC( "x" )
 };
 
-/* Description of im_remainderconst_vec.
+/* Description of im_remainder_vec.
  */ 
-static im_function remainderconst_vec_desc = {
+static im_function remainder_vec_desc = {
 	"im_remainder_vec", 		/* Name */
 	N_( "remainder after integer division by a vector of constants" ),
 					/* Description */
@@ -1425,7 +1425,7 @@ static im_function *arith_list[] = {
 	&powtra_vec_desc,
 	&remainder_desc,
 	&remainderconst_desc,
-	&remainderconst_vec_desc,
+	&remainder_vec_desc,
 	&rint_desc,
 	&sign_desc,
 	&sintra_desc,

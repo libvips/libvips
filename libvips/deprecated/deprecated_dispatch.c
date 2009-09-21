@@ -296,10 +296,41 @@ static im_function similarity_area_desc = {
 	similarity_area_args 		/* Arg list */
 };
 
+/* Call im_remainderconst_vec via arg vector.
+ */
+static int
+remainderconst_vec_vec( im_object *argv )
+{
+	im_doublevec_object *dv = (im_doublevec_object *) argv[2];
+
+	return( im_remainder_vec( argv[0], argv[1], dv->n, dv->vec ) );
+}
+
+/* Args for im_remainderconst_vec().
+ */
+static im_arg_desc remainderconst_vec_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_DOUBLEVEC( "x" )
+};
+
+/* Description of im_remainderconst_vec.
+ */ 
+static im_function remainderconst_vec_desc = {
+	"im_remainderconst_vec", 	/* Name */
+	N_( "remainder after integer division by a vector of constants" ),
+					/* Description */
+	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
+	remainderconst_vec_vec, 	/* Dispatch function */
+	IM_NUMBER( remainderconst_vec_args ),/* Size of arg list */
+	remainderconst_vec_args 	/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
 	&cmulnorm_desc,
+	&remainderconst_vec_desc,
 	&fav4_desc,
 	&gadd_desc,
 	&litecor_desc,
