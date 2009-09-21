@@ -92,7 +92,8 @@ im_dE_fromLab( IMAGE *im1, IMAGE *im2, IMAGE *out )
 		im1->Coding != IM_CODING_NONE ||
 		im2->Bands != 3 || im2->BandFmt != IM_BANDFMT_FLOAT || 
 		im2->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_dE_fromLab: inputs should be 3 band float");
+		im_error( "im_dE_fromLab", "%s", 
+			_( "inputs should be 3 band float") );
 		return( -1 );
 	}
 

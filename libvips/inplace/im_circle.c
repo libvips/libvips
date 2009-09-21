@@ -75,19 +75,19 @@ im_circle( IMAGE *im, int cx, int cy, int radius, int intensity)
 	if ( (im->data == NULL)||(im->BandFmt != IM_BANDFMT_UCHAR)||(im->Bands != 1)
 	   ||(im->Bbits != IM_BBITS_BYTE) )
 		{
-		im_errormsg("im_circle: unable to write input image");
+		im_error("im_circle: ", "%s", _( "able to write input image") );
 		return(-1);
 		}
 	if ((intensity > 255)||(intensity <= 0))
 		{
-		im_errormsg("im_circle: intensity between 0 and 255");
+		im_error( "im_circle", "%s", _( "intensity between 0 and 255") );
 		return(-1);
 		}
 /* Check if circle fits into image */
 	if ( ((radius+cy)> im->Ysize - 1) || ((cy-radius)< 0 ) ||
 	     ((radius+cx)> im->Xsize - 1) || ((cx-radius) < 0 )   )
 		{
-		im_errormsg("im_circle: The circle doesnot fit in image");
+		im_error( "im_circle", "%s", _( "The circle doesnot fit in image") );
 		return(-1);
 		}
 /* Draw the circle */

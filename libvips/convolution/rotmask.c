@@ -118,7 +118,7 @@ im_offsets45( int size )
 	int *pnt, *cpnt1, *cpnt2;
 
 	if( size%2 == 0 ) {
-		im_errormsg( "im_offsets45: size not odd" );
+		im_error( "im_offsets45", "%s", _( "size not odd" ) );
 		return( NULL );
 	}
 	if( !(pnt = IM_ARRAY( NULL, size2, int )) ) 
@@ -222,8 +222,8 @@ rotdmask( offset_fn fn, DOUBLEMASK *m, const char *name )
 	int i;
 
 	if( m->xsize != m->ysize || (m->xsize % 2) == 0 ) {
-		im_errormsg( "im_rotate_*mask*: mask should "
-			"be square of even size" );
+		im_error( "im_rotate_mask", "%s", 
+			_( "mask should be square of even size" ) );
 		return( NULL );
 	}
 	if( !(offsets = fn( m->xsize )) )
@@ -254,8 +254,8 @@ rotimask( offset_fn fn, INTMASK *m, const char *name )
 	int i;
 
 	if( m->xsize != m->ysize || (m->xsize % 2) == 0 ) {
-		im_errormsg( "im_rotate_*mask*: mask should "
-			"be square of even size" );
+		im_error( "im_rotate_mask", "%s", 
+			_( "mask should be square of even size" ) );
 		return( NULL );
 	}
 	if( !(offsets = fn( m->xsize )) )

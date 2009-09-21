@@ -131,7 +131,7 @@ im_log_dmask( const char *filename, double sigma, double min_ampl )
 		last = val;
 	}
 	if( x == IM_MAXMASK ) {
-		im_errormsg( "im_log_dmask: mask too large" );
+		im_error( "im_log_dmask", "%s", _( "mask too large" ) );
 		return( NULL );
 	}
 

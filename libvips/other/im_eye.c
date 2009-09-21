@@ -75,7 +75,7 @@ im_feye( IMAGE *image, const int xsize, const int ysize, const double factor )
 	if( im_outcheck( image ) )
 		return( -1 );
 	if( factor > 1.0 || factor <= 0.0 ) { 
-		im_errormsg( "im_feye: factor should be in [1,0)" );
+		im_error( "im_feye", "%s", _( "factor should be in [1,0)" ) );
 		return( -1 );
 	}
 

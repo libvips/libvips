@@ -86,7 +86,7 @@ im_dE00_fromLab( IMAGE *im1, IMAGE *im2, IMAGE *out )
 		im1->Coding != IM_CODING_NONE ||
 		im2->Bands != 3 || im2->BandFmt != IM_BANDFMT_FLOAT || 
 		im2->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_dE00_fromLab: 3-band float only" );
+		im_error( "im_dE00_fromLab", "%s", _( "3-band float only" ) );
 		return( -1 );
 	}
 

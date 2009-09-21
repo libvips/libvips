@@ -122,7 +122,7 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	if( ref_in->Bands != sec_in->Bands || 
 		ref_in->BandFmt != sec_in->BandFmt ||
 		ref_in->Coding != sec_in->Coding ) {
-		im_errormsg( "im_lrmosaic: input images incompatible" );
+		im_error( "im_lrmosaic", "%s", _( "input images incompatible" ) );
 		return( -1 );
 	}
 
@@ -130,7 +130,7 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	 */
 	if( halfcorrelation < 0 || halfarea < 0 || 
 		halfarea < halfcorrelation ) {
-		im_errormsg( "im_lrmosaic: bad area parameters" );
+		im_error( "im_lrmosaic", "%s", _( "bad area parameters" ) );
 		return( -1 );
 	}
 
@@ -150,7 +150,7 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	im_rect_intersectrect( &left, &right, &overlap );
 	if( overlap.width < 2*halfarea + 1 ||
 		overlap.height < 2*halfarea + 1 ) {
-		im_errormsg( "im_lrmosaic: overlap too small for search" );
+		im_error( "im_lrmosaic", "%s", _( "overlap too small for search" ) );
 		return( -1 );
 	}
 
@@ -213,7 +213,7 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 			return( -1 );
 	}
 	else {
-		im_errormsg( "im_lrmosaic: unknown Coding type" );
+		im_error( "im_lrmosaic", "%s", _( "unknown Coding type" ) );
 		return( -1 );
 	}
 
@@ -327,7 +327,7 @@ im__balance( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	/* Test balancetype.
 	 */
 	if( balancetype < 0 || balancetype > 3 ) {
-		im_errormsg( "im_mosaic: bad balancetype parameter" );
+		im_error( "im_mosaic", "%s", _( "bad balancetype parameter" ) );
 		return( -1 );
 	}
 
@@ -344,7 +344,7 @@ im__balance( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	 */
 	if( ref->Coding != IM_CODING_NONE || 
 		ref->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_errormsg( "im_mosaic: uncoded uchar only for balancing" );
+		im_error( "im_mosaic", "%s", _( "uncoded uchar only for balancing" ) );
 		return( -1 );
 	}
 

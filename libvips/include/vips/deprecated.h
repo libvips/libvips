@@ -286,6 +286,33 @@ int im_fav4( IMAGE **, IMAGE * );
 int im_gadd( double, IMAGE *, double, IMAGE *, double, IMAGE *);
 int im_litecor( IMAGE *, IMAGE *, IMAGE *, int, double );
 
+/* Renamed operations.
+ */
+
+/* arithmetic
+ */
+int im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c );
+
+/* boolean
+ */
+int im_andconst( IMAGE *, IMAGE *, double );
+int im_and_vec( IMAGE *, IMAGE *, int, double * );
+int im_orconst( IMAGE *, IMAGE *, double );
+int im_or_vec( IMAGE *, IMAGE *, int, double * );
+int im_eorconst( IMAGE *, IMAGE *, double );
+int im_eor_vec( IMAGE *, IMAGE *, int, double * );
+
+/* mosaicing
+ */
+int im_affine( IMAGE *in, IMAGE *out,
+	double a, double b, double c, double d, double dx, double dy,
+	int ox, int oy, int ow, int oh );
+int im_similarity( IMAGE *in, IMAGE *out,
+	double a, double b, double dx, double dy );
+int im_similarity_area( IMAGE *in, IMAGE *out,
+	double a, double b, double dx, double dy,
+	int ox, int oy, int ow, int oh );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

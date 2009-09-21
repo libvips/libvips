@@ -533,7 +533,7 @@ im_tone_analyse(
 	}
 	Lw = i / 10.24;
 
-	im_diagnostics( "im_tone_analyse: set Lb = %g, Lw = %g", Lb, Lw );
+	im_diag( "im_tone_analyse", "set Lb = %g, Lw = %g", Lb, Lw );
 
 	return( im_tone_build( lut, Lb, Lw, Ps, Pm, Ph, S, M, H ) );
 }

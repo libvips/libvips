@@ -1,16 +1,10 @@
-- move im_and_vec() to deprecated
+- need in deprecated_dispatch.c
 
-- shouldn't it be im_remainder_vec()?
+	im_remainderconst_vec
 
-  im_remainderconst_vec() is better? cf. 
+- move resample / im_affine, im_similarity, im_similarity_area to deprecated
 
-  	im_andimage()
-	im_andimageconst()
-	im_andimage_vec()
-
-- booolean needs gtkdoc
-
-- test boolean
+- we have tools/ and contrib/ argh
 
 
 
@@ -24,11 +18,6 @@
 
 
 - Joe's new def
-
-- im_add(), im_subtract() etc. could all be in one file and share macros like
-  boolean.c
-
-  quite hard, because of things like complex *, / and liboil
 
 
 

@@ -59,7 +59,7 @@ writeimage( REGION *ir, FILE *out )
 	int c1 = (C);\
 	\
 	if( putc( c1, out ) == EOF ) {\
-		im_errormsg( "vips2hp2500cp: write error - disc full?" );\
+		im_error( "vips2hp2500cp", "%s", _( "write error - disc full?" ) );\
 		return( -1 );\
 	}\
 }

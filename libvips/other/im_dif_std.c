@@ -66,15 +66,18 @@ double *pmean, *pstd;
 	if( im_incheck( im ) )
 		return( -1 );
 
-	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR))
-		{im_errormsg("im_dif_std: Unable to accept input"); return(-1);}
-	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) )
-		{ im_errormsg("im_dif_std: wrong args"); return(-1); }
+	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR)) {
+		im_error( "im_dif_std", "%s", _( "Unable to accept input") ); 
+		return(-1);}
+	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
+		im_error( "im_dif_std", "%s", _( "wrong args") ); 
+		return(-1); }
 
 	bufsize = xsize * ysize;
 	buf = (int *)calloc( (unsigned)bufsize, sizeof(int) );
-	if ( buf == NULL ) 
-		{ im_errormsg("im_dif_std: calloc failed"); return(-1); }
+	if ( buf == NULL ) { 
+		im_error( "im_dif_std", "%s", _( "calloc failed") ); 
+		return(-1); }
 	input = (PEL*)im->data;
 	input += ( ypos * im->Xsize + xpos );
 	ofst = dy * im->Xsize + dx;

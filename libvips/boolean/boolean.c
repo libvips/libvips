@@ -1,4 +1,4 @@
-/* boolean.c
+/* boolean.c --- various bit operations
  *
  * Modified: 
  * 15/12/94 JC
@@ -301,6 +301,21 @@ CONST1_BUFFER( AND, & )
 
 CONSTN_BUFFER( AND, & )
 
+/**
+ * im_andimage_vec:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in1 & @c (bitwise and of image pixels with array
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimage_vec().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_andimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
@@ -311,10 +326,46 @@ im_andimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		(im_wrapone_fn) ANDn_buffer ) );
 }
 
+/**
+ * im_andimageconst:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in1 & @c (bitwise and of image pixels with
+ * constant
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimage_vec().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_andimageconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_andimage_vec( in, out, 1, &c ) ); 
+}
+
 CONST1_BUFFER( OR, | )
 
 CONSTN_BUFFER( OR, | )
 
+/**
+ * im_orimage_vec:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in1 | @c (bitwise or of image pixels with array
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimageconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_orimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
@@ -325,10 +376,47 @@ im_orimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		(im_wrapone_fn) ORn_buffer ) );
 }
 
+/**
+ * im_orimageconst:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in1 | @c (bitwise or of image pixels with
+ * constant
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimage_vec().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_orimageconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_orimage_vec( in, out, 1, &c ) );
+}
+
 CONST1_BUFFER( EOR, ^ )
 
 CONSTN_BUFFER( EOR, ^ )
 
+/**
+ * im_eorimage_vec:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in1 ^ @c (bitwise exclusive-or of image pixels 
+ * with array
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimageconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_eorimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
@@ -339,10 +427,47 @@ im_eorimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		(im_wrapone_fn) EORn_buffer ) );
 }
 
+/**
+ * im_eorimageconst:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in1 ^ @c (bitwise exclusive-or of image pixels 
+ * with
+ * constant
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimage_vec().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_eorimageconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_eorimage_vec( in, out, 1, &c ) );
+}
+
 CONST1_BUFFER( SHIFTL, << )
 
 CONSTN_BUFFER( SHIFTL, << )
 
+/**
+ * im_shiftleft_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in1 << @c (left-shift by @c bits
+ * with array
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimageconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
@@ -353,10 +478,46 @@ im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		(im_wrapone_fn) SHIFTLn_buffer ) );
 }
 
+/**
+ * im_shiftleft:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in1 << @c (left-shift by @c bits)
+ * and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimageconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_shiftleft( IMAGE *in, IMAGE *out, int n )
+{
+	double c = n;
+
+	return( im_shiftleft_vec( in, out, 1, &c ) );
+}
+
 CONST1_BUFFER( SHIFTR, >> )
 
 CONSTN_BUFFER( SHIFTR, >> )
 
+/**
+ * im_shiftright_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in1 << @c (right-shift by @c bits
+ * with array
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimageconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
@@ -367,50 +528,19 @@ im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		(im_wrapone_fn) SHIFTRn_buffer ) );
 }
 
-int 
-im_and_vec( IMAGE *in, IMAGE *out, int n, double *c )
-{
-	return( im_andimage_vec( in, out, n, c ) ); 
-}
-
-int 
-im_or_vec( IMAGE *in, IMAGE *out, int n, double *c )
-{
-	return( im_orimage_vec( in, out, n, c ) ); 
-}
-
-int 
-im_eor_vec( IMAGE *in, IMAGE *out, int n, double *c )
-{
-	return( im_eorimage_vec( in, out, n, c ) ); 
-}
-
-int 
-im_andconst( IMAGE *in, IMAGE *out, double c )
-{
-	return( im_andimage_vec( in, out, 1, &c ) ); 
-}
-
-int 
-im_orconst( IMAGE *in, IMAGE *out, double c )
-{
-	return( im_orimage_vec( in, out, 1, &c ) );
-}
-
-int 
-im_eorconst( IMAGE *in, IMAGE *out, double c )
-{
-	return( im_eorimage_vec( in, out, 1, &c ) );
-}
-
-int 
-im_shiftleft( IMAGE *in, IMAGE *out, int n )
-{
-	double c = n;
-
-	return( im_shiftleft_vec( in, out, 1, &c ) );
-}
-
+/**
+ * im_shiftright:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in1 >> @c (right-shift by @c bits)
+ * and writes the result to @out. 
+ *
+ * See also: im_andimage(), im_orimageconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_shiftright( IMAGE *in, IMAGE *out, int n )
 {

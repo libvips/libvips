@@ -126,7 +126,8 @@ int
 im_c2amph( IMAGE *in, IMAGE *out )
 {
 	if( in->Coding != IM_CODING_NONE || !im_iscomplex( in ) ) {
-		im_errormsg( "im_c2amph: input should be uncoded complex" );
+		im_error( "im_c2amph", "%s", 
+			_( "input should be uncoded complex" ) );
 		return( -1 );
 	}
         if( im_cp_desc( out, in ) )

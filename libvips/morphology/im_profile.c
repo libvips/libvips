@@ -67,11 +67,12 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR ||
 		in->Bands != 1 ) {
-		im_errormsg( "im_profile: 1-band uchar uncoded only" );
+		im_error( "im_profile", "%s", 
+			_( "1-band uchar uncoded only" ) );
 		return( -1 ); 
 	}
 	if( dir != 0 && dir != 1 ) {
-		im_errormsg( "im_profile: dir not 0 or 1" );
+		im_error( "im_profile", "%s", _( "dir not 0 or 1" ) );
 		return( -1 ); 
 	}
 

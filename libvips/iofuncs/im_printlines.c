@@ -78,11 +78,11 @@ im_printlines( IMAGE *in )
 	if( im_incheck( in ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_printlines: input must be uncoded" );
+		im_error( "im_printlines", "%s", _( "input must be uncoded" ) );
 		return( -1 );
 	}
 	if( !in->data ) {
-		im_errormsg( "im_debugim: unsuitable image type" );
+		im_error( "im_debugim", "%s", _( "unsuitable image type" ) );
 		return( -1 );
 	}
 
@@ -140,7 +140,8 @@ im_printlines( IMAGE *in )
 	switch( in->BandFmt ) {
 		im_for_all_types();
 		default: { 
-			im_errormsg( "im_printlines: unknown input format" ); 
+			im_error( "im_printlines", "%s", 
+				_( "unknown input format" ) ); 
 			return( -1 );
 		}
 	}

@@ -60,7 +60,7 @@ im_image( void *buffer, int width, int height, int bands, int format )
 
 	if( width <= 0 || height <= 0 || bands <= 0 || 
 		format < 0 || format > IM_BANDFMT_DPCOMPLEX ) {
-		im_errormsg( "im_image: bad parameters" );
+		im_error( "im_image", "%s", _( "bad parameters" ) );
 		return( NULL );
 	}
 

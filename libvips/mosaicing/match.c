@@ -53,10 +53,8 @@ im__coeff( int xr1, int yr1, int xs1, int ys1,
 {	
 	DOUBLEMASK *in, *out;
 
-	if( !(in = im_create_dmask( "in", 4, 4 )) ) {
-		im_errormsg( "im__coeff: unable to allocate matrix" );
+	if( !(in = im_create_dmask( "in", 4, 4 )) ) 
 		return( -1 );
-	}
 
 	in->coeff[0] = (double)xs1;
 	in->coeff[1] = (double)-ys1;
@@ -77,7 +75,6 @@ im__coeff( int xr1, int yr1, int xs1, int ys1,
 
 	if( !(out = im_matinv( in, "out" )) ) {
 		im_free_dmask( in );
-		im_errormsg( "im__coeff: unable to invert matrix" );
 		return( -1 );
 	}
 
@@ -119,7 +116,8 @@ im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	/* Transform image!
 	 */
-	if( im_similarity_area( sec, out, a, b, dx, dy, x, y, w, h ) )
+	if( im_affinei( sec, out, vips_interpolate_bilinear_static(), 
+		a, -b, b, a, dx, dy, x, y, w, h ) )
 		return( -1 );
 
 	return( 0 );

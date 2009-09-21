@@ -740,7 +740,7 @@ im_local( IMAGE *im,
 	void *obj;
 
 	if( !im ) {
-		im_errormsg( "im_local: NULL image descriptor" );
+		im_error( "im_local", "%s", _( "NULL image descriptor" ) );
 		return( NULL );
 	}
 

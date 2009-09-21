@@ -128,7 +128,7 @@ main( int argc, char *argv[] )
 		ysize = vips->Ysize;
 	}
 	else {
-		im_diagnostics( "mitsub: rotating ..." );
+		im_diag( "mitsub", "%s", _( "rotating ..." ) );
 		xsize = vips->Ysize;
 		ysize = vips->Xsize;
 	}
@@ -141,7 +141,7 @@ main( int argc, char *argv[] )
 		double factor = IM_MAX( x_factor, y_factor );
 		IMAGE *sh = im_open( "shrink", "t" );
 
-		im_diagnostics( "mitsub: shrinking by %g ...", factor );
+		im_diag( "mitsub", "%s", _( "shrinking by %g ..." ), factor );
 		if( !sh || im_shrink( vips, sh, factor, factor ) )
 			error_exit( "mitsub: shrink failed" );
 
@@ -199,7 +199,7 @@ main( int argc, char *argv[] )
 			n = 255;
 			m = (int) xsize/fact + 1;
 		}
-		im_diagnostics( "mitsub: enlarging by %g ...", (double) n/m );
+		im_diag( "mitsub", _( "enlarging by %g ..." ), (double) n/m );
 
 		/* Horizontal enlarge.
 		 */	
@@ -278,7 +278,7 @@ main( int argc, char *argv[] )
 	/* Centering. ('1' = centering available, '0'= no centering).
 	 */
 	if( center ) {
-		im_diagnostics( "mitsub: centering ..." );
+		im_diag( "mitsub", "%s", _( "centering ..." ) );
 		putc( 0x1b, out );
 		putc( '&', out );
 		putc( 'C', out );
@@ -419,7 +419,7 @@ main( int argc, char *argv[] )
 	p = (PEL *) vips->data;
 	switch( vips->Bands ) {
 	case 4:
-		im_diagnostics( "mitsub: sending IM_TYPE_CMYK ..." );
+		im_diag( "mitsub", "%s", _( "sending IM_TYPE_CMYK ..." ) );
 		for( y = 0; y < vips->Ysize; y++ )
 			for( x = 0; x < vips->Xsize; x++ ) {
  				putc( p[2], out );
@@ -431,7 +431,7 @@ main( int argc, char *argv[] )
 		break;
 
 	case 3:
-		im_diagnostics( "mitsub: sending IM_TYPE_RGB ..." );
+		im_diag( "mitsub", "%s", _( "sending IM_TYPE_RGB ..." ) );
 		for( y = 0; y < vips->Ysize; y++ )
 			for( x = 0; x < vips->Xsize; x++ ) {
  				putc( p[0], out );
@@ -442,7 +442,7 @@ main( int argc, char *argv[] )
 		break;
 
 	case 1:
-		im_diagnostics( "mitsub: sending K ..." );
+		im_diag( "mitsub", "%s", _( "sending K ..." ) );
 		for( y = 0; y < vips->Ysize; y++ )
 			for( x = 0; x < vips->Xsize; x++ )
  				putc( *p++, out );

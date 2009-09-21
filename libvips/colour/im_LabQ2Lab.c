@@ -111,7 +111,7 @@ im_LabQ2Lab( IMAGE *labim,  IMAGE *outim )
 	/* check for coded Lab type 
 	 */
 	if( labim->Coding != IM_CODING_LABQ ) {
-		im_errormsg( "im_LabQ2Lab: not a packed Lab image" );
+		im_error( "im_LabQ2Lab", "%s", _( "not a packed Lab image" ) );
 		return( -1 );
 	}
 

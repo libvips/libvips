@@ -233,7 +233,8 @@ char *name;
 	/* Chop off '.v'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( NULL );
 	}
@@ -242,7 +243,8 @@ char *name;
 	/* Chop off nxn.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( NULL );
 	}
@@ -263,7 +265,8 @@ char *name;
 	/* Chop off '.v'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -272,7 +275,8 @@ char *name;
 	/* Find '.nxm'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -280,7 +284,8 @@ char *name;
 	/* Read out x posn.
 	 */
 	if( sscanf( p, ".%dx%*d", &n ) != 1 ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -300,7 +305,8 @@ char *name;
 	/* Chop off '.v'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -309,7 +315,8 @@ char *name;
 	/* Find '.nxm'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -317,7 +324,8 @@ char *name;
 	/* Read out y posn.
 	 */
 	if( sscanf( p, ".%*dx%d", &m ) != 1 ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -337,10 +345,8 @@ static int
 join_leftright(IMAGE *left, IMAGE *right, IMAGE *out, int dx, int dy )
 {
  
-	if (im_lrmerge(left, right, out, dx, dy, 20) == -1){
-            im_errormsg("mergeup: unable to run im_lrmerge");
+	if (im_lrmerge(left, right, out, dx, dy, 20) == -1)
             return( -1 );
-        }
 return( 0 );
 } 
 
@@ -350,10 +356,8 @@ return( 0 );
 static int
 join_updown( IMAGE *top, IMAGE *bottom, IMAGE *out, int dx, int dy )
 {
-	if (im_tbmerge(top, bottom, out, dx, dy, 20) == -1){
-		im_errormsg("mergeup: unable to run im_tbmerge");
+	if (im_tbmerge(top, bottom, out, dx, dy, 20) == -1)
 		return( -1 );
-	}
 
 return( 0 );
 }
@@ -373,7 +377,7 @@ merge_up( int width, int height, IMAGE **inp, IMAGE *outp, int xoff, int yoff,
 
 	p_img = (IMAGE **) malloc(1 + 3 * width * height * sizeof(IMAGE *));
 	if( p_img == NULL ){
-	    im_errormsg("mergeup: allocation failure in mergeup");
+	    im_error( "mergeup", "%s", _( "allocation failure in mergeup") );
 	    return( -1 );
 	}
 	partial_no = 0;
@@ -383,7 +387,7 @@ merge_up( int width, int height, IMAGE **inp, IMAGE *outp, int xoff, int yoff,
 	first_row = 0;
 
 	if( (width == 0 ) && (height == 0 ) ){
-		im_errormsg("mergeup: Need more than one image");
+		im_error( "mergeup", "%s", _( "Need more than one image") );
 		return( -1 );
 	}
 
@@ -395,7 +399,6 @@ merge_up( int width, int height, IMAGE **inp, IMAGE *outp, int xoff, int yoff,
 		if( j != 0 ){
 		    im_snprintf( name, 29, "partial_img.%d.v",partial_no );
 		    if( !( p_img[partial_no] = im_open( name, "p" )) ){
-			im_errormsg("mergeup: unable to open partial image");
 			free(p_img);
 			return( -1 );
 		    }
@@ -421,7 +424,6 @@ merge_up( int width, int height, IMAGE **inp, IMAGE *outp, int xoff, int yoff,
              if( i < height ){
                 im_snprintf( name, 29, "partial_img.%d.v", partial_no );
                 if( !( p_img[partial_no] = im_open( name, "p" )) ){
-			im_errormsg("mergeup: unable to open partial image");
 			free(p_img);                       
                     	return( -1 );
                 }

@@ -7,6 +7,7 @@ libdeprecated_la_SOURCES = \
     im_gaddim.c \
     im_cmulnorm.c \
     im_gfadd.c \
+    rename.c \
     im_litecor.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

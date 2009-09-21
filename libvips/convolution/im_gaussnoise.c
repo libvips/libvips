@@ -121,7 +121,7 @@ im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma )
 	/* Check parameters.
 	 */
 	if( x < 0 || y < 0 ) {
-		im_errormsg( "im_gaussnoise: bad parameter" );
+		im_error( "im_gaussnoise", "%s", _( "bad parameter" ) );
 		return( -1 );
 	}
 

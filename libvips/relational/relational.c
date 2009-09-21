@@ -134,7 +134,7 @@ relational_process( char *name, IMAGE **in, IMAGE *out,
 	 */
 	for( n = 0; in[n]; n++ ) {
 		if( in[n]->Coding != IM_CODING_NONE ) {
-			im_errormsg( "%s: uncoded images only", name );
+			im_error( name, "%s", _( "uncoded images only" ) );
 			return( -1 );
 		}
 	}
@@ -144,8 +144,8 @@ relational_process( char *name, IMAGE **in, IMAGE *out,
 	 */
 	for( i = 1; i < n; i++ )
 		if( in[0]->Bands != in[i]->Bands ) {
-			im_errormsg( "%s: images differ in numbers of bands", 
-				name );
+			im_error( name, "%s", 
+				_( "images differ in numbers of bands" ) ); 
 			return( -1 );
 		}
 
@@ -365,11 +365,11 @@ im_equal_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	double *p;
 
 	if( n != in->Bands ) {
-		im_errormsg( "im_equal_vec: vec size does not match bands" );
+		im_error( "im_equal_vec", "%s", _( "vec size does not match bands" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_errormsg( "im_equal_vec: not implemented for complex" );
+		im_error( "im_equal_vec", "%s", _( "not implemented for complex" ) );
 		return( -1 );
 	}
 
@@ -433,11 +433,11 @@ im_notequal_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	double *p;
 
 	if( n != in->Bands ) {
-		im_errormsg( "im_notequal_vec: vec size does not match bands" );
+		im_error( "im_notequal_vec", "%s", _( "vec size does not match bands" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_errormsg( "im_notequal_vec: not implemented for complex" );
+		im_error( "im_notequal_vec", "%s", _( "not implemented for complex" ) );
 		return( -1 );
 	}
 
@@ -542,11 +542,11 @@ im_less_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	double *p;
 
 	if( n != in->Bands ) {
-		im_errormsg( "im_less_vec: vec size does not match bands" );
+		im_error( "im_less_vec", "%s", _( "vec size does not match bands" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_errormsg( "im_less_vec: not implemented for complex" );
+		im_error( "im_less_vec", "%s", _( "not implemented for complex" ) );
 		return( -1 );
 	}
 
@@ -651,11 +651,11 @@ im_lesseq_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	double *p;
 
 	if( n != in->Bands ) {
-		im_errormsg( "im_lesseq_vec: vec size does not match bands" );
+		im_error( "im_lesseq_vec", "%s", _( "vec size does not match bands" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in ) ) {
-		im_errormsg( "im_lesseq_vec: not implemented for complex" );
+		im_error( "im_lesseq_vec", "%s", _( "not implemented for complex" ) );
 		return( -1 );
 	}
 
@@ -692,7 +692,7 @@ im_more_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	 */
 	if( !(t = im_open_local( out, "im_more_vec-1", "p" )) ||
 		im_lesseq_vec( in, t, n, c ) ||
-		im_eorconst( t, out, 255 ) )
+		im_eorimageconst( t, out, 255 ) )
 		return( -1 );
 
 	return( 0 );
@@ -722,7 +722,7 @@ im_moreeq_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	 */
 	if( !(t = im_open_local( out, "im_moreeq_vec-1", "p" )) ||
 		im_less_vec( in, t, n, c ) ||
-		im_eorconst( t, out, 255 ) )
+		im_eorimageconst( t, out, 255 ) )
 		return( -1 );
 
 	return( 0 );

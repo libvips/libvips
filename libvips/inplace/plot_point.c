@@ -75,7 +75,7 @@ im_readpoint( IMAGE *im, int x, int y, PEL *pel )
 	/* Check coordinates in range.
 	 */
 	if(  x > im->Xsize || x < 0 || y > im->Ysize || y < 0 ) {
-		im_errormsg( "im_readpoint: invalid cooordinates" ); 
+		im_error( "im_readpoint", "%s", _( "invalid cooordinates" ) ); 
 		return( 1 ); 
 	}
 

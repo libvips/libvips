@@ -208,9 +208,10 @@ benchmark( IMAGE *in, IMAGE *out )
 
 		/* Shrink by 10%, bilinear interp.
 		 */
-		im_affine( t[1], t[2],
-			0.9, 0, 0, 0.9, 0, 0, 
-			0, 0, t[1]->Xsize * 0.9, t[1]->Ysize * 0.9 ) ||
+		im_affinei_all( t[1], t[2],
+			vips_interpolate_bilinear_static(),
+			0.9, 0, 0, 0.9, 
+			0, 0 ) || 
 
 		/* Find L ~= 100 areas (white surround).
 		 */
@@ -264,11 +265,11 @@ im_benchmarkn( IMAGE *in, IMAGE *out, int n )
 			 * so if we chain many of them together the image gets
 			 * too small.
 			 */
-			im_affine( t[0], t[1],
+			im_affinei_all( t[0], t[1],
+				vips_interpolate_bilinear_static(),
 				(double) in->Xsize / t[0]->Xsize, 0, 0, 
 				(double) in->Ysize / t[0]->Ysize, 
-				0, 0, 
-				0, 0, in->Xsize, in->Ysize ) ||
+				0, 0 ) || 
 
 			im_benchmarkn( t[1], out, n - 1 ) );
 }

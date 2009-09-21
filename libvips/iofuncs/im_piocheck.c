@@ -89,7 +89,7 @@ im_pincheck( IMAGE *im )
 		/* Should have been written to.
 		 */
 		if( !im->data ) {
-			im_errormsg( "im_pincheck: no image data" );
+			im_error( "im_pincheck", "%s", _( "no image data" ) );
 			return( -1 );
 		}
 
@@ -105,7 +105,7 @@ im_pincheck( IMAGE *im )
 		/* Should have had generate functions attached.
 		 */
 		if( !im->generate ) {
-			im_errormsg( "im_pincheck: no image data" );
+			im_error( "im_pincheck", "%s", _( "no image data" ) );
 			return( -1 );
 		}
 
@@ -123,7 +123,8 @@ im_pincheck( IMAGE *im )
 		printf( "im_pincheck: auto-rewind of %s\n", im->filename );
 #endif/*DEBUG_IO*/
 		if( im__close( im ) || im_openin( im ) ) {
-			im_errormsg( "im_pincheck: auto-rewind for %s failed",
+			im_error( "im_pincheck", 
+				_( "auto-rewind for %s failed" ),
 				im->filename );
 			return( -1 );
 		}
@@ -131,7 +132,7 @@ im_pincheck( IMAGE *im )
 		break;
 
 	default:
-		im_errormsg( "im_pincheck: image not readable" );
+		im_error( "im_pincheck", "%s", _( "image not readable" ) );
 		return( -1 );
 	}
 
@@ -144,7 +145,7 @@ int
 im_poutcheck( IMAGE *im )
 {
 	if( !im ) {
-		im_errormsg( "im_poutcheck: null image descriptor" );
+		im_error( "im_poutcheck", "%s", _( "null image descriptor" ) );
 		return( -1 );
 	}
 
@@ -157,7 +158,8 @@ im_poutcheck( IMAGE *im )
 		/* Check that it has not been im_setupout().
 		 */
 		if( im->data ) {
-			im_errormsg( "im_poutcheck: image already written" );
+			im_error( "im_poutcheck", "%s", 
+				_( "image already written" ) );
 			return( -1 );
 		}
 
@@ -167,7 +169,8 @@ im_poutcheck( IMAGE *im )
 		/* Make sure nothing is attached.
 		 */
 		if( im->generate ) {
-			im_errormsg( "im_poutcheck: image already written" );
+			im_error( "im_poutcheck", "%s", 
+				_( "image already written" ) );
 			return( -1 );
 		}
 
@@ -180,7 +183,7 @@ im_poutcheck( IMAGE *im )
 		break;
 
 	default:
-		im_errormsg( "im_poutcheck: image not writeable" );
+		im_error( "im_poutcheck", "%s", _( "image not writeable" ) );
 		return( -1 );
 	}
 

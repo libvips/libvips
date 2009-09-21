@@ -60,7 +60,7 @@ im_mask2vips( DOUBLEMASK *in, IMAGE *out )
 	/* Check the mask.
 	 */
 	if( !in || !in->coeff ) {
-		im_errormsg( "im_mask2vips: bad input mask" );
+		im_error( "im_mask2vips", "%s", _( "bad input mask" ) );
 		return( -1 );
 	}
 

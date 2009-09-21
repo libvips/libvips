@@ -122,7 +122,7 @@ ideal_hpf( IMAGE *out, int xs, int ys, double fc )
 	double *xd, *yd, fc2, distance2;
 
 	if( xs != ys || fc < 0.0 ) { 
-		im_errormsg( "ideal_hpf: bad args" ); 
+		im_error( "ideal_hpf", "%s", _( "bad args" ) ); 
 		return( NULL ); 
 	}
 
@@ -131,7 +131,7 @@ ideal_hpf( IMAGE *out, int xs, int ys, double fc )
 	else if( fc <= 1.0 && fc > 0.0 )
 		fc2 = fc * fc;
 	else { 
-		im_errormsg( "ideal_hpf: bad args" ); 
+		im_error( "ideal_hpf", "%s", _( "bad args" ) ); 
 		return( NULL ); 
 	}
 
@@ -165,7 +165,7 @@ ideal_lpf( IMAGE *out, int xs, int ys, double fc )
 	double *xd, *yd, fc2, distance2;
 
 	if( xs != ys || fc <= 0.0 ) { 
-		im_errormsg( "ideal_lpf: bad args" ); 
+		im_error( "ideal_lpf", "%s", _( "bad args" ) ); 
 		return( NULL ); 
 	}
 
@@ -174,7 +174,7 @@ ideal_lpf( IMAGE *out, int xs, int ys, double fc )
 	else if( fc <= 1.0 && fc > 0.0 )
 		fc2 = fc * fc;
 	else { 
-		im_errormsg( "ideal_lpf: bad args" ); 
+		im_error( "ideal_lpf", "%s", _( "bad args" ) ); 
 		return( NULL );
 	}
 
@@ -207,7 +207,7 @@ butterworth_hpf( IMAGE *out, int xs, int ys,
 	double *xd, *yd, fc2, distance2, cnst;
 
 	if( xs != ys || fc < 0.0 || order < 1.0 || ac <= 0.0 || ac >= 1.0 ) {
-		im_errormsg( "butterworth_hpf: bad args" );
+		im_error( "butterworth_hpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -216,7 +216,7 @@ butterworth_hpf( IMAGE *out, int xs, int ys,
 	else if( fc <= 1.0 && fc > 0.0 )
 		fc2 = fc * fc;
 	else {
-		im_errormsg( "butterworth_hpf: bad args" );
+		im_error( "butterworth_hpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -254,7 +254,7 @@ butterworth_lpf( IMAGE *out, int xs, int ys,
 	double *xd, *yd, fc2, distance2, cnst;
 
 	if( xs != ys || fc <= 0.0 || order < 1.0 || ac >= 1.0 || ac <= 0.0 ) {
-		im_errormsg( "butterworth_lpf: bad args" );
+		im_error( "butterworth_lpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -263,7 +263,7 @@ butterworth_lpf( IMAGE *out, int xs, int ys,
 	else if( fc <= 1.0 && fc > 0.0 )
 		fc2 = fc * fc;
 	else {
-		im_errormsg( "butterworth_lpf: bad args" );
+		im_error( "butterworth_lpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -294,7 +294,7 @@ gaussian_hpf( IMAGE *out, int xs, int ys, double fc, double ac )
 	double *xd, *yd, fc2, distance2, cnst;
 
 	if( xs != ys || fc <= 0.0 || ac >= 1.0 || ac <= 0.0 ) {
-		im_errormsg( "gaussian_hpf: bad args" );
+		im_error( "gaussian_hpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -303,7 +303,7 @@ gaussian_hpf( IMAGE *out, int xs, int ys, double fc, double ac )
 	else if( fc <= 1.0 && fc > 0.0 )
 		fc2 = fc * fc;
 	else {
-		im_errormsg( "gaussian_hpf: bad args" );
+		im_error( "gaussian_hpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -335,7 +335,7 @@ gaussian_lpf( IMAGE *out, int xs, int ys, double fc, double ac )
 	double *xd, *yd, fc2, distance2, cnst;
 
 	if( xs != ys || fc < 0.0 || ac >= 1.0 || ac <= 0.0 ) {
-		im_errormsg( "gaussian_lpf: bad args" );
+		im_error( "gaussian_lpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -344,7 +344,7 @@ gaussian_lpf( IMAGE *out, int xs, int ys, double fc, double ac )
 	else if( fc <= 1.0 && fc > 0.0 )
 		fc2 = fc * fc;
 	else {
-		im_errormsg( "gaussian_lpf: bad args" );
+		im_error( "gaussian_lpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -375,7 +375,7 @@ ideal_rpf( IMAGE *out, int xs, int ys, double fc, double width )
 	double *xd, *yd, df, distance2, radius1_2, radius2_2;
 
 	if( xs != ys || fc <= 0 || width <= 0 ) {
-		im_errormsg( "ideal_rpf: bad args" );
+		im_error( "ideal_rpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -389,7 +389,7 @@ ideal_rpf( IMAGE *out, int xs, int ys, double fc, double width )
 		radius2_2 = (fc + df) * (fc + df) * 4.0 / ((double)(xs * xs));
 	}
 	else {
-		im_errormsg( "ideal_rpf: bad args" );
+		im_error( "ideal_rpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -425,7 +425,7 @@ ideal_rrf( IMAGE *out, int xs, int ys, double fc, double width )
 	double *xd, *yd, df, distance2, radius1_2, radius2_2;
 
 	if( xs != ys || fc < 0.0 || width <= 0.0 ) {
-		im_errormsg( "ideal_rrf: bad args" );
+		im_error( "ideal_rrf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -439,7 +439,7 @@ ideal_rrf( IMAGE *out, int xs, int ys, double fc, double width )
 		radius2_2 = (fc + df) * (fc + df) * 4.0 / ((double)(xs * xs));
 	}
 	else {
-		im_errormsg( "ideal_rrf: bad args" );
+		im_error( "ideal_rrf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -475,7 +475,7 @@ butterworth_rpf( IMAGE *out, int xs, int ys,
 
 	if( xs != ys || fc <= 0.0 || width <= 0.0 ||
 	     order < 1.0 || ac >= 1.0 || ac <= 0.0 ) {
-		im_errormsg( "butterworth_rpf: bad args" );
+		im_error( "butterworth_rpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -489,7 +489,7 @@ butterworth_rpf( IMAGE *out, int xs, int ys,
 		ndf = width /(double)ys; 
 	}
 	else {
-		im_errormsg( "butterworth_rpf: bad args" );
+		im_error( "butterworth_rpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -529,7 +529,7 @@ butterworth_rrf( IMAGE *out, int xs, int ys,
 
 	if( xs != ys || fc <= 0.0 || width <= 0.0 ||
 	     order < 1.0 || ac >= 1.0 || ac <= 0.0 ) {
-		im_errormsg( "butterworth_rrf: bad args" );
+		im_error( "butterworth_rrf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -543,7 +543,7 @@ butterworth_rrf( IMAGE *out, int xs, int ys,
 		ndf = width /(double)ys; 
 	}
 	else {
-		im_errormsg( "butterworth_rrf: bad args" );
+		im_error( "butterworth_rrf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -580,7 +580,7 @@ gaussian_rpf( IMAGE *out, int xs, int ys, double fc, double width, double ac )
 	double *xd, *yd, d, df, ndf, ndf2, nfc, cnst;
 
 	if( xs != ys || fc < 0.0 || width <= 0.0 || ac <= 0.0 || ac > 1.0 ) {
-		im_errormsg( "gaussian_rpf: bad args" );
+		im_error( "gaussian_rpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -594,7 +594,7 @@ gaussian_rpf( IMAGE *out, int xs, int ys, double fc, double width, double ac )
 		ndf = width /(double)ys; 
 	}
 	else {
-		im_errormsg( "gaussian_rpf: bad args" );
+		im_error( "gaussian_rpf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -631,7 +631,7 @@ gaussian_rrf( IMAGE *out, int xs, int ys, double fc, double width, double ac )
 	double *xd, *yd, d, df, ndf, ndf2, nfc, cnst;
 
 	if( xs != ys || fc < 0.0 || width <= 0.0 || ac <= 0.0 || ac > 1.0 ) {
-		im_errormsg( "gaussian_rrf: bad args" );
+		im_error( "gaussian_rrf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -645,7 +645,7 @@ gaussian_rrf( IMAGE *out, int xs, int ys, double fc, double width, double ac )
 		ndf = width / (double)ys; 
 	}
 	else {
-		im_errormsg( "gaussian_rrf: bad args" );
+		im_error( "gaussian_rrf", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -699,7 +699,7 @@ fractal_flt( IMAGE *out, int xs, int ys, double frdim )
 	double *xd, *yd, distance2, cnst;
 
 	if( xs != ys || frdim <= 2.0 || frdim >= 3.0 ) {
-		im_errormsg( "fractal_flt: bad args" );
+		im_error( "fractal_flt", "%s", _( "bad args" ) );
 		return( NULL );
 	}
 
@@ -792,7 +792,8 @@ im__create_quarter( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
 			return( fractal_flt( out, xs, ys, p0 ) );
 
 		default:
-			im_errormsg( "create_quarter: unimplemented mask" );
+			im_error( "create_quarter", "%s", 
+				_( "unimplemented mask" ) );
 			return( NULL );
 	}
 

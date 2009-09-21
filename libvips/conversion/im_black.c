@@ -84,7 +84,7 @@ im_black( IMAGE *out, int x, int y, int bands )
 	/* Check parameters.
 	 */
 	if( x < 0 || y < 0 || bands < 0 ) {
-		im_errormsg( "im_black: bad parameter" );
+		im_error( "im_black", "%s", _( "bad parameter" ) );
 		return( -1 );
 	}
 

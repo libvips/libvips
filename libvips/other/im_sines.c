@@ -75,8 +75,9 @@ im_sines( IMAGE *image, int xsize, int ysize, double horfreq, double verfreq )
 /* Check input args */
 	if( im_outcheck( image ) )
 		return( -1 );
-        if ( xsize <= 0 || ysize <= 0 )
-                { im_errormsg("im_sines: wrong sizes"); return(-1); }
+        if ( xsize <= 0 || ysize <= 0 ) { 
+		im_error( "im_sines", "%s", _( "wrong sizes") ); 
+		return(-1); }
 
 /* Set now image properly */
         im_initdesc(image, xsize, ysize, 1, IM_BBITS_FLOAT, IM_BANDFMT_FLOAT,
@@ -84,11 +85,12 @@ im_sines( IMAGE *image, int xsize, int ysize, double horfreq, double verfreq )
 
 /* Set up image checking whether the output is a buffer or a file */
         if (im_setupout( image ) == -1 )
-                { im_errormsg("im_sines: im_setupout failed"); return(-1); }
+                return( -1 );
 /* Create data */
 	size = image->Xsize;
-        if ( (line=(float *)calloc((unsigned)size, sizeof(float))) == NULL )
-                { im_errormsg("im_sines: calloc failed"); return(-1); }
+        if ( (line=(float *)calloc((unsigned)size, sizeof(float))) == NULL ) { 
+		im_error( "im_sines", "%s", _( "calloc failed") ); 
+		return(-1); }
 
 /* make angle in rad */
 	if (horfreq == 0)
@@ -111,7 +113,6 @@ im_sines( IMAGE *image, int xsize, int ysize, double horfreq, double verfreq )
 				(float)(cos(cons*(x*costheta-ysintheta)));
 			if ( im_writeline( y, image, (PEL *)line ) == -1 )
 				{
-				im_errormsg("im_sines: im_writeline failed");
 				free ( (char *)line );
 				return( -1 );
 				}
@@ -127,7 +128,6 @@ im_sines( IMAGE *image, int xsize, int ysize, double horfreq, double verfreq )
 				*cpline++ = (float)ysintheta;
 			if ( im_writeline( y, image, (PEL *)line ) == -1 )
 				{
-				im_errormsg("im_sines: im_writeline failed");
 				free ( (char *)line );
 				return( -1 );
 				}

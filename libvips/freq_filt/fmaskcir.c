@@ -160,7 +160,7 @@ ideal_bpf( IMAGE *out, double fcx, double fcy, double r )
 	int y2plus, y2minus;
 
 	if( xs != ys ) {
-		im_errormsg( "ideal_bpf: bad sizes" );
+		im_error( "ideal_bpf", "%s", _( "bad sizes" ) );
 		return( -1 );
 	}
 	if( fabs(fcx) <= 1.0 && fabs(fcy) < 1.0 && r > 0.0 && r < 1.0 ) {
@@ -174,7 +174,7 @@ ideal_bpf( IMAGE *out, double fcx, double fcy, double r )
 		r2 = r*r;
 	}
 	else {
-		im_errormsg( "ideal_bpf: bad args" );
+		im_error( "ideal_bpf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 
@@ -230,7 +230,7 @@ ideal_brf( IMAGE *out, double fcx, double fcy, double r )
 	int y2plus, y2minus;
 
 	if( xs != ys ) {
-		im_errormsg( "ideal_brf: bad args" );
+		im_error( "ideal_brf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 	if( fabs(fcx) <= 1.0 && fabs(fcy) <= 1.0 && r > 0.0 && r < 1.0 ) {
@@ -244,7 +244,7 @@ ideal_brf( IMAGE *out, double fcx, double fcy, double r )
 		r2 = r*r;
 	}
 	else {
-		im_errormsg( "ideal_brf: bad args" );
+		im_error( "ideal_brf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 
@@ -305,7 +305,7 @@ butterworth_bpf( IMAGE *out,
 	int y2plus, y2minus;
 
 	if( xs != ys || order < 1.0 ) {
-		im_errormsg( "butterworth_bpf: bad sizes" );
+		im_error( "butterworth_bpf", "%s", _( "bad sizes" ) );
 		return( -1 );
 	}
 	if( fabs(fcx) <= 1.0 && fabs(fcy) <= 1.0 && r > 0.0 && r < 1.0 ) {
@@ -319,11 +319,11 @@ butterworth_bpf( IMAGE *out,
 		nr2 = r*r;
 	}
 	else {
-		im_errormsg( "butterworth_bpf: bad args" );
+		im_error( "butterworth_bpf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 	if( ac >= 1.0 || ac < 0.0) {
-		im_errormsg( "butterworth_bpf: bad args" );
+		im_error( "butterworth_bpf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 
@@ -396,7 +396,7 @@ butterworth_brf( IMAGE *out,
 	int y2plus, y2minus;
 
 	if( xs != ys || order < 1.0 ) {
-		im_errormsg( "butterworth_brf: bad sizes" );
+		im_error( "butterworth_brf", "%s", _( "bad sizes" ) );
 		return( -1 );
 	}
 	if( fabs(fcx) <= 1.0 && fabs(fcy) <= 1.0 && r > 0.0 && r < 1.0 ) {
@@ -410,11 +410,11 @@ butterworth_brf( IMAGE *out,
 		nr2 = r*r;
 	}
 	else {
-		im_errormsg( "butterworth_brf: bad args" );
+		im_error( "butterworth_brf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 	if( ac >= 1.0 || ac < 0.0) {
-		im_errormsg( "butterworth_brf: bad args" );
+		im_error( "butterworth_brf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 
@@ -478,7 +478,7 @@ gaussian_bpf( IMAGE *out, double fcx, double fcy, double r, double ac )
 	int y2plus, y2minus;
 
 	if( xs != ys ) {
-		im_errormsg( "gauss_bpf: bad sizes" );
+		im_error( "gauss_bpf", "%s", _( "bad sizes" ) );
 		return( -1 );
 	}
 	if( fabs(fcx) <= 1.0 && fabs(fcy) <= 1.0 && r > 0.0 && r < 1.0 ) {
@@ -492,11 +492,11 @@ gaussian_bpf( IMAGE *out, double fcx, double fcy, double r, double ac )
 		nr2 = r*r;
 	}
 	else {
-		im_errormsg( "gauss_bpf: bad args (f)" );
+		im_error( "gauss_bpf", "%s", _( "bad args (f)" ) );
 		return( -1 );
 	}
 	if( ac >= 1.0 || ac < 0.0 ) {
-		im_errormsg( "gauss_bpf: bad args (ac)" );
+		im_error( "gauss_bpf", "%s", _( "bad args (ac)" ) );
 		return( -1 );
 	}
 
@@ -558,7 +558,7 @@ gaussian_brf( IMAGE *out, double fcx, double fcy, double r, double ac )
 	int y2plus, y2minus;
 
 	if( xs != ys ) {
-		im_errormsg( "gauss_brf: bad sizes" );
+		im_error( "gauss_brf", "%s", _( "bad sizes" ) );
 		return( -1 );
 	}
 	if( fabs(fcx) <= 1.0 && fabs(fcy) <= 1.0 && r > 0.0 && r < 1.0 ) {
@@ -572,11 +572,11 @@ gaussian_brf( IMAGE *out, double fcx, double fcy, double r, double ac )
 		nr2 = r * r;
 	}
 	else {
-		im_errormsg( "gauss_brf: bad args" );
+		im_error( "gauss_brf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 	if( ac >= 1.0 || ac < 0.0 ) {
-		im_errormsg( "gauss_brf: bad args" );
+		im_error( "gauss_brf", "%s", _( "bad args" ) );
 		return( -1 );
 	}
 
@@ -656,7 +656,8 @@ im__fmaskcir( IMAGE *out, MaskType flag, va_list ap )
 			return( gaussian_brf( out, p0, p1, p2, p3 ) );
 
 		default:
-			im_errormsg( "im__fmaskcir: unimplemented mask" );
+			im_error( "im__fmaskcir", "%s", 
+				_( "unimplemented mask" ) );
 			return( -1 );
 	}
 

@@ -103,7 +103,7 @@ im__tbcalcon( IMAGE *ref, TIE_POINTS *points )
 	if( im_incheck( ref ) )
 		return( -1 );
 	if( ref->Bands != 1 || ref->BandFmt != IM_BANDFMT_UCHAR ) { 
-		im_errormsg( "im__tbcalcon: help!" );
+		im_error( "im__tbcalcon", "%s", _( "help!" ) );
 		return( -1 );
 	}
 
@@ -117,7 +117,7 @@ im__tbcalcon( IMAGE *ref, TIE_POINTS *points )
 	area.width--;
 	area.height--;
 	if( area.width < 0 || area.height < 0 ) {
-		im_errormsg( "im__tbcalcon: overlap too small" );
+		im_error( "im__tbcalcon", "%s", _( "overlap too small" ) );
 		return( -1 );
 	}
 

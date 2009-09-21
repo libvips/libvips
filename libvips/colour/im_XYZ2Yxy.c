@@ -84,7 +84,8 @@ im_XYZ2Yxy( IMAGE *in, IMAGE *out )
 {	
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
 		in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_XYZ2Yxy: 3-band uncoded float input only" );
+		im_error( "im_XYZ2Yxy", "%s", 
+			_( "3-band uncoded float input only" ) );
 		return( -1 );
 	}
 

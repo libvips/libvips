@@ -1,10 +1,5 @@
-/* @(#) error handling
- * @(#) 
- * @(#)  Usage:
- * @(#)  void im_errormsg(variable_list)
- * @(#)  (variable_list) is (format, arg1, arg2, ...)
- * @(#) format, arg1, arg2, etc are the same as in fprintf
- * @(#) 
+/* error.c --- error message handling 
+ *
  * Copyright: N. Dessipris 
  * Written on: 18/03/1991
  * Updated on: 9/7/92 KM
@@ -200,54 +195,5 @@ im_warn( const char *domain, const char *fmt, ... )
 
 	va_start( ap, fmt );
 	im_vwarn( domain, fmt, ap );
-	va_end( ap );
-}
-
-/* Compatibility with pre-7.10 ... can't portably do these as macros sadly.
- */
-
-void 
-im_errormsg( const char *fmt, ... )
-{	
-	va_list ap;
-
-	va_start( ap, fmt );
-	im_verror( "untranslated", fmt, ap );
-	va_end( ap );
-}
-
-void 
-im_verrormsg( const char *fmt, va_list ap )
-{	
-	im_verror( "untranslated", fmt, ap );
-}
-
-void
-im_errormsg_system( int err,  const char *fmt, ... )
-{
-	va_list ap;
-
-	va_start( ap, fmt );
-	im_verror_system( err, "untranslated", fmt, ap );
-	va_end( ap );
-}
-
-void 
-im_diagnostics( const char *fmt, ... )
-{	
-	va_list ap;
-
-	va_start( ap, fmt );
-	im_vdiag( "untranslated", fmt, ap );
-	va_end( ap );
-}
-
-void 
-im_warning( const char *fmt, ... )
-{
-	va_list ap;
-
-	va_start( ap, fmt );
-	im_vwarn( "untranslated", fmt, ap );
 	va_end( ap );
 }

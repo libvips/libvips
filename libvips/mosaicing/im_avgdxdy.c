@@ -65,7 +65,7 @@ im__avgdxdy( TIE_POINTS *points, int *dx, int *dy )
 	int i;
 
 	if( points->nopoints == 0 ) {
-		im_errormsg( "im_avgdxdy: no points to average" );
+		im_error( "im_avgdxdy", "%s", _( "no points to average" ) );
 		return( -1 );
 	}
 

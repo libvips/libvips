@@ -80,20 +80,19 @@ double threshold;
 
 /* Check our args. */
 	if( im_iocheck( in, out ) ) 
-		{ im_errormsg("im_thresh: im_iocheck failed"); return( -1 ); }
-	if( in->Coding != IM_CODING_NONE ) 
-		{ im_errormsg("im_thresh: input should be uncoded");return(-1);}
+		return( -1 );
+	if( in->Coding != IM_CODING_NONE ) { 
+		im_error( "im_thresh", "%s", _( "input should be uncoded") );
+		return(-1);
+	}
 
 /* Set up the output header.  */
 	if( im_cp_desc( out, in ) ) 
-		{ im_errormsg("im_thresh: im_cp_desc failed"); return( -1 ); }
+		return( -1 );
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Bbits = IM_BBITS_BYTE;
 	if( im_setupout( out ) ) 
-		{
-		im_errormsg("im_thresh: im_setupout failed");
 		return( -1 );
-		}
 
 /* Make buffer for building o/p in.  */
 	epl = in->Xsize * in->Bands;
@@ -126,7 +125,7 @@ double threshold;
 	im_for_all_types( im_thresh_loop );
 
 	default:
-		im_errormsg("im_thresh: Unknown input format");
+		im_error( "im_thresh", "%s", _( "Unknown input format") );
 		return( -1 );
 	}
 

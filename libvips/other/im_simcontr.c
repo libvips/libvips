@@ -75,12 +75,13 @@ im_simcontr( IMAGE *image, int xs, int ys )
 
 /* Set up image checking whether the output is a buffer or a file */
         if (im_setupout( image ) == -1 )
-                { im_errormsg("im_simcontr: im_setupout failed"); return(-1); }
+                return( -1 );
 /* Create data */
         line1 = (unsigned char *)calloc((unsigned)xs, sizeof(char));
         line2 = (unsigned char *)calloc((unsigned)xs, sizeof(char));
-        if ( (line1 == NULL) || (line2 == NULL) )
-                { im_errormsg("im_simcontr: calloc failed"); return(-1); }
+        if ( (line1 == NULL) || (line2 == NULL) ) { 
+		im_error( "im_simcontr", "%s", _( "calloc failed") ); 
+		return(-1); }
 
 	cpline = line1;
 	for (x=0; x<xs; x++)

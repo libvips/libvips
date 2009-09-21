@@ -65,14 +65,14 @@ im_matmul( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name )
 	/* Check matrix sizes.
 	 */
 	if( in1->xsize != in2->ysize ) {
-		im_errormsg( "im_matmul: bad sizes" );
+		im_error( "im_matmul", "%s", _( "bad sizes" ) );
 		return( NULL );
 	}
 
 	/* Allocate output matrix.
 	 */
 	if( !(mat = im_create_dmask( name, in2->xsize, in1->ysize )) ) {
-		im_errormsg( "im_matmul: unable to allocate output mask" );
+		im_error( "im_matmul", "%s", _( "unable to allocate output mask" ) );
 		return( NULL );
 	}
 

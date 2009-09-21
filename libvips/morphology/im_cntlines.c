@@ -74,12 +74,14 @@ im_cntlines( IMAGE *im, double *nolines, int flag )
 		return( -1 );
 	if( im->Coding != IM_CODING_NONE || im->BandFmt != IM_BANDFMT_UCHAR ||
 		im->Bands != 1 ) {
-		im_errormsg( "im_cntlines: 1-band uchar uncoded only" );
+		im_error( "im_cntlines", "%s", 
+			_( "1-band uchar uncoded only" ) );
 		return( -1 ); 
 	}
 	if( flag != 0 && flag != 1 ) {
-		im_errormsg( "im_cntlines: flag should be 0 (horizontal) "
-			"or 1 (vertical)" );
+		im_error( "im_cntlines", "%s", 
+			_( "flag should be 0 (horizontal)  )"
+			"or 1 (vertical)" ) );
 		return( -1 ); 
 	}
 

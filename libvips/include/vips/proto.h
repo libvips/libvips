@@ -73,7 +73,6 @@ GOptionGroup *im_get_option_group( void );
  */
 void im_progress_set( int progress );
 
-const char *im_error_buffer( void );
 int im_debugim( IMAGE * );
 int im_printlines( IMAGE * );
 
@@ -163,14 +162,19 @@ int im_add_invalidate_callback( IMAGE *, im_callback_fn, void *, void * );
 
 void error_exit( const char *, ... )
 	__attribute__((noreturn, format(printf, 1, 2)));
+const char *im_error_buffer( void );
 void im_error_clear( void );
 void im_verror( const char *domain, const char *fmt, va_list ap );
 void im_error( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
+void im_verror_system( int err, const char *domain, 
+	const char *fmt, va_list ap );
 void im_error_system( int err, const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 3, 4)));
+void im_vdiag( const char *domain, const char *fmt, va_list ap );
 void im_warn( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
+void im_vwarn( const char *domain, const char *fmt, va_list ap );
 void im_diag( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 
@@ -301,20 +305,6 @@ int im_rotquad( IMAGE *, IMAGE * );
 int im_fwfft( IMAGE *, IMAGE * );
 int im_invfft( IMAGE *, IMAGE * );
 int im_invfftr( IMAGE *, IMAGE * );
-
-/* boolean
- */
-int im_andimage( IMAGE *, IMAGE *, IMAGE * );
-int im_andconst( IMAGE *, IMAGE *, double );
-int im_and_vec( IMAGE *, IMAGE *, int, double * );
-int im_orimage( IMAGE *, IMAGE *, IMAGE * );
-int im_orconst( IMAGE *, IMAGE *, double );
-int im_or_vec( IMAGE *, IMAGE *, int, double * );
-int im_eorimage( IMAGE *, IMAGE *, IMAGE * );
-int im_eorconst( IMAGE *, IMAGE *, double );
-int im_eor_vec( IMAGE *, IMAGE *, int, double * );
-int im_shiftleft( IMAGE *, IMAGE *, int );
-int im_shiftright( IMAGE *, IMAGE *, int );
 
 /* cimg
  */
@@ -611,17 +601,6 @@ int im_correl( IMAGE *ref, IMAGE *sec,
 int im_remosaic( IMAGE *in, IMAGE *out,
 	const char *old_str, const char *new_str );
 
-/* Old stuff, for compat.
- */
-int im_affine( IMAGE *in, IMAGE *out,
-	double a, double b, double c, double d, double dx, double dy,
-	int ox, int oy, int ow, int oh );
-int im_similarity( IMAGE *in, IMAGE *out,
-	double a, double b, double dx, double dy );
-int im_similarity_area( IMAGE *in, IMAGE *out,
-	double a, double b, double dx, double dy,
-	int ox, int oy, int ow, int oh );
-
 int im_align_bands( IMAGE *in, IMAGE *out );
 int im_maxpos_subpel( IMAGE *in, double *x, double *y );
 
@@ -699,23 +678,6 @@ int im_video_v4l1( IMAGE *im, const char *device,
 	int channel, int brightness, int colour, int contrast, int hue,
 	int ngrabs );
 int im_video_test( IMAGE *im, int brightness, int error );
-
-/* Backwards compatibility macros.
- */
-#define im_clear_error_string() im_error_clear()
-#define im_errorstring() im_error_buffer()
-
-/* Deprecated API.
- */
-void im_errormsg( const char *fmt, ... )
-	__attribute__((format(printf, 1, 2)));
-void im_verrormsg( const char *fmt, va_list ap );
-void im_errormsg_system( int err, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
-void im_diagnostics( const char *fmt, ... )
-	__attribute__((format(printf, 1, 2)));
-void im_warning( const char *fmt, ... )
-	__attribute__((format(printf, 1, 2)));
 
 #ifdef __cplusplus
 }

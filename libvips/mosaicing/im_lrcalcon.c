@@ -203,8 +203,8 @@ im__find_best_contrast( IMAGE *im,
 	int x, y, i;
 
 	if( nacross <= 0 || ndown <= 0 ) {
-		im_errormsg( "im__lrcalcon: mosaicing overlap too small for "
-			"your search size" );
+		im_error( "im__lrcalcon", "%s", 
+			_( "overlap too small for your search size" ) );
 		return( -1 );
 	}
 
@@ -242,7 +242,8 @@ im__find_best_contrast( IMAGE *im,
 	/* Found enough tie-points?
 	 */
 	if( elms < nbest ) {
-		im_errormsg( "im_mosaic: found %d tie-points, need at least %d",
+		im_error( "im_mosaic", 
+			_( "found %d tie-points, need at least %d" ), 
 			elms, nbest );
 		im_free( pc );
 		return( -1 );
@@ -287,7 +288,7 @@ im__lrcalcon( IMAGE *ref, TIE_POINTS *points )
 	if( im_incheck( ref ) )
 		return( -1 );
 	if( ref->Bands != 1 || ref->BandFmt != IM_BANDFMT_UCHAR ) { 
-		im_errormsg( "im__lrcalcon: not 1-band uchar image" );
+		im_error( "im__lrcalcon", "%s", _( "not 1-band uchar image" ) );
 		return( -1 );
 	}
 

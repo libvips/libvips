@@ -275,12 +275,12 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 	Rank *rank;
 
 	if( n < 1 ) {
-		im_errormsg( "im_rank_image: zero input images!" );
+		im_error( "im_rank_image", "%s", _( "zero input images!" ) );
 		return( -1 );
 	}
 	if( index < 0 || index > n - 1 ) {
-		im_errormsg( "im_rank_image: "
-			"index should be in range 0 - %d", n - 1 );
+		im_error( "im_rank_image", 
+			_( "index should be in range 0 - %d" ), n - 1 );
 		return( -1 );
 	}
 	if( im_poutcheck( out ) )
@@ -290,25 +290,25 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 			return( -1 );
 
 		if( in[i]->Coding != IM_CODING_NONE || im_iscomplex( in[i] ) ) {
-			im_errormsg( "im_rank_image: "
-				"uncoded non-complex only" );
+			im_error( "im_rank_image", "%s", 
+				_( "uncoded non-complex only" ) );
 			return( -1 );
 		}
 
 		if( in[0]->BandFmt != in[i]->BandFmt ) {
-			im_errormsg( "im_rank_image: "
-				"input images differ in format" );
+			im_error( "im_rank_image", "%s", 
+				_( "input images differ in format" ) );
 			return( -1 );
 		}
 		if( in[0]->Xsize != in[i]->Xsize ||
 			in[0]->Ysize != in[i]->Ysize ) {
-			im_errormsg( "im_rank_image: "
-				"input images differ in size" );
+			im_error( "im_rank_image", "%s", 
+				_( "input images differ in size" ) );
 			return( -1 );
 		}
 		if( in[0]->Bands != in[i]->Bands ) {
-			im_errormsg( "im_rank_image: "
-				"input images differ in number of bands" );
+			im_error( "im_rank_image", "%s", 
+				_( "input images differ in number of bands" ) );
 			return( -1 );
 		}
 	}

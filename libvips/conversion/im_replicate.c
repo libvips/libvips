@@ -134,7 +134,7 @@ int
 im_replicate( IMAGE *in, IMAGE *out, int across, int down )
 {
 	if( across <= 0 || down <= 0 ) {
-		im_errormsg( "im_replicate: bad parameters" );
+		im_error( "im_replicate", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )

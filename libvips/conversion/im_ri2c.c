@@ -115,11 +115,11 @@ im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	 * im_wrapmany does this for us.
 	 */
 	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_ri2c: inputs should be uncoded" );
+		im_error( "im_ri2c", "%s", _( "inputs should be uncoded" ) );
 		return( -1 );
 	}
 	if( im_iscomplex( in1 ) || im_iscomplex( in2 ) ) {
-		im_errormsg( "im_ri2c: inputs already complex" );
+		im_error( "im_ri2c", "%s", _( "inputs already complex" ) );
 		return( -1 );
 	}
 

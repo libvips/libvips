@@ -95,28 +95,29 @@ int dx, dy; /* displacements */
 	int norm;
 
 	if (im_iocheck(im, m) == -1)
-		{ im_errormsg("im_cooc_sym: im_iocheck failed"); return(-1);}
-	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR))
-		{
-		im_errormsg("im_cooc_sym: Unable to accept input");
+		return( -1 );
+	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR)) {
+		im_error( "im_cooc_sym", "%s", _( "Unable to accept input") );
 		return(-1);
 		}
-	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) )
-		{ im_errormsg("im_cooc_sym: wrong args"); return(-1); }
+	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
+		im_error( "im_cooc_sym", "%s", _( "wrong args") ); 
+		return(-1); }
 	if (im_cp_desc(m, im) == -1)
-		{ im_errormsg("im_cooc_sym: im_cp_desc failed"); return(-1);}
+		return( -1 );
 	m->Xsize = 256;
 	m->Ysize = 256;
 	m->Bbits = IM_BBITS_DOUBLE;
 	m->BandFmt = IM_BANDFMT_DOUBLE;
 	m->Type = IM_TYPE_B_W;
 	if (im_setupout(m) == -1)
-		{im_errormsg("im_cooc_sym: im_setupout failed"); return(-1);}
+		return( -1 );
 /* malloc space to keep the read values */
 	buf = (int *)calloc( (unsigned)m->Xsize*m->Ysize, sizeof(int) );
 	line = (double *)calloc( (unsigned)m->Xsize * m->Bands, sizeof(double));
-	if ( (buf == NULL) || (line == NULL) )
-		{ im_errormsg("im_cooc_sym: calloc failed"); return(-1); }
+	if ( (buf == NULL) || (line == NULL) ) { 
+		im_error( "im_cooc_sym", "%s", _( "calloc failed") ); 
+		return(-1); }
 	input = (PEL*)im->data;
 	input += ( ypos * im->Xsize + xpos );
 	offset = dy * im->Xsize + dx;
@@ -147,7 +148,7 @@ int dx, dy; /* displacements */
 			*cpline++ = (double)(*cpnt++)/(double)norm;
 		if (im_writeline( y, m, (PEL *) line ) == -1) 
 			{
-			im_errormsg("im_cooc_sym: unable to im_writeline");
+			im_error( "im_cooc_sym", "%s", _( "unable to im_writeline") );
 			return(-1);
 			}
 		}
@@ -172,27 +173,29 @@ int dx, dy; /* displacements */
 	int norm;
 
 	if (im_iocheck(im, m) == -1)
-		{ im_errormsg("im_cooc_ord: im_iocheck failed"); return(-1);}
+		return( -1 );
 	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR))
 		{
-		im_errormsg("im_cooc_ord: Unable to accept input");
+		im_error( "im_cooc_ord", "%s", _( "Unable to accept input") );
 		return(-1);
 		}
-	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) )
-		{ im_errormsg("im_cooc_ord: wrong args"); return(-1); }
+	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
+		im_error( "im_cooc_ord", "%s", _( "wrong args") ); 
+		return(-1); }
 	if (im_cp_desc(m, im) == -1)
-		{ im_errormsg("im_cooc_ord: im_cp_desc failed"); return(-1);}
+		return( -1 );
 	m->Xsize = 256;
 	m->Ysize = 256;
 	m->Bbits = IM_BBITS_DOUBLE;
 	m->BandFmt = IM_BANDFMT_DOUBLE;
 	if (im_setupout(m) == -1)
-		{im_errormsg("im_cooc_ord: im_setupout failed"); return(-1);}
+		return( -1 );
 /* malloc space to keep the read values */
 	buf = (int *)calloc( (unsigned)m->Xsize*m->Ysize, sizeof(int) );
 	line = (double *)calloc( (unsigned)m->Xsize * m->Bands, sizeof(double));
-	if ( (buf == NULL) || (line == NULL) )
-		{ im_errormsg("im_cooc_ord: calloc failed"); return(-1); }
+	if ( (buf == NULL) || (line == NULL) ) { 
+		im_error( "im_cooc_ord", "%s", _( "calloc failed") ); 
+		return(-1); }
 	input = (PEL*)im->data;
 	input += ( ypos * im->Xsize + xpos );
 	offset = dy * im->Xsize + dx;
@@ -221,7 +224,7 @@ int dx, dy; /* displacements */
 			*cpline++ = (double)(*cpnt++)/(double)norm;
 		if (im_writeline( y, m, (PEL *) line ) == -1) 
 			{
-			im_errormsg("im_cooc_ord: unable to im_writeline");
+			im_error( "im_cooc_ord", "%s", _( "unable to im_writeline") );
 			return(-1);
 			}
 		}
@@ -240,8 +243,9 @@ im_cooc_matrix( IMAGE *im, IMAGE *m,
 		return( im_cooc_ord(im, m, xp, yp, xs, ys, dx, dy) );
 	else if (flag == 1)	/* symmetrical cooc */
 		return( im_cooc_sym(im, m, xp, yp, xs, ys, dx, dy) );
-	else
-		{ im_errormsg("im_cooc_matrix: wrong flag!"); return(-1); }
+	else { 
+		im_error( "im_cooc_matrix", "%s", _( "wrong flag!") ); 
+		return(-1); }
 }
 
 /* Calculate contrast, asmoment, entropy and correlation
@@ -258,7 +262,7 @@ im_cooc_asm( IMAGE *m, double *asmoment )
 	if (m->Xsize != 256 || m->Ysize != 256 || 
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
 		{
-		im_errormsg("im_cooc_asm: unable to accept input");
+		im_error( "im_cooc_asm", "%s", _( "unable to accept input") );
 		return(-1);
 		}
 	tmpasm = 0.0;
@@ -284,7 +288,7 @@ im_cooc_contrast( IMAGE *m, double *contrast )
 	if (m->Xsize != 256 || m->Ysize != 256 || 
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
 		{
-		im_errormsg("im_cooc_contrast: unable to accept input");
+		im_error( "im_cooc_contrast", "%s", _( "unable to accept input") );
 		return(-1);
 		}
 	tmpcon = 0.0;
@@ -357,14 +361,14 @@ im_cooc_correlation( IMAGE *m, double *correlation )
 	if (m->Xsize != 256 || m->Ysize != 256 || 
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
 		{
-		im_errormsg("im_cooc_correlation: unable to accept input");
+		im_error( "im_cooc_correlation", "%s", _( "unable to accept input") );
 		return(-1);
 		}
 	row = (double*)calloc( (unsigned)m->Ysize, sizeof(double));
 	col = (double*)calloc( (unsigned)m->Xsize, sizeof(double));
 	if ( row == NULL || col == NULL )
 		{
-		im_errormsg("im_cooc_correlation: unable to calloc");
+		im_error( "im_cooc_correlation", "%s", _( "unable to calloc") );
 		return(-1);
 		}
 	pbuf = (double*)m->data;
@@ -417,7 +421,7 @@ mrow, stdrow, mcol, stdcol);
 #endif
 	if ( (stdcol==0.0)||(stdrow==0) )
 		{
-		im_errormsg("im_cooc_correlation: zero std");
+		im_error( "im_cooc_correlation", "%s", _( "zero std") );
 		return(-1);
 		}
 	tmpcor = (tmpcor-(mcol*mrow))/(stdcol*stdrow);
@@ -441,7 +445,7 @@ im_cooc_entropy( IMAGE *m, double *entropy )
 	if (m->Xsize != 256 || m->Ysize != 256 || 
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
 		{
-		im_errormsg("im_cooc_entropy: unable to accept input");
+		im_error( "im_cooc_entropy", "%s", _( "unable to accept input") );
 		return(-1);
 		}
 	pbufstart = (double*)m->data;

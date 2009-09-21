@@ -89,17 +89,17 @@ match( IMAGE *in, IMAGE *ref, IMAGE *out )
 	if( im_iocheck( in, out ) || im_iocheck( ref, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE || ref->Coding != IM_CODING_NONE ) {
-                im_errormsg( "im_histspec: not uncoded" );
+                im_error( "im_histspec", "%s", _( "not uncoded" ) );
                 return( -1 );
 	}
 	if( in->BandFmt != IM_BANDFMT_UINT || 
 		ref->BandFmt != IM_BANDFMT_UINT ) {
-                im_errormsg( "im_histspec: bad band format" );
+                im_error( "im_histspec", "%s", _( "bad band format" ) );
                 return( -1 );
 	}
 	if( in->Bands != ref->Bands ) {
-                im_errormsg( "im_histspec: input histograms differ in "
-			"number of bands" );
+                im_error( "im_histspec", "%s", 
+			_( "input histograms differ in number of bands" ) );
                 return( -1 );
 	}
 
@@ -110,7 +110,7 @@ match( IMAGE *in, IMAGE *ref, IMAGE *out )
 	else if( inpx <= 65536 && refpx <= 65536 )
 		px = 65536;
 	else {
-		im_errormsg( "im_histspec: luts too large" );
+		im_error( "im_histspec", "%s", _( "luts too large" ) );
 		return( -1 );
 	}
 	max = px * bands;
@@ -187,8 +187,8 @@ im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
 	if( !t1 || !t2 || !t2 || !t4 || !t5 )
 		return( -1 );
         if( !im_isuint( in ) || !im_isuint( ref ) ) {
-                im_errormsg( "im_histspec: input luts are not some unsigned "
-			"integer type" );
+                im_error( "im_histspec", "%s", 
+			_( "input luts are not some unsigned integer type" ) );
                 return( -1 );
 	}
 

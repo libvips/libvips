@@ -39,6 +39,10 @@
   open files) ... this lets them delete temps and stuff. Expect breakage :(
 - added vips_interpolate_get_window_offset()
 - boolean revised: smaller, more general, faster
+- im_remainderconst_vec() renamed to im_remainder_vec() for consistency
+- added im_shift*_vec()
+- renamed im_eor_vec() as im_eorimage_vec() for consistency, also and, or
+- renamed im_eorconst() as im_eorimage_const() for consistency, also and, or
 
 25/3/09 started 7.18.0
 - revised version numbers

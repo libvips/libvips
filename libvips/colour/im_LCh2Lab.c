@@ -88,7 +88,8 @@ im_LCh2Lab( IMAGE *in, IMAGE *out )
 	 */
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
 		in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_LCh2Lab: 3-band float uncoded input only" );
+		im_error( "im_LCh2Lab", "%s", 
+			_( "3-band float uncoded input only" ) );
 		return( -1 );
 	}
 

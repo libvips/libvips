@@ -142,8 +142,8 @@ build_state( State *state, DOUBLEMASK *input, IMAGE *output, int lut_size )
 		for( x = 0; x < input->xsize; x++ ) 
 			if( state->data[y][x] > 1.0 || 
 				state->data[y][x] < 0.0 ) {
-				im_errormsg( "im_invertlut: element out of "
-					"range [0,1]" );
+				im_error( "im_invertlut", "%s", 
+					_( "element out of range [0,1]" ) );
 				return( -1 );
 			}
 
@@ -242,11 +242,11 @@ im_invertlut( DOUBLEMASK *input, IMAGE *output, int lut_size )
 	State state;
 
 	if( !input || input->xsize < 2 || input->ysize < 1 ) {
-		im_errormsg( "im_invertlut: bad input matrix" );
+		im_error( "im_invertlut", "%s", _( "bad input matrix" ) );
 		return( -1 );
 	}
 	if( lut_size < 1 || lut_size > 65536 ) {
-		im_errormsg( "im_invertlut: bad lut_size" );
+		im_error( "im_invertlut", "%s", _( "bad lut_size" ) );
 		return( -1 );
 	}
 

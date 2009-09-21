@@ -107,7 +107,8 @@ im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
 		y1 > im->Ysize || y1 < 0 || 
 	        x2 > im->Xsize || x2 < 0 || 
 		y2 > im->Ysize || y2 < 0 ) { 
-		im_errormsg( "im_fastline: invalid line cooordinates" ); 
+		im_error( "im_fastline", "%s", 
+			_( "invalid line cooordinates" ) ); 
 		return( -1 ); 
 	}
 
@@ -426,7 +427,7 @@ im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 		return( -1 );
 	}
 
-	/* Copy the image thenm fastline to it ... this will render to a "t"
+	/* Copy the image then fastline to it ... this will render to a "t"
 	 * usually.
 	 */
 	if( im_incheck( mask ) ||

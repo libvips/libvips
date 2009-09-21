@@ -148,7 +148,7 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	/* Check sizes.
 	 */
 	if( in->Xsize < ref->Xsize || in->Ysize < ref->Ysize ) {
-		im_errormsg( "im_fastcor: ref not smaller than in" );
+		im_error( "im_fastcor", "%s", _( "ref not smaller than in" ) );
 		return( -1 );
 	}
 
@@ -158,7 +158,8 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 		in->BandFmt != IM_BANDFMT_UCHAR ||
 		ref->Coding != IM_CODING_NONE || ref->Bands != 1 ||
 		ref->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_errormsg( "im_fastcor_raw: input not uncoded 1 band uchar" );
+		im_error( "im_fastcor_raw", "%s", 
+			_( "input not uncoded 1 band uchar" ) );
 		return( -1 );
 	}
 

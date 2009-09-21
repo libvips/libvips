@@ -68,34 +68,37 @@ im_spatres( IMAGE *in,  IMAGE *out, int step )
 	int os;
 
 /* Check args */
-	if ( step < 1 )
-		{im_errormsg("im_spatres: Invalid step %d\n", step);return(-1);}
+	if ( step < 1 ) {
+		im_error( "im_spatres", _( "Invalid step %d" ), step );
+		return(-1);}
 
 	if ( (in->Xsize/step == 0)||(in->Ysize/step == 0) )
-		{im_errormsg("im_spatres: Invalid step %d\n", step);return(-1);}
+		{im_error("im_spatres", _( "Invalid step %d" ), step);return(-1);}
 
 	if (im_iocheck(in, out) == -1)
-		{ im_errormsg("im_spatres: im_iocheck failed"); return(-1); }
+		return( -1 );
         
-        if((in->Coding != IM_CODING_NONE)||(in->Bbits != 8)||(in->BandFmt !=IM_BANDFMT_UCHAR))
-		{ im_errormsg("im_spatres: wrong input"); return(-1); }
+        if((in->Coding != IM_CODING_NONE)||(in->Bbits != 8)||(in->BandFmt !=IM_BANDFMT_UCHAR)) { 
+		im_error( "im_spatres", "%s", _( "wrong input") ); 
+		return(-1); }
 
 /* Prepare output */
         if (im_cp_desc(out, in) == -1)
-		{ im_errormsg("im_spatres: im_cp_desc failed"); return(-1); }
+		return( -1 );
 	out->Xsize = in->Xsize - in->Xsize%step;
 	out->Ysize = in->Ysize - in->Ysize%step;
          
         if( im_setupout(out) == -1)
-		{ im_errormsg("im_spatres: im_setupout failed"); return(-1); }
+		return( -1 );
 
 	/* Malloc buffer for one 'line' of input data */
 	os = in->Xsize * in->Bands;
 	line = (unsigned char *)calloc((unsigned)os, sizeof(char));
 	/* Malloc space for values */
 	values = (unsigned char *)calloc((unsigned)out->Bands, sizeof(char));
-	if ( line == NULL || values == NULL )
-		{ im_errormsg("im_spatres: calloc failed"); return(-1); }
+	if ( line == NULL || values == NULL ) { 
+		im_error( "im_spatres", "%s", _( "calloc failed") ); 
+		return(-1); }
 
 	step2 = step * step;
 	rounding = step2/2;
@@ -135,7 +138,6 @@ im_spatres( IMAGE *in,  IMAGE *out, int step )
 		for (j = 0; j < step; j++)
 			if ( im_writeline ( y+j, out, (PEL *)line ) == -1 )
 				{
-				im_errormsg("im_spatres: im_writeline failed");
 				free ( (char *)line ); free ( (char *)values );
 				return( -1 );
 				}

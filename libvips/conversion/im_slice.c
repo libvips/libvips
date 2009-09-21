@@ -88,26 +88,26 @@ double t1, t2;
 /* Check our args. */
 	if( im_iocheck( in, out ) ) 
 		{
-		im_errormsg("im_slice: im_iocheck failed");
+		im_error( "im_slice", "%s", _( "im_iocheck failed") );
 		return( -1 );
 		}
 	if( in->Coding != IM_CODING_NONE ) 
 		{
-		im_errormsg("im_slice: input should be uncoded");
+		im_error( "im_slice", "%s", _( "input should be uncoded") );
 		return( -1 );
 		}
 
 /* Set up the output header.  */
 	if( im_cp_desc( out, in ) ) 
 		{
-		im_errormsg("im_slice: im_cp_desc failed");
+		im_error( "im_slice", "%s", _( "im_cp_desc failed") );
 		return( -1 );
 		}
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Bbits = IM_BBITS_BYTE;
 	if( im_setupout( out ) ) 
 		{
-		im_errormsg("im_slice: im_setupout failed");
+		im_error( "im_slice", "%s", _( "im_setupout failed") );
 		return( -1 );
 		}
 
@@ -149,7 +149,7 @@ double t1, t2;
 	im_for_all_types( im_slice_loop );
 
 	default:
-		im_errormsg("im_slice: Unknown input format");
+		im_error( "im_slice", "%s", _( "Unknown input format") );
 		return( -1 );
 	}
 

@@ -69,13 +69,16 @@ double signx, signy;
 		return( -1 );
 /* check coordinates */
 if (  (x1 > image->Xsize)||(x1<0)||(y1 > image->Ysize)||(y1<0)
-    ||(x2 > image->Xsize)||(x2<0)||(y2 > image->Ysize)||(y2<0) )
-	{ im_errormsg("im_line: invalid line cooordinates"); return(-1); }
-if ((pelval > 255)||(pelval < 0))
-	{im_errormsg("im_line: line intensity between 0 and 255"); return(-1); }
+    ||(x2 > image->Xsize)||(x2<0)||(y2 > image->Ysize)||(y2<0) ) { 
+	im_error( "im_line", "%s", _( "invalid line cooordinates") ); 
+	return(-1); }
+if ((pelval > 255)||(pelval < 0)) {
+	im_error( "im_line", "%s", _( "line intensity between 0 and 255") ); 
+	return(-1); }
 
-if (image->Bands != 1)
-	{ im_errormsg("im_line: image should have one band only");return(-1); } 
+if (image->Bands != 1) { 
+	im_error( "im_line", "%s", _( "image should have one band only") );
+	return(-1); } 
 
 dx = (double)(x2 - x1);
 dy = (double)(y2 - y1);

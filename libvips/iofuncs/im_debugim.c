@@ -68,7 +68,7 @@ im_debugim( IMAGE *in )
 	if( im_incheck( in ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_debugim: input must be uncoded" );
+		im_error( "im_debugim", "%s", _( "input must be uncoded" ) );
 		return( -1 );
 	}
 
@@ -130,7 +130,7 @@ im_debugim( IMAGE *in )
 	case IM_BANDFMT_DPCOMPLEX:	loopcmplx(double); break; 
 
 	default: 
-		im_errormsg("im_debugim: unknown input format"); 
+		im_error( "im_debugim", "%s", _( "unknown input format") ); 
 		return( -1 );
 	}
 

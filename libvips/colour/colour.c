@@ -482,7 +482,7 @@ im_col_rgb2XYZ( struct im_col_display *d, struct im_col_tab_disp *table,
 	int i;
 
 	if( r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 ) {
-		im_errormsg( "im_col_rgb2XYZ: out of range [0,255]" );
+		im_error( "im_col_rgb2XYZ", "%s", _( "out of range [0,255]" ) );
 		return( -1 );
 	}
 
@@ -508,7 +508,7 @@ im_col_rgb2XYZ( struct im_col_display *d, struct im_col_tab_disp *table,
 		break;
 	
 	default:
-		im_errormsg( "im_col_rgb2XYZ: bad display type" );
+		im_error( "im_col_rgb2XYZ", "%s", _( "bad display type" ) );
 		return( -1 );
 	}
 
@@ -621,7 +621,7 @@ im_col_XYZ2rgb( struct im_col_display *d, struct im_col_tab_disp *table,
 		break;
 
 	default:
-		im_errormsg("XYZ2rgb: display unknown");
+		im_error( "XYZ2rgb", "%s", _( "display unknown" ) );
 		return( -1 );
 		/*NOTREACHED*/
 	}

@@ -422,7 +422,7 @@ exp10tra_vec( im_object *argv )
  */ 
 static im_function exp10tra_desc = {
 	"im_exp10tra", 			/* Name */
-	N_( "10^pel of image" ),		/* Description */
+	N_( "10^pel of image" ),	/* Description */
 	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
 	exp10tra_vec, 			/* Dispatch function */
 	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
@@ -571,7 +571,7 @@ static im_function lintra_desc = {
 	N_( "calculate a*in + b = outfile" ),
 	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
 	lintra_vec, 			/* Dispatch function */
-	IM_NUMBER( lintra_args ), 		/* Size of arg list */
+	IM_NUMBER( lintra_args ), 	/* Size of arg list */
 	lintra_args 			/* Arg list */
 };
 
@@ -643,7 +643,7 @@ logtra_vec( im_object *argv )
  */ 
 static im_function logtra_desc = {
 	"im_logtra", 			/* Name */
-	N_( "ln of image" ),			/* Description */
+	N_( "ln of image" ),		/* Description */
 	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
 	logtra_vec, 			/* Dispatch function */
 	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
@@ -915,7 +915,7 @@ static im_function maxpos_desc = {
 	N_( "position of maximum value of image" ),
 	0,				/* Flags */
 	maxpos_vec, 			/* Dispatch function */
-	IM_NUMBER( maxpos_args ), 		/* Size of arg list */
+	IM_NUMBER( maxpos_args ), 	/* Size of arg list */
 	maxpos_args 			/* Arg list */
 };
 
@@ -940,7 +940,7 @@ maxpos_avg_vec( im_object *argv )
  */
 static im_function maxpos_avg_desc = {
   "im_maxpos_avg",
-  "position of maximum value of image, averaging in case of draw",
+  N_( "position of maximum value of image, averaging in case of draw" ),
   IM_FN_PIO,
   maxpos_avg_vec,
   IM_NUMBER( maxpos_avg_args ),
@@ -984,7 +984,7 @@ maxpos_vec_vec( im_object *argv )
  */
 static im_function maxpos_vec_desc = {
   "im_maxpos_vec",
-  "position and value of n maxima of image",
+  N_( "position and value of n maxima of image" ),
   IM_FN_PIO,
   maxpos_vec_vec,
   IM_NUMBER( maxpos_vec_args ),
@@ -1018,7 +1018,7 @@ minpos_vec_vec( im_object *argv )
  */
 static im_function minpos_vec_desc = {
   "im_minpos_vec",
-  "position and value of n minima of image",
+  N_( "position and value of n minima of image" ),
   IM_FN_PIO,
   minpos_vec_vec,
   IM_NUMBER( maxpos_vec_args ),
@@ -1124,7 +1124,7 @@ static im_function minpos_desc = {
 	N_( "position of minimum value of image" ),
 	0,				/* Flags */
 	minpos_vec, 			/* Dispatch function */
-	IM_NUMBER( maxpos_args ), 		/* Size of arg list */
+	IM_NUMBER( maxpos_args ), 	/* Size of arg list */
 	maxpos_args 			/* Arg list */
 };
 
@@ -1172,23 +1172,23 @@ static im_function remainderconst_desc = {
 	N_( "remainder after integer division by a constant" ),/* Description */
 	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
 	remainderconst_vec, 		/* Dispatch function */
-	IM_NUMBER( remainderconst_args ), 	/* Size of arg list */
+	IM_NUMBER( remainderconst_args ),/* Size of arg list */
 	remainderconst_args 		/* Arg list */
 };
 
 /* Call im_remainderconst_vec via arg vector.
  */
 static int
-remainderconst_vec_vec( im_object *argv )
+remainder_vec_vec( im_object *argv )
 {
 	im_doublevec_object *dv = (im_doublevec_object *) argv[2];
 
-	return( im_remainderconst_vec( argv[0], argv[1], dv->n, dv->vec ) );
+	return( im_remainder_vec( argv[0], argv[1], dv->n, dv->vec ) );
 }
 
-/* Args for im_remainderconst_vec().
+/* Args for im_remainder_vec().
  */
-static im_arg_desc remainderconst_vec_args[] = {
+static im_arg_desc remainder_vec_args[] = {
 	IM_INPUT_IMAGE( "in" ),
 	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_DOUBLEVEC( "x" )
@@ -1197,13 +1197,13 @@ static im_arg_desc remainderconst_vec_args[] = {
 /* Description of im_remainderconst_vec.
  */ 
 static im_function remainderconst_vec_desc = {
-	"im_remainderconst_vec", 	/* Name */
+	"im_remainder_vec", 		/* Name */
 	N_( "remainder after integer division by a vector of constants" ),
 					/* Description */
 	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
-	remainderconst_vec_vec, 	/* Dispatch function */
-	IM_NUMBER( remainderconst_vec_args ), 	/* Size of arg list */
-	remainderconst_vec_args 	/* Arg list */
+	remainder_vec_vec, 		/* Dispatch function */
+	IM_NUMBER( remainder_vec_args ),/* Size of arg list */
+	remainder_vec_args 		/* Arg list */
 };
 
 /* Call im_multiply via arg vector.
@@ -1239,7 +1239,7 @@ powtra_vec( im_object *argv )
  */ 
 static im_function powtra_desc = {
 	"im_powtra", 			/* Name */
-	N_( "pel^x ofbuildimage" ),
+	N_( "pel^x of image" ),
 	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
 	powtra_vec, 			/* Dispatch function */
 	IM_NUMBER( powtra_args ), 	/* Size of arg list */
@@ -1294,7 +1294,7 @@ static im_function stats_desc = {
 	N_( "many image statistics in one pass" ),
 	IM_FN_PIO,			/* Flags */
 	stats_vec, 			/* Dispatch function */
-	IM_NUMBER( stats_args ), 		/* Size of arg list */
+	IM_NUMBER( stats_args ), 	/* Size of arg list */
 	stats_args 			/* Arg list */
 };
 

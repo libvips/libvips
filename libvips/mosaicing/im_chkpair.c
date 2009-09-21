@@ -205,11 +205,11 @@ im__chkpair( IMAGE *ref, IMAGE *sec, TIE_POINTS *points )
 		return( -1 );
 	if( ref->Bands != sec->Bands || ref->BandFmt != sec->BandFmt || 
 		ref->Coding != sec->Coding ) {
-		im_errormsg( "im_chkpair: inputs incompatible"); 
+		im_error( "im_chkpair", "%s", _( "inputs incompatible" ) ); 
 		return( -1 ); 
 	}
 	if( ref->Bands != 1 || ref->BandFmt != IM_BANDFMT_UCHAR ) { 
-		im_errormsg( "im_chkpair: help!" );
+		im_error( "im_chkpair", "%s", _( "help!" ) );
 		return( -1 );
 	}
 

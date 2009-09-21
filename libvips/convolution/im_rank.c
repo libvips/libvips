@@ -354,12 +354,13 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
 	/* Check parameters.
 	 */
 	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
-		im_errormsg( "im_rank: input non-complex uncoded only" );
+		im_error( "im_rank", "%s", 
+			_( "input non-complex uncoded only" ) );
 		return( -1 );
 	}
 	if( xsize > 1000 || ysize > 1000 || xsize <= 0 || ysize <= 0 || 
 		order < 0 || order > xsize * ysize - 1 ) {
-		im_errormsg( "im_rank: bad parameters" );
+		im_error( "im_rank", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
@@ -384,7 +385,7 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
 	out->Xsize -= xsize - 1;
 	out->Ysize -= ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_errormsg( "im_rank: image too small for window" );
+		im_error( "im_rank", "%s", _( "image too small for window" ) );
 		return( -1 );
 	}
 

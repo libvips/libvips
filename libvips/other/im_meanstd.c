@@ -76,7 +76,7 @@ im__mean_std_double_buffer( double *buffer, int size,
 	double variance;	/* = (sumf2 - correction)/n */
 	
 	if (size <= 0) {
-		im_errormsg("im_mean_std_double_buffer: wrong args");
+		im_error( "im_mean_std_double_buffer", "%s", _( "wrong args") );
 		return(-1);
 	}
 	mean = 0.0; std = 0.0;
@@ -112,7 +112,7 @@ im__mean_std_int_buffer( int *buffer, int size,
 	double variance;	/* = (sumf2 - correction)/n */
 	
 	if (size <= 0) {
-		im_errormsg("im_mean_std_int_buffer: wrong args");
+		im_error( "im_mean_std_int_buffer", "%s", _( "wrong args") );
 		return(-1);
 	}
 

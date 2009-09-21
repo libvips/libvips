@@ -504,7 +504,7 @@ im__create_int_luts( int *buffer, int buffersize,
 	buf2 = (int*)calloc( (unsigned)buffersize, sizeof(int) );
 	if ( ( buf1 == NULL ) || ( buf2 == NULL ) )
 		{
-		im_errormsg("im_create_int_luts: calloc failed (1)");
+		im_error( "im_create_int_luts", "%s", _( "calloc failed (1)") );
 		return( -1 );
 		}
 
@@ -557,7 +557,7 @@ im__create_int_luts( int *buffer, int buffersize,
 		orig_luts[i] = (int*)calloc((unsigned)256, sizeof(int));
 		if (orig_luts[i] == NULL)
 			{
-			im_errormsg("im_create_int_luts: calloc failed (2)");
+			im_error( "im_create_int_luts", "%s", _( "calloc failed (2)") );
 			return( -1 );
 			}
 		for ( j=0; j<256; j++ )

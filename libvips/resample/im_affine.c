@@ -500,23 +500,11 @@ im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
 	return( im__affinei( in, out, interpolate, &trn ) );
 }
 
-/* Provide the old im__affine()/im_affine() as bilinear affinei.
+/* Still needed by some parts of mosaic.
  */
-
 int 
 im__affine( IMAGE *in, IMAGE *out, Transformation *trn )
 {
 	return( im__affinei( in, out, 
 		vips_interpolate_bilinear_static(), trn ) );
-}
-
-int 
-im_affine( IMAGE *in, IMAGE *out, 
-	double a, double b, double c, double d, double dx, double dy, 
-	int ox, int oy, int ow, int oh )
-{
-	return( im_affinei( in, out, 
-		vips_interpolate_bilinear_static(), 
-		a, b, c, d, dx, dy, 
-		ox, oy, ow, oh ) );
 }

@@ -62,7 +62,7 @@ im_matcat( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name )
 	/* matrices must be same width
 	 */
 	if( in1->xsize != in2->xsize ) {
-		im_errormsg( "im_matcat: matrices must be same width" );
+		im_error( "im_matcat", "%s", _( "matrices must be same width" ) );
 		return( NULL );
 	}
 
@@ -72,7 +72,7 @@ im_matcat( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name )
 	/* Allocate output matrix.
 	 */
 	if( !(mat = im_create_dmask( name, newxsize, newysize )) ) {
-		im_errormsg( "im_matcat: unable to allocate output matrix" );
+		im_error( "im_matcat", "%s", _( "unable to allocate output matrix" ) );
 		return( NULL );
 	}
 

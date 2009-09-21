@@ -89,22 +89,22 @@ int xskip, yskip;
 /* Check input, output and vars */
 	if ((xskip < 1)||(yskip < 1))
                 {
-                im_errormsg("im_convsub: xskip and yskip must be >= 1");
+                im_error( "im_convsub", "%s", _( "xskip and yskip must be >= 1") );
                 return(-1);
                 }
 	if (im_iocheck(in, out) == -1)
-		{ im_errormsg("im_convsub: Unable to im_iocheck"); return(-1); }
+		return( -1 );
 	
 	if ( (in->Coding != IM_CODING_NONE)||(in->Bbits != IM_BBITS_BYTE)
 	    ||(in->BandFmt != IM_BANDFMT_UCHAR) )
 		{
-		im_errormsg("im_convsub:input should be unsigned char uncoded");
+		im_error( "im_convsub", "%s", _( "nput should be unsigned char uncoded") );
 		return(-1);
 		}
 
 /* Prepare output */
 	if (im_cp_desc(out, in) == -1)
-		{ im_errormsg("im_convsub: im_cp_desc failed"); return(-1); }
+		return( -1 );
 	tempsize = in->Xsize/xskip;
 	while ( 1 )
 		{
@@ -127,16 +127,20 @@ int xskip, yskip;
 			break;
 		}
         out->Ysize = tempsize;
-	if ( ( out->Xsize < 2 )||( out->Ysize < 2 ) )
-		{im_errormsg("im_convsub: too small output sizes");return(-1); }
+	if ( ( out->Xsize < 2 )||( out->Ysize < 2 ) ) {
+		im_error( "im_convsub", "%s", _( "too small output sizes") );
+		return(-1); 
+	}
 
 	if( im_setupout(out) == -1)
-		{im_errormsg("im_convsub: im_setupout failed"); return(-1); }
+		return(-1); 
 
 /* Malloc one line of output data */
 	os = out->Xsize * out->Bands;
-	if ( (line=(PEL*)calloc( (unsigned)os, sizeof(char))) == NULL)
-		{ im_errormsg("im_convsub: unable to calloc(1)"); return(-1); }
+	if ( (line=(PEL*)calloc( (unsigned)os, sizeof(char))) == NULL) { 
+		im_error( "im_convsub", "%s", _( "unable to calloc(1)") );
+		return(-1); 
+	}
 	
 /* Malloc pointers and put them at correct location */
 	ms = m->xsize * m->ysize;
@@ -152,7 +156,10 @@ int xskip, yskip;
 	    ((pnts = (PEL**)calloc((unsigned)count, sizeof(char *))) == NULL)||
 	    ((cpnt1s=(PEL**)calloc((unsigned)count, sizeof(char *))) == NULL)||
 	    ((cpnt2s=(PEL**)calloc((unsigned)count, sizeof(char *))) ==NULL ) )
-		{ im_errormsg("im_convsub: unable to calloc(2)"); return(-1); }
+		{ 
+		im_error( "im_convsub", "%s", _( "unable to calloc(2)") );
+		return(-1); 
+	}
 	
 	pnt = pnts;
 	cpnt1 = cpnt1s;
@@ -177,21 +184,23 @@ int xskip, yskip;
 			}
 		}
 
-	if ( i != count )
-		{ im_errormsg("im_convsub: impossible state"); return(-1); }
+	if ( i != count ) { 
+		im_error( "im_convsub", "%s", _( "impossible state") ); 
+		return(-1); }
 
 /* Malloc pointers; not all lut_orig are used necessarily */
         lut_orig = (int**)calloc((unsigned)count, sizeof(int**) );
         lut = (int**)calloc((unsigned)count, sizeof(int**) );
-        if ( (lut == NULL) || (lut_orig == NULL) )
-                { im_errormsg("im_conv: unable to calloc(1)"); return(-1); }
+        if ( (lut == NULL) || (lut_orig == NULL) ) { 
+		im_error( "im_conv", "%s", _( "unable to calloc(1)") ); 
+		return(-1); }
 
 /* Create luts; count is needed for freeing pointers. Not all lut_orig are used
  * if zero elms are detected.
  */
         if ( im__create_int_luts(newm, count, lut_orig, lut, &lutcnt ) == -1 )
 		{
-		im_errormsg("im_convsub: im_create_int_luts failed");
+		im_error( "im_convsub", "%s", _( "im_create_int_luts failed") );
                 return(-1);
 		}
 
@@ -237,7 +246,6 @@ int xskip, yskip;
 		/* Output the calculated line */
 		if ( im_writeline(y, out, (PEL*)line) == -1 )
 			{
-			im_errormsg("im_convsub: im_writeline failed(2)");
 			free((char*)line); free((char*)newm);
 			free((char*)pnts);
 			free((char*)cpnt1s); free((char*)cpnt2s);

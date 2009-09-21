@@ -1,6 +1,7 @@
 pkginclude_HEADERS = \
 	arithmetic.h \
 	colour.h \
+	boolean.h \
 	debug.h \
 	dispatch.h \
 	format.h \

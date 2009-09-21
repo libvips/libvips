@@ -143,7 +143,7 @@ im_init_world( const char *argv0 )
 	 */
 	if( im_load_plugins( "%s/vips-%d.%d", 
 		libdir, IM_MAJOR_VERSION, IM_MINOR_VERSION ) ) {
-		im_warn( "im_init_world", "%s", im_errorstring() );
+		im_warn( "im_init_world", "%s", im_error_buffer() );
 		im_error_clear();
 	}
 
@@ -151,7 +151,7 @@ im_init_world( const char *argv0 )
 	 * :-( kept for back compat convenience.
 	 */
 	if( im_load_plugins( "%s", libdir ) ) {
-		im_warn( "im_init_world", "%s", im_errorstring() );
+		im_warn( "im_init_world", "%s", im_error_buffer() );
 		im_error_clear();
 	}
 

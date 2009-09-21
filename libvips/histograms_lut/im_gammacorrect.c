@@ -68,7 +68,7 @@ im_gammacorrect( IMAGE *in, IMAGE *out, double exponent )
         if( im_piocheck( in, out ) )
                 return( -1 );
 	if( in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_errormsg( "im_gammacorrect: uchar images only" );
+		im_error( "im_gammacorrect", "%s", _( "uchar images only" ) );
 		return( -1 );
 	}
 

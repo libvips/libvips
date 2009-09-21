@@ -63,7 +63,7 @@ im_mattrn( DOUBLEMASK *in, const char *name )
 	/* Allocate output matrix.
 	 */
 	if( !(mat = im_create_dmask( name, in->ysize, in->xsize )) ) {
-		im_errormsg( "im_mattrn: unable to allocate output matrix" );
+		im_error( "im_mattrn", "%s", _( "unable to allocate output matrix" ) );
 		return( NULL );
 	}
 

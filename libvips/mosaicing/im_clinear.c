@@ -142,7 +142,7 @@ im__clinear( TIE_POINTS *points )
 	if( im_invmat( mat, 4 ) ) {
 		im_free_dmat( mat, 0, 3, 0, 3 );
 		im_free_dvector( g, 0, 3 );
-		im_errormsg( "im_clinear: im_invmat failed" ); 
+		im_error( "im_clinear", "%s", _( "im_invmat failed" ) ); 
 		return( -1 );
 	}
 	

@@ -86,7 +86,7 @@ find_printer( char *name )
 		if( strcmp( name, printer_data[i].name ) == 0 )
 			return( &printer_data[i] );
 	
-	im_errormsg( "vips2dj: unknown printer \"%s\"", name );
+	im_error( "vips2dj", _( "unknown printer \"%s\"" ), name );
 	return( NULL );
 }
 
@@ -99,7 +99,8 @@ copy_bytes( FILE *in, FILE *out )
 
 	while( (ch = getc( in )) != EOF )
 		if( putc( ch, out ) == EOF ) {
-			im_errormsg( "vips2dj: write error -- disc full?" );
+			im_error( "vips2dj", "%s", 
+				_( "write error -- disc full?" ) );
 			return( -1 );
 		}
 	
@@ -123,7 +124,7 @@ transmit_file( char *mode, char *name, FILE *out )
 	im_snprintf( buf, PATH_MAX, "%s/share/vips/vips2dj/%s/%s", 
 		prefix, mode, name );
 	if( !(in = fopen( buf, "r" )) ) {
-		im_errormsg( "vips2dj: can't find \"%s\"", name );
+		im_error( "vips2dj", _( "can't find \"%s\"" ), name );
 		return( -1 );
 	}
 	if( copy_bytes( in, out ) ) {

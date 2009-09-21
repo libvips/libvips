@@ -99,7 +99,7 @@ im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	if( ref_in->Bands != sec_in->Bands || 
 		ref_in->BandFmt != sec_in->BandFmt ||
 		ref_in->Coding != sec_in->Coding ) {
-		im_errormsg( "im_tbmosaic: input images incompatible" );
+		im_error( "im_tbmosaic", "%s", _( "input images incompatible" ) );
 		return( -1 );
 	}
 
@@ -107,7 +107,7 @@ im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	 */
 	if( halfcorrelation < 0 || halfarea < 0 || 
 		halfarea < halfcorrelation ) {
-		im_errormsg( "im_tbmosaic: bad area parameters" );
+		im_error( "im_tbmosaic", "%s", _( "bad area parameters" ) );
 		return( -1 );
 	}
 
@@ -127,7 +127,7 @@ im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	im_rect_intersectrect( &top, &bottom, &overlap );
 	if( overlap.width < 2*halfarea + 1 ||
 		overlap.height < 2*halfarea + 1 ) {
-		im_errormsg( "im_tbmosaic: overlap too small for search" );
+		im_error( "im_tbmosaic", "%s", _( "overlap too small for search" ) );
 		return( -1 );
 	}
 
@@ -190,7 +190,7 @@ im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 			return( -1 );
 	}
 	else {
-		im_errormsg( "im_tbmosaic: unknown Coding type" );
+		im_error( "im_tbmosaic", "%s", _( "unknown Coding type" ) );
 		return( -1 );
 	}
 

@@ -62,7 +62,7 @@ im_makerw( IMAGE *im )
 	/* This will rewind im_openout() files, and generate im_partial() files.
 	 */
 	if( im_incheck( im ) ) {
-		im_errormsg( "im_makerw: unable to rewind file" );
+		im_error( "im_makerw", "%s", _( "unable to rewind file" ) );
 		return( -1 );
 	}
 
@@ -78,7 +78,7 @@ im_makerw( IMAGE *im )
 		break;
 
 	default:
-		im_errormsg( "im_makerw: bad file type" );
+		im_error( "im_makerw", "%s", _( "bad file type" ) );
 		return( -1 );
 	}
 

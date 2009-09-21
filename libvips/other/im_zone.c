@@ -79,7 +79,8 @@ im_fzone( IMAGE *image, int size )
 	if( im_outcheck( image ) )
 		return( -1 );
 	if( size <= 0 || (size % 2) != 0 ) {
-		im_errormsg( "im_zone: size must be even and positive" );
+		im_error( "im_zone", "%s", 
+			_( "size must be even and positive" ) );
 		return( -1 );
 	}
 
@@ -99,7 +100,7 @@ im_fzone( IMAGE *image, int size )
 	 */
 	for( y = 0, j = -size2; j < size2; j++, y++ ) {
 		for( x = 0, i = -size2; i < size2; i++, x++ )
-			buf[x] = cos( (IM_PI/size) * (i*i + j*j) );
+			buf[x] = cos( (IM_PI / size) * (i * i + j * j) );
 		if( im_writeline( y, image, (PEL *) buf ) )
 			return( -1 );
 	}

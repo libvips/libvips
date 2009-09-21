@@ -111,7 +111,7 @@ recomb_buf( void *bin, void *bout, int width, IMAGE *in, DOUBLEMASK *mat )
 	case IM_BANDFMT_DOUBLE:	LOOP( double, double );  break; 
 
 	default:
-		im_errormsg( "im_recomb: unsupported input type" );
+		im_error( "im_recomb", "%s", _( "unsupported input type" ) );
 		return( -1 );
 	}
 
@@ -130,11 +130,13 @@ im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *mat )
 	if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
-		im_errormsg( "im_recomb: uncoded non-complex only" );
+		im_error( "im_recomb", "%s", 
+			_( "uncoded non-complex only" ) );
 		return( -1 );
 	}
 	if( in->Bands != mat->xsize ) {
-		im_errormsg( "im_recomb: bands in must equal matrix width" );
+		im_error( "im_recomb", "%s", 
+			_( "bands in must equal matrix width" ) );
 		return( -1 );
 	}
 

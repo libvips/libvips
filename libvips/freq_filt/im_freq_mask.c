@@ -143,7 +143,8 @@ build_freq_mask( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
 	/* Check sizes and create one quarter of the final mask 
 	 */
 	if( !im_ispoweroftwo( xs ) || !im_ispoweroftwo( ys ) ) {
-		im_errormsg( "im_freq_mask: mask sizes power of 2 only" );
+		im_error( "im_freq_mask", "%s", 
+			_( "mask sizes power of 2 only" ) );
 		return( -1 );
 	}
 
@@ -190,7 +191,7 @@ build_freq_mask( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
 		break;
 
 	default:
-	       im_errormsg( "im_freq_mask: unimplemented mask type" );
+	       im_error( "im_freq_mask", "%s", _( "unimplemented mask type" ) );
 	       return( -1 );
 	}
 

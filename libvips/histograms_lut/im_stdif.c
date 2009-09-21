@@ -197,18 +197,19 @@ im_stdif_raw( IMAGE *in, IMAGE *out,
 
 	if( m0 < 0 || m0 > 255 || a < 0 || a > 1.0 || b < 0 || b > 2 || 
 		s0 < 0 || s0 > 255 ) {
-		im_errormsg( "im_stdif: parameters out of range" );
+		im_error( "im_stdif", "%s", _( "parameters out of range" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
 		return( -1 );
 	if( in->Bbits != IM_BBITS_BYTE || in->BandFmt != IM_BANDFMT_UCHAR || 
 		in->Bands != 1 || in->Coding != IM_CODING_NONE ) { 
-		im_errormsg( "im_stdif: one band uchar uncoded only" ); 
+		im_error( "im_stdif", "%s", 
+			_( "one band uchar uncoded only" ) ); 
 		return( -1 ); 
 	}
 	if( xwin > in->Xsize || ywin > in->Ysize ) {
-		im_errormsg( "im_stdif: window too large" );
+		im_error( "im_stdif", "%s", _( "window too large" ) );
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 

@@ -69,7 +69,8 @@ im_fractsurf( IMAGE *out, int size, double frd )
 	if( !noise )
 		return( -1 );
 	if( frd <= 2.0 || frd >= 3.0 ) {
-		im_errormsg( "im_fractsurf: dimension shuld be in (2,3)" );
+		im_error( "im_fractsurf", "%s", 
+			_( "dimension shuld be in (2,3)" ) );
 		return( -1 );
 	}
 

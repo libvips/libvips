@@ -107,7 +107,8 @@ char *name;
 	/* Chop off '.v'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic", 
+			_( "bad file name format '%s'" ), name );
 		free( out );
 		return( NULL );
 	}
@@ -116,7 +117,8 @@ char *name;
 	/* Chop off nxn.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( NULL );
 	}
@@ -137,7 +139,8 @@ char *name;
 	/* Chop off '.v'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -146,7 +149,8 @@ char *name;
 	/* Find '.nxm'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -154,7 +158,8 @@ char *name;
 	/* Read out x posn.
 	 */
 	if( sscanf( p, ".%dx%*d", &n ) != 1 ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -174,7 +179,8 @@ char *name;
 	/* Chop off '.v'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -183,7 +189,8 @@ char *name;
 	/* Find '.nxm'.
 	 */
 	if( !(p = strrchr( out, '.' )) ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}
@@ -191,7 +198,8 @@ char *name;
 	/* Read out y posn.
 	 */
 	if( sscanf( p, ".%*dx%d", &m ) != 1 ) {
-		im_errormsg( "Bad file name format '%s'", name );
+		im_error( "find_mosaic",
+			 _( "bad file name format '%s'" ), name );
 		free( out );
 		return( -1 );
 	}

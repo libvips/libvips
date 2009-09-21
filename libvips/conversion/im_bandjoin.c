@@ -124,15 +124,15 @@ im_bandjoin( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		return( -1 );
 	if( in1->Xsize != in2->Xsize ||
 		in1->Ysize != in2->Ysize ) {
-		im_errormsg( "im_bandjoin: images not same size" );
+		im_error( "im_bandjoin", "%s", _( "images not same size" ) );
 		return( -1 );
 	}
 	if( in1->BandFmt != in2->BandFmt ) {
-		im_errormsg( "im_bandjoin: images not same type" );
+		im_error( "im_bandjoin", "%s", _( "images not same type" ) );
 		return( -1 );
 	}
 	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_bandjoin: input coded" );
+		im_error( "im_bandjoin", "%s", _( "input coded" ) );
 		return( -1 );
 	}
 

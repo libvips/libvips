@@ -130,11 +130,13 @@ im_Lab2LabQ( IMAGE *labim, IMAGE *outim )
 	/* Check for uncoded Lab type 
 	 */
 	if( labim->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_Lab2LabQ: uncoded input only" );
+		im_error( "im_Lab2LabQ", "%s", 
+			_( "uncoded input only" ) );
 		return( -1 );
 	}
 	if( labim->BandFmt != IM_BANDFMT_FLOAT || labim->Bands != 3 ) {
-		im_errormsg( "im_Lab2LabQ: three-band float input only" );
+		im_error( "im_Lab2LabQ", "%s", 
+			_( "three-band float input only" ) );
 		return( -1 );
 	}
 

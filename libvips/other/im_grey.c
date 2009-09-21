@@ -100,7 +100,7 @@ im_fgrey( IMAGE *out, const int xsize, const int ysize )
 	/* Check args.
 	 */
 	if( xsize <=0 || ysize <= 0 ) { 
-		im_errormsg( "im_fgrey: bad size" ); 
+		im_error( "im_fgrey", "%s", _( "bad size" ) ); 
 		return( -1 ); 
 	}
 	if( im_poutcheck( out ) )

@@ -93,7 +93,8 @@ morph_init( Params *parm,
 	parm->b_scale = b_scale;
 
 	if( mask->xsize != 3 || mask->ysize < 1 || mask->ysize > 100 ) {
-		im_errormsg( "im_lab_morph: bad greyscale mask size" );
+		im_error( "im_lab_morph", "%s", 
+			_( "bad greyscale mask size" ) );
 		return( -1 );
 	}
 	for( i = 0; i < mask->ysize; i++ ) {
@@ -103,8 +104,8 @@ morph_init( Params *parm,
 
 		if( L < 0 || L > 100 || a < -120 || a > 120 || 
 			b < -120 || b > 120 ) {
-			im_errormsg( "im_lab_morph: bad greyscale mask "
-				"value, row %d", i );
+			im_error( "im_lab_morph", 
+				_( "bad greyscale mask value, row %d" ), i );
 			return( -1 );
 		}
 	}
@@ -228,15 +229,18 @@ im_lab_morph( IMAGE *in, IMAGE *out,
 	}
 
         if( in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_lab_morph: must be uncoded or IM_CODING_LABQ" ); 
+		im_error( "im_lab_morph", "%s", 
+			_( "must be uncoded or IM_CODING_LABQ" ) ); 
 		return( -1 );
 	}
 	if( in->BandFmt != IM_BANDFMT_FLOAT && in->BandFmt != IM_BANDFMT_DOUBLE ) {
-		im_errormsg( "im_lab_morph: must be uncoded float or double" );
+		im_error( "im_lab_morph", "%s", 
+			_( "must be uncoded float or double" ) );
 		return( -1 );
 	}
 	if( in->Bands != 3 ) {
-		im_errormsg( "im_lab_morph: must be 3 bands" ); 
+		im_error( "im_lab_morph", "%s", 
+			_( "must be 3 bands" ) ); 
 		return( -1 );
 	}
 

@@ -122,11 +122,11 @@ im_resize_linear( IMAGE *in, IMAGE *out, int X, int Y )
 	if( im_iocheck( in, out ) )
 		return( -1 );
 	if( im_iscomplex( in ) ) {
-		im_errormsg( "im_lowpass: non-complex input only" );
+		im_error( "im_lowpass", "%s", _( "non-complex input only" ) );
 		return( -1 );
 	}
 	if( in->Coding != IM_CODING_NONE ) {
-		im_errormsg("im_lowpass: input should be uncoded");
+		im_error("im_lowpass: ", "%s", _( "put should be uncoded") );
 		return( -1 );
 	}
 	if( im_cp_desc( out, in ) ) 
@@ -181,7 +181,7 @@ for (y=0; y<Y; y++)
 	case IM_BANDFMT_DOUBLE:		LOOP( double ); break;
 
 	default:
-		im_errormsg( "im_lowpass: unsupported image type" );
+		im_error( "im_lowpass", "%s", _( "unsupported image type" ) );
 		return( -1 );
 		/*NOTREACHED*/
 	}

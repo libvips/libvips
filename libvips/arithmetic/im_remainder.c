@@ -366,7 +366,7 @@ remainderconst_buffer( PEL *in, PEL *out, int width, PEL *vector, IMAGE *im )
 }
 
 /**
- * im_remainderconst_vec:
+ * im_remainder_vec:
  * @in: input #IMAGE 
  * @out: output #IMAGE
  * @n: number of elements in array
@@ -388,7 +388,7 @@ remainderconst_buffer( PEL *in, PEL *out, int width, PEL *vector, IMAGE *im )
  * Returns: 0 on success, -1 on error
  */
 int 
-im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
+im_remainder_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	if( im_check_noncomplex( "im_remainder", in ) )
 		return( -1 );
@@ -409,12 +409,12 @@ im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
  * This operation calculates @in % @c (remainder after division by constant) 
  * and writes the result to @out. The image must be one of the integer types. 
  *
- * See also: im_remainderconst_vec(), im_divide().
+ * See also: im_remainder_vec(), im_divide().
  *
  * Returns: 0 on success, -1 on error
  */
 int 
 im_remainderconst( IMAGE *in, IMAGE *out, double c )
 {
-	return( im_remainderconst_vec( in, out, 1, &c ) );
+	return( im_remainder_vec( in, out, 1, &c ) );
 }

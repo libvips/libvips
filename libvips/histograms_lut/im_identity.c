@@ -83,7 +83,7 @@ im_identity( IMAGE *lut, int bands )
 	if( im_outcheck( lut ) ) 
 		return( -1 );
 	if( bands < 0 ) {
-		im_errormsg( "im_identity: bad bands" ); 
+		im_error( "im_identity", "%s", _( "bad bands" ) ); 
 		return( -1 ); 
 	}
 
@@ -126,11 +126,11 @@ im_identity_ushort( IMAGE *lut, int bands, int sz )
 	if( im_outcheck( lut ) ) 
 		return( -1 );
 	if( sz > 65536 || sz < 0 ) {
-		im_errormsg( "im_identity_ushort: bad size" ); 
+		im_error( "im_identity_ushort", "%s", _( "bad size" ) ); 
 		return( -1 ); 
 	}
 	if( bands < 0 ) {
-		im_errormsg( "im_identity_ushort: bad bands" ); 
+		im_error( "im_identity_ushort", "%s", _( "bad bands" ) ); 
 		return( -1 ); 
 	}
 

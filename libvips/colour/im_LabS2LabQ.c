@@ -125,11 +125,13 @@ im_LabS2LabQ( IMAGE *in, IMAGE *out )
 	/* Check type.
 	 */
 	if( in->Coding != IM_CODING_NONE ) {
-		im_errormsg( "im_LabS2LabQ: not an uncoded image" );
+		im_error( "im_LabS2LabQ", "%s", 
+			_( "not an uncoded image" ) );
 		return( -1 );
 	}
 	if( in->BandFmt != IM_BANDFMT_SHORT || in->Bands != 3 ) {
-		im_errormsg( "im_LabS2LabQ: not a 3-band signed short image" );
+		im_error( "im_LabS2LabQ", "%s", 
+			_( "not a 3-band signed short image" ) );
 		return( -1 );
 	}
 

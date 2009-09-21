@@ -91,27 +91,30 @@ im_glds_matrix( IMAGE *im, IMAGE *m,
 	int norm;
 
 	if (im_iocheck(im, m) == -1)
-		{ im_errormsg("im_glds_matrix: im_iocheck failed"); return(-1);}
+		return( -1 );
 
-	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR))
-		{ im_errormsg("im_glds_matrix: Wrong input"); return(-1); }
+	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR)) { 
+		im_error( "im_glds_matrix", "%s", _( "Wrong input") ); 
+		return(-1); }
 
-	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) )
-		{ im_errormsg("im_glds_matrix: wrong args"); return(-1); }
+	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
+		im_error( "im_glds_matrix", "%s", _( "wrong args") ); 
+		return(-1); }
 
 	if (im_cp_desc(m, im) == -1)
-		{ im_errormsg("im_glds_matrix: im_cp_desc failed"); return(-1);}
+		return( -1 );
 	m->Xsize = 256; m->Ysize = 1;
 	m->Bbits = IM_BBITS_DOUBLE; m->BandFmt = IM_BANDFMT_DOUBLE;
 	m->Type = IM_TYPE_B_W;
 
 	if (im_setupout(m) == -1)
-		{ im_errormsg("im_glds_matrix: im_setupout failed");return(-1);}
+		return( -1 );
 
 	b = (int *)calloc( (unsigned)m->Xsize, sizeof(int) );
 	l = (double *)calloc( (unsigned)m->Xsize, sizeof(double));
-	if ( (b == NULL) || (l == NULL) )
-		{ im_errormsg("im_glds_matrix: calloc failed"); return(-1); }
+	if ( (b == NULL) || (l == NULL) ) { 
+		im_error( "im_glds_matrix", "%s", _( "calloc failed") ); 
+		return(-1); }
 
 	in = (PEL*)im->data;
 	in += ( ypos * im->Xsize + xpos );
@@ -135,7 +138,7 @@ im_glds_matrix( IMAGE *im, IMAGE *m,
 	for (x=0; x<m->Xsize; x++)
 		*pl++ = ((double)(*pb++))/(double)norm;
 	if (im_writeline( 0, m, (PEL *) l ) == -1) 
-		{im_errormsg("im_glds_matrix: im_writeline failed");return(-1);}
+		return( -1 );
 
 	free((char*)b); free((char*)l);
 	return(0);
@@ -153,8 +156,9 @@ im_glds_asm( IMAGE *m, double *asmoment )
 		return( -1 );
 
         if (m->Xsize != 256 || m->Ysize != 1 ||
-		 m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
-                {im_errormsg("im_glds_asm: unable to accept input");return(-1);}
+		 m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
+		im_error( "im_glds_asm", "%s", _( "unable to accept input") );
+		return(-1);}
 	tmpasm = 0.0;
 	in = (double*)m->data;
 	for(i=0; i<m->Xsize; i++)
@@ -178,8 +182,9 @@ im_glds_contrast( IMAGE *m, double *contrast )
 		return( -1 );
 
         if (m->Xsize != 256 || m->Ysize != 1 ||
-                m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
-                { im_errormsg("im_glds_contrast: wrong input"); return(-1); }
+                m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) { 
+		im_error( "im_glds_contrast", "%s", _( "wrong input") ); 
+		return(-1); }
 	tmpcon = 0.0;
 	in = (double*)m->data;
 	for(i=0; i<m->Xsize; i++)
@@ -204,8 +209,9 @@ im_glds_entropy( IMAGE *m, double *entropy )
 		return( -1 );
 
         if (m->Xsize != 256 || m->Ysize != 1 ||
-                m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
-                { im_errormsg("im_glds_entropy: wrong input"); return(-1); }
+                m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) { 
+		im_error( "im_glds_entropy", "%s", _( "wrong input") ); 
+		return(-1); }
 	tmpent = 0.0;
 	in = (double*)m->data;
 	for(i=0; i<m->Xsize; i++)
@@ -233,8 +239,9 @@ im_glds_mean( IMAGE *m, double *mean )
 		return( -1 );
 
         if (m->Xsize != 256 || m->Ysize != 1 ||
-                m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
-                { im_errormsg("im_glds_mean: wrong input"); return(-1); }
+                m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) { 
+		im_error( "im_glds_mean", "%s", _( "wrong input") ); 
+		return(-1); }
 	tmpmean = 0.0;
 	in = (double*)m->data;
 	for(i=0; i<m->Xsize; i++)

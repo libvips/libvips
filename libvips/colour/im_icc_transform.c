@@ -391,17 +391,19 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 
 	if( !cmsIsIntentSupported( icc->in_profile, 
 		intent, LCMS_USED_AS_INPUT ) )
-		im_warning( "im_icc_transform: intent %d (%s) not supported by "
+		im_warn( "im_icc_transform", 
+			_( "intent %d (%s) not supported by "
 			"profile \"%s\"; falling back to default intent "
-			"(usually PERCEPTUAL)", 
+			"(usually PERCEPTUAL)" ), 
 			intent, decode_intent( intent ),
 			input_profile_filename );
 
 	if( !cmsIsIntentSupported( icc->out_profile, 
 		intent, LCMS_USED_AS_OUTPUT ) )
-		im_warning( "im_icc_transform: intent %d (%s) not supported by "
+		im_warn( "im_icc_transform", 
+			_( "intent %d (%s) not supported by "
 			"profile \"%s\"; falling back to default intent "
-			"(usually PERCEPTUAL)", 
+			"(usually PERCEPTUAL)" ), 
 			intent, decode_intent( intent ),
 			output_profile_filename );
 
@@ -524,7 +526,8 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 
 	if( !cmsIsIntentSupported( icc->in_profile, 
 		icc->intent, LCMS_USED_AS_INPUT ) )
-		im_warn( "im_icc_import", _( "intent %d (%s) not supported by "
+		im_warn( "im_icc_import", 
+			_( "intent %d (%s) not supported by "
 			"profile; falling back to default intent "
 			"(usually PERCEPTUAL)" ), 
 			icc->intent, decode_intent( icc->intent ) );
@@ -697,9 +700,10 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 
 	if( !cmsIsIntentSupported( icc->out_profile, 
 		intent, LCMS_USED_AS_OUTPUT ) )
-		im_warning( "im_icc_export: intent %d (%s) not supported by "
+		im_warn( "im_icc_export", 
+			_( "intent %d (%s) not supported by "
 			"profile \"%s\"; falling back to default intent "
-			"(usually PERCEPTUAL)", 
+			"(usually PERCEPTUAL)" ), 
 			intent, decode_intent( intent ),
 			output_profile_filename );
 
