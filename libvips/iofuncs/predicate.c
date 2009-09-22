@@ -477,7 +477,7 @@ im_check_format( const char *domain, IMAGE *im1, IMAGE *im2 )
 int
 im_check_vector( const char *domain, int n, IMAGE *im )
 {
-	if( n != 1 && n != im->Bands ) {
+	if( n != 1 && im->Bands != 1 && n != im->Bands ) {
 		im_error( domain, 
 			_( "vector must have 1 or %d elements" ), im->Bands );
 		return( -1 );

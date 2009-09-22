@@ -322,7 +322,7 @@ lintranv_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
  * all image bands. If the arrays have more than one element and they have 
  * the same number of elements as there are bands in the image, then 
  * one array element is used for each band. If the arrays have more than one
- * element and the image only has a single band, the result is a many-bband
+ * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
  *
  * See also: im_add(), im_lintra().
