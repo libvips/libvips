@@ -135,7 +135,7 @@ int im__bandup( IMAGE *in, IMAGE *out, int n );
 int im__arith_binary( const char *name, 
 	IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	int format_table[10], 
-	im_wrapmany_fn fn, void *a );
+	im_wrapmany_fn fn, void *b );
 int im__arith_binary_const( const char *name,
 	IMAGE *in, IMAGE *out, int n, double *c,
 	int format_table[10], 

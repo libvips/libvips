@@ -216,13 +216,14 @@ im__bandup( IMAGE *in, IMAGE *out, int n )
  * - cast in1 and in2 up to a common format
  * - cast the common format to the output format with the supplied table
  * - equalise bands
- * - run the supplied buffer operation 
+ * - run the supplied buffer operation passing one of the up-banded and
+ *   up-casted inputs as the first param
  */
 int
 im__arith_binary( const char *name, 
 	IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	int format_table[10], 
-	im_wrapmany_fn fn, void *a )
+	im_wrapmany_fn fn, void *b )
 {
 	VipsBandFmt fmt;
 	IMAGE *t[5];
@@ -262,10 +263,11 @@ im__arith_binary( const char *name,
 		im__bandup( t[1], t[3], out->Bands ) )
 		return( -1 );
 
-	/* And process!
+	/* And process! The buffer function gets one of the input images as a
+	 * sample.
 	 */
 	t[4] = NULL;
-	if( im_wrapmany( t + 2, out, fn, out, a ) )	
+	if( im_wrapmany( t + 2, out, fn, t[0], b ) )	
 		return( -1 );
 
 	return( 0 );
