@@ -228,7 +228,6 @@ im__arith_binary_const( const char *name,
 	im_wrapone_fn fn1, im_wrapone_fn fnn )
 {
 	PEL *vector;
-	IMAGE *t;
 
 	if( im_piocheck( in, out ) ||
 		im_check_vector( name, n, in ) ||
@@ -244,19 +243,25 @@ im__arith_binary_const( const char *name,
 	if( !(vector = make_pixel( out, n, c )) )
 		return( -1 );
 
-	/* Band-up the input image for the case where we have a >1 vector and
+	/* Band-up the input image if we have a >1 vector and
 	 * a 1-band image.
 	 */
-	if( !(t = im_open_local( out, "im__arith_binary_const", "p" )) ||
-		im__bandup( in, t, n ) )
-		return( -1 );
+	if( n > 1 && out->Bands == 1 ) {
+		IMAGE *t;
+
+		if( !(t = im_open_local( out, "arith_binary_const", "p" )) ||
+			im__bandup( in, t, n ) )
+			return( -1 );
+
+		in = t;
+	}
 
 	if( n == 1 ) {
-		if( im_wrapone( t, out, fn1, vector, t ) )
+		if( im_wrapone( in, out, fn1, vector, in ) )
 			return( -1 );
 	}
 	else {
-		if( im_wrapone( t, out, fnn, vector, t ) )
+		if( im_wrapone( in, out, fnn, vector, in ) )
 			return( -1 );
 	}
 
