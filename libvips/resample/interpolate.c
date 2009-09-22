@@ -97,6 +97,8 @@ vips_interpolate_real_get_window_size( VipsInterpolate *interpolate )
 static int
 vips_interpolate_real_get_window_offset( VipsInterpolate *interpolate )
 {
+	/* Default to half window size.
+	 */
 	return( vips_interpolate_get_window_size( interpolate ) / 2 );
 }
 
@@ -112,7 +114,7 @@ vips_interpolate_class_init( VipsInterpolateClass *class )
 #endif /*DEBUG*/
 	class->interpolate = NULL;
 	class->get_window_size = vips_interpolate_real_get_window_size;
-	class->get_window_size = vips_interpolate_real_get_window_offset;
+	class->get_window_offset = vips_interpolate_real_get_window_offset;
 	class->window_size = -1;
 }
 
