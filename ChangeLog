@@ -43,6 +43,8 @@
 - added im_shift*_vec()
 - renamed im_eor_vec() as im_eorimage_vec() for consistency, also and, or
 - renamed im_eorconst() as im_eorimage_const() for consistency, also and, or
+- relational revised: smaller, more general, faster
+- im_blend() allows many-band conditional, 1-band then/else
 
 25/3/09 started 7.18.0
 - revised version numbers

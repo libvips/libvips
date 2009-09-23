@@ -1,17 +1,4 @@
-/* @(#) Two images as input: must match in size and type. Build an output
- * @(#) image choosing pixels from the left if a conditional image is
- * @(#) non-zero and from the right otherwise.
- * @(#)
- * @(#) The conditional image can have n bands or 1 band. If n bands, then we
- * @(#) choose from the two source images an element at a time. If 1 band,
- * @(#) then choose from the source images a pixel at a time.
- * @(#)
- * @(#)		int
- * @(#)		im_ifthenelse( c, a, b, out )
- * @(#)		IMAGE *c, *a, *b;
- * @(#)		IMAGE *out;
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail).
+/* im_ifthenelse.c --- use a condition image to join two images together
  *
  * Modified:
  * 9/2/95 JC
@@ -22,6 +9,8 @@
  *	- now just evals left/right if all zero/all one
  * 7/10/06
  * 	- set THINSTRIP
+ * 23/9/09
+ * 	- gtkdoc comment
  */
 
 /*
@@ -154,9 +143,27 @@ ifthenelse_gen( REGION *or, void *seq, void *client1, void *client2 )
 	return( 0 );
 }
 
-/* if-then-else. Use IM_BANDFMT_UCHAR image to choose between two other images.
- * Either: all same number of bands, or choice image is one band, others are
- * n band.
+/**
+ * im_ifthenelse:
+ * @c: condition #IMAGE
+ * @a: then #IMAGE
+ * @b: else #IMAGE
+ * @out: output #IMAGE
+ *
+ * This operation scans the condition image @c (which must be unsigned char) 
+ * and uses it to select pixels from either the then image @a or the else
+ * image @b. Non-zero means @a, 0 means @b.
+ *
+ * The conditional image @c can have either 1 band, in which case entire pels
+ * come either from @a or @b, or n bands, where n is the number of bands in 
+ * both @a and @b, in which case individual band elements are chosen from 
+ * @a and @b.
+ *
+ * Images @a and @b must match exactly in size, bands and format.
+ *
+ * See also: im_blend(), im_equal().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )

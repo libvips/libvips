@@ -377,7 +377,7 @@ im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
 		(im1->Bands != 1 && im2->Bands != 1) ) {
 		im_error( domain, "%s", 
 			_( "images must have the same number of bands, "
-			"or one muct be single-band" ) );
+			"or one must be single-band" ) );
 		return( -1 );
 	}
 

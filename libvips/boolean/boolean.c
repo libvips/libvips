@@ -303,13 +303,12 @@ CONSTN_BUFFER( AND, & )
 
 /**
  * im_andimage_vec:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
+ * @in: input #IMAGE 1
  * @out: output #IMAGE
  * @n: array length
  * @c: array of constants
  *
- * This operation calculates @in1 & @c (bitwise and of image pixels with array
+ * This operation calculates @in & @c (bitwise and of image pixels with array
  * @c) and writes the result to @out. 
  *
  * See also: im_andimage(), im_orimage_vec().
@@ -328,12 +327,11 @@ im_andimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 
 /**
  * im_andimageconst:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
+ * @in: input #IMAGE 1
  * @out: output #IMAGE
  * @c: constant
  *
- * This operation calculates @in1 & @c (bitwise and of image pixels with
+ * This operation calculates @in & @c (bitwise and of image pixels with
  * constant
  * @c) and writes the result to @out. 
  *
@@ -353,13 +351,12 @@ CONSTN_BUFFER( OR, | )
 
 /**
  * im_orimage_vec:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
+ * @in: input #IMAGE 1
  * @out: output #IMAGE
  * @n: array length
  * @c: array of constants
  *
- * This operation calculates @in1 | @c (bitwise or of image pixels with array
+ * This operation calculates @in | @c (bitwise or of image pixels with array
  * @c) and writes the result to @out. 
  *
  * See also: im_andimage(), im_orimageconst().
@@ -378,12 +375,11 @@ im_orimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 
 /**
  * im_orimageconst:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
+ * @in: input #IMAGE 1
  * @out: output #IMAGE
  * @c: constant
  *
- * This operation calculates @in1 | @c (bitwise or of image pixels with
+ * This operation calculates @in | @c (bitwise or of image pixels with
  * constant
  * @c) and writes the result to @out. 
  *
@@ -403,13 +399,12 @@ CONSTN_BUFFER( EOR, ^ )
 
 /**
  * im_eorimage_vec:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
+ * @in: input #IMAGE 1
  * @out: output #IMAGE
  * @n: array length
  * @c: array of constants
  *
- * This operation calculates @in1 ^ @c (bitwise exclusive-or of image pixels 
+ * This operation calculates @in ^ @c (bitwise exclusive-or of image pixels 
  * with array
  * @c) and writes the result to @out. 
  *
@@ -429,12 +424,11 @@ im_eorimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 
 /**
  * im_eorimageconst:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
+ * @in: input #IMAGE 1
  * @out: output #IMAGE
  * @c: constant
  *
- * This operation calculates @in1 ^ @c (bitwise exclusive-or of image pixels 
+ * This operation calculates @in ^ @c (bitwise exclusive-or of image pixels 
  * with
  * constant
  * @c) and writes the result to @out. 
@@ -460,7 +454,7 @@ CONSTN_BUFFER( SHIFTL, << )
  * @n: array length
  * @c: array of constants
  *
- * This operation calculates @in1 << @c (left-shift by @c bits
+ * This operation calculates @in << @c (left-shift by @c bits
  * with array
  * @c) and writes the result to @out. 
  *
@@ -484,7 +478,7 @@ im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c )
  * @out: output #IMAGE
  * @n: constant
  *
- * This operation calculates @in1 << @n (left-shift by @n bits)
+ * This operation calculates @in << @n (left-shift by @n bits)
  * and writes the result to @out. 
  *
  * See also: im_andimage(), im_orimageconst().
@@ -510,7 +504,7 @@ CONSTN_BUFFER( SHIFTR, >> )
  * @n: array length
  * @c: array of constants
  *
- * This operation calculates @in1 << @c (right-shift by @c bits
+ * This operation calculates @in << @c (right-shift by @c bits
  * with array
  * @c) and writes the result to @out. 
  *
@@ -534,7 +528,7 @@ im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c )
  * @out: output #IMAGE
  * @n: constant
  *
- * This operation calculates @in1 >> @n (right-shift by @n bits)
+ * This operation calculates @in >> @n (right-shift by @n bits)
  * and writes the result to @out. 
  *
  * See also: im_andimage(), im_orimageconst().

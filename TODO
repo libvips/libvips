@@ -1,4 +1,16 @@
-- relational next
+- test im_blend, including new n-band cond + n-band a/b mode
+
+- do the same to im_ifthenelse
+
+- should we bandup then/else too? could have
+
+	4 band cond
+	1 band then
+	4 band else
+
+  I guess
+
+
 
 - we have tools/ and contrib/ argh
 

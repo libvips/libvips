@@ -42,6 +42,37 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: relational
+ * @short_description: relational comparisons between pairs of images and 
+ * images and constants
+ * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * These operations perform comparison operations, such as equals, on
+ * every pixel in an image or pair of images. 
+ * All will work with 
+ * images of any type or any mixture of types of any size and of any number 
+ * of bands.
+ *
+ * For binary operations, if the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together and then
+ * the two n-band images are operated upon.
+ *
+ * In the same way, for operations that take an array constant, such as 
+ * im_equal_vec(), you can mix single-element arrays or single-band images
+ * freely.
+ *
+ * The output type is always unsigned char, 
+ * with 255 for every band element for which the condition 
+ * is true, and 0 for every other element.
+ * For complex images, the operations calculate and compare the modulus.
+ *
+ * For binary operations on pairs of images, the images must match in size.
+ */
+
 /* Two images in, one out.
  */
 static im_arg_desc two_in_one_out[] = {

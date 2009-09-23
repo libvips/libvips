@@ -1,22 +1,14 @@
-/* @(#) Two images as input: must match in size and type. Build an output
- * @(#) image blending pixels together according to a conditional image.
- * @(#)
- * @(#) The conditional image can have n bands or 1 band. If n bands, then we
- * @(#) choose from the two source images an element at a time. If 1 band,
- * @(#) then choose from the source images a pixel at a time.
- * @(#)
- * @(#)		int
- * @(#)		im_blend( c, a, b, out )
- * @(#)		IMAGE *c, *a, *b;
- * @(#)		IMAGE *out;
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail).
+/* im_blend.c --- blend images with a condition image
  *
  * Modified:
  * 15/4/05
  *	- from im_ifthenelse()
  * 8/7/05
  *	- oops, broken for some combinations of band differences (thanks Joe)
+ * 23/9/09
+ * 	- gtkdoc comments
+ * 	- use im_check*()
+ * 	- allow many-band conditional and single-band a/b
  */
 
 /*
@@ -50,9 +42,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <assert.h>
-
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -173,7 +164,7 @@ blend1_buffer( PEL *qp, PEL *c, PEL *ap, PEL *bp, int width, IMAGE *im )
 		cblend1( double ); break;
 
 	default:
-		assert( 0 );
+		g_assert( 0 );
 	}
 }
 
@@ -209,7 +200,7 @@ blendn_buffer( PEL *qp, PEL *c, PEL *ap, PEL *bp, int width, IMAGE *im )
 		cblendn( double ); break;
 
 	default:
-		assert( 0 );
+		g_assert( 0 );
 	}
 }
 
@@ -289,78 +280,102 @@ blend_gen( REGION *or, void *seq, void *client1, void *client2 )
 	return( 0 );
 }
 
+/**
+ * im_blend:
+ * @c: condition #IMAGE
+ * @a: then #IMAGE
+ * @b: else #IMAGE
+ * @out: output #IMAGE
+ *
+ * This operation scans the condition image @c (which must be unsigned char) 
+ * and uses it to blend pixels from either the then image @a or the else
+ * image @b. 255 means @a only, 0 means @b only, and intermediate values are a
+ * mixture.
+ *
+ * The conditional image @c can have either 1 band, in which case entire pels
+ * come either from @a or @b, or n bands, where n is the number of bands in 
+ * both @a and @b, in which case individual band elements are chosen from 
+ * @a and @b. Finally, @c may have n bands while @a and @b are single band. In
+ * this case, @a and @b are copied n times to make n band images and those are
+ * operated upon.
+ *
+ * Images @a and @b must match exactly in size, bands and format.
+ *
+ * See also: im_ifthenelse(), im_equal().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 {
-	IMAGE **in;
-
 	/* If a and b are both LABPACK, repack agan after the blend.
 	 */
-	if( a->Coding == IM_CODING_LABQ || b->Coding == IM_CODING_LABQ ) {
-		IMAGE *t[3];
-		int repack = a->Coding == IM_CODING_LABQ && 
-			b->Coding == IM_CODING_LABQ;
+	const int repack = a->Coding == IM_CODING_LABQ && 
+		b->Coding == IM_CODING_LABQ;
 
-		if( im_open_local_array( out, t, 3, "relational-1", "p" ) )
+	IMAGE *t[5];
+	IMAGE **in;
+
+	/* Unpack LABPACK as a courtesy.
+	 */
+	if( im_open_local_array( out, t, 5, "im_blend", "p" ) )
+		return( -1 );
+	if( a->Coding == IM_CODING_LABQ ) {
+		if( im_LabQ2Lab( a, t[0] ) )
 			return( -1 );
-
-		if( a->Coding == IM_CODING_LABQ ) {
-			if( im_LabQ2Lab( a, t[0] ) )
-				return( -1 );
-			a = t[0];
-		}
-
-		if( b->Coding == IM_CODING_LABQ ) {
-			if( im_LabQ2Lab( b, t[1] ) )
-				return( -1 );
-			b = t[1];
-		}
-
-		if( repack ) 
-			return( im_blend( c, a, b, t[2] ) ||
-				im_Lab2LabQ( t[2], out ) );
-		else
-			return( im_blend( c, a, b, out ) );
+		a = t[0];
+	}
+	if( b->Coding == IM_CODING_LABQ ) {
+		if( im_LabQ2Lab( b, t[1] ) )
+			return( -1 );
+		b = t[1];
 	}
 
 	/* Check args.
 	 */
-        if( a->Coding != IM_CODING_NONE || b->Coding != IM_CODING_NONE ||
-		c->Coding != IM_CODING_NONE ) {
-                im_error( "im_blend", "%s", _( "images not uncoded" ) );
-                return( -1 );
-        }
-	if( a->BandFmt != b->BandFmt ||
-		a->Bands != b->Bands ) {
-		im_error( "im_blend", 
-			"%s", _( "size and format of then and else "
-			"must match" ) );
-		return( -1 );
-	}
-	if( c->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_blend", 
-			"%s", _( "conditional image must be uchar" ) );
-		return( -1 );
-	}
-	if( c->Bands != 1 && c->Bands != a->Bands ) {
-		im_error( "im_blend", 
-			"%s", _( "conditional image must be one band or "
-			"same as then and else images" ) );
-		return( -1 );
-	}
-        if( im_piocheck( c, out ) || im_pincheck( a ) || im_pincheck( b ) )
+	if( im_check_uncoded( "im_blend", c ) ||
+		im_check_uncoded( "im_blend", a ) ||
+		im_check_uncoded( "im_blend", b ) ||
+		im_check_uchar( "im_blend", c ) ||
+		im_check_format( "im_blend", a, b ) ||
+		im_check_bands( "im_blend", a, b ) ||
+		im_check_bands_1orn( "im_blend", c, a ) || 
+		im_piocheck( c, out ) || 
+		im_pincheck( a ) || 
+		im_pincheck( b ) )
                 return( -1 );
 	if( im_demand_hint( out, IM_THINSTRIP, a, b, c, NULL ) )
 		return( -1 );
 
 	/* Make output image.
 	 */
-	if( im_cp_descv( out, a, b, c, NULL ) || 
-		!(in = im_allocate_input_array( out, c, a, b, NULL )) ||
-		im_generate( out, 
-			im_start_many, blend_gen, im_stop_many, 
-				in, NULL ) )
+	if( im_cp_descv( out, a, b, c, NULL ) )
 		return( -1 );
+	out->Bands = IM_MAX( c->Bands, a->Bands );
+
+	/* Force a/b bands up to the same as out.
+	 */
+	if( im_open_local_array( out, t, 2, "im_blend", "p" ) )
+		return( -1 );
+	if( im__bandup( a, t[2], out->Bands ) ||
+		im__bandup( a, t[3], out->Bands ) )
+		return( -1 );
+	a = t[2];
+	b = t[3];
+
+	if( !(in = im_allocate_input_array( out, c, a, b, NULL )) ||
+		im_generate( t[4], 
+			im_start_many, blend_gen, im_stop_many, in, NULL ) )
+		return( -1 );
+
+	if( repack ) {
+		if( im_Lab2LabQ( t[4], out ) )
+			return( -1 );
+	}
+	else {
+		if( im_copy( t[4], out ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }

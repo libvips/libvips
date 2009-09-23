@@ -1,5 +1,6 @@
 pkginclude_HEADERS = \
 	arithmetic.h \
+	relational.h \
 	colour.h \
 	boolean.h \
 	debug.h \

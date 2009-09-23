@@ -1,33 +1,4 @@
-/* @(#) Relational operations on VASARI images. All return a unsigned
- * @(#) char image with the same number of bands as the input images. 255
- * @(#) for true, 0 for false. All work with mixed images types: eg. 
- * @(#) comparing float and byte.
- * @(#)
- * @(#) int im_equal( a, b, out )	int im_notequal( a, b, out )
- * @(#) IMAGE *a, *b, *out;		IMAGE *a, *b, *out;
- * @(#)
- * @(#)
- * @(#) int im_equalconst( a, out, c )	int im_notequalconst( a, out, c )
- * @(#) IMAGE *a, *out;			IMAGE *a, *out;
- * @(#) double c;			double c;
- * @(#)
- * @(#) int im_less( a, b, out )	int im_lessconst( a, out, c )
- * @(#) IMAGE *a, *b, *out;		IMAGE *a, *out;
- * @(#)					double c;
- * @(#)
- * @(#) int im_more( a, b, out )	int im_moreconst( a, out, c )
- * @(#) IMAGE *a, *b, *out;		IMAGE *a, *out;
- * @(#)					double c;
- * @(#)
- * @(#) int im_lesseq( a, b, out )	int im_lesseqconst( a, out, c )
- * @(#) IMAGE *a, *b, *out;		IMAGE *a, *out;
- * @(#)					double c;
- * @(#)
- * @(#) int im_moreeq( a, b, out )	int im_moreeqconst( a, out, c )
- * @(#) IMAGE *a, *b, *out;		IMAGE *a, *out;
- * @(#)					double c;
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail).
+/* relational.c --- various relational operation
  *
  * Modified:
  * 26/7/93 JC
@@ -47,6 +18,10 @@
  *	- all except _vec forms now work on complex
  * 31/7/03 JC
  *	- oops, relational_format was broken for some combinations
+ * 23/9/09
+ * 	- gtkdoc
+ * 	- use new im__arith_binary*() functions
+ * 	- more meta-programming
  */
 
 /*
@@ -81,658 +56,674 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
-#include <assert.h>
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Save a bit of typing.
- */
 #define UC IM_BANDFMT_UCHAR
-#define C IM_BANDFMT_CHAR
-#define US IM_BANDFMT_USHORT
-#define S IM_BANDFMT_SHORT
-#define UI IM_BANDFMT_UINT
-#define I IM_BANDFMT_INT
-#define F IM_BANDFMT_FLOAT
-#define M IM_BANDFMT_COMPLEX
-#define D IM_BANDFMT_DOUBLE
-#define DM IM_BANDFMT_DPCOMPLEX
 
-/* Type conversions for relational operators. For two input types, give the
- * smallest common type, that is, the smallest type which can completely
- * express the range of each.
+/* Type conversions for relational: everything goes to uchar. 
  */
-static int relational_format[10][10] = {
-	/* UC  C   US  S   UI  I   F   M   D   DM */
-/* UC */ { UC, S,  US, S,  UI, I,  F,  M,  D,  DM },
-/* C  */ { S,  C,  I,  S,  D,  I,  F,  M,  D,  DM },
-/* US */ { US, I,  US, I,  UI, I,  F,  M,  D,  DM },
-/* S  */ { S,  S,  I,  S,  D,  I,  F,  M,  D,  DM },
-/* UI */ { UI, D,  UI, D,  UI, D,  F,  M,  D,  DM },
-/* I  */ { I,  I,  I,  I,  D,  I,  F,  M,  D,  DM },
-/* F  */ { F,  F,  F,  F,  F,  F,  F,  M,  D,  DM },
-/* M  */ { M,  M,  M,  M,  M,  M,  M,  M,  DM, DM },
-/* D  */ { D,  D,  D,  D,  D,  D,  D,  DM, D,  DM },
-/* DM */ { DM, DM, DM, DM, DM, DM, DM, DM, DM, DM }
+static int bandfmt_relational[10] = {
+/* UC  C   US   S  UI  I   F   X   D   DX */
+   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC,
 };
 
-/* Check input images, cast both up to the smallest common type, and invoke
- * the process function.
- */
-static int
-relational_process( char *name, IMAGE **in, IMAGE *out, 
-	im_wrapmany_fn fn, void *b )
-{
-	int i, n;
-
-	/* Count args.
-	 */
-	for( n = 0; in[n]; n++ ) {
-		if( in[n]->Coding != IM_CODING_NONE ) {
-			im_error( name, "%s", _( "uncoded images only" ) );
-			return( -1 );
-		}
-	}
-
-	/* Check sizes match. We don't need to check xsize/ysize, as wrapmany
-	 * does this for us.
-	 */
-	for( i = 1; i < n; i++ )
-		if( in[0]->Bands != in[i]->Bands ) {
-			im_error( name, "%s", 
-				_( "images differ in numbers of bands" ) ); 
-			return( -1 );
-		}
-
-	/* Prepare the output image.
-	 */
-	if( im_cp_desc_array( out, in ) )
-		return( -1 );
-	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Bbits = IM_BBITS_BYTE;
-
-	/* For binary ops, cast inputs up to a common format.
-	 */
-	if( n == 2 ) {
-		int fmt = relational_format[in[0]->BandFmt][in[1]->BandFmt];
-		IMAGE *t[3];
-
-		if( im_open_local_array( out, t, 2, "relational-1", "p" ) )
-			return( -1 );
-		t[2] = NULL;
-
-		for( i = 0; i < n; i++ )
-			if( im_clip2fmt( in[i], t[i], fmt ) )
-				return( -1 );
-
-		if( im_wrapmany( t, out, fn, t[0], b ) )
-			return( -1 );
-	}
-	else
-		if( im_wrapmany( in, out, fn, in[0], b ) )
-			return( -1 );
-
-	return( 0 );
+#define RBINARY( IN, FUN ) { \
+	IN *tp1 = (IN *) p[0]; \
+	IN *tp2 = (IN *) p[1]; \
+ 	\
+	for( i = 0; i < ne; i++ ) \
+		FUN( q[i], tp1[i], tp2[i] ); \
 }
 
-/* Switch over bandfmt, calling a complexd and a non-complex processor.
- */
-#define SWITCH( T, P_REAL, P_COMPLEX ) \
-        switch( T ) {\
-	case IM_BANDFMT_UCHAR: \
-		P_REAL( unsigned char ); \
-		break; \
-	case IM_BANDFMT_CHAR: \
-		P_REAL( char ); \
-		break; \
-	case IM_BANDFMT_USHORT: \
-		P_REAL( unsigned short ); \
-		break; \
-	case IM_BANDFMT_SHORT: \
-		P_REAL( short ); \
-		break; \
-	case IM_BANDFMT_UINT: \
-		P_REAL( unsigned int ); \
-		break; \
-	case IM_BANDFMT_INT: \
-		P_REAL( int ); \
-		break; \
-	case IM_BANDFMT_FLOAT: \
-		P_REAL( float ); \
-		break; \
-	case IM_BANDFMT_DOUBLE: \
-		P_REAL( double ); \
-		break; \
-	case IM_BANDFMT_COMPLEX: \
-		P_COMPLEX( float ); \
-		break; \
-	case IM_BANDFMT_DPCOMPLEX: \
-		P_COMPLEX( double ); \
-		break; \
-	default:\
-		error_exit( "relational: internal error" );\
-	}
-
-static void
-equal_buffer( PEL **p, PEL *q, int n, IMAGE *a )
-{
-	int ne = n * a->Bands;
-	PEL *p1 = p[0];
-	PEL *p2 = p[1];
-	int x;
-
-#define EQUAL_REAL( TYPE ) { \
-	TYPE *i = (TYPE *) p1; \
-	TYPE *j = (TYPE *) p2; \
-	\
-	for( x = 0; x < ne; x++ ) \
-		if( i[x] == j[x] ) \
-			q[x] = 255; \
-		else \
-			q[x] = 0; \
-}
-
-#define EQUAL_COMPLEX( TYPE ) { \
-	TYPE *i = (TYPE *) p1; \
-	TYPE *j = (TYPE *) p2; \
-	\
-	for( x = 0; x < ne; x++ ) { \
-		if( i[0] == j[0] && i[1] == j[1] ) \
-			q[x] = 255; \
-		else \
-			q[x] = 0; \
+#define CBINARY( IN, FUN ) { \
+	IN *tp1 = (IN *) p[0]; \
+	IN *tp2 = (IN *) p[1]; \
+ 	\
+	for( i = 0; i < ne; i++ ) { \
+		FUN( q[i], tp1, tp2 ); \
 		\
-		i += 2; \
-		j += 2; \
+		tp1 += 2; \
+		tp2 += 2; \
 	} \
 }
 
-	SWITCH( a->BandFmt, EQUAL_REAL, EQUAL_COMPLEX );
+#define BINARY_BUFFER( NAME, RFUN, CFUN ) \
+static void \
+NAME ## _buffer( PEL **p, PEL *q, int n, IMAGE *im ) \
+{ \
+	const int ne = n * im->Bands; \
+	\
+	int i; \
+	\
+        switch( im->BandFmt ) { \
+        case IM_BANDFMT_CHAR:	RBINARY( signed char, RFUN ); break; \
+        case IM_BANDFMT_UCHAR:  RBINARY( unsigned char, RFUN ); break; \
+        case IM_BANDFMT_SHORT:  RBINARY( signed short, RFUN ); break; \
+        case IM_BANDFMT_USHORT: RBINARY( unsigned short, RFUN ); break; \
+        case IM_BANDFMT_INT:    RBINARY( signed int, RFUN ); break; \
+        case IM_BANDFMT_UINT:   RBINARY( unsigned int, RFUN ); break; \
+        case IM_BANDFMT_FLOAT:  RBINARY( float, RFUN ); break; \
+        case IM_BANDFMT_COMPLEX: CBINARY( float, CFUN ); break; \
+        case IM_BANDFMT_DOUBLE: RBINARY( double, RFUN ); break; \
+        case IM_BANDFMT_DPCOMPLEX: CBINARY( double, CFUN ); break; \
+	\
+        default: \
+                g_assert( 0 ); \
+        } \
 }
 
+#define EQUAL_REAL( Q, A, B ) { \
+	if( (A) == (B) ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
+
+#define EQUAL_COMPLEX( Q, A, B ) { \
+	if( (A)[0] == (B)[0] && (A)[1] == (B)[1] ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
+
+BINARY_BUFFER( EQUAL, EQUAL_REAL, EQUAL_COMPLEX )
+
+/**
+ * im_equal:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 == @in2 (image element equals image element) 
+ * and writes the result to @out. 
+ *
+ * See also: im_notequal().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_equal( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *invec[3];
-
-	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( relational_process( "im_equal", invec, out, 
-		(im_wrapmany_fn) equal_buffer, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__arith_binary( "im_equal",
+		in1, in2, out, 
+		bandfmt_relational,
+		(im_wrapmany_fn) EQUAL_buffer, NULL ) );
 }
 
-static void
-notequal_buffer( PEL **p, PEL *q, int n, IMAGE *a )
-{
-	int ne = n * a->Bands;
-	PEL *p1 = p[0];
-	PEL *p2 = p[1];
-	int x;
-
-#define NOTEQUAL_REAL( TYPE ) { \
-	TYPE *i = (TYPE *) p1; \
-	TYPE *j = (TYPE *) p2; \
-	\
-	for( x = 0; x < ne; x++ ) \
-		if( i[x] != j[x] ) \
-			q[x] = 255; \
-		else \
-			q[x] = 0; \
+#define NOTEQUAL_REAL( Q, A, B ) { \
+	if( (A) != (B) ) \
+		Q = 255; \
+	else \
+		Q = 0; \
 }
 
-#define NOTEQUAL_COMPLEX( TYPE ) { \
-	TYPE *i = (TYPE *) p1; \
-	TYPE *j = (TYPE *) p2; \
-	\
-	for( x = 0; x < ne; x++ ) { \
-		if( i[0] != j[0] || i[1] != j[1] ) \
-			q[x] = 255; \
-		else \
-			q[x] = 0; \
-		\
-		i += 2; \
-		j += 2; \
-	} \
+#define NOTEQUAL_COMPLEX( Q, A, B ) { \
+	if( (A)[0] != (B)[0] || (A)[1] != (B)[1] ) \
+		Q = 255; \
+	else \
+		Q = 0; \
 }
 
-	SWITCH( a->BandFmt, NOTEQUAL_REAL, NOTEQUAL_COMPLEX );
-}
+BINARY_BUFFER( NOTEQUAL, NOTEQUAL_REAL, NOTEQUAL_COMPLEX )
 
+/**
+ * im_notequal:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 != @in2 (image element does not equal image
+ * element) and writes the result to @out. 
+ *
+ * See also: im_notequal().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_notequal( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *invec[3];
-
-	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( relational_process( "im_equal", invec, out, 
-		(im_wrapmany_fn) notequal_buffer, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__arith_binary( "im_notequal",
+		in1, in2, out, 
+		bandfmt_relational,
+		(im_wrapmany_fn) NOTEQUAL_buffer, NULL ) );
 }
 
-/* strdup a vector of doubles.
+#define LESS_REAL( Q, A, B ) { \
+	if( (A) < (B) ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
+
+#define LESS_COMPLEX( Q, A, B ) { \
+	double m1 = (A)[0] * (A)[0] + (A)[1] * (A)[1]; \
+	double m2 = (B)[0] * (B)[0] + (B)[1] * (B)[1]; \
+	\
+	if( m1 < m2 ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
+
+BINARY_BUFFER( LESS, LESS_REAL, LESS_COMPLEX )
+
+/**
+ * im_less:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 < @in2 (image element is less than image
+ * element) and writes the result to @out. 
+ *
+ * See also: im_more().
+ *
+ * Returns: 0 on success, -1 on error
  */
-static double *
-numdup( IMAGE *out, int n, double *c )
-{
-	double *p = IM_ARRAY( out, n, double );
-	int i;
-
-	if( !p )
-		return( NULL );
-
-	for( i = 0; i < n; i++ )
-		p[i] = c[i];
-
-	return( p );
-}
-
-static void
-equalvec_buffer( PEL **in, PEL *out, int n, IMAGE *a, double *c )
-{
-	int x, b, i;
-
-#define EQUALVEC_REAL( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	\
-	for( i = 0, x = 0; x < n; x++ ) \
-		for( b = 0; b < a->Bands; b++, i++ ) \
-			if( p[i] == c[b] ) \
-				out[i] = 255; \
-			else \
-				out[i] = 0; \
-}
-
-/* Sanity failure! 
- */
-#define EQUALVEC_COMPLEX( TYPE ) assert( 0 );
-
-	SWITCH( a->BandFmt, EQUALVEC_REAL, EQUALVEC_COMPLEX );
-}
-
-int 
-im_equal_vec( IMAGE *in, IMAGE *out, int n, double *c )
-{
-	IMAGE *invec[2];
-	double *p;
-
-	if( n != in->Bands ) {
-		im_error( "im_equal_vec", "%s", _( "vec size does not match bands" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_equal_vec", "%s", _( "not implemented for complex" ) );
-		return( -1 );
-	}
-
-	invec[0] = in; invec[1] = NULL;
-	if( !(p = numdup( out, n, c )) || 
-		relational_process( "im_equal_vec", invec, out, 
-			(im_wrapmany_fn) equalvec_buffer, (void *) p ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static double *
-mkvec( IMAGE *in, IMAGE *out, double c )
-{
-	double *v;
-	int i;
-
-	if( !(v = IM_ARRAY( out, in->Bands, double )) )
-		return( NULL );
-	for( i = 0; i < in->Bands; i++ )
-		v[i] = c;
-	
-	return( v );
-}
-
-int 
-im_equalconst( IMAGE *in, IMAGE *out, double c )
-{
-	double *v;
-
-	return( !(v = mkvec( in, out, c )) || 
-		im_equal_vec( in, out, in->Bands, v ) );
-}
-
-static void
-notequalvec_buffer( PEL **in, PEL *out, int n, IMAGE *a, double *c )
-{
-	int x, b, i;
-
-#define NOTEQUALVEC_REAL( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	\
-	for( i = 0, x = 0; x < n; x++ ) \
-		for( b = 0; b < a->Bands; b++, i++ ) \
-			if( p[i] != c[b] ) \
-				out[i] = 255; \
-			else \
-				out[i] = 0; \
-}
-
-#define NOTEQUALVEC_COMPLEX( TYPE ) assert( 0 );
-
-	SWITCH( a->BandFmt, NOTEQUALVEC_REAL, NOTEQUALVEC_COMPLEX );
-}
-
-int 
-im_notequal_vec( IMAGE *in, IMAGE *out, int n, double *c )
-{
-	IMAGE *invec[2];
-	double *p;
-
-	if( n != in->Bands ) {
-		im_error( "im_notequal_vec", "%s", _( "vec size does not match bands" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_notequal_vec", "%s", _( "not implemented for complex" ) );
-		return( -1 );
-	}
-
-	invec[0] = in; invec[1] = NULL;
-	if( !(p = numdup( out, n, c )) || 
-		relational_process( "im_notequal_vec", invec, out, 
-			(im_wrapmany_fn) notequalvec_buffer, (void *) p ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-int
-im_notequalconst( IMAGE *in, IMAGE *out, double c )
-{
-	double *v;
-
-	return( !(v = mkvec( in, out, c )) || 
-		im_notequal_vec( in, out, in->Bands, v ) );
-}
-
-static void
-less_buffer( PEL **p, PEL *q, int n, IMAGE *a, IMAGE *b )
-{
-	int ne = n * a->Bands;
-	PEL *p1 = p[0];
-	PEL *p2 = p[1];
-	int x;
-
-#define LESS_REAL( TYPE ) { \
-	TYPE *i = (TYPE *) p1; \
-	TYPE *j = (TYPE *) p2; \
-	\
-	for( x = 0; x < ne; x++ ) \
-		if( i[x] < j[x] ) \
-			q[x] = 255; \
-		else \
-			q[x] = 0; \
-}
-
-/* Take the mod and compare that.
- */
-#define LESS_COMPLEX( TYPE ) { \
-	TYPE *i = (TYPE *) p1; \
-	TYPE *j = (TYPE *) p2; \
-	\
-	for( x = 0; x < ne; x++ ) { \
-		double m1 = sqrt( i[0] * i[0] + i[1] * i[1] ); \
-		double m2 = sqrt( j[0] * j[0] + j[1] * j[1] ); \
-		\
-		if( m1 < m2 ) \
-			q[x] = 255; \
-		else \
-			q[x] = 0; \
-		\
-		i += 2; \
-		j += 2; \
-	} \
-}
-
-	SWITCH( a->BandFmt, LESS_REAL, LESS_COMPLEX );
-}
-
 int 
 im_less( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *invec[3];
-
-	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( relational_process( "im_less", invec, out, 
-		(im_wrapmany_fn) less_buffer, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__arith_binary( "im_less",
+		in1, in2, out, 
+		bandfmt_relational,
+		(im_wrapmany_fn) LESS_buffer, NULL ) );
 }
 
-static void
-lessvec_buffer( PEL **in, PEL *out, int n, IMAGE *a, double *c )
-{
-	int x, b, i;
+#define LESSEQ_REAL( Q, A, B ) { \
+	if( (A) <= (B) ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
 
-#define LESSVEC_REAL( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
+#define LESSEQ_COMPLEX( Q, A, B ) { \
+	double m1 = (A)[0] * (A)[0] + (A)[1] * (A)[1]; \
+	double m2 = (B)[0] * (B)[0] + (B)[1] * (B)[1]; \
 	\
-	for( i = 0, x = 0; x < n; x++ ) \
-		for( b = 0; b < a->Bands; b++, i++ ) \
-			if( p[i] < c[b] ) \
-				out[i] = 255; \
-			else \
-				out[i] = 0; \
+	if( m1 <= m2 ) \
+		Q = 255; \
+	else \
+		Q = 0; \
 }
 
-#define LESSVEC_COMPLEX( TYPE ) assert( 0 );
+BINARY_BUFFER( LESSEQ, LESSEQ_REAL, LESSEQ_COMPLEX )
 
-	SWITCH( a->BandFmt, LESSVEC_REAL, LESSVEC_COMPLEX );
-}
-
-int 
-im_less_vec( IMAGE *in, IMAGE *out, int n, double *c )
-{
-	IMAGE *invec[2];
-	double *p;
-
-	if( n != in->Bands ) {
-		im_error( "im_less_vec", "%s", _( "vec size does not match bands" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_less_vec", "%s", _( "not implemented for complex" ) );
-		return( -1 );
-	}
-
-	invec[0] = in; invec[1] = NULL;
-	if( !(p = numdup( out, n, c )) || 
-		relational_process( "im_less_vec", invec, out, 
-			(im_wrapmany_fn) lessvec_buffer, (void *) p ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-int 
-im_lessconst( IMAGE *in, IMAGE *out, double c )
-{	
-	double *v;
-
-	return( !(v = mkvec( in, out, c )) || 
-		im_less_vec( in, out, in->Bands, v ) );
-}
-
-static void
-lesseq_buffer( PEL **p, PEL *q, int n, IMAGE *a, IMAGE *b )
-{
-	int ne = n * a->Bands;
-	PEL *p1 = p[0];
-	PEL *p2 = p[1];
-	int x;
-
-#define LESSEQ_REAL( TYPE ) { \
-	TYPE *i = (TYPE *) p1; \
-	TYPE *j = (TYPE *) p2; \
-	\
-	for( x = 0; x < ne; x++ ) \
-		if( i[x] <= j[x] ) \
-			q[x] = 255; \
-		else \
-			q[x] = 0; \
-}
-
-/* Take the mod and compare that.
+/**
+ * im_lesseq:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 <= @in2 (image element is less than or equal
+ * to image elemment) and writes the result to @out. 
+ *
+ * See also: im_more().
+ *
+ * Returns: 0 on success, -1 on error
  */
-#define LESSEQ_COMPLEX( TYPE ) { \
-	TYPE *i = (TYPE *) p1; \
-	TYPE *j = (TYPE *) p2; \
-	\
-	for( x = 0; x < ne; x++ ) { \
-		double m1 = sqrt( i[0] * i[0] + i[1] * i[1] ); \
-		double m2 = sqrt( j[0] * j[0] + j[1] * j[1] ); \
-		\
-		if( m1 <= m2 ) \
-			q[x] = 255; \
-		else \
-			q[x] = 0; \
-		\
-		i += 2; \
-		j += 2; \
-	} \
-}
-
-	SWITCH( a->BandFmt, LESSEQ_REAL, LESSEQ_COMPLEX );
-}
-
 int 
 im_lesseq( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *invec[3];
-
-	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( relational_process( "im_lesseq", invec, out, 
-		(im_wrapmany_fn) lesseq_buffer, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__arith_binary( "im_lesseq",
+		in1, in2, out, 
+		bandfmt_relational,
+		(im_wrapmany_fn) LESSEQ_buffer, NULL ) );
 }
 
-static void
-lesseqvec_buffer( PEL **in, PEL *out, int n, IMAGE *a, double *c )
-{
-	int x, b, i;
-
-#define LESSEQVEC_REAL( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	\
-	for( i = 0, x = 0; x < n; x++ ) \
-		for( b = 0; b < a->Bands; b++, i++ ) \
-			if( p[i] <= c[b] ) \
-				out[i] = 255; \
-			else \
-				out[i] = 0; \
-}
-
-#define LESSEQVEC_COMPLEX( TYPE ) assert( 0 );
-
-	SWITCH( a->BandFmt, LESSEQVEC_REAL, LESSEQVEC_COMPLEX );
-}
-
-int 
-im_lesseq_vec( IMAGE *in, IMAGE *out, int n, double *c )
-{
-	IMAGE *invec[2];
-	double *p;
-
-	if( n != in->Bands ) {
-		im_error( "im_lesseq_vec", "%s", _( "vec size does not match bands" ) );
-		return( -1 );
-	}
-	if( im_iscomplex( in ) ) {
-		im_error( "im_lesseq_vec", "%s", _( "not implemented for complex" ) );
-		return( -1 );
-	}
-
-	invec[0] = in; invec[1] = NULL;
-	if( !(p = numdup( out, n, c )) || 
-		relational_process( "im_lesseq_vec", invec, out, 
-			(im_wrapmany_fn) lesseqvec_buffer, (void *) p ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-int 
-im_lesseqconst( IMAGE *in, IMAGE *out, double c )
-{	
-	double *v;
-
-	return( !(v = mkvec( in, out, c )) || 
-		im_lesseq_vec( in, out, in->Bands, v ) );
-}
-
-int 
+/**
+ * im_more:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 > @in2 (image element is greater than 
+ * image elemment) and writes the result to @out. 
+ *
+ * See also: im_less().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
 im_more( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
 	return( im_less( in2, in1, out ) );
 }
 
-int 
-im_more_vec( IMAGE *in, IMAGE *out, int n, double *c )
-{
-	IMAGE *t;
-	
-	/* Same as not (lesseq x).
-	 */
-	if( !(t = im_open_local( out, "im_more_vec-1", "p" )) ||
-		im_lesseq_vec( in, t, n, c ) ||
-		im_eorimageconst( t, out, 255 ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-int 
-im_moreconst( IMAGE *in, IMAGE *out, double c )
-{
-	double *v;
-
-	return( !(v = mkvec( in, out, c )) || 
-		im_more_vec( in, out, in->Bands, v ) );
-}
-
+/**
+ * im_moreeq:
+ * @in1: input #IMAGE 1
+ * @in2: input #IMAGE 2
+ * @out: output #IMAGE
+ *
+ * This operation calculates @in1 >= @in2 (image element is greater than or
+ * equal to image element) and writes the result to @out. 
+ *
+ * See also: im_more().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_moreeq( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
 	return( im_lesseq( in2, in1, out ) );
 }
 
+#define RCONST1( IN, FUN ) { \
+	IN *tp = (IN *) p; \
+	IN tc = *((IN *) vector); \
+ 	\
+	for( i = 0; i < ne; i++ ) \
+		FUN( q[i], tp[i], tc ); \
+}
+
+#define CCONST1( IN, FUN ) { \
+	IN *tp = (IN *) p; \
+	IN *tc = ((IN *) vector); \
+ 	\
+	for( i = 0; i < ne; i++ ) { \
+		FUN( q[i], tp, tc ); \
+		\
+		tp += 2; \
+	} \
+}
+
+#define CONST1_BUFFER( NAME, RFUN, CFUN ) \
+static void \
+NAME ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
+{ \
+	const int ne = n * im->Bands; \
+	\
+	int i; \
+	\
+        switch( im->BandFmt ) { \
+        case IM_BANDFMT_CHAR: 	RCONST1( signed char, RFUN ); break; \
+        case IM_BANDFMT_UCHAR:  RCONST1( unsigned char, RFUN ); break; \
+        case IM_BANDFMT_SHORT:  RCONST1( signed short, RFUN ); break; \
+        case IM_BANDFMT_USHORT: RCONST1( unsigned short, RFUN ); break; \
+        case IM_BANDFMT_INT: 	RCONST1( signed int, RFUN ); break; \
+        case IM_BANDFMT_UINT: 	RCONST1( unsigned int, RFUN ); break; \
+        case IM_BANDFMT_FLOAT: 	RCONST1( float, RFUN ); break; \
+        case IM_BANDFMT_COMPLEX: CCONST1( float, CFUN ); break; \
+        case IM_BANDFMT_DOUBLE: RCONST1( double, RFUN ); break; \
+        case IM_BANDFMT_DPCOMPLEX: CCONST1( double, CFUN ); break; \
+	\
+        default: \
+                g_assert( 0 ); \
+        } \
+}
+
+#define RCONSTN( IN, FUN ) { \
+	IN *tp = (IN *) p; \
+	IN *tc = (IN *) vector; \
+ 	\
+	for( i = 0, x = 0; x < n; x++ ) \
+		for( b = 0; b < bands; b++, i++ ) \
+			FUN( q[i], tp[i], tc[b] ); \
+}
+
+#define CCONSTN( IN, FUN ) { \
+	IN *tp = (IN *) p; \
+ 	\
+	for( i = 0, x = 0; x < n; x++ ) { \
+		IN *tc = ((IN *) vector); \
+		\
+		for( b = 0; b < bands; b++, i++ ) { \
+			FUN( q[i], tp, tc ); \
+			\
+			tp += 2; \
+			tc += 2; \
+		} \
+	} \
+}
+
+#define CONSTN_BUFFER( NAME, RFUN, CFUN ) \
+static void \
+NAME ## n_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
+{ \
+	const int bands = im->Bands; \
+	\
+	int i, x, b; \
+	\
+        switch( im->BandFmt ) { \
+        case IM_BANDFMT_CHAR: 	RCONSTN( signed char, RFUN ); break; \
+        case IM_BANDFMT_UCHAR:  RCONSTN( unsigned char, RFUN ); break; \
+        case IM_BANDFMT_SHORT:  RCONSTN( signed short, RFUN ); break; \
+        case IM_BANDFMT_USHORT: RCONSTN( unsigned short, RFUN ); break; \
+        case IM_BANDFMT_INT: 	RCONSTN( signed int, RFUN ); break; \
+        case IM_BANDFMT_UINT: 	RCONSTN( unsigned int, RFUN ); break; \
+        case IM_BANDFMT_FLOAT: 	RCONSTN( float, RFUN ); break; \
+        case IM_BANDFMT_COMPLEX: CCONSTN( float, CFUN ); break; \
+        case IM_BANDFMT_DOUBLE: RCONSTN( double, RFUN ); break; \
+        case IM_BANDFMT_DPCOMPLEX: CCONSTN( double, CFUN ); break; \
+	\
+        default: \
+                g_assert( 0 ); \
+        } \
+}
+
+CONST1_BUFFER( EQUAL, EQUAL_REAL, EQUAL_COMPLEX )
+
+CONSTN_BUFFER( EQUAL, EQUAL_REAL, EQUAL_COMPLEX )
+
+/**
+ * im_equal_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in == @c (image element equals constant array
+ * @c) and writes the result to @out. 
+ *
+ * See also: im_equal(), im_equalconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_equal_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_equal", 
+		in, out, n, c, 
+		bandfmt_relational,
+		(im_wrapone_fn) EQUAL1_buffer, 
+		(im_wrapone_fn) EQUALn_buffer ) );
+}
+
+CONST1_BUFFER( NOTEQUAL, NOTEQUAL_REAL, NOTEQUAL_COMPLEX )
+
+CONSTN_BUFFER( NOTEQUAL, NOTEQUAL_REAL, NOTEQUAL_COMPLEX )
+
+/**
+ * im_notequal_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in != @c (image element is not equal to constant 
+ * array @c) and writes the result to @out. 
+ *
+ * See also: im_equal(), im_equal_vec().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_notequal_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_notequal", 
+		in, out, n, c, 
+		bandfmt_relational,
+		(im_wrapone_fn) NOTEQUAL1_buffer, 
+		(im_wrapone_fn) NOTEQUALn_buffer ) );
+}
+
+CONST1_BUFFER( LESS, LESS_REAL, LESS_COMPLEX )
+
+CONSTN_BUFFER( LESS, LESS_REAL, LESS_COMPLEX )
+
+/**
+ * im_less_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in < @c (image element is less than constant 
+ * array @c) and writes the result to @out. 
+ *
+ * See also: im_less(), im_lessconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_less_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_less", 
+		in, out, n, c, 
+		bandfmt_relational,
+		(im_wrapone_fn) LESS1_buffer, 
+		(im_wrapone_fn) LESSn_buffer ) );
+}
+
+CONST1_BUFFER( LESSEQ, LESSEQ_REAL, LESSEQ_COMPLEX )
+
+CONSTN_BUFFER( LESSEQ, LESSEQ_REAL, LESSEQ_COMPLEX )
+
+/**
+ * im_lesseq_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in <= @c (image element is less than or equal to 
+ * constant array @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_lesseq_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_lesseq", 
+		in, out, n, c, 
+		bandfmt_relational,
+		(im_wrapone_fn) LESSEQ1_buffer, 
+		(im_wrapone_fn) LESSEQn_buffer ) );
+}
+
+#define MORE_REAL( Q, A, B ) { \
+	if( (A) >= (B) ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
+
+#define MORE_COMPLEX( Q, A, B ) { \
+	double m1 = (A)[0] * (A)[0] + (A)[1] * (A)[1]; \
+	double m2 = (B)[0] * (B)[0] + (B)[1] * (B)[1]; \
+	\
+	if( m1 >= m2 ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
+
+CONST1_BUFFER( MORE, MORE_REAL, MORE_COMPLEX )
+
+CONSTN_BUFFER( MORE, MORE_REAL, MORE_COMPLEX )
+
+/**
+ * im_more_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in > @c (image element is greater than 
+ * constant array @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_more_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( im__arith_binary_const( "im_more", 
+		in, out, n, c, 
+		bandfmt_relational,
+		(im_wrapone_fn) MORE1_buffer, 
+		(im_wrapone_fn) MOREn_buffer ) );
+}
+
+#define MOREEQ_REAL( Q, A, B ) { \
+	if( (A) >= (B) ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
+
+#define MOREEQ_COMPLEX( Q, A, B ) { \
+	double m1 = (A)[0] * (A)[0] + (A)[1] * (A)[1]; \
+	double m2 = (B)[0] * (B)[0] + (B)[1] * (B)[1]; \
+	\
+	if( m1 >= m2 ) \
+		Q = 255; \
+	else \
+		Q = 0; \
+}
+
+CONST1_BUFFER( MOREEQ, MOREEQ_REAL, MOREEQ_COMPLEX )
+
+CONSTN_BUFFER( MOREEQ, MOREEQ_REAL, MOREEQ_COMPLEX )
+
+/**
+ * im_moreeq_vec:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @n: array length
+ * @c: array of constants
+ *
+ * This operation calculates @in >= @c (image element is greater than or 
+ * equal to 
+ * constant array @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_moreeq_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
-	IMAGE *t;
-	
-	/* Same as not (less x).
-	 */
-	if( !(t = im_open_local( out, "im_moreeq_vec-1", "p" )) ||
-		im_less_vec( in, t, n, c ) ||
-		im_eorimageconst( t, out, 255 ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__arith_binary_const( "im_moreeq", 
+		in, out, n, c, 
+		bandfmt_relational,
+		(im_wrapone_fn) MOREEQ1_buffer, 
+		(im_wrapone_fn) MOREEQn_buffer ) );
 }
 
+/**
+ * im_equalconst:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in == @c (image element is 
+ * equal to constant @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
-im_moreeqconst( IMAGE *in, IMAGE *out, double c )
-{	
-	double *v;
-
-	return( !(v = mkvec( in, out, c )) || 
-		im_moreeq_vec( in, out, in->Bands, v ) );
+im_equalconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_equal_vec( in, out, 1, &c ) );
 }
+
+/**
+ * im_notequalconst:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in != @c (image element is not equal to 
+ * constant @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_notequalconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_notequal_vec( in, out, 1, &c ) );
+}
+
+/**
+ * im_lessconst:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in < @c (image element is less than 
+ * constant @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_lessconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_less_vec( in, out, 1, &c ) );
+}
+
+/**
+ * im_lesseqconst:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in = @c (image element is less than 
+ * or equal to
+ * constant @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_lesseqconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_lesseq_vec( in, out, 1, &c ) );
+}
+
+/**
+ * im_moreconst:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in = @c (image element is more than 
+ * constant @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_moreconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_more_vec( in, out, 1, &c ) );
+}
+
+/**
+ * im_moreeqconst:
+ * @in: input #IMAGE 
+ * @out: output #IMAGE
+ * @c: constant
+ *
+ * This operation calculates @in = @c (image element is more than 
+ * or equal to
+ * constant @c) and writes the result to @out. 
+ *
+ * See also: im_lesseq(), im_lesseqconst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_moreeqconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_moreeq_vec( in, out, 1, &c ) );
+}
+
