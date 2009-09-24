@@ -9,6 +9,7 @@
  * 	- gtkdoc comments
  * 	- use im_check*()
  * 	- allow many-band conditional and single-band a/b
+ * 	- allow a/b to differ in format and bands
  */
 
 /*

@@ -11,6 +11,10 @@
  * 	- set THINSTRIP
  * 23/9/09
  * 	- gtkdoc comment
+ * 23/9/09
+ * 	- use im_check*()
+ * 	- allow many-band conditional and single-band a/b
+ * 	- allow a/b to differ in format and bands
  */
 
 /*
@@ -44,9 +48,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <stdio.h>
-
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -143,6 +146,38 @@ ifthenelse_gen( REGION *or, void *seq, void *client1, void *client2 )
 	return( 0 );
 }
 
+static int
+ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
+{
+	IMAGE **in;
+
+	/* Check args.
+	 */
+	if( im_check_uncoded( "im_ifthenelse", c ) ||
+		im_check_uchar( "im_ifthenelse", c ) ||
+		im_check_known_coded( "im_ifthenelse", a ) ||
+		im_check_known_coded( "im_ifthenelse", b ) ||
+		im_check_format( "im_ifthenelse", a, b ) ||
+		im_check_bands( "im_ifthenelse", a, b ) ||
+		im_check_bands_1orn( "im_ifthenelse", c, a ) || 
+		im_piocheck( c, out ) || 
+		im_pincheck( a ) || 
+		im_pincheck( b ) )
+                return( -1 );
+
+	/* Make output image.
+	 */
+	if( im_demand_hint( out, IM_THINSTRIP, c, a, b, NULL ) ||
+		im_cp_descv( out, a, b, c, NULL ) || 
+		!(in = im_allocate_input_array( out, c, a, b, NULL )) ||
+		im_generate( out, 
+			im_start_many, ifthenelse_gen, im_stop_many, 
+				in, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /**
  * im_ifthenelse:
  * @c: condition #IMAGE
@@ -154,12 +189,13 @@ ifthenelse_gen( REGION *or, void *seq, void *client1, void *client2 )
  * and uses it to select pixels from either the then image @a or the else
  * image @b. Non-zero means @a, 0 means @b.
  *
- * The conditional image @c can have either 1 band, in which case entire pels
- * come either from @a or @b, or n bands, where n is the number of bands in 
- * both @a and @b, in which case individual band elements are chosen from 
- * @a and @b.
+ * Any image can have either 1 band or n bands, where n is the same for all
+ * the non-1-band images. Single band images are then effectively copied to 
+ * make n-band images.
  *
- * Images @a and @b must match exactly in size, bands and format.
+ * Images @a and @b are cast up to the smallest common format.
+ *
+ * Images @a and @b must match exactly in size.
  *
  * See also: im_blend(), im_equal().
  *
@@ -168,52 +204,19 @@ ifthenelse_gen( REGION *or, void *seq, void *client1, void *client2 )
 int
 im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 {
-	IMAGE **in;
+	IMAGE *t[7];
 
-	/* Check args.
-	 */
-	if( a->Coding != IM_CODING_NONE && a->Coding != IM_CODING_LABQ ) {
-		im_error( "im_ifthenelse", 
-			"%s", _( "then image must be uncoded or labpack" ) );
+	if( im_open_local_array( out, t, 7, "im_ifthenelse", "p" ) )
 		return( -1 );
-	}
-	if( b->Coding != IM_CODING_NONE && b->Coding != IM_CODING_LABQ ) {
-		im_error( "im_ifthenelse", 
-			"%s", _( "else image must be uncoded or labpack" ) );
-		return( -1 );
-	}
-	if( c->Coding != IM_CODING_NONE ) {
-		im_error( "im_ifthenelse", 
-			"%s", _( "condition image must be uncoded" ) );
-		return( -1 );
-	}
-	if( a->BandFmt != b->BandFmt ||
-		a->Bands != b->Bands ) {
-		im_error( "im_ifthenelse", 
-			"%s", _( "size and format of then and else "
-			"must match" ) );
-		return( -1 );
-	}
-	if( c->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_ifthenelse", 
-			"%s", _( "conditional image must be uchar" ) );
-		return( -1 );
-	}
-	if( c->Bands != 1 && c->Bands != a->Bands ) {
-		im_error( "im_ifthenelse", 
-			"%s", _( "conditional image must be one band or same "
-			"as then and else images" ) );
-		return( -1 );
-	}
 
-	/* Make output image.
+	/* Make a and b match in bands and format. Don't make c match: we
+	 * special-case this in code above ^^^ for speed.
 	 */
-	if( im_demand_hint( out, IM_THINSTRIP, c, a, b, NULL ) ||
-		im_cp_descv( out, a, b, c, NULL ) || 
-		!(in = im_allocate_input_array( out, c, a, b, NULL )) ||
-		im_generate( out, 
-			im_start_many, ifthenelse_gen, im_stop_many, 
-				in, NULL ) )
+	if( im__formatalike( a, b, t[0], t[1] ) ||
+		im__bandalike( t[0], t[1], t[2], t[3] ) )
+		return( -1 );
+
+	if( ifthenelse( c, t[2], t[3], out ) )
 		return( -1 );
 
 	return( 0 );

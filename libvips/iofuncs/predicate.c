@@ -371,6 +371,21 @@ im_check_uncoded( const char *domain, IMAGE *im )
 }
 
 int
+im_check_known_coded( const char *domain, IMAGE *im )
+{
+	/* These all have codings that extract/ifthenelse/etc can ignore.
+	 */
+	if( im->Coding != IM_CODING_NONE && 
+		im->Coding != IM_CODING_LABQ &&
+		im->Coding != IM_CODING_RAD ) {
+		im_error( domain, "%s", _( "unknown image coding" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
 im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Bands != im2->Bands &&
