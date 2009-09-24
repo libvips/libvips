@@ -319,7 +319,7 @@ int
 im_andimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_andimage", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_bool,
 		(im_wrapone_fn) AND1_buffer, 
 		(im_wrapone_fn) ANDn_buffer ) );
@@ -367,7 +367,7 @@ int
 im_orimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_orimage", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_bool,
 		(im_wrapone_fn) OR1_buffer, 
 		(im_wrapone_fn) ORn_buffer ) );
@@ -416,7 +416,7 @@ int
 im_eorimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_eorimage", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_bool,
 		(im_wrapone_fn) EOR1_buffer, 
 		(im_wrapone_fn) EORn_buffer ) );
@@ -466,7 +466,7 @@ int
 im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_shiftleft", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_bool,
 		(im_wrapone_fn) SHIFTL1_buffer, 
 		(im_wrapone_fn) SHIFTLn_buffer ) );
@@ -516,7 +516,7 @@ int
 im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_shiftright", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_bool,
 		(im_wrapone_fn) SHIFTR1_buffer, 
 		(im_wrapone_fn) SHIFTRn_buffer ) );

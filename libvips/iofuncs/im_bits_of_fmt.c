@@ -51,14 +51,14 @@ static const int bits[] = {
 	IM_BBITS_DPCOMPLEX
 };
 
-/* Return number of pels bits for band format or -1 on error.
+/* Return number of pel bits for band format, or -1 on error.
  */
 int 
-im_bits_of_fmt( int bandfmt )
+im_bits_of_fmt( VipsBandFmt fmt )
 {
-	return( bandfmt < 0 || bandfmt > IM_BANDFMT_DPCOMPLEX ?
+	return( fmt < 0 || fmt > IM_BANDFMT_DPCOMPLEX ?
 		im_error( "im_bits_of_fmt", 
-			_( "unsupported band format: %d" ), bandfmt ),
+			_( "unsupported band format: %d" ), fmt ),
 		-1 :
-		bits[bandfmt] );
+		bits[fmt] );
 }

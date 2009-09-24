@@ -280,56 +280,10 @@ blend_gen( REGION *or, void *seq, void *client1, void *client2 )
 	return( 0 );
 }
 
-/**
- * im_blend:
- * @c: condition #IMAGE
- * @a: then #IMAGE
- * @b: else #IMAGE
- * @out: output #IMAGE
- *
- * This operation scans the condition image @c (which must be unsigned char) 
- * and uses it to blend pixels from either the then image @a or the else
- * image @b. 255 means @a only, 0 means @b only, and intermediate values are a
- * mixture.
- *
- * The conditional image @c can have either 1 band, in which case entire pels
- * come either from @a or @b, or n bands, where n is the number of bands in 
- * both @a and @b, in which case individual band elements are chosen from 
- * @a and @b. Finally, @c may have n bands while @a and @b are single band. In
- * this case, @a and @b are copied n times to make n band images and those are
- * operated upon.
- *
- * Images @a and @b must match exactly in size, bands and format.
- *
- * See also: im_ifthenelse(), im_equal().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
+static int
+blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 {
-	/* If a and b are both LABPACK, repack agan after the blend.
-	 */
-	const int repack = a->Coding == IM_CODING_LABQ && 
-		b->Coding == IM_CODING_LABQ;
-
-	IMAGE *t[5];
 	IMAGE **in;
-
-	/* Unpack LABPACK as a courtesy.
-	 */
-	if( im_open_local_array( out, t, 5, "im_blend", "p" ) )
-		return( -1 );
-	if( a->Coding == IM_CODING_LABQ ) {
-		if( im_LabQ2Lab( a, t[0] ) )
-			return( -1 );
-		a = t[0];
-	}
-	if( b->Coding == IM_CODING_LABQ ) {
-		if( im_LabQ2Lab( b, t[1] ) )
-			return( -1 );
-		b = t[1];
-	}
 
 	/* Check args.
 	 */
@@ -344,36 +298,88 @@ im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 		im_pincheck( a ) || 
 		im_pincheck( b ) )
                 return( -1 );
-	if( im_demand_hint( out, IM_THINSTRIP, a, b, c, NULL ) )
-		return( -1 );
 
 	/* Make output image.
 	 */
 	if( im_cp_descv( out, a, b, c, NULL ) )
 		return( -1 );
 	out->Bands = IM_MAX( c->Bands, a->Bands );
-
-	/* Force a/b bands up to the same as out.
-	 */
-	if( im_open_local_array( out, t, 2, "im_blend", "p" ) )
+	if( im_demand_hint( out, IM_THINSTRIP, a, b, c, NULL ) )
 		return( -1 );
-	if( im__bandup( a, t[2], out->Bands ) ||
-		im__bandup( a, t[3], out->Bands ) )
-		return( -1 );
-	a = t[2];
-	b = t[3];
 
 	if( !(in = im_allocate_input_array( out, c, a, b, NULL )) ||
-		im_generate( t[4], 
+		im_generate( out, 
 			im_start_many, blend_gen, im_stop_many, in, NULL ) )
 		return( -1 );
 
+	return( 0 );
+}
+
+/**
+ * im_blend:
+ * @c: condition #IMAGE
+ * @a: then #IMAGE
+ * @b: else #IMAGE
+ * @out: output #IMAGE
+ *
+ * This operation scans the condition image @c (which must be unsigned char) 
+ * and uses it to blend pixels from either the then image @a or the else
+ * image @b. 255 means @a only, 0 means @b only, and intermediate values are a
+ * mixture.
+ *
+ * Any image can have either 1 band or n bands, where n is the same for all
+ * the non-1-band images. Single band images are then effectively copied to 
+ * make n-band images.
+ *
+ * Images @a and @b are cast up to the smallest common format.
+ *
+ * Images @a and @b must match exactly in size.
+ *
+ * See also: im_ifthenelse(), im_equal().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
+{
+	/* If a and b are both LABPACK, repack agan after the blend.
+	 */
+	const int repack = a->Coding == IM_CODING_LABQ && 
+		b->Coding == IM_CODING_LABQ;
+
+	IMAGE *t[7];
+
+	if( im_open_local_array( out, t, 7, "im_blend", "p" ) )
+		return( -1 );
+
+	/* Unpack LABPACK as a courtesy.
+	 */
+	if( a->Coding == IM_CODING_LABQ ) {
+		if( im_LabQ2Lab( a, t[0] ) )
+			return( -1 );
+		a = t[0];
+	}
+	if( b->Coding == IM_CODING_LABQ ) {
+		if( im_LabQ2Lab( b, t[1] ) )
+			return( -1 );
+		b = t[1];
+	}
+
+	/* Make a and b match in bands and format.
+	 */
+	if( im__formatalike( a, b, t[2], t[3] ) ||
+		im__bandalike( t[2], t[3], t[4], t[5] ) )
+		return( -1 );
+
+	if( blend( c, t[4], t[5], t[6] ) )
+		return( -1 );
+
 	if( repack ) {
-		if( im_Lab2LabQ( t[4], out ) )
+		if( im_Lab2LabQ( t[6], out ) )
 			return( -1 );
 	}
 	else {
-		if( im_copy( t[4], out ) )
+		if( im_copy( t[6], out ) )
 			return( -1 );
 	}
 

@@ -218,18 +218,18 @@ char2enum( EnumTable *etable, const char *name )
 
 /* Prettyprint various header fields.
  */
-const char *im_Type2char( int n ) 
-	{ return( enum2char( &enumType, n ) ); }
-const char *im_BandFmt2char( int n ) 
-	{ return( enum2char( &enumBandFmt, n ) ); }
-const char *im_Coding2char( int n ) 
-	{ return( enum2char( &enumCoding, n ) ); }
+const char *im_Type2char( VipsType type ) 
+	{ return( enum2char( &enumType, type ) ); }
+const char *im_BandFmt2char( VipsBandFmt fmt ) 
+	{ return( enum2char( &enumBandFmt, fmt ) ); }
+const char *im_Coding2char( VipsCoding coding ) 
+	{ return( enum2char( &enumCoding, coding ) ); }
 const char *im_Compression2char( int n ) 
 	{ return( enum2char( &enumCompression, n ) ); }
 const char *im_dtype2char( im_desc_type n ) 
 	{ return( enum2char( &enumdtype, n ) ); }
-const char *im_dhint2char( im_demand_type n ) 
-	{ return( enum2char( &enumdhint, n ) ); }
+const char *im_dhint2char( VipsDemandStyle style ) 
+	{ return( enum2char( &enumdhint, style ) ); }
 
 int im_char2Type( const char *str ) 
 	{ return( char2enum( &enumType, str ) ); }

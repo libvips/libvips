@@ -132,12 +132,15 @@ char *im__gslist_gvalue_get( const GSList *list );
 void im__buffer_init( void );
 
 int im__bandup( IMAGE *in, IMAGE *out, int n );
+int im__bandalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 );
+int im__formatalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 );
 int im__arith_binary( const char *name, 
 	IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	int format_table[10], 
 	im_wrapmany_fn fn, void *b );
 int im__arith_binary_const( const char *name,
-	IMAGE *in, IMAGE *out, int n, double *c,
+	IMAGE *in, IMAGE *out, 
+	int n, double *c, VipsBandFmt vfmt,
 	int format_table[10], 
 	im_wrapone_fn fn1, im_wrapone_fn fnn );
 int im__value( IMAGE *im, double *value );

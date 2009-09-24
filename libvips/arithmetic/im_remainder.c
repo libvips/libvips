@@ -191,26 +191,26 @@ im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	} \
 }
 
-/* Cast a vector of double to the type of IMAGE.
+/* Cast a vector of double to a passed format.
  */
 static PEL *
-make_pixel( IMAGE *out, int n, double *p )
+make_pixel( IMAGE *out, VipsBandFmt fmt, int n, double *p )
 {
 	PEL *q;
 	int i;
 
-	if( !(q = IM_ARRAY( out, n * IM_IMAGE_SIZEOF_ELEMENT( out ), PEL )) )
+	if( !(q = IM_ARRAY( out, n * (im_bits_of_fmt( fmt ) >> 3), PEL )) )
 		return( NULL );
 
-        switch( out->BandFmt ) {
-        case IM_BANDFMT_CHAR:	CAST( signed char ); break;
-        case IM_BANDFMT_UCHAR:  CAST( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  CAST( signed short ); break;
-        case IM_BANDFMT_USHORT: CAST( unsigned short ); break;
-        case IM_BANDFMT_INT:    CAST( signed int ); break;
-        case IM_BANDFMT_UINT:   CAST( unsigned int ); break;
-        case IM_BANDFMT_FLOAT: 	CAST( float ); break; 
-        case IM_BANDFMT_DOUBLE:	CAST( double ); break;
+        switch( fmt ) {
+        case IM_BANDFMT_CHAR:		CAST( signed char ); break;
+        case IM_BANDFMT_UCHAR:  	CAST( unsigned char ); break;
+        case IM_BANDFMT_SHORT:  	CAST( signed short ); break;
+        case IM_BANDFMT_USHORT: 	CAST( unsigned short ); break;
+        case IM_BANDFMT_INT:    	CAST( signed int ); break;
+        case IM_BANDFMT_UINT:   	CAST( unsigned int ); break;
+        case IM_BANDFMT_FLOAT: 		CAST( float ); break; 
+        case IM_BANDFMT_DOUBLE:		CAST( double ); break;
         case IM_BANDFMT_COMPLEX: 	CASTC( float ); break; 
         case IM_BANDFMT_DPCOMPLEX:	CASTC( double ); break;
 
@@ -223,7 +223,8 @@ make_pixel( IMAGE *out, int n, double *p )
 
 int 
 im__arith_binary_const( const char *name,
-	IMAGE *in, IMAGE *out, int n, double *c,
+	IMAGE *in, IMAGE *out, 
+	int n, double *c, VipsBandFmt vfmt,
 	int format_table[10], 
 	im_wrapone_fn fn1, im_wrapone_fn fnn )
 {
@@ -238,9 +239,17 @@ im__arith_binary_const( const char *name,
 	out->BandFmt = format_table[in->BandFmt];
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
-	/* Cast vector to output type.
+	/* Some operations need the vector in the input type (eg.
+	 * im_equal_vec() where the output type is always uchar and is useless
+	 * for comparisons), some need it in the output type (eg.
+	 * im_andimage_vec() where we want to get the double to an int so we
+	 * can do bitwise-and without having to cast for each pixel), some
+	 * need a fixed type (eg. im_powtra_vec(), where we want to keep it as
+	 * double).
+	 *
+	 * Therefore pass in the desired vector type as a param.
 	 */
-	if( !(vector = make_pixel( out, n, c )) )
+	if( !(vector = make_pixel( out, vfmt, n, c )) )
 		return( -1 );
 
 	/* Band-up the input image if we have a >1 vector and
@@ -350,7 +359,7 @@ remainderconst1_buffer( PEL *in, PEL *out, int width, PEL *vector, IMAGE *im )
 }
 
 static void
-remainderconst_buffer( PEL *in, PEL *out, int width, PEL *vector, IMAGE *im )
+remainderconstn_buffer( PEL *in, PEL *out, int width, PEL *vector, IMAGE *im )
 {
 	int b = im->Bands;
 	int i, x, k; 
@@ -399,10 +408,10 @@ im_remainder_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		return( -1 );
 
 	return( im__arith_binary_const( "im_remainder", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_remainder,
 		(im_wrapone_fn) remainderconst1_buffer, 
-		(im_wrapone_fn) remainderconst_buffer ) );
+		(im_wrapone_fn) remainderconstn_buffer ) );
 }
 
 /**

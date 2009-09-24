@@ -67,22 +67,22 @@
  */
 #define CONST1( IN, OUT, FUN ) { \
 	OUT *tq = (OUT *) q; \
-	OUT tc = *((OUT *) vector); \
 	IN *tp = (IN *) p; \
  	\
 	for( i = 0; i < ne; i++ ) \
-		 FUN( tq[i], tp[i], tc ); \
+		 FUN( tq[i], tp[i], c ); \
 }
 
 /* Operator with a single constant on a buffer.
  */
 #define CONST1_BUFFER( FUN ) \
 static void \
-FUN ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
+FUN ## 1_buffer( PEL *p, PEL *q, int n, double *tc, IMAGE *im ) \
 { \
 	/* Complex just doubles the size. \
 	 */ \
 	const int ne = n * im->Bands * (im_iscomplex( im ) ? 2 : 1); \
+	const double c = tc[0]; \
 	\
 	int i; \
 	\
@@ -118,7 +118,6 @@ FUN ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
 #define CONSTN( IN, OUT, FUN ) { \
 	OUT *tq = (OUT *) q; \
 	IN *tp = (IN *) p; \
-	OUT *tc = (OUT *) vector; \
  	\
 	for( i = 0, x = 0; x < n; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -129,7 +128,7 @@ FUN ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
  */
 #define CONSTN_BUFFER( FUN ) \
 static void \
-FUN ## n_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
+FUN ## n_buffer( PEL *p, PEL *q, int n, double *tc, IMAGE *im ) \
 { \
 	const int bands = im->Bands; \
 	\
@@ -220,7 +219,7 @@ im_powtra_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		return( -1 );
 
 	return( im__arith_binary_const( "im_powtra_vec", 
-		in, out, n, c, 
+		in, out, n, c, IM_BANDFMT_DOUBLE,
 		bandfmt_power,
 		(im_wrapone_fn) POW1_buffer, 
 		(im_wrapone_fn) POWn_buffer ) );
@@ -283,7 +282,7 @@ im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *c )
 		return( -1 );
 
 	return( im__arith_binary_const( "im_expntra_vec", 
-		in, out, n, c, 
+		in, out, n, c, IM_BANDFMT_DOUBLE,
 		bandfmt_power,
 		(im_wrapone_fn) POWC1_buffer, 
 		(im_wrapone_fn) POWCn_buffer ) );

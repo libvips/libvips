@@ -430,7 +430,7 @@ int
 im_equal_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_equal", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_relational,
 		(im_wrapone_fn) EQUAL1_buffer, 
 		(im_wrapone_fn) EQUALn_buffer ) );
@@ -458,7 +458,7 @@ int
 im_notequal_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_notequal", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_relational,
 		(im_wrapone_fn) NOTEQUAL1_buffer, 
 		(im_wrapone_fn) NOTEQUALn_buffer ) );
@@ -486,7 +486,7 @@ int
 im_less_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_less", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_relational,
 		(im_wrapone_fn) LESS1_buffer, 
 		(im_wrapone_fn) LESSn_buffer ) );
@@ -514,7 +514,7 @@ int
 im_lesseq_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_lesseq", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_relational,
 		(im_wrapone_fn) LESSEQ1_buffer, 
 		(im_wrapone_fn) LESSEQn_buffer ) );
@@ -559,7 +559,7 @@ int
 im_more_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_more", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_relational,
 		(im_wrapone_fn) MORE1_buffer, 
 		(im_wrapone_fn) MOREn_buffer ) );
@@ -605,7 +605,7 @@ int
 im_moreeq_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_moreeq", 
-		in, out, n, c, 
+		in, out, n, c, in->BandFmt,
 		bandfmt_relational,
 		(im_wrapone_fn) MOREEQ1_buffer, 
 		(im_wrapone_fn) MOREEQn_buffer ) );

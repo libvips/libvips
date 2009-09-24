@@ -178,12 +178,12 @@ void im_vwarn( const char *domain, const char *fmt, va_list ap );
 void im_diag( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 
-int im_bits_of_fmt( int );
-const char *im_Type2char( int );
-const char *im_BandFmt2char( int );
-const char *im_Coding2char( int );
+int im_bits_of_fmt( VipsBandFmt fmt );
+const char *im_Type2char( VipsType type );
+const char *im_BandFmt2char( VipsBandFmt fmt );
+const char *im_Coding2char( VipsCoding coding );
 const char *im_Compression2char( int );
-const char *im_dhint2char( im_demand_type );
+const char *im_dhint2char( VipsDemandStyle style );
 const char *im_dtype2char( im_desc_type );
 int im_char2Type( const char * );
 int im_char2BandFmt( const char * );
@@ -620,29 +620,6 @@ int im_flood_blob( IMAGE *, int, int, PEL *, Rect * );
 int im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
 int im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
-
-/* relational
- */
-int im_equal( IMAGE *, IMAGE *, IMAGE * );
-int im_equalconst( IMAGE *, IMAGE *, double );
-int im_equal_vec( IMAGE *, IMAGE *, int, double * );
-int im_notequal( IMAGE *, IMAGE *, IMAGE * );
-int im_notequalconst( IMAGE *, IMAGE *, double );
-int im_notequal_vec( IMAGE *, IMAGE *, int, double * );
-int im_more( IMAGE *, IMAGE *, IMAGE * );
-int im_moreconst( IMAGE *, IMAGE *, double );
-int im_more_vec( IMAGE *, IMAGE *, int, double * );
-int im_less( IMAGE *, IMAGE *, IMAGE * );
-int im_lessconst( IMAGE *, IMAGE *, double );
-int im_less_vec( IMAGE *, IMAGE *, int, double * );
-int im_moreeq( IMAGE *, IMAGE *, IMAGE * );
-int im_moreeqconst( IMAGE *, IMAGE *, double );
-int im_moreeq_vec( IMAGE *, IMAGE *, int, double * );
-int im_lesseq( IMAGE *, IMAGE *, IMAGE * );
-int im_lesseqconst( IMAGE *, IMAGE *, double );
-int im_lesseq_vec( IMAGE *, IMAGE *, int, double * );
-int im_ifthenelse( IMAGE *, IMAGE *, IMAGE *, IMAGE * );
-int im_blend( IMAGE *, IMAGE *, IMAGE *, IMAGE * );
 
 /* matrix
  */

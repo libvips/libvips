@@ -184,6 +184,19 @@ im__format_common( IMAGE *in1, IMAGE *in2 )
 		return( bandfmt_largest[in1->BandFmt][in2->BandFmt] );
 }
 
+int
+im__formatalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
+{
+	VipsBandFmt fmt;
+
+	fmt = im__format_common( in1, in2 );
+	if( im_clip2fmt( in1, out1, fmt ) ||
+		im_clip2fmt( in2, out2, fmt ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /* Make an n-band image. Input 1 or n bands.
  */
 int
@@ -209,15 +222,27 @@ im__bandup( IMAGE *in, IMAGE *out, int n )
 	return( im_gbandjoin( bands, out, n ) );
 }
 
+int
+im__bandalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
+{
+	if( im_check_bands_1orn( "im__bandalike", in1, in2 ) )
+		return( -1 );
+	if( im__bandup( in1, out1, IM_MAX( in1->Bands, in2->Bands ) ) ||
+		im__bandup( in2, out2, IM_MAX( in1->Bands, in2->Bands ) ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /* The common part of most binary arithmetic, relational and boolean
  * operators. We:
  *
  * - check in and out
  * - cast in1 and in2 up to a common format
  * - cast the common format to the output format with the supplied table
- * - equalise bands
- * - run the supplied buffer operation passing one of the up-banded and
- *   up-casted inputs as the first param
+ * - equalise bands and size
+ * - run the supplied buffer operation passing one of the up-banded,
+ *   up-casted and up-sized inputs as the first param
  */
 int
 im__arith_binary( const char *name, 
@@ -225,7 +250,6 @@ im__arith_binary( const char *name,
 	int format_table[10], 
 	im_wrapmany_fn fn, void *b )
 {
-	VipsBandFmt fmt;
 	IMAGE *t[5];
 
 	if( im_piocheck( in1, out ) || 
@@ -235,39 +259,32 @@ im__arith_binary( const char *name,
 		im_check_uncoded( name, in2 ) )
 		return( -1 );
 
-	if( im_cp_descv( out, in1, in2, NULL ) )
+	/* Cast our input images up to a common format and bands.
+	 */
+	if( im_open_local_array( out, t, 4, "im__arith_binary", "p" ) ||
+		im__formatalike( in1, in2, t[0], t[1] ) ||
+		im__bandalike( t[0], t[1], t[2], t[3] ) )
 		return( -1 );
 
-	/* What number of bands will we write?
+	/* Generate the output.
 	 */
-	out->Bands = IM_MAX( in1->Bands, in2->Bands );
+	if( im_cp_descv( out, t[2], t[3], NULL ) )
+		return( -1 );
 
-	/* What output type will we write? int, float or complex.
+	/* What number of bands will we write? Same as up-banded input.
 	 */
-	out->BandFmt = format_table[im__format_common( in1, in2 )];
+	out->Bands = t[2]->Bands;
+
+	/* What output type will we write? 
+	 */
+	out->BandFmt = format_table[t[2]->BandFmt];
 	out->Bbits = im_bits_of_fmt( out->BandFmt );
-
-	if( im_open_local_array( out, t, 4, "type cast:1", "p" ) )
-		return( -1 );
-
-	/* Cast our input images up to a common type.
-	 */
-	fmt = im__format_common( in1, in2 );
-	if( im_clip2fmt( in1, t[0], fmt ) ||
-		im_clip2fmt( in2, t[1], fmt ) )
-		return( -1 );
-
-	/* Force bands up to the same as out.
-	 */
-	if( im__bandup( t[0], t[2], out->Bands ) ||
-		im__bandup( t[1], t[3], out->Bands ) )
-		return( -1 );
 
 	/* And process! The buffer function gets one of the input images as a
 	 * sample.
 	 */
 	t[4] = NULL;
-	if( im_wrapmany( t + 2, out, fn, t[0], b ) )	
+	if( im_wrapmany( t + 2, out, fn, t[2], b ) )	
 		return( -1 );
 
 	return( 0 );
