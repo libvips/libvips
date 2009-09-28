@@ -140,12 +140,12 @@ int im_check_known_coded( const char *domain, IMAGE *im );
 int im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_noncomplex( const char *domain, IMAGE *im );
 int im_check_complex( const char *domain, IMAGE *im );
-int im_check_uchar( const char *domain, IMAGE *im );
+int im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt );
 int im_check_mono( const char *domain, IMAGE *im );
 int im_check_int( const char *domain, IMAGE *im );
-int im_check_size( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_bands( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_format( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_vector( const char *domain, int n, IMAGE *im );
 
 int im_ispoweroftwo( int );
@@ -619,6 +619,9 @@ int im_readpoint( IMAGE *, int, int, PEL * );
 int im_flood( IMAGE *, int, int, PEL *, Rect * );
 int im_flood_blob( IMAGE *, int, int, PEL *, Rect * );
 int im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
+int im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial );
+int im_flood_other_copy( IMAGE *mask, IMAGE *out, 
+	IMAGE *test, int x, int y, int serial );
 int im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
 

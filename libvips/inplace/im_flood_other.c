@@ -20,8 +20,6 @@
  * 	- im_invalidate() after paint
  * 24/3/09
  * 	- added IM_CODING_RAD support
- * 28/9/09
- * 	- ooops, tiny memleak
  */
 
 /*
@@ -90,20 +88,18 @@ typedef struct _Buffer {
 typedef struct {
 	/* Parameters.
 	 */
-	IMAGE *im;
+	IMAGE *mask;
+	IMAGE *test;
 	int x, y;
-	PEL *ink;		/* Copy of ink param */
-	Rect *dout;		/* Write dirty here at end */
+	unsigned int serial;	
 
 	/* Derived stuff.
 	 */
-	PEL *edge;		/* Boundary colour */
-	int equal;		/* Fill to == edge, or != edge */
+	PEL *edge;		/* Searching for these pixels */
 	int ps;			/* sizeof( one pel ) */
 	int ls;			/* sizeof( one line ) */
 	int left, right;	/* Area will fill within */
 	int top, bottom;
-	Rect dirty;		/* Bounding box of pixels we have changed */
 
 	/* Two buffers of points which we know need checking.
 	 */
@@ -140,14 +136,6 @@ free_buffer( Buffer *buf )
 static void
 free_state( State *st )
 {
-	/* Write dirty back to caller.
-	 */
-	if( st->dout )
-		*st->dout = st->dirty;
-
-	/* Free our stuff.
-	 */
-	IM_FREE( st->ink );
 	IM_FREE( st->edge );
 	IM_FREEF( free_buffer, st->buf1 );
 	IM_FREEF( free_buffer, st->buf2 );
@@ -157,39 +145,33 @@ free_state( State *st )
 /* Build a state.
  */
 static State *
-build_state( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+build_state( IMAGE *mask, IMAGE *test, int x, int y, int serial )
 {
 	State *st = IM_NEW( NULL, State );
 
 	if( !st )
 		return( NULL );
-	st->im = im;
+	st->mask = mask;
+	st->test = test;
 	st->x = x;
 	st->y = y;
-	st->ink = NULL;
-	st->dout = dout;
+	st->serial = serial;
 	st->edge = NULL;
-	st->ps = IM_IMAGE_SIZEOF_PEL( im );
-	st->ls = IM_IMAGE_SIZEOF_LINE( im );
+	st->ps = IM_IMAGE_SIZEOF_PEL( test );
+	st->ls = IM_IMAGE_SIZEOF_LINE( test );
 	st->buf1 = NULL;
 	st->buf2 = NULL;
 	st->left = 0;
 	st->top = 0;
-	st->right = im->Xsize;
-	st->bottom = im->Ysize;
-	st->dirty.left = x;
-	st->dirty.top = y;
-	st->dirty.width = 0;
-	st->dirty.height = 0;
+	st->right = test->Xsize;
+	st->bottom = test->Ysize;
 
-	if( !(st->ink = (PEL *) im_malloc( NULL, st->ps )) ||
-		!(st->edge = (PEL *) im_malloc( NULL, st->ps )) ||
+	if( !(st->edge = (PEL *) im_malloc( NULL, st->ps )) ||
 		!(st->buf1 = build_buffer()) ||
 		!(st->buf2 = build_buffer()) ) {
 		free_state( st );
 		return( NULL );
 	}
-	memcpy( st->ink, ink, st->ps );
 
 	return( st );
 }
@@ -210,22 +192,10 @@ build_state( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	} \
 }
 
-/* If point != edge, add it to out.
- */
-#define ADDIFNOTEDGE( P, X, Y ) { \
-	PEL *p1 = (P); \
- 	\
-	for( j = 0; j < st->ps; j++ ) \
-		if( p1[j] != st->edge[j] ) { \
-			ADD( out, X, Y ); \
-			break; \
-		} \
-}
-
-/* If point == edge, add it to out.
+/* If point == blob colour, add it to out.
  */
 #define ADDIFEDGE( P, X, Y ) { \
-	PEL *p1 = (P); \
+	const PEL *p1 = (P); \
  	\
 	for( j = 0; j < st->ps; j++ ) \
 		if( p1[j] != st->edge[j] ) \
@@ -239,6 +209,8 @@ build_state( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 static int
 dofill( State *st, Buffer *in, Buffer *out )
 {
+	const int width = st->mask->Xsize;
+
 	int i, j;
 
 	/* Clear output buffer.
@@ -253,62 +225,28 @@ dofill( State *st, Buffer *in, Buffer *out )
 		for( i = 0; i < in->n; i++ ) {
 			/* Find this pixel.
 			 */
-			int x = in->points[i].x;
-			int y = in->points[i].y;
-			PEL *p = (PEL *) st->im->data + x*st->ps + y*st->ls;
+			const int x = in->points[i].x;
+			const int y = in->points[i].y;
+			const PEL *p = (PEL *) st->test->data + 
+				x * st->ps + y * st->ls;
+			int *m = (int *) st->mask->data + x + y * width;
 
-			/* Is it still not fore? May have been set by us
-			 * earlier.
+			/* Has it been marked already? Done.
 			 */
-			for( j = 0; j < st->ps; j++ )
-				if( p[j] != st->ink[j] )
-					break;
-			if( j == st->ps )
+			if( *m == st->serial )
 				continue;
-
-			/* Set this pixel.
-			 */
-			for( j = 0; j < st->ps; j++ )
-				p[j] = st->ink[j];
-
-			/* Changes bb of dirty area?
-			 */
-			if( x < st->dirty.left ) {
-				st->dirty.left -= x;
-				st->dirty.width += x;
-			}
-			else if( x > st->dirty.left + st->dirty.width )
-				st->dirty.width += x;
-
-			if( y < st->dirty.top ) {
-				st->dirty.top -= y;
-				st->dirty.height += y;
-			}
-			else if( y > st->dirty.top + st->dirty.height )
-				st->dirty.height += y;
+			*m = st->serial;
 
 			/* Propogate to neighbours.
 			 */
-			if( st->equal ) {
-				if( x < st->right - 1 )
-					ADDIFEDGE( p + st->ps, x + 1, y );
-				if( x > st->left )
-					ADDIFEDGE( p - st->ps, x - 1, y );
-				if( y < st->bottom - 1 )
-					ADDIFEDGE( p + st->ls, x, y + 1 );
-				if( y > st->top )
-					ADDIFEDGE( p - st->ls, x, y - 1 );
-			}
-			else {
-				if( x < st->right - 1 )
-					ADDIFNOTEDGE( p + st->ps, x + 1, y );
-				if( x > st->left )
-					ADDIFNOTEDGE( p - st->ps, x - 1, y );
-				if( y < st->bottom - 1 )
-					ADDIFNOTEDGE( p + st->ls, x, y + 1 );
-				if( y > st->top )
-					ADDIFNOTEDGE( p - st->ls, x, y - 1 );
-			}
+			if( x < st->right - 1 && !m[1] )
+				ADDIFEDGE( p + st->ps, x + 1, y );
+			if( x > st->left && !m[-1] )
+				ADDIFEDGE( p - st->ps, x - 1, y );
+			if( y < st->bottom - 1 && !m[width] )
+				ADDIFEDGE( p + st->ls, x, y + 1 );
+			if( y > st->top && !m[-width]  )
+				ADDIFEDGE( p - st->ls, x, y - 1 );
 		}
 
 		if( in->n == PBUFSIZE )
@@ -323,78 +261,38 @@ dofill( State *st, Buffer *in, Buffer *out )
 }
 
 int
-im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial )
 {
 	State *st;
 	Buffer *in, *out, *t;
 	PEL *p;
+	int *m;
 
-	if( im_rwcheck( im ) )
-		return( -1 );
-	if( im->Coding != IM_CODING_NONE && 
-		im->Coding != IM_CODING_LABQ &&
-		im->Coding != IM_CODING_RAD ) {
-		im_error( "im_flood", "%s", 
-			_( "Coding should be NONE, LABQ or RAD" ) ); 
-		return( -1 );
-	}
-	if( !(st = build_state( im, x, y, ink, dout )) )
+	if( im_rwcheck( mask ) ||
+		im_incheck( test ) )
 		return( -1 );
 
-	/* Test start pixel ... nothing to do?
+	if( im_check_known_coded( "im_flood_other", test ) ||
+		im_check_uncoded( "im_flood_other", mask ) ||
+		im_check_mono( "im_flood_other", mask ) ||
+		im_check_int( "im_flood_other", mask ) ||
+		im_check_same_size( "im_flood_other", test, mask ) )
+		return( -1 );
+
+	/* Make sure the mask has zero at the start position. If it does, we
+	 * must have filled with this serial already, so ... job done.
 	 */
-	p = (PEL *) im->data + x*st->ps + y*st->ls;
-	if( memcmp( p, ink, st->ps ) == 0 ) {
-		free_state( st );
+	m = (int *) mask->data + x + y * mask->Ysize;
+	if( *m == serial )
 		return( 0 );
-	}
 
-	/* Flood to != ink.
-	 */
-	memcpy( st->edge, ink, st->ps );
-	st->equal = 0;
-
-	/* Add start pixel to the work buffer, and loop.
-	 */
-	ADD( st->buf1, x, y )
-	for( in = st->buf1, out = st->buf2; 
-		in->n > 0; t = in, in = out, out = t )
-		if( dofill( st, in, out ) ) {
-			free_state( st );
-			return( -1 );
-		}
-	
-	free_state( st );
-
-	im_invalidate( im );
-
-	return( 0 );
-}
-
-int
-im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
-{
-	State *st;
-	Buffer *in, *out, *t;
-	PEL *p;
-
-	if( im_rwcheck( im ) )
-		return( -1 );
-	if( im->Coding != IM_CODING_NONE && 
-		im->Coding != IM_CODING_LABQ &&
-		im->Coding != IM_CODING_RAD ) {
-		im_error( "im_flood", "%s", 
-			_( "Coding should be NONE, LABQ or RAD" ) ); 
-		return( -1 );
-	}
-	if( !(st = build_state( im, x, y, ink, dout )) )
+	if( !(st = build_state( mask, test, x, y, serial )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.
 	 */
-	p = (PEL *) im->data + x*st->ps + y*st->ls;
+	p = (PEL *) test->data + x * st->ps + y * st->ls;
 	memcpy( st->edge, p, st->ps );
-	st->equal = 1;
 
 	/* Add start pixel to the work buffer, and loop.
 	 */
@@ -408,7 +306,7 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	
 	free_state( st );
 
-	im_invalidate( im );
+	im_invalidate( mask );
 
 	return( 0 );
 }
@@ -417,13 +315,14 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  * automatically. Maybe nip could do it if it sees a RW image argument?
  */
 int
-im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
+im_flood_other_copy( IMAGE *mask, IMAGE *out, 
+	IMAGE *test, int x, int y, int serial )
 {
 	IMAGE *t;
 
-	if( !(t = im_open_local( out, "im_flood_blob_copy", "t" )) ||
-		im_copy( in, t ) ||
-		im_flood_blob( t, x, y, ink, NULL ) ||
+	if( !(t = im_open_local( out, "im_flood_other_copy", "t" )) ||
+		im_copy( mask, t ) ||
+		im_flood_other( t, test, x, y, serial ) ||
 		im_copy( t, out ) ) 
 		return( -1 );
 

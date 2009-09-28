@@ -123,7 +123,7 @@ im_invert( IMAGE *in, IMAGE *out )
 	/* Check args.
 	 */
 	if( im_check_uncoded( "im_invert", in ) || 
-		im_check_uchar( "im_invert", in ) || 
+		im_check_format( "im_invert", in, IM_BANDFMT_UCHAR ) || 
 		im_piocheck( in, out ) )
 		return( -1 );
 

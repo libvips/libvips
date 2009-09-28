@@ -291,9 +291,9 @@ blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	if( im_check_uncoded( "im_blend", c ) ||
 		im_check_uncoded( "im_blend", a ) ||
 		im_check_uncoded( "im_blend", b ) ||
-		im_check_uchar( "im_blend", c ) ||
-		im_check_format( "im_blend", a, b ) ||
-		im_check_bands( "im_blend", a, b ) ||
+		im_check_format( "im_blend", c, IM_BANDFMT_UCHAR ) || 
+		im_check_same_format( "im_blend", a, b ) ||
+		im_check_same_bands( "im_blend", a, b ) ||
 		im_check_bands_1orn( "im_blend", c, a ) || 
 		im_piocheck( c, out ) || 
 		im_pincheck( a ) || 

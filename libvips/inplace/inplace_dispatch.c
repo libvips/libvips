@@ -257,6 +257,44 @@ static im_function flood_blob_copy_desc = {
 	flood_blob_copy_args 	/* Arg list */
 };
 
+/* Args for im_flood_other_copy().
+ */
+static im_arg_desc flood_other_copy_args[] = {
+	IM_INPUT_IMAGE( "mask" ),
+	IM_INPUT_IMAGE( "test" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "start_x" ),
+	IM_INPUT_INT( "start_y" ),
+	IM_INPUT_INT( "serial" )
+};
+
+/* Call im_flood_other_copy() via arg vector.
+ */
+static int
+flood_other_copy_vec( im_object *argv )
+{
+	IMAGE *mask = argv[0];
+	IMAGE *test = argv[1];
+	IMAGE *out = argv[2];
+	int start_x = *((int *) argv[3]);
+	int start_y = *((int *) argv[4]);
+	int serial = *((int *) argv[5]);
+
+	return( im_flood_other_copy( mask, test, out, 
+		start_x, start_y, serial ) );
+}
+
+/* Description of im_flood_other_copy().
+ */ 
+static im_function flood_other_copy_desc = {
+	"im_flood_other_copy",	/* Name */
+	"flood mask with serial number from start_x, start_y while pixel == start pixel",
+	0,			/* Flags */
+	flood_other_copy_vec, 	/* Dispatch function */
+	IM_NUMBER( flood_other_copy_args ),/* Size of arg list */
+	flood_other_copy_args 	/* Arg list */
+};
+
 /* To do:
  * these all need some kind of pel type
  *
@@ -274,6 +312,7 @@ static im_function flood_blob_copy_desc = {
 static im_function *inplace_list[] = {
 	&circle_desc,
 	&flood_blob_copy_desc,
+	&flood_other_copy_desc,
 	&insertplace_desc,
 	&line_desc,
 	&lineset_desc

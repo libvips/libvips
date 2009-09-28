@@ -47,6 +47,8 @@
 - im_blend()/im_ifthenelse() allows many-band conditional, 1-band then/else
 - im_blend()/im_ifthenelse() allows band and format to differ between then 
   and else parts
+- better im_check() functions
+- added im_flood_other() as start of simple segmentation operator
 
 25/3/09 started 7.18.0
 - revised version numbers

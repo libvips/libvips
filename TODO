@@ -1,3 +1,5 @@
+- im_flood*() should use inline rather than #define
+
 - we have tools/ and contrib/ argh
 
 

@@ -154,11 +154,11 @@ ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	/* Check args.
 	 */
 	if( im_check_uncoded( "im_ifthenelse", c ) ||
-		im_check_uchar( "im_ifthenelse", c ) ||
 		im_check_known_coded( "im_ifthenelse", a ) ||
 		im_check_known_coded( "im_ifthenelse", b ) ||
-		im_check_format( "im_ifthenelse", a, b ) ||
-		im_check_bands( "im_ifthenelse", a, b ) ||
+		im_check_format( "ifthenelse", c, IM_BANDFMT_UCHAR ) || 
+		im_check_same_format( "ifthenelse", a, b ) ||
+		im_check_same_bands( "ifthenelse", a, b ) ||
 		im_check_bands_1orn( "im_ifthenelse", c, a ) || 
 		im_piocheck( c, out ) || 
 		im_pincheck( a ) || 

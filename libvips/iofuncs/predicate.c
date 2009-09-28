@@ -422,10 +422,11 @@ im_check_complex( const char *domain, IMAGE *im )
 }
 
 int
-im_check_uchar( const char *domain, IMAGE *im )
+im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt )
 {
-	if( im->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( domain, "%s", _( "image must be uchar" ) );
+	if( im->BandFmt != fmt ) {
+		im_error( domain, 
+			_( "image must be %s" ), im_BandFmt2char( fmt ) );
 		return( -1 );
 	}
 
@@ -455,7 +456,7 @@ im_check_int( const char *domain, IMAGE *im )
 }
 
 int
-im_check_size( const char *domain, IMAGE *im1, IMAGE *im2 )
+im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Xsize != im2->Xsize || im1->Ysize != im2->Ysize ) {
 		im_error( domain, "%s", _( "images must match in size" ) );
@@ -466,7 +467,7 @@ im_check_size( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 int
-im_check_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
+im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Bands != im2->Bands ) {
 		im_error( domain, "%s", 
@@ -478,7 +479,7 @@ im_check_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 int
-im_check_format( const char *domain, IMAGE *im1, IMAGE *im2 )
+im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->BandFmt != im2->BandFmt ) {
 		im_error( domain, "%s", 
