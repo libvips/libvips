@@ -80,6 +80,43 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: meta
+ * @short_description: get and set image metadata
+ * @stability: Stable
+ * @see_also: #vips
+ * @include: vips/vips.h
+ *
+ * You can attach arbitary metadata to images. Metadata is copied as images
+ * are processed, so all images which used this image as input, directly or
+ * indirectly, will have this same bit of metadata attached to them. Metadata
+ * is handy for things like ICC profiles or EXIF data.
+ *
+ * Various convenience functions (eg. im_meta_set_int()) let you easily attach 
+ * simple types like
+ * numbers, strings and memory blocks to images. Use im_meta_map() to loop
+ * over an image's metadata.
+ *
+ * Items of metadata are identified by strings. Some strings are reserved, for
+ * example the ICC pofile for an image is known by convention as
+ * "icc-profile-data".
+ *
+ * If you save an image in VIPS format, all metadata (with a restriction, see
+ * below) is automatically saved for you in a block of XML at the end of the
+ * file. When you load a VIPS image, the metadata is restored. You can use the
+ * 'edvips' command-line tool to extract or replace this block of XML.
+ *
+ * VIPS metadata is based on GValue. See the docs for that system if you want
+ * to do fancy stuff such as defining a new metadata type.
+ * VIPS defines a new GValue called "im_save_string", a variety of string. If 
+ * your GValue can be transformed to im_save_string, it will be saved and
+ * loaded to and from VIPS files for you.
+ *
+ * VIPS provides a couple of base classes which implement
+ * reference-counted areas of memory. If you base your metadata on one of
+ * these types, it can be copied between images efficiently.
+ */
+
 /* 
 
 	The GValue we store can be a number, mutable string, ref-counted 
@@ -259,7 +296,37 @@ im__meta_cp( IMAGE *dst, const IMAGE *src )
 	return( 0 );
 }
 
-/* Set a meta, overwriting any old meta. 
+/** 
+ * im_meta_set:
+ * @im: #IMAGE to set the metadata on
+ * @field: the name to give the metadata
+ * @value: the GValue to copy into the image
+ *
+ * Set a piece of metadata on an #IMAGE. Any old metadata with that name is
+ * destroyed. The GValue is copied into the image, so you need to unset the
+ * value when you're done with it.
+ *
+ * For example, to set an integer on an image (though you would use the
+ * convenience function im_meta_set_int() in practice), you would need:
+ *
+ * |[
+ * GValue value = { 0 };
+ *
+ * g_value_init( &value, G_TYPE_INT );
+ * g_value_set_int( &value, 42 );
+ *
+ * if( im_meta_set( im, field, &value ) ) {
+ *   g_value_unset( &value );
+ *   return( -1 );
+ * }
+ * g_value_unset( &value );
+ *
+ * return( 0 );
+ * ]|
+ *
+ * See also: im_meta_get().
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_meta_set( IMAGE *im, const char *field, GValue *value )
@@ -280,8 +347,45 @@ im_meta_set( IMAGE *im, const char *field, GValue *value )
 	return( 0 );
 }
 
-/* Fill value with a copy of the meta, -1 on error. value_copy must be zeroed 
+/**
+ * im_meta_get:
+ * @im: #IMAGE to set the metadata on
+ * @field: the name to give the metadata
+ * @value_copy: the GValue is copied into this
+ *
+ * Fill @value_copy with a copy of the metadata. @value_copy must be zeroed 
  * but uninitialised.
+ *
+ * This will return -1 and add a message to the error buffer if the item
+ * of metadata does not exist. Use im_meta_typeof() to test for the existence
+ * of a piece of metadata first if you are not certain it will be there.
+ *
+ * For example, to read a double from an image (though of course you would use
+ * im_meta_get_double() in practice):
+ *
+ * |[
+ * GValue value = { 0 };
+ * double d;
+ *
+ * if( meta_get_value( im, field, &value ) )
+ *   return( -1 );
+ *
+ * if( G_VALUE_TYPE( &value ) != G_TYPE_DOUBLE ) {
+ *   im_error( "mydomain", _( "field \"%s\" is of type %s, not double" ),
+ *     field, g_type_name( G_VALUE_TYPE( &value ) ) );
+ *   g_value_unset( &value );
+ *   return( -1 );
+ * }
+ *
+ * d = g_value_get_double( &value );
+ * g_value_unset( &value );
+ *
+ * return( 0 );
+ * ]|
+ *
+ * See also: im_meta_typeof(), im_meta_set().
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_meta_get( IMAGE *im, const char *field, GValue *value_copy )
@@ -304,6 +408,19 @@ im_meta_get( IMAGE *im, const char *field, GValue *value_copy )
 	return( 0 );
 }
 
+/**
+ * im_meta_get_typeof:
+ * @im: #IMAGE to set the metadata on
+ * @field: the name to give the metadata
+ *
+ * Read the GType for an item of metadata. Returns zero if there is no
+ * metadata of that name.
+ *
+ * See also: im_meta_get().
+ *
+ * Returns: the GType of the metadata, or zero if there is no
+ * metadata of that name.
+ */
 GType
 im_meta_get_typeof( IMAGE *im, const char *field )
 {

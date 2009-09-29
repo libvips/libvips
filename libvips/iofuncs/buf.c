@@ -261,7 +261,6 @@ vips_buf_init_dynamic( VipsBuf *buf, int mx )
  * 
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
-
 gboolean
 vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 {

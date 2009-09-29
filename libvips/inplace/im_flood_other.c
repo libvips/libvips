@@ -282,7 +282,7 @@ im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial )
 	/* Make sure the mask has zero at the start position. If it does, we
 	 * must have filled with this serial already, so ... job done.
 	 */
-	m = (int *) mask->data + x + y * mask->Ysize;
+	m = (int *) mask->data + x + y * mask->Xsize;
 	if( *m == serial )
 		return( 0 );
 
@@ -343,7 +343,7 @@ im_segment( IMAGE *test, IMAGE *mask, int *segments )
 	if( im_open_local_array( mask, t, 2, "im_segment", "p" ) ||
 		im_black( t[0], test->Xsize, test->Ysize, 1 ) ||
 		im_clip2fmt( t[0], t[1], IM_BANDFMT_INT ) ) 
-		return( 0 );
+		return( -1 );
 
 	/* Search the mask image, flooding as we find zero pixels.
 	 */
@@ -352,7 +352,7 @@ im_segment( IMAGE *test, IMAGE *mask, int *segments )
 	serial = 0;
 	for( y = 0; y < test->Ysize; y++ )
 		for( x = 0; x < test->Xsize; x++ ) {
-			int *m = (int *) t[1]->data + x + y * test->Ysize;
+			int *m = (int *) t[1]->data + x + y * test->Xsize;
 
 			if( !*m ) {
 				if( im_flood_other( t[1], test, x, y, serial ) )

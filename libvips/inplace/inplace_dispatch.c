@@ -308,9 +308,9 @@ static im_arg_desc segment_args[] = {
 static int
 segment_vec( im_object *argv )
 {
-	IMAGE *test = argv[1];
-	IMAGE *mask = argv[0];
-	int *serial = (int *) argv[5];
+	IMAGE *test = argv[0];
+	IMAGE *mask = argv[1];
+	int *serial = (int *) argv[2];
 
 	return( im_segment( test, mask, serial ) );
 }
