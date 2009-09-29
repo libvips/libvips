@@ -620,8 +620,9 @@ int im_flood( IMAGE *, int, int, PEL *, Rect * );
 int im_flood_blob( IMAGE *, int, int, PEL *, Rect * );
 int im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
 int im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial );
-int im_flood_other_copy( IMAGE *mask, IMAGE *out, 
-	IMAGE *test, int x, int y, int serial );
+int im_flood_other_copy( IMAGE *mask, IMAGE *test, IMAGE *out, 
+	int x, int y, int serial );
+int im_segment( IMAGE *test, IMAGE *mask, int *segments );
 int im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
 

@@ -295,6 +295,37 @@ static im_function flood_other_copy_desc = {
 	flood_other_copy_args 	/* Arg list */
 };
 
+/* Args for im_segment().
+ */
+static im_arg_desc segment_args[] = {
+	IM_INPUT_IMAGE( "test" ),
+	IM_OUTPUT_IMAGE( "mask" ),
+	IM_OUTPUT_INT( "segments" )
+};
+
+/* Call im_segment() via arg vector.
+ */
+static int
+segment_vec( im_object *argv )
+{
+	IMAGE *test = argv[1];
+	IMAGE *mask = argv[0];
+	int *serial = (int *) argv[5];
+
+	return( im_segment( test, mask, serial ) );
+}
+
+/* Description of im_segment().
+ */ 
+static im_function segment_desc = {
+	"im_segment",		/* Name */
+	"number continuous regions in an image",
+	0,			/* Flags */
+	segment_vec, 		/* Dispatch function */
+	IM_NUMBER( segment_args ),/* Size of arg list */
+	segment_args 		/* Arg list */
+};
+
 /* To do:
  * these all need some kind of pel type
  *
@@ -313,6 +344,7 @@ static im_function *inplace_list[] = {
 	&circle_desc,
 	&flood_blob_copy_desc,
 	&flood_other_copy_desc,
+	&segment_desc,
 	&insertplace_desc,
 	&line_desc,
 	&lineset_desc

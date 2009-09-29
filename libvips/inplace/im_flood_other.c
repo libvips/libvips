@@ -275,7 +275,7 @@ im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial )
 	if( im_check_known_coded( "im_flood_other", test ) ||
 		im_check_uncoded( "im_flood_other", mask ) ||
 		im_check_mono( "im_flood_other", mask ) ||
-		im_check_int( "im_flood_other", mask ) ||
+		im_check_format( "im_flood_other", mask, IM_BANDFMT_INT ) ||
 		im_check_same_size( "im_flood_other", test, mask ) )
 		return( -1 );
 
@@ -315,8 +315,8 @@ im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial )
  * automatically. Maybe nip could do it if it sees a RW image argument?
  */
 int
-im_flood_other_copy( IMAGE *mask, IMAGE *out, 
-	IMAGE *test, int x, int y, int serial )
+im_flood_other_copy( IMAGE *mask, IMAGE *test, IMAGE *out, 
+	int x, int y, int serial )
 {
 	IMAGE *t;
 
@@ -329,4 +329,46 @@ im_flood_other_copy( IMAGE *mask, IMAGE *out,
 	return( 0 );
 }
 
+/* Now: segment with im_flood_other(). 
+ */
+int
+im_segment( IMAGE *test, IMAGE *mask, int *segments )
+{
+	IMAGE *t[2];
+	int serial;
+	int x, y;
+
+	/* Create the mask image.
+	 */
+	if( im_open_local_array( mask, t, 2, "im_segment", "p" ) ||
+		im_black( t[0], test->Xsize, test->Ysize, 1 ) ||
+		im_clip2fmt( t[0], t[1], IM_BANDFMT_INT ) ) 
+		return( 0 );
+
+	/* Search the mask image, flooding as we find zero pixels.
+	 */
+	if( im_incheck( t[1] ) )
+		return( -1 );
+	serial = 0;
+	for( y = 0; y < test->Ysize; y++ )
+		for( x = 0; x < test->Xsize; x++ ) {
+			int *m = (int *) t[1]->data + x + y * test->Ysize;
+
+			if( !*m ) {
+				if( im_flood_other( t[1], test, x, y, serial ) )
+					return( -1 );
+
+				serial += 1;
+			}
+		}
+
+	/* Copy result to mask.
+	 */
+	if( im_copy( t[1], mask ) )
+		return( -1 );
+	if( segments )
+		*segments = serial;
+
+	return( 0 );
+}
 
