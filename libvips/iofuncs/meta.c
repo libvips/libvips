@@ -20,6 +20,8 @@
  * 29/8/09
  * 	- im_meta_get_type() renamed as im_meta_get_typeof() to prevent
  * 	  confusion with GObject-style type definers
+ * 1/10/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -84,18 +86,21 @@
  * SECTION: meta
  * @short_description: get and set image metadata
  * @stability: Stable
- * @see_also: #vips
+ * @see_also: header
  * @include: vips/vips.h
  *
- * You can attach arbitary metadata to images. Metadata is copied as images
+ * You can attach arbitrary metadata to images. Metadata is copied as images
  * are processed, so all images which used this image as input, directly or
- * indirectly, will have this same bit of metadata attached to them. Metadata
+ * indirectly, will have this same bit of metadata attached to them. Copying
+ * is implemented with reference-counted pointers, so it is efficient, even for
+ * large items of data. This does however mean that metadata items need to be
+ * immutable. Metadata
  * is handy for things like ICC profiles or EXIF data.
  *
  * Various convenience functions (eg. im_meta_set_int()) let you easily attach 
  * simple types like
- * numbers, strings and memory blocks to images. Use im_meta_map() to loop
- * over an image's metadata.
+ * numbers, strings and memory blocks to images. Use im_header_map() to loop
+ * over an image's fields, including all metadata.
  *
  * Items of metadata are identified by strings. Some strings are reserved, for
  * example the ICC pofile for an image is known by convention as
@@ -357,7 +362,8 @@ im_meta_set( IMAGE *im, const char *field, GValue *value )
  * but uninitialised.
  *
  * This will return -1 and add a message to the error buffer if the item
- * of metadata does not exist. Use im_meta_typeof() to test for the existence
+ * of metadata does not exist. Use im_meta_get_typeof() to test for the 
+ * existence
  * of a piece of metadata first if you are not certain it will be there.
  *
  * For example, to read a double from an image (though of course you would use
@@ -383,7 +389,7 @@ im_meta_set( IMAGE *im, const char *field, GValue *value )
  * return( 0 );
  * ]|
  *
- * See also: im_meta_typeof(), im_meta_set().
+ * See also: im_meta_get_typeof(), im_meta_set().
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -486,12 +492,27 @@ im_save_string_get_type( void )
 	return( type );
 }
 
+/** 
+ * im_save_string_get:
+ * @value: GValue to get from
+ *
+ * Get the C string held internally by the GValue.
+ *
+ * Returns: The C string held by @value. This must not be freed.
+ */
 const char *
 im_save_string_get( const GValue *value )
 {
 	return( (char *) g_value_get_boxed( value ) );
 }
 
+/** 
+ * im_save_string_set:
+ * @value: GValue to set
+ * @str: C string to copy into the GValue
+ *
+ * Copies the C string into @value.
+ */
 void
 im_save_string_set( GValue *value, const char *str )
 {
@@ -500,6 +521,14 @@ im_save_string_set( GValue *value, const char *str )
 	g_value_set_boxed( value, str );
 }
 
+/** 
+ * im_save_string_setf:
+ * @value: GValue to set
+ * @fmt: printf()-style format string
+ * @Varargs: arguments to printf()-formatted @fmt
+ *
+ * Generates a string and copies it into @value.
+ */
 void
 im_save_string_setf( GValue *value, const char *fmt, ... )
 {
@@ -515,7 +544,18 @@ im_save_string_setf( GValue *value, const char *fmt, ... )
 	g_free( str );
 }
 
-/* Read/write int, double metadata.
+/** 
+ * im_meta_set_int:
+ * @im: image to attach the metadata to
+ * @field: metadata name
+ * @i: metadata value
+ *
+ * Attaches @i as a metadata item on @im under the name @field. A convenience
+ * function over im_meta_set().
+ *
+ * See also: im_meta_get_int(), im_meta_set()
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_meta_set_int( IMAGE *im, const char *field, int i )
@@ -528,6 +568,21 @@ im_meta_set_int( IMAGE *im, const char *field, int i )
 	return( meta_set_value( im, field, &value ) );
 }
 
+/** 
+ * im_meta_get_int:
+ * @im: image to get the metadata from
+ * @field: metadata name
+ * @i: return metadata value
+ *
+ * Gets @i from @im under the name @field. A convenience
+ * function over im_meta_get(). Use im_meta_get_typeof() to test for the 
+ * existance
+ * of a piece of metadata.
+ *
+ * See also: im_meta_set_int(), im_meta_get(), im_meta_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_meta_get_int( IMAGE *im, const char *field, int *i )
 {
@@ -541,6 +596,19 @@ im_meta_get_int( IMAGE *im, const char *field, int *i )
 	return( 0 );
 }
 
+/** 
+ * im_meta_set_double:
+ * @im: image to attach the metadata to
+ * @field: metadata name
+ * @d: metadata value
+ *
+ * Attaches @d as a metadata item on @im under the name @field. A convenience
+ * function over im_meta_set().
+ *
+ * See also: im_meta_get_double(), im_meta_set()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_meta_set_double( IMAGE *im, const char *field, double d )
 {
@@ -552,6 +620,21 @@ im_meta_set_double( IMAGE *im, const char *field, double d )
 	return( meta_set_value( im, field, &value ) );
 }
 
+/** 
+ * im_meta_get_double:
+ * @im: image to get the metadata from
+ * @field: metadata name
+ * @d: return metadata value
+ *
+ * Gets @d from @im under the name @field. A convenience
+ * function over im_meta_get(). Use im_meta_get_typeof() to test for the 
+ * existance
+ * of a piece of metadata.
+ *
+ * See also: im_meta_set_double(), im_meta_get(), im_meta_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_meta_get_double( IMAGE *im, const char *field, double *d )
 {
@@ -758,7 +841,19 @@ value_get_area_length( const GValue *value )
 	return( area->length );
 }
 
-/* Read/write ref-counted mem area.
+/** 
+ * im_meta_set_area:
+ * @im: image to attach the metadata to
+ * @field: metadata name
+ * @free_fn: free function for @data
+ * @data: pointer to area of memory
+ *
+ * Attaches @data as a metadata item on @im under the name @field. When VIPS
+ * no longer needs the metadata, it will be freed with @free_fn.
+ *
+ * See also: im_meta_get_double(), im_meta_set()
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_meta_set_area( IMAGE *im, const char *field, 
@@ -771,6 +866,21 @@ im_meta_set_area( IMAGE *im, const char *field,
 	return( meta_set_value( im, field, &value ) );
 }
 
+/** 
+ * im_meta_get_area:
+ * @im: image to get the metadata from
+ * @field: metadata name
+ * @data: return metadata value
+ *
+ * Gets @data from @im under the name @field. A convenience
+ * function over im_meta_get(). Use im_meta_get_typeof() to test for the 
+ * existance
+ * of a piece of metadata.
+ *
+ * See also: im_meta_set_area(), im_meta_get(), im_meta_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_meta_get_area( IMAGE *im, const char *field, void **data )
 {
@@ -784,7 +894,13 @@ im_meta_get_area( IMAGE *im, const char *field, void **data )
 	return( 0 );
 }
 
-/* Get a char* from a refstring.
+/** 
+ * im_ref_string_get:
+ * @value: GValue to get from
+ *
+ * Get the C string held internally by the GValue.
+ *
+ * Returns: The C string held by @value. This must not be freed.
  */
 const char *
 im_ref_string_get( const GValue *value )
@@ -792,7 +908,13 @@ im_ref_string_get( const GValue *value )
 	return( value_get_area_data( value ) );
 }
 
-/* Get cached strlen() from a refstring.
+/** 
+ * im_ref_string_get_length:
+ * @value: GValue to get from
+ *
+ * Gets the cached string length held internally by the refstring.
+ *
+ * Returns: The length of the string.
  */
 size_t
 im_ref_string_get_length( const GValue *value )
@@ -800,7 +922,18 @@ im_ref_string_get_length( const GValue *value )
 	return( value_get_area_length( value ) );
 }
 
-/* Set value to be a ref-counted string.
+/** 
+ * im_ref_string_set:
+ * @value: GValue to set
+ * @str: C string to copy into the GValue
+ *
+ * Copies the C string @str into @value. 
+ *
+ * im_ref_string are immutable C strings that are copied between images by
+ * copying reference-counted pointers, making the much more efficient than
+ * regular GValue strings.
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_ref_string_set( GValue *value, const char *str )
@@ -877,7 +1010,18 @@ im_ref_string_get_type( void )
 	return( type );
 }
 
-/* Read/write C string.
+/** 
+ * im_meta_set_string:
+ * @im: image to attach the metadata to
+ * @field: metadata name
+ * @str: metadata value
+ *
+ * Attaches @str as a metadata item on @im under the name @field. A convenience
+ * function over im_meta_set() using an im_ref_string.
+ *
+ * See also: im_meta_get_double(), im_meta_set(), im_ref_string
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_meta_set_string( IMAGE *im, const char *field, const char *str )
@@ -890,6 +1034,22 @@ im_meta_set_string( IMAGE *im, const char *field, const char *str )
 	return( meta_set_value( im, field, &value ) );
 }
 
+/** 
+ * im_meta_get_string:
+ * @im: image to get the metadata from
+ * @field: metadata name
+ * @str: return metadata value
+ *
+ * Gets @str from @im under the name @field. A convenience
+ * function over im_meta_get(). Use im_meta_get_typeof() to test for the 
+ * existance
+ * of a piece of metadata.
+ *
+ * See also: im_meta_set_string(), im_meta_get(), im_meta_get_typeof(),
+ * im_ref_string
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_meta_get_string( IMAGE *im, const char *field, char **str )
 {
@@ -905,7 +1065,17 @@ im_meta_get_string( IMAGE *im, const char *field, char **str )
 	return( 0 );
 }
 
-/* Get a void * from a BLOB.
+/** 
+ * im_blob_get:
+ * @value: GValue to get from
+ * @blob_length: return the blob length here, optionally
+ *
+ * Get the address of the blob (binary large object) being held in @value and
+ * optionally return its length in @blob_length.
+ *
+ * See also: im_blob_set()
+ *
+ * Returns: The blob address.
  */
 void *
 im_blob_get( const GValue *value, size_t *blob_length )
@@ -987,7 +1157,24 @@ im_blob_get_type( void )
 	return( type );
 }
 
-/* Set value to be a blob.
+/** 
+ * im_blob_set:
+ * @value: GValue to set
+ * @free_fn: free function for @data
+ * @blob: pointer to area of memory
+ * @blob_length: length of memory area
+ *
+ * Sets @value to hold a pointer to @blob. When @value is freed, @blob will be
+ * freed with @free_fn. @value also holds a note of the length of the memory
+ * area.
+ *
+ * blobs are things like ICC profiles or EXIF data. They are relocatable, and
+ * are saved to VIPS files for you coded as base64 inside the XML. They are
+ * copied by copying reference-counted pointers.
+ *
+ * See also: im_blob_get()
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_blob_set( GValue *value, 
@@ -1006,7 +1193,20 @@ im_blob_set( GValue *value,
 	return( 0 );
 }
 
-/* Read/write blob.
+/** 
+ * im_meta_set_blob:
+ * @im: image to attach the metadata to
+ * @field: metadata name
+ * @free_fn: free function for @data
+ * @blob: pointer to area of memory
+ * @blob_length: length of memory area
+ *
+ * Attaches @blob as a metadata item on @im under the name @field. A convenience
+ * function over im_meta_set() using an im_blob.
+ *
+ * See also: im_meta_get_blob(), im_meta_set(), im_blob
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_meta_set_blob( IMAGE *im, const char *field, 
@@ -1020,6 +1220,23 @@ im_meta_set_blob( IMAGE *im, const char *field,
 	return( meta_set_value( im, field, &value ) );
 }
 
+/** 
+ * im_meta_get_blob:
+ * @im: image to get the metadata from
+ * @field: metadata name
+ * @blob: pointer to area of memory
+ * @blob_length: return the blob length here, optionally
+ *
+ * Gets @blob from @im under the name @field, optionally return its length in
+ * @blob_length. A convenience
+ * function over im_meta_get(). Use im_meta_get_typeof() to test for the 
+ * existance
+ * of a piece of metadata.
+ *
+ * See also: im_meta_get(), im_meta_get_typeof(), im_blob_get(), im_blob
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_meta_get_blob( IMAGE *im, const char *field, 
 	void **blob, size_t *blob_length )

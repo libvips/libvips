@@ -84,10 +84,10 @@
  * SECTION: image
  * @short_description: the VIPS image class
  * @stability: Stable
- * @see_also: #vips
+ * @see_also: vips
  * @include: vips/vips.h
  *
- * The VIPS image class and associated macros.
+ * The VIPS image class and associated types and macros.
  */
 
 /**

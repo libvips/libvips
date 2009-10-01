@@ -1,7 +1,3 @@
-- doing meta.c, reached im_save_string_get_type()
-
-  how should we doc im_save_string? read the gobject sources for param spec
-  types for hints?
 
 - im_flood*() should use inline rather than #define
 

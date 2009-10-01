@@ -16,12 +16,17 @@
   </bookinfo>
 
   <chapter>
-    <title>API by section</title>
+    <title>Core VIPS API</title>
     <xi:include href="xml/image.xml"/>
+    <xi:include href="xml/meta.xml"/>
+    <xi:include href="xml/buf.xml"/>
+  </chapter>
+
+  <chapter>
+    <title>VIPS operation API by section</title>
     <xi:include href="xml/arithmetic.xml"/>
     <xi:include href="xml/boolean.xml"/>
     <xi:include href="xml/relational.xml"/>
-    <xi:include href="xml/buf.xml"/>
   </chapter>
 
   <chapter>
@@ -32,7 +37,6 @@
     <xi:include href="xml/proto.xml"/>
     <xi:include href="xml/colour.xml"/>
     <xi:include href="xml/region.xml"/>
-    <xi:include href="xml/meta.xml"/>
     <xi:include href="xml/transform.xml"/>
     <xi:include href="xml/util.xml"/>
     <xi:include href="xml/threadgroup.xml"/>

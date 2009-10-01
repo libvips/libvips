@@ -50,6 +50,7 @@
 - better im_check() functions
 - added im_flood_other() as start of simple segmentation operator
 - added im_segment() 
+- gtk-doc comments for meta
 
 25/3/09 started 7.18.0
 - revised version numbers
