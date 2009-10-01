@@ -336,9 +336,10 @@ im_segment( IMAGE *test, IMAGE *mask, int *segments )
 {
 	IMAGE *t[2];
 	int serial;
+	int *m;
 	int x, y;
 
-	/* Create the mask image.
+	/* Create the zero mask image.
 	 */
 	if( im_open_local_array( mask, t, 2, "im_segment", "p" ) ||
 		im_black( t[0], test->Xsize, test->Ysize, 1 ) ||
@@ -350,17 +351,19 @@ im_segment( IMAGE *test, IMAGE *mask, int *segments )
 	if( im_incheck( t[1] ) )
 		return( -1 );
 	serial = 0;
-	for( y = 0; y < test->Ysize; y++ )
+	m = (int *) t[1]->data;
+	for( y = 0; y < test->Ysize; y++ ) {
 		for( x = 0; x < test->Xsize; x++ ) {
-			int *m = (int *) t[1]->data + x + y * test->Xsize;
-
-			if( !*m ) {
+			if( !m[x] ) {
 				if( im_flood_other( t[1], test, x, y, serial ) )
 					return( -1 );
 
 				serial += 1;
 			}
 		}
+
+		m += test->Xsize;
+	}
 
 	/* Copy result to mask.
 	 */
