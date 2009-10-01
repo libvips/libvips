@@ -70,8 +70,23 @@
  * @include: vips/vips.h
  *
  * These functions let you get at image header data (including metadata) in a
- * uniform way.
+ * uniform way. They are handy for language bindings but less useful for C
+ * users.
+ *
+ * They first search the 
+ * VIPS header
+ * fields (see <link linkend="libvips-image">image</link>), then search for 
+ * a metadata field of that name (see
+ * <link linkend="libvips-meta">meta</link>).
+ * If no field of that name is found, it sets an error and returns -1. 
+ * Use im_header_get_typeof() to test for the 
+ * existance and GType
+ * of a header field.
+ *
+ * See <link linkend="libvips-meta">meta</link>
+ * for a set of functions for adding new metadata to an image.
  */
+
 
 /* Name, offset pair.
  */
@@ -106,6 +121,19 @@ static HeaderField string_field[] = {
 	{ "filename", G_STRUCT_OFFSET( IMAGE, filename ) }
 };
 
+/** 
+ * im_header_int:
+ * @im: image to get the header field from
+ * @field: field name
+ * @out: return field value
+ *
+ * Gets @out from @im under the name @field. This function searches for
+ * int-valued fields.
+ *
+ * See also: im_header_get(), im_header_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_header_int( IMAGE *im, const char *field, int *out )
 {
@@ -128,6 +156,20 @@ im_header_int( IMAGE *im, const char *field, int *out )
 	return( 0 );
 }
 
+/** 
+ * im_header_double:
+ * @im: image to get the header field from
+ * @field: field name
+ * @out: return field value
+ *
+ * Gets @out from @im under the name @field. 
+ * This function searches for
+ * double-valued fields.
+ *
+ * See also: im_header_get(), im_header_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_header_double( IMAGE *im, const char *field, double *out )
 {
@@ -150,6 +192,20 @@ im_header_double( IMAGE *im, const char *field, double *out )
 	return( 0 );
 }
 
+/** 
+ * im_header_string:
+ * @im: image to get the header field from
+ * @field: field name
+ * @out: return field value
+ *
+ * Gets @out from @im under the name @field. 
+ * This function searches for
+ * string-valued fields.
+ *
+ * See also: im_header_get(), im_header_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
 int
 im_header_string( IMAGE *im, const char *field, char **out )
 {
@@ -172,6 +228,19 @@ im_header_string( IMAGE *im, const char *field, char **out )
 	return( 0 );
 }
 
+/**
+ * im_header_get_typeof:
+ * @im: image to test
+ * @field: the name to search for
+ *
+ * Read the GType for a header field. Returns zero if there is no
+ * field of that name. 
+ *
+ * See also: im_header_get().
+ *
+ * Returns: the GType of the field, or zero if there is no
+ * field of that name.
+ */
 GType 
 im_header_get_typeof( IMAGE *im, const char *field )
 {
@@ -195,6 +264,48 @@ im_header_get_typeof( IMAGE *im, const char *field )
 
 /* Fill value_copy with a copy of the value, -1 on error. value_copy must be 
  * zeroed but uninitialised. User must g_value_unset( value ).
+ */
+
+/**
+ * im_header_get:
+ * @im: image to get the field from from
+ * @field: the name to give the metadata
+ * @value_copy: the GValue is copied into this
+ *
+ * Fill @value_copy with a copy of the header field. @value_copy must be zeroed 
+ * but uninitialised.
+ *
+ * This will return -1 and add a message to the error buffer if the field
+ * does not exist. Use im_header_get_typeof() to test for the 
+ * existence
+ * of a field first if you are not certain it will be there.
+ *
+ * For example, to read a double from an image (though of course you would use
+ * im_header_double() in practice):
+ *
+ * |[
+ * GValue value = { 0 };
+ * double d;
+ *
+ * if( im_header_get( im, field, &value ) )
+ *   return( -1 );
+ *
+ * if( G_VALUE_TYPE( &value ) != G_TYPE_DOUBLE ) {
+ *   im_error( "mydomain", _( "field \"%s\" is of type %s, not double" ),
+ *     field, g_type_name( G_VALUE_TYPE( &value ) ) );
+ *   g_value_unset( &value );
+ *   return( -1 );
+ * }
+ *
+ * d = g_value_get_double( &value );
+ * g_value_unset( &value );
+ *
+ * return( 0 );
+ * ]|
+ *
+ * See also: im_header_get_typeof(), im_header_double().
+ *
+ * Returns: 0 on success, -1 otherwise.
  */
 int
 im_header_get( IMAGE *im, const char *field, GValue *value_copy )
@@ -240,6 +351,22 @@ header_map_fn( Meta *meta, im_header_map_fn fn, void *a )
 	return( fn( meta->im, meta->field, &meta->value, a ) );
 }
 
+/**
+ * im_header_map:
+ * @im: image to map over
+ * @fn: function to call for each header field
+ * @a: user data for function
+ *
+ * This function calls @fn for every header field, including every item of 
+ * metadata. 
+ *
+ * Like all _map functions, the user function should return %NULL to continue
+ * iteration, or a non-%NULL pointer to indicate early termination.
+ *
+ * See also: im_header_get_typeof(), im_header_get().
+ *
+ * Returns: %NULL on success, the failing pointer otherwise.
+ */
 void *
 im_header_map( IMAGE *im, im_header_map_fn fn, void *a )
 {

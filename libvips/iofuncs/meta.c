@@ -303,11 +303,11 @@ im__meta_cp( IMAGE *dst, const IMAGE *src )
 
 /** 
  * im_meta_set:
- * @im: #IMAGE to set the metadata on
+ * @im: image to set the metadata on
  * @field: the name to give the metadata
  * @value: the GValue to copy into the image
  *
- * Set a piece of metadata on an #IMAGE. Any old metadata with that name is
+ * Set a piece of metadata on @im. Any old metadata with that name is
  * destroyed. The GValue is copied into the image, so you need to unset the
  * value when you're done with it.
  *
@@ -354,7 +354,7 @@ im_meta_set( IMAGE *im, const char *field, GValue *value )
 
 /**
  * im_meta_get:
- * @im: #IMAGE to set the metadata on
+ * @im: image to get the metadata from
  * @field: the name to give the metadata
  * @value_copy: the GValue is copied into this
  *
@@ -373,7 +373,7 @@ im_meta_set( IMAGE *im, const char *field, GValue *value )
  * GValue value = { 0 };
  * double d;
  *
- * if( meta_get_value( im, field, &value ) )
+ * if( im_meta_get( im, field, &value ) )
  *   return( -1 );
  *
  * if( G_VALUE_TYPE( &value ) != G_TYPE_DOUBLE ) {
@@ -416,8 +416,8 @@ im_meta_get( IMAGE *im, const char *field, GValue *value_copy )
 
 /**
  * im_meta_get_typeof:
- * @im: #IMAGE to set the metadata on
- * @field: the name to give the metadata
+ * @im: image to test
+ * @field: the name to search for
  *
  * Read the GType for an item of metadata. Returns zero if there is no
  * metadata of that name.
