@@ -15,6 +15,9 @@
  * 29/8/09
  * 	- im_header_get_type() renamed as im_header_get_typeof() to prevent
  * 	  confusion with GObject-style type definers
+ * 1/10/09
+ * 	- rename as header.c
+ * 	- gtkdoc comments
  */
 
 /*
@@ -58,6 +61,17 @@
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/**
+ * SECTION: header
+ * @short_description: get, set and walk image headers
+ * @stability: Stable
+ * @see_also: meta
+ * @include: vips/vips.h
+ *
+ * These functions let you get at image header data (including metadata) in a
+ * uniform way.
+ */
 
 /* Name, offset pair.
  */

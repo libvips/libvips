@@ -17,7 +17,6 @@ libiofuncs_la_SOURCES = \
 	im_debugim.c \
 	im_demand_hint.c \
 	im_generate.c \
-	im_header.c \
 	im_histlin.c \
 	im_image.c \
 	im_init.c \
@@ -47,6 +46,7 @@ libiofuncs_la_SOURCES = \
 	memory.c \
 	package.c \
 	predicate.c \
+	header.c \
 	region.c \
 	rect.c \
 	semaphore.c \
