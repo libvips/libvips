@@ -147,16 +147,6 @@ int im_existsf( const char *name, ... )
 int im_isvips( const char * );
 
 int im_bits_of_fmt( VipsBandFmt fmt );
-const char *im_Type2char( VipsType type );
-const char *im_BandFmt2char( VipsBandFmt fmt );
-const char *im_Coding2char( VipsCoding coding );
-const char *im_Compression2char( int );
-const char *im_dhint2char( VipsDemandStyle style );
-const char *im_dtype2char( im_desc_type );
-int im_char2Type( const char * );
-int im_char2BandFmt( const char * );
-int im_char2Coding( const char * );
-int im_char2Compression( const char * );
 
 int im_unmapfile( IMAGE * );
 void im_printdesc( IMAGE * );
