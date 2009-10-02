@@ -14,7 +14,6 @@ libiofuncs_la_SOURCES = \
 	im_bits_of_fmt.c \
 	im_close.c \
 	im_cp_desc.c \
-	im_debugim.c \
 	im_demand_hint.c \
 	im_generate.c \
 	im_histlin.c \
@@ -30,8 +29,6 @@ libiofuncs_la_SOURCES = \
 	im_partial.c \
 	im_piocheck.c \
 	im_prepare.c \
-	im_printdesc.c \
-	im_printlines.c \
 	im_render.c \
 	im_setbox.c \
 	im_setbuf.c \

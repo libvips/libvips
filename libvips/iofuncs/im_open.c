@@ -438,57 +438,6 @@ im_open( const char *filename, const char *mode )
 	return( im );
 }
 
-/* Test an image for sanity. We could add many more tests here.
- */
-static const char *
-image_sanity( IMAGE *im )
-{
-	if( !im ) 
-		return( "NULL descriptor" );
-	if( !im->filename ) 
-		return( "NULL filename" );
-
-	g_mutex_lock( im__global_lock );
-	if( !g_slist_find( im__open_images, im ) ) {
-		g_mutex_unlock( im__global_lock );
-		return( "not on open image list" );
-	}
-	g_mutex_unlock( im__global_lock );
-
-	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) 
-		return( "bad dimensions" );
-	if( im->BandFmt < -1 || im->BandFmt > IM_BANDFMT_DPCOMPLEX ||
-		(im->Coding != -1 &&
-			im->Coding != IM_CODING_NONE && 
-			im->Coding != IM_CODING_LABQ &&
-			im->Coding != IM_CODING_RAD) ||
-		im->Type < -1 || im->Type > IM_TYPE_GREY16 ||
-		im->dtype > IM_PARTIAL || im->dhint > IM_ANY ) 
-		return( "bad enum value" );
-	if( im->Xres < 0 || im->Xres < 0 ) 
-		return( "bad resolution" );
-
-	return( NULL );
-}
-
-int 
-im_image_sanity( IMAGE *im )
-{
-	const char *msg;
-
-	if( (msg = image_sanity( im )) ) {
-		im_warn( "im_image_sanity", "%p", im );
-		im_warn( "im_image_sanity", "\"%s\" %s",
-			im ? (im->filename ? im->filename : "") : "", 
-			msg );
-		im_printdesc( im );
-
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
 /* Just here for compatibility.
  */
 IMAGE *

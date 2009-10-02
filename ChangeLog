@@ -52,6 +52,7 @@
 - added im_segment() 
 - gtk-doc comments for meta
 - gtk-doc comments for header
+- im_printlines(), im_debugim() deprecated (use im_vips2csv() instead)
 
 25/3/09 started 7.18.0
 - revised version numbers
