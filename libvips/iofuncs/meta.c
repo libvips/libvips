@@ -86,7 +86,7 @@
  * SECTION: meta
  * @short_description: get and set image metadata
  * @stability: Stable
- * @see_also: header
+ * @see_also: <link linkend="libvips-header">header</link>
  * @include: vips/vips.h
  *
  * You can attach arbitrary metadata to images. Metadata is copied as images

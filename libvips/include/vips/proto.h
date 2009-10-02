@@ -146,13 +146,6 @@ int im_existsf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int im_isvips( const char * );
 
-int im_add_close_callback( IMAGE *, im_callback_fn, void *, void * );
-int im_add_preclose_callback( IMAGE *, im_callback_fn, void *, void * );
-int im_add_evalstart_callback( IMAGE *, im_callback_fn, void *, void * );
-int im_add_eval_callback( IMAGE *, im_callback_fn, void *, void * );
-int im_add_evalend_callback( IMAGE *, im_callback_fn, void *, void * );
-int im_add_invalidate_callback( IMAGE *, im_callback_fn, void *, void * );
-
 void error_exit( const char *, ... )
 	__attribute__((noreturn, format(printf, 1, 2)));
 const char *im_error_buffer( void );

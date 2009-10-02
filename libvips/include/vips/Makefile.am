@@ -7,6 +7,7 @@ pkginclude_HEADERS = \
 	dispatch.h \
 	format.h \
 	header.h \
+	callback.h \
 	fmask.h \
 	mosaic.h \
 	interpolate.h \

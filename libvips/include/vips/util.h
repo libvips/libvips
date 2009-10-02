@@ -181,7 +181,6 @@ extern "C" {
 
 /* Basic function types.
  */
-typedef int (*im_callback_fn)( void *, void * );
 typedef void *(*im_construct_fn)( void *, void *, void * );
 
 /* strtok replacement.

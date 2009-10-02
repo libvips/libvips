@@ -54,13 +54,28 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: callback
+ * @short_description: image callbacks
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-image">image</link>
+ * @include: vips/vips.h
+ *
+ * Images trigger various callbacks at various points in their lifetime. You
+ * can register callbacks and be notified of various events, such as
+ * evaluation progress or close.
+ *
+ * Callbacks should return 0 for success, or -1 on error, setting an error
+ * message with im_error().
+ */
+
 /* Callback struct. We attach a list of callbacks to images to be invoked when
  * the image is closed. These do things like closing previous elements in a
  * chain of operations, freeing client data, etc.
  */
 typedef struct {
 	IMAGE *im;		/* IMAGE we are attached to */
-	int (*fn)();		/* callback function */
+	im_callback_fn fn;	/* callback function */
 	void *a, *b;		/* arguments to callback */
 } VCallback;
 
@@ -68,7 +83,7 @@ typedef struct {
  * im__close(), or by im_generate(), etc. for evalend callbacks.
  */
 static int
-add_callback( IMAGE *im, GSList **cblist, int (*fn)(), void *a, void *b )
+add_callback( IMAGE *im, GSList **cblist, im_callback_fn fn, void *a, void *b )
 {	
 	VCallback *cbs;
 
@@ -84,23 +99,81 @@ add_callback( IMAGE *im, GSList **cblist, int (*fn)(), void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_add_close_callback:
+ * @im: image to attach callback to
+ * @fn: callback function
+ * @a: user data 1
+ * @b: user data 2
+ *
+ * Attaches a close callback @fn to @im.
+ *
+ * Close callbacks are triggered exactly once when the image has been closed
+ * and most resources freed, but just before the memory for @im is released.
+ *
+ * Close callbacks are a good place to free memory that was need to generate
+ * @im, delete temporary files and so on. You can close other images and there
+ * may even be circularity in your close lists.
+ *
+ * See also: im_malloc() (implemented with im_add_close_callback()),
+ * im_add_preclose_callback() (called earlier in the image close process),
+ * im_free().
+ */
 int
-im_add_close_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+im_add_close_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
 {	
 	return( add_callback( im, &im->closefns, fn, a, b ) );
 }
 
+/**
+ * im_add_preclose_callback:
+ * @im: image to attach callback to
+ * @fn: callback function
+ * @a: user data 1
+ * @b: user data 2
+ *
+ * Attaches a pre-close callback @fn to @im.
+ *
+ * Pre-close callbacks are triggered exactly once just before an image is
+ * closed. The image is still valid and you can do anything with it, except
+ * stop close from happening.
+ *
+ * Pre-close callbacks are a good place for languae bindings to break as
+ * association between the language object and the VIPS image.
+ */
 int
-im_add_preclose_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+im_add_preclose_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
 {	
 	return( add_callback( im, &im->preclosefns, fn, a, b ) );
 }
 
-/* Add an eval callback to an IMAGE. You must call this after opening the
- * image but before using it as an argument to an operation.
+/**
+ * im_add_eval_callback:
+ * @im: image to attach callback to
+ * @fn: callback function
+ * @a: user data 1
+ * @b: user data 2
+ *
+ * Attaches an eval callback @fn to @im.
+ *
+ * Eval callbacks are called during evaluation and are a good place to give
+ * the user feedback about computation progress. In the eval callback, you may
+ * look at the #VipsProgress #time member of #IMAGE to get information about 
+ * the number of
+ * pels processed, elapsed time, and so on.
+ *
+ * Eval callbacks are inherited. That is, any images which use your  image
+ * as  input  will inherit your eval callbacks. As a result, if you add an
+ * eval callback to an image, you will be notified if any later image uses
+ * your image for computation.
+ *
+ * If  a  later image adds eval callbacks, then the inheritance is broken,
+ * and that image will recieve notification instead.
+ *
+ * See also: im_add_evalend_callback(), im_add_evalstart_callback().
  */
 int
-im_add_eval_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+im_add_eval_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
 {
 	/* Mark this image as needing progress feedback. im__link_make()
 	 * propogates this value to our children as we build a pipeline.
@@ -111,20 +184,86 @@ im_add_eval_callback( IMAGE *im, int (*fn)(), void *a, void *b )
 	return( add_callback( im, &im->evalfns, fn, a, b ) );
 }
 
+/**
+ * im_add_evalend_callback:
+ * @im: image to attach callback to
+ * @fn: callback function
+ * @a: user data 1
+ * @b: user data 2
+ *
+ * Attaches an eval end callback @fn to @im.
+ *
+ * Eval end callbacks are called at the end of evaluation. They are a good
+ * place to clean up after progress notification or to display some
+ * diagnostics about computation (eg. an overflow count). They can be called 
+ * many times. Every evalend call is guaranteed to have a matching evalstart,
+ * but not necessarily any eval calls.
+ *
+ * Eval callbacks are inherited. That is, any images which use your  image
+ * as  input  will inherit your eval callbacks. As a result, if you add an
+ * eval callback to an image, you will be notified if any later image uses
+ * your image for computation.
+ *
+ * If  a  later image adds eval callbacks, then the inheritance is broken,
+ * and that image will recieve notification instead.
+ *
+ * See also: im_add_eval_callback(), im_add_evalstart_callback().
+ */
 int
-im_add_evalend_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+im_add_evalend_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
 {	
 	return( add_callback( im, &im->evalendfns, fn, a, b ) );
 }
 
+/**
+ * im_add_evalstart_callback:
+ * @im: image to attach callback to
+ * @fn: callback function
+ * @a: user data 1
+ * @b: user data 2
+ *
+ * Attaches an eval start callback @fn to @im.
+ *
+ * Eval start callbacks are called at the beginning of evaluation. They are a 
+ * good
+ * place to get ready to give progress notification.
+ * They can be called 
+ * many times. Every evalend call is guaranteed to have a matching evalstart,
+ * but not necessarily any eval calls.
+ *
+ * Eval callbacks are inherited. That is, any images which use your  image
+ * as  input  will inherit your eval callbacks. As a result, if you add an
+ * eval callback to an image, you will be notified if any later image uses
+ * your image for computation.
+ *
+ * If  a  later image adds eval callbacks, then the inheritance is broken,
+ * and that image will recieve notification instead.
+ *
+ * See also: im_add_eval_callback(), im_add_evalend_callback().
+ */
 int
-im_add_evalstart_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+im_add_evalstart_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
 {	
 	return( add_callback( im, &im->evalstartfns, fn, a, b ) );
 }
 
+/**
+ * im_add_invalidate_callback:
+ * @im: image to attach callback to
+ * @fn: callback function
+ * @a: user data 1
+ * @b: user data 2
+ *
+ * Attaches an invalidate callback @fn to @im.
+ *
+ * Invalidate callbacks are triggered
+ * when VIPS invalidates the cache on an image. This is useful for
+ * removing images from other, higher-level caches.
+ *
+ * See also: im_invalidate().
+ */
 int
-im_add_invalidate_callback( IMAGE *im, int (*fn)(), void *a, void *b )
+im_add_invalidate_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
 {	
 	return( add_callback( im, &im->invalidatefns, fn, a, b ) );
 }
