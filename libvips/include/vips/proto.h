@@ -146,24 +146,6 @@ int im_existsf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int im_isvips( const char * );
 
-void error_exit( const char *, ... )
-	__attribute__((noreturn, format(printf, 1, 2)));
-const char *im_error_buffer( void );
-void im_error_clear( void );
-void im_verror( const char *domain, const char *fmt, va_list ap );
-void im_error( const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
-void im_verror_system( int err, const char *domain, 
-	const char *fmt, va_list ap );
-void im_error_system( int err, const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 3, 4)));
-void im_vdiag( const char *domain, const char *fmt, va_list ap );
-void im_warn( const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
-void im_vwarn( const char *domain, const char *fmt, va_list ap );
-void im_diag( const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
-
 int im_bits_of_fmt( VipsBandFmt fmt );
 const char *im_Type2char( VipsType type );
 const char *im_BandFmt2char( VipsBandFmt fmt );

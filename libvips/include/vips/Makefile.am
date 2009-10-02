@@ -8,6 +8,7 @@ pkginclude_HEADERS = \
 	format.h \
 	header.h \
 	callback.h \
+	error.h \
 	fmask.h \
 	mosaic.h \
 	interpolate.h \

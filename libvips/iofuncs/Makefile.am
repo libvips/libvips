@@ -9,7 +9,6 @@ libiofuncs_la_SOURCES = \
 	debug.c \
 	dispatch_types.c \
 	error.c \
-	error_exit.c \
 	im_binfile.c \
 	im_bits_of_fmt.c \
 	im_close.c \

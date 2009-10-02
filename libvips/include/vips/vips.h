@@ -125,6 +125,7 @@ typedef struct im__DOUBLEMASK {
 #include <vips/image.h>
 #include <vips/almostdeprecated.h>
 #include <vips/callback.h>
+#include <vips/error.h>
 #include <vips/util.h>
 #include <vips/colour.h>
 /* #include <vips/vector.h> */

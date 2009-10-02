@@ -9,6 +9,9 @@
  * 	- lock around error buffer changes
  * 20/2/08
  * 	- lock around warnings and diagnostics too, why not
+ * 2/10/09
+ * 	- error_exit() moved here
+ * 	- gtkdoc comments
  */
 
 /*
@@ -61,6 +64,43 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: error
+ * @short_description: error messages and error handling
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * VIPS maintains an error buffer (a log of localised text messages), 
+ * a set of functions
+ * for adding messages, and a way to access and clear the buffer.
+ *
+ * The error buffer is global, that is, it is shared between all threads. You
+ * can add to the buffer from any thread (there is a lock to prevent
+ * corruption), but it's sensible to only read and clear the buffer from the
+ * main thread of execution.
+ *
+ * The general principle is: if you detect an error, log a message for the
+ * user. If a function you call detects an error, just propogate it and don't
+ * add another message.
+ *
+ * |[
+ * IMAGE *im;
+ *
+ * if( !(im = im_open( filename, "r" )) )
+ *   // im_open will set a mmessage, we don't need to
+ *   return( -1 );
+ *
+ * if( im->Xsize < 100 ) {
+ *   // we have detected an error, we must set a message
+ *   im_error( "myprogram", "%s", _( "XSize too small" ) );
+ *   return( -1 );
+ * }
+ * ]|
+ *
+ * The domain argument most of these functions take is not localised and is
+ * supposed to indicate the component which failed.
+ */
+
 /* Make global array to keep the error message buffer.
  */
 #define IM_MAX_ERROR (10240)
@@ -70,6 +110,16 @@ static VipsBuf im_error_buf = VIPS_BUF_STATIC( im_error_text );
 #define IM_DIAGNOSTICS "IM_DIAGNOSTICS"
 #define IM_WARNING "IM_WARNING"
 
+/**
+ * im_error_buffer: 
+ *
+ * Get a pointer to the start of the error buffer as a C string.
+ * The string is owned by the error system and must not be freed.
+ *
+ * Returns: the error buffer as a C string which must not be freed
+ *
+ * See also: im_error_clear().
+ */
 const char *
 im_error_buffer( void )
 {
@@ -82,6 +132,16 @@ im_error_buffer( void )
 	return( msg );
 }
 
+/**
+ * im_verror: 
+ * @domain: the source of the error
+ * @fmt: printf()-style format string for the error
+ * @ap: arguments to the format string
+ *
+ * Append a message to the error buffer.
+ *
+ * See also: im_error().
+ */
 void 
 im_verror( const char *domain, const char *fmt, va_list ap )
 {
@@ -92,6 +152,16 @@ im_verror( const char *domain, const char *fmt, va_list ap )
 	g_mutex_unlock( im__global_lock );
 }
 
+/**
+ * im_error: 
+ * @domain: the source of the error
+ * @fmt: printf()-style format string for the error
+ * @Varargs: arguments to the format string
+ *
+ * Format the string in the style of printf() and append to the error buffer.
+ *
+ * See also: im_error_system(), im_verror().
+ */
 void 
 im_error( const char *domain, const char *fmt, ... )
 {	
@@ -102,6 +172,19 @@ im_error( const char *domain, const char *fmt, ... )
 	va_end( ap );
 }
 
+/**
+ * im_verror_system: 
+ * @err: the system error code
+ * @domain: the source of the error
+ * @fmt: printf()-style format string for the error
+ * @ap: arguments to the format string
+ *
+ * Format the string in the style of printf() and append to the error buffer.
+ * Then create and append a localised message based on the system error code,
+ * usually the value of errno.
+ *
+ * See also: im_error_system().
+ */
 void
 im_verror_system( int err, const char *domain, const char *fmt, va_list ap )
 {
@@ -134,6 +217,19 @@ im_verror_system( int err, const char *domain, const char *fmt, va_list ap )
 #endif /*OS_WIN32*/
 }
 
+/**
+ * im_error_system: 
+ * @err: the system error code
+ * @domain: the source of the error
+ * @fmt: printf()-style format string for the error
+ * @Varargs: arguments to the format string
+ *
+ * Format the string in the style of printf() and append to the error buffer.
+ * Then create and append a localised message based on the system error code,
+ * usually the value of errno.
+ *
+ * See also: im_verror_system().
+ */
 void
 im_error_system( int err, const char *domain, const char *fmt, ... )
 {
@@ -144,6 +240,14 @@ im_error_system( int err, const char *domain, const char *fmt, ... )
 	va_end( ap );
 }
 
+/**
+ * im_error_clear: 
+ *
+ * Clear and reset the error buffer. This is typically called after presentng
+ * an error to the user.
+ *
+ * See also: im_error_buffer().
+ */
 void 
 im_error_clear( void )
 {
@@ -152,6 +256,20 @@ im_error_clear( void )
 	g_mutex_unlock( im__global_lock );
 }
 
+/**
+ * im_vdiag: 
+ * @domain: the source of the diagnostic message
+ * @fmt: printf()-style format string for the message
+ * @ap: arguments to the format string
+ *
+ * Sends a formatted diagnostic message to stderr. If you define the
+ * environment variable IM_DIAGNOSTICS, these message are surpressed.
+ *
+ * Diagnostic messages are used to report details about the operation of
+ * functions.
+ *
+ * See also: im_diag(), im_warn().
+ */
 void 
 im_vdiag( const char *domain, const char *fmt, va_list ap )
 {
@@ -165,6 +283,20 @@ im_vdiag( const char *domain, const char *fmt, va_list ap )
 	}
 }
 
+/**
+ * im_diag: 
+ * @domain: the source of the diagnostic message
+ * @fmt: printf()-style format string for the message
+ * @Varargs: arguments to the format string
+ *
+ * Sends a formatted diagnostic message to stderr. If you define the
+ * environment variable IM_DIAGNOSTICS, these message are surpressed.
+ *
+ * Diagnostic messages are used to report details about the operation of
+ * functions.
+ *
+ * See also: im_vdiag(), im_warn().
+ */
 void 
 im_diag( const char *domain, const char *fmt, ... )
 {
@@ -175,6 +307,19 @@ im_diag( const char *domain, const char *fmt, ... )
 	va_end( ap );
 }
 
+/**
+ * im_vwarn: 
+ * @domain: the source of the warning message
+ * @fmt: printf()-style format string for the message
+ * @ap: arguments to the format string
+ *
+ * Sends a formatted warning message to stderr. If you define the
+ * environment variable IM_WARNING, these message are surpressed.
+ *
+ * Warning messages are used to report things like overflow counts.
+ *
+ * See also: im_diag(), im_warn().
+ */
 void 
 im_vwarn( const char *domain, const char *fmt, va_list ap )
 {	
@@ -188,6 +333,19 @@ im_vwarn( const char *domain, const char *fmt, va_list ap )
 	}
 }
 
+/**
+ * im_warn: 
+ * @domain: the source of the warning message
+ * @fmt: printf()-style format string for the message
+ * @Varargs: arguments to the format string
+ *
+ * Sends a formatted warning message to stderr. If you define the
+ * environment variable IM_WARNING, these message are surpressed.
+ *
+ * Warning messages are used to report things like overflow counts.
+ *
+ * See also: im_diag(), im_vwarn().
+ */
 void 
 im_warn( const char *domain, const char *fmt, ... )
 {	
@@ -196,4 +354,29 @@ im_warn( const char *domain, const char *fmt, ... )
 	va_start( ap, fmt );
 	im_vwarn( domain, fmt, ap );
 	va_end( ap );
+}
+
+/**
+ * error_exit: 
+ * @fmt: printf()-style format string for the message
+ * @Varargs: arguments to the format string
+ *
+ * Sends a formatted error message to stderr, then sends the contents of the
+ * error buffer, if any, then terminates the program with an error code.
+ */
+void 
+error_exit( const char *fmt, ... )
+{	
+	va_list ap;
+
+	fprintf( stderr, "%s: ", g_get_prgname() );
+
+	va_start( ap, fmt );
+	(void) vfprintf( stderr, fmt, ap );
+	va_end( ap );
+
+	fprintf( stderr, "\n" );
+	fprintf( stderr, "%s", im_error_buffer() );
+
+	exit( 1 );
 }
