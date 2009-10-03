@@ -9,6 +9,7 @@ libdeprecated_la_SOURCES = \
     im_printlines.c \
     im_debugim.c \
     im_gfadd.c \
+    im_setbox.c \
     rename.c \
     im_litecor.c 
 

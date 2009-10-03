@@ -90,6 +90,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/thread.h>
+#include <vips/debug.h>
 
 #ifdef OS_WIN32
 #include <windows.h>

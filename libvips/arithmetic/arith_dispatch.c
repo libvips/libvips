@@ -1043,21 +1043,19 @@ static im_arg_desc measure_args[] = {
 static int
 measure_vec( im_object *argv )
 {
-	IMAGE_BOX box;
-	int h, v;
 	im_mask_object *mo = argv[1];
 
-	box.xstart = *((int *) argv[2]);
-	box.ystart = *((int *) argv[3]);
-	box.xsize = *((int *) argv[4]);
-	box.ysize = *((int *) argv[5]);
-	box.chsel = 0;
+	int x = *((int *) argv[2]);
+	int y = *((int *) argv[3]);
+	int w = *((int *) argv[4]);
+	int h = *((int *) argv[5]);
 
-	h = *((int *) argv[6]);
-	v = *((int *) argv[7]);
+	int u = *((int *) argv[6]);
+	int v = *((int *) argv[7]);
 
 	if( !(mo->mask = 
-		im_measure( argv[0], &box, h, v, NULL, 0, mo->name )) ) {
+		im_measure_area( argv[0], 
+			x, y, w, h, u, v, NULL, 0, mo->name )) ) {
 		return( -1 );
 	}
 

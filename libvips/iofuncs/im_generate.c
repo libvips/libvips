@@ -94,6 +94,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/thread.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>

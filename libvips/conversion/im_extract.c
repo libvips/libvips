@@ -230,21 +230,6 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
         return( 0 );
 }
 
-/* Legacy interface.
- */
-int
-im_extract( IMAGE *in, IMAGE *out, IMAGE_BOX *box )
-{	
-	if( box->chsel == -1 )
-		return( im_extract_areabands( in, out, 
-			box->xstart, box->ystart, box->xsize, box->ysize,
-			0, in->Bands ) );
-	else
-		return( im_extract_areabands( in, out, 
-			box->xstart, box->ystart, box->xsize, box->ysize,
-			box->chsel, 1 ) );
-}
-
 /* Convenience functions.
  */
 int

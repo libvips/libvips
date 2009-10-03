@@ -42,8 +42,14 @@ int im_header_double( IMAGE *im, const char *field, double *out );
 int im_header_string( IMAGE *im, const char *field, char **out );
 GType im_header_get_typeof( IMAGE *im, const char *field );
 int im_header_get( IMAGE *im, const char *field, GValue *value_copy );
+
 typedef void *(*im_header_map_fn)( IMAGE *, const char *, GValue *, void * );
 void *im_header_map( IMAGE *im, im_header_map_fn fn, void *a );
+
+int im_histlin( IMAGE *image, const char *fmt, ... )
+	__attribute__((format(printf, 2, 3)));
+int im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] );
+const char *im_history_get( IMAGE *im );
 
 #ifdef __cplusplus
 }

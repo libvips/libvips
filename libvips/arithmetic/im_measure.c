@@ -59,32 +59,33 @@
 /* Measure into array.
  */
 static int
-measure_patches( IMAGE *im, double *coeff, IMAGE_BOX *box, 
-	int h, int v, int *sel, int nsel )
+measure_patches( IMAGE *im, double *coeff, 
+	int left, int top, int width, int height, 
+	int u, int v, int *sel, int nsel )
 {	
 	IMAGE *tmp;
 	int patch;
-	IMAGE_BOX sub;
 	int i, j;
 	int m, n;
 	double avg, dev;
+	int x, y, w, h;
 
 	/* How large are the patches we are to measure?
 	 */
-	double pw = (double) box->xsize / (double) h;
-	double ph = (double) box->ysize / (double) v;
+	double pw = (double) width / (double) u;
+	double ph = (double) height / (double) v;
 
 	/* Set up sub to be the size we need for a patch.
 	 */
-	sub.xsize = (pw + 1) / 2;
-	sub.ysize = (ph + 1) / 2;
+	w = (pw + 1) / 2;
+	h = (ph + 1) / 2;
 
 	/* Loop through sel, picking out areas to measure.
 	 */
 	for( j = 0, patch = 0; patch < nsel; patch++ ) {
 		/* Sanity check. Is the patch number sensible?
 		 */
-		if( sel[patch] <= 0 || sel[patch] > h*v ) {
+		if( sel[patch] <= 0 || sel[patch] > u * v ) {
 			im_error( "im_measure", 
 				_( "patch %d is out of range" ),
 				sel[patch] );
@@ -93,13 +94,13 @@ measure_patches( IMAGE *im, double *coeff, IMAGE_BOX *box,
 
 		/* Patch coordinates.
 		 */
-		m = (sel[patch] - 1) % h;  
-		n = (sel[patch] - 1) / h;
+		m = (sel[patch] - 1) % u;  
+		n = (sel[patch] - 1) / u;
 
 		/* Move sub to correct position.
 		 */
-		sub.xstart = box->xstart + m*pw + (pw + 2)/4;
-		sub.ystart = box->ystart + n*ph + (ph + 2)/4;
+		x = left + m * pw + (pw + 2) / 4;
+		y = top + n * ph + (ph + 2) / 4;
 
 		/* Loop through bands.
 		 */
@@ -111,8 +112,7 @@ measure_patches( IMAGE *im, double *coeff, IMAGE_BOX *box,
 			
 			/* Extract and measure.
 			 */
-			sub.chsel = i;
-			if( im_extract( im, tmp, &sub ) ||
+			if( im_extract_area( im, tmp, x, y, w, h ) ||
 				im_avg( tmp, &avg ) ||
 				im_deviate( tmp, &dev ) ) {
 				im_close( tmp );
@@ -126,7 +126,7 @@ measure_patches( IMAGE *im, double *coeff, IMAGE_BOX *box,
 			 * <0, or averages near zero (can get these if use
 			 * im_measure() on IM_TYPE_LAB images).
 			 */
-			if( dev*5 > fabs( avg ) && fabs( avg ) > 3 )
+			if( dev * 5 > fabs( avg ) && fabs( avg ) > 3 )
 				im_warn( "im_measure",
 					_( "patch %d, band %d: "
 						"avg = %g, sdev = %g" ), 
@@ -142,9 +142,12 @@ measure_patches( IMAGE *im, double *coeff, IMAGE_BOX *box,
 }
 
 /**
- * im_measure:
+ * im_measure_area:
  * @im: image to measure
- * @box: box containing chart
+ * @left: area of image containing chart
+ * @top: area of image containing chart
+ * @width: area of image containing chart
+ * @height: area of image containing chart
  * @h: patches across chart
  * @v: patches down chart
  * @sel: array of patch numbers to measure (numbered from 1 in row-major order)
@@ -186,7 +189,9 @@ measure_patches( IMAGE *im, double *coeff, IMAGE_BOX *box,
  * Returns: #DOUBLEMASK of measurements.
  */
 DOUBLEMASK *
-im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
+im_measure_area( IMAGE *im, 
+	int left, int top, int width, int height, 
+	int u, int v, 
 	int *sel, int nsel, const char *name )
 {	
 	DOUBLEMASK *mask;
@@ -199,8 +204,10 @@ im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v,
 		if( !(t1 = im_open( "measure-temp", "p" )) )
 			return( NULL );
 		if( im_LabQ2Lab( im, t1 ) ||
-			!(mask = im_measure( t1, 
-				box, h, v, sel, nsel, name )) ) {
+			!(mask = im_measure_area( t1, 
+				left, top, width, height,
+				u, v, 
+				sel, nsel, name )) ) {
 			im_close( t1 );
 			return( NULL );
 		}
@@ -219,7 +226,7 @@ im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v,
 	if( sel == NULL ) {
 		int i;
 
-		nsel = h * v;
+		nsel = u * v;
 		if( !(sel = IM_ARRAY( im, nsel, int )) )
 			return( NULL );
 		for( i = 0; i < nsel; i++ )
@@ -233,7 +240,8 @@ im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v,
 
 	/* Perform measure and return.
 	 */
-	if( measure_patches( im, mask->coeff, box, h, v, sel, nsel ) ) {
+	if( measure_patches( im, mask->coeff, left, top, width, height, 
+		u, v, sel, nsel ) ) {
 		im_free_dmask( mask );
 		return( NULL );
 	}

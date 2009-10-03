@@ -1,13 +1,5 @@
-/* @(#) Function to read a binary file with no header to vasari file
- * @(#) Usage:
- * @(#)
- * @(#) IMAGE *
- * @(#) im_binfile(in, xs, ys, bands, offset)
- * @(#) char *in;
- * @(#) int xs, ys, bands, offset;
- * @(#)
- * @(#) The function returns NULL on error.
- * @(#) Works for uchar input only.
+/* im_bnfile.c --- load a raw binary file
+ *
  * Author: N. Dessipris
  * Written on: 31/7/91
  * Modified on:
@@ -81,6 +73,24 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_binfile:
+ * @name: filename to open
+ * @xs: image width
+ * @ys: image height
+ * @bands: image bands (or bytes per pixel)
+ * @offset: bytes to skip at start of file
+ *
+ * This function maps the named file and returns an #IMAGE you can use to
+ * read it.
+ *
+ * It returns an 8-bit image with @bands bands. If the image is not 8-bit, use 
+ * im_copy_set() to transform the descriptor after loading it.
+ *
+ * See also: im_copy_set(), im_raw2vips(), im_open().
+ *
+ * Returns: the new #IMAGE, or NULL on error.
+ */
 IMAGE *
 im_binfile( const char *name, int xs, int ys, int bands, int offset )
 {

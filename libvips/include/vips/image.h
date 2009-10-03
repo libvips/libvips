@@ -261,6 +261,20 @@ typedef struct _VipsImage {
 	 (X) * IM_IMAGE_SIZEOF_PEL(I))
 #endif /*DEBUG*/
 
+int im_init_world( const char *argv0 );
+GOptionGroup *im_get_option_group( void );
+
+const char *im_version_string( void );
+int im_version( int flag );
+
+const char *im_guess_prefix( const char *, const char * );
+const char *im_guess_libdir( const char *, const char * );
+
+void im_progress_set( int progress );
+
+VipsImage *im_open( const char *filename, const char *mode );
+int im_close( VipsImage *im );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

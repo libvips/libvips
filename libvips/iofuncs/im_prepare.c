@@ -64,6 +64,7 @@
 #include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>

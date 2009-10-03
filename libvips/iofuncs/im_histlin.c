@@ -76,6 +76,39 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+#define IM_MAX_LINE (4096)
+
+/**
+ * im_histlin:
+ * @im: add history liine to this image
+ * @fmt: printf() format string
+ * @Varargs: arguments to format string
+ *
+ * Add a line to the image history. The @fmt and arguments are expanded, the
+ * date and time is appended prefixed with a hash character, and the whole
+ * string is appended to the image history and terminated with a newline.
+ *
+ * For example:
+ *
+ * |[
+ * im_histlin( im, "vips im_invert %s %s", in->filename, out->filename );
+ * ]|
+ *
+ * Might add the string
+ *
+ * |[
+ * "vips im_invert /home/john/fred.v /home/john/jim.v # Fri Apr  3 23:30:35
+ * 2009\n"
+ * ]|
+ *
+ * VIPS operations don't add history lines for you because a single action at 
+ * the application level might involve many VIPS operations. History must be
+ * recorded by the application.
+ *
+ * See also: im_updatehist().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_histlin( IMAGE *im, const char *fmt, ... )
 {
@@ -108,7 +141,56 @@ im_histlin( IMAGE *im, const char *fmt, ... )
 	return( 0 );
 }
 
-/* Read an image's history.
+/**
+ * im_updatehist:
+ * @out: image to attach history line to
+ * @name: program name
+ * @argc: number of program arguments
+ * @argv: program arguments
+ *
+ * Formats the name/argv as a single string and calls im_histlin(). A
+ * convenience function for command-line prorams.
+ *
+ * See also: im_history_get().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] )
+{	
+	int i;
+	char txt[IM_MAX_LINE];
+	VipsBuf buf;
+
+	vips_buf_init_static( &buf, txt, IM_MAX_LINE );
+	vips_buf_appends( &buf, name );
+
+	for( i = 0; i < argc; i++ ) {
+		vips_buf_appends( &buf, " " );
+		vips_buf_appends( &buf, argv[i] );
+	}
+
+	if( im_histlin( out, "%s", vips_buf_all( &buf ) ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * im_history_get:
+ * @im: get history from here
+ *
+ * This function reads the image history as a C string. The string is owned
+ * by VIPS and must not be freed.
+ *
+ * VIPS tracks the history of each image, that is, the sequence of operations
+ * that generated that image. Applications built on VIPS need to call
+ * im_histlin() for each action they perform setting the command-line
+ * equivalent for the action.
+ *
+ * See also: im_histlin().
+ *
+ * Returns: The history of @im as a C string. Do not free!
  */
 const char *
 im_history_get( IMAGE *im )

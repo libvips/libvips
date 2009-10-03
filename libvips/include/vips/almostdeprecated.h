@@ -67,6 +67,10 @@ typedef VipsDemandStyle im_demand_type;
 typedef VipsProgress im_time_t;
 typedef VipsImage IMAGE;
 
+int im_extract( IMAGE *, IMAGE *, IMAGE_BOX * );
+DOUBLEMASK *im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
+	int *sel, int nsel, const char *name );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

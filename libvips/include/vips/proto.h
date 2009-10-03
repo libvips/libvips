@@ -66,20 +66,7 @@ extern "C" {
 
 /* iofuncs
  */
-int im_init_world( const char *argv0 );
-GOptionGroup *im_get_option_group( void );
 
-/* Turn progress feedback on and off.
- */
-void im_progress_set( int progress );
-
-int im_debugim( IMAGE * );
-int im_printlines( IMAGE * );
-
-const char *im_version_string( void );
-int im_version( int flag );
-const char *im_guess_prefix( const char *, const char * );
-const char *im_guess_libdir( const char *, const char * );
 IMAGE *im_init( const char * );
 IMAGE *im_openout( const char * );
 IMAGE *im_open_vips( const char * );
@@ -95,14 +82,11 @@ int im_mapfile( IMAGE * );
 int im_mapfilerw( IMAGE * );
 int im_remapfilerw( IMAGE *image );
 
-IMAGE *im_open( const char *, const char * );
 IMAGE *im_open_header( const char * );
-int im_image_sanity( IMAGE * );
 
 void *im_malloc( IMAGE *im, size_t sz );
 int im_free( void * );
 
-int im_close( IMAGE * );
 int im_rwcheck( IMAGE * );
 int im_iocheck( IMAGE *, IMAGE * );
 int im_incheck( IMAGE * );
@@ -149,14 +133,9 @@ int im_isvips( const char * );
 int im_bits_of_fmt( VipsBandFmt fmt );
 
 int im_unmapfile( IMAGE * );
-void im_printdesc( IMAGE * );
 void im_initdesc( IMAGE *,
 	int, int, int, int, int, int, int, float, float,
 	int, int );
-int im_histlin( IMAGE *image, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
-int im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] );
-const char *im_history_get( IMAGE *im );
 
 int im_render( IMAGE *in, IMAGE *out, IMAGE *mask,
 	int width, int height, int max,
@@ -330,7 +309,6 @@ int im_copy_morph( IMAGE *, IMAGE *, int, int, int );
 int im_copy( IMAGE *, IMAGE * );
 int im_copy_swap( IMAGE *in, IMAGE *out );
 int im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture );
-int im_extract( IMAGE *, IMAGE *, IMAGE_BOX * );
 int im_extract_band( IMAGE *in, IMAGE *out, int band );
 int im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands );
 int im_extract_area( IMAGE *in, IMAGE *out, int x, int y, int w, int h );

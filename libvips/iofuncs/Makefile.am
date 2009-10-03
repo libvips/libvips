@@ -29,11 +29,9 @@ libiofuncs_la_SOURCES = \
 	im_piocheck.c \
 	im_prepare.c \
 	im_render.c \
-	im_setbox.c \
 	im_setbuf.c \
 	im_setupout.c \
 	im_unmapfile.c \
-	im_updatehist.c \
 	im_guess_prefix.c \
 	im_wbuffer.c \
 	im_wrapmany.c \

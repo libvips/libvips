@@ -159,3 +159,28 @@ im_similarity( IMAGE *in, IMAGE *out,
 		vips_interpolate_bilinear_static(), 
 		a, -b, b, a, dx, dy ) ); 
 }
+
+DOUBLEMASK *
+im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
+	int *sel, int nsel, const char *name )
+{
+	return( im_measure_area( im,
+		box->xstart,
+		box->ystart,
+		box->xsize,
+		box->ysize,
+		h, v, sel, nsel, name ) ); 
+}
+
+int
+im_extract( IMAGE *in, IMAGE *out, IMAGE_BOX *box )
+{	
+	if( box->chsel == -1 )
+		return( im_extract_areabands( in, out, 
+			box->xstart, box->ystart, box->xsize, box->ysize,
+			0, in->Bands ) );
+	else
+		return( im_extract_areabands( in, out, 
+			box->xstart, box->ystart, box->xsize, box->ysize,
+			box->chsel, 1 ) );
+}
