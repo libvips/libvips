@@ -1,7 +1,6 @@
 bin_PROGRAMS = \
 	vips \
 	binfile \
-	debugim \
 	edvips \
 	header 
 

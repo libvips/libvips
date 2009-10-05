@@ -48,7 +48,6 @@ int im_add_evalend_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );
 int im_add_invalidate_callback( IMAGE *im, 
 	im_callback_fn fn, void *a, void *b );
 
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

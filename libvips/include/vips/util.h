@@ -165,9 +165,12 @@ extern "C" {
 
 #define IM_CLIP_NONE( V, SEQ ) {}
 
-/* Basic function types.
- */
 typedef void *(*im_construct_fn)( void *, void *, void * );
+
+void *im_local( VipsImage *im, 
+	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
+int im_local_array( VipsImage *im, void **out, int n,
+	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
 
 /* strtok replacement.
  */

@@ -71,6 +71,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 static char *main_option_field = NULL;
 

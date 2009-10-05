@@ -273,11 +273,6 @@ const char *im_guess_libdir( const char *, const char * );
 VipsImage *im_open( const char *filename, const char *mode );
 int im_close( VipsImage *im );
 
-void *im_local( IMAGE *im, 
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
-int im_local_array( IMAGE *im, void **out, int n,
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
-
 /**
  * im_open_local:
  * @IM: image to open local to
