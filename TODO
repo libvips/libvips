@@ -1,10 +1,10 @@
-- added protos to the end of image.h, need gtkdoc comments on them
+- im_close(), im_local() etc. need docs still
 
-  im_setbox.c -> deprecated, plus the associated struct
+- more stuff from util.c? too much to do it all now
 
-  im_open_local() -> image.h ? also _array()
+- im_prepare(), im_render()?
 
-  what else in util.h needs docs?
+- memory.c
 
 - constant images:
 

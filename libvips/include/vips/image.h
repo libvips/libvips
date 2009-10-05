@@ -270,10 +270,69 @@ int im_version( int flag );
 const char *im_guess_prefix( const char *, const char * );
 const char *im_guess_libdir( const char *, const char * );
 
-void im_progress_set( int progress );
-
 VipsImage *im_open( const char *filename, const char *mode );
 int im_close( VipsImage *im );
+
+void *im_local( IMAGE *im, 
+	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
+int im_local_array( IMAGE *im, void **out, int n,
+	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
+
+/**
+ * im_open_local:
+ * @IM: image to open local to
+ * @NAME: filename to open
+ * @MODE: mode to open with
+ *
+ * Just like im_open(), but the #IMAGE will be closed for you automatically
+ * when @IM is closed.
+ *
+ * Returns: a new #IMAGE, or NULL on error
+ *
+ * See also: im_open(), im_close(), im_local().
+ */
+#define im_open_local( IM, NAME, MODE ) \
+	((IMAGE *) im_local( (IM), \
+		(im_construct_fn) im_open, (im_callback_fn) im_close, \
+		(void *) (NAME), (void *) (MODE), NULL ))
+
+
+/** 
+ * im_open_local_array:
+ * @IM: image to open local to
+ * @OUT: array to fill with #IMAGE
+ * @N: array size
+ * @NAME: filename to open
+ * @MODE: mode to open with
+ *
+ * Just like im_open(), but opens an array of images. Handy for creating a set
+ * of temporary images for a function.
+ *
+ * Example:
+ *
+ * |[
+ * IMAGE *t[5];
+ *
+ * if( im_open_local_array( out, t, 5, "some-temps", "p" ) ||
+ *   im_add( a, b, t[0] ) ||
+ *   im_invert( t[0], t[1] ) ||
+ *   im_add( t[1], t[0], t[2] ) ||
+ *   im_costra( t[2], out ) )
+ *   return( -1 );
+ * ]|
+ *
+ * Returns: 0 on sucess, or -1 on error
+ *
+ * See also: im_open(), im_open_local(), im_local_array().
+ */
+
+/* Strange double cast stops bogus warnings from gcc 4.1
+ */
+
+#define im_open_local_array( IM, OUT, N, NAME, MODE ) \
+	(im_local_array( (IM), (void **)((void*)(OUT)), (N),\
+		(im_construct_fn) im_open, (im_callback_fn) im_close, \
+		(void *) (NAME), (void *) (MODE), NULL ))
 
 #ifdef __cplusplus
 }

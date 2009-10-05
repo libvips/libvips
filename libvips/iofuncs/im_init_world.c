@@ -19,6 +19,8 @@
  * 	- progress feedback option
  * 5/8/08
  * 	- load plugins from libdir/vips-x.x
+ * 5/10/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -73,6 +75,53 @@
  */
 GMutex *im__global_lock = NULL;
 
+/**
+ * im_init_world:
+ * @argv0: name of application
+ *
+ * im_init_world() starts up the world of VIPS. You should call this on
+ * program startup before using any other VIPS operations. If you do not call
+ * im_init_world(), VIPS will call it for you when you use your first VIPS 
+ * operation, but
+ * it may not be able to get hold of @argv0 and VIPS may therefore be unable
+ * to find its data files. It is much better to call this function yourself.
+ *
+ * im_init_world() does approximately the following:
+ *
+ * <itemizedlist>
+ *   <listitem> 
+ *     <para>initialises any libraries that VIPS is using, including GObject
+ *     and the threading system, if neccessary</para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>guesses where the VIPS data files are and sets up
+ *     internationalisation --- see im_guess_prefix()
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>loads any plugins from $libdir/vips-x.y, where x and y are the
+ *     major and minor version numbers for this VIPS.
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * Example:
+ *
+ * |[
+ * int main( int argc, char **argv )
+ * {
+ *   if( im_init_world( argv[0] ) )
+ *     error_exit( "unable to start VIPS" );
+ *
+ *   return( 0 );
+ * }
+ * ]|
+ *
+ * Returns: 0 on success, -1 otherwise
+ *
+ * See also: im_get_option_group(), im_version(), im_guess_prefix(),
+ * im_guess_libdir().
+ */
 int
 im_init_world( const char *argv0 )
 {
@@ -222,7 +271,17 @@ static GOptionEntry option_entries[] = {
 	{ NULL }
 };
 
-/* The cmd-line options we support.
+/**
+ * im_get_option_group:
+ *
+ * im_get_option_group()  returns  a GOptionGroup containing various VIPS
+ * command-line options. It  can  be  used  with  GOption  to  help
+ * parse argc/argv.
+ *
+ * Returns: a GOptionGroup for VIPS, see GOption
+ *
+ * See also: im_version(), im_guess_prefix(),
+ * im_guess_libdir(), im_init_world().
  */
 GOptionGroup *
 im_get_option_group( void )

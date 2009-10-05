@@ -165,20 +165,6 @@ extern "C" {
 
 #define IM_CLIP_NONE( V, SEQ ) {}
 
-/* Now implemented as macros.
- */
-#define im_open_local( IM, NAME, MODE ) \
-	((IMAGE *) im_local( (IM), \
-		(im_construct_fn) im_open, (im_callback_fn) im_close, \
-		(void *) (NAME), (void *) (MODE), NULL ))
-
-/* Strange double cast stops bogus warnings from gcc 4.1
- */
-#define im_open_local_array( IM, OUT, N, NAME, MODE ) \
-	(im_local_array( (IM), (void **)((void*)(OUT)), (N),\
-		(im_construct_fn) im_open, (im_callback_fn) im_close, \
-		(void *) (NAME), (void *) (MODE), NULL ))
-
 /* Basic function types.
  */
 typedef void *(*im_construct_fn)( void *, void *, void * );
@@ -232,11 +218,6 @@ void im_filename_suffix( const char *path, char *suffix );
 int im_filename_suffix_match( const char *path, const char *suffixes[] );
 char *im_getnextoption( char **in );
 char *im_getsuboption( const char *buf );
-
-void *im_local( IMAGE *im, 
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
-int im_local_array( IMAGE *im, void **out, int n,
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
 
 gint64 im_file_length( int fd );
 int im__write( int fd, const void *buf, size_t count );

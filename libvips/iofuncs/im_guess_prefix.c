@@ -354,7 +354,24 @@ guess_prefix( const char *argv0, const char *name )
 	return( IM_PREFIX );
 }
 
-/* Guess a value for the install PREFIX.
+/** 
+ * im_guess_prefix:
+ * @argv0: program name (typically argv[0])
+ * @env_name: save prefix in this environment variable
+ *
+ * im_guess_prefix() tries to guess the install directory. You should pass 
+ * in the value of argv[0] (the name your program was run as) as a clue to 
+ * help it out, plus the name of the environment variable you let the user 
+ * override your package install area with (eg. "VIPSHOME"). 
+ *
+ * On success, im_guess_prefix() returns the prefix it discovered, and as a 
+ * side effect, sets the environment variable (if it's not set).
+ *
+ * Don't free the return string!
+ * 
+ * Returns: the install prefix as a static string, do not free
+ *
+ * See also: im_guess_libdir().
  */
 const char *
 im_guess_prefix( const char *argv0, const char *env_name )
@@ -399,6 +416,26 @@ im_guess_prefix( const char *argv0, const char *env_name )
 	return( prefix );
 }
 
+/** 
+ * im_guess_libdir:
+ * @argv0: program name (typically argv[0])
+ * @env_name: save prefix in this environment variable
+ *
+ * im_guess_libdir() tries to guess the install directory (usually the 
+ * configure libdir, or $prefix/lib). You should pass 
+ * in the value of argv[0] (the name your program was run as) as a clue to 
+ * help it out, plus the name of the environment variable you let the user 
+ * override your package install area with (eg. "VIPSHOME"). 
+ *
+ * On success, im_guess_libdir() returns the libdir it discovered, and as a 
+ * side effect, sets the prefix environment variable (if it's not set).
+ *
+ * Don't free the return string!
+ * 
+ * Returns: the libdir as a static string, do not free
+ *
+ * See also: im_guess_prefix().
+ */
 const char *
 im_guess_libdir( const char *argv0, const char *env_name )
 {

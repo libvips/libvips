@@ -334,6 +334,73 @@ evalend_cb( Progress *progress )
 	return( 0 );
 }
 
+/**
+ * im_open:
+ * @filename: file to open
+ * @mode: mode to open with
+ *
+ * im_open() examines the mode string, and creates an appropriate #IMAGE.
+ *
+ * <itemizedlist>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"r"</emphasis>
+ *       opens the named file for reading. If the file is not in the native 
+ *       VIPS format for your machine, im_open() automatically converts the 
+ *       file for you in memory. 
+ *
+ *       For some large files (eg. TIFF) this may 
+ *       not be what you want: you should call the appropriate converter
+ *       yourself, and arrange for the conversion to take place on disc. 
+ *       See #VipsFormat. 
+ *
+ *       im_open() can read files in most formats.
+ *
+ *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
+ *       It should return quickly and let you check header fields. It will
+ *       only actually read in pixels when you first access them. 
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"w"</emphasis>
+ *       opens the named file for writing. It looks at the file name 
+ *       suffix to determine the type to write -- for example:
+ *
+ *       |[
+ *         im_open( "fred.tif", "w" )
+ *       ]|
+ *
+ *       will write in TIFF format.
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"t"</emphasis>
+ *       creates a temporary memory buffer image.
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"p"</emphasis>
+ *       creates a "glue" descriptor you can use to join two image 
+ *       processing operations together.
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"rw"</emphasis>
+ *       opens the named file for reading and writing. This will only work for 
+ *       VIPS files in a format native to your machine. It is only for 
+ *       paintbox-type applications.
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * Returns: the image descriptor on success and NULL on error.
+ *
+ * See also: im_close(), #VipsFormat
+ */
 IMAGE *
 im_open( const char *filename, const char *mode )
 {

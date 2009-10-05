@@ -1061,7 +1061,13 @@ im_run_command( char *name, int argc, char **argv )
 	return( 0 );
 }
 
-/* Return the version string from configure.in
+/**
+ * im_version_string:
+ *
+ * Get the VIPS version as a static string, including a build date and time.
+ * Do not free.
+ *
+ * Returns: a static version string
  */
 const char *
 im_version_string( void )
@@ -1069,7 +1075,14 @@ im_version_string( void )
 	return( IM_VERSION_STRING );
 }
 
-/* Return major/minor/micro release numbers.
+/**
+ * im_version:
+ * @flag: which field of the version to get
+ *
+ * Get the major, minor or micro library version, with @flag values 0, 1 and
+ * 2.
+ *
+ * Returns: library version number
  */
 int
 im_version( int flag )
