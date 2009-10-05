@@ -37,6 +37,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #include <vipsCC/vipscpp.h>
 

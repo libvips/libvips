@@ -58,6 +58,7 @@ Copyright K.Martinez 30/6/93
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 /* We have to represent all header fields as char* so we can spot unset args
  * safely.

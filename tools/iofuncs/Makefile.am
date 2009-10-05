@@ -3,15 +3,13 @@ bin_PROGRAMS = \
 	binfile \
 	debugim \
 	edvips \
-	header \
-	printlines
+	header 
 
 vips_SOURCES = vips.c
 binfile_SOURCES =  binfile.c
 debugim_SOURCES = debugim.c
 edvips_SOURCES = edvips.c
 header_SOURCES = header.c
-printlines_SOURCES = printlines.c
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 AM_LDFLAGS = @LDFLAGS@ 

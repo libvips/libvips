@@ -45,6 +45,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/debug.h>
 
 int
 main( int argc, char **argv )
