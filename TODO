@@ -1,4 +1,8 @@
-- im_close(), im_local() etc. need docs still
+- image.h/im_invalidate() needs docs
+
+- started region.h
+
+  
 
 - more stuff from util.c? too much to do it all now
 

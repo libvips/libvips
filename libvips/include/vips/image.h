@@ -330,7 +330,7 @@ VipsImage *im_open( const char *filename, const char *mode );
 
 int im_close( VipsImage *im );
 
-void im_invalidate( IMAGE *im );
+void im_invalidate( VipsImage *im );
 
 #ifdef __cplusplus
 }

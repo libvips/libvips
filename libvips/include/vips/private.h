@@ -84,7 +84,7 @@ typedef struct {
 
 /* window manager.
  */
-im_window_t *im_window_ref( IMAGE *im, int top, int height );
+im_window_t *im_window_ref( struct _VipsImage *im, int top, int height );
 int im_window_unref( im_window_t *window );
 void im_window_print( im_window_t *window );
 

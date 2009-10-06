@@ -1,19 +1,4 @@
-/* @(#) Frees all resources associated with IMAGE, and frees the memory
- * @(#) occupied by IMAGE.
- * @(#)
- * @(#) int 
- * @(#) im_close( image )
- * @(#) IMAGE *image;
- * @(#)
- * @(#) As above, but just free resources attached to IMAGE. After call, IMAGE
- * @(#) is as if im_init() had just been called. Useful for closing and
- * @(#) re-opening as another image type. See im_piocheck() etc.
- * @(#)
- * @(#) int 
- * @(#) im__close( image )
- * @(#) IMAGE *image;
- * @(#)
- * @(#) Returns 0 on success and 1 on error.
+/* im_close.c --- close an image
  *
  * Copyright: Nicos Dessipris
  * Written on: 12/04/1990
@@ -63,6 +48,8 @@
  * 	  can now write close callbacks that unlink() temporary files
  * 	- use preclose callbacks if you want to run before resources are
  * 	  released
+ * 6/10/09
+ * 	- gtkdoc comment
  */
 
 /*
@@ -255,7 +242,18 @@ im__close( IMAGE *im )
 	return( result );
 }
 
-/* Free resources and close descriptor.
+/**
+ * im_close:
+ * @im: image to close
+ *
+ * Frees all resources associated with @im. 
+ *
+ * If there are open #REGION s on @im, close is delayed until the last region
+ * is freed.
+ *
+ * See also: im_open().
+ *
+ * Returns: 0 on success and 1 on error.
  */
 int 
 im_close( IMAGE *im )

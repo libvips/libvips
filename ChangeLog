@@ -56,6 +56,7 @@
 - callback gtkdocs
 - error gtkdocs
 - removed printlines tool, vips2csv is much better
+- removed other useless tools as well: debugim, binfile
 
 25/3/09 started 7.18.0
 - revised version numbers
