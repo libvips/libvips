@@ -1,12 +1,9 @@
 bin_PROGRAMS = \
 	vips \
-	binfile \
 	edvips \
 	header 
 
 vips_SOURCES = vips.c
-binfile_SOURCES =  binfile.c
-debugim_SOURCES = debugim.c
 edvips_SOURCES = edvips.c
 header_SOURCES = header.c
 
