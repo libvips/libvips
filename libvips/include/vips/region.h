@@ -36,45 +36,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Profiling madness only, who cares about portability.
- */
-#ifdef TIME_THREAD
-#include <sys/time.h>
-#endif /*TIME_THREAD*/
-
-/* Per-thread buffer cache. Held in a GPrivate.
- */
-typedef struct im__buffer_cache_t {
-	GHashTable *hash;	/* Hash to im_buffer_cache_list_t* */
-	GThread *thread;	/* Just for sanity checking */
-} im_buffer_cache_t;
-
-/* Per-image buffer cache. Hash to this from im_buffer_cache_t.
- * We can't store the GSList directly in the hash table, as GHashTable lacks an
- * update operation and we'd need to _remove() and _insert() on every list
- * operation.
- */
-typedef struct im__buffer_cache_list_t {
-	GSList *buffers;	/* GSList of im_buffer_t* */
-	GThread *thread;	/* Just for sanity checking */
-	IMAGE *im;
-	im_buffer_cache_t *cache;
-} im_buffer_cache_list_t;
-
-/* What we track for each pixel buffer. 
- */
-typedef struct im__buffer_t {
-	int ref_count;		/* # of regions referencing us */
-	IMAGE *im;		/* IMAGE we are attached to */
-
-	Rect area;		/* Area this pixel buffer covers */
-	gboolean done;		/* Calculated and in cache */
-	im_buffer_cache_t *cache;
-	gboolean invalid;	/* Needs to be recalculated */
-	char *buf;		/* Private malloc() area */
-	size_t bsize;		/* Size of private malloc() */
-} im_buffer_t;
-
 /* Region types.
  */
 typedef enum region_type {
@@ -195,22 +156,6 @@ int im_wrapmany( IMAGE **in, IMAGE *out,
  */
 int im__call_start( REGION *reg );
 void im__call_stop( REGION *reg );
-
-/* window manager.
- */
-im_window_t *im_window_ref( IMAGE *im, int top, int height );
-int im_window_unref( im_window_t *window );
-void im_window_print( im_window_t *window );
-
-/* buffer manager.
- */
-void im_buffer_done( im_buffer_t *buffer );
-void im_buffer_undone( im_buffer_t *buffer );
-void im_buffer_unref( im_buffer_t *buffer );
-im_buffer_t *im_buffer_ref( IMAGE *im, Rect *area );
-im_buffer_t *im_buffer_unref_ref( im_buffer_t *buffer, IMAGE *im, Rect *area );
-void im_buffer_print( im_buffer_t *buffer );
-void im_invalidate( IMAGE *im );
 
 /* Macros on REGIONs.
  *	IM_REGION_LSKIP()		add to move down line

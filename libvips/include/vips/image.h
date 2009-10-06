@@ -271,7 +271,6 @@ const char *im_guess_prefix( const char *, const char * );
 const char *im_guess_libdir( const char *, const char * );
 
 VipsImage *im_open( const char *filename, const char *mode );
-int im_close( VipsImage *im );
 
 /**
  * im_open_local:
@@ -328,6 +327,10 @@ int im_close( VipsImage *im );
 	(im_local_array( (IM), (void **)((void*)(OUT)), (N),\
 		(im_construct_fn) im_open, (im_callback_fn) im_close, \
 		(void *) (NAME), (void *) (MODE), NULL ))
+
+int im_close( VipsImage *im );
+
+void im_invalidate( IMAGE *im );
 
 #ifdef __cplusplus
 }

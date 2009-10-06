@@ -101,7 +101,7 @@ extern "C" {
 
 #include <vips/private.h>
 
-/* @(#) Definition for structure to hold integer or double masks
+/* Argh, these horrible things must go :(
  */
 
 typedef struct im__INTMASK {

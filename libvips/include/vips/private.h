@@ -82,6 +82,53 @@ typedef struct {
 	size_t length;		/* Size of window */
 } im_window_t;
 
+/* window manager.
+ */
+im_window_t *im_window_ref( IMAGE *im, int top, int height );
+int im_window_unref( im_window_t *window );
+void im_window_print( im_window_t *window );
+
+/* Per-thread buffer cache. Held in a GPrivate.
+ */
+typedef struct im__buffer_cache_t {
+	GHashTable *hash;	/* Hash to im_buffer_cache_list_t* */
+	GThread *thread;	/* Just for sanity checking */
+} im_buffer_cache_t;
+
+/* Per-image buffer cache. Hash to this from im_buffer_cache_t.
+ * We can't store the GSList directly in the hash table, as GHashTable lacks an
+ * update operation and we'd need to _remove() and _insert() on every list
+ * operation.
+ */
+typedef struct im__buffer_cache_list_t {
+	GSList *buffers;	/* GSList of im_buffer_t* */
+	GThread *thread;	/* Just for sanity checking */
+	struct _VipsImage *im;
+	im_buffer_cache_t *cache;
+} im_buffer_cache_list_t;
+
+/* What we track for each pixel buffer. 
+ */
+typedef struct im__buffer_t {
+	int ref_count;		/* # of regions referencing us */
+	struct _VipsImage *im;	/* IMAGE we are attached to */
+
+	Rect area;		/* Area this pixel buffer covers */
+	gboolean done;		/* Calculated and in cache */
+	im_buffer_cache_t *cache;
+	gboolean invalid;	/* Needs to be recalculated */
+	char *buf;		/* Private malloc() area */
+	size_t bsize;		/* Size of private malloc() */
+} im_buffer_t;
+
+void im_buffer_done( im_buffer_t *buffer );
+void im_buffer_undone( im_buffer_t *buffer );
+void im_buffer_unref( im_buffer_t *buffer );
+im_buffer_t *im_buffer_ref( struct _VipsImage *im, Rect *area );
+im_buffer_t *im_buffer_unref_ref( im_buffer_t *buffer, 
+	struct _VipsImage *im, Rect *area );
+void im_buffer_print( im_buffer_t *buffer );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
