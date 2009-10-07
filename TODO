@@ -1,12 +1,10 @@
-- image.h/im_invalidate() needs docs
-
-- started region.h
+- reached im_prepare() in region.h
 
   
 
 - more stuff from util.c? too much to do it all now
 
-- im_prepare(), im_render()?
+- im_render()?
 
 - memory.c
 

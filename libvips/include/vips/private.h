@@ -129,6 +129,48 @@ im_buffer_t *im_buffer_unref_ref( im_buffer_t *buffer,
 	struct _VipsImage *im, Rect *area );
 void im_buffer_print( im_buffer_t *buffer );
 
+/* Sections of region.h that are private to VIPS.
+ */
+
+/* Region types.
+ */
+typedef enum region_type {
+	IM_REGION_NONE,
+	IM_REGION_BUFFER,	/* a pixel buffer */
+	IM_REGION_OTHER_REGION, /* memory on another region */
+	IM_REGION_OTHER_IMAGE,	/* memory on another image */
+	IM_REGION_WINDOW	/* mmap() buffer on fd on another image */
+} RegionType;
+
+/* Private to iofuncs: the size of the `tiles' requested by im_generate()
+ * when acting as a data sink.
+ */
+#define IM__TILE_WIDTH (64)
+#define IM__TILE_HEIGHT (64)
+
+/* The height of the strips for the other two request styles.
+ */
+#define IM__THINSTRIP_HEIGHT (1)
+#define IM__FATSTRIP_HEIGHT (16)
+
+/* Functions on regions.
+ */
+struct _REGION;
+void im__region_take_ownership( struct _REGION *reg );
+void im__region_check_ownership( struct _REGION *reg );
+void im__region_no_ownership( struct _REGION *reg );
+
+void im__copy_region( struct _REGION *reg, struct _REGION *dest, Rect *r, int x, int y );
+void im__find_demand_size( struct _VipsImage *im, int *pw, int *ph );
+
+int im__call_start( struct _REGION *reg );
+void im__call_stop( struct _REGION *reg );
+
+typedef int (*im_region_fill_fn)( struct _REGION *, void * );
+int im_region_fill( struct _REGION *reg, Rect *r, im_region_fill_fn fn, void *a );
+void im_region_print( struct _REGION *region );
+
+void im_region_print( struct _REGION *region ); 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

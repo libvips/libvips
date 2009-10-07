@@ -84,7 +84,7 @@
  * SECTION: image
  * @short_description: the VIPS image class
  * @stability: Stable
- * @see_also: vips
+ * @see_also: <link linkend="libvips-region">region</link>
  * @include: vips/vips.h
  *
  * The VIPS image class and associated types and macros.
@@ -134,7 +134,7 @@
  * These values are set by operations as hints to user-interfaces built on top 
  * of VIPS to help them show images to the user in a meaningful way. 
  * Operations do not use these values to decide their action.
- **/
+ */
 
 /**
  * VipsBandFmt: 
@@ -153,7 +153,7 @@
  *
  * Each corresponnds to a native C type for the current machine. For example,
  * %IM_BANDFMT_USHORT is <type>unsigned short</type>.
- **/
+ */
 
 /**
  * VipsCoding: 
@@ -208,28 +208,28 @@
  * @I: a #VipsImage
  *
  * Returns: sizeof() a band element.
- **/
+ */
 
 /**
  * IM_IMAGE_SIZEOF_PEL:
  * @I: a #VipsImage
  *
  * Returns: sizeof() a pixel.
- **/
+ */
 
 /**
  * IM_IMAGE_SIZEOF_LINE:
  * @I: a #VipsImage
  *
  * Returns: sizeof() a scanline of pixels.
- **/
+ */
 
 /**
  * IM_IMAGE_N_ELEMENTS:
  * @I: a #VipsImage
  *
  * Returns: the number of band elements in a scanline.
- **/
+ */
 
 /**
  * IM_IMAGE_ADDR:
@@ -244,7 +244,50 @@
  * If DEBUG is defined, you get a version that checks bounds for you.
  *
  * Returns: the address of pixel (x,y) in the image.
- **/
+ */
+
+/** 
+ * im_open_local_array:
+ * @IM: image to open local to
+ * @OUT: array to fill with #IMAGE
+ * @N: array size
+ * @NAME: filename to open
+ * @MODE: mode to open with
+ *
+ * Just like im_open(), but opens an array of images. Handy for creating a set
+ * of temporary images for a function.
+ *
+ * Example:
+ *
+ * |[
+ * IMAGE *t[5];
+ *
+ * if( im_open_local_array( out, t, 5, "some-temps", "p" ) ||
+ *   im_add( a, b, t[0] ) ||
+ *   im_invert( t[0], t[1] ) ||
+ *   im_add( t[1], t[0], t[2] ) ||
+ *   im_costra( t[2], out ) )
+ *   return( -1 );
+ * ]|
+ *
+ * Returns: 0 on sucess, or -1 on error
+ *
+ * See also: im_open(), im_open_local(), im_local_array().
+ */
+
+/**
+ * im_open_local:
+ * @IM: image to open local to
+ * @NAME: filename to open
+ * @MODE: mode to open with
+ *
+ * Just like im_open(), but the #IMAGE will be closed for you automatically
+ * when @IM is closed.
+ *
+ * Returns: a new #IMAGE, or NULL on error
+ *
+ * See also: im_open(), im_close(), im_local().
+ */
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */

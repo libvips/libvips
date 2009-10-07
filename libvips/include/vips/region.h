@@ -36,19 +36,10 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Region types.
- */
-typedef enum region_type {
-	IM_REGION_NONE,
-	IM_REGION_BUFFER,	/* a pixel buffer */
-	IM_REGION_OTHER_REGION, /* memory on another region */
-	IM_REGION_OTHER_IMAGE,	/* memory on another image */
-	IM_REGION_WINDOW	/* mmap() buffer on fd on another image */
-} RegionType;
-
 /* Sub-area of image.
  */
-typedef struct region_struct {
+typedef struct _REGION {
+	/*< public >*/
 	/* Users may read these two fields.
 	 */
 	IMAGE *im;		/* Link back to parent image */
@@ -56,6 +47,7 @@ typedef struct region_struct {
 
 	/* The rest of REGION is private.
 	 */
+	/*< private >*/
 	RegionType type;	/* What kind of attachment */
 	char *data;		/* Off here to get data */
 	int bpl;		/* Bytes-per-line for data */
@@ -75,34 +67,14 @@ typedef struct region_struct {
 	im_buffer_t *buffer;
 } REGION;
 
-/* Private to iofuncs: the size of the `tiles' requested by im_generate()
- * when acting as a data sink.
- */
-#define IM__TILE_WIDTH (64)
-#define IM__TILE_HEIGHT (64)
-
-/* The height of the strips for the other two request styles.
- */
-#define IM__THINSTRIP_HEIGHT (1)
-#define IM__FATSTRIP_HEIGHT (16)
-
-/* Functions on regions.
- */
-void im__region_take_ownership( REGION *reg );
-void im__region_check_ownership( REGION *reg );
-void im__region_no_ownership( REGION *reg );
-
 REGION *im_region_create( IMAGE *im );
 void im_region_free( REGION *reg );
+
 int im_region_buffer( REGION *reg, Rect *r );
 int im_region_image( REGION *reg, Rect *r );
 int im_region_region( REGION *reg, REGION *to, Rect *r, int x, int y );
 int im_region_equalsregion( REGION *reg1, REGION *reg2 );
 int im_region_position( REGION *reg1, int x, int y );
-typedef int (*im_region_fill_fn)( REGION *, void * );
-int im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a );
-
-void im_region_print( REGION *region );
 
 /* IMAGE functions which use regions. 
  */
@@ -120,7 +92,6 @@ int im_iterate( IMAGE *im,
 	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *a, void *b
 );
-void im__copy_region( REGION *reg, REGION *dest, Rect *r, int x, int y );
 
 /* Convenience functions for im_generate()/im_iterate().
  */
@@ -134,28 +105,23 @@ int im_demand_hint( IMAGE *im, im_demand_type hint, ... )
 int im_demand_hint_array( IMAGE *im, im_demand_type hint, IMAGE **in );
 void im_free_region_array( REGION **regs );
 REGION **im_allocate_region_array( IMAGE *im, int count );
-void im__find_demand_size( IMAGE *im, int *pw, int *ph );
 
 /* Buffer processing.
  */
 typedef void (*im_wrapone_fn)( void *in, void *out, int width,
 	void *a, void *b );
-typedef void (*im_wraptwo_fn)( void *in1, void *in2, void *out, 
-        int width, void *a, void *b );
-typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
-	void *a, void *b );
-
 int im_wrapone( IMAGE *in, IMAGE *out,
 	im_wrapone_fn fn, void *a, void *b );
+
+typedef void (*im_wraptwo_fn)( void *in1, void *in2, void *out, 
+        int width, void *a, void *b );
 int im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out,
 	im_wraptwo_fn fn, void *a, void *b );
+
+typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
+	void *a, void *b );
 int im_wrapmany( IMAGE **in, IMAGE *out,
 	im_wrapmany_fn fn, void *a, void *b );
-
-/* Internal VIPS functions shared by partials.
- */
-int im__call_start( REGION *reg );
-void im__call_stop( REGION *reg );
 
 /* Macros on REGIONs.
  *	IM_REGION_LSKIP()		add to move down line

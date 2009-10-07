@@ -569,7 +569,14 @@ im_invalidate_image( IMAGE *im )
 	return( NULL );
 }
 
-/* Invalidate all pixel caches on an IMAGE and any parents.
+/**
+ * im_invalidate:
+ * @im: #IMAGE to invalidate
+ *
+ * Invalidate all pixel caches on an #IMAGE and any derived images. The 
+ * "invalidate" callback is triggered for all invalidated images.
+ *
+ * See also: im_add_invalidate_callback().
  */
 void
 im_invalidate( IMAGE *im )

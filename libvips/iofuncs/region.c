@@ -35,6 +35,8 @@
  * 	- gah, im_region_image() could still break (thanks Mikkel)
  * 23/7/08
  * 	- added im_region_print()
+ * 7/10/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -99,6 +101,77 @@
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/**
+ * SECTION: region
+ * @short_description: small, rectangular parts of images
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-image">image</link>
+ * @include: vips/vips.h
+ *
+ * A #REGION is a small part of an image and some pixels. You use regions to
+ * read pixels out of images without having to have the whole image in memory
+ * at once.
+ *
+ * A region can be a memory buffer, part of a memory-mapped file, part of some
+ * other image, or part of some other region.
+ */
+
+/**
+ * REGION:
+ * @im: the #IMAGE that this region is defined on
+ * @valid: the #Rect of pixels that this region represents
+ *
+ * A small part of an #IMAGE. @valid holds the left/top/width/height of the
+ * area of pixels that are available from the region. 
+ *
+ * See also: IM_REGION_ADDR(), im_region_create(), im_prepare().
+ */
+
+/**
+ * IM_REGION_LSKIP:
+ * @R: a #REGION
+ *
+ * Returns: the number of bytes to add to move down a scanline.
+ */
+
+/**
+ * IM_REGION_N_ELEMENTS:
+ * @R: a #REGION
+ *
+ * Returns: the number of band elements across a region.
+ */
+
+/**
+ * IM_REGION_SIZEOF_LINE:
+ * @R: a #REGION
+ *
+ * Returns: the number of bytes across a region.
+ */
+
+/**
+ * IM_REGION_ADDR:
+ * @R: a #REGION
+ * @X: x coordinate
+ * @Y: y coordinate
+ *
+ * This macro returns a pointer to a pixel in a region. The (x, y) coordinates
+ * need to be within the #Rect (@R->valid).
+ * 
+ * If DEBUG is defined, you get a version that checks bounds for you.
+ *
+ * Returns: the address of pixel (x,y) in the region.
+ */
+
+/**
+ * IM_REGION_ADDR_TOPLEFT:
+ * @R: a #REGION
+ *
+ * This macro returns a pointer to the top-left pixel in the #REGION, that is,
+ * the pixel at (@R->valid.left, @R->valid.top).
+ * 
+ * Returns: the address of the top-left pixel in the region.
+ */
 
 #ifdef DEBUG
 /* Track all regions here for debugging.
@@ -208,9 +281,14 @@ im__region_no_ownership( REGION *reg )
 	g_mutex_unlock( reg->im->sslock );
 }
 
-/* Create a region. Set no attachments. Either im_prepare() or im_generate()
- * are responsible for getting regions ready for user functions to read
- * from/write to.
+/**
+ * im_region_create:
+ * @im: image to create this region on
+ *
+ * Create a region. #REGION s start out empty, you need to call im_prepare() to
+ * fill them with pixels.
+ *
+ * See also: im_prepare(), im_region_free().
  */
 REGION *
 im_region_create( IMAGE *im )
@@ -262,6 +340,15 @@ im_region_reset( REGION *reg )
 	IM_FREEF( im_buffer_unref, reg->buffer );
 }
 
+/**
+ * im_region_free:
+ * @reg: #REGION to free
+ *
+ * Free a region and any resources it holds.
+ *
+ * If @im has previously been closed, then freeing the last #REGION on @in can
+ * cause @im to finally be freed as well.
+ */
 void 
 im_region_free( REGION *reg )
 {	
@@ -315,6 +402,17 @@ im_region_free( REGION *reg )
  * reg->buffer->done to see if there are pixels there already. Otherwise, you
  * need to calculate.
  */
+
+/**
+ * im_region_buffer:
+ * @reg: region to operate upon
+ * @r: #Rect of pixels you need to be able to address
+ *
+ * The region is transformed so that at least @r pixels are available as a
+ * memory buffer. 
+ *
+ * Returns: 0 on success, or -1 for error.
+ */
 int
 im_region_buffer( REGION *reg, Rect *r )
 {
@@ -366,9 +464,16 @@ im_region_buffer( REGION *reg, Rect *r )
 	return( 0 );
 }
 
-/* Attach a region to a small section of the image on which it is defined.
- * The IMAGE we are attached to should be im_mmapin(), im_mmapinrw() or 
- * im_setbuf(). The Rect is clipped against the image size.
+/**
+ * im_region_image:
+ * @reg: region to operate upon
+ * @r: #Rect of pixels you need to be able to address
+ *
+ * The region is transformed so that at least @r pixels are available directly
+ * from the image. The image needs to be a memory buffer or represent a file
+ * on disc that has been mapped or can be mapped. 
+ *
+ * Returns: 0 on success, or -1 for error.
  */
 int
 im_region_image( REGION *reg, Rect *r )
@@ -445,18 +550,29 @@ im_region_image( REGION *reg, Rect *r )
 	return( 0 );
 }
 
-/* Make IM_REGION_ADDR() stuff to reg go to dest instead. 
+/**
+ * im_region_region:
+ * @reg: region to operate upon
+ * @dest: region to connect to
+ * @r: #Rect of pixels you need to be able to address
+ * @x: postion of @r in @dest
+ * @y: postion of @r in @dest
  *
- * r is the part of the reg image which you want to be able to write to (this
- * effectively becomes the valid field), (x,y) is the top LH corner of the
- * corresponding area in dest.
+ * Make IM_REGION_ADDR() on @reg go to @dest instead. 
  *
- * Performs all clippings necessary to ensure that &reg->valid is indeed
+ * @r is the part of @reg which you want to be able to address (this
+ * effectively becomes the valid field), (@x, @y) is the top LH corner of the
+ * corresponding area in @dest.
+ *
+ * Performs all clipping necessary to ensure that @reg->valid is indeed
  * valid.
  *
- * If the region we attach to is modified, we are left with dangling pointers!
- * If the region we attach to is on another image, the two images must have 
+ * If the region we attach to is modified, we can be left with dangling 
+ * pointers! If the region we attach to is on another image, the two images 
+ * must have 
  * the same sizeof( pel ).
+ *
+ * Returns: 0 on success, or -1 for error.
  */
 int
 im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
@@ -540,10 +656,20 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	return( 0 );
 }
 
-/* Do two regions point to the same piece of image? ie. 
+/**
+ * im_region_equalsregion:
+ * @reg1: region to test
+ * @reg2: region to test
+ *
+ * Do two regions point to the same piece of image? ie. 
+ *
+ * |[
  * 	IM_REGION_ADDR( reg1, x, y ) == IM_REGION_ADDR( reg2, x, y ) &&
  * 	*IM_REGION_ADDR( reg1, x, y ) == 
  * 		*IM_REGION_ADDR( reg2, x, y ) for all x, y, reg1, reg2.
+ * ]|
+ *
+ * Returns: non-zero on equality.
  */
 int
 im_region_equalsregion( REGION *reg1, REGION *reg2 )
@@ -553,10 +679,18 @@ im_region_equalsregion( REGION *reg1, REGION *reg2 )
 		reg1->data == reg2->data );
 }
 
-/* Set the position of a region. This only affects reg->valid, ie. the way
+/**
+ * im_region_position:
+ * @reg: region to operate upon
+ * @x: position to move to
+ * @y: position to move to
+ *
+ * Set the position of a region. This only affects reg->valid, ie. the way
  * pixels are addressed, not reg->data, the pixels which are addressed. Clip
  * against the size of the image. Do not allow negative positions, or
  * positions outside the image.
+ *
+ * Returns: 0 on success, or -1 for error.
  */
 int
 im_region_position( REGION *reg, int x, int y )
