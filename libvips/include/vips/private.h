@@ -170,7 +170,8 @@ typedef int (*im_region_fill_fn)( struct _REGION *, void * );
 int im_region_fill( struct _REGION *reg, Rect *r, im_region_fill_fn fn, void *a );
 void im_region_print( struct _REGION *region );
 
-void im_region_print( struct _REGION *region ); 
+int im_prepare_many( REGION **reg, Rect *r );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -43,6 +43,8 @@
  * 	- merge background write stuff
  * 7/11/07
  * 	- new start/end eval callbacks
+ * 7/10/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -100,7 +102,12 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Start and stop functions for one image in, input image is first user data.
+/**
+ * im_start_one:
+ *
+ * Start function for one image in. Input image is first user data.
+ *
+ * See also: im_generate().
  */
 void *
 im_start_one( IMAGE *out, void *client, void *dummy )
@@ -110,6 +117,13 @@ im_start_one( IMAGE *out, void *client, void *dummy )
 	return( im_region_create( in ) );
 }
 
+/**
+ * im_stop_one:
+ *
+ * Stop function for one image in. Input image is first user data.
+ *
+ * See also: im_generate().
+ */
 int
 im_stop_one( void *seq, void *dummy1, void *dummy2 )
 {
@@ -120,8 +134,13 @@ im_stop_one( void *seq, void *dummy1, void *dummy2 )
 	return( 0 );
 }
 
-/* Stop and start functions for many images in. First client is pointer to 
- * null-terminated array of input images.
+/**
+ * im_stop_many:
+ *
+ * Stop function for many images in. First client is a pointer to 
+ * a %NULL-terminated array of input images.
+ *
+ * See also: im_generate().
  */
 int
 im_stop_many( void *seq, void *dummy1, void *dummy2 )
@@ -139,6 +158,14 @@ im_stop_many( void *seq, void *dummy1, void *dummy2 )
 	return( 0 );
 }
 
+/**
+ * im_start_many:
+ *
+ * Start function for many images in. First client is a pointer to 
+ * a %NULL-terminated array of input images.
+ *
+ * See also: im_generate(), im_allocate_input_array()
+ */
 void *
 im_start_many( IMAGE *out, void *client, void *dummy )
 {
@@ -169,8 +196,17 @@ im_start_many( IMAGE *out, void *client, void *dummy )
 	return( ar );
 }
 
-/* Convenience function - make a null-terminated array of input images.
- * Use with im_start_many.
+/**
+ * im_allocate_input_array:
+ * @out: free array when this image closes
+ * @Varargs: %NULL-terminated list of input images
+ *
+ * Convenience function --- make a %NULL-terminated array of input images.
+ * Use with im_start_many().
+ *
+ * See also: im_generate(), im_start_many().
+ *
+ * Returns: %NULL-terminated array of images. Do not free the result.
  */
 IMAGE **
 im_allocate_input_array( IMAGE *out, ... )
@@ -365,7 +401,30 @@ write_vips( REGION *region, Rect *area, void *a, void *b )
 	return( 0 );
 }
 
-/* Attach a generate function to an image.
+/**
+ * im_generate:
+ * @im: generate this image
+ * @start: start sequences with this function
+ * @generate: generate pixels with this function
+ * @stop: stop sequences with this function
+ * @a: user data
+ * @b: user data
+ *
+ * Generates an image. The action depends on the image type.
+ *
+ * For images opened with "p", im_generate() just attaches the
+ * start/generate/stop callbacks and returns.
+ *
+ * For "t" images, memory is allocated for the image and im_prepare_thread()
+ * used to fill it with pixels.
+ *
+ * For "w" images, memory for a few scanlines is allocated and
+ * im_prepare_thread() used to generate the image in small chunks. As each
+ * chunk is generated, it is written to disc.
+ *
+ * See also: im_iterate(), im_open(), im_prepare(), im_wrapone().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_generate( IMAGE *im,
@@ -470,8 +529,23 @@ im_generate( IMAGE *im,
         return( 0 );
 }
 
-/* Generate a region of pixels ... with threads! Very like im_prepare(), but
- * threaded and does sub-division. 
+/** im_prepare_thread:
+ * @tg: group of threads to evaluate with
+ * @reg: region to prepare
+ * @r: #Rect of pixels you need to be able to address
+ *
+ * im_prepare_thread() fills @reg with pixels. After calling, you can address at
+ * least the area @r with IM_REGION_ADDR() and get valid pixels.
+ *
+ * im_prepare_thread() uses @tg, a group of threads, to calculate pixels.
+ * Computation blocks until the pixels are ready.
+ *
+ * Use im_prepare() to calculate an area of pixels in-line.
+ * Use im_render() to calculate an area of pixels in the background.
+ *
+ * Returns: 0 on success, or -1 on error
+ *
+ * See also: im_prepare(), im_render(), im_prepare_to().
  */
 int
 im_prepare_thread( im_threadgroup_t *tg, REGION *or, Rect *r )

@@ -1,6 +1,7 @@
-- reached im_prepare() in region.h
+- reached im_iterate() in region.h
 
   
+- inplace ops break over 2gb? insert_inplace especially
 
 - more stuff from util.c? too much to do it all now
 

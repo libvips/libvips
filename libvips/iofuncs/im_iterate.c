@@ -23,6 +23,8 @@
  * 	- merge threadgroup stuff
  * 7/11/07
  * 	- new eval start/progress/end system
+ * 7/10/09
+ * 	- gtkdoc comments
  */
 
 /*

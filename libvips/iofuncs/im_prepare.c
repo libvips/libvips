@@ -21,6 +21,8 @@
  *	  replaces it and is nicer
  * 30/9/05
  * 	- hmm, did not stop if a start function failed
+ * 7/10/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -104,8 +106,23 @@ im__test_kill( IMAGE *im )
 	return( 0 );
 }
 
-/* Make REGION reg ready for input of area r. For most image types, we can
- * just im_attach, for PARTIAL though we may need to generate. 
+/** im_prepare:
+ * @reg: region to prepare
+ * @r: #Rect of pixels you need to be able to address
+ *
+ * im_prepare() fills @reg with pixels. After calling, you can address at
+ * least the area @r with IM_REGION_ADDR() and get valid pixels.
+ *
+ * im_prepare() runs in-line, that is, computation is done by the calling
+ * thread, no new threads are involved, and computation blocks until the
+ * pixels are ready.
+ *
+ * Use im_prepare_thread() to calculate an area of pixels with many
+ * threads. Use im_render() to calculate an area of pixels in the background.
+ *
+ * Returns: 0 on success, or -1 on error
+ *
+ * See also: im_prepare_thread(), im_render(), im_prepare_to().
  */
 int
 im_prepare( REGION *reg, Rect *r )
@@ -253,10 +270,21 @@ im_prepare_to_generate( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	return( 0 );
 }
 
-/* Like im_prepare(): fill reg with data, ready to be read from by our caller.
- * Unlike im_prepare(), rather than allocating memory local to reg for the
- * result, we guarantee that we will fill the pixels in dest at offset x, y.
+/** im_prepare_to:
+ * @reg: region to prepare
+ * @dest: region to write to
+ * @r: #Rect of pixels you need to be able to address
+ * @x: postion of @r in @dest
+ * @y: postion of @r in @dest
+ *
+ * Like im_prepare(): fill @reg with data, ready to be read from by our caller.
+ * Unlike im_prepare(), rather than allocating memory local to @reg for the
+ * result, we guarantee that we will fill the pixels in @dest at offset @x, @y.
  * In other words, we generate an extra copy operation if necessary. 
+ *
+ * Returns: 0 on success, or -1 on error
+ *
+ * See also: im_prepare().
  */
 int
 im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
