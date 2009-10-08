@@ -239,6 +239,49 @@ im_allocate_input_array( IMAGE *out, ... )
 	return( ar );
 }
 
+/**
+ * im_start_fn:
+ * @out: image being calculated
+ * @a: user data
+ * @b: user data
+ *
+ * Start a new processing sequence for this generate function. This allocates
+ * per-thread state, such as an input region.
+ *
+ * See also: im_start_one(), im_start_many().
+ *
+ * Returns: a new sequence value
+ */
+
+/**
+ * im_generate_fn:
+ * @out: #REGION to fill
+ * @seq: sequence value
+ * @a: user data
+ * @b: user data
+ *
+ * Fill @out->valid with pixels. @seq contains per-thread state, such as the
+ * input regions.
+ *
+ * See also: im_generate(), im_stop_many().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+
+/**
+ * im_stop_fn:
+ * @seq: sequence value
+ * @a: user data
+ * @b: user data
+ *
+ * Stop a processing sequence. This frees
+ * per-thread state, such as an input region.
+ *
+ * See also: im_stop_one(), im_stop_many().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+
 /* Loop over a big region, filling it in many small pieces with threads.
  */
 static int
@@ -436,6 +479,12 @@ im_generate( IMAGE *im,
 	im_threadgroup_t *tg;
 
 	g_assert( !im_image_sanity( im ) );
+
+	if( !im->hint_set ) {
+		im_error( "im_generate", 
+			"%s", _( "im_demand_hint() not set" ) );
+		return( -1 );
+	}
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) {
 		im_error( "im_generate", 

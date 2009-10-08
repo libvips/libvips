@@ -51,11 +51,12 @@
 - added im_flood_other() as start of simple segmentation operator
 - added im_segment() 
 - im_printlines(), im_debugim() deprecated (use im_vips2csv() instead)
-- meta, header, callback, error, REGION gtkdocs
+- meta, header, callback, error, region gtkdocs
 - removed printlines tool, vips2csv is much better
 - removed other useless tools as well: debugim, binfile
 - fix up addr calcs on 64-bit machines with >2gb images and inplace ops
   (thanks Christoph)
+- im_generate() checks that im_demand_hint() has been called for this image
 
 25/3/09 started 7.18.0
 - revised version numbers

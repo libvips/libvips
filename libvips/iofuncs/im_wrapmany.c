@@ -1,20 +1,4 @@
-/* Wrap-up a buffer processing function as a PIO VIPS function.
- *
- * Given a NULL-terminated list of input images all of the same size, an
- * output image and a buffer processing function, make a PIO image processing
- * operation.
- *
- * 	int im_wrapmany( IMAGE **in, IMAGE *out, 
- *		im_wrapmany_fn fn, void *a, void *b )
- *
- * where im_wrapmany_fn has type:
- *
- *	process_buffer( void **in, void *out, int n,
- *		void *a, void *b )
- *
- * in is a NULL-terminated array of input buffers, out is an output buffer, n 
- * is the number of pixels (note! not band-elements) and a and b are extra 
- * arguments carried for the function
+/* wrapmany
  *
  * Modified:
  * 1/8/95 JC
@@ -24,6 +8,9 @@
  *	- amazing error ... only worked if ir and or had same valid
  * 23/1/08
  * 	- do im_wrapone() in terms of this
+ * 8/10/09
+ * 	- gtkdoc comments
+ * 	- move im_wraptwo in here
  */
 
 /*
@@ -150,7 +137,34 @@ dupims( IMAGE *out, IMAGE **in )
 	return( new );
 }
 
-/* Wrap up as a partial.
+/**
+ * im_wrapmany_fn:
+ * @in: %NULL-terminated array of input buffers
+ * @out: write processed pixels here
+ * @width: number of pixels in buffer
+ * @a: user data
+ * @b: user data
+ *
+ * Given an array of buffers of input pixels, write a buffer of output pixels.
+ */
+
+/**
+ * im_wrapmany:
+ * @in: %NULL-terminated array of input images
+ * @out: image to generate
+ * @fn: buffer-processing function
+ * @a: user data
+ * @b: user data
+ *
+ * Wrap-up a buffer processing function as a PIO VIPS function.
+ *
+ * Given a NULL-terminated list of input images all of the same size, an
+ * output image and a buffer processing function, make a PIO image processing
+ * operation.
+ *
+ * See also: im_wrapone(), im_wraptwo(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
@@ -212,6 +226,35 @@ wrapone_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
 	((im_wrapone_fn) (bun->fn)) (ins[0], out, width, bun->a, bun->b );
 }
 
+/**
+ * im_wrapone_fn:
+ * @in: input pixels
+ * @out: write processed pixels here
+ * @width: number of pixels in buffer
+ * @a: user data
+ * @b: user data
+ *
+ * Given a buffer of input pixels, write a buffer of output pixels.
+ */
+
+/**
+ * im_wrapone:
+ * @in: input image
+ * @out: image to generate
+ * @fn: buffer-processing function
+ * @a: user data
+ * @b: user data
+ *
+ * Wrap-up a buffer processing function as a PIO VIPS function.
+ *
+ * Given an input image, an
+ * output image and a buffer processing function, make a PIO image processing
+ * operation.
+ *
+ * See also: im_wrapmany(), im_wraptwo(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
 int
 im_wrapone( IMAGE *in, IMAGE *out, im_wrapone_fn fn, void *a, void *b )
 {
@@ -229,17 +272,44 @@ im_wrapone( IMAGE *in, IMAGE *out, im_wrapone_fn fn, void *a, void *b )
 		(im_wrapmany_fn) wrapone_gen, bun, NULL ) );
 }
 
-/*
-
-   commented out for now ... replace im_wraptwo with this?
-
 static void
 wraptwo_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
 {
-	((im_wraptwo_fn) (bun->fn)) (ins[0], ins[1], or, 
+	((im_wraptwo_fn) (bun->fn)) (ins[0], ins[1], out, 
 		width, bun->a, bun->b );
 }
 
+/**
+ * im_wraptwo_fn:
+ * @in1: input pixels from image 1
+ * @in2: input pixels from image 2
+ * @out: write processed pixels here
+ * @width: number of pixels in buffer
+ * @a: user data
+ * @b: user data
+ *
+ * Given a pair of buffers of input pixels, write a buffer of output pixels.
+ */
+
+/**
+ * im_wraptwo:
+ * @in1: first input image
+ * @in2: second input image
+ * @out: image to generate
+ * @fn: buffer-processing function
+ * @a: user data
+ * @b: user data
+ *
+ * Wrap-up a buffer processing function as a PIO VIPS function.
+ *
+ * Given a pair of input images of the same size, an
+ * output image and a buffer processing function, make a PIO image processing
+ * operation.
+ *
+ * See also: im_wrapone(), im_wrapmany(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
 int
 im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	im_wraptwo_fn fn, void *a, void *b )
@@ -255,5 +325,3 @@ im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out,
 	return( im_wrapmany( invec, out, 
 		(im_wrapmany_fn) wraptwo_gen, bun, NULL ) );
 }
-
- */

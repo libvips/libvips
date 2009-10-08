@@ -198,6 +198,12 @@ typedef struct _VipsImage {
 	/* Parent/child relationships, built from args to im_demand_hint().
 	 * We use these to invalidate pixel buffers on im_invalidate(). Use
 	 * 'serial' to spot circular dependencies.
+	 *
+	 * Parents are later in the tree, so it's child1 + child2 -> parent,
+	 * for example. On im_invalidate(), we dispose the caches on all
+	 * parents of an image.
+	 *
+	 * See also hint_set below.
 	 */
 	GSList *parents;
 	GSList *children;
@@ -223,6 +229,14 @@ typedef struct _VipsImage {
 	 * been truncated.
 	 */
 	size_t file_length;
+
+	/* Set this when im_demand_hint_array() is called, and check in any
+	 * operation that will demand pixels from the image.
+	 *
+	 * We use im_demand_hint_array() to build the tree of parent/child
+	 * relationships, so it's a mandatory thing.
+	 */
+	gboolean hint_set;
 } VipsImage;
 
 /* Pixel address calculation macros.

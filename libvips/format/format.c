@@ -41,6 +41,17 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: VipsFormat
+ * @short_description: load and save in a variety of formats
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-image">image</link>
+ * @include: vips/vips.h
+ *
+ * VIPS has a simple system for representing image loader
+ *
+ */
+
 /* To iterate over supported formats, we build a temp list of subclasses of 
  * VipsFormat, sort by priority, iterate, and free.
  */

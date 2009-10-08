@@ -193,7 +193,22 @@ iterate( im_threadgroup_t *tg, IMAGE *im,
 	return( res );
 }
 
-/* Scan region over image in small pieces.
+/**
+ * im_iterate:
+ * @im: scan over this image
+ * @start: start sequences with this function
+ * @generate: generate pixels with this function
+ * @stop: stop sequences with this function
+ * @a: user data
+ * @b: user data
+ *
+ * Loops over an image. @generate is called for every pixel in the image, with
+ * the @reg argument being a region of pixels for processing. im_iterate() is
+ * used to implement operations like im_avg() which have no image output.
+ *
+ * See also: im_generate(), im_open().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_iterate( IMAGE *im, 

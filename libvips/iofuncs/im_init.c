@@ -33,6 +33,8 @@
  * 	- lock global image list (thanks lee)
  * 19/3/09
  *	- add file_length 
+ * 8/10/09
+ * 	- add set_hint
  */
 
 /*
@@ -171,6 +173,8 @@ im_init( const char *filename )
 	im->invalidatefns = NULL;
 
 	im->file_length = 0;
+
+	im->hint_set = FALSE;
 
 	if( !(im->filename = im_strdup( NULL, filename )) ) {
 		im_close( im );

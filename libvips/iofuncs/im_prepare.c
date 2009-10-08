@@ -270,7 +270,8 @@ im_prepare_to_generate( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	return( 0 );
 }
 
-/** im_prepare_to:
+/** 
+ * im_prepare_to:
  * @reg: region to prepare
  * @dest: region to write to
  * @r: #Rect of pixels you need to be able to address

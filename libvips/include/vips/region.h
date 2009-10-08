@@ -81,9 +81,9 @@ int im_region_position( REGION *reg1, int x, int y );
 int im_prepare( REGION *reg, Rect *r );
 int im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y );
 
-typedef void *(*im_start_fn)( IMAGE *, void *, void * );
-typedef int (*im_generate_fn)( REGION *, void *, void *, void *);
-typedef int (*im_stop_fn)( void *, void *, void * );
+typedef void *(*im_start_fn)( IMAGE *out, void *a, void *b );
+typedef int (*im_generate_fn)( REGION *out, void *seq, void *a, void *b );
+typedef int (*im_stop_fn)( void *seq, void *a, void *b );
 
 void *im_start_one( IMAGE *out, void *in, void *dummy );
 int im_stop_one( void *seq, void *dummy1, void *dummy2 );
@@ -101,12 +101,9 @@ int im_iterate( IMAGE *im,
 	void *a, void *b
 );
 
+int im_demand_hint_array( IMAGE *im, im_demand_type hint, IMAGE **in );
 int im_demand_hint( IMAGE *im, im_demand_type hint, ... )
 	__attribute__((sentinel));
-int im_demand_hint_array( IMAGE *im, im_demand_type hint, IMAGE **in );
-
-void im_free_region_array( REGION **regs );
-REGION **im_allocate_region_array( IMAGE *im, int count );
 
 /* Buffer processing.
  */

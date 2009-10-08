@@ -1,54 +1,4 @@
-/* @(#) Hint to the evaluation mechanism that it should ask for output from
- * @(#) this image with a certain shape of patch. 
- * @(#)
- * @(#) int 
- * @(#) im_demand_hint( im, hint, in1, in2, ..., NULL )
- * @(#) IMAGE *im, *in1, *in2, ...;
- * @(#) im_demand_type hint;
- * @(#)
- * @(#) hint may be one of
- * @(#)
- * @(#)	IM_THINSTRIP
- * @(#)		This operation would like to output strips the width of the
- * @(#)		image and a few pels high. This is option suitable for
- * @(#)		point-to-point operations, such as those in the arithmetic
- * @(#)		package.
- * @(#)
- * @(#)		This is the fastest style for most simple operations.
- * @(#)
- * @(#)	IM_FATSTRIP
- * @(#)		This operation would like to output strips the width of the
- * @(#)		image and as high as possible. This option is suitable for
- * @(#)		area operations which do not violently transform coordinates,
- * @(#)		such as im_conv(). 
- * @(#)
- * @(#)	IM_SMALLTILE
- * @(#)		This is the most general demand format, and is the default.
- * @(#)		Output is demanded in small (around 100x100 pel) sections.
- * @(#)		This style works reasonably efficiently, even for bizzare
- * @(#)		operations like 45 degree rotate.
- * @(#)
- * @(#)	IM_ANY
- * @(#)		Not from a disc file, so any geometry is OK.
- * @(#)
- * @(#) NOTE: demand style falls back to the most restrictive in the pipeline.
- * @(#)	All pipeline elements in the pipeline must agree on IM_THINSTRIP
- * @(#)	before output will be asked for in this manner. If you do not set a
- * @(#) hint, you will get IM_SMALLTILE.
- * @(#)
- * @(#) in1, in2, ... are the images on which out will make demands. You
- * @(#) should terminate the list with NULL.
- * @(#)
- * @(#) int 
- * @(#) im_demand_hint_array( im, hint, in )
- * @(#) IMAGE *im, **in;
- * @(#) im_demand_type hint;
- * @(#)
- * @(#) As above, but in is a NULL-terminated array of input images. Use 
- * @(#) im_allocate_input_array() to build the input array.
- * @(#)
- * @(#) Returns non-zero on failure.
- * @(#) 
+/* demand hints
  *
  * Copyright: The National Gallery, 1993
  * Written on: 6/9/93
@@ -60,6 +10,8 @@
  * 	  fails for image import
  * 1/12/06
  * 	- build parent/child links as well
+ * 8/10/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -120,10 +72,28 @@ find_least( im_demand_type a, im_demand_type b )
 	return( (im_demand_type) IM_MIN( (int) a, (int) b ) );
 }
 
-/* Set hint for this image.
+/**
+ * im_demand_hint_array: 
+ * @im: image to set hint for
+ * @hint: hint for this image
+ * @in: array of input images to this operation
+ *
+ * Operations can set demand hints, that is, hints to the VIPS IO system about
+ * the type of region geometry this operation works best with. For example,
+ * operations which transform coordinates will usually work best with
+ * %IM_SMALLTILE, operations which work on local windows of pixels will like
+ * %IM_FATSTRIP.
+ *
+ * VIPS uses the list of input images to build the tree of operations it needs
+ * for the cache invalidation system. You have to call this function, or its
+ * varargs friend im_demand_hint().
+ *
+ * Returns: 0 on success, or -1 on error.
+ *
+ * See also: im_demand_hint(), im_generate().
  */
 int 
-im_demand_hint_array( IMAGE *im, im_demand_type hint, IMAGE **in )
+im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 {
 	int i, len, nany;
 
@@ -163,13 +133,28 @@ im_demand_hint_array( IMAGE *im, im_demand_type hint, IMAGE **in )
 	for( i = 0; i < len; i++ )
 		im__link_make( im, in[i] );
 
+	/* Set a flag on the image to say we remember to call this thing.
+	 * im_generate() and friends check this.
+	 */
+	im->hint_set = TRUE;
+
 	return( 0 );
 }
 
-/* Build an array, and call the above.
+/**
+ * im_demand_hint:
+ * @im: image to set hint for
+ * @hint: hint for this image
+ * @Varargs: %NULL-terminated list of input images to this operation
+ *
+ * Build an array and call im_demand_hint_array().
+ *
+ * Returns: 0 on success, or -1 on error.
+ *
+ * See also: im_demand_hint(), im_generate().
  */
 int 
-im_demand_hint( IMAGE *im, im_demand_type hint, ... )
+im_demand_hint( IMAGE *im, VipsDemandStyle hint, ... )
 {
 	va_list ap;
 	int i;

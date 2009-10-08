@@ -1,8 +1,11 @@
-- reached im_iterate() in region.h
+- region needs to be broken up
+
+  split prepare, generate etc. out to another chapter, maybe generate.h
+
+
+- VipsFormat next? where should we document the im_vip2jpeg() options?
 
   
-- inplace ops break over 2gb? insert_inplace especially
-
 - more stuff from util.c? too much to do it all now
 
 - im_render()?
