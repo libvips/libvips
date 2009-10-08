@@ -228,11 +228,14 @@ typedef struct _VipsImage {
 /* Pixel address calculation macros.
  */
 
-#define IM_IMAGE_SIZEOF_ELEMENT(I)	((I)->Bbits >> 3)
-#define IM_IMAGE_SIZEOF_PEL(I) 	\
-	(IM_IMAGE_SIZEOF_ELEMENT(I) * (I)->Bands)
-#define IM_IMAGE_SIZEOF_LINE(I) 	(IM_IMAGE_SIZEOF_PEL(I) * (I)->Xsize)
-#define IM_IMAGE_N_ELEMENTS(I)		((I)->Bands * (I)->Xsize)
+#define IM_IMAGE_SIZEOF_ELEMENT(I) \
+	((size_t)((I)->Bbits >> 3))
+#define IM_IMAGE_SIZEOF_PEL(I) \
+	((size_t)(IM_IMAGE_SIZEOF_ELEMENT(I) * (I)->Bands))
+#define IM_IMAGE_SIZEOF_LINE(I) \
+	((size_t)(IM_IMAGE_SIZEOF_PEL(I) * (I)->Xsize))
+#define IM_IMAGE_N_ELEMENTS(I) \
+	((size_t)((I)->Bands * (I)->Xsize))
 
 /* If DEBUG is defined, add bounds checking.
  */
@@ -240,7 +243,8 @@ typedef struct _VipsImage {
 #define IM_IMAGE_ADDR(I,X,Y) \
 	( ((X) >= 0 && (X) < (I)->Xsize && \
 	   (Y) >= 0 && (Y) < (I)->Ysize) ? \
-	     ((I)->data + (Y) * IM_IMAGE_SIZEOF_LINE(I) + \
+	     ((I)->data + \
+	       (Y) * IM_IMAGE_SIZEOF_LINE(I) + \
 	       (X) * IM_IMAGE_SIZEOF_PEL(I)) : \
 	     (fprintf( stderr, \
 		"IM_IMAGE_ADDR: point out of bounds, " \

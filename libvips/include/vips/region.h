@@ -131,18 +131,20 @@ int im_wrapmany( IMAGE **in, IMAGE *out,
  *	IM_REGION_SIZEOF_LINE()		sizeof width of region
  *	IM_REGION_ADDR()		address of pixel in region
  */
-#define IM_REGION_LSKIP(R) ((R)->bpl)
-#define IM_REGION_N_ELEMENTS(R) ((R)->valid.width*(R)->im->Bands)
+#define IM_REGION_LSKIP(R) \
+	((size_t)((R)->bpl))
+#define IM_REGION_N_ELEMENTS(R) \
+	((size_t)((R)->valid.width * (R)->im->Bands))
 #define IM_REGION_SIZEOF_LINE(R) \
-	((R)->valid.width * IM_IMAGE_SIZEOF_PEL((R)->im))
+	((size_t)((R)->valid.width * IM_IMAGE_SIZEOF_PEL((R)->im)))
 
 /* If DEBUG is defined, add bounds checking.
  */
 #ifdef DEBUG
 #define IM_REGION_ADDR(B,X,Y) \
 	( (im_rect_includespoint( &(B)->valid, (X), (Y) ))? \
-	  ((B)->data + ((Y) - (B)->valid.top)*IM_REGION_LSKIP(B) + \
-	  ((X) - (B)->valid.left)*IM_IMAGE_SIZEOF_PEL((B)->im)): \
+	  ((B)->data + ((Y) - (B)->valid.top) * IM_REGION_LSKIP(B) + \
+	  ((X) - (B)->valid.left) * IM_IMAGE_SIZEOF_PEL((B)->im)): \
 	  (fprintf( stderr, \
 		"IM_REGION_ADDR: point out of bounds, " \
 		"file \"%s\", line %d\n" \

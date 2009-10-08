@@ -54,6 +54,8 @@
 - meta, header, callback, error, REGION gtkdocs
 - removed printlines tool, vips2csv is much better
 - removed other useless tools as well: debugim, binfile
+- fix up addr calcs on 64-bit machines with >2gb images and inplace ops
+  (thanks Christoph)
 
 25/3/09 started 7.18.0
 - revised version numbers

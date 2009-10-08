@@ -228,7 +228,7 @@
  * IM_IMAGE_N_ELEMENTS:
  * @I: a #VipsImage
  *
- * Returns: the number of band elements in a scanline.
+ * Returns: The number of band elements in a scanline.
  */
 
 /**
@@ -243,7 +243,7 @@
  * 
  * If DEBUG is defined, you get a version that checks bounds for you.
  *
- * Returns: the address of pixel (x,y) in the image.
+ * Returns: The address of pixel (x,y) in the image.
  */
 
 /** 

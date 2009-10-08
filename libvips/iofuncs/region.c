@@ -132,21 +132,21 @@
  * IM_REGION_LSKIP:
  * @R: a #REGION
  *
- * Returns: the number of bytes to add to move down a scanline.
+ * Returns: The number of bytes to add to move down a scanline.
  */
 
 /**
  * IM_REGION_N_ELEMENTS:
  * @R: a #REGION
  *
- * Returns: the number of band elements across a region.
+ * Returns: The number of band elements across a region.
  */
 
 /**
  * IM_REGION_SIZEOF_LINE:
  * @R: a #REGION
  *
- * Returns: the number of bytes across a region.
+ * Returns: The number of bytes across a region.
  */
 
 /**
@@ -160,7 +160,7 @@
  * 
  * If DEBUG is defined, you get a version that checks bounds for you.
  *
- * Returns: the address of pixel (x,y) in the region.
+ * Returns: The address of pixel (x,y) in the region.
  */
 
 /**
@@ -170,7 +170,7 @@
  * This macro returns a pointer to the top-left pixel in the #REGION, that is,
  * the pixel at (@R->valid.left, @R->valid.top).
  * 
- * Returns: the address of the top-left pixel in the region.
+ * Returns: The address of the top-left pixel in the region.
  */
 
 #ifdef DEBUG
