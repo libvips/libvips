@@ -617,6 +617,7 @@ im_magick2vips( const char *filename, IMAGE *im )
 
 	if( parse_header( read ) ||
 		im_poutcheck( im ) || 
+		im_demand_hint( im, IM_SMALLTILE, NULL ) || 
 		im_generate( im, NULL, magick_fill_region, NULL, read, NULL ) )
 		return( -1 );
 

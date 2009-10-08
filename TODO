@@ -2,6 +2,9 @@
 
   split prepare, generate etc. out to another chapter, maybe generate.h
 
+  man page for im_demand_hint() has some nice notes on SMALLTILE etc we could
+  paste into the VipsDemandStyle comment
+
 
 - VipsFormat next? where should we document the im_vip2jpeg() options?
 

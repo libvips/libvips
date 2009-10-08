@@ -260,7 +260,8 @@ open_lazy( OpenLazyFn read_header, OpenLazyFn read_pixels,
 	lazy->read_pixels = read_pixels;
 	lazy->lazy_im = NULL;
 
-	if( read_header( filename, out ) )
+	if( read_header( filename, out ) ||
+		im_demand_hint( out, IM_ANY, NULL ) )
 		return( -1 );
 
 	if( im_generate( out, 
