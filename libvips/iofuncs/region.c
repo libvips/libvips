@@ -106,7 +106,8 @@
  * SECTION: region
  * @short_description: small, rectangular parts of images
  * @stability: Stable
- * @see_also: <link linkend="libvips-image">image</link>
+ * @see_also: <link linkend="libvips-image">image</link>, 
+ * <link linkend="libvips-generate">generate</link>
  * @include: vips/vips.h
  *
  * A #REGION is a small part of an image and some pixels. You use regions to

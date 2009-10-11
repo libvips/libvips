@@ -103,6 +103,18 @@
 #endif /*WITH_DMALLOC*/
 
 /**
+ * SECTION: generate
+ * @short_description: calculate pixels and pixel buffers
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-image">image</link>, 
+ * <link linkend="libvips-region">region</link>
+ * @include: vips/vips.h
+ *
+ * These functions let you generate regions of pixels in an image
+ * processing operation, and ask for regions of image to be calculated.
+ */
+
+/**
  * im_start_one:
  *
  * Start function for one image in. Input image is first user data.

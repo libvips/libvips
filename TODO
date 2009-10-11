@@ -1,10 +1,13 @@
-- region needs to be broken up
+- load 500 jpegs, shrink, save
 
-  split prepare, generate etc. out to another chapter, maybe generate.h
+  VM use is huge, ouch, could we use a bit less?
 
-  man page for im_demand_hint() has some nice notes on SMALLTILE etc we could
-  paste into the VipsDemandStyle comment
+  maybe free all windows on evalend? are there regions left about? how come we
+  use so many resources?
 
+  get about 300 images in on the laptop
+
+  
 
 - VipsFormat next? where should we document the im_vip2jpeg() options?
 

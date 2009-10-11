@@ -76,52 +76,6 @@ int im_region_region( REGION *reg, REGION *to, Rect *r, int x, int y );
 int im_region_equalsregion( REGION *reg1, REGION *reg2 );
 int im_region_position( REGION *reg1, int x, int y );
 
-/* IMAGE functions which use regions. 
- */
-int im_prepare( REGION *reg, Rect *r );
-int im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y );
-
-typedef void *(*im_start_fn)( IMAGE *out, void *a, void *b );
-typedef int (*im_generate_fn)( REGION *out, void *seq, void *a, void *b );
-typedef int (*im_stop_fn)( void *seq, void *a, void *b );
-
-void *im_start_one( IMAGE *out, void *in, void *dummy );
-int im_stop_one( void *seq, void *dummy1, void *dummy2 );
-void *im_start_many( IMAGE *out, void *in, void *dummy );
-int im_stop_many( void *seq, void *dummy1, void *dummy2 );
-IMAGE **im_allocate_input_array( IMAGE *out, ... )
-	__attribute__((sentinel));
-
-int im_generate( IMAGE *im,
-	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
-	void *a, void *b
-);
-int im_iterate( IMAGE *im,
-	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
-	void *a, void *b
-);
-
-int im_demand_hint_array( IMAGE *im, im_demand_type hint, IMAGE **in );
-int im_demand_hint( IMAGE *im, im_demand_type hint, ... )
-	__attribute__((sentinel));
-
-/* Buffer processing.
- */
-typedef void (*im_wrapone_fn)( void *in, void *out, int width,
-	void *a, void *b );
-int im_wrapone( IMAGE *in, IMAGE *out,
-	im_wrapone_fn fn, void *a, void *b );
-
-typedef void (*im_wraptwo_fn)( void *in1, void *in2, void *out, 
-        int width, void *a, void *b );
-int im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out,
-	im_wraptwo_fn fn, void *a, void *b );
-
-typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
-	void *a, void *b );
-int im_wrapmany( IMAGE **in, IMAGE *out,
-	im_wrapmany_fn fn, void *a, void *b );
-
 /* Macros on REGIONs.
  *	IM_REGION_LSKIP()		add to move down line
  *	IM_REGION_N_ELEMENTS()		number of elements across region

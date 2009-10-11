@@ -23,6 +23,7 @@
     <xi:include href="xml/error.xml"/>
     <xi:include href="xml/meta.xml"/>
     <xi:include href="xml/region.xml"/>
+    <xi:include href="xml/generate.xml"/>
     <xi:include href="xml/buf.xml"/>
   </chapter>
 

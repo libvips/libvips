@@ -18,6 +18,7 @@ pkginclude_HEADERS = \
 	image.h \
 	rect.h \
 	region.h \
+	generate.h \
 	r_access.h \
 	struct.h \
 	private.h \

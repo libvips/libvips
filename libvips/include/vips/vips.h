@@ -132,6 +132,7 @@ typedef struct im__DOUBLEMASK {
 #include <vips/format.h>
 #include <vips/dispatch.h>
 #include <vips/region.h>
+#include <vips/generate.h>
 #include <vips/interpolate.h>
 #include <vips/semaphore.h>
 #include <vips/threadgroup.h>
