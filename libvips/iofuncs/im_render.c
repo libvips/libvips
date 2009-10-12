@@ -36,6 +36,9 @@
  * 5/3/09
  * 	- remove all the fading stuff, a bit useless and it adds 
  * 	  complexity
+ * 12/10/09
+ * 	- gtkdoc comment
+ * 	- im_render(), im_render_fade() moved to deprecated
  */
 
 /*
@@ -1017,13 +1020,55 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* fps and steps are there for backwards compat only and no longer do
- * anything.
+/**
+ * im_render_priority:
+ * @in: input image
+ * @out: output image
+ * @mask: mask image indicating valid pixels
+ * @width: tile width
+ * @height: tile height
+ * @max: maximum tiles to cache
+ * @priority: rendering priority
+ * @notify: pixels are ready notification callback
+ * @client: client data for callback
+ *
+ * This operation renders @in in the background, making pixels available on
+ * @out as they are calculated. The @notify callback is run every time a new
+ * set of pixels are available. Calculated pixels are kept in a cache with
+ * tiles sized @width by @height pixels and at most @max tiles.
+ * If @max is -1, the cache is of unlimited size (up to the maximum image
+ * size).
+ * The @mask image s a one-band uchar image and has 255 for pixels which are 
+ * currently in cache and 0 for uncalculated pixels.
+ *
+ * The pixel rendering system has a single global #im_threadgroup_t which is 
+ * used for all currently active instances of im_render_priority(). As
+ * renderers are added and removed from the system, the threadgroup switches
+ * between renderers based on their priority setting. Zero means normal
+ * priority, negative numbers are low priority, positive numbers high
+ * priority.
+ *
+ * Calls to im_prepare() on @out return immediately and hold whatever is
+ * currently in cache for that #Rect (check @mask to see which parts of the
+ * #Rect are valid). Any pixels in the #Rect which are not in cache are added
+ * to a queue, and the @notify callback will trigger when those pixels are
+ * ready.
+ *
+ * The @notify callback is run from the background thread. In the callback,
+ * you need to somehow send a message to the main thread that the pixels are
+ * ready. In a glib-based application, this is easily done with g_idle_add().
+ *
+ * If @notify is %NULL, then im_render_priority() runs synchronously.
+ * im_prepare() on @out will always block until the pixels have been
+ * calculated by the background #im_threadgroup_t.
+ *
+ * Returns: 0 on sucess, -1 on error.
+ *
+ * See also: im_cache(), im_prepare().
  */
 int
-im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask, 
+im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask, 
 	int width, int height, int max, 
-	int fps, int steps,
 	int priority,
 	notify_fn notify, void *client )
 {
@@ -1078,19 +1123,28 @@ im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
 	return( 0 );
 }
 
-int
-im_render( IMAGE *in, IMAGE *out, IMAGE *mask, 
-	int width, int height, int max, notify_fn notify, void *client )
-{
-	return( im_render_fade( in, out, mask, 
-		width, height, max, 10, 0, 0, notify, client ) );
-}
-
+/**
+ * im_cache:
+ * @in: input image
+ * @out: output image
+ * @width: tile width
+ * @height: tile height
+ * @max: maximum tiles to cache
+ *
+ * im_cache() works exactly as im_copy(), except that calculated pixels are
+ * kept in a cache. If @in is the result of a large computation and you are
+ * expecting to reuse the result in a number of places, im_cache() can save a
+ * lot of time.
+ *
+ * im_cache() is a convenience function over im_render_priority().
+ *
+ * See also: im_render_priority(), im_copy(), im_prepare_thread(). 
+ */
 int 
 im_cache( IMAGE *in, IMAGE *out, int width, int height, int max )
 {
-	if( im_render( in, out, NULL, width, height, max, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im_render_priority( in, out, NULL, 
+		width, height, max, 
+		0,
+		NULL, NULL ) );
 }

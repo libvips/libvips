@@ -184,3 +184,37 @@ im_extract( IMAGE *in, IMAGE *out, IMAGE_BOX *box )
 			box->xstart, box->ystart, box->xsize, box->ysize,
 			box->chsel, 1 ) );
 }
+
+/* The public proto has this in the argument.
+ */
+typedef void (*notify_fn)( IMAGE *, Rect *, void * );
+
+int
+im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask, 
+	int width, int height, int max, 
+	int fps, int steps,
+	int priority,
+	notify_fn notify, void *client )
+{
+	return( im_render_priority( in, out, mask, 
+		width, height, max, 
+		priority,
+		notify, client ) );
+}
+
+int
+im_render( IMAGE *in, IMAGE *out, IMAGE *mask, 
+	int width, int height, int max, 
+	notify_fn notify, void *client )
+{
+	return( im_render_priority( in, out, mask, 
+		width, height, max, 
+		0, 
+		notify, client ) );
+}
+
+int
+im_makerw( IMAGE *im )
+{
+	return( im_rwcheck( im ) );
+}

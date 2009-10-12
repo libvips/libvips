@@ -285,6 +285,14 @@ int im_cmulnorm( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_fav4( IMAGE **, IMAGE * );
 int im_gadd( double, IMAGE *, double, IMAGE *, double, IMAGE *);
 int im_litecor( IMAGE *, IMAGE *, IMAGE *, int, double );
+int im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
+	int width, int height, int max,
+	int fps, int steps,
+	int priority,
+	void (*notify)( IMAGE *, Rect *, void * ), void *client );
+int im_render( IMAGE *in, IMAGE *out, IMAGE *mask,
+	int width, int height, int max,
+	void (*notify)( IMAGE *, Rect *, void * ), void *client );
 
 /* Renamed operations.
  */

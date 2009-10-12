@@ -87,13 +87,6 @@ IMAGE *im_open_header( const char * );
 void *im_malloc( IMAGE *im, size_t sz );
 int im_free( void * );
 
-int im_rwcheck( IMAGE * );
-int im_iocheck( IMAGE *, IMAGE * );
-int im_incheck( IMAGE * );
-int im_outcheck( IMAGE * );
-int im_piocheck( IMAGE *, IMAGE * );
-int im_pincheck( IMAGE * );
-int im_poutcheck( IMAGE * );
 int im_cp_desc( IMAGE *, IMAGE * );
 int im_cp_descv( IMAGE *out, IMAGE *in1, ... )
 	__attribute__((sentinel));
@@ -101,51 +94,12 @@ int im_cp_desc_array( IMAGE *out, IMAGE *in[] );
 int im_setupout( IMAGE * );
 int im_writeline( int, IMAGE *, PEL * );
 
-int im_isuint( IMAGE * );
-int im_isint( IMAGE * );
-int im_isfloat( IMAGE * );
-int im_isscalar( IMAGE * );
-int im_iscomplex( IMAGE * );
-int im_isfile( IMAGE * );
-int im_ispartial( IMAGE * );
-int im_isMSBfirst( IMAGE * );
-int im_amiMSBfirst( void );
-
-int im_check_uncoded( const char *domain, IMAGE *im );
-int im_check_known_coded( const char *domain, IMAGE *im );
-int im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_noncomplex( const char *domain, IMAGE *im );
-int im_check_complex( const char *domain, IMAGE *im );
-int im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt );
-int im_check_mono( const char *domain, IMAGE *im );
-int im_check_int( const char *domain, IMAGE *im );
-int im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_vector( const char *domain, int n, IMAGE *im );
-
-int im_ispoweroftwo( int );
-
-int im_existsf( const char *name, ... )
-	__attribute__((format(printf, 1, 2)));
-int im_isvips( const char * );
-
 int im_bits_of_fmt( VipsBandFmt fmt );
 
 int im_unmapfile( IMAGE * );
 void im_initdesc( IMAGE *,
 	int, int, int, int, int, int, int, float, float,
 	int, int );
-
-int im_render( IMAGE *in, IMAGE *out, IMAGE *mask,
-	int width, int height, int max,
-	void (*notify)( IMAGE *, Rect *, void * ), void *client );
-int im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
-	int width, int height, int max,
-	int fps, int steps,
-	int priority,
-	void (*notify)( IMAGE *, Rect *, void * ), void *client );
-int im_cache( IMAGE *in, IMAGE *out, int width, int height, int max );
 
 /* morphology
  */

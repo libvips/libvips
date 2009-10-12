@@ -66,7 +66,8 @@
  * SECTION: header
  * @short_description: get, set and walk image headers
  * @stability: Stable
- * @see_also: <link linkend="libvips-meta">meta</link>
+ * @see_also: <link linkend="libvips-meta">meta</link>,
+ * <link linkend="libvips-check">check</link>
  * @include: vips/vips.h
  *
  * These functions let you get at image header data (including metadata) in a

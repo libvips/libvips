@@ -82,6 +82,14 @@ typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
 int im_wrapmany( IMAGE **in, IMAGE *out,
 	im_wrapmany_fn fn, void *a, void *b );
 
+/* Async rendering.
+ */
+int im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
+	int width, int height, int max,
+	int priority,
+	void (*notify)( IMAGE *, Rect *, void * ), void *client );
+int im_cache( IMAGE *in, IMAGE *out, int width, int height, int max );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

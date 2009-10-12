@@ -19,14 +19,11 @@ libiofuncs_la_SOURCES = \
 	im_image.c \
 	im_init.c \
 	im_initdesc.c \
-	im_iocheck.c \
 	im_iterate.c \
-	im_makerw.c \
 	im_mapfile.c \
 	im_open.c \
 	im_open_vips.c \
 	im_partial.c \
-	im_piocheck.c \
 	im_prepare.c \
 	im_render.c \
 	im_setbuf.c \
@@ -37,8 +34,8 @@ libiofuncs_la_SOURCES = \
 	im_wrapmany.c \
 	im_writeline.c \
 	memory.c \
+	check.c \
 	package.c \
-	predicate.c \
 	header.c \
 	region.c \
 	rect.c \

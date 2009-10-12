@@ -1,3 +1,11 @@
+- memory.c
+
+- more stuff from util.c? too much to do it all now
+
+
+
+
+
 - load 500 jpegs, shrink, save
 
   VM use is huge, ouch, could we use a bit less?
@@ -12,11 +20,7 @@
 - VipsFormat next? where should we document the im_vip2jpeg() options?
 
   
-- more stuff from util.c? too much to do it all now
 
-- im_render()?
-
-- memory.c
 
 - constant images:
 

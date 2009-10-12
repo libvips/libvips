@@ -1391,3 +1391,89 @@ vips__token_need( const char *p, VipsToken need_token,
 
 	return( p );
 }
+
+/* Test for file exists.
+ */
+int
+im_existsf( const char *name, ... )
+{
+        va_list ap;
+        char buf1[PATH_MAX];
+
+        va_start( ap, name );
+        (void) im_vsnprintf( buf1, PATH_MAX - 1, name, ap );
+        va_end( ap );
+
+        /* Try that.
+         */
+        if( !access( buf1, R_OK ) )
+                return( 1 );
+
+        return( 0 );
+}
+
+/* True if an int is a power of two ... 1, 2, 4, 8, 16, 32, etc. Do with just
+ * integer arithmetic for portability. A previous Nicos version using doubles
+ * and log/log failed on x86 with rounding problems. Return 0 for not
+ * power of two, otherwise return the position of the set bit (numbering with
+ * bit 1 as the lsb).
+ */
+int
+im_ispoweroftwo( int p )
+{
+	int i, n;
+
+	/* Count set bits. Could use a LUT, I guess.
+	 */
+	for( i = 0, n = 0; p; i++, p >>= 1 )
+		if( p & 1 )
+			n++;
+
+	/* Should be just one set bit.
+	 */
+	if( n == 1 )
+		/* Return position of bit.
+		 */
+		return( i );
+	else
+		return( 0 );
+}
+
+int
+im_isvips( const char *filename )
+{
+	unsigned char buf[4];
+
+	if( im__get_bytes( filename, buf, 4 ) ) {
+		if( buf[0] == 0x08 && buf[1] == 0xf2 &&
+			buf[2] == 0xa6 && buf[3] == 0xb6 )
+			/* SPARC-order VIPS image.
+			 */
+			return( 1 );
+		else if( buf[3] == 0x08 && buf[2] == 0xf2 &&
+			buf[1] == 0xa6 && buf[0] == 0xb6 )
+			/* INTEL-order VIPS image.
+			 */
+			return( 1 );
+	}
+
+	return( 0 );
+}
+
+/* Test this processor for endianness. True for SPARC order.
+ */
+int
+im_amiMSBfirst( void )
+{
+        int test;
+        unsigned char *p = (unsigned char *) &test;
+
+        test = 0;
+        p[0] = 255;
+
+        if( test == 255 )
+                return( 0 );
+        else
+                return( 1 );
+}
+

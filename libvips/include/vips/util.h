@@ -246,6 +246,12 @@ const char *vips__token_must( const char *buffer, VipsToken *token,
 const char *vips__token_need( const char *buffer, VipsToken need_token, 
 	char *string, int size );
 
+int im_existsf( const char *name, ... )
+	__attribute__((format(printf, 1, 2)));
+int im_ispoweroftwo( int p );
+int im_isvips( const char *filename );
+int im_amiMSBfirst( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

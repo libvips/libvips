@@ -11,6 +11,7 @@ pkginclude_HEADERS = \
 	error.h \
 	fmask.h \
 	mosaic.h \
+	check.h \
 	interpolate.h \
 	object.h \
 	almostdeprecated.h \
