@@ -24,6 +24,8 @@
  * 	- added "shrink" parameter
  * 16/6/09
  *	- added "fail" option ... fail on any warnings
+ * 12/10/09
+ * 	- also set scale_num on shrink (thanks Guido)
  */
 
 /*
@@ -448,7 +450,9 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 	 */
 	jpeg_read_header( cinfo, TRUE );
 	cinfo->scale_denom = shrink;
+	cinfo->scale_num = 1;
 	jpeg_calc_output_dimensions( cinfo );
+
 	*invert_pels = FALSE;
 	switch( cinfo->out_color_space ) {
 	case JCS_GRAYSCALE:

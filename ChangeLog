@@ -57,6 +57,7 @@
 - fix up addr calcs on 64-bit machines with >2gb images and inplace ops
   (thanks Christoph)
 - im_generate() checks that im_demand_hint() has been called for this image
+- im_jpeg2vips.c, set scale_num on shrink (thanks Guido)
 
 25/3/09 started 7.18.0
 - revised version numbers
