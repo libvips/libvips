@@ -1,3 +1,24 @@
+- im_lrmosaic
+
+	#       halfcorrelation is of type "integer"
+	#       halfarea is of type "integer"
+
+  try
+
+	vips im_lrmosaic t1.v t2.v t3.v 0 372 0 0 90 0 0 0 1
+
+  set them to zero (which you'd think would search for 1 pixel window) gives a
+  divide by zero error
+
+  maybe better to clip windows by image overlap? then we could specify
+  non-zero halfcorrelation etc. and get them to search the 1 pixel overlap we
+  have
+
+  we probably assume square windows in several places, argh
+
+  
+
+
 - memory.c
 
 - more stuff from util.c? too much to do it all now
