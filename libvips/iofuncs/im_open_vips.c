@@ -7,6 +7,8 @@
  *	- block mmaps of nodata images
  * 12/5/09
  *	- fix signed/unsigned warnings
+ * 12/10/09
+ *	- heh argh reading history always stopped after the first line
  */
 
 /*
@@ -689,8 +691,10 @@ set_history( IMAGE *im, char *history )
 	history_list = NULL;
 
 	for( p = history; *p; p = q ) {
-		if( (q = strchr( p, '\n' )) ) 
+		if( (q = strchr( p, '\n' )) ) {
 			*q = '\0';
+			q += 1;
+		}
 		else 
 			q = p + strlen( p );
 
