@@ -87,7 +87,6 @@
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -116,6 +115,15 @@
  *
  * A region can be a memory buffer, part of a memory-mapped file, part of some
  * other image, or part of some other region.
+ *
+ * Regions must be created, used and freed all within the same thread, since
+ * they can reference private per-thread caches. VIPS sanity-checks region
+ * ownership in various places, so you are likely to see g_assert() errors if
+ * you don't follow this rule.
+ *
+ * There
+ * is API to transfer ownership of regions between threads, but hopefully this
+ * is only needed within VIPS, so we don't expose it. Hopefully.
  */
 
 /**
@@ -206,7 +214,7 @@ im__call_start( REGION *reg )
 }
 
 /* Call a stop function if a sequence is running in this REGION. No error
- * return, really.
+ * return is possible, really.
  */
 void
 im__call_stop( REGION *reg )
@@ -231,7 +239,7 @@ im__call_stop( REGION *reg )
 
 /* If a region is being created in one thread (eg. the main thread) and then
  * used in another (eg. a worker thread), the new thread needs to tell VIPS
- * to stop sanity assert() fails. The previous owner needs to
+ * to stop sanity g_assert() fails. The previous owner needs to
  * im__region_no_ownership() before we can call this.
  */
 void
@@ -242,13 +250,13 @@ im__region_take_ownership( REGION *reg )
 	 */
 	g_mutex_lock( reg->im->sslock );
 
-	assert( reg->thread == NULL );
+	g_assert( reg->thread == NULL );
 
 	/* We don't want to move shared buffers: the other region using this
 	 * buffer will still be on the other thread. Not sure if this will
 	 * ever happen: if it does, we'll need to dup the buffer.
 	 */
-	assert( !reg->buffer || reg->buffer->ref_count == 1 );
+	g_assert( !reg->buffer || reg->buffer->ref_count == 1 );
 
 	reg->thread = g_thread_self();
 
@@ -259,9 +267,9 @@ void
 im__region_check_ownership( REGION *reg )
 {
 	if( reg->thread ) {
-		assert( reg->thread == g_thread_self() );
+		g_assert( reg->thread == g_thread_self() );
 		if( reg->buffer && reg->buffer->cache )
-			assert( reg->thread == reg->buffer->cache->thread );
+			g_assert( reg->thread == reg->buffer->cache->thread );
 	}
 }
 
@@ -392,7 +400,7 @@ im_region_free( REGION *reg )
 
 #ifdef DEBUG
 	g_mutex_lock( im__global_lock );
-	assert( g_slist_find( im__regions_all, reg ) );
+	g_assert( g_slist_find( im__regions_all, reg ) );
 	im__regions_all = g_slist_remove( im__regions_all, reg );
 	printf( "%d regions in vips\n", g_slist_length( im__regions_all ) );
 	g_mutex_unlock( im__global_lock );
@@ -597,7 +605,7 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 
 	/* We can't test
 
-		assert( dest->thread == g_thread_self() );
+		g_assert( dest->thread == g_thread_self() );
 
 	 * since we can have several threads writing to the same region in
 	 * threadgroup.
@@ -723,8 +731,8 @@ im_region_position( REGION *reg, int x, int y )
 int
 im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a )
 {
-	assert( reg->im->dtype == IM_PARTIAL );
-	assert( reg->im->generate );
+	g_assert( reg->im->dtype == IM_PARTIAL );
+	g_assert( reg->im->generate );
 
 	/* Should have local memory.
 	 */
