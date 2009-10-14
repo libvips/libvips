@@ -107,6 +107,31 @@ static im_function heq_desc = {
 	heq_args 			/* Arg list */
 };
 
+static im_arg_desc histindexed_args[] = {
+	IM_INPUT_IMAGE( "index" ),
+	IM_INPUT_IMAGE( "value" ),
+	IM_OUTPUT_IMAGE( "out" )
+};
+
+/* Call im_histindexed via arg vector.
+ */
+static int
+histindexed_vec( im_object *argv )
+{
+	return( im_hist_indexed( argv[0], argv[1], argv[2] ) );
+}
+
+/* Description of im_histindexed.
+ */ 
+static im_function histindexed_desc = {
+	"im_hist_indexed", 		/* Name */
+	"make a histogram with an index image",	/* Description */
+	IM_FN_PIO,			/* Flags */
+	histindexed_vec, 		/* Dispatch function */
+	IM_NUMBER( histindexed_args ), 	/* Size of arg list */
+	histindexed_args 		/* Arg list */
+};
+
 /* Call im_hist via arg vector.
  */
 static int
@@ -779,6 +804,7 @@ static im_function *hist_list[] = {
 	&hist_desc,
 	&histcum_desc,
 	&histeq_desc,
+	&histindexed_desc,
 	&histgr_desc,
 	&histnD_desc,
 	&histnorm_desc,

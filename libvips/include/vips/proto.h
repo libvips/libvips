@@ -210,6 +210,7 @@ int im_maplut( IMAGE *, IMAGE *, IMAGE * );
 int im_gammacorrect( IMAGE *, IMAGE *, double );
 int im_heq( IMAGE *in, IMAGE *out, int bandno );
 int im_hist( IMAGE *in, IMAGE *out, int bandno );
+int im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out );
 int im_histeq( IMAGE *in, IMAGE *out );
 int im_histnorm( IMAGE *in, IMAGE *out );
 int im_histcum( IMAGE *in, IMAGE *out );

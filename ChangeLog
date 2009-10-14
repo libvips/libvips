@@ -59,6 +59,9 @@
 - im_generate() checks that im_demand_hint() has been called for this image
 - im_jpeg2vips.c, set scale_num on shrink (thanks Guido)
 - heh argh reading history always stopped after the first line (thanks Haida)
+- added im_histindexed
+- new im_iterate() calls start functions from workers so resources they make 
+  are owned by the worker thread
 
 25/3/09 started 7.18.0
 - revised version numbers

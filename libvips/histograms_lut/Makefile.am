@@ -9,6 +9,7 @@ libhistograms_lut_la_SOURCES = \
 	im_histgr.c \
 	im_histnD.c \
 	im_histplot.c \
+	im_histindexed.c \
 	im_histspec.c \
 	im_hsp.c \
 	im_identity.c \

@@ -73,10 +73,144 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* Track this stuff during an im_iterate().
+ */
+typedef struct _Iterate {
+	IMAGE *im; 
+
+	/* We need a temp "p" image between the source image and us to
+	 * make sure we can't damage the original.
+	 */
+	IMAGE *t;
+
+	/* Store our sequence values in tg->thr[i]->a. The seq values in the
+	 * regions are used by the im_copy() to t.
+	 */
+	im_threadgroup_t *tg;
+
+	im_start_fn start;
+	im_generate_fn generate;
+	im_stop_fn stop;
+	void *b;
+	void *c;
+} Iterate;
+
+/* Call all stop functions.
+ */
+static int
+iterate_call_all_stop( Iterate *iter, im_threadgroup_t *tg )
+{
+	int i;
+
+	for( i = 0; i < tg->nthr; i++ ) {
+		if( tg->thr[i]->a && iter->stop ) {
+			if( iter->stop( tg->thr[i]->a, iter->b, iter->c ) )
+				/* Drastic!
+				 */
+				im_error( "im_iterate", 
+					_( "stop function failed "
+						"for image \"%s\"" ), 
+					iter->im->filename );
+			tg->thr[i]->a = NULL;
+		}
+	}
+
+	return( 0 );
+}
+
+static void
+iterate_free( Iterate *iter )
+{
+	/* Check all the stop functions have been called.
+	 */
+	if( iter->tg ) {
+		int i;
+
+		for( i = 0; i < iter->tg->nthr; i++ ) 
+			g_assert( !iter->tg->thr[i]->a ); 
+	}
+
+	IM_FREEF( im_threadgroup_free, iter->tg );
+	IM_FREEF( im_close, iter->t );
+}
+
+/* Call the start function for this thread, if necessary.
+ */
+static int
+iterate_call_start( Iterate *iter, im_thread_t *thr )
+{
+	if( !thr->a && iter->start ) {
+                g_mutex_lock( iter->t->sslock );
+                thr->a = iter->start( iter->t, iter->b, iter->c );
+                g_mutex_unlock( iter->t->sslock );
+
+		if( !thr->a ) {
+			im_error( "im_iterate", 
+				_( "start function failed for image \"%s\"" ), 
+				iter->im->filename );
+			return( -1 );
+		}
+	}
+
+	return( 0 );
+}
+
+/* Our generate function. We need to call the user's start function from the
+ * worker thread so that any regions it makes are owned by the thread.
+ */
+static int
+iterate_gen( REGION *reg, void *seq, void *a, void *b )
+{
+	Iterate *iter = (Iterate *) a;
+	im_thread_t *thr = (im_thread_t *) b;
+
+	/* Make sure the start function has run and we have the sequence value
+	 * set.
+	 */
+	iterate_call_start( iter, thr );
+	seq = thr->a;
+
+	return( iter->generate( reg, seq, iter->b, iter->c ) );
+}
+
+static int
+iterate_init( Iterate *iter, 
+	IMAGE *im, 
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
+	void *b, void *c )
+{
+	iter->im = im; 
+	iter->t = NULL;
+	iter->tg = NULL;
+	iter->start = start;
+	iter->generate = generate;
+	iter->stop = stop;
+	iter->b = b;
+	iter->c = c;
+
+	if( !(iter->t = im_open( "iterate", "p" )) ||
+		im_copy( iter->im, iter->t ) ||
+		!(iter->tg = im_threadgroup_create( iter->t )) ) {
+		iterate_free( iter );
+		return( -1 );
+	}
+
+	iter->tg->work = iterate_gen;
+	iter->tg->inplace = 0;
+
+#ifdef DEBUG_IO
+	if( iter->tg->nthr > 1 )
+		im_diagnostics( "im_iterate: using %d threads", 
+			iter->tg->nthr );
+#endif /*DEBUG_IO*/
+
+	return( 0 );
+}
+
 /* Loop over an image, preparing in parts with threads.
  */
 static int
-eval_to_image( im_threadgroup_t *tg, IMAGE *im )
+iterate_loop( Iterate *iter, im_threadgroup_t *tg, IMAGE *t )
 {
 	int x, y;
 	Rect image;
@@ -87,13 +221,13 @@ eval_to_image( im_threadgroup_t *tg, IMAGE *im )
 
 	image.left = 0;
 	image.top = 0;
-	image.width = im->Xsize;
-	image.height = im->Ysize;
+	image.width = t->Xsize;
+	image.height = t->Ysize;
 
 	/* Loop over or, attaching to all sub-parts in turn.
 	 */
-	for( y = 0; y < im->Ysize; y += tg->ph )
-		for( x = 0; x < im->Xsize; x += tg->pw ) {
+	for( y = 0; y < t->Ysize; y += tg->ph )
+		for( x = 0; x < t->Xsize; x += tg->pw ) {
 			im_thread_t *thr;
 			Rect pos;
 			Rect clipped;
@@ -114,6 +248,11 @@ eval_to_image( im_threadgroup_t *tg, IMAGE *im )
 
 			thr->pos = clipped; 
 
+			/* Other stuff we want passed to iterate_gen().
+			 */
+			thr->b = iter;
+			thr->c = thr;
+
 			/* Start worker going.
 			 */
 			im_threadgroup_trigger( thr );
@@ -121,7 +260,7 @@ eval_to_image( im_threadgroup_t *tg, IMAGE *im )
 			/* Trigger any eval callbacks on our source image,
 			 * check for errors.
 			 */
-			if( im__handle_eval( im, tg->pw, tg->ph ) ||
+			if( im__handle_eval( t, tg->pw, tg->ph ) ||
 				im_threadgroup_iserror( tg ) ) {
 				/* Don't kill threads yet ... we may want to
 				 * get some error stuff out of them.
@@ -141,56 +280,6 @@ eval_to_image( im_threadgroup_t *tg, IMAGE *im )
 		return( -1 );
 
 	return( 0 );
-}
-
-static int
-iterate( im_threadgroup_t *tg, IMAGE *im, 
-	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
-	void *b, void *c )
-{	
-	int i;
-	int res;
-
-#ifdef DEBUG_IO
-	if( tg && tg->nthr > 1 )
-		im_diagnostics( "im_iterate: using %d threads", tg->nthr );
-#endif /*DEBUG_IO*/
-
-	/* Call all the start functions, and pop in the sequence values.
-	 */
-	for( i = 0; i < tg->nthr; i++ ) {
-		if( start && !(tg->thr[i]->a = start( im, b, c )) ) {
-			im_error( "im_iterate", 
-				_( "start function failed for image \"%s\"" ), 
-				im->filename );
-			return( -1 );
-		}
-		tg->thr[i]->b = b;
-		tg->thr[i]->c = c;
-	}
-
-	/* Loop and generate multi-thread. 
-	 */
-	res = eval_to_image( tg, im );
-
-	/* Call all stop functions.
-	 */
-	for( i = 0; i < tg->nthr; i++ ) {
-		if( tg->thr[i]->a && stop ) {
-			/* Trigger the stop function. 
-			 */
-			if( stop( tg->thr[i]->a, b, c ) )
-				/* Drastic!
-				 */
-				im_error( "im_iterate", 
-					_( "stop function failed "
-						"for image \"%s\"" ), 
-					im->filename );
-			tg->thr[i]->a = NULL;
-		}
-	}
-
-	return( res );
 }
 
 /**
@@ -215,44 +304,30 @@ im_iterate( IMAGE *im,
 	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *b, void *c )
 {
-	IMAGE *t;
-	im_threadgroup_t *tg;
+	Iterate iter;
 	int result;
 
 	g_assert( !im_image_sanity( im ) );
 
-	if( !(t = im_open( "iterate", "p" )) )
+	if( iterate_init( &iter, im, start, generate, stop, b, c ) )
 		return( -1 );
-	if( im_copy( im, t ) ) {
-		im_close( t );
-		return( -1 );
-	}
-
-	if( !(tg = im_threadgroup_create( t )) ) {
-		im_close( t );
-		return( -1 );
-	}
-	tg->work = generate;
-	tg->inplace = 0;
-
-#ifdef DEBUG_IO
-	if( tg && tg->nthr > 1 )
-		im_diagnostics( "im_iterate: using %d threads", tg->nthr );
-#endif /*DEBUG_IO*/
 
 	/* Signal start of eval.
 	 */
-	if( im__start_eval( t ) )
+	if( im__start_eval( iter.t ) ) {
+		iterate_free( &iter );
 		return( -1 );
+	}
 
-	result = iterate( tg, t, start, generate, stop, b, c );
+	/* Loop and generate multi-thread. 
+	 */
+	result = iterate_loop( &iter, iter.tg, iter.t );
 
 	/* Signal end of eval.
 	 */
-	result |= im__end_eval( t );
-
-	im_threadgroup_free( tg );
-	im_close( t );
+	result |= im__end_eval( iter.t );
+	result |= iterate_call_all_stop( &iter, iter.tg );
+	iterate_free( &iter );
 
 	return( result );
 }

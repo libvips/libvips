@@ -737,6 +737,31 @@ im_check_int( const char *domain, IMAGE *im )
 	return( 0 );
 }
 
+/**
+ * im_check_u8or16:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is 8 or 16-bit unsigned integer.
+ * Otherwise set an error message
+ * and return non-zero.
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ *
+ * See also: im_error().
+ */
+int
+im_check_u8or16( const char *domain, IMAGE *im )
+{
+	if( im->BandFmt != IM_BANDFMT_UCHAR &&
+		im->BandFmt != IM_BANDFMT_USHORT ) {
+		im_error( domain, "%s", 
+			_( "image must be 8- or 16-bit unsigned integer" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
 
 /**
  * im_check_same_size:
@@ -965,7 +990,6 @@ im_isscalar( IMAGE *im )
 		return( -1 );
 	}
 }
-
 
 /**
  * im_iscomplex:
