@@ -294,6 +294,29 @@ im_allocate_input_array( IMAGE *out, ... )
  * Returns: 0 on success, -1 on error.
  */
 
+static int
+generate_work( im_thread_t *thr,
+	REGION *reg, void *a, void *b, void *c )
+{
+	/* thr pos needs to be set before coming here ... check.
+	 */
+{
+	Rect image;
+
+	image.left = 0;
+	image.top = 0;
+	image.width = thr->tg->im->Xsize;
+	image.height = thr->tg->im->Ysize;
+
+	g_assert( im_rect_includesrect( &image, &thr->pos ) );
+}
+
+	if( im_prepare_to( reg, thr->oreg, &thr->pos, thr->x, thr->y ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /* Loop over a big region, filling it in many small pieces with threads.
  */
 static int
@@ -309,9 +332,9 @@ eval_to_region( REGION *or, im_threadgroup_t *tg )
 	image.width = or->im->Xsize;
 	image.height = or->im->Ysize;
 
-	/* Note we'll be working to fill a contigious area.
+	/* Our work function ... an inplace one.
 	 */
-	tg->inplace = 1;
+	tg->work = generate_work;
 
 	/* Loop over or, attaching to all sub-parts in turn.
 	 */

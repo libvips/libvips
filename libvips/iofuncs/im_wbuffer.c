@@ -182,11 +182,31 @@ wbuffer_new( im_threadgroup_t *tg, im_wbuffer_fn write_fn, void *a, void *b )
 	return( wbuffer );
 }
 
-/* At end of work_fn ... need to tell wbuffer write thread that we're done.
+/* Our work function ... generate a tile and tell the wbuffer write thread that 
+ * we're done.
  */
 static int
-wbuffer_work_fn( REGION *region, WriteBuffer *wbuffer )
+wbuffer_work_fn( im_thread_t *thr, 
+	REGION *reg, void *a, void *b, void *c )
 {
+	WriteBuffer *wbuffer = (WriteBuffer *) a;
+
+	/* thr pos needs to be set before coming here ... check.
+	 */
+{
+	Rect image;
+
+	image.left = 0;
+	image.top = 0;
+	image.width = thr->tg->im->Xsize;
+	image.height = thr->tg->im->Ysize;
+
+	g_assert( im_rect_includesrect( &image, &thr->pos ) );
+}
+
+	if( im_prepare_to( reg, thr->oreg, &thr->pos, thr->x, thr->y ) )
+		return( -1 );
+
 	im_semaphore_upn( &wbuffer->nwrite, 1 );
 
 	return( 0 );
@@ -319,14 +339,10 @@ wbuffer_eval_to_file( WriteBuffer *b1, WriteBuffer *b2 )
         printf( "wbuffer_eval_to_file: partial image output to file\n" );
 #endif /*DEBUG*/
 
-	/* Note we'll be working to fill a contigious area.
-	 */
-	tg->inplace = 1;
-
 	/* What threads do at the end of each tile ... decrement the nwrite
 	 * semaphore.
 	 */
-	tg->work = (im__work_fn) wbuffer_work_fn;
+	tg->work = wbuffer_work_fn;
 
         /* Fill to in steps, write each to the output.
          */
@@ -403,8 +419,7 @@ wbuffer_eval_to_file( WriteBuffer *b1, WriteBuffer *b2 )
 }
 
 int
-im_wbuffer( im_threadgroup_t *tg, 
-	im_wbuffer_fn write_fn, void *a, void *b )
+im_wbuffer( im_threadgroup_t *tg, im_wbuffer_fn write_fn, void *a, void *b )
 {
 	WriteBuffer *b1, *b2;
 	int result;

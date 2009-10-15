@@ -10,6 +10,9 @@
  * 	- double-buffer file writes
  * 27/11/06
  * 	- break stuff out to generate / iterate
+ * 15/10/09
+ * 	- get rid of inplace and default work stuff, you must now always set a
+ * 	  work function
  */
 
 /*
@@ -52,7 +55,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
@@ -215,7 +217,7 @@ threadgroup_idle_remove( im_thread_t *thr )
 
 #ifdef DEBUG_HIGHWATER
 	tg->nidle -= 1;
-	assert( tg->nidle >= 0 && tg->nidle <= tg->nthr );
+	g_assert( tg->nidle >= 0 && tg->nidle <= tg->nthr );
 #endif /*DEBUG_HIGHWATER*/
 
 	g_mutex_unlock( tg->idle_lock );
@@ -230,12 +232,12 @@ threadgroup_idle_add( im_thread_t *thr )
 
 	g_mutex_lock( tg->idle_lock );
 
-	assert( !g_slist_find( tg->idle, thr ) );
+	g_assert( !g_slist_find( tg->idle, thr ) );
 	tg->idle = g_slist_prepend( tg->idle, thr );
 
 #ifdef DEBUG_HIGHWATER
 	tg->nidle += 1;
-	assert( tg->nidle >= 0 && tg->nidle <= tg->nthr );
+	g_assert( tg->nidle >= 0 && tg->nidle <= tg->nthr );
 #endif /*DEBUG_HIGHWATER*/
 
 	im_semaphore_up( &tg->idle_sem );
@@ -256,14 +258,14 @@ im_threadgroup_get( im_threadgroup_t *tg )
 
 	g_mutex_lock( tg->idle_lock );
 
-	assert( tg->idle );
-	assert( tg->idle->data );
+	g_assert( tg->idle );
+	g_assert( tg->idle->data );
 	thr = (im_thread_t *) tg->idle->data;
 	tg->idle = g_slist_remove( tg->idle, thr );
 
 #ifdef DEBUG_HIGHWATER
 	tg->nidle -= 1;
-	assert( tg->nidle >= 0 && tg->nidle <= tg->nthr );
+	g_assert( tg->nidle >= 0 && tg->nidle <= tg->nthr );
 	if( tg->nidle < tg->min_idle )
 		tg->min_idle = tg->nidle;
 #endif /*DEBUG_HIGHWATER*/
@@ -336,26 +338,14 @@ work_fn( im_thread_t *thr )
 {
 	/* Doublecheck only one thread per region.
 	 */
-	assert( thr->thread == g_thread_self() );
+	g_assert( thr->thread == g_thread_self() );
 
-	/* Prepare this area.
-	 */
-	if( thr->tg->inplace ) {
-		if( im_prepare_to( thr->reg, thr->oreg, 
-			&thr->pos, thr->x, thr->y ) )
-			thr->error = -1;
-	}
-	else {
-		/* Attach to this position.
-		 */
-		if( im_prepare( thr->reg, &thr->pos ) )
-			thr->error = -1;
-	}
+	g_assert( thr->tg->work );
 
 	/* Call our work function.
 	 */
-	if( !thr->error && thr->tg->work && 
-		thr->tg->work( thr->reg, thr->a, thr->b, thr->c ) )
+	if( !thr->error && 
+		thr->tg->work( thr, thr->reg, thr->a, thr->b, thr->c ) )
 		thr->error = -1;
 
 	/* Back on the idle queue again.
@@ -364,7 +354,7 @@ work_fn( im_thread_t *thr )
 }
 
 #ifdef HAVE_THREADS
-/* What runs as a thread ... loop, waiting to be told to fill our region.
+/* What runs as a thread ... loop, waiting to be told to do stuff.
  */
 static void *
 thread_main_loop( void *a )
@@ -378,7 +368,7 @@ thread_main_loop( void *a )
 	im__region_take_ownership( thr->reg );
 
 	for(;;) {
-		assert( tg == thr->tg );
+		g_assert( tg == thr->tg );
 
 		/* Signal the main thread that we are idle, and block.
 		 */
@@ -495,7 +485,7 @@ threadgroup_kill_threads( im_threadgroup_t *tg )
 			thread_free( tg->thr[i] );
 		tg->thr = NULL;
 
-		assert( !tg->idle );
+		g_assert( !tg->idle );
 
 		/* Reset the idle semaphore.
 		 */
@@ -550,7 +540,6 @@ im_threadgroup_create( IMAGE *im )
 	tg->zombie = 0;
 	tg->im = im;
 	tg->work = NULL;
-	tg->inplace = 0;
 	if( (tg->nthr = im_concurrency_get()) < 0 )
 		return( NULL );
 	tg->thr = NULL;
@@ -632,21 +621,6 @@ im_threadgroup_create( IMAGE *im )
 void
 im_threadgroup_trigger( im_thread_t *thr )
 {
-	im_threadgroup_t *tg = thr->tg;
-
-	/* thr pos needs to be set before coming here ... check.
-	 */
-{
-	Rect image;
-
-	image.left = 0;
-	image.top = 0;
-	image.width = tg->im->Xsize;
-	image.height = tg->im->Ysize;
-
-	assert( im_rect_includesrect( &image, &thr->pos ) );
-}
-
 	/* Start worker going.
 	 */
 	im_semaphore_up( &thr->go );

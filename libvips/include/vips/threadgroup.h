@@ -47,10 +47,6 @@ extern "C" {
  */
 #define IM__DEFAULT_STACK_SIZE (2 * 1024 * 1024)
 
-/* A work function.
- */
-typedef int (*im__work_fn)( REGION *, void *, void *, void * );
-
 /* What we track for each thread.
  */
 typedef struct {
@@ -63,8 +59,8 @@ typedef struct {
 	int error;		/* Set by thread if work fn fails */
 
 	REGION *oreg;		/* If part of an inplace threadgroup, */
-	Rect pos;		/* where this thread should write */
-	int x, y;		/* it's result */
+	Rect pos;		/* Where this thread should write */
+	int x, y;		/* Its result */
 
         void *a, *b, *c; 	/* User arguments to work fns */
 
@@ -73,6 +69,11 @@ typedef struct {
 	int tpos;
 #endif /*TIME_THREAD*/
 } im_thread_t;
+
+/* A work function.
+ */
+typedef int (*im__work_fn)( im_thread_t *thr,
+	REGION *, void *, void *, void * );
 
 /* What we track for a group of threads working together.
  */
@@ -84,7 +85,6 @@ typedef struct im__threadgroup_t {
 	int nlines;		/* Scanlines-at-once we prefer for iteration */
 
 	im__work_fn work;	/* Work fn for this threadgroup */
-	int inplace;		/* Regions should be contiguous */
 
 	int nthr;		/* Number of threads in group */
 	im_thread_t **thr;	/* Threads */

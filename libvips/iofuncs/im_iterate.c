@@ -25,6 +25,9 @@
  * 	- new eval start/progress/end system
  * 7/10/09
  * 	- gtkdoc comments
+ * 15/10/09
+ * 	- call start and stop functions from the worker threads
+ * 	- reworked a bit
  */
 
 /*
@@ -54,7 +57,7 @@
  */
 
 /*
-#define DEBUG_IO
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -93,35 +96,83 @@ typedef struct _Iterate {
 	im_stop_fn stop;
 	void *b;
 	void *c;
+
+	/* Set this to signal to workers that we want to shut down sequences.
+	 */
+	gboolean shutdown;
 } Iterate;
 
-/* Call all stop functions.
+/* Call a thread's stop function. 
  */
 static int
-iterate_call_all_stop( Iterate *iter, im_threadgroup_t *tg )
+iterate_call_stop( Iterate *iter, im_thread_t *thr )
 {
-	int i;
+#ifdef DEBUG
+	printf( "iterate_call_stop: thr = %p\n", thr );
+#endif /*DEBUG*/
 
-	for( i = 0; i < tg->nthr; i++ ) {
-		if( tg->thr[i]->a && iter->stop ) {
-			if( iter->stop( tg->thr[i]->a, iter->b, iter->c ) )
-				/* Drastic!
-				 */
-				im_error( "im_iterate", 
-					_( "stop function failed "
-						"for image \"%s\"" ), 
-					iter->im->filename );
-			tg->thr[i]->a = NULL;
+	if( thr->a && iter->stop ) {
+		if( iter->stop( thr->a, iter->b, iter->c ) ) {
+			im_error( "im_iterate", 
+				_( "stop function failed "
+					"for image \"%s\"" ), 
+				iter->im->filename );
+			return( -1 );
 		}
+
+		thr->a = NULL;
 	}
 
 	return( 0 );
 }
 
 static void
+iterate_call_all_stop( Iterate *iter )
+{
+	im_threadgroup_t *tg = iter->tg;
+
+	int i;
+
+#ifdef DEBUG
+	printf( "iterate_call_all_stop: start\n" );
+#endif /*DEBUG*/
+
+	/* Wait for all threads to hit 'go'.
+	 */
+	im_threadgroup_wait( tg );
+
+	/* Get all threads off idle and waiting for work.
+	 */
+	for( i = 0; i < tg->nthr; i++ )
+		(void) im_threadgroup_get( tg );
+
+	/* Now run all threads one more time and ask them to junk their
+	 * sequence value. 'shutdown' changes the behaviour of the work
+	 * function, see below.
+	 */
+	iter->shutdown = TRUE;
+
+	for( i = 0; i < tg->nthr; i++ ) {
+		/* The work fn will need this set if it's not been run
+		 * before.
+		 */
+		tg->thr[i]->b = iter;
+		im_threadgroup_trigger( tg->thr[i] );
+	}
+
+	/* And wait for them to idle again.
+	 */
+	im_threadgroup_wait( tg );
+
+#ifdef DEBUG
+	printf( "iterate_call_all_stop: done\n" );
+#endif /*DEBUG*/
+}
+
+static void
 iterate_free( Iterate *iter )
 {
-	/* Check all the stop functions have been called.
+	/* All threads should have junked their sequence values.
 	 */
 	if( iter->tg ) {
 		int i;
@@ -155,22 +206,54 @@ iterate_call_start( Iterate *iter, im_thread_t *thr )
 	return( 0 );
 }
 
-/* Our generate function. We need to call the user's start function from the
- * worker thread so that any regions it makes are owned by the thread.
+/* Our work function. This is complicated because we need to make sure we
+ * all call our start and stop functions from the worker thread, so that any
+ * regions created are owned by the worker and not the main thread.
  */
 static int
-iterate_gen( REGION *reg, void *seq, void *a, void *b )
+iterate_work( im_thread_t *thr, REGION *reg, void *seq, void *a, void *b )
 {
 	Iterate *iter = (Iterate *) a;
-	im_thread_t *thr = (im_thread_t *) b;
 
-	/* Make sure the start function has run and we have the sequence value
-	 * set.
+	/* 'shutdown' is set at the end of computation to ask workers to free
+	 * context.
 	 */
-	iterate_call_start( iter, thr );
-	seq = thr->a;
+	if( iter->shutdown ) {
+		if( iterate_call_stop( iter, thr ) )
+			return( -1 );
+	}
+	else {
+		/* Make sure the start function has run and we have the 
+		 * sequence value set.
+		 */
+		iterate_call_start( iter, thr );
+		seq = thr->a;
 
-	return( iter->generate( reg, seq, iter->b, iter->c ) );
+		/* thr pos needs to be set before coming here ... check.
+	 	 */
+{
+		Rect image;
+
+		image.left = 0;
+		image.top = 0;
+		image.width = thr->tg->im->Xsize;
+		image.height = thr->tg->im->Ysize;
+
+		g_assert( im_rect_includesrect( &image, &thr->pos ) );
+}
+
+		/* Generate pixels for the user.
+		 */
+		if( im_prepare( reg, &thr->pos ) )
+			return( -1 );
+
+		/* Run the user code on this area.
+		 */
+		if( iter->generate( reg, seq, iter->b, iter->c ) )
+			return( -1 );
+	}
+
+	return( 0 );
 }
 
 static int
@@ -187,6 +270,7 @@ iterate_init( Iterate *iter,
 	iter->stop = stop;
 	iter->b = b;
 	iter->c = c;
+	iter->shutdown = FALSE;
 
 	if( !(iter->t = im_open( "iterate", "p" )) ||
 		im_copy( iter->im, iter->t ) ||
@@ -195,14 +279,11 @@ iterate_init( Iterate *iter,
 		return( -1 );
 	}
 
-	iter->tg->work = iterate_gen;
-	iter->tg->inplace = 0;
+	iter->tg->work = iterate_work;
 
-#ifdef DEBUG_IO
-	if( iter->tg->nthr > 1 )
-		im_diagnostics( "im_iterate: using %d threads", 
-			iter->tg->nthr );
-#endif /*DEBUG_IO*/
+#ifdef DEBUG
+	im_diag( "im_iterate", "using %d threads", iter->tg->nthr );
+#endif /*DEBUG*/
 
 	return( 0 );
 }
@@ -214,10 +295,6 @@ iterate_loop( Iterate *iter, im_threadgroup_t *tg, IMAGE *t )
 {
 	int x, y;
 	Rect image;
-
-	/* Set up.
-	 */
-	tg->inplace = 0;
 
 	image.left = 0;
 	image.top = 0;
@@ -248,10 +325,9 @@ iterate_loop( Iterate *iter, im_threadgroup_t *tg, IMAGE *t )
 
 			thr->pos = clipped; 
 
-			/* Other stuff we want passed to iterate_gen().
+			/* Other stuff we want passed to iterate_work().
 			 */
 			thr->b = iter;
-			thr->c = thr;
 
 			/* Start worker going.
 			 */
@@ -270,14 +346,9 @@ iterate_loop( Iterate *iter, im_threadgroup_t *tg, IMAGE *t )
 			}
 		}
 
-	/* Wait for all threads to hit 'go' again.
+	/* Make sure all processing is done.
 	 */
 	im_threadgroup_wait( tg );
-
-	/* Test for any errors.
-	 */
-	if( im_threadgroup_iserror( tg ) )
-		return( -1 );
 
 	return( 0 );
 }
@@ -326,7 +397,11 @@ im_iterate( IMAGE *im,
 	/* Signal end of eval.
 	 */
 	result |= im__end_eval( iter.t );
-	result |= iterate_call_all_stop( &iter, iter.tg );
+
+	/* Shut down and test for any errors.
+	 */
+	iterate_call_all_stop( &iter );
+	result |= im_threadgroup_iserror( iter.tg );
 	iterate_free( &iter );
 
 	return( result );

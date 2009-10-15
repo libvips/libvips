@@ -60,8 +60,12 @@
 - im_jpeg2vips.c, set scale_num on shrink (thanks Guido)
 - heh argh reading history always stopped after the first line (thanks Haida)
 - added im_histindexed
-- new im_iterate() calls start functions from workers so resources they make 
-  are owned by the worker thread
+- new im_iterate() calls start and stop functions from workers so resources 
+  they make are owned by the worker thread ... this makes it possible to have
+  start functions which create mutiple regions and therefore allows
+  im_iterate() to scan more than one image at once
+- threadgroup no longer has any default action, you must attach a work
+  function
 
 25/3/09 started 7.18.0
 - revised version numbers

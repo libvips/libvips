@@ -1,18 +1,3 @@
-- need to call stop funcs from the worker as well
-
-  im_generate() does this my having im_region_free() call stop, if necessary
-
-  but we can't use that mechanism, since it relies on im->client1 etc. which
-  for us will be the copy operation that generated the image
-
-  regions need a call-this-to-free-seq function which is installed by
-  generate or iterate as appropriate
-
-  no, that won't work, when could we install the callbacks?
-
-  we must call the stop functions from the worker threads, that'll take care of
-  freeing the regions in the right context for us
-
 
 - memory.c
 
