@@ -252,6 +252,8 @@ int im_ispoweroftwo( int p );
 int im_isvips( const char *filename );
 int im_amiMSBfirst( void );
 
+IMAGE *im__open_temp( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

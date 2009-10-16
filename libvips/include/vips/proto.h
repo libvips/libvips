@@ -264,6 +264,7 @@ int im_copy_morph( IMAGE *, IMAGE *, int, int, int );
 int im_copy( IMAGE *, IMAGE * );
 int im_copy_swap( IMAGE *in, IMAGE *out );
 int im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture );
+int im_copy_file( IMAGE *in, IMAGE *out );
 int im_extract_band( IMAGE *in, IMAGE *out, int band );
 int im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands );
 int im_extract_area( IMAGE *in, IMAGE *out, int x, int y, int w, int h );

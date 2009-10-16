@@ -1,3 +1,8 @@
+- im_cache() seems to kill threading? 
+
+	pipeline, im_cache(), output
+
+  can we get >100% cpu? try a tiny test program
 
 - memory.c
 

@@ -89,41 +89,6 @@ popenf( const char *fmt, const char *mode, ... )
 	return( fp );
 }
 
-/* Make a disc IMAGE which will be automatically unlinked on im_close().
- */
-static IMAGE *
-system_temp( void )
-{
-	const char *tmpd;
-	char name[IM_MAX_STRSIZE];
-	int fd;
-	IMAGE *disc;
-
-	if( !(tmpd = g_getenv( "TMPDIR" )) )
-		tmpd = "/tmp";
-	strcpy( name, tmpd );
-	strcat( name, "/vips_XXXXXX.v" );
-
-	if( (fd = g_mkstemp( name )) == -1 ) {
-		im_error( "im_system", 
-			_( "unable to make temp file %s" ), name );
-		return( NULL );
-	}
-	close( fd );
-
-	if( !(disc = im_open( name, "w" )) ) {
-		unlink( name );
-		return( NULL );
-	}
-	if( im_add_close_callback( disc, 
-		(im_callback_fn) unlink, disc->filename, NULL ) ) {
-		im_close( disc );
-		unlink( name );
-	}
-
-	return( disc );
-}
-
 /* Run a command on an IMAGE ... copy to tmp (if necessary), run 
  * command on it, unlink (if we copied), return stdout from command.
  */
@@ -135,7 +100,7 @@ im_system( IMAGE *im, const char *cmd, char **out )
 	if( !im_isfile( im ) ) {
 		IMAGE *disc;
 
-		if( !(disc = system_temp()) )
+		if( !(disc = im__open_temp()) )
 			return( -1 );
 		if( im_copy( im, disc ) ||
 			im_system( disc, cmd, out ) ) {

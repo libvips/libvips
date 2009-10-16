@@ -1477,3 +1477,41 @@ im_amiMSBfirst( void )
                 return( 1 );
 }
 
+/* Make a disc IMAGE which will be automatically unlinked on im_close().
+ */
+IMAGE *
+im__open_temp( void )
+{
+	const char *tmpd;
+	char *name;
+	int fd;
+	IMAGE *disc;
+
+	if( !(tmpd = g_getenv( "TMPDIR" )) )
+		tmpd = "/tmp";
+	name = g_build_filename( tmpd, "vips_XXXXXX.v", NULL );
+
+	if( (fd = g_mkstemp( name )) == -1 ) {
+		im_error( "tempfile", 
+			_( "unable to make temp file %s" ), name );
+		g_free( name );
+		return( NULL );
+	}
+	close( fd );
+
+	if( !(disc = im_open( name, "w" )) ) {
+		unlink( name );
+		g_free( name );
+		return( NULL );
+	}
+	g_free( name );
+
+	if( im_add_close_callback( disc, 
+		(im_callback_fn) unlink, disc->filename, NULL ) ) {
+		im_close( disc );
+		unlink( name );
+	}
+
+	return( disc );
+}
+

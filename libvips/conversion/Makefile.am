@@ -12,6 +12,7 @@ libconversion_la_SOURCES = \
 	im_c2real.c \
 	im_clip.c \
 	im_copy.c \
+	im_copy_file.c \
 	im_extract.c \
 	im_falsecolour.c \
 	im_fliphor.c \

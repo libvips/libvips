@@ -66,6 +66,7 @@
   im_iterate() to scan more than one image at once
 - threadgroup no longer has any default action, you must attach a work
   function
+- added im_copy_file()
 
 25/3/09 started 7.18.0
 - revised version numbers

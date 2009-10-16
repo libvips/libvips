@@ -933,6 +933,30 @@ static im_function copy_desc = {
 	one_in_one_out 			/* Arg list */
 };
 
+/* Call im_copy_file via arg vector.
+ */
+static int
+copy_file_vec( im_object *argv )
+{
+	return( im_copy_file( argv[0], argv[1] ) );
+}
+
+/* Description of im_copy_file.
+ */
+static im_function copy_file_desc = {
+	"im_copy_file", 			/* Name */
+	"copy image to a file and return that",
+
+	/* Can't set PTOP ... we don't want to zap the LUT, we want the real
+	 * image.
+	 */
+	IM_FN_PIO,			/* Flags */
+
+	copy_file_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
 /* Call im_copy_swap via arg vector.
  */
 static int
@@ -1581,6 +1605,7 @@ static im_function *conv_list[] = {
 	&clip2us_desc,
 	&clip_desc,
 	&copy_desc,
+	&copy_file_desc,
 	&copy_morph_desc,
 	&copy_swap_desc,
 	&copy_set_desc,
