@@ -49,9 +49,7 @@ extern "C" {
 #define IM_ABS(x) (((x) >= 0) ? (x) : -(x))
 
 #define IM_CLIP(A,V,B) IM_MAX( (A), IM_MIN( (B), (V) ) )
-#define IM_NEW(IM,A) ((A *)im_malloc((IM),sizeof(A)))
 #define IM_NUMBER(R) ((int)(sizeof(R)/sizeof(R[0])))
-#define IM_ARRAY(IM,N,T) ((T *)im_malloc((IM),(N) * sizeof(T)))
 
 #define IM_FREEF( F, S ) do { \
         if( S ) { \

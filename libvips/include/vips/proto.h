@@ -84,9 +84,6 @@ int im_remapfilerw( IMAGE *image );
 
 IMAGE *im_open_header( const char * );
 
-void *im_malloc( IMAGE *im, size_t sz );
-int im_free( void * );
-
 int im_cp_desc( IMAGE *, IMAGE * );
 int im_cp_descv( IMAGE *out, IMAGE *in1, ... )
 	__attribute__((sentinel));

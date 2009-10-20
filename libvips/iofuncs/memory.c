@@ -1,4 +1,4 @@
-/* @(#) memory.c: mem handling stuff
+/* : mem handling stuff
  *
  * 2/11/99 JC
  *	- from im_open.c and callback.c
@@ -13,6 +13,8 @@
  * 	- return NULL for size <= 0
  * 11/5/06
  * 	- abort() on malloc() failure with DEBUG
+ * 20/10/09
+ * 	- gtkdoc comment
  */
 
 /*
@@ -59,6 +61,20 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: memory
+ * @short_description: memory utilities
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * Simple memory allocation utilities. These functions and macros help
+ * allocate and free memory. Most of VIPS uses them, though some parts use
+ * the g_malloc() system instead, confusingly.
+ *
+ * If you compile with %DEBUGM it will track allocations for you, though
+ * valgrind or dmalloc are better solutions.
+ */
+
 /* Define for simple malloc tracking ... better to use dmalloc if you can.
 #define DEBUGM
  */
@@ -83,7 +99,35 @@ static const int trace_freq = 100;	/* Msg every this many malloc/free */
 static int next_trace = 0;
 #endif /*DEBUGM*/
 
-/* VIPS free function. Try to put all vips free() through this.
+/**
+ * IM_NEW:
+ * @IM: allocate memory local to @IM, or %NULL for no auto-free
+ * @T: type of thing to allocate
+ *
+ * Returns: A pointer of type @T *, or %NULL on error.
+ */
+
+/**
+ * IM_ARRAY:
+ * @IM: allocate memory local to @IM, or %NULL for no auto-free
+ * @N: number of @T 's to allocate
+ * @T: type of thing to allocate
+ *
+ * Returns: A pointer of type @T *, or %NULL on error.
+ */
+
+/**
+ * im_free:
+ * @s: memory to free
+ *
+ * VIPS free function. VIPS tries to use this instead of free(). It always
+ * returns zero, so it can be used as a callback handler. 
+ *
+ * Only use it to free
+ * memory that was previously allocated with im_malloc() with a %NULL first
+ * argument.
+ *
+ * Returns: 0
  */
 int
 im_free( void *s )
@@ -130,8 +174,21 @@ im_free( void *s )
 	return( 0 );
 }
 
-/* Malloc local to a descriptor. Try to put all vips malloc through this. Not
- * thread-safe if im != NULL.
+/**
+ * im_malloc:
+ * @im: allocate memory local to this #IMAGE, or %NULL
+ * @size: number of bytes to allocate
+ *
+ * Malloc local to @im, that is, the memory will be automatically 
+ * freed for you when the image is closed. If @im is %NULL, you need to free
+ * the memory explicitly with im_free().
+ * If allocation fails im_malloc() returns %NULL and 
+ * sets an error message.
+ *
+ * If two threads try to allocate local to the same @im at the same time, you 
+ * can get heap corruption. 
+ *
+ * Returns: a pointer to the allocated memory, or %NULL on error.
  */
 void *
 im_malloc( IMAGE *im, size_t size )

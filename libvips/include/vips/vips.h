@@ -123,6 +123,7 @@ typedef struct im__DOUBLEMASK {
 } DOUBLEMASK ;
 
 #include <vips/image.h>
+#include <vips/memory.h>
 #include <vips/almostdeprecated.h>
 #include <vips/callback.h>
 #include <vips/error.h>

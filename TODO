@@ -1,7 +1,3 @@
-- im_lineset() could be simpler, see im_insertplaceset()
-
-- memory.c
-
 - more stuff from util.c? too much to do it all now
 
 - how about an indexed histogram?

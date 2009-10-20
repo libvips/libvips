@@ -430,9 +430,7 @@ im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	/* Copy the image then fastline to it ... this will render to a "t"
 	 * usually.
 	 */
-	if( im_incheck( mask ) ||
-		im_incheck( ink ) ||
-		im_copy( in, out ) )
+	if( im_copy( in, out ) )
 		return( -1 );
 
 	mask_rect.left = mask->Xsize / 2;
