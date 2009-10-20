@@ -327,6 +327,13 @@ eval_to_region( REGION *or, im_threadgroup_t *tg )
 
 	int x, y;
 
+#ifdef DEBUG_IO
+	int ntiles = 0;
+        printf( "eval_to_region: partial image output to region\n" );
+        printf( "\tleft = %d, top = %d, width = %d, height = %d\n",
+		r->left, r->top, r->width, r->height );
+#endif /*DEBUG_IO*/
+
 	image.left = 0;
 	image.top = 0;
 	image.width = or->im->Xsize;
@@ -377,6 +384,10 @@ eval_to_region( REGION *or, im_threadgroup_t *tg )
 				im_threadgroup_wait( tg );
 				return( -1 );
 			}
+
+#ifdef DEBUG_IO
+			ntiles++;
+#endif /*DEBUG_IO*/
 		}
 
 	/* Wait for all threads to hit 'go' again.
@@ -385,6 +396,10 @@ eval_to_region( REGION *or, im_threadgroup_t *tg )
 
 	if( im_threadgroup_iserror( tg ) )
 		return( -1 );
+
+#ifdef DEBUG_IO
+	printf( "eval_to_region: %d patches calculated\n", ntiles );
+#endif /*DEBUG_IO*/
 
 	return( 0 );
 }
@@ -451,7 +466,7 @@ eval_to_memory( im_threadgroup_t *tg, REGION *or )
 	result |= im__end_eval( im );
 
 #ifdef DEBUG_IO
-	printf( "eval_to_memory: %d patches written\n", ntiles );
+	printf( "eval_to_memory: %d patches calculated\n", ntiles );
 #endif /*DEBUG_IO*/
 
 	return( result );

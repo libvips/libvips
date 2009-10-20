@@ -186,6 +186,55 @@ static im_function lineset_desc = {
 	lineset_args 		/* Arg list */
 };
 
+/* Args for im_insertplaceset.
+ */
+static im_arg_desc insertplaceset_args[] = {
+	IM_INPUT_IMAGE( "main" ),
+	IM_INPUT_IMAGE( "sub" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INTVEC( "x" ),
+	IM_INPUT_INTVEC( "y" )
+};
+
+/* Call im_insertplaceset via arg vector.
+ */
+static int
+insertplaceset_vec( im_object *argv )
+{
+	im_intvec_object *xv = (im_intvec_object *) argv[3];
+	im_intvec_object *yv = (im_intvec_object *) argv[4];
+	int i;
+
+	if( xv->n != yv->n ) {
+		im_error( "im_insertplaceset", "%s", 
+			_( "vectors not same length" ) );
+		return( -1 );
+	}
+
+	/* Copy the image then repeatedly im_insertplace(). This will make
+	 * "out" into a "t", usually.
+	 */
+	if( im_copy( argv[0], argv[2] ) )
+		return( -1 );
+
+	for( i = 0; i < xv->n; i++ ) 
+		if( im_insertplace( argv[2], argv[1], xv->vec[i], yv->vec[i] ) )
+			return( -1 );
+
+	return( 0 );
+}
+
+/* Description of im_insertplaceset.
+ */ 
+static im_function insertplaceset_desc = {
+	"im_insertplaceset", 	/* Name */
+	"insert sub into main at every position in x, y",
+	0,			/* Flags */
+	insertplaceset_vec, 	/* Dispatch function */
+	IM_NUMBER( insertplaceset_args ), 	/* Size of arg list */
+	insertplaceset_args 	/* Arg list */
+};
+
 /* Calculate a pixel for an image from a vec of double. Valid while im is
  * valid.
  */
@@ -346,6 +395,7 @@ static im_function *inplace_list[] = {
 	&flood_other_copy_desc,
 	&segment_desc,
 	&insertplace_desc,
+	&insertplaceset_desc,
 	&line_desc,
 	&lineset_desc
 };
