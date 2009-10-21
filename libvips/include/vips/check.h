@@ -56,6 +56,7 @@ int im_check_u8or16( const char *domain, IMAGE *im );
 int im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_same_coding( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_vector( const char *domain, int n, IMAGE *im );
 
 gboolean im_isuint( IMAGE *im );

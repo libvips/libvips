@@ -1,12 +1,4 @@
-/* @(#) Insert an image into another. Like im_insert, but an `in-place'
- * @(#) operation. small must fit entirely inside big - no clipping is
- * @(#) performed.
- * @(#) 
- * @(#) int 
- * @(#) im_insertplace( big, small, x, y )
- * @(#) IMAGE *big, *small;
- * @(#) int x, y;
- * @(#) 
+/* in-place insert
  *
  * Copyright: J. Cupitt
  * Written: 15/06/1992
@@ -21,6 +13,9 @@
  * 	- im_invalidate() after paint
  * 24/3/09
  * 	- added IM_CODING_RAD support
+ * 21/10/09
+ * 	- allow small to be outside big
+ * 	- gtkdoc
  */
 
 /*
@@ -64,37 +59,41 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Like im_insert, but perform an in-place insertion.
+/**
+ * im_insertplace:
+ * @big: main image
+ * @small: sub-image to insert
+ * @x: position to insert
+ * @y: position to insert
+ *
+ * Copy @small into @big at position @x, @y. The two images must match in
+ * format, bands and coding.
+ *
+ * This an inplace operation, so @big is changed. It does not thread and will
+ * not work well as part of a pipeline.
+ *
+ * Returns: 0 on success, or -1 on error.
+ *
+ * See also: im_insert().
  */
 int
 im_insertplace( IMAGE *big, IMAGE *small, int x, int y )
 {	
-	Rect br, sr;
+	Rect br, sr, clip;
 	PEL *p, *q;
 	int z;
 
-	/* Check IO.
-	 */
-	if( im_rwcheck( big ) || im_incheck( small ) )
-		return( -1 );
-
 	/* Check compatibility.
 	 */
-        if( big->BandFmt != small->BandFmt || big->Bands != small->Bands ||
-                big->Coding != small->Coding ) {
-                im_error( "im_insertplace", "%s", 
-			_( "inputs differ in format" ) );
-                return( -1 );
-        }
-        if( big->Coding != IM_CODING_NONE && 
-		big->Coding != IM_CODING_LABQ &&
-		big->Coding != IM_CODING_RAD ) {
-                im_error( "im_insertplace", "%s", 
-			_( "Coding should be NONE, LABQ or RAD" ) ); 
-                return( -1 );
-        }
+	if( im_rwcheck( big ) || 
+		im_incheck( small ) ||
+		im_check_known_coded( "im_insertplace", big ) ||
+		im_check_known_coded( "im_insertplace", small ) ||
+		im_check_same_format( "im_insertplace", big, small ) ||
+		im_check_same_bands( "im_insertplace", big, small ) )
+		return( -1 );
 
-	/* Make rects for big and small.
+	/* Make rects for big and small and clip.
 	 */
 	br.left = 0;
 	br.top = 0;
@@ -104,21 +103,17 @@ im_insertplace( IMAGE *big, IMAGE *small, int x, int y )
 	sr.top = y;
 	sr.width = small->Xsize;
 	sr.height = small->Ysize;
-
-	/* Small fits inside big?
-	 */
-	if( !im_rect_includesrect( &br, &sr ) ) {
-		im_error( "im_insertplace", 
-			"%s", _( "small not inside big" ) );
-		return( -1 );
-	}
+	im_rect_intersectrect( &br, &sr, &clip );
+	if( im_rect_isempty( &clip ) )
+		return( 0 );
 
 	/* Loop, memcpying small to big.
 	 */
-	p = (PEL *) IM_IMAGE_ADDR( small, 0, 0 );
-	q = (PEL *) IM_IMAGE_ADDR( big, x, y );
-	for( z = 0; z < small->Ysize; z++ ) {
-		memcpy( (char *) q, (char *) p, IM_IMAGE_SIZEOF_LINE( small ) );
+	p = (PEL *) IM_IMAGE_ADDR( small, clip.left - x, clip.top - y );
+	q = (PEL *) IM_IMAGE_ADDR( big, clip.left, clip.top );
+	for( z = 0; z < clip.height; z++ ) {
+		memcpy( (char *) q, (char *) p, 
+			clip.width * IM_IMAGE_SIZEOF_PEL( small ) );
 		p += IM_IMAGE_SIZEOF_LINE( small );
 		q += IM_IMAGE_SIZEOF_LINE( big );
 	}

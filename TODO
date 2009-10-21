@@ -1,15 +1,5 @@
 - more stuff from util.c? too much to do it all now
 
-- how about an indexed histogram?
-
-  have two images, a 1-band index image and an n-band image to analyze
-
-  for each pixel, add the n-band pixel to the bin indicated by the index image
-
-
-
-
-
 - load 500 jpegs, shrink, save
 
   VM use is huge, ouch, could we use a bit less?

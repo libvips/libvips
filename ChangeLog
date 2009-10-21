@@ -68,6 +68,7 @@
   function
 - added im_copy_file()
 - added im_insertplaceset()
+- im_insertplace() allows small to be outside big
 
 25/3/09 started 7.18.0
 - revised version numbers

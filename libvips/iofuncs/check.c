@@ -841,6 +841,32 @@ im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 /**
+ * im_check_same_coding:
+ * @domain: the originating domain for the error message
+ * @im1: first image to check
+ * @im2: second image to check
+ *
+ * Check that the images have the same coding.
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ *
+ * See also: im_error().
+ */
+int
+im_check_same_coding( const char *domain, IMAGE *im1, IMAGE *im2 )
+{
+	if( im1->Coding != im2->Coding ) {
+		im_error( domain, "%s", 
+			_( "images must have the same coding" ) ); 
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_same_vector:
  * @domain: the originating domain for the error message
  * @im1: first image to check
