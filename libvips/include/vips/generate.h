@@ -90,6 +90,11 @@ int im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
 	void (*notify)( IMAGE *, Rect *, void * ), void *client );
 int im_cache( IMAGE *in, IMAGE *out, int width, int height, int max );
 
+/* WIO.
+ */
+int im_setupout( IMAGE *im );
+int im_writeline( int ypos, IMAGE *im, PEL *linebuffer );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

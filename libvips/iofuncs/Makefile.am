@@ -10,15 +10,13 @@ libiofuncs_la_SOURCES = \
 	dispatch_types.c \
 	error.c \
 	im_binfile.c \
-	im_bits_of_fmt.c \
 	im_close.c \
 	im_cp_desc.c \
 	im_demand_hint.c \
 	im_generate.c \
 	im_histlin.c \
 	im_image.c \
-	im_init.c \
-	im_initdesc.c \
+	init.c \
 	im_iterate.c \
 	im_mapfile.c \
 	im_open.c \

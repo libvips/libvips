@@ -74,6 +74,21 @@ typedef int (*im__fftproc_fn)( IMAGE *, IMAGE *, IMAGE * );
 
 /* iofuncs
  */
+IMAGE *im_init( const char * );
+IMAGE *im_openout( const char * );
+IMAGE *im_open_vips( const char * );
+int im_openin( IMAGE *image );
+int im_openinrw( IMAGE *image );
+IMAGE *im_setbuf( const char * );
+IMAGE *im_partial( const char * );
+
+int im_mapfile( IMAGE * );
+int im_mapfilerw( IMAGE * );
+int im_remapfilerw( IMAGE *image );
+
+IMAGE *im_open_header( const char * );
+
+int im_unmapfile( IMAGE * );
 void im__read_4byte( int msb_first, unsigned char *to, unsigned char **from );
 void im__read_2byte( int msb_first, unsigned char *to, unsigned char **from );
 void im__write_4byte( unsigned char **to, unsigned char *from );
@@ -187,6 +202,7 @@ int im__find_best_contrast( IMAGE *image,
 int im__balance( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	IMAGE **ref_out, IMAGE **sec_out, int dx, int dy, int balancetype );
 void im__black_region( REGION *reg );
+
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* im_bnfile.c --- load a raw binary file
+/* im_binfile.c --- load a raw binary file
  *
  * Author: N. Dessipris
  * Written on: 31/7/91
@@ -76,8 +76,8 @@
 /**
  * im_binfile:
  * @name: filename to open
- * @xs: image width
- * @ys: image height
+ * @xsize: image width
+ * @ysize: image height
  * @bands: image bands (or bytes per pixel)
  * @offset: bytes to skip at start of file
  *
@@ -92,7 +92,7 @@
  * Returns: the new #IMAGE, or NULL on error.
  */
 IMAGE *
-im_binfile( const char *name, int xs, int ys, int bands, int offset )
+im_binfile( const char *name, int xsize, int ysize, int bands, int offset )
 {
 	IMAGE *im;
 	gint64 psize;
@@ -100,7 +100,7 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 
 	/* Check parameters.
 	 */
-	if( xs <= 0 || ys <= 0 || bands <=0 ) {
+	if( xsize <= 0 || ysize <= 0 || bands <= 0 ) {
 		im_error( "im_binfile", 
 			"%s", _( "bad parameters" ) );
 		return( NULL );
@@ -119,7 +119,7 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 
 	/* Predict file size.
 	 */
-	psize = (gint64) xs * ys * bands + offset;
+	psize = (gint64) xsize * ysize * bands + offset;
 
 	/* Read the real file length and check against what we think 
 	 * the size should be.
@@ -161,8 +161,8 @@ im_binfile( const char *name, int xs, int ys, int bands, int offset )
 
 	/* Set header fields.
 	 */
-	im->Xsize = xs;
-	im->Ysize = ys;
+	im->Xsize = xsize;
+	im->Ysize = ysize;
 	im->Bands = bands;
 
 	/* Set others to standard values.

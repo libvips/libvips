@@ -184,3 +184,49 @@ im_init( const char *filename )
 
 	return( im );
 }
+
+/**
+ * im_initdesc:
+ * @image: image to init
+ * @xsize: image width
+ * @ysize: image height
+ * @bands: image bands
+ * @bandbits: ignored, just here for compatibility
+ * @bandfmt: band format
+ * @coding: image coding
+ * @type: image type
+ * @xres: horizontal resolution, pixels per millimetre
+ * @yres: vertical resolution, pixels per millimetre
+ * @xo: x offset
+ * @yo: y offset
+ *
+ * A convenience function to set the header fields after creating an image.
+ * Normally you copy the fields from one of your input images with
+ * im_cp_desc() and then make
+ * any adjustments you need, but if you are creating an image from scratch,
+ * for example im_black() or im_jpeg2vips(), you do need to set all the
+ * fields yourself.
+ *
+ * See also: im_cp_desc().
+ */
+void 
+im_initdesc( IMAGE *image, 
+	int xsize, int ysize, int bands, int bandbits, 
+	VipsBandFmt bandfmt, VipsCoding coding, VipsType type, 
+	float xres, float yres,
+	int xo, int yo )
+{
+	image->Xsize = xsize;
+	image->Ysize = ysize;
+	image->Bands = bands;
+	/* bandbits is deprecated ... set to whatever the format requires.
+	 */
+	image->Bbits = im_bits_of_fmt( bandfmt );
+	image->BandFmt = bandfmt;
+	image->Coding = coding;
+	image->Type = type;
+	image->Xres = xres;
+	image->Yres = yres;
+	image->Xoffset = xo;
+	image->Yoffset = yo;
+}

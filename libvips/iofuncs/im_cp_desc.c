@@ -64,7 +64,6 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
-#include <assert.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -75,8 +74,29 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* in is a NULL-termnated array of input images. Always at least one image
- * there.
+/**
+ * im_cp_desc_array:
+ * @out: image to copy to
+ * @in: %NULL-terminated array of images to copy from
+ *
+ * Copy fields from all the input images to the output image. There must be at
+ * least one input image. If you are making an image which has no input images
+ * (for example, im_black() or im_vips2jpeg()), use im_initdesc() instead.
+ *
+ * The first input image is used to set the main fields of @out (@XSize, @Coding
+ * and so on). 
+ *
+ * Metadata from all the image is merged on to @out, with lower-numbered items 
+ * overriding higher. So for example, if @in[0] and @in[1] both have an item
+ * called "icc-profile", it's the profile attached to @in[0] that will end up
+ * on @out.
+ *
+ * Image history is completely copied from all @in. @out will have the history
+ * of all the intput images.
+ *
+ * See also: im_cp_descv(), im_cp_desc().
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int 
 im_cp_desc_array( IMAGE *out, IMAGE *in[] )
@@ -84,7 +104,7 @@ im_cp_desc_array( IMAGE *out, IMAGE *in[] )
 	int i;
 	int ni;
 
-	assert( in[0] );
+	g_assert( in[0] );
 
 	out->Xsize = in[0]->Xsize;
 	out->Ysize = in[0]->Ysize;
@@ -124,6 +144,19 @@ im_cp_desc_array( IMAGE *out, IMAGE *in[] )
  */
 #define MAX_IMAGES (1000)
 
+/**
+ * im_cp_descv:
+ * @out: image to copy to
+ * @in1: first image to copy from
+ * @Varargs: %NULL-terminated list of images to copy from
+ *
+ * Copy fields from all the input images to the output image. A convenience
+ * function over im_cp_desc_array(). 
+ *
+ * See also: im_cp_desc_array(), im_cp_desc().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_cp_descv( IMAGE *out, IMAGE *in1, ... )
 {
@@ -145,8 +178,20 @@ im_cp_descv( IMAGE *out, IMAGE *in1, ... )
 	return( im_cp_desc_array( out, in ) );
 }
 
+/**
+ * im_cp_desc:
+ * @out: image to copy to
+ * @in: image to copy from
+ *
+ * Copy fields from @in to @out. A convenience
+ * function over im_cp_desc_array(). 
+ *
+ * See also: im_cp_desc_array(), im_cp_descv().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
-im_cp_desc( IMAGE *dest, IMAGE *src )
+im_cp_desc( IMAGE *out, IMAGE *in )
 {
-	return( im_cp_descv( dest, src, NULL ) ); 
+	return( im_cp_descv( out, in, NULL ) ); 
 }

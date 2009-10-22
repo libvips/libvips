@@ -64,38 +64,6 @@ extern "C" {
 #  endif
 #endif /*SWIG*/
 
-/* iofuncs
- */
-
-IMAGE *im_init( const char * );
-IMAGE *im_openout( const char * );
-IMAGE *im_open_vips( const char * );
-int im_openin( IMAGE *image );
-int im_openinrw( IMAGE *image );
-IMAGE *im_vips_open( const char * );
-IMAGE *im_setbuf( const char * );
-IMAGE *im_partial( const char * );
-IMAGE *im_binfile( const char *, int, int, int, int );
-IMAGE *im_image( void *, int, int, int, int );
-
-int im_mapfile( IMAGE * );
-int im_mapfilerw( IMAGE * );
-int im_remapfilerw( IMAGE *image );
-
-IMAGE *im_open_header( const char * );
-
-int im_cp_desc( IMAGE *, IMAGE * );
-int im_cp_descv( IMAGE *out, IMAGE *in1, ... )
-	__attribute__((sentinel));
-int im_cp_desc_array( IMAGE *out, IMAGE *in[] );
-int im_setupout( IMAGE * );
-int im_writeline( int, IMAGE *, PEL * );
-
-int im_unmapfile( IMAGE * );
-void im_initdesc( IMAGE *,
-	int, int, int, int, int, int, int, float, float,
-	int, int );
-
 /* morphology
  */
 int im_dilate( IMAGE *in, IMAGE *out, INTMASK *m );

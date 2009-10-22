@@ -1,12 +1,5 @@
-/* @(#) Make a memory area of pixels into a VIPS image ... we don't free() on
- * @(#) im_close(), that's up to the caller ... format is BandFmt
- * @(#)
- * @(#) Usage:
- * @(#)
- * @(#) IMAGE *
- * @(#) im_image( void *buffer, int width, int height, int bands, int format )
- * @(#)
- * @(#) The function returns NULL on error.
+/* im_image.c ... area of memory as an image
+ *
  * Written on: 11/7/00
  * Modified on:
  * 20/3/01 JC
@@ -48,18 +41,35 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_image:
+ * @buffer: start of memory area
+ * @xsize: image width
+ * @ysize: image height
+ * @bands: image bands (or bytes per pixel)
+ * @bandfmt: image format
+ *
+ * This function wraps an #IMAGE around a memory buffer. VIPS does not take
+ * responsibility for the area of memory, it's up to you to make sure it's
+ * freed when the image is closed. See for example im_add_close_callback().
+ *
+ * See also: im_binfile(), im_raw2vips(), im_open().
+ *
+ * Returns: the new #IMAGE, or %NULL on error.
+ */
 IMAGE *
-im_image( void *buffer, int width, int height, int bands, int format )
+im_image( void *buffer, int width, int height, int bands, VipsBandFmt bandfmt )
 {
 	IMAGE *im;
 
 	if( width <= 0 || height <= 0 || bands <= 0 || 
-		format < 0 || format > IM_BANDFMT_DPCOMPLEX ) {
+		bandfmt < 0 || bandfmt > IM_BANDFMT_DPCOMPLEX ) {
 		im_error( "im_image", "%s", _( "bad parameters" ) );
 		return( NULL );
 	}
@@ -74,8 +84,8 @@ im_image( void *buffer, int width, int height, int bands, int format )
 	im->Xsize = width;
 	im->Ysize = height;
 	im->Bands = bands;
-	im->BandFmt = format;
-	im->Bbits = im_bits_of_fmt( format );
+	im->BandFmt = bandfmt;
+	im->Bbits = im_bits_of_fmt( bandfmt );
 	im->Coding = IM_CODING_NONE;
 
 	if( bands == 1 )

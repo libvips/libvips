@@ -307,6 +307,22 @@ int im_close( VipsImage *im );
 
 void im_invalidate( VipsImage *im );
 
+void im_initdesc( VipsImage *image, 
+	int xsize, int ysize, int bands, int bandbits, 
+	VipsBandFmt bandfmt, VipsCoding coding, VipsType type, 
+	float xres, float yres,
+	int xo, int yo );
+
+int im_cp_desc( VipsImage *out, VipsImage *in );
+int im_cp_descv( VipsImage *out, VipsImage *in1, ... )
+	__attribute__((sentinel));
+int im_cp_desc_array( VipsImage *out, VipsImage *in[] );
+
+VipsImage *im_binfile( const char *name, 
+	int xsize, int ysize, int bands, int offset );
+VipsImage *im_image( void *buffer, 
+	int width, int height, int bands, VipsBandFmt bandfmt );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

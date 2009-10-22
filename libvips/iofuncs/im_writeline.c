@@ -1,16 +1,4 @@
-/* @(#)  Functions which writes the yth buffer line to either the output file
- * @(#) or the output buffer.
- * @(#)  It is the responsibility of the user to create a buffer line 
- * @(#) and write the data to it before calling this function.
- * @(#)  No checking is carried out for image
- * @(#)
- * @(#) int im_writeline(ypos, image, linebuffer)
- * @(#) int ypos;
- * @(#) IMAGE *image;
- * @(#) char *linebuffer;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* write a scanline
  *
  * Copyright: Nicos Dessipris
  * Written on: 04/04/1990
@@ -77,6 +65,20 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_writeline:
+ * @ypos: vertical position of scan-line to write
+ * @im: image to write to
+ * @linebuffer: scanline of pixels
+ *
+ * Write a line of pixels to an image. This function must be called repeatedly
+ * with @ypos increasing from 0 to @YSize -
+ * 1. @linebuffer must be IM_IMAGE_SIZEOF_LINE() bytes long.
+ *
+ * See also: im_setupout(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
 int
 im_writeline( int ypos, IMAGE *im, PEL *linebuffer )
 {	

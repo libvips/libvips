@@ -1,21 +1,5 @@
-/* @(#)
- * @(#) Function which sets up the output as follows
- * @(#)  If the output is a buffer, it allocates memory according to image sizes
- * @(#)  If the output is a file, it write a header 
- * @(#) to the file pointed by image.fd
- * @(#)  If the output is a partial image, then `magically' turn this from an
- * @(#) im_partial() image into an im_setbuf() image. If im_setupout() is
- * @(#) called, we take it as a sign that we are dealing with pre-partial 
- * @(#) images code.
- * @(#)  When exiting, image.fd points at the end of the header info.
- * @(#) expecting raw image data.
- * @(#)  No description or history is involved
- * @(#) Called by all im_funcs
- * @(#)
- * @(#) int im_setupout(image)
- * @(#) IMAGE *image;
- * @(#)  Returns either 0 (success) or -1 (fail)
- * @(#)
+/* get an image ready for im_writeline()
+ *
  * Copyright: Nicos Dessipris
  * Written on: 16/01/1990
  * Modified on : 04/04/1990, 28/02/1991
@@ -89,6 +73,18 @@
 #define MODE (O_WRONLY | O_CREAT | O_TRUNC)
 #endif /*BINARY_OPEN*/
 
+/**
+ * im_setupout:
+ * @im: image to prepare for writing
+ *
+ * This call gets the #IMAGE ready for scanline-based writing with 
+ * im_writeline(). You need to have set all the image fields, such as @Xsize
+ * and @BandFmt, before calling this. 
+ *
+ * Returns: 0 on success, or -1 on error.
+ *
+ * See also: im_writeline(), im_generate(), im_initdesc(), im_cp_desc().
+ */
 int
 im_setupout( IMAGE *im )
 {	
