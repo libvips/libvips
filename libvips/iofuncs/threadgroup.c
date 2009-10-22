@@ -13,6 +13,8 @@
  * 15/10/09
  * 	- get rid of inplace and default work stuff, you must now always set a
  * 	  work function
+ * 22/10/09
+ * 	- gtkdoc
  */
 
 /*
@@ -67,6 +69,20 @@
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/**
+ * SECTION: threadgroup
+ * @short_description: groups of worker threads
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-generate">generate</link>
+ * @include: vips/vips.h
+ *
+ * VIPS has its own threadpool system, used by (for example)
+ * im_prepare_thread().
+ *
+ * Most of this is internal to VIPS and does not need to be documented. You
+ * should only need im_threadgroup_create() and im_threadgroup_free().
+ */
 
 #ifdef TIME_THREAD
 /* Size of time buffers.
@@ -499,7 +515,18 @@ threadgroup_kill_threads( im_threadgroup_t *tg )
 	}
 }
 
-/* Free a threadgroup. Can be called multiple times.
+/**
+ * im_threadgroup_free:
+ * @tg: threadgroup to free
+ *
+ * Frees a threadgroup. This function can be called multiple times, though
+ * only the first time will have any effect.
+ *
+ * All worker threads are terminated and all resources freed.
+ *
+ * See also: im_threadgroup_create().
+ *
+ * Returns: 0.
  */
 int
 im_threadgroup_free( im_threadgroup_t *tg )
@@ -525,7 +552,17 @@ im_threadgroup_free( im_threadgroup_t *tg )
 	return( 0 );
 }
 
-/* Attach a threadgroup to an image.
+/**
+ * im_threadgroup_create:
+ * @im: image to create the threadgroup on
+ *
+ * Makes a threadgroup attached to the image. The threadgroup will be freed
+ * for you if the image is closed, but you can free it yourself with
+ * im_threadgroup_free() if you wish.
+ *
+ * See also: im_threadgroup_free(), im_prepare_thread().
+ *
+ * Returns: an #im_threadgroup_t on success, %NULL on error.
  */
 im_threadgroup_t *
 im_threadgroup_create( IMAGE *im )
