@@ -72,9 +72,9 @@
  * This an inplace operation, so @big is changed. It does not thread and will
  * not work well as part of a pipeline.
  *
- * Returns: 0 on success, or -1 on error.
- *
  * See also: im_insert().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_insertplace( IMAGE *big, IMAGE *small, int x, int y )

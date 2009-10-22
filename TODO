@@ -1,5 +1,10 @@
 - more stuff from util.c? too much to do it all now
 
+- maybe im_insertplaceset() should be im_insertset()? it's not an inplace
+  operator now
+
+- like _vec(), remove set() from the ends of operator names in C++
+
 - load 500 jpegs, shrink, save
 
   VM use is huge, ouch, could we use a bit less?

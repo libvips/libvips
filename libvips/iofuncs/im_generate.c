@@ -628,21 +628,23 @@ im_generate( IMAGE *im,
         return( 0 );
 }
 
-/** im_prepare_thread:
+/** 
+ * im_prepare_thread:
  * @tg: group of threads to evaluate with
  * @reg: region to prepare
  * @r: #Rect of pixels you need to be able to address
  *
- * im_prepare_thread() fills @reg with pixels. After calling, you can address at
+ * im_prepare_thread() fills @reg with pixels. After calling, you can address 
+ * at
  * least the area @r with IM_REGION_ADDR() and get valid pixels.
  *
  * im_prepare_thread() uses @tg, a group of threads, to calculate pixels.
  * Computation blocks until the pixels are ready.
  *
  * Use im_prepare() to calculate an area of pixels in-line.
- * Use im_render() to calculate an area of pixels in the background.
+ * Use im_render_priority() to calculate an area of pixels in the background.
  *
- * See also: im_prepare(), im_render(), im_prepare_to().
+ * See also: im_prepare(), im_render_priority(), im_prepare_to().
  *
  * Returns: 0 on success, or -1 on error
  */
