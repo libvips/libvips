@@ -118,6 +118,8 @@ add_callback( IMAGE *im, GSList **cblist, im_callback_fn fn, void *a, void *b )
  * See also: im_malloc() (implemented with im_add_close_callback()),
  * im_add_preclose_callback() (called earlier in the image close process),
  * im_free().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_add_close_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
@@ -140,6 +142,8 @@ im_add_close_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
  *
  * Pre-close callbacks are a good place for languae bindings to break as
  * association between the language object and the VIPS image.
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_add_preclose_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
@@ -171,6 +175,8 @@ im_add_preclose_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
  * and that image will recieve notification instead.
  *
  * See also: im_add_evalend_callback(), im_add_evalstart_callback().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_add_eval_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
@@ -208,6 +214,8 @@ im_add_eval_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
  * and that image will recieve notification instead.
  *
  * See also: im_add_eval_callback(), im_add_evalstart_callback().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_add_evalend_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
@@ -240,6 +248,8 @@ im_add_evalend_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
  * and that image will recieve notification instead.
  *
  * See also: im_add_eval_callback(), im_add_evalend_callback().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_add_evalstart_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
@@ -261,6 +271,8 @@ im_add_evalstart_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
  * removing images from other, higher-level caches.
  *
  * See also: im_invalidate().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_add_invalidate_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )

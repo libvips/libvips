@@ -179,7 +179,7 @@ VImage::VImage( void *buffer, int width, int height,
 	_ref = new refblock;
 
 	if( !(_ref->im = im_image( buffer, width, height, 
-		bands, int( format ) )) )
+		bands, VipsBandFmt( format ) )) )
 		verror();
 	_ref->close_on_delete = 1;
 
@@ -432,19 +432,9 @@ void VImage::initdesc( int x, int y, int b,
 	TBandFmt f, TCoding c, TType t, float xr, float yr, int xo, int yo )
 	throw( VError )
 {
-	static int fmt[] = { 
-		0, 				// NOTSET
-		IM_BBITS_BYTE, IM_BBITS_BYTE,	// uchar/char
-		IM_BBITS_SHORT, IM_BBITS_SHORT,	// ushort/short
-		IM_BBITS_INT, IM_BBITS_INT,	// uint/int
-		IM_BBITS_FLOAT,			// float types ...
-		IM_BBITS_COMPLEX,
-		IM_BBITS_DOUBLE,
-		IM_BBITS_DPCOMPLEX
-	};
-
-	im_initdesc( _ref->im, x, y, b, 
-		fmt[(int)f + 1], f, c, t, xr, yr, xo, yo );
+	im_initdesc( _ref->im, x, y, b, 0, 
+		VipsBandFmt( f ), VipsCoding( c ), VipsType( t ), 
+		xr, yr, xo, yo );
 	if( im_setupout( _ref->im ) )
 		verror();
 }

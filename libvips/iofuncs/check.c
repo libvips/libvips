@@ -543,9 +543,9 @@ im_piocheck( IMAGE *in, IMAGE *out )
  * If not, set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 on OK, or -1 on error.
  */
 int
 im_check_uncoded( const char *domain, IMAGE *im )
@@ -567,9 +567,9 @@ im_check_uncoded( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 on OK, or -1 on error.
  */
 int
 im_check_known_coded( const char *domain, IMAGE *im )
@@ -597,9 +597,9 @@ im_check_known_coded( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 on OK, or -1 on error.
  */
 int
 im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
@@ -624,9 +624,9 @@ im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
  * Otherwise set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_noncomplex( const char *domain, IMAGE *im )
@@ -648,9 +648,9 @@ im_check_noncomplex( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_complex( const char *domain, IMAGE *im )
@@ -673,9 +673,9 @@ im_check_complex( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt )
@@ -698,9 +698,9 @@ im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt )
  * Otherwise set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_mono( const char *domain, IMAGE *im )
@@ -722,9 +722,9 @@ im_check_mono( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_int( const char *domain, IMAGE *im )
@@ -746,9 +746,9 @@ im_check_int( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_u8or16( const char *domain, IMAGE *im )
@@ -773,9 +773,9 @@ im_check_u8or16( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 )
@@ -798,9 +798,9 @@ im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 )
  * If not, set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
@@ -824,9 +824,9 @@ im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
  * If not, set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 )
@@ -850,9 +850,9 @@ im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 )
  * If not, set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_same_coding( const char *domain, IMAGE *im1, IMAGE *im2 )
@@ -876,9 +876,9 @@ im_check_same_coding( const char *domain, IMAGE *im1, IMAGE *im2 )
  * If not, set an error message
  * and return non-zero.
  *
- * Returns: 0 if OK, -1 otherwise.
- *
  * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_vector( const char *domain, int n, IMAGE *im )

@@ -642,9 +642,9 @@ im_generate( IMAGE *im,
  * Use im_prepare() to calculate an area of pixels in-line.
  * Use im_render() to calculate an area of pixels in the background.
  *
- * Returns: 0 on success, or -1 on error
- *
  * See also: im_prepare(), im_render(), im_prepare_to().
+ *
+ * Returns: 0 on success, or -1 on error
  */
 int
 im_prepare_thread( im_threadgroup_t *tg, REGION *or, Rect *r )

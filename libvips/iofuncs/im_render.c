@@ -1062,9 +1062,9 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  * im_prepare() on @out will always block until the pixels have been
  * calculated by the background #im_threadgroup_t.
  *
- * Returns: 0 on sucess, -1 on error.
- *
  * See also: im_cache(), im_prepare().
+ *
+ * Returns: 0 on sucess, -1 on error.
  */
 int
 im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask, 

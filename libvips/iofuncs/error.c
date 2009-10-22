@@ -116,9 +116,9 @@ static VipsBuf im_error_buf = VIPS_BUF_STATIC( im_error_text );
  * Get a pointer to the start of the error buffer as a C string.
  * The string is owned by the error system and must not be freed.
  *
- * Returns: the error buffer as a C string which must not be freed
- *
  * See also: im_error_clear().
+ *
+ * Returns: the error buffer as a C string which must not be freed
  */
 const char *
 im_error_buffer( void )

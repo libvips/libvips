@@ -81,9 +81,9 @@
  * im_writeline(). You need to have set all the image fields, such as @Xsize
  * and @BandFmt, before calling this. 
  *
- * Returns: 0 on success, or -1 on error.
- *
  * See also: im_writeline(), im_generate(), im_initdesc(), im_cp_desc().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_setupout( IMAGE *im )

@@ -43,6 +43,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 int
 main( int argc, char **argv )

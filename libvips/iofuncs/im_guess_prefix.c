@@ -362,9 +362,9 @@ guess_prefix( const char *argv0, const char *name )
  *
  * Don't free the return string!
  * 
- * Returns: the install prefix as a static string, do not free
- *
  * See also: im_guess_libdir().
+ *
+ * Returns: the install prefix as a static string, do not free.
  */
 const char *
 im_guess_prefix( const char *argv0, const char *env_name )
@@ -425,9 +425,9 @@ im_guess_prefix( const char *argv0, const char *env_name )
  *
  * Don't free the return string!
  * 
- * Returns: the libdir as a static string, do not free
- *
  * See also: im_guess_prefix().
+ *
+ * Returns: the libdir as a static string, do not free.
  */
 const char *
 im_guess_libdir( const char *argv0, const char *env_name )

@@ -398,9 +398,9 @@ evalend_cb( Progress *progress )
  *   </listitem>
  * </itemizedlist>
  *
- * Returns: the image descriptor on success and NULL on error.
- *
  * See also: im_close(), #VipsFormat
+ *
+ * Returns: the image descriptor on success and NULL on error.
  */
 IMAGE *
 im_open( const char *filename, const char *mode )

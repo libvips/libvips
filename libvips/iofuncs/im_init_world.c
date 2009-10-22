@@ -117,10 +117,10 @@ GMutex *im__global_lock = NULL;
  * }
  * ]|
  *
- * Returns: 0 on success, -1 otherwise
- *
  * See also: im_get_option_group(), im_version(), im_guess_prefix(),
  * im_guess_libdir().
+ *
+ * Returns: 0 on success, -1 otherwise
  */
 int
 im_init_world( const char *argv0 )
@@ -278,10 +278,10 @@ static GOptionEntry option_entries[] = {
  * command-line options. It  can  be  used  with  GOption  to  help
  * parse argc/argv.
  *
- * Returns: a GOptionGroup for VIPS, see GOption
- *
  * See also: im_version(), im_guess_prefix(),
  * im_guess_libdir(), im_init_world().
+ *
+ * Returns: a GOptionGroup for VIPS, see GOption
  */
 GOptionGroup *
 im_get_option_group( void )

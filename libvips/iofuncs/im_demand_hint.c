@@ -88,9 +88,9 @@ find_least( im_demand_type a, im_demand_type b )
  * for the cache invalidation system. You have to call this function, or its
  * varargs friend im_demand_hint().
  *
- * Returns: 0 on success, or -1 on error.
- *
  * See also: im_demand_hint(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int 
 im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
@@ -149,9 +149,9 @@ im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
  *
  * Build an array and call im_demand_hint_array().
  *
- * Returns: 0 on success, or -1 on error.
- *
  * See also: im_demand_hint(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int 
 im_demand_hint( IMAGE *im, VipsDemandStyle hint, ... )

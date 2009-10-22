@@ -299,9 +299,9 @@
  *   return( -1 );
  * ]|
  *
- * Returns: 0 on sucess, or -1 on error
- *
  * See also: im_open(), im_open_local(), im_local_array().
+ *
+ * Returns: 0 on sucess, or -1 on error
  */
 
 /**
@@ -313,9 +313,9 @@
  * Just like im_open(), but the #IMAGE will be closed for you automatically
  * when @IM is closed.
  *
- * Returns: a new #IMAGE, or NULL on error
- *
  * See also: im_open(), im_close(), im_local().
+ *
+ * Returns: a new #IMAGE, or NULL on error
  */
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.

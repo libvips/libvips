@@ -106,7 +106,8 @@ im__test_kill( IMAGE *im )
 	return( 0 );
 }
 
-/** im_prepare:
+/** 
+ * im_prepare:
  * @reg: region to prepare
  * @r: #Rect of pixels you need to be able to address
  *
@@ -118,11 +119,12 @@ im__test_kill( IMAGE *im )
  * pixels are ready.
  *
  * Use im_prepare_thread() to calculate an area of pixels with many
- * threads. Use im_render() to calculate an area of pixels in the background.
+ * threads. Use im_render_priority() to calculate an area of pixels in the 
+ * background.
  *
- * Returns: 0 on success, or -1 on error
+ * See also: im_prepare_thread(), im_render_priority(), im_prepare_to().
  *
- * See also: im_prepare_thread(), im_render(), im_prepare_to().
+ * Returns: 0 on success, or -1 on error.
  */
 int
 im_prepare( REGION *reg, Rect *r )
@@ -283,9 +285,9 @@ im_prepare_to_generate( REGION *reg, REGION *dest, Rect *r, int x, int y )
  * result, we guarantee that we will fill the pixels in @dest at offset @x, @y.
  * In other words, we generate an extra copy operation if necessary. 
  *
- * Returns: 0 on success, or -1 on error
- *
  * See also: im_prepare().
+ *
+ * Returns: 0 on success, or -1 on error
  */
 int
 im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
