@@ -1,11 +1,4 @@
-/* @(#) Guess a value for install prefix. Pass in argv[0] (or NULL) as a clue,
- * @(#) plus the name of the controlling environment variable (eg. VIPSHOME).
- * @(#)
- * @(#) const char *
- * @(#) im_guess_prefix( const char *argv0, const char *env_name )
- * @(#)
- * @(#) Don't free the string you get back (treat as result of g_getenv()).
- * @(#) The function returns NULL on error.
+/* guess the install prefix
  * 
  * Written on: 5/2/01 
  * Modified on:

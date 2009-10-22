@@ -1,14 +1,4 @@
-/* @(#)  Appends one line of history consisting of a buffer of data,
- * @(#) time, history and CR in history section of the image descriptor
- * @(#)  The history variable list must be declared properly
- * @(#) by the calling function
- * @(#)
- * @(#) int im_histlin(variable_list)
- * @(#)	      (variable_list) is (imagedescriptor, format, arg1, arg2, ...)
- * @(#) format, arg1, arg2, ... are the same as in printf
- * @(#) 
- * @(#)  Returns either 0 (success) or -1 (fail)
- * @(#) 
+/* history handling
  *
  * Copyright: Nicos Dessipris
  * Written on: 16/01/1990

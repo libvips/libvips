@@ -1,7 +1,4 @@
-/* @(#) Initialise the IMAGE to impossible startup values. Install the
- * @(#) filename.
- * @(#) 
- * @(#) IMAGE *im_init( char *filename )
+/* create an IMAGE
  *
  * Copyright: Nicos Dessipris & Kirk Martinez, 1990
  * Written on: 13/02/1990

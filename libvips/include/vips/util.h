@@ -252,6 +252,8 @@ int im_amiMSBfirst( void );
 
 IMAGE *im__open_temp( void );
 
+int im_bits_of_fmt( VipsBandFmt fmt );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

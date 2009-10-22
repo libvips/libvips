@@ -1515,3 +1515,28 @@ im__open_temp( void )
 	return( disc );
 }
 
+static const int bits[] = {
+	IM_BBITS_BYTE,
+	IM_BBITS_BYTE,
+	IM_BBITS_SHORT,
+	IM_BBITS_SHORT,
+	IM_BBITS_INT,
+	IM_BBITS_INT,
+	IM_BBITS_FLOAT,
+	IM_BBITS_COMPLEX,
+	IM_BBITS_DOUBLE,
+	IM_BBITS_DPCOMPLEX
+};
+
+/* Return number of pel bits for band format, or -1 on error.
+ */
+int 
+im_bits_of_fmt( VipsBandFmt fmt )
+{
+	return( fmt < 0 || fmt > IM_BANDFMT_DPCOMPLEX ?
+		im_error( "im_bits_of_fmt", 
+			_( "unsupported band format: %d" ), fmt ),
+		-1 :
+		bits[fmt] );
+}
+

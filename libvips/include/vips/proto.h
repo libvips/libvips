@@ -91,8 +91,6 @@ int im_cp_desc_array( IMAGE *out, IMAGE *in[] );
 int im_setupout( IMAGE * );
 int im_writeline( int, IMAGE *, PEL * );
 
-int im_bits_of_fmt( VipsBandFmt fmt );
-
 int im_unmapfile( IMAGE * );
 void im_initdesc( IMAGE *,
 	int, int, int, int, int, int, int, float, float,
