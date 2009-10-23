@@ -79,9 +79,8 @@
  * fields (see <link linkend="libvips-image">image</link>), then search for 
  * a metadata field of that name (see
  * <link linkend="libvips-meta">meta</link>).
- * If no field of that name is found, it sets an error and returns -1. 
  * Use im_header_get_typeof() to test for the 
- * existance and GType
+ * existance and #GType
  * of a header field.
  *
  * See <link linkend="libvips-meta">meta</link>

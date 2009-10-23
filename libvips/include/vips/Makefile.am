@@ -17,11 +17,11 @@ pkginclude_HEADERS = \
 	almostdeprecated.h \
 	proto.h \
 	image.h \
+	vips \
 	rect.h \
 	region.h \
 	generate.h \
 	memory.h \
-	r_access.h \
 	struct.h \
 	private.h \
 	semaphore.h \
