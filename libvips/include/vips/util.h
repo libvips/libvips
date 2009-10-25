@@ -44,6 +44,11 @@ extern "C" {
  */
 #define IM_PI (3.14159265358979323846)
 
+/* Convert degrees->rads and vice-versa. 
+ */
+#define IM_RAD( r ) (((r) / 360.0) * 2.0 * IM_PI)
+#define IM_DEG( a ) (((a) / (2.0 * IM_PI)) * 360.0)
+
 #define IM_MAX(A,B) ((A)>(B)?(A):(B))
 #define IM_MIN(A,B) ((A)<(B)?(A):(B))
 #define IM_ABS(x) (((x) >= 0) ? (x) : -(x))

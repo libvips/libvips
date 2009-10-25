@@ -59,7 +59,7 @@ EXTRA_HFILES=
 
 # Header files to ignore when scanning. Use base file name, no paths
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES=merge.h debug.h internal.h intl.h CImg.h im_video_v4l1.h global_balance.h dbh.h base64.h templates.h mosaic.h deprecated.h thread.h private.h internal.h almostdeprecated.h fmask.h inlines.h r_access.h struct.h 
+IGNORE_HFILES=merge.h debug.h internal.h intl.h CImg.h im_video_v4l1.h global_balance.h dbh.h base64.h templates.h mosaic.h deprecated.h thread.h private.h internal.h almostdeprecated.h fmask.h inlines.h struct.h disp.h
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png

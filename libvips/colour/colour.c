@@ -23,6 +23,8 @@
  * 	- tiny cleanup for make_hI() prevents cond jump on ui in valgrind
  * 14/3/08
  * 	- more tiny cond jump valgrind fixes
+ * 23/10/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -66,6 +68,19 @@
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/**
+ * SECTION: colour
+ * @short_description: colour operators
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
+ * @include: vips/vips.h
+ *
+ * These operators let you transform images between colour spaces, and move
+ * images to and from device spaces.
+ *
+ * 
+ */
 
 /* Values for IM_TYPE_sRGB.
  */

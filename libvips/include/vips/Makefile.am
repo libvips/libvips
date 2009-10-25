@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
 	generate.h \
 	memory.h \
 	struct.h \
+	disp.h \
 	private.h \
 	semaphore.h \
 	transform.h \

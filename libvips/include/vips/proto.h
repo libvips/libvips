@@ -300,59 +300,6 @@ int im_msb_band ( IMAGE * in, IMAGE * out, int band );
 int im_wrap( IMAGE *in, IMAGE *out, int x, int y );
 int im_vips2raw( IMAGE *in, int fd );
 
-/* colour
- */
-int im_Lab2LCh( IMAGE *, IMAGE * );
-int im_LCh2Lab( IMAGE *, IMAGE * );
-int im_LabQ2XYZ( IMAGE *, IMAGE * );
-int im_rad2float( IMAGE *, IMAGE * );
-int im_float2rad( IMAGE *, IMAGE * );
-int im_LCh2UCS( IMAGE *, IMAGE * );
-int im_Lab2LCh( IMAGE *, IMAGE * );
-int im_Lab2LabQ( IMAGE *, IMAGE * );
-int im_Lab2LabS( IMAGE *, IMAGE * );
-int im_Lab2XYZ( IMAGE *, IMAGE * );
-int im_Lab2XYZ_temp( IMAGE *, IMAGE *, double X0, double Y0, double Z0 );
-int im_Lab2UCS( IMAGE *, IMAGE * );
-int im_LabQ2Lab( IMAGE *, IMAGE * );
-int im_LabQ2LabS( IMAGE *, IMAGE * );
-int im_LabS2LabQ( IMAGE *, IMAGE * );
-int im_LabS2Lab( IMAGE *, IMAGE * );
-int im_UCS2XYZ( IMAGE *, IMAGE * );
-int im_UCS2LCh( IMAGE *, IMAGE * );
-int im_UCS2Lab( IMAGE *, IMAGE * );
-int im_XYZ2Lab( IMAGE *, IMAGE * );
-int im_XYZ2Lab_temp( IMAGE *, IMAGE *, double X0, double Y0, double Z0 );
-int im_XYZ2UCS( IMAGE *, IMAGE * );
-int im_sRGB2XYZ( IMAGE *, IMAGE * );
-int im_XYZ2sRGB( IMAGE *, IMAGE * );
-int im_Yxy2XYZ( IMAGE *, IMAGE * );
-int im_XYZ2Yxy( IMAGE *, IMAGE * );
-
-int im_dECMC_fromLab( IMAGE *, IMAGE *, IMAGE * );
-int im_dE_fromXYZ( IMAGE *, IMAGE *, IMAGE * );
-int im_dE_fromLab( IMAGE *, IMAGE *, IMAGE * );
-
-void imb_Lab2LCh( float *, float *, int );
-void imb_LCh2Lab( float *, float *, int );
-void imb_XYZ2Lab_tables( void );
-void imb_XYZ2Lab( float *, float *, int, im_colour_temperature * );
-void imb_Lab2XYZ( float *, float *, int, im_colour_temperature * );
-void imb_LabQ2Lab( PEL *, float *, int );
-void imb_Lab2LabQ( float *, PEL *, int );
-void imb_LabS2Lab( signed short *, float *, int );
-void imb_Lab2LabS( float *, signed short *, int n );
-
-void im_col_make_tables_UCS( void );
-
-float im_col_dECMC( float, float, float, float, float, float );
-float im_col_dE00( float, float, float, float, float, float );
-
-int im_lab_morph( IMAGE *in, IMAGE *out,
-	DOUBLEMASK *mask,
-	double L_offset, double L_scale,
-	double a_scale, double b_scale );
-
 /* other
  */
 int im_feye( IMAGE *image,
