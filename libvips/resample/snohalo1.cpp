@@ -362,7 +362,7 @@ snohalo1( const double           blur,
     const int shift_forw_1_row = -shift_back_1_row; \
     \
     const int shift_back_2_pix = 2 * shift_back_1_pix; \
-    const int shift_back_2_row = 2 * shift_back_2_row; \
+    const int shift_back_2_row = 2 * shift_back_1_row; \
     \
     const double w = ( 2 * sign_of_relative_x ) * relative_x; \
     const double z = ( 2 * sign_of_relative_y ) * relative_y; \
