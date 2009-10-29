@@ -77,10 +77,82 @@
  * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
  * @include: vips/vips.h
  *
- * These operators let you transform images between colour spaces, and move
- * images to and from device spaces.
+ * These operators let you transform coordinates and images between colour 
+ * spaces, calculate colour differences, and move 
+ * to and from device spaces.
+ */
+
+
+/* Areas under curves for Dxx. 2 degree observer.
+ */
+
+/**
+ * IM_D93_X0:
  *
- * 
+ * Areas under curves for D93, 2 degree observer.
+ */
+
+/**
+ * IM_D75_X0:
+ *
+ * Areas under curves for D75, 2 degree observer.
+ */
+
+/**
+ * IM_D65_X0:
+ *
+ * Areas under curves for D65, 2 degree observer.
+ */
+
+/**
+ * IM_D55_X0:
+ *
+ * Areas under curves for D55, 2 degree observer.
+ */
+
+/**
+ * IM_D50_X0:
+ *
+ * Areas under curves for D50, 2 degree observer.
+ */
+
+/**
+ * IM_A_X0:
+ *
+ * Areas under curves for illuminant A (2856K), 2 degree observer.
+ */
+
+/**
+ * IM_B_X0:
+ *
+ * Areas under curves for illuminant B (4874K), 2 degree observer.
+ */
+
+/**
+ * IM_C_X0:
+ *
+ * Areas under curves for illuminant C (6774K), 2 degree observer.
+ */
+
+/**
+ * IM_E_X0:
+ *
+ * Areas under curves for equal energy illuminant E.
+ */
+
+/**
+ * IM_D3250_X0:
+ *
+ * Areas under curves for black body at 3250K, 2 degree observer.
+ */
+
+/**
+ * im_colour_temperature:
+ * @X0: Area under X
+ * @Y0: Area under Y
+ * @Z0: Area under Z
+ *
+ * Pass colour temperatures to various operations with one of these.
  */
 
 /* Have the tables been made?
@@ -93,7 +165,14 @@ static float LI[ 1001 ];
 static float CI[ 3001 ];
 static float hI[ 101 ][ 361 ];
 
-/* Calculate Ch from ab, h in degrees.
+/**
+ * im_col_ab2Ch:
+ * @a: CIE a* value
+ * @b: CIE b* value
+ * @C: return Chroma
+ * @h: return Hue angle (degrees)
+ *
+ * Calculate Ch from ab, h in degrees.
  */
 void
 im_col_ab2Ch( float a, float b, float *C, float *h )
@@ -107,7 +186,14 @@ im_col_ab2Ch( float a, float b, float *C, float *h )
 	*h = out[2];
 }
 
-/* Calculate ab from Ch, h in degrees.
+/**
+ * im_col_Ch2ab:
+ * @C: Chroma
+ * @h: Hue angle (degrees)
+ * @a: return CIE a* value
+ * @b: return CIE b* value
+ *
+ * Calculate ab from Ch, h in degrees.
  */
 void
 im_col_Ch2ab( float C, float h, float *a, float *b )
@@ -121,7 +207,18 @@ im_col_Ch2ab( float C, float h, float *a, float *b )
 	*b = out[2];
 }
 
-/* Calculate Lab from XYZ.
+/**
+ * im_col_XYZ2Lab:
+ * @X: Input CIE XYZ colour
+ * @Y: 
+ * @Z: 
+ * @L: return CIE Lab value
+ * @a: 
+ * @b: 
+ *
+ * Calculate Lab from XYZ, D65.
+ * 
+ * See also: im_XYZ2Lab_temp().
  */
 void
 im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
@@ -141,7 +238,18 @@ im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
 	*b = out[2];
 }
 
-/* Calculate XYZ from Lab.
+/**
+ * im_col_Lab2XYZ:
+ * @L: Input CIE Lab value
+ * @a: 
+ * @b: 
+ * @X: Return CIE XYZ colour
+ * @Y: 
+ * @Z: 
+ *
+ * Calculate XYZ from Lab, D65.
+ * 
+ * See also: im_Lab2XYZ_temp().
  */
 void
 im_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z )
@@ -161,7 +269,16 @@ im_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z )
 	*Z = out[2];
 }
 
-/* Pythagorean distance between two points in colour space. Lab/XYZ/UCS etc.
+/**
+ * im_col_pythagoras:
+ * @L1: Input coordinate 1
+ * @a1: 
+ * @b1: 
+ * @L2: Input coordinate 2
+ * @a2: 
+ * @b2: 
+ *
+ * Pythagorean distance between two points in colour space. Lab/XYZ/UCS etc.
  */
 float
 im_col_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
@@ -182,7 +299,13 @@ im_col_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
 #define c2 0.3838
 #define c3 38.54
 
-/* Calculate Lucs from L.
+/**
+ * im_col_L2Lucs:
+ * @L: CIE L*
+ *
+ * Calculate Lucs from L.
+ *
+ * Returns: Lucs
  */
 float
 im_col_L2Lucs( float L )
@@ -221,8 +344,14 @@ make_LI( void )
 	}
 }
 
-
-/* Inverse of above using table.
+/**
+ * im_col_Lucs2L:
+ * @L: L ucs
+ *
+ * Calculate L from Lucs using a table. Call im_col_make_tables_UCS() at
+ * least once before using this function.
+ *
+ * Returns: L*
  */
 float
 im_col_Lucs2L( float Lucs )
@@ -246,7 +375,13 @@ im_col_Lucs2L( float Lucs )
 #define c7 0.07216
 #define c8 4.907
 
-/* Calculate Cucs from C.
+/**
+ * im_col_C2Cucs:
+ * @C: Chroma
+ *
+ * Calculate Cucs from C.
+ *
+ * Returns: Cucs.
  */
 float
 im_col_C2Cucs( float C )
@@ -284,7 +419,15 @@ make_CI( void )
 
 }
 
-/* Inverse of above using table.
+/**
+ * im_col_Cucs2C:
+ * @Cucs: Cucs
+ *
+ * Calculate C from Cucs using a table. 
+ * Call im_col_make_tables_UCS() at
+ * least once before using this function.
+ *
+ * Returns: C.
  */
 float
 im_col_Cucs2C( float Cucs )
@@ -300,7 +443,14 @@ im_col_Cucs2C( float Cucs )
 	return( CI[known] + (CI[known+1]-CI[known])*(Cucs*10.0-known) );
 }
 
-/* Calculate hucs from h and C.
+/**
+ * im_col_Ch2hucs:
+ * @C: Chroma
+ * @h: Hue (degrees)
+ *
+ * Calculate hucs from C and h.
+ *
+ * Returns: hucs.
  */
 float
 im_col_Ch2hucs( float C, float h )
@@ -412,7 +562,16 @@ make_hI( void )
 	}
 }
 
-/* Inverse of above, using table.
+/**
+ * im_col_Chucs2h:
+ * @C: Chroma
+ * @hucs: Hue ucs (degrees)
+ *
+ * Calculate h from C and hucs, using a table.
+ * Call im_col_make_tables_UCS() at
+ * least once before using this function.
+ *
+ * Returns: h.
  */
 float
 im_col_Chucs2h( float C, float hucs )
@@ -437,7 +596,10 @@ im_col_Chucs2h( float C, float hucs )
 		(hI[r][(known + 1) % 360] - hI[r][known]) * (hucs - known) );
 }
 
-/* Make the lookup tables for ucs.
+/**
+ * im_col_make_tables_UCS:
+ * 
+ * Make the lookup tables for ucs.
  */
 void
 im_col_make_tables_UCS( void )
@@ -450,7 +612,16 @@ im_col_make_tables_UCS( void )
 	}
 }
 
-/* CMC colour difference using the above.
+/**
+ * im_col_dECMC:
+ * @L1: Input coordinate 1
+ * @a1: 
+ * @b1: 
+ * @L2: Input coordinate 2
+ * @a2: 
+ * @b2: 
+ * 
+ * CMC colour difference from a pair of Lab values.
  */
 float 
 im_col_dECMC( float L1, float a1, float b1, 
@@ -488,7 +659,12 @@ im_col_dECMC( float L1, float a1, float b1,
 	return( im_col_pythagoras( Lucs1, aucs1, bucs1, Lucs2, aucs2, bucs2 ) );
 }
 
-/* Find h in degrees from a/b.
+/**
+ * im_col_ab2h:
+ * @a: CIE a
+ * @b: CIE b
+ *
+ * Returns: Hue (degrees) 
  */
 double
 im_col_ab2h( double a, double b )
@@ -520,11 +696,21 @@ im_col_ab2h( double a, double b )
 	return( h );
 }
 
-/* CIEDE2000 ... from 
-
-Luo, Cui, Rigg, "The Development of the CIE 2000 Colour-Difference 
-Formula: CIEDE2000", COLOR research and application, pp 340
-
+/**
+ * im_col_dE00:
+ * @L1: Input coordinate 1
+ * @a1: 
+ * @b1: 
+ * @L2: Input coordinate 2
+ * @a2: 
+ * @b2: 
+ *
+ * CIEDE2000, from: 
+ * 
+ * Luo, Cui, Rigg, "The Development of the CIE 2000 Colour-Difference 
+ * Formula: CIEDE2000", COLOR research and application, pp 340
+ *
+ * Returns: CIE dE2000 colour difference.
  */
 float 
 im_col_dE00( float L1, float a1, float b1, 

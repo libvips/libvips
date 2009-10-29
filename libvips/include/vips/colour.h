@@ -117,8 +117,10 @@ float im_col_Ch2hucs( float C, float h );
 float im_col_Chucs2h( float C, float hucs );
 double im_col_ab2h( double a, double b );
 
-float im_col_dECMC( float, float, float, float, float, float );
-float im_col_dE00( float, float, float, float, float, float );
+float im_col_dECMC( 
+	float L1, float a1, float b1, float L2, float a2, float b2 );
+float im_col_dE00( 
+	float L1, float a1, float b1, float L2, float a2, float b2 );
 
 int im_Lab2LCh( IMAGE *, IMAGE * );
 int im_LCh2Lab( IMAGE *, IMAGE * );
