@@ -35,3 +35,9 @@ autoconf
 autoheader
 $LIBTOOLIZE --copy --force --automake
 automake --add-missing --copy
+
+swig -version
+if test $?; then
+  echo you need swig to build from SVN
+fi
+
