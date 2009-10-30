@@ -535,3 +535,68 @@ im_col_XYZ2rgb( struct im_col_display *d, struct im_col_tab_disp *table,
 	return( 0 ); 
 } 
 
+/**
+ * im_Lab2disp:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from LabQ (Coding == IM_CODING_LABQ) to XYZ.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_Lab2disp( IMAGE *in, IMAGE *out, struct im_col_display *disp )
+{	
+	IMAGE *t[1];
+
+	if( im_open_local_array( out, t, 1, "im_Lab2disp:1", "p" ) ||
+		im_Lab2XYZ( in, t[0] ) ||
+		im_XYZ2disp( t[0], out, disp ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int 
+im_dECMC_fromdisp( IMAGE *im1, IMAGE *im2, 
+	IMAGE *out, struct im_col_display *d )
+{	
+	IMAGE *t[4];
+
+	if( im_open_local_array( out, t, 4, "im_dECMC_fromdisp:1", "p" ) ||
+		im_disp2XYZ( im1, t[0], d ) ||
+		im_XYZ2Lab( t[0], t[1] ) ||
+		im_disp2XYZ( im2, t[2], d ) ||
+		im_XYZ2Lab( t[2], t[3] ) ||
+		im_dECMC_fromLab( t[1], t[3], out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int 
+im_dE_fromdisp( IMAGE *im1, IMAGE *im2, IMAGE *out, struct im_col_display *d )
+{
+	IMAGE *t[2];
+
+	if( im_open_local_array( out, t, 2, "im_dE_fromdisp:1", "p" ) ||
+		im_disp2XYZ( im1, t[0], d ) ||
+		im_disp2XYZ( im2, t[1], d ) ||
+		im_dE_fromXYZ( t[0], t[1], out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int 
+im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d )
+{
+	IMAGE *t[1];
+
+	if( im_open_local_array( out, t, 1, "im_disp2Lab:1", "p" ) ||
+		im_disp2XYZ( in, t[0], d ) ||
+		im_XYZ2Lab( t[1], out ) )
+		return( -1 );
+	
+	return( 0 );
+}

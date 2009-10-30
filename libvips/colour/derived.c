@@ -6,6 +6,9 @@
  *	- sRGB added
  * 17/6/99 JC
  *	- minor reformatting
+ * 30/10/09
+ * 	- gtkdoc comments
+ * 	- minor cleanups
  */
 
 /*
@@ -48,88 +51,131 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* LabQ to XYZ.
+/**
+ * im_LabQ2XYZ:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from LabQ (Coding == IM_CODING_LABQ) to XYZ.
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int 
 im_LabQ2XYZ( IMAGE *in, IMAGE *out )
 {	
-	IMAGE *t1;
+	IMAGE *t[1];
 
-	if( !(t1 = im_open_local( out, "im_LabQ2XYZ:1", "p" )) ||
-		im_LabQ2Lab( in, t1 ) ||
-		im_Lab2XYZ( t1, out ) )
+	if( im_open_local_array( out, t, 1, "im_LabQ2XYZ:1", "p" ) ||
+		im_LabQ2Lab( in, t[0] ) ||
+		im_Lab2XYZ( t[0], out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
-/* Lab to UCS.
+/**
+ * im_Lab2UCS:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from Lab to UCS.
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int 
 im_Lab2UCS( IMAGE *in, IMAGE *out )
 {	
-	IMAGE *t1;
+	IMAGE *t[1];
 
-	if( !(t1 = im_open_local( out, "im_Lab2UCS:1", "p" )) ||
-		im_Lab2LCh( in, t1 ) ||
-		im_LCh2UCS( t1, out ) )
+	if( im_open_local_array( out, t, 1, "im_Lab2UCS:1", "p" ) ||
+		im_Lab2LCh( in, t[0] ) ||
+		im_LCh2UCS( t[0], out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
+
+/**
+ * im_UCS2Lab:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from UCS to Lab.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_UCS2Lab( IMAGE *in, IMAGE *out )
 {	
-	IMAGE *t1;
+	IMAGE *t[1];
 
-	if( !(t1 = im_open_local( out, "im_UCS2Lab intermediate", "p" )) ||
-		im_UCS2LCh( in, t1 ) ||
-		im_LCh2Lab( t1, out ) )
+	if( im_open_local_array( out, t, 1, "im_UCS2Lab:1", "p" ) ||
+		im_UCS2LCh( in, t[0] ) ||
+		im_LCh2Lab( t[0], out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
+/**
+ * im_UCS2XYZ:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from UCS to XYZ.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_UCS2XYZ( IMAGE *in, IMAGE *out )
 {
-	IMAGE *t1;
+	IMAGE *t[1];
 
-	if( !(t1 = im_open_local( out, "im_UCS2XYZ intermediate", "p" )) ||
-		im_UCS2Lab( in, t1 ) ||
-		im_Lab2XYZ( t1, out ) )
+	if( im_open_local_array( out, t, 1, "im_UCS2XYZ:1", "p" ) ||
+		im_UCS2Lab( in, t[0] ) ||
+		im_Lab2XYZ( t[0], out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
+
+/**
+ * im_XY2UCS:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from XYZ to UCS.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_XYZ2UCS( IMAGE *in, IMAGE *out )
 {	
-	IMAGE *t1;
+	IMAGE *t[1];
 
-	if( !(t1 = im_open_local( out, "im_XYZ2UCS intermediate", "p" )) ||
-		im_XYZ2Lab( in, t1 ) ||
-		im_Lab2UCS( t1, out ) )
+	if( im_open_local_array( out, t, 1, "im_XYZ2UCS:1", "p" ) ||
+		im_XYZ2Lab( in, t[0] ) ||
+		im_Lab2UCS( t[0], out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
-int 
-im_Lab2disp( IMAGE *in, IMAGE *out, struct im_col_display *disp )
-{	
-	IMAGE *t1;
-
-	if( !(t1 = im_open_local( out, "im_Lab2disp:1", "p" )) ||
-		im_Lab2XYZ( in, t1 ) ||
-		im_XYZ2disp( t1, out, disp ) )
-		return( -1 );
-
-	return( 0 );
-}
-
+/**
+ * im_XYZ2sRGB:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from XYZ to sRGB. The conversion is supposed to be quick
+ * rather than accurate. Use an ICC profile with im_icc_transform() for more
+ * precision.
+ *
+ * See also: im_icc_transform.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_XYZ2sRGB( IMAGE *in, IMAGE *out )
 {	
@@ -141,6 +187,20 @@ im_XYZ2sRGB( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
+/**
+ * im_sRGB2XYZ:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from sRGB to XYZ. 
+ * The conversion is supposed to be quick
+ * rather than accurate. Use an ICC profile with im_icc_transform() for more
+ * precision.
+ *
+ * See also: im_icc_transform.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_sRGB2XYZ( IMAGE *in, IMAGE *out )
 {
@@ -150,65 +210,25 @@ im_sRGB2XYZ( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-int 
-im_dECMC_fromdisp( IMAGE *im1, IMAGE *im2, 
-	IMAGE *out, struct im_col_display *d )
-{	
-	IMAGE *t1, *t2, *t3, *t4;
-
-	if( !(t1 = im_open_local( out, "im_dECMC_fromdisp:1", "p" )) ||
-		!(t2 = im_open_local( out, "im_dECMC_fromdisp:2", "p" )) ||
-		!(t3 = im_open_local( out, "im_dECMC_fromdisp:3", "p" )) ||
-		!(t4 = im_open_local( out, "im_dECMC_fromdisp:4", "p" )) ||
-		im_disp2XYZ( im1, t1, d ) ||
-		im_XYZ2Lab( t1, t2 ) ||
-		im_disp2XYZ( im2, t3, d ) ||
-		im_XYZ2Lab( t3, t4 ) ||
-		im_dECMC_fromLab( t2, t4, out ) )
-		return( -1 );
-
-	return( 0 );
-}
-
+/**
+ * im_dE_fromXYZ:
+ * @in: input image
+ * @out: output image
+ *
+ * Calculate CIELAB dE 1976 from a pair of XYZ images. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_dE_fromXYZ( IMAGE *im1, IMAGE *im2, IMAGE *out )
 {	
-	IMAGE *t1, *t2;
+	IMAGE *t[2];
 
-	if( !(t1 = im_open_local( out, "im_dE_fromXYZ:1", "p" )) ||
-		!(t2 = im_open_local( out, "im_dE_fromXYZ:2", "p" )) ||
-		im_XYZ2Lab( im1, t1 ) ||
-		im_XYZ2Lab( im2, t2 ) ||
-		im_dE_fromLab( t1, t2, out ) )
+	if( im_open_local_array( out, t, 2, "im_dE_fromXYZ:1", "p" ) ||
+		im_XYZ2Lab( im1, t[0] ) ||
+		im_XYZ2Lab( im2, t[1] ) ||
+		im_dE_fromLab( t[0], t[1], out ) )
 		return( -1 );
 
-	return( 0 );
-}
-
-int 
-im_dE_fromdisp( IMAGE *im1, IMAGE *im2, IMAGE *out, struct im_col_display *d )
-{
-	IMAGE *t1, *t2;
-
-	if( !(t1 = im_open_local( out, "im_dE_fromdisp:1", "p" )) ||
-		!(t2 = im_open_local( out, "im_dE_fromdisp:2", "p" )) ||
-		im_disp2XYZ( im1, t1, d ) ||
-		im_disp2XYZ( im2, t2, d ) ||
-		im_dE_fromXYZ( t1, t2, out ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-int 
-im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d )
-{
-	IMAGE *t1;
-
-	if( !(t1 = im_open_local( out, "im_disp2Lab:1", "p" )) ||
-		im_disp2XYZ( in, t1, d ) ||
-		im_XYZ2Lab( t1, out ) )
-		return( -1 );
-	
 	return( 0 );
 }

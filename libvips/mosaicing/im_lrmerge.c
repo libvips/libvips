@@ -134,6 +134,7 @@
 #include <vips/vips.h>
 #include <vips/thread.h>
 #include <vips/transform.h>
+#include <vips/internal.h>
 
 #include "merge.h"
 
