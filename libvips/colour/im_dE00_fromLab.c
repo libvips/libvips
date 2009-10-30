@@ -1,14 +1,10 @@
-/* @(#) Calculate dE00 from two Lab images
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_dE00_fromLab( im1, im2, im_out )
- * @(#) 	IMAGE *im1, *im2, *im_out;
- * @(#) 
- * @(#) float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* im_dE00_fromLab.c
+ *
  * 10/10/02 JC
  *	- from dECMC
+ * 30/10/09
+ * 	- add im__colour_binary() and use it
+ * 	- gtkdoc comment
  */
 
 /*
@@ -51,6 +47,36 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* An n-input colour operation. Cast the inputs to three-band float and call.
+ */
+int
+im__colour_binary( const char *domain,
+	IMAGE *in1, IMAGE *in2, int bands, IMAGE *out, 
+	im_wrapmany_fn buffer_fn, void *a, void *b )
+{
+	IMAGE *t[3];
+
+	if( im_check_uncoded( domain, in1 ) ||
+		im_check_uncoded( domain, in2 ) ||
+		im_check_bands( domain, in1, 3 ) ||
+		im_check_bands( domain, in2, 3 ) ||
+		im_check_same_size( domain, in1, in2 ) ||
+		im_open_local_array( out, t, 2, domain, "p" ) ||
+		im_clip2fmt( in1, t[0], IM_BANDFMT_FLOAT ) ||
+		im_clip2fmt( in2, t[1], IM_BANDFMT_FLOAT ) )
+		return( -1 );
+
+	if( im_cp_descv( out, t[0], t[1], NULL ) )
+		return( -1 );
+	out->Bands = bands;
+
+	t[2] = NULL;
+	if( im_wrapmany( t, out, buffer_fn, a, b ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /* Process a buffer.
  */
 void
@@ -75,36 +101,25 @@ imb_dE00_fromLab( float **p, float *q, int n )
 	}
 }
 
+/**
+ * im_dE00_fromLab:
+ * @in1: first input image
+ * @in2: second input image
+ * @out: output image
+ *
+ * Calculate CIE dE00 from two Lab images.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
-im_dE00_fromLab( IMAGE *im1, IMAGE *im2, IMAGE *out )
+im_dE00_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *invec[3];
-
-	/* Check input types.
-	 */
-	if( im1->Bands != 3 || im1->BandFmt != IM_BANDFMT_FLOAT || 
-		im1->Coding != IM_CODING_NONE ||
-		im2->Bands != 3 || im2->BandFmt != IM_BANDFMT_FLOAT || 
-		im2->Coding != IM_CODING_NONE ) {
-		im_error( "im_dE00_fromLab", "%s", _( "3-band float only" ) );
-		return( -1 );
-	}
-
-	/* Prepare the output image 
-	 */
-	if( im_cp_descv( out, im1, im2, NULL ) )
-		return( -1 );
-	out->Bbits = IM_BBITS_FLOAT;
-	out->Bands = 1;
-	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Type = IM_TYPE_B_W;
-
-	/* Do the processing.
-	 */
-	invec[0] = im1; invec[1] = im2; invec[2] = NULL;
-	if( im_wrapmany( invec, out,
+	if( im__colour_binary( "im_dE00_fromLab",
+		in1, in2, 1, out, 
 		(im_wrapmany_fn) imb_dE00_fromLab, NULL, NULL ) )
 		return( -1 );
+
+	out->Type = IM_TYPE_B_W;
 
 	return( 0 );
 }

@@ -587,6 +587,55 @@ im_check_known_coded( const char *domain, IMAGE *im )
 }
 
 /**
+ * im_check_mono:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image has exactly one band.
+ * Otherwise set an error message
+ * and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_mono( const char *domain, IMAGE *im )
+{
+	if( im->Bands != 1 ) {
+		im_error( domain, "%s", _( "image must one band" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * im_check_bands:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ * @bands: must have this many bands
+ *
+ * Check that the image has @bands bands.
+ * Otherwise set an error message
+ * and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_bands( const char *domain, IMAGE *im, int bands )
+{
+	if( im->Bands != bands ) {
+		im_error( domain, _( "image must %d bands" ), bands );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_bands_1orn:
  * @domain: the originating domain for the error message
  * @im1: first image to check
@@ -683,30 +732,6 @@ im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt )
 	if( im->BandFmt != fmt ) {
 		im_error( domain, 
 			_( "image must be %s" ), im_BandFmt2char( fmt ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
-/**
- * im_check_mono:
- * @domain: the originating domain for the error message
- * @im: image to check
- *
- * Check that the image has exactly one band.
- * Otherwise set an error message
- * and return non-zero.
- *
- * See also: im_error().
- *
- * Returns: 0 if OK, -1 otherwise.
- */
-int
-im_check_mono( const char *domain, IMAGE *im )
-{
-	if( im->Bands != 1 ) {
-		im_error( domain, "%s", _( "image must one band" ) );
 		return( -1 );
 	}
 

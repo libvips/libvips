@@ -69,6 +69,7 @@
 - added im_copy_file()
 - added im_insertplaceset()
 - im_insertplace() allows small to be outside big
+- added im__colour_binary(), colour ops now work on any image format
 
 25/3/09 started 7.18.0
 - revised version numbers

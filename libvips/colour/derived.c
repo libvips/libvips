@@ -95,7 +95,6 @@ im_Lab2UCS( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-
 /**
  * im_UCS2Lab:
  * @in: input image
@@ -212,7 +211,8 @@ im_sRGB2XYZ( IMAGE *in, IMAGE *out )
 
 /**
  * im_dE_fromXYZ:
- * @in: input image
+ * @in1: first input image
+ * @in2: second input image
  * @out: output image
  *
  * Calculate CIELAB dE 1976 from a pair of XYZ images. 
@@ -220,13 +220,13 @@ im_sRGB2XYZ( IMAGE *in, IMAGE *out )
  * Returns: 0 on success, -1 on error.
  */
 int 
-im_dE_fromXYZ( IMAGE *im1, IMAGE *im2, IMAGE *out )
+im_dE_fromXYZ( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {	
 	IMAGE *t[2];
 
 	if( im_open_local_array( out, t, 2, "im_dE_fromXYZ:1", "p" ) ||
-		im_XYZ2Lab( im1, t[0] ) ||
-		im_XYZ2Lab( im2, t[1] ) ||
+		im_XYZ2Lab( in1, t[0] ) ||
+		im_XYZ2Lab( in2, t[1] ) ||
 		im_dE_fromLab( t[0], t[1], out ) )
 		return( -1 );
 

@@ -240,12 +240,12 @@ im__bandalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
  * - check in and out
  * - cast in1 and in2 up to a common format
  * - cast the common format to the output format with the supplied table
- * - equalise bands and size
+ * - equalise bands 
  * - run the supplied buffer operation passing one of the up-banded,
  *   up-casted and up-sized inputs as the first param
  */
 int
-im__arith_binary( const char *name, 
+im__arith_binary( const char *domain, 
 	IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	int format_table[10], 
 	im_wrapmany_fn fn, void *b )
@@ -254,14 +254,15 @@ im__arith_binary( const char *name,
 
 	if( im_piocheck( in1, out ) || 
 		im_pincheck( in2 ) ||
-		im_check_bands_1orn( name, in1, in2 ) ||
-		im_check_uncoded( name, in1 ) ||
-		im_check_uncoded( name, in2 ) )
+		im_check_bands_1orn( domain, in1, in2 ) ||
+		im_check_same_size( domain, in1, in2 ) ||
+		im_check_uncoded( domain, in1 ) ||
+		im_check_uncoded( domain, in2 ) )
 		return( -1 );
 
 	/* Cast our input images up to a common format and bands.
 	 */
-	if( im_open_local_array( out, t, 4, "im__arith_binary", "p" ) ||
+	if( im_open_local_array( out, t, 4, domain, "p" ) ||
 		im__formatalike( in1, in2, t[0], t[1] ) ||
 		im__bandalike( t[0], t[1], t[2], t[3] ) )
 		return( -1 );
