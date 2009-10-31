@@ -1,3 +1,8 @@
+- im_disp2XYZ() makes a new set of lookup tables for every call, argh
+
+  maybe use disp->name to get built tables from a hash? I think we can say
+  names need to be unique
+
 - more stuff from util.c? too much to do it all now
 
 - maybe im_insertplaceset() should be im_insertset()? it's not an inplace

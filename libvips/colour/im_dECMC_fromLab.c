@@ -1,14 +1,10 @@
-/* @(#) Calculate dECMC from two Lab images
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_dECMC_fromLab( im1, im2, im_out )
- * @(#) 	IMAGE *im1, *im2, *im_out;
- * @(#) 
- * @(#) float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* im_dECMC_fromLab.c
+ *
  * 5/8/98 JC
  *	- oops, wasn't testing input args correctly
+ * 30/10/09
+ * 	- use im__colour_binary()
+ * 	- gtkdoc comment
  */
 
 /*
@@ -42,10 +38,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <stdio.h>
-#include <math.h>
-
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -75,36 +69,25 @@ imb_dECMC_fromLab( float **p, float *q, int n )
 	}
 }
 
+/**
+ * im_dECMC_fromLab:
+ * @in1: first input image
+ * @in2: second input image
+ * @out: output image
+ *
+ * Calculate dE CMC from two Lab images.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
-im_dECMC_fromLab( IMAGE *im1, IMAGE *im2, IMAGE *out )
+im_dECMC_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *invec[3];
-
-	/* Check input types.
-	 */
-	if( im1->Bands != 3 || im1->BandFmt != IM_BANDFMT_FLOAT || 
-		im1->Coding != IM_CODING_NONE ||
-		im2->Bands != 3 || im2->BandFmt != IM_BANDFMT_FLOAT || 
-		im2->Coding != IM_CODING_NONE ) {
-		im_error( "im_dECMC_fromLab", "%s", _( "3-band float only" ) );
-		return( -1 );
-	}
-
-	/* Prepare the output image 
-	 */
-	if( im_cp_descv( out, im1, im2, NULL ) )
-		return( -1 );
-	out->Bbits = IM_BBITS_FLOAT;
-	out->Bands = 1;
-	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Type = IM_TYPE_B_W;
-
-	/* Do the processing.
-	 */
-	invec[0] = im1; invec[1] = im2; invec[2] = NULL;
-	if( im_wrapmany( invec, out,
+	if( im__colour_binary( "im_dECMC_fromLab",
+		in1, in2, 1, out, 
 		(im_wrapmany_fn) imb_dECMC_fromLab, NULL, NULL ) )
 		return( -1 );
+
+	out->Type = IM_TYPE_B_W;
 
 	return( 0 );
 }

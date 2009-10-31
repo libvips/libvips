@@ -1,15 +1,11 @@
-/* @(#) Calculate dE (CIELAB standard) from two LAB images.
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_dE_fromLab( im1, *im2, im_out )
- * @(#) 	IMAGE		*im1, *im2, *im_out;
- * @(#) 
- * @(#) float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* im_dE_fromLab.c
+ *
  * Modified:
  * 16/11/94 JC
  *	- partialed!
+ * 31/10/09
+ * 	- use im__colour_binary() 
+ * 	- gtkdoc comment
  */
 
 /*
@@ -43,10 +39,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <stdio.h>
-#include <math.h>
-
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -62,56 +56,33 @@ imb_dE_fromLab( float **p, float *q, int n )
 	int x;
 
 	for( x = 0; x < n; x++ ) {
-		float L1 = p1[0];
-		float a1 = p1[1];
-		float b1 = p1[2];
-		float L2 = p2[0];
-		float a2 = p2[1];
-		float b2 = p2[2];
-		float dL, da, db;
+		q[x] = im_col_pythagoras( 
+			p1[0], p1[1], p1[2], p2[0], p2[1], p2[2] );
 
 		p1 += 3;
 		p2 += 3;
-
-		dL = L1 - L2;
-		da = a1 - a2;
-		db = b1 - b2;
-
-		*q++ = sqrt( dL*dL + da*da + db*db );
 	}
 }
 
+/**
+ * im_dE_fromLab:
+ * @in1: first input image
+ * @in2: second input image
+ * @out: output image
+ *
+ * Calculate CIE dE 1976 from two Lab images.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
-im_dE_fromLab( IMAGE *im1, IMAGE *im2, IMAGE *out )
-{	
-	IMAGE *invec[3];
-
-	/* Check input image.
-	 */
-	if( im1->Bands != 3 || im1->BandFmt != IM_BANDFMT_FLOAT || 
-		im1->Coding != IM_CODING_NONE ||
-		im2->Bands != 3 || im2->BandFmt != IM_BANDFMT_FLOAT || 
-		im2->Coding != IM_CODING_NONE ) {
-		im_error( "im_dE_fromLab", "%s", 
-			_( "inputs should be 3 band float") );
-		return( -1 );
-	}
-
-	/* Prepare the output image 
-	 */
-	if( im_cp_descv( out, im1, im2, NULL ) )
-		return( -1 );
-	out->Bbits = IM_BBITS_FLOAT;
-	out->Bands = 1;
-	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Type = IM_TYPE_B_W;
-
-	/* Do the processing.
-	 */
-	invec[0] = im1; invec[1] = im2; invec[2] = NULL;
-	if( im_wrapmany( invec, out,
+im_dE_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	if( im__colour_binary( "im_dE_fromLab",
+		in1, in2, 1, out, 
 		(im_wrapmany_fn) imb_dE_fromLab, NULL, NULL ) )
 		return( -1 );
+
+	out->Type = IM_TYPE_B_W;
 
 	return( 0 );
 }
