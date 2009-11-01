@@ -39,17 +39,11 @@ extern "C" {
 
 #include <vips/semaphore.h>
 
-/* Stack size for each thread. We need to set this explicitly because some
- * systems have a very low default.
-
- 	FIXME ...  should have an environment variable for this?
-
- */
-#define IM__DEFAULT_STACK_SIZE (2 * 1024 * 1024)
-
 /* What we track for each thread.
  */
 typedef struct {
+	/* All private.
+	 */
 	/*< private >*/
 	REGION *reg;		/* Region this thread operates on */
 	struct im__threadgroup_t *tg; /* Thread group we are part of */
@@ -79,6 +73,8 @@ typedef int (*im__work_fn)( im_thread_t *thr,
 /* What we track for a group of threads working together.
  */
 typedef struct im__threadgroup_t {
+	/* All private.
+	 */
 	/*< private >*/
 	int zombie;		/* Set if has been freed */
 

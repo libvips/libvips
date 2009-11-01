@@ -35,6 +35,14 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* Stack size for each thread. We need to set this explicitly because some
+ * systems have a very low default.
+
+ 	FIXME ...  should have an environment variable for this?
+
+ */
+#define IM__DEFAULT_STACK_SIZE (2 * 1024 * 1024)
+
 #ifndef HAVE_THREADS
 #undef g_thread_supported
 #define g_thread_supported() (0)
