@@ -163,9 +163,15 @@ typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );
 int im__wrapscan( IMAGE *in, 
 	im_start_fn start, im__wrapscan_fn scan, im_stop_fn stop,
 	void *a, void *b );
-int im__colour_binary( const char *domain,
-	IMAGE *in1, IMAGE *in2, int bands, IMAGE *out, 
+int im__colour_difference( const char *domain,
+	IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	im_wrapmany_fn buffer_fn, void *a, void *b );
+int im__colour_binary( const char *domain,
+	IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	im_wrapmany_fn buffer_fn, void *a, void *b );
+int im__colour_unary( const char *domain,
+	IMAGE *in, IMAGE *out,
+	im_wrapone_fn buffer_fn, void *a, void *b );
 
 int im__test_kill( IMAGE *im );
 void *im__mmap( int fd, int writeable, size_t length, gint64 offset );

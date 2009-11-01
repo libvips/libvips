@@ -103,7 +103,7 @@ typedef struct {
 /* Colour loading and conversion functions.
  */
 void im_col_ab2Ch( float a, float b, float *C, float *h );
-void im_col_LCh2ab( float L, float C, float h, float *a, float *b );
+void im_col_Ch2ab( float C, float h, float *a, float *b );
 void im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b );
 void im_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z );
 float im_col_pythagoras( float L1, float a1, float b1, 

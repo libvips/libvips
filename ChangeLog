@@ -70,6 +70,7 @@
 - added im_insertplaceset()
 - im_insertplace() allows small to be outside big
 - added im__colour_binary(), colour ops now work on any image format
+- added im_col_display_get_table(), so display tables are now shared by name
 
 25/3/09 started 7.18.0
 - revised version numbers

@@ -41,6 +41,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/vips.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -56,6 +57,10 @@
  * Convert to and from display RGB. These functions are still used by nip2,
  * but most programs will be better off with im_icc_transform() and friends.
  */
+
+/* Tables we've generated, indexed by display name.
+ */
+static GHashTable *im__col_display_tables = NULL;
 
 /* Values for IM_TYPE_sRGB.
  */
@@ -341,6 +346,9 @@ im_col_make_tables_RGB( IMAGE *im, struct im_col_display *d )
 	double **temp;
 	int i, j;
 
+	printf( "im_col_make_tables_RGB: generating table for %s\n", 
+		d->d_name );
+
 	if( !(table = IM_NEW( im, struct im_col_tab_disp )) )
 		return( NULL );
 
@@ -370,15 +378,35 @@ im_col_make_tables_RGB( IMAGE *im, struct im_col_display *d )
 	return( table );
 }
 
+struct im_col_tab_disp *
+im_col_display_get_table( struct im_col_display *d )
+{
+	struct im_col_tab_disp *table;
+
+	if( !im__col_display_tables )
+		im__col_display_tables = g_hash_table_new( 
+			g_str_hash, g_str_equal );
+
+	if( !(table = g_hash_table_lookup( im__col_display_tables, 
+		d->d_name )) ) {
+		table = im_col_make_tables_RGB( NULL, d );
+		g_hash_table_insert( im__col_display_tables, d->d_name, table );
+	}
+
+	return( table );
+}
+
 /* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
  * lookup tables and calculates X, Y, Z.
  */
 int
-im_col_rgb2XYZ( struct im_col_display *d, struct im_col_tab_disp *table,
+im_col_rgb2XYZ( struct im_col_display *d, 
 	int r, int g, int b, float *X, float *Y, float *Z )
 {
-	float Yr, Yg, Yb;
+	struct im_col_tab_disp *table = im_col_display_get_table( d );
 	float *mat = &table->mat_lum2XYZ[0][0];
+
+	float Yr, Yg, Yb;
 	int i;
 
 	if( r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 ) {
@@ -425,12 +453,13 @@ im_col_rgb2XYZ( struct im_col_display *d, struct im_col_tab_disp *table,
  * contain an approximation of the right colour.
  */
 int
-im_col_XYZ2rgb( struct im_col_display *d, struct im_col_tab_disp *table, 
-	float X, float Y, float Z, 
-	int *r_ret, int *g_ret, int *b_ret, 
+im_col_XYZ2rgb( struct im_col_display *d, 
+	float X, float Y, float Z, int *r_ret, int *g_ret, int *b_ret, 
 	int *or_ret )
 {
+	struct im_col_tab_disp *table = im_col_display_get_table( d );
 	float *mat = &table->mat_XYZ2lum[0][0];
+
 	int or = 0;		/* Out of range flag */
 
 	float Yr, Yg, Yb;

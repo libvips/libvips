@@ -59,7 +59,6 @@
  */
 typedef struct {
         struct im_col_display *disp;
-        struct im_col_tab_disp *dtab;
         PEL red[ 64 * 64 * 64 ];
         PEL green[ 64 * 64 * 64 ];
         PEL blue[ 64 * 64 * 64 ];
@@ -130,11 +129,6 @@ im_LabQ2disp_build_table( IMAGE *out, struct im_col_display *d )
         if( !(cal = IM_NEW( out, CalibrateInfo )) )
                 return( NULL );
         cal->disp = d;
-        if( !(cal->dtab = im_col_make_tables_RGB( out, d ) ) ) {
-		if( !out )
-			im_free( cal );
-                return( NULL );
-	}
 
         /* Build our tables.
          */
@@ -156,7 +150,7 @@ im_LabQ2disp_build_table( IMAGE *out, struct im_col_display *d )
 
                                 /* Convert to display. 
                                  */
-                                im_col_XYZ2rgb( cal->disp, cal->dtab,
+                                im_col_XYZ2rgb( cal->disp, 
                                         X, Y, Z, &rb, &gb, &bb, &oflow );
 
 				/* Save RGB.

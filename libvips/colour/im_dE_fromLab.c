@@ -77,12 +77,7 @@ imb_dE_fromLab( float **p, float *q, int n )
 int 
 im_dE_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	if( im__colour_binary( "im_dE_fromLab",
-		in1, in2, 1, out, 
-		(im_wrapmany_fn) imb_dE_fromLab, NULL, NULL ) )
-		return( -1 );
-
-	out->Type = IM_TYPE_B_W;
-
-	return( 0 );
+	return( im__colour_difference( "im_dE_fromLab",
+		in1, in2, out, 
+		(im_wrapmany_fn) imb_dE_fromLab, NULL, NULL ) );
 }

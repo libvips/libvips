@@ -59,8 +59,7 @@
 /* Convert a buffer.
  */
 void
-imb_disp2XYZ( PEL *p, float *q, int n, 
-	struct im_col_display *d, struct im_col_tab_disp *table )
+imb_disp2XYZ( PEL *p, float *q, int n, struct im_col_display *d )
 {
 	int x;
 
@@ -71,7 +70,7 @@ imb_disp2XYZ( PEL *p, float *q, int n,
 		float X, Y, Z;
 		p += 3;
 
-		im_col_rgb2XYZ(d, table, r, g, b, &X, &Y, &Z);
+		im_col_rgb2XYZ( d, r, g, b, &X, &Y, &Z );
 
 		q[0] = X;
 		q[1] = Y;
@@ -83,8 +82,6 @@ imb_disp2XYZ( PEL *p, float *q, int n,
 int 
 im_disp2XYZ( IMAGE *in, IMAGE *out, struct im_col_display *d )
 {	
-	struct im_col_tab_disp *table; /* pointer to the lookup tables */
-
 	/* Check input image.
 	 */
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_UCHAR || 
@@ -102,14 +99,10 @@ im_disp2XYZ( IMAGE *in, IMAGE *out, struct im_col_display *d )
 	out->BandFmt = IM_BANDFMT_FLOAT;
 	out->Type = IM_TYPE_XYZ;
 
-	/* Prepare the lookup tables
-	 */
-	table = im_col_make_tables_RGB( out, d );
-
 	/* Do the processing.
 	 */
 	if( im_wrapone( in, out,
-		(im_wrapone_fn) imb_disp2XYZ, d, table ) )
+		(im_wrapone_fn) imb_disp2XYZ, d, NULL ) )
 		return( -1 );
 
 	return( 0 );

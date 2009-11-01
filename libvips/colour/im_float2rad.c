@@ -1,4 +1,5 @@
 /* Convert float to Radiance 32bit packed format
+ *
  * 23/3/09
  * 	- from im_rad2float and Radiance sources
  */
@@ -180,26 +181,33 @@ float2rad( COLOR *inp, COLR *outbuf, int n )
 	}
 }
 
+/**
+ * im_float2rad:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert float to Radiance 32bit packed format.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_float2rad( IMAGE *in, IMAGE *out )
 {
-	/* Must be 3-band float.
-	 */
-	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT ||
-		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_float2rad", "%s",
-			_( "3-band float uncoded only" ) );
-		return( -1 );
-	}
+	IMAGE *t[1];
 
-	if( im_cp_desc( out, in ) )
+	if( im_check_uncoded( "im_float2rad", in ) ||
+		im_check_bands( "im_float2rad", in, 3 ) ||
+		im_open_local_array( out, t, 1, "im_float2rad", "p" ) ||
+		im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) )
+		return( -1 );
+
+	if( im_cp_desc( out, t[0] ) )
 		return( -1 );
 	out->Bands = 4;
 	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
 	out->Coding = IM_CODING_RAD;
 
-	if( im_wrapone( in, out, 
+	if( im_wrapone( t[0], out, 
 		(im_wrapone_fn) float2rad, NULL, NULL ) )
 		return( -1 );
 

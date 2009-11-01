@@ -50,6 +50,8 @@ enum im_col_disp_type {
  * papers for details on the fields.
  */
 struct im_col_display {
+	/* All private.
+	 */
 	/*< private >*/
 	char *d_name;			/* Display name */
 	enum im_col_disp_type d_type;	/* Display type */
@@ -77,6 +79,8 @@ struct im_col_display {
  * Also holds the luminance to XYZ matrix and the inverse one.
  */
 struct im_col_tab_disp {
+	/* All private.
+	 */
 	/*< private >*/
 	float	t_Yr2r[1501];		/* Conversion of Yr to r */
 	float	t_Yg2g[1501];		/* Conversion of Yg to g */
@@ -93,21 +97,22 @@ struct im_col_tab_disp {
 struct im_col_tab_disp *im_col_make_tables_RGB( 
 	IMAGE *im,
 	struct im_col_display *d );
+struct im_col_tab_disp *im_col_display_get_table( struct im_col_display *d );
+
 int im_col_rgb2XYZ( struct im_col_display *d, 
-	struct im_col_tab_disp *table, 
 	int r, int g, int b, 
 	float *X, float *Y, float *Z );
 int im_col_XYZ2rgb( 
-	struct im_col_display *d, struct im_col_tab_disp *table, 
+	struct im_col_display *d, 
 	float X, float Y, float Z, 
 	int *r_ret, int *g_ret, int *b_ret, 
 	int *or_ret );
 
-int im_XYZ2disp( IMAGE *, IMAGE *, struct im_col_display * );
-int im_Lab2disp( IMAGE *, IMAGE *, struct im_col_display * );
-int im_LabQ2disp( IMAGE *, IMAGE *, struct im_col_display * );
-int im_disp2XYZ( IMAGE *, IMAGE *, struct im_col_display * );
-int im_disp2Lab( IMAGE *, IMAGE *, struct im_col_display * );
+int im_XYZ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d );
+int im_Lab2disp( IMAGE *in, IMAGE *out, struct im_col_display *d );
+int im_LabQ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d );
+int im_disp2XYZ( IMAGE *in, IMAGE *out, struct im_col_display *d );
+int im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d );
 
 /* Colour display values and arrays
 	&im_col_screen_white,	index 0
@@ -119,14 +124,16 @@ int im_disp2Lab( IMAGE *, IMAGE *, struct im_col_display * );
 	&ultra2,		index 6 
 	&srgb_profile,		index 7 
  */
-struct im_col_display *im_col_displays( int );
-struct im_col_display *im_col_display_name( const char * );
+struct im_col_display *im_col_displays( int n );
+struct im_col_display *im_col_display_name( const char *name );
 
 void *im_LabQ2disp_build_table( IMAGE *out, struct im_col_display *d );
 int im_LabQ2disp_table( IMAGE *in, IMAGE *out, void *table );
 
-int im_dE_fromdisp( IMAGE *, IMAGE *, IMAGE *, struct im_col_display * );
-int im_dECMC_fromdisp( IMAGE *, IMAGE *, IMAGE *, struct im_col_display * );
+int im_dE_fromdisp( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	struct im_col_display *d );
+int im_dECMC_fromdisp( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	struct im_col_display *d );
 
 #ifdef __cplusplus
 }

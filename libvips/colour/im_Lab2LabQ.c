@@ -25,6 +25,9 @@
  *	- go int earlier for speed up
  * 20/6/02 JC
  *	- oops, were not clipping a/b range correctly
+ * 1/11/09
+ *	- gtkdoc
+ *	- cleanups
  */
 
 /*
@@ -125,34 +128,24 @@ imb_Lab2LabQ( float *inp, unsigned char *outbuf, int n )
 }
 
 int
-im_Lab2LabQ( IMAGE *labim, IMAGE *outim )
+im_Lab2LabQ( IMAGE *in, IMAGE *out )
 {
-	/* Check for uncoded Lab type 
-	 */
-	if( labim->Coding != IM_CODING_NONE ) {
-		im_error( "im_Lab2LabQ", "%s", 
-			_( "uncoded input only" ) );
-		return( -1 );
-	}
-	if( labim->BandFmt != IM_BANDFMT_FLOAT || labim->Bands != 3 ) {
-		im_error( "im_Lab2LabQ", "%s", 
-			_( "three-band float input only" ) );
-		return( -1 );
-	}
+	IMAGE *t[1];
 
-	/* Set up output image.
-	 */
-	if( im_cp_desc( outim, labim ) ) 
+	if( im_check_uncoded( "im_Lab2LabQ", in ) ||
+		im_check_bands( "im_Lab2LabQ", in, 3 ) ||
+		im_open_local_array( out, t, 1, "im_Lab2LabQ", "p" ) ||
+		im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) )
 		return( -1 );
-	outim->Bands = 4;
-	outim->Type = IM_TYPE_LAB;
-	outim->BandFmt = IM_BANDFMT_UCHAR;
-	outim->Bbits = 8;
-	outim->Coding = IM_CODING_LABQ;
 
-	/* Process.
-	 */
-	if( im_wrapone( labim, outim, 
+	if( im_cp_desc( out, t[0] ) )
+		return( -1 );
+	out->Bands = 4;
+	out->Type = IM_TYPE_LAB;
+	out->BandFmt = IM_BANDFMT_UCHAR;
+	out->Coding = IM_CODING_LABQ;
+
+	if( im_wrapone( t[0], out, 
 		(im_wrapone_fn) imb_Lab2LabQ, NULL, NULL ) )
 		return( -1 );
 

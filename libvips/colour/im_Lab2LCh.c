@@ -1,12 +1,4 @@
-/* @(#) Turn Lab to LCh
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_Lab2LCh( imagein, imageout )
- * @(#) 	IMAGE *imagein, *imageout;
- * @(#) 
- * @(#) Float in, float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* Turn Lab to LCh
  */
 
 /*
@@ -75,29 +67,46 @@ imb_Lab2LCh( float *p, float *q, int n )
 	}
 }
 
+int
+im__colour_unary( const char *domain,
+	IMAGE *in, IMAGE *out,
+	im_wrapone_fn buffer_fn, void *a, void *b )
+{
+	IMAGE *t[1];
+
+	if( im_check_uncoded( domain, in ) ||
+		im_check_bands( domain, in, 3 ) ||
+		im_open_local_array( out, t, 1, domain, "p" ) ||
+		im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) )
+		return( -1 );
+
+	if( im_cp_desc( out, t[0] ) )
+		return( -1 );
+
+	if( im_wrapone( t[0], out, 
+		(im_wrapone_fn) buffer_fn, a, b ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * im_Lab2LCh:
+ * @in: input image
+ * @out: output image
+ *
+ * Turn Lab to LCh.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_Lab2LCh( IMAGE *in, IMAGE *out )
-{	
-	/* Check input image.
-	 */
-	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
-		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_Lab2LCh", "%s", 
-			_( "3-band uncoded float input only" ) );
-		return( -1 ); 
-	}
-
-	/* Prepare the output image 
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Type = IM_TYPE_LCH;
-
-	/* Process!
-	 */
-	if( im_wrapone( in, out, 
+{
+	if( im__colour_unary( "im_Lab2LCh", in, out, 
 		(im_wrapone_fn) imb_Lab2LCh, NULL, NULL ) )
 		return( -1 );
+
+	out->Type = IM_TYPE_LCH;
 
 	return( 0 );
 }

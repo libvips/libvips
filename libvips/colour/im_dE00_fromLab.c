@@ -45,11 +45,11 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* An n-input colour operation. Cast the inputs to three-band float and call.
+/* A colour difference operation.
  */
 int
-im__colour_binary( const char *domain,
-	IMAGE *in1, IMAGE *in2, int bands, IMAGE *out, 
+im__colour_difference( const char *domain,
+	IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	im_wrapmany_fn buffer_fn, void *a, void *b )
 {
 	IMAGE *t[3];
@@ -66,7 +66,8 @@ im__colour_binary( const char *domain,
 
 	if( im_cp_descv( out, t[0], t[1], NULL ) )
 		return( -1 );
-	out->Bands = bands;
+	out->Bands = 1;
+	out->Type = IM_TYPE_B_W;
 
 	t[2] = NULL;
 	if( im_wrapmany( t, out, buffer_fn, a, b ) )
@@ -112,12 +113,7 @@ imb_dE00_fromLab( float **p, float *q, int n )
 int 
 im_dE00_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	if( im__colour_binary( "im_dE00_fromLab",
-		in1, in2, 1, out, 
-		(im_wrapmany_fn) imb_dE00_fromLab, NULL, NULL ) )
-		return( -1 );
-
-	out->Type = IM_TYPE_B_W;
-
-	return( 0 );
+	return( im__colour_difference( "im_dE00_fromLab",
+		in1, in2, out, 
+		(im_wrapmany_fn) imb_dE00_fromLab, NULL, NULL ) );
 }

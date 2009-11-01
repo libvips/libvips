@@ -68,13 +68,14 @@
 /* Process a buffer of data.
  */
 void
-imb_XYZ2disp( float *p, PEL *q, int n, 
-	struct im_col_tab_disp *table, struct im_col_display *d )
-{		
-	int x;
+imb_XYZ2disp( float *p, PEL *q, int n, struct im_col_display *d )
+{
+	struct im_col_tab_disp *table = im_col_display_get_table( d );
 	float rstep = (d->d_YCR - d->d_Y0R) / 1500.0;
 	float gstep = (d->d_YCG - d->d_Y0G) / 1500.0;
 	float bstep = (d->d_YCB - d->d_Y0B) / 1500.0;
+
+	int x;
 
 	for( x = 0; x < n; x++ ) {
 		float Yr, Yg, Yb;
@@ -133,8 +134,6 @@ imb_XYZ2disp( float *p, PEL *q, int n,
 int 
 im_XYZ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d )
 {	
-	struct im_col_tab_disp *table;
-
 	/* Check input image.
 	 */
 	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
@@ -150,15 +149,10 @@ im_XYZ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d )
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Type = IM_TYPE_RGB;
 
-	/* Build the lookup tables
-	 */
-	if( !(table = im_col_make_tables_RGB( out, d )) )
-		return( -1 );
-
 	/* Do the processing.
 	 */
 	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_XYZ2disp, table, d ) )
+		(im_wrapone_fn) imb_XYZ2disp, d, NULL ) )
 		return( -1 );
 
 	return( 0 );
