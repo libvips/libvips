@@ -127,6 +127,17 @@ imb_Lab2LabQ( float *inp, unsigned char *outbuf, int n )
 	}
 }
 
+/**
+ * im_Lab2LabQ:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert a Lab three-band float image to LabQ (#IM_CODING_LABQ).
+ *
+ * See also: im_LabQ2Lab().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_Lab2LabQ( IMAGE *in, IMAGE *out )
 {

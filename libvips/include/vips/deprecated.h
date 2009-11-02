@@ -321,6 +321,11 @@ int im_similarity_area( IMAGE *in, IMAGE *out,
 	double a, double b, double dx, double dy,
 	int ox, int oy, int ow, int oh );
 
+/* colour
+ */
+int im_icc_export( IMAGE *in, IMAGE *out, 
+	const char *output_profile_filename, VipsIntent intent );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

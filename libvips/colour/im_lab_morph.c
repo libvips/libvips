@@ -1,28 +1,10 @@
-/* Morph a lab image ... adjust:
- * 	
- * - cast 
- *	Pass in a MASK containing CIELAB readings for a neutral greyscale ...
- *	eg.
+/* Morph a lab image.
  *
- *		3 4
- *		14.23   4.8     -3.95
- *		18.74   2.76    -2.62
- *		23.46   1.4     -1.95
- *		27.53   1.76    -2.01
- *
- *	interpolation from this makes cast corrector ... interpolate top and
- *	tail towards [0,0,0] and [100,0,0] ... can be in any order (ie. need 
- *	not be sorted on L*)
- *
- * - L* 
- *	Pass in scale and offset for L* ... L*' = (L* + offset) * scale
- *
- * - saturation
- *	scale a and b by these amounts ... eg. 1.5 increases saturation ...
- *	useful for some gammut mapping
- *
- * Find the top two by generating and printing a greyscale ... find the bottom
- * by printing a Macbeth and looking at a/b spread
+ * 8/3/01
+ * 	- added
+ * 2/11/09
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -62,6 +44,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -74,7 +57,6 @@ typedef struct {
 
 	double a_offset[101], b_offset[101];
 	double a_scale, b_scale;
-
 } Params;
 
 static int
@@ -161,48 +143,116 @@ morph_init( Params *parm,
 	return( 0 );
 }
 
-#define loop( TYPE ) \
-{ \
-	TYPE *p = (TYPE *) in; \
-	TYPE *q = (TYPE *) out; \
- 	\
-	for( x = 0; x < width; x++ ) { \
-		double L = p[0]; \
-		double a = p[1]; \
-		double b = p[2]; \
- 		\
-		L = IM_CLIP( 0, L, 100 ); \
-		a -= parm->a_offset[(int) L]; \
-		b -= parm->b_offset[(int) L]; \
- 		\
-		L = (L + parm->L_offset) * parm->L_scale; \
-		L = IM_CLIP( 0, L, 100 ); \
- 		\
-		a *= parm->a_scale; \
-		b *= parm->b_scale; \
- 		\
-		q[0] = L; \
-		q[1] = a; \
-		q[2] = b; \
- 		\
-		p += 3; \
-		q += 3; \
-	} \
-}
-
 static void
 morph_buffer( float *in, float *out, int width, Params *parm )
 {
 	int x;
 
-	switch( parm->in->BandFmt ) {
-	case IM_BANDFMT_FLOAT:	loop( float ); break;
-	case IM_BANDFMT_DOUBLE:	loop( double ); break;
-	default: assert( 0 );
-	}
+	for( x = 0; x < width; x++ ) { 
+		double L = in[0]; 
+		double a = in[1]; 
+		double b = in[2]; 
+ 		
+		L = IM_CLIP( 0, L, 100 ); 
+		a -= parm->a_offset[(int) L]; 
+		b -= parm->b_offset[(int) L]; 
+ 		
+		L = (L + parm->L_offset) * parm->L_scale; 
+		L = IM_CLIP( 0, L, 100 ); 
+
+		a *= parm->a_scale; 
+		b *= parm->b_scale; 
+ 
+		out[0] = L; 
+		out[1] = a; 
+		out[2] = b; 
+
+		in += 3; 
+		out += 3; 
+	} 
 }
 
-/* Morph an image.
+/**
+ * im_lab_morph:
+ * @in: input image
+ * @out: output image
+ * @mask: cast correction table
+ * @L_offset: L adjustment
+ * @L_scale: L adjustment
+ * @a_scale: a scale
+ * @b_scale: b scale
+ *
+ * Morph an image in CIELAB colour space. Useful for certain types of gamut
+ * mapping, or correction of greyscales on some printers.
+ *
+ * We perform three adjustments:
+ * 	
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ *       <emphasis>cast</emphasis>
+ *
+ * Pass in @mask containing CIELAB readings for a neutral greyscale. For
+ * example:
+ *
+ * <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+ *   <tbody>
+ *     <row>
+ *       <entry>3</entry>
+ *       <entry>4</entry>
+ *     </row>
+ *     <row>
+ *       <entry>14.23</entry>
+ *       <entry>4.8</entry>
+ *       <entry>-3.95</entry>
+ *     </row>
+ *     <row>
+ *       <entry>18.74</entry>
+ *       <entry>2.76</entry>
+ *       <entry>-2.62</entry>
+ *     </row>
+ *     <row>
+ *       <entry>23.46</entry>
+ *       <entry>1.4</entry>
+ *       <entry>-1.95</entry>
+ *     </row>
+ *     <row>
+ *       <entry>27.53</entry>
+ *       <entry>1.76</entry>
+ *       <entry>-2.01</entry>
+ *     </row>
+ *   </tbody>
+ * </tgroup>
+ *
+ * Interpolation from this makes cast corrector. The top and tail are
+ * interpolated towards [0, 0, 0] and [100, 0, 0], intermediate values are 
+ * interpolated along straight lines fitted between the specified points. 
+ * Rows may be in any order (ie. they need not be sorted on L*).
+ *
+ * Each pixel is displaced in a/b by the amount specified for that L in the
+ * table.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis>L*</emphasis>
+ *	
+ * Pass in scale and offset for L. L' = (L + offset) * scale.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis>saturation</emphasis>
+ *
+ * scale a and b by these amounts, eg. 1.5 increases saturation. 
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * Find the top two by generating and printing a greyscale. Find the bottom
+ * by printing a Macbeth and looking at a/b spread
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_lab_morph( IMAGE *in, IMAGE *out,
@@ -215,33 +265,16 @@ im_lab_morph( IMAGE *in, IMAGE *out,
         /* Recurse for coded images.
          */
 	if( in->Coding == IM_CODING_LABQ ) {
-		IMAGE *t1 = im_open_local( out, "im_lab_morph:1", "p" );
-		IMAGE *t2 = im_open_local( out, "im_lab_morph:2", "p" );
+		IMAGE *t[2];
 
-		if( !t1 || !t2 ||
-			im_LabQ2Lab( in, t1 ) ||
-			im_lab_morph( t1, t2, 
+		if( im_open_local_array( out, t, 2, "im_lab_morph", "p" ) ||
+			im_LabQ2Lab( in, t[0] ) ||
+			im_lab_morph( t[0], t[1], 
 				mask, L_offset, L_scale, a_scale, b_scale ) ||
-			im_Lab2LabQ( t2, out ) )
+			im_Lab2LabQ( t[1], out ) )
 			return( -1 );
 
 		return( 0 );
-	}
-
-        if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_lab_morph", "%s", 
-			_( "must be uncoded or IM_CODING_LABQ" ) ); 
-		return( -1 );
-	}
-	if( in->BandFmt != IM_BANDFMT_FLOAT && in->BandFmt != IM_BANDFMT_DOUBLE ) {
-		im_error( "im_lab_morph", "%s", 
-			_( "must be uncoded float or double" ) );
-		return( -1 );
-	}
-	if( in->Bands != 3 ) {
-		im_error( "im_lab_morph", "%s", 
-			_( "must be 3 bands" ) ); 
-		return( -1 );
 	}
 
 	if( !(parm = IM_NEW( out, Params )) ||
@@ -249,13 +282,6 @@ im_lab_morph( IMAGE *in, IMAGE *out,
 			in, out, L_scale, L_offset, mask, a_scale, b_scale ) ) 
 		return( -1 );
 
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Type = IM_TYPE_LAB;
-
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) morph_buffer, parm, NULL ) )
-		return( -1 );
-
-        return( 0 );
+	return( im__colour_unary( "im_lab_morph", in, out, IM_TYPE_LAB,
+		(im_wrapone_fn) morph_buffer, parm, NULL ) );
 }

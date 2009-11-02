@@ -1,8 +1,4 @@
-/* @(#) im_LabS2LabQ() - convert short LAB format to IM_CODING_LABQ.
- * @(#) 
- * @(#) int im_LabS2LabQ( IMAGE *in, IMAGE *out )
- * @(#) 
- * @(#) 
+/* im_LabS2LabQ()
  *
  * 17/11/93 JC
  * 	- adapted from im_LabQ2LabS()
@@ -15,6 +11,8 @@
  *	- somewhat slower ...
  * 21/12/99 JC
  * 	- a/b ==0 rounding was broken
+ * 2/11/09
+ * 	- gtkdoc, cleanup
  */
 
 /*
@@ -119,21 +117,27 @@ imb_LabS2LabQ( signed short *in, unsigned char *out, int n )
 	}
 }
 
+/**
+ * im_LabS2LabQ:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert a LabS three-band signed short image to LabQ
+ *
+ * See also: im_LabQ2LabS().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_LabS2LabQ( IMAGE *in, IMAGE *out )
 {
-	/* Check type.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_LabS2LabQ", "%s", 
-			_( "not an uncoded image" ) );
+	IMAGE *t[1];
+
+	if( im_check_uncoded( "im_LabS2LabQ", in ) ||
+		im_check_bands( "im_LabS2LabQ", in, 3 ) ||
+		im_open_local_array( out, t, 1, "im_LabS2LabQ", "p" ) ||
+		im_clip2fmt( in, t[0], IM_BANDFMT_SHORT ) )
 		return( -1 );
-	}
-	if( in->BandFmt != IM_BANDFMT_SHORT || in->Bands != 3 ) {
-		im_error( "im_LabS2LabQ", "%s", 
-			_( "not a 3-band signed short image" ) );
-		return( -1 );
-	}
 
 	/* Set up output image 
 	 */
@@ -142,7 +146,6 @@ im_LabS2LabQ( IMAGE *in, IMAGE *out )
 	out->Bands = 4;
 	out->Type = IM_TYPE_LAB;
 	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Bbits = 8;
 	out->Coding = IM_CODING_LABQ;
 
 	if( im_wrapone( in, out, 

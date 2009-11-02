@@ -1,15 +1,11 @@
-/* @(#) Turn XYZ to Yxy colourspace. 
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_XYZ2Yxy( imagein, imageout )
- * @(#) 	IMAGE *imagein, *imageout;
- * @(#) 
- * @(#) Float in, float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* Turn XYZ to Yxy colourspace. 
+ *
  * Modified:
  * 29/5/02 JC
  *	- from lab2xyz
+ * 2/11/09
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -47,6 +43,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -79,24 +76,19 @@ imb_XYZ2Yxy( float *p, float *q, int n )
 	}
 }
 
+/**
+ * im_XYZ2Yxy:
+ * @in: input image
+ * @out: output image
+ *
+ * Turn XYZ to Yxy.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_XYZ2Yxy( IMAGE *in, IMAGE *out )
 {	
-	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
-		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_XYZ2Yxy", "%s", 
-			_( "3-band uncoded float input only" ) );
-		return( -1 );
-	}
-
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Type = IM_TYPE_YXY;
-
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_XYZ2Yxy, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__colour_unary( "im_XYZ2Yxy", in, out, IM_TYPE_YXY,
+		(im_wrapone_fn) imb_XYZ2Yxy, NULL, NULL ) );
 }
 

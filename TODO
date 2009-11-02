@@ -1,3 +1,6 @@
+- poor SMP scaling in benchmark
+
+  avg is different? used to 120.134, now 120.151
 
 - more stuff from util.c? too much to do it all now
 

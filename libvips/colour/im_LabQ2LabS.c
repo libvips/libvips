@@ -1,9 +1,4 @@
-/* @(#) im_LabQ2LabS() - convert IM_CODING_LABQ format to three band signed short. 
- * @(#) Justify to get msb in bit 15. 
- * @(#) 
- * @(#) int im_LabQ2LabS( IMAGE *in, IMAGE *out )
- * @(#) 
- * @(#) 
+/* im_LabQ2LabS
  *
  * 17/11/93 JC
  * 	- adapted from im_LabQ2Lab()
@@ -11,6 +6,8 @@
  *	- uses new im_wrap_oneonebuf() fn
  * 9/2/95 JC
  *	- new im_wrapone function
+ * 2/11/09
+ * 	- gtkdoc
  */
 
 /*
@@ -90,17 +87,23 @@ imb_LabQ2LabS( unsigned char *in, signed short *out, int n )
 	}
 }
 
-/* unpack a Lab32 ie 10,11,11 Lab image into signed short image
-this is a wrapper around the buffer processing function
-(C) K.Martinez 2/5/93
-*/
-
+/**
+ * im_LabQ2LabS:
+ * @in: input image
+ * @out: output image
+ *
+ * Unpack a LabQ (#IM_CODING_LABQ) image to a three-band signed short image.
+ *
+ * See also: im_LabS2LabQ(), im_LabQ2Lab(), im_rad2float().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
-im_LabQ2LabS( IMAGE *labim, IMAGE *outim )
+im_LabQ2LabS( IMAGE *in, IMAGE *out )
 {
 	/* check for coded Lab type 
 	 */
-	if( labim->Coding != IM_CODING_LABQ ) {
+	if( in->Coding != IM_CODING_LABQ ) {
 		im_error( "im_LabQ2LabS", "%s", 
 			_( "not a packed Lab image" ) );
 		return( -1 );
@@ -108,17 +111,16 @@ im_LabQ2LabS( IMAGE *labim, IMAGE *outim )
 
 	/* set up output image 
 	 */
-	if( im_cp_desc( outim, labim ) )
+	if( im_cp_desc( out, in ) )
 		return( -1 );
-	outim->Bands = 3;
-	outim->Type = IM_TYPE_LABS;
-	outim->BandFmt = IM_BANDFMT_SHORT;
-	outim->Bbits = IM_BBITS_SHORT;
-	outim->Coding = IM_CODING_NONE;
+	out->Bands = 3;
+	out->Type = IM_TYPE_LABS;
+	out->BandFmt = IM_BANDFMT_SHORT;
+	out->Coding = IM_CODING_NONE;
 
 	/* Produce output.
 	 */
-	if( im_wrapone( labim, outim, 
+	if( im_wrapone( in, out, 
 		(im_wrapone_fn) imb_LabQ2LabS, NULL, NULL ) )
 		return( -1 );
 

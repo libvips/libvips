@@ -42,6 +42,184 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: colour
+ * @short_description: colour operators
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
+ * @include: vips/vips.h
+ *
+ * These operators let you transform coordinates and images between colour 
+ * spaces, calculate colour differences, and move 
+ * to and from device spaces.
+ *
+ * Radiance images have four 8-bits bands and store 8 bits of R, G and B and
+ * another 8 bits of exponent, common to all channels. They are widely used in
+ * the HDR imaging community.
+ *
+ *
+ * The colour functions can be divided into three main groups. First, 
+ * functions to transform images between the different colour spaces supported 
+ * by VIPS: <emphasis>RGB</emphasis> (also referred to as
+ * <emphasis>disp</emphasis>), <emphasis>sRGB</emphasis>,  
+ * <emphasis>XYZ</emphasis>, <emphasis>Yxy</emphasis>, 
+ * <emphasis>Lab</emphasis>, <emphasis>LabQ</emphasis>, 
+ * <emphasis>LabS</emphasis>, <emphasis>LCh</emphasis> and
+ * <emphasis>UCS</emphasis>). Secondly, there are a set of operations for 
+ * calculating colour difference metrics. Finally, VIPS wraps LittleCMS and
+ * uses it to provide a set of operations for reading and writing images with
+ * ICC profiles.
+ *
+ * This figure shows how the VIPS colour spaces interconvert:
+ *
+ * <inlinegraphic fileref="interconvert.png" format="PNG" />
+ *
+ * The colour spaces supported by VIPS are:
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>LabQ</code></emphasis>
+ *
+ *	 This is the principal VIPS colorimetric storage format. 
+ * 	 LabQ images have four 8-bit bands and store 10 bits of L and 11 bits 
+ * 	 of a and b.
+ *
+ * 	 You cannot perform calculations on <code>LabQ</code> images (they are
+ * 	 tagged with IM_CODING_LABQ), though a few operations such as
+ * 	 im_extract_area() will work directly with them.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>LabS</code></emphasis>
+ *
+ *	 This format represents coordinates in CIELAB space as a 
+ *	 three-band #IM_BANDFMT_SHORT image, scaled to fit the full range of 
+ *	 bits. It is the best format for computation, being relatively 
+ *	 compact, quick, and accurate. Colour values expressed in this way 
+ *	 are hard to visualise.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>Lab</code></emphasis>
+ *
+ * 	 Lab colourspace represents CIELAB colour values with a three-band
+ *	 #IM_BANDFMT_FLOAT image. This is the simplest format for general 
+ *	 work: adding the constant 50 to the L channel, for example, has the 
+ *	 expected result.
+ *
+ *	 VIPS uses D65 LAB, but you can use other colour temperatures with a
+ *	 little effort, see im_XYZ2Lab_temp().
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>XYZ</code></emphasis>
+ *
+ * 	 CIE XYZ colour space represented as a three-band #IM_BANDFMT_FLOAT
+ *	 image.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>RGB</code></emphasis>
+ *
+ *	(also refered to as <code>disp</code>+) This is a generic 8-bit RGB
+ *	image. VIPS has a system for going to and from RGB with a simple
+ *	display structure, but it's mostly deprecated. See 
+ *	<link linkend="libvips-disp">disp</link>.
+ *
+ *	Use im_icc_export() and friends as a modern replacement.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>LCh</code></emphasis>
+ *
+ * 	 Like <code>Lab</code>, but rectangular <code>ab</code> coordinates 
+ * 	 are replaced with 
+ * 	 polar <code>Ch</code> (Chroma and hue) coordinates. 
+ * 	 Hue angles are expressed in degrees.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>LCh</code></emphasis>
+ *
+ *       A colour space based on the CMC(1:1) colour difference measurement. 
+ *       This is a highly uniform colour space, much better than CIELAB for 
+ *       expressing small differences. Conversions to and from 
+ *       <code>UCS</code> are extremely slow.
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ */
+
+/* Areas under curves for Dxx. 2 degree observer.
+ */
+
+/**
+ * IM_D93_X0:
+ *
+ * Areas under curves for D93, 2 degree observer.
+ */
+
+/**
+ * IM_D75_X0:
+ *
+ * Areas under curves for D75, 2 degree observer.
+ */
+
+/**
+ * IM_D65_X0:
+ *
+ * Areas under curves for D65, 2 degree observer.
+ */
+
+/**
+ * IM_D55_X0:
+ *
+ * Areas under curves for D55, 2 degree observer.
+ */
+
+/**
+ * IM_D50_X0:
+ *
+ * Areas under curves for D50, 2 degree observer.
+ */
+
+/**
+ * IM_A_X0:
+ *
+ * Areas under curves for illuminant A (2856K), 2 degree observer.
+ */
+
+/**
+ * IM_B_X0:
+ *
+ * Areas under curves for illuminant B (4874K), 2 degree observer.
+ */
+
+/**
+ * IM_C_X0:
+ *
+ * Areas under curves for illuminant C (6774K), 2 degree observer.
+ */
+
+/**
+ * IM_E_X0:
+ *
+ * Areas under curves for equal energy illuminant E.
+ */
+
+/**
+ * IM_D3250_X0:
+ *
+ * Areas under curves for black body at 3250K, 2 degree observer.
+ */
+
 /* One image in, one out.
  */
 static im_arg_desc one_in_one_out[] = {
@@ -345,34 +523,6 @@ static im_function icc_export_depth_desc = {
 	icc_export_depth_vec, 		/* Dispatch function */
 	IM_NUMBER( icc_export_depth_args ),	/* Size of arg list */
 	icc_export_depth_args 		/* Arg list */
-};
-
-static int
-icc_export_vec( im_object *argv )
-{
-	int intent = *((int *) argv[3]);
-
-	return( im_icc_export( argv[0], argv[1], 
-		argv[2], intent ) );
-}
-
-static im_arg_desc icc_export_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_STRING( "output_profile" ),
-	IM_INPUT_INT( "intent" )
-};
-
-/* Description of im_icc_export.
- */ 
-static im_function icc_export_desc = {
-	"im_icc_export", 		/* Name */
-	"convert a float LAB to an 8-bit device image with an ICC profile",	
-					/* Description */
-	IM_FN_PIO,			/* Flags */
-	icc_export_vec, 		/* Dispatch function */
-	IM_NUMBER( icc_export_args ), 	/* Size of arg list */
-	icc_export_args 		/* Arg list */
 };
 
 static int
@@ -1032,7 +1182,6 @@ static im_function *colour_list[] = {
 	&disp2XYZ_desc,
 	&float2rad_desc,
 	&icc_ac2rc_desc,
-	&icc_export_desc,
 	&icc_export_depth_desc,
 	&icc_import_desc,
 	&icc_import_embedded_desc,

@@ -44,12 +44,6 @@ extern "C" {
 
 #include <vips/util.h>
 
-/* A colour temperature.
- */
-typedef struct {
-	double X0, Y0, Z0;
-} im_colour_temperature;
-
 /* Areas under curves for Dxx. 2 degree observer.
  */
 #define IM_D93_X0 (89.7400)
@@ -128,7 +122,7 @@ int im_Lab2LCh( IMAGE *in, IMAGE *out );
 int im_LCh2Lab( IMAGE *in, IMAGE *out );
 int im_LabQ2XYZ( IMAGE *in, IMAGE *out );
 int im_rad2float( IMAGE *in, IMAGE *out );
-int im_float2rad( IMAGE *, IMAGE *out );
+int im_float2rad( IMAGE *in, IMAGE *out );
 int im_LCh2UCS( IMAGE *in, IMAGE *out );
 int im_Lab2LCh( IMAGE *in, IMAGE *out );
 int im_Lab2LabQ( IMAGE *in, IMAGE *out );
@@ -163,23 +157,23 @@ int im_lab_morph( IMAGE *in, IMAGE *out,
 
 /* Render intents for icc wrappers.
  */
-#define IM_INTENT_PERCEPTUAL                 (0)
-#define IM_INTENT_RELATIVE_COLORIMETRIC      (1)
-#define IM_INTENT_SATURATION                 (2)
-#define IM_INTENT_ABSOLUTE_COLORIMETRIC      (3)
+typedef enum {
+	IM_INTENT_PERCEPTUAL = 0,
+	IM_INTENT_RELATIVE_COLORIMETRIC,
+	IM_INTENT_SATURATION,
+	IM_INTENT_ABSOLUTE_COLORIMETRIC
+} VipsIntent;
 
 int im_icc_present( void );
 int im_icc_transform( IMAGE *in, IMAGE *out, 
 	const char *input_profile_filename,
 	const char *output_profile_filename,
-	int intent );
+	VipsIntent intent );
 int im_icc_import( IMAGE *in, IMAGE *out, 
-	const char *input_profile_filename, int intent );
-int im_icc_import_embedded( IMAGE *in, IMAGE *out, int intent );
-int im_icc_export( IMAGE *in, IMAGE *out, 
-	const char *output_profile_filename, int intent );
+	const char *input_profile_filename, VipsIntent intent );
+int im_icc_import_embedded( IMAGE *in, IMAGE *out, VipsIntent intent );
 int im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
-	const char *output_profile_filename, int intent );
+	const char *output_profile_filename, VipsIntent intent );
 int im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename );
 
 #ifdef __cplusplus

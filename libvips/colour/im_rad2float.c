@@ -1,6 +1,8 @@
 /* Convert Radiance 32bit packed format to float.
  * 3/3/09
  * 	- from LabQ2Lab and Radiance sources
+ * 2/11/09
+ * 	- gtkdoc 
  */
 
 /*
@@ -167,15 +169,25 @@ rad2float( COLR *inp, COLOR *outbuf, int n )
 	}
 }
 
+
+/**
+ * im_rad2float:
+ * @in: input image
+ * @out: output image
+ *
+ * Unpack a RAD (#IM_CODING_RAD) image to a three-band float image.
+ *
+ * See also: im_rad2float(), im_LabQ2LabS().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_rad2float( IMAGE *in, IMAGE *out )
 {
-	/* Must be 4-band uchar.
+	/* check for RAD coding 
 	 */
-	if( in->Bands != 4 || in->BandFmt != IM_BANDFMT_UCHAR ||
-		in->Coding != IM_CODING_RAD ) {
-		im_error( "im_rad2float", "%s",
-			_( "4-band uchar Radiance-coded images only" ) );
+	if( in->Coding != IM_CODING_RAD ) {
+		im_error( "im_rad2float", "%s", _( "not a RAD image" ) );
 		return( -1 );
 	}
 
@@ -183,7 +195,6 @@ im_rad2float( IMAGE *in, IMAGE *out )
 		return( -1 );
 	out->Bands = 3;
 	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
 	out->Coding = IM_CODING_NONE;
 
 	if( im_wrapone( in, out, 

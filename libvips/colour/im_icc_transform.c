@@ -1,5 +1,4 @@
-/* @(#) Transform images with little cms
- * @(#) 
+/* Transform images with little cms
  *
  * 26/4/02 JC
  * 26/8/05
@@ -11,6 +10,11 @@
  * 	- set RGB16 on 16-bit RGB export
  * 6/4/09
  * 	- catch lcms error messages
+ * 2/11/09
+ * 	- gtkdoc
+ * 	- small cleanups
+ * 	- call attach_profile() before im_wrapone() so the profile will get
+ * 	  written if we are wrinting to a file
  */
 
 /*
@@ -135,12 +139,24 @@ im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename )
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * VipsIntent:
+ * @IM_INTENT_PERCEPTUAL:
+ * @IM_INTENT_RELATIVE_COLORIMETRIC:
+ * @IM_INTENT_SATURATION:
+ * @IM_INTENT_ABSOLUTE_COLORIMETRIC:
+ *
+ * The rendering intent. #IM_INTENT_ABSOLUTE_COLORIMETRIC is best for
+ * scientific work, #IM_INTENT_RELATIVE_COLORIMETRIC is usually best for 
+ * accurate communication with other imaging libraries.
+ */
+
 /* Call lcms with up to this many pixels at once.
  */
 #define PIXEL_BUFFER_SIZE (10000)
 
 static const char *
-decode_intent( int intent )
+decode_intent( VipsIntent intent )
 {
 	switch( intent ) {
 	case IM_INTENT_PERCEPTUAL:		return( "PERCEPTUAL" );
@@ -151,6 +167,14 @@ decode_intent( int intent )
 	}
 }
 
+/**
+ * im_icc_present:
+ *
+ * VIPS can optionally be built without the ICC library. Use this function to
+ * test for its availability. 
+ *
+ * Returns: non-zero if the ICC library is present.
+ */
 int
 im_icc_present( void )
 {
@@ -164,7 +188,7 @@ typedef struct {
 	IMAGE *out;
 	const char *input_profile_filename;
 	const char *output_profile_filename;
-	int intent;
+	VipsIntent intent;
 
 	cmsHPROFILE in_profile;
 	cmsHPROFILE out_profile;
@@ -200,7 +224,7 @@ icc_destroy( Icc *icc )
 }
 
 static Icc *
-icc_new( IMAGE *in, IMAGE *out, int intent )
+icc_new( IMAGE *in, IMAGE *out, VipsIntent intent )
 {
 	Icc *icc;
 
@@ -233,7 +257,7 @@ static Icc *
 icc_new_file( IMAGE *in, IMAGE *out, 
 	const char *input_profile_filename, 
 	const char *output_profile_filename,
-	int intent )
+	VipsIntent intent )
 {
 	Icc *icc;
 
@@ -277,7 +301,7 @@ icc_new_file( IMAGE *in, IMAGE *out,
 static Icc *
 icc_new_mem( IMAGE *in, IMAGE *out, 
 	void *data, int data_length, 
-	int intent )
+	VipsIntent intent )
 {
 	Icc *icc;
 
@@ -370,20 +394,37 @@ attach_profile( IMAGE *im, const char *filename )
 	return( 0 );
 }
 
+/**
+ * im_icc_transform:
+ * @in: input image
+ * @out: output image
+ * @input_profile_filename: get the input profile from here
+ * @output_profile_filename: get the output profile from here
+ * @intent: transform with this intent
+ *
+ * Transform an image with the ICC library. The input image is moved to
+ * profile-connection space with the input profile and then to the output
+ * space with the output profile.
+ *
+ * Use im_icc_import() and im_icc_export() to do either the first or second
+ * half of this operation in isolation.
+ *
+ * See also: im_icc_import(), im_icc_export().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_icc_transform( IMAGE *in, IMAGE *out, 
 	const char *input_profile_filename,
 	const char *output_profile_filename,
-	int intent )
+	VipsIntent intent )
 {
 	Icc *icc;
 	DWORD in_icc_format;
 	DWORD out_icc_format;
 
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_icc_transform", "%s", _( "uncoded input only" ) );
+	if( im_check_uncoded( "im_icc_transform", in ) )
 		return( -1 ); 
-	}
 
 	if( !(icc = icc_new_file( in, out, 
 		input_profile_filename, output_profile_filename, intent )) )
@@ -429,8 +470,9 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 		break;
 
 	default:
-		im_error( "im_icc_transform", _( "unimplemented input colour "
-			"space 0x%x" ), cmsGetColorSpace( icc->in_profile ) );
+		im_error( "im_icc_transform", 
+			_( "unimplemented input colour space 0x%x" ), 
+			cmsGetColorSpace( icc->in_profile ) );
 		return( -1 );
 	}
 
@@ -443,7 +485,6 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 	case icSigCmykData:
 		out->Type = IM_TYPE_CMYK;
 		out->BandFmt = IM_BANDFMT_UCHAR;
-		out->Bbits = IM_BBITS_BYTE;
 		out->Bands = 4;
 		out_icc_format = TYPE_CMYK_8;
 		break;
@@ -451,14 +492,14 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 	case icSigRgbData:
 		out->Type = IM_TYPE_RGB;
 		out->BandFmt = IM_BANDFMT_UCHAR;
-		out->Bbits = IM_BBITS_BYTE;
 		out->Bands = 3;
 		out_icc_format = TYPE_RGB_8;
 		break;
 
 	default:
-		im_error( "im_icc_transform", _( "unimplemented output colour "
-			"space 0x%x" ), cmsGetColorSpace( icc->out_profile ) );
+		im_error( "im_icc_transform", 
+			_( "unimplemented output colour space 0x%x" ), 
+			cmsGetColorSpace( icc->out_profile ) );
 		return( -1 );
 	}
 
@@ -481,13 +522,13 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 		icc->out_profile, out_icc_format, intent, 0 )) )
 		return( -1 );
 
+	if( attach_profile( out, output_profile_filename ) )
+		return( -1 );
+
 	/* Process!
 	 */
 	if( im_wrapone( in, out, 
 		(im_wrapone_fn) transform_buf, icc, NULL ) )
-		return( -1 );
-
-	if( attach_profile( out, output_profile_filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -519,10 +560,8 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 {
 	DWORD icc_format;
 
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_icc_import", "%s", _( "uncoded input only" ) );
+	if( im_check_uncoded( "im_icc_import", in ) )
 		return( -1 ); 
-	}
 
 	if( !cmsIsIntentSupported( icc->in_profile, 
 		icc->intent, LCMS_USED_AS_INPUT ) )
@@ -538,7 +577,6 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 		return( -1 );
 	out->Type = IM_TYPE_LAB;
 	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Bbits = IM_BBITS_FLOAT;
 	out->Bands = 3;
 
 	switch( cmsGetColorSpace( icc->in_profile ) ) {
@@ -595,9 +633,23 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 	return( 0 );
 }
 
+/**
+ * im_icc_import:
+ * @in: input image
+ * @out: output image
+ * @input_profile_filename: get the input profile from here
+ * @intent: transform with this intent
+ *
+ * Import an image with the ICC library. The input image in device space 
+ * is moved to D65 LAB with the input profile.
+ *
+ * See also: im_icc_transform(), im_icc_import_embedded().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_icc_import( IMAGE *in, IMAGE *out, 
-	const char *input_profile_filename, int intent )
+	const char *input_profile_filename, VipsIntent intent )
 {
 	Icc *icc;
 
@@ -609,8 +661,22 @@ im_icc_import( IMAGE *in, IMAGE *out,
 	return( 0 );
 }
 
+/**
+ * im_icc_import_embedded:
+ * @in: input image
+ * @out: output image
+ * @intent: transform with this intent
+ *
+ * Import an image with the ICC library. The input image in device space 
+ * is moved to D65 LAB with the input profile attached to the image under the
+ * name #IM_META_ICC_NAME.
+ *
+ * See also: im_icc_transform(), im_icc_import().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
-im_icc_import_embedded( IMAGE *in, IMAGE *out, int intent )
+im_icc_import_embedded( IMAGE *in, IMAGE *out, VipsIntent intent )
 {
 	Icc *icc;
 	void *data;
@@ -651,9 +717,25 @@ export_buf( float *in, PEL *out, int n, Icc *icc )
 	}
 }
 
+/**
+ * im_icc_export_depth:
+ * @in: input image
+ * @out: output image
+ * @depth: depth to export at
+ * @output_profile_filename: use this profile
+ * @intent: transform with this intent
+ *
+ * Export an image with the ICC library. The input image in 
+ * D65 LAB is transformed to device space using the supplied profile.
+ * @depth can be 8 or 16, for 8 or 16-bit image export.
+ *
+ * See also: im_icc_transform(), im_icc_import().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
-	const char *output_profile_filename, int intent )
+	const char *output_profile_filename, VipsIntent intent )
 { 
 	Icc *icc;
 	DWORD icc_format;
@@ -682,12 +764,10 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 
 	/* Check input image.
 	 */
-	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
-		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_icc_export", 
-			"%s", _( "3-band uncoded Lab float only" ) );
-		return( -1 ); 
-	}
+	if( im_check_uncoded( "im_icc_export", in ) ||
+		im_check_bands( "im_icc_export", in, 3 ) ||
+		im_check_format( "im_icc_export", in, IM_BANDFMT_FLOAT ) )
+		return( -1 );
 
 	if( depth != 8 && depth != 16 ) {
 		im_error( "im_icc_export", "%s", _( "unsupported bit depth" ) );
@@ -717,7 +797,6 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 		out->Type = IM_TYPE_CMYK;
 		out->BandFmt = depth == 8 ? 
 			IM_BANDFMT_UCHAR : IM_BANDFMT_USHORT;
-		out->Bbits = depth == 8 ? IM_BBITS_BYTE : IM_BBITS_SHORT;
 		out->Bands = 4;
 		icc_format = depth == 8 ? TYPE_CMYK_8 : TYPE_CMYK_16;
 		break;
@@ -727,7 +806,6 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 			IM_TYPE_RGB : IM_TYPE_RGB16;
 		out->BandFmt = depth == 8 ? 
 			IM_BANDFMT_UCHAR : IM_BANDFMT_USHORT;
-		out->Bbits = depth == 8 ? IM_BBITS_BYTE : IM_BBITS_SHORT;
 		out->Bands = 3;
 		icc_format = depth == 8 ? TYPE_RGB_8 : TYPE_RGB_16;
 		break;
@@ -742,25 +820,30 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 		icc->out_profile, icc_format, intent, 0 )) )
 		return( -1 );
 
+	if( attach_profile( out, output_profile_filename ) )
+		return( -1 );
+
 	/* Process!
 	 */
 	if( im_wrapone( in, out, (im_wrapone_fn) export_buf, icc, NULL ) )
 		return( -1 );
 
-	if( attach_profile( out, output_profile_filename ) )
-		return( -1 );
-
 	return( 0 );
 }
 
-int
-im_icc_export( IMAGE *in, IMAGE *out, 
-	const char *output_profile_filename, int intent )
-{ 
-	return( im_icc_export_depth( in, out, 
-		8, output_profile_filename, intent ) );
-}
-
+/**
+ * im_icc_ac2rc:
+ * @in: input image
+ * @out: output image
+ * @profile_filename: use this profile
+ *
+ * Transform an image from absolute to relative colorimetry using the
+ * MediaWhitePoint stored in the ICC profile.
+ *
+ * See also: im_icc_transform(), im_icc_import().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename )
 {

@@ -1,11 +1,9 @@
-/* @(#) im_LabS2Lab() - convert short LAB format to Lab.
- * @(#) 
- * @(#) int im_LabS2Lab( IMAGE *in, IMAGE *out )
- * @(#) 
- * @(#) 
+/* im_LabS2Lab() 
  *
  * 12/12/02 JC
  * 	- adapted from im_LabS2LabQ()
+ * 2/11/09
+ * 	- gtkdoc, cleanup
  */
 
 /*
@@ -66,29 +64,29 @@ imb_LabS2Lab( signed short *in, float *out, int n )
 	}
 }
 
+/**
+ * im_LabS2Lab:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert a LabS three-band signed short image to a three-band float image.
+ *
+ * See also: im_Lab2LabS().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_LabS2Lab( IMAGE *in, IMAGE *out )
 {
-	/* Check type.
-	 */
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_LabS2Lab", "%s", 
-			_( "not an uncoded image" ) );
+	if( im_check_uncoded( "im_LabS2Lab", in ) ||
+		im_check_bands( "im_LabS2Lab", in, 3 ) ||
+		im_check_format( "im_LabS2Lab", in, IM_BANDFMT_SHORT ) )
 		return( -1 );
-	}
-	if( in->BandFmt != IM_BANDFMT_SHORT || in->Bands != 3 ) {
-		im_error( "im_LabS2Lab", "%s", 
-			_( "not a 3-band signed short image" ) );
-		return( -1 );
-	}
 
-	/* Set up output image 
-	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Type = IM_TYPE_LAB;
 	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Bbits = IM_BBITS_FLOAT;
 
 	if( im_wrapone( in, out, 
 		(im_wrapone_fn) imb_LabS2Lab, NULL, NULL ) )

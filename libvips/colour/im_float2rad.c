@@ -2,6 +2,8 @@
  *
  * 23/3/09
  * 	- from im_rad2float and Radiance sources
+ * 2/11/09
+ * 	- gtkdoc 
  */
 
 /*
@@ -186,7 +188,9 @@ float2rad( COLOR *inp, COLR *outbuf, int n )
  * @in: input image
  * @out: output image
  *
- * Convert float to Radiance 32bit packed format.
+ * Convert a three-band float image to Radiance 32-bit packed format.
+ *
+ * See also: im_rad2float(), #VipsFormatRad, im_LabQ2Lab().
  *
  * Returns: 0 on success, -1 on error.
  */

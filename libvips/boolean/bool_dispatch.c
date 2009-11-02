@@ -51,6 +51,8 @@
  *
  * These operations perform boolean operations, such as bitwise-and, on
  * every pixel in an image or pair of images. 
+ * They are useful for combining the results of
+ * the relational and morphological functions.
  * All will work with 
  * images of any type or any mixture of types of any size and of any number 
  * of bands.

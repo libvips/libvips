@@ -1,4 +1,8 @@
 /* Turn Lab to LCh
+ *
+ * 2/11/09
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -69,7 +73,7 @@ imb_Lab2LCh( float *p, float *q, int n )
 
 int
 im__colour_unary( const char *domain,
-	IMAGE *in, IMAGE *out,
+	IMAGE *in, IMAGE *out, VipsType type,
 	im_wrapone_fn buffer_fn, void *a, void *b )
 {
 	IMAGE *t[1];
@@ -82,6 +86,7 @@ im__colour_unary( const char *domain,
 
 	if( im_cp_desc( out, t[0] ) )
 		return( -1 );
+	out->Type = type;
 
 	if( im_wrapone( t[0], out, 
 		(im_wrapone_fn) buffer_fn, a, b ) )
@@ -102,11 +107,6 @@ im__colour_unary( const char *domain,
 int 
 im_Lab2LCh( IMAGE *in, IMAGE *out )
 {
-	if( im__colour_unary( "im_Lab2LCh", in, out, 
-		(im_wrapone_fn) imb_Lab2LCh, NULL, NULL ) )
-		return( -1 );
-
-	out->Type = IM_TYPE_LCH;
-
-	return( 0 );
+	return( im__colour_unary( "im_Lab2LCh", in, out, IM_TYPE_LCH,
+		(im_wrapone_fn) imb_Lab2LCh, NULL, NULL ) );
 }

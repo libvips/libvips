@@ -1,17 +1,12 @@
-/* @(#) Turn UCS to LCh
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_UCS2LCh( imagein, imageout )
- * @(#) 	IMAGE *imagein, *imageout;
- * @(#) 
- * @(#) Float in, float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* Turn UCS to LCh
+ *
  * 15/11/94 JC
  *	- error messages added
  *	- memory leak fixed
  * 16/11/94 JC
  *	- uses im_wrap_oneonebuf() now
+ * 2/11/09
+ * 	- gtkdoc
  */
 
 /*
@@ -49,6 +44,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -81,30 +77,18 @@ imb_UCS2LCh( float *p, float *q, int n )
 	}
 }
 
+/**
+ * im_UCS2LCh:
+ * @in: input image
+ * @out: output image
+ *
+ * Turn UCS to LCh.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_UCS2LCh( IMAGE *in, IMAGE *out )
 {
-	/* Check input image.
-	 */
-	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
-		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_UCS2LCh", "%s", 
-			_( "3-band float uncoded input only" ) );
-		return( -1 );
-	}
-
-	/* Prepare the output image 
-	 */
-	if( im_cp_desc( out, in) )
-		return( -1 );
-	out->Type = IM_TYPE_LCH;
-
-	/* Do the processing.
-	 */
-	im_col_make_tables_UCS();
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_UCS2LCh, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__colour_unary( "im_UCS2LCh", in, out, IM_TYPE_UCS,
+		(im_wrapone_fn) imb_UCS2LCh, NULL, NULL ) );
 }

@@ -1,7 +1,8 @@
-/* @(#) LabQ2Lab convert Lab 32bit packed format to float Lab
-	@(#) uses imb_LabQ2Lab
-Copyright Kirk Martinez 2/5/1993
-Modified: 16/6/93
+/* im_LabQ2Lab
+ *
+ * Copyright Kirk Martinez 2/5/1993
+ *
+ * Modified: 16/6/93
  * 7/6/93 JC
  *	- adapted for partial v2
  * 16/11/94 JC
@@ -13,6 +14,8 @@ Modified: 16/6/93
  * 	- small tidies and speed-ups
  * 4/9/97 JC
  *	- L* = 100.0 now handled correctly
+ * 2/11/09
+ * 	- gtkdoc
  */
 
 /*
@@ -100,32 +103,37 @@ imb_LabQ2Lab( PEL *inp, float *outbuf, int n )
 	}
 }
 
-/* unpack a Lab32 ie 10,11,11 Lab image into float image
-this is a wrapper around the buffer processing function
-(C) K.Martinez 2/5/93
-*/
-
+/**
+ * im_LabQ2Lab:
+ * @in: input image
+ * @out: output image
+ *
+ * Unpack a LabQ (#IM_CODING_LABQ) image to a three-band float image.
+ *
+ * See also: im_LabQ2Lab(), im_LabQ2LabS(), im_rad2float().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
-im_LabQ2Lab( IMAGE *labim,  IMAGE *outim )
+im_LabQ2Lab( IMAGE *in,  IMAGE *out )
 {
 	/* check for coded Lab type 
 	 */
-	if( labim->Coding != IM_CODING_LABQ ) {
-		im_error( "im_LabQ2Lab", "%s", _( "not a packed Lab image" ) );
+	if( in->Coding != IM_CODING_LABQ ) {
+		im_error( "im_LabQ2Lab", "%s", _( "not a LabQ image" ) );
 		return( -1 );
 	}
 
 	/* set up output image 
 	 */
-	if( im_cp_desc( outim, labim ) )
+	if( im_cp_desc( out, in ) )
 		return( -1 );
-	outim->Bands = 3;
-	outim->Type = IM_TYPE_LAB;
-	outim->BandFmt = IM_BANDFMT_FLOAT;
-	outim->Bbits = 32;
-	outim->Coding = IM_CODING_NONE;
+	out->Bands = 3;
+	out->Type = IM_TYPE_LAB;
+	out->BandFmt = IM_BANDFMT_FLOAT;
+	out->Coding = IM_CODING_NONE;
 
-	if( im_wrapone( labim, outim, 
+	if( im_wrapone( in, out, 
 		(im_wrapone_fn) imb_LabQ2Lab, NULL, NULL ) )
 		return( -1 );
 

@@ -218,3 +218,11 @@ im_makerw( IMAGE *im )
 {
 	return( im_rwcheck( im ) );
 }
+
+int
+im_icc_export( IMAGE *in, IMAGE *out, 
+	const char *output_profile_filename, VipsIntent intent )
+{ 
+	return( im_icc_export_depth( in, out, 
+		8, output_profile_filename, intent ) );
+}

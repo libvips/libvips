@@ -71,91 +71,6 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/**
- * SECTION: colour
- * @short_description: colour operators
- * @stability: Stable
- * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
- * @include: vips/vips.h
- *
- * These operators let you transform coordinates and images between colour 
- * spaces, calculate colour differences, and move 
- * to and from device spaces.
- */
-
-
-/* Areas under curves for Dxx. 2 degree observer.
- */
-
-/**
- * IM_D93_X0:
- *
- * Areas under curves for D93, 2 degree observer.
- */
-
-/**
- * IM_D75_X0:
- *
- * Areas under curves for D75, 2 degree observer.
- */
-
-/**
- * IM_D65_X0:
- *
- * Areas under curves for D65, 2 degree observer.
- */
-
-/**
- * IM_D55_X0:
- *
- * Areas under curves for D55, 2 degree observer.
- */
-
-/**
- * IM_D50_X0:
- *
- * Areas under curves for D50, 2 degree observer.
- */
-
-/**
- * IM_A_X0:
- *
- * Areas under curves for illuminant A (2856K), 2 degree observer.
- */
-
-/**
- * IM_B_X0:
- *
- * Areas under curves for illuminant B (4874K), 2 degree observer.
- */
-
-/**
- * IM_C_X0:
- *
- * Areas under curves for illuminant C (6774K), 2 degree observer.
- */
-
-/**
- * IM_E_X0:
- *
- * Areas under curves for equal energy illuminant E.
- */
-
-/**
- * IM_D3250_X0:
- *
- * Areas under curves for black body at 3250K, 2 degree observer.
- */
-
-/**
- * im_colour_temperature:
- * @X0: Area under X
- * @Y0: Area under Y
- * @Z0: Area under Z
- *
- * Pass colour temperatures to various operations with one of these.
- */
-
 /* Have the tables been made?
  */
 static int made_ucs_tables = 0;
@@ -623,6 +538,8 @@ im_col_make_tables_UCS( void )
  * @b2: 
  * 
  * CMC colour difference from a pair of Lab values.
+ *
+ * Returns: CMC(1:1) colour difference
  */
 float 
 im_col_dECMC( float L1, float a1, float b1, 

@@ -1,12 +1,5 @@
-/* @(#) Turn XYZ to Lab colourspace. 
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_XYZ2Lab( imagein, imageout )
- * @(#) 	IMAGE *imagein, *imageout;
- * @(#) 
- * @(#) Float in, float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* Turn XYZ to Lab colourspace. 
+ *
  * Modifed:
  * 16/11/94 JC
  *	- uses im_wrapone()
@@ -20,6 +13,8 @@
  *	- use a large LUT instead, about 5x faster
  * 23/11/06
  *	- ahem, build the LUT outside the eval thread
+ * 2/11/09
+ * 	- gtkdoc
  */
 
 /*
@@ -147,42 +142,43 @@ imb_XYZ2Lab( float *p, float *q, int n, im_colour_temperature *temp )
 	}
 }
 
+/**
+ * im_XYZ2Lab_temp:
+ * @in: input image
+ * @out: output image
+ * @X0: colour temperature
+ * @Y0: colour temperature
+ * @Z0: colour temperature
+ *
+ * Turn XYZ to Lab. @X0, @y0, @Z0 give the Lab colour temperature.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
-im_XYZ2Lab_temp( IMAGE *in, IMAGE *out,
-	double X0, double Y0, double Z0 )
+im_XYZ2Lab_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 {
 	im_colour_temperature *temp;
 
-	/* Check input image.
-	 */
 	if( !(temp = IM_NEW( out, im_colour_temperature )) )
 		return( -1 );
-	if( in->Bands != 3 || 
-		in->BandFmt != IM_BANDFMT_FLOAT || 
-		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_XYZ2Lab", "%s", _( "not 3-band uncoded float" ) );
-		return( -1 );
-	}
-
-	/* Prepare the output image 
-	 */
-	if( im_cp_desc( out, in) )
-		return( -1 );
-	out->Type = IM_TYPE_LAB;
-
-	/* Do the processing.
-	 */
-	imb_XYZ2Lab_tables();
 	temp->X0 = X0;
 	temp->Y0 = Y0;
 	temp->Z0 = Z0;
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_XYZ2Lab, temp, NULL ) )
-		return( -1 );
+        imb_XYZ2Lab_tables();
 
-	return( 0 );
+	return( im__colour_unary( "im_XYZ2Lab", in, out, IM_TYPE_LAB,
+		(im_wrapone_fn) imb_XYZ2Lab, temp, NULL ) );
 }
 
+/**
+ * im_XYZ2Lab:
+ * @in: input image
+ * @out: output image
+ *
+ * Turn XYZ to D65 Lab.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_XYZ2Lab( IMAGE *in, IMAGE *out )
 {	

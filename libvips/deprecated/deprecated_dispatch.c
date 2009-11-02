@@ -326,6 +326,34 @@ static im_function remainderconst_vec_desc = {
 	remainderconst_vec_args 	/* Arg list */
 };
 
+static int
+icc_export_vec( im_object *argv )
+{
+	int intent = *((int *) argv[3]);
+
+	return( im_icc_export( argv[0], argv[1], 
+		argv[2], intent ) );
+}
+
+static im_arg_desc icc_export_args[] = {
+        IM_INPUT_IMAGE( "in" ),
+        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_STRING( "output_profile" ),
+	IM_INPUT_INT( "intent" )
+};
+
+/* Description of im_icc_export.
+ */ 
+static im_function icc_export_desc = {
+	"im_icc_export", 		/* Name */
+	"convert a float LAB to an 8-bit device image with an ICC profile",	
+					/* Description */
+	IM_FN_PIO,			/* Flags */
+	icc_export_vec, 		/* Dispatch function */
+	IM_NUMBER( icc_export_args ), 	/* Size of arg list */
+	icc_export_args 		/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
@@ -333,6 +361,7 @@ static im_function *deprecated_list[] = {
 	&remainderconst_vec_desc,
 	&fav4_desc,
 	&gadd_desc,
+	&icc_export_desc,
 	&litecor_desc,
 	&affine_desc,
 	&similarity_area_desc,

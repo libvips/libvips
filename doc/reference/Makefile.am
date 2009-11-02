@@ -63,7 +63,8 @@ IGNORE_HFILES=merge.h debug.h internal.h intl.h CImg.h im_video_v4l1.h global_ba
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
-HTML_IMAGES=
+HTML_IMAGES = \
+	$(top_srcdir)/doc/reference/images/interconvert.png
 
 # Extra SGML files that are included by $(DOC_MAIN_SGML_FILE).
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
@@ -89,7 +90,8 @@ include $(top_srcdir)/gtk-doc.make
 
 # Other files to distribute
 # e.g. EXTRA_DIST += version.xml.in
-#EXTRA_DIST +=
+EXTRA_DIST += \
+	images
 
 # Files not to distribute
 # for --rebuild-types in $(SCAN_OPTIONS), e.g. $(DOC_MODULE).types

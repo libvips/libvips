@@ -166,11 +166,8 @@ int im__wrapscan( IMAGE *in,
 int im__colour_difference( const char *domain,
 	IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	im_wrapmany_fn buffer_fn, void *a, void *b );
-int im__colour_binary( const char *domain,
-	IMAGE *in1, IMAGE *in2, IMAGE *out, 
-	im_wrapmany_fn buffer_fn, void *a, void *b );
 int im__colour_unary( const char *domain,
-	IMAGE *in, IMAGE *out,
+	IMAGE *in, IMAGE *out, VipsType type,
 	im_wrapone_fn buffer_fn, void *a, void *b );
 
 int im__test_kill( IMAGE *im );
@@ -215,6 +212,13 @@ void im__black_region( REGION *reg );
 void imb_Lab2LCh( float *, float *, int );
 void imb_LCh2Lab( float *, float *, int );
 void imb_XYZ2Lab_tables( void );
+
+/* A colour temperature.
+ */
+typedef struct {
+	double X0, Y0, Z0;
+} im_colour_temperature;
+
 void imb_XYZ2Lab( float *, float *, int, im_colour_temperature * );
 void imb_Lab2XYZ( float *, float *, int, im_colour_temperature * );
 void imb_LabQ2Lab( PEL *, float *, int );

@@ -1,12 +1,5 @@
-/* @(#) Turn LCh to Lab.
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_LCh2Lab( imagein, imageout )
- * @(#) 	IMAGE *imagein, *imageout;
- * @(#) 
- * @(#) Float in, float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* im_LCh2Lab
+ *
  * 15/11/94 JC
  *	- error messages added
  *	- memory leak fixed
@@ -14,6 +7,8 @@
  *	- uses im_wrap_oneonebuf() now
  * 8/2/95 JC
  *	- im_wrap v2
+ * 2/11/09
+ * 	- gtkdoc
  */
 
 /*
@@ -51,6 +46,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -81,29 +77,18 @@ imb_LCh2Lab( float *p, float *q, int n )
 	}
 }
 
+/**
+ * im_LCh2Lab:
+ * @in: input image
+ * @out: output image
+ *
+ * Turn LCh to Lab.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_LCh2Lab( IMAGE *in, IMAGE *out )
 {	
-	/* Check input image.
-	 */
-	if( in->Bands != 3 || in->BandFmt != IM_BANDFMT_FLOAT || 
-		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_LCh2Lab", "%s", 
-			_( "3-band float uncoded input only" ) );
-		return( -1 );
-	}
-
-	/* Prepare the output image 
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Type = IM_TYPE_LAB;
-
-	/* Do the processing.
-	 */
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_LCh2Lab, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( im__colour_unary( "im_LCh2Lab", in, out, IM_TYPE_LAB,
+		(im_wrapone_fn) imb_LCh2Lab, NULL, NULL ) );
 }

@@ -1,12 +1,5 @@
-/* @(#) Turn Lab to XYZ colourspace. 
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_Lab2XYZ( imagein, imageout )
- * @(#) 	IMAGE *imagein, *imageout;
- * @(#) 
- * @(#) Float in, float out.
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* Lab to XYZ.
+ *
  * Modified:
  * 15/11/94 JC
  *	- ANSIfied
@@ -17,6 +10,9 @@
  *	- in-line conversion
  * 8/2/95 JC
  *	- new im_wrapone function
+ * 2/11/09
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -54,6 +50,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -106,40 +103,42 @@ imb_Lab2XYZ( float *p, float *q, int n, im_colour_temperature *temp )
 	}
 }
 
+/**
+ * im_Lab2XYZ_temp:
+ * @in: input image
+ * @out: output image
+ * @X0: colour temperature
+ * @Y0: colour temperature
+ * @Z0: colour temperature
+ *
+ * Turn Lab to XYZ. @X0, @y0, @Z0 give the Lab colour temperature.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 {	
 	im_colour_temperature *temp;
 
-	/* Check input image.
-	 */
 	if( !(temp = IM_NEW( out, im_colour_temperature )) )
 		return( -1 );
-	if( in->Bands != 3 || 
-		in->BandFmt != IM_BANDFMT_FLOAT || 
-		in->Coding != IM_CODING_NONE ) {
-		im_error( "im_Lab2XYZ", "%s", _( "not 3-band uncoded float" ) );
-		return( -1 );
-	}
-
-	/* Prepare the output image.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Type = IM_TYPE_XYZ;
-
-	/* Process!
-	 */
 	temp->X0 = X0;
 	temp->Y0 = Y0;
 	temp->Z0 = Z0;
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_Lab2XYZ, temp, NULL ) )
-		return( -1 );
 
-	return( 0 );
+	return( im__colour_unary( "im_Lab2XYZ_temp", in, out, IM_TYPE_XYZ,
+		(im_wrapone_fn) imb_Lab2XYZ, temp, NULL ) );
 }
 
+/**
+ * im_Lab2XYZ:
+ * @in: input image
+ * @out: output image
+ *
+ * Turn D65 Lab to XYZ.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_Lab2XYZ( IMAGE *in, IMAGE *out )
 {
