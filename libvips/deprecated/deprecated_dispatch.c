@@ -41,6 +41,13 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* One image in, one out.
+ */
+static im_arg_desc one_in_one_out[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" )
+};
+
 /* Two images in, one out.
  */
 static im_arg_desc two_in_one_out[] = {
@@ -354,6 +361,265 @@ static im_function icc_export_desc = {
 	icc_export_args 		/* Arg list */
 };
 
+static int
+print_vec( im_object *argv )
+{
+	const char *message = argv[0];
+	char **out = (char **) &argv[1];
+
+	if( im_print( message ) )
+		return( -1 );
+	*out = im_strdup( NULL, "printed" );
+
+	return( 0 );
+}
+
+static im_arg_desc print_arg_types[] = {
+	IM_INPUT_STRING( "message" ),
+	IM_OUTPUT_STRING( "result" )
+};
+
+static im_function print_desc = {
+	"im_print",			/* Name */
+	"print string to stdout",	/* Description */
+	0,				/* Flags */
+	print_vec, 			/* Dispatch function */
+	IM_NUMBER( print_arg_types ),	/* Size of arg list */
+	print_arg_types 		/* Arg list */
+};
+
+/* Call im_clip2dcm via arg vector.
+ */
+static int
+clip2dcm_vec( im_object *argv )
+{
+	return( im_clip2dcm( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2dcm.
+ */
+static im_function clip2dcm_desc = {
+	"im_clip2dcm", 			/* Name */
+	"convert to double complex",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2dcm_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_clip2cm via arg vector.
+ */
+static int
+clip2cm_vec( im_object *argv )
+{
+	return( im_clip2cm( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2cm.
+ */
+static im_function clip2cm_desc = {
+	"im_clip2cm", 			/* Name */
+	"convert to complex",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2cm_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_clip2us via arg vector.
+ */
+static int
+clip2us_vec( im_object *argv )
+{
+	return( im_clip2us( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2us.
+ */
+static im_function clip2us_desc = {
+	"im_clip2us", 			/* Name */
+	"convert to unsigned 16-bit integer",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2us_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_clip2ui via arg vector.
+ */
+static int
+clip2ui_vec( im_object *argv )
+{
+	return( im_clip2ui( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2ui.
+ */
+static im_function clip2ui_desc = {
+	"im_clip2ui", 			/* Name */
+	"convert to unsigned 32-bit integer",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2ui_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_clip2s via arg vector.
+ */
+static int
+clip2s_vec( im_object *argv )
+{
+	return( im_clip2s( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2s.
+ */
+static im_function clip2s_desc = {
+	"im_clip2s", 			/* Name */
+	"convert to signed 16-bit integer",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2s_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_clip2i via arg vector.
+ */
+static int
+clip2i_vec( im_object *argv )
+{
+	return( im_clip2i( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2i.
+ */
+static im_function clip2i_desc = {
+	"im_clip2i", 			/* Name */
+	"convert to signed 32-bit integer",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2i_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_clip2d via arg vector.
+ */
+static int
+clip2d_vec( im_object *argv )
+{
+	return( im_clip2d( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2d.
+ */
+static im_function clip2d_desc = {
+	"im_clip2d", 			/* Name */
+	"convert to double-precision float",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2d_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_clip2f via arg vector.
+ */
+static int
+clip2f_vec( im_object *argv )
+{
+	return( im_clip2f( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2f.
+ */
+static im_function clip2f_desc = {
+	"im_clip2f", 			/* Name */
+	"convert to single-precision float",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2f_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_clip2c via arg vector.
+ */
+static int
+clip2c_vec( im_object *argv )
+{
+	return( im_clip2c( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip2c.
+ */
+static im_function clip2c_desc = {
+	"im_clip2c", 			/* Name */
+	"convert to signed 8-bit integer",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip2c_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Args to im_thresh.
+ */
+static im_arg_desc thresh_args[] = {
+	IM_INPUT_IMAGE( "input" ),
+	IM_OUTPUT_IMAGE( "output" ),
+	IM_INPUT_DOUBLE( "threshold" )
+};
+
+/* Call im_thresh via arg vector.
+ */
+static int
+thresh_vec( im_object *argv )
+{
+	double t1 = *((double *) argv[2]);
+
+	return( im_thresh( argv[0], argv[1], t1 ) );
+}
+
+/* Description of im_thresh.
+ */
+static im_function thresh_desc = {
+	"im_thresh", 			/* Name */
+	"slice an image at a threshold",
+	0,				/* Flags */
+	thresh_vec, 			/* Dispatch function */
+	IM_NUMBER( thresh_args ), 	/* Size of arg list */
+	thresh_args 			/* Arg list */
+};
+
+/* Args to im_slice.
+ */
+static im_arg_desc slice_args[] = {
+	IM_INPUT_IMAGE( "input" ),
+	IM_OUTPUT_IMAGE( "output" ),
+	IM_INPUT_DOUBLE( "thresh1" ),
+	IM_INPUT_DOUBLE( "thresh2" )
+};
+
+/* Call im_slice via arg vector.
+ */
+static int
+slice_vec( im_object *argv )
+{
+	double t1 = *((double *) argv[2]);
+	double t2 = *((double *) argv[3]);
+
+	return( im_slice( argv[0], argv[1], t1, t2 ) );
+}
+
+/* Description of im_slice.
+ */
+static im_function slice_desc = {
+	"im_slice", 			/* Name */
+	"slice an image using two thresholds",
+	0,				/* Flags */
+	slice_vec, 			/* Dispatch function */
+	IM_NUMBER( slice_args ), 	/* Size of arg list */
+	slice_args 			/* Arg list */
+};
+
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
@@ -364,6 +630,18 @@ static im_function *deprecated_list[] = {
 	&icc_export_desc,
 	&litecor_desc,
 	&affine_desc,
+	&clip2c_desc,
+	&clip2cm_desc,
+	&clip2d_desc,
+	&clip2dcm_desc,
+	&clip2f_desc,
+	&clip2i_desc,
+	&clip2s_desc,
+	&clip2ui_desc,
+	&clip2us_desc,
+	&print_desc,
+	&slice_desc,
+	&thresh_desc,
 	&similarity_area_desc,
 	&similarity_desc
 };

@@ -324,7 +324,7 @@ im_tone_build( IMAGE *out,
 	if( !t1 ||
 		im_tone_build_range( t1, 1023, 32767,
 			Lb, Lw, Ps, Pm, Ph, S, M, H ) ||
-		im_clip2s( t1, out ) )
+		im_clip2fmt( t1, out, IM_BANDFMT_SHORT ) )
 		return( -1 );
 
 	return( 0 );
@@ -434,7 +434,7 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 	 * sure we have an unsigned type we can use for indexing.
 	 */
 	if( im_shiftright( t2, t8, 5 ) ||
-		im_clip2us( t8, t5 ) )
+		im_clip2fmt( t8, t5, IM_BANDFMT_USHORT ) )
 		return( -1 );
 
 	/* Replace L.
@@ -503,7 +503,7 @@ im_tone_analyse(
 	 */
 	if( im_extract_band( t1, t2, 0 ) ||
 		im_shiftright( t2, t3, 5 ) ||
-		im_clip2us( t3, t4 ) )
+		im_clip2fmt( t3, t4, IM_BANDFMT_USHORT ) )
 		return( -1 );
 	
 	/* Take histogram, and make it a cumulative hist.

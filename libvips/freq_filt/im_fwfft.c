@@ -113,7 +113,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
                 im_error( "im_fwfft", _( "one band uncoded only" ) );
                 return( -1 );
 	}
-	if( im_clip2d( in, real ) )
+	if( im_clip2fmt( in, real, IM_BANDFMT_DOUBLE ) )
                 return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
@@ -218,7 +218,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
                 im_error( "im_fwfft", _( "one band uncoded only" ) );
                 return( -1 );
 	}
-	if( im_clip2dcm( in, cmplx ) )
+	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
 	/* Make the plan for the transform.
@@ -309,7 +309,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
                 im_error( "im_fwfft", "%s", _( "one band uncoded only" ) );
                 return( -1 );
 	}
-	if( im_clip2d( in, real ) )
+	if( im_clip2fmt( in, real, IM_BANDFMT_DOUBLE ) )
                 return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
@@ -423,7 +423,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			"%s", _( "one band uncoded only" ) );
                 return( -1 );
 	}
-	if( im_clip2dcm( in, cmplx ) )
+	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
 	/* Make the plan for the transform.
@@ -523,14 +523,14 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	/* Make sure we have a float input image.
 	 */
-	if( im_clip2f( in, real ) )
+	if( im_clip2fmt( in, real, IM_BANDFMT_FLOAT ) )
 		return( -1 );
 
 	/* Make a buffer of 0 floats of the same size for the imaginary part.
 	 */
 	if( im_black( t1, in->Xsize, in->Ysize, 1 ) )
 		return( -1 );
-	if( im_clip2f( t1, imag ) )
+	if( im_clip2fmt( t1, imag, IM_BANDFMT_FLOAT ) )
 		return( -1 );
 
 	/* Transform!

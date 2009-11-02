@@ -95,7 +95,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
                 im_error( "im_invfft", "%s", _( "one band uncoded only" ) );
                 return( -1 );
 	}
-	if( im_clip2dcm( in, cmplx ) )
+	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
@@ -145,7 +145,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			"%s", _( "one band uncoded only" ) );
                 return( -1 );
 	}
-	if( im_clip2dcm( in, cmplx ) )
+	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
@@ -212,7 +212,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	/* Make sure we have a single-precision complex input image.
 	 */
-	if( im_clip2cm( in, t1 ) )
+	if( im_clip2fmt( in, t1, IM_BANDFMT_COMPLEX ) )
 		return( -1 );
 
 	/* Extract real and imag parts. We have to complement the imaginary.

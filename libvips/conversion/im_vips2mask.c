@@ -68,7 +68,7 @@ im_vips2mask( IMAGE *in, const char *outname )
 
 		if( !(t = im_open( "im_vips2mask", "p" )) )
 			return( NULL );
-		if( im_clip2d( in, t ) ||
+		if( im_clip2fmt( in, t, IM_BANDFMT_DOUBLE ) ||
 			!(out = im_vips2mask( t, outname )) ) {
 			im_close( t );
 			return( NULL );

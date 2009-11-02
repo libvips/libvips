@@ -18,6 +18,7 @@ pkginclude_HEADERS = \
 	proto.h \
 	image.h \
 	vips \
+	conversion.h \
 	rect.h \
 	region.h \
 	generate.h \

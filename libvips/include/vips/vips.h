@@ -128,8 +128,6 @@ typedef struct im__DOUBLEMASK {
 #include <vips/callback.h>
 #include <vips/error.h>
 #include <vips/util.h>
-#include <vips/colour.h>
-#include <vips/disp.h>
 #include <vips/format.h>
 #include <vips/dispatch.h>
 #include <vips/region.h>
@@ -146,6 +144,9 @@ typedef struct im__DOUBLEMASK {
 #include <vips/arithmetic.h>
 #include <vips/boolean.h>
 #include <vips/relational.h>
+#include <vips/conversion.h>
+#include <vips/colour.h>
+#include <vips/disp.h>
 
 #ifdef IM_ENABLE_DEPRECATED
 #include <vips/deprecated.h>

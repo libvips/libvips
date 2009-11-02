@@ -326,6 +326,23 @@ int im_similarity_area( IMAGE *in, IMAGE *out,
 int im_icc_export( IMAGE *in, IMAGE *out, 
 	const char *output_profile_filename, VipsIntent intent );
 
+/* conversion
+ */
+int im_clip2dcm( IMAGE *in, IMAGE *out );
+int im_clip2cm( IMAGE *in, IMAGE *out );
+int im_clip2us( IMAGE *in, IMAGE *out );
+int im_clip2ui( IMAGE *in, IMAGE *out );
+int im_clip2s( IMAGE *in, IMAGE *out );
+int im_clip2i( IMAGE *in, IMAGE *out );
+int im_clip2d( IMAGE *in, IMAGE *out );
+int im_clip2f( IMAGE *in, IMAGE *out );
+int im_clip2c( IMAGE *in, IMAGE *out );
+
+int im_slice( IMAGE *in, IMAGE *out, double, double );
+int im_thresh( IMAGE *in, IMAGE *out, double );
+
+int im_print( const char *message );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

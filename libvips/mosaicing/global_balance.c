@@ -1622,12 +1622,12 @@ transform( JoinNode *node, double *gamma )
 	double fac = st->fac[node->index];
 
 	IMAGE *out = im_open_local( st->im, node->name, "p" );
+
 	IMAGE *t1 = im_open_local( out, "transform:1", "p" );
 	IMAGE *t2 = im_open_local( out, "transform:2", "p" );
 	IMAGE *t3 = im_open_local( out, "transform:3", "p" );
 	IMAGE *t4 = im_open_local( out, "transform:4", "p" );
 	IMAGE *t5 = im_open_local( out, "transform:5", "p" );
-
 
 	if( !out || !t1 || !t2 || !t3 || !t4 || !t5 )
 		return( NULL );
@@ -1639,7 +1639,7 @@ transform( JoinNode *node, double *gamma )
 	}
 	else if( in->BandFmt == IM_BANDFMT_UCHAR ) {
 		if( im_identity( t1, 1 ) || 
-			im_powtra( t1, t2, 1/(*gamma) ) ||
+			im_powtra( t1, t2, 1.0 / (*gamma) ) ||
 			im_lintra( fac, t2, 0.0, t3 ) ||
 			im_powtra( t3, t4, *gamma ) ||
 			im_clip( t4, t5 ) ||
@@ -1648,10 +1648,10 @@ transform( JoinNode *node, double *gamma )
 	}
 	else if( in->BandFmt == IM_BANDFMT_USHORT ) {
 		if( im_identity_ushort( t1, 1, 65535 ) || 
-			im_powtra( t1, t2, 1/(*gamma) ) ||
+			im_powtra( t1, t2, 1.0 / (*gamma) ) ||
 			im_lintra( fac, t2, 0.0, t3 ) ||
 			im_powtra( t3, t4, *gamma ) ||
-			im_clip2us( t4, t5 ) ||
+			im_clip2fmt( t4, t5, IM_BANDFMT_USHORT ) ||
 			im_maplut( in, out, t5 ) )
 			return( NULL );
 	}

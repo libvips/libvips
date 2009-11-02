@@ -42,8 +42,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/util.h>
-
 /* Areas under curves for Dxx. 2 degree observer.
  */
 #define IM_D93_X0 (89.7400)

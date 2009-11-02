@@ -175,18 +175,13 @@ match( IMAGE *in, IMAGE *ref, IMAGE *out )
 int 
 im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
-	IMAGE *t1 = im_open_local( out, "im_histspec:1", "p" );
-	IMAGE *t2 = im_open_local( out, "im_histspec:2", "p" );
-	IMAGE *t3 = im_open_local( out, "im_histspec:3", "p" );
-	IMAGE *t4 = im_open_local( out, "im_histspec:4", "p" );
-	IMAGE *t5 = im_open_local( out, "im_histspec:5", "p" );
-
+	IMAGE *t[5];
 	int px;
 	int fmt;
 
-	if( !t1 || !t2 || !t2 || !t4 || !t5 )
+	if( im_open_local_array( out, t, 5, "im_histspec", "p" ) )
 		return( -1 );
-        if( !im_isuint( in ) || !im_isuint( ref ) ) {
+	if( !im_isuint( in ) || !im_isuint( ref ) ) {
                 im_error( "im_histspec", "%s", 
 			_( "input luts are not some unsigned integer type" ) );
                 return( -1 );
@@ -194,14 +189,16 @@ im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 	/* Match hists.
 	 */
-	if( im_histeq( in, t1 ) || im_clip2ui( t1, t2 ) ||
-		im_histeq( ref, t3 ) || im_clip2ui( t3, t4 ) ||
-		match( t2, t4, t5 ) )
+	if( im_histeq( in, t[0] ) || 
+		im_clip2fmt( t[0], t[1], IM_BANDFMT_UINT ) ||
+		im_histeq( ref, t[2] ) || 
+		im_clip2fmt( t[2], t[3], IM_BANDFMT_UINT ) ||
+		match( t[1], t[3], t[4] ) )
 		return( -1 );
 
 	/* Clip type down.
 	 */
-	px = t5->Xsize * t5->Ysize;
+	px = t[4]->Xsize * t[4]->Ysize;
 	if( px <= 256 ) 
 		fmt = IM_BANDFMT_UCHAR;
 	else if( px <= 65536 ) 
@@ -209,7 +206,7 @@ im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
 	else 
 		fmt = IM_BANDFMT_UINT;
 
-	if( im_clip2fmt( t5, out, fmt ) )
+	if( im_clip2fmt( t[4], out, fmt ) )
 		return( -1 );
 
         return( 0 );

@@ -39,7 +39,12 @@
   </chapter>
 
   <chapter>
-    <title>API by section (no gtkdoc comments yet)</title>
+    <title>VIPS operation API by section (no gtkdoc comments yet)</title>
+    <xi:include href="xml/conversion.xml"/>
+  </chapter>
+
+  <chapter>
+    <title>Other API (no gtkdoc comments yet)</title>
     <xi:include href="xml/format.xml"/>
     <xi:include href="xml/interpolate.xml"/>
     <xi:include href="xml/object.xml"/>

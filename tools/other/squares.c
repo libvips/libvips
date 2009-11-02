@@ -44,6 +44,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/deprecated.h>
 
 int
 main( int argc, char **argv )
