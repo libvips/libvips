@@ -37,8 +37,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int poop( int poop );
-
 typedef struct im__INTMASK {
 	int xsize;
 	int ysize;

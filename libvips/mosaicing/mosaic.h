@@ -73,23 +73,23 @@ typedef struct {
         double deviation[IM_MAXPOINTS];
 } TIE_POINTS;
 
-extern int im__chkpair( IMAGE *, IMAGE *, TIE_POINTS *point );
-extern int im__initialize( TIE_POINTS *points );
-extern int im__improve( TIE_POINTS *inpoints, TIE_POINTS *outpoints );
-extern int im__avgdxdy( TIE_POINTS *points, int *dx, int *dy );
-extern int im__lrcalcon( IMAGE *ref, TIE_POINTS *points );
-extern int im__tbcalcon( IMAGE *ref, TIE_POINTS *points );
-extern int im__coeff( int xr1, int yr1, int xs1, int ys1, 
+int im__chkpair( IMAGE *, IMAGE *, TIE_POINTS *point );
+int im__initialize( TIE_POINTS *points );
+int im__improve( TIE_POINTS *inpoints, TIE_POINTS *outpoints );
+int im__avgdxdy( TIE_POINTS *points, int *dx, int *dy );
+int im__lrcalcon( IMAGE *ref, TIE_POINTS *points );
+int im__tbcalcon( IMAGE *ref, TIE_POINTS *points );
+int im__coeff( int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2, 
 	double *a, double *b, double *dx, double *dy );
-extern int im__clinear( TIE_POINTS *points );
-extern int im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
+int im__clinear( TIE_POINTS *points );
+int im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	int bandno_in, 
 	int xref, int yref, int xsec, int ysec, 
 	int halfcorrelation, int halfarea,
 	int *dx0, int *dy0,
 	double *scale1, double *angle1, double *dx1, double *dy1 );
-extern int im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
+int im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	int bandno_in, 
 	int xref, int yref, int xsec, int ysec, 
 	int halfcorrelation, int halfarea,

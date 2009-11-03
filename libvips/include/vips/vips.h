@@ -85,6 +85,14 @@ extern "C" {
 #include <gmodule.h>
 #include <glib-object.h>
 
+/* If we're being parsed by SWIG, remove gcc attributes.
+ */
+#ifdef SWIG
+#  ifndef __attribute__
+#    define __attribute__(x)  /*NOTHING*/
+#  endif
+#endif /*SWIG*/
+
 #include <vips/buf.h>
 #include <vips/object.h>
 
@@ -112,18 +120,22 @@ extern "C" {
 #include <vips/meta.h>
 #include <vips/header.h>
 
-#include <vips/proto.h>
 #include <vips/arithmetic.h>
 #include <vips/boolean.h>
 #include <vips/relational.h>
 #include <vips/conversion.h>
 #include <vips/convolution.h>
 #include <vips/morphology.h>
+#include <vips/mosaicing.h>
 #include <vips/histograms_lut.h>
 #include <vips/freq_filt.h>
 #include <vips/resample.h>
 #include <vips/colour.h>
 #include <vips/disp.h>
+#include <vips/inplace.h>
+#include <vips/other.h>
+#include <vips/video.h>
+#include <vips/cimg_funcs.h>
 
 #ifdef IM_ENABLE_DEPRECATED
 #include <vips/deprecated.h>

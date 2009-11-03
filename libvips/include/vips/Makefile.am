@@ -14,6 +14,7 @@ pkginclude_HEADERS = \
 	error.h \
 	fmask.h \
 	format.h \
+	inplace.h \
 	generate.h \
 	header.h \
 	histograms_lut.h \
@@ -25,10 +26,12 @@ pkginclude_HEADERS = \
 	memory.h \
 	meta.h \
 	morphology.h \
-	mosaic.h \
+	mosaicing.h \
+	other.h \
+	video.h \
+	cimg_funcs.h \
 	object.h \
 	private.h \
-	proto.h \
 	rect.h \
 	region.h \
 	relational.h \
