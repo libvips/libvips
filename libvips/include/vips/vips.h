@@ -101,27 +101,7 @@ extern "C" {
 
 #include <vips/private.h>
 
-/* Argh, these horrible things must go :(
- */
-
-typedef struct im__INTMASK {
-	int xsize;
-	int ysize;
-	int scale;
-	int offset;
-	int *coeff;
-	char *filename;
-} INTMASK ;
-
-typedef struct im__DOUBLEMASK {
-	int xsize;
-	int ysize;
-	double scale;
-	double offset;
-	double *coeff;
-	char *filename;
-} DOUBLEMASK ;
-
+#include <vips/mask.h>
 #include <vips/image.h>
 #include <vips/memory.h>
 #include <vips/almostdeprecated.h>
@@ -145,6 +125,7 @@ typedef struct im__DOUBLEMASK {
 #include <vips/boolean.h>
 #include <vips/relational.h>
 #include <vips/conversion.h>
+#include <vips/convolution.h>
 #include <vips/colour.h>
 #include <vips/disp.h>
 

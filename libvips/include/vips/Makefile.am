@@ -19,6 +19,8 @@ pkginclude_HEADERS = \
 	image.h \
 	vips \
 	conversion.h \
+	convolution.h \
+	mask.h \
 	rect.h \
 	region.h \
 	generate.h \

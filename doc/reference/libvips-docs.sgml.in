@@ -41,6 +41,8 @@
   <chapter>
     <title>VIPS operation API by section (no gtkdoc comments yet)</title>
     <xi:include href="xml/conversion.xml"/>
+    <xi:include href="xml/convolution.xml"/>
+    <xi:include href="xml/mask.xml"/>
   </chapter>
 
   <chapter>
