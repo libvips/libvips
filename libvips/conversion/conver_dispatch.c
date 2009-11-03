@@ -1321,6 +1321,42 @@ static im_function wrap_desc = {
   wrap_args		/* Arg list */
 };
 
+/* Args for im_embed.
+ */
+static im_arg_desc embed_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "type" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" ),
+	IM_INPUT_INT( "w" ),
+	IM_INPUT_INT( "h" )
+};
+
+/* Call im_embed via arg vector.
+ */
+static int
+embed_vec( im_object *argv )
+{
+	int type = *((int *) argv[2]);
+	int x = *((int *) argv[3]);
+	int y = *((int *) argv[4]);
+	int w = *((int *) argv[5]);
+	int h = *((int *) argv[6]);
+
+	return( im_embed( argv[0], argv[1], type, x, y, w, h ) );
+}
+
+/* Description of im_embed.
+ */ 
+static im_function embed_desc = {
+	"im_embed",	 		/* Name */
+	"embed in within a set of borders", 
+	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
+	embed_vec, 			/* Dispatch function */
+	IM_NUMBER( embed_args ), 		/* Size of arg list */
+	embed_args 			/* Arg list */
+};
 
 /* Package up all these functions.
  */
@@ -1353,6 +1389,7 @@ static im_function *conv_list[] = {
 	&grid_desc,
 	&insert_desc,
 	&insert_noexpand_desc,
+	&embed_desc,
 	&lrjoin_desc,
 	&mask2vips_desc,
         &msb_desc,

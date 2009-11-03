@@ -1,4 +1,4 @@
-/* convolution.h
+/* mask.h
  *
  * 20/9/09
  * 	- from proto.h
@@ -37,6 +37,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+int poop( int poop );
+
 typedef struct im__INTMASK {
 	int xsize;
 	int ysize;
@@ -44,7 +46,7 @@ typedef struct im__INTMASK {
 	int offset;
 	int *coeff;
 	char *filename;
-} INTMASK ;
+} INTMASK;
 
 typedef struct im__DOUBLEMASK {
 	int xsize;
@@ -53,7 +55,7 @@ typedef struct im__DOUBLEMASK {
 	double offset;
 	double *coeff;
 	char *filename;
-} DOUBLEMASK ;
+} DOUBLEMASK;
 
 void im_copy_dmask_matrix( DOUBLEMASK *mask, double **matrix );
 void im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask );
@@ -94,6 +96,31 @@ INTMASK *im_rotate_imask90( INTMASK *m, const char *name );
 INTMASK *im_rotate_imask45( INTMASK *m, const char *name );
 DOUBLEMASK *im_rotate_dmask90( DOUBLEMASK *m, const char *name );
 DOUBLEMASK *im_rotate_dmask45( DOUBLEMASK *m, const char *name );
+
+DOUBLEMASK *im_mattrn( DOUBLEMASK *, const char * );
+DOUBLEMASK *im_matcat( DOUBLEMASK *, DOUBLEMASK *, const char * );
+DOUBLEMASK *im_matmul( DOUBLEMASK *, DOUBLEMASK *, const char * );
+
+DOUBLEMASK *im_lu_decomp( const DOUBLEMASK *mat, const char *name );
+int im_lu_solve( const DOUBLEMASK *lu, double *vec );
+DOUBLEMASK *im_matinv( const DOUBLEMASK *mat, const char *name );
+int im_matinv_inplace( DOUBLEMASK *mat );
+
+int *im_ivector();
+float *im_fvector();
+double *im_dvector();
+void im_free_ivector();
+void im_free_fvector();
+void im_free_dvector();
+
+int **im_imat_alloc();
+float **im_fmat_alloc();
+double **im_dmat_alloc();
+void im_free_imat();
+void im_free_fmat();
+void im_free_dmat();
+
+int im_invmat( double **, int );
 
 #ifdef __cplusplus
 }

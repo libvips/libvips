@@ -37,16 +37,10 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_rank( IMAGE *in, IMAGE *out, int width, int height, int rank );
-int im_rank_image( IMAGE **in, IMAGE *out, int n, int index );
-int im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int n );
-int im_zerox( IMAGE *, IMAGE *, int );
-
 int im_sharpen( IMAGE *, IMAGE *, int, double, double, double, double, double );
 int im_addgnoise( IMAGE *, IMAGE *, double );
 int im_gaussnoise( IMAGE *, int, int, double, double );
 
-int im_maxvalue( IMAGE **in, IMAGE *out, int n );
 int im_compass( IMAGE *, IMAGE *, INTMASK * );
 int im_gradient( IMAGE *, IMAGE *, INTMASK * );
 int im_lindetect( IMAGE *, IMAGE *, INTMASK * );
@@ -72,13 +66,6 @@ int im_gradcor( IMAGE *, IMAGE *, IMAGE * );
 int im_gradcor_raw( IMAGE *, IMAGE *, IMAGE * );
 int im_contrast_surface( IMAGE *, IMAGE *, int, int );
 int im_contrast_surface_raw( IMAGE *, IMAGE *, int, int );
-
-int im_resize_linear( IMAGE *, IMAGE *, int, int );
-int im_mpercent( IMAGE *, double, int * );
-int im_embed( IMAGE *, IMAGE *, int, int, int, int, int );
-
-int im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy );
-int im_shrink( IMAGE *, IMAGE *, double, double );
 
 #ifdef __cplusplus
 }

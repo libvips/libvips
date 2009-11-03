@@ -136,11 +136,107 @@ static im_function affinei_all_desc = {
 	affinei_all_args 		/* Arg list */
 };
 
+/* Args for im_shrink.
+ */
+static im_arg_desc shrink_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_DOUBLE( "xfac" ),
+	IM_INPUT_DOUBLE( "yfac" )
+};
+
+/* Call im_shrink via arg vector.
+ */
+static int
+shrink_vec( im_object *argv )
+{
+	double xshrink = *((double *) argv[2]);
+	double yshrink = *((double *) argv[3]);
+
+	return( im_shrink( argv[0], argv[1], xshrink, yshrink ) );
+}
+
+/* Description of im_shrink.
+ */ 
+static im_function shrink_desc = {
+	"im_shrink",	 		/* Name */
+	"shrink image by xfac, yfac times",
+	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
+	shrink_vec, 			/* Dispatch function */
+	IM_NUMBER( shrink_args ), 		/* Size of arg list */
+	shrink_args 			/* Arg list */
+};
+
+/* Args for im_resize_linear.
+ */
+static im_arg_desc resize_linear_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "X" ),
+	IM_INPUT_INT( "Y" )
+};
+
+/* Call im_resize_linear via arg vector.
+ */
+static int
+resize_linear_vec( im_object *argv )
+{
+	int X = *((int *) argv[2]);
+	int Y = *((int *) argv[3]);
+
+	return( im_resize_linear( argv[0], argv[1], X, Y ) );
+}
+
+/* Description of im_resize_linear.
+ */ 
+static im_function resize_linear_desc = {
+	"im_resize_linear",	 	/* Name */
+	"resize to X by Y pixels with linear interpolation",
+	0,				/* Flags */
+	resize_linear_vec, 		/* Dispatch function */
+	IM_NUMBER( resize_linear_args ), 	/* Size of arg list */
+	resize_linear_args 		/* Arg list */
+};
+
+/* Args to im_stretch3.
+ */
+static im_arg_desc stretch3_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_DOUBLE( "xdisp" ),
+	IM_INPUT_DOUBLE( "ydisp" )
+};
+
+/* Call im_stretch3 via arg vector.
+ */
+static int
+stretch3_vec( im_object *argv )
+{
+	double xdisp = *((int *) argv[2]);
+	double ydisp = *((int *) argv[3]);
+
+	return( im_stretch3( argv[0], argv[1], xdisp, ydisp ) );
+}
+
+/* Description of im_stretch3.
+ */ 
+static im_function stretch3_desc = {
+	"im_stretch3",	 		/* Name */
+	"stretch 3%, sub-pixel displace by xdisp/ydisp",
+	IM_FN_PIO,			/* Flags */
+	stretch3_vec, 			/* Dispatch function */
+	IM_NUMBER( stretch3_args ), 	/* Size of arg list */
+	stretch3_args 			/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *resample_list[] = {
+	&resize_linear_desc,
+	&shrink_desc,
+	&stretch3_desc,
 	&affinei_desc,
-	&affinei_all_desc,
+	&affinei_all_desc
 };
 
 /* Package of functions.

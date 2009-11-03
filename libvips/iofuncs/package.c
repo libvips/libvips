@@ -71,7 +71,7 @@ extern im_package im__format;
 extern im_package im__freq_filt;
 extern im_package im__histograms_lut;
 extern im_package im__inplace;
-extern im_package im__matrix;
+extern im_package im__mask;
 extern im_package im__morphology;
 extern im_package im__mosaicing;
 extern im_package im__other;
@@ -457,7 +457,7 @@ static im_package *built_in[] = {
 	&im__histograms_lut,
 	&im__inplace,
 	&im__iofuncs,
-	&im__matrix,
+	&im__mask,
 	&im__morphology,
 	&im__mosaicing,
 	&im__other,

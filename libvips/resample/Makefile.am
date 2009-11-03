@@ -5,6 +5,9 @@ libresample_la_SOURCES = \
 	bicubic.cpp \
 	interpolate.c \
 	yafrsmooth.cpp \
+	im_resize_linear.c \
+	im_shrink.c \
+	im_stretch3.c \
 	nohalo1.cpp \
 	snohalo1.cpp \
 	nohalo2.cpp \

@@ -53,6 +53,14 @@ static im_arg_desc one_in_one_out[] = {
 	IM_OUTPUT_IMAGE( "out" )
 };
 
+/* Two images in, one out.
+ */
+static im_arg_desc two_in_one_out[] = {
+	IM_INPUT_IMAGE( "in1" ),
+	IM_INPUT_IMAGE( "in2" ),
+	IM_OUTPUT_IMAGE( "out" )
+};
+
 /* Args to im_create_fmask().
  */
 static im_arg_desc create_fmask_args[] = {
@@ -288,6 +296,25 @@ static im_function invfftr_desc = {
 	one_in_one_out 			/* Arg list */
 };
 
+/* Call im_phasecor_fft via arg vector.
+ */
+static int
+phasecor_fft_vec( im_object *argv )
+{
+	return( im_phasecor_fft( argv[0], argv[1], argv[2] ) );
+}
+
+/* Description of im_phasecor_fft.
+ */ 
+static im_function phasecor_fft_desc = {
+	"im_phasecor_fft",	 		/* Name */
+	"non-normalised correlation of gradient of in2 within in1",
+	IM_FN_TRANSFORM,	/* Flags */
+	phasecor_fft_vec, 			/* Dispatch function */
+	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
+	two_in_one_out 			/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *freq_list[] = {
@@ -299,6 +326,7 @@ static im_function *freq_list[] = {
 	&fwfft_desc,
 	&rotquad_desc,
 	&invfft_desc,
+	&phasecor_fft_desc,
 	&invfftr_desc
 };
 

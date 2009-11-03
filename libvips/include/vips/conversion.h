@@ -66,6 +66,8 @@ int im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands );
 int im_extract_area( IMAGE *in, IMAGE *out, int x, int y, int w, int h );
 int im_extract_areabands( IMAGE *in, IMAGE *out,
 	int left, int top, int width, int height, int band, int nbands );
+int im_embed( IMAGE *in, IMAGE *out, int type, 
+	int left, int top, int width, int height );
 
 int im_subsample( IMAGE *in, IMAGE *out, int x, int y );
 int im_zoom( IMAGE *in, IMAGE *out, int x, int y );

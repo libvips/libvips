@@ -1,43 +1,47 @@
 pkginclude_HEADERS = \
-	arithmetic.h \
-	relational.h \
-	colour.h \
-	boolean.h \
-	debug.h \
-	dispatch.h \
-	format.h \
-	header.h \
-	callback.h \
-	error.h \
-	fmask.h \
-	mosaic.h \
-	check.h \
-	interpolate.h \
-	object.h \
 	almostdeprecated.h \
-	proto.h \
-	image.h \
-	vips \
+	arithmetic.h \
+	boolean.h \
+	buf.h \
+	callback.h \
+	check.h \
+	colour.h \
 	conversion.h \
 	convolution.h \
+	debug.h \
+	dispatch.h \
+	disp.h \
+	error.h \
+	fmask.h \
+	format.h \
+	generate.h \
+	header.h \
+	histograms_lut.h \
+	freq_filt.h \
+	image.h \
+	interpolate.h \
+	intl.h \
 	mask.h \
+	memory.h \
+	meta.h \
+	morphology.h \
+	mosaic.h \
+	object.h \
+	private.h \
+	proto.h \
 	rect.h \
 	region.h \
-	generate.h \
-	memory.h \
-	struct.h \
-	disp.h \
-	private.h \
+	relational.h \
+	resample.h \
 	semaphore.h \
-	transform.h \
+	struct.h \
 	threadgroup.h \
 	thread.h \
+	transform.h \
 	util.h \
-	meta.h \
 	version.h \
-	vips.h \
-	intl.h \
-	buf.h 
+	vips \
+	vips.h 
 
 vipsc++.h:
 	vips --cpph all > vipsc++.h

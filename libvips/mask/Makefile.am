@@ -1,11 +1,15 @@
-noinst_LTLIBRARIES = libmatrix.la
+noinst_LTLIBRARIES = libmask.la
 
-libmatrix_la_SOURCES = \
+libmask_la_SOURCES = \
+	rotmask.c \
+	im_gaussmasks.c \
+	im_logmasks.c \
+	rw_mask.c \
 	im_matcat.c \
 	im_matinv.c \
 	im_matmul.c \
 	im_mattrn.c \
 	matalloc.c \
-	matrix_dispatch.c
+	mask_dispatch.c
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

@@ -81,14 +81,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* If we're not using GNU C, elide __attribute__ 
- */
-#ifndef __GNUC__
-#  ifndef __attribute__
-#    define __attribute__(x)  /*NOTHING*/
-#  endif
-#endif
-
 #include <glib.h>
 #include <gmodule.h>
 #include <glib-object.h>
@@ -126,6 +118,10 @@ extern "C" {
 #include <vips/relational.h>
 #include <vips/conversion.h>
 #include <vips/convolution.h>
+#include <vips/morphology.h>
+#include <vips/histograms_lut.h>
+#include <vips/freq_filt.h>
+#include <vips/resample.h>
 #include <vips/colour.h>
 #include <vips/disp.h>
 

@@ -796,6 +796,35 @@ static im_function tone_map_desc = {
 	tone_map_args 		/* Arg list */
 };
 
+/* Args for im_mpercent.
+ */
+static im_arg_desc mpercent_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_INPUT_DOUBLE( "percent" ),
+	IM_OUTPUT_INT( "thresh" )
+};
+
+/* Call im_mpercent via arg vector.
+ */
+static int
+mpercent_vec( im_object *argv )
+{
+	double percent = *((double *) argv[1]);
+
+	return( im_mpercent( argv[0], percent, argv[2] ) );
+}
+
+/* Description of im_mpercent.
+ */ 
+static im_function mpercent_desc = {
+	"im_mpercent",	 		/* Name */
+	"find threshold above which there are percent values",
+	0,				/* Flags */
+	mpercent_vec, 			/* Dispatch function */
+	IM_NUMBER( mpercent_args ), 	/* Size of arg list */
+	mpercent_args 			/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *hist_list[] = {
@@ -815,6 +844,7 @@ static im_function *hist_list[] = {
 	&identity_ushort_desc,
 	&ismonotonic_desc,
 	&lhisteq_desc,
+	&mpercent_desc,
 	&lhisteq_raw_desc,
 	&invertlut_desc,
 	&buildlut_desc,

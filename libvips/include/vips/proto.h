@@ -64,69 +64,12 @@ extern "C" {
 #  endif
 #endif /*SWIG*/
 
-/* morphology
- */
-int im_dilate( IMAGE *in, IMAGE *out, INTMASK *m );
-int im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m );
-int im_erode( IMAGE *in, IMAGE *out, INTMASK *m );
-int im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m );
-int im_cntlines( IMAGE *im, double *nolines, int flag );
-int im_profile( IMAGE *in, IMAGE *out, int dir );
-
-/* freq_filt
- */
-int im_fractsurf( IMAGE *out, int size, double frd );
-int im_freqflt( IMAGE *, IMAGE *, IMAGE * );
-int im_disp_ps( IMAGE *, IMAGE * );
-int im_rotquad( IMAGE *, IMAGE * );
-int im_fwfft( IMAGE *, IMAGE * );
-int im_invfft( IMAGE *, IMAGE * );
-int im_invfftr( IMAGE *, IMAGE * );
-
 /* cimg
  */
 int im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask, 
 	int iterations, float amplitude, float sharpness, float anisotropy, 
 	float alpha, float sigma, float dl, float da, float gauss_prec, 
 	int interpolation, int fast_approx );
-
-/* histogram
- */
-int im_maplut( IMAGE *, IMAGE *, IMAGE * );
-int im_gammacorrect( IMAGE *, IMAGE *, double );
-int im_heq( IMAGE *in, IMAGE *out, int bandno );
-int im_hist( IMAGE *in, IMAGE *out, int bandno );
-int im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out );
-int im_histeq( IMAGE *in, IMAGE *out );
-int im_histnorm( IMAGE *in, IMAGE *out );
-int im_histcum( IMAGE *in, IMAGE *out );
-int im_histgr( IMAGE *in, IMAGE *out, int bandno );
-int im_histnD( IMAGE *in, IMAGE *out, int bins );
-int im_histplot( IMAGE *hist, IMAGE *histplot );
-int im_histspec( IMAGE *hin, IMAGE *href, IMAGE *lut );
-int im_hsp( IMAGE *in, IMAGE *ref, IMAGE *out );
-int im_identity( IMAGE *lut, int bands );
-int im_identity_ushort( IMAGE *lut, int bands, int sz );
-int im_lhisteq( IMAGE *in, IMAGE *out, int xwin, int ywin );
-int im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin );
-int im_invertlut( DOUBLEMASK *input, IMAGE *output, int lut_size );
-int im_buildlut( DOUBLEMASK *input, IMAGE *output );
-int im_stdif( IMAGE *in, IMAGE *out,
-	double a, double m0, double b, double s0, int xwin, int ywin );
-int im_stdif_raw( IMAGE *in, IMAGE *out,
-	double a, double m0, double b, double s0, int xwin, int ywin );
-int im_tone_build_range( IMAGE *out,
-	int in_max, int out_max,
-	double Lb, double Lw, double Ps, double Pm, double Ph,
-	double S, double M, double H );
-int im_tone_build( IMAGE *out,
-	double Lb, double Lw, double Ps, double Pm, double Ph,
-	double S, double M, double H );
-int im_tone_analyse( IMAGE *in, IMAGE *lut,
-	double Ps, double Pm, double Ph, double S, double M, double H );
-int im_ismonotonic( IMAGE *lut, int *out );
-int im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut );
-int im_project( IMAGE *in, IMAGE *hout, IMAGE *vout );
 
 /* other
  */
@@ -160,8 +103,6 @@ int im_simcontr( IMAGE *image, int xs, int ys );
 int im_sines( IMAGE *image,
 	int xsize, int ysize, double horfreq, double verfreq );
 int im_spatres( IMAGE *in,  IMAGE *out, int step );
-
-int im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt );
 
 /* mosaicing
  */
@@ -210,20 +151,6 @@ int im_tbmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 int im_global_balance( IMAGE *in, IMAGE *out, double gamma );
 int im_global_balancef( IMAGE *in, IMAGE *out, double gamma );
 
-int im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
-	int xr1, int yr1, int xs1, int ys1,
-	int xr2, int yr2, int xs2, int ys2 );
-int im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
-	int xr1, int yr1, int xs1, int ys1,
-	int xr2, int yr2, int xs2, int ys2,
-	int hwindowsize, int hsearchsize );
-
-int im_affinei( IMAGE *in, IMAGE *out, 
-	VipsInterpolate *interpolate,
-	double a, double b, double c, double d, double dx, double dy, 
-	int ox, int oy, int ow, int oh );
-int im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
-	double a, double b, double c, double d, double dx, double dy ) ;
 int im_correl( IMAGE *ref, IMAGE *sec,
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
@@ -254,34 +181,6 @@ int im_flood_other_copy( IMAGE *mask, IMAGE *test, IMAGE *out,
 int im_segment( IMAGE *test, IMAGE *mask, int *segments );
 int im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
-
-/* matrix
- */
-DOUBLEMASK *im_mattrn( DOUBLEMASK *, const char * );
-DOUBLEMASK *im_matcat( DOUBLEMASK *, DOUBLEMASK *, const char * );
-DOUBLEMASK *im_matmul( DOUBLEMASK *, DOUBLEMASK *, const char * );
-
-DOUBLEMASK *im_lu_decomp( const DOUBLEMASK *mat, const char *name );
-int im_lu_solve( const DOUBLEMASK *lu, double *vec );
-DOUBLEMASK *im_matinv( const DOUBLEMASK *mat, const char *name );
-int im_matinv_inplace( DOUBLEMASK *mat );
-
-
-int *im_ivector();
-float *im_fvector();
-double *im_dvector();
-void im_free_ivector();
-void im_free_fvector();
-void im_free_dvector();
-
-int **im_imat_alloc();
-float **im_fmat_alloc();
-double **im_dmat_alloc();
-void im_free_imat();
-void im_free_fmat();
-void im_free_dmat();
-
-int im_invmat( double **, int );
 
 /* video
  */
