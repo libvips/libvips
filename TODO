@@ -2,9 +2,9 @@
 
   avg is different? used to 120.134, now 120.151
 
-- mask isn't showing up in docs?
-
 - _raw() variants should be deprecated?
+
+- look through more sections for stuff in the wrong place
 
 - more stuff from util.c? too much to do it all now
 
