@@ -8,6 +8,7 @@ libdeprecated_la_SOURCES = \
 	im_cmulnorm.c \
 	im_printlines.c \
 	im_convsub.c \
+	im_line.c \
 	im_debugim.c \
 	im_gfadd.c \
 	im_setbox.c \

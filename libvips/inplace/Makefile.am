@@ -5,7 +5,6 @@ libinplace_la_SOURCES = \
 	im_flood.c \
 	im_flood_other.c \
 	im_insertplace.c \
-	im_line.c \
 	im_paintrect.c \
 	im_plotmask.c \
 	inplace_dispatch.c \

@@ -687,6 +687,42 @@ static im_function bernd_desc = {
 	bernd_args 			/* Arg list */
 };
 
+/* Args for im_line.
+ */
+static im_arg_desc line_args[] = {
+	IM_RW_IMAGE( "im" ),
+	IM_INPUT_INT( "x1" ),
+	IM_INPUT_INT( "y1" ),
+	IM_INPUT_INT( "x2" ),
+	IM_INPUT_INT( "y2" ),
+	IM_INPUT_INT( "pelval" )
+};
+
+/* Call im_line via arg vector.
+ */
+static int
+line_vec( im_object *argv )
+{
+	int x1 = *((int *) argv[1]);
+	int y1 = *((int *) argv[2]);
+	int x2 = *((int *) argv[3]);
+	int y2 = *((int *) argv[4]);
+	int pel = *((int *) argv[5]);
+
+	return( im_line( argv[0], x1, y1, x2, y2, pel ) );
+}
+
+/* Description of im_line.
+ */ 
+static im_function line_desc = {
+	"im_line", 		/* Name */
+	"draw line between points (x1,y1) and (x2,y2)",
+	0,			/* Flags */
+	line_vec, 		/* Dispatch function */
+	IM_NUMBER( line_args ),	/* Size of arg list */
+	line_args 		/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
@@ -710,6 +746,7 @@ static im_function *deprecated_list[] = {
 	&print_desc,
 	&slice_desc,
 	&bernd_desc,
+	&line_desc,
 	&thresh_desc,
 	&similarity_area_desc,
 	&similarity_desc

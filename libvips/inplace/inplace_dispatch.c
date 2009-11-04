@@ -42,6 +42,18 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: inplace
+ * @short_description: in-place paintbox operations: flood, paste, line,
+ * circle
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * These operations modify the input image. You can't easily use them in
+ * pipelines, but they are useful for paintbox-style programs.
+ *
+ */
+
 /* Args for im_circle.
  */
 static im_arg_desc circle_args[] = {
@@ -105,42 +117,6 @@ static im_function insertplace_desc = {
 	insertplace_vec, 		/* Dispatch function */
 	IM_NUMBER( insertplace_args ), 	/* Size of arg list */
 	insertplace_args 		/* Arg list */
-};
-
-/* Args for im_line.
- */
-static im_arg_desc line_args[] = {
-	IM_RW_IMAGE( "im" ),
-	IM_INPUT_INT( "x1" ),
-	IM_INPUT_INT( "y1" ),
-	IM_INPUT_INT( "x2" ),
-	IM_INPUT_INT( "y2" ),
-	IM_INPUT_INT( "pelval" )
-};
-
-/* Call im_line via arg vector.
- */
-static int
-line_vec( im_object *argv )
-{
-	int x1 = *((int *) argv[1]);
-	int y1 = *((int *) argv[2]);
-	int x2 = *((int *) argv[3]);
-	int y2 = *((int *) argv[4]);
-	int pel = *((int *) argv[5]);
-
-	return( im_line( argv[0], x1, y1, x2, y2, pel ) );
-}
-
-/* Description of im_line.
- */ 
-static im_function line_desc = {
-	"im_line", 		/* Name */
-	"draw line between points (x1,y1) and (x2,y2)",
-	0,			/* Flags */
-	line_vec, 		/* Dispatch function */
-	IM_NUMBER( line_args ),	/* Size of arg list */
-	line_args 		/* Arg list */
 };
 
 /* Args for im_lineset.
@@ -396,7 +372,6 @@ static im_function *inplace_list[] = {
 	&segment_desc,
 	&insertplace_desc,
 	&insertplaceset_desc,
-	&line_desc,
 	&lineset_desc
 };
 

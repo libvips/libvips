@@ -62,7 +62,7 @@
 #endif /*WITH_DMALLOC*/
 
 int 
-im_circle( IMAGE *im, int cx, int cy, int radius, int intensity)
+im_circle( IMAGE *im, int cx, int cy, int radius, int intensity )
 {
 	PEL *start;
 	int size = 0;

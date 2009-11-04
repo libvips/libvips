@@ -42,6 +42,15 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: histograms_lut
+ * @short_description: find, manipulate and apply histograms and lookup tables
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-image">image</link>
+ * @include: vips/vips.h
+ *
+ */
+
 /* One image in, one out.
  */
 static im_arg_desc one_in_one_out[] = {

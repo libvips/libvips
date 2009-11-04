@@ -37,8 +37,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_maplut( IMAGE *, IMAGE *, IMAGE * );
-int im_gammacorrect( IMAGE *, IMAGE *, double );
+int im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut );
+int im_gammacorrect( IMAGE *in, IMAGE *out, double exponent );
 int im_heq( IMAGE *in, IMAGE *out, int bandno );
 int im_hist( IMAGE *in, IMAGE *out, int bandno );
 int im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out );
@@ -72,7 +72,7 @@ int im_tone_analyse( IMAGE *in, IMAGE *lut,
 int im_ismonotonic( IMAGE *lut, int *out );
 int im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut );
 int im_project( IMAGE *in, IMAGE *hout, IMAGE *vout );
-int im_mpercent( IMAGE *, double, int * );
+int im_mpercent( IMAGE *in, double percent, int *out );
 
 #ifdef __cplusplus
 }

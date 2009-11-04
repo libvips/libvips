@@ -38,12 +38,12 @@ extern "C" {
 #endif /*__cplusplus*/
 
 int im_fractsurf( IMAGE *out, int size, double frd );
-int im_freqflt( IMAGE *, IMAGE *, IMAGE * );
-int im_disp_ps( IMAGE *, IMAGE * );
-int im_rotquad( IMAGE *, IMAGE * );
-int im_fwfft( IMAGE *, IMAGE * );
-int im_invfft( IMAGE *, IMAGE * );
-int im_invfftr( IMAGE *, IMAGE * );
+int im_freqflt( IMAGE *in, IMAGE *mask, IMAGE *out );
+int im_disp_ps( IMAGE *in, IMAGE *out );
+int im_rotquad( IMAGE *in, IMAGE *out );
+int im_fwfft( IMAGE *in, IMAGE *out );
+int im_invfft( IMAGE *in, IMAGE *out );
+int im_invfftr( IMAGE *in, IMAGE *out );
 int im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out );
 
 #ifdef __cplusplus

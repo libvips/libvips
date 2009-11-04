@@ -46,6 +46,17 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: freq_filt
+ * @short_description: fourier transforms and frequency-domin filters
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-image">image</link>
+ * @include: vips/vips.h
+ *
+ * To and from Fourier space, filter in Fourier space, convert Fourier-space
+ * images to a displayable form.
+ */
+
 /* One image in, one out.
  */
 static im_arg_desc one_in_one_out[] = {
