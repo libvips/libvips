@@ -50,7 +50,8 @@
 
 /** 
  * SECTION: interpolate
- * @short_description: shrink, expand, rotate with a choice of interpolators
+ * @short_description: various interpolators: nearest, bilinear, bicubic, and
+ * some non-linear
  * @stability: Stable
  * @include: vips/vips.h
  *

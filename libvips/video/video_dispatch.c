@@ -40,6 +40,16 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: video
+ * @short_description: various video grabbers
+ * @see_also: <link linkend="libvips-image">image</link>
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * Read an image from a video source.
+ */
+
 static int
 video_v4l1_vec( im_object *argv )
 {
