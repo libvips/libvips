@@ -61,10 +61,6 @@ int im_copy_swap( IMAGE *in, IMAGE *out );
 int im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture );
 int im_copy_file( IMAGE *in, IMAGE *out );
 
-int im_black( IMAGE *out, int, int, int );
-int im_text( IMAGE *out, const char *text, const char *font,
-	int width, int alignment, int dpi );
-
 int im_clip2fmt( IMAGE *in, IMAGE *out, int ofmt );
 int im_scale( IMAGE *in, IMAGE *out );
 int im_clip( IMAGE *in, IMAGE *out );
@@ -81,7 +77,9 @@ int im_scaleps( IMAGE *in, IMAGE *out );
 
 int im_falsecolour( IMAGE *in, IMAGE *out );
 
-int im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb );
+int im_black( IMAGE *out, int, int, int );
+int im_text( IMAGE *out, const char *text, const char *font,
+	int width, int alignment, int dpi );
 
 int im_extract_band( IMAGE *in, IMAGE *out, int band );
 int im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands );
@@ -90,10 +88,8 @@ int im_extract_areabands( IMAGE *in, IMAGE *out,
 	int left, int top, int width, int height, int band, int nbands );
 int im_embed( IMAGE *in, IMAGE *out, int type, 
 	int left, int top, int width, int height );
-
 int im_bandjoin( IMAGE *in, IMAGE *out, IMAGE * );
 int im_gbandjoin( IMAGE **in, IMAGE *out, int );
-
 int im_insert( IMAGE *in, IMAGE *out, IMAGE *, int x, int y );
 int im_insert_noexpand( IMAGE *in, IMAGE *out, IMAGE *, int x, int y );
 int im_lrjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );

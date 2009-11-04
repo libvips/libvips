@@ -258,6 +258,35 @@ static im_arg_desc image_in_num_out[] = {
 	IM_OUTPUT_DOUBLE( "value" )
 };
 
+/* Args for im_recomb.
+ */
+static im_arg_desc recomb_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_DMASK( "matrix" )
+};
+
+/* Call im_recomb via arg vector.
+ */
+static int
+recomb_vec( im_object *argv )
+{
+	im_mask_object *mo = argv[2];
+
+	return( im_recomb( argv[0], argv[1], mo->mask ) );
+}
+
+/* Description of im_recomb.
+ */
+static im_function recomb_desc = {
+	"im_recomb", 			/* Name */
+	"linear recombination with mask",
+	IM_FN_PIO,			/* Flags */
+	recomb_vec, 			/* Dispatch function */
+	IM_NUMBER( recomb_args ), 	/* Size of arg list */
+	recomb_args 			/* Arg list */
+};
+
 /* Call im_abs via arg vector.
  */
 static int
@@ -1421,6 +1450,7 @@ static im_function *arith_list[] = {
 	&multiply_desc,
 	&powtra_desc,
 	&powtra_vec_desc,
+	&recomb_desc,
 	&remainder_desc,
 	&remainderconst_desc,
 	&remainder_vec_desc,

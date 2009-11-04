@@ -44,6 +44,41 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* Args to im_rightshift_size.
+ */
+static im_arg_desc rightshift_size_args[] = {
+  IM_INPUT_IMAGE ("in"),
+  IM_OUTPUT_IMAGE ("out"),
+  IM_INPUT_INT ("xshift"),
+  IM_INPUT_INT ("yshift"),
+  IM_INPUT_INT ("band_fmt")
+};
+
+/* Call im_rightshift_size via arg vector.
+ */
+static int
+rightshift_size_vec (im_object * argv)
+{
+  IMAGE *in = (IMAGE *) argv[0];
+  IMAGE *out = (IMAGE *) argv[1];
+  int *xshift = (int *) argv[2];
+  int *yshift = (int *) argv[3];
+  int *band_fmt = (int *) argv[4];
+
+  return im_rightshift_size (in, out, *xshift, *yshift, *band_fmt );
+}
+
+/* Description of im_rightshift_size.
+ */
+static im_function rightshift_size_desc = {
+  "im_rightshift_size",		/* Name */
+  "decrease size by a power-of-two factor",
+  IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
+  rightshift_size_vec,		/* Dispatch function */
+  IM_NUMBER (rightshift_size_args),	/* Size of arg list */
+  rightshift_size_args		/* Arg list */
+};
+
 /* affinei args
  */
 static im_arg_desc affinei_args[] = {
@@ -233,6 +268,7 @@ static im_function stretch3_desc = {
  */
 static im_function *resample_list[] = {
 	&resize_linear_desc,
+	&rightshift_size_desc,
 	&shrink_desc,
 	&stretch3_desc,
 	&affinei_desc,

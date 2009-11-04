@@ -1,31 +1,11 @@
-/* @(#) Recombination of bands of image: perform a matrix mult of the form
- * @(#) 
- * @(#) 	a1		b11 b21 .. bm1		c1
- * @(#) 	a2		b12 b22 ..		c2
- * @(#) 	.	=	.   .		   x	.
- * @(#) 	.		.			.
- * @(#) 
- * @(#) 	an		b1n	   bmn		cm
- * @(#) 
- * @(#) Where A is an n band output image, C is an m band input image and B
- * @(#) is an mxn matrix of floats. Can be used with 3x3 matrix to perform
- * @(#) simple colour space transforms; 7x30 matrix to shrink 3rd order
- * @(#) development of 3 filter system to IM_TYPE_XYZ etc.
- * @(#) 
- * @(#) Output is always float, unless input is double, in which case output
- * @(#) is double. Does not work for complex images.
- * @(#) 
- * @(#) Usage: 	
- * @(#) 	im_recomb( imagein, imageout, mat )
- * @(#) 	IMAGE *imagein, *imageout;
- * @(#) 	DOUBLEMASK *mat;
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* im_recomb.c
+ *
  * 21/6/95 JC
  *	- mildly modernised
  * 14/3/96 JC
  *	- better error checks, partial
- *	- proper rounding behaviour for int types
+ * 4/11/09
+ * 	- gtkdoc
  */
 
 /*
@@ -59,8 +39,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <stdio.h>
-
 #include <vips/vips.h>
 
 #ifdef WITH_DMALLOC
@@ -69,25 +47,24 @@
 
 /* Inner loop.
  */
-#define LOOP(INTYPE, OUTTYPE) \
-{\
-	INTYPE *p = (INTYPE *) bin;\
-	OUTTYPE *q = (OUTTYPE *) bout;\
+#define LOOP( IN, OUT ) { \
+	IN *p = (IN *) bin; \
+	OUT *q = (OUT *) bout; \
 	\
-	for( i = 0; i < width; i++ ) {\
-		double *m = mat->coeff;\
+	for( i = 0; i < width; i++ ) { \
+		double *m = mat->coeff; \
 		\
-		for( v = 0; v < mat->ysize; v++ ) {\
-			double t = 0.0;\
+		for( v = 0; v < mat->ysize; v++ ) { \
+			double t = 0.0; \
 			\
-			for( u = 0; u < mat->xsize; u++ )\
-				t += *m++ * p[u];\
+			for( u = 0; u < mat->xsize; u++ ) \
+				t += *m++ * p[u]; \
 			\
-			*q++ = (OUTTYPE) t;\
-		}\
+			*q++ = (OUT) t; \
+		} \
 		\
-		p += mat->xsize;\
-	}\
+		p += mat->xsize; \
+	} \
 }
 
 /* Process a buffer of PELs.
@@ -111,30 +88,41 @@ recomb_buf( void *bin, void *bout, int width, IMAGE *in, DOUBLEMASK *mat )
 	case IM_BANDFMT_DOUBLE:	LOOP( double, double );  break; 
 
 	default:
-		im_error( "im_recomb", "%s", _( "unsupported input type" ) );
-		return( -1 );
+		g_assert( 0 );
 	}
 
 	return( 0 );
 }
 
-/* Start here.
+/** 
+ * im_recomb:
+ * @in: input image
+ * @out: output image
+ * @recomb: recombination matrix
+ *
+ * This operation recombines an image's bands. Each pixel in @in is treated as 
+ * an n-element vector, where n is the number of bands in @in, and multipled by
+ * the n x m matrix @recomb to produce the m-band image @out.
+ *
+ * @out is always float, unless @in is double, in which case @out is double
+ * too. No complex images allowed.
+ *
+ * It's useful for various sorts of colour space conversions.
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int 
-im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *mat )
+im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
 {
 	DOUBLEMASK *mcpy;
 
 	/* Check input image.
 	 */
-	if( im_piocheck( in, out ) )
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_recomb", in ) || 
+		im_check_noncomplex( "im_recomb", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
-		im_error( "im_recomb", "%s", 
-			_( "uncoded non-complex only" ) );
-		return( -1 );
-	}
-	if( in->Bands != mat->xsize ) {
+	if( in->Bands != recomb->xsize ) {
 		im_error( "im_recomb", "%s", 
 			_( "bands in must equal matrix width" ) );
 		return( -1 );
@@ -144,7 +132,7 @@ im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *mat )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	out->Bands = mat->ysize;
+	out->Bands = recomb->ysize;
 	if( im_isint( in ) ) {
 		out->Bbits = IM_BBITS_FLOAT;
 		out->BandFmt = IM_BANDFMT_FLOAT;
@@ -152,7 +140,7 @@ im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *mat )
 
 	/* Take a copy of the matrix.
 	 */
-	if( !(mcpy = im_dup_dmask( mat, "conv_mask" )) )
+	if( !(mcpy = im_dup_dmask( recomb, "conv_mask" )) )
 		return( -1 );
 	if( im_add_close_callback( out, 
 		(im_callback_fn) im_free_dmask, mcpy, NULL ) ) {

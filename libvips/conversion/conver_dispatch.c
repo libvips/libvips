@@ -40,6 +40,39 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: conversion
+ * @short_description: convert images in some way: change band format, change header, insert, extract, join
+ * @see_also: <link linkend="libvips-resample">resample</link>
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * These operations convert an image in some way. They can be split into a two
+ * main groups:
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>Format conversion</code></emphasis>
+ *
+ *       The first set of operations change an image's format in some way. You
+ *       can change the band format (for example, cast to 32-bit unsigned
+ *       int), form complex images from real images, convert images to
+ *       matrices and back, change header fields, and a few others.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>Lossless image manipulations</code></emphasis>
+ *
+ *	 The second group move pixels about in some way. You can flip, rotate,
+ *	 extract, insert and join pairs of iamges in various ways.
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ */
+
 static int
 system_vec( im_object *argv )
 {
@@ -96,41 +129,6 @@ static im_function subsample_desc = {
 	subsample_vec,			/* Dispatch function */
 	IM_NUMBER( subsample_args ), 	/* Size of arg list */
 	subsample_args 			/* Arg list */
-};
-
-/* Args to im_bernd.
- */
-static im_arg_desc bernd_args[] = {
-	IM_INPUT_STRING( "tiffname" ),
-	IM_INPUT_INT( "left" ),
-	IM_INPUT_INT( "top" ),
-	IM_INPUT_INT( "width" ),
-	IM_INPUT_INT( "height" )
-};
-
-/* Call im_bernd via arg vector.
- */
-static int
-bernd_vec( im_object *argv )
-{
-	char *name = argv[0];
-	int left = *((int *) argv[1]);
-	int top = *((int *) argv[2]);
-	int width = *((int *) argv[3]);
-	int height = *((int *) argv[4]);
-
-	return( im_bernd( name, left, top, width, height ) );
-}
-
-/* Description of im_bernd.
- */
-static im_function bernd_desc = {
-	"im_bernd", 			/* Name */
-	"extract from pyramid as jpeg",	/* Description */
-	0,				/* Flags */
-	bernd_vec, 			/* Dispatch function */
-	IM_NUMBER( bernd_args ), 	/* Size of arg list */
-	bernd_args 			/* Arg list */
 };
 
 /* Args to im_extract.
@@ -838,35 +836,6 @@ static im_function falsecolour_desc = {
 	one_in_one_out 			/* Arg list */
 };
 
-/* Args for im_recomb.
- */
-static im_arg_desc recomb_args[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_DMASK( "matrix" )
-};
-
-/* Call im_recomb via arg vector.
- */
-static int
-recomb_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[2];
-
-	return( im_recomb( argv[0], argv[1], mo->mask ) );
-}
-
-/* Description of im_recomb.
- */
-static im_function recomb_desc = {
-	"im_recomb", 			/* Name */
-	"linear recombination with mask",
-	IM_FN_PIO,			/* Flags */
-	recomb_vec, 			/* Dispatch function */
-	IM_NUMBER( recomb_args ), 	/* Size of arg list */
-	recomb_args 			/* Arg list */
-};
-
 /* Args for im_insert.
  */
 static im_arg_desc insert_args[] = {
@@ -1258,41 +1227,6 @@ static im_function msb_band_desc = {
   msb_band_args			/* Arg list */
 };
 
-/* Args to im_rightshift_size.
- */
-static im_arg_desc rightshift_size_args[] = {
-  IM_INPUT_IMAGE ("in"),
-  IM_OUTPUT_IMAGE ("out"),
-  IM_INPUT_INT ("xshift"),
-  IM_INPUT_INT ("yshift"),
-  IM_INPUT_INT ("band_fmt")
-};
-
-/* Call im_rightshift_size via arg vector.
- */
-static int
-rightshift_size_vec (im_object * argv)
-{
-  IMAGE *in = (IMAGE *) argv[0];
-  IMAGE *out = (IMAGE *) argv[1];
-  int *xshift = (int *) argv[2];
-  int *yshift = (int *) argv[3];
-  int *band_fmt = (int *) argv[4];
-
-  return im_rightshift_size (in, out, *xshift, *yshift, *band_fmt );
-}
-
-/* Description of im_rightshift_size.
- */
-static im_function rightshift_size_desc = {
-  "im_rightshift_size",		/* Name */
-  "decrease size by a power-of-two factor",
-  IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-  rightshift_size_vec,		/* Dispatch function */
-  IM_NUMBER (rightshift_size_args),	/* Size of arg list */
-  rightshift_size_args		/* Arg list */
-};
-
 /* Args to im_wrap.
  */
 static im_arg_desc wrap_args[] = {
@@ -1362,7 +1296,6 @@ static im_function embed_desc = {
  */
 static im_function *conv_list[] = {
 	&bandjoin_desc,
-	&bernd_desc,
 	&black_desc,
 	&c2amph_desc,
 	&c2imag_desc,
@@ -1394,7 +1327,6 @@ static im_function *conv_list[] = {
 	&mask2vips_desc,
         &msb_desc,
         &msb_band_desc,
-	&recomb_desc,
 	&replicate_desc,
 	&ri2c_desc,
 	&rot180_desc,
@@ -1402,7 +1334,6 @@ static im_function *conv_list[] = {
 	&rot90_desc,
 	&scale_desc,
 	&scaleps_desc,
-	&rightshift_size_desc,
 	&subsample_desc,
 	&system_desc,
 	&tbjoin_desc,

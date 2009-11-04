@@ -44,7 +44,6 @@ DOUBLEMASK *im_measure_area( IMAGE *im,
 	int h, int v, 
 	int *sel, int nsel, const char *name );
 DOUBLEMASK *im_stats( IMAGE *in );
-int im_abs( IMAGE *in, IMAGE *out );
 int im_max( IMAGE *in, double *out );
 int im_min( IMAGE *in, double *out );
 int im_avg( IMAGE *in, double *out );
@@ -54,17 +53,31 @@ int im_minpos( IMAGE *in, int *xpos, int *ypos, double *out );
 int im_maxpos_avg( IMAGE *im, double *xpos, double *ypos, double *out );
 int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n );
 int im_minpos_vec( IMAGE *im, int *xpos, int *ypos, double *minima, int n );
+int im_bandmean( IMAGE *in, IMAGE *out );
+
 int im_add( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_subtract( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_invert( IMAGE *in, IMAGE *out );
-int im_linreg( IMAGE **ins, IMAGE *out, double *xs );
 int im_lintra( double a, IMAGE *in, double b, IMAGE *out );
 int im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out );
 int im_multiply( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_divide( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_remainder_vec( IMAGE *in, IMAGE *out, int n, double *c );
+int im_remainderconst( IMAGE *in, IMAGE *out, double c );
+int im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb );
+
+int im_sign( IMAGE *in, IMAGE *out );
+int im_abs( IMAGE *in, IMAGE *out );
+int im_floor( IMAGE *in, IMAGE *out );
+int im_rint( IMAGE *in, IMAGE *out );
+int im_ceil( IMAGE *in, IMAGE *out );
+
+int im_linreg( IMAGE **ins, IMAGE *out, double *xs );
 int im_point( IMAGE *im, VipsInterpolate *interpolate, 
 	double x, double y, int band, double *out );
 int im_point_bilinear( IMAGE *im, double x, double y, int band, double *out );
+
 int im_powtra( IMAGE *in, IMAGE *out, double e );
 int im_powtra_vec( IMAGE *in, IMAGE *out, int n, double *e );
 int im_exptra( IMAGE *in, IMAGE *out );
@@ -73,20 +86,14 @@ int im_expntra( IMAGE *in, IMAGE *out, double e );
 int im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e );
 int im_logtra( IMAGE *in, IMAGE *out );
 int im_log10tra( IMAGE *in, IMAGE *out );
-int im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_remainder_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_remainderconst( IMAGE *in, IMAGE *out, double c );
-int im_floor( IMAGE *in, IMAGE *out );
-int im_rint( IMAGE *in, IMAGE *out );
-int im_ceil( IMAGE *in, IMAGE *out );
+
 int im_sintra( IMAGE *in, IMAGE *out );
-int im_sign( IMAGE *in, IMAGE *out );
 int im_costra( IMAGE *in, IMAGE *out );
 int im_tantra( IMAGE *in, IMAGE *out );
 int im_asintra( IMAGE *in, IMAGE *out );
 int im_acostra( IMAGE *in, IMAGE *out );
 int im_atantra( IMAGE *in, IMAGE *out );
-int im_bandmean( IMAGE *in, IMAGE *out );
+
 int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out );
 
 #ifdef __cplusplus

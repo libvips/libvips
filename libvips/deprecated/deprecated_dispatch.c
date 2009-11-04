@@ -619,6 +619,40 @@ static im_function slice_desc = {
 	slice_args 			/* Arg list */
 };
 
+/* Args to im_bernd.
+ */
+static im_arg_desc bernd_args[] = {
+	IM_INPUT_STRING( "tiffname" ),
+	IM_INPUT_INT( "left" ),
+	IM_INPUT_INT( "top" ),
+	IM_INPUT_INT( "width" ),
+	IM_INPUT_INT( "height" )
+};
+
+/* Call im_bernd via arg vector.
+ */
+static int
+bernd_vec( im_object *argv )
+{
+	char *name = argv[0];
+	int left = *((int *) argv[1]);
+	int top = *((int *) argv[2]);
+	int width = *((int *) argv[3]);
+	int height = *((int *) argv[4]);
+
+	return( im_bernd( name, left, top, width, height ) );
+}
+
+/* Description of im_bernd.
+ */
+static im_function bernd_desc = {
+	"im_bernd", 			/* Name */
+	"extract from pyramid as jpeg",	/* Description */
+	0,				/* Flags */
+	bernd_vec, 			/* Dispatch function */
+	IM_NUMBER( bernd_args ), 	/* Size of arg list */
+	bernd_args 			/* Arg list */
+};
 
 /* Package up all these functions.
  */
@@ -641,6 +675,7 @@ static im_function *deprecated_list[] = {
 	&clip2us_desc,
 	&print_desc,
 	&slice_desc,
+	&bernd_desc,
 	&thresh_desc,
 	&similarity_area_desc,
 	&similarity_desc

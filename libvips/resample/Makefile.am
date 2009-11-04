@@ -8,6 +8,7 @@ libresample_la_SOURCES = \
 	im_resize_linear.c \
 	im_shrink.c \
 	im_stretch3.c \
+	im_rightshift_size.c \
 	nohalo1.cpp \
 	snohalo1.cpp \
 	nohalo2.cpp \
