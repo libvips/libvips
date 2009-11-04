@@ -619,6 +619,39 @@ static im_function slice_desc = {
 	slice_args 			/* Arg list */
 };
 
+/* Args for im_convsub.
+ */
+static im_arg_desc convsub_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMASK( "matrix" ),
+	IM_INPUT_INT( "xskip" ),
+	IM_INPUT_INT( "yskip" )
+};
+
+/* Call im_convsub via arg vector.
+ */
+static int
+convsub_vec( im_object *argv )
+{
+	im_mask_object *mo = argv[2];
+	int xskip = *((int *) argv[3]);
+	int yskip = *((int *) argv[4]);
+
+	return( im_convsub( argv[0], argv[1], mo->mask, xskip, yskip ) );
+}
+
+/* Description of im_convsub.
+ */ 
+static im_function convsub_desc = {
+	"im_convsub", 			/* Name */
+	"convolve uchar to uchar, sub-sampling by xskip, yskip",
+	IM_FN_TRANSFORM,		/* Flags */
+	convsub_vec, 			/* Dispatch function */
+	IM_NUMBER( convsub_args ),		/* Size of arg list */
+	convsub_args 			/* Arg list */
+};
+
 /* Args to im_bernd.
  */
 static im_arg_desc bernd_args[] = {
@@ -670,6 +703,7 @@ static im_function *deprecated_list[] = {
 	&clip2dcm_desc,
 	&clip2f_desc,
 	&clip2i_desc,
+	&convsub_desc,
 	&clip2s_desc,
 	&clip2ui_desc,
 	&clip2us_desc,

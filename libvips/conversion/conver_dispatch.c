@@ -48,28 +48,15 @@
  * @include: vips/vips.h
  *
  * These operations convert an image in some way. They can be split into a two
- * main groups:
+ * main groups.
  *
- * <itemizedlist>
- *   <listitem>
- *     <para>
- *       <emphasis><code>Format conversion</code></emphasis>
+ * The first set of operations change an image's format in some way. You
+ * can change the band format (for example, cast to 32-bit unsigned
+ * int), form complex images from real images, convert images to
+ * matrices and back, change header fields, and a few others.
  *
- *       The first set of operations change an image's format in some way. You
- *       can change the band format (for example, cast to 32-bit unsigned
- *       int), form complex images from real images, convert images to
- *       matrices and back, change header fields, and a few others.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis><code>Lossless image manipulations</code></emphasis>
- *
- *	 The second group move pixels about in some way. You can flip, rotate,
- *	 extract, insert and join pairs of iamges in various ways.
- *     </para>
- *   </listitem>
- * </itemizedlist>
+ * The second group move pixels about in some way. You can flip, rotate,
+ * extract, insert and join pairs of iamges in various ways.
  *
  */
 
@@ -129,6 +116,72 @@ static im_function subsample_desc = {
 	subsample_vec,			/* Dispatch function */
 	IM_NUMBER( subsample_args ), 	/* Size of arg list */
 	subsample_args 			/* Arg list */
+};
+
+/* Args for im_gaussnoise.
+ */
+static im_arg_desc gaussnoise_args[] = {
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "xsize" ),
+	IM_INPUT_INT( "ysize" ),
+	IM_INPUT_DOUBLE( "mean" ),
+	IM_INPUT_DOUBLE( "sigma" )
+};
+
+/* Call im_gaussnoise via arg vector.
+ */
+static int
+gaussnoise_vec( im_object *argv )
+{
+	int xsize = *((int *) argv[1]);
+	int ysize = *((int *) argv[2]);
+	double mean = *((double *) argv[3]);
+	double sigma = *((double *) argv[4]);
+
+	if( im_gaussnoise( argv[0], xsize, ysize, mean, sigma ) )
+		return( -1 );
+	
+	return( 0 );
+}
+
+/* Description of im_gaussnoise.
+ */ 
+static im_function gaussnoise_desc = {
+	"im_gaussnoise", 		/* Name */
+	"generate image of gaussian noise with specified statistics",
+	IM_FN_PIO,			/* Flags */
+	gaussnoise_vec, 		/* Dispatch function */
+	IM_NUMBER( gaussnoise_args ), 	/* Size of arg list */
+	gaussnoise_args 		/* Arg list */
+};
+
+/* Args to im_addgnoise.
+ */
+static im_arg_desc addgnoise_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_DOUBLE( "sigma" )
+};
+
+/* Call im_addgnoise via arg vector.
+ */
+static int
+addgnoise_vec( im_object *argv )
+{
+	double sigma = *((double *) argv[2]);
+
+	return( im_addgnoise( argv[0], argv[1], sigma ) );
+}
+
+/* Description of im_addgnoise.
+ */ 
+static im_function addgnoise_desc = {
+	"im_addgnoise", 		/* Name */
+	"add gaussian noise with mean 0 and std. dev. sigma",
+	IM_FN_PIO,			/* Flags */
+	addgnoise_vec, 			/* Dispatch function */
+	IM_NUMBER( addgnoise_args ), 	/* Size of arg list */
+	addgnoise_args 			/* Arg list */
 };
 
 /* Args to im_extract.
@@ -1295,6 +1348,8 @@ static im_function embed_desc = {
 /* Package up all these functions.
  */
 static im_function *conv_list[] = {
+	&addgnoise_desc,
+	&gaussnoise_desc,
 	&bandjoin_desc,
 	&black_desc,
 	&c2amph_desc,

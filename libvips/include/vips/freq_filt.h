@@ -44,6 +44,7 @@ int im_rotquad( IMAGE *, IMAGE * );
 int im_fwfft( IMAGE *, IMAGE * );
 int im_invfft( IMAGE *, IMAGE * );
 int im_invfftr( IMAGE *, IMAGE * );
+int im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out );
 
 #ifdef __cplusplus
 }

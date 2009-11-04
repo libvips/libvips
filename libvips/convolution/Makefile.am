@@ -8,10 +8,8 @@ libconvolution_la_SOURCES = \
 	im_convf.c \
 	im_convsep.c \
 	im_convsepf.c \
-	im_convsub.c \
 	im_contrast_surface.c \
 	im_fastcor.c \
-	im_gaussnoise.c \
 	im_gradcor.c \
 	im_sharpen.c \
 	im_spcor.c 

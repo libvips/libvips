@@ -343,6 +343,8 @@ int im_thresh( IMAGE *in, IMAGE *out, double );
 
 int im_print( const char *message );
 
+int im_convsub( IMAGE *in, IMAGE *out, INTMASK *mask, int xskip, int yskip );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

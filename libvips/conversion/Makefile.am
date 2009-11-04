@@ -34,6 +34,7 @@ libconversion_la_SOURCES = \
 	im_system.c \
 	im_tbjoin.c \
 	im_text.c \
+	im_gaussnoise.c \
 	im_vips2mask.c \
 	im_wrap.c \
 	im_zoom.c

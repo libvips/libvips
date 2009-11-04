@@ -37,35 +37,37 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_sharpen( IMAGE *, IMAGE *, int, double, double, double, double, double );
-int im_addgnoise( IMAGE *, IMAGE *, double );
-int im_gaussnoise( IMAGE *, int, int, double, double );
+int im_conv( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_convf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_convsep( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_convsepf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_convsepf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 
-int im_compass( IMAGE *, IMAGE *, INTMASK * );
-int im_gradient( IMAGE *, IMAGE *, INTMASK * );
-int im_lindetect( IMAGE *, IMAGE *, INTMASK * );
-int im_conv( IMAGE *, IMAGE *, INTMASK * );
-int im_conv_raw( IMAGE *, IMAGE *, INTMASK * );
-int im_convf( IMAGE *, IMAGE *, DOUBLEMASK * );
-int im_convf_raw( IMAGE *, IMAGE *, DOUBLEMASK * );
-int im_convsep( IMAGE *, IMAGE *, INTMASK * );
-int im_convsep_raw( IMAGE *, IMAGE *, INTMASK * );
-int im_convsepf( IMAGE *, IMAGE *, DOUBLEMASK * );
-int im_convsepf_raw( IMAGE *, IMAGE *, DOUBLEMASK * );
-int im_convsub( IMAGE *, IMAGE *, INTMASK *, int, int );
+int im_compass( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_lindetect( IMAGE *in, IMAGE *out, INTMASK *mask );
+
+int im_sharpen( IMAGE *in, IMAGE *out, 
+	int mask_size, 
+	double x1, double y2, double y3, 
+	double m1, double m2 );
 
 int im_grad_x( IMAGE *in, IMAGE *out );
 int im_grad_y( IMAGE *in, IMAGE *out );
 
-int im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_fastcor( IMAGE *, IMAGE *, IMAGE * );
-int im_fastcor_raw( IMAGE *, IMAGE *, IMAGE * );
-int im_spcor( IMAGE *, IMAGE *, IMAGE * );
-int im_spcor_raw( IMAGE *, IMAGE *, IMAGE * );
-int im_gradcor( IMAGE *, IMAGE *, IMAGE * );
-int im_gradcor_raw( IMAGE *, IMAGE *, IMAGE * );
-int im_contrast_surface( IMAGE *, IMAGE *, int, int );
-int im_contrast_surface_raw( IMAGE *, IMAGE *, int, int );
+int im_fastcor( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_spcor( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_gradcor( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_gradcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_contrast_surface( IMAGE *in, IMAGE *out, 
+	int half_win_size, int spacing );
+int im_contrast_surface_raw( IMAGE *in, IMAGE *out, 
+	int half_win_size, int spacing );
 
 #ifdef __cplusplus
 }

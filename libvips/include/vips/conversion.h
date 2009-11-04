@@ -76,8 +76,10 @@ int im_c2ps( IMAGE *in, IMAGE *out );
 int im_scaleps( IMAGE *in, IMAGE *out );
 
 int im_falsecolour( IMAGE *in, IMAGE *out );
+int im_addgnoise( IMAGE *, IMAGE *, double );
+int im_gaussnoise( IMAGE *, int, int, double, double );
 
-int im_black( IMAGE *out, int, int, int );
+int im_black( IMAGE *out, int width, int height, int bands );
 int im_text( IMAGE *out, const char *text, const char *font,
 	int width, int alignment, int dpi );
 
@@ -88,10 +90,10 @@ int im_extract_areabands( IMAGE *in, IMAGE *out,
 	int left, int top, int width, int height, int band, int nbands );
 int im_embed( IMAGE *in, IMAGE *out, int type, 
 	int left, int top, int width, int height );
-int im_bandjoin( IMAGE *in, IMAGE *out, IMAGE * );
-int im_gbandjoin( IMAGE **in, IMAGE *out, int );
-int im_insert( IMAGE *in, IMAGE *out, IMAGE *, int x, int y );
-int im_insert_noexpand( IMAGE *in, IMAGE *out, IMAGE *, int x, int y );
+int im_bandjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_gbandjoin( IMAGE **in, IMAGE *out, int n );
+int im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y );
+int im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y );
 int im_lrjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_tbjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_replicate( IMAGE *in, IMAGE *out, int across, int down );

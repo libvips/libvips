@@ -42,6 +42,17 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: convolution
+ * @short_description: convolve and correlate images
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * These operations convolve an image in some way, or are operations based on
+ * simple convolution, or are useful with convolution.
+ *
+ */
+
 /* One image in, one out.
  */
 static im_arg_desc one_in_one_out[] = {
@@ -158,35 +169,6 @@ static im_function sharpen_desc = {
 	sharpen_vec, 			/* Dispatch function */
 	IM_NUMBER( sharpen_args ), 	/* Size of arg list */
 	sharpen_args 			/* Arg list */
-};
-
-/* Args to im_addgnoise.
- */
-static im_arg_desc addgnoise_args[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_DOUBLE( "sigma" )
-};
-
-/* Call im_addgnoise via arg vector.
- */
-static int
-addgnoise_vec( im_object *argv )
-{
-	double sigma = *((double *) argv[2]);
-
-	return( im_addgnoise( argv[0], argv[1], sigma ) );
-}
-
-/* Description of im_addgnoise.
- */ 
-static im_function addgnoise_desc = {
-	"im_addgnoise", 		/* Name */
-	"add gaussian noise with mean 0 and std. dev. sigma",
-	IM_FN_PIO,			/* Flags */
-	addgnoise_vec, 			/* Dispatch function */
-	IM_NUMBER( addgnoise_args ), 	/* Size of arg list */
-	addgnoise_args 			/* Arg list */
 };
 
 /* Args for convolver with imask.
@@ -394,39 +376,6 @@ static im_function convsepf_raw_desc = {
 	conv_dmask 			/* Arg list */
 };
 
-/* Args for im_convsub.
- */
-static im_arg_desc convsub_args[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_IMASK( "matrix" ),
-	IM_INPUT_INT( "xskip" ),
-	IM_INPUT_INT( "yskip" )
-};
-
-/* Call im_convsub via arg vector.
- */
-static int
-convsub_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[2];
-	int xskip = *((int *) argv[3]);
-	int yskip = *((int *) argv[4]);
-
-	return( im_convsub( argv[0], argv[1], mo->mask, xskip, yskip ) );
-}
-
-/* Description of im_convsub.
- */ 
-static im_function convsub_desc = {
-	"im_convsub", 			/* Name */
-	"convolve uchar to uchar, sub-sampling by xskip, yskip",
-	IM_FN_TRANSFORM,		/* Flags */
-	convsub_vec, 			/* Dispatch function */
-	IM_NUMBER( convsub_args ),		/* Size of arg list */
-	convsub_args 			/* Arg list */
-};
-
 /* Call im_fastcor via arg vector.
  */
 static int
@@ -463,43 +412,6 @@ static im_function fastcor_raw_desc = {
 	fastcor_raw_vec,		/* Dispatch function */
 	IM_NUMBER( two_in_one_out ),	/* Size of arg list */
 	two_in_one_out 			/* Arg list */
-};
-
-/* Args for im_gaussnoise.
- */
-static im_arg_desc gaussnoise_args[] = {
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_INT( "xsize" ),
-	IM_INPUT_INT( "ysize" ),
-	IM_INPUT_DOUBLE( "mean" ),
-	IM_INPUT_DOUBLE( "sigma" )
-};
-
-/* Call im_gaussnoise via arg vector.
- */
-static int
-gaussnoise_vec( im_object *argv )
-{
-	int xsize = *((int *) argv[1]);
-	int ysize = *((int *) argv[2]);
-	double mean = *((double *) argv[3]);
-	double sigma = *((double *) argv[4]);
-
-	if( im_gaussnoise( argv[0], xsize, ysize, mean, sigma ) )
-		return( -1 );
-	
-	return( 0 );
-}
-
-/* Description of im_gaussnoise.
- */ 
-static im_function gaussnoise_desc = {
-	"im_gaussnoise", 		/* Name */
-	"generate image of gaussian noise with specified statistics",
-	IM_FN_PIO,			/* Flags */
-	gaussnoise_vec, 		/* Dispatch function */
-	IM_NUMBER( gaussnoise_args ), 	/* Size of arg list */
-	gaussnoise_args 		/* Arg list */
 };
 
 /* Call im_grad_x via arg vector.
@@ -661,7 +573,6 @@ static im_function spcor_raw_desc = {
 /* Package up all these functions.
  */
 static im_function *convol_list[] = {
-	&addgnoise_desc,
 	&compass_desc,
 	&contrast_surface_desc,
 	&contrast_surface_raw_desc,
@@ -673,10 +584,8 @@ static im_function *convol_list[] = {
 	&convsepf_desc,
 	&convsepf_raw_desc,
 	&convsep_raw_desc,
-	&convsub_desc,
 	&fastcor_desc,
 	&fastcor_raw_desc,
-	&gaussnoise_desc,
         &gradcor_desc,
         &gradcor_raw_desc,
 	&gradient_desc,
