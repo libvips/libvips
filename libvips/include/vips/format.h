@@ -114,26 +114,26 @@ VipsFormatFlags vips_format_get_flags( VipsFormatClass *format,
 
 /* Read/write an image convenience functions.
  */
-int vips_format_read( const char *name, IMAGE *out );
-int vips_format_write( IMAGE *im, const char *name );
+int vips_format_read( const char *filename, IMAGE *out );
+int vips_format_write( IMAGE *in, const char *filename );
 
-int im_jpeg2vips( const char *in, IMAGE * );
-int im_vips2jpeg( IMAGE *in, const char * );
-int im_vips2mimejpeg( IMAGE *in, int );
-int im_vips2bufjpeg( IMAGE *in, IMAGE *, int, char **, int * );
-int im_vips2tiff( IMAGE *in, const char * );
-int im_bernd( const char *in, int, int, int, int );
-int im_tiff2vips( const char *in, IMAGE * );
-int im_tile_cache( IMAGE *in, IMAGE *, int, int, int );
-int im_magick2vips( const char *in, IMAGE * );
-int im_png2vips( const char *in, IMAGE * );
-int im_exr2vips( const char *in, IMAGE * );
-int im_ppm2vips( const char *in, IMAGE * );
-int im_vips2ppm( IMAGE *in, const char * );
+int im_jpeg2vips( const char *filename, IMAGE *out );
+int im_vips2jpeg( IMAGE *in, const char *filename );
+int im_vips2mimejpeg( IMAGE *in, int qfac );
+int im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen );
+int im_vips2tiff( IMAGE *in, const char *filename );
+int im_tiff2vips( const char *filename, IMAGE *out );
+int im_tile_cache( IMAGE *in, IMAGE *out, 
+	int tile_width, int tile_height, int max_tiles );
+int im_magick2vips( const char *filename, IMAGE * );
+int im_png2vips( const char *filename, IMAGE *out );
+int im_exr2vips( const char *filename, IMAGE *out );
+int im_ppm2vips( const char *filename, IMAGE *out );
+int im_vips2ppm( IMAGE *in, const char *filename );
 int im_analyze2vips( const char *filename, IMAGE *out );
 int im_vips2csv( IMAGE *in, const char *filename );
 int im_csv2vips( const char *filename, IMAGE *out );
-int im_vips2png( IMAGE *, const char * );
+int im_vips2png( IMAGE *in, const char *filename );
 int im_raw2vips( const char *filename, IMAGE *out,
 	int width, int height, int bpp, int offset );
 int im_vips2raw( IMAGE *in, int fd );

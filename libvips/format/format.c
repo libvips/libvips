@@ -42,13 +42,14 @@
 #endif /*WITH_DMALLOC*/
 
 /**
- * SECTION: VipsFormat
+ * SECTION: format
  * @short_description: load and save in a variety of formats
  * @stability: Stable
  * @see_also: <link linkend="libvips-image">image</link>
  * @include: vips/vips.h
  *
- * VIPS has a simple system for representing image loader
+ * VIPS has a simple system for representing image load ans save operations in
+ * a generic way.
  *
  */
 

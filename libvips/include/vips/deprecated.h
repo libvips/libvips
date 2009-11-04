@@ -345,6 +345,8 @@ int im_print( const char *message );
 
 int im_convsub( IMAGE *in, IMAGE *out, INTMASK *mask, int xskip, int yskip );
 
+int im_bernd( const char *tiffname, int x, int y, int w, int h );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
