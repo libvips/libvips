@@ -41,7 +41,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>

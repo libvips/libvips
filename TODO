@@ -2,6 +2,10 @@
 
   avg is different? used to 120.134, now 120.151
 
+- segment should be in morph
+
+- insertplaceset should be with insert in conversion
+
 - _raw() variants should be deprecated?
 
 - look through more sections for stuff in the wrong place

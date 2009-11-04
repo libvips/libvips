@@ -42,14 +42,13 @@ int im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m );
 int im_erode( IMAGE *in, IMAGE *out, INTMASK *m );
 int im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m );
 
-int im_rank( IMAGE *in, IMAGE *out, int width, int height, int rank );
-int im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int n );
+int im_rank( IMAGE *in, IMAGE *out, int xsize, int ysize, int order );
+int im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order );
 int im_rank_image( IMAGE **in, IMAGE *out, int n, int index );
 int im_maxvalue( IMAGE **in, IMAGE *out, int n );
 
 int im_cntlines( IMAGE *im, double *nolines, int flag );
-int im_zerox( IMAGE *, IMAGE *, int );
-
+int im_zerox( IMAGE *in, IMAGE *out, int flag );
 int im_profile( IMAGE *in, IMAGE *out, int dir );
 
 #ifdef __cplusplus

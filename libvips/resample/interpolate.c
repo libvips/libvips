@@ -48,6 +48,15 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: interpolate
+ * @short_description: shrink, expand, rotate with a choice of interpolators
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * A number of image interpolators.
+ */
+
 /*
  * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
  * found to be faster on several linux boxes than the library

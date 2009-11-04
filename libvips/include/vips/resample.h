@@ -37,14 +37,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
-	int xr1, int yr1, int xs1, int ys1,
-	int xr2, int yr2, int xs2, int ys2 );
-int im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
-	int xr1, int yr1, int xs1, int ys1,
-	int xr2, int yr2, int xs2, int ys2,
-	int hwindowsize, int hsearchsize );
-
 int im_affinei( IMAGE *in, IMAGE *out, 
 	VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy, 
@@ -52,11 +44,18 @@ int im_affinei( IMAGE *in, IMAGE *out,
 int im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy ) ;
 
-int im_resize_linear( IMAGE *, IMAGE *, int, int );
 int im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy );
-int im_shrink( IMAGE *, IMAGE *, double, double );
 
+int im_shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink );
 int im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt );
+
+int im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int xr1, int yr1, int xs1, int ys1,
+	int xr2, int yr2, int xs2, int ys2 );
+int im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int xr1, int yr1, int xs1, int ys1,
+	int xr2, int yr2, int xs2, int ys2,
+	int hwindowsize, int hsearchsize );
 
 #ifdef __cplusplus
 }

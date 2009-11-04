@@ -5,7 +5,6 @@ libresample_la_SOURCES = \
 	bicubic.cpp \
 	interpolate.c \
 	yafrsmooth.cpp \
-	im_resize_linear.c \
 	im_shrink.c \
 	im_stretch3.c \
 	im_rightshift_size.c \

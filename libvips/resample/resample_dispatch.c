@@ -44,6 +44,16 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: resample
+ * @short_description: shrink, expand, rotate with a choice of interpolators
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * Resample an image in various ways, using a #VipsInterpolator to generate
+ * intermediate values.
+ */
+
 /* Args to im_rightshift_size.
  */
 static im_arg_desc rightshift_size_args[] = {
@@ -202,37 +212,6 @@ static im_function shrink_desc = {
 	shrink_args 			/* Arg list */
 };
 
-/* Args for im_resize_linear.
- */
-static im_arg_desc resize_linear_args[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_INT( "X" ),
-	IM_INPUT_INT( "Y" )
-};
-
-/* Call im_resize_linear via arg vector.
- */
-static int
-resize_linear_vec( im_object *argv )
-{
-	int X = *((int *) argv[2]);
-	int Y = *((int *) argv[3]);
-
-	return( im_resize_linear( argv[0], argv[1], X, Y ) );
-}
-
-/* Description of im_resize_linear.
- */ 
-static im_function resize_linear_desc = {
-	"im_resize_linear",	 	/* Name */
-	"resize to X by Y pixels with linear interpolation",
-	0,				/* Flags */
-	resize_linear_vec, 		/* Dispatch function */
-	IM_NUMBER( resize_linear_args ), 	/* Size of arg list */
-	resize_linear_args 		/* Arg list */
-};
-
 /* Args to im_stretch3.
  */
 static im_arg_desc stretch3_args[] = {
@@ -267,7 +246,6 @@ static im_function stretch3_desc = {
 /* Package up all these functions.
  */
 static im_function *resample_list[] = {
-	&resize_linear_desc,
 	&rightshift_size_desc,
 	&shrink_desc,
 	&stretch3_desc,

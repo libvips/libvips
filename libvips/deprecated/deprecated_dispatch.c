@@ -723,9 +723,41 @@ static im_function line_desc = {
 	line_args 		/* Arg list */
 };
 
+/* Args for im_resize_linear.
+ */
+static im_arg_desc resize_linear_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "X" ),
+	IM_INPUT_INT( "Y" )
+};
+
+/* Call im_resize_linear via arg vector.
+ */
+static int
+resize_linear_vec( im_object *argv )
+{
+	int X = *((int *) argv[2]);
+	int Y = *((int *) argv[3]);
+
+	return( im_resize_linear( argv[0], argv[1], X, Y ) );
+}
+
+/* Description of im_resize_linear.
+ */ 
+static im_function resize_linear_desc = {
+	"im_resize_linear",	 	/* Name */
+	"resize to X by Y pixels with linear interpolation",
+	0,				/* Flags */
+	resize_linear_vec, 		/* Dispatch function */
+	IM_NUMBER( resize_linear_args ), 	/* Size of arg list */
+	resize_linear_args 		/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
+	&resize_linear_desc,
 	&cmulnorm_desc,
 	&remainderconst_vec_desc,
 	&fav4_desc,

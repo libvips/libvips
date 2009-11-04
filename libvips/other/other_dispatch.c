@@ -42,6 +42,16 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: other
+ * @short_description: miscellaneous operators
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * Various small things.
+ *
+ */
+
 /* Args for im_eye.
  */
 static im_arg_desc eye_args[] = {

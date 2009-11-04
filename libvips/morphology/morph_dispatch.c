@@ -42,6 +42,17 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: morphology
+ * @short_description: morphological operators, rank filters and related image 
+ * analysis
+ * @see_also: <link linkend="libvips-boolean">boolean</link>
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * Erode, dilate, rank, count lines, number regions, etc.
+ */
+
 /* Args to im_profile.
  */
 static im_arg_desc profile_args[] = {

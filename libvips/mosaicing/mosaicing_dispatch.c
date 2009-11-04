@@ -46,6 +46,16 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * SECTION: mosaicing
+ * @short_description: build image mosaics
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * A set of operations for assembling large image mosaics.
+ *
+ */
+
 /* Merge args.
  */
 static im_arg_desc merge_args[] = {

@@ -226,6 +226,25 @@ void imb_Lab2LabQ( float *, PEL *, int );
 void imb_LabS2Lab( signed short *, float *, int );
 void imb_Lab2LabS( float *, signed short *, int n );
 
+void im_copy_dmask_matrix( DOUBLEMASK *mask, double **matrix );
+void im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask );
+
+int *im_ivector();
+float *im_fvector();
+double *im_dvector();
+void im_free_ivector();
+void im_free_fvector();
+void im_free_dvector();
+
+int **im_imat_alloc();
+float **im_fmat_alloc();
+double **im_dmat_alloc();
+void im_free_imat();
+void im_free_fmat();
+void im_free_dmat();
+
+int im_invmat( double **, int );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
