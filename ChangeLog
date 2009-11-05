@@ -72,6 +72,7 @@
 - added im__colour_difference(), colour ops now work on any image format
 - added im_col_display_get_table(), so display tables are now shared by name
 - added im__colour_unary()
+- drop "set" postfix from names, so "insert" can now take a vector of positions
 
 25/3/09 started 7.18.0
 - revised version numbers

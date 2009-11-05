@@ -469,6 +469,11 @@ c2cpp_name( const char *in, char *out )
 	 */
 	if( ispostfix( "tra", out ) )
 		out[strlen( out ) - 3] = '\0';
+
+	/* Drop "set" postfix (eg. so im_insertset becomes insert).
+	 */
+	if( ispostfix( "set", out ) )
+		out[strlen( out ) - 3] = '\0';
 }
 
 /* Print prototype for a function (ie. will be followed by code). 
