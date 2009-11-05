@@ -2,9 +2,11 @@
 
   kernel changes? benchmark an old version
 
+  	7.12 seems to run about the same speed
+
   avg is different? used to 120.134, now 120.151
 
-- more stuff from util.c? too much to do it all now
+  	vips-7.18 had 151 as well
 
 - load 500 jpegs, group, shrink, save
 
@@ -17,24 +19,9 @@
 
   
 
-- constant images:
-
-	we make them with im_black(), then m_lintra(), then im_clip(). How
-	about instead making a 1x1 pixel image and expanding with im_embed()
-	would this be quicker?
-
-	test wth nip2
-
-	might be rather similar, nip2 will use im_black() + im_maplut() I
-	guess
-
-	maybe optimise the expand-one-pixel mode of im_embed()?
-
 - im_flood*() should use inline rather than #define
 
 - we have tools/ and contrib/ argh
-
-- Joe's new defs
 
 
 
