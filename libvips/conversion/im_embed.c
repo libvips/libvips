@@ -1,19 +1,4 @@
-/* @(#) Opposite of im_extract: embed an image within a larger image. flag
- * @(#) controls what appears in the new pels:
- * @(#)
- * @(#)	0 - black pels (all bytes == 0)
- * @(#)	1 - extend pels from image to edge
- * @(#)	2 - replicate image
- * @(#)	3 - mirror image
- * @(#)	4 - white pels (all bytes == 255)
- * @(#)
- * @(#) int im_embed( in, out, flag, x, y, w, h )
- * @(#) IMAGE *in, *out;
- * @(#) int flag;
- * @(#) int x, y, w, h;
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* im_embed
  *
  * Author: J. Cupitt
  * Written on: 21/2/95
@@ -31,6 +16,8 @@
  * 	- more general ... x and y can be negative
  * 24/3/09
  * 	- added IM_CODING_RAD support
+ * 5/11/09
+ * 	- gtkdoc
  */
 
 /*
@@ -432,17 +419,52 @@ embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 	return( 0 );
 }
 
+/**
+ * im_embed:
+ * @in: input image
+ * @out: output image
+ * @flag: how to generate the edge pixels
+ * @x: place @in at this x position in @out
+ * @y: place @in at this y position in @out
+ * @w: @out should be this many pixels across
+ * @h: @out should be this many pixels down
+ *
+ * The opposite of im_extract(): embed an image within a larger image. @flag
+ * controls what appears in the new pels:
+ * 
+ * <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+ *   <tbody>
+ *     <row>
+ *       <entry>0</entry>
+ *       <entry>black pels (all bytes == 0)</entry>
+ *     </row>
+ *     <row>
+ *       <entry>1</entry>
+ *       <entry>extend pels from image edge</entry>
+ *     </row>
+ *     <row>
+ *       <entry>2</entry>
+ *       <entry>repeat image</entry>
+ *     </row>
+ *     <row>
+ *       <entry>3</entry>
+ *       <entry>mirror image</entry>
+ *     </row>
+ *     <row>
+ *       <entry>4</entry>
+ *       <entry>white pels (all bytes == 255)</entry>
+ *     </row>
+ *   </tbody>
+ * </tgroup>
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 {
-	if( im_piocheck( in, out ) )
+	if( im_piocheck( in, out ) ||
+		im_check_known_coded( "im_embed", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE && 
-		in->Coding != IM_CODING_LABQ &&
-		in->Coding != IM_CODING_RAD ) {
-		im_error( "im_embed", "%s", _( "unknown image coding type" ) );
-		return( -1 );
-	}
 	if( flag < 0 || flag > 4 ) {
 		im_error( "im_embed", "%s", _( "unknown flag" ) );
 		return( -1 );
