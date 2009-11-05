@@ -1,12 +1,40 @@
-- poor SMP scaling in benchmark
 
-  kernel changes? benchmark an old version
+- gbandjoin in Python seems to be broken
 
-  	7.12 seems to run about the same speed
+    b = VImage.VImage.gbandjoin ([a, a, a])
 
-  avg is different? used to 120.134, now 120.151
+  fails with a typecheck error
 
-  	vips-7.18 had 151 as well
+	$ ./try157.py 
+	Traceback (most recent call last):
+  	File "./try157.py", line 6, in <module>
+    	b = VImage.VImage.gbandjoin ([a, a, a])
+    	TypeError: in method 'VImage_gbandjoin', argument 1 of type 
+		'std::vector< vips::VImage,std::allocator< vips::VImage > >'
+
+  probably all IMAGEVEC wrappers are duff like this ... the proto should take
+  a std::allocator too?
+
+  however, this works?
+
+    b = a.lin ([1,2,3], [4,5,6])
+
+  how odd
+
+- vip2dj -rotate STILL does not always work, eg. try
+  /data/john/study2/small0.v ... should NOT rotate, but it does
+
+- rename "header" program? or maybe use "vips header" instead?
+
+  it's disabled on ubuntu due to a name clash
+
+- import ~/summer-demo/summer.tif fails with "unable to read embedded
+  profile", is this a bug? better err msg would be good
+
+  trying to catch errors now, but is it working? not sure
+
+WONTFIX for 7.20
+================
 
 - load 500 jpegs, group, shrink, save
 
@@ -17,14 +45,29 @@
 
   get about 300 images in on the laptop
 
-  
+- we have tools/ and contrib/ argh, can we fix this
+
+- rename vipsCC in SWIG as pyvips?
 
 - im_flood*() should use inline rather than #define
 
-- we have tools/ and contrib/ argh
+- try the new liboil thing:
 
+	http://www.schleef.org/orc/
 
+  pick something like abs and time it
 
+- IMAGE->file_length should be gint64 rather than size_t?
+
+  if we make this change, need to remove extra casts from various uses
+
+- look into G_GNUC_DEPRECATED for back compat in vips8
+
+- use
+
+	http://library.gnome.org/devel/glib/stable/glib-Byte-Order-Macros.html
+
+  for swapping ... they are asm macros so we should see a speedup
 
 Something like:
 
@@ -44,77 +87,6 @@ Actions:
   own system (nip2 has it's own open file thing to give progress feedback and
   use disc for format conversion), and be responsible for deleting the temp
   output file at some point.
-
-
-
-- 1-bit PNG read is broken?
-
-  experimenting with                 
-
-	png_set_shift( read->pPng, 2 );
-
-  in im_png2vips.c
-
-  test image in gmail
-
-- rename vipsCC in SWIG as pyvips?
-
-
-
-
-
-
-
-- try the new liboil thing:
-
-	http://www.schleef.org/orc/
-
-  pick something like abs and time it
-
-- gbandjoin in Python seems to be broken
-
-    a = VImage.VImage.gbandjoin ([a, a, a])
-
-  fails with a typecheck error
-
-  probably all IMAGEVEC wrappers are duff like this ... the proto should take
-  a std::allocator too?
-
-- all the messages like:
-
-	(nip2:31883): GLib-GObject-WARNING **: IA__g_object_set_property:
-	object class `VipsInterpolateBilinear' has no property named
-	`sharpening'
-
-  are v. annoying, can we suppress them? don't set unless the property exists
-  in the vips generic property setter? or do it in nip2?
-
-- vip2dj -rotate STILL does not always work, eg. try
-  /data/john/study2/small0.v ... should NOT rotate, but it does
-
-- IMAGE->file_length should be gint64 rather than size_t?
-
-  if we make this change, need to remove extra casts from various uses
-
-- rename "header" program? or maybe use "vips header" instead?
-
-  it's disabled on ubuntu due to a name clash
-
-- import ~/summer-demo/summer.tif fails with "unable to read embedded
-  profile", is this a bug? better err msg would be good
-
-  trying to catch errors now, but is it working? not sure
-
-- look into G_GNUC_DEPRECATED for back compat in vips8
-
-- use
-
-	http://library.gnome.org/devel/glib/stable/glib-Byte-Order-Macros.html
-
-  for swapping ... they are asm macros so we should see a speedup
-
-WONTFIX for 7.18
-================
 
 - can we use conv_sep to speed up the memuse benchmarks?
 
