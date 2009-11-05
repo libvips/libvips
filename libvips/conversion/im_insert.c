@@ -385,3 +385,28 @@ im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 
 	return( 0 );
 }
+
+/* Insert sub repeatedly. This can be a lot quicker for large n, but will use
+ * (potentially) a lot of memory.
+ */
+int
+im_insertset( IMAGE *main, IMAGE *sub, IMAGE *out, int n, int *x, int *y )
+{
+	IMAGE *t;
+	int i;
+
+	/* Copy to a memory image, zap that, then copy to out.
+	 */
+	if( !(t = im_open_local( out, "im_insertset", "t" )) ||
+		im_copy( main, t ) )
+		return( -1 );
+
+	for( i = 0; i < n; i++ ) 
+		if( im_insertplace( t, sub, x[i], y[i] ) )
+			return( -1 );
+
+	if( im_copy( t, out ) )
+		return( -1 );
+
+	return( 0 );
+}

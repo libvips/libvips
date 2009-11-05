@@ -331,8 +331,39 @@ static im_function rank_raw_desc = {
 	"rank filter nth element of xsize/ysize window, no border",
 	IM_FN_PIO,			/* Flags */
 	rank_raw_vec, 			/* Dispatch function */
-	IM_NUMBER( rank_args ), 		/* Size of arg list */
+	IM_NUMBER( rank_args ), 	/* Size of arg list */
 	rank_args 			/* Arg list */
+};
+
+/* Args for im_label_regions().
+ */
+static im_arg_desc label_regions_args[] = {
+	IM_INPUT_IMAGE( "test" ),
+	IM_OUTPUT_IMAGE( "mask" ),
+	IM_OUTPUT_INT( "segments" )
+};
+
+/* Call im_label_regions() via arg vector.
+ */
+static int
+label_regions_vec( im_object *argv )
+{
+	IMAGE *test = argv[0];
+	IMAGE *mask = argv[1];
+	int *serial = (int *) argv[2];
+
+	return( im_label_regions( test, mask, serial ) );
+}
+
+/* Description of im_label_regions().
+ */ 
+static im_function label_regions_desc = {
+	"im_label_regions",		/* Name */
+	"number continuous regions in an image",
+	0,				/* Flags */
+	label_regions_vec, 		/* Dispatch function */
+	IM_NUMBER( label_regions_args ),/* Size of arg list */
+	label_regions_args 		/* Arg list */
 };
 
 /* Package up all these functions.
@@ -343,6 +374,7 @@ static im_function *morph_list[] = {
 	&rank_desc,
 	&rank_image_desc,
 	&maxvalue_desc,
+	&label_regions_desc,
 	&zerox_desc,
 	&rank_raw_desc,
 	&dilate_raw_desc,

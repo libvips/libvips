@@ -226,3 +226,9 @@ im_icc_export( IMAGE *in, IMAGE *out,
 	return( im_icc_export_depth( in, out, 
 		8, output_profile_filename, intent ) );
 }
+
+int 
+im_segment( IMAGE *test, IMAGE *mask, int *segments )
+{
+	return( im_label_regions( test, mask, segments ) );
+}

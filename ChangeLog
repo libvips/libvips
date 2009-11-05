@@ -49,7 +49,7 @@
   and else parts
 - better im_check() functions
 - added im_flood_other() as start of simple segmentation operator
-- added im_segment() 
+- added im_label_regions() 
 - im_printlines(), im_debugim() deprecated (use im_vips2csv() instead)
 - meta, header, callback, error, region, check, generate, memory gtkdocs
 - removed printlines tool, vips2csv is much better
@@ -67,7 +67,7 @@
 - threadgroup no longer has any default action, you must attach a work
   function
 - added im_copy_file()
-- added im_insertplaceset()
+- added im_insertset()
 - im_insertplace() allows small to be outside big
 - added im__colour_difference(), colour ops now work on any image format
 - added im_col_display_get_table(), so display tables are now shared by name

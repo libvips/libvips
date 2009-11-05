@@ -94,6 +94,7 @@ int im_bandjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_gbandjoin( IMAGE **in, IMAGE *out, int n );
 int im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y );
 int im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y );
+int im_insertset( IMAGE *main, IMAGE *sub, IMAGE *out, int n, int *x, int *y );
 int im_lrjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_tbjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_replicate( IMAGE *in, IMAGE *out, int across, int down );

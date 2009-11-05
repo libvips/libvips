@@ -361,6 +361,37 @@ static im_function icc_export_desc = {
 	icc_export_args 		/* Arg list */
 };
 
+/* Args for im_segment().
+ */
+static im_arg_desc segment_args[] = {
+	IM_INPUT_IMAGE( "test" ),
+	IM_OUTPUT_IMAGE( "mask" ),
+	IM_OUTPUT_INT( "segments" )
+};
+
+/* Call im_segment() via arg vector.
+ */
+static int
+segment_vec( im_object *argv )
+{
+	IMAGE *test = argv[0];
+	IMAGE *mask = argv[1];
+	int *serial = (int *) argv[2];
+
+	return( im_segment( test, mask, serial ) );
+}
+
+/* Description of im_segment().
+ */ 
+static im_function segment_desc = {
+	"im_segment",		/* Name */
+	"number continuous regions in an image",
+	0,			/* Flags */
+	segment_vec, 		/* Dispatch function */
+	IM_NUMBER( segment_args ),/* Size of arg list */
+	segment_args 		/* Arg list */
+};
+
 static int
 print_vec( im_object *argv )
 {
@@ -778,6 +809,7 @@ static im_function *deprecated_list[] = {
 	&print_desc,
 	&slice_desc,
 	&bernd_desc,
+	&segment_desc,
 	&line_desc,
 	&thresh_desc,
 	&similarity_area_desc,

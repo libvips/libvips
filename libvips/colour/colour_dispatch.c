@@ -86,7 +86,7 @@
  * 	 of a and b.
  *
  * 	 You cannot perform calculations on <code>LabQ</code> images (they are
- * 	 tagged with IM_CODING_LABQ), though a few operations such as
+ * 	 tagged with %IM_CODING_LABQ), though a few operations such as
  * 	 im_extract_area() will work directly with them.
  *     </para>
  *   </listitem>
@@ -118,7 +118,15 @@
  *     <para>
  *       <emphasis><code>XYZ</code></emphasis>
  *
- * 	 CIE XYZ colour space represented as a three-band #IM_BANDFMT_FLOAT
+ * 	 CIE XYZ colour space represented as a three-band %IM_BANDFMT_FLOAT
+ *	 image.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>Yxy</code></emphasis>
+ *
+ * 	 CIE Yxy colour space represented as a three-band %IM_BANDFMT_FLOAT
  *	 image.
  *     </para>
  *   </listitem>
@@ -146,7 +154,7 @@
  *   </listitem>
  *   <listitem>
  *     <para>
- *       <emphasis><code>LCh</code></emphasis>
+ *       <emphasis><code>UCS</code></emphasis>
  *
  *       A colour space based on the CMC(1:1) colour difference measurement. 
  *       This is a highly uniform colour space, much better than CIELAB for 

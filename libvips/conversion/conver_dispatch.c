@@ -921,6 +921,47 @@ static im_function insert_desc = {
 	insert_args 			/* Arg list */
 };
 
+/* Args for im_insertset.
+ */
+static im_arg_desc insertset_args[] = {
+	IM_INPUT_IMAGE( "main" ),
+	IM_INPUT_IMAGE( "sub" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INTVEC( "x" ),
+	IM_INPUT_INTVEC( "y" )
+};
+
+/* Call im_insertplaceset via arg vector.
+ */
+static int
+insertset_vec( im_object *argv )
+{
+	im_intvec_object *xv = (im_intvec_object *) argv[3];
+	im_intvec_object *yv = (im_intvec_object *) argv[4];
+
+	if( xv->n != yv->n ) {
+		im_error( "im_insertset", "%s", 
+			_( "vectors not same length" ) );
+		return( -1 );
+	}
+
+	if( im_insertset( argv[0], argv[1], argv[2], xv->n, xv->vec, yv->vec ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* Description of im_insertset.
+ */ 
+static im_function insertset_desc = {
+	"im_insertset", 		/* Name */
+	"insert sub into main at every position in x, y",
+	0,				/* Flags */
+	insertset_vec, 			/* Dispatch function */
+	IM_NUMBER( insertset_args ), 	/* Size of arg list */
+	insertset_args 			/* Arg list */
+};
+
 /* Call im_insert_noexpand via arg vector.
  */
 static int
@@ -1376,6 +1417,7 @@ static im_function *conv_list[] = {
 	&gbandjoin_desc,
 	&grid_desc,
 	&insert_desc,
+	&insertset_desc,
 	&insert_noexpand_desc,
 	&embed_desc,
 	&lrjoin_desc,

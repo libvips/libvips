@@ -50,6 +50,7 @@ int im_maxvalue( IMAGE **in, IMAGE *out, int n );
 int im_cntlines( IMAGE *im, double *nolines, int flag );
 int im_zerox( IMAGE *in, IMAGE *out, int flag );
 int im_profile( IMAGE *in, IMAGE *out, int dir );
+int im_label_regions( IMAGE *test, IMAGE *mask, int *segments );
 
 #ifdef __cplusplus
 }

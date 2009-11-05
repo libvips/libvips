@@ -350,6 +350,7 @@ int im_bernd( const char *tiffname, int x, int y, int w, int h );
 int im_resize_linear( IMAGE *, IMAGE *, int, int );
 
 int im_line( IMAGE *, int, int, int, int, int );
+int im_segment( IMAGE *test, IMAGE *mask, int *segments );
 
 #ifdef __cplusplus
 }
