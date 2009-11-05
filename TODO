@@ -1,21 +1,12 @@
-- vips.c should drop "set" suffix from operators
-
 - poor SMP scaling in benchmark
+
+  kernel changes? benchmark an old version
 
   avg is different? used to 120.134, now 120.151
 
-- _raw() variants should be deprecated?
-
-- look through more sections for stuff in the wrong place
-
 - more stuff from util.c? too much to do it all now
 
-- maybe im_insertplaceset() should be im_insertset()? it's not an inplace
-  operator now
-
-- like _vec(), remove set() from the ends of operator names in C++
-
-- load 500 jpegs, shrink, save
+- load 500 jpegs, group, shrink, save
 
   VM use is huge, ouch, could we use a bit less?
 
@@ -26,15 +17,10 @@
 
   
 
-- VipsFormat next? where should we document the im_vip2jpeg() options?
-
-  
-
-
 - constant images:
 
 	we make them with im_black(), then m_lintra(), then im_clip(). How
-	about instead making a 1x1 pixel image and expanding it with im_emed()
+	about instead making a 1x1 pixel image and expanding with im_embed()
 	would this be quicker?
 
 	test wth nip2

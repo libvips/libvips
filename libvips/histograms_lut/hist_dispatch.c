@@ -423,28 +423,6 @@ static im_function lhisteq_desc = {
 	lhisteq_args 		/* Arg list */
 };
 
-/* Call im_lhisteq_raw via arg vector.
- */
-static int
-lhisteq_raw_vec( im_object *argv )
-{
-	int xw = *((int *) argv[2]);
-	int yw = *((int *) argv[3]);
-
-	return( im_lhisteq_raw( argv[0], argv[1], xw, yw ) );
-}
-
-/* Description of im_lhisteq_raw.
- */ 
-static im_function lhisteq_raw_desc = {
-	"im_lhisteq_raw",	/* Name */
-	"local histogram equalisation, no border",
-	IM_FN_PIO,		/* Flags */
-	lhisteq_raw_vec, 	/* Dispatch function */
-	IM_NUMBER( lhisteq_args ), /* Size of arg list */
-	lhisteq_args 		/* Arg list */
-};
-
 /* Args for im_maplut.
  */
 static im_arg_desc maplut_args[] = {
@@ -534,32 +512,6 @@ static im_function stdif_desc = {
 	"statistical differencing",
 	IM_FN_PIO,		/* Flags */
 	stdif_vec, 		/* Dispatch function */
-	IM_NUMBER( stdif_args ), 	/* Size of arg list */
-	stdif_args 		/* Arg list */
-};
-
-/* Call im_stdif_raw via arg vector.
- */
-static int
-stdif_raw_vec( im_object *argv )
-{
-	double a = *((double *) argv[2]);
-	double m0 = *((double *) argv[3]);
-	double b = *((double *) argv[4]);
-	double s0 = *((double *) argv[5]);
-	int xw = *((int *) argv[6]);
-	int yw = *((int *) argv[7]);
-
-	return( im_stdif_raw( argv[0], argv[1], a, m0, b, s0, xw, yw ) );
-}
-
-/* Description of im_stdif.
- */ 
-static im_function stdif_raw_desc = {
-	"im_stdif_raw", 	/* Name */
-	"statistical differencing, no border",
-	IM_FN_PIO,		/* Flags */
-	stdif_raw_vec, 		/* Dispatch function */
 	IM_NUMBER( stdif_args ), 	/* Size of arg list */
 	stdif_args 		/* Arg list */
 };
@@ -854,13 +806,11 @@ static im_function *hist_list[] = {
 	&ismonotonic_desc,
 	&lhisteq_desc,
 	&mpercent_desc,
-	&lhisteq_raw_desc,
 	&invertlut_desc,
 	&buildlut_desc,
 	&maplut_desc,
 	&project_desc,
 	&stdif_desc,
-	&stdif_raw_desc,
 	&tone_analyse_desc,
 	&tone_build_desc,
 	&tone_build_range_desc,

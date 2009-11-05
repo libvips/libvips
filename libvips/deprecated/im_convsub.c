@@ -60,6 +60,107 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* Create multiplication luts for all non zero elements  of the original mask;
+ * which is kept in buffer of length buffersize 
+ * cnt is needed for freeing luts 
+ */
+static int
+im__create_int_luts( int *buffer, int buffersize, 
+	int **orig_luts, int **luts, int *cnt )
+{
+	int *pbuffer;
+	int *buf1, *buf2, *pbuf1, *pbuf2;
+	int i, j;
+	int min, max;
+	int mark; /* used to mark the buffer mark = max+1 */
+	int counter; /* counts the no of unique elms in mask; returned in cnt*/
+
+	buf1 = (int*)calloc( (unsigned)buffersize, sizeof(int) );
+	buf2 = (int*)calloc( (unsigned)buffersize, sizeof(int) );
+	if ( ( buf1 == NULL ) || ( buf2 == NULL ) )
+		{
+		im_error( "im_create_int_luts", "%s", _( "calloc failed (1)") );
+		return( -1 );
+		}
+
+	pbuffer = buffer;
+	pbuf1 = buf1;
+	/* find max and copy mask to buf1 */
+	max = *pbuffer;
+	for ( i=0; i < buffersize; i++ )
+		{
+		if ( *pbuffer > max )
+			max = *pbuffer;
+		*pbuf1++ = *pbuffer++;
+		}
+	mark = max + 1;
+	pbuf1 = buf1;
+	pbuf2 = buf2;
+	counter = 0;
+/* find a min at a time; put it into buf2 and mark all values of
+ * buf1 equal to found min, to INT_MAX
+ */
+	for ( i=0; i < buffersize; i++ )	
+		{
+		min = mark + 1; /* force min to be greater than mark */
+		pbuf1 = buf1;
+		/* find a min */
+		for ( j=0; j < buffersize; j++ )
+			{
+			if ( *pbuf1 < min )
+				min = *pbuf1;
+			pbuf1++;
+			}
+		if ( min == mark )	/* all min are found */
+			break;
+		*pbuf2++ = min;
+		counter++;
+		pbuf1 = buf1;
+		for ( j=0; j < buffersize; j++ ) /* mark values equal to min */
+			{
+			if ( *pbuf1 == min )
+				*pbuf1 = mark;
+			pbuf1++;
+			}
+		}	
+/* buf2 should keep now counter unique values of the mask, descending order
+ * Malloc counter luts and initialise them 
+ */
+	pbuf2 = buf2;
+	for ( i=0; i<counter; i++)
+		{
+		orig_luts[i] = (int*)calloc((unsigned)256, sizeof(int));
+		if (orig_luts[i] == NULL)
+			{
+			im_error( "im_create_int_luts", "%s", _( "calloc failed (2)") );
+			return( -1 );
+			}
+		for ( j=0; j<256; j++ )
+			*(orig_luts[i] + j) = j * (*pbuf2);
+		pbuf2++;
+		}
+
+	pbuffer = buffer;
+	for ( i=0; i<buffersize; i++ )
+		{
+		j = 0;
+		while ( 1 )
+			{
+			if ( *(buf2 + j) == *pbuffer )
+				{
+				luts[i] = orig_luts[j];
+				break;
+				}
+			j++;
+			}
+		pbuffer++;
+		}
+/* free buf1, buf2 */
+	free((char*)buf1); free( (char*)buf2);
+	*cnt = counter;
+	return(0);
+}
+
 
 int im_convsub( in, out, m, xskip, yskip )
 IMAGE *in, *out;

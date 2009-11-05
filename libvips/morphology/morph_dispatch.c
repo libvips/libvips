@@ -111,27 +111,6 @@ static im_function dilate_desc = {
 	erode_args 			/* Arg list */
 };
 
-/* Call im_dilate_raw via arg vector.
- */
-static int
-dilate_raw_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[2];
-
-	return( im_dilate_raw( argv[0], argv[1], mo->mask ) );
-}
-
-/* Description of im_dilate_raw.
- */ 
-static im_function dilate_raw_desc = {
-	"im_dilate_raw",	 	/* Name */
-	"dilate image with mask",
-	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-	dilate_raw_vec, 		/* Dispatch function */
-	IM_NUMBER( erode_args ), 		/* Size of arg list */
-	erode_args 			/* Arg list */
-};
-
 /* Call im_erode via arg vector.
  */
 static int
@@ -149,27 +128,6 @@ static im_function erode_desc = {
 	"erode image with mask, adding a black border",
 	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
 	erode_vec, 			/* Dispatch function */
-	IM_NUMBER( erode_args ), 		/* Size of arg list */
-	erode_args 			/* Arg list */
-};
-
-/* Call im_erode_raw via arg vector.
- */
-static int
-erode_raw_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[2];
-
-	return( im_erode_raw( argv[0], argv[1], mo->mask ) );
-}
-
-/* Description of im_erode_raw.
- */ 
-static im_function erode_raw_desc = {
-	"im_erode_raw",	 		/* Name */
-	"erode image with mask",
-	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-	erode_raw_vec, 			/* Dispatch function */
 	IM_NUMBER( erode_args ), 		/* Size of arg list */
 	erode_args 			/* Arg list */
 };
@@ -312,29 +270,6 @@ static im_function rank_image_desc = {
 	rank_image_args 		/* Arg list */
 };
 
-/* Call im_rank_raw via arg vector.
- */
-static int
-rank_raw_vec( im_object *argv )
-{
-	int xsize = *((int *) argv[2]);
-	int ysize = *((int *) argv[3]);
-	int n = *((int *) argv[4]);
-
-	return( im_rank_raw( argv[0], argv[1], xsize, ysize, n ) );
-}
-
-/* Description of im_rank_raw.
- */ 
-static im_function rank_raw_desc = {
-	"im_rank_raw",	 		/* Name */
-	"rank filter nth element of xsize/ysize window, no border",
-	IM_FN_PIO,			/* Flags */
-	rank_raw_vec, 			/* Dispatch function */
-	IM_NUMBER( rank_args ), 	/* Size of arg list */
-	rank_args 			/* Arg list */
-};
-
 /* Args for im_label_regions().
  */
 static im_arg_desc label_regions_args[] = {
@@ -376,10 +311,7 @@ static im_function *morph_list[] = {
 	&maxvalue_desc,
 	&label_regions_desc,
 	&zerox_desc,
-	&rank_raw_desc,
-	&dilate_raw_desc,
 	&erode_desc,
-	&erode_raw_desc,
 	&profile_desc
 };
 

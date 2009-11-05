@@ -181,8 +181,6 @@ void im__print_one( int );
 int im__trigger_callbacks( GSList *cblist );
 int im__close( IMAGE * );
 int im__handle_eval( IMAGE *im, int w, int h );
-int im__create_int_luts( int *, int, int **, int **, int * );
-int im__create_double_luts( double *, int, double **, double **, int * );
 int im__fft_sp( float *rvec, float *ivec, int logrows, int logcols );
 int im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn );
 int im__mean_std_double_buffer( double *buffer, int size,

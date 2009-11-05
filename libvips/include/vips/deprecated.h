@@ -352,6 +352,24 @@ int im_resize_linear( IMAGE *, IMAGE *, int, int );
 int im_line( IMAGE *, int, int, int, int, int );
 int im_segment( IMAGE *test, IMAGE *mask, int *segments );
 
+int im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_convsepf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_gradcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
+int im_contrast_surface_raw( IMAGE *in, IMAGE *out, 
+	int half_win_size, int spacing );
+
+int im_stdif_raw( IMAGE *in, IMAGE *out,
+	double a, double m0, double b, double s0, int xwin, int ywin );
+int im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin );
+
+int im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m );
+int im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m );
+int im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

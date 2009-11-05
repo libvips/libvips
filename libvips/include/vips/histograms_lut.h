@@ -53,12 +53,9 @@ int im_hsp( IMAGE *in, IMAGE *ref, IMAGE *out );
 int im_identity( IMAGE *lut, int bands );
 int im_identity_ushort( IMAGE *lut, int bands, int sz );
 int im_lhisteq( IMAGE *in, IMAGE *out, int xwin, int ywin );
-int im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin );
 int im_invertlut( DOUBLEMASK *input, IMAGE *output, int lut_size );
 int im_buildlut( DOUBLEMASK *input, IMAGE *output );
 int im_stdif( IMAGE *in, IMAGE *out,
-	double a, double m0, double b, double s0, int xwin, int ywin );
-int im_stdif_raw( IMAGE *in, IMAGE *out,
 	double a, double m0, double b, double s0, int xwin, int ywin );
 int im_tone_build_range( IMAGE *out,
 	int in_max, int out_max,

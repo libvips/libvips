@@ -106,27 +106,6 @@ YGRAD_GEN_DECLARATION( double );
 
 /** EXPORTED FUNCTION DEFINITIONS **/
 
-int 
-im_gradcor( IMAGE *in, IMAGE *ref, IMAGE *out )
-{
-#define FUNCTION_NAME "im_gradcor"
-	IMAGE *t1 = im_open_local( out, FUNCTION_NAME " intermediate", "p" );
-
-	if( !t1 ||
-		im_embed( in, t1, 1, 
-			ref->Xsize / 2, ref->Ysize / 2, 
-			in->Xsize + ref->Xsize - 1, 
-			in->Ysize + ref->Ysize - 1 ) ||
-		im_gradcor_raw( t1, ref, out ) ) 
-		return( -1 );
-
-	out->Xoffset = 0;
-	out->Yoffset = 0;
-
-	return( 0 );
-#undef FUNCTION_NAME
-}
-
 int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
 #define FUNCTION_NAME "im_gradcor_raw"
 
@@ -170,6 +149,27 @@ int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
       || im_grad_y( small, ygrad )
       || im_generate( out, gradcor_start, gradcor_gen, gradcor_stop, (void*) large, (void*) grads );
   }
+#undef FUNCTION_NAME
+}
+
+int 
+im_gradcor( IMAGE *in, IMAGE *ref, IMAGE *out )
+{
+#define FUNCTION_NAME "im_gradcor"
+	IMAGE *t1 = im_open_local( out, FUNCTION_NAME " intermediate", "p" );
+
+	if( !t1 ||
+		im_embed( in, t1, 1, 
+			ref->Xsize / 2, ref->Ysize / 2, 
+			in->Xsize + ref->Xsize - 1, 
+			in->Ysize + ref->Ysize - 1 ) ||
+		im_gradcor_raw( t1, ref, out ) ) 
+		return( -1 );
+
+	out->Xoffset = 0;
+	out->Yoffset = 0;
+
+	return( 0 );
 #undef FUNCTION_NAME
 }
 

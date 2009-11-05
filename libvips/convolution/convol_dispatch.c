@@ -100,38 +100,6 @@ static im_function contrast_surface_desc = {
 	contrast_surface_args 		/* Arg list */
 };
 
-/* Args to im_contrast_surface_raw.
- */
-static im_arg_desc contrast_surface_raw_args[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_INT( "half_win_size" ),
-	IM_INPUT_INT( "spacing" )
-};
-
-/* Call im_contrast_surface_raw via arg vector.
- */
-static int
-contrast_surface_raw_vec( im_object *argv )
-{
-	int half_win_size = *((int *) argv[2]);
-	int spacing = *((int *) argv[3]);
-
-	return( im_contrast_surface_raw( argv[0], argv[1], 
-		half_win_size, spacing ) );
-}
-
-/* Description of im_contrast_surface_raw.
- */ 
-static im_function contrast_surface_raw_desc = {
-	"im_contrast_surface_raw",	/* Name */
-	"find high-contrast points in an image",
-	IM_FN_PIO,			/* Flags */
-	contrast_surface_raw_vec, 	/* Dispatch function */
-	IM_NUMBER( contrast_surface_raw_args ),/* Size of arg list */
-	contrast_surface_raw_args 	/* Arg list */
-};
-
 /* Args to im_sharpen.
  */
 static im_arg_desc sharpen_args[] = {
@@ -229,27 +197,6 @@ static im_function conv_desc = {
 	conv_imask 			/* Arg list */
 };
 
-/* Call im_conv_raw via arg vector.
- */
-static int
-conv_raw_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[2];
-
-	return( im_conv_raw( argv[0], argv[1], mo->mask ) );
-}
-
-/* Description of im_conv_raw.
- */ 
-static im_function conv_raw_desc = {
-	"im_conv_raw", 			/* Name */
-	"convolve, no border",
-	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
-	conv_raw_vec, 			/* Dispatch function */
-	IM_NUMBER( conv_imask ), 		/* Size of arg list */
-	conv_imask 			/* Arg list */
-};
-
 /* Call im_convf via arg vector.
  */
 static int
@@ -267,27 +214,6 @@ static im_function convf_desc = {
 	"convolve, with DOUBLEMASK",
 	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
 	convf_vec, 			/* Dispatch function */
-	IM_NUMBER( conv_dmask ), 		/* Size of arg list */
-	conv_dmask 			/* Arg list */
-};
-
-/* Call im_convf_raw via arg vector.
- */
-static int
-convf_raw_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[2];
-
-	return( im_convf_raw( argv[0], argv[1], mo->mask ) );
-}
-
-/* Description of im_convf_raw.
- */ 
-static im_function convf_raw_desc = {
-	"im_convf_raw", 			/* Name */
-	"convolve, with DOUBLEMASK, no border",
-	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
-	convf_raw_vec, 			/* Dispatch function */
 	IM_NUMBER( conv_dmask ), 		/* Size of arg list */
 	conv_dmask 			/* Arg list */
 };
@@ -313,27 +239,6 @@ static im_function convsep_desc = {
 	conv_imask 			/* Arg list */
 };
 
-/* Call im_convsep_raw via arg vector.
- */
-static int
-convsep_raw_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[2];
-
-	return( im_convsep_raw( argv[0], argv[1], mo->mask ) );
-}
-
-/* Description of im_convsep_raw.
- */ 
-static im_function convsep_raw_desc = {
-	"im_convsep_raw", 			/* Name */
-	"seperable convolution, no border",
-	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
-	convsep_raw_vec, 		/* Dispatch function */
-	IM_NUMBER( conv_imask ), 		/* Size of arg list */
-	conv_imask 			/* Arg list */
-};
-
 /* Call im_convsepf via arg vector.
  */
 static int
@@ -355,27 +260,6 @@ static im_function convsepf_desc = {
 	conv_dmask 			/* Arg list */
 };
 
-/* Call im_convsepf_raw via arg vector.
- */
-static int
-convsepf_raw_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[2];
-
-	return( im_convsepf_raw( argv[0], argv[1], mo->mask ) );
-}
-
-/* Description of im_convsepf_raw.
- */ 
-static im_function convsepf_raw_desc = {
-	"im_convsepf_raw", 		/* Name */
-	"seperable convolution, with DOUBLEMASK, no border",
-	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-	convsepf_raw_vec, 		/* Dispatch function */
-	IM_NUMBER( conv_dmask ), 		/* Size of arg list */
-	conv_dmask 			/* Arg list */
-};
-
 /* Call im_fastcor via arg vector.
  */
 static int
@@ -391,25 +275,6 @@ static im_function fastcor_desc = {
 	"fast correlate in2 within in1",
 	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
 	fastcor_vec, 			/* Dispatch function */
-	IM_NUMBER( two_in_one_out ),	/* Size of arg list */
-	two_in_one_out 			/* Arg list */
-};
-
-/* Call im_fastcor_raw via arg vector.
- */
-static int
-fastcor_raw_vec( im_object *argv )
-{
-	return( im_fastcor_raw( argv[0], argv[1], argv[2] ) );
-}
-
-/* Description of im_fastcor_raw.
- */ 
-static im_function fastcor_raw_desc = {
-	"im_fastcor_raw", 		/* Name */
-	"fast correlate in2 within in1, no border",
-	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
-	fastcor_raw_vec,		/* Dispatch function */
 	IM_NUMBER( two_in_one_out ),	/* Size of arg list */
 	two_in_one_out 			/* Arg list */
 };
@@ -467,25 +332,6 @@ static im_function gradcor_desc = {
 	"non-normalised correlation of gradient of in2 within in1",
 	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
 	gradcor_vec, 			/* Dispatch function */
-	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
-	two_in_one_out 			/* Arg list */
-};
-
-/* Call im_gradcor_raw via arg vector.
- */
-static int
-gradcor_raw_vec( im_object *argv )
-{
-	return( im_gradcor_raw( argv[0], argv[1], argv[2] ) );
-}
-
-/* Description of im_gradcor_raw.
- */ 
-static im_function gradcor_raw_desc = {
-	"im_gradcor_raw",	 		/* Name */
-	"non-normalised correlation of gradient of in2 within in1, no padding",
-	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-	gradcor_raw_vec, 			/* Dispatch function */
 	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
 	two_in_one_out 			/* Arg list */
 };
@@ -551,50 +397,23 @@ static im_function spcor_desc = {
 	two_in_one_out 			/* Arg list */
 };
 
-/* Call im_spcor_raw via arg vector.
- */
-static int
-spcor_raw_vec( im_object *argv )
-{
-	return( im_spcor_raw( argv[0], argv[1], argv[2] ) );
-}
-
-/* Description of im_spcor_raw.
- */ 
-static im_function spcor_raw_desc = {
-	"im_spcor_raw",	 		/* Name */
-	"normalised correlation of in2 within in1, no black padding",
-	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-	spcor_raw_vec, 			/* Dispatch function */
-	IM_NUMBER( two_in_one_out ), 	/* Size of arg list */
-	two_in_one_out 			/* Arg list */
-};
-
 /* Package up all these functions.
  */
 static im_function *convol_list[] = {
 	&compass_desc,
 	&contrast_surface_desc,
-	&contrast_surface_raw_desc,
 	&conv_desc,
 	&convf_desc,
-	&convf_raw_desc,
-	&conv_raw_desc,
 	&convsep_desc,
 	&convsepf_desc,
-	&convsepf_raw_desc,
-	&convsep_raw_desc,
 	&fastcor_desc,
-	&fastcor_raw_desc,
         &gradcor_desc,
-        &gradcor_raw_desc,
 	&gradient_desc,
         &grad_x_desc,
         &grad_y_desc,
 	&lindetect_desc,
 	&sharpen_desc,
 	&spcor_desc,
-	&spcor_raw_desc
 };
 
 /* Package of functions.

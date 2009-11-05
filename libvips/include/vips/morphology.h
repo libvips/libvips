@@ -38,12 +38,9 @@ extern "C" {
 #endif /*__cplusplus*/
 
 int im_dilate( IMAGE *in, IMAGE *out, INTMASK *m );
-int im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m );
 int im_erode( IMAGE *in, IMAGE *out, INTMASK *m );
-int im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m );
 
 int im_rank( IMAGE *in, IMAGE *out, int xsize, int ysize, int order );
-int im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order );
 int im_rank_image( IMAGE **in, IMAGE *out, int n, int index );
 int im_maxvalue( IMAGE **in, IMAGE *out, int n );
 
