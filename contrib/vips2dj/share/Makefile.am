@@ -1,2 +1,0 @@
-SUBDIRS = vips2dj
-

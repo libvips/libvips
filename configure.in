@@ -535,15 +535,6 @@ AC_OUTPUT([
 	tools/scripts/batch_rubber_sheet 
 	tools/scripts/light_correct 
 	tools/scripts/shrink_width 
-	contrib/Makefile 
-	contrib/vips2dj/Makefile 
-	contrib/vips2dj/share/Makefile 
-	contrib/vips2dj/share/vips2dj/Makefile 
-	contrib/vips2dj/share/vips2dj/lab/Makefile 
-	contrib/vips2dj/share/vips2dj/cmyk/Makefile 
-	contrib/vips2dj/share/vips2dj/mono/Makefile 
-	contrib/vdump/Makefile 
-	contrib/mitsub/Makefile 
 	swig/Makefile 
 	swig/vipsCC/Makefile 
 	man/Makefile

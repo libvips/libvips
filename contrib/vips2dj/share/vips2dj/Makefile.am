@@ -1,2 +1,0 @@
-SUBDIRS = lab cmyk mono
-

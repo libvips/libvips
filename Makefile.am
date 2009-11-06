@@ -11,7 +11,6 @@ SUBDIRS = \
 	libvips \
 	tools \
 	libvipsCC \
-	contrib \
 	man \
 	po \
 	doc \

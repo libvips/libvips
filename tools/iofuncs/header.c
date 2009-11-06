@@ -33,6 +33,9 @@
  * 	- don't stop on error
  * 23/7/09
  * 	- ... but do return an error code if anything failed
+ * 6/11/09
+ * 	- added im_history_get(), im_getexp(), im_printdesc() as wrapped
+ * 	  functions, so "header" is now obsolete
  */
 
 /*

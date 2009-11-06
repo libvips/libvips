@@ -40,6 +40,7 @@ extern "C" {
 int im_header_int( IMAGE *im, const char *field, int *out );
 int im_header_double( IMAGE *im, const char *field, double *out );
 int im_header_string( IMAGE *im, const char *field, char **out );
+int im_header_as_string( IMAGE *im, const char *field, char **out );
 GType im_header_get_typeof( IMAGE *im, const char *field );
 int im_header_get( IMAGE *im, const char *field, GValue *value_copy );
 

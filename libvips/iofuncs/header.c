@@ -228,6 +228,50 @@ im_header_string( IMAGE *im, const char *field, char **out )
 	return( 0 );
 }
 
+/** 
+ * im_header_as_string:
+ * @im: image to get the header field from
+ * @field: field name
+ * @out: return field value as string
+ *
+ * Gets @out from @im under the name @field. 
+ * This function will read any field, returning it as a printable string.
+ * You need to free the string with g_free() when you are done with it.
+ *
+ * See also: im_header_get(), im_header_get_typeof().
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+im_header_as_string( IMAGE *im, const char *field, char **out )
+{
+	GValue value = { 0 };
+	GType type;
+
+	if( im_header_get( im, field, &value ) )
+		return( -1 );
+
+	/* Display the save form, if there is one. This way we display
+	 * something useful for ICC profiles, xml fields, etc.
+	 */
+	type = G_VALUE_TYPE( &value );
+	if( g_value_type_transformable( type, IM_TYPE_SAVE_STRING ) ) {
+		GValue save_value = { 0 };
+
+		g_value_init( &save_value, IM_TYPE_SAVE_STRING );
+		if( !g_value_transform( &value, &save_value ) ) 
+			return( -1 );
+		*out = g_strdup( im_save_string_get( &save_value ) );
+		g_value_unset( &save_value );
+	}
+	else 
+		*out = g_strdup_value_contents( &value );
+
+	g_value_unset( &value );
+
+	return( 0 );
+}
+
 /**
  * im_header_get_typeof:
  * @im: image to test

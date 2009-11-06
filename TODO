@@ -21,9 +21,6 @@
 
   how odd
 
-- vip2dj -rotate STILL does not always work, eg. try
-  /data/john/study2/small0.v ... should NOT rotate, but it does
-
 - rename "header" program? or maybe use "vips header" instead?
 
   it's disabled on ubuntu due to a name clash
@@ -44,8 +41,6 @@ WONTFIX for 7.20
   use so many resources?
 
   get about 300 images in on the laptop
-
-- we have tools/ and contrib/ argh, can we fix this
 
 - rename vipsCC in SWIG as pyvips?
 

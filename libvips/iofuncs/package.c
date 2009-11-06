@@ -53,6 +53,8 @@
 #include <limits.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -192,7 +194,7 @@ static im_arg_desc header_get_typeof_args[] = {
 static int
 header_get_typeof_vec( im_object *argv )
 {
-	int *out = ((int *) argv[2]);
+	int *out = (int *) argv[2];
 
 	*out = im_header_get_typeof( (IMAGE *) argv[1], 
 		(const char *) argv[0] ); 
@@ -252,11 +254,13 @@ static im_arg_desc header_string_args[] = {
 static int
 header_string_vec( im_object *argv )
 {
-	char *out;
+	char **out = (char **) argv[2];
 
-	if( im_header_string( (IMAGE *) argv[1], 
-		(const char *) argv[0], &out ) ||
-		!(argv[2] = im_strdup( NULL, out )) )
+	/* Actually, we call im_header_as_string(), so we can do any field and
+	 * not just the string-valued ones.
+	 */
+	if( im_header_as_string( (IMAGE *) argv[1], 
+		(const char *) argv[0], out ) )
 		return( -1 );
 
 	return( 0 );
@@ -266,11 +270,105 @@ header_string_vec( im_object *argv )
  */ 
 static im_function header_string_desc = {
 	"im_header_string", 		/* Name */
-	"extract string fields from header",	/* Description */
+	"extract fields from headers as strings",	/* Description */
 	0,				/* Flags */
 	header_string_vec, 		/* Dispatch function */
 	IM_NUMBER( header_string_args ), 	/* Size of arg list */
 	header_string_args 		/* Arg list */
+};
+
+/* im_history_get() args.
+ */
+static im_arg_desc history_get_args[] = {
+	IM_INPUT_IMAGE( "image" ),
+	IM_OUTPUT_STRING( "history" )
+};
+
+/* Call im_history_get() via arg vector.
+ */
+static int
+history_get_vec( im_object *argv )
+{
+	char **out = (char **) argv[1];
+	const char *str;
+
+	if( !(str = im_history_get( (IMAGE *) argv[0] )) ||
+		!(*out = im_strdup( NULL, str )) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* Description of im_history_get().
+ */ 
+static im_function history_get_desc = {
+	"im_history_get", 		/* Name */
+	"return the image history as a string",	/* Description */
+	0,				/* Flags */
+	history_get_vec, 		/* Dispatch function */
+	IM_NUMBER( history_get_args ), 	/* Size of arg list */
+	history_get_args 		/* Arg list */
+};
+
+/* im_getext() args.
+ */
+static im_arg_desc getext_args[] = {
+	IM_INPUT_IMAGE( "image" ),
+	IM_OUTPUT_STRING( "history" )
+};
+
+/* Call im_getext() via arg vector.
+ */
+static int
+getext_vec( im_object *argv )
+{
+	void **out = (void **) argv[1];
+	int size;
+
+	/* void/char confusion is fine.
+	 */
+	if( !(*out = im__read_extension_block( (IMAGE *) argv[0], &size )) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* Description of im_getext().
+ */ 
+static im_function getext_desc = {
+	"im_getext", 			/* Name */
+	"return the image metadata XML as a string",	/* Description */
+	0,				/* Flags */
+	getext_vec, 			/* Dispatch function */
+	IM_NUMBER( getext_args ), 	/* Size of arg list */
+	getext_args 			/* Arg list */
+};
+
+/* im_printdesc() args.
+ */
+static im_arg_desc printdesc_args[] = {
+	IM_INPUT_IMAGE( "image" ),
+};
+
+/* Call im_printdesc() via arg vector.
+ */
+static int
+printdesc_vec( im_object *argv )
+{
+	im_printdesc( (IMAGE *) argv[0] );
+
+	return( 0 );
+}
+
+/* Description of im_printdesc().
+ */ 
+static im_function printdesc_desc = {
+	"im_printdesc", 		/* Name */
+	"print an image header to stdout",	/* Description */
+	0,				/* Flags */
+	printdesc_vec, 			/* Dispatch function */
+	IM_NUMBER( printdesc_args ), 	/* Size of arg list */
+	printdesc_args 			/* Arg list */
 };
 
 /* im_version_string() args.
@@ -422,12 +520,15 @@ static im_function binfile_desc = {
 static im_function *iofuncs_list[] = {
 	&binfile_desc,
 	&cache_desc,
+	&getext_desc,
 	&guess_prefix_desc,
 	&guess_libdir_desc,
 	&header_get_typeof_desc,
 	&header_int_desc,
 	&header_double_desc,
 	&header_string_desc,
+	&history_get_desc,
+	&printdesc_desc,
 	&version_desc,
 	&version_string_desc
 };

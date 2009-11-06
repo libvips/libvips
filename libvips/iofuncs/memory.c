@@ -15,6 +15,10 @@
  * 	- abort() on malloc() failure with DEBUG
  * 20/10/09
  * 	- gtkdoc comment
+ * 6/11/09
+ *	- im_malloc()/im_free() now call g_try_malloc()/g_free() ... removes 
+ *	  confusion over whether to use im_free() or g_free() for things like 
+ *	  im_header_string()
  */
 
 /*
@@ -169,7 +173,7 @@ im_free( void *s )
 		abort();
 #endif /*DEBUG*/
 
-	free( s );
+	g_free( s );
 
 	return( 0 );
 }
@@ -210,7 +214,7 @@ im_malloc( IMAGE *im, size_t size )
 	size += 16;
 #endif /*DEBUGM*/
 
-        if( !(buf = malloc( size )) ) {
+        if( !(buf = g_try_malloc( size )) ) {
 #ifdef DEBUG
 		abort();
 #endif /*DEBUG*/
