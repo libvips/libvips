@@ -239,17 +239,18 @@ typedef struct _VipsImage {
 	gboolean hint_set;
 } VipsImage;
 
+extern const size_t im__sizeof_bandfmt[];
+
 /* Pixel address calculation macros.
  */
-
 #define IM_IMAGE_SIZEOF_ELEMENT(I) \
-	((size_t)((I)->Bbits >> 3))
+	(im__sizeof_bandfmt[(I)->BandFmt])
 #define IM_IMAGE_SIZEOF_PEL(I) \
-	((size_t)(IM_IMAGE_SIZEOF_ELEMENT(I) * (I)->Bands))
+	(IM_IMAGE_SIZEOF_ELEMENT(I) * (I)->Bands)
 #define IM_IMAGE_SIZEOF_LINE(I) \
-	((size_t)(IM_IMAGE_SIZEOF_PEL(I) * (I)->Xsize))
+	(IM_IMAGE_SIZEOF_PEL(I) * (I)->Xsize)
 #define IM_IMAGE_N_ELEMENTS(I) \
-	((size_t)((I)->Bands * (I)->Xsize))
+	((I)->Bands * (I)->Xsize)
 
 /* If DEBUG is defined, add bounds checking.
  */

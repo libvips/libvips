@@ -121,10 +121,10 @@ extern "C" {
  *	lsize()		sizeof scan line
  *	niele()		number of elements in scan line
  */
-#define esize(I) ((I)->Bbits >> 3)
-#define psize(I) (esize(I)*(I)->Bands)
-#define lsize(I) (psize(I)*(I)->Xsize)
-#define niele(I) ((I)->Bands*(I)->Xsize)
+#define esize(I) IM_IMAGE_SIZEOF_ELEMENT(I)
+#define psize(I) IM_IMAGE_SIZEOF_PEL(I)
+#define lsize(I) IM_IMAGE_SIZEOF_LINE(I)
+#define niele(I) IM_IMAGE_N_ELEMENTS(I)
 
 /* Macros on REGIONs.
  *	lskip()		add to move down line

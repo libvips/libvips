@@ -1,10 +1,9 @@
-- import ~/summer-demo/summer.tif fails with "unable to read embedded
-  profile", is this a bug? better err msg would be good
-
-  trying to catch errors now, but is it working? not sure
 
 WONTFIX for 7.20
 ================
+
+- some of deprecated.h repeats stuff we do better in image.h, eg. addr()
+  should just call IM_REGION_ADDR()
 
 - load 500 jpegs, group, shrink, save
 

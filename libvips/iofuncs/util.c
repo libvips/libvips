@@ -56,6 +56,7 @@
 #include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -1515,17 +1516,20 @@ im__open_temp( void )
 	return( disc );
 }
 
-static const int bits[] = {
-	IM_BBITS_BYTE,
-	IM_BBITS_BYTE,
-	IM_BBITS_SHORT,
-	IM_BBITS_SHORT,
-	IM_BBITS_INT,
-	IM_BBITS_INT,
-	IM_BBITS_FLOAT,
-	IM_BBITS_COMPLEX,
-	IM_BBITS_DOUBLE,
-	IM_BBITS_DPCOMPLEX
+/* This gets indexed by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
+ * size.
+ */
+const size_t im__sizeof_bandfmt[] = {
+	IM_BBITS_BYTE >> 3,
+	IM_BBITS_BYTE >> 3,
+	IM_BBITS_SHORT >> 3,
+	IM_BBITS_SHORT >> 3,
+	IM_BBITS_INT >> 3,
+	IM_BBITS_INT >> 3,
+	IM_BBITS_FLOAT >> 3,
+	IM_BBITS_COMPLEX >> 3,
+	IM_BBITS_DOUBLE >> 3,
+	IM_BBITS_DPCOMPLEX >> 3
 };
 
 /* Return number of pel bits for band format, or -1 on error.
@@ -1537,6 +1541,6 @@ im_bits_of_fmt( VipsBandFmt fmt )
 		im_error( "im_bits_of_fmt", 
 			_( "unsupported band format: %d" ), fmt ),
 		-1 :
-		bits[fmt] );
+		im__sizeof_bandfmt[fmt] << 3 );
 }
 
