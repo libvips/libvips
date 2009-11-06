@@ -8,6 +8,8 @@
  *        methods
  *      - add PIL_mode_from_vips () and vips_from_PIL_mode () utility
  *        functions
+ * 6/11/09
+ *      - arg, std::vector<vips::VImage> was missing the "vips::"
  */
 
 %module VImage
@@ -39,7 +41,7 @@
 namespace std {
   %template(IntVector) vector<int>;
   %template(DoubleVector) vector<double>;
-  %template(ImageVector) vector<VImage>;
+  %template(ImageVector) vector<vips::VImage>;
 }
 
 /* To get image data to and from VImage (eg. when interfacing with PIL) we

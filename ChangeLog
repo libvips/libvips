@@ -80,6 +80,7 @@
   over whether to use im_free() or g_free() for things like im_header_string()
 - added im_history_get(), im_getexp(), im_printdesc() as wrapped functions ...
   so you no longer need the "header" program
+- image vectors from Python work, woo
 
 25/3/09 started 7.18.0
 - revised version numbers

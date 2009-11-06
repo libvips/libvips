@@ -254,7 +254,7 @@ static im_arg_desc header_string_args[] = {
 static int
 header_string_vec( im_object *argv )
 {
-	char **out = (char **) argv[2];
+	char **out = (char **) &argv[2];
 
 	/* Actually, we call im_header_as_string(), so we can do any field and
 	 * not just the string-valued ones.
@@ -289,7 +289,7 @@ static im_arg_desc history_get_args[] = {
 static int
 history_get_vec( im_object *argv )
 {
-	char **out = (char **) argv[1];
+	char **out = (char **) &argv[1];
 	const char *str;
 
 	if( !(str = im_history_get( (IMAGE *) argv[0] )) ||
@@ -322,7 +322,7 @@ static im_arg_desc getext_args[] = {
 static int
 getext_vec( im_object *argv )
 {
-	void **out = (void **) argv[1];
+	void **out = (void **) &argv[1];
 	int size;
 
 	/* void/char confusion is fine.
