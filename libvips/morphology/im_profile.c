@@ -88,7 +88,6 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 		out->Ysize = in->Ysize;
 	}
 	out->BandFmt = IM_BANDFMT_USHORT;
-	out->Bbits = IM_BBITS_SHORT;
 	if( im_setupout( out ) )
 		return( -1 );
 	if( !(buf = IM_ARRAY( out, out->Xsize, unsigned short )) )

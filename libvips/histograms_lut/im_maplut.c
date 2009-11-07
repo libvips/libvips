@@ -609,7 +609,6 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 
 	/* Force output to be the same type as lut.
 	 */
-	out->Bbits = lut->Bbits;
 	out->BandFmt = lut->BandFmt;
 
 	/* Output has same number of bands as LUT, unless LUT has 1 band, in

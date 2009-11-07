@@ -134,7 +134,6 @@ int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
   out-> Xsize= 1 + large-> Xsize - small-> Xsize;
   out-> Ysize= 1 + large-> Ysize - small-> Ysize;
   out-> BandFmt= IM_BANDFMT_FLOAT;
-  out-> Bbits= IM_BBITS_FLOAT;
 
   if( im_demand_hint( out, IM_FATSTRIP, large, NULL ) )
     return -1;
@@ -196,7 +195,6 @@ int im_grad_x( IMAGE *in, IMAGE *out ){
 
   -- out-> Xsize;
   out-> BandFmt= IM_BANDFMT_INT; /* do not change without updating im_gradcor() */
-  out-> Bbits= IM_BBITS_INT;
 
   if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) )
     return -1;
@@ -260,7 +258,6 @@ int im_grad_y( IMAGE *in, IMAGE *out ){
 
   -- out-> Ysize;
   out-> BandFmt= IM_BANDFMT_INT; /* do not change without updating im_gradcor() */
-  out-> Bbits= IM_BBITS_INT;
 
   if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
     return -1;

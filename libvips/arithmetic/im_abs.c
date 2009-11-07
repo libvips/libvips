@@ -250,12 +250,10 @@ im_abs( IMAGE *in, IMAGE *out )
 			break;
 
 		case IM_BANDFMT_COMPLEX:
-			out->Bbits = IM_BBITS_FLOAT;
 			out->BandFmt = IM_BANDFMT_FLOAT;
 			break;
 
 		case IM_BANDFMT_DPCOMPLEX:
-			out->Bbits = IM_BBITS_DOUBLE;
 			out->BandFmt = IM_BANDFMT_DOUBLE;
 			break;
 

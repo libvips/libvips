@@ -183,7 +183,6 @@ im_msb (IMAGE * in, IMAGE * out)
   if (im_cp_desc (out, in))
     return -1;
 
-  out->Bbits = sizeof (unsigned char) << 3;
   out->BandFmt = IM_BANDFMT_UCHAR;
   out->Coding = IM_CODING_NONE;
 
@@ -283,7 +282,6 @@ im_msb_band (IMAGE * in, IMAGE * out, int band)
     return -1;
 
   out->Bands = 1;
-  out->Bbits = sizeof (unsigned char) << 3;
   out->BandFmt = IM_BANDFMT_UCHAR;
   out->Coding = IM_CODING_NONE;
 

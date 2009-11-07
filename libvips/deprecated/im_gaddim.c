@@ -126,8 +126,6 @@ int im_gaddim(a, in1, b, in2, c, out)
 IMAGE *in1, *in2, *out;
 double a, b, c;
 {
-	static int bb[] = { IM_BBITS_BYTE, IM_BBITS_BYTE, IM_BBITS_SHORT,
-	IM_BBITS_SHORT, IM_BBITS_INT, IM_BBITS_INT };
 	static int fmt[] = { IM_BANDFMT_UCHAR, IM_BANDFMT_CHAR,
 	IM_BANDFMT_USHORT, IM_BANDFMT_SHORT, 
 		IM_BANDFMT_UINT, IM_BANDFMT_INT };
@@ -176,7 +174,6 @@ double a, b, c;
 /* Prepare the output header */
 	if ( im_cp_desc(out, in1) == -1)
 		{ im_error("im_gaddim"," im_cp_desc failed"); return(-1); }
-	out->Bbits = bb[result];
 	out->BandFmt = fmt[result];
 
 	if( im_setupout(out) == -1)

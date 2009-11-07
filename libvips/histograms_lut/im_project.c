@@ -270,12 +270,10 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 
 	hout->Xsize = 1;
 	hout->BandFmt = project_type[in->BandFmt];
-	hout->Bbits = im_bits_of_fmt( hout->BandFmt );
 	hout->Type = IM_TYPE_HISTOGRAM;
 
 	vout->Ysize = 1;
 	vout->BandFmt = project_type[in->BandFmt];
-	vout->Bbits = im_bits_of_fmt( hout->BandFmt );
 	vout->Type = IM_TYPE_HISTOGRAM;
 
 	/* Build the main project we accumulate data in.

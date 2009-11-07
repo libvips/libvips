@@ -167,8 +167,8 @@ im_binfile( const char *name, int xsize, int ysize, int bands, int offset )
 
 	/* Set others to standard values.
 	 */
-	im->Bbits = IM_BBITS_BYTE;
 	im->BandFmt = IM_BANDFMT_UCHAR;
+	im->Bbits = im_bits_of_fmt( im->BandFmt );
 	im->Coding = IM_CODING_NONE;
 
 	if( bands == 1 )

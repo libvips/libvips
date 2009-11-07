@@ -297,12 +297,12 @@ double factor;
 	 */
 	if( im_iocheck( in, out ) ) 
 		return( -1 );
-	if( in->Bands != 1 || in->Bbits != 8 || 
+	if( in->Bands != 1 || 
 		in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR ) {
 		im_error( "im_litecor", "bad input format" ); 
 		return( -1 );
 	}
-	if( white->Bands != 1 || white->Bbits != 8 || 
+	if( white->Bands != 1 || 
 		white->Coding != IM_CODING_NONE || white->BandFmt != IM_BANDFMT_UCHAR ) { 
 		im_error( "im_litecor", "bad white format" );
 		return( -1 );

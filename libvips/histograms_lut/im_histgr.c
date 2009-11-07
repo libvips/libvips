@@ -313,10 +313,9 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 
 	/* Find the range of pixel values we must handle.
 	 */
-	if( in->Bbits == IM_BBITS_BYTE && in->BandFmt == IM_BANDFMT_UCHAR ) 
+	if( in->BandFmt == IM_BANDFMT_UCHAR ) 
 		size = 256;
-	else if( in->Bbits == IM_BBITS_SHORT && 
-		in->BandFmt == IM_BANDFMT_USHORT )
+	else if( in->BandFmt == IM_BANDFMT_USHORT )
 		size = 65536;
 	else {
 		im_error( "im_histgr", "%s", _( "input not uchar or ushort" ) );

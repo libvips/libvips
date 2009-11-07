@@ -114,7 +114,6 @@ im_histcum( IMAGE *in, IMAGE *out )
 		out->BandFmt = IM_BANDFMT_UINT;
 	else if( im_isint( in ) )
 		out->BandFmt = IM_BANDFMT_INT;
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	if( !(outbuf = im_malloc( out, IM_IMAGE_SIZEOF_LINE( out ))) )
                 return( -1 );

@@ -134,7 +134,6 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
         if( im_cp_desc( out, in ) )
                 return( -1 );
-	out->Bbits = IM_BBITS_DPCOMPLEX;
 	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
         if( im_setupout( out ) )
                 return( -1 );
@@ -238,7 +237,6 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
         if( im_cp_desc( out, in ) )
                 return( -1 );
-	out->Bbits = IM_BBITS_DPCOMPLEX;
 	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
         if( im_setupout( out ) )
                 return( -1 );
@@ -333,7 +331,6 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
         if( im_cp_desc( out, in ) )
                 return( -1 );
-	out->Bbits = IM_BBITS_DPCOMPLEX;
 	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
         if( im_setupout( out ) )
                 return( -1 );
@@ -447,7 +444,6 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
         if( im_cp_desc( out, in ) )
                 return( -1 );
-	out->Bbits = IM_BBITS_DPCOMPLEX;
 	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
         if( im_setupout( out ) )
                 return( -1 );
@@ -546,7 +542,6 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
         if( im_cp_desc( out, in ) )
                 return( -1 );
-	out->Bbits = IM_BBITS_COMPLEX;
 	out->BandFmt = IM_BANDFMT_COMPLEX;
         if( im_setupout( out ) )
                 return( -1 );

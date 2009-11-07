@@ -202,7 +202,7 @@ im_stdif_raw( IMAGE *in, IMAGE *out,
 	}
 	if( im_piocheck( in, out ) )
 		return( -1 );
-	if( in->Bbits != IM_BBITS_BYTE || in->BandFmt != IM_BANDFMT_UCHAR || 
+	if( in->BandFmt != IM_BANDFMT_UCHAR || 
 		in->Bands != 1 || in->Coding != IM_CODING_NONE ) { 
 		im_error( "im_stdif", "%s", 
 			_( "one band uchar uncoded only" ) ); 

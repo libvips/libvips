@@ -180,7 +180,6 @@ im_LabQ2disp_table( IMAGE *in, IMAGE *out, void *table )
         if( im_cp_desc( out, in ) )
                 return( -1 );
         out->Bands = 3;
-        out->Bbits = IM_BBITS_BYTE;
         out->BandFmt = IM_BANDFMT_UCHAR;
         out->Coding = IM_CODING_NONE;
         out->Type = IM_TYPE_RGB;

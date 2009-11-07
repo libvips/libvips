@@ -344,7 +344,6 @@ parse_labpack( ReadTiff *rtiff, IMAGE *out )
 		return( -1 );
 
 	out->Bands = 4; 
-	out->Bbits = 8; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_LABQ; 
 	out->Type = IM_TYPE_LAB; 
@@ -384,7 +383,6 @@ parse_labs( ReadTiff *rtiff, IMAGE *out )
 		return( -1 );
 
 	out->Bands = 3; 
-	out->Bbits = 16; 
 	out->BandFmt = IM_BANDFMT_SHORT; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_LABS; 
@@ -423,7 +421,6 @@ parse_ycbcr( ReadTiff *rtiff, IMAGE *out )
 		return( -1 );
 
 	out->Bands = 4; 
-	out->Bbits = 8; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_LABQ; 
 	out->Type = IM_TYPE_LAB; 
@@ -482,7 +479,6 @@ parse_onebit( ReadTiff *rtiff, int pm, IMAGE *out )
 		return( -1 );
 
 	out->Bands = 1; 
-	out->Bbits = 8; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_B_W; 
@@ -533,7 +529,6 @@ parse_greyscale8( ReadTiff *rtiff, int pm, IMAGE *out )
 	*mask = (pm == PHOTOMETRIC_MINISBLACK) ? 0 : 255;
 
 	out->Bands = 1; 
-	out->Bbits = 8; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_B_W; 
@@ -580,7 +575,6 @@ parse_greyscale16( ReadTiff *rtiff, int pm, IMAGE *out )
 	mask[0] = (pm == PHOTOMETRIC_MINISBLACK) ? 0 : 65535;
 
 	out->Bands = 1; 
-	out->Bbits = 16; 
 	out->BandFmt = IM_BANDFMT_USHORT; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_GREY16; 
@@ -615,7 +609,6 @@ parse_greyscale32f( ReadTiff *rtiff, int pm, IMAGE *out )
 		return( -1 );
 
 	out->Bands = 1; 
-	out->Bbits = 32;
 	out->BandFmt = IM_BANDFMT_FLOAT;
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_B_W; 
@@ -690,7 +683,6 @@ parse_palette( ReadTiff *rtiff, IMAGE *out )
 	maps[2] = blue;
 
 	out->Bands = 3; 
-	out->Bbits = 8; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_sRGB; 
@@ -737,7 +729,6 @@ parse_rgb8( ReadTiff *rtiff, IMAGE *out )
 	}
 
 	out->Bands = bands; 
-	out->Bbits = 8; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_sRGB; 
@@ -786,7 +777,6 @@ parse_rgb16( ReadTiff *rtiff, IMAGE *out )
 	}
 
 	out->Bands = bands; 
-	out->Bbits = 16; 
 	out->BandFmt = IM_BANDFMT_USHORT; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_RGB16; 
@@ -832,7 +822,6 @@ parse_32f( ReadTiff *rtiff, int pm, IMAGE *out )
 	assert( bands == 3 || bands == 4 );
 
 	out->Bands = bands; 
-	out->Bbits = 32; 
 	out->BandFmt = IM_BANDFMT_FLOAT; 
 	out->Coding = IM_CODING_NONE; 
 
@@ -876,7 +865,6 @@ parse_cmyk( ReadTiff *rtiff, IMAGE *out )
 	}
 
 	out->Bands = bands; 
-	out->Bbits = 8; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_CMYK; 

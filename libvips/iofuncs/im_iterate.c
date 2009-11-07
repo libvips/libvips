@@ -380,6 +380,11 @@ im_iterate( IMAGE *im,
 
 	g_assert( !im_image_sanity( im ) );
 
+	/* We don't use this, but make sure it's set in case any old binaries
+	 * are expectiing it.
+	 */
+	im->Bbits = im_bits_of_fmt( im->BandFmt );
+ 
 	if( iterate_init( &iter, im, start, generate, stop, b, c ) )
 		return( -1 );
 

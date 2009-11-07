@@ -145,7 +145,6 @@ im_XYZ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d )
 
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	out->Bbits = IM_BBITS_BYTE;
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Type = IM_TYPE_RGB;
 

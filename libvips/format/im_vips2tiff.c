@@ -480,7 +480,8 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 		int photometric;
 
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, tw->im->Bands );
-		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, tw->im->Bbits );
+		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 
+			im_bits_of_fmt( tw->im->BandFmt ) );
 
 		switch( tw->im->Bands ) {
 		case 1:

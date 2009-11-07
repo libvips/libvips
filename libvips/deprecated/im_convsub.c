@@ -196,8 +196,8 @@ int xskip, yskip;
 	if (im_iocheck(in, out) == -1)
 		return( -1 );
 	
-	if ( (in->Coding != IM_CODING_NONE)||(in->Bbits != IM_BBITS_BYTE)
-	    ||(in->BandFmt != IM_BANDFMT_UCHAR) )
+	if ( (in->Coding != IM_CODING_NONE)||
+	    (in->BandFmt != IM_BANDFMT_UCHAR) )
 		{
 		im_error( "im_convsub", "%s", _( "nput should be unsigned char uncoded") );
 		return(-1);

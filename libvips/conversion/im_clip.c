@@ -459,7 +459,6 @@ im_clip2fmt( IMAGE *in, IMAGE *out, int ofmt )
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->BandFmt = ofmt;
-	out->Bbits = im_bits_of_fmt( ofmt );
 
 	if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) ||
 		im_generate( out, clip_start, clip_gen, clip_stop, in, clip ) )

@@ -541,6 +541,11 @@ im_generate( IMAGE *im,
 			"%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
+
+	/* We don't use this, but make sure it's set in case any old binaries
+	 * are expectiing it.
+	 */
+	im->Bbits = im_bits_of_fmt( im->BandFmt );
  
         /* Look at output type to decide our action.
          */

@@ -63,7 +63,7 @@
 int
 im_readpoint( IMAGE *im, int x, int y, PEL *pel )
 {	
-	int es = im->Bbits >> 3;
+	int es = IM_IMAGE_SIZEOF_ELEMENT( im ); 
 	int ps = es * im->Bands;
 	int ls = ps * im->Xsize;
 	int b;
@@ -93,7 +93,7 @@ im_readpoint( IMAGE *im, int x, int y, PEL *pel )
 int
 im_plotpoint( IMAGE *im, int x, int y, PEL *pel )
 {	
-	int es = im->Bbits >> 3;
+	int es = IM_IMAGE_SIZEOF_ELEMENT( im ); 
 	int ps = es * im->Bands;
 	int ls = ps * im->Xsize;
 	int b;

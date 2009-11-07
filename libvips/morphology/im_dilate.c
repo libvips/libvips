@@ -261,7 +261,7 @@ im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 	 */
 	if( im_piocheck( in, out ) ) 
 		return( -1 ); 
-	if( in->Coding != IM_CODING_NONE || in->Bbits != 8 || 
+	if( in->Coding != IM_CODING_NONE || 
 		in->BandFmt != IM_BANDFMT_UCHAR ) {
 		im_error( "im_dilate", "%s", _( "uchar uncoded only" ) );
 		return( -1 );

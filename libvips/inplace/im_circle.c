@@ -72,8 +72,8 @@ im_circle( IMAGE *im, int cx, int cy, int radius, int intensity )
 		return( -1 );
 
 /* Check args */
-	if ( (im->data == NULL)||(im->BandFmt != IM_BANDFMT_UCHAR)||(im->Bands != 1)
-	   ||(im->Bbits != IM_BBITS_BYTE) )
+	if ( (im->data == NULL)||(im->BandFmt != IM_BANDFMT_UCHAR)||
+	   (im->Bands != 1))
 		{
 		im_error("im_circle: ", "%s", _( "able to write input image") );
 		return(-1);

@@ -93,7 +93,7 @@ im_glds_matrix( IMAGE *im, IMAGE *m,
 	if (im_iocheck(im, m) == -1)
 		return( -1 );
 
-	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR)) { 
+	if ((im->Bands != 1)||(im->BandFmt != IM_BANDFMT_UCHAR)) { 
 		im_error( "im_glds_matrix", "%s", _( "Wrong input") ); 
 		return(-1); }
 
@@ -103,8 +103,9 @@ im_glds_matrix( IMAGE *im, IMAGE *m,
 
 	if (im_cp_desc(m, im) == -1)
 		return( -1 );
-	m->Xsize = 256; m->Ysize = 1;
-	m->Bbits = IM_BBITS_DOUBLE; m->BandFmt = IM_BANDFMT_DOUBLE;
+	m->Xsize = 256; 
+	m->Ysize = 1;
+	m->BandFmt = IM_BANDFMT_DOUBLE;
 	m->Type = IM_TYPE_B_W;
 
 	if (im_setupout(m) == -1)

@@ -96,6 +96,11 @@ im_setupout( IMAGE *im )
 		return( -1 );
 	}
 
+	/* We don't use this, but make sure it's set in case any old binaries
+	 * are expectiing it.
+	 */
+	im->Bbits = im_bits_of_fmt( im->BandFmt );
+ 
 	if( im->dtype == IM_PARTIAL ) {
 		/* Make it into a im_setbuf() image.
 		 */

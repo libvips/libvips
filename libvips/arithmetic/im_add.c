@@ -279,7 +279,6 @@ im__arith_binary( const char *domain,
 	/* What output type will we write? 
 	 */
 	out->BandFmt = format_table[t[2]->BandFmt];
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	/* And process! The buffer function gets one of the input images as a
 	 * sample.

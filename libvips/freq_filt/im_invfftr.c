@@ -100,7 +100,6 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
         if( im_cp_desc( real, in ) )
                 return( -1 );
-	real->Bbits = IM_BBITS_DOUBLE;
 	real->BandFmt = IM_BANDFMT_DOUBLE;
         if( im_setupout( real ) )
                 return( -1 );
@@ -183,7 +182,6 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
         if( im_cp_desc( real, in ) )
                 return( -1 );
-	real->Bbits = IM_BBITS_DOUBLE;
 	real->BandFmt = IM_BANDFMT_DOUBLE;
         if( im_setupout( real ) )
                 return( -1 );
@@ -287,7 +285,6 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
         if( im_cp_desc( out, in ) )
                 return( -1 );
-	out->Bbits = IM_BBITS_FLOAT;
 	out->BandFmt = IM_BANDFMT_FLOAT;
         if( im_setupout( out ) )
                 return( -1 );

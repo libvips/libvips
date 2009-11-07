@@ -167,7 +167,6 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	 */
 	if( im_cp_descv( out, in, ref, NULL ) )
 		return( -1 );
-	out->Bbits = IM_BBITS_INT;
 	out->BandFmt = IM_BANDFMT_UINT;
 	out->Xsize = in->Xsize - ref->Xsize + 1;
 	out->Ysize = in->Ysize - ref->Ysize + 1;

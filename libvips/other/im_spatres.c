@@ -78,7 +78,7 @@ im_spatres( IMAGE *in,  IMAGE *out, int step )
 	if (im_iocheck(in, out) == -1)
 		return( -1 );
         
-        if((in->Coding != IM_CODING_NONE)||(in->Bbits != 8)||(in->BandFmt !=IM_BANDFMT_UCHAR)) { 
+        if((in->Coding != IM_CODING_NONE)||(in->BandFmt !=IM_BANDFMT_UCHAR)) { 
 		im_error( "im_spatres", "%s", _( "wrong input") ); 
 		return(-1); }
 

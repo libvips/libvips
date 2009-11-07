@@ -88,7 +88,6 @@ im_Lab2LabS( IMAGE *in, IMAGE *out )
 		return( -1 );
 	out->Type = IM_TYPE_LABS;
 	out->BandFmt = IM_BANDFMT_SHORT;
-	out->Bbits = IM_BBITS_SHORT;
 
 	if( im_wrapone( t[0], out, 
 		(im_wrapone_fn) imb_Lab2LabS, NULL, NULL ) )

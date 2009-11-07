@@ -96,7 +96,7 @@ int dx, dy; /* displacements */
 
 	if (im_iocheck(im, m) == -1)
 		return( -1 );
-	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR)) {
+	if ((im->Bands != 1)||(im->BandFmt != IM_BANDFMT_UCHAR)) {
 		im_error( "im_cooc_sym", "%s", _( "Unable to accept input") );
 		return(-1);
 		}
@@ -107,7 +107,6 @@ int dx, dy; /* displacements */
 		return( -1 );
 	m->Xsize = 256;
 	m->Ysize = 256;
-	m->Bbits = IM_BBITS_DOUBLE;
 	m->BandFmt = IM_BANDFMT_DOUBLE;
 	m->Type = IM_TYPE_B_W;
 	if (im_setupout(m) == -1)
@@ -174,7 +173,7 @@ int dx, dy; /* displacements */
 
 	if (im_iocheck(im, m) == -1)
 		return( -1 );
-	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR))
+	if ((im->Bands != 1)||(im->BandFmt != IM_BANDFMT_UCHAR))
 		{
 		im_error( "im_cooc_ord", "%s", _( "Unable to accept input") );
 		return(-1);
@@ -186,7 +185,6 @@ int dx, dy; /* displacements */
 		return( -1 );
 	m->Xsize = 256;
 	m->Ysize = 256;
-	m->Bbits = IM_BBITS_DOUBLE;
 	m->BandFmt = IM_BANDFMT_DOUBLE;
 	if (im_setupout(m) == -1)
 		return( -1 );

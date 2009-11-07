@@ -254,7 +254,7 @@ im_vips2ppm( IMAGE *in, const char *filename )
 		}
 	}
 
-	if( in->Bbits > 8 && !ascii ) {
+	if( im_bits_of_fmt( in->BandFmt ) > 8 && !ascii ) {
 		im_error( "im_vips2ppm", 
 			"%s", _( "can't write binary >8 bit images" ) );
 		return( -1 );

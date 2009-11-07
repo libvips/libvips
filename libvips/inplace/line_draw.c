@@ -89,7 +89,7 @@
 int 
 im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
 {	
-	int es = im->Bbits >> 3;
+	int es = IM_IMAGE_SIZEOF_ELEMENT( im ); 
 	int ps = es * im->Bands;
 	int ls = ps * im->Xsize;
 	PEL *p;

@@ -165,7 +165,6 @@ im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt 
   out-> Xres/= ( 1 << xshift ); /* x scale */
   out-> Yres/= ( 1 << yshift ); /* y scale */
   out-> BandFmt= band_fmt;
-  out-> Bbits= outbits;
 
   if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) )
     return -1;
@@ -194,7 +193,7 @@ im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt 
     RETURN_MACRO( MACRO, guint32, guint ## OUT_SIZE, guint ## SUM_SIZE )          \
 }
 
-#define RETURN_MACRO_SUMSS( MACRO, SUM_SIZE )   switch( out-> Bbits ){  \
+#define RETURN_MACRO_SUMSS( MACRO, SUM_SIZE )   switch( im_bits_of_fmt( out->BandFmt ) ){  \
   case 32:                                                              \
     RETURN_MACRO_OUTS( MACRO, SUM_SIZE, 32 )                            \
   case 16:                                                              \

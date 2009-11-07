@@ -1265,8 +1265,7 @@ im_open_vips( const char *filename )
 			im_close( im );
 			return( NULL );
 		}
-		if( im->Bbits != IM_BBITS_BYTE &&
-			im_isMSBfirst( im ) != im_amiMSBfirst() ) {
+		if( im_isMSBfirst( im ) != im_amiMSBfirst() ) {
 			im_close( im );
 			im_error( "im_open_vips", "%s", 
 				_( "open for read-write for "

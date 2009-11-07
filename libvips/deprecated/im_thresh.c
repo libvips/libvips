@@ -90,7 +90,6 @@ double threshold;
 	if( im_cp_desc( out, in ) ) 
 		return( -1 );
 	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Bbits = IM_BBITS_BYTE;
 	if( im_setupout( out ) ) 
 		return( -1 );
 

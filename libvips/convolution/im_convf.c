@@ -305,10 +305,8 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	if( im_isint( in ) ) {
-		out->Bbits = IM_BBITS_FLOAT;
+	if( im_isint( in ) ) 
 		out->BandFmt = IM_BANDFMT_FLOAT;
-	}
 	out->Xsize -= mask->xsize - 1;
 	out->Ysize -= mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {

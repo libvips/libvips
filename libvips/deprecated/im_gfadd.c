@@ -136,7 +136,6 @@ int im_gfadd(a, in1, b, in2, c, out)
 double a, b, c;
 IMAGE *in1, *in2, *out;
 {
-	static int bb[] = { IM_BBITS_FLOAT, IM_BBITS_DOUBLE };
 	static int fmt[] = { IM_BANDFMT_FLOAT, IM_BANDFMT_DOUBLE };
 	int y, x;
 	int first, second, result;
@@ -184,7 +183,6 @@ IMAGE *in1, *in2, *out;
 /* Prepare output */
 	if ( im_cp_desc(out, in1) == -1)
 		{ im_error("im_gfadd"," im_cp_desc failed"); return( -1 ); }
-	out->Bbits = bb[result];
 	out->BandFmt = fmt[result];
 	if( im_setupout(out) == -1)
 		{ im_error("im_gfadd"," im_setupout failed"); return( -1 ); }

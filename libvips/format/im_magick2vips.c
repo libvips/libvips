@@ -267,8 +267,6 @@ parse_header( Read *read )
 		return( -1 );
 	}
 
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
-
 	switch( image->colorspace ) {
 	case GRAYColorspace:
 		if( im->BandFmt == IM_BANDFMT_USHORT )
@@ -361,7 +359,6 @@ parse_header( Read *read )
 	for( p = image; p; (p = GetNextImageInList( p )) ) {
 		if( p->columns != (unsigned int) im->Xsize ||
 			p->rows != (unsigned int) im->Ysize ||
-			p->depth != (unsigned int) im->Bbits ||
 			get_bands( p ) != im->Bands )
 			break;
 

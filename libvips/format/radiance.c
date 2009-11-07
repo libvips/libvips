@@ -890,7 +890,6 @@ rad2vips_get_header( Read *read, FILE *fin, IMAGE *out )
 
 	out->Bands = 4;
 	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	out->Coding = IM_CODING_RAD;
 	out->Xres = 1.0;

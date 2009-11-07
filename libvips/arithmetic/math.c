@@ -115,10 +115,8 @@ im__math( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen )
 
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	if( im_isint( in ) ) {
-		out->Bbits = IM_BBITS_FLOAT;
+	if( im_isint( in ) ) 
 		out->BandFmt = IM_BANDFMT_FLOAT;
-	}
 
 	if( im_wrapone( in, out, gen, in, NULL ) )
 		return( -1 );

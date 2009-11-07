@@ -173,7 +173,6 @@ im_contrast_surface_raw (IMAGE * in, IMAGE * out, int half_win_size,
     return -1;
 
   out->BandFmt = IM_BANDFMT_UINT;
-  out->Bbits = sizeof (unsigned int) << 3;
 
   out->Xsize = 1 + ((in->Xsize - DOUBLE_ADD_ONE (half_win_size)) / spacing);
   out->Ysize = 1 + ((in->Ysize - DOUBLE_ADD_ONE (half_win_size)) / spacing);

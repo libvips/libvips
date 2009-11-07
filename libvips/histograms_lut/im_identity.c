@@ -1,5 +1,5 @@
 /* @(#) Creates a image file with Xsize=256, Ysize=1, Bands=bands,
- * @(#) Bbits=IM_BBITS_BYTE, BandFmt=IM_BANDFMT_UCHAR, Type=IM_TYPE_HISTOGRAM;
+ * @(#) BandFmt=IM_BANDFMT_UCHAR, Type=IM_TYPE_HISTOGRAM;
  * @(#) 
  * @(#) The created image consist a n bands linear lut and is the basis 
  * @(#) for building up look-up tables.

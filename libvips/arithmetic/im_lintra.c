@@ -344,10 +344,8 @@ im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	if( im_isint( in ) ) {
-		out->Bbits = IM_BBITS_FLOAT;
+	if( im_isint( in ) ) 
 		out->BandFmt = IM_BANDFMT_FLOAT;
-	}
 	if( in->Bands == 1 )
 		out->Bands = n;
 

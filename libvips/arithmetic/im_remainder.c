@@ -237,7 +237,6 @@ im__arith_binary_const( const char *name,
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->BandFmt = format_table[in->BandFmt];
-	out->Bbits = im_bits_of_fmt( out->BandFmt );
 
 	/* Some operations need the vector in the input type (eg.
 	 * im_equal_vec() where the output type is always uchar and is useless

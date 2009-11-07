@@ -155,7 +155,7 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
 
 	if( im_piocheck( in, out ) )
 		return( -1 );
-	if( in->Bbits != IM_BBITS_BYTE || in->BandFmt != IM_BANDFMT_UCHAR || 
+	if( in->BandFmt != IM_BANDFMT_UCHAR || 
 		in->Bands != 1 || in->Coding != IM_CODING_NONE ) { 
 		im_error( "im_lhisteq", 
 			"%s", _( "one band uchar uncoded only" ) ); 

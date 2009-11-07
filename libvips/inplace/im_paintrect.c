@@ -61,7 +61,7 @@
 int
 im_paintrect( IMAGE *im, Rect *r, PEL *ink )
 {	
-	int es = im->Bbits >> 3;
+	int es = IM_IMAGE_SIZEOF_ELEMENT( im ); 
 	int ps = es * im->Bands;
 	int ls = ps * im->Xsize;
 	Rect image, clipped;

@@ -129,14 +129,10 @@ im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	if( im_cp_descv( out, in1, in2, NULL ) )
 		return( -1 );
 	if( in1->BandFmt == IM_BANDFMT_DOUBLE || 
-		in2->BandFmt == IM_BANDFMT_DOUBLE ) {
-		out->Bbits = IM_BBITS_DPCOMPLEX;
+		in2->BandFmt == IM_BANDFMT_DOUBLE ) 
 		out->BandFmt = IM_BANDFMT_DPCOMPLEX;
-	}
-	else {
-		out->Bbits = IM_BBITS_COMPLEX;
+	else 
 		out->BandFmt = IM_BANDFMT_COMPLEX;
-	}
 
 	/* Float inputs up to correct type. Note that if they are already the
 	 * right type, this operation becomes a NOOP.

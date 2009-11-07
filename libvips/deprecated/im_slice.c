@@ -104,7 +104,6 @@ double t1, t2;
 		return( -1 );
 		}
 	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Bbits = IM_BBITS_BYTE;
 	if( im_setupout( out ) ) 
 		{
 		im_error( "im_slice", "%s", _( "im_setupout failed") );

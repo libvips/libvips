@@ -99,14 +99,10 @@ im_c2imag( IMAGE *in, IMAGE *out )
 
 	/* Output will be float or double.
 	 */
-	if( in->BandFmt == IM_BANDFMT_DPCOMPLEX ) {
+	if( in->BandFmt == IM_BANDFMT_DPCOMPLEX ) 
 		out->BandFmt = IM_BANDFMT_DOUBLE;
-		out->Bbits = IM_BBITS_DOUBLE;
-	}
-	else {
+	else 
 		out->BandFmt = IM_BANDFMT_FLOAT;
-		out->Bbits = IM_BBITS_FLOAT;
-	}
 
         /* Do the processing.
          */

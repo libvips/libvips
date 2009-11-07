@@ -157,7 +157,6 @@ im_zerox( IMAGE *in, IMAGE *out, int flag )
 	 */
 	if( im_cp_desc( t1, in ) )
 		return( -1 );
-	t1->Bbits = IM_BBITS_BYTE;
 	t1->BandFmt = IM_BANDFMT_UCHAR;
 	t1->Xsize -= 1;
 

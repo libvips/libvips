@@ -1092,7 +1092,6 @@ im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
 
 		mask->Bands = 1;
 		mask->BandFmt = IM_BANDFMT_UCHAR;
-		mask->Bbits = IM_BBITS_BYTE;
 		mask->Type = IM_TYPE_B_W;
 		mask->Coding = IM_CODING_NONE;
 	}

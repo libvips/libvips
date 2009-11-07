@@ -164,7 +164,6 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
 	out->Bands = Bands;
 	out->BandFmt = BandFmt;
 	out->Coding = Coding;
-	out->Bbits = im_bits_of_fmt( BandFmt );
 
 	/* Sanity check: we (may) have changed bytes-per-pixel since we've
 	 * changed Bands and BandFmt ... bad!

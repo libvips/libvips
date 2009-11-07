@@ -207,7 +207,6 @@ int im_linreg( IMAGE **ins, IMAGE *out, double *xs ){
 
   out-> Bands= 7;
   out-> BandFmt= IM_BANDFMT_DOUBLE;
-  out-> Bbits= IM_BBITS_DOUBLE;
   out-> Type= 0;
 
   if( im_demand_hint_array( out, IM_THINSTRIP, ins ) )

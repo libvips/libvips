@@ -95,7 +95,6 @@ im_disp2XYZ( IMAGE *in, IMAGE *out, struct im_col_display *d )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	out->Bbits = IM_BBITS_FLOAT;
 	out->BandFmt = IM_BANDFMT_FLOAT;
 	out->Type = IM_TYPE_XYZ;
 

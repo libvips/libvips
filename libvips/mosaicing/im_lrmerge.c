@@ -1067,7 +1067,7 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 
 	/* Check IMAGEs parameters
 	 */
-	if( ref->Bands != sec->Bands || ref->Bbits != sec->Bbits ||
+	if( ref->Bands != sec->Bands || 
 		ref->BandFmt != sec->BandFmt ||
 		ref->Coding != sec->Coding ) {
 		im_error( "im_lrmerge", 

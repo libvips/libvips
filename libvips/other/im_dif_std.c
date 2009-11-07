@@ -66,7 +66,7 @@ double *pmean, *pstd;
 	if( im_incheck( im ) )
 		return( -1 );
 
-	if ((im->Bands != 1)||(im->Bbits != IM_BBITS_BYTE)||(im->BandFmt != IM_BANDFMT_UCHAR)) {
+	if ((im->Bands != 1)||(im->BandFmt != IM_BANDFMT_UCHAR)) {
 		im_error( "im_dif_std", "%s", _( "Unable to accept input") ); 
 		return(-1);}
 	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
