@@ -346,9 +346,6 @@ im_col_make_tables_RGB( IMAGE *im, struct im_col_display *d )
 	double **temp;
 	int i, j;
 
-	printf( "im_col_make_tables_RGB: generating table for %s\n", 
-		d->d_name );
-
 	if( !(table = IM_NEW( im, struct im_col_tab_disp )) )
 		return( NULL );
 

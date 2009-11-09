@@ -1,3 +1,7 @@
+9/11/09 started 7.20.0
+- removed vips-7.x.spec.in, shouldn't really have this in SVN
+- bumped version to 7.20
+
 3/4/09 started 7.19.0
 - version bump
 - tiny conv speedup
