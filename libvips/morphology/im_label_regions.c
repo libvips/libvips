@@ -85,6 +85,8 @@ im_label_regions( IMAGE *test, IMAGE *mask, int *segments )
 
 	/* Search the mask image, flooding as we find zero pixels.
 	 */
+	if( im_rwcheck( t[1] ) )
+		return( -1 );
 	serial = 0;
 	m = (int *) t[1]->data;
 	for( y = 0; y < test->Ysize; y++ ) {
