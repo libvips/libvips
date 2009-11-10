@@ -1,3 +1,6 @@
+SUBDIRS = \
+	include 
+
 INCLUDES = \
 	-I$(top_srcdir)/libvips/include \
 	-I$(top_srcdir)/libvipsCC/include \

@@ -3,7 +3,7 @@
 
 %module VDisplay
 %{
-#include <vipsCC/vipscpp.h>
+#include <vips/vipscpp.h>
 %}
 
 %import "VError.i"
@@ -12,4 +12,4 @@
  */
 %rename(__assign__) *::operator=;
 
-%include vipsCC/VDisplay.h
+%include vips/VDisplay.h

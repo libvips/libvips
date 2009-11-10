@@ -22,7 +22,6 @@ EXTRA_DIST = \
 	bootstrap.sh \
 	vipsCC-7.${IM_MINOR_VERSION}.pc.in \
 	vips-7.${IM_MINOR_VERSION}.pc.in \
-	vips-7.${IM_MINOR_VERSION}.spec.in \
 	acinclude.m4 \
 	depcomp \
 	$(P_DIST_DIR)

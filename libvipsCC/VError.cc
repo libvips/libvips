@@ -38,7 +38,7 @@
 
 #include <vips/vips.h>
 
-#include <vipsCC/vipscpp.h>
+#include <vips/vipscpp.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>

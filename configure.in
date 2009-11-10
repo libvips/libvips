@@ -522,7 +522,7 @@ AC_OUTPUT([
 	libvips/resample/Makefile 
 	libvips/video/Makefile 
 	libvipsCC/include/Makefile 
-	libvipsCC/include/vipsCC/Makefile 
+	libvipsCC/include/vips/Makefile 
 	libvipsCC/Makefile 
 	tools/Makefile 
 	tools/iofuncs/Makefile 

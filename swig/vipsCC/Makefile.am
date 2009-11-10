@@ -19,7 +19,7 @@ vipscc_PYTHON = VImage.py VDisplay.py VError.py VMask.py __init__.py
 # need an expanded VImage.h ... SWIG's preprocessor b0rks on includes inside
 # class definitions
 vimagemodule.cxx: VImage.i
-	cpp -DSWIG -E $(top_srcdir)/libvipsCC/include/vipsCC/VImage.h > VImage.h
+	cpp -DSWIG -E $(top_srcdir)/libvipsCC/include/vips/VImage.h > VImage.h
 	swig -python -c++ -interface $(@:.cxx=) -I$(top_srcdir)/libvipsCC/include -o $@ $<
 
 vdisplaymodule.cxx: VDisplay.i

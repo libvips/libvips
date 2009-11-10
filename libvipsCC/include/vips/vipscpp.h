@@ -1,8 +1,5 @@
 // Include file to get all VIPS C++ bindings
 
-// Programs should include <vipsCC/vips>, but for compatibility we allow
-// <vips/vips> as well, hence this file
-
 /*
 
     This file is part of VIPS.
@@ -29,4 +26,14 @@
 
  */
 
-#include <vipsCC/vips>
+/* This header is just for compatibility with the pre-namespace C++ bindings.
+ */
+
+#ifndef IM_VIPSCPP_H
+#define IM_VIPSCPP_H
+
+#include <vips/vips>
+
+using namespace vips;
+
+#endif /*IM_VIPSCPP_H*/

@@ -15,7 +15,7 @@
 %module VImage
 
 %{
-#include <vipsCC/vipscpp.h>
+#include <vips/vipscpp.h>
 
 /* We need the C API too for the args init and some of the
  * frombuffer/tobuffer stuff.

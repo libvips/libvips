@@ -4,7 +4,7 @@
 %module VMask
 %{
 #include <stdexcept>
-#include <vipsCC/vipscpp.h>
+#include <vips/vipscpp.h>
 %}
 
 %import "VError.i"
@@ -32,4 +32,4 @@
 %rename(convert_VIMask) vips::VDMask::operator vips::VIMask;
 %rename(convert_VDMask) vips::VIMask::operator vips::VDMask;
 
-%include vipsCC/VMask.h
+%include vips/VMask.h

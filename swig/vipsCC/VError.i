@@ -3,13 +3,13 @@
 
 %module VError
 %{
-#include <vipsCC/vipscpp.h>
+#include <vips/vipscpp.h>
 %}
 
 %include "std_except.i"
 %include "std_string.i"
 
-%include vipsCC/VError.h
+%include vips/VError.h
 
 %extend vips::VError {
         const char *__str__ () {

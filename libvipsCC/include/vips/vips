@@ -101,9 +101,9 @@
 #define VIPS_NAMESPACE_START namespace vips {
 #define VIPS_NAMESPACE_END }
 
-#include <vipsCC/VError.h>
-#include <vipsCC/VDisplay.h>
-#include <vipsCC/VMask.h>
-#include <vipsCC/VImage.h>
+#include <vips/VError.h>
+#include <vips/VDisplay.h>
+#include <vips/VMask.h>
+#include <vips/VImage.h>
 
 #endif /*IM_VIPS*/

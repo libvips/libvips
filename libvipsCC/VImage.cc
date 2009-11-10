@@ -39,7 +39,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include <vipsCC/vipscpp.h>
+#include <vips/vipscpp.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>

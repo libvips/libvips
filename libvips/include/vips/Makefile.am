@@ -1,5 +1,6 @@
 pkginclude_HEADERS = \
 	almostdeprecated.h \
+	deprecated.h \
 	arithmetic.h \
 	boolean.h \
 	buf.h \
@@ -43,7 +44,6 @@ pkginclude_HEADERS = \
 	transform.h \
 	util.h \
 	version.h \
-	vips \
 	vips.h 
 
 vipsc++.h:

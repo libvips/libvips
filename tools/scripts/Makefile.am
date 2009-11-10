@@ -9,7 +9,7 @@ bin_SCRIPTS = \
 noinst_SCRIPTS = post_install
 
 EXTRA_DIST = \
-	vips-7.18 \
+	vips-7.20 \
 	${noinst_SCRIPTS} \
 	light_correct.in \
 	shrink_width.in \

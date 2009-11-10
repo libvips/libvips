@@ -1,2 +1,2 @@
 
-SUBDIRS = vipsCC
+SUBDIRS = vips
