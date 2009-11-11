@@ -2,6 +2,7 @@
 - removed vips-7.x.spec.in, shouldn't really have this in SVN
 - bumped version to 7.20
 - fixes to get "make dist" working again
+- oop, im_clip2fmt() was missing PTOP flag, should get a small speedup
 
 3/4/09 started 7.19.0
 - version bump

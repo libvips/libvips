@@ -503,7 +503,7 @@ clip2fmt_vec( im_object *argv )
 static im_function clip2fmt_desc = {
 	"im_clip2fmt", 			/* Name */
 	"convert image format to ofmt",	/* Description */
-	IM_FN_PIO,			/* Flags */
+	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
 	clip2fmt_vec, 			/* Dispatch function */
 	IM_NUMBER( clip2fmt_args ),	/* Size of arg list */
 	clip2fmt_args 			/* Arg list */
