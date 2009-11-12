@@ -67,6 +67,10 @@
  * 5/4/09
  * 	- tiny speedups and cleanups
  * 	- add restrict, though it doesn't seem to help gcc
+ * 12/11/09
+ * 	- only check for non-zero elements once
+ * 	- add mask-all-zero check
+ * 	- cleanups
  */
 
 /*
@@ -103,7 +107,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -121,6 +124,7 @@ typedef struct {
 
 	int nnz;		/* Number of non-zero mask elements */
 	int *coeff;		/* Array of non-zero mask coefficients */
+	int *coeff_pos;		/* Index of each nnz element in mask->coeff */
 
 	int underflow;		/* Global underflow/overflow counts */
 	int overflow;
@@ -173,6 +177,7 @@ conv_new( IMAGE *in, IMAGE *out, INTMASK *mask )
         conv->mask = NULL;
         conv->nnz = 0;
         conv->coeff = NULL;
+        conv->coeff_pos = NULL;
         conv->underflow = 0;
         conv->overflow = 0;
 
@@ -183,14 +188,27 @@ conv_new( IMAGE *in, IMAGE *out, INTMASK *mask )
 		im_add_close_callback( out, 
 			(im_callback_fn) conv_evalend, conv, NULL ) ||
         	!(conv->coeff = IM_ARRAY( out, ne, int )) ||
+        	!(conv->coeff_pos = IM_ARRAY( out, ne, int )) ||
         	!(conv->mask = im_dup_imask( mask, "conv_mask" )) )
                 return( NULL );
 
         /* Find non-zero mask elements.
          */
         for( i = 0; i < ne; i++ )
-                if( mask->coeff[i] ) 
-			conv->coeff[conv->nnz++] = mask->coeff[i];
+                if( mask->coeff[i] ) {
+			conv->coeff[conv->nnz] = mask->coeff[i];
+			conv->coeff_pos[conv->nnz] = i;
+			conv->nnz += 1;
+		}
+
+	/* Was the whole mask zero? We must have at least 1 element in there:
+	 * set it to zero.
+	 */
+	if( conv->nnz == 0 ) {
+		conv->coeff[0] = mask->coeff[0];
+		conv->coeff_pos[0] = 0;
+		conv->nnz = 1;
+	}
 
         return( conv );
 }
@@ -319,8 +337,8 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	INTMASK *mask = conv->mask;
 	int * restrict t = conv->coeff; 
 
-	/* You might think this should be (scale+1)/2, but then we'd be adding
-	 * one for scale == 1.
+	/* You might think this should be (scale + 1) / 2, but then we'd be 
+	 * adding one for scale == 1.
 	 */
 	int rounding = mask->scale / 2;
 
@@ -348,14 +366,15 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	if( seq->last_bpl != IM_REGION_LSKIP( ir ) ) {
 		seq->last_bpl = IM_REGION_LSKIP( ir );
 
-		z = 0;
-		for( i = 0, y = 0; y < mask->ysize; y++ )
-			for( x = 0; x < mask->xsize; x++, i++ )
-				if( mask->coeff[i] )
-					seq->offsets[z++] = 
-						IM_REGION_ADDR( ir, 
-							x + le, y + to ) -
-						IM_REGION_ADDR( ir, le, to );
+		for( i = 0; i < conv->nnz; i++ ) {
+			z = conv->coeff_pos[i];
+			x = z % conv->mask->xsize;
+			y = z / conv->mask->xsize;
+
+			seq->offsets[i] = 
+				IM_REGION_ADDR( ir, x + le, y + to ) -
+				IM_REGION_ADDR( ir, le, to );
+		}
 	}
 
 	for( y = to; y < bo; y++ ) { 
@@ -399,7 +418,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 			break;
 
 		default:
-			assert( 0 );
+			g_assert( 0 );
 		}
 	}
 
@@ -413,18 +432,16 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	/* Check parameters.
 	 */
-	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
-		im_error( "im_conv", "%s", _( "non-complex uncoded only" ) );
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_conv", in ) ||
+		im_check_noncomplex( "im_conv", in ) ) 
 		return( -1 );
-	}
 	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
 		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
 		mask->scale == 0 ) {
 		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
 		return( -1 );
 	}
-	if( im_piocheck( in, out ) )
-		return( -1 );
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 

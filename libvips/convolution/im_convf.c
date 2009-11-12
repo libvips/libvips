@@ -35,6 +35,11 @@
  *	- sets Xoffset / Yoffset
  * 11/11/05
  * 	- simpler inner loop avoids gcc4 bug 
+ * 12/11/09
+ * 	- only rebuild the buffer offsets if bpl changes
+ * 	- tiny speedups and cleanups
+ * 	- add restrict, though it doesn't seem to help gcc
+ * 	- add mask-all-zero check
  */
 
 /*
@@ -89,15 +94,13 @@ typedef struct {
 
 	int nnz;		/* Number of non-zero mask elements */
 	double *coeff;		/* Array of non-zero mask coefficients */
+	int *coeff_pos;		/* Index of each nnz element in mask->coeff */
 } Conv;
 
 static int
 conv_close( Conv *conv )
 {
-	if( conv->mask ) {
-		(void) im_free_dmask( conv->mask );
-		conv->mask = NULL;
-	}
+	IM_FREEF( im_free_dmask, conv->mask );
 
         return( 0 );
 }
@@ -121,14 +124,27 @@ conv_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
         if( im_add_close_callback( out, 
 		(im_callback_fn) conv_close, conv, NULL ) ||
         	!(conv->coeff = IM_ARRAY( out, ne, double )) ||
+        	!(conv->coeff_pos = IM_ARRAY( out, ne, int )) ||
         	!(conv->mask = im_dup_dmask( mask, "conv_mask" )) )
                 return( NULL );
 
         /* Find non-zero mask elements.
          */
         for( i = 0; i < ne; i++ )
-                if( mask->coeff[i] ) 
-			conv->coeff[conv->nnz++] = mask->coeff[i];
+                if( mask->coeff[i] ) {
+			conv->coeff[conv->nnz] = mask->coeff[i];
+			conv->coeff_pos[conv->nnz] = i;
+			conv->nnz += 1;
+		}
+
+	/* Was the whole mask zero? We must have at least 1 element in there:
+	 * set it to zero.
+	 */
+	if( conv->nnz == 0 ) {
+		conv->coeff[0] = mask->coeff[0];
+		conv->coeff_pos[0] = 0;
+		conv->nnz = 1;
+	}
 
         return( conv );
 }
@@ -141,6 +157,8 @@ typedef struct {
 
 	int *offsets;		/* Offsets for each non-zero matrix element */
 	PEL **pts;		/* Per-non-zero mask element image pointers */
+
+	int last_bpl;		/* Avoid recalcing offsets, if we can */
 } ConvSequence;
 
 /* Free a sequence value.
@@ -172,6 +190,7 @@ conv_start( IMAGE *out, void *a, void *b )
 	seq->conv = conv;
 	seq->ir = NULL;
 	seq->pts = NULL;
+	seq->last_bpl = -1;
 
 	/* Attach region and arrays.
 	 */
@@ -186,21 +205,25 @@ conv_start( IMAGE *out, void *a, void *b )
 	return( (void *) seq );
 }
 
-#define INNER sum += *t++ * (*p++)[x]
+#define INNER { \
+	sum += t[i] * p[i][x]; \
+	i += 1; \
+}
 
 #define CONV_FLOAT( ITYPE, OTYPE ) { \
-	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y ); \
+	ITYPE ** restrict p = (ITYPE **) seq->pts; \
+	OTYPE * restrict q = (OTYPE *) IM_REGION_ADDR( or, le, y ); \
 	\
 	for( x = 0; x < sz; x++ ) {  \
-		double sum = 0; \
-		double *t = conv->coeff; \
-		ITYPE **p = (ITYPE **) seq->pts; \
+		double sum; \
+		int i; \
  		\
-		z = 0; \
+		sum = 0; \
+		i = 0; \
 		IM_UNROLL( conv->nnz, INNER ); \
  		\
 		sum = (sum / mask->scale) + mask->offset; \
- 		\
+		\
 		q[x] = sum;  \
 	}  \
 } 
@@ -215,6 +238,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	Conv *conv = (Conv *) b;
 	REGION *ir = seq->ir;
 	DOUBLEMASK *mask = conv->mask;
+	double * restrict t = conv->coeff; 
 
 	Rect *r = &or->valid;
 	Rect s;
@@ -234,15 +258,22 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-        /* Fill offset array.
-         */
-	z = 0;
-        for( i = 0, y = 0; y < mask->ysize; y++ )
-                for( x = 0; x < mask->xsize; x++, i++ )
-                        if( mask->coeff[i] )
-                                seq->offsets[z++] = 
-					IM_REGION_ADDR( ir, x + le, y + to ) -
-                                        IM_REGION_ADDR( ir, le, to );
+        /* Fill offset array. Only do this if the bpl has changed since the 
+	 * previous im_prepare().
+	 */
+	if( seq->last_bpl != IM_REGION_LSKIP( ir ) ) {
+		seq->last_bpl = IM_REGION_LSKIP( ir );
+
+		for( i = 0; i < conv->nnz; i++ ) {
+			z = conv->coeff_pos[i];
+			x = z % conv->mask->xsize;
+			y = z / conv->mask->xsize;
+
+			seq->offsets[i] = 
+				IM_REGION_ADDR( ir, x + le, y + to ) -
+				IM_REGION_ADDR( ir, le, to );
+		}
+	}
 
 	for( y = to; y < bo; y++ ) { 
 		/* Init pts for this line of PELs.
@@ -284,19 +315,16 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 
 	/* Check parameters.
 	 */
-	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
-		im_error( "im_convf", 
-			"%s", _( "non-complex uncoded only" ) );
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_conv", in ) ||
+		im_check_noncomplex( "im_conv", in ) ) 
 		return( -1 );
-	}
 	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
 		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
 		mask->scale == 0 ) {
-		im_error( "im_convf", "%s", _( "nonsense mask parameters" ) );
+		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
 		return( -1 );
 	}
-	if( im_piocheck( in, out ) )
-		return( -1 );
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 

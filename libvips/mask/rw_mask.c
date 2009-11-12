@@ -57,6 +57,9 @@
  *    - add im_norm_dmask()
  * 1/9/09
  * 	- move im_print_*mask() here
+ * 12/11/09
+ * 	- reading a float mask with im_read_imask() produced an incorrect 
+ * 	  error messagge
  */
 
 /*
@@ -399,20 +402,20 @@ im_read_imask( const char *maskfile )
 
 	if( ceil( dmask->scale ) != dmask->scale || 
 		ceil( dmask->offset ) != dmask->offset ) {
-		im_free_dmask( dmask );
 		im_error( "im_read_imask", 
 			"%s", _( "scale and offset should be int" ) );
+		im_free_dmask( dmask );
 
 		return( NULL );
 	}
 
 	for( i = 0; i < dmask->xsize * dmask->ysize; i++ ) 
 		if( ceil( dmask->coeff[i] ) != dmask->coeff[i] ) {
-			im_free_dmask( dmask );
 			im_error( "im_read_imask", _( "cofficient at "
 				"position (%d, %d) is not int" ), 
 				i % dmask->xsize,
 				i / dmask->xsize );
+			im_free_dmask( dmask );
 
 			return( NULL );
 		}

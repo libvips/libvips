@@ -3,6 +3,9 @@
 - bumped version to 7.20
 - fixes to get "make dist" working again
 - oop, im_clip2fmt() was missing PTOP flag, should get a small speedup
+- im_conv() / im_convf() didn't like all-zero masks
+- small updates to im_convf() from im_conv()
+- im_read_imask() produced an incorrect error message if passed a doublemask
 
 3/4/09 started 7.19.0
 - version bump
