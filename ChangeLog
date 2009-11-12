@@ -1,11 +1,13 @@
-9/11/09 started 7.20.0
-- removed vips-7.x.spec.in, shouldn't really have this in SVN
-- bumped version to 7.20
-- fixes to get "make dist" working again
+11/11/09 started 7.20.1
 - oop, im_clip2fmt() was missing PTOP flag, should get a small speedup
 - im_conv() / im_convf() didn't like all-zero masks
 - small updates to im_convf() from im_conv()
 - im_read_imask() produced an incorrect error message if passed a doublemask
+
+9/11/09 started 7.20.0
+- removed vips-7.x.spec.in, shouldn't really have this in SVN
+- bumped version to 7.20
+- fixes to get "make dist" working again
 
 3/4/09 started 7.19.0
 - version bump
