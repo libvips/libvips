@@ -38,9 +38,9 @@ extern "C" {
 #endif /*__cplusplus*/
 
 int im_conv( IMAGE *in, IMAGE *out, INTMASK *mask );
-int im_convf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_conv_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_convsep( IMAGE *in, IMAGE *out, INTMASK *mask );
-int im_convsepf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 
 int im_compass( IMAGE *in, IMAGE *out, INTMASK *mask );
 int im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask );

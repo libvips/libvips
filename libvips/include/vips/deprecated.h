@@ -352,6 +352,8 @@ int im_resize_linear( IMAGE *, IMAGE *, int, int );
 int im_line( IMAGE *, int, int, int, int, int );
 int im_segment( IMAGE *test, IMAGE *mask, int *segments );
 
+int im_convf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_convsepf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask );
 int im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask );

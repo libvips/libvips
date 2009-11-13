@@ -1,45 +1,26 @@
 /* @(#) Convolve an image with a DOUBLEMASK. Image can have any number of bands,
  * @(#) any non-complex type. Output is IM_BANDFMT_FLOAT for all non-complex inputs
  * @(#) except IM_BANDFMT_DOUBLE, which gives IM_BANDFMT_DOUBLE.
+ * @(#) Separable mask of sizes 1xN or Nx1 
  * @(#)
- * @(#) int 
- * @(#) im_convf( in, out, mask )
+ * @(#) int im_convsep_f( in, out, mask )
  * @(#) IMAGE *in, *out;
- * @(#) DOUBLEMASK *mask;
+ * @(#) DOUBLEMASK *mask;		details in mask.h
  * @(#)
- * @(#) Returns either 0 (success) or -1 (fail)
- * @(#) 
+ * @(#) Returns either 0 (sucess) or -1 (fail)
+ * @(#) Picture can have any number of channels (max 64).
  *
  * Copyright: 1990, N. Dessipris.
  *
- * Author: Nicos Dessipris & Kirk Martinez
+ * Author: Nicos Dessipris
  * Written on: 29/04/1991
- * Modified on: 19/05/1991
- * 8/7/93 JC
- *      - adapted for partial v2
- *      - memory leaks fixed
- *      - ANSIfied
- * 12/7/93 JC
- *	- adapted im_convbi() to im_convbf()
- * 7/10/94 JC
- *	- new IM_ARRAY() macro
- *	- evalend callbacks
- *	- more typedef
+ * Modified on: 29/4/93 K.Martinez for sys5
  * 9/3/01 JC
- *	- redone from im_conv() 
- * 27/7/01 JC
- *	- rejects masks with scale == 0
+ *	- rewritten using im_conv()
  * 7/4/04 
  *	- now uses im_embed() with edge stretching on the input, not
  *	  the output
  *	- sets Xoffset / Yoffset
- * 11/11/05
- * 	- simpler inner loop avoids gcc4 bug 
- * 12/11/09
- * 	- only rebuild the buffer offsets if bpl changes
- * 	- tiny speedups and cleanups
- * 	- add restrict, though it doesn't seem to help gcc
- * 	- add mask-all-zero check
  */
 
 /*
@@ -84,23 +65,26 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Our parameters ... we take a copy of the mask argument, plus we make a
- * smaller version with the zeros squeezed out. 
+/* Our parameters ... we take a copy of the mask argument.
  */
 typedef struct {
 	IMAGE *in;
 	IMAGE *out;
 	DOUBLEMASK *mask;	/* Copy of mask arg */
 
-	int nnz;		/* Number of non-zero mask elements */
-	double *coeff;		/* Array of non-zero mask coefficients */
-	int *coeff_pos;		/* Index of each nnz element in mask->coeff */
+	int size;		/* N for our 1xN or Nx1 mask */
+	int scale;		/* Our scale ... we have to ^2 mask->scale */
 } Conv;
 
+/* End of evaluation.
+ */
 static int
-conv_close( Conv *conv )
+conv_destroy( Conv *conv )
 {
-	IM_FREEF( im_free_dmask, conv->mask );
+	if( conv->mask ) {
+		(void) im_free_dmask( conv->mask );
+		conv->mask = NULL;
+	}
 
         return( 0 );
 }
@@ -109,8 +93,6 @@ static Conv *
 conv_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 {
         Conv *conv = IM_NEW( out, Conv );
-	const int ne = mask->xsize * mask->ysize;
-        int i;
 
         if( !conv )
                 return( NULL );
@@ -118,33 +100,13 @@ conv_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
         conv->in = in;
         conv->out = out;
         conv->mask = NULL;
-        conv->nnz = 0;
-        conv->coeff = NULL;
+	conv->size = mask->xsize * mask->ysize;
+	conv->scale = mask->scale * mask->scale;
 
         if( im_add_close_callback( out, 
-		(im_callback_fn) conv_close, conv, NULL ) ||
-        	!(conv->coeff = IM_ARRAY( out, ne, double )) ||
-        	!(conv->coeff_pos = IM_ARRAY( out, ne, int )) ||
-        	!(conv->mask = im_dup_dmask( mask, "conv_mask" )) )
+		(im_callback_fn) conv_destroy, conv, NULL ) ||
+		!(conv->mask = im_dup_dmask( mask, "conv_mask" )) )
                 return( NULL );
-
-        /* Find non-zero mask elements.
-         */
-        for( i = 0; i < ne; i++ )
-                if( mask->coeff[i] ) {
-			conv->coeff[conv->nnz] = mask->coeff[i];
-			conv->coeff_pos[conv->nnz] = i;
-			conv->nnz += 1;
-		}
-
-	/* Was the whole mask zero? We must have at least 1 element in there:
-	 * set it to zero.
-	 */
-	if( conv->nnz == 0 ) {
-		conv->coeff[0] = mask->coeff[0];
-		conv->coeff_pos[0] = 0;
-		conv->nnz = 1;
-	}
 
         return( conv );
 }
@@ -155,10 +117,7 @@ typedef struct {
 	Conv *conv;
 	REGION *ir;		/* Input region */
 
-	int *offsets;		/* Offsets for each non-zero matrix element */
-	PEL **pts;		/* Per-non-zero mask element image pointers */
-
-	int last_bpl;		/* Avoid recalcing offsets, if we can */
+	PEL *sum;		/* Line buffer */
 } ConvSequence;
 
 /* Free a sequence value.
@@ -189,15 +148,18 @@ conv_start( IMAGE *out, void *a, void *b )
 	 */
 	seq->conv = conv;
 	seq->ir = NULL;
-	seq->pts = NULL;
-	seq->last_bpl = -1;
+	seq->sum = NULL;
 
 	/* Attach region and arrays.
 	 */
 	seq->ir = im_region_create( in );
-	seq->offsets = IM_ARRAY( out, conv->nnz, int );
-	seq->pts = IM_ARRAY( out, conv->nnz, PEL * );
-	if( !seq->ir || !seq->offsets || !seq->pts ) {
+	if( im_isint( conv->out ) )
+		seq->sum = (PEL *) 
+			IM_ARRAY( out, IM_IMAGE_N_ELEMENTS( in ), int );
+	else
+		seq->sum = (PEL *) 
+			IM_ARRAY( out, IM_IMAGE_N_ELEMENTS( in ), double );
+	if( !seq->ir || !seq->sum ) {
 		conv_stop( seq, in, conv );
 		return( NULL );
 	}
@@ -205,28 +167,54 @@ conv_start( IMAGE *out, void *a, void *b )
 	return( (void *) seq );
 }
 
-#define INNER { \
-	sum += t[i] * p[i][x]; \
-	i += 1; \
-}
+/* What we do for every point in the mask, for each pixel.
+ */
+#define VERTICAL_CONV { z -= 1; li -= lskip; sum += coeff[z] * vfrom[li]; }
+#define HORIZONTAL_CONV { z -= 1; li -= bands; sum += coeff[z] * hfrom[li]; }
 
 #define CONV_FLOAT( ITYPE, OTYPE ) { \
-	ITYPE ** restrict p = (ITYPE **) seq->pts; \
-	OTYPE * restrict q = (OTYPE *) IM_REGION_ADDR( or, le, y ); \
-	\
-	for( x = 0; x < sz; x++ ) {  \
+	ITYPE *vfrom; \
+	double *vto; \
+	double *hfrom; \
+	OTYPE *hto; \
+ 	\
+	/* Convolve to sum array. We convolve the full width of \
+	 * this input line. \
+	 */ \
+	vfrom = (ITYPE *) IM_REGION_ADDR( ir, le, y ); \
+	vto = (double *) seq->sum; \
+	for( x = 0; x < isz; x++ ) {   \
 		double sum; \
-		int i; \
- 		\
+		 \
+		z = conv->size;  \
+		li = lskip * z; \
 		sum = 0; \
-		i = 0; \
-		IM_UNROLL( conv->nnz, INNER ); \
  		\
-		sum = (sum / mask->scale) + mask->offset; \
-		\
-		q[x] = sum;  \
+		IM_UNROLL( z, VERTICAL_CONV ); \
+ 		\
+		vto[x] = sum;   \
+		vfrom += 1; \
 	}  \
-} 
+ 	\
+	/* Convolve sums to output. \
+	 */ \
+	hfrom = (double *) seq->sum; \
+	hto = (OTYPE *) IM_REGION_ADDR( or, le, y );  \
+	for( x = 0; x < osz; x++ ) { \
+		double sum; \
+		 \
+		z = conv->size;  \
+		li = bands * z; \
+		sum = 0; \
+ 		\
+		IM_UNROLL( z, HORIZONTAL_CONV ); \
+ 		\
+		sum = (sum / conv->scale) + mask->offset; \
+ 		\
+		hto[x] = sum;   \
+		hfrom += 1; \
+	} \
+}
 
 /* Convolve!
  */
@@ -238,50 +226,32 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	Conv *conv = (Conv *) b;
 	REGION *ir = seq->ir;
 	DOUBLEMASK *mask = conv->mask;
-	double * restrict t = conv->coeff; 
+	double *coeff = conv->mask->coeff; 
+	int bands = in->Bands;
 
 	Rect *r = &or->valid;
-	Rect s;
 	int le = r->left;
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM(r);
-	int sz = IM_REGION_N_ELEMENTS( or );
+	int osz = IM_REGION_N_ELEMENTS( or );
 
-	int x, y, z, i;
+	Rect s;
+	int lskip;
+	int isz;
+	int x, y, z, li;
 
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
-	s.width += mask->xsize - 1;
-	s.height += mask->ysize - 1;
+	s.width += conv->size - 1;
+	s.height += conv->size - 1;
 	if( im_prepare( ir, &s ) )
 		return( -1 );
-
-        /* Fill offset array. Only do this if the bpl has changed since the 
-	 * previous im_prepare().
-	 */
-	if( seq->last_bpl != IM_REGION_LSKIP( ir ) ) {
-		seq->last_bpl = IM_REGION_LSKIP( ir );
-
-		for( i = 0; i < conv->nnz; i++ ) {
-			z = conv->coeff_pos[i];
-			x = z % conv->mask->xsize;
-			y = z / conv->mask->xsize;
-
-			seq->offsets[i] = 
-				IM_REGION_ADDR( ir, x + le, y + to ) -
-				IM_REGION_ADDR( ir, le, to );
-		}
-	}
+	lskip = IM_REGION_LSKIP( ir ) / IM_IMAGE_SIZEOF_ELEMENT( in );
+	isz = IM_REGION_N_ELEMENTS( ir );
 
 	for( y = to; y < bo; y++ ) { 
-		/* Init pts for this line of PELs.
-		 */
-                for( z = 0; z < conv->nnz; z++ ) 
-                        seq->pts[z] = seq->offsets[z] +  
-                                (PEL *) IM_REGION_ADDR( ir, le, y ); 
-
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	
 			CONV_FLOAT( unsigned char, float ); break;
@@ -309,22 +279,30 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 }
 
 int
-im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 {
 	Conv *conv;
 
 	/* Check parameters.
 	 */
-	if( im_piocheck( in, out ) ||
-		im_check_uncoded( "im_conv", in ) ||
-		im_check_noncomplex( "im_conv", in ) ) 
+	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
+		im_error( "im_convsep_f", 
+			"%s", _( "non-complex uncoded only" ) );
 		return( -1 );
+	}
 	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
 		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
 		mask->scale == 0 ) {
-		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
+		im_error( "im_convsep_f", "%s", _( "bad mask parameters" ) );
 		return( -1 );
 	}
+	if( mask->xsize != 1 && mask->ysize != 1 ) {
+                im_error( "im_convsep_f", 
+			"%s", _( "expect 1xN or Nx1 input mask" ) );
+                return( -1 );
+	}
+	if( im_piocheck( in, out ) )
+		return( -1 );
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 
@@ -335,24 +313,22 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 		return( -1 );
 	if( im_isint( in ) ) 
 		out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Xsize -= mask->xsize - 1;
-	out->Ysize -= mask->ysize - 1;
+	out->Xsize -= conv->size - 1;
+	out->Ysize -= conv->size - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_error( "im_convf", "%s", _( "image too small for mask" ) );
+		im_error( "im_convsep_f", 
+			"%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
 
-	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
-	 * too many recalculations on overlaps.
+	/* SMALLTILE seems fastest.
 	 */
-	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
+	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
+		im_generate( out, conv_start, conv_gen, conv_stop, in, conv ) )
 		return( -1 );
 
-	if( im_generate( out, conv_start, conv_gen, conv_stop, in, conv ) )
-		return( -1 );
-
-	out->Xoffset = -mask->xsize / 2;
-	out->Yoffset = -mask->ysize / 2;
+	out->Xoffset = -conv->size / 2;
+	out->Yoffset = -conv->size / 2;
 
 	return( 0 );
 }
@@ -360,15 +336,16 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 /* The above, with a border to make out the same size as in.
  */
 int 
-im_convf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 {
-	IMAGE *t1 = im_open_local( out, "im_convf intermediate", "p" );
+	IMAGE *t1 = im_open_local( out, "im_convsep_f intermediate", "p" );
+	int size = mask->xsize * mask->ysize;
 
 	if( !t1 || 
-		im_embed( in, t1, 1, mask->xsize / 2, mask->ysize / 2, 
-			in->Xsize + mask->xsize - 1, 
-			in->Ysize + mask->ysize - 1 ) ||
-		im_convf_raw( t1, out, mask ) )
+		im_embed( in, t1, 1, size / 2, size / 2, 
+			in->Xsize + size - 1, 
+			in->Ysize + size - 1 ) ||
+		im_convsep_f_raw( t1, out, mask ) )
 		return( -1 );
 
 	out->Xoffset = 0;

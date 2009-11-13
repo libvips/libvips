@@ -232,3 +232,27 @@ im_segment( IMAGE *test, IMAGE *mask, int *segments )
 {
 	return( im_label_regions( test, mask, segments ) );
 }
+
+int 
+im_convf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+{
+	return( im_conv_f( in, out, mask ) );
+}
+
+int
+im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+{
+	return( im_conv_f_raw( in, out, mask ) );
+}
+
+int 
+im_convsepf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+{
+	return( im_convsep_f( in, out, mask ) );
+}
+
+int
+im_convsepf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+{
+	return( im_convsep_f_raw( in, out, mask ) );
+}

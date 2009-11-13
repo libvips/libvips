@@ -7,5 +7,13 @@ pkginclude_HEADERS = \
 	vips \
 	vipsc++.h 
 
+.PHONEY:
 vipsc++.h:
-	vips --cpph all > vipsc++.h
+	packages=`vips --list packages | \
+	  awk '{if($$1!="deprecated") print $$1}'` ; \
+	  echo > vipsc++.h ; \
+	  for name in $$packages; do \
+	    echo "// headers for package $$name" >> vipsc++.h ; \
+	    vips --cpph $$name >> vipsc++.h ; \
+	    echo >> vipsc++.h ; \
+	  done 

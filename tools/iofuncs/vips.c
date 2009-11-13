@@ -30,6 +30,8 @@
  * 	- add --list interpolators
  * 9/2/09
  * 	- and now we just have --list packages/classes/package-name
+ * 13/11/09
+ * 	- drop _f postfixes, drop many postfixes
  */
 
 /*
@@ -442,38 +444,48 @@ find_ioargs( im_function *fn, int *ia, int *oa )
 	}
 }
 
+static gboolean
+drop_postfix( char *str, const char *postfix )
+{
+	if( ispostfix( postfix, str ) ) {
+		str[strlen( str ) - strlen( postfix )] = '\0';
+
+		return( TRUE );
+	}
+
+	return( FALSE );
+}
+
 /* Turn a VIPS name into a C++ name. Eg. im_lintra_vec becomes lin.
  */
 static void
 c2cpp_name( const char *in, char *out )
 {
-	/* chop off "im_" prefix.
+	static const char *postfix[] = {
+		"_vec",
+		"const",
+		"tra",
+		"set",
+		"_f"
+	};
+
+	int i;
+	gboolean changed;
+
+	/* Copy, chopping off "im_" prefix.
 	 */
 	if( isprefix( "im_", in ) )
 		strcpy( out, in + 3 );
 	else
 		strcpy( out, in );
 
-	/* Drop "_vec" postfix (eg. so im_lintra_vec becomes lintra). We rely
-	 * on overloading to distinguish conflicts.
+	/* Repeatedly drop postfixes while we can.
 	 */
-	if( ispostfix( "_vec", out ) )
-		out[strlen( out ) - 4] = '\0';
-
-	/* Drop "const" postfix (eg. so im_eorimageconst becomes eorimage). 
-	 */
-	if( ispostfix( "const", out ) )
-		out[strlen( out ) - 5] = '\0';
-
-	/* Drop "tra" postfix (eg. so im_costra becomes cos).
-	 */
-	if( ispostfix( "tra", out ) )
-		out[strlen( out ) - 3] = '\0';
-
-	/* Drop "set" postfix (eg. so im_insertset becomes insert).
-	 */
-	if( ispostfix( "set", out ) )
-		out[strlen( out ) - 3] = '\0';
+	do {
+		changed = FALSE;
+		for( i = 0; i < IM_NUMBER( postfix ); i++ )
+			changed |= drop_postfix( out, postfix[i] );
+	} while( changed );
 }
 
 /* Print prototype for a function (ie. will be followed by code). 

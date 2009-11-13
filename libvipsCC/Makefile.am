@@ -21,7 +21,15 @@ libvipsCC_la_LDFLAGS = \
 libvipsCC_la_LIBADD = \
 	$(top_builddir)/libvips/libvips.la @VIPS_LIBS@
 
+.PHONEY:
 vipsc++.cc:
-	vips --cppc all > vipsc++.cc
+	packages=`vips --list packages | \
+	  awk '{if($$1!="deprecated") print $$1}'` ; \
+	  echo > vipsc++.cc ; \
+	  for name in $$packages; do \
+	    echo "// bodies for package $$name" >> vipsc++.cc ; \
+	    vips --cppc $$name >> vipsc++.cc ; \
+	    echo >> vipsc++.cc ; \
+	  done 
 
 EXTRA_DIST = vipsc++.cc

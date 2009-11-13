@@ -1,5 +1,7 @@
+
+// bodies for package arithmetic
 // this file automatically generated from
-// VIPS library 7.19.0-Mon Jun 29 15:52:56 BST 2009
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_abs: absolute value
 VImage VImage::abs() throw( VError )
 {
@@ -147,24 +149,6 @@ VImage VImage::ceil() throw( VError )
 	return( out );
 }
 
-// im_cmulnorm: multiply two complex images, normalising output
-VImage VImage::cmulnorm( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_cmulnorm" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
 // im_costra: cos of image (angles in degrees)
 VImage VImage::cos() throw( VError )
 {
@@ -301,24 +285,6 @@ VImage VImage::exp() throw( VError )
 	return( out );
 }
 
-// im_fav4: average of 4 images
-VImage VImage::fav4( VImage in2, VImage in3, VImage in4 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_fav4" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = in3.image();
-	_vec.data(3) = in4.image();
-	_vec.data(4) = out.image();
-	_vec.call();
-
-	return( out );
-}
-
 // im_floor: round to largest integal value not greater than
 VImage VImage::floor() throw( VError )
 {
@@ -331,25 +297,6 @@ VImage VImage::floor() throw( VError )
 	_vec.data(1) = out.image();
 	_vec.call();
 	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_gadd: calculate a*in1 + b*in2 + c = outfile
-VImage VImage::gadd( double a, double b, VImage in2, double c ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_gadd" );
-
-	*((double*) _vec.data(0)) = a;
-	_vec.data(1) = in1.image();
-	*((double*) _vec.data(2)) = b;
-	_vec.data(3) = in2.image();
-	*((double*) _vec.data(4)) = c;
-	_vec.data(5) = out.image();
-	_vec.call();
 
 	return( out );
 }
@@ -431,24 +378,6 @@ VImage VImage::lin( std::vector<double> a, std::vector<double> b ) throw( VError
 	_vec.data(3) = out.image();
 	_vec.call();
 	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_litecor: calculate max(white)*factor*(in/white), if clip == 1
-VImage VImage::litecor( VImage white, int clip, double factor ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_litecor" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = white.image();
-	_vec.data(2) = out.image();
-	*((int*) _vec.data(3)) = clip;
-	*((double*) _vec.data(4)) = factor;
-	_vec.call();
 
 	return( out );
 }
@@ -602,7 +531,7 @@ VImage VImage::multiply( VImage in2 ) throw( VError )
 	return( out );
 }
 
-// im_powtra: pel^x ofbuildimage
+// im_powtra: pel^x of image
 VImage VImage::pow( double x ) throw( VError )
 {
 	VImage in = *this;
@@ -633,6 +562,23 @@ VImage VImage::pow( std::vector<double> v ) throw( VError )
 	((im_doublevec_object*) _vec.data(2))->vec = new double[v.size()];
 	for( unsigned int i = 0; i < v.size(); i++ )
 		((im_doublevec_object*) _vec.data(2))->vec[i] = v[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_recomb: linear recombination with mask
+VImage VImage::recomb( VDMask matrix ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_recomb" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_mask_object*) _vec.data(2))->mask = matrix.mask().dptr;
 	_vec.call();
 	out._ref->addref( in._ref );
 
@@ -674,13 +620,13 @@ VImage VImage::remainder( double x ) throw( VError )
 	return( out );
 }
 
-// im_remainderconst_vec: remainder after integer division by a vector of constants
+// im_remainder_vec: remainder after integer division by a vector of constants
 VImage VImage::remainder( std::vector<double> x ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_remainderconst_vec" );
+	Vargv _vec( "im_remainder_vec" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
@@ -792,6 +738,10 @@ VImage VImage::tan() throw( VError )
 	return( out );
 }
 
+
+// bodies for package boolean
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_andimage: bitwise and of two images
 VImage VImage::andimage( VImage in2 ) throw( VError )
 {
@@ -957,7 +907,27 @@ VImage VImage::eorimage( std::vector<double> vec ) throw( VError )
 	return( out );
 }
 
-// im_shiftleft: shift integer image n bits to left
+// im_shiftleft_vec: shift image array bits to left
+VImage VImage::shiftleft( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_shiftleft_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_shiftleft: shift image n bits to left
 VImage VImage::shiftleft( int c ) throw( VError )
 {
 	VImage in1 = *this;
@@ -970,6 +940,26 @@ VImage VImage::shiftleft( int c ) throw( VError )
 	*((int*) _vec.data(2)) = c;
 	_vec.call();
 	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_shiftright_vec: shift image array bits to right
+VImage VImage::shiftright( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_shiftright_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
 
 	return( out );
 }
@@ -991,6 +981,10 @@ VImage VImage::shiftright( int c ) throw( VError )
 	return( out );
 }
 
+
+// bodies for package cimg
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_greyc: noise-removing filter
 VImage VImage::greyc( int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx ) throw( VError )
 {
@@ -1047,6 +1041,10 @@ VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double
 	return( dst );
 }
 
+
+// bodies for package colour
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_LCh2Lab: convert LCh to Lab
 VImage VImage::LCh2Lab() throw( VError )
 {
@@ -1633,24 +1631,6 @@ VImage VImage::icc_ac2rc( char* profile ) throw( VError )
 	return( out );
 }
 
-// im_icc_export: convert a float LAB to an 8-bit device image with an ICC profile
-VImage VImage::icc_export( char* output_profile, int intent ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_icc_export" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.data(2) = (im_object) output_profile;
-	*((int*) _vec.data(3)) = intent;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
 // im_icc_export_depth: convert a float LAB to device space with an ICC profile
 VImage VImage::icc_export_depth( int depth, char* output_profile, int intent ) throw( VError )
 {
@@ -1777,6 +1757,44 @@ VImage VImage::sRGB2XYZ() throw( VError )
 	return( out );
 }
 
+
+// bodies for package conversion
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
+// im_addgnoise: add gaussian noise with mean 0 and std. dev. sigma
+VImage VImage::addgnoise( double sigma ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_addgnoise" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = sigma;
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_gaussnoise: generate image of gaussian noise with specified statistics
+VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_gaussnoise" );
+
+	_vec.data(0) = out.image();
+	*((int*) _vec.data(1)) = xsize;
+	*((int*) _vec.data(2)) = ysize;
+	*((double*) _vec.data(3)) = mean;
+	*((double*) _vec.data(4)) = sigma;
+	_vec.call();
+
+	return( out );
+}
+
 // im_bandjoin: bandwise join of two images
 VImage VImage::bandjoin( VImage in2 ) throw( VError )
 {
@@ -1891,77 +1909,13 @@ VImage VImage::c2rect() throw( VError )
 	return( out );
 }
 
-// im_clip2c: convert to signed 8-bit integer
-VImage VImage::clip2c() throw( VError )
+// im_clip: convert to unsigned 8-bit integer
+VImage VImage::clip() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_clip2c" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_clip2cm: convert to complex
-VImage VImage::clip2cm() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip2cm" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_clip2d: convert to double-precision float
-VImage VImage::clip2d() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip2d" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_clip2dcm: convert to double complex
-VImage VImage::clip2dcm() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip2dcm" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_clip2f: convert to single-precision float
-VImage VImage::clip2f() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip2f" );
+	Vargv _vec( "im_clip" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
@@ -1988,86 +1942,6 @@ VImage VImage::clip2fmt( int ofmt ) throw( VError )
 	return( out );
 }
 
-// im_clip2i: convert to signed 32-bit integer
-VImage VImage::clip2i() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip2i" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_clip2s: convert to signed 16-bit integer
-VImage VImage::clip2s() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip2s" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_clip2ui: convert to unsigned 32-bit integer
-VImage VImage::clip2ui() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip2ui" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_clip2us: convert to unsigned 16-bit integer
-VImage VImage::clip2us() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip2us" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_clip: convert to unsigned 8-bit integer
-VImage VImage::clip() throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_clip" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
 // im_copy: copy image
 VImage VImage::copy() throw( VError )
 {
@@ -2075,6 +1949,22 @@ VImage VImage::copy() throw( VError )
 	VImage out;
 
 	Vargv _vec( "im_copy" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_copy_file: copy image to a file and return that
+VImage VImage::copy_file() throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_copy_file" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
@@ -2120,7 +2010,7 @@ VImage VImage::copy_swap() throw( VError )
 }
 
 // im_copy_set: copy image, setting informational fields
-VImage VImage::copy_set( int Type, double Xres, double Yres, int Xoffset, int Yoffset ) throw( VError )
+VImage VImage::copy_( int Type, double Xres, double Yres, int Xoffset, int Yoffset ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -2344,6 +2234,30 @@ VImage VImage::insert( VImage sub, int x, int y ) throw( VError )
 	return( out );
 }
 
+// im_insertset: insert sub into main at every position in x, y
+VImage VImage::insert( VImage sub, std::vector<int> x, std::vector<int> y ) throw( VError )
+{
+	VImage main = *this;
+	VImage out;
+
+	Vargv _vec( "im_insertset" );
+
+	_vec.data(0) = main.image();
+	_vec.data(1) = sub.image();
+	_vec.data(2) = out.image();
+	((im_intvec_object*) _vec.data(3))->n = x.size();
+	((im_intvec_object*) _vec.data(3))->vec = new int[x.size()];
+	for( unsigned int i = 0; i < x.size(); i++ )
+		((im_intvec_object*) _vec.data(3))->vec[i] = x[i];
+	((im_intvec_object*) _vec.data(4))->n = y.size();
+	((im_intvec_object*) _vec.data(4))->vec = new int[y.size()];
+	for( unsigned int i = 0; i < y.size(); i++ )
+		((im_intvec_object*) _vec.data(4))->vec[i] = y[i];
+	_vec.call();
+
+	return( out );
+}
+
 // im_insert_noexpand: insert sub-image into main image at position, no expansion
 VImage VImage::insert_noexpand( VImage sub, int x, int y ) throw( VError )
 {
@@ -2360,6 +2274,27 @@ VImage VImage::insert_noexpand( VImage sub, int x, int y ) throw( VError )
 	_vec.call();
 	out._ref->addref( in._ref );
 	out._ref->addref( sub._ref );
+
+	return( out );
+}
+
+// im_embed: embed in within a set of borders
+VImage VImage::embed( int type, int x, int y, int w, int h ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_embed" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = type;
+	*((int*) _vec.data(3)) = x;
+	*((int*) _vec.data(4)) = y;
+	*((int*) _vec.data(5)) = w;
+	*((int*) _vec.data(6)) = h;
+	_vec.call();
+	out._ref->addref( in._ref );
 
 	return( out );
 }
@@ -2423,23 +2358,6 @@ VImage VImage::msb_band( int band ) throw( VError )
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
 	*((int*) _vec.data(2)) = band;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_recomb: linear recombination with mask
-VImage VImage::recomb( VDMask matrix ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_recomb" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = matrix.mask().dptr;
 	_vec.call();
 	out._ref->addref( in._ref );
 
@@ -2561,42 +2479,6 @@ VImage VImage::scaleps() throw( VError )
 	return( out );
 }
 
-// im_rightshift_size: decrease size by a power-of-two factor
-VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_rightshift_size" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = xshift;
-	*((int*) _vec.data(3)) = yshift;
-	*((int*) _vec.data(4)) = band_fmt;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_slice: slice an image using two thresholds
-VImage VImage::slice( double thresh1, double thresh2 ) throw( VError )
-{
-	VImage input = *this;
-	VImage output;
-
-	Vargv _vec( "im_slice" );
-
-	_vec.data(0) = input.image();
-	_vec.data(1) = output.image();
-	*((double*) _vec.data(2)) = thresh1;
-	*((double*) _vec.data(3)) = thresh2;
-	_vec.call();
-
-	return( output );
-}
-
 // im_subsample: subsample image by integer factors
 VImage VImage::subsample( int xshrink, int yshrink ) throw( VError )
 {
@@ -2667,22 +2549,6 @@ VImage VImage::text( char* text, char* font, int width, int alignment, int dpi )
 	return( out );
 }
 
-// im_thresh: slice an image at a threshold
-VImage VImage::thresh( double threshold ) throw( VError )
-{
-	VImage input = *this;
-	VImage output;
-
-	Vargv _vec( "im_thresh" );
-
-	_vec.data(0) = input.image();
-	_vec.data(1) = output.image();
-	*((double*) _vec.data(2)) = threshold;
-	_vec.call();
-
-	return( output );
-}
-
 // im_vips2mask: convert VIPS image to DOUBLEMASK
 VDMask VImage::vips2mask() throw( VError )
 {
@@ -2735,23 +2601,10 @@ VImage VImage::zoom( int xfac, int yfac ) throw( VError )
 	return( output );
 }
 
-// im_addgnoise: add gaussian noise with mean 0 and std. dev. sigma
-VImage VImage::addgnoise( double sigma ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
 
-	Vargv _vec( "im_addgnoise" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = sigma;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
+// bodies for package convolution
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_compass: convolve with 8-way rotating integer mask
 VImage VImage::compass( VIMask matrix ) throw( VError )
 {
@@ -2787,24 +2640,6 @@ VImage VImage::contrast_surface( int half_win_size, int spacing ) throw( VError 
 	return( out );
 }
 
-// im_contrast_surface_raw: find high-contrast points in an image
-VImage VImage::contrast_surface_raw( int half_win_size, int spacing ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_contrast_surface_raw" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = half_win_size;
-	*((int*) _vec.data(3)) = spacing;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
 // im_conv: convolve
 VImage VImage::conv( VIMask matrix ) throw( VError )
 {
@@ -2822,47 +2657,13 @@ VImage VImage::conv( VIMask matrix ) throw( VError )
 	return( out );
 }
 
-// im_conv_raw: convolve, no border
-VImage VImage::conv_raw( VIMask matrix ) throw( VError )
+// im_conv_f: convolve, with DOUBLEMASK
+VImage VImage::conv( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_conv_raw" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = matrix.mask().iptr;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_convf: convolve, with DOUBLEMASK
-VImage VImage::convf( VDMask matrix ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_convf" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = matrix.mask().dptr;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_convf_raw: convolve, with DOUBLEMASK, no border
-VImage VImage::convf_raw( VDMask matrix ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_convf_raw" );
+	Vargv _vec( "im_conv_f" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
@@ -2890,90 +2691,17 @@ VImage VImage::convsep( VIMask matrix ) throw( VError )
 	return( out );
 }
 
-// im_convsep_raw: seperable convolution, no border
-VImage VImage::convsep_raw( VIMask matrix ) throw( VError )
+// im_convsep_f: seperable convolution, with DOUBLEMASK
+VImage VImage::convsep( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_convsep_raw" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = matrix.mask().iptr;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_convsepf: seperable convolution, with DOUBLEMASK
-VImage VImage::convsepf( VDMask matrix ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_convsepf" );
+	Vargv _vec( "im_convsep_f" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
 	((im_mask_object*) _vec.data(2))->mask = matrix.mask().dptr;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_convsepf_raw: seperable convolution, with DOUBLEMASK, no border
-VImage VImage::convsepf_raw( VDMask matrix ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_convsepf_raw" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = matrix.mask().dptr;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_convsub: convolve uchar to uchar, sub-sampling by xskip, yskip
-VImage VImage::convsub( VIMask matrix, int xskip, int yskip ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_convsub" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = matrix.mask().iptr;
-	*((int*) _vec.data(3)) = xskip;
-	*((int*) _vec.data(4)) = yskip;
-	_vec.call();
-
-	return( out );
-}
-
-// im_embed: embed in within a set of borders
-VImage VImage::embed( int type, int x, int y, int w, int h ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_embed" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = type;
-	*((int*) _vec.data(3)) = x;
-	*((int*) _vec.data(4)) = y;
-	*((int*) _vec.data(5)) = w;
-	*((int*) _vec.data(6)) = h;
 	_vec.call();
 	out._ref->addref( in._ref );
 
@@ -2998,13 +2726,13 @@ VImage VImage::fastcor( VImage in2 ) throw( VError )
 	return( out );
 }
 
-// im_fastcor_raw: fast correlate in2 within in1, no border
-VImage VImage::fastcor_raw( VImage in2 ) throw( VError )
+// im_gradcor: non-normalised correlation of gradient of in2 within in1
+VImage VImage::gradcor( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
 
-	Vargv _vec( "im_fastcor_raw" );
+	Vargv _vec( "im_gradcor" );
 
 	_vec.data(0) = in1.image();
 	_vec.data(1) = in2.image();
@@ -3016,19 +2744,19 @@ VImage VImage::fastcor_raw( VImage in2 ) throw( VError )
 	return( out );
 }
 
-// im_gaussnoise: generate image of gaussian noise with specified statistics
-VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma ) throw( VError )
+// im_gradient: convolve with 2-way rotating mask
+VImage VImage::gradient( VIMask matrix ) throw( VError )
 {
+	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_gaussnoise" );
+	Vargv _vec( "im_gradient" );
 
-	_vec.data(0) = out.image();
-	*((int*) _vec.data(1)) = xsize;
-	*((int*) _vec.data(2)) = ysize;
-	*((double*) _vec.data(3)) = mean;
-	*((double*) _vec.data(4)) = sigma;
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_mask_object*) _vec.data(2))->mask = matrix.mask().iptr;
 	_vec.call();
+	out._ref->addref( in._ref );
 
 	return( out );
 }
@@ -3065,79 +2793,6 @@ VImage VImage::grad_y() throw( VError )
 	return( out );
 }
 
-// im_gradcor: non-normalised correlation of gradient of in2 within in1
-VImage VImage::gradcor( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_gradcor" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_gradcor_raw: non-normalised correlation of gradient of in2 within in1, no padding
-VImage VImage::gradcor_raw( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_gradcor_raw" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_gradient: convolve with 2-way rotating mask
-VImage VImage::gradient( VIMask matrix ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_gradient" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = matrix.mask().iptr;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_rank_image: point-wise pixel rank
-VImage VImage::rank_image( std::vector<VImage> in, int index ) throw( VError )
-{
-	VImage out;
-
-	Vargv _vec( "im_rank_image" );
-
-	((im_imagevec_object*) _vec.data(0))->n = in.size();
-	((im_imagevec_object*) _vec.data(0))->vec = new IMAGE *[in.size()];
-	for( unsigned int i = 0; i < in.size(); i++ )
-		((im_imagevec_object*) _vec.data(0))->vec[i] = in[i].image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = index;
-	_vec.call();
-	for( unsigned int i = 0; i < in.size(); i++ )
-		out._ref->addref( in[i]._ref );
-
-	return( out );
-}
-
 // im_lindetect: convolve with 4-way rotating mask
 VImage VImage::lindetect( VIMask matrix ) throw( VError )
 {
@@ -3151,112 +2806,6 @@ VImage VImage::lindetect( VIMask matrix ) throw( VError )
 	((im_mask_object*) _vec.data(2))->mask = matrix.mask().iptr;
 	_vec.call();
 	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_maxvalue: point-wise maximum value
-VImage VImage::maxvalue( std::vector<VImage> in ) throw( VError )
-{
-	VImage out;
-
-	Vargv _vec( "im_maxvalue" );
-
-	((im_imagevec_object*) _vec.data(0))->n = in.size();
-	((im_imagevec_object*) _vec.data(0))->vec = new IMAGE *[in.size()];
-	for( unsigned int i = 0; i < in.size(); i++ )
-		((im_imagevec_object*) _vec.data(0))->vec[i] = in[i].image();
-	_vec.data(1) = out.image();
-	_vec.call();
-	for( unsigned int i = 0; i < in.size(); i++ )
-		out._ref->addref( in[i]._ref );
-
-	return( out );
-}
-
-// im_mpercent: find threshold above which there are percent values
-int VImage::mpercent( double percent ) throw( VError )
-{
-	VImage in = *this;
-	int thresh;
-
-	Vargv _vec( "im_mpercent" );
-
-	_vec.data(0) = in.image();
-	*((double*) _vec.data(1)) = percent;
-	_vec.call();
-	thresh = *((int*)_vec.data(2));
-
-	return( thresh );
-}
-
-// im_phasecor_fft: non-normalised correlation of gradient of in2 within in1
-VImage VImage::phasecor_fft( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_phasecor_fft" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-
-	return( out );
-}
-
-// im_rank: rank filter nth element of xsize/ysize window
-VImage VImage::rank( int xsize, int ysize, int n ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_rank" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = xsize;
-	*((int*) _vec.data(3)) = ysize;
-	*((int*) _vec.data(4)) = n;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_rank_raw: rank filter nth element of xsize/ysize window, no border
-VImage VImage::rank_raw( int xsize, int ysize, int n ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_rank_raw" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = xsize;
-	*((int*) _vec.data(3)) = ysize;
-	*((int*) _vec.data(4)) = n;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_resize_linear: resize to X by Y pixels with linear interpolation
-VImage VImage::resize_linear( int X, int Y ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_resize_linear" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = X;
-	*((int*) _vec.data(3)) = Y;
-	_vec.call();
 
 	return( out );
 }
@@ -3283,24 +2832,6 @@ VImage VImage::sharpen( int mask_size, double x1, double y2, double y3, double m
 	return( out );
 }
 
-// im_shrink: shrink image by xfac, yfac times
-VImage VImage::shrink( double xfac, double yfac ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_shrink" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = xfac;
-	*((double*) _vec.data(3)) = yfac;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
 // im_spcor: normalised correlation of in2 within in1
 VImage VImage::spcor( VImage in2 ) throw( VError )
 {
@@ -3319,59 +2850,10 @@ VImage VImage::spcor( VImage in2 ) throw( VError )
 	return( out );
 }
 
-// im_spcor_raw: normalised correlation of in2 within in1, no black padding
-VImage VImage::spcor_raw( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
 
-	Vargv _vec( "im_spcor_raw" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_stretch3: stretch 3%, sub-pixel displace by xdisp/ydisp
-VImage VImage::stretch3( double xdisp, double ydisp ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_stretch3" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = xdisp;
-	*((double*) _vec.data(3)) = ydisp;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_zerox: find +ve or -ve zero crossings in image
-VImage VImage::zerox( int flag ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_zerox" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = flag;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
+// bodies for package format
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_csv2vips: read a file in csv format
 VImage VImage::csv2vips( char* filename ) throw( VError )
 {
@@ -3550,6 +3032,10 @@ void VImage::vips2tiff( char* out ) throw( VError )
 	_vec.call();
 }
 
+
+// bodies for package freq_filt
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_create_fmask: create frequency domain filter mask
 VImage VImage::create_fmask( int width, int height, int type, double p1, double p2, double p3, double p4, double p5 ) throw( VError )
 {
@@ -3683,6 +3169,22 @@ VImage VImage::invfft() throw( VError )
 	return( out );
 }
 
+// im_phasecor_fft: non-normalised correlation of gradient of in2 within in1
+VImage VImage::phasecor_fft( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_phasecor_fft" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+
+	return( out );
+}
+
 // im_invfftr: real part of inverse fast-fourier transform
 VImage VImage::invfftr() throw( VError )
 {
@@ -3698,6 +3200,10 @@ VImage VImage::invfftr() throw( VError )
 	return( out );
 }
 
+
+// bodies for package histograms_lut
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_gammacorrect: gamma-correct image
 VImage VImage::gammacorrect( double exponent ) throw( VError )
 {
@@ -3777,6 +3283,24 @@ VImage VImage::histeq() throw( VError )
 	_vec.data(1) = out.image();
 	_vec.call();
 	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_hist_indexed: make a histogram with an index image
+VImage VImage::hist_indexed( VImage value ) throw( VError )
+{
+	VImage index = *this;
+	VImage out;
+
+	Vargv _vec( "im_hist_indexed" );
+
+	_vec.data(0) = index.image();
+	_vec.data(1) = value.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( index._ref );
+	out._ref->addref( value._ref );
 
 	return( out );
 }
@@ -3939,22 +3463,20 @@ VImage VImage::lhisteq( int width, int height ) throw( VError )
 	return( out );
 }
 
-// im_lhisteq_raw: local histogram equalisation, no border
-VImage VImage::lhisteq_raw( int width, int height ) throw( VError )
+// im_mpercent: find threshold above which there are percent values
+int VImage::mpercent( double percent ) throw( VError )
 {
 	VImage in = *this;
-	VImage out;
+	int thresh;
 
-	Vargv _vec( "im_lhisteq_raw" );
+	Vargv _vec( "im_mpercent" );
 
 	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = width;
-	*((int*) _vec.data(3)) = height;
+	*((double*) _vec.data(1)) = percent;
 	_vec.call();
-	out._ref->addref( in._ref );
+	thresh = *((int*)_vec.data(2));
 
-	return( out );
+	return( thresh );
 }
 
 // im_invertlut: generate correction table from set of measures
@@ -4027,28 +3549,6 @@ VImage VImage::stdif( double a, double m0, double b, double s0, int xw, int yw )
 	VImage out;
 
 	Vargv _vec( "im_stdif" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = a;
-	*((double*) _vec.data(3)) = m0;
-	*((double*) _vec.data(4)) = b;
-	*((double*) _vec.data(5)) = s0;
-	*((int*) _vec.data(6)) = xw;
-	*((int*) _vec.data(7)) = yw;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_stdif_raw: statistical differencing, no border
-VImage VImage::stdif_raw( double a, double m0, double b, double s0, int xw, int yw ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_stdif_raw" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
@@ -4147,6 +3647,10 @@ VImage VImage::tone_map( VImage lut ) throw( VError )
 	return( out );
 }
 
+
+// bodies for package inplace
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_circle: plot circle on image
 void VImage::circle( int cx, int cy, int radius, int intensity ) throw( VError )
 {
@@ -4182,6 +3686,25 @@ VImage VImage::flood_blob_copy( int start_x, int start_y, std::vector<double> in
 	return( out );
 }
 
+// im_flood_other_copy: flood mask with serial number from start_x, start_y while pixel == start pixel
+VImage VImage::flood_other_copy( VImage test, int start_x, int start_y, int serial ) throw( VError )
+{
+	VImage mask = *this;
+	VImage out;
+
+	Vargv _vec( "im_flood_other_copy" );
+
+	_vec.data(0) = mask.image();
+	_vec.data(1) = test.image();
+	_vec.data(2) = out.image();
+	*((int*) _vec.data(3)) = start_x;
+	*((int*) _vec.data(4)) = start_y;
+	*((int*) _vec.data(5)) = serial;
+	_vec.call();
+
+	return( out );
+}
+
 // im_insertplace: draw image sub inside image main at position (x,y)
 void VImage::insertplace( VImage sub, int x, int y ) throw( VError )
 {
@@ -4195,23 +3718,8 @@ void VImage::insertplace( VImage sub, int x, int y ) throw( VError )
 	_vec.call();
 }
 
-// im_line: draw line between points (x1,y1) and (x2,y2)
-void VImage::line( int x1, int y1, int x2, int y2, int pelval ) throw( VError )
-{
-	VImage im = *this;
-	Vargv _vec( "im_line" );
-
-	_vec.data(0) = im.image();
-	*((int*) _vec.data(1)) = x1;
-	*((int*) _vec.data(2)) = y1;
-	*((int*) _vec.data(3)) = x2;
-	*((int*) _vec.data(4)) = y2;
-	*((int*) _vec.data(5)) = pelval;
-	_vec.call();
-}
-
 // im_lineset: draw line between points (x1,y1) and (x2,y2)
-VImage VImage::lineset( VImage mask, VImage ink, std::vector<int> x1, std::vector<int> y1, std::vector<int> x2, std::vector<int> y2 ) throw( VError )
+VImage VImage::line( VImage mask, VImage ink, std::vector<int> x1, std::vector<int> y1, std::vector<int> x2, std::vector<int> y2 ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4243,6 +3751,10 @@ VImage VImage::lineset( VImage mask, VImage ink, std::vector<int> x1, std::vecto
 	return( out );
 }
 
+
+// bodies for package iofuncs
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_binfile: open a headerless binary file
 VImage VImage::binfile( char* filename, int width, int height, int bands, int offset ) throw( VError )
 {
@@ -4277,6 +3789,21 @@ VImage VImage::cache( int tile_width, int tile_height, int max_tiles ) throw( VE
 	_vec.call();
 
 	return( out );
+}
+
+// im_getext: return the image metadata XML as a string
+char* VImage::getext() throw( VError )
+{
+	VImage image = *this;
+	char* history;
+
+	Vargv _vec( "im_getext" );
+
+	_vec.data(0) = image.image();
+	_vec.call();
+	history = (char*) _vec.data(1);
+
+	return( history );
 }
 
 // im_header_get_typeof: return field type
@@ -4327,7 +3854,7 @@ double VImage::header_double( char* field ) throw( VError )
 	return( value );
 }
 
-// im_header_string: extract string fields from header
+// im_header_string: extract fields from headers as strings
 char* VImage::header_string( char* field ) throw( VError )
 {
 	VImage image = *this;
@@ -4343,6 +3870,39 @@ char* VImage::header_string( char* field ) throw( VError )
 	return( value );
 }
 
+// im_history_get: return the image history as a string
+char* VImage::history_get() throw( VError )
+{
+	VImage image = *this;
+	char* history;
+
+	Vargv _vec( "im_history_get" );
+
+	_vec.data(0) = image.image();
+	_vec.call();
+	history = (char*) _vec.data(1);
+
+	return( history );
+}
+
+// im_printdesc: print an image header to stdout
+void VImage::printdesc() throw( VError )
+{
+	VImage image = *this;
+	Vargv _vec( "im_printdesc" );
+
+	_vec.data(0) = image.image();
+	_vec.call();
+}
+
+
+// bodies for package mask
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
+
+// bodies for package morphology
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_cntlines: count horizontal or vertical lines
 double VImage::cntlines( int direction ) throw( VError )
 {
@@ -4376,17 +3936,91 @@ VImage VImage::dilate( VIMask mask ) throw( VError )
 	return( out );
 }
 
-// im_dilate_raw: dilate image with mask
-VImage VImage::dilate_raw( VIMask mask ) throw( VError )
+// im_rank: rank filter nth element of xsize/ysize window
+VImage VImage::rank( int xsize, int ysize, int n ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_dilate_raw" );
+	Vargv _vec( "im_rank" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = mask.mask().iptr;
+	*((int*) _vec.data(2)) = xsize;
+	*((int*) _vec.data(3)) = ysize;
+	*((int*) _vec.data(4)) = n;
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_rank_image: point-wise pixel rank
+VImage VImage::rank_image( std::vector<VImage> in, int index ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_rank_image" );
+
+	((im_imagevec_object*) _vec.data(0))->n = in.size();
+	((im_imagevec_object*) _vec.data(0))->vec = new IMAGE *[in.size()];
+	for( unsigned int i = 0; i < in.size(); i++ )
+		((im_imagevec_object*) _vec.data(0))->vec[i] = in[i].image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = index;
+	_vec.call();
+	for( unsigned int i = 0; i < in.size(); i++ )
+		out._ref->addref( in[i]._ref );
+
+	return( out );
+}
+
+// im_maxvalue: point-wise maximum value
+VImage VImage::maxvalue( std::vector<VImage> in ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_maxvalue" );
+
+	((im_imagevec_object*) _vec.data(0))->n = in.size();
+	((im_imagevec_object*) _vec.data(0))->vec = new IMAGE *[in.size()];
+	for( unsigned int i = 0; i < in.size(); i++ )
+		((im_imagevec_object*) _vec.data(0))->vec[i] = in[i].image();
+	_vec.data(1) = out.image();
+	_vec.call();
+	for( unsigned int i = 0; i < in.size(); i++ )
+		out._ref->addref( in[i]._ref );
+
+	return( out );
+}
+
+// im_label_regions: number continuous regions in an image
+VImage VImage::label_regions( int& segments ) throw( VError )
+{
+	VImage test = *this;
+	VImage mask;
+
+	Vargv _vec( "im_label_regions" );
+
+	_vec.data(0) = test.image();
+	_vec.data(1) = mask.image();
+	_vec.call();
+	segments = *((int*)_vec.data(2));
+
+	return( mask );
+}
+
+// im_zerox: find +ve or -ve zero crossings in image
+VImage VImage::zerox( int flag ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_zerox" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = flag;
 	_vec.call();
 	out._ref->addref( in._ref );
 
@@ -4400,23 +4034,6 @@ VImage VImage::erode( VIMask mask ) throw( VError )
 	VImage out;
 
 	Vargv _vec( "im_erode" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_mask_object*) _vec.data(2))->mask = mask.mask().iptr;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_erode_raw: erode image with mask
-VImage VImage::erode_raw( VIMask mask ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_erode_raw" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
@@ -4443,6 +4060,10 @@ VImage VImage::profile( int direction ) throw( VError )
 	return( out );
 }
 
+
+// bodies for package mosaicing
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_align_bands: align the bands of an image
 VImage VImage::align_bands() throw( VError )
 {
@@ -4872,6 +4493,10 @@ VImage VImage::tbmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int
 	return( out );
 }
 
+
+// bodies for package other
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_benchmark: do something complicated for testing
 VImage VImage::benchmark() throw( VError )
 {
@@ -5025,6 +4650,10 @@ VImage VImage::zone( int size ) throw( VError )
 	return( out );
 }
 
+
+// bodies for package relational
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_blend: use cond image to blend between images in1 and in2
 VImage VImage::blend( VImage in1, VImage in2 ) throw( VError )
 {
@@ -5395,76 +5024,69 @@ VImage VImage::notequal( double c ) throw( VError )
 	return( out );
 }
 
-// im_affine: affine transform
-VImage VImage::affine( double a, double b, double c, double d, double dx, double dy, int x, int y, int w, int h ) throw( VError )
+
+// bodies for package resample
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
+// im_rightshift_size: decrease size by a power-of-two factor
+VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_affine" );
+	Vargv _vec( "im_rightshift_size" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = a;
-	*((double*) _vec.data(3)) = b;
-	*((double*) _vec.data(4)) = c;
-	*((double*) _vec.data(5)) = d;
-	*((double*) _vec.data(6)) = dx;
-	*((double*) _vec.data(7)) = dy;
-	*((int*) _vec.data(8)) = x;
-	*((int*) _vec.data(9)) = y;
-	*((int*) _vec.data(10)) = w;
-	*((int*) _vec.data(11)) = h;
+	*((int*) _vec.data(2)) = xshift;
+	*((int*) _vec.data(3)) = yshift;
+	*((int*) _vec.data(4)) = band_fmt;
 	_vec.call();
 	out._ref->addref( in._ref );
 
 	return( out );
 }
 
-// im_similarity_area: output area xywh of similarity transformation
-VImage VImage::similarity_area( double a, double b, double dx, double dy, int x, int y, int w, int h ) throw( VError )
+// im_shrink: shrink image by xfac, yfac times
+VImage VImage::shrink( double xfac, double yfac ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_similarity_area" );
+	Vargv _vec( "im_shrink" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = a;
-	*((double*) _vec.data(3)) = b;
-	*((double*) _vec.data(4)) = dx;
-	*((double*) _vec.data(5)) = dy;
-	*((int*) _vec.data(6)) = x;
-	*((int*) _vec.data(7)) = y;
-	*((int*) _vec.data(8)) = w;
-	*((int*) _vec.data(9)) = h;
+	*((double*) _vec.data(2)) = xfac;
+	*((double*) _vec.data(3)) = yfac;
 	_vec.call();
 	out._ref->addref( in._ref );
 
 	return( out );
 }
 
-// im_similarity: similarity transformation
-VImage VImage::similarity( double a, double b, double dx, double dy ) throw( VError )
+// im_stretch3: stretch 3%, sub-pixel displace by xdisp/ydisp
+VImage VImage::stretch3( double xdisp, double ydisp ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
 
-	Vargv _vec( "im_similarity" );
+	Vargv _vec( "im_stretch3" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = a;
-	*((double*) _vec.data(3)) = b;
-	*((double*) _vec.data(4)) = dx;
-	*((double*) _vec.data(5)) = dy;
+	*((double*) _vec.data(2)) = xdisp;
+	*((double*) _vec.data(3)) = ydisp;
 	_vec.call();
 	out._ref->addref( in._ref );
 
 	return( out );
 }
 
+
+// bodies for package video
+// this file automatically generated from
+// VIPS library 7.20.1-Fri Nov 13 11:00:09 GMT 2009
 // im_video_test: test video grabber
 VImage VImage::video_test( int brightness, int error ) throw( VError )
 {
@@ -5499,4 +5121,5 @@ VImage VImage::video_v4l1( char* device, int channel, int brightness, int colour
 
 	return( out );
 }
+
 

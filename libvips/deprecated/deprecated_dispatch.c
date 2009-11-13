@@ -1168,6 +1168,48 @@ static im_function dilate_raw_desc = {
 	erode_args 			/* Arg list */
 };
 
+/* Call im_convsepf via arg vector.
+ */
+static int
+convsepf_vec( im_object *argv )
+{
+	im_mask_object *mo = argv[2];
+
+	return( im_convsepf( argv[0], argv[1], mo->mask ) );
+}
+
+/* Description of im_convsepf.
+ */ 
+static im_function convsepf_desc = {
+	"im_convsepf", 			/* Name */
+	"seperable convolution, with DOUBLEMASK",
+	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
+	convsepf_vec, 			/* Dispatch function */
+	IM_NUMBER( conv_dmask ), 		/* Size of arg list */
+	conv_dmask 			/* Arg list */
+};
+
+/* Call im_convf via arg vector.
+ */
+static int
+convf_vec( im_object *argv )
+{
+	im_mask_object *mo = argv[2];
+
+	return( im_convf( argv[0], argv[1], mo->mask ) );
+}
+
+/* Description of im_convf.
+ */ 
+static im_function convf_desc = {
+	"im_convf", 			/* Name */
+	"convolve, with DOUBLEMASK",
+	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
+	convf_vec, 			/* Dispatch function */
+	IM_NUMBER( conv_dmask ), 		/* Size of arg list */
+	conv_dmask 			/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
@@ -1186,6 +1228,8 @@ static im_function *deprecated_list[] = {
 	&clip2f_desc,
 	&clip2i_desc,
 	&convsub_desc,
+	&convf_desc,
+	&convsepf_desc,
 	&clip2s_desc,
 	&clip2ui_desc,
 	&insertplaceset_desc,

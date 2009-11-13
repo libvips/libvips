@@ -3,6 +3,9 @@
 - im_conv() / im_convf() didn't like all-zero masks
 - small updates to im_convf() from im_conv()
 - im_read_imask() produced an incorrect error message if passed a doublemask
+- rename im_convf(), im_convsepf() as _f()
+- vips.c drops _f suffix when overloading
+- regenerate C++ binding, don't make deprecated package
 
 9/11/09 started 7.20.0
 - removed vips-7.x.spec.in, shouldn't really have this in SVN

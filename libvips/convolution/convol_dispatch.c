@@ -197,23 +197,23 @@ static im_function conv_desc = {
 	conv_imask 			/* Arg list */
 };
 
-/* Call im_convf via arg vector.
+/* Call im_conv_f via arg vector.
  */
 static int
-convf_vec( im_object *argv )
+conv_f_vec( im_object *argv )
 {
 	im_mask_object *mo = argv[2];
 
-	return( im_convf( argv[0], argv[1], mo->mask ) );
+	return( im_conv_f( argv[0], argv[1], mo->mask ) );
 }
 
-/* Description of im_convf.
+/* Description of im_conv_f.
  */ 
-static im_function convf_desc = {
-	"im_convf", 			/* Name */
+static im_function conv_f_desc = {
+	"im_conv_f", 			/* Name */
 	"convolve, with DOUBLEMASK",
 	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
-	convf_vec, 			/* Dispatch function */
+	conv_f_vec, 			/* Dispatch function */
 	IM_NUMBER( conv_dmask ), 		/* Size of arg list */
 	conv_dmask 			/* Arg list */
 };
@@ -239,23 +239,23 @@ static im_function convsep_desc = {
 	conv_imask 			/* Arg list */
 };
 
-/* Call im_convsepf via arg vector.
+/* Call im_convsep_f via arg vector.
  */
 static int
-convsepf_vec( im_object *argv )
+convsep_f_vec( im_object *argv )
 {
 	im_mask_object *mo = argv[2];
 
-	return( im_convsepf( argv[0], argv[1], mo->mask ) );
+	return( im_convsep_f( argv[0], argv[1], mo->mask ) );
 }
 
-/* Description of im_convsepf.
+/* Description of im_convsep_f.
  */ 
-static im_function convsepf_desc = {
-	"im_convsepf", 			/* Name */
+static im_function convsep_f_desc = {
+	"im_convsep_f", 			/* Name */
 	"seperable convolution, with DOUBLEMASK",
 	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-	convsepf_vec, 			/* Dispatch function */
+	convsep_f_vec, 			/* Dispatch function */
 	IM_NUMBER( conv_dmask ), 		/* Size of arg list */
 	conv_dmask 			/* Arg list */
 };
@@ -403,9 +403,9 @@ static im_function *convol_list[] = {
 	&compass_desc,
 	&contrast_surface_desc,
 	&conv_desc,
-	&convf_desc,
+	&conv_f_desc,
 	&convsep_desc,
-	&convsepf_desc,
+	&convsep_f_desc,
 	&fastcor_desc,
         &gradcor_desc,
 	&gradient_desc,
