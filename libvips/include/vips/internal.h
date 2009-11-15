@@ -243,6 +243,9 @@ void im_free_dmat();
 
 int im_invmat( double **, int );
 
+int im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+int im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
