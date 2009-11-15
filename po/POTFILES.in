@@ -95,11 +95,11 @@ libvips/conversion/im_msb.c
 libvips/conversion/im_c2ps.c
 libvips/convolution/im_sharpen.c
 libvips/convolution/im_compass.c
-libvips/convolution/im_convsepf.c
 libvips/convolution/im_addgnoise.c
 libvips/convolution/im_conv.c
-libvips/convolution/im_convf.c
 libvips/convolution/im_fastcor.c
+libvips/convolution/im_conv_f.c
+libvips/convolution/im_convsep_f.c
 libvips/convolution/convol_dispatch.c
 libvips/convolution/im_spcor.c
 libvips/convolution/im_contrast_surface.c

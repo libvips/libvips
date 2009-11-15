@@ -357,6 +357,7 @@ int im_convsepf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask );
 int im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_convsepf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
 int im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
 int im_gradcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );

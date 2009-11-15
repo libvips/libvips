@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: vips 7.16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-10 11:10+0000\n"
+"POT-Creation-Date: 2009-11-15 20:57+0000\n"
 "PO-Revision-Date: Fri Sep  5 10:27:43 BST 2008\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
@@ -617,8 +617,8 @@ msgstr ""
 msgid "char, short or int only"
 msgstr ""
 
-#: libvips/conversion/im_msb.c:212 libvips/mask/rw_mask.c:153
-#: libvips/mask/rw_mask.c:210 libvips/mask/rw_mask.c:446
+#: libvips/conversion/im_msb.c:212 libvips/mask/rw_mask.c:156
+#: libvips/mask/rw_mask.c:213 libvips/mask/rw_mask.c:449
 #: libvips/resample/im_rightshift_size.c:114
 msgid "bad arguments"
 msgstr ""
@@ -635,34 +635,20 @@ msgstr ""
 msgid "parameters out of range"
 msgstr ""
 
-#: libvips/convolution/im_convsepf.c:290 libvips/convolution/im_conv.c:417
-#: libvips/convolution/im_convf.c:289 libvips/convolution/im_convsep.c:383
-#: libvips/morphology/im_zerox.c:144
-msgid "non-complex uncoded only"
-msgstr ""
-
-#: libvips/convolution/im_convsepf.c:296
-msgid "bad mask parameters"
-msgstr ""
-
-#: libvips/convolution/im_convsepf.c:301 libvips/convolution/im_convsep.c:394
-msgid "expect 1xN or Nx1 input mask"
-msgstr ""
-
-#: libvips/convolution/im_convsepf.c:320 libvips/convolution/im_conv.c:439
-#: libvips/convolution/im_convf.c:313 libvips/convolution/im_convsep.c:410
-#: libvips/morphology/im_erode.c:276 libvips/morphology/im_dilate.c:280
-msgid "image too small for mask"
-msgstr ""
-
-#: libvips/convolution/im_conv.c:155 libvips/convolution/im_convsep.c:98
+#: libvips/convolution/im_conv.c:159 libvips/convolution/im_convsep.c:98
 #, c-format
 msgid "%d overflows and %d underflows detected"
 msgstr ""
 
-#: libvips/convolution/im_conv.c:423 libvips/convolution/im_convf.c:295
+#: libvips/convolution/im_conv.c:442 libvips/convolution/im_conv_f.c:328
 #: libvips/convolution/im_convsep.c:389
 msgid "nonsense mask parameters"
+msgstr ""
+
+#: libvips/convolution/im_conv.c:456 libvips/convolution/im_conv_f.c:344
+#: libvips/convolution/im_convsep_f.c:320 libvips/convolution/im_convsep.c:410
+#: libvips/morphology/im_erode.c:276 libvips/morphology/im_dilate.c:280
+msgid "image too small for mask"
 msgstr ""
 
 #: libvips/convolution/im_fastcor.c:151 libvips/convolution/im_spcor.c:257
@@ -671,6 +657,19 @@ msgstr ""
 
 #: libvips/convolution/im_fastcor.c:162
 msgid "input not uncoded 1 band uchar"
+msgstr ""
+
+#: libvips/convolution/im_convsep_f.c:290 libvips/convolution/im_convsep.c:383
+#: libvips/morphology/im_zerox.c:144
+msgid "non-complex uncoded only"
+msgstr ""
+
+#: libvips/convolution/im_convsep_f.c:296
+msgid "bad mask parameters"
+msgstr ""
+
+#: libvips/convolution/im_convsep_f.c:301 libvips/convolution/im_convsep.c:394
+msgid "expect 1xN or Nx1 input mask"
 msgstr ""
 
 #: libvips/convolution/im_spcor.c:269
@@ -903,7 +902,7 @@ msgstr ""
 msgid "TIFF support disabled"
 msgstr ""
 
-#: libvips/format/im_vips2tiff.c:266 libvips/mask/rw_mask.c:554
+#: libvips/format/im_vips2tiff.c:266 libvips/mask/rw_mask.c:557
 #, c-format
 msgid "unable to open \"%s\" for output"
 msgstr ""
@@ -2333,37 +2332,37 @@ msgstr ""
 msgid "mask should be square of even size"
 msgstr ""
 
-#: libvips/mask/rw_mask.c:266
+#: libvips/mask/rw_mask.c:269
 #, c-format
 msgid "Unable to open \"%s\" for input"
 msgstr ""
 
-#: libvips/mask/rw_mask.c:280
+#: libvips/mask/rw_mask.c:283
 msgid "unexpected EOF"
 msgstr ""
 
-#: libvips/mask/rw_mask.c:319
+#: libvips/mask/rw_mask.c:322
 msgid "error reading matrix header"
 msgstr ""
 
-#: libvips/mask/rw_mask.c:324
+#: libvips/mask/rw_mask.c:327
 msgid "scale should be non-zero"
 msgstr ""
 
-#: libvips/mask/rw_mask.c:404
+#: libvips/mask/rw_mask.c:406
 msgid "scale and offset should be int"
 msgstr ""
 
-#: libvips/mask/rw_mask.c:412
+#: libvips/mask/rw_mask.c:414
 #, c-format
 msgid "cofficient at position (%d, %d) is not int"
 msgstr ""
 
-#: libvips/mask/rw_mask.c:571
+#: libvips/mask/rw_mask.c:574
 msgid "write error, disc full?"
 msgstr ""
 
-#: libvips/mask/rw_mask.c:629 libvips/mask/rw_mask.c:680
+#: libvips/mask/rw_mask.c:632 libvips/mask/rw_mask.c:683
 msgid "filename not set"
 msgstr ""
 
@@ -2804,40 +2803,40 @@ msgstr ""
 msgid "could not set extension"
 msgstr ""
 
-#: tools/iofuncs/vips.c:91
+#: tools/iofuncs/vips.c:93
 msgid "list operations in PACKAGE (or \"all\", \"packages\", \"classes\")"
 msgstr ""
 
-#: tools/iofuncs/vips.c:95
+#: tools/iofuncs/vips.c:97
 msgid "show usage message for OPERATION"
 msgstr ""
 
-#: tools/iofuncs/vips.c:98
+#: tools/iofuncs/vips.c:100
 msgid "load PLUGIN"
 msgstr ""
 
-#: tools/iofuncs/vips.c:101
+#: tools/iofuncs/vips.c:103
 msgid "print link lines for all operations"
 msgstr ""
 
-#: tools/iofuncs/vips.c:103
+#: tools/iofuncs/vips.c:105
 msgid "print C++ decls for PACKAGE (or \"all\")"
 msgstr ""
 
-#: tools/iofuncs/vips.c:106
+#: tools/iofuncs/vips.c:108
 msgid "print C++ binding for PACKAGE (or \"all\")"
 msgstr ""
 
-#: tools/iofuncs/vips.c:109
+#: tools/iofuncs/vips.c:111
 msgid "print im_version_string"
 msgstr ""
 
-#: tools/iofuncs/vips.c:152
+#: tools/iofuncs/vips.c:154
 #, c-format
 msgid "no package or function \"%s\""
 msgstr ""
 
-#: tools/iofuncs/vips.c:889
+#: tools/iofuncs/vips.c:901
 msgid "- VIPS driver program"
 msgstr ""
 
