@@ -14,7 +14,7 @@
  * 24/3/09
  * 	- added IM_CODING_RAD support
  * 21/10/09
- * 	- allow small to be outside big
+ * 	- allow sub to be outside main
  * 	- gtkdoc
  */
 
@@ -61,15 +61,15 @@
 
 /**
  * im_insertplace:
- * @big: main image
- * @small: sub-image to insert
+ * @main: main image
+ * @sub: sub-image to insert
  * @x: position to insert
  * @y: position to insert
  *
- * Copy @small into @big at position @x, @y. The two images must match in
+ * Copy @sub into @main at position @x, @y. The two images must match in
  * format, bands and coding.
  *
- * This an inplace operation, so @big is changed. It does not thread and will
+ * This an inplace operation, so @main is changed. It does not thread and will
  * not work well as part of a pipeline.
  *
  * See also: im_insert().
@@ -77,7 +77,7 @@
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_insertplace( IMAGE *big, IMAGE *small, int x, int y )
+im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 {	
 	Rect br, sr, clip;
 	PEL *p, *q;
@@ -85,40 +85,40 @@ im_insertplace( IMAGE *big, IMAGE *small, int x, int y )
 
 	/* Check compatibility.
 	 */
-	if( im_rwcheck( big ) || 
-		im_incheck( small ) ||
-		im_check_known_coded( "im_insertplace", big ) ||
-		im_check_known_coded( "im_insertplace", small ) ||
-		im_check_same_format( "im_insertplace", big, small ) ||
-		im_check_same_bands( "im_insertplace", big, small ) )
+	if( im_rwcheck( main ) || 
+		im_incheck( sub ) ||
+		im_check_known_coded( "im_insertplace", main ) ||
+		im_check_known_coded( "im_insertplace", sub ) ||
+		im_check_same_format( "im_insertplace", main, sub ) ||
+		im_check_same_bands( "im_insertplace", main, sub ) )
 		return( -1 );
 
-	/* Make rects for big and small and clip.
+	/* Make rects for main and sub and clip.
 	 */
 	br.left = 0;
 	br.top = 0;
-	br.width = big->Xsize;
-	br.height = big->Ysize;
+	br.width = main->Xsize;
+	br.height = main->Ysize;
 	sr.left = x;
 	sr.top = y;
-	sr.width = small->Xsize;
-	sr.height = small->Ysize;
+	sr.width = sub->Xsize;
+	sr.height = sub->Ysize;
 	im_rect_intersectrect( &br, &sr, &clip );
 	if( im_rect_isempty( &clip ) )
 		return( 0 );
 
-	/* Loop, memcpying small to big.
+	/* Loop, memcpying sub to main.
 	 */
-	p = (PEL *) IM_IMAGE_ADDR( small, clip.left - x, clip.top - y );
-	q = (PEL *) IM_IMAGE_ADDR( big, clip.left, clip.top );
+	p = (PEL *) IM_IMAGE_ADDR( sub, clip.left - x, clip.top - y );
+	q = (PEL *) IM_IMAGE_ADDR( main, clip.left, clip.top );
 	for( z = 0; z < clip.height; z++ ) {
 		memcpy( (char *) q, (char *) p, 
-			clip.width * IM_IMAGE_SIZEOF_PEL( small ) );
-		p += IM_IMAGE_SIZEOF_LINE( small );
-		q += IM_IMAGE_SIZEOF_LINE( big );
+			clip.width * IM_IMAGE_SIZEOF_PEL( sub ) );
+		p += IM_IMAGE_SIZEOF_LINE( sub );
+		q += IM_IMAGE_SIZEOF_LINE( main );
 	}
 
-	im_invalidate( big );
+	im_invalidate( main );
 
 	return( 0 );
 }
