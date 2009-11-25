@@ -6,7 +6,7 @@ AC_CONFIG_MACRO_DIR(m4)
 # user-visible library versioning
 IM_MAJOR_VERSION=7
 IM_MINOR_VERSION=20
-IM_MICRO_VERSION=1
+IM_MICRO_VERSION=2
 IM_VERSION=$IM_MAJOR_VERSION.$IM_MINOR_VERSION.$IM_MICRO_VERSION
 IM_VERSION_STRING=$IM_VERSION-`date`
 
@@ -23,7 +23,7 @@ PACKAGE=vips
 #   interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=28
-LIBRARY_REVISION=0
+LIBRARY_REVISION=1
 LIBRARY_AGE=13
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
@@ -123,7 +123,7 @@ AC_DEFINE_UNQUOTED(IM_PREFIX,"$prefix",[configure-time install prefix])
 AC_DEFINE_UNQUOTED(IM_LIBDIR,"$my_libdir",[configure-time library directory])
 
 # i18n
-GETTEXT_PACKAGE=vips7
+GETTEXT_PACKAGE=vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
         [The prefix for our gettext translation domains.])

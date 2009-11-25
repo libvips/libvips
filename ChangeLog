@@ -1,3 +1,6 @@
+23/11/09 started 7.20.2
+- GETTEXT_PACKAGE now includes lib version number (thanks Jay)
+
 11/11/09 started 7.20.1
 - oop, im_clip2fmt() was missing PTOP flag, should get a small speedup
 - im_conv() / im_convf() didn't like all-zero masks
