@@ -225,13 +225,9 @@ im_window_set( im_window_t *window, int top, int height )
 		(gint64) IM_IMAGE_SIZEOF_LINE( window->im ) * top;
 	length = (size_t) IM_IMAGE_SIZEOF_LINE( window->im ) * height;
 
-	printf( "start = 0x%lx\n", (guint64) start );
-
 	pagestart = start - start % pagesize;
 	end = start + length;
 	pagelength = end - pagestart;
-
-	printf( "pagestart = 0x%lx\n", (guint64) pagestart );
 
 	/* Make sure we have enough file.
 	 */

@@ -1,11 +1,3 @@
-- windows >4gb tests
-
-  does it read a 4gb file OK?
-
-  try writing one and read it on linux
-
-  carry the 1tb external drive over
-
 WONTFIX for 7.20
 ================
 

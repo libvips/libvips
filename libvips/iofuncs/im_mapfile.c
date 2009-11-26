@@ -110,10 +110,6 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 	printf( "im__mmap: length = 0x%zx, offset = 0x%lx\n", length, offset );
 #endif /*DEBUG*/
 
-	printf( "** start\n" );
-	printf( "length = 0x%zx\n", length );
-	printf( "offset = 0x%lx\n", (guint64) offset );
-
 #ifdef OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
@@ -139,12 +135,6 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 	quad.QuadPart = offset;
 	dwFileOffsetLow = quad.LowPart;
 	dwFileOffsetHigh = quad.HighPart;
-
-	printf( "flProtect = 0x%x\n", flProtect );
-	printf( "flProtect = 0x%x\n", flProtect );
-	printf( "dwDesiredAccess = 0x%x\n", dwDesiredAccess );
-	printf( "dwFileOffsetHigh = 0x%x\n", dwFileOffsetHigh );
-	printf( "dwFileOffsetLow = 0x%x\n", dwFileOffsetLow );
 
         if( !(hMMFile = CreateFileMapping( hFile,
 		NULL, flProtect, 0, 0, NULL )) ) {
@@ -194,8 +184,6 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 	}
 }
 #endif /*OS_WIN32*/
-
-	printf( "** success\n" );
 
 	return( baseaddr );
 }
