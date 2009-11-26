@@ -227,8 +227,11 @@ typedef struct _VipsImage {
 	/* Record the file length here. We use this to stop ourselves mapping
 	 * things beyond the end of the file in the case that the file has
 	 * been truncated.
+	 *
+	 * gint64 so that we can guarantee to work even on systems with
+	 * strange ideas about large files.
 	 */
-	size_t file_length;
+	gint64 file_length;
 
 	/* Set this when im_demand_hint_array() is called, and check in any
 	 * operation that will demand pixels from the image.

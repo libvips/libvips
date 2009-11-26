@@ -1,11 +1,12 @@
-# test translation file
+# en_GB translations for vips
+# just swap color for colour
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: vips 7.16.0\n"
+"Project-Id-Version: vips 7.20.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-23 21:24+0000\n"
-"PO-Revision-Date: Fri Sep  5 10:27:43 BST 2008\n"
+"POT-Creation-Date: 2009-11-26 16:43+0000\n"
+"PO-Revision-Date: Thu Nov 26 12:08:20 GMT 2009\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -416,7 +417,7 @@ msgid "display unknown"
 msgstr ""
 
 #: libvips/conversion/im_zoom.c:332 libvips/format/im_vips2tiff.c:1589
-#: libvips/format/im_file2vips.c:761 libvips/iofuncs/im_open_vips.c:1321
+#: libvips/format/im_file2vips.c:761 libvips/iofuncs/im_open_vips.c:1320
 #: libvips/mosaicing/im_tbmerge.c:634 libvips/mosaicing/im_lrmerge.c:812
 #: libvips/resample/im_shrink.c:318 libvips/resample/im_affine.c:442
 msgid "unknown coding type"
@@ -493,9 +494,8 @@ msgid "vectors not same length"
 msgstr ""
 
 #: libvips/conversion/im_black.c:87 libvips/conversion/im_gaussnoise.c:124
-#, fuzzy
 msgid "bad parameter"
-msgstr "bad colourmap"
+msgstr ""
 
 #: libvips/conversion/im_bandjoin.c:127
 msgid "images not same size"
@@ -709,9 +709,8 @@ msgid "im_setupout failed"
 msgstr ""
 
 #: libvips/deprecated/im_slice.c:151 libvips/deprecated/im_thresh.c:127
-#, fuzzy
 msgid "Unknown input format"
-msgstr "unsupported colourspace %d"
+msgstr ""
 
 #. Name
 #: libvips/deprecated/deprecated_dispatch.c:127
@@ -747,14 +746,12 @@ msgid "input must be uncoded"
 msgstr ""
 
 #: libvips/deprecated/im_printlines.c:85
-#, fuzzy
 msgid "unsuitable image type"
-msgstr "unsupported colourspace %d"
+msgstr ""
 
 #: libvips/deprecated/im_printlines.c:144 libvips/deprecated/im_debugim.c:133
-#, fuzzy
 msgid "unknown input format"
-msgstr "unsupported colourspace %d"
+msgstr ""
 
 #: libvips/deprecated/im_convsub.c:82
 msgid "calloc failed (1)"
@@ -1069,9 +1066,9 @@ msgid "file \"%s\" not a known format"
 msgstr ""
 
 #: libvips/format/format.c:320
-#, fuzzy, c-format
+#, c-format
 msgid "\"%s\" is not a supported image format."
-msgstr "unsupported colourspace %d"
+msgstr ""
 
 #: libvips/format/im_analyze2vips.c:371
 #, c-format
@@ -1170,7 +1167,7 @@ msgstr ""
 msgid "unable to read header for \"%s\", %s"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:644 libvips/iofuncs/window.c:237
+#: libvips/format/im_file2vips.c:644 libvips/iofuncs/window.c:241
 #: libvips/iofuncs/im_open_vips.c:965 libvips/iofuncs/im_open_vips.c:1160
 msgid "file has been truncated"
 msgstr ""
@@ -1346,9 +1343,8 @@ msgid "mask sizes power of 2 only"
 msgstr ""
 
 #: libvips/freq_filt/im_freq_mask.c:194
-#, fuzzy
 msgid "unimplemented mask type"
-msgstr "unsupported colourspace %d"
+msgstr ""
 
 #: libvips/freq_filt/fmaskcir.c:163 libvips/freq_filt/fmaskcir.c:308
 #: libvips/freq_filt/fmaskcir.c:399 libvips/freq_filt/fmaskcir.c:481
@@ -1571,9 +1567,8 @@ msgid "not uncoded"
 msgstr ""
 
 #: libvips/histograms_lut/im_histspec.c:97
-#, fuzzy
 msgid "bad band format"
-msgstr "bad colourmap"
+msgstr ""
 
 #: libvips/histograms_lut/im_histspec.c:102
 msgid "input histograms differ in number of bands"
@@ -1681,7 +1676,7 @@ msgstr ""
 msgid "unable to output to a %s image"
 msgstr ""
 
-#: libvips/iofuncs/window.c:236 libvips/iofuncs/im_open_vips.c:1159
+#: libvips/iofuncs/window.c:240 libvips/iofuncs/im_open_vips.c:1159
 #, c-format
 msgid "unable to read data for \"%s\", %s"
 msgstr ""
@@ -1974,7 +1969,7 @@ msgstr ""
 msgid "xml save error"
 msgstr ""
 
-#: libvips/iofuncs/im_open_vips.c:1271
+#: libvips/iofuncs/im_open_vips.c:1270
 msgid "open for read-write for native format images only"
 msgstr ""
 
@@ -2152,54 +2147,54 @@ msgstr ""
 msgid "bad format"
 msgstr "bad colourmap"
 
-#: libvips/iofuncs/im_mapfile.c:140 libvips/iofuncs/im_mapfile.c:297
+#: libvips/iofuncs/im_mapfile.c:152 libvips/iofuncs/im_mapfile.c:310
 msgid "unable to CreateFileMapping"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:150 libvips/iofuncs/im_mapfile.c:309
+#: libvips/iofuncs/im_mapfile.c:160 libvips/iofuncs/im_mapfile.c:322
 msgid "unable to MapViewOfFile"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:178
+#: libvips/iofuncs/im_mapfile.c:189
 msgid "unable to mmap"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:179
+#: libvips/iofuncs/im_mapfile.c:190
 #, c-format
 msgid ""
 "map failed (%s), running very low on system resources, expect a crash soon"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:196 libvips/iofuncs/im_mapfile.c:303
+#: libvips/iofuncs/im_mapfile.c:209 libvips/iofuncs/im_mapfile.c:316
 msgid "unable to UnmapViewOfFile"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:202
+#: libvips/iofuncs/im_mapfile.c:215
 msgid "unable to munmap file"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:224 libvips/iofuncs/im_mapfile.c:263
-msgid "unable to get file status"
-msgstr ""
-
-#: libvips/iofuncs/im_mapfile.c:230
+#: libvips/iofuncs/im_mapfile.c:237
 msgid "file is less than 64 bytes"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:235
+#: libvips/iofuncs/im_mapfile.c:242 libvips/iofuncs/im_mapfile.c:276
+msgid "unable to get file status"
+msgstr ""
+
+#: libvips/iofuncs/im_mapfile.c:248
 msgid "not a regular file"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:269
+#: libvips/iofuncs/im_mapfile.c:282
 msgid "unable to read data"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:329
+#: libvips/iofuncs/im_mapfile.c:342
 #, c-format
 msgid "unable to mmap: \"%s\" - %s"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:339
+#: libvips/iofuncs/im_mapfile.c:352
 #, c-format
 msgid "unable to mmap \"%s\" to same address"
 msgstr ""
@@ -2858,9 +2853,9 @@ msgstr ""
 #: tools/mosaicing/mergeup.c:269 tools/mosaicing/mergeup.c:279
 #: tools/mosaicing/mergeup.c:288 tools/mosaicing/mergeup.c:309
 #: tools/mosaicing/mergeup.c:319 tools/mosaicing/mergeup.c:328
-#, fuzzy, c-format
+#, c-format
 msgid "bad file name format '%s'"
-msgstr "bad colourmap"
+msgstr ""
 
 #: tools/mosaicing/mergeup.c:380
 msgid "allocation failure in mergeup"

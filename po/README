@@ -28,7 +28,7 @@ cd vips-7.x.x ; find */* -name "*.h" >> po/POTFILES.in
 
 intltool-update --pot
 
-	make a new vips7.pot translation template from the sources
+	make a new vips-7.20.pot translation template from the sources
 
 :%s/msgstr ""/msgstr "Malkovich"/
 :%s/msgstr\[0\] ""/msgstr[0] "Malkovich"/

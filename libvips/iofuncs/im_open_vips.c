@@ -1203,8 +1203,7 @@ im_openin( IMAGE *image )
 	 */
 	size = (gint64) IM_IMAGE_SIZEOF_LINE( image ) * image->Ysize + 
 		image->sizeof_header;
-	if( size < im__mmap_limit && 
-		(gint64) image->file_length >= size ) {
+	if( size < im__mmap_limit && image->file_length >= size ) {
 		if( im_mapfile( image ) )
 			return( -1 );
 		image->data = image->baseaddr + image->sizeof_header;

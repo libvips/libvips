@@ -107,23 +107,25 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 	void *baseaddr;
 
 #ifdef DEBUG
-	printf( "im__mmap: length = %d, offset = %lld\n", length, offset );
+	printf( "im__mmap: length = 0x%zx, offset = 0x%lx\n", length, offset );
 #endif /*DEBUG*/
+
+	printf( "** start\n" );
+	printf( "length = 0x%zx\n", length );
+	printf( "offset = 0x%lx\n", (guint64) offset );
 
 #ifdef OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
-        HANDLE hMMFile;
+
 	DWORD flProtect;
 	DWORD dwDesiredAccess;
+
+        HANDLE hMMFile;
+
+	ULARGE_INTEGER quad;
 	DWORD dwFileOffsetHigh;
 	DWORD dwFileOffsetLow;
-
-	/* woah, slightly gross
-	 */
-	int dws = sizeof( DWORD );
-	int shift = 8 * dws;
-	gint64 mask = ((gint64) -1) >> shift;
 
 	if( writeable ) {
 		flProtect = PAGE_READWRITE;
@@ -134,20 +136,29 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 		dwDesiredAccess = FILE_MAP_READ;
 	}
 
+	quad.QuadPart = offset;
+	dwFileOffsetLow = quad.LowPart;
+	dwFileOffsetHigh = quad.HighPart;
+
+	printf( "flProtect = 0x%x\n", flProtect );
+	printf( "flProtect = 0x%x\n", flProtect );
+	printf( "dwDesiredAccess = 0x%x\n", dwDesiredAccess );
+	printf( "dwFileOffsetHigh = 0x%x\n", dwFileOffsetHigh );
+	printf( "dwFileOffsetLow = 0x%x\n", dwFileOffsetLow );
+
         if( !(hMMFile = CreateFileMapping( hFile,
 		NULL, flProtect, 0, 0, NULL )) ) {
                 im_error_system( GetLastError(), "im_mapfile", 
 			"%s", _( "unable to CreateFileMapping" ) );
+		printf( "CreateFileMapping failed: %s\n", im_error_buffer() );
                 return( NULL );
         }
-
-	dwFileOffsetHigh = (offset >> shift) & mask;
-	dwFileOffsetLow = offset & mask;
 
         if( !(baseaddr = (char *)MapViewOfFile( hMMFile, dwDesiredAccess, 
 		dwFileOffsetHigh, dwFileOffsetLow, length )) ) {
                 im_error_system( GetLastError(), "im_mapfile",
 			"%s", _( "unable to MapViewOfFile" ) );
+		printf( "MapViewOfFile failed: %s\n", im_error_buffer() );
 		CloseHandle( hMMFile );
                 return( NULL );
         }
@@ -184,6 +195,8 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 }
 #endif /*OS_WIN32*/
 
+	printf( "** success\n" );
+
 	return( baseaddr );
 }
 
@@ -219,17 +232,17 @@ im_mapfile( IMAGE *im )
 	 * an error.
 	 */
 	g_assert( im->file_length > 0 );
+	if( im->file_length < 64 ) {
+		im_error( "im_mapfile", 
+			"%s", _( "file is less than 64 bytes" ) );
+		return( -1 ); 
+	}
 	if( fstat( im->fd, &st ) == -1 ) {
 		im_error( "im_mapfile", 
 			"%s", _( "unable to get file status" ) );
 		return( -1 );
 	}
 	m = (mode_t) st.st_mode;
-	if( im->file_length < 64 ) {
-		im_error( "im_mapfile", 
-			"%s", _( "file is less than 64 bytes" ) );
-		return( -1 ); 
-	}
 	if( !S_ISREG( m ) ) {
 		im_error( "im_mapfile", 
 			"%s", _( "not a regular file" ) ); 

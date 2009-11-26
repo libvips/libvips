@@ -1,3 +1,7 @@
+26/11/09 started 7.20.3
+- updated en_GB.po translation 
+- file_length is gint64 to avoid win32 breakage
+
 23/11/09 started 7.20.2
 - GETTEXT_PACKAGE now includes lib version number (thanks Jay)
 

@@ -128,7 +128,7 @@ im_binfile( const char *name, int xsize, int ysize, int bands, int offset )
 		im_close( im );
 		return( NULL );
 	}
-	im->file_length = (size_t) rsize;
+	im->file_length = rsize;
 
 	/* Very common, so special message.
 	 */
