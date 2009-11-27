@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: vips 7.20.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-26 16:43+0000\n"
+"POT-Creation-Date: 2009-11-27 14:51+0000\n"
 "PO-Revision-Date: Thu Nov 26 12:08:20 GMT 2009\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
@@ -1167,7 +1167,7 @@ msgstr ""
 msgid "unable to read header for \"%s\", %s"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:644 libvips/iofuncs/window.c:241
+#: libvips/format/im_file2vips.c:644 libvips/iofuncs/window.c:237
 #: libvips/iofuncs/im_open_vips.c:965 libvips/iofuncs/im_open_vips.c:1160
 msgid "file has been truncated"
 msgstr ""
@@ -1676,7 +1676,7 @@ msgstr ""
 msgid "unable to output to a %s image"
 msgstr ""
 
-#: libvips/iofuncs/window.c:240 libvips/iofuncs/im_open_vips.c:1159
+#: libvips/iofuncs/window.c:236 libvips/iofuncs/im_open_vips.c:1159
 #, c-format
 msgid "unable to read data for \"%s\", %s"
 msgstr ""
@@ -2147,54 +2147,54 @@ msgstr ""
 msgid "bad format"
 msgstr "bad colourmap"
 
-#: libvips/iofuncs/im_mapfile.c:152 libvips/iofuncs/im_mapfile.c:310
+#: libvips/iofuncs/im_mapfile.c:142 libvips/iofuncs/im_mapfile.c:298
 msgid "unable to CreateFileMapping"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:160 libvips/iofuncs/im_mapfile.c:322
+#: libvips/iofuncs/im_mapfile.c:150 libvips/iofuncs/im_mapfile.c:310
 msgid "unable to MapViewOfFile"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:189
+#: libvips/iofuncs/im_mapfile.c:179
 msgid "unable to mmap"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:190
+#: libvips/iofuncs/im_mapfile.c:180
 #, c-format
 msgid ""
 "map failed (%s), running very low on system resources, expect a crash soon"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:209 libvips/iofuncs/im_mapfile.c:316
+#: libvips/iofuncs/im_mapfile.c:197 libvips/iofuncs/im_mapfile.c:304
 msgid "unable to UnmapViewOfFile"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:215
+#: libvips/iofuncs/im_mapfile.c:203
 msgid "unable to munmap file"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:237
+#: libvips/iofuncs/im_mapfile.c:225
 msgid "file is less than 64 bytes"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:242 libvips/iofuncs/im_mapfile.c:276
+#: libvips/iofuncs/im_mapfile.c:230 libvips/iofuncs/im_mapfile.c:264
 msgid "unable to get file status"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:248
+#: libvips/iofuncs/im_mapfile.c:236
 msgid "not a regular file"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:282
+#: libvips/iofuncs/im_mapfile.c:270
 msgid "unable to read data"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:342
+#: libvips/iofuncs/im_mapfile.c:330
 #, c-format
 msgid "unable to mmap: \"%s\" - %s"
 msgstr ""
 
-#: libvips/iofuncs/im_mapfile.c:352
+#: libvips/iofuncs/im_mapfile.c:340
 #, c-format
 msgid "unable to mmap \"%s\" to same address"
 msgstr ""
