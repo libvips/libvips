@@ -7,6 +7,8 @@
  *	- uses im_wrap_oneonebuf() now
  * 2/11/09
  * 	- gtkdoc
+ * 30/11/09
+ * 	- argh, im_col_make_tables_UCS(); missing, thanks Peter
  */
 
 /*
@@ -89,6 +91,8 @@ imb_UCS2LCh( float *p, float *q, int n )
 int 
 im_UCS2LCh( IMAGE *in, IMAGE *out )
 {
+	im_col_make_tables_UCS();
+
 	return( im__colour_unary( "im_UCS2LCh", in, out, IM_TYPE_UCS,
 		(im_wrapone_fn) imb_UCS2LCh, NULL, NULL ) );
 }
