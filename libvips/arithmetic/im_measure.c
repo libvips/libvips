@@ -14,6 +14,11 @@
  *	- number bands from zero in error messages
  * 7/7/04
  *	- works on labq
+ * 18/8/08
+ * 	- add gtkdoc comments
+ * 	- remove deprecated im_extract()
+ * 30/11/09
+ * 	- changes for im_extract() broke averaging
  */
 
 /*
@@ -112,7 +117,7 @@ measure_patches( IMAGE *im, double *coeff,
 			
 			/* Extract and measure.
 			 */
-			if( im_extract_area( im, tmp, x, y, w, h ) ||
+			if( im_extract_areabands( im, tmp, x, y, w, h, i, 1 ) ||
 				im_avg( tmp, &avg ) ||
 				im_deviate( tmp, &dev ) ) {
 				im_close( tmp );

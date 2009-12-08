@@ -170,6 +170,27 @@ int im__colour_unary( const char *domain,
 	IMAGE *in, IMAGE *out, VipsType type,
 	im_wrapone_fn buffer_fn, void *a, void *b );
 
+/* Structure for holding the lookup tables for XYZ<=>rgb conversion.
+ * Also holds the luminance to XYZ matrix and the inverse one.
+ */
+struct im_col_tab_disp {
+	/*< private >*/
+	float	t_Yr2r[1501];		/* Conversion of Yr to r */
+	float	t_Yg2g[1501];		/* Conversion of Yg to g */
+	float	t_Yb2b[1501];		/* Conversion of Yb to b */
+	float	t_r2Yr[1501];		/* Conversion of r to Yr */
+	float	t_g2Yg[1501];		/* Conversion of g to Yg */
+	float	t_b2Yb[1501];		/* Conversion of b to Yb */
+	float	mat_XYZ2lum[3][3];	/* XYZ to Yr, Yg, Yb matrix */
+	float	mat_lum2XYZ[3][3];	/* Yr, Yg, Yb to XYZ matrix */
+	float rstep, gstep, bstep;
+	float ristep, gistep, bistep;
+};
+
+struct im_col_tab_disp *im_col_make_tables_RGB( 
+	IMAGE *im,
+	struct im_col_display *d );
+
 int im__test_kill( IMAGE *im );
 void *im__mmap( int fd, int writeable, size_t length, gint64 offset );
 int im__munmap( void *start, size_t length );

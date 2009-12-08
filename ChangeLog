@@ -1,6 +1,7 @@
 26/11/09 started 7.21.0
 - branch for new dev cycle
 - argh, missing init from colour.c (thanks Peter)
+- argh, im_measure() was not looping over bands correctly (thanks Peter)
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

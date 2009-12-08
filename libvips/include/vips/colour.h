@@ -147,6 +147,15 @@ int im_dECMC_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_dE00_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_dE_fromXYZ( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_dE_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_dE_fromXYZ( IMAGE *, IMAGE *, IMAGE * );
+int im_dE_fromLab( IMAGE *, IMAGE *, IMAGE * );
+
+int im_lab_morph( IMAGE *in, IMAGE *out,
+	DOUBLEMASK *mask,
+	double L_offset, double L_scale,
+	double a_scale, double b_scale );
+
+void im_col_make_tables_UCS( void );
 
 int im_lab_morph( IMAGE *in, IMAGE *out,
 	DOUBLEMASK *mask,
