@@ -187,9 +187,9 @@ struct im_col_tab_disp {
 	float ristep, gistep, bistep;
 };
 
-struct im_col_tab_disp *im_col_make_tables_RGB( 
-	IMAGE *im,
+struct im_col_tab_disp *im_col_make_tables_RGB( IMAGE *im, 
 	struct im_col_display *d );
+struct im_col_tab_disp *im_col_display_get_table( struct im_col_display *d );
 
 int im__test_kill( IMAGE *im );
 void *im__mmap( int fd, int writeable, size_t length, gint64 offset );
