@@ -4,6 +4,8 @@
 - argh, im_measure() was not looping over bands correctly (thanks Peter)
 - removed mmap_limit, we now always use windows ... reduces VM use hugely,
   because mmap windows are freed when their regions are freed
+- have a min bytes for mmap windows as well, so we don't make too many tiny
+  windows
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

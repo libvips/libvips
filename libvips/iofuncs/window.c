@@ -33,7 +33,6 @@
  */
 
 /*
-#define DEBUG_ENVIRONMENT
 #define DEBUG_TOTAL
 #define DEBUG
  */
@@ -74,7 +73,12 @@ int im__read_test;
 
 /* Add this many lines above and below the mmap() window.
  */
-int im__window_margin = IM__WINDOW_MARGIN;
+int im__window_margin_pixels = IM__WINDOW_MARGIN_PIXELS;
+
+/* Always map at least this many bytes. There's no point making tiny windows
+ * on small files.
+ */
+int im__window_margin_bytes = IM__WINDOW_MARGIN_BYTES;
 
 /* Track global mmap usage.
  */
@@ -219,7 +223,7 @@ im_window_set( im_window_t *window, int top, int height )
 	gint64 start, end, pagestart;
 	size_t length, pagelength;
 
-	/* Calculate start and length for our window.
+	/* Calculate start and length for our window. 
 	 */
 	start = window->im->sizeof_header + 
 		(gint64) IM_IMAGE_SIZEOF_LINE( window->im ) * top;
@@ -347,31 +351,20 @@ im_window_t *
 im_window_ref( IMAGE *im, int top, int height )
 {
 	im_window_t *window;
-#ifdef DEBUG_ENVIRONMENT
-	static const char *str = NULL;
-#endif /*DEBUG_ENVIRONMENT*/
-
-#ifdef DEBUG_ENVIRONMENT
-	if( !str ) {
-		if( (str = g_getenv( "IM_WINDOW_MARGIN" )) ) {
-			printf( "iofuncs/region.c: "
-				"compiled with DEBUG_ENVIRONMENT enabled\n" );
-			im__window_margin = atoi( str );
-			printf( "im_region_create: setting window margin to %d "
-				"from environment\n", im__window_margin );
-		}
-		else
-			str = "done";
-	}
-#endif /*DEBUG_ENVIRONMENT*/
 
 	g_mutex_lock( im->sslock );
 
 	if( !(window = im_window_find( im, top, height )) ) {
-		/* No existing window ... make a new one.
+		/* No existing window ... make a new one. Ask for a larger
+		 * window than we strictly need. There's no point making tiny
+		 * windows.
 		 */
-		top -= im__window_margin;
-		height += im__window_margin * 2;
+		int margin = IM_MIN( im__window_margin_pixels,
+			im__window_margin_bytes / IM_IMAGE_SIZEOF_LINE( im ) );
+
+		top -= margin;
+		height += margin * 2;
+
 		top = IM_CLIP( 0, top, im->Ysize - 1 );
 		height = IM_CLIP( 0, height, im->Ysize - top );
 

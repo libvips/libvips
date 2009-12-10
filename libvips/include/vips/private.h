@@ -41,10 +41,15 @@ extern "C" {
 
 #define IM_SPARE (8)
 
-/* Private to iofuncs: the image size above which we switch from
- * mmap()-whole-image behaviour to mmap()-window, plus window margins.
+/* Private to iofuncs: the minimum number of scanlines we add above and below 
+ * the window as a margin for slop.
  */
-#define IM__WINDOW_MARGIN (128)
+#define IM__WINDOW_MARGIN_PIXELS (128)
+
+/* Private to iofuncs: add at least this many bytes above and below the window. 
+ * There's no point mapping just a few KB of a small image.
+ */
+#define IM__WINDOW_MARGIN_BYTES (1024 * 1024 * 10)
 
 /* sizeof() a VIPS header on disc.
  */
