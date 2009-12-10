@@ -225,7 +225,7 @@ im_incheck( IMAGE *im )
 		break;
 
 	case IM_OPENOUT:
-		/* Close file down and reopen as im_mmapin.
+		/* Close file down and reopen as input.
 		 */
 #ifdef DEBUG_IO
 		printf( "im_incheck: auto-rewind of %s\n", im->filename );

@@ -123,7 +123,6 @@ void im__exr_register( void );
 void im__magick_register( void );
 
 extern int im__read_test;
-extern int im__mmap_limit;
 extern GMutex *im__global_lock;
 
 typedef enum {

@@ -33,8 +33,8 @@
  */
 
 /*
-#define DEBUG_TOTAL
 #define DEBUG_ENVIRONMENT
+#define DEBUG_TOTAL
 #define DEBUG
  */
 

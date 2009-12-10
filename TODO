@@ -4,28 +4,15 @@ WONTFIX for 7.20
 - some of deprecated.h repeats stuff we do better in image.h, eg. addr()
   should just call IM_REGION_ADDR()
 
-- load 500 jpegs, group, shrink, save
-
-  VM use is huge, ouch, could we use a bit less?
-
-  maybe free all windows on evalend? are there regions left about? how come we
-  use so many resources?
-
-  get about 300 images in on the laptop
-
 - rename vipsCC in SWIG as pyvips?
 
 - im_flood*() should use inline rather than #define
 
 - try the new liboil thing:
 
-	http://www.schleef.org/orc/
+	http://code.entropywave.com/projects/orc/
 
   pick something like abs and time it
-
-- IMAGE->file_length should be gint64 rather than size_t?
-
-  if we make this change, need to remove extra casts from various uses
 
 - look into G_GNUC_DEPRECATED for back compat in vips8
 

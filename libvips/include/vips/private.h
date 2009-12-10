@@ -44,7 +44,6 @@ extern "C" {
 /* Private to iofuncs: the image size above which we switch from
  * mmap()-whole-image behaviour to mmap()-window, plus window margins.
  */
-#define IM__MMAP_LIMIT (1024*1024*30)
 #define IM__WINDOW_MARGIN (128)
 
 /* sizeof() a VIPS header on disc.
@@ -60,7 +59,7 @@ typedef enum {
 	IM_NONE,		/* no type set */
 	IM_SETBUF,		/* malloced memory array */
 	IM_SETBUF_FOREIGN,	/* memory array, don't free on close */
-	IM_OPENIN,		/* input from fd */
+	IM_OPENIN,		/* input from fd with a window */
 	IM_MMAPIN,		/* memory mapped input file */
 	IM_MMAPINRW,		/* memory mapped read/write file */
 	IM_OPENOUT,		/* output to fd */

@@ -9,6 +9,9 @@
  *	- fix signed/unsigned warnings
  * 12/10/09
  *	- heh argh reading history always stopped after the first line
+ * 9/12/09
+ * 	- only wholly map input files on im_incheck() ... this reduces VM use,
+ * 	  especially with large numbers of small files
  */
 
 /*
@@ -331,15 +334,6 @@
 /* Our XML namespace.
  */
 #define NAMESPACE "http://www.vips.ecs.soton.ac.uk/vips" 
-
-/* mmap() whole vs. window threshold ... an int, so we can tune easily from a
- * debugger.
- */
-#ifdef DEBUG
-int im__mmap_limit = 1;
-#else
-int im__mmap_limit = IM__MMAP_LIMIT;
-#endif /*DEBUG*/
 
 /* Sort of open for read for image files. Shared with im_binfile().
  */
@@ -824,7 +818,7 @@ rebuild_header( IMAGE *im )
 	return( 0 );
 }
 
-/* Called at the end of im__read_header ... get any XML after the pixel data
+/* Called at the end of im_openin() ... get any XML after the pixel data
  * and read it in.
  */
 static int 
@@ -1127,8 +1121,8 @@ im__writehist( IMAGE *im )
 
 /* Open the filename, read the header, some sanity checking.
  */
-static int
-im__read_header( IMAGE *image )
+int
+im_openin( IMAGE *image )
 {
 	/* We don't use im->sizeof_header here, but we know we're reading a
 	 * VIPS image anyway.
@@ -1143,7 +1137,7 @@ im__read_header( IMAGE *image )
 		return( -1 );
 	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
 		im__read_header_bytes( image, header ) ) {
-		im_error( "im_openin", 
+		im_error( "im__read_header", 
 			_( "unable to read header for \"%s\", %s" ),
 			image->filename, strerror( errno ) );
 		return( -1 );
@@ -1156,7 +1150,8 @@ im__read_header( IMAGE *image )
 		return( -1 );
 	image->file_length = rsize;
 	if( psize > rsize ) 
-		im_warn( "im_openin", _( "unable to read data for \"%s\", %s" ),
+		im_warn( "im__read_header", 
+			_( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
 
 	/* Set demand style. Allow the most permissive sort.
@@ -1168,57 +1163,9 @@ im__read_header( IMAGE *image )
 	 * harmless.
 	 */
 	if( im__readhist( image ) ) {
-		im_warn( "im_openin", _( "error reading XML: %s" ),
+		im_warn( "im__read_header", _( "error reading XML: %s" ),
 			im_error_buffer() );
 		im_error_clear();
-	}
-
-	return( 0 );
-}
-
-/* Open, then mmap() small images, leave large images to have a rolling mmap()
- * window for each region. This is old and deprecated API, use im_vips_open()
- * in preference.
- */
-int
-im_openin( IMAGE *image )
-{
-	gint64 size;
-
-#ifdef DEBUG
-	char *str;
-
-	if( (str = g_getenv( "IM_MMAP_LIMIT" )) ) {
-		im__mmap_limit = atoi( str );
-		printf( "im_openin: setting maplimit to %d from environment\n",
-			im__mmap_limit );
-	}
-#endif /*DEBUG*/
-
-	if( im__read_header( image ) )
-		return( -1 );
-
-	/* Make sure we can map the whole thing without running over the VM
-	 * limit or running out of file.
-	 */
-	size = (gint64) IM_IMAGE_SIZEOF_LINE( image ) * image->Ysize + 
-		image->sizeof_header;
-	if( size < im__mmap_limit && image->file_length >= size ) {
-		if( im_mapfile( image ) )
-			return( -1 );
-		image->data = image->baseaddr + image->sizeof_header;
-		image->dtype = IM_MMAPIN;
-
-#ifdef DEBUG
-		printf( "im_openin: completely mmap()ing \"%s\": it's small\n",
-			image->filename );
-#endif /*DEBUG*/
-	}
-	else {
-#ifdef DEBUG
-		printf( "im_openin: delaying mmap() of \"%s\": it's big!\n",
-			image->filename );
-#endif /*DEBUG*/
 	}
 
 	return( 0 );
@@ -1230,7 +1177,7 @@ im_openin( IMAGE *image )
 int
 im_openinrw( IMAGE *image )
 {
-	if( im__read_header( image ) )
+	if( im_openin( image ) )
 		return( -1 );
 	if( im_mapfilerw( image ) ) 
 		return( -1 );
@@ -1238,7 +1185,7 @@ im_openinrw( IMAGE *image )
 	image->dtype = IM_MMAPINRW;
 
 #ifdef DEBUG
-	printf( "im_openin: completely mmap()ing \"%s\" read-write\n",
+	printf( "im_openinrw: completely mmap()ing \"%s\" read-write\n",
 		image->filename );
 #endif /*DEBUG*/
 

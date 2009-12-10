@@ -146,19 +146,6 @@ im_binfile( const char *name, int xsize, int ysize, int bands, int offset )
 		im_warn( "im_binfile", _( "%s is longer than expected" ),
 			im->filename );
 
-	/* If the predicted size is under our mmap threshold, mmap the whole
-	 * thing now. Otherwise, delay the map until region create and we'll
-	 * use a rolling window. See also im_openin().
-	 */
-	if( psize < im__mmap_limit ) {
-		if( im_mapfile( im ) ) {
-			im_close( im );
-			return( NULL );
-		}
-		im->data = im->baseaddr + offset;
-		im->dtype = IM_MMAPIN;
-	}
-
 	/* Set header fields.
 	 */
 	im->Xsize = xsize;
