@@ -2,6 +2,8 @@
  *
  * 28/10/09
  * 	- from colour.c
+ * 14/12/09
+ * 	- oop, im_disp2Lab() was broken
  */
 
 /*
@@ -621,7 +623,7 @@ im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d )
 
 	if( im_open_local_array( out, t, 1, "im_disp2Lab:1", "p" ) ||
 		im_disp2XYZ( in, t[0], d ) ||
-		im_XYZ2Lab( t[1], out ) )
+		im_XYZ2Lab( t[0], out ) )
 		return( -1 );
 	
 	return( 0 );

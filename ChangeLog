@@ -6,6 +6,7 @@
   because mmap windows are freed when their regions are freed
 - have a min bytes for mmap windows as well, so we don't make too many tiny
   windows
+- im_disp2Lab() was broken
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 
