@@ -113,10 +113,7 @@ extern "C" {
 	} \
 }
 
-/* Round a float to the nearest integer. This should give an identical result 
- * to the math.h rint() function (and the old SunOS nint() function), but be
- * much faster. Beware: it evaluates its argument more than once, so don't use
- * ++!
+/* Round a float to the nearest integer. Much faster than rint(). 
  */
 #define IM_RINT( R ) ((int)((R)>0?((R)+0.5):((R)-0.5)))
 

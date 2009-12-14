@@ -7,6 +7,8 @@
 - have a min bytes for mmap windows as well, so we don't make too many tiny
   windows
 - im_disp2Lab() was broken
+- deprecated.h is now defined in terms of current functionality, rather than
+  repeating stuff
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

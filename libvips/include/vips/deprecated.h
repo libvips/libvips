@@ -115,152 +115,38 @@ extern "C" {
 #define TCSF_COMPRESSION	1
 #define JPEG_COMPRESSION	2
 
-/* Macros on IMAGEs.
- *	esize()		sizeof band element
- *	psize()		sizeof pel
- *	lsize()		sizeof scan line
- *	niele()		number of elements in scan line
- */
 #define esize(I) IM_IMAGE_SIZEOF_ELEMENT(I)
 #define psize(I) IM_IMAGE_SIZEOF_PEL(I)
 #define lsize(I) IM_IMAGE_SIZEOF_LINE(I)
 #define niele(I) IM_IMAGE_N_ELEMENTS(I)
 
-/* Macros on REGIONs.
- *	lskip()		add to move down line
- *	nele()		number of elements across region
- *	rsize()		sizeof width of region
- *	addr()		address of pixel in region
- */
-#define lskip(B) ((B)->bpl)
-#define nele(B) ((B)->valid.width*(B)->im->Bands)
-#define rsize(B) ((B)->valid.width*psize((B)->im))
+#define lskip(B) IM_REGION_LSKIP(B)
+#define nele(B) IM_REGION_N_ELEMENTS(B)
+#define rsize(B) IM_REGION_SIZEOF_LINE(B)
 
-/* addr() is special: if DEBUG is defined, make an addr() with bounds checking.
- */
-#ifdef DEBUG
-#define addr(B,X,Y) \
-	( (im_rect_includespoint( &(B)->valid, (X), (Y) ))? \
-	  ((B)->data + ((Y) - (B)->valid.top)*lskip(B) + \
-	  ((X) - (B)->valid.left)*psize((B)->im)): \
-	  (fprintf( stderr, \
-		"addr: point out of bounds, file \"%s\", line %d\n" \
-		"(point x=%d, y=%d\n" \
-		" should have been within Rect left=%d, top=%d, " \
-		"width=%d, height=%d)\n", \
-		__FILE__, __LINE__, \
-		(X), (Y), \
-		(B)->valid.left, \
-		(B)->valid.top, \
-		(B)->valid.width, \
-		(B)->valid.height ), abort(), (char *) NULL) \
-	)
-#else /*DEBUG*/
-#define addr(B,X,Y) ((B)->data + ((Y)-(B)->valid.top)*lskip(B) + \
-	((X)-(B)->valid.left)*psize((B)->im))
-#endif /*DEBUG*/
+#define addr(B,X,Y) IM_REGION_ADDR(B,X,Y) 
 
 #ifndef MAX
-#define MAX(A,B) ((A)>(B)?(A):(B))
-#define MIN(A,B) ((A)<(B)?(A):(B))
+#define MAX(A,B) IM_MAX(A, B)
+#define MIN(A,B) IM_MIN(A, B)
 #endif /*MAX*/
 
-#define CLIP(A,V,B) MAX( (A), MIN( (B), (V) ) )
-#define NEW(IM,A) ((A *)im_malloc((IM),sizeof(A)))
-#define NUMBER(R) (sizeof(R)/sizeof(R[0]))
-#define ARRAY(IM,N,T) ((T *)im_malloc((IM),(N) * sizeof(T)))
+#define CLIP(A,V,B) IM_CLIP(A, V, B)
+#define NEW(IM,A) IM_NEW(IM,A)
+#define NUMBER(R) IM_NUMBER(R)
+#define ARRAY(IM,N,T) IM_ARRAY(IM,N,T)
 
-/* Duff's device. Do OPERation N times in a 16-way unrolled loop.
- */
-#define UNROLL( N, OPER ) { \
-	if( (N) ) { \
-		int duff_count = ((N) + 15) / 16; \
-		\
-		switch( (N) % 16 ) { \
-		case 0:  do {   OPER;  \
-		case 15:        OPER;  \
-		case 14:        OPER;  \
-		case 13:        OPER;  \
-		case 12:        OPER;  \
-		case 11:        OPER;  \
-		case 10:        OPER;  \
-		case 9:         OPER;  \
-		case 8:         OPER;  \
-		case 7:         OPER;  \
-		case 6:         OPER;  \
-		case 5:         OPER;  \
-		case 4:         OPER;  \
-		case 3:         OPER;  \
-		case 2:         OPER;  \
-		case 1: 	OPER;  \
-			 } while( --duff_count > 0 ); \
-		} \
-	} \
-}
+#define UNROLL( N, OPER ) IM_UNROLL( N, OPER )
+#define RINT( R ) IM_RINT( R )
 
-/* Round a float to the nearest integer. This should give an identical result 
- * to the math.h rint() function (and the old SunOS nint() function), but be
- * much faster. Beware: it evaluates its argument more than once, so don't use
- * ++!
- */
-#define RINT( R ) ((int)((R)>0?((R)+0.5):((R)-0.5)))
+#define CLIP_UCHAR( V, SEQ ) IM_CLIP_UCHAR( V, SEQ )
+#define CLIP_USHORT( V, SEQ ) IM_CLIP_USHORT( V, SEQ )
+#define CLIP_CHAR( V, SEQ ) IM_CLIP_CHAR( V, SEQ )
+#define CLIP_SHORT( V, SEQ ) IM_CLIP_SHORT( V, SEQ )
+#define CLIP_NONE( V, SEQ ) IM_CLIP_NONE( V, SEQ )
 
-/* Various integer range clips. Record over/under flows.
- */
-#define CLIP_UCHAR( V, SEQ ) { \
-	if( (V) & (UCHAR_MAX ^ -1) ) { \
-		if( (V) < 0 ) {   \
-			(SEQ)->underflow++;   \
-			(V) = 0;   \
-		}  \
-		if( (V) > UCHAR_MAX ) {   \
-			(SEQ)->overflow++;   \
-			(V) = UCHAR_MAX;   \
-		}  \
-	} \
-}
-
-#define CLIP_USHORT( V, SEQ ) { \
-	if( (V) & (USHRT_MAX ^ -1) ) { \
-		if( (V) < 0 ) {   \
-			(SEQ)->underflow++;   \
-			(V) = 0;   \
-		}  \
-		if( (V) > USHRT_MAX ) {   \
-			(SEQ)->overflow++;   \
-			(V) = USHRT_MAX;   \
-		}  \
-	} \
-}
-
-#define CLIP_CHAR( V, SEQ ) { \
-	if( (V) < SCHAR_MIN ) {   \
-		(SEQ)->underflow++;   \
-		(V) = SCHAR_MIN;   \
-	}  \
-	if( (V) > SCHAR_MAX ) {   \
-		(SEQ)->overflow++;   \
-		(V) = SCHAR_MAX;   \
-	}  \
-}
-
-#define CLIP_SHORT( V, SEQ ) { \
-	if( (V) < SHRT_MIN ) {   \
-		(SEQ)->underflow++;   \
-		(V) = SHRT_MIN;   \
-	}  \
-	if( (V) > SHRT_MAX ) {   \
-		(SEQ)->overflow++;   \
-		(V) = SHRT_MAX;   \
-	}  \
-}
-
-#define CLIP_NONE( V, SEQ ) {}
-
-/* On Rect.
- */
-#define right(R) ((R)->left + (R)->width)
-#define bottom(R) ((R)->top + (R)->height)
+#define right(R) IM_RECT_RIGHT(R)
+#define bottom(R) IM_RECT_BOTTOM(R)
 
 /* Backwards compatibility macros.
  */
