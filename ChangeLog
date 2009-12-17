@@ -9,6 +9,7 @@
 - im_disp2Lab() was broken
 - deprecated.h is now defined in terms of current functionality, rather than
   repeating stuff
+- im_flood() uses inline
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

@@ -1,15 +1,8 @@
-- some of deprecated.h repeats stuff we do better in image.h, eg. addr()
-  should just call IM_REGION_ADDR()
+- add a --without-cpp option?
 
 - rename vipsCC in SWIG as pyvips?
 
 - im_flood*() should use inline rather than #define
-
-- try the new liboil thing:
-
-	http://code.entropywave.com/projects/orc/
-
-  pick something like abs and time it
 
 - look into G_GNUC_DEPRECATED for back compat in vips8
 
