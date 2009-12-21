@@ -190,6 +190,76 @@ buffer_add_ifedge( Buffer *buf, State *st, PEL *p, int x, int y )
 	return( buf );
 }
 
+static inline gboolean
+pixel_equals( PEL *p, PEL *ink, int n )
+{
+ 	int j;
+
+	for( j = 0; j < n; j++ ) 
+		if( p[j] != ink[j] ) 
+			break; 
+
+	return( j == n ) 
+}
+
+/* Faster than memcpy for n < about 20.
+ */
+static inline void
+pixel_copy( PEL *p, PEL *ink, int n )
+{
+ 	int j;
+
+	for( j = 0; j < n; j++ ) 
+		p[j] = ink[j];
+}
+
+/* Fill a scanline with ink while pixels are equal to edge. We know x/y must
+ * be equal to edge.
+ */
+static void 
+fill_scanline_equal( State *st, int x, int y, int *x1, int *x2 )
+{
+	PEL *p = IM_IMAGE_ADDR( st->im, x, y );
+
+	int i;
+	PEL *q;
+
+
+	g_assert( pixel_equals( p, st->edge, st->ps ) );
+
+	/* Fill this pixel and to the right.
+	 */
+	for( q = p, i = 0; 
+		i < im->Xsize - x && pixel_equals( q, st->edge, st->ps ); 
+		q += st->ps, i++ ) 
+		pixel_copy( q, st->ink, st->ps );
+	*x2 = x + i - 1;
+
+	/* Fill to the left.
+	 */
+	for( q = p - st->ps, i = 1;
+		i > x && pixel_equals( q, st->edge, st->ps ); 
+		q -= st->ps, i++ ) 
+		pixel_copy( q, st->ink, st->ps );
+	*x1 = x - (i - 1);
+}
+
+/* We know the line below us is filled between x1 and x2. Search our line in
+ * this range looking for an edge pixel we can flood from.
+ */
+static void
+fill_scanline_above( State *st, int x1, int x2, int y )
+{
+	PEL *p = IM_IMAGE_ADDR( st->im, x1, y );
+
+	PEL *q;
+	int x;
+
+	for( x = x1, x <= x2; x++ ) 
+		if( pixel_equals(   
+}
+
+
 /* Free a state.
  */
 static void
