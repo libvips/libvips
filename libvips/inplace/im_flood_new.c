@@ -22,6 +22,8 @@
  * 	- use inline rather than defines, so we can add scanline fills more
  * 	  easily
  * 	- gtk-doc comments
+ * 21/12/09
+ * 	- rewrite for a scanline based fill
  */
 
 /*
@@ -65,24 +67,27 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Size of a point buffer. We allocate a list of these to hold points we need
- * to visit.
+/* Size of a scanline buffer. We allocate a list of these to hold scanlines 
+ * we need to visit.
  */
 #define PBUFSIZE (1000)
 
-/* An xy position.
+/* A scanline we know could contain pixels connected to us.
  */
 typedef struct {
-	int x, y;
-} Point;
+	int x1, x2;
+	int y;
+} Scan;
 
-/* A buffer of points, and how many of them have been used. When full, alloc a
- * new buffer, and link it on.
+/* A buffer of scanlines, and how many of them have been used. If ->next is
+ * non-NULL, the next block could contain more of them.
+ *
+ * We keep a pair of these, then loop over one and write to the other.
  */
 typedef struct _Buffer {
 	struct _Buffer *next;
 	int n;
-	Point points[PBUFSIZE];
+	Scan scan[PBUFSIZE];
 } Buffer;
 
 /* Our state.
@@ -105,10 +110,16 @@ typedef struct {
 	int top, bottom;
 	Rect dirty;		/* Bounding box of pixels we have changed */
 
-	/* Two buffers of points which we know need checking.
+	/* We need to flood above and below these scanlines.
 	 */
-	Buffer *buf1;
-	Buffer *buf2;
+	Buffer *up1, *up2;
+	Buffer *down1, *down2;
+
+	/* The buffers we are writing to now. Copies of one of the above,
+	 * don't free.
+	 */
+	Buffer *up;
+	Buffer *down;
 } State;
 
 /* Alloc a new buffer.
@@ -135,111 +146,86 @@ buffer_free( Buffer *buf )
 	im_free( buf );
 }
 
-/* Add an xy point to a buffer, appending a new buffer if necessary. Return
- * the new tail buffer.
+/* Add a scanline to a buffer, prepending a new buffer if necessary. Return
+ * the new head buffer.
  */
 static inline Buffer * 
-buffer_add( Buffer *buf, int x, int y )
+buffer_add( Buffer *buf, int x1, int x2, int y )
 {
-	/* buf can be NULL if we've had an error.
-	 */
-	if( !buf )
-		return( NULL );
+	// FIXME ... need to clip against aimge size and add nothing if the
+	// scanline is empty
 
-	buf->points[buf->n].x = x;
-	buf->points[buf->n].y = y;
+	buf->scan[buf->n].x1 = x1;
+	buf->scan[buf->n].x2 = x2;
+	buf->scan[buf->n].y = y;
 	buf->n++; 
 
 	if( buf->n == PBUFSIZE ) { 
-		if( !buf->next ) { 
-			if( !(buf->next = buffer_build()) ) 
-				return( NULL ); 
-		} 
-		buf = buf->next; 
-		buf->n = 0; 
+		Buffer *new;
+
+		if( !(new = buffer_build()) ) 
+			return( NULL ); 
+		new->next = buf;
+		buf = new;
 	} 
 
 	return( buf );
 }
 
-static inline Buffer *
-buffer_add_ifnotedge( Buffer *buf, State *st, PEL *p, int x, int y )
-{
- 	int j;
-
-	for( j = 0; j < st->ps; j++ ) 
-		if( p[j] != st->edge[j] ) { 
-			buf = buffer_add( buf, x, y ); 
-			break; 
-		} 
-
-	return( buf );
-}
-
-static inline Buffer *
-buffer_add_ifedge( Buffer *buf, State *st, PEL *p, int x, int y )
+/* Is p "connected"? ie. is equal to or not equal to st->edge, depending on
+ * whether we are flooding to the edge boundary, or flooding edge-coloured
+ * pixels.
+ */
+static inline gboolean
+pixel_connected( State *st, PEL *p )
 {
  	int j;
 
 	for( j = 0; j < st->ps; j++ ) 
 		if( p[j] != st->edge[j] ) 
-			break; 
-	if( j == st->ps ) 
-		buf = buffer_add( buf, x, y );
+			break;
 
-	return( buf );
-}
-
-static inline gboolean
-pixel_equals( PEL *p, PEL *ink, int n )
-{
- 	int j;
-
-	for( j = 0; j < n; j++ ) 
-		if( p[j] != ink[j] ) 
-			break; 
-
-	return( j == n );
+	return( st->equal ^ (j == st->ps) );
 }
 
 /* Faster than memcpy for n < about 20.
  */
 static inline void
-pixel_copy( PEL *p, PEL *ink, int n )
+pixel_paint( State *st, PEL *q )
 {
  	int j;
 
-	for( j = 0; j < n; j++ ) 
-		p[j] = ink[j];
+	for( j = 0; j < st->ps; j++ ) 
+		q[j] = st->ink[j];
 }
 
-/* Fill a scanline with ink while pixels are equal to edge. We know x/y must
- * be equal to edge.
+/* Fill a left and right, return the endpoints. The start point (x, y) must be 
+ * connected.
  */
 static void 
-fill_scanline_equal( State *st, int x, int y, int *x1, int *x2 )
+fill_scanline( State *st, int x, int y, int *x1, int *x2 )
 {
 	PEL *p = (PEL *) IM_IMAGE_ADDR( st->im, x, y );
 
 	int i;
 	PEL *q;
 
-	g_assert( pixel_equals( p, st->edge, st->ps ) );
+	g_assert( pixel_connected( st, p ) );
 
 	/* Fill this pixel and to the right.
 	 */
 	for( q = p, i = 0; 
-		i < st->im->Xsize - x && pixel_equals( q, st->edge, st->ps ); 
+		i < st->im->Xsize - x && pixel_connected( st, q ); 
 		q += st->ps, i++ ) 
-		pixel_copy( q, st->ink, st->ps );
+		pixel_paint( st, q );
 	*x2 = x + i - 1;
 
 	/* Fill to the left.
 	 */
 	for( q = p - st->ps, i = 1;
-		i > x && pixel_equals( q, st->edge, st->ps ); 
+		i > x && pixel_connected( st, q ); 
 		q -= st->ps, i++ ) 
-		pixel_copy( q, st->ink, st->ps );
+		pixel_paint( st, q );
 	*x1 = x - (i - 1);
 }
 
@@ -247,20 +233,35 @@ fill_scanline_equal( State *st, int x, int y, int *x1, int *x2 )
  * this range looking for an edge pixel we can flood from.
  */
 static void
-fill_scanline_above( State *st, int x1, int x2, int y )
+fill_scanline_up( State *st, int x1, int x2, int y )
 {
-	PEL *p = (PEL *) IM_IMAGE_ADDR( st->im, x1, y );
-
-	PEL *q;
 	int x;
 
-	for( q = p, x = x1; x <= x2; q += st->ps, x++ ) 
-		if( pixel_equals( q, st->edge, st->ps ) ) {
+	for( x = x1; x <= x2; x++ ) {
+		PEL *p = (PEL *) IM_IMAGE_ADDR( st->im, x, y );
+
+		if( pixel_connected( st, p ) ) {
 			int x1a;
 			int x2a;
 
-			fill_scanline_equal( st, x, y, &x1a, &x2a );
+			fill_scanline( st, x, y, &x1a, &x2a );
+
+			/* Our new scanline can have up to three more
+			 * scanlines connected to it: above, below left, below
+			 * right.
+			 */
+			if( x1a < x1 - 1 )
+				st->down = buffer_add( st->down,
+					x1a, x1 - 1, y - 1 );
+			if( x2a > x2 + 1 )
+				st->down = buffer_add( st->down,
+					x2 + 1, x2a, y - 1 );
+			st->up = buffer_add( st->up,
+				x1a, x2a, y + 1 );
+
+			x = x2a;
 		}
+	}
 }
 
 /* Free a state.
@@ -277,8 +278,10 @@ state_free( State *st )
 	 */
 	IM_FREE( st->ink );
 	IM_FREE( st->edge );
-	IM_FREEF( buffer_free, st->buf1 );
-	IM_FREEF( buffer_free, st->buf2 );
+	IM_FREEF( buffer_free, st->up1 );
+	IM_FREEF( buffer_free, st->down1 );
+	IM_FREEF( buffer_free, st->up2 );
+	IM_FREEF( buffer_free, st->down2 );
 	im_free( st );
 }
 
@@ -299,8 +302,6 @@ state_build( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	st->edge = NULL;
 	st->ps = IM_IMAGE_SIZEOF_PEL( im );
 	st->ls = IM_IMAGE_SIZEOF_LINE( im );
-	st->buf1 = NULL;
-	st->buf2 = NULL;
 	st->left = 0;
 	st->top = 0;
 	st->right = im->Xsize;
@@ -310,117 +311,26 @@ state_build( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	st->dirty.width = 0;
 	st->dirty.height = 0;
 
+	st->up1 = NULL;
+	st->down1 = NULL;
+	st->up2 = NULL;
+	st->down2 = NULL;
+
+	st->up = NULL;
+	st->down = NULL;
+
 	if( !(st->ink = (PEL *) im_malloc( NULL, st->ps )) ||
 		!(st->edge = (PEL *) im_malloc( NULL, st->ps )) ||
-		!(st->buf1 = buffer_build()) ||
-		!(st->buf2 = buffer_build()) ) {
+		!(st->up1 = buffer_build()) ||
+		!(st->down1 = buffer_build()) ||
+		!(st->up2 = buffer_build()) ||
+		!(st->down2 = buffer_build()) ) {
 		state_free( st );
 		return( NULL );
 	}
 	memcpy( st->ink, ink, st->ps );
 
 	return( st );
-}
-
-/* Read points to fill from in, write new points to out.
- */
-static int
-dofill( State *st, Buffer *in, Buffer *out )
-{
-	int i, j;
-
-	/* Clear output buffer.
-	 */
-	out->n = 0;
-
-	/* Loop over chain of input buffers.
-	 */
-	for(;;) {
-		/* Loop for this buffer.
-		 */
-		for( i = 0; i < in->n; i++ ) {
-			/* Find this pixel.
-			 */
-			int x = in->points[i].x;
-			int y = in->points[i].y;
-			PEL *p = (PEL *) st->im->data + x*st->ps + y*st->ls;
-
-			/* Is it still not fore? May have been set by us
-			 * earlier.
-			 */
-			for( j = 0; j < st->ps; j++ )
-				if( p[j] != st->ink[j] )
-					break;
-			if( j == st->ps )
-				continue;
-
-			/* Set this pixel.
-			 */
-			for( j = 0; j < st->ps; j++ )
-				p[j] = st->ink[j];
-
-			/* Changes bb of dirty area?
-			 */
-			if( x < st->dirty.left ) {
-				st->dirty.left -= x;
-				st->dirty.width += x;
-			}
-			else if( x > st->dirty.left + st->dirty.width )
-				st->dirty.width += x;
-
-			if( y < st->dirty.top ) {
-				st->dirty.top -= y;
-				st->dirty.height += y;
-			}
-			else if( y > st->dirty.top + st->dirty.height )
-				st->dirty.height += y;
-
-			/* Propogate to neighbours.
-			 */
-			if( st->equal ) {
-				if( x < st->right - 1 )
-					out = buffer_add_ifedge( out, st, 
-						p + st->ps, x + 1, y );
-				if( x > st->left )
-					out = buffer_add_ifedge( out, st, 
-						p - st->ps, x - 1, y );
-				if( y < st->bottom - 1 )
-					out = buffer_add_ifedge( out, st, 
-						p + st->ls, x, y + 1 );
-				if( y > st->top )
-					out = buffer_add_ifedge( out, st, 
-						p - st->ls, x, y - 1 );
-			}
-			else {
-				if( x < st->right - 1 )
-					out = buffer_add_ifnotedge( out, st, 
-						p + st->ps, x + 1, y );
-				if( x > st->left )
-					out = buffer_add_ifnotedge( out, st, 
-						p - st->ps, x - 1, y );
-				if( y < st->bottom - 1 )
-					out = buffer_add_ifnotedge( out, st, 
-						p + st->ls, x, y + 1 );
-				if( y > st->top )
-					out = buffer_add_ifnotedge( out, st, 
-						p - st->ls, x, y - 1 );
-			}
-
-			/* There was an error in one of the adds.
-			 */
-			if( !out )
-				return( -1 );
-		}
-
-		if( in->n == PBUFSIZE )
-			/* Buffer full ... must be another one.
-			 */
-			in = in->next;
-		else
-			break;
-	}
-
-	return( 0 );
 }
 
 /**
@@ -471,7 +381,6 @@ im_flood_new( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	st->equal = 0;
 
 	/* Add start pixel to the work buffer, and loop.
-	 */
 	st->buf1 = buffer_add( st->buf1, x, y );
 	for( in = st->buf1, out = st->buf2; 
 		in->n > 0; t = in, in = out, out = t )
@@ -479,6 +388,7 @@ im_flood_new( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 			state_free( st );
 			return( -1 );
 		}
+	 */
 
 	state_free( st );
 
