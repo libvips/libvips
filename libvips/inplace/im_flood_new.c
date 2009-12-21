@@ -1,8 +1,4 @@
-/* int im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
- *
- * Flood fill from point (x,y) with colour ink. Flood up to boundary == ink.
- * Any type, any number of bands, IM_CODING_LABQ too. Returns the bounding box 
- * of the modified pixels in dout, whether it succeeds or not.
+/* flood-fill
  *
  * Currently a rather inefficient pixel-based algorithm, should put something
  * better in, really. Speed isn't likely to be a problem, except for very
@@ -22,6 +18,10 @@
  * 	- added IM_CODING_RAD support
  * 28/9/09
  * 	- ooops, tiny memleak
+ * 17/12/09
+ * 	- use inline rather than defines, so we can add scanline fills more
+ * 	  easily
+ * 	- gtk-doc comments
  */
 
 /*
@@ -114,7 +114,7 @@ typedef struct {
 /* Alloc a new buffer.
  */
 static Buffer *
-build_buffer( void )
+buffer_build( void )
 {
 	Buffer *buf = IM_NEW( NULL, Buffer );
 
@@ -129,16 +129,144 @@ build_buffer( void )
 /* Free a chain of buffers.
  */
 static void
-free_buffer( Buffer *buf )
+buffer_free( Buffer *buf )
 {
 	IM_FREE( buf->next );
 	im_free( buf );
 }
 
+/* Add an xy point to a buffer, appending a new buffer if necessary. Return
+ * the new tail buffer.
+ */
+static inline Buffer * 
+buffer_add( Buffer *buf, int x, int y )
+{
+	/* buf can be NULL if we've had an error.
+	 */
+	if( !buf )
+		return( NULL );
+
+	buf->points[buf->n].x = x;
+	buf->points[buf->n].y = y;
+	buf->n++; 
+
+	if( buf->n == PBUFSIZE ) { 
+		if( !buf->next ) { 
+			if( !(buf->next = buffer_build()) ) 
+				return( NULL ); 
+		} 
+		buf = buf->next; 
+		buf->n = 0; 
+	} 
+
+	return( buf );
+}
+
+static inline Buffer *
+buffer_add_ifnotedge( Buffer *buf, State *st, PEL *p, int x, int y )
+{
+ 	int j;
+
+	for( j = 0; j < st->ps; j++ ) 
+		if( p[j] != st->edge[j] ) { 
+			buf = buffer_add( buf, x, y ); 
+			break; 
+		} 
+
+	return( buf );
+}
+
+static inline Buffer *
+buffer_add_ifedge( Buffer *buf, State *st, PEL *p, int x, int y )
+{
+ 	int j;
+
+	for( j = 0; j < st->ps; j++ ) 
+		if( p[j] != st->edge[j] ) 
+			break; 
+	if( j == st->ps ) 
+		buf = buffer_add( buf, x, y );
+
+	return( buf );
+}
+
+static inline gboolean
+pixel_equals( PEL *p, PEL *ink, int n )
+{
+ 	int j;
+
+	for( j = 0; j < n; j++ ) 
+		if( p[j] != ink[j] ) 
+			break; 
+
+	return( j == n );
+}
+
+/* Faster than memcpy for n < about 20.
+ */
+static inline void
+pixel_copy( PEL *p, PEL *ink, int n )
+{
+ 	int j;
+
+	for( j = 0; j < n; j++ ) 
+		p[j] = ink[j];
+}
+
+/* Fill a scanline with ink while pixels are equal to edge. We know x/y must
+ * be equal to edge.
+ */
+static void 
+fill_scanline_equal( State *st, int x, int y, int *x1, int *x2 )
+{
+	PEL *p = (PEL *) IM_IMAGE_ADDR( st->im, x, y );
+
+	int i;
+	PEL *q;
+
+	g_assert( pixel_equals( p, st->edge, st->ps ) );
+
+	/* Fill this pixel and to the right.
+	 */
+	for( q = p, i = 0; 
+		i < st->im->Xsize - x && pixel_equals( q, st->edge, st->ps ); 
+		q += st->ps, i++ ) 
+		pixel_copy( q, st->ink, st->ps );
+	*x2 = x + i - 1;
+
+	/* Fill to the left.
+	 */
+	for( q = p - st->ps, i = 1;
+		i > x && pixel_equals( q, st->edge, st->ps ); 
+		q -= st->ps, i++ ) 
+		pixel_copy( q, st->ink, st->ps );
+	*x1 = x - (i - 1);
+}
+
+/* We know the line below us is filled between x1 and x2. Search our line in
+ * this range looking for an edge pixel we can flood from.
+ */
+static void
+fill_scanline_above( State *st, int x1, int x2, int y )
+{
+	PEL *p = (PEL *) IM_IMAGE_ADDR( st->im, x1, y );
+
+	PEL *q;
+	int x;
+
+	for( q = p, x = x1; x <= x2; q += st->ps, x++ ) 
+		if( pixel_equals( q, st->edge, st->ps ) ) {
+			int x1a;
+			int x2a;
+
+			fill_scanline_equal( st, x, y, &x1a, &x2a );
+		}
+}
+
 /* Free a state.
  */
 static void
-free_state( State *st )
+state_free( State *st )
 {
 	/* Write dirty back to caller.
 	 */
@@ -149,15 +277,15 @@ free_state( State *st )
 	 */
 	IM_FREE( st->ink );
 	IM_FREE( st->edge );
-	IM_FREEF( free_buffer, st->buf1 );
-	IM_FREEF( free_buffer, st->buf2 );
+	IM_FREEF( buffer_free, st->buf1 );
+	IM_FREEF( buffer_free, st->buf2 );
 	im_free( st );
 }
 
 /* Build a state.
  */
 static State *
-build_state( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+state_build( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 {
 	State *st = IM_NEW( NULL, State );
 
@@ -184,54 +312,14 @@ build_state( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 
 	if( !(st->ink = (PEL *) im_malloc( NULL, st->ps )) ||
 		!(st->edge = (PEL *) im_malloc( NULL, st->ps )) ||
-		!(st->buf1 = build_buffer()) ||
-		!(st->buf2 = build_buffer()) ) {
-		free_state( st );
+		!(st->buf1 = buffer_build()) ||
+		!(st->buf2 = buffer_build()) ) {
+		state_free( st );
 		return( NULL );
 	}
 	memcpy( st->ink, ink, st->ps );
 
 	return( st );
-}
-
-/* Add xy to buffer, move buffer on on overflow.
- */
-#define ADD( BUF, X, Y ) { \
-	BUF->points[BUF->n].x = X; \
-	BUF->points[BUF->n].y = Y; \
-	BUF->n++; \
-	if( BUF->n == PBUFSIZE ) { \
-		if( !BUF->next ) { \
-			if( !(BUF->next = build_buffer()) ) \
-				return( -1 ); \
-		} \
-		BUF = BUF->next; \
-		BUF->n = 0; \
-	} \
-}
-
-/* If point != edge, add it to out.
- */
-#define ADDIFNOTEDGE( P, X, Y ) { \
-	PEL *p1 = (P); \
- 	\
-	for( j = 0; j < st->ps; j++ ) \
-		if( p1[j] != st->edge[j] ) { \
-			ADD( out, X, Y ); \
-			break; \
-		} \
-}
-
-/* If point == edge, add it to out.
- */
-#define ADDIFEDGE( P, X, Y ) { \
-	PEL *p1 = (P); \
- 	\
-	for( j = 0; j < st->ps; j++ ) \
-		if( p1[j] != st->edge[j] ) \
-			break; \
-	if( j == st->ps ) \
-		ADD( out, X, Y ); \
 }
 
 /* Read points to fill from in, write new points to out.
@@ -291,24 +379,37 @@ dofill( State *st, Buffer *in, Buffer *out )
 			 */
 			if( st->equal ) {
 				if( x < st->right - 1 )
-					ADDIFEDGE( p + st->ps, x + 1, y );
+					out = buffer_add_ifedge( out, st, 
+						p + st->ps, x + 1, y );
 				if( x > st->left )
-					ADDIFEDGE( p - st->ps, x - 1, y );
+					out = buffer_add_ifedge( out, st, 
+						p - st->ps, x - 1, y );
 				if( y < st->bottom - 1 )
-					ADDIFEDGE( p + st->ls, x, y + 1 );
+					out = buffer_add_ifedge( out, st, 
+						p + st->ls, x, y + 1 );
 				if( y > st->top )
-					ADDIFEDGE( p - st->ls, x, y - 1 );
+					out = buffer_add_ifedge( out, st, 
+						p - st->ls, x, y - 1 );
 			}
 			else {
 				if( x < st->right - 1 )
-					ADDIFNOTEDGE( p + st->ps, x + 1, y );
+					out = buffer_add_ifnotedge( out, st, 
+						p + st->ps, x + 1, y );
 				if( x > st->left )
-					ADDIFNOTEDGE( p - st->ps, x - 1, y );
+					out = buffer_add_ifnotedge( out, st, 
+						p - st->ps, x - 1, y );
 				if( y < st->bottom - 1 )
-					ADDIFNOTEDGE( p + st->ls, x, y + 1 );
+					out = buffer_add_ifnotedge( out, st, 
+						p + st->ls, x, y + 1 );
 				if( y > st->top )
-					ADDIFNOTEDGE( p - st->ls, x, y - 1 );
+					out = buffer_add_ifnotedge( out, st, 
+						p - st->ls, x, y - 1 );
 			}
+
+			/* There was an error in one of the adds.
+			 */
+			if( !out )
+				return( -1 );
 		}
 
 		if( in->n == PBUFSIZE )
@@ -322,30 +423,45 @@ dofill( State *st, Buffer *in, Buffer *out )
 	return( 0 );
 }
 
+/**
+ * im_flood:
+ * @im: image to fill
+ * @x: position to start fill
+ * @y: position to start fill
+ * @ink: colour to fill with
+ * @dout: output the bounding box of the filled area 
+ *
+ * Flood-fill @im with @ink, starting at position @x, @y. The filled area is
+ * bounded by pixels that are equal to the ink colour, in other words, it
+ * searches for pixels enclosed by a line of @ink.
+ *
+ * The bounding box of the modified pixels is returned in @dout.
+ *
+ * This an inplace operation, so @im is changed. It does not thread and will
+ * not work well as part of a pipeline. On 32-bit machines, it will be limited
+ * to 2GB images.
+ *
+ * See also: im_flood_blob(), im_flood_other(), im_flood_blob_copy().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
 int
-im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+im_flood_new( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 {
 	State *st;
 	Buffer *in, *out, *t;
 	PEL *p;
 
-	if( im_rwcheck( im ) )
-		return( -1 );
-	if( im->Coding != IM_CODING_NONE && 
-		im->Coding != IM_CODING_LABQ &&
-		im->Coding != IM_CODING_RAD ) {
-		im_error( "im_flood", "%s", 
-			_( "Coding should be NONE, LABQ or RAD" ) ); 
-		return( -1 );
-	}
-	if( !(st = build_state( im, x, y, ink, dout )) )
+	if( im_rwcheck( im ) ||
+		im_check_known_coded( "im_flood", im ) )
+	if( !(st = state_build( im, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Test start pixel ... nothing to do?
 	 */
 	p = (PEL *) im->data + x*st->ps + y*st->ls;
 	if( memcmp( p, ink, st->ps ) == 0 ) {
-		free_state( st );
+		state_free( st );
 		return( 0 );
 	}
 
@@ -356,15 +472,15 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 
 	/* Add start pixel to the work buffer, and loop.
 	 */
-	ADD( st->buf1, x, y )
+	st->buf1 = buffer_add( st->buf1, x, y );
 	for( in = st->buf1, out = st->buf2; 
 		in->n > 0; t = in, in = out, out = t )
 		if( dofill( st, in, out ) ) {
-			free_state( st );
+			state_free( st );
 			return( -1 );
 		}
-	
-	free_state( st );
+
+	state_free( st );
 
 	im_invalidate( im );
 
@@ -372,58 +488,13 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 }
 
 int
-im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
-{
-	State *st;
-	Buffer *in, *out, *t;
-	PEL *p;
-
-	if( im_rwcheck( im ) )
-		return( -1 );
-	if( im->Coding != IM_CODING_NONE && 
-		im->Coding != IM_CODING_LABQ &&
-		im->Coding != IM_CODING_RAD ) {
-		im_error( "im_flood", "%s", 
-			_( "Coding should be NONE, LABQ or RAD" ) ); 
-		return( -1 );
-	}
-	if( !(st = build_state( im, x, y, ink, dout )) )
-		return( -1 );
-
-	/* Edge is set by colour of start pixel.
-	 */
-	p = (PEL *) im->data + x*st->ps + y*st->ls;
-	memcpy( st->edge, p, st->ps );
-	st->equal = 1;
-
-	/* Add start pixel to the work buffer, and loop.
-	 */
-	ADD( st->buf1, x, y )
-	for( in = st->buf1, out = st->buf2; 
-		in->n > 0; t = in, in = out, out = t )
-		if( dofill( st, in, out ) ) {
-			free_state( st );
-			return( -1 );
-		}
-	
-	free_state( st );
-
-	im_invalidate( im );
-
-	return( 0 );
-}
-
-/* A Flood blob we can call from nip. Grr! Should be a way to wrap these
- * automatically. Maybe nip could do it if it sees a RW image argument?
- */
-int
-im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
+im_flood_new_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
 {
 	IMAGE *t;
 
 	if( !(t = im_open_local( out, "im_flood_blob_copy", "t" )) ||
 		im_copy( in, t ) ||
-		im_flood_blob( t, x, y, ink, NULL ) ||
+		im_flood_new( t, x, y, ink, NULL ) ||
 		im_copy( t, out ) ) 
 		return( -1 );
 
