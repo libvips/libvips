@@ -112,14 +112,10 @@ typedef struct {
 
 	/* We need to flood above and below these scanlines.
 	 */
-	Buffer *up1, *up2;
-	Buffer *down1, *down2;
-
-	/* The buffers we are writing to now. Copies of one of the above,
-	 * don't free.
-	 */
 	Buffer *up;
 	Buffer *down;
+	Buffer *read_up;
+	Buffer *read_down;
 } State;
 
 /* Alloc a new buffer.
@@ -150,10 +146,16 @@ buffer_free( Buffer *buf )
  * the new head buffer.
  */
 static inline Buffer * 
-buffer_add( Buffer *buf, int x1, int x2, int y )
+buffer_add( State *st, Buffer *buf, int x1, int x2, int y )
 {
-	// FIXME ... need to clip against aimge size and add nothing if the
-	// scanline is empty
+	/* Clip against image size.
+	 */
+	if( y < 0 || y > st->im->Ysize )
+		return( buf );
+	x1 = IM_CLIP( 0, x1, st->im->Xsize );
+	x2 = IM_CLIP( 0, x2, st->im->Xsize );
+	if( x2 - x1 <= 0 )
+		return( buf );
 
 	buf->scan[buf->n].x1 = x1;
 	buf->scan[buf->n].x2 = x2;
@@ -229,38 +231,76 @@ fill_scanline( State *st, int x, int y, int *x1, int *x2 )
 	*x1 = x - (i - 1);
 }
 
-/* We know the line below us is filled between x1 and x2. Search our line in
- * this range looking for an edge pixel we can flood from.
+/* We know the line below or above us is filled between x1 and x2. Search our 
+ * line in this range looking for an edge pixel we can flood from.
+ *
+ * "direction" is -1 if we're going up, +1 if we're filling down.
  */
 static void
-fill_scanline_up( State *st, int x1, int x2, int y )
+fill_around( State *st, Scan *scan, int dir )
 {
 	int x;
 
-	for( x = x1; x <= x2; x++ ) {
-		PEL *p = (PEL *) IM_IMAGE_ADDR( st->im, x, y );
+	g_assert( dir == 1 || dir == -1 );
+
+	for( x = scan->x1; x <= scan->x2; x++ ) {
+		PEL *p = (PEL *) IM_IMAGE_ADDR( st->im, x, scan->y );
 
 		if( pixel_connected( st, p ) ) {
 			int x1a;
 			int x2a;
 
-			fill_scanline( st, x, y, &x1a, &x2a );
+			fill_scanline( st, x, scan->y, &x1a, &x2a );
 
 			/* Our new scanline can have up to three more
 			 * scanlines connected to it: above, below left, below
 			 * right.
 			 */
-			if( x1a < x1 - 1 )
-				st->down = buffer_add( st->down,
-					x1a, x1 - 1, y - 1 );
-			if( x2a > x2 + 1 )
-				st->down = buffer_add( st->down,
-					x2 + 1, x2a, y - 1 );
-			st->up = buffer_add( st->up,
-				x1a, x2a, y + 1 );
+			if( x1a < scan->x1 - 1 )
+				st->down = buffer_add( st, st->down,
+					x1a, scan->x1 - 1, scan->y - dir );
+			if( x2a > scan->x2 + 1 )
+				st->down = buffer_add( st, st->down,
+					scan->x2 + 1, x2a, scan->y - dir );
+			st->up = buffer_add( st, st->up,
+				x1a, x2a, scan->y + dir );
 
 			x = x2a;
 		}
+	}
+}
+
+static void
+fill_buffer( State *st, Buffer *buf, int dir )
+{
+	Buffer *p;
+
+	for( p = buf; p; p = p->next ) {
+		int i;
+
+		for( i = 0; i < p->n; i++ )
+			fill_around( st, &buf->scan[i], dir );
+
+		p->n = 0;
+	}
+}
+
+static void
+fill_all( State *st )
+{
+	while( st->read_up || st->read_down ) {
+		Buffer *p;
+
+		fill_buffer( st, st->read_up, -1 );
+		fill_buffer( st, st->read_down, -1 );
+
+		p = st->read_up;
+		st->read_up = st->up;
+		st->up = p;
+
+		p = st->read_down;
+		st->read_down = st->down;
+		st->down = p;
 	}
 }
 
@@ -278,10 +318,10 @@ state_free( State *st )
 	 */
 	IM_FREE( st->ink );
 	IM_FREE( st->edge );
-	IM_FREEF( buffer_free, st->up1 );
-	IM_FREEF( buffer_free, st->down1 );
-	IM_FREEF( buffer_free, st->up2 );
-	IM_FREEF( buffer_free, st->down2 );
+	IM_FREEF( buffer_free, st->up );
+	IM_FREEF( buffer_free, st->down );
+	IM_FREEF( buffer_free, st->read_up );
+	IM_FREEF( buffer_free, st->read_down );
 	im_free( st );
 }
 
@@ -311,20 +351,17 @@ state_build( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	st->dirty.width = 0;
 	st->dirty.height = 0;
 
-	st->up1 = NULL;
-	st->down1 = NULL;
-	st->up2 = NULL;
-	st->down2 = NULL;
-
 	st->up = NULL;
 	st->down = NULL;
+	st->read_up = NULL;
+	st->read_down = NULL;
 
 	if( !(st->ink = (PEL *) im_malloc( NULL, st->ps )) ||
 		!(st->edge = (PEL *) im_malloc( NULL, st->ps )) ||
-		!(st->up1 = buffer_build()) ||
-		!(st->down1 = buffer_build()) ||
-		!(st->up2 = buffer_build()) ||
-		!(st->down2 = buffer_build()) ) {
+		!(st->up = buffer_build()) ||
+		!(st->down = buffer_build()) ||
+		!(st->read_up = buffer_build()) ||
+		!(st->read_down = buffer_build()) ) {
 		state_free( st );
 		return( NULL );
 	}
@@ -381,7 +418,7 @@ im_flood_new( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	st->equal = 0;
 
 	/* Add start pixel to the work buffer, and loop.
-	st->buf1 = buffer_add( st->buf1, x, y );
+	st->buf1 = buffer_add( st, st->buf1, x, y );
 	for( in = st->buf1, out = st->buf2; 
 		in->n > 0; t = in, in = out, out = t )
 		if( dofill( st, in, out ) ) {
