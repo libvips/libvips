@@ -48,15 +48,27 @@ int im_fastlineuser( IMAGE *im,
 	int x1, int y1, int x2, int y2, 
 	int (*fn)(), void *client1, void *client2, void *client3 );
 int im_readpoint( IMAGE *im, int x, int y, PEL *pel );
+
 int im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout );
 int im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout );
+int im_flood_other( IMAGE *test, IMAGE *mark, 
+	int x, int y, int serial, Rect *dout );
+
+int im_flood_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
 int im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
-int im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial );
-int im_flood_other_copy( IMAGE *mask, IMAGE *test, IMAGE *out, 
+int im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out, 
 	int x, int y, int serial );
 
 int im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
+
+int im_flood_old( IMAGE *im, int x, int y, PEL *ink, Rect *dout );
+int im_flood_blob_old( IMAGE *im, int x, int y, PEL *ink, Rect *dout );
+int im_flood_other_old( IMAGE *mask, IMAGE *test, int x, int y, int serial );
+int im_flood_copy_old( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
+int im_flood_blob_copy_old( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
+int im_flood_other_copy_old( IMAGE *mask, IMAGE *test, IMAGE *out, 
+	int x, int y, int serial );
 
 #ifdef __cplusplus
 }

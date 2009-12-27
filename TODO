@@ -2,8 +2,6 @@
 
 - rename vipsCC in SWIG as pyvips?
 
-- im_flood*() should use inline rather than #define
-
 - look into G_GNUC_DEPRECATED for back compat in vips8
 
 - use

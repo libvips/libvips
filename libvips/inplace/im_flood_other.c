@@ -261,7 +261,7 @@ dofill( State *st, Buffer *in, Buffer *out )
 }
 
 int
-im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial )
+im_flood_other_old( IMAGE *mask, IMAGE *test, int x, int y, int serial )
 {
 	State *st;
 	Buffer *in, *out, *t;
@@ -315,14 +315,14 @@ im_flood_other( IMAGE *mask, IMAGE *test, int x, int y, int serial )
  * automatically. Maybe nip could do it if it sees a RW image argument?
  */
 int
-im_flood_other_copy( IMAGE *mask, IMAGE *test, IMAGE *out, 
+im_flood_other_copy_old( IMAGE *mask, IMAGE *test, IMAGE *out, 
 	int x, int y, int serial )
 {
 	IMAGE *t;
 
 	if( !(t = im_open_local( out, "im_flood_other_copy", "t" )) ||
 		im_copy( mask, t ) ||
-		im_flood_other( t, test, x, y, serial ) ||
+		im_flood_other_old( t, test, x, y, serial ) ||
 		im_copy( t, out ) ) 
 		return( -1 );
 

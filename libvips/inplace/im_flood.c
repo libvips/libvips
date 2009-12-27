@@ -323,7 +323,7 @@ dofill( State *st, Buffer *in, Buffer *out )
 }
 
 int
-im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+im_flood_old( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 {
 	State *st;
 	Buffer *in, *out, *t;
@@ -372,7 +372,7 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 }
 
 int
-im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+im_flood_blob_old( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 {
 	State *st;
 	Buffer *in, *out, *t;
@@ -417,17 +417,36 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  * automatically. Maybe nip could do it if it sees a RW image argument?
  */
 int
-im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
+im_flood_blob_copy_old( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
 {
 	IMAGE *t;
 
 	if( !(t = im_open_local( out, "im_flood_blob_copy", "t" )) ||
 		im_copy( in, t ) ||
-		im_flood_blob( t, x, y, ink, NULL ) ||
+		im_flood_blob_old( t, x, y, ink, NULL ) ||
 		im_copy( t, out ) ) 
 		return( -1 );
 
 	return( 0 );
 }
+
+/* A Flood blob we can call from nip. Grr! Should be a way to wrap these
+ * automatically. Maybe nip could do it if it sees a RW image argument?
+ */
+int
+im_flood_copy_old( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( out, "im_flood_copy", "t" )) ||
+		im_copy( in, t ) ||
+		im_flood_old( t, x, y, ink, NULL ) ||
+		im_copy( t, out ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+
 
 

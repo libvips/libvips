@@ -188,9 +188,9 @@ vector_to_ink( IMAGE *im, double *vec )
 	return( (PEL *) t[2]->data );
 }
 
-/* Args for im_flood_new().
+/* Args for im_flood_old().
  */
-static im_arg_desc flood_new_args[] = {
+static im_arg_desc flood_old_args[] = {
 	IM_INPUT_IMAGE( "in" ),
 	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_INT( "start_x" ),
@@ -198,10 +198,10 @@ static im_arg_desc flood_new_args[] = {
 	IM_INPUT_DOUBLEVEC( "ink" )
 };
 
-/* Call im_flood_new() via arg vector.
+/* Call im_flood_old() via arg vector.
  */
 static int
-flood_new_vec( im_object *argv )
+flood_old_vec( im_object *argv )
 {
 	IMAGE *in = argv[0];
 	IMAGE *out = argv[1];
@@ -209,30 +209,30 @@ flood_new_vec( im_object *argv )
 	int start_y = *((int *) argv[3]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[4];
 
-	extern int im_flood_new_copy( IMAGE *, IMAGE *, int, int, PEL * );
+	extern int im_flood_copy_old( IMAGE *, IMAGE *, int, int, PEL * );
 
 	PEL *ink;
 
 	if( dv->n != in->Bands ) {
-		im_error( "im_flood_new", 
+		im_error( "im_flood_old", 
 			"%s", _( "bad vector length" ) );
 		return( -1 );
 	}
 	if( !(ink = vector_to_ink( in, dv->vec )) )
 		return( -1 );
 
-	return( im_flood_new_copy( in, out, start_x, start_y, ink ) );
+	return( im_flood_copy_old( in, out, start_x, start_y, ink ) );
 }
 
-/* Description of im_flood_new().
+/* Description of im_flood_old().
  */ 
-static im_function flood_new_desc = {
-	"im_flood_new",	/* Name */
+static im_function flood_old_desc = {
+	"im_flood_old",	/* Name */
 	"flood with ink from start_x, start_y while pixel == start pixel",
 	0,			/* Flags */
-	flood_new_vec, 	/* Dispatch function */
-	IM_NUMBER( flood_new_args ),/* Size of arg list */
-	flood_new_args 	/* Arg list */
+	flood_old_vec, 	/* Dispatch function */
+	IM_NUMBER( flood_old_args ),/* Size of arg list */
+	flood_old_args 	/* Arg list */
 };
 
 /* Args for im_flood_blob_copy().
@@ -278,6 +278,51 @@ static im_function flood_blob_copy_desc = {
 	flood_blob_copy_vec, 	/* Dispatch function */
 	IM_NUMBER( flood_blob_copy_args ),/* Size of arg list */
 	flood_blob_copy_args 	/* Arg list */
+};
+
+/* Args for im_flood_copy().
+ */
+static im_arg_desc flood_copy_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "start_x" ),
+	IM_INPUT_INT( "start_y" ),
+	IM_INPUT_DOUBLEVEC( "ink" )
+};
+
+/* Call im_flood_copy() via arg vector.
+ */
+static int
+flood_copy_vec( im_object *argv )
+{
+	IMAGE *in = argv[0];
+	IMAGE *out = argv[1];
+	int start_x = *((int *) argv[2]);
+	int start_y = *((int *) argv[3]);
+	im_doublevec_object *dv = (im_doublevec_object *) argv[4];
+
+	PEL *ink;
+
+	if( dv->n != in->Bands ) {
+		im_error( "im_flood_copy", 
+			"%s", _( "bad vector length" ) );
+		return( -1 );
+	}
+	if( !(ink = vector_to_ink( in, dv->vec )) )
+		return( -1 );
+
+	return( im_flood_copy( in, out, start_x, start_y, ink ) );
+}
+
+/* Description of im_flood_copy().
+ */ 
+static im_function flood_copy_desc = {
+	"im_flood_copy",	/* Name */
+	"flood with ink from start_x, start_y while pixel == start pixel",
+	0,			/* Flags */
+	flood_copy_vec, 	/* Dispatch function */
+	IM_NUMBER( flood_copy_args ),/* Size of arg list */
+	flood_copy_args 	/* Arg list */
 };
 
 /* Args for im_flood_other_copy().
@@ -335,7 +380,8 @@ static im_function flood_other_copy_desc = {
 static im_function *inplace_list[] = {
 	&circle_desc,
 	&flood_blob_copy_desc,
-	&flood_new_desc,
+	&flood_copy_desc,
+	&flood_old_desc,
 	&flood_other_copy_desc,
 	&insertplace_desc,
 	&lineset_desc
