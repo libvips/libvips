@@ -1,9 +1,5 @@
 /* flood-fill
  *
- * Currently a rather inefficient pixel-based algorithm, should put something
- * better in, really. Speed isn't likely to be a problem, except for very
- * large images.
- *
  * JC 30/8/97
  *	- VIPSified, cleaned up, from "John Robinson's prog to fill 
  *	  enclosed areas"
@@ -485,6 +481,31 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	return( 0 );
 }
 
+
+/**
+ * im_flood_other:
+ * @test: image to test
+ * @mark: image to mark
+ * @x: position to start fill
+ * @y: position to start fill
+ * @serial: mark pixels with this number
+ * @dout: output the bounding box of the filled area 
+ *
+ * Flood-fill @mark with @serial, starting at position @x, @y. The filled 
+ * area is bounded by pixels in @test that are equal to the start pixel, in 
+ * other words, it searches @test for a blob of same-coloured pixels, marking 
+ * those pixels in @mark with @serial.
+ *
+ * The bounding box of the modified pixels is returned in @dout.
+ *
+ * This an inplace operation, so @mark is changed. It does not thread and will
+ * not work well as part of a pipeline. On 32-bit machines, it will be limited
+ * to 2GB images.
+ *
+ * See also: im_flood(), im_label_regions(), im_flood_blob_copy().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
 int
 im_flood_other( IMAGE *test, IMAGE *mark, int x, int y, int serial, Rect *dout )
 {
@@ -523,7 +544,7 @@ im_flood_other( IMAGE *test, IMAGE *mark, int x, int y, int serial, Rect *dout )
 	return( 0 );
 }
 
-/* A Flood blob we can call from nip. Grr! Should be a way to wrap these
+/* A flood blob we can call from nip. Grr! Should be a way to wrap these
  * automatically. Maybe nip could do it if it sees a RW image argument?
  */
 
