@@ -254,6 +254,11 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 		flood->top = IM_MIN( flood->top, y );
 		flood->bottom = IM_MAX( flood->bottom, y );
 	}
+
+	/*
+	printf( "flood_scanline: filled line %d between %d and %d\n",
+		y, *x1, *x2 );
+	 */
 }
 
 /* We know the line below or above us is filled between x1 and x2. Search our 
@@ -305,7 +310,7 @@ flood_buffer( Flood *flood, Buffer *buf )
 		int i;
 
 		for( i = 0; i < p->n; i++ )
-			flood_around( flood, &buf->scan[i] );
+			flood_around( flood, &p->scan[i] );
 
 		p->n = 0;
 	}
