@@ -1,3 +1,5 @@
+- flood_other gets stuck in a loop o the small_gold_discs test
+
 - add a --without-cpp option?
 
 - rename vipsCC in SWIG as pyvips?
