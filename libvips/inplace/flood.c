@@ -187,16 +187,33 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 /* Is p "connected"? ie. is equal to or not equal to flood->edge, depending on
  * whether we are flooding to the edge boundary or flooding edge-coloured
  * pixels.
+ *
+ * If test and mark are different images, we also need to check ink to make
+ * sure we haven't painted this pixel before. Otherwise we can get stuck in
+ * loops.
  */
 static inline gboolean
-flood_connected( Flood *flood, PEL *p )
+flood_connected( Flood *flood, PEL *tp, PEL *mp )
 {
  	int j;
 
+	if( flood->test != flood->mark ) {
+		for( j = 0; j < flood->msize; j++ ) 
+			if( mp[j] != flood->ink[j] ) 
+				break;
+
+		if( j == flood->msize )
+			/* We've painted this before, can't be connected now.
+			 */
+			return( FALSE );
+	}
+
 	for( j = 0; j < flood->tsize; j++ ) 
-		if( p[j] != flood->edge[j] ) 
+		if( tp[j] != flood->edge[j] ) 
 			break;
 
+	/* If flood->equal, true if point == edge.
+	 */
 	return( flood->equal ^ (j < flood->tsize) );
 }
 
@@ -224,13 +241,14 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	int i;
 
 	g_assert( flood_connected( flood, 
-		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) );
+		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ),
+		(PEL *) IM_IMAGE_ADDR( flood->mark, x, y ) ) );
 
 	/* Fill this pixel and to the right.
 	 */
 	tp = (PEL *) IM_IMAGE_ADDR( flood->test, x, y );
 	mp = (PEL *) IM_IMAGE_ADDR( flood->mark, x, y );
-	for( i = x; i < width && flood_connected( flood, tp ); i++ ) {
+	for( i = x; i < width && flood_connected( flood, tp, mp ); i++ ) {
 		flood_paint( flood, mp );
 		tp += flood->tsize;
 		mp += flood->msize;
@@ -241,7 +259,7 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	 */
 	tp = (PEL *) IM_IMAGE_ADDR( flood->test, x - 1, y );
 	mp = (PEL *) IM_IMAGE_ADDR( flood->mark, x - 1, y );
-	for( i = x - 1; i > 0 && flood_connected( flood, tp ); i-- ) {
+	for( i = x - 1; i > 0 && flood_connected( flood, tp, mp ); i-- ) {
 		flood_paint( flood, mp );
 		tp -= flood->tsize;
 		mp -= flood->msize;
@@ -272,9 +290,10 @@ flood_around( Flood *flood, Scan *scan )
 	g_assert( scan->dir == 1 || scan->dir == -1 );
 
 	for( x = scan->x1; x <= scan->x2; x++ ) {
-		PEL *p = (PEL *) IM_IMAGE_ADDR( flood->test, x, scan->y );
+		PEL *tp = (PEL *) IM_IMAGE_ADDR( flood->test, x, scan->y );
+		PEL *mp = (PEL *) IM_IMAGE_ADDR( flood->mark, x, scan->y );
 
-		if( flood_connected( flood, p ) ) {
+		if( flood_connected( flood, tp, mp ) ) {
 			int x1a;
 			int x2a;
 
@@ -322,7 +341,8 @@ flood_all( Flood *flood, int x, int y )
 	/* Test start pixel ... nothing to do?
 	 */
 	if( flood_connected( flood, 
-		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) ) {
+		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ),
+		(PEL *) IM_IMAGE_ADDR( flood->mark, x, y ) ) ) {
 		int x1, x2;
 
 		flood_scanline( flood, x, y, &x1, &x2 );
