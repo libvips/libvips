@@ -240,6 +240,10 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	int i;
 	int j;
 
+	/*
+	 */
+	printf( "flood_scanline: %d x %d\n", x, y );
+
 	g_assert( flood_connected( flood, 
 		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) );
 	g_assert( !flood_painted( flood, 
@@ -283,9 +287,8 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	}
 
 	/*
-	printf( "flood_scanline: filled line %d between %d and %d\n",
-		y, *x1, *x2 );
 	 */
+	printf( "\tfilled between %d and %d\n", *x1, *x2 );
 }
 
 /* We know the line below or above us is filled between x1 and x2. Search our 
