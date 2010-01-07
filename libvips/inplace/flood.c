@@ -19,7 +19,8 @@
  * 	  easily
  * 	- gtk-doc comments
  * 21/12/09
- * 	- rewrite for a scanline based fill, 4x faster!
+ * 	- rewrite for a scanline based fill, about 4x faster!
+ * 	- allow separate test and mark images
  */
 
 /*
@@ -238,23 +239,21 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	PEL *tp;
 	PEL *mp;
 	int i;
-	int j;
+	int len;
 
 	/*
-	 */
-	printf( "flood_scanline: %d x %d\n", x, y );
-
 	g_assert( flood_connected( flood, 
 		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) );
 	g_assert( !flood_painted( flood, 
 		(PEL *) IM_IMAGE_ADDR( flood->mark, x, y ) ) );
+	 */
 
 	/* Search to the right for the first non-connected pixel. If the start
 	 * pixel is unpainted, we know all the intervening pixels must be
 	 * unpainted too.
 	 */
-	tp = (PEL *) IM_IMAGE_ADDR( flood->test, x, y );
-	for( i = x; i < width; i++ ) {
+	tp = (PEL *) IM_IMAGE_ADDR( flood->test, x + 1, y );
+	for( i = x + 1; i < width; i++ ) {
 		if( !flood_connected( flood, tp ) )
 			break;
 		tp += flood->tsize;
@@ -264,7 +263,7 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	/* Search left.
 	 */
 	tp = (PEL *) IM_IMAGE_ADDR( flood->test, x - 1, y );
-	for( i = x - 1; i > 0; i-- ) {
+	for( i = x - 1; i >= 0; i-- ) {
 		if( !flood_connected( flood, tp ) )
 			break;
 		tp -= flood->tsize;
@@ -273,8 +272,9 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 
 	/* Paint the range we discovered.
 	 */
-	mp = (PEL *) IM_IMAGE_ADDR( flood->mark, x, y );
-	for( i = *x1; i <= *x2; i++ ) {
+	mp = (PEL *) IM_IMAGE_ADDR( flood->mark, *x1, y );
+	len = *x2 - *x1 + 1;
+	for( i = 0; i < len; i++ ) {
 		flood_paint( flood, mp );
 		mp += flood->msize;
 	}
@@ -285,10 +285,6 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 		flood->top = IM_MIN( flood->top, y );
 		flood->bottom = IM_MAX( flood->bottom, y );
 	}
-
-	/*
-	 */
-	printf( "\tfilled between %d and %d\n", *x1, *x2 );
 }
 
 /* We know the line below or above us is filled between x1 and x2. Search our 
@@ -302,8 +298,10 @@ flood_around( Flood *flood, Scan *scan )
 
 	g_assert( scan->dir == 1 || scan->dir == -1 );
 
-	tp = (PEL *) IM_IMAGE_ADDR( flood->test, scan->x1, scan->y );
-	for( x = scan->x1; x <= scan->x2; x++ ) {
+	for( tp = (PEL *) IM_IMAGE_ADDR( flood->test, scan->x1, scan->y ), 
+		x = scan->x1; 
+		x <= scan->x2; 
+		tp += flood->tsize, x++ ) {
 		if( flood_connected( flood, tp ) ) {
 			int x1a;
 			int x2a;
@@ -328,11 +326,11 @@ flood_around( Flood *flood, Scan *scan )
 			 */
 			if( x1a < scan->x1 - 1 )
 				flood->out = buffer_add( flood->out, flood,
-					x1a, scan->x1 - 1, 
+					x1a, scan->x1 - 2, 
 					scan->y - scan->dir, -scan->dir );
 			if( x2a > scan->x2 + 1 )
 				flood->out = buffer_add( flood->out, flood,
-					scan->x2 + 1, x2a, 
+					scan->x2 + 2, x2a, 
 					scan->y - scan->dir, -scan->dir );
 			flood->out = buffer_add( flood->out, flood,
 				x1a, x2a, scan->y + scan->dir, 
@@ -341,44 +339,37 @@ flood_around( Flood *flood, Scan *scan )
 			x = x2a;
 			tp = (PEL *) IM_IMAGE_ADDR( flood->test, x, scan->y );
 		}
-
-		tp += flood->tsize;
-	}
-}
-
-static void
-flood_buffer( Flood *flood, Buffer *buf )
-{
-	Buffer *p;
-
-	for( p = buf; p; p = p->next ) {
-		int i;
-
-		for( i = 0; i < p->n; i++ )
-			flood_around( flood, &p->scan[i] );
-
-		p->n = 0;
 	}
 }
 
 static void
 flood_all( Flood *flood, int x, int y )
 {
+	int x1, x2;
+
 	/* Test start pixel ... nothing to do?
 	 */
-	if( flood_connected( flood, 
-		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) ) {
-		int x1, x2;
+	if( !flood_connected( flood, 
+		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) ) 
+		return;
 
-		flood_scanline( flood, x, y, &x1, &x2 );
-		flood->in = buffer_add( flood->in, flood, x1, x2, y + 1, 1 );
-		flood->in = buffer_add( flood->in, flood, x1, x2, y - 1, -1 );
+	flood_scanline( flood, x, y, &x1, &x2 );
+	flood->in = buffer_add( flood->in, flood, x1, x2, y + 1, 1 );
+	flood->in = buffer_add( flood->in, flood, x1, x2, y - 1, -1 );
 
-		while( flood->in->n ) {
-			flood_buffer( flood, flood->in );
+	while( flood->in->n ) {
+		Buffer *p;
 
-			SWAP( Buffer *, flood->in, flood->out );
+		for( p = flood->in; p; p = p->next ) {
+			int i;
+
+			for( i = 0; i < p->n; i++ )
+				flood_around( flood, &p->scan[i] );
+
+			p->n = 0;
 		}
+
+		SWAP( Buffer *, flood->in, flood->out );
 	}
 }
 
@@ -530,7 +521,6 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 
 	return( 0 );
 }
-
 
 /**
  * im_flood_other:

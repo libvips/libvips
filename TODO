@@ -1,4 +1,4 @@
-- flood_other gets stuck in a loop o the small_gold_discs test
+- we sill have the old flood-fill code there, move to deprecated
 
 - add a --without-cpp option?
 

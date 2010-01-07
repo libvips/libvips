@@ -371,8 +371,8 @@ static im_function flood_copy_desc = {
 /* Args for im_flood_other_copy().
  */
 static im_arg_desc flood_other_copy_args[] = {
-	IM_INPUT_IMAGE( "mask" ),
 	IM_INPUT_IMAGE( "test" ),
+	IM_INPUT_IMAGE( "mark" ),
 	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_INT( "start_x" ),
 	IM_INPUT_INT( "start_y" ),
@@ -384,14 +384,14 @@ static im_arg_desc flood_other_copy_args[] = {
 static int
 flood_other_copy_vec( im_object *argv )
 {
-	IMAGE *mask = argv[0];
-	IMAGE *test = argv[1];
+	IMAGE *test = argv[0];
+	IMAGE *mark = argv[1];
 	IMAGE *out = argv[2];
 	int start_x = *((int *) argv[3]);
 	int start_y = *((int *) argv[4]);
 	int serial = *((int *) argv[5]);
 
-	return( im_flood_other_copy( mask, test, out, 
+	return( im_flood_other_copy( test, mark, out, 
 		start_x, start_y, serial ) );
 }
 
@@ -399,7 +399,7 @@ flood_other_copy_vec( im_object *argv )
  */ 
 static im_function flood_other_copy_desc = {
 	"im_flood_other_copy",	/* Name */
-	"flood mask with serial number from start_x, start_y while pixel == start pixel",
+	"flood mark with serial from start_x, start_y while pixel == start pixel",
 	0,			/* Flags */
 	flood_other_copy_vec, 	/* Dispatch function */
 	IM_NUMBER( flood_other_copy_args ),/* Size of arg list */
