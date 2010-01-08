@@ -1,8 +1,20 @@
-# only build in the python dir if we can
+
+# turn off libvipsCC if C++ is disabled
+if ENABLE_CXX
+C_COMPILE_DIR = libvipsCC
+C_DIST_DIR =
+C_PKGCONFIG = vipsCC-7.${IM_MINOR_VERSION}.pc
+
+# turn on Python if we can (requires C++)
 if HAVE_PYTHON
 P_COMPILE_DIR = swig
 P_DIST_DIR =
+endif
+
 else
+C_COMPILE_DIR =
+C_DIST_DIR = libvipsCC 
+C_PKGCONFIG =
 P_COMPILE_DIR =
 P_DIST_DIR = swig
 endif
@@ -10,24 +22,25 @@ endif
 SUBDIRS = \
 	libvips \
 	tools \
-	libvipsCC \
 	man \
 	po \
 	doc \
+	$(C_COMPILE_DIR) \
 	$(P_COMPILE_DIR) 
 
 EXTRA_DIST = \
 	m4 \
 	benchmark \
 	bootstrap.sh \
-	vipsCC-7.${IM_MINOR_VERSION}.pc.in \
 	vips-7.${IM_MINOR_VERSION}.pc.in \
+	vipsCC-7.${IM_MINOR_VERSION}.pc.in \
 	acinclude.m4 \
 	depcomp \
+	$(C_DIST_DIR) \
 	$(P_DIST_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = vips-7.${IM_MINOR_VERSION}.pc vipsCC-7.${IM_MINOR_VERSION}.pc
+pkgconfig_DATA = vips-7.${IM_MINOR_VERSION}.pc $(C_PKGCONFIG)
 
 install-exec-hook:
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips

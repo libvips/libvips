@@ -95,8 +95,24 @@ AC_C_RESTRICT
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AC_PROG_CXX
 AM_WITH_DMALLOC
+
+# option to build without C++
+# handy for some embedded applications
+# also, including C++ source causes link problems on some
+# platforms, so have an option to disable it
+AC_ARG_ENABLE(cxx, 
+  AS_HELP_STRING([--enable-cxx], [build C++ components (default: enabled)]))
+
+if test x"$enable_cxx" != "xno"; then
+  AC_PROG_CXX
+  AC_DEFINE(ENABLE_CXX,1,[build C++ components])
+  AM_CONDITIONAL(ENABLE_CXX, true)
+  enable_cxx=yes
+else
+  AM_CONDITIONAL(ENABLE_CXX, false)
+  enable_cxx=no
+fi
 
 # we need a fully expanded version of $libdir
 # without this we get something like
@@ -437,9 +453,15 @@ AC_ARG_WITH([python],
     [build without Python bindings (default: test)]))
 
 if test x"$with_python" != "xno"; then
-  AM_PATH_PYTHON(2.2,,
-    [with_python=no
-     AC_MSG_WARN([Python not found; disabling Python binding])])
+  if test x"$enable_cxx" = "xno"; then
+    # if C++ if off, we can't do Python
+    with_python=no
+    AC_MSG_WARN([C++ is off, disabling Python binding])
+  else
+    AM_PATH_PYTHON(2.2,,
+      [with_python=no
+       AC_MSG_WARN([Python not found; disabling Python binding])])
+  fi
 fi
 
 if test x"$with_python" != "xno"; then
@@ -456,21 +478,6 @@ if test x"$with_python" != x"no"; then
   with_python=yes
 else
   AM_CONDITIONAL(HAVE_PYTHON, false)
-fi
-
-# make CImg wrapper? including C++ source causes link problems on some
-# platforms, so have an option to disable it
-AC_ARG_WITH([cimg], 
-  AS_HELP_STRING([--without-cimg], [build without CImg (default: with-cimg)]))
-
-if test x"$with_cimg" != "xno"; then
-  AM_CONDITIONAL(WITH_CIMG, true)
-  AC_DEFINE(WITH_CIMG,1,[include cimg package])
-  with_cimg=yes
-else
-  AM_CONDITIONAL(WITH_CIMG, false)
-  AC_MSG_WARN([disabling CImg binding])
-  with_cimg=no
 fi
 
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES and VIPS_LIBS
@@ -547,6 +554,7 @@ AC_MSG_RESULT([
 * general build options
 native win32:				$vips_os_win32
 open files in binary mode: 		$vips_binary_open
+build C++ components:			$enable_cxx
 evaluate with threads: 			$enable_threads
 make symlinks for commands in bin: 	$enable_links
 build docs with gtkdoc 			$enable_gtk_doc
@@ -566,5 +574,4 @@ file import/export with libjpeg:	$with_jpeg
 use libexif to load/save JPEG metadata: $with_libexif
 video capture with v4l: 		$with_v4l
 build Python binding: 			$with_python
-build CImg wrapper: 			$with_cimg
 ])

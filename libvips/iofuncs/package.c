@@ -546,9 +546,9 @@ static im_package im__iofuncs = {
 static im_package *built_in[] = {
 	&im__arithmetic,
 	&im__boolean,
-#ifdef WITH_CIMG
+#ifdef ENABLE_CXX
 	&im__cimg,
-#endif /*WITH_CIMG*/
+#endif /*ENABLE_CXX*/
 	&im__colour,
 	&im__conversion,
 	&im__convolution,

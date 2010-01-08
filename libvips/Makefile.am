@@ -1,5 +1,5 @@
-# only build in the cimg dir if it's enabled
-if WITH_CIMG
+# only build in the cimg dir if C++ is enabled
+if ENABLE_CXX
 C_COMPILE_DIR = cimg
 C_DIST_DIR =
 C_LIB = cimg/libcimg.la

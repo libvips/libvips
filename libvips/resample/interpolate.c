@@ -504,11 +504,14 @@ vips__interpolate_init( void )
 
 	vips_interpolate_nearest_get_type();
 	vips_interpolate_bilinear_get_type();
+
+#ifdef ENABLE_CXX
 	vips_interpolate_bicubic_get_type();
 	vips_interpolate_yafrsmooth_get_type();
 	vips_interpolate_nohalo1_get_type();
 	vips_interpolate_snohalo1_get_type();
 	vips_interpolate_nohalo2_get_type();
+#endif /*ENABLE_CXX*/
 }
 
 /* Make an interpolator from a nickname.

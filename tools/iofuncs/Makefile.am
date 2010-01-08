@@ -14,8 +14,7 @@ LDADD = @VIPS_CFLAGS@ ${top_builddir}/libvips/libvips.la @VIPS_LIBS@
 if ENABLE_LINKS
 install-exec-hook:
 	${top_srcdir}/src/scripts/post_install ${DESTDIR}${bindir}
-endif
-
 uninstall-hook:
 	${RM} ${bindir}/im_*
+endif
 
