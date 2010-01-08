@@ -28,8 +28,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -860,7 +860,7 @@ im__file_read( FILE *fp, const char *name, unsigned int *length_out )
 		} while( !feof( fp ) );
 
 #ifdef DEBUG
-		printf( "read %d bytes from unseekable stream\n", len );
+		printf( "read %ld bytes from unseekable stream\n", len );
 #endif /*DEBUG*/
 	}
 	else {
@@ -1413,6 +1413,36 @@ im_existsf( const char *name, ... )
         return( 0 );
 }
 
+#ifdef OS_WIN32
+#define popen(b,m) _popen(b,m)
+#define pclose(f) _pclose(f)
+#endif /*OS_WIN32*/
+
+/* Do popen(), with printf-style args.
+ */
+FILE *
+im_popenf( const char *fmt, const char *mode, ... )
+{
+        va_list args;
+	char buf[4096];
+	FILE *fp;
+
+        va_start( args, mode );
+        (void) im_vsnprintf( buf, 4096, fmt, args );
+        va_end( args );
+
+#ifdef DEBUG
+	printf( "im_popenf: running: %s\n", buf );
+#endif /*DEBUG*/
+
+        if( !(fp = popen( buf, mode )) ) {
+		im_error( "popenf", "%s", strerror( errno ) );
+		return( NULL );
+	}
+
+	return( fp );
+}
+
 /* True if an int is a power of two ... 1, 2, 4, 8, 16, 32, etc. Do with just
  * integer arithmetic for portability. A previous Nicos version using doubles
  * and log/log failed on x86 with rounding problems. Return 0 for not
@@ -1478,30 +1508,55 @@ im_amiMSBfirst( void )
                 return( 1 );
 }
 
+/* Make a temporary file name. The format parameter is something like "%s.jpg" 
+ * and will be expanded to something like "/tmp/vips-12-34587.jpg".
+ *
+ * You need to free the result. A real file will also be created, though we
+ * delete it for you.
+ */
+char *
+im__temp_name( const char *format )
+{
+	static int serial = 1;
+
+	const char *tmpd;
+	char file[FILENAME_MAX];
+	char file2[FILENAME_MAX];
+
+	char *name;
+	int fd;
+
+	if( !(tmpd = g_getenv( "TMPDIR" )) )
+		tmpd = "/tmp";
+
+	im_snprintf( file, FILENAME_MAX, "vips-%d-XXXXXX", serial++ );
+	im_snprintf( file2, FILENAME_MAX, format, file );
+	name = g_build_filename( tmpd, file2, NULL );
+
+	if( (fd = g_mkstemp( name )) == -1 ) {
+		im_error( "tempfile", 
+			_( "unable to make temporary file %s" ), name );
+		g_free( name );
+		return( NULL );
+	}
+	close( fd );
+	g_unlink( name );
+
+	return( name );
+}
+
 /* Make a disc IMAGE which will be automatically unlinked on im_close().
  */
 IMAGE *
 im__open_temp( void )
 {
-	const char *tmpd;
 	char *name;
-	int fd;
 	IMAGE *disc;
 
-	if( !(tmpd = g_getenv( "TMPDIR" )) )
-		tmpd = "/tmp";
-	name = g_build_filename( tmpd, "vips_XXXXXX.v", NULL );
-
-	if( (fd = g_mkstemp( name )) == -1 ) {
-		im_error( "tempfile", 
-			_( "unable to make temp file %s" ), name );
-		g_free( name );
+	if( !(name = im__temp_name( "%s.v" )) )
 		return( NULL );
-	}
-	close( fd );
 
 	if( !(disc = im_open( name, "w" )) ) {
-		unlink( name );
 		g_free( name );
 		return( NULL );
 	}
@@ -1510,7 +1565,7 @@ im__open_temp( void )
 	if( im_add_close_callback( disc, 
 		(im_callback_fn) unlink, disc->filename, NULL ) ) {
 		im_close( disc );
-		unlink( name );
+		g_unlink( name );
 	}
 
 	return( disc );

@@ -68,27 +68,6 @@
 #define pclose(f) _pclose(f)
 #endif /*OS_WIN32*/
 
-/* Do popen(), with printf-style args.
- */
-static FILE *
-popenf( const char *fmt, const char *mode, ... )
-{
-        va_list args;
-	char buf[IM_MAX_STRSIZE];
-	FILE *fp;
-
-        va_start( args, mode );
-        (void) im_vsnprintf( buf, IM_MAX_STRSIZE, fmt, args );
-        va_end( args );
-
-        if( !(fp = popen( buf, mode )) ) {
-		im_error( "popenf", "%s", strerror( errno ) );
-		return( NULL );
-	}
-
-	return( fp );
-}
-
 /* Run a command on an IMAGE ... copy to tmp (if necessary), run 
  * command on it, unlink (if we copied), return stdout from command.
  */
@@ -109,12 +88,11 @@ im_system( IMAGE *im, const char *cmd, char **out )
 		}
 		im_close( disc );
 	}
-	else if( (fp = popenf( cmd, "r", im->filename )) ) {
+	else if( (fp = im_popenf( cmd, "r", im->filename )) ) {
 		char line[IM_MAX_STRSIZE];
-		VipsBuf buf;
-		char str[IM_MAX_STRSIZE];
+		char txt[IM_MAX_STRSIZE];
+		VipsBuf buf = VIPS_BUF_STATIC( txt );
 
-		vips_buf_init_static( &buf, str, IM_MAX_STRSIZE );
 		while( fgets( line, IM_MAX_STRSIZE, fp ) ) 
 			if( !vips_buf_appends( &buf, line ) )
 				break; 

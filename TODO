@@ -16,25 +16,6 @@
 
   for swapping ... they are asm macros so we should see a speedup
 
-Something like:
-
-const char *im_system_image( IMAGE *in, const char *command, char **log );
-
-Actions:
-
-- create two empty temporary files
-- write the image to the first
-- call system() on the expanded command
-- capture stdout/stderr into log
-- delete the temp input file
-- return the output filename, or NULL if the command failed (log is still
-  returned in this case)
-
-  The caller would open the output file, either with im_open(), or with it's
-  own system (nip2 has it's own open file thing to give progress feedback and
-  use disc for format conversion), and be responsible for deleting the temp
-  output file at some point.
-
 - can we use conv_sep to speed up the memuse benchmarks?
 
 - move im_shrink & friends to resample?

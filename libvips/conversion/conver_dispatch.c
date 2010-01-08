@@ -73,7 +73,7 @@ system_vec( im_object *argv )
 	return( 0 );
 }
 
-static im_arg_desc system_arg_types[] = {
+static im_arg_desc system_args[] = {
 	IM_INPUT_IMAGE( "im" ),
 	IM_INPUT_STRING( "command" ),
 	IM_OUTPUT_STRING( "output" )
@@ -84,8 +84,43 @@ static im_function system_desc = {
 	"run command on image",		/* Description */
 	0,				/* Flags */
 	system_vec, 			/* Dispatch function */
-	IM_NUMBER( system_arg_types ),	/* Size of arg list */
-	system_arg_types 		/* Arg list */
+	IM_NUMBER( system_args ),	/* Size of arg list */
+	system_args 			/* Arg list */
+};
+
+static int
+system_image_vec( im_object *argv )
+{
+	IMAGE *in = argv[0];
+	char *in_format = argv[1];
+	char *out_format = argv[2];
+	char *cmd = argv[3];
+	char **log = (char **) &argv[4];
+	char **out_file = (char **) &argv[5];
+
+	*out_file = im_system_image( in, in_format, out_format, cmd, log );
+	if( !*out_file )
+		*out_file = im_strdup( NULL, "" );
+
+	return( 0 );
+}
+
+static im_arg_desc system_image_args[] = {
+	IM_INPUT_IMAGE( "im" ),
+	IM_INPUT_STRING( "in_format" ),
+	IM_INPUT_STRING( "out_format" ),
+	IM_INPUT_STRING( "command" ),
+	IM_OUTPUT_STRING( "log" ),
+	IM_OUTPUT_STRING( "out_file" )
+};
+
+static im_function system_image_desc = {
+	"im_system_image",		/* Name */
+	"run command on image, with image output",/* Description */
+	0,				/* Flags */
+	system_image_vec, 		/* Dispatch function */
+	IM_NUMBER( system_image_args ),	/* Size of arg list */
+	system_image_args 		/* Arg list */
 };
 
 static int
@@ -1433,6 +1468,7 @@ static im_function *conv_list[] = {
 	&scaleps_desc,
 	&subsample_desc,
 	&system_desc,
+	&system_image_desc,
 	&tbjoin_desc,
 	&text_desc,
 	&vips2mask_desc,

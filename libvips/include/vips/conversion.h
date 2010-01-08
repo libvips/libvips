@@ -111,6 +111,9 @@ int im_subsample( IMAGE *in, IMAGE *out, int x, int y );
 int im_zoom( IMAGE *in, IMAGE *out, int x, int y );
 
 int im_system( IMAGE *im, const char *cmd, char **out );
+char *im_system_image( IMAGE *im, 
+	const char *in_format, const char *out_format, const char *cmd_format, 
+	char **log );
 
 #ifdef __cplusplus
 }

@@ -248,10 +248,13 @@ const char *vips__token_need( const char *buffer, VipsToken need_token,
 
 int im_existsf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
+FILE *im_popenf( const char *fmt, const char *mode, ... )
+	__attribute__((format(printf, 1, 3)));
 int im_ispoweroftwo( int p );
 int im_isvips( const char *filename );
 int im_amiMSBfirst( void );
 
+char *im__temp_name( const char *format );
 IMAGE *im__open_temp( void );
 
 int im_bits_of_fmt( VipsBandFmt fmt );

@@ -32,6 +32,7 @@ libconversion_la_SOURCES = \
 	im_scaleps.c \
 	im_subsample.c \
 	im_system.c \
+	im_system_image.c \
 	im_tbjoin.c \
 	im_text.c \
 	im_gaussnoise.c \

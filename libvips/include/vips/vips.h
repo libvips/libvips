@@ -82,6 +82,7 @@ extern "C" {
 #endif /*__cplusplus*/
 
 #include <glib.h>
+#include <glib/gstdio.h>
 #include <gmodule.h>
 #include <glib-object.h>
 
