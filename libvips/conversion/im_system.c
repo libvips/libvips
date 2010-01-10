@@ -79,7 +79,7 @@ im_system( IMAGE *im, const char *cmd, char **out )
 	if( !im_isfile( im ) ) {
 		IMAGE *disc;
 
-		if( !(disc = im__open_temp()) )
+		if( !(disc = im__open_temp( "%s.v" )) )
 			return( -1 );
 		if( im_copy( im, disc ) ||
 			im_system( disc, cmd, out ) ) {

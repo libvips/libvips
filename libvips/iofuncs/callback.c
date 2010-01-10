@@ -108,11 +108,11 @@ add_callback( IMAGE *im, GSList **cblist, im_callback_fn fn, void *a, void *b )
  *
  * Attaches a close callback @fn to @im.
  *
- * Close callbacks are triggered exactly once when the image has been closed
+ * Close callbacks are triggered exactly once, when the image has been closed
  * and most resources freed, but just before the memory for @im is released.
  *
  * Close callbacks are a good place to free memory that was need to generate
- * @im, delete temporary files and so on. You can close other images and there
+ * @im. You can close other images and there
  * may even be circularity in your close lists.
  *
  * See also: im_malloc() (implemented with im_add_close_callback()),
@@ -125,6 +125,29 @@ int
 im_add_close_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
 {	
 	return( add_callback( im, &im->closefns, fn, a, b ) );
+}
+
+/**
+ * im_add_postclose_callback:
+ * @im: image to attach callback to
+ * @fn: callback function
+ * @a: user data 1
+ * @b: user data 2
+ *
+ * Attaches a close callback @fn to @im.
+ *
+ * Post-close callbacks are triggered exactly once, just before the memory
+ * associated with @im is released. 
+ *
+ * Close callbacks are a good place to delete temporary files. You can close 
+ * other images and there may even be circularity in your close lists.
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+im_add_postclose_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
+{	
+	return( add_callback( im, &im->postclosefns, fn, a, b ) );
 }
 
 /**

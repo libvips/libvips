@@ -1546,14 +1546,15 @@ im__temp_name( const char *format )
 }
 
 /* Make a disc IMAGE which will be automatically unlinked on im_close().
+ * Format is something like "%s.v" for a vips file.
  */
 IMAGE *
-im__open_temp( void )
+im__open_temp( const char *format )
 {
 	char *name;
 	IMAGE *disc;
 
-	if( !(name = im__temp_name( "%s.v" )) )
+	if( !(name = im__temp_name( format )) )
 		return( NULL );
 
 	if( !(disc = im_open( name, "w" )) ) {
@@ -1562,7 +1563,10 @@ im__open_temp( void )
 	}
 	g_free( name );
 
-	if( im_add_close_callback( disc, 
+	/* Needs to be postclose so we can rewindd disc after write without
+	 * deleting the file.
+	 */
+	if( im_add_postclose_callback( disc, 
 		(im_callback_fn) unlink, disc->filename, NULL ) ) {
 		im_close( disc );
 		g_unlink( name );

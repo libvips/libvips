@@ -50,6 +50,8 @@
  * 	  released
  * 6/10/09
  * 	- gtkdoc comment
+ * 10/1/09
+ * 	- added postclose
  */
 
 /*
@@ -294,6 +296,8 @@ im_close( IMAGE *im )
 
 		/* Final cleanup.
 		 */
+		result |= im__trigger_callbacks( im->postclosefns );
+		IM_FREEF( im_slist_free_all, im->postclosefns );
 		IM_FREEF( g_mutex_free, im->sslock );
 		IM_FREE( im->filename );
 		IM_FREE( im->Hist );

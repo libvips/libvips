@@ -92,26 +92,30 @@ static int
 system_image_vec( im_object *argv )
 {
 	IMAGE *in = argv[0];
-	char *in_format = argv[1];
-	char *out_format = argv[2];
-	char *cmd = argv[3];
-	char **log = (char **) &argv[4];
-	char **out_file = (char **) &argv[5];
+	IMAGE *out = argv[1];
+	char *in_format = argv[2];
+	char *out_format = argv[3];
+	char *cmd = argv[4];
+	char **log = (char **) &argv[5];
 
-	*out_file = im_system_image( in, in_format, out_format, cmd, log );
-	if( !*out_file )
-		*out_file = im_strdup( NULL, "" );
+	IMAGE *out_image;
 
+	if( (out_image = im_system_image( in, 
+		in_format, out_format, cmd, log )) )
+		im_copy_file( out_image, out );
+
+	/* We always succeed, but out may be invalid.
+	 */
 	return( 0 );
 }
 
 static im_arg_desc system_image_args[] = {
-	IM_INPUT_IMAGE( "im" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_STRING( "in_format" ),
 	IM_INPUT_STRING( "out_format" ),
 	IM_INPUT_STRING( "command" ),
-	IM_OUTPUT_STRING( "log" ),
-	IM_OUTPUT_STRING( "out_file" )
+	IM_OUTPUT_STRING( "log" )
 };
 
 static im_function system_image_desc = {

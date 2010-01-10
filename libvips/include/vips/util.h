@@ -255,7 +255,7 @@ int im_isvips( const char *filename );
 int im_amiMSBfirst( void );
 
 char *im__temp_name( const char *format );
-IMAGE *im__open_temp( void );
+IMAGE *im__open_temp( const char *format );
 
 int im_bits_of_fmt( VipsBandFmt fmt );
 

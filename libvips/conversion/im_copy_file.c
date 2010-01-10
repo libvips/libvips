@@ -60,7 +60,7 @@ im_copy_file( IMAGE *in, IMAGE *out )
 	if( !im_isfile( in ) ) {
 		IMAGE *disc;
 
-		if( !(disc = im__open_temp()) )
+		if( !(disc = im__open_temp( "%s.v" )) )
 			return( -1 );
 		if( im_add_close_callback( out, 
 			(im_callback_fn) im_close, disc, NULL ) ) {

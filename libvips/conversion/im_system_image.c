@@ -60,31 +60,20 @@
 
 static int
 system_image( IMAGE *im, 
-	const char *in_name, const char *out_name, const char *cmd_format, 
+	IMAGE *in_image, IMAGE *out_image, const char *cmd_format, 
 	char **log ) 
 {
-	IMAGE *disc;
+	const char *in_name = in_image->filename;
+	const char *out_name = out_image->filename;
 	FILE *fp;
 	char line[IM_MAX_STRSIZE];
 	char txt[IM_MAX_STRSIZE];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int result;
 
-	if( !(disc = im_open( in_name, "w" )) ) 
+	if( im_copy( im, in_image ) || 
+		!(fp = im_popenf( cmd_format, "r", in_name, out_name )) ) 
 		return( -1 );
-	if( im_copy( im, disc ) ) {
-		im_close( im );
-		g_unlink( in_name );
-
-		return( -1 );
-	}
-	im_close( im );
-
-	if( !(fp = im_popenf( cmd_format, "r", in_name, out_name )) ) {
-		g_unlink( in_name );
-
-		return( -1 );
-	}
 
 	while( fgets( line, IM_MAX_STRSIZE, fp ) ) 
 		if( !vips_buf_appends( &buf, line ) )
@@ -92,15 +81,14 @@ system_image( IMAGE *im,
 
 	result = pclose( fp );
 
-	g_unlink( in_name );
-
 	if( log )
 		*log = im_strdup( NULL, vips_buf_all( &buf ) );
 
 	return( result );
 }
 
-/* 
+/**
+ * im_system_image:
 
    Run a command on an image, returning a new image.
 
@@ -127,29 +115,29 @@ system_image( IMAGE *im,
  
   */
 
-char *
+IMAGE *
 im_system_image( IMAGE *im, 
 	const char *in_format, const char *out_format, const char *cmd_format, 
 	char **log )
 {
-	char *in_name;
-	char *out_name;
+	IMAGE *in_image;
+	IMAGE *out_image;
 
 	if( log )
 		*log = NULL;
 
-	in_name = im__temp_name( in_format );
-	out_name = im__temp_name( in_format );
+	in_image = im__open_temp( in_format );
+	out_image = im__open_temp( out_format );
 
-	if( !in_name || 
-		!out_name ||
-		system_image( im, in_name, out_name, cmd_format, log ) ) {
-		g_free( in_name );
-		g_free( out_name );
+	if( !in_image || 
+		!out_image ||
+		system_image( im, in_image, out_image, cmd_format, log ) ) {
+		im_close( in_image );
+		im_close( out_image );
 
 		return( NULL );
 	}
-	g_free( in_name );
+	im_close( in_image );
 
-	return( out_name );
+	return( out_image );
 }

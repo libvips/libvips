@@ -32,6 +32,8 @@
  *	- add file_length 
  * 8/10/09
  * 	- add set_hint
+ * 10/1/09
+ * 	- added postclose
  */
 
 /*
@@ -172,6 +174,8 @@ im_init( const char *filename )
 	im->file_length = 0;
 
 	im->hint_set = FALSE;
+
+	im->postclosefns = NULL;
 
 	if( !(im->filename = im_strdup( NULL, filename )) ) {
 		im_close( im );

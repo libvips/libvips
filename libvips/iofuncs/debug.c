@@ -393,16 +393,18 @@ im_printdesc( IMAGE *image )
 	 */
 	if( image->generate )
 		printf( "generate function attached\n" );
+	if( image->preclosefns )
+		printf( "preclose callbacks attached\n" );
 	if( image->closefns )
 		printf( "close callbacks attached\n" );
+	if( image->postclosefns )
+		printf( "postclose callbacks attached\n" );
 	if( image->evalfns )
 		printf( "eval callbacks attached\n" );
 	if( image->evalendfns )
 		printf( "evalend callbacks attached\n" );
 	if( image->evalstartfns )
 		printf( "evalstart callbacks attached\n" );
-	if( image->preclosefns )
-		printf( "preclose callbacks attached\n" );
 	if( image->invalidatefns )
 		printf( "invalidate callbacks attached\n" );
 	if( image->regions ) {

@@ -240,6 +240,11 @@ typedef struct _VipsImage {
 	 * relationships, so it's a mandatory thing.
 	 */
 	gboolean hint_set;
+
+	/* Post-close callbacks happen on finalize. Eg. deleting the file
+	 * associated with this temp image.
+	 */
+	GSList *postclosefns; 	
 } VipsImage;
 
 extern const size_t im__sizeof_bandfmt[];

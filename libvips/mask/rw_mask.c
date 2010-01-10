@@ -184,7 +184,7 @@ im_create_imask( const char *filename, int xs, int ys )
 
 INTMASK *
 im_create_imaskv( const char *filename, int xs, int ys, ... )
-{	
+{
 	va_list ap;
 
 	INTMASK *m;
