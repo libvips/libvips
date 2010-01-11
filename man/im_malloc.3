@@ -78,7 +78,7 @@ with the image. Preclose callbacks are guaranteed to be called exactly once.
 
 .B im_add_evalstart_callback(3) 
 adds a callback which will be triggered just before image evaluation starts.
-It can be called many times. It's a good place to initalize data structures.
+It can be called many times. It's a good place to initialize data structures.
 Don't allocate resources here.
 
 Eval callbacks are inherited. That is, any images which use your image as
@@ -87,7 +87,7 @@ callback to an image, you will be notified if any later image uses your image
 for computation.
 
 If a later image adds eval callbacks, then the inheritance is broken, and that
-image will recieve notification instead.
+image will receive notification instead.
 
 .B im_add_eval_callback(3) 
 adds a callback which will be triggered repeatedly as

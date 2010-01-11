@@ -1563,7 +1563,7 @@ im__open_temp( const char *format )
 	}
 	g_free( name );
 
-	/* Needs to be postclose so we can rewindd disc after write without
+	/* Needs to be postclose so we can rewind after write without
 	 * deleting the file.
 	 */
 	if( im_add_postclose_callback( disc, 
