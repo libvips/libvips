@@ -172,7 +172,7 @@ shrink_factor( IMAGE *in, IMAGE *out )
 		t[2] = t[4];
 	}
 
-	if( im_copy( t[4], out ) )
+	if( im_copy( t[2], out ) )
 		return( -1 );
 
 	return( 0 );
