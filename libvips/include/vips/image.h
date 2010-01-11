@@ -41,9 +41,7 @@ extern "C" {
  */
 #include <time.h>
 
-/* If you read MSB first, you get these two values. 
- *   intel order: byte 0 = b6
- *   SPARC order: byte 0 = 08
+/* If you read MSB first, you get these two values.  *   intel order: byte 0 = b6 *   SPARC order: byte 0 = 08
  */
 #define IM_MAGIC_INTEL (0xb6a6f208U)
 #define IM_MAGIC_SPARC (0x08f2a6b6U)

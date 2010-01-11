@@ -13,6 +13,7 @@
 - removed --with-cimg option, added --disable-cxx
 - added im_system_image() (thanks Roland)
 - added postclose callbacks
+- added vipsthumbnail 
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

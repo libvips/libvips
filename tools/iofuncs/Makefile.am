@@ -1,11 +1,13 @@
 bin_PROGRAMS = \
 	vips \
 	edvips \
+	vipsthumbnail \
 	header 
 
 vips_SOURCES = vips.c
 edvips_SOURCES = edvips.c
 header_SOURCES = header.c
+vipsthumbnail_SOURCES = vipsthumbnail.c
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 AM_LDFLAGS = @LDFLAGS@ 
