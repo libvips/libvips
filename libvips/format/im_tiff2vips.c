@@ -101,11 +101,16 @@
  * 	- set IM_META_RESOLUTION_UNIT
  * 17/4/08
  * 	- allow CMYKA (thanks Doron)
+ * 17/7/08
+ * 	- convert YCbCr to RGB on read
  * 15/8/08
  * 	- reorganise for image format system
  * 20/12/08
  * 	- dont read with mmap: no performance advantage with libtiff, chews up 
  * 	  VM wastefully
+ * 13/1/09
+ * 	- read strip-wise, not scanline-wise ... works with more compression /
+ * 	  subsampling schemes (esp. subsamples YCbCr), and it's a bit quicker
  */
 
 /*
@@ -393,44 +398,6 @@ parse_labs( ReadTiff *rtiff, IMAGE *out )
 	return( 0 );
 }
 
-/* Per-scanline process function for IM_CODING_LABQ.
- */
-static void
-ycbcr_line( PEL *q, PEL *p, int n, void *dummy )
-{
-	int x;
-
-	for( x = 0; x < n; x++ ) {
-		q[0] = p[0];
-		q[1] = p[1];
-		q[2] = p[2];
-		q[3] = 0;
-
-		q += 4;
-		p += 3;
-	}
-}
-
-/* Read a YCbCr image.
- */
-static int
-parse_ycbcr( ReadTiff *rtiff, IMAGE *out )
-{
-	if( !tfequals( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 3 ) ||
-		!tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 8 ) )
-		return( -1 );
-
-	out->Bands = 4; 
-	out->BandFmt = IM_BANDFMT_UCHAR; 
-	out->Coding = IM_CODING_LABQ; 
-	out->Type = IM_TYPE_LAB; 
-
-	rtiff->sfn = ycbcr_line;
-	rtiff->client = NULL;
-
-	return( 0 );
-}
-
 /* Per-scanline process function for 1 bit images.
  */
 static void
@@ -693,7 +660,7 @@ parse_palette( ReadTiff *rtiff, IMAGE *out )
 	return( 0 );
 }
 
-/* Per-scanline process function for 8-bit RGB/RGBA/CMYK/CMYKA.
+/* Per-scanline process function for 8-bit RGB/RGBA/CMYK/CMYKA/etc.
  */
 static void
 rgbcmyk8_line( PEL *q, PEL *p, int n, IMAGE *im )
@@ -999,14 +966,6 @@ parse_header( ReadTiff *rtiff, IMAGE *out )
 
 		break;
 
-	case PHOTOMETRIC_YCBCR:
-		/* Easy decision!
-		 */
-		if( parse_ycbcr( rtiff, out ) )
-			return( -1 );
-
-		break;
-
 	case PHOTOMETRIC_MINISWHITE:
 	case PHOTOMETRIC_MINISBLACK:
 		switch( bps ) {
@@ -1063,9 +1022,17 @@ parse_header( ReadTiff *rtiff, IMAGE *out )
 
 		break;
 
-	case PHOTOMETRIC_RGB:
-		/* Plain RGB.
+	case PHOTOMETRIC_YCBCR:
+		/* Sometimes JPEG in TIFF images are tagged as YCBCR. Ask
+		 * libtiff to convert to RGB for us.
 		 */
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+		if( parse_rgb8( rtiff, out ) )
+			return( -1 );
+		break;
+
+	case PHOTOMETRIC_RGB:
 		switch( bps ) {
 		case 8:
 			if( parse_rgb8( rtiff, out ) )
@@ -1277,21 +1244,45 @@ read_tilewise( ReadTiff *rtiff, IMAGE *out )
 	return( 0 );
 }
 
-/* Scanline-type TIFF reader core - pass in a per-scanline transform.
+/* Stripwise reading - not all codecs work well with scanline reading,
+ * sometimes we have to read in whole strips.
  */
 static int
-read_scanlinewise( ReadTiff *rtiff, IMAGE *out )
+read_stripwise( ReadTiff *rtiff, IMAGE *out )
 {
+	int rows_per_strip;
+	tsize_t scanline_size;
+	tsize_t strip_size;
+	int number_of_strips;
+
 	PEL *vbuf;
 	tdata_t tbuf;
+	tstrip_t strip;
+	tsize_t length;
 	int y;
+	int i;
+	PEL *p;
 
 	if( parse_header( rtiff, out ) )
 		return( -1 );
 
+	if( !tfget32( rtiff->tiff, TIFFTAG_ROWSPERSTRIP, &rows_per_strip ) )
+		return( -1 );
+	scanline_size = TIFFScanlineSize( rtiff->tiff );
+	strip_size = TIFFStripSize( rtiff->tiff );
+	number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
+
+#ifdef DEBUG
+	printf( "read_stripwise: rows_per_strip = %d\n", rows_per_strip );
+	printf( "read_stripwise: scanline_size = %d\n", scanline_size );
+	printf( "read_stripwise: strip_size = %d\n", strip_size );
+	printf( "read_stripwise: number_of_strips = %d\n", number_of_strips );
+#endif /*DEBUG*/
+
 	/* Make sure we can write WIO-style.
 	 */
-	if( im_outcheck( out ) || im_setupout( out ) )
+	if( im_outcheck( out ) || 
+		im_setupout( out ) )
 		return( -1 );
 
 	/* Make VIPS output buffer.
@@ -1299,24 +1290,29 @@ read_scanlinewise( ReadTiff *rtiff, IMAGE *out )
 	if( !(vbuf = IM_ARRAY( out, IM_IMAGE_SIZEOF_LINE( out ), PEL )) )
 		return( -1 );
 
-	/* Make TIFF line input buffer.
+	/* Make TIFF input buffer.
 	 */
-	if( !(tbuf = im_malloc( out, TIFFScanlineSize( rtiff->tiff ) )) ) 
+	if( !(tbuf = im_malloc( out, strip_size )) ) 
 		return( -1 );
 
-	for( y = 0; y < out->Ysize; y++ ) {
-		/* Read TIFF scanline.
-		 */
-		if( TIFFReadScanline( rtiff->tiff, tbuf, y, 0 ) < 0 ) {
+	for( strip = 0, y = 0; strip < number_of_strips; 
+		strip++, y += rows_per_strip ) {
+		length = TIFFReadEncodedStrip( rtiff->tiff, 
+			strip, tbuf, (tsize_t) -1 );
+		if( length == -1 ) {
 			im_error( "im_tiff2vips", "%s", _( "read error" ) );
 			return( -1 );
 		}
 
-		/* Process and save as VIPS.
-		 */
-		rtiff->sfn( vbuf, tbuf, out->Xsize, rtiff->client );
-		if( im_writeline( y, out, vbuf ) ) 
-			return( -1 );
+		for( p = tbuf, i = 0; 
+			i < rows_per_strip && i + y < out->Ysize; 
+			i++, p += scanline_size ) {
+			/* Process and save as VIPS.
+			 */
+			rtiff->sfn( vbuf, p, out->Xsize, rtiff->client );
+			if( im_writeline( y, out, vbuf ) ) 
+				return( -1 );
+		}
 	}
 
 	return( 0 );
@@ -1456,7 +1452,7 @@ im_tiff2vips( const char *filename, IMAGE *out )
 			return( -1 );
 	}
 	else {
-		if( read_scanlinewise( rtiff, out ) )
+		if( read_stripwise( rtiff, out ) )
 			return( -1 );
 	}
 

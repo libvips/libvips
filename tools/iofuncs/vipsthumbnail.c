@@ -1,6 +1,9 @@
 /* VIPS thumbnailer
  *
  * J. Cupitt, 11/1/09
+ *
+ * 13/1/09
+ * 	- don't shrink images that are already tiny
  */
 
 #ifdef HAVE_CONFIG_H
@@ -100,9 +103,14 @@ calculate_shrink( int width, int height, double *residual )
 
 	double factor = dimension / (double) thumbnail_size;
 
+	/* If the shrink factor is <=1.0, we need to zoom rather than shrink.
+	 * Just set the factor to 1 in this case.
+	 */
+	double factor2 = factor <= 1.0 ? 1.0 : factor;
+
 	/* Int component of shrink.
 	 */
-	int shrink = floor( factor );
+	int shrink = floor( factor2 );
 
 	/* Size after int shrink.
 	 */
@@ -244,8 +252,15 @@ thumbnail( const char *filename )
 {
 	VipsFormatClass *format;
 
+	if( verbose )
+		printf( "thumbnailing %s\n", filename );
+
 	if( !(format = vips_format_for_file( filename )) )
 		return( -1 );
+
+	if( verbose )
+		printf( "detected format as %s\n", 
+			VIPS_OBJECT_CLASS( format )->nickname );
 
 	if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "jpeg" ) == 0 ) {
 		IMAGE *im;

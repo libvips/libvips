@@ -6,6 +6,8 @@
  * 	- better byteswapper
  * 12/5/09
  *	- fix signed/unsigned warning
+ * 13/1/09
+ * 	- try harder not to generate error messages in "isanalyze"
  */
 
 /*
@@ -309,6 +311,8 @@ read_header( const char *header )
 		return( NULL );
 	if( len != sizeof( struct dsr ) ) {
 		im_free( d );
+		im_error( "im_analyze2vips", 
+			"%s", _( "header file size incorrect" ) );
 		return( NULL );
 	}
 
@@ -493,6 +497,8 @@ isanalyze( const char *filename )
 	int fmt;
 
 	generate_filenames( filename, header, image );
+	if( !im_existsf( "%s", header ) )
+		return( 0 );
 	if( !(d = read_header( header )) )
 		return( 0 );
 
@@ -520,11 +526,8 @@ analyze2vips_header( const char *filename, IMAGE *out )
 	int fmt;
 
 	generate_filenames( filename, header, image );
-	if( !(d = read_header( header )) ) {
-		im_error( "im_analyze2vips", 
-			"%s", _( "header file size incorrect" ) );
+	if( !(d = read_header( header )) ) 
 		return( -1 );
-	}
 
 #ifdef DEBUG
 	print_dsr( d );
@@ -560,11 +563,8 @@ im_analyze2vips( const char *filename, IMAGE *out )
 		IM_ARCH_NATIVE : IM_ARCH_BYTE_SWAPPED;
 
 	generate_filenames( filename, header, image );
-	if( !(d = read_header( header )) ) {
-		im_error( "im_analyze2vips", 
-			"%s", _( "header file size incorrect" ) );
+	if( !(d = read_header( header )) ) 
 		return( -1 );
-	}
 
 #ifdef DEBUG
 	print_dsr( d );
