@@ -14,6 +14,7 @@
 - added im_system_image() (thanks Roland)
 - added postclose callbacks
 - added vipsthumbnail 
+- oops, generate C++/Python wrappers for deprecated operations by default
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

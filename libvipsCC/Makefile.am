@@ -21,10 +21,13 @@ libvipsCC_la_LDFLAGS = \
 libvipsCC_la_LIBADD = \
 	$(top_builddir)/libvips/libvips.la @VIPS_LIBS@
 
+# swap the 'awk' line for this:
+# awk '{if($$1!="deprecated") print $$1}'` ; \
+# to not generate the wrappers for deprecated functions
 .PHONEY:
 vipsc++.cc:
 	packages=`vips --list packages | \
-	  awk '{if($$1!="deprecated") print $$1}'` ; \
+	  awk '{print $$1}'` ; \
 	  echo > vipsc++.cc ; \
 	  for name in $$packages; do \
 	    echo "// bodies for package $$name" >> vipsc++.cc ; \
