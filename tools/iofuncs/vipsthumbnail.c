@@ -4,6 +4,7 @@
  *
  * 13/1/09
  * 	- don't shrink images that are already tiny
+ * 	- decode labq and rad images
  */
 
 #ifdef HAVE_CONFIG_H
@@ -150,7 +151,8 @@ sharpen_filter( void )
 static int
 shrink_factor( IMAGE *in, IMAGE *out )
 {
-	IMAGE *t[5];
+	IMAGE *t[8];
+	IMAGE *x;
 	int shrink;
 	double residual;
 
@@ -161,26 +163,54 @@ shrink_factor( IMAGE *in, IMAGE *out )
 		printf( "residual scale by %g\n", residual );
 	}
 
-	if( im_open_local_array( out, t, 5, "thumbnail", "p" ) ||
-		im_shrink( in, t[0], shrink, shrink ) ||
-		im_affinei_all( t[0], t[1], 
+	if( im_open_local_array( out, t, 9, "thumbnail", "p" ) )
+		return( -1 );
+	x = in;
+
+	/* Unpack the two coded formats we support to float for processing.
+	 */
+	if( x->Coding == IM_CODING_LABQ ) {
+		if( verbose ) 
+			printf( "unpacking LAB to RGB\n" );
+
+		if( im_LabQ2disp( x, t[1], im_col_displays( 7 ) ) )
+			return( -1 );
+		x = t[1];
+	}
+	else if( x->Coding == IM_CODING_RAD ) {
+		if( verbose ) 
+			printf( "unpacking Rad to float\n" );
+
+		if( im_rad2float( x, t[1] ) )
+			return( -1 );
+		x = t[1];
+	}
+
+	/* Shrink and sharpen.
+	 */
+	if( im_shrink( x, t[2], shrink, shrink ) ||
+		im_affinei_all( t[2], t[3], 
 			vips_interpolate_bilinear_static(),
 			residual, 0, 0, residual, 0, 0 ) ||
-		im_conv( t[1], t[2], sharpen_filter() ) )
+		im_conv( t[3], t[4], sharpen_filter() ) )
 		return( -1 );
+	x = t[4];
 
-	if( colour_profile && im_header_get_typeof( t[2], IM_META_ICC_NAME ) ) {
-		if( im_icc_import_embedded( t[2], t[3], 
+	/* Optionally transform to the target device space, provided the image
+	 * has a profile.
+	 */
+	if( colour_profile && im_header_get_typeof( x, IM_META_ICC_NAME ) ) {
+		if( im_icc_import_embedded( x, t[5], 
 			IM_INTENT_RELATIVE_COLORIMETRIC ) ||
-			im_icc_export_depth( t[3], t[4], 
+			im_icc_export_depth( t[5], t[6], 
 				8, colour_profile, 
 				IM_INTENT_RELATIVE_COLORIMETRIC ) )
 			return( -1 );
 
-		t[2] = t[4];
+		x = t[6];
 	}
 
-	if( im_copy( t[2], out ) )
+	if( im_copy( x, out ) )
 		return( -1 );
 
 	return( 0 );
