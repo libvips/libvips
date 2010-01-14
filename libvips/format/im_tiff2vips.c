@@ -1302,12 +1302,12 @@ read_stripwise( ReadTiff *rtiff, IMAGE *out )
 		}
 
 		for( p = tbuf, i = 0; 
-			i < rows_per_strip && i + y < out->Ysize; 
+			i < rows_per_strip && y + i < out->Ysize; 
 			i += 1, p += scanline_size ) {
 			/* Process and save as VIPS.
 			 */
 			rtiff->sfn( vbuf, p, out->Xsize, rtiff->client );
-			if( im_writeline( y, out, vbuf ) ) 
+			if( im_writeline( y + i, out, vbuf ) ) 
 				return( -1 );
 		}
 	}

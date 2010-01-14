@@ -107,7 +107,7 @@ calculate_shrink( int width, int height, double *residual )
 	/* If the shrink factor is <=1.0, we need to zoom rather than shrink.
 	 * Just set the factor to 1 in this case.
 	 */
-	double factor2 = factor <= 1.0 ? 1.0 : factor;
+	double factor2 = factor < 1.0 ? 1.0 : factor;
 
 	/* Int component of shrink.
 	 */
@@ -151,12 +151,21 @@ sharpen_filter( void )
 static int
 shrink_factor( IMAGE *in, IMAGE *out )
 {
-	IMAGE *t[8];
+	IMAGE *t[9];
 	IMAGE *x;
 	int shrink;
 	double residual;
+	VipsInterpolate *interp;
 
 	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
+
+	/* For images smaller than the thumbnail, we upscale with nearest
+	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
+	 */
+	if( residual > 1.0 )
+		interp = vips_interpolate_nearest_static();
+	else
+		interp = vips_interpolate_bilinear_static();
 
 	if( verbose ) {
 		printf( "integer shrink by %d\n", shrink );
@@ -186,15 +195,22 @@ shrink_factor( IMAGE *in, IMAGE *out )
 		x = t[1];
 	}
 
-	/* Shrink and sharpen.
+	/* Shrink!
 	 */
 	if( im_shrink( x, t[2], shrink, shrink ) ||
 		im_affinei_all( t[2], t[3], 
-			vips_interpolate_bilinear_static(),
-			residual, 0, 0, residual, 0, 0 ) ||
-		im_conv( t[3], t[4], sharpen_filter() ) )
+			interp, residual, 0, 0, residual, 0, 0 ) )
 		return( -1 );
-	x = t[4];
+	x = t[3];
+
+	/* If we are upsampling, don't sharpen, since nearest looks dumb
+	 * sharpened.
+	 */
+	if( residual > 1.0 ) {
+		if( im_conv( x, t[4], sharpen_filter() ) )
+			return( -1 );
+		x = t[4];
+	}
 
 	/* Optionally transform to the target device space, provided the image
 	 * has a profile.

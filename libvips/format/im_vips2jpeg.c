@@ -822,7 +822,8 @@ buf_dest( j_compress_ptr cinfo, IMAGE *out, char **obuf, int *olen )
  * On success, buf is set to the output buffer and len to the size of the
  * compressed image.
 
- 	FIXME ... argh, the retuen length should really be a size_t, but we can't fix this now sadly
+ 	FIXME ... argh, the return length should really be a size_t, but we 
+	can't fix this now sadly
 
  */
 int
