@@ -23,7 +23,8 @@ static gboolean verbose = FALSE;
 static int use_disc_threshold = 1024 * 1024;
 static int thumbnail_size = 128;
 static char *thumbnail_format = "tn_%s.jpg";
-static char *colour_profile = NULL;
+static char *export_profile = NULL;
+static char *import_profile = NULL;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, G_OPTION_ARG_INT, &thumbnail_size, 
@@ -32,8 +33,10 @@ static GOptionEntry options[] = {
 		N_( "set thumbnail format to S" ), "S" },
 	{ "disc", 'd', 0, G_OPTION_ARG_INT, &use_disc_threshold, 
 		N_( "set disc use threshold to N" ), "N" },
-	{ "profile", 'p', 0, G_OPTION_ARG_STRING, &colour_profile, 
+	{ "eprofile", 'e', 0, G_OPTION_ARG_STRING, &export_profile, 
 		N_( "export with profile P" ), "P" },
+	{ "iprofile", 'i', 0, G_OPTION_ARG_STRING, &import_profile, 
+		N_( "import untagged images with profile P" ), "P" },
 	{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, 
 		N_( "verbose output" ), NULL },
 	{ NULL }
@@ -212,16 +215,39 @@ shrink_factor( IMAGE *in, IMAGE *out )
 		x = t[4];
 	}
 
-	/* Optionally transform to the target device space, provided the image
-	 * has a profile.
+	/* Colour management: we can transform the image if we have an output
+	 * profile and an input profile. The input profile can be in the
+	 * image, or if there is no profile there, supplied by the user.
 	 */
-	if( colour_profile && im_header_get_typeof( x, IM_META_ICC_NAME ) ) {
-		if( im_icc_import_embedded( x, t[5], 
-			IM_INTENT_RELATIVE_COLORIMETRIC ) ||
-			im_icc_export_depth( t[5], t[6], 
-				8, colour_profile, 
+	if( export_profile &&
+		(im_header_get_typeof( x, IM_META_ICC_NAME ) || 
+		 import_profile) ) {
+		if( im_header_get_typeof( x, IM_META_ICC_NAME ) ) {
+			if( im_icc_import_embedded( x, t[5], 
 				IM_INTENT_RELATIVE_COLORIMETRIC ) )
+				return( -1 );
+
+			if( verbose ) 
+				printf( "importing with embedded profile\n" );
+		}
+		else {
+			if( im_icc_import( x, t[5], 
+				import_profile, 
+				IM_INTENT_RELATIVE_COLORIMETRIC ) )
+				return( -1 );
+
+			if( verbose ) 
+				printf( "importing with profile %s\n",
+					import_profile );
+		}
+
+		if( im_icc_export_depth( t[5], t[6], 
+			8, export_profile, 
+			IM_INTENT_RELATIVE_COLORIMETRIC ) )
 			return( -1 );
+
+		if( verbose ) 
+			printf( "exporting with profile %s\n", export_profile );
 
 		x = t[6];
 	}

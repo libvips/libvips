@@ -1,13 +1,3 @@
-- vipsthumbnail.c should import untagged images with an sRGB profile
-
-  argh ... lcms has 
-
-  	LCMSAPI cmsHPROFILE   LCMSEXPORT cmsCreate_sRGBProfile(void);
-
-  perhaps we should expose this in VIPS somehow?
-
-  better: get the user to supply a default input profile
-
 - we sill have the old flood-fill code there, move to deprecated
 
   should we have new API? we could have a single "im_floodfill" that allows
