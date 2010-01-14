@@ -102,7 +102,7 @@
  * 17/4/08
  * 	- allow CMYKA (thanks Doron)
  * 17/7/08
- * 	- convert YCbCr to RGB on read
+ * 	- convert YCbCr to RGB on read (thanks Ole)
  * 15/8/08
  * 	- reorganise for image format system
  * 20/12/08
@@ -110,7 +110,7 @@
  * 	  VM wastefully
  * 13/1/09
  * 	- read strip-wise, not scanline-wise ... works with more compression /
- * 	  subsampling schemes (esp. subsamples YCbCr), and it's a bit quicker
+ * 	  subsampling schemes (esp. subsampled YCbCr), and it's a bit quicker
  */
 
 /*
@@ -1244,8 +1244,8 @@ read_tilewise( ReadTiff *rtiff, IMAGE *out )
 	return( 0 );
 }
 
-/* Stripwise reading - not all codecs work well with scanline reading,
- * sometimes we have to read in whole strips.
+/* Stripwise reading - we assume strips are written top-to-bottom. Not sure if
+ * this is always correct.
  */
 static int
 read_stripwise( ReadTiff *rtiff, IMAGE *out )
@@ -1285,18 +1285,15 @@ read_stripwise( ReadTiff *rtiff, IMAGE *out )
 		im_setupout( out ) )
 		return( -1 );
 
-	/* Make VIPS output buffer.
+	/* Make buffers.
 	 */
-	if( !(vbuf = IM_ARRAY( out, IM_IMAGE_SIZEOF_LINE( out ), PEL )) )
+	if( !(vbuf = IM_ARRAY( out, IM_IMAGE_SIZEOF_LINE( out ), PEL )) ||
+		!(tbuf = im_malloc( out, strip_size )) ) 
 		return( -1 );
 
-	/* Make TIFF input buffer.
-	 */
-	if( !(tbuf = im_malloc( out, strip_size )) ) 
-		return( -1 );
-
-	for( strip = 0, y = 0; strip < number_of_strips; 
-		strip++, y += rows_per_strip ) {
+	for( strip = 0, y = 0; 
+		strip < number_of_strips; 
+		strip += 1, y += rows_per_strip ) {
 		length = TIFFReadEncodedStrip( rtiff->tiff, 
 			strip, tbuf, (tsize_t) -1 );
 		if( length == -1 ) {
@@ -1306,7 +1303,7 @@ read_stripwise( ReadTiff *rtiff, IMAGE *out )
 
 		for( p = tbuf, i = 0; 
 			i < rows_per_strip && i + y < out->Ysize; 
-			i++, p += scanline_size ) {
+			i += 1, p += scanline_size ) {
 			/* Process and save as VIPS.
 			 */
 			rtiff->sfn( vbuf, p, out->Xsize, rtiff->client );
