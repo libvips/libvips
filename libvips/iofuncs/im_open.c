@@ -94,6 +94,8 @@ Modified:
  * 	- lock global image list (thanks lee)
  * 25/5/08
  * 	- break file format stuff out to the new pluggable image format system
+ * 14/1/09
+ * 	- write to non-vips formats with a "written" callback
  */
 
 /*
@@ -148,8 +150,8 @@ Modified:
  */
 int im__progress = 0;
 
-/* Delayed save: if we write to TIFF or to JPEG format, actually do the write
- * to a "p" and on preclose do im_vips2tiff() or whatever. Track save
+/* Delayed save: if we write to (eg.) TIFF, actually do the write
+ * to a "p" and on "written" do im_vips2tiff() or whatever. Track save
  * parameters here.
  */
 typedef struct {
@@ -158,7 +160,7 @@ typedef struct {
 	char *filename;		/* Save args */
 } SaveBlock;
 
-/* From preclose callback: invoke a delayed save.
+/* From "written" callback: invoke a delayed save.
  */
 static int
 invoke_sb( SaveBlock *sb )
@@ -182,7 +184,7 @@ attach_sb( IMAGE *out, int (*save_fn)(), const char *filename )
 	sb->save_fn = save_fn;
 	sb->filename = im_strdup( out, filename );
 
-	if( im_add_preclose_callback( out, 
+	if( im_add_written_callback( out, 
 		(im_callback_fn) invoke_sb, (void *) sb, NULL ) )
 		return( -1 );
 

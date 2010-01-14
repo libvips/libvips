@@ -18,6 +18,7 @@
 - read TIFF images strip-wise, not scanline-wise
 - better TIFF YCbCr reading (thanks Ole)
 - isanalyze generates fewer silly error messages
+- added "written" callbacks, used to implement write to non-vips formats
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

@@ -42,6 +42,8 @@ int im_add_close_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );
 int im_add_preclose_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );
 int im_add_postclose_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );
 
+int im_add_written_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );
+
 int im_add_evalstart_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );
 int im_add_eval_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );
 int im_add_evalend_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );

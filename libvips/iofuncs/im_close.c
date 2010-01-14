@@ -52,6 +52,8 @@
  * 	- gtkdoc comment
  * 10/1/09
  * 	- added postclose
+ * 14/1/09
+ * 	- added written
  */
 
 /*
@@ -225,6 +227,7 @@ im__close( IMAGE *im )
 	IM_FREEF( im_slist_free_all, im->evalfns );
 	IM_FREEF( im_slist_free_all, im->evalendfns );
 	IM_FREEF( im_slist_free_all, im->invalidatefns );
+	IM_FREEF( im_slist_free_all, im->writtenfns );
 	result |= im__trigger_callbacks( im->closefns );
 	IM_FREEF( im_slist_free_all, im->closefns );
 

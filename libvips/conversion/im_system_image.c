@@ -71,22 +71,8 @@ system_image( IMAGE *im,
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int result;
 
-	/* We have to generate the comnmand-line before we close in_image.
-	 */
-	im_snprintf( line, IM_MAX_STRSIZE, cmd_format, in_name, out_name );
-
-	/* in_image usually needs to be closed before it'll write. Argh! And
-	 * it'll be deleted on close too. skdaljfhaslkdf
-	 *
-	 * Perhaps we should do -write-on-close earlier? evalend? Or a new
-	 * signal which im_generate() can emit when it connects to an image?
-	 */
-	if( im_copy( im, in_image ) ) {
-		im_close( in_image );
-		return( -1 );
-	}
-	if( im_close( in_image ) || 
-		!(fp = im_popenf( "%s", "r", line )) ) 
+	if( im_copy( im, in_image ) ||
+		!(fp = im_popenf( cmd_format, "r", in_name, out_name )) ) 
 		return( -1 );
 
 	while( fgets( line, IM_MAX_STRSIZE, fp ) ) 
@@ -98,7 +84,7 @@ system_image( IMAGE *im,
 	if( log )
 		*log = im_strdup( NULL, vips_buf_all( &buf ) );
 
-	if( result ) {
+	if( !result ) {
 		IMAGE *t;
 
 		if( !(t = im_open_local( out_image, out_name, "r" )) ||
@@ -156,9 +142,11 @@ im_system_image( IMAGE *im,
 
 	if( system_image( im, in_image, out_image, cmd_format, log ) ) {
 		im_close( out_image );
+		im_close( in_image );
 
 		return( NULL );
 	}
+	im_close( in_image );
 
 	return( out_image );
 }

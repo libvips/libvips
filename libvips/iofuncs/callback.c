@@ -175,6 +175,33 @@ im_add_preclose_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
 }
 
 /**
+ * im_add_written_callback:
+ * @im: image to attach callback to
+ * @fn: callback function
+ * @a: user data 1
+ * @b: user data 2
+ *
+ * Attaches a written callback @fn to @im.
+ *
+ * Written callbacks are triggered exactly once, just after @im has been
+ * written to.
+ *
+ * Written callbacks are a good place to do background writes to files. VIPS
+ * uses them to implement (for example) writing to im_open("poop.jpg","w")
+ * triggering a write to jpeg.
+ *
+ * Evalend callbacks happen after a real write loop, whereas written is
+ * triggered even for just attaching some callbacks to a "p" image.
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+im_add_written_callback( IMAGE *im, im_callback_fn fn, void *a, void *b )
+{	
+	return( add_callback( im, &im->writtenfns, fn, a, b ) );
+}
+
+/**
  * im_add_eval_callback:
  * @im: image to attach callback to
  * @fn: callback function

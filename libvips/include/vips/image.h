@@ -218,7 +218,7 @@ typedef struct _VipsImage {
 	 */
 	struct _VipsImage *progress;
 
-	/* Some more callbacks. Appended to IMAGE for binary compatibility.
+	/* Some more callbacks. 
 	 */
 	GSList *evalstartfns; 	/* list of start eval callbacks */
 	GSList *preclosefns; 	/* list of pre-close callbacks */
@@ -245,6 +245,11 @@ typedef struct _VipsImage {
 	 * associated with this temp image.
 	 */
 	GSList *postclosefns; 	
+
+	/* Written callbacks are triggered when an image has been written to. 
+	 * Used by eg. im_open("x.jpg", "w") to do the final write to jpeg.
+	 */
+	GSList *writtenfns; 	
 } VipsImage;
 
 extern const size_t im__sizeof_bandfmt[];

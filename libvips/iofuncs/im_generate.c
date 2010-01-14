@@ -629,7 +629,12 @@ im_generate( IMAGE *im,
 			im_dtype2char( im->dtype ) );
                 return( -1 );
         }
- 
+
+	/* Successful write: trigger "written".
+	 */
+	if( im__trigger_callbacks( im->writtenfns ) )
+		return( -1 );
+
         return( 0 );
 }
 

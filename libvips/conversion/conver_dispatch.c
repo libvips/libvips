@@ -107,7 +107,7 @@ system_image_vec( im_object *argv )
 		return( -1 );
 	}
 
-	if( im_copy_file( out_image, out ) ||
+	if( im_copy( out_image, out ) ||
 		im_add_close_callback( out, 
 			(im_callback_fn) im_close, out_image, NULL ) ) {
 		im_close( out_image );

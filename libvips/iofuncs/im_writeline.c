@@ -124,8 +124,11 @@ im_writeline( int ypos, IMAGE *im, PEL *linebuffer )
 
 	/* Is this the end of eval?
 	 */
-	if( ypos == im->Ysize - 1 )
-		im__end_eval( im );
+	if( ypos == im->Ysize - 1 ) {
+		if( im__end_eval( im ) || 
+			im__trigger_callbacks( im->writtenfns ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }

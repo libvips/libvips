@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: vips 7.20.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-27 14:51+0000\n"
+"POT-Creation-Date: 2010-01-14 21:04+0000\n"
 "PO-Revision-Date: Thu Nov 26 12:08:20 GMT 2009\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
@@ -210,7 +210,6 @@ msgstr ""
 
 #. Name
 #: libvips/arithmetic/arith_dispatch.c:1228
-#: libvips/deprecated/deprecated_dispatch.c:384
 msgid "remainder after integer division by a vector of constants"
 msgstr ""
 
@@ -249,12 +248,12 @@ msgstr ""
 msgid "phase of cross power spectrum of two complex images"
 msgstr ""
 
-#: libvips/arithmetic/im_measure.c:90
+#: libvips/arithmetic/im_measure.c:95
 #, c-format
 msgid "patch %d is out of range"
 msgstr ""
 
-#: libvips/arithmetic/im_measure.c:131
+#: libvips/arithmetic/im_measure.c:136
 #, c-format
 msgid "patch %d, band %d: avg = %g, sdev = %g"
 msgstr ""
@@ -294,7 +293,7 @@ msgstr ""
 msgid "bands in must equal matrix width"
 msgstr ""
 
-#: libvips/colour/im_XYZ2disp.c:142
+#: libvips/colour/im_XYZ2disp.c:143
 msgid "3-band uncoded float only"
 msgstr ""
 
@@ -303,79 +302,78 @@ msgid "lcms library not linked to this VIPS"
 msgstr ""
 
 #: libvips/colour/im_icc_transform.c:79 libvips/colour/im_icc_transform.c:88
-#: libvips/colour/im_icc_transform.c:98 libvips/colour/im_icc_transform.c:108
-#: libvips/colour/im_icc_transform.c:117
+#: libvips/colour/im_icc_transform.c:98 libvips/colour/im_icc_transform.c:107
 msgid "lmcs library not linked to this VIPS"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:273 libvips/colour/im_icc_transform.c:283
+#: libvips/colour/im_icc_transform.c:263 libvips/colour/im_icc_transform.c:273
 #, c-format
 msgid "unable to open profile \"%s\""
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:294
+#: libvips/colour/im_icc_transform.c:284
 msgid "unable to create profiles"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:313
+#: libvips/colour/im_icc_transform.c:303
 msgid "unable to read profile"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:436 libvips/colour/im_icc_transform.c:445
-#: libvips/colour/im_icc_transform.c:784
+#: libvips/colour/im_icc_transform.c:426 libvips/colour/im_icc_transform.c:435
+#: libvips/colour/im_icc_transform.c:774
 #, c-format
 msgid ""
 "intent %d (%s) not supported by profile \"%s\"; falling back to default "
 "intent (usually PERCEPTUAL)"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:455
+#: libvips/colour/im_icc_transform.c:445
 msgid "CMYK input profile needs a 4 band input image"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:465
+#: libvips/colour/im_icc_transform.c:455
 msgid "RGB input profile needs a 3 band input image"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:474 libvips/colour/im_icc_transform.c:604
+#: libvips/colour/im_icc_transform.c:464 libvips/colour/im_icc_transform.c:594
 #, fuzzy, c-format
 msgid "unimplemented input colour space 0x%x"
 msgstr "unsupported colourspace %d"
 
-#: libvips/colour/im_icc_transform.c:501 libvips/colour/im_icc_transform.c:814
+#: libvips/colour/im_icc_transform.c:491 libvips/colour/im_icc_transform.c:804
 #, fuzzy, c-format
 msgid "unimplemented output colour space 0x%x"
 msgstr "unsupported colourspace %d"
 
-#: libvips/colour/im_icc_transform.c:517 libvips/colour/im_icc_transform.c:620
+#: libvips/colour/im_icc_transform.c:507 libvips/colour/im_icc_transform.c:610
 msgid "uchar or ushort input only"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:569
+#: libvips/colour/im_icc_transform.c:559
 #, c-format
 msgid ""
 "intent %d (%s) not supported by profile; falling back to default intent "
 "(usually PERCEPTUAL)"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:586
+#: libvips/colour/im_icc_transform.c:576
 msgid "CMYK profile needs a 4 band input image"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:596
+#: libvips/colour/im_icc_transform.c:586
 msgid "RGB profile needs a 3 band input image"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:687
+#: libvips/colour/im_icc_transform.c:677
 msgid "no embedded profile"
 msgstr ""
 
-#: libvips/colour/im_icc_transform.c:773
+#: libvips/colour/im_icc_transform.c:763
 #, fuzzy
 msgid "unsupported bit depth"
 msgstr "unsupported colourspace %d"
 
-#: libvips/colour/im_icc_transform.c:862
+#: libvips/colour/im_icc_transform.c:852
 msgid "unable to get media white point"
 msgstr ""
 
@@ -404,20 +402,20 @@ msgstr ""
 msgid "not a LabQ image"
 msgstr ""
 
-#: libvips/colour/disp.c:410
+#: libvips/colour/disp.c:412
 msgid "out of range [0,255]"
 msgstr ""
 
-#: libvips/colour/disp.c:436
+#: libvips/colour/disp.c:438
 msgid "bad display type"
 msgstr ""
 
-#: libvips/colour/disp.c:550
+#: libvips/colour/disp.c:552
 msgid "display unknown"
 msgstr ""
 
 #: libvips/conversion/im_zoom.c:332 libvips/format/im_vips2tiff.c:1589
-#: libvips/format/im_file2vips.c:761 libvips/iofuncs/im_open_vips.c:1320
+#: libvips/format/im_file2vips.c:761 libvips/iofuncs/im_open_vips.c:1267
 #: libvips/mosaicing/im_tbmerge.c:634 libvips/mosaicing/im_lrmerge.c:812
 #: libvips/resample/im_shrink.c:318 libvips/resample/im_affine.c:442
 msgid "unknown coding type"
@@ -487,8 +485,8 @@ msgstr ""
 msgid "only extract areas from LABQ and RAD"
 msgstr ""
 
-#: libvips/conversion/conver_dispatch.c:944
-#: libvips/deprecated/deprecated_dispatch.c:864
+#: libvips/conversion/conver_dispatch.c:991
+#: libvips/deprecated/deprecated_dispatch.c:834
 #: libvips/inplace/inplace_dispatch.c:146
 msgid "vectors not same length"
 msgstr ""
@@ -688,7 +686,7 @@ msgstr ""
 msgid "parameters would result in zero size output image"
 msgstr ""
 
-#: libvips/deprecated/im_bernd.c:72 libvips/format/im_vips2jpeg.c:891
+#: libvips/deprecated/im_bernd.c:72 libvips/format/im_vips2jpeg.c:892
 msgid "error writing output"
 msgstr ""
 
@@ -895,7 +893,7 @@ msgstr ""
 msgid "CSV"
 msgstr ""
 
-#: libvips/format/im_vips2tiff.c:154 libvips/format/im_tiff2vips.c:154
+#: libvips/format/im_vips2tiff.c:154 libvips/format/im_tiff2vips.c:159
 msgid "TIFF support disabled"
 msgstr ""
 
@@ -904,7 +902,7 @@ msgstr ""
 msgid "unable to open \"%s\" for output"
 msgstr ""
 
-#: libvips/format/im_vips2tiff.c:282 libvips/format/im_tiff2vips.c:1395
+#: libvips/format/im_vips2tiff.c:282 libvips/format/im_tiff2vips.c:1388
 #, c-format
 msgid "unable to open \"%s\" for input"
 msgstr ""
@@ -1008,7 +1006,7 @@ msgstr ""
 msgid "error reading radiance header"
 msgstr ""
 
-#: libvips/format/radiance.c:966 libvips/format/im_tiff2vips.c:1311
+#: libvips/format/radiance.c:966 libvips/format/im_tiff2vips.c:1300
 msgid "read error"
 msgstr ""
 
@@ -1070,18 +1068,18 @@ msgstr ""
 msgid "\"%s\" is not a supported image format."
 msgstr ""
 
-#: libvips/format/im_analyze2vips.c:371
+#: libvips/format/im_analyze2vips.c:315
+msgid "header file size incorrect"
+msgstr ""
+
+#: libvips/format/im_analyze2vips.c:375
 #, c-format
 msgid "%d-dimensional images not supported"
 msgstr ""
 
-#: libvips/format/im_analyze2vips.c:424
+#: libvips/format/im_analyze2vips.c:428
 #, c-format
 msgid "datatype %d not supported"
-msgstr ""
-
-#: libvips/format/im_analyze2vips.c:525 libvips/format/im_analyze2vips.c:565
-msgid "header file size incorrect"
 msgstr ""
 
 #: libvips/format/im_analyze2vips.c:608
@@ -1136,43 +1134,43 @@ msgid "1 or 3 band images only"
 msgstr ""
 
 #: libvips/format/im_file2vips.c:125 libvips/format/im_file2vips.c:643
-#: libvips/iofuncs/im_open_vips.c:368
+#: libvips/iofuncs/im_open_vips.c:362
 #, c-format
 msgid "unable to open \"%s\", %s"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:253 libvips/iofuncs/im_open_vips.c:496
+#: libvips/format/im_file2vips.c:253 libvips/iofuncs/im_open_vips.c:490
 #, c-format
 msgid "\"%s\" is not a VIPS image"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:313 libvips/iofuncs/im_open_vips.c:556
+#: libvips/format/im_file2vips.c:313 libvips/iofuncs/im_open_vips.c:550
 msgid "unable to read history"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:350 libvips/iofuncs/im_open_vips.c:589
+#: libvips/format/im_file2vips.c:350 libvips/iofuncs/im_open_vips.c:583
 msgid "more than a 10 megabytes of XML? sufferin' succotash!"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:397 libvips/iofuncs/im_open_vips.c:637
+#: libvips/format/im_file2vips.c:397 libvips/iofuncs/im_open_vips.c:631
 msgid "incorrect namespace in XML"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:518 libvips/iofuncs/im_open_vips.c:761
+#: libvips/format/im_file2vips.c:518 libvips/iofuncs/im_open_vips.c:755
 msgid "error transforming from save format"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:632 libvips/iofuncs/im_open_vips.c:1147
+#: libvips/format/im_file2vips.c:632 libvips/iofuncs/im_open_vips.c:1141
 #, c-format
 msgid "unable to read header for \"%s\", %s"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:644 libvips/iofuncs/window.c:237
-#: libvips/iofuncs/im_open_vips.c:965 libvips/iofuncs/im_open_vips.c:1160
+#: libvips/format/im_file2vips.c:644 libvips/iofuncs/window.c:241
+#: libvips/iofuncs/im_open_vips.c:959 libvips/iofuncs/im_open_vips.c:1155
 msgid "file has been truncated"
 msgstr ""
 
-#: libvips/format/im_file2vips.c:657 libvips/iofuncs/im_open_vips.c:1171
+#: libvips/format/im_file2vips.c:657 libvips/iofuncs/im_open_vips.c:1166
 #, c-format
 msgid "error reading XML: %s"
 msgstr ""
@@ -1255,86 +1253,86 @@ msgstr ""
 msgid "OpenEXR"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:267 libvips/format/im_tiff2vips.c:290
-#: libvips/format/im_tiff2vips.c:309
+#: libvips/format/im_tiff2vips.c:272 libvips/format/im_tiff2vips.c:295
+#: libvips/format/im_tiff2vips.c:314
 #, c-format
 msgid "required field %d missing"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:271
+#: libvips/format/im_tiff2vips.c:276
 #, c-format
 msgid "required field %d=%d, not %d"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:673
+#: libvips/format/im_tiff2vips.c:640
 msgid "bad colormap"
 msgstr "bad colourmap"
 
-#: libvips/format/im_tiff2vips.c:727 libvips/format/im_tiff2vips.c:775
+#: libvips/format/im_tiff2vips.c:694 libvips/format/im_tiff2vips.c:742
 msgid "3 or 4 bands RGB TIFF only"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:863
+#: libvips/format/im_tiff2vips.c:830
 msgid "4 or 5 bands CMYK TIFF only"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:913
+#: libvips/format/im_tiff2vips.c:880
 msgid "unknown resolution unit"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:918
+#: libvips/format/im_tiff2vips.c:885
 #, c-format
 msgid ""
 "no resolution information for TIFF image \"%s\" -- defaulting to 1 pixel per "
 "mm"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:985
+#: libvips/format/im_tiff2vips.c:952
 #, c-format
 msgid "unsupported sample format %d for lab image"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:995
+#: libvips/format/im_tiff2vips.c:962
 #, c-format
 msgid "unsupported depth %d for LAB image"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:1042
+#: libvips/format/im_tiff2vips.c:1001
 #, c-format
 msgid "unsupported sample format %d for greyscale image"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:1051
+#: libvips/format/im_tiff2vips.c:1010
 #, c-format
 msgid "unsupported depth %d for greyscale image"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:1091
+#: libvips/format/im_tiff2vips.c:1058
 #, c-format
 msgid "unsupported sample format %d for rgb image"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:1100
+#: libvips/format/im_tiff2vips.c:1067
 #, c-format
 msgid "unsupported depth %d for RGB image"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:1114
+#: libvips/format/im_tiff2vips.c:1081
 #, c-format
 msgid "unknown photometric interpretation %d"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:1373
+#: libvips/format/im_tiff2vips.c:1366
 #, c-format
 msgid "bad page number %d"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:1449 libvips/format/im_tiff2vips.c:1481
+#: libvips/format/im_tiff2vips.c:1442 libvips/format/im_tiff2vips.c:1474
 #, c-format
 msgid "TIFF file does not contain page %d"
 msgstr ""
 
-#: libvips/format/im_tiff2vips.c:1556
+#: libvips/format/im_tiff2vips.c:1549
 msgid "TIFF"
 msgstr ""
 
@@ -1666,6 +1664,9 @@ msgid "internal error"
 msgstr ""
 
 #: libvips/inplace/inplace_dispatch.c:216
+#: libvips/inplace/inplace_dispatch.c:261
+#: libvips/inplace/inplace_dispatch.c:306
+#: libvips/inplace/inplace_dispatch.c:351
 msgid "bad vector length"
 msgstr ""
 
@@ -1676,7 +1677,7 @@ msgstr ""
 msgid "unable to output to a %s image"
 msgstr ""
 
-#: libvips/iofuncs/window.c:236 libvips/iofuncs/im_open_vips.c:1159
+#: libvips/iofuncs/window.c:240 libvips/iofuncs/im_open_vips.c:1154
 #, c-format
 msgid "unable to read data for \"%s\", %s"
 msgstr ""
@@ -1768,12 +1769,12 @@ msgstr ""
 msgid "expected %s, saw %s"
 msgstr ""
 
-#: libvips/iofuncs/util.c:1497
+#: libvips/iofuncs/util.c:1538
 #, c-format
-msgid "unable to make temp file %s"
+msgid "unable to make temporary file %s"
 msgstr ""
 
-#: libvips/iofuncs/util.c:1542
+#: libvips/iofuncs/util.c:1601
 #, fuzzy, c-format
 msgid "unsupported band format: %d"
 msgstr "unsupported colourspace %d"
@@ -1856,7 +1857,7 @@ msgstr ""
 msgid "flag not 0,1,2"
 msgstr ""
 
-#: libvips/iofuncs/im_close.c:197
+#: libvips/iofuncs/im_close.c:199
 #, c-format
 msgid "unable to close fd for %s"
 msgstr ""
@@ -1955,21 +1956,21 @@ msgstr ""
 msgid "Show VIPS options"
 msgstr ""
 
-#: libvips/iofuncs/im_open_vips.c:869
+#: libvips/iofuncs/im_open_vips.c:863
 #, c-format
 msgid "unable to set property \"%s\" to value \"%s\"."
 msgstr ""
 
-#: libvips/iofuncs/im_open_vips.c:917
+#: libvips/iofuncs/im_open_vips.c:911
 msgid "error transforming to save format"
 msgstr ""
 
-#: libvips/iofuncs/im_open_vips.c:1079 libvips/iofuncs/im_open_vips.c:1088
-#: libvips/iofuncs/im_open_vips.c:1111
+#: libvips/iofuncs/im_open_vips.c:1073 libvips/iofuncs/im_open_vips.c:1082
+#: libvips/iofuncs/im_open_vips.c:1105
 msgid "xml save error"
 msgstr ""
 
-#: libvips/iofuncs/im_open_vips.c:1270
+#: libvips/iofuncs/im_open_vips.c:1217
 msgid "open for read-write for native format images only"
 msgstr ""
 

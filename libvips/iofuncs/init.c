@@ -34,6 +34,8 @@
  * 	- add set_hint
  * 10/1/09
  * 	- added postclose
+ * 14/1/09
+ * 	- added writtenfns
  */
 
 /*
@@ -176,6 +178,7 @@ im_init( const char *filename )
 	im->hint_set = FALSE;
 
 	im->postclosefns = NULL;
+	im->writtenfns = NULL;
 
 	if( !(im->filename = im_strdup( NULL, filename )) ) {
 		im_close( im );

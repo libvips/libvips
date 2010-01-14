@@ -1,3 +1,5 @@
+- test new floodfill in paintbox
+
 - we sill have the old flood-fill code there, move to deprecated
 
   should we have new API? we could have a single "im_floodfill" that allows

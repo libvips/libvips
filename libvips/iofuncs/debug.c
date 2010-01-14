@@ -399,6 +399,8 @@ im_printdesc( IMAGE *image )
 		printf( "close callbacks attached\n" );
 	if( image->postclosefns )
 		printf( "postclose callbacks attached\n" );
+	if( image->writtenfns )
+		printf( "written callbacks attached\n" );
 	if( image->evalfns )
 		printf( "eval callbacks attached\n" );
 	if( image->evalendfns )
