@@ -71,8 +71,22 @@ system_image( IMAGE *im,
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int result;
 
-	if( im_copy( im, in_image ) || 
-		!(fp = im_popenf( cmd_format, "r", in_name, out_name )) ) 
+	/* We have to generate the comnmand-line before we close in_image.
+	 */
+	im_snprintf( line, IM_MAX_STRSIZE, cmd_format, in_name, out_name );
+
+	/* in_image usually needs to be closed before it'll write. Argh! And
+	 * it'll be deleted on close too. skdaljfhaslkdf
+	 *
+	 * Perhaps we should do -write-on-close earlier? evalend? Or a new
+	 * signal which im_generate() can emit when it connects to an image?
+	 */
+	if( im_copy( im, in_image ) ) {
+		im_close( in_image );
+		return( -1 );
+	}
+	if( im_close( in_image ) || 
+		!(fp = im_popenf( "%s", "r", line )) ) 
 		return( -1 );
 
 	while( fgets( line, IM_MAX_STRSIZE, fp ) ) 
@@ -83,6 +97,14 @@ system_image( IMAGE *im,
 
 	if( log )
 		*log = im_strdup( NULL, vips_buf_all( &buf ) );
+
+	if( result ) {
+		IMAGE *t;
+
+		if( !(t = im_open_local( out_image, out_name, "r" )) ||
+			im_copy( t, out_image ) )
+			return( -1 );
+	}
 
 	return( result );
 }
@@ -110,8 +132,7 @@ system_image( IMAGE *im,
 
   The caller would open the output file, either with im_open(), or with it's
   own system (nip2 has it's own open file thing to give progress feedback and
-  use disc for format conversion), and be responsible for deleting the temp
-  output file at some point.
+  use disc for format conversion), and be responsible for deleting the temp output file at some point.
  
   */
 
@@ -126,18 +147,18 @@ im_system_image( IMAGE *im,
 	if( log )
 		*log = NULL;
 
-	in_image = im__open_temp( in_format );
-	out_image = im__open_temp( out_format );
-
-	if( !in_image || 
-		!out_image ||
-		system_image( im, in_image, out_image, cmd_format, log ) ) {
+	if( !(in_image = im__open_temp( in_format )) )
+		return( NULL );
+	if( !(out_image = im__open_temp( out_format )) ) {
 		im_close( in_image );
+		return( NULL );
+	}
+
+	if( system_image( im, in_image, out_image, cmd_format, log ) ) {
 		im_close( out_image );
 
 		return( NULL );
 	}
-	im_close( in_image );
 
 	return( out_image );
 }

@@ -100,12 +100,20 @@ system_image_vec( im_object *argv )
 
 	IMAGE *out_image;
 
-	if( (out_image = im_system_image( in, 
-		in_format, out_format, cmd, log )) )
-		im_copy_file( out_image, out );
+	if( !(out_image = im_system_image( in, 
+		in_format, out_format, cmd, log )) ) {
+		im_error( "im_system_image", "%s", *log );
+		im_free( *log );
+		return( -1 );
+	}
 
-	/* We always succeed, but out may be invalid.
-	 */
+	if( im_copy_file( out_image, out ) ||
+		im_add_close_callback( out, 
+			(im_callback_fn) im_close, out_image, NULL ) ) {
+		im_close( out_image );
+		return( -1 );
+	}
+
 	return( 0 );
 }
 

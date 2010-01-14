@@ -452,7 +452,7 @@ im_open( const char *filename, const char *mode )
 				"vips" ) == 0 ) 
 				im = im_openout( filename );
 			else {
-				if( !(im = im_open( "im_open:lw:1", "p" )) )
+				if( !(im = im_open( filename, "p" )) )
 					return( NULL );
 				if( attach_sb( im, format->save, filename ) ) {
 					im_close( im );
