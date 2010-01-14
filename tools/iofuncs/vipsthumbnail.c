@@ -1,10 +1,11 @@
 /* VIPS thumbnailer
  *
- * J. Cupitt, 11/1/09
+ * 11/1/09
  *
  * 13/1/09
- * 	- don't shrink images that are already tiny
  * 	- decode labq and rad images
+ * 	- colour management
+ * 	- better handling of tiny images
  */
 
 #ifdef HAVE_CONFIG_H
