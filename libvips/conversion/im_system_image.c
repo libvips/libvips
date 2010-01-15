@@ -53,18 +53,12 @@
 
 #define IM_MAX_STRSIZE (4096)
 
-#ifdef OS_WIN32
-#define popen(b,m) _popen(b,m)
-#define pclose(f) _pclose(f)
-#endif /*OS_WIN32*/
-
 static int
 system_image( IMAGE *im, 
-	IMAGE *in_image, IMAGE *out_image, const char *cmd_format, 
+	IMAGE *in_image, char *out_name, const char *cmd_format, 
 	char **log ) 
 {
 	const char *in_name = in_image->filename;
-	const char *out_name = out_image->filename;
 	FILE *fp;
 	char line[IM_MAX_STRSIZE];
 	char txt[IM_MAX_STRSIZE];
@@ -84,42 +78,29 @@ system_image( IMAGE *im,
 	if( log )
 		*log = im_strdup( NULL, vips_buf_all( &buf ) );
 
-	if( !result ) {
-		IMAGE *t;
-
-		if( !(t = im_open_local( out_image, out_name, "r" )) ||
-			im_copy( t, out_image ) )
-			return( -1 );
-	}
-
 	return( result );
 }
 
 /**
  * im_system_image:
 
-   Run a command on an image, returning a new image.
+   Run a command on an image, returning a new image. Eg.:
 
-   "mycommand --dostuff %s -o %s"
-
-   have separate format strings for input and output?
-
-   "%s.jpg"
+   im_system_image A2 "%s.jpg" "%s.jpg" "convert %s -swirl 45 %s"
 
  Actions:
 
-- create two empty temporary files
-- write the image to the first
+- create two temporary file names using the passed format strings to set type
+= expand the command, using the two expanded filenames
+- write the image to the first filename
 - call system() on the expanded command
-- capture stdout/stderr into log
+- capture stdout into log
 - delete the temp input file
+- open the output image (the output file will be auto deleted when this 
+  IMAGE is closed.
 - return the output filename, or NULL if the command failed (log is still
   set in this case)
 
-  The caller would open the output file, either with im_open(), or with it's
-  own system (nip2 has it's own open file thing to give progress feedback and
-  use disc for format conversion), and be responsible for deleting the temp output file at some point.
- 
   */
 
 IMAGE *
@@ -128,25 +109,41 @@ im_system_image( IMAGE *im,
 	char **log )
 {
 	IMAGE *in_image;
-	IMAGE *out_image;
+	char *out_name;
+	IMAGE *out;
 
 	if( log )
 		*log = NULL;
 
 	if( !(in_image = im__open_temp( in_format )) )
 		return( NULL );
-	if( !(out_image = im__open_temp( out_format )) ) {
+	if( !(out_name = im__temp_name( out_format )) ) {
 		im_close( in_image );
 		return( NULL );
 	}
 
-	if( system_image( im, in_image, out_image, cmd_format, log ) ) {
-		im_close( out_image );
+	if( system_image( im, in_image, out_name, cmd_format, log ) ) {
 		im_close( in_image );
+		g_free( out_name );
 
 		return( NULL );
 	}
 	im_close( in_image );
 
-	return( out_image );
+	if( !(out = im_open( out_name, "r" )) ) {
+		g_free( out_name );
+
+		return( NULL );
+	}
+	if( im_add_postclose_callback( out, 
+		(im_callback_fn) unlink, out->filename, NULL ) ) {
+		g_free( out_name );
+		im_close( out );
+		g_unlink( out_name );
+
+		return( NULL );
+	}
+	g_free( out_name );
+
+	return( out );
 }

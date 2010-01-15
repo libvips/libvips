@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: vips 7.20.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-14 21:04+0000\n"
+"POT-Creation-Date: 2010-01-15 13:45+0000\n"
 "PO-Revision-Date: Thu Nov 26 12:08:20 GMT 2009\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
@@ -1809,7 +1809,7 @@ msgstr ""
 msgid "func already attached"
 msgstr ""
 
-#: libvips/iofuncs/im_generate.c:684 libvips/iofuncs/im_prepare.c:184
+#: libvips/iofuncs/im_generate.c:689 libvips/iofuncs/im_prepare.c:184
 #: libvips/iofuncs/im_prepare.c:404
 #, c-format
 msgid "unable to input from a %s image"
@@ -1857,7 +1857,7 @@ msgstr ""
 msgid "flag not 0,1,2"
 msgstr ""
 
-#: libvips/iofuncs/im_close.c:199
+#: libvips/iofuncs/im_close.c:201
 #, c-format
 msgid "unable to close fd for %s"
 msgstr ""
@@ -2278,28 +2278,28 @@ msgstr ""
 msgid "no such string field \"%s\""
 msgstr ""
 
-#: libvips/iofuncs/im_open.c:314
+#: libvips/iofuncs/im_open.c:316
 #, c-format
 msgid "%s %s: %d%% complete"
 msgstr ""
 
 #. Spaces at end help to erase the %complete message we overwrite.
 #.
-#: libvips/iofuncs/im_open.c:332
+#: libvips/iofuncs/im_open.c:334
 #, c-format
 msgid "%s %s: done in %ds          \n"
 msgstr ""
 
-#: libvips/iofuncs/im_open.c:419
+#: libvips/iofuncs/im_open.c:421
 msgid "NULL filename or mode"
 msgstr ""
 
-#: libvips/iofuncs/im_open.c:468
+#: libvips/iofuncs/im_open.c:470
 #, fuzzy, c-format
 msgid "unsupported filetype \"%s\""
 msgstr "unsupported colourspace %d"
 
-#: libvips/iofuncs/im_open.c:484
+#: libvips/iofuncs/im_open.c:486
 #, c-format
 msgid "bad mode \"%s\""
 msgstr ""

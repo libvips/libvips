@@ -63,11 +63,6 @@
 
 #define IM_MAX_STRSIZE (4096)
 
-#ifdef OS_WIN32
-#define popen(b,m) _popen(b,m)
-#define pclose(f) _pclose(f)
-#endif /*OS_WIN32*/
-
 /* Run a command on an IMAGE ... copy to tmp (if necessary), run 
  * command on it, unlink (if we copied), return stdout from command.
  */
