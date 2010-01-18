@@ -1,14 +1,4 @@
-/* @(#) Make a black uchar image of a specified size. Sometimes useful for
- * @(#) building masks.
- * @(#)  IMAGE out should nhave been set by the calling program
- * @(#)
- * @(#) int 
- * @(#) im_black(out, x, y, bands)
- * @(#) IMAGE *out;
- * @(#) int x, y;
- * @(#) int bands;
- * @(#)
- * @(#) Returns 0 on success and -1 on error.
+/* im_black.c
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -21,6 +11,8 @@
  * 	- memory leaks fixed!
  * 2/3/98 JC
  *	- IM_ANY added
+ * 18/1/09
+ * 	- gtkdoc
  */
 
 /*
@@ -74,7 +66,18 @@ black_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Make a one band black uchar image of a specified size.
+/**
+ * im_black:
+ * @out: output #IMAGE
+ * @x: output width
+ * @y: output height
+ * @bands: number of output bands
+ *
+ * Make a black unsigned char image of a specified size.
+ *
+ * See also: im_make_xy(), im_text().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_black( IMAGE *out, int x, int y, int bands )
@@ -83,7 +86,7 @@ im_black( IMAGE *out, int x, int y, int bands )
 
 	/* Check parameters.
 	 */
-	if( x < 0 || y < 0 || bands < 0 ) {
+	if( x <= 0 || y <= 0 || bands <= 0 ) {
 		im_error( "im_black", "%s", _( "bad parameter" ) );
 		return( -1 );
 	}
