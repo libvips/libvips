@@ -125,7 +125,7 @@ Modified:
  */
 
 /*
-#define DEBUG_IO
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -501,9 +501,9 @@ im_open( const char *filename, const char *mode )
 			(im_callback_fn) evalend_cb, progress, NULL );
 	}
 
-#ifdef DEBUG_IO
+#ifdef DEBUG
 	printf( "im_open: success for %s (%p)\n", im->filename, im );
-#endif /*DEBUG_IO*/
+#endif /*DEBUG*/
 
 	return( im );
 }

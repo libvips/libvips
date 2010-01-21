@@ -1079,11 +1079,13 @@ im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
 	if( render_thread_create() )
 		return( -1 );
 
-	if( width <= 0 || height <= 0 || max < -1 ) {
+	if( width <= 0 || 
+		height <= 0 || 
+		max < -1 ) {
 		im_error( "im_render", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
-	if( im_pincheck( in ) || im_poutcheck( out ) )
+	if( im_piocheck( in, out ) )
 		return( -1 );
 	if( mask ) {
 		if( im_poutcheck( mask ) ||

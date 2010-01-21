@@ -276,9 +276,10 @@ im_close( IMAGE *im )
 		 * be closed when the last region is freed 
 		 * (see im_region_free()). 
 		 */
-#ifdef DEBUG_IO
-		printf( "im_close: pending close for \"%s\"\n", im->filename );
-#endif /*DEBUG_IO*/
+#ifdef DEBUG_NEW
+		printf( "im_close: pending close for 0x%p, \"%s\"\n", 
+			im, im->filename );
+#endif /*DEBUG_NEW*/
 
 		im->close_pending = 1;
 	}

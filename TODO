@@ -1,4 +1,9 @@
-- test new floodfill in paintbox
+- close callbacks could use invalidate's trick and give close callbacks more
+  safety
+
+  could get rid of a couple of image flags too
+
+- flood blob with ink == initial click loops
 
 - we sill have the old flood-fill code there, move to deprecated
 

@@ -559,14 +559,48 @@ im_invalidate_region( REGION *reg )
 }
 
 static void *
-im_invalidate_image( IMAGE *im )
+im_invalidate_image( IMAGE *im, GSList **to_be_invalidated )
 {
 	(void) im_slist_map2( im->regions,
 		(VSListMap2Fn) im_invalidate_region, NULL, NULL );
-	if( im__trigger_callbacks( im->invalidatefns ) )
-		return( im );
+
+	*to_be_invalidated = g_slist_prepend( *to_be_invalidated, im );
 
 	return( NULL );
+}
+
+/* Trigger a callbacks on a list of images, where the callbacks might create
+ * or destroy the images.
+ *
+ * We make a set of temp regions to hold the images open, but when we switch
+ * to VipsObject we should incr/decr ref count.
+ */
+static void
+im_invalidate_trigger( GSList *images )
+{
+	GSList *regions;
+	GSList *p;
+
+	regions = NULL;
+	for( p = images; p; p = p->next ) {
+		IMAGE *im = (IMAGE *) p->data;
+
+		regions = g_slist_prepend( regions, im_region_create( im ) );
+	}
+
+	for( p = images; p; p = p->next ) {
+		IMAGE *im = (IMAGE *) p->data;
+
+		(void) im__trigger_callbacks( im->invalidatefns );
+	}
+
+	for( p = regions; p; p = p->next ) {
+		REGION *r = (REGION *) p->data;
+
+		im_region_free( r );
+	}
+
+	g_slist_free( regions );
 }
 
 /**
@@ -581,8 +615,22 @@ im_invalidate_image( IMAGE *im )
 void
 im_invalidate( IMAGE *im )
 {
+	GSList *to_be_invalidated;
+
+	/* Invalidate callbacks might do anything, including removing images
+	 * or invalidating other images, so we can't trigger them from within 
+	 * the image loop. Instead we collect a list of image to invalidate 
+	 * and trigger them all in one go, checking that they are not
+	 * invalidated.
+	 */
+	to_be_invalidated = NULL;
 	(void) im__link_map( im, 
-		(VSListMap2Fn) im_invalidate_image, NULL, NULL );
+		(VSListMap2Fn) im_invalidate_image, &to_be_invalidated, NULL );
+
+	im_invalidate_trigger( to_be_invalidated );
+
+	g_slist_free( to_be_invalidated );
+
 }
 
 /* Init the buffer cache system.
