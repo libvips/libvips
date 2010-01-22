@@ -1,6 +1,14 @@
 - how about im_invalidate_area()? we currently repaint the whole window on
   every paint action in nip2 :-(
 
+  we'd need to have coordinate transforms broken out for this :-( 
+
+- should im_rwcheck() copy to disc?
+
+  maybe im_rwcheck_disc() copies to im->filename and maps that
+
+  rather awfward to do atm
+
 - flood blob with ink == initial click loops
 
 - we sill have the old flood-fill code there, move to deprecated

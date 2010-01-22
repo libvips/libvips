@@ -21,6 +21,8 @@
  * 21/12/09
  * 	- rewrite for a scanline based fill, about 4x faster!
  * 	- allow separate test and mark images
+ * 22/1/10
+ * 	- flood_blob could loop if start point == ink
  */
 
 /*
@@ -501,6 +503,7 @@ int
 im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 {
 	Flood *flood;
+ 	int j;
 
 	if( im_rwcheck( im ) ||
 		im_check_known_coded( "im_flood", im ) )
@@ -512,6 +515,15 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	 */
 	memcpy( flood->edge, IM_IMAGE_ADDR( im, x, y ), flood->tsize );
 	flood->equal = 1;
+
+	/* If edge == ink, we'll never stop :-( or rather, there's nothing to
+	 * do.
+	 */
+	for( j = 0; j < flood->tsize; j++ ) 
+		if( flood->edge[j] != flood->ink[j] ) 
+			break;
+	if( j == flood->tsize )
+		return( 0 );
 
 	flood_all( flood, x, y );
 

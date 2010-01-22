@@ -225,12 +225,15 @@ im_incheck( IMAGE *im )
 		break;
 
 	case IM_OPENOUT:
-		/* Close file down and reopen as input.
+		/* Close file down and reopen as input. I guess this will only
+		 * work for vips files?
 		 */
 #ifdef DEBUG_IO
 		printf( "im_incheck: auto-rewind of %s\n", im->filename );
 #endif/*DEBUG_IO*/
-		if( im__close( im ) || im_openin( im ) ) {
+		if( im__close( im ) || 
+			im_openin( im ) ||
+			im_incheck( im ) ) {
 			im_error( "im_incheck", 
 				_( "auto-rewind for %s failed" ),
 				im->filename );
