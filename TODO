@@ -7,9 +7,7 @@
 
   maybe im_rwcheck_disc() copies to im->filename and maps that
 
-  rather awfward to do atm
-
-- flood blob with ink == initial click loops
+  rather awkward to do atm with the way check.c is structured
 
 - we sill have the old flood-fill code there, move to deprecated
 
