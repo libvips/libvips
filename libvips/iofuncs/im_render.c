@@ -39,6 +39,8 @@
  * 12/10/09
  * 	- gtkdoc comment
  * 	- im_render(), im_render_fade() moved to deprecated
+ * 22/1/10
+ * 	- drop painted tiles on invalidate
  */
 
 /*
@@ -69,10 +71,10 @@
 
 /* Turn on debugging output.
 #define DEBUG
-#define DEBUG_REUSE
 #define DEBUG_PAINT
 #define DEBUG_TG
 #define DEBUG_MAKE
+#define DEBUG_REUSE
  */
 
 #ifdef HAVE_CONFIG_H
@@ -83,7 +85,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <math.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -234,11 +235,7 @@ tile_free( Tile *tile )
 	printf( "tile_free\n" );
 #endif /*DEBUG_MAKE*/
 
-	if( tile->region ) {
-		(void) im_region_free( tile->region );
-		tile->region = NULL;
-	}
-
+	IM_FREEF( im_region_free, tile->region );
 	im_free( tile );
 
 	return( NULL );
@@ -251,7 +248,7 @@ render_free( Render *render )
 	printf( "render_free: %p\n", render );
 #endif /*DEBUG_MAKE*/
 
-	assert( render->ref_count == 0 );
+	g_assert( render->ref_count == 0 );
 
 	render_dirty_remove( render );
 
@@ -280,7 +277,7 @@ static int
 render_ref( Render *render )
 {
 	g_mutex_lock( render->ref_count_lock );
-	assert( render->ref_count != 0 );
+	g_assert( render->ref_count != 0 );
 	render->ref_count += 1;
 	g_mutex_unlock( render->ref_count_lock );
 
@@ -293,7 +290,7 @@ render_unref( Render *render )
 	int kill;
 
 	g_mutex_lock( render->ref_count_lock );
-	assert( render->ref_count > 0 );
+	g_assert( render->ref_count > 0 );
 	render->ref_count -= 1;
 	kill = render->ref_count == 0;
 	g_mutex_unlock( render->ref_count_lock );
@@ -325,7 +322,7 @@ render_dirty_get( void )
 	if( render_dirty_all ) {
 		render = (Render *) render_dirty_all->data;
 
-		assert( render->ref_count == 1 );
+		g_assert( render->ref_count == 1 );
 
 		/* Ref the render to make sure it can't die while we're
 		 * working on it.
@@ -353,7 +350,7 @@ render_dirty_process( Render *render )
 	g_mutex_lock( render->dirty_lock );
 	if( render->dirty ) { 
 		tile = (Tile *) render->dirty->data;
-		assert( tile->state == TILE_DIRTY );
+		g_assert( tile->state == TILE_DIRTY );
 		render->dirty = g_slist_remove( render->dirty, tile );
 		tile->state = TILE_WORKING;
 	}
@@ -479,7 +476,7 @@ render_thread_main( void *client )
 
 			render_dirty_put( render );
 
-			assert( render->ref_count == 1 ||
+			g_assert( render->ref_count == 1 ||
 				render->ref_count == 2 );
 
 			/* _get() does a ref to make sure we keep the render
@@ -543,7 +540,7 @@ tile_state_name( TileState state )
 	case TILE_PAINTED: 		return( "TILE_PAINTED" );
 
 	default:
-		assert( FALSE );
+		g_assert( FALSE );
 	}
 }
 
@@ -559,6 +556,73 @@ tile_print( Tile *tile )
 	return( NULL );
 }
 #endif /*DEBUG*/
+
+static void *
+tile_test_clean_ticks( Tile *this, Tile **best )
+{
+	if( this->state == TILE_PAINTED )
+		if( !*best || this->access_ticks < (*best)->access_ticks )
+			*best = this;
+
+	return( NULL );
+}
+
+/* Pick a painted tile to reuse. Search for LRU (slow!).
+ */
+static Tile *
+render_tile_get_painted( Render *render )
+{
+	Tile *tile;
+
+	tile = NULL;
+	im_slist_map2( render->cache,
+		(VSListMap2Fn) tile_test_clean_ticks, &tile, NULL );
+
+	if( tile ) {
+		g_assert( tile->state == TILE_PAINTED );
+
+#ifdef DEBUG_REUSE
+		printf( "render_tile_get_painted: reusing painted %p\n", tile );
+
+		g_mutex_lock( render->dirty_lock );
+		g_assert( !g_slist_find( render->dirty, tile ) );
+		g_mutex_unlock( render->dirty_lock );
+#endif /*DEBUG_REUSE*/
+
+		tile->state = TILE_WORKING;
+	}
+
+	return( tile );
+}
+
+/* Free all painted tiles. This is triggered on "invalidate".
+ */
+static int
+render_invalidate( Render *render )
+{
+	Tile *tile;
+
+	/* Conceptually we work like region_fill(): we free all painted tiles.
+	 */
+	g_mutex_lock( render->read_lock );
+
+	while( (tile = render_tile_get_painted( render )) ) {
+		render->cache = g_slist_remove( render->cache, tile );
+
+#ifdef DEBUG_REUSE
+		g_mutex_lock( render->dirty_lock );
+		g_assert( !g_slist_find( render->dirty, tile ) );
+		g_mutex_unlock( render->dirty_lock );
+#endif /*DEBUG_REUSE*/
+
+		tile->render->ntiles -= 1;
+		tile_free( tile );
+	}
+
+	g_mutex_unlock( render->read_lock );
+
+	return( 0 );
+}
 
 static Render *
 render_new( IMAGE *in, IMAGE *out, IMAGE *mask, 
@@ -604,6 +668,10 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
                 (void) render_unref( render );
                 return( NULL );
         }
+
+	if( im_add_invalidate_callback( in, 
+                (im_callback_fn) render_invalidate, render, NULL ) ) 
+                return( NULL );
 
 	return( render );
 }
@@ -700,7 +768,7 @@ tile_set_dirty( Tile *tile, Rect *area )
 		area->left, area->top );
 #endif /*DEBUG_PAINT*/
 
-	assert( tile->state == TILE_WORKING );
+	g_assert( tile->state == TILE_WORKING );
 
 	/* Touch the ticks ... we want to make sure this tile will not be
 	 * reused too soon, so it gets a chance to get painted.
@@ -753,48 +821,6 @@ tile_set_dirty( Tile *tile, Rect *area )
 	}
 
 	g_mutex_unlock( render->dirty_lock );
-}
-
-static void *
-tile_test_clean_ticks( Tile *this, Tile **best )
-{
-	if( this->state == TILE_PAINTED )
-		if( !*best || this->access_ticks < (*best)->access_ticks )
-			*best = this;
-
-	return( NULL );
-}
-
-/* Pick a painted tile to reuse. Search for LRU (slow!).
- */
-static Tile *
-render_tile_get_painted( Render *render )
-{
-	Tile *tile;
-
-	tile = NULL;
-	im_slist_map2( render->cache,
-		(VSListMap2Fn) tile_test_clean_ticks, &tile, NULL );
-
-	if( tile ) {
-		assert( tile->state == TILE_PAINTED );
-
-#ifdef DEBUG_REUSE
-		printf( "render_tile_get_painted: reusing painted %p\n", tile );
-
-		g_mutex_lock( render->dirty_lock );
-		assert( !g_slist_find( render->dirty, tile ) );
-		g_mutex_unlock( render->dirty_lock );
-
-		g_mutex_lock( render->fade_lock );
-		assert( !g_slist_find( render->fade, tile ) );
-		g_mutex_unlock( render->fade_lock );
-#endif /*DEBUG_REUSE*/
-
-		tile->state = TILE_WORKING;
-	}
-
-	return( tile );
 }
 
 /* Take a tile off the end of the dirty list.
@@ -881,7 +907,7 @@ tile_copy( Tile *tile, REGION *to )
 	/* Find common pixels.
 	 */
 	im_rect_intersectrect( &tile->area, &to->valid, &ovlap );
-	assert( !im_rect_isempty( &ovlap ) );
+	g_assert( !im_rect_isempty( &ovlap ) );
 	len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
 
 	/* If the tile is painted, copy over the pixels. Otherwise, fill with
@@ -975,7 +1001,7 @@ tile_paint_mask( Tile *tile, REGION *to )
 	/* Find common pixels.
 	 */
 	im_rect_intersectrect( &tile->area, &to->valid, &ovlap );
-	assert( !im_rect_isempty( &ovlap ) );
+	g_assert( !im_rect_isempty( &ovlap ) );
 	len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
 
 	for( y = ovlap.top; y < IM_RECT_BOTTOM( &ovlap ); y++ ) {
@@ -985,7 +1011,7 @@ tile_paint_mask( Tile *tile, REGION *to )
 	}
 }
 
-/* The mask image is 255 .. 0 for the state of painted for each tile.
+/* The mask image is 255 / 0 for the state of painted for each tile.
  */
 static int
 mask_fill( REGION *out, void *seq, void *a, void *b )

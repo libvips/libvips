@@ -1,7 +1,5 @@
-- close callbacks could use invalidate's trick and give close callbacks more
-  safety
-
-  could get rid of a couple of image flags too
+- how about im_invalidate_area()? we currently repaint the whole window on
+  every paint action in nip2 :-(
 
 - flood blob with ink == initial click loops
 
