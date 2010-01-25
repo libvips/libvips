@@ -3,10 +3,9 @@
 
   we'd need to have coordinate transforms broken out for this :-( 
 
-- vipsthumbnail should have an option to delete the profile from the final
-  jpg? handy if you want all your profiles in eg. sRGB
-
 - try writing docs for vipsthumbnail with gtkdoc? then try header etc.
+
+  we need to have a separate docs package for the tools/ dir
 
 - rename header, edvips as vipsheader, vipsedit
 

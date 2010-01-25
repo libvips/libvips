@@ -6,6 +6,8 @@
  * 	- decode labq and rad images
  * 	- colour management
  * 	- better handling of tiny images
+ * 25/1/10
+ * 	- added "--delete"
  */
 
 #ifdef HAVE_CONFIG_H

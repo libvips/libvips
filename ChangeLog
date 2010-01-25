@@ -23,6 +23,7 @@
   im_close()
 - flood_blob could loop if start point == ink
 - added im_meta_remove()
+- added remove profile option to vipsthumbnail
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 
