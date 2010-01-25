@@ -71,8 +71,6 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 
-#include <assert.h>
-
 #include <vips/vips.h>
 #include <vips/internal.h>
 
@@ -245,14 +243,14 @@ void
 im__meta_destroy( IMAGE *im )
 {
 	IM_FREEF( g_hash_table_destroy, im->Meta );
-	assert( !im->Meta_traverse );
+	g_assert( !im->Meta_traverse );
 }
 
 static void
 meta_init( IMAGE *im )
 {
 	if( !im->Meta ) {
-		assert( !im->Meta_traverse );
+		g_assert( !im->Meta_traverse );
 		im->Meta = g_hash_table_new_full( g_str_hash, g_str_equal,
 			NULL, (GDestroyNotify) meta_free );
 	}
@@ -338,8 +336,8 @@ im_meta_set( IMAGE *im, const char *field, GValue *value )
 {
 	Meta *meta;
 
-	assert( field );
-	assert( value );
+	g_assert( field );
+	g_assert( value );
 
 	meta_init( im );
 	if( !(meta = meta_new( im, field, value )) )
@@ -350,6 +348,28 @@ im_meta_set( IMAGE *im, const char *field, GValue *value )
 #endif /*DEBUG*/
 
 	return( 0 );
+}
+
+/**
+ * im_meta_remove:
+ * @im: image to test
+ * @field: the name to search for
+ *
+ * Find and remove an item of metadata. Return %FALSE if no metadata of that
+ * name was found.
+ *
+ * See also: im_meta_set(), im_meta_get_typeof().
+ *
+ * Returns: %TRUE if an item of metadata of that name was found and removed
+ */
+gboolean
+im_meta_remove( IMAGE *im, const char *field )
+{
+	if( im->Meta && 
+		g_hash_table_remove( im->Meta, field ) )
+		return( TRUE );
+
+	return( FALSE );
 }
 
 /**
@@ -398,8 +418,8 @@ im_meta_get( IMAGE *im, const char *field, GValue *value_copy )
 {
 	Meta *meta;
 
-	assert( field );
-	assert( value_copy );
+	g_assert( field );
+	g_assert( value_copy );
 
 	/* Defined?
 	 */
@@ -432,7 +452,7 @@ im_meta_get_typeof( IMAGE *im, const char *field )
 {
 	Meta *meta;
 
-	assert( field );
+	g_assert( field );
 
 	/* Defined?
 	 */
@@ -516,7 +536,7 @@ im_save_string_get( const GValue *value )
 void
 im_save_string_set( GValue *value, const char *str )
 {
-	assert( G_VALUE_TYPE( value ) == IM_TYPE_SAVE_STRING );
+	g_assert( G_VALUE_TYPE( value ) == IM_TYPE_SAVE_STRING );
 
 	g_value_set_boxed( value, str );
 }
@@ -535,7 +555,7 @@ im_save_string_setf( GValue *value, const char *fmt, ... )
 	va_list ap;
 	char *str;
 
-	assert( G_VALUE_TYPE( value ) == IM_TYPE_SAVE_STRING );
+	g_assert( G_VALUE_TYPE( value ) == IM_TYPE_SAVE_STRING );
 
 	va_start( ap, fmt );
 	str = g_strdup_vprintf( fmt, ap );
@@ -736,7 +756,7 @@ area_new_blob( im_callback_fn free_fn, void *blob, size_t blob_length )
 static Area *
 area_copy( Area *area )
 {
-	assert( area->count >= 0 );
+	g_assert( area->count >= 0 );
 
 	area->count += 1;
 
@@ -750,7 +770,7 @@ area_copy( Area *area )
 static void
 area_unref( Area *area )
 {
-	assert( area->count > 0 );
+	g_assert( area->count > 0 );
 
 	area->count -= 1;
 
@@ -941,7 +961,7 @@ im_ref_string_set( GValue *value, const char *str )
 	Area *area;
 	char *str_copy;
 
-	assert( G_VALUE_TYPE( value ) == IM_TYPE_REF_STRING );
+	g_assert( G_VALUE_TYPE( value ) == IM_TYPE_REF_STRING );
 
 	if( !(str_copy = im_strdup( NULL, str )) )
 		return( -1 );
@@ -1182,7 +1202,7 @@ im_blob_set( GValue *value,
 {
 	Area *area;
 
-	assert( G_VALUE_TYPE( value ) == IM_TYPE_BLOB );
+	g_assert( G_VALUE_TYPE( value ) == IM_TYPE_BLOB );
 
 	if( !(area = area_new_blob( free_fn, blob, blob_length )) )
 		return( -1 );

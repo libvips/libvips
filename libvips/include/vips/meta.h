@@ -107,6 +107,7 @@ int im_blob_set( GValue *value, im_callback_fn free_fn,
 	void *data, size_t length ); 
 
 int im_meta_set( IMAGE *, const char *field, GValue * );
+gboolean im_meta_remove( IMAGE *im, const char *field );
 int im_meta_get( IMAGE *, const char *field, GValue * );
 GType im_meta_get_typeof( IMAGE *im, const char *field );
 

@@ -255,8 +255,11 @@ public:
 	// we don't wrap GValue, so we can't wrap these for now
 	void meta_set( const char *field, GValue *value ) throw( VError );
 	void meta_get( const char *field, GValue *value_copy ) throw( VError );
-	GType meta_get_typeof( const char *field ) throw( VError );
 #endif /*SWIG*/
+
+	// We can wrap these, fwiw
+	gboolean meta_remove( const char *field );
+	GType meta_get_typeof( const char *field );
 
 	// convenience functions
 	int meta_get_int( const char *field ) throw( VError );

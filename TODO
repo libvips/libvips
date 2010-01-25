@@ -3,6 +3,15 @@
 
   we'd need to have coordinate transforms broken out for this :-( 
 
+- vipsthumbnail should have an option to delete the profile from the final
+  jpg? handy if you want all your profiles in eg. sRGB
+
+- try writing docs for vipsthumbnail with gtkdoc? then try header etc.
+
+- rename header, edvips as vipsheader, vipsedit
+
+  maybe have back compat links?
+
 - should im_rwcheck() copy to disc?
 
   maybe im_rwcheck_disc() copies to im->filename and maps that

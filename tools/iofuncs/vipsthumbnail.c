@@ -26,6 +26,7 @@ static int thumbnail_size = 128;
 static char *thumbnail_format = "tn_%s.jpg";
 static char *export_profile = NULL;
 static char *import_profile = NULL;
+static gboolean delete_profile = FALSE;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, G_OPTION_ARG_INT, &thumbnail_size, 
@@ -38,6 +39,8 @@ static GOptionEntry options[] = {
 		N_( "export with profile P" ), "P" },
 	{ "iprofile", 'i', 0, G_OPTION_ARG_STRING, &import_profile, 
 		N_( "import untagged images with profile P" ), "P" },
+	{ "delete", 'd', 0, G_OPTION_ARG_NONE, &delete_profile, 
+		N_( "delete profile from exported image" ), NULL },
 	{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, 
 		N_( "verbose output" ), NULL },
 	{ NULL }
@@ -251,6 +254,11 @@ shrink_factor( IMAGE *in, IMAGE *out )
 			printf( "exporting with profile %s\n", export_profile );
 
 		x = t[6];
+	}
+
+	if( delete_profile ) {
+		if( im_meta_remove( x, IM_META_ICC_NAME ) && verbose )
+			printf( "deleting profile from output image\n" );
 	}
 
 	if( im_copy( x, out ) )
