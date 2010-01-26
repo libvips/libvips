@@ -89,7 +89,8 @@ int
 im_histcum( IMAGE *in, IMAGE *out )
 {
 	const int px = in->Xsize * in->Ysize;
-	const int nb = im_iscomplex( in ) ? in->Bands * 2 : in->Bands;
+	const int nb = vips_bandfmt_iscomplex( in->BandFmt ) ? 
+		in->Bands * 2 : in->Bands;
 	const int mx = px * nb;
 
 	PEL *outbuf;		
@@ -110,9 +111,9 @@ im_histcum( IMAGE *in, IMAGE *out )
 		return( -1 );
 	out->Xsize = px;
 	out->Ysize = 1;
-	if( im_isuint( in ) )
+	if( vips_bandfmt_isuint( in->BandFmt ) )
 		out->BandFmt = IM_BANDFMT_UINT;
-	else if( im_isint( in ) )
+	else if( vips_bandfmt_isint( in->BandFmt ) )
 		out->BandFmt = IM_BANDFMT_INT;
 
 	if( !(outbuf = im_malloc( out, IM_IMAGE_SIZEOF_LINE( out ))) )

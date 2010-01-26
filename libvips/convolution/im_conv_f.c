@@ -336,7 +336,7 @@ im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	if( im_isint( in ) ) 
+	if( vips_bandfmt_isint( in->BandFmt ) ) 
 		out->BandFmt = IM_BANDFMT_FLOAT;
 	out->Xsize -= mask->xsize - 1;
 	out->Ysize -= mask->ysize - 1;

@@ -120,7 +120,8 @@ int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n ){
   if( !pointers )
     return -1;
 
-  if( ! ( im_isint( im ) || im_isfloat( im ) ) ){
+  if( ! ( vips_bandfmt_isint( im->BandFmt ) || 
+	vips_bandfmt_isfloat( im->BandFmt ) ) ){
     im_error( FUNCTION_NAME, "%s", _( "scalar images only" ) );
     return -1;
   }
@@ -184,7 +185,8 @@ int im_minpos_vec( IMAGE *im, int *xpos, int *ypos, double *minima, int n ){
   if( !pointers )
     return -1;
 
-  if( ! ( im_isint( im ) || im_isfloat( im ) ) ){
+  if( ! ( vips_bandfmt_isint( im->BandFmt ) || 
+	vips_bandfmt_isfloat( im->BandFmt ) ) ){
     im_error( FUNCTION_NAME, "%s", _( "scalar images only" ) );
     return -1;
   }
@@ -302,6 +304,8 @@ static int maxpos_vec_scan( REGION *reg, void *seq, void *a, void *b ){
     case IM_BANDFMT_INT:     MAXPOS_VEC_SCAN( gint32 )   break;
     case IM_BANDFMT_FLOAT:   MAXPOS_VEC_SCAN( float )    break;
     case IM_BANDFMT_DOUBLE:  MAXPOS_VEC_SCAN( double )   break;
+    default:
+			     g_assert( 0 );
   }
 
 #undef MAXPOS_VEC_SCAN
@@ -424,6 +428,8 @@ static int minpos_vec_scan( REGION *reg, void *seq, void *a, void *b ){
     case IM_BANDFMT_INT:     MINPOS_VEC_SCAN( gint32 )   break;
     case IM_BANDFMT_FLOAT:   MINPOS_VEC_SCAN( float )    break;
     case IM_BANDFMT_DOUBLE:  MINPOS_VEC_SCAN( double )   break;
+    default:
+			     g_assert( 0 );
   }
 
 #undef MINPOS_VEC_SCAN

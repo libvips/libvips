@@ -133,7 +133,7 @@ im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Bands = recomb->ysize;
-	if( im_isint( in ) ) 
+	if( vips_bandfmt_isint( in->BandFmt ) ) 
 		out->BandFmt = IM_BANDFMT_FLOAT;
 
 	/* Take a copy of the matrix.

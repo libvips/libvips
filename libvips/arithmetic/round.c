@@ -64,7 +64,8 @@ FUN ## _buffer( PEL *in, PEL *out, int width, IMAGE *im ) \
 { \
 	/* Complex just doubles the size. \
 	 */ \
-	const int ne = width * im->Bands * (im_iscomplex( im ) ? 2 : 1); \
+	const int ne = width * im->Bands * \
+		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1); \
 	\
 	int x; \
 	\
@@ -94,7 +95,7 @@ im__round( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen )
 	/* Is this one of the int types? Degenerate to im_copy() if it
 	 * is.
 	 */
-	if( im_isint( in ) )
+	if( vips_bandfmt_isint( in->BandFmt ) )
 		return( im_copy( in, out ) );
 
 	/* Output type == input type.

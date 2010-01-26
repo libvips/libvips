@@ -100,7 +100,8 @@ NAME ## _buffer( PEL **p, PEL *q, int n, IMAGE *im ) \
 { \
 	/* Complex just doubles the size. \
 	 */ \
-	const int ne = n * im->Bands * (im_iscomplex( im ) ? 2 : 1); \
+	const int ne = n * im->Bands * \
+		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1); \
 	\
 	int i; \
 	\
@@ -221,7 +222,8 @@ NAME ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
 { \
 	/* Complex just doubles the size. \
 	 */ \
-	const int ne = n * im->Bands * (im_iscomplex( im ) ? 2 : 1); \
+	const int ne = n * im->Bands * \
+		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1); \
 	\
 	int i; \
 	\

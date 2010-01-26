@@ -258,6 +258,12 @@ int im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m );
 int im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m );
 int im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order );
 
+gboolean im_isuint( IMAGE *im );
+gboolean im_isint( IMAGE *im );
+gboolean im_isfloat( IMAGE *im );
+gboolean im_isscalar( IMAGE *im );
+gboolean im_iscomplex( IMAGE *im );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

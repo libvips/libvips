@@ -1396,7 +1396,8 @@ make_tiff_write( IMAGE *im, const char *filename )
 	/* We can only pyramid LABQ and non-complex images. 
 	 */
 	if( tw->pyramid ) {
-		if( im->Coding == IM_CODING_NONE && im_iscomplex( im ) ) {
+		if( im->Coding == IM_CODING_NONE && 
+			vips_bandfmt_iscomplex( im->BandFmt ) ) {
 			im_error( "im_vips2tiff", 
 				"%s", _( "can only pyramid LABQ and "
 				"non-complex images" ) );

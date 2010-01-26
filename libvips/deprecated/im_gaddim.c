@@ -102,7 +102,8 @@ static int array[6][6] = {
 	case IM_BANDFMT_UCHAR:	select_tmp1_for_out_short(unsigned char, OUT); break;  \
 	case IM_BANDFMT_CHAR:	select_tmp1_for_out_short(signed char, OUT); break;  \
 	case IM_BANDFMT_USHORT:	select_tmp1_for_out_short(unsigned short, OUT); break; \
-	case IM_BANDFMT_SHORT:	select_tmp1_for_out_short(signed short, OUT); break;
+	case IM_BANDFMT_SHORT:	select_tmp1_for_out_short(signed short, OUT); break; \
+	default:		g_assert( 0 );
 #define select_tmp1_for_out_short(IN2, OUT)  \
 	switch(tmp1->BandFmt)	{ \
 		case IM_BANDFMT_UCHAR:	loop(unsigned char, IN2, OUT); break;  \

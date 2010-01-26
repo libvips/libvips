@@ -173,12 +173,7 @@ clip_stop( void *vseq, void *a, void *b )
 	clip->underflow += seq->underflow;
 	clip->overflow += seq->overflow;
 
-	/* Junk our region too.
-	 */
-	if( seq->ir ) {
-		im_region_free( seq->ir );
-		seq->ir = NULL;
-	}
+	IM_FREEF( im_region_free, seq->ir );
 
 	return( 0 );
 }

@@ -114,11 +114,13 @@ im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	/* Check input image. We don't need to check that sizes match --
 	 * im_wrapmany does this for us.
 	 */
-	if( in1->Coding != IM_CODING_NONE || in2->Coding != IM_CODING_NONE ) {
+	if( in1->Coding != IM_CODING_NONE || 
+		in2->Coding != IM_CODING_NONE ) {
 		im_error( "im_ri2c", "%s", _( "inputs should be uncoded" ) );
 		return( -1 );
 	}
-	if( im_iscomplex( in1 ) || im_iscomplex( in2 ) ) {
+	if( vips_bandfmt_iscomplex( in1->BandFmt ) || 
+		vips_bandfmt_iscomplex( in2->BandFmt ) ) {
 		im_error( "im_ri2c", "%s", _( "inputs already complex" ) );
 		return( -1 );
 	}

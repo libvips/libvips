@@ -136,7 +136,7 @@ im_sign( IMAGE *in, IMAGE *out )
 		im_cp_desc( out, in ) )
                 return( -1 );
 
-	if( !im_iscomplex( in ) ) 
+	if( !vips_bandfmt_iscomplex( in->BandFmt ) ) 
 		out->BandFmt = IM_BANDFMT_CHAR;
 
         if( im_wrapone( in, out, (im_wrapone_fn) sign_gen, in, NULL ) )

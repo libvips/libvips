@@ -99,7 +99,8 @@ subtract_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 {
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * im->Bands * (im_iscomplex( im ) ? 2 : 1);
+	const int sz = width * im->Bands * 
+		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
 
 	int x;
 

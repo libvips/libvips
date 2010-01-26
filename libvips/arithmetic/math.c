@@ -115,7 +115,7 @@ im__math( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen )
 
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	if( im_isint( in ) ) 
+	if( vips_bandfmt_isint( in->BandFmt ) ) 
 		out->BandFmt = IM_BANDFMT_FLOAT;
 
 	if( im_wrapone( in, out, gen, in, NULL ) )

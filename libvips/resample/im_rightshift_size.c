@@ -122,7 +122,7 @@ im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt 
     im_error( FUNCTION_NAME, "%s", _( "would result in zero size output image" ) );
     return -1;
   }
-  if( ! im_isint( in ) ){
+  if( ! vips_bandfmt_isint( in->BandFmt ) ){
     im_error( FUNCTION_NAME, "%s", _( "integer type images only" ) );
     return -1;
   }
@@ -130,7 +130,7 @@ im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt 
     im_error( FUNCTION_NAME, "%s", _( "uncoded images only" ) );
     return -1;
   }
-  if( im_isuint( in ) ){
+  if( vips_bandfmt_isuint( in->BandFmt ) ){
     if( IM_BANDFMT_UCHAR != band_fmt && IM_BANDFMT_USHORT != band_fmt && IM_BANDFMT_UINT != band_fmt ){
       im_error( FUNCTION_NAME, "%s", _( "unsigned input means that output must be unsigned int, short or char" ) );
       return -1;
@@ -191,6 +191,8 @@ im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt 
                                                                                   \
   case IM_BANDFMT_UINT:                                                           \
     RETURN_MACRO( MACRO, guint32, guint ## OUT_SIZE, guint ## SUM_SIZE )          \
+  default: \
+	  g_assert( 0 ); \
 }
 
 #define RETURN_MACRO_SUMSS( MACRO, SUM_SIZE )   switch( im_bits_of_fmt( out->BandFmt ) ){  \

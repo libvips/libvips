@@ -353,7 +353,9 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
 
 	/* Check parameters.
 	 */
-	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
+	if( !in || 
+		in->Coding != IM_CODING_NONE || 
+		vips_bandfmt_iscomplex( in->BandFmt ) ) {
 		im_error( "im_rank", "%s", 
 			_( "input non-complex uncoded only" ) );
 		return( -1 );

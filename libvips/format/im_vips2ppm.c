@@ -259,7 +259,7 @@ im_vips2ppm( IMAGE *in, const char *filename )
 			"%s", _( "can't write binary >8 bit images" ) );
 		return( -1 );
 	}
-	if( !im_isuint( in ) ) {
+	if( !vips_bandfmt_isuint( in->BandFmt ) ) {
 		im_error( "im_vips2ppm", 
 			"%s", _( "unsigned int formats only" ) );
 		return( -1 );

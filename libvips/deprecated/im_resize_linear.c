@@ -121,7 +121,7 @@ im_resize_linear( IMAGE *in, IMAGE *out, int X, int Y )
 
 	if( im_iocheck( in, out ) )
 		return( -1 );
-	if( im_iscomplex( in ) ) {
+	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
 		im_error( "im_lowpass", "%s", _( "non-complex input only" ) );
 		return( -1 );
 	}

@@ -183,7 +183,7 @@ conv_start( IMAGE *out, void *a, void *b )
 	/* Attach region and arrays.
 	 */
 	seq->ir = im_region_create( in );
-	if( im_isint( conv->out ) )
+	if( vips_bandfmt_isint( conv->out->BandFmt ) )
 		seq->sum = (PEL *) 
 			IM_ARRAY( out, IM_IMAGE_N_ELEMENTS( in ), int );
 	else
@@ -379,7 +379,8 @@ im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	/* Check parameters.
 	 */
-	if( !in || in->Coding != IM_CODING_NONE || im_iscomplex( in ) ) {
+	if( !in || in->Coding != IM_CODING_NONE || 
+		vips_bandfmt_iscomplex( in->BandFmt ) ) {
 		im_error( "im_convsep", "%s", _( "non-complex uncoded only" ) );
 		return( -1 );
 	}

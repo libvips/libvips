@@ -88,7 +88,7 @@ bandmean_buffer( PEL *p, PEL *q, int n, IMAGE *in )
 {
 	/* Complex just doubles the size.
 	 */
-	const int sz = n * (im_iscomplex( in ) ? 2 : 1);
+	const int sz = n * (vips_bandfmt_iscomplex( in->BandFmt ) ? 2 : 1);
 	const int b = in->Bands;
 
 	int i, j;

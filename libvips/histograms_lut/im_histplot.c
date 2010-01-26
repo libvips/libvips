@@ -95,18 +95,18 @@ normalise( IMAGE *in, IMAGE *out )
 		im_error( "im_histplot", "%s", _( "uncoded only" ) );
 		return( -1 );
 	}
-	if( im_iscomplex( in ) ) {
+	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
 		im_error( "im_histplot", "%s", _( "non-complex only" ) );
 		return( -1 );
 	}
 
-	if( im_isuint( in ) ) {
+	if( vips_bandfmt_isuint( in->BandFmt ) ) {
 		/* Trivial case.
 		 */
 		if( im_copy( in, out ) )
 			return( -1 );
 	}
-	else if( im_isint( in ) ) {
+	else if( vips_bandfmt_isint( in->BandFmt ) ) {
 		/* Move min up to 0. incheck(), because we have to min() so we
 		 * might as well save the calcs.
 		 */

@@ -129,9 +129,9 @@ typedef struct _VipsImage {
 	 */
 	int Bbits;		/* was number of bits in this format */
 	/*< public >*/
-	int BandFmt;		/* #VipsBandFmt describing the pixel format */
-	int Coding;		/* #VipsCoding describing the pixel coding */
-	int Type;		/* #VipsType hinting at pixel interpretation */
+	VipsBandFmt BandFmt;	/* #VipsBandFmt describing the pixel format */
+	VipsCoding Coding;	/* #VipsCoding describing the pixel coding */
+	VipsType Type;		/* #VipsType hinting at pixel interpretation */
 	float Xres;		/* horizontal pixels per millimetre */
 	float Yres;		/* vertical pixels per millimetre */
 	/*< private >*/

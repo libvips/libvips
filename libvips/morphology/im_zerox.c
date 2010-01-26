@@ -140,7 +140,8 @@ im_zerox( IMAGE *in, IMAGE *out, int flag )
 	}
         if( im_piocheck( in, t1 ) )
 		return( -1 );
-	if( im_iscomplex( in ) || in->Coding != IM_CODING_NONE ) {
+	if( vips_bandfmt_iscomplex( in->BandFmt ) || 
+		in->Coding != IM_CODING_NONE ) {
 		im_error( "im_zerox", "%s", _( "non-complex uncoded only" ) );
 		return( -1 );
 	}
@@ -148,7 +149,7 @@ im_zerox( IMAGE *in, IMAGE *out, int flag )
 		im_error( "im_zerox", "%s", _( "image too narrow" ) );
 		return( -1 );
 	}
-	if( im_isuint( in ) )
+	if( vips_bandfmt_isuint( in->BandFmt ) )
 		/* Unsigned type, therefore there will be no zero-crossings.
 		 */
 		return( im_black( out, in->Xsize, in->Ysize, in->Bands ) );

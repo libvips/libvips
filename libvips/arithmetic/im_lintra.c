@@ -1,14 +1,4 @@
-/* @(#) Pass an image through a linear transform - ie. out = in*a + b. Output
- * @(#) is always float for integer input, double for double input, complex for
- * @(#) complex input and double complex for double complex input.
- * @(#)
- * @(#) int 
- * @(#) im_lintra( a, in, b, out )
- * @(#) IMAGE *in, *out;
- * @(#) double a, b;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_lintra.c -- linear transform 
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
@@ -344,7 +334,7 @@ im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	if( im_isint( in ) ) 
+	if( vips_bandfmt_isint( in->BandFmt ) ) 
 		out->BandFmt = IM_BANDFMT_FLOAT;
 	if( in->Bands == 1 )
 		out->Bands = n;

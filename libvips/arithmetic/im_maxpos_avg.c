@@ -235,7 +235,7 @@ im_maxpos_avg( IMAGE *in, double *xpos, double *ypos, double *out )
 
 	/* We use square mod for scanning, for speed.
 	 */
-	if( im_iscomplex( in ) )
+	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		global_maxposavg->max *= global_maxposavg->max;
 
 	if( im_iterate( in, maxposavg_start, maxposavg_scan, maxposavg_stop, 
@@ -244,7 +244,7 @@ im_maxpos_avg( IMAGE *in, double *xpos, double *ypos, double *out )
 
 	/* Back to modulus.
 	 */
-	if( im_iscomplex( in ) )
+	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		global_maxposavg->max = sqrt( global_maxposavg->max );
 
 	if( xpos )

@@ -231,7 +231,7 @@ im_abs( IMAGE *in, IMAGE *out )
 	/* Is this one of the unsigned types? Degenerate to im_copy() if it
 	 * is.
 	 */
-	if( im_isuint( in ) )
+	if( vips_bandfmt_isuint( in->BandFmt ) )
 		return( im_copy( in, out ) );
 
 	/* Prepare output header. Output type == input type, except for

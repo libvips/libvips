@@ -81,7 +81,7 @@ im_freqflt( IMAGE *in, IMAGE *mask, IMAGE *out )
 	if( !(dummy = im_open( "memory-1", "p" )) )
 		return( -1 );
 
-	if( im_iscomplex( in ) ) {
+	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
 		/* Easy case! Assume it has already been transformed.
 		 */
 		IMAGE *t1 = im_open_local( dummy, "im_freqflt-1", "p" );

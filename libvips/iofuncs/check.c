@@ -683,7 +683,7 @@ im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
 int
 im_check_noncomplex( const char *domain, IMAGE *im )
 {
-	if( im_iscomplex( im ) ) {
+	if( vips_bandfmt_iscomplex( im->BandFmt ) ) {
 		im_error( domain, "%s", _( "image must be non-complex" ) );
 		return( -1 );
 	}
@@ -707,7 +707,7 @@ im_check_noncomplex( const char *domain, IMAGE *im )
 int
 im_check_complex( const char *domain, IMAGE *im )
 {
-	if( !im_iscomplex( im ) ) {
+	if( !vips_bandfmt_iscomplex( im->BandFmt ) ) {
 		im_error( domain, "%s", _( "image must be complex" ) );
 		return( -1 );
 	}
@@ -757,7 +757,7 @@ im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt )
 int
 im_check_int( const char *domain, IMAGE *im )
 {
-	if( !im_isint( im ) ) {
+	if( !vips_bandfmt_isint( im->BandFmt ) ) {
 		im_error( domain, "%s", _( "image must be integer" ) );
 		return( -1 );
 	}
@@ -921,46 +921,45 @@ im_check_vector( const char *domain, int n, IMAGE *im )
 }
 
 /**
- * im_isint:
- * @im: image to test
+ * vips_bandfmt_isint:
+ * @fmt: format to test
  *
- * Return %TRUE if @im's #VipsBandFmt is one of the integer types.
+ * Return %TRUE if @fmt is one of the integer types.
  */
 gboolean
-im_isint( IMAGE *im )
-{	
-	switch( im->BandFmt ) {
+vips_bandfmt_isint( VipsBandFmt fmt )
+{
+	switch( fmt ) {
 	case IM_BANDFMT_UCHAR:
 	case IM_BANDFMT_CHAR:
 	case IM_BANDFMT_USHORT:
 	case IM_BANDFMT_SHORT:
 	case IM_BANDFMT_UINT:
 	case IM_BANDFMT_INT:
-		return( 1 );
+		return( TRUE );
 
 	case IM_BANDFMT_FLOAT:
 	case IM_BANDFMT_DOUBLE:	
 	case IM_BANDFMT_COMPLEX:
 	case IM_BANDFMT_DPCOMPLEX:	
-		return( 0 );
+		return( FALSE );
 	
 	default:
-		error_exit( "im_isint: unknown image BandFmt" );
-		/*NOTREACHED*/
+		g_assert( 0 );
 		return( -1 );
 	}
 }
 
 /**
- * im_isuint:
- * @im: image to test
+ * vips_bandfmt_isuint:
+ * @fmt: format to test
  *
- * Return %TRUE if @im's #VipsBandFmt is one of the unsigned integer types.
+ * Return %TRUE if @fmt is one of the unsigned integer types.
  */
 gboolean
-im_isuint( IMAGE *im )
-{	
-	switch( im->BandFmt ) {
+vips_bandfmt_isuint( VipsBandFmt fmt )
+{
+	switch( fmt ) {
 	case IM_BANDFMT_UCHAR:
 	case IM_BANDFMT_USHORT:
 	case IM_BANDFMT_UINT:
@@ -976,85 +975,51 @@ im_isuint( IMAGE *im )
 		return( 0 );
 	
 	default:
-		error_exit( "im_isuint: unknown image BandFmt" );
-		/*NOTREACHED*/
-		return( -1 );
-	}
-}
-
-
-/**
- * im_isint:
- * @im: image to test
- *
- * Return %TRUE if @im's #VipsBandFmt is one of the integer types.
- */
-gboolean
-im_isfloat( IMAGE *im )
-{	
-	switch( im->BandFmt ) {
-	case IM_BANDFMT_FLOAT:
-	case IM_BANDFMT_DOUBLE:	
-		return( 1 );
-
-	case IM_BANDFMT_UCHAR:
-	case IM_BANDFMT_CHAR:
-	case IM_BANDFMT_USHORT:
-	case IM_BANDFMT_SHORT:
-	case IM_BANDFMT_UINT:
-	case IM_BANDFMT_INT:
-	case IM_BANDFMT_COMPLEX:
-	case IM_BANDFMT_DPCOMPLEX:	
-		return( 0 );
-	
-	default:
-		error_exit( "im_isfloat: unknown image BandFmt" );
-		/*NOTREACHED*/
+		g_assert( 0 );
 		return( -1 );
 	}
 }
 
 /**
- * im_isscalar:
- * @im: image to test
+ * vips_bandfmt_isfloat:
+ * @fmt: format to test
  *
- * Return %TRUE if @im's #VipsBandFmt is one of the non-complex types.
+ * Return %TRUE if @fmt is one of the float types.
  */
 gboolean
-im_isscalar( IMAGE *im )
-{	
-	switch( im->BandFmt ) {
+vips_bandfmt_isfloat( VipsBandFmt fmt )
+{
+	switch( fmt ) {
+	case IM_BANDFMT_FLOAT:
+	case IM_BANDFMT_DOUBLE:	
+		return( 1 );
+
 	case IM_BANDFMT_UCHAR:
 	case IM_BANDFMT_CHAR:
 	case IM_BANDFMT_USHORT:
 	case IM_BANDFMT_SHORT:
 	case IM_BANDFMT_UINT:
 	case IM_BANDFMT_INT:
-	case IM_BANDFMT_FLOAT:
-	case IM_BANDFMT_DOUBLE:	
-		return( 1 );
-
 	case IM_BANDFMT_COMPLEX:
 	case IM_BANDFMT_DPCOMPLEX:	
 		return( 0 );
 	
 	default:
-		error_exit( "im_isscalar: unknown image BandFmt" );
-		/*NOTREACHED*/
+		g_assert( 0 );
 		return( -1 );
 	}
 }
 
 /**
- * im_iscomplex:
+ * vips_bandfmt_iscomplex:
  * @im: image to test
  *
- * Return %TRUE if @im's #VipsBandFmt is one of the complex types.
+ * Return %TRUE if @fmt is one of the complex types.
  */
 gboolean
-im_iscomplex( IMAGE *im )
-{	
-	switch( im->BandFmt ) {
+vips_bandfmt_iscomplex( VipsBandFmt fmt )
+{
+	switch( fmt ) {
 	case IM_BANDFMT_COMPLEX:
 	case IM_BANDFMT_DPCOMPLEX:	
 		return( 1 );
@@ -1070,8 +1035,7 @@ im_iscomplex( IMAGE *im )
 		return( 0 );
 	
 	default:
-		error_exit( "im_iscomplex: unknown image BandFmt" );
-		/*NOTREACHED*/
+		g_assert( 0 );
 		return( -1 );
 	}
 }

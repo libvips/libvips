@@ -60,11 +60,10 @@ int im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_same_coding( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_vector( const char *domain, int n, IMAGE *im );
 
-gboolean im_isuint( IMAGE *im );
-gboolean im_isint( IMAGE *im );
-gboolean im_isfloat( IMAGE *im );
-gboolean im_isscalar( IMAGE *im );
-gboolean im_iscomplex( IMAGE *im );
+gboolean vips_bandfmt_isint( VipsBandFmt fmt );
+gboolean vips_bandfmt_isuint( VipsBandFmt fmt );
+gboolean vips_bandfmt_isfloat( VipsBandFmt fmt );
+gboolean vips_bandfmt_iscomplex( VipsBandFmt fmt );
 
 gboolean im_isfile( IMAGE *im );
 gboolean im_ispartial( IMAGE *im );

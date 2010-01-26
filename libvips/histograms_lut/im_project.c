@@ -258,7 +258,7 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 		im_error( "im_project", "%s", _( "uncoded images only" ) );
 		return( -1 );
 	}
-	if( im_iscomplex( in ) ) {
+	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
 		im_error( "im_project", "%s", _( "non-complex images only" ) );
 		return( -1 );
 	}

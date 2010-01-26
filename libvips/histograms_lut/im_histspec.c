@@ -181,7 +181,8 @@ im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 	if( im_open_local_array( out, t, 5, "im_histspec", "p" ) )
 		return( -1 );
-	if( !im_isuint( in ) || !im_isuint( ref ) ) {
+	if( !vips_bandfmt_isuint( in->BandFmt ) || 
+		!vips_bandfmt_isuint( ref->BandFmt ) ) {
                 im_error( "im_histspec", "%s", 
 			_( "input luts are not some unsigned integer type" ) );
                 return( -1 );

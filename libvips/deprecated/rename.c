@@ -257,3 +257,33 @@ im_convsepf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 {
 	return( im_convsep_f_raw( in, out, mask ) );
 }
+
+gboolean
+im_isint( IMAGE *im )
+{
+	return( vips_bandfmt_isint( im->BandFmt ) );
+}
+
+gboolean
+im_isuint( IMAGE *im )
+{	
+	return( vips_bandfmt_isuint( im->BandFmt ) );
+}
+
+gboolean
+im_isfloat( IMAGE *im )
+{
+	return( vips_bandfmt_isfloat( im->BandFmt ) );
+}
+
+gboolean
+im_iscomplex( IMAGE *im )
+{	
+	return( vips_bandfmt_iscomplex( im->BandFmt ) );
+}
+
+gboolean
+im_isscalar( IMAGE *im )
+{
+	return( !im_iscomplex( im ) );
+}

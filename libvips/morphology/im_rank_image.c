@@ -289,7 +289,8 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 		if( im_pincheck( in[i] ) )
 			return( -1 );
 
-		if( in[i]->Coding != IM_CODING_NONE || im_iscomplex( in[i] ) ) {
+		if( in[i]->Coding != IM_CODING_NONE || 
+			vips_bandfmt_iscomplex( in[i]->BandFmt ) ) {
 			im_error( "im_rank_image", "%s", 
 				_( "uncoded non-complex only" ) );
 			return( -1 );

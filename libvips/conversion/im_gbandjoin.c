@@ -1,17 +1,4 @@
-/* @(#) Function to perform a band-wise join of no images. 
- * @(#) Input images can have any number of bands; for instance if im[0] has j
- * @(#) bands, im[1] k, ...., im[no-1] l bands, output has j+k+...+l bands
- * @(#) respectively
- * @(#)
- * @(#) Function im_gbandjoin() assumes that the imin image
- * @(#) is either memory mapped or in buffer
- * @(#)
- * @(#) int im_gbandjoin( imarray, imout, no )
- * @(#) IMAGE *imarray[], *imout;
- * @(#) int no;
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* im_gbandjoin -- bandwise join of a set of images
  *
  * Copyright: 1991, N. Dessipris, modification of im_bandjoin()
  *
@@ -26,6 +13,11 @@
  *	- new IM_NEW()
  * 16/4/07
  * 	- fall back to im_copy() for 1 input image
+ * 17/1/09
+ * 	- cleanups
+ * 	- gtk-doc
+ * 	- im_bandjoin() just calls this
+ * 	- works for RAD coding too
  */
 
 /*
@@ -79,27 +71,27 @@ typedef struct joins {
 /* Make a Join struct.
  */
 static Join *
-make_join( IMAGE *out, IMAGE **in, int nim )
+join_new( IMAGE *out, IMAGE **in, int nim )
 {
-	Join *jn;
+	Join *join;
 	int i;
 
-	if( !(jn = IM_NEW( out, Join )) )
+	if( !(join = IM_NEW( out, Join )) )
 		return( NULL );
-	jn->nim = nim;
-	if( !(jn->in = IM_ARRAY( out, nim + 1, IMAGE * )) || 
-		!(jn->is = IM_ARRAY( out, nim, int )) ) 
+	join->nim = nim;
+	if( !(join->in = IM_ARRAY( out, nim + 1, IMAGE * )) || 
+		!(join->is = IM_ARRAY( out, nim, int )) ) 
 		return( NULL );
 
 	/* Remember to NULL-terminate.
 	 */
 	for( i = 0; i < nim; i++ ) {
-		jn->in[i] = in[i];
-		jn->is[i] = IM_IMAGE_SIZEOF_PEL( in[i] );
+		join->in[i] = in[i];
+		join->is[i] = IM_IMAGE_SIZEOF_PEL( in[i] );
 	}
-	jn->in[nim] = NULL;
+	join->in[nim] = NULL;
 
-	return( jn );
+	return( join );
 }
 
 /* Perform join.  
@@ -108,52 +100,44 @@ static int
 join_bands( REGION *or, void *seq, void *a, void *b )
 {
 	REGION **ir = (REGION **) seq;
-	Join *jn = (Join *) b;
-	int x, y, z, i;
+	Join *join = (Join *) b;
 	Rect *r = &or->valid;
-        int le = r->left;
-        int ri = IM_RECT_RIGHT(r);
-        int to = r->top;
-        int bo = IM_RECT_BOTTOM(r);
-	int ps = IM_IMAGE_SIZEOF_PEL( or->im );
+	const int ps = IM_IMAGE_SIZEOF_PEL( or->im );
 
-	/* Prepare each input area.
-	 */
-	for( i = 0; i < jn->nim; i++ )
+	int x, y, z, i;
+
+	for( i = 0; i < join->nim; i++ )
 		if( im_prepare( ir[i], r ) )
 			return( -1 );
 
 	/* Loop over output!
 	 */
-	for( y = to; y < bo; y++ ) {
-		PEL *qb = (PEL *) IM_REGION_ADDR( or, le, y );
+	for( y = 0; y < r->height; y++ ) {
+		PEL *qb;
 
-		/* Loop for each input image.
+		qb = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y );
+
+		/* Loop for each input image. Scattered write is faster than
+		 * scattered read.
 		 */
-		for( i = 0; i < jn->nim; i++ ) {
-			PEL *p = (PEL *) IM_REGION_ADDR( ir[i], le, y );
-			PEL *q = qb;
-			int k = jn->is[i];
+		for( i = 0; i < join->nim; i++ ) {
+			int k = join->is[i];
 
-			/* Copy all PELs from this line of this input image 
-			 * into the correct place in the output line.
-			 */
-			for( x = le; x < ri; x++ ) {
-				PEL *qn = q;
+			PEL *p;
+			PEL *q;
 
-				/* Copy one PEL.
-				 */
+			p = (PEL *) IM_REGION_ADDR( ir[i], 
+				r->left, r->top + y );
+			q = qb;
+
+			for( x = 0; x < r->width; x++ ) {
 				for( z = 0; z < k; z++ )
-					*q++ = *p++;
-				
-				/* Skip to the point at which the next PEL
-				 * from this input should go.
-				 */
-				q = qn + ps;
+					q[z] = p[z];
+
+				p += z;
+				q += ps;
 			}
 
-			/* Move on to the line start for the next PEL.
-			 */
 			qb += k;
 		}
 	}
@@ -161,13 +145,32 @@ join_bands( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Band-wise join of a vector of image descriptors.
+/**
+ * im_gbandjoin:
+ * @in: vector of input images
+ * @out: output image
+ * @nim: number of input images
+ *
+ * Join a set of images together, bandwise. 
+ * If the images
+ * have n and m bands, then the output image will have n + m
+ * bands, with the first n coming from the first image and the last m
+ * from the second. 
+ *
+ * The images must be the same size. 
+ * The input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_bandjoin(), im_insert().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_gbandjoin( IMAGE **in, IMAGE *out, int nim )
 {
 	int i;
-	Join *jn;
+	Join *join;
 
 	/* Check it out!
 	 */
@@ -175,57 +178,70 @@ im_gbandjoin( IMAGE **in, IMAGE *out, int nim )
 		im_error( "im_gbandjoin", "%s", _( "zero input images!" ) );
 		return( -1 );
 	}
-	if( nim == 1 ) 
+	else if( nim == 1 ) 
 		return( im_copy( in[0], out ) );
 
 	/* Check our args. 
 	 */
-	if( im_poutcheck( out ) )
+	if( im_poutcheck( out ) ||
+		im_check_known_coded( "im_gbandjoin", in[0] ) )
 		return( -1 );
-	for( i = 0; i < nim; i++ ) {
-		if( im_pincheck( in[i] ) )
+	for( i = 0; i < nim; i++ ) 
+		if( im_pincheck( in[i] ) ||
+			im_check_same_size( "im_gbandjoin", in[i], in[0] ) ||
+			im_check_same_coding( "im_gbandjoin", in[i], in[0] ) )
 			return( -1 );
-
-		if( in[i]->Coding != IM_CODING_NONE )	{
-			im_error( "im_gbandjoin", 
-				"%s", _( "uncoded input only" ) );
-			return( -1 );
-		}
-
-		if( in[0]->BandFmt != in[i]->BandFmt ) {
-			im_error( "im_gbandjoin", 
-				"%s", _( "input images differ in format" ) );
-			return( -1 );
-		}
-		if( in[0]->Xsize != in[i]->Xsize ||
-		    in[0]->Ysize != in[i]->Ysize ) {
-			im_error( "im_gbandjoin", 
-				"%s", _( "input images differ in size" ) );
-			return( -1 );
-		}
-	}
 
 	/* Build a data area.
 	 */
-	if( !(jn = make_join( out, in, nim )) )
+	if( !(join = join_new( out, in, nim )) )
 		return( -1 );
 
 	/* Prepare the output header.
 	 */
-	if( im_cp_desc_array( out, jn->in ) )
+	if( im_cp_desc_array( out, join->in ) )
                 return( -1 ); 
 	out->Bands = 0;
 	for( i = 0; i < nim; i++ )
 		out->Bands += in[i]->Bands;
-
-	/* Set demand hints.
-	 */
-	if( im_demand_hint_array( out, IM_THINSTRIP, jn->in ) )
+	if( im_demand_hint_array( out, IM_THINSTRIP, join->in ) )
 		return( -1 );
 
 	if( im_generate( out,
-		im_start_many, join_bands, im_stop_many, jn->in, jn ) )
+		im_start_many, join_bands, im_stop_many, join->in, join ) )
 		return( -1 );
 	
 	return( 0 );
+}
+
+/**
+ * im_bandjoin:
+ * @in1: first input image
+ * @in2: second input image
+ * @out: output image
+ *
+ * Join two images bandwise. 
+ * If the two images
+ * have n and m bands respectively, then the output image will have n+m
+ * bands, with the first n coming from the first image and the last m
+ * from the second. 
+ *
+ * The images must be the same size. 
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_gbandjoin(), im_insert().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_bandjoin( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	IMAGE *t[2];
+
+	t[0] = in1;
+	t[1] = in2;
+
+	return( im_gbandjoin( t, out, 2 ) );
 }

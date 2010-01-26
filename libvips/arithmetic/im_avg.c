@@ -290,7 +290,7 @@ im_avg( IMAGE *in, double *out )
 	pels = (gint64) in->Xsize * in->Ysize;
 	vals = pels * in->Bands;
 	*out = global_sum / vals;
-	if( im_iscomplex( in ) )
+	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		*out = sqrt( *out );
 
 	return( 0 );

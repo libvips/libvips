@@ -81,7 +81,8 @@ FUN ## 1_buffer( PEL *p, PEL *q, int n, double *tc, IMAGE *im ) \
 { \
 	/* Complex just doubles the size. \
 	 */ \
-	const int ne = n * im->Bands * (im_iscomplex( im ) ? 2 : 1); \
+	const int ne = n * im->Bands * \
+		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1); \
 	const double c = tc[0]; \
 	\
 	int i; \

@@ -475,7 +475,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 static int 
 fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
-	if( im_iscomplex( in ) )
+	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		return( cfwfft1( dummy, in, out ) );
 	else
 		return( rfwfft1( dummy, in, out ) );

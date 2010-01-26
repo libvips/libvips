@@ -584,7 +584,7 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
                 im_error( "im_maplut", "%s", _( "input is not uncoded" ) );
                 return( -1 );
 	}
-        if( !im_isuint( in ) ) {
+        if( !vips_bandfmt_isuint( in->BandFmt ) ) {
                 im_error( "im_maplut", "%s", 
 			_( "input is not some unsigned integer type" ) );
                 return( -1 );

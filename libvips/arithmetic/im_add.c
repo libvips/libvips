@@ -91,7 +91,8 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 {
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * im->Bands * (im_iscomplex( im ) ? 2 : 1);
+	const int sz = width * im->Bands * 
+		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
 
 	int x;
 
@@ -155,13 +156,13 @@ static int bandfmt_largest[6][6] = {
 /* For two formats, find one which can represent the full range of both.
  */
 static VipsBandFmt
-im__format_common( IMAGE *in1, IMAGE *in2 )
+im__format_common( VipsBandFmt in1, VipsBandFmt in2 )
 {
-	if( im_iscomplex( in1 ) || im_iscomplex( in2 ) ) {
+	if( vips_bandfmt_iscomplex( in1 ) || 
+		vips_bandfmt_iscomplex( in2 ) ) {
 		/* What kind of complex?
 		 */
-		if( in1->BandFmt == IM_BANDFMT_DPCOMPLEX || 
-			in2->BandFmt == IM_BANDFMT_DPCOMPLEX )
+		if( in1 == IM_BANDFMT_DPCOMPLEX || in2 == IM_BANDFMT_DPCOMPLEX )
 			/* Output will be DPCOMPLEX. 
 			 */
 			return( IM_BANDFMT_DPCOMPLEX );
@@ -169,11 +170,11 @@ im__format_common( IMAGE *in1, IMAGE *in2 )
 			return( IM_BANDFMT_COMPLEX );
 
 	}
-	else if( im_isfloat( in1 ) || im_isfloat( in2 ) ) {
+	else if( vips_bandfmt_isfloat( in1 ) || 
+		vips_bandfmt_isfloat( in2 ) ) {
 		/* What kind of float?
 		 */
-		if( in1->BandFmt == IM_BANDFMT_DOUBLE || 
-			in2->BandFmt == IM_BANDFMT_DOUBLE )
+		if( in1 == IM_BANDFMT_DOUBLE || in2 == IM_BANDFMT_DOUBLE )
 			return( IM_BANDFMT_DOUBLE );
 		else
 			return( IM_BANDFMT_FLOAT );
@@ -181,20 +182,40 @@ im__format_common( IMAGE *in1, IMAGE *in2 )
 	else 
 		/* Must be int+int -> int.
 		 */
-		return( bandfmt_largest[in1->BandFmt][in2->BandFmt] );
+		return( bandfmt_largest[in1][in2] );
+}
+
+int
+im__formatalike_vec( IMAGE **in, IMAGE **out, int n )
+{
+	int i;
+	VipsBandFmt fmt;
+
+	g_assert( n >= 1 );
+
+	fmt = in[0]->BandFmt;
+	for( i = 1; i < n; i++ )
+		fmt = im__format_common( fmt, in[i]->BandFmt );
+
+	for( i = 0; i < n; i++ )
+		if( im_clip2fmt( in[i], out[i], fmt ) )
+			return( -1 );
+
+	return( 0 );
 }
 
 int
 im__formatalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
 {
-	VipsBandFmt fmt;
+	IMAGE *in[2];
+	IMAGE *out[2];
 
-	fmt = im__format_common( in1, in2 );
-	if( im_clip2fmt( in1, out1, fmt ) ||
-		im_clip2fmt( in2, out2, fmt ) )
-		return( -1 );
+	in[0] = in1;
+	in[1] = in2;
+	out[0] = out1;
+	out[1] = out2;
 
-	return( 0 );
+	return( im__formatalike_vec( in, out, 2 ) );
 }
 
 /* Make an n-band image. Input 1 or n bands.

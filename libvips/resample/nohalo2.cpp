@@ -1038,8 +1038,8 @@ vips_interpolate_nohalo2_interpolate( VipsInterpolate* restrict interpolate,
   /*
    * Double bands for complex images:
    */
-  const int bands =
-    ( im_iscomplex( in->im ) ? 2 * actual_bands : actual_bands );
+  const int bands = vips_bandfmt_iscomplex( in->im->BandFmt ) ? 
+	  2 * actual_bands : actual_bands;
 
 #define CALL( T, inter ) \
   nohalo2_ ## inter<T>( out, \

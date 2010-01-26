@@ -219,7 +219,7 @@ im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
 
 	/* We use square mod for scanning, for speed.
 	 */
-	if( im_iscomplex( in ) )
+	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		global_minpos->min *= global_minpos->min;
 
 	if( im_iterate( in, minpos_start, minpos_scan, minpos_stop, 
@@ -228,7 +228,7 @@ im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
 
 	/* Back to modulus.
 	 */
-	if( im_iscomplex( in ) )
+	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		global_minpos->min = sqrt( global_minpos->min );
 
 	if( xpos )

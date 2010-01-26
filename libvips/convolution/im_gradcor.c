@@ -112,7 +112,8 @@ int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
   if( im_piocheck( large, out ) || im_pincheck( small ) )
     return -1;
 
-  if( ! im_isint( large ) || ! im_isint( small ) ){
+  if( ! vips_bandfmt_isint( large->BandFmt ) || 
+	! vips_bandfmt_isint( small->BandFmt ) ){
     im_error( FUNCTION_NAME, "image does not have integer band format" );
     return -1;
   }
@@ -178,7 +179,7 @@ int im_grad_x( IMAGE *in, IMAGE *out ){
   if( im_piocheck( in, out ) )
     return -1;
 
-  if( ! im_isint( in ) ){
+  if( ! vips_bandfmt_isint( in->BandFmt ) ){
     im_error( FUNCTION_NAME, "image does not have integer band format" );
     return -1;
   }
@@ -227,6 +228,8 @@ int im_grad_x( IMAGE *in, IMAGE *out ){
       RETURN_GENERATE( double );
 #endif
 #undef RETURN_GENERATE
+    default:
+      g_assert( 0 );
   }
 
   /* Keep gcc happy.
@@ -241,7 +244,7 @@ int im_grad_y( IMAGE *in, IMAGE *out ){
   if( im_piocheck( in, out ) )
     return -1;
 
-  if( ! im_isint( in ) ){
+  if( ! vips_bandfmt_isint( in->BandFmt ) ){
     im_error( FUNCTION_NAME, "image does not have integer band format" );
     return -1;
   }
@@ -290,6 +293,8 @@ int im_grad_y( IMAGE *in, IMAGE *out ){
       RETURN_GENERATE( double );
 #endif
 #undef RETURN_GENERATE
+    default:
+      g_assert( 0 );
   }
 
   /* Keep gcc happy.
@@ -419,6 +424,8 @@ static int gradcor_gen( REGION *to_make, void *vptr_seq, void *unrequired, void 
     case IM_BANDFMT_INT:
       FILL_BUFFERS( signed int )
       break;
+    default:
+      g_assert( 0 );
   }
   { /* write to output */
     size_t write_skip= IM_REGION_LSKIP( to_make ) / sizeof( float );

@@ -91,7 +91,8 @@ buffer_c2rect( void *in, void *out, int w, IMAGE *im )
 int 
 im_c2rect( IMAGE *in, IMAGE *out )
 {
-	if( in->Coding != IM_CODING_NONE || !im_iscomplex( in ) ) {
+	if( in->Coding != IM_CODING_NONE || 
+		!vips_bandfmt_iscomplex( in->BandFmt ) ) {
 		im_error( "im_c2rect", "%s", 
 			_( "input should be uncoded complex" ) );
 		return( -1 );
