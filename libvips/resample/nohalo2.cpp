@@ -806,27 +806,17 @@ nohalo_step2( const double           uno_two,
     const int shift_forw_2_pix = 2 * shift_forw_1_pix; \
     const int shift_forw_2_row = 2 * shift_forw_1_row; \
     \
-    const int shift_back_3_pix = 3 * shift_back_1_pix; \
-    const int shift_back_3_row = 3 * shift_back_1_row; \
     const int shift_forw_3_pix = 3 * shift_forw_1_pix; \
     const int shift_forw_3_row = 3 * shift_forw_1_row; \
     \
-    const int cer_thr_shift =                    shift_back_3_row; \
-    const int cer_fou_shift = shift_forw_1_pix + shift_back_3_row; \
-    \
-    const int uno_two_shift = shift_back_1_pix + shift_back_2_row; \
     const int uno_thr_shift =                    shift_back_2_row; \
     const int uno_fou_shift = shift_forw_1_pix + shift_back_2_row; \
-    const int uno_fiv_shift = shift_forw_2_pix + shift_back_2_row; \
     \
-    const int dos_one_shift = shift_back_2_pix + shift_back_1_row; \
     const int dos_two_shift = shift_back_1_pix + shift_back_1_row; \
     const int dos_thr_shift =                    shift_back_1_row; \
     const int dos_fou_shift = shift_forw_1_pix + shift_back_1_row; \
     const int dos_fiv_shift = shift_forw_2_pix + shift_back_1_row; \
-    const int dos_six_shift = shift_forw_3_pix + shift_back_1_row; \
     \
-    const int tre_zer_shift = shift_back_3_pix; \
     const int tre_one_shift = shift_back_2_pix; \
     const int tre_two_shift = shift_back_1_pix; \
     const int tre_thr_shift = 0;                \
@@ -834,7 +824,6 @@ nohalo_step2( const double           uno_two,
     const int tre_fiv_shift = shift_forw_2_pix; \
     const int tre_six_shift = shift_forw_3_pix; \
     \
-    const int qua_zer_shift = shift_back_3_pix + shift_forw_1_row; \
     const int qua_one_shift = shift_back_2_pix + shift_forw_1_row; \
     const int qua_two_shift = shift_back_1_pix + shift_forw_1_row; \
     const int qua_thr_shift =                    shift_forw_1_row; \
@@ -842,13 +831,11 @@ nohalo_step2( const double           uno_two,
     const int qua_fiv_shift = shift_forw_2_pix + shift_forw_1_row; \
     const int qua_six_shift = shift_forw_3_pix + shift_forw_1_row; \
     \
-    const int cin_one_shift = shift_back_2_pix + shift_forw_2_row; \
     const int cin_two_shift = shift_back_1_pix + shift_forw_2_row; \
     const int cin_thr_shift =                    shift_forw_2_row; \
     const int cin_fou_shift = shift_forw_1_pix + shift_forw_2_row; \
     const int cin_fiv_shift = shift_forw_2_pix + shift_forw_2_row; \
     \
-    const int sei_two_shift = shift_back_1_pix + shift_forw_3_row; \
     const int sei_thr_shift =                    shift_forw_3_row; \
     const int sei_fou_shift = shift_forw_1_pix + shift_forw_3_row; \
     \
