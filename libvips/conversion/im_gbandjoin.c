@@ -18,6 +18,8 @@
  * 	- gtk-doc
  * 	- im_bandjoin() just calls this
  * 	- works for RAD coding too
+ * 27/1/10
+ * 	- formatalike inputs
  */
 
 /*
@@ -83,12 +85,18 @@ join_new( IMAGE *out, IMAGE **in, int nim )
 		!(join->is = IM_ARRAY( out, nim, int )) ) 
 		return( NULL );
 
-	/* Remember to NULL-terminate.
+	/* Cast inputs up to a common format.
 	 */
-	for( i = 0; i < nim; i++ ) {
-		join->in[i] = in[i];
-		join->is[i] = IM_IMAGE_SIZEOF_PEL( in[i] );
-	}
+	if( im_open_local_array( out, join->in, nim, "im_gbandjoin", "p" ) ||
+		im__formatalike_vec( in, join->in, nim ) )
+		return( -1 );
+
+	for( i = 0; i < nim; i++ ) 
+		join->is[i] = IM_IMAGE_SIZEOF_PEL( join->in[i] );
+
+	/* Remember to NULL-terminate. We pass ->in[] to
+	 * im_demand_hint_array() and friends later.
+	 */
 	join->in[nim] = NULL;
 
 	return( join );
@@ -222,7 +230,7 @@ im_gbandjoin( IMAGE **in, IMAGE *out, int nim )
  *
  * Join two images bandwise. 
  * If the two images
- * have n and m bands respectively, then the output image will have n+m
+ * have n and m bands respectively, then the output image will have n + m
  * bands, with the first n coming from the first image and the last m
  * from the second. 
  *

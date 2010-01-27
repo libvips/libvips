@@ -147,6 +147,7 @@ void im__buffer_init( void );
 
 int im__bandup( IMAGE *in, IMAGE *out, int n );
 int im__bandalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 );
+int im__formatalike_vec( IMAGE **in, IMAGE **out, int n );
 int im__formatalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 );
 int im__arith_binary( const char *name, 
 	IMAGE *in1, IMAGE *in2, IMAGE *out, 
