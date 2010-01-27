@@ -469,8 +469,10 @@ image_sanity( IMAGE *im )
 			im->Coding != IM_CODING_NONE && 
 			im->Coding != IM_CODING_LABQ &&
 			im->Coding != IM_CODING_RAD) ||
-		im->Type < -1 || im->Type > IM_TYPE_GREY16 ||
-		im->dtype > IM_PARTIAL || im->dhint > IM_ANY ) 
+		im->Type > IM_TYPE_GREY16 )
+		return( "bad enum value" );
+	if( im->dtype > IM_PARTIAL || 
+		im->dhint > IM_ANY ) 
 		return( "bad enum value" );
 	if( im->Xres < 0 || im->Xres < 0 ) 
 		return( "bad resolution" );
