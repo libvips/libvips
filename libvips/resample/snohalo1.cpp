@@ -1,10 +1,11 @@
-/* snohalo level 1 interpolator
+/* snohalo (level 1.5) interpolator
  *
- * (smooth nohalo = nohalo with custom antialiasing blur)
+ * Snohalo = "Smooth Nohalo" = Nohalo with custom antialiasing blur.
  *
- * Tweaks by N. Robidoux and J. Cupitt 4-17/3/09
+ * Tweaks by N. Robidoux and J. Cupitt 01/04-29/05/09
  *
- * Tweaks by N. Robidoux 25-28/5/09
+ * Major changes by N. Robidoux based on additional code by
+ * N. Robidoux, Adam Turcotte and Eric Daoust 26/01/10
  */
 
 /*
@@ -35,7 +36,18 @@
  */
 
 /*
- * 2009 (c) Nicolas Robidoux
+ * 2009-2010 (c) Nicolas Robidoux
+ *
+ * N. Robidoux thanks Minglun Gong, Ralf Meyer, Geert Jordaens and
+ * Øyvind Kolås for useful comments and code.
+ *
+ * N. Robidoux's research on Nohalo funded in part by an NSERC
+ * (National Science and Engineering Research Council of Canada)
+ * Discovery Grant.
+ *
+ * A. Turcotte and E. Daoust's Nohalo programming funded in part by
+ * two Google Summer of Code 2010 awards made to GIMP (Gnu Image
+ * Manipulation Program).
  */
 
 #ifdef HAVE_CONFIG_H
@@ -85,126 +97,556 @@ typedef struct _VipsInterpolateSnohalo1Class {
 
 } VipsInterpolateSnohalo1Class;
 
-static void inline
-snohalo1( const double           blur,
-          const double           zer_two_in,
-          const double           zer_thr_in,
-          const double           uno_one_in,
-          const double           uno_two_in,
-          const double           uno_thr_in,
-          const double           uno_fou_in,
-          const double           dos_zer_in,
-          const double           dos_one_in,
-          const double           dos_two_in,
-          const double           dos_thr_in,
-          const double           dos_fou_in,
-          const double           dos_fiv_in,
-          const double           tre_zer_in,
-          const double           tre_one_in,
-          const double           tre_two_in,
-          const double           tre_thr_in,
-          const double           tre_fou_in,
-          const double           tre_fiv_in,
-          const double           qua_one_in,
-          const double           qua_two_in,
-          const double           qua_thr_in,
-          const double           qua_fou_in,
-          const double           cin_two_in,
-          const double           cin_thr_in,
-                double* restrict r0,
-                double* restrict r1,
-                double* restrict r2,
-                double* restrict r3 )
-{
-  const double beta  = 1. + -.5 * blur;
-  const double gamma = .125 * blur;
-  
-  /*
-   * Computation of the blurred pixel values:
-   */
-  const double uno_one_plus_zer_two_in = uno_one_in + zer_two_in;
-  const double uno_two_plus_zer_thr_in = uno_two_in + zer_thr_in;
+/*
+ * MINMOD is an implementation of the minmod function which only needs
+ * two conditional moves.
+ *
+ * MINMOD(a,b,a_times_a,a_times_b) "returns" minmod(a,b). The
+ * parameter ("input") a_times_a is assumed to contain the square of
+ * a; the parameter a_times_b, the product of a and b.
+ *
+ * The version most suitable for images with flat (constant) colour
+ * areas, since a, which is a pixel difference, will often be 0, in
+ * which case both forward branches are likely:
+ *
+ * ( (a_times_b)>=0.f ? 1.f : 0.f ) * ( (a_times_a)<=(a_times_b) ? (a) : (b) )
+ *
+ * For uncompressed natural images in high bit depth (images for which
+ * the slopes a and b are unlikely to be equal to zero or be equal to
+ * each other), we recommend using
+ *
+ * ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
+ *
+ * instead. With this second version, the forward branch of the second
+ * conditional move is taken when |b|>|a| and when a*b<0. However, the
+ * "else" branch is taken when a=0 (or when a=b), which is why the
+ * above version is not recommended for images with regions with
+ * constant pixel values (or regions with pixel values which vary
+ * bilinearly, as may be the case with cheap demosaicing).
+ *
+ * NOTE: Both of the above are better than FAST_MINMOD (found in
+ * templates.h), but MINMOD uses different parameters and consequently
+ * is not a direct substitute. The other methods should be modified so
+ * they use the above new version.
+ */
+#define MINMOD(a,b,a_times_a,a_times_b) \
+  ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
 
-  const double dos_zer_plus_uno_one_in = dos_zer_in + uno_one_in;
+static void inline
+snohalo_step1 (const double           blur,
+               const double           cer_thr_in,
+               const double           cer_fou_in,
+               const double           uno_two_in,
+               const double           uno_thr_in,
+               const double           uno_fou_in,
+               const double           uno_fiv_in,
+               const double           dos_one_in,
+               const double           dos_two_in,
+               const double           dos_thr_in,
+               const double           dos_fou_in,
+               const double           dos_fiv_in,
+               const double           dos_six_in,
+               const double           tre_zer_in,
+               const double           tre_one_in,
+               const double           tre_two_in,
+               const double           tre_thr_in,
+               const double           tre_fou_in,
+               const double           tre_fiv_in,
+               const double           tre_six_in,
+               const double           qua_zer_in,
+               const double           qua_one_in,
+               const double           qua_two_in,
+               const double           qua_thr_in,
+               const double           qua_fou_in,
+               const double           qua_fiv_in,
+               const double           qua_six_in,
+               const double           cin_one_in,
+               const double           cin_two_in,
+               const double           cin_thr_in,
+               const double           cin_fou_in,
+               const double           cin_fiv_in,
+               const double           sei_two_in,
+               const double           sei_thr_in,
+               const double           sei_fou_in,
+                     double* restrict uno_two_1,
+                     double* restrict uno_thr_1,
+                     double* restrict dos_one_1,
+                     double* restrict dos_two_1,
+                     double* restrict dos_thr_1,
+                     double* restrict dos_fou_1,
+                     double* restrict tre_one_1,
+                     double* restrict tre_two_1,
+                     double* restrict tre_thr_1,
+                     double* restrict tre_fou_1,
+                     double* restrict qua_two_1,
+                     double* restrict qua_thr_1)
+{
+  /*
+   * snohalo_step1 calculates the missing ten double density pixel
+   * values, and also returns the "already known" two, so that the
+   * twelve values which make up the stencil of Nohalo level 1 are
+   * available.
+   */
+  /*
+   * THE STENCIL OF INPUT VALUES:
+   *
+   * Pointer arithmetic is used to implicitly reflect the input
+   * stencil about tre_thr---assumed closer to the sampling location
+   * than other pixels (ties are OK)---in such a way that after
+   * reflection the sampling point is to the bottom right of tre_thr.
+   *
+   * The following code and picture assumes that the stencil reflexion
+   * has already been performed.
+   *
+   *
+   *                                         (ix,iy-3)    (ix+1,iy-3)
+   *                                         = cer_thr    = cer_fou
+   *
+   *
+   *
+   *                            (ix-1,iy-2)  (ix,iy-2)    (ix+1,iy-2)  (ix+1,iy-3)
+   *                            = uno_two    = uno_thr    = uno_fou    = uno_fiv
+   *
+   *
+   *
+   *               (ix-2,iy-1)  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)  (ix+2,iy-1)  (ix+3,iy-1)
+   *               = dos_one    = dos_two    = dos_thr    = dos_fou    = dos_fiv    = dos_six
+   *
+   *
+   *
+   *  (ix-3,iy)    (ix-2,iy)    (ix-1,iy)    (ix,iy)      (ix+1,iy)    (ix+2,iy)    (ix+3,iy)
+   *  = tre_zer    = tre_one    = tre_two    = tre_thr    = tre_fou    = tre_fiv    = tre_six
+   *                                                  X
+   *
+   *
+   *  (ix-3,iy)    (ix-2,iy)    (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)  (ix+2,iy+1)  (ix+3,iy+1)
+   *  = qua_zer    = qua_one    = qua_two    = qua_thr    = qua_fou    = qua_fiv    = qua_six
+   *
+   *
+   *
+   *               (ix-2,iy+2)  (ix-1,iy+2)  (ix,iy+2)    (ix+1,iy+2)  (ix+2,iy+2)
+   *               = cin_one    = cin_two    = cin_thr    = cin_fou    = cin_fiv
+   *
+   *
+   *
+   *                            (ix-1,iy+3)  (ix,iy+3)    (ix+1,iy+3)
+   *                            = sei_two    = sei_thr    = sei_fou
+   *
+   *
+   * The above input pixel values are the ones needed in order to make
+   * available to the second level the following first level values:
+   *
+   *                   uno_two_1 =  uno_thr_1 =
+   *                   (ix,iy-1/2)  (ix+1/2,iy-1/2)
+   *
+   *
+   *
+   *
+   *  dos_one_1 =      dos_two_1 =  dos_thr_1 =      dos_fou_1 =
+   *  (ix-1/2,iy)      (ix,iy)      (ix+1/2,iy)      (ix+1,iy)
+   *
+   *                             X
+   *
+   *
+   *  tre_one_1 =      tre_two_1 =  tre_thr_1 =      tre_fou_1 =
+   *  (ix-1/2,iy+1/2)  (ix,iy+1/2)  (ix+1/2,iy+1/2)  (ix+1,iy+1/2)
+   *
+   *
+   *
+   *
+   *                   qua_two_1 =  qua_thr_1 =
+   *                   (ix,iy+1)    (ix+1/2,iy+1)
+   *
+   *
+   * to which nohalo level 1 is applied by the caller.
+   */
+
+  /*
+   * Nohalo/Snohalo blended weights:
+   */
+  const double beta = .125 * blur;
+  const double theta = 1. + -.5 * blur;
+
+  /*
+   * Computation of the blurred input pixel values:
+   */
+  const double uno_two_plus_cer_thr_in = uno_two_in + cer_thr_in;
+  const double uno_thr_plus_cer_fou_in = uno_thr_in + cer_fou_in;
+
   const double dos_one_plus_uno_two_in = dos_one_in + uno_two_in;
   const double dos_two_plus_uno_thr_in = dos_two_in + uno_thr_in;
   const double dos_thr_plus_uno_fou_in = dos_thr_in + uno_fou_in;
+  const double dos_fou_plus_uno_fiv_in = dos_fou_in + uno_fiv_in;
 
   const double tre_zer_plus_dos_one_in = tre_zer_in + dos_one_in;
   const double tre_one_plus_dos_two_in = tre_one_in + dos_two_in;
   const double tre_two_plus_dos_thr_in = tre_two_in + dos_thr_in;
   const double tre_thr_plus_dos_fou_in = tre_thr_in + dos_fou_in;
   const double tre_fou_plus_dos_fiv_in = tre_fou_in + dos_fiv_in;
+  const double tre_fiv_plus_dos_six_in = tre_fiv_in + dos_six_in;
 
+  const double qua_zer_plus_tre_one_in = qua_zer_in + tre_one_in;
   const double qua_one_plus_tre_two_in = qua_one_in + tre_two_in;
   const double qua_two_plus_tre_thr_in = qua_two_in + tre_thr_in;
   const double qua_thr_plus_tre_fou_in = qua_thr_in + tre_fou_in;
   const double qua_fou_plus_tre_fiv_in = qua_fou_in + tre_fiv_in;
+  const double qua_fiv_plus_tre_six_in = qua_fiv_in + tre_six_in;
 
+  const double cin_one_plus_qua_two_in = cin_one_in + qua_two_in;
   const double cin_two_plus_qua_thr_in = cin_two_in + qua_thr_in;
   const double cin_thr_plus_qua_fou_in = cin_thr_in + qua_fou_in;
+  const double cin_fou_plus_qua_fiv_in = cin_fou_in + qua_fiv_in;
+  const double cin_fiv_plus_qua_six_in = cin_fiv_in + qua_six_in;
 
-  const double uno_two =
-    beta * uno_two_in
-    +
-    gamma * ( uno_one_plus_zer_two_in + dos_two_plus_uno_thr_in );
+  const double sei_two_plus_cin_thr_in = sei_two_in + cin_thr_in;
+  const double sei_thr_plus_cin_fou_in = sei_thr_in + cin_fou_in;
+  const double sei_fou_plus_cin_fiv_in = sei_fou_in + cin_fiv_in;
 
   const double uno_thr =
-    beta * uno_thr_in 
-    +
-    gamma * ( uno_two_plus_zer_thr_in + dos_thr_plus_uno_fou_in );
-
-  const double dos_one =
-    beta * dos_one_in
-    +
-    gamma * ( dos_zer_plus_uno_one_in + tre_one_plus_dos_two_in );
+    beta * ( uno_two_plus_cer_thr_in + dos_thr_plus_uno_fou_in )
+    + theta * uno_thr_in;
+  const double uno_fou =
+    beta * ( uno_thr_plus_cer_fou_in + dos_fou_plus_uno_fiv_in )
+    + theta * uno_fou_in;
 
   const double dos_two =
-    beta * dos_two_in
-    +
-    gamma * ( dos_one_plus_uno_two_in + tre_two_plus_dos_thr_in );
-
+    beta * ( dos_one_plus_uno_two_in + tre_two_plus_dos_thr_in )
+    + theta * dos_two_in;
   const double dos_thr =
-    beta * dos_thr_in 
-    +
-    gamma * ( dos_two_plus_uno_thr_in + tre_thr_plus_dos_fou_in );
-
+    beta * ( dos_two_plus_uno_thr_in + tre_thr_plus_dos_fou_in )
+    + theta * dos_thr_in;
   const double dos_fou =
-    beta * dos_fou_in 
-    +
-    gamma * ( dos_thr_plus_uno_fou_in + tre_fou_plus_dos_fiv_in );
+    beta * ( dos_thr_plus_uno_fou_in + tre_fou_plus_dos_fiv_in )
+    + theta * dos_fou_in;
+  const double dos_fiv =
+    beta * ( dos_fou_plus_uno_fiv_in + tre_fiv_plus_dos_six_in )
+    + theta * dos_fiv_in;
 
   const double tre_one =
-    beta * tre_one_in
-    +
-    gamma * ( tre_zer_plus_dos_one_in + qua_one_plus_tre_two_in );
-
+    beta * ( tre_zer_plus_dos_one_in + qua_one_plus_tre_two_in )
+    + theta * tre_one_in;
   const double tre_two =
-    beta * tre_two_in
-    +
-    gamma * ( tre_one_plus_dos_two_in + qua_two_plus_tre_thr_in );
-
+    beta * ( tre_one_plus_dos_two_in + qua_two_plus_tre_thr_in )
+    + theta * tre_two_in;
   const double tre_thr =
-    beta * tre_thr_in 
-    +
-    gamma * ( tre_two_plus_dos_thr_in + qua_thr_plus_tre_fou_in );
-
+    beta * ( tre_two_plus_dos_thr_in + qua_thr_plus_tre_fou_in )
+    + theta * tre_thr_in;
   const double tre_fou =
-    beta * tre_fou_in 
-    +
-    gamma * ( tre_thr_plus_dos_fou_in + qua_fou_plus_tre_fiv_in );
+    beta * ( tre_thr_plus_dos_fou_in + qua_fou_plus_tre_fiv_in )
+    + theta * tre_fou_in;
+  const double tre_fiv =
+    beta * ( tre_fou_plus_dos_fiv_in + qua_fiv_plus_tre_six_in )
+    + theta * tre_fiv_in;
 
+  const double qua_one =
+    beta * ( qua_zer_plus_tre_one_in + cin_one_plus_qua_two_in )
+    + theta * qua_one_in;
   const double qua_two =
-    beta * qua_two_in
-    +
-    gamma * ( qua_one_plus_tre_two_in + cin_two_plus_qua_thr_in );
-
+    beta * ( qua_one_plus_tre_two_in + cin_two_plus_qua_thr_in )
+    + theta * qua_two_in;
   const double qua_thr =
-    beta * qua_thr_in 
-    +
-    gamma * ( qua_two_plus_tre_thr_in + cin_thr_plus_qua_fou_in );
+    beta * ( qua_two_plus_tre_thr_in + cin_thr_plus_qua_fou_in )
+    + theta * qua_thr_in;
+  const double qua_fou =
+    beta * ( qua_thr_plus_tre_fou_in + cin_fou_plus_qua_fiv_in )
+    + theta * qua_fou_in;
+  const double qua_fiv =
+    beta * ( qua_fou_plus_tre_fiv_in + cin_fiv_plus_qua_six_in )
+    + theta * qua_fiv_in;
+
+  const double cin_two =
+    beta * ( cin_one_plus_qua_two_in + sei_two_plus_cin_thr_in )
+    + theta * cin_two_in;
+  const double cin_thr =
+    beta * ( cin_two_plus_qua_thr_in + sei_thr_plus_cin_fou_in )
+    + theta * cin_thr_in;
+  const double cin_fou =
+    beta * ( cin_thr_plus_qua_fou_in + sei_fou_plus_cin_fiv_in )
+    + theta * cin_fou_in;
 
   /*
+   * Computation of the nonlinear slopes: If two consecutive pixel
+   * value differences have the same sign, the smallest one (in
+   * absolute value) is taken to be the corresponding slope; if the
+   * two consecutive pixel value differences don't have the same sign,
+   * the corresponding slope is set to 0.
+   *
+   * In other words: Apply minmod to consecutive differences.
+   */
+  /*
+   * Two vertical simple differences:
+   */
+  const double d_dostre_two = tre_two - dos_two;
+  const double d_trequa_two = qua_two - tre_two;
+  const double d_quacin_two = cin_two - qua_two;
+  /*
+   * Thr(ee) vertical differences:
+   */
+  const double d_unodos_thr = dos_thr - uno_thr;
+  const double d_dostre_thr = tre_thr - dos_thr;
+  const double d_trequa_thr = qua_thr - tre_thr;
+  const double d_quacin_thr = cin_thr - qua_thr;
+  /*
+   * Fou(r) vertical differences:
+   */
+  const double d_unodos_fou = dos_fou - uno_fou;
+  const double d_dostre_fou = tre_fou - dos_fou;
+  const double d_trequa_fou = qua_fou - tre_fou;
+  const double d_quacin_fou = cin_fou - qua_fou;
+  /*
+   * Dos horizontal differences:
+   */
+  const double d_dos_twothr = dos_thr - dos_two;
+  const double d_dos_thrfou = dos_fou - dos_thr;
+  const double d_dos_foufiv = dos_fiv - dos_fou;
+  /*
+   * Tre(s) horizontal differences:
+   */
+  const double d_tre_onetwo = tre_two - tre_one;
+  const double d_tre_twothr = tre_thr - tre_two;
+  const double d_tre_thrfou = tre_fou - tre_thr;
+  const double d_tre_foufiv = tre_fiv - tre_fou;
+  /*
+   * Qua(ttro) horizontal differences:
+   */
+  const double d_qua_onetwo = qua_two - qua_one;
+  const double d_qua_twothr = qua_thr - qua_two;
+  const double d_qua_thrfou = qua_fou - qua_thr;
+  const double d_qua_foufiv = qua_fiv - qua_fou;
+
+  /*
+   * Recyclable vertical products and squares:
+   */
+  const double d_dostre_times_trequa_two = d_dostre_two * d_trequa_two;
+  const double d_trequa_two_sq           = d_trequa_two * d_trequa_two;
+  const double d_trequa_times_quacin_two = d_quacin_two * d_trequa_two;
+
+  const double d_unodos_times_dostre_thr = d_unodos_thr * d_dostre_thr;
+  const double d_dostre_thr_sq           = d_dostre_thr * d_dostre_thr;
+  const double d_dostre_times_trequa_thr = d_trequa_thr * d_dostre_thr;
+  const double d_trequa_times_quacin_thr = d_trequa_thr * d_quacin_thr;
+  const double d_quacin_thr_sq           = d_quacin_thr * d_quacin_thr;
+
+  const double d_unodos_times_dostre_fou = d_unodos_fou * d_dostre_fou;
+  const double d_dostre_fou_sq           = d_dostre_fou * d_dostre_fou;
+  const double d_dostre_times_trequa_fou = d_trequa_fou * d_dostre_fou;
+  const double d_trequa_times_quacin_fou = d_trequa_fou * d_quacin_fou;
+  const double d_quacin_fou_sq           = d_quacin_fou * d_quacin_fou;
+  /*
+   * Recyclable horizontal products and squares:
+   */
+  const double d_dos_twothr_times_thrfou = d_dos_twothr * d_dos_thrfou;
+  const double d_dos_thrfou_sq           = d_dos_thrfou * d_dos_thrfou;
+  const double d_dos_thrfou_times_foufiv = d_dos_foufiv * d_dos_thrfou;
+
+  const double d_tre_onetwo_times_twothr = d_tre_onetwo * d_tre_twothr;
+  const double d_tre_twothr_sq           = d_tre_twothr * d_tre_twothr;
+  const double d_tre_twothr_times_thrfou = d_tre_thrfou * d_tre_twothr;
+  const double d_tre_thrfou_times_foufiv = d_tre_thrfou * d_tre_foufiv;
+  const double d_tre_foufiv_sq           = d_tre_foufiv * d_tre_foufiv;
+
+  const double d_qua_onetwo_times_twothr = d_qua_onetwo * d_qua_twothr;
+  const double d_qua_twothr_sq           = d_qua_twothr * d_qua_twothr;
+  const double d_qua_twothr_times_thrfou = d_qua_thrfou * d_qua_twothr;
+  const double d_qua_thrfou_times_foufiv = d_qua_thrfou * d_qua_foufiv;
+  const double d_qua_foufiv_sq           = d_qua_foufiv * d_qua_foufiv;
+
+  /*
+   * Minmod slopes and first level pixel values:
+   */
+  const double dos_thr_y = MINMOD( d_dostre_thr, d_unodos_thr,
+                                   d_dostre_thr_sq,
+                                   d_unodos_times_dostre_thr );
+  const double tre_thr_y = MINMOD( d_dostre_thr, d_trequa_thr,
+                                   d_dostre_thr_sq,
+                                   d_dostre_times_trequa_thr );
+
+  const double val_uno_two_1 =
+    .5 * ( dos_thr + tre_thr )
+    +
+    .25 * ( dos_thr_y - tre_thr_y );
+
+  const double qua_thr_y = MINMOD( d_quacin_thr, d_trequa_thr,
+                                   d_quacin_thr_sq,
+                                   d_trequa_times_quacin_thr );
+
+  const double val_tre_two_1 =
+    .5 * ( tre_thr + qua_thr )
+    +
+    .25 * ( tre_thr_y - qua_thr_y );
+
+  const double tre_fou_y = MINMOD( d_dostre_fou, d_trequa_fou,
+                                   d_dostre_fou_sq,
+                                   d_dostre_times_trequa_fou );
+  const double qua_fou_y = MINMOD( d_quacin_fou, d_trequa_fou,
+                                   d_quacin_fou_sq,
+                                   d_trequa_times_quacin_fou );
+
+  const double val_tre_fou_1 =
+    .5 * ( tre_fou + qua_fou )
+    +
+    .25 * ( tre_fou_y - qua_fou_y );
+
+  const double tre_two_x = MINMOD( d_tre_twothr, d_tre_onetwo,
+                                   d_tre_twothr_sq,
+                                   d_tre_onetwo_times_twothr );
+  const double tre_thr_x = MINMOD( d_tre_twothr, d_tre_thrfou,
+                                   d_tre_twothr_sq,
+                                   d_tre_twothr_times_thrfou );
+
+  const double val_dos_one_1 =
+    .5 * ( tre_two + tre_thr )
+    +
+    .25 * ( tre_two_x - tre_thr_x );
+
+  const double tre_fou_x = MINMOD( d_tre_foufiv, d_tre_thrfou,
+                                   d_tre_foufiv_sq,
+                                   d_tre_thrfou_times_foufiv );
+
+  const double tre_thr_x_minus_tre_fou_x =
+    tre_thr_x - tre_fou_x;
+
+  const double val_dos_thr_1 =
+    .5 * ( tre_thr + tre_fou )
+    +
+    .25 * tre_thr_x_minus_tre_fou_x;
+
+  const double qua_thr_x = MINMOD( d_qua_twothr, d_qua_thrfou,
+                                   d_qua_twothr_sq,
+                                   d_qua_twothr_times_thrfou );
+  const double qua_fou_x = MINMOD( d_qua_foufiv, d_qua_thrfou,
+                                   d_qua_foufiv_sq,
+                                   d_qua_thrfou_times_foufiv );
+
+  const double qua_thr_x_minus_qua_fou_x =
+    qua_thr_x - qua_fou_x;
+
+  const double val_qua_thr_1 =
+    .5 * ( qua_thr + qua_fou )
+    +
+    .25 * qua_thr_x_minus_qua_fou_x;
+  const double val_tre_thr_1 =
+    .125 * ( tre_thr_x_minus_tre_fou_x + qua_thr_x_minus_qua_fou_x )
+    +
+    .5 * ( val_tre_two_1 + val_tre_fou_1 );
+
+  const double dos_fou_y = MINMOD( d_dostre_fou, d_unodos_fou,
+                                   d_dostre_fou_sq,
+                                   d_unodos_times_dostre_fou );
+  const double dos_thr_x = MINMOD( d_dos_thrfou, d_dos_twothr,
+                                   d_dos_thrfou_sq,
+                                   d_dos_twothr_times_thrfou );
+  const double dos_fou_x = MINMOD( d_dos_thrfou, d_dos_foufiv,
+                                   d_dos_thrfou_sq,
+                                   d_dos_thrfou_times_foufiv );
+
+  const double val_uno_thr_1 =
+    .25 * ( dos_fou - tre_thr )
+    +
+    .125 * ( dos_fou_y - tre_fou_y + dos_thr_x - dos_fou_x )
+    +
+    .5 * ( val_uno_two_1 + val_dos_thr_1 );
+
+  const double qua_two_x = MINMOD( d_qua_twothr, d_qua_onetwo,
+                                   d_qua_twothr_sq,
+                                   d_qua_onetwo_times_twothr );
+  const double tre_two_y = MINMOD( d_trequa_two, d_dostre_two,
+                                   d_trequa_two_sq,
+                                   d_dostre_times_trequa_two );
+  const double qua_two_y = MINMOD( d_trequa_two, d_quacin_two,
+                                   d_trequa_two_sq,
+                                   d_trequa_times_quacin_two );
+
+  const double val_tre_one_1 =
+    .25 * ( qua_two - tre_thr )
+    +
+    .125 * ( qua_two_x - qua_thr_x + tre_two_y - qua_two_y )
+    +
+    .5 * ( val_dos_one_1 + val_tre_two_1 );
+
+  /*
+   * Return level 1 stencil values:
+   */
+  *uno_two_1 = val_uno_two_1;
+  *uno_thr_1 = val_uno_thr_1;
+  *dos_one_1 = val_dos_one_1;
+  *dos_two_1 = tre_thr;
+  *dos_thr_1 = val_dos_thr_1;
+  *dos_fou_1 = tre_fiv;
+  *tre_one_1 = val_tre_one_1;
+  *tre_two_1 = val_tre_two_1;
+  *tre_thr_1 = val_tre_thr_1;
+  *tre_fou_1 = val_tre_fou_1;
+  *qua_two_1 = qua_thr;
+  *qua_thr_1 = val_qua_thr_1;
+}
+
+static void inline
+snohalo_step2( const double           uno_two,
+               const double           uno_thr,
+               const double           dos_one,
+               const double           dos_two,
+               const double           dos_thr,
+               const double           dos_fou,
+               const double           tre_one,
+               const double           tre_two,
+               const double           tre_thr,
+               const double           tre_fou,
+               const double           qua_two,
+               const double           qua_thr,
+                     double* restrict dos_two_out,
+                     double* restrict four_times_dos_twothr_out,
+                     double* restrict four_times_dostre_two_out,
+                     double* restrict partial_eight_times_dostre_twothr_out )
+{
+  /*
+   * The second step of Snohalo 1.5 is just plain Nohalo subdivision.
+   */
+  /*
+   * THE STENCIL OF INPUT VALUES:
+   *
+   * The footprint (stencil) of Nohalo level 1 is the same as, say,
+   * Catmull-Rom, with the exception that the four corner values are
+   * not used:
+   *
+   *               (ix,iy-1)    (ix+1,iy-1)
+   *               = uno_two    = uno_thr
+   *
+   *  (ix-1,iy)    (ix,iy)      (ix+1,iy)    (ix+2,iy)
+   *  = dos_one    = dos_two    = dos_thr    = dos_fou
+   *
+   *  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)  (ix+2,iy+1)
+   *  = tre_one    = tre_two    = tre_thr    = tre_fou
+   *
+   *               (ix,iy+2)    (ix+1,iy+2)
+   *               = qua_two    = qua_thr
+   *
+   * Here, ix is the (pseudo-)floor of the requested left-to-right
+   * location, iy is the floor of the requested up-to-down location.
+   *
+   * Pointer arithmetic is used to implicitly reflect the input
+   * stencil so that the requested pixel location is closer to
+   * dos_two, The above consequently corresponds to the case in which
+   * absolute_x is closer to ix than ix+1, and absolute_y is closer to
+   * iy than iy+1. For example, if relative_x_is_rite = 1 but
+   * relative_y_is_down = 0 (see below), then dos_two corresponds to
+   * (ix+1,iy), dos_thr corresponds to (ix,iy) etc, and the three
+   * missing double density values are halfway between dos_two and
+   * dos_thr, halfway between dos_two and tre_two, and at the average
+   * of the four central positions.
+   *
+   * The following code assumes that the stencil has been suitably
+   * reflected.
+   */
+
+  /*
+   * Computation of the nonlinear slopes: If two consecutive pixel
+   * value differences have the same sign, the smallest one (in
+   * absolute value) is taken to be the corresponding slope; if the
+   * two consecutive pixel value differences don't have the same sign,
+   * the corresponding slope is set to 0. In other words, apply minmod
+   * to comsecutive differences.
+   *
    * Dos(s) horizontal differences:
    */
   const double prem_dos = dos_two - dos_one;
@@ -249,207 +691,270 @@ snohalo1( const double           blur,
   const double deux_troi_thr = deux_thr * troi_thr;
 
   /*
-   * Differences useful for minmod:
+   * Terms computed here to put space between the computation of key
+   * quantities and the related conditionals:
    */
-  const double deux_prem_minus_deux_deux_dos = deux_prem_dos - deux_deux_dos;
-  const double deux_troi_minus_deux_deux_dos = deux_troi_dos - deux_deux_dos;
+  const double twice_dos_two_plus_dos_thr   = ( dos_two + dos_thr ) * 2.f;
+  const double twice_dos_two_plus_tre_two   = ( dos_two + tre_two ) * 2.f;
+  const double twice_deux_thr_plus_deux_dos = ( deux_thr + deux_dos ) * 2.f;
 
-  const double deux_prem_minus_deux_deux_two = deux_prem_two - deux_deux_two;
-  const double deux_troi_minus_deux_deux_two = deux_troi_two - deux_deux_two;
-
-  const double deux_prem_minus_deux_deux_tre = deux_prem_tre - deux_deux_tre;
-  const double deux_troi_minus_deux_deux_tre = deux_troi_tre - deux_deux_tre;
-
-  const double deux_prem_minus_deux_deux_thr = deux_prem_thr - deux_deux_thr;
-  const double deux_troi_minus_deux_deux_thr = deux_troi_thr - deux_deux_thr;
-
-  /*
-   * The following terms are computed here to put "space" between the
-   * computation of components of flag variables and their use:
-   */
-  const double twice_dos_two_plus_dos_thr = ( dos_two + dos_thr ) * 2.;
-  const double twice_dos_two_plus_tre_two = ( dos_two + tre_two ) * 2.;
-  const double twice_deux_thr_plus_deux_dos = ( deux_thr + deux_dos ) * 2.;
+  *dos_two_out = dos_two;
 
   /*
    * Compute the needed "right" (at the boundary between one input
    * pixel areas) double resolution pixel value:
    */
-  const double four_times_dos_twothr =
+  *four_times_dos_twothr_out =
     twice_dos_two_plus_dos_thr
     +
-    FAST_MINMOD( deux_dos, prem_dos, deux_prem_dos,
-                 deux_prem_minus_deux_deux_dos )
+    MINMOD( deux_dos, prem_dos, deux_deux_dos, deux_prem_dos )
     -
-    FAST_MINMOD( deux_dos, troi_dos, deux_troi_dos,
-                 deux_troi_minus_deux_deux_dos );
+    MINMOD( deux_dos, troi_dos, deux_deux_dos, deux_troi_dos );
 
   /*
    * Compute the needed "down" double resolution pixel value:
    */
-  const double four_times_dostre_two =
+  *four_times_dostre_two_out =
     twice_dos_two_plus_tre_two
     +
-    FAST_MINMOD( deux_two, prem_two, deux_prem_two,
-                 deux_prem_minus_deux_deux_two )
+    MINMOD( deux_two, prem_two, deux_deux_two, deux_prem_two )
     -
-    FAST_MINMOD( deux_two, troi_two, deux_troi_two,
-                 deux_troi_minus_deux_deux_two );
+    MINMOD( deux_two, troi_two, deux_deux_two, deux_troi_two );
 
   /*
-   * Compute the "diagonal" (at the boundary between four input
-   * pixel areas) double resolution pixel value:
+   * Compute the "diagonal" (at the boundary between four input pixel
+   * areas) double resolution pixel value:
    */
-  const double eight_times_dostre_twothr =
+  *partial_eight_times_dostre_twothr_out =
     twice_deux_thr_plus_deux_dos
     +
-    FAST_MINMOD( deux_tre, prem_tre, deux_prem_tre,
-                 deux_prem_minus_deux_deux_tre )
+    MINMOD( deux_tre, prem_tre, deux_deux_tre, deux_prem_tre )
     -
-    FAST_MINMOD( deux_tre, troi_tre, deux_troi_tre,
-                 deux_troi_minus_deux_deux_tre )
+    MINMOD( deux_tre, troi_tre, deux_deux_tre, deux_troi_tre )
     +
-    FAST_MINMOD( deux_thr, prem_thr, deux_prem_thr,
-                 deux_prem_minus_deux_deux_thr )
+    MINMOD( deux_thr, prem_thr, deux_deux_thr, deux_prem_thr )
     -
-    FAST_MINMOD( deux_thr, troi_thr, deux_troi_thr,
-                 deux_troi_minus_deux_deux_thr )
-    +
-    four_times_dos_twothr
-    +
-    four_times_dostre_two;
-
-  /*
-   * Return the first newly computed double density values:
-   */
-  *r0 = dos_two;
-  *r1 = four_times_dos_twothr;
-  *r2 = four_times_dostre_two;
-  *r3 = eight_times_dostre_twothr;
+    MINMOD( deux_thr, troi_thr, deux_deux_thr, deux_troi_thr );
 }
 
-/* Call snohalo1 with an interpolator as a parameter.
- * It'd be nice to do this with templates somehow :-( but I can't see a
- * clean way to do it.
+#define SELECT_REFLECT(tl,tr,bl,br) ( \
+  (tl) * is_top_left \
+  + \
+  (tr) * is_top_rite \
+  + \
+  (bl) * is_bot_left \
+  + \
+  (br) * is_bot_rite )
+
+/*
+ * Call Snohalo with an interpolator as a parameter.
+ *
+ * It would be nice to do this with templates somehow---for one thing
+ * this would allow code comments!---but we can't figure a clean way
+ * to do it.
  */
-#define SNOHALO1_INTER( inter ) \
-  template <typename T> static void inline \
-  snohalo1_ ## inter(       PEL*   restrict pout, \
-                      const PEL*   restrict pin, \
+#define SNOHALO1_INTER( inter )                    \
+  template <typename T> static void inline         \
+  snohalo1_ ## inter(       PEL*   restrict pout,  \
+                      const PEL*   restrict pin,   \
                       const int             bands, \
                       const int             lskip, \
-                      const double          blur, \
-                      const double          relative_x, \
-                      const double          relative_y ) \
+                      const double          blur,  \
+                      const double          x_0,   \
+                      const double          y_0 )  \
   { \
     T* restrict out = (T *) pout; \
     \
-    const int relative_x_is_rite = ( relative_x >= 0. ); \
-    const int relative_y_is_down = ( relative_y >= 0. ); \
+    const T* restrict in = (T *) pin; \
     \
-    const int sign_of_relative_x = 2 * relative_x_is_rite - 1; \
-    const int sign_of_relative_y = 2 * relative_y_is_down - 1; \
+    const int sign_of_x_0 = 2 * ( x_0 >= 0. ) - 1; \
+    const int sign_of_y_0 = 2 * ( y_0 >= 0. ) - 1; \
     \
-    const int corner_reflection_shift = \
-      relative_x_is_rite * bands + relative_y_is_down * lskip; \
+    const int shift_forw_1_pix = sign_of_x_0 * bands; \
+    const int shift_forw_1_row = sign_of_y_0 * lskip; \
     \
-    const int shift_back_1_pix = sign_of_relative_x * bands; \
-    const int shift_back_1_row = sign_of_relative_y * lskip; \
-    \
-    const T* restrict in = ( (T *) pin ) + corner_reflection_shift; \
-    \
-    const int shift_forw_1_pix = -shift_back_1_pix; \
-    const int shift_forw_1_row = -shift_back_1_row; \
+    const int shift_back_1_pix = -shift_forw_1_pix; \
+    const int shift_back_1_row = -shift_forw_1_row; \
     \
     const int shift_back_2_pix = 2 * shift_back_1_pix; \
     const int shift_back_2_row = 2 * shift_back_1_row; \
-    \
-    const double w = ( 2 * sign_of_relative_x ) * relative_x; \
-    const double z = ( 2 * sign_of_relative_y ) * relative_y; \
-    \
     const int shift_forw_2_pix = 2 * shift_forw_1_pix; \
     const int shift_forw_2_row = 2 * shift_forw_1_row; \
     \
+    const int shift_back_3_pix = 3 * shift_back_1_pix; \
+    const int shift_back_3_row = 3 * shift_back_1_row; \
     const int shift_forw_3_pix = 3 * shift_forw_1_pix; \
     const int shift_forw_3_row = 3 * shift_forw_1_row; \
     \
-    const int zer_two_shift =                    shift_back_2_row; \
-    const int zer_thr_shift = shift_forw_1_pix + shift_back_2_row; \
+    const int cer_thr_shift =                    shift_back_3_row; \
+    const int cer_fou_shift = shift_forw_1_pix + shift_back_3_row; \
     \
-    const int uno_one_shift = shift_back_1_pix + shift_back_1_row; \
-    const int uno_two_shift =                    shift_back_1_row; \
-    const int uno_thr_shift = shift_forw_1_pix + shift_back_1_row; \
-    const int uno_fou_shift = shift_forw_2_pix + shift_back_1_row; \
+    const int uno_two_shift = shift_back_1_pix + shift_back_2_row; \
+    const int uno_thr_shift =                    shift_back_2_row; \
+    const int uno_fou_shift = shift_forw_1_pix + shift_back_2_row; \
+    const int uno_fiv_shift = shift_forw_2_pix + shift_back_2_row; \
     \
-    const double x = 1. - w; \
-    const double w_times_z = w * z; \
+    const int dos_one_shift = shift_back_2_pix + shift_back_1_row; \
+    const int dos_two_shift = shift_back_1_pix + shift_back_1_row; \
+    const int dos_thr_shift =                    shift_back_1_row; \
+    const int dos_fou_shift = shift_forw_1_pix + shift_back_1_row; \
+    const int dos_fiv_shift = shift_forw_2_pix + shift_back_1_row; \
+    const int dos_six_shift = shift_forw_3_pix + shift_back_1_row; \
     \
-    const int dos_zer_shift = shift_back_2_pix; \
-    const int dos_one_shift = shift_back_1_pix; \
-    const int dos_two_shift = 0; \
-    const int dos_thr_shift = shift_forw_1_pix; \
-    const int dos_fou_shift = shift_forw_2_pix; \
-    const int dos_fiv_shift = shift_forw_3_pix; \
+    const int tre_zer_shift = shift_back_3_pix; \
+    const int tre_one_shift = shift_back_2_pix; \
+    const int tre_two_shift = shift_back_1_pix; \
+    const int tre_thr_shift = 0;                \
+    const int tre_fou_shift = shift_forw_1_pix; \
+    const int tre_fiv_shift = shift_forw_2_pix; \
+    const int tre_six_shift = shift_forw_3_pix; \
     \
-    const int tre_zer_shift = shift_back_2_pix + shift_forw_1_row; \
-    const int tre_one_shift = shift_back_1_pix + shift_forw_1_row; \
-    const int tre_two_shift =                    shift_forw_1_row; \
-    const int tre_thr_shift = shift_forw_1_pix + shift_forw_1_row; \
-    const int tre_fou_shift = shift_forw_2_pix + shift_forw_1_row; \
-    const int tre_fiv_shift = shift_forw_3_pix + shift_forw_1_row; \
+    const int qua_zer_shift = shift_back_3_pix + shift_forw_1_row; \
+    const int qua_one_shift = shift_back_2_pix + shift_forw_1_row; \
+    const int qua_two_shift = shift_back_1_pix + shift_forw_1_row; \
+    const int qua_thr_shift =                    shift_forw_1_row; \
+    const int qua_fou_shift = shift_forw_1_pix + shift_forw_1_row; \
+    const int qua_fiv_shift = shift_forw_2_pix + shift_forw_1_row; \
+    const int qua_six_shift = shift_forw_3_pix + shift_forw_1_row; \
     \
-    const double x_times_z = x * z; \
+    const int cin_one_shift = shift_back_2_pix + shift_forw_2_row; \
+    const int cin_two_shift = shift_back_1_pix + shift_forw_2_row; \
+    const int cin_thr_shift =                    shift_forw_2_row; \
+    const int cin_fou_shift = shift_forw_1_pix + shift_forw_2_row; \
+    const int cin_fiv_shift = shift_forw_2_pix + shift_forw_2_row; \
     \
-    const int qua_one_shift = shift_back_1_pix + shift_forw_2_row; \
-    const int qua_two_shift =                    shift_forw_2_row; \
-    const int qua_thr_shift = shift_forw_1_pix + shift_forw_2_row; \
-    const int qua_fou_shift = shift_forw_2_pix + shift_forw_2_row; \
+    const int sei_two_shift = shift_back_1_pix + shift_forw_3_row; \
+    const int sei_thr_shift =                    shift_forw_3_row; \
+    const int sei_fou_shift = shift_forw_1_pix + shift_forw_3_row; \
     \
-    const int cin_two_shift =                    shift_forw_3_row; \
-    const int cin_thr_shift = shift_forw_1_pix + shift_forw_3_row; \
+    const double x = ( 2 * sign_of_x_0 ) * x_0 - .5; \
+    const double y = ( 2 * sign_of_y_0 ) * y_0 - .5; \
     \
-    const double w_times_y_over_4 = .25  * ( w - w_times_z ); \
-    const double x_times_z_over_4 = .25  * x_times_z; \
-    const double x_times_y_over_8 = .125 * ( x - x_times_z ); \
+    const int x_is_rite = ( x >= 0. ); \
+    const int y_is_down = ( y >= 0. ); \
+    const int x_is_left = !x_is_rite;  \
+    const int y_is___up = !y_is_down;  \
+    \
+    const int is_bot_rite = x_is_rite & y_is_down; \
+    const int is_bot_left = x_is_left & y_is_down; \
+    const int is_top_rite = x_is_rite & y_is___up; \
+    const int is_top_left = x_is_left & y_is___up; \
+    \
+    const int sign_of_x = 2 * x_is_rite - 1; \
+    const int sign_of_y = 2 * y_is_down - 1; \
+    \
+    const double w_1 = ( 2 * sign_of_x ) * x; \
+    const double z_1 = ( 2 * sign_of_y ) * y; \
+    const double x_1 = 1. - w_1;              \
+    \
+    const double w_1_times_z_1 = w_1 * z_1; \
+    const double x_1_times_z_1 = x_1 * z_1; \
+    \
+    const double w_1_times_y_1_over_4 = .25  * ( w_1 - w_1_times_z_1 ); \
+    const double x_1_times_z_1_over_4 = .25  * x_1_times_z_1;           \
+    const double x_1_times_y_1_over_8 = .125 * ( x_1 - x_1_times_z_1 ); \
+    \
+    const double w_1_times_y_1_over_4_plus_x_1_times_y_1_over_8 = \
+      w_1_times_y_1_over_4 + x_1_times_y_1_over_8;                \
+    const double x_1_times_z_1_over_4_plus_x_1_times_y_1_over_8 = \
+      x_1_times_z_1_over_4 + x_1_times_y_1_over_8;                \
     \
     int band = bands; \
     \
     do \
       { \
-        double dos_two; \
-        double four_times_dos_twothr; \
-        double four_times_dostre_two; \
-        double eight_times_dostre_twothr; \
+        double          uno_two, uno_thr;           \
+        double dos_one, dos_two, dos_thr, dos_fou;  \
+        double tre_one, tre_two, tre_thr, tre_fou;  \
+        double          qua_two, qua_thr;           \
         \
-        snohalo1( blur, \
-                  in[zer_two_shift], in[zer_thr_shift], \
-                  in[uno_one_shift], in[uno_two_shift], \
-                  in[uno_thr_shift], in[uno_fou_shift], \
-                  in[dos_zer_shift], in[dos_one_shift], \
-                  in[dos_two_shift], in[dos_thr_shift], \
-                  in[dos_fou_shift], in[dos_fiv_shift], \
-                  in[tre_zer_shift], in[tre_one_shift], \
-                  in[tre_two_shift], in[tre_thr_shift], \
-                  in[tre_fou_shift], in[tre_fiv_shift], \
-                  in[qua_one_shift], in[qua_two_shift], \
-                  in[qua_thr_shift], in[qua_fou_shift], \
-                  in[cin_two_shift], in[cin_thr_shift], \
-                  &dos_two, \
-                  &four_times_dos_twothr, \
-                  &four_times_dostre_two, \
-                  &eight_times_dostre_twothr ); \
+        double final_dos_two;                           \
+        double final_four_times_dos_twothr;             \
+        double final_four_times_dostre_two;             \
+        double final_partial_eight_times_dostre_twothr; \
         \
-        const T result = bilinear_ ## inter<T>( w_times_z, \
-                                                x_times_z_over_4, \
-                                                w_times_y_over_4, \
-                                                x_times_y_over_8, \
-                                                dos_two, \
-                                                four_times_dos_twothr, \
-                                                four_times_dostre_two, \
-                                                eight_times_dostre_twothr ); \
+        snohalo_step1( blur,                \
+                       in[ cer_thr_shift ], \
+                       in[ cer_fou_shift ], \
+                       in[ uno_two_shift ], \
+                       in[ uno_thr_shift ], \
+                       in[ uno_fou_shift ], \
+                       in[ uno_fiv_shift ], \
+                       in[ dos_one_shift ], \
+                       in[ dos_two_shift ], \
+                       in[ dos_thr_shift ], \
+                       in[ dos_fou_shift ], \
+                       in[ dos_fiv_shift ], \
+                       in[ dos_six_shift ], \
+                       in[ tre_zer_shift ], \
+                       in[ tre_one_shift ], \
+                       in[ tre_two_shift ], \
+                       in[ tre_thr_shift ], \
+                       in[ tre_fou_shift ], \
+                       in[ tre_fiv_shift ], \
+                       in[ tre_six_shift ], \
+                       in[ qua_zer_shift ], \
+                       in[ qua_one_shift ], \
+                       in[ qua_two_shift ], \
+                       in[ qua_thr_shift ], \
+                       in[ qua_fou_shift ], \
+                       in[ qua_fiv_shift ], \
+                       in[ qua_six_shift ], \
+                       in[ cin_one_shift ], \
+                       in[ cin_two_shift ], \
+                       in[ cin_thr_shift ], \
+                       in[ cin_fou_shift ], \
+                       in[ cin_fiv_shift ], \
+                       in[ sei_two_shift ], \
+                       in[ sei_thr_shift ], \
+                       in[ sei_fou_shift ], \
+                       &uno_two,            \
+                       &uno_thr,            \
+                       &dos_one,            \
+                       &dos_two,            \
+                       &dos_thr,            \
+                       &dos_fou,            \
+                       &tre_one,            \
+                       &tre_two,            \
+                       &tre_thr,            \
+                       &tre_fou,            \
+                       &qua_two,            \
+                       &qua_thr );          \
         \
-        in++; \
-        *out++ = result; \
+        snohalo_step2(                                          \
+          SELECT_REFLECT( uno_two, uno_thr, qua_two, qua_thr ), \
+          SELECT_REFLECT( uno_thr, uno_two, qua_thr, qua_two ), \
+          SELECT_REFLECT( dos_one, dos_fou, tre_one, tre_fou ), \
+          SELECT_REFLECT( dos_two, dos_thr, tre_two, tre_thr ), \
+          SELECT_REFLECT( dos_thr, dos_two, tre_thr, tre_two ), \
+          SELECT_REFLECT( dos_fou, dos_one, tre_fou, tre_one ), \
+          SELECT_REFLECT( tre_one, tre_fou, dos_one, dos_fou ), \
+          SELECT_REFLECT( tre_two, tre_thr, dos_two, dos_thr ), \
+          SELECT_REFLECT( tre_thr, tre_two, dos_thr, dos_two ), \
+          SELECT_REFLECT( tre_fou, tre_one, dos_fou, dos_one ), \
+          SELECT_REFLECT( qua_two, qua_thr, uno_two, uno_thr ), \
+          SELECT_REFLECT( qua_thr, qua_two, uno_thr, uno_two ), \
+          &final_dos_two,                                       \
+          &final_four_times_dos_twothr,                         \
+          &final_four_times_dostre_two,                         \
+          &final_partial_eight_times_dostre_twothr );           \
+        \
+        { \
+          const T result =                                    \
+            bilinear_ ## inter<T>(                            \
+              w_1_times_z_1,                                  \
+              x_1_times_z_1_over_4_plus_x_1_times_y_1_over_8, \
+              w_1_times_y_1_over_4_plus_x_1_times_y_1_over_8, \
+              x_1_times_y_1_over_8,                           \
+              final_dos_two,                                  \
+              final_four_times_dos_twothr,                    \
+              final_four_times_dostre_two,                    \
+              final_partial_eight_times_dostre_twothr );      \
+          \
+          *out++ = result; \
+          \
+          in++; \
+        } \
       } while (--band); \
   }
 
@@ -457,7 +962,17 @@ SNOHALO1_INTER( fptypes )
 SNOHALO1_INTER( withsign )
 SNOHALO1_INTER( nosign )
 
-/* We need C linkage for this.
+#define CALL( T, inter ) \
+  snohalo1_ ## inter<T>( out, \
+                         p, \
+                         bands, \
+                         lskip, \
+                         snohalo1->blur, \
+                         relative_x, \
+                         relative_y );
+
+/*
+ * We need C linkage:
  */
 extern "C" {
 G_DEFINE_TYPE( VipsInterpolateSnohalo1, vips_interpolate_snohalo1,
@@ -471,18 +986,11 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
                                        double                    absolute_x,
                                        double                    absolute_y )
 {
-  VipsInterpolateSnohalo1 *snohalo1 = 
+  VipsInterpolateSnohalo1 *snohalo1 =
     VIPS_INTERPOLATE_SNOHALO1( interpolate );
-  /*
-   * VIPS versions of Nicolas's pixel addressing values.
-   */
-  const int actual_bands = in->im->Bands;
-  const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
 
-  const double absolute_y_minus_half = absolute_y - .5;
-  const double absolute_x_minus_half = absolute_x - .5;
   /*
-   * floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
+   * Floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
    * transition through 0 is smooth. If it is known that absolute_x
    * and absolute_y will never be less than 0, plain cast---that is,
    * const int ix = absolute_x---should be used instead.  Actually,
@@ -494,10 +1002,8 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
    * position of the center of the convex hull of the 2x2 block of
    * closest pixels. Similarly for y. Range of values: [-.5,.5).
    */
-  const int iy = FAST_PSEUDO_FLOOR (absolute_y);
-  const double relative_y = absolute_y_minus_half - iy;
-  const int ix = FAST_PSEUDO_FLOOR (absolute_x);
-  const double relative_x = absolute_x_minus_half - ix;
+  const int ix = FAST_PSEUDO_FLOOR( absolute_x + .5 );
+  const int iy = FAST_PSEUDO_FLOOR( absolute_y + .5 );
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the
@@ -506,20 +1012,20 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
    */
   const PEL* restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
 
-  /*
-   * Double bands for complex images:
-   */
-  const int bands = vips_bandfmt_iscomplex( in->im->BandFmt ) ? 
-	  2 * actual_bands : actual_bands;
+  const double relative_x = absolute_x - ix;
+  const double relative_y = absolute_y - iy;
 
-#define CALL( T, inter ) \
-  snohalo1_ ## inter<T>( out, \
-                         p, \
-                         bands, \
-                         lskip, \
-                         snohalo1->blur, \
-                         relative_x, \
-                         relative_y );
+  /*
+   * VIPS versions of Nicolas's pixel addressing values.
+   */
+  const int actual_bands = in->im->Bands;
+  const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
+  /*
+   * Double the bands for complex images to account for the real and
+   * imaginary parts being computed independently:
+   */
+  const int bands =
+    vips_bandfmt_iscomplex( in->im->BandFmt ) ? 2 * actual_bands : actual_bands;
 
   switch( in->im->BandFmt ) {
   case IM_BANDFMT_UCHAR:
@@ -529,35 +1035,36 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
   case IM_BANDFMT_CHAR:
     CALL( signed char, withsign );
     break;
-  
+
   case IM_BANDFMT_USHORT:
     CALL( unsigned short, nosign );
     break;
-  
+
   case IM_BANDFMT_SHORT:
     CALL( signed short, withsign );
     break;
-  
+
   case IM_BANDFMT_UINT:
     CALL( unsigned int, nosign );
     break;
-  
+
   case IM_BANDFMT_INT:
     CALL( signed int, withsign );
     break;
-  
-  /* Complex images handled by doubling of bands, see above.
+
+  /*
+   * Complex images are handled by doubling of bands.
    */
   case IM_BANDFMT_FLOAT:
   case IM_BANDFMT_COMPLEX:
     CALL( float, fptypes );
     break;
-  
+
   case IM_BANDFMT_DOUBLE:
   case IM_BANDFMT_DPCOMPLEX:
     CALL( double, fptypes );
     break;
-  
+
   default:
     g_assert( 0 );
     break;
@@ -578,26 +1085,33 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
   gobject_class->get_property = vips_object_get_property;
 
   object_class->nickname = "snohalo1";
-  object_class->description = _( "Nohalo level 1 with antialiasing blur" );
+  object_class->description = _( "Nohalo level 2 with antialiasing blur" );
 
   interpolate_class->interpolate =
     vips_interpolate_snohalo1_interpolate;
-  interpolate_class->window_size = 6;
+  interpolate_class->window_size = 7;
 
-  /* Create properties.
+  /*
+   * Create properties:
    */
   pspec =
-    g_param_spec_double( "blur", 
-                         _( "Blur" ),
-                       _( "Antialiasing (diagonal straightening) blur amount" ),
-                         0., 1., 1., 
-                         (GParamFlags) G_PARAM_READWRITE );
-  g_object_class_install_property( gobject_class, 
-                                   PROP_BLUR, pspec );
-  vips_object_class_install_argument( object_class, pspec,
-        VIPS_ARGUMENT_SET_ONCE,
-        G_STRUCT_OFFSET( VipsInterpolateSnohalo1, blur ) );
+    g_param_spec_double(
+      "blur",
+      _( "Blur" ),
+      _( "Antialiasing (diagonal straightening) blur amount" ),
+      0.,
+      1.,
+      1.,
+      (GParamFlags) G_PARAM_READWRITE );
 
+  g_object_class_install_property( gobject_class,
+                                   PROP_BLUR, pspec );
+
+  vips_object_class_install_argument(
+    object_class,
+    pspec,
+    VIPS_ARGUMENT_SET_ONCE,
+    G_STRUCT_OFFSET( VipsInterpolateSnohalo1, blur ) );
 }
 
 static void
