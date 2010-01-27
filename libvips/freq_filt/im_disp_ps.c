@@ -76,11 +76,11 @@ disp_ps( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		return( -1 );
 
 	if( in->BandFmt == IM_BANDFMT_COMPLEX ) {
-		if( im_c2ps( in, t[1] ) )
+		if( im_abs( in, t[1] ) )
 			return( -1 );
 	}
 	else {
-		if( im_fwfft( in, t[0] ) || im_c2ps( t[0], t[1] ) )
+		if( im_fwfft( in, t[0] ) || im_abs( t[0], t[1] ) )
 			return( -1 );
 	}
 

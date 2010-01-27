@@ -82,38 +82,21 @@ black_gen( REGION *or, void *seq, void *a, void *b )
 int
 im_black( IMAGE *out, int x, int y, int bands )
 {	
-	int type;
-
-	/* Check parameters.
-	 */
 	if( x <= 0 || y <= 0 || bands <= 0 ) {
 		im_error( "im_black", "%s", _( "bad parameter" ) );
 		return( -1 );
 	}
 
-	/* Check descriptor.
-	 */
 	if( im_poutcheck( out ) )
 		return( -1 );
-	
-	/* Set fields.
-	 */
-	if( bands == 1 )
-		type = IM_TYPE_B_W;
-	else
-		type = IM_TYPE_MULTIBAND;
 	im_initdesc( out, 
 		x, y, bands, 
-		IM_BBITS_BYTE, IM_BANDFMT_UCHAR, IM_CODING_NONE, type,
+		IM_BBITS_BYTE, IM_BANDFMT_UCHAR, IM_CODING_NONE, 
+		bands == 1 ? IM_TYPE_B_W : IM_TYPE_MULTIBAND,
 		1.0, 1.0, 0, 0 );
-
-	/* Set hints - ANY is ok with us.
-	 */
 	if( im_demand_hint( out, IM_ANY, NULL ) )
 		return( -1 );
 	
-	/* Generate image.
-	 */
 	if( im_generate( out, NULL, black_gen, NULL, NULL, NULL ) )
 		return( -1 );
 	

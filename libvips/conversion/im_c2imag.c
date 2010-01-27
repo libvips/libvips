@@ -1,11 +1,4 @@
-/* @(#) Extract the imaginary part of a complex image. Output is float or 
- * @(#) double.
- * @(#)
- * @(#) int im_c2imag( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* im_c2imag ... get imaginary part
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -14,6 +7,9 @@
  * Modified on : 09/05/1990
  * 21/12/94 JC
  *	- im_c2amph() adapted to make im_c2real() and im_c2imag()
+ * 27/1/10
+ * 	- modernised
+ * 	- gtk-doc
  */
 
 /*
@@ -57,18 +53,15 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define loop(TYPE) \
-{\
-	TYPE *p = (TYPE *) in + 1;\
-	TYPE *q = (TYPE *) out;\
-	int x;\
+#define loop(TYPE) { \
+	TYPE *p = (TYPE *) in + 1; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
 	\
-	for( x = 0; x < n; x++ ) {\
-		double re = *p;\
-		\
-		p += 2;\
-		*q++ = re;\
-	}\
+	for( x = 0; x < n; x++ ) { \
+		q[x] = *p; \
+		p += 2; \
+	} \
 }
 
 /* c2imag buffer processor.
@@ -82,20 +75,27 @@ buffer_c2imag( void *in, void *out, int w, IMAGE *im )
 		case IM_BANDFMT_DPCOMPLEX:      loop(double); break; 
 		case IM_BANDFMT_COMPLEX:        loop(float); break;
 		default:
-			error_exit( "buffer_c2imag: internal error" );	
+			g_assert( 0 );
 	}
 }
 
+/**
+ * im_c2imag:
+ * @in: input image
+ * @out: output image
+ *
+ * Extract the imaginary part of a complex image.
+ *
+ * See also: im_c2real().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_c2imag( IMAGE *in, IMAGE *out )
 {
-	if( in->Coding != IM_CODING_NONE || 
-		!vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_c2imag", "%s", 
-			_( "input should be uncoded complex" ) );
-		return( -1 );
-	}
-        if( im_cp_desc( out, in ) )
+	if( im_check_uncoded( "im_c2imag", in ) ||
+		im_check_complex( "im_c2imag", in ) ||
+		im_cp_desc( out, in ) )
                 return( -1 );
 
 	/* Output will be float or double.
@@ -105,8 +105,6 @@ im_c2imag( IMAGE *in, IMAGE *out )
 	else 
 		out->BandFmt = IM_BANDFMT_FLOAT;
 
-        /* Do the processing.
-         */
         if( im_wrapone( in, out,
                 (im_wrapone_fn) buffer_c2imag, in, NULL ) )
                 return( -1 );

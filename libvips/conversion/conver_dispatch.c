@@ -594,25 +594,6 @@ static im_function c2amph_desc = {
 	one_in_one_out 			/* Arg list */
 };
 
-/* Call im_clip via arg vector.
- */
-static int
-clip_vec( im_object *argv )
-{
-	return( im_clip( argv[0], argv[1] ) );
-}
-
-/* Description of im_clip.
- */
-static im_function clip_desc = {
-	"im_clip", 			/* Name */
-	"convert to unsigned 8-bit integer",
-	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
-	clip_vec, 			/* Dispatch function */
-	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
-	one_in_one_out 			/* Arg list */
-};
-
 /* Call im_ri2c via arg vector.
  */
 static int
@@ -666,25 +647,6 @@ static im_function c2real_desc = {
 	"extract real part of complex image",
 	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
 	c2real_vec, 			/* Dispatch function */
-	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
-	one_in_one_out 			/* Arg list */
-};
-
-/* Call im_c2ps via arg vector.
- */
-static int
-c2ps_vec( im_object *argv )
-{
-	return( im_c2ps( argv[0], argv[1] ) );
-}
-
-/* Description of im_c2ps.
- */
-static im_function c2ps_desc = {
-	"im_c2ps", 			/* Name */
-	"find power spectrum of complex image",
-	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
-	c2ps_vec, 			/* Dispatch function */
 	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
 	one_in_one_out 			/* Arg list */
 };
@@ -1442,10 +1404,8 @@ static im_function *conv_list[] = {
 	&black_desc,
 	&c2amph_desc,
 	&c2imag_desc,
-	&c2ps_desc,
 	&c2real_desc,
 	&c2rect_desc,
-	&clip_desc,
 	&clip2fmt_desc,
 	&copy_desc,
 	&copy_file_desc,

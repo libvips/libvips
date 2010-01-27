@@ -1642,7 +1642,7 @@ transform( JoinNode *node, double *gamma )
 			im_powtra( t1, t2, 1.0 / (*gamma) ) ||
 			im_lintra( fac, t2, 0.0, t3 ) ||
 			im_powtra( t3, t4, *gamma ) ||
-			im_clip( t4, t5 ) ||
+			im_clip2fmt( t4, t5, IM_BANDFMT_UCHAR ) ||
 			im_maplut( in, out, t5 ) )
 			return( NULL );
 	}

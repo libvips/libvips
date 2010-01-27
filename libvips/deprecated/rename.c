@@ -287,3 +287,69 @@ im_isscalar( IMAGE *im )
 {
 	return( !im_iscomplex( im ) );
 }
+
+int 
+im_c2ps( IMAGE *in, IMAGE *out )
+{
+	return( im_abs( in, out ) );
+}
+
+int
+im_clip( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_UCHAR ) );
+}
+
+int
+im_clip2c( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_CHAR ) );
+}
+
+int
+im_clip2us( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_USHORT ) );
+}
+
+int
+im_clip2s( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_SHORT ) );
+}
+
+int
+im_clip2ui( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_UINT ) );
+}
+
+int
+im_clip2i( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_INT ) );
+}
+
+int
+im_clip2f( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_FLOAT ) );
+}
+
+int
+im_clip2d( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_DOUBLE ) );
+}
+
+int
+im_clip2cm( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_COMPLEX ) );
+}
+
+int
+im_clip2dcm( IMAGE *in, IMAGE *out )
+{
+	return( im_clip2fmt( in, out, IM_BANDFMT_DPCOMPLEX ) );
+}

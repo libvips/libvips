@@ -6,9 +6,8 @@ libconversion_la_SOURCES = \
 	im_c2amph.c \
 	im_c2rect.c \
 	im_c2imag.c \
-	im_c2ps.c \
 	im_c2real.c \
-	im_clip.c \
+	im_clip2fmt.c \
 	im_copy.c \
 	im_copy_file.c \
 	im_extract.c \

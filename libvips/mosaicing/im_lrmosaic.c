@@ -306,7 +306,7 @@ transform( IMAGE *out, IMAGE *im, double fac )
 
 	if( im_identity( t1, 1 ) || 
 		im_lintra( fac, t1, 0.0, t2 ) ||
-		im_clip( t2, t3 ) ||
+		im_clip2fmt( t2, t3, IM_BANDFMT_UCHAR ) ||
 		im_maplut( im, t4, t3 ) )
 		return( NULL );
 

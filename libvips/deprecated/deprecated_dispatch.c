@@ -41,6 +41,59 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* One image in, one out.
+ */
+static im_arg_desc one_in_one_out[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" )
+};
+
+/* Two images in, one out.
+ */
+static im_arg_desc two_in_one_out[] = {
+	IM_INPUT_IMAGE( "in1" ),
+	IM_INPUT_IMAGE( "in2" ),
+	IM_OUTPUT_IMAGE( "out" )
+};
+
+/* Call im_clip via arg vector.
+ */
+static int
+clip_vec( im_object *argv )
+{
+	return( im_clip( argv[0], argv[1] ) );
+}
+
+/* Description of im_clip.
+ */
+static im_function clip_desc = {
+	"im_clip", 			/* Name */
+	"convert to unsigned 8-bit integer",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	clip_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
+/* Call im_c2ps via arg vector.
+ */
+static int
+c2ps_vec( im_object *argv )
+{
+	return( im_c2ps( argv[0], argv[1] ) );
+}
+
+/* Description of im_c2ps.
+ */
+static im_function c2ps_desc = {
+	"im_c2ps", 			/* Name */
+	"find power spectrum of complex image",
+	IM_FN_PTOP | IM_FN_PIO,		/* Flags */
+	c2ps_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
 /* Args for im_lhisteq.
  */
 static im_arg_desc lhisteq_args[] = {
@@ -95,21 +148,6 @@ static im_arg_desc conv_dmask[] = {
 	IM_INPUT_IMAGE( "in" ),
 	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_DMASK( "matrix" )
-};
-
-/* One image in, one out.
- */
-static im_arg_desc one_in_one_out[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" )
-};
-
-/* Two images in, one out.
- */
-static im_arg_desc two_in_one_out[] = {
-	IM_INPUT_IMAGE( "in1" ),
-	IM_INPUT_IMAGE( "in2" ),
-	IM_OUTPUT_IMAGE( "out" )
 };
 
 /* Call im_cmulnorm via arg vector.
@@ -1183,6 +1221,8 @@ static im_function convf_desc = {
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
+	&clip_desc,
+	&c2ps_desc,
 	&resize_linear_desc,
 	&cmulnorm_desc,
 	&fav4_desc,

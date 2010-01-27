@@ -126,7 +126,7 @@ im_eye( IMAGE *image, const int xsize, const int ysize, const double factor )
 	 */
 	if( im_feye( t1, xsize, ysize, factor ) || 
 		im_lintra( 127.5, t1, 127.5, t2 ) ||
-		im_clip( t2, image ) )
+		im_clip2fmt( t2, image, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );

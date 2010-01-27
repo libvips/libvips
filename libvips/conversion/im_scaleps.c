@@ -90,7 +90,7 @@ im_scaleps( IMAGE *in, IMAGE *out )
 		im_lintra( 1.0, t[0], 1.0, t[1] ) ||
 		im_log10tra( t[1], t[2] ) ||
 		im_lintra( scale, t[2], 0.0, t[3] ) ||
-		im_clip( t[3], out ) )
+		im_clip2fmt( t[3], out, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );

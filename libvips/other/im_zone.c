@@ -121,7 +121,7 @@ im_zone( IMAGE *im, int size )
 	
 	if( im_fzone( t1, size ) || 
 		im_lintra( 127.5, t1, 127.5, t2 ) ||
-		im_clip( t2, im ) )
+		im_clip2fmt( t2, im, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );

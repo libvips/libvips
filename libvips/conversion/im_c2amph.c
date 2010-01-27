@@ -1,13 +1,4 @@
-/* @(#)  Functions which transforms the real and the imaginary parts of
- * @(#) a complex image into amplitude and phase.
- * @(#) Input image is either memory mapped or in a buffer.
- * @(#) Used to display an inverse complex Fourier transform
- * @(#)
- * @(#) int im_c2amph(in, out)
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* im_c2amph.c ... convert to polar
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -23,6 +14,9 @@
  * 9/7/02 JC
  *	- degree output, for consistency
  *	- slightly better behaviour in edge cases
+ * 27/1/10
+ * 	- modernised
+ * 	- gtk-doc
  */
 
 /*
@@ -66,45 +60,25 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define loop(TYPE) \
-{\
-	TYPE *p = (TYPE *) in;\
-	TYPE *q = (TYPE *) out;\
-	int x;\
+#define loop(TYPE) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
 	\
-	for( x = 0; x < n; x++ ) {\
-		double re = p[0];\
-		double im = p[1];\
-		double am, ph;\
+	for( x = 0; x < n; x++ ) { \
+		double re = p[0]; \
+		double im = p[1]; \
+		double am, ph; \
 		\
-		am = sqrt( re * re + im * im );\
+		am = sqrt( re * re + im * im ); \
+		ph = im_col_ab2h( re, im ); \
 		\
-		if( re == 0 ) { \
-			if( im < 0.0 ) \
-				ph = 270; \
-			else if( im == 0.0 ) \
-				ph = 0; \
-			else \
-				ph = 90; \
-		} \
-		else { \
-			double t = atan( im / re ); \
- 			\
-			if( re > 0.0 ) \
-				if( im < 0.0 ) \
-					ph = IM_DEG( t + IM_PI * 2.0 ); \
-				else \
-					ph = IM_DEG( t ); \
-			else \
-				ph = IM_DEG( t + IM_PI ); \
-		} \
- 		\
 		q[0] = am; \
 		q[1] = ph; \
  		\
 		p += 2; \
 		q += 2; \
-	}\
+	} \
 }
 
 /* c2amph buffer processor.
@@ -118,24 +92,30 @@ buffer_c2amph( void *in, void *out, int w, IMAGE *im )
 		case IM_BANDFMT_DPCOMPLEX:      loop(double); break; 
 		case IM_BANDFMT_COMPLEX:        loop(float); break;
 		default:
-			error_exit( "buffer_c2amph: internal error" );	
+			g_assert( 0 );
 	}
 }
 
+/**
+ * im_c2amph:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert a complex image from rectangular to polar coordinates. Angles are
+ * expressed in degrees.
+ *
+ * See also: im_c2rect(), im_abs().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_c2amph( IMAGE *in, IMAGE *out )
 {
-	if( in->Coding != IM_CODING_NONE || 
-		!vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_c2amph", "%s", 
-			_( "input should be uncoded complex" ) );
-		return( -1 );
-	}
-        if( im_cp_desc( out, in ) )
+	if( im_check_uncoded( "im_c2amph", in ) ||
+		im_check_complex( "im_c2amph", in ) ||
+		im_cp_desc( out, in ) )
                 return( -1 );
 
-        /* Do the processing.
-         */
         if( im_wrapone( in, out,
                 (im_wrapone_fn) buffer_c2amph, in, NULL ) )
                 return( -1 );

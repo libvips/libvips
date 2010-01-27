@@ -61,9 +61,8 @@ int im_copy_swap( IMAGE *in, IMAGE *out );
 int im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture );
 int im_copy_file( IMAGE *in, IMAGE *out );
 
-int im_clip2fmt( IMAGE *in, IMAGE *out, int ofmt );
+int im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt ofmt );
 int im_scale( IMAGE *in, IMAGE *out );
-int im_clip( IMAGE *in, IMAGE *out );
 int im_msb( IMAGE *in, IMAGE *out );
 int im_msb_band( IMAGE *in, IMAGE *out, int band );
 
@@ -72,7 +71,6 @@ int im_c2rect( IMAGE *in, IMAGE *out );
 int im_ri2c( IMAGE *real_in, IMAGE *imag_in, IMAGE *out );
 int im_c2imag( IMAGE *in, IMAGE *out );
 int im_c2real( IMAGE *in, IMAGE *out );
-int im_c2ps( IMAGE *in, IMAGE *out );
 int im_scaleps( IMAGE *in, IMAGE *out );
 
 int im_falsecolour( IMAGE *in, IMAGE *out );

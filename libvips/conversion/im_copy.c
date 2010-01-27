@@ -539,7 +539,7 @@ im__convert_saveable( IMAGE *in, im__saveable_t saveable )
 	if( in->BandFmt != IM_BANDFMT_UCHAR ) {
 		IMAGE *t = im_open_local( out, "conv:1", "p" );
 
-		if( !t || im_clip( in, t ) ) {
+		if( !t || im_clip2fmt( in, t, IM_BANDFMT_UCHAR ) ) {
 			im_close( out );
 			return( NULL );
 		}

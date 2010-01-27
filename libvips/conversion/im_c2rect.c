@@ -1,13 +1,10 @@
-/* @(#) Turn (amplitude, phase) image to (x, y) rectangular coordinates.
- * @(#)
- * @(#) int im_c2rect(in, out)
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* im_c2rect.c ... convert polar to rectangular
  *
  * 9/7/02 JC
  *	- from im_c2amph()
+ * 27/1/10
+ * 	- modernised
+ * 	- gtk-doc
  */
 
 /*
@@ -51,16 +48,15 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define loop(TYPE) \
-{\
-	TYPE *p = (TYPE *) in;\
-	TYPE *q = (TYPE *) out;\
-	int x;\
+#define loop(TYPE) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE *q = (TYPE *) out; \
+	int x; \
 	\
-	for( x = 0; x < n; x++ ) {\
-		double am = p[0];\
-		double ph = p[1];\
-		double re, im;\
+	for( x = 0; x < n; x++ ) { \
+		double am = p[0]; \
+		double ph = p[1]; \
+		double re, im; \
 		\
 		re = am * cos( IM_RAD( ph ) ); \
 		im = am * sin( IM_RAD( ph ) ); \
@@ -70,7 +66,7 @@
  		\
 		p += 2; \
 		q += 2; \
-	}\
+	} \
 }
 
 /* c2rect buffer processor.
@@ -84,24 +80,31 @@ buffer_c2rect( void *in, void *out, int w, IMAGE *im )
 		case IM_BANDFMT_DPCOMPLEX:      loop(double); break; 
 		case IM_BANDFMT_COMPLEX:        loop(float); break;
 		default:
-			error_exit( "buffer_c2rect: internal error" );	
+			g_assert( 0 );
 	}
 }
 
+
+/**
+ * im_c2rect:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert a complex image from polar to rectangular coordinates. Angles are
+ * expressed in degrees.
+ *
+ * See also: im_c2amph().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_c2rect( IMAGE *in, IMAGE *out )
 {
-	if( in->Coding != IM_CODING_NONE || 
-		!vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_c2rect", "%s", 
-			_( "input should be uncoded complex" ) );
-		return( -1 );
-	}
-        if( im_cp_desc( out, in ) )
+	if( im_check_uncoded( "im_c2rect", in ) ||
+		im_check_complex( "im_c2rect", in ) ||
+		im_cp_desc( out, in ) )
                 return( -1 );
 
-        /* Do the processing.
-         */
         if( im_wrapone( in, out,
                 (im_wrapone_fn) buffer_c2rect, in, NULL ) )
                 return( -1 );

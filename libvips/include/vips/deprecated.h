@@ -264,6 +264,10 @@ gboolean im_isfloat( IMAGE *im );
 gboolean im_isscalar( IMAGE *im );
 gboolean im_iscomplex( IMAGE *im );
 
+int im_c2ps( IMAGE *in, IMAGE *out );
+
+int im_clip( IMAGE *in, IMAGE *out );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

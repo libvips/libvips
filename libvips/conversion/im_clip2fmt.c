@@ -1,11 +1,4 @@
-/* @(#) Clip any down to 0-255. Call im_copy if the image is already uchar. 
- * @(#)
- * @(#) int 
- * @(#) im_clip( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* clip.c ... convert BandFmt, clipping values
  *
  * Author: Nicos Dessipris
  * Written on: 07/03/1991
@@ -47,6 +40,9 @@
  * 	- use new evalstart/evalend system
  * 26/8/08
  * 	- oops, complex->complex conversion was broken
+ * 27/1/10
+ * 	- modernised
+ * 	- gtk-doc
  */
 
 /*
@@ -83,7 +79,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 #include <limits.h>
 
 #include <vips/vips.h>
@@ -204,96 +199,96 @@ clip_start( IMAGE *out, void *a, void *b )
 /* Clip int types to an int type.
  */
 #define IM_CLIP_INT_INT( ITYPE, OTYPE, IM_CLIP ) { \
-	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
-	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
+	ITYPE *p = (ITYPE *) in; \
+	OTYPE *q = (OTYPE *) out; \
 	\
-	for( x = 0; x < sz; x++ ) {\
-		int t = p[x];\
+	for( x = 0; x < sz; x++ ) { \
+		int t = p[x]; \
 		\
-		IM_CLIP( t, seq );\
+		IM_CLIP( t, seq ); \
 		\
-		q[x] = t;\
-	}\
+		q[x] = t; \
+	} \
 }
 
 /* Clip float types to an int type.
  */
 #define IM_CLIP_FLOAT_INT( ITYPE, OTYPE, IM_CLIP ) { \
-	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
-	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
+	ITYPE *p = (ITYPE *) in; \
+	OTYPE *q = (OTYPE *) out; \
 	\
-	for( x = 0; x < sz; x++ ) {\
-		ITYPE v = floor( p[x] );\
+	for( x = 0; x < sz; x++ ) { \
+		ITYPE v = floor( p[x] ); \
 		\
 		IM_CLIP( v, seq ); \
 		\
-		q[x] = v;\
-	}\
+		q[x] = v; \
+	} \
 }
 
 /* Clip complex types to an int type. Just take the real part.
  */
 #define IM_CLIP_COMPLEX_INT( ITYPE, OTYPE, IM_CLIP ) { \
-	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
-	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
+	ITYPE *p = (ITYPE *) in; \
+	OTYPE *q = (OTYPE *) out; \
 	\
-	for( x = 0; x < sz; x++ ) {\
-		ITYPE v = floor( p[0] );\
-		p += 2;\
+	for( x = 0; x < sz; x++ ) { \
+		ITYPE v = floor( p[0] ); \
+		p += 2; \
 		\
 		IM_CLIP( v, seq ); \
 		\
-		q[x] = v;\
-	}\
+		q[x] = v; \
+	} \
 }
 
 /* Clip non-complex types to a float type.
  */
 #define IM_CLIP_REAL_FLOAT( ITYPE, OTYPE ) { \
-	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
-	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
+	ITYPE *p = (ITYPE *) in; \
+	OTYPE *q = (OTYPE *) out; \
 	\
-	for( x = 0; x < sz; x++ )\
-		q[x] = p[x];\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = p[x]; \
 }
 
 /* Clip complex types to a float type ... just take real.
  */
 #define IM_CLIP_COMPLEX_FLOAT( ITYPE, OTYPE ) { \
-	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
-	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
+	ITYPE *p = (ITYPE *) in; \
+	OTYPE *q = (OTYPE *) out; \
 	\
-	for( x = 0; x < sz; x++ ) {\
-		q[x] = p[0];\
-		p += 2;\
-	}\
+	for( x = 0; x < sz; x++ ) { \
+		q[x] = p[0]; \
+		p += 2; \
+	} \
 }
 
 /* Clip any non-complex to a complex type ... set imaginary to zero.
  */
 #define IM_CLIP_REAL_COMPLEX( ITYPE, OTYPE ) { \
-	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
-	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
+	ITYPE *p = (ITYPE *) in; \
+	OTYPE *q = (OTYPE *) out; \
 	\
-	for( x = 0; x < sz; x++ ) {\
-		q[0] = p[x];\
-		q[1] = 0.0;\
-		q += 2;\
-	}\
+	for( x = 0; x < sz; x++ ) { \
+		q[0] = p[x]; \
+		q[1] = 0.0; \
+		q += 2; \
+	} \
 }
 
 /* Clip any complex to a complex type.
  */
 #define IM_CLIP_COMPLEX_COMPLEX( ITYPE, OTYPE ) { \
-	ITYPE *p = (ITYPE *) IM_REGION_ADDR( ir, le, y );\
-	OTYPE *q = (OTYPE *) IM_REGION_ADDR( or, le, y );\
+	ITYPE *p = (ITYPE *) in; \
+	OTYPE *q = (OTYPE *) out; \
 	\
-	for( x = 0; x < sz; x++ ) {\
-		q[0] = p[0];\
-		q[1] = p[1];\
-		p += 2;\
-		q += 2;\
-	}\
+	for( x = 0; x < sz; x++ ) { \
+		q[0] = p[0]; \
+		q[1] = p[1]; \
+		p += 2; \
+		q += 2; \
+	} \
 }
 
 #define BAND_SWITCH_INNER( ITYPE, INT, FLOAT, COMPLEX ) { \
@@ -329,7 +324,7 @@ clip_start( IMAGE *out, void *a, void *b )
 		COMPLEX( ITYPE, double ); \
 		break; \
 	default: \
-		assert( 0 ); \
+		g_assert( 0 ); \
 	} \
 }
 
@@ -352,6 +347,9 @@ clip_gen( REGION *or, void *vseq, void *a, void *b )
 		return( -1 );
 
 	for( y = to; y < bo; y++ ) {
+		PEL *in = (PEL *) IM_REGION_ADDR( ir, le, y ); 
+		PEL *out = (PEL *) IM_REGION_ADDR( or, le, y ); 
+
 		switch( clip->in->BandFmt ) { 
 		case IM_BANDFMT_UCHAR: 
 			BAND_SWITCH_INNER( unsigned char,
@@ -414,28 +412,34 @@ clip_gen( REGION *or, void *vseq, void *a, void *b )
 				IM_CLIP_COMPLEX_COMPLEX );
 			break; 
 		default: 
-			assert( 0 ); 
+			g_assert( 0 ); 
 		} 
 	}
 
 	return( 0 );
 }
 
-/* Clip to any format.
+/**
+ * im_clip2fmt:
+ * @in: input image
+ * @out: output image
+ * @fmt: format to convert to
+ *
+ * Convert @in to @fmt format. You can convert between any pair of formats.
+ * Floats are truncated (not rounded). Out of range values are clipped.
+ *
+ * See also: im_scale(), im_ri2c().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
-im_clip2fmt( IMAGE *in, IMAGE *out, int ofmt ) 
+im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt ofmt ) 
 {
 	Clip *clip;
 
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
+	if( im_check_uncoded( "im_clip2fmt", in ) ||
+		im_piocheck( in, out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_clip2fmt", "%s", _( "in must be uncoded" ) );
-		return( -1 );
-	}
 	if( ofmt < 0 || ofmt > IM_BANDFMT_DPCOMPLEX ) {
 		im_error( "im_clip2fmt", "%s", _( "ofmt out of range" ) );
 		return( -1 );
@@ -448,9 +452,6 @@ im_clip2fmt( IMAGE *in, IMAGE *out, int ofmt )
 
 	if( !(clip = clip_new( in, out, ofmt )) )
 		return( -1 );
-
-	/* Prepare output header.
-	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->BandFmt = ofmt;
@@ -460,66 +461,4 @@ im_clip2fmt( IMAGE *in, IMAGE *out, int ofmt )
 		return( -1 );
 
 	return( 0 );
-}
-
-/* Legacy clippers.
- */
-int
-im_clip( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_UCHAR ) );
-}
-
-int
-im_clip2c( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_CHAR ) );
-}
-
-int
-im_clip2us( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_USHORT ) );
-}
-
-int
-im_clip2s( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_SHORT ) );
-}
-
-int
-im_clip2ui( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_UINT ) );
-}
-
-int
-im_clip2i( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_INT ) );
-}
-
-int
-im_clip2f( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_FLOAT ) );
-}
-
-int
-im_clip2d( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_DOUBLE ) );
-}
-
-int
-im_clip2cm( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_COMPLEX ) );
-}
-
-int
-im_clip2dcm( IMAGE *in, IMAGE *out )
-{
-	return( im_clip2fmt( in, out, IM_BANDFMT_DPCOMPLEX ) );
 }

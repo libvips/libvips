@@ -91,7 +91,7 @@ im_scale( IMAGE *in, IMAGE *out )
 	/* Transform!
 	 */
 	if( im_lintra( scale, in, offset, t ) ||
-		im_clip( t, out ) )
+		im_clip2fmt( t, out, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );

@@ -139,7 +139,7 @@ im_grey( IMAGE *image, const int xsize, const int ysize )
 	 */
 	if( im_fgrey( t1, xsize, ysize ) || 
 		im_lintra( 255.0, t1, 0.0, t2 ) ||
-		im_clip( t2, image ) )
+		im_clip2fmt( t2, image, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );
