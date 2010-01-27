@@ -890,20 +890,6 @@ im__copy_input( REGION *or, REGION *ir, Rect *area, Rect *reg )
 	return( 0 );
 }
 
-/* Black out a region. 
- */
-void
-im__black_region( REGION *reg )
-{
-        PEL *q = (PEL *) IM_REGION_ADDR( reg, reg->valid.left, reg->valid.top );
-        int wd = IM_REGION_SIZEOF_LINE( reg );
-        int ls = IM_REGION_LSKIP( reg );
-        int y;
- 
-        for( y = 0; y < reg->valid.height; y++, q += ls )
-                memset( (char *) q, 0, wd );
-}
-
 /* Generate function for merge. This is shared between im_lrmerge() and
  * im_tbmerge().
  */
@@ -946,7 +932,7 @@ im__merge_gen( REGION *or, void *seq, void *a, void *b )
 		im_rect_intersectrect( r, &ovlap->sarea, &sreg );
 		im_rect_intersectrect( r, &ovlap->overlap, &oreg );
 
-		im__black_region( or );
+		im_region_black( or );
 		if( !im_rect_isempty( &rreg ) ) 
 			if( im__copy_input( or, 
 				inf->rir, &ovlap->rarea, &rreg ) )

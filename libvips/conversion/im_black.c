@@ -61,7 +61,7 @@
 static int
 black_gen( REGION *or, void *seq, void *a, void *b )
 {
-	im__black_region( or );
+	im_region_black( or );
 
 	return( 0 );
 }

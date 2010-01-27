@@ -18,6 +18,8 @@
  * 	- added IM_CODING_RAD support
  * 5/11/09
  * 	- gtkdoc
+ * 27/1/10
+ * 	- use im_region_paint()
  */
 
 /*
@@ -80,27 +82,6 @@ typedef struct _Embed {
 	 */
 	Rect border[8];
 } Embed;
-
-/* Paint 'value' into an area of a region. 0/255 for value usually.
- */
-static void
-embed_paint_rect( REGION *or, Rect *r, int value )
-{
-	Rect ovl;
-
-	im_rect_intersectrect( r, &or->valid, &ovl );
-	if( !im_rect_isempty( &ovl ) ) {
-		PEL *q = (PEL *) IM_REGION_ADDR( or, ovl.left, ovl.top );
-		int wd = ovl.width * IM_IMAGE_SIZEOF_PEL( or->im );
-		int ls = IM_REGION_LSKIP( or );
-		int y;
-
-		for( y = 0; y < ovl.height; y++ ) {
-			memset( (char *) q, value, wd );
-			q += ls;
-		}
-	}
-}
 
 /* r is the bit we are trying to paint, guaranteed to be entirely within
  * border area i. Set out to be the edge of the image we need to paint the
@@ -257,7 +238,7 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 		/* Paint the borders a solid value.
 		 */
 		for( i = 0; i < 8; i++ )
-			embed_paint_rect( or, &embed->border[i], 
+			im_region_paint( or, &embed->border[i], 
 				embed->flag == 0 ? 0 : 255 );
 		break;
 

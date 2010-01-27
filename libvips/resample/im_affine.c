@@ -245,7 +245,7 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 	/* Outside input image? All black.
 	 */
 	if( im_rect_isempty( &clipped ) ) {
-		im__black_region( or );
+		im_region_black( or );
 		return( 0 );
 	}
 

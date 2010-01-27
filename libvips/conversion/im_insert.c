@@ -123,20 +123,6 @@ just_one( REGION *or, REGION *ir, int x, int y )
 	return( 0 );
 }
 
-/* Black out a region.
- */
-static void
-black_region( REGION *reg )
-{
-	PEL *q = (PEL *) IM_REGION_ADDR( reg, reg->valid.left, reg->valid.top );
-	int wd = IM_REGION_SIZEOF_LINE( reg );
-	int ls = IM_REGION_LSKIP( reg );
-	int y;
-
-	for( y = 0; y < reg->valid.height; y++, q += ls )
-		memset( (char *) q, 0, wd );
-}
-
 /* Paste in parts of ir that fall within or --- ir is an input REGION for an 
  * image positioned at pos within or.
  */
@@ -199,7 +185,7 @@ insert_gen( REGION *or, void *seq, void *a, void *b )
 		/* Could be clever --- but just black the whole thing for
 		 * simplicity.
 		 */
-		black_region( or );
+		im_region_black( or );
 
 	/* Paste from main.
 	 */

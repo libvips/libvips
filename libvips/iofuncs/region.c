@@ -754,22 +754,71 @@ im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a )
 	return( 0 );
 }
 
-/* Handy for debug.
+/**
+ * im_region_print:
+ * @reg: region to operate upon
+ *
+ * Print out interesting fields from @reg. Handy for debug.
  */
 void
-im_region_print( REGION *region )
+im_region_print( REGION *reg )
 {
-	printf( "REGION: %p, ", region );
-	printf( "im = %p, ", region->im );
-	printf( "valid.left = %d, ", region->valid.left );
-	printf( "valid.top = %d, ", region->valid.top );
-	printf( "valid.width = %d, ", region->valid.width );
-	printf( "valid.height = %d, ", region->valid.height );
-	printf( "type = %d, ", region->type );
-	printf( "data = %p, ", region->data );
-	printf( "bpl = %d, ", region->bpl );
-	printf( "seq = %p, ", region->seq );
-	printf( "thread = %p, ", region->thread );
-	printf( "window = %p, ", region->window );
-	printf( "buffer = %p\n", region->buffer );
+	printf( "REGION: %p, ", reg );
+	printf( "im = %p, ", reg->im );
+	printf( "valid.left = %d, ", reg->valid.left );
+	printf( "valid.top = %d, ", reg->valid.top );
+	printf( "valid.width = %d, ", reg->valid.width );
+	printf( "valid.height = %d, ", reg->valid.height );
+	printf( "type = %d, ", reg->type );
+	printf( "data = %p, ", reg->data );
+	printf( "bpl = %d, ", reg->bpl );
+	printf( "seq = %p, ", reg->seq );
+	printf( "thread = %p, ", reg->thread );
+	printf( "window = %p, ", reg->window );
+	printf( "buffer = %p\n", reg->buffer );
+}
+
+/**
+ * im_region_paint:
+ * @reg: region to operate upon
+ * @r: area to paint
+ * @value: value to paint
+ *
+ * Paints @value into @reg covering rectangle @r. @value is passed to
+ * memset(), so it usually needs to be 0 or 255. @r is clipped against
+ * @reg->valid.
+ *
+ * See also: im_region_black().
+ */
+void
+im_region_paint( REGION *reg, Rect *r, int value )
+{
+	Rect ovl;
+
+	im_rect_intersectrect( r, &reg->valid, &ovl );
+	if( !im_rect_isempty( &ovl ) ) {
+		PEL *q = (PEL *) IM_REGION_ADDR( reg, ovl.left, ovl.top );
+		int wd = ovl.width * IM_IMAGE_SIZEOF_PEL( reg->im );
+		int ls = IM_REGION_LSKIP( reg );
+		int y;
+
+		for( y = 0; y < ovl.height; y++ ) {
+			memset( (char *) q, value, wd );
+			q += ls;
+		}
+	}
+}
+
+/**
+ * im_region_black:
+ * @reg: region to operate upon
+ *
+ * Paints 0 into the valid part of @reg.
+ *
+ * See also: im_region_paint().
+ */
+void
+im_region_black( REGION *reg )
+{
+	im_region_paint( reg, &reg->valid, 0 );
 }
