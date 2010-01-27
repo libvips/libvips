@@ -2,10 +2,9 @@
  *
  * Snohalo = "Smooth Nohalo" = Nohalo with custom antialiasing blur.
  *
- * Tweaks by N. Robidoux and J. Cupitt 01/04-29/05/09
- *
- * Major changes by N. Robidoux based on additional code by
- * N. Robidoux, Adam Turcotte and Eric Daoust 26/01/10
+ * When blur = 0. (minimum value), Snohalo level 1.5 gives the same
+ * results as Nohalo level 2. At the maximum reasonable blur value
+ * (1.), very strong antialiasing takes place.
  */
 
 /*
@@ -36,12 +35,13 @@
  */
 
 /*
- * 2009-2010 (c) Nicolas Robidoux
+ * 2009-2010 (c) Nicolas Robidoux, Adam Turcotte, John Cupitt, Eric
+ * Daoust.
  *
  * N. Robidoux thanks Minglun Gong, Ralf Meyer, Geert Jordaens and
  * Øyvind Kolås for useful comments and code.
  *
- * N. Robidoux's research on Nohalo funded in part by an NSERC
+ * N. Robidoux's early research on Nohalo funded in part by an NSERC
  * (National Science and Engineering Research Council of Canada)
  * Discovery Grant.
  *
@@ -109,7 +109,7 @@ typedef struct _VipsInterpolateSnohalo1Class {
  * areas, since a, which is a pixel difference, will often be 0, in
  * which case both forward branches are likely:
  *
- * ( (a_times_b)>=0.f ? 1.f : 0.f ) * ( (a_times_a)<=(a_times_b) ? (a) : (b) )
+ * ( (a_times_b)>=0 ? 1 : 0 ) * ( (a_times_a)<=(a_times_b) ? (a) : (b) )
  *
  * For uncompressed natural images in high bit depth (images for which
  * the slopes a and b are unlikely to be equal to zero or be equal to
@@ -119,15 +119,21 @@ typedef struct _VipsInterpolateSnohalo1Class {
  *
  * instead. With this second version, the forward branch of the second
  * conditional move is taken when |b|>|a| and when a*b<0. However, the
- * "else" branch is taken when a=0 (or when a=b), which is why the
- * above version is not recommended for images with regions with
- * constant pixel values (or regions with pixel values which vary
- * bilinearly, as may be the case with cheap demosaicing).
+ * "else" branch is taken when a=0 (or when a=b), which is why this
+ * second version is not recommended for images with large regions
+ * with constant pixel values (or even, actually, regions with nearby
+ * pixel values which vary bilinearly, which may arise from dirt-cheap
+ * demosaicing or computer graphics operations).
  *
- * NOTE: Both of the above are better than FAST_MINMOD (found in
- * templates.h), but MINMOD uses different parameters and consequently
- * is not a direct substitute. The other methods should be modified so
- * they use the above new version.
+ * Both of the above use a multiplication instead of a nested
+ * "if-then-else" because gcc does not always rewrite the latter using
+ * conditional moves.
+ *
+ * Implementation note: Both of the above are better than FAST_MINMOD
+ * (currently found in templates.h and used by all the other Nohalo
+ * methods). Unfortunately, MINMOD uses different parameters and
+ * consequently is not a direct substitute. The other Nohalo methods
+ * should be modified so they use the above new minmod implementation.
  */
 #define MINMOD(a,b,a_times_a,a_times_b) \
   ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
