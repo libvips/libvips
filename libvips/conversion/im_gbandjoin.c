@@ -57,6 +57,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -89,7 +90,7 @@ join_new( IMAGE *out, IMAGE **in, int nim )
 	 */
 	if( im_open_local_array( out, join->in, nim, "im_gbandjoin", "p" ) ||
 		im__formatalike_vec( in, join->in, nim ) )
-		return( -1 );
+		return( NULL );
 
 	for( i = 0; i < nim; i++ ) 
 		join->is[i] = IM_IMAGE_SIZEOF_PEL( join->in[i] );
@@ -211,7 +212,7 @@ im_gbandjoin( IMAGE **in, IMAGE *out, int nim )
                 return( -1 ); 
 	out->Bands = 0;
 	for( i = 0; i < nim; i++ )
-		out->Bands += in[i]->Bands;
+		out->Bands += join->in[i]->Bands;
 	if( im_demand_hint_array( out, IM_THINSTRIP, join->in ) )
 		return( -1 );
 
