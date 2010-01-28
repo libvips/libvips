@@ -1123,5 +1123,5 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
 static void
 vips_interpolate_snohalo1_init( VipsInterpolateSnohalo1 *snohalo1 )
 {
-	snohalo1->blur = 1.0;
+	snohalo1->blur = 0.3333333;
 }
