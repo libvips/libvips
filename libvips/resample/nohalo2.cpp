@@ -986,9 +986,6 @@ vips_interpolate_nohalo2_interpolate( VipsInterpolate* restrict interpolate,
                                       double                    absolute_x,
                                       double                    absolute_y )
 {
-  VipsInterpolateNohalo2 *nohalo2 =
-    VIPS_INTERPOLATE_NOHALO2( interpolate );
-
   /*
    * Floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
    * transition through 0 is smooth. If it is known that absolute_x
@@ -1076,10 +1073,7 @@ vips_interpolate_nohalo2_class_init( VipsInterpolateNohalo2Class *klass )
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
   VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
-  VipsInterpolateClass *interpolate_class =
-    VIPS_INTERPOLATE_CLASS( klass );
-
-  GParamSpec *pspec;
+  VipsInterpolateClass *interpolate_class = VIPS_INTERPOLATE_CLASS( klass );
 
   gobject_class->set_property = vips_object_set_property;
   gobject_class->get_property = vips_object_get_property;
@@ -1087,8 +1081,7 @@ vips_interpolate_nohalo2_class_init( VipsInterpolateNohalo2Class *klass )
   object_class->nickname = "nohalo2";
   object_class->description = _( "Nohalo level 2" );
 
-  interpolate_class->interpolate =
-    vips_interpolate_nohalo2_interpolate;
+  interpolate_class->interpolate = vips_interpolate_nohalo2_interpolate;
   interpolate_class->window_size = 6;
 }
 
