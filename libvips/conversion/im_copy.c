@@ -131,8 +131,6 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
 		return( -1 );
 	}
 
-	/* Prepare output header.
-	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Type = type;
