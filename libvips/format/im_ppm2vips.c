@@ -246,8 +246,6 @@ read_mmap( FILE *fp, const char *filename, IMAGE *out )
 {
 	const int header_offset = ftell( fp );
 	IMAGE *t[2];
-	im_arch_type arch = im_amiMSBfirst() ?
-		IM_ARCH_NATIVE : IM_ARCH_BYTE_SWAPPED;
 
 	if( im_open_local_array( out, t, 2, "im_ppm2vips", "p" ) ||
 		im_raw2vips( filename, t[0], 
@@ -255,7 +253,7 @@ read_mmap( FILE *fp, const char *filename, IMAGE *out )
 			IM_IMAGE_SIZEOF_PEL( out ), header_offset ) ||
 		im_copy_morph( t[0], t[1],
 			out->Bands, out->BandFmt, out->Coding ) ||
-		im_copy_from( t[1], out, arch ) )
+		im_copy_native( t[1], out, TRUE ) ) 
 		return( -1 );
 
 	return( 0 );

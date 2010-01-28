@@ -1186,26 +1186,6 @@ im__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 	return( 0 );
 }
 
-/* Check whether arch corresponds to native byte order.
- */
-gboolean
-im_isnative( im_arch_type arch )
-{
-	switch( arch ) {
-	case IM_ARCH_NATIVE: 		
-		return( TRUE );
-	case IM_ARCH_BYTE_SWAPPED: 	
-		return( FALSE );
-	case IM_ARCH_LSB_FIRST: 	
-		return( !im_amiMSBfirst() );
-	case IM_ARCH_MSB_FIRST: 	
-		return( im_amiMSBfirst() );
-
-	default:
-		g_assert( 0 );
-	}  
-}
-
 /* Read a few bytes from the start of a file. For sniffing file types.
  */
 int

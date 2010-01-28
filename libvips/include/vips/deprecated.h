@@ -268,6 +268,18 @@ int im_c2ps( IMAGE *in, IMAGE *out );
 
 int im_clip( IMAGE *in, IMAGE *out );
 
+/* Copy and swap types.
+ */
+typedef enum {
+	IM_ARCH_NATIVE,
+	IM_ARCH_BYTE_SWAPPED,
+	IM_ARCH_LSB_FIRST,
+	IM_ARCH_MSB_FIRST
+} im_arch_type;
+
+gboolean im_isnative( im_arch_type arch );
+int im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

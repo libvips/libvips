@@ -37,28 +37,17 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Copy and swap types.
- */
-typedef enum {
-	IM_ARCH_NATIVE,
-	IM_ARCH_BYTE_SWAPPED,
-	IM_ARCH_LSB_FIRST,
-	IM_ARCH_MSB_FIRST
-} im_arch_type;
-
-gboolean im_isnative( im_arch_type arch );
-
 DOUBLEMASK *im_vips2mask( IMAGE *in, const char *out );
 int im_mask2vips( DOUBLEMASK *in, IMAGE *out );
 
+int im_copy( IMAGE *in, IMAGE *out );
 int im_copy_set( IMAGE *in, IMAGE *out, 
-	int type, float xres, float yres, int x, int y );
+	VipsType type, float xres, float yres, int xoffset, int yoffset );
 int im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *meta );
 int im_copy_morph( IMAGE *in, IMAGE *out, 
-	int Bands, int BandFmt, int Coding );
-int im_copy( IMAGE *in, IMAGE *out );
+	int bands, VipsBandFmt bandfmt, VipsCoding coding );
 int im_copy_swap( IMAGE *in, IMAGE *out );
-int im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture );
+int im_copy_native( IMAGE *in, IMAGE *out, gboolean is_msb_first );
 int im_copy_file( IMAGE *in, IMAGE *out );
 
 int im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt ofmt );

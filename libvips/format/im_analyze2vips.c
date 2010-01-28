@@ -559,8 +559,6 @@ im_analyze2vips( const char *filename, IMAGE *out )
 	int width, height;
 	int bands;
 	int fmt;
-	im_arch_type arch = im_amiMSBfirst() ? 
-		IM_ARCH_NATIVE : IM_ARCH_BYTE_SWAPPED;
 
 	generate_filenames( filename, header, image );
 	if( !(d = read_header( header )) ) 
@@ -575,7 +573,7 @@ im_analyze2vips( const char *filename, IMAGE *out )
 		im_raw2vips( image, t[0], width, height,
 			bands * im_bits_of_fmt( fmt ) / 8, 0 ) || 
 		im_copy_morph( t[0], t[1], bands, fmt, IM_CODING_NONE ) ||
-		im_copy_from( t[1], out, arch ) ) {
+		im_copy_native( t[1], out, TRUE ) ) {
 		im_free( d );
 		return( -1 );
 	}

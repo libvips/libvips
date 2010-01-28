@@ -353,3 +353,48 @@ im_clip2dcm( IMAGE *in, IMAGE *out )
 {
 	return( im_clip2fmt( in, out, IM_BANDFMT_DPCOMPLEX ) );
 }
+
+int
+im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture )
+{
+	switch( architecture ) {
+	case IM_ARCH_NATIVE:
+		return( im_copy( in, out ) );
+
+	case IM_ARCH_BYTE_SWAPPED:
+		return( im_copy_swap( in, out ) );
+
+	case IM_ARCH_LSB_FIRST:
+		return( im_amiMSBfirst() ? 
+			im_copy_swap( in, out ) : im_copy( in, out ) );
+
+	case IM_ARCH_MSB_FIRST:
+		return( im_amiMSBfirst() ? 
+			im_copy( in, out ) : im_copy_swap( in, out ) );
+
+	default:
+		im_error( "im_copy_from", 
+			_( "bad architecture: %d" ), architecture );
+		return( -1 );
+	}
+}
+
+/* Check whether arch corresponds to native byte order.
+ */
+gboolean
+im_isnative( im_arch_type arch )
+{
+	switch( arch ) {
+	case IM_ARCH_NATIVE: 		
+		return( TRUE );
+	case IM_ARCH_BYTE_SWAPPED: 	
+		return( FALSE );
+	case IM_ARCH_LSB_FIRST: 	
+		return( !im_amiMSBfirst() );
+	case IM_ARCH_MSB_FIRST: 	
+		return( im_amiMSBfirst() );
+
+	default:
+		g_assert( 0 );
+	}  
+}

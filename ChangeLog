@@ -27,6 +27,7 @@
 - added vips_bandfmt_iscomplex() and friends, im_iscomplex() and friends 
   deprecated
 - im_bandjoin()/im_gbandjoin() work with images of varying formats
+- added im_copy_native(), deprecated im_copy_from() and friends
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

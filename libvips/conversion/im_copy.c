@@ -1,24 +1,4 @@
-/* @(#) Copy an image. 
- * @(#)
- * @(#) int 
- * @(#) im_copy( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Copy and set informational header fields
- * @(#)
- * @(#) int im_copy_set( in, out, type, xres, yres, xoff, yoff )
- * @(#) IMAGE *in, *out;
- * @(#) int type;
- * @(#) float xres, yres;
- * @(#) int xoff, yoff;
- * @(#)
- * @(#) copy, swapping byte order
- * @(#)
- * @(#) int
- * @(#) im_copy_swap( IMAGE *in, IMAGE *out )
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* Copy an image. 
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
@@ -56,6 +36,11 @@
  * 	- added im__saveable_t ... so we can have CMYK JPEG write
  * 24/3/09
  * 	- added IM_CODING_RAD support
+ * 28/1/10
+ * 	- gtk-doc
+ * 	- cleanups
+ * 	- removed im_copy_from() and associated stuff
+ * 	- added im_copy_native()
  */
 
 /*
@@ -125,29 +110,23 @@ copy_gen( REGION *or, void *seq, void *a, void *b )
  */
 static int 
 im_copy_set_all( IMAGE *in, IMAGE *out, 
-	int Type, float Xres, float Yres, int Xoffset, int Yoffset,
-	int Bands, int BandFmt, int Coding )
+	VipsType type, float xres, float yres, int xoffset, int yoffset,
+	int bands, VipsBandFmt bandfmt, VipsCoding coding )
 {	
 	/* Check args.
 	 */
-        if( im_piocheck( in, out ) )
+        if( im_check_known_coded( "im_copy", in ) ||
+		im_piocheck( in, out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE && 
-		in->Coding != IM_CODING_LABQ &&
-		in->Coding != IM_CODING_RAD ) {
+	if( coding != IM_CODING_NONE && 
+		coding != IM_CODING_LABQ &&
+		coding != IM_CODING_RAD ) {
 		im_error( "im_copy", "%s", 
-			_( "in must be NONE, LABQ or RAD" ) );
+			_( "coding must be NONE, LABQ or RAD" ) );
 		return( -1 );
 	}
-	if( Coding != IM_CODING_NONE && 
-		Coding != IM_CODING_LABQ &&
-		Coding != IM_CODING_RAD ) {
-		im_error( "im_copy", "%s", 
-			_( "Coding must be NONE, LABQ or RAD" ) );
-		return( -1 );
-	}
-	if( BandFmt < 0 || BandFmt > IM_BANDFMT_DPCOMPLEX ) {
-		im_error( "im_copy", _( "BandFmt must be in range [0,%d]" ),
+	if( bandfmt < 0 || bandfmt > IM_BANDFMT_DPCOMPLEX ) {
+		im_error( "im_copy", _( "bandfmt must be in range [0,%d]" ),
 			IM_BANDFMT_DPCOMPLEX );
 		return( -1 );
 	}
@@ -156,14 +135,14 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	out->Type = Type;
-	out->Xres = Xres;
-	out->Yres = Yres;
-	out->Xoffset = Xoffset;
-	out->Yoffset = Yoffset;
-	out->Bands = Bands;
-	out->BandFmt = BandFmt;
-	out->Coding = Coding;
+	out->Type = type;
+	out->Xres = xres;
+	out->Yres = yres;
+	out->Xoffset = xoffset;
+	out->Yoffset = yoffset;
+	out->Bands = bands;
+	out->BandFmt = bandfmt;
+	out->Coding = coding;
 
 	/* Sanity check: we (may) have changed bytes-per-pixel since we've
 	 * changed Bands and BandFmt ... bad!
@@ -173,31 +152,27 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
 		return( -1 );
 	}
 
-	/* Set demand hints.
-	 */
-	if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) )
-		return( -1 );
-
 	/* Generate!
 	 */
-	if( im_generate( out, im_start_one, copy_gen, im_stop_one, in, NULL ) )
+	if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) ||
+		im_generate( out, 
+			im_start_one, copy_gen, im_stop_one, in, NULL ) )
 		return( -1 );
 
 	return( 0 );
 }
 
-/* Copy image, changing informational header fields.
- */
-int 
-im_copy_set( IMAGE *in, IMAGE *out, 
-	int Type, float Xres, float Yres, int Xoffset, int Yoffset )
-{
-	return( im_copy_set_all( in, out, 
-		Type, Xres, Yres, 0, 0,
-		in->Bands, in->BandFmt, in->Coding ) );
-}
-
-/* Copy image, changing nothing.
+/**
+ * im_copy:
+ * @in: input image
+ * @out: output image
+ *
+ * Copy an image. VIPS copies images by copying pointers, so this operation is
+ * fast, even for very large images.
+ *
+ * See also: im_copy(), im_copy_set(), im_copy_morph().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_copy( IMAGE *in, IMAGE *out )
@@ -206,17 +181,73 @@ im_copy( IMAGE *in, IMAGE *out )
 		in->Type, in->Xres, in->Yres, 0, 0 ) );
 }
 
-/* Copy image, changing fields which affect pixel layout.
+/**
+ * im_copy_set:
+ * @in: input image
+ * @out: output image
+ * @type: new VipsType to set
+ * @xres: new Xres to set
+ * @yres: new Yres to set
+ * @xoffset: new Xoffset to set
+ * @yoffset: new Yoffset to set
+ *
+ * Copy an image, changing informational header fields on the way.
+ *
+ * See also: im_copy().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_copy_set( IMAGE *in, IMAGE *out, 
+	VipsType type, float xres, float yres, int xoffset, int yoffset )
+{
+	return( im_copy_set_all( in, out, 
+		type, xres, yres, 0, 0,
+		in->Bands, in->BandFmt, in->Coding ) );
+}
+
+/**
+ * im_copy_morph:
+ * @in: input image
+ * @out: output image
+ * @bands: new number of bands
+ * @bandfmt: new band format
+ * @coding: new coding
+ *
+ * Copy an image, changing header fields which alter pixel addressing. The
+ * pixel data itself is unchanged, this operation just changes the header
+ * fields. 
+ *
+ * If you change the header fields such that the sizeof() a pixel changes,
+ * you'll get an error.
+ *
+ * See also: im_copy().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_copy_morph( IMAGE *in, IMAGE *out, 
-	int Bands, int BandFmt, int Coding )
+	int bands, VipsBandFmt bandfmt, VipsCoding coding )
 {
 	return( im_copy_set_all( in, out, 
 		in->Type, in->Xres, in->Yres, 0, 0,
-		Bands, BandFmt, Coding ) );
+		bands, bandfmt, coding ) );
 }
 
+/**
+ * im_copy_set_meta:
+ * @in: input image
+ * @out: output image
+ * @field: metadata field to set
+ * @value: value to set for the field
+ *
+ * Copy an image, changing a metadata field. You can use this to, for example,
+ * update the ICC profile attached to an image.
+ *
+ * See also: im_copy().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value )
 {
@@ -277,18 +308,26 @@ im_copy_swap8_gen( PEL *in, PEL *out, int width, IMAGE *im )
         }
 }
 
-/* Copy, swapping byte order between little and big endian.
+/**
+ * im_copy_swap:
+ * @in: input image
+ * @out: output image
+ * @field: metadata field to set
+ * @value: value to set for the field
+ *
+ * Copy an image, swapping byte order between little and big endian. This
+ * really does change image pixels and does not just alter the header.
+ *
+ * See also: im_copy(), im_amiMSBfirst(), im_isMSBfirst().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_copy_swap( IMAGE *in, IMAGE *out )
 {
-        if( im_piocheck( in, out ) )
-                return( -1 );
-        if( in->Coding != IM_CODING_NONE ) {
-                im_error( "im_copy_swap", "%s", _( "in must be uncoded" ) );
-                return( -1 );
-        }
-        if( im_cp_desc( out, in ) )
+        if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_copy_swap", in ) ||
+		im_cp_desc( out, in ) )
                 return( -1 );
 
 	switch( in->BandFmt ) {
@@ -329,29 +368,26 @@ im_copy_swap( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
+/**
+ * im_copy_native:
+ * @in: input image
+ * @out: output image
+ * @is_msb_first: %TRUE if @in is in most-significant first form
+ *
+ * Copy an image to native order, that is, the order for the executing
+ * program.
+ *
+ * See also: im_copy_swap(), im_amiMSBfirst().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
-im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture )
+im_copy_native( IMAGE *in, IMAGE *out, gboolean is_msb_first )
 {
-	switch( architecture ) {
-	case IM_ARCH_NATIVE:
-		return( im_copy( in, out ) );
-
-	case IM_ARCH_BYTE_SWAPPED:
+	if( is_msb_first != im_amiMSBfirst() )
 		return( im_copy_swap( in, out ) );
-
-	case IM_ARCH_LSB_FIRST:
-		return( im_amiMSBfirst() ? 
-			im_copy_swap( in, out ) : im_copy( in, out ) );
-
-	case IM_ARCH_MSB_FIRST:
-		return( im_amiMSBfirst() ? 
-			im_copy( in, out ) : im_copy_swap( in, out ) );
-
-	default:
-		im_error( "im_copy_from", 
-			_( "bad architecture: %d" ), architecture );
-		return( -1 );
-	}
+	else
+		return( im_copy( in, out ) );
 }
 
 /* Convert to a saveable format. im__saveable_t gives the general type of image

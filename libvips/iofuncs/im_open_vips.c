@@ -1226,47 +1226,29 @@ im_open_vips( const char *filename )
 		}
 	}
 
-	/* Not in native format?
+	/* Not in native format? And needs swapping?
 	 */
-	if( im_isMSBfirst( im ) != im_amiMSBfirst() ) {
-		/* Does it need swapping? 
-		 */
-		switch( im->Coding ) {
-		case IM_CODING_LABQ:
-		case IM_CODING_RAD:
-			break;
+	if( im_isMSBfirst( im ) != im_amiMSBfirst() &&
+		im->Coding == IM_CODING_NONE &&
+		im->BandFmt != IM_BANDFMT_CHAR &&
+		im->BandFmt != IM_BANDFMT_UCHAR ) {
+		IMAGE *im2;
 
-		case IM_CODING_NONE:
-			if( im->BandFmt != IM_BANDFMT_CHAR &&
-				im->BandFmt != IM_BANDFMT_UCHAR ) {
-				IMAGE *im2;
-
-				/* Needs swapping :( make a little pipeline up 
-				 * to do this for us.
-				 */
-				if( !(im2 = im_open( filename, "p" )) ) {
-					im_close( im );
-					return( NULL );
-				}
-				if( im_add_close_callback( im2, 
-					(im_callback_fn)im_close, im, NULL ) ) {
-					im_close( im );
-					im_close( im2 );
-					return( NULL );
-				}
-				if( im_copy_swap( im, im2 ) ) {
-					im_close( im2 );
-					return( NULL );
-				}
-				im = im2;
-			}
-			break;
-
-		default:
+		if( !(im2 = im_open( filename, "p" )) ) {
 			im_close( im );
-			im_error( "im_open", "%s", _( "unknown coding type" ) );
 			return( NULL );
 		}
+		if( im_add_close_callback( im2, 
+			(im_callback_fn) im_close, im, NULL ) ) {
+			im_close( im );
+			im_close( im2 );
+			return( NULL );
+		}
+		if( im_copy_swap( im, im2 ) ) {
+			im_close( im2 );
+			return( NULL );
+		}
+		im = im2;
 	}
 
 	return( im );
