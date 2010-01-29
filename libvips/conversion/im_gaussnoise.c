@@ -1,15 +1,4 @@
-/* @(#)  Creates a Gaussian noisy float image with mean of 0 and variance of 1
- * @(#)  by averaging 12 random numbers
- * @(#)  Creates one band float image
- * @(#)  page 78 PIETGEN 1989 n = 12
- * @(#)   Usage
- * @(#) 
- * @(#) int im_gaussnoise(image, xsize, ysize, mean, sigma)
- * @(#) IMAGE *image;
- * @(#) int xsize, ysize;
- * @(#) double mean, sigma;
- * @(#)
- * @(#)  Returns 0 on success and -1 on error
+/* im_gaussnoise
  *
  * Copyright 1990, N. Dessipris.
  *
@@ -22,10 +11,13 @@
  *	- declaration for drand48() added
  *	- partialised, adapting im_black()
  * 23/10/98 JC
- *	- drand48() chaged to random() for poartability
+ *	- drand48() chaged to random() for portability
  * 21/10/02 JC
  *	- tries rand() if random() is not available
  *	- uses RAND_MAX, d'oh
+ * 29/1/10
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -111,34 +103,38 @@ gnoise_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Make a one band float image of gaussian noise.
+/**
+ * im_gaussnoise:
+ * @out: output #IMAGE
+ * @x: output width
+ * @y: output height
+ * @mean: average value in output
+ * @sigma: standard deviation in output
+ *
+ * Make a one band float image of gaussian noise with the specified
+ * distribution. The noise distribution is created by averaging 12 random 
+ * numbers with the appropriate weights.
+ *
+ * See also: im_make_xy(), im_text(), im_black().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma )
 {	
 	GnoiseInfo *gin;
 
-	/* Check parameters.
-	 */
-	if( x < 0 || y < 0 ) {
+	if( x <= 0 || y <= 0 ) {
 		im_error( "im_gaussnoise", "%s", _( "bad parameter" ) );
 		return( -1 );
 	}
 
-	/* Check descriptor.
-	 */
 	if( im_poutcheck( out ) )
 		return( -1 );
-	
-	/* Set fields.
-	 */
 	im_initdesc( out, 
 		x, y, 1, 
 		IM_BBITS_FLOAT, IM_BANDFMT_FLOAT, IM_CODING_NONE, IM_TYPE_B_W,
 		1.0, 1.0, 0, 0 );
-
-	/* Set hints - ANY is ok with us.
-	 */
 	if( im_demand_hint( out, IM_ANY, NULL ) )
 		return( -1 );
 	
@@ -149,8 +145,6 @@ im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma )
 	gin->mean = mean;
 	gin->sigma = sigma;
 
-	/* Generate image.
-	 */
 	if( im_generate( out, NULL, gnoise_gen, NULL, gin, NULL ) )
 		return( -1 );
 	

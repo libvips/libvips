@@ -75,7 +75,7 @@ black_gen( REGION *or, void *seq, void *a, void *b )
  *
  * Make a black unsigned char image of a specified size.
  *
- * See also: im_make_xy(), im_text().
+ * See also: im_make_xy(), im_text(), im_gaussnoise().
  *
  * Returns: 0 on success, -1 on error
  */
