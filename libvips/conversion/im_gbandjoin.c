@@ -193,12 +193,12 @@ im_gbandjoin( IMAGE **in, IMAGE *out, int nim )
 	/* Check our args. 
 	 */
 	if( im_poutcheck( out ) ||
-		im_check_known_coded( "im_gbandjoin", in[0] ) )
+		im_check_coding_known( "im_gbandjoin", in[0] ) )
 		return( -1 );
 	for( i = 0; i < nim; i++ ) 
 		if( im_pincheck( in[i] ) ||
-			im_check_same_size( "im_gbandjoin", in[i], in[0] ) ||
-			im_check_same_coding( "im_gbandjoin", in[i], in[0] ) )
+			im_check_size_same( "im_gbandjoin", in[i], in[0] ) ||
+			im_check_coding_same( "im_gbandjoin", in[i], in[0] ) )
 			return( -1 );
 
 	/* Build a data area.

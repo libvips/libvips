@@ -248,15 +248,14 @@ static im_arg_desc extract_args[] = {
 static int
 extract_vec( im_object *argv )
 {
-	IMAGE_BOX box;
+	int left = *((int *) argv[2]);
+	int top = *((int *) argv[3]);
+	int width = *((int *) argv[4]);
+	int height = *((int *) argv[5]);
+	int band = *((int *) argv[6]);
 
-	box.xstart = *((int *) argv[2]);
-	box.ystart = *((int *) argv[3]);
-	box.xsize = *((int *) argv[4]);
-	box.ysize = *((int *) argv[5]);
-	box.chsel = *((int *) argv[6]);
-
-	return( im_extract( argv[0], argv[1], &box ) );
+	return( im_extract_areabands( argv[0], argv[1], 
+		left, top, width, height, band, 1 ) );
 }
 
 /* Description of im_extract.

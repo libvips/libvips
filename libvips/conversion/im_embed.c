@@ -444,7 +444,7 @@ int
 im_embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 {
 	if( im_piocheck( in, out ) ||
-		im_check_known_coded( "im_embed", in ) )
+		im_check_coding_known( "im_embed", in ) )
 		return( -1 );
 	if( flag < 0 || flag > 4 ) {
 		im_error( "im_embed", "%s", _( "unknown flag" ) );

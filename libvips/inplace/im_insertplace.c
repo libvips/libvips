@@ -87,10 +87,10 @@ im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 	 */
 	if( im_rwcheck( main ) || 
 		im_incheck( sub ) ||
-		im_check_known_coded( "im_insertplace", main ) ||
-		im_check_known_coded( "im_insertplace", sub ) ||
-		im_check_same_format( "im_insertplace", main, sub ) ||
-		im_check_same_bands( "im_insertplace", main, sub ) )
+		im_check_coding_known( "im_insertplace", main ) ||
+		im_check_coding_known( "im_insertplace", sub ) ||
+		im_check_format_same( "im_insertplace", main, sub ) ||
+		im_check_bands_same( "im_insertplace", main, sub ) )
 		return( -1 );
 
 	/* Make rects for main and sub and clip.

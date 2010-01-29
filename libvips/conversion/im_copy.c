@@ -115,7 +115,7 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
 {	
 	/* Check args.
 	 */
-        if( im_check_known_coded( "im_copy", in ) ||
+        if( im_check_coding_known( "im_copy", in ) ||
 		im_piocheck( in, out ) )
 		return( -1 );
 	if( coding != IM_CODING_NONE && 

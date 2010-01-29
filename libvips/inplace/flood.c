@@ -458,7 +458,7 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	Flood *flood;
 
 	if( im_rwcheck( im ) ||
-		im_check_known_coded( "im_flood", im ) )
+		im_check_coding_known( "im_flood", im ) )
 		return( -1 );
 	if( !(flood = flood_build( im, im, x, y, ink, dout )) )
 		return( -1 );
@@ -506,7 +506,7 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  	int j;
 
 	if( im_rwcheck( im ) ||
-		im_check_known_coded( "im_flood", im ) )
+		im_check_coding_known( "im_flood", im ) )
 		return( -1 );
 	if( !(flood = flood_build( im, im, x, y, ink, dout )) )
 		return( -1 );
@@ -566,11 +566,11 @@ im_flood_other( IMAGE *test, IMAGE *mark, int x, int y, int serial, Rect *dout )
 
 	if( im_incheck( test ) ||
 		im_rwcheck( mark ) ||
-		im_check_known_coded( "im_flood_other", test ) ||
+		im_check_coding_known( "im_flood_other", test ) ||
 		im_check_uncoded( "im_flood_other", mark ) ||
 		im_check_mono( "im_flood_other", mark ) ||
 		im_check_format( "im_flood_other", mark, IM_BANDFMT_INT ) ||
-		im_check_same_size( "im_flood_other", test, mark ) )
+		im_check_size_same( "im_flood_other", test, mark ) )
 		return( -1 );
 
 	/* Have we done this point already?

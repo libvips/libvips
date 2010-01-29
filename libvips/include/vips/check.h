@@ -45,19 +45,19 @@ int im_pincheck( IMAGE *im );
 int im_poutcheck( IMAGE *im );
 
 int im_check_uncoded( const char *domain, IMAGE *im );
-int im_check_known_coded( const char *domain, IMAGE *im );
+int im_check_coding_known( const char *domain, IMAGE *im );
+int im_check_coding_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_mono( const char *domain, IMAGE *im );
 int im_check_bands( const char *domain, IMAGE *im, int bands );
 int im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_bands_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_int( const char *domain, IMAGE *im );
 int im_check_noncomplex( const char *domain, IMAGE *im );
 int im_check_complex( const char *domain, IMAGE *im );
 int im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt );
 int im_check_u8or16( const char *domain, IMAGE *im );
-int im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_same_coding( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_format_same( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_size_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_vector( const char *domain, int n, IMAGE *im );
 
 gboolean vips_bandfmt_isint( VipsBandFmt fmt );

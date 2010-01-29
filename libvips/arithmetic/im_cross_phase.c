@@ -141,9 +141,9 @@ int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out ){
   if( im_pincheck( a ) || im_pincheck( b ) || im_poutcheck( out ))
     return -1;
 
-  if( im_check_same_size( FUNCTION_NAME, a, b ) ||
-    im_check_same_bands( FUNCTION_NAME, a, b ) ||
-    im_check_same_format( FUNCTION_NAME, a, b ) ||
+  if( im_check_size_same( FUNCTION_NAME, a, b ) ||
+    im_check_bands_same( FUNCTION_NAME, a, b ) ||
+    im_check_format_same( FUNCTION_NAME, a, b ) ||
     im_check_uncoded( FUNCTION_NAME, a ) ||
     im_check_uncoded( FUNCTION_NAME, b ) ||
     im_check_complex( FUNCTION_NAME, a ) ||

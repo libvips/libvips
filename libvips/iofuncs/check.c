@@ -562,7 +562,7 @@ im_check_uncoded( const char *domain, IMAGE *im )
 }
 
 /**
- * im_check_known_coded:
+ * im_check_coding_known:
  * @domain: the originating domain for the error message
  * @im: image to check
  *
@@ -575,7 +575,7 @@ im_check_uncoded( const char *domain, IMAGE *im )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-im_check_known_coded( const char *domain, IMAGE *im )
+im_check_coding_known( const char *domain, IMAGE *im )
 {
 	/* These all have codings that extract/ifthenelse/etc can ignore.
 	 */
@@ -792,7 +792,7 @@ im_check_u8or16( const char *domain, IMAGE *im )
 }
 
 /**
- * im_check_same_size:
+ * im_check_size_same:
  * @domain: the originating domain for the error message
  * @im1: first image to check
  * @im2: second image to check
@@ -806,7 +806,7 @@ im_check_u8or16( const char *domain, IMAGE *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 )
+im_check_size_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Xsize != im2->Xsize || im1->Ysize != im2->Ysize ) {
 		im_error( domain, "%s", _( "images must match in size" ) );
@@ -817,7 +817,7 @@ im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 /**
- * im_check_same_bands:
+ * im_check_bands_same:
  * @domain: the originating domain for the error message
  * @im1: first image to check
  * @im2: second image to check
@@ -831,7 +831,7 @@ im_check_same_size( const char *domain, IMAGE *im1, IMAGE *im2 )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
+im_check_bands_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Bands != im2->Bands ) {
 		im_error( domain, "%s", 
@@ -843,7 +843,7 @@ im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 /**
- * im_check_same_format:
+ * im_check_format_same:
  * @domain: the originating domain for the error message
  * @im1: first image to check
  * @im2: second image to check
@@ -857,7 +857,7 @@ im_check_same_bands( const char *domain, IMAGE *im1, IMAGE *im2 )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 )
+im_check_format_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->BandFmt != im2->BandFmt ) {
 		im_error( domain, "%s", 
@@ -869,7 +869,7 @@ im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 /**
- * im_check_same_coding:
+ * im_check_coding_same:
  * @domain: the originating domain for the error message
  * @im1: first image to check
  * @im2: second image to check
@@ -883,7 +883,7 @@ im_check_same_format( const char *domain, IMAGE *im1, IMAGE *im2 )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-im_check_same_coding( const char *domain, IMAGE *im1, IMAGE *im2 )
+im_check_coding_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Coding != im2->Coding ) {
 		im_error( domain, "%s", 
@@ -895,14 +895,13 @@ im_check_same_coding( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 /**
- * im_check_same_vector:
+ * im_check_vector:
  * @domain: the originating domain for the error message
- * @im1: first image to check
- * @im2: second image to check
+ * @n: number of elements in vector
+ * @im: image to check against
  *
- * Check that the images have the same format.
- * If not, set an error message
- * and return non-zero.
+ * Operations with a vector constant need a 1-element vector, or a vector with
+ * the same number of elements as there are bands in the image.
  *
  * See also: im_error().
  *

@@ -58,7 +58,7 @@ im__colour_difference( const char *domain,
 		im_check_uncoded( domain, in2 ) ||
 		im_check_bands( domain, in1, 3 ) ||
 		im_check_bands( domain, in2, 3 ) ||
-		im_check_same_size( domain, in1, in2 ) ||
+		im_check_size_same( domain, in1, in2 ) ||
 		im_open_local_array( out, t, 2, domain, "p" ) ||
 		im_clip2fmt( in1, t[0], IM_BANDFMT_FLOAT ) ||
 		im_clip2fmt( in2, t[1], IM_BANDFMT_FLOAT ) )

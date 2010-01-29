@@ -315,7 +315,7 @@ im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out )
 		im_check_uncoded( "im_hist_indexed", index ) ||
 		im_check_uncoded( "im_hist_indexed", value ) ||
 		im_check_noncomplex( "im_hist_indexed", value ) ||
-		im_check_same_size( "im_hist_indexed", index, value ) ||
+		im_check_size_same( "im_hist_indexed", index, value ) ||
 		im_check_u8or16( "im_hist_indexed", index ) ||
 		im_check_mono( "im_hist_indexed", index ) )
 		return( -1 );

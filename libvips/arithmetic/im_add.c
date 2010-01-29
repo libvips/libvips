@@ -276,7 +276,7 @@ im__arith_binary( const char *domain,
 	if( im_piocheck( in1, out ) || 
 		im_pincheck( in2 ) ||
 		im_check_bands_1orn( domain, in1, in2 ) ||
-		im_check_same_size( domain, in1, in2 ) ||
+		im_check_size_same( domain, in1, in2 ) ||
 		im_check_uncoded( domain, in1 ) ||
 		im_check_uncoded( domain, in2 ) )
 		return( -1 );

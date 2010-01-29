@@ -272,11 +272,11 @@ im_flood_other_old( IMAGE *mask, IMAGE *test, int x, int y, int serial )
 		im_incheck( test ) )
 		return( -1 );
 
-	if( im_check_known_coded( "im_flood_other", test ) ||
+	if( im_check_coding_known( "im_flood_other", test ) ||
 		im_check_uncoded( "im_flood_other", mask ) ||
 		im_check_mono( "im_flood_other", mask ) ||
 		im_check_format( "im_flood_other", mask, IM_BANDFMT_INT ) ||
-		im_check_same_size( "im_flood_other", test, mask ) )
+		im_check_size_same( "im_flood_other", test, mask ) )
 		return( -1 );
 
 	/* Make sure the mask has zero at the start position. If it does, we

@@ -1,13 +1,4 @@
-/* @(#) Function to extract a portion of a Vasari format picture.
- * @(#) Function im_extract() assumes that the imin image
- * @(#) is either memory mapped or in the buffer pimin->data.
- * @(#)
- * @(#) int im_extract(pimin, pimout, pbox)
- * @(#) IMAGE *pimin, *pimout;
- * @(#) IMAGE_BOX *pbox;
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* im_extract
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -41,6 +32,9 @@
  *	- added im_extract_bands(), remove many bands from image
  * 24/3/09
  * 	- added IM_CODING_RAD support
+ * 29/1/10
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -82,19 +76,25 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Extract one or more bands ... get number of output bands from
- * or->im->Bands.
+typedef struct _Extract { 
+	IMAGE *in;
+	IMAGE *out;
+	int left;
+	int top;
+	int width;
+	int height;
+	int band;
+	int nbands;
+} Extract;
+
+/* Extract one or more bands. This needs pixel copying.
  */
 static int
 extract_band( REGION *or, void *seq, void *a, void *b )
 {
 	REGION *ir = (REGION *) seq;
-	IMAGE_BOX *box = (IMAGE_BOX *) b;
+	Extract *extract = (Extract *) b;
 	Rect *r = &or->valid;
-	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
 	int es = IM_IMAGE_SIZEOF_ELEMENT( ir->im );	
 	int ipel = IM_IMAGE_SIZEOF_PEL( ir->im );
 	int opel = IM_IMAGE_SIZEOF_PEL( or->im );
@@ -105,17 +105,19 @@ extract_band( REGION *or, void *seq, void *a, void *b )
 	/* Ask for input we need.
 	 */
 	iarea = or->valid;
-	iarea.left += box->xstart;
-	iarea.top += box->ystart;
+	iarea.left += extract->left;
+	iarea.top += extract->top;
 	if( im_prepare( ir, &iarea ) )
 		return( -1 );
 
-	for( y = to; y < bo; y++ ) {
-		p = IM_REGION_ADDR( ir, le + box->xstart, y + box->ystart ) +
-			box->chsel * es;
-		q = IM_REGION_ADDR( or, le, y );
+	for( y = 0; y < r->height; y++ ) {
+		p = IM_REGION_ADDR( ir, 
+			extract->left + r->left, 
+			extract->top + r->top + y ) + 
+			extract->band * es;
+		q = IM_REGION_ADDR( or, r->left, r->top + y );
 
-		for( x = le; x < ri; x++ ) {
+		for( x = 0; x < r->width; x++ ) {
 			for( z = 0; z < opel; z++ )
 				q[z] = p[z];
 
@@ -133,15 +135,15 @@ static int
 extract_area( REGION *or, void *seq, void *a, void *b )
 {
 	REGION *ir = (REGION *) seq;
-	IMAGE_BOX *box = (IMAGE_BOX *) b;
+	Extract *extract = (Extract *) b;
 	Rect iarea;
 
 	/* Ask for input we need. Translate from demand in or's space to
 	 * demand in ir's space.
 	 */
 	iarea = or->valid;
-	iarea.left += box->xstart;
-	iarea.top += box->ystart;
+	iarea.left += extract->left;
+	iarea.top += extract->top;
 	if( im_prepare( ir, &iarea ) )
 		return( -1 );
 
@@ -153,15 +155,32 @@ extract_area( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Extract an area and bands from an image. 
+/**
+ * im_extract_areabands:
+ * @in: input image
+ * @out: output image
+ * @left: left edge of rectangle
+ * @top: top edge rectangle
+ * @width: width of rectangle
+ * @height: height of rectangle
+ * @band: first band to extract
+ * @nbands: number of bands to extract
+ *
+ * Extract an area and a number of bands from an image. Bands number from
+ * zero. Extracting outside @in will trigger an error.
+ *
+ * See also: im_embed(), im_insert(), im_extract_area(), im_extract_bands().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_extract_areabands( IMAGE *in, IMAGE *out, 
 	int left, int top, int width, int height, int band, int nbands )
 {      
-	IMAGE_BOX *box;
+	Extract *extract;
 
-	if( im_piocheck( in, out ) )
+	if( im_piocheck( in, out ) ||
+		im_check_coding_known( "im_extract_areabands", in ) )  
 		return( -1 );
         if( band < 0 || nbands < 1 || band + nbands > in->Bands ) {
                 im_error( "im_extract_areabands", 
@@ -176,22 +195,6 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
 			"%s", _( "bad extract area" ) );
 		return( -1 );
 	}
-        if( in->Coding != IM_CODING_NONE ) {
-		if( in->Coding != IM_CODING_LABQ &&
-			in->Coding != IM_CODING_RAD ) {
-			im_error( "im_extract_areabands", 
-				"%s", _( "unknown coding" ) );
-			return( -1 );
-		}
-
-		/* We only do area extract for coding == labq.
-		 */
-		if( band != 0 || nbands != in->Bands ) {
-			im_error( "im_extract_areabands", "%s", 
-				_( "only extract areas from LABQ and RAD" ) );
-			return( -1 );
-		}
-        }
 
         /* Set up the output header.  
          */
@@ -202,25 +205,28 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
         out->Ysize = height;
         if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) )
                 return( -1 );
-        if( !(box = IM_NEW( out, IMAGE_BOX )) )
+        if( !(extract = IM_NEW( out, Extract )) )
                 return( -1 );
-        box->xstart = left;
-        box->ystart = top;
-        box->xsize = width;
-        box->ysize = height;
-        box->chsel = band;
+        extract->in = in;
+        extract->out = out;
+        extract->left = left;
+        extract->top = top;
+        extract->width = width;
+        extract->height = height;
+        extract->band = band;
+        extract->nbands = nbands;
  
  	/* Extracting all bands is a special case ... we can do it with
 	 * pointers.
 	 */
 	if( band == 0 && nbands == in->Bands ) {
 		if( im_generate( out, 
-			im_start_one, extract_area, im_stop_one, in, box ) )
+			im_start_one, extract_area, im_stop_one, in, extract ) )
 			return( -1 );
 	}
 	else {
 		if( im_generate( out, 
-			im_start_one, extract_band, im_stop_one, in, box ) )
+			im_start_one, extract_band, im_stop_one, in, extract ) )
 			return( -1 );
  	}
  
@@ -230,7 +236,21 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
         return( 0 );
 }
 
-/* Convenience functions.
+/**
+ * im_extract_area:
+ * @in: input image
+ * @out: output image
+ * @left: left edge of rectangle
+ * @top: top edge rectangle
+ * @width: width of rectangle
+ * @height: height of rectangle
+ *
+ * Extract an area from an image. 
+ * Extracting outside @in will trigger an error.
+ *
+ * See also: im_embed(), im_insert(), im_extract_bands().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_extract_area( IMAGE *in, IMAGE *out, 
@@ -240,15 +260,44 @@ im_extract_area( IMAGE *in, IMAGE *out,
 		left, top, width, height, 0, in->Bands ) );
 }
 
+/**
+ * im_extract_bands:
+ * @in: input image
+ * @out: output image
+ * @band: first band to extract
+ * @nbands: number of bands to extract
+ *
+ * Extract a number of bands from an image. 
+ * Extracting outside @in will trigger an error.
+ *
+ * See also: im_bandjoin().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
-im_extract_bands( IMAGE *in, IMAGE *out, int chsel, int nbands )
+im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands )
 {
 	return( im_extract_areabands( in, out, 
-		0, 0, in->Xsize, in->Ysize, chsel, nbands ) );
+		0, 0, in->Xsize, in->Ysize, band, nbands ) );
 }
 
+
+/**
+ * im_extract_band:
+ * @in: input image
+ * @out: output image
+ * @band: first band to extract
+ * @nbands: number of bands to extract
+ *
+ * Extract a single band from an image. 
+ * Extracting outside @in will trigger an error.
+ *
+ * See also: im_bandjoin().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
-im_extract_band( IMAGE *in, IMAGE *out, int chsel )
+im_extract_band( IMAGE *in, IMAGE *out, int band )
 {
-	return( im_extract_bands( in, out, chsel, 1 ) ); 
+	return( im_extract_bands( in, out, band, 1 ) ); 
 }
