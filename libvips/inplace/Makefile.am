@@ -2,8 +2,6 @@ noinst_LTLIBRARIES = libinplace.la
 
 libinplace_la_SOURCES = \
 	im_circle.c \
-	im_flood.c \
-	im_flood_other.c \
 	flood.c \
 	im_insertplace.c \
 	im_paintrect.c \

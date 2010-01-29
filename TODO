@@ -24,12 +24,6 @@
 
   rather awkward to do atm with the way check.c is structured
 
-- we sill have the old flood-fill code there, move to deprecated
-
-  should we have new API? we could have a single "im_floodfill" that allows
-  two inputs and has an "equals" param and junk im_flood(), im_flood_blob()
-  and im_flood_other()
-
 - what does G_UNLIKELY() do? can we use it?
 
 - rename vipsCC in SWIG as pyvips?

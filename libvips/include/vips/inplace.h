@@ -62,14 +62,6 @@ int im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out,
 int im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
 
-int im_flood_old( IMAGE *im, int x, int y, PEL *ink, Rect *dout );
-int im_flood_blob_old( IMAGE *im, int x, int y, PEL *ink, Rect *dout );
-int im_flood_other_old( IMAGE *mask, IMAGE *test, int x, int y, int serial );
-int im_flood_copy_old( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
-int im_flood_blob_copy_old( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
-int im_flood_other_copy_old( IMAGE *mask, IMAGE *test, IMAGE *out, 
-	int x, int y, int serial );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
