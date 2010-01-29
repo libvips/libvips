@@ -1,11 +1,5 @@
-/* @(#) Flips image left-right.
- * @(#) 
- * @(#) Usage:
- * @(#) 
- * @(#) int im_fliphor( IMAGE *in, IMAGE *out )
- * @(#) 
- * @(#) Returns 0 on sucess and -1 on error
- * @(#) 
+/* im_fliphor
+ *
  * Copyright: 1990, N. Dessipris
  * Written on: 28/10/91
  * Updated on:
@@ -18,6 +12,9 @@
  *	- sets Xoffset / Yoffset
  * 24/3/09
  * 	- added IM_CODING_RAD support
+ * 29/1/10
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -117,36 +114,26 @@ flip_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Copy image.
+/**
+ * im_fliphor:
+ * @in: input image
+ * @out: output image
+ *
+ * Flips an image left-right.
+ *
+ * See also: im_flipver(), im_rot90().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_fliphor( IMAGE *in, IMAGE *out )
 {	
-	/* Check args.
-	 */
-        if( im_piocheck( in, out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE && 
-		in->Coding != IM_CODING_LABQ &&
-		in->Coding != IM_CODING_RAD ) {
-		im_error( "im_fliphor", "%s", 
-			_( "Coding must be NONE, LABQ or RAD" ) );
-		return( -1 );
-	}
-
-	/* Prepare output header.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-
-	/* Set demand hints.
-	 */
-	if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) )
-		return( -1 );
-
-	/* Generate!
-	 */
-	if( im_generate( out, im_start_one, flip_gen, im_stop_one, in, NULL ) )
+        if( im_piocheck( in, out ) ||
+		im_check_coding_known( "im_fliphor", in ) ||
+		im_cp_desc( out, in ) ||
+		im_demand_hint( out, IM_THINSTRIP, in, NULL ) ||
+		im_generate( out, 
+			im_start_one, flip_gen, im_stop_one, in, NULL ) )
 		return( -1 );
 
 	out->Xoffset = in->Xsize;
