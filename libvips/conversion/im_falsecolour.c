@@ -1,17 +1,4 @@
-/* @(#) Maps a one band uchar in image to a 3 band uchar out image. The
- * @(#) colours are chosen to give an image of uniform luminance, but 
- * @(#) with a wide range of hues.
- * @(#)
- * @(#) Input should be either memory mapped or in buffer, out should have
- * @(#) been set by a call to im_openout() or im_setbuf().
- * @(#)
- * @(#) Usage: 
- * @(#) 
- * @(#) 	int 
- * @(#) 	im_falsecolour( IMAGE *in, IMAGE *out )
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_falsecolour
  *
  * 23/6/95 JC
  *	- rewritten for PIO
@@ -20,6 +7,9 @@
  * 	- uses falsecolour scale from PET scanner
  * 7/4/06
  * 	- hmm, reversed scale
+ * 29/1/10
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -323,7 +313,18 @@ static unsigned char PET_colour[][3] = {
 	{ 174, 0, 0 }
 };
 
-/* False colour. One band uchar images only.
+/**
+ * im_falsecolour:
+ * @in: input image
+ * @out: output image
+ *
+ * Turn a 1-band 8-bit image into a 3-band 8-bit image with a false colour
+ * map. The map is supposed to make small differences in brightness more
+ * obvious.
+ *
+ * See also: im_maplut().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_falsecolour( IMAGE *in, IMAGE *out )
@@ -332,14 +333,11 @@ im_falsecolour( IMAGE *in, IMAGE *out )
 
 	/* Check our args. 
 	 */
-	if( im_piocheck( in, out ) ) 
+	if( im_piocheck( in, out ) || 
+		im_check_mono( "im_falsecolour", in ) ||
+		im_check_uncoded( "im_falsecolour", in ) ||
+		im_check_format( "im_falsecolour", in, IM_BANDFMT_UCHAR ) )
 		return( -1 );
-	if( in->Bands != 1 || in->Coding != IM_CODING_NONE ||
-		in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_falsecolour", 
-			"%s", _( "input image not one band uchar uncoded" ) );
-		return( -1 );
-	}
 
 	if( !(lut = im_image( (PEL *) PET_colour, 
 		1, 256, 3, IM_BANDFMT_UCHAR )) )
