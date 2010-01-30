@@ -1,9 +1,11 @@
-/* chop a tall thin image up into a grid ... useful for displaying volumetric
- * images
+/* im_grid
  *
  * 4/8/05
  * 7/9/05
  * 	- oops, clipping was wrong
+ * 30/1/10
+ * 	- gtkdoc
+ * 	- small cleanups
  */
 
 /*
@@ -32,12 +34,6 @@
 
  */
 
-/* Turn on debugging output.
-#define DEBUG
-#define DEBUG_PAINT
-#define DEBUG_MAKE
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -46,7 +42,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -121,7 +116,7 @@ grid_gen( REGION *or, void *seq, void *a, void *b )
 			 */
 			im_rect_intersectrect( &tile, r, &paint );
 
-			assert( !im_rect_isempty( &paint ) );
+			g_assert( !im_rect_isempty( &paint ) );
 
 			/* Translate back to ir coordinates.
 			 */
@@ -140,12 +135,34 @@ grid_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_grid:
+ * @in: input image
+ * @out: output image
+ * @tile_height: chop into tiles this high
+ * @across: tiles across
+ * @down: tiles down
+ *
+ * Chop a tall thin image up into a set of tiles, lay the tiles out in a grid. 
+ * 
+ * The input image should be a very tall, thin image containing a list of
+ * smaller images. Volumetric or time-sequence images are often laid out like
+ * this. This image is chopped into a series of tiles, each @tile_height
+ * pixels high and the width of @in. The tiles are then rearranged into a grid
+ * @across tiles across and @down tiles down in row-major order.
+ *
+ * See also: im_embed(), im_insert(), im_lrjoin().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_grid( IMAGE *in, IMAGE *out, int tile_height, int across, int down )
 {
 	Grid *grid = IM_NEW( out, Grid );
 
-	if( !grid || im_piocheck( in, out ) )
+	if( !grid || 
+		im_piocheck( in, out ) ||
+		im_check_coding_known( "im_grid", in ) )
 		return( -1 );
 	if( across <= 0 || down <= 0 ) {
 		im_error( "im_grid", "%s", _( "bad parameters" ) );
