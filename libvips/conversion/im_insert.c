@@ -1,23 +1,4 @@
-/* @(#) Insert one image into another. ins is inserted into image in at
- * @(#) position x, y relative to the top LH corner of in. out is made large
- * @(#) enough to hold both in and ins. Any areas of out not coming from
- * @(#) either in or ins are set to black (binary 0). If ins overlaps in, ins
- * @(#) will appear on top of in. Both images must have the same number of 
- * @(#) bands and the same BandFmt.
- * @(#)
- * @(#) im_insert_noepand() always outputs an image the same size as in.
- * @(#)
- * @(#) Usage:
- * @(#)
- * @(#) int im_insert(in, ins, out, x, y )
- * @(#) IMAGE *in, *ins, *out;
- * @(#) int x, y;
- * @(#)
- * @(#) int im_insert_noexpand(in, ins, out, x, y )
- * @(#) IMAGE *in, *ins, *out;
- * @(#) int x, y;
- * @(#)
- * @(#) Returns 0 on success and -1 on error.
+/* im_insert
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -40,6 +21,10 @@
  * 	- add sanity range checks
  * 24/3/09
  * 	- added IM_CODING_RAD support
+ * 30/1/10
+ * 	- cleanups
+ * 	- formatalike/bandalike
+ * 	- gtkdoc
  */
 
 /*
@@ -78,10 +63,52 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/* The common part of most binary conversion
+ * operators. We:
+ *
+ * - check in and out
+ * - cast in1 and in2 up to a common format
+ * - equalise bands 
+ * - make an input array
+ * - run the supplied area operation passing one of the up-banded,
+ *   up-casted and up-sized inputs as the first param
+ */
+static IMAGE **
+im__insert_base( const char *domain, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out ) 
+{
+	IMAGE *t[4];
+	IMAGE **vec;
+
+	if( im_piocheck( in1, out ) || 
+		im_pincheck( in2 ) ||
+		im_check_bands_1orn( domain, in1, in2 ) ||
+		im_check_coding_known( domain, in1 ) ||
+		im_check_coding_same( domain, in1, in2 ) )
+		return( NULL );
+
+	/* Cast our input images up to a common format and bands.
+	 */
+	if( im_open_local_array( out, t, 4, domain, "p" ) ||
+		im__formatalike( in1, in2, t[0], t[1] ) ||
+		im__bandalike( t[0], t[1], t[2], t[3] ) ||
+		!(vec = im_allocate_input_array( out, t[2], t[3], NULL )) )
+		return( NULL );
+
+	/* Generate the output.
+	 */
+	if( im_cp_descv( out, vec[0], vec[1], NULL ) ||
+		im_demand_hint_array( out, IM_SMALLTILE, vec ) )
+		return( NULL );
+
+	return( vec );
+}
 
 /* Hold our state in this.
  */
@@ -201,43 +228,57 @@ insert_gen( REGION *or, void *seq, void *a, void *b )
 }
 
 /* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
- * causing assert() failuresd later.
+ * causing assert() failures later.
  */
 #define RANGE (10000000)
 
-/* Do an insert.  
+/**
+ * im_insert:
+ * @main: big image
+ * @sub: small image
+ * @out: output image
+ * @x: left position of @sub
+ * @y: top position of @sub
+ *
+ * Insert one image into another. @sub is inserted into image @main at
+ * position @x, @y relative to the top LH corner of @main. @out is made large
+ * enough to hold both @main and @sub. Any areas of @out not coming from
+ * either @main or @sub are set to black (binary 0). If @sub overlaps @main,
+ * @sub will appear on top of @main. 
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_insert_noexpand(), im_lrjoin().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 {
-	InsertState *ins = IM_NEW( out, InsertState );
+	InsertState *ins;
 	IMAGE **vec;
 
 	/* Check args.
 	 */
-	if( !ins || im_piocheck( main, out ) || im_pincheck( sub ) )
-		return( -1 );
-	if( main->BandFmt != sub->BandFmt || main->Bands != sub->Bands ||
-		main->Coding != sub->Coding ) {
-		im_error( "im_insert", "%s", _( "inputs differ in format" ) ); 
-		return( -1 ); 
-	}
-	if( main->Coding != IM_CODING_NONE && 
-		main->Coding != IM_CODING_RAD &&
-		main->Coding != IM_CODING_LABQ ) {
-		im_error( "im_insert", "%s", 
-			_( "Coding should be NONE, LABQ or RAD" ) ); 
-		return( -1 ); 
-	}
 	if( x > RANGE || x < -RANGE || y > RANGE || y < -RANGE ) {
 		im_error( "im_insert", "%s", _( "xy out of range" ) );
 		return( -1 ); 
 	}
+	if( !(ins = IM_NEW( out, InsertState )) ||
+		!(vec = im__insert_base( "im_insert", main, sub, out )) )
+		return( -1 );
 
 	/* Save args.
 	 */
-	ins->main = main;
-	ins->sub = sub;
+	ins->main = vec[0];
+	ins->sub = vec[1];
 	ins->out = out;
 	ins->x = x;
 	ins->y = y;
@@ -247,12 +288,12 @@ im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 	 */
 	ins->rmain.left = 0;
 	ins->rmain.top = 0;
-	ins->rmain.width = main->Xsize;
-	ins->rmain.height = main->Ysize;
+	ins->rmain.width = vec[0]->Xsize;
+	ins->rmain.height = vec[0]->Ysize;
 	ins->rsub.left = x;
 	ins->rsub.top = y;
-	ins->rsub.width = sub->Xsize;
-	ins->rsub.height = sub->Ysize;
+	ins->rsub.width = vec[1]->Xsize;
+	ins->rsub.height = vec[1]->Ysize;
 
 	/* Now: output is bounding box of these two.
 	 */
@@ -269,20 +310,8 @@ im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 
 	/* Set up the output header.  
 	 */
-	if( im_cp_descv( out, main, sub, NULL ) ) 
-		return( -1 );
 	out->Xsize = ins->rout.width;
 	out->Ysize = ins->rout.height;
-
-	/* Set demand hints.
-	 */
-	if( im_demand_hint( out, IM_THINSTRIP, main, sub, NULL ) )
-		 return( -1 );
-
-	/* Make input array. 
-	 */
-	if( !(vec = im_allocate_input_array( out, main, sub, NULL )) )
-		return( -1 );
 
 	/* Make output image.
 	 */
@@ -296,40 +325,51 @@ im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 	return( 0 );
 }
 
-/* As above, but don't expand to hold all of sub.
+/**
+ * im_insert_noexpand:
+ * @main: big image
+ * @sub: small image
+ * @out: output image
+ * @x: left position of @sub
+ * @y: top position of @sub
+ *
+ * Insert one image into another. @sub is inserted into image @main at
+ * position @x, @y relative to the top LH corner of @main. @out is the same
+ * size as @main. @sub is clipped against the edges of @main. 
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_insert_noexpand(), im_lrjoin().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 {
-	InsertState *ins = IM_NEW( out, InsertState );
+	InsertState *ins;
 	IMAGE **vec;
 
 	/* Check args.
 	 */
-	if( !ins || im_piocheck( main, out ) || im_pincheck( sub ) )
-		return( -1 );
-	if( main->BandFmt != sub->BandFmt || main->Bands != sub->Bands ||
-		main->Coding != sub->Coding ) {
-		im_error( "im_insert_noexpand", 
-			"%s", _( "inputs differ in format" ) ); 
-		return( -1 ); 
-	}
-	if( main->Coding != IM_CODING_NONE && 
-		main->Coding != IM_CODING_LABQ &&
-		main->Coding != IM_CODING_RAD ) {
-		im_error( "im_insert_noexpand", "%s", 
-			_( "Coding should be NONE, LABQ or RAD" ) ); 
-		return( -1 ); 
-	}
 	if( x > RANGE || x < -RANGE || y > RANGE || y < -RANGE ) {
 		im_error( "im_insert", "%s", _( "xy out of range" ) );
 		return( -1 ); 
 	}
+	if( !(ins = IM_NEW( out, InsertState )) ||
+		!(vec = im__insert_base( "im_insert", main, sub, out )) )
+		return( -1 );
 
 	/* Save args.
 	 */
-	ins->main = main;
-	ins->sub = sub;
+	ins->main = vec[0];
+	ins->sub = vec[1];
 	ins->out = out;
 	ins->x = x;
 	ins->y = y;
@@ -338,30 +378,18 @@ im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 	 */
 	ins->rmain.left = 0;
 	ins->rmain.top = 0;
-	ins->rmain.width = main->Xsize;
-	ins->rmain.height = main->Ysize;
+	ins->rmain.width = vec[0]->Xsize;
+	ins->rmain.height = vec[0]->Ysize;
 	ins->rsub.left = x;
 	ins->rsub.top = y;
-	ins->rsub.width = sub->Xsize;
-	ins->rsub.height = sub->Ysize;
+	ins->rsub.width = vec[1]->Xsize;
+	ins->rsub.height = vec[1]->Ysize;
 	ins->rout = ins->rmain;
 
 	/* Set up the output header.  
 	 */
-	if( im_cp_descv( out, main, sub, NULL ) ) 
-		return( -1 );
 	out->Xsize = ins->rout.width;
 	out->Ysize = ins->rout.height;
-
-	/* Set demand hints.
-	 */
-	if( im_demand_hint( out, IM_THINSTRIP, main, sub, NULL ) )
-		 return( -1 );
-
-	/* Make input array. 
-	 */
-	if( !(vec = im_allocate_input_array( out, main, sub, NULL )) )
-		return( -1 );
 
 	/* Make output image.
 	 */
@@ -372,23 +400,53 @@ im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 	return( 0 );
 }
 
-/* Insert sub repeatedly. This can be a lot quicker for large n, but will use
- * (potentially) a lot of memory.
+/**
+ * im_insertset:
+ * @main: big image
+ * @sub: small image
+ * @out: output image
+ * @n: number of positions
+ * @x: left positions of @sub
+ * @y: top positions of @sub
+ *
+ * Insert @sub repeatedly into @main at the positions listed in the arrays @x,
+ * @y of length @n. @out is the same
+ * size as @main. @sub is clipped against the edges of @main. 
+ *
+ * This operation is fast for large @n, but will use a memory buffer the size
+ * of @out. It's useful for things like making scatter plots.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_insert(), im_lrjoin().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_insertset( IMAGE *main, IMAGE *sub, IMAGE *out, int n, int *x, int *y )
 {
+	IMAGE **vec;
 	IMAGE *t;
 	int i;
+
+	if( !(vec = im__insert_base( "im_insert", main, sub, out )) )
+		return( -1 );
 
 	/* Copy to a memory image, zap that, then copy to out.
 	 */
 	if( !(t = im_open_local( out, "im_insertset", "t" )) ||
-		im_copy( main, t ) )
+		im_copy( vec[0], t ) )
 		return( -1 );
 
 	for( i = 0; i < n; i++ ) 
-		if( im_insertplace( t, sub, x[i], y[i] ) )
+		if( im_insertplace( t, vec[1], x[i], y[i] ) )
 			return( -1 );
 
 	if( im_copy( t, out ) )
