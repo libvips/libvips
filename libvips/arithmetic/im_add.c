@@ -321,8 +321,8 @@ static int bandfmt_add[10] = {
 
 /**
  * im_add:
- * @in1: input image 1
- * @in2: input image 2
+ * @in1: input image 
+ * @in2: input image 
  * @out: output image
  *
  * This operation calculates @in1 + @in2 and writes the result to @out. 

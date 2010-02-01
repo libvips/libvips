@@ -1,15 +1,16 @@
-/* @(#) Join two images to make a complex. If one of the inputs
- * @(#) is a double, the output is IM_BANDFMT_DPCOMPLEX, otherwise it is IM_BANDFMT_COMPLEX.
- * @(#) 
- * @(#) im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* im_ri2c
+ *
  * Author: Nicos Dessipris
  * Written on: 12/02/1990
  * Modified on : 10/04/1990
  * 16/11/94 JC
  *	- rewritten with partials
  *	- more general
+ * 1/2/10
+ * 	- bandalike
+ * 	- better upcasting
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -47,122 +48,112 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Join two float buffers to make a complex.
+#define JOIN( TYPE ) { \
+	TYPE *p1 = (TYPE *) p[0]; \
+	TYPE *p2 = (TYPE *) p[1]; \
+	TYPE *q0 = (TYPE *) q; \
+ 	\
+	for( x = 0; x < len; x++ ) { \
+		q0[0] = *p1++; \
+		q0[1] = *p2++; \
+ 		\
+		q0 += 2; \
+	} \
+}
+
+/* Join two buffers to make a complex.
  */
 static void
-join_float( float **p, float *q, int n, IMAGE *im )
+join_buffer( PEL **p, PEL *q, int n, IMAGE *im )
 {
 	int x;
 	int len = n * im->Bands;
-	float *p1 = p[0];
-	float *p2 = p[1];
 
-	for( x = 0; x < len; x++ ) {
-		q[0] = *p1++;
-		q[1] = *p2++;
+	switch( im->BandFmt ) {
+	case IM_BANDFMT_FLOAT:
+		JOIN( float );
+		break;
 
-		q += 2;
+	case IM_BANDFMT_DOUBLE:
+		JOIN( double );
+		break;
+
+	default:
+		g_assert( 0 );
 	}
 }
 
-/* Join two double buffers to make a complex.
+/**
+ * im_ri2c:
+ * @in1: input image 
+ * @in2: input image 
+ * @out: output image
+ *
+ * Compose two real images to make a complex image. If either @in1 or @in2 are
+ * %IM_BANDFMT_DOUBLE, @out is %IM_BANDFMT_DPCOMPLEX. Otherwise @out is
+ * %IM_BANDFMT_COMPLEX.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_c2real(), im_c2imag().
+ *
+ * Returns: 0 on success, -1 on error
  */
-static void
-join_double( double **p, double *q, int n, IMAGE *im )
-{
-	int x;
-	int len = n * im->Bands;
-	double *p1 = p[0];
-	double *p2 = p[1];
-
-	for( x = 0; x < len; x++ ) {
-		q[0] = *p1++;
-		q[1] = *p2++;
-
-		q += 2;
-	}
-}
-
-/* Type conversion.
- */
-static IMAGE *
-convert( IMAGE *out, IMAGE *in, int (*cvt_fn)( IMAGE *, IMAGE * ) )
-{
-	IMAGE *t1 = im_open_local( out, "Type conversion", "p" );
-
-	if( !t1 )
-		return( NULL );
-	
-	if( cvt_fn( in, t1 ) )
-		return( NULL );
-	
-	return( t1 );
-}
-
 int 
 im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	IMAGE *invec[3];
-	extern int im_clip2f( IMAGE *, IMAGE * );
-	extern int im_clip2d( IMAGE *, IMAGE * );
+	IMAGE *t[5];
+	VipsBandFmt fmt;
 
 	/* Check input image. We don't need to check that sizes match --
 	 * im_wrapmany does this for us.
 	 */
-	if( in1->Coding != IM_CODING_NONE || 
-		in2->Coding != IM_CODING_NONE ) {
-		im_error( "im_ri2c", "%s", _( "inputs should be uncoded" ) );
+	if( im_check_uncoded( "im_ri2c", in1 ) ||
+		im_check_uncoded( "im_ri2c", in2 ) ||
+		im_check_noncomplex( "im_ri2c", in1 ) ||
+		im_check_noncomplex( "im_ri2c", in2 ) ||
+		im_check_bands_1orn( "im_ri2c", in1, in2 ) )
 		return( -1 );
-	}
-	if( vips_bandfmt_iscomplex( in1->BandFmt ) || 
-		vips_bandfmt_iscomplex( in2->BandFmt ) ) {
-		im_error( "im_ri2c", "%s", _( "inputs already complex" ) );
-		return( -1 );
-	}
 
-	/* Prepare the output image. If either of the inputs is DOUBLE, we are
+	/* If either of the inputs is DOUBLE, we are
 	 * DPCOMPLEX; otherwise we are COMPLEX.
 	 */
-	if( im_cp_descv( out, in1, in2, NULL ) )
-		return( -1 );
 	if( in1->BandFmt == IM_BANDFMT_DOUBLE || 
 		in2->BandFmt == IM_BANDFMT_DOUBLE ) 
-		out->BandFmt = IM_BANDFMT_DPCOMPLEX;
+		fmt = IM_BANDFMT_DOUBLE;
 	else 
-		out->BandFmt = IM_BANDFMT_COMPLEX;
+		fmt = IM_BANDFMT_FLOAT;
 
-	/* Float inputs up to correct type. Note that if they are already the
-	 * right type, this operation becomes a NOOP.
-	 */
-	if( out->BandFmt == IM_BANDFMT_COMPLEX ) {
-		in1 = convert( out, in1, im_clip2f );
-		in2 = convert( out, in2, im_clip2f );
-	}
-	else {
-		in1 = convert( out, in1, im_clip2d );
-		in2 = convert( out, in2, im_clip2d );
-	}
-	if( !in1 || !in2 )
+	if( im_open_local_array( out, t, 4, "im_ri2c", "p" ) ||
+		im_clip2fmt( in1, t[0], fmt ) ||
+		im_clip2fmt( in2, t[1], fmt ) ||
+		im__bandalike( t[0], t[1], t[2], t[3] ) )
 		return( -1 );
 
-	/* Process!
+	/* Remember to NULL-terminate.
 	 */
-	invec[0] = in1; invec[1] = in2; invec[2] = NULL;
-	if( out->BandFmt == IM_BANDFMT_COMPLEX ) {
-		if( im_wrapmany( invec, out,
-			(im_wrapmany_fn) join_float, out, NULL ) )
-			return( -1 );
-	}
-	else {
-		if( im_wrapmany( invec, out,
-			(im_wrapmany_fn) join_double, out, NULL ) )
-			return( -1 );
-	}
+	t[4] = NULL;
+
+	if( im_cp_descv( out, t[2], t[3], NULL ) )
+		return( -1 );
+	out->BandFmt = fmt == IM_BANDFMT_DOUBLE ? 
+		IM_BANDFMT_DPCOMPLEX : IM_BANDFMT_COMPLEX;
+
+	if( im_wrapmany( t + 2, out, (im_wrapmany_fn) join_buffer, out, NULL ) )
+		return( -1 );
 
 	return( 0 );
 }

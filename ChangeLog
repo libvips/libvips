@@ -32,6 +32,7 @@
 - finally removed old flood stuff
 - im_insert*() bandalike and formatalike
 - im_*join() bandalike and formatalike
+- im_ri2c() bandalike 
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 
