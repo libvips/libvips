@@ -1,12 +1,4 @@
-/* @(#) Scale an image so that min(im) maps to 0 and max(im) maps to 255. If
- * @(#) min(im)==max(im), then we return black. Any non-complex type.
- * @(#)
- * @(#) int 
- * @(#) im_scale( in, out )
- * @(#) IMAGE *in, *out;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* im_scale
  *
  * Author: John Cupitt
  * Written on: 22/4/93
@@ -21,6 +13,8 @@
  * 16/10/06
  * 	- what? no, don't set Type, useful to be able to scale histograms, for
  * 	  example
+ * 1/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -63,7 +57,18 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Scale, as noted above.
+/**
+ * im_scale:
+ * @in: input image
+ * @out: output image
+ *
+ * Search the image for the maximum and minimum value, then return the image
+ * as unsigned 8-bit, scaled so that the maximum value is 255 and the
+ * minimum is zero.
+ *
+ * See also: im_clip2fmt().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_scale( IMAGE *in, IMAGE *out )
