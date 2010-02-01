@@ -1,10 +1,5 @@
-/* @(#) Function to write an IMAGE to a DOUBLEMASK. One band IM_BANDFMT_DOUBLE 
- * @(#) images, or n-band by 1 pixel double images.
- * @(#)
- * @(#) DOUBLEMASK *
- * @(#) im_vips2mask( IMAGE *in, char *out )
- * @(#)
- * @(#) The function returns NULL on error and a new DOUBLEMASK on success
+/* im_vips2mask
+ *
  * Author: J.Cupitt
  * Written on: 6/6/94
  * Modified on:
@@ -14,6 +9,8 @@
  * 23/2/07
  * 	- oop, broken for nx1 m-band images 
  * 	- now casts to double for you
+ * 1/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -55,6 +52,24 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_vips2mask:
+ * @in: input image
+ * @outname: name for output mask 
+ *
+ * Make a mask from an image. All images are cast to #IM_BANDFMT_DOUBLE
+ * before processing. There are two cases for handling bands:
+ *
+ * If the image has a single band, im_vips2mask() will write a mask the same
+ * size as the image.
+ *
+ * If the image has more than one band, it must be one pixel high or wide. In
+ * this case the output mask uses that axis to represent band values.
+ *
+ * See also: im_mask2vips(), im_measure().
+ *
+ * Returns: a #DOUBLEMASK with @outname set as the name, or NULL on error
+ */
 DOUBLEMASK *
 im_vips2mask( IMAGE *in, const char *outname )
 {
@@ -80,12 +95,10 @@ im_vips2mask( IMAGE *in, const char *outname )
 
 	/* Check the image.
 	 */
-	if( im_incheck( in ) ) 
+	if( im_incheck( in ) ||
+		im_check_uncoded( "im_vips2mask", in ) )
 		return( NULL );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_vips2mask", "%s", _( "uncoded images only" ) );
-		return( NULL );
-	}
+
 	if( in->Bands == 1 ) {
 		width = in->Xsize;
 		height = in->Ysize;

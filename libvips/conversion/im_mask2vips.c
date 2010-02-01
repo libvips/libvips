@@ -1,14 +1,12 @@
-/* @(#) Function to write a DOUBLEMASK to an IMAGE. 
- * @(#)
- * @(#) int
- * @(#) im_mask2vips( DOUBLEMASK *in, IMAGE *out )
- * @(#)
- * @(#) The function returns -1 on error and 0 on success
+/* im_mask2vips
+ *
  * Author: J.Cupitt
  * Written on: 6/6/94
  * Modified on:
  * 7/10/94 JC
  *	- new IM_ARRAY()
+ * 1/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -51,6 +49,17 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_mask2vips:
+ * @in: input mask
+ * @out output image
+ *
+ * Write a one-band, #IM_BANDFMT_DOUBLE image to @out based on mask @in.
+ *
+ * See also: im_vips2mask().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_mask2vips( DOUBLEMASK *in, IMAGE *out )
 {
