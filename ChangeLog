@@ -31,6 +31,7 @@
 - im_check*() name rationalisation
 - finally removed old flood stuff
 - im_insert*() bandalike and formatalike
+- im_*join() bandalike and formatalike
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

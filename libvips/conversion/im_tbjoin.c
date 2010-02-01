@@ -1,12 +1,4 @@
-/* @(#)  To join two images top bottom.  The resultant image has
- * @(#) Ysize = im1.Ysize + im2.Ysize and Xsize the min of im1.Xsize, im2.Xsize
- * @(#) Input images should have the same number of Bands and BandFmt
- * @(#)
- * @(#)  Usage:
- * @(#)  int im_tbjoin(top, bottom, out)
- * @(#)  IMAGE *top, *bottom, *out;
- * @(#)
- * @(#)
+/* im_tbjoin
  *
  * Copyright: 1990, 1991 Kirk Martinez, N. Dessipris
  * Author: Kirk Martinez, N. Dessipris
@@ -24,6 +16,9 @@
  *	- rewritten in terms of im_insert()
  * 14/4/04 
  *	- sets Xoffset / Yoffset
+ * 1/2/10
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -66,20 +61,39 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_tbjoin:
+ * @top: image to go on top
+ * @bottom: image to go on bottom
+ * @out: output image
+ *
+ * Join @top and @bottom together, up-down. If one is wider than the
+ * other, @out will be has wide as the smaller.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_insert(), im_tbjoin().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_tbjoin( IMAGE *top, IMAGE *bottom, IMAGE *out )
 {
-	IMAGE *t1 = im_open_local( out, "im_tbjoin:1", "p" );
+	IMAGE *t1;
 
-	/* Paste top and bottom together.
+	/* Paste top and bottom together, cut off any leftovers.
 	 */
-	if( !t1 || im_insert( top, bottom, t1, 0, top->Ysize ) )
-		return( -1 );
-
-	/* Extract the part which the old im_tbjoin() would have made.
-	 */
-	if( im_extract_area( t1, out, 
-		0, 0, IM_MIN( top->Xsize, bottom->Xsize ), t1->Ysize ) )
+	if( !(t1 = im_open_local( out, "im_tbjoin:1", "p" )) ||
+		im_insert( top, bottom, t1, 0, top->Ysize ) ||
+		im_extract_area( t1, out, 
+			0, 0, IM_MIN( top->Xsize, bottom->Xsize ), t1->Ysize ) )
 		return( -1 );
 
 	out->Xoffset = 0;
