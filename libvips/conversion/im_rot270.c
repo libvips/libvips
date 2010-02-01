@@ -1,10 +1,5 @@
-/* @(#) rotates an image 270 degrees 
- * @(#) Usage:
- * @(#) im_rot270(in, out)
- * @(#) IMAGE *in, *out;
- * @(#) 
- * @(#) Returns 0 on sucess and -1 on error
- * @(#) 
+/* im_rot270
+ *
  * Copyright: 1991, N. Dessipris
  * Written on: 28/10/91
  * Updated on: 2/4/92, J.Cupitt 
@@ -26,6 +21,9 @@
  *	- sets Xoffset / Yoffset
  * 24/3/09
  * 	- added IM_CODING_RAD support
+ * 1/2/10
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -132,32 +130,30 @@ rot270_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_rot270:
+ * @in: input image
+ * @out: output image
+ *
+ * Rotate an image 270 degrees.
+ *
+ * See also: im_rot180(), im_rot90(), im_affinei_all().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_rot270( IMAGE *in, IMAGE *out )
 {	
-	/* Make output image.
-	 */
-	if( im_piocheck( in, out ) ) 
+	if( im_piocheck( in, out ) || 
+		im_check_coding_known( "im_rot270", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE && 
-		in->Coding != IM_CODING_LABQ &&
-		in->Coding != IM_CODING_RAD ) {
-		im_error( "im_rot270", "%s", 
-			_( "Coding should be NONE, LABQ or RAD" ) ); 
-		return( -1 );
-	}
-	if( im_cp_desc( out, in ) ) 
+
+	if( im_cp_desc( out, in ) || 
+		im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
 		return( -1 );
 	out->Xsize = in->Ysize;
 	out->Ysize = in->Xsize;
 
-	/* We want smalltile if possible.
-	 */
-	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
-		return( -1 );
-
-	/* Generate!
-	 */
 	if( im_generate( out, 
 		im_start_one, rot270_gen, im_stop_one, in, NULL ) )
 		return( -1 );
