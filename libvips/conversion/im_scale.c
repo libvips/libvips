@@ -66,7 +66,7 @@
  * as unsigned 8-bit, scaled so that the maximum value is 255 and the
  * minimum is zero.
  *
- * See also: im_clip2fmt().
+ * See also: im_clip2fmt(), im_scaleps().
  *
  * Returns: 0 on success, -1 on error
  */
