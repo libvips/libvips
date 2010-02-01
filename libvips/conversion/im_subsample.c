@@ -1,13 +1,4 @@
-/* @(#) Shrink any image by some integer xy factor. Sub-samples! Partial, and
- * @(#) quick as a result.
- * @(#)
- * @(#) int 
- * @(#) im_subsample( in, out, xshrink, yshrink )
- * @(#) IMAGE *in, *out;
- * @(#) int xshrink, yshrink;
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail)
- * @(#)
+/* im_subsample
  *
  * 3/7/95 JC
  *	- adapted from im_shrink()
@@ -16,6 +7,8 @@
  * 21/4/08
  * 	- don't fall back to pixel-wise shrinks for smalltile, it kills
  * 	  performance, just bring IM_MAX_WIDTH down instead
+ * 1/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -187,6 +180,20 @@ point_shrink_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_subsample:
+ * @in: input image
+ * @out: output image
+ * @xshrink: horizontal shrink factor
+ * @yshrink: vertical shrink factor
+ *
+ * Subsample an image by an integer fraction. This is fast nearest-neighbour
+ * shrink.
+ *
+ * See also: im_shrink(), im_affinei(), im_zoom().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_subsample( IMAGE *in, IMAGE *out, int xshrink, int yshrink )
 {
@@ -201,7 +208,8 @@ im_subsample( IMAGE *in, IMAGE *out, int xshrink, int yshrink )
 	}
 	if( xshrink == 1 && yshrink == 1 ) 
 		return( im_copy( in, out ) );
-	if( im_piocheck( in, out ) )
+	if( im_piocheck( in, out ) ||
+		im_check_coding_known( "im_subsample", in ) )
 		return( -1 );
 
 	/* Prepare output. Note: we round the output width down!

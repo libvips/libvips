@@ -1,11 +1,5 @@
-/* @(#) Zoom an image by pixel replication. Any non-coded type, also works for
- * @(#) IM_CODING_LABQ.
- * @(#)
- * @(#) int im_zoom( in, out, factor )
- * @(#) IMAGE *in, *out;
- * @(#) int factor;
- * @(#)
- * @(#) Returns: -1 on error, else 0
+/* im_zoom
+ *
  * Author: N. Martinez 1991
  * 6/6/94 JC
  *	- rewritten to ANSI-C
@@ -25,6 +19,8 @@
  *	- fall back to im_copy() for x & y factors == 1
  * 24/3/09
  * 	- added IM_CODING_RAD support
+ * 1/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -65,10 +61,6 @@
  * tcv.  2006-09-01
  */
 
-/* Turn off assert().
-#define NDEBUG 1
- */
-
 /* Turn on IM_REGION_ADDR() range checks.
 #define DEBUG 1
  */
@@ -81,7 +73,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <limits.h>
 
 #include <vips/vips.h>
@@ -319,6 +310,20 @@ zoom_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_zoom:
+ * @in: input image
+ * @out: output image
+ * @xfac: horizontal scale factor
+ * @yfac: vertical scale factor
+ *
+ * Zoom an image by repeating pixels. This is fast nearest-neighbour
+ * zoom.
+ *
+ * See also: im_affinei(), im_subsample().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_zoom( IMAGE *in, IMAGE *out, int xfac, int yfac )
 {
@@ -326,12 +331,6 @@ im_zoom( IMAGE *in, IMAGE *out, int xfac, int yfac )
 
 	/* Check arguments.
 	 */
-	if( in->Coding != IM_CODING_NONE && 
-		in->Coding != IM_CODING_LABQ &&
-		in->Coding != IM_CODING_RAD ) {
-		im_error( "im_zoom", "%s", _( "unknown coding type" ) );
-		return( -1 );
-	}
 	if( xfac <= 0 || yfac <= 0 ) { 
 		im_error( "im_zoom", "%s", _( "zoom factors should be >= 0" ) );
 		return( -1 );
@@ -345,7 +344,8 @@ im_zoom( IMAGE *in, IMAGE *out, int xfac, int yfac )
 	}
 	if( xfac == 1 && yfac == 1 ) 
 		return( im_copy( in, out ) );
-	if( im_piocheck( in, out ) )
+	if( im_piocheck( in, out ) ||
+		im_check_coding_known( "im_zoom", in ) )
 		return( -1 );
 
 	/* Make output.
