@@ -4,6 +4,8 @@
  *
  * 15/4/04
  *	- some optimisations for some cases
+ * 1/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -46,7 +48,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -117,7 +118,7 @@ replicate_gen( REGION *or, void *seq, void *a, void *b )
 			paint.left -= x;
 			paint.top -= y;
 
-			assert( !im_rect_isempty( &paint ) );
+			g_assert( !im_rect_isempty( &paint ) );
 
 			/* Render into or.
 			 */
@@ -130,6 +131,19 @@ replicate_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_replicate:
+ * @in: input image
+ * @out: output image
+ * @across: repeat @in this many times across
+ * @down: repeat @in this many times down
+ *
+ * Replicate an image x times horizontally and vertically.
+ * 
+ * See also: im_embed(), im_copy().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_replicate( IMAGE *in, IMAGE *out, int across, int down )
 {
@@ -137,9 +151,8 @@ im_replicate( IMAGE *in, IMAGE *out, int across, int down )
 		im_error( "im_replicate", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
-	if( im_piocheck( in, out ) )
-		return( -1 );
-	if( im_cp_desc( out, in ) )
+	if( im_piocheck( in, out ) ||
+		im_cp_desc( out, in ) )
 		return( -1 );
 	out->Xsize *= across;
 	out->Ysize *= down;
