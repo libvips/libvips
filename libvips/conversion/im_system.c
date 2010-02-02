@@ -12,6 +12,8 @@
  * 	- add .v suffix (thanks Roland)
  * 	- use vipsbuf
  * 	- rewrite to make it simpler
+ * 2/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -63,8 +65,30 @@
 
 #define IM_MAX_STRSIZE (4096)
 
-/* Run a command on an IMAGE ... copy to tmp (if necessary), run 
- * command on it, unlink (if we copied), return stdout from command.
+/**
+ * im_system:
+ * @im: image to run command on
+ * @cmd: command to run
+ * @out: stdout of command is returned here
+ *
+ * im_system() runs a command on an image, returning the command's output as a
+ * string. The command is executed with popen(), the first '%s' in the 
+ * command being substituted for a filename.
+ *
+ * If the IMAGE is a file on disc, then the filename will be the name of the 
+ * real file. If the image is in memory, or the result of a computation, 
+ * then a new file is created in the temporary area called something like 
+ * "vips_XXXXXX.v", and that filename given to the command. The file is 
+ * deleted when the command finishes.
+ *
+ * The environment variable TMPDIR can be used to set the temporary 
+ * directory. If it is not set, it defaults to "/tmp".
+ *
+ * In all cases, @log must be freed with im_free().
+ *
+ * See also: im_system_image().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_system( IMAGE *im, const char *cmd, char **out )

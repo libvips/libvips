@@ -2,6 +2,8 @@
  *
  * 8/1/09
  * 	- from im_system()
+ * 2/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -83,26 +85,38 @@ system_image( IMAGE *im,
 
 /**
  * im_system_image:
-
-   Run a command on an image, returning a new image. Eg.:
-
-   im_system_image A2 "%s.jpg" "%s.jpg" "convert %s -swirl 45 %s"
-
- Actions:
-
-- create two temporary file names using the passed format strings to set type
-= expand the command, using the two expanded filenames
-- write the image to the first filename
-- call system() on the expanded command
-- capture stdout into log
-- delete the temp input file
-- open the output image (the output file will be auto deleted when this 
-  IMAGE is closed.
-- return the output filename, or NULL if the command failed (log is still
-  set in this case)
-
-  */
-
+ * @im: image to run command on
+ * @in_format: write input file like this
+ * @out_format: write output filename like this
+ * @cmd_format: command to run
+ * @log: stdout of command is returned here
+ *
+ * im_system_image() runs a command, passing an image in and getting an image
+ * back. The command's stdout is returned in @log. 
+ *
+ * First, @im is written to a file. The filename is formed by substituting
+ * something like "vips-49857-1" for the first %s in @in_format, then
+ * prepending "/tmp". If the environment variable TMPDIR is defined, it
+ * can be used to set a different temporary directory. If @in_format is
+ * something like "%s.png", the file will be written in PNG format.
+ *
+ * Next an output filename is created in the same way using @out_format. The
+ * command string to run is made by substituting the first %s in @cmd_format
+ * for the name of the input file and the second %s for the output filename.
+ *
+ * The command is executed with popen() and the output captured in @log. If
+ * the command fails, the temporary files are deleted and im_system_image()
+ * returns NULL. @log is still set.
+ *
+ * If the command succeeds, the input file is deleted, the output file opened,
+ * and returned. Closing the output image will automatically delete the file.
+ *
+ * In all cases, @log must be freed with im_free().
+ *
+ * See also: im_system().
+ *
+ * Returns: an image on success, NULL on error
+ */
 IMAGE *
 im_system_image( IMAGE *im, 
 	const char *in_format, const char *out_format, const char *cmd_format, 
