@@ -1,14 +1,4 @@
-/* @(#) Shifts the four quadrants of a fourier transform for display
- * @(#) Any number of bands, any coding, any band format
- * @(#) Works on images with even sizes
- * @(#) Output is the same as the input
- * @(#) 
- * @(#) Usage:
- * @(#) 
- * @(#) 	int 
- * @(#) 	im_rotquad( in, out )
- * @(#) 	IMAGE *in, *out;
- * @(#)
+/* im_rotquad
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -27,6 +17,9 @@
  *	- redone in term of extract()/insert(), for great partialisation
  * 14/4/04
  *	- sets Xoffset / Yoffset
+ * 2/2/10
+ * 	- redone in terms of im_wrap()
+ * 	- gtkdoc
  */
 
 /*
@@ -70,34 +63,21 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_rotquad:
+ * @in: input image
+ * @out: output image
+ *
+ * Rotate the quadrants of the image so that the point that was at the
+ * top-left is now in the centre. Handy for moving Fourier images to optical
+ * space.
+ *
+ * See also: im_wrap().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_rotquad( IMAGE *in, IMAGE *out )
 {
-	IMAGE *t[6];
-	int xd = in->Xsize / 2;
-	int yd = in->Ysize / 2;
-
-	if( in->Xsize < 2 || in->Ysize < 2 )
-		return( im_copy( in, out ) );
-
-	if( im_open_local_array( out, t, 6, "im_rotquad-1", "p" ) ||
-		/* Extract 4 areas.
-		 */
-		im_extract_area( in, t[0], 0, 0, xd, yd ) ||
-		im_extract_area( in, t[1], xd, 0, in->Xsize - xd, yd ) ||
-		im_extract_area( in, t[2], 0, yd, xd, in->Ysize - yd ) ||
-		im_extract_area( in, t[3], xd, yd, 
-			in->Xsize - xd, in->Ysize - yd ) ||
-	
-		/* Reassemble, rotated.
-		 */
-		im_insert( t[3], t[2], t[4], in->Xsize - xd, 0 ) ||
-		im_insert( t[1], t[0], t[5], in->Xsize - xd, 0 ) ||
-		im_insert( t[4], t[5], out, 0, in->Ysize - yd ) )
-		return( -1 );
-
-	out->Xoffset = xd;
-	out->Yoffset = yd;
-
-	return( 0 );
+	return( im_wrap( in, out, in->Xsize / 2, in->Ysize / 2 ) );
 }

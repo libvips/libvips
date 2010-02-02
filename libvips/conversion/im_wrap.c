@@ -1,12 +1,12 @@
-/* Wrap an image so that what was the origin is at (x,y).
- *
- * int im_wrap( IMAGE *in, IMAGE *out, int x, int y );
- *
- * All functions return 0 on success and -1 on error
+/* im_wrap
  *
  * Copyright: 2008, Nottingham Trent University
  * Author: Tom Vajzovic
  * Written on: 2008-01-15
+ * 2/2/10
+ * 	- rewritten in terms of im_replicate()/im_extract_area()
+ * 	- gtkdoc
+ * 	- allows any x/y 
  */
 
 /*
@@ -40,88 +40,44 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <stdlib.h>
-#include <string.h>
-
 #include <vips/vips.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-static int wrap( REGION *out, void *seq, void *a, void *b ){
-#define IM ((IMAGE*)a)
-#define X (((int*)b)[0])
-#define Y (((int*)b)[1])
-  int left= out-> valid. left - X;
-  int top= out-> valid. top - Y;
-  int right= left + out-> valid. width;
-  int bot= top + out-> valid. height;
-  Rect source_a= {
-    left: IM-> Xsize + left,
-    top: IM-> Ysize + top,
-    width: 0 < right ? -left : out-> valid. width,
-    height: 0 < bot ? -top : out-> valid. height
-  };
-  Rect source_b= {
-    left: source_a. left,
-    top: 0 > top ? 0 : top,
-    width: source_a. width,
-    height: 0 > top ? bot : out-> valid. height
-  };
-  Rect source_c= {
-    left: 0 > left ? 0 : left,
-    top: source_a. top,
-    width: 0 > left ? right : out-> valid. width,
-    height: source_a. height
-  };
-  Rect source_d= {
-    left: source_c. left,
-    top: source_b. top,
-    width: source_c. width,
-    height: source_b. height
-  };
-  if( 0 > left ){
-    if( 0 > top && im_prepare_to( (REGION*)seq, out, & source_a, 
-          out-> valid. left, out-> valid. top ))
-      return -1;
-    
-    if( 0 < bot && im_prepare_to( (REGION*)seq, out, & source_b, 
-          out-> valid. left, 0 > top ? Y : out-> valid. top ))
-      return -1;
-  }
-  if( 0 < right ){
-    if( 0 > top && im_prepare_to( (REGION*)seq, out, & source_c, 
-          0 > left ? X : out-> valid. left, out-> valid. top ))
-      return -1;
-    
-    if( 0 < bot && im_prepare_to( (REGION*)seq, out, & source_d, 
-          0 > left ? X : out-> valid. left, 0 > top ? Y : out-> valid. top ))
-      return -1;    
-  }
-  return 0;
-#undef IM
-#undef X
-#undef Y 
-}
+/**
+ * im_wrap:
+ * @in: input image
+ * @out: output image
+ * @x: horizontal displacement
+ * @y: vertical displacement
+ *
+ * Slice an image up and move the segments about so that the pixel that was
+ * at 0, 0 is now at @x, @y.
+ *
+ * See also: im_embed(), im_replicate(), im_rotquad().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_wrap( IMAGE *in, IMAGE *out, int x, int y )
+{
+	IMAGE *t;
 
-int im_wrap( IMAGE *in, IMAGE *out, int x, int y ){
-  if( im_piocheck( in, out ))
-    return -1;
-  {
-    int *params= IM_ARRAY( out, 2, int );
-    if( ! params )
-      return -1;
+	/* Clock arithmetic: we want negative x/y to wrap around
+	 * nicely.
+	 */
+	x = x < 0 ? -x % in->Xsize : in->Xsize - x % in->Xsize;
+	y = y < 0 ? -y % in->Ysize : in->Ysize - y % in->Ysize;
 
-    params[ 0 ]= x % in-> Xsize;
-    params[ 1 ]= y % in-> Ysize;
-    if( 0 > x )
-      params[ 0 ]+= in-> Xsize;
-    if( 0 > y )
-      params[ 1 ]+= in-> Ysize;
-    
-    return im_cp_desc( out, in )
-      || im_demand_hint( out, IM_THINSTRIP, in, NULL )
-      || im_generate( out, im_start_one, wrap, im_stop_one, (void*)in, (void*)params );
-  }
+	if( !(t = im_open_local( out, "im_wrap", "p" )) ||
+		im_replicate( in, t[0], 2, 2 ) ||
+		im_extract_area( t, out, x, y, in->Xsize, in->Ysize ) )
+		return( -1 );
+
+	out->Xoffset = x;
+	out->Yoffset = y;
+
+	return( 0 );
 }
