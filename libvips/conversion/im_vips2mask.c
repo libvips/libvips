@@ -57,7 +57,7 @@
  * @in: input image
  * @outname: name for output mask 
  *
- * Make a mask from an image. All images are cast to #IM_BANDFMT_DOUBLE
+ * Make a mask from an image. All images are cast to %IM_BANDFMT_DOUBLE
  * before processing. There are two cases for handling bands:
  *
  * If the image has a single band, im_vips2mask() will write a mask the same
@@ -66,7 +66,7 @@
  * If the image has more than one band, it must be one pixel high or wide. In
  * this case the output mask uses that axis to represent band values.
  *
- * See also: im_mask2vips(), im_measure().
+ * See also: im_mask2vips(), im_measure_area().
  *
  * Returns: a #DOUBLEMASK with @outname set as the name, or NULL on error
  */

@@ -68,6 +68,35 @@ static im_arg_desc two_in_one_out[] = {
 	IM_OUTPUT_IMAGE( "out" )
 };
 
+/* Args to im_addgnoise.
+ */
+static im_arg_desc addgnoise_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_DOUBLE( "sigma" )
+};
+
+/* Call im_addgnoise via arg vector.
+ */
+static int
+addgnoise_vec( im_object *argv )
+{
+	double sigma = *((double *) argv[2]);
+
+	return( im_addgnoise( argv[0], argv[1], sigma ) );
+}
+
+/* Description of im_addgnoise.
+ */ 
+static im_function addgnoise_desc = {
+	"im_addgnoise", 		/* Name */
+	"add gaussian noise with mean 0 and std. dev. sigma",
+	IM_FN_PIO,			/* Flags */
+	addgnoise_vec, 			/* Dispatch function */
+	IM_NUMBER( addgnoise_args ), 	/* Size of arg list */
+	addgnoise_args 			/* Arg list */
+};
+
 /* Args to im_contrast_surface.
  */
 static im_arg_desc contrast_surface_args[] = {
@@ -400,6 +429,7 @@ static im_function spcor_desc = {
 /* Package up all these functions.
  */
 static im_function *convol_list[] = {
+	&addgnoise_desc,
 	&compass_desc,
 	&contrast_surface_desc,
 	&conv_desc,

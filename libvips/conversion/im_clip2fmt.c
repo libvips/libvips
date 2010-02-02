@@ -433,28 +433,28 @@ clip_gen( REGION *or, void *vseq, void *a, void *b )
  * Returns: 0 on success, -1 on error
  */
 int 
-im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt ofmt ) 
+im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt fmt ) 
 {
 	Clip *clip;
 
 	if( im_check_uncoded( "im_clip2fmt", in ) ||
 		im_piocheck( in, out ) )
 		return( -1 );
-	if( ofmt < 0 || ofmt > IM_BANDFMT_DPCOMPLEX ) {
-		im_error( "im_clip2fmt", "%s", _( "ofmt out of range" ) );
+	if( fmt < 0 || fmt > IM_BANDFMT_DPCOMPLEX ) {
+		im_error( "im_clip2fmt", "%s", _( "fmt out of range" ) );
 		return( -1 );
 	}
 
 	/* Trivial case: fall back to im_copy().
 	 */
-	if( in->BandFmt == ofmt )
+	if( in->BandFmt == fmt )
 		return( im_copy( in, out ) );
 
-	if( !(clip = clip_new( in, out, ofmt )) )
+	if( !(clip = clip_new( in, out, fmt )) )
 		return( -1 );
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	out->BandFmt = ofmt;
+	out->BandFmt = fmt;
 
 	if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) ||
 		im_generate( out, clip_start, clip_gen, clip_stop, in, clip ) )

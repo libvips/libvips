@@ -310,8 +310,6 @@ im_copy_swap8_gen( PEL *in, PEL *out, int width, IMAGE *im )
  * im_copy_swap:
  * @in: input image
  * @out: output image
- * @field: metadata field to set
- * @value: value to set for the field
  *
  * Copy an image, swapping byte order between little and big endian. This
  * really does change image pixels and does not just alter the header.

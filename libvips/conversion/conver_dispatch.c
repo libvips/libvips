@@ -56,7 +56,7 @@
  * matrices and back, change header fields, and a few others.
  *
  * The second group move pixels about in some way. You can flip, rotate,
- * extract, insert and join pairs of iamges in various ways.
+ * extract, insert and join pairs of images in various ways.
  *
  */
 
@@ -200,35 +200,6 @@ static im_function gaussnoise_desc = {
 	gaussnoise_vec, 		/* Dispatch function */
 	IM_NUMBER( gaussnoise_args ), 	/* Size of arg list */
 	gaussnoise_args 		/* Arg list */
-};
-
-/* Args to im_addgnoise.
- */
-static im_arg_desc addgnoise_args[] = {
-	IM_INPUT_IMAGE( "in" ),
-	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_DOUBLE( "sigma" )
-};
-
-/* Call im_addgnoise via arg vector.
- */
-static int
-addgnoise_vec( im_object *argv )
-{
-	double sigma = *((double *) argv[2]);
-
-	return( im_addgnoise( argv[0], argv[1], sigma ) );
-}
-
-/* Description of im_addgnoise.
- */ 
-static im_function addgnoise_desc = {
-	"im_addgnoise", 		/* Name */
-	"add gaussian noise with mean 0 and std. dev. sigma",
-	IM_FN_PIO,			/* Flags */
-	addgnoise_vec, 			/* Dispatch function */
-	IM_NUMBER( addgnoise_args ), 	/* Size of arg list */
-	addgnoise_args 			/* Arg list */
 };
 
 /* Args to im_extract.
@@ -1397,7 +1368,6 @@ static im_function embed_desc = {
 /* Package up all these functions.
  */
 static im_function *conv_list[] = {
-	&addgnoise_desc,
 	&gaussnoise_desc,
 	&bandjoin_desc,
 	&black_desc,

@@ -50,7 +50,7 @@ int im_copy_swap( IMAGE *in, IMAGE *out );
 int im_copy_native( IMAGE *in, IMAGE *out, gboolean is_msb_first );
 int im_copy_file( IMAGE *in, IMAGE *out );
 
-int im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt ofmt );
+int im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt fmt );
 int im_scale( IMAGE *in, IMAGE *out );
 int im_msb( IMAGE *in, IMAGE *out );
 int im_msb_band( IMAGE *in, IMAGE *out, int band );
@@ -63,8 +63,7 @@ int im_c2real( IMAGE *in, IMAGE *out );
 int im_scaleps( IMAGE *in, IMAGE *out );
 
 int im_falsecolour( IMAGE *in, IMAGE *out );
-int im_addgnoise( IMAGE *, IMAGE *, double );
-int im_gaussnoise( IMAGE *, int, int, double, double );
+int im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma );
 
 int im_black( IMAGE *out, int width, int height, int bands );
 int im_text( IMAGE *out, const char *text, const char *font,

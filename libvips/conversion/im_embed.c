@@ -438,7 +438,7 @@ embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
  *   </tbody>
  * </tgroup>
  *
- * See also: im_extract(), im_insert().
+ * See also: im_extract_area(), im_insert().
  * 
  * Returns: 0 on success, -1 on error.
  */

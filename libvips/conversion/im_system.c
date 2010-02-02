@@ -72,7 +72,7 @@
  * @out: stdout of command is returned here
  *
  * im_system() runs a command on an image, returning the command's output as a
- * string. The command is executed with popen(), the first '%s' in the 
+ * string. The command is executed with popen(), the first '%%s' in the 
  * command being substituted for a filename.
  *
  * If the IMAGE is a file on disc, then the filename will be the name of the 

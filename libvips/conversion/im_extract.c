@@ -241,7 +241,7 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
  * @in: input image
  * @out: output image
  * @left: left edge of rectangle
- * @top: top edge rectangle
+ * @top: top edge of rectangle
  * @width: width of rectangle
  * @height: height of rectangle
  *
@@ -286,8 +286,7 @@ im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands )
  * im_extract_band:
  * @in: input image
  * @out: output image
- * @band: first band to extract
- * @nbands: number of bands to extract
+ * @band: band to extract
  *
  * Extract a single band from an image. 
  * Extracting outside @in will trigger an error.

@@ -95,14 +95,14 @@ system_image( IMAGE *im,
  * back. The command's stdout is returned in @log. 
  *
  * First, @im is written to a file. The filename is formed by substituting
- * something like "vips-49857-1" for the first %s in @in_format, then
+ * something like "vips-49857-1" for the first %%s in @in_format, then
  * prepending "/tmp". If the environment variable TMPDIR is defined, it
  * can be used to set a different temporary directory. If @in_format is
- * something like "%s.png", the file will be written in PNG format.
+ * something like "%%s.png", the file will be written in PNG format.
  *
  * Next an output filename is created in the same way using @out_format. The
- * command string to run is made by substituting the first %s in @cmd_format
- * for the name of the input file and the second %s for the output filename.
+ * command string to run is made by substituting the first %%s in @cmd_format
+ * for the name of the input file and the second %%s for the output filename.
  *
  * The command is executed with popen() and the output captured in @log. If
  * the command fails, the temporary files are deleted and im_system_image()

@@ -60,6 +60,8 @@ int im_gradcor( IMAGE *in, IMAGE *ref, IMAGE *out );
 int im_contrast_surface( IMAGE *in, IMAGE *out, 
 	int half_win_size, int spacing );
 
+int im_addgnoise( IMAGE *in, IMAGE *out, double sigma );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

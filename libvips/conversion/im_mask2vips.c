@@ -54,7 +54,7 @@
  * @in: input mask
  * @out output image
  *
- * Write a one-band, #IM_BANDFMT_DOUBLE image to @out based on mask @in.
+ * Write a one-band, %IM_BANDFMT_DOUBLE image to @out based on mask @in.
  *
  * See also: im_vips2mask().
  *

@@ -72,7 +72,7 @@ im_wrap( IMAGE *in, IMAGE *out, int x, int y )
 	y = y < 0 ? -y % in->Ysize : in->Ysize - y % in->Ysize;
 
 	if( !(t = im_open_local( out, "im_wrap", "p" )) ||
-		im_replicate( in, t[0], 2, 2 ) ||
+		im_replicate( in, t, 2, 2 ) ||
 		im_extract_area( t, out, x, y, in->Xsize, in->Ysize ) )
 		return( -1 );
 
