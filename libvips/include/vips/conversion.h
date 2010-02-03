@@ -71,7 +71,8 @@ int im_text( IMAGE *out, const char *text, const char *font,
 
 int im_extract_band( IMAGE *in, IMAGE *out, int band );
 int im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands );
-int im_extract_area( IMAGE *in, IMAGE *out, int x, int y, int w, int h );
+int im_extract_area( IMAGE *in, IMAGE *out, 
+	int left, int top, int width, int height );
 int im_extract_areabands( IMAGE *in, IMAGE *out,
 	int left, int top, int width, int height, int band, int nbands );
 int im_embed( IMAGE *in, IMAGE *out, int type, 

@@ -55,7 +55,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #include <vips/vips.h>
@@ -69,8 +68,11 @@
 typedef struct _Embed {
 	IMAGE *in;
 	IMAGE *out;
-	int flag;
-	int x, y, w, h;
+	int type;
+	int left;
+	int top;
+	int width;
+	int height;
 
 	/* Geometry calculations. 
 	 */
@@ -109,7 +111,7 @@ embed_find_edge( Embed *embed, Rect *r, int i, Rect *out )
 		 */
 		extend = *r;
 		extend.top = 0;
-		extend.height = embed->h;
+		extend.height = embed->height;
 		im_rect_intersectrect( out, &extend, out );
 	}
 	if( i == 1 || i == 3 ) {
@@ -119,7 +121,7 @@ embed_find_edge( Embed *embed, Rect *r, int i, Rect *out )
 		 */
 		extend = *r;
 		extend.left = 0;
-		extend.width = embed->w;
+		extend.width = embed->width;
 		im_rect_intersectrect( out, &extend, out );
 	}
 }
@@ -207,8 +209,8 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 		Rect need;
 
 		need = *r;
-		need.left -= embed->x;
-		need.top -= embed->y;
+		need.left -= embed->left;
+		need.top -= embed->top;
 		if( im_prepare( ir, &need ) ||
 			im_region_region( or, ir, r, need.left, need.top ) )
 			return( -1 );
@@ -223,23 +225,23 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 	if( !im_rect_isempty( &ovl ) ) {
 		/* Paint the bits coming from the input image.
 		 */
-		ovl.left -= embed->x;
-		ovl.top -= embed->y;
+		ovl.left -= embed->top;
+		ovl.top -= embed->top;
 		if( im_prepare_to( ir, or, &ovl, 
-			ovl.left + embed->x, ovl.top + embed->y ) )
+			ovl.left + embed->top, ovl.top + embed->top ) )
 			return( -1 );
-		ovl.left += embed->x;
-		ovl.top += embed->y;
+		ovl.left += embed->top;
+		ovl.top += embed->top;
 	}
 
-	switch( embed->flag ) {
+	switch( embed->type ) {
 	case 0:
 	case 4:
 		/* Paint the borders a solid value.
 		 */
 		for( i = 0; i < 8; i++ )
 			im_region_paint( or, &embed->border[i], 
-				embed->flag == 0 ? 0 : 255 );
+				embed->type == 0 ? 0 : 255 );
 		break;
 
 	case 1:
@@ -266,8 +268,8 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 					/* No pixels painted ... fetch
 					 * directly from the input image.
 					 */
-					edge.left -= embed->x;
-					edge.top -= embed->y;
+					edge.left -= embed->left;
+					edge.top -= embed->top;
 					if( im_prepare( ir, &edge ) )
 						return( -1 );
 					p = (PEL *) IM_REGION_ADDR( ir,
@@ -283,14 +285,15 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 		break;
 
 	default:	
-		assert( 0 );
+		g_assert( 0 );
 	}
 
 	return( 0 );
 }
 
 static Embed *
-embed_new( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
+embed_new( IMAGE *in, IMAGE *out, 
+	int type, int left, int top, int width, int height )
 {
 	Embed *embed = IM_NEW( out, Embed );
 	Rect want;
@@ -299,11 +302,11 @@ embed_new( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 	 */
 	embed->in = in;
 	embed->out = out;
-	embed->flag = flag;
-	embed->x = x;
-	embed->y = y;
-	embed->w = w;
-	embed->h = h;
+	embed->type = type;
+	embed->left = left;
+	embed->top = top;
+	embed->width = width;
+	embed->height = height;
 
 	/* Whole output area.
 	 */
@@ -314,8 +317,8 @@ embed_new( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 
 	/* Rect occupied by image (can be clipped to nothing).
 	 */
-	want.left = x;
-	want.top = y;
+	want.left = left;
+	want.top = top;
 	want.width = in->Xsize;
 	want.height = in->Ysize;
 	im_rect_intersectrect( &want, &embed->rout, &embed->rsub );
@@ -378,19 +381,20 @@ embed_new( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 	return( embed );
 }
 
-/* Do flag 0/4 (black/white) and 1 (extend).
+/* Do type 0/4 (black/white) and 1 (extend).
  */
 static int
-embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
+embed( IMAGE *in, IMAGE *out, 
+	int type, int left, int top, int width, int height )
 {
 	Embed *embed;
 
 	if( im_cp_desc( out, in ) ) 
                 return( -1 );
-	out->Xsize = w;
-	out->Ysize = h;
+	out->Xsize = width;
+	out->Ysize = height;
 
-	if( !(embed = embed_new( in, out, flag, x, y, w, h )) ||
+	if( !(embed = embed_new( in, out, type, left, top, width, height )) ||
 		im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
 			im_start_one, embed_gen, im_stop_one,
@@ -404,13 +408,13 @@ embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
  * im_embed:
  * @in: input image
  * @out: output image
- * @flag: how to generate the edge pixels
- * @x: place @in at this x position in @out
- * @y: place @in at this y position in @out
- * @w: @out should be this many pixels across
- * @h: @out should be this many pixels down
+ * @type: how to generate the edge pixels
+ * @left: left edge of image in output
+ * @top: top edge of image in output
+ * @width: width of output
+ * @height: height of output
  *
- * The opposite of im_extract(): embed an image within a larger image. @flag
+ * The opposite of im_extract_area(): embed @in within a larger image. @type
  * controls what appears in the new pels:
  * 
  * <tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -443,30 +447,32 @@ embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
  * Returns: 0 on success, -1 on error.
  */
 int
-im_embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
+im_embed( IMAGE *in, IMAGE *out, 
+	int type, int left, int top, int width, int height )
 {
 	if( im_piocheck( in, out ) ||
 		im_check_coding_known( "im_embed", in ) )
 		return( -1 );
-	if( flag < 0 || flag > 4 ) {
-		im_error( "im_embed", "%s", _( "unknown flag" ) );
+	if( type < 0 || type > 4 ) {
+		im_error( "im_embed", "%s", _( "unknown type" ) );
 		return( -1 );
 	}
-	if( w <= 0 || h <= 0 ) {
+	if( width <= 0 || height <= 0 ) {
 		im_error( "im_embed", "%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
 
 	/* nip can generate this quite often ... just copy.
 	 */
-	if( x == 0 && y == 0 && w == in->Xsize && h == in->Ysize )
+	if( left == 0 && top == 0 && 
+		width == in->Xsize && height == in->Ysize )
 		return( im_copy( in, out ) );
 
-	switch( flag ) {
+	switch( type ) {
 	case 0:
 	case 1:
 	case 4:
-		if( embed( in, out, flag, x, y, w, h ) )
+		if( embed( in, out, type, left, top, width, height ) )
 			return( -1 );
 		break;
 
@@ -475,19 +481,19 @@ im_embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 		/* Clock arithmetic: we want negative x/y to wrap around
 		 * nicely.
 		 */
-		const int nx = x < 0 ?
-			-x % in->Xsize :
-			in->Xsize - x % in->Xsize;
-		const int ny = y < 0 ?
-			-y % in->Ysize :
-			in->Ysize - y % in->Ysize;
+		const int nleft = left < 0 ?
+			-left % in->Xsize : in->Xsize - left % in->Xsize;
+		const int ntop = top < 0 ?
+			-top % in->Ysize : in->Ysize - top % in->Ysize;
 
 		IMAGE *t[1];
 
-		if( im_open_local_array( out, t, 1, "embed-flag2", "p" ) ||
+		if( im_open_local_array( out, t, 1, "embed-type", "p" ) ||
 			im_replicate( in, t[0], 
-				w / in->Xsize + 2, h / in->Ysize + 2 ) ||
-			im_extract_area( t[0], out, nx, ny, w, h ) )
+				width / in->Xsize + 2, 
+				height / in->Ysize + 2 ) ||
+			im_extract_area( t[0], out, 
+				nleft, ntop, width, height ) )
 			return( -1 );
 }
 		break;
@@ -497,15 +503,17 @@ im_embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 		/* As case 2, but the tiles are twice the size because of
 		 * mirroring.
 		 */
-		const int w2 = in->Xsize * 2;
-		const int h2 = in->Ysize * 2;
+		const int width2 = in->Xsize * 2;
+		const int height2 = in->Ysize * 2;
 
-		const int nx = x < 0 ?  -x % w2 : w2 - x % w2;
-		const int ny = y < 0 ?  -y % h2 : h2 - y % h2;
+		const int nleft = left < 0 ? 
+			-left % width2 : width2 - left % width2;
+		const int ntop = top < 0 ? 
+			-top % height2 : height2 - top % height2;
 
 		IMAGE *t[7];
 
-		if( im_open_local_array( out, t, 7, "embed-flag3", "p" ) ||
+		if( im_open_local_array( out, t, 7, "embed-type", "p" ) ||
 			/* Cache the edges of in, since we may well be reusing
 			 * them repeatedly. Will only help for tiny borders
 			 * (up to 20 pixels?), but that's our typical case
@@ -533,23 +541,25 @@ im_embed( IMAGE *in, IMAGE *out, int flag, int x, int y, int w, int h )
 			/* Repeat, then cut out the centre.
 			 */
 			im_replicate( t[4], t[5], 
-				w / t[4]->Xsize + 2, h / t[4]->Ysize + 2 ) ||
-			im_extract_area( t[5], t[6], nx, ny, w, h ) ||
+				width / t[4]->Xsize + 2, 
+				height / t[4]->Ysize + 2 ) ||
+			im_extract_area( t[5], t[6], 
+				nleft, ntop, width, height ) ||
 
 			/* Overwrite the centre with the input, much faster
 			 * for centre pixels.
 			 */
-			im_insert_noexpand( t[6], in, out, x, y ) )
+			im_insert_noexpand( t[6], in, out, left, top ) )
 				return( -1 );
 }
 		break;
 
 	default:
-		assert( 0 );
+		g_assert( 0 );
 	}
 
-	out->Xoffset = x;
-	out->Yoffset = y;
+	out->Xoffset = left;
+	out->Yoffset = top;
 
 	return( 0 );
 }
