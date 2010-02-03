@@ -65,6 +65,30 @@
  * RAW and one that wraps libMagick. 
  */
 
+/**
+ * VipsFormat:
+ *
+ * Actually, we never make %VipsFormat objects, we just use virtual methods on
+ * the class object. It is defined as:
+ *
+ * |[
+ * typedef struct _VipsFormatClass {
+ *   VipsObjectClass parent_class;
+ *
+ *   gboolean (*is_a)( const char * );
+ *   int (*header)( const char *, IMAGE * );
+ *   int (*load)( const char *, IMAGE * );
+ *   int (*save)( IMAGE *, const char * );
+ *   VipsFormatFlags (*get_flags)( const char * );
+ *   int priority;
+ *   const char **suffs;
+ * } VipsFormatClass;
+ * ]|
+ *
+ * Subclasses need to implement at least load() or save().
+ *
+ */
+
 /* To iterate over supported formats, we build a temp list of subclasses of 
  * VipsFormat, sort by priority, iterate, and free.
  */
@@ -91,7 +115,7 @@ format_compare( VipsFormatClass *a, VipsFormatClass *b )
  * @a: user data
  * @b: user data
  *
- * Apply a function to every #VipsFormatClass that VIPS knows about. Formats
+ * Apply a function to every %VipsFormatClass that VIPS knows about. Formats
  * are presented to the function in priority order. 
  *
  * Like all VIPS map functions, if @fn returns %NULL, iteration continues. If
