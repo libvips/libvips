@@ -48,9 +48,21 @@
  * @see_also: <link linkend="libvips-image">image</link>
  * @include: vips/vips.h
  *
- * VIPS has a simple system for representing image load ans save operations in
+ * VIPS has a simple system for representing image load and save operations in
  * a generic way.
+ * You can ask for a loader for a certain file, select a saver based on a
+ * filename, or register a new image file format. You can also call the
+ * converters directly, if you like.
  *
+ * Each format has a priority. Some loaders (such as the libMagick one) can
+ * handle several formats. Priorities let you ensure that these generic
+ * loaders are only used as a last resort. 
+ *
+ * Each format has a set of flags you can read which hint about the loader's
+ * capabilities. See #VipsFormatFlags.
+ *
+ * VIPS comes with loaders for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
+ * RAW and one that wraps libMagick. 
  */
 
 /* To iterate over supported formats, we build a temp list of subclasses of 
@@ -73,6 +85,23 @@ format_compare( VipsFormatClass *a, VipsFormatClass *b )
         return( b->priority - a->priority );
 }
 
+/**
+ * vips_format_map:
+ * @fn: function to apply to each #VipsFormatClass
+ * @a: user data
+ * @b: user data
+ *
+ * Apply a function to every #VipsFormatClass that VIPS knows about. Formats
+ * are presented to the function in priority order. 
+ *
+ * Like all VIPS map functions, if @fn returns %NULL, iteration continues. If
+ * it returns non-%NULL, iteration terminates and that value is returned. The
+ * map function returns %NULL if all calls return %NULL.
+ *
+ * See also: im_slist_map().
+ *
+ * Returns: the result of iteration
+ */
 void *
 vips_format_map( VSListMap2Fn fn, void *a, void *b )
 {
@@ -137,6 +166,15 @@ vips_format_init( VipsFormat *object )
 {
 }
 
+/**
+ * vips_format_get_flags:
+ * @format: format to test
+ * @filename: file to test
+ *
+ * Get a set of flags for this file. 
+ *
+ * Returns: flags for this format and file
+ */
 VipsFormatFlags
 vips_format_get_flags( VipsFormatClass *format, const char *filename )
 {
@@ -264,6 +302,16 @@ format_for_file_sub( VipsFormatClass *format,
 	return( NULL );
 }
 
+/**
+ * vips_format_for_file:
+ * @name: file to find a format for
+ *
+ * Searches for a format you could use to load a file.
+ *
+ * See also: vips_format_read(), vips_format_for_name().
+ *
+ * Returns: a format on success, %NULL on error
+ */
 VipsFormatClass *
 vips_format_for_file( const char *name )
 {
@@ -306,6 +354,16 @@ format_for_name_sub( VipsFormatClass *format, const char *name )
 	return( NULL );
 }
 
+/**
+ * vips_format_for_name:
+ * @name: name to find a format for
+ *
+ * Searches for a format you could use to save a file.
+ *
+ * See also: vips_format_write(), vips_format_for_file().
+ *
+ * Returns: a format on success, %NULL on error
+ */
 VipsFormatClass *
 vips_format_for_name( const char *name )
 {
@@ -326,6 +384,17 @@ vips_format_for_name( const char *name )
 	return( format );
 }
 
+/**
+ * vips_format_read:
+ * @name: file to load
+ * @out: write the file to this image
+ *
+ * Searches for a format for this file, then loads the file into @out.
+ *
+ * See also: vips_format_write().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_format_read( const char *name, IMAGE *out )
 {
@@ -338,6 +407,17 @@ vips_format_read( const char *name, IMAGE *out )
 	return( 0 );
 }
 
+/**
+ * vips_format_write:
+ * @im: image to write
+ * @name: file to write to
+ *
+ * Searches for a format for this name, then saves @im to it.
+ *
+ * See also: vips_format_read().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_format_write( IMAGE *im, const char *name )
 {
