@@ -1,14 +1,4 @@
-/* @(#) Convolve an image with a DOUBLEMASK. Image can have any number of bands,
- * @(#) any non-complex type. Output is IM_BANDFMT_FLOAT for all non-complex inputs
- * @(#) except IM_BANDFMT_DOUBLE, which gives IM_BANDFMT_DOUBLE.
- * @(#)
- * @(#) int 
- * @(#) im_conv_f( in, out, mask )
- * @(#) IMAGE *in, *out;
- * @(#) DOUBLEMASK *mask;
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail)
- * @(#) 
+/* im_conv_f
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -43,6 +33,9 @@
  * 13/11/09
  * 	- rename as im_conv_f() to make it easier to vips.c to make the
  * 	  overloaded version
+ * 3/2/10
+ * 	- gtkdoc
+ * 	- more cleanups
  */
 
 /*
@@ -320,14 +313,9 @@ im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	 */
 	if( im_piocheck( in, out ) ||
 		im_check_uncoded( "im_conv", in ) ||
-		im_check_noncomplex( "im_conv", in ) ) 
+		im_check_noncomplex( "im_conv", in ) || 
+		im_check_dmask( "im_conv", mask ) ) 
 		return( -1 );
-	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
-		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
-		mask->scale == 0 ) {
-		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
-		return( -1 );
-	}
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 
@@ -360,7 +348,24 @@ im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+/**
+ * im_conv_f:
+ * @in: input image
+ * @out: output image
+ * @mask: convolution mask
+ *
+ * Convolve @in with @mask using floating-point arithmetic. The output image 
+ * is always %IM_BANDFMT_FLOAT unless @in is %IM_BANDFMT_DOUBLE, in which case
+ * @out is also %IM_BANDFMT_DOUBLE. Non-complex images
+ * only.
+ *
+ * Each output pixel is
+ * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
+ * and offset are part of @mask. 
+ *
+ * See also: im_conv(), im_convsep_f(), im_create_dmaskv().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_conv_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )

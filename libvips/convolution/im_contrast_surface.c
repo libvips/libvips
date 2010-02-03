@@ -1,27 +1,4 @@
-/* @(#) Generate an image where the value of each pixel represents the
- * @(#) contrast within a window of half_win_size from the corresponsing
- * @(#) point in the input image. Sub-sample by a factor of spacing.
- * @(#)
- * @(#) Pixels beyond the edges of the image are considered to be have the
- * @(#) value zero (black).
- * @(#)
- * @(#) Input must be single-band uncoded uchar, WIO or PIO.
- * @(#)
- * @(#) Output is single-band uncoded uint, WIO or PIO.
- * @(#)
- * @(#) int
- * @(#) im_contrast_surface(
- * @(#)   IMAGE *in,
- * @(#)   IMAGE *out,
- * @(#)   int    half_win_size,
- * @(#)   int    spacing
- * @(#) );
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail)
- * @(#)
- * @(#) Also: im_contrast_surface_raw(). As above, but pixels within
- * @(#) half_win_size of the edge are not calculated, and output is smaller
- * @(#) accordingly.
+/* im_contrast_surface
  *
  * Copyright: 2006, The Nottingham Trent University
  *
@@ -29,6 +6,9 @@
  * (based on algorithm by Nicos Dessipris & John Cupitt)
  *
  * Written on: 2006-03-13
+ * 3/2/10
+ * 	- gtkdoc
+ * 	- small cleanups
  */
 
 /*
@@ -111,6 +91,21 @@ static unsigned int calc_cont (REGION * reg, int win_size_less_one,
 
 /** EXPORTED FUNCTIONS **/
 
+/**
+ * im_contrast_surface:
+ * @in: input image
+ * @out: output image
+ * @half_win_size: window radius
+ * @spacing: subsample output by this
+ *
+ * Generate an image where the value of each pixel represents the
+ * contrast within a window of half_win_size from the corresponsing
+ * point in the input image. Sub-sample by a factor of spacing.
+ * 
+ * See also: im_spcor(), im_gradcor().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_contrast_surface (IMAGE * in, IMAGE * out, int half_win_size, int spacing)
 {
@@ -138,15 +133,11 @@ im_contrast_surface_raw (IMAGE * in, IMAGE * out, int half_win_size,
 
   cont_surf_params_t *params;
 
-  if (im_piocheck (in, out))
+  if (im_piocheck (in, out) ||
+    im_check_uncoded (FUNCTION_NAME, in) ||
+    im_check_mono (FUNCTION_NAME, in) ||
+    im_check_format (FUNCTION_NAME, in, IM_BANDFMT_UCHAR))
     return -1;
-
-  if (IM_CODING_NONE != in->Coding || IM_BANDFMT_UCHAR != in->BandFmt
-      || 1 != in->Bands)
-    {
-      im_error (FUNCTION_NAME, "%s", _("one band uncoded uchar only"));
-      return -1;
-    }
 
   if (half_win_size < 1 || spacing < 1)
     {

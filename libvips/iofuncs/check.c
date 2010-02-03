@@ -920,6 +920,60 @@ im_check_vector( const char *domain, int n, IMAGE *im )
 }
 
 /**
+ * im_check_imask:
+ * @domain: the originating domain for the error message
+ * @mask: mask to check
+ *
+ * Sanity-check a mask parameter.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_imask( const char *domain, INTMASK *mask )
+{
+	if( !mask || 
+		mask->xsize > 1000 || 
+		mask->ysize > 1000 || 
+		mask->xsize <= 0 || 
+		mask->ysize <= 0 || 
+		!mask->coeff ) {
+		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * im_check_dmask:
+ * @domain: the originating domain for the error message
+ * @mask: mask to check
+ *
+ * Sanity-check a mask parameter.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_dmask( const char *domain, DOUBLEMASK *mask )
+{
+	if( !mask || 
+		mask->xsize > 1000 || 
+		mask->ysize > 1000 || 
+		mask->xsize <= 0 || 
+		mask->ysize <= 0 || 
+		!mask->coeff ) {
+		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * vips_bandfmt_isint:
  * @fmt: format to test
  *

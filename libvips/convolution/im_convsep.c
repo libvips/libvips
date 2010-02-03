@@ -1,15 +1,4 @@
-/* @(#) Convolve an image with a seperable (1xN, or Nx1) INTMASK. Image can 
- * @(#) have any number of bands, any non-complex type. Size and type of 
- * @(#) output image matches type of input image.
- * @(#)
- * @(#) int 
- * @(#) im_convsep( in, out, mask )
- * @(#) IMAGE *in, *out;
- * @(#) INTMASK *mask;
- * @(#)
- * @(#) Also: im_convsep_raw(). As above, but does not add a black border.
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail)
+/* im_convsep
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -29,6 +18,9 @@
  *	  overflow on intermediates
  * 12/5/08
  * 	- int rounding was +1 too much, argh
+ * 3/2/10
+ * 	- gtkdoc
+ * 	- more cleanups
  */
 
 /*
@@ -379,24 +371,16 @@ im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	/* Check parameters.
 	 */
-	if( !in || in->Coding != IM_CODING_NONE || 
-		vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_convsep", "%s", _( "non-complex uncoded only" ) );
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_convsep", in ) ||
+		im_check_noncomplex( "im_convsep", in ) ||
+		im_check_imask( "im_convsep", mask ) ) 
 		return( -1 );
-	}
-	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
-		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
-		mask->scale == 0 ) {
-		im_error( "im_convsep", "%s", _( "nonsense mask parameters" ) );
-		return( -1 );
-	}
 	if( mask->xsize != 1 && mask->ysize != 1 ) {
                 im_error( "im_convsep", 
 			"%s", _( "expect 1xN or Nx1 input mask" ) );
                 return( -1 );
 	}
-	if( im_piocheck( in, out ) )
-		return( -1 );
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 
@@ -424,7 +408,32 @@ im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+
+/**
+ * im_convsep:
+ * @in: input image
+ * @out: output image
+ * @mask: convolution mask
+ *
+ * Perform a separable convolution of @in with @mask using integer arithmetic. 
+ *
+ * The mask must be 1xn or nx1 elements. 
+ * The output image 
+ * always has the same #VipsBandFmt as the input image. Non-complex images
+ * only.
+ *
+ * The image is convolved twice: once with @mask and then again with @mask 
+ * rotated by 90 degrees. This is much faster for certain types of mask
+ * (gaussian blur, for example) than doing a full 2D convolution.
+ *
+ * Each output pixel is
+ * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
+ * and offset are part of @mask. For integer @in, the division by scale
+ * includes round-to-nearest.
+ *
+ * See also: im_convsep_f(), im_conv(), im_create_imaskv().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_convsep( IMAGE *in, IMAGE *out, INTMASK *mask )

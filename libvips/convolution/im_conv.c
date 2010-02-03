@@ -1,27 +1,4 @@
-/* @(#) Convolve an image with an INTMASK. Image can have any number of bands,
- * @(#) any non-complex type. Size and type of output image matches type of 
- * @(#) input image.
- * @(#)
- * @(#) int 
- * @(#) im_conv( in, out, mask )
- * @(#) IMAGE *in, *out;
- * @(#) INTMASK *mask;
- * @(#)
- * @(#) Also: im_conv_raw(). As above, but does not add a black border.
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail)
- * @(#) 
- * @(#) Old code, kept for use of other old code in this package: 
- * @(#) 
- * @(#)  Creates int luts for all non zero elm of the original mask;
- * @(#) which is kept in buffer of length buffersize
- * @(#) cnt is needed for freeing luts.  Called by the above.
- * @(#)
- * @(#) int im__create_int_luts( buffer, buffersize, orig_luts, luts, cnt )
- * @(#) int *buffer, buffersize;
- * @(#) int **orig_luts, **luts, *cnt;
- * @(#)
- * @(#) Returns either 0 (sucess) or -1 (fail)
+/* im_conv
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -71,6 +48,9 @@
  * 	- only check for non-zero elements once
  * 	- add mask-all-zero check
  * 	- cleanups
+ * 3/2/10
+ * 	- gtkdoc
+ * 	- more cleanups
  */
 
 /*
@@ -285,7 +265,7 @@ conv_start( IMAGE *out, void *a, void *b )
 	i += 1; \
 }
 
-/* INT and FLOAT inner loops.
+/* INT inner loops.
  */
 #define CONV_INT( TYPE, IM_CLIP ) { \
 	TYPE ** restrict p = (TYPE **) seq->pts; \
@@ -307,6 +287,8 @@ conv_start( IMAGE *out, void *a, void *b )
 	}  \
 } 
 
+/* FLOAT inner loops.
+ */
 #define CONV_FLOAT( TYPE ) { \
 	TYPE ** restrict p = (TYPE **) seq->pts; \
 	TYPE * restrict q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
@@ -434,14 +416,9 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	 */
 	if( im_piocheck( in, out ) ||
 		im_check_uncoded( "im_conv", in ) ||
-		im_check_noncomplex( "im_conv", in ) ) 
+		im_check_noncomplex( "im_conv", in ) ||
+		im_check_imask( "im_conv", mask ) ) 
 		return( -1 );
-	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
-		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
-		mask->scale == 0 ) {
-		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
-		return( -1 );
-	}
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 
@@ -460,10 +437,8 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
-	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
-		return( -1 );
-
-	if( im_generate( out, conv_start, conv_gen, conv_stop, in, conv ) )
+	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) ||
+		im_generate( out, conv_start, conv_gen, conv_stop, in, conv ) )
 		return( -1 );
 
 	out->Xoffset = -mask->xsize / 2;
@@ -472,7 +447,24 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+/**
+ * im_conv:
+ * @in: input image
+ * @out: output image
+ * @mask: convolution mask
+ *
+ * Convolve @in with @mask using integer arithmetic. The output image 
+ * always has the same #VipsBandFmt as the input image. Non-complex images
+ * only.
+ *
+ * Each output pixel is
+ * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
+ * and offset are part of @mask. For integer @in, the division by scale
+ * includes round-to-nearest.
+ *
+ * See also: im_conv_f(), im_convsep(), im_create_imaskv().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_conv( IMAGE *in, IMAGE *out, INTMASK *mask )

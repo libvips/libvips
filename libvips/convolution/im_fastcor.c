@@ -1,19 +1,4 @@
-/* @(#) Functions which calculates spatial correlation between two images.
- * @(#) by taking absolute differences pixel by pixel without calculating 
- * @(#) the correlation coefficient.
- * @(#) 
- * @(#) The function works as follows:
- * @(#) 
- * @(#) int im_fastcor( im, ref, out )
- * @(#) IMAGE *im, *ref, *out;
- * @(#) 
- * @(#) ref must be smaller than in.  The correlation is
- * @(#) calculated by overlaping im on the top left corner of ref
- * @(#) and moving it all over ref calculating the correlation coefficient
- * @(#) at each point.  The resultant coefficients are written as unsigned int
- * @(#) numbers in out which has the size of im.
- * @(#)
- * @(#) Returns 0 on sucess  and -1 on error.
+/* im_fastcor
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -34,6 +19,9 @@
  *	- use im_embed() with edge stretching on the input, not the output
  *	- calculate sum of squares of differences, rather than abs of
  *	  difference
+ * 3/2/10
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -142,7 +130,8 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
 	/* PIO between in and out; WIO from ref.
 	 */
-	if( im_piocheck( in, out ) || im_incheck( ref ) )
+	if( im_piocheck( in, out ) || 
+		im_incheck( ref ) )
 		return( -1 );
 
 	/* Check sizes.
@@ -154,14 +143,13 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 	/* Check types.
 	 */
-	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ||
-		in->BandFmt != IM_BANDFMT_UCHAR ||
-		ref->Coding != IM_CODING_NONE || ref->Bands != 1 ||
-		ref->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_fastcor_raw", "%s", 
-			_( "input not uncoded 1 band uchar" ) );
+	if( im_check_uncoded( "im_fastcor", in ) ||
+		im_check_format( "im_fastcor", in, IM_BANDFMT_UCHAR ) ||
+		im_check_mono( "im_fastcor", in ) || 
+		im_check_uncoded( "im_fastcor", ref ) ||
+		im_check_format( "im_fastcor", ref, IM_BANDFMT_UCHAR ) ||
+		im_check_mono( "im_fastcor", ref ) ) 
 		return( -1 );
-	}
 
 	/* Prepare the output image. 
 	 */
@@ -171,16 +159,12 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	out->Xsize = in->Xsize - ref->Xsize + 1;
 	out->Ysize = in->Ysize - ref->Ysize + 1;
 
-	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
+	/* FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
-	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
-		return( -1 );
-
-	/* Write the correlation.
-	 */
-	if( im_generate( out,
-		im_start_one, fastcor_gen, im_stop_one, in, ref ) )
+	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) ||
+		im_generate( out, 
+			im_start_one, fastcor_gen, im_stop_one, in, ref ) )
 		return( -1 );
 
 	out->Xoffset = -ref->Xsize / 2;
@@ -189,7 +173,22 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+/**
+ * im_fastcor:
+ * @in: input image
+ * @ref: reference image
+ * @out: output image
+ *
+ * Calculate a fast correlation surface.
+ *
+ * @ref is placed at every position in @in and the sum of squares of
+ * differences calculated. One-band, 8-bit unsigned images only. The output
+ * image is always %IM_BANDFMT_UINT. @ref must be smaller than @in. The output
+ * image is the same size as the input.
+ *
+ * See also: im_spcor().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_fastcor( IMAGE *in, IMAGE *ref, IMAGE *out )

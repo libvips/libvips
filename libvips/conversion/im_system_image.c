@@ -113,6 +113,15 @@ system_image( IMAGE *im,
  *
  * In all cases, @log must be freed with im_free().
  *
+ * For example, this call will run the ImageMagick convert program on an
+ * image, using JPEG files to pass images into and out of the convert command.
+ *
+ * |[
+ * im_system_image( in, out, 
+ *   "%s.jpg", "%s.jpg", "convert %s -swirl 45 %s", 
+ *   &log )
+ * ]|
+ *
  * See also: im_system().
  *
  * Returns: an image on success, NULL on error

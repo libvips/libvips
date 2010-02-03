@@ -59,6 +59,8 @@ int im_check_u8or16( const char *domain, IMAGE *im );
 int im_check_format_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_size_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_vector( const char *domain, int n, IMAGE *im );
+int im_check_imask( const char *domain, INTMASK *mask );
+int im_check_dmask( const char *domain, DOUBLEMASK *mask );
 
 gboolean vips_bandfmt_isint( VipsBandFmt fmt );
 gboolean vips_bandfmt_isuint( VipsBandFmt fmt );

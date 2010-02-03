@@ -1,21 +1,4 @@
-/* @(#) Functions which calculates the correlation coefficient between two 
- * @(#) images. 
- * @(#) 
- * @(#) int im_spcor( IMAGE *in, IMAGE *ref, IMAGE *out )
- * @(#) 
- * @(#) We calculate:
- * @(#) 
- * @(#) 	 sumij (ref(i,j)-mean(ref))(inkl(i,j)-mean(inkl))
- * @(#) c(k,l) = ------------------------------------------------
- * @(#) 	 sqrt(sumij (ref(i,j)-mean(ref))^2) *
- * @(#) 		       sqrt(sumij (inkl(i,j)-mean(inkl))^2)
- * @(#) 
- * @(#) where inkl is the area of in centred at position (k,l).
- * @(#) 
- * @(#) Writes float to out. in and ref must be 1 band uchar, or 1 band
- * @(#) ushort.
- * @(#)
- * @(#) Returns 0 on sucess  and -1 on error.
+/* im_spcor
  *
  * Copyright: 1990, N. Dessipris; 2006, 2007 Nottingham Trent University.
  *
@@ -48,6 +31,9 @@
  *      - make im_spcor a wrapper selecting either im__spcor or im__spcor2
  * 2008-09-09 JC
  * 	- roll back the windowed version for now, it has some tile edge effects
+ * 3/2/10
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -185,14 +171,11 @@ spcor_gen( REGION *or, void *vseq, void *a, void *b )
 			 */
 			switch( ref->BandFmt ) {
 			case IM_BANDFMT_UCHAR:	LOOP(unsigned char); break;
+			case IM_BANDFMT_CHAR:	LOOP(signed char); break;
 			case IM_BANDFMT_USHORT: LOOP(unsigned short); break;
 			case IM_BANDFMT_SHORT:	LOOP(signed short); break;
 			default:
-				error_exit( "im_spcor: internal error #7934" );
-
-				/* Keep gcc -Wall happy.
-				 */
-				return( -1 );
+				g_assert( 0 );
 			}
 
 			/* Now: calculate correlation coefficient!
@@ -260,20 +243,17 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 	/* Check types.
 	 */
-	if( in->Coding != IM_CODING_NONE || 
-		in->Bands != 1 ||
-		ref->Coding != IM_CODING_NONE || 
-		ref->Bands != 1 ||
-		in->BandFmt != ref->BandFmt ) {
-		im_error( "im_spcor_raw", 
-			"%s", _( "input not uncoded 1 band" ) );
+	if( im_check_uncoded( "im_spcor", in ) ||
+		im_check_mono( "im_spcor", in ) || 
+		im_check_uncoded( "im_spcor", ref ) ||
+		im_check_mono( "im_spcor", ref ) || 
+		im_check_format_same( "im_spcor", in, ref ) )
 		return( -1 );
-	}
 	if( in->BandFmt != IM_BANDFMT_UCHAR && 
 		in->BandFmt != IM_BANDFMT_CHAR &&
 		in->BandFmt != IM_BANDFMT_SHORT &&
 		in->BandFmt != IM_BANDFMT_USHORT ) {
-		im_error( "im_spcor_raw", 
+		im_error( "im_spcor", 
 			"%s", _( "input not char/uchar/short/ushort" ) );
 		return( -1 );
 	}
@@ -309,7 +289,37 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	return( 0 );
 }
 
-/* The above, with the input expanded to make out the same size as in.
+/**
+ * im_spcor:
+ * @in: input image
+ * @ref: reference image
+ * @out: output image
+ *
+ * Calculate a correlation surface.
+ *
+ * @ref is placed at every position in @in and the correlation coefficient
+ * calculated. One-band, 8 or 16-bit images only. @in and @ref must have the
+ * same #VipsBandFmt. The output
+ * image is always %IM_BANDFMT_FLOAT. @ref must be smaller than @in. The output
+ * image is the same size as the input. 
+ *
+ * The correlation coefficient is calculated as:
+ *
+ * |[
+ *          sumij (ref(i,j)-mean(ref))(inkl(i,j)-mean(inkl))
+ * c(k,l) = ------------------------------------------------
+ *          sqrt(sumij (ref(i,j)-mean(ref))^2) *
+ *                      sqrt(sumij (inkl(i,j)-mean(inkl))^2)
+ * ]|
+ *
+ * where inkl is the area of @in centred at position (k,l).
+ *
+ * from Niblack "An Introduction to Digital Image Processing", 
+ * Prentice/Hall, pp 138.
+ *
+ * See also: im_gradcor(), im_fastcor().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_spcor( IMAGE *in, IMAGE *ref, IMAGE *out )

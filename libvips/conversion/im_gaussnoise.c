@@ -105,7 +105,7 @@ gnoise_gen( REGION *or, void *seq, void *a, void *b )
 
 /**
  * im_gaussnoise:
- * @out: output #IMAGE
+ * @out: output image
  * @x: output width
  * @y: output height
  * @mean: average value in output
@@ -115,7 +115,7 @@ gnoise_gen( REGION *or, void *seq, void *a, void *b )
  * distribution. The noise distribution is created by averaging 12 random 
  * numbers with the appropriate weights.
  *
- * See also: im_make_xy(), im_text(), im_black().
+ * See also: im_addgnoise(), im_make_xy(), im_text(), im_black().
  *
  * Returns: 0 on success, -1 on error
  */

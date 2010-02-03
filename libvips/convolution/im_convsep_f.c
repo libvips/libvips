@@ -1,14 +1,4 @@
-/* @(#) Convolve an image with a DOUBLEMASK. Image can have any number of bands,
- * @(#) any non-complex type. Output is IM_BANDFMT_FLOAT for all non-complex inputs
- * @(#) except IM_BANDFMT_DOUBLE, which gives IM_BANDFMT_DOUBLE.
- * @(#) Separable mask of sizes 1xN or Nx1 
- * @(#)
- * @(#) int im_convsep_f( in, out, mask )
- * @(#) IMAGE *in, *out;
- * @(#) DOUBLEMASK *mask;		details in mask.h
- * @(#)
- * @(#) Returns either 0 (sucess) or -1 (fail)
- * @(#) Picture can have any number of channels (max 64).
+/* im_convsep_f
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -21,6 +11,9 @@
  *	- now uses im_embed() with edge stretching on the input, not
  *	  the output
  *	- sets Xoffset / Yoffset
+ * 3/2/10
+ * 	- gtkdoc
+ * 	- more cleanups
  */
 
 /*
@@ -81,10 +74,7 @@ typedef struct {
 static int
 conv_destroy( Conv *conv )
 {
-	if( conv->mask ) {
-		(void) im_free_dmask( conv->mask );
-		conv->mask = NULL;
-	}
+	IM_FREEF( im_free_dmask, conv->mask );
 
         return( 0 );
 }
@@ -285,26 +275,16 @@ im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 
 	/* Check parameters.
 	 */
-	if( !in || 
-		in->Coding != IM_CODING_NONE || 
-		vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_convsep_f", 
-			"%s", _( "non-complex uncoded only" ) );
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_convsep_f", in ) ||
+		im_check_noncomplex( "im_convsep_f", in ) || 
+		im_check_dmask( "im_convsep_f", mask ) ) 
 		return( -1 );
-	}
-	if( !mask || mask->xsize > 1000 || mask->ysize > 1000 || 
-		mask->xsize <= 0 || mask->ysize <= 0 || !mask->coeff ||
-		mask->scale == 0 ) {
-		im_error( "im_convsep_f", "%s", _( "bad mask parameters" ) );
-		return( -1 );
-	}
 	if( mask->xsize != 1 && mask->ysize != 1 ) {
                 im_error( "im_convsep_f", 
 			"%s", _( "expect 1xN or Nx1 input mask" ) );
                 return( -1 );
 	}
-	if( im_piocheck( in, out ) )
-		return( -1 );
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 
@@ -335,7 +315,32 @@ im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+/**
+ * im_convsep_f:
+ * @in: input image
+ * @out: output image
+ * @mask: convolution mask
+ *
+ * Perform a separable convolution of @in with @mask using floating-point 
+ * arithmetic. 
+ *
+ * The mask must be 1xn or nx1 elements. 
+ * The output image 
+ * is always %IM_BANDFMT_FLOAT unless @in is %IM_BANDFMT_DOUBLE, in which case
+ * @out is also %IM_BANDFMT_DOUBLE. Non-complex images
+ * only.
+ *
+ * The image is convolved twice: once with @mask and then again with @mask 
+ * rotated by 90 degrees. This is much faster for certain types of mask
+ * (gaussian blur, for example) than doing a full 2D convolution.
+ *
+ * Each output pixel is
+ * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
+ * and offset are part of @mask. 
+ *
+ * See also: im_convsep(), im_conv(), im_create_dmaskv().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )

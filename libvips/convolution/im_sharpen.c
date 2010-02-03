@@ -36,6 +36,9 @@
  *	- ~15% speed up in total
  * 29/11/06
  * 	- convolve first to help region sharing
+ * 3/2/10
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -212,6 +215,73 @@ sharpen_mask_new( int radius )
 	return( line );
 }
 
+/**
+ * im_sharpen:
+ * @in: input image
+ * @out: output image
+ * @mask_size: how large a mask to use
+ * @x1: flat/jaggy threshold
+ * @y2: maximum amount of brightening
+ * @y3: maximum amount of darkening
+ * @m1: slope for flat areas
+ * @m2: slope for jaggy areas
+ *
+ * Selectively sharpen the L channel of a LAB image. Works for %IM_CODING_LABQ 
+ * and LABS images. 
+ *
+ * The operation performs a gaussian blur of size @mask_size and subtracts 
+ * from @in to
+ * generate a high-frequency signal. This signal is passed through a lookup
+ * table formed from the five parameters and added back to @in.
+ *
+ * The lookup table is formed like this:
+ *
+ * |[
+                      ^
+                   y2 |- - - - - -----------
+                      |         / 
+                      |        / slope m2
+                      |    .../    
+              -x1     | ...   |    
+  -------------------...---------------------->
+              |   ... |      x1           
+              |... slope m1
+              /       |
+             / m2     |
+            /         |
+           /          |
+          /           |
+         /            |
+  ______/ _ _ _ _ _ _ | -y3
+                      |
+ * ]|
+ *
+ * For printing, we recommend the following settings:
+ *
+ * |[
+   mask_size == 7
+   x1 == 1.5
+   y2 == 20         (don't brighten by more than 20 L*)
+   y3 == 50         (can darken by up to 50 L*)
+
+   m1 == 1          (some sharpening in flat areas)
+   m2 == 2          (more sharpening in jaggy areas)
+ * ]|
+ *
+ * If you want more or less sharpening, we suggest you just change the m1 
+ * and m2 parameters. 
+ *
+ * The @mask_size parameter changes the width of the fringe and can be 
+ * adjusted according to the output printing resolution. As an approximate 
+ * guideline, use 3 for 4 pixels/mm (CRT display resolution), 5 for 8 
+ * pixels/mm, 7 for 12 pixels/mm and 9 for 16 pixels/mm (300 dpi == 12 
+ * pixels/mm). These figures refer to the image raster, not the half-tone 
+ * resolution.
+ *
+ * See also: im_conv().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_sharpen( IMAGE *in, IMAGE *out, 
 	int mask_size, 
@@ -243,20 +313,19 @@ im_sharpen( IMAGE *in, IMAGE *out,
 
 	/* Check IMAGE parameters 
 	 */
-	if( in->Coding != IM_CODING_NONE ||
-		in->Bands != 3 || 
-		in->BandFmt != IM_BANDFMT_SHORT ) {
-		im_error( "im_sharpen", "%s", _( "input not 3-band short" ) );
-	  	return( -1 );
-  	}
-
-  	if( im_piocheck( in, out ) )
+  	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_sharpen", in ) ||
+		im_check_bands( "im_gradcor", in, 3 ) || 
+		im_check_format( "im_gradcor", in, IM_BANDFMT_SHORT ) )
   		return( -1 );
 
 	/* Check number range.
 	 */
-	if( x1 < 0 || x2 < 0 || x1 > 99 || x2 > 99 || x1 > x2 ||
-		x3 < 0 || x3 > 99 || x1 > x3 ) {
+	if( x1 < 0 || x1 > 99 || 
+		x2 < 0 || x2 > 99 || 
+		x1 > x2 ||
+		x3 < 0 || x3 > 99 || 
+		x1 > x3 ) {
 		im_error( "im_sharpen", "%s", _( "parameters out of range" ) );
 		return( -1 );
 	}
