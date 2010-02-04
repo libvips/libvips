@@ -61,7 +61,7 @@
  * transparently supported by im_open().
  *
  * VIPS comes with loaders for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * RAW, VIPS and one that wraps libMagick. 
+ * Matlab, RAW, VIPS and one that wraps libMagick. 
  */
 
 /**

@@ -684,7 +684,7 @@ write_vips( Write *write, int qfac, const char *profile )
  * Example:
  *
  * |[
- * im_vips2jpeg( in, "fred.jpg:99,none" out );
+ * im_vips2jpeg( in, "fred.jpg:99,none" );
  * ]|
  *
  * Will write "fred.jpg" at high-quality with no ICC profile.
@@ -869,13 +869,24 @@ buf_dest( j_compress_ptr cinfo, IMAGE *out, char **obuf, int *olen )
 	buf->olen = olen;
 }
 
-/* As above, but save to a buffer. The buffer is allocated relative to out.
- * On success, buf is set to the output buffer and len to the size of the
- * compressed image.
-
- 	FIXME ... argh, the return length should really be a size_t, but we 
-	can't fix this now sadly
-
+/**
+ * im_vips2bufjpeg:
+ * @in: image to save 
+ * @out: allocate output buffer local to this
+ * @qfac: JPEG quality factor
+ * @obuf: return output buffer here
+ * @olen: return output length here
+ *
+ * As im_vips2jpeg(), but save as a memory buffer. The memory is allocated
+ * local to @out (that is, when @out is closed the memory will be released,
+ * pass %NULL to release yourself). 
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen. @olen should really be a size_t rather than an int :-(
+ *
+ * See also: #VipsFormat, im_vips2jpeg().
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen )
@@ -917,7 +928,16 @@ im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen )
 	return( 0 );
 }
 
-/* As above, but save as a mime jpeg on stdout.
+/**
+ * im_vips2mimejpeg:
+ * @in: image to save 
+ * @qfac: JPEG quality factor
+ *
+ * As im_vips2jpeg(), but save as a mime jpeg on stdout.
+ *
+ * See also: #VipsFormat, im_vips2jpeg().
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_vips2mimejpeg( IMAGE *in, int qfac )

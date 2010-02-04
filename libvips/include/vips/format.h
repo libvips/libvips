@@ -125,7 +125,7 @@ int im_vips2tiff( IMAGE *in, const char *filename );
 int im_tiff2vips( const char *filename, IMAGE *out );
 int im_tile_cache( IMAGE *in, IMAGE *out, 
 	int tile_width, int tile_height, int max_tiles );
-int im_magick2vips( const char *filename, IMAGE * );
+int im_magick2vips( const char *filename, IMAGE *out );
 int im_png2vips( const char *filename, IMAGE *out );
 int im_exr2vips( const char *filename, IMAGE *out );
 int im_ppm2vips( const char *filename, IMAGE *out );

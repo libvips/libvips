@@ -31,6 +31,8 @@
  *	- fix signed/unsigned warnings
  * 23/7/09
  * 	- SetImageOption() is optional (to help GM)
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -584,12 +586,30 @@ magick_fill_region( REGION *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_magick2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read in an image useing libMagick, the ImageMagick library. This library can
+ * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
+ * others.
+ * The reader can handle any ImageMagick image, including the float and double
+ * formats. It will work with any quantum size, including HDR. Any metadata
+ * attached to the libMagick image is copied on to the VIPS image.
+ *
+ * The reader should also work with most versions of GraphicsMagick.
+ *
+ * See also: #VipsFormat.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
-im_magick2vips( const char *filename, IMAGE *im )
+im_magick2vips( const char *filename, IMAGE *out )
 {
 	Read *read;
 
-	if( !(read = read_new( filename, im )) )
+	if( !(read = read_new( filename, out )) )
 		return( -1 );
 
 #ifdef HAVE_SETIMAGEOPTION
@@ -613,9 +633,9 @@ im_magick2vips( const char *filename, IMAGE *im )
 	}
 
 	if( parse_header( read ) ||
-		im_poutcheck( im ) || 
-		im_demand_hint( im, IM_SMALLTILE, NULL ) || 
-		im_generate( im, NULL, magick_fill_region, NULL, read, NULL ) )
+		im_poutcheck( out ) || 
+		im_demand_hint( out, IM_SMALLTILE, NULL ) || 
+		im_generate( out, NULL, magick_fill_region, NULL, read, NULL ) )
 		return( -1 );
 
 	return( 0 );

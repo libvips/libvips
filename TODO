@@ -1,3 +1,15 @@
+- im_mat2vips() needs to be exposed so we can document the matlab reader
+
+  any others?
+
+- im__convert_saveable() (in im_copy.c) always makes an 8-bit image
+
+  this means we can't save 16-bit PNG!
+
+
+
+
+
 - how about im_invalidate_area()? we currently repaint the whole window on
   every paint action in nip2 :-(
 

@@ -19,6 +19,8 @@
  * 	- use im_raw2vips() for binary read
  * 9/9/05
  * 	- tiny cleanups
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -433,6 +435,20 @@ isppmmmap( const char *filename )
 	return( !ascii && bits >= 8 );
 }
 
+/**
+ * im_ppm2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read a PPM/PBM/PGM file into a VIPS image. 
+ * It can read 1, 8, 16 and 32 bit images, colour or monochrome,
+ * stored in binary or in ASCII. One bit images become 8 bit VIPS images, 
+ * with 0 and 255 for 0 and 1.
+ *
+ * See also: #VipsFormat, im_vips2ppm().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_ppm2vips( const char *filename, IMAGE *out )
 {

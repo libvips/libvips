@@ -1,6 +1,8 @@
 /* Read raw image. Just a wrapper over im_binfile().
  * 
  * 3/8/05
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -44,6 +46,25 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/** 
+ * im_raw2vips:
+ * @filename: file to read
+ * @out: image to write to
+ * @width: image width in pixels
+ * @height: image height in pixels
+ * @bpp: bytes per pixel 
+ * @offset: skip this many bytes at the start of the file
+ *
+ * This operation mmaps the file, setting @out so that access to that 
+ * image will read from the file.
+ *
+ * Use functions like im_copy_morph() to set the pixel type, byte ordering 
+ * and so on.
+ *
+ * See also: im_vips2raw().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_raw2vips( const char *filename, IMAGE *out, 
 	int width, int height, int bpp, int offset )

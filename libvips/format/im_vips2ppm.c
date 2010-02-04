@@ -6,6 +6,9 @@
  * 	- tiny cleanups
  * 3/11/07
  * 	- use im_wbuffer() for bg writes
+ * 4/2/10
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -226,6 +229,28 @@ write_ppm( Write *write, int ascii )
 	return( 0 );
 }
 
+/**
+ * im_vips2ppm:
+ * @in: image to save 
+ * @filename: file to write to 
+ *
+ * Write a VIPS image to a file as PPM. It can write 8, 16 or
+ * 32 bit unsigned integer images, colour or monochrome, stored as binary or 
+ * ASCII. 
+ * Images of more than 8 bits can only be stored in ASCII.
+ *
+ * The storage format is indicated by a filename extension, for example:
+ *
+ * |[ 
+ * im_vips2ppm( im, "fred.ppm:ascii" )
+ * ]|
+ *
+ * will write to "fred.ppm" in ascii format. The default is binary.
+ *
+ * See also: #VipsFormat, im_ppm2vips().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_vips2ppm( IMAGE *in, const char *filename )
 {
@@ -259,22 +284,13 @@ im_vips2ppm( IMAGE *in, const char *filename )
 			"%s", _( "can't write binary >8 bit images" ) );
 		return( -1 );
 	}
-	if( !vips_bandfmt_isuint( in->BandFmt ) ) {
-		im_error( "im_vips2ppm", 
-			"%s", _( "unsigned int formats only" ) );
+	if( im_check_uint( "im_vips2ppm", in ) || 
+		im_check_bands_1or3( "im_vips2ppm", in ) || 
+		im_check_uncoded( "im_vips2ppm", in ) || 
+		im_pincheck( in ) )
 		return( -1 );
-	}
-	if( in->Coding != IM_CODING_NONE && in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_vips2ppm", 
-			"%s", _( "uncoded or IM_CODING_LABQ only" ) );
-		return( -1 );
-	}
-	if( in->Bands != 1 && in->Bands != 3 ) {
-		im_error( "im_vips2ppm", "%s", _( "1 or 3 band images only" ) );
-		return( -1 );
-	}
 
-	if( im_pincheck( in ) || !(write = write_new( in, name )) )
+	if( !(write = write_new( in, name )) )
 		return( -1 );
 
 	if( write_ppm( write, ascii ) ) {

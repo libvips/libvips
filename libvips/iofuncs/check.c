@@ -639,6 +639,30 @@ im_check_bands( const char *domain, IMAGE *im, int bands )
 }
 
 /**
+ * im_check_1or3:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image has either one or three bands.
+ * Otherwise set an error message
+ * and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_bands_1or3( const char *domain, IMAGE *im )
+{
+	if( im->Bands != 1 && im->Bands != 3 ) {
+		im_error( domain, "%s", _( "image must one or three bands" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_bands_1orn:
  * @domain: the originating domain for the error message
  * @im1: first image to check
@@ -759,6 +783,30 @@ im_check_int( const char *domain, IMAGE *im )
 {
 	if( !vips_bandfmt_isint( im->BandFmt ) ) {
 		im_error( domain, "%s", _( "image must be integer" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * im_check_uint:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is in one of the unsigned integer formats.
+ * Otherwise set an error message
+ * and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_uint( const char *domain, IMAGE *im )
+{
+	if( !vips_bandfmt_isuint( im->BandFmt ) ) {
+		im_error( domain, "%s", _( "image must be unsigned integer" ) );
 		return( -1 );
 	}
 

@@ -7,8 +7,10 @@
  * 23/8/06
  * 	- take ownership of reused tiles in case the cache is being shared
  * 13/2/07
- * 	- relase ownership after fillng with pixels in case we read across
- * 	threads
+ * 	- release ownership after fillng with pixels in case we read across
+ * 	  threads
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -363,6 +365,29 @@ fill_region( REGION *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/** 
+ * im_tile_cache:
+ * @in: input image
+ * @out: output image
+ * @tile_width: tile width
+ * @tile_height: tile height
+ * @max_tiles: maximum number of tiles to cache
+ *
+ * This operation behaves rather like im_copy() between images
+ * @in and @out, except that it keeps a cache of computed pixels. 
+ * This cache is made of up to @max_tiles tiles (a value of -1 for
+ * means any number of tiles), and each tile is of size @tile_width
+ * by @tile_height pixels. Each cache tile is made with a single call to 
+ * im_prepare().
+ *
+ * This is a lower-level operation than im_cache() since it does no 
+ * subdivision. It is suitable for caching the output of operations like
+ * im_exr2vips() on tiled images.
+ *
+ * See also: im_cache().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_tile_cache( IMAGE *in, IMAGE *out,
 	int tile_width, int tile_height, int max_tiles )
@@ -373,18 +398,14 @@ im_tile_cache( IMAGE *in, IMAGE *out,
 		im_error( "im_tile_cache", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
-	if( im_piocheck( in, out ) )
-		return( -1 );
-        if( im_cp_desc( out, in ) )
-                return( -1 );
-	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
-		return( -1 );
 
-	if( !(read = read_new( in, out, 
-		tile_width, tile_height, max_tiles )) )
-		return( -1 );
-	if( im_generate( out, 
-		NULL, fill_region, NULL, read, NULL ) )
+	if( im_piocheck( in, out ) ||
+		im_cp_desc( out, in ) ||
+		im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
+		!(read = read_new( in, out, 
+			tile_width, tile_height, max_tiles )) ||
+		im_generate( out, 
+			NULL, fill_region, NULL, read, NULL ) )
 		return( -1 );
 
 	return( 0 );

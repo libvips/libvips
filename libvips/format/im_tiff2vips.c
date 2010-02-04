@@ -111,6 +111,8 @@
  * 13/1/09
  * 	- read strip-wise, not scanline-wise ... works with more compression /
  * 	  subsampling schemes (esp. subsampled YCbCr), and it's a bit quicker
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -1423,6 +1425,29 @@ istiffpyramid( const char *name )
 }
  */
 
+/**
+ * im_tiff2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
+ * with extensions for tiled images, multipage images, LAB colour space, 
+ * pyramidal images and JPEG compression. including CMYK and YCbCr.
+ *
+ * You can embed a page number in the filename. For example: 
+ *
+ * |[
+ * im_tiff2vips( "fred.tif:23", out );
+ * ]|
+ *
+ * Will read page 23. By default, the operation reads the first page.
+ *
+ * Any ICC profile is read out and attached to the VIPS image.
+ *
+ * See also: #VipsFormat, im_vips2tiff().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_tiff2vips( const char *filename, IMAGE *out )
 {

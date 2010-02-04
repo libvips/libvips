@@ -106,6 +106,8 @@
  * 	- allow CMYKA (thanks Doron)
  * 5/9/08
  *	- trigger eval callbacks during tile write
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -1567,8 +1569,116 @@ gather_pyramid( TiffWrite *tw )
 	return( 0 );
 }
 
+
+/**
+ * im_vips2tiff:
+ * @in: image to save 
+ * @filename: file to write to 
+ *
+ * Write a VIPS image to a file as TIFF.
+ *
+ * You can embed options in the filename. They have the form:
+ *
+ * |[
+ * filename.tif:<emphasis>compression</emphasis>,<emphasis>layout</emphasis>,<emphasis>multi-res</emphasis>,<emphasis>format</emphasis>,<emphasis>resolution</emphasis>,<emphasis>icc</emphasis>
+ * ]|
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ * <emphasis>compression</emphasis> 
+ * should be one of "none" (no compression), "jpeg" (JPEG compression), 
+ * "deflate" (ZIP compression), "packbits" (TIFF packbits compression),
+ * "ccittfax4" (CCITT Group 4 fax encoding), "lzw"  (Lempel-Ziv compression).
+ *
+ * "jpeg" compression can be followed by a ":" character and a JPEG quality
+ * level; "lzw" and "deflate" can be followed by a ":" and predictor value. 
+ * The default compression type is "none", the default JPEG quality factor 
+ * is 75.
+ *
+ * Predictor is not set by default. There are three predictor values recognised
+ * at the moment (2007, July): 1 is no prediction, 2 is a horizontal 
+ * differencing and 3 is a floating point predictor. Refer to the libtiff 
+ * specifications for further discussion of various predictors. In short, 
+ * predictor helps to better compress image, especially in case of digital 
+ * photos or scanned images and bit depths > 8. Try it to find whether it 
+ * works for your images.
+ *
+ * JPEG compression is a good lossy compressor for photographs, packbits is 
+ * good for 1-bit images, and deflate is the best lossless compression TIFF 
+ * can do. LZW has patent problems and is no longer recommended.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>layout</emphasis> 
+ * should be "strip" (strip layout) or "tile" (tiled layout).
+ *
+ * "tile" layout can be followed by a ":" character and the horizontal and
+ * vertical tile size, separated by a "x" character. The default layout is
+ * "strip", and the default tile size is 128 by 128 pixels.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>multi-res</emphasis> 
+ * should be "flat" (single image) or "pyramid" (many images arranged in a 
+ * pyramid). The default multi-res mode is "flat".
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>format</emphasis> 
+ * shoiuld be "manybit" (don't bit-reduce images) or "onebit" (one band 8 
+ * bit images are saved as 1 bit). The default format is "multibit". 
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>resolution</emphasis> 
+ * should be "res_cm"  (output resolution unit is pixels per centimetre) or 
+ * "res_inch"  (output resolution unit is pixels per inch). The default 
+ * resolution unit is taken from the header field "resolution-unit"
+ * (#IM_META_RESOLUTION_UNIT in C). If this field is not set, then 
+ * VIPS defaults to cm.
+ *
+ * The unit can optionally be followed by a ":" character and the 
+ * horizontal and vertical resolution, separated by a "x" character. 
+ * You can have a single number with no "x" and set the horizontal and 
+ * vertical resolutions together. 
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>icc</emphasis> 
+ * Attach this ICC profile. 
+ * This does not affect the pixels which are written, just the way 
+ * they are tagged. 
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * Example:
+ *
+ * |[
+ * im_vips2jpeg( in, "fred.tif:jpeg,tile,pyramid" );
+ * ]|
+ *
+ * Will write "fred.tif" as a tiled jpeg-compressed pyramid.
+ *
+ * |[
+ * im_vips2jpeg( in, "fred.tif:packbits,tile,,onebit" ); 
+ * ]|
+ *
+ * Writes a tiled one bit TIFF image (provided fred.v is a one band 8 bit 
+ * image) compressed with packbits.
+ *
+ * See also: #VipsFormat, im_tiff2vips().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
-im_vips2tiff( IMAGE *im, const char *filename )
+im_vips2tiff( IMAGE *in, const char *filename )
 {
 	TiffWrite *tw;
 	int res;
@@ -1584,24 +1694,24 @@ im_vips2tiff( IMAGE *im, const char *filename )
 
 	/* Check input image.
 	 */
-	if( im_pincheck( im ) )
+	if( im_pincheck( in ) )
 		return( -1 );
-	if( im->Coding != IM_CODING_LABQ && im->Coding != IM_CODING_NONE ) {
+	if( in->Coding != IM_CODING_LABQ && in->Coding != IM_CODING_NONE ) {
 		im_error( "im_vips2tiff", "%s", _( "unknown coding type" ) );
 		return( -1 );
 	}
-	if( im->BandFmt != IM_BANDFMT_UCHAR && 
-		!(im->BandFmt == IM_BANDFMT_SHORT && 
-			im->Type == IM_TYPE_LABS) &&
-		im->BandFmt != IM_BANDFMT_USHORT &&
-		im->BandFmt != IM_BANDFMT_FLOAT ) {
+	if( in->BandFmt != IM_BANDFMT_UCHAR && 
+		!(in->BandFmt == IM_BANDFMT_SHORT && 
+			in->Type == IM_TYPE_LABS) &&
+		in->BandFmt != IM_BANDFMT_USHORT &&
+		in->BandFmt != IM_BANDFMT_FLOAT ) {
 		im_error( "im_vips2tiff", "%s", 
 			_( "unsigned 8-bit int, 16-bit int, "
 			"and 32-bit float only" ) );
 		return( -1 );
 	}
-	if( im->Coding == IM_CODING_NONE ) {
-		if( im->Bands < 1 || im->Bands > 5 ) {
+	if( in->Coding == IM_CODING_NONE ) {
+		if( in->Bands < 1 || in->Bands > 5 ) {
 			im_error( "im_vips2tiff", "%s", 
 				_( "1 to 5 bands only" ) );
 			return( -1 );
@@ -1611,7 +1721,7 @@ im_vips2tiff( IMAGE *im, const char *filename )
 	/* Make output image. If this is a pyramid, write the base image to
 	 * fred.1.tif rather than fred.tif.
 	 */
-	if( !(tw = make_tiff_write( im, filename )) )
+	if( !(tw = make_tiff_write( in, filename )) )
 		return( -1 );
 	if( tw->pyramid ) {
 		if( !(tw->bname = new_tiff_name( tw, tw->name, 1 )) ||
@@ -1631,7 +1741,7 @@ im_vips2tiff( IMAGE *im, const char *filename )
 
 	/* Write the TIFF header for the full-res file.
 	 */
-	if( write_tiff_header( tw, tw->tif, im->Xsize, im->Ysize ) ) {
+	if( write_tiff_header( tw, tw->tif, in->Xsize, in->Ysize ) ) {
 		free_tiff_write( tw );
 		return( -1 );
 	}
@@ -1642,12 +1752,12 @@ im_vips2tiff( IMAGE *im, const char *filename )
 		 * have our own loop for tile writing and so we need to call
 		 * ourselves.
 		 */
-		if( im__start_eval( im ) ) {
+		if( im__start_eval( in ) ) {
 			free_tiff_write( tw );
 			return( -1 );
 		}
 		res = write_tif_tile( tw );
-		im__end_eval( im );
+		im__end_eval( in );
 	}
 	else
 		res = write_tif_strip( tw );

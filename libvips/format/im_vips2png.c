@@ -12,6 +12,8 @@
  * 	- from vips_png.c
  * 2/11/07
  * 	- use im_wbuffer() API for BG writes
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -64,7 +66,6 @@ im_vips2png( IMAGE *in, const char *filename )
 #else /*HAVE_PNG*/
 
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <vips/vips.h>
@@ -195,9 +196,9 @@ write_vips( Write *write, int compress, int interlace )
 
 	int i, nb_passes;
 
-        assert( in->BandFmt == IM_BANDFMT_UCHAR );
-	assert( in->Coding == IM_CODING_NONE );
-        assert( in->Bands > 0 && in->Bands < 5 );
+        g_assert( in->BandFmt == IM_BANDFMT_UCHAR );
+	g_assert( in->Coding == IM_CODING_NONE );
+        g_assert( in->Bands > 0 && in->Bands < 5 );
 
 	/* Catch PNG errors.
 	 */
@@ -230,7 +231,7 @@ write_vips( Write *write, int compress, int interlace )
 	case 4: write->pInfo->color_type = PNG_COLOR_TYPE_RGB_ALPHA; break;
 
 	default:
-		assert( 0 );
+		g_assert( 0 );
 	}
 
 	png_write_info( write->pPng, write->pInfo ); 
@@ -262,7 +263,52 @@ write_vips( Write *write, int compress, int interlace )
 	return( 0 );
 }
 
-/* Write a VIPS image to a file as PNG.
+/**
+ * im_vips2png:
+ * @in: image to save 
+ * @filename: file to write to 
+ *
+ * Write a VIPS image to a file as PNG.
+ *
+ * You can embed options in the filename. They have the form:
+ *
+ * |[
+ * filename.png:<emphasis>compression</emphasis>,<emphasis>interlace</emphasis>
+ * ]|
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ * <emphasis>compression</emphasis> 
+ * Compress with this much effort (0 - 9). Default 6.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>interlace</emphasis> 
+ * 0 means don't interlace (the default), 1 selects ADAM7 interlacing. Beware
+ * than an interlaced PNG can be up to 7 times slower to write than a
+ * non-interlaced image.
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * There is no support for attaching ICC profiles to PNG images.
+ *
+ * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
+ * alpha before saving. 
+ *
+ * Example:
+ *
+ * |[
+ * im_vips2png( in, "fred.png:0,1" );
+ * ]|
+ *
+ * Will write "fred.png" with no compression and with ADAM7 interlacing.
+ *
+ * See also: #VipsFormat, im_png2vips().
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_vips2png( IMAGE *in, const char *filename )

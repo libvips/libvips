@@ -8,6 +8,8 @@
  * 04/07/08 JF
  *      - replaced FILE with plain file handlers for reducing
  *        confusion about binary vs. non-binary file modes.
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 
@@ -37,7 +39,6 @@
 
 #include <ctype.h>
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -107,6 +108,18 @@ write_block( REGION *region, Rect *area, void *a, void *b )
 }
 
 
+/**
+ * im_vips2raw:
+ * @in: image to save 
+ * @fd: file descriptor to write to
+ *
+ * Writes the pixels in @in to the file descriptor. It's handy for writing
+ * writers for other formats.
+ *
+ * See also: im_raw2vips().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_vips2raw( IMAGE *in, int fd )
 {

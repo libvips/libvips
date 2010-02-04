@@ -14,6 +14,8 @@
  * 	- set RGB16/GREY16 if appropriate
  * 28/2/09
  * 	- small cleanups
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -336,7 +338,19 @@ png2vips_header( const char *name, IMAGE *out )
 	return( 0 );
 }
 
-/* Read a PNG file into a VIPS image.
+/**
+ * im_png2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read a PNG file into a VIPS image. It can read all png images, including 8-
+ * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
+ *
+ * There is no support for embedded ICC profiles.
+ *
+ * See also: #VipsFormat, im_vips2png().
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_png2vips( const char *name, IMAGE *out )
