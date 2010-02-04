@@ -29,6 +29,8 @@
  *	- fix signed/unsigned warning
  * 13/8/09
  * 	- allow "none" for profile, meaning don't embed one
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -640,7 +642,56 @@ write_vips( Write *write, int qfac, const char *profile )
 	return( 0 );
 }
 
-/* Write a VIPS image to a file as JPEG.
+/**
+ * im_vips2jpeg:
+ * @in: image to save 
+ * @filename: file to write to 
+ *
+ * Write a VIPS image to a file as JPEG.
+ *
+ * You can embed options in the filename. They have the form:
+ *
+ * |[
+ * filename.jpg:<emphasis>compression</emphasis>,<emphasis>profile</emphasis>
+ * ]|
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ * <emphasis>compression</emphasis> 
+ * Compress with this quality factor. Default 75.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>profile</emphasis> 
+ * Attach this ICC profile. For example, "fred.jpg:,/home/john/srgb.icc" will 
+ * embed the profile stored in the file "/home/john/srgb.icc" in the JPEG 
+ * image. This does not affect the pixels which are written, just the way 
+ * they are tagged. You can use the special string "none" to mean 
+ * "don't attach a profile".
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * If no profile is specified in the save string and the VIPS header 
+ * contains an ICC profile named IM_META_ICC_NAME ("icc-profile-data"), the
+ * profile from the VIPS header will be attached.
+ *
+ * The image is automatically converted to RGB, Monochrome or CMYK before 
+ * saving. Any metadata attached to the image is saved as EXIF, if possible.
+ *
+ * Example:
+ *
+ * |[
+ * im_vips2jpeg( in, "fred.jpg:99,none" out );
+ * ]|
+ *
+ * Will write "fred.jpg" at high-quality with no ICC profile.
+ *
+ * See also: #VipsFormat, im_jpeg2vips().
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_vips2jpeg( IMAGE *in, const char *filename )

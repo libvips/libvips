@@ -194,7 +194,7 @@ text_render_to_image( PangoContext *context, IMAGE *out,
  * are used for anti-aliasing.
  *
  * @text is the text to render as a UTF-8 string. It can contain Pango markup,
- * for example "<i>The</i> Guardian".
+ * for example "&lt;i&gt;The&lt;/i&gt;Guardian".
  *
  * @font is the font to render with, selected by fontconfig. Examples might be
  * "sans 12" or perhaps "bitstream charter bold 10".

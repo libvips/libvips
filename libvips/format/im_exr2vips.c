@@ -8,6 +8,10 @@
  * 	- added tiled read, with a separate cache
  * 	- removed *255 we had before, better to do something clever with
  * 	  chromaticities
+ * 4/2/10
+ * 	- gtkdoc
+
+  TODO
 
 	- colour management
 	- attributes 
@@ -417,18 +421,34 @@ exr2vips( Read *read )
 	return( 0 );
 }
 
-/* Read a OpenEXR file into a VIPS image.
+/**
+ * im_exr2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read a OpenEXR file into a VIPS image. 
+ *
+ * The reader can handle scanline and tiled OpenEXR images. It can't handle
+ * OpenEXR colour management, image attributes, many pixel formats, anything
+ * other than RGBA.
+ *
+ * This reader uses the rather limited OpenEXR C API. It should really be
+ * redone in C++.
+ *
+ * See also: #VipsFormat.
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
-im_exr2vips( const char *name, IMAGE *out )
+im_exr2vips( const char *filename, IMAGE *out )
 {
 	Read *read;
 
 #ifdef DEBUG
-	printf( "im_exr2vips: reading \"%s\"\n", name );
+	printf( "im_exr2vips: reading \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( name, out )) ||
+	if( !(read = read_new( filename, out )) ||
 		exr2vips( read ) ) 
 		return( -1 );
 

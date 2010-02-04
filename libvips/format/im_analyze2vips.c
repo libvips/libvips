@@ -8,6 +8,8 @@
  *	- fix signed/unsigned warning
  * 13/1/09
  * 	- try harder not to generate error messages in "isanalyze"
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -549,6 +551,23 @@ analyze2vips_header( const char *filename, IMAGE *out )
 	return( 0 );
 }
 
+/**
+ * im_analyze2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Load an Analyze 6.0 file. If @filename is "fred.img", this will look for
+ * an image header called "fred.hdr" and pixel data in "fred.img". You can
+ * also load "fred" or "fred.hdr".
+ *
+ * Images are
+ * loaded lazilly and byte-swapped, if necessary. The Analyze metadata is read
+ * and attached.
+ *
+ * See also: #VipsFormat, im_meta_get(), im_grid().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_analyze2vips( const char *filename, IMAGE *out )
 {

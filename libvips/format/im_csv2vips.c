@@ -9,6 +9,8 @@
  * 	- oop, unquoted trailing columns could get missed
  * 17/5/07
  * 	- added im_csv2vips_header()
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -251,6 +253,64 @@ read_csv( FILE *fp, IMAGE *out,
 	return( 0 );
 }
 
+/**
+ * im_csv2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Load a CSV (comma-separated values) file. The output image is always 1 
+ * band (monochrome), %IM_BANDFMT_DOUBLE. 
+ * The reader is deliberately rather fussy: it will fail if there are any 
+ * short lines, or if the file is too short. It will ignore lines that are 
+ * too long.
+ *
+ * Read options can be embedded in the filename. The options can be given 
+ * in any order and are:
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ * <emphasis>skip:lines-to-skip</emphasis> The number of lines to skip at 
+ * the start of the file. Default zero.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>line:lines-to-read</emphasis> 
+ * The number of lines to read from the file. Default -1, meaning read to end of
+ * file.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>whi:whitespace-characters</emphasis> 
+ * The skippable whitespace characters. Default <emphasis>space</emphasis> and 
+ * double quotes (").
+ * Whitespace characters are always run together.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>sep:separator-characters</emphasis> 
+ * The characters that separate fields. Default ;,<emphasis>tab</emphasis>. 
+ * Separators are never run together.
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * For example:
+ *
+ * |[
+ * im_csv2vips( "fred.csv:skip:58,sep:\,,line:3", out );
+ * ]|
+ *
+ * Will read three lines starting at line 59, with comma as the only
+ * allowed separator. Note that the ',' has to be escaped with a backslash.
+ *
+ * See also: #VipsFormat, im_vips2csv(), im_read_dmask(), im_ppm2vips().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 im_csv2vips( const char *filename, IMAGE *out )
 {

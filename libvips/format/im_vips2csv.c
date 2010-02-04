@@ -103,6 +103,41 @@ vips2csv( IMAGE *in, FILE *fp, const char *sep )
 	return( 0 );
 }
 
+/**
+ * im_vips2csv:
+ * @in: image to save 
+ * @filename: file to write to 
+ *
+ * Save a CSV (comma-separated values) file. The image is written
+ * one line of text per scanline. Complex numbers are written as 
+ * "(real,imaginary)" and will need extra parsing I guess. The image must
+ * have a single band.
+ *
+ * Write options can be embedded in the filename. The options can be given 
+ * in any order and are:
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ * <emphasis>sep:separator-string</emphasis> 
+ * The string to use to separate numbers in the output. 
+ * The default is "\\t" (tab).
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * For example:
+ *
+ * |[
+ * im_csv2vips( in, "fred.csv:sep:\t" );
+ * ]|
+ *
+ * Will write to fred.csv, separating numbers with tab characters.
+ *
+ * See also: #VipsFormat, im_csv2vips(), im_write_dmask(), im_vips2ppm().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_vips2csv( IMAGE *in, const char *filename )
 {
@@ -122,12 +157,10 @@ im_vips2csv( IMAGE *in, const char *filename )
 			separator = r;
 	}
 
-	if( im_incheck( in ) )
+	if( im_incheck( in ) ||
+		im_check_mono( "im_vips2csv", in ) ||
+		im_check_uncoded( "im_vips2csv", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_vips2csv", "%s", _( "input must be uncoded" ) );
-		return( -1 );
-	}
 
 	if( !(fp = fopen( name, "w" )) ) {
 		im_error( "im_cvips2csv", _( "unable to open \"%s\"" ), 

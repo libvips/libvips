@@ -50,19 +50,18 @@
  *
  * VIPS has a simple system for representing image load and save operations in
  * a generic way.
- * You can ask for a loader for a certain file, select a saver based on a
- * filename, or register a new image file format. You can also call the
- * converters directly, if you like.
+ * You can ask for a loader for a certain file or select a saver based on a
+ * filename. Once you have found a format, you can use it to load a file of
+ * that type, save an image to a file of that type, query files for their type
+ * and fields, and ask for supported features. You can also call the
+ * converters directly, if you like. 
  *
- * Each format has a priority. Some loaders (such as the libMagick one) can
- * handle several formats. Priorities let you ensure that these generic
- * loaders are only used as a last resort. 
- *
- * Each format has a set of flags you can read which hint about the loader's
- * capabilities. See #VipsFormatFlags.
+ * If you define a new format, support for
+ * it automatically appears in all VIPS user-interfaces. It will also be
+ * transparently supported by im_open().
  *
  * VIPS comes with loaders for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * RAW and one that wraps libMagick. 
+ * RAW, VIPS and one that wraps libMagick. 
  */
 
 /**
@@ -75,17 +74,136 @@
  * typedef struct _VipsFormatClass {
  *   VipsObjectClass parent_class;
  *
- *   gboolean (*is_a)( const char * );
- *   int (*header)( const char *, IMAGE * );
- *   int (*load)( const char *, IMAGE * );
- *   int (*save)( IMAGE *, const char * );
- *   VipsFormatFlags (*get_flags)( const char * );
+ *   gboolean (*is_a)( const char *filename );
+ *   int (*header)( const char *filename, IMAGE *out );
+ *   int (*load)( const char *filename, IMAGE *out );
+ *   int (*save)( IMAGE *in, const char *filename );
+ *   VipsFormatFlags (*get_flags)( const char *filename );
  *   int priority;
  *   const char **suffs;
  * } VipsFormatClass;
  * ]|
  *
- * Subclasses need to implement at least load() or save().
+ * Add a new format to VIPS by subclassing VipsFormat. Subclasses need to 
+ * implement at least load() or save(). 
+ *
+ * These members are:
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ * is_a() This function should return %TRUE if the file 
+ * contains an image of this type. If you don't define this function, VIPS
+ * will use the list of suffixes you supply instead.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * header() This function should load the image header,
+ * but not load any pixel data. If you don't define it, VIPS will use your
+ * load() method instead. Return 0 for success, -1 for error, setting
+ * im_error().
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * load() This function should load the image, or perhaps use im_generate() to
+ * attach something to load sections of the image on demand. 
+ * Users can embed
+ * load options in the filename, see (for example) im_jpeg2vips().
+ * If you don't
+ * define this method, you can still define save() and have a save-only
+ * format.
+ * Return 0 for success, -1 for error, setting
+ * im_error().
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * save() This function should save the image to the file. 
+ * Users can embed
+ * save options in the filename, see (for example) im_vips2tiff().
+ * If you don't
+ * define this method, you can still define load() and have a load-only
+ * format.
+ * Return 0 for success, -1 for error, setting
+ * im_error().
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * get_flags() This function should return a hint about the properties of this
+ * loader on this file. If you don't define it, users will always see '0', or
+ * no flags. 
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <structfield>priority</structfield> Where this format should fit in this 
+ * list of
+ * supported formats. 0 is a sensible value for most formats. Set a negative
+ * value if you want to be lower on the list, positive to move up.
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <structfield>suffs</structfield> A %NULL-terminated list of possible file 
+ * name
+ * suffixes, for example:
+ * |[
+ * static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
+ * ]|
+ * The suffix list is used to select a format to save a file in, and to pick a
+ * loader if you don't define is_a().
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * You should also define <structfield>nickname</structfield> and
+ * <structfield>description</structfield> in #VipsObject. 
+ *
+ * At the command-line, use:
+ *
+ * |[
+ * vips --list classes | grep Format
+ * ]|
+ *
+ * To see a list of all the supported formats.
+ *
+ * For example, the TIFF format is defined like this:
+ *
+|[
+typedef VipsFormat VipsFormatTiff;
+typedef VipsFormatClass VipsFormatTiffClass;
+
+static void
+vips_format_tiff_class_init( VipsFormatTiffClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFormatClass *format_class = (VipsFormatClass *) class;
+
+	object_class->nickname = "tiff";
+	object_class->description = _( "TIFF" );
+
+	format_class->is_a = istiff;
+	format_class->header = tiff2vips_header;
+	format_class->load = im_tiff2vips;
+	format_class->save = im_vips2tiff;
+	format_class->get_flags = tiff_flags;
+	format_class->suffs = tiff_suffs;
+}
+
+static void
+vips_format_tiff_init( VipsFormatTiff *object )
+{
+}
+
+G_DEFINE_TYPE( VipsFormatTiff, vips_format_tiff, VIPS_TYPE_FORMAT );
+]|
+ *
+ * Then call vips_format_tiff_get_type() somewhere in your init code to link
+ * the format into VIPS (though of course the tiff format is linked in for you
+ * already).
  *
  */
 

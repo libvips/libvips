@@ -26,6 +26,8 @@
  *	- added "fail" option ... fail on any warnings
  * 12/10/09
  * 	- also set scale_num on shrink (thanks Guido)
+ * 4/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -706,12 +708,62 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	return( result );
 }
 
-/* Read a JPEG file into a VIPS image.
+/**
+ * im_jpeg2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
+ * including CMYK and YCbCr.
+ *
+ * You can embed options in the filename. They have the form:
+ *
+ * |[
+ * filename.jpg:<emphasis>shrink-factor</emphasis>,<emphasis>fail</emphasis>
+ * ]|
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ * <emphasis>shrink-factor</emphasis> 
+ * Shrink by this integer factor during load.  Allowed values are 1, 2, 4
+ * and 8. Shrinking during read is very much faster than decompressing the 
+ * whole image and then shrinking. 
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>fail</emphasis> 
+ * This makes the JPEG reader fail on any warnings. This can be useful for 
+ * detecting truncated files, for example. Normally reading these produces 
+ * a warning, but no fatal error.  
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * Example:
+ *
+ * |[
+ * im_jpeg2vips( "fred.jpg:8" out );
+ * im_jpeg2vips( "fred.jpg:,fail" out );
+ * ]|
+ *
+ * The first example will shrink by a factor of 8 during load. The second will
+ * fail with an error if there are any problems loading the file.
+ *
+ * Any embedded ICC profiles are ignored: you always just get the RGB from 
+ * the file. Instead, the embedded profile will be attached to the image as 
+ * metadata.  You need to use something like im_icc_import() to get CIE 
+ * values from the file. Any EXIF data is also attached as VIPS metadata.
+ *
+ * See also: #VipsFormat, im_vips2jpeg().
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
-im_jpeg2vips( const char *name, IMAGE *out )
+im_jpeg2vips( const char *filename, IMAGE *out )
 {
-	return( jpeg2vips( name, out, FALSE ) );
+	return( jpeg2vips( filename, out, FALSE ) );
 }
 
 static int
