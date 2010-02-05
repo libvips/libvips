@@ -22,13 +22,15 @@
 
 #include <vips/vips.h>
 
-static gboolean verbose = FALSE;
-static int use_disc_threshold = 1024 * 1024;
 static int thumbnail_size = 128;
 static char *thumbnail_format = "tn_%s.jpg";
+static int use_disc_threshold = 1024 * 1024;
+static char *interpolator = "bilinear";;
+static gboolean nosharpen = FALSE;
 static char *export_profile = NULL;
 static char *import_profile = NULL;
 static gboolean delete_profile = FALSE;
+static gboolean verbose = FALSE;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, G_OPTION_ARG_INT, &thumbnail_size, 
@@ -37,6 +39,10 @@ static GOptionEntry options[] = {
 		N_( "set thumbnail format to S" ), "S" },
 	{ "disc", 'd', 0, G_OPTION_ARG_INT, &use_disc_threshold, 
 		N_( "set disc use threshold to N" ), "N" },
+	{ "interpolator", 'p', 0, G_OPTION_ARG_STRING, &interpolator, 
+		N_( "resample with interpolator I" ), "I" },
+	{ "nosharpen", 'n', 0, G_OPTION_ARG_NONE, &nosharpen, 
+		N_( "don't sharpen thumbnail" ), NULL },
 	{ "eprofile", 'e', 0, G_OPTION_ARG_STRING, &export_profile, 
 		N_( "export with profile P" ), "P" },
 	{ "iprofile", 'i', 0, G_OPTION_ARG_STRING, &import_profile, 
@@ -102,7 +108,7 @@ open_image( const char *filename )
  *
  * We shrink in two stages: first, a shrink with a block average. This can
  * only accurately shrink by integer factors. We then do a second shrink with
- * bilinear interpolation to get the exact size we want.
+ * a supplied interpolator to get the exact size we want.
  */
 static int
 calculate_shrink( int width, int height, double *residual )
@@ -134,12 +140,8 @@ calculate_shrink( int width, int height, double *residual )
 	return( shrink );
 }
 
-/* We use bilinear interpolation for the final shrink. VIPS has higher-order
- * interpolators, but they are only built if a C++ compiler is available.
- * Bilinear can look a little 'soft', so after shrinking, we need to sharpen a
- * little.
- *
- * This is a simple sharpen filter.
+/* Some interpolators look a little soft, so we have an optional sharpening
+ * stage.
  */
 static INTMASK *
 sharpen_filter( void )
@@ -158,28 +160,11 @@ sharpen_filter( void )
 }
 
 static int
-shrink_factor( IMAGE *in, IMAGE *out )
+shrink_factor( IMAGE *in, IMAGE *out, 
+	int shrink, double residual, VipsInterpolate *interp )
 {
 	IMAGE *t[9];
 	IMAGE *x;
-	int shrink;
-	double residual;
-	VipsInterpolate *interp;
-
-	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
-
-	/* For images smaller than the thumbnail, we upscale with nearest
-	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
-	 */
-	if( residual > 1.0 )
-		interp = vips_interpolate_nearest_static();
-	else
-		interp = vips_interpolate_bilinear_static();
-
-	if( verbose ) {
-		printf( "integer shrink by %d\n", shrink );
-		printf( "residual scale by %g\n", residual );
-	}
 
 	if( im_open_local_array( out, t, 9, "thumbnail", "p" ) )
 		return( -1 );
@@ -215,7 +200,10 @@ shrink_factor( IMAGE *in, IMAGE *out )
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
 	 */
-	if( residual > 1.0 ) {
+	if( residual > 1.0 && !nosharpen ) {
+		if( verbose ) 
+			printf( "sharpening thumbnail\n" );
+
 		if( im_conv( x, t[4], sharpen_filter() ) )
 			return( -1 );
 		x = t[4];
@@ -229,44 +217,78 @@ shrink_factor( IMAGE *in, IMAGE *out )
 		(im_header_get_typeof( x, IM_META_ICC_NAME ) || 
 		 import_profile) ) {
 		if( im_header_get_typeof( x, IM_META_ICC_NAME ) ) {
+			if( verbose ) 
+				printf( "importing with embedded profile\n" );
+
 			if( im_icc_import_embedded( x, t[5], 
 				IM_INTENT_RELATIVE_COLORIMETRIC ) )
 				return( -1 );
-
-			if( verbose ) 
-				printf( "importing with embedded profile\n" );
 		}
 		else {
+			if( verbose ) 
+				printf( "importing with profile %s\n",
+					import_profile );
+
 			if( im_icc_import( x, t[5], 
 				import_profile, 
 				IM_INTENT_RELATIVE_COLORIMETRIC ) )
 				return( -1 );
-
-			if( verbose ) 
-				printf( "importing with profile %s\n",
-					import_profile );
 		}
+
+		if( verbose ) 
+			printf( "exporting with profile %s\n", export_profile );
 
 		if( im_icc_export_depth( t[5], t[6], 
 			8, export_profile, 
 			IM_INTENT_RELATIVE_COLORIMETRIC ) )
 			return( -1 );
 
-		if( verbose ) 
-			printf( "exporting with profile %s\n", export_profile );
-
 		x = t[6];
 	}
 
 	if( delete_profile ) {
-		if( im_meta_remove( x, IM_META_ICC_NAME ) && verbose )
+		if( verbose )
 			printf( "deleting profile from output image\n" );
+
+		if( im_meta_remove( x, IM_META_ICC_NAME ) )
+			return( -1 );
 	}
 
 	if( im_copy( x, out ) )
 		return( -1 );
 
 	return( 0 );
+}
+
+static int
+thumbnail3( IMAGE *in, IMAGE *out )
+{
+	int shrink;
+	double residual;
+	VipsInterpolate *interp;
+	int result;
+
+	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
+
+	/* For images smaller than the thumbnail, we upscale with nearest
+	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
+	 */
+	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
+		"VipsInterpolate", 
+		residual > 1.0 ? "nearest" : interpolator ) )) )
+		return( -1 );
+
+	if( verbose ) {
+		printf( "integer shrink by %d\n", shrink );
+		printf( "residual scale by %g\n", residual );
+		printf( "%s interpolation\n", VIPS_OBJECT( interp )->nickname );
+	}
+
+	result = shrink_factor( in, out, shrink, residual, interp );
+
+	g_object_unref( interp );
+
+	return( result );
 }
 
 /* Given (eg.) "/poop/somefile.png", make the thumbnail name,
@@ -317,7 +339,7 @@ thumbnail2( const char *filename )
 		return( -1 );
 	}
 
-	result = shrink_factor( in, out );
+	result = thumbnail3( in, out );
 
 	g_free( tn_filename );
 	im_close( out );

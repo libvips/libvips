@@ -1,3 +1,24 @@
+16/1/10 started 7.21.2
+- "invalidate" is careful to keep images alive, so invalidate callbacks can do
+  im_close()
+- flood_blob could loop if start point == ink
+- added im_meta_remove()
+- added remove profile option to vipsthumbnail
+- added vips_bandfmt_iscomplex() and friends, im_iscomplex() and friends 
+  deprecated
+- im_bandjoin()/im_gbandjoin() work with images of varying formats
+- added im_copy_native(), deprecated im_copy_from() and friends
+- im_check*() name rationalisation
+- finally removed old flood stuff
+- im_insert*() bandalike and formatalike
+- im_*join() bandalike and formatalike
+- im_ri2c() bandalike 
+- im_vips2png() saves 16-bit PNGs, if necessary
+- vipsthumbnail has selectable interpolators, optional sharpen
+
+15/1/10 started 7.21.1
+- added "written" callbacks, used to implement write to non-vips formats
+
 26/11/09 started 7.21.0
 - branch for new dev cycle
 - argh, missing init from colour.c (thanks Peter)
@@ -18,22 +39,6 @@
 - read TIFF images strip-wise, not scanline-wise
 - better TIFF YCbCr reading (thanks Ole)
 - isanalyze generates fewer silly error messages
-- added "written" callbacks, used to implement write to non-vips formats
-- "invalidate" is careful to keep images alive, so invalidate callbacks can do
-  im_close()
-- flood_blob could loop if start point == ink
-- added im_meta_remove()
-- added remove profile option to vipsthumbnail
-- added vips_bandfmt_iscomplex() and friends, im_iscomplex() and friends 
-  deprecated
-- im_bandjoin()/im_gbandjoin() work with images of varying formats
-- added im_copy_native(), deprecated im_copy_from() and friends
-- im_check*() name rationalisation
-- finally removed old flood stuff
-- im_insert*() bandalike and formatalike
-- im_*join() bandalike and formatalike
-- im_ri2c() bandalike 
-- im_vips2png() saves 16-bit PNGs if necessary
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 
