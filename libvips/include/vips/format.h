@@ -117,26 +117,41 @@ VipsFormatFlags vips_format_get_flags( VipsFormatClass *format,
 int vips_format_read( const char *filename, IMAGE *out );
 int vips_format_write( IMAGE *in, const char *filename );
 
+/* Low-level read/write operations.
+ */
 int im_jpeg2vips( const char *filename, IMAGE *out );
 int im_vips2jpeg( IMAGE *in, const char *filename );
 int im_vips2mimejpeg( IMAGE *in, int qfac );
 int im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen );
-int im_vips2tiff( IMAGE *in, const char *filename );
+
 int im_tiff2vips( const char *filename, IMAGE *out );
+int im_vips2tiff( IMAGE *in, const char *filename );
 int im_tile_cache( IMAGE *in, IMAGE *out, 
 	int tile_width, int tile_height, int max_tiles );
+
 int im_magick2vips( const char *filename, IMAGE *out );
-int im_png2vips( const char *filename, IMAGE *out );
+
 int im_exr2vips( const char *filename, IMAGE *out );
+
 int im_ppm2vips( const char *filename, IMAGE *out );
 int im_vips2ppm( IMAGE *in, const char *filename );
+
 int im_analyze2vips( const char *filename, IMAGE *out );
-int im_vips2csv( IMAGE *in, const char *filename );
+
 int im_csv2vips( const char *filename, IMAGE *out );
+int im_vips2csv( IMAGE *in, const char *filename );
+
+int im_png2vips( const char *filename, IMAGE *out );
 int im_vips2png( IMAGE *in, const char *filename );
+
 int im_raw2vips( const char *filename, IMAGE *out,
 	int width, int height, int bpp, int offset );
 int im_vips2raw( IMAGE *in, int fd );
+
+int im_mat2vips( const char *filename, IMAGE *out );
+
+int im_rad2vips( const char *filename, IMAGE *out );
+int im_vips2rad( IMAGE *in, const char *filename );
 
 #ifdef __cplusplus
 }

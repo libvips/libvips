@@ -171,11 +171,8 @@ im_LabQ2disp_table( IMAGE *in, IMAGE *out, void *table )
 {
         CalibrateInfo *cal = (CalibrateInfo *) table;
 
-        if ( in->Coding != IM_CODING_LABQ ) {
-                im_error( "im_LabQ2Lab", "%s", 
-			_( "not a packed Lab image" ) );
-                return( -1 );
-        }
+	if( im_check_coding_labq( "im_LabQ2disp", in ) )
+		return( -1 );
  
         if( im_cp_desc( out, in ) )
                 return( -1 );

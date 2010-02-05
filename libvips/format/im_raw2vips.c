@@ -61,7 +61,7 @@
  * Use functions like im_copy_morph() to set the pixel type, byte ordering 
  * and so on.
  *
- * See also: im_vips2raw().
+ * See also: #VipsFormat, im_vips2raw().
  *
  * Returns: 0 on success, -1 on error.
  */

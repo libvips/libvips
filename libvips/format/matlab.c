@@ -103,7 +103,7 @@ read_new( const char *filename, IMAGE *out )
 	read->var = NULL;
 
 	if( !(read->mat = Mat_Open( filename, MAT_ACC_RDONLY )) ) {
-		im_error( "mat2vips", 
+		im_error( "im_mat2vips", 
 			_( "unable to open \"%s\"" ), filename );
 		read_destroy( read );
 		return( NULL );
@@ -111,7 +111,7 @@ read_new( const char *filename, IMAGE *out )
 
 	for(;;) {
 		if( !(read->var = Mat_VarReadNextInfo( read->mat )) ) {
-			im_error( "mat2vips", 
+			im_error( "im_mat2vips", 
 				_( "no matrix variables in \"%s\"" ), 
 				filename );
 			read_destroy( read );
@@ -119,7 +119,7 @@ read_new( const char *filename, IMAGE *out )
 		}
 
 #ifdef DEBUG
-		printf( "mat2vips: seen:\n" );
+		printf( "im_mat2vips: seen:\n" );
 		printf( "var->name == %s\n", read->var->name );
 		printf( "var->class_type == %d\n", read->var->class_type );
 		printf( "var->rank == %d\n", read->var->rank );
@@ -170,7 +170,8 @@ mat2vips_get_header( matvar_t *var, IMAGE *im )
 		break;
 
 	default:
-		im_error( "mat2vips", _( "unsupported rank %d\n" ), var->rank );
+		im_error( "im_mat2vips", 
+			_( "unsupported rank %d\n" ), var->rank );
 		return( -1 );
 	}
 
@@ -183,7 +184,7 @@ mat2vips_get_header( matvar_t *var, IMAGE *im )
 		if( mat2vips_formats[i][0] == var->class_type )
 			break;
 	if( i == IM_NUMBER( mat2vips_formats ) ) {
-		im_error( "mat2vips", _( "unsupported class type %d\n" ),
+		im_error( "im_mat2vips", _( "unsupported class type %d\n" ),
 			var->class_type );
 		return( -1 );
 	}
@@ -230,7 +231,8 @@ mat2vips_get_data( mat_t *mat, matvar_t *var, IMAGE *im )
 	const int is = es * im->Xsize * im->Ysize;
 
 	if( Mat_VarReadDataAll( mat, var ) ) {
-		im_error( "mat2vips", "%s", _( "Mat_VarReadDataAll failed" ) );
+		im_error( "im_mat2vips", "%s", 
+			_( "Mat_VarReadDataAll failed" ) );
 		return( -1 );
 	}
 	if( im_outcheck( im ) ||
@@ -272,8 +274,24 @@ mat2vips_get_data( mat_t *mat, matvar_t *var, IMAGE *im )
 	return( 0 );
 }
 
-static int
-mat2vips( const char *filename, IMAGE *out )
+/**
+ * im_mat2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read a Matlab save file into a VIPS image. 
+ *
+ * This operation searches the save
+ * file for the first array variable with between 1 and 3 dimensions and loads
+ * it as an image. It will not handle complex images. It does not handle
+ * sparse matrices. 
+ *
+ * See also: #VipsFormat.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+im_mat2vips( const char *filename, IMAGE *out )
 {
 	Read *read;
 
@@ -323,7 +341,7 @@ vips_format_mat_class_init( VipsFormatMatClass *class )
 
 	format_class->is_a = ismat;
 	format_class->header = mat2vips_header;
-	format_class->load = mat2vips;
+	format_class->load = im_mat2vips;
 	format_class->save = NULL;
 	format_class->suffs = mat_suffs;
 }

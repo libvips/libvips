@@ -590,6 +590,58 @@ im_check_coding_known( const char *domain, IMAGE *im )
 }
 
 /**
+ * im_check_coding_rad:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is in Radiance coding. 
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 on OK, or -1 on error.
+ */
+int
+im_check_coding_rad( const char *domain, IMAGE *im )
+{
+	if( im->Coding != IM_CODING_RAD ||
+		im->BandFmt != IM_BANDFMT_UCHAR || 
+		im->Bands != 4 ) { 
+		im_error( domain, "%s", _( "Radiance coding only" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * im_check_coding_labq:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is in LABQ coding. 
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 on OK, or -1 on error.
+ */
+int
+im_check_coding_labq( const char *domain, IMAGE *im )
+{
+	if( im->Coding != IM_CODING_LABQ ||
+		im->BandFmt != IM_BANDFMT_UCHAR || 
+		im->Bands != 4 ) { 
+		im_error( domain, "%s", _( "LABQ coding only" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_mono:
  * @domain: the originating domain for the error message
  * @im: image to check

@@ -101,13 +101,8 @@ imb_LabQ2LabS( unsigned char *in, signed short *out, int n )
 int
 im_LabQ2LabS( IMAGE *in, IMAGE *out )
 {
-	/* check for coded Lab type 
-	 */
-	if( in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_LabQ2LabS", "%s", 
-			_( "not a packed Lab image" ) );
+	if( im_check_coding_labq( "im_LabQ2LabS", in ) )
 		return( -1 );
-	}
 
 	/* set up output image 
 	 */

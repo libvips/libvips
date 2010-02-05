@@ -230,7 +230,7 @@ write_new( IMAGE *in )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 
-	if( !(write->in = im__convert_saveable( in, IM__RGB_CMYK )) ) {
+	if( !(write->in = im__convert_saveable( in, IM__RGB_CMYK, FALSE )) ) {
 		im_error( "im_vips2jpeg", 
 			"%s", _( "unable to convert to saveable format" ) );
 		write_destroy( write );

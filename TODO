@@ -1,6 +1,8 @@
-- im_mat2vips() needs to be exposed so we can document the matlab reader
+- vipsthumbnail should let you supply an interpolator instead of bilinear
 
-  any others?
+  eg. --interpolator "yafrsmooth{2}"
+
+  make the sharpening optional?
 
 - im__convert_saveable() (in im_copy.c) always makes an 8-bit image
 

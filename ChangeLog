@@ -33,6 +33,7 @@
 - im_insert*() bandalike and formatalike
 - im_*join() bandalike and formatalike
 - im_ri2c() bandalike 
+- im_vips2png() saves 16-bit PNGs if necessary
 
 26/11/09 started 7.20.3
 - updated en_GB.po translation 

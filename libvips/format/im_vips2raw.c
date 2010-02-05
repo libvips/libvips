@@ -116,7 +116,7 @@ write_block( REGION *region, Rect *area, void *a, void *b )
  * Writes the pixels in @in to the file descriptor. It's handy for writing
  * writers for other formats.
  *
- * See also: im_raw2vips().
+ * See also: #VipsFormat, im_raw2vips().
  *
  * Returns: 0 on success, -1 on error.
  */

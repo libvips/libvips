@@ -881,8 +881,8 @@ rad2vips_get_header( Read *read, FILE *fin, IMAGE *out )
 
 	if( getheader( fin, (gethfunc *) rad2vips_process_line, read ) ||
 		!fgetsresolu( &read->rs, fin ) ) {
-		im_error( "rad2vips", 
-			"%s", _( "error reading radiance header" ) );
+		im_error( "im_rad2vips", "%s", 
+			_( "error reading radiance header" ) );
 		return( -1 );
 	}
 	out->Xsize = scanlen( &read->rs );
@@ -963,7 +963,7 @@ rad2vips_get_data( Read *read, FILE *fin, IMAGE *im )
 
 	for( y = 0; y < im->Ysize; y++ ) {
 		if( freadcolrs( read->buf, im->Xsize, fin ) ) {
-			im_error( "rad2vips", "%s", _( "read error" ) );
+			im_error( "im_rad2vips", "%s", _( "read error" ) );
 			return( -1 );
 		}
 		if( im_writeline( y, im, (void *) read->buf ) )
@@ -973,8 +973,31 @@ rad2vips_get_data( Read *read, FILE *fin, IMAGE *im )
 	return( 0 );
 }
 
-static int
-rad2vips( const char *filename, IMAGE *out )
+/**
+ * im_rad2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read a Radiance (HDR) file into a VIPS image. 
+ *
+ * Radiance files are read as #IM_CODING_RAD. They have one byte for each of
+ * red, green and blue, and one byte of shared exponent. Some operations (like
+ * im_extract_area()) can work directly with images in this format, but 
+ * mmany (all the arithmetic operations, for example) will not. unpack 
+ * #IM_CODING_RAD images to 3 band float with im_rad2float() if you want to do
+ * arithmetic on them.
+ *
+ * This operation ignores some header fields, like VIEW and DATE. It will not 
+ * rotate/flip as the FORMAT string asks.
+ *
+ * Sections of this reader from Greg Ward and Radiance with kind permission. 
+ *
+ * See also: #VipsFormat, im_rad2float(), im_vips2rad().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+im_rad2vips( const char *filename, IMAGE *out )
 {
 	Read *read;
 
@@ -1126,13 +1149,28 @@ vips2rad_put_data( Write *write )
 	return( 0 );
 }
 
-static int
-vips2rad( IMAGE *in, const char *filename )
+/**
+ * im_vips2rad:
+ * @in: image to save 
+ * @filename: file to write to 
+ *
+ * Write a VIPS image in Radiance (HDR) format.
+ *
+ * This operation needs an #IM_CODING_RAD image, or a three-band float image.
+ *
+ * Sections of this reader from Greg Ward and Radiance with kind permission. 
+ *
+ * See also: #VipsFormat, im_float2rad(), im_rad2vips().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+im_vips2rad( IMAGE *in, const char *filename )
 {
 	Write *write;
 
 #ifdef DEBUG
-	printf( "vips2rad: writing \"%s\"\n", filename );
+	printf( "im_vips2rad: writing \"%s\"\n", filename );
 #endif /*DEBUG*/
 
 	if( in->BandFmt == IM_BANDFMT_FLOAT &&
@@ -1140,23 +1178,16 @@ vips2rad( IMAGE *in, const char *filename )
 		in->Coding == IM_CODING_NONE ) { 
 		IMAGE *t;
 
-		if( !(t = im_open_local( in, "vips2rad", "p" )) ||
+		if( !(t = im_open_local( in, "im_vips2rad", "p" )) ||
 			im_float2rad( in, t ) )
 			return( -1 );
 
 		in = t;
 	}
 
-	if( im_pincheck( in ) )
+	if( im_pincheck( in ) ||
+		im_check_coding_rad( "im_vips2rad", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_RAD ) {
-		im_error( "vip2rad", "%s", _( "Radiance coding only" ) );
-		return( -1 );
-	}
-	if( in->BandFmt != IM_BANDFMT_UCHAR || in->Bands != 4 ) { 
-		im_error( "vip2rad", "%s", _( "4 band uchar only" ) );
-		return( -1 );
-	}
 	if( !(write = write_new( in, filename )) )
 		return( -1 );
 	if( vips2rad_put_header( write ) ||
@@ -1187,8 +1218,8 @@ vips_format_rad_class_init( VipsFormatRadClass *class )
 
 	format_class->is_a = israd;
 	format_class->header = rad2vips_header;
-	format_class->load = rad2vips;
-	format_class->save = vips2rad;
+	format_class->load = im_rad2vips;
+	format_class->save = im_vips2rad;
 	format_class->suffs = rad_suffs;
 }
 

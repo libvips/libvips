@@ -60,8 +60,8 @@
  * it automatically appears in all VIPS user-interfaces. It will also be
  * transparently supported by im_open().
  *
- * VIPS comes with loaders for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, RAW, VIPS and one that wraps libMagick. 
+ * VIPS comes with VipsFormat for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
+ * Matlab, Radiance, RAW, VIPS and one that wraps libMagick. 
  */
 
 /**

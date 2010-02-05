@@ -117,15 +117,9 @@ imb_LabQ2Lab( PEL *inp, float *outbuf, int n )
 int
 im_LabQ2Lab( IMAGE *in,  IMAGE *out )
 {
-	/* check for coded Lab type 
-	 */
-	if( in->Coding != IM_CODING_LABQ ) {
-		im_error( "im_LabQ2Lab", "%s", _( "not a LabQ image" ) );
+	if( im_check_coding_labq( "im_LabQ2Lab", in ) )
 		return( -1 );
-	}
 
-	/* set up output image 
-	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Bands = 3;

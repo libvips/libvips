@@ -14,6 +14,7 @@
  * 	- use im_wbuffer() API for BG writes
  * 4/2/10
  * 	- gtkdoc
+ * 	- fixed 16-bit save
  */
 
 /*
@@ -127,9 +128,9 @@ write_new( IMAGE *in )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 
-	if( !(write->in = im__convert_saveable( in, IM__RGBA )) ) {
+	if( !(write->in = im__convert_saveable( in, IM__RGBA, TRUE )) ) {
 		im_error( "im_vips2png", 
-			"%s", _( "unable to convert to RGB for save" ) );
+			"%s", _( "unable to convert to saveable format" ) );
 		write_destroy( write );
 		return( NULL );
 	}
@@ -196,7 +197,8 @@ write_vips( Write *write, int compress, int interlace )
 
 	int i, nb_passes;
 
-        g_assert( in->BandFmt == IM_BANDFMT_UCHAR );
+        g_assert( in->BandFmt == IM_BANDFMT_UCHAR || 
+		in->BandFmt == IM_BANDFMT_USHORT );
 	g_assert( in->Coding == IM_CODING_NONE );
         g_assert( in->Bands > 0 && in->Bands < 5 );
 
@@ -296,7 +298,8 @@ write_vips( Write *write, int compress, int interlace )
  * There is no support for attaching ICC profiles to PNG images.
  *
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
- * alpha before saving. 
+ * alpha before saving. Images with more than one byte per band element are
+ * saved as 16-bit PNG, others are saved as 8-bit PNG.
  *
  * Example:
  *

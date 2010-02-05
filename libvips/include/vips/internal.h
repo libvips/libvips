@@ -131,7 +131,8 @@ typedef enum {
 	IM__RGB_CMYK	/* 1, 3 or 4 bands (like JPEG) */
 } im__saveable_t;
 
-IMAGE *im__convert_saveable( IMAGE *in, im__saveable_t saveable );
+IMAGE *im__convert_saveable( IMAGE *in, 
+	im__saveable_t saveable, gboolean sixteen );
 
 void im__link_make( IMAGE *parent, IMAGE *child );
 void im__link_break_all( IMAGE *im );
