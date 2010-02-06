@@ -8,6 +8,10 @@
  * 	- better handling of tiny images
  * 25/1/10
  * 	- added "--delete"
+ * 6/2/10
+ * 	- added "--interpolator"
+ * 	- added "--nosharpen"
+ * 	- better 'open' logic, test lazy flag now
  */
 
 #ifdef HAVE_CONFIG_H
@@ -23,20 +27,20 @@
 #include <vips/vips.h>
 
 static int thumbnail_size = 128;
-static char *thumbnail_format = "tn_%s.jpg";
+static char *output_format = "tn_%s.jpg";
 static int use_disc_threshold = 1024 * 1024;
 static char *interpolator = "bilinear";;
 static gboolean nosharpen = FALSE;
 static char *export_profile = NULL;
 static char *import_profile = NULL;
-static gboolean delete_profile = FALSE;
+static gboolean nodelete_profile = FALSE;
 static gboolean verbose = FALSE;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, G_OPTION_ARG_INT, &thumbnail_size, 
 		N_( "set thumbnail size to N" ), "N" },
-	{ "format", 'f', 0, G_OPTION_ARG_STRING, &thumbnail_format, 
-		N_( "set thumbnail format to S" ), "S" },
+	{ "output", 'o', 0, G_OPTION_ARG_STRING, &output_format, 
+		N_( "set output to S" ), "S" },
 	{ "disc", 'd', 0, G_OPTION_ARG_INT, &use_disc_threshold, 
 		N_( "set disc use threshold to N" ), "N" },
 	{ "interpolator", 'p', 0, G_OPTION_ARG_STRING, &interpolator, 
@@ -47,8 +51,8 @@ static GOptionEntry options[] = {
 		N_( "export with profile P" ), "P" },
 	{ "iprofile", 'i', 0, G_OPTION_ARG_STRING, &import_profile, 
 		N_( "import untagged images with profile P" ), "P" },
-	{ "delete", 'd', 0, G_OPTION_ARG_NONE, &delete_profile, 
-		N_( "delete profile from exported image" ), NULL },
+	{ "nodelete", 'l', 0, G_OPTION_ARG_NONE, &nodelete_profile, 
+		N_( "don't delete profile from exported image" ), NULL },
 	{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, 
 		N_( "verbose output" ), NULL },
 	{ NULL }
@@ -60,48 +64,67 @@ static IMAGE *
 open_image( const char *filename )
 {
 	IMAGE *im;
-	IMAGE *disc;
 	size_t size;
 	VipsFormatClass *format;
 
-	if( !(im = im_open( filename, "r" )) )
+	/* Normally we'd just im_open() the filename. But we want to control
+	 * the process, so we use the lower-level API.
+	 */
+
+	/* Find a format and check the flags. Does this format support lazy
+	 * load? If it does, we can just open the image directly.
+	 */
+	if( !(format = vips_format_for_file( filename )) )
 		return( NULL );
+	if( vips_format_get_flags( format, filename ) & VIPS_FORMAT_PARTIAL ) {
+		if( verbose )
+			printf( "format supports lazy read, "
+				"working directly from disc file\n" ); 
 
-	/* Estimate decompressed image size.
+		return( im_open( filename, "r" ) );
+	}
+
+	/* Get the header and try to predict uncompressed image size.
 	 */
+	if( !(im = im_open( "header", "p" )) )
+		return( NULL );
+	if( format->header( filename, im ) ) {
+		im_close( im );
+		return( NULL );
+	}
 	size = IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
-
-	/* If it's less than a megabyte, we can just use 'im'. This will
-	 * decompress to memory.
-	 */
-	if( size < use_disc_threshold )
-		return( im );
-
-	/* Nope, too big, we need to decompress to disc and return the disc
-	 * file.
-	 */
 	im_close( im );
 
-	/* This makes a disc temp which be unlinked automatically when the
-	 * image is closed. The temp is made in "/tmp", or "$TMPDIR/", if the
-	 * environment variable is set.
+	/* If it's less than our threshold, decompress to memory. 
 	 */
-	if( !(disc = im__open_temp( "%s.v" )) ) 
-		return( NULL );
+	if( size < use_disc_threshold ) {
+		if( verbose )
+			printf( "small file, decompressing to memory\n" ); 
 
-	if( verbose )
-		printf( "large file, decompressing to disc temp %s\n", 
-			disc->filename );
+		if( !(im = im_open( filename, "t" )) )
+			return( NULL );
+	}
+	else {
+		/* This makes a disc temp which be unlinked automatically 
+		 * when 'im' is closed. The temp is made in "/tmp", or 
+		 * "$TMPDIR/", if the environment variable is set.
+		 */
+		if( !(im = im__open_temp( "%s.v" )) ) 
+			return( NULL );
 
-	/* Find a decompress class and use it to load the image.
+		if( verbose )
+			printf( "large file, decompressing to disc temp %s\n", 
+				im->filename );
+	}
+
+	/* Load into im, which is memory or disc, depending.
 	 */
-	if( !(format = vips_format_for_file( filename )) || 
-                format->load( filename, disc ) ) {
-		im_close( disc );
+	if( format->load( filename, im ) ) {
+		im_close( im );
 		return( NULL );
 	}
 
-	return( disc );
+	return( im );
 }
 
 /* Calculate the shrink factors. 
@@ -151,9 +174,9 @@ sharpen_filter( void )
 	if( !mask ) {
 		mask = im_create_imaskv( "sharpen.con", 3, 3, 
 			-1, -1, -1, 
-			-1, 16, -1, 
+			-1, 8, -1, 
 			-1, -1, -1 );
-		mask->scale = 8;
+		mask->scale = 4;
 	}
 
 	return( mask );
@@ -246,7 +269,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		x = t[6];
 	}
 
-	if( delete_profile ) {
+	if( !nodelete_profile ) {
 		if( verbose )
 			printf( "deleting profile from output image\n" );
 
@@ -309,7 +332,7 @@ make_thumbnail_name( const char *filename )
 	if( (p = strrchr( file, '.' )) ) 
 		*p = '\0';
 
-	im_snprintf( buf, FILENAME_MAX, thumbnail_format, file );
+	im_snprintf( buf, FILENAME_MAX, output_format, file );
 	result = g_build_filename( dir, buf, NULL );
 
 	if( verbose )
