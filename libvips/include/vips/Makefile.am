@@ -13,7 +13,6 @@ pkginclude_HEADERS = \
 	dispatch.h \
 	disp.h \
 	error.h \
-	fmask.h \
 	format.h \
 	inplace.h \
 	generate.h \

@@ -267,6 +267,8 @@ int im_invmat( double **, int );
 int im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 
+int im__fmaskcir( IMAGE *out, VipsMaskType flag, va_list ap );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

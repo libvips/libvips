@@ -1,11 +1,4 @@
-/* @(#) Does a inverse fft on an input image descriptor
- * @(#) using the function fft_sp.
- * @(#)  Input complex (2 floats) output complex (2 floats)
- * @(#) 
- * @(#) Usage:
- * @(#) int im_invfft(in, out)
- * @(#) IMAGE *in, *out;
- * @(#)
+/* im_invfft
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -26,6 +19,8 @@
  *	- oops, fix for segv on wider than high fftw transforms
  * 3/11/04
  *	- added fftw3 support
+ * 7/2/10
+ * 	- gtkdoc
  */
 
 /*
@@ -263,6 +258,24 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 #endif /*HAVE_FFTW3*/
 #endif /*HAVE_FFTW*/
 
+
+/**
+ * im_invfft:
+ * @in: input image
+ * @out: output image
+ *
+ * Transform an image from Fourier space to real space. The result is complex.
+ * If you are OK with a real result, use im_invfftr() instead, it's quicker.
+ *
+ * VIPS uses the fftw3 or fftw2 Fourier transform libraries if possible. If 
+ * they were not available when VIPS was built, it falls back to it's own 
+ * FFT functions which are slow and only work for square images whose sides
+ * are a power of two.
+ *
+ * See also: im_invfftr(), im_fwfft(), im_disp_ps().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_invfft( IMAGE *in, IMAGE *out )
 {

@@ -170,7 +170,7 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
  *
  * See also: im_copy(), im_copy_set(), im_copy_morph().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: 0 on success, -1 on error.
  */
 int 
 im_copy( IMAGE *in, IMAGE *out )
@@ -193,7 +193,7 @@ im_copy( IMAGE *in, IMAGE *out )
  *
  * See also: im_copy().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: 0 on success, -1 on error.
  */
 int 
 im_copy_set( IMAGE *in, IMAGE *out, 
@@ -221,7 +221,7 @@ im_copy_set( IMAGE *in, IMAGE *out,
  *
  * See also: im_copy().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: 0 on success, -1 on error.
  */
 int 
 im_copy_morph( IMAGE *in, IMAGE *out, 
@@ -244,7 +244,7 @@ im_copy_morph( IMAGE *in, IMAGE *out,
  *
  * See also: im_copy().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value )
@@ -316,7 +316,7 @@ im_copy_swap8_gen( PEL *in, PEL *out, int width, IMAGE *im )
  *
  * See also: im_copy(), im_amiMSBfirst(), im_isMSBfirst().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_copy_swap( IMAGE *in, IMAGE *out )
@@ -375,7 +375,7 @@ im_copy_swap( IMAGE *in, IMAGE *out )
  *
  * See also: im_copy_swap(), im_amiMSBfirst().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: 0 on success, -1 on error.
  */
 int
 im_copy_native( IMAGE *in, IMAGE *out, gboolean is_msb_first )

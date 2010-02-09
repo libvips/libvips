@@ -65,7 +65,6 @@
 #include <stdarg.h>
 
 #include <vips/vips.h>
-#include <vips/fmask.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -623,7 +622,7 @@ gaussian_brf( IMAGE *out, double fcx, double fcy, double r, double ac )
  * however all masks are written as floats with maximum value normalised to 1.0
  */
 int
-im__fmaskcir( IMAGE *out, MaskType flag, va_list ap )
+im__fmaskcir( IMAGE *out, VipsMaskType flag, va_list ap )
 {
 	/* May be fewer than 5 args ... but extract them all anyway. Should be
 	 * safe.
@@ -637,22 +636,22 @@ im__fmaskcir( IMAGE *out, MaskType flag, va_list ap )
 	switch( flag ) {
 		/* Band pass - band reject.
 		 */
-		case MASK_IDEAL_BANDPASS:
+		case VIPS_MASK_IDEAL_BANDPASS:
 			return( ideal_bpf( out, p0, p1, p2 ) );
 
-		case MASK_IDEAL_BANDREJECT:
+		case VIPS_MASK_IDEAL_BANDREJECT:
 			return( ideal_brf( out, p0, p1, p2 ) );
 
-		case MASK_BUTTERWORTH_BANDPASS:
+		case VIPS_MASK_BUTTERWORTH_BANDPASS:
 			return( butterworth_bpf( out, p0, p1, p2, p3, p4 ) );
 
-		case MASK_BUTTERWORTH_BANDREJECT:
+		case VIPS_MASK_BUTTERWORTH_BANDREJECT:
 			return( butterworth_brf( out, p0, p1, p2, p3, p4 ) );
 
-		case MASK_GAUSS_BANDPASS:
+		case VIPS_MASK_GAUSS_BANDPASS:
 			return( gaussian_bpf( out, p0, p1, p2, p3 ) );
 
-		case MASK_GAUSS_BANDREJECT:
+		case VIPS_MASK_GAUSS_BANDREJECT:
 			return( gaussian_brf( out, p0, p1, p2, p3 ) );
 
 		default:

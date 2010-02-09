@@ -1,14 +1,4 @@
-/* @(#) Creates a vasari fractal surface of a given dimension by
- * @(#) filtering white gaussian noise (function im_gaussnoise(3X))
- * @(#) using the function im_fltimage_freq(3X)
- * @(#) 
- * @(#) Usage:
- * @(#) int im_fractsurf(im, frd, size)
- * @(#) double frd;
- * @(#) int size;
- * @(#) 
- * @(#) Returns 0 on sucess and -1 on error
- * @(#) 
+/* im_fractsurf
  *
  * Copyright: 1991, N. Dessipris.
  *
@@ -17,6 +7,9 @@
  * Modified on:
  * 20/9/95 JC
  *	 - modernised, a little
+ * 7/2/10
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -55,33 +48,38 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/fmask.h> /* for MASK_FRACTAL_FLT */
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_fractsurf:
+ * @out: output image
+ * @size: size of image to generate
+ * @frd: fractal dimension
+ *
+ * Generate an image of size @size and fractal dimension @frd. The dimension
+ * should be between 2 and 3.
+ *
+ * See also: im_gaussnoise(), im_flt_image_freq().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_fractsurf( IMAGE *out, int size, double frd )
 {
-	IMAGE *noise = im_open_local( out, "noise.v", "p" );
+	IMAGE *noise;
 
-	if( !noise )
-		return( -1 );
 	if( frd <= 2.0 || frd >= 3.0 ) {
 		im_error( "im_fractsurf", "%s", 
 			_( "dimension shuld be in (2,3)" ) );
 		return( -1 );
 	}
 
-	if( im_gaussnoise( noise, size, size, 0.0, 1.0 ) ) 
-		return( -1 );
-
-	/* create the fractal filter mask, and perform filtering on noise
-	 * Note that the result is in im, stored as float since
-	 * the original noise is in float.  It needs scaling for display
-	 */
-	if( im_flt_image_freq( noise, out, MASK_FRACTAL_FLT, frd ) )
+	if( !(noise = im_open_local( out, "im_fractsurf", "p" )) ||
+		im_gaussnoise( noise, size, size, 0.0, 1.0 ) || 
+		im_flt_image_freq( noise, out, VIPS_MASK_FRACTAL_FLT, frd ) )
 		return( -1 );
 
 	return( 0 );

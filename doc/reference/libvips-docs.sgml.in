@@ -39,6 +39,7 @@
     <xi:include href="xml/conversion.xml"/>
     <xi:include href="xml/convolution.xml"/>
     <xi:include href="xml/format.xml"/>
+    <xi:include href="xml/freq_filt.xml"/>
   </chapter>
 
   <chapter>
@@ -46,7 +47,6 @@
     <xi:include href="xml/morphology.xml"/>
     <xi:include href="xml/resample.xml"/>
     <xi:include href="xml/histograms_lut.xml"/>
-    <xi:include href="xml/freq_filt.xml"/>
     <xi:include href="xml/mask.xml"/>
     <xi:include href="xml/inplace.xml"/>
     <xi:include href="xml/mosaicing.xml"/>
@@ -66,7 +66,6 @@
     <xi:include href="xml/rect.xml"/>
     <xi:include href="xml/semaphore.xml"/>
     <xi:include href="xml/dispatch.xml"/>
-    <xi:include href="xml/fmask.xml"/>
   </chapter>
 
   <chapter id="object-tree">

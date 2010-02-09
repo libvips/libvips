@@ -80,7 +80,7 @@
 #include <stdarg.h>
 
 #include <vips/vips.h>
-#include <vips/fmask.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -134,11 +134,11 @@ copy_quarter( IMAGE *out, float *coeff_s )
 /* Make a mask image.
  */
 static int 
-build_freq_mask( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
+build_freq_mask( IMAGE *out, int xs, int ys, VipsMaskType flag, va_list ap )
 {
 	float *coeff;
 	extern float *im__create_quarter( IMAGE *, 
-		int, int, MaskType, va_list );
+		int, int, VipsMaskType, va_list );
 
 	/* Check sizes and create one quarter of the final mask 
 	 */
@@ -156,21 +156,21 @@ build_freq_mask( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
                 return( -1 );
 
 	switch( flag ) {
-	case MASK_IDEAL_HIGHPASS:
-	case MASK_IDEAL_LOWPASS:
-	case MASK_BUTTERWORTH_HIGHPASS:
-	case MASK_BUTTERWORTH_LOWPASS:
-	case MASK_GAUSS_HIGHPASS:
-	case MASK_GAUSS_LOWPASS:
+	case VIPS_MASK_IDEAL_HIGHPASS:
+	case VIPS_MASK_IDEAL_LOWPASS:
+	case VIPS_MASK_BUTTERWORTH_HIGHPASS:
+	case VIPS_MASK_BUTTERWORTH_LOWPASS:
+	case VIPS_MASK_GAUSS_HIGHPASS:
+	case VIPS_MASK_GAUSS_LOWPASS:
 
-	case MASK_IDEAL_RINGPASS:
-	case MASK_IDEAL_RINGREJECT:
-	case MASK_BUTTERWORTH_RINGPASS:
-	case MASK_BUTTERWORTH_RINGREJECT:
-	case MASK_GAUSS_RINGPASS:
-	case MASK_GAUSS_RINGREJECT:
+	case VIPS_MASK_IDEAL_RINGPASS:
+	case VIPS_MASK_IDEAL_RINGREJECT:
+	case VIPS_MASK_BUTTERWORTH_RINGPASS:
+	case VIPS_MASK_BUTTERWORTH_RINGREJECT:
+	case VIPS_MASK_GAUSS_RINGPASS:
+	case VIPS_MASK_GAUSS_RINGREJECT:
 
-	case MASK_FRACTAL_FLT:
+	case VIPS_MASK_FRACTAL_FLT:
 		/* All these are created as a quarter and duplicated.
 		 */
 		if( !(coeff = im__create_quarter( out, xs, ys, flag, ap )) ||
@@ -178,12 +178,12 @@ build_freq_mask( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
 			return( -1 );
 		break;
 
-	case MASK_IDEAL_BANDPASS:
-	case MASK_IDEAL_BANDREJECT:
-	case MASK_BUTTERWORTH_BANDPASS:
-	case MASK_BUTTERWORTH_BANDREJECT:
-	case MASK_GAUSS_BANDPASS:
-	case MASK_GAUSS_BANDREJECT:
+	case VIPS_MASK_IDEAL_BANDPASS:
+	case VIPS_MASK_IDEAL_BANDREJECT:
+	case VIPS_MASK_BUTTERWORTH_BANDPASS:
+	case VIPS_MASK_BUTTERWORTH_BANDREJECT:
+	case VIPS_MASK_GAUSS_BANDPASS:
+	case VIPS_MASK_GAUSS_BANDREJECT:
 		/* Created all in one go.
 		 */
 		if( im__fmaskcir( out, flag, ap ) )
@@ -201,7 +201,7 @@ build_freq_mask( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
 /* Create a mask, and filter an image with it.
  */
 int 
-im_flt_image_freq( IMAGE *in, IMAGE *out, MaskType flag, ... )
+im_flt_image_freq( IMAGE *in, IMAGE *out, VipsMaskType flag, ... )
 {
         IMAGE *mask = im_open_local( out, "tempmask", "p" );
 	va_list ap;
@@ -225,7 +225,7 @@ im_flt_image_freq( IMAGE *in, IMAGE *out, MaskType flag, ... )
 /* Create a filter mask.
  */
 int 
-im_create_fmask( IMAGE *out, int xsize, int ysize, MaskType flag, ... )
+im_create_fmask( IMAGE *out, int xsize, int ysize, VipsMaskType flag, ... )
 {
 	va_list ap;
 

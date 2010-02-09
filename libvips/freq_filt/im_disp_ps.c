@@ -1,16 +1,4 @@
-/* @(#)  Makes a displayable uchar power spectrum of an input one band image
- * @(#) Input should be float complex
- * @(#) All images are kept in RAM; so only square arrays of powers of 
- * @(#) 2 as inputs.
- * @(#) Functions im_fwfft, im_c2ps, im_scaleps and im_rotquad are used
- * @(#)  Image descriptors should have been set properly by the calling program
- * @(#)
- * @(#)  int im_disp_ps(in, out)
- * @(#)  IMAGE *in, *out;
- * @(#)  int bandno;
- * @(#)
- * @(#)  Returns 0 on sucess and -1 on error
- * @(#)
+/* im_disp_ps
  *
  * Copyright: 1991, N. Dessipris.
  *
@@ -25,6 +13,9 @@
  *	- frees memory more quickly
  * 2/4/02 JC
  *	- any number of bands
+ * 7/2/10
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -75,27 +66,40 @@ disp_ps( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	if( im_open_local_array( out, t, 3, "im_disp_ps temp 1", "p" ) )
 		return( -1 );
 
-	if( in->BandFmt == IM_BANDFMT_COMPLEX ) {
-		if( im_abs( in, t[1] ) )
+	if( in->BandFmt != IM_BANDFMT_COMPLEX ) {
+		if( im_fwfft( in, t[0] ) )
 			return( -1 );
-	}
-	else {
-		if( im_fwfft( in, t[0] ) || im_abs( t[0], t[1] ) )
-			return( -1 );
+		in = t[0];
 	}
 
-	if( im_scaleps( t[1], t[2] ) || im_rotquad( t[2], out ) )
+	if( im_abs( in, t[1] ) ||
+		im_scaleps( t[1], t[2] ) || 
+		im_rotquad( t[2], out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
+/**
+ * im_disp_ps:
+ * @in: input image
+ * @out: output image
+ *
+ * Make a displayable (ie. 8-bit unsigned int) power spectrum. 
+ *
+ * If @in is non-complex, it is transformed to Fourier space. Then the
+ * absolute value is passed through im_scaleps(), and im_rotquad().
+ *
+ * See also: im_scaleps(), im_rotquad().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_disp_ps( IMAGE *in, IMAGE *out )
 {
-	IMAGE *dummy = im_open( "memory:1", "p" );
+	IMAGE *dummy;
 
-	if( !dummy )
+	if( !(dummy = im_open( "memory:1", "p" )) )
 		return( -1 );
 	if( disp_ps( dummy, in, out ) ) {
 		im_close( dummy );

@@ -74,7 +74,6 @@
 #include <stdarg.h>
 
 #include <vips/vips.h>
-#include <vips/fmask.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -735,7 +734,7 @@ fractal_flt( IMAGE *out, int xs, int ys, double frdim )
  */
 
 float *
-im__create_quarter( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
+im__create_quarter( IMAGE *out, int xs, int ys, VipsMaskType flag, va_list ap )
 {
 	/* May be fewer than 4 args ... but extract them all anyway. Should be
 	 * safe.
@@ -748,47 +747,47 @@ im__create_quarter( IMAGE *out, int xs, int ys, MaskType flag, va_list ap )
 	switch( flag ) {
 		/* High pass - low pass 
 		 */
-		case MASK_IDEAL_HIGHPASS:
+		case VIPS_MASK_IDEAL_HIGHPASS:
 			return( ideal_hpf( out, xs, ys, p0 ) );
 
-		case MASK_IDEAL_LOWPASS:
+		case VIPS_MASK_IDEAL_LOWPASS:
 			return( ideal_lpf( out, xs, ys, p0 ) );
 
-		case MASK_BUTTERWORTH_HIGHPASS:
+		case VIPS_MASK_BUTTERWORTH_HIGHPASS:
 			return( butterworth_hpf( out, xs, ys, p0, p1, p2 ) );
 
-		case MASK_BUTTERWORTH_LOWPASS:
+		case VIPS_MASK_BUTTERWORTH_LOWPASS:
 			return( butterworth_lpf( out, xs, ys, p0, p1, p2 ) );
 
-		case MASK_GAUSS_HIGHPASS:
+		case VIPS_MASK_GAUSS_HIGHPASS:
 			return( gaussian_hpf( out, xs, ys, p0, p1 ) );
 
-		case MASK_GAUSS_LOWPASS:
+		case VIPS_MASK_GAUSS_LOWPASS:
 			return( gaussian_lpf( out, xs, ys, p0, p1 ) );
 
 		/* Ring pass - ring reject.
 		 */
-		case MASK_IDEAL_RINGPASS:
+		case VIPS_MASK_IDEAL_RINGPASS:
 			return( ideal_rpf( out, xs, ys, p0, p1 ) );
 
-		case MASK_IDEAL_RINGREJECT:
+		case VIPS_MASK_IDEAL_RINGREJECT:
 			return( ideal_rrf( out, xs, ys, p0, p1 ) );
 
-		case MASK_BUTTERWORTH_RINGPASS:
+		case VIPS_MASK_BUTTERWORTH_RINGPASS:
 			return( butterworth_rpf( out, 
 				xs, ys, p0, p1, p2, p3 ) );
 
-		case MASK_BUTTERWORTH_RINGREJECT:
+		case VIPS_MASK_BUTTERWORTH_RINGREJECT:
 			return( butterworth_rrf( out, 
 				xs, ys, p0, p1, p2, p3 ) );
 
-		case MASK_GAUSS_RINGPASS:
+		case VIPS_MASK_GAUSS_RINGPASS:
 			return( gaussian_rpf( out, xs, ys, p0, p1, p2 ) );
 
-		case MASK_GAUSS_RINGREJECT:
+		case VIPS_MASK_GAUSS_RINGREJECT:
 			return( gaussian_rrf( out, xs, ys, p0, p1, p2 ) );
 
-		case MASK_FRACTAL_FLT:
+		case VIPS_MASK_FRACTAL_FLT:
 			return( fractal_flt( out, xs, ys, p0 ) );
 
 		default:

@@ -1,11 +1,4 @@
-/* @(#) Does a forward fft on an input image descriptor
- * @(#) using the function fft_sp.	(float fft)
- * @(#)  Input can be any complex or no-complex; output is complex (two floats)
- * @(#) 
- * @(#) Usage:
- * @(#) int im_fwfft(in, out)
- * @(#) IMAGE *in, *out;
- * @(#)
+/* im_fwfft
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -34,6 +27,9 @@
  *	  non-square images, including odd widths and heights
  * 3/11/04
  *	- added fftw3 support
+ * 7/2/10
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -575,54 +571,52 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 int 
 im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn )
 {
-	if( im_pincheck( in ) || im_outcheck( out ) )
-                return( -1 );
-	
-	if( in->Bands == 1 ) {
-		if( fn( dummy, in, out ) )
+	IMAGE **bands;
+	IMAGE **fft;
+	int b;
+
+	if( in->Bands == 1 ) 
+		return( fn( dummy, in, out ) );
+
+	if( !(bands = IM_ARRAY( dummy, in->Bands, IMAGE * )) ||
+		!(fft = IM_ARRAY( dummy, in->Bands, IMAGE * )) ||
+		im_open_local_array( dummy, bands, in->Bands, "bands", "p" ) ||
+		im_open_local_array( dummy, fft, in->Bands, "fft", "p" ) )
+		return( -1 );
+
+	for( b = 0; b < in->Bands; b++ ) 
+		if( im_extract_band( in, bands[b], b ) ||
+			fn( dummy, bands[b], fft[b] ) )
 			return( -1 );
-	}
-	else {
-		IMAGE *acc;
-		int b;
 
-		for( acc = NULL, b = 0; b < in->Bands; b++ ) {
-			IMAGE *t1 = im_open_local( dummy, 
-				"fwfftn:1", "p" );
-			IMAGE *t2 = im_open_local( dummy, 
-				"fwfftn:2", "p" );
-
-			if( !t1 || !t2 || 
-				im_extract_band( in, t1, b ) ||
-				fn( dummy, t1, t2 ) )
-				return( -1 );
-			
-			if( !acc )
-				acc = t2;
-			else {
-				IMAGE *t3 = im_open_local( dummy, 
-					"fwfftn:3", "p" );
-
-				if( !t3 || im_bandjoin( acc, t2, t3 ) )
-					return( -1 );
-
-				acc = t3;
-			}
-		}
-
-		if( im_copy( acc, out ) )
-			return( -1 );
-	}
+	if( im_gbandjoin( fft, out, in->Bands ) )
+		return( -1 );
 
 	return( 0 );
 }
 
+/**
+ * im_fwfft:
+ * @in: input image
+ * @out: output image
+ *
+ * Transform an image to Fourier space.
+ *
+ * VIPS uses the fftw3 or fftw2 Fourier transform libraries if possible. If 
+ * they were not available when VIPS was built, it falls back to it's own 
+ * FFT functions which are slow and only work for square images whose sides
+ * are a power of two.
+ *
+ * See also: im_invfft(), im_disp_ps().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 im_fwfft( IMAGE *in, IMAGE *out )
 {
-	IMAGE *dummy = im_open( "im_fwfft:1", "p" );
+	IMAGE *dummy;
 
-	if( !dummy )
+	if( !(dummy = im_open( "im_fwfft:1", "p" )) )
 		return( -1 );
 	if( im__fftproc( dummy, in, out, fwfft1 ) ) {
 		im_close( dummy );
