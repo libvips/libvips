@@ -3,11 +3,6 @@
 	nip2: im_prepare.c:324: im_prepare_to: 
 		Assertion `clipped.left == r->left' failed.
 
-- im_iscomplex() not defined errors from nip2 ... don't we have a compat thing
-  for this?
-
-  IM_DISABLE_DEPRECATED should be off by default
-
 - doing im_create_fmask() and friends
 
 - how about im_invalidate_area()? we currently repaint the whole window on

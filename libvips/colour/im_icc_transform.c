@@ -396,10 +396,10 @@ attach_profile( IMAGE *im, const char *filename )
  * profile-connection space with the input profile and then to the output
  * space with the output profile.
  *
- * Use im_icc_import() and im_icc_export() to do either the first or second
- * half of this operation in isolation.
+ * Use im_icc_import() and im_icc_export_depth() to do either the first or 
+ * second half of this operation in isolation.
  *
- * See also: im_icc_import(), im_icc_export().
+ * See also: im_icc_import(), im_icc_export_depth().
  *
  * Returns: 0 on success, -1 on error.
  */

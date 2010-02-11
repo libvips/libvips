@@ -15,6 +15,8 @@
 - im_ri2c() bandalike 
 - im_vips2png() saves 16-bit PNGs, if necessary
 - vipsthumbnail has selectable interpolators, optional sharpen
+- moved a lot of stuff (eg. im_iscomplex()) from deprecated to 
+  almostdeprecated to avoid breakage
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats
@@ -24,7 +26,8 @@
 - argh, missing init from colour.c (thanks Peter)
 - argh, im_measure() was not looping over bands correctly (thanks Peter)
 - removed mmap_limit, we now always use windows ... reduces VM use hugely,
-  because mmap windows are freed when their regions are freed
+  because mmap windows are freed when their regions are freed, while images
+  are only unmapped when they are closed
 - have a min bytes for mmap windows as well, so we don't make too many tiny
   windows
 - im_disp2Lab() was broken

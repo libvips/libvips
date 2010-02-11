@@ -35,7 +35,6 @@
 #include <vips/intl.h>
 
 #include <vips/vips.h>
-#include <vips/deprecated.h>
 #include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
@@ -222,10 +221,10 @@ im_makerw( IMAGE *im )
 
 int
 im_icc_export( IMAGE *in, IMAGE *out, 
-	const char *output_profile_filename, VipsIntent intent )
+	const char *output_profile_filename, int intent )
 { 
 	return( im_icc_export_depth( in, out, 
-		8, output_profile_filename, intent ) );
+		8, output_profile_filename, (VipsIntent) intent ) );
 }
 
 int 
