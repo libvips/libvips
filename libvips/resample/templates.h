@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -77,17 +77,44 @@
 #endif
 
 /*
+ * Various casts which assume that the data is already in range. (That
+ * is, they are to be used with monotone samplers.)
+ */
+template <typename T> static T inline
+to_fptypes( const double val )
+{
+  const T newval = val;
+  return( newval );
+}
+
+template <typename T> static T inline
+to_withsign( const double val )
+{
+  const int sign_of_val = 2 * ( val >= 0. ) - 1;
+  const int rounded_abs_val = .5 + sign_of_val * val;
+  const T newval = sign_of_val * rounded_abs_val;
+  return( newval );
+}
+
+template <typename T> static T inline
+to_nosign( const double val )
+{
+  const T newval = .5 + val;
+  return( newval );
+}
+
+/*
  * Various bilinear implementation templates. Note that no clampling
  * is used: There is an assumption that the data is such that
  * over/underflow is not an issue:
  */
-/* 
+/*
  * Bilinear interpolation for float and double types. The first four
  * inputs are weights, the last four are the corresponding pixel
  * values:
  */
 template <typename T> static T inline
-bilinear_fptypes( 
+bilinear_fptypes(
 	const double w_times_z,
 	const double x_times_z,
 	const double w_times_y,
@@ -106,11 +133,11 @@ bilinear_fptypes(
 	return( newval );
 }
 
-/* 
+/*
  * Bilinear interpolation for signed integer types:
  */
 template <typename T> static T inline
-bilinear_withsign( 
+bilinear_withsign(
 	const double w_times_z,
 	const double x_times_z,
 	const double w_times_y,
@@ -139,7 +166,7 @@ bilinear_withsign(
  * Bilinear Interpolation for unsigned integer types:
  */
 template <typename T> static T inline
-bilinear_nosign( 
+bilinear_nosign(
 	const double w_times_z,
 	const double x_times_z,
 	const double w_times_y,
@@ -153,7 +180,7 @@ bilinear_nosign(
 		w_times_z * tre_thr +
 		x_times_z * tre_thrfou +
 		w_times_y * trequa_thr +
-		x_times_y * trequa_thrfou + 
+		x_times_y * trequa_thrfou +
 		0.5;
 
 	return( newval );
@@ -166,32 +193,32 @@ bilinear_nosign(
 /* Fixed-point integer bicubic, used for 8 and 16-bit types.
  */
 template <typename T> static int inline
-bicubic_int( 
+bicubic_int(
 	const T uno_one, const T uno_two, const T uno_thr, const T uno_fou,
 	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
 	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const int* restrict cx, const int* restrict cy )
 {
-	const int r0 = 
+	const int r0 =
 		(cx[0] * uno_one +
 		 cx[1] * uno_two +
 		 cx[2] * uno_thr +
 		 cx[3] * uno_fou) >> VIPS_INTERPOLATE_SHIFT;
 
-	const int r1 = 
+	const int r1 =
 		(cx[0] * dos_one +
 		 cx[1] * dos_two +
 		 cx[2] * dos_thr +
 		 cx[3] * dos_fou) >> VIPS_INTERPOLATE_SHIFT;
 
-	const int r2 = 
+	const int r2 =
 		(cx[0] * tre_one +
 		 cx[1] * tre_two +
 		 cx[2] * tre_thr +
 		 cx[3] * tre_fou) >> VIPS_INTERPOLATE_SHIFT;
 
-	const int r3 = 
+	const int r3 =
 		(cx[0] * qua_one +
 		 cx[1] * qua_two +
 		 cx[2] * qua_thr +
@@ -203,17 +230,17 @@ bicubic_int(
 		 cy[3] * r3) >> VIPS_INTERPOLATE_SHIFT );
 }
 
-/* Floating-point bicubic, used for int/float/double types. 
+/* Floating-point bicubic, used for int/float/double types.
  */
 template <typename T> static T inline
-bicubic_float( 
+bicubic_float(
 	const T uno_one, const T uno_two, const T uno_thr, const T uno_fou,
 	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
 	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const double* restrict cx, const double* restrict cy )
 {
-	return( 
+	return(
 		cy[0] * (cx[0] * uno_one +
 			 cx[1] * uno_two +
 			 cx[2] * uno_thr +
@@ -235,9 +262,9 @@ bicubic_float(
 			 cx[3] * qua_fou) );
 }
 
-/* Given an offset in [0,1] (we can have x == 1 when building tables), 
- * calculate c0, c1, c2, c3, the catmull-rom coefficients. This is called 
- * from the interpolator as well as from the table builder. 
+/* Given an offset in [0,1] (we can have x == 1 when building tables),
+ * calculate c0, c1, c2, c3, the catmull-rom coefficients. This is called
+ * from the interpolator as well as from the table builder.
  */
 static void inline
 calculate_coefficients_catmull( const double x, double c[4] )
