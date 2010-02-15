@@ -146,10 +146,10 @@ typedef struct _VipsInterpolateMbicubicClass {
  * uses different parameters and consequently is not a direct
  * substitute. To be fixed in the future.
  *
- * Note that the two variants differ in whether (a) or (b) follows the
- * forward branch. If there is a difference in likelihood, put the
- * likely one in (a) in the first variant, and the likely one in (b)
- * in the second.
+ * Note that the two variants differ in whether (a) or (b) is the
+ * "out" of the forward branch of the second factor. If there is a
+ * difference in likelihood, put the likely one in (a) in the first
+ * variant, and the likely one in (b) in the second.
  */
 #define MINMOD(a,b,a_times_a,a_times_b) \
   ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
@@ -415,7 +415,7 @@ symmetrized_monotone_cubic_splines( const double coef_rite_point,
       +
       half_coef_rite_slope
       *
-      MINMOD( twice_l_thr, twice_s_thr, l_l_thr, l_l_thr )
+      MINMOD( twice_l_thr, twice_s_thr, l_l_thr, l_s_thr )
     ) * .5;
 
   return newval;
@@ -441,25 +441,29 @@ symmetrized_monotone_cubic_splines( const double coef_rite_point,
     \
     const T* restrict in = (T *) pin; \
     \
-    const int uno_one_shift =  -lskip -   bands; \
-    const int uno_two_shift =  -lskip          ; \
-    const int uno_thr_shift =  -lskip +   bands; \
-    const int uno_fou_shift =  -lskip + 2*bands; \
+    const int one_shift =  -bands; \
+    const int thr_shift =   bands; \
+    const int fou_shift = 2*bands; \
     \
-    const int dos_one_shift =         -   bands; \
-    const int dos_two_shift =                 0; \
-    const int dos_thr_shift =             bands; \
-    const int dos_fou_shift =           2*bands; \
+    const int uno_two_shift =  -lskip; \
+    const int dos_two_shift =       0; \
+    const int tre_two_shift =   lskip; \
+    const int qua_two_shift = 2*lskip; \
     \
-    const int tre_one_shift =   lskip -   bands; \
-    const int tre_two_shift =   lskip          ; \
-    const int tre_thr_shift =   lskip +   bands; \
-    const int tre_fou_shift =   lskip + 2*bands; \
+    const int uno_one_shift = uno_two_shift + one_shift; \
+    const int dos_one_shift = dos_two_shift + one_shift; \
+    const int tre_one_shift = tre_two_shift + one_shift; \
+    const int qua_one_shift = qua_two_shift + one_shift; \
     \
-    const int qua_one_shift = 2*lskip -   bands; \
-    const int qua_two_shift = 2*lskip          ; \
-    const int qua_thr_shift = 2*lskip +   bands; \
-    const int qua_fou_shift = 2*lskip + 2*bands; \
+    const int uno_thr_shift = uno_two_shift + thr_shift; \
+    const int dos_thr_shift = dos_two_shift + thr_shift; \
+    const int tre_thr_shift = tre_two_shift + thr_shift; \
+    const int qua_thr_shift = qua_two_shift + thr_shift; \
+    \
+    const int uno_fou_shift = uno_two_shift + fou_shift; \
+    const int dos_fou_shift = dos_two_shift + fou_shift; \
+    const int tre_fou_shift = tre_two_shift + fou_shift; \
+    const int qua_fou_shift = qua_two_shift + fou_shift; \
     \
     const double x_squared = x * x; \
     const double y_squared = y * y; \
