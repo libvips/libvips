@@ -624,7 +624,6 @@ vips_interpolate_mbicubic_interpolate( VipsInterpolate* restrict interpolate,
 static void
 vips_interpolate_mbicubic_class_init( VipsInterpolateMbicubicClass *klass )
 {
-  GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
   VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
   VipsInterpolateClass *interpolate_class =
     VIPS_INTERPOLATE_CLASS( klass );

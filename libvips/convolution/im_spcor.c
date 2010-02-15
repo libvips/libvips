@@ -86,26 +86,34 @@ typedef struct {
 	double c1;		/* sqrt(sumij (ref(i,j)-mean(ref))^2) */
 } Spcor;
 
-#define LOOP(IN) { \
+#define LOOP( IN ) { \
 	IN *a = (IN *) p; \
 	IN *b = (IN *) ref->data; \
 	int in_lsk = lsk / sizeof( IN ); \
-	IN *a1, *b1; \
+	IN *a1; \
+	IN *b1; \
  	\
 	/* For each pel in or, loop over ref. First, \
 	 * calculate mean of area in ir corresponding to ref. \
 	 */ \
-	for( a1 = a, sum1 = 0, j = 0; j < ref->Ysize; j++, a1 += in_lsk )  \
+	a1 = a; \
+	sum1 = 0; \
+	for( j = 0; j < ref->Ysize; j++ ) { \
 		for( i = 0; i < ref->Xsize; i++ ) \
 			sum1 += a1[i]; \
-	imean = (double) sum1 / (ref->Xsize * ref->Ysize); \
+		a1 += in_lsk;  \
+	} \
+	imean = sum1 / (ref->Xsize * ref->Ysize); \
  	\
 	/* Loop over ir again, this time calculating  \
 	 * sum-of-squares-of-differences for this window on \
 	 * ir, and also sum-of-products-of-differences from mean. \
 	 */ \
-	for( a1 = a, b1 = b, sum2 = 0.0, sum3 = 0.0, j = 0; \
-		j < ref->Ysize; j++, a1 += in_lsk, b1 += ref->Xsize ) { \
+	a1 = a; \
+	b1 = b; \
+	sum2 = 0.0; \
+	sum3 = 0.0; \
+	for( j = 0; j < ref->Ysize; j++ ) { \
 		for( i = 0; i < ref->Xsize; i++ ) { \
 			/* Reference pel, and input pel. \
 			 */ \
@@ -122,6 +130,8 @@ typedef struct {
 			 */ \
 			sum3 += (rp - spcor->rmean) * (ip - imean); \
 		} \
+		a1 += in_lsk; \
+		b1 += ref->Xsize; \
 	} \
 }
 
@@ -137,8 +147,8 @@ spcor_gen( REGION *or, void *vseq, void *a, void *b )
 	Rect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int ri = IM_RECT_RIGHT(r);
+	int bo = IM_RECT_BOTTOM( r );
+	int ri = IM_RECT_RIGHT( r );
 
 	int x, y, i, j;
 	int lsk;
@@ -196,10 +206,10 @@ static Spcor *
 spcor_new( IMAGE *out, IMAGE *ref )
 {
 	Spcor *spcor;
-	int sz = ref->Xsize * ref->Ysize;
+	size_t sz = ref->Xsize * ref->Ysize;
 	PEL *p = (PEL *) ref->data;
 	double s;
-	int i;
+	size_t i;
 
 	if( !(spcor = IM_NEW( out, Spcor )) )
 		return( NULL );
@@ -212,7 +222,8 @@ spcor_new( IMAGE *out, IMAGE *ref )
 
 	/* Find sqrt-of-sum-of-squares-of-differences.
 	 */
-	for( s = 0.0, i = 0; i < sz; i++ ) {
+	s = 0.0;
+	for( i = 0; i < sz; i++ ) {
 		double t = (int) p[i] - spcor->rmean;
 		s += t * t;
 	}
@@ -245,18 +256,11 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	 */
 	if( im_check_uncoded( "im_spcor", in ) ||
 		im_check_mono( "im_spcor", in ) || 
-		im_check_uncoded( "im_spcor", ref ) ||
-		im_check_mono( "im_spcor", ref ) || 
+		im_check_8or16( "im_spcor", in ) ||
+		im_check_coding_same( "im_spcor", in, ref ) ||
+		im_check_bands_same( "im_spcor", in, ref ) || 
 		im_check_format_same( "im_spcor", in, ref ) )
 		return( -1 );
-	if( in->BandFmt != IM_BANDFMT_UCHAR && 
-		in->BandFmt != IM_BANDFMT_CHAR &&
-		in->BandFmt != IM_BANDFMT_SHORT &&
-		in->BandFmt != IM_BANDFMT_USHORT ) {
-		im_error( "im_spcor", 
-			"%s", _( "input not char/uchar/short/ushort" ) );
-		return( -1 );
-	}
 
 	/* Prepare the output image. 
 	 */

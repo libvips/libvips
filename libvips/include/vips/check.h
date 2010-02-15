@@ -60,6 +60,7 @@ int im_check_noncomplex( const char *domain, IMAGE *im );
 int im_check_complex( const char *domain, IMAGE *im );
 int im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt );
 int im_check_u8or16( const char *domain, IMAGE *im );
+int im_check_8or16( const char *domain, IMAGE *im );
 int im_check_format_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_size_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_vector( const char *domain, int n, IMAGE *im );
