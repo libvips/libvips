@@ -248,7 +248,7 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	if( in->Xsize < ref->Xsize || 
 		in->Ysize < ref->Ysize ) {
 		im_error( "im_spcor_raw", 
-			"%s", _( "ref not smaller than in" ) );
+			"%s", _( "ref not smaller than or equal to in" ) );
 		return( -1 );
 	}
 
@@ -304,7 +304,8 @@ im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
  * @ref is placed at every position in @in and the correlation coefficient
  * calculated. One-band, 8 or 16-bit images only. @in and @ref must have the
  * same #VipsBandFmt. The output
- * image is always %IM_BANDFMT_FLOAT. @ref must be smaller than @in. The output
+ * image is always %IM_BANDFMT_FLOAT. @ref must be smaller than or equal to 
+ * @in. The output
  * image is the same size as the input. 
  *
  * The correlation coefficient is calculated as:

@@ -73,10 +73,6 @@ fastcor_gen( REGION *or, void *seq, void *a, void *b )
 	IMAGE *ref = (IMAGE *) b;
 	Rect irect;
 	Rect *r = &or->valid;
-	int le = r->left;
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int ri = IM_RECT_RIGHT(r);
 
 	int x, y, i, j;
 	int lsk;
@@ -94,29 +90,30 @@ fastcor_gen( REGION *or, void *seq, void *a, void *b )
 
 	/* Loop over or.
 	 */
-	for( y = to; y < bo; y++ ) {
-		PEL *a = (PEL *) IM_REGION_ADDR( ir, le, y );
-		unsigned int *q = (unsigned int *) IM_REGION_ADDR( or, le, y );
+	for( y = 0; y < r->height; y++ ) {
+		unsigned int *q = (unsigned int *) 
+			IM_REGION_ADDR( or, r->left, r->top + y );
 
-		for( x = le; x < ri; x++ ) {
-			int sum = 0;
+		for( x = 0; x < r->width; x++ ) {
 			PEL *b = (PEL *) ref->data;
-			PEL *a1 = a;
+			PEL *a = (PEL *) 
+				IM_REGION_ADDR( ir, r->left + x, r->top + y );
 
+			int sum;
+
+			sum = 0;
 			for( j = 0; j < ref->Ysize; j++ ) {
-				PEL *a2 = a1;
-
 				for( i = 0; i < ref->Xsize; i++ ) {
-					int t = *b++ - *a2++;
+					int t = b[i] - a[i];
 
 					sum += t * t;
 				}
 				
-				a1 += lsk;
+				a += lsk;
+				b += ref->Xsize;
 			}
 
-			*q++ = sum;
-			a += 1;
+			q[x] = sum;
 		}
 	}
 
@@ -137,7 +134,8 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	/* Check sizes.
 	 */
 	if( in->Xsize < ref->Xsize || in->Ysize < ref->Ysize ) {
-		im_error( "im_fastcor", "%s", _( "ref not smaller than in" ) );
+		im_error( "im_fastcor", "%s", 
+			_( "ref not smaller than or equal to in" ) );
 		return( -1 );
 	}
 
@@ -183,7 +181,8 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
  *
  * @ref is placed at every position in @in and the sum of squares of
  * differences calculated. One-band, 8-bit unsigned images only. The output
- * image is always %IM_BANDFMT_UINT. @ref must be smaller than @in. The output
+ * image is always %IM_BANDFMT_UINT. @ref must be smaller than or equal to 
+ * @in. The output
  * image is the same size as the input.
  *
  * See also: im_spcor().

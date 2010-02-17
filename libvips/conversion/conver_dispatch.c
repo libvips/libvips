@@ -1314,18 +1314,18 @@ static im_arg_desc wrap_args[] = {
 static int
 wrap_vec (im_object * argv)
 {
-  return im_wrap( (IMAGE*)argv[0], (IMAGE*)argv[1], *(int*)argv[2], *(int*)argv[3] );
+  return im_wrap( argv[0], argv[1], *(int*)argv[2], *(int*)argv[3] );
 }
 
 /* Description of im_wrap.
  */
 static im_function wrap_desc = {
-  "im_wrap",		/* Name */
+  "im_wrap",			/* Name */
   "shift image origin, wrapping at sides",
   IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
-  wrap_vec,		/* Dispatch function */
+  wrap_vec,			/* Dispatch function */
   IM_NUMBER (wrap_args),	/* Size of arg list */
-  wrap_args		/* Arg list */
+  wrap_args			/* Arg list */
 };
 
 /* Args for im_embed.
@@ -1336,8 +1336,8 @@ static im_arg_desc embed_args[] = {
 	IM_INPUT_INT( "type" ),
 	IM_INPUT_INT( "x" ),
 	IM_INPUT_INT( "y" ),
-	IM_INPUT_INT( "w" ),
-	IM_INPUT_INT( "h" )
+	IM_INPUT_INT( "width" ),
+	IM_INPUT_INT( "height" )
 };
 
 /* Call im_embed via arg vector.
@@ -1348,10 +1348,10 @@ embed_vec( im_object *argv )
 	int type = *((int *) argv[2]);
 	int x = *((int *) argv[3]);
 	int y = *((int *) argv[4]);
-	int w = *((int *) argv[5]);
-	int h = *((int *) argv[6]);
+	int width = *((int *) argv[5]);
+	int height = *((int *) argv[6]);
 
-	return( im_embed( argv[0], argv[1], type, x, y, w, h ) );
+	return( im_embed( argv[0], argv[1], type, x, y, width, height ) );
 }
 
 /* Description of im_embed.
@@ -1361,7 +1361,7 @@ static im_function embed_desc = {
 	"embed in within a set of borders", 
 	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
 	embed_vec, 			/* Dispatch function */
-	IM_NUMBER( embed_args ), 		/* Size of arg list */
+	IM_NUMBER( embed_args ), 	/* Size of arg list */
 	embed_args 			/* Arg list */
 };
 
