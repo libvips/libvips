@@ -20,6 +20,7 @@
  * 	- gtkdoc
  * 27/1/10
  * 	- use im_region_paint()
+ * 	- cleanups
  */
 
 /*
@@ -69,8 +70,8 @@ typedef struct _Embed {
 	IMAGE *in;
 	IMAGE *out;
 	int type;
-	int left;
-	int top;
+	int x;
+	int y;
 	int width;
 	int height;
 
@@ -209,8 +210,8 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 		Rect need;
 
 		need = *r;
-		need.left -= embed->left;
-		need.top -= embed->top;
+		need.left -= embed->x;
+		need.top -= embed->y;
 		if( im_prepare( ir, &need ) ||
 			im_region_region( or, ir, r, need.left, need.top ) )
 			return( -1 );
@@ -225,13 +226,13 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 	if( !im_rect_isempty( &ovl ) ) {
 		/* Paint the bits coming from the input image.
 		 */
-		ovl.left -= embed->top;
-		ovl.top -= embed->top;
+		ovl.left -= embed->x;
+		ovl.top -= embed->y;
 		if( im_prepare_to( ir, or, &ovl, 
-			ovl.left + embed->top, ovl.top + embed->top ) )
+			ovl.left + embed->x, ovl.top + embed->y ) )
 			return( -1 );
-		ovl.left += embed->top;
-		ovl.top += embed->top;
+		ovl.left += embed->x;
+		ovl.top += embed->y;
 	}
 
 	switch( embed->type ) {
@@ -268,8 +269,8 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 					/* No pixels painted ... fetch
 					 * directly from the input image.
 					 */
-					edge.left -= embed->left;
-					edge.top -= embed->top;
+					edge.left -= embed->x;
+					edge.top -= embed->y;
 					if( im_prepare( ir, &edge ) )
 						return( -1 );
 					p = (PEL *) IM_REGION_ADDR( ir,
@@ -293,7 +294,7 @@ embed_gen( REGION *or, void *seq, void *a, void *b )
 
 static Embed *
 embed_new( IMAGE *in, IMAGE *out, 
-	int type, int left, int top, int width, int height )
+	int type, int x, int y, int width, int height )
 {
 	Embed *embed = IM_NEW( out, Embed );
 	Rect want;
@@ -303,8 +304,8 @@ embed_new( IMAGE *in, IMAGE *out,
 	embed->in = in;
 	embed->out = out;
 	embed->type = type;
-	embed->left = left;
-	embed->top = top;
+	embed->x = x;
+	embed->y = y;
 	embed->width = width;
 	embed->height = height;
 
@@ -317,8 +318,8 @@ embed_new( IMAGE *in, IMAGE *out,
 
 	/* Rect occupied by image (can be clipped to nothing).
 	 */
-	want.left = left;
-	want.top = top;
+	want.left = x;
+	want.top = y;
 	want.width = in->Xsize;
 	want.height = in->Ysize;
 	im_rect_intersectrect( &want, &embed->rout, &embed->rsub );
@@ -384,8 +385,7 @@ embed_new( IMAGE *in, IMAGE *out,
 /* Do type 0/4 (black/white) and 1 (extend).
  */
 static int
-embed( IMAGE *in, IMAGE *out, 
-	int type, int left, int top, int width, int height )
+embed( IMAGE *in, IMAGE *out, int type, int x, int y, int width, int height )
 {
 	Embed *embed;
 
@@ -394,7 +394,7 @@ embed( IMAGE *in, IMAGE *out,
 	out->Xsize = width;
 	out->Ysize = height;
 
-	if( !(embed = embed_new( in, out, type, left, top, width, height )) ||
+	if( !(embed = embed_new( in, out, type, x, y, width, height )) ||
 		im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
 			im_start_one, embed_gen, im_stop_one,
@@ -409,12 +409,12 @@ embed( IMAGE *in, IMAGE *out,
  * @in: input image
  * @out: output image
  * @type: how to generate the edge pixels
- * @left: left edge of image in output
- * @top: top edge of image in output
- * @width: width of output
- * @height: height of output
+ * @x: place @in at this x position in @out
+ * @y: place @in at this y position in @out
+ * @width: @out should be this many pixels across
+ * @height: @out should be this many pixels down
  *
- * The opposite of im_extract_area(): embed @in within a larger image. @type
+ * The opposite of im_extract(): embed an image within a larger image. @type
  * controls what appears in the new pels:
  * 
  * <tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -447,8 +447,7 @@ embed( IMAGE *in, IMAGE *out,
  * Returns: 0 on success, -1 on error.
  */
 int
-im_embed( IMAGE *in, IMAGE *out, 
-	int type, int left, int top, int width, int height )
+im_embed( IMAGE *in, IMAGE *out, int type, int x, int y, int width, int height )
 {
 	if( im_piocheck( in, out ) ||
 		im_check_coding_known( "im_embed", in ) )
@@ -464,15 +463,14 @@ im_embed( IMAGE *in, IMAGE *out,
 
 	/* nip can generate this quite often ... just copy.
 	 */
-	if( left == 0 && top == 0 && 
-		width == in->Xsize && height == in->Ysize )
+	if( x == 0 && y == 0 && width == in->Xsize && height == in->Ysize )
 		return( im_copy( in, out ) );
 
 	switch( type ) {
 	case 0:
 	case 1:
 	case 4:
-		if( embed( in, out, type, left, top, width, height ) )
+		if( embed( in, out, type, x, y, width, height ) )
 			return( -1 );
 		break;
 
@@ -481,19 +479,18 @@ im_embed( IMAGE *in, IMAGE *out,
 		/* Clock arithmetic: we want negative x/y to wrap around
 		 * nicely.
 		 */
-		const int nleft = left < 0 ?
-			-left % in->Xsize : in->Xsize - left % in->Xsize;
-		const int ntop = top < 0 ?
-			-top % in->Ysize : in->Ysize - top % in->Ysize;
+		const int nx = x < 0 ?
+			-x % in->Xsize : in->Xsize - x % in->Xsize;
+		const int ny = y < 0 ?
+			-y % in->Ysize : in->Ysize - y % in->Ysize;
 
 		IMAGE *t[1];
 
-		if( im_open_local_array( out, t, 1, "embed-type", "p" ) ||
+		if( im_open_local_array( out, t, 1, "embed-type2", "p" ) ||
 			im_replicate( in, t[0], 
 				width / in->Xsize + 2, 
 				height / in->Ysize + 2 ) ||
-			im_extract_area( t[0], out, 
-				nleft, ntop, width, height ) )
+			im_extract_area( t[0], out, nx, ny, width, height ) )
 			return( -1 );
 }
 		break;
@@ -503,17 +500,15 @@ im_embed( IMAGE *in, IMAGE *out,
 		/* As case 2, but the tiles are twice the size because of
 		 * mirroring.
 		 */
-		const int width2 = in->Xsize * 2;
-		const int height2 = in->Ysize * 2;
+		const int w2 = in->Xsize * 2;
+		const int h2 = in->Ysize * 2;
 
-		const int nleft = left < 0 ? 
-			-left % width2 : width2 - left % width2;
-		const int ntop = top < 0 ? 
-			-top % height2 : height2 - top % height2;
+		const int nx = x < 0 ? -x % w2 : w2 - x % w2;
+		const int ny = y < 0 ? -y % h2 : h2 - y % h2;
 
 		IMAGE *t[7];
 
-		if( im_open_local_array( out, t, 7, "embed-type", "p" ) ||
+		if( im_open_local_array( out, t, 7, "embed-type3", "p" ) ||
 			/* Cache the edges of in, since we may well be reusing
 			 * them repeatedly. Will only help for tiny borders
 			 * (up to 20 pixels?), but that's our typical case
@@ -543,13 +538,12 @@ im_embed( IMAGE *in, IMAGE *out,
 			im_replicate( t[4], t[5], 
 				width / t[4]->Xsize + 2, 
 				height / t[4]->Ysize + 2 ) ||
-			im_extract_area( t[5], t[6], 
-				nleft, ntop, width, height ) ||
+			im_extract_area( t[5], t[6], nx, ny, width, height ) ||
 
 			/* Overwrite the centre with the input, much faster
 			 * for centre pixels.
 			 */
-			im_insert_noexpand( t[6], in, out, left, top ) )
+			im_insert_noexpand( t[6], in, out, x, y ) )
 				return( -1 );
 }
 		break;
@@ -558,8 +552,8 @@ im_embed( IMAGE *in, IMAGE *out,
 		g_assert( 0 );
 	}
 
-	out->Xoffset = left;
-	out->Yoffset = top;
+	out->Xoffset = x;
+	out->Yoffset = y;
 
 	return( 0 );
 }

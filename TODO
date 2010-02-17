@@ -1,3 +1,5 @@
+- im_fastcor() could use a rewrite
+
 - im_spcor a.value a.value fails, argh
 
 	nip2: im_prepare.c:324: im_prepare_to: 
@@ -7,6 +9,26 @@
   peak comes at (eg. 134x134) rather than in the centre of the image
 
   suspicious!
+
+  looks like it's a problem with im_embed()
+
+	$ header t1.v
+	Xsize: 183
+	Ysize: 119
+	Bands: 1
+	Bbits: 8
+
+  then
+
+	$ vips im_embed t1.v out2.v 1 100 74 364 240
+  	$ vips im_embed t1.v out2.v 1 100 73 364 240
+	vips: error calling function
+	im_prepare_to: valid clipped to nothing
+	im__write_extension_block: file has been truncated
+
+  though 74 fails too, tiles are in the wrong place 
+
+  seems fixed, test this
 
 - doing im_create_fmask() and friends
 

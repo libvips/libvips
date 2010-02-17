@@ -83,7 +83,7 @@
 #define DEBUGM
  */
 
-/* abort() on memory errors.
+/* g_assert( 0 ) on memory errors.
 #define DEBUG
  */
 
@@ -170,7 +170,7 @@ im_free( void *s )
 
 #ifdef DEBUG
 	if( !s )
-		abort();
+		g_assert( 0 );
 #endif /*DEBUG*/
 
 	g_free( s );
@@ -216,7 +216,7 @@ im_malloc( IMAGE *im, size_t size )
 
         if( !(buf = g_try_malloc( size )) ) {
 #ifdef DEBUG
-		abort();
+		g_assert( 0 );
 #endif /*DEBUG*/
 
 		im_error( "im_malloc", 

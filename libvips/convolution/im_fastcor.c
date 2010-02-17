@@ -144,11 +144,11 @@ im_fastcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out )
 	/* Check types.
 	 */
 	if( im_check_uncoded( "im_fastcor", in ) ||
-		im_check_format( "im_fastcor", in, IM_BANDFMT_UCHAR ) ||
 		im_check_mono( "im_fastcor", in ) || 
-		im_check_uncoded( "im_fastcor", ref ) ||
-		im_check_format( "im_fastcor", ref, IM_BANDFMT_UCHAR ) ||
-		im_check_mono( "im_fastcor", ref ) ) 
+		im_check_format( "im_fastcor", in, IM_BANDFMT_UCHAR ) ||
+		im_check_coding_same( "im_fastcor", in, ref ) ||
+		im_check_bands_same( "im_fastcor", in, ref ) || 
+		im_check_format_same( "im_fastcor", in, ref ) )
 		return( -1 );
 
 	/* Prepare the output image. 

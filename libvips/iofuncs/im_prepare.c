@@ -63,7 +63,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/debug.h>
@@ -188,7 +187,7 @@ im_prepare( REGION *reg, Rect *r )
 
 	/* valid should now include all the pixels that were asked for.
 	 */
-	assert( im_rect_includesrect( &reg->valid, &save ) );
+	g_assert( im_rect_includesrect( &reg->valid, &save ) );
 
 	return( 0 );
 }
@@ -220,11 +219,11 @@ im__copy_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 
 	/* Must be inside dest->valid.
 	 */
-	assert( im_rect_includesrect( &dest->valid, &output ) );
+	g_assert( im_rect_includesrect( &dest->valid, &output ) );
 
 	/* Check the area we are reading from in reg.
 	 */
-	assert( im_rect_includesrect( &reg->valid, r ) );
+	g_assert( im_rect_includesrect( &reg->valid, r ) );
 #endif /*DEBUG*/
 
 	for( z = 0; z < r->height; z++ ) {
@@ -321,8 +320,8 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	image.height = reg->im->Ysize;
 	im_rect_intersectrect( r, &image, &clipped );
 
-	assert( clipped.left == r->left );
-	assert( clipped.top == r->top );
+	g_assert( clipped.left == r->left );
+	g_assert( clipped.top == r->top );
 
 	wanted.left = x + (clipped.left - r->left);
 	wanted.top = y + (clipped.top - r->top);

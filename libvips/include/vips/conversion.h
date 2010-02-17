@@ -75,8 +75,8 @@ int im_extract_area( IMAGE *in, IMAGE *out,
 	int left, int top, int width, int height );
 int im_extract_areabands( IMAGE *in, IMAGE *out,
 	int left, int top, int width, int height, int band, int nbands );
-int im_embed( IMAGE *in, IMAGE *out, int type, 
-	int left, int top, int width, int height );
+int im_embed( IMAGE *in, IMAGE *out, 
+	int type, int x, int y, int width, int height );
 int im_bandjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_gbandjoin( IMAGE **in, IMAGE *out, int n );
 int im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y );
