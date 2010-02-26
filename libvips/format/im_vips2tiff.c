@@ -108,6 +108,8 @@
  *	- trigger eval callbacks during tile write
  * 4/2/10
  * 	- gtkdoc
+ * 26/2/10
+ * 	- option to turn on bigtiff output
  */
 
 /*
@@ -249,6 +251,7 @@ typedef struct tiff_write {
         float yres;                    	/* Resolution in Y */
 	int embed;			/* Embed ICC profile */
 	char *icc_profile;		/* Profile to embed */
+	int bigtiff;			/* True for bigtiff write */
 } TiffWrite;
 
 /* Use these from im_tiff2vips().
@@ -259,11 +262,16 @@ void im__thandler_warning( char *module, char *fmt, va_list ap );
 /* Open TIFF for output.
  */
 static TIFF *
-tiff_openout( const char *name )
+tiff_openout( TiffWrite *tw, const char *name )
 {
 	TIFF *tif;
+	const char *mode = tw->bigtiff ? "w8" : "w";
 
-	if( !(tif = TIFFOpen( name, "w" )) ) {
+#ifdef DEBUG
+	printf( "TIFFOpen( \"%s\", \"%s\" )\n", name, mode );
+#endif /*DEBUG*/
+
+	if( !(tif = TIFFOpen( name, mode )) ) {
 		im_error( "im_vips2tiff", 
 			_( "unable to open \"%s\" for output" ), name );
 		return( NULL );
@@ -653,7 +661,7 @@ build_pyramid( TiffWrite *tw, PyramidLayer *above,
 
 	/* Make output image.
 	 */
-	if( !(layer->tif = tiff_openout( layer->lname )) ) 
+	if( !(layer->tif = tiff_openout( tw, layer->lname )) ) 
 		return( -1 );
 
 	/* Write the TIFF header for this layer.
@@ -1219,6 +1227,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 	tw->onebit = 0;
 	tw->embed = 0;
 	tw->icc_profile = NULL;
+	tw->bigtiff = 0;
 
 	/* Output resolution settings ... default to VIPS-alike.
 	 */
@@ -1384,6 +1393,9 @@ make_tiff_write( IMAGE *im, const char *filename )
 		tw->embed = 1;
 		tw->icc_profile = im_strdup( NULL, q );
 	}
+	if( (q = im_getnextoption( &p )) && strcmp( q, "8" ) == 0 ) {
+		tw->bigtiff = 1;
+	}
 	if( (q = im_getnextoption( &p )) ) {
 		im_error( "im_vips2tiff", 
 			_( "unknown extra options \"%s\"" ), q );
@@ -1546,7 +1558,7 @@ gather_pyramid( TiffWrite *tw )
 	printf( "Starting pyramid gather ...\n" );
 #endif /*DEBUG*/
 
-	if( !(out = tiff_openout( tw->name )) ) 
+	if( !(out = tiff_openout( tw, tw->name )) ) 
 		return( -1 );
 
 	if( tiff_append( tw, out, tw->bname ) ) {
@@ -1580,7 +1592,7 @@ gather_pyramid( TiffWrite *tw )
  * You can embed options in the filename. They have the form:
  *
  * |[
- * filename.tif:<emphasis>compression</emphasis>,<emphasis>layout</emphasis>,<emphasis>multi-res</emphasis>,<emphasis>format</emphasis>,<emphasis>resolution</emphasis>,<emphasis>icc</emphasis>
+ * filename.tif:<emphasis>compression</emphasis>,<emphasis>layout</emphasis>,<emphasis>multi-res</emphasis>,<emphasis>format</emphasis>,<emphasis>resolution</emphasis>,<emphasis>icc</emphasis>, <emphasis>bigtiff</emphasis>
  * ]|
  *
  * <itemizedlist>
@@ -1656,6 +1668,13 @@ gather_pyramid( TiffWrite *tw )
  * they are tagged. 
  *     </para>
  *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>bigtiff</emphasis> 
+ * Set this to 8 to enable bigtiff output. Bigtiff is a variant of the TIFF
+ * format that allows more than 4GB in a file.
+ *     </para>
+ *   </listitem>
  * </itemizedlist>
  *
  * Example:
@@ -1725,7 +1744,7 @@ im_vips2tiff( IMAGE *in, const char *filename )
 		return( -1 );
 	if( tw->pyramid ) {
 		if( !(tw->bname = new_tiff_name( tw, tw->name, 1 )) ||
-			!(tw->tif = tiff_openout( tw->bname )) ) {
+			!(tw->tif = tiff_openout( tw, tw->bname )) ) {
 			free_tiff_write( tw );
 			return( -1 );
 		}
@@ -1733,7 +1752,7 @@ im_vips2tiff( IMAGE *in, const char *filename )
 	else {
 		/* No pyramid ... write straight to name.
 		 */
-		if( !(tw->tif = tiff_openout( tw->name )) ) {
+		if( !(tw->tif = tiff_openout( tw, tw->name )) ) {
 			free_tiff_write( tw );
 			return( -1 );
 		}

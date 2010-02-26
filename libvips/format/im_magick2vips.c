@@ -240,6 +240,21 @@ parse_header( Read *read )
 	Image *p;
 	int i;
 
+	printf( "GetImageChannelDepth(DefaultChannels) = %ld\n",
+		GetImageChannelDepth( image, DefaultChannels, &image->exception ) );
+	printf( "GetImageDepth() = %ld\n",
+		GetImageDepth( image, &image->exception ) );
+	printf( "GetImageQuantumDepth(MagickFalse) = %ld\n",
+		GetImageQuantumDepth( image, MagickFalse ) );
+	printf( "GetImageType() = %d\n",
+		GetImageType( image, &image->exception ) );
+	printf( "IsGrayImage() = %d\n",
+		IsGrayImage( image, &image->exception ) );
+	printf( "IsMonochromeImage() = %d\n",
+		IsMonochromeImage( image, &image->exception ) );
+	printf( "IsOpaqueImage() = %d\n",
+		IsOpaqueImage( image, &image->exception ) );
+
 	im->Xsize = image->columns;
 	im->Ysize = image->rows;
 	read->frame_height = image->rows;
