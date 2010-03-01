@@ -40,6 +40,8 @@
  *	- im_incheck() changed to im_makerw()
  * 5/12/06
  * 	- im_invalidate() after paint
+ * 1/3/10
+ * 	- oops, lineset needs to ask for WIO of mask and ink
  */
 
 /*
@@ -437,6 +439,10 @@ im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	mask_rect.top = mask->Ysize / 2;
 	mask_rect.width = mask->Xsize;
 	mask_rect.height = mask->Ysize;
+
+	if( im_incheck( ink ) ||
+		im_incheck( mask ) )
+		return( -1 );
 
 	for( i = 0; i < n; i++ ) {
 		if( im_fastlineuser( out, x1v[i], y1v[i], x2v[i], y2v[i], 
