@@ -11,6 +11,8 @@
  * 	- added im_csv2vips_header()
  * 4/2/10
  * 	- gtkdoc
+ * 1/3/10
+ * 	- allow lines that end with EOF rather than \n
  */
 
 /*
@@ -57,15 +59,22 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* Skip to the start of the next line (ie. read until we see a '\n'), return
+ * zero if we are at EOF. Don't forget to allow for lines that are terminated
+ * by EOF rather than \n.
+ */
 static int 
 skip_line( FILE *fp )
 {
         int ch;
 
+	if( feof( fp ) )
+		return( 0 );
+
         while( (ch = fgetc( fp )) != '\n' && ch != EOF )
 		;
 
-	return( ch );
+	return( -1 );
 }
 
 static int 
@@ -172,7 +181,7 @@ read_csv( FILE *fp, IMAGE *out,
 	/* Skip first few lines.
 	 */
 	for( i = 0; i < start_skip; i++ )
-		if( skip_line( fp ) == EOF ) {
+		if( !skip_line( fp ) ) {
 			im_error( "im_csv2vips", 
 				"%s", _( "end of file while skipping start" ) );
 			return( -1 );
@@ -205,7 +214,7 @@ read_csv( FILE *fp, IMAGE *out,
 	 */
 	if( lines == -1 ) {
 		fgetpos( fp, &pos );
-		for( lines = 0; skip_line( fp ) != EOF; lines++ )
+		for( lines = 0; skip_line( fp ); lines++ )
 			;
 		fsetpos( fp, &pos );
 	}
