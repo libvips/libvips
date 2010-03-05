@@ -65,6 +65,11 @@ typedef struct _REGION {
 	/* Ref to the buffer we use for this region, if any.
 	 */
 	im_buffer_t *buffer;
+
+	/* The image this region is on has changed and caches need to be
+	 * dropped.
+	 */
+	gboolean invalid;	
 } REGION;
 
 REGION *im_region_create( IMAGE *im );

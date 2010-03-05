@@ -66,6 +66,7 @@
 
 #include <vips/vips.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -416,4 +417,91 @@ im_prepare_many( REGION **reg, Rect *r )
 			return( -1 );
 
 	return( 0 );
+}
+
+static void *
+im_invalidate_region( REGION *reg )
+{
+	reg->invalid = TRUE;
+
+	return( NULL );
+}
+
+static void *
+im_invalidate_image( IMAGE *im, GSList **to_be_invalidated )
+{
+	g_mutex_lock( im->sslock );
+	(void) im_slist_map2( im->regions,
+		(VSListMap2Fn) im_invalidate_region, NULL, NULL );
+	g_mutex_unlock( im->sslock );
+
+	*to_be_invalidated = g_slist_prepend( *to_be_invalidated, im );
+
+	return( NULL );
+}
+
+/* Trigger a callbacks on a list of images, where the callbacks might create
+ * or destroy the images.
+ *
+ * We make a set of temp regions to hold the images open, but when we switch
+ * to VipsObject we should incr/decr ref count.
+ */
+static void
+im_invalidate_trigger( GSList *images )
+{
+	GSList *regions;
+	GSList *p;
+
+	regions = NULL;
+	for( p = images; p; p = p->next ) {
+		IMAGE *im = (IMAGE *) p->data;
+
+		regions = g_slist_prepend( regions, im_region_create( im ) );
+	}
+
+	for( p = images; p; p = p->next ) {
+		IMAGE *im = (IMAGE *) p->data;
+
+		(void) im__trigger_callbacks( im->invalidatefns );
+	}
+
+	for( p = regions; p; p = p->next ) {
+		REGION *r = (REGION *) p->data;
+
+		im_region_free( r );
+	}
+
+	g_slist_free( regions );
+}
+
+/**
+ * im_invalidate:
+ * @im: #IMAGE to invalidate
+ *
+ * Invalidate all pixel caches on an #IMAGE and any derived images. The 
+ * "invalidate" callback is triggered for all invalidated images.
+ *
+ * See also: im_add_invalidate_callback().
+ */
+void
+im_invalidate( IMAGE *im )
+{
+	GSList *to_be_invalidated;
+
+	return;
+
+	/* Invalidate callbacks might do anything, including removing images
+	 * or invalidating other images, so we can't trigger them from within 
+	 * the image loop. Instead we collect a list of image to invalidate 
+	 * and trigger them all in one go, checking that they are not
+	 * invalidated.
+	 */
+	to_be_invalidated = NULL;
+	(void) im__link_map( im, 
+		(VSListMap2Fn) im_invalidate_image, &to_be_invalidated, NULL );
+
+	im_invalidate_trigger( to_be_invalidated );
+
+	g_slist_free( to_be_invalidated );
+
 }

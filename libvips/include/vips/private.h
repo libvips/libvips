@@ -120,7 +120,6 @@ typedef struct im__buffer_t {
 	Rect area;		/* Area this pixel buffer covers */
 	gboolean done;		/* Calculated and in cache */
 	im_buffer_cache_t *cache;
-	gboolean invalid;	/* Needs to be recalculated */
 	char *buf;		/* Private malloc() area */
 	size_t bsize;		/* Size of private malloc() */
 } im_buffer_t;

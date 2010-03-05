@@ -64,6 +64,90 @@
  */
 #define MAX_IMAGES (1000)
 
+/* Make a parent/child link. child is one of parent's inputs.
+ */
+void 
+im__link_make( IMAGE *parent, IMAGE *child )
+{
+	g_assert( parent );
+	g_assert( child );
+
+	parent->children = g_slist_prepend( parent->children, child );
+	child->parents = g_slist_prepend( child->parents, parent );
+
+	/* Propogate the progress indicator.
+	 */
+	if( child->progress && !parent->progress ) 
+		parent->progress = child->progress;
+}
+
+/* Break link. child is one of parent's inputs.
+ */
+static void *
+im__link_break( IMAGE *parent, IMAGE *child )
+{
+	g_assert( parent );
+	g_assert( child );
+	g_assert( g_slist_find( parent->children, child ) );
+	g_assert( g_slist_find( child->parents, parent ) );
+
+	parent->children = g_slist_remove( parent->children, child );
+	child->parents = g_slist_remove( child->parents, parent );
+
+	/* Unlink the progress chain.
+	 */
+	if( parent->progress && parent->progress == child->progress ) 
+		parent->progress = NULL;
+
+	return( NULL );
+}
+
+static void *
+im__link_break_rev( IMAGE *child, IMAGE *parent )
+{
+	return( im__link_break( parent, child ) );
+}
+
+/* An IMAGE is going ... break all links.
+ */
+void
+im__link_break_all( IMAGE *im )
+{
+	im_slist_map2( im->parents, 
+		(VSListMap2Fn) im__link_break, im, NULL );
+	im_slist_map2( im->children, 
+		(VSListMap2Fn) im__link_break_rev, im, NULL );
+}
+
+static void *
+im__link_mapp( IMAGE *im, VSListMap2Fn fn, int *serial, void *a, void *b )
+{
+	void *res;
+
+	/* Loop?
+	 */
+	if( im->serial == *serial )
+		return( NULL );
+	im->serial = *serial;
+
+	if( (res = fn( im, a, b )) )
+		return( res );
+
+	return( im_slist_map4( im->parents, 
+		(VSListMap4Fn) im__link_mapp, fn, serial, a, b ) );
+}
+
+/* Apply a function to an image and all it's parents, direct and indirect. 
+ */
+void *
+im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )
+{
+	static int serial = 0;
+
+	serial += 1;
+	return( im__link_mapp( im, fn, &serial, a, b ) );
+}
+
 /* Given two im_demand_type, return the most restrictive.
  */
 static im_demand_type

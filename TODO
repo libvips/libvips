@@ -1,6 +1,35 @@
+- argh, regions are all broken
+
+- what's the difference between private.h and internal.h?
+
+- we use parent/child a lot, but it's confusing
+
+  imagine building the pipeline 
+  
+  	A + B -> C
+
+  we create A, we create B, we create C, we call im_add ... C is the parent
+  of A and B, since parents have many children (see comment in image.h for
+  GSList *parents)
+
+  however, we make A and B before C, and pixels flow from them to C, so they
+  seem older, argh
+
+  change name scheme from parent/child to upstream/downstream, so A and B are
+  upstream of C, C is downstream of A and B
+
+  clearer expression of arrow direction in DAG
+
 - add a dependency on the icc-profiles package
  
   the vips load/save ops need to search the icc-profile dir 
+
+  where is it? is there a pkg-config for it?
+
+  no, just dumps profiles into /usr/share/color/icc
+
+  configure should test for the dir? what's the equivalent dir on Windows? we
+  also have nip2's dir
 
 - doing im_create_fmask() and friends
 

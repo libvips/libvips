@@ -321,6 +321,7 @@ im_region_create( IMAGE *im )
 	reg->thread = NULL;
 	reg->window = NULL;
 	reg->buffer = NULL;
+	reg->invalid = FALSE;
 
 	im__region_take_ownership( reg );
 
@@ -347,6 +348,7 @@ im_region_reset( REGION *reg )
 {
 	IM_FREEF( im_window_unref, reg->window );
 	IM_FREEF( im_buffer_unref, reg->buffer );
+	reg->invalid = FALSE;
 }
 
 /**
@@ -448,20 +450,19 @@ im_region_buffer( REGION *reg, Rect *r )
 		return( -1 );
 	}
 
-	/* Already have stuff?
-	 */
-	if( reg->type == IM_REGION_BUFFER &&
-		im_rect_includesrect( &reg->valid, &clipped ) &&
-		reg->buffer &&
-		!reg->buffer->invalid ) 
-		return( 0 );
-
 	/* Don't call im_region_reset() ... we combine buffer unref and new
 	 * buffer ref in one call to reduce malloc/free cycling.
 	 */
 	IM_FREEF( im_window_unref, reg->window );
 	if( !(reg->buffer = im_buffer_unref_ref( reg->buffer, im, &clipped )) )
 		return( -1 );
+
+	/* If we've been asked to drop caches, flag this as undone.
+	 */
+	if( reg->invalid ) {
+		im_buffer_undone( reg->buffer );
+		reg->invalid = FALSE;
+	}
 
 	/* Init new stuff.
 	 */
@@ -718,12 +719,12 @@ im_region_position( REGION *reg, int x, int y )
 	req.height = reg->valid.height;
 	im_rect_intersectrect( &image, &req, &clipped );
 	if( x < 0 || y < 0 || im_rect_isempty( &clipped ) ) {
-		im_error( "im_region_position", 
-			"%s", _( "bad position" ) );
+		im_error( "im_region_position", "%s", _( "bad position" ) );
 		return( -1 );
 	}
 
 	reg->valid = clipped;
+	reg->invalid = FALSE;
 
 	return( 0 );
 }
@@ -776,6 +777,7 @@ im_region_print( REGION *reg )
 	printf( "thread = %p, ", reg->thread );
 	printf( "window = %p, ", reg->window );
 	printf( "buffer = %p\n", reg->buffer );
+	printf( "invalid = %d\n", reg->invalid );
 }
 
 /**

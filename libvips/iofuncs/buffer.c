@@ -12,6 +12,9 @@
  * 20/2/07
  * 	- add im_buffer_cache_list_t and we can avoid some hash ops on
  * 	  done/undone
+ * 5/3/10
+ * 	- move invalid stuff to region
+ * 	- move link maintenace to im_demand_hint
  */
 
 /*
@@ -52,7 +55,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -203,8 +205,8 @@ im_buffer_done( im_buffer_t *buffer )
 			g_hash_table_insert( cache->hash, im, cache_list );
 		}
 
-		assert( !g_slist_find( cache_list->buffers, buffer ) );
-		assert( cache_list->thread == cache->thread );
+		g_assert( !g_slist_find( cache_list->buffers, buffer ) );
+		g_assert( cache_list->thread == cache->thread );
 
 		cache_list->buffers = 
 			g_slist_prepend( cache_list->buffers, buffer );
@@ -229,13 +231,13 @@ im_buffer_undone( im_buffer_t *buffer )
 			g_thread_self(), buffer, cache );
 #endif /*DEBUG*/
 
-		assert( cache->thread == g_thread_self() );
+		g_assert( cache->thread == g_thread_self() );
 
 		cache_list = g_hash_table_lookup( cache->hash, im );
 
-		assert( cache_list );
-		assert( cache_list->thread == cache->thread );
-		assert( g_slist_find( cache_list->buffers, buffer ) );
+		g_assert( cache_list );
+		g_assert( cache_list->thread == cache->thread );
+		g_assert( g_slist_find( cache_list->buffers, buffer ) );
 
 		cache_list->buffers = 
 			g_slist_remove( cache_list->buffers, buffer );
@@ -260,7 +262,7 @@ im_buffer_unref( im_buffer_t *buffer )
 		buffer );
 #endif /*DEBUG*/
 
-	assert( buffer->ref_count > 0 );
+	g_assert( buffer->ref_count > 0 );
 
 	buffer->ref_count -= 1;
 
@@ -279,7 +281,7 @@ im_buffer_unref( im_buffer_t *buffer )
 
 #ifdef DEBUG
 		g_mutex_lock( im__global_lock );
-		assert( g_slist_find( im__buffers_all, buffer ) );
+		g_assert( g_slist_find( im__buffers_all, buffer ) );
 		im__buffers_all = g_slist_remove( im__buffers_all, buffer );
 		printf( "%d buffers in vips\n", 
 			g_slist_length( im__buffers_all ) );
@@ -303,7 +305,6 @@ buffer_new( IMAGE *im, Rect *area )
 	buffer->area = *area;
 	buffer->done = FALSE;
 	buffer->cache = NULL;
-	buffer->invalid = FALSE;
 	buffer->bsize = (size_t) IM_IMAGE_SIZEOF_PEL( im ) * 
 		area->width * area->height;
 	if( !(buffer->buf = im_malloc( NULL, buffer->bsize )) ) {
@@ -335,12 +336,11 @@ buffer_move( im_buffer_t *buffer, Rect *area )
 	IMAGE *im = buffer->im;
 	size_t new_bsize;
 
-	assert( buffer->ref_count == 1 );
+	g_assert( buffer->ref_count == 1 );
 
 	buffer->area = *area;
 	im_buffer_undone( buffer );
-	assert( !buffer->done );
-	buffer->invalid = FALSE;
+	g_assert( !buffer->done );
 
 	new_bsize = (size_t) IM_IMAGE_SIZEOF_PEL( im ) * 
 		area->width * area->height;
@@ -370,6 +370,9 @@ buffer_find( IMAGE *im, Rect *r )
 
 	/* This needs to be quick :-( don't use
 	 * im_slist_map2()/im_rect_includesrect(), do the search inline.
+	 *
+	 * FIXME we return the first enclosing buffer, perhaps we should
+	 * search for the largest? 
 	 */
 	for( ; p; p = p->next ) {
 		buffer = (im_buffer_t *) p->data;
@@ -416,36 +419,44 @@ im_buffer_ref( IMAGE *im, Rect *area )
 	return( buffer );
 }
 
-/* Unref old, ref new, in a single operation. Move the buffer if we can.
+/* Unref old, ref new, in a single operation. Reuse stuff if we can. The
+ * buffer we return might or might not be done.
  */
 im_buffer_t *
 im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, Rect *area )
 {
 	im_buffer_t *buffer;
 
-	assert( !old_buffer || old_buffer->im == im );
+	g_assert( !old_buffer || old_buffer->im == im );
 
-	if( (buffer = buffer_find( im, area )) && !buffer->invalid ) {
-		/* The new area has an OK buffer already: use that.
-		 */
+	/* Is the current buffer OK?
+	 */
+	if( im_rect_includesrect( &buffer->area, area ) )
+		return( old_buffer );
+
+	/* Does the new area already have a buffer?
+	 */
+	if( (buffer = buffer_find( im, area )) ) {
 		IM_FREEF( im_buffer_unref, old_buffer );
+		return( buffer );
 	}
-	else if( old_buffer && old_buffer->ref_count == 1 ) {
-		/* The old buffer is not shared ... we can reuse it.
-		 */
-		buffer = old_buffer;
-		if( buffer_move( buffer, area ) ) {
-			im_buffer_unref( buffer );
+
+	/* Is the current buffer unshared? We can just move it.
+	 */
+	if( old_buffer && old_buffer->ref_count == 1 ) {
+		if( buffer_move( old_buffer, area ) ) {
+			im_buffer_unref( old_buffer );
 			return( NULL );
 		}
+
+		return( old_buffer );
 	}
-	else {
-		/* Old buffer in use ... need another.
-		 */
-		IM_FREEF( im_buffer_unref, old_buffer );
-		if( !(buffer = buffer_new( im, area )) ) 
-			return( NULL );
-	}
+
+	/* Fallback ... unref the old one, make a new one.
+	 */
+	IM_FREEF( im_buffer_unref, old_buffer );
+	if( !(buffer = buffer_new( im, area )) ) 
+		return( NULL );
 
 	return( buffer );
 }
@@ -460,177 +471,8 @@ im_buffer_print( im_buffer_t *buffer )
 	printf( "area.width = %d, ", buffer->area.width );
 	printf( "area.height = %d, ", buffer->area.height );
 	printf( "done = %d, ", buffer->done );
-	printf( "invalid = %d, ", buffer->invalid );
 	printf( "buf = %p, ", buffer->buf );
 	printf( "bsize = %zd\n", buffer->bsize );
-}
-
-/* Make a parent/child link. child is one of parent's inputs.
- */
-void 
-im__link_make( IMAGE *parent, IMAGE *child )
-{
-	assert( parent );
-	assert( child );
-
-	parent->children = g_slist_prepend( parent->children, child );
-	child->parents = g_slist_prepend( child->parents, parent );
-
-	/* Propogate the progress indicator.
-	 */
-	if( child->progress && !parent->progress ) 
-		parent->progress = child->progress;
-}
-
-/* Break link. child is one of parent's inputs.
- */
-static void *
-im__link_break( IMAGE *parent, IMAGE *child )
-{
-	assert( parent );
-	assert( child );
-	assert( g_slist_find( parent->children, child ) );
-	assert( g_slist_find( child->parents, parent ) );
-
-	parent->children = g_slist_remove( parent->children, child );
-	child->parents = g_slist_remove( child->parents, parent );
-
-	/* Unlink the progress chain.
-	 */
-	if( parent->progress && parent->progress == child->progress ) 
-		parent->progress = NULL;
-
-	return( NULL );
-}
-
-static void *
-im__link_break_rev( IMAGE *child, IMAGE *parent )
-{
-	return( im__link_break( parent, child ) );
-}
-
-/* An IMAGE is going ... break all links.
- */
-void
-im__link_break_all( IMAGE *im )
-{
-	im_slist_map2( im->parents, 
-		(VSListMap2Fn) im__link_break, im, NULL );
-	im_slist_map2( im->children, 
-		(VSListMap2Fn) im__link_break_rev, im, NULL );
-}
-
-static void *
-im__link_mapp( IMAGE *im, VSListMap2Fn fn, int *serial, void *a, void *b )
-{
-	void *res;
-
-	/* Loop?
-	 */
-	if( im->serial == *serial )
-		return( NULL );
-	im->serial = *serial;
-
-	if( (res = fn( im, a, b )) )
-		return( res );
-
-	return( im_slist_map4( im->parents, 
-		(VSListMap4Fn) im__link_mapp, fn, serial, a, b ) );
-}
-
-/* Apply a function to an image and all it's parents, direct and indirect. 
- */
-void *
-im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )
-{
-	static int serial = 0;
-
-	serial += 1;
-	return( im__link_mapp( im, fn, &serial, a, b ) );
-}
-
-static void *
-im_invalidate_region( REGION *reg )
-{
-	if( reg->buffer )
-		reg->buffer->invalid = TRUE;
-
-	return( NULL );
-}
-
-static void *
-im_invalidate_image( IMAGE *im, GSList **to_be_invalidated )
-{
-	(void) im_slist_map2( im->regions,
-		(VSListMap2Fn) im_invalidate_region, NULL, NULL );
-
-	*to_be_invalidated = g_slist_prepend( *to_be_invalidated, im );
-
-	return( NULL );
-}
-
-/* Trigger a callbacks on a list of images, where the callbacks might create
- * or destroy the images.
- *
- * We make a set of temp regions to hold the images open, but when we switch
- * to VipsObject we should incr/decr ref count.
- */
-static void
-im_invalidate_trigger( GSList *images )
-{
-	GSList *regions;
-	GSList *p;
-
-	regions = NULL;
-	for( p = images; p; p = p->next ) {
-		IMAGE *im = (IMAGE *) p->data;
-
-		regions = g_slist_prepend( regions, im_region_create( im ) );
-	}
-
-	for( p = images; p; p = p->next ) {
-		IMAGE *im = (IMAGE *) p->data;
-
-		(void) im__trigger_callbacks( im->invalidatefns );
-	}
-
-	for( p = regions; p; p = p->next ) {
-		REGION *r = (REGION *) p->data;
-
-		im_region_free( r );
-	}
-
-	g_slist_free( regions );
-}
-
-/**
- * im_invalidate:
- * @im: #IMAGE to invalidate
- *
- * Invalidate all pixel caches on an #IMAGE and any derived images. The 
- * "invalidate" callback is triggered for all invalidated images.
- *
- * See also: im_add_invalidate_callback().
- */
-void
-im_invalidate( IMAGE *im )
-{
-	GSList *to_be_invalidated;
-
-	/* Invalidate callbacks might do anything, including removing images
-	 * or invalidating other images, so we can't trigger them from within 
-	 * the image loop. Instead we collect a list of image to invalidate 
-	 * and trigger them all in one go, checking that they are not
-	 * invalidated.
-	 */
-	to_be_invalidated = NULL;
-	(void) im__link_map( im, 
-		(VSListMap2Fn) im_invalidate_image, &to_be_invalidated, NULL );
-
-	im_invalidate_trigger( to_be_invalidated );
-
-	g_slist_free( to_be_invalidated );
-
 }
 
 /* Init the buffer cache system.
