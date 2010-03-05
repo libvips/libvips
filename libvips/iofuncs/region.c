@@ -743,8 +743,8 @@ im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a )
 		return( -1 );
 
 	/* Evaluate into or, if we've not got calculated pixels.
-	 */
 	if( !reg->buffer->done ) {
+	 */
 		if( fn( reg, a ) )
 			return( -1 );
 
@@ -752,7 +752,7 @@ im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a )
 		 */
 		if( reg->buffer )
 			im_buffer_done( reg->buffer );
-	}
+	//}
 
 	return( 0 );
 }
