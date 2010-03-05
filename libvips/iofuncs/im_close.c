@@ -104,6 +104,7 @@
 #include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/thread.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 

@@ -52,6 +52,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/thread.h>
 #include <vips/internal.h>
 
 #ifdef WITH_DMALLOC

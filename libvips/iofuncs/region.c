@@ -37,6 +37,8 @@
  * 	- added im_region_print()
  * 7/10/09
  * 	- gtkdoc comments
+ * 5/3/10
+ * 	- move invalid stuff to region
  */
 
 /*

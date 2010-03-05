@@ -14,7 +14,7 @@
  * 	  done/undone
  * 5/3/10
  * 	- move invalid stuff to region
- * 	- move link maintenace to im_demand_hint
+ * 	- move link maintenance to im_demand_hint
  */
 
 /*
@@ -431,7 +431,8 @@ im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, Rect *area )
 
 	/* Is the current buffer OK?
 	 */
-	if( im_rect_includesrect( &buffer->area, area ) )
+	if( old_buffer && 
+		im_rect_includesrect( &old_buffer->area, area ) )
 		return( old_buffer );
 
 	/* Does the new area already have a buffer?

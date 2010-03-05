@@ -12,6 +12,8 @@
  * 	- build parent/child links as well
  * 8/10/09
  * 	- gtkdoc comments
+ * 5/3/10
+ * 	- move link maintenance to im_demand_hint
  */
 
 /*
