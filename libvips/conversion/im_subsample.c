@@ -86,8 +86,6 @@ line_shrink_gen( REGION *or, void *seq, void *a, void *b )
 	int x, y;
 	int z, k;
 
-	printf( "point_shrink_gen\n" );
-
 	/* Loop down the region.
 	 */
 	for( y = to; y < bo; y++ ) {
@@ -151,8 +149,6 @@ point_shrink_gen( REGION *or, void *seq, void *a, void *b )
 	Rect s;
 	int x, y;
 	int k;
-
-	printf( "point_shrink_gen\n" );
 
 	/* Loop down the region.
 	 */
