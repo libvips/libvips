@@ -22,6 +22,9 @@
  *	- im_makerw() changed to im_rwcheck()
  * 5/12/06
  * 	- im_invalidate() after paint
+ * 6/3/10
+ * 	- don't im_invalidate() after paint, this now needs to be at a higher
+ * 	  level
  */
 
 /*
@@ -187,8 +190,6 @@ im_smudge( IMAGE *im, int ix, int iy, Rect *r )
 
 	}
 
-	im_invalidate( im );
-
 	return( 0 );
 }
 
@@ -312,8 +313,6 @@ im_smear( IMAGE *im, int ix, int iy, Rect *r )
 		im_error( "im_smear", "%s", _( "unknown band format" ) );
 		return( -1 );
 	}
-
-	im_invalidate( im );
 
 	return( 0 );
 }

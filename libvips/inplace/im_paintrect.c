@@ -14,6 +14,9 @@
  *	- im_incheck() changed to im_makerw()
  * 5/12/06
  * 	- im_invalidate() after paint
+ * 6/3/10
+ * 	- don't im_invalidate() after paint, this now needs to be at a higher
+ * 	  level
  */
 
 /*
@@ -97,8 +100,6 @@ im_paintrect( IMAGE *im, Rect *r, PEL *ink )
 		
 		to += ls;
 	}
-
-	im_invalidate( im );
 
 	return( 0 );
 }

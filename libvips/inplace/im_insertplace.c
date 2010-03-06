@@ -16,6 +16,9 @@
  * 21/10/09
  * 	- allow sub to be outside main
  * 	- gtkdoc
+ * 6/3/10
+ * 	- don't im_invalidate() after paint, this now needs to be at a higher
+ * 	  level
  */
 
 /*
@@ -117,8 +120,6 @@ im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 		p += IM_IMAGE_SIZEOF_LINE( sub );
 		q += IM_IMAGE_SIZEOF_LINE( main );
 	}
-
-	im_invalidate( main );
 
 	return( 0 );
 }

@@ -42,6 +42,9 @@
  * 	- im_invalidate() after paint
  * 1/3/10
  * 	- oops, lineset needs to ask for WIO of mask and ink
+ * 6/3/10
+ * 	- don't im_invalidate() after paint, this now needs to be at a higher
+ * 	  level
  */
 
 /*
@@ -249,8 +252,6 @@ im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
 	else
 		error_exit( "internal error #9872659823475982375" );
 
-	im_invalidate( im );
-
 	return( 0 );
 }
 
@@ -396,8 +397,6 @@ im_fastlineuser( IMAGE *im,
 	}
 	else
 		error_exit( "internal error #9872659823475982375" );
-
-	im_invalidate( im );
 
 	return( 0 );
 }

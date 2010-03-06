@@ -18,6 +18,9 @@
  *	- im_incheck() changed to im_makerw()
  * 5/12/06
  * 	- im_invalidate() after paint
+ * 6/3/10
+ * 	- don't im_invalidate() after paint, this now needs to be at a higher
+ * 	  level
  */
 
 /*
@@ -127,8 +130,6 @@ im_circle( IMAGE *im, int cx, int cy, int radius, int intensity )
 		*(start + offset - size * y + x) = (PEL)intensity;
 		*(start + offset - size * x + y) = (PEL)intensity;
 		}
-
-	im_invalidate( im );
 
         return(0);	
 }

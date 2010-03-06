@@ -16,6 +16,9 @@
  *	- im_incheck() changed to im_makerw()
  * 5/12/06
  * 	- im_invalidate() after paint
+ * 6/3/10
+ * 	- don't im_invalidate() after paint, this now needs to be at a higher
+ * 	  level
  */
 
 /*
@@ -112,8 +115,6 @@ im_plotpoint( IMAGE *im, int x, int y, PEL *pel )
 	to = (PEL *) im->data + x * ps + y * ls;
 	for( b = 0; b < ps; b++ )
 		*to++ = *pel++;
-
-	im_invalidate( im );
 
 	return( 0 );
 }

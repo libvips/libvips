@@ -18,6 +18,9 @@
  *	- now blends with 0-255 mask
  * 5/12/06
  * 	- im_invalidate() after paint
+ * 6/3/10
+ * 	- don't im_invalidate() after paint, this now needs to be at a higher
+ * 	  level
  */
 
 /*
@@ -232,8 +235,6 @@ im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r )
 			}
 		}
 	}
-
-	im_invalidate( im );
 
 	return( 0 );
 }

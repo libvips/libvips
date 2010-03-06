@@ -23,6 +23,9 @@
  * 	- allow separate test and mark images
  * 22/1/10
  * 	- flood_blob could loop if start point == ink
+ * 6/3/10
+ * 	- don't im_invalidate() after paint, this now needs to be at a higher
+ * 	  level
  */
 
 /*
@@ -472,8 +475,6 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 
 	flood_free( flood );
 
-	im_invalidate( im );
-
 	return( 0 );
 }
 
@@ -528,8 +529,6 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	flood_all( flood, x, y );
 
 	flood_free( flood );
-
-	im_invalidate( im );
 
 	return( 0 );
 }
@@ -590,8 +589,6 @@ im_flood_other( IMAGE *test, IMAGE *mark, int x, int y, int serial, Rect *dout )
 	flood_all( flood, x, y );
 
 	flood_free( flood );
-
-	im_invalidate( mark );
 
 	return( 0 );
 }
