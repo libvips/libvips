@@ -1,7 +1,3 @@
-- argh, regions are all broken
-
-- what's the difference between private.h and internal.h?
-
 - we use parent/child a lot, but it's confusing
 
   imagine building the pipeline 

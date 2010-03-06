@@ -410,6 +410,9 @@ render_dirty_process( Render *render )
 		 */
 		tile->state = TILE_PAINTED;
 		im__region_no_ownership( tile->region );
+
+		/* Now clients can update.
+		 */
 		if( render->notify ) 
 			render->notify( render->out, 
 				&tile->area, render->client );

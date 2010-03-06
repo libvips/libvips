@@ -489,8 +489,6 @@ im_invalidate( IMAGE *im )
 {
 	GSList *to_be_invalidated;
 
-	return;
-
 	/* Invalidate callbacks might do anything, including removing images
 	 * or invalidating other images, so we can't trigger them from within 
 	 * the image loop. Instead we collect a list of image to invalidate 

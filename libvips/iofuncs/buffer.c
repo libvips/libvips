@@ -44,8 +44,8 @@
  */
 
 /*
-#define DEBUG
 #define DEBUG_CREATE
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -193,9 +193,9 @@ im_buffer_done( im_buffer_t *buffer )
 		im_buffer_cache_list_t *cache_list;
 
 #ifdef DEBUG
-		printf( "im_buffer_done: thread %p adding "
-			"buffer %p to cache %p\n",
-			g_thread_self(), buffer, cache );
+		printf( "im_buffer_done: thread %p adding to cache %p\n",
+			g_thread_self(), cache );
+		im_buffer_print( buffer ); 
 #endif /*DEBUG*/
 
 		/* Look up and update the buffer list. 
@@ -246,7 +246,7 @@ im_buffer_undone( im_buffer_t *buffer )
 
 #ifdef DEBUG
 		printf( "im_buffer_undone: %d buffers left\n",
-			g_slist_length( buffers ) );
+			g_slist_length( cache_list->buffers ) );
 #endif /*DEBUG*/
 	}
 }
@@ -432,7 +432,7 @@ im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, Rect *area )
 	/* Is the current buffer OK?
 	 */
 	if( old_buffer && 
-		im_rect_includesrect( &old_buffer->area, area ) )
+		im_rect_includesrect( &old_buffer->area, area ) ) 
 		return( old_buffer );
 
 	/* Does the new area already have a buffer?

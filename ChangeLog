@@ -20,6 +20,7 @@
 - im_csv2vips(): allow lines that end with EOF rather than \n
 - im_vips2tiff has a bigtiff option
 - oops, im_lineset() needs to ask for WIO of mask and ink
+- move cache invalidation to REGION, fixes a race
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats
