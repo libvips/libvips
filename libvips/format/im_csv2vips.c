@@ -60,17 +60,23 @@
 #endif /*WITH_DMALLOC*/
 
 /* Skip to the start of the next line (ie. read until we see a '\n'), return
- * zero if we are at EOF. Don't forget to allow for lines that are terminated
- * by EOF rather than \n.
+ * zero if we are at EOF. 
+ *
+ * Files can end with EOF or with \nEOF. Tricky!
  */
 static int 
 skip_line( FILE *fp )
 {
         int ch;
 
-	if( feof( fp ) )
+	/* Are we at a delayed EOF? See below.
+	 */
+	if( (ch = fgetc( fp )) == EOF )
 		return( 0 );
+	ungetc( ch, fp );
 
+	/* If we hit EOF and no \n, wait until the next call to report EOF.
+	 */
         while( (ch = fgetc( fp )) != '\n' && ch != EOF )
 		;
 
@@ -195,8 +201,10 @@ read_csv( FILE *fp, IMAGE *out,
 			"%s", _( "unable to seek" ) );
 		return( -1 );
 	}
-	for( columns = 0; (ch = read_double( fp, whitemap, sepmap,
-		start_skip + 1, columns + 1, &d )) == 0; columns++ )
+	for( columns = 0; 
+		(ch = read_double( fp, whitemap, sepmap, 
+			start_skip + 1, columns + 1, &d )) == 0; 
+		columns++ )
 		;
 	fsetpos( fp, &pos );
 
@@ -217,6 +225,8 @@ read_csv( FILE *fp, IMAGE *out,
 		for( lines = 0; skip_line( fp ); lines++ )
 			;
 		fsetpos( fp, &pos );
+
+		printf( "detected %d lines after skip\n", lines );
 	}
 
 	im_initdesc( out, columns, lines, 1, 
