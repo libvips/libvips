@@ -83,6 +83,31 @@ if test x"$vips_binary_open" = "xyes"; then
   AC_DEFINE(BINARY_OPEN,1,[define to open non-text files in binary mode])
 fi
 
+AC_MSG_CHECKING([for Mac OS X])
+case "$host" in
+  *-*-darwin*)
+    vips_os_darwin=yes
+    ;;
+  *)
+    vips_os_darwin=no
+    ;;
+esac
+AC_MSG_RESULT([$vips_os_darwin])
+
+if test x"$vips_os_darwin" = x"yes"; then
+  AC_DEFINE(VIPS_OS_DARWIN,1,[native Mac OS X])
+fi
+
+# set the default directory for ICC profiles
+if test x"$vips_os_darwin" = x"yes"; then
+  profile_dir="/Library/ColorSync/Profiles"
+elif test x"$vips_os_win32" = x"yes"; then
+  profile_dir="C:\\Windows\\System32\\spool\\drivers\\color"
+else
+  profile_dir="/usr/share/color/icc"
+fi
+AC_DEFINE_UNQUOTED(VIPS_ICC_DIR,"$profile_dir",[default directory for ICC profiles])
+
 # we want largefile support, if possible
 AC_SYS_LARGEFILE
 
@@ -553,6 +578,7 @@ AC_OUTPUT([
 AC_MSG_RESULT([
 * general build options
 native win32:				$vips_os_win32
+native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
 build C++ components:			$enable_cxx
 evaluate with threads: 			$enable_threads

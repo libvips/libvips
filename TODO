@@ -9,6 +9,16 @@
   configure should test for the dir? what's the equivalent dir on Windows? we
   also have nip2's dir
 
+  Windows:
+
+  	C:\Windows\System32\spool\drivers\color
+
+  OS X
+
+  	/Library/ColorSync/Profiles
+
+  added VIPS_ICC_DIR to configure.in, need to search this in format operations
+
 - doing im_create_fmask() and friends
 
 - how about im_invalidate_area()? we currently repaint the whole window on
