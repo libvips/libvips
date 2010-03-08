@@ -225,8 +225,6 @@ read_csv( FILE *fp, IMAGE *out,
 		for( lines = 0; skip_line( fp ); lines++ )
 			;
 		fsetpos( fp, &pos );
-
-		printf( "detected %d lines after skip\n", lines );
 	}
 
 	im_initdesc( out, columns, lines, 1, 
