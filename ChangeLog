@@ -26,6 +26,7 @@
   im_fastlineuser() is terrible
 - instead, users of the inplace operations need to call im_invalidate() at the
   end of a set of paint actions to trigger an update
+- parent/child -> upstream/downstream in DAG
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats

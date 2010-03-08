@@ -14,6 +14,8 @@
  * 	- gtkdoc comments
  * 5/3/10
  * 	- move link maintenance to im_demand_hint
+ * 8/3/10
+ * 	- rename parent/child as downstream/upstream, much clearer!
  */
 
 /*
@@ -66,48 +68,46 @@
  */
 #define MAX_IMAGES (1000)
 
-/* Make a parent/child link. child is one of parent's inputs.
+/* Make a upstream/downstream link. upstream is one of downstream's inputs.
  */
-void 
-im__link_make( IMAGE *parent, IMAGE *child )
+static void 
+im__link_make( IMAGE *im_up, IMAGE *im_down )
 {
-	g_assert( parent );
-	g_assert( child );
+	g_assert( im_up );
+	g_assert( im_down );
 
-	parent->children = g_slist_prepend( parent->children, child );
-	child->parents = g_slist_prepend( child->parents, parent );
+	im_up->downstream = g_slist_prepend( im_up->downstream, im_down );
+	im_down->upstream = g_slist_prepend( im_down->downstream, im_up );
 
 	/* Propogate the progress indicator.
 	 */
-	if( child->progress && !parent->progress ) 
-		parent->progress = child->progress;
+	if( im_up->progress && !im_down->progress ) 
+		im_down->progress = im_up->progress;
 }
 
-/* Break link. child is one of parent's inputs.
- */
 static void *
-im__link_break( IMAGE *parent, IMAGE *child )
+im__link_break( IMAGE *im_up, IMAGE *im_down )
 {
-	g_assert( parent );
-	g_assert( child );
-	g_assert( g_slist_find( parent->children, child ) );
-	g_assert( g_slist_find( child->parents, parent ) );
+	g_assert( im_up );
+	g_assert( im_down );
+	g_assert( g_slist_find( im_up->downstream, im_down ) );
+	g_assert( g_slist_find( im_down->upstream, im_up ) );
 
-	parent->children = g_slist_remove( parent->children, child );
-	child->parents = g_slist_remove( child->parents, parent );
+	im_up->downstream = g_slist_remove( im_up->downstream, im_down );
+	im_down->upstream = g_slist_remove( im_down->upstream, im_up );
 
 	/* Unlink the progress chain.
 	 */
-	if( parent->progress && parent->progress == child->progress ) 
-		parent->progress = NULL;
+	if( im_down->progress && im_down->progress == im_up->progress ) 
+		im_down->progress = NULL;
 
 	return( NULL );
 }
 
 static void *
-im__link_break_rev( IMAGE *child, IMAGE *parent )
+im__link_break_rev( IMAGE *im_down, IMAGE *im_up )
 {
-	return( im__link_break( parent, child ) );
+	return( im__link_break( im_up, im_down ) );
 }
 
 /* An IMAGE is going ... break all links.
@@ -115,9 +115,9 @@ im__link_break_rev( IMAGE *child, IMAGE *parent )
 void
 im__link_break_all( IMAGE *im )
 {
-	im_slist_map2( im->parents, 
+	im_slist_map2( im->upstream, 
 		(VSListMap2Fn) im__link_break, im, NULL );
-	im_slist_map2( im->children, 
+	im_slist_map2( im->downstream, 
 		(VSListMap2Fn) im__link_break_rev, im, NULL );
 }
 
@@ -135,11 +135,11 @@ im__link_mapp( IMAGE *im, VSListMap2Fn fn, int *serial, void *a, void *b )
 	if( (res = fn( im, a, b )) )
 		return( res );
 
-	return( im_slist_map4( im->parents, 
+	return( im_slist_map4( im->downstream,
 		(VSListMap4Fn) im__link_mapp, fn, serial, a, b ) );
 }
 
-/* Apply a function to an image and all it's parents, direct and indirect. 
+/* Apply a function to an image and all downstream images, direct and indirect. 
  */
 void *
 im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )
@@ -217,7 +217,7 @@ im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 	/* im depends on all these ims.
 	 */
 	for( i = 0; i < len; i++ )
-		im__link_make( im, in[i] );
+		im__link_make( in[i], im );
 
 	/* Set a flag on the image to say we remember to call this thing.
 	 * im_generate() and friends check this.

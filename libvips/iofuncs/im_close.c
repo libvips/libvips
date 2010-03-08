@@ -171,7 +171,7 @@ im__close( IMAGE *im )
 	im->generate = NULL;
 	im->stop = NULL;
 
-	/* No more parent/child links.
+	/* No more upstream/downstream links.
 	 */
 	im__link_break_all( im );
 

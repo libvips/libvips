@@ -161,8 +161,8 @@ im_init( const char *filename )
 
 	im->windows = NULL;
 
-	im->parents = NULL;
-	im->children = NULL;
+	im->upstream = NULL;
+	im->downstream = NULL;
 	im->serial = 0;
 
 	im->history_list = NULL;

@@ -134,7 +134,6 @@ typedef enum {
 IMAGE *im__convert_saveable( IMAGE *in, 
 	im__saveable_t saveable, gboolean sixteen );
 
-void im__link_make( IMAGE *parent, IMAGE *child );
 void im__link_break_all( IMAGE *im );
 void *im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b );
 

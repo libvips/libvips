@@ -195,18 +195,16 @@ typedef struct _VipsImage {
 	 */
 	GSList *windows;
 
-	/* Parent/child relationships, built from args to im_demand_hint().
-	 * We use these to invalidate pixel buffers on im_invalidate(). Use
-	 * 'serial' to spot circular dependencies.
+	/* Upstream/downstream relationships, built from args to 
+	 * im_demand_hint().
 	 *
-	 * Parents are later in the tree, so it's child1 + child2 -> parent,
-	 * for example. On im_invalidate(), we dispose the caches on all
-	 * parents of an image.
+	 * We use these to invalidate downstream pixel buffers on 
+	 * im_invalidate(). Use 'serial' to spot circular dependencies.
 	 *
 	 * See also hint_set below.
 	 */
-	GSList *parents;
-	GSList *children;
+	GSList *upstream;
+	GSList *downstream;
 	int serial;
 
 	/* Keep a list of recounted GValue strings so we can share hist
@@ -236,8 +234,8 @@ typedef struct _VipsImage {
 	/* Set this when im_demand_hint_array() is called, and check in any
 	 * operation that will demand pixels from the image.
 	 *
-	 * We use im_demand_hint_array() to build the tree of parent/child
-	 * relationships, so it's a mandatory thing.
+	 * We use im_demand_hint_array() to build the tree of
+	 * upstream/downstream relationships, so it's a mandatory thing.
 	 */
 	gboolean hint_set;
 
