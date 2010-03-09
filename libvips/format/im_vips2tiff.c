@@ -395,7 +395,7 @@ embed_profile_file( TIFF *tif, const char *profile )
 	char *buffer;
 	unsigned int length;
 
-	if( !(buffer = im__file_read_name( profile, &length )) ) 
+	if( !(buffer = im__file_read_name( profile, VIPS_ICC_DIR, &length )) ) 
 		return( -1 );
 	TIFFSetField( tif, TIFFTAG_ICCPROFILE, length, buffer );
 	im_free( buffer );

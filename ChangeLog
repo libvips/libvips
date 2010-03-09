@@ -28,6 +28,7 @@
   end of a set of paint actions to trigger an update
 - parent/child -> upstream/downstream in DAG
 - set VIPS_ICC_DIR in configure
+- ICC profiles are looked for in VIPS_ICC_DIR as a fallback
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats

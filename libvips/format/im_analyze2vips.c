@@ -309,7 +309,7 @@ read_header( const char *header )
 	struct dsr *d;
 	unsigned int len;
 
-	if( !(d = (struct dsr *) im__file_read_name( header, &len )) )
+	if( !(d = (struct dsr *) im__file_read_name( header, NULL, &len )) )
 		return( NULL );
 	if( len != sizeof( struct dsr ) ) {
 		im_free( d );

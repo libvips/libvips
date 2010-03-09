@@ -373,7 +373,8 @@ attach_profile( IMAGE *im, const char *filename )
 	char *data;
 	unsigned int data_length;
 
-	if( !(data = im__file_read_name( filename, &data_length )) ) 
+	if( !(data = im__file_read_name( filename, VIPS_ICC_DIR, 
+		&data_length )) ) 
 		return( -1 );
 	if( im_meta_set_blob( im, IM_META_ICC_NAME, 
 		(im_callback_fn) im_free, data, data_length ) ) {

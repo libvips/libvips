@@ -817,7 +817,7 @@ im__write( int fd, const void *buf, size_t count )
 /* Load up a file as a string.
  */
 char *
-im__file_read( FILE *fp, const char *name, unsigned int *length_out )
+im__file_read( FILE *fp, const char *filename, unsigned int *length_out )
 {
         long len;
 	size_t read;
@@ -830,7 +830,7 @@ im__file_read( FILE *fp, const char *name, unsigned int *length_out )
 	if( len > 20 * 1024 * 1024 ) {
 		/* Seems crazy!
 		 */
-                im_error( "im__file_read", _( "\"%s\" too long" ), name );
+                im_error( "im__file_read", _( "\"%s\" too long" ), filename );
                 return( NULL );
         }
 
@@ -873,7 +873,8 @@ im__file_read( FILE *fp, const char *name, unsigned int *length_out )
 		if( read != (size_t) len ) {
 			im_free( str );
 			im_error( "im__file_read", 
-				_( "error reading from file \"%s\"" ), name );
+				_( "error reading from file \"%s\"" ), 
+				filename );
 			return( NULL );
 		}
 	}
@@ -886,23 +887,60 @@ im__file_read( FILE *fp, const char *name, unsigned int *length_out )
         return( str );
 }
 
+/* Does a filename contain a directory separator?
+ */
+static gboolean 
+filename_hasdir( const char *filename )
+{
+	char *dirname;
+	gboolean hasdir;
+
+	dirname = g_path_get_dirname( filename );
+	hasdir = (strcmp( dirname, "." ) != 0);
+	g_free( dirname );
+
+	return( hasdir );
+}
+
+/* Open a file. We take an optional fallback dir as well and will try opening
+ * there if opening directly fails.
+ *
+ * This is used for things like finding ICC profiles. We try to open the file
+ * directly first, and if that fails and the filename does not contain a
+ * directory separator, we try looking in the fallback dir.
+ */
 FILE *
-im__file_open_read( const char *filename )
+im__file_open_read( const char *filename, const char *fallback_dir )
 {
 	FILE *fp;
 
 #ifdef BINARY_OPEN
-        if( !(fp = fopen( filename, "rb" )) ) {
-#else /*BINARY_OPEN*/
-        if( !(fp = fopen( filename, "r" )) ) {
+        fp = fopen( filename, "rb" );
+#else /*!BINARY_OPEN*/
+        fp = fopen( filename, "r" );
 #endif /*BINARY_OPEN*/
-		im_error( "im__file_open_read", 
-			_( "unable to open file \"%s\" for reading" ), 
-			filename );
-		return( NULL );
+	if( fp )
+		return( fp );
+
+	if( fallback_dir && !filename_hasdir( filename ) ) {
+		char *path;
+
+		path = g_build_filename( fallback_dir, filename, NULL );
+#ifdef BINARY_OPEN
+	        fp = fopen( path, "rb" );
+#else /*!BINARY_OPEN*/
+        	fp = fopen( path, "r" );
+#endif /*BINARY_OPEN*/
+		g_free( path );
+
+		if( fp )
+			return( fp );
 	}
 
-	return( fp );
+	im_error( "im__file_open_read", 
+		_( "unable to open file \"%s\" for reading" ), filename );
+
+	return( NULL );
 }
 
 FILE *
@@ -924,17 +962,19 @@ im__file_open_write( const char *filename )
 	return( fp );
 }
 
-/* Load from a filename as a string.
+/* Load from a filename as a string. Used for things like reading in ICC
+ * profiles.
  */
 char *
-im__file_read_name( const char *name, unsigned int *length_out )
+im__file_read_name( const char *filename, const char *fallback_dir, 
+	unsigned int *length_out )
 {
 	FILE *fp;
 	char *buffer;
 
-        if( !(fp = im__file_open_read( name )) ) 
+        if( !(fp = im__file_open_read( filename, fallback_dir )) ) 
 		return( NULL );
-	if( !(buffer = im__file_read( fp, name, length_out )) ) {
+	if( !(buffer = im__file_read( fp, filename, length_out )) ) {
 		fclose( fp );
 		return( NULL );
 	}

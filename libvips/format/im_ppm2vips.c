@@ -395,7 +395,7 @@ ppm2vips_header( const char *filename, IMAGE *out )
 	int bits;
 	int ascii;
 
-	if( !(fp = im__file_open_read( filename )) ) 
+	if( !(fp = im__file_open_read( filename, NULL )) ) 
                 return( -1 );
 	if( read_header( fp, out, &bits, &ascii ) ) {
 		fclose( fp );
@@ -417,7 +417,7 @@ isppmmmap( const char *filename )
 	int bits;
 	int ascii;
 
-	if( !(fp = im__file_open_read( filename )) ) 
+	if( !(fp = im__file_open_read( filename, NULL )) ) 
                 return( -1 );
 
 	if( !(im = im_open( "temp", "p" )) ) {
@@ -454,7 +454,7 @@ im_ppm2vips( const char *filename, IMAGE *out )
 {
         FILE *fp;
 
-	if( !(fp = im__file_open_read( filename )) ) 
+	if( !(fp = im__file_open_read( filename, NULL )) ) 
                 return( -1 );
 	if( parse_ppm( fp, filename, out ) ) {
 		fclose( fp );

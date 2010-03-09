@@ -489,7 +489,8 @@ static int
 write_profile_file( Write *write, const char *profile )
 {
 	if( !(write->profile_bytes = 
-		im__file_read_name( profile, &write->profile_length )) ) 
+		im__file_read_name( profile, VIPS_ICC_DIR, 
+		&write->profile_length )) ) 
 		return( -1 );
 	write_profile_data( &write->cinfo, 
 		(JOCTET *) write->profile_bytes, write->profile_length );
