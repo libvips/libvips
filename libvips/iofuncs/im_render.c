@@ -42,7 +42,7 @@
  * 22/1/10
  * 	- drop painted tiles on invalidate
  * 10/3/10
- * 	- keep render alive until both in and out close
+ * 	- better lifetime management for im_invalidate() callbacks
  */
 
 /*
@@ -153,6 +153,13 @@ typedef struct {
 
  */
 
+/* Invalidate proxy. The im_invalidate() callback comes here, render can null
+ * out the pointer when it's not interested.
+ */
+typedef struct _RenderProxy {
+	struct _Render *render;
+} RenderProxy;
+
 /* Per-call state.
  */
 typedef struct _Render {
@@ -173,6 +180,10 @@ typedef struct _Render {
 	int priority;		/* Larger numbers done sooner */
 	notify_fn notify;	/* Tell caller about paints here */
 	void *client;
+
+	/* The invalidate proxy: NULL this out to stop the callback.
+	 */
+	RenderProxy *proxy;
 
 	/* Make readers single thread with this. No point allowing
 	 * multi-thread read.
@@ -251,6 +262,10 @@ render_free( Render *render )
 #endif /*DEBUG_MAKE*/
 
 	g_assert( render->ref_count == 0 );
+
+	/* Block the invalidate callback.
+	 */
+	render->proxy->render = NULL;
 
 	render_dirty_remove( render );
 
@@ -600,9 +615,16 @@ render_tile_get_painted( Render *render )
 /* Free all painted tiles. This is triggered on "invalidate".
  */
 static int
-render_invalidate( Render *render )
+render_invalidate( RenderProxy *proxy )
 {
+	Render *render = proxy->render;
+
 	Tile *tile;
+
+	/* Has render been freed?
+	 */
+	if( !render )
+		return( 0 );
 
 	/* Conceptually we work like region_fill(): we free all painted tiles.
 	 */
@@ -640,10 +662,7 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	if( !(render = IM_NEW( NULL, Render )) )
 		return( NULL );
 
-	/* Both in and out need to close before we can go, so ref_count starts
-	 * at 2.
-	 */
-	render->ref_count = 2;
+	render->ref_count = 1;
 	render->ref_count_lock = g_mutex_new();
 
 	render->in = in;
@@ -655,6 +674,11 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	render->priority = priority;
 	render->notify = notify;
 	render->client = client;
+
+	/* This needs the same lifetime as in, since it's the arg to the
+	 * invalidate callbcak.
+	 */
+	render->proxy = IM_NEW( in, RenderProxy );
 
 	render->read_lock = g_mutex_new();
 
@@ -668,19 +692,17 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	render->tg = NULL;
 	render->render_kill = FALSE;
 
-	if( im_add_close_callback( out, 
-                (im_callback_fn) render_unref, render, NULL ) ) {
-                (void) render_unref( render );
-                return( NULL );
-        }
-	if( im_add_close_callback( in, 
-                (im_callback_fn) render_unref, render, NULL ) ) {
+	if( !render->proxy ||
+		im_add_close_callback( out, 
+			(im_callback_fn) render_unref, render, NULL ) ) {
                 (void) render_unref( render );
                 return( NULL );
         }
 
+	render->proxy->render = render;
+
 	if( im_add_invalidate_callback( in, 
-                (im_callback_fn) render_invalidate, render, NULL ) ) 
+                (im_callback_fn) render_invalidate, render->proxy, NULL ) ) 
                 return( NULL );
 
 	return( render );
