@@ -1,3 +1,7 @@
+- had an assert fail in im_render() invalidate callback, argh
+
+  can we make this safer?
+
 - doing im_create_fmask() and friends
 
 - how about im_invalidate_area()? we currently repaint the whole window on
