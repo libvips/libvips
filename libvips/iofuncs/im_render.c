@@ -324,8 +324,6 @@ render_dirty_get( void )
 	if( render_dirty_all ) {
 		render = (Render *) render_dirty_all->data;
 
-		g_assert( render->ref_count == 1 );
-
 		/* Ref the render to make sure it can't die while we're
 		 * working on it.
 		 */
@@ -481,9 +479,6 @@ render_thread_main( void *client )
 
 			render_dirty_put( render );
 
-			g_assert( render->ref_count == 1 ||
-				render->ref_count == 2 );
-
 			/* _get() does a ref to make sure we keep the render
 			 * alive during processing ... unref before we loop.
 			 * This can kill off the render.
@@ -491,6 +486,8 @@ render_thread_main( void *client )
 			render_unref( render );
 		}
 	}
+
+	return( NULL );
 }
 
 /* Create our set of RenderThread. Assume we're single-threaded here.
