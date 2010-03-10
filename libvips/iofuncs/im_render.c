@@ -41,6 +41,8 @@
  * 	- im_render(), im_render_fade() moved to deprecated
  * 22/1/10
  * 	- drop painted tiles on invalidate
+ * 10/3/10
+ * 	- keep render alive until both in and out close
  */
 
 /*
@@ -641,7 +643,10 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	if( !(render = IM_NEW( NULL, Render )) )
 		return( NULL );
 
-	render->ref_count = 1;
+	/* Both in and out need to close before we can go, so ref_count starts
+	 * at 2.
+	 */
+	render->ref_count = 2;
 	render->ref_count_lock = g_mutex_new();
 
 	render->in = in;
@@ -667,6 +672,11 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	render->render_kill = FALSE;
 
 	if( im_add_close_callback( out, 
+                (im_callback_fn) render_unref, render, NULL ) ) {
+                (void) render_unref( render );
+                return( NULL );
+        }
+	if( im_add_close_callback( in, 
                 (im_callback_fn) render_unref, render, NULL ) ) {
                 (void) render_unref( render );
                 return( NULL );
