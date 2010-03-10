@@ -446,6 +446,22 @@ im__print_one( int n )
 	im_printdesc( im );
 }
 
+static void *
+sanity_upstream( IMAGE *im_up, IMAGE *im_down )
+{
+	if( !g_slist_find( im_up->downstream, im_down ) ||
+		!g_slist_find( im_down->upstream, im_up ) )
+		return( im_up );
+
+	return( NULL );
+}
+
+static void *
+sanity_downstream( IMAGE *im_down, IMAGE *im_up )
+{
+	return( sanity_upstream( im_up, im_down ) );
+}
+
 /* Test an image for sanity. We could add many more tests here.
  */
 static const char *
@@ -463,20 +479,34 @@ image_sanity( IMAGE *im )
 	}
 	g_mutex_unlock( im__global_lock );
 
-	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) 
-		return( "bad dimensions" );
-	if( im->BandFmt < -1 || im->BandFmt > IM_BANDFMT_DPCOMPLEX ||
-		(im->Coding != -1 &&
-			im->Coding != IM_CODING_NONE && 
-			im->Coding != IM_CODING_LABQ &&
-			im->Coding != IM_CODING_RAD) ||
-		im->Type > IM_TYPE_GREY16 )
-		return( "bad enum value" );
-	if( im->dtype > IM_PARTIAL || 
-		im->dhint > IM_ANY ) 
-		return( "bad enum value" );
-	if( im->Xres < 0 || im->Xres < 0 ) 
-		return( "bad resolution" );
+	/* All -1 means im has been inited but never used.
+	 */
+	if( im->Xsize != -1 ||
+		im->Ysize != -1 ||
+		im->Bands != -1 ||
+		im->BandFmt != -1 ) {
+		if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) 
+			return( "bad dimensions" );
+		if( im->BandFmt < -1 || im->BandFmt > IM_BANDFMT_DPCOMPLEX ||
+			(im->Coding != -1 &&
+				im->Coding != IM_CODING_NONE && 
+				im->Coding != IM_CODING_LABQ &&
+				im->Coding != IM_CODING_RAD) ||
+			im->Type > IM_TYPE_GREY16 )
+			return( "bad enum value" );
+		if( im->dtype > IM_PARTIAL || 
+			im->dhint > IM_ANY ) 
+			return( "bad enum value" );
+		if( im->Xres < 0 || im->Xres < 0 ) 
+			return( "bad resolution" );
+	}
+
+	if( im_slist_map2( im->upstream, 
+		(VSListMap2Fn) sanity_upstream, im, NULL ) )
+		return( "upstream broken" );
+	if( im_slist_map2( im->downstream, 
+		(VSListMap2Fn) sanity_downstream, im, NULL ) )
+		return( "downstream broken" );
 
 	return( NULL );
 }
@@ -497,4 +527,11 @@ im_image_sanity( IMAGE *im )
 	}
 
 	return( 0 );
+}
+
+void
+im_image_sanity_all( void )
+{
+	g_assert( im_slist_map2( im__open_images, 
+		(VSListMap2Fn) im_image_sanity, NULL, NULL ) == 0 );
 }

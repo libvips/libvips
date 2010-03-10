@@ -59,6 +59,7 @@ im_demand_type im_char2dhint( const char *str );
 
 void im_printdesc( IMAGE *image );
 int im_image_sanity( IMAGE *im );
+void im_image_sanity_all( void );
 
 #ifdef __cplusplus
 }

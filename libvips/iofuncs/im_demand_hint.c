@@ -59,6 +59,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -77,7 +78,7 @@ im__link_make( IMAGE *im_up, IMAGE *im_down )
 	g_assert( im_down );
 
 	im_up->downstream = g_slist_prepend( im_up->downstream, im_down );
-	im_down->upstream = g_slist_prepend( im_down->downstream, im_up );
+	im_down->upstream = g_slist_prepend( im_down->upstream, im_up );
 
 	/* Propogate the progress indicator.
 	 */
@@ -119,6 +120,9 @@ im__link_break_all( IMAGE *im )
 		(VSListMap2Fn) im__link_break, im, NULL );
 	im_slist_map2( im->downstream, 
 		(VSListMap2Fn) im__link_break_rev, im, NULL );
+
+	g_assert( !im->upstream );
+	g_assert( !im->downstream );
 }
 
 static void *
