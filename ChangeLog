@@ -29,6 +29,7 @@
 - parent/child -> upstream/downstream in DAG
 - set VIPS_ICC_DIR in configure
 - ICC profiles are looked for in VIPS_ICC_DIR as a fallback
+- im_render() mask image generation no longer triggers image calc
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats

@@ -43,6 +43,9 @@
  * 	- drop painted tiles on invalidate
  * 10/3/10
  * 	- better lifetime management for im_invalidate() callbacks
+ * 12/3/10
+ * 	- drawing the mask image no longer sets those parts of the image
+ * 	  rendering, it just queries the cache
  */
 
 /*
@@ -73,10 +76,10 @@
 
 /* Turn on debugging output.
 #define DEBUG
-#define DEBUG_PAINT
 #define DEBUG_TG
 #define DEBUG_MAKE
 #define DEBUG_REUSE
+#define DEBUG_PAINT
  */
 
 #ifdef HAVE_CONFIG_H
@@ -766,26 +769,30 @@ render_tile_lookup( Render *render, Rect *area )
 	tile = (Tile *) im_slist_map2( render->cache,
 		(VSListMap2Fn) tile_test_area, area, NULL );
 
-	/* We've looked at a tile ... bump to end of LRU and front of dirty.
-	 */
-	if( tile ) {
-		tile->access_ticks = render->access_ticks;
-		render->access_ticks += 1;
+	return( tile );
+}
 
-		g_mutex_lock( render->dirty_lock );
-		if( tile->state == TILE_DIRTY ) {
+/* We've looked at a tile ... bump to end of LRU and front of dirty.
+ */
+static void
+render_tile_touch( Tile *tile )
+{
+	Render *render = tile->render;
+
+	tile->access_ticks = render->access_ticks;
+	render->access_ticks += 1;
+
+	g_mutex_lock( render->dirty_lock );
+	if( tile->state == TILE_DIRTY ) {
 #ifdef DEBUG
-			printf( "tile_bump_dirty: bumping tile %dx%d\n",
-				tile->area.left, tile->area.top );
+		printf( "tile_bump_dirty: bumping tile %dx%d\n",
+			tile->area.left, tile->area.top );
 #endif /*DEBUG*/
 
-			render->dirty = g_slist_remove( render->dirty, tile );
-			render->dirty = g_slist_prepend( render->dirty, tile );
-		}
-		g_mutex_unlock( render->dirty_lock );
+		render->dirty = g_slist_remove( render->dirty, tile );
+		render->dirty = g_slist_prepend( render->dirty, tile );
 	}
-
-	return( tile );
+	g_mutex_unlock( render->dirty_lock );
 }
 
 /* Add a tile to the dirty list.
@@ -892,6 +899,7 @@ render_tile_get( Render *render, Rect *area )
 		printf( "render_tile_get: found %dx%d in cache\n",
 			area->left, area->top );
 #endif /*DEBUG_PAINT*/
+		render_tile_touch( tile );
 
 		return( tile );
 	}
@@ -989,6 +997,11 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 	int xs = (r->left / render->width) * render->width;
 	int ys = (r->top / render->height) * render->height;
 
+#ifdef DEBUG_PAINT
+	printf( "region_fill: left = %d, top = %d, width = %d, height = %d\n",
+                r->left, r->top, r->width, r->height );
+#endif /*DEBUG_PAINT*/
+
 	/* Only allow one reader. No point threading this, calculation is
 	 * decoupled anyway.
 	 */
@@ -1057,6 +1070,11 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 	int xs = (r->left / render->width) * render->width;
 	int ys = (r->top / render->height) * render->height;
 
+#ifdef DEBUG_PAINT
+	printf( "mask_fill: left = %d, top = %d, width = %d, height = %d\n",
+                r->left, r->top, r->width, r->height );
+#endif /*DEBUG_PAINT*/
+
 	g_mutex_lock( render->read_lock );
 
 	for( y = ys; y < IM_RECT_BOTTOM( r ); y += render->height )
@@ -1069,7 +1087,7 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 			area.width = render->width;
 			area.height = render->height;
 
-			if( (tile = render_tile_get( render, &area )) )
+			if( (tile = render_tile_lookup( render, &area )) )
 				tile_paint_mask( tile, out );
 		}
 
