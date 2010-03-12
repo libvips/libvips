@@ -452,18 +452,27 @@ im_region_buffer( REGION *reg, Rect *r )
 		return( -1 );
 	}
 
-	/* Don't call im_region_reset() ... we combine buffer unref and new
-	 * buffer ref in one call to reduce malloc/free cycling.
-	 */
-	IM_FREEF( im_window_unref, reg->window );
-	if( !(reg->buffer = im_buffer_unref_ref( reg->buffer, im, &clipped )) ) 
-		return( -1 );
 
-	/* If we've been asked to drop caches, flag this as undone.
+	/* Have we been asked to drop caches? We want to throw everything
+	 * away.
+	 *
+	 * If not, try to reuse the current buffer.
 	 */
 	if( reg->invalid ) {
+		im_region_reset( reg );
+		if( !(reg->buffer = im_buffer_ref( im, &clipped )) ) 
+			return( -1 );
 		im_buffer_undone( reg->buffer );
-		reg->invalid = FALSE;
+	}
+	else {
+		/* Don't call im_region_reset() ... we combine buffer unref 
+		 * and new buffer ref in one call to reduce malloc/free 
+		 * cycling.
+		 */
+		IM_FREEF( im_window_unref, reg->window );
+		if( !(reg->buffer = 
+			im_buffer_unref_ref( reg->buffer, im, &clipped )) ) 
+			return( -1 );
 	}
 
 	/* Init new stuff.

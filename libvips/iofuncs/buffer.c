@@ -292,8 +292,8 @@ im_buffer_unref( im_buffer_t *buffer )
 
 /* Make a new buffer.
  */
-static im_buffer_t *
-buffer_new( IMAGE *im, Rect *area )
+im_buffer_t *
+im_buffer_new( IMAGE *im, Rect *area )
 {
 	im_buffer_t *buffer;
 
@@ -313,7 +313,7 @@ buffer_new( IMAGE *im, Rect *area )
 	}
 
 #ifdef DEBUG
-	printf( "** buffer_new: left = %d, top = %d, "
+	printf( "** im_buffer_new: left = %d, top = %d, "
 		"width = %d, height = %d (%p)\n",
 		buffer->area.left, buffer->area.top, 
 		buffer->area.width, buffer->area.height, 
@@ -413,7 +413,7 @@ im_buffer_ref( IMAGE *im, Rect *area )
 	if( !(buffer = buffer_find( im, area )) ) 
 		/* No existing buffer ... make a new one.
 		 */
-		if( !(buffer = buffer_new( im, area )) ) 
+		if( !(buffer = im_buffer_new( im, area )) ) 
 			return( NULL );
 
 	return( buffer );
@@ -456,7 +456,7 @@ im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, Rect *area )
 	/* Fallback ... unref the old one, make a new one.
 	 */
 	IM_FREEF( im_buffer_unref, old_buffer );
-	if( !(buffer = buffer_new( im, area )) ) 
+	if( !(buffer = im_buffer_new( im, area )) ) 
 		return( NULL );
 
 	return( buffer );

@@ -127,6 +127,7 @@ typedef struct im__buffer_t {
 void im_buffer_done( im_buffer_t *buffer );
 void im_buffer_undone( im_buffer_t *buffer );
 void im_buffer_unref( im_buffer_t *buffer );
+im_buffer_t *im_buffer_new( struct _VipsImage *im, Rect *area );
 im_buffer_t *im_buffer_ref( struct _VipsImage *im, Rect *area );
 im_buffer_t *im_buffer_unref_ref( im_buffer_t *buffer, 
 	struct _VipsImage *im, Rect *area );
