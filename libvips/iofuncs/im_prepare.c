@@ -502,5 +502,4 @@ im_invalidate( IMAGE *im )
 	im_invalidate_trigger( to_be_invalidated );
 
 	g_slist_free( to_be_invalidated );
-
 }
