@@ -15,6 +15,8 @@
  * 	  work function
  * 22/10/09
  * 	- gtkdoc
+ * 14/3/10
+ * 	- scale nlines with nthr for smalltile
  */
 
 /*
@@ -588,7 +590,11 @@ im_threadgroup_create( IMAGE *im )
 	case IM_SMALLTILE:
 		tg->pw = im__tile_width;
 		tg->ph = im__tile_height;
-		tg->nlines = tg->ph;
+
+		/* Enough lines of tiles that we can expect to be able to keep
+		 * nthr busy.
+		 */
+		tg->nlines = tg->ph * (1 + tg->nthr / (tg->im->Xsize / tg->pw));
 		break;
 
 	case IM_FATSTRIP:

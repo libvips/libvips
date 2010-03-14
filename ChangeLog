@@ -30,6 +30,8 @@
 - set VIPS_ICC_DIR in configure
 - ICC profiles are looked for in VIPS_ICC_DIR as a fallback
 - im_render() mask image generation no longer triggers image calc
+- threadgroups scale output buffers with number of threads for smalltile ...
+  improves SMP scaling for narrow images on many-way machines
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats

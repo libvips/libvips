@@ -460,9 +460,8 @@ im_region_buffer( REGION *reg, Rect *r )
 	 */
 	if( reg->invalid ) {
 		im_region_reset( reg );
-		if( !(reg->buffer = im_buffer_ref( im, &clipped )) ) 
+		if( !(reg->buffer = im_buffer_new( im, &clipped )) ) 
 			return( -1 );
-		im_buffer_undone( reg->buffer );
 	}
 	else {
 		/* Don't call im_region_reset() ... we combine buffer unref 

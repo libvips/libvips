@@ -1,3 +1,9 @@
+- try
+
+	vips im_rot90 babe.jpg test2.v
+
+  wtf, thinstrip output o.O
+
 - doing im_create_fmask() and friends
 
 - how about im_invalidate_area()? we currently repaint the whole window on
