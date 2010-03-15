@@ -1032,30 +1032,6 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Paint the state of the 'painted' flag for a tile. 
- */
-static void
-tile_paint_mask( Tile *tile, REGION *to )
-{
-	int mask = tile->state == TILE_PAINTED ? 255 : 0;
-
-	Rect ovlap;
-	int y;
-	int len;
-
-	/* Find common pixels.
-	 */
-	im_rect_intersectrect( &tile->area, &to->valid, &ovlap );
-	g_assert( !im_rect_isempty( &ovlap ) );
-	len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
-
-	for( y = ovlap.top; y < IM_RECT_BOTTOM( &ovlap ); y++ ) {
-		PEL *q = (PEL *) IM_REGION_ADDR( to, ovlap.left, y );
-
-		memset( q, mask, len );
-	}
-}
-
 /* The mask image is 255 / 0 for the state of painted for each tile.
  */
 static int
@@ -1081,14 +1057,16 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 		for( x = xs; x < IM_RECT_RIGHT( r ); x += render->width ) {
 			Rect area;
 			Tile *tile;
+			int value;
 
 			area.left = x;
 			area.top = y;
 			area.width = render->width;
 			area.height = render->height;
 
-			if( (tile = render_tile_lookup( render, &area )) )
-				tile_paint_mask( tile, out );
+			tile = render_tile_lookup( render, &area );
+			value = (tile && tile->state == TILE_PAINTED) ? 255 : 0;
+			im_region_paint( out, &area, value );
 		}
 
 	g_mutex_unlock( render->read_lock );
