@@ -32,6 +32,8 @@
 - im_render() mask image generation no longer triggers image calc
 - threadgroups scale output buffers with number of threads for smalltile ...
   improves SMP scaling for narrow images on many-way machines
+- default to max number of processors (--vips-concurrency and IM_CONCURRENCY
+  set >0 can override) on linux and win32
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats

@@ -146,17 +146,32 @@ im_concurrency_get( void )
 {
 	const char *str;
 	int nthr;
+	int x;
 
 	/* Tell the threads system how much concurrency we expect.
 	 */
 	if( im__concurrency > 0 )
 		nthr = im__concurrency;
-	else if( (str = g_getenv( IM_CONCURRENCY )) ) 
-		nthr = atoi( str );
-	else
-		/* Stick to minimum.
-		 */
+	else if( (str = g_getenv( IM_CONCURRENCY )) && 
+		(x = atoi( str )) > 0 )
+		nthr = x;
+	else {
 		nthr = 1;
+#ifdef HAVE_SYSCONF
+{
+		x = sysconf( _SC_NPROCESSORS_ONLN );
+		if( x > 0 )
+			nthr = x;
+}
+#endif /*HAVE_SYSCONF*/
+#ifdef OS_WIN32
+		SYSTEM_INFO si;
+
+		GetSystemInfo( &si );
+
+		nthr = si.dwNumberOfProcessors;
+#endif /*OS_WIN32*/
+	}
 
 	if( nthr < 1 || nthr > IM_MAX_THREADS ) {
 		nthr = IM_CLIP( 1, nthr, IM_MAX_THREADS );
@@ -164,6 +179,10 @@ im_concurrency_get( void )
 		im_warn( "im_concurrency_get", 
 			_( "threads clipped to %d" ), nthr );
 	}
+
+	/* Save for next time around.
+	 */
+	im_concurrency_set( nthr );
 
 	/* 
 
