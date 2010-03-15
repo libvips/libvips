@@ -594,7 +594,8 @@ im_threadgroup_create( IMAGE *im )
 		/* Enough lines of tiles that we can expect to be able to keep
 		 * nthr busy.
 		 */
-		tg->nlines = tg->ph * (1 + tg->nthr / (tg->im->Xsize / tg->pw));
+		tg->nlines = tg->ph * (1 + tg->nthr / 
+			IM_MAX( 1, tg->im->Xsize / tg->pw ));
 		break;
 
 	case IM_FATSTRIP:

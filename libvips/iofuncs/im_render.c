@@ -46,6 +46,7 @@
  * 12/3/10
  * 	- drawing the mask image no longer sets those parts of the image
  * 	  rendering, it just queries the cache
+ * 	- better mask painting
  */
 
 /*
