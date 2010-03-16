@@ -17,6 +17,7 @@
  * 	- gtkdoc
  * 14/3/10
  * 	- scale nlines with nthr for smalltile
+ * 	- better nprocs guesser
  */
 
 /*
@@ -138,6 +139,69 @@ im_concurrency_set( int concurrency )
 	im__concurrency = concurrency;
 }
 
+static int
+get_num_processors( void )
+{
+	int nproc;
+
+	nproc = 1;
+
+#ifdef G_OS_UNIX
+
+#if defined(HAVE_UNISTD_H) && defined(_SC_NPROCESSORS_ONLN)
+{
+	/* POSIX style.
+	 */
+	int x;
+
+	x = sysconf( _SC_NPROCESSORS_ONLN );
+	if( x > 0 )
+		nproc = x;
+}
+#elif defined HW_NCPU
+{
+	/* BSD style.
+	 */
+	int x;
+	size_t len = sizeof(x);
+
+	sysctl( (int[2]) {CTL_HW, HW_NCPU}, 2, &x, &len, NULL, 0 );
+	if( x > 0 )
+		nproc = x;
+}
+#endif
+
+	/* libgomp has some very complex code on Linux to count the number of
+	 * processors available to the current process taking pthread affinity
+	 * into account, but we don't attempt that here. Perhaps we should?
+	 */
+
+#endif /*G_OS_UNIX*/
+
+#ifdef OS_WIN32
+{
+	/* Count the CPUs currently available to this process.  
+	 */
+	DWORD_PTR process_cpus;
+	DWORD_PTR system_cpus;
+
+	if( GetProcessAffinityMask( GetCurrentProcess(), 
+		&process_cpus, &system_cpus ) ) {
+		unsigned int count;
+
+		for( count = 0; process_cpus != 0; process_cpus >>= 1 )
+			if( process_cpus & 1 )
+				count++;
+
+		if( count > 0 )
+			nproc = count;
+	}
+}
+#endif /*OS_WIN32*/
+
+	return( nproc );
+}
+
 /* Set (p)thr_concurrency() from IM_CONCURRENCY environment variable. Return 
  * the number of regions we should pass over the image.
  */
@@ -155,23 +219,8 @@ im_concurrency_get( void )
 	else if( (str = g_getenv( IM_CONCURRENCY )) && 
 		(x = atoi( str )) > 0 )
 		nthr = x;
-	else {
-		nthr = 1;
-#ifdef HAVE_SYSCONF
-{
-		x = sysconf( _SC_NPROCESSORS_ONLN );
-		if( x > 0 )
-			nthr = x;
-}
-#endif /*HAVE_SYSCONF*/
-#ifdef OS_WIN32
-		SYSTEM_INFO si;
-
-		GetSystemInfo( &si );
-
-		nthr = si.dwNumberOfProcessors;
-#endif /*OS_WIN32*/
-	}
+	else 
+		nthr = get_num_processors();
 
 	if( nthr < 1 || nthr > IM_MAX_THREADS ) {
 		nthr = IM_CLIP( 1, nthr, IM_MAX_THREADS );
@@ -183,35 +232,6 @@ im_concurrency_get( void )
 	/* Save for next time around.
 	 */
 	im_concurrency_set( nthr );
-
-	/* 
-
-		FIXME .. hmm
-
-#ifdef SOLARIS_THREADS
-	if( thr_setconcurrency( nthr + 1 ) ) {
-		im_error( "im_concurrency_get", _( "unable to set "
-			"concurrency level to %d" ), nthr + 1 );
-		return( -1 );
-	}
-#ifdef DEBUG_IO
-	printf( "im_generate: using thr_setconcurrency(%d)\n", nthr+1 );
-#endif 
-#endif
-
-#ifdef HAVE_PTHREAD
-#ifdef HAVE_PTHREAD_SETCONCURRENCY
-	if( pthread_setconcurrency( nthr + 1 ) ) {
-		im_error( "im_concurrency_get", _( "unable to set "
-			"concurrency level to %d" ), nthr + 1 );
-		return( -1 );
-	}
-#ifdef DEBUG_IO
-	printf( "im_generate: using pthread_setconcurrency(%d)\n", nthr+1 );
-#endif 
-#endif 
-#endif 
-	 */
 
 	return( nthr );
 }

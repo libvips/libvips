@@ -34,6 +34,7 @@
   improves SMP scaling for narrow images on many-way machines
 - default to max number of processors (--vips-concurrency and IM_CONCURRENCY
   set >0 can override) on linux and win32
+- better nprocs guesser
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats
