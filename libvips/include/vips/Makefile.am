@@ -39,6 +39,7 @@ pkginclude_HEADERS = \
 	semaphore.h \
 	struct.h \
 	threadgroup.h \
+	threadpool.h \
 	thread.h \
 	transform.h \
 	util.h \
