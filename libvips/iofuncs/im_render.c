@@ -47,6 +47,9 @@
  * 	- drawing the mask image no longer sets those parts of the image
  * 	  rendering, it just queries the cache
  * 	- better mask painting
+ * 17/3/10
+ * 	- don't use invalidate callbacks after all, just test region->invalid,
+ * 	  much simpler!
  */
 
 /*
@@ -157,13 +160,6 @@ typedef struct {
 
  */
 
-/* Invalidate proxy. The im_invalidate() callback comes here, render can null
- * out the pointer when it's not interested.
- */
-typedef struct _RenderProxy {
-	struct _Render *render;
-} RenderProxy;
-
 /* Per-call state.
  */
 typedef struct _Render {
@@ -184,10 +180,6 @@ typedef struct _Render {
 	int priority;		/* Larger numbers done sooner */
 	notify_fn notify;	/* Tell caller about paints here */
 	void *client;
-
-	/* The invalidate proxy: NULL this out to stop the callback.
-	 */
-	RenderProxy *proxy;
 
 	/* Make readers single thread with this. No point allowing
 	 * multi-thread read.
@@ -267,10 +259,6 @@ render_free( Render *render )
 
 	g_assert( render->ref_count == 0 );
 
-	/* Block the invalidate callback.
-	 */
-	render->proxy->render = NULL;
-
 	render_dirty_remove( render );
 
 	IM_FREEF( im_threadgroup_free, render->tg );
@@ -342,6 +330,8 @@ render_dirty_get( void )
 	render = NULL;
 	if( render_dirty_all ) {
 		render = (Render *) render_dirty_all->data;
+
+		g_assert( render->ref_count == 1 );
 
 		/* Ref the render to make sure it can't die while we're
 		 * working on it.
@@ -498,6 +488,9 @@ render_thread_main( void *client )
 
 			render_dirty_put( render );
 
+			g_assert( render->ref_count == 1 ||
+				render->ref_count == 2 );
+
 			/* _get() does a ref to make sure we keep the render
 			 * alive during processing ... unref before we loop.
 			 * This can kill off the render.
@@ -550,34 +543,6 @@ render_thread_create( void )
 	return( 0 );
 }
 
-#ifdef DEBUG
-static char *
-tile_state_name( TileState state )
-{
-	switch( state ) {
-	case TILE_DIRTY: 		return( "TILE_DIRTY" );
-	case TILE_WORKING: 		return( "TILE_WORKING" );
-	case TILE_PAINTED_FADING: 	return( "TILE_PAINTED_FADING" );
-	case TILE_PAINTED: 		return( "TILE_PAINTED" );
-
-	default:
-		g_assert( FALSE );
-	}
-}
-
-static void *
-tile_print( Tile *tile )
-{
-	printf( "tile: %dx%d, access_ticks = %d, time = %d,\n"
-		"\tstate = %s\n",
-		tile->area.left, tile->area.top,
-		tile->access_ticks, tile->time,
-		tile_state_name( tile->state ) );
-
-	return( NULL );
-}
-#endif /*DEBUG*/
-
 static void *
 tile_test_clean_ticks( Tile *this, Tile **best )
 {
@@ -616,42 +581,6 @@ render_tile_get_painted( Render *render )
 	return( tile );
 }
 
-/* Free all painted tiles. This is triggered on "invalidate".
- */
-static int
-render_invalidate( RenderProxy *proxy )
-{
-	Render *render = proxy->render;
-
-	Tile *tile;
-
-	/* Has render been freed?
-	 */
-	if( !render )
-		return( 0 );
-
-	/* Conceptually we work like region_fill(): we free all painted tiles.
-	 */
-	g_mutex_lock( render->read_lock );
-
-	while( (tile = render_tile_get_painted( render )) ) {
-		render->cache = g_slist_remove( render->cache, tile );
-
-#ifdef DEBUG_REUSE
-		g_mutex_lock( render->dirty_lock );
-		g_assert( !g_slist_find( render->dirty, tile ) );
-		g_mutex_unlock( render->dirty_lock );
-#endif /*DEBUG_REUSE*/
-
-		tile->render->ntiles -= 1;
-		tile_free( tile );
-	}
-
-	g_mutex_unlock( render->read_lock );
-
-	return( 0 );
-}
-
 static Render *
 render_new( IMAGE *in, IMAGE *out, IMAGE *mask, 
 	int width, int height, int max, 
@@ -679,11 +608,6 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	render->notify = notify;
 	render->client = client;
 
-	/* This needs the same lifetime as in, since it's the arg to the
-	 * invalidate callbcak.
-	 */
-	render->proxy = IM_NEW( in, RenderProxy );
-
 	render->read_lock = g_mutex_new();
 
 	render->cache = NULL;
@@ -696,18 +620,11 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	render->tg = NULL;
 	render->render_kill = FALSE;
 
-	if( !render->proxy ||
-		im_add_close_callback( out, 
-			(im_callback_fn) render_unref, render, NULL ) ) {
+	if( im_add_close_callback( out, 
+                (im_callback_fn) render_unref, render, NULL ) ) {
                 (void) render_unref( render );
                 return( NULL );
         }
-
-	render->proxy->render = render;
-
-	if( im_add_invalidate_callback( in, 
-                (im_callback_fn) render_invalidate, render->proxy, NULL ) ) 
-                return( NULL );
 
 	return( render );
 }
@@ -759,8 +676,10 @@ tile_test_area( Tile *tile, Rect *area )
 	return( NULL );
 }
 
-/* Search the cache for a tile, NULL if not there. Could be *much* faster. If
- * we find a tile, bump to front.
+/* Search the cache for a tile, NULL if not there. Could be *much* faster.
+ *
+ * This is always called from the downstream thread, and upstream never adds
+ * or positions tiles, so no need to lock.
  */
 static Tile *
 render_tile_lookup( Render *render, Rect *area )
@@ -900,7 +819,20 @@ render_tile_get( Render *render, Rect *area )
 		printf( "render_tile_get: found %dx%d in cache\n",
 			area->left, area->top );
 #endif /*DEBUG_PAINT*/
-		render_tile_touch( tile );
+
+		/* If the tile is painted but invalid, send it for
+		 * calculation.
+		 *
+		 * Otherwise just touch it to keep it in cache a little
+		 * longer.
+		 */
+		if( tile->state == TILE_PAINTED && 
+			tile->region->invalid ) {
+			tile->state = TILE_WORKING;
+			tile_set_dirty( tile, area );
+		}
+		else
+			render_tile_touch( tile );
 
 		return( tile );
 	}
@@ -943,18 +875,19 @@ tile_copy( Tile *tile, REGION *to )
 {
 	Rect ovlap;
 	int y;
-	int len;
 
 	/* Find common pixels.
 	 */
 	im_rect_intersectrect( &tile->area, &to->valid, &ovlap );
 	g_assert( !im_rect_isempty( &ovlap ) );
-	len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
 
 	/* If the tile is painted, copy over the pixels. Otherwise, fill with
 	 * zero. 
 	 */
-	if( tile->state == TILE_PAINTED ) {
+	if( tile->state == TILE_PAINTED &&
+		!tile->region->invalid ) {
+		int len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
+
 #ifdef DEBUG_PAINT
 		printf( "tile_copy: copying calculated pixels for %dx%d\n",
 			tile->area.left, tile->area.top ); 
@@ -973,14 +906,7 @@ tile_copy( Tile *tile, REGION *to )
 		printf( "tile_copy: zero filling for %dx%d\n",
 			tile->area.left, tile->area.top ); 
 #endif /*DEBUG_PAINT*/
-
-		for( y = ovlap.top; 
-			y < IM_RECT_BOTTOM( &ovlap ); y++ ) {
-			PEL *q = (PEL *) 
-				IM_REGION_ADDR( to, ovlap.left, y );
-
-			memset( q, 0, len );
-		}
+		im_region_paint( to, &ovlap, 0 );
 	}
 }
 
@@ -1058,7 +984,6 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 		for( x = xs; x < IM_RECT_RIGHT( r ); x += render->width ) {
 			Rect area;
 			Tile *tile;
-			int value;
 
 			area.left = x;
 			area.top = y;
@@ -1066,8 +991,13 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 			area.height = render->height;
 
 			tile = render_tile_lookup( render, &area );
-			value = (tile && tile->state == TILE_PAINTED) ? 255 : 0;
-			im_region_paint( out, &area, value );
+
+			/* Only mark painted tiles containing valid pixels.
+			 */
+			im_region_paint( out, &area, 
+				(tile && 
+				tile->state == TILE_PAINTED &&
+				!tile->region->invalid) ? 255 : 0 );
 		}
 
 	g_mutex_unlock( render->read_lock );
