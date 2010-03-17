@@ -1,9 +1,39 @@
+- try a distributed worker model for image generation
+
+  at the moment threadpools have an idle list and a manager ... in fact, what
+  will generally happen during a run is;
+
+  	* idle list is empty 99% of the time ...
+	* a worker finishes, locks the idle list, adds itself, signals 
+	  on the 'idle' semaphone that someone is waiting, and then waits
+	  itself in 'go'
+	* manager wakes up, locks the idle list, gets the worker, assigns
+	  a task, signals on 'go' and sleeps again on 'idle'
+	* worker wakes up and starts processing again on the new task
+
+  we can make this a lot simpler if we allow workers to assign themselves
+  tasks, something like
+
+  	* worker finishes a tile
+	* worker locks the assign-task mutex, runs a function to set new
+	  parameters, and unlocks
+	* the task can be 'generate a tile' or 'job done, you can quit', or
+	  'there has been an error, abort' or anything really
+	* worker starts on the next thing
+
+  then we need some simple stuff so that the background write thread knows
+  when a buffer is complete: the task-allocate function needs to cooperate
+  with the background writer, not too hard
+
+  so threadpool needs to have a set of threads and a mutex and ... erm that's
+  it, perhaps there's some common stuff we could put in there, quit? error
+  handling?
+
+  make a new thing, junk threadgroup
+
+  VipsThreadPool?
+
 - doing im_create_fmask() and friends
-
-- how about im_invalidate_area()? we currently repaint the whole window on
-  every paint action in nip2 :-(
-
-  we'd need to have coordinate transforms broken out for this :-( 
 
 - try writing docs for vipsthumbnail with gtkdoc? then try header etc.
 
