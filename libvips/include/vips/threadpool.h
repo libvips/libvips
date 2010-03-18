@@ -48,15 +48,16 @@ typedef struct {
 	/* All private.
 	 */
 	/*< private >*/
+	struct _VipsTreadpool *pool; /* Pool we are part of */
+
 	REGION *reg;		/* Region this thread operates on */
-	struct _VipsTreadPool *pool; /* Pool we are part of */
 
         GThread *thread;  	/* Thread for this region */
-        im_semaphore_t go;   	/* Thread waits here to start work */
-	int kill;		/* Set this to make thread exit */
-	int error;		/* Set by thread if work fn fails */
+	gboolean kill;		/* Set this to make thread kill itself */
+	gboolean stop;		/* Set this to make thread stop work */
+	gboolean error;		/* Set by thread if work fn fails */
 
-	REGION *oreg;		/* If part of an inplace threadgroup, */
+	REGION *oreg;		/* If part of an inplace pool, */
 	Rect pos;		/* Where this thread should write */
 	int x, y;		/* Its result */
 
@@ -71,17 +72,17 @@ typedef struct {
 /* A work function. This does a unit of work (eg. processing a tile or
  * whatever).
  */
-typedef int (*VipsThreadPoolWork)( VipsThread *thr,
+typedef int (*VipsThreadpoolWork)( VipsThread *thr,
 	REGION *, void *, void *, void * );
 
 /* A work allocate function. This is run single-threaded by a worker to
- * set up a new work unit.
+ * set up a new work unit. Return TRUE if computation is all done.
  */
-typedef void (*VipsThreadPoolAllocate)( VipsThread *thr );
+typedef gboolean (*VipsThreadpoolAllocate)( VipsThread *thr );
 
 /* What we track for a group of threads working together.
  */
-typedef struct _VipsThreadPool {
+typedef struct _VipsThreadpool {
 	/* All private.
 	 */
 	/*< private >*/
@@ -92,26 +93,32 @@ typedef struct _VipsThreadPool {
 	/* Do a unit of work (runs in parallel) and allocate a unit of work
 	 * (serial). Plus the mutex we use to serialize work allocation.
 	 */
-	VipsThreadPoolWork work;
 	VipsThreadPoolAllocate allocate;
+	VipsThreadPoolWork work;
 	GMutex *allocate_lock;
 
-	int nthr;		/* Number of threads in group */
-	im_thread_t **thr;	/* Threads */
+	int nthr;		/* Number of threads in pool */
+	VipsThread **thr;	/* Threads */
 
-	/* The caller blocks here until the last worker is done.
+	/* The caller blocks here until all threads finish.
 	 */
-	im_semaphore_t *main;	
+	im_semaphore_t finish;	
 
-	int kill;		/* Set this to stop threadgroup early */
-	int progress;		/* Set this to get eval progress feedback */
-} VipsThreadPool;
+	gboolean kill;		/* Set to stop eval early */
+	gboolean stop;		/* Set on normal end of computation */
+	gboolean progress;	/* Set this to get eval progress feedback */
+
+	/* Set this if the pool has been shut down. We sometimes need to allow
+	 * double-frees.
+	 */
+	gboolean zombie;
+} VipsThreadpool;
 
 /* Thread pool functions.
  */
-VipsThreadPool *vips_thread_pool_new( IMAGE *im );
-int vips_thread_pool_free( VipsThreadPool *pool );
-void vips_thread_pool_run( VipsThreadPool *pool );
+VipsThreadpool *vips_threadpool_new( IMAGE *im );
+int vips_threadpool_free( VipsThreadpool *pool );
+void vips_threadpool_run( VipsThreadpool *pool );
 
 #ifdef __cplusplus
 }
