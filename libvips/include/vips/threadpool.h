@@ -48,7 +48,7 @@ typedef struct {
 	/* All private.
 	 */
 	/*< private >*/
-	struct _VipsTreadpool *pool; /* Pool we are part of */
+	struct _VipsThreadpool *pool; /* Pool we are part of */
 
 	REGION *reg;		/* Region this thread operates on */
 
@@ -64,7 +64,7 @@ typedef struct {
         void *a, *b, *c; 	/* User arguments to work fns */
 
 #ifdef TIME_THREAD
-	hrtime_t *btime, *etime;
+	double *btime, *etime;
 	int tpos;
 #endif /*TIME_THREAD*/
 } VipsThread;
@@ -93,9 +93,10 @@ typedef struct _VipsThreadpool {
 	/* Do a unit of work (runs in parallel) and allocate a unit of work
 	 * (serial). Plus the mutex we use to serialize work allocation.
 	 */
-	VipsThreadPoolAllocate allocate;
-	VipsThreadPoolWork work;
+	VipsThreadpoolAllocate allocate;
+	VipsThreadpoolWork work;
 	GMutex *allocate_lock;
+        void *a, *b, *c; 	/* User arguments to work / allocate */
 
 	int nthr;		/* Number of threads in pool */
 	VipsThread **thr;	/* Threads */
@@ -114,11 +115,9 @@ typedef struct _VipsThreadpool {
 	gboolean zombie;
 } VipsThreadpool;
 
-/* Thread pool functions.
- */
-VipsThreadpool *vips_threadpool_new( IMAGE *im );
-int vips_threadpool_free( VipsThreadpool *pool );
-void vips_threadpool_run( VipsThreadpool *pool );
+int vips_threadpool_run( VipsImage *im, 
+	VipsThreadpoolAllocate allocate, VipsThreadpoolWork work,
+	void *a, void *b, void *c );
 
 #ifdef __cplusplus
 }

@@ -39,6 +39,7 @@ libiofuncs_la_SOURCES = \
 	rect.c \
 	semaphore.c \
 	threadgroup.c \
+	threadpool.c \
 	util.c \
 	im_init_world.c \
 	buf.c \

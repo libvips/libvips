@@ -60,7 +60,7 @@ typedef struct {
         void *a, *b, *c; 	/* User arguments to work fns */
 
 #ifdef TIME_THREAD
-	hrtime_t *btime, *etime;
+	double *btime, *etime;
 	int tpos;
 #endif /*TIME_THREAD*/
 } im_thread_t;
