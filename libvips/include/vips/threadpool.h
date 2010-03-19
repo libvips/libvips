@@ -72,13 +72,14 @@ typedef struct {
 /* A work function. This does a unit of work (eg. processing a tile or
  * whatever).
  */
-typedef int (*VipsThreadpoolWork)( VipsThread *thr,
-	REGION *, void *, void *, void * );
+typedef int (*VipsThreadpoolWork)( VipsThread *thr, REGION *reg, 
+	void *a, void *b, void *c );
 
 /* A work allocate function. This is run single-threaded by a worker to
- * set up a new work unit. Return TRUE if computation is all done.
+ * set up a new work unit. 
  */
-typedef gboolean (*VipsThreadpoolAllocate)( VipsThread *thr );
+typedef int (*VipsThreadpoolAllocate)( VipsThread *thr,
+	void *a, void *b, void *c );
 
 /* What we track for a group of threads working together.
  */
@@ -86,9 +87,7 @@ typedef struct _VipsThreadpool {
 	/* All private.
 	 */
 	/*< private >*/
-	IMAGE *im;		/* Image we are calculating */
-	int pw, ph;		/* Tile size */
-	int nlines;		/* Scanlines-at-once we prefer for iteration */
+	VipsImage *im;		/* Image we are calculating */
 
 	/* Do a unit of work (runs in parallel) and allocate a unit of work
 	 * (serial). Plus the mutex we use to serialize work allocation.
@@ -118,6 +117,8 @@ typedef struct _VipsThreadpool {
 int vips_threadpool_run( VipsImage *im, 
 	VipsThreadpoolAllocate allocate, VipsThreadpoolWork work,
 	void *a, void *b, void *c );
+void vips_get_tile_size( VipsImage *im, 
+	int *tile_width, int *tile_height, int *nlines );
 
 #ifdef __cplusplus
 }

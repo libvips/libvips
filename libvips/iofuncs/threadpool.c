@@ -173,7 +173,8 @@ thread_main_loop( void *a )
 		if( !pool->stop ) {
 			gboolean morework;
 
-			morework = pool->allocate( thr );
+			morework = pool->allocate( thr, 
+				pool->a, pool->b, pool->c );
 			if( !morework ) 
 				pool->stop = TRUE;
 		}
@@ -356,45 +357,13 @@ vips_threadpool_new( VipsImage *im )
 	pool->allocate = NULL;
 	pool->work = NULL;
 	pool->allocate_lock = g_mutex_new();
-	if( (pool->nthr = im_concurrency_get()) < 0 )
-		return( NULL );
+	pool->nthr = im_concurrency_get();
 	pool->thr = NULL;
 	im_semaphore_init( &pool->finish, 0, "finish" );
 	pool->kill = FALSE;
 	pool->stop = FALSE;
 	pool->progress = FALSE;
 	pool->zombie = FALSE;
-
-	/* Pick a render geometry.
-	 */
-	switch( pool->im->dhint ) {
-	case IM_SMALLTILE:
-		pool->pw = im__tile_width;
-		pool->ph = im__tile_height;
-
-		/* Enough lines of tiles that we can expect to be able to keep
-		 * nthr busy.
-		 */
-		pool->nlines = pool->ph * (1 + pool->nthr / 
-			IM_MAX( 1, pool->im->Xsize / pool->pw ));
-		break;
-
-	case IM_FATSTRIP:
-		pool->pw = pool->im->Xsize;
-		pool->ph = im__fatstrip_height;
-		pool->nlines = pool->ph * pool->nthr * 2;
-		break;
-
-	case IM_ANY:
-	case IM_THINSTRIP:
-		pool->pw = pool->im->Xsize;
-		pool->ph = im__thinstrip_height;
-		pool->nlines = pool->ph * pool->nthr * 2;
-		break;
-
-	default:
-		g_assert( 0 );
-	}
 
 	/* Attach tidy-up callback.
 	 */
@@ -403,11 +372,6 @@ vips_threadpool_new( VipsImage *im )
 		(void) vips_threadpool_free( pool );
 		return( NULL );
 	}
-
-#ifdef DEBUG_IO
-	printf( "vips_threadpool_new: %d by %d patches, "
-		"groups of %d scanlines\n", pool->pw, pool->ph, pool->nlines );
-#endif /*DEBUG_IO*/
 
 #ifdef DEBUG_IO
 	printf( "vips_threadpool_new: \"%s\" (%p), with %d threads\n", 
@@ -513,5 +477,51 @@ vips_threadpool_run( VipsImage *im,
 	vips_threadpool_free( pool );
 
 	return( result );
+}
+
+/* Pick a tile size and buffer size.
+ */
+void
+vips_get_tile_size( VipsImage *im, 
+	int *tile_width, int *tile_height, int *nlines )
+{
+	const int nthr = im_get_concurrency();
+
+	/* Pick a render geometry.
+	 */
+	switch( pool->im->dhint ) {
+	case IM_SMALLTILE:
+		*tile_width = im__tile_width;
+		*tile_height = im__tile_height;
+
+		/* Enough lines of tiles that we can expect to be able to keep
+		 * nthr busy.
+		 */
+		*nlines = *tile_height * 
+			(1 + nthr / IM_MAX( 1, im->Xsize / *tile_width ));
+		break;
+
+	case IM_FATSTRIP:
+		*tile_width = im->Xsize;
+		*tile_height = im__fatstrip_height;
+		*nlines = *tile_height * nthr * 2;
+		break;
+
+	case IM_ANY:
+	case IM_THINSTRIP:
+		*tile_width = im->Xsize;
+		*tile_height = im__thinstrip_height;
+		*nlines = *tile_height * nthr * 2;
+		break;
+
+	default:
+		g_assert( 0 );
+	}
+
+#ifdef DEBUG_IO
+	printf( "vips_get_tile_size: %d by %d patches, "
+		"groups of %d scanlines\n", 
+		*tile_width, *tile_height, *nlines );
+#endif /*DEBUG_IO*/
 }
 
