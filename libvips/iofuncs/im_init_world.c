@@ -268,6 +268,8 @@ static GOptionEntry option_entries[] = {
 		N_( "set fatstrip height to N (DEBUG)" ), "N" },
 	{ "vips-progress", 'p', 0, G_OPTION_ARG_NONE, &im__progress, 
 		N_( "show progress feedback" ), NULL },
+	{ "vips-wbuffer2", 'd', 0, G_OPTION_ARG_NONE, &im__wbuffer2, 
+		N_( "use distributed work allocation" ), NULL },
 	{ NULL }
 };
 

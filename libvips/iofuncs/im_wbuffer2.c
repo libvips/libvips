@@ -32,8 +32,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -73,9 +73,6 @@ typedef struct _WriteBuffer {
         int write_errno;	/* Save write errors here */
 	GThread *thread;	/* BG writer thread */
 	gboolean kill;		/* Set to ask thread to exit */
-	im_wbuffer_fn write_fn;	/* BG write with this */
-	void *a;		/* Client data */
-	void *b;
 } WriteBuffer;
 
 /* Per-call state.
@@ -99,7 +96,17 @@ typedef struct _Write {
 	int tile_width;
 	int tile_height;
 	int nlines;
+
+	/* The file format write operation.
+	 */
+	im_wbuffer_fn write_fn;	
+	void *a;		
+	void *b;
 } Write;
+
+/* Enable im_wbuffer2 ... set from the cmd line, tested by our users.
+ */
+int im__wbuffer2 = 0;
 
 static void
 wbuffer_free( WriteBuffer *wbuffer )
@@ -113,9 +120,9 @@ wbuffer_free( WriteBuffer *wbuffer )
 		/* Return value is always NULL (see wbuffer_write_thread).
 		 */
 		(void) g_thread_join( wbuffer->thread );
-#ifdef DEBUG_CREATE
+#ifdef DEBUG
 		printf( "wbuffer_free: g_thread_join()\n" );
-#endif /*DEBUG_CREATE*/
+#endif /*DEBUG*/
 
 		wbuffer->thread = NULL;
         }
@@ -130,13 +137,18 @@ wbuffer_free( WriteBuffer *wbuffer )
 static void
 wbuffer_write( WriteBuffer *wbuffer )
 {
-	wbuffer->write_errno = wbuffer->write_fn( wbuffer->region, 
-		&wbuffer->area, wbuffer->a, wbuffer->b );
+	Write *write = wbuffer->write;
 
 #ifdef DEBUG
-	printf( "wbuffer_write: %d bytes from wbuffer %p\n", 
-		wbuffer->region->bpl * wbuffer->area.height, wbuffer );
+	static int n = 1;
+
+	printf( "wbuffer_write: %d, %d bytes from wbuffer %p\n", 
+		n++, wbuffer->region->bpl * wbuffer->area.height, wbuffer );
 #endif /*DEBUG*/
+
+	wbuffer->write_errno = write->write_fn( wbuffer->region, 
+		&wbuffer->area, write->a, write->b );
+
 }
 
 #ifdef HAVE_THREADS
@@ -148,12 +160,14 @@ wbuffer_write_thread( void *data )
 	WriteBuffer *wbuffer = (WriteBuffer *) data;
 
 	for(;;) {
+		/* Wait to be told to write.
+		 */
 		im_semaphore_down( &wbuffer->go );
 
 		if( wbuffer->kill )
 			break;
 
-		/* Wait for all writer threads to leave this wbuffer.
+		/* Now block until the last worker finishes on this buffer.
 		 */
 		im_semaphore_downn( &wbuffer->nwrite, 0 );
 
@@ -169,7 +183,7 @@ wbuffer_write_thread( void *data )
 #endif /*HAVE_THREADS*/
 
 static WriteBuffer *
-wbuffer_new( Write *write, im_wbuffer_fn write_fn, void *a, void *b )
+wbuffer_new( Write *write )
 {
 	WriteBuffer *wbuffer;
 
@@ -183,14 +197,15 @@ wbuffer_new( Write *write, im_wbuffer_fn write_fn, void *a, void *b )
 	wbuffer->write_errno = 0;
 	wbuffer->thread = NULL;
 	wbuffer->kill = FALSE;
-	wbuffer->write_fn = write_fn;
-	wbuffer->a = a;
-	wbuffer->b = b;
 
 	if( !(wbuffer->region = im_region_create( write->im )) ) {
 		wbuffer_free( wbuffer );
 		return( NULL );
 	}
+
+	/* The worker threads need to be able to move the buffers around.
+	 */
+	im__region_no_ownership( wbuffer->region );
 
 #ifdef HAVE_THREADS
 	/* Make this last (picks up parts of wbuffer on startup).
@@ -206,21 +221,49 @@ wbuffer_new( Write *write, im_wbuffer_fn write_fn, void *a, void *b )
 	return( wbuffer );
 }
 
-/* Our VipsThreadpoolWork function ... generate a tile and tell the wbuffer 
- * write thread that we're done.
+/* Write and swap buffers.
  */
 static int
-wbuffer_work_fn( VipsThread *thr, 
-	REGION *reg, void *a, void *b, void *c )
+wbuffer_flush( Write *write )
 {
-	WriteBuffer *wbuffer = (WriteBuffer *) a;
-	Write *write = wbuffer->write;
+	WriteBuffer *t;
 
-	if( im_prepare_to( reg, wbuffer->reg, 
-		&thr->pos, thr->pos.left, thr->pos.top ) )
-		return( -1 );
+#ifdef DEBUG
+	static int n = 1;
 
-	im_semaphore_up( &wbuffer->nwrite );
+	printf( "wbuffer_flush: %d\n", n++ );
+#endif /*DEBUG*/
+
+	/* Block until the other buffer has been written. We have to do this 
+	 * before we can set this buffer writing or we'll lose output ordering.
+	 */
+	if( write->buf->area.top > 0 ) {
+		im_semaphore_down( &write->buf_back->done );
+
+		/* Previous write suceeded?
+		 */
+		if( write->buf_back->write_errno ) {
+			im_error_system( write->buf_back->write_errno,
+				"wbuffer_write", "%s", _( "write failed" ) );
+			return( -1 ); 
+		}
+	}
+
+	/* Set the background writer going for this buffer.
+	 */
+#ifdef HAVE_THREADS
+	im_semaphore_up( &write->buf->go );
+#else
+	/* No threads? Write ourselves synchronously.
+	 */
+	wbuffer_write( write->buf );
+#endif /*HAVE_THREADS*/
+
+	/* Swap buffers.
+	 */
+	t = write->buf; 
+	write->buf = write->buf_back; 
+	write->buf_back = t;
 
 	return( 0 );
 }
@@ -231,6 +274,7 @@ static int
 wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 {
 	Rect image, area;
+	int result;
 
 	image.left = 0;
 	image.top = 0;
@@ -243,14 +287,20 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 	area.height = height;
 
 	im_rect_intersectrect( &area, &image, &wbuffer->area );
-	if( im_region_buffer( wbuffer->region, &wbuffer->area ) )
-		return( -1 );
+
+	/* The workers take turns to move the buffers.
+	 */
+	im__region_take_ownership( wbuffer->region );
+
+	result = im_region_buffer( wbuffer->region, &wbuffer->area );
+
+	im__region_no_ownership( wbuffer->region );
 
 	/* This should be an exclusive buffer, hopefully.
 	 */
 	g_assert( !wbuffer->region->buffer->done );
 
-	return( 0 );
+	return( result );
 }
 
 /* Our VipsThreadpoolAllocate function ... move the thread to the next tile
@@ -259,65 +309,48 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
  * iteration.
  */
 static gboolean
-wbuffer_allocate_fn( VipsThread *thr, void *a, void *b, void *c )
+wbuffer_allocate_fn( VipsThread *thr, 
+	void *a, void *b, void *c, gboolean *stop )
 {
-	WriteBuffer *wbuffer = (WriteBuffer *) a;
-	Write *write = wbuffer->write;
+	Write *write = (Write *) a;
 
 	Rect image;
 	Rect tile;
 
-	/* Is the current x/y position OK? New line or maybe new buffer or
-	 * maybe all done.
+#ifdef DEBUG
+	printf( "wbuffer_allocate_fn\n" );
+#endif /*DEBUG*/
+
+	/* Is the state x/y OK? New line or maybe new buffer or maybe even 
+	 * all done.
 	 */
-	if( write->x > write->buf->area.width ) {
+	if( write->x >= write->buf->area.width ) {
 		write->x = 0;
 		write->y += write->tile_height;
 
-		if( write->y > IM_RECT_BOTTOM( &write->buf->area ) ) {
-			/* Buffer full. Block until the other buffer has been
-			 * written.
+		if( write->y >= IM_RECT_BOTTOM( &write->buf->area ) ) {
+			/* Write and swap buffers.
 			 */
-			if( write->buf->area.top > 0 ) {
-				im_semaphore_down( &write->buf_back->done );
-
-				/* Previous write suceeded?
-				 */
-				if( write->buf_back->write_errno ) {
-					thr->err = write->buf_back->write_errno;
-					return( -1 ); 
-				}
-			}
-
-			/* Start writing this buffer.
-			 */
-			im_semaphore_up( &write->buf->go );
-
-			/* Swap buffers.
-			 */
-			{
-				WriteBuffer *t;
-
-				t = write->buf; 
-				write->buf = write->buf_back; 
-				write->buf_back = t;
-			}
+			if( wbuffer_flush( write ) )
+				return( -1 );
 
 			/* End of image?
 			 */
-			if( write->buf_back->area.top + write->nlines >
-				write->im->Ysize )
-				return( -1 );
+			if( write->y >= write->im->Ysize ) {
+				*stop = TRUE;
+				return( 0 );
+			}
 
-			/* Position buf below buf_back.
+			/* Position buf at the new y.
 			 */
 			if( wbuffer_position( write->buf, 
-				write->buf_back->area.top + write->nlines,
-				write->nlines ) )
+				write->y, write->nlines ) )
 				return( -1 );
 		}
 	}
 
+	/* x, y and buf are good: save params for thread.
+	 */
 	image.left = 0;
 	image.top = 0;
 	image.width = write->im->Xsize;
@@ -327,209 +360,90 @@ wbuffer_allocate_fn( VipsThread *thr, void *a, void *b, void *c )
 	tile.width = write->tile_width;
 	tile.height = write->tile_height;
 	im_rect_intersectrect( &image, &tile, &thr->pos );
+	thr->a = write->buf;
 
+	/* Add to the number of writers on the buffer.
+	 */
+	im_semaphore_upn( &write->buf->nwrite, -1 );
+
+	/* Move state on.
+	 */
 	write->x += write->tile_width;
 
 	return( 0 );
 }
 
-/* Loop over a wbuffer filling it threadily.
+/* Our VipsThreadpoolWork function ... generate a tile!
  */
 static int
-wbuffer_fill( WriteBuffer *wbuffer )
+wbuffer_work_fn( VipsThread *thr, 
+	REGION *reg, void *a, void *b, void *c )
 {
-	Rect *area = &wbuffer->area;
-	im_threadgroup_t *tg = wbuffer->tg;
-	IMAGE *im = tg->im;
-	Rect image;
-
-	int x, y;
+	WriteBuffer *wbuffer = (WriteBuffer *) thr->a;
 
 #ifdef DEBUG
-        printf( "wbuffer_fill: starting for wbuffer %p at line %d\n", 
-		wbuffer, area->top ); 
+	printf( "wbuffer_work_fn\n" );
 #endif /*DEBUG*/
 
-	image.left = 0;
-	image.top = 0;
-	image.width = im->Xsize;
-	image.height = im->Ysize;
+	if( im_prepare_to( reg, wbuffer->region, 
+		&thr->pos, thr->pos.left, thr->pos.top ) )
+		return( -1 );
 
-	/* Loop over area, sparking threads for all sub-parts in turn.
+	/* Tell the bg write thread we've left.
 	 */
-	for( y = area->top; y < IM_RECT_BOTTOM( area ); y += tg->ph )
-		for( x = area->left; x < IM_RECT_RIGHT( area ); x += tg->pw ) {
-			im_thread_t *thr;
-			Rect pos;
-			Rect clipped;
-
-			/* thrs appear on idle when the child thread does
-			 * threadgroup_idle_add and hits the 'go' semaphore.
-			 */
-                        thr = im_threadgroup_get( tg );
-
-			/* Set the position we want to generate with this
-			 * thread. Clip against the size of the image and the
-			 * space available in or.
-			 */
-			pos.left = x;
-			pos.top = y;
-			pos.width = tg->pw;
-			pos.height = tg->ph;
-			im_rect_intersectrect( &pos, &image, &clipped );
-			im_rect_intersectrect( &clipped, area, &clipped );
-
-			/* Note params.
-			 */
-			thr->oreg = wbuffer->region; 
-			thr->pos = clipped; 
-			thr->x = clipped.left;
-			thr->y = clipped.top;
-			thr->a = wbuffer;
-
-#ifdef DEBUG
-			printf( "wbuffer_fill: starting for tile at %d x %d\n",
-				x, y );
-#endif /*DEBUG*/
-
-			/* Add writer to n of writers on wbuffer, set it going.
-			 */
-			im_semaphore_upn( &wbuffer->nwrite, -1 );
-			im_threadgroup_trigger( thr );
-
-			/* Trigger any eval callbacks on our source image and
-			 * check for errors.
-			 */
-			if( im__handle_eval( tg->im, tg->pw, tg->ph ) ||
-				im_threadgroup_iserror( tg ) ) {
-				/* Don't kill threads yet ... we may want to
-				 * get some error stuff out of them.
-				 */
-				im_threadgroup_wait( tg );
-				return( -1 );
-			}
-		}
+	im_semaphore_upn( &wbuffer->nwrite, 1 );
 
 	return( 0 );
 }
 
-/* Eval to file.
- */
-static int
-wbuffer_eval_to_file( WriteBuffer *b1, WriteBuffer *b2 )
-{
-	im_threadgroup_t *tg = b1->tg;
-	IMAGE *im = tg->im;
-        int y;
-
-	assert( b1->tg == b2->tg );
-
-#ifdef DEBUG
-        int nstrips;
-
-        nstrips = 0;
-        printf( "wbuffer_eval_to_file: partial image output to file\n" );
-#endif /*DEBUG*/
-
-	/* What threads do at the end of each tile ... decrement the nwrite
-	 * semaphore.
-	 */
-	tg->work = wbuffer_work_fn;
-
-        /* Fill to in steps, write each to the output.
-         */
-        for( y = 0; y < im->Ysize; y += tg->nlines ) {
-		/* Attach to this position in image.
-		 */
-		if( wbuffer_position( b1, 0, y, im->Xsize, tg->nlines ) )
-			return( -1 );
-
-		/* Spark off threads to fill with data.
-		 */
-		if( wbuffer_fill( b1 ) )
-			return( -1 );
-
-		/* We have to keep the ordering on wbuffer writes, so we can't
-		 * have more than one background write going at once. Plus we
-		 * want to make sure write()s don't get interleaved. Wait for
-		 * the previous BG write (if any) to finish.
-		 */
-		if( y > 0 ) {
-			im_semaphore_down( &b2->done );
-
-			/* Previous write suceeded?
-			 */
-			if( b2->write_errno ) {
-				im_error_system( b2->write_errno, 
-					"im__eval_to_file", 
-					"%s", _( "write failed" ) );
-				return( -1 ); 
-			}
-		}
-
-		/* b1 write can go.
-		 */
-		im_semaphore_up( &b1->go );
-
-#ifndef HAVE_THREADS
-		/* No threading ... just write.
-		 */
-		wbuffer_write( b1 );
-#endif /*HAVE_THREADS*/
-
-		/* Rotate wbuffers.
-		 */
-		{
-			WriteBuffer *t;
-
-			t = b1; b1 = b2; b2 = t;
-		}
-
-#ifdef DEBUG
-                nstrips++;
-#endif /*DEBUG*/
-        }
-
-	/* Wait for all threads to finish, check for any errors.
-	 */
-	im_threadgroup_wait( tg );
-	im_semaphore_down( &b2->done );
-	if( im_threadgroup_iserror( tg ) ) 
-		return( -1 );
-	if( b1->write_errno || b2->write_errno ) {
-		im_error_system( 
-			b1->write_errno ? b1->write_errno : b2->write_errno,
-			"im__eval_to_file", "%s", _( "write failed" ) );
-		return( -1 ); 
-	}
-
-#ifdef DEBUG
-        printf( "wbuffer_eval_to_file: success! %d strips written\n", nstrips );
-#endif /*DEBUG*/
-
-        return( 0 );
-}
-
 int
-im_wbuffer( im_threadgroup_t *tg, im_wbuffer_fn write_fn, void *a, void *b )
+im_wbuffer2( VipsImage *im, im_wbuffer_fn write_fn, void *a, void *b )
 {
-	WriteBuffer *b1, *b2;
+	Write write;
 	int result;
 
-	if( im__start_eval( tg->im ) )
+	write.im = im;
+	write.buf = wbuffer_new( &write );
+	write.buf_back = wbuffer_new( &write );
+	write.x = 0;
+	write.y = 0;
+	write.write_fn = write_fn;
+	write.a = a;
+	write.b = b;
+
+	vips_get_tile_size( im, 
+		&write.tile_width, &write.tile_height, &write.nlines );
+
+	if( im__start_eval( im ) )
 		return( -1 );
 
 	result = 0;
 
-	b1 = wbuffer_new( tg, write_fn, a, b );
-	b2 = wbuffer_new( tg, write_fn, a, b );
-
-	if( !b1 || !b2 || wbuffer_eval_to_file( b1, b2 ) )  
+	if( !write.buf || 
+		!write.buf_back || 
+		wbuffer_position( write.buf, 0, write.nlines ) ||
+		vips_threadpool_run( im, 
+			wbuffer_allocate_fn, wbuffer_work_fn, 
+			&write, NULL, NULL ) )  
 		result = -1;
 
-	im__end_eval( tg->im );
-	wbuffer_free( b1 );
-	wbuffer_free( b2 );
+	/* We've set all the buffers writing, but not waited for the BG
+	 * writer to finish. This can take a while: it has to wait for the
+	 * last worker to make the last tile.
+	 *
+	 * We can't just free the buffers (which will wait for the bg threads 
+	 * to finish), since the bg thread might see the kill before it gets a 
+	 * chance to write.
+	 */
+	if( write.buf->area.top > 0 )
+		im_semaphore_down( &write.buf_back->done );
+
+	im__end_eval( im );
+
+	/* Free buffers ... this will wait for the final write to finish too.
+	 */
+	wbuffer_free( write.buf );
+	wbuffer_free( write.buf_back );
 
 	return( result );
 }

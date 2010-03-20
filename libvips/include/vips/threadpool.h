@@ -50,18 +50,24 @@ typedef struct {
 	/*< private >*/
 	struct _VipsThreadpool *pool; /* Pool we are part of */
 
-	REGION *reg;		/* Region this thread operates on */
-
         GThread *thread;  	/* Thread for this region */
-	gboolean kill;		/* Set this to make thread kill itself */
-	gboolean stop;		/* Set this to make thread stop work */
-	gboolean error;		/* Set by thread if work fn fails */
 
-	REGION *oreg;		/* If part of an inplace pool, */
-	Rect pos;		/* Where this thread should write */
-	int x, y;		/* Its result */
+	/* Set this to ask the thread to exit.
+	 */
+	gboolean exit;	
 
-        void *a, *b, *c; 	/* User arguments to work fns */
+	/* Set by the thread if work or allocate return an error.
+	 */
+	gboolean error;	
+
+	/* Thread state for the worker and allocate. Handy for communication.
+	 * The region is created and destroyed by the threadpool for the
+	 * worker.
+	 */
+	REGION *reg;		
+	Rect pos;
+	int x, y;
+        void *a, *b, *c; 	
 
 #ifdef TIME_THREAD
 	double *btime, *etime;
@@ -69,16 +75,17 @@ typedef struct {
 #endif /*TIME_THREAD*/
 } VipsThread;
 
-/* A work function. This does a unit of work (eg. processing a tile or
- * whatever).
- */
-typedef int (*VipsThreadpoolWork)( VipsThread *thr, REGION *reg, 
-	void *a, void *b, void *c );
-
 /* A work allocate function. This is run single-threaded by a worker to
  * set up a new work unit. 
+ * Return non-zero for errors. Set *stop for "no more work to do"
  */
 typedef int (*VipsThreadpoolAllocate)( VipsThread *thr,
+	void *a, void *b, void *c, gboolean *stop );
+
+/* A work function. This does a unit of work (eg. processing a tile or
+ * whatever). Return non-zero for errors. 
+ */
+typedef int (*VipsThreadpoolWork)( VipsThread *thr, REGION *reg, 
 	void *a, void *b, void *c );
 
 /* What we track for a group of threads working together.
@@ -104,9 +111,13 @@ typedef struct _VipsThreadpool {
 	 */
 	im_semaphore_t finish;	
 
-	gboolean kill;		/* Set to stop eval early */
-	gboolean stop;		/* Set on normal end of computation */
-	gboolean progress;	/* Set this to get eval progress feedback */
+	/* Set this to abort evaluation early with an error.
+	 */
+	gboolean kill;		
+
+	/* Set by Allocate (via an arg) to indicate normal end of computation.
+	 */
+	gboolean stop;
 
 	/* Set this if the pool has been shut down. We sometimes need to allow
 	 * double-frees.
@@ -114,11 +125,16 @@ typedef struct _VipsThreadpool {
 	gboolean zombie;
 } VipsThreadpool;
 
+
 int vips_threadpool_run( VipsImage *im, 
 	VipsThreadpoolAllocate allocate, VipsThreadpoolWork work,
 	void *a, void *b, void *c );
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines );
+
+extern int im__wbuffer2;
+
+int im_wbuffer2( VipsImage *im, im_wbuffer_fn write_fn, void *a, void *b );
 
 #ifdef __cplusplus
 }

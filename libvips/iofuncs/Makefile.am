@@ -29,6 +29,7 @@ libiofuncs_la_SOURCES = \
 	im_unmapfile.c \
 	im_guess_prefix.c \
 	im_wbuffer.c \
+	im_wbuffer2.c \
 	im_wrapmany.c \
 	im_writeline.c \
 	memory.c \
@@ -39,6 +40,7 @@ libiofuncs_la_SOURCES = \
 	rect.c \
 	semaphore.c \
 	threadgroup.c \
+	threadpool.c \
 	util.c \
 	im_init_world.c \
 	buf.c \

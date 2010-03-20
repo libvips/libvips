@@ -31,10 +31,10 @@
  */
 
 /* 
- */
 #define TIME_THREAD
 #define DEBUG_CREATE
 #define DEBUG_IO
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -51,7 +51,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/thread.h>
-#include <vips/threadpool.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -91,6 +90,7 @@ save_time_buffers( VipsThread *thr )
 	char name[256];
 
 	im_snprintf( name, 256, "time%d", rn++ );
+	printf( "saving time buffer to \"%s\"\n", name );
 	if( !(fp = fopen( name, "w" )) )
 		error_exit( "unable to write to \"%s\"", name );
 	for( i = 0; i < thr->tpos; i++ )
@@ -109,7 +109,7 @@ thread_free( VipsThread *thr )
         /* Is there a thread running this region? Kill it!
          */
         if( thr->thread ) {
-                thr->kill = 1;
+                thr->exit = 1;
 
 		/* Return value is always NULL (see thread_main_loop).
 		 */
@@ -122,7 +122,6 @@ thread_free( VipsThread *thr )
         }
 
 	IM_FREEF( im_region_free, thr->reg );
-	thr->oreg = NULL;
 	thr->pool = NULL;
 
 #ifdef TIME_THREAD
@@ -131,23 +130,58 @@ thread_free( VipsThread *thr )
 #endif /*TIME_THREAD*/
 }
 
-/* The work we do in one loop. This can run from the main thread in a loop if
- * we're unthreaded, or in parallel if we are threaded.
+/* The main loop: get some work, do it! Can run from many worker threads, or 
+ * from the main thread if threading is off.
  */
 static void
-work_fn( VipsThread *thr )
+thread_loop( VipsThread *thr )
 {
-	/* Doublecheck only one thread per region.
-	 */
-	g_assert( thr->thread == g_thread_self() );
+	VipsThreadpool *pool = thr->pool;
 
-	g_assert( thr->pool->work );
+	for(;;) {
+		/* Ask for a work unit.
+		 */
+		g_mutex_lock( pool->allocate_lock );
+		if( !pool->stop ) {
+			if( pool->allocate( thr, 
+				pool->a, pool->b, pool->c, &pool->stop ) )
+				thr->error = -1;
+		}
+		g_mutex_unlock( pool->allocate_lock );
 
-	/* Call our work function.
-	 */
-	if( !thr->error && 
-		thr->pool->work( thr, thr->reg, thr->a, thr->b, thr->c ) )
-		thr->error = 1;
+		if( pool->stop || pool->kill )
+			break;
+		if( thr->exit || thr->error )
+			break;
+
+#ifdef TIME_THREAD
+		/* Note start time.
+		 */
+		if( thr->btime && thr->tpos < IM_TBUF_SIZE )
+			thr->btime[thr->tpos] = 
+				g_timer_elapsed( thread_timer, NULL );
+#endif /*TIME_THREAD*/
+
+		/* Loop once.
+		 */
+		if( pool->work( thr, thr->reg, pool->a, pool->b, pool->c ) ) 
+			thr->error = 1;
+
+		if( pool->stop || pool->kill )
+			break;
+		if( thr->exit || thr->error )
+			break;
+
+#ifdef TIME_THREAD
+		/* Note stop time.
+		 */
+		if( thr->etime && thr->tpos < IM_TBUF_SIZE ) {
+			thr->etime[thr->tpos] = 
+				g_timer_elapsed( thread_timer, NULL );
+			thr->tpos += 1;
+		}
+#endif /*TIME_THREAD*/
+	}
 }
 
 #ifdef HAVE_THREADS
@@ -166,48 +200,9 @@ thread_main_loop( void *a )
 	 */
 	im__region_take_ownership( thr->reg );
 
-	for(;;) {
-		/* Ask for a work unit.
-		 */
-		g_mutex_lock( pool->allocate_lock );
-		if( !pool->stop ) {
-			gboolean morework;
-
-			morework = pool->allocate( thr, 
-				pool->a, pool->b, pool->c );
-			if( !morework ) 
-				pool->stop = TRUE;
-		}
-		g_mutex_unlock( pool->allocate_lock );
-
-		/* Asked to stop work?
-		 */
-		if( thr->stop || thr->kill ||
-			pool->stop || pool->kill )
-			break;
-
-#ifdef TIME_THREAD
-		/* Note start time.
-		 */
-		if( thr->btime )
-			thr->btime[thr->tpos] = 
-				g_timer_elapsed( thread_timer, NULL );
-#endif /*TIME_THREAD*/
-
-		/* Loop once.
-		 */
-		work_fn( thr ); 
-
-#ifdef TIME_THREAD
-		/* Note stop time.
-		 */
-		if( thr->etime ) {
-			thr->etime[thr->tpos] = 
-				g_timer_elapsed( thread_timer, NULL );
-			thr->tpos++;
-		}
-#endif /*TIME_THREAD*/
-	}
+	/* Do all the work we can.
+	 */
+	thread_loop( thr );
 
 	/* We are exiting: tell the main thread.
 	 */
@@ -229,11 +224,8 @@ vips_thread_new( VipsThreadpool *pool )
 	thr->pool = pool;
 	thr->reg = NULL;
 	thr->thread = NULL;
-	thr->kill = 0;
-	thr->stop = 0;
+	thr->exit = 0;
 	thr->error = 0;
-	thr->oreg = NULL;
-	thr->a = thr->b = thr->c = NULL;
 #ifdef TIME_THREAD
 	thr->btime = NULL;
 	thr->etime = NULL;
@@ -362,7 +354,6 @@ vips_threadpool_new( VipsImage *im )
 	im_semaphore_init( &pool->finish, 0, "finish" );
 	pool->kill = FALSE;
 	pool->stop = FALSE;
-	pool->progress = FALSE;
 	pool->zombie = FALSE;
 
 	/* Attach tidy-up callback.
@@ -444,20 +435,7 @@ vips_threadpool_run( VipsImage *im,
 #else
 	/* No threads, do the work ourselves in the main thread.
 	 */
-	for(;;) {
-		gboolean morework;
-
-		morework = pool->allocate( pool->thr[0] );
-		if( !morework && !pool->stop )
-			pool->stop = TRUE;
-		if( pool->thr[0]->error )
-			break;
-		if( pool->thr[0]->stop || pool->thr[0]->kill || 
-			pool->stop || pool->kill )
-			break;
-
-		work_fn( pool->thr[0] );
-	}
+	thread_loop( pool->thr[0] );
 #endif /*HAVE_THREADS*/
 
 	/* Test for error.
@@ -479,17 +457,18 @@ vips_threadpool_run( VipsImage *im,
 	return( result );
 }
 
-/* Pick a tile size and buffer size.
+/* Pick a tile size and a buffer height. The buffer height must be a multiple
+ * of tile_height.
  */
 void
 vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines )
 {
-	const int nthr = im_get_concurrency();
+	const int nthr = im_concurrency_get();
 
 	/* Pick a render geometry.
 	 */
-	switch( pool->im->dhint ) {
+	switch( im->dhint ) {
 	case IM_SMALLTILE:
 		*tile_width = im__tile_width;
 		*tile_height = im__tile_height;
@@ -517,6 +496,10 @@ vips_get_tile_size( VipsImage *im,
 	default:
 		g_assert( 0 );
 	}
+
+	/* We make this assumption in several places.
+	 */
+	g_assert( *nlines % *tile_height == 0 );
 
 #ifdef DEBUG_IO
 	printf( "vips_get_tile_size: %d by %d patches, "

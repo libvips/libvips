@@ -618,41 +618,13 @@ im_threadgroup_create( IMAGE *im )
 	tg->zombie = 0;
 	tg->im = im;
 	tg->work = NULL;
-	if( (tg->nthr = im_concurrency_get()) < 0 )
-		return( NULL );
+	tg->nthr = im_concurrency_get();
 	tg->thr = NULL;
 	tg->kill = 0;
 
 	/* Pick a render geometry.
 	 */
-	switch( tg->im->dhint ) {
-	case IM_SMALLTILE:
-		tg->pw = im__tile_width;
-		tg->ph = im__tile_height;
-
-		/* Enough lines of tiles that we can expect to be able to keep
-		 * nthr busy.
-		 */
-		tg->nlines = tg->ph * (1 + tg->nthr / 
-			IM_MAX( 1, tg->im->Xsize / tg->pw ));
-		break;
-
-	case IM_FATSTRIP:
-		tg->pw = tg->im->Xsize;
-		tg->ph = im__fatstrip_height;
-		tg->nlines = tg->ph * tg->nthr * 2;
-		break;
-
-	case IM_ANY:
-	case IM_THINSTRIP:
-		tg->pw = tg->im->Xsize;
-		tg->ph = im__thinstrip_height;
-		tg->nlines = tg->ph * tg->nthr * 2;
-		break;
-
-	default:
-		error_exit( "panic: internal error #98i245983425" );
-	}
+	vips_get_tile_size( tg->im, &tg->pw, &tg->ph, &tg->nlines );
 
 	/* Attach tidy-up callback.
 	 */
