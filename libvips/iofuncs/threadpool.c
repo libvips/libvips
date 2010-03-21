@@ -133,57 +133,52 @@ thread_free( VipsThread *thr )
 }
 
 /* The main loop: get some work, do it! Can run from many worker threads, or 
- * from the main thread if threading is off.
+ * from the main thread if threading is off. 
  */
 static void
-thread_loop( VipsThread *thr )
+thread_work_unit( VipsThread *thr )
 {
 	VipsThreadpool *pool = thr->pool;
 
-	for(;;) {
-		/* Ask for a work unit.
-		 */
-		g_mutex_lock( pool->allocate_lock );
-		if( !pool->stop ) {
-			if( pool->allocate( thr, 
-				pool->a, pool->b, pool->c, &pool->stop ) )
-				thr->error = -1;
+	/* Ask for a work unit.
+	 */
+	g_mutex_lock( pool->allocate_lock );
+	if( !pool->stop ) {
+		if( pool->allocate( thr, 
+			pool->a, pool->b, pool->c, &pool->stop ) ) {
+			thr->error = TRUE;
+			pool->error = TRUE;
 		}
-		g_mutex_unlock( pool->allocate_lock );
-
-		if( pool->stop || pool->kill )
-			break;
-		if( thr->exit || thr->error )
-			break;
-
-#ifdef TIME_THREAD
-		/* Note start time.
-		 */
-		if( thr->btime && thr->tpos < IM_TBUF_SIZE )
-			thr->btime[thr->tpos] = 
-				g_timer_elapsed( thread_timer, NULL );
-#endif /*TIME_THREAD*/
-
-		/* Loop once.
-		 */
-		if( pool->work( thr, thr->reg, pool->a, pool->b, pool->c ) ) 
-			thr->error = 1;
-
-		if( pool->stop || pool->kill )
-			break;
-		if( thr->exit || thr->error )
-			break;
-
-#ifdef TIME_THREAD
-		/* Note stop time.
-		 */
-		if( thr->etime && thr->tpos < IM_TBUF_SIZE ) {
-			thr->etime[thr->tpos] = 
-				g_timer_elapsed( thread_timer, NULL );
-			thr->tpos += 1;
-		}
-#endif /*TIME_THREAD*/
 	}
+	g_mutex_unlock( pool->allocate_lock );
+
+	if( pool->stop || pool->error )
+		return;
+
+#ifdef TIME_THREAD
+	/* Note start time.
+	 */
+	if( thr->btime && thr->tpos < IM_TBUF_SIZE )
+		thr->btime[thr->tpos] = 
+			g_timer_elapsed( thread_timer, NULL );
+#endif /*TIME_THREAD*/
+
+	/* Process a work unit.
+	 */
+	if( pool->work( thr, thr->reg, pool->a, pool->b, pool->c ) ) {
+		thr->error = TRUE;
+		pool->error = TRUE;
+	}
+
+#ifdef TIME_THREAD
+	/* Note stop time.
+	 */
+	if( thr->etime && thr->tpos < IM_TBUF_SIZE ) {
+		thr->etime[thr->tpos] = 
+			g_timer_elapsed( thread_timer, NULL );
+		thr->tpos += 1;
+	}
+#endif /*TIME_THREAD*/
 }
 
 #ifdef HAVE_THREADS
@@ -202,11 +197,18 @@ thread_main_loop( void *a )
 	 */
 	im__region_take_ownership( thr->reg );
 
-	/* Do all the work we can.
+	/* Process work units! Always tick, even if we are stopping, so the
+	 * main thread will wake up for exit. 
 	 */
-	thread_loop( thr );
+	for(;;) {
+		thread_work_unit( thr );
+		im_semaphore_up( &pool->tick );
 
-	/* We are exiting: tell the main thread.
+		if( pool->stop || pool->error )
+			break;
+	} 
+
+	/* We are exiting: tell the main thread. 
 	 */
 	im_semaphore_up( &pool->finish );
 
@@ -321,6 +323,8 @@ vips_threadpool_free( VipsThreadpool *pool )
 
 	threadpool_kill_threads( pool );
 	IM_FREEF( g_mutex_free, pool->allocate_lock );
+	im_semaphore_destroy( &pool->finish );
+	im_semaphore_destroy( &pool->tick );
 	pool->zombie = 1;
 
 	return( 0 );
@@ -354,8 +358,9 @@ vips_threadpool_new( VipsImage *im )
 	pool->nthr = im_concurrency_get();
 	pool->thr = NULL;
 	im_semaphore_init( &pool->finish, 0, "finish" );
-	pool->kill = FALSE;
+	im_semaphore_init( &pool->tick, 0, "tick" );
 	pool->stop = FALSE;
+	pool->error = FALSE;
 	pool->zombie = FALSE;
 
 	/* Attach tidy-up callback.
@@ -403,7 +408,9 @@ threadpool_create_threads( VipsThreadpool *pool )
 
 int
 vips_threadpool_run( VipsImage *im, 
-	VipsThreadpoolAllocate allocate, VipsThreadpoolWork work,
+	VipsThreadpoolAllocate allocate, 
+	VipsThreadpoolWork work,
+	VipsThreadpoolProgress progress, 
 	void *a, void *b, void *c )
 {
 	VipsThreadpool *pool; 
@@ -430,29 +437,35 @@ vips_threadpool_run( VipsImage *im,
 		return( -1 );
 	}
 
+	for(;;) {
 #ifdef HAVE_THREADS
+		/* Wait for a tick from a worker.
+		 */
+		im_semaphore_down( &pool->tick );
+#else
+		/* No threads, do the work ourselves in the main thread.
+		 */
+		thread_work_unit( pool->thr[0] );
+#endif /*HAVE_THREADS*/
+
+		if( pool->stop || pool->error )
+			break;
+
+		if( progress &&
+			progress( pool->a, pool->b, pool->c ) ) 
+			pool->error = TRUE;
+
+		if( pool->stop || pool->error )
+			break;
+	}
+
 	/* Wait for them all to hit finish.
 	 */
 	im_semaphore_downn( &pool->finish, pool->nthr );
-#else
-	/* No threads, do the work ourselves in the main thread.
-	 */
-	thread_loop( pool->thr[0] );
-#endif /*HAVE_THREADS*/
 
-	/* Test for error.
+	/* Return 0 for success.
 	 */
-	result = 0;
-	if( pool->kill || 
-		pool->im->kill ) 
-		result = -1;
-	else {
-		int i;
-
-		for( i = 0; i < pool->nthr; i++ ) 
-			if( pool->thr[i]->error )
-				result = -1;
-	}
+	result = pool->error ? -1 : 0;
 
 	vips_threadpool_free( pool );
 

@@ -1,3 +1,6 @@
+21/3/10 started 7.21.3
+- added progress feedback to threadpool
+
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do
   im_close()

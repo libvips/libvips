@@ -396,26 +396,57 @@ wbuffer_work_fn( VipsThread *thr,
 	return( 0 );
 }
 
+/* Our VipsThreadpoolProgress function ... send some eval progress feedback.
+ */
+static int
+wbuffer_progress_fn( void *a, void *b, void *c )
+{
+	Write *write = (Write *) a;
+
+	/* Trigger any eval callbacks on our source image and
+	 * check for errors.
+	 */
+	if( im__handle_eval( write->im, 
+		write->tile_width, write->tile_height ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+write_init( Write *write, 
+	VipsImage *im, im_wbuffer_fn write_fn, void *a, void *b )
+{
+	write->im = im;
+	write->buf = wbuffer_new( write );
+	write->buf_back = wbuffer_new( write );
+	write->x = 0;
+	write->y = 0;
+	write->write_fn = write_fn;
+	write->a = a;
+	write->b = b;
+
+	vips_get_tile_size( im, 
+		&write->tile_width, &write->tile_height, &write->nlines );
+}
+
+static void
+write_free( Write *write )
+{
+	IM_FREEF( wbuffer_free, write->buf );
+	IM_FREEF( wbuffer_free, write->buf_back );
+}
+
 int
 im_wbuffer2( VipsImage *im, im_wbuffer_fn write_fn, void *a, void *b )
 {
 	Write write;
 	int result;
 
-	write.im = im;
-	write.buf = wbuffer_new( &write );
-	write.buf_back = wbuffer_new( &write );
-	write.x = 0;
-	write.y = 0;
-	write.write_fn = write_fn;
-	write.a = a;
-	write.b = b;
-
-	vips_get_tile_size( im, 
-		&write.tile_width, &write.tile_height, &write.nlines );
-
-	if( im__start_eval( im ) )
+	if( im__start_eval( im ) ) 
 		return( -1 );
+
+	write_init( &write, im, write_fn, a, b );
 
 	result = 0;
 
@@ -423,7 +454,9 @@ im_wbuffer2( VipsImage *im, im_wbuffer_fn write_fn, void *a, void *b )
 		!write.buf_back || 
 		wbuffer_position( write.buf, 0, write.nlines ) ||
 		vips_threadpool_run( im, 
-			wbuffer_allocate_fn, wbuffer_work_fn, 
+			wbuffer_allocate_fn, 
+			wbuffer_work_fn, 
+			wbuffer_progress_fn, 
 			&write, NULL, NULL ) )  
 		result = -1;
 
@@ -440,10 +473,7 @@ im_wbuffer2( VipsImage *im, im_wbuffer_fn write_fn, void *a, void *b )
 
 	im__end_eval( im );
 
-	/* Free buffers ... this will wait for the final write to finish too.
-	 */
-	wbuffer_free( write.buf );
-	wbuffer_free( write.buf_back );
+	write_free( &write );
 
 	return( result );
 }

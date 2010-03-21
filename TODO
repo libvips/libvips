@@ -1,9 +1,6 @@
 - make VipsThread opaque ... have a separate VipsThreadState struct holding
   stuff and only expose that
 
-- add progress feedback ... main thread should wake on every tile? or every
-  buffer write? or every second?
-
 - try with im_render(), ouch, that will be painful
 
 - switch other file sinks over, maybe have a shim layer?

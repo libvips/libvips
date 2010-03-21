@@ -88,6 +88,11 @@ typedef int (*VipsThreadpoolAllocate)( VipsThread *thr,
 typedef int (*VipsThreadpoolWork)( VipsThread *thr, REGION *reg, 
 	void *a, void *b, void *c );
 
+/* A progress function. This is run by the main thread once for every
+ * allocation. Return an error to kill computation early.
+ */
+typedef int (*VipsThreadpoolProgress)( void *a, void *b, void *c );
+
 /* What we track for a group of threads working together.
  */
 typedef struct _VipsThreadpool {
@@ -111,9 +116,13 @@ typedef struct _VipsThreadpool {
 	 */
 	im_semaphore_t finish;	
 
+	/* Workers up this for every loop to make the main thread tick.
+	 */
+	im_semaphore_t tick;	
+
 	/* Set this to abort evaluation early with an error.
 	 */
-	gboolean kill;		
+	gboolean error;		
 
 	/* Set by Allocate (via an arg) to indicate normal end of computation.
 	 */
@@ -125,9 +134,10 @@ typedef struct _VipsThreadpool {
 	gboolean zombie;
 } VipsThreadpool;
 
-
 int vips_threadpool_run( VipsImage *im, 
-	VipsThreadpoolAllocate allocate, VipsThreadpoolWork work,
+	VipsThreadpoolAllocate allocate, 
+	VipsThreadpoolWork work,
+	VipsThreadpoolProgress progress,
 	void *a, void *b, void *c );
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines );
