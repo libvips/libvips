@@ -605,12 +605,8 @@ im_generate( IMAGE *im,
 			im_region_free( or );
 			return( -1 );
 		}
-                if( im->dtype == IM_OPENOUT ) {
-			if( im__wbuffer2 ) 
-				res = im_wbuffer2( im, write_vips, NULL, NULL );
-			else
-				res = im_wbuffer( tg, write_vips, NULL, NULL );
-		}
+                if( im->dtype == IM_OPENOUT ) 
+			res = im_wbuffer( tg, write_vips, NULL, NULL );
                 else
                         res = eval_to_memory( tg, or );
 

@@ -4,6 +4,8 @@
  * 	- cut from im_generate
  * 7/11/07
  * 	- trigger start/end eval callbacks
+ * 21/3/10
+ * 	- optionally use wbuffer2 
  */
 
 /*
@@ -423,6 +425,11 @@ im_wbuffer( im_threadgroup_t *tg, im_wbuffer_fn write_fn, void *a, void *b )
 {
 	WriteBuffer *b1, *b2;
 	int result;
+
+	/* Optionally use the newer one.
+	 */
+	if( im__wbuffer2 ) 
+		return( im_wbuffer2( tg->im, write_fn, a, b ) );
 
 	if( im__start_eval( tg->im ) )
 		return( -1 );
