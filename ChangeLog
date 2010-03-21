@@ -37,7 +37,7 @@
 - better nprocs guesser
 - im_render() fixes to help the paintbox, some speedups too
 - added im_wbuffer2(), a new distributed threading system, and --vips-wbuffer2
-  to enable it
+  to enable it, thank you Christian
 
 15/1/10 started 7.21.1
 - added "written" callbacks, used to implement write to non-vips formats

@@ -2,6 +2,8 @@
  * 
  * 18/3/10
  * 	- from threadgroup.c
+ * 	- distributed work allocation idea from Christian Blenia, thank you
+ * 	  very much
  */
 
 /*
