@@ -56,6 +56,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/private.h>
 #include <vips/thread.h>
 
 #ifdef WITH_DMALLOC
@@ -429,7 +430,7 @@ im_wbuffer( im_threadgroup_t *tg, im_wbuffer_fn write_fn, void *a, void *b )
 	/* Optionally use the newer one.
 	 */
 	if( im__wbuffer2 ) 
-		return( im_wbuffer2( tg->im, write_fn, a, b ) );
+		return( vips_discsink( tg->im, write_fn, a, b ) );
 
 	if( im__start_eval( tg->im ) )
 		return( -1 );

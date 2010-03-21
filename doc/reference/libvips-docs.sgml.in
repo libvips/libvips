@@ -24,6 +24,7 @@
     <xi:include href="xml/meta.xml"/>
     <xi:include href="xml/region.xml"/>
     <xi:include href="xml/generate.xml"/>
+    <xi:include href="xml/threadpool.xml"/>
     <xi:include href="xml/threadgroup.xml"/>
     <xi:include href="xml/error.xml"/>
     <xi:include href="xml/memory.xml"/>

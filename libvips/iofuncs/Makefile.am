@@ -29,7 +29,7 @@ libiofuncs_la_SOURCES = \
 	im_unmapfile.c \
 	im_guess_prefix.c \
 	im_wbuffer.c \
-	im_wbuffer2.c \
+	discsink.c \
 	im_wrapmany.c \
 	im_writeline.c \
 	memory.c \

@@ -42,97 +42,39 @@ extern "C" {
 
 #include <vips/semaphore.h>
 
-/* What we track for each thread in the pool.
+/* The per-thread state we expose. Allocate functions can use these members to
+ * communicate with work functions.
  */
-typedef struct {
-	/* All private.
-	 */
-	/*< private >*/
-	struct _VipsThreadpool *pool; /* Pool we are part of */
-
-        GThread *thread;  	/* Thread for this region */
-
-	/* Set this to ask the thread to exit.
-	 */
-	gboolean exit;	
-
-	/* Set by the thread if work or allocate return an error.
-	 */
-	gboolean error;	
-
-	/* Thread state for the worker and allocate. Handy for communication.
-	 * The region is created and destroyed by the threadpool for the
-	 * worker.
+typedef struct _VipsThreadState {
+	/* This region is created and destroyed by the threadpool for the
+	 * worker. 
 	 */
 	REGION *reg;		
+
+	/* The rest are neither used nor set, do what you lke with them.
+	 */
 	Rect pos;
 	int x, y;
-        void *a, *b, *c; 	
-
-#ifdef TIME_THREAD
-	double *btime, *etime;
-	int tpos;
-#endif /*TIME_THREAD*/
-} VipsThread;
+        void *d, *e, *f; 	
+} VipsThreadState;
 
 /* A work allocate function. This is run single-threaded by a worker to
  * set up a new work unit. 
  * Return non-zero for errors. Set *stop for "no more work to do"
  */
-typedef int (*VipsThreadpoolAllocate)( VipsThread *thr,
+typedef int (*VipsThreadpoolAllocate)( VipsThreadState *state,
 	void *a, void *b, void *c, gboolean *stop );
 
 /* A work function. This does a unit of work (eg. processing a tile or
  * whatever). Return non-zero for errors. 
  */
-typedef int (*VipsThreadpoolWork)( VipsThread *thr, REGION *reg, 
+typedef int (*VipsThreadpoolWork)( VipsThreadState *state, 
 	void *a, void *b, void *c );
 
 /* A progress function. This is run by the main thread once for every
  * allocation. Return an error to kill computation early.
  */
 typedef int (*VipsThreadpoolProgress)( void *a, void *b, void *c );
-
-/* What we track for a group of threads working together.
- */
-typedef struct _VipsThreadpool {
-	/* All private.
-	 */
-	/*< private >*/
-	VipsImage *im;		/* Image we are calculating */
-
-	/* Do a unit of work (runs in parallel) and allocate a unit of work
-	 * (serial). Plus the mutex we use to serialize work allocation.
-	 */
-	VipsThreadpoolAllocate allocate;
-	VipsThreadpoolWork work;
-	GMutex *allocate_lock;
-        void *a, *b, *c; 	/* User arguments to work / allocate */
-
-	int nthr;		/* Number of threads in pool */
-	VipsThread **thr;	/* Threads */
-
-	/* The caller blocks here until all threads finish.
-	 */
-	im_semaphore_t finish;	
-
-	/* Workers up this for every loop to make the main thread tick.
-	 */
-	im_semaphore_t tick;	
-
-	/* Set this to abort evaluation early with an error.
-	 */
-	gboolean error;		
-
-	/* Set by Allocate (via an arg) to indicate normal end of computation.
-	 */
-	gboolean stop;
-
-	/* Set this if the pool has been shut down. We sometimes need to allow
-	 * double-frees.
-	 */
-	gboolean zombie;
-} VipsThreadpool;
 
 int vips_threadpool_run( VipsImage *im, 
 	VipsThreadpoolAllocate allocate, 
@@ -142,9 +84,9 @@ int vips_threadpool_run( VipsImage *im,
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines );
 
-extern int im__wbuffer2;
-
-int im_wbuffer2( VipsImage *im, im_wbuffer_fn write_fn, void *a, void *b );
+typedef im_wbuffer_fn VipsRegionWrite;
+int vips_discsink( VipsImage *im, 
+	VipsRegionWrite write_fn, void *a, void *b );
 
 #ifdef __cplusplus
 }
