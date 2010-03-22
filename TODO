@@ -1,7 +1,7 @@
 
 - nip2 image display does not work with threading disabled
 
-- writing docs for im_create_fmask() and friends
+- docs: histogram_lut next
 
 - still to move to threadpool: im_iterate(), im_render(), maybe wait for
   better performance numbers before we move them

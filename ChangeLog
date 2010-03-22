@@ -31,7 +31,7 @@
   im_fastlineuser() is terrible
 - instead, users of the inplace operations need to call im_invalidate() at the
   end of a set of paint actions to trigger an update
-- parent/child -> upstream/downstream in DAG
+- parent/child renamed as upstream/downstream in DAG
 - set VIPS_ICC_DIR in configure
 - ICC profiles are looked for in VIPS_ICC_DIR as a fallback
 - im_render() mask image generation no longer triggers image calc
