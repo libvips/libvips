@@ -84,7 +84,7 @@ int vips_threadpool_run( VipsImage *im,
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines );
 
-typedef im_wbuffer_fn VipsRegionWrite;
+typedef int (*VipsRegionWrite)( REGION *region, Rect *area, void *a, void *b );
 int vips_discsink( VipsImage *im, 
 	VipsRegionWrite write_fn, void *a, void *b );
 
