@@ -46,15 +46,30 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-int im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out ){
-  IMAGE *t[3];
+/**
+ * im_phasecor_fft:
+ * @in1: first input image
+ * @in2: second input image
+ * @out: output image
+ *
+ * Convert the two input images to Fourier space, calculate phase-correlation,
+ * back to real space.
+ *
+ * See also: im_fwfft(), im_cross_phase(), 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	IMAGE *t[3];
 
-  if( im_open_local_array( out, t, 3, "im_phasecor_fft", "p" ) ||
-    im_fwfft( in1, t[0] ) ||
-    im_fwfft( in2, t[1] ) ||
-    im_cross_phase( t[0], t[1], t[2] ) ||
-    im_invfftr( t[2], out ) )
-    return -1;
+	if( im_open_local_array( out, t, 3, "im_phasecor_fft", "p" ) ||
+		im_fwfft( in1, t[0] ) ||
+		im_fwfft( in2, t[1] ) ||
+		im_cross_phase( t[0], t[1], t[2] ) ||
+		im_invfftr( t[2], out ) )
+		return( -1 );
 
-  return 0;
+	return( 0 );
 }
