@@ -1,4 +1,4 @@
-/* locally bounded bicubic resampler
+/* lbb (locally bounded bicubic) resampler
  */
 
 /*
@@ -29,11 +29,68 @@
  */
 
 /*
- * 2009-2010 (c) Nicolas Robidoux, John Cupitt, Chantal Racette.
+ * 2010 (c) Nicolas Robidoux, John Cupitt, Chantal Racette.
  *
  * Nicolas Robidoux thanks Ralf Meyer, Minglun Gong, Adam Turcotte,
  * Eric Daoust, Øyvind Kolås, Geert Jordaens, and Sven Neumann for
  * useful comments and code.
+ */
+
+/*
+ * LBB (Locally Bounded Bicubic) is a high quality nonlinear variant
+ * of Catmull-Rom. Compared to Catmull-Rom, it produces resampled
+ * images with halos much reduced, both in terms of physical extent
+ * and over/undershoot amplitude. This is accomplished without
+ * noticeable changes to image smoothness.
+ *
+ * Another important property is that the resampled values are
+ * contained within the range of nearby input values.
+ */
+
+/*
+ * LBB is a novel method with the following properties:
+ *
+ * --When the limiters are inactive, it gives the same results as
+ *   Catmull-Rom.
+ *
+ * --When used on binary images, in which case the limiters clamp
+ *   everything to zero, LBB gives the same results as bicubic Hermite
+ *   with all derivatives at the input pixel locations set to zero.
+ *
+ * --It is interpolatory.
+ *
+ * --It is C^1 with continuous cross derivatives.
+ *
+ * --It is locally bounded, in the following sense: Over each square
+ *   patch, the surface is contained between the minimum and the
+ *   maximum values among the 16 nearest input pixel values (those in
+ *   the stencil).
+ *
+ * --It is globally bounded between the very smallest input pixel
+ *   value and the very largest input pixel value. Consequently, it is
+ *   not necessary to clamp results.
+ *
+ * --It is a Hermite bicubic method: The bicubic surface is defined,
+ *   one convex hull of four nearby input points at a time, using the
+ *   four point values, four x-derivatives, four y-derivatives, and four
+ *   cross-derivatives.
+ *
+ * --The stencil for values in a square patch is the usual 4x4.
+ *
+ * --The LBB method is based on the method of Ken Brodlie, Petros
+ *   Mashwama and Sohail Butt for constraining Hermite interpolants
+ *   between globally defined planes:
+ *
+ *     Visualization of surface data to preserve positivity and other
+ *     simple constraints, Computer & Graphics, Vol. 19, #4, pages
+ *     585-594, 1995. DOI: 10.1016/0097-8493(95)00036-C.
+ *
+ *   The main novelty of the LBB method (besides its reliance on slope
+ *   limiters for image resampling) lies in the fact that the method
+ *   of Brodlie et al is used to enforce local, as opposed to global,
+ *   boundedness. This method was developed by Nicolas Robidoux and
+ *   Chantal Racette of the Department of Mathematics and Computer
+ *   Science of Laurentian University.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -112,8 +169,8 @@ lbbicubic( const double c00,
   /*
    * STENCIL (FOOTPRINT) OF INPUT VALUES:
    *
-   * The stencil of Symmetrized Monotone Catmull-Rom is the same as
-   * the standard Catmull-Rom's:
+   * The stencil of LBB is the same as for any standard Hermite
+   * bicubic (e.g., Catmull-Rom):
    *
    *  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)  (ix+2,iy-1)
    *  = uno_one    = uno_two    = uno_thr    = uno_fou
@@ -444,11 +501,10 @@ lbbicubic( const double c00,
 /*
  * Call lbb with a type conversion operator as a parameter.
  *
- * It would be nice to do this with templates somehow---for one thing
- * this would allow code comments!---but we can't figure a clean way
- * to do it.
+ * It would be nice to do this with templates but we can't figure out
+ * how to do it cleanly. Suggestions welcome!
  */
-#define LBB_CONVERSION( conversion )                          \
+#define LBB_CONVERSION( conversion )                     \
   template <typename T> static void inline               \
   lbb_ ## conversion(       PEL*   restrict pout,        \
                       const PEL*   restrict pin,         \
