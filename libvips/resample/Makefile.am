@@ -2,7 +2,7 @@
 if ENABLE_CXX
 C_SOURCES = \
 	bicubic.cpp \
-	mbicubic.cpp \
+	lbb.cpp \
 	yafrsmooth.cpp \
 	nohalo1.cpp \
 	snohalo1.cpp \
@@ -13,7 +13,7 @@ else
 C_SOURCES = 
 C_DIST = \
 	bicubic.cpp \
-	mbicubic.cpp \
+	lbb.cpp \
 	yafrsmooth.cpp \
 	nohalo1.cpp \
 	snohalo1.cpp \

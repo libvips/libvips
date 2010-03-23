@@ -497,7 +497,7 @@ void
 vips__interpolate_init( void )
 {
 	extern GType vips_interpolate_bicubic_get_type( void );
-	extern GType vips_interpolate_mbicubic_get_type( void );
+	extern GType vips_interpolate_lbb_get_type( void );
 	extern GType vips_interpolate_yafrsmooth_get_type( void );
 	extern GType vips_interpolate_nohalo1_get_type( void );
 	extern GType vips_interpolate_snohalo1_get_type( void );
@@ -508,7 +508,7 @@ vips__interpolate_init( void )
 
 #ifdef ENABLE_CXX
 	vips_interpolate_bicubic_get_type();
-	vips_interpolate_mbicubic_get_type();
+	vips_interpolate_lbb_get_type();
 	vips_interpolate_yafrsmooth_get_type();
 	vips_interpolate_nohalo1_get_type();
 	vips_interpolate_snohalo1_get_type();
