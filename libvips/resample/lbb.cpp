@@ -55,45 +55,44 @@
 /*
  * LBB is a novel method with the following properties:
  *
- * --When the limiters are inactive, it gives the same results as
- *   Catmull-Rom.
- *
- * --When used on binary images, in which case the limiters clamp
- *   everything to zero, LBB gives the same results as bicubic Hermite
- *   with all derivatives at the input pixel locations set to zero.
- *
- * --It is interpolatory.
- *
- * --It is a Hermite bicubic method: The bicubic surface is defined,
- *   one convex hull of four nearby input points at a time, using
- *   four point values, four x-derivatives, four y-derivatives, and four
+ * --LBB is a Hermite bicubic method: The bicubic surface is defined,
+ *   one convex hull of four nearby input points at a time, using four
+ *   point values, four x-derivatives, four y-derivatives, and four
  *   cross-derivatives.
  *
  * --The stencil for values in a square patch is the usual 4x4.
  *
+ * --LBB is interpolatory.
+ *
  * --It is C^1 with continuous cross derivatives.
  *
- * --It is locally bounded, in the following sense: Over each square
+ * --When the limiters are inactive, LBB gives the same results as
+ *   Catmull-Rom.
+ *
+ * --When used on binary images, LBB gives the same results as bicubic
+ *   Hermite with all derivatives at the input pixel locations set to
+ *   zero.
+ *
+ * --The LBB reconstruction is locally bounded: Over each square
  *   patch, the surface is contained between the minimum and the
  *   maximum values among the 16 nearest input pixel values (those in
  *   the stencil).
  *
- * --It is globally bounded between the very smallest input pixel
- *   value and the very largest input pixel value. Consequently, it is
- *   not necessary to clamp results.
+ * --Consequently, the LBB reconstruction is globally bounded between
+ *   the very smallest input pixel value and the very largest input
+ *   pixel value. (It is not necessary to clamp results.)
  *
- * --The LBB method is based on the method of Ken Brodlie, Petros
- *   Mashwama and Sohail Butt for constraining Hermite interpolants
- *   between globally defined planes:
+ * The LBB method is based on the method of Ken Brodlie, Petros
+ * Mashwama and Sohail Butt for constraining Hermite interpolants
+ * between globally defined planes:
  *
- *     Visualization of surface data to preserve positivity and other
- *     simple constraints. Computer & Graphics, Vol. 19, Number 4,
- *     pages 585-594, 1995. DOI: 10.1016/0097-8493(95)00036-C.
+ *   Visualization of surface data to preserve positivity and other
+ *   simple constraints. Computer & Graphics, Vol. 19, Number 4, pages
+ *   585-594, 1995. DOI: 10.1016/0097-8493(95)00036-C.
  *
- *   The main novelty of the LBB method (besides its reliance on slope
- *   limiters in the context of image resampling) lies in the fact
- *   that the method of Brodlie et al is modified so as to enforce
- *   local, as opposed to global, boundedness.
+ * Instead of forcing the reconstructed surface to lie between two
+ * GLOBALLY defined planes, LBB constrains one patch at a time to lie
+ * between the local min and max.
  */
 
 #ifdef HAVE_CONFIG_H
