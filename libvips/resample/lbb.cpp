@@ -39,12 +39,17 @@
 /*
  * LBB (Locally Bounded Bicubic) is a high quality nonlinear variant
  * of Catmull-Rom. Compared to Catmull-Rom, it produces resampled
- * images with halos much reduced, both in terms of physical extent
- * and over/undershoot amplitude. This is accomplished without
- * noticeable changes to image smoothness.
+ * images with much reduced halos, both in terms of physical extent
+ * and over/undershoot amplitude. This is accomplished without a
+ * significant change in the smoothness of the result.
  *
  * Another important property is that the resampled values are
- * contained within the range of nearby input values.
+ * contained within the range of nearby input values. Consequently, no
+ * clamping is needed to stay "in range."
+ *
+ * LBB was developed by Nicolas Robidoux and Chantal Racette of the
+ * Department of Mathematics and Computer Science of Laurentian
+ * University.
  */
 
 /*
@@ -59,6 +64,13 @@
  *
  * --It is interpolatory.
  *
+ * --It is a Hermite bicubic method: The bicubic surface is defined,
+ *   one convex hull of four nearby input points at a time, using
+ *   four point values, four x-derivatives, four y-derivatives, and four
+ *   cross-derivatives.
+ *
+ * --The stencil for values in a square patch is the usual 4x4.
+ *
  * --It is C^1 with continuous cross derivatives.
  *
  * --It is locally bounded, in the following sense: Over each square
@@ -70,27 +82,18 @@
  *   value and the very largest input pixel value. Consequently, it is
  *   not necessary to clamp results.
  *
- * --It is a Hermite bicubic method: The bicubic surface is defined,
- *   one convex hull of four nearby input points at a time, using the
- *   four point values, four x-derivatives, four y-derivatives, and four
- *   cross-derivatives.
- *
- * --The stencil for values in a square patch is the usual 4x4.
- *
  * --The LBB method is based on the method of Ken Brodlie, Petros
  *   Mashwama and Sohail Butt for constraining Hermite interpolants
  *   between globally defined planes:
  *
  *     Visualization of surface data to preserve positivity and other
- *     simple constraints, Computer & Graphics, Vol. 19, #4, pages
- *     585-594, 1995. DOI: 10.1016/0097-8493(95)00036-C.
+ *     simple constraints. Computer & Graphics, Vol. 19, Number 4,
+ *     pages 585-594, 1995. DOI: 10.1016/0097-8493(95)00036-C.
  *
  *   The main novelty of the LBB method (besides its reliance on slope
- *   limiters for image resampling) lies in the fact that the method
- *   of Brodlie et al is used to enforce local, as opposed to global,
- *   boundedness. This method was developed by Nicolas Robidoux and
- *   Chantal Racette of the Department of Mathematics and Computer
- *   Science of Laurentian University.
+ *   limiters in the context of image resampling) lies in the fact
+ *   that the method of Brodlie et al is modified so as to enforce
+ *   local, as opposed to global, boundedness.
  */
 
 #ifdef HAVE_CONFIG_H
