@@ -1,12 +1,4 @@
-/* @(#) Gamma-correct uchar image with factor gammafactor.
- * @(#)
- * @(#)  int im_gammacorrect(in, out, exponent)
- * @(#)  IMAGE *in, *out;
- * @(#)  double exponent;
- * @(#)
- * @(#)  Returns 0 on sucess and -1 on error
- * @(#)
- *
+/* Gamma-correct image with factor gammafactor.
  *
  * Copyright: 1990, N. Dessipris.
  * 
@@ -14,6 +6,9 @@
  * Modified on:
  * 19/6/95 JC
  *	- redone as library function
+ * 23/3/10
+ * 	- gtkdoc
+ * 	- 16 bit as well
  */
 
 /*
@@ -55,27 +50,37 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_gammacorrect:
+ * @in: input image
+ * @out: output image
+ * @exponent: gamma factor
+ *
+ * Gamma-correct an 8- or 16-bit unsigned image with a lookup table. The
+ * output format is the same as the input format.
+ *
+ * See also: im_identity(), im_powtra(), im_maplut()
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_gammacorrect( IMAGE *in, IMAGE *out, double exponent )
 {
-	IMAGE *t1 = im_open_local( out, "im_gammacorrect:#1", "p" );
-	IMAGE *t2 = im_open_local( out, "im_gammacorrect:#2", "p" );
-	IMAGE *t3 = im_open_local( out, "im_gammacorrect:#2", "p" );
+	IMAGE *t[4];
+	double mx1, mx2;
 
-	if( !t1 || !t2 || !t3 )
-		return( -1 );
-
-        if( im_piocheck( in, out ) )
-                return( -1 );
-	if( in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_gammacorrect", "%s", _( "uchar images only" ) );
-		return( -1 );
-	}
-
-	if( im_identity( t1, 1 ) ||
-		im_powtra( t1, t2, exponent ) ||
-		im_scale( t2, t3 ) ||
-		im_maplut( in, out, t3 ) )
+	if( im_open_local_array( out, t, 4, "im_gammacorrect", "p" ) ||
+		im_check_u8or16( "im_gammacorrect", in ) ||
+		im_piocheck( in, out ) ||
+		(in->BandFmt == IM_BANDFMT_UCHAR ?
+			im_identity( t[0], 1 ) :
+			im_identity_ushort( t[0], 1, 65536 )) ||
+		im_powtra( t[0], t[1], exponent ) ||
+		im_max( t[0], &mx1 ) ||
+		im_max( t[1], &mx2 ) ||
+		im_lintra( mx1 / mx2, t[1], 0, t[2] ) ||
+		im_clip2fmt( t[2], t[3], in->BandFmt ) ||
+		im_maplut( in, out, t[3] ) )
 		return( -1 );
 
 	return( 0 );

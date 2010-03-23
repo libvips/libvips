@@ -1,15 +1,4 @@
-/* @(#)  Histogram equalises the input uchar image; result in uchar
- * @(#) If bandno=0 all bands are equilised independantly
- * @(#) else input image is equilised using the histogram of bandno only.
- * @(#)  Image descriptors should have been set properly by the calling program
- * @(#)
- * @(#)  Usage: heq imagein imageout bandno
- * @(#)  int im_heq(in, out, bandno)
- * @(#)  IMAGE *in, *out;
- * @(#)  int bandno;
- * @(#)
- * @(#)  Returns 0 on sucess and -1 on error
- * @(#)
+/* Histogram-equalise an image.
  *
  * Copyright: 1991, N. Dessipris.
  *
@@ -22,6 +11,8 @@
  *	- ANSIfied and tidied up
  * 3/3/01 JC
  *	- more cleanup
+ * 23/3/10
+ * 	- gtkdoc
  */
 
 /*
@@ -63,16 +54,28 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_heq:
+ * @in: input image
+ * @out: output image
+ * @bandno: band to equalise
+ *
+ * Histogram-equalise @in. Equalise using band @bandno, or if @bandno is -1,
+ * equalise all bands.
+ *
+ * See also: im_histgr(), im_histeq().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_heq( IMAGE *in, IMAGE *out, int bandno )
 {
-	IMAGE *t1 = im_open_local( out, "im_heq:1", "p" );
-	IMAGE *t2 = im_open_local( out, "im_heq:2", "p" );
+	IMAGE *t[2];
 
-	if( !t1 || !t2 ||
-		im_histgr( in, t1, bandno ) ||
-		im_histeq( t1, t2 ) ||
-		im_maplut( in, out, t2 ) )
+	if( im_open_local_array( out, t, 2, "im_heq", "p" ) ||
+		im_histgr( in, t[0], bandno ) ||
+		im_histeq( t[0], t[1] ) ||
+		im_maplut( in, out, t[1] ) )
 		return( -1 );
 
 	return( 0 );

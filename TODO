@@ -1,4 +1,7 @@
 
+- im_render() should be renamed as vips_sink_screen()? also vips_sink_disc()
+  instead of vips_discsink()?
+
 - nip2 image display does not work with threading disabled
 
 - docs: histogram_lut next

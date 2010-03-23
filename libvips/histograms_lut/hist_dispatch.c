@@ -49,6 +49,17 @@
  * @see_also: <link linkend="libvips-image">image</link>
  * @include: vips/vips.h
  *
+ * Histograms and look-up tables are 1xn or nx1 images, where n is less than
+ * 256 or less than 65536, corresponding to 8- and 16-bit images. They are
+ * tagged with a #VipsType of IM_TYPE_HISTOGRAM and usually displayed by
+ * user-interfaces such as nip2 as plots rather than images.
+ *
+ * You can make a LUT by scanning an image (see im_histgr()), from a
+ * matrix (see im_buildlut()), or using arithmetic operators on an identity
+ * LUT (see im_identity()).
+ *
+ * Once you have a LUT you can manipulate it in various ways (see im_historm()
+ * and friends) and use it to transform other images (see im_maplut()).
  */
 
 /* One image in, one out.

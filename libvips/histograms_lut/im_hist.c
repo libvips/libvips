@@ -1,14 +1,4 @@
-/* @(#) Creates a displayable historam of in result in hist
- * @(#) If bandno=0 histogram of all bands is created
- * @(#) else the histogram of bandno only is created.
- * @(#)
- * @(#)  Usage:
- * @(#)  int im_hist(in, out, bandno)
- * @(#)  IMAGE *in, *out;
- * @(#)  int bandno;
- * @(#)
- * @(#)  Returns 0 on sucess and -1 on error
- * @(#)
+/* Plot the histogram of an image.
  *
  * Copyright: 1991, N. Dessipris.
  *
@@ -60,13 +50,25 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_hist:
+ * @in: input image
+ * @out: output image
+ * @bandno: band to equalise
+ *
+ * Find and plot the histogram of @in. If @bandno is -1, plot all bands. 
+ * Otherwise plot the specified band.
+ *
+ * See also: im_histgr(), im_histplot().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_hist( IMAGE *in, IMAGE *out, int bandno )
 {
-	IMAGE *hist = im_open_local( out, "im_hist:#1", "p" );
+	IMAGE *hist;
 
-	if( !hist || 
-		im_iocheck( in, out ) ||
+	if( !(hist = im_open_local( out, "im_hist", "p" )) ||
 		im_histgr( in, hist, bandno ) ||
 		im_histplot( hist, out ) )
 		return( -1 );
