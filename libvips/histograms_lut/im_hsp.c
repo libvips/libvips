@@ -1,13 +1,4 @@
-/* @(#)  Maps imagein to imageout with histogram specified by imageref
- * @(#) Both images should have the same number of bands
- * @(#) Each band of the output image is specified according to the distribution
- * @(#) of grey levels of the reference image
- * @(#)
- * @(#)  Usage:
- * @(#)  int im_hsp(in, ref, out)
- * @(#)  IMAGE *in, *ref, *out;
- * @(#)  
- * @(#)  Return 0 on success and -1 on error
+/* match histograms
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -18,6 +9,8 @@
  *	- im_ioflag() call changed to im_iocheck()
  * 25/5/95 JC
  *	- revised
+ * 24/3/10
+ * 	- gtkdoc
  */
 
 /*
@@ -59,18 +52,29 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_hsp:
+ * @in: input image
+ * @ref: reference histogram 
+ * @out: output image
+ *
+ * Maps image @in to image @out, adjusting the histogram to match image @ref.
+ * Both images should have the same number of bands.
+ *
+ * See also: im_histspec(), im_histgr().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_hsp( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
-	IMAGE *histin = im_open_local( out, "im_hsp:#1", "p" );
-	IMAGE *histref = im_open_local( out, "im_hsp:#2", "p" );
-	IMAGE *lut = im_open_local( out, "im_hsp:#3", "p" );
+	IMAGE *t[3];
 
-	if( !histin || !histref || !lut ||
-		im_histgr( in, histin, -1 ) || 
-		im_histgr( ref, histref, -1 ) ||
-		im_histspec( histin, histref, lut ) ||
-		im_maplut( in, out, lut ) )
+	if( im_open_local_array( out, t, 3, "im_hsp", "p" ) ||
+		im_histgr( in, t[0], -1 ) || 
+		im_histgr( ref, t[1], -1 ) ||
+		im_histspec( t[0], t[1], t[2] ) ||
+		im_maplut( in, out, t[2] ) )
 		return( -1 );
 
 	return( 0 );

@@ -2,7 +2,8 @@
 - added progress feedback to threadpool
 - --vips-wbuffer2 switch does all wbuffer use now
 - im_wbuffer2() renamed as vips_discsink(), some cleanups
-- im_gammacorrect() can do 16-bit iamges too
+- im_gammacorrect() can do 16-bit images too
+- im_histplot() could fail for signed int histograms
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do

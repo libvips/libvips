@@ -169,7 +169,7 @@ match( IMAGE *in, IMAGE *ref, IMAGE *out )
  * formed, will produce an image whose PDF matches that of the image from 
  * which @ref was formed.
  *
- * See also: im_histgr(), im_maplut().
+ * See also: im_hsp(), im_histgr(), im_maplut().
  *
  * Returns: 0 on success, -1 on error
  */

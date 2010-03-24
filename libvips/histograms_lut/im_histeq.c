@@ -219,11 +219,11 @@ im_histnorm( IMAGE *in, IMAGE *out )
 int 
 im_histeq( IMAGE *in, IMAGE *out )
 {
-	IMAGE *t1 = im_open_local( out, "im_histeq:1", "p" );
+	IMAGE *t1;
 
 	/* Normalised cumulative.
 	 */
-	if( !(t1 = im_open_local( out, "im_histeq:1", "p" )) ||
+	if( !(t1 = im_open_local( out, "im_histeq", "p" )) ||
 		im_histcum( in, t1 ) || 
 		im_histnorm( t1, out ) )
 		return( -1 );
