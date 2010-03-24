@@ -40,6 +40,10 @@
  * 	- much, much faster!
  * 12/5/09
  *	- fix signed/unsigned warning
+ * 24/3/10
+ * 	- gtkdoc
+ * 	- small cleanups
+ * 	- oop, would fail for signed int histograms
  */
 
 /*
@@ -88,31 +92,22 @@
 static int
 normalise( IMAGE *in, IMAGE *out )
 {
-	IMAGE *t1 = im_open_local( out, "im_histplot:2", "p" );
-	double min, max;
-
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_histplot", "%s", _( "uncoded only" ) );
+	if( im_check_uncoded( "im_histplot", in ) ||
+		im_check_noncomplex( "im_histplot", in ) )
 		return( -1 );
-	}
-	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_histplot", "%s", _( "non-complex only" ) );
-		return( -1 );
-	}
 
 	if( vips_bandfmt_isuint( in->BandFmt ) ) {
-		/* Trivial case.
-		 */
 		if( im_copy( in, out ) )
 			return( -1 );
 	}
 	else if( vips_bandfmt_isint( in->BandFmt ) ) {
-		/* Move min up to 0. incheck(), because we have to min() so we
-		 * might as well save the calcs.
+		IMAGE *t1;
+		double min;
+
+		/* Move min up to 0. 
 		 */
-		if( !t1 || 
-			im_incheck( in ) ||
-			im_min( in, &max ) ||
+		if( !(t1 = im_open_local( out, "im_histplot", "p" )) ||
+			im_min( in, &min ) ||
 			im_lintra( 1.0, in, -min, t1 ) )
 			return( -1 );
 	}
@@ -120,6 +115,9 @@ normalise( IMAGE *in, IMAGE *out )
 		/* Float image: scale min--max to 0--any. Output square
 		 * graph.
 		 */
+		IMAGE *t1;
+		DOUBLEMASK *stats;
+		double min, max;
 		int any;
 
 		if( in->Xsize == 1 )
@@ -127,13 +125,13 @@ normalise( IMAGE *in, IMAGE *out )
 		else
 			any = in->Xsize;
 
-		/* incheck(), because we have to min()/max() so we
-		 * might as well save the calcs.
-		 */
-		if( !t1 || 
-			im_incheck( in ) ||
-			im_min( in, &min ) || 
-			im_max( in, &max ) ||
+		if( !(stats = im_stats( in )) )
+			return( -1 );
+		min = stats->coeff[0];
+		max = stats->coeff[1];
+		im_free_dmask( stats );
+
+		if( !(t1 = im_open_local( out, "im_histplot", "p" )) ||
 			im_lintra( any / (max - min), in, 
 				-min * any / (max - min), out ) )
 			return( -1 );
@@ -153,7 +151,6 @@ normalise( IMAGE *in, IMAGE *out )
 	} \
 }
 
-
 /* Generate function.
  */
 static int
@@ -170,10 +167,8 @@ make_vert_gen( REGION *or, void *seq, void *a, void *b )
 	int x, y, z;
 
 	for( y = to; y < bo; y++ ) {
-		unsigned char *q = (unsigned char *) 
-			IM_REGION_ADDR( or, le, y );
-		unsigned char *p = (unsigned char *) 
-			IM_IMAGE_ADDR( in, 0, y );
+		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
+		PEL *p = (PEL *) IM_IMAGE_ADDR( in, 0, y );
 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	VERT( unsigned char ); break;
@@ -186,9 +181,7 @@ make_vert_gen( REGION *or, void *seq, void *a, void *b )
 		case IM_BANDFMT_DOUBLE:	VERT( double ); break; 
 
 		default:
-			im_error( "im_histplot", 
-				"%s", _( "internal error #8255" ) );
-			return( -1 );
+			g_assert( 0 ); 
 		}
 	}
 
@@ -205,7 +198,6 @@ make_vert_gen( REGION *or, void *seq, void *a, void *b )
 		q += lsk; \
 	} \
 }
-
 
 /* Generate function.
  */
@@ -225,10 +217,8 @@ make_horz_gen( REGION *or, void *seq, void *a, void *b )
 	int x, y, z;
 
 	for( x = le; x < ri; x++ ) {
-		unsigned char *q = (unsigned char *) 
-			IM_REGION_ADDR( or, x, to );
-		unsigned char *p = (unsigned char *) 
-			IM_IMAGE_ADDR( in, x, 0 );
+		PEL *q = (PEL *) IM_REGION_ADDR( or, x, to );
+		PEL *p = (PEL *) IM_IMAGE_ADDR( in, x, 0 );
 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	HORZ( unsigned char ); break;
@@ -241,9 +231,7 @@ make_horz_gen( REGION *or, void *seq, void *a, void *b )
 		case IM_BANDFMT_DOUBLE:	HORZ( double ); break; 
 
 		default:
-			im_error( "im_histplot", 
-				"%s", _( "internal error #8255" ) );
-			return( -1 );
+			g_assert( 0 );
 		}
 	}
 
@@ -255,7 +243,6 @@ make_horz_gen( REGION *or, void *seq, void *a, void *b )
 static int
 plot( IMAGE *in, IMAGE *out )
 {
-	IMAGE *t[5];
 	double max;
 	int tsize;
 	int xsize;
@@ -267,13 +254,9 @@ plot( IMAGE *in, IMAGE *out )
 
 	/* Find range we will plot.
 	 */
-	if( im_open_local_array( out, t, 5, "im_histplot", "p" ) ||
-		im_max( in, &max ) )
+	if( im_max( in, &max ) )
 		return( -1 );
-	if( max < 0 ) {
-		im_error( "im_histplot", "%s", _( "internal error #8254" ) );
-		return( -1 );
-	}
+	g_assert( max >= 0 );
 	if( in->BandFmt == IM_BANDFMT_UCHAR )
 		tsize = 256;
 	else
@@ -322,20 +305,39 @@ plot( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
+/**
+ * im_histplot:
+ * @in: input image
+ * @out: output image
+ *
+ * Plot a 1 by any or any by 1 image file as a max by any or 
+ * any by max image using these rules:
+ * 
+ * <emphasis>unsigned char</emphasis> max is always 256 
+ *
+ * <emphasis>other unsigned integer types</emphasis> output 0 - maxium 
+ * value of @in.
+ *
+ * <emphasis>signed int types</emphasis> min moved to 0, max moved to max + min.
+ *
+ * <emphasis>float types</emphasis> min moved to 0, max moved to any 
+ * (square output)
+ *
+ * See also: im_histindexed(), im_histeq().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_histplot( IMAGE *hist, IMAGE *histplot )
 {
-	IMAGE *norm = im_open_local( histplot, "im_histplot:1", "p" );
+	IMAGE *t1;
 
-	if( !norm )
+	if( im_check_hist( "im_histplot", hist ) )
 		return( -1 );
-	if( hist->Xsize != 1 && hist->Ysize != 1 ) {
-		im_error( "im_histplot", "%s", _( "Xsize or Ysize not 1" ) );
-		return( -1 );
-	}
 
-	if( normalise( hist, norm ) ||
-		plot( norm, histplot ) )
+	if( !(t1 = im_open_local( histplot, "im_histplot:1", "p" )) ||
+		normalise( hist, t1 ) ||
+		plot( t1, histplot ) )
 		return( -1 );
 	
 	return( 0 );
