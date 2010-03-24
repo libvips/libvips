@@ -972,6 +972,34 @@ im_check_bands_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 /**
+ * im_check_bandno:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ * @bandno: band number
+ *
+ * @bandno should be a valid band number (ie. 0 to im->Bands - 1), or can be
+ * -1, meaning all bands. 
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_bandno( const char *domain, IMAGE *im, int bandno )
+{
+	if( bandno < -1 ||
+		bandno > im->Bands - 1 ) {
+		im_error( domain, "bandno must be -1, or less than %d",
+			im->Bands );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_format_same:
  * @domain: the originating domain for the error message
  * @im1: first image to check

@@ -1,14 +1,4 @@
-/* @(#) Takes as input a histogram and creates a lut which when applied
- * @(#) on the original image, histogram equilises it.
- * @(#) 
- * @(#) Histogram equalisation is carried out for each band of hist 
- * @(#) individually.
- * @(#) 
- * @(#) int im_histeq( IMAGE *hist, IMAGE *lut )
- * @(#)
- * @(#) Returns 0 on sucess and -1 on error
- *
- * Copyright: 1991, N. Dessipris
+/* histogram normalisation and cumulativisation
  *
  * Author: N. Dessipris
  * Written on: 02/08/1990
@@ -27,6 +17,9 @@
  * 	- eek, off by 1 for more than 1 band hists
  * 12/5/08
  * 	- histcum works for signed hists now as well
+ * 24/3/10
+ * 	- gtkdoc
+ * 	- small cleanups
  */
 
 /*
@@ -82,7 +75,16 @@
 	} \
 }
 
-/* Form cumulative histogram.
+/**
+ * im_histcum:
+ * @in: input image
+ * @out: output image
+ *
+ * Form cumulative histogram. 
+ *
+ * See also: im_histnorm().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_histcum( IMAGE *in, IMAGE *out )
@@ -145,8 +147,18 @@ im_histcum( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-/* Normalise histogram ... normalise range to make it square (ie. max ==
+
+/**
+ * im_histnorm:
+ * @in: input image
+ * @out: output image
+ *
+ * Normalise histogram ... normalise range to make it square (ie. max ==
  * number of elements). Normalise each band separately.
+ *
+ * See also: im_histcum().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_histnorm( IMAGE *in, IMAGE *out )
@@ -193,7 +205,16 @@ im_histnorm( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-/* Histogram equalisation. 
+/**
+ * im_histeq:
+ * @in: input image
+ * @out: output image
+ *
+ * Histogram equalisation: normalised cumulative histogram. 
+ *
+ * See also: im_heq().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_histeq( IMAGE *in, IMAGE *out )
@@ -202,7 +223,9 @@ im_histeq( IMAGE *in, IMAGE *out )
 
 	/* Normalised cumulative.
 	 */
-	if( !t1 || im_histcum( in, t1 ) || im_histnorm( t1, out ) )
+	if( !(t1 = im_open_local( out, "im_histeq:1", "p" )) ||
+		im_histcum( in, t1 ) || 
+		im_histnorm( t1, out ) )
 		return( -1 );
 
 	return( 0 );

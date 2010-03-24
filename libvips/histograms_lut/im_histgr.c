@@ -1,16 +1,4 @@
-/* @(#) im_histgr: make a histogram of an image and saves it into hist.
- * @(#) If input is uchar, output is 256 by 1 image of uint. If input is
- * @(#) ushort, output is max(image) + 1 by 1 image of uint. If bandno is
- * @(#) zero, then output is has same number of bands as input, with each
- * @(#) band being a separate histogram. Otherwise, bandno selects a band
- * @(#) to find the histogram of.
- * @(#) 
- * @(#) Usage:
- * @(#) int im_histgr(image, hist, bandno)
- * @(#) IMAGE *image, *hist;
- * @(#) int bandno;
- * @(#)
- * @(#)  Returns 0 on success and -1 on error
+/* find histograms
  *
  * Copyright: 1990, 1991, N. Dessipris.
  *
@@ -29,6 +17,9 @@
  *	- tiny speed ups
  * 21/1/07
  * 	- number bands from zero
+ * 24/3/10
+ * 	- gtkdoc
+ * 	- small celanups
  */
 
 /*
@@ -292,6 +283,22 @@ find_ushort_hist_extract( REGION *reg, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_histgr:
+ * @in: input image
+ * @out: output image
+ * @bandno: band to equalise
+ *
+ * Find the histogram of @in. Find the histogram for band @bandno (producing a
+ * one-band histogram), or for all bands (producing an n-band histogram) if 
+ * @bandno is -1. 
+ *
+ * @in must be u8 or u16. @out is always u32.
+ *
+ * See also: im_histgr(), im_histeq().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_histgr( IMAGE *in, IMAGE *out, int bandno )
 {
@@ -304,30 +311,19 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 
 	/* Check images. PIO from in, WIO to out.
 	 */
-	if( im_pincheck( in ) || im_outcheck( out ) )
+	if( im_check_uncoded( "im_histgr", in ) || 
+		im_check_u8or16( "im_histgr", in ) ||
+		im_check_bandno( "im_histgr", in, bandno ) ||
+		im_pincheck( in ) || 
+		im_outcheck( out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_histgr", "%s", _( "uncoded images only" ) );
-		return( -1 );
-	}
 
 	/* Find the range of pixel values we must handle.
 	 */
-	if( in->BandFmt == IM_BANDFMT_UCHAR ) 
-		size = 256;
-	else if( in->BandFmt == IM_BANDFMT_USHORT )
-		size = 65536;
-	else {
-		im_error( "im_histgr", "%s", _( "input not uchar or ushort" ) );
-		return( -1 );
-	}
+	size = in->BandFmt == IM_BANDFMT_UCHAR ? 256 : 65536;
 
 	/* How many output bands?
 	 */
-	if( bandno > in->Bands || bandno < -1 ) {
-		im_error( "im_histgr", "%s", _( "bad band parameter" ) );
-		return( -1 );
-	}
 	if( bandno == -1 ) 
 		bands = in->Bands;
 	else 
