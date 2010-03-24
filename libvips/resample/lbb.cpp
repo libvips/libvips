@@ -92,15 +92,17 @@
  *
  * Instead of forcing the reconstructed surface to lie between two
  * GLOBALLY defined planes, LBB constrains one patch at a time to lie
- * between local min and max. It does so by constraining the
- * derivatives (x, y and cross) at each input pixel location so that
- * if the constraint was applied everywhere the surface would fit
- * between the min and max of the values at the 9 closest pixel
- * locations. Because this is done with each of the four pixel
- * locations which define the bicubic patch constrains the
- * reconstructed surface between the min and max of the values at the
- * 16 closest values pixel locations (each corner defines its own 9x9
- * subgroup of the 4x4 stencil).
+ * between LOCALLY defined planes. This is accomplished by
+ * constraining the derivatives (x, y and cross) at each input pixel
+ * location so that if the constraint was applied everywhere the
+ * surface would fit between the min and max of the values at the 9
+ * closest pixel locations. Because this is done with each of the four
+ * pixel locations which define the bicubic patch, this forces the
+ * reconstructed surface to lie between the min and max of the values
+ * at the 16 closest values pixel locations. (Each corner defines its
+ * own 3x3 subgroup of the 4x4 stencil. Consequently, the surface is
+ * necessarily above the minimum of the four minima, which happens to
+ * be the minimum over the 4x4. Similarly with the maxima.)
  */
 
 #ifdef HAVE_CONFIG_H
