@@ -1,18 +1,11 @@
-/* @(#) im_histnD: make a one, two or three dimensional histogram of a 1, 2 or
- * @(#) 3 band image. Divide each axis into a certain number of bins .. ie.
- * @(#) output is 1 x bins, binx x bins, or bins x bins x bins bands.
- * @(#) uchar and ushort only.
- * @(#) 
- * @(#) Usage:
- * @(#) int im_histnD( image, hist, bins )
- * @(#) IMAGE *image, *hist;
- * @(#) int bins;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
+/* n-dimensional histogram
  *
  * Written on: 8/7/03 
  * 10/11/04 
  *	- oops, was not checking the bandfmt coming in
+ * 24/3/10
+ * 	- gtkdoc
+ * 	- small celanups
  */
 
 /*
@@ -201,6 +194,21 @@ find_hist( REGION *reg, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/**
+ * im_histgr:
+ * @in: input image
+ * @out: output image
+ * @bins: number of bins to make on each axis
+ *
+ * Make a one, two or three dimensional histogram of a 1, 2 or
+ * 3 band image. Divide each axis into a certain number of bins .. ie.
+ * output is 1 x bins, bins x bins, or bins x bins x bins bands.
+ * uchar and ushort only.
+ *
+ * See also: im_histgr(), im_histindexed().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_histnD( IMAGE *in, IMAGE *out, int bins )
 {
@@ -211,18 +219,11 @@ im_histnD( IMAGE *in, IMAGE *out, int bins )
 
 	/* Check images. PIO from in, WIO to out.
 	 */
-	if( im_pincheck( in ) || im_outcheck( out ) )
+	if( im_check_uncoded( "im_histnD", in ) || 
+		im_check_u8or16( "im_histnD", in ) ||
+		im_pincheck( in ) || 
+		im_outcheck( out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_histnD", "%s", _( " uncoded images only" ) );
-		return( -1 );
-	}
-	if( in->BandFmt != IM_BANDFMT_UCHAR && 
-		in->BandFmt != IM_BANDFMT_USHORT ) {
-		im_error( "im_histnD", 
-			"%s", _( " unsigned 8 or 16 bit images only" ) );
-		return( -1 );
-	}
 
 	max_val = in->BandFmt == IM_BANDFMT_UCHAR ? 256 : 65536;
 	if( bins < 1 || bins > max_val ) {
