@@ -4,6 +4,8 @@
 
 - check the order of decls in hist.h, is it sensible?
 
+  check the order in freq_flt as well
+
 - im_render() should be renamed as vips_sink_screen()? also vips_sink_disc()
   instead of vips_discsink()?
 
