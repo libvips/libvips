@@ -303,7 +303,7 @@ hist_write( IMAGE *out, Histogram *hist )
 }
 
 /**
- * im_histindexed:
+ * im_hist_indexed:
  * @index: input image
  * @value: input image
  * @out: output image

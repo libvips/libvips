@@ -195,7 +195,7 @@ find_hist( REGION *reg, void *seq, void *a, void *b )
 }
 
 /**
- * im_histgr:
+ * im_histnD:
  * @in: input image
  * @out: output image
  * @bins: number of bins to make on each axis
