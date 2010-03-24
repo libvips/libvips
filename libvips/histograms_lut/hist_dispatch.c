@@ -50,7 +50,8 @@
  * @include: vips/vips.h
  *
  * Histograms and look-up tables are 1xn or nx1 images, where n is less than
- * 256 or less than 65536, corresponding to 8- and 16-bit images. They are
+ * 256 or less than 65536, corresponding to 8- and 16-bit unsigned int images. 
+ * They are
  * tagged with a #VipsType of IM_TYPE_HISTOGRAM and usually displayed by
  * user-interfaces such as nip2 as plots rather than images.
  *
