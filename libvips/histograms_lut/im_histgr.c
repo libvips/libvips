@@ -295,7 +295,7 @@ find_ushort_hist_extract( REGION *reg, void *seq, void *a, void *b )
  *
  * @in must be u8 or u16. @out is always u32.
  *
- * See also: im_histgr(), im_histeq().
+ * See also: im_histindexed(), im_histeq().
  *
  * Returns: 0 on success, -1 on error
  */

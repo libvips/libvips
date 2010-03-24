@@ -2,6 +2,8 @@
  *
  * 13/10/09
  * 	- from im_histgr.c
+ * 24/3/10
+ * 	- gtkdoc
  */
 
 /*
@@ -300,6 +302,26 @@ hist_write( IMAGE *out, Histogram *hist )
 	return( 0 );
 }
 
+/**
+ * im_histindexed:
+ * @index: input image
+ * @value: input image
+ * @out: output image
+ *
+ * Make a histogram of @value, but use image @index to pick the bins. In other
+ * words, element zero in @out contains the sum of all the pixels in @value
+ * whose corresponding pixel in @index is zero.
+ *
+ * @index must have just one band and be u8 or u16. @value must be
+ * non-complex. @out always has the same size and format as @value.
+ *
+ * This operation is useful in conjunction with im_label_regions(). You can
+ * use it to find the centre of gravity of blobs in an image, for example.
+ *
+ * See also: im_histgr(), im_label_regions().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out )
 {
