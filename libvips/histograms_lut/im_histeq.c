@@ -61,7 +61,6 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -96,15 +95,9 @@ im_histcum( IMAGE *in, IMAGE *out )
 	PEL *outbuf;		
 	int b, x;
 
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_histcum", "%s", _( "input coded" ) );
-		return( -1 );
-	}
-	if( px > 65536 ) {
-		im_error( "im_histcum", "%s", _( "input too large" ) );
-		return( -1 );
-	}
-	if( im_incheck( in ) )
+	if( im_check_uncoded( "im_histcum", in ) ||
+		im_check_hist( "im_histcum", in ) ||
+		im_iocheck( in, out ) )
 		return( -1 );
 
 	if( im_cp_desc( out, in ) )
@@ -115,6 +108,8 @@ im_histcum( IMAGE *in, IMAGE *out )
 		out->BandFmt = IM_BANDFMT_UINT;
 	else if( vips_bandfmt_isint( in->BandFmt ) )
 		out->BandFmt = IM_BANDFMT_INT;
+	if( im_setupout( out ) )
+		return( -1 );
 
 	if( !(outbuf = im_malloc( out, IM_IMAGE_SIZEOF_LINE( out ))) )
                 return( -1 );
@@ -141,10 +136,10 @@ im_histcum( IMAGE *in, IMAGE *out )
 		ACCUMULATE( double, double ); break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 
-	if( im_setupout( out ) || im_writeline( 0, out, outbuf ) )
+	if( im_writeline( 0, out, outbuf ) )
 		return( -1 );
 
 	return( 0 );

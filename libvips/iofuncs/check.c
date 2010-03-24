@@ -1049,6 +1049,37 @@ im_check_vector( const char *domain, int n, IMAGE *im )
 }
 
 /**
+ * im_check_hist:
+ * @domain: the originating domain for the error message
+ * @im: image to check 
+ *
+ * Histogram images must have width or height 1, and must not have more than 
+ * 65536 elements. Return 0 if the image will pass as a histogram, or -1 and
+ * set an error message otherwise.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_hist( const char *domain, IMAGE *im )
+{
+	if( im->Xsize != 1 && im->Ysize != 1 ) {
+		im_error( domain, "%s", 
+			_( "histograms must have width or height 1" ) );
+		return( -1 );
+	}
+	if( im->Xsize * im->Ysize > 65536 ) {
+		im_error( domain, "%s", 
+			_( "histograms must have not have more than "
+				"65536 elements" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_imask:
  * @domain: the originating domain for the error message
  * @mask: mask to check
