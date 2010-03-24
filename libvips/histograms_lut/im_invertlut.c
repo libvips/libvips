@@ -1,22 +1,12 @@
-/* @(#) Given a mask of target values and real values, generate a LUT which
- * @(#) will map reals to targets. Handy for linearising images from
- * @(#) measurements of a colour chart. All values in [0,1]. Piecewise linear
- * @(#) interpolation, extrapolate head and tail to 0 and 1.
- * @(#) 
- * @(#) Eg. input line like:
- * @(#) 
- * @(#)   0.1	0.2	0.3	0.1
- * @(#)   
- * @(#) means a patch with 10% reflectance produces an image with 20% in
- * @(#) channel 1, 30% in channel 2, and 10% in channel 3.
- * @(#)  
- * @(#) Inputs don't need to be sorted (we do that). Generate any precision
- * @(#) LUT ... typically ask for 256 elements.
+/* invert a lut
  *
  * Written on: 5/6/01
  * Modified on : 
+ *
  * 7/7/03 JC
  * 	- generate image rather than doublemask (arrg)
+ * 23/3/10
+ * 	- gtkdoc
  */
 
 /*
@@ -236,16 +226,73 @@ invertlut( State *state )
 	return( 0 );
 }
 
+/**
+ * im_invertlut:
+ * @input: input mask
+ * @output: output LUT
+ * @lut_size: generate this much
+ *
+ * Given a mask of target values and real values, generate a LUT which
+ * will map reals to targets. Handy for linearising images from
+ * measurements of a colour chart. All values in [0,1]. Piecewise linear
+ * interpolation, extrapolate head and tail to 0 and 1.
+ * 
+ * Eg. input like this:
+ * 
+ *   <tgroup cols='4' align='left' colsep='1' rowsep='1'>
+ *     <tbody>
+ *       <row>
+ *         <entry>4</entry>
+ *         <entry>3</entry>
+ *       </row>
+ *       <row>
+ *         <entry>0.1</entry>
+ *         <entry>0.2</entry>
+ *         <entry>0.3</entry>
+ *         <entry>0.1</entry>
+ *       </row>
+ *       <row>
+ *         <entry>0.2</entry>
+ *         <entry>0.4</entry>
+ *         <entry>0.4</entry>
+ *         <entry>0.2</entry>
+ *       </row>
+ *       <row>
+ *         <entry>0.7</entry>
+ *         <entry>0.5</entry>
+ *         <entry>0.6</entry>
+ *         <entry>0.3</entry>
+ *       </row>
+ *     </tbody>
+ *   </tgroup>
+ *
+ * Means a patch with 10% reflectance produces an image with 20% in
+ * channel 1, 30% in channel 2, and 10% in channel 3, and so on.
+ * 
+ * Inputs don't need to be sorted (we do that). Generate any precision
+ * LUT, typically you might ask for 256 elements.
+ *
+ * It won't work too well for non-monotonic camera responses 
+ * (we should fix this). Interpolation is simple piecewise linear; we ought to 
+ * do something better really.
+ *
+ * See also: im_buildlut(), im_invertlut()
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_invertlut( DOUBLEMASK *input, IMAGE *output, int lut_size )
 {
 	State state;
 
-	if( !input || input->xsize < 2 || input->ysize < 1 ) {
+	if( !input || 
+		input->xsize < 2 || 
+		input->ysize < 1 ) {
 		im_error( "im_invertlut", "%s", _( "bad input matrix" ) );
 		return( -1 );
 	}
-	if( lut_size < 1 || lut_size > 65536 ) {
+	if( lut_size < 1 || 
+		lut_size > 65536 ) {
 		im_error( "im_invertlut", "%s", _( "bad lut_size" ) );
 		return( -1 );
 	}
