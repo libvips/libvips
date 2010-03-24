@@ -1,22 +1,4 @@
-/* @(#) im_histplot: plot a 1xany or anyx1 image file as a max x any or 
- * @(#) any x max graph using these rules:
- * @(#)
- * @(#) - unsigned char
- * @(#) 	always output 256 
- * @(#) - other unsigned integer types
- * @(#) 	output 0 - max
- * @(#) - signed int types
- * @(#) 	min moved to 0, max moved to max + min.
- * @(#) - float types
- * @(#) 	min moved to 0, max moved to any (square output)
- * @(#)
- * @(#) usage:
- * @(#)
- * @(#)  	int 
- * @(#)  	im_histplot( hist, histplot )
- * @(#)  	IMAGE *hist, *histplot;
- * @(#) 
- * @(#) Returns non-zero on error
+/* draw a histogram
  *
  * Copyright: 1990, N. Dessipris.
  *
