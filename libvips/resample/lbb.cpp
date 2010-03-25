@@ -69,9 +69,9 @@
  * --When the limiters are inactive, LBB gives the same results as
  *   Catmull-Rom.
  *
- * --When used on binary images, LBB gives the same results as bicubic
- *   Hermite with all derivatives at the input pixel locations set to
- *   zero.
+ * --When used on binary images, LBB gives results similar to bicubic
+ *   Hermite with all first derivatives---but not necessarily the
+ *   cross derivatives--at the input pixel locations set to zero.
  *
  * --The LBB reconstruction is locally bounded: Over each square
  *   patch, the surface is contained between the minimum and the
