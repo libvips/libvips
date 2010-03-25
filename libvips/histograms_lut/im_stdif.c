@@ -1,24 +1,4 @@
-/* @(#) Functions which calculates statistical differenciating according to
- * @(#) the formula given in page 45 of the book "An intro to digital image
- * @(#) processing" by Wayne Niblack
- * @(#) 
- * @(#) At point (i,j) the output is given by the eqn:
- * @(#)
- * @(#) 	vout(i,j) = a*m0 +(1-a)*meanv + 
- * @(#) 		(vin(i,j) - meanv) * beta*sigma0/(sigma0+beta*stdv)
- * @(#)
- * @(#) Values a, m0, beta and sigma0 are entered 
- * @(#) meanv and stdv are the values calculated over a moving window
- * @(#) xwin and ywin are the sizes of the used window
- * @(#) The resultant coefficients are written as floats
- * @(#) in out which has a size of in
- * @(#)
- * @(#) int im_stdif(in, im, alpha, mean0, beta, sigma0, xwin, ywin)
- * @(#) IMAGE *in, *out;
- * @(#) int xwin, ywin;
- * @(#) double alpha, mean0, beta, sigma0;
- * @(#)
- * @(#) Returns 0 on sucess  and -1 on error.
+/* statistical difference 
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -38,6 +18,9 @@
  * 7/4/04 
  *	- now uses im_embed() with edge stretching on the input, not
  *	  the output
+ * 25/3/10
+ * 	- gtkdoc
+ * 	- small cleanups
  */
 
 /*
@@ -95,19 +78,13 @@ stdif_gen( REGION *or, void *seq, void *a, void *b )
 {
 	REGION *ir = (REGION *) seq;
 	StdifInfo *inf = (StdifInfo *) b;
-	Rect irect;
-
+	int npel = inf->xwin * inf->ywin;
 	Rect *r = &or->valid;
-	int le = r->left;
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
-	int ri = IM_RECT_RIGHT(r);
 
+	Rect irect;
 	int x, y, i, j;
 	int lsk;
-
-	int coff;			/* Offset to move to centre of window */
-	int npel = inf->xwin * inf->ywin;
+	int centre;			/* Offset to move to centre of window */
 
 	/* What part of ir do we need?
 	 */
@@ -119,16 +96,13 @@ stdif_gen( REGION *or, void *seq, void *a, void *b )
 		return( -1 );
 
 	lsk = IM_REGION_LSKIP( ir );
-	coff = lsk * (inf->ywin/2) + inf->xwin/2;
+	centre = lsk * (inf->ywin / 2) + inf->xwin / 2;
 
-	for( y = to; y < bo; y++ ) {
+	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
 		 */
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
-		PEL *p1, *p2;
-		int sum = 0;
-		int sum2 = 0;
+		PEL *p = (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y );
+		PEL *q = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y );
 
 		/* Precompute some factors.
 		 */
@@ -136,43 +110,55 @@ stdif_gen( REGION *or, void *seq, void *a, void *b )
 		double f2 = 1.0 - inf->a;
 		double f3 = inf->b * inf->s0;
 
+		PEL *p1;
+		int sum;
+		int sum2;
+
 		/* Find sum, sum of squares for the start of this line.
 		 */
-		for( p1 = p, j = 0; j < inf->ywin; j++, p1 += lsk )
-			for( p2 = p1, i = 0; i < inf->xwin; i++, p2++ ) {
-				int t = *p2;
+		sum = 0;
+		sum2 = 0;
+		p1 = p;
+		for( j = 0; j < inf->ywin; j++ ) {
+			for( i = 0; i < inf->xwin; i++ ) {
+				int t = p1[i];
 
 				sum += t;
 				sum2 += t * t;
 			}
 
+			p1 += lsk;
+		}
+
 		/* Loop for output pels.
 		 */
-		for( x = le; x < ri; x++, p++ ) {
+		for( x = 0; x < r->width; x++ ) {
 			/* Find stats.
 			 */
-			double mean = (double)sum / npel;
-			double var = (double)sum2 / npel - (mean * mean);
+			double mean = (double) sum / npel;
+			double var = (double) sum2 / npel - (mean * mean);
 			double sig = sqrt( var );
 
 			/* Transform.
 			 */
-			double res = f1 + f2*mean + ((double) p[coff] - mean) * 
-				(f3 / (inf->s0 + inf->b*sig));
-			
+			double res = f1 + f2 * mean + 
+				((double) p[centre] - mean) * 
+				(f3 / (inf->s0 + inf->b * sig));
+
 			/* And write.
 			 */
 			if( res < 0.0 )
-				*q++ = 0;
+				q[x] = 0;
 			else if( res >= 256.0 )
-				*q++ = 255;
+				q[x] = 255;
 			else
-				*q++ = res + 0.5;
+				q[x] = res + 0.5;
 
 			/* Adapt sums - remove the pels from the left hand
 			 * column, add in pels for a new right-hand column.
 			 */
-			for( p1 = p, j = 0; j < inf->ywin; j++, p1 += lsk ) {
+			p1 = p;
+			for( j = 0; j < inf->ywin; j++ ) {
 				int t1 = p1[0];
 				int t2 = p1[inf->xwin];
 
@@ -181,7 +167,11 @@ stdif_gen( REGION *or, void *seq, void *a, void *b )
 
 				sum += t2;
 				sum2 += t2 * t2;
+
+				p1 += lsk;
 			}
+
+			p += 1;
 		}
 	}
 
@@ -195,23 +185,26 @@ im_stdif_raw( IMAGE *in, IMAGE *out,
 {
 	StdifInfo *inf;
 
+	if( xwin > in->Xsize || 
+		ywin > in->Ysize ) {
+		im_error( "im_stdif", "%s", _( "window too large" ) );
+		return( -1 );
+	}
+	if( xwin <= 0 || 
+		ywin <= 0 ) {
+		im_error( "im_lhisteq", "%s", _( "window too small" ) );
+		return( -1 );
+	}
 	if( m0 < 0 || m0 > 255 || a < 0 || a > 1.0 || b < 0 || b > 2 || 
 		s0 < 0 || s0 > 255 ) {
 		im_error( "im_stdif", "%s", _( "parameters out of range" ) );
 		return( -1 );
 	}
-	if( im_piocheck( in, out ) )
+	if( im_check_format( "im_stdif", in, IM_BANDFMT_UCHAR ) ||
+		im_check_uncoded( "im_stdif", in ) ||
+		im_check_mono( "im_stdif", in ) ||
+		im_piocheck( in, out ) )
 		return( -1 );
-	if( in->BandFmt != IM_BANDFMT_UCHAR || 
-		in->Bands != 1 || in->Coding != IM_CODING_NONE ) { 
-		im_error( "im_stdif", "%s", 
-			_( "one band uchar uncoded only" ) ); 
-		return( -1 ); 
-	}
-	if( xwin > in->Xsize || ywin > in->Ysize ) {
-		im_error( "im_stdif", "%s", _( "window too large" ) );
-		return( -1 );
-	}
 	if( im_cp_desc( out, in ) ) 
 		return( -1 );
 	out->Xsize -= xwin;
@@ -243,16 +236,53 @@ im_stdif_raw( IMAGE *in, IMAGE *out,
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+/**
+ * im_stdif:
+ * @in: input image
+ * @out: output image
+ * @a: weight of new mean
+ * @m0: target mean
+ * @b: weight of new deviation
+ * @s0:target deviation
+ * @xwin: width of region
+ * @hwin: height of region
+ *
+ * im_stdif() preforms statistical differencing according to the formula
+ * given in page 45 of the book "An Introduction to Digital Image 
+ * Processing" by Wayne Niblack. This transformation emphasises the way in 
+ * which a pel differs statistically from its neighbours. It is useful for 
+ * enhancing low-contrast images with lots of detail, such as X-ray plates.
+ *
+ * At point (i,j) the output is given by the equation:
+ *
+ * vout(i,j) = @a * @m0 + (1 - @a) * meanv + 
+ *       (vin(i,j) - meanv) * (@b * @s0) / (@s0 + @b * stdv)
+ *
+ * Values @a, @m0, @b and @s0 are entered, while meanv and stdv are the values
+ * calculated over a moving window of size @xwin, @ywin centred on pixel (i,j). 
+ * @m0 is the new mean, @a is the weight given to it. @s0 is the new standard 
+ * deviation, @b is the weight given to it. 
+ *
+ * Try:
+ *
+ * vips im_stdif $VIPSHOME/pics/huysum.v fred.v 0.5 128 0.5 50 11 11
+ *
+ * The operation works on one-band uchar images only, and writes a one-band 
+ * uchar image as its result. The output image has the same size as the 
+ * input.
+ *
+ * See also: im_lhisteq().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_stdif( IMAGE *in, IMAGE *out, 
 	double a, double m0, double b, double s0, 
 	int xwin, int ywin )
 {
-	IMAGE *t1 = im_open_local( out, "im_stdif:1", "p" );
+	IMAGE *t1;
 
-	if( !t1 || 
+	if( !(t1 = im_open_local( out, "im_stdif:1", "p" )) ||
 		im_embed( in, t1, 1, xwin / 2, ywin / 2, 
 			in->Xsize + xwin - 1, 
 			in->Ysize + ywin - 1 ) ||

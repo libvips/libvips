@@ -1,15 +1,10 @@
-/* @(#) Find the horizontal and vertical projections of an image, ie. the sum
- * @(#) of pixels in each row and column. Two output images, 1xheight and
- * @(#) widthx1, with the largest required bandfmt. 
- * @(#) 
- * @(#) int im_project( in, columns, rows )
- * @(#) IMAGE *in;
- * @(#) IMAGE *columns, *rows;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
+/* horizontal and vertical projection
  *
  * 20/4/06
  *	- from im_histgr()
+ * 25/3/10
+ * 	- gtkdoc
+ * 	- small celanups
  */
 
 /*
@@ -46,7 +41,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -133,8 +127,8 @@ project_merge( void *seq, void *a, void *b )
 	int hsz = in->Xsize * in->Bands;
 	int vsz = in->Ysize * in->Bands;
 
-	assert( sproject->hout == mproject->hout );
-	assert( sproject->vout == mproject->vout );
+	g_assert( sproject->hout == mproject->hout );
+	g_assert( sproject->vout == mproject->vout );
 
 	/* Add on sub-data.
 	 */
@@ -155,7 +149,7 @@ project_merge( void *seq, void *a, void *b )
 		break;
 
 	default:
-		assert( 0 );
+		g_assert( 0 );
 	}
 
 	/* Blank out sub-project to make sure we can't add it again.
@@ -238,12 +232,28 @@ project_scan( REGION *reg, void *seq, void *a, void *b )
 		break;
 
 	default:
-		assert( 0 );
+		g_assert( 0 );
 	}
 
 	return( 0 );
 }
 
+/**
+ * im_project:
+ * @in: input image
+ * @hout: sums of rows
+ * @vout: sums of columns
+ *
+ * Find the horizontal and vertical projections of an image, ie. the sum
+ * of every row of pixels, and the sum of every column of pixels. The output
+ * format is uint, int or double, depending on the input format.
+ *
+ * Non-complex images only.
+ *
+ * See also: im_histgr(), im_profile().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 {
@@ -252,26 +262,21 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 
 	/* Check images. PIO from in, WIO to out.
 	 */
-	if( im_pincheck( in ) || im_outcheck( hout ) || im_outcheck( vout ) )
+	if( im_check_uncoded( "im_project", in ) ||
+		im_check_noncomplex( "im_project", in ) ||
+		im_pincheck( in ) || 
+		im_outcheck( hout ) || 
+		im_outcheck( vout ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "im_project", "%s", _( "uncoded images only" ) );
-		return( -1 );
-	}
-	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_project", "%s", _( "non-complex images only" ) );
-		return( -1 );
-	}
 
 	/* Make the output images. 
 	 */
-	if( im_cp_desc( hout, in ) || im_cp_desc( vout, in ) ) 
+	if( im_cp_desc( hout, in ) || 
+		im_cp_desc( vout, in ) ) 
 		return( -1 );
-
 	hout->Xsize = 1;
 	hout->BandFmt = project_type[in->BandFmt];
 	hout->Type = IM_TYPE_HISTOGRAM;
-
 	vout->Ysize = 1;
 	vout->BandFmt = project_type[in->BandFmt];
 	vout->Type = IM_TYPE_HISTOGRAM;
@@ -287,7 +292,8 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 		project_new_sub, project_scan, project_merge, mproject, NULL ) )
 		return( -1 );
 
-	if( im_setupout( hout ) || im_setupout( vout ) )
+	if( im_setupout( hout ) || 
+		im_setupout( vout ) )
 		return( -1 );
 
 	if( im_writeline( 0, vout, (PEL *) mproject->columns ) )

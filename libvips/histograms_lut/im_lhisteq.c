@@ -212,7 +212,7 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
  * The output image is the same size as the input image. The edge pixels are
  * created by copy edge pixels of the input image outwards.
  *
- * See also: im_heq().
+ * See also: im_stdif(), im_heq().
  *
  * Returns: 0 on success, -1 on error
  */
