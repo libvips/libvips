@@ -144,10 +144,14 @@ typedef struct _VipsInterpolateLbbClass {
 
 } VipsInterpolateLbbClass;
 
-#define LBB_ABS(x) ( ((x)>=0.) ? (x) : -(x) )
+#define LBB_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
 #define LBB_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
-#define LBB_MIN(x,y) ( (x)<=(y) ? (x) : (y) )
-#define LBB_MAX(x,y) ( (x)>=(y) ? (x) : (y) )
+/*
+ * MIN and MAX macros set up so that I can put the likely winner in
+ * the first argument (forward branch likely blah blah blah):
+ */
+#define LBB_MIN(x,y) ( ((x)<=(y)) ? (x) : (y) )
+#define LBB_MAX(x,y) ( ((x)>=(y)) ? (x) : (y) )
 
 static inline double
 lbbicubic( const double c00,
