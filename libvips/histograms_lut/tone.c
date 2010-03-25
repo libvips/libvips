@@ -77,7 +77,7 @@
  *	- patched for im_extract_band() change
  * 11/7/04
  *	- generalised to im_tone_build_range() ... so you can use it for any
- *	  image ,not just LabS
+ *	  image, not just LabS
  */
 
 /*
@@ -219,13 +219,14 @@ im_tone_build_range( IMAGE *out,
 	double Ps, double Pm, double Ph, 
 	double S, double M, double H )
 {
-	ToneShape *ts = IM_NEW( out, ToneShape );
+	ToneShape *ts;
 	unsigned short lut[65536];
 	int i;
 
 	/* Check args.
 	 */
-	if( !ts || im_outcheck( out ) )
+	if( !(ts = IM_NEW( out, ToneShape )) ||
+		im_outcheck( out ) )
 		return( -1 );
 	if( in_max < 0 || in_max > 65535 ||
 		out_max < 0 || out_max > 65535 ) {
@@ -307,6 +308,7 @@ im_tone_build_range( IMAGE *out,
 		IM_CODING_NONE, IM_TYPE_HISTOGRAM, 1.0, 1.0, 0, 0 );
 	if( im_setupout( out ) )
 		return( -1 );
+
 	if( im_writeline( 0, out, (PEL *) lut ) )
 		return( -1 );
 
@@ -319,9 +321,9 @@ im_tone_build( IMAGE *out,
 	double Ps, double Pm, double Ph, 
 	double S, double M, double H )
 {
-	IMAGE *t1 = im_open_local( out, "im_tone_build", "p" );
+	IMAGE *t1;
 
-	if( !t1 ||
+	if( !(t1 = im_open_local( out, "im_tone_build", "p" )) ||
 		im_tone_build_range( t1, 1023, 32767,
 			Lb, Lw, Ps, Pm, Ph, S, M, H ) ||
 		im_clip2fmt( t1, out, IM_BANDFMT_SHORT ) )
@@ -335,12 +337,11 @@ im_tone_build( IMAGE *out,
 int
 im_ismonotonic( IMAGE *lut, int *out )
 {
-	IMAGE *t1 = im_open_local( lut, "im_ismonotonic:1", "p" );
-	IMAGE *t2 = im_open_local( lut, "im_ismonotonic:2", "p" );
-	IMAGE *t3 = im_open_local( lut, "im_ismonotonic:3", "p" );
+	IMAGE *t[3];
 	double m;
 
-	if( !t1 || !t2 || !t3 ) 
+	if( im_open_local_array( lut, t, 3, "im_ismonotonic", "p" ) ||
+		im_check_hist( "im_ismonotonic", lut ) )
 		return( -1 );
 
 	/* Can be either a horizontal or vertical LUT.
@@ -354,21 +355,22 @@ im_ismonotonic( IMAGE *lut, int *out )
 	/* Extract two areas, offset by 1 pixel.
 	 */
 	if( lut->Xsize == 1 ) {
-		if( im_extract_area( lut, t1, 0, 0, 1, lut->Ysize - 1 ) ||
-			im_extract_area( lut, t2, 0, 1, 1, lut->Ysize - 1 ) )
+		if( im_extract_area( lut, t[0], 0, 0, 1, lut->Ysize - 1 ) ||
+			im_extract_area( lut, t[1], 0, 1, 1, lut->Ysize - 1 ) )
 			return( -1 );
 	}
 	else {
-		if( im_extract_area( lut, t1, 0, 0, lut->Xsize - 1, 1 ) ||
-			im_extract_area( lut, t2, 1, 0, lut->Xsize - 1, 1 ) )
+		if( im_extract_area( lut, t[0], 0, 0, lut->Xsize - 1, 1 ) ||
+			im_extract_area( lut, t[1], 1, 0, lut->Xsize - 1, 1 ) )
 			return( -1 );
 	}
 
 	/* Now t2 should be >= than t1 everywhere!
 	 */
-	if( im_moreeq( t2, t1, t3 ) || im_min( t3, &m ) )
+	if( im_moreeq( t[1], t[0], t[2] ) || 
+		im_min( t[2], &m ) )
 		return( -1 );
-	
+
 	*out = m;
 
 	return( 0 );
