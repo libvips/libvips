@@ -30,6 +30,8 @@
  * 7/2/10
  * 	- cleanups
  * 	- gtkdoc
+ * 25/3/10
+ * 	- have a "t" image linked to out to keep the image alive for longer
  */
 
 /*
@@ -573,6 +575,7 @@ im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn )
 {
 	IMAGE **bands;
 	IMAGE **fft;
+	IMAGE *t;
 	int b;
 
 	if( in->Bands == 1 ) 
@@ -589,7 +592,12 @@ im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn )
 			fn( dummy, bands[b], fft[b] ) )
 			return( -1 );
 
-	if( im_gbandjoin( fft, out, in->Bands ) )
+	/* We need a "t" for the combined image that won't get freed too
+	 * quickly.
+	 */
+	if( !(t = im_open_local( out, "im__fftproc", "t" )) ||
+		im_gbandjoin( fft, t, in->Bands ) ||
+		im_copy( t, out ) )
 		return( -1 );
 
 	return( 0 );

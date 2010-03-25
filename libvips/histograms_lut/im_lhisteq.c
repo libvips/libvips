@@ -1,12 +1,4 @@
-/* @(#) Performs local histogram equalisation on an image using a
- * @(#) window of size xw by yw
- * @(#) Works only on monochrome images
- * @(#)
- * @(#) int im_lhisteq(in, out, xwin, ywin)
- * @(#) IMAGE *in, *out;
- * @(#) int xwin, ywin;
- * @(#)
- * @(#) Returns 0 on sucess and -1 on error
+/* local histogram equalisation
  *
  * Copyright: 1991, N. Dessipris 
  *
@@ -22,6 +14,9 @@
  *	- sets Xoffset/Yoffset
  * 23/6/08
  * 	- check for window too small as well
+ * 25/3/10
+ * 	- gtkdoc
+ * 	- small cleanups
  */
 
 /*
@@ -80,18 +75,12 @@ lhist_gen( REGION *or, void *seq, void *a, void *b )
 {
 	REGION *ir = (REGION *) seq;
 	LhistInfo *inf = (LhistInfo *) b;
-	Rect irect;
-
 	Rect *r = &or->valid;
-	int le = r->left;
-	int to = r->top;
-	int bo = IM_RECT_BOTTOM( r );
-	int ri = IM_RECT_RIGHT( r );
 
+	Rect irect;
 	int x, y, i, j;
 	int lsk;
-
-	int coff;		/* Offset to move to centre of window */
+	int centre;		/* Offset to move to centre of window */
 
 	/* What part of ir do we need?
 	 */
@@ -99,49 +88,60 @@ lhist_gen( REGION *or, void *seq, void *a, void *b )
 	irect.top = or->valid.top;
 	irect.width = or->valid.width + inf->xwin;
 	irect.height = or->valid.height + inf->ywin;
-
 	if( im_prepare( ir, &irect ) )
 		return( -1 );
-	lsk = IM_REGION_LSKIP( ir );
-	coff = lsk * (inf->ywin / 2) + inf->xwin / 2;
 
-	for( y = to; y < bo; y++ ) {
+	lsk = IM_REGION_LSKIP( ir );
+	centre = lsk * (inf->ywin / 2) + inf->xwin / 2;
+
+	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
 		 */
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
-		PEL *p1, *p2;
+		PEL *p = (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y );
+		PEL *q = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y );
+
+		PEL *p1;
 		int hist[256];
 
 		/* Find histogram for start of this line.
 		 */
 		memset( hist, 0, 256 * sizeof( int ) );
-		for( p1 = p, j = 0; j < inf->ywin; j++, p1 += lsk )
-			for( p2 = p1, i = 0; i < inf->xwin; i++, p2++ )
-				hist[*p2]++;
+		p1 = p;
+		for( j = 0; j < inf->ywin; j++ ) {
+			for( i = 0; i < inf->xwin; i++ )
+				hist[p1[i]] += 1;
+			
+			p1 += lsk;
+		}
 
 		/* Loop for output pels.
 		 */
-		for( x = le; x < ri; x++, p++ ) {
+		for( x = 0; x < r->width; x++ ) {
 			/* Sum histogram up to current pel.
 			 */
-			int target = p[coff];
-			int sum = 0;
+			int target = p[centre];
+			int sum;
 
-			for( sum = 0, i = 0; i < target; i++ )
+			sum = 0;
+			for( i = 0; i < target; i++ )
 				sum += hist[i];
 
 			/* Transform.
 			 */
-			*q++ = sum * 256 / inf->npels;
+			q[x] = sum * 256 / inf->npels;
 
 			/* Adapt histogram - remove the pels from the left hand
 			 * column, add in pels for a new right-hand column.
 			 */
-			for( p1 = p, j = 0; j < inf->ywin; j++, p1 += lsk ) {
-				hist[p1[0]]--;
-				hist[p1[inf->xwin]]++;
+			p1 = p;
+			for( j = 0; j < inf->ywin; j++ ) {
+				hist[p1[0]] -= 1;
+				hist[p1[inf->xwin]] += 1;
+
+				p1 += lsk;
 			}
+
+			p += 1;
 		}
 	}
 
@@ -153,22 +153,22 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
 {
 	LhistInfo *inf;
 
-	if( im_piocheck( in, out ) )
+	if( im_check_mono( "im_lhisteq", in ) ||
+		im_check_uncoded( "im_lhisteq", in ) ||
+		im_check_format( "im_lhisteq", in, IM_BANDFMT_UCHAR ) ||
+		im_piocheck( in, out ) )
 		return( -1 );
-	if( in->BandFmt != IM_BANDFMT_UCHAR || 
-		in->Bands != 1 || in->Coding != IM_CODING_NONE ) { 
-		im_error( "im_lhisteq", 
-			"%s", _( "one band uchar uncoded only" ) ); 
-		return( -1 ); 
-	}
-	if( xwin > in->Xsize || ywin > in->Ysize ) {
+	if( xwin > in->Xsize || 
+		ywin > in->Ysize ) {
 		im_error( "im_lhisteq", "%s", _( "window too large" ) );
 		return( -1 );
 	}
-	if( xwin <= 0 || ywin <= 0 ) {
+	if( xwin <= 0 || 
+		ywin <= 0 ) {
 		im_error( "im_lhisteq", "%s", _( "window too small" ) );
 		return( -1 );
 	}
+
 	if( im_cp_desc( out, in ) ) 
 		return( -1 );
 	out->Xsize -= xwin - 1;
@@ -188,8 +188,6 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
 	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
 		return( -1 );
 
-	/* Write the hist.
-	 */
 	if( im_generate( out,
 		im_start_one, lhist_gen, im_stop_one, in, inf ) )
 		return( -1 );
@@ -200,14 +198,30 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+/**
+ * im_lhisteq:
+ * @in: input image
+ * @out: output image
+ * @xwin: width of region
+ * @hwin: height of region
+ *
+ * Performs local histogram equalisation on @in using a
+ * window of size @xwin by @ywin centered on the input pixel. Works only on 
+ * monochrome images.
+ *
+ * The output image is the same size as the input image. The edge pixels are
+ * created by copy edge pixels of the input image outwards.
+ *
+ * See also: im_heq().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_lhisteq( IMAGE *in, IMAGE *out, int xwin, int ywin )
 {
-	IMAGE *t1 = im_open_local( out, "im_lhisteq:1", "p" );
+	IMAGE *t1;
 
-	if( !t1 ||
+	if( !(t1 = im_open_local( out, "im_lhisteq:1", "p" )) ||
 		im_embed( in, t1, 1, 
 			xwin / 2, ywin / 2, 
 			in->Xsize + xwin - 1, in->Ysize + ywin - 1 ) ||

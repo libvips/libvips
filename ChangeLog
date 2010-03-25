@@ -4,6 +4,7 @@
 - im_wbuffer2() renamed as vips_discsink(), some cleanups
 - im_gammacorrect() can do 16-bit images too
 - im_histplot() could fail for signed int histograms
+- im_fwfft() and im_invfft() could free their output image too early
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do

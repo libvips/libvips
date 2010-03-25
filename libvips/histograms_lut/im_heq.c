@@ -63,7 +63,7 @@
  * Histogram-equalise @in. Equalise using band @bandno, or if @bandno is -1,
  * equalise all bands.
  *
- * See also: im_histgr(), im_histeq().
+ * See also: im_lhisteq(), im_histgr(), im_histeq().
  *
  * Returns: 0 on success, -1 on error
  */

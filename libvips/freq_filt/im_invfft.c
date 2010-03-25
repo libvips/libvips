@@ -258,7 +258,6 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 #endif /*HAVE_FFTW3*/
 #endif /*HAVE_FFTW*/
 
-
 /**
  * im_invfft:
  * @in: input image
