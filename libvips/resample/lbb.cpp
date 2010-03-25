@@ -144,6 +144,11 @@ typedef struct _VipsInterpolateLbbClass {
 
 } VipsInterpolateLbbClass;
 
+#define LBB_ABS(x) ( ((x)>=0.) ? (x) : -(x) )
+#define LBB_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
+#define LBB_MIN(x,y) ( (x)<=(y) ? (x) : (y) )
+#define LBB_MAX(x,y) ( (x)>=(y) ? (x) : (y) )
+
 static inline double
 lbbicubic( const double c00,
            const double c10,
@@ -214,32 +219,32 @@ lbbicubic( const double c00,
   const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two;
   const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr;
   const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two;
-  const double m5    = (m1      <= m2     ) ? m1      : m2     ;
-  const double M5    = (M1      >= M2     ) ? M1      : M2     ;
+  const double m5    = LBB_MIN( m1, m2 );
+  const double M5    = LBB_MAX( M1, M2 );
   const double m6    = (dos_one <= tre_one) ? dos_one : tre_one;
   const double M6    = (dos_one <= tre_one) ? tre_one : dos_one;
   const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou;
   const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou;
-  const double m8    = (m5      <= m3     ) ? m5      : m3     ;
-  const double M8    = (M5      >= M3     ) ? M5      : M3     ;
-  const double m9    = (m5      <= m4     ) ? m5      : m4     ;
-  const double M9    = (M5      >= M4     ) ? M5      : M4     ;
-  const double m10   = (m6      <= uno_one) ? m6      : uno_one;
-  const double M10   = (M6      >= uno_one) ? M6      : uno_one;
-  const double m11   = (m7      <= uno_fou) ? m7      : uno_fou;
-  const double M11   = (M7      >= uno_fou) ? M7      : uno_fou;
-  const double m12   = (m6      <= qua_one) ? m6      : qua_one;
-  const double M12   = (M6      >= qua_one) ? M6      : qua_one;
-  const double m13   = (m7      <= qua_fou) ? m7      : qua_fou;
-  const double M13   = (M7      >= qua_fou) ? M7      : qua_fou;
-  const double min00 = (m8      <= m10    ) ? m8      : m10    ;
-  const double max00 = (M8      >= M10    ) ? M8      : M10    ;
-  const double min10 = (m8      <= m11    ) ? m8      : m11    ;
-  const double max10 = (M8      >= M11    ) ? M8      : M11    ;
-  const double min01 = (m9      <= m12    ) ? m9      : m12    ;
-  const double max01 = (M9      >= M12    ) ? M9      : M12    ;
-  const double min11 = (m9      <= m13    ) ? m9      : m13    ;
-  const double max11 = (M9      >= M13    ) ? M9      : M13    ;
+  const double m8    = LBB_MIN( m5, m3 );
+  const double M8    = LBB_MAX( M5, M3 );
+  const double m9    = LBB_MIN( m5, m4 );
+  const double M9    = LBB_MAX( M5, M4 );
+  const double m10   = LBB_MIN( m6, uno_one );
+  const double M10   = LBB_MAX( M6, uno_one );
+  const double m11   = LBB_MIN( m7, uno_fou );
+  const double M11   = LBB_MAX( M7, uno_fou );
+  const double m12   = LBB_MIN( m6, qua_one );
+  const double M12   = LBB_MAX( M6, qua_one );
+  const double m13   = LBB_MIN( m7, qua_fou );
+  const double M13   = LBB_MAX( M7, qua_fou );
+  const double min00 = LBB_MIN( m8, m10 );
+  const double max00 = LBB_MAX( M8, M10 );
+  const double min10 = LBB_MIN( m8, m11 );
+  const double max10 = LBB_MAX( M8, M11 );
+  const double min01 = LBB_MIN( m9, m12 );
+  const double max01 = LBB_MAX( M9, M12 );
+  const double min11 = LBB_MIN( m9, m13 );
+  const double max11 = LBB_MAX( M9, M13 );
 
   /*
    * Distances to the local min and max:
@@ -269,26 +274,27 @@ lbbicubic( const double c00,
   const double dble_dzdy11i = qua_thr - dos_thr;
 
   /*
-   * Signs of the derivatives:
+   * Signs of the derivatives. The upcoming clamping does not change
+   * them (except if the clamping sends a negative derivative to 0).
    */
-  const double sign_dzdx00 = (dble_dzdx00i >= 0.) ? 1. : -1.;
-  const double sign_dzdx10 = (dble_dzdx10i >= 0.) ? 1. : -1.;
-  const double sign_dzdx01 = (dble_dzdx01i >= 0.) ? 1. : -1.;
-  const double sign_dzdx11 = (dble_dzdx11i >= 0.) ? 1. : -1.;
+  const double sign_dzdx00 = LBB_SIGN( dble_dzdx00i );
+  const double sign_dzdx10 = LBB_SIGN( dble_dzdx10i );
+  const double sign_dzdx01 = LBB_SIGN( dble_dzdx01i );
+  const double sign_dzdx11 = LBB_SIGN( dble_dzdx11i );
 
-  const double sign_dzdy00 = (dble_dzdy00i >= 0.) ? 1. : -1.;
-  const double sign_dzdy10 = (dble_dzdy10i >= 0.) ? 1. : -1.;
-  const double sign_dzdy01 = (dble_dzdy01i >= 0.) ? 1. : -1.;
-  const double sign_dzdy11 = (dble_dzdy11i >= 0.) ? 1. : -1.;
+  const double sign_dzdy00 = LBB_SIGN( dble_dzdy00i );
+  const double sign_dzdy10 = LBB_SIGN( dble_dzdy10i );
+  const double sign_dzdy01 = LBB_SIGN( dble_dzdy01i );
+  const double sign_dzdy11 = LBB_SIGN( dble_dzdy11i );
 
   /*
    * Slope limiters. The key multiplier is 3 but we fold a factor of
    * 2, hence 6:
    */
-  const double dble_slopelimit_00 = 6.0 * ( (u00 <= v00) ? u00 : v00 );
-  const double dble_slopelimit_10 = 6.0 * ( (u10 <= v10) ? u10 : v10 );
-  const double dble_slopelimit_01 = 6.0 * ( (u01 <= v01) ? u01 : v01 );
-  const double dble_slopelimit_11 = 6.0 * ( (u11 <= v11) ? u11 : v11 );
+  const double dble_slopelimit_00 = 6.0 * LBB_MIN( u00, v00 );
+  const double dble_slopelimit_10 = 6.0 * LBB_MIN( u10, v10 );
+  const double dble_slopelimit_01 = 6.0 * LBB_MIN( u01, v01 );
+  const double dble_slopelimit_11 = 6.0 * LBB_MIN( u11, v11 );
 
   /*
    * Initial values of the cross-derivatives. Factors of 1/4 are left
@@ -372,63 +378,39 @@ lbbicubic( const double c00,
   /*
    * Absolute values of the sums:
    */
-  const double twelve_abs_sum00 =
-    (twelve_sum00 >= 0.0) ? twelve_sum00 : -twelve_sum00;
-  const double twelve_abs_sum10 =
-    (twelve_sum10 >= 0.0) ? twelve_sum10 : -twelve_sum10;
-  const double twelve_abs_sum01 =
-    (twelve_sum01 >= 0.0) ? twelve_sum01 : -twelve_sum01;
-  const double twelve_abs_sum11 =
-    (twelve_sum11 >= 0.0) ? twelve_sum11 : -twelve_sum11;
+  const double twelve_abs_sum00 = LBB_ABS( twelve_sum00 );
+  const double twelve_abs_sum10 = LBB_ABS( twelve_sum10 );
+  const double twelve_abs_sum01 = LBB_ABS( twelve_sum01 );
+  const double twelve_abs_sum11 = LBB_ABS( twelve_sum11 );
 
   /*
-   * Scaled 'u' differences:
+   * Scaled distances to the min:
    */
-  const double u00_times_36 = 36. * u00;
-  const double u10_times_36 = 36. * u10;
-  const double u01_times_36 = 36. * u01;
-  const double u11_times_36 = 36. * u11;
+  const double u00_times_36 = 36.0 * u00;
+  const double u10_times_36 = 36.0 * u10;
+  const double u01_times_36 = 36.0 * u01;
+  const double u11_times_36 = 36.0 * u11;
 
   /*
    * First cross-derivative limiter:
    */
-  const double first_limit00  = twelve_abs_sum00 - u00_times_36;
-  const double first_limit10  = twelve_abs_sum10 - u10_times_36;
-  const double first_limit01  = twelve_abs_sum01 - u01_times_36;
-  const double first_limit11  = twelve_abs_sum11 - u11_times_36;
+  const double first_limit00 = twelve_abs_sum00 - u00_times_36;
+  const double first_limit10 = twelve_abs_sum10 - u10_times_36;
+  const double first_limit01 = twelve_abs_sum01 - u01_times_36;
+  const double first_limit11 = twelve_abs_sum11 - u11_times_36;
 
-  const double quad_d2zdxdy00ii =
-    (quad_d2zdxdy00i >= first_limit00)
-    ? quad_d2zdxdy00i : first_limit00;
-  const double quad_d2zdxdy10ii =
-    (quad_d2zdxdy10i >= first_limit10)
-    ? quad_d2zdxdy10i : first_limit10;
-  const double quad_d2zdxdy01ii =
-    (quad_d2zdxdy01i >= first_limit01)
-    ? quad_d2zdxdy01i : first_limit01;
-  const double quad_d2zdxdy11ii =
-    (quad_d2zdxdy11i >= first_limit11)
-    ? quad_d2zdxdy11i : first_limit11;
+  const double quad_d2zdxdy00ii = LBB_MAX( quad_d2zdxdy00i, first_limit00 );
+  const double quad_d2zdxdy10ii = LBB_MAX( quad_d2zdxdy10i, first_limit10 );
+  const double quad_d2zdxdy01ii = LBB_MAX( quad_d2zdxdy01i, first_limit01 );
+  const double quad_d2zdxdy11ii = LBB_MAX( quad_d2zdxdy11i, first_limit11 );
 
   /*
-   * Absolute values of the differences:
+   * Scaled distances to the max:
    */
-  const double twelve_abs_dif00 =
-    (twelve_dif00 >= 0.0) ? twelve_dif00 : -twelve_dif00;
-  const double twelve_abs_dif10 =
-    (twelve_dif10 >= 0.0) ? twelve_dif10 : -twelve_dif10;
-  const double twelve_abs_dif01 =
-    (twelve_dif01 >= 0.0) ? twelve_dif01 : -twelve_dif01;
-  const double twelve_abs_dif11 =
-    (twelve_dif11 >= 0.0) ? twelve_dif11 : -twelve_dif11;
-
-  /*
-   * Scaled 'v' differences:
-   */
-  const double v00_times_36 = 36. * v00;
-  const double v10_times_36 = 36. * v10;
-  const double v01_times_36 = 36. * v01;
-  const double v11_times_36 = 36. * v11;
+  const double v00_times_36 = 36.0 * v00;
+  const double v10_times_36 = 36.0 * v10;
+  const double v01_times_36 = 36.0 * v01;
+  const double v11_times_36 = 36.0 * v11;
 
   /*
    * Second cross-derivative limiter:
@@ -438,60 +420,44 @@ lbbicubic( const double c00,
   const double second_limit01 = v01_times_36 - twelve_abs_sum01;
   const double second_limit11 = v11_times_36 - twelve_abs_sum11;
 
-  const double quad_d2zdxdy00iii =
-    (quad_d2zdxdy00ii <= second_limit00)
-    ? quad_d2zdxdy00ii : second_limit00;
-  const double quad_d2zdxdy10iii =
-    (quad_d2zdxdy10ii <= second_limit10)
-    ? quad_d2zdxdy10ii : second_limit10;
-  const double quad_d2zdxdy01iii =
-    (quad_d2zdxdy01ii <= second_limit01)
-    ? quad_d2zdxdy01ii : second_limit01;
-  const double quad_d2zdxdy11iii =
-    (quad_d2zdxdy11ii <= second_limit11)
-    ? quad_d2zdxdy11ii : second_limit11;
+  const double quad_d2zdxdy00iii = LBB_MIN( quad_d2zdxdy00ii, second_limit00 );
+  const double quad_d2zdxdy10iii = LBB_MIN( quad_d2zdxdy10ii, second_limit10 );
+  const double quad_d2zdxdy01iii = LBB_MIN( quad_d2zdxdy01ii, second_limit01 );
+  const double quad_d2zdxdy11iii = LBB_MIN( quad_d2zdxdy11ii, second_limit11 );
+
+  /*
+   * Absolute values of the differences:
+   */
+  const double twelve_abs_dif00 = LBB_ABS( twelve_dif00 );
+  const double twelve_abs_dif10 = LBB_ABS( twelve_dif10 );
+  const double twelve_abs_dif01 = LBB_ABS( twelve_dif01 );
+  const double twelve_abs_dif11 = LBB_ABS( twelve_dif11 );
 
   /*
    * Third cross-derivative limiter:
    */
-  const double third_limit00  = u00_times_36 - twelve_abs_dif00;
-  const double third_limit10  = u10_times_36 - twelve_abs_dif10;
-  const double third_limit01  = u01_times_36 - twelve_abs_dif01;
-  const double third_limit11  = u11_times_36 - twelve_abs_dif11;
+  const double third_limit00 = twelve_abs_dif00 - v00_times_36;
+  const double third_limit10 = twelve_abs_dif10 - v10_times_36;
+  const double third_limit01 = twelve_abs_dif01 - v01_times_36;
+  const double third_limit11 = twelve_abs_dif11 - v11_times_36;
 
-  const double quad_d2zdxdy00iiii =
-    (quad_d2zdxdy00iii <= third_limit00)
-    ? quad_d2zdxdy00iii : third_limit00;
-  const double quad_d2zdxdy10iiii =
-    (quad_d2zdxdy10iii <= third_limit10)
-    ? quad_d2zdxdy10iii : third_limit10;
-  const double quad_d2zdxdy01iiii =
-    (quad_d2zdxdy01iii <= third_limit01)
-    ? quad_d2zdxdy01iii : third_limit01;
-  const double quad_d2zdxdy11iiii =
-    (quad_d2zdxdy11iii <= third_limit11)
-    ? quad_d2zdxdy11iii : third_limit11;
+  const double quad_d2zdxdy00iiii = LBB_MAX( quad_d2zdxdy00iii, third_limit00);
+  const double quad_d2zdxdy10iiii = LBB_MAX( quad_d2zdxdy10iii, third_limit10);
+  const double quad_d2zdxdy01iiii = LBB_MAX( quad_d2zdxdy01iii, third_limit01);
+  const double quad_d2zdxdy11iiii = LBB_MAX( quad_d2zdxdy11iii, third_limit11);
 
   /*
    * Fourth cross-derivative limiter:
    */
-  const double fourth_limit00 = twelve_abs_dif00 - v00_times_36;
-  const double fourth_limit10 = twelve_abs_dif10 - v10_times_36;
-  const double fourth_limit01 = twelve_abs_dif01 - v01_times_36;
-  const double fourth_limit11 = twelve_abs_dif11 - v11_times_36;
+  const double fourth_limit00 = u00_times_36 - twelve_abs_dif00;
+  const double fourth_limit10 = u10_times_36 - twelve_abs_dif10;
+  const double fourth_limit01 = u01_times_36 - twelve_abs_dif01;
+  const double fourth_limit11 = u11_times_36 - twelve_abs_dif11;
 
-  const double quad_d2zdxdy00 =
-    (quad_d2zdxdy00iiii >= fourth_limit00)
-    ? quad_d2zdxdy00iiii : fourth_limit00;
-  const double quad_d2zdxdy10 =
-    (quad_d2zdxdy10iiii >= fourth_limit10)
-    ? quad_d2zdxdy10iiii : fourth_limit10;
-  const double quad_d2zdxdy01 =
-    (quad_d2zdxdy01iiii >= fourth_limit01)
-    ? quad_d2zdxdy01iiii : fourth_limit01;
-  const double quad_d2zdxdy11 =
-    (quad_d2zdxdy11iiii >= fourth_limit11)
-    ? quad_d2zdxdy11iiii : fourth_limit11;
+  const double quad_d2zdxdy00 = LBB_MIN( quad_d2zdxdy00iiii, fourth_limit00);
+  const double quad_d2zdxdy10 = LBB_MIN( quad_d2zdxdy10iiii, fourth_limit10);
+  const double quad_d2zdxdy01 = LBB_MIN( quad_d2zdxdy01iiii, fourth_limit01);
+  const double quad_d2zdxdy11 = LBB_MIN( quad_d2zdxdy11iiii, fourth_limit11);
 
   /*
    * Four times the part of the result which only uses cross
