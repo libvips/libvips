@@ -1,62 +1,4 @@
-/* @(#) Various functions relating to tone curve adjustment.
- * @(#) 
- * @(#) im_tone_build: generate tone curve for adjustment of LabQ image. LUT we
- * @(#) make is always 1024 elements, each element is a LabS L value.
- * @(#) 
- * @(#) Base parameters:
- * @(#) 
- * @(#) 	Lb	- black point
- * @(#) 	Lw	- white point	(both [0,100])
- * @(#) 
- * @(#) 	Ps	- shadow point
- * @(#) 	Pm	- mid-tone point
- * @(#) 	Ph	- highlight point
- * @(#) 
- * @(#) All 0-1, meaning max of shadow section of curve should be positioned
- * @(#) at Lb+Ps(Lw-Lb), etc. Suggest Lb, Lw should be set by histogram
- * @(#) analysis to 0.1% and 99.9%; Ps, Pm, Ph should be 0.2, 0.5, 0.8.
- * @(#) 
- * @(#) Main parameters:
- * @(#) 
- * @(#) 	S	- shadow adjustment factor (+/- 30)
- * @(#) 	M	- mid-tone adjustment factor (+/- 30)
- * @(#) 	H	- highlight adjustment factor (+/- 30)
- * @(#) 
- * @(#) Usage:
- * @(#) 
- * @(#) int 
- * @(#) im_tone_build( 
- * @(#) 	IMAGE *lut, 
- * @(#) 	double Lb, double Lw,
- * @(#) 	double Ps, double Pm, double Ph,
- * @(#) 	double S, double M, double H )
- * @(#)
- * @(#)  Returns 0 on success and -1 on error
- * @(#)
- * @(#) im_tone_map: map just the L channel of a LabQ or LabS image through 
- * @(#) a LUT.
- * @(#)
- * @(#) Usage:
- * @(#) 
- * @(#) int 
- * @(#) im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
- * @(#) im_tone_analyse: find the histogram of a LabS or LabQ image and use
- * @(#) that to set the Ln and Lw parameters of im_tone_build()
- * @(#)
- * @(#) Usage:
- * @(#) 
- * @(#) int 
- * @(#) im_tone_analyse( 
- * @(#) 	IMAGE *in, 
- * @(#) 	IMAGE *lut, 
- * @(#) 	double Ps, double Pm, double Ph,
- * @(#) 	double S, double M, double H )
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* Various functions relating to tone curve adjustment.
  *
  * Author: John Cupitt
  * Written on: 18/7/1995
@@ -68,6 +10,9 @@
  * 11/7/04
  *	- generalised to im_tone_build_range() ... so you can use it for any
  *	  image, not just LabS
+ * 26/3/10
+ * 	- cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -483,6 +428,8 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 }
 
 /* Find histogram of in, and use that to set Lb, Lw levels.
+ * @(#) im_tone_analyse: find the histogram of a LabS or LabQ image and use
+ * @(#) that to set the Ln and Lw parameters of im_tone_build()
  */
 int 
 im_tone_analyse( 
