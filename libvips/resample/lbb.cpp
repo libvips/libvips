@@ -545,82 +545,82 @@ lbbicubic( const double c00,
     \
     const double xp1over2   = relative_x; \
     const double xm1over2   = xp1over2 - 1.0; \
-    const double onemx      = 1.5 - xp1over2; \
     const double onepx      = 0.5 + xp1over2; \
+    const double onemx      = 1.5 - xp1over2; \
     const double xp1over2sq = xp1over2 * xp1over2; \
     \
     const double yp1over2   = relative_y; \
     const double ym1over2   = yp1over2 - 1.0; \
-    const double onemy      = 1.5 - yp1over2; \
     const double onepy      = 0.5 + yp1over2; \
+    const double onemy      = 1.5 - yp1over2; \
     const double yp1over2sq = yp1over2 * yp1over2; \
     \
     const double xm1over2sq = xm1over2 * xm1over2; \
     const double ym1over2sq = ym1over2 * ym1over2; \
     \
-    const double twice1mx = onemx + onemx; \
     const double twice1px = onepx + onepx; \
-    const double twice1my = onemy + onemy; \
     const double twice1py = onepy + onepy; \
+    const double twice1mx = onemx + onemx; \
+    const double twice1my = onemy + onemy; \
     \
     const double xm1over2sq_times_ym1over2sq = xm1over2sq * ym1over2sq; \
     const double xp1over2sq_times_ym1over2sq = xp1over2sq * ym1over2sq; \
     const double xp1over2sq_times_yp1over2sq = xp1over2sq * yp1over2sq; \
     const double xm1over2sq_times_yp1over2sq = xm1over2sq * yp1over2sq; \
     \
-    const double xm1over2_times_ym1over2  = xm1over2 * ym1over2; \
-    const double xp1over2_times_ym1over2  = xp1over2 * ym1over2; \
-    const double twice_1mx_times_ym1over2 = twice1mx * ym1over2; \
-    const double twice_1px_times_ym1over2 = twice1px * ym1over2; \
-    \
-    const double xm1over2_times_yp1over2  = xm1over2 * yp1over2; \
-    const double xp1over2_times_yp1over2  = xp1over2 * yp1over2; \
-    const double twice_1mx_times_yp1over2 = twice1mx * yp1over2; \
-    const double twice_1px_times_yp1over2 = twice1px * yp1over2; \
+    const double four_times_1px_times_1py = twice1px * twice1py; \
+    const double four_times_1mx_times_1py = twice1mx * twice1py; \
+    const double twice_xp1over2_times_1py = xp1over2 * twice1py; \
+    const double twice_xm1over2_times_1py = xm1over2 * twice1py; \
     \
     const double twice_xm1over2_times_1my = xm1over2 * twice1my; \
     const double twice_xp1over2_times_1my = xp1over2 * twice1my; \
     const double four_times_1mx_times_1my = twice1mx * twice1my; \
     const double four_times_1px_times_1my = twice1px * twice1my; \
     \
-    const double twice_xm1over2_times_1py = xm1over2 * twice1py; \
-    const double twice_xp1over2_times_1py = xp1over2 * twice1py; \
-    const double four_times_1mx_times_1py = twice1mx * twice1py; \
-    const double four_times_1px_times_1py = twice1px * twice1py; \
+    const double twice_1px_times_ym1over2 = twice1px * ym1over2; \
+    const double twice_1mx_times_ym1over2 = twice1mx * ym1over2; \
+    const double xp1over2_times_ym1over2  = xp1over2 * ym1over2; \
+    const double xm1over2_times_ym1over2  = xm1over2 * ym1over2; \
     \
-    const double c00     = \
+    const double xm1over2_times_yp1over2  = xm1over2 * yp1over2; \
+    const double xp1over2_times_yp1over2  = xp1over2 * yp1over2; \
+    const double twice_1mx_times_yp1over2 = twice1mx * yp1over2; \
+    const double twice_1px_times_yp1over2 = twice1px * yp1over2; \
+    \
+    const double c00 = \
       four_times_1px_times_1py * xm1over2sq_times_ym1over2sq; \
-    const double c00dx   = \
+    const double c10 = \
+      four_times_1mx_times_1py * xp1over2sq_times_ym1over2sq; \
+    const double c01 = \
+      four_times_1px_times_1my * xm1over2sq_times_yp1over2sq; \
+    const double c11 = \
+      four_times_1mx_times_1my * xp1over2sq_times_yp1over2sq; \
+    \
+    const double c00dx = \
       twice_xp1over2_times_1py * xm1over2sq_times_ym1over2sq; \
-    const double c00dy   = \
+    const double c10dx = \
+      twice_xm1over2_times_1py * xp1over2sq_times_ym1over2sq; \
+    const double c01dx = \
+      twice_xp1over2_times_1my * xm1over2sq_times_yp1over2sq; \
+    const double c11dx = \
+      twice_xm1over2_times_1my * xp1over2sq_times_yp1over2sq; \
+    \
+    const double c00dy = \
       twice_1px_times_yp1over2 * xm1over2sq_times_ym1over2sq; \
+    const double c10dy = \
+      twice_1mx_times_yp1over2 * xp1over2sq_times_ym1over2sq; \
+    const double c01dy = \
+      twice_1px_times_ym1over2 * xm1over2sq_times_yp1over2sq; \
+    const double c11dy = \
+      twice_1mx_times_ym1over2 * xp1over2sq_times_yp1over2sq; \
+    \
     const double c00dxdy = \
        xp1over2_times_yp1over2 * xm1over2sq_times_ym1over2sq; \
-    \
-    const double c10     = \
-      four_times_1mx_times_1py * xp1over2sq_times_ym1over2sq; \
-    const double c10dx   = \
-      twice_xm1over2_times_1py * xp1over2sq_times_ym1over2sq; \
-    const double c10dy   = \
-      twice_1mx_times_yp1over2 * xp1over2sq_times_ym1over2sq; \
     const double c10dxdy = \
        xm1over2_times_yp1over2 * xp1over2sq_times_ym1over2sq; \
-    \
-    const double c01     = \
-      four_times_1px_times_1my * xm1over2sq_times_yp1over2sq; \
-    const double c01dx   = \
-      twice_xp1over2_times_1my * xm1over2sq_times_yp1over2sq; \
-    const double c01dy   = \
-      twice_1px_times_ym1over2 * xm1over2sq_times_yp1over2sq; \
     const double c01dxdy = \
        xp1over2_times_ym1over2 * xm1over2sq_times_yp1over2sq; \
-    \
-    const double c11     = \
-      four_times_1mx_times_1my * xp1over2sq_times_yp1over2sq; \
-    const double c11dx   = \
-      twice_xm1over2_times_1my * xp1over2sq_times_yp1over2sq; \
-    const double c11dy   = \
-      twice_1mx_times_ym1over2 * xp1over2sq_times_yp1over2sq; \
     const double c11dxdy = \
        xm1over2_times_ym1over2 * xp1over2sq_times_yp1over2sq; \
     \
