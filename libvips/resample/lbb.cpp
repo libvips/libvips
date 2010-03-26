@@ -524,22 +524,22 @@ lbbicubic( const double c00,
     const int fou_shift = 2*bands; \
     \
     const int uno_two_shift =  -lskip; \
-    const int dos_two_shift =       0; \
+    \
     const int tre_two_shift =   lskip; \
     const int qua_two_shift = 2*lskip; \
     \
     const int uno_one_shift = uno_two_shift + one_shift; \
-    const int dos_one_shift = dos_two_shift + one_shift; \
+    const int dos_one_shift =                 one_shift; \
     const int tre_one_shift = tre_two_shift + one_shift; \
     const int qua_one_shift = qua_two_shift + one_shift; \
     \
     const int uno_thr_shift = uno_two_shift + thr_shift; \
-    const int dos_thr_shift = dos_two_shift + thr_shift; \
+    const int dos_thr_shift =                 thr_shift; \
     const int tre_thr_shift = tre_two_shift + thr_shift; \
     const int qua_thr_shift = qua_two_shift + thr_shift; \
     \
     const int uno_fou_shift = uno_two_shift + fou_shift; \
-    const int dos_fou_shift = dos_two_shift + fou_shift; \
+    const int dos_fou_shift =                 fou_shift; \
     const int tre_fou_shift = tre_two_shift + fou_shift; \
     const int qua_fou_shift = qua_two_shift + fou_shift; \
     \
@@ -650,7 +650,7 @@ lbbicubic( const double c00,
                      in[ uno_thr_shift ],   \
                      in[ uno_fou_shift ],   \
                      in[ dos_one_shift ],   \
-                     in[ dos_two_shift ],   \
+                     in[             0 ],   \
                      in[ dos_thr_shift ],   \
                      in[ dos_fou_shift ],   \
                      in[ tre_one_shift ],   \
