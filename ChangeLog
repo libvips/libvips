@@ -6,6 +6,8 @@
 - im_histplot() could fail for signed int histograms
 - im_fwfft() and im_invfft() could free their output image too early
 - added im_local_imask(), im_local_dmask()
+- added im_mpercent_hist()
+- im_maplut() casts the index image to one of the uint types
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do

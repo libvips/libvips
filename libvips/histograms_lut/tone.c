@@ -427,9 +427,23 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 	return( im_copy( t[4], out ) );
 }
 
-/* Find histogram of in, and use that to set Lb, Lw levels.
- * @(#) im_tone_analyse: find the histogram of a LabS or LabQ image and use
- * @(#) that to set the Ln and Lw parameters of im_tone_build()
+/**
+ * im_tone_analyse:
+ * in: input image 
+ * out: output image 
+ * Ps: shadow point (eg. 0.2)
+ * Pm: mid-tone point (eg. 0.5)
+ * Ph: highlight point (eg. 0.8)
+ * S: shadow adjustment (+/- 30)
+ * M: mid-tone adjustment (+/- 30)
+ * H: highlight adjustment (+/- 30)
+ *
+ * As im_tone_build(), but analyse the histogram of @in and use it to
+ * pick the 0.1% and 99.9% points for @Lb and @Lw.
+ *
+ * See also: im_tone_build().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_tone_analyse( 
@@ -466,8 +480,8 @@ im_tone_analyse(
 		im_histgr( t[2], t[3], -1 ) )
 		return( -1 );
 
-	if( im_mpercent( t[3], 0.1 / 100.0, &low ) ||
-		im_mpercent( t[3], 99.9 / 100.0, &high ) )
+	if( im_mpercent_hist( t[3], 0.1 / 100.0, &high ) ||
+		im_mpercent_hist( t[3], 99.9 / 100.0, &low ) )
 		return( -1 );
 
 	Lb = 100 * low / 32768;

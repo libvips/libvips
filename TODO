@@ -1,4 +1,9 @@
 
+- expose more of the tone funcs in nip2
+
+- quite a few hist operations have no GUI ... lhisteq, for example? or
+  histspec?
+
 - conv with scale == 0 gives /0 error
 
 - added im_local_imask(), im_local_dmask(), needs docs?
@@ -7,21 +12,19 @@
 
   is local_imask() in the best place? shouldn't it be in mask.h?
 
-- im_tone_analyse() needs docs and testing
-
-  also im_tone_map() 
-
-- im_rotate_imask90 only works for square, odd-sized massks, argh
+- im_rotate_imask90 only works for square, odd-sized masks, argh
 
 - lots of stupid little files in hist, eg. im_hsp.c ... paste them into larger 
   modules
 
-- quite a few hist operations have no GUI ... lhisteq, for example? or
-  histspec?
-
 - check the order of decls in hist.h, is it sensible?
 
   check the order in freq_flt as well
+
+
+
+
+
 
 - im_render() should be renamed as vips_sink_screen()? also vips_sink_disc()
   instead of vips_discsink()?

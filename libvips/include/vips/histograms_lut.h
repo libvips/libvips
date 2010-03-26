@@ -70,6 +70,7 @@ int im_ismonotonic( IMAGE *lut, int *out );
 int im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut );
 int im_project( IMAGE *in, IMAGE *hout, IMAGE *vout );
 int im_mpercent( IMAGE *in, double percent, int *out );
+int im_mpercent_hist( IMAGE *hist, double percent, int *out );
 
 #ifdef __cplusplus
 }

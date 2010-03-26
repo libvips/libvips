@@ -54,6 +54,53 @@
 #endif /*WITH_DMALLOC*/
 
 /**
+ * im_mpercent_hist:
+ * @hist: input histogram image
+ * @percent: threshold percentage
+ * @out: output threshold value
+ *
+ * Just like im_mpercent(), except it works on an image histogram. Handy if
+ * you want to run im_mpercent() several times without having to recompute the
+ * histogram each time.
+ *
+ * See also: im_mpercent().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_mpercent_hist( IMAGE *hist, double percent, int *out )
+{
+	IMAGE *base;
+	IMAGE *t[6];
+	double pos;
+
+	if( im_check_hist( "im_mpercent", hist ) )
+		return( -1 );
+
+	if( !(base = im_open( "im_mpercent", "p" )) )
+		return( -1 );
+	if( im_open_local_array( base, t, 6, "im_mpercent", "p" ) ) {
+		im_close( base );
+		return( -1 );
+	}
+
+	if( im_histcum( hist, t[1] ) ||
+		im_histnorm( t[1], t[2] ) ||
+		im_lessconst( t[2], t[3], percent * t[2]->Xsize ) ||
+		im_fliphor( t[3], t[4] ) ||
+		im_profile( t[4], t[5], 1 ) ||
+		im_avg( t[5], &pos ) ) {
+		im_close( base );
+		return( -1 );
+	}
+	im_close( base );
+
+	*out = pos;
+
+	return( 0 );
+}
+
+/**
  * im_mpercent:
  * @in: input image
  * @percent: threshold percentage
@@ -73,31 +120,17 @@
  */
 int
 im_mpercent( IMAGE *in, double percent, int *out )
-{	
-	IMAGE *base;
-	IMAGE *t[6];
-	double pos;
+{
+	IMAGE *t;
 
-	if( !(base = im_open( "im_mpercent1", "p" )) )
+	if( !(t = im_open( "im_mpercent1", "p" )) )
 		return( -1 );
-	if( im_open_local_array( base, t, 6, "im_mpercent", "p" ) ) {
-		im_close( base );
-		return( -1 );
-	}
-
-	if( im_histgr( in, t[0], -1 ) ||
-		im_histcum( t[0], t[1] ) ||
-		im_histnorm( t[1], t[2] ) ||
-		im_lessconst( t[2], t[3], percent * t[2]->Xsize ) ||
-		im_fliphor( t[3], t[4] ) ||
-		im_profile( t[4], t[5], 1 ) ||
-		im_avg( t[5], &pos ) ) {
-		im_close( base );
+	if( im_histgr( in, t, -1 ) ||
+		im_mpercent_hist( t, percent, out ) ) {
+		im_close( t );
 		return( -1 );
 	}
-	im_close( base );
-
-	*out = pos;
+	im_close( t );
 
 	return( 0 );
 }

@@ -534,6 +534,19 @@ maplut_gen( REGION *or, void *vseq, void *a, void *b )
 	return( 0 );
 }
 
+/* Save a bit of typing.
+ */
+#define UC IM_BANDFMT_UCHAR
+#define US IM_BANDFMT_USHORT
+#define UI IM_BANDFMT_UINT
+
+/* Type mapping: go to uchar or ushort.
+ */
+static int bandfmt_maplut[10] = {
+/* UC   C  US   S  UI   I   F   X  D   DX */
+   UC, UC, US, US, UI, UI, UI, UI, UI, UI
+};
+
 /**
  * im_maplut:
  * @in: input image
@@ -543,8 +556,8 @@ maplut_gen( REGION *or, void *vseq, void *a, void *b )
  * Map an image through another image acting as a LUT (Look Up Table). 
  * The lut may have any type, and the output image will be that type.
  * 
- * The input image must be an unsigned integer types, that is, it must
- * be one of IM_BANDFMT_UCHAR, IM_BANDFMT_USHORT or IM_BANDFMT_UINT.
+ * The input image will be cast to one of the unsigned integer types, that is,
+ * IM_BANDFMT_UCHAR, IM_BANDFMT_USHORT or IM_BANDFMT_UINT.
  * 
  * If @lut is too small for the input type (for example, if @in is
  * IM_BANDFMT_UCHAR but @lut only has 100 elements), the lut is padded out
@@ -564,6 +577,7 @@ maplut_gen( REGION *or, void *vseq, void *a, void *b )
 int 
 im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 {
+	IMAGE *t;
 	LutInfo *st;
 
 	/* Check input output. Old-style IO from lut, for simplicity.
@@ -572,14 +586,19 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 		im_check_uncoded( "im_maplut", lut ) ||
 		im_check_uncoded( "im_maplut", in ) ||
 		im_check_bands_1orn( "im_maplut", in, lut ) ||
-		im_check_uint( "im_maplut", in ) ||
 		im_piocheck( in, out ) || 
 		im_incheck( lut ) )
 		return( -1 );
 
+	/* Cast in to u8/u16.
+	 */
+	if( !(t = im_open_local( out, "im_maplut", "p" )) ||
+		im_clip2fmt( in, t, bandfmt_maplut[in->BandFmt] ) )
+		return( -1 );
+
 	/* Prepare the output header.
 	 */
-        if( im_cp_descv( out, in, lut, NULL ) )
+        if( im_cp_descv( out, t, lut, NULL ) )
                 return( -1 );
 
 	/* Force output to be the same type as lut.
@@ -599,12 +618,12 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 
 	/* Set demand hints.
 	 */
-	if( im_demand_hint( out, IM_THINSTRIP, in, NULL ) )
+	if( im_demand_hint( out, IM_THINSTRIP, t, NULL ) )
 		return( -1 );
 
 	/* Process!
 	 */
-        if( im_generate( out, maplut_start, maplut_gen, maplut_stop, in, st ) )
+        if( im_generate( out, maplut_start, maplut_gen, maplut_stop, t, st ) )
                 return( -1 );
 
         return( 0 );
