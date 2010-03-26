@@ -33,16 +33,6 @@
  * @(#)
  * @(#)  Returns 0 on success and -1 on error
  * @(#)
- * @(#) im_ismonotonic: test any LUT for monotonicity --- set out to non-zero
- * @(#) if lut is monotonic.
- * @(#)
- * @(#) Usage:
- * @(#) 
- * @(#) int 
- * @(#) im_ismonotonic( IMAGE *lut, int *out )
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
  * @(#) im_tone_map: map just the L channel of a LabQ or LabS image through 
  * @(#) a LUT.
  * @(#)
@@ -212,6 +202,35 @@ tone_curve( ToneShape *ts, double x )
 	return( out );
 }
 
+/**
+ * im_tone_build_range:
+ * out: output image 
+ * in_max: input range 
+ * out_max: output range
+ * Lb: black-point [0-100]
+ * Lw: white-point [0-100]
+ * Ps: shadow point (eg. 0.2)
+ * Pm: mid-tone point (eg. 0.5)
+ * Ph: highlight point (eg. 0.8)
+ * S: shadow adjustment (+/- 30)
+ * M: mid-tone adjustment (+/- 30)
+ * H: highlight adjustment (+/- 30)
+ *
+ * im_tone_build_range() generates a tone curve for the adjustment of image 
+ * levels. It is mostly designed for adjusting the L* part of a LAB image in
+ * way suitable for print work, but you can use it for other things too.
+ *
+ * The curve is an unsigned 16-bit image with (@in_max + 1) entries, 
+ * each in the range [0, @out_max].
+ *
+ * @Lb, @Lw are expressed as 0-100, as in LAB colour space. You 
+ * specify the scaling for the input and output images with the @in_max and 
+ * @out_max parameters.
+ *
+ * See also: im_ismonotonic(), im_tone_map(), im_tone_analyse().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_tone_build_range( IMAGE *out, 
 	int in_max, int out_max,
@@ -315,6 +334,26 @@ im_tone_build_range( IMAGE *out,
 	return( 0 );
 }
 
+/**
+ * im_tone_build:
+ * out: output image 
+ * Lb: black-point [0-100]
+ * Lw: white-point [0-100]
+ * Ps: shadow point (eg. 0.2)
+ * Pm: mid-tone point (eg. 0.5)
+ * Ph: highlight point (eg. 0.8)
+ * S: shadow adjustment (+/- 30)
+ * M: mid-tone adjustment (+/- 30)
+ * H: highlight adjustment (+/- 30)
+ *
+ * As im_tone_build_range(), but set 32767 and 32767 as values for @in_max 
+ * and @out_max. This makes a curve suitable for correcting LABS
+ * images, the most common case.
+ *
+ * See also: im_tone_build_range().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_tone_build( IMAGE *out, 
 	double Lb, double Lw,
@@ -324,7 +363,7 @@ im_tone_build( IMAGE *out,
 	IMAGE *t1;
 
 	if( !(t1 = im_open_local( out, "im_tone_build", "p" )) ||
-		im_tone_build_range( t1, 1023, 32767,
+		im_tone_build_range( t1, 32767, 32767,
 			Lb, Lw, Ps, Pm, Ph, S, M, H ) ||
 		im_clip2fmt( t1, out, IM_BANDFMT_SHORT ) )
 		return( -1 );
@@ -332,7 +371,16 @@ im_tone_build( IMAGE *out,
 	return( 0 );
 }
 
-/* Test a lut or histogram for monotonicity.
+/**
+ * im_ismonotonic:
+ * @lut: lookup-table to test
+ * @out: set non-zero if @lut is monotonic 
+ *
+ * Test @lut for monotonicity. @out is set non-zero if @lut is monotonic.
+ *
+ * See also: im_tone_build_range().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_ismonotonic( IMAGE *lut, int *out )
@@ -345,15 +393,13 @@ im_ismonotonic( IMAGE *lut, int *out )
 		im_open_local_array( lut, t, 2, "im_ismonotonic", "p" ) )
 		return( -1 );
 
-	if( !(mask = im_local_imask( lut, 
-		im_create_imaskv( "im_ismonotonic", 2, 1, 1, -1 ) )) )
+	if( lut->Xsize == 1 ) 
+		mask = im_create_imaskv( "im_ismonotonic", 1, 2, -1, 1 );
+	else 
+		mask = im_create_imaskv( "im_ismonotonic", 2, 1, -1, 1 );
+	if( !(mask = im_local_imask( lut, mask )) )
 		return( -1 );
 	mask->offset = 128;
-	if( lut->Xsize == 1 ) {
-		if( !(mask = im_local_imask( lut, 
-			im_rotate_imask90( mask, mask->filename ) )) )
-			return( -1 );
-	}
 
 	/* We want >=128 everywhere, ie. no -ve transitions.
 	 */
@@ -367,88 +413,73 @@ im_ismonotonic( IMAGE *lut, int *out )
 	return( 0 );
 }
 
-/* Map the L channel of a LabQ or LabS channel of an image through a LUT.
+/**
+ * im_tone_map:
+ * @in: input image
+ * @out: output image
+ * @lut: look-up table
+ *
+ * Map the first channel of @in through @lut. If @in is IM_CODING_LABQ, unpack
+ * to LABS, map L and then repack. 
+ *
+ * @in should be a LABS or LABQ image for this to work
+ * sensibly.
+ *
+ * See also: im_maplut().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 {
-	IMAGE *t1 = im_open_local( out, "im_tone_map:1", "p" );
-	IMAGE *t2 = im_open_local( out, "im_tone_map:2", "p" );
-	IMAGE *t3 = im_open_local( out, "im_tone_map:3", "p" );
-	IMAGE *t4 = im_open_local( out, "im_tone_map:4", "p" );
-	IMAGE *t5 = im_open_local( out, "im_tone_map:5", "p" );
-	IMAGE *t6 = im_open_local( out, "im_tone_map:6", "p" );
-	IMAGE *t7 = im_open_local( out, "im_tone_map:7", "p" );
-	IMAGE *t8 = im_open_local( out, "im_tone_map:8", "p" );
-	IMAGE *imarray[3];
+	IMAGE *t[8];
 
-	if( !t1 || !t2 || !t3 || !t4 || !t5 || !t6 || !t7 ) 
+	if( im_check_hist( "im_tone_map", lut ) ||
+		im_open_local_array( out, t, 8, "im_tone_map", "p" ) )
 		return( -1 );
-
-	/* Need a 1024-point IM_BANDFMT_SHORT lut.
-	 */
-	if( lut->Xsize != 1 && lut->Ysize != 1 ) {
-		im_error( "im_tone_map", 
-			"%s", _( "not 1 by n or n by 1 image" ) );
-		return( -1 );
-	}
-	if( lut->Xsize*lut->Ysize != 1024 || 
-		lut->BandFmt != IM_BANDFMT_SHORT ) {
-		im_error( "im_tone_map", 
-			"%s", _( "not 1024-point IM_BANDFMT_SHORT lut" ) );
-		return( -1 );
-	}
 
 	/* If in is IM_CODING_LABQ, unpack.
 	 */
 	if( in->Coding == IM_CODING_LABQ ) {
-		if( im_LabQ2LabS( in, t1 ) )
+		if( im_LabQ2LabS( in, t[0] ) )
 			return( -1 );
 	}
 	else
-		t1 = in;
-
-	/* Should now be 3-band short.
-	 */
-	if( t1->Coding != IM_CODING_NONE || t1->BandFmt != IM_BANDFMT_SHORT || 
-		t1->Bands != 3 ) {
-		im_error( "im_tone_map", 
-			"%s", _( "input not LabS or LabQ" ) );
-		return( -1 );
-	}
+		t[0] = in;
 
 	/* Split into bands.
 	 */
-	if( im_extract_band( t1, t2, 0 ) || im_extract_band( t1, t3, 1 ) ||
-		im_extract_band( t1, t4, 2 ) )
+	if( im_extract_band( t[0], t[1], 0 ) )
+		return( -1 );
+	if( t[0]->Bands > 1 ) {
+		if( im_extract_bands( t[0], t[2], 1, t[0]->Bands - 1 ) )
+			return( -1 );
+	}
+
+	/* Map L.
+	 */
+	if( im_maplut( t[1], t[3], lut ) )
 		return( -1 );
 
-	/* Scale L down to 10 bits so we can use it to index LUT. And amke
-	 * sure we have an unsigned type we can use for indexing.
+	/* Recombine bands. 
 	 */
-	if( im_shiftright( t2, t8, 5 ) ||
-		im_clip2fmt( t8, t5, IM_BANDFMT_USHORT ) )
-		return( -1 );
+	if( t[0]->Bands > 1 ) {
+		if( im_bandjoin( t[3], t[2], t[4] ) )
+			return( -1 );
+	}
+	else
+		t[4] = t[3];
 
-	/* Replace L.
+	/* If input was LabQ, repack.
 	 */
-	if( im_maplut( t5, t6, lut ) )
-		return( -1 );
-
-	/* Recombine bands. If input was LabQ, repack.
-	 */
-	imarray[0] = t6; imarray[1] = t3; imarray[2] = t4;
 	if( in->Coding == IM_CODING_LABQ ) {
-		if( im_gbandjoin( imarray, t7, 3 ) ||
-			im_LabS2LabQ( t7, out ) )
+		if( im_LabS2LabQ( t[4], t[5] ) )
 			return( -1 );
 	}
-	else {
-		if( im_gbandjoin( imarray, out, 3 ) )
-			return( -1 );
-	}
+	else 
+		t[5] = t[4];
 	
-	return( 0 );
+	return( im_copy( t[4], out ) );
 }
 
 /* Find histogram of in, and use that to set Lb, Lw levels.
@@ -456,77 +487,46 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 int 
 im_tone_analyse( 
 	IMAGE *in, 
-	IMAGE *lut, 
+	IMAGE *out, 
 	double Ps, double Pm, double Ph,
 	double S, double M, double H )
 {
-	gint64 sum = in->Xsize * in->Ysize;
-	int *p;
-	int i, j;
+	IMAGE *t[4];
+	int low, high;
 	double Lb, Lw;
 
-	IMAGE *t1 = im_open_local( lut, "im_tone_analyse:1", "p" );
-	IMAGE *t2 = im_open_local( lut, "im_tone_analyse:2", "p" );
-	IMAGE *t3 = im_open_local( lut, "im_tone_analyse:3", "p" );
-	IMAGE *t4 = im_open_local( lut, "im_tone_analyse:4", "p" );
-	IMAGE *t6 = im_open_local( lut, "im_tone_analyse:6", "p" );
-
-	if( !t1 || !t2 || !t3 || !t4 || !t6 )
+	if( im_open_local_array( out, t, 4, "im_tone_map", "p" ) )
 		return( -1 );
 
 	/* If in is IM_CODING_LABQ, unpack.
 	 */
 	if( in->Coding == IM_CODING_LABQ ) {
-		if( im_LabQ2LabS( in, t1 ) )
+		if( im_LabQ2LabS( in, t[0] ) )
 			return( -1 );
 	}
 	else
-		t1 = in;
+		t[0] = in;
 
 	/* Should now be 3-band short.
 	 */
-	if( t1->Coding != IM_CODING_NONE || t1->BandFmt != IM_BANDFMT_SHORT || 
-		t1->Bands != 3 ) {
-		im_error( "im_tone_analyse", 
-			"%s", _( "input not LabS or LabQ" ) );
-		return( -1 );
-	}
-
-	/* Extract and scale L.
-	 */
-	if( im_extract_band( t1, t2, 0 ) ||
-		im_shiftright( t2, t3, 5 ) ||
-		im_clip2fmt( t3, t4, IM_BANDFMT_USHORT ) )
-		return( -1 );
-	
-	/* Take histogram, and make it a cumulative hist.
-	 */
-	if( im_histgr( t4, t6, -1 ) )
+	if( im_check_uncoded( "im_tone_analyse", t[0] ) ||
+		im_check_bands( "im_tone_analyse", t[0], 3 ) ||
+		im_check_format( "im_tone_analyse", t[0], IM_BANDFMT_SHORT ) )
 		return( -1 );
 
-	/* Search for 0.1% mark.
-	 */
-	if( im_incheck( t6 ) )
+	if( im_extract_band( t[0], t[1], 0 ) ||
+		im_clip2fmt( t[1], t[2], IM_BANDFMT_USHORT ) ||
+		im_histgr( t[2], t[3], -1 ) )
 		return( -1 );
-	p = (int *) t6->data; 
-	for( j = 0, i = 0; i < t6->Xsize; i++ ) {
-		j += p[i];
-		if( j > sum * (0.1 / 100.0) )
-			break;
-	}
-	Lb = i / 10.24;
 
-	/* Search for 99.9% mark.
-	 */
-	p = (int *) t6->data; 
-	for( j = 0, i = t6->Xsize - 1; i > 0; i-- ) {
-		j += p[i];
-		if( j > sum * (0.1 / 100.0) )
-			break;
-	}
-	Lw = i / 10.24;
+	if( im_mpercent( t[3], 0.1 / 100.0, &low ) ||
+		im_mpercent( t[3], 99.9 / 100.0, &high ) )
+		return( -1 );
+
+	Lb = 100 * low / 32768;
+	Lw = 100 * high / 32768;
 
 	im_diag( "im_tone_analyse", "set Lb = %g, Lw = %g", Lb, Lw );
 
-	return( im_tone_build( lut, Lb, Lw, Ps, Pm, Ph, S, M, H ) );
+	return( im_tone_build( out, Lb, Lw, Ps, Pm, Ph, S, M, H ) );
 }

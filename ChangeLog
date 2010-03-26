@@ -5,6 +5,7 @@
 - im_gammacorrect() can do 16-bit images too
 - im_histplot() could fail for signed int histograms
 - im_fwfft() and im_invfft() could free their output image too early
+- added im_local_imask(), im_local_dmask()
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do
