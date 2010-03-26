@@ -774,3 +774,37 @@ im_print_dmask( DOUBLEMASK *m )
                 printf( "\n" );
 	}
 }
+
+/* Make a DOUBLEMASK local to an image descriptor.
+ */
+DOUBLEMASK *
+im_local_dmask( VipsImage *out, DOUBLEMASK *mask )
+{
+	if( !mask )
+		return( NULL );
+
+	if( im_add_close_callback( out, 
+		(im_callback_fn) im_free_dmask, mask, NULL ) ) {
+		im_free_dmask( mask );
+		return( NULL );
+	}
+
+	return( mask );
+}
+
+/* Make an INTMASK local to an image descriptor.
+ */
+INTMASK *
+im_local_imask( VipsImage *out, INTMASK *mask )
+{
+	if( !mask )
+		return( NULL );
+
+	if( im_add_close_callback( out, 
+		(im_callback_fn) im_free_imask, mask, NULL ) ) {
+		im_free_imask( mask );
+		return( NULL );
+	}
+
+	return( mask );
+}

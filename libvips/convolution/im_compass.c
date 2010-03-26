@@ -78,10 +78,8 @@ im_compass( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	for( i = 0; i < 8; i++ ) {
 		if( im_conv( in, filtered[i], mask ) ||
-		    !(mask = (INTMASK *) im_local( out, 
-			(im_construct_fn) im_rotate_imask45,
-			(im_callback_fn) im_free_imask,
-			mask, mask->filename, NULL )) )
+			!(mask = im_local_imask( out, 
+				im_rotate_imask45( mask, mask->filename ) )) )
 			return( -1 );
 	}
 
@@ -119,10 +117,8 @@ im_lindetect( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	for( i = 0; i < 4; i++ ) {
 		if( im_conv( in, filtered[i], mask ) ||
-		    !(mask = (INTMASK *) im_local( out, 
-			(im_construct_fn) im_rotate_imask45,
-			(im_callback_fn) im_free_imask,
-			mask, mask->filename, NULL )) )
+			!(mask = im_local_imask( out, 
+				im_rotate_imask45( mask, mask->filename ) )) )
 			return( -1 );
 	}
 
@@ -155,9 +151,8 @@ im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask )
 	if( im_open_local_array( out, t, 4, "im_gradient", "p" ) )
 		return( -1 );
 
-	if( !(rmask = (INTMASK *) im_local( out, 
-		(im_construct_fn) im_rotate_imask90,
-		(im_callback_fn) im_free_imask, mask, mask->filename, NULL )) )
+	if( !(rmask = im_local_imask( out, 
+		im_rotate_imask90( mask, mask->filename ) )) ) 
 		return( -1 );
 
 	if( im_conv( in, t[0], mask ) ||

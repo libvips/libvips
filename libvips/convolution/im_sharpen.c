@@ -333,10 +333,7 @@ im_sharpen( IMAGE *in, IMAGE *out,
 	/* Set up data structures we need. First, the convolution mask we will
 	 * use.
 	 */
-	if( !(mask = (INTMASK *) im_local( out, 
-		(im_construct_fn) sharpen_mask_new,
-		(im_callback_fn) im_free_imask,
-		GINT_TO_POINTER( mask_size ), NULL, NULL )) )
+	if( !(mask = im_local_imask( out, sharpen_mask_new( mask_size ) )) )
 		return( -1 );
 
 	/* Make the lut we will use. We need to scale up x1, x2, x3 to the

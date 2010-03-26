@@ -969,23 +969,6 @@ print_overlap_errors( JoinNode *node, double *fac, double *total )
 }
 #endif /*DEBUG*/
 
-/* Make a DOUBLEMASK local to an image descriptor.
- */
-static DOUBLEMASK *
-local_mask( IMAGE *out, DOUBLEMASK *mask )
-{
-	if( !mask )
-		return( NULL );
-
-	if( im_add_close_callback( out, 
-		(im_callback_fn) im_free_dmask, mask, NULL ) ) {
-		im_free_dmask( mask );
-		return( NULL );
-	}
-
-	return( mask );
-}
-
 /* Extract a rect.
  */
 static int
@@ -1052,7 +1035,7 @@ find_image_stats( IMAGE *in, IMAGE *mask, Rect *area )
 
 	/* Get stats from masked image.
 	 */
-	if( !(stats = local_mask( in, im_stats( t[3] ) )) ) 
+	if( !(stats = im_local_dmask( in, im_stats( t[3] ) )) ) 
 		return( NULL );
 
 	/* Number of non-zero pixels in mask.
@@ -1464,8 +1447,9 @@ find_factors( SymbolTable *st, double gamma )
 
 	/* Make output matricies.
 	 */
-	if( !(K = local_mask( st->im, im_create_dmask( "K", 1, st->novl ) )) ||
-		!(M = local_mask( st->im, 
+	if( !(K = im_local_dmask( st->im, 
+			im_create_dmask( "K", 1, st->novl ) )) ||
+		!(M = im_local_dmask( st->im, 
 			im_create_dmask( "M", st->nim-1, st->novl ) )) ) 
 		return( -1 );
 	fill_matricies( st, gamma, K, M );
@@ -1476,15 +1460,15 @@ find_factors( SymbolTable *st, double gamma )
 
 	/* Calculate LMS.
 	 */
-	if( !(m1 = local_mask( st->im, im_mattrn( M, "lms:1" ) )) )
+	if( !(m1 = im_local_dmask( st->im, im_mattrn( M, "lms:1" ) )) )
 		return( -1 );
-	if( !(m2 = local_mask( st->im, im_matmul( m1, M, "lms:2" ) )) )
+	if( !(m2 = im_local_dmask( st->im, im_matmul( m1, M, "lms:2" ) )) )
 		return( -1 );
-	if( !(m3 = local_mask( st->im, im_matinv( m2, "lms:3" ) )) )
+	if( !(m3 = im_local_dmask( st->im, im_matinv( m2, "lms:3" ) )) )
 		return( -1 );
-	if( !(m4 = local_mask( st->im, im_matmul( m3, m1, "lms:4" ) )) )
+	if( !(m4 = im_local_dmask( st->im, im_matmul( m3, m1, "lms:4" ) )) )
 		return( -1 );
-	if( !(m5 = local_mask( st->im, im_matmul( m4, K, "lms:5" ) )) )
+	if( !(m5 = im_local_dmask( st->im, im_matmul( m4, K, "lms:5" ) )) )
 		return( -1 );
 
 	/* Make array of correction factors.

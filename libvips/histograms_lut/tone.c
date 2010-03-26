@@ -337,38 +337,29 @@ im_tone_build( IMAGE *out,
 int
 im_ismonotonic( IMAGE *lut, int *out )
 {
-	IMAGE *t[3];
+	IMAGE *t[2];
+	INTMASK *mask;
 	double m;
 
-	if( im_open_local_array( lut, t, 3, "im_ismonotonic", "p" ) ||
-		im_check_hist( "im_ismonotonic", lut ) )
+	if( im_check_hist( "im_ismonotonic", lut ) ||
+		im_open_local_array( lut, t, 2, "im_ismonotonic", "p" ) )
 		return( -1 );
 
-	/* Can be either a horizontal or vertical LUT.
-	 */
-	if( lut->Xsize != 1 && lut->Ysize != 1 ) {
-		im_error( "im_ismonotonic", 
-			"%s", _( "not 1 by n or n by 1 image" ) );
+	if( !(mask = im_local_imask( lut, 
+		im_create_imaskv( "im_ismonotonic", 2, 1, 1, -1 ) )) )
 		return( -1 );
-	}
-
-	/* Extract two areas, offset by 1 pixel.
-	 */
+	mask->offset = 128;
 	if( lut->Xsize == 1 ) {
-		if( im_extract_area( lut, t[0], 0, 0, 1, lut->Ysize - 1 ) ||
-			im_extract_area( lut, t[1], 0, 1, 1, lut->Ysize - 1 ) )
-			return( -1 );
-	}
-	else {
-		if( im_extract_area( lut, t[0], 0, 0, lut->Xsize - 1, 1 ) ||
-			im_extract_area( lut, t[1], 1, 0, lut->Xsize - 1, 1 ) )
+		if( !(mask = im_local_imask( lut, 
+			im_rotate_imask90( mask, mask->filename ) )) )
 			return( -1 );
 	}
 
-	/* Now t2 should be >= than t1 everywhere!
+	/* We want >=128 everywhere, ie. no -ve transitions.
 	 */
-	if( im_moreeq( t[1], t[0], t[2] ) || 
-		im_min( t[2], &m ) )
+	if( im_conv( lut, t[0], mask ) ||
+		im_moreeqconst( t[0], t[1], 128 ) ||
+		im_min( t[1], &m ) )
 		return( -1 );
 
 	*out = m;

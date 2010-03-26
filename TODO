@@ -1,3 +1,5 @@
+- new is_monotonic() needs testing ... move somewhere else? tone.c isn't an
+  obvious place for it
 
 - lots of stupid little files in hist, eg. im_hsp.c ... paste them into larger 
   modules

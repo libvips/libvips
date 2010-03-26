@@ -103,6 +103,9 @@ int im_lu_solve( const DOUBLEMASK *lu, double *vec );
 DOUBLEMASK *im_matinv( const DOUBLEMASK *mat, const char *name );
 int im_matinv_inplace( DOUBLEMASK *mat );
 
+DOUBLEMASK *im_local_dmask( struct _VipsImage *out, DOUBLEMASK *mask );
+INTMASK *im_local_imask( struct _VipsImage *out, INTMASK *mask );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
