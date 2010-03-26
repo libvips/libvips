@@ -213,7 +213,7 @@ lbbicubic( const double c00,
   /*
    * Computation of the four min and four max over 3x3 input data
    * sub-blocks of the 4x4 input stencil (involves 28 flag
-   * computations):
+   * computations if done with conditional moves):
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two;
@@ -249,6 +249,26 @@ lbbicubic( const double c00,
   const double max01 = LBB_MAX( M9, M12 );
   const double min11 = LBB_MIN( m9, m13 );
   const double max11 = LBB_MAX( M9, M13 );
+  /*
+   * The remainder of the computation involves the computation of:
+   *
+   * --8 conditional moves,
+   *
+   * --8 signs (in which the sign of zero is unimportant),
+   *
+   * --12 minima of two values,
+   *
+   * --8 maxima of two values,
+   *
+   * --8 absolute values,
+   *
+   * for a grand total of 29 minima, 25 maxima, 8 conditional moves, 8
+   * signs, and 8 absolute values. (If everything is done with
+   * conditional moves, "only" 28+8+8+12+8+8=72 flags are involved.)
+   *
+   * This part of the computation also involves 109 arithmetic (*,+,-)
+   * arithmetic operations (to be double checked).
+   */
 
   /*
    * Distances to the local min and max:
