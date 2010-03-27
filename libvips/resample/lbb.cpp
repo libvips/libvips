@@ -312,15 +312,6 @@ lbbicubic( const double c00,
   const double sign_dzdy11 = LBB_SIGN( dble_dzdy11i );
 
   /*
-   * Slope limiters. The key multiplier is 3 but we fold a factor of
-   * 2, hence 6:
-   */
-  const double dble_slopelimit_00 = 6.0 * LBB_MIN( u00, v00 );
-  const double dble_slopelimit_10 = 6.0 * LBB_MIN( u10, v10 );
-  const double dble_slopelimit_01 = 6.0 * LBB_MIN( u01, v01 );
-  const double dble_slopelimit_11 = 6.0 * LBB_MIN( u11, v11 );
-
-  /*
    * Initial values of the cross-derivatives. Factors of 1/4 are left
    * out because folded in later:
    */
@@ -330,15 +321,13 @@ lbbicubic( const double c00,
   const double quad_d2zdxdy11i = ( qua_fou - qua_two ) - dble_dzdx10i;
 
   /*
-   * Part of the result which does not need derivatives:
+   * Slope limiters. The key multiplier is 3 but we fold a factor of
+   * 2, hence 6:
    */
-  const double newval1 = c00 * dos_two
-                         +
-                         c10 * dos_thr
-                         +
-                         c01 * tre_two
-                         +
-                         c11 * tre_thr;
+  const double dble_slopelimit_00 = 6.0 * LBB_MIN( u00, v00 );
+  const double dble_slopelimit_10 = 6.0 * LBB_MIN( u10, v10 );
+  const double dble_slopelimit_01 = 6.0 * LBB_MIN( u01, v01 );
+  const double dble_slopelimit_11 = 6.0 * LBB_MIN( u11, v11 );
 
   /*
    * Clamped first derivatives:
@@ -379,25 +368,6 @@ lbbicubic( const double c00,
   const double twelve_dif01 = 6.0 * ( dble_dzdx01 - dble_dzdy01 );
   const double twelve_sum11 = 6.0 * ( dble_dzdx11 + dble_dzdy11 );
   const double twelve_dif11 = 6.0 * ( dble_dzdx11 - dble_dzdy11 );
-
-  /*
-   * Part of the result which only needs first derivatives.
-   */
-  const double newval2 = c00dx * dble_dzdx00
-                         +
-                         c10dx * dble_dzdx10
-                         +
-                         c01dx * dble_dzdx01
-                         +
-                         c11dx * dble_dzdx11
-                         +
-                         c00dy * dble_dzdy00
-                         +
-                         c10dy * dble_dzdy10
-                         +
-                         c01dy * dble_dzdy01
-                         +
-                         c11dy * dble_dzdy11;
 
   /*
    * Absolute values of the sums:
@@ -494,6 +464,36 @@ lbbicubic( const double c00,
                          c01dxdy * quad_d2zdxdy01
                          +
                          c11dxdy * quad_d2zdxdy11;
+
+  /*
+   * Part of the result which only needs first derivatives.
+   */
+  const double newval2 = c00dx * dble_dzdx00
+                         +
+                         c10dx * dble_dzdx10
+                         +
+                         c01dx * dble_dzdx01
+                         +
+                         c11dx * dble_dzdx11
+                         +
+                         c00dy * dble_dzdy00
+                         +
+                         c10dy * dble_dzdy10
+                         +
+                         c01dy * dble_dzdy01
+                         +
+                         c11dy * dble_dzdy11;
+
+  /*
+   * Part of the result which does not need derivatives:
+   */
+  const double newval1 = c00 * dos_two
+                         +
+                         c10 * dos_thr
+                         +
+                         c01 * tre_two
+                         +
+                         c11 * tre_thr;
 
   const double newval = newval1 + .5 * newval2 + .25 * newval3;
 
