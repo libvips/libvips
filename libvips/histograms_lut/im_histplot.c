@@ -305,7 +305,7 @@ plot( IMAGE *in, IMAGE *out )
  * <emphasis>float types</emphasis> min moved to 0, max moved to any 
  * (square output)
  *
- * See also: im_histindexed(), im_histeq().
+ * See also: im_hist_indexed(), im_histeq().
  *
  * Returns: 0 on success, -1 on error
  */

@@ -55,12 +55,15 @@
  * tagged with a #VipsType of IM_TYPE_HISTOGRAM and usually displayed by
  * user-interfaces such as nip2 as plots rather than images.
  *
- * You can make a LUT by scanning an image (see im_histgr()), from a
- * matrix (see im_buildlut()), or using arithmetic operators on an identity
- * LUT (see im_identity()).
+ * These functions can be broadly grouped as things to find or build 
+ * histograms (im_histgr(), im_buildlut(), in_identity()), operations that 
+ * manipulate histograms in some way (im_histcum(), im_histnorm()), operations
+ * to apply histograms (im_maplut()), and a variety of utility 
+ * operations.
  *
- * Once you have a LUT you can manipulate it in various ways (see im_historm()
- * and friends) and use it to transform other images (see im_maplut()).
+ * A final group of operations build tone curves. These are useful in
+ * pre-press work for adjusting the appearance of images. They are designed
+ * for CIELAB images, but might be useful elsewhere.
  */
 
 /* One image in, one out.

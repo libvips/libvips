@@ -54,7 +54,7 @@
  * im_hist:
  * @in: input image
  * @out: output image
- * @bandno: band to equalise
+ * @bandno: band to plot
  *
  * Find and plot the histogram of @in. If @bandno is -1, plot all bands. 
  * Otherwise plot the specified band.

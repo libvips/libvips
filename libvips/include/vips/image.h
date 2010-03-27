@@ -297,8 +297,8 @@ GOptionGroup *im_get_option_group( void );
 const char *im_version_string( void );
 int im_version( int flag );
 
-const char *im_guess_prefix( const char *, const char * );
-const char *im_guess_libdir( const char *, const char * );
+const char *im_guess_prefix( const char *argv0, const char *env_name );
+const char *im_guess_libdir( const char *argv0, const char *env_name );
 
 VipsImage *im_open( const char *filename, const char *mode );
 
