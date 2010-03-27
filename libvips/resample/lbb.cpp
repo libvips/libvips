@@ -31,25 +31,29 @@
 /*
  * 2010 (c) Nicolas Robidoux, John Cupitt, Chantal Racette.
  *
- * Nicolas Robidoux thanks Ralf Meyer, Minglun Gong, Adam Turcotte,
- * Eric Daoust, Øyvind Kolås, Geert Jordaens, and Sven Neumann for
- * useful comments and code.
+ * N. Robidoux thanks Øyvind Kolås, Geert Jordaens, Adam Turcotte,
+ * Ralf Meyer, Minglun Gong and Eric Daoust for useful comments and
+ * code.
  */
 
 /*
  * LBB (Locally Bounded Bicubic) is a high quality nonlinear variant
- * of Catmull-Rom. Compared to Catmull-Rom, it produces resampled
- * images with much reduced halos, both in terms of physical extent
- * and over/undershoot amplitude. This is accomplished without a
- * significant change in the smoothness of the result.
+ * of Catmull-Rom. Images resampled with LBB have much smaller halos
+ * than images resampled with windowed sincs or other interpolatory
+ * cubic spline filters. Specifically, LBB halos are narrower and the
+ * over/undershoot amplitude is smaller. This is accomplished without
+ * a significant reduction in the smoothness of the result (compared
+ * to Catmull-Rom).
  *
  * Another important property is that the resampled values are
  * contained within the range of nearby input values. Consequently, no
- * clamping is needed to stay "in range."
+ * final clamping is needed to stay "in range" (e.g., 0-255 for
+ * standard 8-bit images).
  *
  * LBB was developed by Nicolas Robidoux and Chantal Racette of the
  * Department of Mathematics and Computer Science of Laurentian
- * University.
+ * University in the course of Chantal's Masters Thesis in
+ * Computational Sciences.
  */
 
 /*
@@ -212,45 +216,47 @@ lbbicubic( const double c00,
 
   /*
    * Computation of the four min and four max over 3x3 input data
-   * sub-blocks of the 4x4 input stencil (involves 28 flag
-   * computations if done with conditional moves):
+   * sub-blocks of the 4x4 input stencil. (Because there is
+   * redundancy, only 17 minima and 17 maxima are needed; if done with
+   * conditional moves, only 28 different flags are involved.)
    */
-  const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr;
-  const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two;
-  const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr;
-  const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two;
-  const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr;
-  const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two;
-  const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr;
-  const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two;
-  const double m5    = LBB_MIN( m1, m2 );
-  const double M5    = LBB_MAX( M1, M2 );
-  const double m6    = (dos_one <= tre_one) ? dos_one : tre_one;
-  const double M6    = (dos_one <= tre_one) ? tre_one : dos_one;
-  const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou;
-  const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou;
-  const double m8    = LBB_MIN( m5, m3 );
-  const double M8    = LBB_MAX( M5, M3 );
-  const double m9    = LBB_MIN( m5, m4 );
-  const double M9    = LBB_MAX( M5, M4 );
-  const double m10   = LBB_MIN( m6, uno_one );
-  const double M10   = LBB_MAX( M6, uno_one );
-  const double m11   = LBB_MIN( m7, uno_fou );
-  const double M11   = LBB_MAX( M7, uno_fou );
-  const double m12   = LBB_MIN( m6, qua_one );
-  const double M12   = LBB_MAX( M6, qua_one );
-  const double m13   = LBB_MIN( m7, qua_fou );
-  const double M13   = LBB_MAX( M7, qua_fou );
-  const double min00 = LBB_MIN( m8, m10 );
-  const double max00 = LBB_MAX( M8, M10 );
-  const double min10 = LBB_MIN( m8, m11 );
-  const double max10 = LBB_MAX( M8, M11 );
-  const double min01 = LBB_MIN( m9, m12 );
-  const double max01 = LBB_MAX( M9, M12 );
-  const double min11 = LBB_MIN( m9, m13 );
-  const double max11 = LBB_MAX( M9, M13 );
+  const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
+  const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
+  const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
+  const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
+  const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
+  const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
+  const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr  ;
+  const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
+  const double m5    = LBB_MIN(               m1,       m2      );
+  const double M5    = LBB_MAX(               M1,       M2      );
+  const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
+  const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
+  const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
+  const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
+  const double m8    = LBB_MIN(               m5,       m3      );
+  const double M8    = LBB_MAX(               M5,       M3      );
+  const double m9    = LBB_MIN(               m5,       m4      );
+  const double M9    = LBB_MAX(               M5,       M4      );
+  const double m10   = LBB_MIN(               m6,       uno_one );
+  const double M10   = LBB_MAX(               M6,       uno_one );
+  const double m11   = LBB_MIN(               m7,       uno_fou );
+  const double M11   = LBB_MAX(               M7,       uno_fou );
+  const double m12   = LBB_MIN(               m6,       qua_one );
+  const double M12   = LBB_MAX(               M6,       qua_one );
+  const double m13   = LBB_MIN(               m7,       qua_fou );
+  const double M13   = LBB_MAX(               M7,       qua_fou );
+  const double min00 = LBB_MIN(               m8,       m10     );
+  const double max00 = LBB_MAX(               M8,       M10     );
+  const double min10 = LBB_MIN(               m8,       m11     );
+  const double max10 = LBB_MAX(               M8,       M11     );
+  const double min01 = LBB_MIN(               m9,       m12     );
+  const double max01 = LBB_MAX(               M9,       M12     );
+  const double min11 = LBB_MIN(               m9,       m13     );
+  const double max11 = LBB_MAX(               M9,       M13     );
   /*
-   * The remainder of the computation involves the computation of:
+   * The remainder of the "per channel" computation involves the
+   * computation of:
    *
    * --8 conditional moves,
    *
@@ -263,11 +269,12 @@ lbbicubic( const double c00,
    * --8 absolute values,
    *
    * for a grand total of 29 minima, 25 maxima, 8 conditional moves, 8
-   * signs, and 8 absolute values. (If everything is done with
-   * conditional moves, "only" 28+8+8+12+8+8=72 flags are involved.)
+   * signs, and 8 absolute values. If everything is done with
+   * conditional moves, "only" 28+8+8+12+8+8=72 flags are involved
+   * (because initial min and max can be computed with one flag).
    *
-   * This part of the computation also involves 109 arithmetic (*,+,-)
-   * arithmetic operations (to be double checked).
+   * The "per channel" part of the computation also involves 107
+   * arithmetic operations (54 *, 21 +, 42 -).
    */
 
   /*
@@ -299,7 +306,8 @@ lbbicubic( const double c00,
 
   /*
    * Signs of the derivatives. The upcoming clamping does not change
-   * them (except if the clamping sends a negative derivative to 0).
+   * them (except if the clamping sends a negative derivative to 0, in
+   * which case the sign does not matter anyway).
    */
   const double sign_dzdx00 = LBB_SIGN( dble_dzdx00i );
   const double sign_dzdx10 = LBB_SIGN( dble_dzdx10i );
@@ -315,10 +323,10 @@ lbbicubic( const double c00,
    * Initial values of the cross-derivatives. Factors of 1/4 are left
    * out because folded in later:
    */
-  const double quad_d2zdxdy00i = ( uno_one - uno_thr ) + dble_dzdx01i;
-  const double quad_d2zdxdy10i = ( uno_two - uno_fou ) + dble_dzdx11i;
-  const double quad_d2zdxdy01i = ( qua_thr - qua_one ) - dble_dzdx00i;
-  const double quad_d2zdxdy11i = ( qua_fou - qua_two ) - dble_dzdx10i;
+  const double quad_d2zdxdy00i = uno_one - uno_thr + dble_dzdx01i;
+  const double quad_d2zdxdy10i = uno_two - uno_fou + dble_dzdx11i;
+  const double quad_d2zdxdy01i = qua_thr - qua_one - dble_dzdx00i;
+  const double quad_d2zdxdy11i = qua_fou - qua_two - dble_dzdx10i;
 
   /*
    * Slope limiters. The key multiplier is 3 but we fold a factor of
@@ -519,9 +527,9 @@ lbbicubic( const double c00,
     \
     const T* restrict in = (T *) pin; \
     \
-    const int one_shift =  -bands; \
-    const int thr_shift =   bands; \
-    const int fou_shift = 2*bands; \
+    const int one_shift     =  -bands; \
+    const int thr_shift     =   bands; \
+    const int fou_shift     = 2*bands; \
     \
     const int uno_two_shift =  -lskip; \
     \
