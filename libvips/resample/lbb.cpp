@@ -295,14 +295,13 @@ lbbicubic( const double c00,
    * in later:
    */
   const double dble_dzdx00i = dos_thr - dos_one;
-  const double dble_dzdx10i = dos_fou - dos_two;
-  const double dble_dzdx01i = tre_thr - tre_one;
-  const double dble_dzdx11i = tre_fou - tre_two;
-
-  const double dble_dzdy00i = tre_two - uno_two;
-  const double dble_dzdy10i = tre_thr - uno_thr;
-  const double dble_dzdy01i = qua_two - dos_two;
   const double dble_dzdy11i = qua_thr - dos_thr;
+  const double dble_dzdx10i = dos_fou - dos_two;
+  const double dble_dzdy01i = qua_two - dos_two;
+  const double dble_dzdx01i = tre_thr - tre_one;
+  const double dble_dzdy10i = tre_thr - uno_thr;
+  const double dble_dzdx11i = tre_fou - tre_two;
+  const double dble_dzdy00i = tre_two - uno_two;
 
   /*
    * Signs of the derivatives. The upcoming clamping does not change
@@ -343,24 +342,24 @@ lbbicubic( const double c00,
   const double dble_dzdx00 =
     ( sign_dzdx00 * dble_dzdx00i <= dble_slopelimit_00 )
     ? dble_dzdx00i :  sign_dzdx00 * dble_slopelimit_00;
-  const double dble_dzdx10 =
-    ( sign_dzdx10 * dble_dzdx10i <= dble_slopelimit_10 )
-    ? dble_dzdx10i :  sign_dzdx10 * dble_slopelimit_10;
-  const double dble_dzdx01 =
-    ( sign_dzdx01 * dble_dzdx01i <= dble_slopelimit_01 )
-    ? dble_dzdx01i :  sign_dzdx01 * dble_slopelimit_01;
-  const double dble_dzdx11 =
-    ( sign_dzdx11 * dble_dzdx11i <= dble_slopelimit_11 )
-    ? dble_dzdx11i :  sign_dzdx11 * dble_slopelimit_11;
   const double dble_dzdy00 =
     ( sign_dzdy00 * dble_dzdy00i <= dble_slopelimit_00 )
     ? dble_dzdy00i :  sign_dzdy00 * dble_slopelimit_00;
+  const double dble_dzdx10 =
+    ( sign_dzdx10 * dble_dzdx10i <= dble_slopelimit_10 )
+    ? dble_dzdx10i :  sign_dzdx10 * dble_slopelimit_10;
   const double dble_dzdy10 =
     ( sign_dzdy10 * dble_dzdy10i <= dble_slopelimit_10 )
     ? dble_dzdy10i :  sign_dzdy10 * dble_slopelimit_10;
+  const double dble_dzdx01 =
+    ( sign_dzdx01 * dble_dzdx01i <= dble_slopelimit_01 )
+    ? dble_dzdx01i :  sign_dzdx01 * dble_slopelimit_01;
   const double dble_dzdy01 =
     ( sign_dzdy01 * dble_dzdy01i <= dble_slopelimit_01 )
     ? dble_dzdy01i :  sign_dzdy01 * dble_slopelimit_01;
+  const double dble_dzdx11 =
+    ( sign_dzdx11 * dble_dzdx11i <= dble_slopelimit_11 )
+    ? dble_dzdx11i :  sign_dzdx11 * dble_slopelimit_11;
   const double dble_dzdy11 =
     ( sign_dzdy11 * dble_dzdy11i <= dble_slopelimit_11 )
     ? dble_dzdy11i :  sign_dzdy11 * dble_slopelimit_11;
@@ -474,7 +473,7 @@ lbbicubic( const double c00,
                          c11dxdy * quad_d2zdxdy11;
 
   /*
-   * Part of the result which only needs first derivatives.
+   * Twice the part of the result which only needs first derivatives.
    */
   const double newval2 = c00dx * dble_dzdx00
                          +
