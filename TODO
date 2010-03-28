@@ -1,4 +1,15 @@
 
+- look at moving im_iterate() to thereadpool
+
+  split im_render into two parts: the asynch tile renderer, and the thing to
+  keep a queue of current render operations
+
+  the new tile render needs some easy way to start/stop it, preserving the
+  list of dirty tiles
+
+  argh, maybe it does need to be in one large operation
+
+
 - expose more of the tone funcs in nip2
 
 - quite a few hist operations have no GUI ... lhisteq, for example? or
@@ -23,8 +34,6 @@
   instead of vips_discsink()?
 
 - nip2 image display does not work with threading disabled
-
-- docs: histogram_lut next
 
 - still to move to threadpool: im_iterate(), im_render(), maybe wait for
   better performance numbers before we move them
