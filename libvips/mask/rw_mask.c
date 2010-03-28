@@ -476,6 +476,8 @@ im_scale_dmask( DOUBLEMASK *m, const char *name )
 
 	if( dsum == m->scale )
 		out->scale = isum;
+	else if( dsum == 0.0 )
+		out->scale = 1.0;
 	else
 		out->scale = IM_RINT( m->scale * isum / dsum );
 
@@ -486,7 +488,7 @@ void
 im_norm_dmask( DOUBLEMASK *mask )
 { 	
 	const int n = mask->xsize * mask->ysize;
-	const double scale = 1.0 / mask->scale;
+	const double scale = (mask->scale == 0) ? 0 : (1.0 / mask->scale);
 
 	int i;
 

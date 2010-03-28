@@ -29,7 +29,7 @@
  *	- reworked and simplified, about 10% faster
  *	- slightly better range clipping
  * 27/7/01 JC
- *	- rejects masks with scale == 0
+ *	- reject masks with scale == 0
  * 7/4/04 
  *	- im_conv() now uses im_embed() with edge stretching on the input, not
  *	  the output
@@ -419,6 +419,10 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 		im_check_noncomplex( "im_conv", in ) ||
 		im_check_imask( "im_conv", mask ) ) 
 		return( -1 );
+	if( mask->scale == 0 ) {
+		im_error( "im_conv", "%s", "mask scale must be non-zero" );
+		return( -1 );
+	}
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 

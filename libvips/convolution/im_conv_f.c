@@ -316,6 +316,10 @@ im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 		im_check_noncomplex( "im_conv", in ) || 
 		im_check_dmask( "im_conv", mask ) ) 
 		return( -1 );
+	if( mask->scale == 0 ) {
+		im_error( "im_conv_f", "%s", "mask scale must be non-zero" );
+		return( -1 );
+	}
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 

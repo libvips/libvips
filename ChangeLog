@@ -8,6 +8,7 @@
 - added im_local_imask(), im_local_dmask()
 - added im_mpercent_hist()
 - im_maplut() casts the index image to one of the uint types
+- fixed a couple of /0 problems with scale == 0 masks
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do

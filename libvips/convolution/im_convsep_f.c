@@ -285,6 +285,10 @@ im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 			"%s", _( "expect 1xN or Nx1 input mask" ) );
                 return( -1 );
 	}
+	if( mask->scale == 0 ) {
+		im_error( "im_convsep_f", "%s", "mask scale must be non-zero" );
+		return( -1 );
+	}
 	if( !(conv = conv_new( in, out, mask )) )
 		return( -1 );
 

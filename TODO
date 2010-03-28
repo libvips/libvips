@@ -4,8 +4,6 @@
 - quite a few hist operations have no GUI ... lhisteq, for example? or
   histspec?
 
-- conv with scale == 0 gives /0 error
-
 - added im_local_imask(), im_local_dmask(), needs docs?
 
   is local_imask() in the best place? shouldn't it be in mask.h?
