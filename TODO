@@ -6,9 +6,12 @@
 
 - added im_local_imask(), im_local_dmask(), needs docs?
 
-  is local_imask() in the best place? shouldn't it be in mask.h?
+  I guess when mask/* gets docs
 
 - im_rotate_imask90 only works for square, odd-sized masks, argh
+
+  just use im_rot90? have a small wrapper to let you use image functions on 
+  masks
 
 - lots of stupid little files in hist, eg. im_hsp.c ... paste them into larger 
   modules
