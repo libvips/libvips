@@ -90,6 +90,12 @@ int im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
 	void (*notify)( IMAGE *, Rect *, void * ), void *client );
 int im_cache( IMAGE *in, IMAGE *out, int width, int height, int max );
 
+typedef void (*VipsSinkNotify)( VipsImage *im, Rect *rect, void *client );
+int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
+	int width, int height, int max,
+	int priority,
+	VipsSinkNotify notify, void *client );
+
 /* WIO.
  */
 int im_setupout( IMAGE *im );
