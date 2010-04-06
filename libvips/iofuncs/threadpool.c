@@ -37,8 +37,8 @@
 
 /* 
 #define TIME_THREAD
-#define DEBUG_CREATE
-#define DEBUG_IO
+#define VIPS_DEBUG_RED
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -56,6 +56,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/thread.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -186,10 +187,7 @@ vips_thread_free( VipsThread *thr )
 		/* Return value is always NULL (see thread_main_loop).
 		 */
 		(void) g_thread_join( thr->thread );
-#ifdef DEBUG_CREATE
-		printf( "thread_free: g_thread_join()\n" );
-#endif /*DEBUG_CREATE*/
-
+		VIPS_DEBUG_MSG_RED( "thread_free: g_thread_join()\n" );
 		thr->thread = NULL;
         }
 
@@ -342,9 +340,7 @@ vips_thread_new( VipsThreadpool *pool )
 		return( NULL );
 	}
 
-#ifdef DEBUG_CREATE
-	printf( "vips_thread_new: g_thread_create_full()\n" );
-#endif /*DEBUG_CREATE*/
+	VIPS_DEBUG_MSG_RED( "vips_thread_new: g_thread_create_full()\n" );
 #endif /*HAVE_THREADS*/
 
 	return( thr );
@@ -362,20 +358,16 @@ vips_threadpool_kill_threads( VipsThreadpool *pool )
 			vips_thread_free( pool->thr[i] );
 		pool->thr = NULL;
 
-#ifdef DEBUG_IO
-		printf( "vips_threadpool_kill_threads: killed %d threads\n", 
-			pool->nthr );
-#endif /*DEBUG_IO*/
+		VIPS_DEBUG_MSG( "vips_threadpool_kill_threads: "
+			"killed %d threads\n", pool->nthr );
 	}
 }
 
 static int
 vips_threadpool_free( VipsThreadpool *pool )
 {
-#ifdef DEBUG_IO
-	printf( "vips_threadpool_free: \"%s\" (%p)\n", 
+	VIPS_DEBUG_MSG( "vips_threadpool_free: \"%s\" (%p)\n", 
 		pool->im->filename, pool );
-#endif /*DEBUG_IO*/
 
 	vips_threadpool_kill_threads( pool );
 	IM_FREEF( g_mutex_free, pool->allocate_lock );
@@ -413,10 +405,8 @@ vips_threadpool_new( VipsImage *im )
 		return( NULL );
 	}
 
-#ifdef DEBUG_IO
-	printf( "vips_threadpool_new: \"%s\" (%p), with %d threads\n", 
+	VIPS_DEBUG_MSG( "vips_threadpool_new: \"%s\" (%p), with %d threads\n", 
 		im->filename, pool, pool->nthr );
-#endif /*DEBUG_IO*/
 
 	return( pool );
 }
@@ -668,10 +658,8 @@ vips_get_tile_size( VipsImage *im,
 	 */
 	g_assert( *nlines % *tile_height == 0 );
 
-#ifdef DEBUG_IO
-	printf( "vips_get_tile_size: %d by %d patches, "
+	VIPS_DEBUG_MSG( "vips_get_tile_size: %d by %d patches, "
 		"groups of %d scanlines\n", 
 		*tile_width, *tile_height, *nlines );
-#endif /*DEBUG_IO*/
 }
 

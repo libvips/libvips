@@ -42,6 +42,8 @@ AC_SUBST(LIBRARY_AGE)
 
 AC_CANONICAL_HOST
 
+AC_DEFINE_UNQUOTED(G_LOG_DOMAIN, "VIPS", [Domain for glib logging messages.])
+
 AC_MSG_CHECKING([for native Win32])
 case "$host" in
   *-*-mingw*)

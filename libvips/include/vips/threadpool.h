@@ -51,7 +51,7 @@ typedef struct _VipsThreadState {
 	 */
 	REGION *reg;		
 
-	/* The rest are neither used nor set, do what you lke with them.
+	/* The rest are neither used nor set, do what you like with them.
 	 */
 	Rect pos;
 	int x, y;

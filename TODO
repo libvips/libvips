@@ -1,4 +1,22 @@
 
+- how about 
+
+	#define VIPS_DEBUG_MSG( STR ) printf( ...) 
+
+  nicer than lots of #ifdef DEBUG ...
+
+
+- vips_sink() needs to be able to supply a thread start / stop function
+
+  it needs to be able to start and stop sequences, and to guarantee that stops
+  get called in all paths
+
+  for example, if one thread sets stop in allocate, not all threads will get
+  to run again, they can be shut down by vips_threadpool first
+
+
+
+
 - look at moving im_iterate() to thereadpool
 
   split im_render into two parts: the asynch tile renderer, and the thing to
