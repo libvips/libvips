@@ -1,4 +1,4 @@
-/* Write an image. 
+/* Write an image to a disc file. 
  * 
  * 19/3/10
  * 	- from im_wbuffer.c
@@ -101,12 +101,50 @@ typedef struct _Write {
 	 */
 	VipsRegionWrite write_fn;	
 	void *a;		
-	void *b;
 } Write;
 
 /* Enable im_wbuffer2 ... set from the cmd line, tested by our users.
  */
 int im__wbuffer2 = 0;
+
+/* Our per-thread state ... we need to also track the buffer that pos is
+ * supposed to write to.
+ */
+typedef struct _WriteThreadState {
+	VipsThreadState parent_object;
+
+        WriteBuffer *buf;
+} WriteThreadState;
+
+typedef struct _WriteThreadStateClass {
+	VipsThreadStateClass parent_class;
+
+} WriteThreadStateClass;
+
+G_DEFINE_TYPE( WriteThreadState, write_thread_state, VIPS_TYPE_THREAD_STATE );
+
+static void
+write_thread_state_class_init( WriteThreadStateClass *class )
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
+
+	object_class->nickname = "writethreadstate";
+	object_class->description = _( "per-thread state for sinkdisc" );
+}
+
+static void
+write_thread_state_init( WriteThreadState *state )
+{
+	state->buf = NULL;
+}
+
+static VipsThreadState *
+write_thread_state_new( VipsImage *im, void *a )
+{
+	return( VIPS_THREAD_STATE( vips_object_new( 
+		write_thread_state_get_type(), 
+		vips_thread_state_set, im, a ) ) );
+}
 
 static void
 wbuffer_free( WriteBuffer *wbuffer )
@@ -147,7 +185,7 @@ wbuffer_write( WriteBuffer *wbuffer )
 #endif /*DEBUG*/
 
 	wbuffer->write_errno = write->write_fn( wbuffer->region, 
-		&wbuffer->area, write->a, write->b );
+		&wbuffer->area, write->a );
 }
 
 #ifdef HAVE_THREADS
@@ -308,9 +346,9 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
  * iteration.
  */
 static gboolean
-wbuffer_allocate_fn( VipsThreadState *state, 
-	void *a, void *b, void *c, gboolean *stop )
+wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 {
+	WriteThreadState *wstate =  (WriteThreadState *) state;
 	Write *write = (Write *) a;
 
 	Rect image;
@@ -359,7 +397,7 @@ wbuffer_allocate_fn( VipsThreadState *state,
 	tile.width = write->tile_width;
 	tile.height = write->tile_height;
 	im_rect_intersectrect( &image, &tile, &state->pos );
-	state->d = write->buf;
+	wstate->buf = write->buf;
 
 	/* Add to the number of writers on the buffer.
 	 */
@@ -375,22 +413,21 @@ wbuffer_allocate_fn( VipsThreadState *state,
 /* Our VipsThreadpoolWork function ... generate a tile!
  */
 static int
-wbuffer_work_fn( VipsThreadState *state, 
-	void *a, void *b, void *c )
+wbuffer_work_fn( VipsThreadState *state, void *a )
 {
-	WriteBuffer *wbuffer = (WriteBuffer *) state->d;
+	WriteThreadState *wstate =  (WriteThreadState *) state;
 
 #ifdef DEBUG
 	printf( "wbuffer_work_fn\n" );
 #endif /*DEBUG*/
 
-	if( im_prepare_to( state->reg, wbuffer->region, 
+	if( im_prepare_to( state->reg, wstate->buf->region, 
 		&state->pos, state->pos.left, state->pos.top ) )
 		return( -1 );
 
 	/* Tell the bg write thread we've left.
 	 */
-	im_semaphore_upn( &wbuffer->nwrite, 1 );
+	im_semaphore_upn( &wstate->buf->nwrite, 1 );
 
 	return( 0 );
 }
@@ -398,7 +435,7 @@ wbuffer_work_fn( VipsThreadState *state,
 /* Our VipsThreadpoolProgress function ... send some eval progress feedback.
  */
 static int
-wbuffer_progress_fn( void *a, void *b, void *c )
+wbuffer_progress_fn( void *a )
 {
 	Write *write = (Write *) a;
 
@@ -414,7 +451,7 @@ wbuffer_progress_fn( void *a, void *b, void *c )
 
 static void
 write_init( Write *write, 
-	VipsImage *im, VipsRegionWrite write_fn, void *a, void *b )
+	VipsImage *im, VipsRegionWrite write_fn, void *a )
 {
 	write->im = im;
 	write->buf = wbuffer_new( write );
@@ -423,7 +460,6 @@ write_init( Write *write,
 	write->y = 0;
 	write->write_fn = write_fn;
 	write->a = a;
-	write->b = b;
 
 	vips_get_tile_size( im, 
 		&write->tile_width, &write->tile_height, &write->nlines );
@@ -440,7 +476,6 @@ write_free( Write *write )
  * VipsRegionWrite:
  * @region: pixels to write
  * @a: client data
- * @b: client data
  *
  * The function should write the pixels in @region. @a and @b are the values
  * passed into vips_discsink().
@@ -451,16 +486,16 @@ write_free( Write *write )
  */
 
 /**
- * vips_discsink:
+ * vips_sink_disc:
  * @im: image to process
  * @write_fn: called for every batch of pixels
  * @a: client data
- * @b: client data
  *
- * vips_discsink() loops over @im, top-to-bottom, generating it in sections.
+ * vips_sink_disc() loops over @im, top-to-bottom, generating it in sections.
  * As each section is produced, @write_fn is called.
  *
- * @write_fn is always called single-threaded, it's always given image
+ * @write_fn is always called single-threaded (though not always from the same
+ * thread), it's always given image
  * sections in top-to-bottom order, and there are never any gaps.
  *
  * This operation is handy for making image sinks which output to things like 
@@ -471,7 +506,7 @@ write_free( Write *write )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_discsink( VipsImage *im, VipsRegionWrite write_fn, void *a, void *b )
+vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 {
 	Write write;
 	int result;
@@ -479,7 +514,13 @@ vips_discsink( VipsImage *im, VipsRegionWrite write_fn, void *a, void *b )
 	if( im__start_eval( im ) ) 
 		return( -1 );
 
-	write_init( &write, im, write_fn, a, b );
+	write_init( &write, im, write_fn, a );
+
+	printf( "initing thread state\n" );
+
+	vips_thread_state_get_type();
+
+	printf( "made thread state\n" );
 
 	result = 0;
 
@@ -487,10 +528,11 @@ vips_discsink( VipsImage *im, VipsRegionWrite write_fn, void *a, void *b )
 		!write.buf_back || 
 		wbuffer_position( write.buf, 0, write.nlines ) ||
 		vips_threadpool_run( im, 
+			write_thread_state_new, 
 			wbuffer_allocate_fn, 
 			wbuffer_work_fn, 
 			wbuffer_progress_fn, 
-			&write, NULL, NULL ) )  
+			&write ) )  
 		result = -1;
 
 	/* We've set all the buffers writing, but not waited for the BG

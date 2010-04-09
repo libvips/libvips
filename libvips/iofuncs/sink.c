@@ -31,8 +31,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -72,7 +72,7 @@ typedef struct _Sink {
 	int tile_height;
 	int nlines;
 
-	/* Keep the sequence value in VipsThreadState->d.
+	/* Call params.
 	 */
 	im_start_fn start;
 	im_generate_fn generate;
@@ -80,6 +80,124 @@ typedef struct _Sink {
 	void *a;
 	void *b;
 } Sink;
+
+/* Our per-thread state.
+ */
+typedef struct _SinkThreadState {
+	VipsThreadState parent_object;
+
+	/* Sequence value for this thread.
+	 */
+        void *seq;
+
+	/* The region we walk over sink.t copy. We can't use
+	 * parent_object.reg, it's defined on the outer image.
+	 */
+	REGION *reg;
+} SinkThreadState;
+
+typedef struct _SinkThreadStateClass {
+	VipsThreadStateClass parent_class;
+
+} SinkThreadStateClass;
+
+G_DEFINE_TYPE( SinkThreadState, sink_thread_state, VIPS_TYPE_THREAD_STATE );
+
+/* Call a thread's stop function. 
+ */
+static int
+sink_call_stop( Sink *sink, SinkThreadState *state )
+{
+	if( state->seq && sink->stop ) {
+		VIPS_DEBUG_MSG( "sink_call_stop: state = %p\n", state );
+
+		if( sink->stop( state->seq, sink->a, sink->b ) ) {
+			im_error( "vips_sink", 
+				_( "stop function failed for image \"%s\"" ), 
+				sink->im->filename );
+			return( -1 );
+		}
+
+		state->seq = NULL;
+	}
+
+	return( 0 );
+}
+
+static void
+sink_thread_state_dispose( GObject *gobject )
+{
+	SinkThreadState *state = (SinkThreadState *) gobject;
+	Sink *sink = (Sink *) ((VipsThreadState *) state)->a;
+
+	sink_call_stop( sink, state );
+	IM_FREEF( im_region_free, state->reg );
+
+	G_OBJECT_CLASS( sink_thread_state_parent_class )->dispose( gobject );
+}
+
+/* Call the start function for this thread, if necessary.
+ */
+static int
+sink_call_start( Sink *sink, SinkThreadState *state )
+{
+	if( !state->seq && sink->start ) {
+		VIPS_DEBUG_MSG( "sink_call_start: state = %p\n", state );
+
+                state->seq = sink->start( sink->t, sink->a, sink->b );
+
+		if( !state->seq ) {
+			im_error( "vips_sink", 
+				_( "start function failed for image \"%s\"" ), 
+				sink->im->filename );
+			return( -1 );
+		}
+	}
+
+	return( 0 );
+}
+
+static int
+sink_thread_state_build( VipsObject *object )
+{
+	SinkThreadState *state = (SinkThreadState *) object;
+	Sink *sink = (Sink *) ((VipsThreadState *) state)->a;
+
+	if( !(state->reg = im_region_create( sink->t )) ||
+		sink_call_start( sink, state ) )
+		return( -1 );
+
+	return( VIPS_OBJECT_CLASS( 
+		sink_thread_state_parent_class )->build( object ) );
+}
+
+static void
+sink_thread_state_class_init( SinkThreadStateClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
+
+	gobject_class->dispose = sink_thread_state_dispose;
+
+	object_class->build = sink_thread_state_build;
+	object_class->nickname = "sinkthreadstate";
+	object_class->description = _( "per-thread state for sink" );
+}
+
+static void
+sink_thread_state_init( SinkThreadState *state )
+{
+	state->seq = NULL;
+	state->reg = NULL;
+}
+
+static VipsThreadState *
+sink_thread_state_new( VipsImage *im, void *a )
+{
+	return( VIPS_THREAD_STATE( vips_object_new( 
+		sink_thread_state_get_type(), 
+		vips_thread_state_set, im, a ) ) );
+}
 
 static void
 sink_free( Sink *sink )
@@ -95,6 +213,8 @@ sink_init( Sink *sink,
 {
 	sink->im = im; 
 	sink->t = NULL;
+	sink->x = 0;
+	sink->y = 0;
 	sink->start = start;
 	sink->generate = generate;
 	sink->stop = stop;
@@ -113,54 +233,8 @@ sink_init( Sink *sink,
 	return( 0 );
 }
 
-/* Call the start function for this thread, if necessary.
- */
-static int
-sink_call_start( Sink *sink, VipsThreadState *state )
-{
-	if( !state->d && sink->start ) {
-#ifdef DEBUG
-		printf( "sink_call_start: state = %p\n", state );
-#endif /*DEBUG*/
-                state->d = sink->start( sink->t, sink->a, sink->b );
-
-		if( !state->d ) {
-			im_error( "vips_sink", 
-				_( "start function failed for image \"%s\"" ), 
-				sink->im->filename );
-			return( -1 );
-		}
-	}
-
-	return( 0 );
-}
-
-/* Call a thread's stop function. 
- */
-static int
-sink_call_stop( Sink *sink, VipsThreadState *state )
-{
-	if( state->d && sink->stop ) {
-#ifdef DEBUG
-		printf( "sink_call_stop: state = %p\n", state );
-#endif /*DEBUG*/
-
-		if( sink->stop( state->d, sink->a, sink->b ) ) {
-			im_error( "vips_sink", 
-				_( "stop function failed for image \"%s\"" ), 
-				sink->im->filename );
-			return( -1 );
-		}
-
-		state->d = NULL;
-	}
-
-	return( 0 );
-}
-
 static int 
-sink_allocate( VipsThreadState *state, 
-	void *a, void *b, void *c, gboolean *stop )
+sink_allocate( VipsThreadState *state, void *a, gboolean *stop )
 {
 	Sink *sink = (Sink *) a;
 
@@ -173,13 +247,11 @@ sink_allocate( VipsThreadState *state,
 		sink->y += sink->tile_height;
 
 		if( sink->y >= sink->im->Ysize ) {
-			sink_call_stop( sink, state );
 			*stop = TRUE;
+
 			return( 0 );
 		}
 	}
-
-	sink_call_start( sink, state );
 
 	/* x, y and buf are good: save params for thread.
 	 */
@@ -195,27 +267,26 @@ sink_allocate( VipsThreadState *state,
 
 	/* Move state on.
 	 */
-	write->x += write->tile_width;
+	sink->x += sink->tile_width;
 
 	return( 0 );
 }
 
 static int 
-sink_work( VipsThreadState *state, void *a, void *b, void *c )
+sink_work( VipsThreadState *state, void *a )
 {
+	SinkThreadState *sstate = (SinkThreadState *) state;
 	Sink *sink = (Sink *) a;
 
-	if( im_prepare( state->reg, &state->pos ) ||
-		sink->generate( state->reg, state->d, sink->a, sink->b ) ) {
-		sink_call_stop( sink, state );
+	if( im_prepare( sstate->reg, &state->pos ) ||
+		sink->generate( sstate->reg, sstate->seq, sink->a, sink->b ) ) 
 		return( -1 );
-	}
 
 	return( 0 );
 }
 
 static int 
-sink_progress( void *a, void *b, void *c )
+sink_progress( void *a )
 {
 	Sink *sink = (Sink *) a;
 
@@ -239,7 +310,7 @@ sink_progress( void *a, void *b, void *c )
  * @b: user data
  *
  * Loops over an image. @generate is called for every pixel in the image, with
- * the @reg argument being a region of pixels for processing. im_iterate() is
+ * the @reg argument being a region of pixels for processing. vips_sink() is
  * used to implement operations like im_avg() which have no image output.
  *
  * See also: im_generate(), im_open().
@@ -270,7 +341,11 @@ vips_sink( VipsImage *im,
 	}
 
 	result = vips_threadpool_run( im, 
-		sink_allocate, sink_work, sink_progress, &sink, NULL );
+		sink_thread_state_new,
+		sink_allocate, 
+		sink_work, 
+		sink_progress, 
+		&sink );
 
 	im__end_eval( sink.t );
 

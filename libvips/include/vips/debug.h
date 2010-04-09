@@ -35,27 +35,27 @@ extern "C" {
 #endif /*__cplusplus*/
 
 #ifdef VIPS_DEBUG
-#define VIPS_DEBUG_MSG( FMT, ... ) printf( FMT, __VA_ARGS__ )
+#define VIPS_DEBUG_MSG( ... ) printf( __VA_ARGS__ )
 #else
-#define VIPS_DEBUG_MSG( FMT, ... ) 
+#define VIPS_DEBUG_MSG( ... ) 
 #endif /*VIPS_DEBUG*/
 
 #ifdef VIPS_DEBUG_RED
-#define VIPS_DEBUG_MSG_RED( FMT, ... ) printf( "red: " FMT, __VA_ARGS__ )
+#define VIPS_DEBUG_MSG_RED( ... ) printf( "red: " __VA_ARGS__ )
 #else
-#define VIPS_DEBUG_MSG_RED( FMT, ... ) 
+#define VIPS_DEBUG_MSG_RED( ... ) 
 #endif /*VIPS_DEBUG_RED*/
 
 #ifdef VIPS_DEBUG_AMBER
-#define VIPS_DEBUG_MSG_AMBER( FMT, ... ) printf( "amber: " FMT, __VA_ARGS__ )
+#define VIPS_DEBUG_MSG_AMBER( ... ) printf( "amber: " __VA_ARGS__ )
 #else
-#define VIPS_DEBUG_MSG_AMBER( FMT, ... ) 
+#define VIPS_DEBUG_MSG_AMBER( ... ) 
 #endif /*VIPS_DEBUG_AMBER*/
 
 #ifdef VIPS_DEBUG_GREEN
-#define VIPS_DEBUG_MSG_GREEN( FMT, ... ) printf( "green: " FMT, __VA_ARGS__ )
+#define VIPS_DEBUG_MSG_GREEN( ... ) printf( "green: " __VA_ARGS__ )
 #else
-#define VIPS_DEBUG_MSG_GREEN( FMT, ... ) 
+#define VIPS_DEBUG_MSG_GREEN( ... ) 
 #endif /*VIPS_DEBUG_GREEN*/
 
 /* All open image descriptors ... see im_init() and im_close().

@@ -430,7 +430,8 @@ im_wbuffer( im_threadgroup_t *tg, im_wbuffer_fn write_fn, void *a, void *b )
 	/* Optionally use the newer one.
 	 */
 	if( im__wbuffer2 ) 
-		return( vips_discsink( tg->im, write_fn, a, b ) );
+		return( vips_sink_disc( tg->im, 
+			(VipsRegionWrite) write_fn, a ) );
 
 	if( im__start_eval( tg->im ) )
 		return( -1 );

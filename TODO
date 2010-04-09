@@ -1,9 +1,8 @@
 
-- how about 
+- vips_threadpool() has three clientdata, do we need all of them? maube one is
+  enough
 
-	#define VIPS_DEBUG_MSG( STR ) printf( ...) 
-
-  nicer than lots of #ifdef DEBUG ...
+  rename vips_discsink() / discsink.c as vips_sink_disc / sinkdisc
 
 
 - vips_sink() needs to be able to supply a thread start / stop function

@@ -11,6 +11,7 @@
 - fixed a couple of /0 problems with scale == 0 masks
 - set G_LOG_DOMAIN to VIPS so we can use g_warning etc.
 - added VIPS_DEBUG_MSG() macro
+- --vips-wbuffer2 turns on threadpool for im_iterate as well
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do

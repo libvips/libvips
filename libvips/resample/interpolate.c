@@ -147,6 +147,7 @@ vips_interpolate( VipsInterpolate *interpolate,
 	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
 
 	g_assert( class->interpolate );
+
 	class->interpolate( interpolate, out, in, x, y );
 }
 

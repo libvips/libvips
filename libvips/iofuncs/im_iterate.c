@@ -379,6 +379,9 @@ im_iterate( IMAGE *im,
 	Iterate iter;
 	int result;
 
+	if( im__wbuffer2 ) 
+		return( vips_sink( im, start, generate, stop, b, c ) );
+
 	g_assert( !im_image_sanity( im ) );
 
 	/* We don't use this, but make sure it's set in case any old binaries
