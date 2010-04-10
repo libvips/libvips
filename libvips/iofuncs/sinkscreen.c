@@ -31,10 +31,7 @@
  */
 
 /* Turn on debugging output.
-#define DEBUG
-#define DEBUG_MAKE
-#define DEBUG_REUSE
-#define DEBUG_PAINT
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -68,9 +65,18 @@ static const int have_threads = 0;
 /* The states a tile can be in.
  */
 typedef enum {
-	TILE_DIRTY,		/* On the dirty list .. contains no pixels */
-	TILE_WORKING,		/* Currently being worked on */
-	TILE_PAINTED		/* Painted, ready for reuse */
+	/* On the dirty list .. contains no pixels 
+	 */
+	TILE_DIRTY,	
+
+	/* Currently being worked on .. not on the dirty list, but contains
+	 * no valid pixels.
+	 */
+	TILE_WORKING,		
+
+	/* Valid pixels, not on dirty.
+	 */
+	TILE_PAINTED		
 } TileState;
 
 /* A tile in our cache. 
@@ -78,28 +84,19 @@ typedef enum {
 typedef struct {
 	struct _Render *render;
 
+	TileState state;
+
 	Rect area;		/* Place here (unclipped) */
 	REGION *region;		/* REGION with the pixels */
 
 	int access_ticks;	/* Time of last use for LRU flush */
-	int time;		/* Time when we finished painting */
-
-	TileState state;
 } Tile;
-
-/*
-
-	FIXME ... should have an LRU queue rather than this thing with times
-
-	FIXME ... could also hash from tile xy to tile pointer
-
- */
 
 /* Per-call state.
  */
 typedef struct _Render {
 	/* Reference count this, since we use these things from several
-	 * threads. Can't easily use the gobject ref count system since we
+	 * threads. We can't easily use the gobject ref count system since we
 	 * need a lock around operations.
 	 */
 	int ref_count;
@@ -107,14 +104,15 @@ typedef struct _Render {
 
 	/* Parameters.
 	 */
-	IMAGE *in;		/* Image we render */
-	IMAGE *out;		/* Write tiles here on demand */
-	IMAGE *mask;		/* Set valid pixels here */
-	int width, height;	/* Tile size */
-	int max;		/* Maximum number of tiles */
+	VipsImage *in;		/* Image we render */
+	VipsImage *out;		/* Write tiles here on demand */
+	VipsImage *mask;	/* Set valid pixels here */
+	int tile_width;		/* Tile size */
+	int tile_height;
+	int max_tiles;		/* Maximum number of tiles */
 	int priority;		/* Larger numbers done sooner */
-	notify_fn notify;	/* Tell caller about paints here */
-	void *client;
+	VipsSinkNotify notify;	/* Tell caller about paints here */
+	void *a;
 
 	/* Make readers single thread with this. No point allowing
 	 * multi-thread read.
@@ -123,7 +121,7 @@ typedef struct _Render {
 
 	/* Tile cache.
 	 */
-	GSList *cache;		/* List of all our tiles */
+	GHashTable *cache;	/* All our tiles, hash from x/y pos */
 	int ntiles;		/* Number of cache tiles */
 	int access_ticks;	/* Inc. on each access ... used for LRU */
 
@@ -131,20 +129,13 @@ typedef struct _Render {
 	 */
 	GMutex *dirty_lock;	/* Lock before we read/write the dirty list */
 	GSList *dirty;		/* Tiles which need painting */
-
-	/* Render thread stuff.
-	 */
-	im_threadgroup_t *tg;	/* Render with this threadgroup */
-	int render_kill;	/* This render is dying */
 } Render;
 
-/* Number of RenderThread we create.
+/* The BG thread which sits waiting to do some rendering.
  */
-static const int render_thread_max = 1;
+static GThread *render_thread = NULL;
 
-static GSList *render_thread_all = NULL;
-
-/* Number of renders with dirty tiles. RenderThreads queue up on this.
+/* Number of renders with dirty tiles. render_thread queues up on this.
  */
 static im_semaphore_t render_dirty_sem;
 
@@ -161,48 +152,24 @@ render_dirty_remove( Render *render )
 	if( g_slist_find( render_dirty_all, render ) ) {
 		render_dirty_all = g_slist_remove( render_dirty_all, render );
 
-		/* We know this can't block since there is at least 1 item in
-		 * the render_dirty_all list (us). Except that
-		 * render_dirty_get() does a _down() before it locks so this
-		 * could block if we run inbetween :-( possible deadlock.
-		 */
-		im_semaphore_down( &render_dirty_sem );
+		im_semaphore_upn( &render_dirty_sem, -1 );
 	}
 
 	g_mutex_unlock( render_dirty_lock );
 }
 
-static void *
-tile_free( Tile *tile )
-{
-#ifdef DEBUG_MAKE
-	printf( "tile_free\n" );
-#endif /*DEBUG_MAKE*/
-
-	IM_FREEF( im_region_free, tile->region );
-	im_free( tile );
-
-	return( NULL );
-}
-
 static int
 render_free( Render *render )
 {
-#ifdef DEBUG_MAKE
-	printf( "render_free: %p\n", render );
-#endif /*DEBUG_MAKE*/
+	VIPS_DEBUG_MSG_RED( "render_free: %p\n", render );
 
 	g_assert( render->ref_count == 0 );
 
 	render_dirty_remove( render );
 
-	IM_FREEF( im_threadgroup_free, render->tg );
-
 	/* Free cache.
 	 */
-	im_slist_map2( render->cache,
-		(VSListMap2Fn) tile_free, NULL, NULL );
-	IM_FREEF( g_slist_free, render->cache );
+	IM_FREEF( g_hash_table_destroy, render->cache );
 	render->ntiles = 0;
 	IM_FREEF( g_slist_free, render->dirty );
 
@@ -516,6 +483,37 @@ render_tile_get_painted( Render *render )
 	return( tile );
 }
 
+static guint
+tile_hash( gconstpointer key )
+{
+	Tile *tile = (Tile *) key;
+	int x = tile->area.left / tile->render->tile_width;
+	int y = tile->area.top / tile->render->tile_height;
+
+	return( x << 16 ^ y );
+}
+
+static gboolean
+tile_equal( gconstpointer a, gconstpointer b )
+{
+	Tile *tile1 = (Tile *) a;
+	Tile *tile2 = (Tile *) b;
+
+	return( tile1->area.left == tile2->area.left &&
+		tile1->area.top == tile2->area.top );
+}
+
+static void *
+tile_free( Tile *tile )
+{
+	VIPS_DEBUG_MSG_RED( "tile_free\n" );
+
+	IM_FREEF( im_region_free, tile->region );
+	im_free( tile );
+
+	return( NULL );
+}
+
 static Render *
 render_new( IMAGE *in, IMAGE *out, IMAGE *mask, 
 	int width, int height, int max, 
@@ -545,15 +543,13 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 
 	render->read_lock = g_mutex_new();
 
-	render->cache = NULL;
+	render->cache = g_hash_table_new_full( tile_hash, tile_equal, 
+		tile_free, NULL );
 	render->ntiles = 0;
 	render->access_ticks = 0;
 
 	render->dirty_lock = g_mutex_new();
 	render->dirty = NULL;
-
-	render->tg = NULL;
-	render->render_kill = FALSE;
 
 	if( im_add_close_callback( out, 
                 (im_callback_fn) render_unref, render, NULL ) ) {
@@ -588,7 +584,6 @@ tile_new( Render *render )
 	tile->area.width = 0;
 	tile->area.height = 0;
 	tile->access_ticks = render->access_ticks;
-	tile->time = 0;
 	tile->state = TILE_WORKING;
 
 	if( !(tile->region = im_region_create( render->in )) ) {

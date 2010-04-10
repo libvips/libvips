@@ -134,11 +134,11 @@ int vips_sink( VipsImage *im,
 	VipsStart start, VipsGenerate generate, VipsStop stop,
 	void *a, void *b );
 
-typedef void (*VipsSinkNotify)( VipsImage *im, Rect *rect, void *client );
+typedef void (*VipsSinkNotify)( VipsImage *im, Rect *rect, void *a );
 int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int width, int height, int max,
 	int priority,
-	VipsSinkNotify notify, void *client );
+	VipsSinkNotify notify, void *a );
 
 #ifdef __cplusplus
 }

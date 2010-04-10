@@ -1,30 +1,18 @@
 
-- vips_threadpool() has three clientdata, do we need all of them? maube one is
-  enough
 
-  rename vips_discsink() / discsink.c as vips_sink_disc / sinkdisc
+- we need to be able to stop a threadpool from outside
 
+  when a request comes in to vips_sink_screen(), we want to stop the
+  vips_threadpool() currently executing and start a new one
 
-- vips_sink() needs to be able to supply a thread start / stop function
+  perhaps progress should have a 'stop' param as well?
 
-  it needs to be able to start and stop sequences, and to guarantee that stops
-  get called in all paths
-
-  for example, if one thread sets stop in allocate, not all threads will get
-  to run again, they can be shut down by vips_threadpool first
+  can progress be NULL?
 
 
 
 
-- look at moving im_iterate() to thereadpool
 
-  split im_render into two parts: the asynch tile renderer, and the thing to
-  keep a queue of current render operations
-
-  the new tile render needs some easy way to start/stop it, preserving the
-  list of dirty tiles
-
-  argh, maybe it does need to be in one large operation
 
 
 - expose more of the tone funcs in nip2
