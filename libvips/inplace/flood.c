@@ -341,7 +341,7 @@ flood_around( Flood *flood, Scan *scan )
 				x1a, x2a, scan->y + scan->dir, 
 				scan->dir );
 
-			x = x2a;
+			x = x2a + 1;
 			tp = (PEL *) IM_IMAGE_ADDR( flood->test, x, scan->y );
 		}
 	}

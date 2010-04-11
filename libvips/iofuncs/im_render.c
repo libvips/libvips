@@ -226,12 +226,7 @@ render_dirty_remove( Render *render )
 	if( g_slist_find( render_dirty_all, render ) ) {
 		render_dirty_all = g_slist_remove( render_dirty_all, render );
 
-		/* We know this can't block since there is at least 1 item in
-		 * the render_dirty_all list (us). Except that
-		 * render_dirty_get() does a _down() before it locks so this
-		 * could block if we run inbetween :-( possible deadlock.
-		 */
-		im_semaphore_down( &render_dirty_sem );
+		im_semaphore_upn( &render_dirty_sem, -1 );
 	}
 
 	g_mutex_unlock( render_dirty_lock );

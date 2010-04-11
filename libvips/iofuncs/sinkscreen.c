@@ -54,6 +54,7 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+
 /* A have-threads we can test in if().
  */
 #ifdef HAVE_THREADS
@@ -67,16 +68,16 @@ static const int have_threads = 0;
 typedef enum {
 	/* On the dirty list .. contains no pixels 
 	 */
-	TILE_DIRTY,	
+	TILE_DIRTY,
+
+	/* Valid pixels, on the painted hash..
+	 */
+	TILE_PAINTED,
 
 	/* Currently being worked on .. not on the dirty list, but contains
 	 * no valid pixels.
 	 */
-	TILE_WORKING,		
-
-	/* Valid pixels, not on dirty.
-	 */
-	TILE_PAINTED		
+	TILE_WORKING
 } TileState;
 
 /* A tile in our cache. 
@@ -121,14 +122,19 @@ typedef struct _Render {
 
 	/* Tile cache.
 	 */
-	GHashTable *cache;	/* All our tiles, hash from x/y pos */
-	int ntiles;		/* Number of cache tiles */
+	GSList *cache;		/* All our tiles */
+	int ntiles;		/* Number of tiles */
 	int access_ticks;	/* Inc. on each access ... used for LRU */
 
-	/* List of tiles which are to be painted.
+	/* List of dirty tiles. Most recent at the front.
 	 */
 	GMutex *dirty_lock;	/* Lock before we read/write the dirty list */
-	GSList *dirty;		/* Tiles which need painting */
+	GSList *dirty;		
+
+	/* Hash of painted tiles. Look up by x/y position.
+	 */
+	GMutex *painted_lock;	/* Lock before we read/write the painted hash */
+	GHashTable *painted;
 } Render;
 
 /* The BG thread which sits waiting to do some rendering.
@@ -167,15 +173,20 @@ render_free( Render *render )
 
 	render_dirty_remove( render );
 
-	/* Free cache.
-	 */
-	IM_FREEF( g_hash_table_destroy, render->cache );
-	render->ntiles = 0;
-	IM_FREEF( g_slist_free, render->dirty );
-
 	g_mutex_free( render->ref_count_lock );
-	g_mutex_free( render->dirty_lock );
+
 	g_mutex_free( render->read_lock );
+
+	im_slist_map2( render->cache,
+		(VSListMap2Fn) tile_free, NULL, NULL );
+	IM_FREEF( g_slist_free, render->cache );
+	render->ntiles = 0;
+
+	IM_FREEF( g_slist_free, render->dirty );
+	g_mutex_free( render->dirty_lock );
+
+	IM_FREEF( g_hash_table_destroy, render->painted );
+	g_mutex_free( render->painted_lock );
 
 	im_free( render );
 
@@ -246,6 +257,47 @@ render_dirty_get( void )
 	g_mutex_unlock( render_dirty_lock );
 
 	return( render );
+}
+
+static int 
+render_allocate( VipsThreadState *state, void *a, gboolean *stop )
+{
+	Render *render = (Render *) a;
+	RenderThreadState *rstate = (RenderThreadState *) state;
+
+	if( render_rescheule ) {
+		*stop = TRUE;
+		return( 0 );
+	}
+
+	return( 0 );
+}
+
+static int 
+render_work( VipsThreadState *state, void *a )
+{
+	Render *render = (Render *) a;
+	RenderThreadState *rstate = (RenderThreadState *) state;
+
+	return( 0 );
+}
+
+/* Process a render with dirty tiles. Stop when we've done all the tiles, 
+ * or when we're asked to reschedule.
+ */
+static int
+render_process( Render *render )
+{
+	render_reschedule = FALSE;
+
+	vips_threadpool_run( render->im,
+		sink_thread_state_new,
+		render_allocate,
+		render_work,
+		NULL,
+		render );
+
+	render_reschedule = FALSE;
 }
 
 /* Do a single tile. Take a dirty tile from the dirty list and fill with 

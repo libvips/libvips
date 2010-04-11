@@ -1,17 +1,8 @@
 
 
-- we need to be able to stop a threadpool from outside
-
-  when a request comes in to vips_sink_screen(), we want to stop the
-  vips_threadpool() currently executing and start a new one
-
-  perhaps progress should have a 'stop' param as well?
-
-  can progress be NULL?
 
 
-
-
+- im_prepare_thread() can go? I think it was only used by im_render()
 
 
 

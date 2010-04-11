@@ -98,6 +98,8 @@ im_label_regions( IMAGE *test, IMAGE *mask, int *segments )
 				 */
 				if( im_flood_other( test, t[1], 
 					x, y, serial, NULL ) )
+//				if( im_flood_other_old( t[1], test,
+//					x, y, serial ) )
 					return( -1 );
 
 				serial += 1;
