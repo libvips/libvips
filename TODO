@@ -1,8 +1,22 @@
 
+- vips_threadpool_run() needs to quit if another thread tries to free the
+  image
 
+  look for im->kill?
+
+
+- VIPS_DEBUG_MSG() needs the wo/while thing so we can do:
+
+	if( tile )
+		VIPS_DEBUG_MSG( "reusing dirty %p\n", tile );
+	return( 0 );
+
+  and not have the return() move into the if() if debug is off
 
 
 - im_prepare_thread() can go? I think it was only used by im_render()
+
+  wtf, im_vips2tiff.c seems to be using it, what's wrong with im_wbuffer()?
 
 
 
