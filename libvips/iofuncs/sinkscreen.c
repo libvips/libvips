@@ -30,8 +30,12 @@
 
  */
 
-/* Turn on debugging output.
+/* Verbose debugging output.
 #define VIPS_DEBUG
+ */
+
+/* Trace allocate/free.
+#define VIPS_DEBUG_RED
  */
 
 #ifdef HAVE_CONFIG_H
@@ -49,11 +53,11 @@
 
 #include <vips/vips.h>
 #include <vips/thread.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
-
 
 /* A have-threads we can test in if().
  */
@@ -133,7 +137,7 @@ typedef struct _RenderThreadStateClass {
 
 G_DEFINE_TYPE( RenderThreadState, render_thread_state, VIPS_TYPE_THREAD_STATE );
 
-/* The BG thread which sits waiting to do some rendering.
+/* The BG thread which sits waiting to do some calculations.
  */
 static GThread *render_thread = NULL;
 
@@ -145,6 +149,10 @@ static im_semaphore_t render_dirty_sem;
  */
 static GMutex *render_dirty_lock = NULL;
 static GSList *render_dirty_all = NULL;
+
+/* Set this to make the bg thread stop and reschedule.
+ */
+static gboolean render_reschedule = FALSE;
 
 static void
 render_thread_state_class_init( RenderThreadStateClass *class )
@@ -169,18 +177,15 @@ render_thread_state_new( VipsImage *im, void *a )
 		vips_thread_state_set, im, a ) ) );
 }
 
-static void
-render_dirty_remove( Render *render )
+static void *
+tile_free( Tile *tile )
 {
-	g_mutex_lock( render_dirty_lock );
+	VIPS_DEBUG_MSG_RED( "tile_free\n" );
 
-	if( g_slist_find( render_dirty_all, render ) ) {
-		render_dirty_all = g_slist_remove( render_dirty_all, render );
+	IM_FREEF( im_region_free, tile->region );
+	im_free( tile );
 
-		im_semaphore_upn( &render_dirty_sem, -1 );
-	}
-
-	g_mutex_unlock( render_dirty_lock );
+	return( NULL );
 }
 
 static int
@@ -190,14 +195,17 @@ render_free( Render *render )
 
 	g_assert( render->ref_count == 0 );
 
-	render_dirty_remove( render );
+	g_mutex_lock( render_dirty_lock );
+	if( g_slist_find( render_dirty_all, render ) ) {
+		render_dirty_all = g_slist_remove( render_dirty_all, render );
+		im_semaphore_upn( &render_dirty_sem, -1 );
+	}
+	g_mutex_unlock( render_dirty_lock );
 
 	g_mutex_free( render->ref_count_lock );
-
 	g_mutex_free( render->lock );
 
-	im_slist_map2( render->all,
-		(VSListMap2Fn) tile_free, NULL, NULL );
+	im_slist_map2( render->all, (VSListMap2Fn) tile_free, NULL, NULL );
 	IM_FREEF( g_slist_free, render->all );
 	render->ntiles = 0;
 	IM_FREEF( g_slist_free, render->dirty );
@@ -252,14 +260,12 @@ render_dirty_get( void )
 	g_mutex_lock( render_dirty_lock );
 
 	/* Just take the head of the jobs list ... we sort when we add. If
-	 * render_dirty_remove() is called between our semaphore letting us in
+	 * render_free() is called between our semaphore letting us in
 	 * and the _lock(), render_dirty_all can be NULL.
 	 */
 	render = NULL;
 	if( render_dirty_all ) {
 		render = (Render *) render_dirty_all->data;
-
-		g_assert( render->ref_count == 1 );
 
 		/* Ref the render to make sure it can't die while we're
 		 * working on it.
@@ -279,24 +285,22 @@ render_allocate( VipsThreadState *state, void *a, gboolean *stop )
 {
 	Render *render = (Render *) a;
 	RenderThreadState *rstate = (RenderThreadState *) state;
-	Tile *tile;
 
 	g_mutex_lock( render->lock );
 
-	if( render_rescheule || !render->dirty )
+	if( render_reschedule || !render->dirty ) {
 		*stop = TRUE;
 		rstate->tile = NULL;
-		g_mutex_unlock( render->lock );
+	}
+	else {
+		Tile *tile;
 
-		return( 0 );
+		tile = (Tile *) render->dirty->data;
+		render->dirty = g_slist_remove( render->dirty, tile );
+		rstate->tile = tile;
 	}
 
-	tile = (Tile *) render->dirty->data;
-	render->dirty = g_slist_remove( render->dirty, tile );
-
 	g_mutex_unlock( render->lock );
-
-	rstate->tile = tile;
 
 	return( 0 );
 }
@@ -309,32 +313,23 @@ render_work( VipsThreadState *state, void *a )
 	Tile *tile = rstate->tile;
 
 	g_assert( tile );
-	g_assert( !tile->painted );
 
-	if( im_prepare( tile->region, &tile->area ) )
-		return( -1 );
-	tile->painted = TRUE;
+	if( !tile->painted ) { 
+		VIPS_DEBUG_MSG( "calculating tile %dx%d\n", 
+			tile->area.left, tile->area.top );
 
-	/* Now clients can update.
-	 */
-	if( render->notify ) 
-		render->notify( render->out, &tile->area, render->a );
+		if( im_prepare_to( state->reg, tile->region, 
+			&tile->area, tile->area.left, tile->area.top ) ) 
+			return( -1 );
+		tile->painted = TRUE;
+
+		/* Now clients can update.
+		 */
+		if( render->notify ) 
+			render->notify( render->out, &tile->area, render->a );
+	}
 
 	return( 0 );
-}
-
-/* Process a render with dirty tiles. Stop when we've done all the tiles, 
- * or when we're asked to reschedule.
- */
-static int
-render_process( Render *render )
-{
-	return( vips_threadpool_run( render->im,
-		render_thread_state_new,
-		render_allocate,
-		render_work,
-		NULL,
-		render ) );
 }
 
 static int       
@@ -356,6 +351,12 @@ render_dirty_put( Render *render )
 				render );
 			render_dirty_all = g_slist_sort( render_dirty_all,
 				(GCompareFunc) render_dirty_sort );
+
+			/* Ask the bg thread to stop and reschedule, if it's
+			 * running.
+			 */
+			render_reschedule = TRUE;
+
 			im_semaphore_up( &render_dirty_sem );
 		}
 	}
@@ -376,15 +377,16 @@ render_thread_main( void *client )
 			 * anyway.
 			 */
 			render_reschedule = FALSE;
-			(void) render_process( render );
-			render_reschedule = FALSE;
+			(void) vips_threadpool_run( render->in,
+				render_thread_state_new,
+				render_allocate,
+				render_work,
+				NULL,
+				render );
 
 			/* Add back to the jobs list, if we need to.
 			 */
 			render_dirty_put( render );
-
-			g_assert( render->ref_count == 1 ||
-				render->ref_count == 2 );
 
 			/* _get() does a ref to make sure we keep the render
 			 * alive during processing ... unref before we loop.
@@ -402,7 +404,15 @@ render_thread_main( void *client )
 static int
 render_thread_create( void )
 {
-	if( !render_thread && have_threads )
+	if( !have_threads )
+		return( 0 );
+
+	if( !render_dirty_lock ) {
+		render_dirty_lock = g_mutex_new();
+		im_semaphore_init( &render_dirty_sem, 0, "render_dirty_sem" );
+	}
+
+	if( !render_thread && have_threads ) {
 		if( !(render_thread = g_thread_create_full( 
 			render_thread_main, NULL, 
 			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
@@ -437,22 +447,25 @@ tile_equal( gconstpointer a, gconstpointer b )
 		rect1->top == rect2->top );
 }
 
-static void *
-tile_free( Tile *tile )
+static int
+render_close_cb( Render *render )
 {
-	VIPS_DEBUG_MSG_RED( "tile_free\n" );
+	render_unref( render );
 
-	IM_FREEF( im_region_free, tile->region );
-	im_free( tile );
+	/* If this render is being worked on, we want to jog the bg thread, 
+	 * make it drop it's ref and think again.
+	 */
+	render_reschedule = TRUE;
 
-	return( NULL );
+	return( 0 );
 }
 
 static Render *
-render_new( IMAGE *in, IMAGE *out, IMAGE *mask, 
-	int width, int height, int max, 
+render_new( VipsImage *in, VipsImage *out, VipsImage *mask, 
+	int tile_width, int tile_height, 
+	int max_tiles, 
 	int priority,
-	notify_fn notify, void *client )
+	VipsSinkNotify notify, void *a )
 {
 	Render *render;
 
@@ -468,16 +481,16 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 	render->in = in;
 	render->out = out;
 	render->mask = mask;
-	render->width = width;
-	render->height = height;
-	render->max = max;
+	render->tile_width = tile_width;
+	render->tile_height = tile_height;
+	render->max_tiles = max_tiles;
 	render->priority = priority;
 	render->notify = notify;
-	render->client = client;
+	render->a = a;
 
 	render->lock = g_mutex_new();
 
-	render->all = NULL
+	render->all = NULL;
 	render->ntiles = 0;
 	render->ticks = 0;
 
@@ -485,11 +498,23 @@ render_new( IMAGE *in, IMAGE *out, IMAGE *mask,
 
 	render->dirty = NULL;
 
+	/* Both out and mask must close before we can free the render.
+	 */
+
 	if( im_add_close_callback( out, 
-                (im_callback_fn) render_unref, render, NULL ) ) {
+                (im_callback_fn) render_close_cb, render, NULL ) ) {
                 (void) render_unref( render );
                 return( NULL );
         }
+
+	if( mask ) {
+		if( im_add_close_callback( mask, 
+			(im_callback_fn) render_close_cb, render, NULL ) ) {
+			(void) render_unref( render );
+			return( NULL );
+		}
+		render_ref( render );
+	}
 
 	return( render );
 }
@@ -501,9 +526,7 @@ tile_new( Render *render )
 {
 	Tile *tile;
 
-#ifdef DEBUG_MAKE
-	printf( "tile_new\n" );
-#endif /*DEBUG_MAKE*/
+	VIPS_DEBUG_MSG_RED( "tile_new\n" );
 
 	/* Don't use auto-free: we need to make sure we free the tile after
 	 * Render.
@@ -549,10 +572,8 @@ tile_touch( Tile *tile )
 	render->ticks += 1;
 
 	if( !tile->painted ) {
-#ifdef DEBUG
-		printf( "tile_bump_dirty: bumping tile %dx%d\n",
+		VIPS_DEBUG_MSG( "tile_bump_dirty: bumping tile %dx%d\n",
 			tile->area.left, tile->area.top );
-#endif /*DEBUG*/
 
 		if( g_slist_find( render->dirty, tile ) ) {
 			render->dirty = g_slist_remove( render->dirty, tile );
@@ -568,55 +589,42 @@ tile_queue( Tile *tile, Rect *area )
 {
 	Render *render = tile->render;
 
-#ifdef DEBUG_PAINT
-	printf( "tile_set_dirty: adding tile %dx%d to dirty\n",
+	VIPS_DEBUG_MSG( "tile_set_dirty: adding tile %dx%d to dirty\n",
 		area->left, area->top );
-#endif /*DEBUG_PAINT*/
 
-	/* Touch the ticks ... we want to make sure this tile will not be
-	 * reused too soon, so it gets a chance to get painted.
-	 */
-	tile->ticks = render->ticks;
-	render->ticks += 1;
-
-	/* It might not be in the tile hash, but remove anyway.
-	 */
-	g_hash_table_remove( render->tiles, &tile->area );
 	tile->painted = FALSE;
 	tile->area = *area;
+	if( im_region_buffer( tile->region, area ) )
+		printf( "poop!\n" );
 	g_hash_table_insert( render->tiles, &tile->area, tile );
 
 	if( render->notify && have_threads ) {
 		/* Add to the list of renders with dirty tiles. The bg 
 		 * thread will pick it up and paint it.
 		 */
-		im__region_no_ownership( tile->region );
 		render->dirty = g_slist_prepend( render->dirty, tile );
 		render_dirty_put( render );
 	}
 	else {
-		/* No threads, or no notify ... paint the tile ourselves, 
+		/* No threads, or no notify ... paint the tile ourselves 
 		 * sychronously. No need to notify the client since they'll 
 		 * never see black tiles.
 		 */
-#ifdef DEBUG_PAINT
-		printf( "tile_set_dirty: painting tile %dx%d synchronously\n",
+		VIPS_DEBUG_MSG( "tile_set_dirty: "
+			"painting tile %dx%d synchronously\n",
 			area->left, area->top );
-#endif /*DEBUG_PAINT*/
 
 		im_prepare( tile->region, &tile->area );
 		tile->painted = TRUE;
 	}
 }
 
-static void *
+static void 
 tile_test_clean_ticks( Rect *key, Tile *value, Tile **best )
 {
 	if( value->painted )
 		if( !*best || value->ticks < (*best)->ticks )
 			*best = value;
-
-	return( NULL );
 }
 
 /* Pick a painted tile to reuse. Search for LRU (slow!).
@@ -628,20 +636,21 @@ render_tile_get_painted( Render *render )
 
 	tile = NULL;
 	g_hash_table_foreach( render->tiles,
-		(GHRFunc) tile_test_clean_ticks, &tile );
+		(GHFunc) tile_test_clean_ticks, &tile );
 
 	if( tile ) {
 		g_assert( tile->painted );
 
-#ifdef DEBUG_REUSE
-		printf( "render_tile_get_painted: reusing painted %p\n", tile );
-#endif /*DEBUG_REUSE*/
+		VIPS_DEBUG_MSG( "render_tile_get_painted: "
+			"reusing painted %p\n", tile );
 	}
 
 	return( tile );
 }
 
-/* Pick a dirty tile to reuse.
+/* Pick a dirty tile to reuse. We could potentially get the tile that
+ * render_work() is working on in the background :-( but I don't think we'll
+ * get a crash, just a mis-paint. It should be vanishingly impossible anyway.
  */
 static Tile *
 render_tile_get_dirty( Render *render )
@@ -667,18 +676,16 @@ tile_request( Render *render, Rect *area )
 	Tile *tile;
 
 	if( (tile = render_tile_lookup( render, area )) ) {
-		/* We already have a tile at this position. Either it's all
-		 * OK, in which case we're using it so we need to update the
-		 * ticks to keep it in cache a little longer, or it's invalid,
-		 * in which case we need to recalculate.
+		/* We already have a tile at this position. If it's invalid,
+		 * ask for a repaint.
 		 */
-		if( tile->painted && !tile->region->invalid ) 
-			tile_touch( tile );
-		else
+		if( !tile->painted || tile->region->invalid ) 
 			tile_queue( tile, area );
 	}
-	else if( render->ntiles < render->max || render->max == -1 ) {
-		/* We fewer tiles than teh max. We can just make a new tile.
+	else if( render->ntiles < render->max_tiles || 
+		render->max_tiles == -1 ) {
+		/* We have fewer tiles than teh max. We can just make a new 
+		 * tile.
 		 */
 		if( !(tile = tile_new( render )) ) 
 			return( NULL );
@@ -693,14 +700,19 @@ tile_request( Render *render, Rect *area )
 			!(tile = render_tile_get_dirty( render )) ) 
 			return( NULL );
 
-#ifdef DEBUG_REUSE
-		printf( "(render_tile_get: was at %dx%d, moving to %dx%d)\n",
+		VIPS_DEBUG_MSG( "(render_tile_get: was at %dx%d, "
+			"moving to %dx%d)\n",
 			tile->area.left, tile->area.top,
 			area->left, area->top );
-#endif /*DEBUG_REUSE*/
+
+		/* Need to remove from the old position.
+		 */
+		g_hash_table_remove( render->tiles, &tile->area );
 
 		tile_queue( tile, area );
 	}
+
+	tile_touch( tile );
 
 	return( tile );
 }
@@ -724,10 +736,9 @@ tile_copy( Tile *tile, REGION *to )
 	if( tile->painted && !tile->region->invalid ) {
 		int len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
 
-#ifdef DEBUG_PAINT
-		printf( "tile_copy: copying calculated pixels for %dx%d\n",
+		VIPS_DEBUG_MSG( "tile_copy: "
+			"copying calculated pixels for %dx%d\n",
 			tile->area.left, tile->area.top ); 
-#endif /*DEBUG_PAINT*/
 
 		for( y = ovlap.top; y < IM_RECT_BOTTOM( &ovlap ); y++ ) {
 			PEL *p = (PEL *) IM_REGION_ADDR( tile->region, 
@@ -738,10 +749,8 @@ tile_copy( Tile *tile, REGION *to )
 		}
 	}
 	else {
-#ifdef DEBUG_PAINT
-		printf( "tile_copy: zero filling for %dx%d\n",
+		VIPS_DEBUG_MSG( "tile_copy: zero filling for %dx%d\n",
 			tile->area.left, tile->area.top ); 
-#endif /*DEBUG_PAINT*/
 		im_region_paint( to, &ovlap, 0 );
 	}
 }
@@ -760,10 +769,9 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 	int xs = (r->left / render->tile_width) * render->tile_width;
 	int ys = (r->top / render->tile_height) * render->tile_height;
 
-#ifdef DEBUG_PAINT
-	printf( "region_fill: left = %d, top = %d, width = %d, height = %d\n",
+	VIPS_DEBUG_MSG( "region_fill: left = %d, top = %d, "
+		"width = %d, height = %d\n",
                 r->left, r->top, r->width, r->height );
-#endif /*DEBUG_PAINT*/
 
 	g_mutex_lock( render->lock );
 
@@ -781,8 +789,8 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 
 			area.left = x;
 			area.top = y;
-			area.width = render->width;
-			area.height = render->height;
+			area.width = render->tile_width;
+			area.height = render->tile_height;
 
 			tile = tile_request( render, &area );
 			if( tile )
@@ -808,10 +816,9 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 	int xs = (r->left / render->tile_width) * render->tile_width;
 	int ys = (r->top / render->tile_height) * render->tile_height;
 
-#ifdef DEBUG_PAINT
-	printf( "mask_fill: left = %d, top = %d, width = %d, height = %d\n",
+	VIPS_DEBUG_MSG( "mask_fill: left = %d, top = %d, "
+		"width = %d, height = %d\n",
                 r->left, r->top, r->width, r->height );
-#endif /*DEBUG_PAINT*/
 
 	g_mutex_lock( render->lock );
 
@@ -845,9 +852,9 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  * @in: input image
  * @out: output image
  * @mask: mask image indicating valid pixels
- * @width: tile width
- * @height: tile height
- * @max: maximum tiles to cache
+ * @tile_width: tile width
+ * @tile_height: tile height
+ * @max_tiles: maximum tiles to cache
  * @priority: rendering priority
  * @notify: pixels are ready notification callback
  * @a: client data for callback
@@ -855,8 +862,8 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  * This operation renders @in in the background, making pixels available on
  * @out as they are calculated. The @notify callback is run every time a new
  * set of pixels are available. Calculated pixels are kept in a cache with
- * tiles sized @width by @height pixels and at most @max tiles.
- * If @max is -1, the cache is of unlimited size (up to the maximum image
+ * tiles sized @tile_width by @tile_height pixels and at most @max_tiles tiles.
+ * If @max_tiles is -1, the cache is of unlimited size (up to the maximum image
  * size).
  * The @mask image s a one-band uchar image and has 255 for pixels which are 
  * currently in cache and 0 for uncalculated pixels.
@@ -888,7 +895,8 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  */
 int
 vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask, 
-	int width, int height, int max, 
+	int tile_width, int tile_height, 
+	int max_tiles, 
 	int priority,
 	VipsSinkNotify notify, void *a )
 {
@@ -899,9 +907,8 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	if( render_thread_create() )
 		return( -1 );
 
-	if( width <= 0 || 
-		height <= 0 || 
-		max < -1 ) {
+	if( tile_width <= 0 || tile_height <= 0 || 
+		max_tiles < -1 ) {
 		im_error( "vips_sink_screen", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
@@ -923,12 +930,10 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	}
 
 	if( !(render = render_new( in, out, mask, 
-		width, height, max, priority, notify, a )) )
+		tile_width, tile_height, max_tiles, priority, notify, a )) )
 		return( -1 );
 
-#ifdef DEBUG_MAKE
-	printf( "vips_sink_screen: max = %d, %p\n", max, render );
-#endif /*DEBUG_MAKE*/
+	VIPS_DEBUG_MSG( "vips_sink_screen: max = %d, %p\n", max_tiles, render );
 
 	if( im_generate( out, NULL, region_fill, NULL, render, NULL ) )
 		return( -1 );

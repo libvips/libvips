@@ -50,6 +50,8 @@
  * 17/3/10
  * 	- don't use invalidate callbacks after all, just test region->invalid,
  * 	  much simpler!
+ * 13/4/10
+ * 	- optionally use vips_sink_screen() instead
  */
 
 /*
@@ -101,6 +103,7 @@
 
 #include <vips/vips.h>
 #include <vips/thread.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -1053,6 +1056,12 @@ im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
 	notify_fn notify, void *client )
 {
 	Render *render;
+
+	/* Optionally use the newer one.
+	 */
+	if( im__wbuffer2 ) 
+		return( vips_sink_screen( in, out, mask, 
+			width, height, max, priority, notify, client ) ); 
 
 	/* Make sure the bg work threads are ready.
 	 */

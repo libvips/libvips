@@ -252,15 +252,18 @@ im__region_take_ownership( REGION *reg )
 	 */
 	g_mutex_lock( reg->im->sslock );
 
-	g_assert( reg->thread == NULL );
+	if( reg->thread != g_thread_self() ) {
+		g_assert( reg->thread == NULL );
 
-	/* We don't want to move shared buffers: the other region using this
-	 * buffer will still be on the other thread. Not sure if this will
-	 * ever happen: if it does, we'll need to dup the buffer.
-	 */
-	g_assert( !reg->buffer || reg->buffer->ref_count == 1 );
+		/* We don't want to move shared buffers: the other region 
+		 * using this buffer will still be on the other thread. 
+		 * Not sure if this will ever happen: if it does, we'll 
+		 * need to dup the buffer.
+		 */
+		g_assert( !reg->buffer || reg->buffer->ref_count == 1 );
 
-	reg->thread = g_thread_self();
+		reg->thread = g_thread_self();
+	}
 
 	g_mutex_unlock( reg->im->sslock );
 }
@@ -451,7 +454,6 @@ im_region_buffer( REGION *reg, Rect *r )
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
-
 
 	/* Have we been asked to drop caches? We want to throw everything
 	 * away.

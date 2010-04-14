@@ -56,24 +56,27 @@ extern "C" {
 #define IM_CLIP(A,V,B) IM_MAX( (A), IM_MIN( (B), (V) ) )
 #define IM_NUMBER(R) ((int)(sizeof(R)/sizeof(R[0])))
 
-#define IM_FREEF( F, S ) do { \
+#define IM_FREEF( F, S ) \
+G_STMT_START \
         if( S ) { \
                 (void) F( (S) ); \
                 (S) = 0; \
         } \
-} while( 0 )
+G_STMT_END
 
 /* Can't just use IM_FREEF(), we want the extra cast to void on the argument
  * to im_free() to make sure we can work for "const char *" variables.
  */
-#define IM_FREE( S ) do { \
+#define IM_FREE( S ) \
+G_STMT_START \
         if( S ) { \
                 (void) im_free( (void *) (S) ); \
                 (S) = 0; \
         } \
-} while( 0 )
+G_STMT_END
 
-#define IM_SETSTR( S, V ) do { \
+#define IM_SETSTR( S, V ) \
+G_STMT_START { \
         const char *sst = (V); \
 	\
         if( (S) != sst ) { \
@@ -83,7 +86,7 @@ extern "C" {
                                 (S) = im_strdup( NULL, sst ); \
                 } \
         } \
-} while( 0 ) 
+} G_STMT_END
 
 /* Duff's device. Do OPERation N times in a 16-way unrolled loop.
  */

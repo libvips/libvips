@@ -136,7 +136,7 @@ int vips_sink( VipsImage *im,
 
 typedef void (*VipsSinkNotify)( VipsImage *im, Rect *rect, void *a );
 int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
-	int width, int height, int max,
+	int tile_width, int tile_height, int max_tiles,
 	int priority,
 	VipsSinkNotify notify, void *a );
 

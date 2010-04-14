@@ -29,6 +29,7 @@ libiofuncs_la_SOURCES = \
 	im_unmapfile.c \
 	im_guess_prefix.c \
 	im_wbuffer.c \
+	sinkscreen.c \
 	sinkdisc.c \
 	sink.c \
 	im_wrapmany.c \
