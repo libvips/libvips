@@ -35,8 +35,12 @@
  */
 
 /* Trace allocate/free.
-#define VIPS_DEBUG_RED
  */
+#define VIPS_DEBUG_RED
+
+/* Trace reschedule
+ */
+#define VIPS_DEBUG_GREEN
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -66,6 +70,10 @@ static const int have_threads = 1;
 #else /*!HAVE_THREADS*/
 static const int have_threads = 0;
 #endif /*HAVE_THREADS*/
+
+#ifdef VIPS_DEBUG_RED
+static int render_num_renders = 0;
+#endif /*VIPS_DEBUG_RED*/
 
 /* A tile in our cache. 
  */
@@ -213,6 +221,10 @@ render_free( Render *render )
 
 	im_free( render );
 
+#ifdef VIPS_DEBUG_RED
+	render_num_renders -= 1;
+#endif /*VIPS_DEBUG_RED*/
+
 	return( 0 );
 }
 
@@ -289,6 +301,7 @@ render_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	g_mutex_lock( render->lock );
 
 	if( render_reschedule || !render->dirty ) {
+		VIPS_DEBUG_MSG_GREEN( "render_allocate: stopping\n" );
 		*stop = TRUE;
 		rstate->tile = NULL;
 	}
@@ -355,6 +368,8 @@ render_dirty_put( Render *render )
 			/* Ask the bg thread to stop and reschedule, if it's
 			 * running.
 			 */
+			VIPS_DEBUG_MSG_GREEN( "render_dirty_put: "
+				"reschedule\n" );
 			render_reschedule = TRUE;
 
 			im_semaphore_up( &render_dirty_sem );
@@ -376,6 +391,9 @@ render_thread_main( void *client )
 			/* Ignore errors, I'm not sure what we'd do with them
 			 * anyway.
 			 */
+			VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
+				"threadpool start\n" );
+
 			render_reschedule = FALSE;
 			(void) vips_threadpool_run( render->in,
 				render_thread_state_new,
@@ -383,6 +401,9 @@ render_thread_main( void *client )
 				render_work,
 				NULL,
 				render );
+
+			VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
+				"threadpool return\n" );
 
 			/* Add back to the jobs list, if we need to.
 			 */
@@ -450,11 +471,14 @@ tile_equal( gconstpointer a, gconstpointer b )
 static int
 render_close_cb( Render *render )
 {
+	VIPS_DEBUG_MSG_RED( "render_close_cb\n" );
+
 	render_unref( render );
 
 	/* If this render is being worked on, we want to jog the bg thread, 
 	 * make it drop it's ref and think again.
 	 */
+	VIPS_DEBUG_MSG_GREEN( "render_close_cb: reschedule\n" );
 	render_reschedule = TRUE;
 
 	return( 0 );
@@ -515,6 +539,12 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 		}
 		render_ref( render );
 	}
+
+	VIPS_DEBUG_MSG_RED( "render_new: %p\n", render );
+
+#ifdef VIPS_DEBUG_RED
+	render_num_renders += 1;
+#endif /*VIPS_DEBUG_RED*/
 
 	return( render );
 }
@@ -944,3 +974,11 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	return( 0 );
 }
 
+void
+im__print_renders( void )
+{
+#ifdef VIPS_DEBUG_RED
+	printf( "%d active renders\n", render_num_renders );
+#endif /*VIPS_DEBUG_RED*/
+	printf( "%d dirty renders\n", g_slist_length( render_dirty_all ) );
+}

@@ -140,6 +140,8 @@ int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int priority,
 	VipsSinkNotify notify, void *a );
 
+void im__print_renders( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -315,6 +315,8 @@ im__print_all( void )
 				" bytes\n", 
 				total );
 	}
+
+	im__print_renders();
 }
 
 static void *
