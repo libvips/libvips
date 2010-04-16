@@ -35,12 +35,12 @@
  */
 
 /* Trace allocate/free.
- */
 #define VIPS_DEBUG_RED
+ */
 
 /* Trace reschedule
- */
 #define VIPS_DEBUG_GREEN
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -206,7 +206,11 @@ render_free( Render *render )
 	g_mutex_lock( render_dirty_lock );
 	if( g_slist_find( render_dirty_all, render ) ) {
 		render_dirty_all = g_slist_remove( render_dirty_all, render );
-		im_semaphore_upn( &render_dirty_sem, -1 );
+
+		/* We could im_semaphore_upn( &render_dirty_sem, -1 ), but
+		 * what's the point. We'd just wake up the bg thread
+		 * for no reason.
+		 */
 	}
 	g_mutex_unlock( render_dirty_lock );
 
@@ -309,6 +313,7 @@ render_allocate( VipsThreadState *state, void *a, gboolean *stop )
 		Tile *tile;
 
 		tile = (Tile *) render->dirty->data;
+		g_assert( !tile->painted );
 		render->dirty = g_slist_remove( render->dirty, tile );
 		rstate->tile = tile;
 	}
@@ -326,21 +331,20 @@ render_work( VipsThreadState *state, void *a )
 	Tile *tile = rstate->tile;
 
 	g_assert( tile );
+	g_assert( !tile->painted );
 
-	if( !tile->painted ) { 
-		VIPS_DEBUG_MSG( "calculating tile %dx%d\n", 
-			tile->area.left, tile->area.top );
+	VIPS_DEBUG_MSG( "calculating tile %dx%d\n", 
+		tile->area.left, tile->area.top );
 
-		if( im_prepare_to( state->reg, tile->region, 
-			&tile->area, tile->area.left, tile->area.top ) ) 
-			return( -1 );
-		tile->painted = TRUE;
+	if( im_prepare_to( state->reg, tile->region, 
+		&tile->area, tile->area.left, tile->area.top ) ) 
+		return( -1 );
+	tile->painted = TRUE;
 
-		/* Now clients can update.
-		 */
-		if( render->notify ) 
-			render->notify( render->out, &tile->area, render->a );
-	}
+	/* Now clients can update.
+	 */
+	if( render->notify ) 
+		render->notify( render->out, &tile->area, render->a );
 
 	return( 0 );
 }
@@ -568,8 +572,9 @@ tile_new( Render *render )
 	tile->region = NULL;
 	tile->area.left = 0;
 	tile->area.top = 0;
-	tile->area.width = 0;
-	tile->area.height = 0;
+	tile->area.width = render->tile_width;
+	tile->area.height = render->tile_height;
+	tile->painted = FALSE;
 	tile->ticks = render->ticks;
 
 	if( !(tile->region = im_region_create( render->in )) ) {
@@ -591,6 +596,43 @@ render_tile_lookup( Render *render, Rect *area )
 	return( (Tile *) g_hash_table_lookup( render->tiles, area ) );
 }
 
+/* Add a new tile to the table.
+ */
+static void
+render_tile_add( Tile *tile, Rect *area )
+{
+	Render *render = tile->render;
+
+	g_assert( !render_tile_lookup( render, area ) );
+
+	tile->painted = FALSE;
+	tile->area = *area;
+	/* Ignore buffer allocate errors, not much we could do with them.
+	 */
+	if( im_region_buffer( tile->region, area ) )
+		VIPS_DEBUG_MSG( "render_tile_add: buffer allocate failed\n" ); 
+
+	g_hash_table_insert( render->tiles, &tile->area, tile );
+}
+
+/* Move a tile to a new position.
+ */
+static void
+render_tile_move( Tile *tile, Rect *area )
+{
+	Render *render = tile->render;
+
+	g_assert( render_tile_lookup( render, &tile->area ) );
+
+	if( tile->area.left != area->left ||
+		tile->area.top != area->top ) {
+		g_assert( !render_tile_lookup( render, area ) );
+
+		g_hash_table_remove( render->tiles, &tile->area );
+		render_tile_add( tile, area );
+	}
+}
+
 /* We've looked at a tile ... bump to end of LRU and front of dirty.
  */
 static void
@@ -601,37 +643,33 @@ tile_touch( Tile *tile )
 	tile->ticks = render->ticks;
 	render->ticks += 1;
 
-	if( !tile->painted ) {
+	if( g_slist_find( render->dirty, tile ) ) {
+		g_assert( !tile->painted );
+
 		VIPS_DEBUG_MSG( "tile_bump_dirty: bumping tile %dx%d\n",
 			tile->area.left, tile->area.top );
 
-		if( g_slist_find( render->dirty, tile ) ) {
-			render->dirty = g_slist_remove( render->dirty, tile );
-			render->dirty = g_slist_prepend( render->dirty, tile );
-		}
+		render->dirty = g_slist_remove( render->dirty, tile );
+		render->dirty = g_slist_prepend( render->dirty, tile );
 	}
 }
 
-/* Queue a tile for calculation. It might need moving too.
+/* Queue a tile for calculation. 
  */
 static void
-tile_queue( Tile *tile, Rect *area )
+tile_queue( Tile *tile )
 {
 	Render *render = tile->render;
 
-	VIPS_DEBUG_MSG( "tile_set_dirty: adding tile %dx%d to dirty\n",
-		area->left, area->top );
-
-	tile->painted = FALSE;
-	tile->area = *area;
-	if( im_region_buffer( tile->region, area ) )
-		printf( "poop!\n" );
-	g_hash_table_insert( render->tiles, &tile->area, tile );
+	VIPS_DEBUG_MSG( "tile_queue: adding tile %dx%d to dirty\n",
+		tile->area.left, tile->area.top );
 
 	if( render->notify && have_threads ) {
 		/* Add to the list of renders with dirty tiles. The bg 
 		 * thread will pick it up and paint it.
 		 */
+		g_assert( !g_slist_find( render->dirty, tile ) );
+		tile->painted = FALSE;
 		render->dirty = g_slist_prepend( render->dirty, tile );
 		render_dirty_put( render );
 	}
@@ -640,9 +678,9 @@ tile_queue( Tile *tile, Rect *area )
 		 * sychronously. No need to notify the client since they'll 
 		 * never see black tiles.
 		 */
-		VIPS_DEBUG_MSG( "tile_set_dirty: "
+		VIPS_DEBUG_MSG( "tile_queue: "
 			"painting tile %dx%d synchronously\n",
-			area->left, area->top );
+			tile->area.left, tile->area.top );
 
 		im_prepare( tile->region, &tile->area );
 		tile->painted = TRUE;
@@ -692,6 +730,9 @@ render_tile_get_dirty( Render *render )
 	else {
 		tile = (Tile *) g_slist_last( render->dirty )->data;
 		render->dirty = g_slist_remove( render->dirty, tile );
+
+		VIPS_DEBUG_MSG( "render_tile_get_dirty: "
+			"reusing dirty %p\n", tile );
 	}
 
 	return( tile );
@@ -705,12 +746,15 @@ tile_request( Render *render, Rect *area )
 {
 	Tile *tile;
 
+	VIPS_DEBUG_MSG( "tile_request: asking for %dx%d\n",
+		area->left, area->top );
+
 	if( (tile = render_tile_lookup( render, area )) ) {
 		/* We already have a tile at this position. If it's invalid,
 		 * ask for a repaint.
 		 */
-		if( !tile->painted || tile->region->invalid ) 
-			tile_queue( tile, area );
+		if( tile->region->invalid ) 
+			tile_queue( tile );
 	}
 	else if( render->ntiles < render->max_tiles || 
 		render->max_tiles == -1 ) {
@@ -720,26 +764,23 @@ tile_request( Render *render, Rect *area )
 		if( !(tile = tile_new( render )) ) 
 			return( NULL );
 
-		tile_queue( tile, area );
+		render_tile_add( tile, area );
+
+		tile_queue( tile );
 	}
 	else {
 		/* Need to reuse a tile. Try for an old painted tile first, 
 		 * then if that fails, reuse a dirty tile. 
 		 */
 		if( !(tile = render_tile_get_painted( render )) &&
-			!(tile = render_tile_get_dirty( render )) ) 
+			!(tile = render_tile_get_dirty( render )) ) {
+			VIPS_DEBUG_MSG( "tile_request: no tiles to reuse\n" );
 			return( NULL );
+		}
 
-		VIPS_DEBUG_MSG( "(render_tile_get: was at %dx%d, "
-			"moving to %dx%d)\n",
-			tile->area.left, tile->area.top,
-			area->left, area->top );
+		render_tile_move( tile, area );
 
-		/* Need to remove from the old position.
-		 */
-		g_hash_table_remove( render->tiles, &tile->area );
-
-		tile_queue( tile, area );
+		tile_queue( tile );
 	}
 
 	tile_touch( tile );
@@ -892,16 +933,16 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  * This operation renders @in in the background, making pixels available on
  * @out as they are calculated. The @notify callback is run every time a new
  * set of pixels are available. Calculated pixels are kept in a cache with
- * tiles sized @tile_width by @tile_height pixels and at most @max_tiles tiles.
+ * tiles sized @tile_width by @tile_height pixels and with at most @max_tiles 
+ * tiles.
  * If @max_tiles is -1, the cache is of unlimited size (up to the maximum image
  * size).
- * The @mask image s a one-band uchar image and has 255 for pixels which are 
+ * The @mask image is a one-band uchar image and has 255 for pixels which are 
  * currently in cache and 0 for uncalculated pixels.
  *
- * The pixel rendering system has a single global #im_threadgroup_t which is 
- * used for all currently active instances of im_render_priority(). As
- * renderers are added and removed from the system, the threadgroup switches
- * between renderers based on their priority setting. Zero means normal
+ * Only a single sink is calculated at any one time, though many may be
+ * alive. Use @priority to indicate which renders are more important:  
+ * zero means normal
  * priority, negative numbers are low priority, positive numbers high
  * priority.
  *
@@ -911,15 +952,16 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  * to a queue, and the @notify callback will trigger when those pixels are
  * ready.
  *
- * The @notify callback is run from the background thread. In the callback,
+ * The @notify callback is run from one of the background threads. In the 
+ * callback
  * you need to somehow send a message to the main thread that the pixels are
  * ready. In a glib-based application, this is easily done with g_idle_add().
  *
- * If @notify is %NULL, then im_render_priority() runs synchronously.
+ * If @notify is %NULL then im_render_priority() runs synchronously.
  * im_prepare() on @out will always block until the pixels have been
- * calculated by the background #im_threadgroup_t.
+ * calculated.
  *
- * See also: im_cache(), im_prepare().
+ * See also: im_cache(), im_prepare(), vips_sink_disc(), vips_sink().
  *
  * Returns: 0 on sucess, -1 on error.
  */

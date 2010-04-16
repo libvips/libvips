@@ -1,16 +1,11 @@
 
-- load big.v, scroll from the bottom to the top in 1:1 mode, does not catch up
-  with repaints when we get to the top
-
-  segv on exit during leak check
-
-
 
 
 - im_prepare_thread() can go? I think it was only used by im_render()
 
   wtf, im_vips2tiff.c seems to be using it, what's wrong with im_wbuffer()?
 
+- get rid of threadgroup too (deprecate?)
 
 
 - expose more of the tone funcs in nip2
