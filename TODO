@@ -1,17 +1,4 @@
 
-- swap all im_wbuffer() for vips_sink_disc()
-
-  swap all im_iterate() for vips_sink_disc()
-
-
-
-- im_prepare_thread() can go? I think it was only used by im_render()
-
-- get rid of threadgroup too (deprecate?)
-
-- can eval_to_region() go? I guess
-
-- need an eval_to_memory for generate to use to write to "t" images
 
 
 - expose more of the tone funcs in nip2
@@ -35,9 +22,6 @@
 
 
 - nip2 image display does not work with threading disabled
-
-- still to move to threadpool: im_iterate(), im_render(), maybe wait for
-  better performance numbers before we move them
 
 - try writing docs for vipsthumbnail with gtkdoc? then try header etc.
 
