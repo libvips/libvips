@@ -516,14 +516,7 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 
 	write_init( &write, im, write_fn, a );
 
-	printf( "initing thread state\n" );
-
-	vips_thread_state_get_type();
-
-	printf( "made thread state\n" );
-
 	result = 0;
-
 	if( !write.buf || 
 		!write.buf_back || 
 		wbuffer_position( write.buf, 0, write.nlines ) ||

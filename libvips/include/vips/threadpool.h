@@ -133,6 +133,10 @@ typedef int (*VipsStop)( void *seq, void *a, void *b );
 int vips_sink( VipsImage *im, 
 	VipsStart start, VipsGenerate generate, VipsStop stop,
 	void *a, void *b );
+int vips_sink_tile( VipsImage *im, 
+	int tile_width, int tile_height,
+	VipsStart start, VipsGenerate generate, VipsStop stop,
+	void *a, void *b );
 
 typedef void (*VipsSinkNotify)( VipsImage *im, Rect *rect, void *a );
 int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,

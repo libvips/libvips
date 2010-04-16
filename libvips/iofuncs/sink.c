@@ -301,8 +301,10 @@ sink_progress( void *a )
 }
 
 /**
- * vips_sink:
+ * vips_sink_tile:
  * @im: scan over this image
+ * @tile_width: tile width
+ * @tile_height: tile height
  * @start: start sequences with this function
  * @generate: generate pixels with this function
  * @stop: stop sequences with this function
@@ -310,15 +312,23 @@ sink_progress( void *a )
  * @b: user data
  *
  * Loops over an image. @generate is called for every pixel in the image, with
- * the @reg argument being a region of pixels for processing. vips_sink() is
+ * the @reg argument being a region of pixels for processing. 
+ * vips_sink_tile() is
  * used to implement operations like im_avg() which have no image output.
  *
- * See also: im_generate(), im_open().
+ * Each set of
+ * pixels is @tile_width by @tile_height pixels (less at the image edges). 
+ * This is handy for things like
+ * writing a tiled TIFF image, where tiles have to be generated with a certain
+ * size.
+ *
+ * See also: vips_sink(), vips_get_tile_size().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_sink( VipsImage *im, 
+vips_sink_tile( VipsImage *im, 
+	int tile_width, int tile_height,
 	VipsStart start, VipsGenerate generate, VipsStop stop,
 	void *a, void *b )
 {
@@ -334,6 +344,11 @@ vips_sink( VipsImage *im,
  
 	if( sink_init( &sink, im, start, generate, stop, a, b ) )
 		return( -1 );
+
+	if( tile_width > 0 ) {
+		sink.tile_width = tile_width;
+		sink.tile_height = tile_height;
+	}
 
 	if( im__start_eval( sink.t ) ) {
 		sink_free( &sink );
@@ -352,4 +367,32 @@ vips_sink( VipsImage *im,
 	sink_free( &sink );
 
 	return( result );
+}
+
+/**
+ * vips_sink:
+ * @im: scan over this image
+ * @start: start sequences with this function
+ * @generate: generate pixels with this function
+ * @stop: stop sequences with this function
+ * @a: user data
+ * @b: user data
+ *
+ * Loops over an image. @generate is called for every pixel in the image, with
+ * the @reg argument being a region of pixels for processing. vips_sink() is
+ * used to implement operations like im_avg() which have no image output.
+ *
+ * Each set of pixels is sized according to the requirements of the image
+ * pipeline that generated @im.
+ *
+ * See also: im_generate(), im_open().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_sink( VipsImage *im, 
+	VipsStart start, VipsGenerate generate, VipsStop stop,
+	void *a, void *b )
+{
+	return( vips_sink_tile( im, -1, -1, start, generate, stop, a, b ) );
 }

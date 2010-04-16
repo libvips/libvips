@@ -110,6 +110,8 @@
  * 	- gtkdoc
  * 26/2/10
  * 	- option to turn on bigtiff output
+ * 16/4/10
+ * 	- use vips_sink_*() instead of threadgroup and friends
  */
 
 /*
@@ -230,7 +232,6 @@ typedef struct tiff_write {
 	/* Read from im with these.
 	 */
 	REGION *reg;
-	im_threadgroup_t *tg;
 
 	char *bname;			/* Name for base layer */
 	TIFF *tif;			/* Image we write to */
@@ -252,6 +253,8 @@ typedef struct tiff_write {
 	int embed;			/* Embed ICC profile */
 	char *icc_profile;		/* Profile to embed */
 	int bigtiff;			/* True for bigtiff write */
+
+	GMutex *write_lock;		/* Lock TIFF*() calls with this */
 } TiffWrite;
 
 /* Use these from im_tiff2vips().
@@ -570,14 +573,8 @@ free_layer( PyramidLayer *layer )
 
 	/* And close the TIFF file we are writing to.
 	 */
-	if( layer->tbuf ) {
-		im_free( layer->tbuf );
-		layer->tbuf = NULL;
-	}
-	if( layer->tif ) {
-		TIFFClose( layer->tif );
-		layer->tif = NULL;
-	}
+	IM_FREEF( im_free, layer->tbuf );
+	IM_FREEF( TIFFClose, layer->tif );
 }
 
 /* Free an entire pyramid.
@@ -1032,17 +1029,49 @@ new_tile( PyramidLayer *layer, REGION *tile, Rect *area )
 	return( 0 );
 }
 
+/* Write as tiles. This is called by vips_sink_tile() for every tile
+ * generated.
+ */
+static int
+write_tif_tile( REGION *out, void *seq, void *a, void *b )
+{
+	TiffWrite *tw = (TiffWrite *) a;
+
+	g_mutex_lock( tw->write_lock );
+
+	/* Write to TIFF.
+	 */
+	if( save_tile( tw, tw->tif, tw->tbuf, out, &out->valid ) ) {
+		g_mutex_unlock( tw->write_lock );
+		return( -1 );
+	}
+
+	/* Is there a pyramid? Write to that too.
+	 */
+	if( tw->layer && 
+		new_tile( tw->layer, out, &out->valid ) ) {
+		g_mutex_unlock( tw->write_lock );
+		return( -1 );
+	}
+
+	g_mutex_unlock( tw->write_lock );
+
+	return( 0 );
+}
+
 /* Write as tiles.
  */
 static int
-write_tif_tile( TiffWrite *tw )
+write_tif_tilewise( TiffWrite *tw )
 {
 	IMAGE *im = tw->im;
-	Rect area;
-	int x, y;
 
+	g_assert( !tw->tbuf );
 	if( !(tw->tbuf = im_malloc( NULL, TIFFTileSize( tw->tif ) )) ) 
 		return( -1 );
+
+	g_assert( !tw->write_lock );
+	tw->write_lock = g_mutex_new();
 
 	/* Write pyramid too? Only bother if bigger than tile size.
 	 */
@@ -1051,41 +1080,15 @@ write_tif_tile( TiffWrite *tw )
 		build_pyramid( tw, NULL, &tw->layer, im->Xsize, im->Ysize ) )
 			return( -1 );
 
-	for( y = 0; y < im->Ysize; y += tw->tileh ) 
-		for( x = 0; x < im->Xsize; x += tw->tilew ) {
-			/* Set up rect we write.
-			 */
-			area.left = x;
-			area.top = y;
-			area.width = IM_MIN( tw->tilew, im->Xsize - x );
-			area.height = IM_MIN( tw->tileh, im->Ysize - y );
-
-			if( im_prepare_thread( tw->tg, tw->reg, &area ) )
-				return( -1 );
-
-			/* Write to TIFF.
-			 */
-			if( save_tile( tw, tw->tif, tw->tbuf, tw->reg, &area ) )
-				return( -1 );
-
-			/* Is there a pyramid? Write to that too.
-			 */
-			if( tw->layer && new_tile( tw->layer, tw->reg, &area ) )
-				return( -1 );
-
-			/* Trigger any eval callbacks on our source image and
-                         * check for errors.
-			 */
-			if( im__handle_eval( im, area.width, area.height ) ||
-				im_threadgroup_iserror( tw->tg ) ) 
-                                return( -1 );
-		}
+	if( vips_sink_tile( im, tw->tilew, tw->tileh,
+		NULL, write_tif_tile, NULL, tw, NULL ) ) 
+		return( -1 );
 
 	return( 0 );
 }
 
 static int
-write_tif_block( REGION *region, Rect *area, void *a, void *b )
+write_tif_block( REGION *region, Rect *area, void *a )
 {
 	TiffWrite *tw = (TiffWrite *) a;
 	IMAGE *im = tw->im;
@@ -1121,14 +1124,14 @@ write_tif_block( REGION *region, Rect *area, void *a, void *b )
 /* Write as scan-lines.
  */
 static int
-write_tif_strip( TiffWrite *tw )
+write_tif_stripwise( TiffWrite *tw )
 {
 	g_assert( !tw->tbuf );
 
 	if( !(tw->tbuf = im_malloc( NULL, TIFFScanlineSize( tw->tif ) )) ) 
 		return( -1 );
 
-	if( im_wbuffer( tw->tg, write_tif_block, tw, NULL ) )
+	if( vips_sink_disc( tw->im, write_tif_block, tw ) )
 		return( -1 );
 
 	return( 0 );
@@ -1162,28 +1165,11 @@ free_tiff_write( TiffWrite *tw )
 	delete_files( tw );
 #endif /*DEBUG*/
 
-	if( tw->tg ) {
-		im_threadgroup_free( tw->tg );
-		tw->tg = NULL;
-	}
-	if( tw->reg ) {
-		im_region_free( tw->reg );
-		tw->reg = NULL;
-	}
-	if( tw->tif ) {
-		TIFFClose( tw->tif );
-		tw->tif = NULL;
-	}
-	if( tw->tbuf ) {
-		im_free( tw->tbuf );
-		tw->tbuf = NULL;
-	}
-	if( tw->layer ) 
-		free_pyramid( tw->layer );
-	if( tw->icc_profile ) {
-		im_free( tw->icc_profile );
-		tw->icc_profile = NULL;
-	}
+	IM_FREEF( TIFFClose, tw->tif );
+	IM_FREEF( im_free, tw->tbuf );
+	IM_FREEF( g_mutex_free, tw->write_lock );
+	IM_FREEF( free_pyramid, tw->layer );
+	IM_FREEF( im_free, tw->icc_profile );
 }
 
 /* Round N down to P boundary. 
@@ -1211,8 +1197,6 @@ make_tiff_write( IMAGE *im, const char *filename )
 	im_filename_split( filename, name, mode );
 	tw->name = im_strdup( im, name );
 	tw->mode = im_strdup( im, mode );
-	tw->tg = NULL;
-	tw->reg = NULL;
 	tw->bname = NULL;
 	tw->tif = NULL;
 	tw->layer = NULL;
@@ -1228,6 +1212,7 @@ make_tiff_write( IMAGE *im, const char *filename )
 	tw->embed = 0;
 	tw->icc_profile = NULL;
 	tw->bigtiff = 0;
+	tw->write_lock = NULL;
 
 	/* Output resolution settings ... default to VIPS-alike.
 	 */
@@ -1432,14 +1417,6 @@ make_tiff_write( IMAGE *im, const char *filename )
 		im_warn( "im_vips2tiff", "%s", _( "can't have 1-bit JPEG -- "
 			"disabling JPEG" ) );
 		tw->compression = COMPRESSION_NONE;
-	}
-
-	/* Make region and threadgroup.
-	 */
-	if( !(tw->reg = im_region_create( tw->im )) ||
-		!(tw->tg = im_threadgroup_create( tw->im )) ) {
-		free_tiff_write( tw );
-		return( NULL );
 	}
 
 	/* Sizeof a line of bytes in the TIFF tile.
@@ -1766,20 +1743,10 @@ im_vips2tiff( IMAGE *in, const char *filename )
 	}
 
 
-	if( tw->tile ) {
-		/* The strip writer uses wbuffer and does start/end for us, we
-		 * have our own loop for tile writing and so we need to call
-		 * ourselves.
-		 */
-		if( im__start_eval( in ) ) {
-			free_tiff_write( tw );
-			return( -1 );
-		}
-		res = write_tif_tile( tw );
-		im__end_eval( in );
-	}
+	if( tw->tile ) 
+		res = write_tif_tilewise( tw );
 	else
-		res = write_tif_strip( tw );
+		res = write_tif_stripwise( tw );
 	if( res ) {
 		free_tiff_write( tw );
 		return( -1 );
