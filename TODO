@@ -5,6 +5,10 @@
 
 - get rid of threadgroup too (deprecate?)
 
+- can eval_to_region() go? I guess
+
+- need an eval_to_memory for generate to use to write to "t" images
+
 
 - expose more of the tone funcs in nip2
 

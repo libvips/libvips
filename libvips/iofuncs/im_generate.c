@@ -508,14 +508,14 @@ write_vips( REGION *region, Rect *area, void *a, void *b )
  * For images opened with "p", im_generate() just attaches the
  * start/generate/stop callbacks and returns.
  *
- * For "t" images, memory is allocated for the image and im_prepare_thread()
- * used to fill it with pixels.
+ * For "t" images, memory is allocated for the whole image and it is entirely
+ * generated using vips_sink().
  *
  * For "w" images, memory for a few scanlines is allocated and
- * im_prepare_thread() used to generate the image in small chunks. As each
+ * vips_sink_disc() used to generate the image in small chunks. As each
  * chunk is generated, it is written to disc.
  *
- * See also: im_iterate(), im_open(), im_prepare(), im_wrapone().
+ * See also: vips_sink(), im_open(), im_prepare(), im_wrapone().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -525,8 +525,6 @@ im_generate( IMAGE *im,
         void *a, void *b )
 {
         int res;
-	REGION *or;
-	im_threadgroup_t *tg;
 
 	g_assert( !im_image_sanity( im ) );
 
@@ -596,24 +594,13 @@ im_generate( IMAGE *im,
                 im->client1 = a;
                 im->client2 = b;
 
-                /* Evaluate. Two output styles: to memory area (im_setbuf()
-                 * or im_mmapinrw()) or to file (im_openout()).
-                 */
-		if( !(or = im_region_create( im )) )
-			return( -1 );
-		if( !(tg = im_threadgroup_create( im )) ) {
-			im_region_free( or );
-			return( -1 );
-		}
                 if( im->dtype == IM_OPENOUT ) 
-			res = im_wbuffer( tg, write_vips, NULL, NULL );
+			res = vips_sink_disc( im,
+				(VipsRegionWrite) write_vips, NULL );
+		/*
                 else
                         res = eval_to_memory( tg, or );
-
-                /* Clean up.
-                 */
-		im_threadgroup_free( tg );
-		im_region_free( or );
+		 */
 
                 /* Error?
                  */
@@ -638,58 +625,3 @@ im_generate( IMAGE *im,
         return( 0 );
 }
 
-/** 
- * im_prepare_thread:
- * @tg: group of threads to evaluate with
- * @reg: region to prepare
- * @r: #Rect of pixels you need to be able to address
- *
- * im_prepare_thread() fills @reg with pixels. After calling, you can address 
- * at
- * least the area @r with IM_REGION_ADDR() and get valid pixels.
- *
- * im_prepare_thread() uses @tg, a group of threads, to calculate pixels.
- * Computation blocks until the pixels are ready.
- *
- * Use im_prepare() to calculate an area of pixels in-line.
- * Use im_render_priority() to calculate an area of pixels in the background.
- *
- * See also: im_prepare(), im_render_priority(), im_prepare_to().
- *
- * Returns: 0 on success, or -1 on error
- */
-int
-im_prepare_thread( im_threadgroup_t *tg, REGION *or, Rect *r )
-{
-	IMAGE *im = or->im;
-
-	g_assert( !im_image_sanity( im ) );
-
-	switch( im->dtype ) {
-	case IM_PARTIAL:
-                if( im_region_fill( or, r,
-			(im_region_fill_fn) eval_to_region, tg ) )
-                        return( -1 );
-
-		break;
-
-	case IM_OPENIN:
-	case IM_SETBUF:
-        case IM_SETBUF_FOREIGN:
-	case IM_MMAPIN:
-	case IM_MMAPINRW:
-		/* Attach to existing buffer.
-		 */
-		if( im_region_image( or, r ) )
-			return( -1 );
-
-		break;
-
-	default:
-		im_error( "im_prepare_thread", _( "unable to input from a %s "
-			"image" ), im_dtype2char( im->dtype ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
