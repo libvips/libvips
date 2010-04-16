@@ -56,6 +56,10 @@
 typedef struct _Sink {
 	VipsImage *im; 
 
+	/* A big region for the image memory. All the threads write to this.
+	 */
+	REGION *all;
+
 	/* The position we're at in the image.
 	 */
 	int x;
@@ -68,12 +72,31 @@ typedef struct _Sink {
 	int nlines;
 } Sink;
 
+static void
+sink_free( Sink *sink )
+{
+	IM_FREEF( im_region_free, sink->all );
+}
+
 static int
 sink_init( Sink *sink, VipsImage *im ) 
 {
+	Rect all;
+
 	sink->im = im; 
 	sink->x = 0;
 	sink->y = 0;
+
+	all.left = 0;
+	all.top = 0;
+	all.width = im->Xsize;
+	all.height = im->Ysize;
+
+	if( !(sink->all = im_region_create( im )) ||
+		im_region_image( sink->all, &all ) ) {
+		sink_free( sink );
+		return( -1 );
+	}
 
 	vips_get_tile_size( im, 
 		&sink->tile_width, &sink->tile_height, &sink->nlines );
@@ -125,7 +148,8 @@ sink_work( VipsThreadState *state, void *a )
 {
 	Sink *sink = (Sink *) a;
 
-	if( im_prepare_to( state->reg, &state->pos ) )
+	if( im_prepare_to( state->reg, sink->all, 
+		&state->pos, state->pos.left, state->pos.top ) )
 		return( -1 );
 
 	return( 0 );
@@ -170,11 +194,13 @@ vips_sink_memory( VipsImage *im )
 	 */
 	im->Bbits = im_bits_of_fmt( im->BandFmt );
  
-	if( sink_init( &sink ) )
+	if( sink_init( &sink, im ) )
 		return( -1 );
 
-	if( im__start_eval( im ) ) 
+	if( im__start_eval( im ) ) {
+		sink_free( &sink );
 		return( -1 );
+	}
 
 	result = vips_threadpool_run( im, 
 		vips_thread_state_new,
@@ -184,6 +210,8 @@ vips_sink_memory( VipsImage *im )
 		&sink );
 
 	im__end_eval( im );
+
+	sink_free( &sink );
 
 	return( result );
 }

@@ -70,10 +70,6 @@ extern int im__concurrency;
  */
 extern int im__progress;
 
-/* Use wbuffer2.
- */
-extern int im__wbuffer2;
-
 typedef int (*im__fftproc_fn)( IMAGE *, IMAGE *, IMAGE * );
 
 /* iofuncs

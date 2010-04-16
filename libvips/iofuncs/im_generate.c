@@ -45,6 +45,8 @@
  * 	- new start/end eval callbacks
  * 7/10/09
  * 	- gtkdoc comments
+ * 16/4/10
+ * 	- remove threadgroup stuff
  */
 
 /*
@@ -294,184 +296,6 @@ im_allocate_input_array( IMAGE *out, ... )
  * Returns: 0 on success, -1 on error.
  */
 
-static int
-generate_work( im_thread_t *thr,
-	REGION *reg, void *a, void *b, void *c )
-{
-	/* thr pos needs to be set before coming here ... check.
-	 */
-{
-	Rect image;
-
-	image.left = 0;
-	image.top = 0;
-	image.width = thr->tg->im->Xsize;
-	image.height = thr->tg->im->Ysize;
-
-	g_assert( im_rect_includesrect( &image, &thr->pos ) );
-}
-
-	if( im_prepare_to( reg, thr->oreg, &thr->pos, thr->x, thr->y ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* Loop over a big region, filling it in many small pieces with threads.
- */
-static int
-eval_to_region( REGION *or, im_threadgroup_t *tg )
-{
-	Rect *r = &or->valid;
-	Rect image;
-
-	int x, y;
-
-#ifdef DEBUG_IO
-	int ntiles = 0;
-        printf( "eval_to_region: partial image output to region\n" );
-        printf( "\tleft = %d, top = %d, width = %d, height = %d\n",
-		r->left, r->top, r->width, r->height );
-#endif /*DEBUG_IO*/
-
-	image.left = 0;
-	image.top = 0;
-	image.width = or->im->Xsize;
-	image.height = or->im->Ysize;
-
-	/* Our work function ... an inplace one.
-	 */
-	tg->work = generate_work;
-
-	/* Loop over or, attaching to all sub-parts in turn.
-	 */
-	for( y = r->top; y < IM_RECT_BOTTOM( r ); y += tg->ph )
-		for( x = r->left; x < IM_RECT_RIGHT( r ); x += tg->pw ) {
-			im_thread_t *thr;
-			Rect pos;
-			Rect clipped;
-
-			/* thrs appear on idle when the child thread does
-			 * threadgroup_idle_add and hits the 'go' semaphore.
-			 */
-                        thr = im_threadgroup_get( tg );
-
-			/* Set the position we want to generate with this
-			 * thread. Clip against the size of the image and the
-			 * space available in or.
-			 */
-			pos.left = x;
-			pos.top = y;
-			pos.width = tg->pw;
-			pos.height = tg->ph;
-			im_rect_intersectrect( &pos, &image, &clipped );
-			im_rect_intersectrect( &clipped, r, &clipped );
-
-			/* Note params and start work.
-			 */
-			thr->oreg = or; 
-			thr->pos = clipped; 
-			thr->x = clipped.left;
-			thr->y = clipped.top;
-			im_threadgroup_trigger( thr );
-
-			/* Check for errors.
-			 */
-			if( im_threadgroup_iserror( tg ) ) {
-				/* Don't kill threads yet ... we may want to
-				 * get some error stuff out of them.
-				 */
-				im_threadgroup_wait( tg );
-				return( -1 );
-			}
-
-#ifdef DEBUG_IO
-			ntiles++;
-#endif /*DEBUG_IO*/
-		}
-
-	/* Wait for all threads to hit 'go' again.
-	 */
-	im_threadgroup_wait( tg );
-
-	if( im_threadgroup_iserror( tg ) )
-		return( -1 );
-
-#ifdef DEBUG_IO
-	printf( "eval_to_region: %d patches calculated\n", ntiles );
-#endif /*DEBUG_IO*/
-
-	return( 0 );
-}
-
-/* Output to a memory area. Might be im_setbuf(), im_mmapin()/im_makerw() or
- * im_mmapinrw(). 
- */
-static int
-eval_to_memory( im_threadgroup_t *tg, REGION *or )
-{
-	int y, chunk;
-	IMAGE *im = or->im;
-	int result;
-
-	result = 0;
-
-#ifdef DEBUG_IO
-	int ntiles = 0;
-        printf( "eval_to_memory: partial image output to memory area\n" );
-#endif /*DEBUG_IO*/
-
-	/* Signal start of eval.
-	 */
-	if( im__start_eval( im ) )
-		return( -1 );
-
-	/* Choose a chunk size ... 1/100th of the height of the image, about.
-	 * This sets the granularity of user feedback on eval progress, but
-	 * does not affect mem requirements etc.
-	 */
-	chunk = (im->Ysize / 100) + 1;
-
-	/* Loop down the output image, evaling each chunk. 
-	 */
-	for( y = 0; y < im->Ysize; y += chunk ) {
-		Rect pos;
-
-		/* Attach or to this position in image.
-		 */
-		pos.left = 0;
-		pos.top = y;
-		pos.width = im->Xsize;
-		pos.height = IM_MIN( chunk, im->Ysize - y );
-		if( (result = im_region_image( or, &pos )) ) 
-			break;
-
-		/* Ask for evaluation of this area.
-		 */
-		if( (result = eval_to_region( or, tg )) ) 
-			break;
-
-		/* Trigger any eval callbacks on our source image.
-		 */
-		if( (result = im__handle_eval( im, pos.width, pos.height )) )
-			break;
-
-#ifdef DEBUG_IO
-		ntiles++;
-#endif /*DEBUG_IO*/
-	}
-
-	/* Signal end of eval.
-	 */
-	result |= im__end_eval( im );
-
-#ifdef DEBUG_IO
-	printf( "eval_to_memory: %d patches calculated\n", ntiles );
-#endif /*DEBUG_IO*/
-
-	return( result );
-}
-
 /* A write function for VIPS images. Just write() the pixel data.
  */
 static int
@@ -597,10 +421,8 @@ im_generate( IMAGE *im,
                 if( im->dtype == IM_OPENOUT ) 
 			res = vips_sink_disc( im,
 				(VipsRegionWrite) write_vips, NULL );
-		/*
                 else
-                        res = eval_to_memory( tg, or );
-		 */
+                        res = vips_sink_memory( im );
 
                 /* Error?
                  */

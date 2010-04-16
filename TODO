@@ -1,4 +1,8 @@
 
+- swap all im_wbuffer() for vips_sink_disc()
+
+  swap all im_iterate() for vips_sink_disc()
+
 
 
 - im_prepare_thread() can go? I think it was only used by im_render()

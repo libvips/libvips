@@ -201,7 +201,6 @@ typedef struct {
 	IMAGE *in;
 	struct jpeg_compress_struct cinfo;
         ErrorManager eman;
-	im_threadgroup_t *tg;
 	JSAMPROW *row_pointer;
 	char *profile_bytes;
 	unsigned int profile_length;
@@ -212,7 +211,6 @@ static void
 write_destroy( Write *write )
 {
 	jpeg_destroy_compress( &write->cinfo );
-	IM_FREEF( im_threadgroup_free, write->tg );
 	IM_FREEF( im_close, write->in );
 	IM_FREEF( fclose, write->eman.fp );
 	IM_FREE( write->row_pointer );
@@ -237,7 +235,6 @@ write_new( IMAGE *in )
 		return( NULL );
 	}
 
-	write->tg = NULL;
 	write->row_pointer = NULL;
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->eman.pub.error_exit = new_error_exit;
@@ -523,7 +520,7 @@ write_profile_meta( Write *write )
 }
 
 static int
-write_jpeg_block( REGION *region, Rect *area, void *a, void *b )
+write_jpeg_block( REGION *region, Rect *area, void *a )
 {
 	Write *write = (Write *) a;
 	int i;
@@ -597,9 +594,8 @@ write_vips( Write *write, int qfac, const char *profile )
 
 	/* Build VIPS output stuff now we know the image we'll be writing.
 	 */
-	write->tg = im_threadgroup_create( in );
-	write->row_pointer = IM_ARRAY( NULL, write->tg->nlines, JSAMPROW );
-	if( !write->tg || !write->row_pointer ) 
+	if( !(write->row_pointer = 
+		IM_ARRAY( NULL, write->in->Ysize, JSAMPROW )) )
 		return( -1 );
 
 	/* Rest to default. 
@@ -630,7 +626,7 @@ write_vips( Write *write, int qfac, const char *profile )
 
 	/* Write data. Note that the write function grabs the longjmp()!
 	 */
-	if( im_wbuffer( write->tg, write_jpeg_block, write, NULL ) )
+	if( vips_sink_disc( write->in, write_jpeg_block, write ) )
 		return( -1 );
 
 	/* We have to reinstate the setjmp() before we jpeg_finish_compress().

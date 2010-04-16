@@ -57,7 +57,6 @@
  */
 typedef struct {
   IMAGE *in;
-  im_threadgroup_t *tg;
   int fd;
 } Write;
 
@@ -66,7 +65,6 @@ typedef struct {
 static void
 write_destroy( Write *write )
 {
-  IM_FREEF( im_threadgroup_free, write->tg );
   im_free( write );
 }
 
@@ -80,10 +78,9 @@ write_new( IMAGE *in, int fd )
     return( NULL );
 
   write->in = in;
-  write->tg = im_threadgroup_create( write->in );
   write->fd = fd;
   
-  if( !write->tg || !write->fd ) {
+  if( !write->fd ) {
     write_destroy( write );
     return( NULL );
   }
@@ -93,7 +90,7 @@ write_new( IMAGE *in, int fd )
 
 
 static int
-write_block( REGION *region, Rect *area, void *a, void *b )
+write_block( REGION *region, Rect *area, void *a )
 {
   Write *write = (Write *) a;
   int i;
@@ -128,7 +125,7 @@ im_vips2raw( IMAGE *in, int fd )
   if( im_pincheck( in ) || !(write = write_new( in, fd )) )
     return( -1 );
 
-  if( im_wbuffer( write->tg, write_block, write, NULL ) ) {
+  if( vips_sink_disc( in, write_block, write ) ) {
     write_destroy( write );
     return( -1 );
   }  

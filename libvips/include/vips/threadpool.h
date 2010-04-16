@@ -144,7 +144,12 @@ int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int priority,
 	VipsSinkNotify notify, void *a );
 
+int vips_sink_memory( VipsImage *im );
+
 void im__print_renders( void );
+
+void im_concurrency_set( int concurrency );
+int im_concurrency_get( void );
 
 #ifdef __cplusplus
 }

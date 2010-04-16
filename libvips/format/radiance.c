@@ -1023,7 +1023,6 @@ typedef struct {
 	IMAGE *in;
 	char *filename;
 
-	im_threadgroup_t *tg;
 	FILE *fout;
 	char format[256];
 	double expos;
@@ -1036,7 +1035,6 @@ typedef struct {
 static void
 write_destroy( Write *write )
 {
-	IM_FREEF( im_threadgroup_free, write->tg );
 	IM_FREE( write->filename );
 	IM_FREEF( fclose, write->fout );
 
@@ -1054,7 +1052,6 @@ write_new( IMAGE *in, const char *filename )
 
 	write->in = in;
 	write->filename = im_strdup( NULL, filename );
-	write->tg = im_threadgroup_create( write->in );
         write->fout = im__file_open_write( filename );
 	strcpy( write->format, COLRFMT );
 	write->expos = 1.0;
@@ -1070,7 +1067,7 @@ write_new( IMAGE *in, const char *filename )
 	write->prims[3][0] = CIE_x_w;
 	write->prims[3][1] = CIE_y_w;
 
-        if( !write->filename || !write->tg || !write->fout ) {
+        if( !write->filename || !write->fout ) {
 		write_destroy( write );
 		return( NULL );
 	}
@@ -1125,7 +1122,7 @@ vips2rad_put_header( Write *write )
 }
 
 static int
-vips2rad_put_data_block( REGION *region, Rect *area, void *a, void *b )
+vips2rad_put_data_block( REGION *region, Rect *area, void *a )
 {
 	Write *write = (Write *) a;
 	int i;
@@ -1143,7 +1140,7 @@ vips2rad_put_data_block( REGION *region, Rect *area, void *a, void *b )
 static int
 vips2rad_put_data( Write *write )
 {
-	if( im_wbuffer( write->tg, vips2rad_put_data_block, write, NULL ) )
+	if( vips_sink_disc( write->in, vips2rad_put_data_block, write ) )
 		return( -1 );
 
 	return( 0 );

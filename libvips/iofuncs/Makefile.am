@@ -17,18 +17,16 @@ libiofuncs_la_SOURCES = \
 	im_histlin.c \
 	im_image.c \
 	init.c \
-	im_iterate.c \
 	im_mapfile.c \
 	im_open.c \
 	im_open_vips.c \
 	im_partial.c \
 	im_prepare.c \
-	im_render.c \
 	im_setbuf.c \
 	im_setupout.c \
 	im_unmapfile.c \
 	im_guess_prefix.c \
-	im_wbuffer.c \
+	sinkmemory.c \
 	sinkscreen.c \
 	sinkdisc.c \
 	sink.c \
@@ -41,7 +39,6 @@ libiofuncs_la_SOURCES = \
 	region.c \
 	rect.c \
 	semaphore.c \
-	threadgroup.c \
 	threadpool.c \
 	util.c \
 	im_init_world.c \

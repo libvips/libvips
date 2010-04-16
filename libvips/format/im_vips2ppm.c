@@ -56,19 +56,20 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+typedef int (*write_fn)( IMAGE *in, FILE *fp, PEL *p );
+
 /* What we track during a PPM write.
  */
 typedef struct {
 	IMAGE *in;
-	im_threadgroup_t *tg;
 	FILE *fp;
 	char *name;
+	write_fn fn;
 } Write;
 
 static void
 write_destroy( Write *write )
 {
-	IM_FREEF( im_threadgroup_free, write->tg );
 	IM_FREEF( fclose, write->fp );
 	IM_FREE( write->name );
 
@@ -84,19 +85,16 @@ write_new( IMAGE *in, const char *name )
 		return( NULL );
 
 	write->in = in;
-	write->tg = im_threadgroup_create( write->in );
 	write->name = im_strdup( NULL, name );
         write->fp = im__file_open_write( name );
 
-	if( !write->tg || !write->name || !write->fp ) {
+	if( !write->name || !write->fp ) {
 		write_destroy( write );
 		return( NULL );
 	}
 	
         return( write );
 }
-
-typedef int (*write_fn)( IMAGE *in, FILE *fp, PEL *p );
 
 static int
 write_ppm_line_ascii( IMAGE *in, FILE *fp, PEL *p )
@@ -163,16 +161,15 @@ write_ppm_line_binary( IMAGE *in, FILE *fp, PEL *p )
 }
 
 static int
-write_ppm_block( REGION *region, Rect *area, void *a, void *b )
+write_ppm_block( REGION *region, Rect *area, void *a )
 {
 	Write *write = (Write *) a;
-	write_fn fn = (write_fn) b;
 	int i;
 
 	for( i = 0; i < area->height; i++ ) {
 		PEL *p = (PEL *) IM_REGION_ADDR( region, 0, area->top + i );
 
-		if( fn( write->in, write->fp, p ) )
+		if( write->fn( write->in, write->fp, p ) )
 			return( -1 );
 	}
 
@@ -183,7 +180,6 @@ static int
 write_ppm( Write *write, int ascii ) 
 {
 	IMAGE *in = write->in;
-	write_fn fn = ascii ? write_ppm_line_ascii : write_ppm_line_binary;
 
 	int max_value;
 	char *magic;
@@ -223,7 +219,9 @@ write_ppm( Write *write, int ascii )
 	fprintf( write->fp, "%d %d\n", in->Xsize, in->Ysize );
 	fprintf( write->fp, "%d\n", max_value );
 
-	if( im_wbuffer( write->tg, write_ppm_block, write, fn ) )
+	write->fn = ascii ? write_ppm_line_ascii : write_ppm_line_binary;
+
+	if( vips_sink_disc( write->in, write_ppm_block, write ) )
 		return( -1 );
 
 	return( 0 );

@@ -98,7 +98,6 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
  */
 typedef struct {
 	IMAGE *in;
-	im_threadgroup_t *tg;
 
 	FILE *fp;
 	png_structp pPng;
@@ -109,7 +108,6 @@ typedef struct {
 static void
 write_destroy( Write *write )
 {
-	IM_FREEF( im_threadgroup_free, write->tg );
 	IM_FREEF( im_close, write->in );
 	IM_FREEF( fclose, write->fp );
 	if( write->pPng )
@@ -135,13 +133,12 @@ write_new( IMAGE *in )
 		return( NULL );
 	}
 
-	write->tg = im_threadgroup_create( write->in );
-	write->row_pointer = IM_ARRAY( NULL, write->tg->nlines, png_bytep );
+	write->row_pointer = IM_ARRAY( NULL, in->Ysize, png_bytep );
 	write->fp = NULL;
 	write->pPng = NULL;
 	write->pInfo = NULL;
 
-	if( !write->tg || !write->row_pointer ) {
+	if( !write->row_pointer ) {
 		write_destroy( write );
 		return( NULL );
 	}
@@ -169,7 +166,7 @@ write_new( IMAGE *in )
 }
 
 static int
-write_png_block( REGION *region, Rect *area, void *a, void *b )
+write_png_block( REGION *region, Rect *area, void *a )
 {
 	Write *write = (Write *) a;
 	int i;
@@ -252,7 +249,7 @@ write_vips( Write *write, int compress, int interlace )
 	/* Write data.
 	 */
 	for( i = 0; i < nb_passes; i++ ) 
-		if( im_wbuffer( write->tg, write_png_block, write, NULL ) )
+		if( vips_sink_disc( write->in, write_png_block, write ) )
 			return( -1 );
 
 	/* The setjmp() was held by our background writer: reset it.

@@ -64,8 +64,7 @@
 
 /**
  * SECTION: threadpool
- * @short_description: pools of worker threads ... a lighter version of
- * threadgroups
+ * @short_description: pools of worker threads 
  * @stability: Stable
  * @see_also: <link linkend="libvips-generate">generate</link>
  * @include: vips/vips.h
@@ -74,10 +73,150 @@
  * in turns to allocate units of work (a unit might be a tile in an image),
  * then run in parallel to process those units. An optional progress function
  * can be used to give feedback.
- *
- * This is like threadgroup, but workers allocate work units themselves. This
- * reduces synchronisation overhead and improves scalability.
  */
+
+/* Maximum number of concurrent threads we allow. No reason for the limit,
+ * it's just there to stop mad values for IM_CONCURRENCY killing the system.
+ */
+#define IM_MAX_THREADS (1024)
+
+/* Name of environment variable we get concurrency level from.
+ */
+#define IM_CONCURRENCY "IM_CONCURRENCY"
+
+/* Default tile geometry ... can be set by init_world.
+ */
+int im__tile_width = IM__TILE_WIDTH;
+int im__tile_height = IM__TILE_HEIGHT;
+int im__fatstrip_height = IM__FATSTRIP_HEIGHT;
+int im__thinstrip_height = IM__THINSTRIP_HEIGHT;
+
+/* Default n threads ... 0 means get from environment.
+ */
+int im__concurrency = 0;
+
+#ifndef HAVE_THREADS
+/* If we're building without gthread, we need stubs for the g_thread_*() and
+ * g_mutex_*() functions. <vips/thread.h> has #defines which point the g_
+ * names here.
+ */
+
+void im__g_thread_init( GThreadFunctions *vtable ) {}
+gpointer im__g_thread_join( GThread *dummy ) { return( NULL ); }
+gpointer im__g_thread_self( void ) { return( NULL ); }
+GThread *im__g_thread_create_full( GThreadFunc d1, 
+	gpointer d2, gulong d3, gboolean d4, gboolean d5, GThreadPriority d6,
+	GError **d7 )
+	{ return( NULL ); }
+
+GMutex *im__g_mutex_new( void ) { return( NULL ); }
+void im__g_mutex_free( GMutex *d ) {}
+void im__g_mutex_lock( GMutex *d ) {}
+void im__g_mutex_unlock( GMutex *d ) {}
+#endif /*!HAVE_THREADS*/
+
+void
+im_concurrency_set( int concurrency )
+{
+	im__concurrency = concurrency;
+}
+
+static int
+get_num_processors( void )
+{
+	int nproc;
+
+	nproc = 1;
+
+#ifdef G_OS_UNIX
+
+#if defined(HAVE_UNISTD_H) && defined(_SC_NPROCESSORS_ONLN)
+{
+	/* POSIX style.
+	 */
+	int x;
+
+	x = sysconf( _SC_NPROCESSORS_ONLN );
+	if( x > 0 )
+		nproc = x;
+}
+#elif defined HW_NCPU
+{
+	/* BSD style.
+	 */
+	int x;
+	size_t len = sizeof(x);
+
+	sysctl( (int[2]) {CTL_HW, HW_NCPU}, 2, &x, &len, NULL, 0 );
+	if( x > 0 )
+		nproc = x;
+}
+#endif
+
+	/* libgomp has some very complex code on Linux to count the number of
+	 * processors available to the current process taking pthread affinity
+	 * into account, but we don't attempt that here. Perhaps we should?
+	 */
+
+#endif /*G_OS_UNIX*/
+
+#ifdef OS_WIN32
+{
+	/* Count the CPUs currently available to this process.  
+	 */
+	DWORD_PTR process_cpus;
+	DWORD_PTR system_cpus;
+
+	if( GetProcessAffinityMask( GetCurrentProcess(), 
+		&process_cpus, &system_cpus ) ) {
+		unsigned int count;
+
+		for( count = 0; process_cpus != 0; process_cpus >>= 1 )
+			if( process_cpus & 1 )
+				count++;
+
+		if( count > 0 )
+			nproc = count;
+	}
+}
+#endif /*OS_WIN32*/
+
+	return( nproc );
+}
+
+/* Set (p)thr_concurrency() from IM_CONCURRENCY environment variable. Return 
+ * the number of regions we should pass over the image.
+ */
+int
+im_concurrency_get( void )
+{
+	const char *str;
+	int nthr;
+	int x;
+
+	/* Tell the threads system how much concurrency we expect.
+	 */
+	if( im__concurrency > 0 )
+		nthr = im__concurrency;
+	else if( (str = g_getenv( IM_CONCURRENCY )) && 
+		(x = atoi( str )) > 0 )
+		nthr = x;
+	else 
+		nthr = get_num_processors();
+
+	if( nthr < 1 || nthr > IM_MAX_THREADS ) {
+		nthr = IM_CLIP( 1, nthr, IM_MAX_THREADS );
+
+		im_warn( "im_concurrency_get", 
+			_( "threads clipped to %d" ), nthr );
+	}
+
+	/* Save for next time around.
+	 */
+	im_concurrency_set( nthr );
+
+	return( nthr );
+}
 
 /**
  * VipsThreadState:
@@ -375,7 +514,7 @@ vips_thread_main_loop( void *a )
 }
 #endif /*HAVE_THREADS*/
 
-/* Attach another thread to a threadgroup.
+/* Attach another thread to a threadpool.
  */
 static VipsThread *
 vips_thread_new( VipsThreadpool *pool )
@@ -417,7 +556,7 @@ vips_thread_new( VipsThreadpool *pool )
 	if( !(thr->thread = g_thread_create_full( vips_thread_main_loop, thr, 
 		IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 		G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-		im_error( "threadgroup_thread_new", 
+		im_error( "vips_thread_new", 
 			"%s", _( "unable to create thread" ) );
 		vips_thread_free( thr );
 		return( NULL );
@@ -429,7 +568,7 @@ vips_thread_new( VipsThreadpool *pool )
 	return( thr );
 }
 
-/* Kill all threads in a threadgroup, if there are any.
+/* Kill all threads in a threadpool, if there are any.
  */
 static void
 vips_threadpool_kill_threads( VipsThreadpool *pool )

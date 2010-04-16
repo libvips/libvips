@@ -397,3 +397,30 @@ im_isnative( im_arch_type arch )
 		g_assert( 0 );
 	}  
 }
+
+int
+im_iterate( IMAGE *im, 
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
+	void *b, void *c )
+{
+	return( vips_sink( im, start, generate, stop, b, c ) );
+}
+
+int
+im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask, 
+	int width, int height, int max, 
+	int priority,
+	notify_fn notify, void *client )
+{
+	return( vips_sink_screen( in, out, mask, 
+		width, height, max, priority, notify, client ) ); 
+}
+	
+int 
+im_cache( IMAGE *in, IMAGE *out, int width, int height, int max )
+{
+	return( im_render_priority( in, out, NULL, 
+		width, height, max, 
+		0,
+		NULL, NULL ) );
+}
