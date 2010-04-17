@@ -81,8 +81,17 @@ typedef struct {
 	struct _Render *render;
 
 	Rect area;		/* Place here (unclipped) */
-	gboolean painted;	/* Tile contains valid pixels (ie. not dirty) */
 	REGION *region;		/* REGION with the pixels */
+
+	/* The tile contains calculated pixels. Though the region may have been
+	 * invalidated behind our backs: we have to check that too.
+	 */
+	gboolean painted;
+
+	/* The tile is on the dirty list. This saves us having to search the
+	 * dirty list all the time.
+	 */
+	gboolean dirty;
 
 	int ticks;		/* Time of last use, for LRU flush */
 } Tile;
@@ -296,27 +305,100 @@ render_dirty_get( void )
 	return( render );
 }
 
+/* Get the next tile to paint off the dirty list.
+ */
+static Tile *
+render_tile_dirty_get( Render *render )
+{
+	Tile *tile;
+
+	if( !render->dirty )
+		tile = NULL;
+	else {
+		tile = (Tile *) render->dirty->data;
+		g_assert( tile->dirty );
+		render->dirty = g_slist_remove( render->dirty, tile );
+		tile->dirty = FALSE;
+	}
+
+	return( tile );
+}
+
+/* Pick a dirty tile to reuse. We could potentially get the tile that
+ * render_work() is working on in the background :-( but I don't think we'll
+ * get a crash, just a mis-paint. It should be vanishingly impossible anyway.
+ */
+static Tile *
+render_tile_dirty_reuse( Render *render )
+{
+	Tile *tile;
+
+	if( !render->dirty )
+		tile = NULL;
+	else {
+		tile = (Tile *) g_slist_last( render->dirty )->data;
+		render->dirty = g_slist_remove( render->dirty, tile );
+		g_assert( tile->dirty );
+		tile->dirty = FALSE;
+
+		VIPS_DEBUG_MSG( "render_tile_get_dirty_reuse: "
+			"reusing dirty %p\n", tile );
+	}
+
+	return( tile );
+}
+
+/* Add a tile to the dirty list.
+ */
+static void
+tile_dirty_set( Tile *tile )
+{
+	Render *render = tile->render;
+
+	if( !tile->dirty ) {
+		g_assert( !g_slist_find( render->dirty, tile ) );
+		render->dirty = g_slist_prepend( render->dirty, tile );
+		tile->dirty = TRUE;
+		tile->painted = FALSE;
+	}
+	else
+		g_assert( g_slist_find( render->dirty, tile ) );
+}
+
+/* Bump a tile to the front of the dirty list, if it's there.
+ */
+static void
+tile_dirty_bump( Tile *tile )
+{
+	Render *render = tile->render;
+
+	if( tile->dirty ) {
+		g_assert( g_slist_find( render->dirty, tile ) );
+
+		render->dirty = g_slist_remove( render->dirty, tile );
+		render->dirty = g_slist_prepend( render->dirty, tile );
+	}
+	else
+		g_assert( !g_slist_find( render->dirty, tile ) );
+}
+
 static int 
 render_allocate( VipsThreadState *state, void *a, gboolean *stop )
 {
 	Render *render = (Render *) a;
 	RenderThreadState *rstate = (RenderThreadState *) state;
+	Tile *tile;
 
 	g_mutex_lock( render->lock );
 
-	if( render_reschedule || !render->dirty ) {
+	if( render_reschedule || 
+		!(tile = render_tile_dirty_get( render )) ) {
 		VIPS_DEBUG_MSG_GREEN( "render_allocate: stopping\n" );
 		*stop = TRUE;
 		rstate->tile = NULL;
 	}
-	else {
-		Tile *tile;
-
-		tile = (Tile *) render->dirty->data;
-		g_assert( !tile->painted );
-		render->dirty = g_slist_remove( render->dirty, tile );
+	else 
 		rstate->tile = tile;
-	}
 
 	g_mutex_unlock( render->lock );
 
@@ -331,7 +413,6 @@ render_work( VipsThreadState *state, void *a )
 	Tile *tile = rstate->tile;
 
 	g_assert( tile );
-	g_assert( !tile->painted );
 
 	VIPS_DEBUG_MSG( "calculating tile %dx%d\n", 
 		tile->area.left, tile->area.top );
@@ -569,12 +650,13 @@ tile_new( Render *render )
 		return( NULL );
 
 	tile->render = render;
-	tile->region = NULL;
 	tile->area.left = 0;
 	tile->area.top = 0;
 	tile->area.width = render->tile_width;
 	tile->area.height = render->tile_height;
+	tile->region = NULL;
 	tile->painted = FALSE;
+	tile->dirty = FALSE;
 	tile->ticks = render->ticks;
 
 	if( !(tile->region = im_region_create( render->in )) ) {
@@ -605,12 +687,14 @@ render_tile_add( Tile *tile, Rect *area )
 
 	g_assert( !render_tile_lookup( render, area ) );
 
-	tile->painted = FALSE;
 	tile->area = *area;
-	/* Ignore buffer allocate errors, not much we could do with them.
+	tile->painted = FALSE;
+
+	/* Ignore buffer allocate errors, there's not much we could do with 
+	 * them.
 	 */
-	if( im_region_buffer( tile->region, area ) )
-		VIPS_DEBUG_MSG( "render_tile_add: buffer allocate failed\n" ); 
+	if( im_region_buffer( tile->region, &tile->area ) )
+		VIPS_DEBUG_MSG( "render_work: buffer allocate failed\n" ); 
 
 	g_hash_table_insert( render->tiles, &tile->area, tile );
 }
@@ -642,16 +726,7 @@ tile_touch( Tile *tile )
 
 	tile->ticks = render->ticks;
 	render->ticks += 1;
-
-	if( g_slist_find( render->dirty, tile ) ) {
-		g_assert( !tile->painted );
-
-		VIPS_DEBUG_MSG( "tile_bump_dirty: bumping tile %dx%d\n",
-			tile->area.left, tile->area.top );
-
-		render->dirty = g_slist_remove( render->dirty, tile );
-		render->dirty = g_slist_prepend( render->dirty, tile );
-	}
+	tile_dirty_bump( tile );
 }
 
 /* Queue a tile for calculation. 
@@ -664,13 +739,15 @@ tile_queue( Tile *tile )
 	VIPS_DEBUG_MSG( "tile_queue: adding tile %dx%d to dirty\n",
 		tile->area.left, tile->area.top );
 
+	tile->painted = FALSE;
+	tile_touch( tile );
+
 	if( render->notify && have_threads ) {
 		/* Add to the list of renders with dirty tiles. The bg 
-		 * thread will pick it up and paint it.
+		 * thread will pick it up and paint it. It can be already on
+		 * the dirty list.
 		 */
-		g_assert( !g_slist_find( render->dirty, tile ) );
-		tile->painted = FALSE;
-		render->dirty = g_slist_prepend( render->dirty, tile );
+		tile_dirty_set( tile ); 
 		render_dirty_put( render );
 	}
 	else {
@@ -707,32 +784,8 @@ render_tile_get_painted( Render *render )
 		(GHFunc) tile_test_clean_ticks, &tile );
 
 	if( tile ) {
-		g_assert( tile->painted );
-
 		VIPS_DEBUG_MSG( "render_tile_get_painted: "
 			"reusing painted %p\n", tile );
-	}
-
-	return( tile );
-}
-
-/* Pick a dirty tile to reuse. We could potentially get the tile that
- * render_work() is working on in the background :-( but I don't think we'll
- * get a crash, just a mis-paint. It should be vanishingly impossible anyway.
- */
-static Tile *
-render_tile_get_dirty( Render *render )
-{
-	Tile *tile;
-
-	if( !render->dirty )
-		tile = NULL;
-	else {
-		tile = (Tile *) g_slist_last( render->dirty )->data;
-		render->dirty = g_slist_remove( render->dirty, tile );
-
-		VIPS_DEBUG_MSG( "render_tile_get_dirty: "
-			"reusing dirty %p\n", tile );
 	}
 
 	return( tile );
@@ -742,11 +795,11 @@ render_tile_get_dirty( Render *render )
  * or if we've no threads or no notify, calculate immediately.
  */
 static Tile *
-tile_request( Render *render, Rect *area )
+render_tile_request( Render *render, Rect *area )
 {
 	Tile *tile;
 
-	VIPS_DEBUG_MSG( "tile_request: asking for %dx%d\n",
+	VIPS_DEBUG_MSG( "render_tile_request: asking for %dx%d\n",
 		area->left, area->top );
 
 	if( (tile = render_tile_lookup( render, area )) ) {
@@ -755,6 +808,8 @@ tile_request( Render *render, Rect *area )
 		 */
 		if( tile->region->invalid ) 
 			tile_queue( tile );
+		else
+			tile_touch( tile );
 	}
 	else if( render->ntiles < render->max_tiles || 
 		render->max_tiles == -1 ) {
@@ -773,8 +828,9 @@ tile_request( Render *render, Rect *area )
 		 * then if that fails, reuse a dirty tile. 
 		 */
 		if( !(tile = render_tile_get_painted( render )) &&
-			!(tile = render_tile_get_dirty( render )) ) {
-			VIPS_DEBUG_MSG( "tile_request: no tiles to reuse\n" );
+			!(tile = render_tile_dirty_reuse( render )) ) {
+			VIPS_DEBUG_MSG( "render_tile_request: "
+				"no tiles to reuse\n" );
 			return( NULL );
 		}
 
@@ -782,8 +838,6 @@ tile_request( Render *render, Rect *area )
 
 		tile_queue( tile );
 	}
-
-	tile_touch( tile );
 
 	return( tile );
 }
@@ -863,7 +917,7 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 			area.width = render->tile_width;
 			area.height = render->tile_height;
 
-			tile = tile_request( render, &area );
+			tile = render_tile_request( render, &area );
 			if( tile )
 				tile_copy( tile, out );
 		}

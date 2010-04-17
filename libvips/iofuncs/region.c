@@ -836,3 +836,61 @@ im_region_black( REGION *reg )
 {
 	im_region_paint( reg, &reg->valid, 0 );
 }
+
+/**
+ * im_region_copy:
+ * @reg: source region 
+ * @dest: destination region 
+ * @r: #Rect of pixels you need to copy
+ * @x: postion of @r in @dest
+ * @y: postion of @r in @dest
+ *
+ * Copy from one region to another. Copy area @r from inside @reg to @dest,
+ * positioning the area of pixels at @x, @y. The two regions must have pixels
+ * which are the same size.
+ *
+ * See also: im_region_paint().
+ */
+void
+im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y )
+{
+	int z;
+	int len = IM_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
+	char *p = IM_REGION_ADDR( reg, r->left, r->top );
+	char *q = IM_REGION_ADDR( dest, x, y );
+	int plsk = IM_REGION_LSKIP( reg );
+	int qlsk = IM_REGION_LSKIP( dest );
+
+#ifdef DEBUG
+	/* Find the area we will write to in dest.
+	 */
+	Rect output;
+
+	printf( "im_region_copy: sanity check\n" );
+
+	output.left = x;
+	output.top = y;
+	output.width = r->width;
+	output.height = r->height;
+
+	/* Must be inside dest->valid.
+	 */
+	g_assert( im_rect_includesrect( &dest->valid, &output ) );
+
+	/* Check the area we are reading from in reg.
+	 */
+	g_assert( im_rect_includesrect( &reg->valid, r ) );
+
+	/* PEL size must be the same.
+	 */
+	g_assert( IM_IMAGE_SIZEOF_PEL( reg->im ) == 
+		IM_IMAGE_SIZEOF_PEL( dest->im ) );
+#endif /*DEBUG*/
+
+	for( z = 0; z < r->height; z++ ) {
+		memcpy( q, p, len );
+
+		p += plsk;
+		q += qlsk;
+	}
+}

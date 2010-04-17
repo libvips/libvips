@@ -83,6 +83,7 @@ int im_region_position( REGION *reg1, int x, int y );
 
 void im_region_paint( REGION *reg, Rect *r, int value );
 void im_region_black( REGION *reg );
+void im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y );
 
 /* Macros on REGIONs.
  *	IM_REGION_LSKIP()		add to move down line

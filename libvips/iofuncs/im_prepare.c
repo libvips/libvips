@@ -194,48 +194,6 @@ im_prepare( REGION *reg, Rect *r )
 	return( 0 );
 }
 
-/* Copy from one region to another. Copy area r from inside reg to dest,
- * positioning the area of pixels at x, y.
- */
-void
-im__copy_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
-{
-	int z;
-	int len = IM_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
-	char *p = IM_REGION_ADDR( reg, r->left, r->top );
-	char *q = IM_REGION_ADDR( dest, x, y );
-	int plsk = IM_REGION_LSKIP( reg );
-	int qlsk = IM_REGION_LSKIP( dest );
-
-#ifdef DEBUG
-	/* Find the area we will write to in dest.
-	 */
-	Rect output;
-
-	printf( "im__copy_region: sanity check\n" );
-
-	output.left = x;
-	output.top = y;
-	output.width = r->width;
-	output.height = r->height;
-
-	/* Must be inside dest->valid.
-	 */
-	g_assert( im_rect_includesrect( &dest->valid, &output ) );
-
-	/* Check the area we are reading from in reg.
-	 */
-	g_assert( im_rect_includesrect( &reg->valid, r ) );
-#endif /*DEBUG*/
-
-	for( z = 0; z < r->height; z++ ) {
-		memcpy( q, p, len );
-
-		p += plsk;
-		q += qlsk;
-	}
-}
-
 /* We need to make pixels using reg's generate function, and write the result
  * to dest.
  */
@@ -246,8 +204,7 @@ im_prepare_to_generate( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	char *p;
 
 	if( !im->generate ) {
-		im_error( "im_prepare_to", 
-			"%s", _( "incomplete header" ) );
+		im_error( "im_prepare_to", "%s", _( "incomplete header" ) );
 		return( -1 );
 	}
 
@@ -268,7 +225,7 @@ im_prepare_to_generate( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	 * we need an extra copy operation.
 	 */
 	if( IM_REGION_ADDR( reg, reg->valid.left, reg->valid.top ) != p )
-		im__copy_region( reg, dest, r, x, y );
+		im_region_copy( reg, dest, r, x, y );
 
 	return( 0 );
 }
@@ -286,7 +243,13 @@ im_prepare_to_generate( REGION *reg, REGION *dest, Rect *r, int x, int y )
  * result, we guarantee that we will fill the pixels in @dest at offset @x, @y.
  * In other words, we generate an extra copy operation if necessary. 
  *
- * See also: im_prepare().
+ * Also unlike im_prepare(), @dest is not set up for writing for you with
+ * im_region_buffer(). You can
+ * point @dest at anything, and pixels really will be written there. 
+ * This makes im_prepare_to() useful for making the ends of pipelines, since
+ * it (effectively) makes a break in the pipe.
+ *
+ * See also: im_prepare(), vips_sink_disc().
  *
  * Returns: 0 on success, or -1 on error
  */
@@ -305,7 +268,8 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 
 	/* Sanity check.
 	 */
-	if( !dest->data || dest->im->BandFmt != reg->im->BandFmt ||
+	if( !dest->data || 
+		dest->im->BandFmt != reg->im->BandFmt ||
 		dest->im->Bands != reg->im->Bands ) {
 		im_error( "im_prepare_to", 
 			"%s", _( "inappropriate region type" ) );
@@ -333,8 +297,7 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Test that dest->valid is large enough.
 	 */
 	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
-		im_error( "im_prepare_to", 
-			"%s", _( "dest too small" ) );
+		im_error( "im_prepare_to", "%s", _( "dest too small" ) );
 		return( -1 );
 	}
 
@@ -380,7 +343,7 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 		 */
 		if( im_region_image( reg, &final ) )
 			return( -1 );
-		im__copy_region( reg, dest, &final, x, y );
+		im_region_copy( reg, dest, &final, x, y );
 
 		break;
 
@@ -396,7 +359,7 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 		else {
 			if( im_region_image( reg, &final ) )
 				return( -1 );
-			im__copy_region( reg, dest, &final, x, y );
+			im_region_copy( reg, dest, &final, x, y );
 		}
 
 		break;
@@ -406,6 +369,14 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 			"%s image" ), im_dtype2char( im->dtype ) );
 		return( -1 );
 	}
+
+	/* We've written fresh pixels to dest, it's no longer invalid (if it
+	 * was).
+	 *
+	 * We need this extra thing here because, unlike im_prepare(), we
+	 * don't im_region_buffer() dest before writing it.
+	 */
+	dest->invalid = FALSE;
 
 	return( 0 );
 }
