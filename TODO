@@ -1,13 +1,5 @@
-- im_prepare() will clear invalidate (by calling im_region_buffer() before
-  running the pipeline), but im_prepare_to() will not
 
-  maybe always call im_region_buffer() on dest before we call im_prepare_to(),
-  this gives region a chance to drop the cache
-
-  but then we have to drop/take ownership on every write, argh
-
-  :n im_pre	
-
+- test paintbox again, make sure the right bits are being painted
 
 
 - expose more of the tone funcs in nip2
