@@ -1,11 +1,4 @@
 
-- add a --enable-debug=[no/minimum/yes] configure flag to disable assert
-  checks
-
-- --disable-threads breaks nip2's image repaint
-
-
-
 - expose more of the tone funcs in nip2
 
 - quite a few hist operations have no GUI ... lhisteq, for example? or
@@ -25,8 +18,6 @@
 
 
 
-
-- nip2 image display does not work with threading disabled
 
 - try writing docs for vipsthumbnail with gtkdoc? then try header etc.
 
@@ -62,27 +53,9 @@
 
   what about im_stretch3.c, im_resize_linear
 
-- im_render should use a hash for tile lookup ... or+shift x/y together
-
-  load wtc.jpg, rotate 42 degrees, zoom in and out quickly for a while, quit
-
-  tiles are leaked :(
-
-  does not leak if you wait for repaint to finish before zooming/unzooming
-
-  problem with waiting for paint to finish in render_kill?
-
 - check mosaic1, global_balance, similarity etc. use of im__affine
   
   how can we move them to im_affinei ?
-
-- radiance read/write needs docs
-
-  maybe have an im_format(3) page with all the built-in formats?
-
-  hard until we document vips_object :(
-
-- same for matio?
 
 - doc strings would be nice, read the SWIG notes on this
 
@@ -95,10 +68,6 @@
   implementations
 
 - try making vips_add(), an operator as a class
-
-- need to write interpolate docs ... manpages and tutorial
-
-  difficult without docs for vips_object
 
 - need a section for vipsobject in the tutorial
 
@@ -121,8 +90,6 @@
 
 - we shouldn't need to call im_invalidate() in gtkdisp4 :( how can we fix
   this?
-
-  will im_invalidate() trash the render cache too?
 
 - we should wrap the format API, also im_render*(), see gtkdisp.cc for sample
   code
@@ -260,12 +227,3 @@
   see also comments in nip2 TODO ... we could auto-wrap in vips_call.c
 
   cleaner!
-
-- on win32, should not write matrix files in binary mode, we want CR/LF chars
-  so we can load into excel etc easily
-
-  how odd, we're doing
-
-	if( !(fp = fopen( name, "w" )) ) {
-
-  shouldn't be binary ... hmm

@@ -34,9 +34,6 @@ for cpus in 1 2 3 4 5 6 ; do
   echo time -p vips im_benchmarkn temp.v temp2.v $chain
   time -p vips im_benchmarkn temp.v temp2.v $chain
   time -p vips im_benchmarkn temp.v temp2.v $chain
-  echo time -p vips im_benchmarkn --vips-wbuffer2 temp.v temp2.v $chain
-  time -p vips im_benchmarkn --vips-wbuffer2 temp.v temp2.v $chain
-  time -p vips im_benchmarkn --vips-wbuffer2 temp.v temp2.v $chain
 
   if [ $? != 0 ]; then
     echo "benchmark failed -- install problem?"

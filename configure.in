@@ -4,10 +4,16 @@ AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR(m4)
 
 # user-visible library versioning
-IM_MAJOR_VERSION=7
-IM_MINOR_VERSION=21
-IM_MICRO_VERSION=3
-IM_VERSION=$IM_MAJOR_VERSION.$IM_MINOR_VERSION.$IM_MICRO_VERSION
+m4_define([vips_major_version], [7])
+m4_define([vips_minor_version], [21])
+m4_define([vips_micro_version], [3])
+m4_define([vips_version],
+          [vips_major_version.vips_minor_version.vips_micro_version])
+
+IM_MAJOR_VERSION=vips_major_version()
+IM_MINOR_VERSION=vips_minor_version()
+IM_MICRO_VERSION=vips_micro_version()
+IM_VERSION=vips_version()
 IM_VERSION_STRING=$IM_VERSION-`date`
 
 VERSION=$IM_VERSION
@@ -43,6 +49,25 @@ AC_SUBST(LIBRARY_AGE)
 AC_CANONICAL_HOST
 
 AC_DEFINE_UNQUOTED(G_LOG_DOMAIN, "VIPS", [Domain for glib logging messages.])
+
+# disable debugging by default for production releases
+m4_define([debug_default],
+  m4_if(m4_eval(vips_minor_version() % 2), [1], [yes], [minimum]))
+
+AC_ARG_ENABLE(debug,
+  AC_HELP_STRING([--enable-debug=@<:@no/minimum/yes@:>@],
+    [turn on debugging @<:@default=debug_default()@:>@]),,
+  enable_debug=debug_default())
+
+if test "x$enable_debug" = "xyes"; then
+  VIPS_DEBUG_FLAGS="-DDEBUG_FATAL -DDEBUG_LEAK"
+else
+  VIPS_DEBUG_FLAGS="-DG_DISABLE_CAST_CHECKS"
+
+  if test "x$enable_debug" = "xno"; then
+    VIPS_DEBUG_FLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
+  fi
+fi
 
 AC_MSG_CHECKING([for native Win32])
 case "$host" in
@@ -515,6 +540,7 @@ do
   echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
+VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES $FFTW_INCLUDES $LCMS_INCLUDES" 
 # need -lstdc++ for (eg.) the C++ format loaders
 VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $LCMS_LIBS $LIBOIL_LIBS $OPENEXR_LIBS $MATIO_LIBS $EXIF_LIBS -lstdc++ -lm"
