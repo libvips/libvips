@@ -1,5 +1,9 @@
 
-- test paintbox again, make sure the right bits are being painted
+- add a --enable-debug=[no/minimum/yes] configure flag to disable assert
+  checks
+
+- --disable-threads breaks nip2's image repaint
+
 
 
 - expose more of the tone funcs in nip2
