@@ -932,6 +932,7 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 static int
 mask_fill( REGION *out, void *seq, void *a, void *b )
 {
+#ifdef HAVE_THREADS
 	Render *render = (Render *) a;
 	Rect *r = &out->valid;
 	int x, y;
@@ -968,6 +969,9 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 		}
 
 	g_mutex_unlock( render->lock );
+#else /*!HAVE_THREADS*/
+	im_region_paint( out, &out->valid, 255 );
+#endif /*HAVE_THREADS*/
 
 	return( 0 );
 }
