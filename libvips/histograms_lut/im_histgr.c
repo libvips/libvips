@@ -347,7 +347,7 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 
 	/* Accumulate data.
 	 */
-	if( im_iterate( in, 
+	if( vips_sink( in, 
 		build_subhist, scanfn, merge_subhist, mhist, NULL ) )
 		return( -1 );
 

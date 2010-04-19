@@ -86,7 +86,7 @@ typedef struct _Wrapscan {
 } Wrapscan;
 
 static void *
-wrapscan_start( IMAGE *in, void *a, void *b )
+wrapscan_start( VipsImage *in, void *a, void *b )
 {
 	Wrapscan *wrapscan = (Wrapscan *) a;
 
@@ -122,12 +122,12 @@ wrapscan_scan( REGION *reg, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Like im_iterate(), but the scan function works a line at a time, like
+/* Like vips_sink(), but the scan function works a line at a time, like
  * im_wrap*(). Shared with im_min(), im_deviate() etc.
  */
 int
-im__wrapscan( IMAGE *in, 
-	im_start_fn start, im__wrapscan_fn scan, im_stop_fn stop,
+im__wrapscan( VipsImage *in, 
+	VipsStart start, im__wrapscan_fn scan, VipsStop stop,
 	void *a, void *b )
 {
 	Wrapscan wrapscan;
@@ -139,7 +139,7 @@ im__wrapscan( IMAGE *in,
 	wrapscan.a = a;
 	wrapscan.b = b;
 
-	return( im_iterate( in, 
+	return( vips_sink( in, 
 		wrapscan_start, wrapscan_scan, wrapscan_stop, 
 		&wrapscan, NULL ) );
 }

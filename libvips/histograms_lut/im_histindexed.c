@@ -360,7 +360,7 @@ im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out )
 
 	/* Accumulate data.
 	 */
-	if( im_iterate( index, 
+	if( vips_sink( index, 
 		hist_start, scanfn, hist_stop, mhist, NULL ) ||
 		hist_write( out, mhist ) ) {
 		hist_free( mhist );

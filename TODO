@@ -1,7 +1,4 @@
 
-- im_iterate() is deprecated: change to vips_sink() throughout
-
-
 
 - expose more of the tone funcs in nip2
 

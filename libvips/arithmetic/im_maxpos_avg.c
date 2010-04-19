@@ -238,7 +238,7 @@ im_maxpos_avg( IMAGE *in, double *xpos, double *ypos, double *out )
 	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		global_maxposavg->max *= global_maxposavg->max;
 
-	if( im_iterate( in, maxposavg_start, maxposavg_scan, maxposavg_stop, 
+	if( vips_sink( in, maxposavg_start, maxposavg_scan, maxposavg_stop, 
 		in, global_maxposavg ) ) 
 		return( -1 );
 

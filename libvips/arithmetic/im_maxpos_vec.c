@@ -143,7 +143,7 @@ int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n ){
 
   maxpos_list_init( &master_list, n );
 
-  result= im_iterate( im, maxpos_vec_start, maxpos_vec_scan, maxpos_vec_stop, &n, &master_list );
+  result= vips_sink( im, maxpos_vec_start, maxpos_vec_scan, maxpos_vec_stop, &n, &master_list );
 
   im_free( pointers );
 
@@ -208,7 +208,7 @@ int im_minpos_vec( IMAGE *im, int *xpos, int *ypos, double *minima, int n ){
 
   minpos_list_init( &master_list, n );
 
-  result= im_iterate( im, minpos_vec_start, minpos_vec_scan, minpos_vec_stop, &n, &master_list );
+  result= vips_sink( im, minpos_vec_start, minpos_vec_scan, minpos_vec_stop, &n, &master_list );
 
   im_free( pointers );
 

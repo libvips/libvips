@@ -222,7 +222,7 @@ im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
 	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		global_minpos->min *= global_minpos->min;
 
-	if( im_iterate( in, minpos_start, minpos_scan, minpos_stop, 
+	if( vips_sink( in, minpos_start, minpos_scan, minpos_stop, 
 		in, global_minpos ) ) 
 		return( -1 );
 

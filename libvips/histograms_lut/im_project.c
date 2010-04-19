@@ -288,7 +288,7 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 
 	/* Accumulate data.
 	 */
-	if( im_iterate( in, 
+	if( vips_sink( in, 
 		project_new_sub, project_scan, project_merge, mproject, NULL ) )
 		return( -1 );
 

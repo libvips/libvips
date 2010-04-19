@@ -222,7 +222,7 @@ im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out )
 	if( vips_bandfmt_iscomplex( in->BandFmt ) )
 		global_maxpos->max *= global_maxpos->max;
 
-	if( im_iterate( in, maxpos_start, maxpos_scan, maxpos_stop, 
+	if( vips_sink( in, maxpos_start, maxpos_scan, maxpos_stop, 
 		in, global_maxpos ) ) 
 		return( -1 );
 

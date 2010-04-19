@@ -239,7 +239,7 @@ im_histnD( IMAGE *in, IMAGE *out, int bins )
 
 	/* Accumulate data.
 	 */
-	if( im_iterate( in, 
+	if( vips_sink( in, 
 		build_subhist, find_hist, merge_subhist, mhist, NULL ) )
 		return( -1 );
 
