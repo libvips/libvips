@@ -1,4 +1,8 @@
 
+- im_iterate() is deprecated: change to vips_sink() throughout
+
+
+
 - expose more of the tone funcs in nip2
 
 - quite a few hist operations have no GUI ... lhisteq, for example? or

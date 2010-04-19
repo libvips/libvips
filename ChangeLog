@@ -14,6 +14,7 @@
 - --vips-wbuffer2 turns on threadpool for im_iterate as well
 - im_vips2tiff() uses vips_sink() instead of threadgroup
 - strip out threadgroup
+- add --enable-debug=xxx flag
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do
