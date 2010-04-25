@@ -1,4 +1,9 @@
 
+- add support for PFM files, portable float maps
+
+  used in HDR imaging, apparently
+
+
 
 - expose more of the tone funcs in nip2
 
