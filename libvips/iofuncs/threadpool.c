@@ -809,6 +809,8 @@ vips_threadpool_run( VipsImage *im,
 		vips_thread_work_unit( pool->thr[0] );
 #endif /*HAVE_THREADS*/
 
+		VIPS_DEBUG_MSG( "vips_threadpool_run: tick\n" );
+
 		if( pool->stop || pool->error )
 			break;
 

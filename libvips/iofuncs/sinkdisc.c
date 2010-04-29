@@ -32,7 +32,7 @@
  */
 
 /*
-#define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -55,6 +55,7 @@
 #include <vips/internal.h>
 #include <vips/thread.h>
 #include <vips/threadpool.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -158,9 +159,7 @@ wbuffer_free( WriteBuffer *wbuffer )
 		/* Return value is always NULL (see wbuffer_write_thread).
 		 */
 		(void) g_thread_join( wbuffer->thread );
-#ifdef DEBUG
-		printf( "wbuffer_free: g_thread_join()\n" );
-#endif /*DEBUG*/
+		VIPS_DEBUG_MSG( "wbuffer_free: g_thread_join()\n" );
 
 		wbuffer->thread = NULL;
         }
@@ -177,12 +176,8 @@ wbuffer_write( WriteBuffer *wbuffer )
 {
 	Write *write = wbuffer->write;
 
-#ifdef DEBUG
-	static int n = 1;
-
-	printf( "wbuffer_write: %d, %d bytes from wbuffer %p\n", 
-		n++, wbuffer->region->bpl * wbuffer->area.height, wbuffer );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "wbuffer_write: %d bytes from wbuffer %p\n", 
+		wbuffer->region->bpl * wbuffer->area.height, wbuffer );
 
 	wbuffer->write_errno = write->write_fn( wbuffer->region, 
 		&wbuffer->area, write->a );
@@ -265,11 +260,7 @@ wbuffer_flush( Write *write )
 {
 	WriteBuffer *t;
 
-#ifdef DEBUG
-	static int n = 1;
-
-	printf( "wbuffer_flush: %d\n", n++ );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "wbuffer_flush:\n" );
 
 	/* Block until the other buffer has been written. We have to do this 
 	 * before we can set this buffer writing or we'll lose output ordering.
@@ -354,9 +345,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	Rect image;
 	Rect tile;
 
-#ifdef DEBUG
-	printf( "wbuffer_allocate_fn\n" );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "wbuffer_allocate_fn:\n" );
 
 	/* Is the state x/y OK? New line or maybe new buffer or maybe even 
 	 * all done.
@@ -417,9 +406,7 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 {
 	WriteThreadState *wstate =  (WriteThreadState *) state;
 
-#ifdef DEBUG
-	printf( "wbuffer_work_fn\n" );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "wbuffer_work_fn:\n" );
 
 	if( im_prepare_to( state->reg, wstate->buf->region, 
 		&state->pos, state->pos.left, state->pos.top ) )
@@ -438,6 +425,9 @@ static int
 wbuffer_progress_fn( void *a )
 {
 	Write *write = (Write *) a;
+
+	VIPS_DEBUG_MSG( "wbuffer_progress_fn: %d x %d\n",
+		write->tile_width, write->tile_height );
 
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
