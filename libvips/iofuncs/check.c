@@ -921,6 +921,33 @@ im_check_u8or16( const char *domain, IMAGE *im )
 }
 
 /**
+ * im_check_u8or16orf:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is 8 or 16-bit unsigned integer, or float.
+ * Otherwise set an error message and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+im_check_u8or16orf( const char *domain, IMAGE *im )
+{
+	if( im->BandFmt != IM_BANDFMT_UCHAR &&
+		im->BandFmt != IM_BANDFMT_USHORT &&
+		im->BandFmt != IM_BANDFMT_FLOAT ) {
+		im_error( domain, "%s", 
+			_( "image must be 8- or 16-bit unsigned integer, "
+				"or float" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_size_same:
  * @domain: the originating domain for the error message
  * @im1: first image to check

@@ -1,6 +1,10 @@
-/* @(#) Pass VIPS images through CImg
+/* Pass VIPS images through CImg
  *
  * JC, 15/10/07
+ * 29/4/10
+ * 	- oop, should be smalltile, probably
+ * 	- tiny cleanups
+ * 	- gtkdoc
  */
 
 /*
@@ -189,6 +193,29 @@ typedef int (*generate_fn)( REGION *out, REGION **in,
 	IMAGE **im, Greyc *greyc );
 
 // as a plain C function
+/**
+ * im_greyc_mask:
+ * @in: input image 
+ * @out: output image
+ * @mask: input mask 
+ * @iterations: number of iterations to perform (eg. 1)
+ * @amplitude: scaling factor (eg. 40)
+ * @sharpness: degree of sharpening to apply (eg. 0.9)
+ * @anisotropy: how much to blur along lines (eg. 0.15)
+ * @alpha: blur by this much before calculating geometry (eg. 0.6)
+ * @sigma: blur geometry by this much (eg. 1.1)
+ * @dl: spatial integration step (eg. 0.8)
+ * @da: angular integration step (eg. 30)
+ * @gauss_prec: precision (eg. 2)
+ * @interpolation: interpolation (eg. 0 for nearest-neighbour)
+ *
+ * This operation calls the blur_anisotropic() method of the CImag image
+ * processing library. It is handy for denoising images and for upscaling.
+ *
+ * See also: im_conv().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
         int iterations,
@@ -200,37 +227,24 @@ im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
 	IMAGE **arry;
 	Greyc *greyc;
 
-	if( im_piocheck( in, out ) )
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_greyc_mask", in ) ||
+		im_check_u8or16orf( "im_greyc_mask", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) {
-		im_error( "GREYCstoration", "%s", _( "uncoded only" ) );
-		return( -1 );
-	}
 	if( mask ) {
-		if( mask->Coding != IM_CODING_NONE ) {
-			im_error( "GREYCstoration", "%s", _( "uncoded only" ) );
+		if( im_pincheck( mask ) ||
+			im_check_uncoded( "im_greyc_mask", mask ) ||
+			im_check_size_same( "im_greyc_mask", in, mask ) ||
+			im_check_format( "im_greyc_mask", 
+				mask, IM_BANDFMT_UCHAR ) )
 			return( -1 );
-		}
-		if( mask->Xsize != in->Xsize ||
-			mask->Ysize != in->Ysize ) {
-			im_error( "GREYCstoration", 
-				"%s", _( "mask size does not match input" ) );
-			return( -1 );
-		}
-		if( mask->BandFmt != IM_BANDFMT_UCHAR ) {
-			im_error( "GREYCstoration", 
-				"%s", _( "mask must be uchar" ) );
-			return( -1 );
-		}
 	}
-	im_cp_desc( out, in );
-	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
-		return( -1 );
-	if( !(arry = im_allocate_input_array( out, in, mask, NULL )) )
+	if( im_cp_desc( out, in ) ||
+		!(arry = im_allocate_input_array( out, in, mask, NULL )) ||
+		!(greyc = IM_NEW( out, Greyc )) ||
+		im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
 		return( -1 );
 
-	if( !(greyc = IM_NEW( out, Greyc )) )
-		return( -1 );
 	greyc->in = in;
 	greyc->out = out;
 	greyc->mask = mask;
@@ -278,10 +292,7 @@ im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
 		break;
 
 	default:
-		im_error( "GREYCstoration", 
-			"%s", _( "unsupported type: "
-			"uchar, ushort and float only" ) );
-		return( -1 );
+		g_assert( 0 );
 	}
 
 	return( 0 );
