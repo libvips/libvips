@@ -31,8 +31,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -159,6 +159,9 @@ static int
 sink_progress( void *a )
 {
 	Sink *sink = (Sink *) a;
+
+	VIPS_DEBUG_MSG( "sink_progress: %d x %d\n",
+		sink->tile_width, sink->tile_height );
 
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.

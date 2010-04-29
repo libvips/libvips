@@ -142,9 +142,12 @@ int
 im__handle_eval( IMAGE *im, int w, int h )
 {
 	if( im->progress ) {
-		/* Need to test ->time, it may have been shut down.
+		/* Need to test ->time, it may have been shut down. Also, only
+		 * bother updating the time struct if we have a callback that
+		 * might be interested.
 		 */
-		if( im->progress->time ) {
+		if( im->progress->time &&
+			im->progress->evalfns ) {
 			if( update_time( im->progress->time, w, h ) )
 				return( -1 );
 		}
