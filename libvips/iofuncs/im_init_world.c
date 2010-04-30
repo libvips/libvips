@@ -58,6 +58,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <string.h>
+
 #include <vips/vips.h>
 #include <vips/thread.h>
 #include <vips/internal.h>
@@ -74,6 +76,24 @@
  * making a private one.
  */
 GMutex *im__global_lock = NULL;
+
+/* Keep a copy of the argv0 here.
+ */
+static char *im__argv0 = NULL;
+
+/**
+ * im_get_argv0:
+ *
+ * See also: im_init_world().
+ *
+ * Returns: a pointer to an internal copy of the argv0 string passed to
+ * im_init_world(). Do not free this value
+ */
+const char *
+im_get_argv0( void )
+{
+	return( im__argv0 );
+}
 
 /**
  * im_init_world:
@@ -146,6 +166,8 @@ im_init_world( const char *argv0 )
 		 */
 		return( 0 );
 	started = TRUE;
+
+	IM_SETSTR( im__argv0, argv0 );
 
 	/* Need gobject etc.
 	 */

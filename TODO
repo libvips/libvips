@@ -1,5 +1,3 @@
-- im_magick2vips() needs rewriting, argh
-
 
 - add support for PFM files, portable float maps
 

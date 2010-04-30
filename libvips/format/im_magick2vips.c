@@ -35,6 +35,7 @@
  * 	- gtkdoc
  * 30/4/10
  * 	- better number of bands detection with GetImageType()
+ * 	- use new API stuff, argh
  */
 
 /*
@@ -158,7 +159,11 @@ read_new( const char *filename, IMAGE *im )
 	static int inited = 0;
 
 	if( !inited ) {
+#ifdef HAVE_MAGICKCOREGENESIS
+		MagickCoreGenesis( im_get_argv0(), MagickFalse );
+#else /*!HAVE_MAGICKCOREGENESIS*/
 		InitializeMagick( "" );
+#endif /*HAVE_MAGICKCOREGENESIS*/
 		inited = 1;
 	}
 
@@ -241,9 +246,6 @@ parse_header( Read *read )
 	IMAGE *im = read->im;
 	Image *image = read->image;
 
-#ifdef HAVE_MAGICK_ATTR
-	const ImageAttribute *attr;
-#endif /*HAVE_MAGICK_ATTR*/
 	Image *p;
 	int i;
 
@@ -353,34 +355,60 @@ parse_header( Read *read )
 	 */
 	im->Coding = IM_CODING_NONE;
 
-#ifdef HAVE_MAGICK_ATTR
-#ifdef HAVE_GETNEXTIMAGEATTRIBUTE
-	/* Gah, magick6.something and later only. Attach any attributes.
+	/* Three ways to loop over attributes / properties :-(
+	 */
+
+#ifdef HAVE_RESETIMAGEPROPERTYITERATOR
+{
+	char *key;
+
+	/* This is the most recent imagemagick API, test for this first.
+	 */
+	ResetImagePropertyIterator( image );
+	while( (key = GetNextImageProperty( image )) ) {
+		char name_text[256];
+		VipsBuf name;
+
+		vips_buf_init_static( &name, name_text, 256 );
+		vips_buf_appendf( &name, "magick-%s", key );
+		im_meta_set_string( im, 
+			vips_buf_all( &name ), GetImageProperty( image, key ) );
+	}
+}
+#elif defined(HAVE_RESETIMAGEATTRIBUTEITERATOR)
+{
+	const ImageAttribute *attr;
+
+	/* magick6.1-ish and later, deprecated in 6.5ish.
 	 */
 	ResetImageAttributeIterator( image );
 	while( (attr = GetNextImageAttribute( image )) ) {
-#elif defined(HAVE_GETIMAGEATTRIBUTE)
-	/* GraphicsMagick is missing the iterator: we have to loop ourselves.
-	 * ->attributes is marked as private in the header, but there's no
-	 * getter so we have to access it directly.
-	 */
-	for( attr = image->attributes; attr; attr = attr->next ) {
-#else /*stuff*/
-	#error attributes enabled, but no access funcs found
-#endif
 		char name_text[256];
 		VipsBuf name;
 
 		vips_buf_init_static( &name, name_text, 256 );
 		vips_buf_appendf( &name, "magick-%s", attr->key );
 		im_meta_set_string( im, vips_buf_all( &name ), attr->value );
-
-#ifdef DEBUG
-		printf( "key = \"%s\", value = \"%s\"\n", 
-			attr->key, attr->value );
-#endif /*DEBUG*/
 	}
-#endif /*HAVE_MAGICK_ATTR*/
+}
+#else
+{
+	const ImageAttribute *attr;
+
+	/* GraphicsMagick is missing the iterator: we have to loop ourselves.
+	 * ->attributes is marked as private in the header, but there's no
+	 * getter so we have to access it directly.
+	 */
+	for( attr = image->attributes; attr; attr = attr->next ) {
+		char name_text[256];
+		VipsBuf name;
+
+		vips_buf_init_static( &name, name_text, 256 );
+		vips_buf_appendf( &name, "magick-%s", attr->key );
+		im_meta_set_string( im, vips_buf_all( &name ), attr->value );
+	}
+}
+#endif 
 
 	/* Do we have a set of equal-sized frames? Append them.
 
@@ -556,8 +584,13 @@ static PixelPacket *
 get_pixels( Image *image, int left, int top, int width, int height )
 {
 	PixelPacket *pixels;
-	
+
+#ifdef HAVE_GETVIRTUALPIXELS
+	if( !(pixels = (PixelPacket *) GetVirtualPixels( image, 
+		left, top, width, height, &image->exception )) )
+#else
 	if( !(pixels = GetImagePixels( image, left, top, width, height )) )
+#endif
 		return( NULL );
 
 /* Can't happen if red/green/blue are doubles.
@@ -566,7 +599,13 @@ get_pixels( Image *image, int left, int top, int width, int height )
 	/* Unpack palette.
 	 */
 	if( image->storage_class == PseudoClass ) {
+#ifdef HAVE_GETVIRTUALPIXELS
+		IndexPacket *indexes = (IndexPacket *) 
+			GetVirtualIndexQueue( image );
+#else
 		IndexPacket *indexes = GetIndexes( image );
+#endif
+
 		int i;
 
 		for( i = 0; i < width * height; i++ ) {

@@ -291,6 +291,7 @@ extern const size_t im__sizeof_bandfmt[];
 	 (X) * IM_IMAGE_SIZEOF_PEL(I))
 #endif /*DEBUG*/
 
+const char *im_get_argv0( void );
 int im_init_world( const char *argv0 );
 GOptionGroup *im_get_option_group( void );
 
