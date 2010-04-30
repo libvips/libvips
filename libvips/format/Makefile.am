@@ -9,7 +9,6 @@ libformat_la_SOURCES = \
 	im_exr2vips.c \
 	im_jpeg2vips.c \
 	im_magick2vips.c \
-	im_magickwand2vips.c \
 	im_png2vips.c \
 	im_ppm2vips.c \
 	im_raw2vips.c \
