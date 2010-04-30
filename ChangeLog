@@ -16,6 +16,7 @@
 - strip out threadgroup
 - add --enable-debug=xxx flag
 - im_iterate() -> vips_sink()
+- better number-of-bands detection for im_magick2vips() 
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do

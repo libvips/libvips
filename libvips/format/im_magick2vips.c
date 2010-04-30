@@ -33,6 +33,8 @@
  * 	- SetImageOption() is optional (to help GM)
  * 4/2/10
  * 	- gtkdoc
+ * 30/4/10
+ * 	- better number of bands detection with GetImageType()
  */
 
 /*
@@ -194,35 +196,40 @@ static int
 get_bands( Image *image )
 {
 	int bands;
+	ImageType type = GetImageType( image, &image->exception );
 
-	switch( image->colorspace ) {
-	case GRAYColorspace:
+	switch( type ) {
+	case BilevelType:
+	case GrayscaleType:
 		bands = 1;
 		break;
 
-	case RGBColorspace:
+	case GrayscaleMatteType:
+	/* ImageMagick also has PaletteBilevelMatteType, but GraphicsMagick
+	 * does not. Skip for portability.
+	 */
+		bands = 2;
+		break;
+
+	case PaletteType:
+	case TrueColorType:
 		bands = 3;
 		break;
 
-	case sRGBColorspace:
-		bands = 3;
-		break;
-
-	case CMYKColorspace:
+	case PaletteMatteType:
+	case TrueColorMatteType:
+	case ColorSeparationType:
 		bands = 4;
 		break;
 
-	default:
-		im_error( "im_magick2vips", _( "unsupported colorspace %d" ),
-			(int) image->colorspace );
-		return( -1 );
-	}
+	case ColorSeparationMatteType:
+		bands = 5;
+		break;
 
-	/* Alpha as well?
-	 */
-	if( image->matte ) {
-		assert( image->colorspace != CMYKColorspace );
-		bands += 1;
+	default:
+		im_error( "im_magick2vips", _( "unsupported image type %d" ),
+			(int) type );
+		return( -1 );
 	}
 
 	return( bands );
@@ -240,10 +247,16 @@ parse_header( Read *read )
 	Image *p;
 	int i;
 
+	/* Handy for testimng IM/GM
+	printf( "parse_header: filename = %s\n", read->filename );
 	printf( "GetImageChannelDepth(DefaultChannels) = %ld\n",
-		GetImageChannelDepth( image, DefaultChannels, &image->exception ) );
+		GetImageChannelDepth( image, DefaultChannels, 
+		&image->exception ) );
+	printf( "GetImageChannelDepth(AllChannels) = %ld\n",
+		GetImageChannelDepth( image, AllChannels, &image->exception ) );
 	printf( "GetImageDepth() = %ld\n",
 		GetImageDepth( image, &image->exception ) );
+	printf( "image->depth = %lu\n", image->depth );
 	printf( "GetImageQuantumDepth(MagickFalse) = %ld\n",
 		GetImageQuantumDepth( image, MagickFalse ) );
 	printf( "GetImageType() = %d\n",
@@ -254,6 +267,7 @@ parse_header( Read *read )
 		IsMonochromeImage( image, &image->exception ) );
 	printf( "IsOpaqueImage() = %d\n",
 		IsOpaqueImage( image, &image->exception ) );
+	 */
 
 	im->Xsize = image->columns;
 	im->Ysize = image->rows;
@@ -261,7 +275,9 @@ parse_header( Read *read )
 	if( (im->Bands = get_bands( image )) < 0 )
 		return( -1 );
 
-	/* Depth can be 'fractional'. 
+	/* Depth can be 'fractional'. You'd think we should use
+	 * GetImageDepth() but that seems unreliable. 16-bit mono DICOM images 
+	 * are reported as depth 1, for example.
 	 */
 	im->BandFmt = -1;
 	if( image->depth >= 1 && image->depth <= 8 ) 
