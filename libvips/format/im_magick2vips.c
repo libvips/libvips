@@ -606,7 +606,7 @@ magick_fill_region( REGION *out, void *seq, void *a, void *b )
  * @filename: file to load
  * @out: image to write to
  *
- * Read in an image useing libMagick, the ImageMagick library. This library can
+ * Read in an image using libMagick, the ImageMagick library. This library can
  * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
  * others.
  * The reader can handle any ImageMagick image, including the float and double
