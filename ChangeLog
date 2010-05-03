@@ -18,6 +18,7 @@
 - im_iterate() -> vips_sink()
 - better number-of-bands detection for im_magick2vips() 
 - added im_get_argv0()
+- added PFM read / write
 
 16/1/10 started 7.21.2
 - "invalidate" is careful to keep images alive, so invalidate callbacks can do

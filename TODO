@@ -1,8 +1,9 @@
 
-- add support for PFM files, portable float maps
+- convert_saveable for other writers: tiff, ppm, csv, rad etc.
 
-  used in HDR imaging, apparently
+  the tiff writer could use more im_check_ things
 
+  test pfm write
 
 
 - expose more of the tone funcs in nip2

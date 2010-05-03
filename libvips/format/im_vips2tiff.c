@@ -1690,12 +1690,9 @@ im_vips2tiff( IMAGE *in, const char *filename )
 
 	/* Check input image.
 	 */
-	if( im_pincheck( in ) )
+	if( im_pincheck( in ) ||
+		im_check_coding_known( "im_vips2tiff", in ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_LABQ && in->Coding != IM_CODING_NONE ) {
-		im_error( "im_vips2tiff", "%s", _( "unknown coding type" ) );
-		return( -1 );
-	}
 	if( in->BandFmt != IM_BANDFMT_UCHAR && 
 		!(in->BandFmt == IM_BANDFMT_SHORT && 
 			in->Type == IM_TYPE_LABS) &&

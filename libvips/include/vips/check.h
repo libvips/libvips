@@ -57,6 +57,7 @@ int im_check_bands_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_bandno( const char *domain, IMAGE *im, int bandno );
 int im_check_int( const char *domain, IMAGE *im );
 int im_check_uint( const char *domain, IMAGE *im );
+int im_check_uintorf( const char *domain, IMAGE *im );
 int im_check_noncomplex( const char *domain, IMAGE *im );
 int im_check_complex( const char *domain, IMAGE *im );
 int im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt );

@@ -117,6 +117,16 @@ write_destroy( Write *write )
 	im_free( write );
 }
 
+#define UC IM_BANDFMT_UCHAR
+#define US IM_BANDFMT_USHORT
+
+/* Type promotion for save ... uchar or ushort.
+ */
+static int bandfmt_png[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   US, UC, US, US, US, US, UC, UC, UC, UC
+};
+
 static Write *
 write_new( IMAGE *in )
 {
@@ -126,7 +136,7 @@ write_new( IMAGE *in )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 
-	if( !(write->in = im__convert_saveable( in, IM__RGBA, TRUE )) ) {
+	if( !(write->in = im__convert_saveable( in, IM__RGBA, bandfmt_png )) ) {
 		im_error( "im_vips2png", 
 			"%s", _( "unable to convert to saveable format" ) );
 		write_destroy( write );

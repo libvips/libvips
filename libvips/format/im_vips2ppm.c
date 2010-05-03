@@ -9,6 +9,8 @@
  * 4/2/10
  * 	- gtkdoc
  * 	- cleanups
+ * 1/5/10
+ * 	- add PFM (portable float map) support
  */
 
 /*
@@ -44,7 +46,6 @@
 
 #include <ctype.h>
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -100,14 +101,10 @@ static int
 write_ppm_line_ascii( IMAGE *in, FILE *fp, PEL *p )
 {
 	const int sk = IM_IMAGE_SIZEOF_PEL( in );
-	const int nb = IM_MIN( 3, in->Bands );
 	int x, k;
 
-	/* If IM_CODING_LABQ, write 3 bands.
-	 */
-
 	for( x = 0; x < in->Xsize; x++ ) {
-		for( k = 0; k < nb; k++ ) {
+		for( k = 0; k < in->Bands; k++ ) {
 			switch( in->BandFmt ) {
 			case IM_BANDFMT_UCHAR:
 				fprintf( fp, "%d ", p[k] );
@@ -122,7 +119,7 @@ write_ppm_line_ascii( IMAGE *in, FILE *fp, PEL *p )
 				break;
 
 			default:
-				assert( 0 );
+				g_assert( 0 );
 			}
 		}
 
@@ -143,18 +140,10 @@ write_ppm_line_ascii( IMAGE *in, FILE *fp, PEL *p )
 static int
 write_ppm_line_binary( IMAGE *in, FILE *fp, PEL *p )
 {
-	const int sk = IM_IMAGE_SIZEOF_PEL( in );
-	const int nb = IM_MIN( 3, in->Bands );
-	int x;
-
-	for( x = 0; x < in->Xsize; x++ ) {
-		if( !fwrite( p, 1, nb, fp ) ) {
-			im_error( "im_vips2ppm", 
-				"%s", _( "write error ... disc full?" ) );
-			return( -1 );
-		}
-
-		p += sk;
+	if( !fwrite( p, IM_IMAGE_SIZEOF_LINE( in ), 1, fp ) ) {
+		im_error( "im_vips2ppm", 
+			"%s", _( "write error ... disc full?" ) );
+		return( -1 );
 	}
 
 	return( 0 );
@@ -181,28 +170,14 @@ write_ppm( Write *write, int ascii )
 {
 	IMAGE *in = write->in;
 
-	int max_value;
 	char *magic;
 	time_t timebuf;
 
-	switch( in->BandFmt ) {
-	case IM_BANDFMT_UCHAR:
-		max_value = UCHAR_MAX;
-		break;
-
-	case IM_BANDFMT_USHORT:
-		max_value = USHRT_MAX;
-		break;
-
-	case IM_BANDFMT_UINT:
-		max_value = UINT_MAX;
-		break;
-
-	default:
-		assert( 0 );
-	}
-
-	if( in->Bands == 1 && ascii )
+	if( in->BandFmt == IM_BANDFMT_FLOAT && in->Bands == 3 ) 
+		magic = "PF";
+	else if( in->BandFmt == IM_BANDFMT_FLOAT && in->Bands == 1 ) 
+		magic = "Pf";
+	else if( in->Bands == 1 && ascii )
 		magic = "P2";
 	else if( in->Bands == 1 && !ascii )
 		magic = "P5";
@@ -211,13 +186,41 @@ write_ppm( Write *write, int ascii )
 	else if( in->Bands == 3 && !ascii )
 		magic = "P6";
 	else
-		assert( 0 );
+		g_assert( 0 );
 
 	fprintf( write->fp, "%s\n", magic );
 	time( &timebuf );
 	fprintf( write->fp, "#im_vips2ppm - %s\n", ctime( &timebuf ) );
 	fprintf( write->fp, "%d %d\n", in->Xsize, in->Ysize );
-	fprintf( write->fp, "%d\n", max_value );
+
+	switch( in->BandFmt ) {
+	case IM_BANDFMT_UCHAR:
+		fprintf( write->fp, "%d\n", UCHAR_MAX );
+		break;
+
+	case IM_BANDFMT_USHORT:
+		fprintf( write->fp, "%d\n", USHRT_MAX );
+		break;
+
+	case IM_BANDFMT_UINT:
+		fprintf( write->fp, "%d\n", UINT_MAX );
+		break;
+
+	case IM_BANDFMT_FLOAT:
+{
+		double scale;
+
+		if( im_meta_get_double( in, "pfm-scale", &scale ) )
+			scale = 1;
+		if( !im_amiMSBfirst() )
+			scale *= -1;
+		fprintf( write->fp, "%g\n", scale );
+}
+		break;
+
+	default:
+		g_assert( 0 );
+	}
 
 	write->fn = ascii ? write_ppm_line_ascii : write_ppm_line_binary;
 
@@ -233,9 +236,12 @@ write_ppm( Write *write, int ascii )
  * @filename: file to write to 
  *
  * Write a VIPS image to a file as PPM. It can write 8, 16 or
- * 32 bit unsigned integer images, colour or monochrome, stored as binary or 
- * ASCII. 
- * Images of more than 8 bits can only be stored in ASCII.
+ * 32 bit unsigned integer images, float images, colour or monochrome, 
+ * stored as binary or ASCII. 
+ * Integer images of more than 8 bits can only be stored in ASCII.
+ *
+ * When writing float (PFM) images the scale factor is set from the 
+ * "pfm-scale" metadata.
  *
  * The storage format is indicated by a filename extension, for example:
  *
@@ -245,7 +251,7 @@ write_ppm( Write *write, int ascii )
  *
  * will write to "fred.ppm" in ascii format. The default is binary.
  *
- * See also: #VipsFormat, im_ppm2vips().
+ * See also: #VipsFormat, im_ppm2vips(), im_meta_set_double().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -277,16 +283,21 @@ im_vips2ppm( IMAGE *in, const char *filename )
 		}
 	}
 
-	if( im_bits_of_fmt( in->BandFmt ) > 8 && !ascii ) {
-		im_error( "im_vips2ppm", 
-			"%s", _( "can't write binary >8 bit images" ) );
-		return( -1 );
-	}
-	if( im_check_uint( "im_vips2ppm", in ) || 
+	if( im_check_uintorf( "im_vips2ppm", in ) || 
 		im_check_bands_1or3( "im_vips2ppm", in ) || 
 		im_check_uncoded( "im_vips2ppm", in ) || 
 		im_pincheck( in ) )
 		return( -1 );
+
+	/* We can only write >8 bit binary images in float.
+	 */
+	if( im_bits_of_fmt( in->BandFmt ) > 8 && 
+		!ascii && 
+		in->BandFmt != IM_BANDFMT_FLOAT ) {
+		im_error( "im_vips2ppm", 
+			"%s", _( "binary >8 bit images must be float" ) );
+		return( -1 );
+	}
 
 	if( !(write = write_new( in, name )) )
 		return( -1 );

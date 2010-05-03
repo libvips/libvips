@@ -389,16 +389,16 @@ im_copy_native( IMAGE *in, IMAGE *out, gboolean is_msb_first )
 /* Convert to a saveable format. 
  *
  * im__saveable_t gives the general type of image
- * we make: vanilla 1/3 bands (PPM), with an optional alpha (like PNG), or
- * with CMYK as an option (like JPEG). 
+ * we make: vanilla 1/3 bands (eg. PPM), with an optional alpha (eg. PNG), or
+ * with CMYK as an option (eg. JPEG). 
  *
- * sixteen TRUE means 16 bit uchar is OK as well (eg. PNG), otherwise we
- * always cast down to u8.
+ * format_table[] says how to convert each input format. 
  *
  * Need to im_close() the result IMAGE.
  */
 IMAGE *
-im__convert_saveable( IMAGE *in, im__saveable_t saveable, gboolean sixteen )
+im__convert_saveable( IMAGE *in, 
+	im__saveable_t saveable, int format_table[10] ) 
 {
 	IMAGE *out;
 
@@ -476,6 +476,9 @@ im__convert_saveable( IMAGE *in, im__saveable_t saveable, gboolean sixteen )
 
 			in = t;
 		}
+
+		/* Else we have saveable IM__ANY and we don't chop bands down.
+		 */
 	}
 
 	/* Interpret the Type field for colorimetric images.
@@ -573,18 +576,12 @@ im__convert_saveable( IMAGE *in, im__saveable_t saveable, gboolean sixteen )
 		in = t[1];
 	}
 
-	/* Clip to uchar/ushort if not there already. 
+	/* Cast to the output format.
 	 */
-	if(     (sixteen && 
-		in->BandFmt != IM_BANDFMT_UCHAR && 
-		in->BandFmt != IM_BANDFMT_USHORT) ||
-		(!sixteen && 
-		 in->BandFmt != IM_BANDFMT_UCHAR) ) {
+	{
 		IMAGE *t = im_open_local( out, "conv:1", "p" );
-		VipsBandFmt fmt = sixteen && IM_IMAGE_SIZEOF_ELEMENT( in ) > 1 ?
-			IM_BANDFMT_USHORT : IM_BANDFMT_UCHAR;
 
-		if( !t || im_clip2fmt( in, t, fmt ) ) {
+		if( !t || im_clip2fmt( in, t, format_table[in->BandFmt] ) ) {
 			im_close( out );
 			return( NULL );
 		}
@@ -599,4 +596,3 @@ im__convert_saveable( IMAGE *in, im__saveable_t saveable, gboolean sixteen )
 
 	return( out );
 }
-

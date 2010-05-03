@@ -126,13 +126,14 @@ extern int im__read_test;
 extern GMutex *im__global_lock;
 
 typedef enum {
-	IM__RGB,	/* 1 or 3 bands (like PPM) */
-	IM__RGBA,	/* 1, 2, 3 or 4 bands (like PNG) */
-	IM__RGB_CMYK	/* 1, 3 or 4 bands (like JPEG) */
+	IM__RGB,	/* 1 or 3 bands (eg. PPM) */
+	IM__RGBA,	/* 1, 2, 3 or 4 bands (eg. PNG) */
+	IM__RGB_CMYK,	/* 1, 3 or 4 bands (eg. JPEG) */
+	IM__ANY		/* any number of bands (eg. TIFF) */
 } im__saveable_t;
 
 IMAGE *im__convert_saveable( IMAGE *in, 
-	im__saveable_t saveable, gboolean sixteen );
+	im__saveable_t saveable, int format_table[10] );
 
 void im__link_break_all( IMAGE *im );
 void *im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b );

@@ -21,6 +21,8 @@
  * 	- tiny cleanups
  * 4/2/10
  * 	- gtkdoc
+ * 1/5/10
+ * 	- add PFM (portable float map) support
  */
 
 /*
@@ -56,9 +58,9 @@
 
 #include <ctype.h>
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -96,39 +98,35 @@ skip_white_space( FILE *fp )
 }
 
 static int
-read_uint( FILE *fp )
+read_int( FILE *fp, int *i )
 {
-	int i;
-	char buf[IM_MAX_THING];
-	int ch;
-
 	skip_white_space( fp );
-
-	/* Stop complaints about used-before-set on ch.
-	 */
-	ch = -1;
-
-	for( i = 0; i < IM_MAX_THING - 1 && isdigit( ch = fgetc( fp ) ); i++ ) 
-		buf[i] = ch;
-	buf[i] = '\0';
-
-	if( i == 0 ) {
-		im_error( "im_ppm2vips", "%s", _( "bad unsigned int" ) );
+	if( fscanf( fp, "%d", i ) != 1 ) {
+		im_error( "im_ppm2vips", "%s", _( "bad int" ) );
 		return( -1 );
 	}
 
-	ungetc( ch, fp );
-
-	return( atoi( buf ) );
+	return( 0 );
 }
 
 static int
-read_header( FILE *fp, IMAGE *out, int *bits, int *ascii )
+read_float( FILE *fp, float *f )
+{
+	skip_white_space( fp );
+	if( fscanf( fp, "%f", f ) != 1 ) {
+		im_error( "im_ppm2vips", "%s", _( "bad float" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+read_header( FILE *fp, IMAGE *out, int *bits, int *ascii, int *msb_first )
 {
 	int width, height, bands, fmt, type;
-	int i;
+	int index;
 	char buf[IM_MAX_THING];
-	int max_value;
 
 	/* ppm types.
 	 */
@@ -138,19 +136,21 @@ read_header( FILE *fp, IMAGE *out, int *bits, int *ascii )
 		"P3",	/* ppm ... 3 band many bit, ascii */
 		"P4",	/* pbm ... 1 band 1 bit, binary */
 		"P5",	/* pgm ... 1 band 8 bit, binary */
-		"P6"	/* ppm ... 3 band 8 bit, binary */
+		"P6",	/* ppm ... 3 band 8 bit, binary */
+		"PF",	/* pfm ... 3 band 32 bit, binary */
+		"Pf"	/* pfm ... 1 band 32 bit, binary */
 	};
 
 	/* Characteristics, indexed by ppm type.
 	 */
 	static int lookup_bits[] = {
-		1, 8, 8, 1, 8, 8
+		1, 8, 8, 1, 8, 8, 32, 32
 	};
 	static int lookup_bands[] = {
-		1, 1, 3, 1, 1, 3
+		1, 1, 3, 1, 1, 3, 3, 1
 	};
 	static int lookup_ascii[] = {
-		1, 1, 1, 0, 0, 0
+		1, 1, 1, 0, 0, 0, 0, 0
 	};
 
 	/* Read in the magic number.
@@ -159,33 +159,52 @@ read_header( FILE *fp, IMAGE *out, int *bits, int *ascii )
 	buf[1] = fgetc( fp );
 	buf[2] = '\0';
 
-	for( i = 0; i < IM_NUMBER( magic_names ); i++ )
-		if( strcmp( magic_names[i], buf ) == 0 ) 
+	for( index = 0; index < IM_NUMBER( magic_names ); index++ )
+		if( strcmp( magic_names[index], buf ) == 0 ) 
 			break;
-	if( i == IM_NUMBER( magic_names ) ) {
+	if( index == IM_NUMBER( magic_names ) ) {
 		im_error( "im_ppm2vips", "%s", _( "bad magic number" ) );
 		return( -1 );
 	}
-	*bits = lookup_bits[i];
-	bands = lookup_bands[i];
-	*ascii = lookup_ascii[i];
+	*bits = lookup_bits[index];
+	bands = lookup_bands[index];
+	*ascii = lookup_ascii[index];
+
+	/* Default ... can be changed below for PFM images.
+	 */
+	*msb_first = 0;
 
 	/* Read in size.
 	 */
-	if( (width = read_uint( fp )) < 0 ||
-		(height = read_uint( fp )) < 0 )
+	if( read_int( fp, &width ) ||
+		read_int( fp, &height ) )
 		return( -1 );
 
-	/* Read in max value for >1 bit images.
+	/* Read in max value / scale for >1 bit images.
 	 */
 	if( *bits > 1 ) {
-		if( (max_value = read_uint( fp )) < 0 )
-			return( -1 );
+		if( index == 6 || index == 7 ) {
+			float scale;
 
-		if( max_value > 255 )
-			*bits = 16;
-		if( max_value > 65535 )
-			*bits = 32;
+			if( read_float( fp, &scale ) )
+				return( -1 );
+
+			/* Scale > 0 means big-endian.
+			 */
+			*msb_first = scale > 0;
+			im_meta_set_double( out, "pfm-scale", fabs( scale ) );
+		}
+		else {
+			int max_value;
+
+			if( read_int( fp, &max_value ) )
+				return( -1 );
+
+			if( max_value > 255 )
+				*bits = 16;
+			if( max_value > 65535 )
+				*bits = 32;
+		}
 	}
 
 	/* For binary images, there is always exactly 1 more whitespace
@@ -210,11 +229,14 @@ read_header( FILE *fp, IMAGE *out, int *bits, int *ascii )
 		break;
 
 	case 32:
-		fmt = IM_BANDFMT_UINT;
+		if( index == 6 || index == 7 )
+			fmt = IM_BANDFMT_FLOAT;
+		else
+			fmt = IM_BANDFMT_UINT;
 		break;
 
 	default:
-		assert( 0 );
+		g_assert( 0 );
 	}
 
 	if( bands == 1 ) {
@@ -244,7 +266,7 @@ read_header( FILE *fp, IMAGE *out, int *bits, int *ascii )
 /* Read a ppm/pgm file using mmap().
  */
 static int
-read_mmap( FILE *fp, const char *filename, IMAGE *out )
+read_mmap( FILE *fp, const char *filename, int msb_first, IMAGE *out )
 {
 	const int header_offset = ftell( fp );
 	IMAGE *t[2];
@@ -255,7 +277,7 @@ read_mmap( FILE *fp, const char *filename, IMAGE *out )
 			IM_IMAGE_SIZEOF_PEL( out ), header_offset ) ||
 		im_copy_morph( t[0], t[1],
 			out->Bands, out->BandFmt, out->Coding ) ||
-		im_copy_native( t[1], out, TRUE ) ) 
+		im_copy_native( t[1], out, msb_first ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -277,7 +299,7 @@ read_ascii( FILE *fp, IMAGE *out )
 		for( x = 0; x < out->Xsize * out->Bands; x++ ) {
 			int val;
 
-			if( (val = read_uint( fp )) < 0 )
+			if( read_int( fp, &val ) )
 				return( -1 );
 			
 			switch( out->BandFmt ) {
@@ -295,7 +317,7 @@ read_ascii( FILE *fp, IMAGE *out )
 				break;
 
 			default:
-				assert( 0 );
+				g_assert( 0 );
 			}
 		}
 
@@ -322,7 +344,7 @@ read_1bit_ascii( FILE *fp, IMAGE *out )
 		for( x = 0; x < out->Xsize * out->Bands; x++ ) {
 			int val;
 
-			if( (val = read_uint( fp )) < 0 )
+			if( read_int( fp, &val ) )
 				return( -1 );
 
 			if( val == 1 )
@@ -372,14 +394,15 @@ parse_ppm( FILE *fp, const char *filename, IMAGE *out )
 {
 	int bits;
 	int ascii;
+	int msb_first;
 
-	if( read_header( fp, out, &bits, &ascii ) )
+	if( read_header( fp, out, &bits, &ascii, &msb_first ) )
 		return( -1 );
 
 	/* What sort of read are we doing?
 	 */
 	if( !ascii && bits >= 8 )
-		return( read_mmap( fp, filename, out ) );
+		return( read_mmap( fp, filename, msb_first, out ) );
 	else if( !ascii && bits == 1 )
 		return( read_1bit_binary( fp, out ) );
 	else if( ascii && bits == 1 )
@@ -394,10 +417,11 @@ ppm2vips_header( const char *filename, IMAGE *out )
         FILE *fp;
 	int bits;
 	int ascii;
+	int msb_first;
 
 	if( !(fp = im__file_open_read( filename, NULL )) ) 
                 return( -1 );
-	if( read_header( fp, out, &bits, &ascii ) ) {
+	if( read_header( fp, out, &bits, &ascii, &msb_first ) ) {
 		fclose( fp );
 		return( -1 );
 	}
@@ -416,6 +440,7 @@ isppmmmap( const char *filename )
         FILE *fp;
 	int bits;
 	int ascii;
+	int msb_first;
 
 	if( !(fp = im__file_open_read( filename, NULL )) ) 
                 return( -1 );
@@ -424,7 +449,7 @@ isppmmmap( const char *filename )
 		fclose( fp );
 		return( 0 );
 	}
-	if( read_header( fp, im, &bits, &ascii ) ) {
+	if( read_header( fp, im, &bits, &ascii, &msb_first ) ) {
 		im_close( im );
 		fclose( fp );
 		return( 0 );
@@ -440,12 +465,14 @@ isppmmmap( const char *filename )
  * @filename: file to load
  * @out: image to write to
  *
- * Read a PPM/PBM/PGM file into a VIPS image. 
+ * Read a PPM/PBM/PGM/PFM file into a VIPS image. 
  * It can read 1, 8, 16 and 32 bit images, colour or monochrome,
  * stored in binary or in ASCII. One bit images become 8 bit VIPS images, 
  * with 0 and 255 for 0 and 1.
  *
- * See also: #VipsFormat, im_vips2ppm().
+ * PFM images have the scale factor attached as "pfm-scale".
+ *
+ * See also: #VipsFormat, im_vips2ppm(), im_meta_get_double()
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -491,7 +518,7 @@ ppm_flags( const char *filename )
 	return( flags );
 }
 
-static const char *ppm_suffs[] = { ".ppm", ".pgm", ".pbm", NULL };
+static const char *ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };
 
 /* ppm format adds no new members.
  */
@@ -505,7 +532,7 @@ vips_format_ppm_class_init( VipsFormatPpmClass *class )
 	VipsFormatClass *format_class = (VipsFormatClass *) class;
 
 	object_class->nickname = "ppm";
-	object_class->description = _( "PPM/PBM/PNM" );
+	object_class->description = _( "PPM/PBM/PNM/PFM" );
 
 	format_class->is_a = isppm;
 	format_class->header = ppm2vips_header;

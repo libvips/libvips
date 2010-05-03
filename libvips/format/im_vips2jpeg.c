@@ -219,6 +219,15 @@ write_destroy( Write *write )
 	im_free( write );
 }
 
+#define UC IM_BANDFMT_UCHAR
+
+/* Type promotion for save ... just always go to uchar.
+ */
+static int bandfmt_jpeg[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+};
+
 static Write *
 write_new( IMAGE *in )
 {
@@ -228,13 +237,13 @@ write_new( IMAGE *in )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 
-	if( !(write->in = im__convert_saveable( in, IM__RGB_CMYK, FALSE )) ) {
+	if( !(write->in = im__convert_saveable( in, 
+		IM__RGB_CMYK, bandfmt_jpeg )) ) {
 		im_error( "im_vips2jpeg", 
 			"%s", _( "unable to convert to saveable format" ) );
 		write_destroy( write );
 		return( NULL );
-	}
-
+	} 
 	write->row_pointer = NULL;
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->eman.pub.error_exit = new_error_exit;

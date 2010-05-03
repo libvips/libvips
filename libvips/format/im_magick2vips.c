@@ -367,9 +367,8 @@ parse_header( Read *read )
 	ResetImagePropertyIterator( image );
 	while( (key = GetNextImageProperty( image )) ) {
 		char name_text[256];
-		VipsBuf name;
+		VipsBuf name = VIPS_BUF_STATIC( name_text );
 
-		vips_buf_init_static( &name, name_text, 256 );
 		vips_buf_appendf( &name, "magick-%s", key );
 		im_meta_set_string( im, 
 			vips_buf_all( &name ), GetImageProperty( image, key ) );
@@ -384,9 +383,8 @@ parse_header( Read *read )
 	ResetImageAttributeIterator( image );
 	while( (attr = GetNextImageAttribute( image )) ) {
 		char name_text[256];
-		VipsBuf name;
+		VipsBuf name = VIPS_BUF_STATIC( name_text );
 
-		vips_buf_init_static( &name, name_text, 256 );
 		vips_buf_appendf( &name, "magick-%s", attr->key );
 		im_meta_set_string( im, vips_buf_all( &name ), attr->value );
 	}
@@ -401,9 +399,8 @@ parse_header( Read *read )
 	 */
 	for( attr = image->attributes; attr; attr = attr->next ) {
 		char name_text[256];
-		VipsBuf name;
+		VipsBuf name = VIPS_BUF_STATIC( name_text );
 
-		vips_buf_init_static( &name, name_text, 256 );
 		vips_buf_appendf( &name, "magick-%s", attr->key );
 		im_meta_set_string( im, vips_buf_all( &name ), attr->value );
 	}
