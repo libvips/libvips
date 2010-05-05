@@ -574,6 +574,10 @@ VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES $FFTW_I
 # need -lstdc++ for (eg.) the C++ format loaders
 VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $LCMS_LIBS $LIBOIL_LIBS $OPENEXR_LIBS $MATIO_LIBS $EXIF_LIBS -lstdc++ -lm"
 
+# we need this to generate paths in swig/python/setup.py.in
+AC_SUBST(top_srcdir)
+AC_SUBST(IM_LIBDIR)
+
 AC_SUBST(VIPS_CFLAGS)
 AC_SUBST(VIPS_INCLUDES)
 AC_SUBST(VIPS_LIBS)
@@ -625,6 +629,7 @@ AC_OUTPUT([
 	tools/scripts/shrink_width 
 	swig/Makefile 
 	swig/vipsCC/Makefile 
+	swig/python/setup.py 
 	man/Makefile
 	doc/Makefile
 	doc/reference/Makefile
@@ -637,6 +642,7 @@ AC_MSG_RESULT([
 native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
+enable debug:				$enable_debug
 build C++ components:			$enable_cxx
 evaluate with threads: 			$enable_threads
 make symlinks for commands in bin: 	$enable_links

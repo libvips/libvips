@@ -1,7 +1,20 @@
 
 - convert_saveable for other writers: tiff, ppm, csv, rad etc.
 
-  the tiff writer could use more im_check_ things
+- im_magick2vips() needs testing with Joe's odd BMPs
+
+
+- IM_LIBDIR is "" by default, what's the logic guess_libdir uses? we need to
+  duplicate that in python I guess
+
+  test
+
+		python setup.py build_ext
+		python setup.py build
+		python setup.py install
+
+
+- the tiff writer could use more im_check_ things
 
   test pfm write
 
