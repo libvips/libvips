@@ -371,7 +371,7 @@ number of bytes across the region.
 
 \fref{fg:paverage} is a version of \verb+average()+ which uses
 regions rather than WIO input. Two things: first, we should really be
-using \verb+im_iterate()+, see \pref{sec:sequence}, to do the rectangle
+using \verb+vips_sink()+, see \pref{sec:sequence}, to do the rectangle
 algebra for us. Secondly, note that we call \verb+im_pincheck()+ rather
 than \verb+im_incheck()+. \verb+im_pincheck()+ signals to the IO system
 that you are a PIO-aware function, giving \verb+im_prepare()+ much more
@@ -491,13 +491,13 @@ int
 The values \verb+a+ and \verb+b+ are carried around by VIPS for your use.
 
 For functions like \verb+average()+ which consume images but produce no image
-output, VIPS provides \verb+im_iterate()+. This has type:
+output, VIPS provides \verb+vips_sink()+. This has type:
 
 \begin{verbatim}
-int im_iterate( IMAGE *in, 
-   void *(*start_fn)(), 
-   int (*process_fn)(), 
-   int (*stop_fn)(),
+int vips_sink( VipsImage *in, 
+   VipsStart start, 
+   VipsGenerate generate, 
+   VipsStop stop,
    void *a, void *b ) 
 \end{verbatim}
 
@@ -509,11 +509,6 @@ every pixel in the image will be passed through exactly one sequence. To
 make it possible for the sequences to each contribute to the result of the
 function in an orderly manner, VIPS also guarantees that all start and stop
 functions are mutually exclusive.
-
-A note on types: \verb+<vips/region.h>+ declares prototypes for
-\verb+im_iterate()+ and \verb+im_generate()+ (see \pref{sec:generate}),
-but does not give prototypes for the function arguments. This loses a
-little type-safety, but gains some convenience.
 
 An example should make this clearer. This version of \verb+average()+
 is very similar to the average function in the VIPS library --- it is only
@@ -626,7 +621,7 @@ average( IMAGE *im, double *out )
 
    /* Loop over the image in pieces, and possibly in parallel.
     */
-   if( im_iterate( im, 
+   if( vips_sink( im, 
       average_start, average_process, average_stop,
       &gtotal, NULL ) )
       return( -1 );
@@ -651,8 +646,8 @@ There are a couple of variations on \verb+im_prepare()+: you can use
 Regions are written to in just the same way they are read from --- by
 writing to a pointer found with the \verb+IM_REGION_ADDR()+ macro.
 
-\verb+im_iterate()+ does input --- \verb+im_generate()+ does output. It
-has the same type as \verb+im_iterate()+:
+\verb+vips_sink()+ does input --- \verb+im_generate()+ does output. It
+has the same type as \verb+vips_sink()+:
 
 \begin{verbatim}
 int 
@@ -665,7 +660,7 @@ im_generate( IMAGE *out,
 
 The region given to the process function is ready for output. Each time
 the process function is called, it should fill in the pels in the region
-it was given. Note that, unlike \verb+im_iterate()+, the areas the process
+it was given. Note that, unlike \verb+vips_sink()+, the areas the process
 function is asked to produce are not guaranteed to be either disjoint or
 complete. Again, VIPS may start up many process functions if it sees fit.
 

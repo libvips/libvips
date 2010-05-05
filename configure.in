@@ -182,13 +182,13 @@ expand () {
 }
 
 expand $libdir
-my_libdir=$expanded_value
+IM_LIBDIR=$expanded_value
 
 # vips.c/im_guess_prefix.c need to know the exe suffix and (as a fallback)
 # the configure-time install prefix
 AC_DEFINE_UNQUOTED(IM_EXEEXT,"$EXEEXT",[extension for executable files])
 AC_DEFINE_UNQUOTED(IM_PREFIX,"$prefix",[configure-time install prefix])
-AC_DEFINE_UNQUOTED(IM_LIBDIR,"$my_libdir",[configure-time library directory])
+AC_DEFINE_UNQUOTED(IM_LIBDIR,"$IM_LIBDIR",[configure-time library directory])
 
 # i18n
 GETTEXT_PACKAGE=vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION
