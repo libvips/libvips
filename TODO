@@ -13,6 +13,47 @@
 		python setup.py build
 		python setup.py install
 
+now we get:
+
+>>> from vipsCC import *
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/local/lib/python2.6/dist-packages/vipsCC/VImage.py", line 25, in
+<module>
+    vimagemodule = swig_import_helper()
+  File "/usr/local/lib/python2.6/dist-packages/vipsCC/VImage.py", line 21, in
+swig_import_helper
+    _mod = imp.load_module('vimagemodule', fp, pathname, description)
+ImportError: /usr/local/lib/python2.6/dist-packages/vipsCC/vimagemodule.so:
+undefined symbol: _ZTIN4vips5VMaskE
+
+ie. vimagemodule.so can't find libvipsCC.so I guess? or perhaps the compiler
+is being given a differnt mangling flag
+
+we're building with:
+
+gcc -pthread -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall
+-Wstrict-prototypes -fPIC -DDEBUG_FATAL=1 -DDEBUG_LEAK=1
+-I/usr/lib/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/libxml2
+-I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0
+-I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick
+-I../../libvips/include -I../../libvipsCC/include -I/usr/include/python2.6 -c
+vimagemodule.cpp -o build/temp.linux-x86_64-2.6/vimagemodule.o -pthread
+-fopenmp -pthread -Wl,--export-dynamic -pthread -pthread -pthread
+
+g++ -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions
+build/temp.linux-x86_64-2.6/vimagemodule.o -Wl,-R/home/john/vips/lib
+-lMagickWand -lMagickCore -lpng12 -ltiff -lz -ljpeg -lgthread-2.0 -lrt
+-lglib-2.0 -lgmodule-2.0 -lxml2 -lgobject-2.0 -lgthread-2.0 -lrt -lglib-2.0
+-lpangoft2-1.0 -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0
+-lgthread-2.0 -lrt -lglib-2.0 -lfftw3 -lm -llcms -lIlmImf -lz -lImath -lHalf
+-lIex -lIlmThread -lmatio -lz -lexif -lm -lstdc++ -lm -o
+build/lib.linux-x86_64-2.6/vipsCC/vimagemodule.so -pthread -fopenmp -pthread
+-Wl,--export-dynamic -pthread -pthread -pthread
+
+how does this compare to the working build?
+
+
 
 - the tiff writer could use more im_check_ things
 
