@@ -35,12 +35,16 @@
  */
 
 /* Trace allocate/free.
-#define VIPS_DEBUG_RED
+#define VIPS_DEBUG_AMBER
  */
 
 /* Trace reschedule
 #define VIPS_DEBUG_GREEN
  */
+
+/* Trace serious problems.
+ */
+#define VIPS_DEBUG_RED
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -71,9 +75,9 @@ static const int have_threads = 1;
 static const int have_threads = 0;
 #endif /*HAVE_THREADS*/
 
-#ifdef VIPS_DEBUG_RED
+#ifdef VIPS_DEBUG_AMBER
 static int render_num_renders = 0;
-#endif /*VIPS_DEBUG_RED*/
+#endif /*VIPS_DEBUG_AMBER*/
 
 /* A tile in our cache. 
  */
@@ -93,7 +97,9 @@ typedef struct {
 	 */
 	gboolean dirty;
 
-	int ticks;		/* Time of last use, for LRU flush */
+	/* Time of last use, for LRU flush 
+	 */
+	int ticks;
 } Tile;
 
 /* Per-call state.
@@ -197,7 +203,7 @@ render_thread_state_new( VipsImage *im, void *a )
 static void *
 tile_free( Tile *tile )
 {
-	VIPS_DEBUG_MSG_RED( "tile_free\n" );
+	VIPS_DEBUG_MSG_AMBER( "tile_free\n" );
 
 	IM_FREEF( im_region_free, tile->region );
 	im_free( tile );
@@ -208,7 +214,7 @@ tile_free( Tile *tile )
 static int
 render_free( Render *render )
 {
-	VIPS_DEBUG_MSG_RED( "render_free: %p\n", render );
+	VIPS_DEBUG_MSG_AMBER( "render_free: %p\n", render );
 
 	g_assert( render->ref_count == 0 );
 
@@ -234,9 +240,9 @@ render_free( Render *render )
 
 	im_free( render );
 
-#ifdef VIPS_DEBUG_RED
+#ifdef VIPS_DEBUG_AMBER
 	render_num_renders -= 1;
-#endif /*VIPS_DEBUG_RED*/
+#endif /*VIPS_DEBUG_AMBER*/
 
 	return( 0 );
 }
@@ -418,8 +424,10 @@ render_work( VipsThreadState *state, void *a )
 		tile->area.left, tile->area.top );
 
 	if( im_prepare_to( state->reg, tile->region, 
-		&tile->area, tile->area.left, tile->area.top ) ) 
+		&tile->area, tile->area.left, tile->area.top ) ) {
+		VIPS_DEBUG_MSG_RED( "render_work: im_prepare_to() failed\n" ); 
 		return( -1 );
+	}
 	tile->painted = TRUE;
 
 	/* Now clients can update.
@@ -480,12 +488,14 @@ render_thread_main( void *client )
 				"threadpool start\n" );
 
 			render_reschedule = FALSE;
-			(void) vips_threadpool_run( render->in,
+			if( vips_threadpool_run( render->in,
 				render_thread_state_new,
 				render_allocate,
 				render_work,
 				NULL,
-				render );
+				render ) )
+				VIPS_DEBUG_MSG_RED( "render_thread_main: "
+					"threadpool_run failed\n" );
 
 			VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
 				"threadpool return\n" );
@@ -556,7 +566,7 @@ tile_equal( gconstpointer a, gconstpointer b )
 static int
 render_close_cb( Render *render )
 {
-	VIPS_DEBUG_MSG_RED( "render_close_cb\n" );
+	VIPS_DEBUG_MSG_AMBER( "render_close_cb\n" );
 
 	render_unref( render );
 
@@ -625,11 +635,11 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 		render_ref( render );
 	}
 
-	VIPS_DEBUG_MSG_RED( "render_new: %p\n", render );
+	VIPS_DEBUG_MSG_AMBER( "render_new: %p\n", render );
 
-#ifdef VIPS_DEBUG_RED
+#ifdef VIPS_DEBUG_AMBER
 	render_num_renders += 1;
-#endif /*VIPS_DEBUG_RED*/
+#endif /*VIPS_DEBUG_AMBER*/
 
 	return( render );
 }
@@ -641,7 +651,7 @@ tile_new( Render *render )
 {
 	Tile *tile;
 
-	VIPS_DEBUG_MSG_RED( "tile_new\n" );
+	VIPS_DEBUG_MSG_AMBER( "tile_new\n" );
 
 	/* Don't use auto-free: we need to make sure we free the tile after
 	 * Render.
@@ -694,7 +704,8 @@ render_tile_add( Tile *tile, Rect *area )
 	 * them.
 	 */
 	if( im_region_buffer( tile->region, &tile->area ) )
-		VIPS_DEBUG_MSG( "render_work: buffer allocate failed\n" ); 
+		VIPS_DEBUG_MSG_RED( "render_tile_add: "
+			"buffer allocate failed\n" ); 
 
 	g_hash_table_insert( render->tiles, &tile->area, tile );
 }
@@ -759,7 +770,9 @@ tile_queue( Tile *tile )
 			"painting tile %dx%d synchronously\n",
 			tile->area.left, tile->area.top );
 
-		im_prepare( tile->region, &tile->area );
+		if( im_prepare( tile->region, &tile->area ) )
+			VIPS_DEBUG_MSG_RED( "tile_queue: prepare failed\n" ); 
+
 		tile->painted = TRUE;
 	}
 }
@@ -920,6 +933,8 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 			tile = render_tile_request( render, &area );
 			if( tile )
 				tile_copy( tile, out );
+			else
+				VIPS_DEBUG_MSG_RED( "region_fill: argh!\n" );
 		}
 
 	g_mutex_unlock( render->lock );
@@ -1077,8 +1092,8 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 void
 im__print_renders( void )
 {
-#ifdef VIPS_DEBUG_RED
+#ifdef VIPS_DEBUG_AMBER
 	printf( "%d active renders\n", render_num_renders );
-#endif /*VIPS_DEBUG_RED*/
+#endif /*VIPS_DEBUG_AMBER*/
 	printf( "%d dirty renders\n", g_slist_length( render_dirty_all ) );
 }
