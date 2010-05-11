@@ -1,4 +1,9 @@
 
+- load image, convert to float, sinkmemory asks for a 0 height region, argh?
+
+
+
+
 - convert_saveable for other writers: tiff, ppm, csv, rad etc.
 
 - im_magick2vips() needs testing with Joe's odd BMPs

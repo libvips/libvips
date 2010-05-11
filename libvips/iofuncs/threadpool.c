@@ -7,6 +7,9 @@
  * 21/3/10
  * 	- progress feedback
  * 	- only expose VipsThreadState
+ * 11/5/10
+ * 	- argh, stopping many threads could sometimes leave allocated work
+ * 	  undone
  */
 
 /*
@@ -428,35 +431,31 @@ vips_thread_free( VipsThread *thr )
 #endif /*TIME_THREAD*/
 }
 
-/* The main loop: get some work, do it! Can run from many worker threads, or 
- * from the main thread if threading is off. 
- */
-static void
-vips_thread_work_unit( VipsThread *thr )
+static int
+vips_thread_allocate( VipsThread *thr )
 {
 	VipsThreadpool *pool = thr->pool;
 
-	/* Ask for a work unit.
-	 */
-	g_mutex_lock( pool->allocate_lock );
+	g_assert( !pool->stop );
 
-	if( !thr->state )
-		if( !(thr->state = pool->start( pool->im, pool->a )) ) {
-			thr->error = TRUE;
-			pool->error = TRUE;
-		}
-
-	if( !pool->stop && !pool->error ) {
-		if( pool->allocate( thr->state, pool->a, &pool->stop ) ) {
-			thr->error = TRUE;
-			pool->error = TRUE;
-		}
+	if( !thr->state ) {
+		if( !(thr->state = pool->start( pool->im, pool->a )) ) 
+			return( -1 );
 	}
 
-	g_mutex_unlock( pool->allocate_lock );
+	if( pool->allocate( thr->state, pool->a, &pool->stop ) ) 
+		return( -1 );
 
-	if( pool->stop || pool->error )
-		return;
+	return( 0 );
+}
+
+static int
+vips_thread_work( VipsThread *thr )
+{
+	VipsThreadpool *pool = thr->pool;
+	int result;
+
+	result = 0;
 
 #ifdef TIME_THREAD
 	/* Note start time.
@@ -466,12 +465,8 @@ vips_thread_work_unit( VipsThread *thr )
 			g_timer_elapsed( thread_timer, NULL );
 #endif /*TIME_THREAD*/
 
-	/* Process a work unit.
-	 */
-	if( pool->work( thr->state, pool->a ) ) {
-		thr->error = TRUE;
-		pool->error = TRUE;
-	}
+	if( pool->work( thr->state, pool->a ) ) 
+		result = -1;
 
 #ifdef TIME_THREAD
 	/* Note stop time.
@@ -482,6 +477,49 @@ vips_thread_work_unit( VipsThread *thr )
 		thr->tpos += 1;
 	}
 #endif /*TIME_THREAD*/
+
+	return( result );
+}
+
+/* The main loop: get some work, do it! Can run from many worker threads, or 
+ * from the main thread if threading is off. 
+ */
+static void
+vips_thread_work_unit( VipsThread *thr )
+{
+	VipsThreadpool *pool = thr->pool;
+
+	if( thr->error )
+		return;
+
+	g_mutex_lock( pool->allocate_lock );
+
+	/* Has another worker signaled stop while we've been working?
+	 */
+	if( pool->stop ) {
+		g_mutex_unlock( pool->allocate_lock );
+		return;
+	}
+
+	if( vips_thread_allocate( thr ) ) {
+		thr->error = TRUE;
+		g_mutex_unlock( pool->allocate_lock );
+		return;
+	}
+
+	/* Have we just signalled stop?
+	 */
+	if( pool->stop ) {
+		g_mutex_unlock( pool->allocate_lock );
+		return;
+	}
+
+	g_mutex_unlock( pool->allocate_lock );
+
+	/* Process a work unit.
+	 */
+	if( vips_thread_work( thr ) )
+		thr->error = TRUE;
 }
 
 #ifdef HAVE_THREADS
