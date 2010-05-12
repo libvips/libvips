@@ -15,6 +15,8 @@
  * 4/2/10
  * 	- gtkdoc
  * 	- fixed 16-bit save
+ * 12/5/10
+ * 	- lololo but broke 8-bit save, fixed again
  */
 
 /*
