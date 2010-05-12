@@ -124,7 +124,7 @@ write_destroy( Write *write )
  */
 static int bandfmt_png[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   US, UC, US, US, US, US, UC, UC, UC, UC
+   UC, UC, US, US, US, US, UC, UC, UC, UC
 };
 
 static Write *
