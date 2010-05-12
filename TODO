@@ -1,18 +1,4 @@
-
-- load image, convert to float, sinkmemory asks for a 0 height region, argh?
-
-
-
-
-- convert_saveable for other writers: tiff, ppm, csv, rad etc.
-
-- im_magick2vips() needs testing with Joe's odd BMPs
-
-
-- IM_LIBDIR is "" by default, what's the logic guess_libdir uses? we need to
-  duplicate that in python I guess
-
-  test
+- test
 
 		python setup.py build_ext
 		python setup.py build
@@ -60,9 +46,11 @@ how does this compare to the working build?
 
 
 
-- the tiff writer could use more im_check_ things
 
-  test pfm write
+
+- convert_saveable for other writers: tiff, ppm, csv, rad etc.
+
+- the tiff writer could use more im_check_ things
 
 
 - expose more of the tone funcs in nip2
