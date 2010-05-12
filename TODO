@@ -42,7 +42,11 @@ build/temp.linux-x86_64-2.6/vimagemodule.o -Wl,-R/home/john/vips/lib
 build/lib.linux-x86_64-2.6/vipsCC/vimagemodule.so -pthread -fopenmp -pthread
 -Wl,--export-dynamic -pthread -pthread -pthread
 
-how does this compare to the working build?
+how does this compare to the working build? swig/vipsCC does
+
+g++ -DHAVE_CONFIG_H -I. -I../.. -I../../libvips/include -I../../libvipsCC/include -DDEBUG_FATAL -DDEBUG_LEAK -pthread -fopenmp -I/usr/lib/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/libxml2 -I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0 -I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick -I/usr/include/python2.6 -g -Wall -MT vimagemodule.lo -MD -MP -MF .deps/vimagemodule.Tpo -c vimagemodule.cxx -o vimagemodule.o >/dev/null 2>&1
+
+g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o /usr/lib/gcc/x86_64-linux-gnu/4.4.3/crtbeginS.o  .libs/vimagemodule.o   -Wl,-rpath -Wl,/home/john/SVN/vips/vips7/trunk/libvipsCC/.libs -Wl,-rpath -Wl,/home/john/SVN/vips/vips7/trunk/libvips/.libs -Wl,-rpath -Wl,/home/john/vips/lib ../../libvipsCC/.libs/libvipsCC.so ../../libvips/.libs/libvips.so /usr/lib/libMagickWand.so /usr/lib/libMagickCore.so -lpng12 /usr/lib/libtiff.so /usr/lib/libjpeg.so /usr/lib/libxml2.so /usr/lib/libpangoft2-1.0.so /usr/lib/libpango-1.0.so /usr/lib/libfreetype.so -lfontconfig /usr/lib/libgobject-2.0.so /usr/lib/libgmodule-2.0.so /usr/lib/libgthread-2.0.so -lrt /usr/lib/libglib-2.0.so /usr/lib/libfftw3.so /usr/lib/liblcms.so /usr/lib/libIlmImf.so -lImath -lHalf -lIex -lIlmThread /usr/lib/libmatio.so -lz /usr/lib/libexif.so -L/usr/lib/gcc/x86_64-linux-gnu/4.4.3 -L/usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../.. -L/usr/lib/x86_64-linux-gnu -lstdc++ -lm -lc -lgcc_s /usr/lib/gcc/x86_64-linux-gnu/4.4.3/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crtn.o  -pthread -Wl,--export-dynamic -pthread -pthread -pthread   -pthread -Wl,-soname -Wl,vimagemodule.so -o .libs/vimagemodule.so
 
 
 
