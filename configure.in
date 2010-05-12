@@ -5,8 +5,8 @@ AC_CONFIG_MACRO_DIR(m4)
 
 # user-visible library versioning
 m4_define([vips_major_version], [7])
-m4_define([vips_minor_version], [21])
-m4_define([vips_micro_version], [3])
+m4_define([vips_minor_version], [22])
+m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -29,7 +29,7 @@ PACKAGE=vips
 #   interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=29
-LIBRARY_REVISION=0
+LIBRARY_REVISION=1
 LIBRARY_AGE=14
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
@@ -587,8 +587,8 @@ AC_SUBST(PACKAGES_USED)
 #	vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.pc
 # in AC_OUTPUT, but that seems to break for some combinations of sh/m4
 AC_OUTPUT([
-	vips-7.21.pc
-	vipsCC-7.21.pc
+	vips-7.22.pc
+	vipsCC-7.22.pc
 	Makefile 
 	libvips/include/vips/version.h 
 	libvips/include/Makefile 

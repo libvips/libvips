@@ -1,3 +1,6 @@
+12/5/10 started 7.22.0
+- bump and rename
+
 21/3/10 started 7.21.3
 - added progress feedback to threadpool
 - --vips-wbuffer2 switch does all wbuffer use now
