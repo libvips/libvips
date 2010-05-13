@@ -16,6 +16,7 @@ man_MANS = \
 	sines.1 \
 	squares.1 \
 	vips.1 \
+	vipsthumbnail.1 \
 	error_exit.3 \
 	im_abs.3 \
 	im_acostra.3 \

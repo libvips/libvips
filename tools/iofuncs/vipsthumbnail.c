@@ -12,6 +12,9 @@
  * 	- added "--interpolator"
  * 	- added "--nosharpen"
  * 	- better 'open' logic, test lazy flag now
+ * 13/5/10
+ * 	- oops hehe residual sharpen test was reversed
+ * 	- and the mask coefficients were messed up
  */
 
 #ifdef HAVE_CONFIG_H
@@ -174,9 +177,9 @@ sharpen_filter( void )
 	if( !mask ) {
 		mask = im_create_imaskv( "sharpen.con", 3, 3, 
 			-1, -1, -1, 
-			-1, 8, -1, 
+			-1, 16, -1, 
 			-1, -1, -1 );
-		mask->scale = 4;
+		mask->scale = 8;
 	}
 
 	return( mask );
@@ -223,7 +226,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
 	 */
-	if( residual > 1.0 && !nosharpen ) {
+	if( residual < 1.0 && !nosharpen ) {
 		if( verbose ) 
 			printf( "sharpening thumbnail\n" );
 
