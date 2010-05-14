@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: vips 7.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-05-12 21:32+0100\n"
+"POT-Creation-Date: 2010-05-14 16:15+0100\n"
 "PO-Revision-Date: Thu Nov 26 12:08:20 GMT 2009\n"
 "Last-Translator: john <jcupitt@gmail.com>\n"
 "Language-Team: \n"
@@ -2634,43 +2634,43 @@ msgstr ""
 msgid "could not set extension"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:41
+#: tools/iofuncs/vipsthumbnail.c:44
 msgid "set thumbnail size to N"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:43
+#: tools/iofuncs/vipsthumbnail.c:46
 msgid "set output to S"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:45
+#: tools/iofuncs/vipsthumbnail.c:48
 msgid "set disc use threshold to N"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:47
+#: tools/iofuncs/vipsthumbnail.c:50
 msgid "resample with interpolator I"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:49
+#: tools/iofuncs/vipsthumbnail.c:52
 msgid "don't sharpen thumbnail"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:51
+#: tools/iofuncs/vipsthumbnail.c:54
 msgid "export with profile P"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:53
+#: tools/iofuncs/vipsthumbnail.c:56
 msgid "import untagged images with profile P"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:55
+#: tools/iofuncs/vipsthumbnail.c:58
 msgid "don't delete profile from exported image"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:57
+#: tools/iofuncs/vipsthumbnail.c:60
 msgid "verbose output"
 msgstr ""
 
-#: tools/iofuncs/vipsthumbnail.c:434
+#: tools/iofuncs/vipsthumbnail.c:437
 msgid "- thumbnail generator"
 msgstr ""
 
