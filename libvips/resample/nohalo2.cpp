@@ -598,7 +598,7 @@ nohalo_step1 (const double           uno_thr,
   *dos_one_1 = val_dos_one_1;
   *dos_two_1 = tre_thr;
   *dos_thr_1 = val_dos_thr_1;
-  *dos_fou_1 = tre_fiv;
+  *dos_fou_1 = tre_fou;
   *tre_one_1 = val_tre_one_1;
   *tre_two_1 = val_tre_two_1;
   *tre_thr_1 = val_tre_thr_1;
