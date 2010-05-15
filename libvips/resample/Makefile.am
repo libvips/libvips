@@ -3,7 +3,6 @@ if ENABLE_CXX
 C_SOURCES = \
 	bicubic.cpp \
 	lbb.cpp \
-	yafrsmooth.cpp \
 	nohalo1.cpp \
 	snohalo1.cpp \
 	nohalo2.cpp \
@@ -14,7 +13,6 @@ C_SOURCES =
 C_DIST = \
 	bicubic.cpp \
 	lbb.cpp \
-	yafrsmooth.cpp \
 	nohalo1.cpp \
 	snohalo1.cpp \
 	nohalo2.cpp \

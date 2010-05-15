@@ -133,7 +133,7 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
 
   not really stable yet :( don't document
 
-- how to expose things like yafrsmooth's "sharpening" parameter to
+- how to expose things like snohalo1's "blur" parameter to
   C++/Python?
 
   can we write a find-by-nickname function? eg.

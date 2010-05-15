@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/** 
+/**
  * SECTION: interpolate
  * @short_description: various interpolators: nearest, bilinear, bicubic, and
  * some non-linear
@@ -141,7 +141,7 @@ vips_interpolate_init( VipsInterpolate *interpolate )
  * in_x, in_y in REGION in. Don't do this as a signal for speed.
  */
 void
-vips_interpolate( VipsInterpolate *interpolate, 
+vips_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y )
 {
 	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
@@ -154,7 +154,7 @@ vips_interpolate( VipsInterpolate *interpolate,
 /* As above, but return the function pointer. Use this to cache method
  * dispatch.
  */
-VipsInterpolateMethod 
+VipsInterpolateMethod
 vips_interpolate_get_method( VipsInterpolate *interpolate )
 {
 	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
@@ -211,11 +211,11 @@ vips_interpolate_get_window_offset( VipsInterpolate *interpolate )
 typedef VipsInterpolate VipsInterpolateNearest;
 typedef VipsInterpolateClass VipsInterpolateNearestClass;
 
-G_DEFINE_TYPE( VipsInterpolateNearest, vips_interpolate_nearest, 
+G_DEFINE_TYPE( VipsInterpolateNearest, vips_interpolate_nearest,
 	VIPS_TYPE_INTERPOLATE );
 
 static void
-vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate, 
+vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y )
 {
 	/* Pel size and line size.
@@ -228,7 +228,7 @@ vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 	const int xi = FAST_PSEUDO_FLOOR( x );
 	const int yi = FAST_PSEUDO_FLOOR( y );
 
-	const PEL *p = (PEL *) IM_REGION_ADDR( in, xi, yi ); 
+	const PEL *p = (PEL *) IM_REGION_ADDR( in, xi, yi );
 
 	for( z = 0; z < ps; z++ )
 		out[z] = p[z];
@@ -238,7 +238,7 @@ static void
 vips_interpolate_nearest_class_init( VipsInterpolateNearestClass *class )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
-	VipsInterpolateClass *interpolate_class = 
+	VipsInterpolateClass *interpolate_class =
 		VIPS_INTERPOLATE_CLASS( class );
 
 	object_class->nickname = "nearest";
@@ -261,7 +261,7 @@ VipsInterpolate *
 vips_interpolate_nearest_new( void )
 {
 
-	return( VIPS_INTERPOLATE( vips_object_new( 
+	return( VIPS_INTERPOLATE( vips_object_new(
 		VIPS_TYPE_INTERPOLATE_NEAREST, NULL, NULL, NULL ) ) );
 }
 
@@ -301,7 +301,7 @@ typedef VipsInterpolate VipsInterpolateBilinear;
 typedef struct _VipsInterpolateBilinearClass {
 	VipsInterpolateClass parent_class;
 
-	/* Precalculated interpolation matricies. int (used for pel sizes up 
+	/* Precalculated interpolation matricies. int (used for pel sizes up
 	 * to short), and float (for all others). We go to scale + 1, so
 	 * we can round-to-nearest safely. Don't bother with double, since
 	 * this is an approximation anyway.
@@ -310,13 +310,13 @@ typedef struct _VipsInterpolateBilinearClass {
 	float matrixd[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
 } VipsInterpolateBilinearClass;
 
-G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear, 
+G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	VIPS_TYPE_INTERPOLATE );
 
 /* in this class, name vars in the 2x2 grid as eg.
  * p1  p2
  * p3  p4
- */ 
+ */
 
 /* Interpolate a section ... int8/16 types.
  */
@@ -377,26 +377,26 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 }
 
 static void
-vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate, 
+vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y )
 {
-	VipsInterpolateBilinearClass *class = 
+	VipsInterpolateBilinearClass *class =
 		VIPS_INTERPOLATE_BILINEAR_GET_CLASS( interpolate );
 
 	/* Pel size and line size.
 	 */
 	const int ps = IM_IMAGE_SIZEOF_PEL( in->im );
-	const int ls = IM_REGION_LSKIP( in ); 
-	const int b = in->im->Bands; 
+	const int ls = IM_REGION_LSKIP( in );
+	const int b = in->im->Bands;
 
-	/* Now go to scaled int. 
+	/* Now go to scaled int.
 	 */
 	const double sx = x * VIPS_TRANSFORM_SCALE;
 	const double sy = y * VIPS_TRANSFORM_SCALE;
 	const int sxi = FAST_PSEUDO_FLOOR( sx );
 	const int syi = FAST_PSEUDO_FLOOR( sy );
 
-	/* Get index into interpolation table and unscaled integer 
+	/* Get index into interpolation table and unscaled integer
 	 * position.
 	 */
 	const int xi = sxi & (VIPS_TRANSFORM_SCALE - 1);
@@ -404,14 +404,14 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int x_int = sxi >> VIPS_TRANSFORM_SHIFT;
 	const int y_int = syi >> VIPS_TRANSFORM_SHIFT;
 
-	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, x_int, y_int ); 
+	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, x_int, y_int );
 	const PEL *p2 = p1 + ps;
-	const PEL *p3 = p1 + ls; 
-	const PEL *p4 = p3 + ps; 
+	const PEL *p3 = p1 + ls;
+	const PEL *p4 = p3 + ps;
 
 	int z;
 
-	SWITCH_INTERPOLATE( in->im->BandFmt, 
+	SWITCH_INTERPOLATE( in->im->BandFmt,
 		BILINEAR_INT, BILINEAR_FLOAT );
 }
 
@@ -419,7 +419,7 @@ static void
 vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
-	VipsInterpolateClass *interpolate_class = 
+	VipsInterpolateClass *interpolate_class =
 		(VipsInterpolateClass *) class;
 	int x, y;
 
@@ -440,7 +440,7 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 			 */
 			X = (double) x / VIPS_TRANSFORM_SCALE;
 			Y = (double) y / VIPS_TRANSFORM_SCALE;
-			Xd = 1.0 - X;	
+			Xd = 1.0 - X;
 			Yd = 1.0 - Y;
 
 			/* Weights.
@@ -475,7 +475,7 @@ vips_interpolate_bilinear_init( VipsInterpolateBilinear *bilinear )
 VipsInterpolate *
 vips_interpolate_bilinear_new( void )
 {
-	return( VIPS_INTERPOLATE( vips_object_new( 
+	return( VIPS_INTERPOLATE( vips_object_new(
 		VIPS_TYPE_INTERPOLATE_BILINEAR, NULL, NULL, NULL ) ) );
 }
 
@@ -499,7 +499,6 @@ vips__interpolate_init( void )
 {
 	extern GType vips_interpolate_bicubic_get_type( void );
 	extern GType vips_interpolate_lbb_get_type( void );
-	extern GType vips_interpolate_yafrsmooth_get_type( void );
 	extern GType vips_interpolate_nohalo1_get_type( void );
 	extern GType vips_interpolate_snohalo1_get_type( void );
 	extern GType vips_interpolate_nohalo2_get_type( void );
@@ -510,7 +509,6 @@ vips__interpolate_init( void )
 #ifdef ENABLE_CXX
 	vips_interpolate_bicubic_get_type();
 	vips_interpolate_lbb_get_type();
-	vips_interpolate_yafrsmooth_get_type();
 	vips_interpolate_nohalo1_get_type();
 	vips_interpolate_snohalo1_get_type();
 	vips_interpolate_nohalo2_get_type();

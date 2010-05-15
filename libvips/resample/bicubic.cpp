@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -27,8 +27,11 @@
 
  */
 
-/* Bicubic (catmull-rom) interpolator derived from Nicolas Robidoux's YAFR
- * resampler with permission and thanks.
+/* Bicubic (catmull-rom) interpolator derived from Nicolas Robidoux's
+ * original YAFR resampler with permission and thanks.
+ *
+ * Note: This may actually be an implementation of a Keys bicubic
+ * convolution method. To be checked.
  */
 
 /*
@@ -76,7 +79,7 @@ typedef struct _VipsInterpolateBicubic {
 typedef struct _VipsInterpolateBicubicClass {
 	VipsInterpolateClass parent_class;
 
-	/* Precalculated interpolation matricies. int (used for pel sizes up 
+	/* Precalculated interpolation matricies. int (used for pel sizes up
 	 * to short), and double (for all others). We go to scale + 1, so
 	 * we can round-to-nearest safely.
 	 */
@@ -92,7 +95,7 @@ typedef struct _VipsInterpolateBicubicClass {
 /* We need C linkage for this.
  */
 extern "C" {
-G_DEFINE_TYPE( VipsInterpolateBicubic, vips_interpolate_bicubic, 
+G_DEFINE_TYPE( VipsInterpolateBicubic, vips_interpolate_bicubic,
 	VIPS_TYPE_INTERPOLATE );
 }
 
@@ -105,14 +108,14 @@ G_DEFINE_TYPE( VipsInterpolateBicubic, vips_interpolate_bicubic,
 
 /* Fixed-point version, for 8 and 16-bit types.
  */
-template <typename T, int min_value, int max_value> 
+template <typename T, int min_value, int max_value>
 static void inline
-bicubic_int_tab( PEL *pout, const PEL *pin, 
-	const int bands, const int lskip, 
+bicubic_int_tab( PEL *pout, const PEL *pin,
+	const int bands, const int lskip,
 	const int *cx, const int *cy )
 {
 	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin; 
+	const T* restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;
@@ -173,14 +176,14 @@ bicubic_int_tab( PEL *pout, const PEL *pin,
 
 /* Floating-point version, for int/float types.
  */
-template <typename T> 
+template <typename T>
 static void inline
-bicubic_float_tab( PEL *pout, const PEL *pin, 
-	const int bands, const int lskip, 
+bicubic_float_tab( PEL *pout, const PEL *pin,
+	const int bands, const int lskip,
 	const double *cx, const double *cy )
 {
 	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin; 
+	const T* restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;
@@ -236,14 +239,14 @@ bicubic_float_tab( PEL *pout, const PEL *pin,
 
 /* Ultra-high-quality version for double images.
  */
-template <typename T> 
+template <typename T>
 static void inline
-bicubic_notab( PEL *pout, const PEL *pin, 
-	const int bands, const int lskip, 
+bicubic_notab( PEL *pout, const PEL *pin,
+	const int bands, const int lskip,
 	double x, double y )
 {
 	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin; 
+	const T* restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;
@@ -304,20 +307,20 @@ bicubic_notab( PEL *pout, const PEL *pin,
 }
 
 static void
-vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate, 
+vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y )
 {
-	VipsInterpolateBicubicClass *bicubic_class = 
+	VipsInterpolateBicubicClass *bicubic_class =
 		VIPS_INTERPOLATE_BICUBIC_GET_CLASS( interpolate );
 
-	/* Scaled int. 
+	/* Scaled int.
 	 */
 	const double sx = x * VIPS_TRANSFORM_SCALE;
 	const double sy = y * VIPS_TRANSFORM_SCALE;
 	const int sxi = FAST_PSEUDO_FLOOR( sx );
 	const int syi = FAST_PSEUDO_FLOOR( sy );
 
-	/* Get index into interpolation table and unscaled integer 
+	/* Get index into interpolation table and unscaled integer
 	 * position.
 	 */
 	const int tx = sxi & (VIPS_TRANSFORM_SCALE - 1);
@@ -334,83 +337,83 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 
 	/* Back and up one to get the top-left of the 4x4.
 	 */
-	const PEL *p = (PEL *) IM_REGION_ADDR( in, ix - 1, iy - 1 ); 
+	const PEL *p = (PEL *) IM_REGION_ADDR( in, ix - 1, iy - 1 );
 
 	/* Pel size and line size.
 	 */
-	const int bands = in->im->Bands; 
+	const int bands = in->im->Bands;
 	const int lskip = IM_REGION_LSKIP( in );
 
 #ifdef DEBUG
 	printf( "vips_interpolate_bicubic_interpolate: %g %g\n", x, y );
-	printf( "\tleft=%d, top=%d, width=%d, height=%d\n", 
-		ix - 1, iy - 1, 4, 4 ); 
+	printf( "\tleft=%d, top=%d, width=%d, height=%d\n",
+		ix - 1, iy - 1, 4, 4 );
 #endif /*DEBUG*/
 
 	switch( in->im->BandFmt ) {
 	case IM_BANDFMT_UCHAR:
-		bicubic_int_tab<unsigned char, 0, UCHAR_MAX>( 
-			out, p, bands, lskip, 
+		bicubic_int_tab<unsigned char, 0, UCHAR_MAX>(
+			out, p, bands, lskip,
 			cxi, cyi );
-	/* 
+	/*
 
 	   Handy for benchmarking
 
-		bicubic_float_tab<unsigned char>( 
-			out, p, bands, lskip, 
+		bicubic_float_tab<unsigned char>(
+			out, p, bands, lskip,
 			cxf, cyf );
-		bicubic_notab<unsigned char>( 
-			out, p, bands, lskip, 
+		bicubic_notab<unsigned char>(
+			out, p, bands, lskip,
 			x - ix, y - iy );
 
 	 */
 		break;
 
 	case IM_BANDFMT_CHAR:
-		bicubic_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>( 
-			out, p, bands, lskip, 
+		bicubic_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>(
+			out, p, bands, lskip,
 			cxi, cyi );
 		break;
 
 	case IM_BANDFMT_USHORT:
-		bicubic_int_tab<unsigned short, 0, USHRT_MAX>( 
-			out, p, bands, lskip, 
+		bicubic_int_tab<unsigned short, 0, USHRT_MAX>(
+			out, p, bands, lskip,
 			cxi, cyi );
 		break;
 
 	case IM_BANDFMT_SHORT:
-		bicubic_int_tab<signed short, SHRT_MIN, SHRT_MAX>( 
-			out, p, bands, lskip, 
+		bicubic_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
+			out, p, bands, lskip,
 			cxi, cyi );
 		break;
 
 	case IM_BANDFMT_UINT:
-		bicubic_float_tab<unsigned int>( out, p, bands, lskip, 
+		bicubic_float_tab<unsigned int>( out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
 	case IM_BANDFMT_INT:
-		bicubic_float_tab<signed int>( out, p, bands, lskip, 
+		bicubic_float_tab<signed int>( out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
 	case IM_BANDFMT_FLOAT:
-		bicubic_float_tab<float>( out, p, bands, lskip, 
+		bicubic_float_tab<float>( out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
 	case IM_BANDFMT_DOUBLE:
-		bicubic_notab<double>( out, p, bands, lskip, 
+		bicubic_notab<double>( out, p, bands, lskip,
 			x - ix, y - iy );
 		break;
 
 	case IM_BANDFMT_COMPLEX:
-		bicubic_float_tab<float>( out, p, bands * 2, lskip, 
+		bicubic_float_tab<float>( out, p, bands * 2, lskip,
 			cxf, cyf );
 		break;
 
 	case IM_BANDFMT_DPCOMPLEX:
-		bicubic_notab<double>( out, p, bands * 2, lskip, 
+		bicubic_notab<double>( out, p, bands * 2, lskip,
 			x - ix, y - iy );
 		break;
 
@@ -423,7 +426,7 @@ static void
 vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( iclass );
-	VipsInterpolateClass *interpolate_class = 
+	VipsInterpolateClass *interpolate_class =
 		VIPS_INTERPOLATE_CLASS( iclass );
 
 	object_class->nickname = "bicubic";
@@ -435,12 +438,12 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 	/* Build the tables of pre-computed coefficients.
 	 */
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		calculate_coefficients_catmull( 
-			(float) x / VIPS_TRANSFORM_SCALE, 
+		calculate_coefficients_catmull(
+			(float) x / VIPS_TRANSFORM_SCALE,
 			iclass->matrixf[x] );
 
 		for( int i = 0; i < 4; i++ )
-			iclass->matrixi[x][i] = 
+			iclass->matrixi[x][i] =
 				iclass->matrixf[x][i] * VIPS_INTERPOLATE_SCALE;
 	}
 }
