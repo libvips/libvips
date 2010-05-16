@@ -107,9 +107,15 @@ vips_interpolate_real_get_window_size( VipsInterpolate *interpolate )
 static int
 vips_interpolate_real_get_window_offset( VipsInterpolate *interpolate )
 {
-	/* Default to half window size.
-	 */
-	return( vips_interpolate_get_window_size( interpolate ) / 2 );
+	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
+
+	g_assert( class->window_offset != -1 );
+
+	return( class->window_offset );
+
+/* 	/\* Default to half window size. */
+/* 	 *\/ */
+/* 	return( vips_interpolate_get_window_size( interpolate ) / 2 ); */
 }
 
 static void
@@ -126,6 +132,7 @@ vips_interpolate_class_init( VipsInterpolateClass *class )
 	class->get_window_size = vips_interpolate_real_get_window_size;
 	class->get_window_offset = vips_interpolate_real_get_window_offset;
 	class->window_size = -1;
+	class->window_offset = -1;
 }
 
 static void
@@ -269,7 +276,7 @@ vips_interpolate_nearest_new( void )
 /* Convenience: return a static nearest you don't need to free.
  */
 VipsInterpolate *
-<vips_interpolate_nearest_static( void )
+vips_interpolate_nearest_static( void )
 {
 	static VipsInterpolate *interpolate = NULL;
 
