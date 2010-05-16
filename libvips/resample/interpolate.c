@@ -244,8 +244,9 @@ vips_interpolate_nearest_class_init( VipsInterpolateNearestClass *class )
 	object_class->nickname = "nearest";
 	object_class->description = _( "Nearest-neighbour interpolation" );
 
-	interpolate_class->interpolate = vips_interpolate_nearest_interpolate;
-	interpolate_class->window_size = 1;
+	interpolate_class->interpolate   = vips_interpolate_nearest_interpolate;
+	interpolate_class->window_size   = 1;
+	interpolate_class->window_offset = 0;
 }
 
 static void
@@ -426,8 +427,9 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 	object_class->nickname = "bilinear";
 	object_class->description = _( "Bilinear interpolation" );
 
-	interpolate_class->interpolate = vips_interpolate_bilinear_interpolate;
-	interpolate_class->window_size = 2;
+	interpolate_class->interpolate   = vips_interpolate_bilinear_interpolate;
+	interpolate_class->window_size   = 2;
+	interpolate_class->window_offset = 0;
 
 	/* Calculate the interpolation matricies.
 	 */
