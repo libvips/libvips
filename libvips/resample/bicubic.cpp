@@ -434,7 +434,11 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 
 	interpolate_class->interpolate   = vips_interpolate_bicubic_interpolate;
 	interpolate_class->window_size   = 4;
-	interpolate_class->window_offset = 1;
+	interpolate_class->window_offset = 2;
+        /*
+         * Note from nicolas: If things were programmed sanely, I
+         * think window_offset should be 1, not 2.
+         */
 
 	/* Build the tables of pre-computed coefficients.
 	 */
