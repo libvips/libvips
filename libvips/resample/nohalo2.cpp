@@ -1436,9 +1436,9 @@ vips_interpolate_nohalo2_class_init( VipsInterpolateNohalo2Class *klass )
   object_class->nickname    = "nohalo2";
   object_class->description = _( "Smoother and more edge-enhancing nohalo1" );
 
-  interpolate_class->interpolate = vips_interpolate_nohalo2_interpolate;
-  interpolate_class->window_size = 5;
-  interpolate_class->window_size = 2;
+  interpolate_class->interpolate   = vips_interpolate_nohalo2_interpolate;
+  interpolate_class->window_size   = 5;
+  interpolate_class->window_offset = 2;
 }
 
 static void
