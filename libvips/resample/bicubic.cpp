@@ -429,11 +429,11 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 	VipsInterpolateClass *interpolate_class =
 		VIPS_INTERPOLATE_CLASS( iclass );
 
-	object_class->nickname = "bicubic";
+	object_class->nickname    = "bicubic";
 	object_class->description = _( "Bicubic interpolation (Catmull-Rom)" );
 
-	interpolate_class->interpolate = vips_interpolate_bicubic_interpolate;
-	interpolate_class->window_size = 4;
+	interpolate_class->interpolate   = vips_interpolate_bicubic_interpolate;
+	interpolate_class->window_size   = 4;
 	interpolate_class->window_offset = 1;
 
 	/* Build the tables of pre-computed coefficients.

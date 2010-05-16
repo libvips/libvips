@@ -1078,11 +1078,11 @@ vips_interpolate_nohalo2_class_init( VipsInterpolateNohalo2Class *klass )
   gobject_class->set_property = vips_object_set_property;
   gobject_class->get_property = vips_object_get_property;
 
-  object_class->nickname = "nohalo2";
+  object_class->nickname    = "nohalo2";
   object_class->description = _( "Smoother and more edge-enhancing nohalo1" );
 
-  interpolate_class->interpolate = vips_interpolate_nohalo2_interpolate;
-  interpolate_class->window_size = 6;
+  interpolate_class->interpolate   = vips_interpolate_nohalo2_interpolate;
+  interpolate_class->window_size   = 6;
   interpolate_class->window_offset = 2;
 }
 

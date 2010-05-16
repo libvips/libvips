@@ -1090,13 +1090,12 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
   gobject_class->set_property = vips_object_set_property;
   gobject_class->get_property = vips_object_get_property;
 
-  object_class->nickname = "snohalo1";
+  object_class->nickname    = "snohalo1";
   object_class->description = _( "Nohalo level 2 with antialiasing blur" );
 
-  interpolate_class->interpolate =
-    vips_interpolate_snohalo1_interpolate;
-  interpolate_class->window_size = 7;
-  interpolate_class->window_size = 3;
+  interpolate_class->interpolate   = vips_interpolate_snohalo1_interpolate;
+  interpolate_class->window_size   = 7;
+  interpolate_class->window_offset = 3;
 
   /*
    * Create properties:

@@ -269,7 +269,7 @@ vips_interpolate_nearest_new( void )
 /* Convenience: return a static nearest you don't need to free.
  */
 VipsInterpolate *
-vips_interpolate_nearest_static( void )
+<vips_interpolate_nearest_static( void )
 {
 	static VipsInterpolate *interpolate = NULL;
 

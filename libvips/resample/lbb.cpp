@@ -791,11 +791,11 @@ vips_interpolate_lbb_class_init( VipsInterpolateLbbClass *klass )
   VipsInterpolateClass *interpolate_class =
     VIPS_INTERPOLATE_CLASS( klass );
 
-  object_class->nickname = "lbb";
+  object_class->nickname    = "lbb";
   object_class->description = _( "Reduced halo bicubic" );
 
-  interpolate_class->interpolate = vips_interpolate_lbb_interpolate;
-  interpolate_class->window_size = 4;
+  interpolate_class->interpolate   = vips_interpolate_lbb_interpolate;
+  interpolate_class->window_size   = 4;
   interpolate_class->window_offset = 1;
 }
 

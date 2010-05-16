@@ -652,11 +652,11 @@ vips_interpolate_nohalo1_class_init( VipsInterpolateNohalo1Class *klass )
   VipsInterpolateClass *interpolate_class =
     VIPS_INTERPOLATE_CLASS( klass );
 
-  object_class->nickname = "nohalo1";
+  object_class->nickname    = "nohalo1";
   object_class->description = _( "Edge-enhancing bilinear" );
 
-  interpolate_class->interpolate = vips_interpolate_nohalo1_interpolate;
-  interpolate_class->window_size = 4;
+  interpolate_class->interpolate   = vips_interpolate_nohalo1_interpolate;
+  interpolate_class->window_size   = 4;
   interpolate_class->window_offset = 1;
 }
 
