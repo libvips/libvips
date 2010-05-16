@@ -1,8 +1,8 @@
 /* Nohalo (one level) subdivision followed by LBB (Locally Bounded Bicubic) interpolation
  *
- * N. Robidoux and C. Racette based on code by N. Robidoux 05/10--05/16
+ * N. Robidoux and C. Racette 05/11--05/16
  *
- * N. Robidoux based on code by N. Robidoux and J. Cupitt 01/4-29/5/09
+ * N. Robidoux 01/4-29/5/09
  *
  * N. Robidoux based on code by N. Robidoux, A. Turcotte and J. Cupitt
  * 27/01/10
@@ -36,18 +36,24 @@
  */
 
 /*
- * 2009-2010 (c) Nicolas Robidoux, Adam Turcotte and John Cupitt
+ * 2009-2010 (c) Nicolas Robidoux, Chantal Racette, Adam Turcotte and
+ * John Cupitt
  *
- * Nicolas thanks Geert Jordaens, Ralf Meyer, Øyvind Kolås, Minglun
- * Gong, Eric Daoust and Sven Neumann for useful comments and code.
+ * Nicolas Robidoux thanks Geert Jordaens, Ralf Meyer, Øyvind Kolås,
+ * Minglun Gong, Eric Daoust and Sven Neumann for useful comments and
+ * code.
  *
- * N. Robidoux's early research on nohalo funded in part by an NSERC
+ * N. Robidoux's early research on Nohalo funded in part by an NSERC
  * (National Science and Engineering Research Council of Canada)
- * Discovery Grant.
+ * Discovery Grant awarded to him.
  *
- * A. Turcotte and E. Daoust's Nohalo programming funded in part by
- * two Google Summer of Code 2010 awards made to GIMP (Gnu Image
- * Manipulation Program).
+ * Chantal Racette's image resampling research and programming funded
+ * in part by a NSERC Discovery Grant awarded to Julien Dompierre.
+ *
+ * A. Turcotte's image resampling research and programming funded in
+ * part by a Google Summer of Code 2010 award awarded to GIMP (Gnu
+ * Image Manipulation Program) and by an NSERC Alexander Graham Bell
+ * Canada Graduate Scholarhip awarded to him.
  */
 
 /*
