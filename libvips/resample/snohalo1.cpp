@@ -1096,6 +1096,7 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
   interpolate_class->interpolate =
     vips_interpolate_snohalo1_interpolate;
   interpolate_class->window_size = 7;
+  interpolate_class->window_size = 3;
 
   /*
    * Create properties:

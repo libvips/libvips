@@ -291,8 +291,8 @@ nohalo1( const double           uno_two,
    *               = qua_two    = qua_thr
    *
    * Here, ix is the floor of the requested left-to-right location, iy
-   * is the floor of the requested up-to-down location. 
-   * 
+   * is the floor of the requested up-to-down location.
+   *
    * Pointer arithmetic is used to implicitly reflect the input
    * stencil so that the requested pixel location is closer to
    * dos_two, The above consequently corresponds to the case in which
@@ -591,7 +591,7 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
   /*
    * Double bands for complex images:
    */
-  const int bands = vips_bandfmt_iscomplex( in->im->BandFmt ) ? 
+  const int bands = vips_bandfmt_iscomplex( in->im->BandFmt ) ?
 	  2 * actual_bands : actual_bands;
 
 #define CALL( T, inter ) \
@@ -610,35 +610,35 @@ vips_interpolate_nohalo1_interpolate( VipsInterpolate* restrict interpolate,
   case IM_BANDFMT_CHAR:
     CALL( signed char, withsign );
     break;
-  
+
   case IM_BANDFMT_USHORT:
     CALL( unsigned short, nosign );
     break;
-  
+
   case IM_BANDFMT_SHORT:
     CALL( signed short, withsign );
     break;
-  
+
   case IM_BANDFMT_UINT:
     CALL( unsigned int, nosign );
     break;
-  
+
   case IM_BANDFMT_INT:
     CALL( signed int, withsign );
     break;
-  
+
   /* Complex images handled by doubling of bands, see above.
    */
   case IM_BANDFMT_FLOAT:
   case IM_BANDFMT_COMPLEX:
     CALL( float, fptypes );
     break;
-  
+
   case IM_BANDFMT_DOUBLE:
   case IM_BANDFMT_DPCOMPLEX:
     CALL( double, fptypes );
     break;
-  
+
   default:
     g_assert( 0 );
     break;
@@ -657,6 +657,7 @@ vips_interpolate_nohalo1_class_init( VipsInterpolateNohalo1Class *klass )
 
   interpolate_class->interpolate = vips_interpolate_nohalo1_interpolate;
   interpolate_class->window_size = 4;
+  interpolate_class->window_offset = 1;
 }
 
 static void

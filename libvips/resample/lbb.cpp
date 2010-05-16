@@ -796,6 +796,7 @@ vips_interpolate_lbb_class_init( VipsInterpolateLbbClass *klass )
 
   interpolate_class->interpolate = vips_interpolate_lbb_interpolate;
   interpolate_class->window_size = 4;
+  interpolate_class->window_offset = 1;
 }
 
 static void

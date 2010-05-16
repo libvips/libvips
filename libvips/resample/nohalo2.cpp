@@ -1083,6 +1083,7 @@ vips_interpolate_nohalo2_class_init( VipsInterpolateNohalo2Class *klass )
 
   interpolate_class->interpolate = vips_interpolate_nohalo2_interpolate;
   interpolate_class->window_size = 6;
+  interpolate_class->window_offset = 2;
 }
 
 static void
