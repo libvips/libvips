@@ -2,20 +2,18 @@
 if ENABLE_CXX
 C_SOURCES = \
 	bicubic.cpp \
+	nohalo.cpp \
 	lbb.cpp \
-	nohalo1.cpp \
-	snohalo1.cpp \
-	nohalo2.cpp \
+	snohalo.cpp \
 	templates.h 
 C_DIST =
 else
 C_SOURCES = 
 C_DIST = \
 	bicubic.cpp \
+	nohalo.cpp \
 	lbb.cpp \
-	nohalo1.cpp \
-	snohalo1.cpp \
-	nohalo2.cpp \
+	snohalo.cpp \
 	templates.h 
 endif
 

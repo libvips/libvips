@@ -507,20 +507,18 @@ void
 vips__interpolate_init( void )
 {
 	extern GType vips_interpolate_bicubic_get_type( void );
+	extern GType vips_interpolate_nohalo_get_type( void );
 	extern GType vips_interpolate_lbb_get_type( void );
-	extern GType vips_interpolate_nohalo1_get_type( void );
-	extern GType vips_interpolate_snohalo1_get_type( void );
-	extern GType vips_interpolate_nohalo2_get_type( void );
+	extern GType vips_interpolate_snohalo_get_type( void );
 
 	vips_interpolate_nearest_get_type();
 	vips_interpolate_bilinear_get_type();
 
 #ifdef ENABLE_CXX
 	vips_interpolate_bicubic_get_type();
+	vips_interpolate_nohalo_get_type();
 	vips_interpolate_lbb_get_type();
-	vips_interpolate_nohalo1_get_type();
-	vips_interpolate_snohalo1_get_type();
-	vips_interpolate_nohalo2_get_type();
+	vips_interpolate_snohalo_get_type();
 #endif /*ENABLE_CXX*/
 }
 

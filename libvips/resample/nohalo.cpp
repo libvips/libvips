@@ -1,4 +1,6 @@
-/* nohalo level 1 subdivision followed by LBB interpolation
+/* Nohalo (one level) subdivision followed by LBB (Locally Bounded Bicubic) interpolation
+ *
+ * N. Robidoux and C. Racette based on code by N. Robidoux 05/10--05/16
  *
  * N. Robidoux based on code by N. Robidoux and J. Cupitt 01/4-29/5/09
  *
@@ -49,7 +51,7 @@
  */
 
 /*
- * TO DO: RENAME AS NOHALO, REDO THE COMMENTS, EXPLAIN CODE BETTER.
+ * TO DO: REDO THE COMMENTS, EXPLAIN CODE BETTER.
  */
 
 /*
@@ -57,30 +59,9 @@
  * NOHALO RESAMPLER
  * ================
  *
- * "Nohalo" is a family of parameterized resamplers with a mission:
- * smoothly straightening oblique lines without undesirable
- * side-effects. In particular, without much blurring and with
- * absolutely no added haloing.
- *
- * The key parameter, which may be described as a "quality" parameter,
- * is an integer which specifies the number of "levels" of binary
- * subdivision which are performed. level = 0 can be thought of as
- * being plain vanilla bilinear resampling; level = 1 is then the
- * first "non-classical" method of the familiy.
- *
- * Although it increases computational cost, additional levels
- * increase the quality of the resampled pixel value unless the
- * resampled location happens to be exactly where a subdivided grid
- * point (for this level) is located, in which case further levels do
- * not change the answer, and consequently do not increase its
- * quality.
- *
- * ==========================================================
- * THIS CODE ONLY IMPLEMENTS THE SECOND LOWEST QUALITY NOHALO
- * ==========================================================
- *
- * This code implement nohalo for (quality) level = 2.  Nohalo for
- * higher quality levels will be implemented later.
+ * "Nohalo" is a resampler with a mission: smoothly straightening
+ * oblique lines without undesirable side-effects. In particular,
+ * without much blurring and with absolutely no added haloing.
  *
  * Key properties:
  *
@@ -205,42 +186,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*
- * THIS CODE ALMOST CERTAINLY HAS A SMALL BUG. Nicolas Robidoux May
- * 31, 2009.
- */
-
-
 #include <vips/vips.h>
 #include <vips/internal.h>
 
 #include "templates.h"
 
-#define VIPS_TYPE_INTERPOLATE_NOHALO2 \
-	(vips_interpolate_nohalo2_get_type())
-#define VIPS_INTERPOLATE_NOHALO2( obj ) \
+#define VIPS_TYPE_INTERPOLATE_NOHALO \
+	(vips_interpolate_nohalo_get_type())
+#define VIPS_INTERPOLATE_NOHALO( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_NOHALO2, VipsInterpolateNohalo2 ))
-#define VIPS_INTERPOLATE_NOHALO2_CLASS( klass ) \
+	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohalo ))
+#define VIPS_INTERPOLATE_NOHALO_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_NOHALO2, VipsInterpolateNohalo2Class))
-#define VIPS_IS_INTERPOLATE_NOHALO2( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NOHALO2 ))
-#define VIPS_IS_INTERPOLATE_NOHALO2_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NOHALO2 ))
-#define VIPS_INTERPOLATE_NOHALO2_GET_CLASS( obj ) \
+	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass))
+#define VIPS_IS_INTERPOLATE_NOHALO( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NOHALO ))
+#define VIPS_IS_INTERPOLATE_NOHALO_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NOHALO ))
+#define VIPS_INTERPOLATE_NOHALO_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_NOHALO2, VipsInterpolateNohalo2Class ))
+	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass ))
 
-typedef struct _VipsInterpolateNohalo2 {
+typedef struct _VipsInterpolateNohalo {
 	VipsInterpolate parent_object;
 
-} VipsInterpolateNohalo2;
+} VipsInterpolateNohalo;
 
-typedef struct _VipsInterpolateNohalo2Class {
+typedef struct _VipsInterpolateNohaloClass {
 	VipsInterpolateClass parent_class;
 
-} VipsInterpolateNohalo2Class;
+} VipsInterpolateNohaloClass;
 
 /*
  * MINMOD is an implementation of the minmod function which only needs
@@ -284,48 +259,48 @@ typedef struct _VipsInterpolateNohalo2Class {
   ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
 
 static void inline
-nohalo_step1 (const double           uno_two,
-              const double           uno_thr,
-              const double           uno_fou,
-              const double           dos_one,
-              const double           dos_two,
-              const double           dos_thr,
-              const double           dos_fou,
-              const double           dos_fiv,
-              const double           tre_one,
-              const double           tre_two,
-              const double           tre_thr,
-              const double           tre_fou,
-              const double           tre_fiv,
-              const double           qua_one,
-              const double           qua_two,
-              const double           qua_thr,
-              const double           qua_fou,
-              const double           qua_fiv,
-              const double           cin_two,
-              const double           cin_thr,
-              const double           cin_fou,
-                    double* restrict uno_one_1,
-                    double* restrict uno_two_1,
-                    double* restrict uno_thr_1,
-                    double* restrict uno_fou_1,
-                    double* restrict dos_one_1,
-                    double* restrict dos_two_1,
-                    double* restrict dos_thr_1,
-                    double* restrict dos_fou_1,
-                    double* restrict tre_one_1,
-                    double* restrict tre_two_1,
-                    double* restrict tre_thr_1,
-                    double* restrict tre_fou_1,
-                    double* restrict qua_one_1,
-                    double* restrict qua_two_1,
-                    double* restrict qua_thr_1,
-                    double* restrict qua_fou_1)
+nohalo_subdivision (const double           uno_two,
+                    const double           uno_thr,
+                    const double           uno_fou,
+                    const double           dos_one,
+                    const double           dos_two,
+                    const double           dos_thr,
+                    const double           dos_fou,
+                    const double           dos_fiv,
+                    const double           tre_one,
+                    const double           tre_two,
+                    const double           tre_thr,
+                    const double           tre_fou,
+                    const double           tre_fiv,
+                    const double           qua_one,
+                    const double           qua_two,
+                    const double           qua_thr,
+                    const double           qua_fou,
+                    const double           qua_fiv,
+                    const double           cin_two,
+                    const double           cin_thr,
+                    const double           cin_fou,
+                          double* restrict uno_one_1,
+                          double* restrict uno_two_1,
+                          double* restrict uno_thr_1,
+                          double* restrict uno_fou_1,
+                          double* restrict dos_one_1,
+                          double* restrict dos_two_1,
+                          double* restrict dos_thr_1,
+                          double* restrict dos_fou_1,
+                          double* restrict tre_one_1,
+                          double* restrict tre_two_1,
+                          double* restrict tre_thr_1,
+                          double* restrict tre_fou_1,
+                          double* restrict qua_one_1,
+                          double* restrict qua_two_1,
+                          double* restrict qua_thr_1,
+                          double* restrict qua_fou_1)
 {
   /*
-   * nohalo_step1 calculates the missing ten double density pixel
-   * values, and also returns the "already known" two, so that the
-   * twelve values which make up the stencil of Nohalo level 1 are
+   * nohalo_subdivision calculates the missing ten double density
+   * pixel values, and also returns the "already known" two, so that
+   * the twelve values which make up the stencil of Nohalo level 1 are
    * available.
    */
   /*
@@ -1085,9 +1060,9 @@ lbbicubic( const double c00,
  * this would allow code comments!---but we can't figure a clean way
  * to do it.
  */
-#define NOHALO2_INTER( inter )                     \
+#define NOHALO_INTER( inter )                     \
   template <typename T> static void inline         \
-  nohalo2_ ## inter(       PEL*   restrict pout,   \
+  nohalo_ ## inter(       PEL*   restrict pout,   \
                       const PEL*   restrict pin,   \
                       const int             bands, \
                       const int             lskip, \
@@ -1233,45 +1208,44 @@ lbbicubic( const double c00,
         double tre_one, tre_two, tre_thr, tre_fou;  \
         double qua_one, qua_two, qua_thr, qua_fou;  \
         \
-        nohalo_step1( in[ uno_two_shift ], \
-                      in[ uno_thr_shift ], \
-                      in[ uno_fou_shift ], \
-                      in[ dos_one_shift ], \
-                      in[ dos_two_shift ], \
-                      in[ dos_thr_shift ], \
-                      in[ dos_fou_shift ], \
-                      in[ dos_fiv_shift ], \
-                      in[ tre_one_shift ], \
-                      in[ tre_two_shift ], \
-                      in[ tre_thr_shift ], \
-                      in[ tre_fou_shift ], \
-                      in[ tre_fiv_shift ], \
-                      in[ qua_one_shift ], \
-                      in[ qua_two_shift ], \
-                      in[ qua_thr_shift ], \
-                      in[ qua_fou_shift ], \
-                      in[ qua_fiv_shift ], \
-                      in[ cin_two_shift ], \
-                      in[ cin_thr_shift ], \
-                      in[ cin_fou_shift ], \
-                      &uno_one,            \
-                      &uno_two,            \
-                      &uno_thr,            \
-                      &uno_fou,            \
-                      &dos_one,            \
-                      &dos_two,            \
-                      &dos_thr,            \
-                      &dos_fou,            \
-                      &tre_one,            \
-                      &tre_two,            \
-                      &tre_thr,            \
-                      &tre_fou,            \
-                      &qua_one,            \
-                      &qua_two,            \
-                      &qua_thr,            \
-                      &qua_fou );          \
+        nohalo_subdivision( in[ uno_two_shift ], \
+                            in[ uno_thr_shift ], \
+                            in[ uno_fou_shift ], \
+                            in[ dos_one_shift ], \
+                            in[ dos_two_shift ], \
+                            in[ dos_thr_shift ], \
+                            in[ dos_fou_shift ], \
+                            in[ dos_fiv_shift ], \
+                            in[ tre_one_shift ], \
+                            in[ tre_two_shift ], \
+                            in[ tre_thr_shift ], \
+                            in[ tre_fou_shift ], \
+                            in[ tre_fiv_shift ], \
+                            in[ qua_one_shift ], \
+                            in[ qua_two_shift ], \
+                            in[ qua_thr_shift ], \
+                            in[ qua_fou_shift ], \
+                            in[ qua_fiv_shift ], \
+                            in[ cin_two_shift ], \
+                            in[ cin_thr_shift ], \
+                            in[ cin_fou_shift ], \
+                            &uno_one,            \
+                            &uno_two,            \
+                            &uno_thr,            \
+                            &uno_fou,            \
+                            &dos_one,            \
+                            &dos_two,            \
+                            &dos_thr,            \
+                            &dos_fou,            \
+                            &tre_one,            \
+                            &tre_two,            \
+                            &tre_thr,            \
+                            &tre_fou,            \
+                            &qua_one,            \
+                            &qua_two,            \
+                            &qua_thr,            \
+                            &qua_fou );          \
         \
-    \
         const double double_result =        \
           lbbicubic( c00,                   \
                      c10,                   \
@@ -1314,12 +1288,12 @@ lbbicubic( const double c00,
   }
 
 
-NOHALO2_INTER( fptypes )
-NOHALO2_INTER( withsign )
-NOHALO2_INTER( nosign )
+NOHALO_INTER( fptypes )
+NOHALO_INTER( withsign )
+NOHALO_INTER( nosign )
 
 #define CALL( T, inter )               \
-  nohalo2_ ## inter<T>( out,           \
+  nohalo_ ## inter<T>( out,           \
                          p,            \
                          bands,        \
                          lskip,        \
@@ -1330,16 +1304,16 @@ NOHALO2_INTER( nosign )
  * We need C linkage:
  */
 extern "C" {
-G_DEFINE_TYPE( VipsInterpolateNohalo2, vips_interpolate_nohalo2,
+G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo,
 	VIPS_TYPE_INTERPOLATE );
 }
 
 static void
-vips_interpolate_nohalo2_interpolate( VipsInterpolate* restrict interpolate,
-                                      PEL*             restrict out,
-                                      REGION*          restrict in,
-                                      double                    absolute_x,
-                                      double                    absolute_y )
+vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
+                                     PEL*             restrict out,
+                                     REGION*          restrict in,
+                                     double                    absolute_x,
+                                     double                    absolute_y )
 {
   /*
    * Floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
@@ -1424,7 +1398,7 @@ vips_interpolate_nohalo2_interpolate( VipsInterpolate* restrict interpolate,
 }
 
 static void
-vips_interpolate_nohalo2_class_init( VipsInterpolateNohalo2Class *klass )
+vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
   VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
@@ -1433,15 +1407,15 @@ vips_interpolate_nohalo2_class_init( VipsInterpolateNohalo2Class *klass )
   gobject_class->set_property = vips_object_set_property;
   gobject_class->get_property = vips_object_get_property;
 
-  object_class->nickname    = "nohalo2";
-  object_class->description = _( "Smoother and more edge-enhancing nohalo1" );
+  object_class->nickname    = "nohalo";
+  object_class->description = _( "Edge sharpening resampler with halo reduction" );
 
-  interpolate_class->interpolate   = vips_interpolate_nohalo2_interpolate;
+  interpolate_class->interpolate   = vips_interpolate_nohalo_interpolate;
   interpolate_class->window_size   = 5;
   interpolate_class->window_offset = 2;
 }
 
 static void
-vips_interpolate_nohalo2_init( VipsInterpolateNohalo2 *nohalo2 )
+vips_interpolate_nohalo_init( VipsInterpolateNohalo *nohalo )
 {
 }

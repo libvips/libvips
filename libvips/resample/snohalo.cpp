@@ -5,6 +5,9 @@
  * When blur = 0. (minimum value), Snohalo level 1.5 gives the same
  * results as Nohalo level 2. At the maximum reasonable blur value
  * (1.), very strong antialiasing takes place.
+ *
+ * Warning: This is a prototype. It is not a final production version
+ * (although it works well for mild upsampling or downsampling).
  */
 
 /*
@@ -70,32 +73,32 @@ enum {
 	PROP_LAST
 };
 
-#define VIPS_TYPE_INTERPOLATE_SNOHALO1 \
-	(vips_interpolate_snohalo1_get_type())
-#define VIPS_INTERPOLATE_SNOHALO1( obj ) \
+#define VIPS_TYPE_INTERPOLATE_SNOHALO \
+	(vips_interpolate_snohalo_get_type())
+#define VIPS_INTERPOLATE_SNOHALO( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_SNOHALO1, VipsInterpolateSnohalo1 ))
-#define VIPS_INTERPOLATE_SNOHALO1_CLASS( klass ) \
+	VIPS_TYPE_INTERPOLATE_SNOHALO, VipsInterpolateSnohalo ))
+#define VIPS_INTERPOLATE_SNOHALO_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_SNOHALO1, VipsInterpolateSnohalo1Class))
-#define VIPS_IS_INTERPOLATE_SNOHALO1( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_SNOHALO1 ))
-#define VIPS_IS_INTERPOLATE_SNOHALO1_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_SNOHALO1 ))
-#define VIPS_INTERPOLATE_SNOHALO1_GET_CLASS( obj ) \
+	VIPS_TYPE_INTERPOLATE_SNOHALO, VipsInterpolateSnohaloClass))
+#define VIPS_IS_INTERPOLATE_SNOHALO( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_SNOHALO ))
+#define VIPS_IS_INTERPOLATE_SNOHALO_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_SNOHALO ))
+#define VIPS_INTERPOLATE_SNOHALO_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_SNOHALO1, VipsInterpolateSnohalo1Class ))
+	VIPS_TYPE_INTERPOLATE_SNOHALO, VipsInterpolateSnohaloClass ))
 
-typedef struct _VipsInterpolateSnohalo1 {
+typedef struct _VipsInterpolateSnohalo {
 	VipsInterpolate parent_object;
 
 	double blur;
-} VipsInterpolateSnohalo1;
+} VipsInterpolateSnohalo;
 
-typedef struct _VipsInterpolateSnohalo1Class {
+typedef struct _VipsInterpolateSnohaloClass {
 	VipsInterpolateClass parent_class;
 
-} VipsInterpolateSnohalo1Class;
+} VipsInterpolateSnohaloClass;
 
 /*
  * MINMOD is an implementation of the minmod function which only needs
@@ -759,15 +762,15 @@ snohalo_step2( const double           uno_two,
  * this would allow code comments!---but we can't figure a clean way
  * to do it.
  */
-#define SNOHALO1_INTER( inter )                    \
-  template <typename T> static void inline         \
-  snohalo1_ ## inter(       PEL*   restrict pout,  \
-                      const PEL*   restrict pin,   \
-                      const int             bands, \
-                      const int             lskip, \
-                      const double          blur,  \
-                      const double          x_0,   \
-                      const double          y_0 )  \
+#define SNOHALO_INTER( inter )                    \
+  template <typename T> static void inline        \
+  snohalo_ ## inter(      PEL*   restrict pout,   \
+                     const PEL*   restrict pin,   \
+                     const int             bands, \
+                     const int             lskip, \
+                     const double          blur,  \
+                     const double          x_0,   \
+                     const double          y_0 )  \
   { \
     T* restrict out = (T *) pout; \
     \
@@ -964,16 +967,16 @@ snohalo_step2( const double           uno_two,
       } while (--band); \
   }
 
-SNOHALO1_INTER( fptypes )
-SNOHALO1_INTER( withsign )
-SNOHALO1_INTER( nosign )
+SNOHALO_INTER( fptypes )
+SNOHALO_INTER( withsign )
+SNOHALO_INTER( nosign )
 
 #define CALL( T, inter ) \
-  snohalo1_ ## inter<T>( out, \
+  snohalo_ ## inter<T>( out, \
                          p, \
                          bands, \
                          lskip, \
-                         snohalo1->blur, \
+                         snohalo->blur, \
                          relative_x, \
                          relative_y );
 
@@ -981,19 +984,19 @@ SNOHALO1_INTER( nosign )
  * We need C linkage:
  */
 extern "C" {
-G_DEFINE_TYPE( VipsInterpolateSnohalo1, vips_interpolate_snohalo1,
+G_DEFINE_TYPE( VipsInterpolateSnohalo, vips_interpolate_snohalo,
 	VIPS_TYPE_INTERPOLATE );
 }
 
 static void
-vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
+vips_interpolate_snohalo_interpolate( VipsInterpolate* restrict interpolate,
                                        PEL*             restrict out,
                                        REGION*          restrict in,
                                        double                    absolute_x,
                                        double                    absolute_y )
 {
-  VipsInterpolateSnohalo1 *snohalo1 =
-    VIPS_INTERPOLATE_SNOHALO1( interpolate );
+  VipsInterpolateSnohalo *snohalo =
+    VIPS_INTERPOLATE_SNOHALO( interpolate );
 
   /*
    * Floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
@@ -1078,7 +1081,7 @@ vips_interpolate_snohalo1_interpolate( VipsInterpolate* restrict interpolate,
 }
 
 static void
-vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
+vips_interpolate_snohalo_class_init( VipsInterpolateSnohaloClass *klass )
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
   VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
@@ -1090,10 +1093,10 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
   gobject_class->set_property = vips_object_set_property;
   gobject_class->get_property = vips_object_get_property;
 
-  object_class->nickname    = "snohalo1";
-  object_class->description = _( "Nohalo level 2 with antialiasing blur" );
+  object_class->nickname    = "snohalo";
+  object_class->description = _( "Nohalo with antialiasing blur" );
 
-  interpolate_class->interpolate   = vips_interpolate_snohalo1_interpolate;
+  interpolate_class->interpolate   = vips_interpolate_snohalo_interpolate;
   interpolate_class->window_size   = 7;
   interpolate_class->window_offset = 3;
 
@@ -1117,11 +1120,11 @@ vips_interpolate_snohalo1_class_init( VipsInterpolateSnohalo1Class *klass )
     object_class,
     pspec,
     VIPS_ARGUMENT_SET_ONCE,
-    G_STRUCT_OFFSET( VipsInterpolateSnohalo1, blur ) );
+    G_STRUCT_OFFSET( VipsInterpolateSnohalo, blur ) );
 }
 
 static void
-vips_interpolate_snohalo1_init( VipsInterpolateSnohalo1 *snohalo1 )
+vips_interpolate_snohalo_init( VipsInterpolateSnohalo *snohalo )
 {
-	snohalo1->blur = 0.3333333;
+	snohalo->blur = 0.3333333;
 }
