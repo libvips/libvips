@@ -436,7 +436,7 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 
 	interpolate_class->interpolate   = vips_interpolate_bilinear_interpolate;
 	interpolate_class->window_size   = 2;
-	interpolate_class->window_offset = 0;
+	interpolate_class->window_offset = 1;
 
 	/* Calculate the interpolation matricies.
 	 */
