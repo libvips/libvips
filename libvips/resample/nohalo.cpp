@@ -1,11 +1,12 @@
-/* Nohalo (one level) subdivision followed by LBB (Locally Bounded Bicubic) interpolation
+/* Nohalo subdivision followed by LBB (Locally Bounded Bicubic)
+ * interpolation
  *
- * N. Robidoux and C. Racette 05/11--05/16
+ * N. Robidoux and C. Racette 11/5--17/5/2009
  *
- * N. Robidoux 01/4-29/5/09
+ * N. Robidoux 1/4-29/5/2009
  *
  * N. Robidoux based on code by N. Robidoux, A. Turcotte and J. Cupitt
- * 27/01/10
+ * 27/1/2010
  */
 
 /*
@@ -36,8 +37,8 @@
  */
 
 /*
- * 2009-2010 (c) Nicolas Robidoux, Chantal Racette, Adam Turcotte and
- * John Cupitt
+ * 2009-2010 (c) Nicolas Robidoux, Chantal Racette, John Cupitt and
+ * Adam Turcotte
  *
  * Nicolas Robidoux thanks Geert Jordaens, Ralf Meyer, Øyvind Kolås,
  * Minglun Gong, Eric Daoust and Sven Neumann for useful comments and
@@ -51,9 +52,9 @@
  * in part by a NSERC Discovery Grant awarded to Julien Dompierre.
  *
  * A. Turcotte's image resampling research and programming funded in
- * part by a Google Summer of Code 2010 award awarded to GIMP (Gnu
- * Image Manipulation Program) and by an NSERC Alexander Graham Bell
- * Canada Graduate Scholarhip awarded to him.
+ * part by an NSERC Alexander Graham Bell Canada Graduate Scholarhip
+ * awarded to him and by a Google Summer of Code 2010 award awarded to
+ * GIMP (Gnu Image Manipulation Program).
  */
 
 /*
@@ -68,6 +69,9 @@
  * "Nohalo" is a resampler with a mission: smoothly straightening
  * oblique lines without undesirable side-effects. In particular,
  * without much blurring and with absolutely no added haloing.
+ *
+ * In this code, one Nohalo subdivision is performed. The
+ * interpolation is finished with LBB (Locally Bounded Bicubic).
  *
  * Key properties:
  *
@@ -111,24 +115,6 @@
  * Nohalo is a local method
  * ========================
  *
- * The value of the reconstructed intensity surface at any point
- * depends on the values of (at most) 19 nearby input values. An
- * explanatory diagram is found below.
- *
- * ===========================================================
- * When level = infinity, nohalo's intensity surface is smooth
- * ===========================================================
- *
- * It is conjectured that the intensity surface is infinitely
- * differentiable. Consequently, "Mach banding" (primarily caused by
- * sharp "ridges" in the reconstructed intensity surface and
- * particularly noticeable, for example, when using bilinear
- * resampling) is (essentially) absent, even at high magnifications,
- * WHEN THE LEVEL IS HIGH (more or less when 2^(level+1) is at least
- * the largest local magnification factor, which means that the level
- * 1 nohalo does not show much Mach banding up to a magnification of
- * about 4).
- *
  * ===============================
  * Nohalo is second order accurate
  * ===============================
@@ -162,7 +148,7 @@
  * Weaknesses of nohalo
  * ====================
  *
- * In some cases, the first level nonlinear computation is wasted:
+ * In some cases, the initial subdivision computation is wasted:
  *
  * If a region is bichromatic, the nonlinear component of the level 1
  * nohalo is zero in the interior of the region, and consequently
@@ -170,18 +156,6 @@
  * bilinear, or use a higher level (quality) setting. (There is no
  * real harm in using nohalo when it boils down to bilinear if one
  * does not mind wasting cycles.)
- *
- * Low quality levels do NOT produce a continuously differentiable
- * intensity surface:
- *
- * With a "finite" level is used (that is, in practice), the nohalo
- * intensity surface is only continuous: there are gradient
- * discontinuities because the "final interpolation step" is performed
- * with bilinear. (Exception: if the "corner" image size convention is
- * used and the magnification factor is 4, that is, if the resampled
- * points sit exactly on the binary subdivided grid, then nohalo level
- * 2 gives the same result as as level=infinity, and consequently the
- * intensity surface can be treated as if smooth.)
  */
 
 #ifdef HAVE_CONFIG_H
@@ -264,6 +238,17 @@ typedef struct _VipsInterpolateNohaloClass {
 #define MINMOD(a,b,a_times_a,a_times_b) \
   ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
 
+#define LBB_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
+#define LBB_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
+
+/*
+ * MIN and MAX macros set up so that I can put the likely winner in
+ * the first argument (forward branch likely blah blah blah):
+ */
+#define LBB_MIN(x,y) ( ((x)<=(y)) ? (x) : (y) )
+#define LBB_MAX(x,y) ( ((x)>=(y)) ? (x) : (y) )
+
+
 static void inline
 nohalo_subdivision (const double           uno_two,
                     const double           uno_thr,
@@ -304,10 +289,9 @@ nohalo_subdivision (const double           uno_two,
                           double* restrict qua_fou_1)
 {
   /*
-   * nohalo_subdivision calculates the missing ten double density
-   * pixel values, and also returns the "already known" two, so that
-   * the twelve values which make up the stencil of Nohalo level 1 are
-   * available.
+   * nohalo_subdivision calculates the missing twelve double density
+   * pixel values, and also returns the "already known" four, so that
+   * the values which make up the stencil of LBB are available.
    */
   /*
    * THE STENCIL OF INPUT VALUES:
@@ -345,7 +329,7 @@ nohalo_subdivision (const double           uno_two,
    *
    *
    * The above input pixel values are the ones needed in order to make
-   * available to the second level the following first level values:
+   * available the following values, needed by LBB:
    *
    *  uno_one_1 =      uno_two_1 =  uno_thr_1 =      uno_fou_1 =
    *  (ix-1/2,iy-1/2)  (ix,iy-1/2)  (ix+1/2,iy-1/2)  (ix+1,iy-1/2)
@@ -368,8 +352,6 @@ nohalo_subdivision (const double           uno_two,
    *  qua_one_1 =      qua_two_1 =  qua_thr_1 =      qua_fou_1 =
    *  (ix-1/2,iy+1)    (ix,iy+1)    (ix+1/2,iy+1)    (ix+1,iy+1)
    *
-   *
-   * to which LBB interpolation is then applied.
    */
 
   /*
@@ -607,7 +589,7 @@ nohalo_subdivision (const double           uno_two,
     .125 * ( dos_two_y + dos_thr_y - tre_two_y - tre_thr_y );
 
   /*
-   * Return level 1 stencil values:
+   * Return the sixteen LBB stencil values:
    */
   *uno_one_1 = val_uno_one_1;
   *uno_two_1 = val_uno_two_1;
@@ -699,15 +681,6 @@ nohalo_subdivision (const double           uno_two,
  * necessarily above the minimum of the four minima, which happens to
  * be the minimum over the 4x4. Similarly with the maxima.)
  */
-
-#define LBB_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
-#define LBB_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
-/*
- * MIN and MAX macros set up so that I can put the likely winner in
- * the first argument (forward branch likely blah blah blah):
- */
-#define LBB_MIN(x,y) ( ((x)<=(y)) ? (x) : (y) )
-#define LBB_MAX(x,y) ( ((x)>=(y)) ? (x) : (y) )
 
 static inline double
 lbbicubic( const double c00,
@@ -1066,9 +1039,9 @@ lbbicubic( const double c00,
  * this would allow code comments!---but we can't figure a clean way
  * to do it.
  */
-#define NOHALO_INTER( inter )                     \
+#define NOHALO_INTER( inter )                      \
   template <typename T> static void inline         \
-  nohalo_ ## inter(       PEL*   restrict pout,   \
+  nohalo_ ## inter(         PEL*   restrict pout,  \
                       const PEL*   restrict pin,   \
                       const int             bands, \
                       const int             lskip, \
@@ -1079,8 +1052,10 @@ lbbicubic( const double c00,
     \
     const T* restrict in = (T *) pin; \
     \
+    \
     const int sign_of_x_0 = 2 * ( x_0 >= 0. ) - 1; \
     const int sign_of_y_0 = 2 * ( y_0 >= 0. ) - 1; \
+    \
     \
     const int shift_forw_1_pix = sign_of_x_0 * bands; \
     const int shift_forw_1_row = sign_of_y_0 * lskip; \
@@ -1119,9 +1094,6 @@ lbbicubic( const double c00,
     const int cin_two_shift = shift_back_1_pix + shift_forw_2_row; \
     const int cin_thr_shift =                    shift_forw_2_row; \
     const int cin_fou_shift = shift_forw_1_pix + shift_forw_2_row; \
-    \
-    const double x = ( 2 * sign_of_x_0 ) * x_0 - .5; \
-    const double y = ( 2 * sign_of_y_0 ) * y_0 - .5; \
     \
     \
     const double xp1over2   = ( 2 * sign_of_x_0 ) * x_0; \
@@ -1169,6 +1141,7 @@ lbbicubic( const double c00,
     const double twice_1mx_times_yp1over2 = twice1mx * yp1over2; \
     const double twice_1px_times_yp1over2 = twice1px * yp1over2; \
     \
+    \
     const double c00 = \
       four_times_1px_times_1py * xm1over2sq_times_ym1over2sq; \
     const double c00dx = \
@@ -1205,7 +1178,9 @@ lbbicubic( const double c00,
     const double c11dxdy = \
        xm1over2_times_ym1over2 * xp1over2sq_times_yp1over2sq; \
     \
+    \
     int band = bands; \
+    \
     \
     do \
       { \
@@ -1285,11 +1260,13 @@ lbbicubic( const double c00,
                      qua_two,               \
                      qua_thr,               \
                      qua_fou );             \
-        {\
-        const T result = to_ ## inter<T>( double_result ); \
-        in++; \
-        *out++ = result; \
-       } \
+        \
+        {                                                       \
+          const T result = to_ ## inter<T>( double_result );    \
+          in++;                                                 \
+          *out++ = result;                                      \
+        }                                                       \
+        \
       } while (--band); \
   }
 
@@ -1298,13 +1275,15 @@ NOHALO_INTER( fptypes )
 NOHALO_INTER( withsign )
 NOHALO_INTER( nosign )
 
-#define CALL( T, inter )               \
-  nohalo_ ## inter<T>( out,           \
-                         p,            \
-                         bands,        \
-                         lskip,        \
-                         relative_x,   \
-                         relative_y );
+
+#define CALL( T, inter )             \
+  nohalo_ ## inter<T>( out,          \
+                       p,            \
+                       bands,        \
+                       lskip,        \
+                       relative_x,   \
+                       relative_y );
+
 
 /*
  * We need C linkage:
@@ -1313,6 +1292,7 @@ extern "C" {
 G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo,
 	VIPS_TYPE_INTERPOLATE );
 }
+
 
 static void
 vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
@@ -1414,7 +1394,8 @@ vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
   gobject_class->get_property = vips_object_get_property;
 
   object_class->nickname    = "nohalo";
-  object_class->description = _( "Edge sharpening resampler with halo reduction" );
+  object_class->description =
+    _( "Edge sharpening resampler with halo reduction" );
 
   interpolate_class->interpolate   = vips_interpolate_nohalo_interpolate;
   interpolate_class->window_size   = 5;
