@@ -29,9 +29,6 @@
 
 /* Bicubic (catmull-rom) interpolator derived from Nicolas Robidoux's
  * original YAFR resampler with permission and thanks.
- *
- * Note: This may actually be an implementation of a Keys bicubic
- * convolution method. To be checked.
  */
 
 /*
@@ -79,9 +76,9 @@ typedef struct _VipsInterpolateBicubic {
 typedef struct _VipsInterpolateBicubicClass {
 	VipsInterpolateClass parent_class;
 
-	/* Precalculated interpolation matricies. int (used for pel sizes up
-	 * to short), and double (for all others). We go to scale + 1, so
-	 * we can round-to-nearest safely.
+	/* Precalculated interpolation matrices. int (used for pel
+	 * sizes up to short), and double (for all others). We go to
+	 * scale + 1, so we can round-to-nearest safely.
 	 */
 
 	/* We could keep a large set of 2d 4x4 matricies, but this actually
