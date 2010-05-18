@@ -1,3 +1,6 @@
+- int bicubic needs more precision? try a 10x upscale and compare to the
+  double path
+
 - test
 
 		python setup.py build_ext
