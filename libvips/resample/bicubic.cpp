@@ -1,4 +1,4 @@
-/* bicubic ... catmull-rom interpolator
+/* bicubic (catmull-rom) interpolator
  */
 
 /*
@@ -27,7 +27,7 @@
 
  */
 
-/* Bicubic (catmull-rom) interpolator derived from Nicolas Robidoux's
+/* Bicubic (Catmull-Rom) interpolator derived from Nicolas Robidoux's
  * original YAFR resampler with permission and thanks.
  */
 

@@ -46,19 +46,16 @@
  *
  * N. Robidoux's early research on Nohalo funded in part by an NSERC
  * (National Science and Engineering Research Council of Canada)
- * Discovery Grant awarded to him.
+ * Discovery Grant awarded to him (298424--2004).
  *
  * Chantal Racette's image resampling research and programming funded
- * in part by a NSERC Discovery Grant awarded to Julien Dompierre.
+ * in part by a NSERC Discovery Grant awarded to Julien Dompierre
+ * (20-61098).
  *
- * A. Turcotte's image resampling research and programming funded in
+ * A. Turcotte's image resampling research on reduced halo funded in
  * part by an NSERC Alexander Graham Bell Canada Graduate Scholarhip
  * awarded to him and by a Google Summer of Code 2010 award awarded to
  * GIMP (Gnu Image Manipulation Program).
- */
-
-/*
- * TO DO: REDO THE COMMENTS, EXPLAIN CODE BETTER.
  */
 
 /*
