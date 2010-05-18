@@ -1,7 +1,7 @@
 /* Nohalo subdivision followed by LBB (Locally Bounded Bicubic)
  * interpolation
  *
- * N. Robidoux and C. Racette 11/5--17/5/2009
+ * N. Robidoux, C. Racette and J. Cupitt 11/5--18/5/2009
  *
  * N. Robidoux 1/4-29/5/2009
  *
@@ -68,7 +68,7 @@
  *
  * "Nohalo" is a resampler with a mission: smoothly straightening
  * oblique lines without undesirable side-effects. In particular,
- * without much blurring and with absolutely no added haloing.
+ * without much blurring and with no added haloing.
  *
  * In this code, one Nohalo subdivision is performed. The
  * interpolation is finished with LBB (Locally Bounded Bicubic).
@@ -79,28 +79,35 @@
  * Nohalo is interpolatory
  * =======================
  *
- * That is, nohalo preserves point values: If asked for the value at
+ * That is, Nohalo preserves point values: If asked for the value at
  * the center of an input pixel, the sampler returns the corresponding
- * value, unchanged. In addition, because nohalo is continuous, if
+ * value, unchanged. In addition, because Nohalo is continuous, if
  * asked for a value at a location "very close" to the center of an
  * input pixel, then the sampler returns a value "very close" to
  * it. (Nohalo is not smoothing like, say, B-Spline
  * pseudo-interpolation.)
  *
- * ========================================================
- * Nohalo is co-monotone (this is why it's called "nohalo")
- * ========================================================
+ * ====================================================================
+ * Nohalo subdivision is co-monotone (this is why it's called "no-halo")
+ * ====================================================================
  *
- * What monotonicity more or less means here is that the resampled
- * value is in the range of the four closest input values. This
- * property is why there is no added haloing. It also implies that
- * clamping is unnecessary (provided abyss values are within the range
- * of acceptable values, which is always the case). (Note: plain
- * vanilla bilinear is also co-monotone.)
+ * One consequence of monotonicity is that additional subdivided
+ * values are in the range of the four closest input values, which is
+ * a form of local boundedness.  (Note: plain vanilla bilinear and
+ * nearest neighbour are also co-monotone.) LBB is also locally
+ * bounded. Consequently, Nohalo subdivision followed by LBB is
+ * locally bounded. When used as a finishing scheme for Nohalo, the
+ * standard LBB bounds imply that the final interpolated value is in
+ * the range of the nine closest input values. This property is why
+ * there is very little added haloing, even when a finishing scheme
+ * which is not strictly monotone. Another consequence of local
+ * boundedness is that clamping is unnecessary (provided abyss values
+ * are within the range of acceptable values, which is "always" the
+ * case).
  *
  * Note: If the abyss policy is an extrapolating one---for example,
  * linear or bilinear extrapolation---clamping is still unnecessary
- * unless one attempts to resample outside of the convex hull of the
+ * UNLESS one attempts to resample outside of the convex hull of the
  * input pixel positions. Consequence: the "corner" image size
  * convention does not require clamping when using linear
  * extrapolation abyss policy when performing image resizing, but the
@@ -115,6 +122,10 @@
  * Nohalo is a local method
  * ========================
  *
+ * The interpolated pixel value when using Nohalo subdivision followed
+ * by LBB only depends on the 21 (5x5 minus the four corners) closest
+ * input values.
+ *
  * ===============================
  * Nohalo is second order accurate
  * ===============================
@@ -122,15 +133,15 @@
  * (Except possibly near the boundary: it is easy to make this
  * property carry over everywhere but this requires a tuned abyss
  * policy---linear extrapolation, say---or building the boundary
- * conditions inside the sampler.)  Nohalo is exact on linear
+ * conditions inside the sampler.)  Nohalo+LBB is exact on linear
  * intensity profiles, meaning that if the input pixel values (in the
  * stencil) are obtained from a function of the form f(x,y) = a + b*x
  * + c*y (a, b, c constants), then the computed pixel value is exactly
  * the value of f(x,y) at the asked-for sampling location. The
- * boundary condition which is emulated by VIPS throught the "extend"
+ * boundary condition which is emulated by VIPS through the "extend"
  * extension of the input image---this corresponds to the nearest
  * neighbour abyss policy---does NOT make this resampler exact on
- * linears at the boundary. It does, however, guarantee that no
+ * linears near the boundary. It does, however, guarantee that no
  * clamping is required even when resampled values are computed at
  * positions outside of the extent of the input image (when
  * extrapolation is required).
@@ -139,23 +150,23 @@
  * Nohalo is nonlinear
  * ===================
  *
- * In particular, resampling a sum of images may not be the same as
- * summing the resamples. (This occurs even without taking into account
- * over and underflow issues: images can only take values within a
- * banded range, and consequently no sampler is truly linear.)
+ * Both Nohalo and LBB are nonlinear, consequently their composition
+ * is nonlinear.  In particular, resampling a sum of images may not be
+ * the same as summing the resamples. (This occurs even without taking
+ * into account over and underflow issues: images can only take values
+ * within a banded range, and consequently no sampler is truly
+ * linear.)
  *
  * ====================
- * Weaknesses of nohalo
+ * Weaknesses of Nohalo
  * ====================
  *
  * In some cases, the initial subdivision computation is wasted:
  *
- * If a region is bichromatic, the nonlinear component of the level 1
- * nohalo is zero in the interior of the region, and consequently
- * nohalo boils down to bilinear. For such images, either stick to
- * bilinear, or use a higher level (quality) setting. (There is no
- * real harm in using nohalo when it boils down to bilinear if one
- * does not mind wasting cycles.)
+ * If a region is bi-chromatic, the nonlinear component of Nohalo
+ * subdivision is zero in the interior of the region, and consequently
+ * Nohalo subdivision boils down to bilinear. For such images, LBB is
+ * probably a better choice.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -741,9 +752,25 @@ lbbicubic( const double c00,
 
   /*
    * Computation of the four min and four max over 3x3 input data
-   * sub-blocks of the 4x4 input stencil. (Because there is
-   * redundancy, only 17 minima and 17 maxima are needed; if done with
-   * conditional moves, only 28 different flags are involved.)
+   * sub-blocks of the 4x4 input stencil.
+   *
+   * Surprisingly, we have not succeeded in using the fact that the
+   * data comes from the (co-monotone) method Nohalo so that it is
+   * known ahead of time that
+   *
+   *  dos_thr is between dos_two and dos_fou
+   *
+   *  tre_two is between dos_two and qua_two
+   *
+   *  tre_fou is between dos_fou and qua_fou
+   *
+   *  qua_thr is between qua_two and qua_fou
+   *
+   *  tre_thr is in the convex hull of dos_two, dos_fou, qua_two and qua_fou
+   *
+   *  to minimize the number of flags and conditional moves.
+   *
+   *  Suggestions welcome!
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
@@ -1033,20 +1060,20 @@ lbbicubic( const double c00,
 }
 
 /*
- * Call Nohalo with an interpolator as a parameter.
+ * Call Nohalo+LBB with a careful type conversion as a parameter.
  *
  * It would be nice to do this with templates somehow---for one thing
  * this would allow code comments!---but we can't figure a clean way
  * to do it.
  */
-#define NOHALO_INTER( inter )                      \
-  template <typename T> static void inline         \
-  nohalo_ ## inter(         PEL*   restrict pout,  \
-                      const PEL*   restrict pin,   \
-                      const int             bands, \
-                      const int             lskip, \
-                      const double          x_0,   \
-                      const double          y_0 )  \
+#define NOHALO_CONVERSION( conversion )               \
+  template <typename T> static void inline            \
+  nohalo_ ## conversion(       PEL*   restrict pout,  \
+                         const PEL*   restrict pin,   \
+                         const int             bands, \
+                         const int             lskip, \
+                         const double          x_0,   \
+                         const double          y_0 )  \
   { \
     T* restrict out = (T *) pout; \
     \
@@ -1261,28 +1288,28 @@ lbbicubic( const double c00,
                      qua_thr,               \
                      qua_fou );             \
         \
-        {                                                       \
-          const T result = to_ ## inter<T>( double_result );    \
-          in++;                                                 \
-          *out++ = result;                                      \
-        }                                                       \
+        {                                                         \
+          const T result = to_ ## conversion<T>( double_result ); \
+          in++;                                                   \
+          *out++ = result;                                        \
+        }                                                         \
         \
       } while (--band); \
   }
 
 
-NOHALO_INTER( fptypes )
-NOHALO_INTER( withsign )
-NOHALO_INTER( nosign )
+NOHALO_CONVERSION( fptypes )
+NOHALO_CONVERSION( withsign )
+NOHALO_CONVERSION( nosign )
 
 
-#define CALL( T, inter )             \
-  nohalo_ ## inter<T>( out,          \
-                       p,            \
-                       bands,        \
-                       lskip,        \
-                       relative_x,   \
-                       relative_y );
+#define CALL( T, conversion )             \
+  nohalo_ ## conversion<T>( out,          \
+                            p,            \
+                            bands,        \
+                            lskip,        \
+                            relative_x,   \
+                            relative_y );
 
 
 /*
