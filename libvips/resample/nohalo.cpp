@@ -763,8 +763,8 @@ lbbicubic( const double c00,
    * Computation of the four min and four max over 3x3 input data
    * sub-blocks of the 4x4 input stencil.
    *
-   * Surprisingly, we have not succeeded in reducing the number of
-   * comparisons needed by using the fact that the data comes from the
+   * Surprisingly, we have not succeeded in reducing the number of "?
+   * :" needed by using the fact that the data comes from the
    * (co-monotone) method Nohalo so that it is known ahead of time
    * that
    *
@@ -784,14 +784,13 @@ lbbicubic( const double c00,
    *
    * "min(b,c) <= a <= max(b,c)".)
    *
-   * We have, however, succeeded in eliminating one flag
-   * computation/the use of one intermediate result. See the two
-   * commented out lines below.
+   * We have, however, succeeded in eliminating one flag computation
+   * (one comparison) and one use of an intermediate result. See the
+   * two commented out lines below.
    *
    * Overall, only 27 comparisons are needed (to compute 4 mins and 4
-   * maxes!). Without the simplication, 28 comparisoins would be used.
-   *
-   *  Suggestions welcome!
+   * maxes!). Without the simplification, 28 comparisoins would be
+   * used.
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
