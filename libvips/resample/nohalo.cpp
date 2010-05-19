@@ -1,12 +1,12 @@
 /* Nohalo subdivision followed by LBB (Locally Bounded Bicubic)
  * interpolation
  *
- * N. Robidoux, C. Racette and J. Cupitt 11/5--18/5/2009
- *
  * N. Robidoux 1/4-29/5/2009
  *
  * N. Robidoux based on code by N. Robidoux, A. Turcotte and J. Cupitt
  * 27/1/2010
+ *
+ * N. Robidoux, C. Racette and J. Cupitt 11/5--18/5/2010
  */
 
 /*
