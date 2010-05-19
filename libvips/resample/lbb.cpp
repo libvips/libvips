@@ -1,4 +1,8 @@
 /* lbb (locally bounded bicubic) resampler
+ *
+ * N. Robidoux, C. Racette and J. Cupitt 23-28/03/2010
+ *
+ * N. Robidoux 16-19/05/2010
  */
 
 /*
@@ -29,7 +33,7 @@
  */
 
 /*
- * 2010 (c) Nicolas Robidoux, John Cupitt, Chantal Racette.
+ * 2010 (c) Nicolas Robidoux, Chantal Racette, John Cupitt.
  *
  * N. Robidoux thanks Øyvind Kolås, Geert Jordaens, Adam Turcotte,
  * Ralf Meyer, Minglun Gong and Eric Daoust for useful comments and

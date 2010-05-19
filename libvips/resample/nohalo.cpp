@@ -1,12 +1,18 @@
 /* Nohalo subdivision followed by LBB (Locally Bounded Bicubic)
  * interpolation
  *
- * N. Robidoux 1/4-29/5/2009
+ * Nohalo level 1 with bilinear finishing scheme hacked for vips based
+ * on code by N. Robidoux by J. Cupitt, 20/1/09
  *
- * N. Robidoux based on code by N. Robidoux, A. Turcotte and J. Cupitt
- * 27/1/2010
+ * N. Robidoux and J. Cupitt, 4-17/3/09
  *
- * N. Robidoux, C. Racette and J. Cupitt 11/5--18/5/2010
+ * N. Robidoux, 1/4-29/5/2009
+ *
+ * Nohalo level 2 with bilinear finishing scheme by N. Robidoux based
+ * on code by N. Robidoux, A. Turcotte and J. Cupitt, 27/1/2010
+ *
+ * Nohalo level 1 with LBB finishing scheme by N. Robidoux and
+ * C. Racette, 11/5--18/5/2010
  */
 
 /*
