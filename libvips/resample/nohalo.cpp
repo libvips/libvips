@@ -763,9 +763,10 @@ lbbicubic( const double c00,
    * Computation of the four min and four max over 3x3 input data
    * sub-blocks of the 4x4 input stencil.
    *
-   * Surprisingly, we have not succeeded in using the fact that the
-   * data comes from the (co-monotone) method Nohalo so that it is
-   * known ahead of time that
+   * Surprisingly, we have not succeeded in reducing the number of
+   * comparisons needed by using the fact that the data comes from the
+   * (co-monotone) method Nohalo so that it is known ahead of time
+   * that
    *
    *  dos_thr is between dos_two and dos_fou
    *
@@ -783,42 +784,60 @@ lbbicubic( const double c00,
    *
    * "min(b,c) <= a <= max(b,c)".)
    *
+   * We have, however, succeeded in eliminating one flag
+   * computation/the use of one intermediate result. See the two
+   * commented out lines below.
+   *
+   * Overall, only 27 comparisons are needed (to compute 4 mins and 4
+   * maxes!). Without the simplication, 28 comparisoins would be used.
+   *
    *  Suggestions welcome!
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
   const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
   const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
-  const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
-  const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
   const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr  ;
   const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
+  const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
+  const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
   const double m5    = LBB_MIN(               m1,       m2      );
   const double M5    = LBB_MAX(               M1,       M2      );
   const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
   const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
   const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
   const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
-  const double m8    = LBB_MIN(               m5,       m3      );
-  const double M8    = LBB_MAX(               M5,       M3      );
+  const double m13   = (dos_fou <= qua_fou) ? dos_fou : qua_fou  ;
+  const double M13   = (dos_fou <= qua_fou) ? qua_fou : dos_fou  ;
+  /*
+   * Because the data comes from Nohalo subdivision, the following two
+   * lines can be replaced by the above, simpler, two lines without
+   * changing the results.
+   *
+   * const double m13   = LBB_MIN(               m7,       qua_fou );
+   * const double M13   = LBB_MAX(               M7,       qua_fou );
+   *
+   * This also allows reodering the comparisons to put space between
+   * the computation of a result and its use.
+   */
   const double m9    = LBB_MIN(               m5,       m4      );
   const double M9    = LBB_MAX(               M5,       M4      );
-  const double m10   = LBB_MIN(               m6,       uno_one );
-  const double M10   = LBB_MAX(               M6,       uno_one );
+  const double m8    = LBB_MIN(               m5,       m3      );
+  const double M8    = LBB_MAX(               M5,       M3      );
   const double m11   = LBB_MIN(               m6,       qua_one );
   const double M11   = LBB_MAX(               M6,       qua_one );
+  const double m10   = LBB_MIN(               m6,       uno_one );
+  const double M10   = LBB_MAX(               M6,       uno_one );
   const double m12   = LBB_MIN(               m7,       uno_fou );
   const double M12   = LBB_MAX(               M7,       uno_fou );
-  const double m13   = LBB_MIN(               m7,       qua_fou );
-  const double M13   = LBB_MAX(               M7,       qua_fou );
-  const double min00 = LBB_MIN(               m8,       m10     );
-  const double max00 = LBB_MAX(               M8,       M10     );
-  const double min01 = LBB_MIN(               m9,       m11     );
-  const double max01 = LBB_MAX(               M9,       M11     );
-  const double min10 = LBB_MIN(               m8,       m12     );
-  const double max10 = LBB_MAX(               M8,       M12     );
   const double min11 = LBB_MIN(               m9,       m13     );
   const double max11 = LBB_MAX(               M9,       M13     );
+  const double min01 = LBB_MIN(               m9,       m11     );
+  const double max01 = LBB_MAX(               M9,       M11     );
+  const double min00 = LBB_MIN(               m8,       m10     );
+  const double max00 = LBB_MAX(               M8,       M10     );
+  const double min10 = LBB_MIN(               m8,       m12     );
+  const double max10 = LBB_MAX(               M8,       M12     );
   /*
    * The remainder of the "per channel" computation involves the
    * computation of:
@@ -845,14 +864,14 @@ lbbicubic( const double c00,
   /*
    * Distances to the local min and max:
    */
-  const double u00 = dos_two - min00;
-  const double v00 = max00 - dos_two;
-  const double u01 = tre_two - min01;
-  const double v01 = max01 - tre_two;
-  const double u10 = dos_thr - min10;
-  const double v10 = max10 - dos_thr;
   const double u11 = tre_thr - min11;
   const double v11 = max11 - tre_thr;
+  const double u01 = tre_two - min01;
+  const double v01 = max01 - tre_two;
+  const double u00 = dos_two - min00;
+  const double v00 = max00 - dos_two;
+  const double u10 = dos_thr - min10;
+  const double v10 = max10 - dos_thr;
 
   /*
    * Initial values of the derivatives computed with centered
