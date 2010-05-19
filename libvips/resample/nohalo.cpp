@@ -12,7 +12,7 @@
  * on code by N. Robidoux, A. Turcotte and J. Cupitt, 27/1/2010
  *
  * Nohalo level 1 with LBB finishing scheme by N. Robidoux and
- * C. Racette, 11/5--18/5/2010
+ * C. Racette, 11-18/5/2010
  */
 
 /*
@@ -62,6 +62,12 @@
  * part by an NSERC Alexander Graham Bell Canada Graduate Scholarhip
  * awarded to him and by a Google Summer of Code 2010 award awarded to
  * GIMP (Gnu Image Manipulation Program).
+ *
+ * Nohalo with LBB finishing scheme was developed by Nicolas Robidoux
+ * and Chantal Racette of the Department of Mathematics and Computer
+ * Science of Laurentian University in the course of Chantal's Masters
+ * Thesis in Computational Sciences, itself the continuation of
+ * Chantal's Honours Thesis in Mathematics.
  */
 
 /*

@@ -35,9 +35,13 @@
 /*
  * 2010 (c) Nicolas Robidoux, Chantal Racette, John Cupitt.
  *
- * N. Robidoux thanks Øyvind Kolås, Geert Jordaens, Adam Turcotte,
- * Ralf Meyer, Minglun Gong and Eric Daoust for useful comments and
- * code.
+ * Nicolas Robidoux thanks Adam Turcotte, Geert Jordaens, Ralf Meyer,
+ * Øyvind Kolås, Minglun Gong, Eric Daoust and Sven Neumann for useful
+ * comments and code.
+ *
+ * Chantal Racette's image resampling research and programming funded
+ * in part by a NSERC Discovery Grant awarded to Julien Dompierre
+ * (20-61098).
  */
 
 /*
