@@ -767,6 +767,10 @@ lbbicubic( const double c00,
    *
    *  to minimize the number of flags and conditional moves.
    *
+   * (The "between" are not strict: "a between b and c" means
+   *
+   * "min(b,c) <= a <= max(b,c)".)
+   *
    *  Suggestions welcome!
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
@@ -789,18 +793,18 @@ lbbicubic( const double c00,
   const double M9    = LBB_MAX(               M5,       M4      );
   const double m10   = LBB_MIN(               m6,       uno_one );
   const double M10   = LBB_MAX(               M6,       uno_one );
-  const double m11   = LBB_MIN(               m7,       uno_fou );
-  const double M11   = LBB_MAX(               M7,       uno_fou );
-  const double m12   = LBB_MIN(               m6,       qua_one );
-  const double M12   = LBB_MAX(               M6,       qua_one );
+  const double m11   = LBB_MIN(               m6,       qua_one );
+  const double M11   = LBB_MAX(               M6,       qua_one );
+  const double m12   = LBB_MIN(               m7,       uno_fou );
+  const double M12   = LBB_MAX(               M7,       uno_fou );
   const double m13   = LBB_MIN(               m7,       qua_fou );
   const double M13   = LBB_MAX(               M7,       qua_fou );
   const double min00 = LBB_MIN(               m8,       m10     );
   const double max00 = LBB_MAX(               M8,       M10     );
-  const double min10 = LBB_MIN(               m8,       m11     );
-  const double max10 = LBB_MAX(               M8,       M11     );
-  const double min01 = LBB_MIN(               m9,       m12     );
-  const double max01 = LBB_MAX(               M9,       M12     );
+  const double min01 = LBB_MIN(               m9,       m11     );
+  const double max01 = LBB_MAX(               M9,       M11     );
+  const double min10 = LBB_MIN(               m8,       m12     );
+  const double max10 = LBB_MAX(               M8,       M12     );
   const double min11 = LBB_MIN(               m9,       m13     );
   const double max11 = LBB_MAX(               M9,       M13     );
   /*
@@ -831,10 +835,10 @@ lbbicubic( const double c00,
    */
   const double u00 = dos_two - min00;
   const double v00 = max00 - dos_two;
-  const double u10 = dos_thr - min10;
-  const double v10 = max10 - dos_thr;
   const double u01 = tre_two - min01;
   const double v01 = max01 - tre_two;
+  const double u10 = dos_thr - min10;
+  const double v10 = max10 - dos_thr;
   const double u11 = tre_thr - min11;
   const double v11 = max11 - tre_thr;
 
