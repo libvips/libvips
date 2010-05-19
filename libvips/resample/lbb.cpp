@@ -1,8 +1,8 @@
 /* lbb (locally bounded bicubic) resampler
  *
- * N. Robidoux, C. Racette and J. Cupitt 23-28/03/2010
+ * N. Robidoux, C. Racette and J. Cupitt, 23-28/03/2010
  *
- * N. Robidoux 16-19/05/2010
+ * N. Robidoux, 16-19/05/2010
  */
 
 /*
@@ -50,8 +50,8 @@
  * than images resampled with windowed sincs or other interpolatory
  * cubic spline filters. Specifically, LBB halos are narrower and the
  * over/undershoot amplitude is smaller. This is accomplished without
- * a significant reduction in the smoothness of the result (compared
- * to Catmull-Rom).
+ * significantly affecting the smoothness of the result (compared to
+ * Catmull-Rom).
  *
  * Another important property is that the resampled values are
  * contained within the range of nearby input values. Consequently, no
@@ -60,8 +60,12 @@
  *
  * LBB was developed by Nicolas Robidoux and Chantal Racette of the
  * Department of Mathematics and Computer Science of Laurentian
- * University in the course of Chantal's Masters Thesis in
- * Computational Sciences.
+ * University in the course of C. Racette's Masters thesis in
+ * Computational Sciences. Preliminary work directly leading to the
+ * LBB method and code was performed by C. Racette and N. Robidoux in
+ * the course of her honours thesis, and by N. Robidoux, A. Turcotte
+ * and E. Daoust during Google Summer of Code 2009 (through two awards
+ * made to GIMP to improve GEGL).
  */
 
 /*
@@ -78,21 +82,21 @@
  *
  * --It is C^1 with continuous cross derivatives.
  *
- * --When the limiters are inactive, LBB gives the same results as
+ * --When the limiters are inactive, LBB gives the same result as
  *   Catmull-Rom.
  *
  * --When used on binary images, LBB gives results similar to bicubic
  *   Hermite with all first derivatives---but not necessarily the
- *   cross derivatives--at the input pixel locations set to zero.
+ *   cross derivatives (this last assertion needs to be double
+ *   checked)--at input pixel locations set to zero.
  *
  * --The LBB reconstruction is locally bounded: Over each square
  *   patch, the surface is contained between the minimum and the
- *   maximum values among the 16 nearest input pixel values (those in
- *   the stencil).
+ *   maximum of the 16 nearest input pixel values.
  *
  * --Consequently, the LBB reconstruction is globally bounded between
  *   the very smallest input pixel value and the very largest input
- *   pixel value. (It is not necessary to clamp results.)
+ *   pixel value. It is not necessary to clamp results.
  *
  * The LBB method is based on the method of Ken Brodlie, Petros
  * Mashwama and Sohail Butt for constraining Hermite interpolants
@@ -224,7 +228,9 @@ lbbicubic( const double c00,
 
   /*
    * Computation of the four min and four max over 3x3 input data
-   * sub-blocks of the 4x4 input stencil.
+   * sub-blocks of the 4x4 input stencil, performed with only 28
+   * comparisons. If you can figure how to do this more efficiently,
+   * let us know.
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;

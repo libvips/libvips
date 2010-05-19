@@ -1,8 +1,8 @@
-/* Nohalo subdivision followed by LBB (Locally Bounded Bicubic)
- * interpolation
+/* nohalo subdivision followed by lbb (locally bounded bicubic)
+ * interpolation resampler
  *
- * Nohalo level 1 with bilinear finishing scheme hacked for vips based
- * on code by N. Robidoux by J. Cupitt, 20/1/09
+ * Nohalo level 1 with bilinear finishing scheme hacked for VIPS by
+ * J. Cupitt based on code by N. Robidoux, 20/1/09
  *
  * N. Robidoux and J. Cupitt, 4-17/3/09
  *
@@ -65,9 +65,13 @@
  *
  * Nohalo with LBB finishing scheme was developed by Nicolas Robidoux
  * and Chantal Racette of the Department of Mathematics and Computer
- * Science of Laurentian University in the course of Chantal's Masters
- * Thesis in Computational Sciences, itself the continuation of
- * Chantal's Honours Thesis in Mathematics.
+ * Science of Laurentian University in the course of C. Racette's
+ * Masters thesis in Computational Sciences. Preliminary work on
+ * Nohalo and monotone interpolation was performed by C. Racette and
+ * N. Robidoux in the course of her honours thesis, by N. Robidoux,
+ * A. Turcotte and E. Daoust during Google Summer of Code 2009
+ * (through two awards made to GIMP to improve GEGL), and, earlier, by
+ * N. Robidoux, A. Turcotte, J. Cupitt, M. Gong and K. Martinez.
  */
 
 /*
@@ -258,15 +262,15 @@ typedef struct _VipsInterpolateNohaloClass {
 #define MINMOD(a,b,a_times_a,a_times_b) \
   ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
 
-#define LBB_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
-#define LBB_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
+#define NOHALO_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
+#define NOHALO_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
 
 /*
  * MIN and MAX macros set up so that I can put the likely winner in
  * the first argument (forward branch likely blah blah blah):
  */
-#define LBB_MIN(x,y) ( ((x)<=(y)) ? (x) : (y) )
-#define LBB_MAX(x,y) ( ((x)>=(y)) ? (x) : (y) )
+#define NOHALO_MIN(x,y) ( ((x)<=(y)) ? (x) : (y) )
+#define NOHALO_MAX(x,y) ( ((x)>=(y)) ? (x) : (y) )
 
 
 static void inline
@@ -789,8 +793,9 @@ lbbicubic( const double c00,
    * two commented out lines below.
    *
    * Overall, only 27 comparisons are needed (to compute 4 mins and 4
-   * maxes!). Without the simplification, 28 comparisoins would be
-   * used.
+   * maxes!). Without the simplification, 28 comparisons would be
+   * used. If you can figure how to do this more efficiently, let us
+   * know.
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
@@ -800,8 +805,8 @@ lbbicubic( const double c00,
   const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
   const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
   const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
-  const double m5    = LBB_MIN(               m1,       m2      );
-  const double M5    = LBB_MAX(               M1,       M2      );
+  const double m5    = NOHALO_MIN(            m1,       m2      );
+  const double M5    = NOHALO_MAX(            M1,       M2      );
   const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
   const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
   const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
@@ -813,30 +818,30 @@ lbbicubic( const double c00,
    * lines can be replaced by the above, simpler, two lines without
    * changing the results.
    *
-   * const double m13   = LBB_MIN(               m7,       qua_fou );
-   * const double M13   = LBB_MAX(               M7,       qua_fou );
+   * const double m13   = NOHALO_MIN(               m7,       qua_fou );
+   * const double M13   = NOHALO_MAX(               M7,       qua_fou );
    *
    * This also allows reodering the comparisons to put space between
    * the computation of a result and its use.
    */
-  const double m9    = LBB_MIN(               m5,       m4      );
-  const double M9    = LBB_MAX(               M5,       M4      );
-  const double m8    = LBB_MIN(               m5,       m3      );
-  const double M8    = LBB_MAX(               M5,       M3      );
-  const double m11   = LBB_MIN(               m6,       qua_one );
-  const double M11   = LBB_MAX(               M6,       qua_one );
-  const double m10   = LBB_MIN(               m6,       uno_one );
-  const double M10   = LBB_MAX(               M6,       uno_one );
-  const double m12   = LBB_MIN(               m7,       uno_fou );
-  const double M12   = LBB_MAX(               M7,       uno_fou );
-  const double min11 = LBB_MIN(               m9,       m13     );
-  const double max11 = LBB_MAX(               M9,       M13     );
-  const double min01 = LBB_MIN(               m9,       m11     );
-  const double max01 = LBB_MAX(               M9,       M11     );
-  const double min00 = LBB_MIN(               m8,       m10     );
-  const double max00 = LBB_MAX(               M8,       M10     );
-  const double min10 = LBB_MIN(               m8,       m12     );
-  const double max10 = LBB_MAX(               M8,       M12     );
+  const double m9    = NOHALO_MIN(            m5,       m4      );
+  const double M9    = NOHALO_MAX(            M5,       M4      );
+  const double m8    = NOHALO_MIN(            m5,       m3      );
+  const double M8    = NOHALO_MAX(            M5,       M3      );
+  const double m11   = NOHALO_MIN(            m6,       qua_one );
+  const double M11   = NOHALO_MAX(            M6,       qua_one );
+  const double m10   = NOHALO_MIN(            m6,       uno_one );
+  const double M10   = NOHALO_MAX(            M6,       uno_one );
+  const double m12   = NOHALO_MIN(            m7,       uno_fou );
+  const double M12   = NOHALO_MAX(            M7,       uno_fou );
+  const double min11 = NOHALO_MIN(            m9,       m13     );
+  const double max11 = NOHALO_MAX(            M9,       M13     );
+  const double min01 = NOHALO_MIN(            m9,       m11     );
+  const double max01 = NOHALO_MAX(            M9,       M11     );
+  const double min00 = NOHALO_MIN(            m8,       m10     );
+  const double max00 = NOHALO_MAX(            M8,       M10     );
+  const double min10 = NOHALO_MIN(            m8,       m12     );
+  const double max10 = NOHALO_MAX(            M8,       M12     );
   /*
    * The remainder of the "per channel" computation involves the
    * computation of:
@@ -891,15 +896,15 @@ lbbicubic( const double c00,
    * them (except if the clamping sends a negative derivative to 0, in
    * which case the sign does not matter anyway).
    */
-  const double sign_dzdx00 = LBB_SIGN( dble_dzdx00i );
-  const double sign_dzdx10 = LBB_SIGN( dble_dzdx10i );
-  const double sign_dzdx01 = LBB_SIGN( dble_dzdx01i );
-  const double sign_dzdx11 = LBB_SIGN( dble_dzdx11i );
+  const double sign_dzdx00 = NOHALO_SIGN( dble_dzdx00i );
+  const double sign_dzdx10 = NOHALO_SIGN( dble_dzdx10i );
+  const double sign_dzdx01 = NOHALO_SIGN( dble_dzdx01i );
+  const double sign_dzdx11 = NOHALO_SIGN( dble_dzdx11i );
 
-  const double sign_dzdy00 = LBB_SIGN( dble_dzdy00i );
-  const double sign_dzdy10 = LBB_SIGN( dble_dzdy10i );
-  const double sign_dzdy01 = LBB_SIGN( dble_dzdy01i );
-  const double sign_dzdy11 = LBB_SIGN( dble_dzdy11i );
+  const double sign_dzdy00 = NOHALO_SIGN( dble_dzdy00i );
+  const double sign_dzdy10 = NOHALO_SIGN( dble_dzdy10i );
+  const double sign_dzdy01 = NOHALO_SIGN( dble_dzdy01i );
+  const double sign_dzdy11 = NOHALO_SIGN( dble_dzdy11i );
 
   /*
    * Initial values of the cross-derivatives. Factors of 1/4 are left
@@ -914,10 +919,10 @@ lbbicubic( const double c00,
    * Slope limiters. The key multiplier is 3 but we fold a factor of
    * 2, hence 6:
    */
-  const double dble_slopelimit_00 = 6.0 * LBB_MIN( u00, v00 );
-  const double dble_slopelimit_10 = 6.0 * LBB_MIN( u10, v10 );
-  const double dble_slopelimit_01 = 6.0 * LBB_MIN( u01, v01 );
-  const double dble_slopelimit_11 = 6.0 * LBB_MIN( u11, v11 );
+  const double dble_slopelimit_00 = 6.0 * NOHALO_MIN( u00, v00 );
+  const double dble_slopelimit_10 = 6.0 * NOHALO_MIN( u10, v10 );
+  const double dble_slopelimit_01 = 6.0 * NOHALO_MIN( u01, v01 );
+  const double dble_slopelimit_11 = 6.0 * NOHALO_MIN( u11, v11 );
 
   /*
    * Clamped first derivatives:
@@ -962,10 +967,10 @@ lbbicubic( const double c00,
   /*
    * Absolute values of the sums:
    */
-  const double twelve_abs_sum00 = LBB_ABS( twelve_sum00 );
-  const double twelve_abs_sum10 = LBB_ABS( twelve_sum10 );
-  const double twelve_abs_sum01 = LBB_ABS( twelve_sum01 );
-  const double twelve_abs_sum11 = LBB_ABS( twelve_sum11 );
+  const double twelve_abs_sum00 = NOHALO_ABS( twelve_sum00 );
+  const double twelve_abs_sum10 = NOHALO_ABS( twelve_sum10 );
+  const double twelve_abs_sum01 = NOHALO_ABS( twelve_sum01 );
+  const double twelve_abs_sum11 = NOHALO_ABS( twelve_sum11 );
 
   /*
    * Scaled distances to the min:
@@ -983,10 +988,10 @@ lbbicubic( const double c00,
   const double first_limit01 = twelve_abs_sum01 - u01_times_36;
   const double first_limit11 = twelve_abs_sum11 - u11_times_36;
 
-  const double quad_d2zdxdy00ii = LBB_MAX( quad_d2zdxdy00i, first_limit00 );
-  const double quad_d2zdxdy10ii = LBB_MAX( quad_d2zdxdy10i, first_limit10 );
-  const double quad_d2zdxdy01ii = LBB_MAX( quad_d2zdxdy01i, first_limit01 );
-  const double quad_d2zdxdy11ii = LBB_MAX( quad_d2zdxdy11i, first_limit11 );
+  const double quad_d2zdxdy00ii = NOHALO_MAX( quad_d2zdxdy00i, first_limit00 );
+  const double quad_d2zdxdy10ii = NOHALO_MAX( quad_d2zdxdy10i, first_limit10 );
+  const double quad_d2zdxdy01ii = NOHALO_MAX( quad_d2zdxdy01i, first_limit01 );
+  const double quad_d2zdxdy11ii = NOHALO_MAX( quad_d2zdxdy11i, first_limit11 );
 
   /*
    * Scaled distances to the max:
@@ -1004,18 +1009,22 @@ lbbicubic( const double c00,
   const double second_limit01 = v01_times_36 - twelve_abs_sum01;
   const double second_limit11 = v11_times_36 - twelve_abs_sum11;
 
-  const double quad_d2zdxdy00iii = LBB_MIN( quad_d2zdxdy00ii, second_limit00 );
-  const double quad_d2zdxdy10iii = LBB_MIN( quad_d2zdxdy10ii, second_limit10 );
-  const double quad_d2zdxdy01iii = LBB_MIN( quad_d2zdxdy01ii, second_limit01 );
-  const double quad_d2zdxdy11iii = LBB_MIN( quad_d2zdxdy11ii, second_limit11 );
+  const double quad_d2zdxdy00iii =
+    NOHALO_MIN( quad_d2zdxdy00ii, second_limit00 );
+  const double quad_d2zdxdy10iii =
+    NOHALO_MIN( quad_d2zdxdy10ii, second_limit10 );
+  const double quad_d2zdxdy01iii =
+    NOHALO_MIN( quad_d2zdxdy01ii, second_limit01 );
+  const double quad_d2zdxdy11iii =
+    NOHALO_MIN( quad_d2zdxdy11ii, second_limit11 );
 
   /*
    * Absolute values of the differences:
    */
-  const double twelve_abs_dif00 = LBB_ABS( twelve_dif00 );
-  const double twelve_abs_dif10 = LBB_ABS( twelve_dif10 );
-  const double twelve_abs_dif01 = LBB_ABS( twelve_dif01 );
-  const double twelve_abs_dif11 = LBB_ABS( twelve_dif11 );
+  const double twelve_abs_dif00 = NOHALO_ABS( twelve_dif00 );
+  const double twelve_abs_dif10 = NOHALO_ABS( twelve_dif10 );
+  const double twelve_abs_dif01 = NOHALO_ABS( twelve_dif01 );
+  const double twelve_abs_dif11 = NOHALO_ABS( twelve_dif11 );
 
   /*
    * Third cross-derivative limiter:
@@ -1025,10 +1034,14 @@ lbbicubic( const double c00,
   const double third_limit01 = twelve_abs_dif01 - v01_times_36;
   const double third_limit11 = twelve_abs_dif11 - v11_times_36;
 
-  const double quad_d2zdxdy00iiii = LBB_MAX( quad_d2zdxdy00iii, third_limit00);
-  const double quad_d2zdxdy10iiii = LBB_MAX( quad_d2zdxdy10iii, third_limit10);
-  const double quad_d2zdxdy01iiii = LBB_MAX( quad_d2zdxdy01iii, third_limit01);
-  const double quad_d2zdxdy11iiii = LBB_MAX( quad_d2zdxdy11iii, third_limit11);
+  const double quad_d2zdxdy00iiii =
+    NOHALO_MAX( quad_d2zdxdy00iii, third_limit00);
+  const double quad_d2zdxdy10iiii =
+    NOHALO_MAX( quad_d2zdxdy10iii, third_limit10);
+  const double quad_d2zdxdy01iiii =
+    NOHALO_MAX( quad_d2zdxdy01iii, third_limit01);
+  const double quad_d2zdxdy11iiii =
+    NOHALO_MAX( quad_d2zdxdy11iii, third_limit11);
 
   /*
    * Fourth cross-derivative limiter:
@@ -1038,10 +1051,10 @@ lbbicubic( const double c00,
   const double fourth_limit01 = u01_times_36 - twelve_abs_dif01;
   const double fourth_limit11 = u11_times_36 - twelve_abs_dif11;
 
-  const double quad_d2zdxdy00 = LBB_MIN( quad_d2zdxdy00iiii, fourth_limit00);
-  const double quad_d2zdxdy10 = LBB_MIN( quad_d2zdxdy10iiii, fourth_limit10);
-  const double quad_d2zdxdy01 = LBB_MIN( quad_d2zdxdy01iiii, fourth_limit01);
-  const double quad_d2zdxdy11 = LBB_MIN( quad_d2zdxdy11iiii, fourth_limit11);
+  const double quad_d2zdxdy00 = NOHALO_MIN( quad_d2zdxdy00iiii, fourth_limit00);
+  const double quad_d2zdxdy10 = NOHALO_MIN( quad_d2zdxdy10iiii, fourth_limit10);
+  const double quad_d2zdxdy01 = NOHALO_MIN( quad_d2zdxdy01iiii, fourth_limit01);
+  const double quad_d2zdxdy11 = NOHALO_MIN( quad_d2zdxdy11iiii, fourth_limit11);
 
   /*
    * Four times the part of the result which only uses cross
