@@ -608,12 +608,9 @@ nohalo_subdivision (const double           uno_two,
   const double val_uno_one_1 =
     .25 * ( dos_two + dos_thr + tre_two + tre_thr )
     +
-    .125
-    *
-    ( dos_two_x - dos_thr_x + tre_two_x - tre_thr_x
-      +
-      dos_two_y + dos_thr_y - tre_two_y - tre_thr_y
-    );
+    .125 * ( dos_two_x - dos_thr_x + tre_two_x - tre_thr_x
+             +
+             dos_two_y + dos_thr_y - tre_two_y - tre_thr_y );
 
   /*
    * Return the sixteen LBB stencil values:
