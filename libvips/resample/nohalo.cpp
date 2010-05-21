@@ -235,11 +235,11 @@ typedef struct _VipsInterpolateNohaloClass {
  *
  * ( (a_times_b)>=0 ? 1 : 0 ) * ( (a_times_a)<=(a_times_b) ? (a) : (b) )
  *
- * For uncompressed natural images in high bit depth (images for which
- * the slopes a and b are unlikely to be equal to zero or be equal to
- * each other), we recommend using
+ * For natural images in high bit depth (images for which the slopes a
+ * and b are unlikely to be equal to zero or be equal to each other),
+ * we recommend using
  *
- * ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
+ * ( (a_times_b)>=0 ? 1 : 0 ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
  *
  * instead. With this second version, the forward branch of the second
  * conditional move is taken when |b|>|a| and when a*b<0. However, the
@@ -263,7 +263,7 @@ typedef struct _VipsInterpolateNohaloClass {
   ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
 
 #define NOHALO_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
-#define NOHALO_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
+#define NOHALO_SIGN(x) ( ((x)>=0.) ? 1.  : -1.  )
 
 /*
  * MIN and MAX macros set up so that I can put the likely winner in
@@ -315,7 +315,8 @@ nohalo_subdivision (const double           uno_two,
   /*
    * nohalo_subdivision calculates the missing twelve double density
    * pixel values, and also returns the "already known" four, so that
-   * the values which make up the stencil of LBB are available.
+   * the sixteen values which make up the stencil of LBB are
+   * available.
    */
   /*
    * THE STENCIL OF INPUT VALUES:
@@ -481,7 +482,7 @@ nohalo_subdivision (const double           uno_two,
                                    d_dostre_thr_sq,
                                    d_dostre_times_trequa_thr );
 
-  const double val_uno_two_1 =
+  const double newval_uno_two =
     .5 * ( dos_thr + tre_thr )
     +
     .25 * ( dos_thr_y - tre_thr_y );
@@ -490,7 +491,7 @@ nohalo_subdivision (const double           uno_two,
                                    d_quacin_thr_sq,
                                    d_trequa_times_quacin_thr );
 
-  const double val_tre_two_1 =
+  const double newval_tre_two =
     .5 * ( tre_thr + qua_thr )
     +
     .25 * ( tre_thr_y - qua_thr_y );
@@ -502,7 +503,7 @@ nohalo_subdivision (const double           uno_two,
                                    d_quacin_fou_sq,
                                    d_trequa_times_quacin_fou );
 
-  const double val_tre_fou_1 =
+  const double newval_tre_fou =
     .5 * ( tre_fou + qua_fou )
     +
     .25 * ( tre_fou_y - qua_fou_y );
@@ -511,7 +512,7 @@ nohalo_subdivision (const double           uno_two,
                                    d_dostre_fou_sq,
                                    d_unodos_times_dostre_fou );
 
-  const double val_uno_fou_1 =
+  const double newval_uno_fou =
      .5 * ( dos_fou + tre_fou )
      +
      .25 * (dos_fou_y - tre_fou_y );
@@ -523,7 +524,7 @@ nohalo_subdivision (const double           uno_two,
                                    d_tre_twothr_sq,
                                    d_tre_twothr_times_thrfou );
 
-  const double val_dos_one_1 =
+  const double newval_dos_one =
     .5 * ( tre_two + tre_thr )
     +
     .25 * ( tre_two_x - tre_thr_x );
@@ -535,7 +536,7 @@ nohalo_subdivision (const double           uno_two,
   const double tre_thr_x_minus_tre_fou_x =
     tre_thr_x - tre_fou_x;
 
-  const double val_dos_thr_1 =
+  const double newval_dos_thr =
     .5 * ( tre_thr + tre_fou )
     +
     .25 * tre_thr_x_minus_tre_fou_x;
@@ -550,7 +551,7 @@ nohalo_subdivision (const double           uno_two,
   const double qua_thr_x_minus_qua_fou_x =
     qua_thr_x - qua_fou_x;
 
-  const double val_qua_thr_1 =
+  const double newval_qua_thr =
     .5 * ( qua_thr + qua_fou )
     +
     .25 * qua_thr_x_minus_qua_fou_x;
@@ -559,15 +560,15 @@ nohalo_subdivision (const double           uno_two,
                                    d_qua_twothr_sq,
                                    d_qua_onetwo_times_twothr );
 
-  const double val_qua_one_1 =
+  const double newval_qua_one =
     .5 * ( qua_two + qua_thr )
     +
     .25 * ( qua_two_x - qua_thr_x );
 
-  const double val_tre_thr_1 =
+  const double newval_tre_thr =
     .125 * ( tre_thr_x_minus_tre_fou_x + qua_thr_x_minus_qua_fou_x )
     +
-    .5 * ( val_tre_two_1 + val_tre_fou_1 );
+    .5 * ( newval_tre_two + newval_tre_fou );
 
   const double dos_thr_x = MINMOD( d_dos_twothr, d_dos_thrfou,
                                    d_dos_twothr_sq,
@@ -576,12 +577,12 @@ nohalo_subdivision (const double           uno_two,
                                    d_dos_foufiv_sq,
                                    d_dos_thrfou_times_foufiv );
 
-  const double val_uno_thr_1 =
+  const double newval_uno_thr =
     .25 * ( dos_fou - tre_thr )
     +
     .125 * ( dos_fou_y - tre_fou_y + dos_thr_x - dos_fou_x )
     +
-    .5 * ( val_uno_two_1 + val_dos_thr_1 );
+    .5 * ( newval_uno_two + newval_dos_thr );
 
   const double tre_two_y = MINMOD( d_dostre_two, d_trequa_two,
                                    d_dostre_two_sq,
@@ -590,12 +591,12 @@ nohalo_subdivision (const double           uno_two,
                                    d_quacin_two_sq,
                                    d_trequa_times_quacin_two );
 
-  const double val_tre_one_1 =
+  const double newval_tre_one =
     .25 * ( qua_two - tre_thr )
     +
     .125 * ( qua_two_x - qua_thr_x + tre_two_y - qua_two_y )
     +
-    .5 * ( val_dos_one_1 + val_tre_two_1 );
+    .5 * ( newval_dos_one + newval_tre_two );
 
   const double dos_two_x = MINMOD( d_dos_twothr, d_dos_onetwo,
                                    d_dos_twothr_sq,
@@ -605,7 +606,7 @@ nohalo_subdivision (const double           uno_two,
                                    d_dostre_two_sq,
                                    d_unodos_times_dostre_two );
 
-  const double val_uno_one_1 =
+  const double newval_uno_one =
     .25 * ( dos_two + dos_thr + tre_two + tre_thr )
     +
     .125 * ( dos_two_x - dos_thr_x + tre_two_x - tre_thr_x
@@ -615,22 +616,22 @@ nohalo_subdivision (const double           uno_two,
   /*
    * Return the sixteen LBB stencil values:
    */
-  *uno_one_1 = val_uno_one_1;
-  *uno_two_1 = val_uno_two_1;
-  *uno_thr_1 = val_uno_thr_1;
-  *uno_fou_1 = val_uno_fou_1;
-  *dos_one_1 = val_dos_one_1;
-  *dos_two_1 = tre_thr;
-  *dos_thr_1 = val_dos_thr_1;
-  *dos_fou_1 = tre_fou;
-  *tre_one_1 = val_tre_one_1;
-  *tre_two_1 = val_tre_two_1;
-  *tre_thr_1 = val_tre_thr_1;
-  *tre_fou_1 = val_tre_fou_1;
-  *qua_one_1 = val_qua_one_1;
-  *qua_two_1 = qua_thr;
-  *qua_thr_1 = val_qua_thr_1;
-  *qua_fou_1 = qua_fou;
+  *uno_one_1 = newval_uno_one;
+  *uno_two_1 = newval_uno_two;
+  *uno_thr_1 = newval_uno_thr;
+  *uno_fou_1 = newval_uno_fou;
+  *dos_one_1 = newval_dos_one;
+  *dos_two_1 =        tre_thr;
+  *dos_thr_1 = newval_dos_thr;
+  *dos_fou_1 =        tre_fou;
+  *tre_one_1 = newval_tre_one;
+  *tre_two_1 = newval_tre_two;
+  *tre_thr_1 = newval_tre_thr;
+  *tre_fou_1 = newval_tre_fou;
+  *qua_one_1 = newval_qua_one;
+  *qua_two_1 =        qua_thr;
+  *qua_thr_1 = newval_qua_thr;
+  *qua_fou_1 =        qua_fou;
 }
 
 /*
