@@ -1,6 +1,8 @@
 12/5/10 started 7.22.0
 - bump and rename
 - vipsthumbnail has a manualpage and sharpens correctly
+- more interpolator work
+- fixes to --disable-cxx mode (thanks Mike)
 
 21/3/10 started 7.21.3
 - added progress feedback to threadpool

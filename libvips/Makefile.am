@@ -35,7 +35,10 @@ SUBDIRS = \
 
 lib_LTLIBRARIES = libvips.la
 
-libvips_la_SOURCES = dummy.c dummy2.cc
+libvips_la_SOURCES = dummy.c 
+if ENABLE_CXX
+libvips_la_SOURCES += dummy2.cc
+endif
 
 # DLLs need dependant libs there too ... put @VIPS_LIBS@ at the end
 libvips_la_LIBADD = \
@@ -60,6 +63,10 @@ libvips_la_LIBADD = \
 	relational/librelational.la \
 	video/libvideo.la \
 	@VIPS_LIBS@
+
+if ENABLE_CXX
+libvips_la_LIBADD += @VIPS_CXX_LIBS@
+endif
 
 libvips_la_LDFLAGS = \
 	-no-undefined \
