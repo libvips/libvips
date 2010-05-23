@@ -12,7 +12,7 @@ libresample_la_SOURCES = \
 	im_rightshift_size.c \
 	transform.c \
 	resample_dispatch.c \
-	bicubic.cpp 
+	bicubic.cpp \
 	nohalo.cpp \
 	lbb.cpp \
 	snohalo.cpp \

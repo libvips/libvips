@@ -45,6 +45,29 @@
  */
 
 /*
+ * LBB has two versions:
+ *
+ *   A "soft" version, which shows a little less staircasing and a
+ *   little more haloing, and which is a little more expensive to
+ *   compute. We recommend this as the default.
+ *
+ *   A "sharp" version, which shows a little more staircasing and a
+ *   little less haloing, and which is a little cheaper (it uses 6
+ *   less comparisons and 12 less "? :").
+ *
+ * The only difference between the two is that the "soft" versions
+ * uses local minima and maxima computed over 3x3 square blocks, and
+ * the "sharp" version uses local minima and maxima computed over 3x3
+ * crosses.
+ *
+ * If you want to use the "sharp" (cheaper) version, uncomment the
+ * following three pre-processor code lines:
+ */
+// #ifndef __LBB_CHEAP_H__
+// #define __LBB_CHEAP_H__
+// #endif
+
+/*
  * LBB (Locally Bounded Bicubic) is a high quality nonlinear variant
  * of Catmull-Rom. Images resampled with LBB have much smaller halos
  * than images resampled with windowed sincs or other interpolatory
@@ -119,6 +142,9 @@
  * own 3x3 subgroup of the 4x4 stencil. Consequently, the surface is
  * necessarily above the minimum of the four minima, which happens to
  * be the minimum over the 4x4. Similarly with the maxima.)
+ *
+ * The above paragraph described the "soft" version of LBB. The
+ * "sharp" version is similar.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -226,11 +252,47 @@ lbbicubic( const double c00,
    * location.
    */
 
+#if defined (__LBB_CHEAP_H__)
+  /*
+   * Computation of the four min and four max over 3x3 input data
+   * sub-crosses of the 4x4 input stencil, performed with only 22
+   * comparisons and 28 "? :". If you can figure out how to do this
+   * more efficiently, let us know.
+   */
+  const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
+  const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
+  const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
+  const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
+  const double m3    = (uno_two <= dos_one) ? uno_two : dos_one  ;
+  const double M3    = (uno_two <= dos_one) ? dos_one : uno_two  ;
+  const double m4    = (uno_thr <= dos_fou) ? uno_thr : dos_fou  ;
+  const double M4    = (uno_thr <= dos_fou) ? dos_fou : uno_thr  ;
+  const double m5    = (tre_one <= qua_two) ? tre_one : qua_two  ;
+  const double M5    = (tre_one <= qua_two) ? qua_two : tre_one  ;
+  const double m6    = (tre_fou <= qua_thr) ? tre_fou : qua_thr  ;
+  const double M6    = (tre_fou <= qua_thr) ? qua_thr : tre_fou  ;
+  const double m7    = LBB_MIN(               m1,       tre_two );
+  const double M7    = LBB_MAX(               M1,       tre_two );
+  const double m8    = LBB_MIN(               m1,       tre_thr );
+  const double M8    = LBB_MAX(               M1,       tre_thr );
+  const double m9    = LBB_MIN(               m2,       dos_two );
+  const double M9    = LBB_MAX(               M2,       dos_two );
+  const double m10   = LBB_MIN(               m2,       dos_thr );
+  const double M10   = LBB_MAX(               M2,       dos_thr );
+  const double min00 = LBB_MIN(               m7,       m3      );
+  const double max00 = LBB_MAX(               M7,       M3      );
+  const double min10 = LBB_MIN(               m8,       m4      );
+  const double max10 = LBB_MAX(               M8,       M4      );
+  const double min01 = LBB_MIN(               m9,       m5      );
+  const double max01 = LBB_MAX(               M9,       M5      );
+  const double min11 = LBB_MIN(              m10,       m6      );
+  const double max11 = LBB_MAX(              M10,       M6      );
+#else
   /*
    * Computation of the four min and four max over 3x3 input data
    * sub-blocks of the 4x4 input stencil, performed with only 28
-   * comparisons. If you can figure how to do this more efficiently,
-   * let us know.
+   * comparisons and 34 "? :". If you can figure how to do this more
+   * efficiently, let us know.
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
@@ -266,6 +328,8 @@ lbbicubic( const double c00,
   const double max10 = LBB_MAX(               M8,       M12     );
   const double min11 = LBB_MIN(               m9,       m13     );
   const double max11 = LBB_MAX(               M9,       M13     );
+#endif
+
   /*
    * The remainder of the "per channel" computation involves the
    * computation of:

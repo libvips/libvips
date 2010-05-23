@@ -75,6 +75,34 @@
  */
 
 /*
+ * Nohalo with LBB as finishing scheme has two versions, which are
+ * only different in the way LBB is implemented:
+ *
+ *   A "soft" version, which shows a little less staircasing and a
+ *   little more haloing, and which is a little more expensive to
+ *   compute. We recommend this as the default.
+ *
+ *   A "sharp" version, which shows a little more staircasing and a
+ *   little less haloing, and which is a little cheaper (it uses 6
+ *   less comparisons and 12 less "? :").
+ *
+ * The only difference between the two is that the "soft" versions
+ * uses local minima and maxima computed over 3x3 square blocks, and
+ * the "sharp" version uses local minima and maxima computed over 3x3
+ * crosses.
+ *
+ * The "sharp" version is (a little) faster. We don't know yet for
+ * sure, but it appears that the "soft" version gives marginally
+ * better results.
+ *
+ * If you want to use the "sharp" (cheaper) version, uncomment the
+ * following three pre-processor code lines:
+ */
+// #ifndef __NOHALO_CHEAP_H__
+// #define __NOHALO_CHEAP_H__
+// #endif
+
+/*
  * ================
  * NOHALO RESAMPLER
  * ================
@@ -705,6 +733,9 @@ nohalo_subdivision (const double           uno_two,
  * own 3x3 subgroup of the 4x4 stencil. Consequently, the surface is
  * necessarily above the minimum of the four minima, which happens to
  * be the minimum over the 4x4. Similarly with the maxima.)
+ *
+ * The above paragraph described the "soft" version of LBB. The
+ * "sharp" version is similar.
  */
 
 static inline double
@@ -764,6 +795,67 @@ lbbicubic( const double c00,
    * location.
    */
 
+#if defined (__NOHALO_CHEAP_H__)
+  /*
+   * Computation of the four min and four max over 3x3 input data
+   * sub-crosses of the 4x4 input stencil.
+   *
+   * We exploit the fact that the data comes from the (co-monotone)
+   * method Nohalo so that it is known ahead of time that
+   *
+   *  dos_thr is between dos_two and dos_fou
+   *
+   *  tre_two is between dos_two and qua_two
+   *
+   *  tre_fou is between dos_fou and qua_fou
+   *
+   *  qua_thr is between qua_two and qua_fou
+   *
+   *  tre_thr is in the convex hull of dos_two, dos_fou, qua_two and qua_fou
+   *
+   *  to minimize the number of flags and conditional moves.
+   *
+   * (The "between" are not strict: "a between b and c" means
+   *
+   * "min(b,c) <= a <= max(b,c)".)
+   *
+   * We have, however, succeeded in eliminating one flag computation
+   * (one comparison) and one use of an intermediate result. See the
+   * two commented out lines below.
+   *
+   * Overall, only 20 comparisons and 28 "? :" are needed (to compute
+   * 4 mins and 4 maxes). If you can figure how to do this more
+   * efficiently, let us know.
+   */
+  const double m1    = (uno_two <= tre_two) ? uno_two : tre_two  ;
+  const double M1    = (uno_two <= tre_two) ? tre_two : uno_two  ;
+  const double m2    = (dos_thr <= qua_thr) ? dos_thr : qua_thr  ;
+  const double M2    = (dos_thr <= qua_thr) ? qua_thr : dos_thr  ;
+  const double m3    = (dos_two <= dos_fou) ? dos_two : dos_fou  ;
+  const double M3    = (dos_two <= dos_fou) ? dos_fou : dos_two  ;
+  const double m4    = (uno_thr <= tre_thr) ? uno_thr : tre_thr  ;
+  const double M4    = (uno_thr <= tre_thr) ? tre_thr : uno_thr  ;
+  const double m5    = (dos_two <= qua_two) ? dos_two : qua_two  ;
+  const double M5    = (dos_two <= qua_two) ? qua_two : dos_two  ;
+  const double m6    = (tre_one <= tre_thr) ? tre_one : tre_thr  ;
+  const double M6    = (tre_one <= tre_thr) ? tre_thr : tre_one  ;
+  const double m7    = (dos_one <= dos_thr) ? dos_one : dos_thr  ;
+  const double M7    = (dos_one <= dos_thr) ? dos_thr : dos_one  ;
+  const double m8    = (tre_two <= tre_fou) ? tre_two : tre_fou  ;
+  const double M8    = (tre_two <= tre_fou) ? tre_fou : tre_two  ;
+  const double m9    = NOHALO_MIN(            m1,       dos_two );
+  const double M9    = NOHALO_MAX(            M1,       dos_two );
+  const double m10   = NOHALO_MIN(            m2,       tre_thr );
+  const double M10   = NOHALO_MAX(            M2,       tre_thr );
+  const double min10 = NOHALO_MIN(            m3,       m4      );
+  const double max10 = NOHALO_MAX(            M3,       M4      );
+  const double min01 = NOHALO_MIN(            m5,       m6      );
+  const double max01 = NOHALO_MAX(            M5,       M6      );
+  const double min00 = NOHALO_MIN(            m9,       m7      );
+  const double max00 = NOHALO_MAX(            M9,       M7      );
+  const double min11 = NOHALO_MIN(           m10,       m8      );
+  const double max11 = NOHALO_MAX(           M10,       M8      );
+#else
   /*
    * Computation of the four min and four max over 3x3 input data
    * sub-blocks of the 4x4 input stencil.
@@ -795,8 +887,8 @@ lbbicubic( const double c00,
    *
    * Overall, only 27 comparisons are needed (to compute 4 mins and 4
    * maxes!). Without the simplification, 28 comparisons would be
-   * used. If you can figure how to do this more efficiently, let us
-   * know.
+   * used. Either way, the number of "? :" used is 34. If you can
+   * figure how to do this more efficiently, let us know.
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
@@ -843,6 +935,8 @@ lbbicubic( const double c00,
   const double max00 = NOHALO_MAX(            M8,       M10     );
   const double min10 = NOHALO_MIN(            m8,       m12     );
   const double max10 = NOHALO_MAX(            M8,       M12     );
+#endif
+
   /*
    * The remainder of the "per channel" computation involves the
    * computation of:
