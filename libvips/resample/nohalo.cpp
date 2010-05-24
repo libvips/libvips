@@ -287,7 +287,7 @@ typedef struct _VipsInterpolateNohaloClass {
  * consequently is not a direct substitute. The other Nohalo methods
  * should be modified so they use the above new minmod implementation.
  */
-#define MINMOD(a,b,a_times_a,a_times_b) \
+#define NOHALO_MINMOD(a,b,a_times_a,a_times_b) \
   ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
 
 #define NOHALO_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
@@ -503,63 +503,63 @@ nohalo_subdivision (const double           uno_two,
   /*
    * Minmod slopes and first level pixel values:
    */
-  const double dos_thr_y = MINMOD( d_dostre_thr, d_unodos_thr,
-                                   d_dostre_thr_sq,
-                                   d_unodos_times_dostre_thr );
-  const double tre_thr_y = MINMOD( d_dostre_thr, d_trequa_thr,
-                                   d_dostre_thr_sq,
-                                   d_dostre_times_trequa_thr );
+  const double dos_thr_y = NOHALO_MINMOD( d_dostre_thr, d_unodos_thr,
+                                          d_dostre_thr_sq,
+                                          d_unodos_times_dostre_thr );
+  const double tre_thr_y = NOHALO_MINMOD( d_dostre_thr, d_trequa_thr,
+                                          d_dostre_thr_sq,
+                                          d_dostre_times_trequa_thr );
 
   const double newval_uno_two =
     .5 * ( dos_thr + tre_thr )
     +
     .25 * ( dos_thr_y - tre_thr_y );
 
-  const double qua_thr_y = MINMOD( d_quacin_thr, d_trequa_thr,
-                                   d_quacin_thr_sq,
-                                   d_trequa_times_quacin_thr );
+  const double qua_thr_y = NOHALO_MINMOD( d_quacin_thr, d_trequa_thr,
+                                          d_quacin_thr_sq,
+                                          d_trequa_times_quacin_thr );
 
   const double newval_tre_two =
     .5 * ( tre_thr + qua_thr )
     +
     .25 * ( tre_thr_y - qua_thr_y );
 
-  const double tre_fou_y = MINMOD( d_dostre_fou, d_trequa_fou,
-                                   d_dostre_fou_sq,
-                                   d_dostre_times_trequa_fou );
-  const double qua_fou_y = MINMOD( d_quacin_fou, d_trequa_fou,
-                                   d_quacin_fou_sq,
-                                   d_trequa_times_quacin_fou );
+  const double tre_fou_y = NOHALO_MINMOD( d_dostre_fou, d_trequa_fou,
+                                          d_dostre_fou_sq,
+                                          d_dostre_times_trequa_fou );
+  const double qua_fou_y = NOHALO_MINMOD( d_quacin_fou, d_trequa_fou,
+                                          d_quacin_fou_sq,
+                                          d_trequa_times_quacin_fou );
 
   const double newval_tre_fou =
     .5 * ( tre_fou + qua_fou )
     +
     .25 * ( tre_fou_y - qua_fou_y );
 
-  const double dos_fou_y = MINMOD( d_dostre_fou, d_unodos_fou,
-                                   d_dostre_fou_sq,
-                                   d_unodos_times_dostre_fou );
+  const double dos_fou_y = NOHALO_MINMOD( d_dostre_fou, d_unodos_fou,
+                                          d_dostre_fou_sq,
+                                          d_unodos_times_dostre_fou );
 
   const double newval_uno_fou =
      .5 * ( dos_fou + tre_fou )
      +
      .25 * (dos_fou_y - tre_fou_y );
 
-  const double tre_two_x = MINMOD( d_tre_twothr, d_tre_onetwo,
-                                   d_tre_twothr_sq,
-                                   d_tre_onetwo_times_twothr );
-  const double tre_thr_x = MINMOD( d_tre_twothr, d_tre_thrfou,
-                                   d_tre_twothr_sq,
-                                   d_tre_twothr_times_thrfou );
+  const double tre_two_x = NOHALO_MINMOD( d_tre_twothr, d_tre_onetwo,
+                                          d_tre_twothr_sq,
+                                          d_tre_onetwo_times_twothr );
+  const double tre_thr_x = NOHALO_MINMOD( d_tre_twothr, d_tre_thrfou,
+                                          d_tre_twothr_sq,
+                                          d_tre_twothr_times_thrfou );
 
   const double newval_dos_one =
     .5 * ( tre_two + tre_thr )
     +
     .25 * ( tre_two_x - tre_thr_x );
 
-  const double tre_fou_x = MINMOD( d_tre_foufiv, d_tre_thrfou,
-                                   d_tre_foufiv_sq,
-                                   d_tre_thrfou_times_foufiv );
+  const double tre_fou_x = NOHALO_MINMOD( d_tre_foufiv, d_tre_thrfou,
+                                          d_tre_foufiv_sq,
+                                          d_tre_thrfou_times_foufiv );
 
   const double tre_thr_x_minus_tre_fou_x =
     tre_thr_x - tre_fou_x;
@@ -569,12 +569,12 @@ nohalo_subdivision (const double           uno_two,
     +
     .25 * tre_thr_x_minus_tre_fou_x;
 
-  const double qua_thr_x = MINMOD( d_qua_twothr, d_qua_thrfou,
-                                   d_qua_twothr_sq,
-                                   d_qua_twothr_times_thrfou );
-  const double qua_fou_x = MINMOD( d_qua_foufiv, d_qua_thrfou,
-                                   d_qua_foufiv_sq,
-                                   d_qua_thrfou_times_foufiv );
+  const double qua_thr_x = NOHALO_MINMOD( d_qua_twothr, d_qua_thrfou,
+                                          d_qua_twothr_sq,
+                                          d_qua_twothr_times_thrfou );
+  const double qua_fou_x = NOHALO_MINMOD( d_qua_foufiv, d_qua_thrfou,
+                                          d_qua_foufiv_sq,
+                                          d_qua_thrfou_times_foufiv );
 
   const double qua_thr_x_minus_qua_fou_x =
     qua_thr_x - qua_fou_x;
@@ -584,9 +584,9 @@ nohalo_subdivision (const double           uno_two,
     +
     .25 * qua_thr_x_minus_qua_fou_x;
 
-  const double qua_two_x = MINMOD( d_qua_twothr, d_qua_onetwo,
-                                   d_qua_twothr_sq,
-                                   d_qua_onetwo_times_twothr );
+  const double qua_two_x = NOHALO_MINMOD( d_qua_twothr, d_qua_onetwo,
+                                          d_qua_twothr_sq,
+                                          d_qua_onetwo_times_twothr );
 
   const double newval_qua_one =
     .5 * ( qua_two + qua_thr )
@@ -598,12 +598,12 @@ nohalo_subdivision (const double           uno_two,
     +
     .5 * ( newval_tre_two + newval_tre_fou );
 
-  const double dos_thr_x = MINMOD( d_dos_twothr, d_dos_thrfou,
-                                   d_dos_twothr_sq,
-                                   d_dos_twothr_times_thrfou );
-  const double dos_fou_x = MINMOD( d_dos_foufiv, d_dos_thrfou,
-                                   d_dos_foufiv_sq,
-                                   d_dos_thrfou_times_foufiv );
+  const double dos_thr_x = NOHALO_MINMOD( d_dos_twothr, d_dos_thrfou,
+                                          d_dos_twothr_sq,
+                                          d_dos_twothr_times_thrfou );
+  const double dos_fou_x = NOHALO_MINMOD( d_dos_foufiv, d_dos_thrfou,
+                                          d_dos_foufiv_sq,
+                                          d_dos_thrfou_times_foufiv );
 
   const double newval_uno_thr =
     .25 * ( dos_fou - tre_thr )
@@ -612,12 +612,12 @@ nohalo_subdivision (const double           uno_two,
     +
     .5 * ( newval_uno_two + newval_dos_thr );
 
-  const double tre_two_y = MINMOD( d_dostre_two, d_trequa_two,
-                                   d_dostre_two_sq,
-                                   d_dostre_times_trequa_two );
-  const double qua_two_y = MINMOD( d_quacin_two, d_trequa_two,
-                                   d_quacin_two_sq,
-                                   d_trequa_times_quacin_two );
+  const double tre_two_y = NOHALO_MINMOD( d_dostre_two, d_trequa_two,
+                                          d_dostre_two_sq,
+                                          d_dostre_times_trequa_two );
+  const double qua_two_y = NOHALO_MINMOD( d_quacin_two, d_trequa_two,
+                                          d_quacin_two_sq,
+                                          d_trequa_times_quacin_two );
 
   const double newval_tre_one =
     .25 * ( qua_two - tre_thr )
@@ -626,13 +626,13 @@ nohalo_subdivision (const double           uno_two,
     +
     .5 * ( newval_dos_one + newval_tre_two );
 
-  const double dos_two_x = MINMOD( d_dos_twothr, d_dos_onetwo,
-                                   d_dos_twothr_sq,
-                                   d_dos_onetwo_times_twothr );
+  const double dos_two_x = NOHALO_MINMOD( d_dos_twothr, d_dos_onetwo,
+                                          d_dos_twothr_sq,
+                                          d_dos_onetwo_times_twothr );
 
-  const double dos_two_y = MINMOD( d_dostre_two, d_unodos_two,
-                                   d_dostre_two_sq,
-                                   d_unodos_times_dostre_two );
+  const double dos_two_y = NOHALO_MINMOD( d_dostre_two, d_unodos_two,
+                                          d_dostre_two_sq,
+                                          d_unodos_times_dostre_two );
 
   const double newval_uno_one =
     .25 * ( dos_two + dos_thr + tre_two + tre_thr )
