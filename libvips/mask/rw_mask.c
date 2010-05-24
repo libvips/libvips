@@ -411,7 +411,7 @@ im_read_imask( const char *maskfile )
 
 	for( i = 0; i < dmask->xsize * dmask->ysize; i++ ) 
 		if( ceil( dmask->coeff[i] ) != dmask->coeff[i] ) {
-			im_error( "im_read_imask", _( "cofficient at "
+			im_error( "im_read_imask", _( "ceofficient at "
 				"position (%d, %d) is not int" ), 
 				i % dmask->xsize,
 				i / dmask->xsize );

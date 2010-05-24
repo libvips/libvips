@@ -80,8 +80,7 @@ im_cntlines( IMAGE *im, double *nolines, int flag )
 	}
 	if( flag != 0 && flag != 1 ) {
 		im_error( "im_cntlines", "%s", 
-			_( "flag should be 0 (horizontal)  )"
-			"or 1 (vertical)" ) );
+			_( "flag should be 0 (horizontal) or 1 (vertical)" ) );
 		return( -1 ); 
 	}
 

@@ -61,6 +61,10 @@
 #include <vips/thread.h>
 #include <vips/debug.h>
 
+#ifdef OS_WIN32
+#include <windows.h>
+#endif /*OS_WIN32*/
+
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/

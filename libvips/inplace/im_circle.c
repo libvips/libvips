@@ -90,7 +90,7 @@ im_circle( IMAGE *im, int cx, int cy, int radius, int intensity )
 	if ( ((radius+cy)> im->Ysize - 1) || ((cy-radius)< 0 ) ||
 	     ((radius+cx)> im->Xsize - 1) || ((cx-radius) < 0 )   )
 		{
-		im_error( "im_circle", "%s", _( "The circle doesnot fit in image") );
+		im_error( "im_circle", "%s", _( "The circle does not fit in image") );
 		return(-1);
 		}
 /* Draw the circle */

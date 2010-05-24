@@ -197,7 +197,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
         [The prefix for our gettext translation domains.])
 # the 'malkovich' one is there for testing only
 # ALL_LINGUAS="en_GB malkovich"
-ALL_LINGUAS="en_GB"
+ALL_LINGUAS="en_GB de"
 AM_GLIB_GNU_GETTEXT
 
 # C++ fails to compile mysteriously without gettext ... fail here

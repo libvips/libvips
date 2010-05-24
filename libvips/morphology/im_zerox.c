@@ -135,7 +135,7 @@ im_zerox( IMAGE *in, IMAGE *out, int flag )
 	if( !t1 )
 		return( -1 );
 	if( flag != -1 && flag != 1 ) {
-		im_error( "im_zerox", "%s", _( "flag not -1 ot 1" ) );
+		im_error( "im_zerox", "%s", _( "flag not -1 or 1" ) );
 		return( -1 );
 	}
         if( im_piocheck( in, t1 ) )
