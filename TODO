@@ -1,3 +1,13 @@
+- change all colour -> color in messages
+
+  remember to update the german po file for string changes
+
+  update the en_GB po 
+
+  test, and test de as well
+
+
+
 - int bicubic needs more precision? try a 10x upscale and compare to the
   double path
 
