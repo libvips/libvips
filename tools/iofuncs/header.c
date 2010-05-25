@@ -71,6 +71,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <locale.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -164,6 +165,8 @@ main( int argc, char *argv[] )
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( "unable to start VIPS" );
+	textdomain( GETTEXT_PACKAGE );
+	setlocale( LC_ALL, "" );
 
         context = g_option_context_new( _( "- print image header" ) );
 

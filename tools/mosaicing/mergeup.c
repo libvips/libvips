@@ -59,6 +59,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <fcntl.h>
+#include <locale.h>
 
 #include <vips/vips.h>
 
@@ -471,6 +472,8 @@ char **argv;
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( "unable to start VIPS" );
+	textdomain( GETTEXT_PACKAGE );
+	setlocale( LC_ALL, "" );
 
 	/* Too many?
 	 */

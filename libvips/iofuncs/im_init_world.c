@@ -194,10 +194,7 @@ im_init_world( const char *argv0 )
 	/* Get i18n .mo files from $VIPSHOME/share/locale/.
 	 */
 	im_snprintf( name, 256,
-			/*
 		"%s" G_DIR_SEPARATOR_S "share" G_DIR_SEPARATOR_S "locale",
-		 	 */
-		"%s" G_DIR_SEPARATOR_S "share",
 		prefix );
 	bindtextdomain( GETTEXT_PACKAGE, name );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );

@@ -41,6 +41,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 
 #include <vips/vips.h>
 
@@ -52,6 +53,8 @@ main( int argc, char **argv )
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( "unable to start VIPS" );
+	textdomain( GETTEXT_PACKAGE );
+	setlocale( LC_ALL, "" );
 
 	if (argc != 9)
 		error_exit("Usage:\n\

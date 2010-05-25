@@ -26,6 +26,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <locale.h>
 
 #include <vips/vips.h>
 
@@ -432,7 +433,10 @@ main( int argc, char **argv )
 	GError *error = NULL;
 	int i;
 
-	im_init_world( argv[0] );
+	if( im_init_world( argv[0] ) )
+	        error_exit( "unable to start VIPS" );
+	textdomain( GETTEXT_PACKAGE );
+	setlocale( LC_ALL, "" );
 
         context = g_option_context_new( _( "- thumbnail generator" ) );
 

@@ -55,6 +55,7 @@ Copyright K.Martinez 30/6/93
 #include <ctype.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <locale.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -121,6 +122,8 @@ main( int argc, char **argv )
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( "%s", _( "unable to start VIPS" ) );
+	textdomain( GETTEXT_PACKAGE );
+	setlocale( LC_ALL, "" );
 
 	context = g_option_context_new( 
 		_( "vipsfile - edit vipsfile header" ) );

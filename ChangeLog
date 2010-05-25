@@ -5,6 +5,7 @@
 - fixes to --disable-cxx mode (thanks Mike)
 - added German translation, thanks Chris Leick
 - fixed typos in some messages, thanks Chris Leick
+- fix gettext startup
 
 21/3/10 started 7.21.3
 - added progress feedback to threadpool

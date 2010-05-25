@@ -45,6 +45,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <locale.h>
 
 #include <vips/vips.h>
 
@@ -56,6 +57,8 @@ main( int argc, char *argv[] )
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( "unable to start VIPS" );
+	textdomain( GETTEXT_PACKAGE );
+	setlocale( LC_ALL, "" );
 
 	if( argc != 2 )
 		error_exit( "usage: %s matrix_image", argv[0] );

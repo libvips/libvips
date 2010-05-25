@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <locale.h>
 
 #include <vips/vips.h>
 
@@ -59,6 +60,8 @@ argv[0]);
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( "unable to start VIPS" );
+	textdomain( GETTEXT_PACKAGE );
+	setlocale( LC_ALL, "" );
 
 	xpos = atoi(argv[3]);
 	ypos = atoi(argv[4]);
