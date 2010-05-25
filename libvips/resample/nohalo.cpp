@@ -208,6 +208,20 @@
  * subdivision is zero in the interior of the region, and consequently
  * Nohalo subdivision boils down to bilinear. For such images, LBB is
  * probably a better choice.
+ *
+ * =========================
+ * Bibliographical reference
+ * =========================
+ *
+ * For more information about Nohalo (a prototype version with
+ * bilinear finish instead of LBB), see
+ *
+ * CPU, SMP and GPU implementations of Nohalo level 1, a fast
+ * co-convex antialiasing image resampler by Nicolas Robidoux, Minglun
+ * Gong, John Cupitt, Adam Turcotte, and Kirk Martinez, in C3S2E '09:
+ * Proceedings of the 2nd Canadian Conference on Computer Science and
+ * Software Engineering, p. 185--195, ACM, New York, NY, USA, 2009.
+ * http://doi.acm.org/10.1145/1557626.1557657.
  */
 
 #ifdef HAVE_CONFIG_H
