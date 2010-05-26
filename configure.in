@@ -10,9 +10,9 @@ m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
-IM_MAJOR_VERSION=vips_major_version()
-IM_MINOR_VERSION=vips_minor_version()
-IM_MICRO_VERSION=vips_micro_version()
+IM_MAJOR_VERSION=vips_major_version
+IM_MINOR_VERSION=vips_minor_version
+IM_MICRO_VERSION=vips_micro_version
 IM_VERSION=vips_version()
 IM_VERSION_STRING=$IM_VERSION-`date`
 
@@ -191,12 +191,12 @@ AC_DEFINE_UNQUOTED(IM_PREFIX,"$prefix",[configure-time install prefix])
 AC_DEFINE_UNQUOTED(IM_LIBDIR,"$IM_LIBDIR",[configure-time library directory])
 
 # i18n
-GETTEXT_PACKAGE=vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION
+GETTEXT_PACKAGE=vips7
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
         [The prefix for our gettext translation domains.])
-# the 'malkovich' one is there for testing only
-# ALL_LINGUAS="en_GB malkovich"
+# the 'malkovich' one is there for testing only, remove for release
+#ALL_LINGUAS="en_GB de malkovich"
 ALL_LINGUAS="en_GB de"
 AM_GLIB_GNU_GETTEXT
 

@@ -354,12 +354,12 @@ msgstr "RGB-Eingabeprofil benötigt ein Eingabebild mit drei Bändern"
 
 #: libvips/colour/im_icc_transform.c:474 libvips/colour/im_icc_transform.c:604
 #, c-format
-msgid "unimplemented input colour space 0x%x"
+msgid "unimplemented input color space 0x%x"
 msgstr "nicht implementierter Eingabefarbraum 0x%x"
 
 #: libvips/colour/im_icc_transform.c:501 libvips/colour/im_icc_transform.c:814
 #, c-format
-msgid "unimplemented output colour space 0x%x"
+msgid "unimplemented output color space 0x%x"
 msgstr "nicht implementierter Ausgabefarbraum 0x%x"
 
 #: libvips/colour/im_icc_transform.c:517 libvips/colour/im_icc_transform.c:620
@@ -1210,7 +1210,7 @@ msgid "error reading XML: %s"
 msgstr "Fehler beim Lesen von XML: %s"
 
 #: libvips/format/im_png2vips.c:258
-msgid "unsupported colour type"
+msgid "unsupported color type"
 msgstr "nicht unterstützter Farbtyp"
 
 #: libvips/format/im_png2vips.c:386

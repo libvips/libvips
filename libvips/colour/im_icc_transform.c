@@ -462,7 +462,7 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 
 	default:
 		im_error( "im_icc_transform", 
-			_( "unimplemented input colour space 0x%x" ), 
+			_( "unimplemented input color space 0x%x" ), 
 			cmsGetColorSpace( icc->in_profile ) );
 		return( -1 );
 	}
@@ -489,7 +489,7 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 
 	default:
 		im_error( "im_icc_transform", 
-			_( "unimplemented output colour space 0x%x" ), 
+			_( "unimplemented output color space 0x%x" ), 
 			cmsGetColorSpace( icc->out_profile ) );
 		return( -1 );
 	}
@@ -592,7 +592,7 @@ icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 		break;
 
 	default:
-		im_error( "im_icc_import", _( "unimplemented input colour "
+		im_error( "im_icc_import", _( "unimplemented input color "
 			"space 0x%x" ), cmsGetColorSpace( icc->in_profile ) );
 		return( -1 );
 	}
@@ -802,7 +802,7 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 		break;
 
 	default:
-		im_error( "im_icc_export", _( "unimplemented output colour "
+		im_error( "im_icc_export", _( "unimplemented output color "
 			"space 0x%x" ), cmsGetColorSpace( icc->out_profile ) );
 		return( -1 );
 	}
