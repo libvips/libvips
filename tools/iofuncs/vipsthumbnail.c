@@ -15,6 +15,8 @@
  * 13/5/10
  * 	- oops hehe residual sharpen test was reversed
  * 	- and the mask coefficients were messed up
+ * 26/5/10
+ * 	- delete failed if there was a profile
  */
 
 #ifdef HAVE_CONFIG_H
@@ -283,7 +285,11 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		if( verbose )
 			printf( "deleting profile from output image\n" );
 
-		if( im_meta_remove( x, IM_META_ICC_NAME ) )
+		/* Only try to remove if it exists to avoid extra error
+		 * messages.
+		 */
+		if( im_meta_get_typeof( x, IM_META_ICC_NAME ) &&
+			!im_meta_remove( x, IM_META_ICC_NAME ) )
 			return( -1 );
 	}
 

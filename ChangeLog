@@ -8,6 +8,7 @@
 - fix gettext startup
 - all "colour" in messages changed to "color", have a proper en_GB 
   translation file
+- vipsthumbnail delete profile failed if there was a profile
 
 21/3/10 started 7.21.3
 - added progress feedback to threadpool
