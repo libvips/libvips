@@ -1,6 +1,14 @@
 
+- tools subdirs are now pretty stupid :-( just have a single dir
+
 - int bicubic needs more precision? try a 10x upscale and compare to the
   double path
+
+  yes, looks like a rounding problem? 
+  
+  upscale 10x, you get a small offset if you compare the double and int paths
+
+  and slight banding
 
 - test
 
