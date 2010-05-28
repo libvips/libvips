@@ -96,7 +96,7 @@ int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );
 /* How many bits of precision we keep for transformations, ie. how many
  * pre-computed matricies we have.
  */
-#define VIPS_TRANSFORM_SHIFT (5)
+#define VIPS_TRANSFORM_SHIFT (2)
 #define VIPS_TRANSFORM_SCALE (1 << VIPS_TRANSFORM_SHIFT)
 
 /* How many bits of precision we keep for interpolation, ie. where the decimal

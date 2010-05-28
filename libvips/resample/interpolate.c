@@ -305,21 +305,20 @@ vips_interpolate_nearest_static( void )
 	VIPS_TYPE_INTERPOLATE_BILINEAR, VipsInterpolateBilinearClass ))
 
 typedef VipsInterpolate VipsInterpolateBilinear;
-
-typedef struct _VipsInterpolateBilinearClass {
-	VipsInterpolateClass parent_class;
-
-	/* Precalculated interpolation matricies. int (used for pel sizes up
-	 * to short), and float (for all others). We go to scale + 1, so
-	 * we can round-to-nearest safely. Don't bother with double, since
-	 * this is an approximation anyway.
- 	 */
-	int matrixi[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
-	float matrixd[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
-} VipsInterpolateBilinearClass;
+typedef VipsInterpolateClass VipsInterpolateBilinearClass;
 
 G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	VIPS_TYPE_INTERPOLATE );
+
+/* Precalculated interpolation matricies. int (used for pel sizes up
+ * to short), and float (for all others). We go to scale + 1 so
+ * we can round-to-nearest safely. Don't bother with double, since
+ * this is an approximation anyway.
+ */
+static int vips_bilinear_matrixi
+	[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
+static float vips_bilinear_matrixd
+	[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
 
 /* in this class, name vars in the 2x2 grid as eg.
  * p1  p2
@@ -331,10 +330,10 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 #define BILINEAR_INT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
  	\
-	const int c1 = class->matrixi[xi][yi][0]; \
-	const int c2 = class->matrixi[xi][yi][1]; \
-	const int c3 = class->matrixi[xi][yi][2]; \
-	const int c4 = class->matrixi[xi][yi][3]; \
+	const int c1 = vips_bilinear_matrixi[xi][yi][0]; \
+	const int c2 = vips_bilinear_matrixi[xi][yi][1]; \
+	const int c3 = vips_bilinear_matrixi[xi][yi][2]; \
+	const int c4 = vips_bilinear_matrixi[xi][yi][3]; \
  	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
@@ -351,10 +350,10 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 #define BILINEAR_FLOAT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
  	\
-	const double c1 = class->matrixd[xi][yi][0]; \
-	const double c2 = class->matrixd[xi][yi][1]; \
-	const double c3 = class->matrixd[xi][yi][2]; \
-	const double c4 = class->matrixd[xi][yi][3]; \
+	const double c1 = vips_bilinear_matrixd[xi][yi][0]; \
+	const double c2 = vips_bilinear_matrixd[xi][yi][1]; \
+	const double c3 = vips_bilinear_matrixd[xi][yi][2]; \
+	const double c4 = vips_bilinear_matrixd[xi][yi][3]; \
 	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
@@ -388,9 +387,6 @@ static void
 vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y )
 {
-	VipsInterpolateBilinearClass *class =
-		VIPS_INTERPOLATE_BILINEAR_GET_CLASS( interpolate );
-
 	/* Pel size and line size.
 	 */
 	const int ps = IM_IMAGE_SIZEOF_PEL( in->im );
@@ -401,8 +397,11 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	 */
 	const double sx = x * VIPS_TRANSFORM_SCALE;
 	const double sy = y * VIPS_TRANSFORM_SCALE;
-	const int sxi = FAST_PSEUDO_FLOOR( sx );
-	const int syi = FAST_PSEUDO_FLOOR( sy );
+
+	/* We know sx/sy are always positive so we can just (int) them. 
+	 */
+	const int sxi = (int) sx;
+	const int syi = (int) sy;
 
 	/* Get index into interpolation table and unscaled integer
 	 * position.
@@ -459,15 +458,19 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 			c3 = Xd * Y;
 			c4 = X * Y;
 
-			class->matrixd[x][y][0] = c1;
-			class->matrixd[x][y][1] = c2;
-			class->matrixd[x][y][2] = c3;
-			class->matrixd[x][y][3] = c4;
+			vips_bilinear_matrixd[x][y][0] = c1;
+			vips_bilinear_matrixd[x][y][1] = c2;
+			vips_bilinear_matrixd[x][y][2] = c3;
+			vips_bilinear_matrixd[x][y][3] = c4;
 
-			class->matrixi[x][y][0] = c1 * VIPS_INTERPOLATE_SCALE;
-			class->matrixi[x][y][1] = c2 * VIPS_INTERPOLATE_SCALE;
-			class->matrixi[x][y][2] = c3 * VIPS_INTERPOLATE_SCALE;
-			class->matrixi[x][y][3] = c4 * VIPS_INTERPOLATE_SCALE;
+			vips_bilinear_matrixi[x][y][0] = 
+				c1 * VIPS_INTERPOLATE_SCALE;
+			vips_bilinear_matrixi[x][y][1] = 
+				c2 * VIPS_INTERPOLATE_SCALE;
+			vips_bilinear_matrixi[x][y][2] = 
+				c3 * VIPS_INTERPOLATE_SCALE;
+			vips_bilinear_matrixi[x][y][3] = 
+				c4 * VIPS_INTERPOLATE_SCALE;
 		}
 }
 

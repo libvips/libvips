@@ -61,22 +61,6 @@
         ( (ab)>=0. ? ( (abminusaa)>=0. ? (a) : (b) ) : 0. )
 
 /*
- * Comment from Nicolas: I don't understand why the following restrict
- * defs cannot be offloaded to config files.
- */
-#ifndef restrict
-#ifdef __restrict
-#define restrict __restrict
-#else
-#ifdef __restrict__
-#define restrict __restrict__
-#else
-#define restrict
-#endif
-#endif
-#endif
-
-/*
  * Various casts which assume that the data is already in range. (That
  * is, they are to be used with monotone samplers.)
  */

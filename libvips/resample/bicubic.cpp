@@ -68,26 +68,21 @@
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_INTERPOLATE_BICUBIC, VipsInterpolateBicubicClass ))
 
-typedef struct _VipsInterpolateBicubic {
-	VipsInterpolate parent_object;
+typedef VipsInterpolate VipsInterpolateBicubic;
 
-} VipsInterpolateBicubic;
+typedef VipsInterpolateClass VipsInterpolateBicubicClass;
 
-typedef struct _VipsInterpolateBicubicClass {
-	VipsInterpolateClass parent_class;
+/* Precalculated interpolation matrices. int (used for pel
+ * sizes up to short), and double (for all others). We go to
+ * scale + 1 so we can round-to-nearest safely.
+ */
 
-	/* Precalculated interpolation matrices. int (used for pel
-	 * sizes up to short), and double (for all others). We go to
-	 * scale + 1, so we can round-to-nearest safely.
-	 */
-
-	/* We could keep a large set of 2d 4x4 matricies, but this actually
-	 * works out slower, since for many resizes the thing will no longer
-	 * fit in L1.
-	 */
-	int matrixi[VIPS_TRANSFORM_SCALE + 1][4];
-	double matrixf[VIPS_TRANSFORM_SCALE + 1][4];
-} VipsInterpolateBicubicClass;
+/* We could keep a large set of 2d 4x4 matricies, but this actually
+ * works out slower since for many resizes the thing will no longer
+ * fit in L1.
+ */
+static int vips_bicubic_matrixi[VIPS_TRANSFORM_SCALE + 1][4];
+static double vips_bicubic_matrixf[VIPS_TRANSFORM_SCALE + 1][4];
 
 /* We need C linkage for this.
  */
@@ -307,15 +302,15 @@ static void
 vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y )
 {
-	VipsInterpolateBicubicClass *bicubic_class =
-		VIPS_INTERPOLATE_BICUBIC_GET_CLASS( interpolate );
-
 	/* Scaled int.
 	 */
 	const double sx = x * VIPS_TRANSFORM_SCALE;
 	const double sy = y * VIPS_TRANSFORM_SCALE;
-	const int sxi = FAST_PSEUDO_FLOOR( sx );
-	const int syi = FAST_PSEUDO_FLOOR( sy );
+
+	/* We know sx/sy are always positive, so we can just (int) them. 
+	 */
+	const int sxi = (int) sx;
+	const int syi = (int) sy;
 
 	/* Get index into interpolation table and unscaled integer
 	 * position.
@@ -327,10 +322,10 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 
 	/* Look up the tables we need.
 	 */
-	const int *cxi = bicubic_class->matrixi[tx];
-	const int *cyi = bicubic_class->matrixi[ty];
-	const double *cxf = bicubic_class->matrixf[tx];
-	const double *cyf = bicubic_class->matrixf[ty];
+	const int *cxi = vips_bicubic_matrixi[tx];
+	const int *cyi = vips_bicubic_matrixi[ty];
+	const double *cxf = vips_bicubic_matrixf[tx];
+	const double *cyf = vips_bicubic_matrixf[ty];
 
 	/* Back and up one to get the top-left of the 4x4.
 	 */
@@ -345,6 +340,7 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	printf( "vips_interpolate_bicubic_interpolate: %g %g\n", x, y );
 	printf( "\tleft=%d, top=%d, width=%d, height=%d\n",
 		ix - 1, iy - 1, 4, 4 );
+	printf( "\tmaskx=%d, masky=%d\n", tx, ty );
 #endif /*DEBUG*/
 
 	switch( in->im->BandFmt ) {
@@ -442,11 +438,12 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
 		calculate_coefficients_catmull(
 			(float) x / VIPS_TRANSFORM_SCALE,
-			iclass->matrixf[x] );
+			vips_bicubic_matrixf[x] );
 
 		for( int i = 0; i < 4; i++ )
-			iclass->matrixi[x][i] =
-				iclass->matrixf[x][i] * VIPS_INTERPOLATE_SCALE;
+			vips_bicubic_matrixi[x][i] =
+				vips_bicubic_matrixf[x][i] * 
+				VIPS_INTERPOLATE_SCALE;
 	}
 }
 
