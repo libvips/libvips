@@ -2737,24 +2737,16 @@ msgstr ""
 msgid "Need more than one image"
 msgstr ""
 
+#: ../libvips/resample/lbb.cpp:871
+msgid "Reduced halo bicubic"
+msgstr ""
+
 #: ../libvips/resample/nohalo.cpp:1578
 msgid "Edge sharpening resampler with halo reduction"
 msgstr ""
 
-#: ../libvips/resample/snohalo.cpp:1097
-msgid "Nohalo with antialiasing blur"
-msgstr ""
-
-#: ../libvips/resample/snohalo.cpp:1109
-msgid "Blur"
-msgstr ""
-
-#: ../libvips/resample/snohalo.cpp:1110
-msgid "Antialiasing (diagonal straightening) blur amount"
-msgstr ""
-
-#: ../libvips/resample/lbb.cpp:871
-msgid "Reduced halo bicubic"
+#: ../libvips/resample/vsqbs.cpp:418
+msgid "B-Splines with antialiasing smoothing"
 msgstr ""
 
 #: ../libvips/resample/bicubic.cpp:430
