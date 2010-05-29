@@ -1,7 +1,8 @@
 /* vertex split subdivision followed by quadratic b-spline smoothing
  *
- * C. Racette 23-28/05/2010
+ * C. Racette 23-28/05/2010 based on code by N. Robidoux and J. Cupitt
  *
+ * N. Robidoux 29/05/2010
  */
 
 /*
@@ -35,8 +36,8 @@
  * 2010 (c) Chantal Racette, Nicolas Robidoux, John Cupitt.
  *
  * Nicolas Robidoux thanks Adam Turcotte, Geert Jordaens, Ralf Meyer,
- * Øyvind Kolås, Minglun Gong, Eric Daoust and Sven Neumann for useful
- * comments and code.
+ * Øyvind Kolås, Minglun Gong and Eric Daoust for useful comments and
+ * code.
  *
  * Chantal Racette's image resampling research and programming funded
  * in part by a NSERC Discovery Grant awarded to Julien Dompierre
@@ -91,7 +92,7 @@ typedef struct _VipsInterpolateVsqbsClass {
  * sampling point is to the bottom right of dos_two.
  *
  * The following code and picture assumes that the stencil reflexion
- * has already been performed.
+ * has already been performed. (X is the sampling location.)
  *
  *
  *               (ix,iy-1)    (ix+1,iy-1)
@@ -108,10 +109,9 @@ typedef struct _VipsInterpolateVsqbsClass {
  *  = tre_one    = tre_two    = tre_thr
  *
  *
- * (X is the sampling location.)
- *
- * The above input pixel values are the ones needed in order to make
- * available the following values, needed by quadratic B-Splines:
+ * The above input pixel values are the ones needed in order to
+ * IMPLICITLY make available the following values, needed by quadratic
+ * B-Splines, which is performed on (shifted) double density data:
  *
  *
  *  uno_one_1 =      uno_two_1 =  uno_thr_1 =
@@ -218,46 +218,62 @@ vsqbs( const double fou_coef_uno_two,
     const double twiceysq = twicey * y; \
     const double fourysq  = twiceysq + twiceysq; \
     \
-    const double spline_end_x = twicexsq - twicex + .5; \
-    const double spline_mid_x = -fourxsq + twicex + .5; \
-    const double spline_beg_x = twicexsq; \
+    const double spl_end_x = twicexsq - twicex + .5; \
+    const double spl_mid_x = -fourxsq + twicex + .5; \
+    const double spl_beg_x = twicexsq; \
     \
-    const double spline_end_y = twiceysq - twicey + .5; \
-    const double spline_mid_y = -fourysq + twicey + .5; \
-    const double spline_beg_y = twiceysq; \
+    const double spl_end_y = twiceysq - twicey + .5; \
+    const double spl_mid_y = -fourysq + twicey + .5; \
+    const double spl_beg_y = twiceysq; \
     \
-    const double spline_end_x_end_y = spline_end_x * spline_end_y; \
-    const double spline_end_x_mid_y = spline_end_x * spline_mid_y; \
-    const double spline_end_x_beg_y = spline_end_x * spline_beg_y; \
+    const double spl_end_x_end_y = spl_end_x * spl_end_y; \
+    const double spl_end_x_mid_y = spl_end_x * spl_mid_y; \
+    const double spl_end_x_beg_y = spl_end_x * spl_beg_y; \
     \
-    const double spline_mid_x_end_y = spline_mid_x * spline_end_y; \
-    const double spline_mid_x_mid_y = spline_mid_x * spline_mid_y; \
-    const double spline_mid_x_beg_y = spline_mid_x * spline_beg_y; \
+    const double spl_mid_x_end_y = spl_mid_x * spl_end_y; \
+    const double spl_mid_x_mid_y = spl_mid_x * spl_mid_y; \
+    const double spl_mid_x_beg_y = spl_mid_x * spl_beg_y; \
     \
-    const double spline_beg_x_end_y = spline_beg_x * spline_end_y; \
-    const double spline_beg_x_mid_y = spline_beg_x * spline_mid_y; \
-    const double spline_beg_x_beg_y = spline_beg_x * spline_beg_y; \
+    const double spl_beg_x_end_y = spl_beg_x * spl_end_y; \
+    const double spl_beg_x_mid_y = spl_beg_x * spl_mid_y; \
+    const double spl_beg_x_beg_y = spl_beg_x * spl_beg_y; \
     \
     \
-    const double fou_coef_uno_two = spline_end_x_end_y + spline_mid_x_end_y; \
-    const double fou_coef_uno_thr = spline_beg_x_end_y; \
-    const double fou_coef_dos_one = spline_end_x_end_y + spline_end_x_mid_y; \
-    const double fou_coef_tre_one = spline_end_x_beg_y; \
+    const double fou_coef_uno_two = spl_end_x_end_y + spl_mid_x_end_y; \
+    const double fou_coef_uno_thr = spl_beg_x_end_y; \
+    const double fou_coef_dos_one = spl_end_x_end_y + spl_end_x_mid_y; \
+    const double fou_coef_tre_one = spl_end_x_beg_y; \
     \
-    const double spline_beg_x_mid_y_p_mid_x_beg_y = spline_beg_x_mid_y + spline_mid_x_beg_y; \
-    const double spline_end_x_mid_y_p_mid_x_mid_y = spline_end_x_mid_y + spline_mid_x_mid_y; \
-    const double spline_end_x_beg_y_p_mid_x_beg_y = spline_end_x_beg_y + spline_mid_x_beg_y; \
-    const double spline_beg_x_end_y_p_beg_x_mid_y = spline_beg_x_end_y + spline_beg_x_mid_y; \
+    const double spl_beg_x_mid_y_p_mid_x_beg_y = \
+      spl_beg_x_mid_y + spl_mid_x_beg_y;         \
+    const double spl_end_x_mid_y_p_mid_x_mid_y = \
+      spl_end_x_mid_y + spl_mid_x_mid_y;         \
+    const double spl_end_x_beg_y_p_mid_x_beg_y = \
+      spl_end_x_beg_y + spl_mid_x_beg_y;         \
+    const double spl_beg_x_end_y_p_beg_x_mid_y = \
+      spl_beg_x_end_y + spl_beg_x_mid_y;         \
     \
-    const double fou_coef_tre_thr = spline_beg_x_mid_y_p_mid_x_beg_y + \
-      spline_beg_x_beg_y + spline_beg_x_beg_y; \
-    const double fou_coef_tre_two = spline_end_x_mid_y_p_mid_x_mid_y + \
-      spline_end_x_beg_y_p_mid_x_beg_y + spline_end_x_beg_y_p_mid_x_beg_y + spline_beg_x_beg_y; \
-    const double fou_coef_dos_thr = spline_beg_x_end_y_p_beg_x_mid_y + \
-      spline_beg_x_end_y_p_beg_x_mid_y + spline_mid_x_end_y + spline_mid_x_mid_y + spline_beg_x_beg_y; \
-    const double fou_coef_dos_two = fou_coef_uno_two + fou_coef_uno_two + \
-      spline_beg_x_end_y_p_beg_x_mid_y + spline_end_x_mid_y_p_mid_x_mid_y + \
-      spline_end_x_mid_y_p_mid_x_mid_y + spline_end_x_beg_y_p_mid_x_beg_y; \
+    const double fou_coef_tre_thr =      \
+      spl_beg_x_mid_y_p_mid_x_beg_y +    \
+      spl_beg_x_beg_y + spl_beg_x_beg_y; \
+    const double fou_coef_tre_two =   \
+      spl_end_x_mid_y_p_mid_x_mid_y + \
+      spl_end_x_beg_y_p_mid_x_beg_y + \
+      spl_end_x_beg_y_p_mid_x_beg_y + \
+      spl_beg_x_beg_y;                \
+    const double fou_coef_dos_thr =   \
+      spl_beg_x_end_y_p_beg_x_mid_y + \
+      spl_beg_x_end_y_p_beg_x_mid_y + \
+      spl_mid_x_end_y +               \
+      spl_mid_x_mid_y +               \
+      spl_beg_x_beg_y;                \
+    const double fou_coef_dos_two =   \
+      fou_coef_uno_two +              \
+      fou_coef_uno_two +              \
+      spl_beg_x_end_y_p_beg_x_mid_y + \
+      spl_end_x_mid_y_p_mid_x_mid_y + \
+      spl_end_x_mid_y_p_mid_x_mid_y + \
+      spl_end_x_beg_y_p_mid_x_beg_y;  \
     \
     int band = bands; \
     \
@@ -298,7 +314,7 @@ VSQBS_CONVERSION( nosign )
 
 
 #define CALL( T, conversion )               \
-  vsqbs_ ## conversion<T>( out,          \
+  vsqbs_ ## conversion<T>( out,             \
                               p,            \
                               bands,        \
                               lskip,        \
@@ -317,10 +333,10 @@ extern "C" {
 
 static void
 vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
-                                       PEL*             restrict out,
-                                       REGION*          restrict in,
-                                       double                    absolute_x,
-                                       double                    absolute_y )
+                                    PEL*             restrict out,
+                                    REGION*          restrict in,
+                                    double                    absolute_x,
+                                    double                    absolute_y )
 {
   /*
    * Floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
@@ -407,8 +423,8 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
 static void
 vips_interpolate_vsqbs_class_init( VipsInterpolateVsqbsClass *klass )
 {
-  GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
-  VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
+  GObjectClass             *gobject_class =         G_OBJECT_CLASS( klass );
+  VipsObjectClass           *object_class =      VIPS_OBJECT_CLASS( klass );
   VipsInterpolateClass *interpolate_class = VIPS_INTERPOLATE_CLASS( klass );
 
   gobject_class->set_property = vips_object_set_property;
