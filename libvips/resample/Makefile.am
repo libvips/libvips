@@ -13,9 +13,9 @@ libresample_la_SOURCES = \
 	transform.c \
 	resample_dispatch.c \
 	bicubic.cpp \
-	nohalo.cpp \
 	lbb.cpp \
-	snohalo.cpp \
+	nohalo.cpp \
+	vsqbs.cpp \
 	templates.h 
 
 else
@@ -31,9 +31,9 @@ libresample_la_SOURCES = \
 
 EXTRA_DIST = \
 	bicubic.cpp \
-	nohalo.cpp \
 	lbb.cpp \
-	snohalo.cpp \
+	nohalo.cpp \
+	vsqbs.cpp \
 	templates.h 
 
 endif
