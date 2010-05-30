@@ -114,54 +114,26 @@ typedef struct _VipsInterpolateVsqbsClass {
  * B-Splines, which is performed on (shifted) double density data:
  *
  *
- *  uno_one_1 =      uno_two_1 =  uno_thr_1 =
- *  (ix-1/2,iy-1/2)  (ix,iy-1/2)  (ix+1/2,iy-1/2)
- *
- *
- *                 X
- *
- *  dos_one_1 =      dos_two_1 =  dos_thr_1 =
- *  (ix-1/2,iy)      (ix,iy)      (ix+1/2,iy)
+ *  uno_one_1 =      uno_two_1 =      uno_thr_1 =
+ *  (ix-1/4,iy-1/4)  (ix+1/4,iy-1/4)  (ix+3/4,iy-1/4)
  *
  *
  *
+ *                 X            or X
+ *  dos_one_1 =      dos_two_1 =      dos_thr_1 =
+ *  (ix-1/4,iy+1/4)  (ix+1/4,iy+1/4)  (ix+3/4,iy+1/4)
+ *              or X            or X
  *
- *  tre_one_1 =      tre_two_1 =  tre_thr_1 =
- *  (ix-1/2,iy+1/2)  (ix,iy+1/2)  (ix+1/2,iy+1/2)
  *
+ *
+ *  tre_one_1 =      tre_two_1 =      tre_thr_1 =
+ *  (ix-1/4,iy+3/4)  (ix+1/4,iy+3/4)  (ix+3/4,iy+3/4)
+ *
+ *
+ * In the coefficient computations, we fix things so that coordinates
+ * are relative to dos_two_1, and so that distances are rescaled so
+ * that double density pixel locations are at a distance of 1.
  */
-
-static inline double
-vsqbs( const double fou_coef_uno_two,
-       const double fou_coef_uno_thr,
-       const double fou_coef_dos_one,
-       const double fou_coef_dos_two,
-       const double fou_coef_dos_thr,
-       const double fou_coef_tre_one,
-       const double fou_coef_tre_two,
-       const double fou_coef_tre_thr,
-       const double uno_two,
-       const double uno_thr,
-       const double dos_one,
-       const double dos_two,
-       const double dos_thr,
-       const double tre_one,
-       const double tre_two,
-       const double tre_thr )
-{
-  const double newval = (
-                          fou_coef_uno_two * uno_two +
-                          fou_coef_uno_thr * uno_thr +
-                          fou_coef_dos_one * dos_one +
-                          fou_coef_dos_two * dos_two +
-                          fou_coef_dos_thr * dos_thr +
-                          fou_coef_tre_one * tre_one +
-                          fou_coef_tre_two * tre_two +
-                          fou_coef_tre_thr * tre_thr
-                         ) * .25;
-
-  return newval;
-}
 
 /*
  * Call vertex-split + quadratic B-splines with a careful type
@@ -171,6 +143,7 @@ vsqbs( const double fou_coef_uno_two,
  * this would allow code comments!---but we can't figure a clean way
  * to do it.
  */
+
 #define VSQBS_CONVERSION( conversion )               \
   template <typename T> static void inline           \
   vsqbs_ ## conversion(       PEL*   restrict pout,  \
@@ -184,17 +157,14 @@ vsqbs( const double fou_coef_uno_two,
     \
     const T* restrict in = (T *) pin; \
     \
-    \
     const int sign_of_x_0 = 2 * ( x_0 >= 0. ) - 1; \
     const int sign_of_y_0 = 2 * ( y_0 >= 0. ) - 1; \
-    \
     \
     const int shift_forw_1_pix = sign_of_x_0 * bands; \
     const int shift_forw_1_row = sign_of_y_0 * lskip; \
     \
     const int shift_back_1_pix = -shift_forw_1_pix; \
     const int shift_back_1_row = -shift_forw_1_row; \
-    \
     \
     const int uno_two_shift =                    shift_back_1_row; \
     const int uno_thr_shift = shift_forw_1_pix + shift_back_1_row; \
@@ -208,95 +178,44 @@ vsqbs( const double fou_coef_uno_two,
     const int tre_thr_shift = shift_forw_1_pix + shift_forw_1_row; \
     \
     \
-    const double x        = sign_of_x_0 * x_0; \
-    const double twicex   = x + x; \
-    const double twicexsq = twicex * x; \
-    const double fourxsq  = twicexsq + twicexsq; \
+    const double twice_abs_x_0 = ( 2 * sign_of_x_0 ) * x_0; \
+    const double twice_abs_y_0 = ( 2 * sign_of_y_0 ) * y_0; \
+    const double x             = twice_abs_x_0 + -0.5;      \
+    const double y             = twice_abs_y_0 + -0.5;      \
+    const double cent          = 0.75 - x * x;              \
+    const double mid           = 0.75 - y * y;              \
+    const double left          = -0.5 * ( x + cent ) + 0.5; \
+    const double top           = -0.5 * ( y + mid  ) + 0.5; \
+    const double left_p_cent   = left + cent;               \
+    const double top_p_mid     = top  + mid;                \
+    const double rite          = 1.0 - left_p_cent;         \
+    const double bot           = 1.0 -  top_p_mid;          \
     \
-    const double y        = sign_of_y_0 * y_0; \
-    const double twicey   = y + y; \
-    const double twiceysq = twicey * y; \
-    const double fourysq  = twiceysq + twiceysq; \
-    \
-    const double spl_end_x = twicexsq - twicex + .5; \
-    const double spl_mid_x = -fourxsq + twicex + .5; \
-    const double spl_beg_x = twicexsq; \
-    \
-    const double spl_end_y = twiceysq - twicey + .5; \
-    const double spl_mid_y = -fourysq + twicey + .5; \
-    const double spl_beg_y = twiceysq; \
-    \
-    const double spl_end_x_end_y = spl_end_x * spl_end_y; \
-    const double spl_end_x_mid_y = spl_end_x * spl_mid_y; \
-    const double spl_end_x_beg_y = spl_end_x * spl_beg_y; \
-    \
-    const double spl_mid_x_end_y = spl_mid_x * spl_end_y; \
-    const double spl_mid_x_mid_y = spl_mid_x * spl_mid_y; \
-    const double spl_mid_x_beg_y = spl_mid_x * spl_beg_y; \
-    \
-    const double spl_beg_x_end_y = spl_beg_x * spl_end_y; \
-    const double spl_beg_x_mid_y = spl_beg_x * spl_mid_y; \
-    const double spl_beg_x_beg_y = spl_beg_x * spl_beg_y; \
-    \
-    \
-    const double fou_coef_uno_two = spl_end_x_end_y + spl_mid_x_end_y; \
-    const double fou_coef_uno_thr = spl_beg_x_end_y; \
-    const double fou_coef_dos_one = spl_end_x_end_y + spl_end_x_mid_y; \
-    const double fou_coef_tre_one = spl_end_x_beg_y; \
-    \
-    const double spl_beg_x_mid_y_p_mid_x_beg_y = \
-      spl_beg_x_mid_y + spl_mid_x_beg_y;         \
-    const double spl_end_x_mid_y_p_mid_x_mid_y = \
-      spl_end_x_mid_y + spl_mid_x_mid_y;         \
-    const double spl_end_x_beg_y_p_mid_x_beg_y = \
-      spl_end_x_beg_y + spl_mid_x_beg_y;         \
-    const double spl_beg_x_end_y_p_beg_x_mid_y = \
-      spl_beg_x_end_y + spl_beg_x_mid_y;         \
-    \
-    const double fou_coef_tre_thr =      \
-      spl_beg_x_mid_y_p_mid_x_beg_y +    \
-      spl_beg_x_beg_y + spl_beg_x_beg_y; \
-    const double fou_coef_tre_two =   \
-      spl_end_x_mid_y_p_mid_x_mid_y + \
-      spl_end_x_beg_y_p_mid_x_beg_y + \
-      spl_end_x_beg_y_p_mid_x_beg_y + \
-      spl_beg_x_beg_y;                \
-    const double fou_coef_dos_thr =   \
-      spl_beg_x_end_y_p_beg_x_mid_y + \
-      spl_beg_x_end_y_p_beg_x_mid_y + \
-      spl_mid_x_end_y +               \
-      spl_mid_x_mid_y +               \
-      spl_beg_x_beg_y;                \
-    const double fou_coef_dos_two =   \
-      fou_coef_uno_two +              \
-      fou_coef_uno_two +              \
-      spl_beg_x_end_y_p_beg_x_mid_y + \
-      spl_end_x_mid_y_p_mid_x_mid_y + \
-      spl_end_x_mid_y_p_mid_x_mid_y + \
-      spl_end_x_beg_y_p_mid_x_beg_y;  \
+    const double four_c_uno_two = left_p_cent * top;                         \
+    const double four_c_dos_one = left        * top_p_mid;                   \
+    const double four_c_dos_two = left_p_cent + top_p_mid;                   \
+    const double four_c_dos_thr = rite +  top_p_mid  * ( 1.0 - left );       \
+    const double four_c_tre_two = bot  + left_p_cent * ( 1.0 - top  );       \
+    const double four_c_uno_thr = top  - four_c_uno_two;                     \
+    const double four_c_tre_one = left - four_c_dos_one;                     \
+    const double four_c_tre_thr = mid * rite + bot * ( cent + rite + rite ); \
     \
     int band = bands; \
     \
     \
     do \
       { \
-        const double double_result =  \
-          vsqbs( fou_coef_uno_two,    \
-                 fou_coef_uno_thr,    \
-                 fou_coef_dos_one,    \
-                 fou_coef_dos_two,    \
-                 fou_coef_dos_thr,    \
-                 fou_coef_tre_one,    \
-                 fou_coef_tre_two,    \
-                 fou_coef_tre_thr,    \
-                 in[uno_two_shift],   \
-                 in[uno_thr_shift],   \
-                 in[dos_one_shift],   \
-                 in[dos_two_shift],   \
-                 in[dos_thr_shift],   \
-                 in[tre_one_shift],   \
-                 in[tre_two_shift],   \
-                 in[tre_thr_shift] ); \
+        const double double_result = \
+          ( \
+            four_c_uno_two * in[uno_two_shift] + \
+            four_c_uno_thr * in[uno_thr_shift] + \
+            four_c_dos_one * in[dos_one_shift] + \
+            four_c_dos_two * in[dos_two_shift] + \
+            four_c_dos_thr * in[dos_thr_shift] + \
+            four_c_tre_one * in[tre_one_shift] + \
+            four_c_tre_two * in[tre_two_shift] + \
+            four_c_tre_thr * in[tre_thr_shift]   \
+          ) * 0.25;                              \
         \
         {                                                         \
           const T result = to_ ## conversion<T>( double_result ); \
