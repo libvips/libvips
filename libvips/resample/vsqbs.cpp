@@ -191,14 +191,14 @@ typedef struct _VipsInterpolateVsqbsClass {
     const double rite          = 1.0 - left_p_cent;         \
     const double bot           = 1.0 -  top_p_mid;          \
     \
-    const double four_c_uno_two = left_p_cent * top;                         \
-    const double four_c_dos_one = left        * top_p_mid;                   \
+    const double four_c_uno_two = top  * left_p_cent;                        \
+    const double four_c_dos_one = left *  top_p_mid;                         \
+    const double four_c_tre_two = ( 1.0 - top  ) * left_p_cent + bot;        \
+    const double four_c_dos_thr = ( 1.0 - left ) *  top_p_mid  + rite;       \
     const double four_c_dos_two = left_p_cent + top_p_mid;                   \
-    const double four_c_dos_thr = rite +  top_p_mid  * ( 1.0 - left );       \
-    const double four_c_tre_two = bot  + left_p_cent * ( 1.0 - top  );       \
+    const double four_c_tre_thr = bot * ( cent + rite + rite ) + mid * rite; \
     const double four_c_uno_thr = top  - four_c_uno_two;                     \
     const double four_c_tre_one = left - four_c_dos_one;                     \
-    const double four_c_tre_thr = mid * rite + bot * ( cent + rite + rite ); \
     \
     int band = bands; \
     \
