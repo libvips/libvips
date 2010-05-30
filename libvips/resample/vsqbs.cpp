@@ -66,6 +66,9 @@
  * 1/8 1/2 1/8
  *     1/8
  *
+ * which is a fairly moderate blur (although the checkerboard mode is
+ * in its nullspace).
+ *
  * By blending VSQBS with an interpolatory method (bilinear, say) in a
  * transformation adaptive environment (current GEGL, for example), it
  * is quite easy to restore that resampling for the identity geometric
