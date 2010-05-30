@@ -205,17 +205,36 @@ typedef struct _VipsInterpolateVsqbsClass {
     \
     do \
       { \
-        const double double_result = \
-          ( \
-            four_c_uno_two * in[uno_two_shift] + \
-            four_c_uno_thr * in[uno_thr_shift] + \
-            four_c_dos_one * in[dos_one_shift] + \
-            four_c_dos_two * in[dos_two_shift] + \
-            four_c_dos_thr * in[dos_thr_shift] + \
-            four_c_tre_one * in[tre_one_shift] + \
-            four_c_tre_two * in[tre_two_shift] + \
-            four_c_tre_thr * in[tre_thr_shift]   \
-          ) * 0.25;                              \
+        const double double_result =               \
+          (                                        \
+            (                                      \
+              (                                    \
+                four_c_uno_two * in[uno_two_shift] \
+                +                                  \
+                four_c_dos_one * in[dos_one_shift] \
+              )                                    \
+              +                                    \
+              (                                    \
+                four_c_tre_two * in[tre_two_shift] \
+                +                                  \
+                four_c_dos_thr * in[dos_thr_shift] \
+              )                                    \
+            )                                      \
+            +                                      \
+            (                                      \
+              (                                    \
+                four_c_dos_two * in[dos_two_shift] \
+                +                                  \
+                four_c_tre_thr * in[tre_thr_shift] \
+              )                                    \
+              +                                    \
+              (                                    \
+                four_c_uno_thr * in[uno_thr_shift] \
+                +                                  \
+                four_c_tre_one * in[tre_one_shift] \
+              )                                    \
+            )                                      \
+          ) * 0.25;                                \
         \
         {                                                         \
           const T result = to_ ## conversion<T>( double_result ); \
