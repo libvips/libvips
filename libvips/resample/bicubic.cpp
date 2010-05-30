@@ -302,23 +302,24 @@ static void
 vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y )
 {
-	/* Scaled int.
+	/* Find the mask index. We round-to-nearest, so we need to generate 
+	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 
+	 * by 2 more than we need to, add one, mask, then shift down again to 
+	 * get the extra range.
 	 */
-	const double sx = x * VIPS_TRANSFORM_SCALE;
-	const double sy = y * VIPS_TRANSFORM_SCALE;
+	const int sx = x * VIPS_TRANSFORM_SCALE * 2;
+	const int sy = y * VIPS_TRANSFORM_SCALE * 2;
 
-	/* We know sx/sy are always positive, so we can just (int) them. 
-	 */
-	const int sxi = (int) sx;
-	const int syi = (int) sy;
+	const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
+	const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 
-	/* Get index into interpolation table and unscaled integer
-	 * position.
+	const int tx = (six + 1) >> 1;
+	const int ty = (siy + 1) >> 1;
+
+	/* We know x/y are always positive, so we can just (int) them. 
 	 */
-	const int tx = sxi & (VIPS_TRANSFORM_SCALE - 1);
-	const int ty = syi & (VIPS_TRANSFORM_SCALE - 1);
-	const int ix = sxi >> VIPS_TRANSFORM_SHIFT;
-	const int iy = syi >> VIPS_TRANSFORM_SHIFT;
+	const int ix = (int) x;
+	const int iy = (int) y;
 
 	/* Look up the tables we need.
 	 */

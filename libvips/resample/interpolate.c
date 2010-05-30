@@ -325,15 +325,16 @@ static float vips_bilinear_matrixd
  * p3  p4
  */
 
-/* Interpolate a section ... int8/16 types.
+/* Interpolate a section ... int8/16 types, lookup tables for interpolation 
+ * factors, fixed-point arithmetic.
  */
 #define BILINEAR_INT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
  	\
-	const int c1 = vips_bilinear_matrixi[xi][yi][0]; \
-	const int c2 = vips_bilinear_matrixi[xi][yi][1]; \
-	const int c3 = vips_bilinear_matrixi[xi][yi][2]; \
-	const int c4 = vips_bilinear_matrixi[xi][yi][3]; \
+	const int c1 = vips_bilinear_matrixi[tx][ty][0]; \
+	const int c2 = vips_bilinear_matrixi[tx][ty][1]; \
+	const int c3 = vips_bilinear_matrixi[tx][ty][2]; \
+	const int c4 = vips_bilinear_matrixi[tx][ty][3]; \
  	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
@@ -345,15 +346,16 @@ static float vips_bilinear_matrixd
 			 c3 * tp3[z] + c4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; \
 }
 
-/* Interpolate a pel ... int32 and float types.
+/* Interpolate a pel ... int32 and float types, lookup tables, float 
+ * arithmetic.
  */
 #define BILINEAR_FLOAT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
  	\
-	const double c1 = vips_bilinear_matrixd[xi][yi][0]; \
-	const double c2 = vips_bilinear_matrixd[xi][yi][1]; \
-	const double c3 = vips_bilinear_matrixd[xi][yi][2]; \
-	const double c4 = vips_bilinear_matrixd[xi][yi][3]; \
+	const double c1 = vips_bilinear_matrixd[tx][ty][0]; \
+	const double c2 = vips_bilinear_matrixd[tx][ty][1]; \
+	const double c3 = vips_bilinear_matrixd[tx][ty][2]; \
+	const double c4 = vips_bilinear_matrixd[tx][ty][3]; \
 	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
@@ -393,25 +395,26 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int ls = IM_REGION_LSKIP( in );
 	const int b = in->im->Bands;
 
-	/* Now go to scaled int.
+	/* Find the mask index. We round-to-nearest, so we need to generate 
+	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 
+	 * by 2 more than we need to, add one, mask, then shift down again to 
+	 * get the extra range.
 	 */
-	const double sx = x * VIPS_TRANSFORM_SCALE;
-	const double sy = y * VIPS_TRANSFORM_SCALE;
+	const int sx = x * VIPS_TRANSFORM_SCALE * 2;
+	const int sy = y * VIPS_TRANSFORM_SCALE * 2;
 
-	/* We know sx/sy are always positive so we can just (int) them. 
+	const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
+	const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
+
+	const int tx = (six + 1) >> 1;
+	const int ty = (siy + 1) >> 1;
+
+	/* We know x/y are always positive, so we can just (int) them. 
 	 */
-	const int sxi = (int) sx;
-	const int syi = (int) sy;
+	const int ix = (int) x;
+	const int iy = (int) y;
 
-	/* Get index into interpolation table and unscaled integer
-	 * position.
-	 */
-	const int xi = sxi & (VIPS_TRANSFORM_SCALE - 1);
-	const int yi = syi & (VIPS_TRANSFORM_SCALE - 1);
-	const int x_int = sxi >> VIPS_TRANSFORM_SHIFT;
-	const int y_int = syi >> VIPS_TRANSFORM_SHIFT;
-
-	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, x_int, y_int );
+	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, ix, iy );
 	const PEL *p2 = p1 + ps;
 	const PEL *p3 = p1 + ls;
 	const PEL *p4 = p3 + ps;

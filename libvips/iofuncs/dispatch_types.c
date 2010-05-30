@@ -894,11 +894,19 @@ input_interpolate_init( im_object *obj, char *str )
 	return( 0 );
 }
 
+static int
+input_interpolate_dest( im_object obj )
+{
+	g_object_unref( (GObject *) obj );
+
+	return( 0 );
+}
+
 im_type_desc im__input_interpolate = {
 	IM_TYPE_INTERPOLATE,	
 	0,      		/* No storage required */
 	IM_TYPE_ARG,		/* It requires a command-line arg */
-	(im_init_obj_fn) input_interpolate_init,/* Init function */
-	(im_dest_obj_fn) g_object_unref	/* Destroy function */
+	input_interpolate_init,	/* Init function */
+	input_interpolate_dest	/* Destroy function */
 };
 
