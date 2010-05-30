@@ -1,8 +1,8 @@
-/* vertex split subdivision followed by quadratic b-spline smoothing
+/* vertex-split subdivision followed by quadratic b-spline smoothing
  *
  * C. Racette 23-28/05/2010 based on code by N. Robidoux and J. Cupitt
  *
- * N. Robidoux 29/05/2010
+ * N. Robidoux 29-30/05/2010
  */
 
 /*
@@ -42,6 +42,37 @@
  * Chantal Racette's image resampling research and programming funded
  * in part by a NSERC Discovery Grant awarded to Julien Dompierre
  * (20-61098).
+ */
+
+/*
+ * Vertex-Split Quadratic B-Splines (VSQBS) is a brand new method
+ * which consists of vertex-split subdivision, a subdivision method
+ * with the (as yet unknown?) property that data which is (locally)
+ * constant on diagonals is subdivided into data which is (locally)
+ * constant on diagonals, followed by quadratic B-Spline smoothing.
+ * Because both methods are linear, their combination can be
+ * implemented as if there is no subdivision.
+ *
+ * At high enlargement ratios, VSQBS is very effective at "masking"
+ * that that the original has pixels uniformly distributed on a
+ * grid. In particular, VSQBS produces resamples with only very mild
+ * staircasing. Like cubic B-Spline smoothing, however, VSQBS is not
+ * an interpolatory method. For example, using VSQBS to perform the
+ * identity geometric transformation (enlargement by a scaling factor
+ * equal to 1) on an image does not return the original: VSQBS
+ * effectively smooths out the image with the convolution mask
+ *
+ *     1/8
+ * 1/8 1/2 1/8
+ *     1/8
+ *
+ * By blending VSQBS with an interpolatory method (bilinear, say) in a
+ * transformation adaptive environment (current GEGL, for example), it
+ * is quite easy to restore that resampling for the identity geometric
+ * transformation is equivalent to the identity. Contact N. Robidoux
+ * for details.
+ *
+ * An article on VSQBS is forthcoming.
  */
 
 #ifdef HAVE_CONFIG_H
