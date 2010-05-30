@@ -137,13 +137,10 @@ typedef struct _VipsInterpolateVsqbsClass {
 
 /*
  * Call vertex-split + quadratic B-splines with a careful type
- * conversion as a parameter.
- *
- * It would be nice to do this with templates somehow---for one thing
- * this would allow code comments!---but we can't figure a clean way
- * to do it.
+ * conversion as a parameter. (It would be nice to do this with
+ * templates somehow---for one thing this would allow code
+ * comments---but we can't figure a clean way to do it.)
  */
-
 #define VSQBS_CONVERSION( conversion )               \
   template <typename T> static void inline           \
   vsqbs_ ## conversion(       PEL*   restrict pout,  \
@@ -188,20 +185,22 @@ typedef struct _VipsInterpolateVsqbsClass {
     const double top           = -0.5 * ( y + mid  ) + 0.5; \
     const double left_p_cent   = left + cent;               \
     const double top_p_mid     = top  + mid;                \
+    const double cent_p_rite   = 1.0 - left;                \
+    const double mid_p_bot     = 1.0 - top;                 \
     const double rite          = 1.0 - left_p_cent;         \
-    const double bot           = 1.0 -  top_p_mid;          \
+    const double bot           = 1.0 - top_p_mid;           \
     \
-    const double four_c_uno_two = top  * left_p_cent;                        \
-    const double four_c_dos_one = left *  top_p_mid;                         \
-    const double four_c_tre_two = ( 1.0 - top  ) * left_p_cent + bot;        \
-    const double four_c_dos_thr = ( 1.0 - left ) *  top_p_mid  + rite;       \
-    const double four_c_dos_two = left_p_cent + top_p_mid;                   \
-    const double four_c_tre_thr = bot * ( cent + rite + rite ) + mid * rite; \
-    const double four_c_uno_thr = top  - four_c_uno_two;                     \
-    const double four_c_tre_one = left - four_c_dos_one;                     \
+    const double four_c_uno_two = top  * left_p_cent;                   \
+    const double four_c_dos_one = left *  top_p_mid;                    \
+    const double four_c_dos_two = left_p_cent + top_p_mid;              \
+    const double four_c_dos_thr = cent_p_rite * top_p_mid + rite;       \
+    const double four_c_tre_two = mid_p_bot * left_p_cent + bot;        \
+    const double four_c_tre_thr = mid_p_bot * rite + bot * cent_p_rite; \
+    const double four_c_uno_thr = top  - four_c_uno_two;                \
+    const double four_c_tre_one = left - four_c_dos_one;                \
+    \
     \
     int band = bands; \
-    \
     \
     do \
       { \
@@ -215,7 +214,7 @@ typedef struct _VipsInterpolateVsqbsClass {
               )                                    \
               +                                    \
               (                                    \
-                four_c_tre_two * in[tre_two_shift] \
+                four_c_dos_two * in[dos_two_shift] \
                 +                                  \
                 four_c_dos_thr * in[dos_thr_shift] \
               )                                    \
@@ -223,7 +222,7 @@ typedef struct _VipsInterpolateVsqbsClass {
             +                                      \
             (                                      \
               (                                    \
-                four_c_dos_two * in[dos_two_shift] \
+                four_c_tre_two * in[tre_two_shift] \
                 +                                  \
                 four_c_tre_thr * in[tre_thr_shift] \
               )                                    \
@@ -236,11 +235,9 @@ typedef struct _VipsInterpolateVsqbsClass {
             )                                      \
           ) * 0.25;                                \
         \
-        {                                                         \
-          const T result = to_ ## conversion<T>( double_result ); \
-          in++;                                                   \
-          *out++ = result;                                        \
-        }                                                         \
+        const T result = to_ ## conversion<T>( double_result ); \
+        in++;                                                   \
+        *out++ = result;                                        \
         \
       } while (--band); \
   }
@@ -340,7 +337,7 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
     break;
 
   /*
-   * Complex images are handled by doubling of bands.
+   * Complex images are handled by doubling bands:
    */
   case IM_BANDFMT_FLOAT:
   case IM_BANDFMT_COMPLEX:
