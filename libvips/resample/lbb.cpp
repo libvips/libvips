@@ -537,46 +537,37 @@ lbbicubic( const double c00,
   const double quad_d2zdxdy11 = LBB_MIN( quad_d2zdxdy11iiii, fourth_limit11);
 
   /*
-   * Four times the part of the result which only uses cross
-   * derivatives:
+   * Part of the result which does not need derivatives:
    */
-  const double newval3 = c00dxdy * quad_d2zdxdy00
-                         +
-                         c10dxdy * quad_d2zdxdy10
-                         +
-                         c01dxdy * quad_d2zdxdy01
-                         +
-                         c11dxdy * quad_d2zdxdy11;
+  const double newval1 =
+    ( c00 * dos_two + c10 * dos_thr )
+    +
+    ( c01 * tre_two + c11 * tre_thr );
 
   /*
    * Twice the part of the result which only needs first derivatives.
    */
-  const double newval2 = c00dx * dble_dzdx00
-                         +
-                         c10dx * dble_dzdx10
-                         +
-                         c01dx * dble_dzdx01
-                         +
-                         c11dx * dble_dzdx11
-                         +
-                         c00dy * dble_dzdy00
-                         +
-                         c10dy * dble_dzdy10
-                         +
-                         c01dy * dble_dzdy01
-                         +
-                         c11dy * dble_dzdy11;
+  const double newval2 =
+    (
+      ( c00dx * dble_dzdx00 + c10dx * dble_dzdx10 )
+      +
+      ( c01dx * dble_dzdx01 + c11dx * dble_dzdx11 )
+    )
+    +
+    (
+      ( c00dy * dble_dzdy00 + c10dy * dble_dzdy10 )
+      +
+      ( c01dy * dble_dzdy01 + c11dy * dble_dzdy11 )
+    );
 
   /*
-   * Part of the result which does not need derivatives:
+   * Four times the part of the result which only uses cross
+   * derivatives:
    */
-  const double newval1 = c00 * dos_two
-                         +
-                         c10 * dos_thr
-                         +
-                         c01 * tre_two
-                         +
-                         c11 * tre_thr;
+  const double newval3 =
+    ( c00dxdy * quad_d2zdxdy00 + c10dxdy * quad_d2zdxdy10 )
+    +
+    ( c01dxdy * quad_d2zdxdy01 + c11dxdy * quad_d2zdxdy11 );
 
   const double newval = newval1 + .5 * newval2 + .25 * newval3;
 
