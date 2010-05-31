@@ -71,9 +71,10 @@
  *
  * By blending VSQBS with an interpolatory method (bilinear, say) in a
  * transformation adaptive environment (current GEGL, for example), it
- * is quite easy to restore that resampling for the identity geometric
- * transformation is equivalent to the identity. Contact N. Robidoux
- * for details.
+ * is quite easy to restore that resampling for identity geometric
+ * transformation is equivalent to the identity, and rotations are not
+ * affected by the above, implicit, blur. Contact N. Robidoux for
+ * details.
  *
  * An article on VSQBS is forthcoming.
  */
