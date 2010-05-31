@@ -294,6 +294,10 @@ lbbicubic( const double c00,
    * comparisons and 34 "? :". If you can figure how to do this more
    * efficiently, let us know.
    */
+  const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
+  const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
+  const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
+  const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
   const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
@@ -302,16 +306,6 @@ lbbicubic( const double c00,
   const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
   const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr  ;
   const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
-  const double m5    = LBB_MIN(               m1,       m2      );
-  const double M5    = LBB_MAX(               M1,       M2      );
-  const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
-  const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
-  const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
-  const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
-  const double m8    = LBB_MIN(               m5,       m3      );
-  const double M8    = LBB_MAX(               M5,       M3      );
-  const double m9    = LBB_MIN(               m5,       m4      );
-  const double M9    = LBB_MAX(               M5,       M4      );
   const double m10   = LBB_MIN(               m6,       uno_one );
   const double M10   = LBB_MAX(               M6,       uno_one );
   const double m11   = LBB_MIN(               m6,       qua_one );
@@ -320,14 +314,94 @@ lbbicubic( const double c00,
   const double M12   = LBB_MAX(               M7,       uno_fou );
   const double m13   = LBB_MIN(               m7,       qua_fou );
   const double M13   = LBB_MAX(               M7,       qua_fou );
+  const double m5    = LBB_MIN(               m1,       m2      );
+  const double M5    = LBB_MAX(               M1,       M2      );
+  const double m8    = LBB_MIN(               m5,       m3      );
+  const double M8    = LBB_MAX(               M5,       M3      );
+  const double m9    = LBB_MIN(               m5,       m4      );
+  const double M9    = LBB_MAX(               M5,       M4      );
   const double min00 = LBB_MIN(               m8,       m10     );
   const double max00 = LBB_MAX(               M8,       M10     );
-  const double min01 = LBB_MIN(               m9,       m11     );
-  const double max01 = LBB_MAX(               M9,       M11     );
   const double min10 = LBB_MIN(               m8,       m12     );
   const double max10 = LBB_MAX(               M8,       M12     );
+  const double min01 = LBB_MIN(               m9,       m11     );
+  const double max01 = LBB_MAX(               M9,       M11     );
   const double min11 = LBB_MIN(               m9,       m13     );
   const double max11 = LBB_MAX(               M9,       M13     );
+  /*
+   * Another version of the same computation:
+   */
+//   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
+//   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
+//   const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
+//   const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
+//   const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr  ;
+//   const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
+//   const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
+//   const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
+//   const double m5    = LBB_MIN(               m1,       m2      );
+//   const double M5    = LBB_MAX(               M1,       M2      );
+//   const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
+//   const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
+//   const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
+//   const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
+//   const double m8    = LBB_MIN(               m5,       m3      );
+//   const double M8    = LBB_MAX(               M5,       M3      );
+//   const double m9    = LBB_MIN(               m5,       m4      );
+//   const double M9    = LBB_MAX(               M5,       M4      );
+//   const double m11   = LBB_MIN(               m6,       qua_one );
+//   const double M11   = LBB_MAX(               M6,       qua_one );
+//   const double m10   = LBB_MIN(               m6,       uno_one );
+//   const double M10   = LBB_MAX(               M6,       uno_one );
+//   const double m12   = LBB_MIN(               m7,       uno_fou );
+//   const double M12   = LBB_MAX(               M7,       uno_fou );
+//   const double m13   = LBB_MIN(               m7,       qua_fou );
+//   const double M13   = LBB_MAX(               M7,       qua_fou );
+//   const double min00 = LBB_MIN(               m8,       m10     );
+//   const double max00 = LBB_MAX(               M8,       M10     );
+//   const double min10 = LBB_MIN(               m8,       m12     );
+//   const double max10 = LBB_MAX(               M8,       M12     );
+//   const double min01 = LBB_MIN(               m9,       m11     );
+//   const double max01 = LBB_MAX(               M9,       M11     );
+//   const double min11 = LBB_MIN(               m9,       m13     );
+//   const double max11 = LBB_MAX(               M9,       M13     );
+  /*
+   * Yet another version:
+   */
+//   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
+//   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
+//   const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
+//   const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
+//   const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
+//   const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
+//   const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr  ;
+//   const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
+//   const double m5    = LBB_MIN(               m1,       m2      );
+//   const double M5    = LBB_MAX(               M1,       M2      );
+//   const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
+//   const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
+//   const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
+//   const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
+//   const double m8    = LBB_MIN(               m5,       m3      );
+//   const double M8    = LBB_MAX(               M5,       M3      );
+//   const double m9    = LBB_MIN(               m5,       m4      );
+//   const double M9    = LBB_MAX(               M5,       M4      );
+//   const double m10   = LBB_MIN(               m6,       uno_one );
+//   const double M10   = LBB_MAX(               M6,       uno_one );
+//   const double m11   = LBB_MIN(               m6,       qua_one );
+//   const double M11   = LBB_MAX(               M6,       qua_one );
+//   const double m12   = LBB_MIN(               m7,       uno_fou );
+//   const double M12   = LBB_MAX(               M7,       uno_fou );
+//   const double m13   = LBB_MIN(               m7,       qua_fou );
+//   const double M13   = LBB_MAX(               M7,       qua_fou );
+//   const double min00 = LBB_MIN(               m8,       m10     );
+//   const double max00 = LBB_MAX(               M8,       M10     );
+//   const double min01 = LBB_MIN(               m9,       m11     );
+//   const double max01 = LBB_MAX(               M9,       M11     );
+//   const double min10 = LBB_MIN(               m8,       m12     );
+//   const double max10 = LBB_MAX(               M8,       M12     );
+//   const double min11 = LBB_MIN(               m9,       m13     );
+//   const double max11 = LBB_MAX(               M9,       M13     );
 #endif
 
   /*
