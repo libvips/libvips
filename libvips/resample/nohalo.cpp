@@ -903,11 +903,6 @@ lbbicubic( const double c00,
    * maxes!). Without the simplification, 28 comparisons would be
    * used. Either way, the number of "? :" used is 34. If you can
    * figure how to do this more efficiently, let us know.
-   *
-   * Surprisingly, nohalo runs much faster than lbb. Apparently, the
-   * smoothed out data combined with the minor decrease in the number
-   * of comparisons based on results of previous comparisons makes a
-   * big difference for the better.
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
