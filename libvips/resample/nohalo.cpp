@@ -927,12 +927,12 @@ lbbicubic( const double c00,
    */
   const double m9    = NOHALO_MIN(            m5,       m4      );
   const double M9    = NOHALO_MAX(            M5,       M4      );
-  const double m8    = NOHALO_MIN(            m5,       m3      );
-  const double M8    = NOHALO_MAX(            M5,       M3      );
   const double m11   = NOHALO_MIN(            m6,       qua_one );
   const double M11   = NOHALO_MAX(            M6,       qua_one );
   const double m10   = NOHALO_MIN(            m6,       uno_one );
   const double M10   = NOHALO_MAX(            M6,       uno_one );
+  const double m8    = NOHALO_MIN(            m5,       m3      );
+  const double M8    = NOHALO_MAX(            M5,       M3      );
   const double m12   = NOHALO_MIN(            m7,       uno_fou );
   const double M12   = NOHALO_MAX(            M7,       uno_fou );
   const double min11 = NOHALO_MIN(            m9,       m13     );
