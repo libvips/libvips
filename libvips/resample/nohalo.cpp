@@ -294,12 +294,6 @@ typedef struct _VipsInterpolateNohaloClass {
  * Both of the above use a multiplication instead of a nested
  * "if-then-else" because gcc does not always rewrite the latter using
  * conditional moves.
- *
- * Implementation note: Both of the above are better than FAST_MINMOD
- * (currently found in templates.h and used by all the other Nohalo
- * methods). Unfortunately, MINMOD uses different parameters and
- * consequently is not a direct substitute. The other Nohalo methods
- * should be modified so they use the above new minmod implementation.
  */
 #define NOHALO_MINMOD(a,b,a_times_a,a_times_b) \
   ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
