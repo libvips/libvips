@@ -1160,16 +1160,15 @@ lbbicubic( const double c00,
   const double quad_d2zdxdy11 = NOHALO_MIN( quad_d2zdxdy11iiii, fourth_limit11);
 
   /*
-   * Four times the part of the result which only uses cross
-   * derivatives:
+   * Part of the result which does not need derivatives:
    */
-  const double newval3 = c00dxdy * quad_d2zdxdy00
+  const double newval1 = c00 * dos_two
                          +
-                         c10dxdy * quad_d2zdxdy10
+                         c10 * dos_thr
                          +
-                         c01dxdy * quad_d2zdxdy01
+                         c01 * tre_two
                          +
-                         c11dxdy * quad_d2zdxdy11;
+                         c11 * tre_thr;
 
   /*
    * Twice the part of the result which only needs first derivatives.
@@ -1191,15 +1190,16 @@ lbbicubic( const double c00,
                          c11dy * dble_dzdy11;
 
   /*
-   * Part of the result which does not need derivatives:
+   * Four times the part of the result which only uses cross
+   * derivatives:
    */
-  const double newval1 = c00 * dos_two
+  const double newval3 = c00dxdy * quad_d2zdxdy00
                          +
-                         c10 * dos_thr
+                         c10dxdy * quad_d2zdxdy10
                          +
-                         c01 * tre_two
+                         c01dxdy * quad_d2zdxdy01
                          +
-                         c11 * tre_thr;
+                         c11dxdy * quad_d2zdxdy11;
 
   const double newval = newval1 + .5 * newval2 + .25 * newval3;
 
