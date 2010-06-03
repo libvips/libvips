@@ -89,9 +89,7 @@
  * the course of her honours thesis, and by N. Robidoux, A. Turcotte
  * and E. Daoust during Google Summer of Code 2009 (through two awards
  * made to GIMP to improve GEGL).
- */
-
-/*
+ *
  * LBB is a novel method with the following properties:
  *
  * --LBB is a Hermite bicubic method: The bicubic surface is defined,
@@ -294,18 +292,20 @@ lbbicubic( const double c00,
    * comparisons and 34 "? :". If you can figure how to do this more
    * efficiently, let us know.
    */
-  const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
-  const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
-  const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
-  const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
   const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
   const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
+  const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
+  const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
+  const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
+  const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
   const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
   const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
   const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr  ;
   const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
+  const double m5    = LBB_MIN(               m1,       m2      );
+  const double M5    = LBB_MAX(               M1,       M2      );
   const double m10   = LBB_MIN(               m6,       uno_one );
   const double M10   = LBB_MAX(               M6,       uno_one );
   const double m11   = LBB_MIN(               m6,       qua_one );
@@ -314,8 +314,6 @@ lbbicubic( const double c00,
   const double M12   = LBB_MAX(               M7,       uno_fou );
   const double m13   = LBB_MIN(               m7,       qua_fou );
   const double M13   = LBB_MAX(               M7,       qua_fou );
-  const double m5    = LBB_MIN(               m1,       m2      );
-  const double M5    = LBB_MAX(               M1,       M2      );
   const double m8    = LBB_MIN(               m5,       m3      );
   const double M8    = LBB_MAX(               M5,       M3      );
   const double m9    = LBB_MIN(               m5,       m4      );
@@ -613,35 +611,23 @@ lbbicubic( const double c00,
   /*
    * Part of the result which does not need derivatives:
    */
-  const double newval1 =
-    ( c00 * dos_two + c10 * dos_thr )
-    +
-    ( c01 * tre_two + c11 * tre_thr );
+  const double newval1 = c00 * dos_two + c10 * dos_thr +
+                         c01 * tre_two + c11 * tre_thr;
 
   /*
    * Twice the part of the result which only needs first derivatives.
    */
-  const double newval2 =
-    (
-      ( c00dx * dble_dzdx00 + c10dx * dble_dzdx10 )
-      +
-      ( c01dx * dble_dzdx01 + c11dx * dble_dzdx11 )
-    )
-    +
-    (
-      ( c00dy * dble_dzdy00 + c10dy * dble_dzdy10 )
-      +
-      ( c01dy * dble_dzdy01 + c11dy * dble_dzdy11 )
-    );
+  const double newval2 = c00dx * dble_dzdx00 + c10dx * dble_dzdx10 +
+                         c01dx * dble_dzdx01 + c11dx * dble_dzdx11 +
+                         c00dy * dble_dzdy00 + c10dy * dble_dzdy10 +
+                         c01dy * dble_dzdy01 + c11dy * dble_dzdy11;
 
   /*
    * Four times the part of the result which only uses cross
    * derivatives:
    */
-  const double newval3 =
-    ( c00dxdy * quad_d2zdxdy00 + c10dxdy * quad_d2zdxdy10 )
-    +
-    ( c01dxdy * quad_d2zdxdy01 + c11dxdy * quad_d2zdxdy11 );
+  const double newval3 = c00dxdy * quad_d2zdxdy00 + c10dxdy * quad_d2zdxdy10 +
+                         c01dxdy * quad_d2zdxdy01 + c11dxdy * quad_d2zdxdy11;
 
   const double newval = newval1 + .5 * newval2 + .25 * newval3;
 
