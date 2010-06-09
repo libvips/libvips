@@ -98,9 +98,9 @@
  * If you want to use the "sharp" (cheaper) version, uncomment the
  * following three pre-processor code lines:
  */
-// #ifndef __NOHALO_CHEAP_H__
-// #define __NOHALO_CHEAP_H__
-// #endif
+#ifndef __NOHALO_CHEAP_H__
+#define __NOHALO_CHEAP_H__
+#endif
 
 /*
  * ================
