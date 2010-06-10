@@ -256,8 +256,8 @@ calculate_coefficients_catmull( const double x, double c[4] )
   const double cone = cr1 * cr3;
   const double cfou = x * cr3;
   const double cr4  = cfou - cone;
-  const double ctwo = cr4 + cr1 - cone;
-  const double cthr = x - cr4 - cfou;
+  const double ctwo = cr1 - cone + cr4;
+  const double cthr = x - cfou - cr4;
 
   g_assert( x >= 0. && x <= 1. );
 
