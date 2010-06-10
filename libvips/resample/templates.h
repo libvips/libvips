@@ -243,14 +243,26 @@ bicubic_float(
 static void inline
 calculate_coefficients_catmull( const double x, double c[4] )
 {
-	const double dx = 1. - x;
-	const double x2 = dx * x;
-	const double mx2 = -.5 * x2;
 
-	g_assert( x >= 0 && x <= 1 );
+  /*
+   * Nicolas believes that the following is an hitherto unknown
+   * hyper-efficient method of computing Catmull-Rom coefficients. It
+   * only uses 4* & 1+ & 5- for a total of only 10 flops to compute
+   * four coefficients.
+   */
+  const double cr1  = 1. - x;
+  const double cr2  = -.5 * x;
+  const double cr3  = cr1 * cr2;
+  const double cone = cr1 * cr3;
+  const double cfou = x * cr3;
+  const double cr4  = cfou - cone;
+  const double ctwo = cr4 + cr1 - cone;
+  const double cthr = x - cr4 - cfou;
 
-	c[0] = mx2 * dx;
-	c[1] = x2 * (-1.5 * x + 1.) + dx;
-	c[2] = 1. - (mx2 + c[1]);
-	c[3] = mx2 * x;
+  g_assert( x >= 0. && x <= 1. );
+
+  c[0] = cone;
+  c[3] = cfou;
+  c[1] = ctwo;
+  c[2] = cthr;
 }
