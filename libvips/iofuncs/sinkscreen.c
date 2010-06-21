@@ -43,8 +43,8 @@
  */
 
 /* Trace serious problems.
- */
 #define VIPS_DEBUG_RED
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -420,8 +420,8 @@ render_work( VipsThreadState *state, void *a )
 
 	g_assert( tile );
 
-	VIPS_DEBUG_MSG( "calculating tile %dx%d\n", 
-		tile->area.left, tile->area.top );
+	VIPS_DEBUG_MSG( "calculating tile %p %dx%d\n", 
+		tile, tile->area.left, tile->area.top );
 
 	if( im_prepare_to( state->reg, tile->region, 
 		&tile->area, tile->area.left, tile->area.top ) ) {
@@ -747,8 +747,8 @@ tile_queue( Tile *tile )
 {
 	Render *render = tile->render;
 
-	VIPS_DEBUG_MSG( "tile_queue: adding tile %dx%d to dirty\n",
-		tile->area.left, tile->area.top );
+	VIPS_DEBUG_MSG( "tile_queue: adding tile %p %dx%d to dirty\n",
+		tile, tile->area.left, tile->area.top );
 
 	tile->painted = FALSE;
 	tile_touch( tile );
@@ -767,8 +767,8 @@ tile_queue( Tile *tile )
 		 * never see black tiles.
 		 */
 		VIPS_DEBUG_MSG( "tile_queue: "
-			"painting tile %dx%d synchronously\n",
-			tile->area.left, tile->area.top );
+			"painting tile %p %dx%d synchronously\n",
+			tile, tile->area.left, tile->area.top );
 
 		if( im_prepare( tile->region, &tile->area ) )
 			VIPS_DEBUG_MSG_RED( "tile_queue: prepare failed\n" ); 
@@ -875,8 +875,8 @@ tile_copy( Tile *tile, REGION *to )
 		int len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
 
 		VIPS_DEBUG_MSG( "tile_copy: "
-			"copying calculated pixels for %dx%d\n",
-			tile->area.left, tile->area.top ); 
+			"copying calculated pixels for %p %dx%d\n",
+			tile, tile->area.left, tile->area.top ); 
 
 		for( y = ovlap.top; y < IM_RECT_BOTTOM( &ovlap ); y++ ) {
 			PEL *p = (PEL *) IM_REGION_ADDR( tile->region, 
@@ -887,8 +887,8 @@ tile_copy( Tile *tile, REGION *to )
 		}
 	}
 	else {
-		VIPS_DEBUG_MSG( "tile_copy: zero filling for %dx%d\n",
-			tile->area.left, tile->area.top ); 
+		VIPS_DEBUG_MSG( "tile_copy: zero filling for %p %dx%d\n",
+			tile, tile->area.left, tile->area.top ); 
 		im_region_paint( to, &ovlap, 0 );
 	}
 }
@@ -967,6 +967,7 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 		for( x = xs; x < IM_RECT_RIGHT( r ); x += render->tile_width ) {
 			Rect area;
 			Tile *tile;
+			int value;
 
 			area.left = x;
 			area.top = y;
@@ -974,13 +975,13 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 			area.height = render->tile_height;
 
 			tile = render_tile_lookup( render, &area );
+			value = (tile &&
+                                tile->painted && 
+				!tile->region->invalid) ? 255 : 0;
 
 			/* Only mark painted tiles containing valid pixels.
 			 */
-			im_region_paint( out, &area, 
-				(tile && 
-				tile->painted &&
-				!tile->region->invalid) ? 255 : 0 );
+			im_region_paint( out, &area, value ); 
 		}
 
 	g_mutex_unlock( render->lock );
