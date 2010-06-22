@@ -112,6 +112,9 @@
  * 	- option to turn on bigtiff output
  * 16/4/10
  * 	- use vips_sink_*() instead of threadgroup and friends
+ * 22/6/10
+ * 	- make no-owner regions for the tile cache, since we share these
+ * 	  between threads
  */
 
 /*
@@ -693,6 +696,7 @@ find_new_tile( PyramidLayer *layer )
 			if( !(layer->tiles[i].tile = 
 				im_region_create( layer->tw->im )) )
 				return( -1 );
+			im__region_no_ownership( layer->tiles[i].tile );
 			return( i );
 		}
 

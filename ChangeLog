@@ -1,3 +1,6 @@
+12/5/10 started 7.22.1
+- fix a problem with tiff pyramid write and >1cpu, thanks Ruven
+
 12/5/10 started 7.22.0
 - bump and rename
 - vipsthumbnail has a manualpage and sharpens correctly

@@ -1,3 +1,13 @@
+- write_tif_tile() single-threads, but will be called from many
+  workers ... so the tile cache fails with region ownership problems
+
+  either make vips_sink_tile() only call the write function from one thread,
+  or swap region ownership about a lot
+
+- drop "set" suffix renames im_copy_set as copy_ argh
+
+  I guess this causes nip2 problems as well? or we call the full name I guess
+
 - lcms2 needs testing
 
 - tools subdirs are now pretty stupid :-( just have a single dir
@@ -8,7 +18,6 @@
 		python setup.py build
 		python setup.py install
 
-now we get:
 
 >>> from vipsCC import *
 Traceback (most recent call last):
