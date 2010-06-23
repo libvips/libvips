@@ -1,5 +1,8 @@
 12/5/10 started 7.22.1
 - fix a problem with tiff pyramid write and >1cpu, thanks Ruven
+- constant ops clip to target range
+- oops, moreconst and moreeqconst were the same
+- better buffer handling in sinkdisc for single-line images
 
 12/5/10 started 7.22.0
 - bump and rename

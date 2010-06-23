@@ -22,6 +22,8 @@
  * 	- gtkdoc
  * 	- use new im__arith_binary*() functions
  * 	- more meta-programming
+ * 23/6/10
+ * 	- oops, moreconst and moreeqconst were the same
  */
 
 /*
@@ -521,7 +523,7 @@ im_lesseq_vec( IMAGE *in, IMAGE *out, int n, double *c )
 }
 
 #define MORE_REAL( Q, A, B ) { \
-	if( (A) >= (B) ) \
+	if( (A) > (B) ) \
 		Q = 255; \
 	else \
 		Q = 0; \
@@ -531,7 +533,7 @@ im_lesseq_vec( IMAGE *in, IMAGE *out, int n, double *c )
 	double m1 = (A)[0] * (A)[0] + (A)[1] * (A)[1]; \
 	double m2 = (B)[0] * (B)[0] + (B)[1] * (B)[1]; \
 	\
-	if( m1 >= m2 ) \
+	if( m1 > m2 ) \
 		Q = 255; \
 	else \
 		Q = 0; \

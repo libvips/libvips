@@ -14,6 +14,8 @@
  * 27/8/08
  * 	- revise upcasting system
  * 	- add gtkdoc comments
+ * 23/6/10
+ * 	- constant ops clip to target range
  */
 
 /*
@@ -170,6 +172,15 @@ im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		(im_wrapmany_fn) remainder_buffer, NULL ) );
 }
 
+/* Cast a vector of double to a vector of TYPE, clipping to a range.
+ */
+#define CAST_CLIP( TYPE, N, X ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( i = 0; i < n; i++ ) \
+		tq[i] = (TYPE) IM_CLIP( N, p[i], X ); \
+}
+
 /* Cast a vector of double to a vector of TYPE.
  */
 #define CAST( TYPE ) { \
@@ -203,16 +214,45 @@ make_pixel( IMAGE *out, VipsBandFmt fmt, int n, double *p )
 		return( NULL );
 
         switch( fmt ) {
-        case IM_BANDFMT_CHAR:		CAST( signed char ); break;
-        case IM_BANDFMT_UCHAR:  	CAST( unsigned char ); break;
-        case IM_BANDFMT_SHORT:  	CAST( signed short ); break;
-        case IM_BANDFMT_USHORT: 	CAST( unsigned short ); break;
-        case IM_BANDFMT_INT:    	CAST( signed int ); break;
-        case IM_BANDFMT_UINT:   	CAST( unsigned int ); break;
-        case IM_BANDFMT_FLOAT: 		CAST( float ); break; 
-        case IM_BANDFMT_DOUBLE:		CAST( double ); break;
-        case IM_BANDFMT_COMPLEX: 	CASTC( float ); break; 
-        case IM_BANDFMT_DPCOMPLEX:	CASTC( double ); break;
+        case IM_BANDFMT_CHAR:		
+		CAST_CLIP( signed char, SCHAR_MIN, SCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_UCHAR:  	
+		CAST_CLIP( unsigned char, 0, UCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_SHORT:  	
+		CAST_CLIP( signed short, SCHAR_MIN, SCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_USHORT: 	
+		CAST_CLIP( unsigned short, 0, USHRT_MAX ); 
+		break;
+
+        case IM_BANDFMT_INT:    	
+		CAST_CLIP( signed int, INT_MIN, INT_MAX ); 
+		break;
+
+        case IM_BANDFMT_UINT:   	
+		CAST_CLIP( unsigned int, 0, UINT_MAX ); 
+		break;
+
+        case IM_BANDFMT_FLOAT: 		
+		CAST( float ); 
+		break; 
+
+        case IM_BANDFMT_DOUBLE:		
+		CAST( double ); 
+		break;
+
+        case IM_BANDFMT_COMPLEX: 	
+		CASTC( float ); 
+		break; 
+
+        case IM_BANDFMT_DPCOMPLEX:	
+		CASTC( double ); 
+		break;
 
         default:
                 g_assert( 0 );

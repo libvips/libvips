@@ -3,6 +3,8 @@
  * 19/3/10
  * 	- from im_wbuffer.c
  * 	- move on top of VipsThreadpool, instead of im_threadgroup_t
+ * 23/6/10
+ * 	- better buffer handling for single-line images
  */
 
 /*
@@ -253,13 +255,11 @@ wbuffer_new( Write *write )
 	return( wbuffer );
 }
 
-/* Write and swap buffers.
+/* Block until the previous write completes, then write the front buffer.
  */
 static int
 wbuffer_flush( Write *write )
 {
-	WriteBuffer *t;
-
 	VIPS_DEBUG_MSG( "wbuffer_flush:\n" );
 
 	/* Block until the other buffer has been written. We have to do this 
@@ -286,12 +286,6 @@ wbuffer_flush( Write *write )
 	 */
 	wbuffer_write( write->buf );
 #endif /*HAVE_THREADS*/
-
-	/* Swap buffers.
-	 */
-	t = write->buf; 
-	write->buf = write->buf_back; 
-	write->buf_back = t;
 
 	return( 0 );
 }
@@ -355,7 +349,8 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 		write->y += write->tile_height;
 
 		if( write->y >= IM_RECT_BOTTOM( &write->buf->area ) ) {
-			/* Write and swap buffers.
+			/* Block until the last write is done, then set write
+			 * of the front buffer going.
 			 */
 			if( wbuffer_flush( write ) )
 				return( -1 );
@@ -365,6 +360,16 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 			if( write->y >= write->im->Ysize ) {
 				*stop = TRUE;
 				return( 0 );
+			}
+
+			/* Swap buffers.
+			 */
+			{
+				WriteBuffer *t;
+
+				t = write->buf; 
+				write->buf = write->buf_back; 
+				write->buf_back = t;
 			}
 
 			/* Position buf at the new y.
@@ -518,16 +523,14 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 			&write ) )  
 		result = -1;
 
-	/* We've set all the buffers writing, but not waited for the BG
-	 * writer to finish. This can take a while: it has to wait for the
-	 * last worker to make the last tile.
+	/* Just before allocate signalled stop, it set write.buf writing. We
+	 * need to wait for this write to finish. 
 	 *
 	 * We can't just free the buffers (which will wait for the bg threads 
 	 * to finish), since the bg thread might see the kill before it gets a 
 	 * chance to write.
 	 */
-	if( write.buf->area.top > 0 )
-		im_semaphore_down( &write.buf_back->done );
+	im_semaphore_down( &write.buf->done );
 
 	im__end_eval( im );
 
