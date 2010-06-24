@@ -1,12 +1,53 @@
-- write_tif_tile() single-threads, but will be called from many
-  workers ... so the tile cache fails with region ownership problems
-
-  either make vips_sink_tile() only call the write function from one thread,
-  or swap region ownership about a lot
-
 - drop "set" suffix renames im_copy_set as copy_ argh
 
   I guess this causes nip2 problems as well? or we call the full name I guess
+
+- change vips error reporting
+
+  what we have now:
+
+	$ vips im_copy
+	usage: vips im_copy in out 
+	where:
+		in is of type "image"
+		out is of type "image"
+	copy image, from package "conversion"
+	flags: (PIO function) (no coordinate transformation) (area operation) (result can be cached) 
+	vips: error calling function
+	im_run_command: too few arguments
+
+	$ vips im_copy ~/pics/babe.jpg /dev/poop.v
+	usage: vips im_copy in out 
+	where:
+		in is of type "image"
+		out is of type "image"
+	copy image, from package "conversion"
+	flags: (PIO function) (no coordinate transformation) (area operation) (result can be cached) 
+	vips: error calling function
+	im_setupout: unable to write to "/dev/poop.v"
+
+  should be:
+
+	$ vips im_copy
+	usage: vips im_copy in out 
+	where:
+		in is of type "image"
+		out is of type "image"
+	copy image, from package "conversion"
+	flags: (PIO function) (no coordinate transformation) (area operation) (result can be cached) 
+
+  ie. no "error calling function" message
+
+  and
+
+	$ vips im_copy ~/pics/babe.jpg /dev/poop.v
+	im_setupout: unable to write to "/dev/poop.v"
+
+  ie. no usage message, no "error calling function" message
+
+
+
+
 
 - lcms2 needs testing
 
