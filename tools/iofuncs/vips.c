@@ -34,6 +34,7 @@
  * 	- drop _f postfixes, drop many postfixes
  * 24/6/10
  * 	- less chatty error messages
+ * 	- oops, don't rename "copy_set" as "copy_"
  */
 
 /*
@@ -463,7 +464,10 @@ drop_postfix( char *str, const char *postfix )
 static void
 c2cpp_name( const char *in, char *out )
 {
-	static const char *postfix[] = {
+	static const char *dont_drop[] = {
+		"_set",
+	};
+	static const char *drop[] = {
 		"_vec",
 		"const",
 		"tra",
@@ -481,12 +485,24 @@ c2cpp_name( const char *in, char *out )
 	else
 		strcpy( out, in );
 
-	/* Repeatedly drop postfixes while we can.
+	/* Repeatedly drop postfixes while we can. Stop if we see a dont_drop
+	 * postfix.
 	 */
 	do {
+		gboolean found;
+
+		found = FALSE;
+		for( i = 0; i < IM_NUMBER( dont_drop ); i++ )
+			if( ispostfix( dont_drop[i], out ) ) {
+				found = TRUE;
+				break;
+			}
+		if( found )
+			break;
+
 		changed = FALSE;
-		for( i = 0; i < IM_NUMBER( postfix ); i++ )
-			changed |= drop_postfix( out, postfix[i] );
+		for( i = 0; i < IM_NUMBER( drop ); i++ )
+			changed |= drop_postfix( out, drop[i] );
 	} while( changed );
 }
 

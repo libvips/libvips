@@ -1,7 +1,4 @@
-- drop "set" suffix renames im_copy_set as copy_ argh
-
-  I guess this causes nip2 problems as well? or we call the full name I guess
-
+- regenerate c++ and python bindings, 7.22 branch needs copy_set fix
 
 - lcms2 needs testing
 

@@ -4,6 +4,7 @@
 - oops, moreconst and moreeqconst were the same
 - better buffer handling in sinkdisc for single-line images
 - less chatty errors from "vips"
+- oops, don't rename "copy_set" as "copy_", thanks Ole
 
 12/5/10 started 7.22.0
 - bump and rename
