@@ -3,6 +3,7 @@
 - constant ops clip to target range
 - oops, moreconst and moreeqconst were the same
 - better buffer handling in sinkdisc for single-line images
+- less chatty errors from "vips"
 
 12/5/10 started 7.22.0
 - bump and rename

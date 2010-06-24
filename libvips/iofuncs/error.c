@@ -12,6 +12,8 @@
  * 2/10/09
  * 	- error_exit() moved here
  * 	- gtkdoc comments
+ * 24/6/10
+ * 	- fmt to error_exit() may be NULL
  */
 
 /*
@@ -363,19 +365,27 @@ im_warn( const char *domain, const char *fmt, ... )
  *
  * Sends a formatted error message to stderr, then sends the contents of the
  * error buffer, if any, then terminates the program with an error code.
+ *
+ * @fmt may be %NULL, in which case only the error buffer is printed before
+ * exiting.
+ *
+ * See also: im_error().
  */
 void 
 error_exit( const char *fmt, ... )
 {	
-	va_list ap;
+	if( fmt ) {
+		va_list ap;
 
-	fprintf( stderr, "%s: ", g_get_prgname() );
+		fprintf( stderr, "%s: ", g_get_prgname() );
 
-	va_start( ap, fmt );
-	(void) vfprintf( stderr, fmt, ap );
-	va_end( ap );
+		va_start( ap, fmt );
+		(void) vfprintf( stderr, fmt, ap );
+		va_end( ap );
 
-	fprintf( stderr, "\n" );
+		fprintf( stderr, "\n" );
+	}
+
 	fprintf( stderr, "%s", im_error_buffer() );
 
 	exit( 1 );

@@ -32,6 +32,8 @@
  * 	- and now we just have --list packages/classes/package-name
  * 13/11/09
  * 	- drop _f postfixes, drop many postfixes
+ * 24/6/10
+ * 	- less chatty error messages
  */
 
 /*
@@ -884,7 +886,7 @@ main( int argc, char **argv )
 	int i, j;
 
 	if( im_init_world( argv[0] ) )
-	        error_exit( "unable to start VIPS" );
+	        error_exit( NULL );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
@@ -920,8 +922,7 @@ main( int argc, char **argv )
 
 	if( main_option_plugin ) {
 		if( !im_load_plugin( main_option_plugin ) )
-			error_exit( "unable to load plugin %s",
-				main_option_plugin );
+			error_exit( NULL ); 
 	}
 	if( main_option_cpph ) 
 		print_cppdecls( main_option_cpph );
@@ -933,7 +934,7 @@ main( int argc, char **argv )
 		print_list( main_option_list );
 	if( main_option_usage ) {
 		if( !(fn = im_find_function( main_option_usage )) )
-			error_exit( "unknown operation %s", main_option_usage );
+			error_exit( NULL );
 		usage( fn );
 	}
 	if( main_option_version ) 
@@ -971,24 +972,33 @@ main( int argc, char **argv )
 				name[strlen( name ) - 4] = '\0';
 
 			if( !(fn = im_find_function( name )) )
-				error_exit( "unknown function" );
+				error_exit( NULL );
 		}
 
 		/* Execute it!
 		 */
 		if( im_run_command( name, argc - 1, argv + 1 ) ) {
-			usage( fn );
-			error_exit( "error calling function" );
+			/* If there are no arguments and the operation failed,
+			 * show usage. There are no-arg operations, so we have
+			 * to try running it.
+			 */
+			if( argc == 1 )
+				usage( fn );
+			else
+				error_exit( NULL );
 		}
 	}
 	else if( argc > 1 ) {
 		/* Nope ... run the first arg instead.
 		 */
+		if( !(fn = im_find_function( argv[1] )) )
+			error_exit( NULL );
+
 		if( im_run_command( argv[1], argc - 2, argv + 2 ) ) {
-			if( !(fn = im_find_function( argv[1] )) )
-				error_exit( "unknown function" );
-			usage( fn );
-			error_exit( "error calling function" );
+			if( argc == 2 ) 
+				usage( fn );
+			else
+				error_exit( NULL );
 		}
 	}
 
