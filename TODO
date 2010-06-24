@@ -1,5 +1,3 @@
-- regenerate c++ and python bindings, 7.22 branch needs copy_set fix
-
 - lcms2 needs testing
 
 - tools subdirs are now pretty stupid :-( just have a single dir
