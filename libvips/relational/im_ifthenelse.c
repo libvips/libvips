@@ -15,6 +15,9 @@
  * 	- use im_check*()
  * 	- allow many-band conditional and single-band a/b
  * 	- allow a/b to differ in format and bands
+ * 25/6/10
+ * 	- let the conditional image be any format by adding a (!=0) if
+ * 	  necessary
  */
 
 /*
@@ -185,7 +188,7 @@ ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
  * @b: else #IMAGE
  * @out: output #IMAGE
  *
- * This operation scans the condition image @c (which must be unsigned char) 
+ * This operation scans the condition image @c 
  * and uses it to select pixels from either the then image @a or the else
  * image @b. Non-zero means @a, 0 means @b.
  *
@@ -215,6 +218,15 @@ im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	if( im__formatalike( a, b, t[0], t[1] ) ||
 		im__bandalike( t[0], t[1], t[2], t[3] ) )
 		return( -1 );
+
+	/* If c is not uchar, do (!=0) to make a uchar image.
+	 */
+	if( c->BandFmt != IM_BANDFMT_UCHAR ) {
+		if( im_notequalconst( c, t[4], 0 ) )
+			return( -1 );
+
+		c = t[4];
+	}
 
 	if( ifthenelse( c, t[2], t[3], out ) )
 		return( -1 );

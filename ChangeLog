@@ -1,3 +1,7 @@
+12/5/10 started 7.22.2
+- the conditional image of ifthenelse can be any format, a (!=0) is added if
+  necessary
+
 12/5/10 started 7.22.1
 - fix a problem with tiff pyramid write and >1cpu, thanks Ruven
 - constant ops clip to target range
