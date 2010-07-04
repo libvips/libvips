@@ -17,6 +17,8 @@
  * 	- and the mask coefficients were messed up
  * 26/5/10
  * 	- delete failed if there was a profile
+ * 4/7/10
+ * 	- oops sharpening was turning off for integer shrinks, thanks Nicolas
  */
 
 #ifdef HAVE_CONFIG_H
@@ -235,7 +237,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
 	 */
-	if( residual < 1.0 && !nosharpen ) {
+	if( shrink > 1 && residual <= 1.0 && !nosharpen ) {
 		if( verbose ) 
 			printf( "sharpening thumbnail\n" );
 
