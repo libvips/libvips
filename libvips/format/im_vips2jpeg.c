@@ -31,6 +31,10 @@
  * 	- allow "none" for profile, meaning don't embed one
  * 4/2/10
  * 	- gtkdoc
+ * 17/7/10
+ * 	- use g_assert()
+ * 	- allow space for the header in init_destination(), helps writing very
+ * 	  small JPEGs (thanks Tim Elliott)
  */
 
 /*
@@ -106,7 +110,6 @@ im_vips2mimejpeg( IMAGE *in, int qfac )
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
-#include <assert.h>
 
 #ifdef HAVE_EXIF
 #ifdef UNTAGGED_EXIF
@@ -442,7 +445,7 @@ write_profile_data (j_compress_ptr cinfo,
   unsigned int length;          /* number of bytes to write in this marker */
 
   /* rounding up will fail for length == 0 */
-  assert( icc_data_len > 0 );
+  g_assert( icc_data_len > 0 );
 
   /* Calculate the number of markers we'll need, rounding up of course */
   num_markers = (icc_data_len + MAX_DATA_BYTES_IN_MARKER - 1) / 
@@ -563,9 +566,9 @@ write_vips( Write *write, int qfac, const char *profile )
 
 	/* Should have been converted for save.
 	 */
-        assert( in->BandFmt == IM_BANDFMT_UCHAR );
-	assert( in->Coding == IM_CODING_NONE );
-        assert( in->Bands == 1 || in->Bands == 3 || in->Bands == 4 );
+        g_assert( in->BandFmt == IM_BANDFMT_UCHAR );
+	g_assert( in->Coding == IM_CODING_NONE );
+        g_assert( in->Bands == 1 || in->Bands == 3 || in->Bands == 4 );
 
         /* Check input image.
          */
@@ -794,8 +797,14 @@ METHODDEF(void)
 init_destination( j_compress_ptr cinfo )
 {
 	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
-	int mx = cinfo->image_width * cinfo->image_height * 
-		cinfo->input_components * sizeof( JOCTET );
+
+	/* Allocate an extra 1,000 bytes for header overhead on small images.
+	 *
+	 * TODO: use empty_output_buffer() instead in order to accomodate 
+	 * headers larger than 1,000 bytes.
+	 */
+ 	int mx = cinfo->image_width * cinfo->image_height * 
+		cinfo->input_components * sizeof( JOCTET ) + 1000;
 
 	/* Allocate relative to the image we are writing .. freed when we junk
 	 * this output.

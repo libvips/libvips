@@ -5,6 +5,8 @@
  * 	- move on top of VipsThreadpool, instead of im_threadgroup_t
  * 23/6/10
  * 	- better buffer handling for single-line images
+ * 17/7/10
+ * 	- we could get stuck if allocate failed (thanks Tim)
  */
 
 /*
@@ -529,8 +531,13 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	 * We can't just free the buffers (which will wait for the bg threads 
 	 * to finish), since the bg thread might see the kill before it gets a 
 	 * chance to write.
+	 *
+	 * If the pool exited with an error, write.buf might not have been
+	 * started (if the allocate failed), and in any case, we don't care if
+	 * the final write went through or not.
 	 */
-	im_semaphore_down( &write.buf->done );
+	if( !result )
+		im_semaphore_down( &write.buf->done );
 
 	im__end_eval( im );
 

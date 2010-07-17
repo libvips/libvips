@@ -10,6 +10,9 @@
  * 11/5/10
  * 	- argh, stopping many threads could sometimes leave allocated work
  * 	  undone
+ * 17/7/10
+ * 	- set pool->error whenever we set thr->error, lets us catch allocate
+ * 	  errors (thanks Tim)
  */
 
 /*
@@ -348,7 +351,7 @@ typedef struct _VipsThreadpool {
 	/*< private >*/
 	VipsImage *im;		/* Image we are calculating */
 
-	/* STart a thread, do a unit of work (runs in parallel) and allocate 
+	/* Start a thread, do a unit of work (runs in parallel) and allocate 
 	 * a unit of work (serial). Plus the mutex we use to serialize work 
 	 * allocation.
 	 */
@@ -507,6 +510,7 @@ vips_thread_work_unit( VipsThread *thr )
 
 	if( vips_thread_allocate( thr ) ) {
 		thr->error = TRUE;
+		pool->error = TRUE;
 		g_mutex_unlock( pool->allocate_lock );
 		return;
 	}
@@ -522,8 +526,10 @@ vips_thread_work_unit( VipsThread *thr )
 
 	/* Process a work unit.
 	 */
-	if( vips_thread_work( thr ) )
+	if( vips_thread_work( thr ) ) {
 		thr->error = TRUE;
+		pool->error = TRUE;
+	}
 }
 
 #ifdef HAVE_THREADS
