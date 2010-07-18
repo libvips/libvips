@@ -6,6 +6,8 @@
 - im_vips2jpeg() could fail for very small images (thanks Tim)
 - threadpool wasn't stopping on allocate errors (thanks Tim)
 - vips_sink_disc() could block if allocate failed (thanks Tim)
+- im_vips2bufjpeg() writes to a linked list, so it will work for any size
+  image and header
 
 12/5/10 started 7.22.1
 - fix a problem with tiff pyramid write and >1cpu, thanks Ruven

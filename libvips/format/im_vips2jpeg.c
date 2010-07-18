@@ -35,6 +35,9 @@
  * 	- use g_assert()
  * 	- allow space for the header in init_destination(), helps writing very
  * 	  small JPEGs (thanks Tim Elliott)
+ * 18/7/10
+ * 	- collect im_vips2bufjpeg() output in a list of blocks ... we no
+ * 	  longer overallocate or underallocate
  */
 
 /*
@@ -64,8 +67,8 @@
  */
 
 /*
-#define DEBUG
 #define DEBUG_VERBOSE
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -392,7 +395,7 @@ write_exif( Write *write )
 	data_length = idl;
 
 #ifdef DEBUG
-	printf( "im_vips2jpeg: attaching %d bytes of EXIF\n", data_length  );
+	printf( "im_vips2jpeg: attaching %zd bytes of EXIF\n", data_length  );
 #endif /*DEBUG*/
 
 	exif_data_free( ed );
@@ -524,7 +527,7 @@ write_profile_meta( Write *write )
 	write_profile_data( &write->cinfo, data, data_length );
 
 #ifdef DEBUG
-	printf( "im_vips2jpeg: attached %d byte profile from VIPS header\n",
+	printf( "im_vips2jpeg: attached %zd byte profile from VIPS header\n",
 		data_length );
 #endif /*DEBUG*/
 
@@ -769,6 +772,112 @@ im_vips2jpeg( IMAGE *in, const char *filename )
 	return( 0 );
 }
 
+/* We can't predict how large the output buffer we need is, because we might
+ * need space for ICC profiles and stuff. So we write to a linked list of mem
+ * buffers and add a new one as they fill.
+ */
+
+#define BUFFER_SIZE (10000)
+
+/* A buffer.
+ */
+typedef struct _Block {
+	j_compress_ptr cinfo;
+
+	struct _Block *first;
+	struct _Block *next;
+
+	JOCTET *data;		/* Allocated area */
+	int size;		/* Max size */
+	int used;		/* How much has been used */
+} Block;
+
+static Block *
+block_new( j_compress_ptr cinfo )
+{
+	Block *block;
+
+	block = (Block *) (*cinfo->mem->alloc_large) 
+		( (j_common_ptr) cinfo, JPOOL_IMAGE, sizeof( Block ) );
+
+	block->cinfo = cinfo;
+	block->first = block;
+	block->next = NULL;
+	block->data = (JOCTET *) (*cinfo->mem->alloc_large) 
+		( (j_common_ptr) cinfo, JPOOL_IMAGE, BUFFER_SIZE );
+	block->size = BUFFER_SIZE;
+	block->used = 0;
+
+	return( block );
+}
+
+static Block *
+block_last( Block *block )
+{
+	while( block->next )
+		block = block->next;
+
+	return( block );
+}
+
+static Block *
+block_append( Block *block )
+{
+	Block *new;
+
+	g_assert( block );
+
+	new = block_new( block->cinfo );
+	new->first = block->first;
+	block_last( block )->next = new;
+
+	return( new );
+}
+
+static int
+block_length( Block *block )
+{
+	int len;
+
+	len = 0;
+	for( block = block->first; block; block = block->next )
+		len += block->used;
+
+	return( len );
+}
+
+static void
+block_copy( Block *block, void *dest )
+{
+	JOCTET *p;
+	
+	p = dest;
+	for( block = block->first; block; block = block->next ) {
+		memcpy( p, block->data, block->used );
+		p += block->used;
+	}
+}
+
+#ifdef DEBUG
+static void
+block_print( Block *block )
+{
+	int i;
+
+	printf( "total length = %d\n", block_length( block ) );
+	printf( "set of blocks:\n" );
+
+	i = 0;
+	for( block = block->first; block; block = block->next ) {
+		printf( "%d) %p, first = %p, next = %p"
+			"\t data = %p, size = %d, used = %d\n", 
+			i, block, block->first, block->next,
+			block->data, block->size, block->used );
+		i += 1;
+	}
+}
+#endif /*DEBUG*/
+
 /* Just like the above, but we write to a memory buffer.
  *
  * A memory buffer for the compressed image.
@@ -780,9 +889,10 @@ typedef struct {
 
 	/* Private stuff during write.
 	 */
-	JOCTET *data;		/* Allocated area */
-	int used;		/* Number of bytes written so far */
-	int size;		/* Max size */
+
+	/* Build the output area here in chunks.
+	 */
+	Block *block;
 
 	/* Copy the compressed area here.
 	 */
@@ -798,56 +908,71 @@ init_destination( j_compress_ptr cinfo )
 {
 	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
 
-	/* Allocate an extra 1,000 bytes for header overhead on small images.
-	 *
-	 * TODO: use empty_output_buffer() instead in order to accomodate 
-	 * headers larger than 1,000 bytes.
-	 */
- 	int mx = cinfo->image_width * cinfo->image_height * 
-		cinfo->input_components * sizeof( JOCTET ) + 1000;
-
 	/* Allocate relative to the image we are writing .. freed when we junk
 	 * this output.
 	 */
-	buf->data = (JOCTET *) (*cinfo->mem->alloc_large) 
-			( (j_common_ptr) cinfo, JPOOL_IMAGE, mx );
-	buf->used = 0;
-	buf->size = mx;
+	buf->block = block_new( cinfo );
 
 	/* Set buf pointers for library.
 	 */
-	buf->pub.next_output_byte = buf->data;
-	buf->pub.free_in_buffer = mx;
+	buf->pub.next_output_byte = buf->block->data;
+	buf->pub.free_in_buffer = buf->block->size;
 }
 
-/* Buffer full method ... should never get this.
+/* Buffer full method ... allocate a new output block.
  */
 METHODDEF(boolean)
 empty_output_buffer( j_compress_ptr cinfo )
 {
-	/* Not really a file write error, but why not. Should never happen.
-	 */
-	ERREXIT( cinfo, JERR_FILE_WRITE );
+	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
 
-	return( 0 );
+	/* Record how many bytes we used. empty_output_buffer() is always
+	 * called when the buffer is exactly full.
+	 */
+	buf->block->used = buf->block->size;
+
+	/* New block and reset.
+	 */
+	buf->block = block_append( buf->block );
+	buf->pub.next_output_byte = buf->block->data;
+	buf->pub.free_in_buffer = buf->block->size;
+
+	/* TRUE means we've made some more space.
+	 */
+	return( 1 );
 }
 
-/* Cleanup. Write entire buffer as a MIME type.
+/* Cleanup. Copy the set of blocks out as a big lump.
  */
 METHODDEF(void)
 term_destination( j_compress_ptr cinfo )
 {
         OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
-	int len = buf->size - buf->pub.free_in_buffer;
+
+	int len;
 	void *obuf;
 
-	/* Allocate and copy to the VIPS output area.
+	/* Record the number of bytes we wrote in the final buffer.
+	 * pub.free_in_buffer is valid here.
+	 */
+	buf->block->used = buf->block->size - buf->pub.free_in_buffer;
+
+#ifdef DEBUG
+	block_print( buf->block );
+#endif /*DEBUG*/
+
+	/* ... and we can count up our buffers now.
+	 */
+	len = block_length( buf->block );
+
+	/* Allocate and copy to the output area.
 	 */
 	if( !(obuf = im_malloc( buf->out, len )) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
-	memcpy( obuf, buf->data, len );
 	*(buf->obuf) = obuf;
 	*(buf->olen) = len;
+
+	block_copy( buf->block, obuf );
 }
 
 /* Set dest to one of our objects.
