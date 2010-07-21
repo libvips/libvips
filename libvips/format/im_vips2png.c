@@ -48,7 +48,7 @@
  */
 
 /*
-#define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -75,6 +75,7 @@ im_vips2png( IMAGE *in, const char *filename )
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #include <png.h>
 
@@ -183,7 +184,14 @@ static int
 write_png_block( REGION *region, Rect *area, void *a )
 {
 	Write *write = (Write *) a;
+
 	int i;
+
+	/* The area to write is always a set of complete scanlines.
+	 */
+	g_assert( area->left == 0 );
+	g_assert( area->width == region->im->Xsize );
+	g_assert( area->top + area->height <= region->im->Ysize );
 
 	/* Catch PNG errors. Yuk.
 	 */
@@ -417,6 +425,9 @@ png_write_buf_grow( PngWriteBuf *wbuf, size_t grow_len )
 		 * FIXME: add im_realloc().
 		 */
 	 	wbuf->buf = g_realloc( wbuf->buf, wbuf->alloc );
+
+		VIPS_DEBUG_MSG( "png_write_buf_grow: grown to %zd bytes\n",
+			wbuf->alloc );
 	}
 }
 
@@ -440,7 +451,7 @@ user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
  * im_vips2bufpng:
  * @in: image to save 
  * @out: allocate output buffer local to this
- * @compression: Compress with this much effort
+ * @compression: compress with this much effort
  * @interlace: 0 means don't interlace, 1 selects ADAM7 interlacing
  * @obuf: return output buffer here
  * @olen: return output length here
