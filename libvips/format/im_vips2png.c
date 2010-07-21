@@ -17,6 +17,8 @@
  * 	- fixed 16-bit save
  * 12/5/10
  * 	- lololo but broke 8-bit save, fixed again
+ * 20/7/10 Tim Elliott
+ * 	- added im_vips2bufpng()
  */
 
 /*
@@ -367,6 +369,131 @@ im_vips2png( IMAGE *in, const char *filename )
 		return( -1 );
 	}
 	write_destroy( write );
+
+	return( 0 );
+}
+
+typedef struct _PngWriteBuf {
+	char *buf;
+	size_t len;
+	size_t alloc;
+} PngWriteBuf;
+
+static void
+png_write_buf_free( PngWriteBuf *wbuf )
+{
+	IM_FREE( wbuf );
+}
+
+static PngWriteBuf *
+png_write_buf_new( void )
+{
+	PngWriteBuf *wbuf;
+
+	if( !(wbuf = IM_NEW( NULL, PngWriteBuf )) )
+		return( NULL );
+
+	wbuf->buf = NULL;
+	wbuf->len = 0;
+	wbuf->alloc = 0;
+
+	return( wbuf );
+}
+
+static void
+png_write_buf_grow( PngWriteBuf *wbuf, size_t grow_len )
+{
+	size_t new_len = wbuf->len + grow_len;
+
+	if( new_len > wbuf->alloc ) {
+		size_t proposed_alloc = (16 + wbuf->alloc) * 3 / 2;
+
+		wbuf->alloc = IM_MAX( proposed_alloc, new_len );
+
+		/* There's no im_realloc(), so we call g_realloc() directly.
+		 * This is safe, since im_malloc() / im_free() are wrappers 
+		 * over g_malloc() / g_free().
+		 *
+		 * FIXME: add im_realloc().
+		 */
+	 	wbuf->buf = g_realloc( wbuf->buf, wbuf->alloc );
+	}
+}
+
+static void
+user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
+{
+	PngWriteBuf *wbuf = (PngWriteBuf *) png_ptr->io_ptr;
+	char *write_start;
+
+	png_write_buf_grow( wbuf, length );
+
+	write_start = wbuf->buf + wbuf->len;
+	png_memcpy( write_start, data, length );
+
+	wbuf->len += length;
+
+	g_assert( wbuf->len <= wbuf->alloc );
+}
+
+/**
+ * im_vips2bufpng:
+ * @in: image to save 
+ * @out: allocate output buffer local to this
+ * @compression: Compress with this much effort
+ * @interlace: 0 means don't interlace, 1 selects ADAM7 interlacing
+ * @obuf: return output buffer here
+ * @olen: return output length here
+ *
+ * As im_vips2png(), but save as a memory buffer. The memory is allocated
+ * local to @out (that is, when @out is closed the memory will be released,
+ * pass %NULL to release yourself). 
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen.
+ *
+ * See also: #VipsFormat, im_vips2png().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+im_vips2bufpng( IMAGE *in, IMAGE *out,
+	int compression, int interlace, char **obuf, size_t *olen )
+{
+	PngWriteBuf *wbuf;
+	Write *write;
+
+	if( !(wbuf = png_write_buf_new()) ||
+		!(write = write_new( in )) )
+		return( -1 );
+
+	png_set_write_fn( write->pPng, wbuf, user_write_data, NULL );
+
+	/* Convert it!
+	 */
+	if( write_vips( write, compression, interlace ) ) {
+		write_destroy( write );
+		png_write_buf_free( wbuf );
+		im_error( "im_vips2bufpng", 
+			"%s", _( "unable to write to buffer" ) );
+	      
+		return( -1 );
+	}
+	write_destroy( write );
+
+	*obuf = wbuf->buf;
+	*olen = wbuf->len;
+
+	png_write_buf_free( wbuf );
+
+	if( out && im_add_close_callback( out,
+		(im_callback_fn) im_free, *obuf, NULL ) ) {
+		im_free( *obuf );
+		*obuf = NULL;
+		*olen = 0;
+
+		return( -1 ); 
+	}
 
 	return( 0 );
 }
