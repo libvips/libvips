@@ -144,7 +144,7 @@ int im_vips2csv( IMAGE *in, const char *filename );
 int im_png2vips( const char *filename, IMAGE *out );
 int im_vips2png( IMAGE *in, const char *filename );
 int im_vips2bufpng( IMAGE *in, IMAGE *out,
-	int compression, int interlace, char **obuf, size_t *olen );
+	int compression, int interlace, char **obuf, size_t *olen  );
 
 int im_raw2vips( const char *filename, IMAGE *out,
 	int width, int height, int bpp, int offset );
