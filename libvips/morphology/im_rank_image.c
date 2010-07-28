@@ -66,8 +66,8 @@ typedef struct Rank {
 static Rank *
 rank_new( IMAGE **in, IMAGE *out, int n, int index )
 {
-	int i;
 	Rank *rank;
+	int i;
 
 	if( !(rank = IM_NEW( out, Rank )) )
 		return( NULL );
@@ -101,10 +101,12 @@ rank_stop( void *vseq, void *a, void *b )
 {
 	RankSequence *seq = (RankSequence *) vseq;
 	Rank *rank = (Rank *) b;
+
 	int i;
 
-	for( i = 0; i < rank->n; i++ ) 
-		IM_FREEF( im_region_free, seq->ir[i] );
+	if( seq->ir )
+		for( i = 0; i < rank->n; i++ ) 
+			IM_FREEF( im_region_free, seq->ir[i] );
 
 	return( 0 );
 }
@@ -116,6 +118,7 @@ rank_start( IMAGE *out, void *a, void *b )
 {
 	IMAGE **in = (IMAGE **) a;
 	Rank *rank = (Rank *) b;
+
 	RankSequence *seq;
 	int i;
 
@@ -286,33 +289,13 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 	if( im_poutcheck( out ) )
 		return( -1 );
 	for( i = 0; i < n; i++ ) {
-		if( im_pincheck( in[i] ) )
+		if( im_pincheck( in[i] ) ||
+			im_check_uncoded( "im_rank_image", in[i] ) ||
+			im_check_noncomplex( "im_rank_image", in[i] ) ||
+			im_check_size_same( "im_rank_image", in[i], in[0] ) ||
+			im_check_format_same( "im_rank_image", in[i], in[0] ) ||
+			im_check_bands( "im_rank_image", in[i], 3 ) )
 			return( -1 );
-
-		if( in[i]->Coding != IM_CODING_NONE || 
-			vips_bandfmt_iscomplex( in[i]->BandFmt ) ) {
-			im_error( "im_rank_image", "%s", 
-				_( "uncoded non-complex only" ) );
-			return( -1 );
-		}
-
-		if( in[0]->BandFmt != in[i]->BandFmt ) {
-			im_error( "im_rank_image", "%s", 
-				_( "input images differ in format" ) );
-			return( -1 );
-		}
-		if( in[0]->Xsize != in[i]->Xsize ||
-			in[0]->Ysize != in[i]->Ysize ) {
-			im_error( "im_rank_image", "%s", 
-				_( "input images differ in size" ) );
-			return( -1 );
-		}
-		if( in[0]->Bands != in[i]->Bands ) {
-			im_error( "im_rank_image", "%s", 
-				_( "input images differ in number of bands" ) );
-			return( -1 );
-		}
-	}
 
 	if( !(rank = rank_new( in, out, n, index )) ||
 		im_cp_desc_array( out, rank->in ) ||
