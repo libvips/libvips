@@ -81,8 +81,8 @@
  * "vips_XXXXXX.v", and that filename given to the command. The file is 
  * deleted when the command finishes.
  *
- * The environment variable TMPDIR can be used to set the temporary 
- * directory. If it is not set, it defaults to "/tmp".
+ * See im_system_image() for details on how VIPS selects a temporary
+ * directory.
  *
  * In all cases, @log must be freed with im_free().
  *

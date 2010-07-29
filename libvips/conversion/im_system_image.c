@@ -100,6 +100,10 @@ system_image( IMAGE *im,
  * can be used to set a different temporary directory. If @in_format is
  * something like "%%s.png", the file will be written in PNG format.
  *
+ * On Windows, if the environment variable TMPDIR is not defined, VIPS calls 
+ * GetTempPath() to get the user's preferred temporary area. If that fails, it
+ * defaults to C:\temp.
+ *
  * Next an output filename is created in the same way using @out_format. The
  * command string to run is made by substituting the first %%s in @cmd_format
  * for the name of the input file and the second %%s for the output filename.

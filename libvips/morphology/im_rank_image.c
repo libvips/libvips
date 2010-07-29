@@ -288,13 +288,13 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 	}
 	if( im_poutcheck( out ) )
 		return( -1 );
-	for( i = 0; i < n; i++ ) {
+	for( i = 0; i < n; i++ ) 
 		if( im_pincheck( in[i] ) ||
 			im_check_uncoded( "im_rank_image", in[i] ) ||
 			im_check_noncomplex( "im_rank_image", in[i] ) ||
 			im_check_size_same( "im_rank_image", in[i], in[0] ) ||
 			im_check_format_same( "im_rank_image", in[i], in[0] ) ||
-			im_check_bands( "im_rank_image", in[i], 3 ) )
+			im_check_bands_same( "im_rank_image", in[i], in[0] ) )
 			return( -1 );
 
 	if( !(rank = rank_new( in, out, n, index )) ||

@@ -59,10 +59,8 @@
  * Copy an image to a disc file, then copy again to output. If the image is
  * already a disc file, just copy straight through.
  *
- * The disc file is allocated in the same way as im_system_image(). A disc
- * file is created in /tmp (change this with the TMPDIR environment
- * variable) named something like "vips-12-34985.v" and the image is written
- * to that file. The file is automatically deleted when @out is closed.
+ * The disc file is allocated in the same way as im_system_image(). 
+ * The file is automatically deleted when @out is closed.
  *
  * See also: im_copy(), im_system_image().
  *

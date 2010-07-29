@@ -1528,6 +1528,32 @@ im_amiMSBfirst( void )
                 return( 1 );
 }
 
+/* Return the tmp dir. On Windows, GetTempPath() will also check the values of 
+ * TMP, TEMP and USERPROFILE.
+ */
+static const char *
+im__temp_dir( void )
+{
+	const char *tmpd;
+
+	if( !(tmpd = g_getenv( "TMPDIR" )) ) {
+#ifdef OS_WIN32
+		static gboolean done = FALSE;
+		static char buf[256];
+
+		if( !done ) {
+			if( !GetTempPath( 256, buf ) )
+				strcpy( buf, "C:\\temp" );
+		}
+		tmpd = buf;
+#else /*!OS_WIN32*/
+		tmpd = "/tmp";
+#endif /*!OS_WIN32*/
+	}
+
+	return( tmpd );
+}
+
 /* Make a temporary file name. The format parameter is something like "%s.jpg" 
  * and will be expanded to something like "/tmp/vips-12-34587.jpg".
  *
@@ -1539,19 +1565,15 @@ im__temp_name( const char *format )
 {
 	static int serial = 1;
 
-	const char *tmpd;
 	char file[FILENAME_MAX];
 	char file2[FILENAME_MAX];
 
 	char *name;
 	int fd;
 
-	if( !(tmpd = g_getenv( "TMPDIR" )) )
-		tmpd = "/tmp";
-
 	im_snprintf( file, FILENAME_MAX, "vips-%d-XXXXXX", serial++ );
 	im_snprintf( file2, FILENAME_MAX, format, file );
-	name = g_build_filename( tmpd, file2, NULL );
+	name = g_build_filename( im__temp_dir(), file2, NULL );
 
 	if( (fd = g_mkstemp( name )) == -1 ) {
 		im_error( "tempfile", 
