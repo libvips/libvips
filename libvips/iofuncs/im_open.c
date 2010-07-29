@@ -195,14 +195,12 @@ attach_sb( IMAGE *out, int (*save_fn)(), const char *filename )
  * delay actually decoding pixels until the first call to a start function.
  */
 
-typedef int (*OpenLazyFn)( const char *filename, IMAGE *im );
-
 /* What we track during a delayed open.
  */
 typedef struct _OpenLazy {
 	char *filename;
 
-	OpenLazyFn read_pixels;	/* Read in pixels with this */
+	VipsFormatClass *format;/* Read in pixels with this */
 	IMAGE *lazy_im;		/* Image we read to .. copy from this */
 } OpenLazy;
 
@@ -216,7 +214,7 @@ open_lazy_start( IMAGE *out, void *a, void *dummy )
 
 	if( !lazy->lazy_im ) {
 		if( !(lazy->lazy_im = im_open_local( out, "read", "p" )) || 
-			lazy->read_pixels( lazy->filename, lazy->lazy_im ) ) {
+			lazy->format->load( lazy->filename, lazy->lazy_im ) ) {
 			IM_FREEF( im_close, lazy->lazy_im );
 			return( NULL );
 		}
@@ -251,18 +249,17 @@ open_lazy_generate( REGION *or, void *seq, void *a, void *b )
  * decoding pixels with the second OpenLazyFn until the first generate().
  */
 static int
-open_lazy( OpenLazyFn read_header, OpenLazyFn read_pixels, 
-	const char *filename, IMAGE *out )
+open_lazy( VipsFormatClass *format, const char *filename, IMAGE *out )
 {
 	OpenLazy *lazy = IM_NEW( out, OpenLazy );
 
 	if( !lazy ||
 		!(lazy->filename = im_strdup( out, filename )) )
 		return( -1 );
-	lazy->read_pixels = read_pixels;
+	lazy->format = format;
 	lazy->lazy_im = NULL;
 
-	if( read_header( filename, out ) ||
+	if( format->header( filename, out ) ||
 		im_demand_hint( out, IM_ANY, NULL ) )
 		return( -1 );
 
@@ -274,13 +271,55 @@ open_lazy( OpenLazyFn read_header, OpenLazyFn read_pixels,
 	return( 0 );
 }
 
-static IMAGE *
-open_sub( OpenLazyFn read_header, OpenLazyFn read_pixels, const char *filename )
+static size_t
+guess_size( VipsFormatClass *format, const char *filename )
 {
 	IMAGE *im;
+	size_t size;
 
-	if( !(im = im_open( filename, "p" )) || 
-		open_lazy( read_header, read_pixels, filename, im ) ) {
+        if( !(im = im_open( "header", "p" )) )
+		return( 0 );
+	if( format->header( filename, im ) ) {
+		im_close( im );
+		return( 0 );
+	}
+	size = IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
+	im_close( im );
+
+	return( size );
+}
+
+static IMAGE *
+open_sub( VipsFormatClass *format, const char *filename, gboolean disc )
+{
+	static const int use_disc_threshold = 1024 * 1024;
+
+	IMAGE *im;
+
+	/* We open to disc if:
+	 * - 'disc' is set
+	 * - the format does not support lazy read
+	 * - the image will be more than a megabyte, uncompressed
+	 */
+	im = NULL;
+	if( disc ) 
+	        if( !(vips_format_get_flags( format, filename ) & 
+			VIPS_FORMAT_PARTIAL) ) {
+			size_t size;
+
+			size = guess_size( format, filename );
+			if( size > use_disc_threshold ) 
+				if( !(im = im__open_temp( "%s.v" )) )
+					return( NULL );
+		}
+
+	/* Otherwise, fall back to a "p".
+	 */
+	if( !im && 
+		!(im = im_open( filename, "p" )) )
+		return( NULL );
+
+	if( open_lazy( format, filename, im ) ) {
 		im_close( im );
 		return( NULL );
 	}
@@ -353,15 +392,29 @@ evalend_cb( Progress *progress )
  *       file for you in memory. 
  *
  *       For some large files (eg. TIFF) this may 
- *       not be what you want: you should call the appropriate converter
- *       yourself, and arrange for the conversion to take place on disc. 
- *       See #VipsFormat. 
+ *       not be what you want, it can fill memory very quickly. Instead, you
+ *       can either use "rd" mode (see below), or you can use the lower-level 
+ *       API and control the loading process yourself. See 
+ *       #VipsFormat. 
  *
  *       im_open() can read files in most formats.
  *
  *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
  *       It should return quickly and let you check header fields. It will
  *       only actually read in pixels when you first access them. 
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"rd"</emphasis>
+ *	 opens the named file for reading. If the uncompressed image is larger 
+ *	 than a megabyte and the file format does not support random access, 
+ *	 rather than uncompressing to memory, im_open() will uncompress to a
+ *	 temporary disc file. This file will be automatically deleted when the
+ *	 IMAGE is closed.
+ *
+ *	 See im_system_image() for an explanation of how VIPS selects a
+ *	 location for the temporary file.
  *     </para>
  *   </listitem>
  *   <listitem> 
@@ -440,8 +493,8 @@ im_open( const char *filename, const char *mode )
 				if( !(im = im_open_vips( filename )) )
 					return( NULL );
 			}
-			else if( !(im = open_sub( 
-				format->header, format->load, filename )) )
+			else if( !(im = open_sub( format, filename, 
+				mode[1] == 'd' )) )
 				return( NULL );
 		}
 		else 
