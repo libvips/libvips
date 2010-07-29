@@ -28,6 +28,8 @@
  * 11/9/09
  * 	- im__cast_and_call() becomes im__arith_binary()
  * 	- more of operation scaffold moved inside
+ * 25/7/10
+ * 	- remove oil support again ... we'll try Orc instead
  */
 
 /*
@@ -64,14 +66,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-
-#ifdef HAVE_LIBOIL
-#include <liboil/liboil.h>
-#endif /*HAVE_LIBOIL*/
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -109,12 +106,7 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 
         case IM_BANDFMT_FLOAT: 		
         case IM_BANDFMT_COMPLEX:
-#ifdef HAVE_LIBOIL
-		oil_add_f32( (float *) out, 
-			(float *) in[0], (float *) in[1], sz );
-#else /*!HAVE_LIBOIL*/
 		LOOP( float, float ); 
-#endif /*HAVE_LIBOIL*/
 		break; 
 
         case IM_BANDFMT_DOUBLE:	
@@ -123,7 +115,7 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 		break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 
