@@ -111,7 +111,7 @@ input_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = im_open( str, "r" )) );
+	return( !(*im = im_open( str, "rd" )) );
 }
 
 /* Input image type.
@@ -213,7 +213,7 @@ input_imagevec_init( im_object *obj, char *str )
 		iv->vec[i] = NULL;
 
 	for( i = 0; i < nargs; i++ ) 
-		if( !(iv->vec[i] = im_open( strv[i], "r" )) ) {
+		if( !(iv->vec[i] = im_open( strv[i], "rd" )) ) {
 			g_strfreev( strv );
 			return( -1 );
 		}

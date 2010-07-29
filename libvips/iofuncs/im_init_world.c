@@ -287,6 +287,9 @@ static GOptionEntry option_entries[] = {
 		N_( "set fatstrip height to N (DEBUG)" ), "N" },
 	{ "vips-progress", 'p', 0, G_OPTION_ARG_NONE, &im__progress, 
 		N_( "show progress feedback" ), NULL },
+	{ "vips-disc-threshold", 'd', 0, G_OPTION_ARG_STRING, 
+		&im__disc_threshold, 
+		N_( "image size above which to decompress to disc" ), NULL },
 	{ NULL }
 };
 

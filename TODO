@@ -1,6 +1,6 @@
 - vipsthumbnail should use "rd" mode
 
-- should "vips" used "rd" mode as well?
+- test "vips" rd open stuff
 
 - lcms2 needs testing
 

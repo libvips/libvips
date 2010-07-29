@@ -96,6 +96,8 @@ Modified:
  * 	- break file format stuff out to the new pluggable image format system
  * 14/1/09
  * 	- write to non-vips formats with a "written" callback
+ * 29/7/10
+ * 	- disc open threshold stuff, open to disc mode
  */
 
 /*
@@ -149,6 +151,11 @@ Modified:
 /* Progress feedback. Only really useful for testing, tbh.
  */
 int im__progress = 0;
+
+/* A string giving the image size (in bytes of uncompressed image) above which 
+ * we decompress to disc on open.  Can be eg. "12m" for 12 megabytes.
+ */
+char *im__disc_threshold = NULL;
 
 /* Delayed save: if we write to (eg.) TIFF, actually do the write
  * to a "p" and on "written" do im_vips2tiff() or whatever. Track save
@@ -289,11 +296,63 @@ guess_size( VipsFormatClass *format, const char *filename )
 	return( size );
 }
 
+typedef struct {
+	const char unit;
+	int multiplier;
+} Unit;
+
+static size_t
+disc_threshold( void )
+{
+	static gboolean done = FALSE;
+	static size_t threshold;
+	static Unit units[] = {
+		{ 'k', 1024 },
+		{ 'm', 1024 * 1024 },
+		{ 'g', 1024 * 1024 * 1024 }
+	};
+
+	if( !done ) {
+		threshold = 1024 * 1024;
+		done = TRUE;
+
+		if( im__disc_threshold ) {
+			int n;
+			int size;
+			char *unit;
+
+			/* An easy way to alloc a buffer large enough.
+			 */
+			unit = g_strdup( im__disc_threshold );
+
+			n = sscanf( im__disc_threshold, "%d %s", &size, unit );
+			if( n > 0 )
+				threshold = size;
+			if( n > 1 ) {
+				int i;
+
+				for( i = 0; i < IM_NUMBER( units ); i++ )
+					if( tolower( unit[0] ) == 
+						units[i].unit ) {
+						threshold *= 
+							units[i].multiplier;
+						break;
+					}
+			}
+		}
+	}
+
+#ifdef DEBUG
+	printf( "disc_threshold: parsed \"im__disc_threshold\" as %zd\n",
+		im__disc_threshold, threshold );
+#endif /*DEBUG*/
+
+	return( threshold );
+}
+
 static IMAGE *
 open_sub( VipsFormatClass *format, const char *filename, gboolean disc )
 {
-	static const int use_disc_threshold = 1024 * 1024;
-
 	IMAGE *im;
 
 	/* We open to disc if:
@@ -308,7 +367,7 @@ open_sub( VipsFormatClass *format, const char *filename, gboolean disc )
 			size_t size;
 
 			size = guess_size( format, filename );
-			if( size > use_disc_threshold ) 
+			if( size > disc_threshold() ) 
 				if( !(im = im__open_temp( "%s.v" )) )
 					return( NULL );
 		}

@@ -70,6 +70,11 @@ extern int im__concurrency;
  */
 extern int im__progress;
 
+/* A string giving the image size (in bytes of uncompressed image) above which 
+ * we decompress to disc on open. 
+ */
+extern char *im__disc_threshold;
+
 typedef int (*im__fftproc_fn)( IMAGE *, IMAGE *, IMAGE * );
 
 /* iofuncs
