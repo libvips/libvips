@@ -1,5 +1,7 @@
 - vipsthumbnail should use "rd" mode
 
+- should "vips" used "rd" mode as well?
+
 - lcms2 needs testing
 
 - tools subdirs are now pretty stupid :-( just have a single dir
