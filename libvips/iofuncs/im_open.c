@@ -204,12 +204,168 @@ attach_sb( IMAGE *out, int (*save_fn)(), const char *filename )
 
 /* What we track during a delayed open.
  */
-typedef struct _OpenLazy {
-	char *filename;
-
+typedef struct _Lazy {
+	IMAGE *out;
 	VipsFormatClass *format;/* Read in pixels with this */
-	IMAGE *lazy_im;		/* Image we read to .. copy from this */
-} OpenLazy;
+	gboolean disc;		/* Read via disc requested */
+	IMAGE *im;		/* The real decompressed image */
+} Lazy;
+
+static int
+lazy_free( Lazy *lazy )
+{
+	IM_FREEF( im_close, lazy->im );
+
+	return( 0 );
+}
+
+static Lazy *
+lazy_new( IMAGE *out, VipsFormatClass *format, gboolean disc )
+{
+	Lazy *lazy;
+
+	if( !(lazy = IM_NEW( out, Lazy )) )
+		return( NULL );
+	lazy->out = out;
+	lazy->format = format;
+	lazy->disc = disc;
+	lazy->im = NULL;
+
+        if( im_add_close_callback( out, 
+		(im_callback_fn) lazy_free, lazy, NULL ) ) {
+                lazy_free( lazy );
+
+                return( NULL );
+        }
+
+	return( lazy );
+}
+
+static size_t
+guess_size( VipsFormatClass *format, const char *filename )
+{
+	IMAGE *im;
+	size_t size;
+
+        if( !(im = im_open( "header", "p" )) )
+		return( 0 );
+	if( format->header( filename, im ) ) {
+		im_close( im );
+		return( 0 );
+	}
+	size = IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
+	im_close( im );
+
+	return( size );
+}
+
+typedef struct {
+	const char unit;
+	int multiplier;
+} Unit;
+
+static size_t
+parse_size( const char *size_string )
+{
+	static Unit units[] = {
+		{ 'k', 1024 },
+		{ 'm', 1024 * 1024 },
+		{ 'g', 1024 * 1024 * 1024 }
+	};
+
+	size_t size;
+	int n;
+	int i, j;
+	char *unit;
+
+	/* An easy way to alloc a buffer large enough.
+	 */
+	unit = g_strdup( size_string );
+	n = sscanf( size_string, "%d %s", &i, unit );
+	if( n > 0 )
+		size = i;
+	if( n > 1 ) {
+		for( j = 0; j < IM_NUMBER( units ); j++ )
+			if( tolower( unit[0] ) == units[j].unit ) {
+				size *= units[j].multiplier;
+				break;
+			}
+	}
+	g_free( unit );
+
+#ifdef DEBUG
+	printf( "parse_size: parsed \"%s\" as %zd\n", size_string, size );
+#endif /*DEBUG*/
+
+	return( size );
+}
+
+static size_t
+disc_threshold( void )
+{
+	static gboolean done = FALSE;
+	static size_t threshold;
+
+	if( !done ) {
+		const char *env;
+
+		done = TRUE;
+
+		threshold = 1024 * 1024;
+
+		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
+			threshold = parse_size( env );
+
+		if( im__disc_threshold ) 
+			threshold = parse_size( im__disc_threshold );
+
+#ifdef DEBUG
+		printf( "disc_threshold: %zd bytes\n", threshold );
+#endif /*DEBUG*/
+
+	}
+
+	return( threshold );
+}
+
+static IMAGE *
+lazy_image( Lazy *lazy ) 
+{
+	IMAGE *im;
+
+	/* We open to disc if:
+	 * - 'disc' is set
+	 * - disc_threshold() has not been set to zero
+	 * - the format does not support lazy read
+	 * - the image will be more than a megabyte, uncompressed
+	 */
+	im = NULL;
+	if( lazy->disc && 
+		disc_threshold() && 
+	        !(vips_format_get_flags( lazy->format, lazy->out->filename ) & 
+			VIPS_FORMAT_PARTIAL) ) {
+		size_t size;
+
+		size = guess_size( lazy->format, lazy->out->filename );
+		if( size > disc_threshold() ) {
+			if( !(im = im__open_temp( "%s.v" )) )
+				return( NULL );
+
+#ifdef DEBUG
+			printf( "lazy_image: opening to disc file \"%s\"\n",
+				im->filename );
+#endif /*DEBUG*/
+		}
+	}
+
+	/* Otherwise, fall back to a "p".
+	 */
+	if( !im && 
+		!(im = im_open( lazy->out->filename, "p" )) )
+		return( NULL );
+
+	return( im );
+}
 
 /* Our start function ... do the lazy open, if necessary, and return a region
  * on the new image.
@@ -217,17 +373,18 @@ typedef struct _OpenLazy {
 static void *
 open_lazy_start( IMAGE *out, void *a, void *dummy )
 {
-	OpenLazy *lazy = (OpenLazy *) a;
+	Lazy *lazy = (Lazy *) a;
 
-	if( !lazy->lazy_im ) {
-		if( !(lazy->lazy_im = im_open_local( out, "read", "p" )) || 
-			lazy->format->load( lazy->filename, lazy->lazy_im ) ) {
-			IM_FREEF( im_close, lazy->lazy_im );
+	if( !lazy->im ) {
+		if( !(lazy->im = lazy_image( lazy )) || 
+			lazy->format->load( lazy->out->filename, lazy->im ) ||
+			im_pincheck( lazy->im ) ) {
+			IM_FREEF( im_close, lazy->im );
 			return( NULL );
 		}
 	}
 
-	return( im_region_create( lazy->lazy_im ) );
+	return( im_region_create( lazy->im ) );
 }
 
 /* Just copy.
@@ -256,20 +413,22 @@ open_lazy_generate( REGION *or, void *seq, void *a, void *b )
  * decoding pixels with the second OpenLazyFn until the first generate().
  */
 static int
-open_lazy( VipsFormatClass *format, const char *filename, IMAGE *out )
+open_lazy( VipsFormatClass *format, gboolean disc, IMAGE *out )
 {
-	OpenLazy *lazy = IM_NEW( out, OpenLazy );
+	Lazy *lazy;
 
-	if( !lazy ||
-		!(lazy->filename = im_strdup( out, filename )) )
+	if( !(lazy = lazy_new( out, format, disc )) )
 		return( -1 );
-	lazy->format = format;
-	lazy->lazy_im = NULL;
 
-	if( format->header( filename, out ) ||
+	/* Read header fields to init the return image.
+	 */
+	if( format->header( out->filename, out ) ||
 		im_demand_hint( out, IM_ANY, NULL ) )
 		return( -1 );
 
+	/* Then 'start' creates the real image and 'gen' paints 'out' with 
+	 * pixels from the real image on demand.
+	 */
 	if( im_generate( out, 
 		open_lazy_start, open_lazy_generate, im_stop_one, 
 		lazy, NULL ) )
@@ -278,115 +437,16 @@ open_lazy( VipsFormatClass *format, const char *filename, IMAGE *out )
 	return( 0 );
 }
 
-static size_t
-guess_size( VipsFormatClass *format, const char *filename )
-{
-	IMAGE *im;
-	size_t size;
-
-        if( !(im = im_open( "header", "p" )) )
-		return( 0 );
-	if( format->header( filename, im ) ) {
-		im_close( im );
-		return( 0 );
-	}
-	size = IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
-	im_close( im );
-
-	return( size );
-}
-
-typedef struct {
-	const char unit;
-	int multiplier;
-} Unit;
-
-static size_t
-disc_threshold( void )
-{
-	static gboolean done = FALSE;
-	static size_t threshold;
-	static Unit units[] = {
-		{ 'k', 1024 },
-		{ 'm', 1024 * 1024 },
-		{ 'g', 1024 * 1024 * 1024 }
-	};
-
-	if( !done ) {
-		threshold = 1024 * 1024;
-		done = TRUE;
-
-		if( im__disc_threshold ) {
-			int n;
-			int size;
-			char *unit;
-
-			/* An easy way to alloc a buffer large enough.
-			 */
-			unit = g_strdup( im__disc_threshold );
-
-			n = sscanf( im__disc_threshold, "%d %s", &size, unit );
-			if( n > 0 )
-				threshold = size;
-			if( n > 1 ) {
-				int i;
-
-				for( i = 0; i < IM_NUMBER( units ); i++ )
-					if( tolower( unit[0] ) == 
-						units[i].unit ) {
-						threshold *= 
-							units[i].multiplier;
-						break;
-					}
-			}
-		}
-
-#ifdef DEBUG
-		printf( "disc_threshold: parsed \"%s\" as %zd\n", 
-			im__disc_threshold, threshold );
-#endif /*DEBUG*/
-	}
-
-	return( threshold );
-}
-
 static IMAGE *
 open_sub( VipsFormatClass *format, const char *filename, gboolean disc )
 {
 	IMAGE *im;
 
-	/* We open to disc if:
-	 * - 'disc' is set
-	 * - disc_threshold() has not been set to zero
-	 * - the format does not support lazy read
-	 * - the image will be more than a megabyte, uncompressed
+	/* This is the 'im' we return which, when read from, will trigger the
+	 * actual load.
 	 */
-	im = NULL;
-	if( disc && 
-		disc_threshold() && 
-	        !(vips_format_get_flags( format, filename ) & 
-			VIPS_FORMAT_PARTIAL) ) {
-		size_t size;
-
-		size = guess_size( format, filename );
-		if( size > disc_threshold() ) {
-			if( !(im = im__open_temp( "%s.v" )) )
-				return( NULL );
-
-#ifdef DEBUG
-			printf( "open_sub: opening to disc file \"%s\"\n",
-				im->filename );
-#endif /*DEBUG*/
-		}
-	}
-
-	/* Otherwise, fall back to a "p".
-	 */
-	if( !im && 
-		!(im = im_open( filename, "p" )) )
-		return( NULL );
-
-	if( open_lazy( format, filename, im ) ) {
+	if( !(im = im_open( filename, "p" )) || 
+		open_lazy( format, disc, im ) ) {
 		im_close( im );
 		return( NULL );
 	}
@@ -475,13 +535,27 @@ evalend_cb( Progress *progress )
  *     <para>
  *       <emphasis>"rd"</emphasis>
  *	 opens the named file for reading. If the uncompressed image is larger 
- *	 than a megabyte and the file format does not support random access, 
+ *	 than a threshold and the file format does not support random access, 
  *	 rather than uncompressing to memory, im_open() will uncompress to a
  *	 temporary disc file. This file will be automatically deleted when the
  *	 IMAGE is closed.
  *
  *	 See im_system_image() for an explanation of how VIPS selects a
  *	 location for the temporary file.
+ *
+ *	 The disc threshold can be set with the "--vips-disc-threshold"
+ *	 command-line argument, or the IM_DISC_THRESHOLD environment variable.
+ *	 The value is a simple integer, but can take a unit postfix of "k", 
+ *	 "m" or "g" to indicate kilobytes, megabytes or gigabytes.
+ *
+ *	 For example:
+ *
+ *       |[
+ *         vips --vips-disc-threshold "500m" im_copy fred.tif fred.v
+ *       ]|
+ *
+ *       will copy via disc if "fred.tif" is more than 500 Mbytes
+ *       uncompressed.
  *     </para>
  *   </listitem>
  *   <listitem> 
