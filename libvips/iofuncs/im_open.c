@@ -127,8 +127,8 @@ Modified:
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -340,12 +340,12 @@ disc_threshold( void )
 					}
 			}
 		}
-	}
 
 #ifdef DEBUG
-	printf( "disc_threshold: parsed \"im__disc_threshold\" as %zd\n",
-		im__disc_threshold, threshold );
+		printf( "disc_threshold: parsed \"%s\" as %zd\n", 
+			im__disc_threshold, threshold );
 #endif /*DEBUG*/
+	}
 
 	return( threshold );
 }
@@ -357,20 +357,28 @@ open_sub( VipsFormatClass *format, const char *filename, gboolean disc )
 
 	/* We open to disc if:
 	 * - 'disc' is set
+	 * - disc_threshold() has not been set to zero
 	 * - the format does not support lazy read
 	 * - the image will be more than a megabyte, uncompressed
 	 */
 	im = NULL;
-	if( disc ) 
-	        if( !(vips_format_get_flags( format, filename ) & 
+	if( disc && 
+		disc_threshold() && 
+	        !(vips_format_get_flags( format, filename ) & 
 			VIPS_FORMAT_PARTIAL) ) {
-			size_t size;
+		size_t size;
 
-			size = guess_size( format, filename );
-			if( size > disc_threshold() ) 
-				if( !(im = im__open_temp( "%s.v" )) )
-					return( NULL );
+		size = guess_size( format, filename );
+		if( size > disc_threshold() ) {
+			if( !(im = im__open_temp( "%s.v" )) )
+				return( NULL );
+
+#ifdef DEBUG
+			printf( "open_sub: opening to disc file \"%s\"\n",
+				im->filename );
+#endif /*DEBUG*/
 		}
+	}
 
 	/* Otherwise, fall back to a "p".
 	 */

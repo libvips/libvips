@@ -1,6 +1,12 @@
 - vipsthumbnail should use "rd" mode
 
-- test "vips" rd open stuff
+- we leak a region with 
+
+	vips --vips-progress im_copy wtc.jpg wtc.v
+
+  how odd, also memuse is no lower ... we appear to open to memory, then copy 
+  to temp disc, then copy to output disc
+
 
 - lcms2 needs testing
 
