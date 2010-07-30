@@ -33,6 +33,15 @@ will read image file
 and write a 64 x 64 pixel thumbnail to the file 
 .B thumbnails/fred.png.
 
+On Unix machines, vips
+will create temporary files in "/tmp" by default. Use the environment variable
+TMPDIR to change this location. On Windows, vips uses GetTempPath() to pick a
+location, see the MS documentation.
+
+Use the --vips-disc-threshold command-line switch, or the IM_DISC_THRESHOLD
+environment variable, to make vipsthumbnail use memory rather than temporary
+files.
+
 .SH OPTIONS
 .TP
 .B -s N, --size=N
@@ -57,18 +66,6 @@ meaning JPEG output, with
 prepended. You can add format options too, for example
 .B tn_%s.jpg:20
 will write JPEG images with Q set to 20.
-
-.TP
-.B -d N, --disc=N       
-Set disc use threshold to 
-.B N.
-Images which cannot be opened directly need to be decompressed first. Images
-which are smaller than 
-.B N
-are decompressed to memory, images which are larger are decompressed to
-temporary files. Use the
-.B TMPDIR
-environment variable to change the location for temporary files.
 
 .TP
 .B -p I, --interpolator=I               

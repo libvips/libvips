@@ -19,6 +19,8 @@
  * 	- delete failed if there was a profile
  * 4/7/10
  * 	- oops sharpening was turning off for integer shrinks, thanks Nicolas
+ * 30/7/10
+ * 	- use new "rd" mode rather than our own open via disc
  */
 
 #ifdef HAVE_CONFIG_H
@@ -36,7 +38,6 @@
 
 static int thumbnail_size = 128;
 static char *output_format = "tn_%s.jpg";
-static int use_disc_threshold = 1024 * 1024;
 static char *interpolator = "bilinear";;
 static gboolean nosharpen = FALSE;
 static char *export_profile = NULL;
@@ -51,9 +52,6 @@ static GOptionEntry options[] = {
 	{ "output", 'o', 0, G_OPTION_ARG_STRING, &output_format, 
 		N_( "set output to FORMAT" ), 
 		N_( "FORMAT" ) },
-	{ "disc", 'd', 0, G_OPTION_ARG_INT, &use_disc_threshold, 
-		N_( "set disc use threshold to BYTES" ), 
-		N_( "BYTES" ) },
 	{ "interpolator", 'p', 0, G_OPTION_ARG_STRING, &interpolator, 
 		N_( "resample with INTERPOLATOR" ), 
 		N_( "INTERPOLATOR" ) },
@@ -71,75 +69,6 @@ static GOptionEntry options[] = {
 		N_( "verbose output" ), NULL },
 	{ NULL }
 };
-
-/* Open an image, using a disc temporary for 'large' images.
- */
-static IMAGE *
-open_image( const char *filename )
-{
-	IMAGE *im;
-	size_t size;
-	VipsFormatClass *format;
-
-	/* Normally we'd just im_open() the filename. But we want to control
-	 * the process, so we use the lower-level API.
-	 */
-
-	/* Find a format and check the flags. Does this format support lazy
-	 * load? If it does, we can just open the image directly.
-	 */
-	if( !(format = vips_format_for_file( filename )) )
-		return( NULL );
-	if( vips_format_get_flags( format, filename ) & VIPS_FORMAT_PARTIAL ) {
-		if( verbose )
-			printf( "format supports lazy read, "
-				"working directly from disc file\n" ); 
-
-		return( im_open( filename, "r" ) );
-	}
-
-	/* Get the header and try to predict uncompressed image size.
-	 */
-	if( !(im = im_open( "header", "p" )) )
-		return( NULL );
-	if( format->header( filename, im ) ) {
-		im_close( im );
-		return( NULL );
-	}
-	size = IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
-	im_close( im );
-
-	/* If it's less than our threshold, decompress to memory. 
-	 */
-	if( size < use_disc_threshold ) {
-		if( verbose )
-			printf( "small file, decompressing to memory\n" ); 
-
-		if( !(im = im_open( filename, "t" )) )
-			return( NULL );
-	}
-	else {
-		/* This makes a disc temp which be unlinked automatically 
-		 * when 'im' is closed. The temp is made in "/tmp", or 
-		 * "$TMPDIR/", if the environment variable is set.
-		 */
-		if( !(im = im__open_temp( "%s.v" )) ) 
-			return( NULL );
-
-		if( verbose )
-			printf( "large file, decompressing to disc temp %s\n", 
-				im->filename );
-	}
-
-	/* Load into im, which is memory or disc, depending.
-	 */
-	if( format->load( filename, im ) ) {
-		im_close( im );
-		return( NULL );
-	}
-
-	return( im );
-}
 
 /* Calculate the shrink factors. 
  *
@@ -370,7 +299,7 @@ thumbnail2( const char *filename )
 	char *tn_filename;
 	int result;
 
-	if( !(in = open_image( filename )) )
+	if( !(in = im_open( filename, "rd" )) )
 		return( -1 );
 
 	tn_filename = make_thumbnail_name( filename );
