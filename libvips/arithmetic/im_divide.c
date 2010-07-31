@@ -23,6 +23,9 @@
  * 18/8/08
  * 	- revise upcasting system
  * 	- add gtkdoc comments
+ * 31/7/10
+ * 	- remove liboil support
+ * 	- avoid /0 
  */
 
 /*
@@ -63,10 +66,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-
-#ifdef HAVE_LIBOIL
-#include <liboil/liboil.h>
-#endif /*HAVE_LIBOIL*/
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -136,7 +135,10 @@
 	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = p1[x] / p2[x]; \
+		if( p2[x] == 0.0 ) \
+			q[x] = 0; \
+		else \
+			q[x] = p1[x] / p2[x]; \
 }
 
 static void
@@ -154,19 +156,10 @@ divide_buffer( PEL **in, PEL *out, int width, IMAGE *im )
         case IM_BANDFMT_USHORT:	RLOOP( unsigned short, float ); break; 
         case IM_BANDFMT_INT: 	RLOOP( signed int, float ); break; 
         case IM_BANDFMT_UINT: 	RLOOP( unsigned int, float ); break; 
-
-        case IM_BANDFMT_FLOAT: 		
-#ifdef HAVE_LIBOIL
-		oil_divide_f32( (float *) out, 
-			(float *) in[0], (float *) in[1], sz );
-#else /*!HAVE_LIBOIL*/
-		RLOOP( float, float ); 
-#endif /*HAVE_LIBOIL*/
-		break; 
-
-        case IM_BANDFMT_DOUBLE:		RLOOP( double, double ); break;
-        case IM_BANDFMT_COMPLEX:	CLOOP( float ); break;
-        case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break;
+        case IM_BANDFMT_FLOAT: 	RLOOP( float, float ); break; 
+        case IM_BANDFMT_DOUBLE:	RLOOP( double, double ); break;
+        case IM_BANDFMT_COMPLEX:CLOOP( float ); break;
+        case IM_BANDFMT_DPCOMPLEX:CLOOP( double ); break;
 
         default:
 		assert( 0 );

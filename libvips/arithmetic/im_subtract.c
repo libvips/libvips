@@ -36,6 +36,8 @@
  * 	- revise upcasting system
  * 	- add gtkdoc comments
  * 	- remove separate complex case, just double size
+ * 31/7/10
+ * 	- remove liboil
  */
 
 /*
@@ -72,14 +74,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-
-#ifdef HAVE_LIBOIL
-#include <liboil/liboil.h>
-#endif /*HAVE_LIBOIL*/
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -117,12 +114,7 @@ subtract_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 
         case IM_BANDFMT_FLOAT: 		
         case IM_BANDFMT_COMPLEX:
-#ifdef HAVE_LIBOIL
-		oil_subtract_f32( (float *) out, 
-			(float *) in[0], (float *) in[1], sz );
-#else /*!HAVE_LIBOIL*/
 		LOOP( float, float ); 
-#endif /*HAVE_LIBOIL*/
 		break; 
 
         case IM_BANDFMT_DOUBLE:	
@@ -131,7 +123,7 @@ subtract_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 		break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 

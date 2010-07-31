@@ -116,7 +116,6 @@ float im_col_dECMC(
 float im_col_dE00( 
 	float L1, float a1, float b1, float L2, float a2, float b2 );
 
-int im_Lab2LCh( IMAGE *in, IMAGE *out );
 int im_LCh2Lab( IMAGE *in, IMAGE *out );
 int im_LabQ2XYZ( IMAGE *in, IMAGE *out );
 int im_rad2float( IMAGE *in, IMAGE *out );
@@ -147,8 +146,6 @@ int im_dECMC_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_dE00_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_dE_fromXYZ( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_dE_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_dE_fromXYZ( IMAGE *, IMAGE *, IMAGE * );
-int im_dE_fromLab( IMAGE *, IMAGE *, IMAGE * );
 
 int im_lab_morph( IMAGE *in, IMAGE *out,
 	DOUBLEMASK *mask,
@@ -156,11 +153,6 @@ int im_lab_morph( IMAGE *in, IMAGE *out,
 	double a_scale, double b_scale );
 
 void im_col_make_tables_UCS( void );
-
-int im_lab_morph( IMAGE *in, IMAGE *out,
-	DOUBLEMASK *mask,
-	double L_offset, double L_scale,
-	double a_scale, double b_scale );
 
 /* Render intents for icc wrappers.
  */

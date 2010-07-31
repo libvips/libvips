@@ -64,10 +64,6 @@
 #include <vips/thread.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_LIBOIL
-#include <liboil/liboil.h>
-#endif /*HAVE_LIBOIL*/
-
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
@@ -226,24 +222,6 @@ im_init_world( const char *argv0 )
 	/* Start up the buffer cache.
 	 */
 	im__buffer_init();
-
-#ifdef HAVE_LIBOIL
-{
-#ifdef DEBUG
-	GTimer *timer = g_timer_new();
-#endif /*DEBUG*/
-
-	oil_init();
-
-#ifdef DEBUG
-	/* 0.3 is only about 0.1s on my laptop, but this may take longer in
-	 * future.
-	 */
-	printf( "oil_init: %gs\n", g_timer_elapsed( timer, NULL ) );
-	g_timer_destroy( timer );
-#endif /*DEBUG*/
-}
-#endif /*HAVE_LIBOIL*/
 
 	done = TRUE;
 

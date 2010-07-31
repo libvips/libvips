@@ -144,7 +144,7 @@ im_LabS2LabQ( IMAGE *in, IMAGE *out )
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Bands = 4;
-	out->Type = IM_TYPE_LAB;
+	out->Type = IM_TYPE_LABQ;
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	out->Coding = IM_CODING_LABQ;
 

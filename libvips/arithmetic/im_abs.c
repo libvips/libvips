@@ -20,6 +20,8 @@
  * 28/8/09
  * 	- gtkdoc
  * 	- tiny polish
+ * 31/7/10
+ * 	- remove liboil
  */
 
 /*
@@ -56,14 +58,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-
-#ifdef HAVE_LIBOIL
-#include <liboil/liboil.h>
-#endif /*HAVE_LIBOIL*/
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -153,56 +150,16 @@ abs_gen( PEL *in, PEL *out, int width, IMAGE *im )
 	/* Abs all input types.
          */
         switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 		
-#ifdef HAVE_LIBOIL
-		oil_abs_u8_s8( (uint8_t *) out, sizeof( uint8_t ), 
-			(int8_t *) in, sizeof( int8_t ), sz );
-#else /*!HAVE_LIBOIL*/
-		intabs( signed char ); 
-#endif /*HAVE_LIBOIL*/
-		break; 
-
-        case IM_BANDFMT_SHORT: 		
-#ifdef HAVE_LIBOIL
-		oil_abs_u16_s16( (uint16_t *) out, sizeof( uint16_t ), 
-			(int16_t *) in, sizeof( int16_t ), sz );
-#else /*!HAVE_LIBOIL*/
-		intabs( signed short ); 
-#endif /*HAVE_LIBOIL*/
-		break; 
-
-        case IM_BANDFMT_INT: 
-#ifdef HAVE_LIBOIL
-		oil_abs_u32_s32( (uint32_t *) out, sizeof( uint32_t ), 
-			(int32_t *) in, sizeof( int32_t ), sz );
-#else /*!HAVE_LIBOIL*/
-		intabs( signed int ); 
-#endif /*HAVE_LIBOIL*/
-		break; 
-
-        case IM_BANDFMT_FLOAT: 
-#ifdef HAVE_LIBOIL
-		oil_abs_f32_f32( (float *) out, sizeof( float ), 
-			(float *) in, sizeof( float ), sz );
-#else /*!HAVE_LIBOIL*/
-		floatabs( float ); 
-#endif /*HAVE_LIBOIL*/
-		break; 
-
-        case IM_BANDFMT_DOUBLE:		
-#ifdef HAVE_LIBOIL
-		oil_abs_f64_f64( (double *) out, sizeof( double ), 
-			(double *) in, sizeof( double ), sz );
-#else /*!HAVE_LIBOIL*/
-		floatabs( float ); 
-#endif /*HAVE_LIBOIL*/
-		break; 
-
+        case IM_BANDFMT_CHAR: 		intabs( signed char ); break; 
+        case IM_BANDFMT_SHORT: 		intabs( signed short ); break; 
+        case IM_BANDFMT_INT: 		intabs( signed int ); break; 
+        case IM_BANDFMT_FLOAT: 		floatabs( float ); break; 
+        case IM_BANDFMT_DOUBLE:		floatabs( float ); break; 
         case IM_BANDFMT_COMPLEX:	complexabs( float ); break;
         case IM_BANDFMT_DPCOMPLEX:	complexabs( double ); break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 }
 

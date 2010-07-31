@@ -5,6 +5,9 @@
 - use GetTempPath() to pick a temp dir on Windows
 - added "rd" mode to im_open()
 - vipsthumbnail and vips use "rd" 
+- im_divide spots /0 
+- remove liboil dependency, we will use Orc instead
+- various small cleanups (thanks Tim)
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if

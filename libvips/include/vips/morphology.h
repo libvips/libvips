@@ -1,4 +1,4 @@
-/* convolution.h
+/* morphology.h
  *
  * 20/9/09
  * 	- from proto.h

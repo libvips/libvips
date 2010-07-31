@@ -28,6 +28,8 @@
  * 	- add complex case (needed for im_max())
  * 8/9/09
  * 	- wrapscan stuff moved here
+ * 31/7/10
+ * 	- remove liboil
  */
 
 /*
@@ -67,10 +69,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-
-#ifdef HAVE_LIBOIL
-#include <liboil/liboil.h>
-#endif /*HAVE_LIBOIL*/
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -223,22 +221,7 @@ avg_scan( void *in, int n, void *seq, void *a, void *b )
 	case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
 	case IM_BANDFMT_INT:		LOOP( signed int ); break; 
 	case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
-
-	case IM_BANDFMT_DOUBLE:	
-#ifdef HAVE_LIBOIL
-{ 
-		double *p = (double *) in;
-		double t;
-
-		oil_sum_f64( &t, p, sizeof( double ), sz );
-
-		m += t;
-}
-#else /*!HAVE_LIBOIL*/
-		LOOP( double ); 
-#endif /*HAVE_LIBOIL*/
-		break; 
-
+	case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
 	case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
 	case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
 

@@ -33,6 +33,8 @@
  * 	- add liboil support
  * 9/9/09
  * 	- gtkdoc comment, minor reformat
+ * 31/7/10
+ * 	- remove liboil
  */
 
 /*
@@ -69,14 +71,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-
-#ifdef HAVE_LIBOIL
-#include <liboil/liboil.h>
-#endif /*HAVE_LIBOIL*/
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -114,31 +111,6 @@ typedef struct {
 	} \
 }
 
-#ifdef HAVE_LIBOIL
-/* Process granularity.
- */
-#define CHUNKS (1000)
-
-/* d[] = s[] * b + c, with liboil
- */
-static void
-lintra_f32( float *d, float *s, int n, float b, float c )
-{
-	float buf[CHUNKS];
-	int i;
-
-	for( i = 0; i < n; i += CHUNKS ) {
-		oil_scalarmultiply_f32_ns( buf, s, 
-			&b, IM_MIN( CHUNKS, n - i ) );
-		oil_scalaradd_f32_ns( d, buf, 
-			&c, IM_MIN( CHUNKS, n - i ) );
-
-		s += CHUNKS;
-		d += CHUNKS;
-	}
-}
-#endif /*HAVE_LIBOIL*/
-
 /* Lintra a buffer, 1 set of scale/offset.
  */
 static int
@@ -158,20 +130,13 @@ lintra1_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
         case IM_BANDFMT_SHORT: 		LOOP( signed short, float ); break; 
         case IM_BANDFMT_UINT: 		LOOP( unsigned int, float ); break; 
         case IM_BANDFMT_INT: 		LOOP( signed int, float );  break; 
-        case IM_BANDFMT_FLOAT: 		
-#ifdef HAVE_LIBOIL
-		lintra_f32( (float *) out, (float *) in, sz, a, b );
-#else /*!HAVE_LIBOIL*/
-		LOOP( float, float ); 
-#endif /*HAVE_LIBOIL*/
-		break; 
-
+        case IM_BANDFMT_FLOAT: 		LOOP( float, float ); break; 
         case IM_BANDFMT_DOUBLE:		LOOP( double, double ); break; 
         case IM_BANDFMT_COMPLEX:	LOOPCMPLX( float, float ); break; 
         case IM_BANDFMT_DPCOMPLEX:	LOOPCMPLX( double, double ); break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 
 	return( 0 );
@@ -180,28 +145,28 @@ lintra1_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
 /* Define what we do for each band element type. Non-complex input, any
  * output.
  */
-#define LOOPN( IN, OUT ) {\
-	IN *p = (IN *) in;\
-	OUT *q = (OUT *) out;\
+#define LOOPN( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
 	\
-	for( i = 0, x = 0; x < width; x++ )\
-		for( k = 0; k < nb; k++, i++ )\
-			q[i] = a[k] * (OUT) p[i] + b[k];\
+	for( i = 0, x = 0; x < width; x++ ) \
+		for( k = 0; k < nb; k++, i++ ) \
+			q[i] = a[k] * (OUT) p[i] + b[k]; \
 }
 
 /* Complex input, complex output. 
  */
-#define LOOPCMPLXN( IN, OUT ) {\
-	IN *p = (IN *) in;\
-	OUT *q = (OUT *) out;\
+#define LOOPCMPLXN( IN, OUT ) { \
+	IN *p = (IN *) in; \
+	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < width; x++ ) \
-		for( k = 0; k < nb; k++ ) {\
-			q[0] = a[k] * p[0] + b[k];\
-			q[1] = a[k] * p[1];\
-			q += 2;\
-			p += 2;\
-		}\
+		for( k = 0; k < nb; k++ ) { \
+			q[0] = a[k] * p[0] + b[k]; \
+			q[1] = a[k] * p[1]; \
+			q += 2; \
+			p += 2; \
+		} \
 }
 
 /* Lintra a buffer, n set of scale/offset.
@@ -229,7 +194,7 @@ lintran_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
         case IM_BANDFMT_DPCOMPLEX:	LOOPCMPLXN( double, double ); break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 
 	return( 0 );
@@ -290,7 +255,7 @@ lintranv_gen( PEL *in, PEL *out, int width, IMAGE *im, LintraInfo *inf )
         case IM_BANDFMT_DPCOMPLEX:	LOOPCMPLXNV( double, double ); break;
 
         default:
-		assert( 0 );
+		g_assert( 0 );
         }
 
 	return( 0 );
