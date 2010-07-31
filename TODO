@@ -1,4 +1,4 @@
-- vipsthumbnail should use "rd" mode
+- im_divide() can /0 for complex 
 
 - lcms2 needs testing
 
