@@ -311,7 +311,9 @@ disc_threshold( void )
 
 		done = TRUE;
 
-		threshold = 1024 * 1024;
+		/* 100mb default.
+		 */
+		threshold = 100 * 1024 * 1024;
 
 		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
 			threshold = parse_size( env );
@@ -322,7 +324,6 @@ disc_threshold( void )
 #ifdef DEBUG
 		printf( "disc_threshold: %zd bytes\n", threshold );
 #endif /*DEBUG*/
-
 	}
 
 	return( threshold );
@@ -555,7 +556,7 @@ evalend_cb( Progress *progress )
  *       ]|
  *
  *       will copy via disc if "fred.tif" is more than 500 Mbytes
- *       uncompressed.
+ *       uncompressed. The default threshold is 100MB.
  *     </para>
  *   </listitem>
  *   <listitem> 

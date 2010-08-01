@@ -2,7 +2,24 @@
 
 - unlink temps earlier on *nix systems
 
-- disc_thresh should default to eg. 100mb
+  the file is created by setupout, which is called just before generate or
+  writeline, so perhaps unlink on evalstart?
+
+  no, on a rewind we need to be able to close and reopen, argh
+
+- why is im_setupout() necessary for WIO output? couldn't writeline call it if
+  it's not been called?
+
+  equally, could pincheck/poutcheck/outcheck be made optional?
+  im_region_create() could call pincheck for you, for example
+
+  open_lazy does a pincheck to rewind the disc conversion, but that could be
+  removed
+
+  incheck is necessary to make ->data valid I suppose
+
+
+
 
 - lcms2 needs testing
 
