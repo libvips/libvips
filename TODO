@@ -1,3 +1,8 @@
+
+- use D65 in cmsCreateLab4Profile() ? not sure
+
+- VImage("poop.v") should use "rd" as well? Python too?
+
 - im_divide() can /0 for complex 
 
 - unlink temps earlier on *nix systems
@@ -20,8 +25,6 @@
 
 
 
-
-- lcms2 needs testing
 
 - tools subdirs are now pretty stupid :-( just have a single dir
 
