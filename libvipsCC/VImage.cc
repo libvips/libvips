@@ -143,7 +143,7 @@ void VImage::refblock::removeref() throw( VError )
 		delete this;
 }
 
-// Init with name ... mode defaults to "r"
+// Init with name ... mode defaults to "rd"
 VImage::VImage( const char *name, const char *mode ) throw( VError )
 {
 	_ref = new refblock;
