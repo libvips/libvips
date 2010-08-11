@@ -409,10 +409,11 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int tx = (six + 1) >> 1;
 	const int ty = (siy + 1) >> 1;
 
-	/* We know x/y are always positive, so we can just (int) them. 
+	/* We want ((int)x) ... save this double -> int conversion by just
+	 * shifting sx down.
 	 */
-	const int ix = (int) x;
-	const int iy = (int) y;
+	const int ix = sx >> (VIPS_TRANSFORM_SHIFT + 1);
+	const int iy = sy >> (VIPS_TRANSFORM_SHIFT + 1);
 
 	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, ix, iy );
 	const PEL *p2 = p1 + ps;
