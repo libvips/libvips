@@ -85,6 +85,9 @@
  * 	- revise clipping / transform stuff, again
  * 	- now do corner rather than centre: this way the identity transform
  * 	  returns the input exactly
+ * 12/8/10
+ * 	- revise window_size / window_offset stuff again, see also
+ * 	  interpolate.c
  */
 
 /*
@@ -137,9 +140,28 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* "fast" floor() ... on my laptop, anyway.
+/*
+ * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
+ * found to be faster on several linux boxes than the library
+ * version. It returns the floor of its argument unless the argument
+ * is a negative integer, in which case it returns one less than the
+ * floor. For example:
+ *
+ * FAST_PSEUDO_FLOOR(0.5) = 0
+ *
+ * FAST_PSEUDO_FLOOR(0.) = 0
+ *
+ * FAST_PSEUDO_FLOOR(-.5) = -1
+ *
+ * as expected, but
+ *
+ * FAST_PSEUDO_FLOOR(-1.) = -2
+ *
+ * The locations of the discontinuities of FAST_PSEUDO_FLOOR are the
+ * same as floor and floorf; it is just that at negative integers the
+ * function is discontinuous on the right instead of the left.
  */
-#define FLOOR( V ) ((V) >= 0 ? (int)(V) : (int)((V) - 1))
+#define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
 
 /* Per-call state.
  */
@@ -158,14 +180,22 @@ affine_free( Affine *affine )
 	return( 0 );
 }
 
-/* We have five (!!) coordinate systems. Working forward through them, there
+/* We have five (!!) coordinate systems. Working forward through them, these
  * are:
  *
  * 1. The original input image
  *
  * 2. This is embedded in a larger image to provide borders for the
  * interpolator. iarea->left/top give the offset. These are the coordinates we
- * pass to IM_REGION_ADDR()/im_prepare() for the input image.
+ * pass to IM_REGION_ADDR()/im_prepare() for the input image. 
+ *
+ * The borders are sized by the interpolator's window_size property and offset 
+ * by the interpolator's window_offset property. For example,
+ * for bilinear (window_size 2, window_offset 0) we add a single line 
+ * of extra pixels along the bottom and right (window_size - 1). For 
+ * bicubic (window_size 4, window_offset 1) we add a single line top and left 
+ * (window_offset), and two lines bottom and right (window_size - 1 -
+ * window_offset).
  *
  * 3. We need point (0, 0) in (1) to be at (0, 0) for the transformation. So
  * shift everything up and left to make the displaced input image. This is the
@@ -186,6 +216,8 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 	REGION *ir = (REGION *) seq;
 	const IMAGE *in = (IMAGE *) a;
 	const Affine *affine = (Affine *) b;
+	const int window_size = 
+		vips_interpolate_get_window_size( affine->interpolate );
 	const int window_offset = 
 		vips_interpolate_get_window_offset( affine->interpolate );
 	const VipsInterpolateMethod interpolate = 
@@ -225,14 +257,27 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 	 */
 	im__transform_invert_rect( &affine->trn, &want, &need );
 
+	/* That does round-to-nearest, because it has to stop rounding errors
+	 * growing images unexpectedly. We need round-down, so we must
+	 * add half a pixel along the left and top. But we are int :( so add 1
+	 * pixel.
+	 */
+	need.top -= 1;
+	need.left -= 1;
+	need.width += 1;
+	need.height += 1;
+
 	/* Now go to space (2) above.
 	 */
 	need.left += iarea->left;
 	need.top += iarea->top;
 
-	/* Add a border for interpolation. Plus one for rounding errors.
+	/* Add a border for interpolation. 
 	 */
-	im_rect_marginadjust( &need, window_offset + 1 );
+	need.width += window_size - 1;
+	need.height += window_size - 1;
+	need.left -= window_offset; 
+	need.top -= window_offset;
 
 	/* Clip against the size of (2).
 	 */
@@ -304,8 +349,8 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 		for( x = le; x < ri; x++ ) {
 			int fx, fy; 	
 
-			fx = FLOOR( ix );
-			fy = FLOOR( iy );
+			fx = FAST_PSEUDO_FLOOR( ix );
+			fy = FAST_PSEUDO_FLOOR( iy );
 
 			/* Clipping! 
 			 */
@@ -336,9 +381,8 @@ affinei( IMAGE *in, IMAGE *out,
 
 	/* Make output image.
 	 */
-	if( im_piocheck( in, out ) ) 
-		return( -1 );
-	if( im_cp_desc( out, in ) ) 
+	if( im_piocheck( in, out ) || 
+		im_cp_desc( out, in ) ) 
 		return( -1 );
 
 	/* Need a copy of the params for the lifetime of out.

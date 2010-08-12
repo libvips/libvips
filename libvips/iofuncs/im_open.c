@@ -421,10 +421,12 @@ open_lazy( VipsFormatClass *format, gboolean disc, IMAGE *out )
 	if( !(lazy = lazy_new( out, format, disc )) )
 		return( -1 );
 
-	/* Read header fields to init the return image.
+	/* Read header fields to init the return image. THINSTRIP since this is
+	 * probably a disc file. We can't tell yet whether we will be opening
+	 * to memory, sadly, so we can't suggest ANY.
 	 */
 	if( format->header( out->filename, out ) ||
-		im_demand_hint( out, IM_ANY, NULL ) )
+		im_demand_hint( out, IM_THINSTRIP, NULL ) )
 		return( -1 );
 
 	/* Then 'start' creates the real image and 'gen' paints 'out' with 

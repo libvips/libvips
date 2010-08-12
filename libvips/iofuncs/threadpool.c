@@ -914,13 +914,13 @@ vips_get_tile_size( VipsImage *im,
 			(1 + nthr / IM_MAX( 1, im->Xsize / *tile_width )) * 2;
 		break;
 
+	case IM_ANY:
 	case IM_FATSTRIP:
 		*tile_width = im->Xsize;
 		*tile_height = im__fatstrip_height;
 		*nlines = *tile_height * nthr * 2;
 		break;
 
-	case IM_ANY:
 	case IM_THINSTRIP:
 		*tile_width = im->Xsize;
 		*tile_height = im__thinstrip_height;

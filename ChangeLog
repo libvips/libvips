@@ -10,6 +10,9 @@
 - various small cleanups (thanks Tim)
 - add lcms2 support
 - VImage(filename) defaults to "rd" mode
+- revise window_offset / window_size, again
+- fix a mixup with ANY hints that caused performance problems on the main
+  benchmark
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if

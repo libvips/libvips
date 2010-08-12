@@ -57,24 +57,27 @@
 template <typename T> static T inline
 to_fptypes( const double val )
 {
-  const T newval = val;
-  return( newval );
+	const T newval = val;
+
+	return( newval );
 }
 
 template <typename T> static T inline
 to_withsign( const double val )
 {
-  const int sign_of_val = 2 * ( val >= 0. ) - 1;
-  const int rounded_abs_val = .5 + sign_of_val * val;
-  const T newval = sign_of_val * rounded_abs_val;
-  return( newval );
+	const int sign_of_val = 2 * ( val >= 0. ) - 1;
+	const int rounded_abs_val = .5 + sign_of_val * val;
+	const T newval = sign_of_val * rounded_abs_val;
+
+	return( newval );
 }
 
 template <typename T> static T inline
 to_nosign( const double val )
 {
-  const T newval = .5 + val;
-  return( newval );
+	const T newval = .5 + val;
+
+	return( newval );
 }
 
 /*
@@ -82,6 +85,7 @@ to_nosign( const double val )
  * is used: There is an assumption that the data is such that
  * over/underflow is not an issue:
  */
+
 /*
  * Bilinear interpolation for float and double types. The first four
  * inputs are weights, the last four are the corresponding pixel
@@ -243,26 +247,24 @@ bicubic_float(
 static void inline
 calculate_coefficients_catmull( const double x, double c[4] )
 {
+	/* Nicolas believes that the following is an hitherto unknown
+	 * hyper-efficient method of computing Catmull-Rom coefficients. It
+	 * only uses 4* & 1+ & 5- for a total of only 10 flops to compute
+	 * four coefficients.
+	 */
+	const double cr1  = 1. - x;
+	const double cr2  = -.5 * x;
+	const double cr3  = cr1 * cr2;
+	const double cone = cr1 * cr3;
+	const double cfou = x * cr3;
+	const double cr4  = cfou - cone;
+	const double ctwo = cr1 - cone + cr4;
+	const double cthr = x - cfou - cr4;
 
-  /*
-   * Nicolas believes that the following is an hitherto unknown
-   * hyper-efficient method of computing Catmull-Rom coefficients. It
-   * only uses 4* & 1+ & 5- for a total of only 10 flops to compute
-   * four coefficients.
-   */
-  const double cr1  = 1. - x;
-  const double cr2  = -.5 * x;
-  const double cr3  = cr1 * cr2;
-  const double cone = cr1 * cr3;
-  const double cfou = x * cr3;
-  const double cr4  = cfou - cone;
-  const double ctwo = cr1 - cone + cr4;
-  const double cthr = x - cfou - cr4;
+	g_assert( x >= 0. && x <= 1. );
 
-  g_assert( x >= 0. && x <= 1. );
-
-  c[0] = cone;
-  c[3] = cfou;
-  c[1] = ctwo;
-  c[2] = cthr;
+	c[0] = cone;
+	c[3] = cfou;
+	c[1] = ctwo;
+	c[2] = cthr;
 }

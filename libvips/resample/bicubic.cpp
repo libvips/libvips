@@ -1,4 +1,7 @@
 /* bicubic (catmull-rom) interpolator
+ *
+ * 12/8/10
+ * 	- revise window_size / window_offset stuff again
  */
 
 /*
@@ -321,16 +324,16 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	const int ix = (int) x;
 	const int iy = (int) y;
 
+	/* Back and up one to get the top-left of the 4x4.
+	 */
+	const PEL *p = (PEL *) IM_REGION_ADDR( in, ix - 1, iy - 1 ); 
+
 	/* Look up the tables we need.
 	 */
 	const int *cxi = vips_bicubic_matrixi[tx];
 	const int *cyi = vips_bicubic_matrixi[ty];
 	const double *cxf = vips_bicubic_matrixf[tx];
 	const double *cyf = vips_bicubic_matrixf[ty];
-
-	/* Back and up one to get the top-left of the 4x4.
-	 */
-	const PEL *p = (PEL *) IM_REGION_ADDR( in, ix - 1, iy - 1 );
 
 	/* Pel size and line size.
 	 */
@@ -423,16 +426,11 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 	VipsInterpolateClass *interpolate_class =
 		VIPS_INTERPOLATE_CLASS( iclass );
 
-	object_class->nickname    = "bicubic";
+	object_class->nickname = "bicubic";
 	object_class->description = _( "Bicubic interpolation (Catmull-Rom)" );
 
-	interpolate_class->interpolate   = vips_interpolate_bicubic_interpolate;
-	interpolate_class->window_size   = 4;
-	interpolate_class->window_offset = 2;
-        /*
-         * Note from nicolas: If things were programmed sanely, I
-         * think window_offset should be 1, not 2.
-         */
+	interpolate_class->interpolate = vips_interpolate_bicubic_interpolate;
+	interpolate_class->window_size = 4;
 
 	/* Build the tables of pre-computed coefficients.
 	 */

@@ -1,6 +1,12 @@
 /* vipsinterpolate ... abstract base class for various interpolators
  *
  * J. Cupitt, 15/10/08
+ *
+ * 12/8/10
+ * 	- revise window_size / window_offset stuff again: window_offset now
+ * 	  defaults to (window_size / 2 - 1), so for a 4x4 stencil (eg.
+ * 	  bicubic) we have an offset of 1
+ * 	- tiny speedups
  */
 
 /*
@@ -109,13 +115,19 @@ vips_interpolate_real_get_window_offset( VipsInterpolate *interpolate )
 {
 	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
 
-	g_assert( class->window_offset != -1 );
+ 	/* Default to half window size - 1. For example, bicubic is a 4x4
+	 * stencil and needs an offset of 1.
+ 	 */
+	if( class->window_offset != -1 )
+		return( class->window_offset );
+	else {
+		int window_size = 
+			vips_interpolate_get_window_size( interpolate );
 
-	return( class->window_offset );
-
-/* 	/\* Default to half window size. */
-/* 	 *\/ */
-/* 	return( vips_interpolate_get_window_size( interpolate ) / 2 ); */
+		/* Don't go -ve, of course, for window_size 1.
+		 */
+		return( IM_MAX( 0, window_size / 2 - 1 ) );
+	}
 }
 
 static void
@@ -228,14 +240,16 @@ vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 	/* Pel size and line size.
 	 */
 	const int ps = IM_IMAGE_SIZEOF_PEL( in->im );
-	int z;
 
-	/* Top left corner we interpolate from.
+	/* Top left corner we interpolate from. We know x/y are always
+	 * positive, so we can just (int) them.
 	 */
-	const int xi = FAST_PSEUDO_FLOOR( x );
-	const int yi = FAST_PSEUDO_FLOOR( y );
+	const int xi = (int) x;
+	const int yi = (int) y;
 
 	const PEL *p = (PEL *) IM_REGION_ADDR( in, xi, yi );
+
+	int z;
 
 	for( z = 0; z < ps; z++ )
 		out[z] = p[z];
@@ -251,9 +265,8 @@ vips_interpolate_nearest_class_init( VipsInterpolateNearestClass *class )
 	object_class->nickname = "nearest";
 	object_class->description = _( "Nearest-neighbour interpolation" );
 
-	interpolate_class->interpolate   = vips_interpolate_nearest_interpolate;
-	interpolate_class->window_size   = 1;
-	interpolate_class->window_offset = 0;
+	interpolate_class->interpolate = vips_interpolate_nearest_interpolate;
+	interpolate_class->window_size = 1;
 }
 
 static void
@@ -409,8 +422,8 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int tx = (six + 1) >> 1;
 	const int ty = (siy + 1) >> 1;
 
-	/* We want ((int)x) ... save this double -> int conversion by just
-	 * shifting sx down.
+	/* We want ((int)x) ... void repeating this double -> int conversion 
+	 * by just shifting sx down.
 	 */
 	const int ix = sx >> (VIPS_TRANSFORM_SHIFT + 1);
 	const int iy = sy >> (VIPS_TRANSFORM_SHIFT + 1);
@@ -437,9 +450,8 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 	object_class->nickname = "bilinear";
 	object_class->description = _( "Bilinear interpolation" );
 
-	interpolate_class->interpolate   = vips_interpolate_bilinear_interpolate;
-	interpolate_class->window_size   = 2;
-	interpolate_class->window_offset = 1;
+	interpolate_class->interpolate = vips_interpolate_bilinear_interpolate;
+	interpolate_class->window_size = 2;
 
 	/* Calculate the interpolation matricies.
 	 */

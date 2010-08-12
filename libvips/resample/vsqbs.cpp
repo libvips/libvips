@@ -393,12 +393,8 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
 static void
 vips_interpolate_vsqbs_class_init( VipsInterpolateVsqbsClass *klass )
 {
-  GObjectClass             *gobject_class =         G_OBJECT_CLASS( klass );
   VipsObjectClass           *object_class =      VIPS_OBJECT_CLASS( klass );
   VipsInterpolateClass *interpolate_class = VIPS_INTERPOLATE_CLASS( klass );
-
-  gobject_class->set_property = vips_object_set_property;
-  gobject_class->get_property = vips_object_get_property;
 
   object_class->nickname    = "vsqbs";
   object_class->description = _( "B-Splines with antialiasing smoothing" );

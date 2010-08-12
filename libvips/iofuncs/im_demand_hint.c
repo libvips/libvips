@@ -186,6 +186,7 @@ int
 im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 {
 	int i, len, nany;
+	VipsDemandStyle set_hint;
 
 	/* How many input images are there? And how many are IM_ANY?
 	 */
@@ -193,6 +194,7 @@ im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 		if( in[i]->dhint == IM_ANY )
 			nany++;
 
+	set_hint = hint;
 	if( len == 0 ) 
 		/* No input images? Just set the requested hint. We don't 
 		 * force ANY, since the operation might be something like 
@@ -204,18 +206,24 @@ im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 		/* Special case: if all the inputs are IM_ANY, then output can 
 		 * be IM_ANY regardless of what this function wants. 
 		 */
-		hint = IM_ANY;
+		set_hint = IM_ANY;
 	else
 		/* Find the most restrictive of all the hints available to us.
 		 */
 		for( i = 0; i < len; i++ )
-			hint = find_least( hint, in[i]->dhint );
+			set_hint = find_least( set_hint, in[i]->dhint );
 
-	im->dhint = hint;
+	im->dhint = set_hint;
 
 #ifdef DEBUG
         printf( "im_demand_hint_array: set dhint for \"%s\" to %s\n",
 		im->filename, im_dhint2char( im->dhint ) );
+	printf( "\toperation requested %s\n", im_dhint2char( hint ) );
+	printf( "\tinputs were:\n" );
+	printf( "\t" );
+	for( i = 0; in[i]; i++ )
+		printf( "%s ", im_dhint2char( in[i]->dhint ) );
+	printf( "\n" );
 #endif /*DEBUG*/
 
 	/* im depends on all these ims.
@@ -255,8 +263,7 @@ im_demand_hint( IMAGE *im, VipsDemandStyle hint, ... )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		im_error( "im_demand_hint", 
-			"%s", _( "too many images" ) );
+		im_error( "im_demand_hint", "%s", _( "too many images" ) );
 		return( -1 );
 	}
 

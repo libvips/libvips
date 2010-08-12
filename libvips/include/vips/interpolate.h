@@ -79,8 +79,8 @@ typedef struct _VipsInterpolateClass {
 	 */
 	int window_size;
 
-	/* Stencils are offset by this much. Default to window_size / 2
-	 * (centering) if undefined.
+	/* Stencils are offset by this much. Default to window_size / 2 - 1
+	 * (centering) if get_window_offset is NULL and window_offset is -1.
 	 */
 	int (*get_window_offset)( VipsInterpolate * );
 	int window_offset;
