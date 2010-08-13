@@ -1,3 +1,7 @@
+- im__print_all() should work even without DEBUG
+
+  use a hash for im__open_images
+
 - use D65 in cmsCreateLab4Profile() ? not sure
 
 - VImage("poop.v") should use "rd" as well? Python too?
