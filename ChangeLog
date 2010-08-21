@@ -13,6 +13,7 @@
 - revise window_offset / window_size, again
 - fix a mixup with ANY hints that caused performance problems on the main
   benchmark
+- rewritten im_circle as im_draw_circle, im_circle moved to almostdeprecated
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if

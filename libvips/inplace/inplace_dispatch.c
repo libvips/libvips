@@ -54,40 +54,6 @@
  *
  */
 
-/* Args for im_circle.
- */
-static im_arg_desc circle_args[] = {
-	IM_RW_IMAGE( "image" ),
-	IM_INPUT_INT( "cx" ),
-	IM_INPUT_INT( "cy" ),
-	IM_INPUT_INT( "radius" ),
-	IM_INPUT_INT( "intensity" )
-};
-
-/* Call im_circle via arg vector.
- */
-static int
-circle_vec( im_object *argv )
-{
-	int cx = *((int *) argv[1]);
-	int cy = *((int *) argv[2]);
-	int radius = *((int *) argv[3]);
-	int intensity = *((int *) argv[4]);
-
-	return( im_circle( argv[0], cx, cy, radius, intensity ) );
-}
-
-/* Description of im_circle.
- */ 
-static im_function circle_desc = {
-	"im_circle", 			/* Name */
-	"plot circle on image",
-	0,				/* Flags */
-	circle_vec, 			/* Dispatch function */
-	IM_NUMBER( circle_args ), 	/* Size of arg list */
-	circle_args 			/* Arg list */
-};
-
 /* Args for im_insertplace.
  */
 static im_arg_desc insertplace_args[] = {
@@ -316,6 +282,92 @@ static im_function flood_other_copy_desc = {
 	flood_other_copy_args 	/* Arg list */
 };
 
+/* Args for im_draw_circle.
+ */
+static im_arg_desc draw_circle_args[] = {
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_INT( "cx" ),
+	IM_INPUT_INT( "cy" ),
+	IM_INPUT_INT( "radius" ),
+	IM_INPUT_INT( "fill" ),
+	IM_INPUT_DOUBLEVEC( "ink" )
+};
+
+/* Call im_draw_circle via arg vector.
+ */
+static int
+draw_circle_vec( im_object *argv )
+{
+	IMAGE *in = argv[0];
+	int cx = *((int *) argv[1]);
+	int cy = *((int *) argv[2]);
+	int radius = *((int *) argv[3]);
+	int fill = *((int *) argv[4]);
+	im_doublevec_object *dv = (im_doublevec_object *) argv[5];
+
+	PEL *ink;
+
+	if( !(ink = vector_to_ink( in, dv->vec )) )
+		return( -1 );
+
+	return( im_draw_circle( in, cx, cy, radius, fill, ink ) );
+}
+
+/* Description of im_draw_circle.
+ */ 
+static im_function draw_circle_desc = {
+	"im_draw_circle", 		/* Name */
+	"draw circle on image",
+	0,				/* Flags */
+	draw_circle_vec, 		/* Dispatch function */
+	IM_NUMBER( draw_circle_args ), 	/* Size of arg list */
+	draw_circle_args 		/* Arg list */
+};
+
+/* Args for im_draw_circle_copy.
+ */
+static im_arg_desc draw_circle_copy_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_INT( "cx" ),
+	IM_INPUT_INT( "cy" ),
+	IM_INPUT_INT( "radius" ),
+	IM_INPUT_INT( "fill" ),
+	IM_INPUT_DOUBLEVEC( "ink" )
+};
+
+/* Call im_draw_circle_copy via arg vector.
+ */
+static int
+draw_circle_copy_vec( im_object *argv )
+{
+	IMAGE *in = argv[0];
+	IMAGE *out = argv[1];
+	int cx = *((int *) argv[2]);
+	int cy = *((int *) argv[3]);
+	int radius = *((int *) argv[4]);
+	int fill = *((int *) argv[5]);
+	im_doublevec_object *dv = (im_doublevec_object *) argv[6];
+
+	PEL *ink;
+
+	if( !(ink = vector_to_ink( in, dv->vec )) )
+		return( -1 );
+
+	return( im_draw_circle_copy( in, out, cx, cy, radius, fill, ink ) );
+}
+
+/* Description of im_draw_circle_copy.
+ */ 
+static im_function draw_circle_copy_desc = {
+	"im_draw_circle_copy", 		/* Name */
+	"draw circle on image",
+	0,				/* Flags */
+	draw_circle_copy_vec, 		/* Dispatch function */
+	IM_NUMBER( draw_circle_copy_args ), 	/* Size of arg list */
+	draw_circle_copy_args 		/* Arg list */
+};
+
 /* To do:
  * these all need some kind of pel type
  *
@@ -331,7 +383,8 @@ static im_function flood_other_copy_desc = {
 /* Package up all these functions.
  */
 static im_function *inplace_list[] = {
-	&circle_desc,
+	&draw_circle_desc,
+	&draw_circle_copy_desc,
 	&flood_copy_desc,
 	&flood_blob_copy_desc,
 	&flood_other_copy_desc,

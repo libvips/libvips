@@ -1,6 +1,7 @@
-- im__print_all() should work even without DEBUG
+- rename most of the inplace ops as im_draw_line() etc.
 
-  use a hash for im__open_images
+  nip2 should be able to call RW image ops by copying them, see
+  im_draw_circle_copy()
 
 - use D65 in cmsCreateLab4Profile() ? not sure
 

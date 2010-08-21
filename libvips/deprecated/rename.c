@@ -424,3 +424,37 @@ im_cache( IMAGE *in, IMAGE *out, int width, int height, int max )
 		0,
 		NULL, NULL ) );
 }
+
+/**
+ * im_circle:
+ * @im: image to draw on
+ * @cx: centre of circle
+ * @cy: centre of circle
+ * @radius: circle radius
+ * @intensity: value to draw
+ *
+ * Draws a circle on a 1-band 8-bit image. 
+ *
+ * This an inplace operation, so @im is changed. It does not thread and will
+ * not work well as part of a pipeline. On 32-bit machines it will be limited
+ * to 2GB images.
+ *
+ * See also: im_fastline().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int 
+im_circle( IMAGE *im, int cx, int cy, int radius, int intensity )
+{
+	PEL ink[1];
+
+	if( im_rwcheck( im ) ||
+		im_check_uncoded( "im_circle", im ) ||
+		im_check_mono( "im_circle", im ) ||
+		im_check_format( "im_circle", im, IM_BANDFMT_UCHAR ) )
+		return( -1 );
+
+	ink[0] = intensity;
+
+	return( im_draw_circle( im, cx, cy, radius, FALSE, ink ) );
+}

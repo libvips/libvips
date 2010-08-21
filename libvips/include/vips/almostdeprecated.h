@@ -206,9 +206,6 @@ int im_bernd( const char *tiffname, int x, int y, int w, int h );
 
 int im_resize_linear( IMAGE *, IMAGE *, int, int );
 
-int im_line( IMAGE *, int, int, int, int, int );
-int im_segment( IMAGE *test, IMAGE *mask, int *segments );
-
 int im_convf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_convsepf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask );
@@ -228,6 +225,12 @@ int im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin );
 int im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m );
 int im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m );
 int im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order );
+
+/* inplace
+ */
+int im_circle( IMAGE *im, int cx, int cy, int radius, int intensity );
+int im_line( IMAGE *, int, int, int, int, int );
+int im_segment( IMAGE *test, IMAGE *mask, int *segments );
 
 #ifdef __cplusplus
 }

@@ -41,7 +41,10 @@ int im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r );
 int im_smear( IMAGE *im, int ix, int iy, Rect *r );
 int im_smudge( IMAGE *im, int ix, int iy, Rect *r );
 int im_paintrect( IMAGE *im, Rect *r, PEL *ink );
-int im_circle( IMAGE *im, int cx, int cy, int radius, int intensity );
+int im_draw_circle( IMAGE *im, 
+	int cx, int cy, int radius, gboolean fill, PEL *ink );
+int im_draw_circle_copy( IMAGE *in, IMAGE *out, 
+	int cx, int cy, int radius, gboolean fill, PEL *ink );
 int im_insertplace( IMAGE *main, IMAGE *sub, int x, int y );
 int im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel );
 int im_fastlineuser( IMAGE *im, 

@@ -1217,6 +1217,40 @@ static im_function convf_desc = {
 	conv_dmask 			/* Arg list */
 };
 
+/* Args for im_circle.
+ */
+static im_arg_desc circle_args[] = {
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_INT( "cx" ),
+	IM_INPUT_INT( "cy" ),
+	IM_INPUT_INT( "radius" ),
+	IM_INPUT_INT( "intensity" )
+};
+
+/* Call im_circle via arg vector.
+ */
+static int
+circle_vec( im_object *argv )
+{
+	int cx = *((int *) argv[1]);
+	int cy = *((int *) argv[2]);
+	int radius = *((int *) argv[3]);
+	int intensity = *((int *) argv[4]);
+
+	return( im_circle( argv[0], cx, cy, radius, intensity ) );
+}
+
+/* Description of im_circle.
+ */ 
+static im_function circle_desc = {
+	"im_circle", 			/* Name */
+	"plot circle on image",
+	0,				/* Flags */
+	circle_vec, 			/* Dispatch function */
+	IM_NUMBER( circle_args ), 	/* Size of arg list */
+	circle_args 			/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
@@ -1262,7 +1296,8 @@ static im_function *deprecated_list[] = {
 	&dilate_raw_desc,
 	&erode_raw_desc,
 	&similarity_area_desc,
-	&similarity_desc
+	&similarity_desc,
+	&circle_desc
 };
 
 /* Package of functions.

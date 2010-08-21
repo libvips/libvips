@@ -246,12 +246,10 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	int i;
 	int len;
 
-	/*
 	g_assert( flood_connected( flood, 
 		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) );
 	g_assert( !flood_painted( flood, 
 		(PEL *) IM_IMAGE_ADDR( flood->mark, x, y ) ) );
-	 */
 
 	/* Search to the right for the first non-connected pixel. If the start
 	 * pixel is unpainted, we know all the intervening pixels must be
@@ -398,11 +396,11 @@ flood_free( Flood *flood )
 }
 
 static Flood *
-flood_build( IMAGE *test, IMAGE *mark, int x, int y, PEL *ink, Rect *dout )
+flood_new( IMAGE *test, IMAGE *mark, int x, int y, PEL *ink, Rect *dout )
 {
-	Flood *flood = IM_NEW( NULL, Flood );
+	Flood *flood;
 
-	if( !flood )
+	if( !(flood = IM_NEW( NULL, Flood )) )
 		return( NULL );
 	flood->test = test;
 	flood->mark = mark;
@@ -445,7 +443,8 @@ flood_build( IMAGE *test, IMAGE *mark, int x, int y, PEL *ink, Rect *dout )
  * bounded by pixels that are equal to the ink colour, in other words, it
  * searches for pixels enclosed by a line of @ink.
  *
- * The bounding box of the modified pixels is returned in @dout.
+ * The bounding box of the modified pixels is returned in @dout. @dout may be
+ * NULL.
  *
  * This an inplace operation, so @im is changed. It does not thread and will
  * not work well as part of a pipeline. On 32-bit machines, it will be limited
@@ -463,7 +462,7 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	if( im_rwcheck( im ) ||
 		im_check_coding_known( "im_flood", im ) )
 		return( -1 );
-	if( !(flood = flood_build( im, im, x, y, ink, dout )) )
+	if( !(flood = flood_new( im, im, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Flood to != ink.
@@ -490,7 +489,8 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  * bounded by pixels that are equal to the start pixel, in other words, it
  * searches for a blob of same-coloured pixels.
  *
- * The bounding box of the modified pixels is returned in @dout.
+ * The bounding box of the modified pixels is returned in @dout. @dout may be
+ * NULL.
  *
  * This an inplace operation, so @im is changed. It does not thread and will
  * not work well as part of a pipeline. On 32-bit machines, it will be limited
@@ -509,7 +509,7 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	if( im_rwcheck( im ) ||
 		im_check_coding_known( "im_flood", im ) )
 		return( -1 );
-	if( !(flood = flood_build( im, im, x, y, ink, dout )) )
+	if( !(flood = flood_new( im, im, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.
@@ -547,7 +547,8 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  * other words, it searches @test for a blob of same-coloured pixels, marking 
  * those pixels in @mark with @serial.
  *
- * The bounding box of the modified pixels is returned in @dout.
+ * The bounding box of the modified pixels is returned in @dout. @dout may be
+ * NULL.
  *
  * This an inplace operation, so @mark is changed. It does not thread and will
  * not work well as part of a pipeline. On 32-bit machines, it will be limited
@@ -578,7 +579,7 @@ im_flood_other( IMAGE *test, IMAGE *mark, int x, int y, int serial, Rect *dout )
 	if( *m == serial )
 		return( 0 );
 
-	if( !(flood = flood_build( test, mark, x, y, (PEL *) &serial, dout )) )
+	if( !(flood = flood_new( test, mark, x, y, (PEL *) &serial, dout )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.
