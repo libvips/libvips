@@ -51,6 +51,8 @@
  * 3/2/10
  * 	- gtkdoc
  * 	- more cleanups
+ * 23/08/10
+ * 	- add a special case for 3x3 masks, about 20% faster
  */
 
 /*
@@ -307,7 +309,7 @@ conv_start( IMAGE *out, void *a, void *b )
 	}  \
 } 
 
-/* Convolve!
+/* Convolve! See below for the special-case 3x3 path.
  */
 static int
 conv_gen( REGION *or, void *vseq, void *a, void *b )
@@ -407,10 +409,162 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	return( 0 );
 }
 
+/* INT inner loops.
+ */
+#define CONV3x3_INT( TYPE, IM_CLIP ) { \
+	TYPE * restrict p0 = (TYPE *) IM_REGION_ADDR( ir, le, y ); \
+	TYPE * restrict p1 = (TYPE *) IM_REGION_ADDR( ir, le, y + 1 ); \
+	TYPE * restrict p2 = (TYPE *) IM_REGION_ADDR( ir, le, y + 2 ); \
+	TYPE * restrict q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
+	\
+	for( x = 0; x < sz; x++ ) {  \
+		int sum; \
+ 		\
+		sum = 0; \
+		sum += m[0] * p0[0]; \
+		sum += m[1] * p0[bands]; \
+		sum += m[2] * p0[bands * 2]; \
+		sum += m[3] * p1[0]; \
+		sum += m[4] * p1[bands]; \
+		sum += m[5] * p1[bands * 2]; \
+		sum += m[6] * p2[0]; \
+		sum += m[7] * p2[bands]; \
+		sum += m[8] * p2[bands * 2]; \
+		\
+		p0 += 1; \
+		p1 += 1; \
+		p2 += 1; \
+ 		\
+		sum = ((sum + rounding) / mask->scale) + mask->offset; \
+ 		\
+		IM_CLIP; \
+		\
+		q[x] = sum;  \
+	}  \
+} 
+
+/* FLOAT inner loops.
+ */
+#define CONV3x3_FLOAT( TYPE ) { \
+	TYPE * restrict p0 = (TYPE *) IM_REGION_ADDR( ir, le, y ); \
+	TYPE * restrict p1 = (TYPE *) IM_REGION_ADDR( ir, le, y + 1 ); \
+	TYPE * restrict p2 = (TYPE *) IM_REGION_ADDR( ir, le, y + 2 ); \
+	TYPE * restrict q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
+	\
+	for( x = 0; x < sz; x++ ) {  \
+		double sum; \
+ 		\
+		sum = 0; \
+		sum += m[0] * p0[0]; \
+		sum += m[1] * p0[bands]; \
+		sum += m[2] * p0[bands * 2]; \
+		sum += m[3] * p1[0]; \
+		sum += m[4] * p1[bands]; \
+		sum += m[5] * p1[bands * 2]; \
+		sum += m[6] * p2[0]; \
+		sum += m[7] * p2[bands]; \
+		sum += m[8] * p2[bands * 2]; \
+ 		\
+		p0 += 1; \
+		p1 += 1; \
+		p2 += 1; \
+ 		\
+		sum = (sum / mask->scale) + mask->offset; \
+		\
+		q[x] = sum;  \
+	}  \
+} 
+
+/* 3x3 masks are very common, so we have a special path for them. This is
+ * about 20% faster than the general convolver above.
+ */
+static int
+conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
+{
+	ConvSequence *seq = (ConvSequence *) vseq;
+	IMAGE *in = (IMAGE *) a;
+	Conv *conv = (Conv *) b;
+	REGION *ir = seq->ir;
+	INTMASK *mask = conv->mask;
+	int * restrict m = mask->coeff; 
+
+	/* You might think this should be (scale + 1) / 2, but then we'd be 
+	 * adding one for scale == 1.
+	 */
+	int rounding = mask->scale / 2;
+
+	Rect *r = &or->valid;
+	int le = r->left;
+	int to = r->top;
+	int bo = IM_RECT_BOTTOM( r );
+	int sz = IM_REGION_N_ELEMENTS( or );
+	int bands = in->Bands;
+
+	Rect s;
+	int x, y, z;
+
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
+	 */
+	s = *r;
+	s.width += 2;
+	s.height += 2;
+	if( im_prepare( ir, &s ) )
+		return( -1 );
+
+	for( y = to; y < bo; y++ ) { 
+		switch( in->BandFmt ) {
+		case IM_BANDFMT_UCHAR: 	
+			CONV3x3_INT( unsigned char, 
+				IM_CLIP_UCHAR( sum, seq ) ); 
+			break;
+
+		case IM_BANDFMT_CHAR:   
+			CONV3x3_INT( signed char, 
+				IM_CLIP_CHAR( sum, seq ) ); 
+			break;
+
+		case IM_BANDFMT_USHORT: 
+			CONV3x3_INT( unsigned short, 
+				IM_CLIP_USHORT( sum, seq ) ); 
+			break;
+
+		case IM_BANDFMT_SHORT:  
+			CONV3x3_INT( signed short, 
+				IM_CLIP_SHORT( sum, seq ) ); 
+			break;
+
+		case IM_BANDFMT_UINT:   
+			CONV3x3_INT( unsigned int, 
+				IM_CLIP_NONE( sum, seq ) ); 
+			break;
+
+		case IM_BANDFMT_INT:    
+			CONV3x3_INT( signed int, 
+				IM_CLIP_NONE( sum, seq ) ); 
+			break;
+
+		case IM_BANDFMT_FLOAT:  
+			CONV3x3_FLOAT( float ); 
+			break;
+
+		case IM_BANDFMT_DOUBLE: 
+			CONV3x3_FLOAT( double ); 
+			break;
+
+		default:
+			g_assert( 0 );
+		}
+	}
+
+	return( 0 );
+}
+
 int
 im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 {
 	Conv *conv;
+	im_generate_fn generate;
 
 	/* Check parameters.
 	 */
@@ -438,11 +592,16 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 		return( -1 );
 	}
 
+	if( mask->xsize == 3 && mask->ysize == 3 )
+		generate = conv3x3_gen;
+	else
+		generate = conv_gen;
+
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
 	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) ||
-		im_generate( out, conv_start, conv_gen, conv_stop, in, conv ) )
+		im_generate( out, conv_start, generate, conv_stop, in, conv ) )
 		return( -1 );
 
 	out->Xoffset = -mask->xsize / 2;
