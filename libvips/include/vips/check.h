@@ -53,6 +53,7 @@ int im_check_mono( const char *domain, IMAGE *im );
 int im_check_bands_1or3( const char *domain, IMAGE *in );
 int im_check_bands( const char *domain, IMAGE *im, int bands );
 int im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 );
+int im_check_bands_1orn_unary( const char *domain, IMAGE *im, int n );
 int im_check_bands_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_bandno( const char *domain, IMAGE *im, int bandno );
 int im_check_int( const char *domain, IMAGE *im );

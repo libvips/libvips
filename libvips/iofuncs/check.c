@@ -744,6 +744,32 @@ im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
 }
 
 /**
+ * im_check_bands_1orn_unary:
+ * @domain: the originating domain for the error message
+ * @im1: image to check
+ * @n: number of bands, or 1
+ *
+ * Check that an image has 1 or @n bands. Handy for unary operations, cf.
+ * im_check_bands_1orn().
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * See also: im_check_bands_1orn().
+ *
+ * Returns: 0 on OK, or -1 on error.
+ */
+int
+im_check_bands_1orn_unary( const char *domain, IMAGE *im, int n )
+{
+	if( im->Bands != 1 && im->Bands != n ) { 
+		im_error( domain, _( "image must have 1 or %d bands" ), n );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_noncomplex:
  * @domain: the originating domain for the error message
  * @im: image to check

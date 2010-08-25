@@ -5,6 +5,8 @@
  * Modified:
  * 21/5/07
  *	- any length vector (Tom)
+ * 23/8/10
+ * 	- add IM_TYPE_RW flag for im__rw_image
  */
 
 /*
@@ -87,21 +89,21 @@ input_display_init( im_object *obj, char *str )
 /* Input display type.
  */
 im_type_desc im__input_display = {
-	IM_TYPE_DISPLAY,	/* Its a display */
-	0, 			/* No storage needed */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	input_display_init,	/* Init function */
-	NULL			/* Destroy function */
+	IM_TYPE_DISPLAY,		/* It's a display */
+	0, 				/* No storage needed */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	input_display_init,		/* Init function */
+	NULL				/* Destroy function */
 };
 
 /* Output display type.
  */
 im_type_desc im__output_display = {
-	IM_TYPE_DISPLAY,	/* Its a display */
+	IM_TYPE_DISPLAY,		/* It's a display */
 	sizeof( struct im_col_display ),/* Memory to allocate */
-	IM_TYPE_OUTPUT,		/* Output object */
-	NULL,			/* Init function */
-	NULL			/* Destroy function */
+	IM_TYPE_OUTPUT,			/* Output object */
+	NULL,				/* Init function */
+	NULL				/* Destroy function */
 };
 
 /* Init function for input images.
@@ -117,11 +119,11 @@ input_image_init( im_object *obj, char *str )
 /* Input image type.
  */
 im_type_desc im__input_image = {
-	IM_TYPE_IMAGE,		/* Its an image */
-	0, 			/* No storage needed */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
+	IM_TYPE_IMAGE,			/* It's an image */
+	0, 				/* No storage needed */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
 	(im_init_obj_fn) input_image_init,/* Init function */
-	(im_dest_obj_fn) im_close/* Destroy function */
+	(im_dest_obj_fn) im_close	/* Destroy function */
 };
 
 /* Init function for output images.
@@ -137,11 +139,11 @@ output_image_init( im_object *obj, char *str )
 /* Output image type.
  */
 im_type_desc im__output_image = {
-	IM_TYPE_IMAGE,		/* Its an image */
-	0,			/* No storage to be allocated */
-	IM_TYPE_OUTPUT | IM_TYPE_ARG,		/* Flags! */
-	(im_init_obj_fn) output_image_init,	/* Init function */
-	(im_dest_obj_fn) im_close		/* Destroy function */
+	IM_TYPE_IMAGE,			/* It's an image */
+	0,				/* No storage to be allocated */
+	IM_TYPE_OUTPUT | IM_TYPE_ARG,	/* Flags! */
+	(im_init_obj_fn) output_image_init,/* Init function */
+	(im_dest_obj_fn) im_close	/* Destroy function */
 };
 
 /* Init function for RW images.
@@ -157,9 +159,9 @@ rw_image_init( im_object *obj, char *str )
 /* RW image type.
  */
 im_type_desc im__rw_image = {
-	IM_TYPE_IMAGE,		/* Its an image */
-	0,			/* No storage to be allocated */
-	IM_TYPE_ARG,		/* Flags! Pretend its an input type */
+	IM_TYPE_IMAGE,			/* It's an image */
+	0,				/* No storage to be allocated */
+	IM_TYPE_ARG | IM_TYPE_RW,	/* Read-write object, needs an arg */
 	(im_init_obj_fn) rw_image_init,	/* Init function */
 	(im_dest_obj_fn) im_close	/* Destroy function */
 };
@@ -226,11 +228,11 @@ input_imagevec_init( im_object *obj, char *str )
 /* Input image vector type.
  */
 im_type_desc im__input_imagevec = {
-	IM_TYPE_IMAGEVEC,	/* Its an array of IMAGE */
-	sizeof( im_imagevec_object ), /* Memory to allocate in vec build */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	input_imagevec_init,	/* Init function */
-	imagevec_dest		/* Destroy function */
+	IM_TYPE_IMAGEVEC,		/* It's an array of IMAGE */
+	sizeof( im_imagevec_object ), 	/* Memory to allocate in vec build */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	input_imagevec_init,		/* Init function */
+	imagevec_dest			/* Destroy function */
 };
 
 /* Init function for masks. "str" can be NULL for output masks.
@@ -344,52 +346,52 @@ save_imask_dest( im_object obj )
 /* Output dmask type.
  */
 im_type_desc im__output_dmask = {
-	IM_TYPE_DMASK,		/* Its a mask */
-	sizeof( im_mask_object ),/* Storage for mask object */
+	IM_TYPE_DMASK,			/* It's a mask */
+	sizeof( im_mask_object ),	/* Storage for mask object */
 	IM_TYPE_OUTPUT | IM_TYPE_ARG,	/* Flags */
-	mask_init,		/* Init function */
-	save_dmask_dest	/* Save and destroy function */
+	mask_init,			/* Init function */
+	save_dmask_dest			/* Save and destroy function */
 };
 
 /* Input dmask type.
  */
 im_type_desc im__input_dmask = {
-	IM_TYPE_DMASK,		/* Its a mask */
-	sizeof( im_mask_object ),/* Storage for mask object */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	dmask_init,		/* Init function */
-	dmask_dest		/* Destroy function */
+	IM_TYPE_DMASK,			/* It's a mask */
+	sizeof( im_mask_object ),	/* Storage for mask object */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	dmask_init,			/* Init function */
+	dmask_dest			/* Destroy function */
 };
 
 /* Output imask type.
  */
 im_type_desc im__output_imask = {
-	IM_TYPE_IMASK,		/* Its a mask */
-	sizeof( im_mask_object ),/* Storage for mask object */
+	IM_TYPE_IMASK,			/* It's a mask */
+	sizeof( im_mask_object ),	/* Storage for mask object */
 	IM_TYPE_OUTPUT | IM_TYPE_ARG,	/* Flags */
-	mask_init,		/* Init function */
-	save_imask_dest	/* Save and destroy function */
+	mask_init,			/* Init function */
+	save_imask_dest			/* Save and destroy function */
 };
 
 /* Input imask type.
  */
 im_type_desc im__input_imask = {
-	IM_TYPE_IMASK,		/* Its a mask */
-	sizeof( im_mask_object ),/* Storage for mask object */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	imask_init,		/* Init function */
-	imask_dest		/* Destroy function */
+	IM_TYPE_IMASK,			/* It's a mask */
+	sizeof( im_mask_object ),	/* Storage for mask object */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	imask_init,			/* Init function */
+	imask_dest			/* Destroy function */
 };
 
 /* Output dmask to screen type. Set a `print' function to get actual output.
  * Used for things like "stats".
  */
 im_type_desc im__output_dmask_screen = {
-	IM_TYPE_DMASK,		/* Its a mask */
-	sizeof( im_mask_object ),/* Storage for mask object */
-	IM_TYPE_OUTPUT,		/* Its an output argument */
-	mask_init,		/* Init function */
-	dmask_dest		/* Destroy function */
+	IM_TYPE_DMASK,			/* It's a mask */
+	sizeof( im_mask_object ),	/* Storage for mask object */
+	IM_TYPE_OUTPUT,			/* It's an output argument */
+	mask_init,			/* Init function */
+	dmask_dest			/* Destroy function */
 };
 
 /* Init function for double input.
@@ -407,11 +409,11 @@ input_double_init( im_object *obj, char *str )
 /* Input double type.
  */
 im_type_desc im__input_double = {
-	IM_TYPE_DOUBLE,		/* Its a double */
-	sizeof( double ),	/* Memory to allocate */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	input_double_init,	/* Init function */
-	NULL			/* Destroy function */
+	IM_TYPE_DOUBLE,			/* It's a double */
+	sizeof( double ),		/* Memory to allocate */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	input_double_init,		/* Init function */
+	NULL				/* Destroy function */
 };
 
 /* im_doublevec_object destroy function.
@@ -467,11 +469,11 @@ input_doublevec_init( im_object *obj, char *str )
 /* Input double vector type.
  */
 im_type_desc im__input_doublevec = {
-	IM_TYPE_DOUBLEVEC,	/* Its an array of double */
-	sizeof( im_doublevec_object ), /* Memory to allocate in vec build */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	input_doublevec_init,	/* Init function */
-	doublevec_dest		/* Destroy function */
+	IM_TYPE_DOUBLEVEC,		/* It's an array of double */
+	sizeof( im_doublevec_object ), 	/* Memory to allocate in vec build */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	input_doublevec_init,		/* Init function */
+	doublevec_dest			/* Destroy function */
 };
 
 /* Print function for doublevec output.
@@ -492,11 +494,11 @@ im__dvprint( im_object obj )
 /* Output double vector type.
  */
 im_type_desc im__output_doublevec = {
-	IM_TYPE_DOUBLEVEC,	/* Its an array of double */
-	sizeof( im_doublevec_object ), /* Memory to allocate in vec build */
-	IM_TYPE_OUTPUT,		/* Output type */
-	NULL,			/* Init function */
-	doublevec_dest		/* Destroy function */
+	IM_TYPE_DOUBLEVEC,		/* It's an array of double */
+	sizeof( im_doublevec_object ), 	/* Memory to allocate in vec build */
+	IM_TYPE_OUTPUT,			/* Output type */
+	NULL,				/* Init function */
+	doublevec_dest			/* Destroy function */
 };
 
 /* im_intvec_object destroy function.
@@ -558,11 +560,11 @@ input_intvec_init( im_object *obj, char *str )
 /* Input int vector type.
  */
 im_type_desc im__input_intvec = {
-	IM_TYPE_INTVEC,		/* It's an array of int */
-	sizeof( im_intvec_object ), /* Memory to allocate in vec build */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	input_intvec_init,	/* Init function */
-	intvec_dest		/* Destroy function */
+	IM_TYPE_INTVEC,			/* It's an array of int */
+	sizeof( im_intvec_object ), 	/* Memory to allocate in vec build */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	input_intvec_init,		/* Init function */
+	intvec_dest			/* Destroy function */
 };
 
 /* Print function for intvec output.
@@ -583,11 +585,11 @@ im__ivprint( im_object obj )
 /* Output int vector type.
  */
 im_type_desc im__output_intvec = {
-	IM_TYPE_INTVEC,		/* It's an array of int */
-	sizeof( im_intvec_object ), /* Memory to allocate in vec build */
-	IM_TYPE_OUTPUT,		/* Output arg */
-	(im_init_obj_fn)NULL,			/* Init function */
-	(im_dest_obj_fn)intvec_dest		/* Destroy function */
+	IM_TYPE_INTVEC,			/* It's an array of int */
+	sizeof( im_intvec_object ), 	/* Memory to allocate in vec build */
+	IM_TYPE_OUTPUT,			/* Output arg */
+	(im_init_obj_fn)NULL,		/* Init function */
+	(im_dest_obj_fn)intvec_dest	/* Destroy function */
 };
 
 /* Init function for int input.
@@ -609,11 +611,11 @@ input_int_init( im_object *obj, char *str )
 /* Input int type.
  */
 im_type_desc im__input_int = {
-	IM_TYPE_INT,		/* Its an int */
-	sizeof( int ),		/* Memory to allocate */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	input_int_init,		/* Init function */
-	NULL			/* Destroy function */
+	IM_TYPE_INT,			/* It's an int */
+	sizeof( int ),			/* Memory to allocate */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	input_int_init,			/* Init function */
+	NULL				/* Destroy function */
 };
 
 /* Init function for string input.
@@ -630,51 +632,51 @@ input_string_init( im_object *obj, char *str )
 /* Input string type.
  */
 im_type_desc im__input_string = {
-	IM_TYPE_STRING,		/* Its a string */
-	0, 			/* Memory to allocate */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	input_string_init,	/* Init function */
-	im_free		/* Destroy function */
+	IM_TYPE_STRING,			/* It's a string */
+	0, 				/* Memory to allocate */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	input_string_init,		/* Init function */
+	im_free				/* Destroy function */
 };
 
 /* Output string type.
  */
 im_type_desc im__output_string = {
-	IM_TYPE_STRING,		/* Its a string */
-	0,			/* Memory to allocate */
-	IM_TYPE_OUTPUT,		/* Its an output argument */
-	NULL,			/* Init function */
-	im_free		/* Destroy function */
+	IM_TYPE_STRING,			/* It's a string */
+	0,				/* Memory to allocate */
+	IM_TYPE_OUTPUT,			/* It's an output argument */
+	NULL,				/* Init function */
+	im_free				/* Destroy function */
 };
 
 /* Output double type.
  */
 im_type_desc im__output_double = {
-	IM_TYPE_DOUBLE,		/* Its a double */
-	sizeof( double ),	/* Memory to allocate */
-	IM_TYPE_OUTPUT,		/* Its an output argument */
-	NULL,			/* Init function */
-	NULL			/* Destroy function */
+	IM_TYPE_DOUBLE,			/* It's a double */
+	sizeof( double ),		/* Memory to allocate */
+	IM_TYPE_OUTPUT,			/* It's an output argument */
+	NULL,				/* Init function */
+	NULL				/* Destroy function */
 };
 
 /* Output complex type.
  */
 im_type_desc im__output_complex = {
-	IM_TYPE_COMPLEX,	/* Its a complex */
-	2 * sizeof( double ),	/* Memory to allocate */
-	IM_TYPE_OUTPUT,		/* Its an output argument */
-	NULL,			/* Init function */
-	NULL			/* Destroy function */
+	IM_TYPE_COMPLEX,		/* It's a complex */
+	2 * sizeof( double ),		/* Memory to allocate */
+	IM_TYPE_OUTPUT,			/* It's an output argument */
+	NULL,				/* Init function */
+	NULL				/* Destroy function */
 };
 
 /* Output int type.
  */
 im_type_desc im__output_int = {
-	IM_TYPE_INT,		/* Its an int */
-	sizeof( int ),		/* Memory to allocate */
-	IM_TYPE_OUTPUT,		/* Its an output argument */
-	NULL,			/* Init function */
-	NULL			/* Destroy function */
+	IM_TYPE_INT,			/* It's an int */
+	sizeof( int ),			/* Memory to allocate */
+	IM_TYPE_OUTPUT,			/* It's an output argument */
+	NULL,				/* Init function */
+	NULL				/* Destroy function */
 };
 
 /* Print function for int output.
@@ -841,8 +843,8 @@ gvalue_free( im_object obj )
  */
 im_type_desc im__input_gvalue = {
 	IM_TYPE_GVALUE,		
-	sizeof( GValue ),	/* Need some storage */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
+	sizeof( GValue ),		/* Need some storage */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
 	(im_init_obj_fn) input_gvalue_init,	/* Init function */
 	(im_dest_obj_fn) gvalue_free 	/* Destroy function */
 };
@@ -904,9 +906,9 @@ input_interpolate_dest( im_object obj )
 
 im_type_desc im__input_interpolate = {
 	IM_TYPE_INTERPOLATE,	
-	0,      		/* No storage required */
-	IM_TYPE_ARG,		/* It requires a command-line arg */
-	input_interpolate_init,	/* Init function */
-	input_interpolate_dest	/* Destroy function */
+	0,      			/* No storage required */
+	IM_TYPE_ARG,			/* It requires a command-line arg */
+	input_interpolate_init,		/* Init function */
+	input_interpolate_dest		/* Destroy function */
 };
 

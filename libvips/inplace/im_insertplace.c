@@ -19,6 +19,8 @@
  * 6/3/10
  * 	- don't im_invalidate() after paint, this now needs to be at a higher
  * 	  level
+ * 25/8/10
+ * 	- cast and bandalike sub to main
  */
 
 /*
@@ -57,10 +59,39 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/* The common part of most binary inplace operators. 
+ *
+ * Unlike im__formatalike() and friends, we can only change one of the images,
+ * since the other is being updated. 
+ */
+IMAGE *
+im__inplace_base( const char *domain, 
+	IMAGE *main, IMAGE *sub, IMAGE *out ) 
+{
+	IMAGE *t[2];
+
+	if( im_rwcheck( main ) || 
+		im_pincheck( sub ) ||
+		im_check_coding_known( domain, main ) ||
+		im_check_coding_same( domain, main, sub ) ||
+		im_check_bands_1orn_unary( domain, sub, main->Bands ) )
+		return( NULL );
+
+	/* Cast sub to match main in bands and format.
+	 */
+	if( im_open_local_array( out, t, 2, domain, "p" ) ||
+		im__bandup( sub, t[0], main->Bands ) ||
+		im_clip2fmt( t[0], t[1], main->BandFmt ) )
+		return( NULL );
+
+	return( t[1] );
+}
 
 /**
  * im_insertplace:
@@ -69,8 +100,10 @@
  * @x: position to insert
  * @y: position to insert
  *
- * Copy @sub into @main at position @x, @y. The two images must match in
- * format, bands and coding.
+ * Copy @sub into @main at position @x, @y. The two images must have the same
+ * Coding. If @sub has 1 band, the bands will be duplicated to match the
+ * number of bands in @main. @sub will be converted to @main's format, see
+ * im_clip2fmt().
  *
  * This an inplace operation, so @main is changed. It does not thread and will
  * not work well as part of a pipeline.
@@ -86,16 +119,6 @@ im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 	PEL *p, *q;
 	int z;
 
-	/* Check compatibility.
-	 */
-	if( im_rwcheck( main ) || 
-		im_incheck( sub ) ||
-		im_check_coding_known( "im_insertplace", main ) ||
-		im_check_coding_known( "im_insertplace", sub ) ||
-		im_check_format_same( "im_insertplace", main, sub ) ||
-		im_check_bands_same( "im_insertplace", main, sub ) )
-		return( -1 );
-
 	/* Make rects for main and sub and clip.
 	 */
 	br.left = 0;
@@ -109,6 +132,11 @@ im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 	im_rect_intersectrect( &br, &sr, &clip );
 	if( im_rect_isempty( &clip ) )
 		return( 0 );
+
+	if( !(sub = im__inplace_base( "im_insertplace", main, sub, main )) ||
+		im_rwcheck( main ) ||
+		im_incheck( sub ) )
+		return( -1 );
 
 	/* Loop, memcpying sub to main.
 	 */

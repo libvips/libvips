@@ -274,6 +274,12 @@ int im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 
 int im__fmaskcir( IMAGE *out, VipsMaskType flag, va_list ap );
 
+/* inplace
+ */
+
+IMAGE *im__inplace_base( const char *domain, 
+	IMAGE *main, IMAGE *sub, IMAGE *out );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

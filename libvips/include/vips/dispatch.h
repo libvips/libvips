@@ -75,7 +75,8 @@ typedef void *im_object;
 typedef enum {
 	IM_TYPE_NONE = 0,		/* No flags */
 	IM_TYPE_OUTPUT = 0x1,		/* Output/input object */
-	IM_TYPE_ARG = 0x2		/* Uses a str arg in construction */
+	IM_TYPE_ARG = 0x2,		/* Uses a str arg in construction */
+	IM_TYPE_RW = 0x4		/* Read-write */
 } im_type_flags;
 
 /* Initialise, destroy and write objects. The "str" argument to the
