@@ -142,6 +142,7 @@ AC_SYS_LARGEFILE
 AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_CC_STDC
+AC_PROG_CXX
 AC_C_CONST
 AC_C_RESTRICT
 AC_PROG_RANLIB
@@ -157,7 +158,6 @@ AC_ARG_ENABLE(cxx,
   AS_HELP_STRING([--enable-cxx], [build C++ components (default: enabled)]))
 
 if test x"$enable_cxx" != "xno"; then
-  AC_PROG_CXX
   AC_DEFINE(ENABLE_CXX,1,[build C++ components])
   AM_CONDITIONAL(ENABLE_CXX, true)
   enable_cxx=yes

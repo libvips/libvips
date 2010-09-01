@@ -17,6 +17,7 @@
 - special-case 3x3 makss in im_conv() for a 20% speedup
 - add IM_TYPE_RW flag for im__rw_image, helps nip2 auto-wrap inplace ops
 - im_insertplace() casts and bandalikes
+- copy iconv.m4 and friends in bootstrap, thanks Mike
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if
