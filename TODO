@@ -1,9 +1,14 @@
 - rename most of the inplace ops as im_draw_line() etc.
 
+- how do we wrap inplace ops in C++ now? will checking the RW bit help at all?
+
 - use im__inplace_base() in more places
 
 - nip2 should be able to call RW image ops by copying them, see
   im_draw_circle_copy()
+
+
+
 
 - use D65 in cmsCreateLab4Profile() ? not sure
 

@@ -14,6 +14,8 @@
 - fix a mixup with ANY hints that caused performance problems on the main
   benchmark
 - rewritten im_circle as im_draw_circle, im_circle moved to almostdeprecated
+- added IM_TYPE_RW args for inplace ops --- nip2 uses this to wrap inplace ops
+  automatically
 - special-case 3x3 makss in im_conv() for a 20% speedup
 - add IM_TYPE_RW flag for im__rw_image, helps nip2 auto-wrap inplace ops
 - im_insertplace() casts and bandalikes

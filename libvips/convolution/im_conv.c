@@ -501,7 +501,7 @@ conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
 	int bands = in->Bands;
 
 	Rect s;
-	int x, y, z;
+	int x, y;
 
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
