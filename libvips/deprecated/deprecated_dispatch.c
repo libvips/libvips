@@ -35,6 +35,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -1274,12 +1275,8 @@ flood_blob_copy_vec( im_object *argv )
 
 	PEL *ink;
 
-	if( dv->n != in->Bands ) {
-		im_error( "im_flood_blob_copy", 
-			"%s", _( "bad vector length" ) );
-		return( -1 );
-	}
-	if( !(ink = im__vector_to_ink( in, dv->vec )) )
+	if( !(ink = im__vector_to_ink( "im_flood_blob_copy",
+		in, dv->n, dv->vec )) )
 		return( -1 );
 
 	return( im_flood_blob_copy( in, out, start_x, start_y, ink ) );
@@ -1319,12 +1316,8 @@ flood_copy_vec( im_object *argv )
 
 	PEL *ink;
 
-	if( dv->n != in->Bands ) {
-		im_error( "im_flood_copy", 
-			"%s", _( "bad vector length" ) );
-		return( -1 );
-	}
-	if( !(ink = im__vector_to_ink( in, dv->vec )) )
+	if( !(ink = im__vector_to_ink( "im_flood_copy",
+		in, dv->n, dv->vec )) )
 		return( -1 );
 
 	return( im_flood_copy( in, out, start_x, start_y, ink ) );

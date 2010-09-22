@@ -1,10 +1,4 @@
-/* @(#) Fill Rect r of image im with pels of colour ink. r can be any size and
- * @(#) any position, we clip against the image size.
- * @(#) 
- * @(#) int
- * @(#) im_paintrect( IMAGE *im, Rect *r, PEL *ink )
- * @(#) 
- * @(#) 
+/* Fill Rect r of image im with pels of colour ink. 
  *
  * Copyright: J. Cupitt
  * Written: 15/06/1992
@@ -17,6 +11,10 @@
  * 6/3/10
  * 	- don't im_invalidate() after paint, this now needs to be at a higher
  * 	  level
+ * 22/9/10
+ * 	- gtk-doc
+ * 	- added 'fill'
+ * 	- renamed as im_draw_rect() for consistency
  */
 
 /*
@@ -59,18 +57,46 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Paint a rect of colour into an image.
+/**
+ * im_draw_rect:
+ * @image: image to draw on
+ * @left: area to paint
+ * @top: area to paint
+ * @width: area to paint
+ * @height: area to paint
+ * @fill: fill the rect
+ * @ink: paint with this colour
+ *
+ * Paint pixels within @left, @top, @width, @height in @image with @ink. If
+ * @fill is zero, just paint a 1-pixel-wide outline.
+ *
+ * This an inplace operation, so @main is changed. It does not thread and will
+ * not work well as part of a pipeline.
+ *
+ * See also: im_draw_circle().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
-im_paintrect( IMAGE *im, Rect *r, PEL *ink )
-{	
+im_draw_rect( IMAGE *im, 
+	int left, int top, int width, int height, int fill, PEL *ink )
+{
 	int es = IM_IMAGE_SIZEOF_ELEMENT( im ); 
 	int ps = es * im->Bands;
 	int ls = ps * im->Xsize;
-	Rect image, clipped;
+
+	Rect image, rect, clipped;
 	int x, y, b;
 	PEL *to;
 	PEL *q;
+
+	if( !fill ) 
+		return( im_draw_rect( im, left, top, width, 1, 1, ink ) ||
+			im_draw_rect( im, 
+				left + width - 1, top, 1, height, 1, ink ) ||
+			im_draw_rect( im, 
+				left, top + height - 1, width, 1, 1, ink ) ||
+			im_draw_rect( im, left, top, 1, height, 1, ink ) );
 
 	if( im_rwcheck( im ) )
 		return( -1 );
@@ -81,7 +107,11 @@ im_paintrect( IMAGE *im, Rect *r, PEL *ink )
 	image.top = 0;
 	image.width = im->Xsize;
 	image.height = im->Ysize;
-	im_rect_intersectrect( r, &image, &clipped );
+	rect.left = left;
+	rect.top = top;
+	rect.width = width;
+	rect.height = height;
+	im_rect_intersectrect( &rect, &image, &clipped );
 
 	/* Any points left to plot?
 	 */
@@ -90,13 +120,16 @@ im_paintrect( IMAGE *im, Rect *r, PEL *ink )
 
 	/* Loop through image plotting where required.
 	 */
-	to = (PEL *) im->data + clipped.left * ps + clipped.top * ls;
+	to = (PEL *) IM_IMAGE_ADDR( im, clipped.left, clipped.top );
 	for( y = 0; y < clipped.height; y++ ) {
 		q = to;
 
-		for( x = 0; x < clipped.width; x++ )
+		for( x = 0; x < clipped.width; x++ ) {
 			for( b = 0; b < ps; b++ )
-				*q++ = ink[b];
+				q[b] = ink[b];
+
+			q += ps;
+		}
 		
 		to += ls;
 	}

@@ -4,6 +4,14 @@
 
 - use im__inplace_base() in more places
 
+- consider:
+
+	if( im_check_vector( "im__vector_to_ink", n, im ) )
+		return( -1 );
+
+  n must be 1 or im->Bands ... but what about n > 1 and im->Bands == 1?
+
+  look at im_lintra_vec(), what happens here?
 
 
 

@@ -506,3 +506,10 @@ im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out,
 	return( 0 );
 }
 
+int
+im_paintrect( IMAGE *im, Rect *r, PEL *ink )
+{
+	return( im_draw_rect( im, 
+		r->left, r->top, r->width, r->height, 1, ink ) );
+}
+

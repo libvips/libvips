@@ -132,21 +132,21 @@ static im_function lineset_desc = {
  * valid.
  */
 PEL *
-im__vector_to_ink( IMAGE *im, double *vec )
+im__vector_to_ink( const char *domain, IMAGE *im, int n, double *vec )
 {
-	const int n = im->Bands;
-
 	IMAGE *t[3];
 	double *zeros;
 	int i;
 
-	if( im_open_local_array( im, t, 3, "vector_to_ink", "t" ) ||
+	if( im_check_vector( domain, n, im ) )
+		return( NULL );
+	if( im_open_local_array( im, t, 3, domain, "t" ) ||
 		!(zeros = IM_ARRAY( im, n, double )) )
 		return( NULL );
 	for( i = 0; i < n; i++ )
 		zeros[i] = 0.0;
 
-	if( im_black( t[0], 1, 1, n ) ||
+	if( im_black( t[0], 1, 1, im->Bands ) ||
 		im_lintra_vec( n, zeros, t[0], vec, t[1] ) ||
 		im_clip2fmt( t[1], t[2], im->BandFmt ) )
 		return( NULL );
@@ -175,11 +175,8 @@ flood_blob_vec( im_object *argv )
 
 	PEL *ink;
 
-	if( dv->n != image->Bands ) {
-		im_error( "im_flood_blob", "%s", _( "bad vector length" ) );
-		return( -1 );
-	}
-	if( !(ink = im__vector_to_ink( image, dv->vec )) )
+	if( !(ink = im__vector_to_ink( "im_flood_blob", 
+		image, dv->n, dv->vec )) )
 		return( -1 );
 
 	return( im_flood_blob( image, start_x, start_y, ink, NULL ) );
@@ -217,11 +214,7 @@ flood_vec( im_object *argv )
 
 	PEL *ink;
 
-	if( dv->n != image->Bands ) {
-		im_error( "im_flood", "%s", _( "bad vector length" ) );
-		return( -1 );
-	}
-	if( !(ink = im__vector_to_ink( image, dv->vec )) )
+	if( !(ink = im__vector_to_ink( "im_flood", image, dv->n, dv->vec )) )
 		return( -1 );
 
 	return( im_flood( image, start_x, start_y, ink, NULL ) );
@@ -273,6 +266,51 @@ static im_function flood_other_desc = {
 	flood_other_args 	/* Arg list */
 };
 
+/* Args for im_draw_rect.
+ */
+static im_arg_desc draw_rect_args[] = {
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_INT( "left" ),
+	IM_INPUT_INT( "top" ),
+	IM_INPUT_INT( "width" ),
+	IM_INPUT_INT( "height" ),
+	IM_INPUT_INT( "fill" ),
+	IM_INPUT_DOUBLEVEC( "ink" )
+};
+
+/* Call im_draw_circle via arg vector.
+ */
+static int
+draw_rect_vec( im_object *argv )
+{
+	IMAGE *image = argv[0];
+	int left = *((int *) argv[1]);
+	int top = *((int *) argv[2]);
+	int width = *((int *) argv[3]);
+	int height = *((int *) argv[4]);
+	int fill = *((int *) argv[5]);
+	im_doublevec_object *dv = (im_doublevec_object *) argv[6];
+
+	PEL *ink;
+
+	if( !(ink = im__vector_to_ink( "im_draw_rect",
+		image, dv->n, dv->vec )) )
+		return( -1 );
+
+	return( im_draw_rect( image, left, top, width, height, fill, ink ) );
+}
+
+/* Description of im_draw_rect.
+ */ 
+static im_function draw_rect_desc = {
+	"im_draw_rect", 	/* Name */
+	"draw rect on image",
+	0,			/* Flags */
+	draw_rect_vec, 		/* Dispatch function */
+	IM_NUMBER( draw_rect_args ), 	/* Size of arg list */
+	draw_rect_args 		/* Arg list */
+};
+
 /* Args for im_draw_circle.
  */
 static im_arg_desc draw_circle_args[] = {
@@ -298,7 +336,8 @@ draw_circle_vec( im_object *argv )
 
 	PEL *ink;
 
-	if( !(ink = im__vector_to_ink( image, dv->vec )) )
+	if( !(ink = im__vector_to_ink( "im_draw_circle", 
+		image, dv->n, dv->vec )) )
 		return( -1 );
 
 	return( im_draw_circle( image, cx, cy, radius, fill, ink ) );
@@ -318,8 +357,6 @@ static im_function draw_circle_desc = {
 /* To do:
  * these all need some kind of pel type
  *
-	im_flood.c
-	im_paintrect.c
 	im_plotmask.c
 	line_draw.c
 	plot_point.c
@@ -331,6 +368,7 @@ static im_function draw_circle_desc = {
  */
 static im_function *inplace_list[] = {
 	&draw_circle_desc,
+	&draw_rect_desc,
 	&flood_desc,
 	&flood_blob_desc,
 	&flood_other_desc,
