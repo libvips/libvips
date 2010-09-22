@@ -232,6 +232,7 @@ int im_circle( IMAGE *im, int cx, int cy, int radius, int intensity );
 int im_line( IMAGE *, int, int, int, int, int );
 int im_segment( IMAGE *test, IMAGE *mask, int *segments );
 int im_paintrect( IMAGE *im, Rect *r, PEL *ink );
+int im_insertplace( IMAGE *main, IMAGE *sub, int x, int y );
 
 int im_flood_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
 int im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );

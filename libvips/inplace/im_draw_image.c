@@ -21,6 +21,8 @@
  * 	  level
  * 25/8/10
  * 	- cast and bandalike sub to main
+ * 22/9/10
+ * 	- rename to im_draw_image()
  */
 
 /*
@@ -95,12 +97,13 @@ im__inplace_base( const char *domain,
 
 /**
  * im_insertplace:
- * @main: main image
- * @sub: sub-image to insert
+ * @main: image to draw on
  * @x: position to insert
  * @y: position to insert
+ * @sub: image to draw
  *
- * Copy @sub into @main at position @x, @y. The two images must have the same
+ * Draw @sub on top of @main at position @x, @y. The two images must have the 
+ * same
  * Coding. If @sub has 1 band, the bands will be duplicated to match the
  * number of bands in @main. @sub will be converted to @main's format, see
  * im_clip2fmt().
@@ -113,7 +116,7 @@ im__inplace_base( const char *domain,
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
+im_draw_image( IMAGE *main, int x, int y, IMAGE *sub )
 {	
 	Rect br, sr, clip;
 	PEL *p, *q;
@@ -133,7 +136,7 @@ im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 	if( im_rect_isempty( &clip ) )
 		return( 0 );
 
-	if( !(sub = im__inplace_base( "im_insertplace", main, sub, main )) ||
+	if( !(sub = im__inplace_base( "im_draw_image", main, sub, main )) ||
 		im_rwcheck( main ) ||
 		im_incheck( sub ) )
 		return( -1 );

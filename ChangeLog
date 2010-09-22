@@ -23,6 +23,7 @@
 - moved the stupid _copy() versions of the inplace ops to deprecated, since
   nip2 can call inplace ops directly now
 - added im_draw_rect(), moved im_paintrect() to deprecated
+- added im_draw_image(), moved im_insertplace() to deprecated
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if

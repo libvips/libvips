@@ -1372,6 +1372,37 @@ static im_function flood_other_copy_desc = {
 	flood_other_copy_args 	/* Arg list */
 };
 
+/* Args for im_insertplace.
+ */
+static im_arg_desc insertplace_args[] = {
+	IM_RW_IMAGE( "main" ),
+	IM_INPUT_IMAGE( "sub" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" )
+};
+
+/* Call im_insertplace via arg vector.
+ */
+static int
+insertplace_vec( im_object *argv )
+{
+	int x = *((int *) argv[2]);
+	int y = *((int *) argv[3]);
+
+	return( im_insertplace( argv[0], argv[1], x, y ) );
+}
+
+/* Description of im_insertplace.
+ */ 
+static im_function insertplace_desc = {
+	"im_insertplace", 		/* Name */
+	"draw image sub inside image main at position (x,y)",
+	0,				/* Flags */
+	insertplace_vec, 		/* Dispatch function */
+	IM_NUMBER( insertplace_args ), 	/* Size of arg list */
+	insertplace_args 		/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
@@ -1421,6 +1452,7 @@ static im_function *deprecated_list[] = {
 	&erode_raw_desc,
 	&similarity_area_desc,
 	&similarity_desc,
+	&insertplace_desc,
 	&circle_desc
 };
 

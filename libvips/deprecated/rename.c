@@ -513,3 +513,8 @@ im_paintrect( IMAGE *im, Rect *r, PEL *ink )
 		r->left, r->top, r->width, r->height, 1, ink ) );
 }
 
+int
+im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
+{
+	return( im_draw_image( main, x, y, sub ) );
+}
