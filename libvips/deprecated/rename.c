@@ -458,3 +458,51 @@ im_circle( IMAGE *im, int cx, int cy, int radius, int intensity )
 
 	return( im_draw_circle( im, cx, cy, radius, FALSE, ink ) );
 }
+
+/* A flood blob we can call from nip. Grr! Should be a way to wrap these
+ * automatically. Maybe nip could do it if it sees a RW image argument?
+ */
+
+int
+im_flood_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( out, "im_flood_blob_copy", "t" )) ||
+		im_copy( in, t ) ||
+		im_flood( t, x, y, ink, NULL ) ||
+		im_copy( t, out ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( out, "im_flood_blob_copy", "t" )) ||
+		im_copy( in, t ) ||
+		im_flood_blob( t, x, y, ink, NULL ) ||
+		im_copy( t, out ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out, 
+	int x, int y, int serial )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( out, "im_flood_other_copy", "t" )) ||
+		im_copy( mark, t ) ||
+		im_flood_other( test, t, x, y, serial, NULL ) ||
+		im_copy( t, out ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+

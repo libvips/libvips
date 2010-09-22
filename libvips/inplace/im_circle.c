@@ -277,22 +277,3 @@ im_draw_circle( IMAGE *im, int cx, int cy, int radius, gboolean fill, PEL *ink )
 	return( 0 );
 }
 
-
-/* One we can call from nip. Grr! Should be a way to wrap these
- * automatically. Maybe nip could do it if it sees a RW image argument?
- */
-
-int
-im_draw_circle_copy( IMAGE *in, IMAGE *out, 
-	int cx, int cy, int radius, gboolean fill, PEL *ink )
-{
-	IMAGE *t;
-
-	if( !(t = im_open_local( out, "im_flood_blob_copy", "t" )) ||
-		im_copy( in, t ) ||
-		im_draw_circle( t, cx, cy, radius, fill, ink ) ||
-		im_copy( t, out ) ) 
-		return( -1 );
-
-	return( 0 );
-}
