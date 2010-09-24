@@ -1,3 +1,10 @@
+- im_plotmask() should take the mask as a mono uchar IMAGE perhaps
+
+  still need a rect for x/y/w/h of mask, since we use it with userline and an
+  offset circle to draw fatlines
+
+
+
 - rename most of the inplace ops as im_draw_line() etc.
 
 - how do we wrap inplace ops in C++ now? will checking the RW bit help at all?
