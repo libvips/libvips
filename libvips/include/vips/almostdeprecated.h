@@ -239,6 +239,8 @@ int im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
 int im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out, 
 	int x, int y, int serial );
 
+int im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

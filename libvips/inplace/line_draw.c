@@ -91,8 +91,33 @@
 
 /* Draw a line on a image.
  */
+
+/**
+ * im_draw_line:
+ * @im: image to draw on
+ * @x1: start point
+ * @y1: start point
+ * @x2: end point
+ * @y2: end point
+ * @ink: value to draw
+ *
+ * Draws a 1-pixel-wide line on an image. @x1, @y1 and @x2, @y2 must be 
+ * within the image.
+ *
+ * @ink is an array of bytes 
+ * containing a valid pixel for the image's format.
+ * It must have at least IM_IMAGE_SIZEOF_PEL( @im ) bytes.
+ *
+ * This an inplace operation, so @im is changed. It does not thread and will
+ * not work well as part of a pipeline. On 32-bit machines it will be limited
+ * to 2GB images.
+ *
+ * See also: im_draw_circle().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
 int 
-im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
+im_draw_line( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
 {	
 	int es = IM_IMAGE_SIZEOF_ELEMENT( im ); 
 	int ps = es * im->Bands;

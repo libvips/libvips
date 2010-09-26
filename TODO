@@ -3,6 +3,11 @@
   still need a rect for x/y/w/h of mask, since we use it with userline and an
   offset circle to draw fatlines
 
+- im_draw_line() should clip x1/y1 x2/y2, cf. im_draw_line_user()
+
+  perhaps just put a clip in the plot thing, or have two plotters and pick the
+  clip one if start/end are within the image
+
 
 
 - rename most of the inplace ops as im_draw_line() etc.

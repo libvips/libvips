@@ -47,7 +47,8 @@ int im_draw_circle( IMAGE *im,
 	int cx, int cy, int radius, gboolean fill, PEL *ink );
 
 int im_draw_image( IMAGE *main, int x, int y, IMAGE *sub );
-int im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel );
+int im_draw_line( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel );
+
 int im_fastlineuser( IMAGE *im, 
 	int x1, int y1, int x2, int y2, 
 	int (*fn)(), void *client1, void *client2, void *client3 );

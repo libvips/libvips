@@ -518,3 +518,9 @@ im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 {
 	return( im_draw_image( main, x, y, sub ) );
 }
+
+int 
+im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
+{
+	return( im_draw_line( im, x1, y1, x2, y2, pel ) );
+}
