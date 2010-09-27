@@ -524,3 +524,12 @@ im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
 {
 	return( im_draw_line( im, x1, y1, x2, y2, pel ) );
 }
+
+int 
+im_fastlineuser( IMAGE *im, 
+	int x1, int y1, int x2, int y2, 
+	int (*fn)(), void *client1, void *client2, void *client3 )
+{
+	return( im_draw_line_user( im, x1, y1, x2, y2, 
+		fn, client1, client2, client3 ) );
+}

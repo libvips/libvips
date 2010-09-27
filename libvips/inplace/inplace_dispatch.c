@@ -49,8 +49,12 @@
  * @stability: Stable
  * @include: vips/vips.h
  *
- * These operations modify the input image. You can't easily use them in
- * pipelines, but they are useful for paintbox-style programs.
+ * These operations directly modify the image. They do not thread, on 32-bit
+ * machines they will be limited to 2GB images, and a little care needs to be
+ * taken if you use them as part of an image pipeline. 
+ *
+ * They are mostly supposed to be useful 
+ * for paintbox-style programs.
  *
  */
 

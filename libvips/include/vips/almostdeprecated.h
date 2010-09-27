@@ -240,6 +240,9 @@ int im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out,
 	int x, int y, int serial );
 
 int im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel );
+int im_fastlineuser( IMAGE *im, 
+	int x1, int y1, int x2, int y2, 
+	int (*fn)(), void *client1, void *client2, void *client3 );
 
 #ifdef __cplusplus
 }

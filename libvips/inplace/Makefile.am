@@ -1,13 +1,15 @@
 noinst_LTLIBRARIES = libinplace.la
 
 libinplace_la_SOURCES = \
+	draw.c \
+	draw.h \
 	im_draw_circle.c \
-	flood.c \
+	im_draw_line.c \
 	im_draw_image.c \
 	im_draw_rect.c \
+	flood.c \
 	im_plotmask.c \
 	inplace_dispatch.c \
-	line_draw.c \
 	plot_point.c \
 	smudge_area.c
 

@@ -15,6 +15,8 @@
  * 	- gtk-doc
  * 	- added 'fill'
  * 	- renamed as im_draw_rect() for consistency
+ * 27/9/10
+ * 	- memcpy() subsequent lines of the rect
  */
 
 /*
@@ -50,6 +52,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <vips/vips.h>
 
@@ -118,20 +121,22 @@ im_draw_rect( IMAGE *im,
 	if( im_rect_isempty( &clipped ) )
 		return( 0 );
 
-	/* Loop through image plotting where required.
+	/* We plot the first line pointwise, then memcpy() it for the
+	 * subsequent lines.
 	 */
 	to = (PEL *) IM_IMAGE_ADDR( im, clipped.left, clipped.top );
-	for( y = 0; y < clipped.height; y++ ) {
-		q = to;
-
-		for( x = 0; x < clipped.width; x++ ) {
-			for( b = 0; b < ps; b++ )
-				q[b] = ink[b];
+	q = to;
+	for( x = 0; x < clipped.width; x++ ) 
+		for( b = 0; b < ps; b++ ) {
+			q[b] = ink[b];
 
 			q += ps;
 		}
-		
-		to += ls;
+
+	q = to + ls;
+	for( y = 1; y < clipped.height; y++ ) {
+		memcpy( q, to, clipped.width * ps );
+		q += ls;
 	}
 
 	return( 0 );

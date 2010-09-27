@@ -26,6 +26,8 @@
  * 6/3/10
  * 	- don't im_invalidate() after paint, this now needs to be at a higher
  * 	  level
+ * 27/9/10
+ * 	- use Draw base class
  */
 
 /*
@@ -64,6 +66,8 @@
 #include <string.h>
 
 #include <vips/vips.h>
+
+#include "draw.h"
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -105,12 +109,12 @@ typedef struct _Buffer {
 /* Our state.
  */
 typedef struct {
+	Draw draw;
+
 	/* Parameters.
 	 */
 	IMAGE *test;		/* Test this image */
-	IMAGE *mark;		/* Mark this image */
 	int x, y;
-	PEL *ink;		/* Copy of ink param */
 	Rect *dout;		/* Write dirty here at end */
 
 	/* Derived stuff.
@@ -118,7 +122,6 @@ typedef struct {
 	PEL *edge;		/* Boundary colour */
 	int equal;		/* Fill to == edge, or != edge */
 	int tsize;		/* sizeof( one pel in test ) */
-	int msize;		/* sizeof( one pel in mark ) */
 	int left, right;	/* Record bounding box of modified pixels */
 	int top, bottom;
 
@@ -208,48 +211,22 @@ flood_connected( Flood *flood, PEL *tp )
 	return( flood->equal ^ (j < flood->tsize) );
 }
 
-/* Is p painted?
- */
-static inline gboolean
-flood_painted( Flood *flood, PEL *mp )
-{
- 	int j;
-
-	for( j = 0; j < flood->msize; j++ ) 
-		if( mp[j] != flood->ink[j] ) 
-			break;
-
-	return( j == flood->msize );
-}
-
-/* Faster than memcpy for n < about 20.
- */
-static inline void
-flood_paint( Flood *flood, PEL *q )
-{
- 	int j;
-
-	for( j = 0; j < flood->msize; j++ ) 
-		q[j] = flood->ink[j];
-}
-
 /* Fill left and right, return the endpoints. The start point (x, y) must be 
  * connected and unpainted.
  */
 static void 
 flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 {
-	const int width = flood->mark->Xsize;
+	Draw *draw = DRAW( flood );
+	const int width = flood->test->Xsize;
 
 	PEL *tp;
-	PEL *mp;
 	int i;
-	int len;
 
 	g_assert( flood_connected( flood, 
 		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) );
-	g_assert( !flood_painted( flood, 
-		(PEL *) IM_IMAGE_ADDR( flood->mark, x, y ) ) );
+	g_assert( !im__draw_painted( draw, 
+		(PEL *) IM_IMAGE_ADDR( draw->im, x, y ) ) );
 
 	/* Search to the right for the first non-connected pixel. If the start
 	 * pixel is unpainted, we know all the intervening pixels must be
@@ -275,12 +252,7 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 
 	/* Paint the range we discovered.
 	 */
-	mp = (PEL *) IM_IMAGE_ADDR( flood->mark, *x1, y );
-	len = *x2 - *x1 + 1;
-	for( i = 0; i < len; i++ ) {
-		flood_paint( flood, mp );
-		mp += flood->msize;
-	}
+	im__draw_scanline( DRAW( flood ), y, *x1, *x2 );
 
 	if( flood->dout ) {
 		flood->left = IM_MIN( flood->left, *x1 );
@@ -296,6 +268,8 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 static void
 flood_around( Flood *flood, Scan *scan )
 {
+	Draw *draw = DRAW( flood );
+
 	PEL *tp;
 	int x;
 
@@ -313,11 +287,11 @@ flood_around( Flood *flood, Scan *scan )
 			 * to check for painted. Otherwise we can get stuck in
 			 * connected loops.
 			 */
-			if( flood->mark != flood->test ) {
+			if( draw->im != flood->test ) {
 				PEL *mp = (PEL *) IM_IMAGE_ADDR( 
-					flood->mark, x, scan->y );
+					draw->im, x, scan->y );
 
-				if( flood_painted( flood, mp ) )
+				if( im__draw_painted( draw, mp ) )
 					continue;
 			}
 
@@ -388,7 +362,7 @@ flood_free( Flood *flood )
 		flood->dout->height = flood->bottom - flood->top + 1;
 	}
 
-	IM_FREE( flood->ink );
+	im__draw_free( DRAW( flood ) );
 	IM_FREE( flood->edge );
 	IM_FREEF( buffer_free, flood->in );
 	IM_FREEF( buffer_free, flood->out );
@@ -402,15 +376,17 @@ flood_new( IMAGE *test, IMAGE *mark, int x, int y, PEL *ink, Rect *dout )
 
 	if( !(flood = IM_NEW( NULL, Flood )) )
 		return( NULL );
+	if( !im__draw_init( DRAW( flood ), mark, ink ) ) {
+		flood_free( flood );
+		return( NULL );
+	}
+
 	flood->test = test;
-	flood->mark = mark;
 	flood->x = x;
 	flood->y = y;
-	flood->ink = NULL;
 	flood->dout = dout;
 	flood->edge = NULL;
 	flood->tsize = IM_IMAGE_SIZEOF_PEL( test );
-	flood->msize = IM_IMAGE_SIZEOF_PEL( mark );
 	flood->left = x;
 	flood->top = y;
 	flood->right = x;
@@ -419,14 +395,12 @@ flood_new( IMAGE *test, IMAGE *mark, int x, int y, PEL *ink, Rect *dout )
 	flood->in = NULL;
 	flood->out = NULL;
 
-	if( !(flood->ink = (PEL *) im_malloc( NULL, flood->msize )) ||
-		!(flood->edge = (PEL *) im_malloc( NULL, flood->tsize )) ||
+	if( !(flood->edge = (PEL *) im_malloc( NULL, flood->tsize )) ||
 		!(flood->in = buffer_build()) ||
 		!(flood->out = buffer_build()) ) {
 		flood_free( flood );
 		return( NULL );
 	}
-	memcpy( flood->ink, ink, flood->msize );
 
 	return( flood );
 }
@@ -459,10 +433,8 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 {
 	Flood *flood;
 
-	if( im_rwcheck( im ) ||
-		im_check_coding_known( "im_flood", im ) )
-		return( -1 );
-	if( !(flood = flood_new( im, im, x, y, ink, dout )) )
+	if( im_check_coding_known( "im_flood", im ) ||
+		!(flood = flood_new( im, im, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Flood to != ink.
@@ -506,10 +478,8 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	Flood *flood;
  	int j;
 
-	if( im_rwcheck( im ) ||
-		im_check_coding_known( "im_flood", im ) )
-		return( -1 );
-	if( !(flood = flood_new( im, im, x, y, ink, dout )) )
+	if( im_check_coding_known( "im_flood", im ) ||
+		!(flood = flood_new( im, im, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.
@@ -521,7 +491,7 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 	 * do.
 	 */
 	for( j = 0; j < flood->tsize; j++ ) 
-		if( flood->edge[j] != flood->ink[j] ) 
+		if( flood->edge[j] != DRAW( flood )->ink[j] ) 
 			break;
 	if( j == flood->tsize )
 		return( 0 );
@@ -565,7 +535,6 @@ im_flood_other( IMAGE *test, IMAGE *mark, int x, int y, int serial, Rect *dout )
 	Flood *flood;
 
 	if( im_incheck( test ) ||
-		im_rwcheck( mark ) ||
 		im_check_coding_known( "im_flood_other", test ) ||
 		im_check_uncoded( "im_flood_other", mark ) ||
 		im_check_mono( "im_flood_other", mark ) ||
