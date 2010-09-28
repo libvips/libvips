@@ -34,6 +34,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <string.h>
+
 #include <vips/vips.h>
 #include <vips/internal.h>
 
@@ -516,7 +518,7 @@ im_paintrect( IMAGE *im, Rect *r, PEL *ink )
 int
 im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 {
-	return( im_draw_image( main, x, y, sub ) );
+	return( im_draw_image( main, sub, x, y ) );
 }
 
 int 
@@ -532,4 +534,25 @@ im_fastlineuser( IMAGE *im,
 {
 	return( im_draw_line_user( im, x1, y1, x2, y2, 
 		fn, client1, client2, client3 ) );
+}
+
+int
+im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r )
+{
+	IMAGE *mask_im;
+
+	if( !(mask_im = im_open( "im_plotmask", "t" )) )
+		return( -1 );
+	if( im_black( mask_im, r->width, r->height, 1 ) ) {
+		im_close( mask_im );
+		return( -1 );
+	}
+	memcpy( mask_im->data, mask, r->width * r->height );
+	if( im_draw_mask( im, mask_im, ix - r->left, iy - r->top, ink ) ) {
+		im_close( mask_im );
+		return( -1 );
+	}
+	im_close( mask_im );
+
+	return( 0 );
 }

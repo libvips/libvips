@@ -244,6 +244,8 @@ int im_fastlineuser( IMAGE *im,
 	int x1, int y1, int x2, int y2, 
 	int (*fn)(), void *client1, void *client2, void *client3 );
 
+int im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -72,11 +72,11 @@
  * Unlike im__formatalike() and friends, we can only change one of the images,
  * since the other is being updated. 
  */
-IMAGE *
+VipsImage *
 im__inplace_base( const char *domain, 
-	IMAGE *main, IMAGE *sub, IMAGE *out ) 
+	VipsImage *main, VipsImage *sub, VipsImage *out ) 
 {
-	IMAGE *t[2];
+	VipsImage *t[2];
 
 	if( im_rwcheck( main ) || 
 		im_pincheck( sub ) ||
@@ -116,7 +116,7 @@ im__inplace_base( const char *domain,
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_image( IMAGE *main, int x, int y, IMAGE *sub )
+im_draw_image( VipsImage *image, VipsImage *sub, int x, int y )
 {	
 	Rect br, sr, clip;
 	PEL *p, *q;
@@ -126,8 +126,8 @@ im_draw_image( IMAGE *main, int x, int y, IMAGE *sub )
 	 */
 	br.left = 0;
 	br.top = 0;
-	br.width = main->Xsize;
-	br.height = main->Ysize;
+	br.width = image->Xsize;
+	br.height = image->Ysize;
 	sr.left = x;
 	sr.top = y;
 	sr.width = sub->Xsize;
@@ -136,20 +136,20 @@ im_draw_image( IMAGE *main, int x, int y, IMAGE *sub )
 	if( im_rect_isempty( &clip ) )
 		return( 0 );
 
-	if( !(sub = im__inplace_base( "im_draw_image", main, sub, main )) ||
-		im_rwcheck( main ) ||
+	if( !(sub = im__inplace_base( "im_draw_image", image, sub, image )) ||
+		im_rwcheck( image ) ||
 		im_incheck( sub ) )
 		return( -1 );
 
 	/* Loop, memcpying sub to main.
 	 */
 	p = (PEL *) IM_IMAGE_ADDR( sub, clip.left - x, clip.top - y );
-	q = (PEL *) IM_IMAGE_ADDR( main, clip.left, clip.top );
+	q = (PEL *) IM_IMAGE_ADDR( image, clip.left, clip.top );
 	for( z = 0; z < clip.height; z++ ) {
 		memcpy( (char *) q, (char *) p, 
 			clip.width * IM_IMAGE_SIZEOF_PEL( sub ) );
 		p += IM_IMAGE_SIZEOF_LINE( sub );
-		q += IM_IMAGE_SIZEOF_LINE( main );
+		q += IM_IMAGE_SIZEOF_LINE( image );
 	}
 
 	return( 0 );

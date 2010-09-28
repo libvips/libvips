@@ -1,3 +1,7 @@
+- im_draw_mask() should not take mx/my args, we can just displace x / y
+
+
+
 - im_plotmask() should take the mask as a mono uchar IMAGE perhaps
 
   still need a rect for x/y/w/h of mask, since we use it with userline and an

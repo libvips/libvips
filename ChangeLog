@@ -26,6 +26,7 @@
 - added im_draw_image(), moved im_insertplace() to deprecated
 - added im_draw_line(), now clips, moved im_fastline() to deprecated
 - added im_draw_line_user(), now clips, moved im_fastlineuser() to deprecated
+- added im_draw_mask(), now wrappable, moved im_plotmask() to deprecated
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if

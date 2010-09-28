@@ -48,6 +48,7 @@ int im_check_uncoded( const char *domain, IMAGE *im );
 int im_check_coding_known( const char *domain, IMAGE *im );
 int im_check_coding_labq( const char *domain, IMAGE *im );
 int im_check_coding_rad( const char *domain, IMAGE *im );
+int im_check_coding_noneorlabq( const char *domain, IMAGE *im );
 int im_check_coding_same( const char *domain, IMAGE *im1, IMAGE *im2 );
 int im_check_mono( const char *domain, IMAGE *im );
 int im_check_bands_1or3( const char *domain, IMAGE *in );

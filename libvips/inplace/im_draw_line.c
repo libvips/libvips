@@ -268,28 +268,30 @@ line_draw( Line *line )
 }
 
 /**
+ * VipsPlotFn:
+ *
+ * A plot function, as used by im_draw_line_user() to draw on an image. 
+ */
+
+/**
  * im_draw_line_user:
  * @im: image to draw on
  * @x1: start point
  * @y1: start point
  * @x2: end point
  * @y2: end point
- * @ink: value to draw
+ * @plot: draw operation
+ * @a: draw operation parameter
+ * @b: draw operation parameter
+ * @c: draw operation parameter
  *
- * Draws a 1-pixel-wide line on an image. @x1, @y1 and @x2, @y2 must be 
- * within the image.
+ * Calls @plot for every point on the line connecting @x1, @y1 and @x2, @y2.
+ * If you pass im_draw_mask() as the plot operation, you can draw wide lines
+ * or lines with various brushes.
  *
- * @ink is an array of bytes 
- * containing a valid pixel for the image's format.
- * It must have at least IM_IMAGE_SIZEOF_PEL( @im ) bytes.
- *
- * See also: im_draw_circle().
+ * See also: im_draw_mask(), im_draw_line(), im_draw_circle().
  *
  * Returns: 0 on success, or -1 on error.
- */
-
-/* Draw a line on a image with a user plot function. We do no clipping: the
- * user function should check ranges for each pixel when it is called.
  */
 int 
 im_draw_line_user( VipsImage *im, 
@@ -298,7 +300,7 @@ im_draw_line_user( VipsImage *im,
 {
 	Line *line;
 
-	if( im_check_coding_known( "im_draw_line", im ) ||
+	if( im_check_coding_known( "im_draw_line_user", im ) ||
 		!(line = line_new( im, x1, y1, x2, y2, NULL )) )
 		return( -1 );
 

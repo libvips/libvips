@@ -37,32 +37,33 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_draw_rect( IMAGE *image, 
+int im_draw_rect( VipsImage *image, 
 	int left, int top, int width, int height, int fill, PEL *ink );
-int im_draw_circle( IMAGE *im, 
+int im_draw_circle( VipsImage *image, 
 	int cx, int cy, int radius, gboolean fill, PEL *ink );
 
-int im_draw_image( IMAGE *main, int x, int y, IMAGE *sub );
+int im_draw_image( VipsImage *image, VipsImage *sub, int x, int y );
 
-typedef int (*VipsPlotFn)( VipsImage *im, int x, int y, 
+typedef int (*VipsPlotFn)( VipsImage *image, int x, int y, 
 	void *a, void *b, void *c );
-int im_draw_line_user( VipsImage *im, 
+int im_draw_line_user( VipsImage *image, 
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot, void *a, void *b, void *c );
-int im_draw_line( VipsImage *im, int x1, int y1, int x2, int y2, PEL *ink );
-int im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
+int im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, PEL *ink );
+int im_lineset( VipsImage *in, VipsImage *out, VipsImage *mask, VipsImage *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
 
-int im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout );
-int im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout );
-int im_flood_other( IMAGE *test, IMAGE *mark, 
+int im_flood( VipsImage *image, int x, int y, PEL *ink, Rect *dout );
+int im_flood_blob( VipsImage *image, int x, int y, PEL *ink, Rect *dout );
+int im_flood_other( VipsImage *image, VipsImage *test, 
 	int x, int y, int serial, Rect *dout );
 
-int im_readpoint( IMAGE *im, int x, int y, PEL *pel );
+int im_draw_mask( VipsImage *image, 
+	VipsImage *mask_im, int ix, int iy, PEL *ink );
 
-int im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r );
-int im_smear( IMAGE *im, int ix, int iy, Rect *r );
-int im_smudge( IMAGE *im, int ix, int iy, Rect *r );
+int im_readpoint( VipsImage *im, int x, int y, PEL *pel );
+int im_smear( VipsImage *im, int ix, int iy, Rect *r );
+int im_smudge( VipsImage *im, int ix, int iy, Rect *r );
 
 #ifdef __cplusplus
 }

@@ -562,6 +562,34 @@ im_check_uncoded( const char *domain, IMAGE *im )
 }
 
 /**
+ * im_check_coding_noneorlabq:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is uncoded or LABQ coded.
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * See also: im_error().
+ *
+ * Returns: 0 on OK, or -1 on error.
+ */
+int
+im_check_coding_noneorlabq( const char *domain, IMAGE *im )
+{
+	/* These all have codings that extract/ifthenelse/etc can ignore.
+	 */
+	if( im->Coding != IM_CODING_NONE && 
+		im->Coding != IM_CODING_LABQ ) {
+		im_error( domain, 
+			"%s", _( "image coding must be NONE or LABQ" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * im_check_coding_known:
  * @domain: the originating domain for the error message
  * @im: image to check

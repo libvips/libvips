@@ -61,10 +61,10 @@
 /* Args for im_draw_image.
  */
 static im_arg_desc draw_image_args[] = {
-	IM_RW_IMAGE( "main" ),
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_IMAGE( "sub" ),
 	IM_INPUT_INT( "x" ),
-	IM_INPUT_INT( "y" ),
-	IM_INPUT_IMAGE( "sub" )
+	IM_INPUT_INT( "y" )
 };
 
 /* Call im_draw_image via arg vector.
@@ -72,10 +72,10 @@ static im_arg_desc draw_image_args[] = {
 static int
 draw_image_vec( im_object *argv )
 {
-	int x = *((int *) argv[1]);
-	int y = *((int *) argv[2]);
+	int x = *((int *) argv[2]);
+	int y = *((int *) argv[3]);
 
-	return( im_draw_image( argv[0], x, y, argv[3] ) );
+	return( im_draw_image( argv[0], argv[1], x, y ) );
 }
 
 /* Description of im_draw_image.
@@ -158,6 +158,47 @@ im__vector_to_ink( const char *domain, IMAGE *im, int n, double *vec )
 	return( (PEL *) t[2]->data );
 }
 
+/* Args for im_draw_mask.
+ */
+static im_arg_desc draw_mask_args[] = {
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_IMAGE( "mask" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" ),
+	IM_INPUT_DOUBLEVEC( "ink" )
+};
+
+/* Call im_draw_mask via arg vector.
+ */
+static int
+draw_mask_vec( im_object *argv )
+{
+	IMAGE *image = argv[0];
+	IMAGE *mask = argv[1];
+	int x = *((int *) argv[2]);
+	int y = *((int *) argv[3]);
+	im_doublevec_object *dv = (im_doublevec_object *) argv[4];
+
+	PEL *ink;
+
+	if( !(ink = im__vector_to_ink( "im_draw_mask", 
+		image, dv->n, dv->vec )) )
+		return( -1 );
+
+	return( im_draw_mask( image, mask, x, y, ink ) );
+}
+
+/* Description of im_draw_mask.
+ */ 
+static im_function draw_mask_desc = {
+	"im_draw_mask", 		/* Name */
+	"draw mask sub inside image main at position (x,y)",
+	0,				/* Flags */
+	draw_mask_vec, 			/* Dispatch function */
+	IM_NUMBER( draw_mask_args ), 	/* Size of arg list */
+	draw_mask_args 			/* Arg list */
+};
+
 /* Args for im_flood_blob().
  */
 static im_arg_desc flood_blob_args[] = {
@@ -238,8 +279,8 @@ static im_function flood_desc = {
 /* Args for im_flood_other().
  */
 static im_arg_desc flood_other_args[] = {
+	IM_RW_IMAGE( "image" ),
 	IM_INPUT_IMAGE( "test" ),
-	IM_RW_IMAGE( "mark" ),
 	IM_INPUT_INT( "start_x" ),
 	IM_INPUT_INT( "start_y" ),
 	IM_INPUT_INT( "serial" )
@@ -250,13 +291,13 @@ static im_arg_desc flood_other_args[] = {
 static int
 flood_other_vec( im_object *argv )
 {
-	IMAGE *test = argv[0];
-	IMAGE *mark = argv[1];
+	IMAGE *image = argv[0];
+	IMAGE *test = argv[1];
 	int start_x = *((int *) argv[2]);
 	int start_y = *((int *) argv[3]);
 	int serial = *((int *) argv[4]);
 
-	return( im_flood_other( test, mark, start_x, start_y, serial, NULL ) );
+	return( im_flood_other( image, test, start_x, start_y, serial, NULL ) );
 }
 
 /* Description of im_flood_other().
@@ -268,6 +309,49 @@ static im_function flood_other_desc = {
 	flood_other_vec, 	/* Dispatch function */
 	IM_NUMBER( flood_other_args ),/* Size of arg list */
 	flood_other_args 	/* Arg list */
+};
+
+/* Args for im_draw_line.
+ */
+static im_arg_desc draw_line_args[] = {
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_INT( "x1" ),
+	IM_INPUT_INT( "y1" ),
+	IM_INPUT_INT( "x2" ),
+	IM_INPUT_INT( "y2" ),
+	IM_INPUT_DOUBLEVEC( "ink" )
+};
+
+/* Call im_draw_line via arg vector.
+ */
+static int
+draw_line_vec( im_object *argv )
+{
+	IMAGE *image = argv[0];
+	int x1 = *((int *) argv[1]);
+	int y1 = *((int *) argv[2]);
+	int x2 = *((int *) argv[3]);
+	int y2 = *((int *) argv[4]);
+	im_doublevec_object *dv = (im_doublevec_object *) argv[5];
+
+	PEL *ink;
+
+	if( !(ink = im__vector_to_ink( "im_draw_line",
+		image, dv->n, dv->vec )) )
+		return( -1 );
+
+	return( im_draw_line( image, x1, y1, x2, y2, ink ) );
+}
+
+/* Description of im_draw_line.
+ */ 
+static im_function draw_line_desc = {
+	"im_draw_line", 	/* Name */
+	"draw line on image",
+	0,			/* Flags */
+	draw_line_vec, 		/* Dispatch function */
+	IM_NUMBER( draw_line_args ), 	/* Size of arg list */
+	draw_line_args 		/* Arg list */
 };
 
 /* Args for im_draw_rect.
@@ -282,7 +366,7 @@ static im_arg_desc draw_rect_args[] = {
 	IM_INPUT_DOUBLEVEC( "ink" )
 };
 
-/* Call im_draw_circle via arg vector.
+/* Call im_draw_rect via arg vector.
  */
 static int
 draw_rect_vec( im_object *argv )
@@ -361,8 +445,6 @@ static im_function draw_circle_desc = {
 /* To do:
  * these all need some kind of pel type
  *
-	im_plotmask.c
-	line_draw.c
 	plot_point.c
 	smudge_area.c
  *
@@ -373,10 +455,12 @@ static im_function draw_circle_desc = {
 static im_function *inplace_list[] = {
 	&draw_circle_desc,
 	&draw_rect_desc,
+	&draw_line_desc,
 	&flood_desc,
 	&flood_blob_desc,
 	&flood_other_desc,
 	&draw_image_desc,
+	&draw_mask_desc,
 	&lineset_desc
 };
 

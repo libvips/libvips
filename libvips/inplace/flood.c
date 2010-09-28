@@ -370,13 +370,13 @@ flood_free( Flood *flood )
 }
 
 static Flood *
-flood_new( IMAGE *test, IMAGE *mark, int x, int y, PEL *ink, Rect *dout )
+flood_new( IMAGE *image, IMAGE *test, int x, int y, PEL *ink, Rect *dout )
 {
 	Flood *flood;
 
 	if( !(flood = IM_NEW( NULL, Flood )) )
 		return( NULL );
-	if( !im__draw_init( DRAW( flood ), mark, ink ) ) {
+	if( !im__draw_init( DRAW( flood ), image, ink ) ) {
 		flood_free( flood );
 		return( NULL );
 	}
@@ -505,8 +505,8 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 
 /**
  * im_flood_other:
+ * @image: image to mark
  * @test: image to test
- * @mark: image to mark
  * @x: position to start fill
  * @y: position to start fill
  * @serial: mark pixels with this number
@@ -529,26 +529,27 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_flood_other( IMAGE *test, IMAGE *mark, int x, int y, int serial, Rect *dout )
+im_flood_other( IMAGE *image, 
+	IMAGE *test, int x, int y, int serial, Rect *dout )
 {
 	int *m;
 	Flood *flood;
 
 	if( im_incheck( test ) ||
 		im_check_coding_known( "im_flood_other", test ) ||
-		im_check_uncoded( "im_flood_other", mark ) ||
-		im_check_mono( "im_flood_other", mark ) ||
-		im_check_format( "im_flood_other", mark, IM_BANDFMT_INT ) ||
-		im_check_size_same( "im_flood_other", test, mark ) )
+		im_check_uncoded( "im_flood_other", image ) ||
+		im_check_mono( "im_flood_other", image ) ||
+		im_check_format( "im_flood_other", image, IM_BANDFMT_INT ) ||
+		im_check_size_same( "im_flood_other", test, image ) )
 		return( -1 );
 
 	/* Have we done this point already?
 	 */
-	m = (int *) IM_IMAGE_ADDR( mark, x, y ); 
+	m = (int *) IM_IMAGE_ADDR( image, x, y ); 
 	if( *m == serial )
 		return( 0 );
 
-	if( !(flood = flood_new( test, mark, x, y, (PEL *) &serial, dout )) )
+	if( !(flood = flood_new( image, test, x, y, (PEL *) &serial, dout )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.
