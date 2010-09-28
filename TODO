@@ -183,6 +183,7 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
 
 	http://en.wikipedia.org/wiki/Bilateral_filter
 	http://www.shellandslate.com/fastmedian.html
+	http://people.csail.mit.edu/sparis/bf_course/
 
   also a mail from Martin Breidt has links to several fast free C
   implementations
