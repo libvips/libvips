@@ -1,5 +1,7 @@
 - wrap im_read_point: output OUBLEVEC?
 
+- smudge_area, then check gtk-doc output
+
 
 
 
