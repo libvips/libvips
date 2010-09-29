@@ -556,3 +556,15 @@ im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r )
 
 	return( 0 );
 }
+
+int 
+im_readpoint( IMAGE *im, int x, int y, PEL *pel )
+{
+	return( im_read_point( im, x, y, pel ) );
+}
+
+int 
+im_plotpoint( IMAGE *im, int x, int y, PEL *pel )
+{
+	return( im_draw_point( im, x, y, pel ) );
+}

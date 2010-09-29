@@ -61,7 +61,9 @@ int im_flood_other( VipsImage *image, VipsImage *test,
 int im_draw_mask( VipsImage *image, 
 	VipsImage *mask_im, int ix, int iy, PEL *ink );
 
-int im_readpoint( VipsImage *im, int x, int y, PEL *pel );
+int im_draw_point( VipsImage *image, int x, int y, PEL *ink );
+int im_read_point( VipsImage *image, int x, int y, PEL *ink );
+
 int im_smear( VipsImage *im, int ix, int iy, Rect *r );
 int im_smudge( VipsImage *im, int ix, int iy, Rect *r );
 

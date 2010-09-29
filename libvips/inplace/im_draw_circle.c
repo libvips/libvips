@@ -176,41 +176,43 @@ circle_draw( Circle *circle )
 
 /**
  * im_draw_circle:
- * @im: image to draw on
+ * @image: image to draw on
  * @cx: centre of circle
  * @cy: centre of circle
  * @radius: circle radius
  * @fill: fill the circle
  * @ink: value to draw
  *
- * Draws a circle on an image. If @fill is %TRUE then the circle is filled,
+ * Draws a circle on @image. If @fill is %TRUE then the circle is filled,
  * otherwise a 1-pixel-wide perimeter is drawn.
  *
  * @ink is an array of bytes containing a valid pixel for the image's format.
- * It must have at least IM_IMAGE_SIZEOF_PEL( @im ) bytes.
+ * It must have at least IM_IMAGE_SIZEOF_PEL( @image ) bytes.
  *
- * This an inplace operation, so @im is changed. It does not thread and will
+ * This an inplace operation, so @image is changed. It does not thread and will
  * not work well as part of a pipeline. On 32-bit machines it will be limited
  * to 2GB images.
  *
- * See also: im_fastline().
+ * See also: im_draw_line().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_circle( IMAGE *im, int cx, int cy, int radius, gboolean fill, PEL *ink )
+im_draw_circle( VipsImage *image, 
+	int cx, int cy, int radius, gboolean fill, PEL *ink )
 {
-	Circle *circle;
+	if( cx + radius >= 0 && cx - radius < image->Xsize &&
+		cy + radius >= 0 && cy - radius < image->Ysize ) {
+		Circle *circle;
 
-	if( cx + radius < 0 || cx - radius >= im->Xsize ||
-		cy + radius < 0 || cy - radius >= im->Ysize )
-		return( 0 );
+		if( im_check_coding_known( "im_draw_circle", image ) ||
+			!(circle = circle_new( image, 
+				cx, cy, radius, fill, ink )) )
+			return( -1 );
+		circle_draw( circle );
 
-	if( im_check_coding_known( "im_draw_circle", im ) ||
-		!(circle = circle_new( im, cx, cy, radius, fill, ink )) )
-		return( -1 );
-	circle_draw( circle );
-	circle_free( circle );
+		circle_free( circle );
+	}
 
 	return( 0 );
 }

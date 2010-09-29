@@ -1,16 +1,7 @@
-- im_draw_mask() should not take mx/my args, we can just displace x / y
+- wrap im_read_point: output OUBLEVEC?
 
 
 
-- im_plotmask() should take the mask as a mono uchar IMAGE perhaps
-
-  still need a rect for x/y/w/h of mask, since we use it with userline and an
-  offset circle to draw fatlines
-
-- im_draw_line() should clip x1/y1 x2/y2, cf. im_draw_line_user()
-
-  perhaps just put a clip in the plot thing, or have two plotters and pick the
-  clip one if start/end are within the image
 
 
 

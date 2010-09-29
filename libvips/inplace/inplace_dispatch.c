@@ -311,6 +311,45 @@ static im_function flood_other_desc = {
 	flood_other_args 	/* Arg list */
 };
 
+/* Args for im_draw_point.
+ */
+static im_arg_desc draw_point_args[] = {
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" ),
+	IM_INPUT_DOUBLEVEC( "ink" )
+};
+
+/* Call im_draw_point via arg vector.
+ */
+static int
+draw_point_vec( im_object *argv )
+{
+	IMAGE *image = argv[0];
+	int x = *((int *) argv[1]);
+	int y = *((int *) argv[2]);
+	im_doublevec_object *dv = (im_doublevec_object *) argv[3];
+
+	PEL *ink;
+
+	if( !(ink = im__vector_to_ink( "im_draw_point",
+		image, dv->n, dv->vec )) )
+		return( -1 );
+
+	return( im_draw_point( image, x, y, ink ) );
+}
+
+/* Description of im_draw_point.
+ */ 
+static im_function draw_point_desc = {
+	"im_draw_point", 		/* Name */
+	"draw point on image",
+	0,				/* Flags */
+	draw_point_vec, 		/* Dispatch function */
+	IM_NUMBER( draw_point_args ), 	/* Size of arg list */
+	draw_point_args 		/* Arg list */
+};
+
 /* Args for im_draw_line.
  */
 static im_arg_desc draw_line_args[] = {
@@ -456,6 +495,7 @@ static im_function *inplace_list[] = {
 	&draw_circle_desc,
 	&draw_rect_desc,
 	&draw_line_desc,
+	&draw_point_desc,
 	&flood_desc,
 	&flood_blob_desc,
 	&flood_other_desc,
