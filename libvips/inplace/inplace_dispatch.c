@@ -386,7 +386,7 @@ static im_function draw_point_desc = {
 /* Args for im_read_point.
  */
 static im_arg_desc read_point_args[] = {
-	IM_RW_IMAGE( "image" ),
+	IM_INPUT_IMAGE( "image" ),
 	IM_INPUT_INT( "x" ),
 	IM_INPUT_INT( "y" ),
 	IM_OUTPUT_DOUBLEVEC( "ink" )
