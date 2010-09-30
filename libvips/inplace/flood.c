@@ -512,15 +512,15 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  * @serial: mark pixels with this number
  * @dout: output the bounding box of the filled area 
  *
- * Flood-fill @mark with @serial, starting at position @x, @y. The filled 
+ * Flood-fill @image with @serial, starting at position @x, @y. The filled 
  * area is bounded by pixels in @test that are equal to the start pixel, in 
  * other words, it searches @test for a blob of same-coloured pixels, marking 
- * those pixels in @mark with @serial.
+ * those pixels in @image with @serial.
  *
  * The bounding box of the modified pixels is returned in @dout. @dout may be
  * NULL.
  *
- * This an inplace operation, so @mark is changed. It does not thread and will
+ * This an inplace operation, so @image is changed. It does not thread and will
  * not work well as part of a pipeline. On 32-bit machines, it will be limited
  * to 2GB images.
  *

@@ -23,6 +23,7 @@
  * 	- cast and bandalike sub to main
  * 22/9/10
  * 	- rename to im_draw_image()
+ * 	- gtk-doc
  */
 
 /*
@@ -96,11 +97,11 @@ im__inplace_base( const char *domain,
 }
 
 /**
- * im_insertplace:
+ * im_draw_image:
  * @main: image to draw on
+ * @sub: image to draw
  * @x: position to insert
  * @y: position to insert
- * @sub: image to draw
  *
  * Draw @sub on top of @main at position @x, @y. The two images must have the 
  * same
