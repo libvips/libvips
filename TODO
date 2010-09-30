@@ -1,22 +1,21 @@
-- wrap im_read_point: output DOUBLEVEC?
-
 - check gtk-doc output
+
+- im_flood() -> im_draw_flood()? since it's inplace
 
 - convsep / conv need to be able to do COMPLEX
 
   just double the bands
 
-- test im_read_point()
-
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
   it, argh
 
+  make a region, prepare to that, copy back over the image?
+
+- can we make more use of im__draw_pel()? eg. im_draw_rect() etc.
 
 
 
 
-
-- rename most of the inplace ops as im_draw_line() etc.
 
 - how do we wrap inplace ops in C++ now? will checking the RW bit help at all?
 

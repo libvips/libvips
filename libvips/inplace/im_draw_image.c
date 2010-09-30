@@ -109,9 +109,6 @@ im__inplace_base( const char *domain,
  * number of bands in @image. @sub will be converted to @image's format, see
  * im_clip2fmt().
  *
- * This an inplace operation, so @image is changed. It does not thread and will
- * not work well as part of a pipeline.
- *
  * See also: im_insert().
  *
  * Returns: 0 on success, or -1 on error.

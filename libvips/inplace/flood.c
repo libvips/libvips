@@ -420,10 +420,6 @@ flood_new( IMAGE *image, IMAGE *test, int x, int y, PEL *ink, Rect *dout )
  * The bounding box of the modified pixels is returned in @dout. @dout may be
  * NULL.
  *
- * This an inplace operation, so @im is changed. It does not thread and will
- * not work well as part of a pipeline. On 32-bit machines, it will be limited
- * to 2GB images.
- *
  * See also: im_flood_blob(), im_flood_other(), im_flood_blob_copy().
  *
  * Returns: 0 on success, or -1 on error.
@@ -463,10 +459,6 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  *
  * The bounding box of the modified pixels is returned in @dout. @dout may be
  * NULL.
- *
- * This an inplace operation, so @im is changed. It does not thread and will
- * not work well as part of a pipeline. On 32-bit machines, it will be limited
- * to 2GB images.
  *
  * See also: im_flood(), im_flood_other(), im_flood_blob_copy().
  *
@@ -519,10 +511,6 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  *
  * The bounding box of the modified pixels is returned in @dout. @dout may be
  * NULL.
- *
- * This an inplace operation, so @image is changed. It does not thread and will
- * not work well as part of a pipeline. On 32-bit machines, it will be limited
- * to 2GB images.
  *
  * See also: im_flood(), im_label_regions(), im_flood_blob_copy().
  *

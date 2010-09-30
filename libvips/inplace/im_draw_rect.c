@@ -73,9 +73,6 @@
  * Paint pixels within @left, @top, @width, @height in @image with @ink. If
  * @fill is zero, just paint a 1-pixel-wide outline.
  *
- * This an inplace operation, so @main is changed. It does not thread and will
- * not work well as part of a pipeline.
- *
  * See also: im_draw_circle().
  *
  * Returns: 0 on success, or -1 on error.
@@ -141,4 +138,3 @@ im_draw_rect( IMAGE *im,
 
 	return( 0 );
 }
-

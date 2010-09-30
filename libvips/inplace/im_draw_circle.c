@@ -177,8 +177,8 @@ circle_draw( Circle *circle )
 /**
  * im_draw_circle:
  * @image: image to draw on
- * @cx: centre of circle
- * @cy: centre of circle
+ * @x: centre of circle
+ * @y: centre of circle
  * @radius: circle radius
  * @fill: fill the circle
  * @ink: value to draw
@@ -189,25 +189,21 @@ circle_draw( Circle *circle )
  * @ink is an array of bytes containing a valid pixel for the image's format.
  * It must have at least IM_IMAGE_SIZEOF_PEL( @image ) bytes.
  *
- * This an inplace operation, so @image is changed. It does not thread and will
- * not work well as part of a pipeline. On 32-bit machines it will be limited
- * to 2GB images.
- *
  * See also: im_draw_line().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
 im_draw_circle( VipsImage *image, 
-	int cx, int cy, int radius, gboolean fill, PEL *ink )
+	int x, int y, int radius, gboolean fill, PEL *ink )
 {
-	if( cx + radius >= 0 && cx - radius < image->Xsize &&
-		cy + radius >= 0 && cy - radius < image->Ysize ) {
+	if( x + radius >= 0 && x - radius < image->Xsize &&
+		y + radius >= 0 && y - radius < image->Ysize ) {
 		Circle *circle;
 
 		if( im_check_coding_known( "im_draw_circle", image ) ||
 			!(circle = circle_new( image, 
-				cx, cy, radius, fill, ink )) )
+				x, y, radius, fill, ink )) )
 			return( -1 );
 		circle_draw( circle );
 

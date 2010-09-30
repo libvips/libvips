@@ -67,8 +67,8 @@ typedef struct _Mask {
 
 	/* Parameters.
 	 */
-	int ix;
-	int iy;
+	int x;
+	int y;
 	VipsImage *mask_im;
 
 	/* Derived.
@@ -85,7 +85,7 @@ mask_free( Mask *mask )
 }
 
 static Mask *
-mask_new( VipsImage *im, int ix, int iy, PEL *ink, VipsImage *mask_im )
+mask_new( VipsImage *im, int x, int y, PEL *ink, VipsImage *mask_im )
 {
 	Mask *mask;
 	Rect area, image;
@@ -102,14 +102,14 @@ mask_new( VipsImage *im, int ix, int iy, PEL *ink, VipsImage *mask_im )
 		return( NULL );
 	}
 
-	mask->ix = ix;
-	mask->iy = iy;
+	mask->x = x;
+	mask->y = y;
 	mask->mask_im = mask_im;
 
 	/* Find the area we draw on the image.
 	 */
-	area.left = ix;
-	area.top = iy;
+	area.left = x;
+	area.top = y;
 	area.width = mask_im->Xsize;
 	area.height = mask_im->Ysize;
 	image.left = 0;
@@ -121,8 +121,8 @@ mask_new( VipsImage *im, int ix, int iy, PEL *ink, VipsImage *mask_im )
 	/* And the area of the mask image we use.
 	 */
 	mask->mask_clip = mask->image_clip;
-	mask->mask_clip.left -= ix;
-	mask->mask_clip.top -= iy;
+	mask->mask_clip.left -= x;
+	mask->mask_clip.top -= y;
 
 	return( mask );
 }
@@ -285,11 +285,11 @@ mask_draw( Mask *mask )
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_mask( VipsImage *im, VipsImage *mask_im, int ix, int iy, PEL *ink )
+im_draw_mask( VipsImage *im, VipsImage *mask_im, int x, int y, PEL *ink )
 {
 	Mask *mask;
 
-	if( !(mask = mask_new( im, ix, iy, ink, mask_im )) )
+	if( !(mask = mask_new( im, x, y, ink, mask_im )) )
 		return( -1 );
 
 	/* Any points to plot?

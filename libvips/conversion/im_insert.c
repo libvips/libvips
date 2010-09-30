@@ -346,7 +346,7 @@ im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>).
  *
- * See also: im_insert_noexpand(), im_lrjoin().
+ * See also: im_insert_noexpand(), im_lrjoin(), im_draw_image().
  *
  * Returns: 0 on success, -1 on error
  */

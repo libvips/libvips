@@ -40,7 +40,7 @@ extern "C" {
 int im_draw_rect( VipsImage *image, 
 	int left, int top, int width, int height, int fill, PEL *ink );
 int im_draw_circle( VipsImage *image, 
-	int cx, int cy, int radius, gboolean fill, PEL *ink );
+	int x, int y, int radius, gboolean fill, PEL *ink );
 
 int im_draw_image( VipsImage *image, VipsImage *sub, int x, int y );
 
@@ -59,7 +59,7 @@ int im_flood_other( VipsImage *image, VipsImage *test,
 	int x, int y, int serial, Rect *dout );
 
 int im_draw_mask( VipsImage *image, 
-	VipsImage *mask_im, int ix, int iy, PEL *ink );
+	VipsImage *mask_im, int x, int y, PEL *ink );
 
 int im_draw_point( VipsImage *image, int x, int y, PEL *ink );
 int im_read_point( VipsImage *image, int x, int y, PEL *ink );

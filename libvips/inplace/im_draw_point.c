@@ -76,10 +76,6 @@ typedef struct _Point {
  * @ink is an array of bytes containing a valid pixel for the image's format.
  * It must have at least IM_IMAGE_SIZEOF_PEL( @im ) bytes.
  *
- * This an inplace operation, so @im is changed. It does not thread and will
- * not work well as part of a pipeline. On 32-bit machines it will be limited
- * to 2GB images.
- *
  * See also: im_draw_line().
  *
  * Returns: 0 on success, or -1 on error.
