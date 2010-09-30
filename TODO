@@ -1,6 +1,15 @@
-- wrap im_read_point: output OUBLEVEC?
+- wrap im_read_point: output DOUBLEVEC?
 
-- smudge_area, then check gtk-doc output
+- check gtk-doc output
+
+- convsep / conv need to be able to do COMPLEX
+
+  just double the bands
+
+- test im_read_point()
+
+- maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
+  it, argh
 
 
 

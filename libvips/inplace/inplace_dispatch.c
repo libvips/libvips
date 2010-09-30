@@ -58,6 +58,65 @@
  *
  */
 
+/* Calculate a pixel for an image from a vec of double. Valid while im is
+ * valid.
+ */
+PEL *
+im__vector_to_ink( const char *domain, IMAGE *im, int n, double *vec )
+{
+	IMAGE *t[3];
+	double *zeros;
+	int i;
+
+	if( im_check_vector( domain, n, im ) )
+		return( NULL );
+	if( im_open_local_array( im, t, 3, domain, "t" ) ||
+		!(zeros = IM_ARRAY( im, n, double )) )
+		return( NULL );
+	for( i = 0; i < n; i++ )
+		zeros[i] = 0.0;
+
+	if( im_black( t[0], 1, 1, im->Bands ) ||
+		im_lintra_vec( n, zeros, t[0], vec, t[1] ) ||
+		im_clip2fmt( t[1], t[2], im->BandFmt ) )
+		return( NULL );
+
+	return( (PEL *) t[2]->data );
+}
+
+double *
+im__ink_to_vector( const char *domain, IMAGE *im, PEL *ink )
+{
+	double *vec;
+	int i;
+
+	if( im_check_uncoded( "im__ink_to_vector", im ) ||
+		im_check_noncomplex( "im__ink_to_vector", im ) )
+		return( NULL );
+	if( !(vec = IM_ARRAY( NULL, im->Bands, double )) )
+		return( NULL );
+
+#define READ( TYPE ) \
+	vec[i] = ((TYPE *) ink)[i];
+
+	for( i = 0; i < im->Bands; i++ )
+		switch( im->BandFmt ) {
+		case IM_BANDFMT_UCHAR: 		READ( unsigned char ); break;
+		case IM_BANDFMT_CHAR:  		READ( signed char ); break;
+		case IM_BANDFMT_USHORT: 	READ( unsigned short ); break;
+		case IM_BANDFMT_SHORT: 		READ( signed short ); break;
+		case IM_BANDFMT_UINT: 		READ( unsigned int ); break;
+		case IM_BANDFMT_INT: 		READ( signed int ); break;
+		case IM_BANDFMT_FLOAT:  	READ( float ); break;
+		case IM_BANDFMT_DOUBLE: 	READ( double ); break;
+
+		default:
+			g_assert( 0 ); 
+		}
+
+	return( vec );
+}
+
 /* Args for im_draw_image.
  */
 static im_arg_desc draw_image_args[] = {
@@ -131,32 +190,6 @@ static im_function lineset_desc = {
 	IM_NUMBER( lineset_args ), 	/* Size of arg list */
 	lineset_args 		/* Arg list */
 };
-
-/* Calculate a pixel for an image from a vec of double. Valid while im is
- * valid.
- */
-PEL *
-im__vector_to_ink( const char *domain, IMAGE *im, int n, double *vec )
-{
-	IMAGE *t[3];
-	double *zeros;
-	int i;
-
-	if( im_check_vector( domain, n, im ) )
-		return( NULL );
-	if( im_open_local_array( im, t, 3, domain, "t" ) ||
-		!(zeros = IM_ARRAY( im, n, double )) )
-		return( NULL );
-	for( i = 0; i < n; i++ )
-		zeros[i] = 0.0;
-
-	if( im_black( t[0], 1, 1, im->Bands ) ||
-		im_lintra_vec( n, zeros, t[0], vec, t[1] ) ||
-		im_clip2fmt( t[1], t[2], im->BandFmt ) )
-		return( NULL );
-
-	return( (PEL *) t[2]->data );
-}
 
 /* Args for im_draw_mask.
  */
@@ -350,6 +383,47 @@ static im_function draw_point_desc = {
 	draw_point_args 		/* Arg list */
 };
 
+/* Args for im_read_point.
+ */
+static im_arg_desc read_point_args[] = {
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" ),
+	IM_OUTPUT_DOUBLEVEC( "ink" )
+};
+
+/* Call im_read_point via arg vector.
+ */
+static int
+read_point_vec( im_object *argv )
+{
+	IMAGE *image = argv[0];
+	int x = *((int *) argv[1]);
+	int y = *((int *) argv[2]);
+	im_doublevec_object *dv = (im_doublevec_object *) argv[3];
+
+	PEL *ink;
+
+	if( !(ink = IM_ARRAY( image, IM_IMAGE_SIZEOF_PEL( image ), PEL )) ||
+		im_read_point( image, x, y, ink ) ||
+		!(dv->vec = im__ink_to_vector( "im_read_point", image, ink )) )
+		return( -1 );
+	dv->n = image->Bands;
+
+	return( 0 );
+}
+
+/* Description of im_read_point.
+ */ 
+static im_function read_point_desc = {
+	"im_read_point", 		/* Name */
+	"read point from image",
+	0,				/* Flags */
+	read_point_vec, 		/* Dispatch function */
+	IM_NUMBER( read_point_args ), 	/* Size of arg list */
+	read_point_args 		/* Arg list */
+};
+
 /* Args for im_draw_line.
  */
 static im_arg_desc draw_line_args[] = {
@@ -385,12 +459,47 @@ draw_line_vec( im_object *argv )
 /* Description of im_draw_line.
  */ 
 static im_function draw_line_desc = {
-	"im_draw_line", 	/* Name */
+	"im_draw_line", 		/* Name */
 	"draw line on image",
-	0,			/* Flags */
-	draw_line_vec, 		/* Dispatch function */
+	0,				/* Flags */
+	draw_line_vec, 			/* Dispatch function */
 	IM_NUMBER( draw_line_args ), 	/* Size of arg list */
-	draw_line_args 		/* Arg list */
+	draw_line_args 			/* Arg list */
+};
+
+/* Args for im_draw_smudge.
+ */
+static im_arg_desc draw_smudge_args[] = {
+	IM_RW_IMAGE( "image" ),
+	IM_INPUT_INT( "left" ),
+	IM_INPUT_INT( "top" ),
+	IM_INPUT_INT( "width" ),
+	IM_INPUT_INT( "height" )
+};
+
+/* Call im_draw_smudge via arg vector.
+ */
+static int
+draw_smudge_vec( im_object *argv )
+{
+	IMAGE *image = argv[0];
+	int left = *((int *) argv[1]);
+	int top = *((int *) argv[2]);
+	int width = *((int *) argv[3]);
+	int height = *((int *) argv[4]);
+
+	return( im_draw_smudge( image, left, top, width, height ) );
+}
+
+/* Description of im_draw_smudge.
+ */ 
+static im_function draw_smudge_desc = {
+	"im_draw_smudge", 		/* Name */
+	"smudge part of an image",
+	0,				/* Flags */
+	draw_smudge_vec, 		/* Dispatch function */
+	IM_NUMBER( draw_smudge_args ), 	/* Size of arg list */
+	draw_smudge_args 		/* Arg list */
 };
 
 /* Args for im_draw_rect.
@@ -430,12 +539,12 @@ draw_rect_vec( im_object *argv )
 /* Description of im_draw_rect.
  */ 
 static im_function draw_rect_desc = {
-	"im_draw_rect", 	/* Name */
+	"im_draw_rect", 		/* Name */
 	"draw rect on image",
-	0,			/* Flags */
-	draw_rect_vec, 		/* Dispatch function */
+	0,				/* Flags */
+	draw_rect_vec, 			/* Dispatch function */
 	IM_NUMBER( draw_rect_args ), 	/* Size of arg list */
-	draw_rect_args 		/* Arg list */
+	draw_rect_args 			/* Arg list */
 };
 
 /* Args for im_draw_circle.
@@ -481,14 +590,6 @@ static im_function draw_circle_desc = {
 	draw_circle_args 		/* Arg list */
 };
 
-/* To do:
- * these all need some kind of pel type
- *
-	plot_point.c
-	smudge_area.c
- *
- */
-
 /* Package up all these functions.
  */
 static im_function *inplace_list[] = {
@@ -496,6 +597,8 @@ static im_function *inplace_list[] = {
 	&draw_rect_desc,
 	&draw_line_desc,
 	&draw_point_desc,
+	&read_point_desc,
+	&draw_smudge_desc,
 	&flood_desc,
 	&flood_blob_desc,
 	&flood_other_desc,

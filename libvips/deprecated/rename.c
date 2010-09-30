@@ -541,14 +541,10 @@ im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r )
 {
 	IMAGE *mask_im;
 
-	if( !(mask_im = im_open( "im_plotmask", "t" )) )
+	if( !(mask_im = im_image( mask, 
+		r->width, r->height, 1, IM_BANDFMT_UCHAR )) )
 		return( -1 );
-	if( im_black( mask_im, r->width, r->height, 1 ) ) {
-		im_close( mask_im );
-		return( -1 );
-	}
-	memcpy( mask_im->data, mask, r->width * r->height );
-	if( im_draw_mask( im, mask_im, ix - r->left, iy - r->top, ink ) ) {
+	if( im_draw_mask( im, mask_im, ix + r->left, iy + r->top, ink ) ) {
 		im_close( mask_im );
 		return( -1 );
 	}
@@ -691,4 +687,11 @@ im_smear( IMAGE *im, int ix, int iy, Rect *r )
 	}
 
 	return( 0 );
+}
+
+int
+im_smudge( VipsImage *image, int ix, int iy, Rect *r )
+{
+	return( im_draw_smudge( image, 
+		r->left + ix, r->top + iy, r->width, r->height ) );
 }

@@ -248,6 +248,9 @@ int im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r );
 int im_readpoint( IMAGE *im, int x, int y, PEL *pel );
 int im_plotpoint( IMAGE *im, int x, int y, PEL *pel );
 
+int im_smudge( IMAGE *image, int ix, int iy, Rect *r );
+int im_smear( IMAGE *im, int ix, int iy, Rect *r );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

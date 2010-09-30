@@ -98,18 +98,18 @@ im__inplace_base( const char *domain,
 
 /**
  * im_draw_image:
- * @main: image to draw on
+ * @image: image to draw on
  * @sub: image to draw
  * @x: position to insert
  * @y: position to insert
  *
- * Draw @sub on top of @main at position @x, @y. The two images must have the 
+ * Draw @sub on top of @image at position @x, @y. The two images must have the 
  * same
  * Coding. If @sub has 1 band, the bands will be duplicated to match the
- * number of bands in @main. @sub will be converted to @main's format, see
+ * number of bands in @image. @sub will be converted to @image's format, see
  * im_clip2fmt().
  *
- * This an inplace operation, so @main is changed. It does not thread and will
+ * This an inplace operation, so @image is changed. It does not thread and will
  * not work well as part of a pipeline.
  *
  * See also: im_insert().

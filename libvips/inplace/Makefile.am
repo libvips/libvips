@@ -10,7 +10,7 @@ libinplace_la_SOURCES = \
 	im_draw_rect.c \
 	im_draw_mask.c \
 	im_draw_point.c \
-	im_smudge_area.c \
+	im_draw_smudge.c \
 	inplace_dispatch.c
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

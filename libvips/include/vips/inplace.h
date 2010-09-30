@@ -64,8 +64,8 @@ int im_draw_mask( VipsImage *image,
 int im_draw_point( VipsImage *image, int x, int y, PEL *ink );
 int im_read_point( VipsImage *image, int x, int y, PEL *ink );
 
-int im_smear( VipsImage *im, int ix, int iy, Rect *r );
-int im_smudge( VipsImage *im, int ix, int iy, Rect *r );
+int im_draw_smudge( VipsImage *image, 
+	int left, int top, int width, int height );
 
 #ifdef __cplusplus
 }
