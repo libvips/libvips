@@ -53,6 +53,8 @@
  * 	- more cleanups
  * 23/08/10
  * 	- add a special case for 3x3 masks, about 20% faster
+ * 1/10/10
+ * 	- support complex (just double the bands)
  */
 
 /*
@@ -331,7 +333,8 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	int le = r->left;
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM( r );
-	int sz = IM_REGION_N_ELEMENTS( or );
+	int sz = IM_REGION_N_ELEMENTS( or ) * 
+		(vips_bandfmt_iscomplex( in->BandFmt ) ? 2 : 1);
 
 	int x, y, z, i;
 
@@ -394,10 +397,12 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 			break;
 
 		case IM_BANDFMT_FLOAT:  
+		case IM_BANDFMT_COMPLEX:  
 			CONV_FLOAT( float ); 
 			break;
 
 		case IM_BANDFMT_DOUBLE: 
+		case IM_BANDFMT_DPCOMPLEX:  
 			CONV_FLOAT( double ); 
 			break;
 
@@ -497,7 +502,8 @@ conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
 	int le = r->left;
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM( r );
-	int sz = IM_REGION_N_ELEMENTS( or );
+	int sz = IM_REGION_N_ELEMENTS( or ) * 
+		(vips_bandfmt_iscomplex( in->BandFmt ) ? 2 : 1);
 	int bands = in->Bands;
 
 	Rect s;
@@ -545,10 +551,12 @@ conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
 			break;
 
 		case IM_BANDFMT_FLOAT:  
+		case IM_BANDFMT_COMPLEX:  
 			CONV3x3_FLOAT( float ); 
 			break;
 
 		case IM_BANDFMT_DOUBLE: 
+		case IM_BANDFMT_DPCOMPLEX: 
 			CONV3x3_FLOAT( double ); 
 			break;
 
@@ -570,7 +578,6 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	 */
 	if( im_piocheck( in, out ) ||
 		im_check_uncoded( "im_conv", in ) ||
-		im_check_noncomplex( "im_conv", in ) ||
 		im_check_imask( "im_conv", mask ) ) 
 		return( -1 );
 	if( mask->scale == 0 ) {
@@ -617,8 +624,7 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
  * @mask: convolution mask
  *
  * Convolve @in with @mask using integer arithmetic. The output image 
- * always has the same #VipsBandFmt as the input image. Non-complex images
- * only.
+ * always has the same #VipsBandFmt as the input image. 
  *
  * Each output pixel is
  * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale

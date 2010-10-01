@@ -31,11 +31,13 @@
  * 	- add restrict, though it doesn't seem to help gcc
  * 	- add mask-all-zero check
  * 13/11/09
- * 	- rename as im_conv_f() to make it easier to vips.c to make the
+ * 	- rename as im_conv_f() to make it easier for vips.c to make the
  * 	  overloaded version
  * 3/2/10
  * 	- gtkdoc
  * 	- more cleanups
+ * 1/10/10
+ * 	- support complex (just double the bands)
  */
 
 /*
@@ -72,7 +74,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -241,7 +242,8 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	int le = r->left;
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM(r);
-	int sz = IM_REGION_N_ELEMENTS( or );
+	int sz = IM_REGION_N_ELEMENTS( or ) * 
+		(vips_bandfmt_iscomplex( in->BandFmt ) ? 2 : 1);
 
 	int x, y, z, i;
 
@@ -292,12 +294,14 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 		case IM_BANDFMT_INT:    
 			CONV_FLOAT( signed int, float ); break;
 		case IM_BANDFMT_FLOAT:  
+		case IM_BANDFMT_COMPLEX:  
 			CONV_FLOAT( float, float ); break;
 		case IM_BANDFMT_DOUBLE: 
+		case IM_BANDFMT_DPCOMPLEX:  
 			CONV_FLOAT( double, double ); break;
 
 		default:
-			assert( 0 );
+			g_assert( 0 );
 		}
 	}
 
@@ -313,7 +317,6 @@ im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	 */
 	if( im_piocheck( in, out ) ||
 		im_check_uncoded( "im_conv", in ) ||
-		im_check_noncomplex( "im_conv", in ) || 
 		im_check_dmask( "im_conv", mask ) ) 
 		return( -1 );
 	if( mask->scale == 0 ) {
@@ -360,8 +363,7 @@ im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
  *
  * Convolve @in with @mask using floating-point arithmetic. The output image 
  * is always %IM_BANDFMT_FLOAT unless @in is %IM_BANDFMT_DOUBLE, in which case
- * @out is also %IM_BANDFMT_DOUBLE. Non-complex images
- * only.
+ * @out is also %IM_BANDFMT_DOUBLE. 
  *
  * Each output pixel is
  * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale

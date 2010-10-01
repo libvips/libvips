@@ -40,11 +40,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <assert.h>
-
 #include <vips/vips.h>
 
 #ifdef WITH_DMALLOC

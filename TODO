@@ -1,9 +1,5 @@
 - check gtk-doc output
 
-- convsep / conv need to be able to do COMPLEX
-
-  just double the bands
-
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
   it, argh
 

@@ -21,6 +21,8 @@
  * 3/2/10
  * 	- gtkdoc
  * 	- more cleanups
+ * 1/10/10
+ * 	- support complex (just double the bands)
  */
 
 /*
@@ -57,7 +59,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 
@@ -311,7 +312,8 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	int le = r->left;
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM(r);
-	int osz = IM_REGION_N_ELEMENTS( or );
+	int osz = IM_REGION_N_ELEMENTS( or ) * 
+		(vips_bandfmt_iscomplex( in->BandFmt ) ? 2 : 1);
 
 	Rect s;
 	int lskip;
@@ -350,14 +352,16 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 			CONV_INT( signed int, IM_CLIP_NONE( sum, seq ) ); 
 			break;
 		case IM_BANDFMT_FLOAT:  
+		case IM_BANDFMT_COMPLEX:  
 			CONV_FLOAT( float ); 
 			break;
 		case IM_BANDFMT_DOUBLE: 
+		case IM_BANDFMT_DPCOMPLEX:  
 			CONV_FLOAT( double ); 
 			break;
 
 		default:
-			assert( 0 );
+			g_assert( 0 );
 		}
 	}
 
@@ -373,7 +377,6 @@ im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	 */
 	if( im_piocheck( in, out ) ||
 		im_check_uncoded( "im_convsep", in ) ||
-		im_check_noncomplex( "im_convsep", in ) ||
 		im_check_imask( "im_convsep", mask ) ) 
 		return( -1 );
 	if( mask->xsize != 1 && mask->ysize != 1 ) {
@@ -423,8 +426,7 @@ im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
  *
  * The mask must be 1xn or nx1 elements. 
  * The output image 
- * always has the same #VipsBandFmt as the input image. Non-complex images
- * only.
+ * always has the same #VipsBandFmt as the input image. 
  *
  * The image is convolved twice: once with @mask and then again with @mask 
  * rotated by 90 degrees. This is much faster for certain types of mask
