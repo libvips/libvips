@@ -323,7 +323,7 @@ blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
  * @b: else #IMAGE
  * @out: output #IMAGE
  *
- * This operation scans the condition image @c (which must be unsigned char) 
+ * This operation scans the condition image @c 
  * and uses it to blend pixels from either the then image @a or the else
  * image @b. 255 means @a only, 0 means @b only, and intermediate values are a
  * mixture.
@@ -348,9 +348,9 @@ im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	const int repack = a->Coding == IM_CODING_LABQ && 
 		b->Coding == IM_CODING_LABQ;
 
-	IMAGE *t[7];
+	IMAGE *t[8];
 
-	if( im_open_local_array( out, t, 7, "im_blend", "p" ) )
+	if( im_open_local_array( out, t, 8, "im_blend", "p" ) )
 		return( -1 );
 
 	/* Unpack LABPACK as a courtesy.
@@ -364,6 +364,15 @@ im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 		if( im_LabQ2Lab( b, t[1] ) )
 			return( -1 );
 		b = t[1];
+	}
+
+	/* c must be uchar.
+	 */
+	if( c->BandFmt != IM_BANDFMT_UCHAR ) {
+		if( im_clip2fmt( c, t[7], IM_BANDFMT_UCHAR ) )
+			return( -1 );
+
+		c = t[7];
 	}
 
 	/* Make a and b match in bands and format.

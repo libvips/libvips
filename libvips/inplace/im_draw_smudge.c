@@ -100,8 +100,8 @@ im_draw_smudge( VipsImage *im, int left, int top, int width, int height )
 		return( 0 );
 
 	if( !blur ) {
-		blur = im_create_imaskv( "im_draw_smudge", 3, 1, 1, 2, 1 );
-		blur->scale = 4;
+		blur = im_create_imaskv( "im_draw_smudge", 3, 1, 1, 4, 1 );
+		blur->scale = 6;
 	}
 
 	if( !(t[0] = im_open( "im_draw_smudge", "p" )) )
