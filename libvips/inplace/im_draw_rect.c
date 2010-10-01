@@ -56,6 +56,8 @@
 
 #include <vips/vips.h>
 
+#include "draw.h"
+
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
@@ -78,63 +80,63 @@
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_rect( IMAGE *im, 
+im_draw_rect( IMAGE *image, 
 	int left, int top, int width, int height, int fill, PEL *ink )
 {
-	int es = IM_IMAGE_SIZEOF_ELEMENT( im ); 
-	int ps = es * im->Bands;
-	int ls = ps * im->Xsize;
+	Rect im, rect, clipped;
+	Draw draw;
 
-	Rect image, rect, clipped;
-	int x, y, b;
+	if( !fill ) 
+		return( im_draw_rect( image, left, top, width, 1, 1, ink ) ||
+			im_draw_rect( image, 
+				left + width - 1, top, 1, height, 1, ink ) ||
+			im_draw_rect( image, 
+				left, top + height - 1, width, 1, 1, ink ) ||
+			im_draw_rect( image, left, top, 1, height, 1, ink ) );
+
+	int x, y;
 	PEL *to;
 	PEL *q;
 
-	if( !fill ) 
-		return( im_draw_rect( im, left, top, width, 1, 1, ink ) ||
-			im_draw_rect( im, 
-				left + width - 1, top, 1, height, 1, ink ) ||
-			im_draw_rect( im, 
-				left, top + height - 1, width, 1, 1, ink ) ||
-			im_draw_rect( im, left, top, 1, height, 1, ink ) );
-
-	if( im_rwcheck( im ) )
-		return( -1 );
-
 	/* Find area we plot.
 	 */
-	image.left = 0;
-	image.top = 0;
-	image.width = im->Xsize;
-	image.height = im->Ysize;
+	im.left = 0;
+	im.top = 0;
+	im.width = image->Xsize;
+	im.height = image->Ysize;
 	rect.left = left;
 	rect.top = top;
 	rect.width = width;
 	rect.height = height;
-	im_rect_intersectrect( &rect, &image, &clipped );
+	im_rect_intersectrect( &rect, &im, &clipped );
 
 	/* Any points left to plot?
 	 */
 	if( im_rect_isempty( &clipped ) )
 		return( 0 );
 
+	if( im_check_coding_known( "im_draw_rect", image ) ||
+		!im__draw_init( &draw, image, ink ) )
+		return( -1 );
+
 	/* We plot the first line pointwise, then memcpy() it for the
 	 * subsequent lines.
 	 */
-	to = (PEL *) IM_IMAGE_ADDR( im, clipped.left, clipped.top );
+	to = (PEL *) IM_IMAGE_ADDR( image, clipped.left, clipped.top );
+
 	q = to;
-	for( x = 0; x < clipped.width; x++ ) 
-		for( b = 0; b < ps; b++ ) {
-			q[b] = ink[b];
-
-			q += ps;
-		}
-
-	q = to + ls;
-	for( y = 1; y < clipped.height; y++ ) {
-		memcpy( q, to, clipped.width * ps );
-		q += ls;
+	for( x = 0; x < clipped.width; x++ ) {
+		im__draw_pel( &draw, q );
+		q += draw.psize;
 	}
+
+	q = to + draw.lsize;
+	for( y = 1; y < clipped.height; y++ ) {
+		memcpy( q, to, clipped.width * draw.psize );
+		q += draw.lsize;
+	}
+
+	im__draw_free( &draw );
 
 	return( 0 );
 }

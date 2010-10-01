@@ -5,8 +5,6 @@
 
   make a region, prepare to that, copy back over the image?
 
-- draw_rect is broken
-
 - smudge is too strong ... tone it down a bit
 
 - can we make more use of im__draw_pel()? eg. im_draw_rect() etc.
