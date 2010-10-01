@@ -5,9 +5,11 @@
 
   make a region, prepare to that, copy back over the image?
 
-- can we make more use of im__draw_pel()? eg. im_draw_rect() etc.
+- draw_rect is broken
 
-- what's nip2's performance on wide lines like now?
+- smudge is too strong ... tone it down a bit
+
+- can we make more use of im__draw_pel()? eg. im_draw_rect() etc.
 
 
 
