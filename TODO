@@ -1,7 +1,5 @@
 - check gtk-doc output
 
-- im_flood() -> im_draw_flood()? since it's inplace
-
 - convsep / conv need to be able to do COMPLEX
 
   just double the bands
@@ -13,6 +11,7 @@
 
 - can we make more use of im__draw_pel()? eg. im_draw_rect() etc.
 
+- what's nip2's performance on wide lines like now?
 
 
 

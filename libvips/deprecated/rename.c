@@ -695,3 +695,22 @@ im_smudge( VipsImage *image, int ix, int iy, Rect *r )
 	return( im_draw_smudge( image, 
 		r->left + ix, r->top + iy, r->width, r->height ) );
 }
+
+int 
+im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+{
+	return( im_draw_flood( im, x, y, ink, dout ) );
+}
+
+int 
+im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+{
+	return( im_draw_flood_blob( im, x, y, ink, dout ) );
+}
+
+int 
+im_flood_other( IMAGE *test, IMAGE *mark, 
+	int x, int y, int serial, Rect *dout )
+{
+	return( im_draw_flood_other( mark, test, x, y, serial, dout ) );
+}

@@ -406,31 +406,31 @@ flood_new( IMAGE *image, IMAGE *test, int x, int y, PEL *ink, Rect *dout )
 }
 
 /**
- * im_flood:
- * @im: image to fill
+ * im_draw_flood:
+ * @image: image to fill
  * @x: position to start fill
  * @y: position to start fill
  * @ink: colour to fill with
  * @dout: output the bounding box of the filled area 
  *
- * Flood-fill @im with @ink, starting at position @x, @y. The filled area is
+ * Flood-fill @image with @ink, starting at position @x, @y. The filled area is
  * bounded by pixels that are equal to the ink colour, in other words, it
  * searches for pixels enclosed by a line of @ink.
  *
  * The bounding box of the modified pixels is returned in @dout. @dout may be
  * NULL.
  *
- * See also: im_flood_blob(), im_flood_other(), im_flood_blob_copy().
+ * See also: im_draw_flood_blob(), im_draw_flood_other().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+im_draw_flood( IMAGE *image, int x, int y, PEL *ink, Rect *dout )
 {
 	Flood *flood;
 
-	if( im_check_coding_known( "im_flood", im ) ||
-		!(flood = flood_new( im, im, x, y, ink, dout )) )
+	if( im_check_coding_known( "im_draw_flood", image ) ||
+		!(flood = flood_new( image, image, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Flood to != ink.
@@ -446,37 +446,37 @@ im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 }
 
 /**
- * im_flood_blob:
- * @im: image to fill
+ * im_draw_flood_blob:
+ * @image: image to fill
  * @x: position to start fill
  * @y: position to start fill
  * @ink: colour to fill with
  * @dout: output the bounding box of the filled area 
  *
- * Flood-fill @im with @ink, starting at position @x, @y. The filled area is
+ * Flood-fill @image with @ink, starting at position @x, @y. The filled area is
  * bounded by pixels that are equal to the start pixel, in other words, it
  * searches for a blob of same-coloured pixels.
  *
  * The bounding box of the modified pixels is returned in @dout. @dout may be
  * NULL.
  *
- * See also: im_flood(), im_flood_other(), im_flood_blob_copy().
+ * See also: im_draw_flood(), im_draw_flood_other(), im_draw_flood_blob().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
+im_draw_flood_blob( IMAGE *image, int x, int y, PEL *ink, Rect *dout )
 {
 	Flood *flood;
  	int j;
 
-	if( im_check_coding_known( "im_flood", im ) ||
-		!(flood = flood_new( im, im, x, y, ink, dout )) )
+	if( im_check_coding_known( "im_draw_flood_blob", image ) ||
+		!(flood = flood_new( image, image, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.
 	 */
-	memcpy( flood->edge, IM_IMAGE_ADDR( im, x, y ), flood->tsize );
+	memcpy( flood->edge, IM_IMAGE_ADDR( image, x, y ), flood->tsize );
 	flood->equal = 1;
 
 	/* If edge == ink, we'll never stop :-( or rather, there's nothing to
@@ -496,7 +496,7 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 }
 
 /**
- * im_flood_other:
+ * im_draw_flood_other:
  * @image: image to mark
  * @test: image to test
  * @x: position to start fill
@@ -512,23 +512,24 @@ im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
  * The bounding box of the modified pixels is returned in @dout. @dout may be
  * NULL.
  *
- * See also: im_flood(), im_label_regions(), im_flood_blob_copy().
+ * See also: im_draw_flood(), im_label_regions(), im_draw_flood_blob().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_flood_other( IMAGE *image, 
+im_draw_flood_other( IMAGE *image, 
 	IMAGE *test, int x, int y, int serial, Rect *dout )
 {
 	int *m;
 	Flood *flood;
 
 	if( im_incheck( test ) ||
-		im_check_coding_known( "im_flood_other", test ) ||
-		im_check_uncoded( "im_flood_other", image ) ||
-		im_check_mono( "im_flood_other", image ) ||
-		im_check_format( "im_flood_other", image, IM_BANDFMT_INT ) ||
-		im_check_size_same( "im_flood_other", test, image ) )
+		im_check_coding_known( "im_draw_flood_other", test ) ||
+		im_check_uncoded( "im_draw_flood_other", image ) ||
+		im_check_mono( "im_draw_flood_other", image ) ||
+		im_check_format( "im_draw_flood_other", image, 
+			IM_BANDFMT_INT ) ||
+		im_check_size_same( "im_draw_flood_other", test, image ) )
 		return( -1 );
 
 	/* Have we done this point already?

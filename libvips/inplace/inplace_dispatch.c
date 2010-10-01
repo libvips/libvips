@@ -232,116 +232,117 @@ static im_function draw_mask_desc = {
 	draw_mask_args 			/* Arg list */
 };
 
-/* Args for im_flood_blob().
+/* Args for im_draw_flood_blob().
  */
-static im_arg_desc flood_blob_args[] = {
+static im_arg_desc draw_flood_blob_args[] = {
 	IM_RW_IMAGE( "image" ),
-	IM_INPUT_INT( "start_x" ),
-	IM_INPUT_INT( "start_y" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" ),
 	IM_INPUT_DOUBLEVEC( "ink" )
 };
 
-/* Call im_flood_blob() via arg vector.
+/* Call im_draw_flood_blob() via arg vector.
  */
 static int
-flood_blob_vec( im_object *argv )
+draw_flood_blob_vec( im_object *argv )
 {
 	IMAGE *image = argv[0];
-	int start_x = *((int *) argv[1]);
-	int start_y = *((int *) argv[2]);
+	int x = *((int *) argv[1]);
+	int y = *((int *) argv[2]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[3];
 
 	PEL *ink;
 
-	if( !(ink = im__vector_to_ink( "im_flood_blob", 
+	if( !(ink = im__vector_to_ink( "im_draw_flood_blob", 
 		image, dv->n, dv->vec )) )
 		return( -1 );
 
-	return( im_flood_blob( image, start_x, start_y, ink, NULL ) );
+	return( im_draw_flood_blob( image, x, y, ink, NULL ) );
 }
 
-/* Description of im_flood_blob().
+/* Description of im_draw_flood_blob().
  */ 
-static im_function flood_blob_desc = {
-	"im_flood_blob",	/* Name */
-	"flood with ink from start_x, start_y while pixel == start pixel",
+static im_function draw_flood_blob_desc = {
+	"im_draw_flood_blob",	/* Name */
+	"flood with ink from x, y while pixel == start",
 	0,			/* Flags */
-	flood_blob_vec, 	/* Dispatch function */
-	IM_NUMBER( flood_blob_args ),/* Size of arg list */
-	flood_blob_args 	/* Arg list */
+	draw_flood_blob_vec, 	/* Dispatch function */
+	IM_NUMBER( draw_flood_blob_args ),/* Size of arg list */
+	draw_flood_blob_args 	/* Arg list */
 };
 
-/* Args for im_flood().
+/* Args for im_draw_flood().
  */
-static im_arg_desc flood_args[] = {
+static im_arg_desc draw_flood_args[] = {
 	IM_RW_IMAGE( "image" ),
-	IM_INPUT_INT( "start_x" ),
-	IM_INPUT_INT( "start_y" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" ),
 	IM_INPUT_DOUBLEVEC( "ink" )
 };
 
-/* Call im_flood() via arg vector.
+/* Call im_draw_flood() via arg vector.
  */
 static int
-flood_vec( im_object *argv )
+draw_flood_vec( im_object *argv )
 {
 	IMAGE *image = argv[0];
-	int start_x = *((int *) argv[1]);
-	int start_y = *((int *) argv[2]);
+	int x = *((int *) argv[1]);
+	int y = *((int *) argv[2]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[3];
 
 	PEL *ink;
 
-	if( !(ink = im__vector_to_ink( "im_flood", image, dv->n, dv->vec )) )
+	if( !(ink = im__vector_to_ink( "im_draw_flood", 
+		image, dv->n, dv->vec )) )
 		return( -1 );
 
-	return( im_flood( image, start_x, start_y, ink, NULL ) );
+	return( im_draw_flood( image, x, y, ink, NULL ) );
 }
 
-/* Description of im_flood().
+/* Description of im_draw_flood().
  */ 
-static im_function flood_desc = {
-	"im_flood",		/* Name */
-	"flood with ink from start_x, start_y while pixel != ink",
+static im_function draw_flood_desc = {
+	"im_draw_flood",	/* Name */
+	"flood with ink from x, y while pixel != ink",
 	0,			/* Flags */
-	flood_vec, 		/* Dispatch function */
-	IM_NUMBER( flood_args ),/* Size of arg list */
-	flood_args 		/* Arg list */
+	draw_flood_vec, 	/* Dispatch function */
+	IM_NUMBER( draw_flood_args ),/* Size of arg list */
+	draw_flood_args 	/* Arg list */
 };
 
-/* Args for im_flood_other().
+/* Args for im_draw_flood_other().
  */
-static im_arg_desc flood_other_args[] = {
+static im_arg_desc draw_flood_other_args[] = {
 	IM_RW_IMAGE( "image" ),
 	IM_INPUT_IMAGE( "test" ),
-	IM_INPUT_INT( "start_x" ),
-	IM_INPUT_INT( "start_y" ),
+	IM_INPUT_INT( "x" ),
+	IM_INPUT_INT( "y" ),
 	IM_INPUT_INT( "serial" )
 };
 
-/* Call im_flood_other() via arg vector.
+/* Call im_draw_flood_other() via arg vector.
  */
 static int
-flood_other_vec( im_object *argv )
+draw_flood_other_vec( im_object *argv )
 {
 	IMAGE *image = argv[0];
 	IMAGE *test = argv[1];
-	int start_x = *((int *) argv[2]);
-	int start_y = *((int *) argv[3]);
+	int x = *((int *) argv[2]);
+	int y = *((int *) argv[3]);
 	int serial = *((int *) argv[4]);
 
-	return( im_flood_other( image, test, start_x, start_y, serial, NULL ) );
+	return( im_draw_flood_other( image, test, x, y, serial, NULL ) );
 }
 
-/* Description of im_flood_other().
+/* Description of im_draw_flood_other().
  */ 
-static im_function flood_other_desc = {
-	"im_flood_other",	/* Name */
-	"flood mark with serial from start_x, start_y while pixel == start pixel",
+static im_function draw_flood_other_desc = {
+	"im_draw_flood_other",	/* Name */
+	"flood image with serial from x, y while pixel == start",
 	0,			/* Flags */
-	flood_other_vec, 	/* Dispatch function */
-	IM_NUMBER( flood_other_args ),/* Size of arg list */
-	flood_other_args 	/* Arg list */
+	draw_flood_other_vec, 	/* Dispatch function */
+	IM_NUMBER( draw_flood_other_args ),/* Size of arg list */
+	draw_flood_other_args 	/* Arg list */
 };
 
 /* Args for im_draw_point.
@@ -599,9 +600,9 @@ static im_function *inplace_list[] = {
 	&draw_point_desc,
 	&read_point_desc,
 	&draw_smudge_desc,
-	&flood_desc,
-	&flood_blob_desc,
-	&flood_other_desc,
+	&draw_flood_desc,
+	&draw_flood_blob_desc,
+	&draw_flood_other_desc,
 	&draw_image_desc,
 	&draw_mask_desc,
 	&lineset_desc

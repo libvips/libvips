@@ -53,9 +53,9 @@ int im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, PEL *ink );
 int im_lineset( VipsImage *in, VipsImage *out, VipsImage *mask, VipsImage *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
 
-int im_flood( VipsImage *image, int x, int y, PEL *ink, Rect *dout );
-int im_flood_blob( VipsImage *image, int x, int y, PEL *ink, Rect *dout );
-int im_flood_other( VipsImage *image, VipsImage *test, 
+int im_draw_flood( VipsImage *image, int x, int y, PEL *ink, Rect *dout );
+int im_draw_flood_blob( VipsImage *image, int x, int y, PEL *ink, Rect *dout );
+int im_draw_flood_other( VipsImage *image, VipsImage *test, 
 	int x, int y, int serial, Rect *dout );
 
 int im_draw_mask( VipsImage *image, 
