@@ -9,6 +9,10 @@
 
 - can we make more use of im__draw_pel()? eg. im_draw_rect() etc.
 
+- im_blend() is rather fussy about formats, argh
+
+  cf. im_ifthenelse() and the extra !=0 it adds?
+
 
 
 
