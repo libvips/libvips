@@ -1,4 +1,3 @@
-- check gtk-doc output
 
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
   it, argh
@@ -9,8 +8,6 @@
 
 
 - how do we wrap inplace ops in C++ now? will checking the RW bit help at all?
-
-- use im__inplace_base() in more places
 
 - consider:
 
