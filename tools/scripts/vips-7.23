@@ -24,11 +24,10 @@ fi
 # can cause security problems
 function prepend_var () {
 	# we have to use eval to do double indirection, I think
-	eval value=x"\$$1"
-	if [ $value = x ]; then
+	eval value="\$$1"
+	if [ "x$value" = x ]; then
 		export $1=$2
 	else 
-		eval value="\$$1"
 		export $1=$2:$value
 	fi
 }
