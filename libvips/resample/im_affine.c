@@ -260,12 +260,11 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 	/* That does round-to-nearest, because it has to stop rounding errors
 	 * growing images unexpectedly. We need round-down, so we must
 	 * add half a pixel along the left and top. But we are int :( so add 1
-	 * pixel.
+	 * pixel. 
+	 *
+	 * Add an extra line along the right and bottom as well, for rounding.
 	 */
-	need.top -= 1;
-	need.left -= 1;
-	need.width += 1;
-	need.height += 1;
+	im_rect_marginadjust( &need, 1 );
 
 	/* Now go to space (2) above.
 	 */
