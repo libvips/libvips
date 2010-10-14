@@ -116,7 +116,7 @@ HPUX)
 Darwin)
 	libvar=DYLD_LIBRARY_PATH
 	;;
- 
+
 *)
 	libvar=LD_LIBRARY_PATH
 	;;

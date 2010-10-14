@@ -280,7 +280,7 @@ mask_draw( Mask *mask )
  * containing a valid pixel for the image's format.
  * It must have at least IM_IMAGE_SIZEOF_PEL( @im ) bytes.
  *
- * See also: im_draw_circle(), im_text().
+ * See also: im_draw_circle(), im_text(), im_draw_line_user().
  *
  * Returns: 0 on success, or -1 on error.
  */
