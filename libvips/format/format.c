@@ -446,7 +446,7 @@ format_for_file_sub( VipsFormatClass *format,
 
 /**
  * vips_format_for_file:
- * @name: file to find a format for
+ * @filename: file to find a format for
  *
  * Searches for a format you could use to load a file.
  *
@@ -455,28 +455,28 @@ format_for_file_sub( VipsFormatClass *format,
  * Returns: a format on success, %NULL on error
  */
 VipsFormatClass *
-vips_format_for_file( const char *name )
+vips_format_for_file( const char *filename )
 {
-	char filename[FILENAME_MAX];
+	char name[FILENAME_MAX];
 	char options[FILENAME_MAX];
 	VipsFormatClass *format;
 
 	/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
 	 * etc.
 	 */
-	im_filename_split( name, filename, options );
+	im_filename_split( filename, name, options );
 
-	if( !im_existsf( "%s", filename ) ) {
+	if( !im_existsf( "%s", name ) ) {
 		im_error( "format_for_file", 
-			_( "file \"%s\" not found" ), filename );
+			_( "file \"%s\" not found" ), name );
 		return( NULL );
 	}
 
 	if( !(format = (VipsFormatClass *) vips_format_map( 
 		(VSListMap2Fn) format_for_file_sub, 
-		(void *) name, (void *) filename )) ) {
+		(void *) filename, (void *) name )) ) {
 		im_error( "format_for_file", 
-			_( "file \"%s\" not a known format" ), filename );
+			_( "file \"%s\" not a known format" ), name );
 		return( NULL );
 	}
 
@@ -498,7 +498,7 @@ format_for_name_sub( VipsFormatClass *format, const char *name )
 
 /**
  * vips_format_for_name:
- * @name: name to find a format for
+ * @filename: name to find a format for
  *
  * Searches for a format you could use to save a file.
  *
@@ -507,15 +507,16 @@ format_for_name_sub( VipsFormatClass *format, const char *name )
  * Returns: a format on success, %NULL on error
  */
 VipsFormatClass *
-vips_format_for_name( const char *name )
+vips_format_for_name( const char *filename )
 {
 	VipsFormatClass *format;
 
 	if( !(format = (VipsFormatClass *) vips_format_map( 
-		(VSListMap2Fn) format_for_name_sub, (void *) name, NULL )) ) {
+		(VSListMap2Fn) format_for_name_sub, 
+		(void *) filename, NULL )) ) {
 		char suffix[FILENAME_MAX];
 
-		im_filename_suffix( name, suffix );
+		im_filename_suffix( filename, suffix );
 		im_error( "vips_format_for_name",
 			_( "\"%s\" is not a supported image format." ), 
 			suffix );
@@ -528,7 +529,7 @@ vips_format_for_name( const char *name )
 
 /**
  * vips_format_read:
- * @name: file to load
+ * @filename: file to load
  * @out: write the file to this image
  *
  * Searches for a format for this file, then loads the file into @out.
@@ -538,12 +539,12 @@ vips_format_for_name( const char *name )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_format_read( const char *name, IMAGE *out )
+vips_format_read( const char *filename, IMAGE *out )
 {
 	VipsFormatClass *format;
 
-	if( !(format = vips_format_for_file( name )) || 
-		format->load( name, out ) )
+	if( !(format = vips_format_for_file( filename )) || 
+		format->load( filename, out ) )
 		return( -1 );
 
 	return( 0 );
@@ -551,8 +552,8 @@ vips_format_read( const char *name, IMAGE *out )
 
 /**
  * vips_format_write:
- * @im: image to write
- * @name: file to write to
+ * @in: image to write
+ * @filename: file to write to
  *
  * Searches for a format for this name, then saves @im to it.
  *
@@ -561,12 +562,12 @@ vips_format_read( const char *name, IMAGE *out )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_format_write( IMAGE *im, const char *name )
+vips_format_write( IMAGE *in, const char *filename )
 {
 	VipsFormatClass *format;
 
-	if( !(format = vips_format_for_name( name )) || 
-		format->save( im, name ) ) 
+	if( !(format = vips_format_for_name( filename )) || 
+		format->save( in, filename ) ) 
 		return( -1 );
 
 	return( 0 );

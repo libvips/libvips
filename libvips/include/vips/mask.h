@@ -55,10 +55,10 @@ typedef struct im__DOUBLEMASK {
 	char *filename;
 } DOUBLEMASK;
 
-INTMASK *im_create_imask( const char *name, int width, int height );
-INTMASK *im_create_imaskv( const char *name, int width, int height, ... );
-DOUBLEMASK *im_create_dmask( const char *name, int width, int height );
-DOUBLEMASK *im_create_dmaskv( const char *name, int width, int height, ... );
+INTMASK *im_create_imask( const char *filename, int width, int height );
+INTMASK *im_create_imaskv( const char *filename, int width, int height, ... );
+DOUBLEMASK *im_create_dmask( const char *filename, int width, int height );
+DOUBLEMASK *im_create_dmaskv( const char *filename, int width, int height, ... );
 
 INTMASK *im_read_imask( const char *filename );
 DOUBLEMASK *im_read_dmask( const char *filename );
@@ -83,8 +83,8 @@ INTMASK *im_gauss_imask_sep( const char *filename,
 DOUBLEMASK *im_gauss_dmask( const char *filename, 
 	double sigma, double min_ampl );
 
-INTMASK *im_dup_imask( INTMASK *m, const char *name );
-DOUBLEMASK *im_dup_dmask( DOUBLEMASK *m, const char *name );
+INTMASK *im_dup_imask( INTMASK *m, const char *filename );
+DOUBLEMASK *im_dup_dmask( DOUBLEMASK *m, const char *filename );
 
 INTMASK *im_scale_dmask( DOUBLEMASK *m, const char *filename );
 void im_norm_dmask( DOUBLEMASK *mask );
@@ -95,13 +95,13 @@ INTMASK *im_rotate_imask45( INTMASK *m, const char *filename );
 DOUBLEMASK *im_rotate_dmask90( DOUBLEMASK *m, const char *filename );
 DOUBLEMASK *im_rotate_dmask45( DOUBLEMASK *m, const char *filename );
 
-DOUBLEMASK *im_mattrn( DOUBLEMASK *in, const char *name );
-DOUBLEMASK *im_matcat( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name );
-DOUBLEMASK *im_matmul( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name );
+DOUBLEMASK *im_mattrn( DOUBLEMASK *in, const char *filename );
+DOUBLEMASK *im_matcat( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *filename );
+DOUBLEMASK *im_matmul( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *filename );
 
-DOUBLEMASK *im_lu_decomp( const DOUBLEMASK *mat, const char *name );
+DOUBLEMASK *im_lu_decomp( const DOUBLEMASK *mat, const char *filename );
 int im_lu_solve( const DOUBLEMASK *lu, double *vec );
-DOUBLEMASK *im_matinv( const DOUBLEMASK *mat, const char *name );
+DOUBLEMASK *im_matinv( const DOUBLEMASK *mat, const char *filename );
 int im_matinv_inplace( DOUBLEMASK *mat );
 
 DOUBLEMASK *im_local_dmask( struct _VipsImage *out, DOUBLEMASK *mask );

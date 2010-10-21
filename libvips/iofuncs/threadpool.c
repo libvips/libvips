@@ -229,7 +229,7 @@ im_concurrency_get( void )
 }
 
 /**
- * VipsThreadState:
+ * _VipsThreadState:
  * @reg: a #REGION
  * @pos: a #Rect
  * @x: an int
@@ -729,7 +729,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  */
 
 /**
- * VipsThreadpoolAllocate:
+ * _VipsThreadpoolAllocate:
  * @state: per-thread state
  * @a: client data
  * @b: client data
@@ -752,7 +752,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  */
 
 /**
- * VipsThreadpoolWork:
+ * _VipsThreadpoolWork:
  * @state: per-thread state
  * @a: client data
  * @b: client data
@@ -771,7 +771,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  */
 
 /**
- * VipsThreadpoolProgress:
+ * _VipsThreadpoolProgress:
  * @a: client data
  * @b: client data
  * @c: client data
@@ -792,8 +792,6 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  * @work: process a work unit
  * @progress: give progress feedback about a work unit, or %NULL
  * @a: client data
- * @b: client data
- * @c: client data
  *
  * This function runs a set of threads over an image. Each thread first calls
  * @start to create new per-thread state, then runs

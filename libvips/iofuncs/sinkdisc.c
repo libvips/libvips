@@ -471,11 +471,12 @@ write_free( Write *write )
 
 /**
  * VipsRegionWrite:
- * @region: pixels to write
+ * @region: get pixels from here
+ * @area: area to write
  * @a: client data
  *
- * The function should write the pixels in @region. @a and @b are the values
- * passed into vips_discsink().
+ * The function should write the pixels in @area from @region. @a is the 
+ * value passed into vips_discsink().
  *
  * See also: vips_discsink().
  *

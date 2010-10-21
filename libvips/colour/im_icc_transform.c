@@ -856,10 +856,10 @@ im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename )
 
 /**
  * VipsIntent:
- * @IM_INTENT_PERCEPTUAL:
- * @IM_INTENT_RELATIVE_COLORIMETRIC:
- * @IM_INTENT_SATURATION:
- * @IM_INTENT_ABSOLUTE_COLORIMETRIC:
+ * @IM_INTENT_PERCEPTUAL: perceptual rendering intent
+ * @IM_INTENT_RELATIVE_COLORIMETRIC: relative colorimetric rendering intent
+ * @IM_INTENT_SATURATION: saturation rendering intent
+ * @IM_INTENT_ABSOLUTE_COLORIMETRIC: absolute colorimetric rendering intent
  *
  * The rendering intent. #IM_INTENT_ABSOLUTE_COLORIMETRIC is best for
  * scientific work, #IM_INTENT_RELATIVE_COLORIMETRIC is usually best for 

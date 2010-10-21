@@ -149,17 +149,17 @@ tone_curve( ToneShape *ts, double x )
 
 /**
  * im_tone_build_range:
- * out: output image 
- * in_max: input range 
- * out_max: output range
- * Lb: black-point [0-100]
- * Lw: white-point [0-100]
- * Ps: shadow point (eg. 0.2)
- * Pm: mid-tone point (eg. 0.5)
- * Ph: highlight point (eg. 0.8)
- * S: shadow adjustment (+/- 30)
- * M: mid-tone adjustment (+/- 30)
- * H: highlight adjustment (+/- 30)
+ * @out: output image 
+ * @in_max: input range 
+ * @out_max: output range
+ * @Lb: black-point [0-100]
+ * @Lw: white-point [0-100]
+ * @Ps: shadow point (eg. 0.2)
+ * @Pm: mid-tone point (eg. 0.5)
+ * @Ph: highlight point (eg. 0.8)
+ * @S: shadow adjustment (+/- 30)
+ * @M: mid-tone adjustment (+/- 30)
+ * @H: highlight adjustment (+/- 30)
  *
  * im_tone_build_range() generates a tone curve for the adjustment of image 
  * levels. It is mostly designed for adjusting the L* part of a LAB image in
@@ -281,15 +281,15 @@ im_tone_build_range( IMAGE *out,
 
 /**
  * im_tone_build:
- * out: output image 
- * Lb: black-point [0-100]
- * Lw: white-point [0-100]
- * Ps: shadow point (eg. 0.2)
- * Pm: mid-tone point (eg. 0.5)
- * Ph: highlight point (eg. 0.8)
- * S: shadow adjustment (+/- 30)
- * M: mid-tone adjustment (+/- 30)
- * H: highlight adjustment (+/- 30)
+ * @out: output image 
+ * @Lb: black-point [0-100]
+ * @Lw: white-point [0-100]
+ * @Ps: shadow point (eg. 0.2)
+ * @Pm: mid-tone point (eg. 0.5)
+ * @Ph: highlight point (eg. 0.8)
+ * @S: shadow adjustment (+/- 30)
+ * @M: mid-tone adjustment (+/- 30)
+ * @H: highlight adjustment (+/- 30)
  *
  * As im_tone_build_range(), but set 32767 and 32767 as values for @in_max 
  * and @out_max. This makes a curve suitable for correcting LABS
@@ -429,14 +429,14 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 
 /**
  * im_tone_analyse:
- * in: input image 
- * out: output image 
- * Ps: shadow point (eg. 0.2)
- * Pm: mid-tone point (eg. 0.5)
- * Ph: highlight point (eg. 0.8)
- * S: shadow adjustment (+/- 30)
- * M: mid-tone adjustment (+/- 30)
- * H: highlight adjustment (+/- 30)
+ * @in: input image 
+ * @out: output image 
+ * @Ps: shadow point (eg. 0.2)
+ * @Pm: mid-tone point (eg. 0.5)
+ * @Ph: highlight point (eg. 0.8)
+ * @S: shadow adjustment (+/- 30)
+ * @M: mid-tone adjustment (+/- 30)
+ * @H: highlight adjustment (+/- 30)
  *
  * As im_tone_build(), but analyse the histogram of @in and use it to
  * pick the 0.1% and 99.9% points for @Lb and @Lw.

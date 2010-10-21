@@ -126,11 +126,11 @@ im_col_Ch2ab( float C, float h, float *a, float *b )
 /**
  * im_col_XYZ2Lab:
  * @X: Input CIE XYZ colour
- * @Y: 
- * @Z: 
+ * @Y: Input CIE XYZ colour
+ * @Z: Input CIE XYZ colour
  * @L: return CIE Lab value
- * @a: 
- * @b: 
+ * @a: return CIE Lab value
+ * @b: return CIE Lab value
  *
  * Calculate Lab from XYZ, D65.
  * 
@@ -157,11 +157,11 @@ im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
 /**
  * im_col_Lab2XYZ:
  * @L: Input CIE Lab value
- * @a: 
- * @b: 
+ * @a: Input CIE Lab value
+ * @b: Input CIE Lab value
  * @X: Return CIE XYZ colour
- * @Y: 
- * @Z: 
+ * @Y: Return CIE XYZ colour
+ * @Z: Return CIE XYZ colour
  *
  * Calculate XYZ from Lab, D65.
  * 
@@ -188,11 +188,11 @@ im_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z )
 /**
  * im_col_pythagoras:
  * @L1: Input coordinate 1
- * @a1: 
- * @b1: 
+ * @a1: Input coordinate 1
+ * @b1: Input coordinate 1
  * @L2: Input coordinate 2
- * @a2: 
- * @b2: 
+ * @a2: Input coordinate 2
+ * @b2: Input coordinate 2
  *
  * Pythagorean distance between two points in colour space. Lab/XYZ/UCS etc.
  */
@@ -531,11 +531,11 @@ im_col_make_tables_UCS( void )
 /**
  * im_col_dECMC:
  * @L1: Input coordinate 1
- * @a1: 
- * @b1: 
+ * @a1: Input coordinate 1
+ * @b1: Input coordinate 1
  * @L2: Input coordinate 2
- * @a2: 
- * @b2: 
+ * @a2: Input coordinate 2
+ * @b2: Input coordinate 2
  * 
  * CMC colour difference from a pair of Lab values.
  *
@@ -617,11 +617,11 @@ im_col_ab2h( double a, double b )
 /**
  * im_col_dE00:
  * @L1: Input coordinate 1
- * @a1: 
- * @b1: 
+ * @a1: Input coordinate 1
+ * @b1: Input coordinate 1
  * @L2: Input coordinate 2
- * @a2: 
- * @b2: 
+ * @a2: Input coordinate 2
+ * @b2: Input coordinate 2
  *
  * CIEDE2000, from: 
  * 

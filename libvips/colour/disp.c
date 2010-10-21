@@ -49,17 +49,6 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/**
- * SECTION: disp
- * @short_description: convert to and from display RGB
- * @stability: Stable
- * @see_also: <link linkend="libvips-colour">colour</link>
- * @include: vips/vips.h
- *
- * Convert to and from display RGB. These functions are still used by nip2,
- * but most programs will be better off with im_icc_transform() and friends.
- */
-
 /* Tables we've generated, indexed by display name.
  */
 static GHashTable *im__col_display_tables = NULL;
@@ -569,6 +558,9 @@ im_col_XYZ2rgb( struct im_col_display *d,
  * @out: output image
  *
  * Convert an image from LabQ (Coding == IM_CODING_LABQ) to XYZ.
+ *
+ * Convert to and from display RGB. These functions are still used by nip2,
+ * but most programs will be better off with im_icc_transform() and friends.
  *
  * Returns: 0 on success, -1 on error.
  */
