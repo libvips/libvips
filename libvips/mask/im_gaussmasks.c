@@ -1,24 +1,4 @@
-/* @(#) Returns a circularly symmetric Gaussian mask
- * @(#) min_amplitude should be greater than 0.0 and less than 1.0
- * @(#) min_amplitude determines the size of the mask; if for instance
- * @(#) the value .1 is entered this means that the produced mask is clipped
- * @(#) at values less than 10 percent of the minimum negative amplitude.
- * @(#) If the value of min_amplitude is too small, then the filter coefficients
- * @(#) are calculated for masksize equal to the min of 8 * sigma or 256.
- * @(#) The mask can be directly used with the vasari convolution programs,
- * @(#) the default offset set is 0
- * @(#) 
- * @(#) DOUBLEMASK *im_gauss_dmask( filename, sigma, min_amplitude )
- * @(#) char *filename;
- * @(#) double sigma, min_amplitude;
- * @(#) 
- * @(#) Returns a laplacian of Gaussian square double mask or NULL on error
- * @(#) 
- * @(#) DOUBLEMASK *im_gauss_imask( filename, sigma, min_amplitude )
- * @(#) char *filename;
- * @(#) double sigma, min_amplitude;
- * @(#) 
- * @(#) Returns a laplacian of Gaussian square int mask or NULL on error
+/* generate gaussian masks
  */
 
 /* Written on: 30/11/1989 by Nicos
@@ -32,6 +12,8 @@
  * 	- added _sep variant
  * 30/3/09
  * 	- set scale in _sep variant, why not
+ * 21/10/10
+ * 	- gtkdoc
  */
 
 /*
@@ -76,6 +58,28 @@
 
 #define IM_MAXMASK 5000
 
+/**
+ * im_gauss_dmask:
+ * @filename: the returned mask has this set as the filename
+ * @sigma: standard deviation of mask
+ * @min_ampl: minimum amplitude
+ *
+ * im_gauss_dmask() creates a circularly symmetric Gaussian mask of radius 
+ * @sigma.  The size of the mask is determined by the variable @min_ampl; 
+ * if for instance the value .1 is entered this means that the produced mask 
+ * is clipped at values less than 10 percent of the maximum amplitude.
+ *
+ * The program uses the following equation:
+ *
+ *   H(r) = exp( -(r * r) / (2 * sigma * sigma) )
+ *
+ * The generated mask has odd size and its maximum value is normalised to
+ * 1.0.
+ *
+ * See also: im_gauss_imask(), im_gauss_imask_sep(), im_log_dmask(), im_conv().
+ *
+ * Returns: the calculated mask on success, or NULL on error.
+ */
 DOUBLEMASK *
 im_gauss_dmask( const char *filename, double sigma, double min_ampl )
 {
@@ -168,13 +172,26 @@ im_gauss_dmask( const char *filename, double sigma, double min_ampl )
 	return( m );
 }
 
+/**
+ * im_gauss_imask:
+ * @filename: the returned mask has this set as the filename
+ * @sigma: standard deviation of mask
+ * @min_ampl: minimum amplitude
+ *
+ * im_gauss_imask() works exactly as im_gauss_dmask(), but the returned mask
+ * is scaled so that it's maximum value it set to 100.
+ *
+ * See also: im_gauss_dmask(), im_gauss_imask_sep(), im_conv(), im_convsep().
+ *
+ * Returns: the calculated mask on success, or NULL on error.
+ */
 INTMASK *
-im_gauss_imask( const char *filename, double sigma, double min_amplitude )
+im_gauss_imask( const char *filename, double sigma, double min_ampl )
 {
 	DOUBLEMASK *dm;
 	INTMASK *im;
 
-	if( !(dm = im_gauss_dmask( filename, sigma, min_amplitude )) )
+	if( !(dm = im_gauss_dmask( filename, sigma, min_ampl )) )
 		return( NULL );
 
 	if( !(im = im_scale_dmask( dm, dm->filename )) ) {
@@ -186,18 +203,28 @@ im_gauss_imask( const char *filename, double sigma, double min_amplitude )
 	return( im ) ;
 }
 
-/* Just return the central line of the mask. This helps nip, which really
- * struggles with large matrix manipulations.
+/**
+ * im_gauss_imask_sep:
+ * @filename: the returned mask has this set as the filename
+ * @sigma: standard deviation of mask
+ * @min_ampl: minimum amplitude
+ *
+ * im_gauss_imask_sep() works exactly as im_gauss_imask(), but returns only
+ * the central line of the mask. This is useful with im_convsep().
+ *
+ * See also: im_gauss_dmask(), im_gauss_imask_sep(), im_conv(), im_convsep().
+ *
+ * Returns: the calculated mask on success, or NULL on error.
  */
 INTMASK *
-im_gauss_imask_sep( const char *filename, double sigma, double min_amplitude )
+im_gauss_imask_sep( const char *filename, double sigma, double min_ampl )
 {
 	INTMASK *im;
 	INTMASK *im2;
 	int i;
 	int sum;
 
-	if( !(im = im_gauss_imask( filename, sigma, min_amplitude )) )
+	if( !(im = im_gauss_imask( filename, sigma, min_ampl )) )
 		return( NULL );
 	if( !(im2 = im_create_imask( filename, im->xsize, 1 )) ) {
 		im_free_imask( im );

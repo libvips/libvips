@@ -1,3 +1,4 @@
+- started gtk-doc-ing libvips/mask
 
 
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with

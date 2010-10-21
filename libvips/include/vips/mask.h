@@ -76,6 +76,7 @@ int im_free_dmask( DOUBLEMASK *m );
 
 INTMASK *im_log_imask( const char *filename, double sigma, double min_ampl );
 DOUBLEMASK *im_log_dmask( const char *filename, double sigma, double min_ampl );
+
 INTMASK *im_gauss_imask( const char *filename, double sigma, double min_ampl );
 INTMASK *im_gauss_imask_sep( const char *filename, 
 	double sigma, double min_ampl );

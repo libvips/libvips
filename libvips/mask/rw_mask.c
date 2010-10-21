@@ -105,12 +105,76 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * SECTION: mask
+ * @short_description: load, save and process mask (matrix) objects
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * These operations load, save and process mask objects. Masks are used as
+ * paramaters to convolution and morphology operators, and to represent
+ * matrices. 
+ *
+ * This API is horrible and clunky. Surely it will be replaced soon.
+ */
+
+/**
+ * INTMASK:
+ * @xsize: mask width
+ * @ysize: mask height
+ * @scale: mask scale factor
+ * @offset: mask offset
+ * @coeff: array of mask elements
+ * @filename: the file this mask was read from, or should be written to
+ *
+ * An integer mask. 
+ *
+ * @scale lets the mask represent fractional values: for
+ * example, in integer convolution (see im_conv()) the result of the
+ * convolution is divided by @scale and then added to @offset before being 
+ * written to the output image.
+ *
+ * @scale and @offset default to 1 and 0. Various functions, such as
+ * im_conv(), will fail of @scale is zero.
+ *
+ * You can read and write the matrix elements in @coeff.
+ */
+
+/**
+ * DOUBLEMASK:
+ * @xsize: mask width
+ * @ysize: mask height
+ * @scale: mask scale factor
+ * @offset: mask offset
+ * @coeff: array of mask elements
+ * @filename: the file this mask was read from, or should be written to
+ *
+ * A floating-point mask. 
+ *
+ * As with #INTMASK, in convolution (see im_convf()) the result of the
+ * convolution is divided by @scale and then added to @offset before being 
+ * written to the output image.
+ *
+ * @scale and @offset default to 1.0 and 0.0. Various functions, such as
+ * im_conv(), will fail of @scale is zero.
+ *
+ * You can read and write the matrix elements in @coeff.
+ */
+
 /* Size of line buffer for reading.
  */
 #define IM_MAX_LINE (4096)
 
-/* Free mask structure and any attached arrays. Return zero, so we can use
+/**
+ * im_free_imask:
+ * @m: mask to free
+ *
+ * Free mask structure and any attached arrays. Return zero, so we can use
  * these functions as close callbacks.
+ *
+ * See also: im_free_dmask().
+ *
+ * Returns: zero.
  */
 int
 im_free_imask( INTMASK *m )
@@ -127,6 +191,17 @@ im_free_imask( INTMASK *m )
 	return( 0 );
 }
 
+/**
+ * im_free_dmask:
+ * @m: mask to free
+ *
+ * Free mask structure and any attached arrays. Return zero, so we can use
+ * these functions as close callbacks.
+ *
+ * See also: im_free_dmask().
+ *
+ * Returns: zero.
+ */
 int
 im_free_dmask( DOUBLEMASK *m )
 {	
@@ -142,7 +217,17 @@ im_free_dmask( DOUBLEMASK *m )
 	return( 0 );
 }
 
-/* Create structures.
+/**
+ * im_create_imask:
+ * @filename: set mask filename to this
+ * @xs: mask width
+ * @ys: mask height
+ *
+ * Create an empty imask. You need to loop over @coeff to set the values. 
+ *
+ * See also: im_create_imaskv().
+ *
+ * Returns: The newly-allocated mask.
  */
 INTMASK *
 im_create_imask( const char *filename, int xs, int ys )
@@ -182,6 +267,19 @@ im_create_imask( const char *filename, int xs, int ys )
 	return( m );
 }
 
+/**
+ * im_create_imaskv:
+ * @filename: set mask filename to this
+ * @xs: mask width
+ * @ys: mask height
+ * @Varargs: values to set for the mask
+ *
+ * Create an imask and initialise it from the funtion parameter list.
+ *
+ * See also: im_create_imask().
+ *
+ * Returns: The newly-allocated mask.
+ */
 INTMASK *
 im_create_imaskv( const char *filename, int xs, int ys, ... )
 {
@@ -201,6 +299,18 @@ im_create_imaskv( const char *filename, int xs, int ys, ... )
 	return( m );
 }
 
+/**
+ * im_create_dmask:
+ * @filename: set mask filename to this
+ * @xs: mask width
+ * @ys: mask height
+ *
+ * Create an empty dmask. You need to loop over @coeff to set the values. 
+ *
+ * See also: im_create_dmaskv().
+ *
+ * Returns: The newly-allocated mask.
+ */
 DOUBLEMASK *
 im_create_dmask( const char *filename, int xs, int ys )
 {	
@@ -239,6 +349,19 @@ im_create_dmask( const char *filename, int xs, int ys )
 	return( m );
 }
 
+/**
+ * im_create_dmaskv:
+ * @filename: set mask filename to this
+ * @xs: mask width
+ * @ys: mask height
+ * @Varargs: values to set for the mask
+ *
+ * Create a dmask and initialise it from the funtion parameter list.
+ *
+ * See also: im_create_dmask().
+ *
+ * Returns: The newly-allocated mask.
+ */
 DOUBLEMASK *
 im_create_dmaskv( const char *filename, int xs, int ys, ... )
 {	
@@ -256,22 +379,6 @@ im_create_dmaskv( const char *filename, int xs, int ys, ... )
 	va_end( ap );
 
 	return( m );
-}
-
-/* Open for read.
- */
-static FILE *
-open_read( const char *name )
-{
-	FILE *fp;
-
-	if( !(fp = fopen( name, "r" )) ) {
-		im_error( "read_mask", _( "Unable to open \"%s\" for input" ),
-			name );
-		return( NULL );
-	}
-
-	return( fp );
 }
 
 /* Read a line from a file! 
@@ -309,7 +416,7 @@ read_header( FILE *fp, int *xs, int *ys, double *scale, double *offset )
 	 */
 	p = buf; 
 	for( i = 0, p = buf; 
-		i < 4 && (q = im_break_token( p, " \t\n" )); 
+		i < 4 && (q = im_break_token( p, " \";,\t\n" )); 
 		i++, p = q ) 
 		v[i] = g_ascii_strtod( p, NULL );
 
@@ -342,10 +449,39 @@ read_header( FILE *fp, int *xs, int *ys, double *scale, double *offset )
 	return( 0 );
 }
 
-/* Read matrix files.
+/**
+ * im_read_dmask:
+ * @filename: read matrix from this file
+ *
+ * Reads a matrix from a file.
+ *
+ * Matrix files have a simple format that's supposed to be easy to create with
+ * a text editor or a spreadsheet. 
+ *
+ * The first line has four numbers for width, height, scale and
+ * offset (scale and offset may be omitted, in which case they default to 1.0
+ * and 0.0). Scale must be non-zero. Width and height must be positive
+ * integers. The numbers are separated by any mixture of spaces, commas, 
+ * tabs and quotation marks ("). The scale and offset fields may be 
+ * floating-point, and must use '.'
+ * as a decimal separator.
+ *
+ * Subsequent lines each hold one line of matrix data, with numbers again
+ * separated by any mixture of spaces, commas, 
+ * tabs and quotation marks ("). The numbers may be floating-point, and must
+ * use '.'
+ * as a decimal separator.
+ *
+ * Extra characters at the ends of lines or at the end of the file are
+ * ignored.
+ *
+ * See also: im_read_imask(), im_gauss_dmask().
+ *
+ * Returns: the loaded mask on success, or NULL on error.
  */
+
 DOUBLEMASK *
-im_read_dmask( const char *maskfile )
+im_read_dmask( const char *filename )
 {
 	FILE *fp;
 	double sc, off;
@@ -354,7 +490,7 @@ im_read_dmask( const char *maskfile )
 	int x, y, i, size;
 	char buf[IM_MAX_LINE];
 
-	if( !(fp = open_read( maskfile )) ) 
+	if( !(fp = im__file_open_read( filename, NULL )) ) 
 		return( NULL );
 
 	if( read_header( fp, &xs, &ys, &sc, &off ) ) {
@@ -362,7 +498,7 @@ im_read_dmask( const char *maskfile )
 		return( NULL );
 	}
 
-	if( !(m = im_create_dmask( maskfile, xs, ys )) ) {
+	if( !(m = im_create_dmask( filename, xs, ys )) ) {
 		fclose( fp );
 		return( NULL );
 	}
@@ -388,16 +524,28 @@ im_read_dmask( const char *maskfile )
 	return( m );
 }
 
-/* INTMASK ... read as double, check for intness.
+/**
+ * im_read_imask:
+ * @filename: read matrix from this file
+ *
+ * Reads an integer matrix from a file.
+ *
+ * This function works exactly as im_read_dmask(), but the loaded matrix is
+ * checked for 'int-ness'. All coefficients must be integers, and scale and
+ * offset must be integers.
+ *
+ * See also: im_read_dmask().
+ *
+ * Returns: the loaded mask on success, or NULL on error.
  */
 INTMASK *
-im_read_imask( const char *maskfile )
+im_read_imask( const char *filename )
 {
 	DOUBLEMASK *dmask;
 	INTMASK *imask;
 	int i;
 
-	if( !(dmask = im_read_dmask( maskfile )) )
+	if( !(dmask = im_read_dmask( filename )) )
 		return( NULL );
 
 	if( ceil( dmask->scale ) != dmask->scale || 
@@ -420,7 +568,7 @@ im_read_imask( const char *maskfile )
 			return( NULL );
 		}
 
-	if( !(imask = im_create_imask( maskfile, 
+	if( !(imask = im_create_imask( filename, 
 		dmask->xsize, dmask->ysize )) ) {
 		im_free_dmask( dmask );
 		return( NULL );
