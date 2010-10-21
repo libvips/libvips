@@ -1,5 +1,7 @@
 - started gtk-doc-ing libvips/mask
 
+  check for maths in gtk-doc ... see im_gauss_dmask()
+
 
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
   it, argh
