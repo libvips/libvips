@@ -314,12 +314,12 @@ im_histplot( IMAGE *in, IMAGE *out )
 {
 	IMAGE *t1;
 
-	if( im_check_hist( "im_histplot", hist ) )
+	if( im_check_hist( "im_histplot", in ) )
 		return( -1 );
 
-	if( !(t1 = im_open_local( histplot, "im_histplot:1", "p" )) ||
-		normalise( hist, t1 ) ||
-		plot( t1, histplot ) )
+	if( !(t1 = im_open_local( out, "im_histplot:1", "p" )) ||
+		normalise( in, t1 ) ||
+		plot( t1, out ) )
 		return( -1 );
 	
 	return( 0 );

@@ -1204,7 +1204,7 @@ im_blob_set( GValue *value,
 
 	g_assert( G_VALUE_TYPE( value ) == IM_TYPE_BLOB );
 
-	if( !(area = area_new_blob( free_fn, blob, length )) )
+	if( !(area = area_new_blob( free_fn, data, length )) )
 		return( -1 );
 
 	g_value_set_boxed( value, area );
@@ -1235,7 +1235,7 @@ im_meta_set_blob( IMAGE *im, const char *field,
 	GValue value = { 0 };
 
 	g_value_init( &value, IM_TYPE_BLOB );
-	im_blob_set( &value, free_fn, blob, length );
+	im_blob_set( &value, free_fn, data, length );
 
 	return( meta_set_value( im, field, &value ) );
 }
@@ -1265,7 +1265,7 @@ im_meta_get_blob( IMAGE *im, const char *field,
 
 	if( meta_get_value( im, field, IM_TYPE_BLOB, &value_copy ) )
 		return( -1 );
-	*blob = im_blob_get( &value_copy, length );
+	*data = im_blob_get( &value_copy, length );
 	g_value_unset( &value_copy );
 
 	return( 0 );
