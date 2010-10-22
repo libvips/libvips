@@ -36,8 +36,11 @@ extern "C" {
 
 /* A rectangle.
  */
-typedef struct im_rect_struct {
-	int left, top, width, height;
+typedef struct _Rect {
+	int left;
+	int top;
+	int width;
+	int height;
 } Rect;
 
 #define IM_RECT_RIGHT(R) ((R)->left + (R)->width)

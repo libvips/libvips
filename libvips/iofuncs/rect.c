@@ -43,6 +43,16 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * Rect:
+ * @left: left edge of rectangle
+ * @top: top edge of rectangle
+ * @width: width of rectangle
+ * @height: height of rectangle
+ *
+ * A #Rect is a rectangular area of pixels. 
+ */
+
 /* Move the margins of a rect. +1 means out one pixel.
  */
 void

@@ -37,13 +37,13 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-DOUBLEMASK *im_vips2mask( IMAGE *in, const char *out );
+DOUBLEMASK *im_vips2mask( IMAGE *in, const char *filename );
 int im_mask2vips( DOUBLEMASK *in, IMAGE *out );
 
 int im_copy( IMAGE *in, IMAGE *out );
 int im_copy_set( IMAGE *in, IMAGE *out, 
 	VipsType type, float xres, float yres, int xoffset, int yoffset );
-int im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *meta );
+int im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value );
 int im_copy_morph( IMAGE *in, IMAGE *out, 
 	int bands, VipsBandFmt bandfmt, VipsCoding coding );
 int im_copy_swap( IMAGE *in, IMAGE *out );
@@ -57,7 +57,7 @@ int im_msb_band( IMAGE *in, IMAGE *out, int band );
 
 int im_c2amph( IMAGE *in, IMAGE *out );
 int im_c2rect( IMAGE *in, IMAGE *out );
-int im_ri2c( IMAGE *real_in, IMAGE *imag_in, IMAGE *out );
+int im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out );
 int im_c2imag( IMAGE *in, IMAGE *out );
 int im_c2real( IMAGE *in, IMAGE *out );
 int im_scaleps( IMAGE *in, IMAGE *out );
@@ -65,7 +65,7 @@ int im_scaleps( IMAGE *in, IMAGE *out );
 int im_falsecolour( IMAGE *in, IMAGE *out );
 int im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma );
 
-int im_black( IMAGE *out, int width, int height, int bands );
+int im_black( IMAGE *out, int x, int y, int bands );
 int im_text( IMAGE *out, const char *text, const char *font,
 	int width, int alignment, int dpi );
 
@@ -82,8 +82,8 @@ int im_gbandjoin( IMAGE **in, IMAGE *out, int n );
 int im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y );
 int im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y );
 int im_insertset( IMAGE *main, IMAGE *sub, IMAGE *out, int n, int *x, int *y );
-int im_lrjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_tbjoin( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_lrjoin( IMAGE *left, IMAGE *right, IMAGE *out );
+int im_tbjoin( IMAGE *top, IMAGE *bottom, IMAGE *out );
 int im_replicate( IMAGE *in, IMAGE *out, int across, int down );
 int im_grid( IMAGE *in, IMAGE *out, int tile_height, int across, int down );
 int im_wrap( IMAGE *in, IMAGE *out, int x, int y );
@@ -94,8 +94,8 @@ int im_rot90( IMAGE *in, IMAGE *out );
 int im_rot180( IMAGE *in, IMAGE *out );
 int im_rot270( IMAGE *in, IMAGE *out );
 
-int im_subsample( IMAGE *in, IMAGE *out, int x, int y );
-int im_zoom( IMAGE *in, IMAGE *out, int x, int y );
+int im_subsample( IMAGE *in, IMAGE *out, int xshrink, int yshrink );
+int im_zoom( IMAGE *in, IMAGE *out, int xfac, int yfac );
 
 int im_system( IMAGE *im, const char *cmd, char **out );
 IMAGE *im_system_image( IMAGE *im, 

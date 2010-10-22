@@ -269,13 +269,19 @@ line_draw( Line *line )
 
 /**
  * VipsPlotFn:
+ * @image: image to draw on
+ * @x: position to draw at
+ * @y: position to draw at
+ * @a: user data
+ * @b: user data
+ * @c: user data
  *
  * A plot function, as used by im_draw_line_user() to draw on an image. 
  */
 
 /**
  * im_draw_line_user:
- * @im: image to draw on
+ * @image: image to draw on
  * @x1: start point
  * @y1: start point
  * @x2: end point
@@ -294,14 +300,14 @@ line_draw( Line *line )
  * Returns: 0 on success, or -1 on error.
  */
 int 
-im_draw_line_user( VipsImage *im, 
+im_draw_line_user( VipsImage *image, 
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot, void *a, void *b, void *c )
 {
 	Line *line;
 
-	if( im_check_coding_known( "im_draw_line_user", im ) ||
-		!(line = line_new( im, x1, y1, x2, y2, NULL )) )
+	if( im_check_coding_known( "im_draw_line_user", image ) ||
+		!(line = line_new( image, x1, y1, x2, y2, NULL )) )
 		return( -1 );
 
 	line->plot = plot;
@@ -334,7 +340,7 @@ line_plot_point( VipsImage *im, int x, int y,
 
 /**
  * im_draw_line:
- * @im: image to draw on
+ * @image: image to draw on
  * @x1: start point
  * @y1: start point
  * @x2: end point
@@ -345,19 +351,19 @@ line_plot_point( VipsImage *im, int x, int y,
  *
  * @ink is an array of bytes 
  * containing a valid pixel for the image's format.
- * It must have at least IM_IMAGE_SIZEOF_PEL( @im ) bytes.
+ * It must have at least IM_IMAGE_SIZEOF_PEL( @image ) bytes.
  *
  * See also: im_draw_circle().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int 
-im_draw_line( VipsImage *im, int x1, int y1, int x2, int y2, PEL *ink )
+im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, PEL *ink )
 {
 	Line *line;
 
-	if( im_check_coding_known( "im_draw_line", im ) ||
-		!(line = line_new( im, x1, y1, x2, y2, ink )) ) 
+	if( im_check_coding_known( "im_draw_line", image ) ||
+		!(line = line_new( image, x1, y1, x2, y2, ink )) ) 
 		return( -1 );
 
 	line->plot = line_plot_point;

@@ -84,7 +84,6 @@
 /** 
  * VIPS_BUF_STATIC:
  * @TEXT: the storage area to use
- * @MAX: the size of the storage area
  *
  * Initialize a heap buffer. For example:
  *
@@ -340,10 +339,10 @@ vips_buf_appendc( VipsBuf *buf, char ch )
 /**
  * vips_buf_change:
  * @buf: the buffer
- * @old: the string to search for
- * @new: the string to substitute
+ * @o: the string to search for
+ * @n: the string to substitute
  *
- * Swap the rightmost occurence of @old for @new.
+ * Swap the rightmost occurence of @o for @n.
  * 
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */

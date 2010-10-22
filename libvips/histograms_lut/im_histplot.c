@@ -310,7 +310,7 @@ plot( IMAGE *in, IMAGE *out )
  * Returns: 0 on success, -1 on error
  */
 int 
-im_histplot( IMAGE *hist, IMAGE *histplot )
+im_histplot( IMAGE *in, IMAGE *out )
 {
 	IMAGE *t1;
 

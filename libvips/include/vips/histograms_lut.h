@@ -50,9 +50,9 @@ int im_project( IMAGE *in, IMAGE *hout, IMAGE *vout );
 int im_histnorm( IMAGE *in, IMAGE *out );
 int im_histcum( IMAGE *in, IMAGE *out );
 int im_histeq( IMAGE *in, IMAGE *out );
-int im_histspec( IMAGE *hin, IMAGE *href, IMAGE *lut );
+int im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out );
 int im_ismonotonic( IMAGE *lut, int *out );
-int im_histplot( IMAGE *hist, IMAGE *histplot );
+int im_histplot( IMAGE *in, IMAGE *out );
 
 int im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut );
 
@@ -74,7 +74,7 @@ int im_tone_build_range( IMAGE *out,
 int im_tone_build( IMAGE *out,
 	double Lb, double Lw, double Ps, double Pm, double Ph,
 	double S, double M, double H );
-int im_tone_analyse( IMAGE *in, IMAGE *lut,
+int im_tone_analyse( IMAGE *in, IMAGE *out,
 	double Ps, double Pm, double Ph, double S, double M, double H );
 int im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut );
 

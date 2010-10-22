@@ -229,7 +229,8 @@ im_concurrency_get( void )
 }
 
 /**
- * _VipsThreadState:
+ * VipsThreadState:
+ * @im: the #VipsImage being operated upon
  * @reg: a #REGION
  * @pos: a #Rect
  * @x: an int

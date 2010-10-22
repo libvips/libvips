@@ -64,6 +64,7 @@ extern "C" {
 typedef struct _VipsThreadState {
 	VipsObject parent_object;
 
+	/*< public >*/
 	/* Image we run on.
 	 */
 	VipsImage *im;
@@ -86,6 +87,7 @@ typedef struct _VipsThreadState {
 
 typedef struct _VipsThreadStateClass {
 	VipsObjectClass parent_class;
+	/*< public >*/
 
 } VipsThreadStateClass;
 

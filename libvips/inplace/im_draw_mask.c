@@ -266,7 +266,7 @@ mask_draw( Mask *mask )
 
 /**
  * im_draw_mask:
- * @im: image to draw on
+ * @image: image to draw on
  * @x: draw mask here
  * @y: draw mask here
  * @ink: value to draw
@@ -278,18 +278,18 @@ mask_draw( Mask *mask )
  *
  * @ink is an array of bytes 
  * containing a valid pixel for the image's format.
- * It must have at least IM_IMAGE_SIZEOF_PEL( @im ) bytes.
+ * It must have at least IM_IMAGE_SIZEOF_PEL( @image ) bytes.
  *
  * See also: im_draw_circle(), im_text(), im_draw_line_user().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_mask( VipsImage *im, VipsImage *mask_im, int x, int y, PEL *ink )
+im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, PEL *ink )
 {
 	Mask *mask;
 
-	if( !(mask = mask_new( im, x, y, ink, mask_im )) )
+	if( !(mask = mask_new( image, x, y, ink, mask_im )) )
 		return( -1 );
 
 	/* Any points to plot?
@@ -301,7 +301,7 @@ im_draw_mask( VipsImage *im, VipsImage *mask_im, int x, int y, PEL *ink )
 
 	/* Loop through image plotting where required.
 	 */
-	switch( im->Coding ) {
+	switch( image->Coding ) {
 	case IM_CODING_LABQ:
 		if( mask_draw_labq( mask ) ) {
 			mask_free( mask );

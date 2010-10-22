@@ -65,6 +65,17 @@
  */
 
 /**
+ * VipsFormatFlags: 
+ * @VIPS_FORMAT_NONE: no flags set
+ * @VIPS_FORMAT_PARTIAL: the image may be read lazilly
+ *
+ * Some hints about the image loader.
+ *
+ * @VIPS_FORMAT_PARTIAL means that the image can be read directly from the
+ * file without needing to be unpacked to a temporary image first. 
+ */
+
+/**
  * VipsFormat:
  *
  * Actually, we never make %VipsFormat objects, we just use virtual methods on

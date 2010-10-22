@@ -55,7 +55,7 @@
 /**
  * im_vips2mask:
  * @in: input image
- * @outname: name for output mask 
+ * @filename: name for output mask 
  *
  * Make a mask from an image. All images are cast to %IM_BANDFMT_DOUBLE
  * before processing. There are two cases for handling bands:
@@ -71,7 +71,7 @@
  * Returns: a #DOUBLEMASK with @outname set as the name, or NULL on error
  */
 DOUBLEMASK *
-im_vips2mask( IMAGE *in, const char *outname )
+im_vips2mask( IMAGE *in, const char *filename )
 {
 	int width, height;
 	DOUBLEMASK *out;
@@ -84,7 +84,7 @@ im_vips2mask( IMAGE *in, const char *outname )
 		if( !(t = im_open( "im_vips2mask", "p" )) )
 			return( NULL );
 		if( im_clip2fmt( in, t, IM_BANDFMT_DOUBLE ) ||
-			!(out = im_vips2mask( t, outname )) ) {
+			!(out = im_vips2mask( t, filename )) ) {
 			im_close( t );
 			return( NULL );
 		}
@@ -117,7 +117,7 @@ im_vips2mask( IMAGE *in, const char *outname )
 		return( NULL );
 	}
 
-	if( !(out = im_create_dmask( outname, width, height )) )
+	if( !(out = im_create_dmask( filename, width, height )) )
 		return( NULL );
 	if( in->Bands > 1 && in->Ysize == 1 ) {
 		double *data = (double *) in->data;

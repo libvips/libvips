@@ -170,6 +170,7 @@
 
 /**
  * VipsBandFmt: 
+ * @IM_BANDFMT_NOTSET: invalid setting
  * @IM_BANDFMT_UCHAR: unsigned char format
  * @IM_BANDFMT_CHAR: char format
  * @IM_BANDFMT_USHORT: unsigned short format

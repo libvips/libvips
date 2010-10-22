@@ -203,7 +203,7 @@ im_lhisteq_raw( IMAGE *in, IMAGE *out, int xwin, int ywin )
  * @in: input image
  * @out: output image
  * @xwin: width of region
- * @hwin: height of region
+ * @ywin: height of region
  *
  * Performs local histogram equalisation on @in using a
  * window of size @xwin by @ywin centered on the input pixel. Works only on 

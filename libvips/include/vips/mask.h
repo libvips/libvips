@@ -55,10 +55,10 @@ typedef struct im__DOUBLEMASK {
 	char *filename;
 } DOUBLEMASK;
 
-INTMASK *im_create_imask( const char *filename, int width, int height );
-INTMASK *im_create_imaskv( const char *filename, int width, int height, ... );
-DOUBLEMASK *im_create_dmask( const char *filename, int width, int height );
-DOUBLEMASK *im_create_dmaskv( const char *filename, int width, int height, ... );
+INTMASK *im_create_imask( const char *filename, int xsize, int ysize );
+INTMASK *im_create_imaskv( const char *filename, int xsize, int ysize, ... );
+DOUBLEMASK *im_create_dmask( const char *filename, int xsize, int ysize );
+DOUBLEMASK *im_create_dmaskv( const char *filename, int xsize, int ysize, ... );
 
 INTMASK *im_read_imask( const char *filename );
 DOUBLEMASK *im_read_dmask( const char *filename );

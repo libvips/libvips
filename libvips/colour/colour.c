@@ -262,7 +262,7 @@ make_LI( void )
 
 /**
  * im_col_Lucs2L:
- * @L: L ucs
+ * @Lucs: L ucs
  *
  * Calculate L from Lucs using a table. Call im_col_make_tables_UCS() at
  * least once before using this function.

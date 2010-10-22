@@ -47,7 +47,7 @@ int im_header_get( IMAGE *im, const char *field, GValue *value_copy );
 typedef void *(*im_header_map_fn)( IMAGE *, const char *, GValue *, void * );
 void *im_header_map( IMAGE *im, im_header_map_fn fn, void *a );
 
-int im_histlin( IMAGE *image, const char *fmt, ... )
+int im_histlin( IMAGE *im, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 int im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] );
 const char *im_history_get( IMAGE *im );

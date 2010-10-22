@@ -97,7 +97,8 @@ join_buffer( PEL **p, PEL *q, int n, IMAGE *im )
  *
  * Compose two real images to make a complex image. If either @in1 or @in2 are
  * %IM_BANDFMT_DOUBLE, @out is %IM_BANDFMT_DPCOMPLEX. Otherwise @out is
- * %IM_BANDFMT_COMPLEX.
+ * %IM_BANDFMT_COMPLEX. @in1 becomes the real component fo @out and @in2 the
+ * imaginary.
  *
  * If the number of bands differs, one of the images 
  * must have one band. In this case, an n-band image is formed from the 

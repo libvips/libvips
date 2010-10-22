@@ -52,7 +52,7 @@
 /**
  * im_mask2vips:
  * @in: input mask
- * @out output image
+ * @out: output image
  *
  * Write a one-band, %IM_BANDFMT_DOUBLE image to @out based on mask @in.
  *

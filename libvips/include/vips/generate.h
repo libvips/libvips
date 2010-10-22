@@ -45,10 +45,10 @@ typedef void *(*im_start_fn)( IMAGE *out, void *a, void *b );
 typedef int (*im_generate_fn)( REGION *out, void *seq, void *a, void *b );
 typedef int (*im_stop_fn)( void *seq, void *a, void *b );
 
-void *im_start_one( IMAGE *out, void *in, void *dummy );
-int im_stop_one( void *seq, void *dummy1, void *dummy2 );
-void *im_start_many( IMAGE *out, void *in, void *dummy );
-int im_stop_many( void *seq, void *dummy1, void *dummy2 );
+void *im_start_one( IMAGE *out, void *a, void *b );
+int im_stop_one( void *seq, void *a, void *b );
+void *im_start_many( IMAGE *out, void *a, void *b );
+int im_stop_many( void *seq, void *a, void *b );
 IMAGE **im_allocate_input_array( IMAGE *out, ... )
 	__attribute__((sentinel));
 

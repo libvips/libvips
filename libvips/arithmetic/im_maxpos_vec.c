@@ -95,7 +95,7 @@ static int            minpos_vec_stop( void *seq, void *, void * );
  * @maxima: array to return values
  * @n: number of maxima to search for
  *
- * Find the coordinates and values of the n maxima of an image.
+ * Find the coordinates and values of the @n @maxima of an image.
  *
  * For 8 and 16-bit images, it's much faster to find the histogram and then
  * calculate a threshold from that. See im_mpercent().
@@ -157,10 +157,10 @@ int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n ){
  * @im: image to scan
  * @xpos: array to return x positions
  * @ypos: array to return y positions
- * @maxima: array to return values
+ * @minima: array to return values
  * @n: number of minima to search for
  *
- * Find the coordinates and values of the n minima of an image.
+ * Find the coordinates and values of the @n @minima of an image.
  *
  * For 8 and 16-bit images, it's much faster to find the histogram and then
  * calculate a threshold from that. See im_mpercent().

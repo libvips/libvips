@@ -64,11 +64,11 @@
  * Returns: the new #IMAGE, or %NULL on error.
  */
 IMAGE *
-im_image( void *buffer, int width, int height, int bands, VipsBandFmt bandfmt )
+im_image( void *buffer, int xsize, int ysize, int bands, VipsBandFmt bandfmt )
 {
 	IMAGE *im;
 
-	if( width <= 0 || height <= 0 || bands <= 0 || 
+	if( xsize <= 0 || ysize <= 0 || bands <= 0 || 
 		bandfmt < 0 || bandfmt > IM_BANDFMT_DPCOMPLEX ) {
 		im_error( "im_image", "%s", _( "bad parameters" ) );
 		return( NULL );
@@ -81,8 +81,8 @@ im_image( void *buffer, int width, int height, int bands, VipsBandFmt bandfmt )
 
 	/* Set header fields.
 	 */
-	im->Xsize = width;
-	im->Ysize = height;
+	im->Xsize = xsize;
+	im->Ysize = ysize;
 	im->Bands = bands;
 	im->BandFmt = bandfmt;
 	im->Bbits = im_bits_of_fmt( bandfmt );

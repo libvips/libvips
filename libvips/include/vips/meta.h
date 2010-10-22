@@ -102,27 +102,28 @@ size_t im_ref_string_get_length( const GValue *value );
  */
 #define IM_TYPE_BLOB (im_blob_get_type())
 GType im_blob_get_type( void );
-void *im_blob_get( const GValue *value, size_t *data_length );
+void *im_blob_get( const GValue *value, size_t *length );
 int im_blob_set( GValue *value, im_callback_fn free_fn, 
 	void *data, size_t length ); 
 
-int im_meta_set( IMAGE *, const char *field, GValue * );
+int im_meta_set( IMAGE *im, const char *field, GValue *value );
 gboolean im_meta_remove( IMAGE *im, const char *field );
-int im_meta_get( IMAGE *, const char *field, GValue * );
+int im_meta_get( IMAGE *im, const char *field, GValue *value_copy );
 GType im_meta_get_typeof( IMAGE *im, const char *field );
 
-int im_meta_set_int( IMAGE *, const char *field, int i );
-int im_meta_get_int( IMAGE *, const char *field, int *i );
-int im_meta_set_double( IMAGE *, const char *field, double d );
-int im_meta_get_double( IMAGE *, const char *field, double *d );
-int im_meta_set_area( IMAGE *, const char *field, im_callback_fn, void * );
-int im_meta_get_area( IMAGE *, const char *field, void **data );
-int im_meta_set_string( IMAGE *, const char *field, const char *str );
-int im_meta_get_string( IMAGE *, const char *field, char **str );
+int im_meta_set_int( IMAGE *im, const char *field, int i );
+int im_meta_get_int( IMAGE *im, const char *field, int *i );
+int im_meta_set_double( IMAGE *im, const char *field, double d );
+int im_meta_get_double( IMAGE *im, const char *field, double *d );
+int im_meta_set_area( IMAGE *im, 
+	const char *field, im_callback_fn free_fn, void *data );
+int im_meta_get_area( IMAGE *im, const char *field, void **data );
+int im_meta_set_string( IMAGE *im, const char *field, const char *str );
+int im_meta_get_string( IMAGE *im, const char *field, char **str );
 int im_meta_set_blob( IMAGE *im, const char *field, 
-	im_callback_fn free_fn, void *blob, size_t blob_length );
+	im_callback_fn free_fn, void *data, size_t length );
 int im_meta_get_blob( IMAGE *im, const char *field, 
-	void **blob, size_t *blob_length );
+	void **data, size_t *length );
 
 #ifdef __cplusplus
 }

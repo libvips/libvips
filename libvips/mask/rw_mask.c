@@ -209,8 +209,8 @@ im_free_dmask( DOUBLEMASK *m )
 /**
  * im_create_imask:
  * @filename: set mask filename to this
- * @xs: mask width
- * @ys: mask height
+ * @xsize: mask width
+ * @ysize: mask height
  *
  * Create an empty imask. You need to loop over @coeff to set the values. 
  *
@@ -219,14 +219,14 @@ im_free_dmask( DOUBLEMASK *m )
  * Returns: The newly-allocated mask.
  */
 INTMASK *
-im_create_imask( const char *filename, int xs, int ys )
+im_create_imask( const char *filename, int xsize, int ysize )
 {	
 	INTMASK *m;
-	int size = xs * ys;
+	int size = xsize * ysize;
 
 	/* Check args.
 	 */
-	if( xs <= 0 || ys <= 0 || filename == NULL ) { 
+	if( xsize <= 0 || ysize <= 0 || filename == NULL ) { 
 		im_error( "im_create_imask", "%s", _( "bad arguments" ) ); 
 		return( NULL );
 	}
@@ -251,7 +251,8 @@ im_create_imask( const char *filename, int xs, int ys )
 		im_free_imask( m );
 		return( NULL );
 	}
-	m->xsize = xs; m->ysize = ys;
+	m->xsize = xsize; 
+	m->ysize = ysize;
 
 	return( m );
 }
@@ -259,8 +260,8 @@ im_create_imask( const char *filename, int xs, int ys )
 /**
  * im_create_imaskv:
  * @filename: set mask filename to this
- * @xs: mask width
- * @ys: mask height
+ * @xsize: mask width
+ * @ysize: mask height
  * @Varargs: values to set for the mask
  *
  * Create an imask and initialise it from the funtion parameter list.
@@ -270,18 +271,18 @@ im_create_imask( const char *filename, int xs, int ys )
  * Returns: The newly-allocated mask.
  */
 INTMASK *
-im_create_imaskv( const char *filename, int xs, int ys, ... )
+im_create_imaskv( const char *filename, int xsize, int ysize, ... )
 {
 	va_list ap;
 
 	INTMASK *m;
 	int i;
 
-	if( !(m = im_create_imask( filename, xs, ys )) )
+	if( !(m = im_create_imask( filename, xsize, ysize )) )
 		return( NULL );
 
-	va_start( ap, ys );
-	for( i = 0; i < xs * ys; i++ )
+	va_start( ap, ysize );
+	for( i = 0; i < xsize * ysize; i++ )
 		m->coeff[i] = va_arg( ap, int );
 	va_end( ap );
 
@@ -291,24 +292,24 @@ im_create_imaskv( const char *filename, int xs, int ys, ... )
 /**
  * im_create_dmask:
  * @filename: set mask filename to this
- * @xs: mask width
- * @ys: mask height
+ * @xsize: mask width
+ * @ysize: mask height
  *
  * Create an empty dmask. You need to loop over @coeff to set the values. 
  *
- * See also: im_create_dmaskv().
+ * See also: im_create_dmaskv(), im_vips2mask().
  *
  * Returns: The newly-allocated mask.
  */
 DOUBLEMASK *
-im_create_dmask( const char *filename, int xs, int ys )
+im_create_dmask( const char *filename, int xsize, int ysize )
 {	
 	DOUBLEMASK *m;
-	int size = xs * ys;
+	int size = xsize * ysize;
 
 	/* Check args.
 	 */
-	if( xs <= 0 || ys <= 0 || filename == NULL ) { 
+	if( xsize <= 0 || ysize <= 0 || filename == NULL ) { 
 		im_error( "im_create_dmask", "%s", _( "bad arguments" ) ); 
 		return( NULL );
 	}
@@ -333,7 +334,8 @@ im_create_dmask( const char *filename, int xs, int ys )
 		im_free_dmask( m );
 		return( NULL );
 	}
-	m->xsize = xs; m->ysize = ys;
+	m->xsize = xsize; 
+	m->ysize = ysize;
 
 	return( m );
 }
@@ -341,8 +343,8 @@ im_create_dmask( const char *filename, int xs, int ys )
 /**
  * im_create_dmaskv:
  * @filename: set mask filename to this
- * @xs: mask width
- * @ys: mask height
+ * @xsize: mask width
+ * @ysize: mask height
  * @Varargs: values to set for the mask
  *
  * Create a dmask and initialise it from the funtion parameter list.
@@ -352,18 +354,18 @@ im_create_dmask( const char *filename, int xs, int ys )
  * Returns: The newly-allocated mask.
  */
 DOUBLEMASK *
-im_create_dmaskv( const char *filename, int xs, int ys, ... )
+im_create_dmaskv( const char *filename, int xsize, int ysize, ... )
 {	
 	va_list ap;
 
 	DOUBLEMASK *m;
 	int i;
 
-	if( !(m = im_create_dmask( filename, xs, ys )) )
+	if( !(m = im_create_dmask( filename, xsize, ysize )) )
 		return( NULL );
 
-	va_start( ap, ys );
-	for( i = 0; i < xs * ys; i++ )
+	va_start( ap, ysize );
+	for( i = 0; i < xsize * ysize; i++ )
 		m->coeff[i] = va_arg( ap, double );
 	va_end( ap );
 
@@ -633,7 +635,7 @@ im_scale_dmask( DOUBLEMASK *m, const char *filename )
 
 /**
  * im_norm_dmask:
- * @m: mask to scale
+ * @mask: mask to scale
  *
  * Normalise the dmask. Apply the scale and offset to each element and return
  * a mask with scale 1, offset zero.

@@ -774,7 +774,7 @@ im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
 /**
  * im_check_bands_1orn_unary:
  * @domain: the originating domain for the error message
- * @im1: image to check
+ * @im: image to check
  * @n: number of bands, or 1
  *
  * Check that an image has 1 or @n bands. Handy for unary operations, cf.
@@ -1361,7 +1361,7 @@ vips_bandfmt_isfloat( VipsBandFmt fmt )
 
 /**
  * vips_bandfmt_iscomplex:
- * @im: image to test
+ * @fmt: format to test
  *
  * Return %TRUE if @fmt is one of the complex types.
  */

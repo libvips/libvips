@@ -334,7 +334,7 @@ int im_cp_desc_array( VipsImage *out, VipsImage *in[] );
 VipsImage *im_binfile( const char *name, 
 	int xsize, int ysize, int bands, int offset );
 VipsImage *im_image( void *buffer, 
-	int width, int height, int bands, VipsBandFmt bandfmt );
+	int xsize, int ysize, int bands, VipsBandFmt bandfmt );
 
 #ifdef __cplusplus
 }

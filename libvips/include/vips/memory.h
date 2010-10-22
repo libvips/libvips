@@ -39,8 +39,8 @@ extern "C" {
 #define IM_NEW( IM, T ) ((T *) im_malloc( (IM), sizeof( T )))
 #define IM_ARRAY( IM, N, T ) ((T *) im_malloc( (IM), (N) * sizeof( T )))
 
-void *im_malloc( VipsImage *im, size_t sz );
-int im_free( void * );
+void *im_malloc( VipsImage *im, size_t size );
+int im_free( void *s );
 
 #ifdef __cplusplus
 }

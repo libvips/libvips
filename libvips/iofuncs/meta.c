@@ -1088,17 +1088,17 @@ im_meta_get_string( IMAGE *im, const char *field, char **str )
 /** 
  * im_blob_get:
  * @value: GValue to get from
- * @blob_length: return the blob length here, optionally
+ * @length: return the blob length here, optionally
  *
  * Get the address of the blob (binary large object) being held in @value and
- * optionally return its length in @blob_length.
+ * optionally return its length in @length.
  *
- * See also: im_blob_set()
+ * See also: im_blob_set().
  *
  * Returns: The blob address.
  */
 void *
-im_blob_get( const GValue *value, size_t *blob_length )
+im_blob_get( const GValue *value, size_t *length )
 {
 	Area *area;
 
@@ -1107,8 +1107,8 @@ im_blob_get( const GValue *value, size_t *blob_length )
 	 */
 
 	area = g_value_get_boxed( value );
-	if( blob_length )
-		*blob_length = area->length;
+	if( length )
+		*length = area->length;
 
 	return( area->data );
 }
@@ -1181,8 +1181,8 @@ im_blob_get_type( void )
  * im_blob_set:
  * @value: GValue to set
  * @free_fn: free function for @data
- * @blob: pointer to area of memory
- * @blob_length: length of memory area
+ * @data: pointer to area of memory
+ * @length: length of memory area
  *
  * Sets @value to hold a pointer to @blob. When @value is freed, @blob will be
  * freed with @free_fn. @value also holds a note of the length of the memory
@@ -1198,13 +1198,13 @@ im_blob_get_type( void )
  */
 int
 im_blob_set( GValue *value, 
-	im_callback_fn free_fn, void *blob, size_t blob_length ) 
+	im_callback_fn free_fn, void *data, size_t length ) 
 {
 	Area *area;
 
 	g_assert( G_VALUE_TYPE( value ) == IM_TYPE_BLOB );
 
-	if( !(area = area_new_blob( free_fn, blob, blob_length )) )
+	if( !(area = area_new_blob( free_fn, blob, length )) )
 		return( -1 );
 
 	g_value_set_boxed( value, area );
@@ -1218,8 +1218,8 @@ im_blob_set( GValue *value,
  * @im: image to attach the metadata to
  * @field: metadata name
  * @free_fn: free function for @data
- * @blob: pointer to area of memory
- * @blob_length: length of memory area
+ * @data: pointer to area of memory
+ * @length: length of memory area
  *
  * Attaches @blob as a metadata item on @im under the name @field. A convenience
  * function over im_meta_set() using an im_blob.
@@ -1230,12 +1230,12 @@ im_blob_set( GValue *value,
  */
 int
 im_meta_set_blob( IMAGE *im, const char *field, 
-	im_callback_fn free_fn, void *blob, size_t blob_length )
+	im_callback_fn free_fn, void *data, size_t length )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, IM_TYPE_BLOB );
-	im_blob_set( &value, free_fn, blob, blob_length );
+	im_blob_set( &value, free_fn, blob, length );
 
 	return( meta_set_value( im, field, &value ) );
 }
@@ -1244,28 +1244,28 @@ im_meta_set_blob( IMAGE *im, const char *field,
  * im_meta_get_blob:
  * @im: image to get the metadata from
  * @field: metadata name
- * @blob: pointer to area of memory
- * @blob_length: return the blob length here, optionally
+ * @data: pointer to area of memory
+ * @length: return the blob length here, optionally
  *
  * Gets @blob from @im under the name @field, optionally return its length in
- * @blob_length. A convenience
+ * @length. A convenience
  * function over im_meta_get(). Use im_meta_get_typeof() to test for the 
  * existance
  * of a piece of metadata.
  *
- * See also: im_meta_get(), im_meta_get_typeof(), im_blob_get(), im_blob
+ * See also: im_meta_get(), im_meta_get_typeof(), im_blob_get(), 
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
 im_meta_get_blob( IMAGE *im, const char *field, 
-	void **blob, size_t *blob_length )
+	void **data, size_t *length )
 {
 	GValue value_copy = { 0 };
 
 	if( meta_get_value( im, field, IM_TYPE_BLOB, &value_copy ) )
 		return( -1 );
-	*blob = im_blob_get( &value_copy, blob_length );
+	*blob = im_blob_get( &value_copy, length );
 	g_value_unset( &value_copy );
 
 	return( 0 );

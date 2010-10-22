@@ -77,9 +77,9 @@ void im_region_free( REGION *reg );
 
 int im_region_buffer( REGION *reg, Rect *r );
 int im_region_image( REGION *reg, Rect *r );
-int im_region_region( REGION *reg, REGION *to, Rect *r, int x, int y );
+int im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y );
 int im_region_equalsregion( REGION *reg1, REGION *reg2 );
-int im_region_position( REGION *reg1, int x, int y );
+int im_region_position( REGION *reg, int x, int y );
 
 void im_region_paint( REGION *reg, Rect *r, int value );
 void im_region_black( REGION *reg );
@@ -101,10 +101,10 @@ void im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y );
 /* If DEBUG is defined, add bounds checking.
  */
 #ifdef DEBUG
-#define IM_REGION_ADDR(B,X,Y) \
-	( (im_rect_includespoint( &(B)->valid, (X), (Y) ))? \
-	  ((B)->data + ((Y) - (B)->valid.top) * IM_REGION_LSKIP(B) + \
-	  ((X) - (B)->valid.left) * IM_IMAGE_SIZEOF_PEL((B)->im)): \
+#define IM_REGION_ADDR(R,X,Y) \
+	( (im_rect_includespoint( &(R)->valid, (X), (Y) ))? \
+	  ((R)->data + ((Y) - (R)->valid.top) * IM_REGION_LSKIP(R) + \
+	  ((X) - (R)->valid.left) * IM_IMAGE_SIZEOF_PEL((R)->im)): \
 	  (fprintf( stderr, \
 		"IM_REGION_ADDR: point out of bounds, " \
 		"file \"%s\", line %d\n" \
@@ -113,19 +113,19 @@ void im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y );
 		"width=%d, height=%d)\n", \
 		__FILE__, __LINE__, \
 		(X), (Y), \
-		(B)->valid.left, \
-		(B)->valid.top, \
-		(B)->valid.width, \
-		(B)->valid.height ), abort(), (char *) NULL) \
+		(R)->valid.left, \
+		(R)->valid.top, \
+		(R)->valid.width, \
+		(R)->valid.height ), abort(), (char *) NULL) \
 	)
 #else /*DEBUG*/
-#define IM_REGION_ADDR(B,X,Y) \
-	((B)->data + \
-	((Y)-(B)->valid.top) * IM_REGION_LSKIP(B) + \
-	((X)-(B)->valid.left) * IM_IMAGE_SIZEOF_PEL((B)->im))
+#define IM_REGION_ADDR(R,X,Y) \
+	((R)->data + \
+	((Y)-(R)->valid.top) * IM_REGION_LSKIP(R) + \
+	((X)-(R)->valid.left) * IM_IMAGE_SIZEOF_PEL((R)->im))
 #endif /*DEBUG*/
 
-#define IM_REGION_ADDR_TOPLEFT(B)   ( (B)->data )
+#define IM_REGION_ADDR_TOPLEFT(R)   ( (R)->data )
 
 #ifdef __cplusplus
 }

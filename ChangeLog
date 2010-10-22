@@ -34,6 +34,8 @@
 - im_blend() can have any format condition image and it's converted to uchar
 - security fix for vips-7.23 wrapper script (thanks Jay)
 - im_affine() has a larger safety margin
+- fix gtk-doc warnings
+- small mask load/save improvements
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if

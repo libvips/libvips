@@ -245,7 +245,7 @@ im_stdif_raw( IMAGE *in, IMAGE *out,
  * @b: weight of new deviation
  * @s0:target deviation
  * @xwin: width of region
- * @hwin: height of region
+ * @ywin: height of region
  *
  * im_stdif() preforms statistical differencing according to the formula
  * given in page 45 of the book "An Introduction to Digital Image 

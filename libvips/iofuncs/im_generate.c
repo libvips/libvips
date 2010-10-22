@@ -118,28 +118,34 @@
 
 /**
  * im_start_one:
+ * @out: image to generate
+ * @a: user data
+ * @b: user data
  *
  * Start function for one image in. Input image is first user data.
  *
  * See also: im_generate().
  */
 void *
-im_start_one( IMAGE *out, void *client, void *dummy )
+im_start_one( IMAGE *out, void *a, void *b )
 {
-	IMAGE *in = (IMAGE *) client;
+	IMAGE *in = (IMAGE *) a;
 
 	return( im_region_create( in ) );
 }
 
 /**
  * im_stop_one:
+ * @seq: sequence value
+ * @a: user data
+ * @b: user data
  *
- * Stop function for one image in. Input image is first user data.
+ * Stop function for one image in. Input image is @a.
  *
  * See also: im_generate().
  */
 int
-im_stop_one( void *seq, void *dummy1, void *dummy2 )
+im_stop_one( void *seq, void *a, void *b )
 {
 	REGION *reg = (REGION *) seq;
 
@@ -150,14 +156,17 @@ im_stop_one( void *seq, void *dummy1, void *dummy2 )
 
 /**
  * im_stop_many:
+ * @seq: sequence value
+ * @a: user data
+ * @b: user data
  *
- * Stop function for many images in. First client is a pointer to 
+ * Stop function for many images in. First user data is a pointer to 
  * a %NULL-terminated array of input images.
  *
  * See also: im_generate().
  */
 int
-im_stop_many( void *seq, void *dummy1, void *dummy2 )
+im_stop_many( void *seq, void *a, void *b )
 {
 	REGION **ar = (REGION **) seq;
 
@@ -174,16 +183,19 @@ im_stop_many( void *seq, void *dummy1, void *dummy2 )
 
 /**
  * im_start_many:
+ * @out: image to generate
+ * @a: user data
+ * @b: user data
  *
- * Start function for many images in. First client is a pointer to 
+ * Start function for many images in. @a is a pointer to 
  * a %NULL-terminated array of input images.
  *
  * See also: im_generate(), im_allocate_input_array()
  */
 void *
-im_start_many( IMAGE *out, void *client, void *dummy )
+im_start_many( IMAGE *out, void *a, void *b )
 {
-	IMAGE **in = (IMAGE **) client;
+	IMAGE **in = (IMAGE **) a;
 
 	int i, n;
 	REGION **ar;
