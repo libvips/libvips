@@ -1,13 +1,9 @@
-/* @(#) combine two masks. Result mask is made and returned. 
- * @(#) Pass in the name to set in the creation of the mask.
- * @(#) DOUBLEMASK *
- * @(#) im_matcat( in1, in2, name );
- * @(#) DOUBLEMASK *in1, *in2;
- * @(#) char *name;
- * @(#)  
- * @(#) return NULL for error.
+/* matrix catenate
  *
  * 1994, K. Martinez
+ *
+ * 22/10/10
+ * 	- gtk-doc
  */
 
 /*
@@ -50,39 +46,49 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* MATRIX concatenate (join columns ie add mask to bottom of another)
+/**
+ * im_matcat:
+ * @top: input matrix
+ * @bottom: input matrix
+ * @filename: filename for output
+ *
+ * Matrix catenations. Returns a new matrix which is the two source matrices
+ * joined together top-bottom. They must be the same width.
+ *
+ * See also: im_mattrn(), im_matmul(), im_matinv().
+ *
+ * Returns: the joined mask on success, or NULL on error.
  */
 DOUBLEMASK *
-im_matcat( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name )
+im_matcat( DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename )
 {
 	int newxsize, newysize;
 	DOUBLEMASK *mat;
 	double *out;
-	
+
 	/* matrices must be same width
 	 */
-	if( in1->xsize != in2->xsize ) {
-		im_error( "im_matcat", "%s", _( "matrices must be same width" ) );
+	if( top->xsize != bottom->xsize ) {
+		im_error( "im_matcat", "%s", 
+			_( "matrices must be same width" ) );
 		return( NULL );
 	}
 
-	newxsize = in1->xsize;
-	newysize = in1->ysize + in2->ysize;
+	newxsize = top->xsize;
+	newysize = top->ysize + bottom->ysize;
 
 	/* Allocate output matrix.
 	 */
-	if( !(mat = im_create_dmask( name, newxsize, newysize )) ) {
-		im_error( "im_matcat", "%s", _( "unable to allocate output matrix" ) );
+	if( !(mat = im_create_dmask( filename, newxsize, newysize )) ) 
 		return( NULL );
-	}
 
 	/* copy first matrix then add second on the end
 	 */
-	memcpy( mat->coeff, in1->coeff, 
-		in1->xsize * in1->ysize * sizeof( double ) );
-	out = mat->coeff + in1->xsize * in1->ysize;
-	memcpy( out, in2->coeff, 
-		in2->xsize * in2->ysize * sizeof( double ) );
+	memcpy( mat->coeff, top->coeff, 
+		top->xsize * top->ysize * sizeof( double ) );
+	out = mat->coeff + top->xsize * top->ysize;
+	memcpy( out, bottom->coeff, 
+		bottom->xsize * bottom->ysize * sizeof( double ) );
 
 	return( mat );
 }

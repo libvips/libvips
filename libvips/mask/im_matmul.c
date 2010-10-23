@@ -1,15 +1,9 @@
-/* @(#) Multiplies two DOUBLEMASKs. Result matrix is made and returned.
- * @(#) Pass the filename to set for the output.
- * @(#)  
- * @(#) DOUBLEMASK *
- * @(#) im_matmul( in1, in2, name )
- * @(#) DOUBLEMASK *in1, *in2;
- * @(#) char *name;
- * @(#)  
- * @(#) NULL for error.
+/* Multiply two matrices.
  *
  * Copyright: 1990, K. Martinez and J. Cupitt
  *
+ * 23/10/10
+ * 	- gtk-doc
  */
 
 /*
@@ -51,7 +45,20 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* MATRIX MULTIPLY?
+/**
+ * im_matmul:
+ * @in1: input matrix 
+ * @in2: input matrix
+ * @filename: name for output matrix
+ *
+ * Multiplies two DOUBLEMASKs. Result matrix is made and returned.
+ * Pass the filename to set for the output.
+ *
+ * The scale and offset members of @in1 and @in2 are ignored.
+ *
+ * See also: im_mattrn(), im_matinv().
+ *
+ * Returns: the result matrix on success, or %NULL on error.
  */
 DOUBLEMASK *
 im_matmul( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name )
@@ -71,10 +78,8 @@ im_matmul( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name )
 
 	/* Allocate output matrix.
 	 */
-	if( !(mat = im_create_dmask( name, in2->xsize, in1->ysize )) ) {
-		im_error( "im_matmul", "%s", _( "unable to allocate output mask" ) );
+	if( !(mat = im_create_dmask( name, in2->xsize, in1->ysize )) ) 
 		return( NULL );
-	}
 
 	/* Multiply.
 	 */

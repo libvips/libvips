@@ -269,6 +269,9 @@ void im_free_dmat();
 
 int im_invmat( double **, int );
 
+int *im_offsets45( int size );
+int *im_offsets90( int size );
+
 int im_conv_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 int im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask );
 

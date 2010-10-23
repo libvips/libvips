@@ -1,26 +1,4 @@
-/* @(#) Allocate, and return a pointer to, a DOUBLEMASK representing the LU
- * @(#) decomposition of the matrix in DOUBLEMASK *mat.  Give it the filename
- * @(#) member *name.  Returns NULL on error.  Scale and offset are ignored.
- * @(#)
- * @(#) DOUBLEMASK *im_lu_decomp( const DOUBLEMASK *mat, const char *name );
- * @(#) 
- * @(#) Solve the system of linear equations Ax=b, where matrix A has already
- * @(#) been decomposed into LU form in DOUBLEMASK *lu.  Input vector b is in
- * @(#) vec and is overwritten with vector x.
- * @(#) 
- * @(#) int im_lu_solve( const DOUBLEMASK *lu, double *vec );
- * @(#) 
- * @(#) Allocate, and return a pointer to, a DOUBLEMASK representing the 
- * @(#) inverse of the matrix represented in mat.  Give it the filename
- * @(#) member *name.  Returns NULL on error.  Scale and offset are ignored.
- * @(#) 
- * @(#) DOUBLEMASK *im_matinv( const DOUBLEMASK *mat, const char *name );
- * @(#) 
- * @(#) Invert the matrix represented by the DOUBLEMASK *mat, and store 
- * @(#) it in the place of *mat.  Returns -1 on error.  Scale and offset
- * @(#)  are ignored.
- * @(#) 
- * @(#) int im_matinv_inplace( DOUBLEMASK *mat );
+/* solve and invert matrices
  *
  * Author: Tom Vajzovic
  * Copyright: 2006, Tom Vajzovic
@@ -31,6 +9,9 @@
  *
  * 2006-09-08 tcv:
  *  - complete rewrite; algorithm unchanged
+ *
+ * 22/10/10
+ * 	- gtkdoc
  */
 
 /*
@@ -108,29 +89,41 @@ mat_inv_direct(
 
 /** EXPORTED FUNCTION DEFINITIONS **/
 
-DOUBLEMASK *
-im_lu_decomp( 
-    const DOUBLEMASK *mat,
-    const char *name
-){
-#define FUNCTION_NAME "im_lu_decomp"
-/* This function takes any square NxN DOUBLEMASK treats it as a matrix.
- * It allocates a DOUBLEMASK which is (N+1)xN.
+/**
+ * im_lu_decomp:
+ * @mat: matrix to decompose
+ * @filename: name for output matrix
+ *
+ * This function takes any square NxN #DOUBLEMASK.
+ * It returns a #DOUBLEMASK which is (N+1)xN.
  *
  * It calculates the PLU decomposition, storing the upper and diagonal parts
  * of U, together with the lower parts of L, as an NxN matrix in the first
  * N rows of the new matrix.  The diagonal parts of L are all set to unity 
  * and are not stored.  
  *
- * The final row of the new DOUBLEMASK has only integer entries, which 
+ * The final row of the new #DOUBLEMASK has only integer entries, which 
  * represent the row-wise permutations made by the permuatation matrix P.
  *
- * The scale and offset members of the input DOUBLEMASK are ignored.
+ * The scale and offset members of the input #DOUBLEMASK are ignored.
  *
  * See:
- * PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
- * Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
+ *
+ *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
+ *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
+ *
+ * See also: im_mattrn(), im_matinv().
+ *
+ * Returns: the decomposed matrix on success, or NULL on error.
  */
+
+DOUBLEMASK *
+im_lu_decomp( 
+    const DOUBLEMASK *mat,
+    const char *name
+){
+#define FUNCTION_NAME "im_lu_decomp"
+
   int i, j, k;
   double *row_scale;
   DOUBLEMASK *lu;
@@ -244,6 +237,25 @@ im_lu_decomp(
 #undef FUNCTION_NAME
 }
 
+/**
+ * im_lu_solve:
+ * @lu: matrix to solve
+ * @vec: name for output matrix
+ *
+ * Solve the system of linear equations Ax=b, where matrix A has already
+ * been decomposed into LU form in DOUBLEMASK *lu.  Input vector b is in
+ * vec and is overwritten with vector x.
+ *
+ * See:
+ *
+ *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
+ *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
+ *
+ * See also: im_mattrn(), im_matinv().
+ *
+ * Returns: the decomposed matrix on success, or NULL on error.
+ */
+
 int 
 im_lu_solve( 
   const DOUBLEMASK *lu, 
@@ -287,10 +299,23 @@ im_lu_solve(
 #undef FUNCTION_NAME
 }
 
+/**
+ * im_matinv:
+ * @mat: matrix to invert
+ * @filename: name for output matrix
+ *
+ * Allocate, and return a pointer to, a DOUBLEMASK representing the 
+ * inverse of the matrix represented in @mat.  Give it the filename
+ * member @filename.  Returns NULL on error.  Scale and offset are ignored.
+ *
+ * See also: im_mattrn().
+ *
+ * Returns: the inverted matrix on success, or %NULL on error.
+ */
 DOUBLEMASK *
 im_matinv( 
   const DOUBLEMASK *mat, 
-  const char *name
+  const char *filename
 ){
 #define FUNCTION_NAME "im_matinv"
 
@@ -301,7 +326,7 @@ im_matinv(
     return NULL;
   } 
 #define   N                ( mat -> xsize )
-  inv= im_create_dmask( name, N, N );
+  inv= im_create_dmask( filename, N, N );
   if( ! inv )
     return NULL;
 
@@ -328,6 +353,18 @@ im_matinv(
 #undef FUNCTION_NAME
 }
 
+/**
+ * im_matinv_inplace:
+ * @mat: matrix to invert
+ *
+ * Invert the matrix represented by the DOUBLEMASK @mat, and store 
+ * it in the place of @mat. Scale and offset
+ * are ignored.
+ *
+ * See also: im_mattrn().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
 int
 im_matinv_inplace( 
   DOUBLEMASK *mat 

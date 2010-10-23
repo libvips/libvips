@@ -428,13 +428,13 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 		sum = 0; \
 		sum += m[0] * p0[0]; \
 		sum += m[1] * p0[bands]; \
-		sum += m[2] * p0[bands * 2]; \
+		sum += m[2] * p0[bands << 1]; \
 		sum += m[3] * p1[0]; \
 		sum += m[4] * p1[bands]; \
-		sum += m[5] * p1[bands * 2]; \
+		sum += m[5] * p1[bands << 1]; \
 		sum += m[6] * p2[0]; \
 		sum += m[7] * p2[bands]; \
-		sum += m[8] * p2[bands * 2]; \
+		sum += m[8] * p2[bands << 1]; \
 		\
 		p0 += 1; \
 		p1 += 1; \
@@ -462,13 +462,13 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 		sum = 0; \
 		sum += m[0] * p0[0]; \
 		sum += m[1] * p0[bands]; \
-		sum += m[2] * p0[bands * 2]; \
+		sum += m[2] * p0[bands << 1]; \
 		sum += m[3] * p1[0]; \
 		sum += m[4] * p1[bands]; \
-		sum += m[5] * p1[bands * 2]; \
+		sum += m[5] * p1[bands << 1]; \
 		sum += m[6] * p2[0]; \
 		sum += m[7] * p2[bands]; \
-		sum += m[8] * p2[bands * 2]; \
+		sum += m[8] * p2[bands << 1]; \
  		\
 		p0 += 1; \
 		p1 += 1; \

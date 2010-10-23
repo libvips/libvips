@@ -16,7 +16,7 @@
 - rewritten im_circle as im_draw_circle, im_circle moved to almostdeprecated
 - added IM_TYPE_RW args for inplace ops --- nip2 uses this to wrap inplace ops
   automatically
-- special-case 3x3 makss in im_conv() for a 20% speedup
+- special-case 3x3 masks in im_conv() for a 20% speedup
 - add IM_TYPE_RW flag for im__rw_image, helps nip2 auto-wrap inplace ops
 - im_insertplace() casts and bandalikes
 - copy iconv.m4 and friends in bootstrap, thanks Mike
@@ -36,6 +36,7 @@
 - im_affine() has a larger safety margin
 - fix gtk-doc warnings
 - small mask load/save improvements
+- mask gtk-doc done
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if

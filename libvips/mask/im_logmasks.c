@@ -1,27 +1,6 @@
-/* @(#) Returns a circularly symmetric difference of Gaussian mask
- * @(#) min_amplitude should be greater than 0.0 and less than 1.0
- * @(#) min_amplitude determines the size of the mask; if for instance
- * @(#) the value .1 is entered this means that the produced mask is clipped
- * @(#) at values less than 10 percent of the minimum negative amplitude.
- * @(#) If the value of min_amplitude is too small, then the filter coefficients
- * @(#) are calculated for masksize equal to the min of 8 * sigma or 256.
- * @(#) The mask can be directly used with the vasari convolution programs,
- * @(#) the default offset set is 0
- * @(#) 
- * @(#) DOUBLEMASK *im_log_dmask( filename, sigma, min_amplitude )
- * @(#) char *filename;
- * @(#) double sigma, min_amplitude;
- * @(#) 
- * @(#) Returns a laplacian of Gaussian square double mask or NULL on error
- * @(#) 
- * @(#) DOUBLEMASK *im_log_imask( filename, sigma, min_amplitude )
- * @(#) char *filename;
- * @(#) double sigma, min_amplitude;
- * @(#) 
- * @(#) Returns a laplacian of Gaussian square int mask or NULL on error
- */
-
-/* Written on: 30/11/1989
+/* laplacian of gaussian
+ *
+ * Written on: 30/11/1989
  * Updated on: 6/12/1991
  * 7/8/96 JC
  *	- ansified, mem leaks plugged
@@ -31,6 +10,8 @@
  *	- ahem, was broken since '96, thanks matt
  * 16/7/03 JC
  *	- makes mask out to zero, not out to minimum, thanks again matt
+ * 22/10/10
+ * 	- gtkdoc
  */
 
 /*
@@ -80,6 +61,34 @@
 
 #define IM_MAXMASK 256
 
+/**
+ * im_log_dmask:
+ * @filename: the returned mask has this set as the filename
+ * @sigma: standard deviation of mask
+ * @min_ampl: minimum amplitude
+ *
+ * im_log_dmask() creates a circularly symmetric Laplacian of Gaussian mask 
+ * of radius 
+ * @sigma.  The size of the mask is determined by the variable @min_ampl; 
+ * if for instance the value .1 is entered this means that the produced mask 
+ * is clipped at values within 10 persent of zero, and where the change 
+ * between mask elements is less than 10%.
+ *
+ * The program uses the following equation: (from Handbook of Pattern 
+ * Recognition and image processing by Young and Fu, AP 1986 pages 220-221):
+ *
+ *  H(r) = (1 / (2 * M_PI * s4)) *
+ * 	(2 - (r2 / s2)) * 
+ * 	exp(-r2 / (2 * s2))
+ *
+ * where s2 = sigma * sigma, s4 = s2 * s2, r2 = r * r.  
+ *
+ * The generated mask has odd size and its maximum value is normalised to 1.0.
+ *
+ * See also: im_log_imask(), im_gauss_dmask(), im_conv().
+ *
+ * Returns: the calculated mask on success, or NULL on error.
+ */
 DOUBLEMASK *
 im_log_dmask( const char *filename, double sigma, double min_ampl )
 {
@@ -135,8 +144,10 @@ im_log_dmask( const char *filename, double sigma, double min_ampl )
 		return( NULL );
 	}
 
-	xm2 = x; ym2 = x;
-	xm = xm2 * 2 + 1; ym = ym2 * 2 + 1;
+	xm2 = x; 
+	ym2 = x;
+	xm = xm2 * 2 + 1; 
+	ym = ym2 * 2 + 1;
 
 	if( !(cfs = IM_ARRAY( NULL, (xm2 + 1) * (ym2 + 1), double )) )
 		return( NULL );
@@ -201,6 +212,19 @@ im_log_dmask( const char *filename, double sigma, double min_ampl )
 	return( m );
 }
 
+/**
+ * im_log_imask:
+ * @filename: the returned mask has this set as the filename
+ * @sigma: standard deviation of mask
+ * @min_ampl: minimum amplitude
+ *
+ * im_log_imask() works exactly as im_log_dmask(), but the returned mask
+ * is scaled so that it's maximum value it set to 100.
+ *
+ * See also: im_log_dmask(), im_gauss_imask(), im_conv().
+ *
+ * Returns: the calculated mask on success, or NULL on error.
+ */
 INTMASK *
 im_log_imask( const char *filename, double sigma, double min_ampl )
 {

@@ -1,12 +1,4 @@
-/* @(#) Transpose a mask. Result mask is made and returned. Pass in the name
- * @(#) to set for the output mask.
- * @(#)  
- * @(#) DOUBLEMASK *
- * @(#) im_mattrn( in, name );
- * @(#) DOUBLEMASK *in;
- * @(#) char *name;
- * @(#)  
- * @(#) NULL for error.
+/* matrix transpose
  *
  * Copyright: 1990, K. Martinez and J. Cupitt
  *
@@ -51,7 +43,17 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* MATRIX TRANSPOSE??
+/**
+ * im_mattrn:
+ * @in: input matrix 
+ * @filename: name for output matrix
+ *
+ * Transposes the input matrix.
+ * Pass the filename to set for the output.
+ *
+ * See also: im_matmul(), im_matinv().
+ *
+ * Returns: the result matrix on success, or %NULL on error.
  */
 DOUBLEMASK *
 im_mattrn( DOUBLEMASK *in, const char *name )
@@ -62,10 +64,10 @@ im_mattrn( DOUBLEMASK *in, const char *name )
 
 	/* Allocate output matrix.
 	 */
-	if( !(mat = im_create_dmask( name, in->ysize, in->xsize )) ) {
-		im_error( "im_mattrn", "%s", _( "unable to allocate output matrix" ) );
+	if( !(mat = im_create_dmask( name, in->ysize, in->xsize )) ) 
 		return( NULL );
-	}
+	mat->scale = in->scale;
+	mat->offset = in->offset;
 
 	/* Transpose.
 	 */

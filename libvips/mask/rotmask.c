@@ -182,7 +182,6 @@ im_offsets45( int size )
 	return( pnt );
 }
 
-
 /* Creates the offsets to rotate any mask by 90 degrees.
  */
 int *
@@ -275,38 +274,74 @@ rotimask( offset_fn fn, INTMASK *m, const char *name )
 	return( out );
 }
 
-/* Returns a mask which is the argument mask rotated by 90 degrees.  Filename
- * of the returned mask is name.
+/**
+ * im_rotate_dmask90:
+ * @in: input matrix 
+ * @filename: name for output matrix
+ *
+ * Returns a mask which is the argument mask rotated by 90 degrees.  
+ * Pass the filename to set for the output.
+ *
+ * See also: im_rotate_dmask45().
+ *
+ * Returns: the result matrix on success, or %NULL on error.
  */
 DOUBLEMASK *
-im_rotate_dmask90( DOUBLEMASK *m, const char *name )
+im_rotate_dmask90( DOUBLEMASK *in, const char *filename )
 {
-	return( rotdmask( im_offsets90, m, name ) );
+	return( rotdmask( im_offsets90, in, filename ) );
 }
 
-/* Returns a mask which is the argument mask rotated by 45 degrees.  Filename
- * of the returned mask is name.
+/**
+ * im_rotate_dmask45:
+ * @in: input matrix 
+ * @filename: name for output matrix
+ *
+ * Returns a mask which is the argument mask rotated by 45 degrees.  
+ * Pass the filename to set for the output.
+ *
+ * See also: im_rotate_dmask90().
+ *
+ * Returns: the result matrix on success, or %NULL on error.
  */
 DOUBLEMASK *
-im_rotate_dmask45( DOUBLEMASK *m, const char *name )
+im_rotate_dmask45( DOUBLEMASK *in, const char *filename )
 {
-	return( rotdmask( im_offsets45, m, name ) );
+	return( rotdmask( im_offsets45, in, filename ) );
 }
 
-/* Returns a mask which is the argument mask rotated by 90 degrees.  Filename
- * of the returned mask is name.
+/**
+ * im_rotate_imask90:
+ * @in: input matrix 
+ * @filename: name for output matrix
+ *
+ * Returns a mask which is the argument mask rotated by 90 degrees.  
+ * Pass the filename to set for the output.
+ *
+ * See also: im_rotate_imask45().
+ *
+ * Returns: the result matrix on success, or %NULL on error.
  */
 INTMASK *
-im_rotate_imask90( INTMASK *m, const char *name )
+im_rotate_imask90( INTMASK *in, const char *filename )
 {
-	return( rotimask( im_offsets90, m, name ) );
+	return( rotimask( im_offsets90, in, filename ) );
 }
 
-/* Returns a mask which is the argument mask rotated by 45 degrees.  Filename
- * of the returned mask is name.
+/**
+ * im_rotate_imask45:
+ * @in: input matrix 
+ * @filename: name for output matrix
+ *
+ * Returns a mask which is the argument mask rotated by 45 degrees.  
+ * Pass the filename to set for the output.
+ *
+ * See also: im_rotate_imask90().
+ *
+ * Returns: the result matrix on success, or %NULL on error.
  */
 INTMASK *
-im_rotate_imask45( INTMASK *m, const char *name )
+im_rotate_imask45( INTMASK *in, const char *filename )
 {
-	return( rotimask( im_offsets45, m, name ) );
+	return( rotimask( im_offsets45, in, filename ) );
 }

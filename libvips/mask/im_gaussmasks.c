@@ -1,7 +1,6 @@
 /* generate gaussian masks
- */
-
-/* Written on: 30/11/1989 by Nicos
+ *
+ * Written on: 30/11/1989 by Nicos
  * Updated on: 6/12/1991
  * 7/8/96 JC
  *	- ansified, mem leaks plugged
