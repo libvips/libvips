@@ -428,6 +428,10 @@ im__format_init( void )
 	extern GType vips_format_mat_get_type();
 	vips_format_mat_get_type();
 #endif /*HAVE_MATIO*/
+#ifdef HAVE_CFITSIO
+	extern GType vips_format_fits_get_type();
+	vips_format_fits_get_type();
+#endif /*HAVE_CFITSIO*/
 	vips_format_rad_get_type();
 #ifdef HAVE_MAGICK
 	extern GType vips_format_magick_get_type();

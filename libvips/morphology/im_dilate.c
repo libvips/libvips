@@ -308,7 +308,27 @@ im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m )
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+
+/**
+ * im_dilate:
+ * @in: input image
+ * @out: output image
+ * @m: dilate mask
+ *
+ * Dilate an image with a mask.
+ * The mask coefficients are either 255 (object) or 0 (black) or 128 (don't
+ * care).
+ * Input image are binary images with either 0 or 255 values, one channel 
+ * only. The program dilates a white object on a black background.
+ * The center of the mask is at location (m->xsize/2, m->ysize/2)
+ * integer division. The mask is expected to have an odd width and
+ * height.
+
+sets pixels in the output if
+ *
+ * See also: im_erode().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_dilate( IMAGE *in, IMAGE *out, INTMASK *m )
