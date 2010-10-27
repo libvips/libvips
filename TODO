@@ -1,14 +1,5 @@
 - test fits reader more ... colour?
 
-- we get lots of valgrind errors with fits reading
-
-- why do we read_free so often during fits read?
-
-- are we triggering im_fits2vips() in each thread?? argh, try tracing
-
-
-
-
 
 
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
