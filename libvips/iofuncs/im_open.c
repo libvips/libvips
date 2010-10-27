@@ -98,6 +98,8 @@ Modified:
  * 	- write to non-vips formats with a "written" callback
  * 29/7/10
  * 	- disc open threshold stuff, open to disc mode
+ * 27/10/10
+ * 	- oops, guess_size was unnecessary
  */
 
 /*
@@ -241,24 +243,6 @@ lazy_new( IMAGE *out, VipsFormatClass *format, gboolean disc )
 	return( lazy );
 }
 
-static size_t
-guess_size( VipsFormatClass *format, const char *filename )
-{
-	IMAGE *im;
-	size_t size;
-
-        if( !(im = im_open( "header", "p" )) )
-		return( 0 );
-	if( format->header( filename, im ) ) {
-		im_close( im );
-		return( 0 );
-	}
-	size = IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
-	im_close( im );
-
-	return( size );
-}
-
 typedef struct {
 	const char unit;
 	int multiplier;
@@ -345,9 +329,9 @@ lazy_image( Lazy *lazy )
 		disc_threshold() && 
 	        !(vips_format_get_flags( lazy->format, lazy->out->filename ) & 
 			VIPS_FORMAT_PARTIAL) ) {
-		size_t size;
+		size_t size = IM_IMAGE_SIZEOF_LINE( lazy->out ) * 
+			lazy->out->Ysize;
 
-		size = guess_size( lazy->format, lazy->out->filename );
 		if( size > disc_threshold() ) {
 			if( !(im = im__open_temp( "%s.v" )) )
 				return( NULL );

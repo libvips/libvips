@@ -2,6 +2,8 @@
  *
  * 26/10/10
  *	- from matlab.c
+ * 27/10/10
+ * 	- oops, forgot to init status in close
  */
 
 /*
@@ -80,6 +82,8 @@ read_destroy( Read *read )
 	IM_FREE( read->filename );
 	if( read->fptr ) {
 		int status;
+
+		status = 0;
 
 		if( fits_close_file( read->fptr, &status ) ) 
 			read_error( status );
@@ -326,7 +330,7 @@ im_fits2vips( const char *filename, IMAGE *out )
 	Read *read;
 
 #ifdef DEBUG
-	printf( "fits2vips: reading \"%s\"\n", filename );
+	printf( "im_fits2vips: reading \"%s\"\n", filename );
 #endif /*DEBUG*/
 
 	if( !(read = read_new( filename, out )) ) 
@@ -347,6 +351,10 @@ isfits( const char *filename )
 {
 	fitsfile *fptr;
 	int status;
+
+#ifdef DEBUG
+	printf( "isfits: testing \"%s\"\n", filename );
+#endif /*DEBUG*/
 
 	status = 0;
 

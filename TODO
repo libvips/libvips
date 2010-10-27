@@ -7,6 +7,10 @@
 - are we triggering im_fits2vips() in each thread?? argh, try tracing
 
 
+
+
+
+
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
   it, argh
 
