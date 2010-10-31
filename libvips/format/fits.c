@@ -136,7 +136,7 @@ fits2vips_get_header( Read *read )
 	int status;
 	int bitpix;
 	int naxis;
-	long long int naxes[3];
+	long long int naxes[10];
 
 	int width, height, bands, format, type;
 	int keysexist;
@@ -146,10 +146,15 @@ fits2vips_get_header( Read *read )
 	status = 0;
 
 	if( fits_get_img_paramll( read->fptr, 
-		3, &bitpix, &naxis, naxes, &status ) ) {
+		10, &bitpix, &naxis, naxes, &status ) ) {
 		read_error( status );
 		return( -1 );
 	}
+
+	printf( "naxis = %d\n", naxis );
+	for( i = 0; i < naxis; i++ )
+		printf( "%d) %lld\n", i, naxes[i] );
+
 	width = 1;
 	height = 1;
 	bands = 1;
