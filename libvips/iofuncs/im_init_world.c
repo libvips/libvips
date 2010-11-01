@@ -63,6 +63,7 @@
 #include <vips/vips.h>
 #include <vips/thread.h>
 #include <vips/internal.h>
+#include <vips/vector.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -223,6 +224,10 @@ im_init_world( const char *argv0 )
 	 */
 	im__buffer_init();
 
+	/* Get the run-time compiler going.
+	 */
+	vips_vector_init();
+
 	done = TRUE;
 
 	return( 0 );
@@ -268,6 +273,9 @@ static GOptionEntry option_entries[] = {
 	{ "vips-disc-threshold", 'd', 0, G_OPTION_ARG_STRING, 
 		&im__disc_threshold, 
 		N_( "image size above which to decompress to disc" ), NULL },
+	{ "vips-novector", 't', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, 
+			&im__vector_enabled, 
+		N_( "disable vectorised versions of operations" ), NULL },
 	{ NULL }
 };
 

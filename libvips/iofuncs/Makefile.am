@@ -44,6 +44,7 @@ libiofuncs_la_SOURCES = \
 	im_init_world.c \
 	buf.c \
 	window.c \
+	vector.c \
 	buffer.c \
 	time.c 
 

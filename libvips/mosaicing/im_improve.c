@@ -156,8 +156,6 @@ copydevpoints( TIE_POINTS *pnew, TIE_POINTS *pold )
 	return( 0 );
 }
 
-#define SWAP( A, B ) { void *t = (A); A = B; B = t; }
-
 int 
 im__improve( TIE_POINTS *inpoints, TIE_POINTS *outpoints )
 {
@@ -182,7 +180,7 @@ im__improve( TIE_POINTS *inpoints, TIE_POINTS *outpoints )
 
 		/* And loop.
 		 */
-		SWAP( p, q );
+		IM_SWAP( void *, p, q );
 	}
 
 	/* q has the output - copy to outpoints.

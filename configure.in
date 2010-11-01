@@ -375,6 +375,21 @@ if test x"$with_magick" != "xno"; then
   LIBS=$save_LIBS
 fi
 
+# orc
+AC_ARG_WITH([orc], 
+  AS_HELP_STRING([--without-orc], [build without orc (default: test)]))
+
+if test x"$with_orc" != "xno"; then
+  # we use loadpw etc.
+  PKG_CHECK_MODULES(ORC, orc-0.4 >= 0.4.11,
+    [AC_DEFINE(HAVE_ORC,1,[define if you have orc-0.4.11 or later installed.])
+     with_orc=yes
+     PACKAGES_USED="$PACKAGES_USED orc-0.4"],
+    [AC_MSG_WARN([orc-0.4.11 or later not found; disabling orc support])
+     with_orc=no
+    ])
+fi
+
 # lcms ... look for lcms2 first, it has better threading support
 AC_ARG_WITH([lcms], 
   AS_HELP_STRING([--without-lcms], [build without lcms (default: test)]))
@@ -570,14 +585,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS and VIPS_CXX_LIBS
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $FFTW3_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $OPENEXR_CFLAGS  
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $FFTW3_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $OPENEXR_CFLAGS $ORC_CFLAGS
 do 
   echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES $FFTW_INCLUDES $LCMS_INCLUDES" 
-VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $LCMS_LIBS $OPENEXR_LIBS $CFITSIO_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $OPENEXR_LIBS $CFITSIO_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 # need -lstdc++ for (eg.) the C++ format loaders
 VIPS_CXX_LIBS="-lstdc++"
 
@@ -660,6 +675,8 @@ build docs with gtkdoc 			$enable_gtk_doc
 use fftw3 for FFT: 			$with_fftw3
 Magick package: 			$with_magickpackage
 file import with libMagick: 		$with_magick
+accelerate loops with orc: 		$with_orc
+  (needs orc-0.4.11 or later)
 ICC profile support with lcms: 		$with_lcms (version $with_lcms_ver)
 file import with OpenEXR: 		$with_OpenEXR
 file import with matio: 		$with_matio

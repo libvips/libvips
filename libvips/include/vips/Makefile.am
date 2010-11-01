@@ -43,6 +43,7 @@ pkginclude_HEADERS = \
 	transform.h \
 	util.h \
 	version.h \
+	vector.h \
 	vips.h 
 
 vipsc++.h:

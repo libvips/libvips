@@ -2,8 +2,7 @@ noinst_LTLIBRARIES = libmorphology.la
 
 libmorphology_la_SOURCES = \
 	im_cntlines.c \
-	im_dilate.c\
-	im_erode.c\
+	morphology.c\
 	im_rank.c \
 	im_rank_image.c \
 	im_zerox.c \

@@ -64,8 +64,6 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define SWAP(A,B) {int t; t = (A); (A) = (B); (B) = t;}
-
 typedef struct _Line {
 	Draw draw;
 
@@ -112,14 +110,14 @@ line_new( VipsImage *im, int x1, int y1, int x2, int y2, PEL *ink )
 		 * right. Do diagonals here .. just have up and right and down
 		 * and right now.
 		 */
-		SWAP( x1, x2 );
-		SWAP( y1, y2 );
+		IM_SWAP( int, x1, x2 );
+		IM_SWAP( int, y1, y2 );
 	}
 	else if( abs( line->dx ) < abs( line->dy ) && line->dy < 0 ) {
 		/* Swap to get all y greater cases going down the screen.
 		 */
-		SWAP( x1, x2 );
-		SWAP( y1, y2 );
+		IM_SWAP( int, x1, x2 );
+		IM_SWAP( int, y1, y2 );
 	}
 
 	/* Recalculate dx, dy.

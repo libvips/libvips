@@ -30,6 +30,8 @@
  * 	- more of operation scaffold moved inside
  * 25/7/10
  * 	- remove oil support again ... we'll try Orc instead
+ * 29/10/10
+ * 	- move to VipsVector for Orc support
  */
 
 /*
@@ -69,6 +71,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/vector.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -83,6 +86,8 @@
 		q[x] = p1[x] + p2[x]; \
 }
 
+static VipsVector *add_vectors[IM_BANDFMT_LAST] = { NULL };
+
 static void
 add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 {
@@ -91,32 +96,49 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 	const int sz = width * im->Bands * 
 		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
 
-	int x;
+	if( vips_vector_get_enabled() && 
+		add_vectors[im->BandFmt] ) {
+		VipsExecutor ex;
 
-	/* Add all input types. Keep types here in sync with bandfmt_add[] 
-	 * below.
-         */
-        switch( im->BandFmt ) {
-        case IM_BANDFMT_UCHAR: 	LOOP( unsigned char, unsigned short ); break; 
-        case IM_BANDFMT_CHAR: 	LOOP( signed char, signed short ); break; 
-        case IM_BANDFMT_USHORT: LOOP( unsigned short, unsigned int ); break; 
-        case IM_BANDFMT_SHORT: 	LOOP( signed short, signed int ); break; 
-        case IM_BANDFMT_UINT: 	LOOP( unsigned int, unsigned int ); break; 
-        case IM_BANDFMT_INT: 	LOOP( signed int, signed int ); break; 
+		vips_executor_set_program( &ex, add_vectors[im->BandFmt], sz );
+		vips_executor_set_source( &ex, 1, in[0] );
+		vips_executor_set_source( &ex, 2, in[1] );
+		vips_executor_set_destination( &ex, out );
 
-        case IM_BANDFMT_FLOAT: 		
-        case IM_BANDFMT_COMPLEX:
-		LOOP( float, float ); 
-		break; 
+		vips_executor_run( &ex );
+	}
+	else {
+		int x;
 
-        case IM_BANDFMT_DOUBLE:	
-        case IM_BANDFMT_DPCOMPLEX:
-		LOOP( double, double ); 
-		break;
+		/* Add all input types. Keep types here in sync with 
+		 * bandfmt_add[] below.
+		 */
+		switch( im->BandFmt ) {
+		case IM_BANDFMT_UCHAR: 	
+			LOOP( unsigned char, unsigned short ); break; 
+		case IM_BANDFMT_CHAR: 	
+			LOOP( signed char, signed short ); break; 
+		case IM_BANDFMT_USHORT: 
+			LOOP( unsigned short, unsigned int ); break; 
+		case IM_BANDFMT_SHORT: 	
+			LOOP( signed short, signed int ); break; 
+		case IM_BANDFMT_UINT: 	
+			LOOP( unsigned int, unsigned int ); break; 
+		case IM_BANDFMT_INT: 	
+			LOOP( signed int, signed int ); break; 
 
-        default:
-		g_assert( 0 );
-        }
+		case IM_BANDFMT_FLOAT: 		
+		case IM_BANDFMT_COMPLEX: 
+			LOOP( float, float ); break; 
+
+		case IM_BANDFMT_DOUBLE:	
+		case IM_BANDFMT_DPCOMPLEX: 
+			LOOP( double, double ); break;
+
+		default:
+			g_assert( 0 );
+		}
+	}
 }
 
 /* Save a bit of typing.
@@ -311,6 +333,106 @@ static int bandfmt_add[10] = {
    US, S,  UI, I,  UI, I, F, X, D, DX
 };
 
+void
+im__init_programs( VipsVector *vectors[IM_BANDFMT_LAST], 
+	int format_table[IM_BANDFMT_LAST] )
+{
+	int fmt;
+
+	for( fmt = 0; fmt < IM_BANDFMT_LAST; fmt++ ) {
+		int isize = im__sizeof_bandfmt[fmt];
+		int osize = im__sizeof_bandfmt[format_table[fmt]];
+
+		char source[256];
+		VipsVector *v;
+
+		/* float and double are not handled (well) by ORC.
+		 */
+		if( fmt == IM_BANDFMT_DOUBLE ||	
+			fmt == IM_BANDFMT_FLOAT ||	
+			fmt == IM_BANDFMT_COMPLEX ||
+			fmt == IM_BANDFMT_DPCOMPLEX )
+			continue;
+
+		v = vectors[fmt] = 
+			vips_vector_new_ds( "binary arith", osize, isize );
+		vips_vector_source( v, source, 2, isize );
+
+		vips_vector_temporary( v, "t1", osize );
+		vips_vector_temporary( v, "t2", osize );
+	}
+}
+
+void
+im__compile_programs( VipsVector *vectors[IM_BANDFMT_LAST] )
+{
+	int fmt;
+
+	for( fmt = 0; fmt < IM_BANDFMT_LAST; fmt++ ) {
+		if( vectors[fmt] &&
+			!vips_vector_compile( vectors[fmt] ) )
+			IM_FREEF( vips_vector_free, vectors[fmt] );
+	}
+
+#ifdef DEBUG
+	printf( "im__compile_programs: " );
+	for( fmt = 0; fmt < IM_BANDFMT_LAST; fmt++ ) 
+		if( vectors[fmt] )
+			printf( "%s ", im_BandFmt2char( fmt ) );
+	printf( "\n" );
+#endif /*DEBUG*/
+}
+
+static void
+build_programs( void )
+{
+	static gboolean done = FALSE;
+
+	VipsVector *v;
+
+	if( done )
+		return;
+	done = TRUE;
+
+	im__init_programs( add_vectors, bandfmt_add );
+
+	v = add_vectors[IM_BANDFMT_UCHAR];
+	vips_vector_asm2( v, "convubw", "t1", "s1" );
+	vips_vector_asm2( v, "convubw", "t2", "s2" );
+	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
+
+	v = add_vectors[IM_BANDFMT_CHAR];
+	vips_vector_asm2( v, "convsbw", "t1", "s1" );
+	vips_vector_asm2( v, "convsbw", "t2", "s2" );
+	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
+
+	/*
+
+	   only the 8-bit ones have a useful speedup, with orc-0.4.11 
+	   on a c2d anyway
+
+	   test this again at some point I guess
+
+	v = add_vectors[IM_BANDFMT_USHORT];
+	vips_vector_asm2( v, "convuwl", "t1", "s1" );
+	vips_vector_asm2( v, "convuwl", "t2", "s2" );
+	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
+
+	v = add_vectors[IM_BANDFMT_SHORT];
+	vips_vector_asm2( v, "convswl", "t1", "s1" );
+	vips_vector_asm2( v, "convswl", "t2", "s2" );
+	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
+
+	v = add_vectors[IM_BANDFMT_UINT];
+	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
+
+	v = add_vectors[IM_BANDFMT_INT];
+	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
+	 */
+
+	im__compile_programs( add_vectors );
+}
+
 /**
  * im_add:
  * @in1: input image 
@@ -387,6 +509,9 @@ static int bandfmt_add[10] = {
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
  *
+ * Operations on 8-bit images are performed using the processor's vector unit,
+ * if possible. Disable this with --vips-novector or IM_NOVECTOR.
+ *
  * See also: im_subtract(), im_lintra().
  *
  * Returns: 0 on success, -1 on error
@@ -394,6 +519,9 @@ static int bandfmt_add[10] = {
 int 
 im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
+	if( vips_vector_get_enabled() ) 
+		build_programs();
+
 	return( im__arith_binary( "im_add",
 		in1, in2, out, 
 		bandfmt_add,

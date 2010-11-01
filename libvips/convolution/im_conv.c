@@ -55,6 +55,12 @@
  * 	- add a special case for 3x3 masks, about 20% faster
  * 1/10/10
  * 	- support complex (just double the bands)
+ * 18/10/10
+ * 	- add experimental Orc path
+ * 29/10/10
+ * 	- use VipsVector
+ * 	- get rid of im_convsep(), just call this twice, no longer worth
+ * 	  keeping two versions
  */
 
 /*
@@ -83,6 +89,43 @@
 
  */
 
+/* Show sample pixels as they are transformed.
+#define DEBUG_PIXELS
+ */
+
+/*
+#define DEBUG
+ */
+
+/* 
+
+ 	TODO
+
+	- will this change make much difference to the vips benchmark?
+
+	- would setting params by index rather than name be any quicker?
+
+	- fix up a signed 8-bit code path?
+
+	- try a path with a 32-bit sum for larger matrices / scale / offset, 
+	  much slower?
+
+	- try a 16-bit path, though the speedup might not be worthwhile
+
+	- with a 5x5 matrix:
+
+		5 5 62 0
+		0 1 1 1 0 
+		1 4 6 4 1 
+		1 6 10 6 1 
+		1 4 6 4 1 
+		0 1 1 1 0 
+
+	   Orc is no faster than C, argh, multipass is not worthwhile for 
+	   large matrices 
+
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -93,6 +136,7 @@
 #include <limits.h>
 
 #include <vips/vips.h>
+#include <vips/vector.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -112,12 +156,26 @@ typedef struct {
 
 	int underflow;		/* Global underflow/overflow counts */
 	int overflow;
+
+	/* The convolver we generate for this mask. We have to split the
+	 * convolve and clip into two phases.
+	 */
+	VipsVector *convolve;
+	VipsVector *clip;
 } Conv;
+
+static void
+conv_vector_free( Conv *conv )
+{
+	IM_FREEF( vips_vector_free, conv->convolve );
+	IM_FREEF( vips_vector_free, conv->clip );
+}
 
 static int
 conv_close( Conv *conv )
 {
 	IM_FREEF( im_free_imask, conv->mask );
+	conv_vector_free( conv );
 
         return( 0 );
 }
@@ -146,6 +204,197 @@ conv_evalend( Conv *conv )
         return( 0 );
 }
 
+#define TEMP( N, S ) vips_vector_temporary( v, N, S )
+#define SRC( N, P, S ) vips_vector_source( v, N, P, S )
+#define CONST( N, V, S ) vips_vector_constant( v, N, V, S )
+#define ASM2( OP, A, B ) vips_vector_asm2( v, OP, A, B )
+#define ASM3( OP, A, B, C ) vips_vector_asm3( v, OP, A, B, C )
+
+/* Generate code for a 3x3 mask. Just do multiply-add, a second pass does the
+ * round and clip.
+ *
+ * 0 for success, -1 on error.
+ */
+static int
+conv_compile_convolution_u8s16( Conv *conv )
+{
+	INTMASK *mask = conv->mask;
+
+	double min, max;
+	int i;
+	VipsVector *v;
+	char zero[256];
+	char offset[256];
+	char source[256];
+	char coeff[256];
+
+	if( conv->in->BandFmt != IM_BANDFMT_UCHAR )
+		return( -1 );
+
+	/* Don't test mask size, it's very hard to predict when we will
+	 * exhaust the program space. 
+	 */
+
+	/* Can the accumulator overflow or underflow at any stage? Since
+	 * matrix elements are signed, we need to calculate a running 
+	 * possible min and max.
+	 */
+	min = 0;
+	max = 0;
+	for( i = 0; i < mask->xsize * mask->ysize; i++ ) {
+		int v = 255 * mask->coeff[i];
+
+		if( min + v < min )
+			min += v;
+		else if( min + v > max )
+			max += v;
+
+		if( max > SHRT_MAX )
+			return( -1 );
+		if( min < SHRT_MIN )
+			return( -1 );
+	}
+
+	/* Start with a single source scanline, we add more as we need them.
+	 */
+	conv->convolve = v = vips_vector_new_ds( "conv", 2, 1 );
+
+	/* The value we fetch from the image, the product with the matrix
+	 * value, the accumulated sum.
+	 */
+	TEMP( "value", 1 );
+	TEMP( "product", 2 );
+	TEMP( "sum", 2 );
+
+	CONST( zero, 0, 2 );
+	ASM2( "copyw", "sum", zero );
+
+	for( i = 0; i < mask->xsize * mask->ysize; i++ ) {
+		int x = i % mask->xsize;
+		int y = i / mask->xsize;
+
+		if( !mask->coeff[i] )
+			/* Exclude zero elements.
+			 */
+			continue;
+
+		/* The source. s1 is the first scanline in the mask.
+		 */
+		SRC( source, y + 1, 1 );
+
+		/* The offset, only for non-first-columns though.
+		 */
+		if( x > 0 ) 
+			CONST( offset, conv->in->Bands * x, 1 );
+
+		/* The coefficient. Only for non-1 coeffs though, we skip the
+		 * mul for them.
+		 *
+		 * We need to do 8-bit unsigned pixel * signed mask, so we
+		 * have to cast the pixel up to 16-bit then do a mult against a
+		 * 16-bit constant. We know the result will fit in the botom
+		 * 16 bits.
+		 */
+		if( mask->coeff[i] != 1 ) 
+			CONST( coeff, mask->coeff[i], 2 );
+
+		/* Two factors: 
+		 * - element is in the first column, ie. has a zero offset
+		 * - mask coeff is 1, ie. we can skip the multiply
+		 *
+		 * We could combine some of these cases, but it's simpler
+		 * and safer to spell them all out.
+		 */
+		if( x == 0 ) 
+			ASM2( "loadb", "value", source );
+		else 
+			ASM3( "loadoffb", "value", source, offset );
+
+		ASM2( "convubw", "product", "value" );
+
+		if( mask->coeff[i] != 1 ) 
+			ASM3( "mullw", "product", "product", coeff );
+
+		ASM3( "addssw", "sum", "sum", "product" );
+
+		/* If we run out of space, fall back to C.
+		 */
+		if( vips_vector_full( v ) )
+			return( -1 );
+	}
+
+	ASM2( "copyw", "d1", "sum" );
+
+	if( !vips_vector_compile( v ) ) 
+		return( -1 );
+
+#ifdef DEBUG
+	vips_vector_print( v );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
+/* Generate the program that does (sum + rounding) / scale + offset 
+ * from a s16 intermediate back to a u8 output.
+ */
+static int
+conv_compile_scale_s16u8( Conv *conv )
+{
+	INTMASK *mask = conv->mask;
+
+	VipsVector *v;
+	char scale[256];
+	char offset[256];
+	char zero[256];
+
+	/* Scale and offset must be in range.
+	 */
+	if( mask->scale > 255 ||
+		mask->scale < 0 ||
+		mask->offset > SHRT_MAX ||
+		mask->offset < SHRT_MIN ) 
+		return( -1 );
+
+	conv->clip = v = vips_vector_new_ds( "clip", 1, 2 );
+
+	TEMP( "t1", 2 );
+	TEMP( "t2", 2 );
+
+	/* We can only do unsigned divide, so we must add the offset before
+	 * dividing by the scale. We need to scale the offset up.
+	 *
+	 * We can build the rounding into the offset as well.
+	 * You might think this should be (scale + 1) / 2, but then we'd be 
+	 * adding one for scale == 1.
+	 */
+	CONST( scale, mask->scale, 1 );
+	CONST( offset, mask->offset * mask->scale + mask->scale / 2, 2 );
+	CONST( zero, 0, 2 );
+
+	/* Offset and scale. 
+	 */
+	ASM3( "addssw", "t1", "s1", offset );
+
+	/* We need to convert the signed result of the
+	 * offset to unsigned for the div, ie. we want to set anything <0 to 0.
+	 */
+	ASM3( "cmpgtsw", "t2", "t1", zero );
+	ASM3( "andw", "t1", "t1", "t2" );
+
+	ASM3( "divluw", "t1", "t1", scale );
+	ASM2( "convuuswb", "d1", "t1" );
+
+	if( !vips_vector_compile( v ) ) 
+		return( -1 );
+
+#ifdef DEBUG
+	vips_vector_print( v );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
 static Conv *
 conv_new( IMAGE *in, IMAGE *out, INTMASK *mask )
 {
@@ -164,6 +413,9 @@ conv_new( IMAGE *in, IMAGE *out, INTMASK *mask )
         conv->coeff_pos = NULL;
         conv->underflow = 0;
         conv->overflow = 0;
+
+	conv->convolve = NULL;
+	conv->clip = NULL;
 
         if( im_add_close_callback( out, 
 		(im_callback_fn) conv_close, conv, NULL ) ||
@@ -194,6 +446,14 @@ conv_new( IMAGE *in, IMAGE *out, INTMASK *mask )
 		conv->nnz = 1;
 	}
 
+	/* Generate code for this mask / image, if possible.
+	 */
+	if( vips_vector_get_enabled() ) {
+		if( conv_compile_convolution_u8s16( conv ) ||
+			conv_compile_scale_s16u8( conv ) ) 
+			conv_vector_free( conv );
+	}
+
         return( conv );
 }
 
@@ -210,6 +470,11 @@ typedef struct {
 	int overflow;
 
 	int last_bpl;		/* Avoid recalcing offsets, if we can */
+
+	/* We need an intermediate buffer to keep the result of the conv in
+	 * before we clip it.
+	 */
+	void *sum;
 } ConvSequence;
 
 /* Free a sequence value.
@@ -226,6 +491,8 @@ conv_stop( void *vseq, void *a, void *b )
 	conv->underflow += seq->underflow;
 
 	IM_FREEF( im_region_free, seq->ir );
+
+	IM_FREE( seq->sum );
 
 	return( 0 );
 }
@@ -250,13 +517,15 @@ conv_start( IMAGE *out, void *a, void *b )
 	seq->underflow = 0;
 	seq->overflow = 0;
 	seq->last_bpl = -1;
+	seq->sum = NULL;
 
 	/* Attach region and arrays.
 	 */
 	seq->ir = im_region_create( in );
 	seq->offsets = IM_ARRAY( out, conv->nnz, int );
 	seq->pts = IM_ARRAY( out, conv->nnz, PEL * );
-	if( !seq->ir || !seq->offsets || !seq->pts ) {
+	seq->sum = IM_ARRAY( NULL, IM_IMAGE_N_ELEMENTS( in ), short );
+	if( !seq->ir || !seq->offsets || !seq->pts || !seq->sum ) {
 		conv_stop( seq, in, conv );
 		return( NULL );
 	}
@@ -333,8 +602,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	int le = r->left;
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM( r );
-	int sz = IM_REGION_N_ELEMENTS( or ) * 
-		(vips_bandfmt_iscomplex( in->BandFmt ) ? 2 : 1);
+	int sz = IM_REGION_N_ELEMENTS( or ) * (im_iscomplex( in ) ? 2 : 1);
 
 	int x, y, z, i;
 
@@ -428,13 +696,13 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 		sum = 0; \
 		sum += m[0] * p0[0]; \
 		sum += m[1] * p0[bands]; \
-		sum += m[2] * p0[bands << 1]; \
+		sum += m[2] * p0[bands * 2]; \
 		sum += m[3] * p1[0]; \
 		sum += m[4] * p1[bands]; \
-		sum += m[5] * p1[bands << 1]; \
+		sum += m[5] * p1[bands * 2]; \
 		sum += m[6] * p2[0]; \
 		sum += m[7] * p2[bands]; \
-		sum += m[8] * p2[bands << 1]; \
+		sum += m[8] * p2[bands * 2]; \
 		\
 		p0 += 1; \
 		p1 += 1; \
@@ -462,13 +730,13 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 		sum = 0; \
 		sum += m[0] * p0[0]; \
 		sum += m[1] * p0[bands]; \
-		sum += m[2] * p0[bands << 1]; \
+		sum += m[2] * p0[bands * 2]; \
 		sum += m[3] * p1[0]; \
 		sum += m[4] * p1[bands]; \
-		sum += m[5] * p1[bands << 1]; \
+		sum += m[5] * p1[bands * 2]; \
 		sum += m[6] * p2[0]; \
 		sum += m[7] * p2[bands]; \
-		sum += m[8] * p2[bands << 1]; \
+		sum += m[8] * p2[bands * 2]; \
  		\
 		p0 += 1; \
 		p1 += 1; \
@@ -502,8 +770,7 @@ conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
 	int le = r->left;
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM( r );
-	int sz = IM_REGION_N_ELEMENTS( or ) * 
-		(vips_bandfmt_iscomplex( in->BandFmt ) ? 2 : 1);
+	int sz = IM_REGION_N_ELEMENTS( or ) * (im_iscomplex( in ) ? 2 : 1);
 	int bands = in->Bands;
 
 	Rect s;
@@ -568,6 +835,79 @@ conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
 	return( 0 );
 }
 
+/* The VipsVector codepath.
+ */
+static int
+convvec_gen( REGION *or, void *vseq, void *a, void *b )
+{
+	ConvSequence *seq = (ConvSequence *) vseq;
+	IMAGE *in = (IMAGE *) a;
+	Conv *conv = (Conv *) b;
+	INTMASK *mask = conv->mask;
+	REGION *ir = seq->ir;
+
+	Rect *r = &or->valid;
+	int sz = IM_REGION_N_ELEMENTS( or ) * (im_iscomplex( in ) ? 2 : 1);
+
+	Rect s;
+	int y, j;
+	VipsExecutor convolve;
+	VipsExecutor clip;
+
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
+	 */
+	s = *r;
+	s.width += mask->xsize - 1;
+	s.height += mask->ysize - 1;
+	if( im_prepare( ir, &s ) )
+		return( -1 );
+
+	vips_executor_set_program( &convolve, conv->convolve, sz );
+	vips_executor_set_program( &clip, conv->clip, sz );
+
+	/* Link the combiner to the intermediate buffer.
+	 */
+	vips_executor_set_array( &convolve, "d1", seq->sum );
+	vips_executor_set_array( &clip, "s1", seq->sum );
+
+	for( y = 0; y < r->height; y++ ) { 
+#ifdef DEBUG_PIXELS
+{
+		int h, v;
+
+		printf( "before convolve: %d, %d\n", r->left, r->top + y );
+		for( v = 0; v < mask->ysize; v++ ) {
+			for( h = 0; h < mask->xsize; h++ )
+				printf( "%3d ", *((PEL *) IM_REGION_ADDR( ir, 
+					r->left + h, r->top + y + v )) );
+			printf( "\n" );
+		}
+}
+#endif /*DEBUG_PIXELS*/
+
+		for( j = 0; j < mask->ysize; j++ )
+			vips_executor_set_source( &convolve, j + 1, 
+				IM_REGION_ADDR( ir, r->left, r->top + y + j ) );
+		vips_executor_run( &convolve );
+
+#ifdef DEBUG_PIXELS
+		printf( "before clip: %3d\n", *((signed short *) seq->sum) );
+#endif /*DEBUG_PIXELS*/
+
+		vips_executor_set_array( &clip, "d1", 
+			IM_REGION_ADDR( or, r->left, r->top + y ) );
+		vips_executor_run( &clip );
+
+#ifdef DEBUG_PIXELS
+		printf( "after clip: %d\n", 
+			*((PEL *) IM_REGION_ADDR( or, r->left, r->top + y )) );
+#endif /*DEBUG_PIXELS*/
+	}
+
+	return( 0 );
+}
+
 int
 im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 {
@@ -599,7 +939,14 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 		return( -1 );
 	}
 
-	if( mask->xsize == 3 && mask->ysize == 3 )
+	if( conv->convolve ) {
+		generate = convvec_gen;
+
+#ifdef DEBUG
+		printf( "im_conv_raw: using vector path\n" );
+#endif /*DEBUG*/
+	}
+	else if( mask->xsize == 3 && mask->ysize == 3 )
 		generate = conv3x3_gen;
 	else
 		generate = conv_gen;
@@ -631,6 +978,10 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
  * and offset are part of @mask. For integer @in, the division by scale
  * includes round-to-nearest.
  *
+ * Small convolutions on unsigned 8-bit images are performed using the 
+ * processor's vector unit,
+ * if possible. Disable this with --vips-novector or IM_NOVECTOR.
+ *
  * See also: im_conv_f(), im_convsep(), im_create_imaskv().
  *
  * Returns: 0 on success, -1 on error
@@ -645,6 +996,78 @@ im_conv( IMAGE *in, IMAGE *out, INTMASK *mask )
 			in->Xsize + mask->xsize - 1, 
 			in->Ysize + mask->ysize - 1 ) ||
 		im_conv_raw( t1, out, mask ) )
+		return( -1 );
+
+	out->Xoffset = 0;
+	out->Yoffset = 0;
+
+	return( 0 );
+}
+
+int
+im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	IMAGE *t;
+	INTMASK *rmask;
+
+	if( mask->xsize != 1 && mask->ysize != 1 ) {
+                im_error( "im_convsep", 
+			"%s", _( "expect 1xN or Nx1 input mask" ) );
+                return( -1 );
+	}
+
+	if( !(t = im_open_local( out, "im_convsep", "p" )) ||
+		!(rmask = (INTMASK *) im_local( out, 
+		(im_construct_fn) im_dup_imask,
+		(im_callback_fn) im_free_imask, mask, mask->filename, NULL )) )
+		return( -1 );
+
+	rmask->xsize = mask->ysize;
+	rmask->ysize = mask->xsize;
+
+	if( im_conv_raw( in, t, mask ) ||
+		im_conv_raw( t, out, rmask ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * im_convsep:
+ * @in: input image
+ * @out: output image
+ * @mask: convolution mask
+ *
+ * Perform a separable convolution of @in with @mask using integer arithmetic. 
+ *
+ * The mask must be 1xn or nx1 elements. 
+ * The output image 
+ * always has the same #VipsBandFmt as the input image. 
+ *
+ * The image is convolved twice: once with @mask and then again with @mask 
+ * rotated by 90 degrees. This is much faster for certain types of mask
+ * (gaussian blur, for example) than doing a full 2D convolution.
+ *
+ * Each output pixel is
+ * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
+ * and offset are part of @mask. For integer @in, the division by scale
+ * includes round-to-nearest.
+ *
+ * See also: im_convsep_f(), im_conv(), im_create_imaskv().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_convsep( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	IMAGE *t1 = im_open_local( out, "im_convsep intermediate", "p" );
+	int size = mask->xsize * mask->ysize;
+
+	if( !t1 || 
+		im_embed( in, t1, 1, size / 2, size / 2, 
+			in->Xsize + size - 1, 
+			in->Ysize + size - 1 ) ||
+		im_convsep_raw( t1, out, mask ) )
 		return( -1 );
 
 	out->Xoffset = 0;

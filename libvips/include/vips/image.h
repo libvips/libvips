@@ -87,7 +87,8 @@ typedef enum {
 	IM_BANDFMT_FLOAT = 6,
 	IM_BANDFMT_COMPLEX = 7,
 	IM_BANDFMT_DOUBLE = 8,
-	IM_BANDFMT_DPCOMPLEX = 9
+	IM_BANDFMT_DPCOMPLEX = 9,
+	IM_BANDFMT_LAST = 10
 } VipsBandFmt;
 
 typedef enum {

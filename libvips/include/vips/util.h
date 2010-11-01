@@ -56,6 +56,13 @@ extern "C" {
 #define IM_CLIP(A,V,B) IM_MAX( (A), IM_MIN( (B), (V) ) )
 #define IM_NUMBER(R) ((int)(sizeof(R)/sizeof(R[0])))
 
+#define IM_SWAP( TYPE, A, B ) \
+G_STMT_START { \
+	TYPE t = (A); \
+	(A) = (B); \
+	(B) = t; \
+} G_STMT_END
+
 #define IM_FREEF( F, S ) \
 G_STMT_START \
         if( S ) { \
@@ -90,7 +97,8 @@ G_STMT_START { \
 
 /* Duff's device. Do OPERation N times in a 16-way unrolled loop.
  */
-#define IM_UNROLL( N, OPER ) { \
+#define IM_UNROLL( N, OPER ) \
+G_STMT_START \
 	if( (N) ) { \
 		int duff_count = ((N) + 15) / 16; \
 		\
@@ -114,7 +122,7 @@ G_STMT_START { \
 			 } while( --duff_count > 0 ); \
 		} \
 	} \
-}
+G_STMT_END
 
 /* Round a float to the nearest integer. Much faster than rint(). 
  */
@@ -122,7 +130,8 @@ G_STMT_START { \
 
 /* Various integer range clips. Record over/under flows.
  */
-#define IM_CLIP_UCHAR( V, SEQ ) { \
+#define IM_CLIP_UCHAR( V, SEQ ) \
+G_STMT_START \
 	if( (V) < 0 ) {   \
 		(SEQ)->underflow++;   \
 		(V) = 0;   \
@@ -131,9 +140,10 @@ G_STMT_START { \
 		(SEQ)->overflow++;   \
 		(V) = UCHAR_MAX;   \
 	}  \
-}
+G_STMT_END
 
-#define IM_CLIP_USHORT( V, SEQ ) { \
+#define IM_CLIP_USHORT( V, SEQ ) \
+G_STMT_START \
 	if( (V) < 0 ) {   \
 		(SEQ)->underflow++;   \
 		(V) = 0;   \
@@ -142,9 +152,10 @@ G_STMT_START { \
 		(SEQ)->overflow++;   \
 		(V) = USHRT_MAX;   \
 	}  \
-}
+G_STMT_END
 
-#define IM_CLIP_CHAR( V, SEQ ) { \
+#define IM_CLIP_CHAR( V, SEQ ) \
+G_STMT_START \
 	if( (V) < SCHAR_MIN ) {   \
 		(SEQ)->underflow++;   \
 		(V) = SCHAR_MIN;   \
@@ -153,9 +164,10 @@ G_STMT_START { \
 		(SEQ)->overflow++;   \
 		(V) = SCHAR_MAX;   \
 	}  \
-}
+G_STMT_END
 
-#define IM_CLIP_SHORT( V, SEQ ) { \
+#define IM_CLIP_SHORT( V, SEQ ) \
+G_STMT_START \
 	if( (V) < SHRT_MIN ) {   \
 		(SEQ)->underflow++;   \
 		(V) = SHRT_MIN;   \
@@ -164,7 +176,7 @@ G_STMT_START { \
 		(SEQ)->overflow++;   \
 		(V) = SHRT_MAX;   \
 	}  \
-}
+G_STMT_END
 
 #define IM_CLIP_NONE( V, SEQ ) {}
 

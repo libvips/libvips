@@ -73,12 +73,6 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define SWAP( TYPE, A, B ) { \
-	TYPE t = (A); \
-	(A) = (B); \
-	(B) = t; \
-}
-
 /* Size of a scanline buffer. We allocate a list of these to hold scanlines 
  * we need to visit.
  */
@@ -346,7 +340,7 @@ flood_all( Flood *flood, int x, int y )
 			p->n = 0;
 		}
 
-		SWAP( Buffer *, flood->in, flood->out );
+		IM_SWAP( Buffer *, flood->in, flood->out );
 	}
 }
 
