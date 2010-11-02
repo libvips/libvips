@@ -407,7 +407,7 @@ im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	}
 
 	if( !(t = im_open_local( out, "im_convsep_f", "p" )) ||
-		!(rmask = (INTMASK *) im_local( out, 
+		!(rmask = (DOUBLEMASK *) im_local( out, 
 		(im_construct_fn) im_dup_dmask,
 		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )
 		return( -1 );
