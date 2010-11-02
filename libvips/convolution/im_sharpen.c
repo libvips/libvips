@@ -208,9 +208,9 @@ sharpen_mask_new( int radius )
 	im_free_imask( base );
 
 #ifdef DEBUG
+#endif /*DEBUG*/
 	printf( "sharpen_mask_new: created mask:\n" );
 	im_print_imask( line );
-#endif /*DEBUG*/
 
 	return( line );
 }

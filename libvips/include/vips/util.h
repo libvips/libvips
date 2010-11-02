@@ -56,12 +56,11 @@ extern "C" {
 #define IM_CLIP(A,V,B) IM_MAX( (A), IM_MIN( (B), (V) ) )
 #define IM_NUMBER(R) ((int)(sizeof(R)/sizeof(R[0])))
 
-#define IM_SWAP( TYPE, A, B ) \
-G_STMT_START { \
+#define IM_SWAP( TYPE, A, B ) { \
 	TYPE t = (A); \
 	(A) = (B); \
 	(B) = t; \
-} G_STMT_END
+} 
 
 #define IM_FREEF( F, S ) \
 G_STMT_START \

@@ -131,12 +131,6 @@ rank_start( IMAGE *out, void *a, void *b )
 	return( (void *) seq );
 }
 
-#define SWAP( TYPE, A, B ) { \
-	TYPE t = (A); \
-	(A) = (B); \
-	(B) = t; \
-}
-
 /* Inner loop for select-sorting TYPE.
  */
 #define LOOP_SELECT( TYPE ) { \
@@ -167,7 +161,7 @@ rank_start( IMAGE *out, void *a, void *b )
 				 */ \
 				if( upper - lower == 1 &&  \
 					sort[lower] > sort[upper] ) \
-					SWAP( TYPE, \
+					IM_SWAP( TYPE, \
 						sort[lower], sort[upper] ); \
 				break; \
 			} \
@@ -180,15 +174,15 @@ rank_start( IMAGE *out, void *a, void *b )
 				 * midpoint in sort[lower + 1] for 
 				 * partitioning. 
 				 */  \
-				SWAP( TYPE, sort[lower + 1], sort[mid] ); \
+				IM_SWAP( TYPE, sort[lower + 1], sort[mid] ); \
 				if( sort[lower] > sort[upper] ) \
-					SWAP( TYPE, \
+					IM_SWAP( TYPE, \
 						sort[lower], sort[upper] ); \
 				if( sort[lower + 1] > sort[upper] ) \
-					SWAP( TYPE, \
+					IM_SWAP( TYPE, \
 						sort[lower + 1], sort[upper] );\
 				if( sort[lower] > sort[lower + 1] ) \
-					SWAP( TYPE, \
+					IM_SWAP( TYPE, \
 						sort[lower], sort[lower + 1] ) \
 				\
 				i = lower + 1; \
@@ -206,7 +200,7 @@ rank_start( IMAGE *out, void *a, void *b )
 					while( sort[j] > a ); \
 					if( j < i ) \
 						break; \
-					SWAP( TYPE, sort[i], sort[j] ); \
+					IM_SWAP( TYPE, sort[i], sort[j] ); \
 				} \
 				\
 				/* Replace mid element. 
