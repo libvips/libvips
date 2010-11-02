@@ -38,6 +38,9 @@
  * 	- more cleanups
  * 1/10/10
  * 	- support complex (just double the bands)
+ * 29/10/10
+ * 	- get rid of im_convsep_f(), just call this twice, no longer worth
+ * 	  keeping two versions
  */
 
 /*
@@ -383,6 +386,79 @@ im_conv_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 			in->Xsize + mask->xsize - 1, 
 			in->Ysize + mask->ysize - 1 ) ||
 		im_conv_f_raw( t1, out, mask ) )
+		return( -1 );
+
+	out->Xoffset = 0;
+	out->Yoffset = 0;
+
+	return( 0 );
+}
+
+int
+im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+{
+	IMAGE *t;
+	DOUBLEMASK *rmask;
+
+	if( mask->xsize != 1 && mask->ysize != 1 ) {
+                im_error( "im_convsep_f", 
+			"%s", _( "expect 1xN or Nx1 input mask" ) );
+                return( -1 );
+	}
+
+	if( !(t = im_open_local( out, "im_convsep_f", "p" )) ||
+		!(rmask = (INTMASK *) im_local( out, 
+		(im_construct_fn) im_dup_dmask,
+		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )
+		return( -1 );
+
+	rmask->xsize = mask->ysize;
+	rmask->ysize = mask->xsize;
+
+	if( im_conv_f_raw( in, t, mask ) ||
+		im_conv_f_raw( t, out, rmask ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * im_convsep_f:
+ * @in: input image
+ * @out: output image
+ * @mask: convolution mask
+ *
+ * Perform a separable convolution of @in with @mask using floating-point 
+ * arithmetic. 
+ *
+ * The mask must be 1xn or nx1 elements. 
+ * The output image 
+ * is always %IM_BANDFMT_FLOAT unless @in is %IM_BANDFMT_DOUBLE, in which case
+ * @out is also %IM_BANDFMT_DOUBLE. 
+ *
+ * The image is convolved twice: once with @mask and then again with @mask 
+ * rotated by 90 degrees. This is much faster for certain types of mask
+ * (gaussian blur, for example) than doing a full 2D convolution.
+ *
+ * Each output pixel is
+ * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
+ * and offset are part of @mask. 
+ *
+ * See also: im_convsep(), im_conv(), im_create_dmaskv().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+{
+	IMAGE *t1 = im_open_local( out, "im_convsep intermediate", "p" );
+	int size = mask->xsize * mask->ysize;
+
+	if( !t1 || 
+		im_embed( in, t1, 1, size / 2, size / 2, 
+			in->Xsize + size - 1, 
+			in->Ysize + size - 1 ) ||
+		im_convsep_f_raw( t1, out, mask ) )
 		return( -1 );
 
 	out->Xoffset = 0;
