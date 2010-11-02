@@ -4,6 +4,12 @@
 
 - make im_rank() use IM_SWAP()
 
+- time conv with an s32 intermediate
+
+- could do small masks in a single pass
+
+- how much time are we spending setting sources by name, profile!
+
 
 
 - test fits reader more ... colour?

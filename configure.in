@@ -676,7 +676,7 @@ use fftw3 for FFT: 			$with_fftw3
 Magick package: 			$with_magickpackage
 file import with libMagick: 		$with_magick
 accelerate loops with orc: 		$with_orc
-  (needs orc-0.4.11 or later)
+  (requires orc-0.4.11 or later)
 ICC profile support with lcms: 		$with_lcms (version $with_lcms_ver)
 file import with OpenEXR: 		$with_OpenEXR
 file import with matio: 		$with_matio
