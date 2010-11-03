@@ -782,7 +782,7 @@ im_dilate( IMAGE *in, IMAGE *out, INTMASK *mask )
 		im_embed( in, t1, 1, mask->xsize / 2, mask->ysize / 2, 
 			in->Xsize + mask->xsize - 1, 
 			in->Ysize + mask->ysize - 1 ) ||
-		morphology( in, out, mask, DILATE ) )
+		morphology( t1, out, mask, DILATE ) )
 		return( -1 );
 
 	out->Xoffset = 0;
@@ -813,7 +813,7 @@ im_erode( IMAGE *in, IMAGE *out, INTMASK *mask )
 		im_embed( in, t1, 1, mask->xsize / 2, mask->ysize / 2, 
 			in->Xsize + mask->xsize - 1, 
 			in->Ysize + mask->ysize - 1 ) ||
-		morphology( in, out, mask, ERODE ) )
+		morphology( t1, out, mask, ERODE ) )
 		return( -1 );
 
 	out->Xoffset = 0;

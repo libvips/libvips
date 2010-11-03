@@ -2,20 +2,25 @@
 
 - could do small masks in a single pass
 
-- im_sharpen() won't use Vector, since it normalises to 100 and will clip
-
-  try using a smaller norm factor in sharpen, and maybe nip2 as well for sep
-  conv gen there?
+- try using a smaller norm factor in nip2 for sep conv gen there?
 
 - Lan's c4_stats.ws is broken, I guess due to vector stuff
 
 - how much time are we spending setting sources by name, profile!
 
+- morph benchmarks:
 
+	$ time vips --vips-novector im_dilate wtc1bit.v wtc2.v morph.mor 
+	real	0m0.727s
+	user	0m0.730s
+	sys	0m0.290s
+	$ time vips im_dilate wtc1bit.v wtc2.v morph.mor 
+	real	0m0.453s
+	user	0m0.150s
+	sys	0m0.260s
+	$
 
-- test fits reader more ... colour?
-
-
+  update News section of the vips website, when it comes back
 
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
   it, argh
