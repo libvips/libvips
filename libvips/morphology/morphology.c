@@ -147,13 +147,6 @@ pass_compile_section( Morph *morph, int first, int *last )
 	char one[256];
 	int i;
 
-	/* Skip any don't-care coefficients at the start of the mask region.
-	 */
-	for( ; mask->coeff[first] == 128 && first < n_mask; first++ )
-		;
-	if( first == n_mask )
-		return( 0 );
-
 	/* Allocate space for another pass.
 	 */
 	if( morph->n_pass == MAX_PASSES ) 
@@ -267,6 +260,14 @@ pass_compile( Morph *morph )
 	 */
 	for( i = 0;;) {
 		int last;
+
+		/* Skip any don't-care coefficients at the start of the mask 
+		 * region.
+		 */
+		for( ; mask->coeff[i] == 128 && i < n_mask; i++ )
+			;
+		if( i == n_mask )
+			break;
 
 		if( pass_compile_section( morph, i, &last ) ) 
 			return( -1 );
@@ -670,6 +671,11 @@ morph_vector_gen( REGION *or, void *vseq, void *a, void *b )
 	s.height += mask->ysize - 1;
 	if( im_prepare( ir, &s ) )
 		return( -1 );
+
+#ifdef DEBUG
+	printf( "erode_gen: preparing %dx%d@%dx%d pixels\n", 
+		s.width, s.height, s.left, s.top );
+#endif /*DEBUG*/
 
 	for( j = 0; j < morph->n_pass; j++ ) 
 		vips_executor_set_program( &executor[j], 
