@@ -1,3 +1,23 @@
+- nip2-7.22.3 on Windows is not adding the path you load from to the set opf
+  paths to search, breaking demo2 for Hamish
+
+- custom morph, erode, apply 3 times, lock up!
+
+  4way3.mor
+
+	7 7 1 0
+	128 128 128 255 128 128 128 
+	128 128 255 255 255 128 128 
+	128 255 255 255 255 255 128 
+	255 255 255 255 255 255 255 
+	128 255 255 255 255 255 128 
+	128 128 255 255 255 128 128 
+	128 128 128 255 128 128 128 
+
+  	$ vips im_erode wtc1bit.v t2.v 4way3.mor
+
+  lock up
+
 - lab [100,0,0] -> srgb [255, 255, 254]? how odd
 
 - could do small masks in a single pass
@@ -7,20 +27,6 @@
 - Lan's c4_stats.ws is broken, I guess due to vector stuff
 
 - how much time are we spending setting sources by name, profile!
-
-- morph benchmarks:
-
-	$ time vips --vips-novector im_dilate wtc1bit.v wtc2.v morph.mor 
-	real	0m0.727s
-	user	0m0.730s
-	sys	0m0.290s
-	$ time vips im_dilate wtc1bit.v wtc2.v morph.mor 
-	real	0m0.453s
-	user	0m0.150s
-	sys	0m0.260s
-	$
-
-  update News section of the vips website, when it comes back
 
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
   it, argh
