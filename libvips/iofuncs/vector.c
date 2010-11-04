@@ -122,6 +122,15 @@ vips_vector_new_ds( const char *name, int size1, int size2 )
 
 #ifdef HAVE_ORC
 	vector->program = orc_program_new_ds( size1, size2 );
+{
+	int var;
+
+	/* We always make s1.
+	 */
+	var = orc_program_find_var_by_name( vector->program, "s1" );
+	vector->var[0] = var;
+	vector->line[0] = 0;
+}
 #endif /*HAVE_ORC*/
 	vector->n_source += 1;
 	vector->n_destination += 1;
@@ -195,10 +204,7 @@ void
 vips_vector_source_name( VipsVector *vector, char *name, int size )
 {
 #ifdef HAVE_ORC
-#ifdef DEBUG
-	if( orc_program_find_var_by_name( vector->program, name ) != -1 ) 
-		printf( "argh! source %s defined twice\n", name );
-#endif /*DEBUG*/
+	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
 
 	orc_program_add_source( vector->program, size, name );
 	vector->n_source += 1;
@@ -206,13 +212,22 @@ vips_vector_source_name( VipsVector *vector, char *name, int size )
 }
 
 void
-vips_vector_source( VipsVector *vector, char *name, int number, int size )
+vips_vector_source( VipsVector *vector, char *name, int line, int size )
 {
 #ifdef HAVE_ORC
-	im_snprintf( name, 256, "s%d", number );
+	im_snprintf( name, 256, "s%d", line );
 
-	if( orc_program_find_var_by_name( vector->program, name ) == -1 ) 
+	if( orc_program_find_var_by_name( vector->program, name ) == -1 ) {
+		int var;
+		int i;
+
 		vips_vector_source_name( vector, name, size ); 
+
+		i = vector->n_source - 1;
+		var = orc_program_find_var_by_name( vector->program, name );
+		vector->var[i] = var;
+		vector->line[i] = line - 1;
+	}
 #endif /*HAVE_ORC*/
 }
 
@@ -266,12 +281,17 @@ vips_vector_compile( VipsVector *vector )
 void
 vips_vector_print( VipsVector *vector )
 {
+	int i;
+
 	printf( "%s: ", vector->name );
 	if( vector->compiled )
 		printf( "successfully compiled\n" );
 	else
 		printf( "not compiled successfully\n" );
 	printf( "  n_source = %d\n", vector->n_source );
+	for( i = 0; i < vector->n_source; i++ )
+		printf( "        var %d = line %d\n", 
+			vector->var[i], vector->line[i] ); 
 	printf( "  n_parameter = %d\n", vector->n_parameter );
 	printf( "  n_destination = %d\n", vector->n_destination );
 	printf( "  n_constant = %d\n", vector->n_constant );
@@ -283,21 +303,26 @@ void
 vips_executor_set_program( VipsExecutor *executor, VipsVector *vector, int n )
 {
 #ifdef HAVE_ORC
-	orc_executor_set_program( executor, vector->program );
-	orc_executor_set_n( executor, n );
+	executor->vector = vector;
+
+	orc_executor_set_program( &executor->executor, vector->program );
+	orc_executor_set_n( &executor->executor, n );
 #endif /*HAVE_ORC*/
 }
 
 void
-vips_executor_set_source( VipsExecutor *executor, int n, void *value )
+vips_executor_set_source( VipsExecutor *executor, REGION *ir, int x, int y )
 {
 #ifdef HAVE_ORC
-	char name[256];
-	OrcProgram *program = executor->program;
+	VipsVector *vector = executor->vector;
+	PEL *base = (PEL *) IM_REGION_ADDR( ir, x, y );
+	int lsk = IM_REGION_LSKIP( ir );
 
-	im_snprintf( name, 256, "s%d", n );
-	if( orc_program_find_var_by_name( program, name ) != -1 ) 
-		orc_executor_set_array_str( executor, name, value );
+	int i;
+
+	for( i = 0; i < vector->n_source; i++ )
+		orc_executor_set_array( &executor->executor, 
+			vector->var[i], base + vector->line[i] * lsk );
 #endif /*HAVE_ORC*/
 }
 
@@ -305,7 +330,7 @@ void
 vips_executor_set_destination( VipsExecutor *executor, void *value )
 {
 #ifdef HAVE_ORC
-	orc_executor_set_array_str( executor, "d1", value );
+	orc_executor_set_array_str( &executor->executor, "d1", value );
 #endif /*HAVE_ORC*/
 }
 
@@ -313,10 +338,11 @@ void
 vips_executor_set_array( VipsExecutor *executor, char *name, void *value )
 {
 #ifdef HAVE_ORC
-	OrcProgram *program = executor->program;
+	VipsVector *vector = executor->vector;
+	OrcProgram *program = vector->program;
 
 	if( orc_program_find_var_by_name( program, name ) != -1 ) 
-		orc_executor_set_array_str( executor, name, value );
+		orc_executor_set_array_str( &executor->executor, name, value );
 #endif /*HAVE_ORC*/
 }
 
@@ -324,7 +350,7 @@ void
 vips_executor_run( VipsExecutor *executor )
 {
 #ifdef HAVE_ORC
-	orc_executor_run( executor );
+	orc_executor_run( &executor->executor );
 #endif /*HAVE_ORC*/
 }
 

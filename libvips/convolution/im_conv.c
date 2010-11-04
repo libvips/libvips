@@ -850,7 +850,7 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 	int sz = IM_REGION_N_ELEMENTS( or ) * (im_iscomplex( in ) ? 2 : 1);
 
 	Rect s;
-	int y, j;
+	int y;
 	VipsExecutor convolve;
 	VipsExecutor clip;
 
@@ -886,9 +886,7 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 }
 #endif /*DEBUG_PIXELS*/
 
-		for( j = 0; j < mask->ysize; j++ )
-			vips_executor_set_source( &convolve, j + 1, 
-				IM_REGION_ADDR( ir, r->left, r->top + y + j ) );
+		vips_executor_set_source( &convolve, ir, r->left, r->top + y );
 		vips_executor_run( &convolve );
 
 #ifdef DEBUG_PIXELS

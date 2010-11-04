@@ -101,8 +101,8 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 		VipsExecutor ex;
 
 		vips_executor_set_program( &ex, add_vectors[im->BandFmt], sz );
-		vips_executor_set_source( &ex, 1, in[0] );
-		vips_executor_set_source( &ex, 2, in[1] );
+		vips_executor_set_array( &ex, "s1", in[0] );
+		vips_executor_set_array( &ex, "s2", in[1] );
 		vips_executor_set_destination( &ex, out );
 
 		vips_executor_run( &ex );

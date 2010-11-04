@@ -57,6 +57,12 @@ typedef struct {
 	int n_parameter;
 	int n_instruction;
 
+	/* The scanlines this pass needs, and the variables each needs to be
+	 * put into. 
+	 */
+	int line[10]; 		
+	int var[10];
+
 #ifdef HAVE_ORC
         /* The code we have generated.
 	 */
@@ -68,11 +74,15 @@ typedef struct {
 	gboolean compiled;
 } VipsVector;
 
+/* An executor.
+ */
+typedef struct {
 #ifdef HAVE_ORC
-typedef OrcExecutor VipsExecutor;
-#else /*!HAVE_ORC*/
-typedef int VipsExecutor;
+	OrcExecutor executor;
 #endif /*HAVE_ORC*/
+
+	VipsVector *vector;
+} VipsExecutor;
 
 /* Set from the command-line.
  */
@@ -102,7 +112,8 @@ void vips_vector_print( VipsVector *vector );
 
 void vips_executor_set_program( VipsExecutor *executor, 
 	VipsVector *vector, int n );
-void vips_executor_set_source( VipsExecutor *executor, int n, void *value );
+void vips_executor_set_source( VipsExecutor *executor, 
+	REGION *ir, int x, int y );
 void vips_executor_set_destination( VipsExecutor *executor, void *value );
 void vips_executor_set_array( VipsExecutor *executor, char *name, void *value );
 

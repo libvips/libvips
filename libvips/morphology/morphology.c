@@ -85,6 +85,7 @@ typedef struct {
         /* The code we generate for this section of this mask. 
 	 */
         VipsVector *vector;
+
 } Pass;
 
 /* Our parameters.
@@ -627,33 +628,6 @@ erode_gen( REGION *or, void *vseq, void *a, void *b )
 	return( 0 );
 }
 
-static void
-pass_run( Morph *morph, Pass *pass, VipsExecutor *executor, 
-	REGION *ir, void *t1, void *t2, int x, int y )
-{
-	INTMASK *mask = morph->mask;
-	int top = pass->first / mask->xsize; 
-	int bottom = pass->last / mask->xsize; 
-
-	PEL *p = (PEL *) IM_REGION_ADDR( ir, x, y );
-	int lsk = IM_REGION_LSKIP( ir );
-
-	int i;
-
-	/* Generate all the scanline pointers this prog needs.
-	 */
-	for( i = top; i <= bottom; i++ ) 
-		vips_executor_set_source( executor, i + 1, p + i * lsk ); 
-
-	/* It might need the result from a previous pass.
-	 */
-	vips_executor_set_array( executor, "r", t1 );
-
-	vips_executor_set_array( executor, "d1", t2 );
-
-	vips_executor_run( executor );
-}
-
 /* The vector codepath.
  */
 static int
@@ -700,8 +674,11 @@ morph_vector_gen( REGION *or, void *vseq, void *a, void *b )
 			else 
 				d = seq->t2;
 
-			pass_run( morph, &morph->pass[j], &executor[j], 
-				ir, seq->t1, d, r->left, r->top + y );
+			vips_executor_set_source( executor, 
+				ir, r->left, r->top + y );
+			vips_executor_set_array( executor, "r", seq->t1 );
+			vips_executor_set_array( executor, "d1", d );
+			vips_executor_run( executor );
 
 			IM_SWAP( void *, seq->t1, seq->t2 );
 		}
