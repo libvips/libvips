@@ -98,11 +98,13 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 
 	if( vips_vector_get_enabled() && 
 		add_vectors[im->BandFmt] ) {
+		VipsVector *vector = add_vectors[im->BandFmt];
+
 		VipsExecutor ex;
 
-		vips_executor_set_program( &ex, add_vectors[im->BandFmt], sz );
-		vips_executor_set_array( &ex, "s1", in[0] );
-		vips_executor_set_array( &ex, "s2", in[1] );
+		vips_executor_set_program( &ex, vector, sz );
+		vips_executor_set_array( &ex, vector->s[0], in[0] );
+		vips_executor_set_array( &ex, vector->s[1], in[1] );
 		vips_executor_set_destination( &ex, out );
 
 		vips_executor_run( &ex );

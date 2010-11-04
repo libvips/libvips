@@ -1,22 +1,16 @@
-- nip2-7.22.3 on Windows is not adding the path you load from to the set opf
+- we need to have separate sources for scanlines and for other sources
+
+  name scanlines sources as "sl0" onwards
+
+  name regular sources as "s1" onwards
+
+
+
+
+
+- nip2-7.22.3 on Windows is not adding the path you load from to the set of
   paths to search, breaking demo2 for Hamish
 
-- custom morph, erode, apply 3 times, lock up!
-
-  4way3.mor
-
-	7 7 1 0
-	128 128 128 255 128 128 128 
-	128 128 255 255 255 128 128 
-	128 255 255 255 255 255 128 
-	255 255 255 255 255 255 255 
-	128 255 255 255 255 255 128 
-	128 128 255 255 255 128 128 
-	128 128 128 255 128 128 128 
-
-  	$ vips im_erode wtc1bit.v t2.v 4way3.mor
-
-  lock up
 
 - lab [100,0,0] -> srgb [255, 255, 254]? how odd
 

@@ -86,6 +86,9 @@ typedef struct {
 	 */
         VipsVector *vector;
 
+	/* The variable number for r, if we set it (or -1).
+	 */
+	int r;
 } Pass;
 
 /* Our parameters.
@@ -155,13 +158,13 @@ pass_compile_section( Morph *morph, int first, int *last )
 	pass = &morph->pass[morph->n_pass];
 	morph->n_pass += 1;
 	pass->first = first;
+	pass->r = -1;
 
 	/* Start with a single source scanline, we add more as we need them.
 	 */
 	pass->vector = v = vips_vector_new_ds( "morph", 1, 1 );
 
-	/* The value we fetch from the image, 
-	 * the accumulated sum.
+	/* The value we fetch from the image, the accumulated sum.
 	 */
 	TEMP( "value", 1 );
 	TEMP( "sum", 1 );
@@ -182,7 +185,7 @@ pass_compile_section( Morph *morph, int first, int *last )
 	else {
 		/* "r" is the result of the previous pass.
 		 */
-		vips_vector_source_name( v, "r", 1 );
+		pass->r = vips_vector_source_name( v, "r", 1 );
 		ASM2( "loadb", "sum", "r" );
 	}
 
@@ -197,7 +200,7 @@ pass_compile_section( Morph *morph, int first, int *last )
 
 		/* The source. s1 is the first scanline in the mask.
 		 */
-		vips_vector_source( v, source, y + 1, 1 );
+		SRC( source, y + 1, 1 );
 
 		/* The offset, only for non-first-columns though.
 		 */
@@ -674,11 +677,12 @@ morph_vector_gen( REGION *or, void *vseq, void *a, void *b )
 			else 
 				d = seq->t2;
 
-			vips_executor_set_source( executor, 
+			vips_executor_set_source( &executor[j], 
 				ir, r->left, r->top + y );
-			vips_executor_set_array( executor, "r", seq->t1 );
-			vips_executor_set_array( executor, "d1", d );
-			vips_executor_run( executor );
+			vips_executor_set_array( &executor[j].executor,
+				morph->pass[j].r, seq->t1 );
+			vips_executor_set_destination( &executor[j], d );
+			vips_executor_run( &executor[j] );
 
 			IM_SWAP( void *, seq->t1, seq->t2 );
 		}

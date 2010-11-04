@@ -125,11 +125,12 @@ vips_vector_new_ds( const char *name, int size1, int size2 )
 {
 	int var;
 
-	/* We always make s1.
+	/* We always make s1 / d1
 	 */
 	var = orc_program_find_var_by_name( vector->program, "s1" );
 	vector->var[0] = var;
 	vector->line[0] = 0;
+	vector->d1 = orc_program_find_var_by_name( vector->program, "d1" );
 }
 #endif /*HAVE_ORC*/
 	vector->n_source += 1;
@@ -206,9 +207,10 @@ vips_vector_source_name( VipsVector *vector, char *name, int size )
 #ifdef HAVE_ORC
 	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
 
-	orc_program_add_source( vector->program, size, name );
+	var = orc_program_add_source( vector->program, size, name );
+	vector->var[vector->n_source] = var;
 	vector->n_source += 1;
-#endif /*HAVE_ORC*/
+#else /*!HAVE_ORC*/
 }
 
 void
@@ -218,15 +220,8 @@ vips_vector_source( VipsVector *vector, char *name, int line, int size )
 	im_snprintf( name, 256, "s%d", line );
 
 	if( orc_program_find_var_by_name( vector->program, name ) == -1 ) {
-		int var;
-		int i;
-
 		vips_vector_source_name( vector, name, size ); 
-
-		i = vector->n_source - 1;
-		var = orc_program_find_var_by_name( vector->program, name );
-		vector->var[i] = var;
-		vector->line[i] = line - 1;
+		vector->line[n_source - 1] = line - 1;
 	}
 #endif /*HAVE_ORC*/
 }
@@ -330,19 +325,21 @@ void
 vips_executor_set_destination( VipsExecutor *executor, void *value )
 {
 #ifdef HAVE_ORC
-	orc_executor_set_array_str( &executor->executor, "d1", value );
+	VipsVector *vector = executor->vector;
+
+	orc_executor_set_array( &executor->executor, vector->d1, value );
 #endif /*HAVE_ORC*/
 }
 
 void
-vips_executor_set_array( VipsExecutor *executor, char *name, void *value )
+vips_executor_set_array( VipsExecutor *executor, int var, void *value )
 {
 #ifdef HAVE_ORC
 	VipsVector *vector = executor->vector;
 	OrcProgram *program = vector->program;
 
-	if( orc_program_find_var_by_name( program, name ) != -1 ) 
-		orc_executor_set_array_str( &executor->executor, name, value );
+	if( var != -1 ) 
+		orc_executor_set_array( &executor->executor, var, value );
 #endif /*HAVE_ORC*/
 }
 

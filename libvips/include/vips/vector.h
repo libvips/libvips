@@ -57,11 +57,15 @@ typedef struct {
 	int n_parameter;
 	int n_instruction;
 
-	/* The scanlines this pass needs, and the variables each needs to be
-	 * put into. 
+	/* The sources this program needs. "s1"'s var is always in s[0],
+	 * others may skip lines. 
 	 */
+	int s[10];
 	int line[10]; 		
-	int var[10];
+
+	/* The destination var.
+	 */
+	int d1;
 
 #ifdef HAVE_ORC
         /* The code we have generated.
@@ -97,7 +101,7 @@ VipsVector *vips_vector_new_ds( const char *name, int size1, int size2 );
 
 void vips_vector_constant( VipsVector *vector, 
 	char *name, int value, int size );
-void vips_vector_source_name( VipsVector *vector, char *name, int size );
+int vips_vector_source_name( VipsVector *vector, char *name, int size );
 void vips_vector_source( VipsVector *vector, char *name, int number, int size );
 void vips_vector_temporary( VipsVector *vector, char *name, int size );
 void vips_vector_asm2( VipsVector *vector, 
@@ -115,7 +119,7 @@ void vips_executor_set_program( VipsExecutor *executor,
 void vips_executor_set_source( VipsExecutor *executor, 
 	REGION *ir, int x, int y );
 void vips_executor_set_destination( VipsExecutor *executor, void *value );
-void vips_executor_set_array( VipsExecutor *executor, char *name, void *value );
+void vips_executor_set_array( VipsExecutor *executor, int var, void *value );
 
 void vips_executor_run( VipsExecutor *executor );
 
