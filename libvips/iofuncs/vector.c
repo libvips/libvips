@@ -108,30 +108,35 @@ VipsVector *
 vips_vector_new_ds( const char *name, int size1, int size2 )
 {
 	VipsVector *vector;
+	int i;
 
 	if( !(vector = IM_NEW( NULL, VipsVector )) )
 		return( NULL );
 	vector->name = name;
 	vector->n_temp = 0;
+	vector->n_scanline = 0;
 	vector->n_source = 0;
 	vector->n_destination = 0;
 	vector->n_constant = 0;
 	vector->n_parameter = 0;
 	vector->n_instruction = 0;
+
+	for( i = 0; i < VIPS_VECTOR_SOURCE_MAX; i++ ) {
+		vector->s[i] = -1;
+		vector->sl[i] = -1;
+	}
+
+	vector->d1 = -1;
+
 	vector->compiled = FALSE;
 
 #ifdef HAVE_ORC
 	vector->program = orc_program_new_ds( size1, size2 );
-{
-	int var;
 
 	/* We always make s1 / d1
 	 */
-	var = orc_program_find_var_by_name( vector->program, "s1" );
-	vector->var[0] = var;
-	vector->line[0] = 0;
+	vector->s[0] = orc_program_find_var_by_name( vector->program, "s1" );
 	vector->d1 = orc_program_find_var_by_name( vector->program, "d1" );
-}
 #endif /*HAVE_ORC*/
 	vector->n_source += 1;
 	vector->n_destination += 1;
@@ -207,21 +212,26 @@ vips_vector_source_name( VipsVector *vector, char *name, int size )
 #ifdef HAVE_ORC
 	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
 
-	var = orc_program_add_source( vector->program, size, name );
-	vector->var[vector->n_source] = var;
+	vector->s[vector->n_source] = 
+		orc_program_add_source( vector->program, size, name );
 	vector->n_source += 1;
-#else /*!HAVE_ORC*/
+#endif /*HAVE_ORC*/
 }
 
 void
-vips_vector_source( VipsVector *vector, char *name, int line, int size )
+vips_vector_source_scanline( VipsVector *vector, 
+	char *name, int line, int size )
 {
 #ifdef HAVE_ORC
-	im_snprintf( name, 256, "s%d", line );
+	im_snprintf( name, 256, "sl%d", line );
 
 	if( orc_program_find_var_by_name( vector->program, name ) == -1 ) {
-		vips_vector_source_name( vector, name, size ); 
-		vector->line[n_source - 1] = line - 1;
+		int var;
+
+		var = orc_program_add_source( vector->program, size, name );
+		vector->sl[vector->n_scanline] = var;
+		vector->line[vector->n_scanline] = line;
+		vector->n_scanline += 1;
 	}
 #endif /*HAVE_ORC*/
 }
@@ -230,6 +240,8 @@ void
 vips_vector_temporary( VipsVector *vector, char *name, int size )
 {
 #ifdef HAVE_ORC
+	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
+
 	orc_program_add_temporary( vector->program, size, name );
 	vector->n_temp += 1;
 #endif /*HAVE_ORC*/
@@ -244,7 +256,7 @@ vips_vector_full( VipsVector *vector )
 	 */
 	if( vector->n_constant > 16 - 2 )
 		return( TRUE );
-	if( vector->n_source > 8 - 1 )
+	if( vector->n_source + vector->n_scanline > 8 - 1 )
 		return( TRUE );
 	if( vector->n_instruction > 50 )
 		return( TRUE );
@@ -283,10 +295,13 @@ vips_vector_print( VipsVector *vector )
 		printf( "successfully compiled\n" );
 	else
 		printf( "not compiled successfully\n" );
+	printf( "  n_scanline = %d\n", vector->n_scanline );
+	for( i = 0; i < vector->n_scanline; i++ )
+		printf( "        var %d = line %d\n", 
+			vector->sl[i], vector->line[i] ); 
 	printf( "  n_source = %d\n", vector->n_source );
 	for( i = 0; i < vector->n_source; i++ )
-		printf( "        var %d = line %d\n", 
-			vector->var[i], vector->line[i] ); 
+		printf( "        var %d\n", vector->s[i] );
 	printf( "  n_parameter = %d\n", vector->n_parameter );
 	printf( "  n_destination = %d\n", vector->n_destination );
 	printf( "  n_constant = %d\n", vector->n_constant );
@@ -306,7 +321,7 @@ vips_executor_set_program( VipsExecutor *executor, VipsVector *vector, int n )
 }
 
 void
-vips_executor_set_source( VipsExecutor *executor, REGION *ir, int x, int y )
+vips_executor_set_scanline( VipsExecutor *executor, REGION *ir, int x, int y )
 {
 #ifdef HAVE_ORC
 	VipsVector *vector = executor->vector;
@@ -315,9 +330,9 @@ vips_executor_set_source( VipsExecutor *executor, REGION *ir, int x, int y )
 
 	int i;
 
-	for( i = 0; i < vector->n_source; i++ )
+	for( i = 0; i < vector->n_scanline; i++ )
 		orc_executor_set_array( &executor->executor, 
-			vector->var[i], base + vector->line[i] * lsk );
+			vector->sl[i], base + vector->line[i] * lsk );
 #endif /*HAVE_ORC*/
 }
 
@@ -335,9 +350,6 @@ void
 vips_executor_set_array( VipsExecutor *executor, int var, void *value )
 {
 #ifdef HAVE_ORC
-	VipsVector *vector = executor->vector;
-	OrcProgram *program = vector->program;
-
 	if( var != -1 ) 
 		orc_executor_set_array( &executor->executor, var, value );
 #endif /*HAVE_ORC*/

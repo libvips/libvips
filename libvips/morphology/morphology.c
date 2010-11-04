@@ -45,8 +45,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -85,10 +85,6 @@ typedef struct {
         /* The code we generate for this section of this mask. 
 	 */
         VipsVector *vector;
-
-	/* The variable number for r, if we set it (or -1).
-	 */
-	int r;
 } Pass;
 
 /* Our parameters.
@@ -125,7 +121,7 @@ morph_close( Morph *morph )
 }
 
 #define TEMP( N, S ) vips_vector_temporary( v, N, S )
-#define SRC( N, P, S ) vips_vector_source( v, N, P, S )
+#define SCANLINE( N, P, S ) vips_vector_source_scanline( v, N, P, S )
 #define CONST( N, V, S ) vips_vector_constant( v, N, V, S )
 #define ASM2( OP, A, B ) vips_vector_asm2( v, OP, A, B )
 #define ASM3( OP, A, B, C ) vips_vector_asm3( v, OP, A, B, C )
@@ -158,10 +154,7 @@ pass_compile_section( Morph *morph, int first, int *last )
 	pass = &morph->pass[morph->n_pass];
 	morph->n_pass += 1;
 	pass->first = first;
-	pass->r = -1;
 
-	/* Start with a single source scanline, we add more as we need them.
-	 */
 	pass->vector = v = vips_vector_new_ds( "morph", 1, 1 );
 
 	/* The value we fetch from the image, the accumulated sum.
@@ -183,9 +176,9 @@ pass_compile_section( Morph *morph, int first, int *last )
 			ASM2( "copyb", "sum", one );
 	}
 	else {
-		/* "r" is the result of the previous pass.
+		/* "r" is the result of the previous pass. var in s[1].
 		 */
-		pass->r = vips_vector_source_name( v, "r", 1 );
+		vips_vector_source_name( v, "r", 1 );
 		ASM2( "loadb", "sum", "r" );
 	}
 
@@ -198,9 +191,9 @@ pass_compile_section( Morph *morph, int first, int *last )
 		if( mask->coeff[i] == 128 )
 			continue;
 
-		/* The source. s1 is the first scanline in the mask.
+		/* The source. sl0 is the first scanline in the mask.
 		 */
-		SRC( source, y + 1, 1 );
+		SCANLINE( source, y, 1 );
 
 		/* The offset, only for non-first-columns though.
 		 */
@@ -268,7 +261,7 @@ pass_compile( Morph *morph )
 		/* Skip any don't-care coefficients at the start of the mask 
 		 * region.
 		 */
-		for( ; mask->coeff[i] == 128 && i < n_mask; i++ )
+		for( ; i < n_mask && mask->coeff[i] == 128; i++ )
 			;
 		if( i == n_mask )
 			break;
@@ -677,10 +670,10 @@ morph_vector_gen( REGION *or, void *vseq, void *a, void *b )
 			else 
 				d = seq->t2;
 
-			vips_executor_set_source( &executor[j], 
+			vips_executor_set_scanline( &executor[j], 
 				ir, r->left, r->top + y );
-			vips_executor_set_array( &executor[j].executor,
-				morph->pass[j].r, seq->t1 );
+			vips_executor_set_array( &executor[j],
+				morph->pass[j].vector->s[1], seq->t1 );
 			vips_executor_set_destination( &executor[j], d );
 			vips_executor_run( &executor[j] );
 

@@ -205,7 +205,7 @@ conv_evalend( Conv *conv )
 }
 
 #define TEMP( N, S ) vips_vector_temporary( v, N, S )
-#define SRC( N, P, S ) vips_vector_source( v, N, P, S )
+#define SCANLINE( N, P, S ) vips_vector_source_scanline( v, N, P, S )
 #define CONST( N, V, S ) vips_vector_constant( v, N, V, S )
 #define ASM2( OP, A, B ) vips_vector_asm2( v, OP, A, B )
 #define ASM3( OP, A, B, C ) vips_vector_asm3( v, OP, A, B, C )
@@ -278,9 +278,9 @@ conv_compile_convolution_u8s16( Conv *conv )
 			 */
 			continue;
 
-		/* The source. s1 is the first scanline in the mask.
+		/* The source. sl0 is the first scanline in the mask.
 		 */
-		SRC( source, y + 1, 1 );
+		SCANLINE( source, y, 1 );
 
 		/* The offset, only for non-first-columns though.
 		 */
@@ -868,8 +868,8 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 
 	/* Link the combiner to the intermediate buffer.
 	 */
-	vips_executor_set_array( &convolve, "d1", seq->sum );
-	vips_executor_set_array( &clip, "s1", seq->sum );
+	vips_executor_set_destination( &convolve, seq->sum );
+	vips_executor_set_array( &clip, conv->clip->s[0], seq->sum );
 
 	for( y = 0; y < r->height; y++ ) { 
 #ifdef DEBUG_PIXELS
@@ -886,14 +886,15 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 }
 #endif /*DEBUG_PIXELS*/
 
-		vips_executor_set_source( &convolve, ir, r->left, r->top + y );
+		vips_executor_set_scanline( &convolve, 
+			ir, r->left, r->top + y );
 		vips_executor_run( &convolve );
 
 #ifdef DEBUG_PIXELS
 		printf( "before clip: %3d\n", *((signed short *) seq->sum) );
 #endif /*DEBUG_PIXELS*/
 
-		vips_executor_set_array( &clip, "d1", 
+		vips_executor_set_destination( &clip, 
 			IM_REGION_ADDR( or, r->left, r->top + y ) );
 		vips_executor_run( &clip );
 

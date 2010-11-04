@@ -41,6 +41,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#define VIPS_VECTOR_SOURCE_MAX (10)
+
 /* An Orc program. 
  */
 typedef struct {
@@ -51,17 +53,22 @@ typedef struct {
 	/* How many resources we've used so far in this codegen. 
 	 */
 	int n_temp;
+	int n_scanline;
 	int n_source;
 	int n_destination;
 	int n_constant;
 	int n_parameter;
 	int n_instruction;
 
-	/* The sources this program needs. "s1"'s var is always in s[0],
-	 * others may skip lines. 
+	/* The scanline sources, and for each variable, the associated line.
+	 * "sl0" onwards.
 	 */
-	int s[10];
-	int line[10]; 		
+	int sl[VIPS_VECTOR_SOURCE_MAX];
+	int line[VIPS_VECTOR_SOURCE_MAX]; 		
+
+	/* Non-scanline sources, "s1" etc. s[0] is the var for "s1".
+	 */
+	int s[VIPS_VECTOR_SOURCE_MAX];
 
 	/* The destination var.
 	 */
@@ -101,8 +108,9 @@ VipsVector *vips_vector_new_ds( const char *name, int size1, int size2 );
 
 void vips_vector_constant( VipsVector *vector, 
 	char *name, int value, int size );
-int vips_vector_source_name( VipsVector *vector, char *name, int size );
-void vips_vector_source( VipsVector *vector, char *name, int number, int size );
+void vips_vector_source_name( VipsVector *vector, char *name, int size );
+void vips_vector_source_scanline( VipsVector *vector, 
+	char *name, int line, int size );
 void vips_vector_temporary( VipsVector *vector, char *name, int size );
 void vips_vector_asm2( VipsVector *vector, 
 	const char *op, const char *a, const char *b );
@@ -116,7 +124,7 @@ void vips_vector_print( VipsVector *vector );
 
 void vips_executor_set_program( VipsExecutor *executor, 
 	VipsVector *vector, int n );
-void vips_executor_set_source( VipsExecutor *executor, 
+void vips_executor_set_scanline( VipsExecutor *executor, 
 	REGION *ir, int x, int y );
 void vips_executor_set_destination( VipsExecutor *executor, void *value );
 void vips_executor_set_array( VipsExecutor *executor, int var, void *value );

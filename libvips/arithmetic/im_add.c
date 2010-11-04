@@ -345,7 +345,6 @@ im__init_programs( VipsVector *vectors[IM_BANDFMT_LAST],
 		int isize = im__sizeof_bandfmt[fmt];
 		int osize = im__sizeof_bandfmt[format_table[fmt]];
 
-		char source[256];
 		VipsVector *v;
 
 		/* float and double are not handled (well) by ORC.
@@ -358,7 +357,7 @@ im__init_programs( VipsVector *vectors[IM_BANDFMT_LAST],
 
 		v = vectors[fmt] = 
 			vips_vector_new_ds( "binary arith", osize, isize );
-		vips_vector_source( v, source, 2, isize );
+		vips_vector_source_name( v, "s2", isize );
 
 		vips_vector_temporary( v, "t1", osize );
 		vips_vector_temporary( v, "t2", osize );
