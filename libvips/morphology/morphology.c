@@ -441,6 +441,11 @@ dilate_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
+#ifdef DEBUG
+	printf( "dilate_gen: preparing %dx%d@%dx%d pixels\n", 
+		s.width, s.height, s.left, s.top );
+#endif /*DEBUG*/
+
 	/* Scan mask, building offsets we check when processing. Only do this
 	 * if the bpl has changed since the previous im_prepare().
 	 */
@@ -520,7 +525,8 @@ static int
 erode_gen( REGION *or, void *vseq, void *a, void *b )
 {
 	MorphSequence *seq = (MorphSequence *) vseq;
-	INTMASK *msk = (INTMASK *) b;
+	Morph *morph = (Morph *) b;
+	INTMASK *mask = morph->mask;
 	REGION *ir = seq->ir;
 
 	int *soff = seq->soff;
@@ -542,13 +548,14 @@ erode_gen( REGION *or, void *vseq, void *a, void *b )
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
-	s.width += msk->xsize - 1;
-	s.height += msk->ysize - 1;
+	s.width += mask->xsize - 1;
+	s.height += mask->ysize - 1;
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
 #ifdef DEBUG
-	printf( "erode_gen: preparing %dx%d pixels\n", s.width, s.height );
+	printf( "erode_gen: preparing %dx%d@%dx%d pixels\n", 
+		s.width, s.height, s.left, s.top );
 #endif /*DEBUG*/
 
 	/* Scan mask, building offsets we check when processing. Only do this
@@ -559,8 +566,8 @@ erode_gen( REGION *or, void *vseq, void *a, void *b )
 
 		seq->ss = 0;
 		seq->cs = 0;
-		for( t = msk->coeff, y = 0; y < msk->ysize; y++ )
-			for( x = 0; x < msk->xsize; x++, t++ )
+		for( t = mask->coeff, y = 0; y < mask->ysize; y++ )
+			for( x = 0; x < mask->xsize; x++, t++ )
 				switch( *t ) {
 				case 255:
 					soff[seq->ss++] = 
@@ -673,7 +680,7 @@ morph_vector_gen( REGION *or, void *vseq, void *a, void *b )
 		return( -1 );
 
 #ifdef DEBUG
-	printf( "erode_gen: preparing %dx%d@%dx%d pixels\n", 
+	printf( "morph_vector_gen: preparing %dx%d@%dx%d pixels\n", 
 		s.width, s.height, s.left, s.top );
 #endif /*DEBUG*/
 
