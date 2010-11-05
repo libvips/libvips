@@ -82,6 +82,8 @@ typedef struct {
 	int first;		/* The index of the first mask coff we use */
 	int last;		/* The index of the last mask coff we use */
 
+	int r;			/* Set previous result in this var */
+
         /* The code we generate for this section of this mask. 
 	 */
         VipsVector *vector;
@@ -134,26 +136,17 @@ morph_close( Morph *morph )
  * 0 for success, -1 on error.
  */
 static int
-pass_compile_section( Morph *morph, int first, int *last )
+pass_compile_section( Pass *pass, Morph *morph, gboolean first_pass )
 {
 	INTMASK *mask = morph->mask;
 	const int n_mask = mask->xsize * mask->ysize; 
 
-	Pass *pass;
 	VipsVector *v;
 	char offset[256];
 	char source[256];
 	char zero[256];
 	char one[256];
 	int i;
-
-	/* Allocate space for another pass.
-	 */
-	if( morph->n_pass == MAX_PASSES ) 
-		return( -1 );
-	pass = &morph->pass[morph->n_pass];
-	morph->n_pass += 1;
-	pass->first = first;
 
 	pass->vector = v = vips_vector_new( "morph", 1 );
 
@@ -169,20 +162,20 @@ pass_compile_section( Morph *morph, int first, int *last )
 	 * is a later pass, we have to init the sum from the result 
 	 * of the previous pass. 
 	 */
-	if( morph->n_pass == 1 ) {
+	if( first_pass ) {
 		if( morph->op == DILATE )
 			ASM2( "copyb", "sum", zero );
 		else
 			ASM2( "copyb", "sum", one );
 	}
 	else {
-		/* "r" is the result of the previous pass. var in s[1].
+		/* "r" is the result of the previous pass. 
 		 */
-		vips_vector_source_name( v, "r", 1 );
+		pass->r = vips_vector_source_name( v, "r", 1 );
 		ASM2( "loadb", "sum", "r" );
 	}
 
-	for( i = first; i < n_mask; i++ ) {
+	for( i = pass->first; i < n_mask; i++ ) {
 		int x = i % mask->xsize;
 		int y = i / mask->xsize;
 
@@ -224,7 +217,6 @@ pass_compile_section( Morph *morph, int first, int *last )
 	}
 
 	pass->last = i;
-	*last = i;
 
 	ASM2( "copyb", "d1", "sum" );
 
@@ -248,6 +240,7 @@ pass_compile( Morph *morph )
 	const int n_mask = mask->xsize * mask->ysize; 
 
 	int i;
+	Pass *pass;
 
 #ifdef DEBUG
 	printf( "morph: generating vector code\n" );
@@ -256,8 +249,6 @@ pass_compile( Morph *morph )
 	/* Generate passes until we've used up the whole mask.
 	 */
 	for( i = 0;;) {
-		int last;
-
 		/* Skip any don't-care coefficients at the start of the mask 
 		 * region.
 		 */
@@ -266,9 +257,20 @@ pass_compile( Morph *morph )
 		if( i == n_mask )
 			break;
 
-		if( pass_compile_section( morph, i, &last ) ) 
+		/* Allocate space for another pass.
+		 */
+		if( morph->n_pass == MAX_PASSES ) 
 			return( -1 );
-		i = last + 1;
+		pass = &morph->pass[morph->n_pass];
+		morph->n_pass += 1;
+
+		pass->first = i;
+		pass->last = i;
+		pass->r = -1;
+
+		if( pass_compile_section( pass, morph, morph->n_pass == 1 ) )
+			return( -1 );
+		i = pass->last + 1;
 
 		if( i >= n_mask )
 			break;
@@ -673,7 +675,7 @@ morph_vector_gen( REGION *or, void *vseq, void *a, void *b )
 			vips_executor_set_scanline( &executor[j], 
 				ir, r->left, r->top + y );
 			vips_executor_set_array( &executor[j],
-				morph->pass[j].vector->s[1], seq->t1 );
+				morph->pass[j].r, seq->t1 );
 			vips_executor_set_destination( &executor[j], d );
 			vips_executor_run( &executor[j] );
 

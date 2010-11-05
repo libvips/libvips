@@ -208,16 +208,22 @@ vips_vector_constant( VipsVector *vector, char *name, int value, int size )
 #endif /*HAVE_ORC*/
 }
 
-void
+int
 vips_vector_source_name( VipsVector *vector, char *name, int size )
 {
+	int var;
+
 #ifdef HAVE_ORC
 	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
 
-	vector->s[vector->n_source] = 
+	vector->s[vector->n_source] = var =
 		orc_program_add_source( vector->program, size, name );
 	vector->n_source += 1;
+#else /*!HAVE_ORC*/
+	var = -1;
 #endif /*HAVE_ORC*/
+
+	return( var );
 }
 
 void

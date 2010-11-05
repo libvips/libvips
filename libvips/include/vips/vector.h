@@ -108,7 +108,7 @@ VipsVector *vips_vector_new( const char *name, int dsize );
 
 void vips_vector_constant( VipsVector *vector, 
 	char *name, int value, int size );
-void vips_vector_source_name( VipsVector *vector, char *name, int size );
+int vips_vector_source_name( VipsVector *vector, char *name, int size );
 void vips_vector_source_scanline( VipsVector *vector, 
 	char *name, int line, int size );
 void vips_vector_temporary( VipsVector *vector, char *name, int size );
