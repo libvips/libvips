@@ -408,13 +408,6 @@ build_programs( void )
 	vips_vector_asm2( v, "convsbw", "t2", "s2" );
 	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
 
-	/*
-
-	   only the 8-bit ones have a useful speedup, with orc-0.4.11 
-	   on a c2d anyway
-
-	   test this again at some point I guess
-
 	v = add_vectors[IM_BANDFMT_USHORT];
 	vips_vector_asm2( v, "convuwl", "t1", "s1" );
 	vips_vector_asm2( v, "convuwl", "t2", "s2" );
@@ -430,7 +423,6 @@ build_programs( void )
 
 	v = add_vectors[IM_BANDFMT_INT];
 	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
-	 */
 
 	im__compile_programs( add_vectors );
 }
@@ -511,7 +503,7 @@ build_programs( void )
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
  *
- * Operations on 8-bit images are performed using the processor's vector unit,
+ * Operations on integer images are performed using the processor's vector unit,
  * if possible. Disable this with --vips-novector or IM_NOVECTOR.
  *
  * See also: im_subtract(), im_lintra().
