@@ -45,8 +45,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -155,7 +155,7 @@ pass_compile_section( Morph *morph, int first, int *last )
 	morph->n_pass += 1;
 	pass->first = first;
 
-	pass->vector = v = vips_vector_new_ds( "morph", 1, 1 );
+	pass->vector = v = vips_vector_new( "morph", 1 );
 
 	/* The value we fetch from the image, the accumulated sum.
 	 */

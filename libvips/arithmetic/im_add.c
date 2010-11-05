@@ -356,7 +356,8 @@ im__init_programs( VipsVector *vectors[IM_BANDFMT_LAST],
 			continue;
 
 		v = vectors[fmt] = 
-			vips_vector_new_ds( "binary arith", osize, isize );
+			vips_vector_new( "binary arith", osize );
+		vips_vector_source_name( v, "s1", isize );
 		vips_vector_source_name( v, "s2", isize );
 
 		vips_vector_temporary( v, "t1", osize );

@@ -51,6 +51,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <stdlib.h>
+
 #include <vips/vips.h>
 #include <vips/vector.h>
 
@@ -105,7 +107,7 @@ vips_vector_free( VipsVector *vector )
 }
 
 VipsVector *
-vips_vector_new_ds( const char *name, int size1, int size2 )
+vips_vector_new( const char *name, int dsize )
 {
 	VipsVector *vector;
 	int i;
@@ -131,15 +133,15 @@ vips_vector_new_ds( const char *name, int size1, int size2 )
 	vector->compiled = FALSE;
 
 #ifdef HAVE_ORC
-	vector->program = orc_program_new_ds( size1, size2 );
+	vector->program = orc_program_new();
 
-	/* We always make s1 / d1
+	/* We always make d1, our callers make either a single point source, or
+	 * for area ops, a set of scanlines.
 	 */
-	vector->s[0] = orc_program_find_var_by_name( vector->program, "s1" );
-	vector->d1 = orc_program_find_var_by_name( vector->program, "d1" );
-#endif /*HAVE_ORC*/
-	vector->n_source += 1;
+	vector->d1 = orc_program_add_destination( vector->program, 
+		dsize, "d1" );
 	vector->n_destination += 1;
+#endif /*HAVE_ORC*/
 
 	return( vector );
 }
@@ -256,8 +258,13 @@ vips_vector_full( VipsVector *vector )
 	 */
 	if( vector->n_constant > 16 - 2 )
 		return( TRUE );
-	if( vector->n_source + vector->n_scanline > 8 - 1 )
+
+	/* You can have 8 parameters, and d1 counts as one of them, so +1
+	 * there.
+	 */
+	if( vector->n_source + vector->n_scanline + 1 > 7 )
 		return( TRUE );
+
 	if( vector->n_instruction > 50 )
 		return( TRUE );
 
@@ -321,38 +328,35 @@ vips_executor_set_program( VipsExecutor *executor, VipsVector *vector, int n )
 }
 
 void
-vips_executor_set_scanline( VipsExecutor *executor, REGION *ir, int x, int y )
+vips_executor_set_array( VipsExecutor *executor, int var, void *value )
 {
 #ifdef HAVE_ORC
+	if( var != -1 )  
+		orc_executor_set_array( &executor->executor, var, value );
+#endif /*HAVE_ORC*/
+}
+
+void
+vips_executor_set_scanline( VipsExecutor *executor, REGION *ir, int x, int y )
+{
 	VipsVector *vector = executor->vector;
 	PEL *base = (PEL *) IM_REGION_ADDR( ir, x, y );
 	int lsk = IM_REGION_LSKIP( ir );
 
 	int i;
 
-	for( i = 0; i < vector->n_scanline; i++ )
-		orc_executor_set_array( &executor->executor, 
+	for( i = 0; i < vector->n_scanline; i++ ) {
+		vips_executor_set_array( executor, 
 			vector->sl[i], base + vector->line[i] * lsk );
-#endif /*HAVE_ORC*/
+	}
 }
 
 void
 vips_executor_set_destination( VipsExecutor *executor, void *value )
 {
-#ifdef HAVE_ORC
 	VipsVector *vector = executor->vector;
 
-	orc_executor_set_array( &executor->executor, vector->d1, value );
-#endif /*HAVE_ORC*/
-}
-
-void
-vips_executor_set_array( VipsExecutor *executor, int var, void *value )
-{
-#ifdef HAVE_ORC
-	if( var != -1 ) 
-		orc_executor_set_array( &executor->executor, var, value );
-#endif /*HAVE_ORC*/
+	vips_executor_set_array( executor, vector->d1, value );
 }
 
 void

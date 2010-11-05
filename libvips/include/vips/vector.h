@@ -104,7 +104,7 @@ gboolean vips_vector_get_enabled( void );
 void vips_vector_set_enabled( gboolean enabled );
 
 void vips_vector_free( VipsVector *vector );
-VipsVector *vips_vector_new_ds( const char *name, int size1, int size2 );
+VipsVector *vips_vector_new( const char *name, int dsize );
 
 void vips_vector_constant( VipsVector *vector, 
 	char *name, int value, int size );

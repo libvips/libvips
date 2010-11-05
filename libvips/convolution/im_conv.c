@@ -255,9 +255,7 @@ conv_compile_convolution_u8s16( Conv *conv )
 			return( -1 );
 	}
 
-	/* Start with a single source scanline, we add more as we need them.
-	 */
-	conv->convolve = v = vips_vector_new_ds( "conv", 2, 1 );
+	conv->convolve = v = vips_vector_new( "conv", 2 );
 
 	/* The value we fetch from the image, the product with the matrix
 	 * value, the accumulated sum.
@@ -356,7 +354,8 @@ conv_compile_scale_s16u8( Conv *conv )
 		mask->offset < SHRT_MIN ) 
 		return( -1 );
 
-	conv->clip = v = vips_vector_new_ds( "clip", 1, 2 );
+	conv->clip = v = vips_vector_new( "clip", 1 );
+	vips_vector_source_name( v, "s1", 2 );
 
 	TEMP( "t1", 2 );
 	TEMP( "t2", 2 );

@@ -1,12 +1,3 @@
-- we need to have separate sources for scanlines and for other sources
-
-  name scanlines sources as "sl0" onwards
-
-  name regular sources as "s1" onwards
-
-
-
-
 
 - nip2-7.22.3 on Windows is not adding the path you load from to the set of
   paths to search, breaking demo2 for Hamish
@@ -18,9 +9,13 @@
 
 - try using a smaller norm factor in nip2 for sep conv gen there?
 
+
+
+
 - Lan's c4_stats.ws is broken, I guess due to vector stuff
 
-- how much time are we spending setting sources by name, profile!
+
+
 
 - maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
   it, argh
