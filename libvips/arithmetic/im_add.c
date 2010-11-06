@@ -418,11 +418,16 @@ build_programs( void )
 	vips_vector_asm2( v, "convswl", "t2", "s2" );
 	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
 
+	/*
+
+	   uint/int are a little slower than C, on a c2d anyway
+
 	v = add_vectors[IM_BANDFMT_UINT];
 	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
 
 	v = add_vectors[IM_BANDFMT_INT];
 	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
+	 */
 
 	im__compile_programs( add_vectors );
 }
