@@ -16,6 +16,9 @@
  * 29/10/10
  * 	- use VipsVector
  * 	- do erode as well 
+ * 7/11/10
+ * 	- gtk-doc
+ * 	- do (!=0) to make uchar, if we're not given uchar
  */
 
 /*
@@ -286,6 +289,18 @@ morph_new( IMAGE *in, IMAGE *out, INTMASK *mask, MorphOp op )
 
         Morph *morph;
         int i;
+
+	/* If in is not uchar, do (!=0) to make a uchar image.
+	 */
+	if( in->BandFmt != IM_BANDFMT_UCHAR ) {
+		IMAGE *t;
+
+		if( !(t = im_open_local( out, "morph_new", "p" )) ||
+			im_notequalconst( in, t, 0 ) )
+			return( NULL );
+
+		in = t;
+	}
 
 	if( im_piocheck( in, out ) ||
 		im_check_uncoded( "morph", in ) ||
@@ -737,6 +752,8 @@ morphology( IMAGE *in, IMAGE *out, INTMASK *mask, MorphOp op )
 	return( 0 );
 }
 
+/* Keep the _raw versions for compat.
+ */
 int
 im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 {
@@ -755,10 +772,30 @@ im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
  * @out: output image
  * @mask: mask
  *
+ * im_dilate() performs a morphological dilate operation on @in using @mask as a
+ * structuring element. The output pixel is set if any part of the mask 
+ * matches, that is, the result is the logical OR of the selected input pixels.
+ *
+ * The image should have 0 (black) for no object and 255
+ * (non-zero) for an object. Note that this is the reverse of the usual
+ * convention for these operations, but more convenient when combined with the
+ * boolean operators im_andimage() and friends. The output image is the same
+ * size as the input image: edge pxels are made by expanding the input image
+ * as necessary in the manner of im_conv().
+ *
+ * Mask coefficients can be either 0 (for object) or 255 (for background) 
+ * or 128 (for do not care).  The origin of the mask is at location
+ * (m.xsize / 2, m.ysize / 2), integer division.  All algorithms have been 
+ * based on the book "Fundamentals of Digital Image Processing" by A. Jain, 
+ * pp 384-388, Prentice-Hall, 1989. 
+ *
+ * See the boolean operations im_andimage(), im_orimage() and im_eorimage() 
+ * for analogues of the usual set difference and set union operations.
+ *
  * Operations are performed using the processor's vector unit,
  * if possible. Disable this with --vips-novector or IM_NOVECTOR.
  *
- * See also: 
+ * See also: im_erode().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -786,10 +823,30 @@ im_dilate( IMAGE *in, IMAGE *out, INTMASK *mask )
  * @out: output image
  * @mask: mask
  *
+ * im_erode() performs a morphological erode operation on @in using @mask as a
+ * structuring element. The whole mask must match for the output pixel to be
+ * set, that is, the result is the logical AND of the selected input pixels.
+ *
+ * The image should have 0 (black) for no object and 255
+ * (non-zero) for an object. Note that this is the reverse of the usual
+ * convention for these operations, but more convenient when combined with the
+ * boolean operators im_andimage() and friends. The output image is the same
+ * size as the input image: edge pxels are made by expanding the input image
+ * as necessary in the manner of im_conv().
+ *
+ * Mask coefficients can be either 0 (for object) or 255 (for background) 
+ * or 128 (for do not care).  The origin of the mask is at location
+ * (m.xsize / 2, m.ysize / 2), integer division.  All algorithms have been 
+ * based on the book "Fundamentals of Digital Image Processing" by A. Jain, 
+ * pp 384-388, Prentice-Hall, 1989. 
+ *
+ * See the boolean operations im_andimage(), im_orimage() and im_eorimage() 
+ * for analogues of the usual set difference and set union operations.
+ *
  * Operations are performed using the processor's vector unit,
  * if possible. Disable this with --vips-novector or IM_NOVECTOR.
  *
- * See also: 
+ * See also: im_dilate().
  *
  * Returns: 0 on success, -1 on error
  */
