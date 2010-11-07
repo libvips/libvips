@@ -1,3 +1,10 @@
+- im_conv() might now give a speedup on larger masks and with 16 bits?
+
+- im_profile() next
+
+
+
+
 
 - nip2-7.22.3 on Windows is not adding the path you load from to the set of
   paths to search, breaking demo2 for Hamish
