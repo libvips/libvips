@@ -77,7 +77,7 @@ typedef enum {
 /* We can't run more than this many passes. Larger than this and we
  * fall back to C.
  */
-#define MAX_PASSES (10)
+#define MAX_PASS (10)
 
 /* A pass with a vector. 
  */
@@ -103,7 +103,7 @@ typedef struct {
 	/* The passes we generate for this mask.
 	 */
 	int n_pass;	
-	Pass pass[MAX_PASSES];
+	Pass pass[MAX_PASS];
 } Morph;
 
 static void
@@ -262,7 +262,7 @@ pass_compile( Morph *morph )
 
 		/* Allocate space for another pass.
 		 */
-		if( morph->n_pass == MAX_PASSES ) 
+		if( morph->n_pass == MAX_PASS ) 
 			return( -1 );
 		pass = &morph->pass[morph->n_pass];
 		morph->n_pass += 1;
@@ -327,7 +327,7 @@ morph_new( IMAGE *in, IMAGE *out, INTMASK *mask, MorphOp op )
         morph->op = op;
 
         morph->n_pass = 0;
-	for( i = 0; i < MAX_PASSES; i++ )
+	for( i = 0; i < MAX_PASS; i++ )
 		morph->pass[i].vector = NULL;
 
         if( im_add_close_callback( out, 
@@ -655,7 +655,7 @@ morph_vector_gen( REGION *or, void *vseq, void *a, void *b )
 
 	Rect s;
 	int y, j;
-	VipsExecutor executor[MAX_PASSES];
+	VipsExecutor executor[MAX_PASS];
 
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.

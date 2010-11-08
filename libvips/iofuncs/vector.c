@@ -372,4 +372,3 @@ vips_executor_run( VipsExecutor *executor )
 	orc_executor_run( &executor->executor );
 #endif /*HAVE_ORC*/
 }
-

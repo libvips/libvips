@@ -1,6 +1,6 @@
-- im_conv() might now give a speedup on larger masks and with 16 bits?
+- try a 32-bit intermediate for im_conv()
 
-- im_profile() next
+- gtkdoc for im_profile() next
 
 
 
