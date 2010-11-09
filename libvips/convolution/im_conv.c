@@ -103,13 +103,15 @@
 
  	TODO
 
-	- will this change make much difference to the vips benchmark?
+	- tried 8-bit data with a 32-bit intermediate, but it was only 
+	  slightly faster than C
 
-	- try a path with a 32-bit sum for larger matrices / scale / offset, 
+	  16-bit data would be even slower, no speed advantage
 
 	- make up a signed 8-bit code path?
 
-	- try a 16-bit path
+	- make it more like morphology.c: have a param for the result of the 
+	  previous pass rather than a separate combining pass
 
  */
 
