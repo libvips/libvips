@@ -1,21 +1,12 @@
-/* @(#) dir = 0:
- * @(#)		For each vertical line, find the position of the first 
- * @(#)		non-zero pixel from the top. Output is USHORT with 
- * @(#)		width = input width, height = 1.
- * @(#)
- * @(#) dir = 1:
- * @(#)		For each horizontal line, find the position of the first 
- * @(#)		non-zero pixel from the left. Output is USHORT with 
- * @(#)		width = 1, height = input height
- * @(#)
- * @(#) int im_profile( IMAGE *in, IMAGE *out, int dir )
- * @(#)
- * @(#) Returns 0 on success and non-zero on error
+/* find image profiles 
  *
  * 11/8/99 JC
  *	- from im_cntlines()
  * 22/4/04
  *	- now outputs horizontal/vertical image
+ * 9/11/10
+ * 	- any image format, any number of bands
+ * 	- gtk-doc
  */
 
 /*
@@ -55,23 +46,57 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_profile:
+ * @in: input image
+ * @out: output image
+ * @dir: search direction
+ *
+ * im_profile() searches inward from the edge of @in and finds the 
+ * first non-zero pixel. It outputs an image containing a list of the offsets 
+ * for each row or column.
+ *
+ * If @dir == 0, then im_profile() searches down from the top edge, writing an 
+ * image as wide as the input image, but only 1 pixel high, containing the 
+ * number of pixels down to the first non-zero pixel for each column of input 
+ * pixels.
+ *
+ * If @dir == 1, then im_profile() searches across from the left edge, 
+ * writing an image as high as the input image, but only 1 pixel wide, 
+ * containing the number of pixels across to the
+ * first non-zero pixel for each row of input pixels.
+ *
+ * See also: im_cntlines().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_profile( IMAGE *in, IMAGE *out, int dir )
 {
-	int x, y;
+	int sz;
 	unsigned short *buf;
+	int x, y, b;
+
+	/* If in is not uchar, do (!=0) to make a uchar image.
+	 */
+	if( in->BandFmt != IM_BANDFMT_UCHAR ) {
+		IMAGE *t;
+
+		if( !(t = im_open_local( out, "im_profile", "p" )) ||
+			im_notequalconst( in, t, 0 ) )
+			return( -1 );
+
+		in = t;
+	}
 
 	/* Check im.
 	 */
-	if( im_iocheck( in, out ) )
+	if( im_iocheck( in, out ) ||
+		im_check_uncoded( "im_profile", in ) ||
+		im_check_format( "im_profile", in, IM_BANDFMT_UCHAR ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR ||
-		in->Bands != 1 ) {
-		im_error( "im_profile", "%s", 
-			_( "1-band uchar uncoded only" ) );
-		return( -1 ); 
-	}
-	if( dir != 0 && dir != 1 ) {
+	if( dir != 0 && 
+		dir != 1 ) {
 		im_error( "im_profile", "%s", _( "dir not 0 or 1" ) );
 		return( -1 ); 
 	}
@@ -90,19 +115,22 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 	out->BandFmt = IM_BANDFMT_USHORT;
 	if( im_setupout( out ) )
 		return( -1 );
-	if( !(buf = IM_ARRAY( out, out->Xsize, unsigned short )) )
+	sz = IM_IMAGE_N_ELEMENTS( out );
+	if( !(buf = IM_ARRAY( out, sz, unsigned short )) )
 		return( -1 );
 
 	if( dir == 0 ) {
 		/* Find vertical lines.
 		 */
-		for( x = 0; x < in->Xsize; x++ ) {
-			PEL *p = (PEL *) IM_IMAGE_ADDR( in, x, 0 );
+		for( x = 0; x < sz; x++ ) {
+			PEL *p = (PEL *) IM_IMAGE_ADDR( in, 0, 0 ) + x;
 			int lsk = IM_IMAGE_SIZEOF_LINE( in );
 
-			for( y = 0; y < in->Ysize; y++ ) 
-				if( p[y * lsk] )
+			for( y = 0; y < in->Ysize; y++ ) {
+				if( *p )
 					break;
+				p += lsk;
+			}
 
 			buf[x] = y;
 		}
@@ -111,22 +139,28 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 			return( -1 );
 	}
 	else {
-		/* Count horizontal lines.
+		/* Search horizontal lines.
 		 */
 		for( y = 0; y < in->Ysize; y++ ) {
 			PEL *p = (PEL *) IM_IMAGE_ADDR( in, 0, y );
 
-			for( x = 0; x < in->Xsize; x++ ) 
-				if( p[x] )
-					break;
+			for( b = 0; b < in->Bands; b++ ) {
+				PEL *p1;
 
-			buf[0] = x;
+				p1 = p + b;
+				for( x = 0; x < in->Xsize; x++ ) {
+					if( *p1 )
+						break;
+					p1 += in->Bands;
+				}
+
+				buf[b] = x;
+			}
 
 			if( im_writeline( y, out, (PEL *) buf ) )
 				return( -1 );
 		}
 	}
-
 
 	return( 0 );
 }
