@@ -1,15 +1,4 @@
-/* @(#) Rank filter.
- * @(#)
- * @(#) int 
- * @(#) im_rank( in, out, xsize, ysize, order )
- * @(#) IMAGE *in, *out;
- * @(#) int xsize, ysize;
- * @(#) int order;
- * @(#)
- * @(#) Also: im_rank_raw(). As above, but does not add a black border.
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail)
- * @(#) 
+/* Rank filter.
  *
  * Author: JC
  * Written on: 19/8/96
@@ -30,6 +19,9 @@
  *	- sets Xoffset / Yoffset
  * 7/10/04
  *	- oops, im_embed() size was wrong
+ * 10/11/10
+ * 	- cleanups
+ * 	- gtk-doc
  */
 
 /*
@@ -345,22 +337,15 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
 {
 	RankInfo *rnk;
 
-	/* Check parameters.
-	 */
-	if( !in || 
-		in->Coding != IM_CODING_NONE || 
-		vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_rank", "%s", 
-			_( "input non-complex uncoded only" ) );
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_rank", in ) ||
+		im_check_noncomplex( "im_rank", in ) )
 		return( -1 );
-	}
 	if( xsize > 1000 || ysize > 1000 || xsize <= 0 || ysize <= 0 || 
 		order < 0 || order > xsize * ysize - 1 ) {
 		im_error( "im_rank", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
-	if( im_piocheck( in, out ) )
-		return( -1 );
 
 	/* Save parameters.
 	 */
@@ -402,18 +387,46 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
 	return( 0 );
 }
 
-/* The above, with a border to make out the same size as in.
+
+/**
+ * im_rank:
+ * @in: input image
+ * @out: output image
+ * @width: window width
+ * @height: window height
+ * @order: select which
+ *
+ * im_rank() does rank filtering on an image. A window of size @width by
+ * @height is passed over the image. At each position, the pixels inside the 
+ * window are sorted into ascending order and the pixel at position @order is 
+ * output. @order numbers from 0.
+ *
+ * It works for any non-complex image type, with any number of bands. 
+ * The input is expanded by copying edge pixels before performing the 
+ * operation so that the output image has the same size as the input. 
+ * Edge pixels in the output image are therefore only approximate.
+ *
+ * For a median filter with mask size m (3 for 3x3, 5 for 5x5, etc.) use
+ *
+ *  im_rank( in, out, m, m, m * m / 2 );
+ *
+ * The special cases n == 0 and n == m * m - 1 are useful dilate and 
+ * expand operators.
+ *
+ * See also: im_conv(), im_fastcor().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
-im_rank( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
+im_rank( IMAGE *in, IMAGE *out, int width, int height, int order )
 {
-	IMAGE *t1 = im_open_local( out, "im_rank:1", "p" );
+	IMAGE *t1;
 
-	if( !t1 || 
+	if( !(t1 = im_open_local( out, "im_rank", "p" )) ||
 		im_embed( in, t1, 1, 
-			xsize/2, ysize/2, 
-			in->Xsize + xsize - 1, in->Ysize + ysize - 1 ) ||
-		im_rank_raw( t1, out, xsize, ysize, order ) )
+			width / 2, height / 2, 
+			in->Xsize + width - 1, in->Ysize + height - 1 ) ||
+		im_rank_raw( t1, out, width, height, order ) )
 		return( -1 );
 
 	out->Xoffset = 0;

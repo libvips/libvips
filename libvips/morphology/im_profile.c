@@ -11,6 +11,14 @@
 
 /*
 
+   	TODO
+
+	- walk a region over the image and avoid wio
+
+ */
+
+/*
+
     This file is part of VIPS.
     
     VIPS is free software; you can redistribute it and/or modify
