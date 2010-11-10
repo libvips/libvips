@@ -394,7 +394,7 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
  * @out: output image
  * @width: window width
  * @height: window height
- * @order: select which
+ * @order: select pixel
  *
  * im_rank() does rank filtering on an image. A window of size @width by
  * @height is passed over the image. At each position, the pixels inside the 

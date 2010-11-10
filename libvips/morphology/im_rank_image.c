@@ -1,14 +1,10 @@
-/* @(#) Sort a set of images, pixelwise, and pick out the index at each point.
- * @(#)
- * @(#) int im_rank_image( imarray, imout, no, index )
- * @(#) IMAGE *imarray[], *imout;
- * @(#) int no, index;
- * @(#)
- * @(#) All functions return 0 on success and -1 on error
- * @(#)
+/* Sort a set of images, pixelwise, and pick out the index at each point.
  *
  * 19/8/03
  *	- from im_maxvalue(), via im_gbandjoin()
+ * 10/11/10
+ * 	- gtkdoc
+ * 	- cleanups
  */
 
 /*
@@ -269,10 +265,28 @@ rank_gen( REGION *or, void *vseq, void *a, void *b )
 	return( 0 );
 }
 
-/* pair-wise rank of a vector of image descriptors.
+/**
+ * im_rank_image:
+ * @in: input image array
+ * @out: output image
+ * @n: number of input images
+ * @order: select pixel
+ *
+ * im_rank_image() sorts the input images pixel-wise, then outputs an image 
+ * in which each pixel is selected from the sorted list by the 
+ * @order parameter. For example, if @order
+ * is zero, then each output pixel will be the minimum of all the 
+ * corresponding input pixels. 
+ *
+ * It works for any uncoded, non-complex image type. All input images must 
+ * match in size, format, and number of bands.
+ *
+ * See also: im_rank(), im_maxvalue().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
-im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
+im_rank_image( IMAGE **in, IMAGE *out, int n, int order )
 {
 	int i;
 	Rank *rank;
@@ -281,7 +295,7 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 		im_error( "im_rank_image", "%s", _( "zero input images!" ) );
 		return( -1 );
 	}
-	if( index < 0 || index > n - 1 ) {
+	if( order < 0 || order > n - 1 ) {
 		im_error( "im_rank_image", 
 			_( "index should be in range 0 - %d" ), n - 1 );
 		return( -1 );
@@ -297,7 +311,7 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 			im_check_bands_same( "im_rank_image", in[i], in[0] ) )
 			return( -1 );
 
-	if( !(rank = rank_new( in, out, n, index )) ||
+	if( !(rank = rank_new( in, out, n, order )) ||
 		im_cp_desc_array( out, rank->in ) ||
 		im_demand_hint_array( out, IM_THINSTRIP, rank->in )  ||
 		im_generate( out, 
@@ -307,6 +321,25 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 	return( 0 );
 }
 
+/**
+ * im_maxvalue:
+ * @in: input image array
+ * @out: output image
+ * @n: number of input images
+ *
+ * im_maxvalue() sorts the input images pixel-wise, then outputs an image 
+ * in which each pixel is 
+ * @order parameter. For example, if @order
+ * is zero, then each output pixel will be the minimum of all the 
+ * corresponding input pixels. 
+ *
+ * It works for any uncoded, non-complex image type. All input images must 
+ * match in size, format, and number of bands.
+ *
+ * See also: im_rank(), im_maxvalue().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_maxvalue( IMAGE **in, IMAGE *out, int n )
 {
