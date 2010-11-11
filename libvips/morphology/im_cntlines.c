@@ -64,7 +64,7 @@
  * Xsize or Ysize and returns the mean of the result
  * Input should be one band, 8-bit.
  *
- * See also: im_erode().
+ * See also: im_erode(), im_zerox(), im_conv().
  *
  * Returns: 0 on success, -1 on error.
  */
