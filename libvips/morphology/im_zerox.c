@@ -137,7 +137,7 @@ zerox_gen( REGION *or, void *seq, void *a, void *b )
  * Returns: 0 on success, -1 on error
  */
 int 
-im_zerox( IMAGE *in, IMAGE *out, int flag )
+im_zerox( IMAGE *in, IMAGE *out, int sign )
 {
 	IMAGE *t1;
 

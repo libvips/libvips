@@ -262,7 +262,7 @@ make_pixel( IMAGE *out, VipsBandFmt fmt, int n, double *p )
 }
 
 int 
-im__arith_binary_const( const char *name,
+im__arith_binary_const( const char *domain,
 	IMAGE *in, IMAGE *out, 
 	int n, double *c, VipsBandFmt vfmt,
 	int format_table[10], 
@@ -271,8 +271,8 @@ im__arith_binary_const( const char *name,
 	PEL *vector;
 
 	if( im_piocheck( in, out ) ||
-		im_check_vector( name, n, in ) ||
-		im_check_uncoded( name, in ) )
+		im_check_vector( domain, n, in ) ||
+		im_check_uncoded( domain, in ) )
 		return( -1 );
 	if( im_cp_desc( out, in ) )
 		return( -1 );
@@ -297,8 +297,8 @@ im__arith_binary_const( const char *name,
 	if( n > 1 && out->Bands == 1 ) {
 		IMAGE *t;
 
-		if( !(t = im_open_local( out, "arith_binary_const", "p" )) ||
-			im__bandup( in, t, n ) )
+		if( !(t = im_open_local( out, domain, "p" )) ||
+			im__bandup( domain, in, t, n ) )
 			return( -1 );
 
 		in = t;

@@ -5,6 +5,7 @@
  * 10/11/10
  * 	- gtkdoc
  * 	- cleanups
+ * 	- any mix of formats and bands
  */
 
 /*
@@ -43,6 +44,7 @@
 #include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -63,7 +65,7 @@ static Rank *
 rank_new( IMAGE **in, IMAGE *out, int n, int index )
 {
 	Rank *rank;
-	int i;
+	IMAGE **t;
 
 	if( !(rank = IM_NEW( out, Rank )) )
 		return( NULL );
@@ -71,10 +73,17 @@ rank_new( IMAGE **in, IMAGE *out, int n, int index )
 	rank->n = n;
 	rank->index = index;
 	rank->out = out;
-	if( !(rank->in = IM_ARRAY( out, n + 1, IMAGE * )) ) 
+	if( !(t = IM_ARRAY( out, n, IMAGE * )) || 
+		!(rank->in = IM_ARRAY( out, n + 1, IMAGE * )) ) 
 		return( NULL );
-	for( i = 0; i < n; i++ ) 
-		rank->in[i] = in[i];
+
+	/* Cast inputs up to a common format, common bands.
+	 */
+	if( im_open_local_array( out, rank->in, n, "im_rank_image", "p" ) ||
+		im_open_local_array( out, rank->in, n, "im_rank_image", "p" ) ||
+		im__bandalike_vec( "im_rank_image", in, t, n ) ||
+		im__formatalike_vec( t, rank->in, n ) )
+		return( NULL );
 	rank->in[n] = NULL;
 
 	return( rank );
@@ -270,23 +279,27 @@ rank_gen( REGION *or, void *vseq, void *a, void *b )
  * @in: input image array
  * @out: output image
  * @n: number of input images
- * @order: select pixel
+ * @index: select pixel
  *
- * im_rank_image() sorts the input images pixel-wise, then outputs an image 
- * in which each pixel is selected from the sorted list by the 
- * @order parameter. For example, if @order
+ * im_rank_image() sorts the images @in pixel-wise, then outputs an 
+ * image in which each pixel is selected from the sorted list by the 
+ * @index parameter. For example, if @index
  * is zero, then each output pixel will be the minimum of all the 
  * corresponding input pixels. 
  *
- * It works for any uncoded, non-complex image type. All input images must 
- * match in size, format, and number of bands.
+ * It works for any uncoded, non-complex image type. Images are cast up to the
+ * smallest common-format.
+ *
+ * Any image can have either 1 band or n bands, where n is the same for all
+ * the non-1-band images. Single band images are then effectively copied to 
+ * make n-band images.
  *
  * See also: im_rank(), im_maxvalue().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-im_rank_image( IMAGE **in, IMAGE *out, int n, int order )
+im_rank_image( IMAGE **in, IMAGE *out, int n, int index )
 {
 	int i;
 	Rank *rank;
@@ -295,7 +308,7 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int order )
 		im_error( "im_rank_image", "%s", _( "zero input images!" ) );
 		return( -1 );
 	}
-	if( order < 0 || order > n - 1 ) {
+	if( index < 0 || index > n - 1 ) {
 		im_error( "im_rank_image", 
 			_( "index should be in range 0 - %d" ), n - 1 );
 		return( -1 );
@@ -306,12 +319,10 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int order )
 		if( im_pincheck( in[i] ) ||
 			im_check_uncoded( "im_rank_image", in[i] ) ||
 			im_check_noncomplex( "im_rank_image", in[i] ) ||
-			im_check_size_same( "im_rank_image", in[i], in[0] ) ||
-			im_check_format_same( "im_rank_image", in[i], in[0] ) ||
-			im_check_bands_same( "im_rank_image", in[i], in[0] ) )
+			im_check_size_same( "im_rank_image", in[i], in[0] ) )
 			return( -1 );
 
-	if( !(rank = rank_new( in, out, n, order )) ||
+	if( !(rank = rank_new( in, out, n, index )) ||
 		im_cp_desc_array( out, rank->in ) ||
 		im_demand_hint_array( out, IM_THINSTRIP, rank->in )  ||
 		im_generate( out, 
@@ -327,16 +338,17 @@ im_rank_image( IMAGE **in, IMAGE *out, int n, int order )
  * @out: output image
  * @n: number of input images
  *
- * im_maxvalue() sorts the input images pixel-wise, then outputs an image 
- * in which each pixel is 
- * @order parameter. For example, if @order
- * is zero, then each output pixel will be the minimum of all the 
- * corresponding input pixels. 
+ * im_maxvalue() is a convenience function over im_rank_image(). It sorts the 
+ * input images pixel-wise, then outputs an image 
+ * in which each pixel is the maximum  of all the corresponding input images. 
+ * It works for any uncoded, non-complex image type. Images are cast up to the
+ * smallest common-format.
  *
- * It works for any uncoded, non-complex image type. All input images must 
- * match in size, format, and number of bands.
+ * Any image can have either 1 band or n bands, where n is the same for all
+ * the non-1-band images. Single band images are then effectively copied to 
+ * make n-band images.
  *
- * See also: im_rank(), im_maxvalue().
+ * See also: im_rank_image().
  *
  * Returns: 0 on success, -1 on error
  */

@@ -378,7 +378,7 @@ im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	/* Make a and b match in bands and format.
 	 */
 	if( im__formatalike( a, b, t[2], t[3] ) ||
-		im__bandalike( t[2], t[3], t[4], t[5] ) )
+		im__bandalike( "im_blend", t[2], t[3], t[4], t[5] ) )
 		return( -1 );
 
 	if( blend( c, t[4], t[5], t[6] ) )

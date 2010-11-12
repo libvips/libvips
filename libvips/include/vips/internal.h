@@ -151,15 +151,17 @@ char *im__gslist_gvalue_get( const GSList *list );
 
 void im__buffer_init( void );
 
-int im__bandup( IMAGE *in, IMAGE *out, int n );
-int im__bandalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 );
+int im__bandup( const char *domain, IMAGE *in, IMAGE *out, int n );
+int im__bandalike_vec( const char *domain, IMAGE **in, IMAGE **out, int n );
+int im__bandalike( const char *domain, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 );
 int im__formatalike_vec( IMAGE **in, IMAGE **out, int n );
 int im__formatalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 );
-int im__arith_binary( const char *name, 
+int im__arith_binary( const char *domain, 
 	IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	int format_table[10], 
 	im_wrapmany_fn fn, void *b );
-int im__arith_binary_const( const char *name,
+int im__arith_binary_const( const char *domain,
 	IMAGE *in, IMAGE *out, 
 	int n, double *c, VipsBandFmt vfmt,
 	int format_table[10], 

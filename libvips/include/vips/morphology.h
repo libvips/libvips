@@ -37,15 +37,15 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_dilate( IMAGE *in, IMAGE *out, INTMASK *m );
-int im_erode( IMAGE *in, IMAGE *out, INTMASK *m );
+int im_dilate( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_erode( IMAGE *in, IMAGE *out, INTMASK *mask );
 
-int im_rank( IMAGE *in, IMAGE *out, int xsize, int ysize, int order );
+int im_rank( IMAGE *in, IMAGE *out, int width, int height, int index );
 int im_rank_image( IMAGE **in, IMAGE *out, int n, int index );
 int im_maxvalue( IMAGE **in, IMAGE *out, int n );
 
 int im_cntlines( IMAGE *im, double *nolines, int flag );
-int im_zerox( IMAGE *in, IMAGE *out, int flag );
+int im_zerox( IMAGE *in, IMAGE *out, int sign );
 int im_profile( IMAGE *in, IMAGE *out, int dir );
 int im_label_regions( IMAGE *test, IMAGE *mask, int *segments );
 

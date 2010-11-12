@@ -97,17 +97,13 @@ join_buffer( PEL **p, PEL *q, int n, IMAGE *im )
  *
  * Compose two real images to make a complex image. If either @in1 or @in2 are
  * %IM_BANDFMT_DOUBLE, @out is %IM_BANDFMT_DPCOMPLEX. Otherwise @out is
- * %IM_BANDFMT_COMPLEX. @in1 becomes the real component fo @out and @in2 the
+ * %IM_BANDFMT_COMPLEX. @in1 becomes the real component of @out and @in2 the
  * imaginary.
  *
  * If the number of bands differs, one of the images 
  * must have one band. In this case, an n-band image is formed from the 
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
  *
  * See also: im_c2real(), im_c2imag().
  *
@@ -141,7 +137,7 @@ im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	if( im_open_local_array( out, t, 4, "im_ri2c", "p" ) ||
 		im_clip2fmt( in1, t[0], fmt ) ||
 		im_clip2fmt( in2, t[1], fmt ) ||
-		im__bandalike( t[0], t[1], t[2], t[3] ) )
+		im__bandalike( "im_ri2c", t[0], t[1], t[2], t[3] ) )
 		return( -1 );
 
 	/* Remember to NULL-terminate.

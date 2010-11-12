@@ -70,7 +70,7 @@
 typedef struct {
 	IMAGE *in, *out;	/* Images we run */
 	int xsize, ysize;	/* Window size */
-	int order;		/* Element select */
+	int index;		/* Element select */
 	int n;			/* xsize * ysize */
 } RankInfo;
 
@@ -142,7 +142,7 @@ rank_start( IMAGE *out, void *a, void *b )
 			d += ls; \
 		} \
 		\
-		/* Rearrange sort[] to make the order-th element the order-th 
+		/* Rearrange sort[] to make the index-th element the index-th 
 		 * smallest, adapted from Numerical Recipes in C.
 		 */ \
 		lower = 0;	/* Range we know the result lies in */ \
@@ -202,14 +202,14 @@ rank_start( IMAGE *out, void *a, void *b )
 				\
 				/* Move to partition with the kth element. 
 				 */ \
-				if( j >= rnk->order ) \
+				if( j >= rnk->index ) \
 					upper = j - 1; \
-				if( j <= rnk->order ) \
+				if( j <= rnk->index ) \
 					lower = i; \
 			} \
 		} \
 		\
-		q[x] = sort[rnk->order]; \
+		q[x] = sort[rnk->index]; \
 	} \
 }
 
@@ -320,9 +320,9 @@ rank_gen( REGION *or, void *vseq, void *a, void *b )
 	ls = IM_REGION_LSKIP( ir ) / IM_IMAGE_SIZEOF_ELEMENT( in );
 
 	for( y = to; y < bo; y++ ) { 
-		if( rnk->order == 0 )
+		if( rnk->index == 0 )
 			SWITCH( LOOP_MIN )
-		else if( rnk->order == rnk->n - 1 ) 
+		else if( rnk->index == rnk->n - 1 ) 
 			SWITCH( LOOP_MAX )
 		else 
 			SWITCH( LOOP_SELECT ) }
@@ -333,7 +333,7 @@ rank_gen( REGION *or, void *vseq, void *a, void *b )
 /* Rank filter.
  */
 int
-im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
+im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int index )
 {
 	RankInfo *rnk;
 
@@ -342,7 +342,7 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
 		im_check_noncomplex( "im_rank", in ) )
 		return( -1 );
 	if( xsize > 1000 || ysize > 1000 || xsize <= 0 || ysize <= 0 || 
-		order < 0 || order > xsize * ysize - 1 ) {
+		index < 0 || index > xsize * ysize - 1 ) {
 		im_error( "im_rank", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
@@ -355,7 +355,7 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
 	rnk->out = out;
 	rnk->xsize = xsize;
 	rnk->ysize = ysize;
-	rnk->order = order;
+	rnk->index = index;
 	rnk->n = xsize * ysize;
 
 	/* Prepare output. Consider a 7x7 window and a 7x7 image --- the output
@@ -394,12 +394,12 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
  * @out: output image
  * @width: window width
  * @height: window height
- * @order: select pixel
+ * @index: select pixel
  *
  * im_rank() does rank filtering on an image. A window of size @width by
  * @height is passed over the image. At each position, the pixels inside the 
- * window are sorted into ascending order and the pixel at position @order is 
- * output. @order numbers from 0.
+ * window are sorted into ascending order and the pixel at position @index is 
+ * output. @index numbers from 0.
  *
  * It works for any non-complex image type, with any number of bands. 
  * The input is expanded by copying edge pixels before performing the 
@@ -418,7 +418,7 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int order )
  * Returns: 0 on success, -1 on error
  */
 int 
-im_rank( IMAGE *in, IMAGE *out, int width, int height, int order )
+im_rank( IMAGE *in, IMAGE *out, int width, int height, int index )
 {
 	IMAGE *t1;
 
@@ -426,7 +426,7 @@ im_rank( IMAGE *in, IMAGE *out, int width, int height, int order )
 		im_embed( in, t1, 1, 
 			width / 2, height / 2, 
 			in->Xsize + width - 1, in->Ysize + height - 1 ) ||
-		im_rank_raw( t1, out, width, height, order ) )
+		im_rank_raw( t1, out, width, height, index ) )
 		return( -1 );
 
 	out->Xoffset = 0;

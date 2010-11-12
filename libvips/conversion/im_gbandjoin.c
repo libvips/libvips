@@ -66,7 +66,7 @@
 /* Struct we carry stuff around in.
  */
 typedef struct joins {
-	int n;		/* Number of input images */
+	int n;			/* Number of input images */
 	IMAGE **in;		/* Array of input images, NULL-terminated */
 	int *is;		/* An int for SIZEOF_PEL() for each image */
 } Join;

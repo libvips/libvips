@@ -711,7 +711,7 @@ int
 im_check_bands( const char *domain, IMAGE *im, int bands )
 {
 	if( im->Bands != bands ) {
-		im_error( domain, _( "image must %d bands" ), bands );
+		im_error( domain, _( "image must have %d bands" ), bands );
 		return( -1 );
 	}
 
@@ -735,7 +735,8 @@ int
 im_check_bands_1or3( const char *domain, IMAGE *im )
 {
 	if( im->Bands != 1 && im->Bands != 3 ) {
-		im_error( domain, "%s", _( "image must one or three bands" ) );
+		im_error( domain, "%s", 
+			_( "image must have one or three bands" ) );
 		return( -1 );
 	}
 

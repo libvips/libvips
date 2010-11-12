@@ -216,7 +216,7 @@ im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	 * special-case this in code above ^^^ for speed.
 	 */
 	if( im__formatalike( a, b, t[0], t[1] ) ||
-		im__bandalike( t[0], t[1], t[2], t[3] ) )
+		im__bandalike( "im_ifthenelse", t[0], t[1], t[2], t[3] ) )
 		return( -1 );
 
 	/* If c is not uchar, do (!=0) to make a uchar image.

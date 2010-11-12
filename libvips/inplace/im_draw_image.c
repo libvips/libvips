@@ -89,7 +89,7 @@ im__inplace_base( const char *domain,
 	/* Cast sub to match main in bands and format.
 	 */
 	if( im_open_local_array( out, t, 2, domain, "p" ) ||
-		im__bandup( sub, t[0], main->Bands ) ||
+		im__bandup( domain, sub, t[0], main->Bands ) ||
 		im_clip2fmt( t[0], t[1], main->BandFmt ) )
 		return( NULL );
 

@@ -237,7 +237,7 @@ im__formatalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
 /* Make an n-band image. Input 1 or n bands.
  */
 int
-im__bandup( IMAGE *in, IMAGE *out, int n )
+im__bandup( const char *domain, IMAGE *in, IMAGE *out, int n )
 {
 	IMAGE *bands[256];
 	int i;
@@ -245,11 +245,11 @@ im__bandup( IMAGE *in, IMAGE *out, int n )
 	if( in->Bands == n ) 
 		return( im_copy( in, out ) );
 	if( in->Bands != 1 ) {
-		im_error( "im__bandup", _( "not one band or %d bands" ), n );
+		im_error( domain, _( "not one band or %d bands" ), n );
 		return( -1 );
 	}
 	if( n > 256 || n < 1 ) {
-		im_error( "im__bandup", "%s", _( "bad bands" ) );
+		im_error( domain, "%s", _( "bad bands" ) );
 		return( -1 );
 	}
 
@@ -260,12 +260,35 @@ im__bandup( IMAGE *in, IMAGE *out, int n )
 }
 
 int
-im__bandalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
+im__bandalike_vec( const char *domain, IMAGE **in, IMAGE **out, int n )
 {
-	if( im_check_bands_1orn( "im__bandalike", in1, in2 ) )
-		return( -1 );
-	if( im__bandup( in1, out1, IM_MAX( in1->Bands, in2->Bands ) ) ||
-		im__bandup( in2, out2, IM_MAX( in1->Bands, in2->Bands ) ) )
+	int i;
+	int max_bands;
+
+	g_assert( n >= 1 );
+
+	max_bands = in[0]->Bands;
+	for( i = 1; i < n; i++ )
+		max_bands = IM_MAX( max_bands, in[i]->Bands );
+	for( i = 0; i < n; i++ )
+		if( im__bandup( domain, in[i], out[i], max_bands ) )
+			return( -1 );
+
+	return( 0 );
+}
+
+int
+im__bandalike( const char *domain, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
+{
+	IMAGE *in[2];
+	IMAGE *out[2];
+
+	in[0] = in1;
+	in[1] = in2;
+	out[0] = out1;
+	out[1] = out2;
+	if( im__bandalike_vec( domain, in, out, 2 ) )
 		return( -1 );
 
 	return( 0 );
@@ -301,7 +324,7 @@ im__arith_binary( const char *domain,
 	 */
 	if( im_open_local_array( out, t, 4, domain, "p" ) ||
 		im__formatalike( in1, in2, t[0], t[1] ) ||
-		im__bandalike( t[0], t[1], t[2], t[3] ) )
+		im__bandalike( domain, t[0], t[1], t[2], t[3] ) )
 		return( -1 );
 
 	/* Generate the output.

@@ -97,7 +97,7 @@ im__insert_base( const char *domain,
 	 */
 	if( im_open_local_array( out, t, 4, domain, "p" ) ||
 		im__formatalike( in1, in2, t[0], t[1] ) ||
-		im__bandalike( t[0], t[1], t[2], t[3] ) ||
+		im__bandalike( domain, t[0], t[1], t[2], t[3] ) ||
 		!(vec = im_allocate_input_array( out, t[2], t[3], NULL )) )
 		return( NULL );
 
