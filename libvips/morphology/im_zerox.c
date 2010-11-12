@@ -141,7 +141,7 @@ im_zerox( IMAGE *in, IMAGE *out, int sign )
 {
 	IMAGE *t1;
 
-	if( flag != -1 && flag != 1 ) {
+	if( sign != -1 && sign != 1 ) {
 		im_error( "im_zerox", "%s", _( "flag not -1 or 1" ) );
 		return( -1 );
 	}
@@ -174,7 +174,7 @@ im_zerox( IMAGE *in, IMAGE *out, int sign )
 	/* Generate image.
 	 */
 	if( im_generate( t1, im_start_one, zerox_gen, im_stop_one, 
-		in, GINT_TO_POINTER( flag ) ) )
+		in, GINT_TO_POINTER( sign ) ) )
 		return( -1 );
 
 	/* Now embed it in a larger image.
