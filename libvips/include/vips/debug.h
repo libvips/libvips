@@ -36,34 +36,34 @@ extern "C" {
 
 #ifdef VIPS_DEBUG
 #define VIPS_DEBUG_MSG( ... ) \
-	G_STMT_START printf( __VA_ARGS__ ); G_STMT_END
+	G_STMT_START { printf( __VA_ARGS__ ); } G_STMT_END
 #else
 #define VIPS_DEBUG_MSG( ... ) \
-	G_STMT_START ; G_STMT_END
+	G_STMT_START { ; } G_STMT_END
 #endif /*VIPS_DEBUG*/
 
 #ifdef VIPS_DEBUG_RED
 #define VIPS_DEBUG_MSG_RED( ... ) \
-	G_STMT_START printf( "red: " __VA_ARGS__ ); G_STMT_END
+	G_STMT_START { printf( "red: " __VA_ARGS__ ); } G_STMT_END
 #else
 #define VIPS_DEBUG_MSG_RED( ... ) \
-	G_STMT_START ; G_STMT_END
+	G_STMT_START { ; } G_STMT_END
 #endif /*VIPS_DEBUG_RED*/
 
 #ifdef VIPS_DEBUG_AMBER
 #define VIPS_DEBUG_MSG_AMBER( ... ) \
-	G_STMT_START printf( "amber: " __VA_ARGS__ ); G_STMT_END
+	G_STMT_START { printf( "amber: " __VA_ARGS__ ); } G_STMT_END
 #else
 #define VIPS_DEBUG_MSG_AMBER( ... ) \
-	G_STMT_START ; G_STMT_END
+	G_STMT_START { ; } G_STMT_END
 #endif /*VIPS_DEBUG_AMBER*/
 
 #ifdef VIPS_DEBUG_GREEN
 #define VIPS_DEBUG_MSG_GREEN( ... ) \
-	G_STMT_START printf( "green: " __VA_ARGS__ ); G_STMT_END
+	G_STMT_START { printf( "green: " __VA_ARGS__ ); } G_STMT_END
 #else
 #define VIPS_DEBUG_MSG_GREEN( ... ) \
-	G_STMT_START ; G_STMT_END
+	G_STMT_START { ; } G_STMT_END
 #endif /*VIPS_DEBUG_GREEN*/
 
 /* All open image descriptors ... see im_init() and im_close().

@@ -175,7 +175,7 @@ rank_start( IMAGE *out, void *a, void *b )
 						sort[lower + 1], sort[upper] );\
 				if( sort[lower] > sort[lower + 1] ) \
 					IM_SWAP( TYPE, \
-						sort[lower], sort[lower + 1] ) \
+						sort[lower], sort[lower + 1] );\
 				\
 				i = lower + 1; \
 				j = upper; \

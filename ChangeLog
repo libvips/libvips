@@ -46,6 +46,7 @@
 - im_profile() works for any image format, any number of bands
 - im_rank_image() works for mix of formats, bands
 - morph gtk-doc done
+- oops, missing braces in debug.h and util.h, thanks Laurence
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if
