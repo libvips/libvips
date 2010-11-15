@@ -79,7 +79,7 @@ rank_new( IMAGE **in, IMAGE *out, int n, int index )
 
 	/* Cast inputs up to a common format, common bands.
 	 */
-	if( im_open_local_array( out, rank->in, n, "im_rank_image", "p" ) ||
+	if( im_open_local_array( out, t, n, "im_rank_image", "p" ) ||
 		im_open_local_array( out, rank->in, n, "im_rank_image", "p" ) ||
 		im__bandalike_vec( "im_rank_image", in, t, n ) ||
 		im__formatalike_vec( t, rank->in, n ) )
