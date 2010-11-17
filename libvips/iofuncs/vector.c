@@ -88,7 +88,11 @@ vips_vector_init( void )
 gboolean 
 vips_vector_get_enabled( void )
 {
+#ifdef HAVE_ORC
 	return( im__vector_enabled );
+#else /*!HAVE_ORC*/
+	return( FALSE );
+#endif /*HAVE_ORC*/
 }
 
 void 
