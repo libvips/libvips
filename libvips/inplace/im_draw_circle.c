@@ -131,6 +131,8 @@ circle_new( IMAGE *im, int cx, int cy, int radius, gboolean fill, PEL *ink )
 {
 	Circle *circle;
 
+	if( im_check_coding_known( "im_draw_circle", im ) )
+		return( NULL );
 	if( !(circle = IM_NEW( NULL, Circle )) )
 		return( NULL );
 	if( !im__draw_init( DRAW( circle ), im, ink ) ) {
@@ -201,9 +203,7 @@ im_draw_circle( VipsImage *image,
 		y + radius >= 0 && y - radius < image->Ysize ) {
 		Circle *circle;
 
-		if( im_check_coding_known( "im_draw_circle", image ) ||
-			!(circle = circle_new( image, 
-				x, y, radius, fill, ink )) )
+		if( !(circle = circle_new( image, x, y, radius, fill, ink )) )
 			return( -1 );
 		circle_draw( circle );
 

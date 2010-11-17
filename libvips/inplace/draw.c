@@ -2,6 +2,8 @@
  *
  * 27/9/10
  *	- from im_draw_circle()
+ * 17/11/10
+ * 	- oops, scanline clipping was off by 1
  */
 
 /*
@@ -56,11 +58,11 @@ im__draw_scanline( Draw *draw, int y, int x1, int x2 )
 
 	g_assert( x1 <= x2 );
 
-	if( y < 0 || y > draw->im->Ysize )
+	if( y < 0 || y >= draw->im->Ysize )
 		return;
 	if( x1 < 0 && x2 < 0 )
 		return;
-	if( x1 > draw->im->Xsize && x2 > draw->im->Xsize )
+	if( x1 >= draw->im->Xsize && x2 >= draw->im->Xsize )
 		return;
 	x1 = IM_CLIP( 0, x1, draw->im->Xsize - 1 );
 	x2 = IM_CLIP( 0, x2, draw->im->Xsize - 1 );
