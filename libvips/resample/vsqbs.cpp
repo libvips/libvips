@@ -54,8 +54,8 @@
  * implemented as if there is no subdivision.
  *
  * At high enlargement ratios, VSQBS is very effective at "masking"
- * that that the original has pixels uniformly distributed on a
- * grid. In particular, VSQBS produces resamples with only very mild
+ * that the original has pixels uniformly distributed on a grid. In
+ * particular, VSQBS produces resamples with only very mild
  * staircasing. Like cubic B-Spline smoothing, however, VSQBS is not
  * an interpolatory method. For example, using VSQBS to perform the
  * identity geometric transformation (enlargement by a scaling factor
