@@ -1072,7 +1072,7 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
  * and offset are part of @mask. For integer @in, the division by scale
  * includes round-to-nearest.
  *
- * Small convolutions on unsigned 8-bit images are performed using the 
+ * Convolutions on unsigned 8-bit images are calculated with the 
  * processor's vector unit,
  * if possible. Disable this with --vips-novector or IM_NOVECTOR.
  *
@@ -1133,6 +1133,7 @@ im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
  * @mask: convolution mask
  *
  * Perform a separable convolution of @in with @mask using integer arithmetic. 
+ * See im_conv() for a detailed description.
  *
  * The mask must be 1xn or nx1 elements. 
  * The output image 
@@ -1141,11 +1142,6 @@ im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
  * The image is convolved twice: once with @mask and then again with @mask 
  * rotated by 90 degrees. This is much faster for certain types of mask
  * (gaussian blur, for example) than doing a full 2D convolution.
- *
- * Each output pixel is
- * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
- * and offset are part of @mask. For integer @in, the division by scale
- * includes round-to-nearest.
  *
  * See also: im_convsep_f(), im_conv(), im_create_imaskv().
  *

@@ -129,7 +129,7 @@ void vips_executor_set_scanline( VipsExecutor *executor,
 void vips_executor_set_destination( VipsExecutor *executor, void *value );
 void vips_executor_set_array( VipsExecutor *executor, int var, void *value );
 
-void vips_executor_run( VipsExecutor *executor );
+void vips_executor_run( VipsExecutor *executor ); 
 
 #ifdef __cplusplus
 }

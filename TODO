@@ -1,6 +1,6 @@
-- note in docs that all conv backends are expected to givr identical results
+- check that the section intros for the new docs include all the material from
+  the old reference guide
 
-  try macros for vips_executor_set() etc.
 
 
 
