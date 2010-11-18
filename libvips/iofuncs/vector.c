@@ -264,7 +264,6 @@ vips_vector_full( VipsVector *vector )
 {
 	/* We can need a max of 2 constants plus one source per
 	 * coefficient, so stop if we're sure we don't have enough.
-	 * We need to stay under the 100 instruction limit too.
 	 */
 	if( vector->n_constant > 16 - 2 )
 		return( TRUE );
@@ -275,7 +274,9 @@ vips_vector_full( VipsVector *vector )
 	if( vector->n_source + vector->n_scanline + 1 > 7 )
 		return( TRUE );
 
-	if( vector->n_instruction > 50 )
+	/* I seem to get segvs with I counts over about 50 :-( argh.
+	 */
+	if( vector->n_instruction > 45 )
 		return( TRUE );
 
 	return( FALSE );

@@ -110,9 +110,6 @@
 
 	- make up a signed 8-bit code path?
 
-	- make it more like morphology.c: have a param for the result of the 
-	  previous pass rather than a separate combining pass
-
  */
 
 #ifdef HAVE_CONFIG_H
@@ -142,6 +139,8 @@ typedef struct {
 	int first;		/* The index of the first mask coff we use */
 	int last;		/* The index of the last mask coff we use */
 
+	int r;			/* Set previous result in this var */
+
         /* The code we generate for this section of this mask. 
 	 */
         VipsVector *vector;
@@ -167,6 +166,7 @@ typedef struct {
 	 */
 	int n_pass;	
 	Pass pass[MAX_PASS];
+	int s1;			/* Input to clip */
 	VipsVector *clip;
 } Conv;
 
@@ -226,7 +226,8 @@ conv_evalend( Conv *conv )
  * 0 for success, -1 on error.
  */
 static int
-conv_compile_convolution_u8s16_section( Pass *pass, Conv *conv )
+conv_compile_convolution_u8s16_section( Pass *pass, 
+	Conv *conv, gboolean first_pass )
 {
 	INTMASK *mask = conv->mask;
 	const int n_mask = mask->xsize * mask->ysize; 
@@ -247,8 +248,20 @@ conv_compile_convolution_u8s16_section( Pass *pass, Conv *conv )
 	TEMP( "product", 2 );
 	TEMP( "sum", 2 );
 
-	CONST( zero, 0, 2 );
-	ASM2( "copyw", "sum", zero );
+	/* Init the sum. If this is the first pass, it's a constant. If this
+	 * is a later pass, we have to init the sum from the result 
+	 * of the previous pass. 
+	 */
+	if( first_pass ) {
+		CONST( zero, 0, 2 );
+		ASM2( "copyw", "sum", zero );
+	}
+	else {
+		/* "r" is the result of the previous pass. 
+		 */
+		pass->r = vips_vector_source_name( v, "r", 2 );
+		ASM2( "loadw", "sum", "r" );
+	}
 
 	for( i = pass->first; i < n_mask; i++ ) {
 		int x = i % mask->xsize;
@@ -306,12 +319,13 @@ conv_compile_convolution_u8s16_section( Pass *pass, Conv *conv )
 
 	ASM2( "copyw", "d1", "sum" );
 
-	if( !vips_vector_compile( v ) ) 
-		return( -1 );
-
 #ifdef DEBUG
 	vips_vector_print( v );
+	printf( "compiling ...\n" );
 #endif /*DEBUG*/
+
+	if( !vips_vector_compile( v ) ) 
+		return( -1 );
 
 	return( 0 );
 }
@@ -374,8 +388,10 @@ conv_compile_convolution_u8s16( Conv *conv )
 
 		pass->first = i;
 		pass->last = i;
+		pass->r = -1;
 
-		if( conv_compile_convolution_u8s16_section( pass, conv ) )
+		if( conv_compile_convolution_u8s16_section( pass, 
+			conv, conv->n_pass == 1 ) )
 			return( -1 );
 		i = pass->last + 1;
 
@@ -392,7 +408,7 @@ conv_compile_convolution_u8s16( Conv *conv )
 	return( 0 );
 }
 
-/* Generate the program that does (sum(passes) + rounding) / scale + offset 
+/* Generate the program that does (pass + rounding) / scale + offset 
  * from a s16 intermediate back to a u8 output.
  */
 static int
@@ -400,7 +416,6 @@ conv_compile_scale_s16u8( Conv *conv )
 {
 	INTMASK *mask = conv->mask;
 
-	int i;
 	VipsVector *v;
 	char scale[256];
 	char offset[256];
@@ -415,12 +430,7 @@ conv_compile_scale_s16u8( Conv *conv )
 		return( -1 );
 
 	conv->clip = v = vips_vector_new( "clip", 1 );
-	for( i = 0; i < conv->n_pass; i++ ) {
-		char source[10];
-
-		im_snprintf( source, 10, "s%d", i );
-		vips_vector_source_name( v, source, 2 );
-	}
+	conv->s1 = vips_vector_source_name( v, "s1", 2 );
 
 	TEMP( "t1", 2 );
 	TEMP( "t2", 2 );
@@ -436,19 +446,9 @@ conv_compile_scale_s16u8( Conv *conv )
 	CONST( offset, mask->offset * mask->scale + mask->scale / 2, 2 );
 	CONST( zero, 0, 2 );
 
-	/* Sum the passes into t1.
-	 */
-	ASM2( "loadw", "t1", "s0" );
-	for( i = 1; i < conv->n_pass; i++ ) {
-		char source[10];
-
-		im_snprintf( source, 10, "s%d", i );
-		ASM3( "addssw", "t1", "t1", source );
-	}
-
 	/* Offset and scale. 
 	 */
-	ASM3( "addssw", "t1", "t1", offset );
+	ASM3( "addssw", "t1", "s1", offset );
 
 	/* We need to convert the signed result of the
 	 * offset to unsigned for the div, ie. we want to set anything <0 to 0.
@@ -459,8 +459,7 @@ conv_compile_scale_s16u8( Conv *conv )
 	ASM3( "divluw", "t1", "t1", scale );
 	ASM2( "convuuswb", "d1", "t1" );
 
-	if( vips_vector_full( v ) ||
-		!vips_vector_compile( v ) ) 
+	if( !vips_vector_compile( v ) ) 
 		return( -1 );
 
 #ifdef DEBUG
@@ -490,6 +489,7 @@ conv_new( IMAGE *in, IMAGE *out, INTMASK *mask )
         conv->overflow = 0;
 
 	conv->n_pass = 0;
+	conv->s1 = -1;
 	conv->clip = NULL;
 
         if( im_add_close_callback( out, 
@@ -546,10 +546,11 @@ typedef struct {
 
 	int last_bpl;		/* Avoid recalcing offsets, if we can */
 
-	/* We need a set of intermediate buffers to keep the result of the 
-	 * conv in before we clip it.
+	/* We need a pair of intermediate buffers to keep the results of each
+	 * conv pass in. 
 	 */
-	void **sum;
+	void *t1;
+	void *t2;
 } ConvSequence;
 
 /* Free a sequence value.
@@ -560,18 +561,14 @@ conv_stop( void *vseq, void *a, void *b )
 	ConvSequence *seq = (ConvSequence *) vseq;
 	Conv *conv = (Conv *) b;
 
-	int i;
-
 	/* Add local under/over counts to global counts.
 	 */
 	conv->overflow += seq->overflow;
 	conv->underflow += seq->underflow;
 
 	IM_FREEF( im_region_free, seq->ir );
-
-	for( i = 0; i < conv->n_pass; i++ )
-		IM_FREE( seq->sum[i] );
-	IM_FREE( seq->sum );
+	IM_FREE( seq->t1 );
+	IM_FREE( seq->t2 );
 
 	return( 0 );
 }
@@ -585,7 +582,6 @@ conv_start( IMAGE *out, void *a, void *b )
 	Conv *conv = (Conv *) b;
 
 	ConvSequence *seq;
-	int i;
 
 	if( !(seq = IM_NEW( out, ConvSequence )) )
 		return( NULL );
@@ -598,7 +594,8 @@ conv_start( IMAGE *out, void *a, void *b )
 	seq->underflow = 0;
 	seq->overflow = 0;
 	seq->last_bpl = -1;
-	seq->sum = NULL;
+	seq->t1 = NULL;
+	seq->t2 = NULL;
 
 	/* Attach region and arrays.
 	 */
@@ -610,20 +607,15 @@ conv_start( IMAGE *out, void *a, void *b )
 		return( NULL );
 	}
 
-	if( vips_vector_get_enabled() && conv->n_pass ) {
-		if( !(seq->sum = IM_ARRAY( NULL, conv->n_pass, void * )) ) {
+	if( vips_vector_get_enabled() && 
+		conv->n_pass ) {
+		seq->t1 = IM_ARRAY( NULL, IM_IMAGE_N_ELEMENTS( in ), short );
+		seq->t2 = IM_ARRAY( NULL, IM_IMAGE_N_ELEMENTS( in ), short );
+
+		if( !seq->t1 || !seq->t2 ) {
 			conv_stop( seq, in, conv );
 			return( NULL );
 		}
-		for( i = 0; i < conv->n_pass; i++ )
-			seq->sum[i] = NULL;
-
-		for( i = 0; i < conv->n_pass; i++ )
-			if( !(seq->sum[i] = IM_ARRAY( NULL, 
-				IM_IMAGE_N_ELEMENTS( in ), short )) ) {
-				conv_stop( seq, in, conv );
-				return( NULL );
-			}
 	}
 
 	return( seq );
@@ -964,14 +956,6 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 			conv->pass[j].vector, sz );
 	vips_executor_set_program( &clip, conv->clip, sz );
 
-	/* Link the conv output to the intermediate buffer, and to the
-	 * clipper's input.
-	 */
-	for( j = 0; j < conv->n_pass; j++ ) {
-		vips_executor_set_destination( &convolve[j], seq->sum[j] );
-		vips_executor_set_array( &clip, conv->clip->s[j], seq->sum[j] );
-	}
-
 	for( y = 0; y < r->height; y++ ) { 
 #ifdef DEBUG_PIXELS
 {
@@ -988,18 +972,23 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 #endif /*DEBUG_PIXELS*/
 
 		for( j = 0; j < conv->n_pass; j++ ) {
+			/* We always read from t1 and write to t2.
+			 */
 			vips_executor_set_scanline( &convolve[j], 
 				ir, r->left, r->top + y );
+			vips_executor_set_array( &convolve[j],
+				conv->pass[j].r, seq->t1 );
+			vips_executor_set_destination( &convolve[j], seq->t2 );
 			vips_executor_run( &convolve[j] );
+
+			IM_SWAP( void *, seq->t1, seq->t2 );
 		}
 
 #ifdef DEBUG_PIXELS
-		printf( "before clip:\n" );
-		for( j = 0; j < conv->n_pass; j++ ) 
-			printf( "  %d) %3d\n", 
-				j, ((signed short *) seq->sum[j])[0] );
+		printf( "before clip: %d\n", ((signed short *) seq->t1)[0] );
 #endif /*DEBUG_PIXELS*/
 
+		vips_executor_set_array( &clip, conv->s1, seq->t1 );
 		vips_executor_set_destination( &clip, 
 			IM_REGION_ADDR( or, r->left, r->top + y ) );
 		vips_executor_run( &clip );
