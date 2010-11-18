@@ -102,7 +102,8 @@
  *
  * These operations load, save and process mask objects. Masks are used as
  * paramaters to convolution and morphology operators, and to represent
- * matrices. 
+ * matrices. There are two types of matrix: integer #INTMASK and double 
+ * precision floating point #DOUBLEMASK.
  *
  * This API is horrible and clunky. Surely it will be replaced soon.
  */

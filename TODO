@@ -1,7 +1,3 @@
-- check that the section intros for the new docs include all the material from
-  the old reference guide
-
-
 
 
 - nip2-7.22.3 on Windows is not adding the path you load from to the set of
