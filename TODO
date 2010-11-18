@@ -1,3 +1,14 @@
+- conv should load the acc at start from the previous run
+
+  conv should do conv+round+clip in the same bit of code, if it can --- should
+  often be possible because coefficients repeat so much
+
+  test_conv.ws should test negative coefficients
+
+  note in docs that all conv backends are expected to givr identical results
+
+  try macros for vips_executor_set() etc.
+
 
 
 - nip2-7.22.3 on Windows is not adding the path you load from to the set of
