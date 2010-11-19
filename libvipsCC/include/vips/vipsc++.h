@@ -1,7 +1,7 @@
 
 // headers for package arithmetic
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage abs() throw( VError );
 VImage acos() throw( VError );
 VImage add( VImage ) throw( VError );
@@ -48,7 +48,7 @@ VImage tan() throw( VError );
 
 // headers for package boolean
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage andimage( VImage ) throw( VError );
 VImage andimage( int ) throw( VError );
 VImage andimage( std::vector<double> ) throw( VError );
@@ -65,13 +65,13 @@ VImage shiftright( int ) throw( VError );
 
 // headers for package cimg
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage greyc( int, double, double, double, double, double, double, double, double, int, int ) throw( VError );
 VImage greyc_mask( VImage, int, double, double, double, double, double, double, double, double, int, int ) throw( VError );
 
 // headers for package colour
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage LCh2Lab() throw( VError );
 VImage LCh2UCS() throw( VError );
 VImage Lab2LCh() throw( VError );
@@ -117,7 +117,7 @@ VImage sRGB2XYZ() throw( VError );
 
 // headers for package conversion
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 static VImage gaussnoise( int, int, double, double ) throw( VError );
 VImage bandjoin( VImage ) throw( VError );
 static VImage black( int, int, int ) throw( VError );
@@ -167,7 +167,7 @@ VImage zoom( int, int ) throw( VError );
 
 // headers for package convolution
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage addgnoise( double ) throw( VError );
 VImage compass( VIMask ) throw( VError );
 VImage contrast_surface( int, int ) throw( VError );
@@ -186,7 +186,10 @@ VImage spcor( VImage ) throw( VError );
 
 // headers for package deprecated
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+VImage flood_copy( int, int, std::vector<double> ) throw( VError );
+VImage flood_blob_copy( int, int, std::vector<double> ) throw( VError );
+VImage flood_other_copy( VImage, int, int, int ) throw( VError );
 VImage clip() throw( VError );
 VImage c2ps() throw( VError );
 VImage resize_linear( int, int ) throw( VError );
@@ -228,10 +231,12 @@ VImage dilate_raw( VIMask ) throw( VError );
 VImage erode_raw( VIMask ) throw( VError );
 VImage similarity_area( double, double, double, double, int, int, int, int ) throw( VError );
 VImage similarity( double, double, double, double ) throw( VError );
+void insertplace( VImage, int, int ) throw( VError );
+void circle( int, int, int, int ) throw( VError );
 
 // headers for package format
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 static VImage csv2vips( char* ) throw( VError );
 static VImage jpeg2vips( char* ) throw( VError );
 static VImage magick2vips( char* ) throw( VError );
@@ -249,7 +254,7 @@ void vips2tiff( char* ) throw( VError );
 
 // headers for package freq_filt
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 static VImage create_fmask( int, int, int, double, double, double, double, double ) throw( VError );
 VImage disp_ps() throw( VError );
 VImage flt_image_freq( int, double, double, double, double, double ) throw( VError );
@@ -263,7 +268,7 @@ VImage invfftr() throw( VError );
 
 // headers for package histograms_lut
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage gammacorrect( double ) throw( VError );
 VImage heq( int ) throw( VError );
 VImage hist( int ) throw( VError );
@@ -293,17 +298,22 @@ VImage tone_map( VImage ) throw( VError );
 
 // headers for package inplace
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
-void circle( int, int, int, int ) throw( VError );
-VImage flood_copy( int, int, std::vector<double> ) throw( VError );
-VImage flood_blob_copy( int, int, std::vector<double> ) throw( VError );
-VImage flood_other_copy( VImage, int, int, int ) throw( VError );
-void insertplace( VImage, int, int ) throw( VError );
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+void draw_circle( int, int, int, int, std::vector<double> ) throw( VError );
+void draw_rect( int, int, int, int, int, std::vector<double> ) throw( VError );
+void draw_line( int, int, int, int, std::vector<double> ) throw( VError );
+void draw_point( int, int, std::vector<double> ) throw( VError );
+void draw_smudge( int, int, int, int ) throw( VError );
+void draw_flood( int, int, std::vector<double> ) throw( VError );
+void draw_flood_blob( int, int, std::vector<double> ) throw( VError );
+void draw_flood_other( VImage, int, int, int ) throw( VError );
+void draw_image( VImage, int, int ) throw( VError );
+void draw_mask( VImage, int, int, std::vector<double> ) throw( VError );
 VImage line( VImage, VImage, std::vector<int>, std::vector<int>, std::vector<int>, std::vector<int> ) throw( VError );
 
 // headers for package iofuncs
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 static VImage binfile( char*, int, int, int, int ) throw( VError );
 VImage cache( int, int, int ) throw( VError );
 char* getext() throw( VError );
@@ -316,11 +326,11 @@ void printdesc() throw( VError );
 
 // headers for package mask
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 
 // headers for package morphology
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 double cntlines( int ) throw( VError );
 VImage dilate( VIMask ) throw( VError );
 VImage rank( int, int, int ) throw( VError );
@@ -333,7 +343,7 @@ VImage profile( int ) throw( VError );
 
 // headers for package mosaicing
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage align_bands() throw( VError );
 double correl( VImage, int, int, int, int, int, int, int&, int& ) throw( VError );
 int _find_lroverlap( VImage, int, int, int, int, int, int, int, int&, double&, double&, double&, double& ) throw( VError );
@@ -355,7 +365,7 @@ VImage tbmosaic1( VImage, int, int, int, int, int, int, int, int, int, int, int,
 
 // headers for package other
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage benchmark() throw( VError );
 double benchmark2() throw( VError );
 VImage benchmarkn( int ) throw( VError );
@@ -369,7 +379,7 @@ static VImage zone( int ) throw( VError );
 
 // headers for package relational
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage blend( VImage, VImage ) throw( VError );
 VImage equal( VImage ) throw( VError );
 VImage equal( std::vector<double> ) throw( VError );
@@ -393,14 +403,14 @@ VImage notequal( double ) throw( VError );
 
 // headers for package resample
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 VImage rightshift_size( int, int, int ) throw( VError );
 VImage shrink( double, double ) throw( VError );
 VImage stretch3( double, double ) throw( VError );
 
 // headers for package video
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 static VImage video_test( int, int ) throw( VError );
 static VImage video_v4l1( char*, int, int, int, int, int, int ) throw( VError );
 

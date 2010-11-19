@@ -1,7 +1,7 @@
 
 // bodies for package arithmetic
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_abs: absolute value
 VImage VImage::abs() throw( VError )
 {
@@ -741,7 +741,7 @@ VImage VImage::tan() throw( VError )
 
 // bodies for package boolean
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_andimage: bitwise and of two images
 VImage VImage::andimage( VImage in2 ) throw( VError )
 {
@@ -984,7 +984,7 @@ VImage VImage::shiftright( int c ) throw( VError )
 
 // bodies for package cimg
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_greyc: noise-removing filter
 VImage VImage::greyc( int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx ) throw( VError )
 {
@@ -1044,7 +1044,7 @@ VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double
 
 // bodies for package colour
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_LCh2Lab: convert LCh to Lab
 VImage VImage::LCh2Lab() throw( VError )
 {
@@ -1760,7 +1760,7 @@ VImage VImage::sRGB2XYZ() throw( VError )
 
 // bodies for package conversion
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_gaussnoise: generate image of gaussian noise with specified statistics
 VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma ) throw( VError )
 {
@@ -2574,7 +2574,7 @@ VImage VImage::zoom( int xfac, int yfac ) throw( VError )
 
 // bodies for package convolution
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_addgnoise: add gaussian noise with mean 0 and std. dev. sigma
 VImage VImage::addgnoise( double sigma ) throw( VError )
 {
@@ -2840,7 +2840,68 @@ VImage VImage::spcor( VImage in2 ) throw( VError )
 
 // bodies for package deprecated
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// im_flood_copy: flood with ink from start_x, start_y while pixel == start pixel
+VImage VImage::flood_copy( int start_x, int start_y, std::vector<double> ink ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_flood_copy" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = start_x;
+	*((int*) _vec.data(3)) = start_y;
+	((im_doublevec_object*) _vec.data(4))->n = ink.size();
+	((im_doublevec_object*) _vec.data(4))->vec = new double[ink.size()];
+	for( unsigned int i = 0; i < ink.size(); i++ )
+		((im_doublevec_object*) _vec.data(4))->vec[i] = ink[i];
+	_vec.call();
+
+	return( out );
+}
+
+// im_flood_blob_copy: flood with ink from start_x, start_y while pixel == start pixel
+VImage VImage::flood_blob_copy( int start_x, int start_y, std::vector<double> ink ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_flood_blob_copy" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = start_x;
+	*((int*) _vec.data(3)) = start_y;
+	((im_doublevec_object*) _vec.data(4))->n = ink.size();
+	((im_doublevec_object*) _vec.data(4))->vec = new double[ink.size()];
+	for( unsigned int i = 0; i < ink.size(); i++ )
+		((im_doublevec_object*) _vec.data(4))->vec[i] = ink[i];
+	_vec.call();
+
+	return( out );
+}
+
+// im_flood_other_copy: flood mark with serial from start_x, start_y while pixel == start pixel
+VImage VImage::flood_other_copy( VImage mark, int start_x, int start_y, int serial ) throw( VError )
+{
+	VImage test = *this;
+	VImage out;
+
+	Vargv _vec( "im_flood_other_copy" );
+
+	_vec.data(0) = test.image();
+	_vec.data(1) = mark.image();
+	_vec.data(2) = out.image();
+	*((int*) _vec.data(3)) = start_x;
+	*((int*) _vec.data(4)) = start_y;
+	*((int*) _vec.data(5)) = serial;
+	_vec.call();
+
+	return( out );
+}
+
 // im_clip: convert to unsigned 8-bit integer
 VImage VImage::clip() throw( VError )
 {
@@ -3568,10 +3629,37 @@ VImage VImage::similarity( double a, double b, double dx, double dy ) throw( VEr
 	return( out );
 }
 
+// im_insertplace: draw image sub inside image main at position (x,y)
+void VImage::insertplace( VImage sub, int x, int y ) throw( VError )
+{
+	VImage main = *this;
+	Vargv _vec( "im_insertplace" );
+
+	_vec.data(0) = main.image();
+	_vec.data(1) = sub.image();
+	*((int*) _vec.data(2)) = x;
+	*((int*) _vec.data(3)) = y;
+	_vec.call();
+}
+
+// im_circle: plot circle on image
+void VImage::circle( int cx, int cy, int radius, int intensity ) throw( VError )
+{
+	VImage image = *this;
+	Vargv _vec( "im_circle" );
+
+	_vec.data(0) = image.image();
+	*((int*) _vec.data(1)) = cx;
+	*((int*) _vec.data(2)) = cy;
+	*((int*) _vec.data(3)) = radius;
+	*((int*) _vec.data(4)) = intensity;
+	_vec.call();
+}
+
 
 // bodies for package format
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_csv2vips: read a file in csv format
 VImage VImage::csv2vips( char* filename ) throw( VError )
 {
@@ -3753,7 +3841,7 @@ void VImage::vips2tiff( char* out ) throw( VError )
 
 // bodies for package freq_filt
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_create_fmask: create frequency domain filter mask
 VImage VImage::create_fmask( int width, int height, int type, double p1, double p2, double p3, double p4, double p5 ) throw( VError )
 {
@@ -3921,7 +4009,7 @@ VImage VImage::invfftr() throw( VError )
 
 // bodies for package histograms_lut
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_gammacorrect: gamma-correct image
 VImage VImage::gammacorrect( double exponent ) throw( VError )
 {
@@ -4368,92 +4456,165 @@ VImage VImage::tone_map( VImage lut ) throw( VError )
 
 // bodies for package inplace
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
-// im_circle: plot circle on image
-void VImage::circle( int cx, int cy, int radius, int intensity ) throw( VError )
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// im_draw_circle: draw circle on image
+void VImage::draw_circle( int cx, int cy, int radius, int fill, std::vector<double> ink ) throw( VError )
 {
 	VImage image = *this;
-	Vargv _vec( "im_circle" );
+	Vargv _vec( "im_draw_circle" );
 
 	_vec.data(0) = image.image();
 	*((int*) _vec.data(1)) = cx;
 	*((int*) _vec.data(2)) = cy;
 	*((int*) _vec.data(3)) = radius;
-	*((int*) _vec.data(4)) = intensity;
-	_vec.call();
-}
-
-// im_flood_copy: flood with ink from start_x, start_y while pixel == start pixel
-VImage VImage::flood_copy( int start_x, int start_y, std::vector<double> ink ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_flood_copy" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = start_x;
-	*((int*) _vec.data(3)) = start_y;
-	((im_doublevec_object*) _vec.data(4))->n = ink.size();
-	((im_doublevec_object*) _vec.data(4))->vec = new double[ink.size()];
+	*((int*) _vec.data(4)) = fill;
+	((im_doublevec_object*) _vec.data(5))->n = ink.size();
+	((im_doublevec_object*) _vec.data(5))->vec = new double[ink.size()];
 	for( unsigned int i = 0; i < ink.size(); i++ )
-		((im_doublevec_object*) _vec.data(4))->vec[i] = ink[i];
+		((im_doublevec_object*) _vec.data(5))->vec[i] = ink[i];
 	_vec.call();
-
-	return( out );
 }
 
-// im_flood_blob_copy: flood with ink from start_x, start_y while pixel == start pixel
-VImage VImage::flood_blob_copy( int start_x, int start_y, std::vector<double> ink ) throw( VError )
+// im_draw_rect: draw rect on image
+void VImage::draw_rect( int left, int top, int width, int height, int fill, std::vector<double> ink ) throw( VError )
 {
-	VImage in = *this;
-	VImage out;
+	VImage image = *this;
+	Vargv _vec( "im_draw_rect" );
 
-	Vargv _vec( "im_flood_blob_copy" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = start_x;
-	*((int*) _vec.data(3)) = start_y;
-	((im_doublevec_object*) _vec.data(4))->n = ink.size();
-	((im_doublevec_object*) _vec.data(4))->vec = new double[ink.size()];
+	_vec.data(0) = image.image();
+	*((int*) _vec.data(1)) = left;
+	*((int*) _vec.data(2)) = top;
+	*((int*) _vec.data(3)) = width;
+	*((int*) _vec.data(4)) = height;
+	*((int*) _vec.data(5)) = fill;
+	((im_doublevec_object*) _vec.data(6))->n = ink.size();
+	((im_doublevec_object*) _vec.data(6))->vec = new double[ink.size()];
 	for( unsigned int i = 0; i < ink.size(); i++ )
-		((im_doublevec_object*) _vec.data(4))->vec[i] = ink[i];
+		((im_doublevec_object*) _vec.data(6))->vec[i] = ink[i];
 	_vec.call();
-
-	return( out );
 }
 
-// im_flood_other_copy: flood mark with serial from start_x, start_y while pixel == start pixel
-VImage VImage::flood_other_copy( VImage mark, int start_x, int start_y, int serial ) throw( VError )
+// im_draw_line: draw line on image
+void VImage::draw_line( int x1, int y1, int x2, int y2, std::vector<double> ink ) throw( VError )
 {
-	VImage test = *this;
-	VImage out;
+	VImage image = *this;
+	Vargv _vec( "im_draw_line" );
 
-	Vargv _vec( "im_flood_other_copy" );
-
-	_vec.data(0) = test.image();
-	_vec.data(1) = mark.image();
-	_vec.data(2) = out.image();
-	*((int*) _vec.data(3)) = start_x;
-	*((int*) _vec.data(4)) = start_y;
-	*((int*) _vec.data(5)) = serial;
+	_vec.data(0) = image.image();
+	*((int*) _vec.data(1)) = x1;
+	*((int*) _vec.data(2)) = y1;
+	*((int*) _vec.data(3)) = x2;
+	*((int*) _vec.data(4)) = y2;
+	((im_doublevec_object*) _vec.data(5))->n = ink.size();
+	((im_doublevec_object*) _vec.data(5))->vec = new double[ink.size()];
+	for( unsigned int i = 0; i < ink.size(); i++ )
+		((im_doublevec_object*) _vec.data(5))->vec[i] = ink[i];
 	_vec.call();
-
-	return( out );
 }
 
-// im_insertplace: draw image sub inside image main at position (x,y)
-void VImage::insertplace( VImage sub, int x, int y ) throw( VError )
+// im_draw_point: draw point on image
+void VImage::draw_point( int x, int y, std::vector<double> ink ) throw( VError )
 {
-	VImage main = *this;
-	Vargv _vec( "im_insertplace" );
+	VImage image = *this;
+	Vargv _vec( "im_draw_point" );
 
-	_vec.data(0) = main.image();
+	_vec.data(0) = image.image();
+	*((int*) _vec.data(1)) = x;
+	*((int*) _vec.data(2)) = y;
+	((im_doublevec_object*) _vec.data(3))->n = ink.size();
+	((im_doublevec_object*) _vec.data(3))->vec = new double[ink.size()];
+	for( unsigned int i = 0; i < ink.size(); i++ )
+		((im_doublevec_object*) _vec.data(3))->vec[i] = ink[i];
+	_vec.call();
+}
+
+// im_draw_smudge: smudge part of an image
+void VImage::draw_smudge( int left, int top, int width, int height ) throw( VError )
+{
+	VImage image = *this;
+	Vargv _vec( "im_draw_smudge" );
+
+	_vec.data(0) = image.image();
+	*((int*) _vec.data(1)) = left;
+	*((int*) _vec.data(2)) = top;
+	*((int*) _vec.data(3)) = width;
+	*((int*) _vec.data(4)) = height;
+	_vec.call();
+}
+
+// im_draw_flood: flood with ink from x, y while pixel != ink
+void VImage::draw_flood( int x, int y, std::vector<double> ink ) throw( VError )
+{
+	VImage image = *this;
+	Vargv _vec( "im_draw_flood" );
+
+	_vec.data(0) = image.image();
+	*((int*) _vec.data(1)) = x;
+	*((int*) _vec.data(2)) = y;
+	((im_doublevec_object*) _vec.data(3))->n = ink.size();
+	((im_doublevec_object*) _vec.data(3))->vec = new double[ink.size()];
+	for( unsigned int i = 0; i < ink.size(); i++ )
+		((im_doublevec_object*) _vec.data(3))->vec[i] = ink[i];
+	_vec.call();
+}
+
+// im_draw_flood_blob: flood with ink from x, y while pixel == start
+void VImage::draw_flood_blob( int x, int y, std::vector<double> ink ) throw( VError )
+{
+	VImage image = *this;
+	Vargv _vec( "im_draw_flood_blob" );
+
+	_vec.data(0) = image.image();
+	*((int*) _vec.data(1)) = x;
+	*((int*) _vec.data(2)) = y;
+	((im_doublevec_object*) _vec.data(3))->n = ink.size();
+	((im_doublevec_object*) _vec.data(3))->vec = new double[ink.size()];
+	for( unsigned int i = 0; i < ink.size(); i++ )
+		((im_doublevec_object*) _vec.data(3))->vec[i] = ink[i];
+	_vec.call();
+}
+
+// im_draw_flood_other: flood image with serial from x, y while pixel == start
+void VImage::draw_flood_other( VImage test, int x, int y, int serial ) throw( VError )
+{
+	VImage image = *this;
+	Vargv _vec( "im_draw_flood_other" );
+
+	_vec.data(0) = image.image();
+	_vec.data(1) = test.image();
+	*((int*) _vec.data(2)) = x;
+	*((int*) _vec.data(3)) = y;
+	*((int*) _vec.data(4)) = serial;
+	_vec.call();
+}
+
+// im_draw_image: draw image sub inside image main at position (x,y)
+void VImage::draw_image( VImage sub, int x, int y ) throw( VError )
+{
+	VImage image = *this;
+	Vargv _vec( "im_draw_image" );
+
+	_vec.data(0) = image.image();
 	_vec.data(1) = sub.image();
 	*((int*) _vec.data(2)) = x;
 	*((int*) _vec.data(3)) = y;
+	_vec.call();
+}
+
+// im_draw_mask: draw mask sub inside image main at position (x,y)
+void VImage::draw_mask( VImage mask, int x, int y, std::vector<double> ink ) throw( VError )
+{
+	VImage image = *this;
+	Vargv _vec( "im_draw_mask" );
+
+	_vec.data(0) = image.image();
+	_vec.data(1) = mask.image();
+	*((int*) _vec.data(2)) = x;
+	*((int*) _vec.data(3)) = y;
+	((im_doublevec_object*) _vec.data(4))->n = ink.size();
+	((im_doublevec_object*) _vec.data(4))->vec = new double[ink.size()];
+	for( unsigned int i = 0; i < ink.size(); i++ )
+		((im_doublevec_object*) _vec.data(4))->vec[i] = ink[i];
 	_vec.call();
 }
 
@@ -4493,7 +4654,7 @@ VImage VImage::line( VImage mask, VImage ink, std::vector<int> x1, std::vector<i
 
 // bodies for package iofuncs
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_binfile: open a headerless binary file
 VImage VImage::binfile( char* filename, int width, int height, int bands, int offset ) throw( VError )
 {
@@ -4637,11 +4798,11 @@ void VImage::printdesc() throw( VError )
 
 // bodies for package mask
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 
 // bodies for package morphology
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_cntlines: count horizontal or vertical lines
 double VImage::cntlines( int direction ) throw( VError )
 {
@@ -4802,7 +4963,7 @@ VImage VImage::profile( int direction ) throw( VError )
 
 // bodies for package mosaicing
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_align_bands: align the bands of an image
 VImage VImage::align_bands() throw( VError )
 {
@@ -5235,7 +5396,7 @@ VImage VImage::tbmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int
 
 // bodies for package other
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_benchmark: do something complicated for testing
 VImage VImage::benchmark() throw( VError )
 {
@@ -5392,7 +5553,7 @@ VImage VImage::zone( int size ) throw( VError )
 
 // bodies for package relational
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_blend: use cond image to blend between images in1 and in2
 VImage VImage::blend( VImage in1, VImage in2 ) throw( VError )
 {
@@ -5766,7 +5927,7 @@ VImage VImage::notequal( double c ) throw( VError )
 
 // bodies for package resample
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_rightshift_size: decrease size by a power-of-two factor
 VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt ) throw( VError )
 {
@@ -5825,7 +5986,7 @@ VImage VImage::stretch3( double xdisp, double ydisp ) throw( VError )
 
 // bodies for package video
 // this file automatically generated from
-// VIPS library 7.22.1-Tue Jun 22 10:26:51 BST 2010
+// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
 // im_video_test: test video grabber
 VImage VImage::video_test( int brightness, int error ) throw( VError )
 {

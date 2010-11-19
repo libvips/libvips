@@ -1,26 +1,3 @@
-- memleak in exif?
-
-
-==5775== 392 (192 direct, 200 indirect) bytes in 4 blocks are definitely lost
-in loss record 1,677 of 1,878
-==5775==    at 0x4C25896: calloc (vg_replace_malloc.c:418)
-==5775==    by 0xB7364AA: exif_entry_new_mem (in /usr/lib64/libexif.so.12.3.1)
-==5775==    by 0xB73651D: exif_entry_new (in /usr/lib64/libexif.so.12.3.1)
-==5775==    by 0x9CFE041: ??? (in /usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9CFE5C6: ??? (in /usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9CFEB6D: im_vips2jpeg (in /usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9D25262: ??? (in /usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9D20F41: ??? (in /usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9D2F2D5: im_slist_map2 (in /usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9D210EE: im__trigger_callbacks (in
-/usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9D246AE: im_generate (in /usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9CAE85C: ??? (in /usr/lib64/libvips.so.15.14.3)
-==5775==    by 0x9A2FACD: shrink_factor (photo-meta-reader-vips.c:232)
-==5775==    by 0x9A2FBBE: thumbnail2 (photo-meta-reader-vips.c:261)
-==5775==    by 0x9A2FD15: thumbnail (photo-meta-reader-vips.c:296)
-
-
 
 
 - lab [100,0,0] -> srgb [255, 255, 254]? how odd
