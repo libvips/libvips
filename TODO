@@ -1,4 +1,7 @@
+- perspective transform with a matrix ... base it on the Lenz transformer, but
+  partial
 
+- need something to test the morph operators
 
 - lab [100,0,0] -> srgb [255, 255, 254]? how odd
 
@@ -10,20 +13,6 @@
   it, argh
 
   make a region, prepare to that, copy back over the image?
-
-
-
-
-- how do we wrap inplace ops in C++ now? will checking the RW bit help at all?
-
-- consider:
-
-	if( im_check_vector( "im__vector_to_ink", n, im ) )
-		return( -1 );
-
-  n must be 1 or im->Bands ... but what about n > 1 and im->Bands == 1?
-
-  look at im_lintra_vec(), what happens here?
 
 
 
