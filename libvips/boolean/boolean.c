@@ -26,6 +26,9 @@
  * 17/9/09
  * 	- moved to im__arith_binary*()
  * 	- renamed im_eor_vec() as im_eorimage_vec() for C++ sanity
+ * 21/11/10
+ * 	- oop, constants are always (int) now, so (^-1) works for unsigned
+ * 	  types
  */
 
 /*
@@ -210,7 +213,7 @@ im_eorimage( IMAGE *in1, IMAGE *in2, IMAGE *out )
 #define CONST1( IN, OUT, OP ) { \
 	OUT *tq = (OUT *) q; \
 	IN *tp = (IN *) p; \
-	IN tc = *((IN *) vector); \
+	int tc = *((int *) vector); \
  	\
 	for( i = 0; i < ne; i++ ) \
 		tq[i] = (OUT) tp[i] OP (OUT) tc; \
@@ -257,7 +260,7 @@ NAME ## 1_buffer( PEL *p, PEL *q, int n, PEL *vector, IMAGE *im ) \
 #define CONSTN( IN, OUT, OP ) { \
 	OUT *tq = (OUT *) q; \
 	IN *tp = (IN *) p; \
-	IN *tc = (IN *) vector; \
+	int *tc = (int *) vector; \
  	\
 	for( i = 0, x = 0; x < n; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -321,7 +324,7 @@ int
 im_andimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_andimage", 
-		in, out, n, c, in->BandFmt,
+		in, out, n, c, IM_BANDFMT_INT,
 		bandfmt_bool,
 		(im_wrapone_fn) AND1_buffer, 
 		(im_wrapone_fn) ANDn_buffer ) );
@@ -369,7 +372,7 @@ int
 im_orimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_orimage", 
-		in, out, n, c, in->BandFmt,
+		in, out, n, c, IM_BANDFMT_INT,
 		bandfmt_bool,
 		(im_wrapone_fn) OR1_buffer, 
 		(im_wrapone_fn) ORn_buffer ) );
@@ -418,7 +421,7 @@ int
 im_eorimage_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_eorimage", 
-		in, out, n, c, in->BandFmt,
+		in, out, n, c, IM_BANDFMT_INT,
 		bandfmt_bool,
 		(im_wrapone_fn) EOR1_buffer, 
 		(im_wrapone_fn) EORn_buffer ) );
@@ -468,7 +471,7 @@ int
 im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_shiftleft", 
-		in, out, n, c, in->BandFmt,
+		in, out, n, c, IM_BANDFMT_INT,
 		bandfmt_bool,
 		(im_wrapone_fn) SHIFTL1_buffer, 
 		(im_wrapone_fn) SHIFTLn_buffer ) );
@@ -518,7 +521,7 @@ int
 im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im__arith_binary_const( "im_shiftright", 
-		in, out, n, c, in->BandFmt,
+		in, out, n, c, IM_BANDFMT_INT,
 		bandfmt_bool,
 		(im_wrapone_fn) SHIFTR1_buffer, 
 		(im_wrapone_fn) SHIFTRn_buffer ) );
