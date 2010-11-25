@@ -2,6 +2,9 @@
  *
  * 1/1/10
  * 	- from im_render.c
+ * 25/11/10
+ * 	- in synchronous mode, use a single region for input and save huge 
+ * 	  mem use
  */
 
 /*
@@ -141,6 +144,11 @@ typedef struct _Render {
 	/* Hash of tiles with positions. Tiles can be dirty or painted.
 	 */
 	GHashTable *tiles;
+
+	/* In synchronous mode (notify == NULL), generate tiles with this 
+	 * REGION.
+	 */
+	REGION *synchronous_reg;
 } Render;
 
 /* Our per-thread state.
@@ -237,6 +245,7 @@ render_free( Render *render )
 	render->ntiles = 0;
 	IM_FREEF( g_slist_free, render->dirty );
 	IM_FREEF( g_hash_table_destroy, render->tiles );
+	IM_FREEF( im_region_free, render->synchronous_reg );
 
 	im_free( render );
 
@@ -615,6 +624,8 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	render->tiles = g_hash_table_new( tile_hash, tile_equal ); 
 
+	render->synchronous_reg = NULL;
+
 	render->dirty = NULL;
 
 	/* Both out and mask must close before we can free the render.
@@ -633,6 +644,13 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 			return( NULL );
 		}
 		render_ref( render );
+	}
+
+	/* In synchronous mode we need a region to generate pixels with.
+	 */
+	if( !notify ) {
+		if( !(render->synchronous_reg = im_region_create( in )) )
+			return( NULL );
 	}
 
 	VIPS_DEBUG_MSG_AMBER( "render_new: %p\n", render );
@@ -770,7 +788,8 @@ tile_queue( Tile *tile )
 			"painting tile %p %dx%d synchronously\n",
 			tile, tile->area.left, tile->area.top );
 
-		if( im_prepare( tile->region, &tile->area ) )
+		if( im_prepare_to( render->synchronous_reg, tile->region, 
+			&tile->area, tile->area.left, tile->area.top ) ) 
 			VIPS_DEBUG_MSG_RED( "tile_queue: prepare failed\n" ); 
 
 		tile->painted = TRUE;

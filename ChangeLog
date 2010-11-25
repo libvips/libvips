@@ -50,6 +50,7 @@
 - update C++/Python binding
 - oop, bool constants are always (int) now, so (^-1) works for unsigned types,
   thanks Nicolas
+- much lower memuse for im_cache() in complex pipelines
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if

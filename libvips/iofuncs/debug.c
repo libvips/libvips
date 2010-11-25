@@ -229,15 +229,14 @@ im_demand_type im_char2dhint( const char *str )
 	{ return( char2enum( &enumdhint, str ) ); }
 
 static void *
-print_one_line_region( REGION *r, int *n2, gint64 *total )
+add_unique( REGION *r, gint64 *total, GSList **seen )
 {
-	if( r->type == IM_REGION_BUFFER && r->buffer ) {
-		printf( "\t*** %d) %zd malloced bytes\n", 
-			*n2, r->buffer->bsize );
+	if( r->type == IM_REGION_BUFFER && 
+		r->buffer &&
+		!g_slist_find( *seen, r->buffer ) ) {
+		*seen = g_slist_prepend( *seen, r->buffer );
 		*total += r->buffer->bsize;
 	}
-
-	*n2 += 1;
 
 	return( NULL );
 }
@@ -247,36 +246,37 @@ print_one_line_region( REGION *r, int *n2, gint64 *total )
 static void *
 print_one_line( IMAGE *im, int *n, gint64 *total )
 {
-	printf( "%2d) %p, %s, %s: %dx%d, %d bands, %s\n",
+	gint64 size;
+
+	printf( "%d, %p, %s, %s, %d, %d, %d, %s, ",
 		*n, 
 		im,
-		im_dtype2char( im->dtype ), im->filename, 
+		im_dtype2char( im->dtype ), 
+		im->filename, 
 		im->Xsize, im->Ysize, im->Bands,
 		im_BandFmt2char( im->BandFmt ) );
 	*n += 1;
 
+	size = 0;
 	if( im->dtype == IM_SETBUF && im->data ) {
-		gint64 size = (gint64) IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
-
-		printf( "\t*** %" G_GINT64_FORMAT " malloced bytes\n", size );
-		*total += size;
+		size = (gint64) IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
 	}
+	*total += size;
+	printf( "%" G_GINT64_FORMAT ", ", size );
 
+	printf( "%d, ", g_slist_length( im->regions ) );
+
+	size = 0;
 	if( im->regions ) {
-		int n2;
-		gint64 total2;
+		GSList *seen;
 
-		printf( "\t%d regions\n", g_slist_length( im->regions ) );
-
-		n2 = 0;
-		total2 = 0;
+		seen = NULL;
 		(void) im_slist_map2( im->regions, 
-			(VSListMap2Fn) print_one_line_region, &n2, &total2 );
-		if( total2 )
-			printf( "\t*** using total of %" G_GINT64_FORMAT 
-				" bytes\n", total2 );
-		*total += total2;
+			(VSListMap2Fn) add_unique, &size, &seen );
+		g_slist_free( seen );
 	}
+	*total += size;
+	printf( "%" G_GINT64_FORMAT "\n", size );
 
 	return( NULL );
 }
@@ -295,11 +295,13 @@ void
 im__print_all( void )
 {
 	if( im__open_images ) {
-		int n = 0;
-		gint64 total = 0;
+		int n;
+		gint64 total;
 
+		n = 0;
 		total = 0;
-		printf( "%d images\n", g_slist_length( im__open_images ) );
+		printf( "n, p, dtype, file, xsize, ysize, bands, fmt, " );
+		printf( "isize, nreg, rsize\n" );
 		(void) im_slist_map2( im__open_images, 
 			(VSListMap2Fn) print_one_line, &n, &total );
 		if( total )
