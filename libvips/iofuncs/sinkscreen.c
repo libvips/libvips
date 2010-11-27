@@ -144,11 +144,6 @@ typedef struct _Render {
 	/* Hash of tiles with positions. Tiles can be dirty or painted.
 	 */
 	GHashTable *tiles;
-
-	/* In synchronous mode (notify == NULL), generate tiles with this 
-	 * REGION.
-	 */
-	REGION *synchronous_reg;
 } Render;
 
 /* Our per-thread state.
@@ -245,7 +240,6 @@ render_free( Render *render )
 	render->ntiles = 0;
 	IM_FREEF( g_slist_free, render->dirty );
 	IM_FREEF( g_hash_table_destroy, render->tiles );
-	IM_FREEF( im_region_free, render->synchronous_reg );
 
 	im_free( render );
 
@@ -624,8 +618,6 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	render->tiles = g_hash_table_new( tile_hash, tile_equal ); 
 
-	render->synchronous_reg = NULL;
-
 	render->dirty = NULL;
 
 	/* Both out and mask must close before we can free the render.
@@ -644,13 +636,6 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 			return( NULL );
 		}
 		render_ref( render );
-	}
-
-	/* In synchronous mode we need a region to generate pixels with.
-	 */
-	if( !notify ) {
-		if( !(render->synchronous_reg = im_region_create( in )) )
-			return( NULL );
 	}
 
 	VIPS_DEBUG_MSG_AMBER( "render_new: %p\n", render );
@@ -761,7 +746,7 @@ tile_touch( Tile *tile )
 /* Queue a tile for calculation. 
  */
 static void
-tile_queue( Tile *tile )
+tile_queue( Tile *tile, REGION *reg )
 {
 	Render *render = tile->render;
 
@@ -788,9 +773,17 @@ tile_queue( Tile *tile )
 			"painting tile %p %dx%d synchronously\n",
 			tile, tile->area.left, tile->area.top );
 
-		if( im_prepare_to( render->synchronous_reg, tile->region, 
+		/* While we're computing, let other threads use the cache.
+		 * This tile won't get pulled out from under us since it's not
+		 * marked as "painted", and it's not on the dirty list.
+		 */
+		g_mutex_unlock( render->lock );
+
+		if( im_prepare_to( reg, tile->region, 
 			&tile->area, tile->area.left, tile->area.top ) ) 
 			VIPS_DEBUG_MSG_RED( "tile_queue: prepare failed\n" ); 
+
+		g_mutex_lock( render->lock );
 
 		tile->painted = TRUE;
 	}
@@ -827,7 +820,7 @@ render_tile_get_painted( Render *render )
  * or if we've no threads or no notify, calculate immediately.
  */
 static Tile *
-render_tile_request( Render *render, Rect *area )
+render_tile_request( Render *render, REGION *reg, Rect *area )
 {
 	Tile *tile;
 
@@ -839,7 +832,7 @@ render_tile_request( Render *render, Rect *area )
 		 * ask for a repaint.
 		 */
 		if( tile->region->invalid ) 
-			tile_queue( tile );
+			tile_queue( tile, reg );
 		else
 			tile_touch( tile );
 	}
@@ -853,7 +846,7 @@ render_tile_request( Render *render, Rect *area )
 
 		render_tile_add( tile, area );
 
-		tile_queue( tile );
+		tile_queue( tile, reg );
 	}
 	else {
 		/* Need to reuse a tile. Try for an old painted tile first, 
@@ -868,7 +861,7 @@ render_tile_request( Render *render, Rect *area )
 
 		render_tile_move( tile, area );
 
-		tile_queue( tile );
+		tile_queue( tile, reg );
 	}
 
 	return( tile );
@@ -912,12 +905,21 @@ tile_copy( Tile *tile, REGION *to )
 	}
 }
 
+static void *
+image_start( IMAGE *out, void *a, void *b )
+{
+	Render *render = (Render *) a;
+
+	return( im_region_create( render->in ) );
+}
+
 /* Loop over the output region, filling with data from cache.
  */
 static int
-region_fill( REGION *out, void *seq, void *a, void *b )
+image_fill( REGION *out, void *seq, void *a, void *b )
 {
 	Render *render = (Render *) a;
+	REGION *reg = (REGION *) seq;
 	Rect *r = &out->valid;
 	int x, y;
 
@@ -926,7 +928,7 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 	int xs = (r->left / render->tile_width) * render->tile_width;
 	int ys = (r->top / render->tile_height) * render->tile_height;
 
-	VIPS_DEBUG_MSG( "region_fill: left = %d, top = %d, "
+	VIPS_DEBUG_MSG( "image_fill: left = %d, top = %d, "
 		"width = %d, height = %d\n",
                 r->left, r->top, r->width, r->height );
 
@@ -949,14 +951,24 @@ region_fill( REGION *out, void *seq, void *a, void *b )
 			area.width = render->tile_width;
 			area.height = render->tile_height;
 
-			tile = render_tile_request( render, &area );
+			tile = render_tile_request( render, reg, &area );
 			if( tile )
 				tile_copy( tile, out );
 			else
-				VIPS_DEBUG_MSG_RED( "region_fill: argh!\n" );
+				VIPS_DEBUG_MSG_RED( "image_fill: argh!\n" );
 		}
 
 	g_mutex_unlock( render->lock );
+
+	return( 0 );
+}
+
+static int
+image_stop( void *seq, void *a, void *b )
+{
+	REGION *reg = (REGION *) seq;
+
+	im_region_free( reg );
 
 	return( 0 );
 }
@@ -1100,7 +1112,8 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	VIPS_DEBUG_MSG( "vips_sink_screen: max = %d, %p\n", max_tiles, render );
 
-	if( im_generate( out, NULL, region_fill, NULL, render, NULL ) )
+	if( im_generate( out, 
+		image_start, image_fill, image_stop, render, NULL ) )
 		return( -1 );
 	if( mask && 
 		im_generate( mask, NULL, mask_fill, NULL, render, NULL ) )

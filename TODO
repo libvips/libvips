@@ -1,3 +1,5 @@
+- sinkscreen sync mode is single-threaded :( can we safely unlock around the
+  prepare?
 
 
 
