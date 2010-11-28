@@ -1,9 +1,8 @@
-- sinkscreen sync mode is single-threaded :( can we safely unlock around the
-  prepare?
+- fits >3d load
 
+  fits save
 
-
-- see Haida's mail re. cfitsio and higher dimensions
+  see Haida's mail re. cfitsio and higher dimensions
 
 
 

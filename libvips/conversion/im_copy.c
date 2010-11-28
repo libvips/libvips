@@ -41,6 +41,8 @@
  * 	- cleanups
  * 	- removed im_copy_from() and associated stuff
  * 	- added im_copy_native()
+ * 28/11/10
+ * 	- im_copy_set() now sets xoff / yoff again hmmm
  */
 
 /*
@@ -200,7 +202,7 @@ im_copy_set( IMAGE *in, IMAGE *out,
 	VipsType type, float xres, float yres, int xoffset, int yoffset )
 {
 	return( im_copy_set_all( in, out, 
-		type, xres, yres, 0, 0,
+		type, xres, yres, xoffset, yoffset,
 		in->Bands, in->BandFmt, in->Coding ) );
 }
 
