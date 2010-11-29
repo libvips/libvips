@@ -1,3 +1,6 @@
+- im_conv()/im_morph() could have more than 10 programs? try 20 and see if we
+  still have a speedup
+
 - fits >3d load
 
   fits save
@@ -9,8 +12,6 @@
 
 - perspective transform with a matrix ... base it on the Lenz transformer, but
   partial
-
-- need something to test the morph operators
 
 - lab [100,0,0] -> srgb [255, 255, 254]? how odd
 
