@@ -4,6 +4,9 @@
  *	- from matlab.c
  * 27/10/10
  * 	- oops, forgot to init status in close
+ * 30/11/10
+ * 	- set RGB16/GREY16 if appropriate
+ * 	- allow up to 10 dimensions as long as they are empty
  */
 
 /*
@@ -65,6 +68,8 @@ typedef struct {
 
 	fitsfile *fptr;
 	int datatype;
+	int naxis;
+	long long int naxes[10];
 } Read;
 
 static void
@@ -135,8 +140,6 @@ fits2vips_get_header( Read *read )
 {
 	int status;
 	int bitpix;
-	int naxis;
-	long long int naxes[10];
 
 	int width, height, bands, format, type;
 	int keysexist;
@@ -146,40 +149,49 @@ fits2vips_get_header( Read *read )
 	status = 0;
 
 	if( fits_get_img_paramll( read->fptr, 
-		10, &bitpix, &naxis, naxes, &status ) ) {
+		10, &bitpix, &read->naxis, read->naxes, &status ) ) {
 		read_error( status );
 		return( -1 );
 	}
 
-	printf( "naxis = %d\n", naxis );
-	for( i = 0; i < naxis; i++ )
-		printf( "%d) %lld\n", i, naxes[i] );
+	printf( "naxis = %d\n", read->naxis );
+	for( i = 0; i < read->naxis; i++ )
+		printf( "%d) %lld\n", i, read->naxes[i] );
 
 	width = 1;
 	height = 1;
 	bands = 1;
-	switch( naxis ) {
+	switch( read->naxis ) {
+	/* If you add more dimensions here, adjust data read below.
+	 */
+	case 10:
+	case 9:
+	case 8:
+	case 7:
+	case 6:
+	case 5:
+	case 4:
+		for( i = read->naxis; i > 3; i-- )
+			if( read->naxes[i - 1] != 1 ) {
+				im_error( "fits", "%s", _( "dimensions above 3 "
+					"must be size 1" ) );
+				return( -1 );
+			}
+
 	case 3:
-		bands = naxes[2];
+		bands = read->naxes[2];
 
 	case 2:
-		height = naxes[1];
+		height = read->naxes[1];
 
 	case 1:
-		width = naxes[0];
+		width = read->naxes[0];
 		break;
 
 	default:
-		im_error( "fits", "bad number of axis %d", naxis );
+		im_error( "fits", _( "bad number of axis %d" ), read->naxis );
 		return( -1 );
 	}
-
-	if( bands == 1 )
-		type = IM_TYPE_B_W;
-	else if( bands == 3 )
-		type = IM_TYPE_RGB;
-	else
-		type = IM_TYPE_MULTIBAND;
 
 	/* Get image format. We want the 'raw' format of the image, our caller
 	 * can convert using the meta info if they want.
@@ -194,6 +206,21 @@ fits2vips_get_header( Read *read )
 	}
 	format = fits2vips_formats[i][1];
 	read->datatype = fits2vips_formats[i][2];
+
+	if( bands == 1 ) {
+		if( format == IM_BANDFMT_USHORT )
+			type = IM_TYPE_GREY16;
+		else
+			type = IM_TYPE_B_W;
+	}
+	else if( bands == 3 ) {
+		if( format == IM_BANDFMT_USHORT )
+			type = IM_TYPE_RGB16;
+		else
+			type = IM_TYPE_RGB;
+	}
+	else
+		type = IM_TYPE_MULTIBAND;
 
 	im_initdesc( read->out,
 		 width, height, bands,
@@ -278,13 +305,16 @@ fits2vips_get_data( Read *read )
 		return( -1 );
 
 	for( y = 0; y < im->Ysize; y++ ) {
-		long int fpixel[3];
+		/* Keep max no of dimensions in line with the header check
+		 * above.
+		 */
+		long int fpixel[10];
 
 		/* Start of scanline. We have to read top-to-bottom.
 		 */
-		fpixel[0] = 1;
+		for( b = 0; b < 10; b++ )
+			fpixel[b] = 1;
 		fpixel[1] = im->Ysize - y;
-		fpixel[2] = 1;
 
 		for( b = 0; b < im->Bands; b++ ) {
 			fpixel[2] = b + 1;

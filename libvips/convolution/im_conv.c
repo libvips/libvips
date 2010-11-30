@@ -1037,22 +1037,22 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 		generate = convvec_gen;
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 		printf( "im_conv_raw: using vector path\n" );
+#endif /*DEBUG*/
 	}
 	else if( mask->xsize == 3 && mask->ysize == 3 ) {
 		generate = conv3x3_gen;
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 		printf( "im_conv_raw: using 3x3 path\n" );
+#endif /*DEBUG*/
 	}
 	else {
 		generate = conv_gen;
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 		printf( "im_conv_raw: using general path\n" );
+#endif /*DEBUG*/
 	}
 
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
