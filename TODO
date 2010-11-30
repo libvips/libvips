@@ -6,11 +6,7 @@
 
 
 
-- fits >3d load
-
-  fits save
-
-  see Haida's mail re. cfitsio and higher dimensions
+- fits save
 
 
 
