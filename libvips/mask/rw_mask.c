@@ -49,6 +49,9 @@
  * 	- gtk-doc
  * 	- you can use commas to separate eader fields
  * 	- small cleanups
+ * 30/11/10
+ * 	- im_scale_dmask() normalises to 20, not 100 ... we hit the fast
+ * 	  conv path more often
  */
 
 /*
@@ -575,7 +578,7 @@ im_read_imask( const char *filename )
  * @in: mask to scale
  * @filename: filename for returned mask
  *
- * Scale the dmask to make an imask with a maximum value of 100.
+ * Scale the dmask to make an imask with a maximum value of 20.
  *
  * See also: im_norm_dmask().
  *
@@ -605,10 +608,10 @@ im_scale_dmask( DOUBLEMASK *in, const char *filename )
 		if( in->coeff[i] > maxval )
 			maxval = in->coeff[i];
 
-	/* Copy and scale, setting max to 100.
+	/* Copy and scale, setting max to 20.
 	 */
 	for( i = 0; i < size; i++ ) 
-		out->coeff[i] = IM_RINT( in->coeff[i] * 100.0 / maxval );
+		out->coeff[i] = IM_RINT( in->coeff[i] * 20.0 / maxval );
 	out->offset = in->offset;
 
 	/* Set the scale to match the adjustment to max.

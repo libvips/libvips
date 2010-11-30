@@ -1,5 +1,10 @@
+
+
 - im_conv()/im_morph() could have more than 10 programs? try 20 and see if we
   still have a speedup
+
+
+
 
 - fits >3d load
 

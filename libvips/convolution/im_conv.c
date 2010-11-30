@@ -1037,13 +1037,23 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 		generate = convvec_gen;
 
 #ifdef DEBUG
-		printf( "im_conv_raw: using vector path\n" );
 #endif /*DEBUG*/
+		printf( "im_conv_raw: using vector path\n" );
 	}
-	else if( mask->xsize == 3 && mask->ysize == 3 )
+	else if( mask->xsize == 3 && mask->ysize == 3 ) {
 		generate = conv3x3_gen;
-	else
+
+#ifdef DEBUG
+#endif /*DEBUG*/
+		printf( "im_conv_raw: using 3x3 path\n" );
+	}
+	else {
 		generate = conv_gen;
+
+#ifdef DEBUG
+#endif /*DEBUG*/
+		printf( "im_conv_raw: using general path\n" );
+	}
 
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.

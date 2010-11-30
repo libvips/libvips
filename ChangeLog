@@ -39,7 +39,8 @@
 - mask gtk-doc done
 - add cfitsio dependancy
 - add FITS reader
-- land the vector branmch ... we have SSE erode/dilate/add/conv
+- land the vector branch and the orc dependancy ... we have SSE 
+  erode/dilate/add/conv
 - add IM_SWAP
 - dilate/erode do (!=0) on non-uchar images
 - add multipass Orc to im_conv(), 3.5x faster for 5x5 mask
@@ -51,6 +52,8 @@
 - oop, bool constants are always (int) now, so (^-1) works for unsigned types,
   thanks Nicolas
 - much lower memuse for im_cache() in complex pipelines
+- im_scale_dmask() normalises to 20, not 100 ... we hit the fast 
+  conv path more often
 
 12/5/10 started 7.22.2
 - the conditional image of ifthenelse can be any format, a (!=0) is added if
