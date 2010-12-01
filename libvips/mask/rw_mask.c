@@ -25,7 +25,7 @@
  * 27/4/95 JC
  *    -	oops! forgot to init IM_ARRAY() memory to zero
  * 7/8/96 JC
- *    - im_scale_dmask rewritten
+ *    - im_scale_dmask() rewritten
  * 7/5/98 JC
  *    - im_read_*mask() rewritten, now more robust
  *    - im_write_*mask() rewritten
@@ -594,11 +594,8 @@ im_scale_dmask( DOUBLEMASK *in, const char *filename )
 	int i;
 	int isum;
 
-	if( !filename || in->xsize <= 0 || in->ysize <= 0 ) {
-		im_error( "im_scale_dmask", "%s", _( "bad arguments" ) );
-		return( NULL );
-	}
-	if( !(out = im_create_imask( filename, in->xsize, in->ysize )) )
+	if( im_check_dmask( "im_scale_dmask", in ) ||
+		!(out = im_create_imask( filename, in->xsize, in->ysize )) )
 		return( NULL );
 
 	/* Find mask max.
@@ -634,15 +631,77 @@ im_scale_dmask( DOUBLEMASK *in, const char *filename )
 }
 
 /**
- * im_norm_dmask:
- * @mask: mask to scale
+ * im_dmask2imask:
+ * @in: mask to convert
+ * @filename: filename for returned mask
  *
- * Normalise the dmask. Apply the scale and offset to each element and return
- * a mask with scale 1, offset zero.
+ * Make an imask from the dmask, rounding to nearest. 
  *
  * See also: im_scale_dmask().
  *
  * Returns: the converted mask, or NULL on error.
+ */
+INTMASK *
+im_dmask2imask( DOUBLEMASK *in, const char *filename )
+{
+	const int size = in->xsize * in->ysize;
+
+	INTMASK *out;
+	int i;
+
+	if( im_check_dmask( "im_dmask2imask", in ) ||
+		!(out = im_create_imask( filename, in->xsize, in->ysize )) )
+		return( NULL );
+
+	for( i = 0; i < size; i++ ) 
+		out->coeff[i] = IM_RINT( in->coeff[i] );
+	out->offset = IM_RINT( in->offset );
+	out->scale = IM_RINT( in->scale );
+
+	return( out );	
+}
+
+/**
+ * im_imask2dmask:
+ * @in: mask to convert
+ * @filename: filename for returned mask
+ *
+ * Make a dmask from the imask.
+ *
+ * See also: im_dmask2imask().
+ *
+ * Returns: the converted mask, or NULL on error.
+ */
+DOUBLEMASK *
+im_imask2dmask( INTMASK *in, const char *filename )
+{
+	const int size = in->xsize * in->ysize;
+
+	DOUBLEMASK *out;
+	int i;
+
+	if( im_check_imask( "im_imask2dmask", in ) ||
+		!(out = im_create_dmask( filename, in->xsize, in->ysize )) )
+		return( NULL );
+
+	for( i = 0; i < size; i++ ) 
+		out->coeff[i] = in->coeff[i];
+	out->offset = in->offset;
+	out->scale = in->scale;
+
+	return( out );	
+}
+
+/**
+ * im_norm_dmask:
+ * @mask: mask to scale
+ *
+ * Normalise the dmask. Apply the scale and offset to each element to make
+ * a mask with scale 1, offset zero.
+ *
+ * See also: im_scale_dmask().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 void 
 im_norm_dmask( DOUBLEMASK *mask )
@@ -652,7 +711,8 @@ im_norm_dmask( DOUBLEMASK *mask )
 
 	int i;
 
-	if( 1.0 == scale && 0.0 == mask->offset )
+	if( im_check_dmask( "im_norm_dmask", mask ) ||
+		(1.0 == scale && 0.0 == mask->offset) )
 		return;
 
 	for( i = 0; i < n; i++ )
@@ -679,7 +739,8 @@ im_dup_imask( INTMASK *in, const char *filename )
 	INTMASK *out;
 	int i;
 
-	if( !(out = im_create_imask( filename, in->xsize, in->ysize )) )
+	if( im_check_imask( "im_dup_imask", in ) ||
+		!(out = im_create_imask( filename, in->xsize, in->ysize )) )
 		return( NULL );
 
         out->offset = in->offset; 
@@ -708,7 +769,8 @@ im_dup_dmask( DOUBLEMASK *in, const char *filename )
 	DOUBLEMASK *out;
 	int i;
 
-	if( !(out = im_create_dmask( filename, in->xsize, in->ysize )) )
+	if( im_check_dmask( "im_dup_dmask", in ) ||
+		!(out = im_create_dmask( filename, in->xsize, in->ysize )) )
 		return( NULL );
 
         out->offset = in->offset; 
@@ -781,7 +843,8 @@ im_write_imask_name( INTMASK *in, const char *filename )
 	FILE *fp;
 	int x, y, i;
 
-	if( !(fp = open_write( filename )) )
+	if( im_check_imask( "im_write_imask_name", in ) ||
+		!(fp = open_write( filename )) )
 		return( -1 );
 
 	if( write_line( fp, "%d %d", in->xsize, in->ysize ) ) {
@@ -845,7 +908,8 @@ im_write_dmask_name( DOUBLEMASK *in, const char *filename )
 	FILE *fp;
 	int x, y, i;
 
-	if( !(fp = open_write( filename )) )
+	if( im_check_dmask( "im_write_dmask_name", in ) ||
+		!(fp = open_write( filename )) )
 		return( -1 );
 
 	if( write_line( fp, "%d %d", in->xsize, in->ysize ) ) {
@@ -1014,7 +1078,7 @@ im_print_dmask( DOUBLEMASK *in )
 DOUBLEMASK *
 im_local_dmask( VipsImage *out, DOUBLEMASK *mask )
 {
-	if( !mask )
+	if( im_check_dmask( "im_local_dmask", mask ) )
 		return( NULL );
 
 	if( im_add_close_callback( out, 
@@ -1041,7 +1105,7 @@ im_local_dmask( VipsImage *out, DOUBLEMASK *mask )
 INTMASK *
 im_local_imask( VipsImage *out, INTMASK *mask )
 {
-	if( !mask )
+	if( im_check_imask( "im_local_dmask", mask ) )
 		return( NULL );
 
 	if( im_add_close_callback( out, 

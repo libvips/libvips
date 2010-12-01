@@ -88,6 +88,9 @@ DOUBLEMASK *im_dup_dmask( DOUBLEMASK *in, const char *filename );
 
 INTMASK *im_scale_dmask( DOUBLEMASK *in, const char *filename );
 void im_norm_dmask( DOUBLEMASK *mask );
+DOUBLEMASK *im_imask2dmask( INTMASK *in, const char *filename );
+INTMASK *im_dmask2imask( DOUBLEMASK *in, const char *filename );
+
 INTMASK *im_rotate_imask90( INTMASK *in, const char *filename );
 INTMASK *im_rotate_imask45( INTMASK *in, const char *filename );
 DOUBLEMASK *im_rotate_dmask90( DOUBLEMASK *in, const char *filename );

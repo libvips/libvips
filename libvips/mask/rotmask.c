@@ -1,54 +1,5 @@
-/* @(#)  Functions to create offsets for rotating square masks.
- * @(#) Usage 
- * @(#) int *im_offsets45( size )
- * @(#) int size;
- * @(#)
- * @(#) Returns an int pointer to valid offsets on sucess and -1 on error
- * @(#)
- * 
- * @(#) Usage 
- * @(#) int *im_offsets90( size )
- * @(#) int size;
- * @(#)
- * @(#) Returns an int pointer to valid offsets on sucess and -1 on error
- * @(#)
+/* Functions to create offsets for rotating square masks.
  *
- * @(#)  Functions to rotate square masks
- * @(#)
- * @(#) Usage 
- * @(#) INTMASK *im_rotate_imask45( mask, name )
- * @(#) INTMASK *mask;
- * @(#)
- * @(#) Returns an pointer to INTMASK which keeps the original mask rotated
- * @(#) by 45 degrees clockwise.
- * @(#) The filename member of the returned mask is set to name
- * @(#)
- * @(#) Usage 
- * @(#) DOUBLEMASK *im_rotate_dmask45( mask, name )
- * @(#) DOUBLEMASK *mask;
- * @(#)
- * @(#) Returns an pointer to INTMASK which keeps the original mask rotated
- * @(#) by 45 degrees clockwise.
- * @(#) The filename member of the returned mask is set to name
- * @(#)
- * @(#) Usage 
- * @(#) INTMASK *im_rotate_imask90( mask, name )
- * @(#) INTMASK *mask;
- * @(#)
- * @(#) Returns an pointer to INTMASK which keeps the original mask rotated
- * @(#) by 90 degrees clockwise.
- * @(#) The filename member of the returned mask is set to name
- * @(#)
- * @(#) Usage 
- * @(#) DOUBLEMASK *im_rotate_dmask90( mask, name )
- * @(#) DOUBLEMASK *mask;
- * @(#)
- * @(#) Returns an pointer to DOUBLEMASK which keeps the original mask rotated
- * @(#) by 90 degrees clockwise.
- * @(#) The filename member of the returned mask is set to name
- * @(#)
- *
- * 
  * Author: N. Dessipris (Copyright, N. Dessipris 1991)
  * Written on: 08/05/1991
  * Modified on: 28/05/1991
@@ -59,6 +10,8 @@
  *	- many bugs and mem leaks fixed
  * 1/3/99 JC
  *	- oops, fns were not preserving scale and offset
+ * 1/12/10
+ * 	- allow any size mask for the 90 degree rotates by using im_rot90().
  */
 
 /*
@@ -191,7 +144,7 @@ im_offsets90( int size )
 	int x, y, k;
 	int *offsets;
 
-	if( !(offsets = IM_ARRAY( NULL, size*size, int )) )
+	if( !(offsets = IM_ARRAY( NULL, size * size, int )) )
 		return( NULL );
 
 	for( k = 0, y = 0; y < size; y++ ) {
@@ -204,92 +157,6 @@ im_offsets90( int size )
 	}
 
 	return( offsets );
-}
-
-/* Tye pf offset-generating function.
- */
-typedef int *(*offset_fn)( int );
-
-/* Rotate a dmask with a set of offsets.
- */
-static DOUBLEMASK *
-rotdmask( offset_fn fn, DOUBLEMASK *m, const char *name )
-{
-	DOUBLEMASK *out;
-	int size = m->xsize * m->ysize;
-	int *offsets;
-	int i;
-
-	if( m->xsize != m->ysize || (m->xsize % 2) == 0 ) {
-		im_error( "im_rotate_mask", "%s", 
-			_( "mask should be square of even size" ) );
-		return( NULL );
-	}
-	if( !(offsets = fn( m->xsize )) )
-		return( NULL );
-	if( !(out = im_create_dmask( name, m->xsize, m->ysize )) ) {
-		im_free( offsets );
-		return( NULL );
-	}
-	out->scale = m->scale;
-	out->offset = m->offset;
-
-	for( i = 0; i < size; i++ )
-		out->coeff[i] = m->coeff[offsets[i]];
-
-	im_free( offsets );
-
-	return( out );
-}
-
-/* Rotate an imask with a set of offsets.
- */
-static INTMASK *
-rotimask( offset_fn fn, INTMASK *m, const char *name )
-{
-	INTMASK *out;
-	int size = m->xsize * m->ysize;
-	int *offsets;
-	int i;
-
-	if( m->xsize != m->ysize || (m->xsize % 2) == 0 ) {
-		im_error( "im_rotate_mask", "%s", 
-			_( "mask should be square of even size" ) );
-		return( NULL );
-	}
-	if( !(offsets = fn( m->xsize )) )
-		return( NULL );
-	if( !(out = im_create_imask( name, m->xsize, m->ysize )) ) {
-		im_free( offsets );
-		return( NULL );
-	}
-	out->scale = m->scale;
-	out->offset = m->offset;
-
-	for( i = 0; i < size; i++ )
-		out->coeff[i] = m->coeff[offsets[i]];
-
-	im_free( offsets );
-
-	return( out );
-}
-
-/**
- * im_rotate_dmask90:
- * @in: input matrix 
- * @filename: name for output matrix
- *
- * Returns a mask which is the argument mask rotated by 90 degrees.  
- * Pass the filename to set for the output.
- *
- * See also: im_rotate_dmask45().
- *
- * Returns: the result matrix on success, or %NULL on error.
- */
-DOUBLEMASK *
-im_rotate_dmask90( DOUBLEMASK *in, const char *filename )
-{
-	return( rotdmask( im_offsets90, in, filename ) );
 }
 
 /**
@@ -307,25 +174,31 @@ im_rotate_dmask90( DOUBLEMASK *in, const char *filename )
 DOUBLEMASK *
 im_rotate_dmask45( DOUBLEMASK *in, const char *filename )
 {
-	return( rotdmask( im_offsets45, in, filename ) );
-}
+	DOUBLEMASK *out;
+	int size = in->xsize * in->ysize;
+	int *offsets;
+	int i;
 
-/**
- * im_rotate_imask90:
- * @in: input matrix 
- * @filename: name for output matrix
- *
- * Returns a mask which is the argument mask rotated by 90 degrees.  
- * Pass the filename to set for the output.
- *
- * See also: im_rotate_imask45().
- *
- * Returns: the result matrix on success, or %NULL on error.
- */
-INTMASK *
-im_rotate_imask90( INTMASK *in, const char *filename )
-{
-	return( rotimask( im_offsets90, in, filename ) );
+	if( in->xsize != in->ysize || (in->xsize % 2) == 0 ) {
+		im_error( "im_rotate_dmask45", "%s", 
+			_( "mask should be square of odd size" ) );
+		return( NULL );
+	}
+	if( !(offsets = im_offsets45( in->xsize )) )
+		return( NULL );
+	if( !(out = im_create_dmask( filename, in->xsize, in->ysize )) ) {
+		im_free( offsets );
+		return( NULL );
+	}
+	out->scale = in->scale;
+	out->offset = in->offset;
+
+	for( i = 0; i < size; i++ )
+		out->coeff[i] = in->coeff[offsets[i]];
+
+	im_free( offsets );
+
+	return( out );
 }
 
 /**
@@ -343,5 +216,122 @@ im_rotate_imask90( INTMASK *in, const char *filename )
 INTMASK *
 im_rotate_imask45( INTMASK *in, const char *filename )
 {
-	return( rotimask( im_offsets45, in, filename ) );
+	INTMASK *out;
+	int size = in->xsize * in->ysize;
+	int *offsets;
+	int i;
+
+	if( in->xsize != in->ysize || (in->xsize % 2) == 0 ) {
+		im_error( "im_rotate_imask45", "%s", 
+			_( "mask should be square of odd size" ) );
+		return( NULL );
+	}
+	if( !(offsets = im_offsets45( in->xsize )) )
+		return( NULL );
+	if( !(out = im_create_imask( filename, in->xsize, in->ysize )) ) {
+		im_free( offsets );
+		return( NULL );
+	}
+	out->scale = in->scale;
+	out->offset = in->offset;
+
+	for( i = 0; i < size; i++ )
+		out->coeff[i] = in->coeff[offsets[i]];
+
+	im_free( offsets );
+
+	return( out );
+}
+
+/* The type of the vips operations we support.
+ */
+typedef int (*vips_fn)( IMAGE *in, IMAGE *out );
+
+/* Pass a mask through a vips operation, eg. im_rot90().
+ */
+static INTMASK *
+vapplyimask( INTMASK *in, const char *name, vips_fn fn )
+{
+	IMAGE *x;
+	IMAGE *t[2];
+	DOUBLEMASK *d[2];
+	INTMASK *out;
+
+	if( !(x = im_open( name, "p" )) )
+		return( NULL );
+	if( !(d[0] = im_local_dmask( x, im_imask2dmask( in, name ) )) ||
+		im_open_local_array( x, t, 2, name, "p" ) ||
+		im_mask2vips( d[0], t[0] ) ||
+		fn( t[0], t[1] ) ||
+		!(d[1] = im_local_dmask( x, im_vips2mask( t[1], name ) )) ||
+		!(out = im_dmask2imask( d[1], name )) ) {
+		im_close( x );
+		return( NULL );
+	}
+	im_close( x );
+
+	out->scale = in->scale;
+	out->offset = in->offset;
+
+	return( out );
+}
+
+static DOUBLEMASK *
+vapplydmask( DOUBLEMASK *in, const char *name, vips_fn fn )
+{
+	IMAGE *x;
+	IMAGE *t[2];
+	DOUBLEMASK *out;
+
+	if( !(x = im_open( name, "p" )) )
+		return( NULL );
+	if( im_open_local_array( x, t, 2, name, "p" ) ||
+		im_mask2vips( in, t[0] ) ||
+		fn( t[0], t[1] ) ||
+		!(out = im_vips2mask( t[1], name )) ) {
+		im_close( x );
+		return( NULL );
+	}
+	im_close( x );
+
+	out->scale = in->scale;
+	out->offset = in->offset;
+
+	return( out );
+}
+
+/**
+ * im_rotate_imask90:
+ * @in: input matrix 
+ * @filename: name for output matrix
+ *
+ * Returns a mask which is the argument mask rotated by 90 degrees.  
+ * Pass the filename to set for the output.
+ *
+ * See also: im_rotate_imask45().
+ *
+ * Returns: the result matrix on success, or %NULL on error.
+ */
+INTMASK *
+im_rotate_imask90( INTMASK *in, const char *filename )
+{
+	return( vapplyimask( in, filename, im_rot90 ) );
+}
+
+/**
+ * im_rotate_dmask90:
+ * @in: input matrix 
+ * @filename: name for output matrix
+ *
+ * Returns a mask which is the argument mask rotated by 90 degrees.  
+ * Pass the filename to set for the output.
+ *
+ * See also: im_rotate_dmask45().
+ *
+ * Returns: the result matrix on success, or %NULL on error.
+ */
+DOUBLEMASK *
+im_rotate_dmask90( DOUBLEMASK *in, const char *filename )
+{
+	return( vapplydmask( in, filename, im_rot90 ) );
 }

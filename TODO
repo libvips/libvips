@@ -118,11 +118,6 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
 - quite a few hist operations have no GUI ... lhisteq, for example? or
   histspec?
 
-- im_rotate_imask90 only works for square, odd-sized masks, argh
-
-  just use im_rot90? have a small wrapper to let you use image functions on 
-  masks
-
 
 
 

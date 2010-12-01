@@ -1,5 +1,7 @@
 30/11/10 started 7.24.0
 - bump for new stable
+- added im_dmask2imask(), im_imask2dmask()
+- im_rotate_*mask90() can do masks of any size (thanks Adam)
 
 18/7/10 started 7.23.0
 - im_vips2bufjpeg() writes to a linked list, so it will work for any size
