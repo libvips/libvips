@@ -28,6 +28,8 @@
  * 	- also set scale_num on shrink (thanks Guido)
  * 4/2/10
  * 	- gtkdoc
+ * 4/12/10
+ * 	- attach the jpeg thumbnail and multiscan fields (thanks Mike)
  */
 
 /*
@@ -370,12 +372,31 @@ set_vips_resolution( IMAGE *im, ExifData *ed )
 	im->Xres = xres;
 	im->Yres = yres;
 }
+
+static int
+attach_thumbnail( IMAGE *im, ExifData *ed )
+{
+	if( ed->size > 0 ) {
+		char *thumb_copy;
+
+		thumb_copy = im_malloc( NULL, ed->size );      
+		memcpy( thumb_copy, ed->data, ed->size );
+
+		if( im_meta_set_blob( im, "jpeg-thumbnail-data", 
+			(im_callback_fn) im_free, thumb_copy, ed->size ) ) {
+			im_free( thumb_copy );
+			return( -1 );
+		}
+	}
+
+	return( 0 );
+}
 #endif /*HAVE_EXIF*/
 
 static int
 read_exif( IMAGE *im, void *data, int data_length )
 {
-	char *data_copy;
+char *data_copy;
 
 	/* Always attach a copy of the unparsed exif data.
 	 */
@@ -416,6 +437,8 @@ read_exif( IMAGE *im, void *data, int data_length )
 		 * xres/yres fields.
 		 */
 		set_vips_resolution( im, ed );
+
+		attach_thumbnail( im, ed );
 	}
 
 	exif_data_free( ed );
@@ -483,6 +506,12 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 		 cinfo->output_components,
 		 IM_BBITS_BYTE, IM_BANDFMT_UCHAR, IM_CODING_NONE, type,
 		 1.0, 1.0, 0, 0 );
+
+	/* Interlaced jpegs need lots of memory to read, so our caller needs
+	 * to know.
+	 */
+	(void) im_meta_set_int( out, "jpeg-multiscan", 
+		jpeg_has_multiple_scans( cinfo ) );
 
 	/* Look for EXIF and ICC profile.
 	 */
@@ -755,6 +784,14 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
  * the file. Instead, the embedded profile will be attached to the image as 
  * metadata.  You need to use something like im_icc_import() to get CIE 
  * values from the file. Any EXIF data is also attached as VIPS metadata.
+ *
+ * The int metadata item "jpeg-multiscan" is set to the result of 
+ * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of
+ * memory to load, so this field gives callers a chance to handle these
+ * images differently.
+ *
+ * The EXIF thumbnail, if present, is attached to the image as 
+ * "jpeg-thumbnail-data". See im_meta_get_blob().
  *
  * See also: #VipsFormat, im_vips2jpeg().
  *

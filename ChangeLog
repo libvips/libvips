@@ -1,3 +1,6 @@
+6/12/10 started 7.24.0
+- attach the jpeg thumbnail and multiscan fields (thanks Mike)
+
 30/11/10 started 7.24.0
 - bump for new stable
 - added im_dmask2imask(), im_imask2dmask()
