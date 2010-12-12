@@ -1,5 +1,7 @@
 6/12/10 started 7.24.0
 - attach the jpeg thumbnail and multiscan fields (thanks Mike)
+- faster tiff read for some common cases
+- faster im_tile_cache()
 
 30/11/10 started 7.24.0
 - bump for new stable
