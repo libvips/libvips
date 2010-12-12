@@ -115,6 +115,8 @@
  * 	- gtkdoc
  * 12/12/10
  * 	- oops, we can just memcpy() now heh
+ * 	- avoid unpacking via buffers if we can: either read a tile directly
+ * 	  into the output region, or writeline directly from the tiff buffer
  */
 
 /*
@@ -1088,6 +1090,11 @@ tiff_fill_region_aligned( REGION *out, void *seq, void *a, void *b )
 	g_assert( r->height == rtiff->theight );
 	g_assert( IM_REGION_LSKIP( out ) == IM_REGION_SIZEOF_LINE( out ) );
 
+#ifdef DEBUG
+	printf( "tiff_fill_region_aligned: left = %d, top = %d\n", 
+		r->left, r->top ); 
+#endif /*DEBUG*/
+
 	/* Read that tile directly into the vips tile.
 	 */
 	g_mutex_lock( rtiff->tlock );
@@ -1301,11 +1308,19 @@ read_stripwise( ReadTiff *rtiff, IMAGE *out )
 		for( p = tbuf, i = 0; 
 			i < rows_per_strip && y + i < out->Ysize; 
 			i += 1, p += scanline_size ) {
-			/* Process and save as VIPS.
+			/* If we need to unpack the data, go via a buffer.
+			 * Otherwise we can write directly from the strip.
 			 */
-			rtiff->sfn( vbuf, p, out->Xsize, rtiff->client );
-			if( im_writeline( y + i, out, vbuf ) ) 
-				return( -1 );
+			if( rtiff->memcpy ) {
+				if( im_writeline( y + i, out, p ) ) 
+					return( -1 );
+			}
+			else {
+				rtiff->sfn( vbuf, p, 
+					out->Xsize, rtiff->client );
+				if( im_writeline( y + i, out, vbuf ) ) 
+					return( -1 );
+			}
 		}
 	}
 
