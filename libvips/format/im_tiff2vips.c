@@ -113,6 +113,8 @@
  * 	  subsampling schemes (esp. subsampled YCbCr), and it's a bit quicker
  * 4/2/10
  * 	- gtkdoc
+ * 12/12/10
+ * 	- oops, we can just memcpy() now heh
  */
 
 /*
@@ -167,7 +169,6 @@ im_tiff2vips( const char *tiffile, IMAGE *im )
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -181,7 +182,7 @@ im_tiff2vips( const char *tiffile, IMAGE *im )
 
 /* Scanline-type process function.
  */
-typedef void (*scanline_process_fn)( PEL *q, PEL *p, int n, void *user );
+typedef void (*scanline_process_fn)( PEL *q, PEL *p, int n, void *client );
 
 /* Stuff we track during a read.
  */
@@ -203,6 +204,10 @@ typedef struct {
 	 */
 	scanline_process_fn sfn;
 	void *client;
+
+	/* Set this is the processfn is just doing a memcpy.
+	 */
+	gboolean memcpy;
 
 	/* Geometry.
 	 */
@@ -356,7 +361,6 @@ parse_labpack( ReadTiff *rtiff, IMAGE *out )
 	out->Type = IM_TYPE_LAB; 
 
 	rtiff->sfn = labpack_line;
-	rtiff->client = NULL;
 
 	return( 0 );
 }
@@ -395,7 +399,6 @@ parse_labs( ReadTiff *rtiff, IMAGE *out )
 	out->Type = IM_TYPE_LABS; 
 
 	rtiff->sfn = labs_line;
-	rtiff->client = NULL;
 
 	return( 0 );
 }
@@ -554,17 +557,14 @@ parse_greyscale16( ReadTiff *rtiff, int pm, IMAGE *out )
 	return( 0 );
 }
 
-/* Per-scanline process function for 32-bit floating point greyscale images.
+/* Per-scanline process function when we just need to copy.
  */
 static void
-greyscale32f_line( PEL *q, PEL *p, int n )
+memcpy_line( PEL *q, PEL *p, int n, void *client )
 {
-	float *p1 = (float *) p;
-	float *q1 = (float *) q;
-	int x;
+	IMAGE *im = (IMAGE *) client;
 
-	for( x = 0; x < n; x++ )
-		q1[x] = p1[x];
+	memcpy( q, p, n * IM_IMAGE_SIZEOF_PEL( im ) ); 
 }
 
 /* Read a 32-bit floating point greyscale TIFF image. What do we do about
@@ -582,8 +582,9 @@ parse_greyscale32f( ReadTiff *rtiff, int pm, IMAGE *out )
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_B_W; 
 
-	rtiff->sfn = (scanline_process_fn) greyscale32f_line;
-	rtiff->client = NULL;
+	rtiff->sfn = memcpy_line;
+	rtiff->client = out;
+	rtiff->memcpy = TRUE;
 
 	return( 0 );
 }
@@ -662,22 +663,6 @@ parse_palette( ReadTiff *rtiff, IMAGE *out )
 	return( 0 );
 }
 
-/* Per-scanline process function for 8-bit RGB/RGBA/CMYK/CMYKA/etc.
- */
-static void
-rgbcmyk8_line( PEL *q, PEL *p, int n, IMAGE *im )
-{
-	int x, b;
-
-	for( x = 0; x < n; x++ ) {
-		for( b = 0; b < im->Bands; b++ )
-			q[b] = p[b];
-
-		q += im->Bands;
-		p += im->Bands;
-	}
-}
-
 /* Read an 8-bit RGB/RGBA image.
  */
 static int
@@ -702,28 +687,11 @@ parse_rgb8( ReadTiff *rtiff, IMAGE *out )
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_sRGB; 
 
-	rtiff->sfn = (scanline_process_fn) rgbcmyk8_line;
+	rtiff->sfn = memcpy_line;
 	rtiff->client = out;
+	rtiff->memcpy = TRUE;
 
 	return( 0 );
-}
-
-/* Per-scanline process function for RGB/RGBA 16.
- */
-static void
-rgb16_line( PEL *q, PEL *p, int n, IMAGE *im )
-{
-	int x, b;
-	unsigned short *p1 = (unsigned short *) p;
-	unsigned short *q1 = (unsigned short *) q;
-
-	for( x = 0; x < n; x++ ) {
-		for( b = 0; b < im->Bands; b++ )
-			q1[b] = p1[b];
-
-		q1 += im->Bands;
-		p1 += im->Bands;
-	}
 }
 
 /* Read a 16-bit RGB/RGBA image.
@@ -750,29 +718,11 @@ parse_rgb16( ReadTiff *rtiff, IMAGE *out )
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_RGB16; 
 
-	rtiff->sfn = (scanline_process_fn) rgb16_line;
+	rtiff->sfn = memcpy_line;
 	rtiff->client = out;
+	rtiff->memcpy = TRUE;
 
 	return( 0 );
-}
-
-/* Per-scanline process function for 32f.
- */
-static void
-r32f_line( PEL *q, PEL *p, int n, void *dummy )
-{
-	int x;
-	float *p1 = (float *) p;
-	float *q1 = (float *) q;
-
-	for( x = 0; x < n; x++ ) {
-		q1[0] = p1[0];
-		q1[1] = p1[1];
-		q1[2] = p1[2];
-
-		q1 += 3;
-		p1 += 3;
-	}
 }
 
 /* Read a 32-bit float image. RGB or LAB, with or without alpha.
@@ -788,7 +738,7 @@ parse_32f( ReadTiff *rtiff, int pm, IMAGE *out )
 
 	/* Can be 4 for images with an alpha channel.
 	 */
-	assert( bands == 3 || bands == 4 );
+	g_assert( bands == 3 || bands == 4 );
 
 	out->Bands = bands; 
 	out->BandFmt = IM_BANDFMT_FLOAT; 
@@ -804,11 +754,12 @@ parse_32f( ReadTiff *rtiff, int pm, IMAGE *out )
 		break;
 
 	default:
-		assert( 0 );
+		g_assert( 0 );
 	}
 
-	rtiff->sfn = r32f_line;
-	rtiff->client = NULL;
+	rtiff->sfn = memcpy_line;
+	rtiff->client = out;
+	rtiff->memcpy = TRUE;
 
 	return( 0 );
 }
@@ -838,8 +789,9 @@ parse_cmyk( ReadTiff *rtiff, IMAGE *out )
 	out->Coding = IM_CODING_NONE; 
 	out->Type = IM_TYPE_CMYK; 
 
-	rtiff->sfn = (scanline_process_fn) rgbcmyk8_line;
+	rtiff->sfn = memcpy_line;
 	rtiff->client = out;
+	rtiff->memcpy = TRUE;
 
 	return( 0 );
 }
@@ -1108,7 +1060,7 @@ parse_header( ReadTiff *rtiff, IMAGE *out )
  * to vips in parallel.
  */
 static void *
-seq_start( IMAGE *out, void *a, void *b )
+tiff_seq_start( IMAGE *out, void *a, void *b )
 {
 	ReadTiff *rtiff = (ReadTiff *) a;
 	tdata_t *buf;
@@ -1119,10 +1071,41 @@ seq_start( IMAGE *out, void *a, void *b )
 	return( (void *) buf );
 }
 
+/* Paint a tile from the file. This is a
+ * special-case for a region is exactly a tiff tile, and pixels need no
+ * conversion. In this case, libtiff can read tiles directly to our output
+ * region.
+ */
+static int
+tiff_fill_region_aligned( REGION *out, void *seq, void *a, void *b )
+{
+	ReadTiff *rtiff = (ReadTiff *) a;
+	Rect *r = &out->valid;
+
+	g_assert( (r->left % rtiff->twidth) == 0 );
+	g_assert( (r->top % rtiff->theight) == 0 );
+	g_assert( r->width == rtiff->twidth );
+	g_assert( r->height == rtiff->theight );
+	g_assert( IM_REGION_LSKIP( out ) == IM_REGION_SIZEOF_LINE( out ) );
+
+	/* Read that tile directly into the vips tile.
+	 */
+	g_mutex_lock( rtiff->tlock );
+	if( TIFFReadTile( rtiff->tiff, 
+		IM_REGION_ADDR( out, r->left, r->top ), 
+		r->left, r->top, 0, 0 ) < 0 ) {
+		g_mutex_unlock( rtiff->tlock );
+		return( -1 );
+	}
+	g_mutex_unlock( rtiff->tlock );
+
+	return( 0 );
+}
+
 /* Loop over the output region, painting in tiles from the file.
  */
 static int
-fill_region( REGION *out, void *seq, void *a, void *b )
+tiff_fill_region( REGION *out, void *seq, void *a, void *b )
 {
 	tdata_t *buf = (tdata_t *) seq;
 	ReadTiff *rtiff = (ReadTiff *) a;
@@ -1146,6 +1129,17 @@ fill_region( REGION *out, void *seq, void *a, void *b )
 	int tps = tls / rtiff->twidth;
 
 	int x, y, z;
+
+	/* Special case: we are filling a single tile exactly sizeed to match
+	 * the tiff tile, and we have no repacking to do for this format.
+	 */
+	if( rtiff->memcpy &&
+		r->left % rtiff->twidth == 0 &&
+		r->top % rtiff->theight == 0 &&
+		r->width == rtiff->twidth &&
+		r->height == rtiff->theight &&
+		IM_REGION_LSKIP( out ) == IM_REGION_SIZEOF_LINE( out ) )
+		return( tiff_fill_region_aligned( out, seq, a, b ) );
 
 	for( y = ys; y < IM_RECT_BOTTOM( r ); y += rtiff->theight )
 		for( x = xs; x < IM_RECT_RIGHT( r ); x += rtiff->twidth ) {
@@ -1191,7 +1185,7 @@ fill_region( REGION *out, void *seq, void *a, void *b )
 }
 
 static int
-seq_stop( void *seq, void *a, void *b )
+tiff_seq_stop( void *seq, void *a, void *b )
 {
 	im_free( seq );
 
@@ -1233,7 +1227,8 @@ read_tilewise( ReadTiff *rtiff, IMAGE *out )
 	 */
 	if( im_demand_hint( raw, IM_SMALLTILE, NULL ) ||
 		im_generate( raw, 
-			seq_start, fill_region, seq_stop, rtiff, NULL ) )
+			tiff_seq_start, tiff_fill_region, tiff_seq_stop, 
+			rtiff, NULL ) )
 		return( -1 );
 
 	/* Copy to out, adding a cache. Enough tiles for two complete rows.
@@ -1348,6 +1343,7 @@ readtiff_new( const char *filename, IMAGE *out )
 	rtiff->tiff = NULL;
 	rtiff->sfn = NULL;
 	rtiff->client = NULL;
+	rtiff->memcpy = FALSE;
 	rtiff->twidth = 0;
 	rtiff->theight = 0;
 	rtiff->tlock = g_mutex_new();

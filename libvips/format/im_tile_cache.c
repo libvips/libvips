@@ -11,6 +11,8 @@
  * 	  threads
  * 4/2/10
  * 	- gtkdoc
+ * 12/12/10
+ * 	- use im_prepare_to() and avoid making a sequence for every cache tile
  */
 
 /*
@@ -51,7 +53,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/thread.h>
@@ -103,7 +104,7 @@ tile_destroy( Tile *tile )
 
 	read->cache = g_slist_remove( read->cache, tile );
 	read->ntiles -= 1;
-	assert( read->ntiles >= 0 );
+	g_assert( read->ntiles >= 0 );
 	tile->read = NULL;
 
 	IM_FREEF( im_region_free, tile->region );
@@ -166,15 +167,35 @@ tile_new( Read *read )
 	tile->x = -1;
 	tile->y = -1;
 	read->cache = g_slist_prepend( read->cache, tile );
-	assert( read->ntiles >= 0 );
+	g_assert( read->ntiles >= 0 );
 	read->ntiles += 1;
 
 	if( !(tile->region = im_region_create( read->in )) ) {
 		tile_destroy( tile );
 		return( NULL );
 	}
+	im__region_no_ownership( tile->region );
 
 	return( tile );
+}
+
+static int
+tile_move( Tile *tile, int x, int y )
+{
+	Rect area;
+
+	tile->x = x;
+	tile->y = y;
+
+	area.left = x;
+	area.top = y;
+	area.width = tile->read->tile_width;
+	area.height = tile->read->tile_height;
+
+	if( im_region_buffer( tile->region, &area ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 /* Do we have a tile in the cache?
@@ -197,7 +218,7 @@ tile_search( Read *read, int x, int y )
 static void
 tile_touch( Tile *tile )
 {
-	assert( tile->read->ntiles >= 0 );
+	g_assert( tile->read->ntiles >= 0 );
 
 	tile->time = tile->read->time++;
 }
@@ -205,28 +226,21 @@ tile_touch( Tile *tile )
 /* Fill a tile with pixels.
  */
 static int
-tile_fill( Tile *tile, int x, int y )
+tile_fill( Tile *tile, REGION *in )
 {
 	Rect area;
-
-	tile->x = x;
-	tile->y = y;
 
 #ifdef DEBUG
 	printf( "im_tile_cache: filling tile %d x %d\n", tile->x, tile->y );
 #endif /*DEBUG*/
 
-	area.left = x;
-	area.top = y;
+	area.left = tile->x;
+	area.top = tile->y;
 	area.width = tile->read->tile_width;
 	area.height = tile->read->tile_height;
-	if( im_prepare( tile->region, &area ) )
-		return( -1 );
 
-	/* Make sure these pixels aren't part of this thread's buffer cache
-	 * ... they may be read out by another thread.
-	 */
-	im__region_no_ownership( tile->region );
+	if( im_prepare_to( in, tile->region, &area, area.left, area.top ) ) 
+		return( -1 );
 
 	tile_touch( tile );
 
@@ -237,7 +251,7 @@ tile_fill( Tile *tile, int x, int y )
  * reuse LRU.
  */
 static Tile *
-tile_find( Read *read, int x, int y )
+tile_find( Read *read, REGION *in, int x, int y )
 {
 	Tile *tile;
 	int oldest;
@@ -256,7 +270,8 @@ tile_find( Read *read, int x, int y )
 	if( read->max_tiles == -1 ||
 		read->ntiles < read->max_tiles ) {
 		if( !(tile = tile_new( read )) ||
-			tile_fill( tile, x, y ) )
+			tile_move( tile, x, y ) ||
+			tile_fill( tile, in ) )
 			return( NULL );
 
 		return( tile );
@@ -275,20 +290,14 @@ tile_find( Read *read, int x, int y )
 		}
 	}
 
-	assert( tile );
-
-	/* The tile may have been created by another thread if we are sharing
-	 * the tile cache between several readers. Take ownership of the tile
-	 * to stop assert() failures in im_prepare(). This is safe, since we
-	 * are in a mutex.
-	 */
-	im__region_take_ownership( tile->region );
+	g_assert( tile );
 
 #ifdef DEBUG
 	printf( "im_tile_cache: reusing tile %d x %d\n", tile->x, tile->y );
 #endif /*DEBUG*/
 
-	if( tile_fill( tile, x, y ) )
+	if( tile_move( tile, x, y ) ||
+		tile_fill( tile, in ) )
 		return( NULL );
 
 	return( tile );
@@ -303,8 +312,8 @@ copy_region( REGION *from, REGION *to, Rect *area )
 
 	/* Area should be inside both from and to.
 	 */
-	assert( im_rect_includesrect( &from->valid, area ) );
-	assert( im_rect_includesrect( &to->valid, area ) );
+	g_assert( im_rect_includesrect( &from->valid, area ) );
+	g_assert( im_rect_includesrect( &to->valid, area ) );
 
 	/* Loop down common area, copying.
 	 */
@@ -319,9 +328,10 @@ copy_region( REGION *from, REGION *to, Rect *area )
 /* Loop over the output region, filling with data from cache.
  */
 static int
-fill_region( REGION *out, void *seq, void *a, void *b )
+tile_cache_fill( REGION *out, void *seq, void *a, void *b )
 {
-	Read *read = (Read *) a;
+	REGION *in = (REGION *) seq;
+	Read *read = (Read *) b;
 	const int tw = read->tile_width;
 	const int th = read->tile_height;
 	Rect *r = &out->valid;
@@ -341,7 +351,7 @@ fill_region( REGION *out, void *seq, void *a, void *b )
 			Rect tarea;
 			Rect hit;
 
-			if( !(tile = tile_find( read, x, y )) ) {
+			if( !(tile = tile_find( read, in, x, y )) ) {
 				g_mutex_unlock( read->lock );
 				return( -1 );
 			}
@@ -405,7 +415,7 @@ im_tile_cache( IMAGE *in, IMAGE *out,
 		!(read = read_new( in, out, 
 			tile_width, tile_height, max_tiles )) ||
 		im_generate( out, 
-			NULL, fill_region, NULL, read, NULL ) )
+			im_start_one, tile_cache_fill, im_stop_one, in, read ) )
 		return( -1 );
 
 	return( 0 );

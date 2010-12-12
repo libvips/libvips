@@ -1066,7 +1066,8 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  * im_prepare() on @out will always block until the pixels have been
  * calculated.
  *
- * See also: im_cache(), im_prepare(), vips_sink_disc(), vips_sink().
+ * See also: im_cache(), im_tile_cache(), im_prepare(), vips_sink_disc(), 
+ * vips_sink().
  *
  * Returns: 0 on sucess, -1 on error.
  */
