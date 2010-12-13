@@ -160,9 +160,14 @@ AC_ARG_ENABLE(cxx,
 if test x"$enable_cxx" != "xno"; then
   AC_DEFINE(ENABLE_CXX,1,[build C++ components])
   AM_CONDITIONAL(ENABLE_CXX, true)
+  # need -lstdc++ for (eg.) the C++ format loaders
+  # this gets added to vips-7.xx.pc to help mingw and friends link programs
+  # using libvips
+  VIPS_CXX_LIBS="-lstdc++"
   enable_cxx=yes
 else
   AM_CONDITIONAL(ENABLE_CXX, false)
+  VIPS_CXX_LIBS=""
   enable_cxx=no
 fi
 
@@ -593,8 +598,6 @@ VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES $FFTW_INCLUDES $LCMS_INCLUDES" 
 VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $OPENEXR_LIBS $CFITSIO_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
-# need -lstdc++ for (eg.) the C++ format loaders
-VIPS_CXX_LIBS="-lstdc++"
 
 # we need this to generate paths in swig/python/setup.py.in
 AC_SUBST(top_srcdir)
