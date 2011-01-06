@@ -6,8 +6,8 @@ colour. There's a GUI as well, see the VIPS website:
 
 	http://www.vips.ecs.soton.ac.uk
 
-There are packages for most linuxes and OS X. There is a pre-compiled windows
-binary on the vips website.
+There are packages for most unix-like operating systems, and binaries for
+Windows and OS X.
 
 Building VIPS from source
 =========================
@@ -25,19 +25,12 @@ If you have problems, read on.
 Building VIPS on win32
 ----------------------
 
-The easiest route is to use mingw/msys. This provides a GNU-style
-build environment for win32. 
-
 	http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_windows
-
-You can also cross-compile from a unix system to windows.
 
 Building VIPS on OS X
 ---------------------
 
-There are packages in macports.
-
-	http://www.macports.org
+	http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_OS_X
 
 Building VIPS from SVN
 ----------------------
@@ -111,9 +104,11 @@ fftw3
  	If the library is not found, VIPS falls back to it's own internal FFT
 	routines which are slower and less accurate.
 
+lcms2
 lcms
 	If present, im_icc_import(), _export() and _transform() are available
-	for transforming images with ICC profiles.
+	for transforming images with ICC profiles. If lcms2 is available, it
+	is used in preference to lcms.
 
 large files
 	VIPS uses the standard autoconf tests to work out how to support large
@@ -126,15 +121,19 @@ libMagick, or optionally GraphicsMagick
 	if available, VIPS adds support for loading all libMagick supported
 	image file types (about 80 different formats). No saving though.
 
-pango
-freetype2
-fontconfig
+pangoft2
 	if available, VIPS adds support for text rendering. You need the
 	package pangoft2 in "pkg-config --list-all"
 
-liboil
-	if available, you get some inner loops replcaed by calls to liboil's
-	library of optimised inner loops
+orc-0.4
+	if available, vips will accelerate some operations with this run-time
+	compiler
+
+matio
+	if available, vips can load images from Matlab save files
+
+cfitsio
+	if available, vips can load FITS images
 
 OpenEXR
 	if available, VIPS will directly read (but not write, sadly) OpenEXR 
