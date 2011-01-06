@@ -16,6 +16,8 @@
  * 	- small cleanups
  * 4/2/10
  * 	- gtkdoc
+ * 8/1/11
+ * 	- get png resolution (thanks Zhiyu Wu)
  */
 
 /*
@@ -229,6 +231,9 @@ static int
 png2vips( Read *read, int header_only )
 {
 	int bands, bpp, type;
+	png_uint_32 res_x, res_y;
+	int unit_type;
+	double Xres, Yres;
 
 	if( setjmp( read->pPng->jmpbuf ) ) 
 		return( -1 );
@@ -296,13 +301,32 @@ png2vips( Read *read, int header_only )
 	if( read->pInfo->bit_depth > 8 && !im_amiMSBfirst() )
 		png_set_swap( read->pPng );
 
+	/* Get resolution. I'm not sure what we should do for UNKNOWN, since
+	 * vips is always pixels/mm.
+	 */
+	png_get_pHYs( read->pPng, read->pInfo, 
+		&res_x, &res_y, &unit_type );
+	switch( unit_type ) {
+	case PNG_RESOLUTION_METER:
+		Xres = res_x / 1000.0;
+		Yres = res_y / 1000.0;
+		break;
+	
+	default:
+		Xres = res_x;
+		Yres = res_y;
+		break;
+	}
+
 	/* Set VIPS header.
 	 */
 	im_initdesc( read->out,
 		 read->pInfo->width, read->pInfo->height, bands,
 		 bpp == 1 ? IM_BBITS_BYTE : IM_BBITS_SHORT, 
 		 bpp == 1 ? IM_BANDFMT_UCHAR : IM_BANDFMT_USHORT,
-		 IM_CODING_NONE, type, 1.0, 1.0, 0, 0 );
+		 IM_CODING_NONE, type, 
+		 Xres, Yres,
+		 0, 0 );
 
 	if( !header_only ) {
 		if( png_set_interlace_handling( read->pPng ) > 1 ) {

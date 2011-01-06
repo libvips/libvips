@@ -19,6 +19,8 @@
  * 	- lololo but broke 8-bit save, fixed again
  * 20/7/10 Tim Elliott
  * 	- added im_vips2bufpng()
+ * 8/1/11
+ * 	- set png resolution (thanks Zhiyu Wu)
  */
 
 /*
@@ -254,6 +256,12 @@ write_vips( Write *write, int compress, int interlace )
 	default:
 		g_assert( 0 );
 	}
+
+	/* Set resolution. libpnbg uses pixels per meter.
+	 */
+	png_set_pHYs( write->pPng, write->pInfo, 
+		IM_RINT( in->Xres * 1000 ), IM_RINT( in->Yres * 1000 ), 
+		PNG_RESOLUTION_METER );
 
 	png_write_info( write->pPng, write->pInfo ); 
 
