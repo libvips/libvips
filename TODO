@@ -1,3 +1,19 @@
+- bilinear benchmarks
+
+	8-bit image, tables, fixed-point, 3.7s (7.24 one)
+	8-bit image, no tables, float, 5.2s
+	8-bit image, no tables, fixed-point, 4.2s
+
+	float image, tables, 5.2s (7.24 one)
+	float image, no tables, sp float coeff, 4.2s
+	float image, no tables, dp float coeff, 4.8s
+
+
+
+
+
+
+
 
 
 - im_conv()/im_morph() could have more than 10 programs? try 20 and see if we
@@ -7,6 +23,8 @@
 
 
 - fits save
+
+- lazy fits load
 
 
 

@@ -7,6 +7,9 @@
  * 	  defaults to (window_size / 2 - 1), so for a 4x4 stencil (eg.
  * 	  bicubic) we have an offset of 1
  * 	- tiny speedups
+ * 7/1/11
+ * 	- don't use tables for bilinear on float data for a small speedup
+ * 	  (thanks Nicolas)
  */
 
 /*
@@ -323,14 +326,11 @@ typedef VipsInterpolateClass VipsInterpolateBilinearClass;
 G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	VIPS_TYPE_INTERPOLATE );
 
-/* Precalculated interpolation matricies. int (used for pel sizes up
- * to short), and float (for all others). We go to scale + 1 so
- * we can round-to-nearest safely. Don't bother with double, since
- * this is an approximation anyway.
+/* Precalculated interpolation matricies, only for int types.
+ * We go to scale + 1 so
+ * we can round-to-nearest safely. 
  */
 static int vips_bilinear_matrixi
-	[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
-static float vips_bilinear_matrixd
 	[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
 
 /* in this class, name vars in the 2x2 grid as eg.
@@ -344,6 +344,12 @@ static float vips_bilinear_matrixd
 #define BILINEAR_INT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
  	\
+	const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1); \
+	const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1); \
+	\
+	const int tx = (six + 1) >> 1; \
+	const int ty = (siy + 1) >> 1; \
+	\
 	const int c1 = vips_bilinear_matrixi[tx][ty][0]; \
 	const int c2 = vips_bilinear_matrixi[tx][ty][1]; \
 	const int c3 = vips_bilinear_matrixi[tx][ty][2]; \
@@ -364,12 +370,18 @@ static float vips_bilinear_matrixd
  */
 #define BILINEAR_FLOAT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
- 	\
-	const double c1 = vips_bilinear_matrixd[tx][ty][0]; \
-	const double c2 = vips_bilinear_matrixd[tx][ty][1]; \
-	const double c3 = vips_bilinear_matrixd[tx][ty][2]; \
-	const double c4 = vips_bilinear_matrixd[tx][ty][3]; \
 	\
+	float X = x - ix; \
+	float Y = y - iy; \
+	\
+	float Xd = 1.0 - X; \
+	float Yd = 1.0 - Y; \
+	\
+	float c1 = Xd * Yd; \
+	float c2 = X * Yd; \
+	float c3 = Xd * Y; \
+	float c4 = X * Y; \
+ 	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
 	const TYPE *tp3 = (TYPE *) p3; \
@@ -408,6 +420,10 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int ls = IM_REGION_LSKIP( in );
 	const int b = in->im->Bands;
 
+	/* We want ((int)x), but the tables versions needs to find a mask
+	 * index quickly from the residual. Calculate both.
+	 */
+
 	/* Find the mask index. We round-to-nearest, so we need to generate 
 	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 
 	 * by 2 more than we need to, add one, mask, then shift down again to 
@@ -416,13 +432,7 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int sx = x * VIPS_TRANSFORM_SCALE * 2;
 	const int sy = y * VIPS_TRANSFORM_SCALE * 2;
 
-	const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
-	const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
-
-	const int tx = (six + 1) >> 1;
-	const int ty = (siy + 1) >> 1;
-
-	/* We want ((int)x) ... void repeating this double -> int conversion 
+	/* We want ((int)x) ... avoid repeating this double -> int conversion 
 	 * by just shifting sx down.
 	 */
 	const int ix = sx >> (VIPS_TRANSFORM_SHIFT + 1);
@@ -473,11 +483,6 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 			c2 = X * Yd;
 			c3 = Xd * Y;
 			c4 = X * Y;
-
-			vips_bilinear_matrixd[x][y][0] = c1;
-			vips_bilinear_matrixd[x][y][1] = c2;
-			vips_bilinear_matrixd[x][y][2] = c3;
-			vips_bilinear_matrixd[x][y][3] = c4;
 
 			vips_bilinear_matrixi[x][y][0] = 
 				c1 * VIPS_INTERPOLATE_SCALE;

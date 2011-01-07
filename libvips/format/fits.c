@@ -60,6 +60,12 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* vips only supports 3 dimensions, but we allow up to MAX_DIMENSIONS as long
+ * as the higher dimensions are all empty. If you change this value, change
+ * fits2vips_get_header() as well.
+ */
+#define MAX_DIMENSIONS (10)
+
 /* What we track during a cfitsio-file read.
  */
 typedef struct {
@@ -69,7 +75,7 @@ typedef struct {
 	fitsfile *fptr;
 	int datatype;
 	int naxis;
-	long long int naxes[10];
+	long long int naxes[MAX_DIMENSIONS];
 } Read;
 
 static void
@@ -154,15 +160,18 @@ fits2vips_get_header( Read *read )
 		return( -1 );
 	}
 
+#ifdef DEBUG
 	printf( "naxis = %d\n", read->naxis );
 	for( i = 0; i < read->naxis; i++ )
 		printf( "%d) %lld\n", i, read->naxes[i] );
+#endif /*DEBUG*/
 
 	width = 1;
 	height = 1;
 	bands = 1;
 	switch( read->naxis ) {
-	/* If you add more dimensions here, adjust data read below.
+	/* If you add more dimensions here, adjust data read below. See also
+	 * the definition of MAX_DIMENSIONS above.
 	 */
 	case 10:
 	case 9:
@@ -284,8 +293,10 @@ fits2vips_header( const char *filename, IMAGE *out )
 	return( 0 );
 }
 
+/* Read the whole image in scanlines.
+ */
 static int
-fits2vips_get_data( Read *read )
+fits2vips_get_data_scanlinewise( Read *read )
 {
 	IMAGE *im = read->out;
 	const int es = IM_IMAGE_SIZEOF_ELEMENT( im );
@@ -296,6 +307,8 @@ fits2vips_get_data( Read *read )
 	int x, y, b, z;
 	int status;
 
+	long fpixel[MAX_DIMENSIONS];
+
 	status = 0;
 
 	if( !(line_buffer = IM_ARRAY( im, IM_IMAGE_SIZEOF_LINE( im ), PEL )) ||
@@ -305,14 +318,9 @@ fits2vips_get_data( Read *read )
 		return( -1 );
 
 	for( y = 0; y < im->Ysize; y++ ) {
-		/* Keep max no of dimensions in line with the header check
-		 * above.
-		 */
-		long int fpixel[10];
-
 		/* Start of scanline. We have to read top-to-bottom.
 		 */
-		for( b = 0; b < 10; b++ )
+		for( b = 0; b < MAX_DIMENSIONS; b++ )
 			fpixel[b] = 1;
 		fpixel[1] = im->Ysize - y;
 
@@ -347,6 +355,94 @@ fits2vips_get_data( Read *read )
 	return( 0 );
 }
 
+static int
+fits2vips_generate( REGION *out, void *seq, void *a, void *b )
+{
+	Read *read = (Read *) a;
+	Rect *r = &out->valid;
+
+	IMAGE *im = read->out;
+	const int es = IM_IMAGE_SIZEOF_ELEMENT( im );
+
+	PEL *line_buffer;
+	PEL *band_buffer;
+	PEL *p, *q;
+	int x, y, z, k;
+	int status;
+
+	status = 0;
+
+	long fpixel[MAX_DIMENSIONS];
+	long lpixel[MAX_DIMENSIONS];
+	long inc[MAX_DIMENSIONS];
+
+	if( !(line_buffer = IM_ARRAY( im, IM_IMAGE_SIZEOF_LINE( im ), PEL )) ||
+		!(band_buffer = IM_ARRAY( im, es * im->Xsize, PEL )) ||
+		im_outcheck( im ) ||
+		im_setupout( im ) )
+		return( -1 );
+
+	/* Read out the entire
+	for( b = 0; b < MAX_DIMENSIONS; b++ )
+		fpixel[b] = 1;
+	fpixel[1] = im->Ysize - y;
+
+	if( fits_read_subset( read->fptr, read->datatype, 
+		long *fpixel,
+			             long *lpixel, long *inc, void *nulval,  void *array,
+				                  int *anynul, int *status)
+	 */
+
+
+	for( y = 0; y < im->Ysize; y++ ) {
+		long int fpixel[MAX_DIMENSIONS];
+
+		/* Start of scanline. We have to read top-to-bottom.
+		 */
+		for( z = 0; z < MAX_DIMENSIONS; z++ )
+			fpixel[z] = 1;
+		fpixel[1] = im->Ysize - y;
+
+		for( z = 0; z < im->Bands; z++ ) {
+			fpixel[2] = z + 1;
+
+			/* Read one band of one scanline, then scatter-write
+			 * into the line buffer.
+			 */
+			if( fits_read_pix( read->fptr, 
+				read->datatype, fpixel, im->Xsize,
+				NULL, band_buffer, NULL, &status ) ) {
+				read_error( status );
+				return( -1 );
+			}
+
+			p = band_buffer;
+			q = line_buffer + z * es;
+			for( x = 0; x < im->Xsize; x++ ) {
+				for( k = 0; k < es; k++ )
+					q[k] = p[k];
+
+				p += es;
+				q += im->Bands * es;
+			}
+		}
+
+		if( im_writeline( y, im, line_buffer ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* Read the image in chunks on demand.
+ */
+static int
+fits2vips_get_data_lazy( Read *read )
+{
+	return( im_generate( read->out, 
+		NULL, fits2vips_generate, NULL, read, NULL ) );
+}
+
 /**
  * im_fits2vips:
  * @filename: file to load
@@ -371,7 +467,7 @@ im_fits2vips( const char *filename, IMAGE *out )
 	if( !(read = read_new( filename, out )) ) 
 		return( -1 );
 	if( fits2vips_get_header( read ) ||
-		fits2vips_get_data( read ) ) {
+		fits2vips_get_data_scanlinewise( read ) ) {
 		read_destroy( read );
 		return( -1 );
 	}
