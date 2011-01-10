@@ -6,12 +6,12 @@
 - im_vips2png() / im_png2vips() set / get png resolution (thanks Zhiyu Wu)
 - updated README
 - don't use tables for bilinear on float data for a small speedup (thanks
-  Nicolas)
+  Nicolas Robidoux)
 
 30/11/10 started 7.24.0
 - bump for new stable
 - added im_dmask2imask(), im_imask2dmask()
-- im_rotate_*mask90() can do masks of any size (thanks Adam)
+- im_rotate_*mask90() can do masks of any size (thanks Adam Turcotte)
 
 18/7/10 started 7.23.0
 - im_vips2bufjpeg() writes to a linked list, so it will work for any size
@@ -65,7 +65,7 @@
 - oops, missing braces in debug.h and util.h, thanks Laurence
 - update C++/Python binding
 - oop, bool constants are always (int) now, so (^-1) works for unsigned types,
-  thanks Nicolas
+  thanks Nicolas Robidoux
 - much lower memuse for im_cache() in complex pipelines
 - im_scale_dmask() normalises to 20, not 100 ... we hit the fast 
   conv path more often
@@ -74,7 +74,7 @@
 - the conditional image of ifthenelse can be any format, a (!=0) is added if
   necessary
 - oops vipsthumbnail sharpening was turning off for integer shrinks, 
-  thanks Nicolas
+  thanks Nicolas Robidoux
 - im_vips2jpeg() could fail for very small images (thanks Tim)
 - threadpool wasn't stopping on allocate errors (thanks Tim)
 - vips_sink_disc() could block if allocate failed (thanks Tim)
@@ -99,7 +99,7 @@
   translation file
 - vipsthumbnail delete profile failed if there was a profile
 - interpolate cli unref was broken
-- more accurate, slightly faster bilinear and bicubic (thanks Nicolas)
+- more accurate, slightly faster bilinear and bicubic (thanks Nicolas Robidoux)
 
 21/3/10 started 7.21.3
 - added progress feedback to threadpool
@@ -450,7 +450,7 @@
 - configure prints a summary of optional packages found at the end
 - im_lhisteq() checks for window too small
 - added invalidate callbacks
-- now tests for MagickWand before ImageMagick (thanks Adam) 
+- now tests for MagickWand before ImageMagick (thanks Adam Turcotte) 
 - added "-rotate" option to vips2dj
 - added man page for im_resize_linear
 - better jpeg-in-tiff YCbCr read (thanks Ole)
@@ -459,7 +459,7 @@
 - added IM_LIBDIR, im_guess_libdir()
 - load plugins from libdir/vips-x.x on startup
 - added meta get/set int/double/string/area/blob/GValue to C++ API
-- include time_t in vips.h, thanks nicola
+- include time_t in vips.h, thanks Nicolas Robidoux
 - lock global image list (thanks lee)
 
 25/1/08 started 7.14.0
