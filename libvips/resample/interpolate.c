@@ -365,7 +365,138 @@ static int vips_bilinear_matrixi
 			 c3 * tp3[z] + c4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; \
 }
 
-/* Interpolate a pel ... int32 and float types, lookup tables, float 
+#define BILINEAR_INT2( TYPE ) { \
+	TYPE *tq = (TYPE *) out; \
+ 	\
+	const int X = (x - ix) * 128; \
+	const int Y = (y - iy) * 128; \
+	\
+	const TYPE *tp1 = (TYPE *) p1; \
+	const TYPE *tp2 = (TYPE *) p2; \
+	const TYPE *tp3 = (TYPE *) p3; \
+	const TYPE *tp4 = (TYPE *) p4; \
+	\
+	for( z = 0; z < b; z++ ) { \
+		const int top = tp1[z] + ((X * (tp2[z] - tp1[z])) >> 7); \
+		const int bot = tp3[z] + ((X * (tp4[z] - tp3[z])) >> 7); \
+		\
+		tq[z] = top + ((Y * (bot - top)) >> 7); \
+	} \
+}
+
+/* n-20:59
+ */
+#define BILINEAR_INT3( TYPE ) { \
+	TYPE *tq = (TYPE *) out; \
+ 	\
+	const int X = (x - ix) * 128; \
+	const int Y = (y - iy) * 128; \
+	\
+	const TYPE *tp1 = (TYPE *) p1; \
+	const TYPE *tp2 = (TYPE *) p2; \
+	const TYPE *tp3 = (TYPE *) p3; \
+	const TYPE *tp4 = (TYPE *) p4; \
+	\
+	for( z = 0; z < b; z++ ) { \
+		const int d = tp2[z] - tp1[z]; \
+ 		\
+		tq[z] = ( ( ( ( ( ( tp4[z] - tp3[z] - d ) * X ) >> 7 ) + tp3[z] - tp1[z]) * Y + d * X) >> 7) + tp1[z]; \
+	} \
+}
+
+/* n-21:14
+ */
+#define BILINEAR_INT4( TYPE ) { \
+	TYPE *tq = (TYPE *) out; \
+ 	\
+	const int X = (x - ix) * 128; \
+	const int Y = (y - iy) * 128; \
+	\
+	const TYPE *tp1 = (TYPE *) p1; \
+	const TYPE *tp2 = (TYPE *) p2; \
+	const TYPE *tp3 = (TYPE *) p3; \
+	const TYPE *tp4 = (TYPE *) p4; \
+	\
+	for( z = 0; z < b; z++ ) { \
+		const int d21 = tp2[z] - tp1[z]; \
+		const int d31 = tp3[z] - tp1[z]; \
+		const int d34 = tp3[z] - tp4[z]; \
+		\
+		tq[z] = ( ( d21 * X + ( d31 - ( ( (d21+d34) * X ) >> 7)) * Y) >> 7) + tp1[z]; \
+	} \
+}
+
+/* n-22:20
+ */
+#define BILINEAR_INT5( TYPE ) { \
+	TYPE *tq = (TYPE *) out; \
+ 	\
+	const int X = (x - ix) * 128; \
+	const int Y = (y - iy) * 128; \
+	\
+	const TYPE *tp1 = (TYPE *) p1; \
+	const TYPE *tp2 = (TYPE *) p2; \
+	const TYPE *tp3 = (TYPE *) p3; \
+	const TYPE *tp4 = (TYPE *) p4; \
+	\
+	const int X128 = X * 128; \
+	\
+	for( z = 0; z < b; z++ ) { \
+		const int d21 = tp2[z] - tp1[z]; \
+		const int d31 = tp3[z] - tp1[z]; \
+		const int d34 = tp3[z] - tp4[z]; \
+ 		\
+		tq[z] = ( ( d21 * X128 + ( d31 * 128 - ( ( (d21+d34) * X ))) * Y) >> 14) + tp1[z]; \
+	} \
+}
+
+/* n-00:06
+ */
+#define BILINEAR_INT6( TYPE ) { \
+	TYPE *tq = (TYPE *) out; \
+ 	\
+	const int X = (x - ix) * 128; \
+	const int Y = (y - iy) * 128; \
+	\
+	const TYPE *tp1 = (TYPE *) p1; \
+	const TYPE *tp2 = (TYPE *) p2; \
+	const TYPE *tp3 = (TYPE *) p3; \
+	const TYPE *tp4 = (TYPE *) p4; \
+	\
+	const int X128 = X * 128; \
+	\
+	for( z = 0; z < b; z++ ) { \
+		const int d21 = tp2[z] - tp1[z]; \
+		const int d31 = tp3[z] - tp1[z]; \
+		const int d34 = tp3[z] - tp4[z]; \
+ 		\
+		tq[z] = ( tp1[z] << 14 + d21 * X128 + ( d31 * 128 - ( ( (d21+d34) * X ))) * Y) >> 14; \
+	} \
+}
+
+/* n-14:26
+ */
+#define BILINEAR_INT7( TYPE ) { \
+	TYPE *tq = (TYPE *) out; \
+ 	\
+	const int X = (x - ix) * 128; \
+	const int Y = (y - iy) * 128; \
+	\
+	const TYPE *tp1 = (TYPE *) p1; \
+	const TYPE *tp2 = (TYPE *) p2; \
+	const TYPE *tp3 = (TYPE *) p3; \
+	const TYPE *tp4 = (TYPE *) p4; \
+	\
+	for( z = 0; z < b; z++ ) { \
+		const int d21 = tp2[z] - tp1[z]; \
+		const int d31 = tp3[z] - tp1[z]; \
+		const int d34 = tp3[z] - tp4[z]; \
+		\
+		tq[z] = tp1[z] + ( ( ( ( d31 << 7 ) - ( ( (d21+d34) * X ))) * Y + ( d21 * ( X << 7 ) )) >> 14); \
+	} \
+}
+
+/* Interpolate a pel ... int32 and float types, no tables, float 
  * arithmetic.
  */
 #define BILINEAR_FLOAT( TYPE ) { \
@@ -428,15 +559,20 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 
 	 * by 2 more than we need to, add one, mask, then shift down again to 
 	 * get the extra range.
-	 */
 	const int sx = x * VIPS_TRANSFORM_SCALE * 2;
 	const int sy = y * VIPS_TRANSFORM_SCALE * 2;
+	 */
 
 	/* We want ((int)x) ... avoid repeating this double -> int conversion 
 	 * by just shifting sx down.
-	 */
 	const int ix = sx >> (VIPS_TRANSFORM_SHIFT + 1);
 	const int iy = sy >> (VIPS_TRANSFORM_SHIFT + 1);
+	 */
+
+	/*
+	 */
+	const int ix = (int) x;
+	const int iy = (int) y;
 
 	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, ix, iy );
 	const PEL *p2 = p1 + ps;
@@ -446,7 +582,7 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	int z;
 
 	SWITCH_INTERPOLATE( in->im->BandFmt,
-		BILINEAR_INT, BILINEAR_FLOAT );
+		BILINEAR_INT2, BILINEAR_FLOAT );
 }
 
 static void

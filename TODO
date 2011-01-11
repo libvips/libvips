@@ -1,3 +1,18 @@
+- bilinear tweaks need sorting out
+
+	time vips im_affinei wtc.v wtc2.v bilinear 0.97 0 0 0.97 0 0 0 0 10000 10000
+
+  fastest of 4 runs, user time
+
+  7.24 - 4.0s
+  j-monday - 3.5s
+  n-20:59 - 4.0s
+  n-21:14 - 3.9s
+  n-22:20 - 4.1s
+  n-00:06 - 3.8s
+  n-14:26 - 4.1s
+
+
 
 - fits save
 
