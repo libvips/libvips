@@ -1,17 +1,82 @@
+- bilinear timings
+
+
+- lab [100,0,0] -> srgb [255, 255, 254]? how odd
+
+- try writing docs for vipsthumbnail with gtkdoc? then try header etc.
+
+  how does gtk do the docs for it's various command-line progs? should be easy
+  to find with grep
+
+  we need to have a separate docs package for the tools/ dir
+
+- move im_shrink & friends to resample?
+
+  match_linear, match_linear_search?
+
+  what about im_stretch3.c, im_resize_linear
+
+
+
+
+
+
+
 
 - im_conv()/im_morph() could have more than 10 programs? try 20 and see if we
   still have a speedup
 
+  make a base class for vector area operations with a matrix with three vfuncs
+  for init / generate code for one element / end and a gslist of programs, use
+  that as the base for morph and conv
+
+  wait for vipsobject for this
 
 
+
+
+
+
+
+
+
+
+- why is im_setupout() necessary for WIO output? couldn't writeline call it if
+  it's not been called?
+
+  equally, could pincheck/poutcheck/outcheck be made optional?
+  im_region_create() could call pincheck for you, for example
+
+  	though would this cause problems with threading? we need to incheck
+	from the main thread, not from a worker during pipeline build
+
+  open_lazy does a pincheck to rewind the disc conversion, but that could be
+  removed
+
+  incheck is necessary to make ->data valid I suppose, though perhaps
+  IM_IMAGE_ADDR() could call it for you
+
+- perhaps replace all these with a single call:
+
+	int im_setup( IMAGE *im, VipsStyle style );
+	typedef enum VipsStyle {
+		VIPS_STYLE_PARTIAL,
+		VIPS_STYLE_WHOLE
+	};
+
+  and set read or write with:
+	
+	int im_inputs( IMAGE *im, ... )
+	int im_output( IMAGE *im, ... )
+
+  this is all done for us by the new vips8 API though, don't bother changing
+  this now
 
 
 
 
 - perspective transform with a matrix ... base it on the Lenz transformer, but
   partial
-
-- lab [100,0,0] -> srgb [255, 255, 254]? how odd
 
 
 
@@ -35,17 +100,6 @@
   writeline, so perhaps unlink on evalstart?
 
   no, on a rewind we need to be able to close and reopen, argh
-
-- why is im_setupout() necessary for WIO output? couldn't writeline call it if
-  it's not been called?
-
-  equally, could pincheck/poutcheck/outcheck be made optional?
-  im_region_create() could call pincheck for you, for example
-
-  open_lazy does a pincheck to rewind the disc conversion, but that could be
-  removed
-
-  incheck is necessary to make ->data valid I suppose
 
 
 
@@ -118,10 +172,6 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
 
 
 
-- try writing docs for vipsthumbnail with gtkdoc? then try header etc.
-
-  we need to have a separate docs package for the tools/ dir
-
 - rename header, edvips as vipsheader, vipsedit
 
   maybe have back compat links?
@@ -145,12 +195,6 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
   for swapping ... they are asm macros so we should see a speedup
 
 - can we use conv_sep to speed up the memuse benchmarks?
-
-- move im_shrink & friends to resample?
-
-  match_linear, match_linear_search?
-
-  what about im_stretch3.c, im_resize_linear
 
 - check mosaic1, global_balance, similarity etc. use of im__affine
   

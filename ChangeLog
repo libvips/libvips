@@ -2,7 +2,7 @@
 - attach the jpeg thumbnail and multiscan fields (thanks Mike)
 - faster tiff read for some common cases
 - faster im_tile_cache()
-- add -lstdc++ to vips-7.xx.pc, if we used it
+- if we use C++ in libvips, add -lstdc++ to vips-7.xx.pc 
 - im_vips2png() / im_png2vips() set / get png resolution (thanks Zhiyu Wu)
 - updated README
 - don't use tables for bilinear on float data for a small speedup (thanks
