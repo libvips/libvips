@@ -326,46 +326,14 @@ typedef VipsInterpolateClass VipsInterpolateBilinearClass;
 G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	VIPS_TYPE_INTERPOLATE );
 
-/* Precalculated interpolation matricies, only for int types.
- * We go to scale + 1 so
- * we can round-to-nearest safely. 
- */
-static int vips_bilinear_matrixi
-	[VIPS_TRANSFORM_SCALE + 1][VIPS_TRANSFORM_SCALE + 1][4];
-
 /* in this class, name vars in the 2x2 grid as eg.
  * p1  p2
  * p3  p4
  */
 
-/* Interpolate a section ... int8/16 types, lookup tables for interpolation 
- * factors, fixed-point arithmetic.
+/* Fixed-point arithmetic, no tables.
  */
 #define BILINEAR_INT( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
- 	\
-	const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1); \
-	const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1); \
-	\
-	const int tx = (six + 1) >> 1; \
-	const int ty = (siy + 1) >> 1; \
-	\
-	const int c1 = vips_bilinear_matrixi[tx][ty][0]; \
-	const int c2 = vips_bilinear_matrixi[tx][ty][1]; \
-	const int c3 = vips_bilinear_matrixi[tx][ty][2]; \
-	const int c4 = vips_bilinear_matrixi[tx][ty][3]; \
- 	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
-	\
-	for( z = 0; z < b; z++ ) \
-		tq[z] = (c1 * tp1[z] + c2 * tp2[z] + \
-			 c3 * tp3[z] + c4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; \
-}
-
-#define BILINEAR_INT2( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
  	\
 	const int X = (x - ix) * 128; \
@@ -381,118 +349,6 @@ static int vips_bilinear_matrixi
 		const int bot = tp3[z] + ((X * (tp4[z] - tp3[z])) >> 7); \
 		\
 		tq[z] = top + ((Y * (bot - top)) >> 7); \
-	} \
-}
-
-/* n-20:59
- */
-#define BILINEAR_INT3( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
- 	\
-	const int X = (x - ix) * 128; \
-	const int Y = (y - iy) * 128; \
-	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
-	\
-	for( z = 0; z < b; z++ ) { \
-		const int d = tp2[z] - tp1[z]; \
- 		\
-		tq[z] = ( ( ( ( ( ( tp4[z] - tp3[z] - d ) * X ) >> 7 ) + tp3[z] - tp1[z]) * Y + d * X) >> 7) + tp1[z]; \
-	} \
-}
-
-/* n-21:14
- */
-#define BILINEAR_INT4( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
- 	\
-	const int X = (x - ix) * 128; \
-	const int Y = (y - iy) * 128; \
-	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
-	\
-	for( z = 0; z < b; z++ ) { \
-		const int d21 = tp2[z] - tp1[z]; \
-		const int d31 = tp3[z] - tp1[z]; \
-		const int d34 = tp3[z] - tp4[z]; \
-		\
-		tq[z] = ( ( d21 * X + ( d31 - ( ( (d21+d34) * X ) >> 7)) * Y) >> 7) + tp1[z]; \
-	} \
-}
-
-/* n-22:20
- */
-#define BILINEAR_INT5( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
- 	\
-	const int X = (x - ix) * 128; \
-	const int Y = (y - iy) * 128; \
-	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
-	\
-	const int X128 = X * 128; \
-	\
-	for( z = 0; z < b; z++ ) { \
-		const int d21 = tp2[z] - tp1[z]; \
-		const int d31 = tp3[z] - tp1[z]; \
-		const int d34 = tp3[z] - tp4[z]; \
- 		\
-		tq[z] = ( ( d21 * X128 + ( d31 * 128 - ( ( (d21+d34) * X ))) * Y) >> 14) + tp1[z]; \
-	} \
-}
-
-/* n-00:06
- */
-#define BILINEAR_INT6( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
- 	\
-	const int X = (x - ix) * 128; \
-	const int Y = (y - iy) * 128; \
-	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
-	\
-	const int X128 = X * 128; \
-	\
-	for( z = 0; z < b; z++ ) { \
-		const int d21 = tp2[z] - tp1[z]; \
-		const int d31 = tp3[z] - tp1[z]; \
-		const int d34 = tp3[z] - tp4[z]; \
- 		\
-		tq[z] = ( tp1[z] << 14 + d21 * X128 + ( d31 * 128 - ( ( (d21+d34) * X ))) * Y) >> 14; \
-	} \
-}
-
-/* n-14:26
- */
-#define BILINEAR_INT7( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
- 	\
-	const int X = (x - ix) * 128; \
-	const int Y = (y - iy) * 128; \
-	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
-	\
-	for( z = 0; z < b; z++ ) { \
-		const int d21 = tp2[z] - tp1[z]; \
-		const int d31 = tp3[z] - tp1[z]; \
-		const int d34 = tp3[z] - tp4[z]; \
-		\
-		tq[z] = tp1[z] + ( ( ( ( d31 << 7 ) - ( ( (d21+d34) * X ))) * Y + ( d21 * ( X << 7 ) )) >> 14); \
 	} \
 }
 
@@ -551,26 +407,6 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int ls = IM_REGION_LSKIP( in );
 	const int b = in->im->Bands;
 
-	/* We want ((int)x), but the tables versions needs to find a mask
-	 * index quickly from the residual. Calculate both.
-	 */
-
-	/* Find the mask index. We round-to-nearest, so we need to generate 
-	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 
-	 * by 2 more than we need to, add one, mask, then shift down again to 
-	 * get the extra range.
-	const int sx = x * VIPS_TRANSFORM_SCALE * 2;
-	const int sy = y * VIPS_TRANSFORM_SCALE * 2;
-	 */
-
-	/* We want ((int)x) ... avoid repeating this double -> int conversion 
-	 * by just shifting sx down.
-	const int ix = sx >> (VIPS_TRANSFORM_SHIFT + 1);
-	const int iy = sy >> (VIPS_TRANSFORM_SHIFT + 1);
-	 */
-
-	/*
-	 */
 	const int ix = (int) x;
 	const int iy = (int) y;
 
@@ -582,7 +418,7 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	int z;
 
 	SWITCH_INTERPOLATE( in->im->BandFmt,
-		BILINEAR_INT2, BILINEAR_FLOAT );
+		BILINEAR_INT, BILINEAR_FLOAT );
 }
 
 static void
@@ -591,44 +427,12 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	VipsInterpolateClass *interpolate_class =
 		(VipsInterpolateClass *) class;
-	int x, y;
 
 	object_class->nickname = "bilinear";
 	object_class->description = _( "Bilinear interpolation" );
 
 	interpolate_class->interpolate = vips_interpolate_bilinear_interpolate;
 	interpolate_class->window_size = 2;
-
-	/* Calculate the interpolation matricies.
-	 */
-	for( x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ )
-		for( y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
-			double X, Y, Xd, Yd;
-			double c1, c2, c3, c4;
-
-			/* Interpolation errors.
-			 */
-			X = (double) x / VIPS_TRANSFORM_SCALE;
-			Y = (double) y / VIPS_TRANSFORM_SCALE;
-			Xd = 1.0 - X;
-			Yd = 1.0 - Y;
-
-			/* Weights.
-			 */
-			c1 = Xd * Yd;
-			c2 = X * Yd;
-			c3 = Xd * Y;
-			c4 = X * Y;
-
-			vips_bilinear_matrixi[x][y][0] = 
-				c1 * VIPS_INTERPOLATE_SCALE;
-			vips_bilinear_matrixi[x][y][1] = 
-				c2 * VIPS_INTERPOLATE_SCALE;
-			vips_bilinear_matrixi[x][y][2] = 
-				c3 * VIPS_INTERPOLATE_SCALE;
-			vips_bilinear_matrixi[x][y][3] = 
-				c4 * VIPS_INTERPOLATE_SCALE;
-		}
 }
 
 static void
