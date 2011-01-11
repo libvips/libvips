@@ -336,8 +336,8 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 #define BILINEAR_INT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
  	\
-	const int X = (x - ix) * 128; \
-	const int Y = (y - iy) * 128; \
+	const int X = (x - ix) * VIPS_INTERPOLATE_SCALE; \
+	const int Y = (y - iy) * VIPS_INTERPOLATE_SCALE; \
 	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
@@ -345,10 +345,12 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	const TYPE *tp4 = (TYPE *) p4; \
 	\
 	for( z = 0; z < b; z++ ) { \
-		const int top = tp1[z] + ((X * (tp2[z] - tp1[z])) >> 7); \
-		const int bot = tp3[z] + ((X * (tp4[z] - tp3[z])) >> 7); \
+		const int top = tp1[z] + \
+			((X * (tp2[z] - tp1[z])) >> VIPS_INTERPOLATE_SHIFT); \
+		const int bot = tp3[z] + \
+			((X * (tp4[z] - tp3[z])) >> VIPS_INTERPOLATE_SHIFT); \
 		\
-		tq[z] = top + ((Y * (bot - top)) >> 7); \
+		tq[z] = top + ((Y * (bot - top)) >> VIPS_INTERPOLATE_SHIFT); \
 	} \
 }
 
