@@ -10,6 +10,8 @@
  * 7/1/11
  * 	- don't use tables for bilinear on float data for a small speedup
  * 	  (thanks Nicolas)
+ * 12/1/11
+ * 	- faster, more accuarate uchar bilinear (thanks Nicolas)
  */
 
 /*
@@ -335,9 +337,9 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
  */
 #define BILINEAR_INT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
- 	\
+	\
 	const int X = (x - ix) * VIPS_INTERPOLATE_SCALE; \
-	const int Y = (y - iy) * VIPS_INTERPOLATE_SCALE; \
+	const int Y = (iy - y) * VIPS_INTERPOLATE_SCALE; \
 	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
@@ -350,7 +352,7 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 		const int bot = tp3[z] + \
 			((X * (tp4[z] - tp3[z])) >> VIPS_INTERPOLATE_SHIFT); \
 		\
-		tq[z] = top + ((Y * (bot - top)) >> VIPS_INTERPOLATE_SHIFT); \
+		tq[z] = top - ((Y * (bot - top)) >> VIPS_INTERPOLATE_SHIFT); \
 	} \
 }
 
@@ -379,6 +381,27 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	for( z = 0; z < b; z++ ) \
 		tq[z] = c1 * tp1[z] + c2 * tp2[z] + \
 			c3 * tp3[z] + c4 * tp4[z]; \
+}
+
+/* Float arithmetic, used for int32 and float types, no tables.
+ */
+#define BILINEAR_FLOAT2( TYPE ) { \
+	TYPE *tq = (TYPE *) out; \
+	\
+	const double X = x - ix; \
+	const double Y = iy - y; \
+	\
+	const TYPE *tp1 = (TYPE *) p1; \
+	const TYPE *tp2 = (TYPE *) p2; \
+	const TYPE *tp3 = (TYPE *) p3; \
+	const TYPE *tp4 = (TYPE *) p4; \
+	\
+	for( z = 0; z < b; z++ ) { \
+		const double top = tp1[z] + X * (tp2[z] - tp1[z]); \
+		const double bot = tp3[z] + X * (tp4[z] - tp3[z]); \
+		\
+		tq[z] = top - Y * (bot - top); \
+	} \
 }
 
 /* Expand for band types. with a fixed-point interpolator and a float
