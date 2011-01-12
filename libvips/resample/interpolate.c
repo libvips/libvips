@@ -342,7 +342,7 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	float Y  = y - iy; \
 	float X  = x - ix; \
         \
-	float Yd = 1.0 - Y; \
+	float Yd = 1.0f - Y; \
         \
 	float c4 = Y  * X; \
 	float c2 = Yd * X; \
