@@ -9,7 +9,7 @@
  * 	- tiny speedups
  * 7/1/11
  * 	- don't use tables for bilinear on float data for a small speedup
- * 	  (thanks Nicolas)
+ * 	  (thanks Nicolas Robidoux)
  * 12/1/11
  * 	- faster, more accuarate uchar bilinear (thanks Nicolas)
  */
@@ -362,16 +362,15 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 #define BILINEAR_FLOAT( TYPE ) { \
 	TYPE *tq = (TYPE *) out; \
 	\
-	float X = x - ix; \
-	float Y = y - iy; \
-	\
-	float Xd = 1.0 - X; \
+	float Y  = y - iy; \
+	float X  = x - ix; \
+        \
 	float Yd = 1.0 - Y; \
-	\
-	float c1 = Xd * Yd; \
-	float c2 = X * Yd; \
-	float c3 = Xd * Y; \
-	float c4 = X * Y; \
+        \
+	float c4 = Y  * X; \
+	float c2 = Yd * X; \
+	float c3 = Y  - c4; \
+	float c1 = Yd - c2; \
  	\
 	const TYPE *tp1 = (TYPE *) p1; \
 	const TYPE *tp2 = (TYPE *) p2; \
