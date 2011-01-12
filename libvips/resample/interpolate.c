@@ -383,27 +383,6 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 			c3 * tp3[z] + c4 * tp4[z]; \
 }
 
-/* Float arithmetic, used for int32 and float types, no tables.
- */
-#define BILINEAR_FLOAT2( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
-	\
-	const double X = x - ix; \
-	const double Y = iy - y; \
-	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
-	\
-	for( z = 0; z < b; z++ ) { \
-		const double top = tp1[z] + X * (tp2[z] - tp1[z]); \
-		const double bot = tp3[z] + X * (tp4[z] - tp3[z]); \
-		\
-		tq[z] = top - Y * (bot - top); \
-	} \
-}
-
 /* Expand for band types. with a fixed-point interpolator and a float
  * interpolator.
  */
