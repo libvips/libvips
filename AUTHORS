@@ -18,6 +18,6 @@ system. Dennis Lubert cleaned up the C++ API.
 Jose Manuel Menendez Garcia, Javier Alejandre Arenas, and Juan Torres Arjona 
 contributed the tmake VIPS.DLL build system and the MSVC project files.
 
-Nicolas Robidoux helped John Cupitt design the VipsInterpolate class
-and, with Chantal Racette and Adam Turcotte, contributed the novel
-LBB, Nohalo and VSQBS interpolators.
+Nicolas Robidoux contributed optimized bilinear and bicubic code to
+the VipsInterpolate class and, with Chantal Racette and Adam Turcotte,
+contributed the novel LBB, Nohalo and VSQBS interpolators.
