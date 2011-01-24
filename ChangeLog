@@ -8,6 +8,7 @@
 - don't use tables for bilinear on float data for a small speedup (thanks
   Nicolas Robidoux)
 - no tables for uchar either, about a 15% speedup (thanks Nicolas)
+- dmask write was broken
 
 30/11/10 started 7.24.0
 - bump for new stable

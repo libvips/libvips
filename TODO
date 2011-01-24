@@ -1,3 +1,13 @@
+
+
+
+- im__open_write() should take a mode (text / binary)
+
+  rw_mask.c has copies of im__open_write() etc. which use text mode, remove
+  them
+
+
+
 - use |_O_TEMPORARY to open()'s mode on Windows for tmpfiles to increase the
   chances we actually delete
 

@@ -47,11 +47,13 @@
  * 	  error messagge
  * 21/10/10
  * 	- gtk-doc
- * 	- you can use commas to separate eader fields
+ * 	- you can use commas to separate header fields
  * 	- small cleanups
  * 30/11/10
  * 	- im_scale_dmask() normalises to 20, not 100 ... we hit the fast
  * 	  conv path more often
+ * 24/1/10
+ * 	- oops, missing braces in write dmask removed spaces between items
  */
 
 /*
@@ -128,7 +130,7 @@
  * written to the output image.
  *
  * @scale and @offset default to 1 and 0. Various functions, such as
- * im_conv(), will fail of @scale is zero.
+ * im_conv(), will fail if @scale is zero.
  *
  * You can read and write the matrix elements in @coeff.
  */
@@ -149,7 +151,7 @@
  * written to the output image.
  *
  * @scale and @offset default to 1.0 and 0.0. Various functions, such as
- * im_conv(), will fail of @scale is zero.
+ * im_conv(), will fail if @scale is zero.
  *
  * You can read and write the matrix elements in @coeff.
  */
@@ -264,7 +266,7 @@ im_create_imask( const char *filename, int xsize, int ysize )
  * @ysize: mask height
  * @Varargs: values to set for the mask
  *
- * Create an imask and initialise it from the funtion parameter list.
+ * Create an imask and initialise it from the function parameter list.
  *
  * See also: im_create_imask().
  *
@@ -347,7 +349,7 @@ im_create_dmask( const char *filename, int xsize, int ysize )
  * @ysize: mask height
  * @Varargs: values to set for the mask
  *
- * Create a dmask and initialise it from the funtion parameter list.
+ * Create a dmask and initialise it from the function parameter list.
  *
  * See also: im_create_dmask().
  *
@@ -925,9 +927,10 @@ im_write_dmask_name( DOUBLEMASK *in, const char *filename )
 	write_line( fp, "\n" );
 
 	for( i = 0, y = 0; y < in->ysize; y++ ) {
-		for( x = 0; x < in->xsize; x++, i++ ) 
+		for( x = 0; x < in->xsize; x++, i++ ) {
 			write_double( fp, in->coeff[i] );
 			write_line( fp, " " );
+		}
 
 		if( write_line( fp, "\n" ) ) {
 			fclose( fp ); 
