@@ -1,33 +1,4 @@
-/* @(#)  Functions which improve the selection of two ttie points pairs in two
- * @(#) images, by estimating the correlation coefficient given in page 426 
- * @(#) 2nd edn of the book Digital Image processing Gonzalez and Wintz
- * @(#)  The function works as follows:
- * @(#)  It expects to receive nopoints pairs (coordinates) of points 
- * @(#) corresponding to ref and sec.
- * @(#)  The coordinates of the pairs are in arrays x1,y1 and x2,y2
- * @(#)  After that the program reads a region of 2*halfcorsize +1 pels centered
- * @(#) at point (x1, y1) and looks around
- * @(#) an area 2*halfareasize+1 centered at point (x2, y2).
- * @(#)  For each point in this 2*halfareasize+1,
- * @(#) the program reads the corresponding
- * @(#) image2 values in a region of 2*halfcorsize+1 pels centered at this point
- * @(#) and calculates the corresponding correlation coefficients.
- * @(#)  The result is stored in a the array 
- * @(#) corcoef[(2*halfareasize+1)(2*halfareasize+1)].  Within this window, the 
- * @(#) max correlation coefficient is estimated and its corresponding
- * @(#) (x, y) coordinates are returned in (x2, y2).
- * @(#)   The purpose of this function is to improve the selection of 
- * @(#) control points entered in (x1, y1)
- * @(#) Both input images should are either memory mapped or in a buffer.
- * @(#) The variable bandno should be between 1 and ref->Bands
- * @(#)  The program fills the dx[] and dy[] arrays before returning.
- * @(#)
- * @(#) int im__chkpair( ref, sec, bandno, points )
- * @(#) IMAGE *ref, *sec;
- * @(#) int bandno;
- * @(#) TIE_POINTS *points;
- * @(#) 
- * @(#) Returns 0 on sucess  and -1 on error.
+/* find image overlaps 
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -42,6 +13,8 @@
  *	- now uses im_spcor()
  * 13/8/96 JC
  *	- order of args changed to help C++ API
+ * 24/1/11
+ * 	- gtk-doc
  */
 
 /*
@@ -87,13 +60,36 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Find position of sec within ref. Search around point xsec, ysec for the
- * best match for the area around xref, yref. Search an area of size
- * hsearchsize for an of size hwindowsize.
+/**
+ * im_correl:
+ * @ref: reference image
+ * @sec: secondary image
+ * @xref: position in reference image
+ * @yref: position in reference image
+ * @xsec: position in secondary image
+ * @ysec: position in secondary image
+ * @hwindowsize: half window size
+ * @hsearchsize: half search size 
+ * @correlation: return detected correlation
+ * @x: return found position
+ * @y: return found position
  *
- * Return a new value for xsec, ysec and the correlation at that point.
+ * This operation finds the position of @sec within @ref. 
+ *
+ * The area around
+ * (@xsec, @ysec) is searched for the best match to the area around (@xref,
+ * @yref). It  searches an area of size @hsearchsize for a
+ * match of size @hwindowsize.  The position of the best match is
+ * returned, together with the correlation at that point.
+ *
+ * Only  the  first  band  of each image is correlated. @ref and @sec may be
+ * very large --- the function  extracts  and  generates  just  the
+ * parts needed.  Correlation is done with im_spcor(); the position of
+ * the maximum is found with im_maxpos().
  * 
- * Also used by im_match_linear(), im_match_linear_search(), etc.
+ * See also: im_match_linear(), im_match_linear_search(), im_lrmosaic().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int 
 im_correl( IMAGE *ref, IMAGE *sec, 

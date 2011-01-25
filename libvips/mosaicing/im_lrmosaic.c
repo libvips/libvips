@@ -1,16 +1,4 @@
-/* @(#)  Program to calculate the best possible tie points
- * @(#) in the overlapping part between the primary and the secondary picture
- * @(#)
- * @(#)  Right call:
- * @(#)  int im_lrmosaic( reference, secondary, out, bandno, 
- * @(#)      xref, yref, xsec, ysec, halfcorrelation, halfarea )
- * @(#)  IMAGE *reference, *secondary, *out;
- * @(#)  int bandno;
- * @(#)  int xref, yref, xsec, ysec;
- * @(#)  int halfcorrelation, halfarea;
- * @(#)  
- * @(#)  Returns 0 on success and -1 on error
- * @(#)  
+/* join left-right with an approximate overlap
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -32,6 +20,11 @@
  *	- added tunable max blend width
  * 24/2/05
  *	- im_scale() makes it work for any image type
+ * 25/1/11
+ * 	- gtk-doc
+ * 	- remove balance stuff
+ * 	- any mix of types and bands
+ * 	- cleanups
  */
 
 /*
@@ -109,22 +102,13 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	int *dx0, int *dy0,
 	double *scale1, double *angle1, double *dx1, double *dy1 )
 {
+	Rect left, right, overlap;
 	IMAGE *ref, *sec;
+	IMAGE *t[6];
 	TIE_POINTS points, *p_points;
 	TIE_POINTS newpoints, *p_newpoints;
 	int dx, dy;
 	int i;
-
-	Rect left, right, overlap;
-
-	/* Check ref and sec are compatible.
-	 */
-	if( ref_in->Bands != sec_in->Bands || 
-		ref_in->BandFmt != sec_in->BandFmt ||
-		ref_in->Coding != sec_in->Coding ) {
-		im_error( "im_lrmosaic", "%s", _( "input images incompatible" ) );
-		return( -1 );
-	}
 
 	/* Test cor and area.
 	 */
@@ -148,68 +132,39 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	/* Find overlap.
 	 */
 	im_rect_intersectrect( &left, &right, &overlap );
-	if( overlap.width < 2*halfarea + 1 ||
-		overlap.height < 2*halfarea + 1 ) {
-		im_error( "im_lrmosaic", "%s", _( "overlap too small for search" ) );
+	if( overlap.width < 2 * halfarea + 1 ||
+		overlap.height < 2 * halfarea + 1 ) {
+		im_error( "im_lrmosaic", 
+			"%s", _( "overlap too small for search" ) );
 		return( -1 );
 	}
 
-	/* Extract overlaps.
+	/* Extract overlaps as 8-bit, 1 band.
 	 */
-	ref = im_open_local( out, "temp_one", "t" );
-	sec = im_open_local( out, "temp_two", "t" );
-	if( !ref || !sec )
-		return( -1 );
-	if( ref_in->Coding == IM_CODING_LABQ ) {
-		IMAGE *t1 = im_open_local( out, "temp:3", "p" );
-		IMAGE *t2 = im_open_local( out, "temp:4", "p" );
-		IMAGE *t3 = im_open_local( out, "temp:5", "p" );
-		IMAGE *t4 = im_open_local( out, "temp:6", "p" );
-		IMAGE *t5 = im_open_local( out, "temp:7", "p" );
-		IMAGE *t6 = im_open_local( out, "temp:8", "p" );
-
-		if( !t1 || !t2 || !t3 || !t4 || !t5 || !t6 )
-			return( -1 );
-		if( im_extract_area( ref_in, t1, 
+	if( !(ref = im_open_local( out, "temp_one", "t" )) ||
+		!(sec = im_open_local( out, "temp_two", "t" )) ||
+		im_open_local_array( out, t, 6, "im_lrmosaic", "p" ) ||
+		im_extract_area( ref_in, t[0], 
 			overlap.left, overlap.top, 
-			overlap.width, overlap.height ) )
-			return( -1 );
-		if( im_extract_area( sec_in, t2, 
+			overlap.width, overlap.height ) ||
+		im_extract_area( sec_in, t[1], 
 			overlap.left - right.left, overlap.top - right.top, 
 			overlap.width, overlap.height ) )
-			return( -1 );
-		if( im_LabQ2Lab( t1, t3 ) || im_LabQ2Lab( t2, t4 ) ||
-	    		im_Lab2disp( t3, t5, im_col_displays( 1 ) ) || 
-			im_Lab2disp( t4, t6, im_col_displays( 1 ) ) )
-			return( -1 );
-		
-		/* Extract the green.
-		 */
-		if( im_extract_band( t5, ref, 1 ) ||
-			im_extract_band( t6, sec, 1 ) )
+		return( -1 );
+	if( ref_in->Coding == IM_CODING_LABQ ) {
+		if( im_LabQ2Lab( t[0], t[2] ) || 
+			im_LabQ2Lab( t[1], t[3] ) ||
+	    		im_Lab2disp( t[2], t[4], im_col_displays( 1 ) ) || 
+			im_Lab2disp( t[3], t[5], im_col_displays( 1 ) ) ||
+			im_extract_band( t[4], ref, 1 ) ||
+			im_extract_band( t[5], sec, 1 ) )
 			return( -1 );
 	}
 	else if( ref_in->Coding == IM_CODING_NONE ) {
-		IMAGE *t1 = im_open_local( out, "temp:9", "p" );
-		IMAGE *t2 = im_open_local( out, "temp:10", "p" );
-		IMAGE *t3 = im_open_local( out, "temp:11", "p" );
-		IMAGE *t4 = im_open_local( out, "temp:12", "p" );
-
-		if( !t1 || !t2 || !t3 || !t4 )
-			return( -1 );
-		if( im_extract_area( ref_in, t1, 
-			overlap.left, overlap.top, 
-			overlap.width, overlap.height ) )
-			return( -1 );
-		if( im_extract_area( sec_in, t2, 
-			overlap.left - right.left, overlap.top - right.top, 
-			overlap.width, overlap.height ) )
-			return( -1 );
-		if( im_extract_band( t1, t3, bandno_in ) ||
-			im_extract_band( t2, t4, bandno_in ) )
-			return( -1 );
-		if( im_scale( t3, ref ) ||
-			im_scale( t4, sec ) )
+		if( im_extract_band( t[0], t[2], bandno_in ) ||
+			im_extract_band( t[1], t[3], bandno_in ) ||
+			im_scale( t[2], ref ) ||
+			im_scale( t[3], sec ) )
 			return( -1 );
 	}
 	else {
@@ -286,161 +241,68 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	return( 0 );
 }
 
-/* Scale im by fac with a lut.
+/**
+ * im_lrmosaic:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @bandno: band to search for features
+ * @xref: position in reference image
+ * @yref: position in reference image
+ * @xsec: position in secondary image
+ * @ysec: position in secondary image
+ * @hwindowsize: half window size
+ * @hsearchsize: half search size 
+ * @balancetype: no longer used
+ * @mwidth: maximum blend width
+ *
+ * This operation joins two images left-right (with @ref on the left) 
+ * given an approximate overlap.
+ *
+ * @sec is positioned so that the pixel (@xsec, @ysec) lies on top of the
+ * pixel in @ref at (@xref, @yref). The overlap area is divided into three
+ * sections, 20 high-contrast points in band @bandno of image @ref are found 
+ * in each, and each high-contrast point is searched for in @sec using
+ * @hwindowsize and @hsearchsize (see im_correl()). 
+ *
+ * A linear model is fitted to the 60 tie-points, points a long way from the
+ * fit are discarded, and the model refitted until either too few points
+ * remain or the model reaches good agreement. 
+ *
+ * The detected displacement is used with im_lrmerge() to join the two images
+ * together. 
+ *
+ * @mwidth limits  the  maximum width of the
+ * blend area.  A value of "-1" means "unlimited". The two images are blended 
+ * with a raised cosine. 
+ *
+ * Pixels with all bands equal to zero are "transparent", that
+ * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * This makes it possible to join non-rectangular images.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_lrmerge(), im_tbmosaic(), im_insert(), im_global_balance().
+ *
+ * Returns: 0 on success, -1 on error
  */
-static IMAGE *
-transform( IMAGE *out, IMAGE *im, double fac )
-{
-	IMAGE *t1 = im_open_local( out, "transform:1", "p" );
-	IMAGE *t2 = im_open_local( out, "transform:2", "p" );
-	IMAGE *t3 = im_open_local( out, "transform:3", "p" );
-	IMAGE *t4 = im_open_local( out, "transform:4", "p" );
-
-	if( !t1 || !t2 || !t3 || !t4 )
-		return( NULL );
-
-	if( fac == 1.0 )
-		/* Easy!
-		 */
-		return( im );
-
-	if( im_identity( t1, 1 ) || 
-		im_lintra( fac, t1, 0.0, t2 ) ||
-		im_clip2fmt( t2, t3, IM_BANDFMT_UCHAR ) ||
-		im_maplut( im, t4, t3 ) )
-		return( NULL );
-
-	return( t4 );
-}
-
-/* Balance two images. dx, dy parameters as for im_??merge, etc.
- */
-int 
-im__balance( IMAGE *ref, IMAGE *sec, IMAGE *out,
-	IMAGE **ref_out, IMAGE **sec_out, int dx, int dy, int balancetype )
-{
-	double lavg, ravg;
-	double lfac, rfac;
-	Rect left, right, overlap;
-	IMAGE *t1, *t2;
-
-	/* Test balancetype.
-	 */
-	if( balancetype < 0 || balancetype > 3 ) {
-		im_error( "im_mosaic", "%s", _( "bad balancetype parameter" ) );
-		return( -1 );
-	}
-
-	/* No balance - easy!
-	 */
-	if( balancetype == 0 ) {
-		*ref_out = ref;
-		*sec_out = sec;
-
-		return( 0 );
-	}
-
-	/* Must be uchar uncoded.
-	 */
-	if( ref->Coding != IM_CODING_NONE || 
-		ref->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_mosaic", "%s", _( "uncoded uchar only for balancing" ) );
-		return( -1 );
-	}
-
-	/* Set positions of left and right.
-	 */
-	left.left = 0;
-	left.top = 0;
-	left.width = ref->Xsize;
-	left.height = ref->Ysize;
-	right.left = -dx;
-	right.top = -dy;
-	right.width = sec->Xsize;
-	right.height = sec->Ysize;
-
-	/* Find overlap.
-	 */
-	im_rect_intersectrect( &left, &right, &overlap );
-
-	/* Extract overlaps.
-	 */
-	t1 = im_open_local( out, "temp_one", "p" );
-	t2 = im_open_local( out, "temp_two", "p" );
-	if( !t1 || !t2 )
-		return( -1 );
-
-	if( im_extract_area( ref, t1, 
-		overlap.left, overlap.top, 
-		overlap.width, overlap.height ) )
-		return( -1 );
-	if( im_extract_area( sec, t2, 
-		overlap.left - right.left, overlap.top - right.top, 
-		overlap.width, overlap.height ) )
-		return( -1 );
-
-	/* And find the average.
-	 */
-	if( im_avg( t1, &lavg ) || im_avg( t2, &ravg ) )
-		return( -1 );
-
-	/* Compute scale factors.
-	 */
-	switch( balancetype ) {
-	case 1:
-		/* Ajust left.
-		 */
-		rfac = 1.0;
-		lfac = ravg / lavg;
-		break;
-
-	case 2:
-		/* Adjust right.
-		 */
-		lfac = 1.0;
-		rfac = lavg / ravg;
-		break;
-
-	case 3:
-		{
-			/* Adjust both to weighted average.
-			 */
-			double ltot = (double) ref->Xsize * ref->Ysize;
-			double rtot = (double) sec->Xsize * sec->Ysize;
-			double rat = ltot / (ltot + rtot);
-			double navg = rat * (lavg - ravg) + ravg;
-
-			lfac = navg / lavg;
-			rfac = navg / ravg;
-		}
-		break;
-	
-	default:
-		error_exit( "internal error #897624395" );
-		return( -1 );
-	}
-
-	/* Transform the left and right images.
-	 */
-	if( !(*ref_out = transform( out, ref, lfac )) )
-		return( -1 );
-	if( !(*sec_out = transform( out, sec, rfac )) )
-		return( -1 );
-
-	return( 0 );
-}
-
 int 
 im_lrmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out, 
 	int bandno, 
 	int xref, int yref, int xsec, int ysec, 
-	int halfcorrelation, int halfarea,
+	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth )
 {
 	int dx0, dy0;
 	double scale1, angle1, dx1, dy1;
-	IMAGE *ref2, *sec2;
 	IMAGE *dummy;
 
 	/* Correct overlap. dummy is just a placeholder used to ensure that
@@ -451,7 +313,7 @@ im_lrmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	if( im__find_lroverlap( ref, sec, dummy,
 		bandno, 
 		xref, yref, xsec, ysec,
-		halfcorrelation, halfarea,
+		hwindowsize, hsearchsize,
 		&dx0, &dy0,
 		&scale1, &angle1, &dx1, &dy1 ) ) {
 		im_close( dummy );
@@ -459,16 +321,9 @@ im_lrmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	}
 	im_close( dummy );
 
-	/* Balance.
-	 */
-	if( im__balance( ref, sec, out,
-		&ref2, &sec2,
-		dx0, dy0, balancetype ) )
-		return( -1 );
-
 	/* Merge left right.
 	 */
-        if( im_lrmerge( ref2, sec2, out, dx0, dy0, mwidth ) )
+        if( im_lrmerge( ref, sec, out, dx0, dy0, mwidth ) )
 		return( -1 ); 
 
 	return( 0 );

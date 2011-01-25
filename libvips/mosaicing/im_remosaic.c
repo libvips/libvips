@@ -114,6 +114,28 @@ remosaic( JoinNode *node, RemosaicData *rd )
 	return( out );
 }
 
+/**
+ * im_remosaic:
+ * @in: mosaic to rebuild
+ * @out: output image
+ * @old_str: gamma of source images
+ * @new_str: gamma of source images
+ *
+ * im_remosaic() works rather as im_global_balance(). It takes apart the
+ * mosaiced image in and rebuilds it, substituting images.
+ *
+ * Unlike im_global_balance(), images are substituted based on their file‐
+ * names.  The  rightmost  occurence  of the string @old_str is swapped
+ * for @new_str, that file is opened, and that image substituted  for
+ * the  old image.
+ *
+ * It's convenient for multispectral images. You can mosaic one band, then
+ * use that mosaic as a template for mosaicing the others automatically.
+ *
+ * See also: im_lrmosaic(), im_global_balance().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_remosaic( IMAGE *in, IMAGE *out, const char *old_str, const char *new_str )
 {

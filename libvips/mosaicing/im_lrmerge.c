@@ -1,14 +1,4 @@
-/* Merge two images left-right. dx, dy is the offset needed to get from sec 
- * (secondary image) to ref (reference image). 
- *
- * Usage:
- *
- *   int 
- *   im_lrmerge( ref, sec, out, dx, dy )
- *   IMAGE *ref, *sec, *out;
- *   int dx, dy;
- *   
- * Returns 0 on success and -1 on error
+/* Merge two images left-right. 
  *
  * Copyright: 1990, 1991 N. Dessipris 
  * Author: N. Dessipris
@@ -88,6 +78,9 @@
  * 20/6/05
  *	- now requires all bands == 0 for transparency (used to just check
  *	  band 0)
+ * 24/1/11
+ * 	- gtk-doc
+ * 	- match formats and bands automatically
  */
 
 /*
@@ -700,22 +693,23 @@ lock_free( GMutex *lock )
  * im_tbmerge, so not static.
  */
 Overlapping *
-im__build_mergestate( IMAGE *ref, IMAGE *sec, IMAGE *out, 
-	int dx, int dy, int mwidth )
+im__build_mergestate( const char *domain,
+	IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 {
-   	Overlapping *ovlap = IM_NEW( out, Overlapping );
+	IMAGE **vec;
+   	Overlapping *ovlap;
 	int x;
 
-	if( !ovlap )
+	if( !(vec = im__insert_base( domain, ref, sec, out )) ||
+		!(ovlap = IM_NEW( out, Overlapping )) )
 		return( NULL );
 	if( mwidth < -1 ) {
-		im_error( "im_lr/tbmerge", 
-			"%s", _( "mwidth must be -1 or >= 0" ) );
+		im_error( domain, "%s", _( "mwidth must be -1 or >= 0" ) );
 		return( NULL );
 	}
 
-	ovlap->ref = ref;
-	ovlap->sec = sec;
+	ovlap->ref = vec[0];
+	ovlap->sec = vec[1];
 	ovlap->out = out;
 	ovlap->dx = dx;
 	ovlap->dy = dy;
@@ -725,21 +719,21 @@ im__build_mergestate( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	 */
    	ovlap->rarea.left = 0;
    	ovlap->rarea.top = 0;
-   	ovlap->rarea.width = ref->Xsize;
-   	ovlap->rarea.height = ref->Ysize;
+   	ovlap->rarea.width = ovlap->ref->Xsize;
+   	ovlap->rarea.height = ovlap->ref->Ysize;
 
 	/* Area occupied by sec image. 
 	 */
    	ovlap->sarea.left = -dx;
    	ovlap->sarea.top = -dy;
-   	ovlap->sarea.width = sec->Xsize;
-   	ovlap->sarea.height = sec->Ysize;
+   	ovlap->sarea.width = ovlap->sec->Xsize;
+   	ovlap->sarea.height = ovlap->sec->Ysize;
 
 	/* Compute overlap. 
 	 */
    	im_rect_intersectrect( &ovlap->rarea, &ovlap->sarea, &ovlap->overlap );
 	if( im_rect_isempty( &ovlap->overlap ) ) {
-		im_error( "im_lr/tbmerge", "%s", _( "no overlap" ) );
+		im_error( domain, "%s", _( "no overlap" ) );
 		return( NULL );
 	}
 
@@ -794,12 +788,13 @@ build_lrstate( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 {
    	Overlapping *ovlap;
 
-	if( !(ovlap = im__build_mergestate( ref, sec, out, dx, dy, mwidth )) )
+	if( !(ovlap = im__build_mergestate( "im_lrmerge", 
+		ref, sec, out, dx, dy, mwidth )) )
 		return( NULL );
 
 	/* Select blender.
 	 */
-	switch( ref->Coding ) {
+	switch( ovlap->ref->Coding ) {
 	case IM_CODING_LABQ:
 		ovlap->blend = lr_blend_labpack;
 		break;
@@ -1040,7 +1035,7 @@ im__start_merge( IMAGE *out, void *a, void *b )
 
 int
 im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
-{  
+{
 	Overlapping *ovlap;
 
 #ifdef DEBUG
@@ -1051,20 +1046,6 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	printf( "sec is %d x %d pixels\n", sec->Xsize, sec->Ysize );
 #endif
 
-	/* Check IMAGEs parameters
-	 */
-	if( ref->Bands != sec->Bands || 
-		ref->BandFmt != sec->BandFmt ||
-		ref->Coding != sec->Coding ) {
-		im_error( "im_lrmerge", 
-			"%s", _( "input images incompatible" ) );
-		return( -1 );
-	}
-	if( ref->Coding != IM_CODING_NONE && ref->Coding != IM_CODING_LABQ ) {
-		im_error( "im_lrmerge", 
-			"%s", _( "inputs not uncoded or IM_CODING_LABQ" ) );
-		return( -1 );
-	}
 	if( dx > 0 || dx < 1 - ref->Xsize ) {
 #ifdef DEBUG
 		printf( "im__lrmerge: no overlap, using insert\n" ); 
@@ -1079,8 +1060,6 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 
 		return( 0 );
 	}
-	if( im_piocheck( ref, out ) || im_piocheck( sec, out ) )
-		return( -1 );
 
 	/* Build state for this join.
 	 */
@@ -1089,7 +1068,7 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 
 	/* Prepare the output IMAGE.
 	 */ 
-	if( im_cp_descv( out, ref, sec, NULL ) )
+	if( im_cp_descv( out, ovlap->ref, ovlap->sec, NULL ) )
 		return( -1 );
 	out->Xsize = ovlap->oarea.width;
 	out->Ysize = ovlap->oarea.height;
@@ -1098,7 +1077,7 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 
 	/* Set demand hints. 
 	 */
-	if( im_demand_hint( out, IM_THINSTRIP, ref, sec, NULL ) )
+	if( im_demand_hint( out, IM_THINSTRIP, ovlap->ref, ovlap->sec, NULL ) )
 		return( -1 );
 
 	/* Generate!
@@ -1110,6 +1089,43 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	return ( 0 );
 }
 
+/**
+ * im_lrmerge:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @dx: displacement of ref from sec
+ * @dy: displacement of ref from sec
+ * @mwidth: maximum seam width
+ *
+ * This operation joins two images left-right (with @ref on the left) with a 
+ * smooth seam.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * @dx and @dy give the displacement of @sec relative to @ref, in other words,
+ * the vector to get from the origin of @sec to the origin of @ref, in other
+ * words, @dx will generally be a negative number. 
+ *
+ * @mwidth limits  the  maximum width of the
+ * blend area.  A value of "-1" means "unlimited". The two images are blended 
+ * with a raised cosine. 
+ *
+ * Pixels with all bands equal to zero are "transparent", that
+ * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * This makes it possible to join non-rectangular images.
+ *
+ * See also: im_lrmosaic(), im_tbmerge(), im_match_linear(), im_insert().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 { 

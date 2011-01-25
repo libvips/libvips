@@ -93,8 +93,8 @@ int im__make_blend_luts();
 
 int im__attach_input( REGION *or, REGION *ir, Rect *area );
 int im__copy_input( REGION *or, REGION *ir, Rect *area, Rect *reg );
-Overlapping *im__build_mergestate( IMAGE *ref, IMAGE *sec, IMAGE *out, 
-	int dx, int dy, int mwidth );
+Overlapping *im__build_mergestate( const char *domain,
+	IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth );
 void *im__start_merge( IMAGE *out, void *, void * );
 int im__merge_gen( REGION *or, void *seq, void *a, void * );
 int im__stop_merge( void *seq, void *, void * );

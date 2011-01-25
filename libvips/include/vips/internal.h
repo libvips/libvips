@@ -177,6 +177,8 @@ int im__colour_difference( const char *domain,
 int im__colour_unary( const char *domain,
 	IMAGE *in, IMAGE *out, VipsType type,
 	im_wrapone_fn buffer_fn, void *a, void *b );
+IMAGE **im__insert_base( const char *domain, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out );
 
 /* Structure for holding the lookup tables for XYZ<=>rgb conversion.
  * Also holds the luminance to XYZ matrix and the inverse one.

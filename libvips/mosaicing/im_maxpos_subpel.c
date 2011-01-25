@@ -1,38 +1,11 @@
-/* This function implements:
- *   "Extension of Phase Correlation to Subpixel Registration"
- *   by H. Foroosh, from IEEE trans. Im. Proc. 11(3), 2002.
- *
- * If the best three matches in the correlation are aranged:
- *
- *   02   or   01
- *   1         2
- *
- * then we return a subpixel match using the ratio of correlations in the
- * vertical and horizontal dimension.
- *
- * ( xs[0], ys[0] ) is the best integer alignment
- * ( xs[ use_x ], ys[ use_x ] ) is equal in y and (+/-)1 off in x
- * ( xs[ use_y ], ys[ use_y ] ) is equal in x and (+/-)1 off in y
- *
- *
- * Alternatively if the best four matches in the correlation are aranged in
- * a square:
- *
- *   01  or  03  or  02  or  03
- *   32      12      31      21
- *
- * then we return a subpixel match weighting with the sum the two on each
- * side over the sum of all four, but only if all four of them are very
- * close to the best, and the fifth is nowhere near.
- *
- * This alternative method is not described by Foroosh, but is often the
- * case where the match is close to n-and-a-half pixels in both dimensions.
+/* find position of maximum, subpixel estimation
  *
  * Copyright: 2008, Nottingham Trent University
- *
  * Author: Tom Vajzovic
- *
  * Written on: 2008-02-07
+ *
+ * 25/1/11
+ * 	- gtk-doc
  */
 
 /*
@@ -76,6 +49,47 @@
 
 #define MOST_OF( A, B )   ( (A) > 0.9 * (B) )
 #define LITTLE_OF( A, B )   ( (B) < 0.1 * (B) )
+
+/**
+ * im_maxpos_subpel:
+ * @in: input image
+ * @x: output position of maximum 
+ * @y: output position of maximum 
+ *
+ * This function implements:
+ *
+ *   "Extension of Phase Correlation to Subpixel Registration"
+ *   by H. Foroosh, from IEEE trans. Im. Proc. 11(3), 2002.
+ *
+ * If the best three matches in the correlation are aranged:
+ *
+ *   02   or   01
+ *   1         2
+ *
+ * then we return a subpixel match using the ratio of correlations in the
+ * vertical and horizontal dimension.
+ *
+ * ( xs[0], ys[0] ) is the best integer alignment
+ * ( xs[ use_x ], ys[ use_x ] ) is equal in y and (+/-)1 off in x
+ * ( xs[ use_y ], ys[ use_y ] ) is equal in x and (+/-)1 off in y
+ *
+ * Alternatively if the best four matches in the correlation are aranged in
+ * a square:
+ *
+ *   01  or  03  or  02  or  03
+ *   32      12      31      21
+ *
+ * then we return a subpixel match weighting with the sum the two on each
+ * side over the sum of all four, but only if all four of them are very
+ * close to the best, and the fifth is nowhere near.
+ *
+ * This alternative method is not described by Foroosh, but is often the
+ * case where the match is close to n-and-a-half pixels in both dimensions.
+ *
+ * See also: im_maxpos(), im_min(), im_stats().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 
 int im_maxpos_subpel( IMAGE *in, double *x, double *y ){
 #define FUNCTION_NAME "im_maxpos_subpel"

@@ -76,10 +76,9 @@
  * - cast in1 and in2 up to a common format
  * - equalise bands 
  * - make an input array
- * - run the supplied area operation passing one of the up-banded,
- *   up-casted and up-sized inputs as the first param
+ * - return the matched images in vec[0] and vec[1]
  */
-static IMAGE **
+IMAGE **
 im__insert_base( const char *domain, 
 	IMAGE *in1, IMAGE *in2, IMAGE *out ) 
 {

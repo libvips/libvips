@@ -93,6 +93,26 @@ im__coeff( int xr1, int yr1, int xs1, int ys1,
 	return( 0 );
 }
 
+/**
+ * im_match_linear:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @xr1: first reference tie-point
+ * @yr1: first reference tie-point
+ * @xs1: first secondary tie-point
+ * @ys1: first secondary tie-point
+ * @xr2: second reference tie-point
+ * @yr2: second reference tie-point
+ * @xs2: second secondary tie-point
+ * @ys2: second secondary tie-point
+ *
+ * Scale, rotate and translate @sec so that the tie-points line up.
+ *
+ * See also: im_match_linear_search().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	int xr1, int yr1, int xs1, int ys1, 
@@ -123,6 +143,35 @@ im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	return( 0 );
 }
 
+
+/**
+ * im_match_linear_search:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @xr1: first reference tie-point
+ * @yr1: first reference tie-point
+ * @xs1: first secondary tie-point
+ * @ys1: first secondary tie-point
+ * @xr2: second reference tie-point
+ * @yr2: second reference tie-point
+ * @xs2: second secondary tie-point
+ * @ys2: second secondary tie-point
+ * @hwindowsize: half window size
+ * @hsearchsize: half search size 
+ *
+ * Scale, rotate and translate @sec so that the tie-points line up.
+ *
+ * Before performing the transformation, the  tie-points are improved by 
+ * searching an area of @sec of size @hsearchsize for a
+ * match of size @hwindowsize to @ref. 
+ *
+ * This function will only work well for small rotates and scales.
+ *
+ * See also: im_match_linear().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	int xr1, int yr1, int xs1, int ys1, 
@@ -133,19 +182,12 @@ im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	int xs4, ys4;
 	double cor1, cor2;
 
-	/* Search for new tie-points.
-	 */
 	if( im_correl( ref, sec, xr1, yr1, xs1, ys1,
-		hwindowsize, hsearchsize, &cor1, &xs3, &ys3 ) )
-		return( -1 );
-	if( im_correl( ref, sec, xr2, yr2, xs2, ys2,
-		hwindowsize, hsearchsize, &cor2, &xs4, &ys4 ) )
-		return( -1 );
-
-	/* ... and match_linear.
-	 */
-	if( im_match_linear( ref, sec, out, 
-		xr1, yr1, xs3, ys3, xr2, yr2, xs4, ys4 ) )
+		hwindowsize, hsearchsize, &cor1, &xs3, &ys3 ) ||
+		im_correl( ref, sec, xr2, yr2, xs2, ys2,
+			hwindowsize, hsearchsize, &cor2, &xs4, &ys4 ) ||
+		im_match_linear( ref, sec, out, 
+			xr1, yr1, xs3, ys3, xr2, yr2, xs4, ys4 ) )
 		return( -1 );
 
 	return( 0 );

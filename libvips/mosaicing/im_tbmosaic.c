@@ -1,17 +1,4 @@
-/* @(#)  Program to calculate the best possible tie points
- * @(#) in the overlapping part between the primary and the secondary picture
- * @(#)
- * @(#)  Right call:
- * @(#)  int im_tbmosaic( reference, secondary, out, bandno,
- * @(#)      xref, yref, xsec, ysec, halfcorrelation, halfarea, balancetype )
- * @(#)  IMAGE *reference, *secondary, *out;
- * @(#)  int bandno;
- * @(#)  int xref, yref, xsec, ysec;
- * @(#)  int halfcorrelation, halfarea;
- * @(#)  int balancetype;
- * @(#)  
- * @(#)  Returns 0 on success and -1 on error
- * @(#)  
+/* join top-bottom with an approximate overlap
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -33,6 +20,11 @@
  *	- added tunable max blend width
  * 24/2/05
  *	- im_scale() makes it work for any image type
+ * 25/1/11
+ * 	- gtk-doc
+ * 	- remove balance stuff
+ * 	- any mix of types and bands
+ * 	- cleanups
  */
 
 /*
@@ -86,22 +78,13 @@ im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	int *dx0, int *dy0,
 	double *scale1, double *angle1, double *dx1, double *dy1 )
 {
+	Rect top, bottom, overlap;
 	IMAGE *ref, *sec;
+	IMAGE *t[6];
 	TIE_POINTS points, *p_points;		/* defined in mosaic.h */
 	TIE_POINTS newpoints, *p_newpoints;
 	int i;
 	int dx, dy;
-
-	Rect top, bottom, overlap;
-
-	/* Check ref and sec are compatible.
-	 */
-	if( ref_in->Bands != sec_in->Bands || 
-		ref_in->BandFmt != sec_in->BandFmt ||
-		ref_in->Coding != sec_in->Coding ) {
-		im_error( "im_tbmosaic", "%s", _( "input images incompatible" ) );
-		return( -1 );
-	}
 
 	/* Test cor and area.
 	 */
@@ -125,68 +108,39 @@ im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	/* Find overlap.
 	 */
 	im_rect_intersectrect( &top, &bottom, &overlap );
-	if( overlap.width < 2*halfarea + 1 ||
-		overlap.height < 2*halfarea + 1 ) {
-		im_error( "im_tbmosaic", "%s", _( "overlap too small for search" ) );
+	if( overlap.width < 2 * halfarea + 1 ||
+		overlap.height < 2 * halfarea + 1 ) {
+		im_error( "im_tbmosaic", "%s", 
+			_( "overlap too small for search" ) );
 		return( -1 );
 	}
 
-	/* Extract overlaps.
+	/* Extract overlaps as 8-bit, 1 band.
 	 */
-	ref = im_open_local( out, "temp_one", "t" );
-	sec = im_open_local( out, "temp_two", "t" );
-	if( !ref || !sec )
-		return( -1 );
-	if( ref_in->Coding == IM_CODING_LABQ ) {
-		IMAGE *t1 = im_open_local( out, "temp:3", "p" );
-		IMAGE *t2 = im_open_local( out, "temp:4", "p" );
-		IMAGE *t3 = im_open_local( out, "temp:5", "p" );
-		IMAGE *t4 = im_open_local( out, "temp:6", "p" );
-		IMAGE *t5 = im_open_local( out, "temp:7", "p" );
-		IMAGE *t6 = im_open_local( out, "temp:8", "p" );
-
-		if( !t1 || !t2 || !t3 || !t4 || !t5 || !t6 )
-			return( -1 );
-		if( im_extract_area( ref_in, t1, 
+	if( !(ref = im_open_local( out, "temp_one", "t" )) ||
+		!(sec = im_open_local( out, "temp_two", "t" )) ||
+		im_open_local_array( out, t, 6, "im_tbmosaic", "p" ) ||
+		im_extract_area( ref_in, t[0], 
 			overlap.left, overlap.top, 
-			overlap.width, overlap.height ) )
-			return( -1 );
-		if( im_extract_area( sec_in, t2, 
+			overlap.width, overlap.height ) ||
+		im_extract_area( sec_in, t[1], 
 			overlap.left - bottom.left, overlap.top - bottom.top, 
 			overlap.width, overlap.height ) )
-			return( -1 );
-		if( im_LabQ2Lab( t1, t3 ) || im_LabQ2Lab( t2, t4 ) ||
-	    		im_Lab2disp( t3, t5, im_col_displays( 1 ) ) || 
-			im_Lab2disp( t4, t6, im_col_displays( 1 ) ) )
-			return( -1 );
-		
-		/* Extract the green.
-		 */
-		if( im_extract_band( t5, ref, 1 ) ||
-			im_extract_band( t6, sec, 1 ) )
+		return( -1 );
+	if( ref_in->Coding == IM_CODING_LABQ ) {
+		if( im_LabQ2Lab( t[0], t[2] ) || 
+			im_LabQ2Lab( t[1], t[3] ) ||
+	    		im_Lab2disp( t[2], t[4], im_col_displays( 1 ) ) || 
+			im_Lab2disp( t[3], t[5], im_col_displays( 1 ) ) ||
+			im_extract_band( t[4], ref, 1 ) ||
+			im_extract_band( t[5], sec, 1 ) )
 			return( -1 );
 	}
 	else if( ref_in->Coding == IM_CODING_NONE ) {
-		IMAGE *t1 = im_open_local( out, "temp:9", "p" );
-		IMAGE *t2 = im_open_local( out, "temp:10", "p" );
-		IMAGE *t3 = im_open_local( out, "temp:11", "p" );
-		IMAGE *t4 = im_open_local( out, "temp:12", "p" );
-
-		if( !t1 || !t2 || !t3 || !t4 )
-			return( -1 );
-		if( im_extract_area( ref_in, t1, 
-			overlap.left, overlap.top, 
-			overlap.width, overlap.height ) )
-			return( -1 );
-		if( im_extract_area( sec_in, t2, 
-			overlap.left - bottom.left, overlap.top - bottom.top, 
-			overlap.width, overlap.height ) )
-			return( -1 );
-		if( im_extract_band( t1, t3, bandno_in ) ||
-			im_extract_band( t2, t4, bandno_in ) )
-			return( -1 );
-		if( im_scale( t3, ref ) ||
-			im_scale( t4, sec ) )
+		if( im_extract_band( t[0], t[2], bandno_in ) ||
+			im_extract_band( t[1], t[3], bandno_in ) ||
+			im_scale( t[2], ref ) ||
+			im_scale( t[3], sec ) )
 			return( -1 );
 	}
 	else {
@@ -263,17 +217,68 @@ im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	return( 0 );
 }
 
+/**
+ * im_tbmosaic:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @bandno: band to search for features
+ * @xref: position in reference image
+ * @yref: position in reference image
+ * @xsec: position in secondary image
+ * @ysec: position in secondary image
+ * @hwindowsize: half window size
+ * @hsearchsize: half search size 
+ * @balancetype: no longer used
+ * @mwidth: maximum blend width
+ *
+ * This operation joins two images top-bottom (with @ref on the top) 
+ * given an approximate overlap.
+ *
+ * @sec is positioned so that the pixel (@xsec, @ysec) lies on top of the
+ * pixel in @ref at (@xref, @yref). The overlap area is divided into three
+ * sections, 20 high-contrast points in band @bandno of image @ref are found 
+ * in each, and each high-contrast point is searched for in @sec using
+ * @hwindowsize and @hsearchsize (see im_correl()). 
+ *
+ * A linear model is fitted to the 60 tie-points, points a long way from the
+ * fit are discarded, and the model refitted until either too few points
+ * remain or the model reaches good agreement. 
+ *
+ * The detected displacement is used with im_tbmerge() to join the two images
+ * together. 
+ *
+ * @mwidth limits  the  maximum height of the
+ * blend area.  A value of "-1" means "unlimited". The two images are blended 
+ * with a raised cosine. 
+ *
+ * Pixels with all bands equal to zero are "transparent", that
+ * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * This makes it possible to join non-rectangular images.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_tbmerge(), im_lrmosaic(), im_insert(), im_global_balance().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_tbmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out, 
-	int bandno, 
+	int bandno,
 	int xref, int yref, int xsec, int ysec, 
-	int halfcorrelation, int halfarea,
+	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth )
 {
 	int dx0, dy0;
 	double scale1, angle1, dx1, dy1;
-	IMAGE *ref2, *sec2;
 	IMAGE *dummy;
 
 	/* Correct overlap. dummy is just a placeholder used to ensure that
@@ -284,7 +289,7 @@ im_tbmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	if( im__find_tboverlap( ref, sec, dummy,
 		bandno, 
 		xref, yref, xsec, ysec,
-		halfcorrelation, halfarea,
+		hwindowsize, hsearchsize,
 		&dx0, &dy0,
 		&scale1, &angle1, &dx1, &dy1 ) ) {
 		im_close( dummy );
@@ -292,16 +297,9 @@ im_tbmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	}
 	im_close( dummy );
 
-	/* Balance.
-	 */
-	if( im__balance( ref, sec, out,
-		&ref2, &sec2,
-		dx0, dy0, balancetype ) )
-		return( -1 );
-
 	/* Merge top-bottom.
 	 */
-        if( im_tbmerge( ref2, sec2, out, dx0, dy0, mwidth ) )
+        if( im_tbmerge( ref, sec, out, dx0, dy0, mwidth ) )
 		return( -1 ); 
 
 	return( 0 );

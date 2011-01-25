@@ -9,6 +9,10 @@
   Nicolas Robidoux)
 - no tables for uchar either, about a 15% speedup (thanks Nicolas)
 - dmask write was broken
+- lr/tbmerge() cast images to match, like im_insert()
+- lr/tbmosaic() work for any mix of image formats / bands
+- removed ancient balance stuff from im_lr/tbmosaic()
+- gtk-doc for mosaicing
 
 30/11/10 started 7.24.0
 - bump for new stable

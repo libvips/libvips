@@ -1,4 +1,5 @@
 /* 1st order mosaic functions
+ *
  * 31/7/97 JC
  *	- done!
  * 12/9/97 JC
@@ -12,6 +13,8 @@
  *	- better mosaic1 calcs ... was a bit broken
  * 14/12/04
  *	- works for LABQ as well
+ * 25/1/11
+ * 	- gtk-doc
  */
 
 /*
@@ -206,7 +209,45 @@ rotjoin( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 	return( 0 );
 }
 
-/* 1st order left-right merge.
+/**
+ * im_lrmerge1:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @xr1: first reference tie-point
+ * @yr1: first reference tie-point
+ * @xs1: first secondary tie-point
+ * @ys1: first secondary tie-point
+ * @xr2: second reference tie-point
+ * @yr2: second reference tie-point
+ * @xs2: second secondary tie-point
+ * @ys2: second secondary tie-point
+ * @mwidth: maximum blend width
+ *
+ * This operation joins two images left-right (with @ref on the left) 
+ * given a pair of tie-points. @sec is scaled and rotated as
+ * necessary before the join.
+ *
+ * @mwidth limits  the  maximum width of the
+ * blend area.  A value of "-1" means "unlimited". The two images are blended 
+ * with a raised cosine. 
+ *
+ * Pixels with all bands equal to zero are "transparent", that
+ * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * This makes it possible to join non-rectangular images.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_tbmerge1(), im_lrmerge(), im_insert(), im_global_balance().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
@@ -218,7 +259,45 @@ im_lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, mwidth ) );
 }
 
-/* 1st order top-bottom merge.
+/**
+ * im_tbmerge1:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @xr1: first reference tie-point
+ * @yr1: first reference tie-point
+ * @xs1: first secondary tie-point
+ * @ys1: first secondary tie-point
+ * @xr2: second reference tie-point
+ * @yr2: second reference tie-point
+ * @xs2: second secondary tie-point
+ * @ys2: second secondary tie-point
+ * @mwidth: maximum blend width
+ *
+ * This operation joins two images top-bottom (with @ref on the top) 
+ * given a pair of tie-points. @sec is scaled and rotated as
+ * necessary before the join.
+ *
+ * @mwidth limits  the  maximum height of the
+ * blend area.  A value of "-1" means "unlimited". The two images are blended 
+ * with a raised cosine. 
+ *
+ * Pixels with all bands equal to zero are "transparent", that
+ * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * This makes it possible to join non-rectangular images.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_lrmerge1(), im_tbmerge(), im_insert(), im_global_balance().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
@@ -333,39 +412,131 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 	return( 0 );
 }
 
-/* 1st order lr mosaic.
+/**
+ * im_lrmosaic1:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @bandno: band to search for features
+ * @xr1: first reference tie-point
+ * @yr1: first reference tie-point
+ * @xs1: first secondary tie-point
+ * @ys1: first secondary tie-point
+ * @xr2: second reference tie-point
+ * @yr2: second reference tie-point
+ * @xs2: second secondary tie-point
+ * @ys2: second secondary tie-point
+ * @hwindowsize: half window size
+ * @hsearchsize: half search size 
+ * @balancetype: no longer used
+ * @mwidth: maximum blend width
+ *
+ * This operation joins two images left-right (with @ref on the left) 
+ * given an approximate pair of tie-points. @sec is scaled and rotated as
+ * necessary before the join.
+ *
+ * Before performing the transformation, the  tie-points are improved by 
+ * searching band @bandno in an area of @sec of size @hsearchsize for a
+ * match of size @hwindowsize to @ref. 
+ *
+ * @mwidth limits  the  maximum width of the
+ * blend area.  A value of "-1" means "unlimited". The two images are blended 
+ * with a raised cosine. 
+ *
+ * Pixels with all bands equal to zero are "transparent", that
+ * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * This makes it possible to join non-rectangular images.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_tbmosaic1(), im_lrmerge(), im_insert(), im_global_balance().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out, 
 	int bandno,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
-	int halfcorrelation, int halfarea,
+	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth )
 { 
 	return( rotjoin_search( ref, sec, out, im__lrmerge1,
 		bandno,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
-		halfcorrelation, halfarea, balancetype,
+		hwindowsize, hsearchsize, balancetype,
 		mwidth ) );
 }
 
-/* 1st order tb mosaic.
+/**
+ * im_tbmosaic1:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @bandno: band to search for features
+ * @xr1: first reference tie-point
+ * @yr1: first reference tie-point
+ * @xs1: first secondary tie-point
+ * @ys1: first secondary tie-point
+ * @xr2: second reference tie-point
+ * @yr2: second reference tie-point
+ * @xs2: second secondary tie-point
+ * @ys2: second secondary tie-point
+ * @hwindowsize: half window size
+ * @hsearchsize: half search size 
+ * @balancetype: no longer used
+ * @mwidth: maximum blend width
+ *
+ * This operation joins two images top-bottom (with @ref on the top) 
+ * given an approximate pair of tie-points. @sec is scaled and rotated as
+ * necessary before the join.
+ *
+ * Before performing the transformation, the  tie-points are improved by 
+ * searching band @bandno in an area of @sec of size @hsearchsize for a
+ * match of size @hwindowsize to @ref. 
+ *
+ * @mwidth limits  the  maximum height of the
+ * blend area.  A value of "-1" means "unlimited". The two images are blended 
+ * with a raised cosine. 
+ *
+ * Pixels with all bands equal to zero are "transparent", that
+ * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * This makes it possible to join non-rectangular images.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_lrmosaic1(), im_tbmerge(), im_insert(), im_global_balance().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_tbmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	int bandno,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
-	int halfcorrelation, int halfarea,
+	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth )
 { 
 	return( rotjoin_search( ref, sec, out, im__tbmerge1,
 		bandno,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
-		halfcorrelation, halfarea, balancetype, mwidth ) );
+		hwindowsize, hsearchsize, balancetype, mwidth ) );
 }
 
 #ifdef OLD

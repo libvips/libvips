@@ -197,7 +197,8 @@ maxpos_scan( REGION *reg, void *seq, void *a, void *b )
  * image type. Returns a double and the location of max. For complex images,
  * finds the pixel with the highest modulus.
  *
- * See also: im_minpos(), im_min(), im_stats(), im_maxpos_avg().
+ * See also: im_minpos(), im_min(), im_stats(), im_maxpos_avg(),
+ * im_maxpos_subpel(), im_maxpos_vec().
  *
  * Returns: 0 on success, -1 on error
  */

@@ -53,6 +53,8 @@
  *	- weed out overlaps which contain only transparent pixels
  * 4/1/07
  * 	- switch to new history thing, switch im_errormsg() too
+ * 24/1/11
+ * 	- gtk-doc
  */
 
 /*
@@ -167,9 +169,8 @@ im__global_open_image( SymbolTable *st, char *name )
 {
 	IMAGE *im;
 
-	if( (im = im_open_local( st->im, name, "r" )) ) 
-		return( im );
-	if( (im = im_open_local( st->im, im_skip_dir( name ), "r" )) ) 
+	if( (im = im_open_local( st->im, name, "r" )) || 
+		(im = im_open_local( st->im, im_skip_dir( name ), "r" )) ) 
 		return( im );
 
 	return( NULL );
@@ -296,9 +297,8 @@ im__build_symtab( IMAGE *out, int sz )
 	SymbolTable *st = IM_NEW( out, SymbolTable );
 	int i;
 
-	if( !st )
-		return( NULL );
-	if( !(st->table = IM_ARRAY( out, sz, GSList * )) )
+	if( !st ||
+		!(st->table = IM_ARRAY( out, sz, GSList * )) )
 		return( NULL );
 	st->sz = sz;
 	st->im = out;
@@ -1699,7 +1699,38 @@ transformf( JoinNode *node, double *gamma )
 	return( out );
 }
 
-/* Balance mosaic, outputting in the original format.
+/**
+ * im_global_balance:
+ * @in: mosaic to rebuild
+ * @out: output image
+ * @gamma: gamma of source images
+ *
+ * im_global_balance() can be used to remove contrast differences in 
+ * an assembled mosaic.
+ *
+ * It reads the History field attached to @in and builds a list of the source
+ * images that were used to make the mosaic and the position that each ended
+ * up at in the final image.
+ *
+ * It opens each of the source images in turn and extracts all parts which
+ * overlap with any of the other images. It finds the average values in the
+ * overlap areas and uses least-mean-square to find a set of correction
+ * factors which will minimise overlap differences. It uses @gamma to
+ * gamma-correct the source images before calculating the factors. A value of
+ * 1.0 will stop this.
+ *
+ * Each of the source images is transformed with the appropriate correction 
+ * factor, then the mosaic is reassembled. @out always has the same #BandFmt
+ * as @in. Use im_global_balancef() to get float output and avoid clipping.
+ *
+ * There are some conditions that must be met before this operation can work:
+ * the source images must all be present under the filenames recorded in the
+ * history on @in, and the mosaic must have been built using only operations in
+ * this package.
+ *
+ * See also: im_global_balancef(), im_remosaic().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_global_balance( IMAGE *in, IMAGE *out, double gamma )
@@ -1715,9 +1746,19 @@ im_global_balance( IMAGE *in, IMAGE *out, double gamma )
 	return( 0 );
 }
 
-/* Balance mosaic, outputting as float. This is useful if the automatic
- * selection of balance range fails - our caller can search the output for the
- * min and max, and rescale to prevent burn-out.
+/**
+ * im_global_balancef:
+ * @in: mosaic to rebuild
+ * @out: output image
+ * @gamma: gamma of source images
+ *
+ * Just as im_global_balance(), but the output image is always float. This
+ * stops overflow or underflow in the case of an extremely unbalanced image
+ * mosaic. 
+ *
+ * See also: im_global_balance(), im_remosaic().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_global_balancef( IMAGE *in, IMAGE *out, double gamma )

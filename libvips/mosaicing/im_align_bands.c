@@ -43,6 +43,20 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_align_bands:
+ * @in: image to align
+ * @out: output image
+ *
+ * This operation uses im_phasecor_fft() to find an integer displacement to
+ * align all image bands band 0. It is very slow and not very accurate. 
+ *
+ * Use im_estpar() in preference: it's fast and accurate.
+ * 
+ * See also: im_global_balancef(), im_remosaic().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int im_align_bands( IMAGE *in, IMAGE *out ){
 #define FUNCTION_NAME "im_align_bands"
   if( im_piocheck( in, out ))

@@ -1,5 +1,8 @@
 
 
+- half-way thorough making fits read lazy
+
+
 
 - im__open_write() should take a mode (text / binary)
 
