@@ -36,8 +36,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -59,6 +59,27 @@
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/*
+
+   	TODO
+
+	- getting some streaking, try putting a lock around the read 
+	  subarea call
+
+	- add a tile cache, cf. tiff
+
+	- test colour read with valgrind
+
+	- ask Doug for a test colour image
+
+	- read whole tiles, if the alignment is right
+
+	- test performance
+
+	- remove the old scanline reader?
+
+ */
 
 /* vips only supports 3 dimensions, but we allow up to MAX_DIMENSIONS as long
  * as the higher dimensions are all empty. If you change this value, change
@@ -118,12 +139,17 @@ read_new( const char *filename, IMAGE *out )
 	read->out = out;
 	read->fptr = NULL;
 
+	if( im_add_close_callback( out, 
+		(im_callback_fn) read_destroy, read, NULL ) ) {
+		read_destroy( read );
+		return( NULL );
+	}
+
 	status = 0;
 
 	if( fits_open_file( &read->fptr, filename, READONLY, &status ) ) {
 		im_error( "fits", _( "unable to open \"%s\"" ), filename );
 		read_error( status );
-		read_destroy( read );
 		return( NULL );
 	}
 
@@ -282,13 +308,9 @@ fits2vips_header( const char *filename, IMAGE *out )
 	printf( "fits2vips_header: reading \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out )) ) 
+	if( !(read = read_new( filename, out )) || 
+		fits2vips_get_header( read ) ) 
 		return( -1 );
-	if( fits2vips_get_header( read ) ) {
-		read_destroy( read );
-		return( -1 );
-	}
-	read_destroy( read );
 
 	return( 0 );
 }
@@ -362,12 +384,9 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 	Rect *r = &out->valid;
 
 	IMAGE *im = read->out;
-	const int es = IM_IMAGE_SIZEOF_ELEMENT( im );
 
-	PEL *line_buffer;
-	PEL *band_buffer;
-	PEL *p, *q;
-	int x, y, z, k;
+	PEL *q;
+	int y, z;
 	int status;
 
 	status = 0;
@@ -376,59 +395,35 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 	long lpixel[MAX_DIMENSIONS];
 	long inc[MAX_DIMENSIONS];
 
-	if( !(line_buffer = IM_ARRAY( im, IM_IMAGE_SIZEOF_LINE( im ), PEL )) ||
-		!(band_buffer = IM_ARRAY( im, es * im->Xsize, PEL )) ||
-		im_outcheck( im ) ||
-		im_setupout( im ) )
-		return( -1 );
-
-	/* Read out the entire
-	for( b = 0; b < MAX_DIMENSIONS; b++ )
-		fpixel[b] = 1;
-	fpixel[1] = im->Ysize - y;
-
-	if( fits_read_subset( read->fptr, read->datatype, 
-		long *fpixel,
-			             long *lpixel, long *inc, void *nulval,  void *array,
-				                  int *anynul, int *status)
+	/* We read the area a scanline at a time. If the REGION we are reading
+	 * to has bpl set right we should be able to read all scanlines in one
+	 * go, experiment.
 	 */
 
-
-	for( y = 0; y < im->Ysize; y++ ) {
-		long int fpixel[MAX_DIMENSIONS];
-
-		/* Start of scanline. We have to read top-to-bottom.
-		 */
+	for( y = r->top; y < IM_RECT_BOTTOM( r ); y ++ ) {
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			fpixel[z] = 1;
+		fpixel[0] = r->left + 1;
 		fpixel[1] = im->Ysize - y;
 
-		for( z = 0; z < im->Bands; z++ ) {
-			fpixel[2] = z + 1;
+		for( z = 0; z < MAX_DIMENSIONS; z++ )
+			lpixel[z] = 1;
+		lpixel[0] = IM_RECT_RIGHT( r );
+		lpixel[1] = im->Ysize - y;
+		lpixel[2] = im->Bands;
 
-			/* Read one band of one scanline, then scatter-write
-			 * into the line buffer.
-			 */
-			if( fits_read_pix( read->fptr, 
-				read->datatype, fpixel, im->Xsize,
-				NULL, band_buffer, NULL, &status ) ) {
-				read_error( status );
-				return( -1 );
-			}
+		for( z = 0; z < MAX_DIMENSIONS; z++ )
+			inc[z] = 1;
 
-			p = band_buffer;
-			q = line_buffer + z * es;
-			for( x = 0; x < im->Xsize; x++ ) {
-				for( k = 0; k < es; k++ )
-					q[k] = p[k];
+		q = (PEL *) IM_REGION_ADDR( out, r->left, y );
 
-				p += es;
-				q += im->Bands * es;
-			}
-		}
-
-		if( im_writeline( y, im, line_buffer ) )
+		/* Break on ffgsv() for this call.
+		 */
+		if( fits_read_subset( read->fptr, read->datatype, 
+			fpixel, lpixel, inc, NULL, q, NULL, &status ) ) {
+			read_error( status );
 			return( -1 );
+		}
 	}
 
 	return( 0 );
@@ -439,8 +434,12 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 static int
 fits2vips_get_data_lazy( Read *read )
 {
-	return( im_generate( read->out, 
-		NULL, fits2vips_generate, NULL, read, NULL ) );
+	if( im_demand_hint( read->out, IM_SMALLTILE, NULL ) ||
+		im_generate( read->out, 
+			NULL, fits2vips_generate, NULL, read, NULL ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 /**
@@ -467,12 +466,9 @@ im_fits2vips( const char *filename, IMAGE *out )
 	if( !(read = read_new( filename, out )) ) 
 		return( -1 );
 	if( fits2vips_get_header( read ) ||
-		fits2vips_get_data_scanlinewise( read ) ) {
-		read_destroy( read );
+		fits2vips_get_data_lazy( read ) ) 
+		// fits2vips_get_data_scanlinewise( read ) ) 
 		return( -1 );
-	}
-
-	read_destroy( read );
 
 	return( 0 );
 }
