@@ -7,6 +7,8 @@
  * 30/11/10
  * 	- set RGB16/GREY16 if appropriate
  * 	- allow up to 10 dimensions as long as they are empty
+ * 27/1/11
+ * 	- lazy read
  */
 
 /*
@@ -64,9 +66,6 @@
 
    	TODO
 
-	- getting some streaking, try putting a lock around the read 
-	  subarea call
-
 	- add a tile cache, cf. tiff
 
 	- test colour read with valgrind
@@ -97,6 +96,8 @@ typedef struct {
 	int datatype;
 	int naxis;
 	long long int naxes[MAX_DIMENSIONS];
+
+	GMutex *lock;		/* Lock fits_*() calls with this */
 } Read;
 
 static void
@@ -112,6 +113,7 @@ static void
 read_destroy( Read *read )
 {
 	IM_FREE( read->filename );
+	IM_FREEF( g_mutex_free, read->lock );
 	if( read->fptr ) {
 		int status;
 
@@ -138,6 +140,7 @@ read_new( const char *filename, IMAGE *out )
 	read->filename = im_strdup( NULL, filename );
 	read->out = out;
 	read->fptr = NULL;
+	read->lock = NULL;
 
 	if( im_add_close_callback( out, 
 		(im_callback_fn) read_destroy, read, NULL ) ) {
@@ -146,12 +149,13 @@ read_new( const char *filename, IMAGE *out )
 	}
 
 	status = 0;
-
 	if( fits_open_file( &read->fptr, filename, READONLY, &status ) ) {
 		im_error( "fits", _( "unable to open \"%s\"" ), filename );
 		read_error( status );
 		return( NULL );
 	}
+
+	read->lock = g_mutex_new();
 
 	return( read );
 }
@@ -419,11 +423,14 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 
 		/* Break on ffgsv() for this call.
 		 */
+		g_mutex_lock( read->lock );
 		if( fits_read_subset( read->fptr, read->datatype, 
 			fpixel, lpixel, inc, NULL, q, NULL, &status ) ) {
 			read_error( status );
+			g_mutex_unlock( read->lock );
 			return( -1 );
 		}
+		g_mutex_unlock( read->lock );
 	}
 
 	return( 0 );
