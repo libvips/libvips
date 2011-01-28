@@ -75,6 +75,8 @@
 		found WFPC2u5780205r_c0fx.fits on the fits samples page, 
 		though we don't read it correctly, argh
 
+		when we read a line of a tile out, y and z seem to be swapped
+
 	- read whole tiles, if the alignment is right
 
 		  actually, this is hard, we'd need to flip y somehow
@@ -385,9 +387,36 @@ fits2vips_get_data_scanlinewise( Read *read )
 	return( 0 );
 }
 
+/* Allocate a line buffer. Have one of these for each thread so we can unpack
+ * to vips in parallel.
+ */
+static void *
+fits2vips_start( IMAGE *out, void *a, void *b )
+{
+	Read *read = (Read *) a;
+	IMAGE *out = read->out;
+	const int es = IM_IMAGE_SIZEOF_ELEMENT( out );
+
+	PEL *band_buffer;
+
+	if( !(band_buffer = IM_ARRAY( out, es * out->Xsize, PEL )) )
+		return( NULL );
+
+	return( (void *) band_buffer );
+}
+
+static int
+fits2vips_stop( void *seq, void *a, void *b )
+{
+	im_free( seq );
+
+	return( 0 );
+}
+
 static int
 fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 {
+	PEL *band_buffer = (PEL *) seq;
 	Read *read = (Read *) a;
 	Rect *r = &out->valid;
 
@@ -417,23 +446,46 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 			lpixel[z] = 1;
 		lpixel[0] = IM_RECT_RIGHT( r );
 		lpixel[1] = im->Ysize - y;
-		lpixel[2] = im->Bands;
 
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			inc[z] = 1;
 
+		for( z = 0; z < im->Bands; z++ ) {
+			/* Read one band of one scanline, then scatter-write
+			 * into the line buffer.
+			 */
+			fpixel[2] = z + 1;
+			lpixel[2] = z + 1;
+
+			/* Break on ffgsv() for this call.
+			 */
+			g_mutex_lock( read->lock );
+			if( fits_read_subset( read->fptr, read->datatype, 
+				fpixel, lpixel, inc, 
+				NULL, band_buffer, NULL, &status ) ) {
+				read_error( status );
+				g_mutex_unlock( read->lock );
+				return( -1 );
+			}
+			g_mutex_unlock( read->lock );
+
+
+			p = band_buffer;
+			q = line_buffer + b * es;
+			for( x = 0; x < im->Xsize; x++ ) {
+				for( z = 0; z < es; z++ )
+					q[z] = p[z];
+
+				p += es;
+				q += im->Bands * es;
+			}
+		}
+
 		q = (PEL *) IM_REGION_ADDR( out, r->left, y );
 
-		/* Break on ffgsv() for this call.
-		 */
-		g_mutex_lock( read->lock );
-		if( fits_read_subset( read->fptr, read->datatype, 
-			fpixel, lpixel, inc, NULL, q, NULL, &status ) ) {
-			read_error( status );
-			g_mutex_unlock( read->lock );
-			return( -1 );
-		}
-		g_mutex_unlock( read->lock );
+		for( z = 0; z < im->Bands; z++ ) {
+
+
 	}
 
 	return( 0 );
@@ -465,7 +517,8 @@ im_fits2vips( const char *filename, IMAGE *out )
 		fits2vips_get_header( read, cache ) ||
 		im_demand_hint( cache, IM_SMALLTILE, NULL ) ||
 		im_generate( cache, 
-			NULL, fits2vips_generate, NULL, read, NULL ) ||
+			fits2vips_start, fits2vips_generate, fits2vips_stop, 
+			read, NULL ) ||
 		im_tile_cache( cache, out, 
 			tile_size, tile_size, 
 			2 * (1 + cache->Xsize / tile_size) ) ) 
