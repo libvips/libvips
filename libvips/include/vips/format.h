@@ -157,6 +157,8 @@ int im_mat2vips( const char *filename, IMAGE *out );
 int im_rad2vips( const char *filename, IMAGE *out );
 int im_vips2rad( IMAGE *in, const char *filename );
 
+int im_fits2vips( const char *filename, IMAGE *out );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

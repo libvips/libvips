@@ -13,6 +13,7 @@
 - lr/tbmosaic() work for any mix of image formats / bands
 - removed ancient balance stuff from im_lr/tbmosaic()
 - gtk-doc for mosaicing
+- add im_fits2vips() to the operation database
 
 30/11/10 started 7.24.0
 - bump for new stable
