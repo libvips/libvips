@@ -40,6 +40,7 @@
 /*
  */
 #define DEBUG
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -55,6 +56,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #include <fitsio.h>
 
@@ -66,13 +68,16 @@
 
    	TODO
 
-	- add a tile cache, cf. tiff
-
 	- test colour read with valgrind
 
 	- ask Doug for a test colour image
 
+		found WFPC2u5780205r_c0fx.fits on the fits samples page, 
+		though we don't read it correctly, argh
+
 	- read whole tiles, if the alignment is right
+
+		  actually, this is hard, we'd need to flip y somehow
 
 	- test performance
 
@@ -172,7 +177,7 @@ static int fits2vips_formats[][3] = {
 };
 
 static int
-fits2vips_get_header( Read *read )
+fits2vips_get_header( Read *read, IMAGE *out )
 {
 	int status;
 	int bitpix;
@@ -191,9 +196,9 @@ fits2vips_get_header( Read *read )
 	}
 
 #ifdef DEBUG
-	printf( "naxis = %d\n", read->naxis );
+	VIPS_DEBUG_MSG( "naxis = %d\n", read->naxis );
 	for( i = 0; i < read->naxis; i++ )
-		printf( "%d) %lld\n", i, read->naxes[i] );
+		VIPS_DEBUG_MSG( "%d) %lld\n", i, read->naxes[i] );
 #endif /*DEBUG*/
 
 	width = 1;
@@ -261,7 +266,7 @@ fits2vips_get_header( Read *read )
 	else
 		type = IM_TYPE_MULTIBAND;
 
-	im_initdesc( read->out,
+	im_initdesc( out,
 		 width, height, bands,
 		 im_bits_of_fmt( format ), format,
 		 IM_CODING_NONE, type, 1.0, 1.0, 0, 0 );
@@ -285,18 +290,16 @@ fits2vips_get_header( Read *read )
 			return( -1 );
 		}
 
-#ifdef DEBUG
-		printf( "fits: seen:\n" );
-		printf( " key == %s\n", key );
-		printf( " value == %s\n", value );
-		printf( " comment == %s\n", comment );
-#endif /*DEBUG*/
+		VIPS_DEBUG_MSG( "fits: seen:\n" );
+		VIPS_DEBUG_MSG( " key == %s\n", key );
+		VIPS_DEBUG_MSG( " value == %s\n", value );
+		VIPS_DEBUG_MSG( " comment == %s\n", comment );
 
 		im_snprintf( vipsname, 100, "fits-%s", key );
-		if( im_meta_set_string( read->out, vipsname, value ) ) 
+		if( im_meta_set_string( out, vipsname, value ) ) 
 			return( -1 );
 		im_snprintf( vipsname, 100, "fits-%s-comment", key );
-		if( im_meta_set_string( read->out, vipsname, comment ) ) 
+		if( im_meta_set_string( out, vipsname, comment ) ) 
 			return( -1 );
 	}
 
@@ -308,18 +311,19 @@ fits2vips_header( const char *filename, IMAGE *out )
 {
 	Read *read;
 
-#ifdef DEBUG
-	printf( "fits2vips_header: reading \"%s\"\n", filename );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "fits2vips_header: reading \"%s\"\n", filename );
 
 	if( !(read = read_new( filename, out )) || 
-		fits2vips_get_header( read ) ) 
+		fits2vips_get_header( read, out ) ) 
 		return( -1 );
 
 	return( 0 );
 }
 
 /* Read the whole image in scanlines.
+
+   	kept for reference ... this works for colour fits images
+
  */
 static int
 fits2vips_get_data_scanlinewise( Read *read )
@@ -399,10 +403,9 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 	long lpixel[MAX_DIMENSIONS];
 	long inc[MAX_DIMENSIONS];
 
-	/* We read the area a scanline at a time. If the REGION we are reading
-	 * to has bpl set right we should be able to read all scanlines in one
-	 * go, experiment.
-	 */
+	VIPS_DEBUG_MSG( "fits2vips_generate: "
+		"generating left = %d, top = %d, width = %d, height = %d\n", 
+		r->left, r->top, r->width, r->height );
 
 	for( y = r->top; y < IM_RECT_BOTTOM( r ); y ++ ) {
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
@@ -436,26 +439,12 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Read the image in chunks on demand.
- */
-static int
-fits2vips_get_data_lazy( Read *read )
-{
-	if( im_demand_hint( read->out, IM_SMALLTILE, NULL ) ||
-		im_generate( read->out, 
-			NULL, fits2vips_generate, NULL, read, NULL ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 /**
  * im_fits2vips:
  * @filename: file to load
  * @out: image to write to
  *
  * Read a FITS image file into a VIPS image. 
- *
  *
  * See also: #VipsFormat.
  *
@@ -464,17 +453,22 @@ fits2vips_get_data_lazy( Read *read )
 int
 im_fits2vips( const char *filename, IMAGE *out )
 {
+	const int tile_size = 128;
+
 	Read *read;
+	IMAGE *cache;
 
-#ifdef DEBUG
-	printf( "im_fits2vips: reading \"%s\"\n", filename );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "im_fits2vips: reading \"%s\"\n", filename );
 
-	if( !(read = read_new( filename, out )) ) 
-		return( -1 );
-	if( fits2vips_get_header( read ) ||
-		fits2vips_get_data_lazy( read ) ) 
-		// fits2vips_get_data_scanlinewise( read ) ) 
+	if( !(cache = im_open_local( out, "cache", "p" )) ||
+		!(read = read_new( filename, out )) || 
+		fits2vips_get_header( read, cache ) ||
+		im_demand_hint( cache, IM_SMALLTILE, NULL ) ||
+		im_generate( cache, 
+			NULL, fits2vips_generate, NULL, read, NULL ) ||
+		im_tile_cache( cache, out, 
+			tile_size, tile_size, 
+			2 * (1 + cache->Xsize / tile_size) ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -486,15 +480,13 @@ isfits( const char *filename )
 	fitsfile *fptr;
 	int status;
 
-#ifdef DEBUG
-	printf( "isfits: testing \"%s\"\n", filename );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "isfits: testing \"%s\"\n", filename );
 
 	status = 0;
 
 	if( fits_open_image( &fptr, filename, READONLY, &status ) ) {
+		VIPS_DEBUG_MSG( "isfits: error reading \"%s\"\n", filename );
 #ifdef DEBUG
-		printf( "isfits: error reading \"%s\"\n", filename );
 		read_error( status );
 #endif /*DEBUG*/
 

@@ -389,10 +389,37 @@ static im_function vips2ppm_desc = {
         vips2ppm_arg_types              /* Arg list */
 };
 
+static int
+fits2vips_vec( im_object *argv )
+{
+	char *in = argv[0];
+	IMAGE *out = argv[1];
+
+	if( im_fits2vips( in, out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static im_arg_desc fits2vips_args[] = {
+	IM_INPUT_STRING( "in" ),
+	IM_OUTPUT_IMAGE( "out" )
+};
+
+static im_function fits2vips_desc = {
+	"im_fits2vips",			/* Name */
+	"convert from fits",		/* Description */
+	0,				/* Flags */
+	fits2vips_vec,			/* Dispatch function */
+	IM_NUMBER( fits2vips_args ), 	/* Size of arg list */
+	fits2vips_args 			/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *list[] = {
 	&csv2vips_desc,
+	&fits2vips_desc,
 	&jpeg2vips_desc,
 	&magick2vips_desc,
 	&png2vips_desc,
