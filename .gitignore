@@ -1,4 +1,5 @@
 Makefile.in
+TAGS
 *.o
 *.lo
 *.la
@@ -95,4 +96,25 @@ tools/mosaicing/Makefile
 tools/other/Makefile
 tools/scripts/Makefile
 
+# various things made by gtk-doc
+doc/reference/html-build.stamp
+doc/reference/html.stamp
+doc/reference/html/
+doc/reference/libvips-decl-list.txt
+doc/reference/libvips-decl.txt
+doc/reference/libvips-overrides.txt
+doc/reference/libvips-sections.txt
+doc/reference/libvips-undeclared.txt
+doc/reference/libvips-undocumented.txt
+doc/reference/libvips-unused.txt
+doc/reference/libvips.args
+doc/reference/libvips.hierarchy
+doc/reference/libvips.interfaces
+doc/reference/libvips.prerequisites
+doc/reference/libvips.signals
+doc/reference/libvips.types
+doc/reference/scan-build.stamp
+doc/reference/sgml-build.stamp
+doc/reference/sgml.stamp
+doc/reference/xml/
 
