@@ -370,7 +370,7 @@ im_vips2png( IMAGE *in, const char *filename )
 
 	/* Make output.
 	 */
-        if( !(write->fp = im__file_open_write( name )) ) {
+        if( !(write->fp = im__file_open_write( name, FALSE )) ) {
 		write_destroy( write );
 		return( -1 );
 	}

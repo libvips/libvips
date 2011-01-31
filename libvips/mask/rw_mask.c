@@ -482,7 +482,7 @@ im_read_dmask( const char *filename )
 	int x, y, i, size;
 	char buf[IM_MAX_LINE];
 
-	if( !(fp = im__file_open_read( filename, NULL )) ) 
+	if( !(fp = im__file_open_read( filename, NULL, TRUE )) ) 
 		return( NULL );
 
 	if( read_header( fp, &xs, &ys, &sc, &off ) ) {

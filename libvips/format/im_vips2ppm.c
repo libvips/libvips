@@ -87,7 +87,7 @@ write_new( IMAGE *in, const char *name )
 
 	write->in = in;
 	write->name = im_strdup( NULL, name );
-        write->fp = im__file_open_write( name );
+        write->fp = im__file_open_write( name, FALSE );
 
 	if( !write->name || !write->fp ) {
 		write_destroy( write );

@@ -779,7 +779,7 @@ israd( const char *filename )
 	printf( "israd: \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-        if( !(fin = im__file_open_read( filename, NULL )) ) 
+        if( !(fin = im__file_open_read( filename, NULL, FALSE )) ) 
 		return( 0 );
 	strcpy( format, PICFMT );
 	result = checkheader( fin, format, NULL );
@@ -825,7 +825,7 @@ read_new( const char *filename, IMAGE *out )
 	read->prims[3][1] = CIE_y_w;
 	read->buf = NULL;
 
-	if( !(read->fin = im__file_open_read( filename, NULL )) ) {
+	if( !(read->fin = im__file_open_read( filename, NULL, FALSE )) ) {
 		read_destroy( read );
 		return( NULL );
 	}
@@ -1052,7 +1052,7 @@ write_new( IMAGE *in, const char *filename )
 
 	write->in = in;
 	write->filename = im_strdup( NULL, filename );
-        write->fout = im__file_open_write( filename );
+        write->fout = im__file_open_write( filename, FALSE );
 	strcpy( write->format, COLRFMT );
 	write->expos = 1.0;
 	for( i = 0; i < 3; i++ )

@@ -140,7 +140,7 @@ read_new( const char *name, IMAGE *out )
 	read->row_pointer = NULL;
 	read->data = NULL;
 
-        if( !(read->fp = im__file_open_read( name, NULL )) ) {
+        if( !(read->fp = im__file_open_read( name, NULL, FALSE )) ) {
 		read_destroy( read );
 		return( NULL );
 	}

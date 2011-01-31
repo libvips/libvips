@@ -755,7 +755,7 @@ im_vips2jpeg( IMAGE *in, const char *filename )
 
 	/* Make output.
 	 */
-        if( !(write->eman.fp = im__file_open_write( name )) ) {
+        if( !(write->eman.fp = im__file_open_write( name, FALSE )) ) {
 		write_destroy( write );
                 return( -1 );
         }

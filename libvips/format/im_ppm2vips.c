@@ -419,7 +419,7 @@ ppm2vips_header( const char *filename, IMAGE *out )
 	int ascii;
 	int msb_first;
 
-	if( !(fp = im__file_open_read( filename, NULL )) ) 
+	if( !(fp = im__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
 	if( read_header( fp, out, &bits, &ascii, &msb_first ) ) {
 		fclose( fp );
@@ -442,7 +442,7 @@ isppmmmap( const char *filename )
 	int ascii;
 	int msb_first;
 
-	if( !(fp = im__file_open_read( filename, NULL )) ) 
+	if( !(fp = im__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
 
 	if( !(im = im_open( "temp", "p" )) ) {
@@ -481,7 +481,10 @@ im_ppm2vips( const char *filename, IMAGE *out )
 {
         FILE *fp;
 
-	if( !(fp = im__file_open_read( filename, NULL )) ) 
+	/* Note that we open in binary mode. If this is a binary PPM, we need
+	 * to be able to mmap it.
+	 */
+	if( !(fp = im__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
 	if( parse_ppm( fp, filename, out ) ) {
 		fclose( fp );

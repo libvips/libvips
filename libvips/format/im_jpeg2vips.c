@@ -700,7 +700,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 
 	/* Make input.
 	 */
-        if( !(fp = im__file_open_read( filename, NULL )) ) 
+        if( !(fp = im__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
 	eman.fp = fp;
         jpeg_stdio_src( &cinfo, fp );
