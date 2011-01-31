@@ -9,6 +9,9 @@
  * 	- allow up to 10 dimensions as long as they are empty
  * 27/1/11
  * 	- lazy read
+ * 31/1/11
+ * 	- read in planes and combine with im_bandjoin()
+ * 	- read whole tiles with fits_read_subset() when we can
  */
 
 /*
@@ -38,9 +41,8 @@
  */
 
 /*
- */
-#define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -68,22 +70,12 @@
 
    	TODO
 
-	- test colour read with valgrind
-
 	- ask Doug for a test colour image
 
 		found WFPC2u5780205r_c0fx.fits on the fits samples page, 
-		though we don't read it correctly, argh
-
-		when we read a line of a tile out, y and z seem to be swapped
-
-	- read whole tiles, if the alignment is right
-
-		  actually, this is hard, we'd need to flip y somehow
+		but it's tiny
 
 	- test performance
-
-	- remove the old scanline reader?
 
  */
 
@@ -105,6 +97,11 @@ typedef struct {
 	long long int naxes[MAX_DIMENSIONS];
 
 	GMutex *lock;		/* Lock fits_*() calls with this */
+
+	/* Set this to -1 to read all bands, or a +ve int to read a specific
+	 * band.
+	 */
+	int band_select;	
 } Read;
 
 static void
@@ -136,7 +133,7 @@ read_destroy( Read *read )
 }
 
 static Read *
-read_new( const char *filename, IMAGE *out )
+read_new( const char *filename, IMAGE *out, int band_select )
 {
 	Read *read;
 	int status;
@@ -148,6 +145,7 @@ read_new( const char *filename, IMAGE *out )
 	read->out = out;
 	read->fptr = NULL;
 	read->lock = NULL;
+	read->band_select = band_select;
 
 	if( im_add_close_callback( out, 
 		(im_callback_fn) read_destroy, read, NULL ) ) {
@@ -197,11 +195,11 @@ fits2vips_get_header( Read *read, IMAGE *out )
 		return( -1 );
 	}
 
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "naxis = %d\n", read->naxis );
 	for( i = 0; i < read->naxis; i++ )
 		VIPS_DEBUG_MSG( "%d) %lld\n", i, read->naxes[i] );
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG*/
 
 	width = 1;
 	height = 1;
@@ -238,6 +236,11 @@ fits2vips_get_header( Read *read, IMAGE *out )
 		im_error( "fits", _( "bad number of axis %d" ), read->naxis );
 		return( -1 );
 	}
+
+	/* Are we in one-band mode?
+	 */
+	if( read->band_select != -1 )
+		bands = 1;
 
 	/* Get image format. We want the 'raw' format of the image, our caller
 	 * can convert using the meta info if they want.
@@ -315,100 +318,9 @@ fits2vips_header( const char *filename, IMAGE *out )
 
 	VIPS_DEBUG_MSG( "fits2vips_header: reading \"%s\"\n", filename );
 
-	if( !(read = read_new( filename, out )) || 
+	if( !(read = read_new( filename, out, -1 )) || 
 		fits2vips_get_header( read, out ) ) 
 		return( -1 );
-
-	return( 0 );
-}
-
-/* Read the whole image in scanlines.
-
-   	kept for reference ... this works for colour fits images
-
- */
-static int
-fits2vips_get_data_scanlinewise( Read *read )
-{
-	IMAGE *im = read->out;
-	const int es = IM_IMAGE_SIZEOF_ELEMENT( im );
-
-	PEL *line_buffer;
-	PEL *band_buffer;
-	PEL *p, *q;
-	int x, y, b, z;
-	int status;
-
-	long fpixel[MAX_DIMENSIONS];
-
-	status = 0;
-
-	if( !(line_buffer = IM_ARRAY( im, IM_IMAGE_SIZEOF_LINE( im ), PEL )) ||
-		!(band_buffer = IM_ARRAY( im, es * im->Xsize, PEL )) ||
-		im_outcheck( im ) ||
-		im_setupout( im ) )
-		return( -1 );
-
-	for( y = 0; y < im->Ysize; y++ ) {
-		/* Start of scanline. We have to read top-to-bottom.
-		 */
-		for( b = 0; b < MAX_DIMENSIONS; b++ )
-			fpixel[b] = 1;
-		fpixel[1] = im->Ysize - y;
-
-		for( b = 0; b < im->Bands; b++ ) {
-			fpixel[2] = b + 1;
-
-			/* Read one band of one scanline, then scatter-write
-			 * into the line buffer.
-			 */
-			if( fits_read_pix( read->fptr, 
-				read->datatype, fpixel, im->Xsize,
-				NULL, band_buffer, NULL, &status ) ) {
-				read_error( status );
-				return( -1 );
-			}
-
-			p = band_buffer;
-			q = line_buffer + b * es;
-			for( x = 0; x < im->Xsize; x++ ) {
-				for( z = 0; z < es; z++ )
-					q[z] = p[z];
-
-				p += es;
-				q += im->Bands * es;
-			}
-		}
-
-		if( im_writeline( y, im, line_buffer ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
-
-/* Allocate a line buffer. Have one of these for each thread so we can unpack
- * to vips in parallel.
- */
-static void *
-fits2vips_start( IMAGE *out, void *a, void *b )
-{
-	Read *read = (Read *) a;
-	IMAGE *out = read->out;
-	const int es = IM_IMAGE_SIZEOF_ELEMENT( out );
-
-	PEL *band_buffer;
-
-	if( !(band_buffer = IM_ARRAY( out, es * out->Xsize, PEL )) )
-		return( NULL );
-
-	return( (void *) band_buffer );
-}
-
-static int
-fits2vips_stop( void *seq, void *a, void *b )
-{
-	im_free( seq );
 
 	return( 0 );
 }
@@ -416,77 +328,110 @@ fits2vips_stop( void *seq, void *a, void *b )
 static int
 fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 {
-	PEL *band_buffer = (PEL *) seq;
 	Read *read = (Read *) a;
 	Rect *r = &out->valid;
 
-	IMAGE *im = read->out;
-
 	PEL *q;
-	int y, z;
+	int z;
 	int status;
-
-	status = 0;
 
 	long fpixel[MAX_DIMENSIONS];
 	long lpixel[MAX_DIMENSIONS];
 	long inc[MAX_DIMENSIONS];
 
+	status = 0;
+
 	VIPS_DEBUG_MSG( "fits2vips_generate: "
 		"generating left = %d, top = %d, width = %d, height = %d\n", 
 		r->left, r->top, r->width, r->height );
 
-	for( y = r->top; y < IM_RECT_BOTTOM( r ); y ++ ) {
+	/* Special case: the region we are writing to is exactly the width we
+	 * need, ie. we can read a rectangular area into it.
+	 */
+	if( IM_REGION_LSKIP( out ) == IM_REGION_SIZEOF_LINE( out ) ) {
+		VIPS_DEBUG_MSG( "fits2vips_generate: block read\n" );
+
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			fpixel[z] = 1;
 		fpixel[0] = r->left + 1;
-		fpixel[1] = im->Ysize - y;
+		fpixel[1] = r->top + 1;
+		fpixel[2] = read->band_select + 1;
 
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			lpixel[z] = 1;
 		lpixel[0] = IM_RECT_RIGHT( r );
-		lpixel[1] = im->Ysize - y;
+		lpixel[1] = IM_RECT_BOTTOM( r );
+		lpixel[2] = read->band_select + 1;
 
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			inc[z] = 1;
 
-		for( z = 0; z < im->Bands; z++ ) {
-			/* Read one band of one scanline, then scatter-write
-			 * into the line buffer.
-			 */
-			fpixel[2] = z + 1;
-			lpixel[2] = z + 1;
+		q = (PEL *) IM_REGION_ADDR( out, r->left, r->top );
+
+		/* Break on ffgsv() for this call.
+		 */
+		g_mutex_lock( read->lock );
+		if( fits_read_subset( read->fptr, read->datatype, 
+			fpixel, lpixel, inc, 
+			NULL, q, NULL, &status ) ) {
+			read_error( status );
+			g_mutex_unlock( read->lock );
+			return( -1 );
+		}
+		g_mutex_unlock( read->lock );
+	}
+	else {
+		int y;
+
+		for( y = r->top; y < IM_RECT_BOTTOM( r ); y ++ ) {
+			for( z = 0; z < MAX_DIMENSIONS; z++ )
+				fpixel[z] = 1;
+			fpixel[0] = r->left + 1;
+			fpixel[1] = y + 1;
+			fpixel[2] = read->band_select + 1;
+
+			for( z = 0; z < MAX_DIMENSIONS; z++ )
+				lpixel[z] = 1;
+			lpixel[0] = IM_RECT_RIGHT( r );
+			lpixel[1] = y + 1;
+			lpixel[2] = read->band_select + 1;
+
+			for( z = 0; z < MAX_DIMENSIONS; z++ )
+				inc[z] = 1;
+
+			q = (PEL *) IM_REGION_ADDR( out, r->left, y );
 
 			/* Break on ffgsv() for this call.
 			 */
 			g_mutex_lock( read->lock );
 			if( fits_read_subset( read->fptr, read->datatype, 
 				fpixel, lpixel, inc, 
-				NULL, band_buffer, NULL, &status ) ) {
+				NULL, q, NULL, &status ) ) {
 				read_error( status );
 				g_mutex_unlock( read->lock );
 				return( -1 );
 			}
 			g_mutex_unlock( read->lock );
-
-
-			p = band_buffer;
-			q = line_buffer + b * es;
-			for( x = 0; x < im->Xsize; x++ ) {
-				for( z = 0; z < es; z++ )
-					q[z] = p[z];
-
-				p += es;
-				q += im->Bands * es;
-			}
 		}
-
-		q = (PEL *) IM_REGION_ADDR( out, r->left, y );
-
-		for( z = 0; z < im->Bands; z++ ) {
-
-
 	}
+
+	return( 0 );
+}
+
+static int
+fits2vips( const char *filename, IMAGE *out, int band_select )
+{
+	Read *read;
+
+	/* The -1 mode is just for reading the header.
+	 */
+	g_assert( band_select >= 0 );
+
+	if( !(read = read_new( filename, out, band_select )) ||
+		fits2vips_get_header( read, out ) ||
+		im_demand_hint( out, IM_SMALLTILE, NULL ) ||
+		im_generate( out, NULL, fits2vips_generate, NULL, read, NULL ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -505,23 +450,54 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 int
 im_fits2vips( const char *filename, IMAGE *out )
 {
-	const int tile_size = 128;
-
-	Read *read;
-	IMAGE *cache;
+	IMAGE *t;
+	int n_bands;
 
 	VIPS_DEBUG_MSG( "im_fits2vips: reading \"%s\"\n", filename );
 
-	if( !(cache = im_open_local( out, "cache", "p" )) ||
-		!(read = read_new( filename, out )) || 
-		fits2vips_get_header( read, cache ) ||
-		im_demand_hint( cache, IM_SMALLTILE, NULL ) ||
-		im_generate( cache, 
-			fits2vips_start, fits2vips_generate, fits2vips_stop, 
-			read, NULL ) ||
-		im_tile_cache( cache, out, 
-			tile_size, tile_size, 
-			2 * (1 + cache->Xsize / tile_size) ) ) 
+	/* fits is naturally a band-separated format. For single-band images,
+	 * we can just read out. For many bands, we read each band out
+	 * separately then join them.
+	 */
+
+	if( !(t = im_open_local( out, "im_fits2vips", "p" )) ||
+		fits2vips_header( filename, t ) )
+		return( -1 );
+	n_bands = t->Bands;
+
+	if( n_bands == 1 ) {
+		if( !(t = im_open_local( out, "im_fits2vips", "p" )) ||
+			fits2vips( filename, t, 0 ) )
+			return( -1 );
+	}
+	else {
+		IMAGE *acc;
+		int i;
+
+		acc = NULL;
+		for( i = 0; i < n_bands; i++ ) {
+			if( !(t = im_open_local( out, "im_fits2vips", "p" )) ||
+				fits2vips( filename, t, i ) )
+				return( -1 );
+
+			if( !acc )
+				acc = t;
+			else {
+				IMAGE *t2;
+
+				if( !(t2 = im_open_local( out, "x", "p" )) ||
+					im_bandjoin( acc, t, t2 ) )
+					return( -1 );
+				acc = t2;
+			}
+		}
+
+		t = acc;
+	}
+
+	/* fits has inverted y.
+	 */
+	if( im_flipver( t, out ) )
 		return( -1 );
 
 	return( 0 );
@@ -539,9 +515,9 @@ isfits( const char *filename )
 
 	if( fits_open_image( &fptr, filename, READONLY, &status ) ) {
 		VIPS_DEBUG_MSG( "isfits: error reading \"%s\"\n", filename );
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 		read_error( status );
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG*/
 
 		return( 0 );
 	}

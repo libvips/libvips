@@ -1130,8 +1130,8 @@ tiff_fill_region( REGION *out, void *seq, void *a, void *b )
 	/* Sizeof a pel in the TIFF file. This won't work for formats which
 	 * are <1 byte per pel, like onebit :-( Fortunately, it's only used
 	 * to calculate addresses within a tile, and because we are wrapped in
-	 * im_tile_cache(), we will never have to calculate positions within a
-	 * tile.
+	 * im_tile_cache(), we will never have to calculate positions not 
+	 * within a tile.
 	 */
 	int tps = tls / rtiff->twidth;
 
