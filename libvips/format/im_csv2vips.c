@@ -358,12 +358,8 @@ im_csv2vips( const char *filename, IMAGE *out )
 			lines = atoi( r );
 	}
 
-	if( !(fp = fopen( name, "r" )) ) {
-		im_error( "im_csv2vips", 
-			_( "unable to open \"%s\"" ), name );
+	if( !(fp = im__file_open_read( name, NULL, TRUE )) ) 
 		return( -1 );
-	}
-
 	if( read_csv( fp, out, start_skip, whitespace, separator, lines ) ) {
 		fclose( fp );
 		return( -1 );

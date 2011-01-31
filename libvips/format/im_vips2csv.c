@@ -162,12 +162,8 @@ im_vips2csv( IMAGE *in, const char *filename )
 		im_check_uncoded( "im_vips2csv", in ) )
 		return( -1 );
 
-	if( !(fp = fopen( name, "w" )) ) {
-		im_error( "im_cvips2csv", _( "unable to open \"%s\"" ), 
-			name );
+	if( !(fp = im__file_open_write( name, TRUE )) ) 
 		return( -1 );
-	}
-
 	if( vips2csv( in, fp, separator ) ) {
 		fclose( fp );
 		return( -1 );

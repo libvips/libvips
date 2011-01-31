@@ -403,8 +403,8 @@ vips_thread_save_time_buffers( VipsThread *thr )
 	im_snprintf( name, 256, "time%d", rn++ );
 	printf( "vips_thread_save_time_buffers: "
 		"saving buffer to \"%s\"\n", name );
-	if( !(fp = fopen( name, "w" )) )
-		error_exit( "unable to write to \"%s\"", name );
+	if( !(fp = im__file_open_write( name, TRUE )) ) 
+		return( -1 );
 	for( i = 0; i < thr->tpos; i++ )
 		fprintf( fp, "%g, %g\n", thr->btime[i], thr->etime[i] );
 	fclose( fp );

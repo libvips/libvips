@@ -910,27 +910,29 @@ filename_hasdir( const char *filename )
  * directory separator, we try looking in the fallback dir.
  */
 FILE *
-im__file_open_read( const char *filename, const char *fallback_dir )
+im__file_open_read( const char *filename, const char *fallback_dir, 
+	gboolean text_mode )
 {
+	char *mode;
 	FILE *fp;
 
 #ifdef BINARY_OPEN
-        fp = fopen( filename, "rb" );
-#else /*!BINARY_OPEN*/
-        fp = fopen( filename, "r" );
+	if( text_mode )
+		mode = "r";
+	else
+		mode = "rb";
+#else /*BINARY_OPEN*/
+	mode = "r";
 #endif /*BINARY_OPEN*/
-	if( fp )
+
+	if( (fp = fopen( filename, mode )) )
 		return( fp );
 
 	if( fallback_dir && !filename_hasdir( filename ) ) {
 		char *path;
 
 		path = g_build_filename( fallback_dir, filename, NULL );
-#ifdef BINARY_OPEN
-	        fp = fopen( path, "rb" );
-#else /*!BINARY_OPEN*/
-        	fp = fopen( path, "r" );
-#endif /*BINARY_OPEN*/
+	        fp = fopen( path, mode );
 		g_free( path );
 
 		if( fp )
@@ -944,15 +946,21 @@ im__file_open_read( const char *filename, const char *fallback_dir )
 }
 
 FILE *
-im__file_open_write( const char *filename )
+im__file_open_write( const char *filename, gboolean text_mode )
 {
+	char *mode;
 	FILE *fp;
 
 #ifdef BINARY_OPEN
-        if( !(fp = fopen( filename, "wb" )) ) {
+	if( text_mode )
+		mode = "w";
+	else
+		mode = "wb";
 #else /*BINARY_OPEN*/
-        if( !(fp = fopen( filename, "w" )) ) {
+	mode = "w";
 #endif /*BINARY_OPEN*/
+
+        if( !(fp = fopen( filename, mode )) ) {
 		im_error( "im__file_open_write", 
 			_( "unable to open file \"%s\" for writing" ), 
 			filename );
@@ -963,7 +971,7 @@ im__file_open_write( const char *filename )
 }
 
 /* Load from a filename as a string. Used for things like reading in ICC
- * profiles.
+ * profiles, ie. binary objects.
  */
 char *
 im__file_read_name( const char *filename, const char *fallback_dir, 
@@ -972,7 +980,7 @@ im__file_read_name( const char *filename, const char *fallback_dir,
 	FILE *fp;
 	char *buffer;
 
-        if( !(fp = im__file_open_read( filename, fallback_dir )) ) 
+        if( !(fp = im__file_open_read( filename, fallback_dir, FALSE )) ) 
 		return( NULL );
 	if( !(buffer = im__file_read( fp, filename, length_out )) ) {
 		fclose( fp );

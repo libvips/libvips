@@ -784,22 +784,6 @@ im_dup_dmask( DOUBLEMASK *in, const char *filename )
         return( out );
 }
 
-/* Open for write. We can't use im__open_write(), we don't want binary mode.
- */
-static FILE *
-open_write( const char *name )
-{
-	FILE *fp;
-
-	if( !(fp = fopen( name, "w" )) ) {
-		im_error( "write_mask", _( "unable to open \"%s\" for output" ),
-			name );
-		return( NULL );
-	}
-
-	return( fp );
-}
-
 /* Write to file.
  */
 static int 
@@ -846,7 +830,7 @@ im_write_imask_name( INTMASK *in, const char *filename )
 	int x, y, i;
 
 	if( im_check_imask( "im_write_imask_name", in ) ||
-		!(fp = open_write( filename )) )
+		!(fp = im__file_open_write( filename, TRUE )) )
 		return( -1 );
 
 	if( write_line( fp, "%d %d", in->xsize, in->ysize ) ) {
@@ -911,7 +895,7 @@ im_write_dmask_name( DOUBLEMASK *in, const char *filename )
 	int x, y, i;
 
 	if( im_check_dmask( "im_write_dmask_name", in ) ||
-		!(fp = open_write( filename )) )
+		!(fp = im__file_open_write( filename, TRUE )) )
 		return( -1 );
 
 	if( write_line( fp, "%d %d", in->xsize, in->ysize ) ) {

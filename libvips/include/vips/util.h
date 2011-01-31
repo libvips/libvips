@@ -240,8 +240,10 @@ char *im_getsuboption( const char *buf );
 gint64 im_file_length( int fd );
 int im__write( int fd, const void *buf, size_t count );
 
-FILE *im__file_open_read( const char *filename, const char *fallback_dir );
-FILE *im__file_open_write( const char *filename );
+FILE *im__file_open_read( const char *filename, 
+	const char *fallback_dir, gboolean text_mode );
+FILE *im__file_open_write( const char *filename, 
+	gboolean text_mode );
 char *im__file_read( FILE *fp, const char *name, unsigned int *length_out );
 char *im__file_read_name( const char *name, const char *fallback_dir, 
 	unsigned int *length_out );
