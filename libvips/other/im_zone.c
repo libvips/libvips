@@ -1,18 +1,5 @@
-/* @(#) square zone plate of size
- * @(#)   The center of the zone plate is at (xpos/2, ypos/2)
- * @(#) 
- * @(#) Usage:
- * @(#) 
- * @(#) int im_zone( image, size )
- * @(#) IMAGE *image;
- * @(#) int size;
- * @(#) 
- * @(#) int im_fzone( image, size )
- * @(#) IMAGE *image;
- * @(#) int size;
- * @(#) 
- * @(#) Returns 0 on sucess and -1 on error
- * @(#) 
+/* square zone plate of size
+ *
  * N. Dessipris 01/02/1991
  *
  * 22/7/93 JC
@@ -22,6 +9,8 @@
  *	- modernized
  *	- memory leaks fixed
  *	- split into im_zone() and im_fzone()
+ * 1/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -65,8 +54,20 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_fzone:
+ * @out: output image
+ * @size: image size
+ *
+ * Create a one-band float image of size @size by @size pixels of a zone
+ * plate. Pixels are in [-1, +1].
+ *
+ * See also: im_grey(), im_make_xy(), im_identity().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
-im_fzone( IMAGE *image, int size )
+im_fzone( IMAGE *out, int size )
 {
 	int x, y;
 	int i, j;
@@ -76,7 +77,7 @@ im_fzone( IMAGE *image, int size )
 
 	/* Check args.
 	 */
-	if( im_outcheck( image ) )
+	if( im_outcheck( out ) )
 		return( -1 );
 	if( size <= 0 || (size % 2) != 0 ) {
 		im_error( "im_zone", "%s", 
@@ -84,16 +85,16 @@ im_fzone( IMAGE *image, int size )
 		return( -1 );
 	}
 
-	/* Set up output image.
+	/* Set up output out.
 	 */
-        im_initdesc( image, size, size, 1, IM_BBITS_FLOAT, IM_BANDFMT_FLOAT,
+        im_initdesc( out, size, size, 1, IM_BBITS_FLOAT, IM_BANDFMT_FLOAT,
 		IM_CODING_NONE, IM_TYPE_B_W, 1.0, 1.0, 0, 0 );
-        if( im_setupout( image ) )
+        if( im_setupout( out ) )
                 return( -1 );
 
 	/* Create output buffer.
 	 */
-        if( !(buf = IM_ARRAY( image, size, float )) )
+        if( !(buf = IM_ARRAY( out, size, float )) )
                 return( -1 );
 
 	/* Make zone plate.
@@ -101,27 +102,36 @@ im_fzone( IMAGE *image, int size )
 	for( y = 0, j = -size2; j < size2; j++, y++ ) {
 		for( x = 0, i = -size2; i < size2; i++, x++ )
 			buf[x] = cos( (IM_PI / size) * (i * i + j * j) );
-		if( im_writeline( y, image, (PEL *) buf ) )
+		if( im_writeline( y, out, (PEL *) buf ) )
 			return( -1 );
 	}
 
 	return( 0 );
 }
 
-/* As above, but make a IM_BANDFMT_UCHAR image.
+/**
+ * im_zone:
+ * @out: output image
+ * @size: image size
+ *
+ * Create a one-band uchar image of size @size by @size pixels of a zone
+ * plate. Pixels are in [0, 255].
+ *
+ * See also: im_grey(), im_make_xy(), im_identity().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_zone( IMAGE *im, int size )
 {
-	IMAGE *t1 = im_open_local( im, "im_zone:1", "p" );
-	IMAGE *t2 = im_open_local( im, "im_zone:2", "p" );
+	IMAGE *t[2];
 
-	if( !t1 || !t2 )
-		return( -1 );
-	
-	if( im_fzone( t1, size ) || 
-		im_lintra( 127.5, t1, 127.5, t2 ) ||
-		im_clip2fmt( t2, im, IM_BANDFMT_UCHAR ) )
+	/* Change range to [0,255].
+	 */
+	if( im_open_local_array( out, t, 2, "im_grey", "p" ) ||
+		im_fzone( t[0], size ) || 
+		im_lintra( 127.5, t[0], 127.5, t[1] ) ||
+		im_clip2fmt( t[1], im, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );

@@ -22,6 +22,7 @@
 - move im_simcontr() to almostdeprecated
 - add im_sines() to operation db
 - move im_spatres() to almostdeprecated
+- done gtk-doc for other
 
 30/11/10 started 7.24.0
 - bump for new stable
