@@ -1,18 +1,11 @@
-/* @(#) Do a complicated compound operation for benchmarking the threading 
- * @(#) system. Input should be a large LABQ image, output is a large sRGB
- * @(#) image.
- * @(#) 
- * @(#) Usage:
- * @(#) 
- * @(#) int im_benchmark( IMAGE *in, IMAGE *out )
- * @(#) 
- * @(#) Returns 0 on sucess and -1 on error.
- * @(#) 
+/* a complicated operation for testing
  *
  * 6/10/06
  *	- hacked in
  * 27/11/06
  *	- added im_benchmarkn()
+ * 1/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -244,7 +237,23 @@ benchmark( IMAGE *in, IMAGE *out )
 	);
 }
 
-/* Chain n benchmarks together to get a CPU-bound operation.
+/**
+ * im_benchmarkn:
+ * @in: input image
+ * @out: output image
+ * @n: iterations
+ *
+ * This operation runs a complicated set of other operations on image @in,
+ * producing image @out. Use @n to set the number of iterations to run: a
+ * larger number will make the operation more CPU-bound, a smaller number will
+ * make the operation more IO-bound.
+ *
+ * See http://www.vips.ecs.soton.ac.uk/index.php?title=Benchmarks for a
+ * detailed discussion of the benchmark and some sample results.
+ *
+ * See also: im_benchmark2().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_benchmarkn( IMAGE *in, IMAGE *out, int n )
@@ -274,6 +283,18 @@ im_benchmarkn( IMAGE *in, IMAGE *out, int n )
 			im_benchmarkn( t[1], out, n - 1 ) );
 }
 
+/**
+ * im_benchmark2:
+ * @in: input image
+ * @out: average image value
+ *
+ * This operation runs a single im_benchmarkn() and calculates the average
+ * pixel value. It's useful if you just want to test image input.
+ *
+ * See also: im_benchmarkn().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_benchmark2( IMAGE *in, double *out )
 {

@@ -50,6 +50,43 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+static int 
+im__mean_std_int_buffer( int *buffer, int size, 
+	double *pmean, double *pstd )
+{
+	double mean, std;
+	register int i;
+	int sumf;	
+	int temp;
+	int *pbuffer;
+	int sumf2;
+	double correction; /* calulates the correction term for the variance */
+	double variance;	/* = (sumf2 - correction)/n */
+	
+	if (size <= 0) {
+		im_error( "im_mean_std_int_buffer", "%s", _( "wrong args") );
+		return(-1);
+	}
+
+	mean = 0.0; std = 0.0;
+	sumf = 0; sumf2 = 0;
+	pbuffer = buffer;
+	for (i=0; i<size; i++) {
+		temp = *pbuffer++;
+		sumf += temp;
+		sumf2 += (temp*temp);
+	}
+
+	correction = ((double)(sumf * sumf))/((double)size);
+	mean = ((double)sumf)/((double)size);
+	variance = ( sumf2 - correction)/((double)size);
+	std = sqrt(variance);
+	*pmean = mean;
+	*pstd = std;
+
+	return(0);
+}
+
 int im_dif_std(im, xpos, ypos, xsize, ysize, dx, dy, pmean, pstd)
 IMAGE *im;
 int xpos, ypos, xsize, ysize; /* location of the box within im */

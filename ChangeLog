@@ -17,6 +17,8 @@
 - im_fits2vips() is lazy and much faster
 - im__file_open_write() / _read() has a flag for text_mode, get rid of all the 
   remaining fopen()s
+- move cooc_* and glds_* to deprecated
+- move im_dif_std() to almostdeprecated
 
 30/11/10 started 7.24.0
 - bump for new stable

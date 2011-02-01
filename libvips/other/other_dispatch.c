@@ -48,8 +48,10 @@
  * @stability: Stable
  * @include: vips/vips.h
  *
- * Various small things.
+ * These functions generate various test images. You can combine them with
+ * the arithmetic and rotate functions to build more complicated images.
  *
+ * The im_benchmark() operations are for testing the VIPS SMP system.
  */
 
 /* Args for im_eye.

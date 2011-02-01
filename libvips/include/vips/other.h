@@ -49,20 +49,6 @@ int im_make_xy( IMAGE *out, const int xsize, const int ysize );
 int im_benchmarkn( IMAGE *in, IMAGE *out, int n );
 int im_benchmark2( IMAGE *in, double *out );
 
-int im_cooc_matrix( IMAGE *im, IMAGE *m,
-	int xp, int yp, int xs, int ys, int dx, int dy, int flag );
-int im_cooc_asm( IMAGE *m, double *asmoment );
-int im_cooc_contrast( IMAGE *m, double *contrast );
-int im_cooc_correlation( IMAGE *m, double *correlation );
-int im_cooc_entropy( IMAGE *m, double *entropy );
-
-int im_glds_matrix( IMAGE *im, IMAGE *m,
-	int xpos, int ypos, int xsize, int ysize, int dx, int dy );
-int im_glds_asm( IMAGE *m, double *asmoment );
-int im_glds_contrast( IMAGE *m, double *contrast );
-int im_glds_entropy( IMAGE *m, double *entropy );
-int im_glds_mean( IMAGE *m, double *mean );
-
 int im_simcontr( IMAGE *image, int xs, int ys );
 int im_sines( IMAGE *image,
 	int xsize, int ysize, double horfreq, double verfreq );

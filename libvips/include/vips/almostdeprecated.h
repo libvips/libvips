@@ -151,6 +151,22 @@ int im_render( IMAGE *in, IMAGE *out, IMAGE *mask,
 	int width, int height, int max,
 	void (*notify)( IMAGE *, Rect *, void * ), void *client );
 
+int im_cooc_matrix( IMAGE *im, IMAGE *m,
+	int xp, int yp, int xs, int ys, int dx, int dy, int flag );
+int im_cooc_asm( IMAGE *m, double *asmoment );
+int im_cooc_contrast( IMAGE *m, double *contrast );
+int im_cooc_correlation( IMAGE *m, double *correlation );
+int im_cooc_entropy( IMAGE *m, double *entropy );
+
+int im_glds_matrix( IMAGE *im, IMAGE *m,
+	int xpos, int ypos, int xsize, int ysize, int dx, int dy );
+int im_glds_asm( IMAGE *m, double *asmoment );
+int im_glds_contrast( IMAGE *m, double *contrast );
+int im_glds_entropy( IMAGE *m, double *entropy );
+int im_glds_mean( IMAGE *m, double *mean );
+
+int im_dif_std();
+
 /* Renamed operations.
  */
 
