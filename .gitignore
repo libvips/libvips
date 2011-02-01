@@ -1,6 +1,7 @@
 Makefile.in
 TAGS
 *.o
+.*.swp
 *.lo
 *.la
 *.pc
