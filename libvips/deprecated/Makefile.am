@@ -2,6 +2,8 @@ noinst_LTLIBRARIES = libdeprecated.la
 
 libdeprecated_la_SOURCES = \
 	deprecated_dispatch.c \
+	cooc_funcs.c \
+	glds_funcs.c \
 	im_fav4.c \
 	im_gadd.c \
 	im_gaddim.c \
