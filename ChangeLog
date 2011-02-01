@@ -19,6 +19,9 @@
   remaining fopen()s
 - move cooc_* and glds_* to deprecated
 - move im_dif_std() to almostdeprecated
+- move im_simcontr() to almostdeprecated
+- add im_sines() to operation db
+- move im_spatres() to almostdeprecated
 
 30/11/10 started 7.24.0
 - bump for new stable

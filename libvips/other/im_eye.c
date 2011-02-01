@@ -1,14 +1,4 @@
-/* @(#) test pattern with increasing spatial frequence in X and amplitude in Y
- * @(#) factor should be between 0 and 1 and determines the spatial frequencies
- * @(#)  Creates an one band float image 
- * @(#)  Image has values between +ysize*ysize and -ysize*ysize
- * @(#)
- * @(#) int im_eye(image, xsize, ysize, factor)
- * @(#) IMAGE *image;
- * @(#) int xsize, ysize;
- * @(#) double factor;
- * @(#)
- * @(#) Returns -1 on error and 0 on success
+/* make a test pattern to show the eye's frequency response
  *
  * Copyright: 1990, 1991, N.Dessipris.
  *
@@ -19,6 +9,8 @@
  *	- im_outcheck() added
  * 30/8/95 JC
  *	- modernized
+ * 1/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -62,8 +54,25 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_feye:
+ * @out: output image
+ * @xsize: image size
+ * @ysize: image size
+ * @factor: image size
+ *
+ * Create a test pattern with increasing spatial frequence in X and 
+ * amplitude in Y. @factor should be between 0 and 1 and determines the 
+ * maximum spatial frequency.
+ *
+ * Creates an one band float image with values in +1 to -1.
+ *
+ * See also: im_eye().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
-im_feye( IMAGE *image, const int xsize, const int ysize, const double factor )
+im_feye( IMAGE *out, const int xsize, const int ysize, const double factor )
 {
 	int x, y;
 	double constant;
@@ -72,7 +81,7 @@ im_feye( IMAGE *image, const int xsize, const int ysize, const double factor )
 
 	/* Check input args 
 	 */
-	if( im_outcheck( image ) )
+	if( im_outcheck( out ) )
 		return( -1 );
 	if( factor > 1.0 || factor <= 0.0 ) { 
 		im_error( "im_feye", "%s", _( "factor should be in [1,0)" ) );
@@ -81,52 +90,61 @@ im_feye( IMAGE *image, const int xsize, const int ysize, const double factor )
 
 	/* Set image descriptor 
 	 */
-        im_initdesc( image, xsize, ysize, 1, IM_BBITS_FLOAT, IM_BANDFMT_FLOAT,
+        im_initdesc( out, xsize, ysize, 1, IM_BBITS_FLOAT, IM_BANDFMT_FLOAT,
 		IM_CODING_NONE, IM_TYPE_B_W, 1.0, 1.0, 0, 0 );
-        if( im_setupout( image ) )
+        if( im_setupout( out ) )
                 return( -1 );
 
 	/* Allocate space for line buffer.
 	 */
-        if( !(line = IM_ARRAY( image, xsize, float )) )
+        if( !(line = IM_ARRAY( out, xsize, float )) )
                 return( -1 );
 
 	/* Make a lut for easy calculations.
 	 */
-	if( !(lut = IM_ARRAY( image, image->Xsize, double )) )
+	if( !(lut = IM_ARRAY( out, xsize, double )) )
 		return( -1 );
-	constant = factor * IM_PI/(2*(xsize - 1));
-	for( x = 0; x < image->Xsize; x++ )
-		lut[x] = cos( constant*x*x ) / ((ysize - 1)*(ysize - 1));
+	constant = factor * IM_PI / (2 * (xsize - 1));
+	for( x = 0; x < xsize; x++ )
+		lut[x] = cos( constant * x * x ) / ((ysize - 1) * (ysize - 1));
 
 	/* Make image.
 	 */
-	for( y = 0; y < image->Ysize; y++ ) {
-		for( x = 0; x < image->Xsize; x++ )
-			line[x] = y*y*lut[x];
-		if( im_writeline( y, image, (PEL *) line ) )
+	for( y = 0; y < ysize; y++ ) {
+		for( x = 0; x < xsize; x++ )
+			line[x] = y * y * lut[x];
+		if( im_writeline( y, out, (PEL *) line ) )
 			return( -1 ); 
 	}
 
 	return( 0 );
 }
 
-/* As above, but make a IM_BANDFMT_UCHAR image.
+/**
+ * im_eye:
+ * @out: output image
+ * @xsize: image size
+ * @ysize: image size
+ * @factor: image size
+ *
+ * Exactly as im_feye(), but make a UCHAR image with pixels in the range [0,
+ * 255].
+ *
+ * See also: im_feye().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
-im_eye( IMAGE *image, const int xsize, const int ysize, const double factor )
+im_eye( IMAGE *out, const int xsize, const int ysize, const double factor )
 {
-	IMAGE *t1 = im_open_local( image, "im_eye:1", "p" );
-	IMAGE *t2 = im_open_local( image, "im_eye:2", "p" );
-
-	if( !t1 )
-		return( -1 );
+	IMAGE *t[2];
 
 	/* Change range to [0,255].
 	 */
-	if( im_feye( t1, xsize, ysize, factor ) || 
-		im_lintra( 127.5, t1, 127.5, t2 ) ||
-		im_clip2fmt( t2, image, IM_BANDFMT_UCHAR ) )
+	if( im_open_local_array( out, t, 2, "im_grey", "p" ) ||
+		im_feye( t[0], xsize, ysize, factor ) || 
+		im_lintra( 127.5, t[0], 127.5, t[1] ) ||
+		im_clip2fmt( t[1], out, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );

@@ -1,16 +1,4 @@
-/* @(#) creates a sinewave with horfreq cycles per horizontal direction and
- * @(#) verfreq cycles per vertical direction
- * @(#)  If horfreq and verfreq are integers the resultant image is periodical
- * @(#) and therfore the Fourier transform doesnot present spikes
- * @(#)  Image should have been set by a call to im_setbuf() or im_openout()
- * @(#)
- * @(#) Usage: int im_sines(image, xsize, ysize, horfreq, verfreq)
- * @(#) IMAGE *image;
- * @(#) int xsize, ysize;
- * @(#) double horfreq, verfreq;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* creates a 2d sinewave 
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -20,6 +8,8 @@
  * 22/7/93 JC
  *	- externs removed
  *	- im_outcheck() added
+ * 1/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -62,9 +52,32 @@
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
-
+ 
+/**
+ * im_sines:
+ * @out: output image
+ * @xsize: image size
+ * @ysize: image size
+ * @horfreq: horizontal frequency
+ * @verfreq: vertical frequency
+ *
+ * im_sines() creates a float one band image of the a sine waveform in two
+ * dimensions.  
+ *
+ * The number of horizontal and vertical spatial frequencies are
+ * determined by the variables @horfreq and @verfreq respectively.  The
+ * function is useful for creating displayable sine waves and
+ * square waves in two dimensions.
+ *
+ * If horfreq and verfreq are integers the resultant image is periodical
+ * and therfore the Fourier transform doesnot present spikes
+ * 
+ * See also: im_grey(), im_make_xy(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
-im_sines( IMAGE *image, int xsize, int ysize, double horfreq, double verfreq )
+im_sines( IMAGE *out, int xsize, int ysize, double horfreq, double verfreq )
 {
 	int x, y;
 	float *line, *cpline;
@@ -73,21 +86,21 @@ im_sines( IMAGE *image, int xsize, int ysize, double horfreq, double verfreq )
 	double theta_rad, costheta, sintheta, ysintheta;
 
 /* Check input args */
-	if( im_outcheck( image ) )
+	if( im_outcheck( out ) )
 		return( -1 );
         if ( xsize <= 0 || ysize <= 0 ) { 
 		im_error( "im_sines", "%s", _( "wrong sizes") ); 
 		return(-1); }
 
-/* Set now image properly */
-        im_initdesc(image, xsize, ysize, 1, IM_BBITS_FLOAT, IM_BANDFMT_FLOAT,
+/* Set now out properly */
+        im_initdesc(out, xsize, ysize, 1, IM_BBITS_FLOAT, IM_BANDFMT_FLOAT,
 		IM_CODING_NONE, IM_TYPE_B_W, 1.0, 1.0, 0, 0);
 
-/* Set up image checking whether the output is a buffer or a file */
-        if (im_setupout( image ) == -1 )
+/* Set up out checking whether the output is a buffer or a file */
+        if (im_setupout( out ) == -1 )
                 return( -1 );
 /* Create data */
-	size = image->Xsize;
+	size = out->Xsize;
         if ( (line=(float *)calloc((unsigned)size, sizeof(float))) == NULL ) { 
 		im_error( "im_sines", "%s", _( "calloc failed") ); 
 		return(-1); }
@@ -99,19 +112,19 @@ im_sines( IMAGE *image, int xsize, int ysize, double horfreq, double verfreq )
 		theta_rad = atan(verfreq/horfreq);
 	costheta = cos(theta_rad); sintheta = sin(theta_rad);
 	factor = sqrt ((double)(horfreq*horfreq + verfreq*verfreq));
-	cons =  factor * IM_PI * 2.0/(double)image->Xsize;
+	cons =  factor * IM_PI * 2.0/(double)out->Xsize;
 /* There is a bug (rounding error ?) for horfreq=0,
  *so do this calculation independantly */
 	if ( horfreq != 0 )
 		{
-		for (y=0; y<image->Ysize; y++)
+		for (y=0; y<out->Ysize; y++)
 			{
 			ysintheta = y * sintheta;
 			cpline = line;
-			for (x=0; x<image->Xsize; x++)
+			for (x=0; x<out->Xsize; x++)
 				*cpline++ =
 				(float)(cos(cons*(x*costheta-ysintheta)));
-			if ( im_writeline( y, image, (PEL *)line ) == -1 )
+			if ( im_writeline( y, out, (PEL *)line ) == -1 )
 				{
 				free ( (char *)line );
 				return( -1 );
@@ -120,13 +133,13 @@ im_sines( IMAGE *image, int xsize, int ysize, double horfreq, double verfreq )
 		}
 	else
 		{
-		for (y=0; y<image->Ysize; y++)
+		for (y=0; y<out->Ysize; y++)
 			{
 			cpline = line;
 			ysintheta = cos (- cons * y * sintheta);
-			for (x=0; x<image->Xsize; x++)
+			for (x=0; x<out->Xsize; x++)
 				*cpline++ = (float)ysintheta;
-			if ( im_writeline( y, image, (PEL *)line ) == -1 )
+			if ( im_writeline( y, out, (PEL *)line ) == -1 )
 				{
 				free ( (char *)line );
 				return( -1 );

@@ -37,22 +37,21 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_feye( IMAGE *image,
-	const int xsize, const int ysize, const double factor );
-int im_eye( IMAGE *image,
-	const int xsize, const int ysize, const double factor );
-int im_zone( IMAGE *im, int size );
-int im_fzone( IMAGE *im, int size );
-int im_grey( IMAGE *im, const int xsize, const int ysize );
-int im_fgrey( IMAGE *im, const int xsize, const int ysize );
+int im_grey( IMAGE *out, const int xsize, const int ysize );
+int im_fgrey( IMAGE *out, const int xsize, const int ysize );
 int im_make_xy( IMAGE *out, const int xsize, const int ysize );
+
+int im_feye( IMAGE *out,
+	const int xsize, const int ysize, const double factor );
+int im_eye( IMAGE *out,
+	const int xsize, const int ysize, const double factor );
+int im_zone( IMAGE *out, int size );
+int im_fzone( IMAGE *out, int size );
+int im_sines( IMAGE *out,
+	int xsize, int ysize, double horfreq, double verfreq );
+
 int im_benchmarkn( IMAGE *in, IMAGE *out, int n );
 int im_benchmark2( IMAGE *in, double *out );
-
-int im_simcontr( IMAGE *image, int xs, int ys );
-int im_sines( IMAGE *image,
-	int xsize, int ysize, double horfreq, double verfreq );
-int im_spatres( IMAGE *in,  IMAGE *out, int step );
 
 #ifdef __cplusplus
 }

@@ -166,6 +166,8 @@ int im_glds_entropy( IMAGE *m, double *entropy );
 int im_glds_mean( IMAGE *m, double *mean );
 
 int im_dif_std();
+int im_simcontr( IMAGE *out, int xsize, int ysize );
+int im_spatres( IMAGE *in,  IMAGE *out, int step );
 
 /* Renamed operations.
  */

@@ -1,18 +1,9 @@
-/* @(#) Creates a 2 band IM_BANDFMT_UINT image of a specified size. Each pixel
- * @(#) has band 0 == x coordinate, band 1 == y coordinate.
- * @(#)
- * @(#) Usage: 
- * @(#) 
- * @(#) int 
- * @(#) im_make_xy( image, xsize, ysize )
- * @(#) IMAGE *image;
- * @(#) int xsize, ysize;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* make an xy index image 
  *
  * 21/4/04
  *	- from im_grey
+ * 1/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -82,8 +73,22 @@ make_xy_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Make a two band image ... band 0 is x coordinates, band 1 is y
- * coordinates.
+/**
+ * im_make_xy:
+ * @out: output image
+ * @xsize: image size
+ * @ysize: image size
+ *
+ * Create a two-band uint32 image where the elements in the first band have the
+ * value of their x coordinate and elements in the second band have their y
+ * coordinate. 
+ *
+ * You can make any image where the value of a pixel is a function of its (x,
+ * y) coordinate by combining this operator with the arithmetic operators. 
+ *
+ * See also: im_grey(), im_identity().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_make_xy( IMAGE *out, const int xsize, const int ysize )

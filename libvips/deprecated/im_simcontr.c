@@ -1,11 +1,4 @@
-/* @(#) creates a pattern showing the similtaneous constrast effect
- * @(#)
- * @(#) Usage: int im_simcontr(image, xs, ys)
- * @(#) IMAGE *image;
- * @(#) int xs, ys;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* creates a pattern showing the similtaneous constrast effect
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -15,6 +8,8 @@
  * 22/7/93 JC
  *	- externs removed
  *	- im_outcheck() added
+ * 1/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -58,72 +53,84 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_simcontr:
+ * @out: output image
+ * @xsize: image size
+ * @ysize: image size
+ *
+ * Creates a pattern showing the similtaneous constrast effect.
+ *
+ * See also: im_eye().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
-im_simcontr( IMAGE *image, int xs, int ys )
+im_simcontr( IMAGE *out, int xsize, int ysize )
 {
 	int x, y;
 	unsigned char *line1, *line2, *cpline;
 
 
 /* Check input args */
-	if( im_outcheck( image ) )
+	if( im_outcheck( out ) )
 		return( -1 );
 
 /* Set now image properly */
-        im_initdesc(image, xs, ys, 1, IM_BBITS_BYTE, IM_BANDFMT_UCHAR,
+        im_initdesc(out, xsize, ysize, 1, IM_BBITS_BYTE, IM_BANDFMT_UCHAR,
 		IM_CODING_NONE, IM_TYPE_B_W, 1.0, 1.0, 0, 0 );
 
 /* Set up image checking whether the output is a buffer or a file */
-        if (im_setupout( image ) == -1 )
+        if (im_setupout( out ) == -1 )
                 return( -1 );
 /* Create data */
-        line1 = (unsigned char *)calloc((unsigned)xs, sizeof(char));
-        line2 = (unsigned char *)calloc((unsigned)xs, sizeof(char));
+        line1 = (unsigned char *)calloc((unsigned)xsize, sizeof(char));
+        line2 = (unsigned char *)calloc((unsigned)xsize, sizeof(char));
         if ( (line1 == NULL) || (line2 == NULL) ) { 
 		im_error( "im_simcontr", "%s", _( "calloc failed") ); 
 		return(-1); }
 
 	cpline = line1;
-	for (x=0; x<xs; x++)
+	for (x=0; x<xsize; x++)
 		*cpline++ = (PEL)255;
 	cpline = line1;
-	for (x=0; x<xs/2; x++)
+	for (x=0; x<xsize/2; x++)
 		*cpline++ = (PEL)0;
 	
 	cpline = line2;
-	for (x=0; x<xs; x++)
+	for (x=0; x<xsize; x++)
 		*cpline++ = (PEL)255;
 	cpline = line2;
-	for (x=0; x<xs/8; x++)
+	for (x=0; x<xsize/8; x++)
 		*cpline++ = (PEL)0;
-	for (x=0; x<xs/4; x++)
+	for (x=0; x<xsize/4; x++)
 		*cpline++ = (PEL)128;
-	for (x=0; x<xs/8; x++)
+	for (x=0; x<xsize/8; x++)
 		*cpline++ = (PEL)0;
-	for (x=0; x<xs/8; x++)
+	for (x=0; x<xsize/8; x++)
 		*cpline++ = (PEL)255;
-	for (x=0; x<xs/4; x++)
+	for (x=0; x<xsize/4; x++)
 		*cpline++ = (PEL)128;
 
-	for (y=0; y<ys/4; y++)
+	for (y=0; y<ysize/4; y++)
 		{
-		if ( im_writeline( y, image, (PEL *)line1 ) == -1 )
+		if ( im_writeline( y, out, (PEL *)line1 ) == -1 )
 			{
 			free ( (char *)line1 ); free ( (char *)line2 );
 			return( -1 );
 			}
 		}
-	for (y=ys/4; y<(ys/4+ys/2); y++)
+	for (y=ysize/4; y<(ysize/4+ysize/2); y++)
 		{
-		if ( im_writeline( y, image, (PEL *)line2 ) == -1 )
+		if ( im_writeline( y, out, (PEL *)line2 ) == -1 )
 			{
 			free ( (char *)line1 ); free ( (char *)line2 );
 			return( -1 );
 			}
 		}
-	for (y=(ys/4 + ys/2); y<ys; y++)
+	for (y=(ysize/4 + ysize/2); y<ysize; y++)
 		{
-		if ( im_writeline( y, image, (PEL *)line1 ) == -1 )
+		if ( im_writeline( y, out, (PEL *)line1 ) == -1 )
 			{
 			free ( (char *)line1 ); free ( (char *)line2 );
 			return( -1 );

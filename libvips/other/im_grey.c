@@ -1,15 +1,4 @@
-/* @(#) Creates a IM_BANDFMT_FLOAT grey level image of a specified size. Range is
- * @(#) always [0,1].
- * @(#)
- * @(#) Usage: 
- * @(#) 
- * @(#) int 
- * @(#) im_fgrey( image, xsize, ysize )
- * @(#) IMAGE *image;
- * @(#) int xsize, ysize;
- * @(#)
- * @(#) Returns 0 on success and -1 on error
- * @(#)
+/* grey ramps
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -27,6 +16,8 @@
  *	- im_grey() now defined in terms of im_fgrey()
  * 2/3/98 JC
  *	- partialed
+ * 1/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -92,7 +83,18 @@ fgrey_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Make a one band grey ramp image.
+/**
+ * im_fgrey:
+ * @out: output image
+ * @xsize: image size
+ * @ysize: image size
+ *
+ * Create a one-band float image with the left-most column zero and the
+ * right-most 1. Intermediate pixels are a linear ramp.
+ *
+ * See also: im_grey(), im_make_xy(), im_identity().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_fgrey( IMAGE *out, const int xsize, const int ysize )
@@ -124,22 +126,30 @@ im_fgrey( IMAGE *out, const int xsize, const int ysize )
 	return( 0 );
 }
 
-/* As above, but make a IM_BANDFMT_UCHAR [0-255] image.
+/**
+ * im_grey:
+ * @out: output image
+ * @xsize: image size
+ * @ysize: image size
+ *
+ * Create a one-band uchar image with the left-most column zero and the
+ * right-most 255. Intermediate pixels are a linear ramp.
+ *
+ * See also: im_fgrey(), im_make_xy(), im_identity().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
-im_grey( IMAGE *image, const int xsize, const int ysize )
+im_grey( IMAGE *out, const int xsize, const int ysize )
 {
-	IMAGE *t1 = im_open_local( image, "im_grey:1", "p" );
-	IMAGE *t2 = im_open_local( image, "im_grey:2", "p" );
-
-	if( !t1 || !t2 )
-		return( -1 );
+	IMAGE *t[2];
 
 	/* Change range to [0,255].
 	 */
-	if( im_fgrey( t1, xsize, ysize ) || 
-		im_lintra( 255.0, t1, 0.0, t2 ) ||
-		im_clip2fmt( t2, image, IM_BANDFMT_UCHAR ) )
+	if( im_open_local_array( out, t, 2, "im_grey", "p" ) ||
+		im_fgrey( t[0], xsize, ysize ) || 
+		im_lintra( 255.0, t[0], 0.0, t[1] ) ||
+		im_clip2fmt( t[1], out, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );

@@ -66,7 +66,7 @@
  * The created image consist a @bands-bands linear lut and is the basis 
  * for building up look-up tables.
  *
- * See also: im_identity_ushort().
+ * See also: im_identity_ushort(), im_make_xy().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -125,7 +125,7 @@ im_identity( IMAGE *lut, int bands )
  * The created image consist a @bands-bands linear lut and is the basis 
  * for building up look-up tables.
  *
- * See also: im_identity().
+ * See also: im_identity(), im_make_xy().
  *
  * Returns: 0 on success, -1 on error
  */
