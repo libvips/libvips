@@ -214,10 +214,6 @@ int im__close( IMAGE * );
 int im__handle_eval( IMAGE *im, int w, int h );
 int im__fft_sp( float *rvec, float *ivec, int logrows, int logcols );
 int im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn );
-int im__mean_std_double_buffer( double *buffer, int size,
-	double *pmean, double *pstd );
-int im__mean_std_int_buffer( int *buffer, int size,
-	double *pmean, double *pstd );
 int im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
         int bandno_in,
         int xref, int yref, int xsec, int ysec,
