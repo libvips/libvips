@@ -11,7 +11,6 @@ endif
 
 SUBDIRS = \
 	include \
-	acquire \
 	arithmetic \
 	resample \
 	boolean \
@@ -42,7 +41,6 @@ endif
 
 # DLLs need dependant libs there too ... put @VIPS_LIBS@ at the end
 libvips_la_LIBADD = \
-	acquire/libacquire.la \
 	resample/libresample.la \
 	arithmetic/libarithmetic.la \
 	boolean/libboolean.la \

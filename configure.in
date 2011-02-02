@@ -620,7 +620,6 @@ AC_OUTPUT([
 	libvips/include/Makefile 
 	libvips/include/vips/Makefile 
 	libvips/Makefile 
-	libvips/acquire/Makefile 
 	libvips/arithmetic/Makefile 
 	libvips/boolean/Makefile 
 	libvips/cimg/Makefile 

@@ -38,6 +38,16 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/**
+ * im_video_test:
+ * @im: write image here
+ * @brightness: brightness setting
+ * @error: set this to make the function return an error
+ *
+ * Make a test video image. Set @error to trigger an error.
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_video_test( IMAGE *im, int brightness, int error )
 {

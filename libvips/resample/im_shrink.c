@@ -1,13 +1,4 @@
-/* @(#) Shrink any non-complex image by some x, y, factor. No interpolation!
- * @(#) Just average an area. Suitable for making quicklooks only!
- * @(#)
- * @(#) int 
- * @(#) im_shrink( in, out, xshrink, yshrink )
- * @(#) IMAGE *in, *out;
- * @(#) double xshrink, yshrink;
- * @(#)
- * @(#) Returns either 0 (success) or -1 (fail)
- * @(#)
+/* shrink with a box filter
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -34,6 +25,8 @@
  *	- IM_CODING_LABQ handling added here
  * 20/12/08
  * 	- fall back to im_copy() for 1/1 shrink
+ * 2/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -240,20 +233,6 @@ shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 {
 	ShrinkInfo *st;
 
-	/* Check parameters.
-	 */
-	if( !in || vips_bandfmt_iscomplex( in->BandFmt ) ) {
-		im_error( "im_shrink", "%s", _( "non-complex input only" ) );
-		return( -1 );
-	}
-	if( xshrink < 1.0 || yshrink < 1.0 ) {
-		im_error( "im_shrink", 
-			"%s", _( "shrink factors should both be >1" ) );
-		return( -1 );
-	}
-	if( im_piocheck( in, out ) )
-		return( -1 );
-
 	/* Prepare output. Note: we round the output width down!
 	 */
 	if( im_cp_desc( out, in ) )
@@ -293,11 +272,39 @@ shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 	return( 0 );
 }
 
-/* Wrap up the above: do IM_CODING_LABQ as well.
+/**
+ * im_shrink:
+ * @in: input image
+ * @out: output image
+ * @xshrink: horizontal shrink
+ * @yshrink: vertical shrink
+ *
+ * Shrink @in by a pair of factors with a simple box filter. 
+ *
+ * You will get aliasing for non-integer shrinks. In this case, shrink with
+ * this function to the nearest integer size above the target shrink, then
+ * downsample to the exact size with im_affinei() and your choice of
+ * interpolator.
+ *
+ * im_rightshift_size() is faster for factors which are integer powers of two.
+ *
+ * See also: im_rightshift_size(), im_affinei().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 im_shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 {
+	if( im_check_noncomplex( "im_shrink", in ) ||
+		im_check_coding_known( "im_shrink", in ) ||
+		im_piocheck( in, out ) )
+		return( -1 );
+	if( xshrink < 1.0 || yshrink < 1.0 ) {
+		im_error( "im_shrink", 
+			"%s", _( "shrink factors should be >= 1" ) );
+		return( -1 );
+	}
+
 	if( xshrink == 1 && yshrink == 1 ) {
 		return( im_copy( in, out ) );
 	}
@@ -310,14 +317,9 @@ im_shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 			im_LabS2LabQ( t[1], out ) )
 			return( -1 );
 	}
-	else if( in->Coding == IM_CODING_NONE ) {
+	else 
 		if( shrink( in, out, xshrink, yshrink ) )
 			return( -1 );
-	}
-	else {
-		im_error( "im_shrink", "%s", _( "unknown coding type" ) );
-		return( -1 );
-	}
 
 	return( 0 );
 }

@@ -169,6 +169,8 @@ int im_dif_std();
 int im_simcontr( IMAGE *out, int xsize, int ysize );
 int im_spatres( IMAGE *in,  IMAGE *out, int step );
 
+int im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy );
+
 /* Renamed operations.
  */
 

@@ -1,16 +1,4 @@
-/* @(#) Decrease the size of an image by a power-of-two factor, summing the
- * @(#) values of pixels, and shifting to give output of the specified band
- * @(#) format.
- * @(#)
- * @(#) int
- * @(#) im_rightshift_size(
- * @(#)   IMAGE *in,
- * @(#)   IMAGE *out,
- * @(#)   int xshift,
- * @(#)   int yshift,
- * @(#)   int band_fmt
- * @(#) );
- * @(#)
+/* fast shrink by a power of two 
  *
  * Copyright: 2006, Tom Vajzovic
  *
@@ -24,6 +12,8 @@
  * 2007-02-02 jc
  *  - added return 0; on success
  *  - FUNCTION_NAME updated
+ * 2/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -109,10 +99,10 @@ GEN_FUNCS_SIGN( guint )
  * @yshift: vertical shrink
  * @band_fmt: output format
  *
- * Shrink an image by a pair of power-of-two factors and shifting to give 
+ * Shrink @in by a pair of power-of-two factors, shifting to give 
  * output of the specified band format. This is faster than im_shrink(). 
  *
- * See also: im_shrink(), im_affine().
+ * See also: im_shrink(), im_affinei().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -138,25 +128,13 @@ im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt 
     im_error( FUNCTION_NAME, "%s", _( "would result in zero size output image" ) );
     return -1;
   }
-  if( ! vips_bandfmt_isint( in->BandFmt ) ){
-    im_error( FUNCTION_NAME, "%s", _( "integer type images only" ) );
+  if( im_check_int( FUNCTION_NAME, in ) || 
+	  im_check_uncoded( FUNCTION_NAME, in ) ) 
     return -1;
-  }
-  if( IM_CODING_NONE != in->Coding ){
-    im_error( FUNCTION_NAME, "%s", _( "uncoded images only" ) );
-    return -1;
-  }
-  if( vips_bandfmt_isuint( in->BandFmt ) ){
-    if( IM_BANDFMT_UCHAR != band_fmt && IM_BANDFMT_USHORT != band_fmt && IM_BANDFMT_UINT != band_fmt ){
-      im_error( FUNCTION_NAME, "%s", _( "unsigned input means that output must be unsigned int, short or char" ) );
+  if( vips_bandfmt_isuint( in->BandFmt ) != vips_bandfmt_isuint( band_fmt ) ) {
+      im_error( FUNCTION_NAME, "%s", 
+	_( "image and band_fmt must match in sign" ) );
       return -1;
-    }
-  }
-  else {
-    if( IM_BANDFMT_CHAR != band_fmt && IM_BANDFMT_SHORT != band_fmt && IM_BANDFMT_INT != band_fmt ){
-      im_error( FUNCTION_NAME, "%s", _( "signed input means that output must be signed int, short or char" ) );
-      return -1;
-    }
   }
   outbits= im_bits_of_fmt( band_fmt );
 

@@ -44,8 +44,6 @@ int im_affinei( IMAGE *in, IMAGE *out,
 int im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy ) ;
 
-int im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy );
-
 int im_shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink );
 int im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt );
 

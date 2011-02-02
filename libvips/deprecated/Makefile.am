@@ -5,6 +5,8 @@ libdeprecated_la_SOURCES = \
 	im_dif_std.c \
 	im_simcontr.c \
 	im_spatres.c \
+	im_stretch3.c \
+	im_clamp.c \
 	cooc_funcs.c \
 	glds_funcs.c \
 	im_fav4.c \

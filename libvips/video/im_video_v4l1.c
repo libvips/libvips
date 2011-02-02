@@ -629,6 +629,34 @@ lgrab_capture( LGrab *lg, IMAGE *im )
 	return( 0 );
 }
 
+/**
+ * im_video_v4l1:
+ * @im: write image here
+ * @device: device to grab from
+ * @channel: channel to grab
+ * @brightness: brightness setting
+ * @colour: colour setting
+ * @contrast: contrast setting
+ * @hue: hue setting
+ * @ngrabs: average this many frames
+ *
+ * Grab an image from a device using the Video4Linux1 interface. It grabs
+ * 24-bit RGB at the maximum size your card allows.
+ *
+ * @device should typically be "/dev/video".
+ * @channel selects the channel to acquire: usually 0 is TV, and 1 is 
+ * composite video. @brightness, @colour, @contrast and @hue 
+ * set grab parameters. Each should be in the range (0 - 32768). 
+ * 32768 is usually the value you want. @ngrabs
+ * sets the number of frames the card should average. 
+ * Higher values are slower, but typically less noisy (and slightly softer).
+ *
+ * This function needs updating to newer video standards.
+ *
+ * See also: im_video_test().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_video_v4l1( IMAGE *im, const char *device,
 	int channel, int brightness, int colour, int contrast, int hue, 

@@ -25,6 +25,9 @@
 - done gtk-doc for other
 - --vips-progress tells you about nthreads, tile size, nlines
 - gtk-doc for interpolate
+- move im_stretch3() to deprecated
+- move im_clamp() to deprecated
+- gtk-doc for video ... all operators done! amazing argh
 
 30/11/10 started 7.24.0
 - bump for new stable
