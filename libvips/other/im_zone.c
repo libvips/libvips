@@ -122,7 +122,7 @@ im_fzone( IMAGE *out, int size )
  * Returns: 0 on success, -1 on error
  */
 int
-im_zone( IMAGE *im, int size )
+im_zone( IMAGE *out, int size )
 {
 	IMAGE *t[2];
 
@@ -131,7 +131,7 @@ im_zone( IMAGE *im, int size )
 	if( im_open_local_array( out, t, 2, "im_grey", "p" ) ||
 		im_fzone( t[0], size ) || 
 		im_lintra( 127.5, t[0], 127.5, t[1] ) ||
-		im_clip2fmt( t[1], im, IM_BANDFMT_UCHAR ) )
+		im_clip2fmt( t[1], out, IM_BANDFMT_UCHAR ) )
 		return( -1 );
 
 	return( 0 );
