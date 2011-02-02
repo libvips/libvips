@@ -163,11 +163,22 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 #else /*!OS_WIN32*/
 {
 	int prot;
+	int flags;
 
 	if( writeable ) 
 		prot = PROT_WRITE;
 	else 
 		prot = PROT_READ;
+
+	flags = MAP_SHARED;
+
+	/* OS X caches mmapped files very aggressively if this flags is not
+	 * set. Scanning a large file without this flag will cause every other
+	 * process to get swapped out and kill performance.
+	 */
+#ifdef MAP_NOCACHE
+	flags |= MAP_NOCACHE;
+#endif /*MAP_NOCACHE*/
 
 	/* Casting gint64 to off_t should be safe, even on *nixes without
 	 * LARGEFILE.

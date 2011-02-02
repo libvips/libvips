@@ -1,7 +1,8 @@
 
-- does OS X have any mmap flags which could stop their crazy caching?
+- use g_mmap() or whatever it's called ... or perhaps they don't have all
+  these options
 
-- use g_mmap() or whatever it's called 
+
 
 
 - use |_O_TEMPORARY to open()'s mode on Windows for tmpfiles to increase the

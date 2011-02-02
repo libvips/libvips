@@ -28,6 +28,8 @@
 - move im_stretch3() to deprecated
 - move im_clamp() to deprecated
 - gtk-doc for video ... all operators done! amazing argh
+- set MAP_NOCACHE on OS X, otherwise performance dives off a cliff with 
+  files larger than memory
 
 30/11/10 started 7.24.0
 - bump for new stable
