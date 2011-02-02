@@ -455,7 +455,18 @@ typedef struct {
 int
 evalstart_cb( Progress *progress )
 {
+	int tile_width; 
+	int tile_height; 
+	int nlines;
+
 	progress->last_percent = 0;
+
+	vips_get_tile_size( progress->im, &tile_width, &tile_height, &nlines );
+	printf( _( "%s %s: %d threads, %d x %d tiles, groups of %d scanlines" ),
+		g_get_prgname(), progress->im->filename,
+		im_concurrency_get(),
+		tile_width, tile_height, nlines );
+	printf( "\n" );
 
 	return( 0 );
 }
