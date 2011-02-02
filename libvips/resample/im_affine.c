@@ -1,19 +1,5 @@
-/* @(#) im_affine() ... affine transform with a supplied interpolator.
- * @(#)
- * @(#) int im_affinei(in, out, interpolate, a, b, c, d, dx, dy, w, h, x, y)
- * @(#)
- * @(#) IMAGE *in, *out;
- * @(#) VipsInterpolate *interpolate;
- * @(#) double a, b, c, d, dx, dy;
- * @(#) int w, h, x, y;
- * @(#)
- * @(#) Forward transform
- * @(#) X = a * x + b * y + dx
- * @(#) Y = c * x + d * y + dy
- * @(#)
- * @(#) x and y are the coordinates in input image.  
- * @(#) X and Y are the coordinates in output image.
- * @(#) (0,0) is the upper left corner.
+/* im_affine() ... affine transform with a supplied interpolator.
+ *
  * 
  * Copyright N. Dessipris
  * Written on: 01/11/1991
@@ -88,6 +74,8 @@
  * 12/8/10
  * 	- revise window_size / window_offset stuff again, see also
  * 	  interpolate.c
+ * 2/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -494,6 +482,41 @@ im__affinei( IMAGE *in, IMAGE *out,
 	return( 0 );
 }
 
+/**
+ * im_affinei:
+ * @in: input image
+ * @out: output image
+ * @interpolate: interpolation method
+ * @a: transformation matrix
+ * @b: transformation matrix
+ * @c: transformation matrix
+ * @d: transformation matrix
+ * @dx: output offset
+ * @dy: output offset
+ * @ox: output region
+ * @oy: output region
+ * @ow: output region
+ * @oh: output region
+ *
+ * This operator performs an affine transform on an image using @interpolate.
+ *
+ * The transform is:
+ *
+ *   X = @a * x + @b * y + @dx
+ *   Y = @c * x + @d * y + @dy
+ * 
+ *   x and y are the coordinates in input image.  
+ *   X and Y are the coordinates in output image.
+ *   (0,0) is the upper left corner.
+ *
+ * The section of the output space defined by @ox, @oy, @ow, @oh is written to
+ * @out. See im_affinei_all() for a function which outputs all the transformed 
+ * pixels.
+ *
+ * See also: im_affinei_all(), #VipsInterpolate.
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_affinei( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy, 
@@ -521,6 +544,25 @@ im_affinei( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
 	return( im__affinei( in, out, interpolate, &trn ) );
 }
 
+
+/**
+ * im_affinei_all:
+ * @in: input image
+ * @out: output image
+ * @interpolate: interpolation method
+ * @a: transformation matrix
+ * @b: transformation matrix
+ * @c: transformation matrix
+ * @d: transformation matrix
+ * @dx: output offset
+ * @dy: output offset
+ *
+ * As im_affinei(), but the entire image is output.
+ *
+ * See also: im_affinei(), #VipsInterpolate.
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int 
 im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy ) 

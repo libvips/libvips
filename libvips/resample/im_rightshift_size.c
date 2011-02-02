@@ -100,6 +100,22 @@ GEN_FUNCS_SIGN( guint )
 
 /** FUNCTION DEFINITIONS **/
 
+
+/**
+ * im_rightshift_size:
+ * @in: input image
+ * @out: output image
+ * @xshift: horizontal shrink
+ * @yshift: vertical shrink
+ * @band_fmt: output format
+ *
+ * Shrink an image by a pair of power-of-two factors and shifting to give 
+ * output of the specified band format. This is faster than im_shrink(). 
+ *
+ * See also: im_shrink(), im_affine().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt ){
 #define FUNCTION_NAME "im_rightshift_size"
