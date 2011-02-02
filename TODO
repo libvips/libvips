@@ -1,4 +1,9 @@
 
+- does OS X have any mmap flags which could stop their crazy caching?
+
+- use g_mmap() or whatever it's called 
+
+
 - use |_O_TEMPORARY to open()'s mode on Windows for tmpfiles to increase the
   chances we actually delete
 
@@ -17,11 +22,6 @@
 
   we need to have a separate docs package for the tools/ dir
 
-- move im_shrink & friends to resample?
-
-  match_linear, match_linear_search?
-
-  what about im_stretch3.c, im_resize_linear
 
 
 
@@ -168,7 +168,6 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
 
 - convert_saveable for other writers: tiff, ppm, csv, rad etc.
 
-- the tiff writer could use more im_check_ things
 
 
 - expose more of the tone funcs in nip2
