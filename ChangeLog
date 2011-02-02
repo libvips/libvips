@@ -24,6 +24,7 @@
 - move im_spatres() to almostdeprecated
 - done gtk-doc for other
 - --vips-progress tells you about nthreads, tile size, nlines
+- gtk-doc for interpolate
 
 30/11/10 started 7.24.0
 - bump for new stable

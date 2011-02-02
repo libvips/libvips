@@ -12,6 +12,8 @@
  * 	  (thanks Nicolas Robidoux)
  * 12/1/11
  * 	- faster, more accuarate uchar bilinear (thanks Nicolas)
+ * 2/2/11
+ * 	- gtk-doc
  */
 
 /*
@@ -70,6 +72,59 @@
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT );
+
+/**
+ * VipsInterpolateMethod:
+ * @interpolate: the interpolator
+ * @out: write the interpolated pixel here
+ * @in: read source pixels from here
+ * @x: interpolate value at this position
+ * @y: interpolate value at this position
+ *
+ * An interpolation function. It should read source pixels from @in with
+ * IM_REGION_ADDR(), it can look left and up from (x, y) by @window_offset
+ * pixels and it can access pixels in a window of size @window_size.
+ *
+ * The interpolated value should be written to the pixel pointed to by @out.
+ *
+ * See also: #VipsInterpolateClass.
+ */
+
+/**
+ * VipsInterpolateClass:
+ * @interpolate: the interpolation method
+ * @get_window_size: return the size of the window needed by this method
+ * @window_size: or just set this for a constant window size
+ * @get_window_offset: return the window offset for this method
+ * @window_offset: or just set this for a constant window offset
+ *
+ * The abstract base class for the various VIPS interpolation functions. 
+ * Use "vips --list classes" to see all the interpolators available.
+ *
+ * An interpolator consists of a function to perform the interpolation, plus
+ * some extra data fields which tell vips how to call the function and what
+ * data it needs.
+ *
+ * @window_size is the size of the window that the interpolator needs. For
+ * example, a bicubic interpolator needs to see a window of 4x4 pixels to be
+ * able to interpolate a value. 
+ *
+ * You can either have a function in @get_window_size which returns the window
+ * that a specific interpolator needs, or you can leave @get_window_size %NULL
+ * and set a constant value in @window_size.
+ *
+ * @window_offset is how much to offset the window up and left of (x, y). For
+ * example, a bicubic interpolator will want a @window_offset of 1.
+ *
+ * You can either have a function in @get_window_offset which returns the
+ * offset that a specific interpolator needs, or you can leave
+ * @get_window_offset %NULL and set a constant value in @window_offset.
+ *
+ * You also need to set @nickname and @description in #VipsObject.
+ *
+ * See also: #VipsInterpolateMethod, #VipsObject, 
+ * vips_interpolate_bilinear_static().
+ */
 
 #ifdef DEBUG
 static void
@@ -138,8 +193,19 @@ vips_interpolate_init( VipsInterpolate *interpolate )
 #endif /*DEBUG*/
 }
 
-/* Set the point out_x, out_y in REGION out to be the point interpolated at
- * in_x, in_y in REGION in. Don't do this as a signal for speed.
+/** 
+ * vips_interpolate:
+ * @interpolate: interpolator to use
+ * @out: write result here
+ * @in: read source data from here
+ * @x: interpolate value at this position
+ * @y: interpolate value at this position
+ *
+ * Look up the @interpolate method in the class and call it. Use
+ * vips_interpolate_get_method() to get a direct pointer to the function and
+ * avoid the lookup overhead.
+ *
+ * You need to set @in and @out up correctly.
  */
 void
 vips_interpolate( VipsInterpolate *interpolate,
@@ -152,8 +218,14 @@ vips_interpolate( VipsInterpolate *interpolate,
 	class->interpolate( interpolate, out, in, x, y );
 }
 
-/* As above, but return the function pointer. Use this to cache method
- * dispatch.
+/** 
+ * vips_interpolate_get_method:
+ * @interpolate: interpolator to use
+ *
+ * Look up the @interpolate method in the class and return it. Use this
+ * instead of vips_interpolate() to cache method dispatch.
+ *
+ * Returns: a pointer to the interpolation function
  */
 VipsInterpolateMethod
 vips_interpolate_get_method( VipsInterpolate *interpolate )
@@ -165,7 +237,13 @@ vips_interpolate_get_method( VipsInterpolate *interpolate )
 	return( class->interpolate );
 }
 
-/* Get this interpolator's required window size.
+/** 
+ * vips_interpolate_get_window_size:
+ * @interpolate: interpolator to use
+ *
+ * Look up an interpolators desired window size. 
+ *
+ * Returns: the interpolators required window size
  */
 int
 vips_interpolate_get_window_size( VipsInterpolate *interpolate )
@@ -177,7 +255,13 @@ vips_interpolate_get_window_size( VipsInterpolate *interpolate )
 	return( class->get_window_size( interpolate ) );
 }
 
-/* Get this interpolator's required window offset.
+/** 
+ * vips_interpolate_get_window_offset:
+ * @interpolate: interpolator to use
+ *
+ * Look up an interpolators desired window offset. 
+ *
+ * Returns: the interpolators required window offset
  */
 int
 vips_interpolate_get_window_offset( VipsInterpolate *interpolate )
@@ -188,6 +272,32 @@ vips_interpolate_get_window_offset( VipsInterpolate *interpolate )
 
 	return( class->get_window_offset( interpolate ) );
 }
+
+/**
+ * VIPS_TRANSFORM_SHIFT:
+ *
+ * Many of the vips interpolators use fixed-point arithmetic for coordinate
+ * calculation. This is how many bits of precision they use.
+ */
+
+/**
+ * VIPS_TRANSFORM_SCALE:
+ *
+ * #VIPS_TRANSFORM_SHIFT as a multiplicative constant. 
+ */
+
+/**
+ * VIPS_INTERPOLATE_SHIFT:
+ *
+ * Many of the vips interpolators use fixed-point arithmetic for value
+ * calcualtion. This is how many bits of precision they use.
+ */
+
+/**
+ * VIPS_INTERPOLATE_SCALE:
+ *
+ * #VIPS_INTERPOLATE_SHIFT as a multiplicative constant. 
+ */
 
 /* VipsInterpolateNearest class
  */
@@ -268,7 +378,13 @@ vips_interpolate_nearest_new( void )
 		VIPS_TYPE_INTERPOLATE_NEAREST, NULL, NULL, NULL ) ) );
 }
 
-/* Convenience: return a static nearest you don't need to free.
+/**
+ * vips_interpolate_nearest_static:
+ *
+ * A convenience function that returns a nearest-neighbour interpolator you 
+ * don't need to free.
+ *
+ * Returns: a nearest-neighbour interpolator
  */
 VipsInterpolate *
 vips_interpolate_nearest_static( void )
@@ -432,7 +548,13 @@ vips_interpolate_bilinear_new( void )
 		VIPS_TYPE_INTERPOLATE_BILINEAR, NULL, NULL, NULL ) ) );
 }
 
-/* Convenience: return a static bilinear you don't need to free.
+/**
+ * vips_interpolate_bilinear_static:
+ *
+ * A convenience function that returns a bilinear interpolator you 
+ * don't need to free.
+ *
+ * Returns: a bilinear interpolator
  */
 VipsInterpolate *
 vips_interpolate_bilinear_static( void )
@@ -466,7 +588,16 @@ vips__interpolate_init( void )
 #endif /*ENABLE_CXX*/
 }
 
-/* Make an interpolator from a nickname.
+/**
+ * vips_interpolate_new:
+ * @nickname: nickname for interpolator
+ *
+ * Look up an interpolator from a nickname and make one. You need to free the
+ * result with g_object_unref() when you're done with it.
+ *
+ * See also: vips_type_find().
+ *
+ * Returns: an interpolator, or %NULL on error.
  */
 VipsInterpolate *
 vips_interpolate_new( const char *nickname )

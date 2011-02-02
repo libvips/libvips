@@ -60,7 +60,7 @@ typedef struct _VipsInterpolate {
  * function for it to speed up dispatch. Write to the memory at "out",
  * interpolate the value at position (x, y) in "in".
  */
-typedef void (*VipsInterpolateMethod)( VipsInterpolate *,
+typedef void (*VipsInterpolateMethod)( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y );
 
 typedef struct _VipsInterpolateClass {
@@ -89,7 +89,7 @@ typedef struct _VipsInterpolateClass {
 GType vips_interpolate_get_type( void );
 void vips_interpolate( VipsInterpolate *interpolate,
 	PEL *out, REGION *in, double x, double y );
-VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate * );
+VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate *interpolate );
 int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );
 
@@ -111,16 +111,11 @@ int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );
  */
 VipsInterpolate *vips_interpolate_nearest_static( void );
 VipsInterpolate *vips_interpolate_bilinear_static( void );
-VipsInterpolate *vips_interpolate_bicubic_static( void );
 
 /* Convenience: make an interpolator from a nickname. g_object_unref() when
  * you're done with it.
  */
 VipsInterpolate *vips_interpolate_new( const char *nickname );
-
-/* Register base vips types, called during startup.
- */
-void vips__interpolate_init( void );
 
 #ifdef __cplusplus
 }

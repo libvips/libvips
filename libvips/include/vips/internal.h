@@ -284,6 +284,10 @@ PEL *im__vector_to_ink( const char *domain, IMAGE *im, int n, double *vec );
 IMAGE *im__inplace_base( const char *domain, 
 	IMAGE *main, IMAGE *sub, IMAGE *out );
 
+/* Register base vips interpolators, called during startup.
+ */
+void vips__interpolate_init( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

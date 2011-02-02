@@ -42,6 +42,7 @@
     <xi:include href="xml/freq_filt.xml"/>
     <xi:include href="xml/histograms_lut.xml"/>
     <xi:include href="xml/inplace.xml"/>
+    <xi:include href="xml/interpolate.xml"/>
     <xi:include href="xml/mask.xml"/>
     <xi:include href="xml/morphology.xml"/>
     <xi:include href="xml/mosaicing.xml"/>
@@ -53,7 +54,6 @@
     <xi:include href="xml/resample.xml"/>
     <xi:include href="xml/video.xml"/>
     <xi:include href="xml/cimg_funcs.xml"/>
-    <xi:include href="xml/interpolate.xml"/>
   </chapter>
 
   <chapter>
