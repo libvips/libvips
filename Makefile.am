@@ -22,7 +22,6 @@ endif
 SUBDIRS = \
 	libvips \
 	tools \
-	man \
 	po \
 	doc \
 	$(C_COMPILE_DIR) \
