@@ -37,78 +37,70 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Needed for 'unused' below. Remove this when we remove that.
- */
-#include <time.h>
-
 /* If you read MSB first, you get these two values.  
  * intel order: byte 0 = b6 
  * SPARC order: byte 0 = 08
  */
-#define IM_MAGIC_INTEL (0xb6a6f208U)
-#define IM_MAGIC_SPARC (0x08f2a6b6U)
+#define VIPS_MAGIC_INTEL (0xb6a6f208U)
+#define VIPS_MAGIC_SPARC (0x08f2a6b6U)
 
-/* Demand style from im_generate(). See im_demand_hint().
- */
 typedef enum {
-	IM_SMALLTILE,	
-	IM_FATSTRIP,
-	IM_THINSTRIP,
-	IM_ANY			
+	VIPS_DEMAND_STYLE_SMALLTILE,	
+	VIPS_DEMAND_STYLE_FATSTRIP,
+	VIPS_DEMAND_STYLE_THINSTRIP,
+	VIPS_DEMAND_STYLE_ANY			
 } VipsDemandStyle;
 
+/* The gaps in the numbering are historical and need maintaining. Allocate new
+ * numbers from the end.
+ */
 typedef enum {
-	IM_TYPE_MULTIBAND = 0,
-	IM_TYPE_B_W = 1,
-	IM_TYPE_HISTOGRAM = 10,
-	IM_TYPE_FOURIER = 24,
-	IM_TYPE_XYZ = 12,
-	IM_TYPE_LAB = 13,
-	IM_TYPE_CMYK = 15,
-	IM_TYPE_LABQ = 16,
-	IM_TYPE_RGB = 17,
-	IM_TYPE_UCS = 18,
-	IM_TYPE_LCH = 19,
-	IM_TYPE_LABS = 21,
-	IM_TYPE_sRGB = 22,
-	IM_TYPE_YXY = 23,
-	IM_TYPE_RGB16 = 25,
-	IM_TYPE_GREY16 = 26
+	VIPS_TYPE_MULTIBAND = 0,
+	VIPS_TYPE_B_W = 1,
+	VIPS_TYPE_HISTOGRAM = 10,
+	VIPS_TYPE_FOURIER = 24,
+	VIPS_TYPE_XYZ = 12,
+	VIPS_TYPE_LAB = 13,
+	VIPS_TYPE_CMYK = 15,
+	VIPS_TYPE_LABQ = 16,
+	VIPS_TYPE_RGB = 17,
+	VIPS_TYPE_UCS = 18,
+	VIPS_TYPE_LCH = 19,
+	VIPS_TYPE_LABS = 21,
+	VIPS_TYPE_sRGB = 22,
+	VIPS_TYPE_YXY = 23,
+	VIPS_TYPE_RGB16 = 25,
+	VIPS_TYPE_GREY16 = 26
 } VipsType;
 
 typedef enum {
-	IM_BANDFMT_NOTSET = -1,
-	IM_BANDFMT_UCHAR = 0,
-	IM_BANDFMT_CHAR = 1,
-	IM_BANDFMT_USHORT = 2,
-	IM_BANDFMT_SHORT = 3,
-	IM_BANDFMT_UINT = 4,
-	IM_BANDFMT_INT = 5,
-	IM_BANDFMT_FLOAT = 6,
-	IM_BANDFMT_COMPLEX = 7,
-	IM_BANDFMT_DOUBLE = 8,
-	IM_BANDFMT_DPCOMPLEX = 9,
-	IM_BANDFMT_LAST = 10
+	VIPS_BANDFMT_NOTSET = -1,
+	VIPS_BANDFMT_UCHAR = 0,
+	VIPS_BANDFMT_CHAR = 1,
+	VIPS_BANDFMT_USHORT = 2,
+	VIPS_BANDFMT_SHORT = 3,
+	VIPS_BANDFMT_UINT = 4,
+	VIPS_BANDFMT_INT = 5,
+	VIPS_BANDFMT_FLOAT = 6,
+	VIPS_BANDFMT_COMPLEX = 7,
+	VIPS_BANDFMT_DOUBLE = 8,
+	VIPS_BANDFMT_DPCOMPLEX = 9,
+	VIPS_BANDFMT_LAST = 10
 } VipsBandFmt;
 
 typedef enum {
-	IM_CODING_NONE = 0,
-	IM_CODING_LABQ = 2,
-	IM_CODING_RAD = 6
+	VIPS_CODING_NONE = 0,
+	VIPS_CODING_LABQ = 2,
+	VIPS_CODING_RAD = 6
 } VipsCoding;
 
-/* Struct we keep a record of execution time in. Passed to eval callback, so
+/* Struct we keep a record of execution time in. Passed to eval signal so
  * it can assess progress.
- *
- * The 'unused' field is there for binary compatibility, remove this when we
- * break ABI. Though, at least on windows, sizeof(time_t) can vary with
- * compiler flags, so we might break ABI anyway. Remove the #include <time.h>
- * when we remove this.
  */
 typedef struct {
 	/*< private >*/
 	struct _VipsImage *im;	/* Image we are part of */
-	time_t unused;		/* FIXME ... for binary compatibility */
+
 	/*< public >*/
 	int run;		/* Time we have been running */
 	int eta;		/* Estimated seconds of computation left */
@@ -118,44 +110,63 @@ typedef struct {
 	GTimer *start;		/* Start time */
 } VipsProgress;
 
+#define VIPS_TYPE_IMAGE (vips_image_get_type())
+#define VIPS_IMAGE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_IMAGE, VipsImage ))
+#define VIPS_IMAGE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_IMAGE, VipsImageClass))
+#define VIPS_IS_IMAGE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_IMAGE ))
+#define VIPS_IS_IMAGE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_IMAGE ))
+#define VIPS_IMAGE_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_IMAGE, VipsImageClass ))
+
 typedef struct _VipsImage {
-	/*< public >*/
-	/* Fields from file header.
+	VipsObject parent_object;
+
+	/*< private >*/
+
+	/* We have to keep these names for compatibility with the old API.
+	 * Don't use them though, use vips_image_get_width() and friends.
 	 */
+
 	int Xsize;		/* image width, in pixels */
 	int Ysize;		/* image height, in pixels */
 	int Bands;		/* number of image bands */
-	/*< private >*/
-	/* No longer used.
-	 */
-	int Bbits;		/* was number of bits in this format */
-	/*< public >*/
+
 	VipsBandFmt BandFmt;	/* #VipsBandFmt describing the pixel format */
 	VipsCoding Coding;	/* #VipsCoding describing the pixel coding */
 	VipsType Type;		/* #VipsType hinting at pixel interpretation */
 	float Xres;		/* horizontal pixels per millimetre */
 	float Yres;		/* vertical pixels per millimetre */
-	/*< private >*/
-	/* No longer used.
+
+	int Xoffset;		/* image origin hint */
+	int Yoffset;		/* image origin hint */
+
+	/* No longer used, the names are here for compat with very, very old 
+	 * code.
 	 */
 	int Length;
 	short Compression;
 	short Level;
-	/*< public >*/
-	int Xoffset;		/* image origin hint */
-	int Yoffset;		/* image origin hint */
+	int Bbits;		/* was number of bits in this format */
 
-	/* Derived fields that user can fiddle with.
+	/* Derived fields that some code can fiddle with. New code should use
+	 * vips_image_get_history() and friends.
 	 */
-	/*< private >*/
 	char *Hist;		/* don't use ... call im_history_get() */
-	/*< public >*/
 	char *filename;		/* pointer to copy of filename */
 	char *data;		/* start of image data for WIO */
-	VipsProgress *time;	/* evaluation progress */
-	int kill;		/* set to non-zero to block partial eval */
+	int kill;		/* set to non-zero to block eval */
 
-	/*< private >*/
+	/* Everything below this private and only used internally by
+	 * VipsImage.
+	 */
+
 	im_desc_type dtype;	/* descriptor type */
 	int fd;         	/* file descriptor */
 	char *baseaddr;     	/* pointer to the start of an mmap file */
@@ -163,8 +174,6 @@ typedef struct _VipsImage {
 	GSList *closefns; 	/* list of close callbacks */
 	GSList *evalfns; 	/* list of eval callbacks */
 	GSList *evalendfns; 	/* list of eval end callbacks */
-	int closing;		/* true for this descriptor is closing */
-	int close_pending;	/* true for this descriptor is a zombie */
 	guint32 magic;		/* magic from header, endian-ness of image */
 
 	/* Partial image stuff. All private! All these fields are initialised 
@@ -217,12 +226,6 @@ typedef struct _VipsImage {
 	 */
 	struct _VipsImage *progress;
 
-	/* Some more callbacks. 
-	 */
-	GSList *evalstartfns; 	/* list of start eval callbacks */
-	GSList *preclosefns; 	/* list of pre-close callbacks */
-	GSList *invalidatefns; 	/* list of invalidate callbacks */
-
 	/* Record the file length here. We use this to stop ourselves mapping
 	 * things beyond the end of the file in the case that the file has
 	 * been truncated.
@@ -240,39 +243,73 @@ typedef struct _VipsImage {
 	 */
 	gboolean hint_set;
 
-	/* Post-close callbacks happen on finalize. Eg. deleting the file
-	 * associated with this temp image.
-	 */
-	GSList *postclosefns; 	
-
-	/* Written callbacks are triggered when an image has been written to. 
-	 * Used by eg. im_open("x.jpg", "w") to do the final write to jpeg.
-	 */
-	GSList *writtenfns; 	
 } VipsImage;
 
-extern const size_t im__sizeof_bandfmt[];
+typedef struct _VipsImageClass {
+	VipsObjectClass parent_class;
+
+	/* Signals we emit.
+	 */
+
+	/* Evaluation is starting.
+	 */
+	int (*evalstart)( VipsImage *image );
+
+	/* Evaluation progress.
+	 */
+	int (*eval)( VipsImage *image, VipsProgress *progress );
+
+	/* Evaluation is ending.
+	 */
+	int (*evalend)( VipsImage *image );
+
+	/* Just before image close, everything is still alive.
+	 */
+	int (*preclose)( VipsImage *image );
+
+	/* Image close, time to free stuff.
+	 */
+	int (*preclose)( VipsImage *image );
+
+	/* Post-close, everything is dead, except the VipsImage pointer.
+	 * Useful for eg. deleting the file associated with a temp image.
+	 */
+	int (*postclose)( VipsImage *image );
+
+	/* An image has been written to. 
+	 * Used by eg. im_open("x.jpg", "w") to do the final write to jpeg.
+	 */
+	int (*written)( VipsImage *image );
+
+	/* An image has been modified in some way and downstream caches all
+	 * need dropping. 
+	 */
+	int (*invalidate)( VipsImage *image );
+
+} VipsImageClass;
+
+extern const size_t vips__sizeof_bandfmt[];
 
 /* Pixel address calculation macros.
  */
-#define IM_IMAGE_SIZEOF_ELEMENT(I) \
-	(im__sizeof_bandfmt[(I)->BandFmt])
-#define IM_IMAGE_SIZEOF_PEL(I) \
-	(IM_IMAGE_SIZEOF_ELEMENT(I) * (I)->Bands)
-#define IM_IMAGE_SIZEOF_LINE(I) \
-	(IM_IMAGE_SIZEOF_PEL(I) * (I)->Xsize)
-#define IM_IMAGE_N_ELEMENTS(I) \
+#define VIPS_IMAGE_SIZEOF_ELEMENT( I ) \
+	(vips__sizeof_bandfmt[(I)->BandFmt])
+#define VIPS_IMAGE_SIZEOF_PEL( I ) \
+	(IM_IMAGE_SIZEOF_ELEMENT( I ) * (I)->Bands)
+#define VIPS_IMAGE_SIZEOF_LINE( I ) \
+	(IM_IMAGE_SIZEOF_PEL( I ) * (I)->Xsize)
+#define VIPS_IMAGE_N_ELEMENTS( I ) \
 	((I)->Bands * (I)->Xsize)
 
 /* If DEBUG is defined, add bounds checking.
  */
 #ifdef DEBUG
-#define IM_IMAGE_ADDR(I,X,Y) \
+#define VIPS_IMAGE_ADDR( I, X, Y ) \
 	( ((X) >= 0 && (X) < (I)->Xsize && \
 	   (Y) >= 0 && (Y) < (I)->Ysize) ? \
 	     ((I)->data + \
-	       (Y) * IM_IMAGE_SIZEOF_LINE(I) + \
-	       (X) * IM_IMAGE_SIZEOF_PEL(I)) : \
+	       (Y) * VIPS_IMAGE_SIZEOF_LINE( I ) + \
+	       (X) * VIPS_IMAGE_SIZEOF_PEL( I )) : \
 	     (fprintf( stderr, \
 		"IM_IMAGE_ADDR: point out of bounds, " \
 		"file \"%s\", line %d\n" \
@@ -286,55 +323,54 @@ extern const size_t im__sizeof_bandfmt[];
 		(I)->Ysize ), abort(), (char *) NULL) \
 	)
 #else /*DEBUG*/
-#define IM_IMAGE_ADDR(I,X,Y) \
+#define VIPS_IMAGE_ADDR( I, X, Y ) \
 	((I)->data + \
-	 (Y) * IM_IMAGE_SIZEOF_LINE(I) + \
-	 (X) * IM_IMAGE_SIZEOF_PEL(I))
+	 (Y) * VIPS_IMAGE_SIZEOF_LINE( I ) + \
+	 (X) * VIPS_IMAGE_SIZEOF_PEL( I ))
 #endif /*DEBUG*/
 
-const char *im_get_argv0( void );
-int im_init_world( const char *argv0 );
-GOptionGroup *im_get_option_group( void );
+const char *vips_get_argv0( void );
+int vips_init_world( const char *argv0 );
+GOptionGroup *vips_get_option_group( void );
 
-const char *im_version_string( void );
-int im_version( int flag );
+const char *vips_version_string( void );
+int vips_version( int flag );
 
-const char *im_guess_prefix( const char *argv0, const char *env_name );
-const char *im_guess_libdir( const char *argv0, const char *env_name );
+const char *vips_guess_prefix( const char *argv0, const char *env_name );
+const char *vips_guess_libdir( const char *argv0, const char *env_name );
 
-VipsImage *im_open( const char *filename, const char *mode );
+VipsImage *vips_open( const char *filename, const char *mode );
 
-#define im_open_local( IM, NAME, MODE ) \
-	((IMAGE *) im_local( (IM), \
-		(im_construct_fn) im_open, (im_callback_fn) im_close, \
+#define vips_open_local( IM, NAME, MODE ) \
+	((IMAGE *) vips_local( (IM), \
+		(vips_construct_fn) im_open, (im_callback_fn) im_close, \
 		(void *) (NAME), (void *) (MODE), NULL ))
-
 
 /* Strange double cast stops bogus warnings from gcc 4.1
  */
-#define im_open_local_array( IM, OUT, N, NAME, MODE ) \
-	(im_local_array( (IM), (void **)((void*)(OUT)), (N),\
+#define vips_open_local_array( IM, OUT, N, NAME, MODE ) \
+	(vips_local_array( (IM), (void **)((void*)(OUT)), (N),\
 		(im_construct_fn) im_open, (im_callback_fn) im_close, \
 		(void *) (NAME), (void *) (MODE), NULL ))
 
-int im_close( VipsImage *im );
+int vips_close( VipsImage *im );
 
-void im_invalidate( VipsImage *im );
+void vips_invalidate( VipsImage *im );
 
-void im_initdesc( VipsImage *image, 
+void vips_initdesc( VipsImage *image, 
 	int xsize, int ysize, int bands, int bandbits, 
 	VipsBandFmt bandfmt, VipsCoding coding, VipsType type, 
 	float xres, float yres,
 	int xo, int yo );
 
-int im_cp_desc( VipsImage *out, VipsImage *in );
-int im_cp_descv( VipsImage *out, VipsImage *in1, ... )
+int vips_cp_desc( VipsImage *out, VipsImage *in );
+int vips_cp_descv( VipsImage *out, VipsImage *in1, ... )
 	__attribute__((sentinel));
-int im_cp_desc_array( VipsImage *out, VipsImage *in[] );
+int vips_cp_desc_array( VipsImage *out, VipsImage *in[] );
 
-VipsImage *im_binfile( const char *name, 
+VipsImage *vips_binfile( const char *name, 
 	int xsize, int ysize, int bands, int offset );
-VipsImage *im_image( void *buffer, 
+VipsImage *vips_image( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFmt bandfmt );
 
 #ifdef __cplusplus
