@@ -1,4 +1,16 @@
 
+- need a way to make the vips.1 etc. man pages
+
+  gtk has things like docs/reference/gtk/gtk-update-icon-cache.xml and man
+  pages are made from that with xslt
+
+- get rid of a lot of the command-line programs, who wants to write a man page
+  for batch_image_convert etc yuk
+
+- can we make man pages for the  API as well? probably not from googling a bit
+
+
+
 - use g_mmap() or whatever it's called ... or perhaps they don't have all
   these options
 
@@ -15,13 +27,6 @@
 
 
 - lab [100,0,0] -> srgb [255, 255, 254]? how odd
-
-- try writing docs for vipsthumbnail with gtkdoc? then try header etc.
-
-  how does gtk do the docs for it's various command-line progs? should be easy
-  to find with grep
-
-  we need to have a separate docs package for the tools/ dir
 
 
 
