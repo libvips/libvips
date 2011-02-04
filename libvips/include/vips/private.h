@@ -61,15 +61,15 @@ typedef unsigned char PEL;			/* useful datum		*/
  * does not imply that any fields in IMAGE have valid data.
  */
 typedef enum {
-	IM_NONE,		/* no type set */
-	IM_SETBUF,		/* malloced memory array */
-	IM_SETBUF_FOREIGN,	/* memory array, don't free on close */
-	IM_OPENIN,		/* input from fd with a window */
-	IM_MMAPIN,		/* memory mapped input file */
-	IM_MMAPINRW,		/* memory mapped read/write file */
-	IM_OPENOUT,		/* output to fd */
-	IM_PARTIAL		/* partial image */
-} im_desc_type;
+	VIPS_IMAGE_NONE,		/* no type set */
+	VIPS_IMAGE_SETBUF,		/* malloced memory array */
+	VIPS_IMAGE_SETBUF_FOREIGN,	/* memory array, don't free on close */
+	VIPS_IMAGE_OPENIN,		/* input from fd with a window */
+	VIPS_IMAGE_MMAPIN,		/* memory mapped input file */
+	VIPS_IMAGE_MMAPINRW,		/* memory mapped read/write file */
+	VIPS_IMAGE_OPENOUT,		/* output to fd */
+	VIPS_IMAGE_PARTIAL		/* partial image */
+} VipsImageType;
 
 /* What we track for each mmap window. Have a list of these on an openin
  * IMAGE.

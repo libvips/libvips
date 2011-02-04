@@ -74,19 +74,19 @@ typedef enum {
 } VipsType;
 
 typedef enum {
-	VIPS_BANDFMT_NOTSET = -1,
-	VIPS_BANDFMT_UCHAR = 0,
-	VIPS_BANDFMT_CHAR = 1,
-	VIPS_BANDFMT_USHORT = 2,
-	VIPS_BANDFMT_SHORT = 3,
-	VIPS_BANDFMT_UINT = 4,
-	VIPS_BANDFMT_INT = 5,
-	VIPS_BANDFMT_FLOAT = 6,
-	VIPS_BANDFMT_COMPLEX = 7,
-	VIPS_BANDFMT_DOUBLE = 8,
-	VIPS_BANDFMT_DPCOMPLEX = 9,
-	VIPS_BANDFMT_LAST = 10
-} VipsBandFmt;
+	VIPS_FORMAT_NOTSET = -1,
+	VIPS_FORMAT_UCHAR = 0,
+	VIPS_FORMAT_CHAR = 1,
+	VIPS_FORMAT_USHORT = 2,
+	VIPS_FORMAT_SHORT = 3,
+	VIPS_FORMAT_UINT = 4,
+	VIPS_FORMAT_INT = 5,
+	VIPS_FORMAT_FLOAT = 6,
+	VIPS_FORMAT_COMPLEX = 7,
+	VIPS_FORMAT_DOUBLE = 8,
+	VIPS_FORMAT_DPCOMPLEX = 9,
+	VIPS_FORMAT_LAST = 10
+} VipsFormat;
 
 typedef enum {
 	VIPS_CODING_NONE = 0,
@@ -138,7 +138,7 @@ typedef struct _VipsImage {
 	int Ysize;		/* image height, in pixels */
 	int Bands;		/* number of image bands */
 
-	VipsBandFmt BandFmt;	/* #VipsBandFmt describing the pixel format */
+	VipsFormat BandFmt;	/* #VipsFormat describing the pixel format */
 	VipsCoding Coding;	/* #VipsCoding describing the pixel coding */
 	VipsType Type;		/* #VipsType hinting at pixel interpretation */
 	float Xres;		/* horizontal pixels per millimetre */
@@ -167,13 +167,11 @@ typedef struct _VipsImage {
 	 * VipsImage.
 	 */
 
-	im_desc_type dtype;	/* descriptor type */
+	char *mode;		/* mode string passed to _new() */
+	VipsImageType dtype;	/* descriptor type */
 	int fd;         	/* file descriptor */
 	char *baseaddr;     	/* pointer to the start of an mmap file */
 	size_t length;		/* size of mmap area */
-	GSList *closefns; 	/* list of close callbacks */
-	GSList *evalfns; 	/* list of eval callbacks */
-	GSList *evalendfns; 	/* list of eval end callbacks */
 	guint32 magic;		/* magic from header, endian-ness of image */
 
 	/* Partial image stuff. All private! All these fields are initialised 
@@ -191,7 +189,7 @@ typedef struct _VipsImage {
 	/* Extra user-defined fields ... see im_meta_get_int() etc.
 	 */
 	GHashTable *Meta;	/* GhashTable of GValue */
-	GSList *Meta_traverse;	/* Traverse order for Meta */
+	GSList *Meta_traverse;	/* traverse order for Meta */
 
 	/* Part of mmap() read ... the sizeof() the header we skip from the
 	 * file start. Usually IM_SIZEOF_HEADER, but can be something else
@@ -301,9 +299,9 @@ extern const size_t vips__sizeof_bandfmt[];
 #define VIPS_IMAGE_N_ELEMENTS( I ) \
 	((I)->Bands * (I)->Xsize)
 
-/* If DEBUG is defined, add bounds checking.
+/* If VIPS_DEBUG is defined, add bounds checking.
  */
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 #define VIPS_IMAGE_ADDR( I, X, Y ) \
 	( ((X) >= 0 && (X) < (I)->Xsize && \
 	   (Y) >= 0 && (Y) < (I)->Ysize) ? \
@@ -322,12 +320,26 @@ extern const size_t vips__sizeof_bandfmt[];
 		(I)->Xsize, \
 		(I)->Ysize ), abort(), (char *) NULL) \
 	)
-#else /*DEBUG*/
+#else /*!VIPS_DEBUG*/
 #define VIPS_IMAGE_ADDR( I, X, Y ) \
 	((I)->data + \
 	 (Y) * VIPS_IMAGE_SIZEOF_LINE( I ) + \
 	 (X) * VIPS_IMAGE_SIZEOF_PEL( I ))
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG*/
+
+int vips_image_get_width( VipsImage *image );
+int vips_image_get_height( VipsImage *image );
+int vips_image_get_bands( VipsImage *image );
+VipsFormat vips_image_get_format( VipsImage *image );
+VipsCoding vips_image_get_coding( VipsImage *image );
+VipsType vips_image_get_type( VipsImage *image );
+VipsType vips_image_get_xres( VipsImage *image );
+VipsType vips_image_get_yres( VipsImage *image );
+VipsType vips_image_get_xoffset( VipsImage *image );
+VipsType vips_image_get_yoffset( VipsImage *image );
+
+
+
 
 const char *vips_get_argv0( void );
 int vips_init_world( const char *argv0 );
@@ -359,7 +371,7 @@ void vips_invalidate( VipsImage *im );
 
 void vips_initdesc( VipsImage *image, 
 	int xsize, int ysize, int bands, int bandbits, 
-	VipsBandFmt bandfmt, VipsCoding coding, VipsType type, 
+	VipsFormat format, VipsCoding coding, VipsType type, 
 	float xres, float yres,
 	int xo, int yo );
 
@@ -371,7 +383,7 @@ int vips_cp_desc_array( VipsImage *out, VipsImage *in[] );
 VipsImage *vips_binfile( const char *name, 
 	int xsize, int ysize, int bands, int offset );
 VipsImage *vips_image( void *buffer, 
-	int xsize, int ysize, int bands, VipsBandFmt bandfmt );
+	int xsize, int ysize, int bands, VipsFormat bandfmt );
 
 #ifdef __cplusplus
 }
