@@ -527,6 +527,43 @@ vips_image_build( VipsObject *object )
 }
 
 static void
+vips_image_info( VipsObject *object, VipsBuf *buf )
+{
+	VipsImage *image = VIPS_IMAGE( object );
+
+	vips_buf_appendf( buf, "image->dtype = %d\n", image->dtype ); 
+	vips_buf_appendf( buf, "image->demand = %s\n", 
+		ENUM_STRING( VIPS_TYPE_DEMAND, image->demand ) );
+	vips_buf_appendf( buf, "image->magic = 0x%x\n", image->magic );
+	vips_buf_appendf( buf, "image->fd = %d\n", image->fd );
+	vips_buf_appendf( buf, "image->baseaddr = %p\n", image->baseaddr );
+	vips_buf_appendf( buf, "image->length = %#" 
+		G_GSIZE_MODIFIER "x\n", image->length );
+	vips_buf_appendf( buf, "image->data = %p\n", image->data );
+	vips_buf_appendf( buf, "image->sizeof_header = %d\n", 
+		image->sizeof_header );
+
+	VIPS_OBJECT_CLASS( parent_class )->info( object, buf );
+}
+
+static void
+vips_image_generate_caption( VipsObject *object, VipsBuf *buf )
+{
+	VipsImage *image = VIPS_IMAGE( object );
+
+	vips_buf_appendf( buf, 
+		ngettext( 
+			"%dx%d %s, %d band, %s", 
+			"%dx%d %s, %d bands, %s", image->bands ),
+		vips_image_get_width( image ),
+		vips_image_get_height( image ),
+		ENUM_NICK( VIPS_TYPE_FORMAT, vips_image_get_format( image ) ),
+		vips_image_get_bands( image ),
+		ENUM_NICK( VIPS_TYPE_TYPE, 
+			vips_image_get_type( image ) ) );
+}
+
+static void
 vips_image_class_init( VipsImageClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
