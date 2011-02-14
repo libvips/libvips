@@ -1,7 +1,7 @@
-VIPS 
-====
+libvips 
+=======
 
-VIPS is an image processing library. It's good for large images and for
+libvips is an image processing library. It's good for large images and for
 colour. There's a GUI as well, see the VIPS website:
 
 	http://www.vips.ecs.soton.ac.uk
@@ -9,10 +9,10 @@ colour. There's a GUI as well, see the VIPS website:
 There are packages for most unix-like operating systems, and binaries for
 Windows and OS X.
 
-Building VIPS from source
-=========================
+Building libvips from source
+============================
 
-In the VIPS directory, you should just be able to do:
+In the libvips directory, you should just be able to do:
 
 	$ ./configure
 	$ make
@@ -22,24 +22,24 @@ By default this will install files to /usr/local.
 
 If you have problems, read on.
 
-Building VIPS on win32
-----------------------
+Building libvips on win32
+-------------------------
 
 	http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_windows
 
-Building VIPS on OS X
----------------------
+Building libvips on OS X
+------------------------
 
 	http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_OS_X
 
-Building VIPS from SVN
-----------------------
+Building libvips from GIT
+-------------------------
 
 Checkout the latest sources with:
 
-	svn co https://vips.svn.sourceforge.net/svnroot/vips/vips7
+	git clone git://github.com/jcupitt/libvips.git
 
-Then:
+Then for a debug build:
 
 	$ ./bootstrap.sh
 	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" ./configure --prefix=/home/john/vips --enable-gtk-doc
@@ -49,21 +49,21 @@ Then:
 Dependencies
 ============
 
-VIPS has to have gettext, glib-2.x and libxml-2.0. The build system needs 
+libvips has to have gettext, glib-2.x and libxml-2.0. The build system needs 
 pkg-config and gnu make.
 
 Optional dependencies
 ---------------------
 
-Optional support libraries ... also try ./configure --help to see flags for
-controlling these libs. By default, if suitable versions are found, VIPS will
-build support for them automatically.
+If suitable versions are found, libvips will add support for these
+libraries automatically. See "./configure --help" for a set of flags to
+control library detection. Packages are generally found with pkg-config,
+so make sure that is working.
 
-VIPS looks for stuff with pkg-config, so make sure pkg-config can find these
-extra libraries. libtiff and libjpeg do not generally use pkg-config, so 
-VIPS looks for them in the default path and in $prefix. If you have installed
-your own versions of these libraries in a different location, vips will not see
-them. Use switches to VIPS configure like:
+libtiff and libjpeg do not usually use pkg-config so libvips looks for
+them in the default path and in $prefix. If you have installed your own
+versions of these libraries in a different location, libvips will not see
+them. Use switches to libvips configure like:
 
 	./configure --prefix=/Users/john/vips \
 		--with-tiff-includes=/opt/local/include \
@@ -77,52 +77,53 @@ or perhaps:
 		CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
 		./configure --without-python --prefix=/Users/john/vips 
 
-to get VIPS to see your builds.
+to get libvips to see your builds.
 
 libjpeg
-	The IJG JPEG library. We use 6b, but 6a works too.
+	The IJG JPEG library. 
 
 libexif
-	if available, VIPS adds support for EXIF metadata in JPEG files
+	if available, libvips adds support for EXIF metadata in JPEG files
 
 libtiff
 	The TIFF library. It needs to be built with support for JPEG and
 	ZIP compression. 3.4b037 and later are known to be OK. 
-	You'll need libz for this too. We use 1.1.3, others should work. 
 
 libz
 	If your TIFF library includes ZIP compression, you'll need this too.
 
 videodev.h
-	If VIPS finds linux/videodev.h, you get support for Linux video 
+	If libvips finds linux/videodev.h, you get support for Linux video 
 	grabbing.
 
 fftw3
-	If VIPS finds this library, it uses it for fourier transforms. It can
-	also use fftw2, but 3 is faster and more accurate.
+	If libvips finds this library, it uses it for fourier transforms. It
+	can also use fftw2, but 3 is faster and more accurate.
 
- 	If the library is not found, VIPS falls back to it's own internal FFT
-	routines which are slower and less accurate.
+	If the library is not found, libvips falls back to it's own internal
+	FFT routines which are slower and less accurate.
 
 lcms2
 lcms
 	If present, im_icc_import(), _export() and _transform() are available
-	for transforming images with ICC profiles. If lcms2 is available, it
-	is used in preference to lcms.
+	for transforming images with ICC profiles. If lcms2 is available,
+	it is used in preference to lcms.
 
 large files
-	VIPS uses the standard autoconf tests to work out how to support large
-	files (>2GB) on your system. Any reasonably recent *nix should be OK.
+	libvips uses the standard autoconf tests to work out how to support
+	large files (>2GB) on your system. Any reasonably recent *nix should
+	be OK.
 
 libpng
-	if present, VIPS can load and save png files. Version 1.2+ preferred.
+	if present, libvips can load and save png files. 
 
 libMagick, or optionally GraphicsMagick
-	if available, VIPS adds support for loading all libMagick supported
-	image file types (about 80 different formats). No saving though.
+	if available, libvips adds support for loading all libMagick supported
+	image file types (about 80 different formats). Use
+	--with-magickpackage to build against graphicsmagick instead.
 
 pangoft2
-	if available, VIPS adds support for text rendering. You need the
+	if available, libvips adds support for text rendering. You need the
 	package pangoft2 in "pkg-config --list-all"
 
 orc-0.4
@@ -136,8 +137,8 @@ cfitsio
 	if available, vips can load FITS images
 
 OpenEXR
-	if available, VIPS will directly read (but not write, sadly) OpenEXR 
-	images
+	if available, libvips will directly read (but not write, sadly)
+	OpenEXR images
 
 swig
 python
