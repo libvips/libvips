@@ -1,19 +1,7 @@
 /* vips image class
  * 
- * 22/5/08
- * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c,
- * 	  im_openout.c
- * 19/3/09
- *	- block mmaps of nodata images
- * 12/5/09
- *	- fix signed/unsigned warnings
- * 12/10/09
- *	- heh argh reading history always stopped after the first line
- * 9/12/09
- * 	- only wholly map input files on im_incheck() ... this reduces VM use,
- * 	  especially with large numbers of small files
  * 4/2/11
- * 	- from im_open_vips.c
+ * 	- hacked up from various places
  */
 
 /*
@@ -317,40 +305,6 @@
  * Returns: a new #VipsImage, or %NULL on error
  */
 
-/* Try to make an O_BINARY ... sometimes need the leading '_'.
- */
-#ifdef BINARY_OPEN
-#ifndef O_BINARY
-#ifdef _O_BINARY
-#define O_BINARY _O_BINARY
-#endif /*_O_BINARY*/
-#endif /*!O_BINARY*/
-#endif /*BINARY_OPEN*/
-
-/* If we have O_BINARY, add it to a mode flags set.
- */
-#ifdef O_BINARY
-#define BINARYIZE(M) ((M) | O_BINARY)
-#else /*!O_BINARY*/
-#define BINARYIZE(M) (M)
-#endif /*O_BINARY*/
-
-/* Open mode for image write ... on some systems, have to set BINARY too.
- */
-#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
-
-/* Mode for read/write. This is if we might later want to mmaprw () the file.
- */
-#define MODE_READWRITE BINARYIZE (O_RDWR)
-
-/* Mode for read only. This is the fallback if READWRITE fails.
- */
-#define MODE_READONLY BINARYIZE (O_RDONLY)
-
-/* Our XML namespace.
- */
-#define NAMESPACE "http://www.vips.ecs.soton.ac.uk/vips" 
-
 /* Properties.
  */
 enum {
@@ -366,6 +320,26 @@ enum {
 }; 
 
 G_DEFINE_TYPE( VipsImage, vips_image, VIPS_TYPE_OBJECT );
+
+static int
+vips_image_postclose( VipsImage *image )
+{
+	VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
+
+#ifdef DEBUG
+	printf( "vips_image_postclose: " );
+	vips_object_print( object );
+#endif /*DEBUG*/
+
+
+	needs to be a true signal
+
+	finish removing im_close()
+
+
+
+	return( image_class->postclose( image ) );
+}
  
 static void
 vips_image_finalize( GObject *gobject )
@@ -382,7 +356,23 @@ vips_image_finalize( GObject *gobject )
 		image->fd = -1;
 	}
 
-	VIPS_FREEF( g_mutex_free, image->region_lock );
+	VIPS_FREEF( g_mutex_free, image->sslock );
+
+	most of im__close() is below:
+
+		result |= im__trigger_callbacks( im->postclosefns );
+		IM_FREEF( im_slist_free_all, im->postclosefns );
+
+		IM_FREEF( g_mutex_free, im->sslock );
+		IM_FREE( im->filename );
+		IM_FREE( im->Hist );
+		IM_FREEF( im__gslist_gvalue_free, im->history_list );
+		im__meta_destroy( im );
+		im__time_destroy( im );
+
+	g_mutex_lock( im__global_lock );
+	im__open_images = g_slist_remove( im__open_images, im );
+	g_mutex_unlock( im__global_lock );
 
 	G_OBJECT_CLASS( vips_image_parent_class )->finalize( gobject );
 }
@@ -483,19 +473,17 @@ vips_image_build( VipsObject *object )
 					return( -1 );
 			}
 			else {
-				if( !(im = im_open( filename, "p" )) )
+				image->dtype = VIPS_IMAGE_TYPE_PARTIAL;
+				if( vips_attach_save( image, 
+					format->save, filename ) ) 
 					return( -1 );
-				if( attach_sb( im, format->save, filename ) ) {
-					im_close( im );
-					return( -1 );
-				}
 			}
 		}
 		else {
 			char suffix[FILENAME_MAX];
 
 			im_filename_suffix( filename, suffix );
-			im_error( "im_open", 
+			im_error( "vips_image_build", 
 				_( "unsupported filetype \"%s\"" ), 
 				suffix );
 
@@ -533,7 +521,7 @@ vips_image_info( VipsObject *object, VipsBuf *buf )
 
 	vips_buf_appendf( buf, "image->dtype = %d\n", image->dtype ); 
 	vips_buf_appendf( buf, "image->demand = %s\n", 
-		ENUM_STRING( VIPS_TYPE_DEMAND, image->demand ) );
+		VIPS_ENUM_STRING( VIPS_TYPE_DEMAND, image->demand ) );
 	vips_buf_appendf( buf, "image->magic = 0x%x\n", image->magic );
 	vips_buf_appendf( buf, "image->fd = %d\n", image->fd );
 	vips_buf_appendf( buf, "image->baseaddr = %p\n", image->baseaddr );
@@ -557,9 +545,10 @@ vips_image_generate_caption( VipsObject *object, VipsBuf *buf )
 			"%dx%d %s, %d bands, %s", image->bands ),
 		vips_image_get_width( image ),
 		vips_image_get_height( image ),
-		ENUM_NICK( VIPS_TYPE_FORMAT, vips_image_get_format( image ) ),
+		VIPS_ENUM_NICK( VIPS_TYPE_FORMAT, 
+			vips_image_get_format( image ) ),
 		vips_image_get_bands( image ),
-		ENUM_NICK( VIPS_TYPE_TYPE, 
+		VIPS_ENUM_NICK( VIPS_TYPE_TYPE, 
 			vips_image_get_type( image ) ) );
 }
 
@@ -570,6 +559,13 @@ vips_image_class_init( VipsImageClass *class )
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 	GParamSpec *pspec;
 	int i;
+
+	/* Pass in a nonsense name for argv0 ... this init world is only here
+	 * for old programs which are missing an im_init_world() call. We must
+	 * have threads set up before we can process.
+	 */
+	if( im_init_world( "vips" ) )
+		im_error_clear();
 
 	gobject_class->finalize = vips_image_finalize;
 #ifdef VIPS_DEBUG
@@ -589,7 +585,7 @@ vips_image_class_init( VipsImageClass *class )
 	/* Create properties.
 	 */
 	pspec = g_param_spec_int( "width", "Width",
-		"Image width in pixels",
+		_( "Image width in pixels" ),
 		0, 1000000, 0,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_WIDTH, pspec );
@@ -598,7 +594,7 @@ vips_image_class_init( VipsImageClass *class )
 		G_STRUCT_OFFSET( VipsImage, Xsize ) );
 
 	pspec = g_param_spec_int( "height", "Height",
-		"Image height in pixels",
+		_( "Image height in pixels" ),
 		0, 1000000, 0,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_HEIGHT, pspec );
@@ -607,7 +603,7 @@ vips_image_class_init( VipsImageClass *class )
 		G_STRUCT_OFFSET( VipsImage, Ysize ) );
 
 	pspec = g_param_spec_int( "bands", "Bands",
-		"Number of bands in image",
+		_( "Number of bands in image" ),
 		0, 1000000, 0, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_BANDS, pspec );
@@ -616,7 +612,7 @@ vips_image_class_init( VipsImageClass *class )
 		G_STRUCT_OFFSET( VipsImage, Bands ) );
 
 	pspec = g_param_spec_enum( "format", "Format",
-		"Pixel format in image",
+		_( "Pixel format in image" ),
 		VIPS_TYPE_FORMAT, VIPS_FORMAT_UNSIGNED8, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_FORMAT, pspec );
@@ -625,7 +621,7 @@ vips_image_class_init( VipsImageClass *class )
 		G_STRUCT_OFFSET( VipsImage, BandFmt ) );
 
 	pspec = g_param_spec_string( "filename", "Filename",
-		"Image filename",
+		_( "Image filename" ),
 		NULL, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_FILENAME, pspec );
@@ -634,7 +630,7 @@ vips_image_class_init( VipsImageClass *class )
 		G_STRUCT_OFFSET( VipsImage, filename ) );
 
 	pspec = g_param_spec_string( "mode", "Mode",
-		"Open mode",
+		_( "Open mode" ),
 		"p", 			/* Default to partial */
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_MODE, pspec );
@@ -643,7 +639,7 @@ vips_image_class_init( VipsImageClass *class )
 		G_STRUCT_OFFSET( VipsImage, mode ) );
 
 	pspec = g_param_spec_boolean("kill", "Kill",
-		"Kill evaluation on this image",
+		_( "Block evaluation on this image" ),
 		FALSE, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_KILL, pspec );
@@ -652,7 +648,7 @@ vips_image_class_init( VipsImageClass *class )
 		G_STRUCT_OFFSET( VipsImage, kill ) );
 
 	pspec = g_param_spec_enum( "demand", "Demand",
-		"Preferred demand style for this image",
+		_( "Preferred demand style for this image" ),
 		VIPS_TYPE_DEMAND, VIPS_DEMAND_SMALLTILE,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_DEMAND, pspec );
@@ -668,9 +664,17 @@ vips_image_init( VipsImage *image )
 	 * by property system.
 	 */
 
+	/* Default to native order.
+	 */
+	image->magic = im_amiMSBfirst() ?  IM_MAGIC_SPARC : IM_MAGIC_INTEL;
+
 	image->fd = -1;			/* since 0 is stdout */
         image->sizeof_header = VIPS_SIZEOF_HEADER;
-	image->region_lock = g_mutex_new ();
+	image->sslock = g_mutex_new ();
+
+	g_mutex_lock( im__global_lock );
+	im__open_images = g_slist_prepend( im__open_images, image );
+	g_mutex_unlock( im__global_lock );
 }
 
 /* Set of access functions.
@@ -735,26 +739,3 @@ vips_image_get_yoffset( VipsImage *image )
 {
 	return( image->Yoffset );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

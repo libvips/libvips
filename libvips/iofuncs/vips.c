@@ -1,4 +1,4 @@
-/* Read and write a VIPS file into an IMAGE *
+/* Read and write a vips file 
  * 
  * 22/5/08
  * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c,
@@ -12,6 +12,9 @@
  * 9/12/09
  * 	- only wholly map input files on im_incheck() ... this reduces VM use,
  * 	  especially with large numbers of small files
+ * 14/2/11
+ * 	- renamed to vips.c from im_open_vips.c, some stuff chopped out for 
+ * 	  image.c ... this file now just does read / write to disc
  */
 
 /*
@@ -85,243 +88,6 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/**
- * SECTION: image
- * @short_description: the VIPS image class
- * @stability: Stable
- * @see_also: <link linkend="libvips-region">region</link>
- * @include: vips/vips.h
- *
- * The VIPS image class and associated types and macros.
- */
-
-/**
- * IM_MAGIC_INTEL:
- *
- * The first four bytes of a VIPS file in Intel byte ordering.
- */
-
-/**
- * IM_MAGIC_SPARC:
- *
- * The first four bytes of a VIPS file in SPARC byte ordering.
- */
-
-/** 
- * VipsDemandStyle:
- * @IM_SMALLTILE: demand in small (typically 64x64 pixel) tiles
- * @IM_FATSTRIP: demand in fat (typically 10 pixel high) strips
- * @IM_THINSTRIP: demand in thin (typically 1 pixel high) strips
- * @IM_ANY: demand geometry does not matter
- *
- * See im_demand_hint(). Operations can hint to the VIPS image IO system about
- * the kind of demand geometry they prefer. 
- *
- * These demand styles are given below in order of increasing
- * restrictiveness.  When demanding output from a pipeline, im_generate()
- * will use the most restrictive of the styles requested by the operations 
- * in the pipeline.
- *
- * IM_THINSTRIP --- This operation would like to output strips the width 
- * of the image and a few pels high. This is option suitable for 
- * point-to-point operations, such as those in the arithmetic package.
- *
- * This option is only efficient for cases where each output pel depends 
- * upon the pel in the corresponding position in the input image.
- *
- * IM_FATSTRIP --- This operation would like to output strips the width 
- * of the image and as high as possible. This option is suitable for area 
- * operations which do not violently transform coordinates, such as im_conv(). 
- *
- * IM_SMALLTILE --- This is the most general demand format.
- * Output is demanded in small (around 100x100 pel) sections. This style works 
- * reasonably efficiently, even for bizzare operations like 45 degree rotate.
- *
- * IM_ANY --- This image is not being demand-read from a disc file (even 
- * indirectly) so any demand style is OK. It's used for things like
- * im_black() where the pixels are calculated.
- *
- * See also: im_demand_hint().
- */
-
-/**
- * VipsType: 
- * @IM_TYPE_MULTIBAND: generic many-band image
- * @IM_TYPE_B_W: some kind of single-band image
- * @IM_TYPE_HISTOGRAM: a 1D image such as a histogram or lookup table
- * @IM_TYPE_FOURIER: image is in fourier space
- * @IM_TYPE_XYZ: the first three bands are colours in CIE XYZ colourspace
- * @IM_TYPE_LAB: pixels are in CIE Lab space
- * @IM_TYPE_CMYK: the first four bands are in CMYK space
- * @IM_TYPE_LABQ: implies %IM_CODING_LABQ
- * @IM_TYPE_RGB: generic RGB space
- * @IM_TYPE_UCS: a uniform colourspace based on CMC
- * @IM_TYPE_LCH: pixels are in CIE LCh space
- * @IM_TYPE_LABS: pixels are CIE LAB coded as three signed 16-bit values
- * @IM_TYPE_sRGB: pixels are sRGB
- * @IM_TYPE_YXY: pixels are CIE Yxy
- * @IM_TYPE_RGB16: generic 16-bit RGB
- * @IM_TYPE_GREY16: generic 16-bit mono
- *
- * These values are set by operations as hints to user-interfaces built on top 
- * of VIPS to help them show images to the user in a meaningful way. 
- * Operations do not use these values to decide their action.
- */
-
-/**
- * VipsBandFmt: 
- * @IM_BANDFMT_NOTSET: invalid setting
- * @IM_BANDFMT_UCHAR: unsigned char format
- * @IM_BANDFMT_CHAR: char format
- * @IM_BANDFMT_USHORT: unsigned short format
- * @IM_BANDFMT_SHORT: short format
- * @IM_BANDFMT_UINT: unsigned int format
- * @IM_BANDFMT_INT: int format
- * @IM_BANDFMT_FLOAT: float format
- * @IM_BANDFMT_COMPLEX: complex (two floats) format
- * @IM_BANDFMT_DOUBLE: double float format
- * @IM_BANDFMT_DPCOMPLEX: double complex (two double) format
- *
- * The format used for each band element. 
- *
- * Each corresponnds to a native C type for the current machine. For example,
- * %IM_BANDFMT_USHORT is <type>unsigned short</type>.
- */
-
-/**
- * VipsCoding: 
- * @IM_CODING_NONE: pixels are not coded
- * @IM_CODING_LABQ: pixels encode 3 float CIELAB values as 4 uchar
- * @IM_CODING_RAD: pixels encode 3 float RGB as 4 uchar (Radiance coding)
- *
- * How pixels are coded. 
- *
- * Normally, pixels are uncoded and can be manipulated as you would expect.
- * However some file formats code pixels for compression, and sometimes it's
- * useful to be able to manipulate images in the coded format.
- */
-
-/** 
- * VipsProgress:
- * @run: Time we have been running 
- * @eta: Estimated seconds of computation left 
- * @tpels: Number of pels we expect to calculate
- * @npels: Number of pels calculated so far
- * @percent: Percent complete
- * @start: Start time 
- *
- * A structure available to eval callbacks giving information on evaluation
- * progress. See im_add_eval_callback().
- */
-
-/**
- * VipsImage:
- * @Xsize: image width, in pixels
- * @Ysize: image height, in pixels
- * @Bands: number of image bands
- * @BandFmt: #VipsFormat describing the pixel type
- * @Coding: #VipsCoding describing the pixel coding type
- * @Type: a #VipsType hinting how the image pixels should be interpreted
- * @Xres: horizontal pixels per millimetre
- * @Yres: vertical pixels per millimetre
- * @Xoffset: a hint giving the position of the origin in the image
- * @Yoffset: a hint giving the position of the origin in the image
- * @filename: the disc file associated with this image, or %NULL
- * @data: the pixel data associated with this image, or %NULL
- * @time: the evaluation progress associated with this image, or %NULL
- * @kill: set this to non-zero to block evaluation of this image
- *
- * An image. These can represent an image on disc, a memory buffer, an image
- * in the process of being written to disc or a partially evaluated image
- * in memory.
- */
-
-/**
- * IM_IMAGE_SIZEOF_ELEMENT:
- * @I: a #VipsImage
- *
- * Returns: sizeof() a band element.
- */
-
-/**
- * IM_IMAGE_SIZEOF_PEL:
- * @I: a #VipsImage
- *
- * Returns: sizeof() a pixel.
- */
-
-/**
- * IM_IMAGE_SIZEOF_LINE:
- * @I: a #VipsImage
- *
- * Returns: sizeof() a scanline of pixels.
- */
-
-/**
- * IM_IMAGE_N_ELEMENTS:
- * @I: a #VipsImage
- *
- * Returns: The number of band elements in a scanline.
- */
-
-/**
- * IM_IMAGE_ADDR:
- * @I: a #VipsImage
- * @X: x coordinate
- * @Y: y coordinate
- *
- * This macro returns a pointer to a pixel in an image. It only works for
- * images which are fully available in memory, so memory buffers and small
- * mapped images only.
- * 
- * If DEBUG is defined, you get a version that checks bounds for you.
- *
- * Returns: The address of pixel (x,y) in the image.
- */
-
-/** 
- * im_open_local_array:
- * @IM: image to open local to
- * @OUT: array to fill with #IMAGE
- * @N: array size
- * @NAME: filename to open
- * @MODE: mode to open with
- *
- * Just like im_open(), but opens an array of images. Handy for creating a set
- * of temporary images for a function.
- *
- * Example:
- *
- * |[
- * IMAGE *t[5];
- *
- * if( im_open_local_array( out, t, 5, "some-temps", "p" ) ||
- *   im_add( a, b, t[0] ) ||
- *   im_invert( t[0], t[1] ) ||
- *   im_add( t[1], t[0], t[2] ) ||
- *   im_costra( t[2], out ) )
- *   return( -1 );
- * ]|
- *
- * See also: im_open(), im_open_local(), im_local_array().
- *
- * Returns: 0 on sucess, or -1 on error
- */
-
-/**
- * im_open_local:
- * @IM: image to open local to
- * @NAME: filename to open
- * @MODE: mode to open with
- *
- * Just like im_open(), but the #IMAGE will be closed for you automatically
- * when @IM is closed.
- *
- * See also: im_open(), im_close(), im_local().
- *
- * Returns: a new #IMAGE, or NULL on error
- */
-
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
 #ifdef BINARY_OPEN
@@ -331,6 +97,26 @@
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
 #endif /*BINARY_OPEN*/
+
+/* If we have O_BINARY, add it to a mode flags set.
+ */
+#ifdef O_BINARY
+#define BINARYIZE(M) ((M) | O_BINARY)
+#else /*!O_BINARY*/
+#define BINARYIZE(M) (M)
+#endif /*O_BINARY*/
+
+/* Open mode for image write ... on some systems, have to set BINARY too.
+ */
+#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
+
+/* Mode for read/write. This is if we might later want to mmaprw () the file.
+ */
+#define MODE_READWRITE BINARYIZE (O_RDWR)
+
+/* Mode for read only. This is the fallback if READWRITE fails.
+ */
+#define MODE_READONLY BINARYIZE (O_RDONLY)
 
 /* Our XML namespace.
  */
@@ -347,18 +133,10 @@ im__open_image_file( const char *filename )
 	 * When we later mmap this file, we set read-only, so there 
 	 * is little danger of scrubbing over files we own.
 	 */
-#ifdef BINARY_OPEN
-	if( (fd = open( filename, O_RDWR | O_BINARY )) == -1 ) {
-#else /*BINARY_OPEN*/
-	if( (fd = open( filename, O_RDWR )) == -1 ) {
-#endif /*BINARY_OPEN*/
+	if( (fd = open( filename, MODE_READWRITE )) == -1 ) {
 		/* Open read-write failed. Fall back to open read-only.
 		 */
-#ifdef BINARY_OPEN
-		if( (fd = open( filename, O_RDONLY | O_BINARY )) == -1 ) {
-#else /*BINARY_OPEN*/
-		if( (fd = open( filename, O_RDONLY )) == -1 ) {
-#endif /*BINARY_OPEN*/
+		if( (fd = open( filename, MODE_READONLY )) == -1 ) {
 			im_error( "im__open_image_file", 
 				_( "unable to open \"%s\", %s" ),
 				filename, strerror( errno ) );
@@ -1123,7 +901,7 @@ im__writehist( IMAGE *im )
 /* Open the filename, read the header, some sanity checking.
  */
 int
-im_openin( IMAGE *image )
+vips_open_input( VipsImage *image )
 {
 	/* We don't use im->sizeof_header here, but we know we're reading a
 	 * VIPS image anyway.
@@ -1138,7 +916,7 @@ im_openin( IMAGE *image )
 		return( -1 );
 	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
 		im__read_header_bytes( image, header ) ) {
-		im_error( "im__read_header", 
+		im_error( "vips_open_input", 
 			_( "unable to read header for \"%s\", %s" ),
 			image->filename, strerror( errno ) );
 		return( -1 );
@@ -1151,11 +929,11 @@ im_openin( IMAGE *image )
 		return( -1 );
 	image->file_length = rsize;
 	if( psize > rsize ) 
-		im_warn( "im__read_header", 
+		im_warn( "vips_open_input", 
 			_( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
 
-	/* Set demand style. Allow the most permissive sort.
+	/* Set demand style. This suits a disc file we read sequentially.
 	 */
 	image->dhint = IM_THINSTRIP;
 
@@ -1164,7 +942,7 @@ im_openin( IMAGE *image )
 	 * harmless.
 	 */
 	if( im__readhist( image ) ) {
-		im_warn( "im__read_header", _( "error reading XML: %s" ),
+		im_warn( "vips_open_input", _( "error reading XML: %s" ),
 			im_error_buffer() );
 		im_error_clear();
 	}
@@ -1176,11 +954,10 @@ im_openin( IMAGE *image )
  * im_vips_open() in preference.
  */
 int
-im_openinrw( IMAGE *image )
+vips_open_input_rw( VipsImage *image )
 {
-	if( im_openin( image ) )
-		return( -1 );
-	if( im_mapfilerw( image ) ) 
+	if( vips_open_input( image ) ||
+		im_mapfilerw( image ) ) 
 		return( -1 );
 	image->data = image->baseaddr + image->sizeof_header;
 	image->dtype = IM_MMAPINRW;

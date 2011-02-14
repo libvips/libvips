@@ -42,7 +42,7 @@ typedef struct _VipsObjectClass VipsObjectClass;
 
 /* Flags we associate with each argument.
  */
-typedef enum _VipsArgumentFlags {
+typedef enum {
 	VIPS_ARGUMENT_NONE = 0,
 
 	/* Must be set in the constructor.
@@ -71,7 +71,7 @@ typedef enum _VipsArgumentFlags {
 	 * disconnect the signal.
 	 */
 	VIPS_ARGUMENT_OUTPUT = 16
-} VipsArgumentFlags;
+} VipsArgument;
 
 /* Useful flag combinations. User-visible ones are:
 
@@ -121,7 +121,7 @@ typedef struct _VipsArgumentClass {
 	 */
 	VipsObjectClass *object_class;
 
-	VipsArgumentFlags flags;
+	VipsArgument flags;
 	guint offset;		/* G_STRUCT_OFFSET of member in object */
 } VipsArgumentClass;
 
@@ -232,7 +232,7 @@ void vips_object_print( VipsObject *object );
 GType vips_object_get_type( void );
 
 void vips_object_class_install_argument( VipsObjectClass *,
-	GParamSpec *pspec, VipsArgumentFlags flags, guint offset );
+	GParamSpec *pspec, VipsArgument flags, guint offset );
 
 typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );
 VipsObject *vips_object_new( GType type, 

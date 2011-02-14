@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
+	enumtypes.c \
 	object.c \
 	meta.c \
 	base64.h \
@@ -9,6 +10,8 @@ libiofuncs_la_SOURCES = \
 	debug.c \
 	dispatch_types.c \
 	error.c \
+	image.c \
+	vips.c \
 	im_binfile.c \
 	im_close.c \
 	im_cp_desc.c \
@@ -16,10 +19,8 @@ libiofuncs_la_SOURCES = \
 	im_generate.c \
 	im_histlin.c \
 	im_image.c \
-	init.c \
 	im_mapfile.c \
 	im_open.c \
-	im_open_vips.c \
 	im_partial.c \
 	im_prepare.c \
 	im_setbuf.c \
@@ -49,3 +50,20 @@ libiofuncs_la_SOURCES = \
 	time.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+
+# the headers we scan for enums etc.
+# keep in sync with ../include/vips/Makefile.am
+# we need absolute filenames here since this list appears in the src dir as
+# well
+vips_scan_headers = \
+	${top_srcdir}/libvips/include/vips/memory.h \
+	${top_srcdir}/libvips/include/vips/util.h \
+	${top_srcdir}/libvips/include/vips/buf.h \
+	${top_srcdir}/libvips/include/vips/image.h \
+	${top_srcdir}/libvips/include/vips/object.h
+
+enumtypes.c: $(vips_scan_headers) Makefile
+	glib-mkenums --template enumtemplate \
+		$(vips_scan_headers) > xgen-getc && \
+	( cmp -s xgen-getc enumtypes.c || cp xgen-getc enumtypes.c ) && \
+	rm -f xgen-getc

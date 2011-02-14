@@ -79,13 +79,8 @@ typedef int (*im__fftproc_fn)( IMAGE *, IMAGE *, IMAGE * );
 
 /* iofuncs
  */
-IMAGE *im_init( const char * );
-IMAGE *im_openout( const char * );
-IMAGE *im_open_vips( const char * );
-int im_openin( IMAGE *image );
-int im_openinrw( IMAGE *image );
-IMAGE *im_setbuf( const char * );
-IMAGE *im_partial( const char * );
+int vips_open_input( VipsImage *image );
+int vips_open_input_rw( VipsImage *image );
 
 int im_mapfile( IMAGE * );
 int im_mapfilerw( IMAGE * );

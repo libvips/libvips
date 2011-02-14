@@ -1,4 +1,9 @@
 
+- _build() for "t" / "p" / "w" sould do setupout / generate / etc.?
+
+
+
+
 - need a way to make the vips.1 etc. man pages
 
   gtk has things like docs/reference/gtk/gtk-update-icon-cache.xml and man

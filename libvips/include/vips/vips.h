@@ -121,6 +121,8 @@ extern "C" {
 #include <vips/meta.h>
 #include <vips/header.h>
 
+#include <vips/enumtypes.h>
+
 #include <vips/arithmetic.h>
 #include <vips/boolean.h>
 #include <vips/relational.h>

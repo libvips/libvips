@@ -180,6 +180,13 @@ G_STMT_START { \
 
 #define IM_CLIP_NONE( V, SEQ ) {}
 
+/* Look up the const char * for an enum value.
+ */
+#define VIPS_ENUM_STRING( ENUM, VALUE ) \
+	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_name)
+#define VIPS_ENUM_NICK( ENUM, VALUE ) \
+	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_nick)
+
 typedef void *(*im_construct_fn)( void *, void *, void * );
 
 void *im_local( VipsImage *im, 
