@@ -1,5 +1,5 @@
 
-- _build() for "t" / "p" / "w" sould do setupout / generate / etc.?
+- image.c has far too many includes
 
 
 

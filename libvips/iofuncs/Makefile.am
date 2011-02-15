@@ -13,19 +13,16 @@ libiofuncs_la_SOURCES = \
 	image.c \
 	vips.c \
 	im_binfile.c \
-	im_close.c \
 	im_cp_desc.c \
 	im_demand_hint.c \
 	im_generate.c \
 	im_histlin.c \
 	im_image.c \
 	im_mapfile.c \
-	im_open.c \
 	im_partial.c \
 	im_prepare.c \
 	im_setbuf.c \
 	im_setupout.c \
-	im_unmapfile.c \
 	im_guess_prefix.c \
 	sinkmemory.c \
 	sinkscreen.c \

@@ -241,6 +241,8 @@ VipsObject *vips_object_new( GType type,
 VipsObject *vips_object_new_from_string( const char *base, const char *str );
 void vips_object_to_string( VipsObject *object, VipsBuf *buf );
 
+void *vips_object_map( VSListMap2Fn fn, void *a, void *b );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

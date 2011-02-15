@@ -241,6 +241,11 @@ typedef struct _VipsImage {
 	 */
 	gboolean hint_set;
 
+	/* The pre/post/close callbacks are all fire-once.
+	 */
+	gboolean preclose;
+	gboolean close;
+	gboolean postclose;
 } VipsImage;
 
 typedef struct _VipsImageClass {
@@ -251,33 +256,33 @@ typedef struct _VipsImageClass {
 
 	/* Evaluation is starting.
 	 */
-	int (*evalstart)( VipsImage *image );
+	void (*preeval)( VipsImage *image );
 
 	/* Evaluation progress.
 	 */
-	int (*eval)( VipsImage *image, VipsProgress *progress );
+	void (*eval)( VipsImage *image, VipsProgress *progress );
 
 	/* Evaluation is ending.
 	 */
-	int (*evalend)( VipsImage *image );
+	void (*posteval)( VipsImage *image );
 
 	/* Just before image close, everything is still alive.
 	 */
-	int (*preclose)( VipsImage *image );
+	void (*preclose)( VipsImage *image );
 
 	/* Image close, time to free stuff.
 	 */
-	int (*preclose)( VipsImage *image );
+	void (*close)( VipsImage *image );
 
 	/* Post-close, everything is dead, except the VipsImage pointer.
 	 * Useful for eg. deleting the file associated with a temp image.
 	 */
-	int (*postclose)( VipsImage *image );
+	void (*postclose)( VipsImage *image );
 
 	/* An image has been written to. 
 	 * Used by eg. im_open("x.jpg", "w") to do the final write to jpeg.
 	 */
-	int (*written)( VipsImage *image );
+	void (*written)( VipsImage *image );
 
 	/* An image has been modified in some way and downstream caches all
 	 * need dropping. 
