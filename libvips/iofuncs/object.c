@@ -56,11 +56,67 @@ enum {
 	PROP_LAST
 };
 
+/* Our signals. 
+ */
+enum {
+	SIG_PRECLOSE,		
+	SIG_CLOSE,		
+	SIG_POSTCLOSE,		
+	SIG_LAST
+};
+
 /* Table of all objects, handy for debugging.
  */
 static GHashTable *vips_object_all = NULL;
 
+static guint vips_object_signals[SIG_LAST] = { 0 };
+
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
+
+static int
+vips_object_preclose( VipsObject *object )
+{
+	if( !object->preclose ) {
+		object->preclose = TRUE;
+
+#ifdef DEBUG
+		printf( "vips_object_preclose: " );
+		vips_object_print( object );
+#endif /*DEBUG*/
+
+		g_signal_emit( object, vips_object_signals[SIG_PRECLOSE], 0 );
+	}
+}
+
+static int
+vips_object_close( VipsObject *object )
+{
+	if( !object->close ) {
+		object->close = TRUE;
+
+#ifdef DEBUG
+		printf( "vips_object_close: " );
+		vips_object_print( object );
+#endif /*DEBUG*/
+
+		g_signal_emit( object, vips_object_signals[SIG_CLOSE], 0 );
+	}
+}
+
+static int
+vips_object_postclose( VipsObject *object )
+{
+	if( !object->postclose ) {
+		object->postclose = TRUE;
+
+#ifdef DEBUG
+		printf( "vips_object_postclose: " );
+		vips_object_print( object );
+#endif /*DEBUG*/
+
+		g_signal_emit( object, vips_object_signals[SIG_POSTCLOSE], 0 );
+	}
+}
 
 int
 vips_object_build( VipsObject *object )
@@ -335,6 +391,13 @@ vips_object_dispose( GObject *gobject )
 	vips_object_print( object );
 #endif /*DEBUG*/
 
+	/* Our subclasses should have already called this. Run it again, just
+	 * in case.
+	 */
+	if( !object->preclose )
+		printf( "vips_object_dispose: no vips_object_preclose()\n" );
+	vips_object_preclose( object );
+
 	/* Clear all our arguments: they may be holding refs we should drop.
 	 */
 	vips_argument_map( object, vips_object_dispose_argument, NULL, NULL );
@@ -352,10 +415,14 @@ vips_object_finalize( GObject *gobject )
 	vips_object_print( object );
 #endif /*DEBUG*/
 
+	vips_object_close( object );
+
 	g_hash_table_remove( vips_object_all, object );
 	IM_FREEF( vips_argument_table_destroy, object->argument_table );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->finalize( gobject );
+
+	vips_object_postclose( object );
 }
 
 static void
@@ -761,6 +828,28 @@ vips_object_class_init( VipsObjectClass *object_class )
 	vips_object_class_install_argument( object_class, pspec,
 		VIPS_ARGUMENT_SET_ONCE,
 		G_STRUCT_OFFSET( VipsObject, description ) );
+
+	vips_object_signals[SIG_PRECLOSE] = g_signal_new( "preclose",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET( VipsObjectClass, preclose ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
+	vips_object_signals[SIG_CLOSE] = g_signal_new( "close",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET( VipsObjectClass, close ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
+	vips_object_signals[SIG_POSTCLOSE] = g_signal_new( "postclose",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET( VipsObjectClass, postclose ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
 
 }
 

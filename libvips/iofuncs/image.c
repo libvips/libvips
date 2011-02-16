@@ -42,29 +42,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#ifdef HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif /*HAVE_SYS_FILE_H*/
-#include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
-#ifdef HAVE_IO_H
-#include <io.h>
-#endif /*HAVE_IO_H*/
-#include <libxml/parser.h>
-#include <errno.h>
-
-#ifdef OS_WIN32
-#include <windows.h>
-#endif /*OS_WIN32*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -321,9 +301,6 @@ enum {
 /* Our signals. 
  */
 enum {
-	SIG_PRECLOSE,		
-	SIG_CLOSE,		
-	SIG_POSTCLOSE,		
 	SIG_PREEVAL,		
 	SIG_EVAL,		
 	SIG_POSTEVAL,		
@@ -343,57 +320,6 @@ char *im__disc_threshold = NULL;
 static guint vips_image_signals[SIG_LAST] = { 0 };
 
 G_DEFINE_TYPE( VipsImage, vips_image, VIPS_TYPE_OBJECT );
-
-static int
-vips_image_preclose( VipsImage *image )
-{
-	VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
-
-	if( !image->preclose ) {
-		image->preclose = TRUE;
-
-#ifdef DEBUG
-		printf( "vips_image_preclose: " );
-		vips_object_print( object );
-#endif /*DEBUG*/
-
-		g_signal_emit( image, vips_image_signals[SIG_PRECLOSE], 0 );
-	}
-}
-
-static int
-vips_image_close( VipsImage *image )
-{
-	VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
-
-	if( !image->close ) {
-		image->close = TRUE;
-
-#ifdef DEBUG
-		printf( "vips_image_close: " );
-		vips_object_print( object );
-#endif /*DEBUG*/
-
-		g_signal_emit( image, vips_image_signals[SIG_CLOSE], 0 );
-	}
-}
-
-static int
-vips_image_postclose( VipsImage *image )
-{
-	VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
-
-	if( !image->postclose ) {
-		image->postclose = TRUE;
-
-#ifdef DEBUG
-		printf( "vips_image_postclose: " );
-		vips_object_print( object );
-#endif /*DEBUG*/
-
-		g_signal_emit( image, vips_image_signals[SIG_POSTCLOSE], 0 );
-	}
-}
 
 static void
 vips_image_finalize( GObject *gobject )
@@ -427,7 +353,7 @@ vips_image_finalize( GObject *gobject )
 		/* MMAP file.
 		 */
 #ifdef DEBUG_IO
-		printf( "im__close: unmapping file ..\n" );
+		printf( "vips_image_finalize: unmapping file ..\n" );
 #endif /*DEBUG_IO*/
 
 		im__munmap( image->baseaddr, image->length );
@@ -444,16 +370,16 @@ vips_image_finalize( GObject *gobject )
 	 */
 	if( image->fd != -1 ) {
 #ifdef DEBUG_IO
-		printf( "im__close: closing output file ..\n" );
+		printf( "vips_image_finalize: closing output file ..\n" );
 #endif /*DEBUG_IO*/
 
-		if( image->dtype == IM_OPENOUT )
+		if( image->dtype == VIPS_IMAGE_OPENOUT )
 			(void) im__writehist( image );
-		if( close( im->fd ) == -1 ) 
-			im_error( "im_close", 
+		if( close( image->fd ) == -1 ) 
+			im_error( "vips_image_finalize", 
 				_( "unable to close fd for %s" ), 
 				image->filename );
-		im->fd = -1;
+		image->fd = -1;
 	}
 
 	/* Any image data?
@@ -461,18 +387,16 @@ vips_image_finalize( GObject *gobject )
 	if( image->data ) {
 		/* Buffer image. Only free stuff we know we allocated.
 		 */
-		if( image->dtype == IM_SETBUF ) {
+		if( image->dtype == VIPS_IMAGE_SETBUF ) {
 #ifdef DEBUG_IO
-			printf( "im__close: freeing buffer ..\n" );
+			printf( "vips_image_finalize: freeing buffer ..\n" );
 #endif /*DEBUG_IO*/
 			im_free( image->data );
-			image->dtype = IM_NONE;
+			image->dtype = VIPS_IMAGE_NONE;
 		}
 
 		image->data = NULL;
 	}
-
-	vips_image_close( image );
 
 	VIPS_FREE( image->filename );
 	VIPS_FREE( image->mode );
@@ -483,8 +407,6 @@ vips_image_finalize( GObject *gobject )
 	VIPS_FREEF( im__gslist_gvalue_free, image->history_list );
 	im__meta_destroy( image );
 	im__time_destroy( image );
-
-	vips_image_postclose( image );
 
 	G_OBJECT_CLASS( vips_image_parent_class )->finalize( gobject );
 }
@@ -501,54 +423,22 @@ vips_image_dispose( GObject *gobject )
 }
 
 static void
-vips_image_destroy( VipsObject *object )
-{
-#ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "vips_image_destroy: " );
-	vips_object_print( VIPS_OBJECT( gobject ) );
-#endif /*VIPS_DEBUG*/
-
-	vips_image_preclose( image );
-
-	VIPS_OBJECT_CLASS( vips_image_parent_class )->destroy( object );
-}
-
-static void
-vips_image_info( VipsObject *object, VipsBuf *buf )
-{
-	VipsImage *image = VIPS_IMAGE( object );
-
-	vips_buf_appendf( buf, "image->dtype = %d\n", image->dtype ); 
-	vips_buf_appendf( buf, "image->demand = %s\n", 
-		VIPS_ENUM_STRING( VIPS_TYPE_DEMAND, image->demand ) );
-	vips_buf_appendf( buf, "image->magic = 0x%x\n", image->magic );
-	vips_buf_appendf( buf, "image->fd = %d\n", image->fd );
-	vips_buf_appendf( buf, "image->baseaddr = %p\n", image->baseaddr );
-	vips_buf_appendf( buf, "image->length = %#" 
-		G_GSIZE_MODIFIER "x\n", image->length );
-	vips_buf_appendf( buf, "image->data = %p\n", image->data );
-	vips_buf_appendf( buf, "image->sizeof_header = %d\n", 
-		image->sizeof_header );
-
-	VIPS_OBJECT_CLASS( parent_class )->info( object, buf );
-}
-
-static void
-vips_image_generate_caption( VipsObject *object, VipsBuf *buf )
+vips_image_print( VipsObject *object, VipsBuf *buf )
 {
 	VipsImage *image = VIPS_IMAGE( object );
 
 	vips_buf_appendf( buf, 
 		ngettext( 
 			"%dx%d %s, %d band, %s", 
-			"%dx%d %s, %d bands, %s", image->bands ),
+			"%dx%d %s, %d bands, %s", 
+			vips_image_get_bands( image ) ),
 		vips_image_get_width( image ),
 		vips_image_get_height( image ),
 		VIPS_ENUM_NICK( VIPS_TYPE_FORMAT, 
 			vips_image_get_format( image ) ),
 		vips_image_get_bands( image ),
-		VIPS_ENUM_NICK( VIPS_TYPE_TYPE, 
-			vips_image_get_type( image ) ) );
+		VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
+			vips_image_get_interpretation( image ) ) );
 }
 
 static gboolean
@@ -761,7 +651,7 @@ vips_open_lazy( VipsImage *out,
 	 * to memory, sadly, so we can't suggest ANY.
 	 */
 	if( format->header( out->filename, out ) ||
-		im_demand_hint( out, IM_THINSTRIP, NULL ) )
+		im_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
 	/* Then 'start' creates the real image and 'gen' paints 'out' with 
@@ -980,7 +870,7 @@ vips_image_build( VipsObject *object )
 
         case 't':
 		image->dtype = VIPS_IMAGE_TYPE_SETBUF;
-		image->demand = VIPS_DEMAND_ANY;
+		image->dhint = VIPS_DEMAND_ANY;
                 break;
 
         case 'p':
@@ -1023,9 +913,7 @@ vips_image_class_init( VipsImageClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->destroy = vips_image_destroy;
-	vobject_class->info = vips_image_info;
-	vobject_class->generate_caption = vips_image_generate_caption;
+	vobject_class->print = vips_image_print;
 	vobject_class->copy_attributes = vips_image_copy_attributes;
 	vobject_class->build = vips_image_build;
 
@@ -1101,31 +989,10 @@ vips_image_class_init( VipsImageClass *class )
 	g_object_class_install_property( gobject_class, PROP_DEMAND, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_NONE, 
-		G_STRUCT_OFFSET( VipsImage, demand ) );
+		G_STRUCT_OFFSET( VipsImage, dhint ) );
 
 	/* Create signals.
 	 */
-	vips_image_signals[SIG_PRECLOSE] = g_signal_new( "preclose",
-		G_TYPE_FROM_CLASS( class ),
-		G_SIGNAL_RUN_LAST,
-		G_STRUCT_OFFSET( VipsImageClass, preclose ), 
-		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
-	vips_image_signals[SIG_CLOSE] = g_signal_new( "close",
-		G_TYPE_FROM_CLASS( class ),
-		G_SIGNAL_RUN_LAST,
-		G_STRUCT_OFFSET( VipsImageClass, close ), 
-		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
-	vips_image_signals[SIG_POSTCLOSE] = g_signal_new( "postclose",
-		G_TYPE_FROM_CLASS( class ),
-		G_SIGNAL_RUN_LAST,
-		G_STRUCT_OFFSET( VipsImageClass, postclose ), 
-		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
 
 	vips_image_signals[SIG_PREEVAL] = g_signal_new( "preeval",
 		G_TYPE_FROM_CLASS( class ),
@@ -1167,7 +1034,7 @@ vips_image_init( VipsImage *image )
 
 	/* Default to native order.
 	 */
-	image->magic = im_amiMSBfirst() ?  IM_MAGIC_SPARC : IM_MAGIC_INTEL;
+	image->magic = im_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 
 	image->fd = -1;			/* since 0 is stdout */
         image->sizeof_header = VIPS_SIZEOF_HEADER;

@@ -36,52 +36,52 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_rwcheck( IMAGE *im );
-int im_iocheck( IMAGE *in, IMAGE *out );
-int im_incheck( IMAGE *im );
-int im_outcheck( IMAGE *im );
-int im_piocheck( IMAGE *in, IMAGE *out );
-int im_pincheck( IMAGE *im );
-int im_poutcheck( IMAGE *im );
+int im_rwcheck( VipsImage *im );
+int im_iocheck( VipsImage *in, VipsImage *out );
+int im_incheck( VipsImage *im );
+int im_outcheck( VipsImage *im );
+int im_piocheck( VipsImage *in, VipsImage *out );
+int im_pincheck( VipsImage *im );
+int im_poutcheck( VipsImage *im );
 
-int im_check_uncoded( const char *domain, IMAGE *im );
-int im_check_coding_known( const char *domain, IMAGE *im );
-int im_check_coding_labq( const char *domain, IMAGE *im );
-int im_check_coding_rad( const char *domain, IMAGE *im );
-int im_check_coding_noneorlabq( const char *domain, IMAGE *im );
-int im_check_coding_same( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_mono( const char *domain, IMAGE *im );
-int im_check_bands_1or3( const char *domain, IMAGE *in );
-int im_check_bands( const char *domain, IMAGE *im, int bands );
-int im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_bands_1orn_unary( const char *domain, IMAGE *im, int n );
-int im_check_bands_same( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_bandno( const char *domain, IMAGE *im, int bandno );
-int im_check_int( const char *domain, IMAGE *im );
-int im_check_uint( const char *domain, IMAGE *im );
-int im_check_uintorf( const char *domain, IMAGE *im );
-int im_check_noncomplex( const char *domain, IMAGE *im );
-int im_check_complex( const char *domain, IMAGE *im );
-int im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt );
-int im_check_u8or16( const char *domain, IMAGE *im );
-int im_check_8or16( const char *domain, IMAGE *im );
-int im_check_u8or16orf( const char *domain, IMAGE *im );
-int im_check_format_same( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_size_same( const char *domain, IMAGE *im1, IMAGE *im2 );
-int im_check_vector( const char *domain, int n, IMAGE *im );
-int im_check_hist( const char *domain, IMAGE *im );
+int im_check_uncoded( const char *domain, VipsImage *im );
+int im_check_coding_known( const char *domain, VipsImage *im );
+int im_check_coding_labq( const char *domain, VipsImage *im );
+int im_check_coding_rad( const char *domain, VipsImage *im );
+int im_check_coding_noneorlabq( const char *domain, VipsImage *im );
+int im_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+int im_check_mono( const char *domain, VipsImage *im );
+int im_check_bands_1or3( const char *domain, VipsImage *in );
+int im_check_bands( const char *domain, VipsImage *im, int bands );
+int im_check_bands_1orn( const char *domain, VipsImage *im1, VipsImage *im2 );
+int im_check_bands_1orn_unary( const char *domain, VipsImage *im, int n );
+int im_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+int im_check_bandno( const char *domain, VipsImage *im, int bandno );
+int im_check_int( const char *domain, VipsImage *im );
+int im_check_uint( const char *domain, VipsImage *im );
+int im_check_uintorf( const char *domain, VipsImage *im );
+int im_check_noncomplex( const char *domain, VipsImage *im );
+int im_check_complex( const char *domain, VipsImage *im );
+int im_check_format( const char *domain, VipsImage *im, VipsBandFormat fmt );
+int im_check_u8or16( const char *domain, VipsImage *im );
+int im_check_8or16( const char *domain, VipsImage *im );
+int im_check_u8or16orf( const char *domain, VipsImage *im );
+int im_check_format_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+int im_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+int im_check_vector( const char *domain, int n, VipsImage *im );
+int im_check_hist( const char *domain, VipsImage *im );
 int im_check_imask( const char *domain, INTMASK *mask );
 int im_check_dmask( const char *domain, DOUBLEMASK *mask );
 
-gboolean vips_bandfmt_isint( VipsBandFmt fmt );
-gboolean vips_bandfmt_isuint( VipsBandFmt fmt );
-gboolean vips_bandfmt_isfloat( VipsBandFmt fmt );
-gboolean vips_bandfmt_iscomplex( VipsBandFmt fmt );
+gboolean vips_bandfmt_isint( VipsBandFormat fmt );
+gboolean vips_bandfmt_isuint( VipsBandFormat fmt );
+gboolean vips_bandfmt_isfloat( VipsBandFormat fmt );
+gboolean vips_bandfmt_iscomplex( VipsBandFormat fmt );
 
-gboolean im_isfile( IMAGE *im );
-gboolean im_ispartial( IMAGE *im );
+gboolean im_isfile( VipsImage *im );
+gboolean im_ispartial( VipsImage *im );
 
-gboolean im_isMSBfirst( IMAGE *im );
+gboolean im_isMSBfirst( VipsImage *im );
 
 #ifdef __cplusplus
 }

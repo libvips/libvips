@@ -75,7 +75,7 @@ typedef enum {
 	 * disconnect the signal.
 	 */
 	VIPS_ARGUMENT_OUTPUT = 16
-} VipsArgument;
+} VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:
 
@@ -125,7 +125,7 @@ typedef struct _VipsArgumentClass {
 	 */
 	VipsObjectClass *object_class;
 
-	VipsArgument flags;
+	VipsArgumentFlags flags;
 	guint offset;		/* G_STRUCT_OFFSET of member in object */
 } VipsArgumentClass;
 
@@ -188,6 +188,12 @@ struct _VipsObject {
 	 */
 	char *nickname;
 	char *description;
+
+	/* The pre/post/close callbacks are all fire-once. 
+	 */
+	gboolean preclose;
+	gboolean close;
+	gboolean postclose;
 };
 
 struct _VipsObjectClass {
@@ -205,6 +211,19 @@ struct _VipsObjectClass {
 	/* Try to print something about the object, handy for debugging.
 	 */
 	void (*print)( VipsObject *, VipsBuf * );
+
+	/* Just before close, everything is still alive.
+	 */
+	void (*preclose)( VipsObject * );
+
+	/* Close, time to free stuff.
+	 */
+	void (*close)( VipsObject * );
+
+	/* Post-close, everything is dead, except the VipsObject pointer.
+	 * Useful for eg. deleting the file associated with a temp image.
+	 */
+	void (*postclose)( VipsObject * );
 
 	/* Class nickname, eg. "VipsInterpolateBicubic" has "bicubic" as a
 	 * nickname. Not internationalised. 
@@ -236,7 +255,7 @@ void vips_object_print( VipsObject *object );
 GType vips_object_get_type( void );
 
 void vips_object_class_install_argument( VipsObjectClass *,
-	GParamSpec *pspec, VipsArgument flags, guint offset );
+	GParamSpec *pspec, VipsArgumentFlags flags, guint offset );
 
 typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );
 VipsObject *vips_object_new( GType type, 
@@ -246,6 +265,15 @@ VipsObject *vips_object_new_from_string( const char *base, const char *str );
 void vips_object_to_string( VipsObject *object, VipsBuf *buf );
 
 void *vips_object_map( VSListMap2Fn fn, void *a, void *b );
+
+typedef void *(*VipsTypeMap)( GType, void * );
+typedef void *(*VipsTypeMap2)( GType, void *, void * );
+typedef void *(*VipsClassMap)( VipsObjectClass *, void * );
+void *vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b );
+void *vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a );
+void *vips_class_map_concrete_all( GType base, VipsClassMap fn, void *a );
+VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
+GType vips_type_find( const char *basename, const char *nickname );
 
 #ifdef __cplusplus
 }

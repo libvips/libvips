@@ -95,6 +95,7 @@ extern "C" {
 #endif /*SWIG*/
 
 #include <vips/buf.h>
+#include <vips/util.h>
 #include <vips/object.h>
 
 #include <vips/version.h>
@@ -108,7 +109,6 @@ extern "C" {
 #include <vips/almostdeprecated.h>
 #include <vips/callback.h>
 #include <vips/error.h>
-#include <vips/util.h>
 #include <vips/format.h>
 #include <vips/dispatch.h>
 #include <vips/region.h>

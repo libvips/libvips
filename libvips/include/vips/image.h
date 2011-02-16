@@ -44,6 +44,8 @@ extern "C" {
 #define VIPS_MAGIC_INTEL (0xb6a6f208U)
 #define VIPS_MAGIC_SPARC (0x08f2a6b6U)
 
+/* Preferred demand type.
+ */
 typedef enum {
 	VIPS_DEMAND_STYLE_SMALLTILE,	
 	VIPS_DEMAND_STYLE_FATSTRIP,
@@ -51,27 +53,41 @@ typedef enum {
 	VIPS_DEMAND_STYLE_ANY			
 } VipsDemandStyle;
 
+/* Types of image descriptor we may have. The type field is advisory only: it
+ * does not imply that any fields in IMAGE have valid data.
+ */
+typedef enum {
+	VIPS_IMAGE_NONE,		/* no type set */
+	VIPS_IMAGE_SETBUF,		/* malloced memory array */
+	VIPS_IMAGE_SETBUF_FOREIGN,	/* memory array, don't free on close */
+	VIPS_IMAGE_OPENIN,		/* input from fd with a window */
+	VIPS_IMAGE_MMAPIN,		/* memory mapped input file */
+	VIPS_IMAGE_MMAPINRW,		/* memory mapped read/write file */
+	VIPS_IMAGE_OPENOUT,		/* output to fd */
+	VIPS_IMAGE_PARTIAL		/* partial image */
+} VipsImageType;
+
 /* The gaps in the numbering are historical and need maintaining. Allocate new
  * numbers from the end.
  */
 typedef enum {
-	VIPS_TYPE_MULTIBAND = 0,
-	VIPS_TYPE_B_W = 1,
-	VIPS_TYPE_HISTOGRAM = 10,
-	VIPS_TYPE_FOURIER = 24,
-	VIPS_TYPE_XYZ = 12,
-	VIPS_TYPE_LAB = 13,
-	VIPS_TYPE_CMYK = 15,
-	VIPS_TYPE_LABQ = 16,
-	VIPS_TYPE_RGB = 17,
-	VIPS_TYPE_UCS = 18,
-	VIPS_TYPE_LCH = 19,
-	VIPS_TYPE_LABS = 21,
-	VIPS_TYPE_sRGB = 22,
-	VIPS_TYPE_YXY = 23,
-	VIPS_TYPE_RGB16 = 25,
-	VIPS_TYPE_GREY16 = 26
-} VipsType;
+	VIPS_INTERPRETATION_MULTIBAND = 0,
+	VIPS_INTERPRETATION_B_W = 1,
+	VIPS_INTERPRETATION_HISTOGRAM = 10,
+	VIPS_INTERPRETATION_FOURIER = 24,
+	VIPS_INTERPRETATION_XYZ = 12,
+	VIPS_INTERPRETATION_LAB = 13,
+	VIPS_INTERPRETATION_CMYK = 15,
+	VIPS_INTERPRETATION_LABQ = 16,
+	VIPS_INTERPRETATION_RGB = 17,
+	VIPS_INTERPRETATION_UCS = 18,
+	VIPS_INTERPRETATION_LCH = 19,
+	VIPS_INTERPRETATION_LABS = 21,
+	VIPS_INTERPRETATION_sRGB = 22,
+	VIPS_INTERPRETATION_YXY = 23,
+	VIPS_INTERPRETATION_RGB16 = 25,
+	VIPS_INTERPRETATION_GREY16 = 26
+} VipsInterpretation;
 
 typedef enum {
 	VIPS_FORMAT_NOTSET = -1,
@@ -86,7 +102,7 @@ typedef enum {
 	VIPS_FORMAT_DOUBLE = 8,
 	VIPS_FORMAT_DPCOMPLEX = 9,
 	VIPS_FORMAT_LAST = 10
-} VipsFormat;
+} VipsBandFormat;
 
 typedef enum {
 	VIPS_CODING_NONE = 0,
@@ -138,9 +154,9 @@ typedef struct _VipsImage {
 	int Ysize;		/* image height, in pixels */
 	int Bands;		/* number of image bands */
 
-	VipsFormat BandFmt;	/* #VipsFormat describing the pixel format */
-	VipsCoding Coding;	/* #VipsCoding describing the pixel coding */
-	VipsType Type;		/* #VipsType hinting at pixel interpretation */
+	VipsBandFormat BandFmt;	/* pixel format */
+	VipsCoding Coding;	/* pixel coding */
+	VipsInterpretation Type;/* pixel interpretation */
 	float Xres;		/* horizontal pixels per millimetre */
 	float Yres;		/* vertical pixels per millimetre */
 
@@ -241,11 +257,6 @@ typedef struct _VipsImage {
 	 */
 	gboolean hint_set;
 
-	/* The pre/post/close callbacks are all fire-once.
-	 */
-	gboolean preclose;
-	gboolean close;
-	gboolean postclose;
 } VipsImage;
 
 typedef struct _VipsImageClass {
@@ -265,19 +276,6 @@ typedef struct _VipsImageClass {
 	/* Evaluation is ending.
 	 */
 	void (*posteval)( VipsImage *image );
-
-	/* Just before image close, everything is still alive.
-	 */
-	void (*preclose)( VipsImage *image );
-
-	/* Image close, time to free stuff.
-	 */
-	void (*close)( VipsImage *image );
-
-	/* Post-close, everything is dead, except the VipsImage pointer.
-	 * Useful for eg. deleting the file associated with a temp image.
-	 */
-	void (*postclose)( VipsImage *image );
 
 	/* An image has been written to. 
 	 * Used by eg. im_open("x.jpg", "w") to do the final write to jpeg.
@@ -335,13 +333,13 @@ extern const size_t vips__sizeof_bandfmt[];
 int vips_image_get_width( VipsImage *image );
 int vips_image_get_height( VipsImage *image );
 int vips_image_get_bands( VipsImage *image );
-VipsFormat vips_image_get_format( VipsImage *image );
+VipsBandFormat vips_image_get_format( VipsImage *image );
 VipsCoding vips_image_get_coding( VipsImage *image );
-VipsType vips_image_get_type( VipsImage *image );
-VipsType vips_image_get_xres( VipsImage *image );
-VipsType vips_image_get_yres( VipsImage *image );
-VipsType vips_image_get_xoffset( VipsImage *image );
-VipsType vips_image_get_yoffset( VipsImage *image );
+VipsInterpretation vips_image_get_interpretation( VipsImage *image );
+double vips_image_get_xres( VipsImage *image );
+double vips_image_get_yres( VipsImage *image );
+int vips_image_get_xoffset( VipsImage *image );
+int vips_image_get_yoffset( VipsImage *image );
 
 
 
@@ -376,7 +374,8 @@ void vips_invalidate( VipsImage *im );
 
 void vips_initdesc( VipsImage *image, 
 	int xsize, int ysize, int bands, int bandbits, 
-	VipsFormat format, VipsCoding coding, VipsType type, 
+	VipsBandFormat format, VipsCoding coding, 
+	VipsInterpretation interpretation, 
 	float xres, float yres,
 	int xo, int yo );
 
@@ -388,7 +387,22 @@ int vips_cp_desc_array( VipsImage *out, VipsImage *in[] );
 VipsImage *vips_binfile( const char *name, 
 	int xsize, int ysize, int bands, int offset );
 VipsImage *vips_image( void *buffer, 
-	int xsize, int ysize, int bands, VipsFormat bandfmt );
+	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
+
+typedef void *(*im_construct_fn)( void *, void *, void * );
+
+/* Also used for im_add_close_callback() etc.
+ */
+typedef int (*im_callback_fn)( void *a, void *b );
+
+void *im_local( VipsImage *im, 
+	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
+int im_local_array( VipsImage *im, void **out, int n,
+	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
+char *im_strdup( VipsImage *im, const char *str );
+VipsImage *im__open_temp( const char *format );
+
+int im_bits_of_fmt( VipsBandFormat fmt );
 
 #ifdef __cplusplus
 }

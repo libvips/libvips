@@ -66,31 +66,27 @@ extern "C" {
 	G_STMT_START { ; } G_STMT_END
 #endif /*VIPS_DEBUG_GREEN*/
 
-/* All open image descriptors ... see im_init() and im_close().
- */
-extern GSList *im__open_images;
-
 /* Print one line for each descriptor, complete dump for one descriptor.
  */
 void im__print_one( int n );
 void im__print_all( void );
 
 const char *im_Type2char( VipsType type );
-const char *im_BandFmt2char( VipsBandFmt fmt );
+const char *im_BandFormat2char( VipsBandFormat fmt );
 const char *im_Coding2char( VipsCoding coding );
 const char *im_Compression2char( int n );
-const char *im_dtype2char( im_desc_type n );
+const char *im_dtype2char( VipsImageType n );
 const char *im_dhint2char( VipsDemandStyle style );
 
 int im_char2Type( const char *str );
-int im_char2BandFmt( const char *str );
+int im_char2BandFormat( const char *str );
 int im_char2Coding( const char *str );
 int im_char2Compression( const char *str );
-im_desc_type im_char2dtype( const char *str );
+VipsImageType im_char2dtype( const char *str );
 im_demand_type im_char2dhint( const char *str );
 
-void im_printdesc( IMAGE *image );
-int im_image_sanity( IMAGE *im );
+void im_printdesc( VipsImage *image );
+int im_image_sanity( VipsImage *im );
 void im_image_sanity_all( void );
 
 #ifdef __cplusplus

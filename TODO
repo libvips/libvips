@@ -1,6 +1,12 @@
 
-- image.c has far too many includes
+- pre/post/close should be on VipsObject, not VipsImage
 
+  decls for im_local etc. are now in image.h, move them to object.h and the
+  code to object.c
+
+  also see im_bits_of_fmt()
+
+  decls for type_map etc. are now in object.h, move the code to object.c
 
 
 

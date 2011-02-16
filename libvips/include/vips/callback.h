@@ -34,9 +34,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Also used for eg. im_local() and friends.
- */
-typedef int (*im_callback_fn)( void *a, void *b );
 
 int im_add_close_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );
 int im_add_preclose_callback( IMAGE *im, im_callback_fn fn, void *a, void *b );

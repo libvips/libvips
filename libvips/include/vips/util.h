@@ -63,38 +63,6 @@ G_STMT_START { \
 	(B) = t; \
 } G_STMT_END
 
-#define IM_FREEF( F, S ) \
-G_STMT_START { \
-        if( S ) { \
-                (void) F( (S) ); \
-                (S) = 0; \
-        } \
-} G_STMT_END
-
-/* Can't just use IM_FREEF(), we want the extra cast to void on the argument
- * to im_free() to make sure we can work for "const char *" variables.
- */
-#define IM_FREE( S ) \
-G_STMT_START { \
-        if( S ) { \
-                (void) im_free( (void *) (S) ); \
-                (S) = 0; \
-        } \
-} G_STMT_END
-
-#define IM_SETSTR( S, V ) \
-G_STMT_START { \
-        const char *sst = (V); \
-	\
-        if( (S) != sst ) { \
-                if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
-                        IM_FREE( S ); \
-                        if( sst ) \
-                                (S) = im_strdup( NULL, sst ); \
-                } \
-        } \
-} G_STMT_END
-
 /* Duff's device. Do OPERation N times in a 16-way unrolled loop.
  */
 #define IM_UNROLL( N, OPER ) \
@@ -187,13 +155,6 @@ G_STMT_START { \
 #define VIPS_ENUM_NICK( ENUM, VALUE ) \
 	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_nick)
 
-typedef void *(*im_construct_fn)( void *, void *, void * );
-
-void *im_local( VipsImage *im, 
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
-int im_local_array( VipsImage *im, void **out, int n,
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
-
 /* strtok replacement.
  */
 char *im__break_token( char *str, char *brk );
@@ -218,18 +179,8 @@ void *im_map_equal( void *a, void *b );
 
 void *im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b );
 
-typedef void *(*VipsTypeMap)( GType, void * );
-typedef void *(*VipsTypeMap2)( GType, void *, void * );
-typedef void *(*VipsClassMap)( VipsObjectClass *, void * );
-void *vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b );
-void *vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a );
-void *vips_class_map_concrete_all( GType base, VipsClassMap fn, void *a );
-VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
-GType vips_type_find( const char *basename, const char *nickname );
-
 char *im_strncpy( char *dest, const char *src, int n );
 char *im_strrstr( const char *haystack, const char *needle );
-char *im_strdup( IMAGE *im, const char *str );
 gboolean im_ispostfix( const char *a, const char *b );
 gboolean im_isprefix( const char *a, const char *b );
 int im_vsnprintf( char *str, size_t size, const char *format, va_list ap );
@@ -280,9 +231,6 @@ int im_isvips( const char *filename );
 int im_amiMSBfirst( void );
 
 char *im__temp_name( const char *format );
-IMAGE *im__open_temp( const char *format );
-
-int im_bits_of_fmt( VipsBandFmt fmt );
 
 #ifdef __cplusplus
 }
