@@ -1,13 +1,4 @@
-/* @(#)  Function which copies IMAGE descriptor image2 to image1;
- * @(#) data, fd and filename are not copied
- * @(#) used to make programs simpler by copying most parameters
- * @(#) 
- * @(#) int 
- * @(#) im_cp_desc( image1, image2 )
- * @(#) IMAGE *image1, *image2;
- * @(#)
- * @(#) Returns 0 on success or -1 on fail.
- * @(#)
+/* copy descriptors between images 
  *
  * Copyright: Nicos Dessipris
  * Written on: 09/02/1990
@@ -30,6 +21,8 @@
  * 	- simplified ... no more skip the first line stuff
  * 4/1/07
  * 	- merge hists with history_list instead
+ * 20/1/10
+ * 	- gtk-doc
  */
 
 /*

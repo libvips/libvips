@@ -376,7 +376,7 @@ write_exif( Write *write )
 	else 
 		ed = exif_data_new();
 
-	/* Set EXIF resolution from VIPS.
+	/* Update EXIF resolution from VIPS.
 	 */
 	if( set_exif_resolution( ed, write->in ) ) {
 		exif_data_free( ed );

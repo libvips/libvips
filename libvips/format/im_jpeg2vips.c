@@ -30,6 +30,9 @@
  * 	- gtkdoc
  * 4/12/10
  * 	- attach the jpeg thumbnail and multiscan fields (thanks Mike)
+ * 21/2/10
+ * 	- only accept the first APP1 block which starts "Exif..." as exif
+ * 	  data, some jpegs seem to have several APP1s, argh
  */
 
 /*
@@ -59,8 +62,8 @@
  */
 
 /*
-#define DEBUG
 #define DEBUG_VERBOSE
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -396,7 +399,18 @@ attach_thumbnail( IMAGE *im, ExifData *ed )
 static int
 read_exif( IMAGE *im, void *data, int data_length )
 {
-char *data_copy;
+	char *data_copy;
+
+	/* Horrifyingly, some JPEGs have several APP1 sections. We must only
+	 * use the first one that starts "Exif.."
+	 */
+	if( ((char *) data)[0] != 'E' ||
+		((char *) data)[1] != 'x' ||
+		((char *) data)[2] != 'i' ||
+		((char *) data)[3] != 'f' )
+		return( 0 );
+	if( im_header_get_typeof( im, IM_META_EXIF_NAME ) ) 
+		return( 0 );
 
 	/* Always attach a copy of the unparsed exif data.
 	 */
@@ -424,10 +438,11 @@ char *data_copy;
 
 		/* Attach informational fields for what we find.
 
-		FIXME ... better to have this in the UI layer?
+			FIXME ... better to have this in the UI layer?
 
-		Or we could attach non-human-readable tags here (int, double
-		etc) and then move the human stuff to the UI layer?
+			Or we could attach non-human-readable tags here (int, 
+			double etc) and then move the human stuff to the UI 
+			layer?
 
 		 */
 		exif_data_foreach_content( ed, 
@@ -521,7 +536,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			/* EXIF data.
 			 */
 #ifdef DEBUG
-			printf( "read_jpeg_header: seen %d bytes of EXIF\n",
+			printf( "read_jpeg_header: seen %d bytes of APP1\n",
 				p->data_length );
 #endif /*DEBUG*/
 			if( read_exif( out, p->data, p->data_length ) )
@@ -532,7 +547,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			/* ICC profile.
 			 */
 #ifdef DEBUG
-			printf( "read_jpeg_header: seen %d bytes of ICC\n",
+			printf( "read_jpeg_header: seen %d bytes of APP2\n",
 				p->data_length );
 #endif /*DEBUG*/
 
