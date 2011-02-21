@@ -71,7 +71,7 @@ extern "C" {
 void im__print_one( int n );
 void im__print_all( void );
 
-const char *im_Type2char( VipsType type );
+const char *im_Type2char( VipsInterpretation type );
 const char *im_BandFormat2char( VipsBandFormat fmt );
 const char *im_Coding2char( VipsCoding coding );
 const char *im_Compression2char( int n );

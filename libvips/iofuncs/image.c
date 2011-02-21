@@ -454,31 +454,38 @@ vips_format_is_vips( VipsFormatClass *format )
 /* What we track during a delayed open.
  */
 typedef struct {
-	VipsImage *out;
-
+	VipsImage *image;
 	VipsFormatClass *format;/* Read in pixels with this */
+	char *filename;		/* Get pixels from here */
 	gboolean disc;		/* Read via disc requested */
-	VipsImage *image;	/* The real decompressed image */
+
+	VipsImage *real;	/* The real decompressed image */
 } Lazy;
 
 static void
 lazy_free_cb( Lazy *lazy )
 {
+	VIPS_FREE( lazy->filename );
 	VIPS_UNREF( lazy->image );
 }
 
 static Lazy *
-lazy_new( VipsImage *out, VipsFormatClass *format, gboolean disc )
+lazy_new( VipsImage *image, 
+	VipsFormatClass *format, const char *filename, gboolean disc )
 {
 	Lazy *lazy;
 
-	if( !(lazy = VIPS_NEW( out, Lazy )) )
+	if( !(lazy = VIPS_NEW( image, Lazy )) )
 		return( NULL );
-	lazy->out = out;
+	lazy->image = image;
 	lazy->format = format;
+	lazy->filename = NULL;
 	lazy->disc = disc;
-	lazy->image = NULL;
-	g_signal_connect( out, "close", G_CALLBACK( lazy_free_cb ), NULL );
+	lazy->real = NULL;
+	g_signal_connect( image, "close", G_CALLBACK( lazy_free_cb ), NULL );
+
+	if( !(lazy->filename = im_strdup( NULL, filename )) )
+		return( NULL );
 
 	return( lazy );
 }
@@ -553,10 +560,19 @@ disc_threshold( void )
 	return( threshold );
 }
 
-static VipsImage *
-lazy_image( Lazy *lazy ) 
+size_t 
+vips_image_size( VipsImage *image )
 {
-	VipsImage *image;
+	return( VIPS_IMAGE_SIZEOF_LINE( image ) * image->Ysize );
+}
+
+/* Make the real underlying image: either a direct disc file, or a temp file
+ * somewhere.
+ */
+static VipsImage *
+lazy_real_image( Lazy *lazy ) 
+{
+	VipsImage *real;
 
 	/* We open to disc if:
 	 * - 'disc' is set
@@ -564,32 +580,28 @@ lazy_image( Lazy *lazy )
 	 * - the format does not support lazy read
 	 * - the image will be more than a megabyte, uncompressed
 	 */
-	image = NULL;
+	real = NULL;
 	if( lazy->disc && 
 		disc_threshold() && 
-	        !(vips_format_get_flags( lazy->format, lazy->out->filename ) & 
-			VIPS_FORMAT_PARTIAL) ) {
-		size_t size = VIPS_IMAGE_SIZEOF_LINE( lazy->out ) * 
-			lazy->out->Ysize;
-
-		if( size > disc_threshold() ) {
-			if( !(image = im__open_temp( "%s.v" )) )
+	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
+			VIPS_FORMAT_PARTIAL) &&
+		vips_image_size( lazy->image ) > disc_threshold() ) {
+			if( !(real = im__open_temp( "%s.v" )) )
 				return( NULL );
 
 #ifdef DEBUG
 			printf( "lazy_image: opening to disc file \"%s\"\n",
-				image->filename );
+				real->filename );
 #endif /*DEBUG*/
 		}
-	}
 
 	/* Otherwise, fall back to a "p".
 	 */
-	if( !image && 
-		!(image = vips_open( lazy->out->filename, "p" )) )
+	if( !real && 
+		!(real = vips_open( lazy->filename, "p" )) )
 		return( NULL );
 
-	return( image );
+	return( real );
 }
 
 /* Our start function ... do the lazy open, if necessary, and return a region
@@ -599,11 +611,10 @@ static void *
 open_lazy_start( VipsImage *out, void *a, void *dummy )
 {
 	Lazy *lazy = (Lazy *) a;
-	const char *filename = lazy->out->filename;
 
 	if( !lazy->image ) {
-		if( !(lazy->image = lazy_image( lazy )) || 
-			lazy->format->load( filename, lazy->image ) ||
+		if( !(lazy->real = lazy_real_image( lazy )) || 
+			lazy->format->load( lazy->filename, lazy->image ) ||
 			im_pincheck( lazy->image ) ) {
 			VIPS_UNREF( lazy->image );
 			return( NULL );
@@ -639,26 +650,26 @@ open_lazy_generate( REGION *or, void *seq, void *a, void *b )
  * decoding pixels with the second OpenLazyFn until the first generate().
  */
 static int
-vips_open_lazy( VipsImage *out, 
-	VipsFormatClass *format, gboolean disc, IMAGE *out )
+vips_open_lazy( VipsImage *image, 
+	VipsFormatClass *format, const char *filename, gboolean disc )
 {
 	Lazy *lazy;
 
-	if( !(lazy = lazy_new( out, format, disc )) )
+	if( !(lazy = lazy_new( image, format, filename, disc )) )
 		return( -1 );
 
 	/* Read header fields to init the return image. THINSTRIP since this is
 	 * probably a disc file. We can't tell yet whether we will be opening
 	 * to memory, sadly, so we can't suggest ANY.
 	 */
-	if( format->header( out->filename, out ) ||
-		im_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+	if( format->header( filename, image ) ||
+		im_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
 	/* Then 'start' creates the real image and 'gen' paints 'out' with 
 	 * pixels from the real image on demand.
 	 */
-	if( im_generate( out, 
+	if( im_generate( image, 
 		open_lazy_start, open_lazy_generate, im_stop_one, 
 		lazy, NULL ) )
 		return( -1 );
@@ -697,7 +708,8 @@ vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
 	if( (sb = VIPS_NEW( image, SaveBlock )) ) {
 		sb->save_fn = save_fn;
 		sb->filename = im_strdup( image, filename );
-		g_signal_connect( image, "written", vips_image_save_cb, sb );
+		g_signal_connect( image, "written", 
+			G_CALLBACK( vips_image_save_cb ), sb );
 	}
 }
 
@@ -707,7 +719,7 @@ vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
 /* What we track during an eval.
  */
 typedef struct {
-	IMAGE *image;
+	VipsImage *image;
 
 	int last_percent;	/* The last %complete we displayed */
 } Progress;
@@ -721,9 +733,10 @@ vips_image_evalstart_cb( Progress *progress )
 
 	progress->last_percent = 0;
 
-	vips_get_tile_size( progress->im, &tile_width, &tile_height, &nlines );
+	vips_get_tile_size( progress->image, 
+		&tile_width, &tile_height, &nlines );
 	printf( _( "%s %s: %d threads, %d x %d tiles, groups of %d scanlines" ),
-		g_get_prgname(), progress->im->filename,
+		g_get_prgname(), progress->image->filename,
 		im_concurrency_get(),
 		tile_width, tile_height, nlines );
 	printf( "\n" );
@@ -734,15 +747,16 @@ vips_image_evalstart_cb( Progress *progress )
 static int
 vips_image_eval_cb( Progress *progress )
 {
-	IMAGE *im = progress->im;
+	VipsImage *image = progress->image;
 
-	if( im->time->percent != progress->last_percent ) {
+	if( image->time->percent != progress->last_percent ) {
 		printf( _( "%s %s: %d%% complete" ), 
-			g_get_prgname(), im->filename, im->time->percent );
+			g_get_prgname(), image->filename, 
+			image->time->percent );
 		printf( "\r" ); 
 		fflush( stdout );
 
-		progress->last_percent = im->time->percent;
+		progress->last_percent = image->time->percent;
 	}
 
 	return( 0 );
@@ -751,12 +765,12 @@ vips_image_eval_cb( Progress *progress )
 static int
 vips_image_evalend_cb( Progress *progress )
 {
-	IMAGE *im = progress->im;
+	VipsImage *image = progress->image;
 
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
 	printf( _( "%s %s: done in %ds          \n" ), 
-		g_get_prgname(), im->filename, im->time->run );
+		g_get_prgname(), image->filename, image->time->run );
 
 	return( 0 );
 }
