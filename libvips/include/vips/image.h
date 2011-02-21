@@ -30,8 +30,8 @@
 
  */
 
-#ifndef IM_IMAGE_H
-#define IM_IMAGE_H
+#ifndef VIPS_IMAGE_H
+#define VIPS_IMAGE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -208,7 +208,7 @@ typedef struct _VipsImage {
 	GSList *Meta_traverse;	/* traverse order for Meta */
 
 	/* Part of mmap() read ... the sizeof() the header we skip from the
-	 * file start. Usually IM_SIZEOF_HEADER, but can be something else
+	 * file start. Usually VIPS_SIZEOF_HEADER, but can be something else
 	 * for binary file read.
 	 */
 	int sizeof_header;
@@ -296,9 +296,9 @@ extern const size_t vips__sizeof_bandfmt[];
 #define VIPS_IMAGE_SIZEOF_ELEMENT( I ) \
 	(vips__sizeof_bandfmt[(I)->BandFmt])
 #define VIPS_IMAGE_SIZEOF_PEL( I ) \
-	(IM_IMAGE_SIZEOF_ELEMENT( I ) * (I)->Bands)
+	(VIPS_IMAGE_SIZEOF_ELEMENT( I ) * (I)->Bands)
 #define VIPS_IMAGE_SIZEOF_LINE( I ) \
-	(IM_IMAGE_SIZEOF_PEL( I ) * (I)->Xsize)
+	(VIPS_IMAGE_SIZEOF_PEL( I ) * (I)->Xsize)
 #define VIPS_IMAGE_N_ELEMENTS( I ) \
 	((I)->Bands * (I)->Xsize)
 
@@ -312,7 +312,7 @@ extern const size_t vips__sizeof_bandfmt[];
 	       (Y) * VIPS_IMAGE_SIZEOF_LINE( I ) + \
 	       (X) * VIPS_IMAGE_SIZEOF_PEL( I )) : \
 	     (fprintf( stderr, \
-		"IM_IMAGE_ADDR: point out of bounds, " \
+		"VIPS_IMAGE_ADDR: point out of bounds, " \
 		"file \"%s\", line %d\n" \
 		"(point x=%d, y=%d\n" \
 		" should have been within Rect left=%d, top=%d, " \
@@ -408,4 +408,4 @@ int im_bits_of_fmt( VipsBandFormat fmt );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_IMAGE_H*/
+#endif /*VIPS_IMAGE_H*/

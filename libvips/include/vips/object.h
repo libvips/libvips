@@ -36,7 +36,7 @@ extern "C" {
 
 /* Handy!
  */
-#define VIPS_UNREF( O ) IM_FREEF( g_object_unref, (O) )
+#define VIPS_UNREF( O ) VIPS_FREEF( g_object_unref, (O) )
 
 typedef struct _VipsObject VipsObject;
 typedef struct _VipsObjectClass VipsObjectClass;

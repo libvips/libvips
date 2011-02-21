@@ -45,6 +45,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
+#include <ctype.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -461,7 +462,7 @@ typedef struct {
 } Lazy;
 
 static void
-lazy_free( Lazy *lazy )
+lazy_free_cb( Lazy *lazy )
 {
 	VIPS_UNREF( lazy->image );
 }
@@ -471,13 +472,13 @@ lazy_new( VipsImage *out, VipsFormatClass *format, gboolean disc )
 {
 	Lazy *lazy;
 
-	if( !(lazy = IM_NEW( out, Lazy )) )
+	if( !(lazy = VIPS_NEW( out, Lazy )) )
 		return( NULL );
 	lazy->out = out;
 	lazy->format = format;
 	lazy->disc = disc;
 	lazy->image = NULL;
-	g_signal_connect( out, "close", lazy_free, NULL );
+	g_signal_connect( out, "close", G_CALLBACK( lazy_free_cb ), NULL );
 
 	return( lazy );
 }
@@ -508,7 +509,7 @@ parse_size( const char *size_string )
 	if( n > 0 )
 		size = i;
 	if( n > 1 ) {
-		for( j = 0; j < IM_NUMBER( units ); j++ )
+		for( j = 0; j < VIPS_NUMBER( units ); j++ )
 			if( tolower( unit[0] ) == units[j].unit ) {
 				size *= units[j].multiplier;
 				break;
@@ -568,7 +569,7 @@ lazy_image( Lazy *lazy )
 		disc_threshold() && 
 	        !(vips_format_get_flags( lazy->format, lazy->out->filename ) & 
 			VIPS_FORMAT_PARTIAL) ) {
-		size_t size = IM_IMAGE_SIZEOF_LINE( lazy->out ) * 
+		size_t size = VIPS_IMAGE_SIZEOF_LINE( lazy->out ) * 
 			lazy->out->Ysize;
 
 		if( size > disc_threshold() ) {
@@ -585,7 +586,7 @@ lazy_image( Lazy *lazy )
 	/* Otherwise, fall back to a "p".
 	 */
 	if( !image && 
-		!(image = im_open( lazy->out->filename, "p" )) )
+		!(image = vips_open( lazy->out->filename, "p" )) )
 		return( NULL );
 
 	return( image );
@@ -693,7 +694,7 @@ vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
 {
 	SaveBlock *sb;
 
-	if( (sb = IM_NEW( image, SaveBlock )) ) {
+	if( (sb = VIPS_NEW( image, SaveBlock )) ) {
 		sb->save_fn = save_fn;
 		sb->filename = im_strdup( image, filename );
 		g_signal_connect( image, "written", vips_image_save_cb, sb );
@@ -768,15 +769,15 @@ vips_image_add_progress( VipsImage *image )
 	if( im__progress || 
 		g_getenv( "IM_PROGRESS" ) ) {
 
-		Progress *progress = IM_NEW( image, Progress );
+		Progress *progress = VIPS_NEW( image, Progress );
 
 		progress->image = image;
 		g_signal_connect( image, "evalstart", 
-			vips_image_evalstart_cb, progress );
+			G_CALLBACK( vips_image_evalstart_cb ), progress );
 		g_signal_connect( image, "eval", 
-			vips_image_eval_cb, progress );
+			G_CALLBACK( vips_image_eval_cb ), progress );
 		g_signal_connect( image, "evalend", 
-			vips_image_evalend_cb, progress );
+			G_CALLBACK( vips_image_evalend_cb ), progress );
 	}
 }
 
@@ -1157,18 +1158,18 @@ vips_image_posteval( VipsImage *image )
 }
 
 /**
- * im_open:
+ * vips_open:
  * @filename: file to open
  * @mode: mode to open with
  *
- * im_open() examines the mode string, and creates an appropriate #IMAGE.
+ * vips_open() examines the mode string, and creates an appropriate #IMAGE.
  *
  * <itemizedlist>
  *   <listitem> 
  *     <para>
  *       <emphasis>"r"</emphasis>
  *       opens the named file for reading. If the file is not in the native 
- *       VIPS format for your machine, im_open() automatically converts the 
+ *       VIPS format for your machine, vips_open() automatically converts the 
  *       file for you in memory. 
  *
  *       For some large files (eg. TIFF) this may 
@@ -1177,7 +1178,7 @@ vips_image_posteval( VipsImage *image )
  *       API and control the loading process yourself. See 
  *       #VipsFormat. 
  *
- *       im_open() can read files in most formats.
+ *       vips_open() can read files in most formats.
  *
  *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
  *       It should return quickly and let you check header fields. It will
@@ -1189,7 +1190,7 @@ vips_image_posteval( VipsImage *image )
  *       <emphasis>"rd"</emphasis>
  *	 opens the named file for reading. If the uncompressed image is larger 
  *	 than a threshold and the file format does not support random access, 
- *	 rather than uncompressing to memory, im_open() will uncompress to a
+ *	 rather than uncompressing to memory, vips_open() will uncompress to a
  *	 temporary disc file. This file will be automatically deleted when the
  *	 IMAGE is closed.
  *
@@ -1218,7 +1219,7 @@ vips_image_posteval( VipsImage *image )
  *       suffix to determine the type to write -- for example:
  *
  *       |[
- *         im_open( "fred.tif", "w" )
+ *         vips_open( "fred.tif", "w" )
  *       ]|
  *
  *       will write in TIFF format.
@@ -1252,7 +1253,7 @@ vips_image_posteval( VipsImage *image )
  * Returns: the image descriptor on success and NULL on error.
  */
 VipsImage *
-im_open( const char *filename, const char *mode )
+vips_open( const char *filename, const char *mode )
 {
 	VipsImage *image;
 

@@ -46,38 +46,61 @@ vips_demand_style_get_type( void )
 	return( etype );
 }
 GType
-vips_type_get_type( void )
+vips_image_type_get_type( void )
 {
 	static GType etype = 0;
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_TYPE_MULTIBAND, "VIPS_TYPE_MULTIBAND", "multiband"},
-			{VIPS_TYPE_B_W, "VIPS_TYPE_B_W", "b-w"},
-			{VIPS_TYPE_HISTOGRAM, "VIPS_TYPE_HISTOGRAM", "histogram"},
-			{VIPS_TYPE_FOURIER, "VIPS_TYPE_FOURIER", "fourier"},
-			{VIPS_TYPE_XYZ, "VIPS_TYPE_XYZ", "xyz"},
-			{VIPS_TYPE_LAB, "VIPS_TYPE_LAB", "lab"},
-			{VIPS_TYPE_CMYK, "VIPS_TYPE_CMYK", "cmyk"},
-			{VIPS_TYPE_LABQ, "VIPS_TYPE_LABQ", "labq"},
-			{VIPS_TYPE_RGB, "VIPS_TYPE_RGB", "rgb"},
-			{VIPS_TYPE_UCS, "VIPS_TYPE_UCS", "ucs"},
-			{VIPS_TYPE_LCH, "VIPS_TYPE_LCH", "lch"},
-			{VIPS_TYPE_LABS, "VIPS_TYPE_LABS", "labs"},
-			{VIPS_TYPE_sRGB, "VIPS_TYPE_sRGB", "srgb"},
-			{VIPS_TYPE_YXY, "VIPS_TYPE_YXY", "yxy"},
-			{VIPS_TYPE_RGB16, "VIPS_TYPE_RGB16", "rgb16"},
-			{VIPS_TYPE_GREY16, "VIPS_TYPE_GREY16", "grey16"},
+			{VIPS_IMAGE_NONE, "VIPS_IMAGE_NONE", "none"},
+			{VIPS_IMAGE_SETBUF, "VIPS_IMAGE_SETBUF", "setbuf"},
+			{VIPS_IMAGE_SETBUF_FOREIGN, "VIPS_IMAGE_SETBUF_FOREIGN", "setbuf-foreign"},
+			{VIPS_IMAGE_OPENIN, "VIPS_IMAGE_OPENIN", "openin"},
+			{VIPS_IMAGE_MMAPIN, "VIPS_IMAGE_MMAPIN", "mmapin"},
+			{VIPS_IMAGE_MMAPINRW, "VIPS_IMAGE_MMAPINRW", "mmapinrw"},
+			{VIPS_IMAGE_OPENOUT, "VIPS_IMAGE_OPENOUT", "openout"},
+			{VIPS_IMAGE_PARTIAL, "VIPS_IMAGE_PARTIAL", "partial"},
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsType", values );
+		etype = g_enum_register_static( "VipsImageType", values );
 	}
 
 	return( etype );
 }
 GType
-vips_format_get_type( void )
+vips_interpretation_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_INTERPRETATION_MULTIBAND, "VIPS_INTERPRETATION_MULTIBAND", "multiband"},
+			{VIPS_INTERPRETATION_B_W, "VIPS_INTERPRETATION_B_W", "b-w"},
+			{VIPS_INTERPRETATION_HISTOGRAM, "VIPS_INTERPRETATION_HISTOGRAM", "histogram"},
+			{VIPS_INTERPRETATION_FOURIER, "VIPS_INTERPRETATION_FOURIER", "fourier"},
+			{VIPS_INTERPRETATION_XYZ, "VIPS_INTERPRETATION_XYZ", "xyz"},
+			{VIPS_INTERPRETATION_LAB, "VIPS_INTERPRETATION_LAB", "lab"},
+			{VIPS_INTERPRETATION_CMYK, "VIPS_INTERPRETATION_CMYK", "cmyk"},
+			{VIPS_INTERPRETATION_LABQ, "VIPS_INTERPRETATION_LABQ", "labq"},
+			{VIPS_INTERPRETATION_RGB, "VIPS_INTERPRETATION_RGB", "rgb"},
+			{VIPS_INTERPRETATION_UCS, "VIPS_INTERPRETATION_UCS", "ucs"},
+			{VIPS_INTERPRETATION_LCH, "VIPS_INTERPRETATION_LCH", "lch"},
+			{VIPS_INTERPRETATION_LABS, "VIPS_INTERPRETATION_LABS", "labs"},
+			{VIPS_INTERPRETATION_sRGB, "VIPS_INTERPRETATION_sRGB", "srgb"},
+			{VIPS_INTERPRETATION_YXY, "VIPS_INTERPRETATION_YXY", "yxy"},
+			{VIPS_INTERPRETATION_RGB16, "VIPS_INTERPRETATION_RGB16", "rgb16"},
+			{VIPS_INTERPRETATION_GREY16, "VIPS_INTERPRETATION_GREY16", "grey16"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsInterpretation", values );
+	}
+
+	return( etype );
+}
+GType
+vips_band_format_get_type( void )
 {
 	static GType etype = 0;
 
@@ -98,7 +121,7 @@ vips_format_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsFormat", values );
+		etype = g_enum_register_static( "VipsBandFormat", values );
 	}
 
 	return( etype );
@@ -123,7 +146,7 @@ vips_coding_get_type( void )
 }
 /* enumerations from "../../libvips/include/vips/object.h" */
 GType
-vips_argument_get_type( void )
+vips_argument_flags_get_type( void )
 {
 	static GType etype = 0;
 
@@ -138,7 +161,7 @@ vips_argument_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsArgument", values );
+		etype = g_enum_register_static( "VipsArgumentFlags", values );
 	}
 
 	return( etype );

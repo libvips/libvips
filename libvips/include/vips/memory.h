@@ -61,7 +61,7 @@ G_STMT_START { \
 	\
         if( (S) != sst ) { \
                 if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
-                        IM_FREE( S ); \
+                        VIPS_FREE( S ); \
                         if( sst ) \
                                 (S) = im_strdup( NULL, sst ); \
                 } \

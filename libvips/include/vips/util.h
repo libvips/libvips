@@ -31,8 +31,8 @@
 
  */
 
-#ifndef IM_UTIL_H
-#define IM_UTIL_H
+#ifndef VIPS_UTIL_H
+#define VIPS_UTIL_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,23 +40,23 @@ extern "C" {
 
 #include <stdio.h>
 
-/* Some platforms don't have M_PI in math.h :-(
+/* Some platforms don't have M_PI :-(
  */
-#define IM_PI (3.14159265358979323846)
+#define VIPS_PI (3.14159265358979323846)
 
 /* Convert degrees->rads and vice-versa. 
  */
-#define IM_RAD( R ) (((R) / 360.0) * 2.0 * IM_PI)
-#define IM_DEG( A ) (((A) / (2.0 * IM_PI)) * 360.0)
+#define VIPS_RAD( R ) (((R) / 360.0) * 2.0 * VIPS_PI)
+#define VIPS_DEG( A ) (((A) / (2.0 * VIPS_PI)) * 360.0)
 
-#define IM_MAX( A, B ) ((A) > (B) ? (A) : (B))
-#define IM_MIN( A, B ) ((A) < (B) ? (A) : (B))
-#define IM_ABS( X ) (((X) >= 0) ? (X) : -(X))
+#define VIPS_MAX( A, B ) ((A) > (B) ? (A) : (B))
+#define VIPS_MIN( A, B ) ((A) < (B) ? (A) : (B))
+#define VIPS_ABS( X ) (((X) >= 0) ? (X) : -(X))
 
-#define IM_CLIP( A, V, B ) IM_MAX( (A), IM_MIN( (B), (V) ) )
-#define IM_NUMBER( R ) ((int) (sizeof(R) / sizeof(R[0])))
+#define VIPS_CLIP( A, V, B ) VIPS_MAX( (A), VIPS_MIN( (B), (V) ) )
+#define VIPS_NUMBER( R ) ((int) (sizeof(R) / sizeof(R[0])))
 
-#define IM_SWAP( TYPE, A, B ) \
+#define VIPS_SWAP( TYPE, A, B ) \
 G_STMT_START { \
 	TYPE t = (A); \
 	(A) = (B); \
@@ -65,7 +65,7 @@ G_STMT_START { \
 
 /* Duff's device. Do OPERation N times in a 16-way unrolled loop.
  */
-#define IM_UNROLL( N, OPER ) \
+#define VIPS_UNROLL( N, OPER ) \
 G_STMT_START { \
 	if( (N) ) { \
 		int duff_count = ((N) + 15) / 16; \
@@ -94,11 +94,11 @@ G_STMT_START { \
 
 /* Round a float to the nearest integer. Much faster than rint(). 
  */
-#define IM_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
+#define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
 
 /* Various integer range clips. Record over/under flows.
  */
-#define IM_CLIP_UCHAR( V, SEQ ) \
+#define VIPS_CLIP_UCHAR( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < 0 ) {   \
 		(SEQ)->underflow++;   \
@@ -110,7 +110,7 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define IM_CLIP_USHORT( V, SEQ ) \
+#define VIPS_CLIP_USHORT( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < 0 ) {   \
 		(SEQ)->underflow++;   \
@@ -122,7 +122,7 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define IM_CLIP_CHAR( V, SEQ ) \
+#define VIPS_CLIP_CHAR( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < SCHAR_MIN ) {   \
 		(SEQ)->underflow++;   \
@@ -134,7 +134,7 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define IM_CLIP_SHORT( V, SEQ ) \
+#define VIPS_CLIP_SHORT( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < SHRT_MIN ) {   \
 		(SEQ)->underflow++;   \
@@ -146,7 +146,7 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define IM_CLIP_NONE( V, SEQ ) {}
+#define VIPS_CLIP_NONE( V, SEQ ) {}
 
 /* Look up the const char * for an enum value.
  */
@@ -236,4 +236,4 @@ char *im__temp_name( const char *format );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_UTIL_H*/
+#endif /*VIPS_UTIL_H*/

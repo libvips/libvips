@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/buf.h>

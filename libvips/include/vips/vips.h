@@ -74,8 +74,8 @@
 
  */
 
-#ifndef IM_VIPS_H
-#define IM_VIPS_H
+#ifndef VIPS_VIPS_H
+#define VIPS_VIPS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -140,12 +140,12 @@ extern "C" {
 #include <vips/video.h>
 #include <vips/cimg_funcs.h>
 
-#ifdef IM_ENABLE_DEPRECATED
+#ifdef VIPS_ENABLE_DEPRECATED
 #include <vips/deprecated.h>
-#endif /*IM_ENABLE_DEPRECATED*/
+#endif /*VIPS_ENABLE_DEPRECATED*/
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_VIPS_H*/
+#endif /*VIPS_VIPS_H*/
