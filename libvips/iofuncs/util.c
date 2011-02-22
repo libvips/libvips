@@ -1624,32 +1624,3 @@ im__open_temp( const char *format )
 
 	return( disc );
 }
-
-/* This gets indexed by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
- * size.
- */
-const size_t im__sizeof_bandfmt[] = {
-	IM_BBITS_BYTE >> 3,
-	IM_BBITS_BYTE >> 3,
-	IM_BBITS_SHORT >> 3,
-	IM_BBITS_SHORT >> 3,
-	IM_BBITS_INT >> 3,
-	IM_BBITS_INT >> 3,
-	IM_BBITS_FLOAT >> 3,
-	IM_BBITS_COMPLEX >> 3,
-	IM_BBITS_DOUBLE >> 3,
-	IM_BBITS_DPCOMPLEX >> 3
-};
-
-/* Return number of pel bits for band format, or -1 on error.
- */
-int 
-im_bits_of_fmt( VipsBandFmt fmt )
-{
-	return( fmt < 0 || fmt > IM_BANDFMT_DPCOMPLEX ?
-		im_error( "im_bits_of_fmt", 
-			_( "unsupported band format: %d" ), fmt ),
-		-1 :
-		im__sizeof_bandfmt[fmt] << 3 );
-}
-

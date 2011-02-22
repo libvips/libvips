@@ -43,8 +43,7 @@ libiofuncs_la_SOURCES = \
 	buf.c \
 	window.c \
 	vector.c \
-	buffer.c \
-	time.c 
+	buffer.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
 

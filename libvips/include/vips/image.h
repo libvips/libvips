@@ -171,6 +171,11 @@ typedef struct _VipsImage {
 	short Level;
 	int Bbits;		/* was number of bits in this format */
 
+	/* Old code expects to see this member, newer code has a param on
+	 * eval().
+	 */
+	VipsProgress *time;
+
 	/* Derived fields that some code can fiddle with. New code should use
 	 * vips_image_get_history() and friends.
 	 */
@@ -267,7 +272,7 @@ typedef struct _VipsImageClass {
 
 	/* Evaluation is starting.
 	 */
-	void (*preeval)( VipsImage *image );
+	void (*preeval)( VipsImage *image, VipsProgress *progress );
 
 	/* Evaluation progress.
 	 */
@@ -275,7 +280,7 @@ typedef struct _VipsImageClass {
 
 	/* Evaluation is ending.
 	 */
-	void (*posteval)( VipsImage *image );
+	void (*posteval)( VipsImage *image, VipsProgress *progress );
 
 	/* An image has been written to. 
 	 * Used by eg. im_open("x.jpg", "w") to do the final write to jpeg.
@@ -341,6 +346,18 @@ double vips_image_get_yres( VipsImage *image );
 int vips_image_get_xoffset( VipsImage *image );
 int vips_image_get_yoffset( VipsImage *image );
 
+void vips_image_written( VipsImage *image );
+void vips_image_preeval( VipsImage *image );
+void vips_image_eval( VipsImage *image, int w, int h );
+void vips_image_posteval( VipsImage *image );
+
+VipsImage *vips_open( const char *filename, const char *mode );
+
+gboolean vips_image_isMSBfirst( VipsImage *image );
+gboolean vips_image_isfile( VipsImage *image );
+gboolean vips_image_ispartial( VipsImage *image );
+
+int vips_format_sizeof( VipsBandFormat format );
 
 
 

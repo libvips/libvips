@@ -367,6 +367,11 @@ vips_image_finalize( GObject *gobject )
 		image->data = NULL;
 	}
 
+	if( image->time ) {
+		VIPS_FREEF( g_timer_destroy, image->time->start );
+		VIPS_FREE( image->time );
+	}
+
 	/* Is there a file descriptor?
 	 */
 	if( image->fd != -1 ) {
@@ -716,27 +721,19 @@ vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
 /* Progress feedback. 
  */
 
-/* What we track during an eval.
- */
-typedef struct {
-	VipsImage *image;
-
-	int last_percent;	/* The last %complete we displayed */
-} Progress;
-
 static int
-vips_image_evalstart_cb( Progress *progress )
+vips_image_evalstart_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
 	int tile_width; 
 	int tile_height; 
 	int nlines;
 
-	progress->last_percent = 0;
+	*last = -1;
 
-	vips_get_tile_size( progress->image, 
+	vips_get_tile_size( image, 
 		&tile_width, &tile_height, &nlines );
 	printf( _( "%s %s: %d threads, %d x %d tiles, groups of %d scanlines" ),
-		g_get_prgname(), progress->image->filename,
+		g_get_prgname(), image->filename,
 		im_concurrency_get(),
 		tile_width, tile_height, nlines );
 	printf( "\n" );
@@ -745,32 +742,28 @@ vips_image_evalstart_cb( Progress *progress )
 }
 
 static int
-vips_image_eval_cb( Progress *progress )
+vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
-	VipsImage *image = progress->image;
-
-	if( image->time->percent != progress->last_percent ) {
+	if( progress->percent != *last ) {
 		printf( _( "%s %s: %d%% complete" ), 
 			g_get_prgname(), image->filename, 
-			image->time->percent );
+			progress->percent );
 		printf( "\r" ); 
 		fflush( stdout );
 
-		progress->last_percent = image->time->percent;
+		*last = progress->percent;
 	}
 
 	return( 0 );
 }
 
 static int
-vips_image_evalend_cb( Progress *progress )
+vips_image_evalend_cb( VipsImage *image, VipsProgress *progress )
 {
-	VipsImage *image = progress->image;
-
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
 	printf( _( "%s %s: done in %ds          \n" ), 
-		g_get_prgname(), image->filename, image->time->run );
+		g_get_prgname(), image->filename, progress->run );
 
 	return( 0 );
 }
@@ -783,15 +776,16 @@ vips_image_add_progress( VipsImage *image )
 	if( im__progress || 
 		g_getenv( "IM_PROGRESS" ) ) {
 
-		Progress *progress = VIPS_NEW( image, Progress );
+		/* Keep the %complete we displayed last time here.
+		 */
+		int *last = VIPS_NEW( image, int );
 
-		progress->image = image;
 		g_signal_connect( image, "evalstart", 
-			G_CALLBACK( vips_image_evalstart_cb ), progress );
+			G_CALLBACK( vips_image_evalstart_cb ), last );
 		g_signal_connect( image, "eval", 
-			G_CALLBACK( vips_image_eval_cb ), progress );
+			G_CALLBACK( vips_image_eval_cb ), last );
 		g_signal_connect( image, "evalend", 
-			G_CALLBACK( vips_image_evalend_cb ), progress );
+			G_CALLBACK( vips_image_evalend_cb ), NULL );
 	}
 }
 
@@ -813,7 +807,7 @@ vips_image_build( VipsObject *object )
 		g_free( basename );
 	}
 
-	if( VIPS_OBJECT_CLASS( parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_image_parent_class )->build( object ) )
 		return( -1 );
 
 	/* Parse the mode string.
@@ -838,9 +832,9 @@ vips_image_build( VipsObject *object )
 				 * 8 bit images.
 				 */
 				if( vips_image_isMSBfirst( image ) != 
-						vips__amiMSBfirst() &&
-					vips_format_sizeof( image->format ) !=
-						1) {
+						im_amiMSBfirst() &&
+					vips_format_sizeof( image->BandFmt ) !=
+						1 ) {
 					im_error( "vips_image_build",
 						_( "open for read-"
 						"write for native format "
@@ -1132,43 +1126,99 @@ vips_image_written( VipsImage *image )
 	g_signal_emit( image, vips_image_signals[SIG_WRITTEN], 0 );
 }
 
-void
-vips_image_preeval( VipsImage *image )
+/* Attach a new time struct, if necessary, and reset it.
+ */
+static int
+vips_progress_add( VipsImage *image )
 {
-	VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
+	VipsProgress *progress;
 
-#ifdef DEBUG
-	printf( "vips_image_preeval: " );
-	vips_object_print( object );
-#endif /*DEBUG*/
+	if( !image->time &&
+		!(image->time = IM_NEW( NULL, VipsProgress )) )
+		return( -1 );
+	progress = image->time;
+	if( !progress->start )
+		progress->start = g_timer_new();
 
-	g_signal_emit( image, vips_image_signals[SIG_PREEVAL], 0 );
+	progress->im = image;
+	g_timer_start( progres->start );
+	time->run = 0;
+	time->eta = 0;
+	time->tpels = (gint64) im->Xsize * im->Ysize;
+	time->npels = 0;
+	time->percent = 0;
+
+	return( 0 );
 }
 
 void
-vips_image_eval( VipsImage *image )
+vips_image_preeval( VipsImage *image )
 {
-	VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
+	if( image->progress ) {
+		VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
 
 #ifdef DEBUG
-	printf( "vips_image_eval: " );
-	vips_object_print( object );
+		printf( "vips_image_preeval: " );
+		vips_object_print( object );
 #endif /*DEBUG*/
 
-	g_signal_emit( image, vips_image_signals[SIG_EVAL], 0 );
+		g_assert( !im_image_sanity( image->progress ) );
+
+		if( vips_progress_add( image->progress ) )
+			return( -1 );
+
+		g_signal_emit( image->progress, 
+			vips_image_signals[SIG_PREEVAL], image->time, 0 );
+	}
+}
+
+/* Another w * h pixels have been processed.
+ */
+void
+vips_image_eval( VipsImage *image, int w, int h )
+{
+	if( image->progress ) {
+		VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
+		VipsProgress *progress = image->time;
+		float prop;
+
+#ifdef DEBUG
+		printf( "vips_image_eval: " );
+		vips_object_print( object );
+#endif /*DEBUG*/
+
+		g_assert( !im_image_sanity( image->progress ) );
+
+		progress->run = g_timer_elapsed( progress->start, NULL );
+		progress->npels += w * h;
+		prop = (float) progress->npels / (float) progress->tpels;
+		progress->percent = 100 * prop;
+		if( prop > 0.1 ) 
+			progress->eta = (1.0 / prop) * progress->run - 
+				progress->run;
+
+
+		g_signal_emit( image->progress, 
+			vips_image_signals[SIG_EVAL], progress, 0 );
+	}
 }
 
 void
 vips_image_posteval( VipsImage *image )
 {
-	VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
+	if( image->progress ) {
+		VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
 
 #ifdef DEBUG
-	printf( "vips_image_posteval: " );
-	vips_object_print( object );
+		printf( "vips_image_posteval: " );
+		vips_object_print( object );
 #endif /*DEBUG*/
 
-	g_signal_emit( image, vips_image_signals[SIG_POSTEVAL], 0 );
+		g_assert( !im_image_sanity( image->progress ) );
+
+		g_signal_emit( image->progress, 
+			vips_image_signals[SIG_POSTEVAL], image->time, 0 );
+	}
 }
 
 /**
@@ -1283,3 +1333,91 @@ vips_open( const char *filename, const char *mode )
 
 	return( image ); 
 }
+
+/**
+ * vips_image_isMSBfirst:
+ * @image: image to test
+ *
+ * Return %TRUE if @image is in most-significant-
+ * byte first form. This is the byte order used on the SPARC
+ * architecture and others. 
+ */
+gboolean
+vips_image_isMSBfirst( VipsImage *image )
+{	
+	if( image->magic == VIPS_MAGIC_SPARC )
+		return( 1 );
+	else
+		return( 0 );
+}
+
+/**
+ * vips_image_isfile:
+ * @image: image to test
+ *
+ * Return %TRUE if @image represents a file on disc in some way. 
+ */
+gboolean 
+vips_image_isfile( VipsImage *image )
+{
+	switch( image->dtype ) {
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_OPENIN:
+		return( 1 );
+
+	case VIPS_IMAGE_PARTIAL:
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_NONE:
+		return( 0 );
+
+	default:
+		g_assert( FALSE ); 
+		return( 0 );
+	}
+}
+
+/**
+ * vips_image_ispartial:
+ * @image: image to test
+ *
+ * Return %TRUE if @im represents a partial image (a delayed calculation).
+ */
+gboolean 
+vips_image_ispartial( VipsImage *image )
+{
+	if( image->dtype == VIPS_IMAGE_PARTIAL )
+		return( 1 );
+	else
+		return( 0 );
+}
+
+/* This is used by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
+ * size.
+ */
+const size_t vips_image__sizeof_bandformat[] = {
+	sizeof( unsigned char ), 	/* VIPS_FORMAT_UCHAR */
+	sizeof( signed char ), 		/* VIPS_FORMAT_CHAR */
+	sizeof( unsigned short ), 	/* VIPS_FORMAT_USHORT */
+	sizeof( unsigned short ), 	/* VIPS_FORMAT_SHORT */
+	sizeof( unsigned int ), 	/* VIPS_FORMAT_UINT */
+	sizeof( unsigned int ), 	/* VIPS_FORMAT_INT */
+	sizeof( unsigned float ), 	/* VIPS_FORMAT_FLOAT */
+	2 * sizeof( unsigned float ), 	/* VIPS_FORMAT_COMPLEX */
+	sizeof( unsigned double ), 	/* VIPS_FORMAT_DOUBLE */
+	2 * sizeof( unsigned double ) 	/* VIPS_FORMAT_DPCOMPLEX */
+};
+
+/* Return number of pel bits for band format, or -1 on error.
+ */
+int 
+vips_format_sizeof( VipsBandFormat format )
+{
+	return( (format < 0 || format > VIPS_FORMAT_DPCOMPLEX) ?
+		im_error( "vips_format_sizeof", 
+			_( "unknown band format %d" ), format ), -1 :
+		vips_image__sizeof_bandfmt[format] );
+}
+

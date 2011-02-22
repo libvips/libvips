@@ -1,3 +1,5 @@
+- image->progress needs renaming, perhaps image->progress_signal?
+
 
 - pre/post/close should be on VipsObject, not VipsImage
 
