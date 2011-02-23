@@ -1031,16 +1031,3 @@ im_open_vips( const char *filename )
 
 	return( im );
 }
-
-IMAGE *
-im_openout( const char *filename )
-{	
-	IMAGE *image;
-
-	if( !(image = im_init( filename )) ) 
-		return( NULL );
-	image->dtype = IM_OPENOUT;
-
-	return( image );
-}
-

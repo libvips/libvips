@@ -31,6 +31,7 @@
 - set MAP_NOCACHE on OS X, otherwise performance dives off a cliff with 
   files larger than memory
 - removed man pages, we are all gtk-doc now
+- added VIPS_FORMAT_BIGENDIAN format flag
 
 30/11/10 started 7.24.0
 - bump for new stable

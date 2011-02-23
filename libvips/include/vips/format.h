@@ -54,7 +54,8 @@ extern "C" {
  */
 typedef enum {
 	VIPS_FORMAT_NONE = 0,		/* No flags set */
-	VIPS_FORMAT_PARTIAL = 1		/* Lazy read OK (eg. tiled tiff) */
+	VIPS_FORMAT_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
+	VIPS_FORMAT_BIGENDIAN = 2	/* Most-significant byte first */
 } VipsFormatFlags;
 
 /* Don't instantiate these things, just use the class stuff.

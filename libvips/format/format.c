@@ -68,11 +68,16 @@
  * VipsFormatFlags: 
  * @VIPS_FORMAT_NONE: no flags set
  * @VIPS_FORMAT_PARTIAL: the image may be read lazilly
+ * @VIPS_FORMAT_BIGENDIAN: image pixels are most-significant byte first
  *
  * Some hints about the image loader.
  *
  * @VIPS_FORMAT_PARTIAL means that the image can be read directly from the
  * file without needing to be unpacked to a temporary image first. 
+ *
+ * @VIPS_FORMAT_BIGENDIAN means that image pixels are most-significant byte
+ * first. Depending on the native byte order of the host machine, you may
+ * need to swap bytes. See im_copy_swap().
  */
 
 /**
@@ -339,6 +344,27 @@ vips_format_get_flags( VipsFormatClass *format, const char *filename )
 
 static const char *vips_suffs[] = { ".v", NULL };
 
+int
+im_isvips( const char *filename )
+{
+	unsigned char buf[4];
+
+	if( im__get_bytes( filename, buf, 4 ) ) {
+		if( buf[0] == 0x08 && buf[1] == 0xf2 &&
+			buf[2] == 0xa6 && buf[3] == 0xb6 )
+			/* SPARC-order VIPS image.
+			 */
+			return( 1 );
+		else if( buf[3] == 0x08 && buf[2] == 0xf2 &&
+			buf[1] == 0xa6 && buf[0] == 0xb6 )
+			/* INTEL-order VIPS image.
+			 */
+			return( 1 );
+	}
+
+	return( 0 );
+}
+
 static int
 file2vips( const char *filename, IMAGE *out )
 {
@@ -366,7 +392,19 @@ vips2file( IMAGE *im, const char *filename )
 static VipsFormatFlags
 vips_flags( const char *filename )
 {
-	return( VIPS_FORMAT_PARTIAL );
+	VipsFormatFlags flags;
+	unsigned char buf[4];
+
+	flags = VIPS_FORMAT_PARTIAL;
+
+	if( im__get_bytes( filename, buf, 4 ) &&
+		buf[0] == 0x08 && 
+		buf[1] == 0xf2 &&
+		buf[2] == 0xa6 && 
+		buf[3] == 0xb6 )
+		flags |= VIPS_FORMAT_BIGENDIAN;
+
+	return( flags );
 }
 
 /* Vips format adds no new members.

@@ -382,7 +382,7 @@ vips_image_finalize( GObject *gobject )
 		if( image->dtype == VIPS_IMAGE_OPENOUT )
 			(void) im__writehist( image );
 		if( close( image->fd ) == -1 ) 
-			im_error( "vips_image_finalize", 
+			im_error( "VipsImage", 
 				_( "unable to close fd for %s" ), 
 				image->filename );
 		image->fd = -1;
@@ -818,6 +818,21 @@ vips_image_build( VipsObject *object )
 			return( -1 );
 
 		if( vips_format_is_vips( format ) ) {
+			/* We may need to byteswap.
+			 */
+			VipsFormatFlags flags = 
+				vips_format_get_flags( format, 
+					image->filename );
+			gboolean bigendian = flags & VIPS_FORMAT_BIGENDIAN;
+			gboolean swap = bigendian != im_amiMSBfirst();
+			
+			if( swap ) {
+				VipsImage *real;
+
+				if( !(real = im_open_local( image, "p" );
+				image->dtype = VIPS_IMAGE_PARTIAL;
+
+
 			if( vips_open_input( image ) )
 				return( -1 );
 
@@ -835,59 +850,48 @@ vips_image_build( VipsObject *object )
 						im_amiMSBfirst() &&
 					vips_format_sizeof( image->BandFmt ) !=
 						1 ) {
-					im_error( "vips_image_build",
-						_( "open for read-"
+					im_error( "VipsImage", "%s",
+						_( "open read-"
 						"write for native format "
 						"images only" ) );
 					return( -1 );
 				}
 
-				image->dtype = VIPS_IMAGE_TYPE_OPENIN;
+				image->dtype = VIPS_IMAGE_OPENINRW;
 			}
 		}
 		else {
-			if( vips_open_lazy( image, 
-				format, filename, mode[1] == 'd' ) )
+			if( vips_open_lazy( image, format, 
+				image->filename, image->mode[1] == 'd' ) )
 				return( -1 );
 		}
 
         	break;
 
 	case 'w':
-		if( (format = vips_format_for_name( filename )) ) {
-			if( vips_format_is_vips( format ) ) {
-				if( vips_open_output( image ) )
-					return( -1 );
-			}
-			else {
-				image->dtype = VIPS_IMAGE_TYPE_PARTIAL;
-				vips_attach_save( image, 
-					format->save, filename );
-			}
-		}
-		else {
-			char suffix[FILENAME_MAX];
-
-			im_filename_suffix( filename, suffix );
-			im_error( "vips_image_build", 
-				_( "unsupported filetype \"%s\"" ), 
-				suffix );
-
+		if( !(format = vips_format_for_name( image->filename )) ) 
 			return( -1 );
+
+		if( vips_format_is_vips( format ) ) 
+			image->dtype = VIPS_IMAGE_OPENOUT;
+		else {
+			image->dtype = VIPS_IMAGE_PARTIAL;
+			vips_attach_save( image, 
+				format->save, image->filename );
 		}
         	break;
 
         case 't':
-		image->dtype = VIPS_IMAGE_TYPE_SETBUF;
+		image->dtype = VIPS_IMAGE_SETBUF;
 		image->dhint = VIPS_DEMAND_ANY;
                 break;
 
         case 'p':
-		image->dtype = VIPS_IMAGE_TYPE_PARTIAL;
+		image->dtype = VIPS_IMAGE_PARTIAL;
                 break;
 
 	default:
-		im_error( "vips_image_build", _( "bad mode \"%s\"" ), mode );
+		im_error( "VipsImage", _( "bad mode \"%s\"" ), mode );
 
 		return( -1 );
         }
