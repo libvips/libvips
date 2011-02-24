@@ -6,7 +6,6 @@ libiofuncs_la_SOURCES = \
 	meta.c \
 	base64.h \
 	base64.c \
-	callback.c \
 	debug.c \
 	dispatch_types.c \
 	error.c \

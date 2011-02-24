@@ -107,7 +107,6 @@ extern "C" {
 #include <vips/image.h>
 #include <vips/memory.h>
 #include <vips/almostdeprecated.h>
-#include <vips/callback.h>
 #include <vips/error.h>
 #include <vips/format.h>
 #include <vips/dispatch.h>

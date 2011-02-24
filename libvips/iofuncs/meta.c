@@ -197,7 +197,7 @@ meta_free( Meta *meta )
 			g_slist_remove( meta->im->Meta_traverse, meta );
 
 	g_value_unset( &meta->value );
-	IM_FREE( meta->field );
+	VIPS_FREE( meta->field );
 	im_free( meta );
 }
 
@@ -206,7 +206,7 @@ meta_new( IMAGE *im, const char *field, GValue *value )
 {
 	Meta *meta;
 
-	if( !(meta = IM_NEW( NULL, Meta )) )
+	if( !(meta = VIPS_NEW( NULL, Meta )) )
 		return( NULL );
 	meta->im = im;
 	meta->field = NULL;
@@ -242,7 +242,7 @@ meta_new( IMAGE *im, const char *field, GValue *value )
 void
 im__meta_destroy( IMAGE *im )
 {
-	IM_FREEF( g_hash_table_destroy, im->Meta );
+	VIPS_FREEF( g_hash_table_destroy, im->Meta );
 	g_assert( !im->Meta_traverse );
 }
 
@@ -424,7 +424,8 @@ im_meta_get( IMAGE *im, const char *field, GValue *value_copy )
 	/* Defined?
 	 */
 	if( !im->Meta || !(meta = g_hash_table_lookup( im->Meta, field )) ) {
-		im_error( "im_meta_get", _( "field \"%s\" not found" ), field );
+		vips_error( "im_meta_get", 
+			_( "field \"%s\" not found" ), field );
 		return( -1 );
 	}
 
@@ -482,8 +483,8 @@ meta_get_value( IMAGE *im, const char *field, GType type, GValue *value_copy )
 	if( im_meta_get( im, field, value_copy ) )
 		return( -1 );
 	if( G_VALUE_TYPE( value_copy ) != type ) {
-		im_error( "im_meta_get", _( "field \"%s\" "
-			"is of type %s, not %s" ),
+		vips_error( "im_meta_get", 
+			_( "field \"%s\" is of type %s, not %s" ),
 			field, 
 			g_type_name( G_VALUE_TYPE( value_copy ) ),
 			g_type_name( type ) );
@@ -722,7 +723,7 @@ area_new( im_callback_fn free_fn, void *data )
 {
 	Area *area;
 
-	if( !(area = IM_NEW( NULL, Area )) )
+	if( !(area = VIPS_NEW( NULL, Area )) )
 		return( NULL );
 	area->count = 1;
 	area->length = 0;

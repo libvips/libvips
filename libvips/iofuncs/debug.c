@@ -144,37 +144,37 @@ typedef struct _EnumTable {
 static EnumTable enumType = {
 	N_( "<bad Type>" ),
 	im_Type,
-	IM_NUMBER( im_Type )
+	VIPS_NUMBER( im_Type )
 };
 
 static EnumTable enumBandFmt = {
 	N_( "<bad BandFmt>" ),
 	im_BandFmt,
-	IM_NUMBER( im_BandFmt )
+	VIPS_NUMBER( im_BandFmt )
 };
 
 static EnumTable enumCoding = {
 	N_( "<bad Coding>" ),
 	im_Coding,
-	IM_NUMBER( im_Coding )
+	VIPS_NUMBER( im_Coding )
 };
 
 static EnumTable enumCompression = {
 	N_( "<bad Compression>" ),
 	im_Compression,
-	IM_NUMBER( im_Compression )
+	VIPS_NUMBER( im_Compression )
 };
 
 static EnumTable enumdtype = {
 	N_( "<bad dtype>" ),
 	im_dtype,
-	IM_NUMBER( im_dtype )
+	VIPS_NUMBER( im_dtype )
 };
 
 static EnumTable enumdhint = {
 	N_( "<bad dhint>" ),
 	im_dhint,
-	IM_NUMBER( im_dhint )
+	VIPS_NUMBER( im_dhint )
 };
 
 static const char *
@@ -195,14 +195,14 @@ char2enum( EnumTable *etable, const char *name )
 		if( g_ascii_strcasecmp( etable->names[i], name ) == 0 )
 			return( i );
 
-	im_error( "char2enum", "%s", _( etable->error ) );
+	vips_error( "char2enum", "%s", _( etable->error ) );
 
 	return( -1 );
 }
 
 /* Prettyprint various header fields.
  */
-const char *im_Type2char( VipsType type ) 
+const char *im_Type2char( VipsInterpretation type ) 
 	{ return( enum2char( &enumType, type ) ); }
 const char *im_BandFmt2char( VipsBandFmt fmt ) 
 	{ return( enum2char( &enumBandFmt, fmt ) ); }
@@ -398,22 +398,6 @@ im_printdesc( IMAGE *image )
 	 */
 	if( image->generate )
 		printf( "generate function attached\n" );
-	if( image->preclosefns )
-		printf( "preclose callbacks attached\n" );
-	if( image->closefns )
-		printf( "close callbacks attached\n" );
-	if( image->postclosefns )
-		printf( "postclose callbacks attached\n" );
-	if( image->writtenfns )
-		printf( "written callbacks attached\n" );
-	if( image->evalfns )
-		printf( "eval callbacks attached\n" );
-	if( image->evalendfns )
-		printf( "evalend callbacks attached\n" );
-	if( image->evalstartfns )
-		printf( "evalstart callbacks attached\n" );
-	if( image->invalidatefns )
-		printf( "invalidate callbacks attached\n" );
 	if( image->regions ) {
 		printf( "%d regions present\n", 
 			g_slist_length( image->regions ) );
