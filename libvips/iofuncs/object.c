@@ -1173,3 +1173,16 @@ vips_object_map( VSListMap2Fn fn, void *a, void *b )
 
 	return( args.result );
 }
+
+void
+vips_object_local_cb( VipsObject *vobject, GObject *gobject )
+{
+	g_object_unref( gobject );
+}
+
+void
+vips_object_local( VipsObject *vobject, GObject *gobject )
+{
+	g_signal_connect( vobject, "close", 
+		G_CALLBACK( vips_object_local_cb ), gobject );
+}

@@ -382,7 +382,7 @@ vips_image_finalize( GObject *gobject )
 		if( image->dtype == VIPS_IMAGE_OPENOUT )
 			(void) im__writehist( image );
 		if( close( image->fd ) == -1 ) 
-			im_error( "VipsImage", 
+			vips_error( "VipsImage", 
 				_( "unable to close fd for %s" ), 
 				image->filename );
 		image->fd = -1;
@@ -471,7 +471,7 @@ static void
 lazy_free_cb( Lazy *lazy )
 {
 	VIPS_FREE( lazy->filename );
-	VIPS_UNREF( lazy->image );
+	VIPS_UNREF( lazy->real );
 }
 
 static Lazy *
@@ -617,16 +617,16 @@ open_lazy_start( VipsImage *out, void *a, void *dummy )
 {
 	Lazy *lazy = (Lazy *) a;
 
-	if( !lazy->image ) {
+	if( !lazy->real ) {
 		if( !(lazy->real = lazy_real_image( lazy )) || 
-			lazy->format->load( lazy->filename, lazy->image ) ||
-			im_pincheck( lazy->image ) ) {
-			VIPS_UNREF( lazy->image );
+			lazy->format->load( lazy->filename, lazy->real ) ||
+			im_pincheck( lazy->real ) ) {
+			VIPS_UNREF( lazy->real );
 			return( NULL );
 		}
 	}
 
-	return( im_region_create( lazy->image ) );
+	return( im_region_create( lazy->real ) );
 }
 
 /* Just copy.
@@ -792,17 +792,19 @@ vips_image_add_progress( VipsImage *image )
 static int
 vips_image_build( VipsObject *object )
 {
-	VipsImage *image = VIPS_IMAGE (object);
+	VipsImage *image = VIPS_IMAGE( object );
+	const char *filename = image->filename;
+	const char *mode = image->mode;
 	VipsFormatClass *format;
 
 	VIPS_DEBUG_MSG( "vips_image_build: %p\n", image );
 
 	/* name defaults to filename.
 	 */
-	if( image->filename ) {
+	if( filename ) {
 		char *basename;
 
-		basename = g_path_get_basename( image->filename );
+		basename = g_path_get_basename( filename );
 		g_object_set( image, "name", basename, NULL );
 		g_free( basename );
 	}
@@ -812,64 +814,49 @@ vips_image_build( VipsObject *object )
 
 	/* Parse the mode string.
 	 */
-	switch( image->mode[0] ) {
+	switch( mode[0] ) {
         case 'r':
-		if( !(format = vips_format_for_file( image->filename )) )
+		if( !(format = vips_format_for_file( filename )) )
 			return( -1 );
 
 		if( vips_format_is_vips( format ) ) {
 			/* We may need to byteswap.
 			 */
 			VipsFormatFlags flags = 
-				vips_format_get_flags( format, 
-					image->filename );
-			gboolean bigendian = flags & VIPS_FORMAT_BIGENDIAN;
-			gboolean swap = bigendian != im_amiMSBfirst();
-			
-			if( swap ) {
-				VipsImage *real;
+				vips_format_get_flags( format, filename );
+			gboolean native = (flags & VIPS_FORMAT_BIGENDIAN) == 
+				im_amiMSBfirst();
 
-				if( !(real = im_open_local( image, "p" );
-				image->dtype = VIPS_IMAGE_PARTIAL;
-
-
-			if( vips_open_input( image ) )
-				return( -1 );
-
-			if( image->mode[1] == 'w' ) {
-				/* "rw" mode ... just sanity check and tag.
-				 * The "rw" bit happens when we do an
-				 * operation.
-				 */
-
-				/* If we have a different byte order 
-				 * from the image, we can only process 
-				 * 8 bit images.
-				 */
-				if( vips_image_isMSBfirst( image ) != 
-						im_amiMSBfirst() &&
-					vips_format_sizeof( image->BandFmt ) !=
-						1 ) {
-					im_error( "VipsImage", "%s",
-						_( "open read-"
-						"write for native format "
-						"images only" ) );
+			if( native ) {
+				if( vips_open_input( image ) )
 					return( -1 );
-				}
 
-				image->dtype = VIPS_IMAGE_OPENINRW;
+				if( mode[1] == 'w' ) 
+					image->dtype = VIPS_IMAGE_MMAPINRW;
+			}
+			else {
+				VipsImage *x;
+
+				if( !(x = vips_open( filename, "p" )) )
+					return( -1 );
+				vips_object_local( image, x );
+				if( vips_open_input( x ) )
+					return( -1 );
+				image->dtype = VIPS_IMAGE_PARTIAL;
+				if( im_copy_swap( x, image ) )
+					return( -1 );
 			}
 		}
 		else {
 			if( vips_open_lazy( image, format, 
-				image->filename, image->mode[1] == 'd' ) )
+				filename, mode[1] == 'd' ) )
 				return( -1 );
 		}
 
         	break;
 
 	case 'w':
-		if( !(format = vips_format_for_name( image->filename )) ) 
+		if( !(format = vips_format_for_name( filename )) ) 
 			return( -1 );
 
 		if( vips_format_is_vips( format ) ) 
@@ -877,13 +864,13 @@ vips_image_build( VipsObject *object )
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
 			vips_attach_save( image, 
-				format->save, image->filename );
+				format->save, filename );
 		}
         	break;
 
         case 't':
 		image->dtype = VIPS_IMAGE_SETBUF;
-		image->dhint = VIPS_DEMAND_ANY;
+		image->dhint = VIPS_DEMAND_STYLE_ANY;
                 break;
 
         case 'p':
@@ -891,7 +878,7 @@ vips_image_build( VipsObject *object )
                 break;
 
 	default:
-		im_error( "VipsImage", _( "bad mode \"%s\"" ), mode );
+		vips_error( "VipsImage", _( "bad mode \"%s\"" ), mode );
 
 		return( -1 );
         }
@@ -918,8 +905,8 @@ vips_image_class_init( VipsImageClass *class )
 	 * for old programs which are missing an im_init_world() call. We must
 	 * have threads set up before we can process.
 	 */
-	if( im_init_world( "vips" ) )
-		im_error_clear();
+	if( vips_init( "vips" ) )
+		vips_error_clear();
 
 	gobject_class->finalize = vips_image_finalize;
 	gobject_class->dispose = vips_image_dispose;
@@ -997,7 +984,7 @@ vips_image_class_init( VipsImageClass *class )
 
 	pspec = g_param_spec_enum( "demand", "Demand",
 		_( "Preferred demand style for this image" ),
-		VIPS_TYPE_DEMAND, VIPS_DEMAND_SMALLTILE,
+		VIPS_TYPE_DEMAND_STYLE, VIPS_DEMAND_STYLE_SMALLTILE,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_DEMAND, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
@@ -1420,7 +1407,7 @@ int
 vips_format_sizeof( VipsBandFormat format )
 {
 	return( (format < 0 || format > VIPS_FORMAT_DPCOMPLEX) ?
-		im_error( "vips_format_sizeof", 
+		vips_error( "vips_format_sizeof", 
 			_( "unknown band format %d" ), format ), -1 :
 		vips_image__sizeof_bandfmt[format] );
 }

@@ -275,6 +275,12 @@ void *vips_class_map_concrete_all( GType base, VipsClassMap fn, void *a );
 VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
 GType vips_type_find( const char *basename, const char *nickname );
 
+// void vips_object_local( VipsObject *vobject, GObject *gobject );
+void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
+#define vips_object_local( V, G ) \
+	g_signal_connect( V, "close", \
+		G_CALLBACK( vips_object_local_cb ), G );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

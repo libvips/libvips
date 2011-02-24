@@ -144,6 +144,16 @@ extern "C" {
 #include <vips/deprecated.h>
 #endif /*VIPS_ENABLE_DEPRECATED*/
 
+const char *vips_get_argv0( void );
+int vips_init( const char *argv0 );
+GOptionGroup *vips_get_option_group( void );
+
+const char *vips_version_string( void );
+int vips_version( int flag );
+
+const char *vips_guess_prefix( const char *argv0, const char *env_name );
+const char *vips_guess_libdir( const char *argv0, const char *env_name );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

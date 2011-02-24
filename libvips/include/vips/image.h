@@ -361,18 +361,6 @@ int vips_format_sizeof( VipsBandFormat format );
 
 
 
-const char *vips_get_argv0( void );
-int vips_init_world( const char *argv0 );
-GOptionGroup *vips_get_option_group( void );
-
-const char *vips_version_string( void );
-int vips_version( int flag );
-
-const char *vips_guess_prefix( const char *argv0, const char *env_name );
-const char *vips_guess_libdir( const char *argv0, const char *env_name );
-
-VipsImage *vips_open( const char *filename, const char *mode );
-
 #define vips_open_local( IM, NAME, MODE ) \
 	((IMAGE *) vips_local( (IM), \
 		(vips_construct_fn) im_open, (im_callback_fn) im_close, \
@@ -384,8 +372,6 @@ VipsImage *vips_open( const char *filename, const char *mode );
 	(vips_local_array( (IM), (void **)((void*)(OUT)), (N),\
 		(im_construct_fn) im_open, (im_callback_fn) im_close, \
 		(void *) (NAME), (void *) (MODE), NULL ))
-
-int vips_close( VipsImage *im );
 
 void vips_invalidate( VipsImage *im );
 

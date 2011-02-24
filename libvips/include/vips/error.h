@@ -34,25 +34,22 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-const char *im_error_buffer( void );
-void im_error_clear( void );
+const char *vips_error_buffer( void );
+void vips_error_clear( void );
 
-void im_error( const char *domain, const char *fmt, ... )
+void vips_error( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
-void im_verror( const char *domain, const char *fmt, va_list ap );
-void im_error_system( int err, const char *domain, const char *fmt, ... )
+void vips_verror( const char *domain, const char *fmt, va_list ap );
+void vips_error_system( int err, const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 3, 4)));
-void im_verror_system( int err, const char *domain, 
+void vips_verror_system( int err, const char *domain, 
 	const char *fmt, va_list ap );
-void im_warn( const char *domain, const char *fmt, ... )
+void vips_warn( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
-void im_vwarn( const char *domain, const char *fmt, va_list ap );
-void im_diag( const char *domain, const char *fmt, ... )
+void vips_vwarn( const char *domain, const char *fmt, va_list ap );
+void vips_diag( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
-void im_vdiag( const char *domain, const char *fmt, va_list ap );
-
-void error_exit( const char *fmt, ... )
-	__attribute__((noreturn, format(printf, 1, 2)));
+void vips_vdiag( const char *domain, const char *fmt, va_list ap );
 
 #ifdef __cplusplus
 }
