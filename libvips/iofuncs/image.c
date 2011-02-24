@@ -116,7 +116,7 @@
  */
 
 /**
- * VipsType: 
+ * VipsInterpretation: 
  * @VIPS_TYPE_MULTIBAND: generic many-band image
  * @VIPS_TYPE_B_W: some kind of single-band image
  * @VIPS_TYPE_HISTOGRAM: a 1D image such as a histogram or lookup table
@@ -144,7 +144,7 @@
  */
 
 /**
- * VipsFormat: 
+ * VipsBandFormat: 
  * @VIPS_FORMAT_NOTSET: invalid setting
  * @VIPS_FORMAT_UCHAR: unsigned char format
  * @VIPS_FORMAT_CHAR: char format
@@ -899,7 +899,6 @@ vips_image_class_init( VipsImageClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 	GParamSpec *pspec;
-	int i;
 
 	/* Pass in a nonsense name for argv0 ... this init world is only here
 	 * for old programs which are missing an im_init_world() call. We must
@@ -914,7 +913,6 @@ vips_image_class_init( VipsImageClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->print = vips_image_print;
-	vobject_class->copy_attributes = vips_image_copy_attributes;
 	vobject_class->build = vips_image_build;
 
 	/* Create properties.
@@ -948,7 +946,7 @@ vips_image_class_init( VipsImageClass *class )
 
 	pspec = g_param_spec_enum( "format", "Format",
 		_( "Pixel format in image" ),
-		VIPS_TYPE_FORMAT, VIPS_FORMAT_UNSIGNED8, 
+		VIPS_TYPE_FORMAT, VIPS_FORMAT_UCHAR, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_FORMAT, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
@@ -1037,7 +1035,7 @@ vips_image_init( VipsImage *image )
 	image->magic = im_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 
 	image->fd = -1;			/* since 0 is stdout */
-        image->sizeof_header = VIPS_SIZEOF_HEADER;
+        image->sizeof_header = IM_SIZEOF_HEADER;
 	image->sslock = g_mutex_new ();
 }
 
@@ -1062,7 +1060,7 @@ vips_image_get_bands( VipsImage *image )
 	return( image->Bands );
 }
 
-VipsFormat
+VipsBandFormat
 vips_image_get_format( VipsImage *image )
 {
 	return( image->BandFmt );
@@ -1074,31 +1072,31 @@ vips_image_get_coding( VipsImage *image )
 	return( image->Coding );
 }
 
-VipsType
-vips_image_get_type( VipsImage *image )
+VipsInterpretation
+vips_image_get_interpretation( VipsImage *image )
 {
 	return( image->Type );
 }
 
-VipsType
+double
 vips_image_get_xres( VipsImage *image )
 {
 	return( image->Xres );
 }
 
-VipsType
+double
 vips_image_get_yres( VipsImage *image )
 {
 	return( image->Yres );
 }
 
-VipsType
+int
 vips_image_get_xoffset( VipsImage *image )
 {
 	return( image->Xoffset );
 }
 
-VipsType
+int
 vips_image_get_yoffset( VipsImage *image )
 {
 	return( image->Yoffset );
@@ -1107,8 +1105,6 @@ vips_image_get_yoffset( VipsImage *image )
 void
 vips_image_written( VipsImage *image )
 {
-	VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
-
 #ifdef DEBUG
 	printf( "vips_image_written: " );
 	vips_object_print( object );
@@ -1125,19 +1121,19 @@ vips_progress_add( VipsImage *image )
 	VipsProgress *progress;
 
 	if( !image->time &&
-		!(image->time = IM_NEW( NULL, VipsProgress )) )
+		!(image->time = VIPS_NEW( NULL, VipsProgress )) )
 		return( -1 );
 	progress = image->time;
 	if( !progress->start )
 		progress->start = g_timer_new();
 
 	progress->im = image;
-	g_timer_start( progres->start );
-	time->run = 0;
-	time->eta = 0;
-	time->tpels = (gint64) im->Xsize * im->Ysize;
-	time->npels = 0;
-	time->percent = 0;
+	g_timer_start( progress->start );
+	progress->run = 0;
+	progress->eta = 0;
+	progress->tpels = (gint64) image->Xsize * image->Ysize;
+	progress->npels = 0;
+	progress->percent = 0;
 
 	return( 0 );
 }
@@ -1146,8 +1142,6 @@ void
 vips_image_preeval( VipsImage *image )
 {
 	if( image->progress ) {
-		VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
-
 #ifdef DEBUG
 		printf( "vips_image_preeval: " );
 		vips_object_print( object );
@@ -1155,11 +1149,10 @@ vips_image_preeval( VipsImage *image )
 
 		g_assert( !im_image_sanity( image->progress ) );
 
-		if( vips_progress_add( image->progress ) )
-			return( -1 );
+		(void) vips_progress_add( image->progress );
 
 		g_signal_emit( image->progress, 
-			vips_image_signals[SIG_PREEVAL], image->time, 0 );
+			vips_image_signals[SIG_PREEVAL], 0, image->time );
 	}
 }
 
@@ -1169,7 +1162,6 @@ void
 vips_image_eval( VipsImage *image, int w, int h )
 {
 	if( image->progress ) {
-		VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
 		VipsProgress *progress = image->time;
 		float prop;
 
@@ -1188,9 +1180,8 @@ vips_image_eval( VipsImage *image, int w, int h )
 			progress->eta = (1.0 / prop) * progress->run - 
 				progress->run;
 
-
 		g_signal_emit( image->progress, 
-			vips_image_signals[SIG_EVAL], progress, 0 );
+			vips_image_signals[SIG_EVAL], 0, progress );
 	}
 }
 
@@ -1198,8 +1189,6 @@ void
 vips_image_posteval( VipsImage *image )
 {
 	if( image->progress ) {
-		VipsImageClass *image_class = VIPS_IMAGE_GET_CLASS( image );
-
 #ifdef DEBUG
 		printf( "vips_image_posteval: " );
 		vips_object_print( object );
@@ -1208,7 +1197,7 @@ vips_image_posteval( VipsImage *image )
 		g_assert( !im_image_sanity( image->progress ) );
 
 		g_signal_emit( image->progress, 
-			vips_image_signals[SIG_POSTEVAL], image->time, 0 );
+			vips_image_signals[SIG_POSTEVAL], 0, image->time );
 	}
 }
 
@@ -1231,7 +1220,7 @@ vips_image_posteval( VipsImage *image )
  *       not be what you want, it can fill memory very quickly. Instead, you
  *       can either use "rd" mode (see below), or you can use the lower-level 
  *       API and control the loading process yourself. See 
- *       #VipsFormat. 
+ *       #VipsBandFormat. 
  *
  *       vips_open() can read files in most formats.
  *
@@ -1303,8 +1292,6 @@ vips_image_posteval( VipsImage *image )
  *   </listitem>
  * </itemizedlist>
  *
- * See also: im_close(), #VipsFormat
- *
  * Returns: the image descriptor on success and NULL on error.
  */
 VipsImage *
@@ -1312,12 +1299,12 @@ vips_open( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
-	image = VIPS_IMAGE( g_object_new( VIPS_IMAGE_TYPE, NULL ) );
+	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
 		"filename", filename,
 		"mode", mode,
 		NULL );
-	if( vips_object_build( image ) ) {
+	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
 		VIPS_UNREF( image );
 		return( NULL );
 	}
@@ -1395,10 +1382,10 @@ const size_t vips_image__sizeof_bandformat[] = {
 	sizeof( unsigned short ), 	/* VIPS_FORMAT_SHORT */
 	sizeof( unsigned int ), 	/* VIPS_FORMAT_UINT */
 	sizeof( unsigned int ), 	/* VIPS_FORMAT_INT */
-	sizeof( unsigned float ), 	/* VIPS_FORMAT_FLOAT */
-	2 * sizeof( unsigned float ), 	/* VIPS_FORMAT_COMPLEX */
-	sizeof( unsigned double ), 	/* VIPS_FORMAT_DOUBLE */
-	2 * sizeof( unsigned double ) 	/* VIPS_FORMAT_DPCOMPLEX */
+	sizeof( float ), 		/* VIPS_FORMAT_FLOAT */
+	2 * sizeof( float ), 		/* VIPS_FORMAT_COMPLEX */
+	sizeof( double ), 		/* VIPS_FORMAT_DOUBLE */
+	2 * sizeof( double ) 		/* VIPS_FORMAT_DPCOMPLEX */
 };
 
 /* Return number of pel bits for band format, or -1 on error.
@@ -1409,6 +1396,6 @@ vips_format_sizeof( VipsBandFormat format )
 	return( (format < 0 || format > VIPS_FORMAT_DPCOMPLEX) ?
 		vips_error( "vips_format_sizeof", 
 			_( "unknown band format %d" ), format ), -1 :
-		vips_image__sizeof_bandfmt[format] );
+		vips_image__sizeof_bandformat[format] );
 }
 
