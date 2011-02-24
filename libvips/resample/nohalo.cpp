@@ -98,9 +98,16 @@
  * If you want to use the "sharp" (cheaper) version, uncomment the
  * following three pre-processor code lines:
  */
+
+/*
+
+   	commented out 24/2/10, nohalo gets a bit better without it, though 
+	not lbb
+
 #ifndef __NOHALO_CHEAP_H__
 #define __NOHALO_CHEAP_H__
 #endif
+ */
 
 /*
  * ================
