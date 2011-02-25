@@ -1179,3 +1179,11 @@ vips_object_local_cb( VipsObject *vobject, GObject *gobject )
 {
 	g_object_unref( gobject );
 }
+
+int
+vips_object_unref( VipsObject *obj )
+{
+	g_object_unref( obj );
+
+	return( 0 );
+}
