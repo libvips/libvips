@@ -1,5 +1,7 @@
 - image->progress needs renaming, perhaps image->progress_signal?
 
+- im_sanity() should become a method on VipsObject, see debug.c
+
 
 - pre/post/close should be on VipsObject, not VipsImage
 
