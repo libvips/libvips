@@ -137,7 +137,7 @@ im__open_image_file( const char *filename )
 		/* Open read-write failed. Fall back to open read-only.
 		 */
 		if( (fd = open( filename, MODE_READONLY )) == -1 ) {
-			im_error( "im__open_image_file", 
+			vips_error( "im__open_image_file", 
 				_( "unable to open \"%s\", %s" ),
 				filename, strerror( errno ) );
 			return( -1 );
@@ -152,23 +152,23 @@ im__open_image_file( const char *filename )
  * want to always be 64 bit.
  */
 gint64
-im__image_pixel_length( IMAGE *im )
+im__image_pixel_length( VipsImage *image )
 {
 	gint64 psize;
 
-	switch( im->Coding ) {
-	case IM_CODING_LABQ:
-	case IM_CODING_RAD:
-	case IM_CODING_NONE:
-		psize = (gint64) IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize;
+	switch( image->Coding ) {
+	case VIPS_CODING_LABQ:
+	case VIPS_CODING_RAD:
+	case VIPS_CODING_NONE:
+		psize = vips_image_size( image );
 		break;
 
 	default:
-		psize = im->Length;
+		psize = image->Length;
 		break;
 	}
 
-	return( psize + im->sizeof_header );
+	return( psize + image->sizeof_header );
 }
 
 /* Read short/int/float LSB and MSB first.
@@ -265,14 +265,15 @@ im__read_header_bytes( IMAGE *im, unsigned char *from )
 	int i;
 
 	im__read_4byte( 1, (unsigned char *) &im->magic, &from );
-	if( im->magic != IM_MAGIC_INTEL && im->magic != IM_MAGIC_SPARC ) {
-		im_error( "im_open", _( "\"%s\" is not a VIPS image" ), 
+	if( im->magic != VIPS_MAGIC_INTEL && 
+		im->magic != VIPS_MAGIC_SPARC ) {
+		vips_error( "VipsImage", _( "\"%s\" is not a VIPS image" ), 
 			im->filename );
 		return( -1 );
 	}
-	msb_first = im->magic == IM_MAGIC_SPARC;
+	msb_first = im->magic == VIPS_MAGIC_SPARC;
 
-	for( i = 0; i < IM_NUMBER( fields ); i++ )
+	for( i = 0; i < VIPS_NUMBER( fields ); i++ )
 		fields[i].read( msb_first,
 			&G_STRUCT_MEMBER( unsigned char, im, fields[i].offset ),
 			&from );
@@ -293,14 +294,14 @@ im__write_header_bytes( IMAGE *im, unsigned char *to )
 
 	/* Always write the magic number MSB first.
 	 */
-	magic = im_amiMSBfirst() ? IM_MAGIC_SPARC : IM_MAGIC_INTEL;
+	magic = im_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 	to[0] = magic >> 24;
 	to[1] = magic >> 16;
 	to[2] = magic >> 8;
 	to[3] = magic;
 	q = to + 4;
 
-	for( i = 0; i < IM_NUMBER( fields ); i++ )
+	for( i = 0; i < VIPS_NUMBER( fields ); i++ )
 		fields[i].write( &q,
 			&G_STRUCT_MEMBER( unsigned char, im, 
 				fields[i].offset ) );
@@ -326,7 +327,7 @@ read_chunk( int fd, gint64 offset, size_t length )
 		return( NULL );
 	if( read( fd, buf, length ) != (ssize_t) length ) {
 		im_free( buf );
-		im_error( "im_readhist", "%s", _( "unable to read history" ) );
+		vips_error( "im_readhist", "%s", _( "unable to read history" ) );
 		return( NULL );
 	}
 	buf[length] = '\0';
@@ -358,7 +359,7 @@ im__read_extension_block( IMAGE *im, int *size )
 	psize = im__image_pixel_length( im );
 	g_assert( im->file_length > 0 );
 	if( im->file_length - psize > 10 * 1024 * 1024 ) {
-		im_error( "im_readhist",
+		vips_error( "im_readhist",
 			"%s", _( "more than a 10 megabytes of XML? "
 			"sufferin' succotash!" ) );
 		return( NULL );
@@ -406,7 +407,7 @@ read_xml( IMAGE *im )
 	if( !(node = xmlDocGetRootElement( doc )) ||
 		!node->nsDef ||
 		!im_isprefix( NAMESPACE, (char *) node->nsDef->href ) ) {
-		im_error( "im__readhist", 
+		vips_error( "im__readhist", 
 			"%s", _( "incorrect namespace in XML" ) );
 		xmlFreeDoc( doc );
 		return( NULL );
@@ -444,7 +445,7 @@ get_sprop( xmlNode *xnode, const char *name, char *buf, int sz )
                 return( 0 );
 
         im_strncpy( buf, value, sz );
-        IM_FREEF( xmlFree, value );
+        VIPS_FREEF( xmlFree, value );
 
         return( 1 );
 }
@@ -459,7 +460,7 @@ set_history( IMAGE *im, char *history )
 
 	/* There can be history there already if we're rewinding.
 	 */
-	IM_FREEF( im__gslist_gvalue_free, im->history_list );
+	VIPS_FREEF( im__gslist_gvalue_free, im->history_list );
 
 	history_list = NULL;
 
@@ -530,7 +531,7 @@ rebuild_header_meta( IMAGE *im, xmlNode *i )
 			g_value_init( &value, gtype );
 			if( !g_value_transform( &save_value, &value ) ) {
 				g_value_unset( &save_value );
-				im_error( "im__readhist", 
+				vips_error( "im__readhist", 
 					"%s", _( "error transforming from "
 					"save format" ) );
 				return( -1 );
@@ -639,7 +640,7 @@ set_prop( xmlNode *node, const char *name, const char *fmt, ... )
         va_end( ap );
 
         if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
-                im_error( "im_writehist", _( "unable to set property \"%s\" "
+                vips_error( "im_writehist", _( "unable to set property \"%s\" "
                         "to value \"%s\"." ),
                         name, value );
                 return( -1 );
@@ -686,7 +687,7 @@ save_fields_meta( Meta *meta, xmlNode *node )
 
 		g_value_init( &save_value, IM_TYPE_SAVE_STRING );
 		if( !g_value_transform( &meta->value, &save_value ) ) {
-			im_error( "im__writehist", "%s", 
+			vips_error( "im__writehist", "%s", 
 				_( "error transforming to save format" ) );
 			return( node );
 		}
@@ -734,7 +735,7 @@ im__write_extension_block( IMAGE *im, void *buf, int size )
 	if( (length = im_file_length( im->fd )) == -1 )
 		return( -1 );
 	if( length - psize < 0 ) {
-		im_error( "im__write_extension_block",
+		vips_error( "im__write_extension_block",
 			"%s", _( "file has been truncated" ) );
 		return( -1 );
 	}
@@ -836,7 +837,7 @@ im__writehist( IMAGE *im )
 	char *dump;
 	int dump_size;
 
-	assert( im->dtype == IM_OPENOUT );
+	assert( im->dtype == VIPS_IMAGE_OPENOUT );
 	assert( im->fd != -1 );
 
 	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) )
@@ -849,7 +850,7 @@ im__writehist( IMAGE *im )
 			NULL, (xmlChar *) "root", NULL )) ||
                 set_sprop( doc->children, "xmlns", namespace ) ||
 		save_fields( im, doc->children ) ) {
-		im_error( "im__writehist", "%s", _( "xml save error" ) );
+		vips_error( "im__writehist", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
                 return( -1 );
         }
@@ -858,7 +859,7 @@ im__writehist( IMAGE *im )
 	 */
 	xmlDocDumpMemory( doc, (xmlChar **) ((char *) &dump), &dump_size );
 	if( !dump ) {
-		im_error( "im__writehist", "%s", _( "xml save error" ) );
+		vips_error( "im__writehist", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
                 return( -1 );
 	}
@@ -881,7 +882,7 @@ im__writehist( IMAGE *im )
 
 	xmlDocDumpMemory( doc, (xmlChar **) &dump2, &dump_size2 );
 	if( !dump2 ) {
-		im_error( "im__writehist", "%s", _( "xml save error" ) );
+		vips_error( "im__writehist", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
 		xmlFree( dump );
                 return( -1 );
@@ -911,12 +912,12 @@ vips_open_input( VipsImage *image )
 	gint64 psize;
 	gint64 rsize;
 
-	image->dtype = IM_OPENIN;
+	image->dtype = VIPS_IMAGE_OPENIN;
 	if( (image->fd = im__open_image_file( image->filename )) == -1 ) 
 		return( -1 );
 	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
 		im__read_header_bytes( image, header ) ) {
-		im_error( "vips_open_input", 
+		vips_error( "vips_open_input", 
 			_( "unable to read header for \"%s\", %s" ),
 			image->filename, strerror( errno ) );
 		return( -1 );
@@ -929,105 +930,23 @@ vips_open_input( VipsImage *image )
 		return( -1 );
 	image->file_length = rsize;
 	if( psize > rsize ) 
-		im_warn( "vips_open_input", 
+		vips_warn( "vips_open_input", 
 			_( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
 
 	/* Set demand style. This suits a disc file we read sequentially.
 	 */
-	image->dhint = IM_THINSTRIP;
+	image->dhint = VIPS_DEMAND_STYLE_THINSTRIP;
 
 	/* Set the history part of im descriptor. Don't return an error if this
 	 * fails (due to eg. corrupted XML) because it's probably mostly
 	 * harmless.
 	 */
 	if( im__readhist( image ) ) {
-		im_warn( "vips_open_input", _( "error reading XML: %s" ),
-			im_error_buffer() );
-		im_error_clear();
+		vips_warn( "vips_open_input", _( "error reading XML: %s" ),
+			vips_error_buffer() );
+		vips_error_clear();
 	}
 
 	return( 0 );
-}
-
-/* Open, then mmap() read/write. This is old and deprecated API, use
- * im_vips_open() in preference.
- */
-int
-vips_open_input_rw( VipsImage *image )
-{
-	if( vips_open_input( image ) ||
-		im_mapfilerw( image ) ) 
-		return( -1 );
-	image->data = image->baseaddr + image->sizeof_header;
-	image->dtype = IM_MMAPINRW;
-
-#ifdef DEBUG
-	printf( "im_openinrw: completely mmap()ing \"%s\" read-write\n",
-		image->filename );
-#endif /*DEBUG*/
-
-	return( 0 );
-}
-
-/* Open a VIPS image for reading and byte-swap the image data if necessary. A
- * ":w" at the end of the filename means we open read-write.
- */
-IMAGE *
-im_open_vips( const char *filename )
-{
-	char name[FILENAME_MAX];
-	char mode[FILENAME_MAX];
-	IMAGE *im;
-
-	im_filename_split( filename, name, mode );
-
-	if( !(im = im_init( name )) )
-		return( NULL );
-	if( mode[0] == 'w' ) {
-		if( im_openinrw( im ) ) {
-			im_close( im );
-			return( NULL );
-		}
-		if( im_isMSBfirst( im ) != im_amiMSBfirst() ) {
-			im_close( im );
-			im_error( "im_open_vips", "%s", 
-				_( "open for read-write for "
-				"native format images only" ) );
-			return( NULL );
-		}
-	}
-	else {
-		if( im_openin( im ) ) {
-			im_close( im );
-			return( NULL );
-		}
-	}
-
-	/* Not in native format? And needs swapping?
-	 */
-	if( im_isMSBfirst( im ) != im_amiMSBfirst() &&
-		im->Coding == IM_CODING_NONE &&
-		im->BandFmt != IM_BANDFMT_CHAR &&
-		im->BandFmt != IM_BANDFMT_UCHAR ) {
-		IMAGE *im2;
-
-		if( !(im2 = im_open( filename, "p" )) ) {
-			im_close( im );
-			return( NULL );
-		}
-		if( im_add_close_callback( im2, 
-			(im_callback_fn) im_close, im, NULL ) ) {
-			im_close( im );
-			im_close( im2 );
-			return( NULL );
-		}
-		if( im_copy_swap( im, im2 ) ) {
-			im_close( im2 );
-			return( NULL );
-		}
-		im = im2;
-	}
-
-	return( im );
 }

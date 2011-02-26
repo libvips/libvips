@@ -94,7 +94,7 @@
  *
  * if( im->Xsize < 100 ) {
  *   // we have detected an error, we must set a message
- *   im_error( "myprogram", "%s", _( "XSize too small" ) );
+ *   vips_error( "myprogram", "%s", _( "XSize too small" ) );
  *   return( -1 );
  * }
  * ]|
@@ -106,76 +106,76 @@
 /* Make global array to keep the error message buffer.
  */
 #define IM_MAX_ERROR (10240)
-static char im_error_text[IM_MAX_ERROR] = "";
-static VipsBuf im_error_buf = VIPS_BUF_STATIC( im_error_text );
+static char vips_error_text[IM_MAX_ERROR] = "";
+static VipsBuf vips_error_buf = VIPS_BUF_STATIC( vips_error_text );
 
 #define IM_DIAGNOSTICS "IM_DIAGNOSTICS"
 #define IM_WARNING "IM_WARNING"
 
 /**
- * im_error_buffer: 
+ * vips_error_buffer: 
  *
  * Get a pointer to the start of the error buffer as a C string.
  * The string is owned by the error system and must not be freed.
  *
- * See also: im_error_clear().
+ * See also: vips_error_clear().
  *
  * Returns: the error buffer as a C string which must not be freed
  */
 const char *
-im_error_buffer( void )
+vips_error_buffer( void )
 {
 	const char *msg;
 
 	g_mutex_lock( im__global_lock );
-	msg = vips_buf_all( &im_error_buf );
+	msg = vips_buf_all( &vips_error_buf );
 	g_mutex_unlock( im__global_lock );
 
 	return( msg );
 }
 
 /**
- * im_verror: 
+ * vips_verror: 
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
  * @ap: arguments to the format string
  *
  * Append a message to the error buffer.
  *
- * See also: im_error().
+ * See also: vips_error().
  */
 void 
-im_verror( const char *domain, const char *fmt, va_list ap )
+vips_verror( const char *domain, const char *fmt, va_list ap )
 {
 	g_mutex_lock( im__global_lock );
-	vips_buf_appendf( &im_error_buf, "%s: ", domain );
-	vips_buf_vappendf( &im_error_buf, fmt, ap );
-	vips_buf_appends( &im_error_buf, "\n" );
+	vips_buf_appendf( &vips_error_buf, "%s: ", domain );
+	vips_buf_vappendf( &vips_error_buf, fmt, ap );
+	vips_buf_appends( &vips_error_buf, "\n" );
 	g_mutex_unlock( im__global_lock );
 }
 
 /**
- * im_error: 
+ * vips_error: 
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
  * @Varargs: arguments to the format string
  *
  * Format the string in the style of printf() and append to the error buffer.
  *
- * See also: im_error_system(), im_verror().
+ * See also: vips_error_system(), vips_verror().
  */
 void 
-im_error( const char *domain, const char *fmt, ... )
+vips_error( const char *domain, const char *fmt, ... )
 {	
 	va_list ap;
 
 	va_start( ap, fmt );
-	im_verror( domain, fmt, ap );
+	vips_verror( domain, fmt, ap );
 	va_end( ap );
 }
 
 /**
- * im_verror_system: 
+ * vips_verror_system: 
  * @err: the system error code
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
@@ -185,12 +185,12 @@ im_error( const char *domain, const char *fmt, ... )
  * Then create and append a localised message based on the system error code,
  * usually the value of errno.
  *
- * See also: im_error_system().
+ * See also: vips_error_system().
  */
 void
-im_verror_system( int err, const char *domain, const char *fmt, va_list ap )
+vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
 {
-	im_verror( domain, fmt, ap );
+	vips_verror( domain, fmt, ap );
 
 #ifdef OS_WIN32
 {
@@ -213,14 +213,14 @@ im_verror_system( int err, const char *domain, const char *fmt, va_list ap )
 	char *buf;
 
 	buf = g_locale_to_utf8( strerror( err ), -1, NULL, NULL, NULL );
-	im_error( _( "unix error" ), "%s", buf );
+	vips_error( _( "unix error" ), "%s", buf );
 	g_free( buf );
 }
 #endif /*OS_WIN32*/
 }
 
 /**
- * im_error_system: 
+ * vips_error_system: 
  * @err: the system error code
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
@@ -230,36 +230,36 @@ im_verror_system( int err, const char *domain, const char *fmt, va_list ap )
  * Then create and append a localised message based on the system error code,
  * usually the value of errno.
  *
- * See also: im_verror_system().
+ * See also: vips_verror_system().
  */
 void
-im_error_system( int err, const char *domain, const char *fmt, ... )
+vips_error_system( int err, const char *domain, const char *fmt, ... )
 {
 	va_list ap;
 
 	va_start( ap, fmt );
-	im_verror_system( err, domain, fmt, ap );
+	vips_verror_system( err, domain, fmt, ap );
 	va_end( ap );
 }
 
 /**
- * im_error_clear: 
+ * vips_error_clear: 
  *
  * Clear and reset the error buffer. This is typically called after presentng
  * an error to the user.
  *
- * See also: im_error_buffer().
+ * See also: vips_error_buffer().
  */
 void 
-im_error_clear( void )
+vips_error_clear( void )
 {
 	g_mutex_lock( im__global_lock );
-	vips_buf_rewind( &im_error_buf );
+	vips_buf_rewind( &vips_error_buf );
 	g_mutex_unlock( im__global_lock );
 }
 
 /**
- * im_vdiag: 
+ * vips_vdiag: 
  * @domain: the source of the diagnostic message
  * @fmt: printf()-style format string for the message
  * @ap: arguments to the format string
@@ -270,10 +270,10 @@ im_error_clear( void )
  * Diagnostic messages are used to report details about the operation of
  * functions.
  *
- * See also: im_diag(), im_warn().
+ * See also: vips_diag(), vips_warn().
  */
 void 
-im_vdiag( const char *domain, const char *fmt, va_list ap )
+vips_vdiag( const char *domain, const char *fmt, va_list ap )
 {
 	if( !g_getenv( IM_DIAGNOSTICS ) ) {
 		g_mutex_lock( im__global_lock );
@@ -286,7 +286,7 @@ im_vdiag( const char *domain, const char *fmt, va_list ap )
 }
 
 /**
- * im_diag: 
+ * vips_diag: 
  * @domain: the source of the diagnostic message
  * @fmt: printf()-style format string for the message
  * @Varargs: arguments to the format string
@@ -297,20 +297,20 @@ im_vdiag( const char *domain, const char *fmt, va_list ap )
  * Diagnostic messages are used to report details about the operation of
  * functions.
  *
- * See also: im_vdiag(), im_warn().
+ * See also: vips_vdiag(), vips_warn().
  */
 void 
-im_diag( const char *domain, const char *fmt, ... )
+vips_diag( const char *domain, const char *fmt, ... )
 {
 	va_list ap;
 
 	va_start( ap, fmt );
-	im_vdiag( domain, fmt, ap );
+	vips_vdiag( domain, fmt, ap );
 	va_end( ap );
 }
 
 /**
- * im_vwarn: 
+ * vips_vwarn: 
  * @domain: the source of the warning message
  * @fmt: printf()-style format string for the message
  * @ap: arguments to the format string
@@ -320,10 +320,10 @@ im_diag( const char *domain, const char *fmt, ... )
  *
  * Warning messages are used to report things like overflow counts.
  *
- * See also: im_diag(), im_warn().
+ * See also: vips_diag(), vips_warn().
  */
 void 
-im_vwarn( const char *domain, const char *fmt, va_list ap )
+vips_vwarn( const char *domain, const char *fmt, va_list ap )
 {	
 	if( !g_getenv( IM_WARNING ) ) {
 		g_mutex_lock( im__global_lock );
@@ -336,7 +336,7 @@ im_vwarn( const char *domain, const char *fmt, va_list ap )
 }
 
 /**
- * im_warn: 
+ * vips_warn: 
  * @domain: the source of the warning message
  * @fmt: printf()-style format string for the message
  * @Varargs: arguments to the format string
@@ -346,20 +346,20 @@ im_vwarn( const char *domain, const char *fmt, va_list ap )
  *
  * Warning messages are used to report things like overflow counts.
  *
- * See also: im_diag(), im_vwarn().
+ * See also: vips_diag(), vips_vwarn().
  */
 void 
-im_warn( const char *domain, const char *fmt, ... )
+vips_warn( const char *domain, const char *fmt, ... )
 {	
 	va_list ap;
 
 	va_start( ap, fmt );
-	im_vwarn( domain, fmt, ap );
+	vips_vwarn( domain, fmt, ap );
 	va_end( ap );
 }
 
 /**
- * error_exit: 
+ * vips_error_exit: 
  * @fmt: printf()-style format string for the message
  * @Varargs: arguments to the format string
  *
@@ -369,10 +369,10 @@ im_warn( const char *domain, const char *fmt, ... )
  * @fmt may be %NULL, in which case only the error buffer is printed before
  * exiting.
  *
- * See also: im_error().
+ * See also: vips_error().
  */
 void 
-error_exit( const char *fmt, ... )
+vips_error_exit( const char *fmt, ... )
 {	
 	if( fmt ) {
 		va_list ap;
@@ -386,7 +386,7 @@ error_exit( const char *fmt, ... )
 		fprintf( stderr, "\n" );
 	}
 
-	fprintf( stderr, "%s", im_error_buffer() );
+	fprintf( stderr, "%s", vips_error_buffer() );
 
 	exit( 1 );
 }

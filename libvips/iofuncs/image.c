@@ -565,12 +565,6 @@ disc_threshold( void )
 	return( threshold );
 }
 
-size_t 
-vips_image_size( VipsImage *image )
-{
-	return( VIPS_IMAGE_SIZEOF_LINE( image ) * image->Ysize );
-}
-
 /* Make the real underlying image: either a direct disc file, or a temp file
  * somewhere.
  */
@@ -1100,6 +1094,12 @@ int
 vips_image_get_yoffset( VipsImage *image )
 {
 	return( image->Yoffset );
+}
+
+size_t 
+vips_image_size( VipsImage *image )
+{
+	return( VIPS_IMAGE_SIZEOF_LINE( image ) * image->Ysize );
 }
 
 void

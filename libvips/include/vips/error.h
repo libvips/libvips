@@ -51,6 +51,9 @@ void vips_diag( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 void vips_vdiag( const char *domain, const char *fmt, va_list ap );
 
+void vips_error_exit( const char *fmt, ... )
+	__attribute__((format(printf, 1, 2)));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
