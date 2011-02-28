@@ -32,6 +32,8 @@
  * 	- remove oil support again ... we'll try Orc instead
  * 29/10/10
  * 	- move to VipsVector for Orc support
+ * 28/2/11
+ * 	- argh vector int/uint was broken
  */
 
 /*
@@ -350,42 +352,25 @@ im__arith_binary( const char *domain,
 	return( 0 );
 }
 
-/* Type promotion for addition. Sign and value preserving. Make sure these
- * match the case statement in add_buffer() above.
- */
-static int bandfmt_add[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   US, S,  UI, I,  UI, I, F, X, D, DX
-};
-
-void
-im__init_programs( VipsVector *vectors[IM_BANDFMT_LAST], 
-	int format_table[IM_BANDFMT_LAST] )
+VipsVector *
+im__init_program( VipsVector *vectors[IM_BANDFMT_LAST], 
+	VipsBandFmt format_table[IM_BANDFMT_LAST], VipsBandFmt fmt )
 {
-	int fmt;
+	int isize = im__sizeof_bandfmt[fmt];
+	int osize = im__sizeof_bandfmt[format_table[fmt]];
 
-	for( fmt = 0; fmt < IM_BANDFMT_LAST; fmt++ ) {
-		int isize = im__sizeof_bandfmt[fmt];
-		int osize = im__sizeof_bandfmt[format_table[fmt]];
+	VipsVector *v;
 
-		VipsVector *v;
+	v = vips_vector_new( "binary arith", osize );
 
-		/* float and double are not handled (well) by ORC.
-		 */
-		if( fmt == IM_BANDFMT_DOUBLE ||	
-			fmt == IM_BANDFMT_FLOAT ||	
-			fmt == IM_BANDFMT_COMPLEX ||
-			fmt == IM_BANDFMT_DPCOMPLEX )
-			continue;
+	vips_vector_source_name( v, "s1", isize );
+	vips_vector_source_name( v, "s2", isize );
+	vips_vector_temporary( v, "t1", osize );
+	vips_vector_temporary( v, "t2", osize );
 
-		v = vectors[fmt] = 
-			vips_vector_new( "binary arith", osize );
-		vips_vector_source_name( v, "s1", isize );
-		vips_vector_source_name( v, "s2", isize );
+	vectors[fmt] = v;
 
-		vips_vector_temporary( v, "t1", osize );
-		vips_vector_temporary( v, "t2", osize );
-	}
+	return( v );
 }
 
 void
@@ -408,6 +393,14 @@ im__compile_programs( VipsVector *vectors[IM_BANDFMT_LAST] )
 #endif /*DEBUG*/
 }
 
+/* Type promotion for addition. Sign and value preserving. Make sure these
+ * match the case statement in add_buffer() above.
+ */
+static int bandfmt_add[10] = {
+/* UC  C   US  S   UI  I  F  X  D  DX */
+   US, S,  UI, I,  UI, I, F, X, D, DX
+};
+
 static void
 build_programs( void )
 {
@@ -419,24 +412,22 @@ build_programs( void )
 		return;
 	done = TRUE;
 
-	im__init_programs( add_vectors, bandfmt_add );
-
-	v = add_vectors[IM_BANDFMT_UCHAR];
+	v = im__init_program( add_vectors, bandfmt_add, IM_BANDFMT_UCHAR );
 	vips_vector_asm2( v, "convubw", "t1", "s1" );
 	vips_vector_asm2( v, "convubw", "t2", "s2" );
 	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
 
-	v = add_vectors[IM_BANDFMT_CHAR];
+	v = im__init_program( add_vectors, bandfmt_add, IM_BANDFMT_CHAR );
 	vips_vector_asm2( v, "convsbw", "t1", "s1" );
 	vips_vector_asm2( v, "convsbw", "t2", "s2" );
 	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
 
-	v = add_vectors[IM_BANDFMT_USHORT];
+	v = im__init_program( add_vectors, bandfmt_add, IM_BANDFMT_USHORT );
 	vips_vector_asm2( v, "convuwl", "t1", "s1" );
 	vips_vector_asm2( v, "convuwl", "t2", "s2" );
 	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
 
-	v = add_vectors[IM_BANDFMT_SHORT];
+	v = im__init_program( add_vectors, bandfmt_add, IM_BANDFMT_SHORT );
 	vips_vector_asm2( v, "convswl", "t1", "s1" );
 	vips_vector_asm2( v, "convswl", "t2", "s2" );
 	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
@@ -445,11 +436,14 @@ build_programs( void )
 
 	   uint/int are a little slower than C, on a c2d anyway
 
-	v = add_vectors[IM_BANDFMT_UINT];
+	   float/double/complex are not handled well
+
+	v = im__init_program( add_vectors, IM_BANDFMT_UINT );
 	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
 
-	v = add_vectors[IM_BANDFMT_INT];
+	v = im__init_program( add_vectors, IM_BANDFMT_INT );
 	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
+
 	 */
 
 	im__compile_programs( add_vectors );
