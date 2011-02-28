@@ -352,7 +352,7 @@ void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, int w, int h );
 void vips_image_posteval( VipsImage *image );
 
-VipsImage *vips_open( const char *filename, const char *mode );
+VipsImage *vips_image_open( const char *filename, const char *mode );
 
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
@@ -362,14 +362,14 @@ int vips_format_sizeof( VipsBandFormat format );
 
 
 
-#define vips_open_local( IM, NAME, MODE ) \
+#define vips_image_open_local( IM, NAME, MODE ) \
 	((IMAGE *) vips_local( (IM), \
 		(vips_construct_fn) im_open, (im_callback_fn) im_close, \
 		(void *) (NAME), (void *) (MODE), NULL ))
 
 /* Strange double cast stops bogus warnings from gcc 4.1
  */
-#define vips_open_local_array( IM, OUT, N, NAME, MODE ) \
+#define vips_image_open_local_array( IM, OUT, N, NAME, MODE ) \
 	(vips_local_array( (IM), (void **)((void*)(OUT)), (N),\
 		(im_construct_fn) im_open, (im_callback_fn) im_close, \
 		(void *) (NAME), (void *) (MODE), NULL ))

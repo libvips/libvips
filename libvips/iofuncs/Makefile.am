@@ -11,7 +11,6 @@ libiofuncs_la_SOURCES = \
 	error.c \
 	image.c \
 	vips.c \
-	im_binfile.c \
 	im_cp_desc.c \
 	im_demand_hint.c \
 	im_generate.c \

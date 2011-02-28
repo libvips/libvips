@@ -243,14 +243,14 @@
  */
 
 /** 
- * vips_open_local_array:
+ * vips_image_open_local_array:
  * @IM: image to open local to
  * @OUT: array to fill with #VipsImage *
  * @N: array size
  * @NAME: filename to open
  * @MODE: mode to open with
  *
- * Just like vips_open(), but opens an array of images. Handy for creating a 
+ * Just like vips_image_open(), but opens an array of images. Handy for creating a 
  * set of temporary images for a function.
  *
  * Example:
@@ -258,7 +258,7 @@
  * |[
  * VipsImage *t[5];
  *
- * if( vips_open_local_array( out, t, 5, "some-temps", "p" ) ||
+ * if( vips_image_open_local_array( out, t, 5, "some-temps", "p" ) ||
  *   vips_add( a, b, t[0] ) ||
  *   vips_invert( t[0], t[1] ) ||
  *   vips_add( t[1], t[0], t[2] ) ||
@@ -266,21 +266,21 @@
  *   return( -1 );
  * ]|
  *
- * See also: vips_open(), vips_open_local(), vips_local_array().
+ * See also: vips_image_open(), vips_image_open_local(), vips_local_array().
  *
  * Returns: 0 on sucess, or -1 on error
  */
 
 /**
- * vips_open_local:
+ * vips_image_open_local:
  * @IM: image to open local to
  * @NAME: filename to open
  * @MODE: mode to open with
  *
- * Just like vips_open(), but the #VipsImage will be closed for you 
+ * Just like vips_image_open(), but the #VipsImage will be closed for you 
  * automatically when @IM is closed.
  *
- * See also: vips_open(), vips_local().
+ * See also: vips_image_open(), vips_local().
  *
  * Returns: a new #VipsImage, or %NULL on error
  */
@@ -597,7 +597,7 @@ lazy_real_image( Lazy *lazy )
 	/* Otherwise, fall back to a "p".
 	 */
 	if( !real && 
-		!(real = vips_open( lazy->filename, "p" )) )
+		!(real = vips_image_open( lazy->filename, "p" )) )
 		return( NULL );
 
 	return( real );
@@ -649,7 +649,7 @@ open_lazy_generate( REGION *or, void *seq, void *a, void *b )
  * decoding pixels with the second OpenLazyFn until the first generate().
  */
 static int
-vips_open_lazy( VipsImage *image, 
+vips_image_open_lazy( VipsImage *image, 
 	VipsFormatClass *format, const char *filename, gboolean disc )
 {
 	Lazy *lazy;
@@ -822,7 +822,7 @@ vips_image_build( VipsObject *object )
 				im_amiMSBfirst();
 
 			if( native ) {
-				if( vips_open_input( image ) )
+				if( vips_image_open_input( image ) )
 					return( -1 );
 
 				if( mode[1] == 'w' ) 
@@ -831,10 +831,10 @@ vips_image_build( VipsObject *object )
 			else {
 				VipsImage *x;
 
-				if( !(x = vips_open( filename, "p" )) )
+				if( !(x = vips_image_open( filename, "p" )) )
 					return( -1 );
 				vips_object_local( image, x );
-				if( vips_open_input( x ) )
+				if( vips_image_open_input( x ) )
 					return( -1 );
 				image->dtype = VIPS_IMAGE_PARTIAL;
 				if( im_copy_swap( x, image ) )
@@ -842,7 +842,7 @@ vips_image_build( VipsObject *object )
 			}
 		}
 		else {
-			if( vips_open_lazy( image, format, 
+			if( vips_image_open_lazy( image, format, 
 				filename, mode[1] == 'd' ) )
 				return( -1 );
 		}
@@ -1202,18 +1202,19 @@ vips_image_posteval( VipsImage *image )
 }
 
 /**
- * vips_open:
+ * vips_image_open:
  * @filename: file to open
  * @mode: mode to open with
  *
- * vips_open() examines the mode string, and creates an appropriate #IMAGE.
+ * vips_image_open() examines the mode string, and creates an appropriate 
+ * #VipsImage.
  *
  * <itemizedlist>
  *   <listitem> 
  *     <para>
  *       <emphasis>"r"</emphasis>
  *       opens the named file for reading. If the file is not in the native 
- *       VIPS format for your machine, vips_open() automatically converts the 
+ *       VIPS format for your machine, vips_image_open() automatically converts the 
  *       file for you in memory. 
  *
  *       For some large files (eg. TIFF) this may 
@@ -1222,7 +1223,7 @@ vips_image_posteval( VipsImage *image )
  *       API and control the loading process yourself. See 
  *       #VipsBandFormat. 
  *
- *       vips_open() can read files in most formats.
+ *       vips_image_open() can read files in most formats.
  *
  *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
  *       It should return quickly and let you check header fields. It will
@@ -1234,7 +1235,7 @@ vips_image_posteval( VipsImage *image )
  *       <emphasis>"rd"</emphasis>
  *	 opens the named file for reading. If the uncompressed image is larger 
  *	 than a threshold and the file format does not support random access, 
- *	 rather than uncompressing to memory, vips_open() will uncompress to a
+ *	 rather than uncompressing to memory, vips_image_open() will uncompress to a
  *	 temporary disc file. This file will be automatically deleted when the
  *	 IMAGE is closed.
  *
@@ -1263,7 +1264,7 @@ vips_image_posteval( VipsImage *image )
  *       suffix to determine the type to write -- for example:
  *
  *       |[
- *         vips_open( "fred.tif", "w" )
+ *         vips_image_open( "fred.tif", "w" )
  *       ]|
  *
  *       will write in TIFF format.
@@ -1295,7 +1296,7 @@ vips_image_posteval( VipsImage *image )
  * Returns: the image descriptor on success and NULL on error.
  */
 VipsImage *
-vips_open( const char *filename, const char *mode )
+vips_image_open( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
@@ -1310,6 +1311,114 @@ vips_open( const char *filename, const char *mode )
 	}
 
 	return( image ); 
+}
+
+/**
+ * vips_image_open_raw:
+ * @filename: filename to open
+ * @xsize: image width
+ * @ysize: image height
+ * @bands: image bands (or bytes per pixel)
+ * @offset: bytes to skip at start of file
+ *
+ * This function maps the named file and returns a #VipsImage you can use to
+ * read it.
+ *
+ * It returns an 8-bit image with @bands bands. If the image is not 8-bit, use 
+ * im_copy_set() to transform the descriptor after loading it.
+ *
+ * See also: im_copy_set(), im_raw2vips(), vips_image_open().
+ *
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_open_raw( const char *filename, 
+	int xsize, int ysize, int bands, int offset )
+{
+	VipsImage *image;
+
+	/* Check parameters.
+	 */
+	if( xsize <= 0 || ysize <= 0 || 
+		bands <= 0 || offset <= 0 ) {
+		vips_error( "vips_image_open_raw", 
+			"%s", _( "bad parameters" ) );
+		return( NULL );
+	}
+
+	if( !(image = vips_image_open( filename, "p" )) )
+		return( NULL );
+
+	if( (im->fd = im__open_image_file( name )) == -1 ) {
+		im_close( im );
+		return( NULL );
+	}
+	im->dtype = IM_OPENIN;
+	im->sizeof_header = offset;
+
+	/* Predict file size.
+	 */
+	psize = (gint64) xsize * ysize * bands + offset;
+
+	/* Read the real file length and check against what we think 
+	 * the size should be.
+	 */
+	if( (rsize = im_file_length( im->fd )) == -1 ) {
+		im_close( im );
+		return( NULL );
+	}
+	im->file_length = rsize;
+
+	/* Very common, so a special message.
+	 */
+	if( psize > rsize ) {
+		vips_error( "im_binfile", _( "unable to open %s: "
+			"file has been truncated" ), im->filename );
+		im_close( im );
+		return( NULL );
+	}
+
+	/* Just wierd. Only print a warning for this, since we should
+	 * still be able to process it without coredumps.
+	 */
+	if( psize < rsize )
+		im_warn( "im_binfile", _( "%s is longer than expected" ),
+			im->filename );
+
+	/* Set header fields.
+	 */
+	im->Xsize = xsize;
+	im->Ysize = ysize;
+	im->Bands = bands;
+
+	/* Set others to standard values.
+	 */
+	im->BandFmt = IM_BANDFMT_UCHAR;
+	im->Bbits = im_bits_of_fmt( im->BandFmt );
+	im->Coding = IM_CODING_NONE;
+
+	if( bands == 1 )
+		im->Type = IM_TYPE_B_W;
+	else if( bands == 3 )
+		im->Type = IM_TYPE_RGB;
+	else 
+		im->Type = IM_TYPE_MULTIBAND;
+
+	im->Xres = 1.0;
+	im->Yres = 1.0;
+
+	im->Length = 0;
+	im->Compression = 0;
+	im->Level = 0;
+
+	im->Xoffset = 0;
+	im->Yoffset = 0;
+
+	/* Init others too.
+	 */
+	im->dhint = IM_THINSTRIP;
+
+	return( im );
 }
 
 /**
@@ -1335,8 +1444,7 @@ vips_image_isMSBfirst( VipsImage *image )
  *
  * Return %TRUE if @image represents a file on disc in some way. 
  */
-gboolean 
-vips_image_isfile( VipsImage *image )
+gboolean vips_image_isfile( VipsImage *image )
 {
 	switch( image->dtype ) {
 	case VIPS_IMAGE_MMAPIN:
@@ -1398,4 +1506,6 @@ vips_format_sizeof( VipsBandFormat format )
 			_( "unknown band format %d" ), format ), -1 :
 		vips_image__sizeof_bandformat[format] );
 }
+
+
 

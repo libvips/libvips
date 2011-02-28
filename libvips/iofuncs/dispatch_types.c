@@ -113,7 +113,7 @@ input_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_open( str, "rd" )) );
+	return( !(*im = vips_image_open( str, "rd" )) );
 }
 
 /* Input image type.
@@ -133,7 +133,7 @@ output_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_open( str, "w" )) );
+	return( !(*im = vips_image_open( str, "w" )) );
 }
 
 /* Output image type.
@@ -153,7 +153,7 @@ rw_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_open( str, "rw" )) );
+	return( !(*im = vips_image_open( str, "rw" )) );
 }
 
 /* RW image type.
@@ -215,7 +215,7 @@ input_imagevec_init( im_object *obj, char *str )
 		iv->vec[i] = NULL;
 
 	for( i = 0; i < nargs; i++ ) 
-		if( !(iv->vec[i] = vips_open( strv[i], "rd" )) ) {
+		if( !(iv->vec[i] = vips_image_open( strv[i], "rd" )) ) {
 			g_strfreev( strv );
 			return( -1 );
 		}
@@ -540,7 +540,7 @@ input_intvec_init( im_object *obj, char *str )
                 long int val= strtol( strv[i], NULL, 10 );
 
 		if( errno ) {
-			im_error_system( errno, "input_intvec_init", 
+			vips_error_system( errno, "input_intvec_init", 
 				_( "bad integer \"%s\"" ), strv[i] );
 			g_strfreev( strv );
 			return( -1 );

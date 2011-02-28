@@ -8,6 +8,8 @@
   decls for im_local etc. are now in image.h, move them to object.h and the
   code to object.c
 
+  how about vips_local_array()?
+
   also see im_bits_of_fmt()
 
   decls for type_map etc. are now in object.h, move the code to object.c
