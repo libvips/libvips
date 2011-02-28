@@ -11,6 +11,8 @@
  * 	- better upcasting
  * 	- gtkdoc
  * 	- cleanups
+ * 28/2/11
+ * 	- oop heh argh was broken, added to test suite
  */
 
 /*
@@ -60,8 +62,8 @@
 	TYPE *q0 = (TYPE *) q; \
  	\
 	for( x = 0; x < len; x++ ) { \
-		q0[0] = *p1++; \
-		q0[1] = *p2++; \
+		q0[0] = p1[x]; \
+		q0[1] = p2[x]; \
  		\
 		q0 += 2; \
 	} \
@@ -70,17 +72,17 @@
 /* Join two buffers to make a complex.
  */
 static void
-join_buffer( PEL **p, PEL *q, int n, IMAGE *im )
+join_buffer( PEL **p, PEL *q, int n, IMAGE *out )
 {
 	int x;
-	int len = n * im->Bands;
+	int len = n * out->Bands;
 
-	switch( im->BandFmt ) {
-	case IM_BANDFMT_FLOAT:
+	switch( out->BandFmt ) {
+	case IM_BANDFMT_COMPLEX:
 		JOIN( float );
 		break;
 
-	case IM_BANDFMT_DOUBLE:
+	case IM_BANDFMT_DPCOMPLEX:
 		JOIN( double );
 		break;
 
@@ -146,7 +148,7 @@ im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	if( im_cp_descv( out, t[2], t[3], NULL ) )
 		return( -1 );
-	out->BandFmt = fmt == IM_BANDFMT_DOUBLE ? 
+	out->BandFmt = (fmt == IM_BANDFMT_DOUBLE) ? 
 		IM_BANDFMT_DPCOMPLEX : IM_BANDFMT_COMPLEX;
 
 	if( im_wrapmany( t + 2, out, (im_wrapmany_fn) join_buffer, out, NULL ) )

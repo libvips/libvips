@@ -33,6 +33,7 @@
 - removed man pages, we are all gtk-doc now
 - im_jpeg2vips() ignores weird APP1 chunks
 - im_add() for int/uint was broken
+- im_ri2c() was broken
 
 30/11/10 started 7.24.0
 - bump for new stable
