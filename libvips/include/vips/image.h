@@ -290,7 +290,7 @@ typedef struct _VipsImageClass {
 	/* An image has been modified in some way and downstream caches all
 	 * need dropping. 
 	 */
-	int (*invalidate)( VipsImage *image );
+	void (*invalidate)( VipsImage *image );
 
 } VipsImageClass;
 
@@ -348,11 +348,17 @@ int vips_image_get_yoffset( VipsImage *image );
 size_t vips_image_size( VipsImage *image );
 
 void vips_image_written( VipsImage *image );
+void vips_image_invalidate_all( VipsImage *image );
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, int w, int h );
 void vips_image_posteval( VipsImage *image );
 
-VipsImage *vips_image_open( const char *filename, const char *mode );
+VipsImage *vips_image_new( const char *mode );
+VipsImage *vips_image_new_from_file( const char *filename, const char *mode );
+VipsImage *vips_image_new_from_file_raw( const char *filename, 
+	int xsize, int ysize, int bands, int offset );
+VipsImage *vips_image_new_from_memory( void *buffer, 
+	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
 
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );

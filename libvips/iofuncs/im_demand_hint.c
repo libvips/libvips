@@ -150,6 +150,19 @@ im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )
 {
 	static int serial = 0;
 
+	/* Invalidate callbacks might do anything, including removing images
+	 * or invalidating other images, so we can't trigger them from within 
+	 * the image loop. Instead we collect a list of image to invalidate 
+	 * and trigger them all in one go, checking that they are not
+	 * invalidated.
+	 */
+
+	/* im__link_mapp() needs to make the list, ref all the images, call
+	 * the callbacks, then unref and free the list.
+	 */
+
+	FIXME
+
 	serial += 1;
 	return( im__link_mapp( im, fn, &serial, a, b ) );
 }
@@ -159,7 +172,7 @@ im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )
 static im_demand_type
 find_least( im_demand_type a, im_demand_type b )
 {
-	return( (im_demand_type) IM_MIN( (int) a, (int) b ) );
+	return( (im_demand_type) VIPS_MIN( (int) a, (int) b ) );
 }
 
 /**
@@ -191,7 +204,7 @@ im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 	/* How many input images are there? And how many are IM_ANY?
 	 */
 	for( i = 0, len = 0, nany = 0; in[i]; i++, len++ )
-		if( in[i]->dhint == IM_ANY )
+		if( in[i]->dhint == VIPS_DEMAND_STYLE_ANY )
 			nany++;
 
 	set_hint = hint;
@@ -206,7 +219,7 @@ im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 		/* Special case: if all the inputs are IM_ANY, then output can 
 		 * be IM_ANY regardless of what this function wants. 
 		 */
-		set_hint = IM_ANY;
+		set_hint = VIPS_DEMAND_STYLE_ANY;
 	else
 		/* Find the most restrictive of all the hints available to us.
 		 */
@@ -263,7 +276,7 @@ im_demand_hint( IMAGE *im, VipsDemandStyle hint, ... )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		im_error( "im_demand_hint", "%s", _( "too many images" ) );
+		vips_error( "im_demand_hint", "%s", _( "too many images" ) );
 		return( -1 );
 	}
 

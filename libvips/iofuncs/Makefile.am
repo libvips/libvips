@@ -15,9 +15,7 @@ libiofuncs_la_SOURCES = \
 	im_demand_hint.c \
 	im_generate.c \
 	im_histlin.c \
-	im_image.c \
 	im_mapfile.c \
-	im_partial.c \
 	im_prepare.c \
 	im_setbuf.c \
 	im_setupout.c \

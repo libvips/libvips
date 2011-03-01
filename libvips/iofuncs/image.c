@@ -296,6 +296,8 @@ enum {
 	PROP_KILL,
 	PROP_MODE,
 	PROP_DEMAND,
+	PROP_SIZEOF_HEADER,
+	PROP_FOREIGN_BUFFER,
 	PROP_LAST
 }; 
 
@@ -306,6 +308,7 @@ enum {
 	SIG_EVAL,		
 	SIG_POSTEVAL,		
 	SIG_WRITTEN,		
+	SIG_INVALIDATE,		
 	SIG_LAST
 };
 
@@ -597,7 +600,7 @@ lazy_real_image( Lazy *lazy )
 	/* Otherwise, fall back to a "p".
 	 */
 	if( !real && 
-		!(real = vips_image_open( lazy->filename, "p" )) )
+		!(real = vips_image_new( "p" )) )
 		return( NULL );
 
 	return( real );
@@ -831,7 +834,7 @@ vips_image_build( VipsObject *object )
 			else {
 				VipsImage *x;
 
-				if( !(x = vips_image_open( filename, "p" )) )
+				if( !(x = vips_image_new( "p" )) )
 					return( -1 );
 				vips_object_local( image, x );
 				if( vips_image_open_input( x ) )
@@ -871,6 +874,63 @@ vips_image_build( VipsObject *object )
 		image->dtype = VIPS_IMAGE_PARTIAL;
                 break;
 
+	case 'a':
+		/* Check parameters.
+		 */
+		if( image->sizeof_header < 0 ) {
+			vips_error( "vips_image_open_raw", 
+				"%s", _( "bad parameters" ) );
+			return( -1 );
+		}
+
+		if( (image->fd = im__open_image_file( filename )) == -1 ) 
+			return( -1 );
+		image->dtype = VIPS_IMAGE_OPENIN;
+		image->dhint = VIPS_DEMAND_STYLE_THINSTRIP;
+
+		if( image->Bands == 1 )
+			image->Type = VIPS_INTERPRETATION_B_W;
+		else if( image->Bands == 3 )
+			image->Type = VIPS_INTERPRETATION_RGB;
+		else 
+			image->Type = VIPS_INTERPRETATION_MULTIBAND;
+
+		/* Read the real file length and check against what we think 
+		 * the size should be.
+		 */
+		if( (image->file_length = im_file_length( image->fd )) == -1 ) 
+			return( -1 );
+
+		/* Very common, so a special message.
+		 */
+		if( image->file_length < vips_image_size( image ) ) {
+			vips_error( "VipsImage", 
+				_( "unable to open %s: file too short" ), 
+				image->filename );
+			return( -1 );
+		}
+
+		/* Just weird. Only print a warning for this, since we should
+		 * still be able to process it without coredumps.
+		 */
+		if( image->file_length > vips_image_size( image ) ) 
+			vips_warn( "VipsImage", 
+				_( "%s is longer than expected" ),
+				image->filename );
+		break;
+
+	case 'm':
+		if( image->Bands == 1 )
+			image->Type = VIPS_INTERPRETATION_B_W;
+		else if( image->Bands == 3 )
+			image->Type = VIPS_INTERPRETATION_RGB;
+		else 
+			image->Type = VIPS_INTERPRETATION_MULTIBAND;
+
+		image->dtype = VIPS_IMAGE_SETBUF_FOREIGN;
+
+		break;
+
 	default:
 		vips_error( "VipsImage", _( "bad mode \"%s\"" ), mode );
 
@@ -885,6 +945,28 @@ vips_image_build( VipsObject *object )
 #endif /*DEBUG_VIPS*/
 
 	return( 0 );
+}
+
+static void *
+vips_region_invalidate( REGION *reg )
+{
+	reg->invalid = TRUE;
+
+	return( NULL );
+}
+
+static void 
+vips_image_real_invalidate( VipsImage *image )
+{
+#ifdef DEBUG_VIPS
+	printf( "vips_image_real_invalidate: " );
+	vips_object_dump( VIPS_OBJECT( image ) );
+#endif /*DEBUG_VIPS*/
+
+	g_mutex_lock( image->sslock );
+	(void) im_slist_map2( image->regions,
+		(VSListMap2Fn) vips_region_invalidate, NULL, NULL );
+	g_mutex_unlock( image->sslock );
 }
 
 static void
@@ -909,11 +991,13 @@ vips_image_class_init( VipsImageClass *class )
 	vobject_class->print = vips_image_print;
 	vobject_class->build = vips_image_build;
 
+	class->invalidate = vips_image_real_invalidate;
+
 	/* Create properties.
 	 */
 	pspec = g_param_spec_int( "width", "Width",
 		_( "Image width in pixels" ),
-		0, 1000000, 0,
+		1, 1000000, 0,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_WIDTH, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
@@ -922,7 +1006,7 @@ vips_image_class_init( VipsImageClass *class )
 
 	pspec = g_param_spec_int( "height", "Height",
 		_( "Image height in pixels" ),
-		0, 1000000, 0,
+		1, 1000000, 0,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_HEIGHT, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
@@ -931,7 +1015,7 @@ vips_image_class_init( VipsImageClass *class )
 
 	pspec = g_param_spec_int( "bands", "Bands",
 		_( "Number of bands in image" ),
-		0, 1000000, 0, 
+		1, 1000000, 0, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_BANDS, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
@@ -965,7 +1049,7 @@ vips_image_class_init( VipsImageClass *class )
 		VIPS_ARGUMENT_CONSTRUCT, 
 		G_STRUCT_OFFSET( VipsImage, mode ) );
 
-	pspec = g_param_spec_boolean("kill", "Kill",
+	pspec = g_param_spec_boolean( "kill", "Kill",
 		_( "Block evaluation on this image" ),
 		FALSE, 
 		G_PARAM_READWRITE );
@@ -982,6 +1066,25 @@ vips_image_class_init( VipsImageClass *class )
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_NONE, 
 		G_STRUCT_OFFSET( VipsImage, dhint ) );
+
+	pspec = g_param_spec_int( "sizeof_header", "Size of header",
+		_( "Offset in bytes from start of file" ),
+		0, 1000000, IM_SIZEOF_HEADER, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, 
+		PROP_SIZEOF_HEADER, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE | VIPS_ARGUMENT_CONSTRUCT, 
+		G_STRUCT_OFFSET( VipsImage, sizeof_header ) );
+
+	pspec = g_param_spec_pointer( "foreign_buffer", "Foreign buffer",
+		"Pointer to foreign pixels",
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, 
+		PROP_FOREIGN_BUFFER, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE | VIPS_ARGUMENT_CONSTRUCT, 
+		G_STRUCT_OFFSET( VipsImage, data ) );
 
 	/* Create signals.
 	 */
@@ -1015,6 +1118,14 @@ vips_image_class_init( VipsImageClass *class )
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
+
+	vips_image_signals[SIG_INVALIDATE] = g_signal_new( "invalidate",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+		G_STRUCT_OFFSET( VipsImageClass, invalidate ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
 }
 
 static void
@@ -1029,7 +1140,6 @@ vips_image_init( VipsImage *image )
 	image->magic = im_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 
 	image->fd = -1;			/* since 0 is stdout */
-        image->sizeof_header = IM_SIZEOF_HEADER;
 	image->sslock = g_mutex_new ();
 }
 
@@ -1111,6 +1221,39 @@ vips_image_written( VipsImage *image )
 #endif /*DEBUG*/
 
 	g_signal_emit( image, vips_image_signals[SIG_WRITTEN], 0 );
+}
+
+void
+vips_image_invalidate( VipsImage *image )
+{
+#ifdef DEBUG
+	printf( "vips_image_invalidate: " );
+	vips_object_print( object );
+#endif /*DEBUG*/
+
+	g_signal_emit( image, vips_image_signals[SIG_INVALIDATE], 0 );
+}
+
+static void *
+vips_image_invalidate_all_cb( VipsImage *image )
+{
+	vips_image_invalidate( image );
+
+	return( NULL );
+}
+
+/**
+ * vips_image_invalidate_all:
+ * @image: #VipsImage to invalidate
+ *
+ * Invalidate all pixel caches on an @image and any derived images. The 
+ * "invalidate" callback is triggered for all invalidated images.
+ */
+void
+vips_image_invalidate_all( VipsImage *image )
+{
+	(void) im__link_map( image, 
+		(VSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
 }
 
 /* Attach a new time struct, if necessary, and reset it.
@@ -1202,20 +1345,62 @@ vips_image_posteval( VipsImage *image )
 }
 
 /**
- * vips_image_open:
+ * vips_image_new:
+ * @mode: mode to open with
+ *
+ * vips_image_new() examines the mode string and creates an 
+ * appropriate #VipsImage.
+ *
+ * <itemizedlist>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"t"</emphasis>
+ *       creates a temporary memory buffer image.
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"p"</emphasis>
+ *       creates a "glue" descriptor you can use to join two image 
+ *       processing operations together.
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * Returns: the image descriptor on success and NULL on error.
+ */
+VipsImage *
+vips_image_new( const char *mode )
+{
+	VipsImage *image;
+
+	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
+	g_object_set( image,
+		"mode", mode,
+		NULL );
+	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
+		VIPS_UNREF( image );
+		return( NULL );
+	}
+
+	return( image ); 
+}
+
+/**
+ * vips_image_new_from_file:
  * @filename: file to open
  * @mode: mode to open with
  *
- * vips_image_open() examines the mode string, and creates an appropriate 
- * #VipsImage.
+ * vips_image_new_from_file() examines the mode string and creates an 
+ * appropriate #VipsImage.
  *
  * <itemizedlist>
  *   <listitem> 
  *     <para>
  *       <emphasis>"r"</emphasis>
  *       opens the named file for reading. If the file is not in the native 
- *       VIPS format for your machine, vips_image_open() automatically converts the 
- *       file for you in memory. 
+ *       VIPS format for your machine, vips_image_new_from_file() 
+ *       automatically converts the file for you in memory. 
  *
  *       For some large files (eg. TIFF) this may 
  *       not be what you want, it can fill memory very quickly. Instead, you
@@ -1223,7 +1408,7 @@ vips_image_posteval( VipsImage *image )
  *       API and control the loading process yourself. See 
  *       #VipsBandFormat. 
  *
- *       vips_image_open() can read files in most formats.
+ *       vips_image_new_from_file() can read files in most formats.
  *
  *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
  *       It should return quickly and let you check header fields. It will
@@ -1235,9 +1420,9 @@ vips_image_posteval( VipsImage *image )
  *       <emphasis>"rd"</emphasis>
  *	 opens the named file for reading. If the uncompressed image is larger 
  *	 than a threshold and the file format does not support random access, 
- *	 rather than uncompressing to memory, vips_image_open() will uncompress to a
- *	 temporary disc file. This file will be automatically deleted when the
- *	 IMAGE is closed.
+ *	 rather than uncompressing to memory, vips_image_new_from_file() will 
+ *	 uncompress to a temporary disc file. This file will be automatically 
+ *	 deleted when the IMAGE is closed.
  *
  *	 See im_system_image() for an explanation of how VIPS selects a
  *	 location for the temporary file.
@@ -1264,23 +1449,10 @@ vips_image_posteval( VipsImage *image )
  *       suffix to determine the type to write -- for example:
  *
  *       |[
- *         vips_image_open( "fred.tif", "w" )
+ *         vips_image_new_from_file( "fred.tif", "w" )
  *       ]|
  *
  *       will write in TIFF format.
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"t"</emphasis>
- *       creates a temporary memory buffer image.
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"p"</emphasis>
- *       creates a "glue" descriptor you can use to join two image 
- *       processing operations together.
  *     </para>
  *   </listitem>
  *   <listitem> 
@@ -1296,7 +1468,7 @@ vips_image_posteval( VipsImage *image )
  * Returns: the image descriptor on success and NULL on error.
  */
 VipsImage *
-vips_image_open( const char *filename, const char *mode )
+vips_image_new_from_file( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
@@ -1314,7 +1486,7 @@ vips_image_open( const char *filename, const char *mode )
 }
 
 /**
- * vips_image_open_raw:
+ * vips_image_new_from_file_raw:
  * @filename: filename to open
  * @xsize: image width
  * @ysize: image height
@@ -1327,98 +1499,70 @@ vips_image_open( const char *filename, const char *mode )
  * It returns an 8-bit image with @bands bands. If the image is not 8-bit, use 
  * im_copy_set() to transform the descriptor after loading it.
  *
- * See also: im_copy_set(), im_raw2vips(), vips_image_open().
+ * See also: im_copy_set(), im_raw2vips(), vips_image_new_from_file().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_open_raw( const char *filename, 
+vips_image_new_from_file_raw( const char *filename, 
 	int xsize, int ysize, int bands, int offset )
 {
 	VipsImage *image;
 
-	/* Check parameters.
-	 */
-	if( xsize <= 0 || ysize <= 0 || 
-		bands <= 0 || offset <= 0 ) {
-		vips_error( "vips_image_open_raw", 
-			"%s", _( "bad parameters" ) );
+	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
+	g_object_set( image,
+		"filename", filename,
+		"mode", "a",
+		"width", xsize,
+		"height", ysize,
+		"bands", bands,
+		"sizeof_header", offset,
+		NULL );
+	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
+		VIPS_UNREF( image );
 		return( NULL );
 	}
 
-	if( !(image = vips_image_open( filename, "p" )) )
-		return( NULL );
+	return( image );
+}
 
-	if( (im->fd = im__open_image_file( name )) == -1 ) {
-		im_close( im );
+/**
+ * vips_image_new_from_memory:
+ * @buffer: start of memory area
+ * @xsize: image width
+ * @ysize: image height
+ * @bands: image bands (or bytes per pixel)
+ * @bandfmt: image format
+ *
+ * This function wraps an #IMAGE around a memory buffer. VIPS does not take
+ * responsibility for the area of memory, it's up to you to make sure it's
+ * freed when the image is closed. See for example im_add_close_callback().
+ *
+ * See also: im_binfile(), im_raw2vips(), im_open().
+ *
+ * Returns: the new #IMAGE, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_from_memory( void *buffer, 
+	int xsize, int ysize, int bands, VipsBandFormat bandfmt )
+{
+	VipsImage *image;
+
+	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
+	g_object_set( image,
+		"foreign_buffer", buffer,
+		"mode", "m",
+		"width", xsize,
+		"height", ysize,
+		"bands", bands,
+		"format", bandfmt,
+		NULL );
+	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
+		VIPS_UNREF( image );
 		return( NULL );
 	}
-	im->dtype = IM_OPENIN;
-	im->sizeof_header = offset;
 
-	/* Predict file size.
-	 */
-	psize = (gint64) xsize * ysize * bands + offset;
-
-	/* Read the real file length and check against what we think 
-	 * the size should be.
-	 */
-	if( (rsize = im_file_length( im->fd )) == -1 ) {
-		im_close( im );
-		return( NULL );
-	}
-	im->file_length = rsize;
-
-	/* Very common, so a special message.
-	 */
-	if( psize > rsize ) {
-		vips_error( "im_binfile", _( "unable to open %s: "
-			"file has been truncated" ), im->filename );
-		im_close( im );
-		return( NULL );
-	}
-
-	/* Just wierd. Only print a warning for this, since we should
-	 * still be able to process it without coredumps.
-	 */
-	if( psize < rsize )
-		im_warn( "im_binfile", _( "%s is longer than expected" ),
-			im->filename );
-
-	/* Set header fields.
-	 */
-	im->Xsize = xsize;
-	im->Ysize = ysize;
-	im->Bands = bands;
-
-	/* Set others to standard values.
-	 */
-	im->BandFmt = IM_BANDFMT_UCHAR;
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
-	im->Coding = IM_CODING_NONE;
-
-	if( bands == 1 )
-		im->Type = IM_TYPE_B_W;
-	else if( bands == 3 )
-		im->Type = IM_TYPE_RGB;
-	else 
-		im->Type = IM_TYPE_MULTIBAND;
-
-	im->Xres = 1.0;
-	im->Yres = 1.0;
-
-	im->Length = 0;
-	im->Compression = 0;
-	im->Level = 0;
-
-	im->Xoffset = 0;
-	im->Yoffset = 0;
-
-	/* Init others too.
-	 */
-	im->dhint = IM_THINSTRIP;
-
-	return( im );
+	return( image );
 }
 
 /**

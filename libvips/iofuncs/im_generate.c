@@ -207,7 +207,7 @@ im_start_many( IMAGE *out, void *a, void *b )
 
 	/* Alocate space for region array.
 	 */
-	if( !(ar = IM_ARRAY( NULL, n + 1, REGION * )) )
+	if( !(ar = VIPS_ARRAY( NULL, n + 1, REGION * )) )
 		return( NULL );
 
 	/* Create a set of regions.
@@ -251,7 +251,7 @@ im_allocate_input_array( IMAGE *out, ... )
 
 	/* Allocate array.
 	 */
-	if( !(ar = IM_ARRAY( out, n + 1, IMAGE * )) )
+	if( !(ar = VIPS_ARRAY( out, n + 1, IMAGE * )) )
 		return( NULL );
 
 	/* Fill array.
@@ -365,13 +365,13 @@ im_generate( IMAGE *im,
 	g_assert( !im_image_sanity( im ) );
 
 	if( !im->hint_set ) {
-		im_error( "im_generate", 
+		vips_error( "im_generate", 
 			"%s", _( "im_demand_hint() not set" ) );
 		return( -1 );
 	}
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) {
-		im_error( "im_generate", 
+		vips_error( "im_generate", 
 			"%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
@@ -384,11 +384,11 @@ im_generate( IMAGE *im,
         /* Look at output type to decide our action.
          */
         switch( im->dtype ) {
-        case IM_PARTIAL:
+        case VIPS_IMAGE_PARTIAL:
                 /* Output to partial image. Just attach functions and return.
                  */
                 if( im->generate || im->start || im->stop ) {
-                        im_error( "im_generate", 
+                        vips_error( "im_generate", 
 				"%s", _( "func already attached" ) );
                         return( -1 );
                 }
@@ -405,14 +405,14 @@ im_generate( IMAGE *im,
  
                 break;
  
-        case IM_SETBUF:
-        case IM_SETBUF_FOREIGN:
-        case IM_MMAPINRW:
-        case IM_OPENOUT:
+        case VIPS_IMAGE_SETBUF:
+        case VIPS_IMAGE_SETBUF_FOREIGN:
+        case VIPS_IMAGE_MMAPINRW:
+        case VIPS_IMAGE_OPENOUT:
                 /* Eval now .. sanity check.
                  */
                 if( im->generate || im->start || im->stop ) {
-                        im_error( "im_generate", 
+                        vips_error( "im_generate", 
 				"%s", _( "func already attached" ) );
                         return( -1 );
                 }
@@ -430,7 +430,7 @@ im_generate( IMAGE *im,
                 im->client1 = a;
                 im->client2 = b;
 
-                if( im->dtype == IM_OPENOUT ) 
+                if( im->dtype == VIPS_IMAGE_OPENOUT ) 
 			res = vips_sink_disc( im,
 				(VipsRegionWrite) write_vips, NULL );
                 else
@@ -446,15 +446,12 @@ im_generate( IMAGE *im,
         default:
                 /* Not a known output style.
                  */
-		im_error( "im_generate", _( "unable to output to a %s image" ),
+		vips_error( "im_generate", _( "unable to output to a %s image" ),
 			im_dtype2char( im->dtype ) );
                 return( -1 );
         }
 
-	/* Successful write: trigger "written".
-	 */
-	if( im__trigger_callbacks( im->writtenfns ) )
-		return( -1 );
+	vips_image_written( im ); 
 
         return( 0 );
 }

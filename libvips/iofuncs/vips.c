@@ -902,7 +902,7 @@ im__writehist( IMAGE *im )
 /* Open the filename, read the header, some sanity checking.
  */
 int
-vips_open_input( VipsImage *image )
+vips_image_open_input( VipsImage *image )
 {
 	/* We don't use im->sizeof_header here, but we know we're reading a
 	 * VIPS image anyway.

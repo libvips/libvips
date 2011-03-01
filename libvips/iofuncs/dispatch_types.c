@@ -113,7 +113,7 @@ input_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_image_open( str, "rd" )) );
+	return( !(*im = vips_image_new_from_file( str, "rd" )) );
 }
 
 /* Input image type.
@@ -133,7 +133,7 @@ output_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_image_open( str, "w" )) );
+	return( !(*im = vips_image_new_from_file( str, "w" )) );
 }
 
 /* Output image type.
@@ -153,7 +153,7 @@ rw_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_image_open( str, "rw" )) );
+	return( !(*im = vips_image_new_from_file( str, "rw" )) );
 }
 
 /* RW image type.
@@ -215,7 +215,8 @@ input_imagevec_init( im_object *obj, char *str )
 		iv->vec[i] = NULL;
 
 	for( i = 0; i < nargs; i++ ) 
-		if( !(iv->vec[i] = vips_image_open( strv[i], "rd" )) ) {
+		if( !(iv->vec[i] = 
+			vips_image_new_from_file( strv[i], "rd" )) ) {
 			g_strfreev( strv );
 			return( -1 );
 		}

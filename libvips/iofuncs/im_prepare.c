@@ -99,7 +99,7 @@ im__test_kill( IMAGE *im )
 	/* Has kill been set for this image? If yes, abort evaluation.
 	 */
 	if( im->kill ) {
-		im_error( "im__test_kill", _( "killed for image \"%s\"" ),
+		vips_error( "im__test_kill", _( "killed for image \"%s\"" ),
 			im->filename );
 		return( -1 );
 	}
@@ -162,18 +162,18 @@ im_prepare( REGION *reg, Rect *r )
 #endif /*DEBUG*/
 
 	switch( im->dtype ) {
-	case IM_PARTIAL:
+	case VIPS_IMAGE_PARTIAL:
 		if( im_region_fill( reg, r, 
 			(im_region_fill_fn) fill_region, NULL ) )
 			return( -1 );
 
 		break;
 
-	case IM_SETBUF:
-	case IM_SETBUF_FOREIGN:
-	case IM_MMAPIN:
-	case IM_MMAPINRW:
-	case IM_OPENIN:
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_OPENIN:
 		/* Attach to existing buffer.
 		 */
 		if( im_region_image( reg, r ) )
@@ -182,7 +182,7 @@ im_prepare( REGION *reg, Rect *r )
 		break;
 
 	default:
-		im_error( "im_prepare", _( "unable to input from a %s image" ),
+		vips_error( "im_prepare", _( "unable to input from a %s image" ),
 			im_dtype2char( im->dtype ) );
 		return( -1 );
 	}
@@ -204,7 +204,7 @@ im_prepare_to_generate( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	char *p;
 
 	if( !im->generate ) {
-		im_error( "im_prepare_to", "%s", _( "incomplete header" ) );
+		vips_error( "im_prepare_to", "%s", _( "incomplete header" ) );
 		return( -1 );
 	}
 
@@ -271,7 +271,7 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	if( !dest->data || 
 		dest->im->BandFmt != reg->im->BandFmt ||
 		dest->im->Bands != reg->im->Bands ) {
-		im_error( "im_prepare_to", 
+		vips_error( "im_prepare_to", 
 			"%s", _( "inappropriate region type" ) );
 		return( -1 );
 	}
@@ -297,7 +297,7 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Test that dest->valid is large enough.
 	 */
 	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
-		im_error( "im_prepare_to", "%s", _( "dest too small" ) );
+		vips_error( "im_prepare_to", "%s", _( "dest too small" ) );
 		return( -1 );
 	}
 
@@ -314,7 +314,7 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	y = clipped2.top;
 
 	if( im_rect_isempty( &final ) ) {
-		im_error( "im_prepare_to", 
+		vips_error( "im_prepare_to", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
@@ -327,8 +327,8 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Input or output image type?
 	 */
 	switch( im->dtype ) {
-	case IM_OPENOUT:
-	case IM_PARTIAL:
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_PARTIAL:
 		/* We are generating with a sequence. 
 		 */
 		if( im_prepare_to_generate( reg, dest, &final, x, y ) )
@@ -336,9 +336,9 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 
 		break;
 
-	case IM_MMAPIN:
-	case IM_MMAPINRW:
-	case IM_OPENIN:
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_OPENIN:
 		/* Attach to existing buffer and copy to dest.
 		 */
 		if( im_region_image( reg, &final ) )
@@ -347,8 +347,8 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 
 		break;
 
-	case IM_SETBUF:
-	case IM_SETBUF_FOREIGN:
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
 		/* Could be either input or output. If there is a generate
 		 * function, we are outputting.
 		 */
@@ -365,7 +365,7 @@ im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y )
 		break;
 
 	default:
-		im_error( "im_prepare_to", _( "unable to input from a "
+		vips_error( "im_prepare_to", _( "unable to input from a "
 			"%s image" ), im_dtype2char( im->dtype ) );
 		return( -1 );
 	}
@@ -389,88 +389,4 @@ im_prepare_many( REGION **reg, Rect *r )
 			return( -1 );
 
 	return( 0 );
-}
-
-static void *
-im_invalidate_region( REGION *reg )
-{
-	reg->invalid = TRUE;
-
-	return( NULL );
-}
-
-static void *
-im_invalidate_image( IMAGE *im, GSList **to_be_invalidated )
-{
-	g_mutex_lock( im->sslock );
-	(void) im_slist_map2( im->regions,
-		(VSListMap2Fn) im_invalidate_region, NULL, NULL );
-	g_mutex_unlock( im->sslock );
-
-	*to_be_invalidated = g_slist_prepend( *to_be_invalidated, im );
-
-	return( NULL );
-}
-
-/* Trigger a callbacks on a list of images, where the callbacks might create
- * or destroy the images.
- *
- * We make a set of temp regions to hold the images open, but when we switch
- * to VipsObject we should incr/decr ref count.
- */
-static void
-im_invalidate_trigger( GSList *images )
-{
-	GSList *regions;
-	GSList *p;
-
-	regions = NULL;
-	for( p = images; p; p = p->next ) {
-		IMAGE *im = (IMAGE *) p->data;
-
-		regions = g_slist_prepend( regions, im_region_create( im ) );
-	}
-
-	for( p = images; p; p = p->next ) {
-		IMAGE *im = (IMAGE *) p->data;
-
-		(void) im__trigger_callbacks( im->invalidatefns );
-	}
-
-	for( p = regions; p; p = p->next ) {
-		REGION *r = (REGION *) p->data;
-
-		im_region_free( r );
-	}
-
-	g_slist_free( regions );
-}
-
-/**
- * im_invalidate:
- * @im: #IMAGE to invalidate
- *
- * Invalidate all pixel caches on an #IMAGE and any derived images. The 
- * "invalidate" callback is triggered for all invalidated images.
- *
- * See also: im_add_invalidate_callback().
- */
-void
-im_invalidate( IMAGE *im )
-{
-	GSList *to_be_invalidated;
-
-	/* Invalidate callbacks might do anything, including removing images
-	 * or invalidating other images, so we can't trigger them from within 
-	 * the image loop. Instead we collect a list of image to invalidate 
-	 * and trigger them all in one go, checking that they are not
-	 * invalidated.
-	 */
-	to_be_invalidated = NULL;
-	(void) im__link_map( im, 
-		(VSListMap2Fn) im_invalidate_image, &to_be_invalidated, NULL );
-
-	im_invalidate_trigger( to_be_invalidated );
-
-	g_slist_free( to_be_invalidated );
 }

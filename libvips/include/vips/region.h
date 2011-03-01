@@ -96,7 +96,7 @@ void im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y );
 #define IM_REGION_N_ELEMENTS(R) \
 	((size_t)((R)->valid.width * (R)->im->Bands))
 #define IM_REGION_SIZEOF_LINE(R) \
-	((size_t)((R)->valid.width * IM_IMAGE_SIZEOF_PEL((R)->im)))
+	((size_t)((R)->valid.width * VIPS_IMAGE_SIZEOF_PEL((R)->im)))
 
 /* If DEBUG is defined, add bounds checking.
  */
@@ -104,7 +104,7 @@ void im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y );
 #define IM_REGION_ADDR(R,X,Y) \
 	( (im_rect_includespoint( &(R)->valid, (X), (Y) ))? \
 	  ((R)->data + ((Y) - (R)->valid.top) * IM_REGION_LSKIP(R) + \
-	  ((X) - (R)->valid.left) * IM_IMAGE_SIZEOF_PEL((R)->im)): \
+	  ((X) - (R)->valid.left) * VIPS_IMAGE_SIZEOF_PEL((R)->im)): \
 	  (fprintf( stderr, \
 		"IM_REGION_ADDR: point out of bounds, " \
 		"file \"%s\", line %d\n" \
@@ -122,7 +122,7 @@ void im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y );
 #define IM_REGION_ADDR(R,X,Y) \
 	((R)->data + \
 	((Y)-(R)->valid.top) * IM_REGION_LSKIP(R) + \
-	((X)-(R)->valid.left) * IM_IMAGE_SIZEOF_PEL((R)->im))
+	((X)-(R)->valid.left) * VIPS_IMAGE_SIZEOF_PEL((R)->im))
 #endif /*DEBUG*/
 
 #define IM_REGION_ADDR_TOPLEFT(R)   ( (R)->data )
