@@ -1,13 +1,4 @@
-/* @(#)  Function which copies IMAGE descriptor image2 to image1;
- * @(#) data, fd and filename are not copied
- * @(#) used to make programs simpler by copying most parameters
- * @(#) 
- * @(#) int 
- * @(#) im_cp_desc( image1, image2 )
- * @(#) IMAGE *image1, *image2;
- * @(#)
- * @(#) Returns 0 on success or -1 on fail.
- * @(#)
+/* copy iamge descriptors
  *
  * Copyright: Nicos Dessipris
  * Written on: 09/02/1990

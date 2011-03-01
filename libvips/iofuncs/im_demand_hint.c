@@ -143,6 +143,14 @@ im__link_mapp( IMAGE *im, VSListMap2Fn fn, int *serial, void *a, void *b )
 		(VSListMap4Fn) im__link_mapp, fn, serial, a, b ) );
 }
 
+static void *
+im__link_map_cb( VipsImage *image, GSList **images )
+{
+	*images = g_slist_prepend( *images, image );
+
+	return( NULL );
+}
+
 /* Apply a function to an image and all downstream images, direct and indirect. 
  */
 void *
@@ -150,21 +158,29 @@ im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )
 {
 	static int serial = 0;
 
-	/* Invalidate callbacks might do anything, including removing images
+	GSList *images;
+	GSList *p;
+	void *result;
+
+	/* The function might do anything, including removing images
 	 * or invalidating other images, so we can't trigger them from within 
-	 * the image loop. Instead we collect a list of image to invalidate 
-	 * and trigger them all in one go, checking that they are not
-	 * invalidated.
+	 * the image loop. Instead we collect a list of images, ref them,
+	 * run the functions, and unref.
 	 */
-
-	/* im__link_mapp() needs to make the list, ref all the images, call
-	 * the callbacks, then unref and free the list.
-	 */
-
-	FIXME
 
 	serial += 1;
-	return( im__link_mapp( im, fn, &serial, a, b ) );
+	images = NULL;
+	im__link_mapp( im, 
+		(VSListMap2Fn) im__link_map_cb, &serial, &images, NULL );
+
+	for( p = images; p; p = p->next ) 
+		g_object_ref( p->data );
+	result = im_slist_map2( images, fn, a, b );
+	for( p = images; p; p = p->next ) 
+		g_object_unref( p->data );
+	g_slist_free( images );
+
+	return( result );
 }
 
 /* Given two im_demand_type, return the most restrictive.

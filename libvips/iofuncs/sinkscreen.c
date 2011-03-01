@@ -208,7 +208,7 @@ tile_free( Tile *tile )
 {
 	VIPS_DEBUG_MSG_AMBER( "tile_free\n" );
 
-	IM_FREEF( im_region_free, tile->region );
+	VIPS_FREEF( im_region_free, tile->region );
 	im_free( tile );
 
 	return( NULL );
@@ -236,10 +236,10 @@ render_free( Render *render )
 	g_mutex_free( render->lock );
 
 	im_slist_map2( render->all, (VSListMap2Fn) tile_free, NULL, NULL );
-	IM_FREEF( g_slist_free, render->all );
+	VIPS_FREEF( g_slist_free, render->all );
 	render->ntiles = 0;
-	IM_FREEF( g_slist_free, render->dirty );
-	IM_FREEF( g_hash_table_destroy, render->tiles );
+	VIPS_FREEF( g_slist_free, render->dirty );
+	VIPS_FREEF( g_hash_table_destroy, render->tiles );
 
 	im_free( render );
 
@@ -536,7 +536,7 @@ render_thread_create( void )
 			render_thread_main, NULL, 
 			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-			im_error( "im_render", 
+			vips_error( "im_render", 
 				"%s", _( "unable to create thread" ) );
 			return( -1 );
 		}
@@ -594,7 +594,7 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 	/* Don't use auto-free for render, we do our own lifetime management
 	 * with _ref() and _unref().
 	 */
-	if( !(render = IM_NEW( NULL, Render )) )
+	if( !(render = VIPS_NEW( NULL, Render )) )
 		return( NULL );
 
 	render->ref_count = 1;
@@ -622,19 +622,12 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	/* Both out and mask must close before we can free the render.
 	 */
-
-	if( im_add_close_callback( out, 
-                (im_callback_fn) render_close_cb, render, NULL ) ) {
-                (void) render_unref( render );
-                return( NULL );
-        }
+	g_signal_connect( out, "close", 
+		G_CALLBACK( render_close_cb ), render );
 
 	if( mask ) {
-		if( im_add_close_callback( mask, 
-			(im_callback_fn) render_close_cb, render, NULL ) ) {
-			(void) render_unref( render );
-			return( NULL );
-		}
+		g_signal_connect( mask, "close", 
+			G_CALLBACK( render_close_cb ), render );
 		render_ref( render );
 	}
 
@@ -659,7 +652,7 @@ tile_new( Render *render )
 	/* Don't use auto-free: we need to make sure we free the tile after
 	 * Render.
 	 */
-	if( !(tile = IM_NEW( NULL, Tile )) )
+	if( !(tile = VIPS_NEW( NULL, Tile )) )
 		return( NULL );
 
 	tile->render = render;
@@ -884,7 +877,7 @@ tile_copy( Tile *tile, REGION *to )
 	 * zero. 
 	 */
 	if( tile->painted && !tile->region->invalid ) {
-		int len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
+		int len = VIPS_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
 
 		VIPS_DEBUG_MSG( "tile_copy: "
 			"copying calculated pixels for %p %dx%d\n",
@@ -1087,24 +1080,25 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	if( tile_width <= 0 || tile_height <= 0 || 
 		max_tiles < -1 ) {
-		im_error( "vips_sink_screen", "%s", _( "bad parameters" ) );
+		vips_error( "vips_sink_screen", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
 
 	if( im_piocheck( in, out ) ||
 		im_cp_desc( out, in ) ||
-		im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
+		im_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 	if( mask ) {
 		if( im_poutcheck( mask ) ||
 			im_cp_desc( mask, in ) ||
-			im_demand_hint( mask, IM_SMALLTILE, in, NULL ) )
+			im_demand_hint( mask, 
+				VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 			return( -1 );
 
 		mask->Bands = 1;
-		mask->BandFmt = IM_BANDFMT_UCHAR;
-		mask->Type = IM_TYPE_B_W;
-		mask->Coding = IM_CODING_NONE;
+		mask->BandFmt = VIPS_FORMAT_UCHAR;
+		mask->Type = VIPS_INTERPRETATION_B_W;
+		mask->Coding = VIPS_CODING_NONE;
 	}
 
 	if( !(render = render_new( in, out, mask, 

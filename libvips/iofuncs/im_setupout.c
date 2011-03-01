@@ -91,7 +91,7 @@ im_setupout( IMAGE *im )
 	g_assert( !im_image_sanity( im ) );
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 || im->Bands <= 0 ) {
-		im_error( "im_setupout", 
+		vips_error( "im_setupout", 
 			"%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
@@ -101,7 +101,7 @@ im_setupout( IMAGE *im )
 	 */
 	im->Bbits = im_bits_of_fmt( im->BandFmt );
  
-	if( im->dtype == IM_PARTIAL ) {
+	if( im->dtype == VIPS_IMAGE_PARTIAL ) {
 		/* Make it into a im_setbuf() image.
 		 */
 #ifdef DEBUG_IO
@@ -109,33 +109,33 @@ im_setupout( IMAGE *im )
 			im->filename );
 #endif /*DEBUG_IO*/
 
-		im->dtype = IM_SETBUF;
+		im->dtype = VIPS_IMAGE_SETBUF;
 	}
 
 	switch( im->dtype ) {
-	case IM_MMAPINRW:
-	case IM_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
 		/* No action.
 		 */
 		break;
 
-	case IM_SETBUF:
+	case VIPS_IMAGE_SETBUF:
 		/* Allocate memory.
 		 */
 		if( im->data ) {
 			/* Sanity failure!
 			 */
-			im_error( "im_setupout", 
+			vips_error( "im_setupout", 
 				"%s", _( "called twice!" ) );
 			return( -1 );
 		}
 		if( !(im->data = im_malloc( NULL, 
-			IM_IMAGE_SIZEOF_LINE( im ) * im->Ysize )) ) 
+			VIPS_IMAGE_SIZEOF_LINE( im ) * im->Ysize )) ) 
 			return( -1 );
 
 		break;
 
-	case IM_OPENOUT:
+	case VIPS_IMAGE_OPENOUT:
 	{
 		/* Don't use im->sizeof_header here, but we know we're 
 		 * writing a VIPS image anyway.
@@ -143,7 +143,7 @@ im_setupout( IMAGE *im )
 		unsigned char header[IM_SIZEOF_HEADER];
 
 		if( (im->fd = open( im->filename, MODE, 0666 )) < 0 ) {
-	                im_error( "im_setupout", 
+	                vips_error( "im_setupout", 
 				_( "unable to write to \"%s\"" ),
 				im->filename );
 			return( -1 );
@@ -156,7 +156,7 @@ im_setupout( IMAGE *im )
 	}
 
 	default:
-		im_error( "im_setupout", 
+		vips_error( "im_setupout", 
 			"%s", _( "bad image descriptor" ) );
 		return( -1 );
 	}
