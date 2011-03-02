@@ -111,7 +111,7 @@
  * <link linkend="libvips-generate">generate</link>
  * @include: vips/vips.h
  *
- * A #REGION is a small part of an image and some pixels. You use regions to
+ * A #VipsRegion is a small part of an image and some pixels. You use regions to
  * read pixels out of images without having to have the whole image in memory
  * at once.
  *
@@ -129,40 +129,40 @@
  */
 
 /**
- * REGION:
+ * VipsRegion:
  * @im: the #IMAGE that this region is defined on
  * @valid: the #Rect of pixels that this region represents
  *
  * A small part of an #IMAGE. @valid holds the left/top/width/height of the
  * area of pixels that are available from the region. 
  *
- * See also: IM_REGION_ADDR(), im_region_create(), im_prepare().
+ * See also: VIPS_REGION_ADDR(), im_region_create(), im_prepare().
  */
 
 /**
- * IM_REGION_LSKIP:
- * @R: a #REGION
+ * VIPS_REGION_LSKIP:
+ * @R: a #VipsRegion
  *
  * Returns: The number of bytes to add to move down a scanline.
  */
 
 /**
- * IM_REGION_N_ELEMENTS:
- * @R: a #REGION
+ * VIPS_REGION_N_ELEMENTS:
+ * @R: a #VipsRegion
  *
  * Returns: The number of band elements across a region.
  */
 
 /**
- * IM_REGION_SIZEOF_LINE:
- * @R: a #REGION
+ * VIPS_REGION_SIZEOF_LINE:
+ * @R: a #VipsRegion
  *
  * Returns: The number of bytes across a region.
  */
 
 /**
- * IM_REGION_ADDR:
- * @R: a #REGION
+ * VIPS_REGION_ADDR:
+ * @R: a #VipsRegion
  * @X: x coordinate
  * @Y: y coordinate
  *
@@ -175,10 +175,10 @@
  */
 
 /**
- * IM_REGION_ADDR_TOPLEFT:
- * @R: a #REGION
+ * VIPS_REGION_ADDR_TOPLEFT:
+ * @R: a #VipsRegion
  *
- * This macro returns a pointer to the top-left pixel in the #REGION, that is,
+ * This macro returns a pointer to the top-left pixel in the #VipsRegion, that is,
  * the pixel at (@R->valid.left, @R->valid.top).
  * 
  * Returns: The address of the top-left pixel in the region.
@@ -190,10 +190,10 @@
 static GSList *im__regions_all = NULL;
 #endif /*DEBUG*/
 
-/* Call a start function if no sequence is running on this REGION.
+/* Call a start function if no sequence is running on this VipsRegion.
  */
 int
-im__call_start( REGION *reg )
+im__call_start( VipsRegion *reg )
 {
 	IMAGE *im = reg->im;
 
@@ -215,11 +215,11 @@ im__call_start( REGION *reg )
         return( 0 );
 }
 
-/* Call a stop function if a sequence is running in this REGION. No error
+/* Call a stop function if a sequence is running in this VipsRegion. No error
  * return is possible, really.
  */
 void
-im__call_stop( REGION *reg )
+im__call_stop( VipsRegion *reg )
 {
 	IMAGE *im = reg->im;
 	int res;
@@ -245,7 +245,7 @@ im__call_stop( REGION *reg )
  * im__region_no_ownership() before we can call this.
  */
 void
-im__region_take_ownership( REGION *reg )
+im__region_take_ownership( VipsRegion *reg )
 {
 	/* Lock so that there's a memory barrier with the thread doing the
 	 * im__region_no_ownership() before us.
@@ -269,7 +269,7 @@ im__region_take_ownership( REGION *reg )
 }
 
 void
-im__region_check_ownership( REGION *reg )
+im__region_check_ownership( VipsRegion *reg )
 {
 	if( reg->thread ) {
 		g_assert( reg->thread == g_thread_self() );
@@ -282,7 +282,7 @@ im__region_check_ownership( REGION *reg )
  * this thread's buffer cache.
  */
 void
-im__region_no_ownership( REGION *reg )
+im__region_no_ownership( VipsRegion *reg )
 {
 	g_mutex_lock( reg->im->sslock );
 
@@ -299,19 +299,19 @@ im__region_no_ownership( REGION *reg )
  * im_region_create:
  * @im: image to create this region on
  *
- * Create a region. #REGION s start out empty, you need to call im_prepare() to
+ * Create a region. #VipsRegion s start out empty, you need to call im_prepare() to
  * fill them with pixels.
  *
  * See also: im_prepare(), im_region_free().
  */
-REGION *
+VipsRegion *
 im_region_create( IMAGE *im )
 {	
-	REGION *reg;
+	VipsRegion *reg;
 
 	g_assert( !im_image_sanity( im ) );
 
-	if( !(reg = VIPS_NEW( NULL, REGION )) )
+	if( !(reg = VIPS_NEW( NULL, VipsRegion )) )
 		return( NULL );
 
 	reg->im = im;
@@ -319,7 +319,7 @@ im_region_create( IMAGE *im )
 	reg->valid.top = 0;
 	reg->valid.width = 0;
 	reg->valid.height = 0;
-	reg->type = IM_REGION_NONE;
+	reg->type = VIPS_REGION_NONE;
 	reg->data = NULL;
 	reg->bpl = 0;
 	reg->seq = NULL;
@@ -349,7 +349,7 @@ im_region_create( IMAGE *im )
 /* Free any resources we have.
  */
 static void
-im_region_reset( REGION *reg )
+im_region_reset( VipsRegion *reg )
 {
 	VIPS_FREEF( im_window_unref, reg->window );
 	VIPS_FREEF( im_buffer_unref, reg->buffer );
@@ -358,15 +358,15 @@ im_region_reset( REGION *reg )
 
 /**
  * im_region_free:
- * @reg: #REGION to free
+ * @reg: #VipsRegion to free
  *
  * Free a region and any resources it holds.
  *
- * If @im has previously been closed, then freeing the last #REGION on @in can
+ * If @im has previously been closed, then freeing the last #VipsRegion on @in can
  * cause @im to finally be freed as well.
  */
 void 
-im_region_free( REGION *reg )
+im_region_free( VipsRegion *reg )
 {	
 	IMAGE *im;
 
@@ -430,9 +430,9 @@ im_region_free( REGION *reg )
  * Returns: 0 on success, or -1 for error.
  */
 int
-im_region_buffer( REGION *reg, Rect *r )
+im_region_buffer( VipsRegion *reg, Rect *r )
 {
-	IMAGE *im = reg->im;
+	VipsImage *im = reg->im;
 
 	Rect image;
 	Rect clipped;
@@ -479,8 +479,8 @@ im_region_buffer( REGION *reg, Rect *r )
 	/* Init new stuff.
 	 */
 	reg->valid = reg->buffer->area;
-	reg->bpl = IM_IMAGE_SIZEOF_PEL( im ) * reg->buffer->area.width;
-	reg->type = IM_REGION_BUFFER;
+	reg->bpl = VIPS_IMAGE_SIZEOF_PEL( im ) * reg->buffer->area.width;
+	reg->type = VIPS_REGION_BUFFER;
 	reg->data = reg->buffer->buf;
 
 	return( 0 );
@@ -498,7 +498,7 @@ im_region_buffer( REGION *reg, Rect *r )
  * Returns: 0 on success, or -1 for error.
  */
 int
-im_region_image( REGION *reg, Rect *r )
+im_region_image( VipsRegion *reg, Rect *r )
 {
 	Rect image;
 	Rect clipped;
@@ -532,16 +532,16 @@ im_region_image( REGION *reg, Rect *r )
 		 * incompletely calculated memory buffer. Just set valid to r.
 		 */
 		reg->valid = clipped;
-		reg->bpl = IM_IMAGE_SIZEOF_LINE( reg->im );
+		reg->bpl = VIPS_IMAGE_SIZEOF_LINE( reg->im );
 		reg->data = reg->im->data +
-			(gint64) clipped.top * IM_IMAGE_SIZEOF_LINE( reg->im ) +
-			clipped.left * IM_IMAGE_SIZEOF_PEL( reg->im );
-		reg->type = IM_REGION_OTHER_IMAGE;
+			clipped.top * VIPS_IMAGE_SIZEOF_LINE( reg->im ) +
+			clipped.left * VIPS_IMAGE_SIZEOF_PEL( reg->im );
+		reg->type = VIPS_REGION_OTHER_IMAGE;
 	}
-	else if( reg->im->dtype == IM_OPENIN ) {
+	else if( reg->im->dtype == VIPS_IMAGE_OPENIN ) {
 		/* No complete image data ... but we can use a rolling window.
 		 */
-		if( reg->type != IM_REGION_WINDOW || !reg->window ||
+		if( reg->type != VIPS_REGION_WINDOW || !reg->window ||
 			reg->window->top > clipped.top ||
 			reg->window->top + reg->window->height < 
 				clipped.top + clipped.height ) {
@@ -551,7 +551,7 @@ im_region_image( REGION *reg, Rect *r )
 				clipped.top, clipped.height )) )
 				return( -1 );
 
-			reg->type = IM_REGION_WINDOW;
+			reg->type = VIPS_REGION_WINDOW;
 		}
 
 		/* Note the area the window actually represents.
@@ -560,7 +560,7 @@ im_region_image( REGION *reg, Rect *r )
 		reg->valid.top = reg->window->top;
 		reg->valid.width = reg->im->Xsize;
 		reg->valid.height = reg->window->height;
-		reg->bpl = IM_IMAGE_SIZEOF_LINE( reg->im );
+		reg->bpl = VIPS_IMAGE_SIZEOF_LINE( reg->im );
 		reg->data = reg->window->data;
 	}
 	else {
@@ -580,7 +580,7 @@ im_region_image( REGION *reg, Rect *r )
  * @x: postion of @r in @dest
  * @y: postion of @r in @dest
  *
- * Make IM_REGION_ADDR() on @reg go to @dest instead. 
+ * Make VIPS_REGION_ADDR() on @reg go to @dest instead. 
  *
  * @r is the part of @reg which you want to be able to address (this
  * effectively becomes the valid field), (@x, @y) is the top LH corner of the
@@ -597,7 +597,7 @@ im_region_image( REGION *reg, Rect *r )
  * Returns: 0 on success, or -1 for error.
  */
 int
-im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
+im_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 {
 	Rect image;
 	Rect wanted;
@@ -608,8 +608,8 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Sanity check.
 	 */
 	if( !dest->data || 
-		IM_IMAGE_SIZEOF_PEL( dest->im ) != 
-			IM_IMAGE_SIZEOF_PEL( reg->im ) ) {
+		VIPS_IMAGE_SIZEOF_PEL( dest->im ) != 
+			VIPS_IMAGE_SIZEOF_PEL( reg->im ) ) {
 		vips_error( "im_region_region", 
 			"%s", _( "inappropriate region type" ) );
 		return( -1 );
@@ -672,8 +672,8 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	im_region_reset( reg );
 	reg->valid = final;
 	reg->bpl = dest->bpl;
-	reg->data = IM_REGION_ADDR( dest, clipped2.left, clipped2.top );
-	reg->type = IM_REGION_OTHER_REGION;
+	reg->data = VIPS_REGION_ADDR( dest, clipped2.left, clipped2.top );
+	reg->type = VIPS_REGION_OTHER_REGION;
 
 	return( 0 );
 }
@@ -686,15 +686,15 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
  * Do two regions point to the same piece of image? ie. 
  *
  * |[
- * 	IM_REGION_ADDR( reg1, x, y ) == IM_REGION_ADDR( reg2, x, y ) &&
- * 	*IM_REGION_ADDR( reg1, x, y ) == 
- * 		*IM_REGION_ADDR( reg2, x, y ) for all x, y, reg1, reg2.
+ * 	VIPS_REGION_ADDR( reg1, x, y ) == VIPS_REGION_ADDR( reg2, x, y ) &&
+ * 	*VIPS_REGION_ADDR( reg1, x, y ) == 
+ * 		*VIPS_REGION_ADDR( reg2, x, y ) for all x, y, reg1, reg2.
  * ]|
  *
  * Returns: non-zero on equality.
  */
 int
-im_region_equalsregion( REGION *reg1, REGION *reg2 )
+im_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
 {
 	return( reg1->im == reg2->im &&
 		im_rect_equalsrect( &reg1->valid, &reg2->valid ) &&
@@ -715,7 +715,7 @@ im_region_equalsregion( REGION *reg1, REGION *reg2 )
  * Returns: 0 on success, or -1 for error.
  */
 int
-im_region_position( REGION *reg, int x, int y )
+im_region_position( VipsRegion *reg, int x, int y )
 {
 	Rect req, image, clipped;
 
@@ -742,9 +742,9 @@ im_region_position( REGION *reg, int x, int y )
 }
 
 int
-im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a )
+im_region_fill( VipsRegion *reg, Rect *r, im_region_fill_fn fn, void *a )
 {
-	g_assert( reg->im->dtype == IM_PARTIAL );
+	g_assert( reg->im->dtype == VIPS_IMAGE_PARTIAL );
 	g_assert( reg->im->generate );
 
 	/* Should have local memory.
@@ -774,9 +774,9 @@ im_region_fill( REGION *reg, Rect *r, im_region_fill_fn fn, void *a )
  * Print out interesting fields from @reg. Handy for debug.
  */
 void
-im_region_print( REGION *reg )
+im_region_print( VipsRegion *reg )
 {
-	printf( "REGION: %p, ", reg );
+	printf( "VipsRegion: %p, ", reg );
 	printf( "im = %p, ", reg->im );
 	printf( "valid.left = %d, ", reg->valid.left );
 	printf( "valid.top = %d, ", reg->valid.top );
@@ -805,15 +805,15 @@ im_region_print( REGION *reg )
  * See also: im_region_black().
  */
 void
-im_region_paint( REGION *reg, Rect *r, int value )
+im_region_paint( VipsRegion *reg, Rect *r, int value )
 {
 	Rect ovl;
 
 	im_rect_intersectrect( r, &reg->valid, &ovl );
 	if( !im_rect_isempty( &ovl ) ) {
-		PEL *q = (PEL *) IM_REGION_ADDR( reg, ovl.left, ovl.top );
-		int wd = ovl.width * IM_IMAGE_SIZEOF_PEL( reg->im );
-		int ls = IM_REGION_LSKIP( reg );
+		PEL *q = (PEL *) VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
+		int wd = ovl.width * VIPS_IMAGE_SIZEOF_PEL( reg->im );
+		int ls = VIPS_REGION_LSKIP( reg );
 		int y;
 
 		for( y = 0; y < ovl.height; y++ ) {
@@ -832,7 +832,7 @@ im_region_paint( REGION *reg, Rect *r, int value )
  * See also: im_region_paint().
  */
 void
-im_region_black( REGION *reg )
+im_region_black( VipsRegion *reg )
 {
 	im_region_paint( reg, &reg->valid, 0 );
 }
@@ -852,14 +852,14 @@ im_region_black( REGION *reg )
  * See also: im_region_paint().
  */
 void
-im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y )
+im_region_copy( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 {
 	int z;
-	int len = IM_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
-	char *p = IM_REGION_ADDR( reg, r->left, r->top );
-	char *q = IM_REGION_ADDR( dest, x, y );
-	int plsk = IM_REGION_LSKIP( reg );
-	int qlsk = IM_REGION_LSKIP( dest );
+	int len = VIPS_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
+	char *p = VIPS_REGION_ADDR( reg, r->left, r->top );
+	char *q = VIPS_REGION_ADDR( dest, x, y );
+	int plsk = VIPS_REGION_LSKIP( reg );
+	int qlsk = VIPS_REGION_LSKIP( dest );
 
 #ifdef DEBUG
 	/* Find the area we will write to in dest.
@@ -883,8 +883,8 @@ im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y )
 
 	/* PEL size must be the same.
 	 */
-	g_assert( IM_IMAGE_SIZEOF_PEL( reg->im ) == 
-		IM_IMAGE_SIZEOF_PEL( dest->im ) );
+	g_assert( VIPS_IMAGE_SIZEOF_PEL( reg->im ) == 
+		VIPS_IMAGE_SIZEOF_PEL( dest->im ) );
 #endif /*DEBUG*/
 
 	for( z = 0; z < r->height; z++ ) {

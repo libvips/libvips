@@ -94,7 +94,8 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	switch( image->dtype ) {
 	case VIPS_IMAGE_SETBUF:
 	case VIPS_IMAGE_SETBUF_FOREIGN:
-		memcpy( IM_IMAGE_ADDR( image, 0, ypos ), linebuffer, linesize );
+		memcpy( VIPS_IMAGE_ADDR( image, 0, ypos ), 
+			linebuffer, linesize );
 		break;
 
 	case VIPS_IMAGE_OPENOUT:

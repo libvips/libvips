@@ -125,11 +125,11 @@ void im_buffer_print( im_buffer_t *buffer );
 /* Region types.
  */
 typedef enum region_type {
-	IM_REGION_NONE,
-	IM_REGION_BUFFER,	/* a pixel buffer */
-	IM_REGION_OTHER_REGION, /* memory on another region */
-	IM_REGION_OTHER_IMAGE,	/* memory on another image */
-	IM_REGION_WINDOW	/* mmap() buffer on fd on another image */
+	VIPS_REGION_NONE,
+	VIPS_REGION_BUFFER,	/* a pixel buffer */
+	VIPS_REGION_OTHER_REGION, /* memory on another region */
+	VIPS_REGION_OTHER_IMAGE,/* memory on another image */
+	VIPS_REGION_WINDOW	/* mmap() buffer on fd on another image */
 } RegionType;
 
 /* Private to iofuncs: the size of the `tiles' requested by im_generate()
@@ -145,22 +145,22 @@ typedef enum region_type {
 
 /* Functions on regions.
  */
-struct _REGION;
-void im__region_take_ownership( struct _REGION *reg );
-void im__region_check_ownership( struct _REGION *reg );
-void im__region_no_ownership( struct _REGION *reg );
+struct _VipsRegion;
+void im__region_take_ownership( struct _VipsRegion *reg );
+void im__region_check_ownership( struct _VipsRegion *reg );
+void im__region_no_ownership( struct _VipsRegion *reg );
 
-void im__copy_region( struct _REGION *reg, struct _REGION *dest, Rect *r, int x, int y );
+void im__copy_region( struct _VipsRegion *reg, struct _VipsRegion *dest, Rect *r, int x, int y );
 void im__find_demand_size( struct _VipsImage *im, int *pw, int *ph );
 
-int im__call_start( struct _REGION *reg );
-void im__call_stop( struct _REGION *reg );
+int im__call_start( struct _VipsRegion *reg );
+void im__call_stop( struct _VipsRegion *reg );
 
-typedef int (*im_region_fill_fn)( struct _REGION *, void * );
-int im_region_fill( struct _REGION *reg, Rect *r, im_region_fill_fn fn, void *a );
-void im_region_print( struct _REGION *region );
+typedef int (*im_region_fill_fn)( struct _VipsRegion *, void * );
+int im_region_fill( struct _VipsRegion *reg, Rect *r, im_region_fill_fn fn, void *a );
+void im_region_print( struct _VipsRegion *region );
 
-int im_prepare_many( struct _REGION **reg, Rect *r );
+int im_prepare_many( struct _VipsRegion **reg, Rect *r );
 
 #ifdef __cplusplus
 }

@@ -139,16 +139,16 @@ im_header_int( IMAGE *im, const char *field, int *out )
 {
 	int i;
 
-	for( i = 0; i < IM_NUMBER( int_field ); i++ )
+	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
 		if( strcmp( field, int_field[i].field ) == 0 ) {
 			*out = G_STRUCT_MEMBER( int, im, 
 				int_field[i].offset );
 			break;
 		}
 
-	if( i == IM_NUMBER( int_field ) &&
+	if( i == VIPS_NUMBER( int_field ) &&
 		im_meta_get_int( im, field, out ) ) {
-		im_error( "im_header_int", 
+		vips_error( "im_header_int", 
 			_( "no such int field \"%s\"" ), field );
 		return( -1 );
 	}
@@ -175,16 +175,16 @@ im_header_double( IMAGE *im, const char *field, double *out )
 {
 	int i;
 
-	for( i = 0; i < IM_NUMBER( double_field ); i++ )
+	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
 		if( strcmp( field, double_field[i].field ) == 0 ) {
 			*out = G_STRUCT_MEMBER( float, im, 
 				double_field[i].offset );
 			break;
 		}
 
-	if( i == IM_NUMBER( double_field ) &&
+	if( i == VIPS_NUMBER( double_field ) &&
 		im_meta_get_double( im, field, out ) ) {
-		im_error( "im_header_double", 
+		vips_error( "im_header_double", 
 			_( "no such double field \"%s\"" ), field );
 		return( -1 );
 	}
@@ -211,16 +211,16 @@ im_header_string( IMAGE *im, const char *field, char **out )
 {
 	int i;
 
-	for( i = 0; i < IM_NUMBER( string_field ); i++ )
+	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
 		if( strcmp( field, string_field[i].field ) == 0 ) {
 			*out = G_STRUCT_MEMBER( char *, im, 
 				string_field[i].offset );
 			break;
 		}
 
-	if( i == IM_NUMBER( string_field ) &&
+	if( i == VIPS_NUMBER( string_field ) &&
 		im_meta_get_string( im, field, out ) ) {
-		im_error( "im_header_string", 
+		vips_error( "im_header_string", 
 			_( "no such string field \"%s\"" ), field );
 		return( -1 );
 	}
@@ -291,13 +291,13 @@ im_header_get_typeof( IMAGE *im, const char *field )
 	int i;
 	GType type;
 
-	for( i = 0; i < IM_NUMBER( int_field ); i++ )
+	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
 		if( strcmp( field, int_field[i].field ) == 0 ) 
 			return( G_TYPE_INT );
-	for( i = 0; i < IM_NUMBER( double_field ); i++ )
+	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
 		if( strcmp( field, double_field[i].field ) == 0 ) 
 			return( G_TYPE_DOUBLE );
-	for( i = 0; i < IM_NUMBER( string_field ); i++ )
+	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
 		if( strcmp( field, string_field[i].field ) == 0 ) 
 			return( G_TYPE_STRING );
 	if( (type = im_meta_get_typeof( im, field )) )
@@ -335,7 +335,7 @@ im_header_get_typeof( IMAGE *im, const char *field )
  *   return( -1 );
  *
  * if( G_VALUE_TYPE( &value ) != G_TYPE_DOUBLE ) {
- *   im_error( "mydomain", _( "field \"%s\" is of type %s, not double" ),
+ *   vips_error( "mydomain", _( "field \"%s\" is of type %s, not double" ),
  *     field, g_type_name( G_VALUE_TYPE( &value ) ) );
  *   g_value_unset( &value );
  *   return( -1 );
@@ -356,7 +356,7 @@ im_header_get( IMAGE *im, const char *field, GValue *value_copy )
 {
 	int i;
 
-	for( i = 0; i < IM_NUMBER( int_field ); i++ ) 
+	for( i = 0; i < VIPS_NUMBER( int_field ); i++ ) 
 		if( strcmp( field, int_field[i].field ) == 0 ) {
 			g_value_init( value_copy, G_TYPE_INT );
 			g_value_set_int( value_copy, 
@@ -365,7 +365,7 @@ im_header_get( IMAGE *im, const char *field, GValue *value_copy )
 			return( 0 );
 		}
 
-	for( i = 0; i < IM_NUMBER( double_field ); i++ ) 
+	for( i = 0; i < VIPS_NUMBER( double_field ); i++ ) 
 		if( strcmp( field, double_field[i].field ) == 0 ) {
 			g_value_init( value_copy, G_TYPE_DOUBLE );
 			g_value_set_double( value_copy, 
@@ -374,7 +374,7 @@ im_header_get( IMAGE *im, const char *field, GValue *value_copy )
 			return( 0 );
 		}
 
-	for( i = 0; i < IM_NUMBER( string_field ); i++ ) 
+	for( i = 0; i < VIPS_NUMBER( string_field ); i++ ) 
 		if( strcmp( field, string_field[i].field ) == 0 ) {
 			g_value_init( value_copy, G_TYPE_STRING );
 			g_value_set_static_string( value_copy, 
@@ -418,7 +418,7 @@ im_header_map( IMAGE *im, im_header_map_fn fn, void *a )
 	GValue value = { 0 };
 	void *result;
 
-	for( i = 0; i < IM_NUMBER( int_field ); i++ ) {
+	for( i = 0; i < VIPS_NUMBER( int_field ); i++ ) {
 		im_header_get( im, int_field[i].field, &value );
 		result = fn( im, int_field[i].field, &value, a );
 		g_value_unset( &value );
@@ -427,7 +427,7 @@ im_header_map( IMAGE *im, im_header_map_fn fn, void *a )
 			return( result );
 	}
 
-	for( i = 0; i < IM_NUMBER( double_field ); i++ ) {
+	for( i = 0; i < VIPS_NUMBER( double_field ); i++ ) {
 		im_header_get( im, double_field[i].field, &value );
 		result = fn( im, double_field[i].field, &value, a );
 		g_value_unset( &value );
@@ -436,7 +436,7 @@ im_header_map( IMAGE *im, im_header_map_fn fn, void *a )
 			return( result );
 	}
 
-	for( i = 0; i < IM_NUMBER( string_field ); i++ ) {
+	for( i = 0; i < VIPS_NUMBER( string_field ); i++ ) {
 		im_header_get( im, string_field[i].field, &value );
 		result = fn( im, string_field[i].field, &value, a );
 		g_value_unset( &value );

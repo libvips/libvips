@@ -2,6 +2,8 @@
  *
  * 7/7/09
  * 	- from vips.h
+ * 2/3/11
+ * 	- move to GObject
  */
 
 /*

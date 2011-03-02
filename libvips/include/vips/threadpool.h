@@ -72,7 +72,7 @@ typedef struct _VipsThreadState {
 	/* This region is created and destroyed by the threadpool for the
 	 * use of the worker. 
 	 */
-	REGION *reg;		
+	VipsRegion *reg;		
 
 	/* Neither used nor set, do what you like with them.
 	 */
@@ -126,11 +126,11 @@ int vips_threadpool_run( VipsImage *im,
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines );
 
-typedef int (*VipsRegionWrite)( REGION *region, Rect *area, void *a );
+typedef int (*VipsRegionWrite)( VipsRegion *region, Rect *area, void *a );
 int vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a );
 
 typedef void *(*VipsStart)( VipsImage *out, void *a, void *b );
-typedef int (*VipsGenerate)( REGION *out, void *seq, void *a, void *b );
+typedef int (*VipsGenerate)( VipsRegion *out, void *seq, void *a, void *b );
 typedef int (*VipsStop)( void *seq, void *a, void *b );
 int vips_sink( VipsImage *im, 
 	VipsStart start, VipsGenerate generate, VipsStop stop,

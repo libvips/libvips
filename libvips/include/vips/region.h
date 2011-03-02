@@ -1,6 +1,9 @@
 /* Definitions for partial image regions.
  *
  * J.Cupitt, 8/4/93
+ *
+ * 2/3/11
+ * 	- move to GObject
  */
 
 /*
@@ -36,9 +39,26 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#define VIPS_TYPE_REGION (vips_region_get_type())
+#define VIPS_REGION( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_REGION, VipsRegion ))
+#define VIPS_REGION_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_REGION, VipsRegionClass))
+#define VIPS_IS_REGION( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_REGION ))
+#define VIPS_IS_REGION_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_REGION ))
+#define VIPS_REGION_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_REGION, VipsRegionClass ))
+
 /* Sub-area of image.
  */
-typedef struct _REGION {
+typedef struct _VipsRegion {
+	VipsObject parent_object;
+
 	/*< public >*/
 	/* Users may read these two fields.
 	 */
@@ -70,43 +90,49 @@ typedef struct _REGION {
 	 * dropped.
 	 */
 	gboolean invalid;	
-} REGION;
+} VipsRegion;
 
-REGION *im_region_create( IMAGE *im );
-void im_region_free( REGION *reg );
+typedef struct _VipsRegionClass {
+	VipsObjectClass parent_class;
 
-int im_region_buffer( REGION *reg, Rect *r );
-int im_region_image( REGION *reg, Rect *r );
-int im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y );
-int im_region_equalsregion( REGION *reg1, REGION *reg2 );
-int im_region_position( REGION *reg, int x, int y );
+} VipsRegionClass;
 
-void im_region_paint( REGION *reg, Rect *r, int value );
-void im_region_black( REGION *reg );
-void im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y );
+VipsRegion *vips_region_new( VipsImage *im );
+
+int vips_region_buffer( VipsRegion *reg, Rect *r );
+int vips_region_image( VipsRegion *reg, Rect *r );
+int vips_region_region( VipsRegion *reg, VipsRegion *dest, 
+	Rect *r, int x, int y );
+int vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 );
+int vips_region_position( VipsRegion *reg, int x, int y );
+
+void vips_region_paint( VipsRegion *reg, Rect *r, int value );
+void vips_region_black( VipsRegion *reg );
+void vips_region_copy( VipsRegion *reg, VipsRegion *dest, 
+	Rect *r, int x, int y );
 
 /* Macros on REGIONs.
- *	IM_REGION_LSKIP()		add to move down line
- *	IM_REGION_N_ELEMENTS()		number of elements across region
- *	IM_REGION_SIZEOF_LINE()		sizeof width of region
- *	IM_REGION_ADDR()		address of pixel in region
+ *	VIPS_REGION_LSKIP()		add to move down line
+ *	VIPS_REGION_N_ELEMENTS()	number of elements across region
+ *	VIPS_REGION_SIZEOF_LINE()	sizeof width of region
+ *	VIPS_REGION_ADDR()		address of pixel in region
  */
-#define IM_REGION_LSKIP(R) \
+#define VIPS_REGION_LSKIP( R ) \
 	((size_t)((R)->bpl))
-#define IM_REGION_N_ELEMENTS(R) \
+#define VIPS_REGION_N_ELEMENTS( R ) \
 	((size_t)((R)->valid.width * (R)->im->Bands))
-#define IM_REGION_SIZEOF_LINE(R) \
-	((size_t)((R)->valid.width * VIPS_IMAGE_SIZEOF_PEL((R)->im)))
+#define VIPS_REGION_SIZEOF_LINE( R ) \
+	((size_t)((R)->valid.width * VIPS_IMAGE_SIZEOF_PEL( (R)->im) ))
 
 /* If DEBUG is defined, add bounds checking.
  */
 #ifdef DEBUG
-#define IM_REGION_ADDR(R,X,Y) \
+#define VIPS_REGION_ADDR( R, X, Y ) \
 	( (im_rect_includespoint( &(R)->valid, (X), (Y) ))? \
-	  ((R)->data + ((Y) - (R)->valid.top) * IM_REGION_LSKIP(R) + \
+	  ((R)->data + ((Y) - (R)->valid.top) * VIPS_REGION_LSKIP(R) + \
 	  ((X) - (R)->valid.left) * VIPS_IMAGE_SIZEOF_PEL((R)->im)): \
 	  (fprintf( stderr, \
-		"IM_REGION_ADDR: point out of bounds, " \
+		"VIPS_REGION_ADDR: point out of bounds, " \
 		"file \"%s\", line %d\n" \
 		"(point x=%d, y=%d\n" \
 		" should have been within Rect left=%d, top=%d, " \
@@ -119,13 +145,13 @@ void im_region_copy( REGION *reg, REGION *dest, Rect *r, int x, int y );
 		(R)->valid.height ), abort(), (char *) NULL) \
 	)
 #else /*DEBUG*/
-#define IM_REGION_ADDR(R,X,Y) \
+#define VIPS_REGION_ADDR( R, X, Y ) \
 	((R)->data + \
-	((Y)-(R)->valid.top) * IM_REGION_LSKIP(R) + \
-	((X)-(R)->valid.left) * VIPS_IMAGE_SIZEOF_PEL((R)->im))
+	((Y)-(R)->valid.top) * VIPS_REGION_LSKIP( R ) + \
+	((X)-(R)->valid.left) * VIPS_IMAGE_SIZEOF_PEL( (R)->im ))
 #endif /*DEBUG*/
 
-#define IM_REGION_ADDR_TOPLEFT(R)   ( (R)->data )
+#define VIPS_REGION_ADDR_TOPLEFT( R ) ((R)->data)
 
 #ifdef __cplusplus
 }
