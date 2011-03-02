@@ -94,7 +94,7 @@ static im_arg_desc guess_prefix_args[] = {
 static int
 guess_prefix_vec( im_object *argv )
 {
-	const char *prefix = im_guess_prefix( argv[0], argv[1] );
+	const char *prefix = vips_guess_prefix( argv[0], argv[1] );
 
 	if( !prefix ) {
 		argv[2] = NULL;
@@ -113,7 +113,7 @@ static im_function guess_prefix_desc = {
 	"guess install area",		/* Description */
 	0,				/* Flags */
 	guess_prefix_vec, 		/* Dispatch function */
-	IM_NUMBER( guess_prefix_args ), 	/* Size of arg list */
+	VIPS_NUMBER( guess_prefix_args ), /* Size of arg list */
 	guess_prefix_args 		/* Arg list */
 };
 
@@ -130,7 +130,7 @@ static im_arg_desc guess_libdir_args[] = {
 static int
 guess_libdir_vec( im_object *argv )
 {
-	const char *libdir = im_guess_libdir( argv[0], argv[1] );
+	const char *libdir = vips_guess_libdir( argv[0], argv[1] );
 
 	if( !libdir ) {
 		argv[2] = NULL;
@@ -149,7 +149,7 @@ static im_function guess_libdir_desc = {
 	"guess library area",		/* Description */
 	0,				/* Flags */
 	guess_libdir_vec, 		/* Dispatch function */
-	IM_NUMBER( guess_libdir_args ), 	/* Size of arg list */
+	VIPS_NUMBER( guess_libdir_args ),/* Size of arg list */
 	guess_libdir_args 		/* Arg list */
 };
 
@@ -177,7 +177,7 @@ static im_function header_int_desc = {
 	"extract int fields from header",	/* Description */
 	0,				/* Flags */
 	header_int_vec, 		/* Dispatch function */
-	IM_NUMBER( header_int_args ), 	/* Size of arg list */
+	VIPS_NUMBER( header_int_args ),	/* Size of arg list */
 	header_int_args 		/* Arg list */
 };
 
@@ -209,7 +209,7 @@ static im_function header_get_typeof_desc = {
 	"return field type",		/* Description */
 	0,				/* Flags */
 	header_get_typeof_vec, 		/* Dispatch function */
-	IM_NUMBER( header_get_typeof_args ),/* Size of arg list */
+	VIPS_NUMBER( header_get_typeof_args ),/* Size of arg list */
 	header_get_typeof_args 		/* Arg list */
 };
 
@@ -237,7 +237,7 @@ static im_function header_double_desc = {
 	"extract double fields from header",	/* Description */
 	0,				/* Flags */
 	header_double_vec, 		/* Dispatch function */
-	IM_NUMBER( header_double_args ), 	/* Size of arg list */
+	VIPS_NUMBER( header_double_args ), /* Size of arg list */
 	header_double_args 		/* Arg list */
 };
 
@@ -273,7 +273,7 @@ static im_function header_string_desc = {
 	"extract fields from headers as strings",	/* Description */
 	0,				/* Flags */
 	header_string_vec, 		/* Dispatch function */
-	IM_NUMBER( header_string_args ), 	/* Size of arg list */
+	VIPS_NUMBER( header_string_args ),/* Size of arg list */
 	header_string_args 		/* Arg list */
 };
 
@@ -306,7 +306,7 @@ static im_function history_get_desc = {
 	"return the image history as a string",	/* Description */
 	0,				/* Flags */
 	history_get_vec, 		/* Dispatch function */
-	IM_NUMBER( history_get_args ), 	/* Size of arg list */
+	VIPS_NUMBER( history_get_args ),/* Size of arg list */
 	history_get_args 		/* Arg list */
 };
 
@@ -340,7 +340,7 @@ static im_function getext_desc = {
 	"return the image metadata XML as a string",	/* Description */
 	0,				/* Flags */
 	getext_vec, 			/* Dispatch function */
-	IM_NUMBER( getext_args ), 	/* Size of arg list */
+	VIPS_NUMBER( getext_args ), 	/* Size of arg list */
 	getext_args 			/* Arg list */
 };
 
@@ -367,7 +367,7 @@ static im_function printdesc_desc = {
 	"print an image header to stdout",	/* Description */
 	0,				/* Flags */
 	printdesc_vec, 			/* Dispatch function */
-	IM_NUMBER( printdesc_args ), 	/* Size of arg list */
+	VIPS_NUMBER( printdesc_args ), 	/* Size of arg list */
 	printdesc_args 			/* Arg list */
 };
 
@@ -382,7 +382,7 @@ static im_arg_desc version_string_args[] = {
 static int
 version_string_vec( im_object *argv )
 {
-	if( !(argv[0] = im_strdup( NULL, im_version_string() )) )
+	if( !(argv[0] = im_strdup( NULL, vips_version_string() )) )
 		return( -1 );
 
 	return( 0 );
@@ -395,7 +395,7 @@ static im_function version_string_desc = {
 	"VIPS version string",		/* Description */
 	0,				/* Flags */
 	version_string_vec, 		/* Dispatch function */
-	IM_NUMBER( version_string_args ), 	/* Size of arg list */
+	VIPS_NUMBER( version_string_args ),/* Size of arg list */
 	version_string_args 		/* Arg list */
 };
 
@@ -414,7 +414,7 @@ version_vec( im_object *argv )
 	int flag = *((int *) argv[0]);
 	int *out = ((int *) argv[1]);
 
-	int version = im_version( flag );
+	int version = vips_version( flag );
 
 	if( version < 0 )
 		return( -1 );
@@ -431,7 +431,7 @@ static im_function version_desc = {
 	"VIPS version number",		/* Description */
 	0,				/* Flags */
 	version_vec, 			/* Dispatch function */
-	IM_NUMBER( version_args ), 	/* Size of arg list */
+	VIPS_NUMBER( version_args ), 	/* Size of arg list */
 	version_args 			/* Arg list */
 };
 
@@ -465,7 +465,7 @@ static im_function cache_desc = {
 	"cache results of an operation",/* Description */
 	0,				/* Flags */
 	cache_vec, 			/* Dispatch function */
-	IM_NUMBER( cache_args ), 	/* Size of arg list */
+	VIPS_NUMBER( cache_args ), 	/* Size of arg list */
 	cache_args 			/* Arg list */
 };
 
@@ -489,17 +489,15 @@ binfile_vec( im_object *argv )
 	int height = *((int *) argv[3]);
 	int bands = *((int *) argv[4]);
 	int offset = *((int *) argv[5]);
-	IMAGE *im;
+	VipsImage *im;
 
-	if( !(im = im_binfile( argv[0], width, height, bands, offset )) )
+	if( !(im = vips_image_new_from_file_raw( argv[0], 
+		width, height, bands, offset )) )
 		return( -1 );
+	vips_object_local( argv[1], im );
 
-	if( im_copy( im, argv[1] ) ||
-		im_add_close_callback( argv[1], 
-			(im_callback_fn) im_close, im, NULL ) ) {
-                im_close( im );
+	if( im_copy( im, argv[1] ) )
 		return( -1 );
-	}
 
 	return( 0 );
 }
@@ -511,7 +509,7 @@ static im_function binfile_desc = {
 	"open a headerless binary file",/* Description */
 	0,				/* Flags */
 	binfile_vec, 			/* Dispatch function */
-	IM_NUMBER( binfile_args ), 	/* Size of arg list */
+	VIPS_NUMBER( binfile_args ), 	/* Size of arg list */
 	binfile_args 			/* Arg list */
 };
 
@@ -537,7 +535,7 @@ static im_function *iofuncs_list[] = {
  */
 static im_package im__iofuncs = {
 	"iofuncs",
-	IM_NUMBER( iofuncs_list ),
+	VIPS_NUMBER( iofuncs_list ),
 	iofuncs_list
 };
 
@@ -587,15 +585,15 @@ plugin_free( Plugin *plug )
 
 	if( plug->module ) {
 		if( !g_module_close( plug->module ) ) {
-			im_error( "plugin", 
+			vips_error( "plugin", 
 				_( "unable to close plugin \"%s\"" ), name );
-			im_error( "plugin", "%s", g_module_error() );
+			vips_error( "plugin", "%s", g_module_error() );
 			return( -1 );
 		}
 
 		plug->module = NULL;
 	}
-	IM_FREE( plug->name );
+	VIPS_FREE( plug->name );
 	plug->pack = NULL;
 	im_free( plug );
 
@@ -612,14 +610,14 @@ im_load_plugin( const char *name )
 	Plugin *plug;
 
 	if( !g_module_supported() ) {
-		im_error( "plugin",	
+		vips_error( "plugin",	
 			"%s", _( "plugins not supported on this platform" ) );
 		return( NULL );
 	}
 
 	/* Build a new plugin.
 	 */
-	if( !(plug = IM_NEW( NULL, Plugin )) ) 
+	if( !(plug = VIPS_NEW( NULL, Plugin )) ) 
 		return( NULL );
 	plug->module = NULL;
 	plug->name = NULL;
@@ -636,8 +634,8 @@ im_load_plugin( const char *name )
 	/* Open library.
 	 */
 	if( !(plug->module = g_module_open( name, 0 )) ) {
-		im_error( "plugin", _( "unable to open plugin \"%s\"" ), name );
-		im_error( "plugin", "%s", g_module_error() );
+		vips_error( "plugin", _( "unable to open plugin \"%s\"" ), name );
+		vips_error( "plugin", "%s", g_module_error() );
 		plugin_free( plug );
 
 		return( NULL );
@@ -649,10 +647,10 @@ im_load_plugin( const char *name )
 	 */
 	if( !g_module_symbol( plug->module, 
 		"package_table", (gpointer *) ((void *) &plug->pack) ) ) {
-		im_error( "plugin",
+		vips_error( "plugin",
 			_( "unable to find symbol \"package_table\" "
 				"in plugin \"%s\"" ), name );
-		im_error( "plugin", "%s", g_module_error() );
+		vips_error( "plugin", "%s", g_module_error() );
 		plugin_free( plug );
 
 		return( NULL );
@@ -662,7 +660,7 @@ im_load_plugin( const char *name )
 	 */
 	if( !plug->pack->name || plug->pack->nfuncs < 0 || 
 		plug->pack->nfuncs > 10000 ) {
-		im_error( "plugin",
+		vips_error( "plugin",
 			_( "corrupted package table in plugin \"%s\"" ), name );
 		plugin_free( plug );
 
@@ -753,7 +751,7 @@ im_map_packages( VSListMap2Fn fn, void *a )
 	/* If not there, try main VIPS package list.
 	 */
 	if( !r )
-		for( i = 0; i < IM_NUMBER( built_in ); i++ )
+		for( i = 0; i < VIPS_NUMBER( built_in ); i++ )
 			if( (r = fn( built_in[i], a, NULL )) )
 				return( r );
 
@@ -783,7 +781,7 @@ im_find_function( const char *name )
 		(VSListMap2Fn) search_package, (void *) name );
 
 	if( !fn ) {
-		im_error( "im_find_function", _( "\"%s\" not found" ), name );
+		vips_error( "im_find_function", _( "\"%s\" not found" ), name );
 		return( NULL );
 	}
 
@@ -810,7 +808,7 @@ im_find_package( const char *name )
 		(VSListMap2Fn) package_name, (void *) name );
 
 	if( !pack ) {
-		im_error( "im_find_package", _( "\"%s\" not found" ), name );
+		vips_error( "im_find_package", _( "\"%s\" not found" ), name );
 		return( NULL );
 	}
 
@@ -837,7 +835,7 @@ im_package_of_function( const char *name )
 		(VSListMap2Fn) package_function, (void *) name );
 
 	if( !pack ) {
-		im_error( "im_package_of_function",
+		vips_error( "im_package_of_function",
 			_( "\"%s\" not found" ), name );
 		return( NULL );
 	}
@@ -947,7 +945,7 @@ build_args( im_function *fn, im_object *vargv, int argc, char **argv )
 		 */
 		if( type->flags & IM_TYPE_ARG ) {
 			if( !argv[j] ) {
-				im_error( "im_run_command",
+				vips_error( "im_run_command",
 					"%s", _( "too few arguments" ) );
 				return( -1 );
 			}
@@ -969,7 +967,7 @@ build_args( im_function *fn, im_object *vargv, int argc, char **argv )
 	/* Have we used up all the command-line args?
 	 */
 	if( argv[j] ) {
-		im_error( "im_run_command", "%s", _( "too many arguments" ) );
+		vips_error( "im_run_command", "%s", _( "too many arguments" ) );
 		return( -1 );
 	}
 
@@ -978,12 +976,10 @@ build_args( im_function *fn, im_object *vargv, int argc, char **argv )
 
 /* Free a region, but return 0 so we can be used as a close callback.
  */
-static int
-region_free( REGION *reg )
+static void
+region_local_image_cb( VipsImage *main, REGION *reg )
 {
 	im_region_free( reg );
-
-	return( 0 );
 }
 
 /* Make a region on sub, closed by callback on main.
@@ -995,12 +991,8 @@ region_local_image( IMAGE *main, IMAGE *sub )
 
 	if( !(reg = im_region_create( sub )) )
 		return( -1 );
-        if( im_add_close_callback( main, 
-		(im_callback_fn) region_free, reg, NULL ) ) {
-                im_region_free( reg );
-
-                return( -1 );
-        }
+	g_signal_connect( main, "close", 
+		G_CALLBACK( region_local_image_cb ), reg ); 
  
         return( 0 );
 }
@@ -1199,7 +1191,7 @@ im_version( int flag )
 		return( IM_MICRO_VERSION );
 
 	default:
-		im_error( "im_version", "%s", _( "flag not 0,1,2" ) );
+		vips_error( "im_version", "%s", _( "flag not 0, 1, 2" ) );
 		return( -1 );
 	}
 }

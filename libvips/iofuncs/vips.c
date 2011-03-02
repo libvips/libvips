@@ -280,7 +280,7 @@ im__read_header_bytes( IMAGE *im, unsigned char *from )
 
 	/* Set this ourselves ... bbits is deprecated in the file format.
 	 */
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
+	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
 
 	return( 0 );
 }

@@ -178,6 +178,12 @@ im_free( void *s )
 	return( 0 );
 }
 
+static void
+im_malloc_cb( VipsImage *image, char *buf )
+{
+	im_free( buf );
+}
+
 /**
  * im_malloc:
  * @im: allocate memory local to this #IMAGE, or %NULL
@@ -219,10 +225,10 @@ im_malloc( IMAGE *im, size_t size )
 		g_assert( 0 );
 #endif /*DEBUG*/
 
-		im_error( "im_malloc", 
+		vips_error( "im_malloc", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0*1024.0))  );
-		im_warn( "im_malloc", 
+		vips_warn( "im_malloc", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0*1024.0))  );
                 return( NULL );
@@ -260,11 +266,9 @@ im_malloc( IMAGE *im, size_t size )
 		printf( "woah! big!\n" );
 #endif /*DEBUGM*/
  
-        if( im && im_add_close_callback( im, 
-		(im_callback_fn) im_free, buf, NULL ) ) {
-                im_free( buf );
-                return( NULL );
-        }
- 
+        if( im )
+		g_signal_connect( im, "close", 
+			G_CALLBACK( im_malloc_cb ), buf );
+
         return( buf );
 }

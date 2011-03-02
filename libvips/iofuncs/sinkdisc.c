@@ -168,7 +168,7 @@ wbuffer_free( WriteBuffer *wbuffer )
 		wbuffer->thread = NULL;
         }
 
-	IM_FREEF( im_region_free, wbuffer->region );
+	VIPS_FREEF( im_region_free, wbuffer->region );
 	im_semaphore_destroy( &wbuffer->go );
 	im_semaphore_destroy( &wbuffer->nwrite );
 	im_semaphore_destroy( &wbuffer->done );
@@ -223,7 +223,7 @@ wbuffer_new( Write *write )
 {
 	WriteBuffer *wbuffer;
 
-	if( !(wbuffer = IM_NEW( NULL, WriteBuffer )) )
+	if( !(wbuffer = VIPS_NEW( NULL, WriteBuffer )) )
 		return( NULL );
 	wbuffer->write = write;
 	wbuffer->region = NULL;
@@ -248,7 +248,8 @@ wbuffer_new( Write *write )
 	 */
 	if( !(wbuffer->thread = g_thread_create( wbuffer_write_thread, wbuffer, 
 		TRUE, NULL )) ) {
-		im_error( "wbuffer_new", "%s", _( "unable to create thread" ) );
+		vips_error( "wbuffer_new", 
+			"%s", _( "unable to create thread" ) );
 		wbuffer_free( wbuffer );
 		return( NULL );
 	}
@@ -273,7 +274,7 @@ wbuffer_flush( Write *write )
 		/* Previous write suceeded?
 		 */
 		if( write->buf_back->write_errno ) {
-			im_error_system( write->buf_back->write_errno,
+			vips_error_system( write->buf_back->write_errno,
 				"wbuffer_write", "%s", _( "write failed" ) );
 			return( -1 ); 
 		}
@@ -465,8 +466,8 @@ write_init( Write *write,
 static void
 write_free( Write *write )
 {
-	IM_FREEF( wbuffer_free, write->buf );
-	IM_FREEF( wbuffer_free, write->buf_back );
+	VIPS_FREEF( wbuffer_free, write->buf );
+	VIPS_FREEF( wbuffer_free, write->buf_back );
 }
 
 /**

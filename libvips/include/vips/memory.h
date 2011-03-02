@@ -72,6 +72,7 @@ G_STMT_START { \
 #define VIPS_ARRAY( IM, N, T ) ((T *) im_malloc( (IM), (N) * sizeof( T )))
 
 void *im_malloc( VipsImage *im, size_t size );
+char *im_strdup( VipsImage *im, const char *str );
 int im_free( void *s );
 
 #ifdef __cplusplus

@@ -112,7 +112,7 @@ sink_call_stop( Sink *sink, SinkThreadState *state )
 		VIPS_DEBUG_MSG( "sink_call_stop: state = %p\n", state );
 
 		if( sink->stop( state->seq, sink->a, sink->b ) ) {
-			im_error( "vips_sink", 
+			vips_error( "vips_sink", 
 				_( "stop function failed for image \"%s\"" ), 
 				sink->im->filename );
 			return( -1 );
@@ -131,7 +131,7 @@ sink_thread_state_dispose( GObject *gobject )
 	Sink *sink = (Sink *) ((VipsThreadState *) state)->a;
 
 	sink_call_stop( sink, state );
-	IM_FREEF( im_region_free, state->reg );
+	VIPS_FREEF( im_region_free, state->reg );
 
 	G_OBJECT_CLASS( sink_thread_state_parent_class )->dispose( gobject );
 }
@@ -147,7 +147,7 @@ sink_call_start( Sink *sink, SinkThreadState *state )
                 state->seq = sink->start( sink->t, sink->a, sink->b );
 
 		if( !state->seq ) {
-			im_error( "vips_sink", 
+			vips_error( "vips_sink", 
 				_( "start function failed for image \"%s\"" ), 
 				sink->im->filename );
 			return( -1 );
@@ -202,7 +202,7 @@ sink_thread_state_new( VipsImage *im, void *a )
 static void
 sink_free( Sink *sink )
 {
-	IM_FREEF( im_close, sink->t );
+	VIPS_FREEF( g_object_unref, sink->t );
 }
 
 static int
@@ -221,7 +221,7 @@ sink_init( Sink *sink,
 	sink->a = a;
 	sink->b = b;
 
-	if( !(sink->t = im_open( "iterate", "p" )) ||
+	if( !(sink->t = vips_image_new( "p" )) ||
 		im_copy( sink->im, sink->t ) ) {
 		sink_free( sink );
 		return( -1 );
@@ -340,7 +340,7 @@ vips_sink_tile( VipsImage *im,
 	/* We don't use this, but make sure it's set in case any old binaries
 	 * are expecting it.
 	 */
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
+	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
  
 	if( sink_init( &sink, im, start, generate, stop, a, b ) )
 		return( -1 );

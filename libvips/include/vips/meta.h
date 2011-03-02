@@ -100,6 +100,11 @@ size_t im_ref_string_get_length( const GValue *value );
  *
  * The #GType for an #im_blob.
  */
+
+/* Also used for eg. im_local() and friends.
+ */
+typedef int (*im_callback_fn)( void *a, void *b );
+
 #define IM_TYPE_BLOB (im_blob_get_type())
 GType im_blob_get_type( void );
 void *im_blob_get( const GValue *value, size_t *length );

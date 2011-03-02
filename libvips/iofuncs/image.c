@@ -588,7 +588,7 @@ lazy_real_image( Lazy *lazy )
 	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
 			VIPS_FORMAT_PARTIAL) &&
 		vips_image_size( lazy->image ) > disc_threshold() ) {
-			if( !(real = im__open_temp( "%s.v" )) )
+			if( !(real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );
 
 #ifdef DEBUG
@@ -1344,6 +1344,20 @@ vips_image_posteval( VipsImage *image )
 	}
 }
 
+int
+vips_image_test_kill( VipsImage *image )
+{
+	/* Has kill been set for this image? If yes, abort evaluation.
+	 */
+	if( image->kill ) {
+		vips_error( "vips_image_test_kill", 
+			_( "killed for image \"%s\"" ), image->filename );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
 /**
  * vips_image_new:
  * @mode: mode to open with
@@ -1367,7 +1381,7 @@ vips_image_posteval( VipsImage *image )
  *   </listitem>
  * </itemizedlist>
  *
- * Returns: the image descriptor on success and NULL on error.
+ * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new( const char *mode )
@@ -1465,7 +1479,7 @@ vips_image_new( const char *mode )
  *   </listitem>
  * </itemizedlist>
  *
- * Returns: the image descriptor on success and NULL on error.
+ * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_from_file( const char *filename, const char *mode )
@@ -1540,7 +1554,7 @@ vips_image_new_from_file_raw( const char *filename,
  *
  * See also: im_binfile(), im_raw2vips(), im_open().
  *
- * Returns: the new #IMAGE, or %NULL on error.
+ * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_from_memory( void *buffer, 
@@ -1561,6 +1575,51 @@ vips_image_new_from_memory( void *buffer,
 		VIPS_UNREF( image );
 		return( NULL );
 	}
+
+	return( image );
+}
+
+static void
+vips_image_new_temp_cb( VipsImage *image )
+{
+	g_assert( image->filename );
+
+	unlink( image->filename );
+}
+
+/**
+ * vips_image_new_disc_temp:
+ * @format: format of file
+ *
+ * Make a "w" disc #VipsImage which will be automatically unlinked when it is
+ * destroyed. @format is something like "%s.v" for a vips file.
+ *
+ * The file is created in the temporary directory, see im__temp_name().
+ *
+ * See also: im__temp_name().
+ *
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_disc_temp( const char *format )
+{
+	char *name;
+	VipsImage *image;
+
+	if( !(name = im__temp_name( format )) )
+		return( NULL );
+
+	if( !(image = vips_image_new_from_file( name, "w" )) ) {
+		g_free( name );
+		return( NULL );
+	}
+	g_free( name );
+
+	/* Needs to be postclose so we can rewind after write without
+	 * deleting the file.
+	 */
+	g_signal_connect( image, "postclose", 
+		G_CALLBACK( vips_image_new_temp_cb ), NULL );
 
 	return( image );
 }
@@ -1640,7 +1699,7 @@ const size_t vips_image__sizeof_bandformat[] = {
 	2 * sizeof( double ) 		/* VIPS_FORMAT_DPCOMPLEX */
 };
 
-/* Return number of pel bits for band format, or -1 on error.
+/* Return number of bytes for a band format, or -1 on error.
  */
 int 
 vips_format_sizeof( VipsBandFormat format )
@@ -1649,6 +1708,127 @@ vips_format_sizeof( VipsBandFormat format )
 		vips_error( "vips_format_sizeof", 
 			_( "unknown band format %d" ), format ), -1 :
 		vips_image__sizeof_bandformat[format] );
+}
+
+/**
+ * vips_image_copy_fields_array:
+ * @out: image to copy to
+ * @in: %NULL-terminated array of images to copy from
+ *
+ * Copy fields from all the input images to the output image. There must be at
+ * least one input image. 
+ *
+ * The first input image is used to set the main fields of @out (@XSize, @Coding
+ * and so on). 
+ *
+ * Metadata from all the image is merged on to @out, with lower-numbered items 
+ * overriding higher. So for example, if @in[0] and @in[1] both have an item
+ * called "icc-profile", it's the profile attached to @in[0] that will end up
+ * on @out.
+ *
+ * Image history is completely copied from all @in. @out will have the history
+ * of all the intput images.
+ *
+ * See also: vips_image_copy_fieldsv(), vips_image_copy_fields().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_image_copy_fields_array( IMAGE *out, IMAGE *in[] )
+{
+	int i;
+	int ni;
+
+	g_assert( in[0] );
+
+	out->Xsize = in[0]->Xsize;
+	out->Ysize = in[0]->Ysize;
+	out->Bands = in[0]->Bands;
+	out->Bbits = in[0]->Bbits;
+	out->BandFmt = in[0]->BandFmt;
+	out->Type = in[0]->Type;
+	out->Coding = in[0]->Coding;
+	out->Xres = in[0]->Xres;
+	out->Yres = in[0]->Yres;
+	out->Xoffset = 0;
+	out->Yoffset = 0;
+
+	/* Count number of images.
+	 */
+	for( ni = 0; in[ni]; ni++ ) 
+		;
+
+	/* Need to copy last-to-first so that in0 meta will override any
+	 * earlier meta.
+	 */
+	im__meta_destroy( out );
+	for( i = ni - 1; i >= 0; i-- ) 
+		if( im__meta_cp( out, in[i] ) )
+			return( -1 );
+
+	/* Merge hists first to last.
+	 */
+	for( i = 0; in[i]; i++ )
+		out->history_list = im__gslist_gvalue_merge( out->history_list,
+			in[i]->history_list );
+
+	return( 0 );
+}
+
+/* Max number of images we can handle.
+ */
+#define MAX_IMAGES (1000)
+
+/**
+ * vips_image_copy_fieldsv:
+ * @out: image to copy to
+ * @in1: first image to copy from
+ * @Varargs: %NULL-terminated list of images to copy from
+ *
+ * Copy fields from all the input images to the output image. A convenience
+ * function over vips_image_copy_fields_array(). 
+ *
+ * See also: vips_image_copy_fields_array(), vips_image_copy_fields().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_image_copy_fieldsv( IMAGE *out, IMAGE *in1, ... )
+{
+	va_list ap;
+	int i;
+	IMAGE *in[MAX_IMAGES];
+
+	in[0] = in1;
+	va_start( ap, in1 );
+	for( i = 1; i < MAX_IMAGES && (in[i] = va_arg( ap, IMAGE * )); i++ ) 
+		;
+	va_end( ap );
+	if( i == MAX_IMAGES ) {
+		vips_error( "im_cp_descv", 
+			"%s", _( "too many images" ) );
+		return( -1 );
+	}
+
+	return( vips_image_copy_fields_array( out, in ) );
+}
+
+/**
+ * vips_image_copy_fields:
+ * @out: image to copy to
+ * @in: image to copy from
+ *
+ * Copy fields from @in to @out. A convenience
+ * function over vips_image_copy_fields_array(). 
+ *
+ * See also: vips_image_copy_fields_array(), vips_image_copy_fieldsv().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_image_copy_fields( IMAGE *out, IMAGE *in )
+{
+	return( vips_image_copy_fieldsv( out, in, NULL ) ); 
 }
 
 

@@ -205,7 +205,7 @@ im__call_start( REGION *reg )
                 g_mutex_unlock( im->sslock );
  
                 if( !reg->seq ) {
-                        im_error( "im__call_start", 
+                        vips_error( "im__call_start", 
 				_( "start function failed for image %s" ),
                                 im->filename );
                         return( -1 );
@@ -311,7 +311,7 @@ im_region_create( IMAGE *im )
 
 	g_assert( !im_image_sanity( im ) );
 
-	if( !(reg = IM_NEW( NULL, REGION )) )
+	if( !(reg = VIPS_NEW( NULL, REGION )) )
 		return( NULL );
 
 	reg->im = im;
@@ -351,8 +351,8 @@ im_region_create( IMAGE *im )
 static void
 im_region_reset( REGION *reg )
 {
-	IM_FREEF( im_window_unref, reg->window );
-	IM_FREEF( im_buffer_unref, reg->buffer );
+	VIPS_FREEF( im_window_unref, reg->window );
+	VIPS_FREEF( im_buffer_unref, reg->buffer );
 	reg->invalid = FALSE;
 }
 
@@ -450,7 +450,7 @@ im_region_buffer( REGION *reg, Rect *r )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &clipped ) ) {
-		im_error( "im_region_buffer", 
+		vips_error( "im_region_buffer", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
@@ -470,7 +470,7 @@ im_region_buffer( REGION *reg, Rect *r )
 		 * and new buffer ref in one call to reduce malloc/free 
 		 * cycling.
 		 */
-		IM_FREEF( im_window_unref, reg->window );
+		VIPS_FREEF( im_window_unref, reg->window );
 		if( !(reg->buffer = 
 			im_buffer_unref_ref( reg->buffer, im, &clipped )) ) 
 			return( -1 );
@@ -518,7 +518,7 @@ im_region_image( REGION *reg, Rect *r )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &clipped ) ) {
-		im_error( "im_region_image", 
+		vips_error( "im_region_image", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
@@ -564,7 +564,7 @@ im_region_image( REGION *reg, Rect *r )
 		reg->data = reg->window->data;
 	}
 	else {
-		im_error( "im_region_image", 
+		vips_error( "im_region_image", 
 			"%s", _( "bad image type" ) );
 		return( -1 );
 	}
@@ -610,7 +610,7 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	if( !dest->data || 
 		IM_IMAGE_SIZEOF_PEL( dest->im ) != 
 			IM_IMAGE_SIZEOF_PEL( reg->im ) ) {
-		im_error( "im_region_region", 
+		vips_error( "im_region_region", 
 			"%s", _( "inappropriate region type" ) );
 		return( -1 );
 	}
@@ -643,7 +643,7 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Test that dest->valid is large enough.
 	 */
 	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
-		im_error( "im_region_region", 
+		vips_error( "im_region_region", 
 			"%s", _( "dest too small" ) );
 		return( -1 );
 	}
@@ -662,7 +662,7 @@ im_region_region( REGION *reg, REGION *dest, Rect *r, int x, int y )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &final ) ) {
-		im_error( "im_region_region", 
+		vips_error( "im_region_region", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
@@ -731,7 +731,7 @@ im_region_position( REGION *reg, int x, int y )
 	req.height = reg->valid.height;
 	im_rect_intersectrect( &image, &req, &clipped );
 	if( x < 0 || y < 0 || im_rect_isempty( &clipped ) ) {
-		im_error( "im_region_position", "%s", _( "bad position" ) );
+		vips_error( "im_region_position", "%s", _( "bad position" ) );
 		return( -1 );
 	}
 

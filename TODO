@@ -1,6 +1,12 @@
+- why not renname VipsBandFormat as VipsFormat? cf. VipsCoding,
+  VipsInterpretation etc.
+
 - image->progress needs renaming, perhaps image->progress_signal?
 
 - im_sanity() should become a method on VipsObject, see debug.c
+
+- REGION needs moving at the same time, since regions have to ref their image, 
+  argh
 
 
 - pre/post/close should be on VipsObject, not VipsImage

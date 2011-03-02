@@ -352,6 +352,7 @@ void vips_image_invalidate_all( VipsImage *image );
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, int w, int h );
 void vips_image_posteval( VipsImage *image );
+int vips_image_test_kill( VipsImage *image );
 
 VipsImage *vips_image_new( const char *mode );
 VipsImage *vips_image_new_from_file( const char *filename, const char *mode );
@@ -359,12 +360,18 @@ VipsImage *vips_image_new_from_file_raw( const char *filename,
 	int xsize, int ysize, int bands, int offset );
 VipsImage *vips_image_new_from_memory( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
+VipsImage *vips_image_new_disc_temp( const char *format );
 
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
 gboolean vips_image_ispartial( VipsImage *image );
 
 int vips_format_sizeof( VipsBandFormat format );
+
+int vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] );
+int vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
+	__attribute__((sentinel));
+int vips_image_copy_fields( VipsImage *out, VipsImage *in );
 
 
 
@@ -388,31 +395,6 @@ void vips_initdesc( VipsImage *image,
 	VipsInterpretation interpretation, 
 	float xres, float yres,
 	int xo, int yo );
-
-int vips_cp_desc( VipsImage *out, VipsImage *in );
-int vips_cp_descv( VipsImage *out, VipsImage *in1, ... )
-	__attribute__((sentinel));
-int vips_cp_desc_array( VipsImage *out, VipsImage *in[] );
-
-VipsImage *vips_binfile( const char *name, 
-	int xsize, int ysize, int bands, int offset );
-VipsImage *vips_image( void *buffer, 
-	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
-
-typedef void *(*im_construct_fn)( void *, void *, void * );
-
-/* Also used for im_add_close_callback() etc.
- */
-typedef int (*im_callback_fn)( void *a, void *b );
-
-void *im_local( VipsImage *im, 
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
-int im_local_array( VipsImage *im, void **out, int n,
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
-char *im_strdup( VipsImage *im, const char *str );
-VipsImage *im__open_temp( const char *format );
-
-int im_bits_of_fmt( VipsBandFormat fmt );
 
 #ifdef __cplusplus
 }

@@ -1085,12 +1085,12 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	}
 
 	if( im_piocheck( in, out ) ||
-		im_cp_desc( out, in ) ||
+		vips_image_copy_fields( out, in ) ||
 		im_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 	if( mask ) {
 		if( im_poutcheck( mask ) ||
-			im_cp_desc( mask, in ) ||
+			vips_image_copy_fields( mask, in ) ||
 			im_demand_hint( mask, 
 				VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 			return( -1 );

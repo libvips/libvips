@@ -60,7 +60,7 @@ typedef struct {
 
 /* Maximum number of input images -- why not?
  */
-#define IM_MAX_INPUT_IMAGES (64)
+#define MAX_INPUT_IMAGES (64)
 
 /* Convert a REGION.
  */
@@ -70,7 +70,7 @@ process_region( REGION *or, void *seq, void *a, void *b )
 	REGION **ir = (REGION **) seq;
 	Bundle *bun = (Bundle *) b;
 
-	PEL *p[IM_MAX_INPUT_IMAGES], *q;
+	PEL *p[MAX_INPUT_IMAGES], *q;
 	int i, y;
 
 	/* Prepare all input regions and make buffer pointers.
@@ -87,7 +87,7 @@ process_region( REGION *or, void *seq, void *a, void *b )
 	/* Convert linewise.
 	 */
 	for( y = 0; y < or->valid.height; y++ ) {
-		PEL *p1[IM_MAX_INPUT_IMAGES];
+		PEL *p1[MAX_INPUT_IMAGES];
 
 		/* Make a copy of p[] which the buffer function can mess up if
 		 * it wants.
@@ -125,7 +125,7 @@ dupims( IMAGE *out, IMAGE **in )
 
 	/* Allocate new array.
 	 */
-	if( !(new = IM_ARRAY( out, n + 1, IMAGE * )) )
+	if( !(new = VIPS_ARRAY( out, n + 1, IMAGE * )) )
 		return( NULL );
 	
 	/* Copy.
@@ -169,15 +169,15 @@ dupims( IMAGE *out, IMAGE **in )
 int
 im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 {
-	Bundle *bun = IM_NEW( out, Bundle );
+	Bundle *bun = VIPS_NEW( out, Bundle );
 	int i, n;
 
 	/* Count input images.
 	 */
 	for( n = 0; in[n]; n++ )
 		;
-	if( n >= IM_MAX_INPUT_IMAGES - 1 ) {
-		im_error( "im_wrapmany", "%s", _( "too many input images" ) );
+	if( n >= MAX_INPUT_IMAGES - 1 ) {
+		vips_error( "im_wrapmany", "%s", _( "too many input images" ) );
 		return( -1 );
 	}
 
@@ -194,7 +194,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 	 */
 	for( i = 0; i < n; i++ ) {
 		if( in[i]->Xsize != out->Xsize || in[i]->Ysize != out->Ysize ) {
-			im_error( "im_wrapmany", 
+			vips_error( "im_wrapmany", 
 				"%s", _( "descriptors differ in size" ) );
 			return( -1 );
 		}
@@ -208,7 +208,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 	/* Hint demand style. Being a buffer processor, we are happiest with
 	 * thin strips.
 	 */
-        if( im_demand_hint_array( out, IM_THINSTRIP, in ) )
+        if( im_demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in ) )
                 return( -1 );
 
 	/* Generate!
@@ -258,7 +258,7 @@ wrapone_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
 int
 im_wrapone( IMAGE *in, IMAGE *out, im_wrapone_fn fn, void *a, void *b )
 {
-	Bundle *bun = IM_NEW( out, Bundle );
+	Bundle *bun = VIPS_NEW( out, Bundle );
 	IMAGE *invec[2];
 
 	/* Heh, yuk. We cast back above.
@@ -314,7 +314,7 @@ int
 im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	im_wraptwo_fn fn, void *a, void *b )
 {
-	Bundle *bun = IM_NEW( out, Bundle );
+	Bundle *bun = VIPS_NEW( out, Bundle );
 	IMAGE *invec[3];
 
 	bun->fn = (im_wrapmany_fn) fn;

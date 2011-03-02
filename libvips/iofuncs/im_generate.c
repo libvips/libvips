@@ -377,9 +377,9 @@ im_generate( IMAGE *im,
 	}
 
 	/* We don't use this, but make sure it's set in case any old binaries
-	 * are expectiing it.
+	 * are expecting it.
 	 */
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
+	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
  
         /* Look at output type to decide our action.
          */

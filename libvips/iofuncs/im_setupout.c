@@ -99,7 +99,7 @@ im_setupout( IMAGE *im )
 	/* We don't use this, but make sure it's set in case any old binaries
 	 * are expectiing it.
 	 */
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
+	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
  
 	if( im->dtype == VIPS_IMAGE_PARTIAL ) {
 		/* Make it into a im_setbuf() image.

@@ -93,20 +93,6 @@ fill_region( REGION *reg )
 	return( 0 );
 }
 
-int
-im__test_kill( IMAGE *im )
-{
-	/* Has kill been set for this image? If yes, abort evaluation.
-	 */
-	if( im->kill ) {
-		vips_error( "im__test_kill", _( "killed for image \"%s\"" ),
-			im->filename );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
 /** 
  * im_prepare:
  * @reg: region to prepare

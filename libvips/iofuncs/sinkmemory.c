@@ -195,7 +195,7 @@ vips_sink_memory( VipsImage *im )
 	/* We don't use this, but make sure it's set in case any old binaries
 	 * are expecting it.
 	 */
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
+	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
  
 	if( sink_init( &sink, im ) )
 		return( -1 );

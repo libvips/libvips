@@ -67,67 +67,62 @@
 
 /**
  * im_writeline:
+ * @image: image to write to
  * @ypos: vertical position of scan-line to write
- * @im: image to write to
  * @linebuffer: scanline of pixels
  *
  * Write a line of pixels to an image. This function must be called repeatedly
  * with @ypos increasing from 0 to @YSize -
- * 1. @linebuffer must be IM_IMAGE_SIZEOF_LINE() bytes long.
+ * @linebuffer must be IM_IMAGE_SIZEOF_LINE() bytes long.
  *
  * See also: im_setupout(), im_generate().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_writeline( int ypos, IMAGE *im, PEL *linebuffer )
+vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 {	
-	int linesize = IM_IMAGE_SIZEOF_LINE( im );
-	char *tmp;
+	int linesize = VIPS_IMAGE_SIZEOF_LINE( image );
 
 	/* Is this the start of eval?
 	 */
 	if( ypos == 0 )
-		im__start_eval( im );
+		vips_image_preeval( image );
 
 	/* Possible cases for output: FILE or SETBUF.
 	 */
-	switch( im->dtype ) {
-	case IM_SETBUF:
-	case IM_SETBUF_FOREIGN:
-		tmp = im->data + ypos * linesize;
-		memcpy( tmp, linebuffer, linesize );
-
+	switch( image->dtype ) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+		memcpy( IM_IMAGE_ADDR( image, 0, ypos ), linebuffer, linesize );
 		break;
 
-	case IM_OPENOUT:
+	case VIPS_IMAGE_OPENOUT:
 		/* Don't use ypos for this.
 		 */
-		if( im__write( im->fd, linebuffer, linesize ) )
+		if( im__write( image->fd, linebuffer, linesize ) )
 			return( -1 );
-
 		break;
 
 	default:
-		im_error( "im_writeline", 
+		vips_error( "im_writeline", 
 			_( "unable to output to a %s image" ),
-			im_dtype2char( im->dtype ) );
+			VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, 
+				image->dtype ) );
 		return( -1 );
 	}
 
 	/* Trigger evaluation callbacks for this image.
 	 */
-	if( im__handle_eval( im, im->Xsize, 1 ) )
-		return( -1 );
-	if( im__test_kill( im ) )
+	vips_image_eval( image, image->Xsize, 1 );
+	if( im__test_kill( image ) )
 		return( -1 );
 
 	/* Is this the end of eval?
 	 */
-	if( ypos == im->Ysize - 1 ) {
-		if( im__end_eval( im ) || 
-			im__trigger_callbacks( im->writtenfns ) )
-			return( -1 );
+	if( ypos == image->Ysize - 1 ) {
+		vips_image_posteval( image );
+		vips_image_written( image );
 	}
 
 	return( 0 );
