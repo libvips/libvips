@@ -88,7 +88,7 @@
 /* Maximum number of concurrent threads we allow. No reason for the limit,
  * it's just there to stop mad values for IM_CONCURRENCY killing the system.
  */
-#define IM_MAX_THREADS (1024)
+#define MAX_THREADS (1024)
 
 /* Name of environment variable we get concurrency level from.
  */
@@ -214,10 +214,10 @@ im_concurrency_get( void )
 	else 
 		nthr = get_num_processors();
 
-	if( nthr < 1 || nthr > IM_MAX_THREADS ) {
-		nthr = IM_CLIP( 1, nthr, IM_MAX_THREADS );
+	if( nthr < 1 || nthr > MAX_THREADS ) {
+		nthr = VIPS_CLIP( 1, nthr, MAX_THREADS );
 
-		im_warn( "im_concurrency_get", 
+		vips_warn( "im_concurrency_get", 
 			_( "threads clipped to %d" ), nthr );
 	}
 
@@ -255,7 +255,7 @@ vips_thread_state_dispose( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_thread_state_dispose:\n" );
 
-	IM_FREEF( im_region_free, state->reg );
+	VIPS_FREEF( g_object_unref, state->reg );
 
 	G_OBJECT_CLASS( vips_thread_state_parent_class )->dispose( gobject );
 }
@@ -265,7 +265,7 @@ vips_thread_state_build( VipsObject *object )
 {
 	VipsThreadState *state = (VipsThreadState *) object;
 
-	if( !(state->reg = im_region_create( state->im )) )
+	if( !(state->reg = vips_region_new( state->im )) )
 		return( -1 );
 
 	return( VIPS_OBJECT_CLASS( 
@@ -385,7 +385,7 @@ typedef struct _VipsThreadpool {
 #ifdef TIME_THREAD
 /* Size of time buffers.
  */
-#define IM_TBUF_SIZE (20000)
+#define TBUF_SIZE (20000)
 static GTimer *thread_timer = NULL;
 #endif /*TIME_THREAD*/
 
@@ -430,7 +430,7 @@ vips_thread_free( VipsThread *thr )
 		thr->thread = NULL;
         }
 
-	IM_FREEF( g_object_unref, thr->state );
+	VIPS_FREEF( g_object_unref, thr->state );
 	thr->pool = NULL;
 
 #ifdef TIME_THREAD
@@ -468,7 +468,7 @@ vips_thread_work( VipsThread *thr )
 #ifdef TIME_THREAD
 	/* Note start time.
 	 */
-	if( thr->btime && thr->tpos < IM_TBUF_SIZE )
+	if( thr->btime && thr->tpos < TBUF_SIZE )
 		thr->btime[thr->tpos] = 
 			g_timer_elapsed( thread_timer, NULL );
 #endif /*TIME_THREAD*/
@@ -479,7 +479,7 @@ vips_thread_work( VipsThread *thr )
 #ifdef TIME_THREAD
 	/* Note stop time.
 	 */
-	if( thr->etime && thr->tpos < IM_TBUF_SIZE ) {
+	if( thr->etime && thr->tpos < TBUF_SIZE ) {
 		thr->etime[thr->tpos] = 
 			g_timer_elapsed( thread_timer, NULL );
 		thr->tpos += 1;
@@ -570,7 +570,7 @@ vips_thread_new( VipsThreadpool *pool )
 {
 	VipsThread *thr;
 
-	if( !(thr = IM_NEW( pool->im, VipsThread )) )
+	if( !(thr = VIPS_NEW( pool->im, VipsThread )) )
 		return( NULL );
 	thr->pool = pool;
 	thr->state = NULL;
@@ -589,8 +589,8 @@ vips_thread_new( VipsThreadpool *pool )
 	 */
 
 #ifdef TIME_THREAD
-	thr->btime = IM_ARRAY( pool->im, IM_TBUF_SIZE, double );
-	thr->etime = IM_ARRAY( pool->im, IM_TBUF_SIZE, double );
+	thr->btime = VIPS_ARRAY( pool->im, TBUF_SIZE, double );
+	thr->etime = VIPS_ARRAY( pool->im, TBUF_SIZE, double );
 	if( !thr->btime || !thr->etime ) {
 		thread_free( thr );
 		return( NULL );
@@ -605,7 +605,7 @@ vips_thread_new( VipsThreadpool *pool )
 	if( !(thr->thread = g_thread_create_full( vips_thread_main_loop, thr, 
 		IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 		G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-		im_error( "vips_thread_new", 
+		vips_error( "vips_thread_new", 
 			"%s", _( "unable to create thread" ) );
 		vips_thread_free( thr );
 		return( NULL );
@@ -643,11 +643,17 @@ vips_threadpool_free( VipsThreadpool *pool )
 		pool->im->filename, pool );
 
 	vips_threadpool_kill_threads( pool );
-	IM_FREEF( g_mutex_free, pool->allocate_lock );
+	VIPS_FREEF( g_mutex_free, pool->allocate_lock );
 	im_semaphore_destroy( &pool->finish );
 	im_semaphore_destroy( &pool->tick );
 
 	return( 0 );
+}
+
+static void
+vips_threadpool_new_cb( VipsImage *im, VipsThreadpool *pool )
+{
+	vips_threadpool_free( pool );
 }
 
 static VipsThreadpool *
@@ -657,7 +663,7 @@ vips_threadpool_new( VipsImage *im )
 
 	/* Allocate and init new thread block.
 	 */
-	if( !(pool = IM_NEW( im, VipsThreadpool )) )
+	if( !(pool = VIPS_NEW( im, VipsThreadpool )) )
 		return( NULL );
 	pool->im = im;
 	pool->allocate = NULL;
@@ -672,11 +678,8 @@ vips_threadpool_new( VipsImage *im )
 
 	/* Attach tidy-up callback.
 	 */
-	if( im_add_close_callback( im, 
-		(im_callback_fn) vips_threadpool_free, pool, NULL ) ) {
-		(void) vips_threadpool_free( pool );
-		return( NULL );
-	}
+	g_signal_connect( im, "close", 
+		G_CALLBACK( vips_threadpool_new_cb ), pool ); 
 
 	VIPS_DEBUG_MSG( "vips_threadpool_new: \"%s\" (%p), with %d threads\n", 
 		im->filename, pool, pool->nthr );
@@ -695,7 +698,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
 
 	/* Make thread array.
 	 */
-	if( !(pool->thr = IM_ARRAY( pool->im, pool->nthr, VipsThread * )) )
+	if( !(pool->thr = VIPS_ARRAY( pool->im, pool->nthr, VipsThread * )) )
 		return( -1 );
 	for( i = 0; i < pool->nthr; i++ )
 		pool->thr[i] = NULL;
@@ -902,7 +905,7 @@ vips_get_tile_size( VipsImage *im,
 	/* Pick a render geometry.
 	 */
 	switch( im->dhint ) {
-	case IM_SMALLTILE:
+	case VIPS_DEMAND_STYLE_SMALLTILE:
 		*tile_width = im__tile_width;
 		*tile_height = im__tile_height;
 
@@ -910,17 +913,17 @@ vips_get_tile_size( VipsImage *im,
 		 * nthr busy. Then double it.
 		 */
 		*nlines = *tile_height * 
-			(1 + nthr / IM_MAX( 1, im->Xsize / *tile_width )) * 2;
+			(1 + nthr / VIPS_MAX( 1, im->Xsize / *tile_width )) * 2;
 		break;
 
-	case IM_ANY:
-	case IM_FATSTRIP:
+	case VIPS_DEMAND_STYLE_ANY:
+	case VIPS_DEMAND_STYLE_FATSTRIP:
 		*tile_width = im->Xsize;
 		*tile_height = im__fatstrip_height;
 		*nlines = *tile_height * nthr * 2;
 		break;
 
-	case IM_THINSTRIP:
+	case VIPS_DEMAND_STYLE_THINSTRIP:
 		*tile_width = im->Xsize;
 		*tile_height = im__thinstrip_height;
 		*nlines = *tile_height * nthr * 2;

@@ -72,38 +72,38 @@
 /* Use in various small places where we need a mutex and it's not worth 
  * making a private one.
  */
-GMutex *im__global_lock = NULL;
+GMutex *vips__global_lock = NULL;
 
 /* Keep a copy of the argv0 here.
  */
-static char *im__argv0 = NULL;
+static char *vips__argv0 = NULL;
 
 /**
  * im_get_argv0:
  *
- * See also: im_init_world().
+ * See also: vips_init_world().
  *
  * Returns: a pointer to an internal copy of the argv0 string passed to
- * im_init_world(). Do not free this value
+ * vips_init_world(). Do not free this value
  */
 const char *
-im_get_argv0( void )
+vips_get_argv0( void )
 {
-	return( im__argv0 );
+	return( vips__argv0 );
 }
 
 /**
- * im_init_world:
+ * vips_init_world:
  * @argv0: name of application
  *
- * im_init_world() starts up the world of VIPS. You should call this on
+ * vips_init_world() starts up the world of VIPS. You should call this on
  * program startup before using any other VIPS operations. If you do not call
- * im_init_world(), VIPS will call it for you when you use your first VIPS 
+ * vips_init_world(), VIPS will call it for you when you use your first VIPS 
  * operation, but
  * it may not be able to get hold of @argv0 and VIPS may therefore be unable
  * to find its data files. It is much better to call this function yourself.
  *
- * im_init_world() does approximately the following:
+ * vips_init_world() does approximately the following:
  *
  * <itemizedlist>
  *   <listitem> 
@@ -127,7 +127,7 @@ im_get_argv0( void )
  * |[
  * int main( int argc, char **argv )
  * {
- *   if( im_init_world( argv[0] ) )
+ *   if( vips_init_world( argv[0] ) )
  *     error_exit( "unable to start VIPS" );
  *
  *   return( 0 );
@@ -140,7 +140,7 @@ im_get_argv0( void )
  * Returns: 0 on success, -1 otherwise
  */
 int
-im_init_world( const char *argv0 )
+vips_init_world( const char *argv0 )
 {
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
@@ -164,7 +164,7 @@ im_init_world( const char *argv0 )
 		return( 0 );
 	started = TRUE;
 
-	IM_SETSTR( im__argv0, argv0 );
+	VIPS_SETSTR( vips__argv0, argv0 );
 
 	/* Need gobject etc.
 	 */
@@ -175,8 +175,8 @@ im_init_world( const char *argv0 )
 		g_thread_init( NULL );
 #endif /*G_THREADS_ENABLED*/
 
-	if( !im__global_lock )
-		im__global_lock = g_mutex_new();
+	if( !vips__global_lock )
+		vips__global_lock = g_mutex_new();
 
 	prgname = g_path_get_basename( argv0 );
 	g_set_prgname( prgname );
@@ -184,8 +184,8 @@ im_init_world( const char *argv0 )
 
 	/* Try to discover our prefix. 
 	 */
-	if( !(prefix = im_guess_prefix( argv0, "VIPSHOME" )) || 
-		!(libdir = im_guess_libdir( argv0, "VIPSHOME" )) ) 
+	if( !(prefix = vips_guess_prefix( argv0, "VIPSHOME" )) || 
+		!(libdir = vips_guess_libdir( argv0, "VIPSHOME" )) ) 
 		return( -1 );
 
 	/* Get i18n .mo files from $VIPSHOME/share/locale/.
@@ -208,16 +208,16 @@ im_init_world( const char *argv0 )
 	 */
 	if( im_load_plugins( "%s/vips-%d.%d", 
 		libdir, IM_MAJOR_VERSION, IM_MINOR_VERSION ) ) {
-		im_warn( "im_init_world", "%s", im_error_buffer() );
-		im_error_clear();
+		vips_warn( "vips_init_world", "%s", vips_error_buffer() );
+		vips_error_clear();
 	}
 
 	/* Also load from libdir. This is old and slightly broken behaviour
 	 * :-( kept for back compat convenience.
 	 */
 	if( im_load_plugins( "%s", libdir ) ) {
-		im_warn( "im_init_world", "%s", im_error_buffer() );
-		im_error_clear();
+		vips_warn( "vips_init_world", "%s", vips_error_buffer() );
+		vips_error_clear();
 	}
 
 	/* Start up the buffer cache.
@@ -237,11 +237,11 @@ const char *
 im__gettext( const char *msgid )
 {
 	/* Pass in a nonsense name for argv0 ... this init path is only here
-	 * for old programs which are missing an im_init_world() call. We need
+	 * for old programs which are missing an vips_init_world() call. We need
 	 * i18n set up before we can translate.
 	 */
-	if( im_init_world( "giant_banana" ) )
-		im_error_clear();
+	if( vips_init_world( "giant_banana" ) )
+		vips_error_clear();
 
 	return( dgettext( GETTEXT_PACKAGE, msgid ) );
 }
@@ -249,8 +249,8 @@ im__gettext( const char *msgid )
 const char *
 im__ngettext( const char *msgid, const char *plural, unsigned long int n )
 {
-	if( im_init_world( "giant_banana" ) )
-		im_error_clear();
+	if( vips_init_world( "giant_banana" ) )
+		vips_error_clear();
 
 	return( dngettext( GETTEXT_PACKAGE, msgid, plural, n ) );
 }
@@ -287,7 +287,7 @@ static GOptionEntry option_entries[] = {
  * parse argc/argv.
  *
  * See also: im_version(), im_guess_prefix(),
- * im_guess_libdir(), im_init_world().
+ * im_guess_libdir(), vips_init_world().
  *
  * Returns: a GOptionGroup for VIPS, see GOption
  */

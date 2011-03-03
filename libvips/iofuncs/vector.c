@@ -105,9 +105,9 @@ void
 vips_vector_free( VipsVector *vector )
 {
 #ifdef HAVE_ORC
-	IM_FREEF( orc_program_free, vector->program );
+	VIPS_FREEF( orc_program_free, vector->program );
 #endif /*HAVE_ORC*/
-	IM_FREE( vector );
+	VIPS_FREE( vector );
 }
 
 VipsVector *
@@ -116,7 +116,7 @@ vips_vector_new( const char *name, int dsize )
 	VipsVector *vector;
 	int i;
 
-	if( !(vector = IM_NEW( NULL, VipsVector )) )
+	if( !(vector = VIPS_NEW( NULL, VipsVector )) )
 		return( NULL );
 	vector->name = name;
 	vector->n_temp = 0;
@@ -348,11 +348,12 @@ vips_executor_set_array( VipsExecutor *executor, int var, void *value )
 }
 
 void
-vips_executor_set_scanline( VipsExecutor *executor, REGION *ir, int x, int y )
+vips_executor_set_scanline( VipsExecutor *executor, 
+	VipsRegion *ir, int x, int y )
 {
 	VipsVector *vector = executor->vector;
-	PEL *base = (PEL *) IM_REGION_ADDR( ir, x, y );
-	int lsk = IM_REGION_LSKIP( ir );
+	PEL *base = (PEL *) VIPS_REGION_ADDR( ir, x, y );
+	int lsk = VIPS_REGION_LSKIP( ir );
 
 	int i;
 

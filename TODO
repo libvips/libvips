@@ -1,3 +1,10 @@
+- need some way to reset descriptors for rewind, see:
+
+	check.c: In function ‘im_incheck’:
+	check.c:235: warning: implicit declaration of function ‘im_openin’
+
+  is this the only place? does im_pincheck() do a rewind too?
+
 - why not renname VipsBandFormat as VipsFormat? cf. VipsCoding,
   VipsInterpretation etc.
 

@@ -70,8 +70,8 @@ void
 im_semaphore_destroy( im_semaphore_t *s )
 {
 #ifdef HAVE_THREADS
-	IM_FREEF( g_mutex_free, s->mutex );
-	IM_FREEF( g_cond_free, s->cond );
+	VIPS_FREEF( g_mutex_free, s->mutex );
+	VIPS_FREEF( g_cond_free, s->cond );
 #endif /*HAVE_THREADS*/
 }
 

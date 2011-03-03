@@ -416,7 +416,7 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 
 	VIPS_DEBUG_MSG( "wbuffer_work_fn:\n" );
 
-	if( im_prepare_to( state->reg, wstate->buf->region, 
+	if( vips_region_prepare_to( state->reg, wstate->buf->region, 
 		&state->pos, state->pos.left, state->pos.top ) )
 		return( -1 );
 
