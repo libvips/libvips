@@ -36,11 +36,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* IMAGE functions which use regions. 
- */
-int im_prepare( VipsRegion *reg, Rect *r );
-int im_prepare_to( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y );
-
 typedef void *(*im_start_fn)( IMAGE *out, void *a, void *b );
 typedef int (*im_generate_fn)( VipsRegion *out, void *seq, void *a, void *b );
 typedef int (*im_stop_fn)( void *seq, void *a, void *b );
@@ -90,10 +85,7 @@ int im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
 	void (*notify)( IMAGE *, Rect *, void * ), void *client );
 int im_cache( IMAGE *in, IMAGE *out, int width, int height, int max );
 
-/* WIO.
- */
 int im_setupout( IMAGE *im );
-int im_writeline( int ypos, IMAGE *im, PEL *linebuffer );
 
 #ifdef __cplusplus
 }

@@ -5,8 +5,10 @@
 
 - im_sanity() should become a method on VipsObject, see debug.c
 
-- REGION needs moving at the same time, since regions have to ref their image, 
-  argh
+- rename Rect to VipsRect
+
+- remove im__handle_eval etc. from headers
+
 
 
 - pre/post/close should be on VipsObject, not VipsImage

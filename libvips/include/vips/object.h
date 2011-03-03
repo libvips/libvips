@@ -79,7 +79,7 @@ typedef enum {
 
 /* Useful flag combinations. User-visible ones are:
 
-VIPS_ARGUMENT_REQURED_INPUT 	Eg. the "left" argument for an add operation
+VIPS_ARGUMENT_REQUIRED_INPUT 	Eg. the "left" argument for an add operation
 
 VIPS_ARGUMENT_OPTIONAL_INPUT 	Eg. the "caption" for an object
 

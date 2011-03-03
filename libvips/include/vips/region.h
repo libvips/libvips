@@ -97,6 +97,8 @@ typedef struct _VipsRegionClass {
 
 } VipsRegionClass;
 
+GType vips_region_get_type( void );
+
 VipsRegion *vips_region_new( VipsImage *im );
 
 int vips_region_buffer( VipsRegion *reg, Rect *r );
@@ -110,6 +112,11 @@ void vips_region_paint( VipsRegion *reg, Rect *r, int value );
 void vips_region_black( VipsRegion *reg );
 void vips_region_copy( VipsRegion *reg, VipsRegion *dest, 
 	Rect *r, int x, int y );
+
+int vips_region_prepare( VipsRegion *reg, Rect *r );
+int vips_region_prepare_to( VipsRegion *reg, 
+	VipsRegion *dest, Rect *r, int x, int y );
+int vips_region_prepare_many( VipsRegion **reg, Rect *r );
 
 /* Macros on REGIONs.
  *	VIPS_REGION_LSKIP()		add to move down line

@@ -91,12 +91,12 @@ im_rect_includesrect( Rect *r1, Rect *r2 )
 void
 im_rect_intersectrect( Rect *r1, Rect *r2, Rect *r3 )
 {	
-	int left = IM_MAX( r1->left, r2->left );
-	int top = IM_MAX( r1->top, r2->top );
-	int right = IM_MIN( IM_RECT_RIGHT( r1 ), IM_RECT_RIGHT( r2 ) );
-	int bottom = IM_MIN( IM_RECT_BOTTOM( r1 ), IM_RECT_BOTTOM( r2 ) );
-	int width = IM_MAX( 0, right - left );
-	int height = IM_MAX( 0, bottom - top );
+	int left = VIPS_MAX( r1->left, r2->left );
+	int top = VIPS_MAX( r1->top, r2->top );
+	int right = VIPS_MIN( IM_RECT_RIGHT( r1 ), IM_RECT_RIGHT( r2 ) );
+	int bottom = VIPS_MIN( IM_RECT_BOTTOM( r1 ), IM_RECT_BOTTOM( r2 ) );
+	int width = VIPS_MAX( 0, right - left );
+	int height = VIPS_MAX( 0, bottom - top );
 
 	r3->left = left;
 	r3->top = top;
@@ -124,11 +124,11 @@ im_rect_unionrect( Rect *r1, Rect *r2, Rect *r3 )
 	else if( im_rect_isempty( r2 ) )
 		*r3 = *r1;
 	else {
-		int left = IM_MIN( r1->left, r2->left );
-		int top = IM_MIN( r1->top, r2->top );
-		int width = IM_MAX( IM_RECT_RIGHT( r1 ), 
+		int left = VIPS_MIN( r1->left, r2->left );
+		int top = VIPS_MIN( r1->top, r2->top );
+		int width = VIPS_MAX( IM_RECT_RIGHT( r1 ), 
 			IM_RECT_RIGHT( r2 ) ) - left;
-		int height = IM_MAX( IM_RECT_BOTTOM( r1 ), 
+		int height = VIPS_MAX( IM_RECT_BOTTOM( r1 ), 
 			IM_RECT_BOTTOM( r2 ) )- top;
 
 		r3->left = left;
@@ -152,7 +152,7 @@ im_rect_equalsrect( Rect *r1, Rect *r2 )
 Rect *
 im_rect_dup( Rect *r )
 {
-	Rect *out = IM_NEW( NULL, Rect );
+	Rect *out = VIPS_NEW( NULL, Rect );
 
 	if( !out )
 		return( NULL );

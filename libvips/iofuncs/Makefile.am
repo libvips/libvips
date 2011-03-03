@@ -15,7 +15,6 @@ libiofuncs_la_SOURCES = \
 	im_generate.c \
 	im_histlin.c \
 	im_mapfile.c \
-	im_prepare.c \
 	im_setupout.c \
 	im_guess_prefix.c \
 	sinkmemory.c \

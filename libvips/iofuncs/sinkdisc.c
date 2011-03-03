@@ -70,7 +70,7 @@
 typedef struct _WriteBuffer {
 	struct _Write *write;
 
-	REGION *region;		/* Pixels */
+	VipsRegion *region;	/* Pixels */
 	Rect area;		/* Part of image this region covers */
         im_semaphore_t go; 	/* Start bg thread loop */
         im_semaphore_t nwrite; 	/* Number of threads writing to region */
@@ -168,7 +168,7 @@ wbuffer_free( WriteBuffer *wbuffer )
 		wbuffer->thread = NULL;
         }
 
-	VIPS_FREEF( im_region_free, wbuffer->region );
+	VIPS_FREEF( g_object_unref, wbuffer->region );
 	im_semaphore_destroy( &wbuffer->go );
 	im_semaphore_destroy( &wbuffer->nwrite );
 	im_semaphore_destroy( &wbuffer->done );
@@ -234,14 +234,14 @@ wbuffer_new( Write *write )
 	wbuffer->thread = NULL;
 	wbuffer->kill = FALSE;
 
-	if( !(wbuffer->region = im_region_create( write->im )) ) {
+	if( !(wbuffer->region = vips_region_new( write->im )) ) {
 		wbuffer_free( wbuffer );
 		return( NULL );
 	}
 
 	/* The worker threads need to be able to move the buffers around.
 	 */
-	im__region_no_ownership( wbuffer->region );
+	vips__region_no_ownership( wbuffer->region );
 
 #ifdef HAVE_THREADS
 	/* Make this last (picks up parts of wbuffer on startup).
@@ -315,11 +315,11 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 
 	/* The workers take turns to move the buffers.
 	 */
-	im__region_take_ownership( wbuffer->region );
+	vips__region_take_ownership( wbuffer->region );
 
-	result = im_region_buffer( wbuffer->region, &wbuffer->area );
+	result = vips_region_buffer( wbuffer->region, &wbuffer->area );
 
-	im__region_no_ownership( wbuffer->region );
+	vips__region_no_ownership( wbuffer->region );
 
 	/* This should be an exclusive buffer, hopefully.
 	 */

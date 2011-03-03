@@ -39,6 +39,8 @@
  * 	- gtkdoc comments
  * 5/3/10
  * 	- move invalid stuff to region
+ * 3/3/11
+ * 	- move on top of VipsObject, rename as VipsRegion
  */
 
 /*
@@ -84,20 +86,12 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
-#include <errno.h>
 #include <string.h>
-#ifdef HAVE_SYS_MMAN_H
-#include <sys/mman.h>
-#endif
 
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/thread.h>
 #include <vips/debug.h>
-
-#ifdef OS_WIN32
-#include <windows.h>
-#endif /*OS_WIN32*/
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -130,13 +124,13 @@
 
 /**
  * VipsRegion:
- * @im: the #IMAGE that this region is defined on
+ * @im: the #VipsImage that this region is defined on
  * @valid: the #Rect of pixels that this region represents
  *
- * A small part of an #IMAGE. @valid holds the left/top/width/height of the
+ * A small part of a #VipsImage. @valid holds the left/top/width/height of the
  * area of pixels that are available from the region. 
  *
- * See also: VIPS_REGION_ADDR(), im_region_create(), im_prepare().
+ * See also: VIPS_REGION_ADDR(), vips_region_new(), vips_region_prepare().
  */
 
 /**
@@ -178,36 +172,51 @@
  * VIPS_REGION_ADDR_TOPLEFT:
  * @R: a #VipsRegion
  *
- * This macro returns a pointer to the top-left pixel in the #VipsRegion, that is,
- * the pixel at (@R->valid.left, @R->valid.top).
+ * This macro returns a pointer to the top-left pixel in the #VipsRegion, that 
+ * is, the pixel at (@R->valid.left, @R->valid.top).
  * 
  * Returns: The address of the top-left pixel in the region.
  */
 
-#ifdef DEBUG
-/* Track all regions here for debugging.
+/* Properties.
  */
-static GSList *im__regions_all = NULL;
-#endif /*DEBUG*/
+enum {
+	PROP_IMAGE = 1,
+	PROP_LAST
+}; 
+
+G_DEFINE_TYPE( VipsRegion, vips_region, VIPS_TYPE_OBJECT );
+
+static void
+vips_region_finalize( GObject *gobject )
+{
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "vips_region_finalize: " );
+	vips_object_print( VIPS_OBJECT( gobject ) );
+#endif /*VIPS_DEBUG*/
+
+	G_OBJECT_CLASS( vips_region_parent_class )->finalize( gobject );
+}
 
 /* Call a start function if no sequence is running on this VipsRegion.
  */
 int
-im__call_start( VipsRegion *reg )
+vips__region_start( VipsRegion *region )
 {
-	IMAGE *im = reg->im;
+	VipsImage *image = region->im;
 
         /* Have we a sequence running on this region? Start one if not.
          */
-        if( !reg->seq && im->start ) {
-                g_mutex_lock( im->sslock );
-                reg->seq = im->start( im, im->client1, im->client2 );
-                g_mutex_unlock( im->sslock );
+        if( !region->seq && image->start ) {
+                g_mutex_lock( image->sslock );
+                region->seq = 
+			image->start( image, image->client1, image->client2 );
+                g_mutex_unlock( image->sslock );
  
-                if( !reg->seq ) {
-                        vips_error( "im__call_start", 
+                if( !region->seq ) {
+                        vips_error( "vips__region_start", 
 				_( "start function failed for image %s" ),
-                                im->filename );
+                                image->filename );
                         return( -1 );
                 }
         }
@@ -215,28 +224,95 @@ im__call_start( VipsRegion *reg )
         return( 0 );
 }
 
-/* Call a stop function if a sequence is running in this VipsRegion. No error
- * return is possible, really.
+/* Call a stop function if a sequence is running in this VipsRegion. 
  */
 void
-im__call_stop( VipsRegion *reg )
+vips__region_stop( VipsRegion *region )
 {
-	IMAGE *im = reg->im;
-	int res;
+	IMAGE *image = region->im;
 
         /* Stop any running sequence.
          */
-        if( reg->seq && im->stop ) {
-                g_mutex_lock( im->sslock );
-                res = im->stop( reg->seq, im->client1, im->client2 );
-                g_mutex_unlock( im->sslock );
+        if( region->seq && image->stop ) {
+		int result;
 
-		if( res )
-                        error_exit( "panic: user stop callback failed "
-				"for image %s", im->filename );
+                g_mutex_lock( image->sslock );
+               	result = image->stop( region->seq, 
+			image->client1, image->client2 );
+                g_mutex_unlock( image->sslock );
+
+		/* stop function can return an error, but we have nothing we
+		 * can really do with it, sadly.
+		 */
+		if( result )
+                        vips_warn( "VipsRegion", 
+				"stop callback failed for image %s", 
+				image->filename );
  
-                reg->seq = NULL;
+                region->seq = NULL;
         }
+}
+
+/* Free any resources we have.
+ */
+static void
+vips_region_reset( VipsRegion *region )
+{
+	VIPS_FREEF( im_window_unref, region->window );
+	VIPS_FREEF( im_buffer_unref, region->buffer );
+	region->invalid = FALSE;
+}
+
+static void
+vips_region_dispose( GObject *gobject )
+{
+	VipsRegion *region = VIPS_REGION( gobject );
+	VipsImage *image = region->im;
+
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "vips_region_dispose: " );
+	vips_object_print( VIPS_OBJECT( gobject ) );
+#endif /*VIPS_DEBUG*/
+
+        /* Stop this sequence.
+         */
+        vips__region_stop( region );
+
+	/* Free any attached memory.
+	 */
+	vips_region_reset( region ); 
+
+	/* Detach from image. 
+	 */
+	g_mutex_lock( image->sslock );
+	image->regions = g_slist_remove( image->regions, region );
+	g_mutex_unlock( image->sslock );
+	region->im = NULL;
+
+	G_OBJECT_CLASS( vips_region_parent_class )->dispose( gobject );
+}
+
+static void
+vips_region_print( VipsObject *object, VipsBuf *buf )
+{
+	VipsRegion *region = VIPS_REGION( object );
+
+	vips_buf_appendf( buf, "VipsRegion: %p, ", region );
+	vips_buf_appendf( buf, "im = %p, ", region->im );
+	vips_buf_appendf( buf, "valid.left = %d, ", region->valid.left );
+	vips_buf_appendf( buf, "valid.top = %d, ", region->valid.top );
+	vips_buf_appendf( buf, "valid.width = %d, ", region->valid.width );
+	vips_buf_appendf( buf, "valid.height = %d, ", region->valid.height );
+	vips_buf_appendf( buf, "type = %d, ", region->type );
+	vips_buf_appendf( buf, "data = %p, ", region->data );
+	vips_buf_appendf( buf, "bpl = %d, ", region->bpl );
+	vips_buf_appendf( buf, "seq = %p, ", region->seq );
+	vips_buf_appendf( buf, "thread = %p, ", region->thread );
+	vips_buf_appendf( buf, "window = %p, ", region->window );
+	vips_buf_appendf( buf, "buffer = %p\n", region->buffer );
+	vips_buf_appendf( buf, "invalid = %d\n", region->invalid );
+
+	VIPS_OBJECT_CLASS( vips_region_parent_class )->print( object, buf );
 }
 
 /* If a region is being created in one thread (eg. the main thread) and then
@@ -245,36 +321,37 @@ im__call_stop( VipsRegion *reg )
  * im__region_no_ownership() before we can call this.
  */
 void
-im__region_take_ownership( VipsRegion *reg )
+vips__region_take_ownership( VipsRegion *region )
 {
 	/* Lock so that there's a memory barrier with the thread doing the
 	 * im__region_no_ownership() before us.
 	 */
-	g_mutex_lock( reg->im->sslock );
+	g_mutex_lock( region->im->sslock );
 
-	if( reg->thread != g_thread_self() ) {
-		g_assert( reg->thread == NULL );
+	if( region->thread != g_thread_self() ) {
+		g_assert( region->thread == NULL );
 
 		/* We don't want to move shared buffers: the other region 
 		 * using this buffer will still be on the other thread. 
 		 * Not sure if this will ever happen: if it does, we'll 
 		 * need to dup the buffer.
 		 */
-		g_assert( !reg->buffer || reg->buffer->ref_count == 1 );
+		g_assert( !region->buffer || region->buffer->ref_count == 1 );
 
-		reg->thread = g_thread_self();
+		region->thread = g_thread_self();
 	}
 
-	g_mutex_unlock( reg->im->sslock );
+	g_mutex_unlock( region->im->sslock );
 }
 
 void
-im__region_check_ownership( VipsRegion *reg )
+vips__region_check_ownership( VipsRegion *region )
 {
-	if( reg->thread ) {
-		g_assert( reg->thread == g_thread_self() );
-		if( reg->buffer && reg->buffer->cache )
-			g_assert( reg->thread == reg->buffer->cache->thread );
+	if( region->thread ) {
+		g_assert( region->thread == g_thread_self() );
+		if( region->buffer && region->buffer->cache )
+			g_assert( region->thread == 
+				region->buffer->cache->thread );
 	}
 }
 
@@ -282,136 +359,102 @@ im__region_check_ownership( VipsRegion *reg )
  * this thread's buffer cache.
  */
 void
-im__region_no_ownership( VipsRegion *reg )
+vips__region_no_ownership( VipsRegion *region )
 {
-	g_mutex_lock( reg->im->sslock );
+	g_mutex_lock( region->im->sslock );
 
-	im__region_check_ownership( reg );
+	vips__region_check_ownership( region );
 
-	reg->thread = NULL;
-	if( reg->buffer )
-		im_buffer_undone( reg->buffer );
+	region->thread = NULL;
+	if( region->buffer )
+		im_buffer_undone( region->buffer );
 
-	g_mutex_unlock( reg->im->sslock );
+	g_mutex_unlock( region->im->sslock );
 }
 
-/**
- * im_region_create:
- * @im: image to create this region on
- *
- * Create a region. #VipsRegion s start out empty, you need to call im_prepare() to
- * fill them with pixels.
- *
- * See also: im_prepare(), im_region_free().
- */
-VipsRegion *
-im_region_create( IMAGE *im )
-{	
-	VipsRegion *reg;
+static int
+vips_region_build( VipsObject *object )
+{
+	VipsRegion *region = VIPS_REGION( object );
+	VipsImage *image = region->im;
 
-	g_assert( !im_image_sanity( im ) );
+	VIPS_DEBUG_MSG( "vips_region_build: %p\n", region );
 
-	if( !(reg = VIPS_NEW( NULL, VipsRegion )) )
-		return( NULL );
+	if( VIPS_OBJECT_CLASS( vips_region_parent_class )->build( object ) )
+		return( -1 );
 
-	reg->im = im;
-	reg->valid.left = 0;
-	reg->valid.top = 0;
-	reg->valid.width = 0;
-	reg->valid.height = 0;
-	reg->type = VIPS_REGION_NONE;
-	reg->data = NULL;
-	reg->bpl = 0;
-	reg->seq = NULL;
-	reg->thread = NULL;
-	reg->window = NULL;
-	reg->buffer = NULL;
-	reg->invalid = FALSE;
-
-	im__region_take_ownership( reg );
+	vips__region_take_ownership( region );
 
 	/* We're usually inside the ss lock anyway. But be safe ...
 	 */
-	g_mutex_lock( im->sslock );
-	im->regions = g_slist_prepend( im->regions, reg );
-	g_mutex_unlock( im->sslock );
+	g_mutex_lock( image->sslock );
+	image->regions = g_slist_prepend( image->regions, region );
+	g_mutex_unlock( image->sslock );
 
-#ifdef DEBUG
-	g_mutex_lock( im__global_lock );
-	im__regions_all = g_slist_prepend( im__regions_all, reg );
-	printf( "%d regions in vips\n", g_slist_length( im__regions_all ) );
-	g_mutex_unlock( im__global_lock );
-#endif /*DEBUG*/
-
-	return( reg );
+	return( 0 );
 }
 
-/* Free any resources we have.
- */
 static void
-im_region_reset( VipsRegion *reg )
+vips_region_class_init( VipsRegionClass *class )
 {
-	VIPS_FREEF( im_window_unref, reg->window );
-	VIPS_FREEF( im_buffer_unref, reg->buffer );
-	reg->invalid = FALSE;
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GParamSpec *pspec;
+
+	gobject_class->finalize = vips_region_finalize;
+	gobject_class->dispose = vips_region_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->print = vips_region_print;
+	vobject_class->build = vips_region_build;
+
+	/* Create properties.
+	 */
+	pspec = g_param_spec_object( "image", "Image",
+		_( "The image this region is defined upon" ),
+		VIPS_TYPE_IMAGE,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_IMAGE, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsRegion, im ) );
+}
+
+static void
+vips_region_init( VipsRegion *region )
+{
+	/* Init to 0 is fine for most header fields. Others have default set
+	 * by property system.
+	 */
+
+	region->type = VIPS_REGION_NONE;
 }
 
 /**
- * im_region_free:
- * @reg: #VipsRegion to free
+ * vips_region_new:
+ * @image: image to create this region on
  *
- * Free a region and any resources it holds.
+ * Create a region. #VipsRegion s start out empty, you need to call 
+ * vips_region_prepare() to fill them with pixels.
  *
- * If @im has previously been closed, then freeing the last #VipsRegion on @in can
- * cause @im to finally be freed as well.
+ * See also: vips_region_prepare().
  */
-void 
-im_region_free( VipsRegion *reg )
-{	
-	IMAGE *im;
+VipsRegion *
+vips_region_new( VipsImage *image )
+{
+	VipsRegion *region;
 
-        if( !reg )
-		return;
-        im = reg->im;
-
-        /* Stop this sequence.
-         */
-        im__call_stop( reg );
-
-	/* Free any attached memory.
-	 */
-	im_region_reset( reg );
-
-	/* Detach from image. 
-	 */
-	g_mutex_lock( im->sslock );
-	im->regions = g_slist_remove( im->regions, reg );
-	g_mutex_unlock( im->sslock );
-	reg->im = NULL;
-
-	/* Was this the last region on an image with close_pending? If yes,
-	 * close the image too.
-	 */
-	if( !im->regions && im->close_pending ) {
-#ifdef DEBUG_IO
-		printf( "im_region_free: closing pending image \"%s\"\n",
-			im->filename );
-#endif /*DEBUG_IO*/
-		/* Time to close the image.
-		 */
-		im->close_pending = 0;
-		im_close( im );
+	region = VIPS_REGION( g_object_new( VIPS_TYPE_REGION, NULL ) );
+	g_object_set( region,
+		"image", image,
+		NULL );
+	if( vips_object_build( VIPS_OBJECT( region ) ) ) {
+		VIPS_UNREF( region );
+		return( NULL );
 	}
 
-	im_free( reg );
-
-#ifdef DEBUG
-	g_mutex_lock( im__global_lock );
-	g_assert( g_slist_find( im__regions_all, reg ) );
-	im__regions_all = g_slist_remove( im__regions_all, reg );
-	printf( "%d regions in vips\n", g_slist_length( im__regions_all ) );
-	g_mutex_unlock( im__global_lock );
-#endif /*DEBUG*/
+	return( region ); 
 }
 
 /* Region should be a pixel buffer. On return, check
@@ -420,7 +463,7 @@ im_region_free( VipsRegion *reg )
  */
 
 /**
- * im_region_buffer:
+ * vips_region_buffer:
  * @reg: region to operate upon
  * @r: #Rect of pixels you need to be able to address
  *
@@ -430,14 +473,14 @@ im_region_free( VipsRegion *reg )
  * Returns: 0 on success, or -1 for error.
  */
 int
-im_region_buffer( VipsRegion *reg, Rect *r )
+vips_region_buffer( VipsRegion *reg, Rect *r )
 {
 	VipsImage *im = reg->im;
 
 	Rect image;
 	Rect clipped;
 
-	im__region_check_ownership( reg );
+	vips__region_check_ownership( reg );
 
 	/* Clip against image.
 	 */
@@ -450,7 +493,7 @@ im_region_buffer( VipsRegion *reg, Rect *r )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &clipped ) ) {
-		vips_error( "im_region_buffer", 
+		vips_error( "VipsRegion", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
@@ -461,12 +504,12 @@ im_region_buffer( VipsRegion *reg, Rect *r )
 	 * If not, try to reuse the current buffer.
 	 */
 	if( reg->invalid ) {
-		im_region_reset( reg );
+		vips_region_reset( reg );
 		if( !(reg->buffer = im_buffer_new( im, &clipped )) ) 
 			return( -1 );
 	}
 	else {
-		/* Don't call im_region_reset() ... we combine buffer unref 
+		/* Don't call vips_region_reset() ... we combine buffer unref 
 		 * and new buffer ref in one call to reduce malloc/free 
 		 * cycling.
 		 */
@@ -487,7 +530,7 @@ im_region_buffer( VipsRegion *reg, Rect *r )
 }
 
 /**
- * im_region_image:
+ * vips_region_image:
  * @reg: region to operate upon
  * @r: #Rect of pixels you need to be able to address
  *
@@ -498,14 +541,14 @@ im_region_buffer( VipsRegion *reg, Rect *r )
  * Returns: 0 on success, or -1 for error.
  */
 int
-im_region_image( VipsRegion *reg, Rect *r )
+vips_region_image( VipsRegion *reg, Rect *r )
 {
 	Rect image;
 	Rect clipped;
 
 	/* Sanity check.
 	 */
-	im__region_check_ownership( reg );
+	vips__region_check_ownership( reg );
 
 	/* Clip against image.
 	 */
@@ -518,7 +561,7 @@ im_region_image( VipsRegion *reg, Rect *r )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &clipped ) ) {
-		vips_error( "im_region_image", 
+		vips_error( "VipsRegion", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
@@ -526,7 +569,7 @@ im_region_image( VipsRegion *reg, Rect *r )
 	if( reg->im->data ) {
 		/* We have the whole image available ... easy!
 		 */
-		im_region_reset( reg );
+		vips_region_reset( reg );
 
 		/* We can't just set valid = clipped, since this may be an
 		 * incompletely calculated memory buffer. Just set valid to r.
@@ -545,7 +588,7 @@ im_region_image( VipsRegion *reg, Rect *r )
 			reg->window->top > clipped.top ||
 			reg->window->top + reg->window->height < 
 				clipped.top + clipped.height ) {
-			im_region_reset( reg );
+			vips_region_reset( reg );
 
 			if( !(reg->window = im_window_ref( reg->im, 
 				clipped.top, clipped.height )) )
@@ -564,7 +607,7 @@ im_region_image( VipsRegion *reg, Rect *r )
 		reg->data = reg->window->data;
 	}
 	else {
-		vips_error( "im_region_image", 
+		vips_error( "VipsRegion", 
 			"%s", _( "bad image type" ) );
 		return( -1 );
 	}
@@ -573,7 +616,7 @@ im_region_image( VipsRegion *reg, Rect *r )
 }
 
 /**
- * im_region_region:
+ * vips_region_region:
  * @reg: region to operate upon
  * @dest: region to connect to
  * @r: #Rect of pixels you need to be able to address
@@ -597,7 +640,7 @@ im_region_image( VipsRegion *reg, Rect *r )
  * Returns: 0 on success, or -1 for error.
  */
 int
-im_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
+vips_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 {
 	Rect image;
 	Rect wanted;
@@ -610,11 +653,11 @@ im_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 	if( !dest->data || 
 		VIPS_IMAGE_SIZEOF_PEL( dest->im ) != 
 			VIPS_IMAGE_SIZEOF_PEL( reg->im ) ) {
-		vips_error( "im_region_region", 
+		vips_error( "VipsRegion", 
 			"%s", _( "inappropriate region type" ) );
 		return( -1 );
 	}
-	im__region_check_ownership( reg );
+	vips__region_check_ownership( reg );
 
 	/* We can't test
 
@@ -643,7 +686,7 @@ im_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 	/* Test that dest->valid is large enough.
 	 */
 	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
-		vips_error( "im_region_region", 
+		vips_error( "VipsRegion", 
 			"%s", _( "dest too small" ) );
 		return( -1 );
 	}
@@ -662,14 +705,14 @@ im_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 	/* Test for empty.
 	 */
 	if( im_rect_isempty( &final ) ) {
-		vips_error( "im_region_region", 
+		vips_error( "VipsRegion", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
 
 	/* Init new stuff.
 	 */
-	im_region_reset( reg );
+	vips_region_reset( reg );
 	reg->valid = final;
 	reg->bpl = dest->bpl;
 	reg->data = VIPS_REGION_ADDR( dest, clipped2.left, clipped2.top );
@@ -679,7 +722,7 @@ im_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 }
 
 /**
- * im_region_equalsregion:
+ * vips_region_equalsregion:
  * @reg1: region to test
  * @reg2: region to test
  *
@@ -694,7 +737,7 @@ im_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
  * Returns: non-zero on equality.
  */
 int
-im_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
+vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
 {
 	return( reg1->im == reg2->im &&
 		im_rect_equalsrect( &reg1->valid, &reg2->valid ) &&
@@ -702,7 +745,7 @@ im_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
 }
 
 /**
- * im_region_position:
+ * vips_region_position:
  * @reg: region to operate upon
  * @x: position to move to
  * @y: position to move to
@@ -715,7 +758,7 @@ im_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
  * Returns: 0 on success, or -1 for error.
  */
 int
-im_region_position( VipsRegion *reg, int x, int y )
+vips_region_position( VipsRegion *reg, int x, int y )
 {
 	Rect req, image, clipped;
 
@@ -731,7 +774,7 @@ im_region_position( VipsRegion *reg, int x, int y )
 	req.height = reg->valid.height;
 	im_rect_intersectrect( &image, &req, &clipped );
 	if( x < 0 || y < 0 || im_rect_isempty( &clipped ) ) {
-		vips_error( "im_region_position", "%s", _( "bad position" ) );
+		vips_error( "VipsRegion", "%s", _( "bad position" ) );
 		return( -1 );
 	}
 
@@ -742,14 +785,14 @@ im_region_position( VipsRegion *reg, int x, int y )
 }
 
 int
-im_region_fill( VipsRegion *reg, Rect *r, im_region_fill_fn fn, void *a )
+vips_region_fill( VipsRegion *reg, Rect *r, VipsRegionFillFn fn, void *a )
 {
 	g_assert( reg->im->dtype == VIPS_IMAGE_PARTIAL );
 	g_assert( reg->im->generate );
 
 	/* Should have local memory.
 	 */
-	if( im_region_buffer( reg, r ) )
+	if( vips_region_buffer( reg, r ) )
 		return( -1 );
 
 	/* Evaluate into or, if we've not got calculated pixels.
@@ -768,32 +811,7 @@ im_region_fill( VipsRegion *reg, Rect *r, im_region_fill_fn fn, void *a )
 }
 
 /**
- * im_region_print:
- * @reg: region to operate upon
- *
- * Print out interesting fields from @reg. Handy for debug.
- */
-void
-im_region_print( VipsRegion *reg )
-{
-	printf( "VipsRegion: %p, ", reg );
-	printf( "im = %p, ", reg->im );
-	printf( "valid.left = %d, ", reg->valid.left );
-	printf( "valid.top = %d, ", reg->valid.top );
-	printf( "valid.width = %d, ", reg->valid.width );
-	printf( "valid.height = %d, ", reg->valid.height );
-	printf( "type = %d, ", reg->type );
-	printf( "data = %p, ", reg->data );
-	printf( "bpl = %d, ", reg->bpl );
-	printf( "seq = %p, ", reg->seq );
-	printf( "thread = %p, ", reg->thread );
-	printf( "window = %p, ", reg->window );
-	printf( "buffer = %p\n", reg->buffer );
-	printf( "invalid = %d\n", reg->invalid );
-}
-
-/**
- * im_region_paint:
+ * vips_region_paint:
  * @reg: region to operate upon
  * @r: area to paint
  * @value: value to paint
@@ -802,10 +820,10 @@ im_region_print( VipsRegion *reg )
  * memset(), so it usually needs to be 0 or 255. @r is clipped against
  * @reg->valid.
  *
- * See also: im_region_black().
+ * See also: vips_region_black().
  */
 void
-im_region_paint( VipsRegion *reg, Rect *r, int value )
+vips_region_paint( VipsRegion *reg, Rect *r, int value )
 {
 	Rect ovl;
 
@@ -824,21 +842,21 @@ im_region_paint( VipsRegion *reg, Rect *r, int value )
 }
 
 /**
- * im_region_black:
+ * vips_region_black:
  * @reg: region to operate upon
  *
  * Paints 0 into the valid part of @reg.
  *
- * See also: im_region_paint().
+ * See also: vips_region_paint().
  */
 void
-im_region_black( VipsRegion *reg )
+vips_region_black( VipsRegion *reg )
 {
-	im_region_paint( reg, &reg->valid, 0 );
+	vips_region_paint( reg, &reg->valid, 0 );
 }
 
 /**
- * im_region_copy:
+ * vips_region_copy:
  * @reg: source region 
  * @dest: destination region 
  * @r: #Rect of pixels you need to copy
@@ -849,10 +867,10 @@ im_region_black( VipsRegion *reg )
  * positioning the area of pixels at @x, @y. The two regions must have pixels
  * which are the same size.
  *
- * See also: im_region_paint().
+ * See also: vips_region_paint().
  */
 void
-im_region_copy( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
+vips_region_copy( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 {
 	int z;
 	int len = VIPS_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
@@ -866,7 +884,7 @@ im_region_copy( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 	 */
 	Rect output;
 
-	printf( "im_region_copy: sanity check\n" );
+	printf( "vips_region_copy: sanity check\n" );
 
 	output.left = x;
 	output.top = y;
@@ -893,4 +911,318 @@ im_region_copy( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 		p += plsk;
 		q += qlsk;
 	}
+}
+
+/* Generate into a region. 
+ */
+static int
+vips_region_generate( VipsRegion *reg )
+{
+	VipsImage *im = reg->im;
+
+        /* Start new sequence, if necessary.
+         */
+        if( vips__region_start( reg ) )
+		return( -1 );
+
+	/* Ask for evaluation.
+	 */
+	if( im->generate( reg, reg->seq, im->client1, im->client2 ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/** 
+ * vips_region_prepare:
+ * @reg: region to prepare
+ * @r: #Rect of pixels you need to be able to address
+ *
+ * vips_region_prepare() fills @reg with pixels. After calling, 
+ * you can address at least the area @r with VIPS_REGION_ADDR() and get 
+ * valid pixels.
+ *
+ * vips_region_prepare() runs in-line, that is, computation is done by 
+ * the calling thread, no new threads are involved, and computation 
+ * blocks until the pixels are ready.
+ *
+ * Use vips_region_prepare_thread() to calculate an area of pixels with many
+ * threads. Use im_render_priority() to calculate an area of pixels in the 
+ * background.
+ *
+ * See also: vips_region_prepare_thread(), im_render_priority(), 
+ * vips_region_prepare_to().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_region_prepare( VipsRegion *reg, Rect *r )
+{	
+	VipsImage *im = reg->im;
+
+	Rect save = *r;
+
+	vips__region_check_ownership( reg );
+
+	if( vips_image_test_kill( im ) )
+		return( -1 );
+
+	/* We use save for sanity checking valid: we test at the end that the
+	 * pixels we have generated are indeed all the ones that were asked
+	 * for.
+	 *
+	 * However, r may be clipped by the image size, so we need to clip
+	 * save as well to make sure we don't fail the assert due to that.
+	 */
+{	
+	Rect image;
+
+	image.left = 0;
+	image.top = 0;
+	image.width = reg->im->Xsize;
+	image.height = reg->im->Ysize;
+	im_rect_intersectrect( &save, &image, &save );
+}
+
+#ifdef DEBUG
+        printf( "vips_region_prepare: "
+		"left = %d, top = %d, width = %d, height = %d\n",
+		r->left, r->top, r->width, r->height );
+#endif /*DEBUG*/
+
+	switch( im->dtype ) {
+	case VIPS_IMAGE_PARTIAL:
+		if( vips_region_fill( reg, r, 
+			(VipsRegionFillFn) vips_region_generate, NULL ) )
+			return( -1 );
+
+		break;
+
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_OPENIN:
+		/* Attach to existing buffer.
+		 */
+		if( vips_region_image( reg, r ) )
+			return( -1 );
+
+		break;
+
+	default:
+		vips_error( "vips_region_prepare", 
+			_( "unable to input from a %s image" ),
+			VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, im->dtype ) );
+		return( -1 );
+	}
+
+	/* valid should now include all the pixels that were asked for.
+	 */
+	g_assert( im_rect_includesrect( &reg->valid, &save ) );
+
+	return( 0 );
+}
+
+/* We need to make pixels using reg's generate function, and write the result
+ * to dest.
+ */
+static int
+vips_region_prepare_to_generate( VipsRegion *reg, 
+	VipsRegion *dest, Rect *r, int x, int y )
+{
+	IMAGE *im = reg->im;
+	char *p;
+
+	if( !im->generate ) {
+		vips_error( "im_prepare_to", "%s", _( "incomplete header" ) );
+		return( -1 );
+	}
+
+	if( vips_region_region( reg, dest, r, x, y ) )
+		return( -1 );
+
+	/* Remember where reg is pointing now.
+	 */
+	p = VIPS_REGION_ADDR( reg, reg->valid.left, reg->valid.top );
+
+	/* Run sequence into reg.
+	 */
+	if( vips_region_generate( reg ) )
+		return( -1 );
+
+	/* The generate function may not have actually made any pixels ... it
+	 * might just have redirected reg to point somewhere else. If it has,
+	 * we need an extra copy operation.
+	 */
+	if( VIPS_REGION_ADDR( reg, reg->valid.left, reg->valid.top ) != p )
+		vips_region_copy( reg, dest, r, x, y );
+
+	return( 0 );
+}
+
+/** 
+ * vips_region_prepare_to:
+ * @reg: region to prepare
+ * @dest: region to write to
+ * @r: #Rect of pixels you need to be able to address
+ * @x: postion of @r in @dest
+ * @y: postion of @r in @dest
+ *
+ * Like vips_region_prepare(): fill @reg with data, ready to be read from by 
+ * our caller. Unlike vips_region_prepare(), rather than allocating memory 
+ * local to @reg for the result, we guarantee that we will fill the pixels 
+ * in @dest at offset @x, @y. In other words, we generate an extra copy 
+ * operation if necessary. 
+ *
+ * Also unlike vips_region_prepare(), @dest is not set up for writing for 
+ * you with
+ * vips_region_buffer(). You can
+ * point @dest at anything, and pixels really will be written there. 
+ * This makes vips_prepare_to() useful for making the ends of pipelines, since
+ * it (effectively) makes a break in the pipe.
+ *
+ * See also: vips_region_prepare(), vips_sink_disc().
+ *
+ * Returns: 0 on success, or -1 on error
+ */
+int
+vips_region_prepare_to( VipsRegion *reg, 
+	VipsRegion *dest, Rect *r, int x, int y )
+{
+	VipsImage *im = reg->im;
+	Rect image;
+	Rect wanted;
+	Rect clipped;
+	Rect clipped2;
+	Rect final;
+
+	if( vips_image_test_kill( im ) )
+		return( -1 );
+
+	/* Sanity check.
+	 */
+	if( !dest->data || 
+		dest->im->BandFmt != reg->im->BandFmt ||
+		dest->im->Bands != reg->im->Bands ) {
+		vips_error( "im_prepare_to", 
+			"%s", _( "inappropriate region type" ) );
+		return( -1 );
+	}
+
+	/* clip r first against the size of reg->im, then again against the 
+	 * memory we have available to write to on dest. Just like 
+	 * im_region_region()
+	 */
+	image.top = 0;
+	image.left = 0;
+	image.width = reg->im->Xsize;
+	image.height = reg->im->Ysize;
+	im_rect_intersectrect( r, &image, &clipped );
+
+	g_assert( clipped.left == r->left );
+	g_assert( clipped.top == r->top );
+
+	wanted.left = x + (clipped.left - r->left);
+	wanted.top = y + (clipped.top - r->top);
+	wanted.width = clipped.width;
+	wanted.height = clipped.height;
+
+	/* Test that dest->valid is large enough.
+	 */
+	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
+		vips_error( "im_prepare_to", "%s", _( "dest too small" ) );
+		return( -1 );
+	}
+
+	im_rect_intersectrect( &wanted, &dest->valid, &clipped2 );
+
+	/* Translate back to reg's coordinate space and set as valid.
+	 */
+	final.left = r->left + (clipped2.left - wanted.left);
+	final.top = r->top + (clipped2.top - wanted.top);
+	final.width = clipped2.width;
+	final.height = clipped2.height;
+
+	x = clipped2.left;
+	y = clipped2.top;
+
+	if( im_rect_isempty( &final ) ) {
+		vips_error( "im_prepare_to", 
+			"%s", _( "valid clipped to nothing" ) );
+		return( -1 );
+	}
+
+#ifdef DEBUG
+        printf( "im_prepare_to: left = %d, top = %d, width = %d, height = %d\n",
+		final.left, final.top, final.width, final.height );
+#endif /*DEBUG*/
+
+	/* Input or output image type?
+	 */
+	switch( im->dtype ) {
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_PARTIAL:
+		/* We are generating with a sequence. 
+		 */
+		if( vips_region_prepare_to_generate( reg, dest, &final, x, y ) )
+			return( -1 );
+
+		break;
+
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_OPENIN:
+		/* Attach to existing buffer and copy to dest.
+		 */
+		if( vips_region_image( reg, &final ) )
+			return( -1 );
+		vips_region_copy( reg, dest, &final, x, y );
+
+		break;
+
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+		/* Could be either input or output. If there is a generate
+		 * function, we are outputting.
+		 */
+		if( im->generate ) {
+			if( vips_region_prepare_to_generate( reg, 
+				dest, &final, x, y ) )
+				return( -1 );
+		}
+		else {
+			if( vips_region_image( reg, &final ) )
+				return( -1 );
+			vips_region_copy( reg, dest, &final, x, y );
+		}
+
+		break;
+
+	default:
+		vips_error( "im_prepare_to", _( "unable to input from a "
+			"%s image" ), im_dtype2char( im->dtype ) );
+		return( -1 );
+	}
+
+	/* We've written fresh pixels to dest, it's no longer invalid (if it
+	 * was).
+	 *
+	 * We need this extra thing here because, unlike 
+	 * vips_region_prepare(), we don't vips_region_buffer() dest before 
+	 * writing it.
+	 */
+	dest->invalid = FALSE;
+
+	return( 0 );
+}
+
+int
+vips_region_prepare_many( VipsRegion **reg, Rect *r )
+{
+	for( ; *reg; ++reg )
+		if( vips_region_prepare( *reg, r ) )
+			return( -1 );
+
+	return( 0 );
 }

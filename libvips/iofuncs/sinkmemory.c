@@ -58,7 +58,7 @@ typedef struct _Sink {
 
 	/* A big region for the image memory. All the threads write to this.
 	 */
-	REGION *all;
+	VipsRegion *all;
 
 	/* The position we're at in the image.
 	 */
@@ -75,7 +75,7 @@ typedef struct _Sink {
 static void
 sink_free( Sink *sink )
 {
-	VIPS_FREEF( im_region_free, sink->all );
+	VIPS_FREEF( g_object_unref, sink->all );
 }
 
 static int
@@ -92,8 +92,8 @@ sink_init( Sink *sink, VipsImage *im )
 	all.width = im->Xsize;
 	all.height = im->Ysize;
 
-	if( !(sink->all = im_region_create( im )) ||
-		im_region_image( sink->all, &all ) ) {
+	if( !(sink->all = vips_region_new( im )) ||
+		vips_region_image( sink->all, &all ) ) {
 		sink_free( sink );
 		return( -1 );
 	}
@@ -148,7 +148,7 @@ sink_work( VipsThreadState *state, void *a )
 {
 	Sink *sink = (Sink *) a;
 
-	if( im_prepare_to( state->reg, sink->all, 
+	if( vips_region_prepare_to( state->reg, sink->all, 
 		&state->pos, state->pos.left, state->pos.top ) )
 		return( -1 );
 

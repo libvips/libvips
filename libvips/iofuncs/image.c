@@ -448,6 +448,8 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 		vips_image_get_bands( image ),
 		VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
 			vips_image_get_interpretation( image ) ) );
+
+	VIPS_OBJECT_CLASS( vips_image_parent_class )->print( object, buf );
 }
 
 static gboolean
@@ -623,26 +625,26 @@ open_lazy_start( VipsImage *out, void *a, void *dummy )
 		}
 	}
 
-	return( im_region_create( lazy->real ) );
+	return( vips_region_new( lazy->real ) );
 }
 
 /* Just copy.
  */
 static int
-open_lazy_generate( REGION *or, void *seq, void *a, void *b )
+open_lazy_generate( VipsRegion *or, void *seq, void *a, void *b )
 {
-	REGION *ir = (REGION *) seq;
+	VipsRegion *ir = (VipsRegion *) seq;
 
         Rect *r = &or->valid;
 
         /* Ask for input we need.
          */
-        if( im_prepare( ir, r ) )
+        if( vips_region_prepare( ir, r ) )
                 return( -1 );
 
         /* Attach output region to that.
          */
-        if( im_region_region( or, ir, r, r->left, r->top ) )
+        if( vips_region_region( or, ir, r, r->left, r->top ) )
                 return( -1 );
 
         return( 0 );
@@ -948,7 +950,7 @@ vips_image_build( VipsObject *object )
 }
 
 static void *
-vips_region_invalidate( REGION *reg )
+vips_region_invalidate( VipsRegion *reg )
 {
 	reg->invalid = TRUE;
 

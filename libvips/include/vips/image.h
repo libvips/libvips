@@ -296,6 +296,8 @@ typedef struct _VipsImageClass {
 
 } VipsImageClass;
 
+GType vips_image_get_type( void );
+
 extern const size_t vips__sizeof_bandfmt[];
 
 /* Pixel address calculation macros.

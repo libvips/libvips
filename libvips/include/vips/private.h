@@ -146,19 +146,19 @@ typedef enum region_type {
 /* Functions on regions.
  */
 struct _VipsRegion;
-void im__region_take_ownership( struct _VipsRegion *reg );
-void im__region_check_ownership( struct _VipsRegion *reg );
-void im__region_no_ownership( struct _VipsRegion *reg );
+void vips__region_take_ownership( struct _VipsRegion *reg );
+void vips__region_check_ownership( struct _VipsRegion *reg );
+void vips__region_no_ownership( struct _VipsRegion *reg );
 
 void im__copy_region( struct _VipsRegion *reg, struct _VipsRegion *dest, Rect *r, int x, int y );
 void im__find_demand_size( struct _VipsImage *im, int *pw, int *ph );
 
-int im__call_start( struct _VipsRegion *reg );
-void im__call_stop( struct _VipsRegion *reg );
+int vips__region_start( struct _VipsRegion *reg );
+void vips__region_stop( struct _VipsRegion *reg );
 
-typedef int (*im_region_fill_fn)( struct _VipsRegion *, void * );
-int im_region_fill( struct _VipsRegion *reg, Rect *r, im_region_fill_fn fn, void *a );
-void im_region_print( struct _VipsRegion *region );
+typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
+int vips_region_fill( struct _VipsRegion *reg, 
+	Rect *r, VipsRegionFillFn fn, void *a );
 
 int im_prepare_many( struct _VipsRegion **reg, Rect *r );
 

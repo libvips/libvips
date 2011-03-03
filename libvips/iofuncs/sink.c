@@ -93,7 +93,7 @@ typedef struct _SinkThreadState {
 	/* The region we walk over sink.t copy. We can't use
 	 * parent_object.reg, it's defined on the outer image.
 	 */
-	REGION *reg;
+	VipsRegion *reg;
 } SinkThreadState;
 
 typedef struct _SinkThreadStateClass {
@@ -131,7 +131,7 @@ sink_thread_state_dispose( GObject *gobject )
 	Sink *sink = (Sink *) ((VipsThreadState *) state)->a;
 
 	sink_call_stop( sink, state );
-	VIPS_FREEF( im_region_free, state->reg );
+	VIPS_FREEF( g_object_unref, state->reg );
 
 	G_OBJECT_CLASS( sink_thread_state_parent_class )->dispose( gobject );
 }
@@ -163,7 +163,7 @@ sink_thread_state_build( VipsObject *object )
 	SinkThreadState *state = (SinkThreadState *) object;
 	Sink *sink = (Sink *) ((VipsThreadState *) state)->a;
 
-	if( !(state->reg = im_region_create( sink->t )) ||
+	if( !(state->reg = vips_region_new( sink->t )) ||
 		sink_call_start( sink, state ) )
 		return( -1 );
 
@@ -278,7 +278,7 @@ sink_work( VipsThreadState *state, void *a )
 	SinkThreadState *sstate = (SinkThreadState *) state;
 	Sink *sink = (Sink *) a;
 
-	if( im_prepare( sstate->reg, &state->pos ) ||
+	if( vips_region_prepare( sstate->reg, &state->pos ) ||
 		sink->generate( sstate->reg, sstate->seq, sink->a, sink->b ) ) 
 		return( -1 );
 

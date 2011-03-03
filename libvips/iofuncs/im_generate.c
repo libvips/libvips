@@ -131,7 +131,7 @@ im_start_one( IMAGE *out, void *a, void *b )
 {
 	IMAGE *in = (IMAGE *) a;
 
-	return( im_region_create( in ) );
+	return( vips_region_new( in ) );
 }
 
 /**
@@ -147,9 +147,9 @@ im_start_one( IMAGE *out, void *a, void *b )
 int
 im_stop_one( void *seq, void *a, void *b )
 {
-	REGION *reg = (REGION *) seq;
+	VipsRegion *reg = (VipsRegion *) seq;
 
-	im_region_free( reg );
+	g_object_unref( reg );
 
 	return( 0 );
 }
@@ -168,13 +168,13 @@ im_stop_one( void *seq, void *a, void *b )
 int
 im_stop_many( void *seq, void *a, void *b )
 {
-	REGION **ar = (REGION **) seq;
+	VipsRegion **ar = (VipsRegion **) seq;
 
         if( ar ) {
 		int i;
 
 		for( i = 0; ar[i]; i++ )
-			im_region_free( ar[i] );
+			g_object_unref( ar[i] );
 		im_free( (char *) ar );
 	}
 
@@ -198,7 +198,7 @@ im_start_many( IMAGE *out, void *a, void *b )
 	IMAGE **in = (IMAGE **) a;
 
 	int i, n;
-	REGION **ar;
+	VipsRegion **ar;
 
 	/* How many images?
 	 */
@@ -207,13 +207,13 @@ im_start_many( IMAGE *out, void *a, void *b )
 
 	/* Alocate space for region array.
 	 */
-	if( !(ar = VIPS_ARRAY( NULL, n + 1, REGION * )) )
+	if( !(ar = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) )
 		return( NULL );
 
 	/* Create a set of regions.
 	 */
 	for( i = 0; i < n; i++ )
-		if( !(ar[i] = im_region_create( in[i] )) ) {
+		if( !(ar[i] = vips_region_new( in[i] )) ) {
 			im_stop_many( ar, NULL, NULL );
 			return( NULL );
 		}
@@ -281,7 +281,7 @@ im_allocate_input_array( IMAGE *out, ... )
 
 /**
  * im_generate_fn:
- * @out: #REGION to fill
+ * @out: #VipsRegion to fill
  * @seq: sequence value
  * @a: user data
  * @b: user data
@@ -311,13 +311,13 @@ im_allocate_input_array( IMAGE *out, ... )
 /* A write function for VIPS images. Just write() the pixel data.
  */
 static int
-write_vips( REGION *region, Rect *area, void *a, void *b )
+write_vips( VipsRegion *region, Rect *area, void *a, void *b )
 {
 	size_t nwritten, count;
 	void *buf;
 
 	count = region->bpl * area->height;
-	buf = IM_REGION_ADDR( region, 0, area->top );
+	buf = VIPS_REGION_ADDR( region, 0, area->top );
 	do {
 		nwritten = write( region->im->fd, buf, count ); 
 		if( nwritten == (size_t) -1 ) 

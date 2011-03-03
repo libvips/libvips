@@ -62,12 +62,12 @@ typedef struct {
  */
 #define MAX_INPUT_IMAGES (64)
 
-/* Convert a REGION.
+/* Convert a VipsRegion.
  */
 static int
-process_region( REGION *or, void *seq, void *a, void *b )
+process_region( VipsRegion *or, void *seq, void *a, void *b )
 {
-	REGION **ir = (REGION **) seq;
+	VipsRegion **ir = (VipsRegion **) seq;
 	Bundle *bun = (Bundle *) b;
 
 	PEL *p[MAX_INPUT_IMAGES], *q;
@@ -76,13 +76,13 @@ process_region( REGION *or, void *seq, void *a, void *b )
 	/* Prepare all input regions and make buffer pointers.
 	 */
 	for( i = 0; ir[i]; i++ ) {
-		if( im_prepare( ir[i], &or->valid ) ) 
+		if( vips_region_prepare( ir[i], &or->valid ) ) 
 			return( -1 );
-		p[i] = (PEL *) IM_REGION_ADDR( ir[i], 
+		p[i] = (PEL *) VIPS_REGION_ADDR( ir[i], 
 			or->valid.left, or->valid.top );
 	}
 	p[i] = NULL;
-	q = (PEL *) IM_REGION_ADDR( or, or->valid.left, or->valid.top );
+	q = (PEL *) VIPS_REGION_ADDR( or, or->valid.left, or->valid.top );
 
 	/* Convert linewise.
 	 */
@@ -103,8 +103,8 @@ process_region( REGION *or, void *seq, void *a, void *b )
 		/* Move pointers on.
 		 */
 		for( i = 0; ir[i]; i++ )
-			p[i] += IM_REGION_LSKIP( ir[i] );
-		q += IM_REGION_LSKIP( or );
+			p[i] += VIPS_REGION_LSKIP( ir[i] );
+		q += VIPS_REGION_LSKIP( or );
 	}
 
 	return( 0 );
