@@ -22,7 +22,6 @@ libiofuncs_la_SOURCES = \
 	sinkdisc.c \
 	sink.c \
 	im_wrapmany.c \
-	im_writeline.c \
 	memory.c \
 	check.c \
 	package.c \
@@ -36,6 +35,7 @@ libiofuncs_la_SOURCES = \
 	buf.c \
 	window.c \
 	vector.c \
+	vips7compat.c \
 	buffer.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

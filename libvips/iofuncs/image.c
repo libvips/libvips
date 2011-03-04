@@ -1688,7 +1688,7 @@ vips_image_ispartial( VipsImage *image )
 /* This is used by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
  * size.
  */
-const size_t vips_image__sizeof_bandformat[] = {
+const size_t vips__image_sizeof_bandformat[] = {
 	sizeof( unsigned char ), 	/* VIPS_FORMAT_UCHAR */
 	sizeof( signed char ), 		/* VIPS_FORMAT_CHAR */
 	sizeof( unsigned short ), 	/* VIPS_FORMAT_USHORT */
@@ -1709,7 +1709,7 @@ vips_format_sizeof( VipsBandFormat format )
 	return( (format < 0 || format > VIPS_FORMAT_DPCOMPLEX) ?
 		vips_error( "vips_format_sizeof", 
 			_( "unknown band format %d" ), format ), -1 :
-		vips_image__sizeof_bandformat[format] );
+		vips__image_sizeof_bandformat[format] );
 }
 
 /**
@@ -1833,5 +1833,126 @@ vips_image_copy_fields( IMAGE *out, IMAGE *in )
 	return( vips_image_copy_fieldsv( out, in, NULL ) ); 
 }
 
+int
+vips_image_new_array( VipsImage *parent, VipsImage **images, int n )
+{
+	int i;
+
+	for( i = 0; i < n; i++ )
+		if( !(images[i] = vips_image_new( "p" )) ) 
+			return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * vips_image_init_fields:
+ * @image: image to init
+ * @xsize: image width
+ * @ysize: image height
+ * @bands: image bands
+ * @bandfmt: band format
+ * @coding: image coding
+ * @type: image type
+ * @xres: horizontal resolution, pixels per millimetre
+ * @yres: vertical resolution, pixels per millimetre
+ * @xo: x offset
+ * @yo: y offset
+ *
+ * A convenience function to set the header fields after creating an image.
+ * Normally you copy the fields from one of your input images with
+ * vips_image_copy_fields() and then make
+ * any adjustments you need, but if you are creating an image from scratch,
+ * for example im_black() or im_jpeg2vips(), you do need to set all the
+ * fields yourself.
+ *
+ * See also: vips_image_copy_fields().
+ */
+void 
+vips_image_init_fields( VipsImage *image, 
+	int xsize, int ysize, int bands, 
+	VipsBandFormat format, VipsCoding coding, 
+	VipsInterpretation interpretation, 
+	float xres, float yres,
+	int xo, int yo )
+{
+	g_object_set( image,
+		"width", xsize,
+		"height", ysize,
+		"bands", bands,
+		"format", format,
+		NULL );
+
+	image->Coding = coding;
+	image->Type = interpretation;
+	image->Xres = xres;
+	image->Yres = yres;
+	image->Xoffset = xo;
+	image->Yoffset = yo;
+}
+
+/**
+ * vips_image_write_line:
+ * @image: image to write to
+ * @ypos: vertical position of scan-line to write
+ * @linebuffer: scanline of pixels
+ *
+ * Write a line of pixels to an image. This function must be called repeatedly
+ * with @ypos increasing from 0 to @YSize -
+ * @linebuffer must be IM_IMAGE_SIZEOF_LINE() bytes long.
+ *
+ * See also: im_setupout(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
+{	
+	int linesize = VIPS_IMAGE_SIZEOF_LINE( image );
+
+	/* Is this the start of eval?
+	 */
+	if( ypos == 0 )
+		vips_image_preeval( image );
+
+	/* Possible cases for output: FILE or SETBUF.
+	 */
+	switch( image->dtype ) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+		memcpy( VIPS_IMAGE_ADDR( image, 0, ypos ), 
+			linebuffer, linesize );
+		break;
+
+	case VIPS_IMAGE_OPENOUT:
+		/* Don't use ypos for this.
+		 */
+		if( im__write( image->fd, linebuffer, linesize ) )
+			return( -1 );
+		break;
+
+	default:
+		vips_error( "im_writeline", 
+			_( "unable to output to a %s image" ),
+			VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, 
+				image->dtype ) );
+		return( -1 );
+	}
+
+	/* Trigger evaluation callbacks for this image.
+	 */
+	vips_image_eval( image, image->Xsize, 1 );
+	if( im__test_kill( image ) )
+		return( -1 );
+
+	/* Is this the end of eval?
+	 */
+	if( ypos == image->Ysize - 1 ) {
+		vips_image_posteval( image );
+		vips_image_written( image );
+	}
+
+	return( 0 );
+}
 
 

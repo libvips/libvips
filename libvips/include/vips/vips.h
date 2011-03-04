@@ -143,6 +143,10 @@ extern "C" {
 #include <vips/deprecated.h>
 #endif /*VIPS_ENABLE_DEPRECATED*/
 
+#ifndef VIPS_DISABLE_VIPS7COMPAT
+#include <vips/vips7compat.h>
+#endif /*VIPS_DISABLE_VIPS7COMPAT*/
+
 const char *vips_get_argv0( void );
 int vips_init( const char *argv0 );
 GOptionGroup *vips_get_option_group( void );

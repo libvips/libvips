@@ -4,7 +4,6 @@ pkginclude_HEADERS = \
 	arithmetic.h \
 	boolean.h \
 	buf.h \
-	callback.h \
 	check.h \
 	colour.h \
 	conversion.h \
@@ -45,6 +44,7 @@ pkginclude_HEADERS = \
 	util.h \
 	version.h \
 	vector.h \
+	vips7compat.h \
 	vips.h 
 
 vipsc++.h:

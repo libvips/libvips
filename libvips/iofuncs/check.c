@@ -231,8 +231,18 @@ im_incheck( IMAGE *im )
 #ifdef DEBUG_IO
 		printf( "im_incheck: auto-rewind of %s\n", im->filename );
 #endif/*DEBUG_IO*/
-		if( im__close( im ) || 
-			im_openin( im ) ||
+
+		/* Free any resources the image holds and reset to a base
+		 * state.
+		 */
+		g_object_run_dispose( G_OBJECT( im ) );
+
+		/* And reopen .. recurse to get a mmaped image.
+		 */
+		g_object_set( im,
+			"mode", "r",
+			NULL );
+		if( vips_object_build( VIPS_OBJECT( im ) ) ||
 			im_incheck( im ) ) {
 			vips_error( "im_incheck", 
 				_( "auto-rewind for %s failed" ),
@@ -442,8 +452,16 @@ im_pincheck( IMAGE *im )
 #ifdef DEBUG_IO
 		printf( "im_pincheck: auto-rewind of %s\n", im->filename );
 #endif/*DEBUG_IO*/
-		if( im__close( im ) || 
-			im_openin( im ) ) {
+
+		/* Free any resources the image holds and reset to a base
+		 * state.
+		 */
+		g_object_run_dispose( G_OBJECT( im ) );
+
+		g_object_set( im,
+			"mode", "r",
+			NULL );
+		if( vips_object_build( VIPS_OBJECT( im ) ) ) {
 			vips_error( "im_pincheck", 
 				_( "auto-rewind for %s failed" ),
 				im->filename );

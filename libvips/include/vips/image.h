@@ -229,8 +229,8 @@ typedef struct _VipsImage {
 	/* Upstream/downstream relationships, built from args to 
 	 * im_demand_hint().
 	 *
-	 * We use these to invalidate downstream pixel buffers on 
-	 * im_invalidate(). Use 'serial' to spot circular dependencies.
+	 * We use these to invalidate downstream pixel buffers.
+	 * Use 'serial' to spot circular dependencies.
 	 *
 	 * See also hint_set below.
 	 */
@@ -289,7 +289,7 @@ typedef struct _VipsImageClass {
 	 */
 	void (*written)( VipsImage *image );
 
-	/* An image has been modified in some way and downstream caches all
+	/* An image has been modified in some way and caches all
 	 * need dropping. 
 	 */
 	void (*invalidate)( VipsImage *image );
@@ -298,12 +298,12 @@ typedef struct _VipsImageClass {
 
 GType vips_image_get_type( void );
 
-extern const size_t vips__sizeof_bandfmt[];
+extern const size_t vips__image_sizeof_bandformat[];
 
 /* Pixel address calculation macros.
  */
 #define VIPS_IMAGE_SIZEOF_ELEMENT( I ) \
-	(vips__sizeof_bandfmt[(I)->BandFmt])
+	(vips__image_sizeof_bandformat[(I)->BandFmt])
 #define VIPS_IMAGE_SIZEOF_PEL( I ) \
 	(VIPS_IMAGE_SIZEOF_ELEMENT( I ) * (I)->Bands)
 #define VIPS_IMAGE_SIZEOF_LINE( I ) \
@@ -377,28 +377,14 @@ int vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
 	__attribute__((sentinel));
 int vips_image_copy_fields( VipsImage *out, VipsImage *in );
 
-
-
-#define vips_image_open_local( IM, NAME, MODE ) \
-	((IMAGE *) vips_local( (IM), \
-		(vips_construct_fn) im_open, (im_callback_fn) im_close, \
-		(void *) (NAME), (void *) (MODE), NULL ))
-
-/* Strange double cast stops bogus warnings from gcc 4.1
- */
-#define vips_image_open_local_array( IM, OUT, N, NAME, MODE ) \
-	(vips_local_array( (IM), (void **)((void*)(OUT)), (N),\
-		(im_construct_fn) im_open, (im_callback_fn) im_close, \
-		(void *) (NAME), (void *) (MODE), NULL ))
-
-void vips_invalidate( VipsImage *im );
-
-void vips_initdesc( VipsImage *image, 
-	int xsize, int ysize, int bands, int bandbits, 
+void vips_image_init_fields( VipsImage *image, 
+	int xsize, int ysize, int bands, 
 	VipsBandFormat format, VipsCoding coding, 
 	VipsInterpretation interpretation, 
 	float xres, float yres,
 	int xo, int yo );
+
+int vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer );
 
 #ifdef __cplusplus
 }
