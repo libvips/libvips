@@ -160,8 +160,6 @@ typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
 int vips_region_fill( struct _VipsRegion *reg, 
 	Rect *r, VipsRegionFillFn fn, void *a );
 
-int im_prepare_many( struct _VipsRegion **reg, Rect *r );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

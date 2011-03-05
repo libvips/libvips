@@ -355,7 +355,7 @@ static im_arg_desc printdesc_args[] = {
 static int
 printdesc_vec( im_object *argv )
 {
-	im_printdesc( (IMAGE *) argv[0] );
+	vips_object_print( VIPS_OBJECT( argv[0] ) );
 
 	return( 0 );
 }

@@ -108,10 +108,6 @@ int im__has_extension_block( VipsImage *im );
 void *im__read_extension_block( VipsImage *im, int *size );
 int im__write_extension_block( VipsImage *im, void *buf, int size );
 int im__writehist( VipsImage *image );
-int im__start_eval( VipsImage *im );
-int im__handle_eval( VipsImage *im, int w, int h );
-int im__end_eval( VipsImage *im );
-int im__time_destroy( VipsImage *im );
 
 void im__tiff_register( void );
 void im__jpeg_register( void );
@@ -123,7 +119,7 @@ void im__exr_register( void );
 void im__magick_register( void );
 
 extern int im__read_test;
-extern GMutex *im__global_lock;
+extern GMutex *vips__global_lock;
 
 typedef enum {
 	IM__RGB,	/* 1 or 3 bands (eg. PPM) */
@@ -196,7 +192,6 @@ struct im_col_tab_disp *im_col_make_tables_RGB( VipsImage *im,
 	struct im_col_display *d );
 struct im_col_tab_disp *im_col_display_get_table( struct im_col_display *d );
 
-int im__test_kill( VipsImage *im );
 void *im__mmap( int fd, int writeable, size_t length, gint64 offset );
 int im__munmap( void *start, size_t length );
 int im__write( int, const void *, size_t );
@@ -206,7 +201,6 @@ void im__print_all( void );
 void im__print_one( int );
 int im__trigger_callbacks( GSList *cblist );
 int im__close( VipsImage * );
-int im__handle_eval( VipsImage *im, int w, int h );
 int im__fft_sp( float *rvec, float *ivec, int logrows, int logcols );
 int im__fftproc( VipsImage *dummy, VipsImage *in, VipsImage *out, im__fftproc_fn fn );
 int im__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,

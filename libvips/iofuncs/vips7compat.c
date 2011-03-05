@@ -158,3 +158,47 @@ im_close( VipsImage *im )
 
 	return( 0 );
 }
+
+/* edvips.c needs this
+ */
+VipsImage *
+im_init( const char *filename )
+{
+	VipsImage *image;
+
+	image = vips_image_new( "p" );
+	VIPS_SETSTR( image->filename, filename );
+
+	return( image );
+}
+
+/* Prettyprint various header fields. Just for vips7 compat, use
+ * VIPS_ENUM_VALUE() instead.
+ */
+const char *im_Type2char( VipsInterpretation type ) 
+	{ return( VIPS_ENUM_STRING( VIPS_TYPE_INTERPRETATION, type ) ); }
+const char *im_BandFmt2char( VipsBandFormat format ) 
+	{ return( VIPS_ENUM_STRING( VIPS_TYPE_BAND_FORMAT, format ) ); }
+const char *im_Coding2char( VipsCoding coding ) 
+	{ return( VIPS_ENUM_STRING( VIPS_TYPE_CODING, coding ) ); }
+const char *im_dtype2char( VipsImageType n ) 
+	{ return( VIPS_ENUM_STRING( VIPS_TYPE_IMAGE_TYPE, n ) ); }
+const char *im_dhint2char( VipsDemandStyle style ) 
+	{ return( VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, style ) ); }
+
+VipsInterpretation im_char2Type( const char *str ) 
+	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_INTERPRETATION, str ) ); }
+VipsBandFormat im_char2BandFmt( const char *str ) 
+	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_BAND_FORMAT, str ) ); }
+VipsCoding im_char2Coding( const char *str ) 
+	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_CODING, str ) ); }
+VipsImageType im_char2dtype( const char *str ) 
+	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_IMAGE_TYPE, str ) ); }
+VipsDemandStyle im_char2dhint( const char *str ) 
+	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_DEMAND_STYLE, str ) ); }
+
+/* Totally useless now.
+ */
+const char *im_Compression2char( int n ) { return( "NONE" ); }
+int im_char2Compression( const char *str ) { return( -1 ); }
+

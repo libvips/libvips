@@ -72,9 +72,6 @@ int im_extract( IMAGE *, IMAGE *, IMAGE_BOX * );
 DOUBLEMASK *im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
 	int *sel, int nsel, const char *name );
 
-void error_exit( const char *fmt, ... )
-	__attribute__((noreturn, format(printf, 1, 2)));
-
 gboolean im_isuint( IMAGE *im );
 gboolean im_isint( IMAGE *im );
 gboolean im_isfloat( IMAGE *im );

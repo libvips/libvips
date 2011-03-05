@@ -127,9 +127,9 @@ vips_error_buffer( void )
 {
 	const char *msg;
 
-	g_mutex_lock( im__global_lock );
+	g_mutex_lock( vips__global_lock );
 	msg = vips_buf_all( &vips_error_buf );
-	g_mutex_unlock( im__global_lock );
+	g_mutex_unlock( vips__global_lock );
 
 	return( msg );
 }
@@ -147,11 +147,11 @@ vips_error_buffer( void )
 void 
 vips_verror( const char *domain, const char *fmt, va_list ap )
 {
-	g_mutex_lock( im__global_lock );
+	g_mutex_lock( vips__global_lock );
 	vips_buf_appendf( &vips_error_buf, "%s: ", domain );
 	vips_buf_vappendf( &vips_error_buf, fmt, ap );
 	vips_buf_appends( &vips_error_buf, "\n" );
-	g_mutex_unlock( im__global_lock );
+	g_mutex_unlock( vips__global_lock );
 }
 
 /**
@@ -253,9 +253,9 @@ vips_error_system( int err, const char *domain, const char *fmt, ... )
 void 
 vips_error_clear( void )
 {
-	g_mutex_lock( im__global_lock );
+	g_mutex_lock( vips__global_lock );
 	vips_buf_rewind( &vips_error_buf );
-	g_mutex_unlock( im__global_lock );
+	g_mutex_unlock( vips__global_lock );
 }
 
 /**
@@ -276,12 +276,12 @@ void
 vips_vdiag( const char *domain, const char *fmt, va_list ap )
 {
 	if( !g_getenv( IM_DIAGNOSTICS ) ) {
-		g_mutex_lock( im__global_lock );
+		g_mutex_lock( vips__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "vips diagnostic" ) );
 		(void) fprintf( stderr, _( "%s: " ), domain );
 		(void) vfprintf( stderr, fmt, ap );
 		(void) fprintf( stderr, "\n" );
-		g_mutex_unlock( im__global_lock );
+		g_mutex_unlock( vips__global_lock );
 	}
 }
 
@@ -326,12 +326,12 @@ void
 vips_vwarn( const char *domain, const char *fmt, va_list ap )
 {	
 	if( !g_getenv( IM_WARNING ) ) {
-		g_mutex_lock( im__global_lock );
+		g_mutex_lock( vips__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "vips warning" ) );
 		(void) fprintf( stderr, _( "%s: " ), domain );
 		(void) vfprintf( stderr, fmt, ap );
 		(void) fprintf( stderr, "\n" );
-		g_mutex_unlock( im__global_lock );
+		g_mutex_unlock( vips__global_lock );
 	}
 }
 

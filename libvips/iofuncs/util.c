@@ -529,12 +529,12 @@ im_vsnprintf( char *str, size_t size, const char *format, va_list ap )
 	static char buf[MAX_BUF];
 
 	if( size > MAX_BUF )
-		error_exit( "panic: buffer overflow "
+		vips_error_exit( "panic: buffer overflow "
 			"(request to write %d bytes to buffer of %d bytes)",
 			size, MAX_BUF );
 	n = vsprintf( buf, format, ap );
 	if( n > MAX_BUF )
-		error_exit( "panic: buffer overflow "
+		vips_error_exit( "panic: buffer overflow "
 			"(%d bytes written to buffer of %d bytes)",
 			n, MAX_BUF );
 

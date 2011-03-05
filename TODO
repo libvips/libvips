@@ -1,22 +1,8 @@
-- need some way to reset descriptors for rewind, see:
+- debug.c can go?
 
-	check.c: In function ‘im_incheck’:
-	check.c:235: warning: implicit declaration of function ‘im_openin’
+  make sanity a method on object
 
-  is this the only place? does im_pincheck() do a rewind too?
-
-  yes, it also calls im__close()
-
-  how about ading something to vipsobject like "reset", which contains what's
-  normally in the dispose handler
-
-  vips_object_reset() then runs that and clears the various flags governing
-  members so that you can set more vars and call _build() again
-
-  vips_object_dispose runs the reset method for you
-
-
-
+  tools/others/sines.c and friends can go
 
 
 - why not rename VipsBandFormat as VipsFormat? cf. VipsCoding,

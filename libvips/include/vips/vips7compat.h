@@ -137,10 +137,16 @@ extern "C" {
 #define im_vwarn vips_vwarn
 #define im_diag vips_diag
 #define im_vdiag vips_vdiag
+#define error_exit vips_error_exit
 
 #define im_get_argv0 vips_get_argv0
 #define im_version_string vips_version_string
 #define im_version vips_version
+#define im_init_world vips_init
+#define im_get_option_group vips_get_option_group
+#define im_guess_prefix vips_guess_prefix
+#define im_guess_libdir vips_guess_libdir
+#define im__global_lock vips__global_lock
 
 #define im_cp_desc vips_image_copy_fields
 #define im_cp_descv vips_image_copy_fieldsv
@@ -149,7 +155,16 @@ extern "C" {
 #define im_image vips_image_new_from_memory
 #define im_binfile vips_image_new_from_file_raw
 #define im__open_temp vips_image_new_disc_temp
+#define im__test_kill( I ) (!vips_image_get_kill( I ))
+#define im__start_eval( I ) (vips_image_preeval( I ), !vips_image_get_kill( I ))
+#define im__handle_eval( I, W, H ) \
+	(vips_image_eval( I, W, H ), !vips_image_get_kill( I ))
+#define im__end_eval vips_image_posteval
 #define im_invalidate vips_image_invalidate_all
+#define im_isfile vips_image_isfile
+#define im_printdesc( I ) vips_object_print( VIPS_OBJECT( I ) )
+#define im_openout( F ) vips_image_new_from_file( F, "w" )
+#define im_setbuf( F ) vips_image_new( "t" )
 
 #define im_initdesc( image, \
 	xsize, ysize, bands, bandbits, bandfmt, coding, \
@@ -168,6 +183,7 @@ extern "C" {
 #define im_region_buffer vips_region_buffer
 #define im_region_black vips_region_black
 #define im_region_paint vips_region_paint
+#define im_prepare_many vips_region_prepare_many
 
 #define im__region_no_ownership vips__region_no_ownership
 
@@ -205,6 +221,20 @@ int im_local_array( VipsImage *im, void **out, int n,
 	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
 
 int im_close( VipsImage *im );
+VipsImage *im_init( const char *filename );
+
+const char *im_Type2char( VipsInterpretation type );
+const char *im_BandFmt2char( VipsBandFormat fmt );
+const char *im_Coding2char( VipsCoding coding );
+const char *im_Compression2char( int n );
+const char *im_dtype2char( VipsImageType n );
+const char *im_dhint2char( VipsDemandStyle style );
+
+VipsInterpretation im_char2Type( const char *str );
+VipsBandFormat im_char2BandFmt( const char *str );
+VipsCoding im_char2Coding( const char *str );
+VipsImageType im_char2dtype( const char *str );
+VipsDemandStyle im_char2dhint( const char *str );
 
 #ifdef __cplusplus
 }

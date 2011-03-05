@@ -16,7 +16,6 @@ libiofuncs_la_SOURCES = \
 	im_histlin.c \
 	im_mapfile.c \
 	im_setupout.c \
-	im_guess_prefix.c \
 	sinkmemory.c \
 	sinkscreen.c \
 	sinkdisc.c \
@@ -31,7 +30,7 @@ libiofuncs_la_SOURCES = \
 	semaphore.c \
 	threadpool.c \
 	util.c \
-	im_init_world.c \
+	init.c \
 	buf.c \
 	window.c \
 	vector.c \

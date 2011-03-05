@@ -964,7 +964,7 @@ vips_region_prepare( VipsRegion *reg, Rect *r )
 
 	vips__region_check_ownership( reg );
 
-	if( vips_image_test_kill( im ) )
+	if( vips_image_get_kill( im ) )
 		return( -1 );
 
 	/* We use save for sanity checking valid: we test at the end that the
@@ -1097,7 +1097,7 @@ vips_region_prepare_to( VipsRegion *reg,
 	Rect clipped2;
 	Rect final;
 
-	if( vips_image_test_kill( im ) )
+	if( vips_image_get_kill( im ) )
 		return( -1 );
 
 	/* Sanity check.

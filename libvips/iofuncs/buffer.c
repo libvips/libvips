@@ -280,12 +280,12 @@ im_buffer_unref( im_buffer_t *buffer )
 		im_free( buffer );
 
 #ifdef DEBUG
-		g_mutex_lock( im__global_lock );
+		g_mutex_lock( vips__global_lock );
 		g_assert( g_slist_find( im__buffers_all, buffer ) );
 		im__buffers_all = g_slist_remove( im__buffers_all, buffer );
 		printf( "%d buffers in vips\n", 
 			g_slist_length( im__buffers_all ) );
-		g_mutex_unlock( im__global_lock );
+		g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
 	}
 }
@@ -321,10 +321,10 @@ im_buffer_new( IMAGE *im, Rect *area )
 #endif /*DEBUG*/
 
 #ifdef DEBUG
-	g_mutex_lock( im__global_lock );
+	g_mutex_lock( vips__global_lock );
 	im__buffers_all = g_slist_prepend( im__buffers_all, buffer );
 	printf( "%d buffers in vips\n", g_slist_length( im__buffers_all ) );
-	g_mutex_unlock( im__global_lock );
+	g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
 
 	return( buffer );

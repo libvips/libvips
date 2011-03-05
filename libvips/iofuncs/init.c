@@ -1,39 +1,26 @@
-/* guess the install prefix
- * 
- * Written on: 5/2/01 
- * Modified on:
- * 3/3/01 JC
- * 	- better behaviour for relative paths in argv0
- * 22/9/01 JC
- * 	- oops, SEGV in some cases for argv0 contains relative path
- * 26/9/01 JC
- * 	- reworked for new prefix scheme
- * 9/11/01 JC
- *	- grr! added strdup() on putenv() for newer linuxes
- * 14/12/01 JC
- *	- now uses realpath() for better relative pathname guessing
- * 21/10/02 JC
- * 	- turn off realpath() if not available
- * 	- path_is_absolute() from glib
- * 	- append ".exe" to name on w32
- * 	- prefix cwd() to path on w32
- * 31/7/03 JC
- *	- better relative path handling
- * 23/12/04
- *	- use g_setenv()/g_getenv()
- * 29/4/05
- *	- gah, back to plain setenv() so we work with glib-2.2
- * 5/10/05
- * 	- phew, now we can use g_setenv() again
- * 18/8/06
- * 	- use IM_EXEEXT
- * 6/2/07 CB
- * 	- move trailing '\0' too in extract_prefix
- * 21/7/07
- * 	- fall back to configure-time prefix rather than returning an error
- * 	  (thanks Jay)
+/* Start up the world of vips.
+ *
+ * 7/1/04 JC
+ *	- 1st version
+ * 7/6/05
+ * 	- g_type_init() too, so we can use gobject
+ * 2/9/06
+ * 	- also set g_prg_name() and load plugins
+ * 8/12/06
+ * 	- add liboil support
+ * 5/2/07
+ * 	- stop a loop if we're called recursively during VIPS startup ... it
+ * 	  can happen if (for example) vips_guess_prefix() fails and tries to
+ * 	  i18n an error message (thanks Christian)
+ * 8/6/07
+ * 	- just warn if plugins fail to load correctly: too annoying to have
+ * 	  VIPS refuse to start because of a dodgy plugin
+ * 7/11/07
+ * 	- progress feedback option
  * 5/8/08
- * 	- added im_guess_libdir()
+ * 	- load plugins from libdir/vips-x.x
+ * 5/10/09
+ * 	- gtkdoc comments
  */
 
 /*
@@ -62,7 +49,7 @@
 
  */
 
-/* 
+/*
 #define DEBUG
  */
 
@@ -82,14 +69,254 @@
 #ifdef HAVE_DIRECT_H
 #include <direct.h>
 #endif /*HAVE_DIRECT_H*/
-#include <string.h>
 #include <limits.h>
+#include <string.h>
 
 #include <vips/vips.h>
+#include <vips/thread.h>
+#include <vips/internal.h>
+#include <vips/vector.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
+
+/* Use in various small places where we need a mutex and it's not worth 
+ * making a private one.
+ */
+GMutex *vips__global_lock = NULL;
+
+/* Keep a copy of the argv0 here.
+ */
+static char *vips__argv0 = NULL;
+
+/**
+ * vips_get_argv0:
+ *
+ * See also: vips_init().
+ *
+ * Returns: a pointer to an internal copy of the argv0 string passed to
+ * vips_init(). Do not free this value
+ */
+const char *
+vips_get_argv0( void )
+{
+	return( vips__argv0 );
+}
+
+/**
+ * vips_init:
+ * @argv0: name of application
+ *
+ * vips_init() starts up the world of VIPS. You should call this on
+ * program startup before using any other VIPS operations. If you do not call
+ * vips_init(), VIPS will call it for you when you use your first VIPS 
+ * operation, but
+ * it may not be able to get hold of @argv0 and VIPS may therefore be unable
+ * to find its data files. It is much better to call this function yourself.
+ *
+ * vips_init() does approximately the following:
+ *
+ * <itemizedlist>
+ *   <listitem> 
+ *     <para>initialises any libraries that VIPS is using, including GObject
+ *     and the threading system, if neccessary</para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>guesses where the VIPS data files are and sets up
+ *     internationalisation --- see vips_guess_prefix()
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>loads any plugins from $libdir/vips-x.y, where x and y are the
+ *     major and minor version numbers for this VIPS.
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * Example:
+ *
+ * |[
+ * int main( int argc, char **argv )
+ * {
+ *   if( vips_init( argv[0] ) )
+ *     error_exit( "unable to start VIPS" );
+ *
+ *   return( 0 );
+ * }
+ * ]|
+ *
+ * See also: im_get_option_group(), im_version(), vips_guess_prefix(),
+ * vips_guess_libdir().
+ *
+ * Returns: 0 on success, -1 otherwise
+ */
+int
+vips_init( const char *argv0 )
+{
+	static gboolean started = FALSE;
+	static gboolean done = FALSE;
+	char *prgname;
+	const char *prefix;
+	const char *libdir;
+	char name[256];
+
+	/* Two stage done handling: 'done' means we've completed, 'started'
+	 * means we're currently initialising. Use this to prevent recursive
+	 * invocation.
+	 */
+	if( done )
+		/* Called more than once, we succeeded, just return OK.
+		 */
+		return( 0 );
+	if( started ) 
+		/* Recursive invocation, something has broken horribly.
+		 * Hopefully the first init will handle it.
+		 */
+		return( 0 );
+	started = TRUE;
+
+	VIPS_SETSTR( vips__argv0, argv0 );
+
+	/* Need gobject etc.
+	 */
+	g_type_init();
+
+#ifdef G_THREADS_ENABLED
+	if( !g_thread_supported() ) 
+		g_thread_init( NULL );
+#endif /*G_THREADS_ENABLED*/
+
+	if( !vips__global_lock )
+		vips__global_lock = g_mutex_new();
+
+	prgname = g_path_get_basename( argv0 );
+	g_set_prgname( prgname );
+	g_free( prgname );
+
+	/* Try to discover our prefix. 
+	 */
+	if( !(prefix = vips_guess_prefix( argv0, "VIPSHOME" )) || 
+		!(libdir = vips_guess_libdir( argv0, "VIPSHOME" )) ) 
+		return( -1 );
+
+	/* Get i18n .mo files from $VIPSHOME/share/locale/.
+	 */
+	im_snprintf( name, 256,
+		"%s" G_DIR_SEPARATOR_S "share" G_DIR_SEPARATOR_S "locale",
+		prefix );
+	bindtextdomain( GETTEXT_PACKAGE, name );
+	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
+
+	/* Register base vips types.
+	 */
+	im__meta_init_types();
+	im__format_init();
+	vips__interpolate_init();
+
+	/* Load up any plugins in the vips libdir. We don't error on failure,
+	 * it's too annoying to have VIPS refuse to start because of a broken
+	 * plugin.
+	 */
+	if( im_load_plugins( "%s/vips-%d.%d", 
+		libdir, IM_MAJOR_VERSION, IM_MINOR_VERSION ) ) {
+		vips_warn( "vips_init", "%s", vips_error_buffer() );
+		vips_error_clear();
+	}
+
+	/* Also load from libdir. This is old and slightly broken behaviour
+	 * :-( kept for back compat convenience.
+	 */
+	if( im_load_plugins( "%s", libdir ) ) {
+		vips_warn( "vips_init", "%s", vips_error_buffer() );
+		vips_error_clear();
+	}
+
+	/* Start up the buffer cache.
+	 */
+	im__buffer_init();
+
+	/* Get the run-time compiler going.
+	 */
+	vips_vector_init();
+
+	done = TRUE;
+
+	return( 0 );
+}
+
+const char *
+im__gettext( const char *msgid )
+{
+	/* Pass in a nonsense name for argv0 ... this init path is only here
+	 * for old programs which are missing an vips_init() call. We need
+	 * i18n set up before we can translate.
+	 */
+	if( vips_init( "giant_banana" ) )
+		vips_error_clear();
+
+	return( dgettext( GETTEXT_PACKAGE, msgid ) );
+}
+
+const char *
+im__ngettext( const char *msgid, const char *plural, unsigned long int n )
+{
+	if( vips_init( "giant_banana" ) )
+		vips_error_clear();
+
+	return( dngettext( GETTEXT_PACKAGE, msgid, plural, n ) );
+}
+
+static GOptionEntry option_entries[] = {
+	{ "vips-concurrency", 'c', 0, G_OPTION_ARG_INT, &im__concurrency, 
+		N_( "evaluate with N concurrent threads" ), "N" },
+	{ "vips-tile-width", 'w', 0, G_OPTION_ARG_INT, &im__tile_width, 
+		N_( "set tile width to N (DEBUG)" ), "N" },
+	{ "vips-tile-height", 'h', 0, G_OPTION_ARG_INT, &im__tile_height, 
+		N_( "set tile height to N (DEBUG)" ), "N" },
+	{ "vips-thinstrip-height", 't', 0, 
+		G_OPTION_ARG_INT, &im__thinstrip_height, 
+		N_( "set thinstrip height to N (DEBUG)" ), "N" },
+	{ "vips-fatstrip-height", 'f', 0, 
+		G_OPTION_ARG_INT, &im__fatstrip_height, 
+		N_( "set fatstrip height to N (DEBUG)" ), "N" },
+	{ "vips-progress", 'p', 0, G_OPTION_ARG_NONE, &im__progress, 
+		N_( "show progress feedback" ), NULL },
+	{ "vips-disc-threshold", 'd', 0, G_OPTION_ARG_STRING, 
+		&im__disc_threshold, 
+		N_( "image size above which to decompress to disc" ), NULL },
+	{ "vips-novector", 't', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, 
+			&im__vector_enabled, 
+		N_( "disable vectorised versions of operations" ), NULL },
+	{ NULL }
+};
+
+/**
+ * vips_get_option_group:
+ *
+ * vips_get_option_group()  returns  a GOptionGroup containing various VIPS
+ * command-line options. It  can  be  used  with  GOption  to  help
+ * parse argc/argv.
+ *
+ * See also: vips_version(), vips_guess_prefix(),
+ * vips_guess_libdir(), vips_init().
+ *
+ * Returns: a GOptionGroup for VIPS, see GOption
+ */
+GOptionGroup *
+vips_get_option_group( void )
+{
+	static GOptionGroup *option_group = NULL;
+
+	if( !option_group ) {
+		option_group = g_option_group_new( 
+			"vips", _( "VIPS Options" ), _( "Show VIPS options" ),
+			NULL, NULL );
+		g_option_group_add_entries( option_group, option_entries );
+	}
+
+	return( option_group );
+}
 
 /* Strip off any of a set of old suffixes (eg. [".v", ".jpg"]), add a single 
  * new suffix (eg. ".tif"). 
@@ -266,7 +493,7 @@ find_file( const char *name )
 		return( NULL );
 
 #ifdef DEBUG
-	printf( "im_guess_prefix: g_getenv( \"PATH\" ) == \"%s\"\n", path );
+	printf( "vips_guess_prefix: g_getenv( \"PATH\" ) == \"%s\"\n", path );
 #endif /*DEBUG*/
 
 #ifdef OS_WIN32
@@ -299,7 +526,7 @@ guess_prefix( const char *argv0, const char *name )
 			 */
 			if( (prefix = extract_prefix( argv0, name )) ) {
 #ifdef DEBUG
-				printf( "im_guess_prefix: found \"%s\" from "
+				printf( "vips_guess_prefix: found \"%s\" from "
 					"argv0\n", prefix );
 #endif /*DEBUG*/
 				return( prefix );
@@ -310,7 +537,7 @@ guess_prefix( const char *argv0, const char *name )
 		 */
 		if( (prefix = find_file( name )) ) {
 #ifdef DEBUG
-			printf( "im_guess_prefix: found \"%s\" from "
+			printf( "vips_guess_prefix: found \"%s\" from "
 				"PATH\n", prefix );
 #endif /*DEBUG*/
 			return( prefix );
@@ -333,7 +560,7 @@ guess_prefix( const char *argv0, const char *name )
 			if( (prefix = extract_prefix( resolved, name )) ) {
 
 #ifdef DEBUG
-				printf( "im_guess_prefix: found \"%s\" "
+				printf( "vips_guess_prefix: found \"%s\" "
 					"from cwd\n", prefix );
 #endif /*DEBUG*/
 				return( prefix );
@@ -348,26 +575,26 @@ guess_prefix( const char *argv0, const char *name )
 }
 
 /** 
- * im_guess_prefix:
+ * vips_guess_prefix:
  * @argv0: program name (typically argv[0])
  * @env_name: save prefix in this environment variable
  *
- * im_guess_prefix() tries to guess the install directory. You should pass 
+ * vips_guess_prefix() tries to guess the install directory. You should pass 
  * in the value of argv[0] (the name your program was run as) as a clue to 
  * help it out, plus the name of the environment variable you let the user 
  * override your package install area with (eg. "VIPSHOME"). 
  *
- * On success, im_guess_prefix() returns the prefix it discovered, and as a 
+ * On success, vips_guess_prefix() returns the prefix it discovered, and as a 
  * side effect, sets the environment variable (if it's not set).
  *
  * Don't free the return string!
  * 
- * See also: im_guess_libdir().
+ * See also: vips_guess_libdir().
  *
  * Returns: the install prefix as a static string, do not free.
  */
 const char *
-im_guess_prefix( const char *argv0, const char *env_name )
+vips_guess_prefix( const char *argv0, const char *env_name )
 {
         const char *prefix;
         const char *p;
@@ -377,7 +604,7 @@ im_guess_prefix( const char *argv0, const char *env_name )
 	 */
         if( (prefix = g_getenv( env_name )) ) {
 #ifdef DEBUG
-		printf( "im_guess_prefix: found \"%s\" in environment\n", 
+		printf( "vips_guess_prefix: found \"%s\" in environment\n", 
 			prefix );
 #endif /*DEBUG*/
                 return( prefix );
@@ -398,9 +625,9 @@ im_guess_prefix( const char *argv0, const char *env_name )
 		im_strncpy( name, p, PATH_MAX );
 
 #ifdef DEBUG
-	printf( "im_guess_prefix: argv0 = %s\n", argv0 );
-	printf( "im_guess_prefix: name = %s\n", name );
-	printf( "im_guess_prefix: cwd = %s\n", get_current_dir() );
+	printf( "vips_guess_prefix: argv0 = %s\n", argv0 );
+	printf( "vips_guess_prefix: name = %s\n", name );
+	printf( "vips_guess_prefix: cwd = %s\n", get_current_dir() );
 #endif /*DEBUG*/
 
 	prefix = guess_prefix( argv0, name );
@@ -410,29 +637,29 @@ im_guess_prefix( const char *argv0, const char *env_name )
 }
 
 /** 
- * im_guess_libdir:
+ * vips_guess_libdir:
  * @argv0: program name (typically argv[0])
  * @env_name: save prefix in this environment variable
  *
- * im_guess_libdir() tries to guess the install directory (usually the 
+ * vips_guess_libdir() tries to guess the install directory (usually the 
  * configure libdir, or $prefix/lib). You should pass 
  * in the value of argv[0] (the name your program was run as) as a clue to 
  * help it out, plus the name of the environment variable you let the user 
  * override your package install area with (eg. "VIPSHOME"). 
  *
- * On success, im_guess_libdir() returns the libdir it discovered, and as a 
+ * On success, vips_guess_libdir() returns the libdir it discovered, and as a 
  * side effect, sets the prefix environment variable (if it's not set).
  *
  * Don't free the return string!
  * 
- * See also: im_guess_prefix().
+ * See also: vips_guess_prefix().
  *
  * Returns: the libdir as a static string, do not free.
  */
 const char *
-im_guess_libdir( const char *argv0, const char *env_name )
+vips_guess_libdir( const char *argv0, const char *env_name )
 {
-	const char *prefix = im_guess_prefix( argv0, env_name );
+	const char *prefix = vips_guess_prefix( argv0, env_name );
         static char *libdir = NULL;
 
 	if( libdir )
@@ -447,10 +674,10 @@ im_guess_libdir( const char *argv0, const char *env_name )
 		libdir = g_strdup_printf( "%s/lib", prefix );
 
 #ifdef DEBUG
-	printf( "im_guess_libdir: IM_PREFIX = %s\n", IM_PREFIX );
-	printf( "im_guess_libdir: IM_LIBDIR = %s\n", IM_LIBDIR );
-	printf( "im_guess_libdir: prefix = %s\n", prefix );
-	printf( "im_guess_libdir: libdir = %s\n", libdir );
+	printf( "vips_guess_libdir: IM_PREFIX = %s\n", IM_PREFIX );
+	printf( "vips_guess_libdir: IM_LIBDIR = %s\n", IM_LIBDIR );
+	printf( "vips_guess_libdir: prefix = %s\n", prefix );
+	printf( "vips_guess_libdir: libdir = %s\n", libdir );
 #endif /*DEBUG*/
 
 	return( libdir );

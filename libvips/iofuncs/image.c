@@ -415,7 +415,6 @@ vips_image_finalize( GObject *gobject )
 	VIPS_FREE( image->Hist );
 	VIPS_FREEF( im__gslist_gvalue_free, image->history_list );
 	im__meta_destroy( image );
-	im__time_destroy( image );
 
 	G_OBJECT_CLASS( vips_image_parent_class )->finalize( gobject );
 }
@@ -1346,18 +1345,25 @@ vips_image_posteval( VipsImage *image )
 	}
 }
 
-int
-vips_image_test_kill( VipsImage *image )
+gboolean
+vips_image_get_kill( VipsImage *image )
 {
 	/* Has kill been set for this image? If yes, abort evaluation.
 	 */
-	if( image->kill ) {
+	if( image->kill ) 
 		vips_error( "vips_image_test_kill", 
 			_( "killed for image \"%s\"" ), image->filename );
-		return( -1 );
-	}
 
-	return( 0 );
+	return( image->kill );
+}
+
+void
+vips_image_set_kill( VipsImage *image, gboolean kill )
+{
+	VIPS_DEBUG_MSG( "vips_image_set_kill: %s = %d\n", 
+		image->filename, kill );
+
+	image->kill = kill;
 }
 
 /**

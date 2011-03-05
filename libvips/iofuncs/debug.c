@@ -7,6 +7,8 @@
  * 2/10/09
  * 	- im_image_sanity() moved here
  * 	- im_printdesc() moved here
+ * 5/3/11
+ * 	- vips8 rewrite
  */
 
 /*
@@ -50,36 +52,6 @@
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
-
-/* Prettyprint various header fields. Just for vips7 compat, use
- * VIPS_ENUM_VALUE() instead.
- */
-const char *im_Type2char( VipsInterpretation type ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_INTERPRETATION, type ) ); }
-const char *im_BandFmt2char( VipsBandFormat format ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_BAND_FORMAT, format ) ); }
-const char *im_Coding2char( VipsCoding coding ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_CODING, coding ) ); }
-const char *im_dtype2char( VipsImageType n ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_IMAGE_TYPE, n ) ); }
-const char *im_dhint2char( VipsDemandStyle style ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, style ) ); }
-
-int im_char2Type( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_INTERPRETATION, str ) ); }
-int im_char2BandFmt( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_BAND_FORMAT, str ) ); }
-int im_char2Coding( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_CODING, str ) ); }
-int im_char2dtype( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_IMAGE_TYPE, str ) ); }
-int im_char2dhint( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_DEMAND_STYLE, str ) ); }
-
-/* Totally useless now.
- */
-const char *im_Compression2char( int n ) { return( "NONE" ); }
-int im_char2Compression( const char *str ) { return( -1 ); }
 
 /* Print something about all current objects.
  */
