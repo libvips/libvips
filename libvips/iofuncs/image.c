@@ -31,8 +31,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -356,9 +356,7 @@ vips_image_finalize( GObject *gobject )
 	if( image->baseaddr ) {
 		/* MMAP file.
 		 */
-#ifdef DEBUG_IO
-		printf( "vips_image_finalize: unmapping file ..\n" );
-#endif /*DEBUG_IO*/
+		VIPS_DEBUG_MSG( "vips_image_finalize: unmapping file\n" );
 
 		im__munmap( image->baseaddr, image->length );
 		image->baseaddr = NULL;
@@ -378,9 +376,7 @@ vips_image_finalize( GObject *gobject )
 	/* Is there a file descriptor?
 	 */
 	if( image->fd != -1 ) {
-#ifdef DEBUG_IO
-		printf( "vips_image_finalize: closing output file ..\n" );
-#endif /*DEBUG_IO*/
+		VIPS_DEBUG_MSG( "vips_image_finalize: closing output file\n" );
 
 		if( image->dtype == VIPS_IMAGE_OPENOUT )
 			(void) im__writehist( image );
@@ -397,9 +393,8 @@ vips_image_finalize( GObject *gobject )
 		/* Buffer image. Only free stuff we know we allocated.
 		 */
 		if( image->dtype == VIPS_IMAGE_SETBUF ) {
-#ifdef DEBUG_IO
-			printf( "vips_image_finalize: freeing buffer ..\n" );
-#endif /*DEBUG_IO*/
+			VIPS_DEBUG_MSG( "vips_image_finalize: "
+				"freeing buffer\n" );
 			im_free( image->data );
 			image->dtype = VIPS_IMAGE_NONE;
 		}
@@ -442,7 +437,7 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 			vips_image_get_bands( image ) ),
 		vips_image_get_width( image ),
 		vips_image_get_height( image ),
-		VIPS_ENUM_NICK( VIPS_TYPE_FORMAT, 
+		VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, 
 			vips_image_get_format( image ) ),
 		vips_image_get_bands( image ),
 		VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
@@ -533,9 +528,8 @@ parse_size( const char *size_string )
 	}
 	g_free( unit );
 
-#ifdef DEBUG
-	printf( "parse_size: parsed \"%s\" as %zd\n", size_string, size );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "parse_size: parsed \"%s\" as %zd\n", 
+		size_string, size );
 
 	return( size );
 }
@@ -561,9 +555,7 @@ disc_threshold( void )
 		if( im__disc_threshold ) 
 			threshold = parse_size( im__disc_threshold );
 
-#ifdef DEBUG
-		printf( "disc_threshold: %zd bytes\n", threshold );
-#endif /*DEBUG*/
+		VIPS_DEBUG_MSG( "disc_threshold: %zd bytes\n", threshold );
 	}
 
 	return( threshold );
@@ -592,10 +584,9 @@ lazy_real_image( Lazy *lazy )
 			if( !(real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );
 
-#ifdef DEBUG
-			printf( "lazy_image: opening to disc file \"%s\"\n",
+			VIPS_DEBUG_MSG( "lazy_real_image: "
+				"opening to disc file \"%s\"\n",
 				real->filename );
-#endif /*DEBUG*/
 		}
 
 	/* Otherwise, fall back to a "p".
@@ -797,16 +788,6 @@ vips_image_build( VipsObject *object )
 
 	VIPS_DEBUG_MSG( "vips_image_build: %p\n", image );
 
-	/* name defaults to filename.
-	 */
-	if( filename ) {
-		char *basename;
-
-		basename = g_path_get_basename( filename );
-		g_object_set( image, "name", basename, NULL );
-		g_free( basename );
-	}
-
 	if( VIPS_OBJECT_CLASS( vips_image_parent_class )->build( object ) )
 		return( -1 );
 
@@ -996,27 +977,28 @@ vips_image_class_init( VipsImageClass *class )
 
 	/* Create properties.
 	 */
+
+	/* Width / height / bands can be zero for unintialised.
+	 */
 	pspec = g_param_spec_int( "width", "Width",
 		_( "Image width in pixels" ),
-		1, 1000000, 0,
+		0, 1000000, 0,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_WIDTH, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_SET_ONCE, 
 		G_STRUCT_OFFSET( VipsImage, Xsize ) );
-
 	pspec = g_param_spec_int( "height", "Height",
 		_( "Image height in pixels" ),
-		1, 1000000, 0,
+		0, 1000000, 0,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_HEIGHT, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_SET_ONCE, 
 		G_STRUCT_OFFSET( VipsImage, Ysize ) );
-
 	pspec = g_param_spec_int( "bands", "Bands",
 		_( "Number of bands in image" ),
-		1, 1000000, 0, 
+		0, 1000000, 0, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_BANDS, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
@@ -1025,7 +1007,7 @@ vips_image_class_init( VipsImageClass *class )
 
 	pspec = g_param_spec_enum( "format", "Format",
 		_( "Pixel format in image" ),
-		VIPS_TYPE_FORMAT, VIPS_FORMAT_UCHAR, 
+		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_FORMAT, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
@@ -1216,10 +1198,10 @@ vips_image_size( VipsImage *image )
 void
 vips_image_written( VipsImage *image )
 {
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 	printf( "vips_image_written: " );
-	vips_object_print( object );
-#endif /*DEBUG*/
+	vips_object_print( VIPS_OBJECT( image ) );
+#endif /*VIPS_DEBUG*/
 
 	g_signal_emit( image, vips_image_signals[SIG_WRITTEN], 0 );
 }
@@ -1227,10 +1209,10 @@ vips_image_written( VipsImage *image )
 void
 vips_image_invalidate( VipsImage *image )
 {
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 	printf( "vips_image_invalidate: " );
-	vips_object_print( object );
-#endif /*DEBUG*/
+	vips_object_print( VIPS_OBJECT( image ) );
+#endif /*VIPS_DEBUG*/
 
 	g_signal_emit( image, vips_image_signals[SIG_INVALIDATE], 0 );
 }
@@ -1286,10 +1268,10 @@ void
 vips_image_preeval( VipsImage *image )
 {
 	if( image->progress ) {
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 		printf( "vips_image_preeval: " );
-		vips_object_print( object );
-#endif /*DEBUG*/
+		vips_object_print( VIPS_OBJECT( image ) );
+#endif /*VIPS_DEBUG*/
 
 		g_assert( !im_image_sanity( image->progress ) );
 
@@ -1309,10 +1291,10 @@ vips_image_eval( VipsImage *image, int w, int h )
 		VipsProgress *progress = image->time;
 		float prop;
 
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 		printf( "vips_image_eval: " );
-		vips_object_print( object );
-#endif /*DEBUG*/
+		vips_object_print( VIPS_OBJECT( image ) );
+#endif /*VIPS_DEBUG*/
 
 		g_assert( !im_image_sanity( image->progress ) );
 
@@ -1333,10 +1315,10 @@ void
 vips_image_posteval( VipsImage *image )
 {
 	if( image->progress ) {
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 		printf( "vips_image_posteval: " );
-		vips_object_print( object );
-#endif /*DEBUG*/
+		vips_object_print( VIPS_OBJECT( image ) );
+#endif /*VIPS_DEBUG*/
 
 		g_assert( !im_image_sanity( image->progress ) );
 
