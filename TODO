@@ -18,6 +18,39 @@
 
 - remove im__handle_eval etc. from headers
 
+ - png read/write needs redoing:
+
+	http://www.libpng.org/pub/png/src/libpng-1.4.x-to-1.5.x-summary.txt
+
+	... the ability to directly access
+	the main libpng control structures, png_struct and png_info, deprecated
+	in earlier versions of libpng, has been completely removed from
+	libpng 1.5.
+
+  argh
+
+- sink.c, sinkdisc.c, sinkmemory.c all define this function:
+
+	static int 
+	sink_progress( void *a )
+	{
+		Sink *sink = (Sink *) a;
+
+		VIPS_DEBUG_MSG( "sink_progress: %d x %d\n",
+			sink->tile_width, sink->tile_height );
+
+		/* Trigger any eval callbacks on our source image and
+		 * check for errors.
+		 */
+		vips_image_eval( sink->im, 
+			sink->tile_width, sink->tile_height );
+		if( vips_image_get_kill( im ) )
+			return( -1 );
+
+		return( 0 );
+	}
+
+  how dumb, common this up somehow
 
 
 - pre/post/close should be on VipsObject, not VipsImage

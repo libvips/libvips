@@ -30,8 +30,10 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
+#define VIPS_DEBUG
+#define DEBUG_REF
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -73,7 +75,7 @@ static guint vips_object_signals[SIG_LAST] = { 0 };
 
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
 
-static void
+void
 vips_object_preclose( VipsObject *object )
 {
 	if( !object->preclose ) {
@@ -152,7 +154,7 @@ vips_object_print( VipsObject *object )
 	vips_object_print_class( class );
 	vips_buf_init_static( &buf, str, 1000 );
 	class->print( object, &buf );
-	printf( "\n%s (%p)\n", vips_buf_all( &buf ), object );
+	printf( "%s\n", vips_buf_all( &buf ) );
 }
 
 /* Extra stuff we track for properties to do our argument handling.
@@ -394,9 +396,14 @@ vips_object_dispose( GObject *gobject )
 	/* Our subclasses should have already called this. Run it again, just
 	 * in case.
 	 */
-	if( !object->preclose )
+	if( !object->preclose ) {
+#ifdef VIPS_DEBUG
 		printf( "vips_object_dispose: no vips_object_preclose()\n" );
-	vips_object_preclose( object );
+		vips_object_print( VIPS_OBJECT( gobject ) );
+#endif /*VIPS_DEBUG*/
+
+		vips_object_preclose( object );
+	}
 
 	/* Clear all our arguments: they may be holding refs we should drop.
 	 */

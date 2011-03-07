@@ -274,6 +274,8 @@ vips_region_dispose( GObject *gobject )
 	vips_object_print( VIPS_OBJECT( gobject ) );
 #endif /*VIPS_DEBUG*/
 
+	vips_object_preclose( VIPS_OBJECT( gobject ) );
+
         /* Stop this sequence.
          */
         vips__region_stop( region );

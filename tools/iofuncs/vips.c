@@ -65,6 +65,7 @@
 
 /*
 #define DEBUG_FATAL
+#define DEBUG_LEAK
  */
 
 #ifdef HAVE_CONFIG_H
@@ -78,6 +79,7 @@
 #include <locale.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef OS_WIN32
 #define strcasecmp(a,b) _stricmp(a,b)
@@ -919,6 +921,10 @@ main( int argc, char **argv )
 	fprintf( stderr, "*** DEBUG_FATAL: will abort() on first warning\n" );
 #endif /*!DEBUG_FATAL*/
 
+#ifdef DEBUG_LEAK
+	fprintf( stderr, "*** DEBUG_LEAK: will leak test on exit\n" );
+#endif /*!DEBUG_LEAK*/
+
         context = g_option_context_new( _( "- VIPS driver program" ) );
 
 	g_option_context_add_main_entries( context,
@@ -1019,6 +1025,12 @@ main( int argc, char **argv )
 	}
 
 	im_close_plugins();
+
+#ifdef DEBUG_LEAK
+	printf( "** leak test on exit:\n" );
+	im__print_all();
+	printf( "** leak test done\n" );
+#endif /*DEBUG_LEAK*/
 
 	return( 0 );
 }

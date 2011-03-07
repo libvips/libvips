@@ -290,11 +290,14 @@ sink_progress( void *a )
 {
 	Sink *sink = (Sink *) a;
 
+	VIPS_DEBUG_MSG( "sink_progress: %d x %d\n",
+		sink->tile_width, sink->tile_height );
+
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
 	 */
-	if( im__handle_eval( sink->im, 
-		sink->tile_width, sink->tile_height ) )
+	vips_image_eval( sink->im, sink->tile_width, sink->tile_height );
+	if( vips_image_get_kill( sink->im ) )
 		return( -1 );
 
 	return( 0 );
@@ -350,10 +353,7 @@ vips_sink_tile( VipsImage *im,
 		sink.tile_height = tile_height;
 	}
 
-	if( im__start_eval( sink.t ) ) {
-		sink_free( &sink );
-		return( -1 );
-	}
+	vips_image_preeval( sink.t );
 
 	result = vips_threadpool_run( im, 
 		sink_thread_state_new,
@@ -362,7 +362,7 @@ vips_sink_tile( VipsImage *im,
 		sink_progress, 
 		&sink );
 
-	im__end_eval( sink.t );
+	vips_image_posteval( sink.t );
 
 	sink_free( &sink );
 

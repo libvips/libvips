@@ -91,7 +91,8 @@ typedef struct {
 static void
 im_add_callback_cb( VipsImage *im, Callback *callback )
 {
-	callback->fn( callback->a, callback->b );
+	if( callback->fn( callback->a, callback->b ) )
+		vips_image_set_kill( im, TRUE );
 }
 
 int 

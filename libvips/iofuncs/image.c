@@ -422,6 +422,8 @@ vips_image_dispose( GObject *gobject )
 	vips_object_print( VIPS_OBJECT( gobject ) );
 #endif /*VIPS_DEBUG*/
 
+	vips_object_preclose( VIPS_OBJECT( gobject ) );
+
 	G_OBJECT_CLASS( vips_image_parent_class )->dispose( gobject );
 }
 
@@ -478,6 +480,8 @@ lazy_new( VipsImage *image,
 	VipsFormatClass *format, const char *filename, gboolean disc )
 {
 	Lazy *lazy;
+
+	VIPS_DEBUG_MSG( "lazy_new: \"%s\"\n", filename );
 
 	if( !(lazy = VIPS_NEW( image, Lazy )) )
 		return( NULL );
@@ -827,6 +831,11 @@ vips_image_build( VipsObject *object )
 			}
 		}
 		else {
+			/* Make this a partial, generate into it from the
+			 * converter.
+			 */
+			image->dtype = VIPS_IMAGE_PARTIAL;
+
 			if( vips_image_open_lazy( image, format, 
 				filename, mode[1] == 'd' ) )
 				return( -1 );
@@ -969,6 +978,9 @@ vips_image_class_init( VipsImageClass *class )
 	gobject_class->dispose = vips_image_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "image";
+	vobject_class->description = _( "VIPS image class" );
 
 	vobject_class->print = vips_image_print;
 	vobject_class->build = vips_image_build;
@@ -1342,8 +1354,8 @@ vips_image_get_kill( VipsImage *image )
 void
 vips_image_set_kill( VipsImage *image, gboolean kill )
 {
-	VIPS_DEBUG_MSG( "vips_image_set_kill: %s = %d\n", 
-		image->filename, kill );
+	if( !image->kill ) 
+		VIPS_DEBUG_MSG( "vips_image_set_kill: %s\n", image->filename );
 
 	image->kill = kill;
 }

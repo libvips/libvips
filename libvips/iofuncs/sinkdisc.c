@@ -440,8 +440,8 @@ wbuffer_progress_fn( void *a )
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
 	 */
-	if( im__handle_eval( write->im, 
-		write->tile_width, write->tile_height ) )
+	vips_image_eval( write->im, write->tile_width, write->tile_height );
+	if( vips_image_get_kill( write->im ) )
 		return( -1 );
 
 	return( 0 );
@@ -510,8 +510,7 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	Write write;
 	int result;
 
-	if( im__start_eval( im ) ) 
-		return( -1 );
+	vips_image_preeval( im );
 
 	write_init( &write, im, write_fn, a );
 
@@ -541,7 +540,7 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	if( !result )
 		im_semaphore_down( &write.buf->done );
 
-	im__end_eval( im );
+	vips_image_posteval( im );
 
 	write_free( &write );
 

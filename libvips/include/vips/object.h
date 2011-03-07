@@ -248,6 +248,7 @@ void vips_object_set_property( GObject *gobject,
 void vips_object_get_property( GObject *gobject, 
 	guint property_id, GValue *value, GParamSpec *pspec );
 
+void vips_object_preclose( VipsObject *object );
 int vips_object_build( VipsObject *object );
 void vips_object_print_class( VipsObjectClass *klass );
 void vips_object_print( VipsObject *object );

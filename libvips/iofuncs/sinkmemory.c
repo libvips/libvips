@@ -166,8 +166,8 @@ sink_progress( void *a )
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
 	 */
-	if( im__handle_eval( sink->im, 
-		sink->tile_width, sink->tile_height ) )
+	vips_image_eval( sink->im, sink->tile_width, sink->tile_height );
+	if( vips_image_get_kill( sink->im ) )
 		return( -1 );
 
 	return( 0 );
@@ -200,10 +200,7 @@ vips_sink_memory( VipsImage *im )
 	if( sink_init( &sink, im ) )
 		return( -1 );
 
-	if( im__start_eval( im ) ) {
-		sink_free( &sink );
-		return( -1 );
-	}
+	vips_image_preeval( im );
 
 	result = vips_threadpool_run( im, 
 		vips_thread_state_new,
@@ -212,7 +209,7 @@ vips_sink_memory( VipsImage *im )
 		sink_progress, 
 		&sink );
 
-	im__end_eval( im );
+	vips_image_posteval( im );
 
 	sink_free( &sink );
 
