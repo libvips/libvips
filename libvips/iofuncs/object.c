@@ -1175,8 +1175,9 @@ vips_object_map( VSListMap2Fn fn, void *a, void *b )
 	args.a = a;
 	args.b = b;
 	args.result = NULL;
-	g_hash_table_foreach( vips_object_all, 
-		(GHFunc) vips_object_map_sub, &args );
+	if( vips_object_all )
+		g_hash_table_foreach( vips_object_all, 
+			(GHFunc) vips_object_map_sub, &args );
 
 	return( args.result );
 }

@@ -1126,8 +1126,7 @@ vips_image_class_init( VipsImageClass *class )
 static void
 vips_image_init( VipsImage *image )
 {
-	/* Init to 0 is fine for most header fields. Others have default set
-	 * by property system.
+	/* Init to 0 is fine for most header fields. 
 	 */
 
 	/* Default to native order.
@@ -1136,6 +1135,8 @@ vips_image_init( VipsImage *image )
 
 	image->fd = -1;			/* since 0 is stdout */
 	image->sslock = g_mutex_new ();
+
+	image->sizeof_header = IM_SIZEOF_HEADER;
 }
 
 /* Set of access functions.

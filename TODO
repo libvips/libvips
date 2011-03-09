@@ -18,7 +18,7 @@
 
 - remove im__handle_eval etc. from headers
 
- - png read/write needs redoing:
+- png read/write needs redoing:
 
 	http://www.libpng.org/pub/png/src/libpng-1.4.x-to-1.5.x-summary.txt
 

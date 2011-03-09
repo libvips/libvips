@@ -32,6 +32,7 @@
   files larger than memory
 - removed man pages, we are all gtk-doc now
 - added VIPS_FORMAT_BIGENDIAN format flag
+- moved IMAGE and REGION to VipsImage and VipsRegion, classes over VipsObject
 
 30/11/10 started 7.24.0
 - bump for new stable
