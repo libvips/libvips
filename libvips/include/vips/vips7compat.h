@@ -95,6 +95,8 @@ extern "C" {
 #define IM_RINT VIPS_RINT
 #define IM_NEW VIPS_NEW
 #define IM_ARRAY VIPS_ARRAY
+#define IM_SETSTR VIPS_SETSTR
+#define IM_ABS VIPS_ABS
 #define IM_FREE VIPS_FREE
 #define IM_FREEF VIPS_FREEF
 #define IM_NUMBER VIPS_NUMBER
@@ -205,10 +207,14 @@ int im_add_callback( VipsImage *im,
 	im_add_callback( IM, "close", FN, A, B )
 #define im_add_postclose_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "postclose", FN, A, B )
+#define im_add_preclose_callback( IM, FN, A, B ) \
+	im_add_callback( IM, "preclose", FN, A, B )
 #define im_add_evalstart_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "evalstart", FN, A, B )
 #define im_add_evalend_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "evalend", FN, A, B )
+#define im_add_eval_callback( IM, FN, A, B ) \
+	im_add_callback( IM, "eval", FN, A, B )
 #define im_add_invalidate_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "invalidate", FN, A, B )
 
