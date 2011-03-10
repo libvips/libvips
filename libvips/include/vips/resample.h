@@ -37,20 +37,21 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_affinei( IMAGE *in, IMAGE *out, 
+int im_affinei( VipsImage *in, VipsImage *out, 
 	VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy, 
 	int ox, int oy, int ow, int oh );
-int im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
+int im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy ) ;
 
-int im_shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink );
-int im_rightshift_size( IMAGE *in, IMAGE *out, int xshift, int yshift, int band_fmt );
+int im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink );
+int im_rightshift_size( VipsImage *in, VipsImage *out, 
+	int xshift, int yshift, int band_fmt );
 
-int im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
+int im_match_linear( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int xr1, int yr1, int xs1, int ys1,
 	int xr2, int yr2, int xs2, int ys2 );
-int im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
+int im_match_linear_search( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int xr1, int yr1, int xs1, int ys1,
 	int xr2, int yr2, int xs2, int ys2,
 	int hwindowsize, int hsearchsize );

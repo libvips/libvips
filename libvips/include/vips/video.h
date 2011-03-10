@@ -37,10 +37,10 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_video_v4l1( IMAGE *im, const char *device,
+int im_video_v4l1( VipsImage *im, const char *device,
 	int channel, int brightness, int colour, int contrast, int hue,
 	int ngrabs );
-int im_video_test( IMAGE *im, int brightness, int error );
+int im_video_test( VipsImage *im, int brightness, int error );
 
 #ifdef __cplusplus
 }

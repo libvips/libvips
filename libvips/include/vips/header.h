@@ -37,20 +37,21 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_header_int( IMAGE *im, const char *field, int *out );
-int im_header_double( IMAGE *im, const char *field, double *out );
-int im_header_string( IMAGE *im, const char *field, char **out );
-int im_header_as_string( IMAGE *im, const char *field, char **out );
-GType im_header_get_typeof( IMAGE *im, const char *field );
-int im_header_get( IMAGE *im, const char *field, GValue *value_copy );
+int im_header_int( VipsImage *im, const char *field, int *out );
+int im_header_double( VipsImage *im, const char *field, double *out );
+int im_header_string( VipsImage *im, const char *field, char **out );
+int im_header_as_string( VipsImage *im, const char *field, char **out );
+GType im_header_get_typeof( VipsImage *im, const char *field );
+int im_header_get( VipsImage *im, const char *field, GValue *value_copy );
 
-typedef void *(*im_header_map_fn)( IMAGE *, const char *, GValue *, void * );
-void *im_header_map( IMAGE *im, im_header_map_fn fn, void *a );
+typedef void *(*im_header_map_fn)( VipsImage *, 
+	const char *, GValue *, void * );
+void *im_header_map( VipsImage *im, im_header_map_fn fn, void *a );
 
-int im_histlin( IMAGE *im, const char *fmt, ... )
+int im_histlin( VipsImage *im, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
-int im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] );
-const char *im_history_get( IMAGE *im );
+int im_updatehist( VipsImage *out, const char *name, int argc, char *argv[] );
+const char *im_history_get( VipsImage *im );
 
 #ifdef __cplusplus
 }

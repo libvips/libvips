@@ -40,6 +40,7 @@ extern "C" {
  * The name that JPEG read and write operations use for the image's EXIF data.
  */
 #define IM_META_EXIF_NAME "exif-data"
+
 /**
  * IM_META_ICC_NAME:
  *
@@ -49,6 +50,7 @@ extern "C" {
  * im_icc_transform() operations.
  */
 #define IM_META_ICC_NAME "icc-profile-data"
+
 /**
  * IM_META_XML:
  *
@@ -56,6 +58,7 @@ extern "C" {
  * format file.
  */
 #define IM_META_XML "xml-header"
+
 /**
  * IM_META_RESOLUTION_UNIT:
  *
@@ -111,23 +114,23 @@ void *im_blob_get( const GValue *value, size_t *length );
 int im_blob_set( GValue *value, im_callback_fn free_fn, 
 	void *data, size_t length ); 
 
-int im_meta_set( IMAGE *im, const char *field, GValue *value );
-gboolean im_meta_remove( IMAGE *im, const char *field );
-int im_meta_get( IMAGE *im, const char *field, GValue *value_copy );
-GType im_meta_get_typeof( IMAGE *im, const char *field );
+int im_meta_set( VipsImage *im, const char *field, GValue *value );
+gboolean im_meta_remove( VipsImage *im, const char *field );
+int im_meta_get( VipsImage *im, const char *field, GValue *value_copy );
+GType im_meta_get_typeof( VipsImage *im, const char *field );
 
-int im_meta_set_int( IMAGE *im, const char *field, int i );
-int im_meta_get_int( IMAGE *im, const char *field, int *i );
-int im_meta_set_double( IMAGE *im, const char *field, double d );
-int im_meta_get_double( IMAGE *im, const char *field, double *d );
-int im_meta_set_area( IMAGE *im, 
+int im_meta_set_int( VipsImage *im, const char *field, int i );
+int im_meta_get_int( VipsImage *im, const char *field, int *i );
+int im_meta_set_double( VipsImage *im, const char *field, double d );
+int im_meta_get_double( VipsImage *im, const char *field, double *d );
+int im_meta_set_area( VipsImage *im, 
 	const char *field, im_callback_fn free_fn, void *data );
-int im_meta_get_area( IMAGE *im, const char *field, void **data );
-int im_meta_set_string( IMAGE *im, const char *field, const char *str );
-int im_meta_get_string( IMAGE *im, const char *field, char **str );
-int im_meta_set_blob( IMAGE *im, const char *field, 
+int im_meta_get_area( VipsImage *im, const char *field, void **data );
+int im_meta_set_string( VipsImage *im, const char *field, const char *str );
+int im_meta_get_string( VipsImage *im, const char *field, char **str );
+int im_meta_set_blob( VipsImage *im, const char *field, 
 	im_callback_fn free_fn, void *data, size_t length );
-int im_meta_get_blob( IMAGE *im, const char *field, 
+int im_meta_get_blob( VipsImage *im, const char *field, 
 	void **data, size_t *length );
 
 #ifdef __cplusplus

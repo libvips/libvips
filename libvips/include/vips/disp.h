@@ -84,11 +84,11 @@ int im_col_XYZ2rgb(
 	int *r_ret, int *g_ret, int *b_ret, 
 	int *or_ret );
 
-int im_XYZ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d );
-int im_Lab2disp( IMAGE *in, IMAGE *out, struct im_col_display *d );
-int im_LabQ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d );
-int im_disp2XYZ( IMAGE *in, IMAGE *out, struct im_col_display *d );
-int im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d );
+int im_XYZ2disp( VipsImage *in, VipsImage *out, struct im_col_display *d );
+int im_Lab2disp( VipsImage *in, VipsImage *out, struct im_col_display *d );
+int im_LabQ2disp( VipsImage *in, VipsImage *out, struct im_col_display *d );
+int im_disp2XYZ( VipsImage *in, VipsImage *out, struct im_col_display *d );
+int im_disp2Lab( VipsImage *in, VipsImage *out, struct im_col_display *d );
 
 /* Colour display values and arrays
 	&im_col_screen_white,	index 0
@@ -103,12 +103,12 @@ int im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d );
 struct im_col_display *im_col_displays( int n );
 struct im_col_display *im_col_display_name( const char *name );
 
-void *im_LabQ2disp_build_table( IMAGE *out, struct im_col_display *d );
-int im_LabQ2disp_table( IMAGE *in, IMAGE *out, void *table );
+void *im_LabQ2disp_build_table( VipsImage *out, struct im_col_display *d );
+int im_LabQ2disp_table( VipsImage *in, VipsImage *out, void *table );
 
-int im_dE_fromdisp( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+int im_dE_fromdisp( VipsImage *in1, VipsImage *in2, VipsImage *out, 
 	struct im_col_display *d );
-int im_dECMC_fromdisp( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+int im_dECMC_fromdisp( VipsImage *in1, VipsImage *in2, VipsImage *out, 
 	struct im_col_display *d );
 
 #ifdef __cplusplus

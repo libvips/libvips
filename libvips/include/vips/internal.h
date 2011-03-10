@@ -79,7 +79,6 @@ typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
 
 /* iofuncs
  */
-int vips_open_input( VipsImage *image );
 int vips_image_open_input( VipsImage *image );
 
 int im_mapfile( VipsImage * );

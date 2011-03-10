@@ -62,7 +62,7 @@ typedef struct _VipsRegion {
 	/*< public >*/
 	/* Users may read these two fields.
 	 */
-	IMAGE *im;		/* Link back to parent image */
+	VipsImage *im;		/* Link back to parent image */
 	Rect valid;		/* Area of parent we can see */
 
 	/* The rest of REGION is private.

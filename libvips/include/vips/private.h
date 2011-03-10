@@ -58,11 +58,11 @@ extern "C" {
 typedef unsigned char PEL;			/* useful datum		*/
 
 /* What we track for each mmap window. Have a list of these on an openin
- * IMAGE.
+ * VipsImage.
  */
 typedef struct {
 	int ref_count;		/* # of regions referencing us */
-	struct _VipsImage *im;	/* IMAGE we are attached to */
+	struct _VipsImage *im;	/* VipsImage we are attached to */
 
 	int top; 		/* Area of image we have mapped, in pixels */
 	int height;
@@ -101,7 +101,7 @@ typedef struct im__buffer_cache_list_t {
  */
 typedef struct im__buffer_t {
 	int ref_count;		/* # of regions referencing us */
-	struct _VipsImage *im;	/* IMAGE we are attached to */
+	struct _VipsImage *im;	/* VipsImage we are attached to */
 
 	Rect area;		/* Area this pixel buffer covers */
 	gboolean done;		/* Calculated and in cache */

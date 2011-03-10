@@ -37,21 +37,21 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_grey( IMAGE *out, const int xsize, const int ysize );
-int im_fgrey( IMAGE *out, const int xsize, const int ysize );
-int im_make_xy( IMAGE *out, const int xsize, const int ysize );
+int im_grey( VipsImage *out, const int xsize, const int ysize );
+int im_fgrey( VipsImage *out, const int xsize, const int ysize );
+int im_make_xy( VipsImage *out, const int xsize, const int ysize );
 
-int im_feye( IMAGE *out,
+int im_feye( VipsImage *out,
 	const int xsize, const int ysize, const double factor );
-int im_eye( IMAGE *out,
+int im_eye( VipsImage *out,
 	const int xsize, const int ysize, const double factor );
-int im_zone( IMAGE *out, int size );
-int im_fzone( IMAGE *out, int size );
-int im_sines( IMAGE *out,
+int im_zone( VipsImage *out, int size );
+int im_fzone( VipsImage *out, int size );
+int im_sines( VipsImage *out,
 	int xsize, int ysize, double horfreq, double verfreq );
 
-int im_benchmarkn( IMAGE *in, IMAGE *out, int n );
-int im_benchmark2( IMAGE *in, double *out );
+int im_benchmarkn( VipsImage *in, VipsImage *out, int n );
+int im_benchmark2( VipsImage *in, double *out );
 
 #ifdef __cplusplus
 }

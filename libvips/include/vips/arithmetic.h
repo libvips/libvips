@@ -39,62 +39,63 @@ extern "C" {
 
 /* arithmetic
  */
-DOUBLEMASK *im_measure_area( IMAGE *im, 
+DOUBLEMASK *im_measure_area( VipsImage *im, 
 	int left, int top, int width, int height, 
 	int h, int v, 
 	int *sel, int nsel, const char *name );
-DOUBLEMASK *im_stats( IMAGE *in );
-int im_max( IMAGE *in, double *out );
-int im_min( IMAGE *in, double *out );
-int im_avg( IMAGE *in, double *out );
-int im_deviate( IMAGE *in, double *out );
-int im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out );
-int im_minpos( IMAGE *in, int *xpos, int *ypos, double *out );
-int im_maxpos_avg( IMAGE *im, double *xpos, double *ypos, double *out );
-int im_maxpos_vec( IMAGE *im, int *xpos, int *ypos, double *maxima, int n );
-int im_minpos_vec( IMAGE *im, int *xpos, int *ypos, double *minima, int n );
-int im_bandmean( IMAGE *in, IMAGE *out );
+DOUBLEMASK *im_stats( VipsImage *in );
+int im_max( VipsImage *in, double *out );
+int im_min( VipsImage *in, double *out );
+int im_avg( VipsImage *in, double *out );
+int im_deviate( VipsImage *in, double *out );
+int im_maxpos( VipsImage *in, int *xpos, int *ypos, double *out );
+int im_minpos( VipsImage *in, int *xpos, int *ypos, double *out );
+int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
+int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
+int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );
+int im_bandmean( VipsImage *in, VipsImage *out );
 
-int im_add( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_subtract( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_invert( IMAGE *in, IMAGE *out );
-int im_lintra( double a, IMAGE *in, double b, IMAGE *out );
-int im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out );
-int im_multiply( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_divide( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_remainder_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_remainderconst( IMAGE *in, IMAGE *out, double c );
-int im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb );
+int im_add( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_subtract( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_invert( VipsImage *in, VipsImage *out );
+int im_lintra( double a, VipsImage *in, double b, VipsImage *out );
+int im_lintra_vec( int n, double *a, VipsImage *in, double *b, VipsImage *out );
+int im_multiply( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_divide( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_remainder( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_remainder_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_remainderconst( VipsImage *in, VipsImage *out, double c );
+int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
-int im_sign( IMAGE *in, IMAGE *out );
-int im_abs( IMAGE *in, IMAGE *out );
-int im_floor( IMAGE *in, IMAGE *out );
-int im_rint( IMAGE *in, IMAGE *out );
-int im_ceil( IMAGE *in, IMAGE *out );
+int im_sign( VipsImage *in, VipsImage *out );
+int im_abs( VipsImage *in, VipsImage *out );
+int im_floor( VipsImage *in, VipsImage *out );
+int im_rint( VipsImage *in, VipsImage *out );
+int im_ceil( VipsImage *in, VipsImage *out );
 
-int im_linreg( IMAGE **ins, IMAGE *out, double *xs );
-int im_point( IMAGE *im, VipsInterpolate *interpolate, 
+int im_linreg( VipsImage **ins, VipsImage *out, double *xs );
+int im_point( VipsImage *im, VipsInterpolate *interpolate, 
 	double x, double y, int band, double *out );
-int im_point_bilinear( IMAGE *im, double x, double y, int band, double *out );
+int im_point_bilinear( VipsImage *im, 
+	double x, double y, int band, double *out );
 
-int im_powtra( IMAGE *in, IMAGE *out, double e );
-int im_powtra_vec( IMAGE *in, IMAGE *out, int n, double *e );
-int im_exptra( IMAGE *in, IMAGE *out );
-int im_exp10tra( IMAGE *in, IMAGE *out );
-int im_expntra( IMAGE *in, IMAGE *out, double e );
-int im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *e );
-int im_logtra( IMAGE *in, IMAGE *out );
-int im_log10tra( IMAGE *in, IMAGE *out );
+int im_powtra( VipsImage *in, VipsImage *out, double e );
+int im_powtra_vec( VipsImage *in, VipsImage *out, int n, double *e );
+int im_exptra( VipsImage *in, VipsImage *out );
+int im_exp10tra( VipsImage *in, VipsImage *out );
+int im_expntra( VipsImage *in, VipsImage *out, double e );
+int im_expntra_vec( VipsImage *in, VipsImage *out, int n, double *e );
+int im_logtra( VipsImage *in, VipsImage *out );
+int im_log10tra( VipsImage *in, VipsImage *out );
 
-int im_sintra( IMAGE *in, IMAGE *out );
-int im_costra( IMAGE *in, IMAGE *out );
-int im_tantra( IMAGE *in, IMAGE *out );
-int im_asintra( IMAGE *in, IMAGE *out );
-int im_acostra( IMAGE *in, IMAGE *out );
-int im_atantra( IMAGE *in, IMAGE *out );
+int im_sintra( VipsImage *in, VipsImage *out );
+int im_costra( VipsImage *in, VipsImage *out );
+int im_tantra( VipsImage *in, VipsImage *out );
+int im_asintra( VipsImage *in, VipsImage *out );
+int im_acostra( VipsImage *in, VipsImage *out );
+int im_atantra( VipsImage *in, VipsImage *out );
 
-int im_cross_phase( IMAGE *a, IMAGE *b, IMAGE *out );
+int im_cross_phase( VipsImage *a, VipsImage *b, VipsImage *out );
 
 #ifdef __cplusplus
 }

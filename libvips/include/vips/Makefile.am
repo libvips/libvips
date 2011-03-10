@@ -37,7 +37,6 @@ pkginclude_HEADERS = \
 	relational.h \
 	resample.h \
 	semaphore.h \
-	struct.h \
 	threadpool.h \
 	thread.h \
 	transform.h \

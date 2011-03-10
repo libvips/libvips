@@ -37,17 +37,17 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_dilate( IMAGE *in, IMAGE *out, INTMASK *mask );
-int im_erode( IMAGE *in, IMAGE *out, INTMASK *mask );
+int im_dilate( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_erode( VipsImage *in, VipsImage *out, INTMASK *mask );
 
-int im_rank( IMAGE *in, IMAGE *out, int width, int height, int index );
-int im_rank_image( IMAGE **in, IMAGE *out, int n, int index );
-int im_maxvalue( IMAGE **in, IMAGE *out, int n );
+int im_rank( VipsImage *in, VipsImage *out, int width, int height, int index );
+int im_rank_image( VipsImage **in, VipsImage *out, int n, int index );
+int im_maxvalue( VipsImage **in, VipsImage *out, int n );
 
-int im_cntlines( IMAGE *im, double *nolines, int flag );
-int im_zerox( IMAGE *in, IMAGE *out, int sign );
-int im_profile( IMAGE *in, IMAGE *out, int dir );
-int im_label_regions( IMAGE *test, IMAGE *mask, int *segments );
+int im_cntlines( VipsImage *im, double *nolines, int flag );
+int im_zerox( VipsImage *in, VipsImage *out, int sign );
+int im_profile( VipsImage *in, VipsImage *out, int dir );
+int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );
 
 #ifdef __cplusplus
 }
