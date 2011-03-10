@@ -235,7 +235,7 @@ im_incheck( IMAGE *im )
 		/* Free any resources the image holds and reset to a base
 		 * state.
 		 */
-		g_object_run_dispose( G_OBJECT( im ) );
+		vips_object_rewind( VIPS_OBJECT( im ) );
 
 		/* And reopen .. recurse to get a mmaped image.
 		 */
@@ -456,7 +456,7 @@ im_pincheck( IMAGE *im )
 		/* Free any resources the image holds and reset to a base
 		 * state.
 		 */
-		g_object_run_dispose( G_OBJECT( im ) );
+		vips_object_rewind( VIPS_OBJECT( im ) );
 
 		g_object_set( im,
 			"mode", "r",

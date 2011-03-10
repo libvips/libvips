@@ -1244,3 +1244,18 @@ vips_object_sanity_all( void )
 {
 	vips_object_map( (VSListMap2Fn) vips_object_sanity_all_cb, NULL, NULL );
 }
+
+/* On a rewind, we dispose the old contents of the object and
+ * reconstruct. This is used in things like im_pincheck() where a "w"
+ * image has to be rewound and become a "p" image.
+ */
+void
+vips_object_rewind( VipsObject *object )
+{
+	g_object_run_dispose( G_OBJECT( object ) );
+
+	object->constructed = FALSE;
+	object->preclose = FALSE;
+	object->close = FALSE;
+	object->postclose = FALSE;
+}

@@ -1,8 +1,20 @@
-- debug.c can go?
+- rewind is not removing arg instance flags
 
-  make sanity a method on object
+  VIPS-WARNING **: object.c:567: VipsImage can only assign 'nickname' once
 
-  tools/others/sines.c and friends can go
+       VipsArgumentInstance *argument_instance =
+               vips__argument_get_instance( argument_class, object );
+
+  how do we find and junk these? 
+
+	vips_object_dispose_argument(
+
+  runs, but perhaps does not trash instance storage? where is this released?
+
+
+
+
+- tools/others/sines.c and friends can go
 
 
 - why not rename VipsBandFormat as VipsFormat? cf. VipsCoding,

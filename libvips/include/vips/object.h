@@ -292,6 +292,8 @@ void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
 void vips_object_print_all( void );
 void vips_object_sanity_all( void );
 
+void vips_object_rewind( VipsObject *object );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
