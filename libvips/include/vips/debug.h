@@ -66,9 +66,6 @@ extern "C" {
 	G_STMT_START { ; } G_STMT_END
 #endif /*VIPS_DEBUG_GREEN*/
 
-int im_image_sanity( VipsImage *im );
-void im_image_sanity_all( void );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

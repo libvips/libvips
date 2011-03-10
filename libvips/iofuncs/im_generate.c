@@ -362,7 +362,7 @@ im_generate( IMAGE *im,
 {
         int res;
 
-	g_assert( !im_image_sanity( im ) );
+	g_assert( vips_object_sanity( VIPS_OBJECT( im ) ) );
 
 	if( !im->hint_set ) {
 		vips_error( "im_generate", 

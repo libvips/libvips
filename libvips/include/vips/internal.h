@@ -196,8 +196,6 @@ int im__munmap( void *start, size_t length );
 int im__write( int, const void *, size_t );
 void im__change_suffix( const char *name, char *out, int mx,
         const char *new_suff, const char **olds, int nolds );
-void im__print_all( void );
-void im__print_one( int );
 int im__trigger_callbacks( GSList *cblist );
 int im__close( VipsImage * );
 int im__fft_sp( float *rvec, float *ivec, int logrows, int logcols );

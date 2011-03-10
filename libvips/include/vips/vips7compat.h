@@ -189,6 +189,10 @@ extern "C" {
 
 #define im__region_no_ownership vips__region_no_ownership
 
+#define im_image_sanity( I ) (!vips_object_sanity( VIPS_OBJECT( I ) ))
+#define im_image_sanity_all vips_object_sanity_all
+#define im__print_all vips_object_print_all
+
 /* Compat functions.
  */
 

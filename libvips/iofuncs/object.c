@@ -30,10 +30,10 @@
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
 #define DEBUG_REF
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -136,10 +136,9 @@ vips_object_build( VipsObject *object )
 void
 vips_object_print_class( VipsObjectClass *class )
 {
-	VipsBuf buf;
 	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	vips_buf_init_static( &buf, str, 1000 );
 	class->print_class( class, &buf );
 	printf( "%s\n", vips_buf_all( &buf ) );
 }
@@ -148,13 +147,29 @@ void
 vips_object_print( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsBuf buf;
 	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	vips_object_print_class( class );
-	vips_buf_init_static( &buf, str, 1000 );
 	class->print( object, &buf );
 	printf( "%s\n", vips_buf_all( &buf ) );
+}
+
+gboolean
+vips_object_sanity( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	class->sanity( object, &buf );
+	if( !vips_buf_is_empty( &buf ) ) {
+		printf( "sanity failure: " );
+		vips_object_print( object );
+		printf( "%s\n", vips_buf_all( &buf ) );
+	}
+
+	return( TRUE );
 }
 
 /* Extra stuff we track for properties to do our argument handling.
@@ -773,6 +788,11 @@ vips_object_real_print( VipsObject *object, VipsBuf *buf )
 }
 
 static void
+vips_object_real_sanity( VipsObject *object, VipsBuf *buf )
+{
+}
+
+static void
 transform_string_double( const GValue *src_value, GValue *dest_value )
 {
 	g_value_set_double( dest_value,
@@ -798,6 +818,7 @@ vips_object_class_init( VipsObjectClass *class )
 	class->build = vips_object_real_build;
 	class->print_class = vips_object_real_print_class;
 	class->print = vips_object_real_print;
+	class->sanity = vips_object_real_sanity;
 	class->nickname = "object";
 	class->description = _( "VIPS base class" );
 
@@ -1194,4 +1215,32 @@ vips_object_unref( VipsObject *obj )
 	g_object_unref( obj );
 
 	return( 0 );
+}
+
+static void *
+vips_object_print_all_cb( VipsObject *object )
+{
+	vips_object_print( object );
+
+	return( NULL );
+}
+
+void
+vips_object_print_all( void )
+{
+	vips_object_map( (VSListMap2Fn) vips_object_print_all_cb, NULL, NULL );
+}
+
+static void *
+vips_object_sanity_all_cb( VipsObject *object )
+{
+	(void) vips_object_sanity( object );
+
+	return( NULL );
+}
+
+void
+vips_object_sanity_all( void )
+{
+	vips_object_map( (VSListMap2Fn) vips_object_sanity_all_cb, NULL, NULL );
 }

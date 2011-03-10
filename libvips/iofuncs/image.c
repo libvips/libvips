@@ -31,8 +31,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -446,6 +446,64 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 			vips_image_get_interpretation( image ) ) );
 
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->print( object, buf );
+}
+
+static void *
+vips_image_sanity_upstream( VipsImage *im_up, VipsImage *im_down )
+{
+	if( !g_slist_find( im_up->downstream, im_down ) ||
+		!g_slist_find( im_down->upstream, im_up ) )
+		return( im_up );
+
+	return( NULL );
+}
+
+static void *
+vips_image_sanity_downstream( VipsImage *im_down, VipsImage *im_up )
+{
+	return( vips_image_sanity_upstream( im_up, im_down ) );
+}
+
+static void
+vips_image_sanity( VipsObject *object, VipsBuf *buf )
+{
+	VipsImage *image = VIPS_IMAGE( object );
+
+	if( !image->filename ) 
+		vips_buf_appends( buf, "NULL filename\n" );
+
+	/* All -1 means im has been inited but never used.
+	 */
+	if( image->Xsize != -1 ||
+		image->Ysize != -1 ||
+		image->Bands != -1 ||
+		image->BandFmt != -1 ) {
+		if( image->Xsize <= 0 || 
+			image->Ysize <= 0 || 
+			image->Bands <= 0 ) 
+			vips_buf_appends( buf, "bad dimensions\n" );
+		if( image->BandFmt < -1 || 
+			image->BandFmt > VIPS_FORMAT_DPCOMPLEX ||
+			(image->Coding != -1 &&
+				image->Coding != VIPS_CODING_NONE && 
+				image->Coding != VIPS_CODING_LABQ &&
+				image->Coding != VIPS_CODING_RAD) ||
+			image->Type > VIPS_INTERPRETATION_GREY16 ||
+			image->dtype > VIPS_IMAGE_PARTIAL || 
+			image->dhint > VIPS_DEMAND_STYLE_ANY ) 
+			vips_buf_appends( buf, "bad enum\n" );
+		if( image->Xres < 0 || image->Xres < 0 ) 
+			vips_buf_appends( buf, "bad resolution\n" );
+	}
+
+	if( im_slist_map2( image->upstream, 
+		(VSListMap2Fn) vips_image_sanity_upstream, image, NULL ) )
+		vips_buf_appends( buf, "upstream broken\n" );
+	if( im_slist_map2( image->downstream, 
+		(VSListMap2Fn) vips_image_sanity_downstream, image, NULL ) )
+		vips_buf_appends( buf, "downstream broken\n" );
+
+	VIPS_OBJECT_CLASS( vips_image_parent_class )->sanity( object, buf );
 }
 
 static gboolean
@@ -983,6 +1041,7 @@ vips_image_class_init( VipsImageClass *class )
 	vobject_class->description = _( "VIPS image class" );
 
 	vobject_class->print = vips_image_print;
+	vobject_class->sanity = vips_image_sanity;
 	vobject_class->build = vips_image_build;
 
 	class->invalidate = vips_image_real_invalidate;
@@ -1286,7 +1345,8 @@ vips_image_preeval( VipsImage *image )
 		vips_object_print( VIPS_OBJECT( image ) );
 #endif /*VIPS_DEBUG*/
 
-		g_assert( !im_image_sanity( image->progress ) );
+		g_assert( vips_object_sanity( 
+			VIPS_OBJECT( image->progress ) ) );
 
 		(void) vips_progress_add( image->progress );
 
@@ -1309,7 +1369,8 @@ vips_image_eval( VipsImage *image, int w, int h )
 		vips_object_print( VIPS_OBJECT( image ) );
 #endif /*VIPS_DEBUG*/
 
-		g_assert( !im_image_sanity( image->progress ) );
+		g_assert( vips_object_sanity( 
+			VIPS_OBJECT( image->progress ) ) );
 
 		progress->run = g_timer_elapsed( progress->start, NULL );
 		progress->npels += w * h;
@@ -1333,7 +1394,8 @@ vips_image_posteval( VipsImage *image )
 		vips_object_print( VIPS_OBJECT( image ) );
 #endif /*VIPS_DEBUG*/
 
-		g_assert( !im_image_sanity( image->progress ) );
+		g_assert( vips_object_sanity( 
+			VIPS_OBJECT( image->progress ) ) );
 
 		g_signal_emit( image->progress, 
 			vips_image_signals[SIG_POSTEVAL], 0, image->time );

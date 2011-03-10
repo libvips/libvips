@@ -175,7 +175,7 @@ convert_otom( IMAGE *im )
 int
 im_incheck( IMAGE *im )
 {	
-	g_assert( !im_image_sanity( im ) );
+	g_assert( vips_object_sanity( VIPS_OBJECT( im ) ) );
 
 #ifdef DEBUG_IO
 	printf( "im_incheck: old-style input for %s\n", im->filename );
@@ -407,7 +407,7 @@ im_rwcheck( IMAGE *im )
 int
 im_pincheck( IMAGE *im )
 {	
-	g_assert( !im_image_sanity( im ) );
+	g_assert( vips_object_sanity( VIPS_OBJECT( im ) ) );
 
 #ifdef DEBUG_IO
 	printf( "im_pincheck: enabling partial input for %s\n", im->filename );

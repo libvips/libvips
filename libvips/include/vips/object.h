@@ -212,6 +212,11 @@ struct _VipsObjectClass {
 	 */
 	void (*print)( VipsObject *, VipsBuf * );
 
+	/* Sanity-check the object. Print messages and stuff. 
+	 * Handy for debugging.
+	 */
+	void (*sanity)( VipsObject *, VipsBuf * );
+
 	/* Just before close, everything is still alive.
 	 */
 	void (*preclose)( VipsObject * );
@@ -252,6 +257,7 @@ void vips_object_preclose( VipsObject *object );
 int vips_object_build( VipsObject *object );
 void vips_object_print_class( VipsObjectClass *klass );
 void vips_object_print( VipsObject *object );
+gboolean vips_object_sanity( VipsObject *object );
 
 GType vips_object_get_type( void );
 
@@ -282,6 +288,9 @@ void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
 #define vips_object_local( V, G ) \
 	g_signal_connect( V, "close", \
 		G_CALLBACK( vips_object_local_cb ), G );
+
+void vips_object_print_all( void );
+void vips_object_sanity_all( void );
 
 #ifdef __cplusplus
 }
