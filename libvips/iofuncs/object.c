@@ -172,6 +172,20 @@ vips_object_sanity( VipsObject *object )
 	return( TRUE );
 }
 
+/* On a rewind, we dispose the old contents of the object and
+ * reconstruct. This is used in things like im_pincheck() where a "w"
+ * image has to be rewound and become a "p" image.
+ *
+ * Override in subclasses if you want to preserve some fields, see image.c.
+ */
+void
+vips_object_rewind( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	class->rewind( object );
+}
+
 /* Extra stuff we track for properties to do our argument handling.
  */
 
@@ -180,6 +194,8 @@ vips_object_sanity( VipsObject *object )
 static void
 vips_argument_instance_free( VipsArgumentInstance *argument_instance )
 {
+	printf( "vips_argument_instance_free\n" );
+
 	if( argument_instance->destroy_id ) {
 		g_signal_handler_disconnect( argument_instance->object,
 			argument_instance->destroy_id );
@@ -368,10 +384,10 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 	void *a, void *b )
 {
 #ifdef DEBUG
+#endif /*DEBUG*/
 	printf( "vips_object_dispose_argument: " );
 	vips_object_print( object );
 	printf( ".%s\n", pspec->name );
-#endif /*DEBUG*/
 
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 	g_assert( ((VipsArgument *) argument_instance)->pspec == pspec );
@@ -404,9 +420,9 @@ vips_object_dispose( GObject *gobject )
 	VipsObject *object = VIPS_OBJECT( gobject );
 
 #ifdef DEBUG
+#endif /*DEBUG*/
 	printf( "vips_object_dispose: " );
 	vips_object_print( object );
-#endif /*DEBUG*/
 
 	/* Our subclasses should have already called this. Run it again, just
 	 * in case.
@@ -423,6 +439,7 @@ vips_object_dispose( GObject *gobject )
 	/* Clear all our arguments: they may be holding refs we should drop.
 	 */
 	vips_argument_map( object, vips_object_dispose_argument, NULL, NULL );
+	VIPS_FREEF( vips_argument_table_destroy, object->argument_table );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->dispose( gobject );
 }
@@ -440,7 +457,6 @@ vips_object_finalize( GObject *gobject )
 	vips_object_close( object );
 
 	g_hash_table_remove( vips_object_all, object );
-	VIPS_FREEF( vips_argument_table_destroy, object->argument_table );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->finalize( gobject );
 
@@ -793,6 +809,22 @@ vips_object_real_sanity( VipsObject *object, VipsBuf *buf )
 }
 
 static void
+vips_object_real_rewind( VipsObject *object )
+{
+#ifdef DEBUG
+#endif /*DEBUG*/
+	printf( "vips_object_rewind\n" );
+	vips_object_print( object );
+
+	g_object_run_dispose( G_OBJECT( object ) );
+
+	object->constructed = FALSE;
+	object->preclose = FALSE;
+	object->close = FALSE;
+	object->postclose = FALSE;
+}
+
+static void
 transform_string_double( const GValue *src_value, GValue *dest_value )
 {
 	g_value_set_double( dest_value,
@@ -819,6 +851,7 @@ vips_object_class_init( VipsObjectClass *class )
 	class->print_class = vips_object_real_print_class;
 	class->print = vips_object_real_print;
 	class->sanity = vips_object_real_sanity;
+	class->rewind = vips_object_real_rewind;
 	class->nickname = "object";
 	class->description = _( "VIPS base class" );
 
@@ -1243,19 +1276,4 @@ void
 vips_object_sanity_all( void )
 {
 	vips_object_map( (VSListMap2Fn) vips_object_sanity_all_cb, NULL, NULL );
-}
-
-/* On a rewind, we dispose the old contents of the object and
- * reconstruct. This is used in things like im_pincheck() where a "w"
- * image has to be rewound and become a "p" image.
- */
-void
-vips_object_rewind( VipsObject *object )
-{
-	g_object_run_dispose( G_OBJECT( object ) );
-
-	object->constructed = FALSE;
-	object->preclose = FALSE;
-	object->close = FALSE;
-	object->postclose = FALSE;
 }

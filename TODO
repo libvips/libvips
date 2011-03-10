@@ -1,15 +1,7 @@
-- rewind is not removing arg instance flags
+- on rewind, we junk filename, argh
 
-  VIPS-WARNING **: object.c:567: VipsImage can only assign 'nickname' once
+  I guess we need to save and restore it
 
-       VipsArgumentInstance *argument_instance =
-               vips__argument_get_instance( argument_class, object );
-
-  how do we find and junk these? 
-
-	vips_object_dispose_argument(
-
-  runs, but perhaps does not trash instance storage? where is this released?
 
 
 

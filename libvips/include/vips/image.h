@@ -349,6 +349,8 @@ double vips_image_get_xres( VipsImage *image );
 double vips_image_get_yres( VipsImage *image );
 int vips_image_get_xoffset( VipsImage *image );
 int vips_image_get_yoffset( VipsImage *image );
+const char *vips_image_get_filename( VipsImage *image );
+const char *vips_image_get_mode( VipsImage *image );
 size_t vips_image_size( VipsImage *image );
 
 void vips_image_written( VipsImage *image );

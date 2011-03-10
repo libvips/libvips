@@ -217,6 +217,11 @@ struct _VipsObjectClass {
 	 */
 	void (*sanity)( VipsObject *, VipsBuf * );
 
+	/* Rewind. Save and restore any stuff that needs to survive a
+	 * dispose().
+	 */
+	void (*rewind)( VipsObject * );
+
 	/* Just before close, everything is still alive.
 	 */
 	void (*preclose)( VipsObject * );

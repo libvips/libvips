@@ -506,6 +506,27 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->sanity( object, buf );
 }
 
+static void
+vips_image_rewind( VipsObject *object )
+{
+	VipsImage *image = VIPS_IMAGE( object );
+	char *filename;
+	char *mode;
+
+	/* The old values for filename and mode become the new defaults.
+	 */
+	filename = g_strdup( vips_image_get_filename( image ) );
+	mode = g_strdup( vips_image_get_mode( image ) );
+
+	VIPS_OBJECT_CLASS( vips_image_parent_class )->rewind( object );
+
+	g_assert( image->filename == NULL );
+	g_assert( image->mode == NULL );
+
+	image->filename = filename;
+	image->mode = mode;
+}
+
 static gboolean
 vips_format_is_vips( VipsFormatClass *format )
 {
@@ -1042,6 +1063,7 @@ vips_image_class_init( VipsImageClass *class )
 
 	vobject_class->print = vips_image_print;
 	vobject_class->sanity = vips_image_sanity;
+	vobject_class->rewind = vips_image_rewind;
 	vobject_class->build = vips_image_build;
 
 	class->invalidate = vips_image_real_invalidate;
@@ -1259,6 +1281,12 @@ int
 vips_image_get_yoffset( VipsImage *image )
 {
 	return( image->Yoffset );
+}
+
+const char *
+vips_image_get_filename( VipsImage *image )
+{
+	return( image->filename );
 }
 
 size_t 
