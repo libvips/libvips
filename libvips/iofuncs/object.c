@@ -194,8 +194,6 @@ vips_object_rewind( VipsObject *object )
 static void
 vips_argument_instance_free( VipsArgumentInstance *argument_instance )
 {
-	printf( "vips_argument_instance_free\n" );
-
 	if( argument_instance->destroy_id ) {
 		g_signal_handler_disconnect( argument_instance->object,
 			argument_instance->destroy_id );
@@ -384,10 +382,10 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 	void *a, void *b )
 {
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "vips_object_dispose_argument: " );
 	vips_object_print( object );
 	printf( ".%s\n", pspec->name );
+#endif /*DEBUG*/
 
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 	g_assert( ((VipsArgument *) argument_instance)->pspec == pspec );
@@ -420,9 +418,9 @@ vips_object_dispose( GObject *gobject )
 	VipsObject *object = VIPS_OBJECT( gobject );
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "vips_object_dispose: " );
 	vips_object_print( object );
+#endif /*DEBUG*/
 
 	/* Our subclasses should have already called this. Run it again, just
 	 * in case.
@@ -812,9 +810,9 @@ static void
 vips_object_real_rewind( VipsObject *object )
 {
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "vips_object_rewind\n" );
 	vips_object_print( object );
+#endif /*DEBUG*/
 
 	g_object_run_dispose( G_OBJECT( object ) );
 

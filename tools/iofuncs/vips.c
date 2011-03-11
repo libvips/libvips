@@ -68,6 +68,11 @@
 #define DEBUG_LEAK
  */
 
+/* Need to disable these sometimes.
+ */
+#undef DEBUG_FATAL
+#undef DEBUG_LEAK
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/

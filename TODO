@@ -1,9 +1,3 @@
-- on rewind, we junk filename, argh
-
-  I guess we need to save and restore it
-
-
-
 
 
 - tools/others/sines.c and friends can go

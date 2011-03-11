@@ -794,7 +794,7 @@ vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
  */
 
 static int
-vips_image_evalstart_cb( VipsImage *image, VipsProgress *progress, int *last )
+vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
 	int tile_width; 
 	int tile_height; 
@@ -830,7 +830,7 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 }
 
 static int
-vips_image_evalend_cb( VipsImage *image, VipsProgress *progress )
+vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
 {
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
@@ -852,12 +852,12 @@ vips_image_add_progress( VipsImage *image )
 		 */
 		int *last = VIPS_NEW( image, int );
 
-		g_signal_connect( image, "evalstart", 
-			G_CALLBACK( vips_image_evalstart_cb ), last );
+		g_signal_connect( image, "preeval", 
+			G_CALLBACK( vips_image_preeval_cb ), last );
 		g_signal_connect( image, "eval", 
 			G_CALLBACK( vips_image_eval_cb ), last );
-		g_signal_connect( image, "evalend", 
-			G_CALLBACK( vips_image_evalend_cb ), NULL );
+		g_signal_connect( image, "posteval", 
+			G_CALLBACK( vips_image_posteval_cb ), NULL );
 	}
 }
 
@@ -1289,6 +1289,12 @@ vips_image_get_filename( VipsImage *image )
 	return( image->filename );
 }
 
+const char *
+vips_image_get_mode( VipsImage *image )
+{
+	return( image->mode );
+}
+
 size_t 
 vips_image_size( VipsImage *image )
 {
@@ -1451,6 +1457,20 @@ vips_image_set_kill( VipsImage *image, gboolean kill )
 	image->kill = kill;
 }
 
+/* Make a name for a filename-less image. Use immediately, don'#t free the
+ * result.
+ */
+static const char *
+vips_image_temp_name( void )
+{
+	static int serial = 0;
+	static char name[256];
+
+	im_snprintf( name, 256, "temp-%d", serial++ );
+
+	return( name );
+}
+
 /**
  * vips_image_new:
  * @mode: mode to open with
@@ -1483,6 +1503,7 @@ vips_image_new( const char *mode )
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
+		"filename", vips_image_temp_name(),
 		"mode", mode,
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
@@ -1657,8 +1678,9 @@ vips_image_new_from_memory( void *buffer,
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
-		"foreign_buffer", buffer,
+		"filename", vips_image_temp_name(),
 		"mode", "m",
+		"foreign_buffer", buffer,
 		"width", xsize,
 		"height", ysize,
 		"bands", bands,

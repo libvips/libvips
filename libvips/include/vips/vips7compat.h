@@ -214,9 +214,9 @@ int im_add_callback( VipsImage *im,
 #define im_add_preclose_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "preclose", FN, A, B )
 #define im_add_evalstart_callback( IM, FN, A, B ) \
-	im_add_callback( IM, "evalstart", FN, A, B )
+	im_add_callback( IM, "preeval", FN, A, B )
 #define im_add_evalend_callback( IM, FN, A, B ) \
-	im_add_callback( IM, "evalend", FN, A, B )
+	im_add_callback( IM, "posteval", FN, A, B )
 #define im_add_eval_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "eval", FN, A, B )
 #define im_add_invalidate_callback( IM, FN, A, B ) \
