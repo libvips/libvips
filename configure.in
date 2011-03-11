@@ -645,7 +645,6 @@ AC_OUTPUT([
 	tools/Makefile 
 	tools/iofuncs/Makefile 
 	tools/mosaicing/Makefile 
-	tools/other/Makefile 
 	tools/scripts/Makefile 
 	tools/scripts/batch_crop 
 	tools/scripts/batch_image_convert 
