@@ -245,7 +245,7 @@ typedef struct _VipsImage {
 
 	/* The VipsImage (if any) we should signal eval progress on.
 	 */
-	struct _VipsImage *progress;
+	struct _VipsImage *progress_signal;
 
 	/* Record the file length here. We use this to stop ourselves mapping
 	 * things beyond the end of the file in the case that the file has

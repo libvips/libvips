@@ -1373,18 +1373,18 @@ vips_progress_add( VipsImage *image )
 void
 vips_image_preeval( VipsImage *image )
 {
-	if( image->progress ) {
+	if( image->progress_signal ) {
 #ifdef VIPS_DEBUG
 		printf( "vips_image_preeval: " );
 		vips_object_print( VIPS_OBJECT( image ) );
 #endif /*VIPS_DEBUG*/
 
 		g_assert( vips_object_sanity( 
-			VIPS_OBJECT( image->progress ) ) );
+			VIPS_OBJECT( image->progress_signal ) ) );
 
-		(void) vips_progress_add( image->progress );
+		(void) vips_progress_add( image->progress_signal );
 
-		g_signal_emit( image->progress, 
+		g_signal_emit( image->progress_signal, 
 			vips_image_signals[SIG_PREEVAL], 0, image->time );
 	}
 }
@@ -1394,7 +1394,7 @@ vips_image_preeval( VipsImage *image )
 void
 vips_image_eval( VipsImage *image, int w, int h )
 {
-	if( image->progress ) {
+	if( image->progress_signal ) {
 		VipsProgress *progress = image->time;
 		float prop;
 
@@ -1404,7 +1404,7 @@ vips_image_eval( VipsImage *image, int w, int h )
 #endif /*VIPS_DEBUG*/
 
 		g_assert( vips_object_sanity( 
-			VIPS_OBJECT( image->progress ) ) );
+			VIPS_OBJECT( image->progress_signal ) ) );
 
 		progress->run = g_timer_elapsed( progress->start, NULL );
 		progress->npels += w * h;
@@ -1414,7 +1414,7 @@ vips_image_eval( VipsImage *image, int w, int h )
 			progress->eta = (1.0 / prop) * progress->run - 
 				progress->run;
 
-		g_signal_emit( image->progress, 
+		g_signal_emit( image->progress_signal, 
 			vips_image_signals[SIG_EVAL], 0, progress );
 	}
 }
@@ -1422,16 +1422,16 @@ vips_image_eval( VipsImage *image, int w, int h )
 void
 vips_image_posteval( VipsImage *image )
 {
-	if( image->progress ) {
+	if( image->progress_signal ) {
 #ifdef VIPS_DEBUG
 		printf( "vips_image_posteval: " );
 		vips_object_print( VIPS_OBJECT( image ) );
 #endif /*VIPS_DEBUG*/
 
 		g_assert( vips_object_sanity( 
-			VIPS_OBJECT( image->progress ) ) );
+			VIPS_OBJECT( image->progress_signal ) ) );
 
-		g_signal_emit( image->progress, 
+		g_signal_emit( image->progress_signal, 
 			vips_image_signals[SIG_POSTEVAL], 0, image->time );
 	}
 }

@@ -69,7 +69,7 @@ enum {
 
 /* Table of all objects, handy for debugging.
  */
-static GHashTable *vips_object_all = NULL;
+static GHashTable *vips__object_all = NULL;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
@@ -454,7 +454,7 @@ vips_object_finalize( GObject *gobject )
 
 	vips_object_close( object );
 
-	g_hash_table_remove( vips_object_all, object );
+	g_hash_table_remove( vips__object_all, object );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->finalize( gobject );
 
@@ -836,8 +836,8 @@ vips_object_class_init( VipsObjectClass *class )
 
 	GParamSpec *pspec;
 
-	if( !vips_object_all ) 
-		vips_object_all = g_hash_table_new( 
+	if( !vips__object_all ) 
+		vips__object_all = g_hash_table_new( 
 			g_direct_hash, g_direct_equal );
 
 	gobject_class->dispose = vips_object_dispose;
@@ -920,7 +920,7 @@ vips_object_init( VipsObject *object )
 	vips_object_print( object );
 #endif /*DEBUG*/
 
-	g_hash_table_insert( vips_object_all, object, object );
+	g_hash_table_insert( vips__object_all, object, object );
 }
 
 /* Add a vipsargument ... automate some stuff with this.
@@ -1227,8 +1227,8 @@ vips_object_map( VSListMap2Fn fn, void *a, void *b )
 	args.a = a;
 	args.b = b;
 	args.result = NULL;
-	if( vips_object_all )
-		g_hash_table_foreach( vips_object_all, 
+	if( vips__object_all )
+		g_hash_table_foreach( vips__object_all, 
 			(GHFunc) vips_object_map_sub, &args );
 
 	return( args.result );

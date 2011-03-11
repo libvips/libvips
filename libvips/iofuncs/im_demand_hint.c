@@ -82,8 +82,9 @@ im__link_make( IMAGE *im_up, IMAGE *im_down )
 
 	/* Propogate the progress indicator.
 	 */
-	if( im_up->progress && !im_down->progress ) 
-		im_down->progress = im_up->progress;
+	if( im_up->progress_signal && 
+		!im_down->progress_signal ) 
+		im_down->progress_signal = im_up->progress_signal;
 }
 
 static void *
@@ -99,8 +100,9 @@ im__link_break( IMAGE *im_up, IMAGE *im_down )
 
 	/* Unlink the progress chain.
 	 */
-	if( im_down->progress && im_down->progress == im_up->progress ) 
-		im_down->progress = NULL;
+	if( im_down->progress_signal && 
+		im_down->progress_signal == im_up->progress_signal ) 
+		im_down->progress_signal = NULL;
 
 	return( NULL );
 }

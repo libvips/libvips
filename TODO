@@ -1,20 +1,5 @@
 
-
-- tools/others/sines.c and friends can go
-
-
-- why not rename VipsBandFormat as VipsFormat? cf. VipsCoding,
-  VipsInterpretation etc.
-
-  argh because of the format package and the VipsFormat there
-
-- image->progress needs renaming, perhaps image->progress_signal?
-
-- im_sanity() should become a method on VipsObject, see debug.c
-
 - rename Rect to VipsRect
-
-- remove im__handle_eval etc. from headers
 
 - png read/write needs redoing:
 
@@ -51,16 +36,7 @@
   how dumb, common this up somehow
 
 
-- pre/post/close should be on VipsObject, not VipsImage
-
-  decls for im_local etc. are now in image.h, move them to object.h and the
-  code to object.c
-
-  how about vips_local_array()?
-
-  also see im_bits_of_fmt()
-
-  decls for type_map etc. are now in object.h, move the code to object.c
+- decls for type_map etc. are now in object.h, move the code to object.c
 
 
 
