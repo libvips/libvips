@@ -36,64 +36,56 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* IMAGE functions which use regions. 
- */
-int im_prepare( REGION *reg, Rect *r );
-int im_prepare_to( REGION *reg, REGION *dest, Rect *r, int x, int y );
-
-typedef void *(*im_start_fn)( IMAGE *out, void *a, void *b );
-typedef int (*im_generate_fn)( REGION *out, void *seq, void *a, void *b );
+typedef void *(*im_start_fn)( VipsImage *out, void *a, void *b );
+typedef int (*im_generate_fn)( VipsRegion *out, void *seq, void *a, void *b );
 typedef int (*im_stop_fn)( void *seq, void *a, void *b );
 
-void *im_start_one( IMAGE *out, void *a, void *b );
+void *im_start_one( VipsImage *out, void *a, void *b );
 int im_stop_one( void *seq, void *a, void *b );
-void *im_start_many( IMAGE *out, void *a, void *b );
+void *im_start_many( VipsImage *out, void *a, void *b );
 int im_stop_many( void *seq, void *a, void *b );
-IMAGE **im_allocate_input_array( IMAGE *out, ... )
+VipsImage **im_allocate_input_array( VipsImage *out, ... )
 	__attribute__((sentinel));
 
-int im_generate( IMAGE *im,
+int im_generate( VipsImage *im,
 	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *a, void *b
 );
-int im_iterate( IMAGE *im,
+int im_iterate( VipsImage *im,
 	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *a, void *b
 );
 
-int im_demand_hint_array( IMAGE *im, im_demand_type hint, IMAGE **in );
-int im_demand_hint( IMAGE *im, im_demand_type hint, ... )
+int im_demand_hint_array( VipsImage *im, im_demand_type hint, VipsImage **in );
+int im_demand_hint( VipsImage *im, im_demand_type hint, ... )
 	__attribute__((sentinel));
 
 /* Buffer processing.
  */
 typedef void (*im_wrapone_fn)( void *in, void *out, int width,
 	void *a, void *b );
-int im_wrapone( IMAGE *in, IMAGE *out,
+int im_wrapone( VipsImage *in, VipsImage *out,
 	im_wrapone_fn fn, void *a, void *b );
 
 typedef void (*im_wraptwo_fn)( void *in1, void *in2, void *out, 
         int width, void *a, void *b );
-int im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out,
+int im_wraptwo( VipsImage *in1, VipsImage *in2, VipsImage *out,
 	im_wraptwo_fn fn, void *a, void *b );
 
 typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
 	void *a, void *b );
-int im_wrapmany( IMAGE **in, IMAGE *out,
+int im_wrapmany( VipsImage **in, VipsImage *out,
 	im_wrapmany_fn fn, void *a, void *b );
 
 /* Async rendering.
  */
-int im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
+int im_render_priority( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int width, int height, int max,
 	int priority,
-	void (*notify)( IMAGE *, Rect *, void * ), void *client );
-int im_cache( IMAGE *in, IMAGE *out, int width, int height, int max );
+	void (*notify)( VipsImage *, Rect *, void * ), void *client );
+int im_cache( VipsImage *in, VipsImage *out, int width, int height, int max );
 
-/* WIO.
- */
-int im_setupout( IMAGE *im );
-int im_writeline( int ypos, IMAGE *im, PEL *linebuffer );
+int im_setupout( VipsImage *im );
 
 #ifdef __cplusplus
 }

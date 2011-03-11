@@ -116,38 +116,40 @@ float im_col_dECMC(
 float im_col_dE00( 
 	float L1, float a1, float b1, float L2, float a2, float b2 );
 
-int im_LCh2Lab( IMAGE *in, IMAGE *out );
-int im_LabQ2XYZ( IMAGE *in, IMAGE *out );
-int im_rad2float( IMAGE *in, IMAGE *out );
-int im_float2rad( IMAGE *in, IMAGE *out );
-int im_LCh2UCS( IMAGE *in, IMAGE *out );
-int im_Lab2LCh( IMAGE *in, IMAGE *out );
-int im_Lab2LabQ( IMAGE *in, IMAGE *out );
-int im_Lab2LabS( IMAGE *in, IMAGE *out );
-int im_Lab2XYZ( IMAGE *in, IMAGE *out );
-int im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 );
-int im_Lab2UCS( IMAGE *in, IMAGE *out );
-int im_LabQ2Lab( IMAGE *in, IMAGE *out );
-int im_LabQ2LabS( IMAGE *in, IMAGE *out );
-int im_LabS2LabQ( IMAGE *in, IMAGE *out );
-int im_LabS2Lab( IMAGE *in, IMAGE *out );
-int im_UCS2XYZ( IMAGE *in, IMAGE *out );
-int im_UCS2LCh( IMAGE *in, IMAGE *out );
-int im_UCS2Lab( IMAGE *in, IMAGE *out );
-int im_XYZ2Lab( IMAGE *in, IMAGE *out );
-int im_XYZ2Lab_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 );
-int im_XYZ2UCS( IMAGE *in, IMAGE *out );
-int im_sRGB2XYZ( IMAGE *in, IMAGE *out );
-int im_XYZ2sRGB( IMAGE *in, IMAGE *out );
-int im_Yxy2XYZ( IMAGE *in, IMAGE *out );
-int im_XYZ2Yxy( IMAGE *in, IMAGE *out );
+int im_LCh2Lab( VipsImage *in, VipsImage *out );
+int im_LabQ2XYZ( VipsImage *in, VipsImage *out );
+int im_rad2float( VipsImage *in, VipsImage *out );
+int im_float2rad( VipsImage *in, VipsImage *out );
+int im_LCh2UCS( VipsImage *in, VipsImage *out );
+int im_Lab2LCh( VipsImage *in, VipsImage *out );
+int im_Lab2LabQ( VipsImage *in, VipsImage *out );
+int im_Lab2LabS( VipsImage *in, VipsImage *out );
+int im_Lab2XYZ( VipsImage *in, VipsImage *out );
+int im_Lab2XYZ_temp( VipsImage *in, VipsImage *out, 
+	double X0, double Y0, double Z0 );
+int im_Lab2UCS( VipsImage *in, VipsImage *out );
+int im_LabQ2Lab( VipsImage *in, VipsImage *out );
+int im_LabQ2LabS( VipsImage *in, VipsImage *out );
+int im_LabS2LabQ( VipsImage *in, VipsImage *out );
+int im_LabS2Lab( VipsImage *in, VipsImage *out );
+int im_UCS2XYZ( VipsImage *in, VipsImage *out );
+int im_UCS2LCh( VipsImage *in, VipsImage *out );
+int im_UCS2Lab( VipsImage *in, VipsImage *out );
+int im_XYZ2Lab( VipsImage *in, VipsImage *out );
+int im_XYZ2Lab_temp( VipsImage *in, VipsImage *out, 
+	double X0, double Y0, double Z0 );
+int im_XYZ2UCS( VipsImage *in, VipsImage *out );
+int im_sRGB2XYZ( VipsImage *in, VipsImage *out );
+int im_XYZ2sRGB( VipsImage *in, VipsImage *out );
+int im_Yxy2XYZ( VipsImage *in, VipsImage *out );
+int im_XYZ2Yxy( VipsImage *in, VipsImage *out );
 
-int im_dECMC_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_dE00_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_dE_fromXYZ( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_dE_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_dECMC_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_dE00_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_dE_fromXYZ( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_dE_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
-int im_lab_morph( IMAGE *in, IMAGE *out,
+int im_lab_morph( VipsImage *in, VipsImage *out,
 	DOUBLEMASK *mask,
 	double L_offset, double L_scale,
 	double a_scale, double b_scale );
@@ -164,16 +166,16 @@ typedef enum {
 } VipsIntent;
 
 int im_icc_present( void );
-int im_icc_transform( IMAGE *in, IMAGE *out, 
+int im_icc_transform( VipsImage *in, VipsImage *out, 
 	const char *input_profile_filename,
 	const char *output_profile_filename,
 	VipsIntent intent );
-int im_icc_import( IMAGE *in, IMAGE *out, 
+int im_icc_import( VipsImage *in, VipsImage *out, 
 	const char *input_profile_filename, VipsIntent intent );
-int im_icc_import_embedded( IMAGE *in, IMAGE *out, VipsIntent intent );
-int im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
+int im_icc_import_embedded( VipsImage *in, VipsImage *out, VipsIntent intent );
+int im_icc_export_depth( VipsImage *in, VipsImage *out, int depth,
 	const char *output_profile_filename, VipsIntent intent );
-int im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename );
+int im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename );
 
 #ifdef __cplusplus
 }

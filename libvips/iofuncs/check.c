@@ -20,7 +20,7 @@
  *	- checks for partial images added
  *	- now uses type field
  * 31/8/93 JC
- *	- returns ok for IM_MMAPINRW type files now too
+ *	- returns ok for VIPS_IMAGE_MMAPINRW type files now too
  *	- returns -1 rather than 1 on error
  *	- ANSIfied
  * 1/10/97 JC
@@ -121,12 +121,13 @@ convert_ptob( IMAGE *im )
 {
 	IMAGE *t1;
 
-	/* Change to IM_SETBUF. First, make a memory buffer and copy into that.
+	/* Change to VIPS_IMAGE_SETBUF. First, make a memory buffer and copy 
+	 * into that.
 	 */
-	if( !(t1 = im_open( "im_incheck:1", "t" )) ) 
+	if( !(t1 = vips_image_new( "t" )) ) 
 		return( -1 );
 	if( im_copy( im, t1 ) ) {
-		im_close( t1 );
+		g_object_unref( t1 );
 		return( -1 );
 	}
 
@@ -134,14 +135,13 @@ convert_ptob( IMAGE *im )
 	 * would kill of lots of regions and cause dangling pointers
 	 * elsewhere.
 	 */
-	im->dtype = IM_SETBUF;
+	im->dtype = VIPS_IMAGE_SETBUF;
 	im->data = t1->data; 
 	t1->data = NULL;
 
 	/* Close temp image.
 	 */
-	if( im_close( t1 ) )
-		return( -1 );
+	g_object_unref( t1 );
 
 	return( 0 );
 }
@@ -156,7 +156,7 @@ convert_otom( IMAGE *im )
 	if( im_mapfile( im ) ) 
 		return( -1 );
 	im->data = im->baseaddr + im->sizeof_header;
-	im->dtype = IM_MMAPIN;
+	im->dtype = VIPS_IMAGE_MMAPIN;
 
 	return( 0 );
 }
@@ -165,42 +165,42 @@ convert_otom( IMAGE *im )
  * im_incheck:
  * @im: image to check
  *
- * Check that an image is readable via the IM_IMAGE_ADDR() macro. If it isn't, 
- * try to transform it so that IM_IMAGE_ADDR() can work.
+ * Check that an image is readable via the VIPS_IMAGE_ADDR() macro. If it isn't, 
+ * try to transform it so that VIPS_IMAGE_ADDR() can work.
  *
- * See also: im_outcheck(), im_pincheck(), im_rwcheck(), IM_IMAGE_ADDR().
+ * See also: im_outcheck(), im_pincheck(), im_rwcheck(), VIPS_IMAGE_ADDR().
  *
  * Returns: 0 on succeess, or -1 on error.
  */
 int
 im_incheck( IMAGE *im )
 {	
-	g_assert( !im_image_sanity( im ) );
+	g_assert( vips_object_sanity( VIPS_OBJECT( im ) ) );
 
 #ifdef DEBUG_IO
 	printf( "im_incheck: old-style input for %s\n", im->filename );
 #endif/*DEBUG_IO*/
 
 	switch( im->dtype ) {
-	case IM_SETBUF:
-	case IM_SETBUF_FOREIGN:
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
 		/* Should have been written to.
 		 */
 		if( !im->data ) {
-			im_error( "im_incheck", 
+			vips_error( "im_incheck", 
 				"%s", _( "no image data" ) );
 			return( -1 );
 		}
 
 		break;
 
-	case IM_MMAPIN:
-	case IM_MMAPINRW:
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
 		/* Can read from all these, in principle anyway.
 		 */
 		break;
 
-	case IM_PARTIAL:
+	case VIPS_IMAGE_PARTIAL:
 #ifdef DEBUG_IO
 		printf( "im_incheck: converting partial image to WIO\n" );
 #endif/*DEBUG_IO*/
@@ -212,7 +212,7 @@ im_incheck( IMAGE *im )
 
 		break;
 
-	case IM_OPENIN:
+	case VIPS_IMAGE_OPENIN:
 #ifdef DEBUG_IO
 		printf( "im_incheck: converting openin image for old-style input\n" );
 #endif/*DEBUG_IO*/
@@ -224,17 +224,27 @@ im_incheck( IMAGE *im )
 
 		break;
 
-	case IM_OPENOUT:
+	case VIPS_IMAGE_OPENOUT:
 		/* Close file down and reopen as input. I guess this will only
 		 * work for vips files?
 		 */
 #ifdef DEBUG_IO
 		printf( "im_incheck: auto-rewind of %s\n", im->filename );
 #endif/*DEBUG_IO*/
-		if( im__close( im ) || 
-			im_openin( im ) ||
+
+		/* Free any resources the image holds and reset to a base
+		 * state.
+		 */
+		vips_object_rewind( VIPS_OBJECT( im ) );
+
+		/* And reopen .. recurse to get a mmaped image.
+		 */
+		g_object_set( im,
+			"mode", "r",
+			NULL );
+		if( vips_object_build( VIPS_OBJECT( im ) ) ||
 			im_incheck( im ) ) {
-			im_error( "im_incheck", 
+			vips_error( "im_incheck", 
 				_( "auto-rewind for %s failed" ),
 				im->filename );
 			return( -1 );
@@ -243,7 +253,7 @@ im_incheck( IMAGE *im )
 		break;
 
 	default:
-		im_error( "im_incheck", 
+		vips_error( "im_incheck", 
 			"%s", _( "image not readable" ) );
 		return( -1 );
 	}
@@ -273,41 +283,41 @@ im_outcheck( IMAGE *im )
 #endif/*DEBUG_IO*/
 
 	switch( im->dtype ) {
-	case IM_PARTIAL:
+	case VIPS_IMAGE_PARTIAL:
 		/* Make sure nothing is attached.
 		 */
 		if( im->generate ) {
-			im_error( "im_outcheck", 
+			vips_error( "im_outcheck", 
 				"%s", _( "image already written" ) );
 			return( -1 );
 		}
 
 		/* Cannot do old-style write to PARTIAL. Turn to SETBUF.
 		 */
-		im->dtype = IM_SETBUF;
+		im->dtype = VIPS_IMAGE_SETBUF;
 
 		/* Fall through to SETBUF case.
 		 */
 
-	case IM_SETBUF:
+	case VIPS_IMAGE_SETBUF:
 		/* Check that it has not been im_setupout().
 		 */
 		if( im->data ) {
-			im_error( "im_outcheck", 
+			vips_error( "im_outcheck", 
 				"%s", _( "image already written" ) );
 			return( -1 );
 		}
 
 		break;
 
-	case IM_OPENOUT:
-	case IM_SETBUF_FOREIGN:
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
 		/* Can write to this ok.
 		 */
 		break;
 
 	default:
-		im_error( "im_outcheck", 
+		vips_error( "im_outcheck", 
 			"%s", _( "image not writeable" ) );
 		return( -1 );
 	}
@@ -320,7 +330,7 @@ im_outcheck( IMAGE *im )
  * @in: input image
  * @out: output image
  *
- * A convenience function to check a pair of images for IO via IM_IMAGE_ADDR()
+ * A convenience function to check a pair of images for IO via VIPS_IMAGE_ADDR()
  * and im_writeline().
  *
  * See also: im_incheck(), im_outcheck().
@@ -338,7 +348,7 @@ im_iocheck( IMAGE *in, IMAGE *out )
  * @im: image to make read-write
  *
  * Gets an image ready for an in-place operation, such as im_insertplace().
- * Operations like this both read and write with IM_IMAGE_ADDR().
+ * Operations like this both read and write with VIPS_IMAGE_ADDR().
  *
  * See also: im_insertplace(), im_incheck().
  *
@@ -351,7 +361,7 @@ im_rwcheck( IMAGE *im )
 	 * generate im_partial() files.
 	 */
 	if( im_incheck( im ) ) {
-		im_error( "im_rwcheck", 
+		vips_error( "im_rwcheck", 
 			"%s", _( "unable to rewind file" ) );
 		return( -1 );
 	}
@@ -359,14 +369,14 @@ im_rwcheck( IMAGE *im )
 	/* Look at the type.
 	 */
 	switch( im->dtype ) {
-	case IM_SETBUF:
-	case IM_SETBUF_FOREIGN:
-	case IM_MMAPINRW:
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPINRW:
 		/* No action necessary.
 		 */
 		break;
 
-	case IM_MMAPIN:
+	case VIPS_IMAGE_MMAPIN:
 		/* Try to remap read-write.
 		 */
 		if( im_remapfilerw( im ) )
@@ -375,7 +385,7 @@ im_rwcheck( IMAGE *im )
 		break;
 
 	default:
-		im_error( "im_rwcheck", 
+		vips_error( "im_rwcheck", 
 			"%s", _( "bad file type" ) );
 		return( -1 );
 	}
@@ -397,19 +407,19 @@ im_rwcheck( IMAGE *im )
 int
 im_pincheck( IMAGE *im )
 {	
-	g_assert( !im_image_sanity( im ) );
+	g_assert( vips_object_sanity( VIPS_OBJECT( im ) ) );
 
 #ifdef DEBUG_IO
 	printf( "im_pincheck: enabling partial input for %s\n", im->filename );
 #endif /*DEBUG_IO*/
 
 	switch( im->dtype ) {
-	case IM_SETBUF:
-	case IM_SETBUF_FOREIGN:
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
 		/* Should have been written to.
 		 */
 		if( !im->data ) {
-			im_error( "im_pincheck", "%s", _( "no image data" ) );
+			vips_error( "im_pincheck", "%s", _( "no image data" ) );
 			return( -1 );
 		}
 
@@ -421,29 +431,38 @@ im_pincheck( IMAGE *im )
 
 		break;
 
-	case IM_PARTIAL:
+	case VIPS_IMAGE_PARTIAL:
 		/* Should have had generate functions attached.
 		 */
 		if( !im->generate ) {
-			im_error( "im_pincheck", "%s", _( "no image data" ) );
+			vips_error( "im_pincheck", "%s", _( "no image data" ) );
 			return( -1 );
 		}
 
 		break;
 
-	case IM_MMAPIN:
-	case IM_MMAPINRW:
-	case IM_OPENIN:
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_OPENIN:
 		break;
 
-	case IM_OPENOUT:
+	case VIPS_IMAGE_OPENOUT:
 		/* Close file down and reopen as im_mmapin.
 		 */
 #ifdef DEBUG_IO
 		printf( "im_pincheck: auto-rewind of %s\n", im->filename );
 #endif/*DEBUG_IO*/
-		if( im__close( im ) || im_openin( im ) ) {
-			im_error( "im_pincheck", 
+
+		/* Free any resources the image holds and reset to a base
+		 * state.
+		 */
+		vips_object_rewind( VIPS_OBJECT( im ) );
+
+		g_object_set( im,
+			"mode", "r",
+			NULL );
+		if( vips_object_build( VIPS_OBJECT( im ) ) ) {
+			vips_error( "im_pincheck", 
 				_( "auto-rewind for %s failed" ),
 				im->filename );
 			return( -1 );
@@ -452,7 +471,7 @@ im_pincheck( IMAGE *im )
 		break;
 
 	default:
-		im_error( "im_pincheck", "%s", _( "image not readable" ) );
+		vips_error( "im_pincheck", "%s", _( "image not readable" ) );
 		return( -1 );
 	}
 
@@ -474,7 +493,7 @@ int
 im_poutcheck( IMAGE *im )
 {
 	if( !im ) {
-		im_error( "im_poutcheck", "%s", _( "null image descriptor" ) );
+		vips_error( "im_poutcheck", "%s", _( "null image descriptor" ) );
 		return( -1 );
 	}
 
@@ -483,36 +502,36 @@ im_poutcheck( IMAGE *im )
 #endif /*DEBUG_IO*/
 
 	switch( im->dtype ) {
-	case IM_SETBUF:
+	case VIPS_IMAGE_SETBUF:
 		/* Check that it has not been im_setupout().
 		 */
 		if( im->data ) {
-			im_error( "im_poutcheck", "%s", 
+			vips_error( "im_poutcheck", "%s", 
 				_( "image already written" ) );
 			return( -1 );
 		}
 
 		break;
 
-	case IM_PARTIAL:
+	case VIPS_IMAGE_PARTIAL:
 		/* Make sure nothing is attached.
 		 */
 		if( im->generate ) {
-			im_error( "im_poutcheck", "%s", 
+			vips_error( "im_poutcheck", "%s", 
 				_( "image already written" ) );
 			return( -1 );
 		}
 
 		break;
 
-	case IM_OPENOUT:
-	case IM_SETBUF_FOREIGN:
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
 		/* Okeydoke. Not much checking here.
 		 */
 		break;
 
 	default:
-		im_error( "im_poutcheck", "%s", _( "image not writeable" ) );
+		vips_error( "im_poutcheck", "%s", _( "image not writeable" ) );
 		return( -1 );
 	}
 
@@ -546,15 +565,15 @@ im_piocheck( IMAGE *in, IMAGE *out )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 on OK, or -1 on error.
  */
 int
 im_check_uncoded( const char *domain, IMAGE *im )
 {
-	if( im->Coding != IM_CODING_NONE ) {
-		im_error( domain, "%s", _( "image must be uncoded" ) );
+	if( im->Coding != VIPS_CODING_NONE ) {
+		vips_error( domain, "%s", _( "image must be uncoded" ) );
 		return( -1 );
 	}
 
@@ -570,7 +589,7 @@ im_check_uncoded( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -579,9 +598,9 @@ im_check_coding_noneorlabq( const char *domain, IMAGE *im )
 {
 	/* These all have codings that extract/ifthenelse/etc can ignore.
 	 */
-	if( im->Coding != IM_CODING_NONE && 
-		im->Coding != IM_CODING_LABQ ) {
-		im_error( domain, 
+	if( im->Coding != VIPS_CODING_NONE && 
+		im->Coding != VIPS_CODING_LABQ ) {
+		vips_error( domain, 
 			"%s", _( "image coding must be NONE or LABQ" ) );
 		return( -1 );
 	}
@@ -598,7 +617,7 @@ im_check_coding_noneorlabq( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -607,10 +626,10 @@ im_check_coding_known( const char *domain, IMAGE *im )
 {
 	/* These all have codings that extract/ifthenelse/etc can ignore.
 	 */
-	if( im->Coding != IM_CODING_NONE && 
-		im->Coding != IM_CODING_LABQ &&
-		im->Coding != IM_CODING_RAD ) {
-		im_error( domain, "%s", _( "unknown image coding" ) );
+	if( im->Coding != VIPS_CODING_NONE && 
+		im->Coding != VIPS_CODING_LABQ &&
+		im->Coding != VIPS_CODING_RAD ) {
+		vips_error( domain, "%s", _( "unknown image coding" ) );
 		return( -1 );
 	}
 
@@ -626,17 +645,17 @@ im_check_coding_known( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 on OK, or -1 on error.
  */
 int
 im_check_coding_rad( const char *domain, IMAGE *im )
 {
-	if( im->Coding != IM_CODING_RAD ||
-		im->BandFmt != IM_BANDFMT_UCHAR || 
+	if( im->Coding != VIPS_CODING_RAD ||
+		im->BandFmt != VIPS_FORMAT_UCHAR || 
 		im->Bands != 4 ) { 
-		im_error( domain, "%s", _( "Radiance coding only" ) );
+		vips_error( domain, "%s", _( "Radiance coding only" ) );
 		return( -1 );
 	}
 
@@ -652,17 +671,17 @@ im_check_coding_rad( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 on OK, or -1 on error.
  */
 int
 im_check_coding_labq( const char *domain, IMAGE *im )
 {
-	if( im->Coding != IM_CODING_LABQ ||
-		im->BandFmt != IM_BANDFMT_UCHAR || 
+	if( im->Coding != VIPS_CODING_LABQ ||
+		im->BandFmt != VIPS_FORMAT_UCHAR || 
 		im->Bands != 4 ) { 
-		im_error( domain, "%s", _( "LABQ coding only" ) );
+		vips_error( domain, "%s", _( "LABQ coding only" ) );
 		return( -1 );
 	}
 
@@ -678,7 +697,7 @@ im_check_coding_labq( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -686,7 +705,7 @@ int
 im_check_mono( const char *domain, IMAGE *im )
 {
 	if( im->Bands != 1 ) {
-		im_error( domain, "%s", _( "image must one band" ) );
+		vips_error( domain, "%s", _( "image must one band" ) );
 		return( -1 );
 	}
 
@@ -703,7 +722,7 @@ im_check_mono( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -711,7 +730,7 @@ int
 im_check_bands( const char *domain, IMAGE *im, int bands )
 {
 	if( im->Bands != bands ) {
-		im_error( domain, _( "image must have %d bands" ), bands );
+		vips_error( domain, _( "image must have %d bands" ), bands );
 		return( -1 );
 	}
 
@@ -727,7 +746,7 @@ im_check_bands( const char *domain, IMAGE *im, int bands )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -735,7 +754,7 @@ int
 im_check_bands_1or3( const char *domain, IMAGE *im )
 {
 	if( im->Bands != 1 && im->Bands != 3 ) {
-		im_error( domain, "%s", 
+		vips_error( domain, "%s", 
 			_( "image must have one or three bands" ) );
 		return( -1 );
 	}
@@ -754,7 +773,7 @@ im_check_bands_1or3( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -763,7 +782,7 @@ im_check_bands_1orn( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Bands != im2->Bands &&
 		(im1->Bands != 1 && im2->Bands != 1) ) {
-		im_error( domain, "%s", 
+		vips_error( domain, "%s", 
 			_( "images must have the same number of bands, "
 			"or one must be single-band" ) );
 		return( -1 );
@@ -791,7 +810,7 @@ int
 im_check_bands_1orn_unary( const char *domain, IMAGE *im, int n )
 {
 	if( im->Bands != 1 && im->Bands != n ) { 
-		im_error( domain, _( "image must have 1 or %d bands" ), n );
+		vips_error( domain, _( "image must have 1 or %d bands" ), n );
 		return( -1 );
 	}
 
@@ -807,7 +826,7 @@ im_check_bands_1orn_unary( const char *domain, IMAGE *im, int n )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -815,7 +834,7 @@ int
 im_check_noncomplex( const char *domain, IMAGE *im )
 {
 	if( vips_bandfmt_iscomplex( im->BandFmt ) ) {
-		im_error( domain, "%s", _( "image must be non-complex" ) );
+		vips_error( domain, "%s", _( "image must be non-complex" ) );
 		return( -1 );
 	}
 
@@ -831,7 +850,7 @@ im_check_noncomplex( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -839,7 +858,7 @@ int
 im_check_complex( const char *domain, IMAGE *im )
 {
 	if( !vips_bandfmt_iscomplex( im->BandFmt ) ) {
-		im_error( domain, "%s", _( "image must be complex" ) );
+		vips_error( domain, "%s", _( "image must be complex" ) );
 		return( -1 );
 	}
 
@@ -856,16 +875,17 @@ im_check_complex( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt )
+im_check_format( const char *domain, IMAGE *im, VipsBandFormat fmt )
 {
 	if( im->BandFmt != fmt ) {
-		im_error( domain, 
-			_( "image must be %s" ), im_BandFmt2char( fmt ) );
+		vips_error( domain, 
+			_( "image must be %s" ), 
+			VIPS_ENUM_STRING( VIPS_TYPE_BAND_FORMAT, fmt ) );
 		return( -1 );
 	}
 
@@ -881,7 +901,7 @@ im_check_format( const char *domain, IMAGE *im, VipsBandFmt fmt )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -889,7 +909,7 @@ int
 im_check_int( const char *domain, IMAGE *im )
 {
 	if( !vips_bandfmt_isint( im->BandFmt ) ) {
-		im_error( domain, "%s", _( "image must be integer" ) );
+		vips_error( domain, "%s", _( "image must be integer" ) );
 		return( -1 );
 	}
 
@@ -905,7 +925,7 @@ im_check_int( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -913,7 +933,7 @@ int
 im_check_uint( const char *domain, IMAGE *im )
 {
 	if( !vips_bandfmt_isuint( im->BandFmt ) ) {
-		im_error( domain, "%s", _( "image must be unsigned integer" ) );
+		vips_error( domain, "%s", _( "image must be unsigned integer" ) );
 		return( -1 );
 	}
 
@@ -929,18 +949,18 @@ im_check_uint( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_8or16( const char *domain, IMAGE *im )
 {
-	if( im->BandFmt != IM_BANDFMT_UCHAR &&
-		im->BandFmt != IM_BANDFMT_USHORT &&
-		im->BandFmt != IM_BANDFMT_CHAR &&
-		im->BandFmt != IM_BANDFMT_SHORT ) {
-		im_error( domain, "%s", 
+	if( im->BandFmt != VIPS_FORMAT_UCHAR &&
+		im->BandFmt != VIPS_FORMAT_USHORT &&
+		im->BandFmt != VIPS_FORMAT_CHAR &&
+		im->BandFmt != VIPS_FORMAT_SHORT ) {
+		vips_error( domain, "%s", 
 			_( "image must be 8- or 16-bit integer, "
 				"signed or unsigned" ) );
 		return( -1 );
@@ -958,16 +978,16 @@ im_check_8or16( const char *domain, IMAGE *im )
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_u8or16( const char *domain, IMAGE *im )
 {
-	if( im->BandFmt != IM_BANDFMT_UCHAR &&
-		im->BandFmt != IM_BANDFMT_USHORT ) {
-		im_error( domain, "%s", 
+	if( im->BandFmt != VIPS_FORMAT_UCHAR &&
+		im->BandFmt != VIPS_FORMAT_USHORT ) {
+		vips_error( domain, "%s", 
 			_( "image must be 8- or 16-bit unsigned integer" ) );
 		return( -1 );
 	}
@@ -983,17 +1003,17 @@ im_check_u8or16( const char *domain, IMAGE *im )
  * Check that the image is 8 or 16-bit unsigned integer, or float.
  * Otherwise set an error message and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_u8or16orf( const char *domain, IMAGE *im )
 {
-	if( im->BandFmt != IM_BANDFMT_UCHAR &&
-		im->BandFmt != IM_BANDFMT_USHORT &&
-		im->BandFmt != IM_BANDFMT_FLOAT ) {
-		im_error( domain, "%s", 
+	if( im->BandFmt != VIPS_FORMAT_UCHAR &&
+		im->BandFmt != VIPS_FORMAT_USHORT &&
+		im->BandFmt != VIPS_FORMAT_FLOAT ) {
+		vips_error( domain, "%s", 
 			_( "image must be 8- or 16-bit unsigned integer, "
 				"or float" ) );
 		return( -1 );
@@ -1010,18 +1030,18 @@ im_check_u8or16orf( const char *domain, IMAGE *im )
  * Check that the image is unsigned int or float.
  * Otherwise set an error message and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
 int
 im_check_uintorf( const char *domain, IMAGE *im )
 {
-	if( im->BandFmt != IM_BANDFMT_UCHAR &&
-		im->BandFmt != IM_BANDFMT_USHORT &&
-		im->BandFmt != IM_BANDFMT_UINT &&
-		im->BandFmt != IM_BANDFMT_FLOAT ) {
-		im_error( domain, "%s", 
+	if( im->BandFmt != VIPS_FORMAT_UCHAR &&
+		im->BandFmt != VIPS_FORMAT_USHORT &&
+		im->BandFmt != VIPS_FORMAT_UINT &&
+		im->BandFmt != VIPS_FORMAT_FLOAT ) {
+		vips_error( domain, "%s", 
 			_( "image must be unsigned int or float" ) );
 		return( -1 );
 	}
@@ -1039,7 +1059,7 @@ im_check_uintorf( const char *domain, IMAGE *im )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1047,7 +1067,7 @@ int
 im_check_size_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Xsize != im2->Xsize || im1->Ysize != im2->Ysize ) {
-		im_error( domain, "%s", _( "images must match in size" ) );
+		vips_error( domain, "%s", _( "images must match in size" ) );
 		return( -1 );
 	}
 
@@ -1064,7 +1084,7 @@ im_check_size_same( const char *domain, IMAGE *im1, IMAGE *im2 )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1072,7 +1092,7 @@ int
 im_check_bands_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Bands != im2->Bands ) {
-		im_error( domain, "%s", 
+		vips_error( domain, "%s", 
 			_( "images must have the same number of bands" ) ); 
 		return( -1 );
 	}
@@ -1091,7 +1111,7 @@ im_check_bands_same( const char *domain, IMAGE *im1, IMAGE *im2 )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1100,7 +1120,7 @@ im_check_bandno( const char *domain, IMAGE *im, int bandno )
 {
 	if( bandno < -1 ||
 		bandno > im->Bands - 1 ) {
-		im_error( domain, "bandno must be -1, or less than %d",
+		vips_error( domain, "bandno must be -1, or less than %d",
 			im->Bands );
 		return( -1 );
 	}
@@ -1118,7 +1138,7 @@ im_check_bandno( const char *domain, IMAGE *im, int bandno )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1126,7 +1146,7 @@ int
 im_check_format_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->BandFmt != im2->BandFmt ) {
-		im_error( domain, "%s", 
+		vips_error( domain, "%s", 
 			_( "images must have the same band format" ) ); 
 		return( -1 );
 	}
@@ -1144,7 +1164,7 @@ im_check_format_same( const char *domain, IMAGE *im1, IMAGE *im2 )
  * If not, set an error message
  * and return non-zero.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1152,7 +1172,7 @@ int
 im_check_coding_same( const char *domain, IMAGE *im1, IMAGE *im2 )
 {
 	if( im1->Coding != im2->Coding ) {
-		im_error( domain, "%s", 
+		vips_error( domain, "%s", 
 			_( "images must have the same coding" ) ); 
 		return( -1 );
 	}
@@ -1169,7 +1189,7 @@ im_check_coding_same( const char *domain, IMAGE *im1, IMAGE *im2 )
  * Operations with a vector constant need a 1-element vector, or a vector with
  * the same number of elements as there are bands in the image.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1177,7 +1197,7 @@ int
 im_check_vector( const char *domain, int n, IMAGE *im )
 {
 	if( n != 1 && im->Bands != 1 && n != im->Bands ) {
-		im_error( domain, 
+		vips_error( domain, 
 			_( "vector must have 1 or %d elements" ), im->Bands );
 		return( -1 );
 	}
@@ -1194,7 +1214,7 @@ im_check_vector( const char *domain, int n, IMAGE *im )
  * 65536 elements. Return 0 if the image will pass as a histogram, or -1 and
  * set an error message otherwise.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1202,12 +1222,12 @@ int
 im_check_hist( const char *domain, IMAGE *im )
 {
 	if( im->Xsize != 1 && im->Ysize != 1 ) {
-		im_error( domain, "%s", 
+		vips_error( domain, "%s", 
 			_( "histograms must have width or height 1" ) );
 		return( -1 );
 	}
 	if( im->Xsize * im->Ysize > 65536 ) {
-		im_error( domain, "%s", 
+		vips_error( domain, "%s", 
 			_( "histograms must have not have more than "
 				"65536 elements" ) );
 		return( -1 );
@@ -1223,7 +1243,7 @@ im_check_hist( const char *domain, IMAGE *im )
  *
  * Sanity-check a mask parameter.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1236,7 +1256,7 @@ im_check_imask( const char *domain, INTMASK *mask )
 		mask->xsize <= 0 || 
 		mask->ysize <= 0 || 
 		!mask->coeff ) {
-		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
+		vips_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
 		return( -1 );
 	}
 
@@ -1250,7 +1270,7 @@ im_check_imask( const char *domain, INTMASK *mask )
  *
  * Sanity-check a mask parameter.
  *
- * See also: im_error().
+ * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1263,7 +1283,7 @@ im_check_dmask( const char *domain, DOUBLEMASK *mask )
 		mask->xsize <= 0 || 
 		mask->ysize <= 0 || 
 		!mask->coeff ) {
-		im_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
+		vips_error( "im_conv", "%s", _( "nonsense mask parameters" ) );
 		return( -1 );
 	}
 
@@ -1277,21 +1297,21 @@ im_check_dmask( const char *domain, DOUBLEMASK *mask )
  * Return %TRUE if @fmt is one of the integer types.
  */
 gboolean
-vips_bandfmt_isint( VipsBandFmt fmt )
+vips_bandfmt_isint( VipsBandFormat fmt )
 {
 	switch( fmt ) {
-	case IM_BANDFMT_UCHAR:
-	case IM_BANDFMT_CHAR:
-	case IM_BANDFMT_USHORT:
-	case IM_BANDFMT_SHORT:
-	case IM_BANDFMT_UINT:
-	case IM_BANDFMT_INT:
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
 		return( TRUE );
 
-	case IM_BANDFMT_FLOAT:
-	case IM_BANDFMT_DOUBLE:	
-	case IM_BANDFMT_COMPLEX:
-	case IM_BANDFMT_DPCOMPLEX:	
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:	
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:	
 		return( FALSE );
 	
 	default:
@@ -1307,21 +1327,21 @@ vips_bandfmt_isint( VipsBandFmt fmt )
  * Return %TRUE if @fmt is one of the unsigned integer types.
  */
 gboolean
-vips_bandfmt_isuint( VipsBandFmt fmt )
+vips_bandfmt_isuint( VipsBandFormat fmt )
 {
 	switch( fmt ) {
-	case IM_BANDFMT_UCHAR:
-	case IM_BANDFMT_USHORT:
-	case IM_BANDFMT_UINT:
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_UINT:
 		return( 1 );
 
-	case IM_BANDFMT_INT:
-	case IM_BANDFMT_SHORT:
-	case IM_BANDFMT_CHAR:
-	case IM_BANDFMT_FLOAT:
-	case IM_BANDFMT_DOUBLE:	
-	case IM_BANDFMT_COMPLEX:
-	case IM_BANDFMT_DPCOMPLEX:	
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:	
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:	
 		return( 0 );
 	
 	default:
@@ -1337,21 +1357,21 @@ vips_bandfmt_isuint( VipsBandFmt fmt )
  * Return %TRUE if @fmt is one of the float types.
  */
 gboolean
-vips_bandfmt_isfloat( VipsBandFmt fmt )
+vips_bandfmt_isfloat( VipsBandFormat fmt )
 {
 	switch( fmt ) {
-	case IM_BANDFMT_FLOAT:
-	case IM_BANDFMT_DOUBLE:	
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:	
 		return( 1 );
 
-	case IM_BANDFMT_UCHAR:
-	case IM_BANDFMT_CHAR:
-	case IM_BANDFMT_USHORT:
-	case IM_BANDFMT_SHORT:
-	case IM_BANDFMT_UINT:
-	case IM_BANDFMT_INT:
-	case IM_BANDFMT_COMPLEX:
-	case IM_BANDFMT_DPCOMPLEX:	
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:	
 		return( 0 );
 	
 	default:
@@ -1367,101 +1387,25 @@ vips_bandfmt_isfloat( VipsBandFmt fmt )
  * Return %TRUE if @fmt is one of the complex types.
  */
 gboolean
-vips_bandfmt_iscomplex( VipsBandFmt fmt )
+vips_bandfmt_iscomplex( VipsBandFormat fmt )
 {
 	switch( fmt ) {
-	case IM_BANDFMT_COMPLEX:
-	case IM_BANDFMT_DPCOMPLEX:	
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:	
 		return( 1 );
 
-	case IM_BANDFMT_UCHAR:
-	case IM_BANDFMT_CHAR:
-	case IM_BANDFMT_USHORT:
-	case IM_BANDFMT_SHORT:
-	case IM_BANDFMT_UINT:
-	case IM_BANDFMT_INT:
-	case IM_BANDFMT_FLOAT:
-	case IM_BANDFMT_DOUBLE:	
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:	
 		return( 0 );
 	
 	default:
 		g_assert( 0 );
-		return( -1 );
-	}
-}
-
-/**
- * im_isMSBfirst:
- * @im: image to test
- *
- * Return %TRUE if @im is in most-significant-
- * byte first form. This is the byte order used on the SPARC
- * architecture
- * and others. 
- */
-gboolean
-im_isMSBfirst( IMAGE *im )
-{	
-	if( im->magic == IM_MAGIC_SPARC )
-		return( 1 );
-	else
-		return( 0 );
-}
-
-/**
- * im_isfile:
- * @im: image to test
- *
- * Return %TRUE if @im represents a file on disc in some way. 
- */
-gboolean 
-im_isfile( IMAGE *im )
-{
-	switch( im->dtype ) {
-	case IM_MMAPIN:
-	case IM_MMAPINRW:
-	case IM_OPENOUT:
-	case IM_OPENIN:
-		return( 1 );
-
-	case IM_PARTIAL:
-	case IM_SETBUF:
-	case IM_SETBUF_FOREIGN:
-	case IM_NONE:
-		return( 0 );
-
-	default:
-		error_exit( "im_isfile: corrupt IMAGE descriptor" );
-		/*NOTREACHED*/
-		return( -1 );
-	}
-}
-
-/**
- * im_ispartial:
- * @im: image to test
- *
- * Return %TRUE if @im represents a partial image (a delayed calculation).
- */
-gboolean 
-im_ispartial( IMAGE *im )
-{
-	switch( im->dtype ) {
-	case IM_PARTIAL:
-		return( 1 );
-
-	case IM_SETBUF:
-	case IM_SETBUF_FOREIGN:
-	case IM_MMAPIN:
-	case IM_MMAPINRW:
-	case IM_OPENIN:
-	case IM_OPENOUT:
-	case IM_NONE:
-		return( 0 );
-
-	default:
-		error_exit( "im_ispartial: corrupt IMAGE descriptor" );
-		/*NOTREACHED*/
 		return( -1 );
 	}
 }

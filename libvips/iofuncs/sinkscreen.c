@@ -88,7 +88,7 @@ typedef struct {
 	struct _Render *render;
 
 	Rect area;		/* Place here (unclipped) */
-	REGION *region;		/* REGION with the pixels */
+	VipsRegion *region;	/* VipsRegion with the pixels */
 
 	/* The tile contains calculated pixels. Though the region may have been
 	 * invalidated behind our backs: we have to check that too.
@@ -208,7 +208,7 @@ tile_free( Tile *tile )
 {
 	VIPS_DEBUG_MSG_AMBER( "tile_free\n" );
 
-	IM_FREEF( im_region_free, tile->region );
+	VIPS_FREEF( g_object_unref, tile->region );
 	im_free( tile );
 
 	return( NULL );
@@ -236,10 +236,10 @@ render_free( Render *render )
 	g_mutex_free( render->lock );
 
 	im_slist_map2( render->all, (VSListMap2Fn) tile_free, NULL, NULL );
-	IM_FREEF( g_slist_free, render->all );
+	VIPS_FREEF( g_slist_free, render->all );
 	render->ntiles = 0;
-	IM_FREEF( g_slist_free, render->dirty );
-	IM_FREEF( g_hash_table_destroy, render->tiles );
+	VIPS_FREEF( g_slist_free, render->dirty );
+	VIPS_FREEF( g_hash_table_destroy, render->tiles );
 
 	im_free( render );
 
@@ -426,9 +426,10 @@ render_work( VipsThreadState *state, void *a )
 	VIPS_DEBUG_MSG( "calculating tile %p %dx%d\n", 
 		tile, tile->area.left, tile->area.top );
 
-	if( im_prepare_to( state->reg, tile->region, 
+	if( vips_region_prepare_to( state->reg, tile->region, 
 		&tile->area, tile->area.left, tile->area.top ) ) {
-		VIPS_DEBUG_MSG_RED( "render_work: im_prepare_to() failed\n" ); 
+		VIPS_DEBUG_MSG_RED( "render_work: "
+			"vips_region_prepare_to() failed\n" ); 
 		return( -1 );
 	}
 	tile->painted = TRUE;
@@ -536,7 +537,7 @@ render_thread_create( void )
 			render_thread_main, NULL, 
 			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-			im_error( "im_render", 
+			vips_error( "im_render", 
 				"%s", _( "unable to create thread" ) );
 			return( -1 );
 		}
@@ -594,7 +595,7 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 	/* Don't use auto-free for render, we do our own lifetime management
 	 * with _ref() and _unref().
 	 */
-	if( !(render = IM_NEW( NULL, Render )) )
+	if( !(render = VIPS_NEW( NULL, Render )) )
 		return( NULL );
 
 	render->ref_count = 1;
@@ -622,19 +623,12 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	/* Both out and mask must close before we can free the render.
 	 */
-
-	if( im_add_close_callback( out, 
-                (im_callback_fn) render_close_cb, render, NULL ) ) {
-                (void) render_unref( render );
-                return( NULL );
-        }
+	g_signal_connect( out, "close", 
+		G_CALLBACK( render_close_cb ), render );
 
 	if( mask ) {
-		if( im_add_close_callback( mask, 
-			(im_callback_fn) render_close_cb, render, NULL ) ) {
-			(void) render_unref( render );
-			return( NULL );
-		}
+		g_signal_connect( mask, "close", 
+			G_CALLBACK( render_close_cb ), render );
 		render_ref( render );
 	}
 
@@ -659,7 +653,7 @@ tile_new( Render *render )
 	/* Don't use auto-free: we need to make sure we free the tile after
 	 * Render.
 	 */
-	if( !(tile = IM_NEW( NULL, Tile )) )
+	if( !(tile = VIPS_NEW( NULL, Tile )) )
 		return( NULL );
 
 	tile->render = render;
@@ -672,7 +666,7 @@ tile_new( Render *render )
 	tile->dirty = FALSE;
 	tile->ticks = render->ticks;
 
-	if( !(tile->region = im_region_create( render->in )) ) {
+	if( !(tile->region = vips_region_new( render->in )) ) {
 		(void) tile_free( tile );
 		return( NULL );
 	}
@@ -706,7 +700,7 @@ render_tile_add( Tile *tile, Rect *area )
 	/* Ignore buffer allocate errors, there's not much we could do with 
 	 * them.
 	 */
-	if( im_region_buffer( tile->region, &tile->area ) )
+	if( vips_region_buffer( tile->region, &tile->area ) )
 		VIPS_DEBUG_MSG_RED( "render_tile_add: "
 			"buffer allocate failed\n" ); 
 
@@ -746,7 +740,7 @@ tile_touch( Tile *tile )
 /* Queue a tile for calculation. 
  */
 static void
-tile_queue( Tile *tile, REGION *reg )
+tile_queue( Tile *tile, VipsRegion *reg )
 {
 	Render *render = tile->render;
 
@@ -779,7 +773,7 @@ tile_queue( Tile *tile, REGION *reg )
 		 */
 		g_mutex_unlock( render->lock );
 
-		if( im_prepare_to( reg, tile->region, 
+		if( vips_region_prepare_to( reg, tile->region, 
 			&tile->area, tile->area.left, tile->area.top ) ) 
 			VIPS_DEBUG_MSG_RED( "tile_queue: prepare failed\n" ); 
 
@@ -820,7 +814,7 @@ render_tile_get_painted( Render *render )
  * or if we've no threads or no notify, calculate immediately.
  */
 static Tile *
-render_tile_request( Render *render, REGION *reg, Rect *area )
+render_tile_request( Render *render, VipsRegion *reg, Rect *area )
 {
 	Tile *tile;
 
@@ -870,7 +864,7 @@ render_tile_request( Render *render, REGION *reg, Rect *area )
 /* Copy what we can from the tile into the region.
  */
 static void
-tile_copy( Tile *tile, REGION *to )
+tile_copy( Tile *tile, VipsRegion *to )
 {
 	Rect ovlap;
 	int y;
@@ -884,16 +878,16 @@ tile_copy( Tile *tile, REGION *to )
 	 * zero. 
 	 */
 	if( tile->painted && !tile->region->invalid ) {
-		int len = IM_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
+		int len = VIPS_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
 
 		VIPS_DEBUG_MSG( "tile_copy: "
 			"copying calculated pixels for %p %dx%d\n",
 			tile, tile->area.left, tile->area.top ); 
 
 		for( y = ovlap.top; y < IM_RECT_BOTTOM( &ovlap ); y++ ) {
-			PEL *p = (PEL *) IM_REGION_ADDR( tile->region, 
+			PEL *p = (PEL *) VIPS_REGION_ADDR( tile->region, 
 				ovlap.left, y );
-			PEL *q = (PEL *) IM_REGION_ADDR( to, ovlap.left, y );
+			PEL *q = (PEL *) VIPS_REGION_ADDR( to, ovlap.left, y );
 
 			memcpy( q, p, len );
 		}
@@ -901,7 +895,7 @@ tile_copy( Tile *tile, REGION *to )
 	else {
 		VIPS_DEBUG_MSG( "tile_copy: zero filling for %p %dx%d\n",
 			tile, tile->area.left, tile->area.top ); 
-		im_region_paint( to, &ovlap, 0 );
+		vips_region_paint( to, &ovlap, 0 );
 	}
 }
 
@@ -910,16 +904,16 @@ image_start( IMAGE *out, void *a, void *b )
 {
 	Render *render = (Render *) a;
 
-	return( im_region_create( render->in ) );
+	return( vips_region_new( render->in ) );
 }
 
 /* Loop over the output region, filling with data from cache.
  */
 static int
-image_fill( REGION *out, void *seq, void *a, void *b )
+image_fill( VipsRegion *out, void *seq, void *a, void *b )
 {
 	Render *render = (Render *) a;
-	REGION *reg = (REGION *) seq;
+	VipsRegion *reg = (VipsRegion *) seq;
 	Rect *r = &out->valid;
 	int x, y;
 
@@ -966,9 +960,9 @@ image_fill( REGION *out, void *seq, void *a, void *b )
 static int
 image_stop( void *seq, void *a, void *b )
 {
-	REGION *reg = (REGION *) seq;
+	VipsRegion *reg = (VipsRegion *) seq;
 
-	im_region_free( reg );
+	g_object_unref( reg );
 
 	return( 0 );
 }
@@ -976,7 +970,7 @@ image_stop( void *seq, void *a, void *b )
 /* The mask image is 255 / 0 for the state of painted for each tile.
  */
 static int
-mask_fill( REGION *out, void *seq, void *a, void *b )
+mask_fill( VipsRegion *out, void *seq, void *a, void *b )
 {
 #ifdef HAVE_THREADS
 	Render *render = (Render *) a;
@@ -1012,12 +1006,12 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
 
 			/* Only mark painted tiles containing valid pixels.
 			 */
-			im_region_paint( out, &area, value ); 
+			vips_region_paint( out, &area, value ); 
 		}
 
 	g_mutex_unlock( render->lock );
 #else /*!HAVE_THREADS*/
-	im_region_paint( out, &out->valid, 255 );
+	vips_region_paint( out, &out->valid, 255 );
 #endif /*HAVE_THREADS*/
 
 	return( 0 );
@@ -1051,7 +1045,8 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  * priority, negative numbers are low priority, positive numbers high
  * priority.
  *
- * Calls to im_prepare() on @out return immediately and hold whatever is
+ * Calls to vips_region_prepare() on @out return immediately and hold 
+ * whatever is
  * currently in cache for that #Rect (check @mask to see which parts of the
  * #Rect are valid). Any pixels in the #Rect which are not in cache are added
  * to a queue, and the @notify callback will trigger when those pixels are
@@ -1063,10 +1058,11 @@ mask_fill( REGION *out, void *seq, void *a, void *b )
  * ready. In a glib-based application, this is easily done with g_idle_add().
  *
  * If @notify is %NULL then im_render_priority() runs synchronously.
- * im_prepare() on @out will always block until the pixels have been
+ * vips_region_prepare() on @out will always block until the pixels have been
  * calculated.
  *
- * See also: im_cache(), im_tile_cache(), im_prepare(), vips_sink_disc(), 
+ * See also: im_cache(), im_tile_cache(), vips_region_prepare(), 
+ * vips_sink_disc(), 
  * vips_sink().
  *
  * Returns: 0 on sucess, -1 on error.
@@ -1087,24 +1083,25 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	if( tile_width <= 0 || tile_height <= 0 || 
 		max_tiles < -1 ) {
-		im_error( "vips_sink_screen", "%s", _( "bad parameters" ) );
+		vips_error( "vips_sink_screen", "%s", _( "bad parameters" ) );
 		return( -1 );
 	}
 
 	if( im_piocheck( in, out ) ||
-		im_cp_desc( out, in ) ||
-		im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
+		vips_image_copy_fields( out, in ) ||
+		im_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 	if( mask ) {
 		if( im_poutcheck( mask ) ||
-			im_cp_desc( mask, in ) ||
-			im_demand_hint( mask, IM_SMALLTILE, in, NULL ) )
+			vips_image_copy_fields( mask, in ) ||
+			im_demand_hint( mask, 
+				VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 			return( -1 );
 
 		mask->Bands = 1;
-		mask->BandFmt = IM_BANDFMT_UCHAR;
-		mask->Type = IM_TYPE_B_W;
-		mask->Coding = IM_CODING_NONE;
+		mask->BandFmt = VIPS_FORMAT_UCHAR;
+		mask->Type = VIPS_INTERPRETATION_B_W;
+		mask->Coding = VIPS_CODING_NONE;
 	}
 
 	if( !(render = render_new( in, out, mask, 

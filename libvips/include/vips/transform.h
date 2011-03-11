@@ -66,4 +66,4 @@ void im__transform_invert_rect( const Transformation *trn,
 
 void im__transform_set_area( Transformation * );
 
-int im__affine( IMAGE *in, IMAGE *out, Transformation *trn );
+int im__affine( VipsImage *in, VipsImage *out, Transformation *trn );

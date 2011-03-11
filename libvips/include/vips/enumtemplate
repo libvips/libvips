@@ -1,0 +1,22 @@
+/*** BEGIN file-header ***/
+#ifndef VIPS_ENUM_TYPES_H
+#define VIPS_ENUM_TYPES_H
+
+G_BEGIN_DECLS
+
+/*** END file-header ***/
+
+/*** BEGIN file-production ***/
+/* enumerations from "@filename@" */
+/*** END file-production ***/
+
+/*** BEGIN value-header ***/
+GType @enum_name@_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_@ENUMSHORT@ (@enum_name@_get_type())
+/*** END value-header ***/
+
+/*** BEGIN file-tail ***/
+G_END_DECLS
+
+#endif /*VIPS_ENUM_TYPES_H*/
+/*** END file-tail ***/

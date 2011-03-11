@@ -74,8 +74,8 @@
 
  */
 
-#ifndef IM_VIPS_H
-#define IM_VIPS_H
+#ifndef VIPS_VIPS_H
+#define VIPS_VIPS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,6 +95,7 @@ extern "C" {
 #endif /*SWIG*/
 
 #include <vips/buf.h>
+#include <vips/util.h>
 #include <vips/object.h>
 
 #include <vips/version.h>
@@ -106,9 +107,7 @@ extern "C" {
 #include <vips/image.h>
 #include <vips/memory.h>
 #include <vips/almostdeprecated.h>
-#include <vips/callback.h>
 #include <vips/error.h>
-#include <vips/util.h>
 #include <vips/format.h>
 #include <vips/dispatch.h>
 #include <vips/region.h>
@@ -120,6 +119,8 @@ extern "C" {
 
 #include <vips/meta.h>
 #include <vips/header.h>
+
+#include <vips/enumtypes.h>
 
 #include <vips/arithmetic.h>
 #include <vips/boolean.h>
@@ -138,12 +139,26 @@ extern "C" {
 #include <vips/video.h>
 #include <vips/cimg_funcs.h>
 
-#ifdef IM_ENABLE_DEPRECATED
+#ifdef VIPS_ENABLE_DEPRECATED
 #include <vips/deprecated.h>
-#endif /*IM_ENABLE_DEPRECATED*/
+#endif /*VIPS_ENABLE_DEPRECATED*/
+
+#ifndef VIPS_DISABLE_VIPS7COMPAT
+#include <vips/vips7compat.h>
+#endif /*VIPS_DISABLE_VIPS7COMPAT*/
+
+const char *vips_get_argv0( void );
+int vips_init( const char *argv0 );
+GOptionGroup *vips_get_option_group( void );
+
+const char *vips_version_string( void );
+int vips_version( int flag );
+
+const char *vips_guess_prefix( const char *argv0, const char *env_name );
+const char *vips_guess_libdir( const char *argv0, const char *env_name );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_VIPS_H*/
+#endif /*VIPS_VIPS_H*/

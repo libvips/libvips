@@ -34,6 +34,10 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* Handy!
+ */
+#define VIPS_UNREF( O ) VIPS_FREEF( g_object_unref, (O) )
+
 typedef struct _VipsObject VipsObject;
 typedef struct _VipsObjectClass VipsObjectClass;
 
@@ -42,7 +46,7 @@ typedef struct _VipsObjectClass VipsObjectClass;
 
 /* Flags we associate with each argument.
  */
-typedef enum _VipsArgumentFlags {
+typedef enum {
 	VIPS_ARGUMENT_NONE = 0,
 
 	/* Must be set in the constructor.
@@ -75,7 +79,7 @@ typedef enum _VipsArgumentFlags {
 
 /* Useful flag combinations. User-visible ones are:
 
-VIPS_ARGUMENT_REQURED_INPUT 	Eg. the "left" argument for an add operation
+VIPS_ARGUMENT_REQUIRED_INPUT 	Eg. the "left" argument for an add operation
 
 VIPS_ARGUMENT_OPTIONAL_INPUT 	Eg. the "caption" for an object
 
@@ -184,6 +188,12 @@ struct _VipsObject {
 	 */
 	char *nickname;
 	char *description;
+
+	/* The pre/post/close callbacks are all fire-once. 
+	 */
+	gboolean preclose;
+	gboolean close;
+	gboolean postclose;
 };
 
 struct _VipsObjectClass {
@@ -201,6 +211,29 @@ struct _VipsObjectClass {
 	/* Try to print something about the object, handy for debugging.
 	 */
 	void (*print)( VipsObject *, VipsBuf * );
+
+	/* Sanity-check the object. Print messages and stuff. 
+	 * Handy for debugging.
+	 */
+	void (*sanity)( VipsObject *, VipsBuf * );
+
+	/* Rewind. Save and restore any stuff that needs to survive a
+	 * dispose().
+	 */
+	void (*rewind)( VipsObject * );
+
+	/* Just before close, everything is still alive.
+	 */
+	void (*preclose)( VipsObject * );
+
+	/* Close, time to free stuff.
+	 */
+	void (*close)( VipsObject * );
+
+	/* Post-close, everything is dead, except the VipsObject pointer.
+	 * Useful for eg. deleting the file associated with a temp image.
+	 */
+	void (*postclose)( VipsObject * );
 
 	/* Class nickname, eg. "VipsInterpolateBicubic" has "bicubic" as a
 	 * nickname. Not internationalised. 
@@ -225,9 +258,11 @@ void vips_object_set_property( GObject *gobject,
 void vips_object_get_property( GObject *gobject, 
 	guint property_id, GValue *value, GParamSpec *pspec );
 
+void vips_object_preclose( VipsObject *object );
 int vips_object_build( VipsObject *object );
 void vips_object_print_class( VipsObjectClass *klass );
 void vips_object_print( VipsObject *object );
+gboolean vips_object_sanity( VipsObject *object );
 
 GType vips_object_get_type( void );
 
@@ -240,6 +275,29 @@ VipsObject *vips_object_new( GType type,
 
 VipsObject *vips_object_new_from_string( const char *base, const char *str );
 void vips_object_to_string( VipsObject *object, VipsBuf *buf );
+
+void *vips_object_map( VSListMap2Fn fn, void *a, void *b );
+
+typedef void *(*VipsTypeMap)( GType, void * );
+typedef void *(*VipsTypeMap2)( GType, void *, void * );
+typedef void *(*VipsClassMap)( VipsObjectClass *, void * );
+void *vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b );
+void *vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a );
+void *vips_class_map_concrete_all( GType base, VipsClassMap fn, void *a );
+VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
+GType vips_type_find( const char *basename, const char *nickname );
+
+int vips_object_unref( VipsObject *obj );
+
+void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
+#define vips_object_local( V, G ) \
+	g_signal_connect( V, "close", \
+		G_CALLBACK( vips_object_local_cb ), G );
+
+void vips_object_print_all( void );
+void vips_object_sanity_all( void );
+
+void vips_object_rewind( VipsObject *object );
 
 #ifdef __cplusplus
 }

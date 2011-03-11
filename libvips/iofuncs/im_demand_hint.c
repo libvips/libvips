@@ -82,8 +82,9 @@ im__link_make( IMAGE *im_up, IMAGE *im_down )
 
 	/* Propogate the progress indicator.
 	 */
-	if( im_up->progress && !im_down->progress ) 
-		im_down->progress = im_up->progress;
+	if( im_up->progress_signal && 
+		!im_down->progress_signal ) 
+		im_down->progress_signal = im_up->progress_signal;
 }
 
 static void *
@@ -99,8 +100,9 @@ im__link_break( IMAGE *im_up, IMAGE *im_down )
 
 	/* Unlink the progress chain.
 	 */
-	if( im_down->progress && im_down->progress == im_up->progress ) 
-		im_down->progress = NULL;
+	if( im_down->progress_signal && 
+		im_down->progress_signal == im_up->progress_signal ) 
+		im_down->progress_signal = NULL;
 
 	return( NULL );
 }
@@ -143,6 +145,14 @@ im__link_mapp( IMAGE *im, VSListMap2Fn fn, int *serial, void *a, void *b )
 		(VSListMap4Fn) im__link_mapp, fn, serial, a, b ) );
 }
 
+static void *
+im__link_map_cb( VipsImage *image, GSList **images )
+{
+	*images = g_slist_prepend( *images, image );
+
+	return( NULL );
+}
+
 /* Apply a function to an image and all downstream images, direct and indirect. 
  */
 void *
@@ -150,8 +160,29 @@ im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )
 {
 	static int serial = 0;
 
+	GSList *images;
+	GSList *p;
+	void *result;
+
+	/* The function might do anything, including removing images
+	 * or invalidating other images, so we can't trigger them from within 
+	 * the image loop. Instead we collect a list of images, ref them,
+	 * run the functions, and unref.
+	 */
+
 	serial += 1;
-	return( im__link_mapp( im, fn, &serial, a, b ) );
+	images = NULL;
+	im__link_mapp( im, 
+		(VSListMap2Fn) im__link_map_cb, &serial, &images, NULL );
+
+	for( p = images; p; p = p->next ) 
+		g_object_ref( p->data );
+	result = im_slist_map2( images, fn, a, b );
+	for( p = images; p; p = p->next ) 
+		g_object_unref( p->data );
+	g_slist_free( images );
+
+	return( result );
 }
 
 /* Given two im_demand_type, return the most restrictive.
@@ -159,7 +190,7 @@ im__link_map( IMAGE *im, VSListMap2Fn fn, void *a, void *b )
 static im_demand_type
 find_least( im_demand_type a, im_demand_type b )
 {
-	return( (im_demand_type) IM_MIN( (int) a, (int) b ) );
+	return( (im_demand_type) VIPS_MIN( (int) a, (int) b ) );
 }
 
 /**
@@ -191,7 +222,7 @@ im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 	/* How many input images are there? And how many are IM_ANY?
 	 */
 	for( i = 0, len = 0, nany = 0; in[i]; i++, len++ )
-		if( in[i]->dhint == IM_ANY )
+		if( in[i]->dhint == VIPS_DEMAND_STYLE_ANY )
 			nany++;
 
 	set_hint = hint;
@@ -206,7 +237,7 @@ im_demand_hint_array( IMAGE *im, VipsDemandStyle hint, IMAGE **in )
 		/* Special case: if all the inputs are IM_ANY, then output can 
 		 * be IM_ANY regardless of what this function wants. 
 		 */
-		set_hint = IM_ANY;
+		set_hint = VIPS_DEMAND_STYLE_ANY;
 	else
 		/* Find the most restrictive of all the hints available to us.
 		 */
@@ -263,7 +294,7 @@ im_demand_hint( IMAGE *im, VipsDemandStyle hint, ... )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		im_error( "im_demand_hint", "%s", _( "too many images" ) );
+		vips_error( "im_demand_hint", "%s", _( "too many images" ) );
 		return( -1 );
 	}
 

@@ -1,3 +1,5 @@
+libvips-scan 
+libvips-scan.c
 Makefile.in
 TAGS
 *.o

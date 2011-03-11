@@ -150,9 +150,8 @@ im_updatehist( IMAGE *out, const char *name, int argc, char *argv[] )
 {	
 	int i;
 	char txt[IM_MAX_LINE];
-	VipsBuf buf;
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
 
-	vips_buf_init_static( &buf, txt, IM_MAX_LINE );
 	vips_buf_appends( &buf, name );
 
 	for( i = 0; i < argc; i++ ) {

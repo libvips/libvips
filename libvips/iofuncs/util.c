@@ -299,7 +299,7 @@ vips_class_map_concrete_all( GType type, VipsClassMap fn, void *a )
 			 * classes.
 			 */
 			if( !(class = g_type_class_ref( type )) ) {
-				im_error( "vips_class_map_concrete_all",
+				vips_error( "vips_class_map_concrete_all",
 					"%s", _( "unable to build class" ) );
 				return( NULL );
 			}
@@ -337,14 +337,14 @@ vips_class_find( const char *basename, const char *nickname )
 	GType base;
 
 	if( !(base = g_type_from_name( basename )) ) {
-		im_error( "vips_class_find", 
+		vips_error( "vips_class_find", 
 			_( "base class \"%s\" not found" ), basename ); 
 		return( NULL );
 	}
 
 	if( !(class = vips_class_map_concrete_all( base, 
 		(VipsClassMap) test_name, (void *) nickname )) ) {
-		im_error( "vips_class_find", 
+		vips_error( "vips_class_find", 
 			_( "class \"%s\" not found" ), nickname ); 
 		return( NULL );
 	}
@@ -529,12 +529,12 @@ im_vsnprintf( char *str, size_t size, const char *format, va_list ap )
 	static char buf[MAX_BUF];
 
 	if( size > MAX_BUF )
-		error_exit( "panic: buffer overflow "
+		vips_error_exit( "panic: buffer overflow "
 			"(request to write %d bytes to buffer of %d bytes)",
 			size, MAX_BUF );
 	n = vsprintf( buf, format, ap );
 	if( n > MAX_BUF )
-		error_exit( "panic: buffer overflow "
+		vips_error_exit( "panic: buffer overflow "
 			"(%d bytes written to buffer of %d bytes)",
 			n, MAX_BUF );
 
@@ -731,46 +731,6 @@ im_getsuboption( const char *buf )
         return( p );
 }
 
-/* Make something local to an image descriptor ... pass in a constructor
- * and a destructor, plus three args.
- */
-void *
-im_local( IMAGE *im, 
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c )
-{
-	void *obj;
-
-	if( !im ) {
-		im_error( "im_local", "%s", _( "NULL image descriptor" ) );
-		return( NULL );
-	}
-
-        if( !(obj = cons( a, b, c )) )
-                return( NULL );
-        if( im_add_close_callback( im, (im_callback_fn) dest, obj, a ) ) {
-                dest( obj, a );
-                return( NULL );
-        }
- 
-        return( obj );
-}
-
-/* Make an array of things local to a descriptor ... eg. make 6 local temp
- * images.
- */
-int
-im_local_array( IMAGE *im, void **out, int n,
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c )
-{
-	int i;
-
-	for( i = 0; i < n; i++ )
-		if( !(out[i] = im_local( im, cons, dest, a, b, c )) )
-			return( -1 );
-
-	return( 0 );
-}
-
 /* Get file length ... 64-bitally. -1 for error.
  */
 gint64
@@ -785,7 +745,7 @@ im_file_length( int fd )
 
 	if( fstat( fd, &st ) == -1 ) {
 #endif /*OS_WIN32*/
-		im_error_system( errno, "im_file_length", 
+		vips_error_system( errno, "im_file_length", 
 			"%s", _( "unable to get file stats" ) );
 		return( -1 );
 	}
@@ -802,7 +762,7 @@ im__write( int fd, const void *buf, size_t count )
 		size_t nwritten = write( fd, buf, count );
 
 		if( nwritten == (size_t) -1 ) {
-                        im_error_system( errno, "im__write", 
+                        vips_error_system( errno, "im__write", 
 				"%s", _( "write failed" ) );
                         return( -1 ); 
 		}
@@ -830,7 +790,7 @@ im__file_read( FILE *fp, const char *filename, unsigned int *length_out )
 	if( len > 20 * 1024 * 1024 ) {
 		/* Seems crazy!
 		 */
-                im_error( "im__file_read", _( "\"%s\" too long" ), filename );
+                vips_error( "im__file_read", _( "\"%s\" too long" ), filename );
                 return( NULL );
         }
 
@@ -846,7 +806,7 @@ im__file_read( FILE *fp, const char *filename, unsigned int *length_out )
 		do {
 			size += 1024;
 			if( !(str = realloc( str, size )) ) {
-				im_error( "im__file_read", 
+				vips_error( "im__file_read", 
 					"%s", _( "out of memory" ) );
 				return( NULL );
 			}
@@ -872,7 +832,7 @@ im__file_read( FILE *fp, const char *filename, unsigned int *length_out )
 		read = fread( str, sizeof( char ), (size_t) len, fp );
 		if( read != (size_t) len ) {
 			im_free( str );
-			im_error( "im__file_read", 
+			vips_error( "im__file_read", 
 				_( "error reading from file \"%s\"" ), 
 				filename );
 			return( NULL );
@@ -939,7 +899,7 @@ im__file_open_read( const char *filename, const char *fallback_dir,
 			return( fp );
 	}
 
-	im_error( "im__file_open_read", 
+	vips_error( "im__file_open_read", 
 		_( "unable to open file \"%s\" for reading" ), filename );
 
 	return( NULL );
@@ -961,7 +921,7 @@ im__file_open_write( const char *filename, gboolean text_mode )
 #endif /*BINARY_OPEN*/
 
         if( !(fp = fopen( filename, mode )) ) {
-		im_error( "im__file_open_write", 
+		vips_error( "im__file_open_write", 
 			_( "unable to open file \"%s\" for writing" ), 
 			filename );
 		return( NULL );
@@ -1164,14 +1124,14 @@ im__seek( int fd, gint64 pos )
 
 	p.QuadPart = pos;
 	if( !SetFilePointerEx( hFile, p, NULL, FILE_BEGIN ) ) {
-                im_error_system( GetLastError(), "im__seek", 
+                vips_error_system( GetLastError(), "im__seek", 
 			"%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 }
 #else /*!OS_WIN32*/
 	if( lseek( fd, pos, SEEK_SET ) == (off_t) -1 ) {
-		im_error( "im__seek", "%s", _( "unable to seek" ) );
+		vips_error( "im__seek", "%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 #endif /*OS_WIN32*/
@@ -1198,14 +1158,14 @@ im__ftruncate( int fd, gint64 pos )
 	if( im__seek( fd, pos ) )
 		return( -1 );
 	if( !SetEndOfFile( hFile ) ) {
-                im_error_system( GetLastError(), "im__ftruncate", 
+                vips_error_system( GetLastError(), "im__ftruncate", 
 			"%s", _( "unable to truncate" ) );
 		return( -1 );
 	}
 }
 #else /*!OS_WIN32*/
 	if( ftruncate( fd, pos ) ) {
-		im_error_system( errno, "im__ftruncate", 
+		vips_error_system( errno, "im__ftruncate", 
 			"%s", _( "unable to truncate" ) );
 		return( -1 );
 	}
@@ -1225,7 +1185,7 @@ im__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 		return( 0 );
 
 	if( (n = fwrite( data, size, nmemb, stream )) != nmemb ) {
-		im_error( "im__file_write", 
+		vips_error( "im__file_write", 
 			_( "writing error (%zd out of %zd blocks written) "
 			"... disc full?" ), n, nmemb );
 		return( -1 );
@@ -1377,7 +1337,7 @@ vips__token_must( const char *p, VipsToken *token,
 	char *string, int size )
 {
 	if( !(p = vips__token_get( p, token, string, size )) ) {
-		im_error( "get_token", "%s", _( "unexpected end of string" ) );
+		vips_error( "get_token", "%s", _( "unexpected end of string" ) );
 		return( NULL );
 	}
 
@@ -1412,7 +1372,7 @@ vips__token_need( const char *p, VipsToken need_token,
 	if( !(p = vips__token_must( p, &token, string, size )) ) 
 		return( NULL );
 	if( token != need_token ) {
-		im_error( "get_token", _( "expected %s, saw %s" ), 
+		vips_error( "get_token", _( "expected %s, saw %s" ), 
 			vips__token_string( need_token ), 
 			vips__token_string( token ) );
 		return( NULL );
@@ -1464,7 +1424,7 @@ im_popenf( const char *fmt, const char *mode, ... )
 #endif /*DEBUG*/
 
         if( !(fp = popen( buf, mode )) ) {
-		im_error( "popenf", "%s", strerror( errno ) );
+		vips_error( "popenf", "%s", strerror( errno ) );
 		return( NULL );
 	}
 
@@ -1496,27 +1456,6 @@ im_ispoweroftwo( int p )
 		return( i );
 	else
 		return( 0 );
-}
-
-int
-im_isvips( const char *filename )
-{
-	unsigned char buf[4];
-
-	if( im__get_bytes( filename, buf, 4 ) ) {
-		if( buf[0] == 0x08 && buf[1] == 0xf2 &&
-			buf[2] == 0xa6 && buf[3] == 0xb6 )
-			/* SPARC-order VIPS image.
-			 */
-			return( 1 );
-		else if( buf[3] == 0x08 && buf[2] == 0xf2 &&
-			buf[1] == 0xa6 && buf[0] == 0xb6 )
-			/* INTEL-order VIPS image.
-			 */
-			return( 1 );
-	}
-
-	return( 0 );
 }
 
 /* Test this processor for endianness. True for SPARC order.
@@ -1584,7 +1523,7 @@ im__temp_name( const char *format )
 	name = g_build_filename( im__temp_dir(), file2, NULL );
 
 	if( (fd = g_mkstemp( name )) == -1 ) {
-		im_error( "tempfile", 
+		vips_error( "tempfile", 
 			_( "unable to make temporary file %s" ), name );
 		g_free( name );
 		return( NULL );
@@ -1593,63 +1532,5 @@ im__temp_name( const char *format )
 	g_unlink( name );
 
 	return( name );
-}
-
-/* Make a disc IMAGE which will be automatically unlinked on im_close().
- * Format is something like "%s.v" for a vips file.
- */
-IMAGE *
-im__open_temp( const char *format )
-{
-	char *name;
-	IMAGE *disc;
-
-	if( !(name = im__temp_name( format )) )
-		return( NULL );
-
-	if( !(disc = im_open( name, "w" )) ) {
-		g_free( name );
-		return( NULL );
-	}
-	g_free( name );
-
-	/* Needs to be postclose so we can rewind after write without
-	 * deleting the file.
-	 */
-	if( im_add_postclose_callback( disc, 
-		(im_callback_fn) unlink, disc->filename, NULL ) ) {
-		im_close( disc );
-		g_unlink( name );
-	}
-
-	return( disc );
-}
-
-/* This gets indexed by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
- * size.
- */
-const size_t im__sizeof_bandfmt[] = {
-	IM_BBITS_BYTE >> 3,
-	IM_BBITS_BYTE >> 3,
-	IM_BBITS_SHORT >> 3,
-	IM_BBITS_SHORT >> 3,
-	IM_BBITS_INT >> 3,
-	IM_BBITS_INT >> 3,
-	IM_BBITS_FLOAT >> 3,
-	IM_BBITS_COMPLEX >> 3,
-	IM_BBITS_DOUBLE >> 3,
-	IM_BBITS_DPCOMPLEX >> 3
-};
-
-/* Return number of pel bits for band format, or -1 on error.
- */
-int 
-im_bits_of_fmt( VipsBandFmt fmt )
-{
-	return( fmt < 0 || fmt > IM_BANDFMT_DPCOMPLEX ?
-		im_error( "im_bits_of_fmt", 
-			_( "unsupported band format: %d" ), fmt ),
-		-1 :
-		im__sizeof_bandfmt[fmt] << 3 );
 }
 

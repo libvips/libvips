@@ -93,7 +93,7 @@ typedef struct _SinkThreadState {
 	/* The region we walk over sink.t copy. We can't use
 	 * parent_object.reg, it's defined on the outer image.
 	 */
-	REGION *reg;
+	VipsRegion *reg;
 } SinkThreadState;
 
 typedef struct _SinkThreadStateClass {
@@ -112,7 +112,7 @@ sink_call_stop( Sink *sink, SinkThreadState *state )
 		VIPS_DEBUG_MSG( "sink_call_stop: state = %p\n", state );
 
 		if( sink->stop( state->seq, sink->a, sink->b ) ) {
-			im_error( "vips_sink", 
+			vips_error( "vips_sink", 
 				_( "stop function failed for image \"%s\"" ), 
 				sink->im->filename );
 			return( -1 );
@@ -131,7 +131,7 @@ sink_thread_state_dispose( GObject *gobject )
 	Sink *sink = (Sink *) ((VipsThreadState *) state)->a;
 
 	sink_call_stop( sink, state );
-	IM_FREEF( im_region_free, state->reg );
+	VIPS_FREEF( g_object_unref, state->reg );
 
 	G_OBJECT_CLASS( sink_thread_state_parent_class )->dispose( gobject );
 }
@@ -147,7 +147,7 @@ sink_call_start( Sink *sink, SinkThreadState *state )
                 state->seq = sink->start( sink->t, sink->a, sink->b );
 
 		if( !state->seq ) {
-			im_error( "vips_sink", 
+			vips_error( "vips_sink", 
 				_( "start function failed for image \"%s\"" ), 
 				sink->im->filename );
 			return( -1 );
@@ -163,7 +163,7 @@ sink_thread_state_build( VipsObject *object )
 	SinkThreadState *state = (SinkThreadState *) object;
 	Sink *sink = (Sink *) ((VipsThreadState *) state)->a;
 
-	if( !(state->reg = im_region_create( sink->t )) ||
+	if( !(state->reg = vips_region_new( sink->t )) ||
 		sink_call_start( sink, state ) )
 		return( -1 );
 
@@ -202,7 +202,7 @@ sink_thread_state_new( VipsImage *im, void *a )
 static void
 sink_free( Sink *sink )
 {
-	IM_FREEF( im_close, sink->t );
+	VIPS_FREEF( g_object_unref, sink->t );
 }
 
 static int
@@ -221,7 +221,7 @@ sink_init( Sink *sink,
 	sink->a = a;
 	sink->b = b;
 
-	if( !(sink->t = im_open( "iterate", "p" )) ||
+	if( !(sink->t = vips_image_new( "p" )) ||
 		im_copy( sink->im, sink->t ) ) {
 		sink_free( sink );
 		return( -1 );
@@ -278,7 +278,7 @@ sink_work( VipsThreadState *state, void *a )
 	SinkThreadState *sstate = (SinkThreadState *) state;
 	Sink *sink = (Sink *) a;
 
-	if( im_prepare( sstate->reg, &state->pos ) ||
+	if( vips_region_prepare( sstate->reg, &state->pos ) ||
 		sink->generate( sstate->reg, sstate->seq, sink->a, sink->b ) ) 
 		return( -1 );
 
@@ -290,11 +290,14 @@ sink_progress( void *a )
 {
 	Sink *sink = (Sink *) a;
 
+	VIPS_DEBUG_MSG( "sink_progress: %d x %d\n",
+		sink->tile_width, sink->tile_height );
+
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
 	 */
-	if( im__handle_eval( sink->im, 
-		sink->tile_width, sink->tile_height ) )
+	vips_image_eval( sink->im, sink->tile_width, sink->tile_height );
+	if( vips_image_get_kill( sink->im ) )
 		return( -1 );
 
 	return( 0 );
@@ -335,12 +338,12 @@ vips_sink_tile( VipsImage *im,
 	Sink sink;
 	int result;
 
-	g_assert( !im_image_sanity( im ) );
+	g_assert( vips_object_sanity( VIPS_OBJECT( im ) ) );
 
 	/* We don't use this, but make sure it's set in case any old binaries
 	 * are expecting it.
 	 */
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
+	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
  
 	if( sink_init( &sink, im, start, generate, stop, a, b ) )
 		return( -1 );
@@ -350,10 +353,7 @@ vips_sink_tile( VipsImage *im,
 		sink.tile_height = tile_height;
 	}
 
-	if( im__start_eval( sink.t ) ) {
-		sink_free( &sink );
-		return( -1 );
-	}
+	vips_image_preeval( sink.t );
 
 	result = vips_threadpool_run( im, 
 		sink_thread_state_new,
@@ -362,7 +362,7 @@ vips_sink_tile( VipsImage *im,
 		sink_progress, 
 		&sink );
 
-	im__end_eval( sink.t );
+	vips_image_posteval( sink.t );
 
 	sink_free( &sink );
 

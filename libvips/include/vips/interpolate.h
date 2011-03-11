@@ -61,7 +61,7 @@ typedef struct _VipsInterpolate {
  * interpolate the value at position (x, y) in "in".
  */
 typedef void (*VipsInterpolateMethod)( VipsInterpolate *interpolate,
-	PEL *out, REGION *in, double x, double y );
+	PEL *out, VipsRegion *in, double x, double y );
 
 typedef struct _VipsInterpolateClass {
 	VipsObjectClass parent_class;
@@ -88,7 +88,7 @@ typedef struct _VipsInterpolateClass {
 
 GType vips_interpolate_get_type( void );
 void vips_interpolate( VipsInterpolate *interpolate,
-	PEL *out, REGION *in, double x, double y );
+	PEL *out, VipsRegion *in, double x, double y );
 VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate *interpolate );
 int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
 int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );

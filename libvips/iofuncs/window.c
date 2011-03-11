@@ -97,10 +97,10 @@ im_window_unmap( im_window_t *window )
 			return( -1 );
 
 #ifdef DEBUG_TOTAL
-		g_mutex_lock( im__global_lock );
+		g_mutex_lock( vips__global_lock );
 		total_mmap_usage -= window->length;
 		assert( total_mmap_usage >= 0 );
-		g_mutex_unlock( im__global_lock );
+		g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG_TOTAL*/
 
 		window->data = NULL;
@@ -171,7 +171,7 @@ im_window_unref( im_window_t *window )
 static void
 trace_mmap_usage( void )
 {
-	g_mutex_lock( im__global_lock );
+	g_mutex_lock( vips__global_lock );
 	{
 		static int last_total = 0;
 		int total = total_mmap_usage / (1024 * 1024);
@@ -184,7 +184,7 @@ trace_mmap_usage( void )
 			last_total = total;
 		}
 	}
-	g_mutex_unlock( im__global_lock );
+	g_mutex_unlock( vips__global_lock );
 }
 #endif /*DEBUG_TOTAL*/
 
@@ -226,8 +226,8 @@ im_window_set( im_window_t *window, int top, int height )
 	/* Calculate start and length for our window. 
 	 */
 	start = window->im->sizeof_header + 
-		(gint64) IM_IMAGE_SIZEOF_LINE( window->im ) * top;
-	length = (size_t) IM_IMAGE_SIZEOF_LINE( window->im ) * height;
+		VIPS_IMAGE_SIZEOF_LINE( window->im ) * top;
+	length = VIPS_IMAGE_SIZEOF_LINE( window->im ) * height;
 
 	pagestart = start - start % pagesize;
 	end = start + length;
@@ -236,7 +236,7 @@ im_window_set( im_window_t *window, int top, int height )
 	/* Make sure we have enough file.
 	 */
 	if( end > window->im->file_length ) {
-		im_error( "im_window_set", 
+		vips_error( "im_window_set", 
 			_( "unable to read data for \"%s\", %s" ),
 			window->im->filename, _( "file has been truncated" ) );
 		return( -1 );
@@ -257,11 +257,11 @@ im_window_set( im_window_t *window, int top, int height )
 	im__read_test &= window->data[0];
 
 #ifdef DEBUG_TOTAL
-	g_mutex_lock( im__global_lock );
+	g_mutex_lock( vips__global_lock );
 	total_mmap_usage += window->length;
 	if( total_mmap_usage > max_mmap_usage )
 		max_mmap_usage = total_mmap_usage;
-	g_mutex_unlock( im__global_lock );
+	g_mutex_unlock( vips__global_lock );
 	trace_mmap_usage();
 #endif /*DEBUG_TOTAL*/
 
@@ -275,7 +275,7 @@ im_window_new( IMAGE *im, int top, int height )
 {
 	im_window_t *window;
 
-	if( !(window = IM_NEW( NULL, im_window_t )) )
+	if( !(window = VIPS_NEW( NULL, im_window_t )) )
 		return( NULL );
 
 	window->ref_count = 0;
@@ -359,14 +359,15 @@ im_window_ref( IMAGE *im, int top, int height )
 		 * window than we strictly need. There's no point making tiny
 		 * windows.
 		 */
-		int margin = IM_MIN( im__window_margin_pixels,
-			im__window_margin_bytes / IM_IMAGE_SIZEOF_LINE( im ) );
+		int margin = VIPS_MIN( im__window_margin_pixels,
+			im__window_margin_bytes / 
+				VIPS_IMAGE_SIZEOF_LINE( im ) );
 
 		top -= margin;
 		height += margin * 2;
 
-		top = IM_CLIP( 0, top, im->Ysize - 1 );
-		height = IM_CLIP( 0, height, im->Ysize - top );
+		top = VIPS_CLIP( 0, top, im->Ysize - 1 );
+		height = VIPS_CLIP( 0, height, im->Ysize - top );
 
 		if( !(window = im_window_new( im, top, height )) ) {
 			g_mutex_unlock( im->sslock );

@@ -37,46 +37,46 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_histgr( IMAGE *in, IMAGE *out, int bandno );
-int im_histnD( IMAGE *in, IMAGE *out, int bins );
-int im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out );
+int im_histgr( VipsImage *in, VipsImage *out, int bandno );
+int im_histnD( VipsImage *in, VipsImage *out, int bins );
+int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
 
-int im_identity( IMAGE *lut, int bands );
-int im_identity_ushort( IMAGE *lut, int bands, int sz );
-int im_invertlut( DOUBLEMASK *input, IMAGE *output, int lut_size );
-int im_buildlut( DOUBLEMASK *input, IMAGE *output );
-int im_project( IMAGE *in, IMAGE *hout, IMAGE *vout );
+int im_identity( VipsImage *lut, int bands );
+int im_identity_ushort( VipsImage *lut, int bands, int sz );
+int im_invertlut( DOUBLEMASK *input, VipsImage *output, int lut_size );
+int im_buildlut( DOUBLEMASK *input, VipsImage *output );
+int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
 
-int im_histnorm( IMAGE *in, IMAGE *out );
-int im_histcum( IMAGE *in, IMAGE *out );
-int im_histeq( IMAGE *in, IMAGE *out );
-int im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out );
-int im_ismonotonic( IMAGE *lut, int *out );
-int im_histplot( IMAGE *in, IMAGE *out );
+int im_histnorm( VipsImage *in, VipsImage *out );
+int im_histcum( VipsImage *in, VipsImage *out );
+int im_histeq( VipsImage *in, VipsImage *out );
+int im_histspec( VipsImage *in, VipsImage *ref, VipsImage *out );
+int im_ismonotonic( VipsImage *lut, int *out );
+int im_histplot( VipsImage *in, VipsImage *out );
 
-int im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut );
+int im_maplut( VipsImage *in, VipsImage *out, VipsImage *lut );
 
-int im_hist( IMAGE *in, IMAGE *out, int bandno );
-int im_hsp( IMAGE *in, IMAGE *ref, IMAGE *out );
-int im_gammacorrect( IMAGE *in, IMAGE *out, double exponent );
-int im_mpercent( IMAGE *in, double percent, int *out );
-int im_mpercent_hist( IMAGE *hist, double percent, int *out );
+int im_hist( VipsImage *in, VipsImage *out, int bandno );
+int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
+int im_gammacorrect( VipsImage *in, VipsImage *out, double exponent );
+int im_mpercent( VipsImage *in, double percent, int *out );
+int im_mpercent_hist( VipsImage *hist, double percent, int *out );
 
-int im_heq( IMAGE *in, IMAGE *out, int bandno );
-int im_lhisteq( IMAGE *in, IMAGE *out, int xwin, int ywin );
-int im_stdif( IMAGE *in, IMAGE *out,
+int im_heq( VipsImage *in, VipsImage *out, int bandno );
+int im_lhisteq( VipsImage *in, VipsImage *out, int xwin, int ywin );
+int im_stdif( VipsImage *in, VipsImage *out,
 	double a, double m0, double b, double s0, int xwin, int ywin );
 
-int im_tone_build_range( IMAGE *out,
+int im_tone_build_range( VipsImage *out,
 	int in_max, int out_max,
 	double Lb, double Lw, double Ps, double Pm, double Ph,
 	double S, double M, double H );
-int im_tone_build( IMAGE *out,
+int im_tone_build( VipsImage *out,
 	double Lb, double Lw, double Ps, double Pm, double Ph,
 	double S, double M, double H );
-int im_tone_analyse( IMAGE *in, IMAGE *out,
+int im_tone_analyse( VipsImage *in, VipsImage *out,
 	double Ps, double Pm, double Ph, double S, double M, double H );
-int im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut );
+int im_tone_map( VipsImage *in, VipsImage *out, VipsImage *lut );
 
 #ifdef __cplusplus
 }

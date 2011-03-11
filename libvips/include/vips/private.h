@@ -57,26 +57,12 @@ extern "C" {
 
 typedef unsigned char PEL;			/* useful datum		*/
 
-/* Types of image descriptor we may have. The type field is advisory only: it
- * does not imply that any fields in IMAGE have valid data.
- */
-typedef enum {
-	IM_NONE,		/* no type set */
-	IM_SETBUF,		/* malloced memory array */
-	IM_SETBUF_FOREIGN,	/* memory array, don't free on close */
-	IM_OPENIN,		/* input from fd with a window */
-	IM_MMAPIN,		/* memory mapped input file */
-	IM_MMAPINRW,		/* memory mapped read/write file */
-	IM_OPENOUT,		/* output to fd */
-	IM_PARTIAL		/* partial image */
-} im_desc_type;
-
 /* What we track for each mmap window. Have a list of these on an openin
- * IMAGE.
+ * VipsImage.
  */
 typedef struct {
 	int ref_count;		/* # of regions referencing us */
-	struct _VipsImage *im;	/* IMAGE we are attached to */
+	struct _VipsImage *im;	/* VipsImage we are attached to */
 
 	int top; 		/* Area of image we have mapped, in pixels */
 	int height;
@@ -115,7 +101,7 @@ typedef struct im__buffer_cache_list_t {
  */
 typedef struct im__buffer_t {
 	int ref_count;		/* # of regions referencing us */
-	struct _VipsImage *im;	/* IMAGE we are attached to */
+	struct _VipsImage *im;	/* VipsImage we are attached to */
 
 	Rect area;		/* Area this pixel buffer covers */
 	gboolean done;		/* Calculated and in cache */
@@ -139,11 +125,11 @@ void im_buffer_print( im_buffer_t *buffer );
 /* Region types.
  */
 typedef enum region_type {
-	IM_REGION_NONE,
-	IM_REGION_BUFFER,	/* a pixel buffer */
-	IM_REGION_OTHER_REGION, /* memory on another region */
-	IM_REGION_OTHER_IMAGE,	/* memory on another image */
-	IM_REGION_WINDOW	/* mmap() buffer on fd on another image */
+	VIPS_REGION_NONE,
+	VIPS_REGION_BUFFER,	/* a pixel buffer */
+	VIPS_REGION_OTHER_REGION, /* memory on another region */
+	VIPS_REGION_OTHER_IMAGE,/* memory on another image */
+	VIPS_REGION_WINDOW	/* mmap() buffer on fd on another image */
 } RegionType;
 
 /* Private to iofuncs: the size of the `tiles' requested by im_generate()
@@ -159,22 +145,20 @@ typedef enum region_type {
 
 /* Functions on regions.
  */
-struct _REGION;
-void im__region_take_ownership( struct _REGION *reg );
-void im__region_check_ownership( struct _REGION *reg );
-void im__region_no_ownership( struct _REGION *reg );
+struct _VipsRegion;
+void vips__region_take_ownership( struct _VipsRegion *reg );
+void vips__region_check_ownership( struct _VipsRegion *reg );
+void vips__region_no_ownership( struct _VipsRegion *reg );
 
-void im__copy_region( struct _REGION *reg, struct _REGION *dest, Rect *r, int x, int y );
+void im__copy_region( struct _VipsRegion *reg, struct _VipsRegion *dest, Rect *r, int x, int y );
 void im__find_demand_size( struct _VipsImage *im, int *pw, int *ph );
 
-int im__call_start( struct _REGION *reg );
-void im__call_stop( struct _REGION *reg );
+int vips__region_start( struct _VipsRegion *reg );
+void vips__region_stop( struct _VipsRegion *reg );
 
-typedef int (*im_region_fill_fn)( struct _REGION *, void * );
-int im_region_fill( struct _REGION *reg, Rect *r, im_region_fill_fn fn, void *a );
-void im_region_print( struct _REGION *region );
-
-int im_prepare_many( struct _REGION **reg, Rect *r );
+typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
+int vips_region_fill( struct _VipsRegion *reg, 
+	Rect *r, VipsRegionFillFn fn, void *a );
 
 #ifdef __cplusplus
 }

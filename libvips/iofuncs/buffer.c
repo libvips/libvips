@@ -94,8 +94,8 @@ buffer_cache_free( im_buffer_cache_t *cache )
 	printf( "\t(%d cachees left)\n", buffer_cache_n );
 #endif /*DEBUG_CREATE*/
 
-	IM_FREEF( g_hash_table_destroy, cache->hash );
-	IM_FREE( cache );
+	VIPS_FREEF( g_hash_table_destroy, cache->hash );
+	VIPS_FREE( cache );
 }
 #endif /*HAVE_THREADS*/
 
@@ -122,7 +122,7 @@ buffer_cache_list_new( im_buffer_cache_t *cache, IMAGE *im )
 {
 	im_buffer_cache_list_t *cache_list;
 
-	if( !(cache_list = IM_NEW( NULL, im_buffer_cache_list_t )) )
+	if( !(cache_list = VIPS_NEW( NULL, im_buffer_cache_list_t )) )
 		return( NULL );
 	cache_list->buffers = NULL;
 	cache_list->thread = g_thread_self();
@@ -143,7 +143,7 @@ buffer_cache_new( void )
 {
 	im_buffer_cache_t *cache;
 
-	if( !(cache = IM_NEW( NULL, im_buffer_cache_t )) )
+	if( !(cache = VIPS_NEW( NULL, im_buffer_cache_t )) )
 		return( NULL );
 
 	cache->hash = g_hash_table_new_full( g_direct_hash, g_direct_equal, 
@@ -275,17 +275,17 @@ im_buffer_unref( im_buffer_t *buffer )
 		im_buffer_undone( buffer );
 
 		buffer->im = NULL;
-		IM_FREE( buffer->buf );
+		VIPS_FREE( buffer->buf );
 		buffer->bsize = 0;
 		im_free( buffer );
 
 #ifdef DEBUG
-		g_mutex_lock( im__global_lock );
+		g_mutex_lock( vips__global_lock );
 		g_assert( g_slist_find( im__buffers_all, buffer ) );
 		im__buffers_all = g_slist_remove( im__buffers_all, buffer );
 		printf( "%d buffers in vips\n", 
 			g_slist_length( im__buffers_all ) );
-		g_mutex_unlock( im__global_lock );
+		g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
 	}
 }
@@ -297,7 +297,7 @@ im_buffer_new( IMAGE *im, Rect *area )
 {
 	im_buffer_t *buffer;
 
-	if( !(buffer = IM_NEW( NULL, im_buffer_t )) )
+	if( !(buffer = VIPS_NEW( NULL, im_buffer_t )) )
 		return( NULL );
 
 	buffer->ref_count = 1;
@@ -305,7 +305,7 @@ im_buffer_new( IMAGE *im, Rect *area )
 	buffer->area = *area;
 	buffer->done = FALSE;
 	buffer->cache = NULL;
-	buffer->bsize = (size_t) IM_IMAGE_SIZEOF_PEL( im ) * 
+	buffer->bsize = (size_t) VIPS_IMAGE_SIZEOF_PEL( im ) * 
 		area->width * area->height;
 	if( !(buffer->buf = im_malloc( NULL, buffer->bsize )) ) {
 		im_buffer_unref( buffer );
@@ -321,10 +321,10 @@ im_buffer_new( IMAGE *im, Rect *area )
 #endif /*DEBUG*/
 
 #ifdef DEBUG
-	g_mutex_lock( im__global_lock );
+	g_mutex_lock( vips__global_lock );
 	im__buffers_all = g_slist_prepend( im__buffers_all, buffer );
 	printf( "%d buffers in vips\n", g_slist_length( im__buffers_all ) );
-	g_mutex_unlock( im__global_lock );
+	g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
 
 	return( buffer );
@@ -342,11 +342,11 @@ buffer_move( im_buffer_t *buffer, Rect *area )
 	im_buffer_undone( buffer );
 	g_assert( !buffer->done );
 
-	new_bsize = (size_t) IM_IMAGE_SIZEOF_PEL( im ) * 
+	new_bsize = (size_t) VIPS_IMAGE_SIZEOF_PEL( im ) * 
 		area->width * area->height;
 	if( buffer->bsize < new_bsize ) {
 		buffer->bsize = new_bsize;
-		IM_FREE( buffer->buf );
+		VIPS_FREE( buffer->buf );
 		if( !(buffer->buf = im_malloc( NULL, buffer->bsize )) ) 
 			return( -1 );
 	}
@@ -438,7 +438,7 @@ im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, Rect *area )
 	/* Does the new area already have a buffer?
 	 */
 	if( (buffer = buffer_find( im, area )) ) {
-		IM_FREEF( im_buffer_unref, old_buffer );
+		VIPS_FREEF( im_buffer_unref, old_buffer );
 		return( buffer );
 	}
 
@@ -455,7 +455,7 @@ im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, Rect *area )
 
 	/* Fallback ... unref the old one, make a new one.
 	 */
-	IM_FREEF( im_buffer_unref, old_buffer );
+	VIPS_FREEF( im_buffer_unref, old_buffer );
 	if( !(buffer = im_buffer_new( im, area )) ) 
 		return( NULL );
 

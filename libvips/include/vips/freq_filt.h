@@ -62,18 +62,19 @@ typedef enum {
         VIPS_MASK_FRACTAL_FLT = 18
 } VipsMaskType;
 
-int im_fwfft( IMAGE *in, IMAGE *out );
-int im_invfft( IMAGE *in, IMAGE *out );
-int im_invfftr( IMAGE *in, IMAGE *out );
+int im_fwfft( VipsImage *in, VipsImage *out );
+int im_invfft( VipsImage *in, VipsImage *out );
+int im_invfftr( VipsImage *in, VipsImage *out );
 
-int im_freqflt( IMAGE *in, IMAGE *mask, IMAGE *out );
-int im_disp_ps( IMAGE *in, IMAGE *out );
-int im_rotquad( IMAGE *in, IMAGE *out );
-int im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out );
+int im_freqflt( VipsImage *in, VipsImage *mask, VipsImage *out );
+int im_disp_ps( VipsImage *in, VipsImage *out );
+int im_rotquad( VipsImage *in, VipsImage *out );
+int im_phasecor_fft( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
-int im_flt_image_freq( IMAGE *in, IMAGE *out, VipsMaskType flag, ... );
-int im_create_fmask( IMAGE *out, int xsize, int ysize, VipsMaskType flag, ... );
-int im_fractsurf( IMAGE *out, int size, double frd );
+int im_flt_image_freq( VipsImage *in, VipsImage *out, VipsMaskType flag, ... );
+int im_create_fmask( VipsImage *out, 
+	int xsize, int ysize, VipsMaskType flag, ... );
+int im_fractsurf( VipsImage *out, int size, double frd );
 
 #ifdef __cplusplus
 }

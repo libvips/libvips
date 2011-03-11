@@ -31,8 +31,8 @@
 
  */
 
-#ifndef IM_UTIL_H
-#define IM_UTIL_H
+#ifndef VIPS_UTIL_H
+#define VIPS_UTIL_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,64 +40,32 @@ extern "C" {
 
 #include <stdio.h>
 
-/* Some platforms don't have M_PI in math.h :-(
+/* Some platforms don't have M_PI :-(
  */
-#define IM_PI (3.14159265358979323846)
+#define VIPS_PI (3.14159265358979323846)
 
 /* Convert degrees->rads and vice-versa. 
  */
-#define IM_RAD( R ) (((R) / 360.0) * 2.0 * IM_PI)
-#define IM_DEG( A ) (((A) / (2.0 * IM_PI)) * 360.0)
+#define VIPS_RAD( R ) (((R) / 360.0) * 2.0 * VIPS_PI)
+#define VIPS_DEG( A ) (((A) / (2.0 * VIPS_PI)) * 360.0)
 
-#define IM_MAX( A, B ) ((A) > (B) ? (A) : (B))
-#define IM_MIN( A, B ) ((A) < (B) ? (A) : (B))
-#define IM_ABS( X ) (((X) >= 0) ? (X) : -(X))
+#define VIPS_MAX( A, B ) ((A) > (B) ? (A) : (B))
+#define VIPS_MIN( A, B ) ((A) < (B) ? (A) : (B))
+#define VIPS_ABS( X ) (((X) >= 0) ? (X) : -(X))
 
-#define IM_CLIP( A, V, B ) IM_MAX( (A), IM_MIN( (B), (V) ) )
-#define IM_NUMBER( R ) ((int) (sizeof(R) / sizeof(R[0])))
+#define VIPS_CLIP( A, V, B ) VIPS_MAX( (A), VIPS_MIN( (B), (V) ) )
+#define VIPS_NUMBER( R ) ((int) (sizeof(R) / sizeof(R[0])))
 
-#define IM_SWAP( TYPE, A, B ) \
+#define VIPS_SWAP( TYPE, A, B ) \
 G_STMT_START { \
 	TYPE t = (A); \
 	(A) = (B); \
 	(B) = t; \
 } G_STMT_END
 
-#define IM_FREEF( F, S ) \
-G_STMT_START { \
-        if( S ) { \
-                (void) F( (S) ); \
-                (S) = 0; \
-        } \
-} G_STMT_END
-
-/* Can't just use IM_FREEF(), we want the extra cast to void on the argument
- * to im_free() to make sure we can work for "const char *" variables.
- */
-#define IM_FREE( S ) \
-G_STMT_START { \
-        if( S ) { \
-                (void) im_free( (void *) (S) ); \
-                (S) = 0; \
-        } \
-} G_STMT_END
-
-#define IM_SETSTR( S, V ) \
-G_STMT_START { \
-        const char *sst = (V); \
-	\
-        if( (S) != sst ) { \
-                if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
-                        IM_FREE( S ); \
-                        if( sst ) \
-                                (S) = im_strdup( NULL, sst ); \
-                } \
-        } \
-} G_STMT_END
-
 /* Duff's device. Do OPERation N times in a 16-way unrolled loop.
  */
-#define IM_UNROLL( N, OPER ) \
+#define VIPS_UNROLL( N, OPER ) \
 G_STMT_START { \
 	if( (N) ) { \
 		int duff_count = ((N) + 15) / 16; \
@@ -126,11 +94,11 @@ G_STMT_START { \
 
 /* Round a float to the nearest integer. Much faster than rint(). 
  */
-#define IM_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
+#define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
 
 /* Various integer range clips. Record over/under flows.
  */
-#define IM_CLIP_UCHAR( V, SEQ ) \
+#define VIPS_CLIP_UCHAR( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < 0 ) {   \
 		(SEQ)->underflow++;   \
@@ -142,7 +110,7 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define IM_CLIP_USHORT( V, SEQ ) \
+#define VIPS_CLIP_USHORT( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < 0 ) {   \
 		(SEQ)->underflow++;   \
@@ -154,7 +122,7 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define IM_CLIP_CHAR( V, SEQ ) \
+#define VIPS_CLIP_CHAR( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < SCHAR_MIN ) {   \
 		(SEQ)->underflow++;   \
@@ -166,7 +134,7 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define IM_CLIP_SHORT( V, SEQ ) \
+#define VIPS_CLIP_SHORT( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < SHRT_MIN ) {   \
 		(SEQ)->underflow++;   \
@@ -178,14 +146,21 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define IM_CLIP_NONE( V, SEQ ) {}
+#define VIPS_CLIP_NONE( V, SEQ ) {}
 
-typedef void *(*im_construct_fn)( void *, void *, void * );
+/* Look up the const char * for an enum value.
+ */
+#define VIPS_ENUM_STRING( ENUM, VALUE ) \
+	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_name)
+#define VIPS_ENUM_NICK( ENUM, VALUE ) \
+	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_nick)
 
-void *im_local( VipsImage *im, 
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
-int im_local_array( VipsImage *im, void **out, int n,
-	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
+/* Given a string, look up the value. Look up as a nick first, then try as a
+ * name.
+ */
+#define VIPS_ENUM_VALUE( ENUM, STR ) \
+	(g_enum_get_value_by_nick( g_type_class_ref( ENUM ), STR ) || \
+	g_enum_get_value_by_name( g_type_class_ref( ENUM ), STR )) 
 
 /* strtok replacement.
  */
@@ -211,18 +186,8 @@ void *im_map_equal( void *a, void *b );
 
 void *im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b );
 
-typedef void *(*VipsTypeMap)( GType, void * );
-typedef void *(*VipsTypeMap2)( GType, void *, void * );
-typedef void *(*VipsClassMap)( VipsObjectClass *, void * );
-void *vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b );
-void *vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a );
-void *vips_class_map_concrete_all( GType base, VipsClassMap fn, void *a );
-VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
-GType vips_type_find( const char *basename, const char *nickname );
-
 char *im_strncpy( char *dest, const char *src, int n );
 char *im_strrstr( const char *haystack, const char *needle );
-char *im_strdup( IMAGE *im, const char *str );
 gboolean im_ispostfix( const char *a, const char *b );
 gboolean im_isprefix( const char *a, const char *b );
 int im_vsnprintf( char *str, size_t size, const char *format, va_list ap );
@@ -273,12 +238,9 @@ int im_isvips( const char *filename );
 int im_amiMSBfirst( void );
 
 char *im__temp_name( const char *format );
-IMAGE *im__open_temp( const char *format );
-
-int im_bits_of_fmt( VipsBandFmt fmt );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_UTIL_H*/
+#endif /*VIPS_UTIL_H*/

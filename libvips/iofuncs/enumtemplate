@@ -1,0 +1,34 @@
+/*** BEGIN file-header ***/
+/* auto-generated enums for vips introspection */
+
+#include <vips/vips.h>
+/*** END file-header ***/
+
+/*** BEGIN file-production ***/
+/* enumerations from "@filename@" */
+/*** END file-production ***/
+
+/*** BEGIN value-header ***/
+GType
+@enum_name@_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const G@Type@Value values[] = {
+/*** END value-header ***/
+
+/*** BEGIN value-production ***/
+			{@VALUENAME@, "@VALUENAME@", "@valuenick@"},
+/*** END value-production ***/
+
+/*** BEGIN value-tail ***/
+			{0, NULL, NULL}
+		};
+		
+		etype = g_@type@_register_static( "@EnumName@", values );
+	}
+
+	return( etype );
+}
+/*** END value-tail ***/

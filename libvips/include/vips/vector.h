@@ -125,7 +125,7 @@ void vips_vector_print( VipsVector *vector );
 void vips_executor_set_program( VipsExecutor *executor, 
 	VipsVector *vector, int n );
 void vips_executor_set_scanline( VipsExecutor *executor, 
-	REGION *ir, int x, int y );
+	VipsRegion *ir, int x, int y );
 void vips_executor_set_destination( VipsExecutor *executor, void *value );
 void vips_executor_set_array( VipsExecutor *executor, int var, void *value );
 

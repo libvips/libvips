@@ -58,7 +58,7 @@ typedef struct _Sink {
 
 	/* A big region for the image memory. All the threads write to this.
 	 */
-	REGION *all;
+	VipsRegion *all;
 
 	/* The position we're at in the image.
 	 */
@@ -75,7 +75,7 @@ typedef struct _Sink {
 static void
 sink_free( Sink *sink )
 {
-	IM_FREEF( im_region_free, sink->all );
+	VIPS_FREEF( g_object_unref, sink->all );
 }
 
 static int
@@ -92,8 +92,8 @@ sink_init( Sink *sink, VipsImage *im )
 	all.width = im->Xsize;
 	all.height = im->Ysize;
 
-	if( !(sink->all = im_region_create( im )) ||
-		im_region_image( sink->all, &all ) ) {
+	if( !(sink->all = vips_region_new( im )) ||
+		vips_region_image( sink->all, &all ) ) {
 		sink_free( sink );
 		return( -1 );
 	}
@@ -148,7 +148,7 @@ sink_work( VipsThreadState *state, void *a )
 {
 	Sink *sink = (Sink *) a;
 
-	if( im_prepare_to( state->reg, sink->all, 
+	if( vips_region_prepare_to( state->reg, sink->all, 
 		&state->pos, state->pos.left, state->pos.top ) )
 		return( -1 );
 
@@ -166,8 +166,8 @@ sink_progress( void *a )
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
 	 */
-	if( im__handle_eval( sink->im, 
-		sink->tile_width, sink->tile_height ) )
+	vips_image_eval( sink->im, sink->tile_width, sink->tile_height );
+	if( vips_image_get_kill( sink->im ) )
 		return( -1 );
 
 	return( 0 );
@@ -190,20 +190,17 @@ vips_sink_memory( VipsImage *im )
 	Sink sink;
 	int result;
 
-	g_assert( !im_image_sanity( im ) );
+	g_assert( vips_object_sanity( VIPS_OBJECT( im ) ) );
 
 	/* We don't use this, but make sure it's set in case any old binaries
 	 * are expecting it.
 	 */
-	im->Bbits = im_bits_of_fmt( im->BandFmt );
+	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
  
 	if( sink_init( &sink, im ) )
 		return( -1 );
 
-	if( im__start_eval( im ) ) {
-		sink_free( &sink );
-		return( -1 );
-	}
+	vips_image_preeval( im );
 
 	result = vips_threadpool_run( im, 
 		vips_thread_state_new,
@@ -212,7 +209,7 @@ vips_sink_memory( VipsImage *im )
 		sink_progress, 
 		&sink );
 
-	im__end_eval( im );
+	vips_image_posteval( im );
 
 	sink_free( &sink );
 

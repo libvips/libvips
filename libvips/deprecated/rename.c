@@ -714,3 +714,4 @@ im_flood_other( IMAGE *test, IMAGE *mark,
 {
 	return( im_draw_flood_other( mark, test, x, y, serial, dout ) );
 }
+

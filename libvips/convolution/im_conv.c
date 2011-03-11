@@ -286,7 +286,7 @@ conv_compile_convolution_u8s16_section( Pass *pass,
 		 *
 		 * We need to do 8-bit unsigned pixel * signed mask, so we
 		 * have to cast the pixel up to 16-bit then do a mult against a
-		 * 16-bit constant. We know the result will fit in the botom
+		 * 16-bit constant. We know the result will fit in the bottom
 		 * 16 bits.
 		 */
 		if( mask->coeff[i] != 1 ) 

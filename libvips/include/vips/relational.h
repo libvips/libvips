@@ -37,27 +37,27 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_equal( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_notequal( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_less( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_lesseq( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_more( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_moreeq( IMAGE *in1, IMAGE *in2, IMAGE *out );
-int im_equal_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_notequal_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_less_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_lesseq_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_more_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_moreeq_vec( IMAGE *in, IMAGE *out, int n, double *c );
-int im_equalconst( IMAGE *in, IMAGE *out, double c );
-int im_notequalconst( IMAGE *in, IMAGE *out, double c );
-int im_lessconst( IMAGE *in, IMAGE *out, double c );
-int im_lesseqconst( IMAGE *in, IMAGE *out, double c );
-int im_moreconst( IMAGE *in, IMAGE *out, double c );
-int im_moreeqconst( IMAGE *in, IMAGE *out, double c );
+int im_equal( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_notequal( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_less( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_lesseq( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_more( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_moreeq( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_equal_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_notequal_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_less_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_lesseq_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_more_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_moreeq_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_equalconst( VipsImage *in, VipsImage *out, double c );
+int im_notequalconst( VipsImage *in, VipsImage *out, double c );
+int im_lessconst( VipsImage *in, VipsImage *out, double c );
+int im_lesseqconst( VipsImage *in, VipsImage *out, double c );
+int im_moreconst( VipsImage *in, VipsImage *out, double c );
+int im_moreeqconst( VipsImage *in, VipsImage *out, double c );
 
-int im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out );
-int im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out );
+int im_ifthenelse( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
+int im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 
 #ifdef __cplusplus
 }

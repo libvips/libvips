@@ -31,6 +31,8 @@
 
 /*
 #define DEBUG
+#define VIPS_DEBUG
+#define DEBUG_REF
  */
 
 #ifdef HAVE_CONFIG_H
@@ -56,7 +58,67 @@ enum {
 	PROP_LAST
 };
 
+/* Our signals. 
+ */
+enum {
+	SIG_PRECLOSE,		
+	SIG_CLOSE,		
+	SIG_POSTCLOSE,		
+	SIG_LAST
+};
+
+/* Table of all objects, handy for debugging.
+ */
+static GHashTable *vips__object_all = NULL;
+
+static guint vips_object_signals[SIG_LAST] = { 0 };
+
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
+
+void
+vips_object_preclose( VipsObject *object )
+{
+	if( !object->preclose ) {
+		object->preclose = TRUE;
+
+#ifdef DEBUG
+		printf( "vips_object_preclose: " );
+		vips_object_print( object );
+#endif /*DEBUG*/
+
+		g_signal_emit( object, vips_object_signals[SIG_PRECLOSE], 0 );
+	}
+}
+
+static void
+vips_object_close( VipsObject *object )
+{
+	if( !object->close ) {
+		object->close = TRUE;
+
+#ifdef DEBUG
+		printf( "vips_object_close: " );
+		vips_object_print( object );
+#endif /*DEBUG*/
+
+		g_signal_emit( object, vips_object_signals[SIG_CLOSE], 0 );
+	}
+}
+
+static void
+vips_object_postclose( VipsObject *object )
+{
+	if( !object->postclose ) {
+		object->postclose = TRUE;
+
+#ifdef DEBUG
+		printf( "vips_object_postclose: " );
+		vips_object_print( object );
+#endif /*DEBUG*/
+
+		g_signal_emit( object, vips_object_signals[SIG_POSTCLOSE], 0 );
+	}
+}
 
 int
 vips_object_build( VipsObject *object )
@@ -74,10 +136,9 @@ vips_object_build( VipsObject *object )
 void
 vips_object_print_class( VipsObjectClass *class )
 {
-	VipsBuf buf;
 	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	vips_buf_init_static( &buf, str, 1000 );
 	class->print_class( class, &buf );
 	printf( "%s\n", vips_buf_all( &buf ) );
 }
@@ -86,13 +147,43 @@ void
 vips_object_print( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsBuf buf;
 	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	vips_object_print_class( class );
-	vips_buf_init_static( &buf, str, 1000 );
 	class->print( object, &buf );
-	printf( "\n%s (%p)\n", vips_buf_all( &buf ), object );
+	printf( "%s\n", vips_buf_all( &buf ) );
+}
+
+gboolean
+vips_object_sanity( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	class->sanity( object, &buf );
+	if( !vips_buf_is_empty( &buf ) ) {
+		printf( "sanity failure: " );
+		vips_object_print( object );
+		printf( "%s\n", vips_buf_all( &buf ) );
+	}
+
+	return( TRUE );
+}
+
+/* On a rewind, we dispose the old contents of the object and
+ * reconstruct. This is used in things like im_pincheck() where a "w"
+ * image has to be rewound and become a "p" image.
+ *
+ * Override in subclasses if you want to preserve some fields, see image.c.
+ */
+void
+vips_object_rewind( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	class->rewind( object );
 }
 
 /* Extra stuff we track for properties to do our argument handling.
@@ -303,7 +394,7 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 		char **member = &G_STRUCT_MEMBER( char *, object,
 			argument_class->offset );
 
-		IM_FREE( *member );
+		VIPS_FREE( *member );
 	}
 	else if( G_IS_PARAM_SPEC_OBJECT( pspec ) )
 		vips_object_clear_object( object, pspec );
@@ -331,9 +422,22 @@ vips_object_dispose( GObject *gobject )
 	vips_object_print( object );
 #endif /*DEBUG*/
 
+	/* Our subclasses should have already called this. Run it again, just
+	 * in case.
+	 */
+	if( !object->preclose ) {
+#ifdef VIPS_DEBUG
+		printf( "vips_object_dispose: no vips_object_preclose()\n" );
+		vips_object_print( VIPS_OBJECT( gobject ) );
+#endif /*VIPS_DEBUG*/
+
+		vips_object_preclose( object );
+	}
+
 	/* Clear all our arguments: they may be holding refs we should drop.
 	 */
 	vips_argument_map( object, vips_object_dispose_argument, NULL, NULL );
+	VIPS_FREEF( vips_argument_table_destroy, object->argument_table );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->dispose( gobject );
 }
@@ -348,9 +452,13 @@ vips_object_finalize( GObject *gobject )
 	vips_object_print( object );
 #endif /*DEBUG*/
 
-	IM_FREEF( vips_argument_table_destroy, object->argument_table );
+	vips_object_close( object );
+
+	g_hash_table_remove( vips__object_all, object );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->finalize( gobject );
+
+	vips_object_postclose( object );
 }
 
 static void
@@ -478,7 +586,7 @@ vips_object_set_property( GObject *gobject,
 		char **member = &G_STRUCT_MEMBER( char *, object,
 			argument_class->offset );
 
-		IM_SETSTR( *member, g_value_get_string( value ) );
+		VIPS_SETSTR( *member, g_value_get_string( value ) );
 	}
 	else if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
 		/* Remove any old object.
@@ -636,7 +744,7 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		!argument_instance->assigned ) {
-		im_error( "check_required",
+		vips_error( "check_required",
 			_( "required construct param %s to %s not set" ),
 			g_param_spec_get_name( pspec ),
 			G_OBJECT_TYPE_NAME( object ) );
@@ -694,6 +802,27 @@ vips_object_real_print( VipsObject *object, VipsBuf *buf )
 }
 
 static void
+vips_object_real_sanity( VipsObject *object, VipsBuf *buf )
+{
+}
+
+static void
+vips_object_real_rewind( VipsObject *object )
+{
+#ifdef DEBUG
+	printf( "vips_object_rewind\n" );
+	vips_object_print( object );
+#endif /*DEBUG*/
+
+	g_object_run_dispose( G_OBJECT( object ) );
+
+	object->constructed = FALSE;
+	object->preclose = FALSE;
+	object->close = FALSE;
+	object->postclose = FALSE;
+}
+
+static void
 transform_string_double( const GValue *src_value, GValue *dest_value )
 {
 	g_value_set_double( dest_value,
@@ -701,28 +830,34 @@ transform_string_double( const GValue *src_value, GValue *dest_value )
 }
 
 static void
-vips_object_class_init( VipsObjectClass *object_class )
+vips_object_class_init( VipsObjectClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( object_class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 
 	GParamSpec *pspec;
+
+	if( !vips__object_all ) 
+		vips__object_all = g_hash_table_new( 
+			g_direct_hash, g_direct_equal );
 
 	gobject_class->dispose = vips_object_dispose;
 	gobject_class->finalize = vips_object_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->build = vips_object_real_build;
-	object_class->print_class = vips_object_real_print_class;
-	object_class->print = vips_object_real_print;
-	object_class->nickname = "object";
-	object_class->description = _( "VIPS base class" );
+	class->build = vips_object_real_build;
+	class->print_class = vips_object_real_print_class;
+	class->print = vips_object_real_print;
+	class->sanity = vips_object_real_sanity;
+	class->rewind = vips_object_real_rewind;
+	class->nickname = "object";
+	class->description = _( "VIPS base class" );
 
 	/* Table of VipsArgumentClass ... we can just g_free() them.
 	 */
-	object_class->argument_table = g_hash_table_new_full(
+	class->argument_table = g_hash_table_new_full(
 		g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) g_free );
-	object_class->argument_table_traverse = NULL;
+	class->argument_table_traverse = NULL;
 
 	/* For setting double arguments from the command-line.
 	 */
@@ -738,7 +873,7 @@ vips_object_class_init( VipsObjectClass *object_class )
 		(GParamFlags) G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class,
 		PROP_NICKNAME, pspec );
-	vips_object_class_install_argument( object_class, pspec,
+	vips_object_class_install_argument( class, pspec,
 		VIPS_ARGUMENT_SET_ONCE,
 		G_STRUCT_OFFSET( VipsObject, nickname ) );
 
@@ -749,9 +884,31 @@ vips_object_class_init( VipsObjectClass *object_class )
 		(GParamFlags) G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class,
 		PROP_DESCRIPTION, pspec );
-	vips_object_class_install_argument( object_class, pspec,
+	vips_object_class_install_argument( class, pspec,
 		VIPS_ARGUMENT_SET_ONCE,
 		G_STRUCT_OFFSET( VipsObject, description ) );
+
+	vips_object_signals[SIG_PRECLOSE] = g_signal_new( "preclose",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET( VipsObjectClass, preclose ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
+	vips_object_signals[SIG_CLOSE] = g_signal_new( "close",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET( VipsObjectClass, close ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
+	vips_object_signals[SIG_POSTCLOSE] = g_signal_new( "postclose",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET( VipsObjectClass, postclose ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
 
 }
 
@@ -762,6 +919,8 @@ vips_object_init( VipsObject *object )
 	printf( "vips_object_init: " );
 	vips_object_print( object );
 #endif /*DEBUG*/
+
+	g_hash_table_insert( vips__object_all, object, object );
 }
 
 /* Add a vipsargument ... automate some stuff with this.
@@ -837,7 +996,7 @@ vips_object_set_required( VipsObject *object, const char *value )
 
 	if( !(pspec = vips_argument_map( object,
 		vips_object_set_required_test, NULL, NULL )) ) {
-		im_error( "vips_object_set_required",
+		vips_error( "vips_object_set_required",
 			_( "no unset required arguments for %s" ), value );
 		return( -1 );
 	}
@@ -886,14 +1045,14 @@ vips_object_set_args( VipsObject *object, const char *p )
 		/* Now must be a , or a ).
 		 */
 		if( token != VIPS_TOKEN_RIGHT && token != VIPS_TOKEN_COMMA ) {
-			im_error( "set_args", "%s",
+			vips_error( "set_args", "%s",
 				_( "not , or ) after parameter" ) );
 			return( -1 );
 		}
 	} while( token != VIPS_TOKEN_RIGHT );
 
 	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
-		im_error( "set_args", "%s",
+		vips_error( "set_args", "%s",
 			_( "extra tokens after ')'" ) );
 		return( -1 );
 	}
@@ -931,7 +1090,7 @@ vips_object_new_from_string_set( VipsObject *object, void *a, void *b )
 	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
 		if( token == VIPS_TOKEN_LEFT &&
 			vips_object_set_args( object, p ) ) {
-			im_error( "object_new", "%s",
+			vips_error( "object_new", "%s",
 				_( "bad object arguments" ) );
 			return( object );
 		}
@@ -1043,4 +1202,76 @@ vips_object_to_string( VipsObject *object, VipsBuf *buf )
 		vips_object_to_string_optional, buf, &first );
 	if( !first )
 		vips_buf_appends( buf, ")" );
+}
+
+typedef struct {
+	VSListMap2Fn fn;
+	void *a;
+	void *b;
+	void *result;
+} VipsObjectMapArgs;
+
+static void
+vips_object_map_sub( VipsObject *object, VipsObjectMapArgs *args )
+{
+	if( !args->result )
+		args->result = args->fn( object, args->a, args->b );
+}
+
+void *
+vips_object_map( VSListMap2Fn fn, void *a, void *b )
+{
+	VipsObjectMapArgs args;
+
+	args.fn = fn;
+	args.a = a;
+	args.b = b;
+	args.result = NULL;
+	if( vips__object_all )
+		g_hash_table_foreach( vips__object_all, 
+			(GHFunc) vips_object_map_sub, &args );
+
+	return( args.result );
+}
+
+void
+vips_object_local_cb( VipsObject *vobject, GObject *gobject )
+{
+	g_object_unref( gobject );
+}
+
+int
+vips_object_unref( VipsObject *obj )
+{
+	g_object_unref( obj );
+
+	return( 0 );
+}
+
+static void *
+vips_object_print_all_cb( VipsObject *object )
+{
+	vips_object_print( object );
+
+	return( NULL );
+}
+
+void
+vips_object_print_all( void )
+{
+	vips_object_map( (VSListMap2Fn) vips_object_print_all_cb, NULL, NULL );
+}
+
+static void *
+vips_object_sanity_all_cb( VipsObject *object )
+{
+	(void) vips_object_sanity( object );
+
+	return( NULL );
+}
+
+void
+vips_object_sanity_all( void )
+{
+	vips_object_map( (VSListMap2Fn) vips_object_sanity_all_cb, NULL, NULL );
 }

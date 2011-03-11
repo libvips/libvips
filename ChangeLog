@@ -34,6 +34,8 @@
 - im_jpeg2vips() ignores weird APP1 chunks
 - im_add() for int/uint was broken
 - im_ri2c() was broken
+- added VIPS_FORMAT_BIGENDIAN format flag
+- moved IMAGE and REGION to VipsImage and VipsRegion, classes over VipsObject
 
 30/11/10 started 7.24.0
 - bump for new stable

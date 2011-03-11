@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/buf.h>
@@ -136,7 +135,7 @@ void
 vips_buf_destroy( VipsBuf *buf )
 {
 	if( buf->dynamic ) {
-		IM_FREE( buf->base );
+		VIPS_FREE( buf->base );
 	}
 
 	vips_buf_init( buf );
@@ -212,7 +211,7 @@ vips_buf_set_dynamic( VipsBuf *buf, int mx )
 	else {
 		vips_buf_destroy( buf );
 
-		if( !(buf->base = IM_ARRAY( NULL, mx, char )) )
+		if( !(buf->base = VIPS_ARRAY( NULL, mx, char )) )
 			/* No error return, so just block writes.
 			 */
 			buf->full = TRUE;
@@ -275,7 +274,7 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 	 */
 	len = strlen( str );
 	if( sz >= 0 )
-		n = IM_MIN( sz, len );
+		n = VIPS_MIN( sz, len );
 	else
 		n = len;
 
@@ -285,7 +284,7 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 
 	/* Amount we actually copy.
 	 */
-	cpy = IM_MIN( n, avail );
+	cpy = VIPS_MIN( n, avail );
 
 	strncpy( buf->base + buf->i, str, cpy );
 	buf->i += cpy;
