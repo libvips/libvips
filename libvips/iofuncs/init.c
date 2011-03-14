@@ -21,6 +21,9 @@
  * 	- load plugins from libdir/vips-x.x
  * 5/10/09
  * 	- gtkdoc comments
+ * 14/3/10
+ * 	- init image and region before we start, we need all types to be fully
+ * 	  constructed before we go parallel
  */
 
 /*
@@ -160,6 +163,8 @@ vips_init( const char *argv0 )
 	const char *prefix;
 	const char *libdir;
 	char name[256];
+	VipsImage *image;
+	VipsRegion *region;
 
 	/* Two stage done handling: 'done' means we've completed, 'started'
 	 * means we're currently initialising. Use this to prevent recursive
@@ -213,6 +218,15 @@ vips_init( const char *argv0 )
 	im__meta_init_types();
 	im__format_init();
 	vips__interpolate_init();
+
+	/* We make regions in parallel, so we have to be careful that any
+	 * associated types are fully built before we start. We can't init the
+	 * clases in two separate threads.
+	 */
+	image = vips_image_new( "p" );
+	region = vips_region_new( image );
+	g_object_unref( region );
+	g_object_unref( image );
 
 	/* Load up any plugins in the vips libdir. We don't error on failure,
 	 * it's too annoying to have VIPS refuse to start because of a broken
