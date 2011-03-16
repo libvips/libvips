@@ -180,7 +180,7 @@ extern "C" {
 #define im_prepare vips_region_prepare
 #define im_prepare_to vips_region_prepare_to
 #define im_region_create vips_region_new
-#define im_region_free g_object_unref
+#define im_region_free vips_region_free
 #define im_region_region vips_region_region
 #define im_region_buffer vips_region_buffer
 #define im_region_black vips_region_black

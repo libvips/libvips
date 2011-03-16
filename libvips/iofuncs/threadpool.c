@@ -255,7 +255,7 @@ vips_thread_state_dispose( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_thread_state_dispose:\n" );
 
-	VIPS_FREEF( g_object_unref, state->reg );
+	VIPS_FREEF( vips_region_free, state->reg );
 
 	G_OBJECT_CLASS( vips_thread_state_parent_class )->dispose( gobject );
 }

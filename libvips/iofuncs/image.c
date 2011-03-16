@@ -1215,7 +1215,7 @@ vips_image_init( VipsImage *image )
 	image->magic = im_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 
 	image->fd = -1;			/* since 0 is stdout */
-	image->sslock = g_mutex_new ();
+	image->sslock = g_mutex_new();
 
 	image->sizeof_header = IM_SIZEOF_HEADER;
 }

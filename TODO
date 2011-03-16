@@ -35,6 +35,8 @@
 
   how dumb, common this up somehow
 
+  sink.c is the replacement for im_iterate()
+
 
 - decls for type_map etc. are now in object.h, move the code to object.c
 

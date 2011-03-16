@@ -131,7 +131,7 @@ sink_thread_state_dispose( GObject *gobject )
 	Sink *sink = (Sink *) ((VipsThreadState *) state)->a;
 
 	sink_call_stop( sink, state );
-	VIPS_FREEF( g_object_unref, state->reg );
+	VIPS_FREEF( vips_region_free, state->reg );
 
 	G_OBJECT_CLASS( sink_thread_state_parent_class )->dispose( gobject );
 }

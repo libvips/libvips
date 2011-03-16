@@ -70,6 +70,7 @@ enum {
 /* Table of all objects, handy for debugging.
  */
 static GHashTable *vips__object_all = NULL;
+static GMutex *vips__object_all_lock = NULL;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
@@ -454,7 +455,9 @@ vips_object_finalize( GObject *gobject )
 
 	vips_object_close( object );
 
+	g_mutex_lock( vips__object_all_lock );
 	g_hash_table_remove( vips__object_all, object );
+	g_mutex_unlock( vips__object_all_lock );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->finalize( gobject );
 
@@ -836,9 +839,11 @@ vips_object_class_init( VipsObjectClass *class )
 
 	GParamSpec *pspec;
 
-	if( !vips__object_all ) 
+	if( !vips__object_all ) {
 		vips__object_all = g_hash_table_new( 
 			g_direct_hash, g_direct_equal );
+		vips__object_all_lock = g_mutex_new();
+	}
 
 	gobject_class->dispose = vips_object_dispose;
 	gobject_class->finalize = vips_object_finalize;
@@ -920,7 +925,9 @@ vips_object_init( VipsObject *object )
 	vips_object_print( object );
 #endif /*DEBUG*/
 
+	g_mutex_lock( vips__object_all_lock );
 	g_hash_table_insert( vips__object_all, object, object );
+	g_mutex_unlock( vips__object_all_lock );
 }
 
 /* Add a vipsargument ... automate some stuff with this.
@@ -1227,9 +1234,11 @@ vips_object_map( VSListMap2Fn fn, void *a, void *b )
 	args.a = a;
 	args.b = b;
 	args.result = NULL;
+	g_mutex_lock( vips__object_all_lock );
 	if( vips__object_all )
 		g_hash_table_foreach( vips__object_all, 
 			(GHFunc) vips_object_map_sub, &args );
+	g_mutex_unlock( vips__object_all_lock );
 
 	return( args.result );
 }

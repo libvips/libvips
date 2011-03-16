@@ -979,7 +979,7 @@ build_args( im_function *fn, im_object *vargv, int argc, char **argv )
 static void
 region_local_image_cb( VipsImage *main, VipsRegion *reg )
 {
-	g_object_unref( reg );
+	vips_region_free( reg );
 }
 
 /* Make a region on sub, closed by callback on main.

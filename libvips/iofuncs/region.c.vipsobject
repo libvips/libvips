@@ -1,3 +1,11 @@
+/* A version of VipsRegion which ran on top of vipsobject ... sadly we had
+ * many mysterious segvs argh
+ *
+ * keep this code around for testing and reference
+ *
+ */
+
+
 /* Make and destroy partial image regions.
  * 
  * J.Cupitt, 8/4/93.
@@ -74,7 +82,6 @@
 #define DEBUG_ENVIRONMENT 1
 #define DEBUG_CREATE
 #define DEBUG
-#define DEBUG_VIPS
  */
 
 #ifdef HAVE_CONFIG_H
@@ -179,12 +186,25 @@
  * Returns: The address of the top-left pixel in the region.
  */
 
-#ifdef DEBUG
-/* Track all regions here for debugging.
+/* Properties.
  */
-static GSList *vips__region_all = NULL;
-#endif /*DEBUG*/
+enum {
+	PROP_IMAGE = 1,
+	PROP_LAST
+}; 
 
+G_DEFINE_TYPE( VipsRegion, vips_region, VIPS_TYPE_OBJECT );
+
+static void
+vips_region_finalize( GObject *gobject )
+{
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "vips_region_finalize: " );
+	vips_object_print( VIPS_OBJECT( gobject ) );
+#endif /*VIPS_DEBUG*/
+
+	G_OBJECT_CLASS( vips_region_parent_class )->finalize( gobject );
+}
 
 /* Call a start function if no sequence is running on this VipsRegion.
  */
@@ -251,14 +271,18 @@ vips_region_reset( VipsRegion *region )
 	region->invalid = FALSE;
 }
 
-void
-vips_region_free( VipsRegion *region )
+static void
+vips_region_dispose( GObject *gobject )
 {
+	VipsRegion *region = VIPS_REGION( gobject );
 	VipsImage *image = region->im;
 
-	g_assert( image );
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "vips_region_dispose: " );
+	vips_object_print( VIPS_OBJECT( gobject ) );
+#endif /*VIPS_DEBUG*/
 
-	VIPS_DEBUG_MSG( "vips_region_free: %p\n", region );
+	vips_object_preclose( VIPS_OBJECT( gobject ) );
 
         /* Stop this sequence.
          */
@@ -275,22 +299,14 @@ vips_region_free( VipsRegion *region )
 	g_mutex_unlock( image->sslock );
 	region->im = NULL;
 
-	g_object_unref( image );
-
-	im_free( region );
-
-#ifdef DEBUG
-	g_mutex_lock( vips__global_lock );
-	g_assert( g_slist_find( vips__region_all, region ) );
-	vips__region_all = g_slist_remove( vips__region_all, region );
-	printf( "%d regions in vips\n", g_slist_length( vips__region_all ) );
-	g_mutex_unlock( vips__global_lock );
-#endif /*DEBUG*/
+	G_OBJECT_CLASS( vips_region_parent_class )->dispose( gobject );
 }
 
-void
-vips_region_print( VipsRegion *region, VipsBuf *buf )
+static void
+vips_region_print( VipsObject *object, VipsBuf *buf )
 {
+	VipsRegion *region = VIPS_REGION( object );
+
 	vips_buf_appendf( buf, "VipsRegion: %p, ", region );
 	vips_buf_appendf( buf, "im = %p, ", region->im );
 	vips_buf_appendf( buf, "valid.left = %d, ", region->valid.left );
@@ -305,6 +321,8 @@ vips_region_print( VipsRegion *region, VipsBuf *buf )
 	vips_buf_appendf( buf, "window = %p, ", region->window );
 	vips_buf_appendf( buf, "buffer = %p\n", region->buffer );
 	vips_buf_appendf( buf, "invalid = %d\n", region->invalid );
+
+	VIPS_OBJECT_CLASS( vips_region_parent_class )->print( object, buf );
 }
 
 /* If a region is being created in one thread (eg. the main thread) and then
@@ -364,38 +382,16 @@ vips__region_no_ownership( VipsRegion *region )
 	g_mutex_unlock( region->im->sslock );
 }
 
-/**
- * vips_region_new:
- * @image: image to create this region on
- *
- * Create a region. #VipsRegion s start out empty, you need to call 
- * vips_region_prepare() to fill them with pixels.
- *
- * See also: vips_region_free(), vips_region_prepare().
- */
-VipsRegion *
-vips_region_new( VipsImage *image )
+static int
+vips_region_build( VipsObject *object )
 {
-	VipsRegion *region;
+	VipsRegion *region = VIPS_REGION( object );
+	VipsImage *image = region->im;
 
-	if( !(region = VIPS_NEW( NULL, VipsRegion )) )
-		return( NULL );
-	VIPS_DEBUG_MSG( "vips_region_new: %p\n", region );
+	VIPS_DEBUG_MSG( "vips_region_build: %p\n", region );
 
-	region->im = image;
-	g_object_ref( image );
-	region->type = VIPS_REGION_NONE;
-	region->valid.left = 0;
-	region->valid.top = 0;
-	region->valid.width = 0;
-	region->valid.height = 0;
-	region->data = NULL;
-	region->bpl = 0;
-	region->seq = NULL;
-	region->thread = NULL;
-	region->window = NULL;
-	region->buffer = NULL;
-	region->invalid = FALSE;
+	if( VIPS_OBJECT_CLASS( vips_region_parent_class )->build( object ) )
+		return( -1 );
 
 	vips__region_take_ownership( region );
 
@@ -405,14 +401,70 @@ vips_region_new( VipsImage *image )
 	image->regions = g_slist_prepend( image->regions, region );
 	g_mutex_unlock( image->sslock );
 
-#ifdef DEBUG
-	g_mutex_lock( vips__global_lock );
-	vips__region_all = g_slist_prepend( vips__region_all, region );
-	printf( "%d regions in vips\n", g_slist_length( vips__region_all ) );
-	g_mutex_unlock( vips__global_lock );
-#endif /*DEBUG*/
+	return( 0 );
+}
 
-	return( region );
+static void
+vips_region_class_init( VipsRegionClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GParamSpec *pspec;
+
+	gobject_class->finalize = vips_region_finalize;
+	gobject_class->dispose = vips_region_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->print = vips_region_print;
+	vobject_class->build = vips_region_build;
+
+	/* Create properties.
+	 */
+	pspec = g_param_spec_object( "image", "Image",
+		_( "The image this region is defined upon" ),
+		VIPS_TYPE_IMAGE,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_IMAGE, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsRegion, im ) );
+}
+
+static void
+vips_region_init( VipsRegion *region )
+{
+	/* Init to 0 is fine for most header fields. Others have default set
+	 * by property system.
+	 */
+
+	region->type = VIPS_REGION_NONE;
+}
+
+/**
+ * vips_region_new:
+ * @image: image to create this region on
+ *
+ * Create a region. #VipsRegion s start out empty, you need to call 
+ * vips_region_prepare() to fill them with pixels.
+ *
+ * See also: vips_region_prepare().
+ */
+VipsRegion *
+vips_region_new( VipsImage *image )
+{
+	VipsRegion *region;
+
+	region = VIPS_REGION( g_object_new( VIPS_TYPE_REGION, NULL ) );
+	g_object_set( region,
+		"image", image,
+		NULL );
+	if( vips_object_build( VIPS_OBJECT( region ) ) ) {
+		VIPS_UNREF( region );
+		return( NULL );
+	}
+
+	return( region ); 
 }
 
 /* Region should be a pixel buffer. On return, check

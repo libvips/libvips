@@ -163,8 +163,6 @@ vips_init( const char *argv0 )
 	const char *prefix;
 	const char *libdir;
 	char name[256];
-	VipsImage *image;
-	VipsRegion *region;
 
 	/* Two stage done handling: 'done' means we've completed, 'started'
 	 * means we're currently initialising. Use this to prevent recursive
@@ -218,16 +216,6 @@ vips_init( const char *argv0 )
 	im__meta_init_types();
 	im__format_init();
 	vips__interpolate_init();
-
-	/* We make regions in parallel, so we have to be careful that any
-	 * associated types are fully built before we start. We can't init the
-	 * clases in two separate threads.
-	 *
-	 * We can't unref these two, since the last unref of  the last region
-	 * will finalize the class and trigger re-init.
-	 */
-	image = vips_image_new( "p" );
-	region = vips_region_new( image );
 
 	/* Load up any plugins in the vips libdir. We don't error on failure,
 	 * it's too annoying to have VIPS refuse to start because of a broken
