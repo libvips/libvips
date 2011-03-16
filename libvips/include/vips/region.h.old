@@ -32,33 +32,16 @@
 
  */
 
-#ifndef IM_REGION_H
-#define IM_REGION_H
+#ifndef VIPS_REGION_H
+#define VIPS_REGION_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#define VIPS_TYPE_REGION (vips_region_get_type())
-#define VIPS_REGION( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_REGION, VipsRegion ))
-#define VIPS_REGION_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_REGION, VipsRegionClass))
-#define VIPS_IS_REGION( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_REGION ))
-#define VIPS_IS_REGION_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_REGION ))
-#define VIPS_REGION_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_REGION, VipsRegionClass ))
-
 /* Sub-area of image.
  */
 typedef struct _VipsRegion {
-	VipsObject parent_object;
-
 	/*< public >*/
 	/* Users may read these two fields.
 	 */
@@ -92,14 +75,9 @@ typedef struct _VipsRegion {
 	gboolean invalid;	
 } VipsRegion;
 
-typedef struct _VipsRegionClass {
-	VipsObjectClass parent_class;
-
-} VipsRegionClass;
-
-GType vips_region_get_type( void );
-
+void vips_region_free( VipsRegion *region );
 VipsRegion *vips_region_new( VipsImage *im );
+void vips_region_print( VipsRegion *region, VipsBuf *buf );
 
 int vips_region_buffer( VipsRegion *reg, Rect *r );
 int vips_region_image( VipsRegion *reg, Rect *r );
@@ -164,4 +142,4 @@ int vips_region_prepare_many( VipsRegion **reg, Rect *r );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_REGION_H*/
+#endif /*VIPS_REGION_H*/

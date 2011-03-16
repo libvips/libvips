@@ -75,7 +75,7 @@ typedef struct _Sink {
 static void
 sink_free( Sink *sink )
 {
-	VIPS_FREEF( vips_region_free, sink->all );
+	VIPS_UNREF( sink->all );
 }
 
 static int

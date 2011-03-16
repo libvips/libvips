@@ -208,7 +208,7 @@ tile_free( Tile *tile )
 {
 	VIPS_DEBUG_MSG_AMBER( "tile_free\n" );
 
-	VIPS_FREEF( vips_region_free, tile->region );
+	VIPS_UNREF( tile->region );
 	im_free( tile );
 
 	return( NULL );
@@ -962,7 +962,7 @@ image_stop( void *seq, void *a, void *b )
 {
 	VipsRegion *reg = (VipsRegion *) seq;
 
-	vips_region_free( reg );
+	g_object_unref( reg );
 
 	return( 0 );
 }

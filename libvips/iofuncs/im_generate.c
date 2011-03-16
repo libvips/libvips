@@ -149,7 +149,7 @@ im_stop_one( void *seq, void *a, void *b )
 {
 	VipsRegion *reg = (VipsRegion *) seq;
 
-	vips_region_free( reg );
+	g_object_unref( reg );
 
 	return( 0 );
 }
@@ -174,7 +174,7 @@ im_stop_many( void *seq, void *a, void *b )
 		int i;
 
 		for( i = 0; ar[i]; i++ )
-			vips_region_free( ar[i] );
+			g_object_unref( ar[i] );
 		im_free( (char *) ar );
 	}
 

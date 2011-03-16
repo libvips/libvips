@@ -168,7 +168,7 @@ wbuffer_free( WriteBuffer *wbuffer )
 		wbuffer->thread = NULL;
         }
 
-	VIPS_FREEF( vips_region_free, wbuffer->region );
+	VIPS_UNREF( wbuffer->region );
 	im_semaphore_destroy( &wbuffer->go );
 	im_semaphore_destroy( &wbuffer->nwrite );
 	im_semaphore_destroy( &wbuffer->done );
