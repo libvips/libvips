@@ -82,7 +82,7 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 int im_render_priority( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int width, int height, int max,
 	int priority,
-	void (*notify)( VipsImage *, Rect *, void * ), void *client );
+	void (*notify)( VipsImage *, VipsRect *, void * ), void *client );
 int im_cache( VipsImage *in, VipsImage *out, int width, int height, int max );
 
 int im_setupout( VipsImage *im );

@@ -63,7 +63,7 @@ typedef struct _VipsRegion {
 	/* Users may read these two fields.
 	 */
 	VipsImage *im;		/* Link back to parent image */
-	Rect valid;		/* Area of parent we can see */
+	VipsRect valid;		/* Area of parent we can see */
 
 	/* The rest of REGION is private.
 	 */
@@ -101,22 +101,22 @@ GType vips_region_get_type( void );
 
 VipsRegion *vips_region_new( VipsImage *im );
 
-int vips_region_buffer( VipsRegion *reg, Rect *r );
-int vips_region_image( VipsRegion *reg, Rect *r );
+int vips_region_buffer( VipsRegion *reg, VipsRect *r );
+int vips_region_image( VipsRegion *reg, VipsRect *r );
 int vips_region_region( VipsRegion *reg, VipsRegion *dest, 
-	Rect *r, int x, int y );
+	VipsRect *r, int x, int y );
 int vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 );
 int vips_region_position( VipsRegion *reg, int x, int y );
 
-void vips_region_paint( VipsRegion *reg, Rect *r, int value );
+void vips_region_paint( VipsRegion *reg, VipsRect *r, int value );
 void vips_region_black( VipsRegion *reg );
 void vips_region_copy( VipsRegion *reg, VipsRegion *dest, 
-	Rect *r, int x, int y );
+	VipsRect *r, int x, int y );
 
-int vips_region_prepare( VipsRegion *reg, Rect *r );
+int vips_region_prepare( VipsRegion *reg, VipsRect *r );
 int vips_region_prepare_to( VipsRegion *reg, 
-	VipsRegion *dest, Rect *r, int x, int y );
-int vips_region_prepare_many( VipsRegion **reg, Rect *r );
+	VipsRegion *dest, VipsRect *r, int x, int y );
+int vips_region_prepare_many( VipsRegion **reg, VipsRect *r );
 
 /* Macros on REGIONs.
  *	VIPS_REGION_LSKIP()		add to move down line
@@ -142,7 +142,7 @@ int vips_region_prepare_many( VipsRegion **reg, Rect *r );
 		"VIPS_REGION_ADDR: point out of bounds, " \
 		"file \"%s\", line %d\n" \
 		"(point x=%d, y=%d\n" \
-		" should have been within Rect left=%d, top=%d, " \
+		" should have been within VipsRect left=%d, top=%d, " \
 		"width=%d, height=%d)\n", \
 		__FILE__, __LINE__, \
 		(X), (Y), \

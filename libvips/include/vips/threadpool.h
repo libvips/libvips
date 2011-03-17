@@ -76,7 +76,7 @@ typedef struct _VipsThreadState {
 
 	/* Neither used nor set, do what you like with them.
 	 */
-	Rect pos;
+	VipsRect pos;
 	int x, y;
 
 	/* The client data passed to the enclosing vips_threadpool_run().
@@ -126,7 +126,7 @@ int vips_threadpool_run( VipsImage *im,
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines );
 
-typedef int (*VipsRegionWrite)( VipsRegion *region, Rect *area, void *a );
+typedef int (*VipsRegionWrite)( VipsRegion *region, VipsRect *area, void *a );
 int vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a );
 
 typedef void *(*VipsStart)( VipsImage *out, void *a, void *b );
@@ -140,7 +140,7 @@ int vips_sink_tile( VipsImage *im,
 	VipsStart start, VipsGenerate generate, VipsStop stop,
 	void *a, void *b );
 
-typedef void (*VipsSinkNotify)( VipsImage *im, Rect *rect, void *a );
+typedef void (*VipsSinkNotify)( VipsImage *im, VipsRect *rect, void *a );
 int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int tile_width, int tile_height, int max_tiles,
 	int priority,

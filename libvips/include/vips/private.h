@@ -103,7 +103,7 @@ typedef struct im__buffer_t {
 	int ref_count;		/* # of regions referencing us */
 	struct _VipsImage *im;	/* VipsImage we are attached to */
 
-	Rect area;		/* Area this pixel buffer covers */
+	VipsRect area;		/* Area this pixel buffer covers */
 	gboolean done;		/* Calculated and in cache */
 	im_buffer_cache_t *cache;
 	char *buf;		/* Private malloc() area */
@@ -113,10 +113,10 @@ typedef struct im__buffer_t {
 void im_buffer_done( im_buffer_t *buffer );
 void im_buffer_undone( im_buffer_t *buffer );
 void im_buffer_unref( im_buffer_t *buffer );
-im_buffer_t *im_buffer_new( struct _VipsImage *im, Rect *area );
-im_buffer_t *im_buffer_ref( struct _VipsImage *im, Rect *area );
+im_buffer_t *im_buffer_new( struct _VipsImage *im, VipsRect *area );
+im_buffer_t *im_buffer_ref( struct _VipsImage *im, VipsRect *area );
 im_buffer_t *im_buffer_unref_ref( im_buffer_t *buffer, 
-	struct _VipsImage *im, Rect *area );
+	struct _VipsImage *im, VipsRect *area );
 void im_buffer_print( im_buffer_t *buffer );
 
 /* Sections of region.h that are private to VIPS.
@@ -150,7 +150,6 @@ void vips__region_take_ownership( struct _VipsRegion *reg );
 void vips__region_check_ownership( struct _VipsRegion *reg );
 void vips__region_no_ownership( struct _VipsRegion *reg );
 
-void im__copy_region( struct _VipsRegion *reg, struct _VipsRegion *dest, Rect *r, int x, int y );
 void im__find_demand_size( struct _VipsImage *im, int *pw, int *ph );
 
 int vips__region_start( struct _VipsRegion *reg );
@@ -158,7 +157,7 @@ void vips__region_stop( struct _VipsRegion *reg );
 
 typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
 int vips_region_fill( struct _VipsRegion *reg, 
-	Rect *r, VipsRegionFillFn fn, void *a );
+	VipsRect *r, VipsRegionFillFn fn, void *a );
 
 #ifdef __cplusplus
 }

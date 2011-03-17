@@ -27,41 +27,40 @@
 
  */
 
-#ifndef IM_RECT_H
-#define IM_RECT_H
+#ifndef VIPS_RECT_H
+#define VIPS_RECT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-/* A rectangle.
- */
-typedef struct _Rect {
+typedef struct _VipsRect {
+	/*< public >*/
 	int left;
 	int top;
 	int width;
 	int height;
-} Rect;
+} VipsRect;
 
-#define IM_RECT_RIGHT(R) ((R)->left + (R)->width)
-#define IM_RECT_BOTTOM(R) ((R)->top + (R)->height)
-#define IM_RECT_HCENTRE(R) ((R)->left + (R)->width / 2)
-#define IM_RECT_VCENTRE(R) ((R)->top + (R)->height / 2)
+#define VIPS_RECT_RIGHT(R) ((R)->left + (R)->width)
+#define VIPS_RECT_BOTTOM(R) ((R)->top + (R)->height)
+#define VIPS_RECT_HCENTRE(R) ((R)->left + (R)->width / 2)
+#define VIPS_RECT_VCENTRE(R) ((R)->top + (R)->height / 2)
 
-/* Rectangle algebra functions.
- */
-void im_rect_marginadjust( Rect *r, int n );
-int im_rect_includespoint( Rect *r, int x, int y );
-int im_rect_includesrect( Rect *r1, Rect *r2 );
-void im_rect_intersectrect( Rect *r1, Rect *r2, Rect *r3 );
-int im_rect_isempty( Rect *r );
-void im_rect_unionrect( Rect *r1, Rect *r2, Rect *r3 );
-int im_rect_equalsrect( Rect *r1, Rect *r2 );
-Rect *im_rect_dup( Rect *r );
-void im_rect_normalise( Rect *r );
+gboolean vips_rect_isempty( const VipsRect *r );
+gboolean vips_rect_includespoint( const VipsRect *r, int x, int y );
+gboolean vips_rect_includesrect( const VipsRect *r1, const VipsRect *r2 );
+gboolean vips_rect_equalsrect( const VipsRect *r1, const VipsRect *r2 );
+void vips_rect_marginadjust( VipsRect *r, int n );
+void vips_rect_intersectrect( const VipsRect *r1, const VipsRect *r2, 
+	VipsRect *out );
+void vips_rect_unionrect( const VipsRect *r1, const VipsRect *r2, 
+	VipsRect *out );
+VipsRect *vips_rect_dup( const VipsRect *r );
+void vips_rect_normalise( VipsRect *r );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_RECT_H*/
+#endif /*VIPS_RECT_H*/

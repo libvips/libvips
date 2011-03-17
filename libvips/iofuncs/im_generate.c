@@ -311,7 +311,7 @@ im_allocate_input_array( IMAGE *out, ... )
 /* A write function for VIPS images. Just write() the pixel data.
  */
 static int
-write_vips( VipsRegion *region, Rect *area, void *a, void *b )
+write_vips( VipsRegion *region, VipsRect *area, void *a, void *b )
 {
 	size_t nwritten, count;
 	void *buf;

@@ -87,7 +87,7 @@ static int render_num_renders = 0;
 typedef struct {
 	struct _Render *render;
 
-	Rect area;		/* Place here (unclipped) */
+	VipsRect area;		/* Place here (unclipped) */
 	VipsRegion *region;	/* VipsRegion with the pixels */
 
 	/* The tile contains calculated pixels. Though the region may have been
@@ -549,7 +549,7 @@ render_thread_create( void )
 static guint
 tile_hash( gconstpointer key )
 {
-	Rect *rect = (Rect *) key;
+	VipsRect *rect = (VipsRect *) key;
 
 	int x = rect->left / rect->width;
 	int y = rect->top / rect->height;
@@ -560,8 +560,8 @@ tile_hash( gconstpointer key )
 static gboolean
 tile_equal( gconstpointer a, gconstpointer b )
 {
-	Rect *rect1 = (Rect *) a;
-	Rect *rect2 = (Rect *) b;
+	VipsRect *rect1 = (VipsRect *) a;
+	VipsRect *rect2 = (VipsRect *) b;
 
 	return( rect1->left == rect2->left &&
 		rect1->top == rect2->top );
@@ -680,7 +680,7 @@ tile_new( Render *render )
 /* Search the cache for a tile by position.
  */
 static Tile *
-render_tile_lookup( Render *render, Rect *area )
+render_tile_lookup( Render *render, VipsRect *area )
 {
 	return( (Tile *) g_hash_table_lookup( render->tiles, area ) );
 }
@@ -688,7 +688,7 @@ render_tile_lookup( Render *render, Rect *area )
 /* Add a new tile to the table.
  */
 static void
-render_tile_add( Tile *tile, Rect *area )
+render_tile_add( Tile *tile, VipsRect *area )
 {
 	Render *render = tile->render;
 
@@ -710,7 +710,7 @@ render_tile_add( Tile *tile, Rect *area )
 /* Move a tile to a new position.
  */
 static void
-render_tile_move( Tile *tile, Rect *area )
+render_tile_move( Tile *tile, VipsRect *area )
 {
 	Render *render = tile->render;
 
@@ -784,7 +784,7 @@ tile_queue( Tile *tile, VipsRegion *reg )
 }
 
 static void 
-tile_test_clean_ticks( Rect *key, Tile *value, Tile **best )
+tile_test_clean_ticks( VipsRect *key, Tile *value, Tile **best )
 {
 	if( value->painted )
 		if( !*best || value->ticks < (*best)->ticks )
@@ -814,7 +814,7 @@ render_tile_get_painted( Render *render )
  * or if we've no threads or no notify, calculate immediately.
  */
 static Tile *
-render_tile_request( Render *render, VipsRegion *reg, Rect *area )
+render_tile_request( Render *render, VipsRegion *reg, VipsRect *area )
 {
 	Tile *tile;
 
@@ -866,13 +866,13 @@ render_tile_request( Render *render, VipsRegion *reg, Rect *area )
 static void
 tile_copy( Tile *tile, VipsRegion *to )
 {
-	Rect ovlap;
+	VipsRect ovlap;
 	int y;
 
 	/* Find common pixels.
 	 */
-	im_rect_intersectrect( &tile->area, &to->valid, &ovlap );
-	g_assert( !im_rect_isempty( &ovlap ) );
+	vips_rect_intersectrect( &tile->area, &to->valid, &ovlap );
+	g_assert( !vips_rect_isempty( &ovlap ) );
 
 	/* If the tile is painted, copy over the pixels. Otherwise, fill with
 	 * zero. 
@@ -884,7 +884,7 @@ tile_copy( Tile *tile, VipsRegion *to )
 			"copying calculated pixels for %p %dx%d\n",
 			tile, tile->area.left, tile->area.top ); 
 
-		for( y = ovlap.top; y < IM_RECT_BOTTOM( &ovlap ); y++ ) {
+		for( y = ovlap.top; y < VIPS_RECT_BOTTOM( &ovlap ); y++ ) {
 			PEL *p = (PEL *) VIPS_REGION_ADDR( tile->region, 
 				ovlap.left, y );
 			PEL *q = (PEL *) VIPS_REGION_ADDR( to, ovlap.left, y );
@@ -914,7 +914,7 @@ image_fill( VipsRegion *out, void *seq, void *a, void *b )
 {
 	Render *render = (Render *) a;
 	VipsRegion *reg = (VipsRegion *) seq;
-	Rect *r = &out->valid;
+	VipsRect *r = &out->valid;
 	int x, y;
 
 	/* Find top left of tiles we need.
@@ -935,9 +935,9 @@ image_fill( VipsRegion *out, void *seq, void *a, void *b )
 
 	 */
 
-	for( y = ys; y < IM_RECT_BOTTOM( r ); y += render->tile_height )
-		for( x = xs; x < IM_RECT_RIGHT( r ); x += render->tile_width ) {
-			Rect area;
+	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += render->tile_height )
+		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += render->tile_width ) {
+			VipsRect area;
 			Tile *tile;
 
 			area.left = x;
@@ -974,7 +974,7 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b )
 {
 #ifdef HAVE_THREADS
 	Render *render = (Render *) a;
-	Rect *r = &out->valid;
+	VipsRect *r = &out->valid;
 	int x, y;
 
 	/* Find top left of tiles we need.
@@ -988,9 +988,9 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b )
 
 	g_mutex_lock( render->lock );
 
-	for( y = ys; y < IM_RECT_BOTTOM( r ); y += render->tile_height )
-		for( x = xs; x < IM_RECT_RIGHT( r ); x += render->tile_width ) {
-			Rect area;
+	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += render->tile_height )
+		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += render->tile_width ) {
+			VipsRect area;
 			Tile *tile;
 			int value;
 
@@ -1047,8 +1047,8 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b )
  *
  * Calls to vips_region_prepare() on @out return immediately and hold 
  * whatever is
- * currently in cache for that #Rect (check @mask to see which parts of the
- * #Rect are valid). Any pixels in the #Rect which are not in cache are added
+ * currently in cache for that #VipsRect (check @mask to see which parts of the
+ * #VipsRect are valid). Any pixels in the #VipsRect which are not in cache are added
  * to a queue, and the @notify callback will trigger when those pixels are
  * ready.
  *

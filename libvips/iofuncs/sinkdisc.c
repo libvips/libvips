@@ -71,7 +71,7 @@ typedef struct _WriteBuffer {
 	struct _Write *write;
 
 	VipsRegion *region;	/* Pixels */
-	Rect area;		/* Part of image this region covers */
+	VipsRect area;		/* Part of image this region covers */
         im_semaphore_t go; 	/* Start bg thread loop */
         im_semaphore_t nwrite; 	/* Number of threads writing to region */
         im_semaphore_t done; 	/* Bg thread has done write */
@@ -298,7 +298,7 @@ wbuffer_flush( Write *write )
 static int 
 wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 {
-	Rect image, area;
+	VipsRect image, area;
 	int result;
 
 	image.left = 0;
@@ -311,7 +311,7 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 	area.width = wbuffer->write->im->Xsize;
 	area.height = height;
 
-	im_rect_intersectrect( &area, &image, &wbuffer->area );
+	vips_rect_intersectrect( &area, &image, &wbuffer->area );
 
 	/* The workers take turns to move the buffers.
 	 */
@@ -339,8 +339,8 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	WriteThreadState *wstate =  (WriteThreadState *) state;
 	Write *write = (Write *) a;
 
-	Rect image;
-	Rect tile;
+	VipsRect image;
+	VipsRect tile;
 
 	VIPS_DEBUG_MSG( "wbuffer_allocate_fn:\n" );
 
@@ -351,7 +351,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 		write->x = 0;
 		write->y += write->tile_height;
 
-		if( write->y >= IM_RECT_BOTTOM( &write->buf->area ) ) {
+		if( write->y >= VIPS_RECT_BOTTOM( &write->buf->area ) ) {
 			/* Block until the last write is done, then set write
 			 * of the front buffer going.
 			 */
@@ -393,7 +393,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	tile.top = write->y;
 	tile.width = write->tile_width;
 	tile.height = write->tile_height;
-	im_rect_intersectrect( &image, &tile, &state->pos );
+	vips_rect_intersectrect( &image, &tile, &state->pos );
 	wstate->buf = write->buf;
 
 	/* Add to the number of writers on the buffer.

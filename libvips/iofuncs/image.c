@@ -708,7 +708,7 @@ open_lazy_generate( VipsRegion *or, void *seq, void *a, void *b )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 
-        Rect *r = &or->valid;
+        VipsRect *r = &or->valid;
 
         /* Ask for input we need.
          */

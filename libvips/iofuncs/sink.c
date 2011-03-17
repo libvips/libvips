@@ -238,7 +238,7 @@ sink_allocate( VipsThreadState *state, void *a, gboolean *stop )
 {
 	Sink *sink = (Sink *) a;
 
-	Rect image, tile;
+	VipsRect image, tile;
 
 	/* Is the state x/y OK? New line or maybe all done.
 	 */
@@ -263,7 +263,7 @@ sink_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	tile.top = sink->y;
 	tile.width = sink->tile_width;
 	tile.height = sink->tile_height;
-	im_rect_intersectrect( &image, &tile, &state->pos );
+	vips_rect_intersectrect( &image, &tile, &state->pos );
 
 	/* Move state on.
 	 */

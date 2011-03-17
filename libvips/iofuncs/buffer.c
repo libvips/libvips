@@ -293,7 +293,7 @@ im_buffer_unref( im_buffer_t *buffer )
 /* Make a new buffer.
  */
 im_buffer_t *
-im_buffer_new( IMAGE *im, Rect *area )
+im_buffer_new( IMAGE *im, VipsRect *area )
 {
 	im_buffer_t *buffer;
 
@@ -331,7 +331,7 @@ im_buffer_new( IMAGE *im, Rect *area )
 }
 
 static int
-buffer_move( im_buffer_t *buffer, Rect *area )
+buffer_move( im_buffer_t *buffer, VipsRect *area )
 {
 	IMAGE *im = buffer->im;
 	size_t new_bsize;
@@ -357,19 +357,19 @@ buffer_move( im_buffer_t *buffer, Rect *area )
 /* Find an existing buffer that encloses area and return a ref.
  */
 static im_buffer_t *
-buffer_find( IMAGE *im, Rect *r )
+buffer_find( IMAGE *im, VipsRect *r )
 {
 	im_buffer_cache_t *cache = buffer_cache_get();
 	im_buffer_cache_list_t *cache_list;
 	im_buffer_t *buffer;
 	GSList *p;
-	Rect *area;
+	VipsRect *area;
 
 	cache_list = g_hash_table_lookup( cache->hash, im );
 	p = cache_list ? cache_list->buffers : NULL;
 
 	/* This needs to be quick :-( don't use
-	 * im_slist_map2()/im_rect_includesrect(), do the search inline.
+	 * im_slist_map2()/vips_rect_includesrect(), do the search inline.
 	 *
 	 * FIXME we return the first enclosing buffer, perhaps we should
 	 * search for the largest? 
@@ -406,7 +406,7 @@ buffer_find( IMAGE *im, Rect *r )
 /* Return a ref to a buffer that encloses area.
  */
 im_buffer_t *
-im_buffer_ref( IMAGE *im, Rect *area )
+im_buffer_ref( IMAGE *im, VipsRect *area )
 {
 	im_buffer_t *buffer;
 
@@ -423,7 +423,7 @@ im_buffer_ref( IMAGE *im, Rect *area )
  * buffer we return might or might not be done.
  */
 im_buffer_t *
-im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, Rect *area )
+im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, VipsRect *area )
 {
 	im_buffer_t *buffer;
 
@@ -432,7 +432,7 @@ im_buffer_unref_ref( im_buffer_t *old_buffer, IMAGE *im, Rect *area )
 	/* Is the current buffer OK?
 	 */
 	if( old_buffer && 
-		im_rect_includesrect( &old_buffer->area, area ) ) 
+		vips_rect_includesrect( &old_buffer->area, area ) ) 
 		return( old_buffer );
 
 	/* Does the new area already have a buffer?

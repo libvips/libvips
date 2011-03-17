@@ -133,7 +133,7 @@
 /**
  * VipsRegion:
  * @im: the #VipsImage that this region is defined on
- * @valid: the #Rect of pixels that this region represents
+ * @valid: the #VipsRect of pixels that this region represents
  *
  * A small part of a #VipsImage. @valid holds the left/top/width/height of the
  * area of pixels that are available from the region. 
@@ -169,7 +169,7 @@
  * @Y: y coordinate
  *
  * This macro returns a pointer to a pixel in a region. The (x, y) coordinates
- * need to be within the #Rect (@R->valid).
+ * need to be within the #VipsRect (@R->valid).
  * 
  * If DEBUG is defined, you get a version that checks bounds for you.
  *
@@ -461,7 +461,7 @@ vips_region_new( VipsImage *image )
 /**
  * vips_region_buffer:
  * @reg: region to operate upon
- * @r: #Rect of pixels you need to be able to address
+ * @r: #VipsRect of pixels you need to be able to address
  *
  * The region is transformed so that at least @r pixels are available as a
  * memory buffer. 
@@ -469,12 +469,12 @@ vips_region_new( VipsImage *image )
  * Returns: 0 on success, or -1 for error.
  */
 int
-vips_region_buffer( VipsRegion *reg, Rect *r )
+vips_region_buffer( VipsRegion *reg, VipsRect *r )
 {
 	VipsImage *im = reg->im;
 
-	Rect image;
-	Rect clipped;
+	VipsRect image;
+	VipsRect clipped;
 
 	vips__region_check_ownership( reg );
 
@@ -484,11 +484,11 @@ vips_region_buffer( VipsRegion *reg, Rect *r )
 	image.left = 0;
 	image.width = im->Xsize;
 	image.height = im->Ysize;
-	im_rect_intersectrect( r, &image, &clipped );
+	vips_rect_intersectrect( r, &image, &clipped );
 
 	/* Test for empty.
 	 */
-	if( im_rect_isempty( &clipped ) ) {
+	if( vips_rect_isempty( &clipped ) ) {
 		vips_error( "VipsRegion", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
@@ -528,7 +528,7 @@ vips_region_buffer( VipsRegion *reg, Rect *r )
 /**
  * vips_region_image:
  * @reg: region to operate upon
- * @r: #Rect of pixels you need to be able to address
+ * @r: #VipsRect of pixels you need to be able to address
  *
  * The region is transformed so that at least @r pixels are available directly
  * from the image. The image needs to be a memory buffer or represent a file
@@ -537,10 +537,10 @@ vips_region_buffer( VipsRegion *reg, Rect *r )
  * Returns: 0 on success, or -1 for error.
  */
 int
-vips_region_image( VipsRegion *reg, Rect *r )
+vips_region_image( VipsRegion *reg, VipsRect *r )
 {
-	Rect image;
-	Rect clipped;
+	VipsRect image;
+	VipsRect clipped;
 
 	/* Sanity check.
 	 */
@@ -552,11 +552,11 @@ vips_region_image( VipsRegion *reg, Rect *r )
 	image.left = 0;
 	image.width = reg->im->Xsize;
 	image.height = reg->im->Ysize;
-	im_rect_intersectrect( r, &image, &clipped );
+	vips_rect_intersectrect( r, &image, &clipped );
 
 	/* Test for empty.
 	 */
-	if( im_rect_isempty( &clipped ) ) {
+	if( vips_rect_isempty( &clipped ) ) {
 		vips_error( "VipsRegion", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
@@ -615,7 +615,7 @@ vips_region_image( VipsRegion *reg, Rect *r )
  * vips_region_region:
  * @reg: region to operate upon
  * @dest: region to connect to
- * @r: #Rect of pixels you need to be able to address
+ * @r: #VipsRect of pixels you need to be able to address
  * @x: postion of @r in @dest
  * @y: postion of @r in @dest
  *
@@ -636,13 +636,13 @@ vips_region_image( VipsRegion *reg, Rect *r )
  * Returns: 0 on success, or -1 for error.
  */
 int
-vips_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
+vips_region_region( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
 {
-	Rect image;
-	Rect wanted;
-	Rect clipped;
-	Rect clipped2;
-	Rect final;
+	VipsRect image;
+	VipsRect wanted;
+	VipsRect clipped;
+	VipsRect clipped2;
+	VipsRect final;
 
 	/* Sanity check.
 	 */
@@ -669,7 +669,7 @@ vips_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 	image.left = 0;
 	image.width = reg->im->Xsize;
 	image.height = reg->im->Ysize;
-	im_rect_intersectrect( r, &image, &clipped );
+	vips_rect_intersectrect( r, &image, &clipped );
 
 	/* Translate to dest's coordinate space and clip against the available
 	 * pixels.
@@ -681,7 +681,7 @@ vips_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 
 	/* Test that dest->valid is large enough.
 	 */
-	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
+	if( !vips_rect_includesrect( &dest->valid, &wanted ) ) {
 		vips_error( "VipsRegion", 
 			"%s", _( "dest too small" ) );
 		return( -1 );
@@ -689,7 +689,7 @@ vips_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 
 	/* Clip against the available pixels.
 	 */
-	im_rect_intersectrect( &wanted, &dest->valid, &clipped2 );
+	vips_rect_intersectrect( &wanted, &dest->valid, &clipped2 );
 
 	/* Translate back to reg's coordinate space and set as valid.
 	 */
@@ -700,7 +700,7 @@ vips_region_region( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 
 	/* Test for empty.
 	 */
-	if( im_rect_isempty( &final ) ) {
+	if( vips_rect_isempty( &final ) ) {
 		vips_error( "VipsRegion", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
@@ -736,7 +736,7 @@ int
 vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
 {
 	return( reg1->im == reg2->im &&
-		im_rect_equalsrect( &reg1->valid, &reg2->valid ) &&
+		vips_rect_equalsrect( &reg1->valid, &reg2->valid ) &&
 		reg1->data == reg2->data );
 }
 
@@ -756,7 +756,7 @@ vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
 int
 vips_region_position( VipsRegion *reg, int x, int y )
 {
-	Rect req, image, clipped;
+	VipsRect req, image, clipped;
 
 	/* Clip!
 	 */
@@ -768,8 +768,8 @@ vips_region_position( VipsRegion *reg, int x, int y )
 	req.left = x;
 	req.width = reg->valid.width;
 	req.height = reg->valid.height;
-	im_rect_intersectrect( &image, &req, &clipped );
-	if( x < 0 || y < 0 || im_rect_isempty( &clipped ) ) {
+	vips_rect_intersectrect( &image, &req, &clipped );
+	if( x < 0 || y < 0 || vips_rect_isempty( &clipped ) ) {
 		vips_error( "VipsRegion", "%s", _( "bad position" ) );
 		return( -1 );
 	}
@@ -781,7 +781,7 @@ vips_region_position( VipsRegion *reg, int x, int y )
 }
 
 int
-vips_region_fill( VipsRegion *reg, Rect *r, VipsRegionFillFn fn, void *a )
+vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 {
 	g_assert( reg->im->dtype == VIPS_IMAGE_PARTIAL );
 	g_assert( reg->im->generate );
@@ -819,12 +819,12 @@ vips_region_fill( VipsRegion *reg, Rect *r, VipsRegionFillFn fn, void *a )
  * See also: vips_region_black().
  */
 void
-vips_region_paint( VipsRegion *reg, Rect *r, int value )
+vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
 {
-	Rect ovl;
+	VipsRect ovl;
 
-	im_rect_intersectrect( r, &reg->valid, &ovl );
-	if( !im_rect_isempty( &ovl ) ) {
+	vips_rect_intersectrect( r, &reg->valid, &ovl );
+	if( !vips_rect_isempty( &ovl ) ) {
 		PEL *q = (PEL *) VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
 		int wd = ovl.width * VIPS_IMAGE_SIZEOF_PEL( reg->im );
 		int ls = VIPS_REGION_LSKIP( reg );
@@ -855,7 +855,7 @@ vips_region_black( VipsRegion *reg )
  * vips_region_copy:
  * @reg: source region 
  * @dest: destination region 
- * @r: #Rect of pixels you need to copy
+ * @r: #VipsRect of pixels you need to copy
  * @x: postion of @r in @dest
  * @y: postion of @r in @dest
  *
@@ -866,7 +866,7 @@ vips_region_black( VipsRegion *reg )
  * See also: vips_region_paint().
  */
 void
-vips_region_copy( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
+vips_region_copy( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
 {
 	int z;
 	int len = VIPS_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
@@ -878,7 +878,7 @@ vips_region_copy( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 #ifdef DEBUG
 	/* Find the area we will write to in dest.
 	 */
-	Rect output;
+	VipsRect output;
 
 	printf( "vips_region_copy: sanity check\n" );
 
@@ -889,11 +889,11 @@ vips_region_copy( VipsRegion *reg, VipsRegion *dest, Rect *r, int x, int y )
 
 	/* Must be inside dest->valid.
 	 */
-	g_assert( im_rect_includesrect( &dest->valid, &output ) );
+	g_assert( vips_rect_includesrect( &dest->valid, &output ) );
 
 	/* Check the area we are reading from in reg.
 	 */
-	g_assert( im_rect_includesrect( &reg->valid, r ) );
+	g_assert( vips_rect_includesrect( &reg->valid, r ) );
 
 	/* PEL size must be the same.
 	 */
@@ -932,7 +932,7 @@ vips_region_generate( VipsRegion *reg )
 /** 
  * vips_region_prepare:
  * @reg: region to prepare
- * @r: #Rect of pixels you need to be able to address
+ * @r: #VipsRect of pixels you need to be able to address
  *
  * vips_region_prepare() fills @reg with pixels. After calling, 
  * you can address at least the area @r with VIPS_REGION_ADDR() and get 
@@ -952,11 +952,11 @@ vips_region_generate( VipsRegion *reg )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_region_prepare( VipsRegion *reg, Rect *r )
+vips_region_prepare( VipsRegion *reg, VipsRect *r )
 {	
 	VipsImage *im = reg->im;
 
-	Rect save = *r;
+	VipsRect save = *r;
 
 	vips__region_check_ownership( reg );
 
@@ -971,13 +971,13 @@ vips_region_prepare( VipsRegion *reg, Rect *r )
 	 * save as well to make sure we don't fail the assert due to that.
 	 */
 {	
-	Rect image;
+	VipsRect image;
 
 	image.left = 0;
 	image.top = 0;
 	image.width = reg->im->Xsize;
 	image.height = reg->im->Ysize;
-	im_rect_intersectrect( &save, &image, &save );
+	vips_rect_intersectrect( &save, &image, &save );
 }
 
 #ifdef DEBUG
@@ -1015,7 +1015,7 @@ vips_region_prepare( VipsRegion *reg, Rect *r )
 
 	/* valid should now include all the pixels that were asked for.
 	 */
-	g_assert( im_rect_includesrect( &reg->valid, &save ) );
+	g_assert( vips_rect_includesrect( &reg->valid, &save ) );
 
 	return( 0 );
 }
@@ -1025,7 +1025,7 @@ vips_region_prepare( VipsRegion *reg, Rect *r )
  */
 static int
 vips_region_prepare_to_generate( VipsRegion *reg, 
-	VipsRegion *dest, Rect *r, int x, int y )
+	VipsRegion *dest, VipsRect *r, int x, int y )
 {
 	IMAGE *im = reg->im;
 	char *p;
@@ -1061,7 +1061,7 @@ vips_region_prepare_to_generate( VipsRegion *reg,
  * vips_region_prepare_to:
  * @reg: region to prepare
  * @dest: region to write to
- * @r: #Rect of pixels you need to be able to address
+ * @r: #VipsRect of pixels you need to be able to address
  * @x: postion of @r in @dest
  * @y: postion of @r in @dest
  *
@@ -1084,14 +1084,14 @@ vips_region_prepare_to_generate( VipsRegion *reg,
  */
 int
 vips_region_prepare_to( VipsRegion *reg, 
-	VipsRegion *dest, Rect *r, int x, int y )
+	VipsRegion *dest, VipsRect *r, int x, int y )
 {
 	VipsImage *im = reg->im;
-	Rect image;
-	Rect wanted;
-	Rect clipped;
-	Rect clipped2;
-	Rect final;
+	VipsRect image;
+	VipsRect wanted;
+	VipsRect clipped;
+	VipsRect clipped2;
+	VipsRect final;
 
 	if( vips_image_get_kill( im ) )
 		return( -1 );
@@ -1114,7 +1114,7 @@ vips_region_prepare_to( VipsRegion *reg,
 	image.left = 0;
 	image.width = reg->im->Xsize;
 	image.height = reg->im->Ysize;
-	im_rect_intersectrect( r, &image, &clipped );
+	vips_rect_intersectrect( r, &image, &clipped );
 
 	g_assert( clipped.left == r->left );
 	g_assert( clipped.top == r->top );
@@ -1126,12 +1126,12 @@ vips_region_prepare_to( VipsRegion *reg,
 
 	/* Test that dest->valid is large enough.
 	 */
-	if( !im_rect_includesrect( &dest->valid, &wanted ) ) {
+	if( !vips_rect_includesrect( &dest->valid, &wanted ) ) {
 		vips_error( "im_prepare_to", "%s", _( "dest too small" ) );
 		return( -1 );
 	}
 
-	im_rect_intersectrect( &wanted, &dest->valid, &clipped2 );
+	vips_rect_intersectrect( &wanted, &dest->valid, &clipped2 );
 
 	/* Translate back to reg's coordinate space and set as valid.
 	 */
@@ -1143,7 +1143,7 @@ vips_region_prepare_to( VipsRegion *reg,
 	x = clipped2.left;
 	y = clipped2.top;
 
-	if( im_rect_isempty( &final ) ) {
+	if( vips_rect_isempty( &final ) ) {
 		vips_error( "im_prepare_to", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
@@ -1214,7 +1214,7 @@ vips_region_prepare_to( VipsRegion *reg,
 }
 
 int
-vips_region_prepare_many( VipsRegion **reg, Rect *r )
+vips_region_prepare_many( VipsRegion **reg, VipsRect *r )
 {
 	for( ; *reg; ++reg )
 		if( vips_region_prepare( *reg, r ) )

@@ -33,12 +33,12 @@ typedef struct {
 	/* Area of input we can use. This can be smaller than the real input 
 	 * image: we expand the input to add extra pixels for interpolation. 
 	 */
-	Rect iarea;			
+	VipsRect iarea;			
 
 	/* The area of the output we've been asked to generate. left/top can
 	 * be negative.
 	 */
-	Rect oarea;
+	VipsRect oarea;
 
 	/* The transform.
 	 */
@@ -60,9 +60,9 @@ void im__transform_forward_point( const Transformation *trn,
 void im__transform_invert_point( const Transformation *trn, 
 	const double x, const double y, double *ox, double *oy );
 void im__transform_forward_rect( const Transformation *trn,
-	const Rect *in, Rect *out );
+	const VipsRect *in, VipsRect *out );
 void im__transform_invert_rect( const Transformation *trn, 
-	const Rect *in, Rect *out );
+	const VipsRect *in, VipsRect *out );
 
 void im__transform_set_area( Transformation * );
 

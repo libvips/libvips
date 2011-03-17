@@ -324,7 +324,7 @@ extern const size_t vips__image_sizeof_bandformat[];
 		"VIPS_IMAGE_ADDR: point out of bounds, " \
 		"file \"%s\", line %d\n" \
 		"(point x=%d, y=%d\n" \
-		" should have been within Rect left=%d, top=%d, " \
+		" should have been within VipsRect left=%d, top=%d, " \
 		"width=%d, height=%d)\n", \
 		__FILE__, __LINE__, \
 		(X), (Y), \

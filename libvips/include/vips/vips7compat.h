@@ -246,6 +246,22 @@ VipsCoding im_char2Coding( const char *str );
 VipsImageType im_char2dtype( const char *str );
 VipsDemandStyle im_char2dhint( const char *str );
 
+#define Rect VipsRect
+#define IM_RECT_RIGHT VIPS_RECT_RIGHT
+#define IM_RECT_BOTTOM VIPS_RECT_BOTTOM
+#define IM_RECT_HCENTRE VIPS_RECT_HCENTRE
+#define IM_RECT_VCENTRE VIPS_RECT_VCENTRE
+
+#define im_rect_marginadjust vips_rect_marginadjust
+#define im_rect_includespoint vips_rect_includespoint
+#define im_rect_includesrect vips_rect_includesrect
+#define im_rect_intersectrect vips_rect_intersectrect
+#define im_rect_isempty vips_rect_isempty
+#define im_rect_unionrect vips_rect_unionrect
+#define im_rect_equalsrect vips_rect_equalsrect
+#define im_rect_dup vips_rect_dup
+#define im_rect_normalise vips_rect_normalise
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
