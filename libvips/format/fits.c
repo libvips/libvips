@@ -12,6 +12,8 @@
  * 31/1/11
  * 	- read in planes and combine with im_bandjoin()
  * 	- read whole tiles with fits_read_subset() when we can
+ * 17/3/11
+ * 	- renames, updates etc. ready for adding fits write
  */
 
 /*
@@ -85,11 +87,11 @@
  */
 #define MAX_DIMENSIONS (10)
 
-/* What we track during a cfitsio-file read.
+/* What we track during a cfitsio-file read or write.
  */
 typedef struct {
 	char *filename;
-	IMAGE *out;
+	VipsImage *image;
 
 	fitsfile *fptr;
 	int datatype;
@@ -102,10 +104,10 @@ typedef struct {
 	 * band.
 	 */
 	int band_select;	
-} Read;
+} VipsFits;
 
 static void
-read_error( int status )
+vips_fits_error( int status )
 {
 	char buf[80];
 
@@ -114,70 +116,67 @@ read_error( int status )
 }
 
 static void
-read_destroy( Read *read )
+vips_fits_destroy( VipsFits *fits )
 {
-	IM_FREE( read->filename );
-	IM_FREEF( g_mutex_free, read->lock );
-	if( read->fptr ) {
+	VIPS_FREE( fits->filename );
+	VIPS_FREEF( g_mutex_free, fits->lock );
+
+	if( fits->fptr ) {
 		int status;
 
 		status = 0;
 
-		if( fits_close_file( read->fptr, &status ) ) 
-			read_error( status );
+		if( fits_close_file( fits->fptr, &status ) ) 
+			vips_fits_error( status );
 
-		read->fptr = NULL;
+		fits->fptr = NULL;
 	}
 
-	im_free( read );
+	im_free( fits );
 }
 
-static Read *
-read_new( const char *filename, IMAGE *out, int band_select )
+static VipsFits *
+vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 {
-	Read *read;
+	VipsFits *fits;
 	int status;
 
-	if( !(read = IM_NEW( NULL, Read )) )
+	if( !(fits = VIPS_NEW( NULL, VipsFits )) )
 		return( NULL );
 
-	read->filename = im_strdup( NULL, filename );
-	read->out = out;
-	read->fptr = NULL;
-	read->lock = NULL;
-	read->band_select = band_select;
-
-	if( im_add_close_callback( out, 
-		(im_callback_fn) read_destroy, read, NULL ) ) {
-		read_destroy( read );
-		return( NULL );
-	}
+	fits->filename = im_strdup( NULL, filename );
+	fits->image = out;
+	fits->fptr = NULL;
+	fits->lock = NULL;
+	fits->band_select = band_select;
+	g_signal_connect( out, "close", 
+		G_CALLBACK( vips_fits_destroy ), fits );
 
 	status = 0;
-	if( fits_open_file( &read->fptr, filename, READONLY, &status ) ) {
+	if( fits_open_file( &fits->fptr, filename, READONLY, &status ) ) {
 		im_error( "fits", _( "unable to open \"%s\"" ), filename );
-		read_error( status );
+		vips_fits_error( status );
 		return( NULL );
 	}
 
-	read->lock = g_mutex_new();
+	fits->lock = g_mutex_new();
 
-	return( read );
+	return( fits );
 }
 
 /* fits image types -> VIPS band formats. VIPS doesn't have 64-bit int, so no
  * entry for LONGLONG_IMG (64).
  */
 static int fits2vips_formats[][3] = {
-	{ BYTE_IMG, IM_BANDFMT_UCHAR, TBYTE },
-	{ SHORT_IMG,  IM_BANDFMT_USHORT, TUSHORT },
-	{ LONG_IMG,  IM_BANDFMT_UINT, TUINT },
-	{ FLOAT_IMG,  IM_BANDFMT_FLOAT, TFLOAT },
-	{ DOUBLE_IMG, IM_BANDFMT_DOUBLE, TDOUBLE }
+	{ BYTE_IMG, VIPS_FORMAT_UCHAR, TBYTE },
+	{ SHORT_IMG,  VIPS_FORMAT_USHORT, TUSHORT },
+	{ LONG_IMG,  VIPS_FORMAT_UINT, TUINT },
+	{ FLOAT_IMG,  VIPS_FORMAT_FLOAT, TFLOAT },
+	{ DOUBLE_IMG, VIPS_FORMAT_DOUBLE, TDOUBLE }
 };
 
 static int
-fits2vips_get_header( Read *read, IMAGE *out )
+vips_fits_get_header( VipsFits *fits, VipsImage *out )
 {
 	int status;
 	int bitpix;
@@ -189,22 +188,22 @@ fits2vips_get_header( Read *read, IMAGE *out )
 
 	status = 0;
 
-	if( fits_get_img_paramll( read->fptr, 
-		10, &bitpix, &read->naxis, read->naxes, &status ) ) {
-		read_error( status );
+	if( fits_get_img_paramll( fits->fptr, 
+		10, &bitpix, &fits->naxis, fits->naxes, &status ) ) {
+		vips_fits_error( status );
 		return( -1 );
 	}
 
 #ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "naxis = %d\n", read->naxis );
-	for( i = 0; i < read->naxis; i++ )
-		VIPS_DEBUG_MSG( "%d) %lld\n", i, read->naxes[i] );
+	VIPS_DEBUG_MSG( "naxis = %d\n", fits->naxis );
+	for( i = 0; i < fits->naxis; i++ )
+		VIPS_DEBUG_MSG( "%d) %lld\n", i, fits->naxes[i] );
 #endif /*VIPS_DEBUG*/
 
 	width = 1;
 	height = 1;
 	bands = 1;
-	switch( read->naxis ) {
+	switch( fits->naxis ) {
 	/* If you add more dimensions here, adjust data read below. See also
 	 * the definition of MAX_DIMENSIONS above.
 	 */
@@ -215,71 +214,71 @@ fits2vips_get_header( Read *read, IMAGE *out )
 	case 6:
 	case 5:
 	case 4:
-		for( i = read->naxis; i > 3; i-- )
-			if( read->naxes[i - 1] != 1 ) {
+		for( i = fits->naxis; i > 3; i-- )
+			if( fits->naxes[i - 1] != 1 ) {
 				im_error( "fits", "%s", _( "dimensions above 3 "
 					"must be size 1" ) );
 				return( -1 );
 			}
 
 	case 3:
-		bands = read->naxes[2];
+		bands = fits->naxes[2];
 
 	case 2:
-		height = read->naxes[1];
+		height = fits->naxes[1];
 
 	case 1:
-		width = read->naxes[0];
+		width = fits->naxes[0];
 		break;
 
 	default:
-		im_error( "fits", _( "bad number of axis %d" ), read->naxis );
+		im_error( "fits", _( "bad number of axis %d" ), fits->naxis );
 		return( -1 );
 	}
 
 	/* Are we in one-band mode?
 	 */
-	if( read->band_select != -1 )
+	if( fits->band_select != -1 )
 		bands = 1;
 
 	/* Get image format. We want the 'raw' format of the image, our caller
 	 * can convert using the meta info if they want.
 	 */
-	for( i = 0; i < IM_NUMBER( fits2vips_formats ); i++ )
+	for( i = 0; i < VIPS_NUMBER( fits2vips_formats ); i++ )
 		if( fits2vips_formats[i][0] == bitpix )
 			break;
-	if( i == IM_NUMBER( fits2vips_formats ) ) {
-		im_error( "im_fits2vips", _( "unsupported bitpix %d\n" ),
+	if( i == VIPS_NUMBER( fits2vips_formats ) ) {
+		im_error( "fits", _( "unsupported bitpix %d\n" ),
 			bitpix );
 		return( -1 );
 	}
 	format = fits2vips_formats[i][1];
-	read->datatype = fits2vips_formats[i][2];
+	fits->datatype = fits2vips_formats[i][2];
 
 	if( bands == 1 ) {
-		if( format == IM_BANDFMT_USHORT )
-			type = IM_TYPE_GREY16;
+		if( format == VIPS_FORMAT_USHORT )
+			type = VIPS_INTERPRETATION_GREY16;
 		else
-			type = IM_TYPE_B_W;
+			type = VIPS_INTERPRETATION_B_W;
 	}
 	else if( bands == 3 ) {
-		if( format == IM_BANDFMT_USHORT )
-			type = IM_TYPE_RGB16;
+		if( format == VIPS_FORMAT_USHORT )
+			type = VIPS_INTERPRETATION_RGB16;
 		else
-			type = IM_TYPE_RGB;
+			type = VIPS_INTERPRETATION_RGB;
 	}
 	else
-		type = IM_TYPE_MULTIBAND;
+		type = VIPS_INTERPRETATION_MULTIBAND;
 
 	im_initdesc( out,
 		 width, height, bands,
 		 im_bits_of_fmt( format ), format,
-		 IM_CODING_NONE, type, 1.0, 1.0, 0, 0 );
+		 VIPS_CODING_NONE, type, 1.0, 1.0, 0, 0 );
 
 	/* Read all keys into meta.
 	 */
-	if( fits_get_hdrspace( read->fptr, &keysexist, &morekeys, &status ) ) {
-		read_error( status );
+	if( fits_get_hdrspace( fits->fptr, &keysexist, &morekeys, &status ) ) {
+		vips_fits_error( status );
 		return( -1 );
 	}
 
@@ -289,9 +288,9 @@ fits2vips_get_header( Read *read, IMAGE *out )
 		char comment[81];
 		char vipsname[100];
 
-		if( fits_read_keyn( read->fptr, i + 1, 
+		if( fits_read_keyn( fits->fptr, i + 1, 
 			key, value, comment, &status ) ) {
-			read_error( status );
+			vips_fits_error( status );
 			return( -1 );
 		}
 
@@ -312,23 +311,23 @@ fits2vips_get_header( Read *read, IMAGE *out )
 }
 
 static int
-fits2vips_header( const char *filename, IMAGE *out )
+fits2vips_header( const char *filename, VipsImage *out )
 {
-	Read *read;
+	VipsFits *fits;
 
 	VIPS_DEBUG_MSG( "fits2vips_header: reading \"%s\"\n", filename );
 
-	if( !(read = read_new( filename, out, -1 )) || 
-		fits2vips_get_header( read, out ) ) 
+	if( !(fits = vips_fits_new_read( filename, out, -1 )) || 
+		vips_fits_get_header( fits, out ) ) 
 		return( -1 );
 
 	return( 0 );
 }
 
 static int
-fits2vips_generate( REGION *out, void *seq, void *a, void *b )
+fits2vips_generate( VipsRegion *out, void *seq, void *a, void *b )
 {
-	Read *read = (Read *) a;
+	VipsFits *fits = (VipsFits *) a;
 	Rect *r = &out->valid;
 
 	PEL *q;
@@ -348,70 +347,70 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 	/* Special case: the region we are writing to is exactly the width we
 	 * need, ie. we can read a rectangular area into it.
 	 */
-	if( IM_REGION_LSKIP( out ) == IM_REGION_SIZEOF_LINE( out ) ) {
+	if( VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) ) {
 		VIPS_DEBUG_MSG( "fits2vips_generate: block read\n" );
 
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			fpixel[z] = 1;
 		fpixel[0] = r->left + 1;
 		fpixel[1] = r->top + 1;
-		fpixel[2] = read->band_select + 1;
+		fpixel[2] = fits->band_select + 1;
 
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			lpixel[z] = 1;
-		lpixel[0] = IM_RECT_RIGHT( r );
-		lpixel[1] = IM_RECT_BOTTOM( r );
-		lpixel[2] = read->band_select + 1;
+		lpixel[0] = VIPS_RECT_RIGHT( r );
+		lpixel[1] = VIPS_RECT_BOTTOM( r );
+		lpixel[2] = fits->band_select + 1;
 
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			inc[z] = 1;
 
-		q = (PEL *) IM_REGION_ADDR( out, r->left, r->top );
+		q = (PEL *) VIPS_REGION_ADDR( out, r->left, r->top );
 
 		/* Break on ffgsv() for this call.
 		 */
-		g_mutex_lock( read->lock );
-		if( fits_read_subset( read->fptr, read->datatype, 
+		g_mutex_lock( fits->lock );
+		if( fits_read_subset( fits->fptr, fits->datatype, 
 			fpixel, lpixel, inc, 
 			NULL, q, NULL, &status ) ) {
-			read_error( status );
-			g_mutex_unlock( read->lock );
+			vips_fits_error( status );
+			g_mutex_unlock( fits->lock );
 			return( -1 );
 		}
-		g_mutex_unlock( read->lock );
+		g_mutex_unlock( fits->lock );
 	}
 	else {
 		int y;
 
-		for( y = r->top; y < IM_RECT_BOTTOM( r ); y ++ ) {
+		for( y = r->top; y < VIPS_RECT_BOTTOM( r ); y ++ ) {
 			for( z = 0; z < MAX_DIMENSIONS; z++ )
 				fpixel[z] = 1;
 			fpixel[0] = r->left + 1;
 			fpixel[1] = y + 1;
-			fpixel[2] = read->band_select + 1;
+			fpixel[2] = fits->band_select + 1;
 
 			for( z = 0; z < MAX_DIMENSIONS; z++ )
 				lpixel[z] = 1;
-			lpixel[0] = IM_RECT_RIGHT( r );
+			lpixel[0] = VIPS_RECT_RIGHT( r );
 			lpixel[1] = y + 1;
-			lpixel[2] = read->band_select + 1;
+			lpixel[2] = fits->band_select + 1;
 
 			for( z = 0; z < MAX_DIMENSIONS; z++ )
 				inc[z] = 1;
 
-			q = (PEL *) IM_REGION_ADDR( out, r->left, y );
+			q = (PEL *) VIPS_REGION_ADDR( out, r->left, y );
 
 			/* Break on ffgsv() for this call.
 			 */
-			g_mutex_lock( read->lock );
-			if( fits_read_subset( read->fptr, read->datatype, 
+			g_mutex_lock( fits->lock );
+			if( fits_read_subset( fits->fptr, fits->datatype, 
 				fpixel, lpixel, inc, 
 				NULL, q, NULL, &status ) ) {
-				read_error( status );
-				g_mutex_unlock( read->lock );
+				vips_fits_error( status );
+				g_mutex_unlock( fits->lock );
 				return( -1 );
 			}
-			g_mutex_unlock( read->lock );
+			g_mutex_unlock( fits->lock );
 		}
 	}
 
@@ -419,18 +418,18 @@ fits2vips_generate( REGION *out, void *seq, void *a, void *b )
 }
 
 static int
-fits2vips( const char *filename, IMAGE *out, int band_select )
+fits2vips( const char *filename, VipsImage *out, int band_select )
 {
-	Read *read;
+	VipsFits *fits;
 
 	/* The -1 mode is just for reading the header.
 	 */
 	g_assert( band_select >= 0 );
 
-	if( !(read = read_new( filename, out, band_select )) ||
-		fits2vips_get_header( read, out ) ||
-		im_demand_hint( out, IM_SMALLTILE, NULL ) ||
-		im_generate( out, NULL, fits2vips_generate, NULL, read, NULL ) )
+	if( !(fits = vips_fits_new_read( filename, out, band_select )) ||
+		vips_fits_get_header( fits, out ) ||
+		im_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) ||
+		im_generate( out, NULL, fits2vips_generate, NULL, fits, NULL ) )
 		return( -1 );
 
 	return( 0 );
@@ -448,9 +447,9 @@ fits2vips( const char *filename, IMAGE *out, int band_select )
  * Returns: 0 on success, -1 on error.
  */
 int
-im_fits2vips( const char *filename, IMAGE *out )
+im_fits2vips( const char *filename, VipsImage *out )
 {
-	IMAGE *t;
+	VipsImage *t;
 	int n_bands;
 
 	VIPS_DEBUG_MSG( "im_fits2vips: reading \"%s\"\n", filename );
@@ -460,32 +459,36 @@ im_fits2vips( const char *filename, IMAGE *out )
 	 * separately then join them.
 	 */
 
-	if( !(t = im_open_local( out, "im_fits2vips", "p" )) ||
+	if( !(t = vips_image_new( "p" )) ||
+		vips_object_local( out, t ) ||
 		fits2vips_header( filename, t ) )
 		return( -1 );
 	n_bands = t->Bands;
 
 	if( n_bands == 1 ) {
-		if( !(t = im_open_local( out, "im_fits2vips", "p" )) ||
+		if( !(t = vips_image_new( "p" )) ||
+			vips_object_local( out, t ) ||
 			fits2vips( filename, t, 0 ) )
 			return( -1 );
 	}
 	else {
-		IMAGE *acc;
+		VipsImage *acc;
 		int i;
 
 		acc = NULL;
 		for( i = 0; i < n_bands; i++ ) {
-			if( !(t = im_open_local( out, "im_fits2vips", "p" )) ||
+			if( !(t = vips_image_new( "p" )) ||
+				vips_object_local( out, t ) ||
 				fits2vips( filename, t, i ) )
 				return( -1 );
 
 			if( !acc )
 				acc = t;
 			else {
-				IMAGE *t2;
+				VipsImage *t2;
 
-				if( !(t2 = im_open_local( out, "x", "p" )) ||
+				if( !(t2 = vips_image_new( "p" )) ||
+					vips_object_local( out, t2 ) ||
 					im_bandjoin( acc, t, t2 ) )
 					return( -1 );
 				acc = t2;
@@ -516,7 +519,7 @@ isfits( const char *filename )
 	if( fits_open_image( &fptr, filename, READONLY, &status ) ) {
 		VIPS_DEBUG_MSG( "isfits: error reading \"%s\"\n", filename );
 #ifdef VIPS_DEBUG
-		read_error( status );
+		vips_fits_error( status );
 #endif /*VIPS_DEBUG*/
 
 		return( 0 );

@@ -291,8 +291,8 @@ int vips_object_unref( VipsObject *obj );
 
 void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
 #define vips_object_local( V, G ) \
-	g_signal_connect( V, "close", \
-		G_CALLBACK( vips_object_local_cb ), G );
+	(g_signal_connect( V, "close", \
+		G_CALLBACK( vips_object_local_cb ), G ), 0)
 
 void vips_object_print_all( void );
 void vips_object_sanity_all( void );
