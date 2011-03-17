@@ -529,6 +529,148 @@ isfits( const char *filename )
 	return( 1 );
 }
 
+static VipsFits *
+vips_fits_new_write( VipsImage *in, const char *filename )
+{
+	VipsFits *fits;
+	int status;
+
+	if( !(fits = VIPS_NEW( NULL, VipsFits )) )
+		return( NULL );
+
+	fits->filename = im_strdup( NULL, filename );
+	fits->image = in;
+	fits->fptr = NULL;
+	fits->lock = NULL;
+	fits->band_select = -1;
+	g_signal_connect( in, "close", 
+		G_CALLBACK( vips_fits_destroy ), fits );
+
+	status = 0;
+	if( fits_create_file( &fits->fptr, filename, &status ) ) {
+		im_error( "fits", _( "unable to write to \"%s\"" ), filename );
+		vips_fits_error( status );
+		return( NULL );
+	}
+
+	fits->lock = g_mutex_new();
+
+	return( fits );
+}
+
+static int
+vips_fits_set_header( VipsFits *fits, VipsImage *in )
+{
+	int status;
+	int bitpix;
+	long int naxes[MAX_DIMENSIONS];
+
+	/*
+	int width, height, bands, format, type;
+	int keysexist;
+	int morekeys;
+	 */
+
+	int i;
+
+	status = 0;
+
+	fits->naxis = 3;
+	fits->naxes[2] = naxes[2] = in->Bands;
+	fits->naxes[1] = naxes[1] = in->Ysize;
+	fits->naxes[0] = naxes[0] = in->Xsize;
+
+	for( i = 0; i < VIPS_NUMBER( fits2vips_formats ); i++ )
+		if( fits2vips_formats[i][1] == in->BandFmt )
+			break;
+	if( i == VIPS_NUMBER( fits2vips_formats ) ) {
+		im_error( "fits", _( "unsupported BandFmt %d\n" ),
+			in->BandFmt );
+		return( -1 );
+	}
+	bitpix = fits2vips_formats[i][0];
+	fits->datatype = fits2vips_formats[i][2];
+
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "naxis = %d\n", fits->naxis );
+	for( i = 0; i < fits->naxis; i++ )
+		VIPS_DEBUG_MSG( "%d) %lld\n", i, fits->naxes[i] );
+	VIPS_DEBUG_MSG( "bitpix = %d\n", bitpix );
+#endif /*VIPS_DEBUG*/
+
+	if( fits_create_img( fits->fptr, bitpix, fits->naxis, 
+		naxes, &status ) ) {
+		vips_fits_error( status );
+		return( -1 );
+	}
+
+	/* Read all keys into meta.
+	if( fits_get_hdrspace( fits->fptr, &keysexist, &morekeys, &status ) ) {
+		vips_fits_error( status );
+		return( -1 );
+	}
+
+	for( i = 0; i < keysexist; i++ ) {
+		char key[81];
+		char value[81];
+		char comment[81];
+		char vipsname[100];
+
+		if( fits_read_keyn( fits->fptr, i + 1, 
+			key, value, comment, &status ) ) {
+			vips_fits_error( status );
+			return( -1 );
+		}
+
+		VIPS_DEBUG_MSG( "fits: seen:\n" );
+		VIPS_DEBUG_MSG( " key == %s\n", key );
+		VIPS_DEBUG_MSG( " value == %s\n", value );
+		VIPS_DEBUG_MSG( " comment == %s\n", comment );
+
+		im_snprintf( vipsname, 100, "fits-%s", key );
+		if( im_meta_set_string( out, vipsname, value ) ) 
+			return( -1 );
+		im_snprintf( vipsname, 100, "fits-%s-comment", key );
+		if( im_meta_set_string( out, vipsname, comment ) ) 
+			return( -1 );
+	}
+	 */
+
+	return( 0 );
+}
+
+static int
+vips_fits_write( VipsFits *fits, VipsImage *in )
+{
+	return( 0 );
+}
+
+/**
+ * im_vips2fits:
+ * @in: image to write 
+ * @filename: file to write to
+ *
+ * Write @in to @filename in FITS format.
+ *
+ * See also: #VipsFormat.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+im_vips2fits( VipsImage *in, const char *filename )
+{
+	VipsFits *fits;
+
+	VIPS_DEBUG_MSG( "im_vips2fits: writing \"%s\"\n", filename );
+
+	if( !(fits = vips_fits_new_write( in, filename )) ||
+		vips_fits_set_header( fits, in ) ||
+		vips_fits_write( fits, in ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static const char *fits_suffs[] = { ".fits", NULL };
 
 /* fits format adds no new members.
@@ -548,7 +690,7 @@ vips_format_fits_class_init( VipsFormatFitsClass *class )
 	format_class->is_a = isfits;
 	format_class->header = fits2vips_header;
 	format_class->load = im_fits2vips;
-	format_class->save = NULL;
+	format_class->save = im_vips2fits;
 	format_class->suffs = fits_suffs;
 }
 
