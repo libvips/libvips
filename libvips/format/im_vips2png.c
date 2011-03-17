@@ -21,6 +21,8 @@
  * 	- added im_vips2bufpng()
  * 8/1/11
  * 	- set png resolution (thanks Zhiyu Wu)
+ * 17/3/11
+ * 	- update for libpng-1.5 API changes
  */
 
 /*
@@ -169,7 +171,7 @@ write_new( IMAGE *in )
 
 	/* Catch PNG errors from png_create_info_struct().
 	 */
-	if( setjmp( write->pPng->jmpbuf ) ) {
+	if( setjmp( png_jmpbuf( write->pPng ) ) ) {
 		write_destroy( write );
 		return( NULL );
 	}
@@ -197,7 +199,7 @@ write_png_block( REGION *region, Rect *area, void *a )
 
 	/* Catch PNG errors. Yuk.
 	 */
-	if( setjmp( write->pPng->jmpbuf ) ) 
+	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
 		return( -1 );
 
 	for( i = 0; i < area->height; i++ ) 
@@ -216,6 +218,9 @@ write_vips( Write *write, int compress, int interlace )
 {
 	IMAGE *in = write->in;
 
+	int bit_depth;
+	int color_type;
+	int interlace_type;
 	int i, nb_passes;
 
         g_assert( in->BandFmt == IM_BANDFMT_UCHAR || 
@@ -225,7 +230,7 @@ write_vips( Write *write, int compress, int interlace )
 
 	/* Catch PNG errors.
 	 */
-	if( setjmp( write->pPng->jmpbuf ) ) 
+	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
 		return( -1 );
 
 	/* Check input image.
@@ -242,20 +247,25 @@ write_vips( Write *write, int compress, int interlace )
 	 */
 	png_set_compression_level( write->pPng, compress );
 
-	write->pInfo->width = in->Xsize;
-	write->pInfo->height = in->Ysize;
-	write->pInfo->bit_depth = (in->BandFmt == IM_BANDFMT_UCHAR ? 8 : 16);
-	write->pInfo->gamma = (float) 1.0;
+	bit_depth = in->BandFmt == IM_BANDFMT_UCHAR ? 8 : 16;
 
 	switch( in->Bands ) {
-	case 1: write->pInfo->color_type = PNG_COLOR_TYPE_GRAY; break;
-	case 2: write->pInfo->color_type = PNG_COLOR_TYPE_GRAY_ALPHA; break;
-	case 3: write->pInfo->color_type = PNG_COLOR_TYPE_RGB; break;
-	case 4: write->pInfo->color_type = PNG_COLOR_TYPE_RGB_ALPHA; break;
+	case 1: color_type = PNG_COLOR_TYPE_GRAY; break;
+	case 2: color_type = PNG_COLOR_TYPE_GRAY_ALPHA; break;
+	case 3: color_type = PNG_COLOR_TYPE_RGB; break;
+	case 4: color_type = PNG_COLOR_TYPE_RGB_ALPHA; break;
 
 	default:
 		g_assert( 0 );
 	}
+
+	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
+
+	png_set_IHDR( write->pPng, write->pInfo, 
+		in->Xsize, in->Ysize, bit_depth, color_type, interlace_type, 
+		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT );
+
+	png_set_gAMA( write->pPng, write->pInfo, (float) 1.0 );
 
 	/* Set resolution. libpnbg uses pixels per meter.
 	 */
@@ -268,7 +278,7 @@ write_vips( Write *write, int compress, int interlace )
 	/* If we're an intel byte order CPU and this is a 16bit image, we need
 	 * to swap bytes.
 	 */
-	if( write->pInfo->bit_depth > 8 && !im_amiMSBfirst() ) 
+	if( bit_depth > 8 && !im_amiMSBfirst() ) 
 		png_set_swap( write->pPng ); 
 
 	if( interlace )	
@@ -284,7 +294,7 @@ write_vips( Write *write, int compress, int interlace )
 
 	/* The setjmp() was held by our background writer: reset it.
 	 */
-	if( setjmp( write->pPng->jmpbuf ) ) 
+	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
 		return( -1 );
 
 	png_write_end( write->pPng, write->pInfo );
@@ -389,24 +399,24 @@ im_vips2png( IMAGE *in, const char *filename )
 	return( 0 );
 }
 
-typedef struct _PngWriteBuf {
+typedef struct _WriteBuf {
 	char *buf;
 	size_t len;
 	size_t alloc;
-} PngWriteBuf;
+} WriteBuf;
 
 static void
-png_write_buf_free( PngWriteBuf *wbuf )
+write_buf_free( WriteBuf *wbuf )
 {
 	IM_FREE( wbuf );
 }
 
-static PngWriteBuf *
-png_write_buf_new( void )
+static WriteBuf *
+write_buf_new( void )
 {
-	PngWriteBuf *wbuf;
+	WriteBuf *wbuf;
 
-	if( !(wbuf = IM_NEW( NULL, PngWriteBuf )) )
+	if( !(wbuf = IM_NEW( NULL, WriteBuf )) )
 		return( NULL );
 
 	wbuf->buf = NULL;
@@ -417,7 +427,7 @@ png_write_buf_new( void )
 }
 
 static void
-png_write_buf_grow( PngWriteBuf *wbuf, size_t grow_len )
+write_buf_grow( WriteBuf *wbuf, size_t grow_len )
 {
 	size_t new_len = wbuf->len + grow_len;
 
@@ -434,7 +444,7 @@ png_write_buf_grow( PngWriteBuf *wbuf, size_t grow_len )
 		 */
 	 	wbuf->buf = g_realloc( wbuf->buf, wbuf->alloc );
 
-		VIPS_DEBUG_MSG( "png_write_buf_grow: grown to %zd bytes\n",
+		VIPS_DEBUG_MSG( "write_buf_grow: grown to %zd bytes\n",
 			wbuf->alloc );
 	}
 }
@@ -442,13 +452,14 @@ png_write_buf_grow( PngWriteBuf *wbuf, size_t grow_len )
 static void
 user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 {
-	PngWriteBuf *wbuf = (PngWriteBuf *) png_ptr->io_ptr;
+	WriteBuf *wbuf = (WriteBuf *) png_get_io_ptr( png_ptr );
+
 	char *write_start;
 
-	png_write_buf_grow( wbuf, length );
+	write_buf_grow( wbuf, length );
 
 	write_start = wbuf->buf + wbuf->len;
-	png_memcpy( write_start, data, length );
+	memcpy( write_start, data, length );
 
 	wbuf->len += length;
 
@@ -479,10 +490,10 @@ int
 im_vips2bufpng( IMAGE *in, IMAGE *out,
 	int compression, int interlace, char **obuf, size_t *olen )
 {
-	PngWriteBuf *wbuf;
+	WriteBuf *wbuf;
 	Write *write;
 
-	if( !(wbuf = png_write_buf_new()) ||
+	if( !(wbuf = write_buf_new()) ||
 		!(write = write_new( in )) )
 		return( -1 );
 
@@ -492,7 +503,7 @@ im_vips2bufpng( IMAGE *in, IMAGE *out,
 	 */
 	if( write_vips( write, compression, interlace ) ) {
 		write_destroy( write );
-		png_write_buf_free( wbuf );
+		write_buf_free( wbuf );
 		im_error( "im_vips2bufpng", 
 			"%s", _( "unable to write to buffer" ) );
 	      
@@ -503,7 +514,7 @@ im_vips2bufpng( IMAGE *in, IMAGE *out,
 	*obuf = wbuf->buf;
 	*olen = wbuf->len;
 
-	png_write_buf_free( wbuf );
+	write_buf_free( wbuf );
 
 	if( out && im_add_close_callback( out,
 		(im_callback_fn) im_free, *obuf, NULL ) ) {

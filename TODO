@@ -1,18 +1,4 @@
 
-- png read/write needs redoing:
-
-	http://www.libpng.org/pub/png/src/libpng-1.4.x-to-1.5.x-summary.txt
-
-	... the ability to directly access
-	the main libpng control structures, png_struct and png_info, deprecated
-	in earlier versions of libpng, has been completely removed from
-	libpng 1.5.
-
-  argh
-
-
-
-
 
 - add FITS and MATLAB write
 

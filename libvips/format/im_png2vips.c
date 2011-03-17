@@ -18,6 +18,8 @@
  * 	- gtkdoc
  * 8/1/11
  * 	- get png resolution (thanks Zhiyu Wu)
+ * 17/3/11
+ * 	- update for libpng-1.5 API changes
  */
 
 /*
@@ -154,7 +156,7 @@ read_new( const char *name, IMAGE *out )
 
 	/* Catch PNG errors from png_create_info_struct().
 	 */
-	if( setjmp( read->pPng->jmpbuf ) ) {
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
 		read_destroy( read );
 		return( NULL );
 	}
@@ -174,25 +176,25 @@ static int
 png2vips_interlace( Read *read )
 {
 	const int rowbytes = IM_IMAGE_SIZEOF_LINE( read->out );
+	const int height = png_get_image_height( read->pPng, read->pInfo );
+
 	int y;
 
-	if( !(read->row_pointer = IM_ARRAY( NULL, 
-		read->pInfo->height, png_bytep )) )
+	if( !(read->row_pointer = IM_ARRAY( NULL, height, png_bytep )) )
 		return( -1 );
-	if( !(read->data = (png_bytep) im_malloc( NULL,
-		read->pInfo->height * rowbytes ))  )
+	if( !(read->data = (png_bytep) im_malloc( NULL, height * rowbytes ))  )
 		return( -1 );
 
-	for( y = 0; y < (int) read->pInfo->height; y++ )
+	for( y = 0; y < (int) height; y++ )
 		read->row_pointer[y] = read->data + y * rowbytes;
 	if( im_outcheck( read->out ) || 
 		im_setupout( read->out ) || 
-		setjmp( read->pPng->jmpbuf ) ) 
+		setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
 	png_read_image( read->pPng, read->row_pointer );
 
-	for( y = 0; y < (int) read->pInfo->height; y++ )
+	for( y = 0; y < height; y++ )
 		if( im_writeline( y, read->out, read->row_pointer[y] ) )
 			return( -1 );
 
@@ -206,16 +208,18 @@ static int
 png2vips_noninterlace( Read *read )
 {
 	const int rowbytes = IM_IMAGE_SIZEOF_LINE( read->out );
+	const int height = png_get_image_height( read->pPng, read->pInfo );
+
 	int y;
 
 	if( !(read->data = (png_bytep) im_malloc( NULL, rowbytes ))  )
 		return( -1 );
 	if( im_outcheck( read->out ) || 
 		im_setupout( read->out ) || 
-		setjmp( read->pPng->jmpbuf ) ) 
+		setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
-	for( y = 0; y < (int) read->pInfo->height; y++ ) {
+	for( y = 0; y < height; y++ ) {
 		png_read_row( read->pPng, read->data, NULL );
 
 		if( im_writeline( y, read->out, read->data ) )
@@ -230,36 +234,58 @@ png2vips_noninterlace( Read *read )
 static int
 png2vips( Read *read, int header_only )
 {
-	int bands, bpp, type;
+	png_uint_32 width, height;
+	int bit_depth, color_type, interlace_type;
+	int num_trans;
+	png_color_8p sig_bit;
+
 	png_uint_32 res_x, res_y;
 	int unit_type;
+
+	int bands, bpp, type;
 	double Xres, Yres;
 
-	if( setjmp( read->pPng->jmpbuf ) ) 
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
 	png_init_io( read->pPng, read->fp );
 	png_read_info( read->pPng, read->pInfo );
+	png_get_IHDR( read->pPng, read->pInfo, 
+		&width, &height, &bit_depth, &color_type,
+		&interlace_type, NULL, NULL );
+	png_get_tRNS( read->pPng, read->pInfo, NULL, &num_trans, NULL );
+	png_get_sBIT( read->pPng, read->pInfo, &sig_bit );
 
 	/* png_get_channels() gives us 1 band for palette images ... so look
 	 * at colour_type for output bands.
 	 */
-	switch( read->pInfo->color_type ) {
+	switch( color_type ) {
 	case PNG_COLOR_TYPE_PALETTE: 
 		bands = 3; 
 
 		/* Don't know if this is really correct. If there are
 		 * transparent pixels, assume we're going to output RGBA.
 		 */
-		if( read->pInfo->num_trans )
+		if( num_trans )
 			bands = 4; 
 
 		break;
 
-	case PNG_COLOR_TYPE_GRAY: bands = 1; break;
-	case PNG_COLOR_TYPE_GRAY_ALPHA: bands = 2; break;
-	case PNG_COLOR_TYPE_RGB: bands = 3; break;
-	case PNG_COLOR_TYPE_RGB_ALPHA: bands = 4; break;
+	case PNG_COLOR_TYPE_GRAY: 
+		bands = 1; 
+		break;
+
+	case PNG_COLOR_TYPE_GRAY_ALPHA: 
+		bands = 2; 
+		break;
+
+	case PNG_COLOR_TYPE_RGB: 
+		bands = 3; 
+		break;
+
+	case PNG_COLOR_TYPE_RGB_ALPHA: 
+		bands = 4; 
+		break;
 
 	default:
 		im_error( "im_png2vips", "%s", _( "unsupported color type" ) );
@@ -268,7 +294,7 @@ png2vips( Read *read, int header_only )
 
 	/* 8 or 16 bit.
 	 */
-	bpp = read->pInfo->bit_depth > 8 ? 2 : 1;
+	bpp = bit_depth > 8 ? 2 : 1;
 
 	if( bpp > 1 ) {
 		if( bands < 3 )
@@ -285,27 +311,29 @@ png2vips( Read *read, int header_only )
 
 	/* Expand palette images.
 	 */
-	if( read->pInfo->color_type == PNG_COLOR_TYPE_PALETTE )
+	if( color_type == PNG_COLOR_TYPE_PALETTE )
 	        png_set_expand( read->pPng );
 
 	/* Expand <8 bit images to full bytes.
 	 */
-	if( read->pInfo->bit_depth < 8 ) {
+	if( bit_depth < 8 ) {
 		png_set_packing( read->pPng );
-	        png_set_shift( read->pPng, &(read->pInfo->sig_bit) );
+	        png_set_shift( read->pPng, sig_bit );
 	}
 
 	/* If we're an INTEL byte order machine and this is 16bits, we need
 	 * to swap bytes.
 	 */
-	if( read->pInfo->bit_depth > 8 && !im_amiMSBfirst() )
+	if( bit_depth > 8 && !im_amiMSBfirst() )
 		png_set_swap( read->pPng );
 
 	/* Get resolution. I'm not sure what we should do for UNKNOWN, since
 	 * vips is always pixels/mm.
 	 */
-	png_get_pHYs( read->pPng, read->pInfo, 
-		&res_x, &res_y, &unit_type );
+	unit_type = PNG_RESOLUTION_METER;
+	res_x = 1000;
+	res_y = 1000;
+	png_get_pHYs( read->pPng, read->pInfo, &res_x, &res_y, &unit_type );
 	switch( unit_type ) {
 	case PNG_RESOLUTION_METER:
 		Xres = res_x / 1000.0;
@@ -320,8 +348,7 @@ png2vips( Read *read, int header_only )
 
 	/* Set VIPS header.
 	 */
-	im_initdesc( read->out,
-		 read->pInfo->width, read->pInfo->height, bands,
+	im_initdesc( read->out, width, height, bands,
 		 bpp == 1 ? IM_BBITS_BYTE : IM_BBITS_SHORT, 
 		 bpp == 1 ? IM_BANDFMT_UCHAR : IM_BANDFMT_USHORT,
 		 IM_CODING_NONE, type, 

@@ -1207,12 +1207,12 @@ vips_image_class_init( VipsImageClass *class )
 static void
 vips_image_init( VipsImage *image )
 {
-	/* Init to 0 is fine for most header fields. 
-	 */
-
 	/* Default to native order.
 	 */
 	image->magic = im_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
+
+	image->Xres = 1.0;
+	image->Yres = 1.0;
 
 	image->fd = -1;			/* since 0 is stdout */
 	image->sslock = g_mutex_new();
