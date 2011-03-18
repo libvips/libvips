@@ -1,10 +1,9 @@
 
-- FITS repeats keys in the file, eg. there are many HISTORY keys, each has a
-  line of history attached
+- try:
 
-  I suppose these need to become eg. "fits-HISTORY-12" etc.?
+	http://upload.wikimedia.org/wikipedia/commons/6/6f/Encyclopedie_volume_3-320.png
 
-  or perhaps all fits fields should be "fits-nnn-name"?
+  a 1-bit PNG image ... we get 0/1 in the vips file, argh, not 0/255
 
 
 - vips_attach_save() in image.c has problems if save fails ... there's no way
