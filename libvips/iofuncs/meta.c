@@ -1066,8 +1066,10 @@ im_meta_set_string( IMAGE *im, const char *field, const char *str )
  * existance
  * of a piece of metadata.
  *
+ * Do not free @str.
+ *
  * See also: im_meta_set_string(), im_meta_get(), im_meta_get_typeof(),
- * im_ref_string
+ * im_ref_string.
  *
  * Returns: 0 on success, -1 otherwise.
  */

@@ -1,4 +1,17 @@
 
+- FITS repeats keys in the file, eg. there are many HISTORY keys, each has a
+  line of history attached
+
+  I suppose these need to become eg. "fits-HISTORY-12" etc.?
+
+  or perhaps all fits fields should be "fits-nnn-name"?
+
+
+- vips_attach_save() in image.c has problems if save fails ... there's no way
+  for the result of the "written" callback to propogate the error
+
+  _written() should take a &status argument?
+
 
 - add FITS and MATLAB write
 

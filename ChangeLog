@@ -36,6 +36,8 @@
 - im_ri2c() was broken
 - added VIPS_FORMAT_BIGENDIAN format flag
 - moved IMAGE and REGION to VipsImage and VipsRegion, classes over VipsObject
+- Rect -> VipsRect
+- libpng-1.5 supported
 
 30/11/10 started 7.24.0
 - bump for new stable

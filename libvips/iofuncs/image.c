@@ -768,13 +768,13 @@ typedef struct {
 
 /* From "written" callback: invoke a delayed save.
  */
-static int
+static void
 vips_image_save_cb( VipsImage *image, SaveBlock *sb )
 {
+	/* FIXME ... what can we do with this error return?
+	 */
 	if( sb->save_fn( image, sb->filename ) )
-		return( -1 );
-
-	return( 0 );
+		;
 }
 
 static void
@@ -1699,7 +1699,7 @@ vips_image_new_temp_cb( VipsImage *image )
 {
 	g_assert( image->filename );
 
-	unlink( image->filename );
+	g_unlink( image->filename );
 }
 
 /**

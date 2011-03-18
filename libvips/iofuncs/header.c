@@ -199,8 +199,9 @@ im_header_double( IMAGE *im, const char *field, double *out )
  * @out: return field value
  *
  * Gets @out from @im under the name @field. 
- * This function searches for
- * string-valued fields.
+ * This function searches for string-valued fields. 
+ *
+ * Do not free @out.
  *
  * See also: im_header_get(), im_header_get_typeof()
  *

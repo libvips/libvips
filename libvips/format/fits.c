@@ -14,6 +14,7 @@
  * 	- read whole tiles with fits_read_subset() when we can
  * 17/3/11
  * 	- renames, updates etc. ready for adding fits write
+ * 	- fits write!
  */
 
 /*
@@ -43,8 +44,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -78,6 +79,23 @@
 		but it's tiny
 
 	- test performance
+
+	- quoting problem with keys, eg. try:
+
+		vips im_copy halos20.1344.fits x.v
+		vips im_copy x.v x.fits
+		vips im_copy x.fits x2.v
+
+	  x.v and x2.v should have (almost) identical headers, but 
+	  they do not
+
+	- allow more than 1 band for write
+
+	- cast vips types up to most-enclosing fits-supported types, 
+	  perhaps ban signed types?
+
+	- write with an area writer rather than repeatedly writing a 
+	  line at a time
 
  */
 
@@ -115,8 +133,10 @@ vips_fits_error( int status )
 	im_error( "fits", "%s", buf );
 }
 
+/* Shut down. Can be called many times.
+ */
 static void
-vips_fits_destroy( VipsFits *fits )
+vips_fits_close( VipsFits *fits )
 {
 	VIPS_FREE( fits->filename );
 	VIPS_FREEF( g_mutex_free, fits->lock );
@@ -131,8 +151,6 @@ vips_fits_destroy( VipsFits *fits )
 
 		fits->fptr = NULL;
 	}
-
-	im_free( fits );
 }
 
 static VipsFits *
@@ -141,7 +159,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 	VipsFits *fits;
 	int status;
 
-	if( !(fits = VIPS_NEW( NULL, VipsFits )) )
+	if( !(fits = VIPS_NEW( out, VipsFits )) )
 		return( NULL );
 
 	fits->filename = im_strdup( NULL, filename );
@@ -150,7 +168,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 	fits->lock = NULL;
 	fits->band_select = band_select;
 	g_signal_connect( out, "close", 
-		G_CALLBACK( vips_fits_destroy ), fits );
+		G_CALLBACK( vips_fits_close ), fits );
 
 	status = 0;
 	if( fits_open_file( &fits->fptr, filename, READONLY, &status ) ) {
@@ -299,10 +317,16 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		VIPS_DEBUG_MSG( " value == %s\n", value );
 		VIPS_DEBUG_MSG( " comment == %s\n", comment );
 
-		im_snprintf( vipsname, 100, "fits-%s", key );
+		/* FITS lets keys repeat. For example, HISTORY appears many
+		 * times, each time with a fresh line of history attached. We
+		 * have to include the key index in the vips name we assign,
+		 * and strip it out again when we write back to FITS again.
+		 */
+
+		im_snprintf( vipsname, 100, "fits-%d-%s", i, key );
 		if( im_meta_set_string( out, vipsname, value ) ) 
 			return( -1 );
-		im_snprintf( vipsname, 100, "fits-%s-comment", key );
+		im_snprintf( vipsname, 100, "fits-%d-%s-comment", i, key );
 		if( im_meta_set_string( out, vipsname, comment ) ) 
 			return( -1 );
 	}
@@ -426,11 +450,19 @@ fits2vips( const char *filename, VipsImage *out, int band_select )
 	 */
 	g_assert( band_select >= 0 );
 
-	if( !(fits = vips_fits_new_read( filename, out, band_select )) ||
-		vips_fits_get_header( fits, out ) ||
-		im_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) ||
-		im_generate( out, NULL, fits2vips_generate, NULL, fits, NULL ) )
+	if( !(fits = vips_fits_new_read( filename, out, band_select )) )
 		return( -1 );
+	if( vips_fits_get_header( fits, out ) ||
+		im_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) ||
+		im_generate( out, 
+			NULL, fits2vips_generate, NULL, fits, NULL ) ) {
+		vips_fits_close( fits );
+		return( -1 );
+	}
+
+	/* Don't vips_fits_close(), we need it to stcik around for the
+	 * generate.
+	 */
 
 	return( 0 );
 }
@@ -532,21 +564,35 @@ isfits( const char *filename )
 static VipsFits *
 vips_fits_new_write( VipsImage *in, const char *filename )
 {
+	VipsImage *flip;
 	VipsFits *fits;
 	int status;
 
-	if( !(fits = VIPS_NEW( NULL, VipsFits )) )
+	status = 0;
+
+	/* FITS has (0,0) in the bottom left, we need to flip.
+	 */
+
+	if( !(flip = vips_image_new( "p" )) ||
+		vips_object_local( in, flip ) ||
+		im_flipver( in, flip ) ||
+		!(fits = VIPS_NEW( NULL, VipsFits )) )
 		return( NULL );
 
 	fits->filename = im_strdup( NULL, filename );
-	fits->image = in;
+	fits->image = flip;
 	fits->fptr = NULL;
 	fits->lock = NULL;
 	fits->band_select = -1;
 	g_signal_connect( in, "close", 
-		G_CALLBACK( vips_fits_destroy ), fits );
+		G_CALLBACK( vips_fits_close ), fits );
 
-	status = 0;
+	/* fits_create_file() will fail if there's a file of thet name, unless
+	 * we put a "!" in front ofthe filename. This breaks conventions with
+	 * the rest of vips, so just unlink explicitly.
+	 */
+	g_unlink( filename );
+
 	if( fits_create_file( &fits->fptr, filename, &status ) ) {
 		im_error( "fits", _( "unable to write to \"%s\"" ), filename );
 		vips_fits_error( status );
@@ -558,27 +604,76 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	return( fits );
 }
 
+static void *
+vips_fits_write_meta( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	VipsFits *fits = (VipsFits *) a;
+
+	int status;
+	char cname[80];
+	char *comment;
+	char *p;
+	const char *value_str;
+
+	status = 0;
+
+	/* We want fields which start "fits-" and which don't end "-comment".
+	 * We pull the comment fields out separately.
+	 */
+	if( !im_isprefix( "fits-", field ) ||
+		im_ispostfix( field, "-comment" ) )
+		return( NULL );
+
+	/* Append "-comment" to get the name we stored the field comment under.
+	 * Default to "".
+	 */
+	im_snprintf( cname, 90, "%s-comment", field );
+	if( im_meta_get_string( image, cname, &comment ) )
+		comment = im_strdup( NULL, "" );
+
+	/* Skip the leading "fits-" to get the base fits field name. 
+	 */
+	field += strlen( "fits-" );
+
+	/* Now there will be "123-" at the front, with the 123 being the
+	 * index. Strip this too.
+	 */
+	if( (p = strchr( field, '-' )) )
+		field = p + 1;
+
+	/* The value should be a refstring, since we wrote it in fits2vips 
+	 * above ^^.
+	 */
+	value_str = im_ref_string_get( value );
+
+	VIPS_DEBUG_MSG( "vips_fits_write_meta:\n" );
+	VIPS_DEBUG_MSG( " key == %s\n", field );
+	VIPS_DEBUG_MSG( " value == %s\n", value_str );
+	VIPS_DEBUG_MSG( " comment == %s\n", comment );
+
+	if( fits_write_key( fits->fptr, 
+		TSTRING, field, (void *) value_str, comment, &status ) ) {
+		vips_fits_error( status );
+		return( a );
+	}
+
+	return( NULL );
+}
+
 static int
 vips_fits_set_header( VipsFits *fits, VipsImage *in )
 {
 	int status;
 	int bitpix;
-	long int naxes[MAX_DIMENSIONS];
-
-	/*
-	int width, height, bands, format, type;
-	int keysexist;
-	int morekeys;
-	 */
-
 	int i;
 
 	status = 0;
 
 	fits->naxis = 3;
-	fits->naxes[2] = naxes[2] = in->Bands;
-	fits->naxes[1] = naxes[1] = in->Ysize;
-	fits->naxes[0] = naxes[0] = in->Xsize;
+	fits->naxes[0] = in->Xsize;
+	fits->naxes[1] = in->Ysize;
+	fits->naxes[2] = in->Bands;
 
 	for( i = 0; i < VIPS_NUMBER( fits2vips_formats ); i++ )
 		if( fits2vips_formats[i][1] == in->BandFmt )
@@ -598,50 +693,45 @@ vips_fits_set_header( VipsFits *fits, VipsImage *in )
 	VIPS_DEBUG_MSG( "bitpix = %d\n", bitpix );
 #endif /*VIPS_DEBUG*/
 
-	if( fits_create_img( fits->fptr, bitpix, fits->naxis, 
-		naxes, &status ) ) {
+	if( fits_create_imgll( fits->fptr, bitpix, fits->naxis, 
+		fits->naxes, &status ) ) {
 		vips_fits_error( status );
 		return( -1 );
 	}
 
-	/* Read all keys into meta.
-	if( fits_get_hdrspace( fits->fptr, &keysexist, &morekeys, &status ) ) {
-		vips_fits_error( status );
+	if( im_header_map( in,
+		(im_header_map_fn) vips_fits_write_meta, fits ) )
 		return( -1 );
-	}
-
-	for( i = 0; i < keysexist; i++ ) {
-		char key[81];
-		char value[81];
-		char comment[81];
-		char vipsname[100];
-
-		if( fits_read_keyn( fits->fptr, i + 1, 
-			key, value, comment, &status ) ) {
-			vips_fits_error( status );
-			return( -1 );
-		}
-
-		VIPS_DEBUG_MSG( "fits: seen:\n" );
-		VIPS_DEBUG_MSG( " key == %s\n", key );
-		VIPS_DEBUG_MSG( " value == %s\n", value );
-		VIPS_DEBUG_MSG( " comment == %s\n", comment );
-
-		im_snprintf( vipsname, 100, "fits-%s", key );
-		if( im_meta_set_string( out, vipsname, value ) ) 
-			return( -1 );
-		im_snprintf( vipsname, 100, "fits-%s-comment", key );
-		if( im_meta_set_string( out, vipsname, comment ) ) 
-			return( -1 );
-	}
-	 */
 
 	return( 0 );
 }
 
 static int
-vips_fits_write( VipsFits *fits, VipsImage *in )
+vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 {
+	VipsFits *fits = (VipsFits *) a;
+
+	int status;
+	int y;
+
+	status = 0;
+
+	for( y = 0; y < area->height; y++ ) {
+		long long int fpixel[3];
+
+		fpixel[0] = 1;
+		fpixel[1] = area->top + y + 1;
+		fpixel[2] = 1;
+
+		if( fits_write_pixll( fits->fptr, fits->datatype, fpixel, 
+			VIPS_REGION_N_ELEMENTS( region ), 
+			VIPS_REGION_ADDR( region, 0, area->top + y ),
+			&status ) ) {
+			vips_fits_error( status );
+			return( -1 );
+		}
+	}
+
 	return( 0 );
 }
 
@@ -663,10 +753,14 @@ im_vips2fits( VipsImage *in, const char *filename )
 
 	VIPS_DEBUG_MSG( "im_vips2fits: writing \"%s\"\n", filename );
 
-	if( !(fits = vips_fits_new_write( in, filename )) ||
-		vips_fits_set_header( fits, in ) ||
-		vips_fits_write( fits, in ) )
+	if( !(fits = vips_fits_new_write( in, filename )) )
 		return( -1 );
+	if( vips_fits_set_header( fits, fits->image ) ||
+		vips_sink_disc( fits->image, vips_fits_write, fits ) ) {
+		vips_fits_close( fits );
+		return( -1 );
+	}
+	vips_fits_close( fits );
 
 	return( 0 );
 }
