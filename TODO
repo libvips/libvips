@@ -1,15 +1,4 @@
-
-- try:
-
-	http://upload.wikimedia.org/wikipedia/commons/6/6f/Encyclopedie_volume_3-320.png
-
-  a 1-bit PNG image ... we get 0/1 in the vips file, argh, not 0/255
-
-- try:
-
-	http://upload.wikimedia.org/wikipedia/commons/3/31/A_large_blank_world_map_with_oceans_marked_in_blue-edited.png
-
-  pallette png, we just get RGBA all zero atm
+- improve FITS write, see notes in file
 
 
 - vips_attach_save() in image.c has problems if save fails ... there's no way
@@ -18,7 +7,7 @@
   _written() should take a &status argument?
 
 
-- add FITS and MATLAB write
+- add MATLAB write
 
 - sink.c, sinkdisc.c, sinkmemory.c all define this function:
 
