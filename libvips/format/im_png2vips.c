@@ -20,6 +20,8 @@
  * 	- get png resolution (thanks Zhiyu Wu)
  * 17/3/11
  * 	- update for libpng-1.5 API changes
+ * 	- better handling of palette and 1-bit images
+ * 	- ... but we are now png 1.2.9 and later only :-( argh
  */
 
 /*
@@ -64,8 +66,7 @@
 int
 im_png2vips( const char *name, IMAGE *out )
 {
-	im_error( "im_png2vips", "%s",
-		_( "PNG support disabled" ) );
+	im_error( "im_png2vips", "%s", _( "PNG support disabled" ) );
 	return( -1 );
 }
 
@@ -236,8 +237,6 @@ png2vips( Read *read, int header_only )
 {
 	png_uint_32 width, height;
 	int bit_depth, color_type, interlace_type;
-	int num_trans;
-	png_color_8p sig_bit;
 
 	png_uint_32 res_x, res_y;
 	int unit_type;
@@ -253,8 +252,6 @@ png2vips( Read *read, int header_only )
 	png_get_IHDR( read->pPng, read->pInfo, 
 		&width, &height, &bit_depth, &color_type,
 		&interlace_type, NULL, NULL );
-	png_get_tRNS( read->pPng, read->pInfo, NULL, &num_trans, NULL );
-	png_get_sBIT( read->pPng, read->pInfo, &sig_bit );
 
 	/* png_get_channels() gives us 1 band for palette images ... so look
 	 * at colour_type for output bands.
@@ -263,10 +260,9 @@ png2vips( Read *read, int header_only )
 	case PNG_COLOR_TYPE_PALETTE: 
 		bands = 3; 
 
-		/* Don't know if this is really correct. If there are
-		 * transparent pixels, assume we're going to output RGBA.
+		/* If there's transparency in the palette, we make an alpha.
 		 */
-		if( num_trans )
+		if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) 
 			bands = 4; 
 
 		break;
@@ -309,17 +305,18 @@ png2vips( Read *read, int header_only )
 			type = IM_TYPE_sRGB;
 	}
 
-	/* Expand palette images.
+	/* Expand palette images, expand transparency too.
 	 */
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
-	        png_set_expand( read->pPng );
+		png_set_palette_to_rgb( read->pPng );
+	if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) 
+		png_set_tRNS_to_alpha( read->pPng );
 
 	/* Expand <8 bit images to full bytes.
 	 */
-	if( bit_depth < 8 ) {
-		png_set_packing( read->pPng );
-	        png_set_shift( read->pPng, sig_bit );
-	}
+	if( color_type == PNG_COLOR_TYPE_GRAY &&
+		bit_depth < 8 ) 
+		png_set_expand_gray_1_2_4_to_8( read->pPng );
 
 	/* If we're an INTEL byte order machine and this is 16bits, we need
 	 * to swap bytes.

@@ -5,6 +5,12 @@
 
   a 1-bit PNG image ... we get 0/1 in the vips file, argh, not 0/255
 
+- try:
+
+	http://upload.wikimedia.org/wikipedia/commons/3/31/A_large_blank_world_map_with_oceans_marked_in_blue-edited.png
+
+  pallette png, we just get RGBA all zero atm
+
 
 - vips_attach_save() in image.c has problems if save fails ... there's no way
   for the result of the "written" callback to propogate the error

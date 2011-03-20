@@ -495,7 +495,7 @@ AC_ARG_WITH([png],
   AS_HELP_STRING([--without-png], [build without libpng (default: test)]))
 
 if test x"$with_png" != "xno"; then
-  PKG_CHECK_MODULES(PNG, libpng, 
+  PKG_CHECK_MODULES(PNG, libpng >= 1.2.9, 
     [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
      with_png=yes
      PACKAGES_USED="$PACKAGES_USED libpng"],
@@ -683,6 +683,7 @@ file import with matio: 		$with_matio
 file import with cfitsio: 		$with_cfitsio
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
+  (requires libpng-1.2.9 or later)
 file import/export with libtiff:	$with_tiff
 file import/export with libjpeg:	$with_jpeg
 use libexif to load/save JPEG metadata: $with_libexif
