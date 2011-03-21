@@ -15,6 +15,8 @@
  * 17/3/11
  * 	- renames, updates etc. ready for adding fits write
  * 	- fits write!
+ * 21/3/11
+ * 	- read/write metadata as whole records to avoid changing things
  */
 
 /*
@@ -79,15 +81,6 @@
 		but it's tiny
 
 	- test performance
-
-	- quoting problem with keys, eg. try:
-
-		vips im_copy halos20.1344.fits x.v
-		vips im_copy x.v x.fits
-		vips im_copy x.fits x2.v
-
-	  x.v and x2.v should have (almost) identical headers, but 
-	  they do not
 
 	- allow more than 1 band for write
 
@@ -201,7 +194,6 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 
 	int width, height, bands, format, type;
 	int keysexist;
-	int morekeys;
 	int i;
 
 	status = 0;
@@ -295,39 +287,30 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 
 	/* Read all keys into meta.
 	 */
-	if( fits_get_hdrspace( fits->fptr, &keysexist, &morekeys, &status ) ) {
+	if( fits_get_hdrspace( fits->fptr, &keysexist, NULL, &status ) ) {
 		vips_fits_error( status );
 		return( -1 );
 	}
 
 	for( i = 0; i < keysexist; i++ ) {
-		char key[81];
-		char value[81];
-		char comment[81];
+		char record[81];
 		char vipsname[100];
 
-		if( fits_read_keyn( fits->fptr, i + 1, 
-			key, value, comment, &status ) ) {
+		if( fits_read_record( fits->fptr, i + 1, record, &status ) ) {
 			vips_fits_error( status );
 			return( -1 );
 		}
 
-		VIPS_DEBUG_MSG( "fits: seen:\n" );
-		VIPS_DEBUG_MSG( " key == %s\n", key );
-		VIPS_DEBUG_MSG( " value == %s\n", value );
-		VIPS_DEBUG_MSG( " comment == %s\n", comment );
+		VIPS_DEBUG_MSG( "fits2vips: setting meta on vips image:\n" );
+		VIPS_DEBUG_MSG( " record == \"%s\"\n", record );
 
 		/* FITS lets keys repeat. For example, HISTORY appears many
 		 * times, each time with a fresh line of history attached. We
-		 * have to include the key index in the vips name we assign,
-		 * and strip it out again when we write back to FITS again.
+		 * have to include the key index in the vips name we assign.
 		 */
 
-		im_snprintf( vipsname, 100, "fits-%d-%s", i, key );
-		if( im_meta_set_string( out, vipsname, value ) ) 
-			return( -1 );
-		im_snprintf( vipsname, 100, "fits-%d-%s-comment", i, key );
-		if( im_meta_set_string( out, vipsname, comment ) ) 
+		im_snprintf( vipsname, 100, "fits-%d", i );
+		if( im_meta_set_string( out, vipsname, record ) ) 
 			return( -1 );
 	}
 
@@ -611,49 +594,24 @@ vips_fits_write_meta( VipsImage *image,
 	VipsFits *fits = (VipsFits *) a;
 
 	int status;
-	char cname[80];
-	char *comment;
-	char *p;
 	const char *value_str;
 
 	status = 0;
 
-	/* We want fields which start "fits-" and which don't end "-comment".
-	 * We pull the comment fields out separately.
+	/* We want fields which start "fits-".
 	 */
-	if( !im_isprefix( "fits-", field ) ||
-		im_ispostfix( field, "-comment" ) )
+	if( !im_isprefix( "fits-", field ) )
 		return( NULL );
-
-	/* Append "-comment" to get the name we stored the field comment under.
-	 * Default to "".
-	 */
-	im_snprintf( cname, 90, "%s-comment", field );
-	if( im_meta_get_string( image, cname, &comment ) )
-		comment = im_strdup( NULL, "" );
-
-	/* Skip the leading "fits-" to get the base fits field name. 
-	 */
-	field += strlen( "fits-" );
-
-	/* Now there will be "123-" at the front, with the 123 being the
-	 * index. Strip this too.
-	 */
-	if( (p = strchr( field, '-' )) )
-		field = p + 1;
 
 	/* The value should be a refstring, since we wrote it in fits2vips 
 	 * above ^^.
 	 */
 	value_str = im_ref_string_get( value );
 
-	VIPS_DEBUG_MSG( "vips_fits_write_meta:\n" );
-	VIPS_DEBUG_MSG( " key == %s\n", field );
-	VIPS_DEBUG_MSG( " value == %s\n", value_str );
-	VIPS_DEBUG_MSG( " comment == %s\n", comment );
+	VIPS_DEBUG_MSG( "vips_fits_write_meta: setting meta on fits image:\n" );
+	VIPS_DEBUG_MSG( " value == \"%s\"\n", value_str );
 
-	if( fits_write_key( fits->fptr, 
-		TSTRING, field, (void *) value_str, comment, &status ) ) {
+	if( fits_write_record( fits->fptr, value_str, &status ) ) {
 		vips_fits_error( status );
 		return( a );
 	}
@@ -715,6 +673,10 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 	int y;
 
 	status = 0;
+
+	VIPS_DEBUG_MSG( "vips_fits_write: "
+		"writing left = %d, top = %d, width = %d, height = %d\n", 
+		area->left, area->top, area->width, area->height );
 
 	for( y = 0; y < area->height; y++ ) {
 		long long int fpixel[3];
