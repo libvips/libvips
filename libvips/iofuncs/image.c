@@ -427,6 +427,37 @@ vips_image_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_image_parent_class )->dispose( gobject );
 }
 
+static void *
+print_field_fn( IMAGE *im, const char *field, GValue *value, VipsBuf *buf )
+{
+	const char *extra;
+	char *str_value;
+
+	str_value = g_strdup_value_contents( value );
+	vips_buf_appendf( buf, "%s: %s", field, str_value );
+	g_free( str_value );
+
+	/* Look for known enums and decode them.
+	 */
+	extra = NULL;
+	if( strcmp( field, "Coding" ) == 0 )
+		extra = VIPS_ENUM_NICK( 
+			VIPS_TYPE_CODING, g_value_get_int( value ) );
+	else if( strcmp( field, "BandFmt" ) == 0 )
+		extra = VIPS_ENUM_NICK( 
+			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
+	else if( strcmp( field, "Type" ) == 0 )
+		extra = VIPS_ENUM_NICK( 
+			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
+
+	if( extra )
+		vips_buf_appendf( buf, " - %s", extra );
+
+	vips_buf_appendf( buf, "\n" );
+
+	return( NULL );
+}
+
 static void
 vips_image_print( VipsObject *object, VipsBuf *buf )
 {
@@ -444,8 +475,13 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 		vips_image_get_bands( image ),
 		VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
 			vips_image_get_interpretation( image ) ) );
-
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->print( object, buf );
+	vips_buf_appendf( buf, "\n" );
+
+	(void) im_header_map( image, 
+		(im_header_map_fn) print_field_fn, buf );
+
+	vips_buf_appendf( buf, "Hist: %s", im_history_get( image ) );
 }
 
 static void *
