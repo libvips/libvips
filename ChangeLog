@@ -38,6 +38,9 @@
 - moved IMAGE and REGION to VipsImage and VipsRegion, classes over VipsObject
 - Rect -> VipsRect
 - libpng-1.5 supported
+- better png read for 1-bit and palette images
+- fits write
+- better fits metadata support
 
 30/11/10 started 7.24.0
 - bump for new stable

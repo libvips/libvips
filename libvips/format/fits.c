@@ -17,6 +17,8 @@
  * 	- fits write!
  * 21/3/11
  * 	- read/write metadata as whole records to avoid changing things
+ * 	- cast input to a supported format
+ * 	- bandsplit for write 
  */
 
 /*
@@ -46,8 +48,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -82,14 +84,6 @@
 
 	- test performance
 
-	- allow more than 1 band for write
-
-	- cast vips types up to most-enclosing fits-supported types, 
-	  perhaps ban signed types?
-
-	- write with an area writer rather than repeatedly writing a 
-	  line at a time
-
  */
 
 /* vips only supports 3 dimensions, but we allow up to MAX_DIMENSIONS as long
@@ -115,6 +109,10 @@ typedef struct {
 	 * band.
 	 */
 	int band_select;	
+
+	/* We split bands up for write into this buffer.
+	 */
+	PEL *buffer;
 } VipsFits;
 
 static void
@@ -144,6 +142,8 @@ vips_fits_close( VipsFits *fits )
 
 		fits->fptr = NULL;
 	}
+
+	VIPS_FREE( fits->buffer );
 }
 
 static VipsFits *
@@ -160,6 +160,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 	fits->fptr = NULL;
 	fits->lock = NULL;
 	fits->band_select = band_select;
+	fits->buffer = NULL;
 	g_signal_connect( out, "close", 
 		G_CALLBACK( vips_fits_close ), fits );
 
@@ -457,7 +458,7 @@ fits2vips( const char *filename, VipsImage *out, int band_select )
  *
  * Read a FITS image file into a VIPS image. 
  *
- * See also: #VipsFormat.
+ * See also: im_vips2fits(), #VipsFormat.
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -544,31 +545,76 @@ isfits( const char *filename )
 	return( 1 );
 }
 
+/* Save a bit of typing.
+ */
+#define UC IM_BANDFMT_UCHAR
+#define C IM_BANDFMT_CHAR
+#define US IM_BANDFMT_USHORT
+#define S IM_BANDFMT_SHORT
+#define UI IM_BANDFMT_UINT
+#define I IM_BANDFMT_INT
+#define F IM_BANDFMT_FLOAT
+#define X IM_BANDFMT_COMPLEX
+#define D IM_BANDFMT_DOUBLE
+#define DX IM_BANDFMT_DPCOMPLEX
+
+/* Type promotion for fits write. fits only has the unsigned int types, plus
+ * float and double.
+ */
+static int vips_fits_bandfmt[10] = {
+/* UC  C   US  S   UI  I   F  X  D  DX */
+   UC, UC, US, US, UI, UI, F, X, D, DX
+};
+
 static VipsFits *
 vips_fits_new_write( VipsImage *in, const char *filename )
 {
 	VipsImage *flip;
+	VipsImage *type;
 	VipsFits *fits;
 	int status;
 
 	status = 0;
 
-	/* FITS has (0,0) in the bottom left, we need to flip.
-	 */
-
-	if( !(flip = vips_image_new( "p" )) ||
-		vips_object_local( in, flip ) ||
-		im_flipver( in, flip ) ||
-		!(fits = VIPS_NEW( NULL, VipsFits )) )
+	if( im_check_noncomplex( "im_vips2fits", in ) ||
+		im_check_uncoded( "im_vips2fits", in ) )
 		return( NULL );
 
+	/* Cast to a supported format.
+	 */
+	if( !(type = vips_image_new( "p" )) ||
+		vips_object_local( in, type ) ||
+		im_clip2fmt( in, type, vips_fits_bandfmt[in->BandFmt] ) )
+		return( NULL );
+	in = type;
+
+	/* FITS has (0,0) in the bottom left, we need to flip.
+	 */
+	if( !(flip = vips_image_new( "p" )) ||
+		vips_object_local( in, flip ) ||
+		im_flipver( in, flip ) )
+		return( NULL );
+	in = flip;
+
+	if( !(fits = VIPS_NEW( in, VipsFits )) )
+		return( NULL );
 	fits->filename = im_strdup( NULL, filename );
-	fits->image = flip;
+	fits->image = in;
 	fits->fptr = NULL;
 	fits->lock = NULL;
 	fits->band_select = -1;
+	fits->buffer = NULL;
 	g_signal_connect( in, "close", 
 		G_CALLBACK( vips_fits_close ), fits );
+
+	if( !(fits->filename = im_strdup( NULL, filename )) )
+		return( NULL );
+
+	/* We need to be able to hold one scanline of one band.
+	 */
+	if( !(fits->buffer = VIPS_ARRAY( NULL, 
+		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * in->Xsize, PEL )) )
+		return( NULL );
 
 	/* fits_create_file() will fail if there's a file of thet name, unless
 	 * we put a "!" in front ofthe filename. This breaks conventions with
@@ -668,9 +714,12 @@ static int
 vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsFits *fits = (VipsFits *) a;
+	VipsImage *image = fits->image;
+	int es = VIPS_IMAGE_SIZEOF_ELEMENT( image );
+	int ps = VIPS_IMAGE_SIZEOF_PEL( image );
 
 	int status;
-	int y;
+	int y, b, x, k;
 
 	status = 0;
 
@@ -678,19 +727,42 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 		"writing left = %d, top = %d, width = %d, height = %d\n", 
 		area->left, area->top, area->width, area->height );
 
+	/* We need to write a band at a time. We can't bandsplit in vips,
+	 * since vips_sink_disc() can't loop over many images at once, sadly.
+	 */
+
 	for( y = 0; y < area->height; y++ ) {
-		long long int fpixel[3];
+		PEL *p = (PEL *) VIPS_REGION_ADDR( region, 
+			area->left, area->top + y );
 
-		fpixel[0] = 1;
-		fpixel[1] = area->top + y + 1;
-		fpixel[2] = 1;
+		for( b = 0; b < image->Bands; b++ ) {
+			PEL *p1, *q;
+			long fpixel[3];
 
-		if( fits_write_pixll( fits->fptr, fits->datatype, fpixel, 
-			VIPS_REGION_N_ELEMENTS( region ), 
-			VIPS_REGION_ADDR( region, 0, area->top + y ),
-			&status ) ) {
-			vips_fits_error( status );
-			return( -1 );
+			p1 = p + b * es;
+			q = fits->buffer;
+
+			for( x = 0; x < area->width; x++ )
+				for( k = 0; k < es; k++ ) {
+					q[k] = p1[k];
+				
+				q += es;
+				p1 += ps;
+			}
+
+			fpixel[0] = area->left + 1;
+			fpixel[1] = area->top + y + 1;
+			fpixel[2] = b + 1;
+
+			/* No need to lock, write functions are single-threaded.
+			 */
+
+			if( fits_write_pix( fits->fptr, fits->datatype, 
+				fpixel, area->width, fits->buffer, 
+				&status ) ) {
+				vips_fits_error( status );
+				return( -1 );
+			}
 		}
 	}
 
@@ -702,9 +774,9 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
  * @in: image to write 
  * @filename: file to write to
  *
- * Write @in to @filename in FITS format.
+ * Write @in to @filename in FITS format. 
  *
- * See also: #VipsFormat.
+ * See also: im_fits2vips(), #VipsFormat.
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -717,6 +789,7 @@ im_vips2fits( VipsImage *in, const char *filename )
 
 	if( !(fits = vips_fits_new_write( in, filename )) )
 		return( -1 );
+
 	if( vips_fits_set_header( fits, fits->image ) ||
 		vips_sink_disc( fits->image, vips_fits_write, fits ) ) {
 		vips_fits_close( fits );
