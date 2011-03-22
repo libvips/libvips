@@ -37,21 +37,36 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_header_int( VipsImage *im, const char *field, int *out );
-int im_header_double( VipsImage *im, const char *field, double *out );
-int im_header_string( VipsImage *im, const char *field, char **out );
-int im_header_as_string( VipsImage *im, const char *field, char **out );
-GType im_header_get_typeof( VipsImage *im, const char *field );
-int im_header_get( VipsImage *im, const char *field, GValue *value_copy );
+int vips_image_get_width( VipsImage *image );
+int vips_image_get_height( VipsImage *image );
+int vips_image_get_bands( VipsImage *image );
+VipsBandFormat vips_image_get_format( VipsImage *image );
+VipsCoding vips_image_get_coding( VipsImage *image );
+VipsInterpretation vips_image_get_interpretation( VipsImage *image );
+double vips_image_get_xres( VipsImage *image );
+double vips_image_get_yres( VipsImage *image );
+int vips_image_get_xoffset( VipsImage *image );
+int vips_image_get_yoffset( VipsImage *image );
+const char *vips_image_get_filename( VipsImage *image );
+const char *vips_image_get_mode( VipsImage *image );
+size_t vips_image_get_size( VipsImage *image );
 
-typedef void *(*im_header_map_fn)( VipsImage *, 
-	const char *, GValue *, void * );
-void *im_header_map( VipsImage *im, im_header_map_fn fn, void *a );
+int vips_image_get_int( VipsImage *im, const char *field, int *out );
+int vips_image_get_double( VipsImage *im, const char *field, double *out );
+int vips_image_get_string( VipsImage *im, const char *field, char **out );
+int vips_image_get_as_string( VipsImage *im, const char *field, char **out );
+GType vips_image_get_typeof( VipsImage *im, const char *field );
+int vips_image_get( VipsImage *im, const char *field, GValue *value_copy );
 
-int im_histlin( VipsImage *im, const char *fmt, ... )
+typedef void *(*VipsImageHeaderMapFn)( VipsImage *image, 
+	const char *field, GValue *value, void *a );
+void *vips_image_header_map( VipsImage *im, VipsImageHeaderMapFn fn, void *a );
+
+int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));
-int im_updatehist( VipsImage *out, const char *name, int argc, char *argv[] );
-const char *im_history_get( VipsImage *im );
+int vips_image_history_args( VipsImage *image, 
+	const char *name, int argc, char *argv[] );
+const char *vips_image_get_history( VipsImage *image );
 
 #ifdef __cplusplus
 }

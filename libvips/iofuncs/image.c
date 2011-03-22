@@ -433,10 +433,6 @@ print_field_fn( IMAGE *im, const char *field, GValue *value, VipsBuf *buf )
 	const char *extra;
 	char *str_value;
 
-	str_value = g_strdup_value_contents( value );
-	vips_buf_appendf( buf, "%s: %s", field, str_value );
-	g_free( str_value );
-
 	/* Look for known enums and decode them.
 	 */
 	extra = NULL;
@@ -449,6 +445,10 @@ print_field_fn( IMAGE *im, const char *field, GValue *value, VipsBuf *buf )
 	else if( strcmp( field, "Type" ) == 0 )
 		extra = VIPS_ENUM_NICK( 
 			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
+
+	str_value = g_strdup_value_contents( value );
+	vips_buf_appendf( buf, "%s: %s", field, str_value );
+	g_free( str_value );
 
 	if( extra )
 		vips_buf_appendf( buf, " - %s", extra );
@@ -699,7 +699,7 @@ lazy_real_image( Lazy *lazy )
 		disc_threshold() && 
 	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
 			VIPS_FORMAT_PARTIAL) &&
-		vips_image_size( lazy->image ) > disc_threshold() ) {
+		vips_image_get_size( lazy->image ) > disc_threshold() ) {
 			if( !(real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );
 
@@ -1009,7 +1009,7 @@ vips_image_build( VipsObject *object )
 
 		/* Very common, so a special message.
 		 */
-		if( image->file_length < vips_image_size( image ) ) {
+		if( image->file_length < vips_image_get_size( image ) ) {
 			vips_error( "VipsImage", 
 				_( "unable to open %s: file too short" ), 
 				image->filename );
@@ -1019,7 +1019,7 @@ vips_image_build( VipsObject *object )
 		/* Just weird. Only print a warning for this, since we should
 		 * still be able to process it without coredumps.
 		 */
-		if( image->file_length > vips_image_size( image ) ) 
+		if( image->file_length > vips_image_get_size( image ) ) 
 			vips_warn( "VipsImage", 
 				_( "%s is longer than expected" ),
 				image->filename );
@@ -1254,87 +1254,6 @@ vips_image_init( VipsImage *image )
 	image->sslock = g_mutex_new();
 
 	image->sizeof_header = IM_SIZEOF_HEADER;
-}
-
-/* Set of access functions.
- */
-
-int
-vips_image_get_width( VipsImage *image )
-{
-	return( image->Xsize );
-}
-
-int
-vips_image_get_height( VipsImage *image )
-{
-	return( image->Ysize );
-}
-
-int
-vips_image_get_bands( VipsImage *image )
-{
-	return( image->Bands );
-}
-
-VipsBandFormat
-vips_image_get_format( VipsImage *image )
-{
-	return( image->BandFmt );
-}
-
-VipsCoding
-vips_image_get_coding( VipsImage *image )
-{
-	return( image->Coding );
-}
-
-VipsInterpretation
-vips_image_get_interpretation( VipsImage *image )
-{
-	return( image->Type );
-}
-
-double
-vips_image_get_xres( VipsImage *image )
-{
-	return( image->Xres );
-}
-
-double
-vips_image_get_yres( VipsImage *image )
-{
-	return( image->Yres );
-}
-
-int
-vips_image_get_xoffset( VipsImage *image )
-{
-	return( image->Xoffset );
-}
-
-int
-vips_image_get_yoffset( VipsImage *image )
-{
-	return( image->Yoffset );
-}
-
-const char *
-vips_image_get_filename( VipsImage *image )
-{
-	return( image->filename );
-}
-
-const char *
-vips_image_get_mode( VipsImage *image )
-{
-	return( image->mode );
-}
-
-size_t 
-vips_image_size( VipsImage *image )
-{
-	return( VIPS_IMAGE_SIZEOF_LINE( image ) * image->Ysize );
 }
 
 void

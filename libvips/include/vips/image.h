@@ -339,20 +339,6 @@ extern const size_t vips__image_sizeof_bandformat[];
 	 (X) * VIPS_IMAGE_SIZEOF_PEL( I ))
 #endif /*VIPS_DEBUG*/
 
-int vips_image_get_width( VipsImage *image );
-int vips_image_get_height( VipsImage *image );
-int vips_image_get_bands( VipsImage *image );
-VipsBandFormat vips_image_get_format( VipsImage *image );
-VipsCoding vips_image_get_coding( VipsImage *image );
-VipsInterpretation vips_image_get_interpretation( VipsImage *image );
-double vips_image_get_xres( VipsImage *image );
-double vips_image_get_yres( VipsImage *image );
-int vips_image_get_xoffset( VipsImage *image );
-int vips_image_get_yoffset( VipsImage *image );
-const char *vips_image_get_filename( VipsImage *image );
-const char *vips_image_get_mode( VipsImage *image );
-size_t vips_image_size( VipsImage *image );
-
 void vips_image_written( VipsImage *image );
 void vips_image_invalidate_all( VipsImage *image );
 void vips_image_preeval( VipsImage *image );

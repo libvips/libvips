@@ -18,6 +18,9 @@
  * 1/10/09
  * 	- rename as header.c
  * 	- gtkdoc comments
+ * 22/3/11
+ * 	- rename fields for vips8
+ * 	- move to vips_ prefix
  */
 
 /*
@@ -98,28 +101,106 @@ typedef struct _HeaderField {
 /* Built in fields and struct offsets.
  */
 static HeaderField int_field[] = {
-	{ "Xsize", G_STRUCT_OFFSET( IMAGE, Xsize ) },
-	{ "Ysize", G_STRUCT_OFFSET( IMAGE, Ysize ) },
-	{ "Bands", G_STRUCT_OFFSET( IMAGE, Bands ) },
-	{ "Bbits", G_STRUCT_OFFSET( IMAGE, Bbits ) },
-	{ "BandFmt", G_STRUCT_OFFSET( IMAGE, BandFmt ) },
-	{ "Coding", G_STRUCT_OFFSET( IMAGE, Coding ) },
-	{ "Type", G_STRUCT_OFFSET( IMAGE, Type ) },
-	{ "Xoffset", G_STRUCT_OFFSET( IMAGE, Xoffset ) },
-	{ "Yoffset", G_STRUCT_OFFSET( IMAGE, Yoffset ) }
+	{ "width", G_STRUCT_OFFSET( IMAGE, Xsize ) },
+	{ "height", G_STRUCT_OFFSET( IMAGE, Ysize ) },
+	{ "bands", G_STRUCT_OFFSET( IMAGE, Bands ) },
+	{ "format", G_STRUCT_OFFSET( IMAGE, BandFmt ) },
+	{ "coding", G_STRUCT_OFFSET( IMAGE, Coding ) },
+	{ "interpretation", G_STRUCT_OFFSET( IMAGE, Type ) },
+	{ "xoffset", G_STRUCT_OFFSET( IMAGE, Xoffset ) },
+	{ "yoffset", G_STRUCT_OFFSET( IMAGE, Yoffset ) }
 };
 
 /* These are actually floats :-( how annoying. We report them as doubles for
  * consistency with the im_meta_*() functions.
  */
 static HeaderField double_field[] = {
-	{ "Xres", G_STRUCT_OFFSET( IMAGE, Xres ) },
-	{ "Yres", G_STRUCT_OFFSET( IMAGE, Yres ) }
+	{ "xres", G_STRUCT_OFFSET( IMAGE, Xres ) },
+	{ "yres", G_STRUCT_OFFSET( IMAGE, Yres ) }
 };
 
 static HeaderField string_field[] = {
 	{ "filename", G_STRUCT_OFFSET( IMAGE, filename ) }
 };
+
+int
+vips_image_get_width( VipsImage *image )
+{
+	return( image->Xsize );
+}
+
+int
+vips_image_get_height( VipsImage *image )
+{
+	return( image->Ysize );
+}
+
+int
+vips_image_get_bands( VipsImage *image )
+{
+	return( image->Bands );
+}
+
+VipsBandFormat
+vips_image_get_format( VipsImage *image )
+{
+	return( image->BandFmt );
+}
+
+VipsCoding
+vips_image_get_coding( VipsImage *image )
+{
+	return( image->Coding );
+}
+
+VipsInterpretation
+vips_image_get_interpretation( VipsImage *image )
+{
+	return( image->Type );
+}
+
+double
+vips_image_get_xres( VipsImage *image )
+{
+	return( image->Xres );
+}
+
+double
+vips_image_get_yres( VipsImage *image )
+{
+	return( image->Yres );
+}
+
+int
+vips_image_get_xoffset( VipsImage *image )
+{
+	return( image->Xoffset );
+}
+
+int
+vips_image_get_yoffset( VipsImage *image )
+{
+	return( image->Yoffset );
+}
+
+const char *
+vips_image_get_filename( VipsImage *image )
+{
+	return( image->filename );
+}
+
+const char *
+vips_image_get_mode( VipsImage *image )
+{
+	return( image->mode );
+}
+
+size_t 
+vips_image_get_size( VipsImage *image )
+{
+	return( VIPS_IMAGE_SIZEOF_LINE( image ) * image->Ysize );
+}
+
 
 /** 
  * im_header_int:
