@@ -742,8 +742,8 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 			p1 = p + b * es;
 			q = fits->buffer;
 
-			for( x = 0; x < area->width; x++ )
-				for( k = 0; k < es; k++ ) {
+			for( x = 0; x < area->width; x++ ) {
+				for( k = 0; k < es; k++ ) 
 					q[k] = p1[k];
 				
 				q += es;
