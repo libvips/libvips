@@ -1,5 +1,4 @@
-/* im_header_int, im_header_double, im_header_string: output various fields
- * from the VIPS header
+/* get, set and copy image header fields
  *
  * 9/7/02 JC
  *	- first version
@@ -90,7 +89,6 @@
  * for a set of functions for adding new metadata to an image.
  */
 
-
 /* Name, offset pair.
  */
 typedef struct _HeaderField {
@@ -122,6 +120,33 @@ static HeaderField double_field[] = {
 static HeaderField string_field[] = {
 	{ "filename", G_STRUCT_OFFSET( IMAGE, filename ) }
 };
+
+/* This is used by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
+ * size.
+ */
+const size_t vips__image_sizeof_bandformat[] = {
+	sizeof( unsigned char ), 	/* VIPS_FORMAT_UCHAR */
+	sizeof( signed char ), 		/* VIPS_FORMAT_CHAR */
+	sizeof( unsigned short ), 	/* VIPS_FORMAT_USHORT */
+	sizeof( unsigned short ), 	/* VIPS_FORMAT_SHORT */
+	sizeof( unsigned int ), 	/* VIPS_FORMAT_UINT */
+	sizeof( unsigned int ), 	/* VIPS_FORMAT_INT */
+	sizeof( float ), 		/* VIPS_FORMAT_FLOAT */
+	2 * sizeof( float ), 		/* VIPS_FORMAT_COMPLEX */
+	sizeof( double ), 		/* VIPS_FORMAT_DOUBLE */
+	2 * sizeof( double ) 		/* VIPS_FORMAT_DPCOMPLEX */
+};
+
+/* Return number of bytes for a band format, or -1 on error.
+ */
+int 
+vips_format_sizeof( VipsBandFormat format )
+{
+	return( (format < 0 || format > VIPS_FORMAT_DPCOMPLEX) ?
+		vips_error( "vips_format_sizeof", 
+			_( "unknown band format %d" ), format ), -1 :
+		vips__image_sizeof_bandformat[format] );
+}
 
 int
 vips_image_get_width( VipsImage *image )
@@ -195,15 +220,170 @@ vips_image_get_mode( VipsImage *image )
 	return( image->mode );
 }
 
-size_t 
-vips_image_get_size( VipsImage *image )
+/**
+ * vips_image_init_fields:
+ * @image: image to init
+ * @xsize: image width
+ * @ysize: image height
+ * @bands: image bands
+ * @bandfmt: band format
+ * @coding: image coding
+ * @type: image type
+ * @xres: horizontal resolution, pixels per millimetre
+ * @yres: vertical resolution, pixels per millimetre
+ *
+ * A convenience function to set the header fields after creating an image.
+ * Normally you copy the fields from one of your input images with
+ * vips_image_copy_fields() and then make
+ * any adjustments you need, but if you are creating an image from scratch,
+ * for example im_black() or im_jpeg2vips(), you do need to set all the
+ * fields yourself.
+ *
+ * See also: vips_image_copy_fields().
+ */
+void 
+vips_image_init_fields( VipsImage *image, 
+	int xsize, int ysize, int bands, 
+	VipsBandFormat format, VipsCoding coding, 
+	VipsInterpretation interpretation, 
+	float xres, float yres )
 {
-	return( VIPS_IMAGE_SIZEOF_LINE( image ) * image->Ysize );
+	g_object_set( image,
+		"width", xsize,
+		"height", ysize,
+		"bands", bands,
+		"format", format,
+		NULL );
+
+	image->Coding = coding;
+	image->Type = interpretation;
+	image->Xres = xres;
+	image->Yres = yres;
 }
 
+/**
+ * vips_image_copy_fields_array:
+ * @out: image to copy to
+ * @in: %NULL-terminated array of images to copy from
+ *
+ * Copy fields from all the input images to the output image. There must be at
+ * least one input image. 
+ *
+ * The first input image is used to set the main fields of @out (@XSize, @Coding
+ * and so on). 
+ *
+ * Metadata from all the image is merged on to @out, with lower-numbered items 
+ * overriding higher. So for example, if @in[0] and @in[1] both have an item
+ * called "icc-profile", it's the profile attached to @in[0] that will end up
+ * on @out.
+ *
+ * Image history is completely copied from all @in. @out will have the history
+ * of all the intput images.
+ *
+ * See also: vips_image_copy_fieldsv(), vips_image_copy_fields().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_image_copy_fields_array( IMAGE *out, IMAGE *in[] )
+{
+	int i;
+	int ni;
+
+	g_assert( in[0] );
+
+	out->Xsize = in[0]->Xsize;
+	out->Ysize = in[0]->Ysize;
+	out->Bands = in[0]->Bands;
+	out->Bbits = in[0]->Bbits;
+	out->BandFmt = in[0]->BandFmt;
+	out->Type = in[0]->Type;
+	out->Coding = in[0]->Coding;
+	out->Xres = in[0]->Xres;
+	out->Yres = in[0]->Yres;
+	out->Xoffset = 0;
+	out->Yoffset = 0;
+
+	/* Count number of images.
+	 */
+	for( ni = 0; in[ni]; ni++ ) 
+		;
+
+	/* Need to copy last-to-first so that in0 meta will override any
+	 * earlier meta.
+	 */
+	im__meta_destroy( out );
+	for( i = ni - 1; i >= 0; i-- ) 
+		if( im__meta_cp( out, in[i] ) )
+			return( -1 );
+
+	/* Merge hists first to last.
+	 */
+	for( i = 0; in[i]; i++ )
+		out->history_list = im__gslist_gvalue_merge( out->history_list,
+			in[i]->history_list );
+
+	return( 0 );
+}
+
+/* Max number of images we can handle.
+ */
+#define MAX_IMAGES (1000)
+
+/**
+ * vips_image_copy_fieldsv:
+ * @out: image to copy to
+ * @in1: first image to copy from
+ * @Varargs: %NULL-terminated list of images to copy from
+ *
+ * Copy fields from all the input images to the output image. A convenience
+ * function over vips_image_copy_fields_array(). 
+ *
+ * See also: vips_image_copy_fields_array(), vips_image_copy_fields().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_image_copy_fieldsv( IMAGE *out, IMAGE *in1, ... )
+{
+	va_list ap;
+	int i;
+	IMAGE *in[MAX_IMAGES];
+
+	in[0] = in1;
+	va_start( ap, in1 );
+	for( i = 1; i < MAX_IMAGES && (in[i] = va_arg( ap, IMAGE * )); i++ ) 
+		;
+	va_end( ap );
+	if( i == MAX_IMAGES ) {
+		vips_error( "im_cp_descv", 
+			"%s", _( "too many images" ) );
+		return( -1 );
+	}
+
+	return( vips_image_copy_fields_array( out, in ) );
+}
+
+/**
+ * vips_image_copy_fields:
+ * @out: image to copy to
+ * @in: image to copy from
+ *
+ * Copy fields from @in to @out. A convenience
+ * function over vips_image_copy_fields_array(). 
+ *
+ * See also: vips_image_copy_fields_array(), vips_image_copy_fieldsv().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_image_copy_fields( IMAGE *out, IMAGE *in )
+{
+	return( vips_image_copy_fieldsv( out, in, NULL ) ); 
+}
 
 /** 
- * im_header_int:
+ * vips_image_get_int:
  * @im: image to get the header field from
  * @field: field name
  * @out: return field value
@@ -211,24 +391,24 @@ vips_image_get_size( VipsImage *image )
  * Gets @out from @im under the name @field. This function searches for
  * int-valued fields.
  *
- * See also: im_header_get(), im_header_get_typeof()
+ * See also: vips_image_get(), vips_image_get_typeof()
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
-im_header_int( IMAGE *im, const char *field, int *out )
+vips_image_get_int( VipsImage *image, const char *field, int *out )
 {
 	int i;
 
 	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
 		if( strcmp( field, int_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( int, im, 
+			*out = G_STRUCT_MEMBER( int, image, 
 				int_field[i].offset );
 			break;
 		}
 
 	if( i == VIPS_NUMBER( int_field ) &&
-		im_meta_get_int( im, field, out ) ) {
+		im_meta_get_int( image, field, out ) ) {
 		vips_error( "im_header_int", 
 			_( "no such int field \"%s\"" ), field );
 		return( -1 );
@@ -238,7 +418,7 @@ im_header_int( IMAGE *im, const char *field, int *out )
 }
 
 /** 
- * im_header_double:
+ * vips_image_get_double:
  * @im: image to get the header field from
  * @field: field name
  * @out: return field value
@@ -247,12 +427,12 @@ im_header_int( IMAGE *im, const char *field, int *out )
  * This function searches for
  * double-valued fields.
  *
- * See also: im_header_get(), im_header_get_typeof()
+ * See also: vips_image_get(), vips_image_get_typeof()
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
-im_header_double( IMAGE *im, const char *field, double *out )
+vips_image_get_double( IMAGE *im, const char *field, double *out )
 {
 	int i;
 
@@ -274,7 +454,7 @@ im_header_double( IMAGE *im, const char *field, double *out )
 }
 
 /** 
- * im_header_string:
+ * vips_image_get_string:
  * @im: image to get the header field from
  * @field: field name
  * @out: return field value
@@ -284,12 +464,12 @@ im_header_double( IMAGE *im, const char *field, double *out )
  *
  * Do not free @out.
  *
- * See also: im_header_get(), im_header_get_typeof()
+ * See also: vips_image_get(), vips_image_get_typeof()
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
-im_header_string( IMAGE *im, const char *field, char **out )
+vips_image_get_string( IMAGE *im, const char *field, char **out )
 {
 	int i;
 
@@ -311,7 +491,7 @@ im_header_string( IMAGE *im, const char *field, char **out )
 }
 
 /** 
- * im_header_as_string:
+ * vips_image_get_as_string:
  * @im: image to get the header field from
  * @field: field name
  * @out: return field value as string
@@ -320,17 +500,17 @@ im_header_string( IMAGE *im, const char *field, char **out )
  * This function will read any field, returning it as a printable string.
  * You need to free the string with g_free() when you are done with it.
  *
- * See also: im_header_get(), im_header_get_typeof().
+ * See also: vips_image_get(), vips_image_get_typeof().
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
-im_header_as_string( IMAGE *im, const char *field, char **out )
+vips_image_get_as_string( IMAGE *im, const char *field, char **out )
 {
 	GValue value = { 0 };
 	GType type;
 
-	if( im_header_get( im, field, &value ) )
+	if( vips_image_get( im, field, &value ) )
 		return( -1 );
 
 	/* Display the save form, if there is one. This way we display
@@ -355,20 +535,20 @@ im_header_as_string( IMAGE *im, const char *field, char **out )
 }
 
 /**
- * im_header_get_typeof:
+ * vips_image_get_typeof:
  * @im: image to test
  * @field: the name to search for
  *
  * Read the GType for a header field. Returns zero if there is no
  * field of that name. 
  *
- * See also: im_header_get().
+ * See also: vips_image_get().
  *
  * Returns: the GType of the field, or zero if there is no
  * field of that name.
  */
 GType 
-im_header_get_typeof( IMAGE *im, const char *field )
+vips_image_get_typeof( IMAGE *im, const char *field )
 {
 	int i;
 	GType type;
@@ -393,7 +573,7 @@ im_header_get_typeof( IMAGE *im, const char *field )
  */
 
 /**
- * im_header_get:
+ * vips_image_get:
  * @im: image to get the field from from
  * @field: the name to give the metadata
  * @value_copy: the GValue is copied into this
@@ -413,12 +593,14 @@ im_header_get_typeof( IMAGE *im, const char *field )
  * GValue value = { 0 };
  * double d;
  *
- * if( im_header_get( im, field, &value ) )
+ * if( vips_image_get( im, field, &value ) )
  *   return( -1 );
  *
  * if( G_VALUE_TYPE( &value ) != G_TYPE_DOUBLE ) {
- *   vips_error( "mydomain", _( "field \"%s\" is of type %s, not double" ),
- *     field, g_type_name( G_VALUE_TYPE( &value ) ) );
+ *   vips_error( "mydomain", 
+ *     _( "field \"%s\" is of type %s, not double" ),
+ *     field, 
+ *     g_type_name( G_VALUE_TYPE( &value ) ) );
  *   g_value_unset( &value );
  *   return( -1 );
  * }
@@ -429,12 +611,12 @@ im_header_get_typeof( IMAGE *im, const char *field )
  * return( 0 );
  * ]|
  *
- * See also: im_header_get_typeof(), im_header_double().
+ * See also: vips_image_get_typeof(), vips_image_get_double().
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
-im_header_get( IMAGE *im, const char *field, GValue *value_copy )
+vips_image_get( IMAGE *im, const char *field, GValue *value_copy )
 {
 	int i;
 
@@ -472,13 +654,13 @@ im_header_get( IMAGE *im, const char *field, GValue *value_copy )
 }
 
 static void *
-header_map_fn( Meta *meta, im_header_map_fn fn, void *a )
+vips_image_map_fn( Meta *meta, VipsImageMapFn fn, void *a )
 {
 	return( fn( meta->im, meta->field, &meta->value, a ) );
 }
 
 /**
- * im_header_map:
+ * vips_image_map:
  * @im: image to map over
  * @fn: function to call for each header field
  * @a: user data for function
@@ -489,19 +671,19 @@ header_map_fn( Meta *meta, im_header_map_fn fn, void *a )
  * Like all _map functions, the user function should return %NULL to continue
  * iteration, or a non-%NULL pointer to indicate early termination.
  *
- * See also: im_header_get_typeof(), im_header_get().
+ * See also: vips_image_get_typeof(), vips_image_get().
  *
  * Returns: %NULL on success, the failing pointer otherwise.
  */
 void *
-im_header_map( IMAGE *im, im_header_map_fn fn, void *a )
+vips_image_map( IMAGE *im, VipsImageMapFn fn, void *a )
 {
 	int i;
 	GValue value = { 0 };
 	void *result;
 
 	for( i = 0; i < VIPS_NUMBER( int_field ); i++ ) {
-		im_header_get( im, int_field[i].field, &value );
+		vips_image_get( im, int_field[i].field, &value );
 		result = fn( im, int_field[i].field, &value, a );
 		g_value_unset( &value );
 
@@ -510,7 +692,7 @@ im_header_map( IMAGE *im, im_header_map_fn fn, void *a )
 	}
 
 	for( i = 0; i < VIPS_NUMBER( double_field ); i++ ) {
-		im_header_get( im, double_field[i].field, &value );
+		vips_image_get( im, double_field[i].field, &value );
 		result = fn( im, double_field[i].field, &value, a );
 		g_value_unset( &value );
 
@@ -519,7 +701,7 @@ im_header_map( IMAGE *im, im_header_map_fn fn, void *a )
 	}
 
 	for( i = 0; i < VIPS_NUMBER( string_field ); i++ ) {
-		im_header_get( im, string_field[i].field, &value );
+		vips_image_get( im, string_field[i].field, &value );
 		result = fn( im, string_field[i].field, &value, a );
 		g_value_unset( &value );
 
@@ -529,8 +711,133 @@ im_header_map( IMAGE *im, im_header_map_fn fn, void *a )
 
 	if( im->Meta_traverse && 
 		(result = im_slist_map2( im->Meta_traverse, 
-			(VSListMap2Fn) header_map_fn, fn, a )) )
+			(VSListMap2Fn) vips_image_map_fn, fn, a )) )
 		return( result );
 
 	return( NULL );
+}
+
+/**
+ * vips_image_history_printf:
+ * @image: add history liine to this image
+ * @format: printf() format string
+ * @Varargs: arguments to format string
+ *
+ * Add a line to the image history. The @format and arguments are expanded, the
+ * date and time is appended prefixed with a hash character, and the whole
+ * string is appended to the image history and terminated with a newline.
+ *
+ * For example:
+ *
+ * |[
+ * vips_image_history_printf( im, "vips im_invert %s %s", 
+ *   in->filename, out->filename );
+ * ]|
+ *
+ * Might add the string
+ *
+ * |[
+ * "vips im_invert /home/john/fred.v /home/john/jim.v # Fri Apr  3 23:30:35
+ * 2009\n"
+ * ]|
+ *
+ * VIPS operations don't add history lines for you because a single action at 
+ * the application level might involve many VIPS operations. History must be
+ * recorded by the application.
+ *
+ * See also: im_updatehist().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_image_history_printf( VipsImage *image, const char *fmt, ... )
+{
+	va_list args;
+	char line[4096];
+	time_t timebuf;
+
+	/* Format command. -40, to leave 26 for the ctime, three for the # and
+	 * a bit.
+	 */
+	va_start( args, fmt );
+	(void) im_vsnprintf( line, 4096 - 40, fmt, args );
+	va_end( args );
+	strcat( line, " # " );
+
+	/* Add the date. ctime always attaches a '\n', gah.
+	 */
+	time( &timebuf );
+	strcat( line, ctime( &timebuf ) );
+	line[strlen( line ) - 1] = '\0';
+
+#ifdef DEBUG
+	printf( "im_histlin: adding:\n\t%s\nto history on image %p\n", 
+		line, image );
+#endif /*DEBUG*/
+
+	image->history_list = g_slist_append( image->history_list, 
+		im__gvalue_ref_string_new( line ) );
+
+	return( 0 );
+}
+
+/**
+ * vips_image_history_args:
+ * @out: image to attach history line to
+ * @name: program name
+ * @argc: number of program arguments
+ * @argv: program arguments
+ *
+ * Formats the name/argv as a single string and calls
+ * vips_image_history_printf(). A
+ * convenience function for command-line prorams.
+ *
+ * See also: vips_image_get_history().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_image_history_args( VipsImage *image, 
+	const char *name, int argc, char *argv[] )
+{	
+	int i;
+	char txt[1024];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+
+	vips_buf_appends( &buf, name );
+
+	for( i = 0; i < argc; i++ ) {
+		vips_buf_appends( &buf, " " );
+		vips_buf_appends( &buf, argv[i] );
+	}
+
+	if( vips_image_history_printf( image, "%s", vips_buf_all( &buf ) ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * vips_image_get_history:
+ * @image: get history from here
+ *
+ * This function reads the image history as a C string. The string is owned
+ * by VIPS and must not be freed.
+ *
+ * VIPS tracks the history of each image, that is, the sequence of operations
+ * that generated that image. Applications built on VIPS need to call
+ * vips_image_history_printf() for each action they perform, setting the 
+ * command-line equivalent for the action.
+ *
+ * See also: vips_image_history_printf().
+ *
+ * Returns: The history of @image as a C string. Do not free!
+ */
+const char *
+vips_image_get_history( VipsImage *image )
+{
+	if( !image->Hist )
+		image->Hist = im__gslist_gvalue_get( image->history_list );
+
+	return( image->Hist ? image->Hist : "" );
 }

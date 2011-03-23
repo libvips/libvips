@@ -308,6 +308,8 @@ extern const size_t vips__image_sizeof_bandformat[];
 	(VIPS_IMAGE_SIZEOF_ELEMENT( I ) * (I)->Bands)
 #define VIPS_IMAGE_SIZEOF_LINE( I ) \
 	(VIPS_IMAGE_SIZEOF_PEL( I ) * (I)->Xsize)
+#define VIPS_IMAGE_SIZEOF_IMAGE( I ) \
+	(VIPS_IMAGE_SIZEOF_LINE( I ) * (I)->Ysize)
 #define VIPS_IMAGE_N_ELEMENTS( I ) \
 	((I)->Bands * (I)->Xsize)
 
@@ -358,20 +360,6 @@ VipsImage *vips_image_new_disc_temp( const char *format );
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
 gboolean vips_image_ispartial( VipsImage *image );
-
-int vips_format_sizeof( VipsBandFormat format );
-
-int vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] );
-int vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
-	__attribute__((sentinel));
-int vips_image_copy_fields( VipsImage *out, VipsImage *in );
-
-void vips_image_init_fields( VipsImage *image, 
-	int xsize, int ysize, int bands, 
-	VipsBandFormat format, VipsCoding coding, 
-	VipsInterpretation interpretation, 
-	float xres, float yres,
-	int xo, int yo );
 
 int vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer );
 

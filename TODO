@@ -2,6 +2,8 @@
 
   add "header -f Xsize" etc. as a special case in header.c
 
+  or perhaps in vips_image_get()?
+
 
 
 - vips_attach_save() in image.c has problems if save fails ... there's no way

@@ -173,7 +173,7 @@ extern "C" {
 	type, xres, yres, xo, yo ) \
 	vips_image_init_fields( image, \
 		xsize, ysize, bands, bandfmt, coding, \
-		type, xres, yres, xo, yo )
+		type, xres, yres )
 
 #define im_writeline( Y, IM, P ) vips_image_write_line( IM, Y, P )
 
@@ -261,6 +261,20 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_rect_equalsrect vips_rect_equalsrect
 #define im_rect_dup vips_rect_dup
 #define im_rect_normalise vips_rect_normalise
+
+#define im_header_map_fn VipsImageMapFn
+#define im_header_map vips_image_map
+
+#define im_header_int vips_image_get_int
+#define im_header_double vips_image_get_double
+#define im_header_string vips_image_get_string
+#define im_header_as_string vips_image_get_as_string
+#define im_header_get_typeof vips_image_get_typeof
+#define im_header_get vips_image_get
+
+#define im_histlin vips_image_history_printf
+#define im_updatehist vips_image_history_args
+#define im_history_get vips_image_get_history
 
 #ifdef __cplusplus
 }

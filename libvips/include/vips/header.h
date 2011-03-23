@@ -37,6 +37,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+int vips_format_sizeof( VipsBandFormat format );
+
 int vips_image_get_width( VipsImage *image );
 int vips_image_get_height( VipsImage *image );
 int vips_image_get_bands( VipsImage *image );
@@ -49,7 +51,17 @@ int vips_image_get_xoffset( VipsImage *image );
 int vips_image_get_yoffset( VipsImage *image );
 const char *vips_image_get_filename( VipsImage *image );
 const char *vips_image_get_mode( VipsImage *image );
-size_t vips_image_get_size( VipsImage *image );
+
+void vips_image_init_fields( VipsImage *image, 
+	int xsize, int ysize, int bands, 
+	VipsBandFormat format, VipsCoding coding, 
+	VipsInterpretation interpretation, 
+	float xres, float yres );
+
+int vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] );
+int vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
+	__attribute__((sentinel));
+int vips_image_copy_fields( VipsImage *out, VipsImage *in );
 
 int vips_image_get_int( VipsImage *im, const char *field, int *out );
 int vips_image_get_double( VipsImage *im, const char *field, double *out );
@@ -58,9 +70,9 @@ int vips_image_get_as_string( VipsImage *im, const char *field, char **out );
 GType vips_image_get_typeof( VipsImage *im, const char *field );
 int vips_image_get( VipsImage *im, const char *field, GValue *value_copy );
 
-typedef void *(*VipsImageHeaderMapFn)( VipsImage *image, 
+typedef void *(*VipsImageMapFn)( VipsImage *image, 
 	const char *field, GValue *value, void *a );
-void *vips_image_header_map( VipsImage *im, VipsImageHeaderMapFn fn, void *a );
+void *vips_image_map( VipsImage *im, VipsImageMapFn fn, void *a );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));

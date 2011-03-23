@@ -160,7 +160,7 @@ im__image_pixel_length( VipsImage *image )
 	case VIPS_CODING_LABQ:
 	case VIPS_CODING_RAD:
 	case VIPS_CODING_NONE:
-		psize = vips_image_size( image );
+		psize = VIPS_IMAGE_SIZEOF_IMAGE( image );
 		break;
 
 	default:
@@ -552,7 +552,7 @@ rebuild_header_meta( IMAGE *im, xmlNode *i )
 static xmlDoc *
 get_xml( IMAGE *im )
 {
-	if( im_header_get_typeof( im, IM_META_XML ) ) {
+	if( vips_image_get_typeof( im, IM_META_XML ) ) {
 		xmlDoc *doc;
 
 		if( im_meta_get_area( im, IM_META_XML, (void *) &doc ) )
@@ -606,7 +606,7 @@ im__readhist( IMAGE *im )
 {
 	/* Junk any old xml meta.
 	 */
-	if( im_header_get_typeof( im, IM_META_XML ) ) 
+	if( vips_image_get_typeof( im, IM_META_XML ) ) 
 		im_meta_set_area( im, IM_META_XML, NULL, NULL );
 
 	if( im__has_extension_block( im ) ) {

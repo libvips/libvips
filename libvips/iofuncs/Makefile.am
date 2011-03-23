@@ -12,7 +12,6 @@ libiofuncs_la_SOURCES = \
 	vips.c \
 	im_demand_hint.c \
 	im_generate.c \
-	im_histlin.c \
 	im_mapfile.c \
 	im_setupout.c \
 	sinkmemory.c \

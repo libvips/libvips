@@ -428,8 +428,10 @@ vips_image_dispose( GObject *gobject )
 }
 
 static void *
-print_field_fn( IMAGE *im, const char *field, GValue *value, VipsBuf *buf )
+print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 {
+	VipsBuf *buf = (VipsBuf *) a;
+
 	const char *extra;
 	char *str_value;
 
@@ -478,8 +480,7 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->print( object, buf );
 	vips_buf_appendf( buf, "\n" );
 
-	(void) im_header_map( image, 
-		(im_header_map_fn) print_field_fn, buf );
+	(void) vips_image_map( image, print_field_fn, (void *) buf );
 
 	vips_buf_appendf( buf, "Hist: %s", im_history_get( image ) );
 }
@@ -699,7 +700,7 @@ lazy_real_image( Lazy *lazy )
 		disc_threshold() && 
 	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
 			VIPS_FORMAT_PARTIAL) &&
-		vips_image_get_size( lazy->image ) > disc_threshold() ) {
+		VIPS_IMAGE_SIZEOF_IMAGE( lazy->image ) > disc_threshold() ) {
 			if( !(real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );
 
@@ -1009,7 +1010,7 @@ vips_image_build( VipsObject *object )
 
 		/* Very common, so a special message.
 		 */
-		if( image->file_length < vips_image_get_size( image ) ) {
+		if( image->file_length < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
 			vips_error( "VipsImage", 
 				_( "unable to open %s: file too short" ), 
 				image->filename );
@@ -1019,7 +1020,7 @@ vips_image_build( VipsObject *object )
 		/* Just weird. Only print a warning for this, since we should
 		 * still be able to process it without coredumps.
 		 */
-		if( image->file_length > vips_image_get_size( image ) ) 
+		if( image->file_length > VIPS_IMAGE_SIZEOF_IMAGE( image ) ) 
 			vips_warn( "VipsImage", 
 				_( "%s is longer than expected" ),
 				image->filename );
@@ -1753,154 +1754,6 @@ vips_image_ispartial( VipsImage *image )
 		return( 0 );
 }
 
-/* This is used by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
- * size.
- */
-const size_t vips__image_sizeof_bandformat[] = {
-	sizeof( unsigned char ), 	/* VIPS_FORMAT_UCHAR */
-	sizeof( signed char ), 		/* VIPS_FORMAT_CHAR */
-	sizeof( unsigned short ), 	/* VIPS_FORMAT_USHORT */
-	sizeof( unsigned short ), 	/* VIPS_FORMAT_SHORT */
-	sizeof( unsigned int ), 	/* VIPS_FORMAT_UINT */
-	sizeof( unsigned int ), 	/* VIPS_FORMAT_INT */
-	sizeof( float ), 		/* VIPS_FORMAT_FLOAT */
-	2 * sizeof( float ), 		/* VIPS_FORMAT_COMPLEX */
-	sizeof( double ), 		/* VIPS_FORMAT_DOUBLE */
-	2 * sizeof( double ) 		/* VIPS_FORMAT_DPCOMPLEX */
-};
-
-/* Return number of bytes for a band format, or -1 on error.
- */
-int 
-vips_format_sizeof( VipsBandFormat format )
-{
-	return( (format < 0 || format > VIPS_FORMAT_DPCOMPLEX) ?
-		vips_error( "vips_format_sizeof", 
-			_( "unknown band format %d" ), format ), -1 :
-		vips__image_sizeof_bandformat[format] );
-}
-
-/**
- * vips_image_copy_fields_array:
- * @out: image to copy to
- * @in: %NULL-terminated array of images to copy from
- *
- * Copy fields from all the input images to the output image. There must be at
- * least one input image. 
- *
- * The first input image is used to set the main fields of @out (@XSize, @Coding
- * and so on). 
- *
- * Metadata from all the image is merged on to @out, with lower-numbered items 
- * overriding higher. So for example, if @in[0] and @in[1] both have an item
- * called "icc-profile", it's the profile attached to @in[0] that will end up
- * on @out.
- *
- * Image history is completely copied from all @in. @out will have the history
- * of all the intput images.
- *
- * See also: vips_image_copy_fieldsv(), vips_image_copy_fields().
- *
- * Returns: 0 on success, -1 on error.
- */
-int 
-vips_image_copy_fields_array( IMAGE *out, IMAGE *in[] )
-{
-	int i;
-	int ni;
-
-	g_assert( in[0] );
-
-	out->Xsize = in[0]->Xsize;
-	out->Ysize = in[0]->Ysize;
-	out->Bands = in[0]->Bands;
-	out->Bbits = in[0]->Bbits;
-	out->BandFmt = in[0]->BandFmt;
-	out->Type = in[0]->Type;
-	out->Coding = in[0]->Coding;
-	out->Xres = in[0]->Xres;
-	out->Yres = in[0]->Yres;
-	out->Xoffset = 0;
-	out->Yoffset = 0;
-
-	/* Count number of images.
-	 */
-	for( ni = 0; in[ni]; ni++ ) 
-		;
-
-	/* Need to copy last-to-first so that in0 meta will override any
-	 * earlier meta.
-	 */
-	im__meta_destroy( out );
-	for( i = ni - 1; i >= 0; i-- ) 
-		if( im__meta_cp( out, in[i] ) )
-			return( -1 );
-
-	/* Merge hists first to last.
-	 */
-	for( i = 0; in[i]; i++ )
-		out->history_list = im__gslist_gvalue_merge( out->history_list,
-			in[i]->history_list );
-
-	return( 0 );
-}
-
-/* Max number of images we can handle.
- */
-#define MAX_IMAGES (1000)
-
-/**
- * vips_image_copy_fieldsv:
- * @out: image to copy to
- * @in1: first image to copy from
- * @Varargs: %NULL-terminated list of images to copy from
- *
- * Copy fields from all the input images to the output image. A convenience
- * function over vips_image_copy_fields_array(). 
- *
- * See also: vips_image_copy_fields_array(), vips_image_copy_fields().
- *
- * Returns: 0 on success, -1 on error.
- */
-int 
-vips_image_copy_fieldsv( IMAGE *out, IMAGE *in1, ... )
-{
-	va_list ap;
-	int i;
-	IMAGE *in[MAX_IMAGES];
-
-	in[0] = in1;
-	va_start( ap, in1 );
-	for( i = 1; i < MAX_IMAGES && (in[i] = va_arg( ap, IMAGE * )); i++ ) 
-		;
-	va_end( ap );
-	if( i == MAX_IMAGES ) {
-		vips_error( "im_cp_descv", 
-			"%s", _( "too many images" ) );
-		return( -1 );
-	}
-
-	return( vips_image_copy_fields_array( out, in ) );
-}
-
-/**
- * vips_image_copy_fields:
- * @out: image to copy to
- * @in: image to copy from
- *
- * Copy fields from @in to @out. A convenience
- * function over vips_image_copy_fields_array(). 
- *
- * See also: vips_image_copy_fields_array(), vips_image_copy_fieldsv().
- *
- * Returns: 0 on success, -1 on error.
- */
-int 
-vips_image_copy_fields( IMAGE *out, IMAGE *in )
-{
-	return( vips_image_copy_fieldsv( out, in, NULL ) ); 
-}
-
 int
 vips_image_new_array( VipsImage *parent, VipsImage **images, int n )
 {
@@ -1911,52 +1764,6 @@ vips_image_new_array( VipsImage *parent, VipsImage **images, int n )
 			return( -1 );
 
 	return( 0 );
-}
-
-/**
- * vips_image_init_fields:
- * @image: image to init
- * @xsize: image width
- * @ysize: image height
- * @bands: image bands
- * @bandfmt: band format
- * @coding: image coding
- * @type: image type
- * @xres: horizontal resolution, pixels per millimetre
- * @yres: vertical resolution, pixels per millimetre
- * @xo: x offset
- * @yo: y offset
- *
- * A convenience function to set the header fields after creating an image.
- * Normally you copy the fields from one of your input images with
- * vips_image_copy_fields() and then make
- * any adjustments you need, but if you are creating an image from scratch,
- * for example im_black() or im_jpeg2vips(), you do need to set all the
- * fields yourself.
- *
- * See also: vips_image_copy_fields().
- */
-void 
-vips_image_init_fields( VipsImage *image, 
-	int xsize, int ysize, int bands, 
-	VipsBandFormat format, VipsCoding coding, 
-	VipsInterpretation interpretation, 
-	float xres, float yres,
-	int xo, int yo )
-{
-	g_object_set( image,
-		"width", xsize,
-		"height", ysize,
-		"bands", bands,
-		"format", format,
-		NULL );
-
-	image->Coding = coding;
-	image->Type = interpretation;
-	image->Xres = xres;
-	image->Yres = yres;
-	image->Xoffset = xo;
-	image->Yoffset = yo;
 }
 
 /**
