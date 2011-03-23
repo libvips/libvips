@@ -1767,7 +1767,8 @@ vips_image_new_array( VipsImage *parent, VipsImage **images, int n )
 }
 
 /* Get the image ready for writing. This can get called many
- * times. Used by im_generate() and vips_image_write_line().
+ * times. Used by im_generate() and vips_image_write_line(). vips7 compat can
+ * call this as im_setupout().
  */
 int
 vips__image_write_prepare( VipsImage *image )

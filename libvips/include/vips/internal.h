@@ -83,8 +83,6 @@ int vips__open_image_read( const char *filename );
 int vips_image_open_input( VipsImage *image );
 int vips_image_open_output( VipsImage *image );
 
-int vips__image_write_prepare( VipsImage *image );
-
 int im_mapfile( VipsImage * );
 int im_mapfilerw( VipsImage * );
 int im_remapfilerw( VipsImage *image );
