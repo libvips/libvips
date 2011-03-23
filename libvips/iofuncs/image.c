@@ -1766,6 +1766,65 @@ vips_image_new_array( VipsImage *parent, VipsImage **images, int n )
 	return( 0 );
 }
 
+/* Get the image ready for writing. This can get called many
+ * times. Used by im_generate() and vips_image_write_line().
+ */
+int
+vips__image_write_prepare( VipsImage *image )
+{	
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
+
+	if( image->Xsize <= 0 || 
+		image->Ysize <= 0 || 
+		image->Bands <= 0 ) {
+		vips_error( "VipsImage", "%s", _( "bad dimensions" ) );
+		return( -1 );
+	}
+
+	/* We don't use this, but make sure it's set in case any old programs
+	 * are expecting it.
+	 */
+	image->Bbits = vips_format_sizeof( image->BandFmt ) << 3;
+ 
+	if( image->dtype == VIPS_IMAGE_PARTIAL ) {
+		/* Make it into a im_setbuf() image.
+		 */
+		VIPS_DEBUG_MSG( "vips__image_write_prepare: "
+			"old-style output for %s\n", image->filename );
+
+		image->dtype = VIPS_IMAGE_SETBUF;
+	}
+
+	switch( image->dtype ) {
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+		break;
+
+	case VIPS_IMAGE_SETBUF:
+		/* Allocate memory.
+		 */
+		if( !image->data ) 
+			if( !(image->data = im_malloc( NULL, 
+				VIPS_IMAGE_SIZEOF_IMAGE( image ))) ) 
+				return( -1 );
+
+		break;
+
+	case VIPS_IMAGE_OPENOUT:
+		if( vips_image_open_output( image ) )
+			return( -1 );
+
+		break;
+
+	default:
+		vips_error( "im_setupout", 
+			"%s", _( "bad image descriptor" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
 /**
  * vips_image_write_line:
  * @image: image to write to
@@ -1787,8 +1846,10 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 
 	/* Is this the start of eval?
 	 */
-	if( ypos == 0 )
+	if( ypos == 0 ) {
+		vips__image_write_prepare( image );
 		vips_image_preeval( image );
+	}
 
 	/* Possible cases for output: FILE or SETBUF.
 	 */

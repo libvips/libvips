@@ -419,7 +419,7 @@ im_generate( IMAGE *im,
 
                 /* Get output ready.
                  */
-                if( im_setupout( im ) )
+                if( vips__image_write_prepare( im ) )
                         return( -1 );
 
                 /* Attach callbacks.

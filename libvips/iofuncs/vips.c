@@ -124,8 +124,8 @@
 
 /* Sort of open for read for image files. Shared with im_binfile().
  */
-int
-im__open_image_file( const char *filename )
+static int
+vips_open_image_read( const char *filename )
 {
 	int fd;
 
@@ -137,9 +137,8 @@ im__open_image_file( const char *filename )
 		/* Open read-write failed. Fall back to open read-only.
 		 */
 		if( (fd = open( filename, MODE_READONLY )) == -1 ) {
-			vips_error( "im__open_image_file", 
-				_( "unable to open \"%s\", %s" ),
-				filename, strerror( errno ) );
+			vips_error_system( errno, "vips_open_image_read", 
+				_( "unable to open \"%s\"" ), filename );
 			return( -1 );
 		}
 	}
@@ -913,13 +912,13 @@ vips_image_open_input( VipsImage *image )
 	gint64 rsize;
 
 	image->dtype = VIPS_IMAGE_OPENIN;
-	if( (image->fd = im__open_image_file( image->filename )) == -1 ) 
+	if( (image->fd = vips_open_image_read( image->filename )) == -1 ) 
 		return( -1 );
 	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
 		im__read_header_bytes( image, header ) ) {
-		vips_error( "vips_open_input", 
-			_( "unable to read header for \"%s\", %s" ),
-			image->filename, strerror( errno ) );
+		vips_error_system( errno, "vips_open_input", 
+			_( "unable to read header for \"%s\"" ),
+			image->filename );
 		return( -1 );
 	}
 
@@ -946,6 +945,31 @@ vips_image_open_input( VipsImage *image )
 		vips_warn( "vips_open_input", _( "error reading XML: %s" ),
 			vips_error_buffer() );
 		vips_error_clear();
+	}
+
+	return( 0 );
+}
+
+int 
+vips_image_open_output( VipsImage *image )
+{
+	if( image->fd == -1 ) {
+		/* Don't use im->sizeof_header here, but we know we're 
+		 * writing a VIPS image anyway.
+		 */
+		unsigned char header[IM_SIZEOF_HEADER];
+
+		if( (image->fd = open( image->filename, 
+			MODE_WRITE, 0666 )) < 0 ) {
+			vips_error_system( errno, "vips_image_open_output", 
+				_( "unable to write to \"%s\"" ), 
+				image->filename );
+			return( -1 );
+		}
+
+		if( im__write_header_bytes( image, header ) ||
+			im__write( image->fd, header, IM_SIZEOF_HEADER ) )
+			return( -1 );
 	}
 
 	return( 0 );

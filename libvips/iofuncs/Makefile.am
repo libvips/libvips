@@ -13,7 +13,6 @@ libiofuncs_la_SOURCES = \
 	im_demand_hint.c \
 	im_generate.c \
 	im_mapfile.c \
-	im_setupout.c \
 	sinkmemory.c \
 	sinkscreen.c \
 	sinkdisc.c \
