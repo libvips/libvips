@@ -98,27 +98,47 @@ typedef struct _HeaderField {
 
 /* Built in fields and struct offsets.
  */
+
 static HeaderField int_field[] = {
-	{ "width", G_STRUCT_OFFSET( IMAGE, Xsize ) },
-	{ "height", G_STRUCT_OFFSET( IMAGE, Ysize ) },
-	{ "bands", G_STRUCT_OFFSET( IMAGE, Bands ) },
-	{ "format", G_STRUCT_OFFSET( IMAGE, BandFmt ) },
-	{ "coding", G_STRUCT_OFFSET( IMAGE, Coding ) },
-	{ "interpretation", G_STRUCT_OFFSET( IMAGE, Type ) },
-	{ "xoffset", G_STRUCT_OFFSET( IMAGE, Xoffset ) },
-	{ "yoffset", G_STRUCT_OFFSET( IMAGE, Yoffset ) }
+	{ "width", G_STRUCT_OFFSET( VipsImage, Xsize ) },
+	{ "height", G_STRUCT_OFFSET( VipsImage, Ysize ) },
+	{ "bands", G_STRUCT_OFFSET( VipsImage, Bands ) },
+	{ "format", G_STRUCT_OFFSET( VipsImage, BandFmt ) },
+	{ "coding", G_STRUCT_OFFSET( VipsImage, Coding ) },
+	{ "interpretation", G_STRUCT_OFFSET( VipsImage, Type ) },
+	{ "xoffset", G_STRUCT_OFFSET( VipsImage, Xoffset ) },
+	{ "yoffset", G_STRUCT_OFFSET( VipsImage, Yoffset ) }
 };
 
 /* These are actually floats :-( how annoying. We report them as doubles for
  * consistency with the im_meta_*() functions.
  */
 static HeaderField double_field[] = {
-	{ "xres", G_STRUCT_OFFSET( IMAGE, Xres ) },
-	{ "yres", G_STRUCT_OFFSET( IMAGE, Yres ) }
+	{ "xres", G_STRUCT_OFFSET( VipsImage, Xres ) },
+	{ "yres", G_STRUCT_OFFSET( VipsImage, Yres ) }
 };
 
 static HeaderField string_field[] = {
-	{ "filename", G_STRUCT_OFFSET( IMAGE, filename ) }
+	{ "filename", G_STRUCT_OFFSET( VipsImage, filename ) }
+};
+
+/* Old names we keep around for back-compat. We never loop over these with
+ * map, but we do check them when we look up fields by name.
+ */
+static HeaderField old_int_field[] = {
+	{ "Xsize", G_STRUCT_OFFSET( VipsImage, Xsize ) },
+	{ "Ysize", G_STRUCT_OFFSET( VipsImage, Ysize ) },
+	{ "Bands", G_STRUCT_OFFSET( VipsImage, Bands ) },
+	{ "Bbits", G_STRUCT_OFFSET( VipsImage, Bbits ) },
+	{ "BandFmt", G_STRUCT_OFFSET( VipsImage, BandFmt ) },
+	{ "Coding", G_STRUCT_OFFSET( VipsImage, Coding ) },
+	{ "Type", G_STRUCT_OFFSET( VipsImage, Type ) },
+	{ "Xoffset", G_STRUCT_OFFSET( VipsImage, Xoffset ) },
+	{ "Yoffset", G_STRUCT_OFFSET( VipsImage, Yoffset ) }
+};
+static HeaderField old_double_field[] = {
+	{ "Xres", G_STRUCT_OFFSET( VipsImage, Xres ) },
+	{ "Yres", G_STRUCT_OFFSET( VipsImage, Yres ) }
 };
 
 /* This is used by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
@@ -285,7 +305,7 @@ vips_image_init_fields( VipsImage *image,
  * Returns: 0 on success, -1 on error.
  */
 int 
-vips_image_copy_fields_array( IMAGE *out, IMAGE *in[] )
+vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 {
 	int i;
 	int ni;
@@ -344,15 +364,15 @@ vips_image_copy_fields_array( IMAGE *out, IMAGE *in[] )
  * Returns: 0 on success, -1 on error.
  */
 int 
-vips_image_copy_fieldsv( IMAGE *out, IMAGE *in1, ... )
+vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
 {
 	va_list ap;
 	int i;
-	IMAGE *in[MAX_IMAGES];
+	VipsImage *in[MAX_IMAGES];
 
 	in[0] = in1;
 	va_start( ap, in1 );
-	for( i = 1; i < MAX_IMAGES && (in[i] = va_arg( ap, IMAGE * )); i++ ) 
+	for( i = 1; i < MAX_IMAGES && (in[i] = va_arg( ap, VipsImage * )); i++ ) 
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
@@ -377,14 +397,14 @@ vips_image_copy_fieldsv( IMAGE *out, IMAGE *in1, ... )
  * Returns: 0 on success, -1 on error.
  */
 int 
-vips_image_copy_fields( IMAGE *out, IMAGE *in )
+vips_image_copy_fields( VipsImage *out, VipsImage *in )
 {
 	return( vips_image_copy_fieldsv( out, in, NULL ) ); 
 }
 
 /** 
  * vips_image_get_int:
- * @im: image to get the header field from
+ * @image: image to get the header field from
  * @field: field name
  * @out: return field value
  *
@@ -404,22 +424,27 @@ vips_image_get_int( VipsImage *image, const char *field, int *out )
 		if( strcmp( field, int_field[i].field ) == 0 ) {
 			*out = G_STRUCT_MEMBER( int, image, 
 				int_field[i].offset );
-			break;
+			return( 0 );
+		}
+	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ )
+		if( strcmp( field, old_int_field[i].field ) == 0 ) {
+			*out = G_STRUCT_MEMBER( int, image, 
+				old_int_field[i].offset );
+			return( 0 );
 		}
 
-	if( i == VIPS_NUMBER( int_field ) &&
-		im_meta_get_int( image, field, out ) ) {
-		vips_error( "im_header_int", 
-			_( "no such int field \"%s\"" ), field );
-		return( -1 );
-	}
+	if( !im_meta_get_int( image, field, out ) ) 
+		return( 0 );
 
-	return( 0 );
+	vips_error( "im_header_int", 
+		_( "no such int field \"%s\"" ), field );
+
+	return( -1 );
 }
 
 /** 
  * vips_image_get_double:
- * @im: image to get the header field from
+ * @image: image to get the header field from
  * @field: field name
  * @out: return field value
  *
@@ -432,30 +457,35 @@ vips_image_get_int( VipsImage *image, const char *field, int *out )
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_double( IMAGE *im, const char *field, double *out )
+vips_image_get_double( VipsImage *image, const char *field, double *out )
 {
 	int i;
 
 	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
 		if( strcmp( field, double_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( float, im, 
+			*out = G_STRUCT_MEMBER( float, image, 
 				double_field[i].offset );
-			break;
+			return( 0 );
+		}
+	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
+		if( strcmp( field, old_double_field[i].field ) == 0 ) {
+			*out = G_STRUCT_MEMBER( float, image, 
+				old_double_field[i].offset );
+			return( 0 );
 		}
 
-	if( i == VIPS_NUMBER( double_field ) &&
-		im_meta_get_double( im, field, out ) ) {
-		vips_error( "im_header_double", 
-			_( "no such double field \"%s\"" ), field );
-		return( -1 );
-	}
+	if( !im_meta_get_double( image, field, out ) ) 
+		return( 0 );
 
-	return( 0 );
+	vips_error( "im_header_double", 
+		_( "no such double field \"%s\"" ), field );
+
+	return( -1 );
 }
 
 /** 
  * vips_image_get_string:
- * @im: image to get the header field from
+ * @image: image to get the header field from
  * @field: field name
  * @out: return field value
  *
@@ -469,30 +499,29 @@ vips_image_get_double( IMAGE *im, const char *field, double *out )
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_string( IMAGE *im, const char *field, char **out )
+vips_image_get_string( VipsImage *image, const char *field, char **out )
 {
 	int i;
 
 	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
 		if( strcmp( field, string_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( char *, im, 
+			*out = G_STRUCT_MEMBER( char *, image, 
 				string_field[i].offset );
-			break;
+			return( 0 );
 		}
 
-	if( i == VIPS_NUMBER( string_field ) &&
-		im_meta_get_string( im, field, out ) ) {
-		vips_error( "im_header_string", 
-			_( "no such string field \"%s\"" ), field );
-		return( -1 );
-	}
+	if( !im_meta_get_string( image, field, out ) ) 
+		return( 0 );
 
-	return( 0 );
+	vips_error( "im_header_string", 
+		_( "no such string field \"%s\"" ), field );
+
+	return( -1 );
 }
 
 /** 
  * vips_image_get_as_string:
- * @im: image to get the header field from
+ * @image: image to get the header field from
  * @field: field name
  * @out: return field value as string
  *
@@ -505,12 +534,12 @@ vips_image_get_string( IMAGE *im, const char *field, char **out )
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_as_string( IMAGE *im, const char *field, char **out )
+vips_image_get_as_string( VipsImage *image, const char *field, char **out )
 {
 	GValue value = { 0 };
 	GType type;
 
-	if( vips_image_get( im, field, &value ) )
+	if( vips_image_get( image, field, &value ) )
 		return( -1 );
 
 	/* Display the save form, if there is one. This way we display
@@ -536,7 +565,7 @@ vips_image_get_as_string( IMAGE *im, const char *field, char **out )
 
 /**
  * vips_image_get_typeof:
- * @im: image to test
+ * @image: image to test
  * @field: the name to search for
  *
  * Read the GType for a header field. Returns zero if there is no
@@ -548,7 +577,7 @@ vips_image_get_as_string( IMAGE *im, const char *field, char **out )
  * field of that name.
  */
 GType 
-vips_image_get_typeof( IMAGE *im, const char *field )
+vips_image_get_typeof( VipsImage *image, const char *field )
 {
 	int i;
 	GType type;
@@ -556,13 +585,19 @@ vips_image_get_typeof( IMAGE *im, const char *field )
 	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
 		if( strcmp( field, int_field[i].field ) == 0 ) 
 			return( G_TYPE_INT );
+	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ )
+		if( strcmp( field, old_int_field[i].field ) == 0 ) 
+			return( G_TYPE_INT );
 	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
 		if( strcmp( field, double_field[i].field ) == 0 ) 
+			return( G_TYPE_DOUBLE );
+	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
+		if( strcmp( field, old_double_field[i].field ) == 0 ) 
 			return( G_TYPE_DOUBLE );
 	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
 		if( strcmp( field, string_field[i].field ) == 0 ) 
 			return( G_TYPE_STRING );
-	if( (type = im_meta_get_typeof( im, field )) )
+	if( (type = im_meta_get_typeof( image, field )) )
 		return( type );
 
 	return( 0 );
@@ -574,7 +609,7 @@ vips_image_get_typeof( IMAGE *im, const char *field )
 
 /**
  * vips_image_get:
- * @im: image to get the field from from
+ * @image: image to get the field from from
  * @field: the name to give the metadata
  * @value_copy: the GValue is copied into this
  *
@@ -593,7 +628,7 @@ vips_image_get_typeof( IMAGE *im, const char *field )
  * GValue value = { 0 };
  * double d;
  *
- * if( vips_image_get( im, field, &value ) )
+ * if( vips_image_get( image, field, &value ) )
  *   return( -1 );
  *
  * if( G_VALUE_TYPE( &value ) != G_TYPE_DOUBLE ) {
@@ -616,7 +651,7 @@ vips_image_get_typeof( IMAGE *im, const char *field )
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get( IMAGE *im, const char *field, GValue *value_copy )
+vips_image_get( VipsImage *image, const char *field, GValue *value_copy )
 {
 	int i;
 
@@ -624,8 +659,17 @@ vips_image_get( IMAGE *im, const char *field, GValue *value_copy )
 		if( strcmp( field, int_field[i].field ) == 0 ) {
 			g_value_init( value_copy, G_TYPE_INT );
 			g_value_set_int( value_copy, 
-				G_STRUCT_MEMBER( int, im, 
+				G_STRUCT_MEMBER( int, image, 
 					int_field[i].offset ) );
+			return( 0 );
+		}
+
+	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ ) 
+		if( strcmp( field, old_int_field[i].field ) == 0 ) {
+			g_value_init( value_copy, G_TYPE_INT );
+			g_value_set_int( value_copy, 
+				G_STRUCT_MEMBER( int, image, 
+					old_int_field[i].offset ) );
 			return( 0 );
 		}
 
@@ -633,8 +677,17 @@ vips_image_get( IMAGE *im, const char *field, GValue *value_copy )
 		if( strcmp( field, double_field[i].field ) == 0 ) {
 			g_value_init( value_copy, G_TYPE_DOUBLE );
 			g_value_set_double( value_copy, 
-				G_STRUCT_MEMBER( float, im, 
+				G_STRUCT_MEMBER( float, image, 
 					double_field[i].offset ) );
+			return( 0 );
+		}
+
+	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ ) 
+		if( strcmp( field, old_double_field[i].field ) == 0 ) {
+			g_value_init( value_copy, G_TYPE_DOUBLE );
+			g_value_set_double( value_copy, 
+				G_STRUCT_MEMBER( float, image, 
+					old_double_field[i].offset ) );
 			return( 0 );
 		}
 
@@ -642,12 +695,12 @@ vips_image_get( IMAGE *im, const char *field, GValue *value_copy )
 		if( strcmp( field, string_field[i].field ) == 0 ) {
 			g_value_init( value_copy, G_TYPE_STRING );
 			g_value_set_static_string( value_copy, 
-				G_STRUCT_MEMBER( char *, im, 
+				G_STRUCT_MEMBER( char *, image, 
 					string_field[i].offset ) );
 			return( 0 );
 		}
 
-	if( !im_meta_get( im, field, value_copy ) )
+	if( !im_meta_get( image, field, value_copy ) )
 		return( 0 );
 
 	return( -1 );
@@ -661,7 +714,7 @@ vips_image_map_fn( Meta *meta, VipsImageMapFn fn, void *a )
 
 /**
  * vips_image_map:
- * @im: image to map over
+ * @image: image to map over
  * @fn: function to call for each header field
  * @a: user data for function
  *
@@ -676,15 +729,15 @@ vips_image_map_fn( Meta *meta, VipsImageMapFn fn, void *a )
  * Returns: %NULL on success, the failing pointer otherwise.
  */
 void *
-vips_image_map( IMAGE *im, VipsImageMapFn fn, void *a )
+vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
 {
 	int i;
 	GValue value = { 0 };
 	void *result;
 
 	for( i = 0; i < VIPS_NUMBER( int_field ); i++ ) {
-		vips_image_get( im, int_field[i].field, &value );
-		result = fn( im, int_field[i].field, &value, a );
+		vips_image_get( image, int_field[i].field, &value );
+		result = fn( image, int_field[i].field, &value, a );
 		g_value_unset( &value );
 
 		if( result )
@@ -692,8 +745,8 @@ vips_image_map( IMAGE *im, VipsImageMapFn fn, void *a )
 	}
 
 	for( i = 0; i < VIPS_NUMBER( double_field ); i++ ) {
-		vips_image_get( im, double_field[i].field, &value );
-		result = fn( im, double_field[i].field, &value, a );
+		vips_image_get( image, double_field[i].field, &value );
+		result = fn( image, double_field[i].field, &value, a );
 		g_value_unset( &value );
 
 		if( result )
@@ -701,16 +754,16 @@ vips_image_map( IMAGE *im, VipsImageMapFn fn, void *a )
 	}
 
 	for( i = 0; i < VIPS_NUMBER( string_field ); i++ ) {
-		vips_image_get( im, string_field[i].field, &value );
-		result = fn( im, string_field[i].field, &value, a );
+		vips_image_get( image, string_field[i].field, &value );
+		result = fn( image, string_field[i].field, &value, a );
 		g_value_unset( &value );
 
 		if( result )
 			return( result );
 	}
 
-	if( im->Meta_traverse && 
-		(result = im_slist_map2( im->Meta_traverse, 
+	if( image->Meta_traverse && 
+		(result = im_slist_map2( image->Meta_traverse, 
 			(VSListMap2Fn) vips_image_map_fn, fn, a )) )
 		return( result );
 
@@ -730,7 +783,7 @@ vips_image_map( IMAGE *im, VipsImageMapFn fn, void *a )
  * For example:
  *
  * |[
- * vips_image_history_printf( im, "vips im_invert %s %s", 
+ * vips_image_history_printf( image, "vips im_invert %s %s", 
  *   in->filename, out->filename );
  * ]|
  *

@@ -41,6 +41,7 @@
 - better png read for 1-bit and palette images
 - fits write
 - better fits metadata support
+- renamed all header fields, old names still supported, hopefully
 
 30/11/10 started 7.24.0
 - bump for new stable
