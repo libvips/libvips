@@ -175,6 +175,7 @@ extern "C" {
 		xsize, ysize, bands, bandfmt, coding, \
 		type, xres, yres )
 
+#define im__open_image_file vips__open_image_read
 #define im_setupout( IM ) (0)
 #define im_writeline( Y, IM, P ) vips_image_write_line( IM, Y, P )
 

@@ -124,8 +124,8 @@
 
 /* Sort of open for read for image files. Shared with im_binfile().
  */
-static int
-vips_open_image_read( const char *filename )
+int
+vips__open_image_read( const char *filename )
 {
 	int fd;
 
@@ -137,7 +137,7 @@ vips_open_image_read( const char *filename )
 		/* Open read-write failed. Fall back to open read-only.
 		 */
 		if( (fd = open( filename, MODE_READONLY )) == -1 ) {
-			vips_error_system( errno, "vips_open_image_read", 
+			vips_error_system( errno, "vips__open_image_read", 
 				_( "unable to open \"%s\"" ), filename );
 			return( -1 );
 		}
@@ -912,7 +912,7 @@ vips_image_open_input( VipsImage *image )
 	gint64 rsize;
 
 	image->dtype = VIPS_IMAGE_OPENIN;
-	if( (image->fd = vips_open_image_read( image->filename )) == -1 ) 
+	if( (image->fd = vips__open_image_read( image->filename )) == -1 ) 
 		return( -1 );
 	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
 		im__read_header_bytes( image, header ) ) {

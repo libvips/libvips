@@ -990,7 +990,7 @@ vips_image_build( VipsObject *object )
 			return( -1 );
 		}
 
-		if( (image->fd = im__open_image_file( filename )) == -1 ) 
+		if( (image->fd = vips__open_image_read( filename )) == -1 ) 
 			return( -1 );
 		image->dtype = VIPS_IMAGE_OPENIN;
 		image->dhint = VIPS_DEMAND_STYLE_THINSTRIP;
