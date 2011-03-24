@@ -209,6 +209,8 @@ typedef int (*im_callback_fn)( void *a, void *b );
 
 int im_add_callback( VipsImage *im, 
 	const char *callback, im_callback_fn fn, void *a, void *b );
+int im_add_callback1( VipsImage *im, 
+	const char *callback, im_callback_fn fn, void *a, void *b );
 #define im_add_close_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "close", FN, A, B )
 #define im_add_postclose_callback( IM, FN, A, B ) \
@@ -216,11 +218,12 @@ int im_add_callback( VipsImage *im,
 #define im_add_preclose_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "preclose", FN, A, B )
 #define im_add_evalstart_callback( IM, FN, A, B ) \
-	im_add_callback( IM, "preeval", FN, A, B )
+	im_add_callback1( IM, "preeval", FN, A, B )
 #define im_add_evalend_callback( IM, FN, A, B ) \
-	im_add_callback( IM, "posteval", FN, A, B )
+	im_add_callback1( IM, "posteval", FN, A, B )
 #define im_add_eval_callback( IM, FN, A, B ) \
-	im_add_callback( IM, "eval", FN, A, B )
+	(vips_image_set_progress( IM, TRUE ), \
+	im_add_callback1( IM, "eval", FN, A, B ))
 #define im_add_invalidate_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "invalidate", FN, A, B )
 

@@ -1335,7 +1335,8 @@ vips_image_preeval( VipsImage *image )
 		(void) vips_progress_add( image->progress_signal );
 
 		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_PREEVAL], 0, image->time );
+			vips_image_signals[SIG_PREEVAL], 0, 
+			image->progress_signal->time );
 	}
 }
 
@@ -1345,11 +1346,12 @@ void
 vips_image_eval( VipsImage *image, int w, int h )
 {
 	if( image->progress_signal ) {
-		VipsProgress *progress = image->time;
+		VipsProgress *progress = image->progress_signal->time;
 		float prop;
 
 		VIPS_DEBUG_MSG( "vips_image_eval: %p\n", image );
 
+		g_assert( progress );
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
 
@@ -1370,13 +1372,16 @@ void
 vips_image_posteval( VipsImage *image )
 {
 	if( image->progress_signal ) {
+		VipsProgress *progress = image->progress_signal->time;
+
 		VIPS_DEBUG_MSG( "vips_image_posteval: %p\n", image );
 
+		g_assert( progress );
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
 
 		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_POSTEVAL], 0, image->time );
+			vips_image_signals[SIG_POSTEVAL], 0, progress );
 	}
 }
 

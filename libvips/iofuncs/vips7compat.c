@@ -112,6 +112,30 @@ im_add_callback( VipsImage *im,
 	return( 0 );
 }
 
+static void
+im_add_callback_cb1( VipsImage *im, void *x, Callback *callback )
+{
+	if( callback->fn( callback->a, callback->b ) )
+		vips_image_set_kill( im, TRUE );
+}
+
+int 
+im_add_callback1( VipsImage *im, 
+	const char *name, im_callback_fn fn, void *a, void *b )
+{
+	Callback *callback;
+
+	if( !(callback = VIPS_NEW( im, Callback )) )
+		return( -1 );
+	callback->fn = fn;
+	callback->a = a;
+	callback->b = b;
+	g_signal_connect( im, name,
+		G_CALLBACK( im_add_callback_cb1 ), callback );
+
+	return( 0 );
+}
+
 /* Make something local to an image descriptor ... pass in a constructor
  * and a destructor, plus three args.
  */
