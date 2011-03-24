@@ -1381,7 +1381,9 @@ vips_image_eval( VipsImage *image, int w, int h )
 		 * too, even though it may have a different width/height to
 		 * the image we are actually generating.
 		 */
-		vips_progress_update( image->progress_signal->time, w, h );
+		if( image->progress_signal->time != image->time )
+			vips_progress_update( image->progress_signal->time, 
+				w, h );	
 
 		g_signal_emit( image->progress_signal, 
 			vips_image_signals[SIG_EVAL], 0, image->time );
