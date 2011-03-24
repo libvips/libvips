@@ -330,6 +330,8 @@ vips_image_finalize( GObject *gobject )
 {
 	VipsImage *image = VIPS_IMAGE( gobject );
 
+	VIPS_DEBUG_MSG( "vips_image_finalize: %p\n", gobject );
+
 	/* Should be no regions defined on the image, since they all hold a
 	 * ref to their host image.
 	 */
@@ -417,10 +419,7 @@ vips_image_finalize( GObject *gobject )
 static void
 vips_image_dispose( GObject *gobject )
 {
-#ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "vips_image_dispose: " );
-	vips_object_print( VIPS_OBJECT( gobject ) );
-#endif /*VIPS_DEBUG*/
+	VIPS_DEBUG_MSG( "vips_image_dispose: %p\n", gobject );
 
 	vips_object_preclose( VIPS_OBJECT( gobject ) );
 
@@ -893,6 +892,8 @@ vips_image_add_progress( VipsImage *image )
 			G_CALLBACK( vips_image_eval_cb ), last );
 		g_signal_connect( image, "posteval", 
 			G_CALLBACK( vips_image_posteval_cb ), NULL );
+
+		vips_image_set_progress( image, TRUE );
 	}
 }
 
@@ -1043,11 +1044,6 @@ vips_image_build( VipsObject *object )
 
 	vips_image_add_progress( image );
 
-#ifdef DEBUG_VIPS
-	printf( "vips_image_build: " );
-	vips_object_dump( VIPS_OBJECT( image ) );
-#endif /*DEBUG_VIPS*/
-
 	return( 0 );
 }
 
@@ -1062,10 +1058,7 @@ vips_region_invalidate( VipsRegion *reg )
 static void 
 vips_image_real_invalidate( VipsImage *image )
 {
-#ifdef DEBUG_VIPS
-	printf( "vips_image_real_invalidate: " );
-	vips_object_dump( VIPS_OBJECT( image ) );
-#endif /*DEBUG_VIPS*/
+	VIPS_DEBUG_MSG( "vips_image_real_invalidate: %p\n", image );
 
 	g_mutex_lock( image->sslock );
 	(void) im_slist_map2( image->regions,
@@ -1263,10 +1256,7 @@ vips_image_written( VipsImage *image )
 {
 	int result;
 
-#ifdef VIPS_DEBUG
-	printf( "vips_image_written: " );
-	vips_object_print( VIPS_OBJECT( image ) );
-#endif /*VIPS_DEBUG*/
+	VIPS_DEBUG_MSG( "vips_image_written: %p\n", image );
 
 	result = 0;
 	g_signal_emit( image, vips_image_signals[SIG_WRITTEN], 0, &result );
@@ -1277,10 +1267,7 @@ vips_image_written( VipsImage *image )
 void
 vips_image_invalidate( VipsImage *image )
 {
-#ifdef VIPS_DEBUG
-	printf( "vips_image_invalidate: " );
-	vips_object_print( VIPS_OBJECT( image ) );
-#endif /*VIPS_DEBUG*/
+	VIPS_DEBUG_MSG( "vips_image_invalidate: %p\n", image );
 
 	g_signal_emit( image, vips_image_signals[SIG_INVALIDATE], 0 );
 }
@@ -1314,14 +1301,18 @@ vips_progress_add( VipsImage *image )
 {
 	VipsProgress *progress;
 
-	if( !image->time &&
-		!(image->time = VIPS_NEW( NULL, VipsProgress )) )
-		return( -1 );
-	progress = image->time;
+	if( !(progress = image->time) ) {
+		if( !(image->time = VIPS_NEW( NULL, VipsProgress )) )
+			return( -1 );
+		progress = image->time;
+
+		progress->im = image;
+		progress->start = NULL;
+	}
+
 	if( !progress->start )
 		progress->start = g_timer_new();
 
-	progress->im = image;
 	g_timer_start( progress->start );
 	progress->run = 0;
 	progress->eta = 0;
@@ -1336,10 +1327,7 @@ void
 vips_image_preeval( VipsImage *image )
 {
 	if( image->progress_signal ) {
-#ifdef VIPS_DEBUG
-		printf( "vips_image_preeval: " );
-		vips_object_print( VIPS_OBJECT( image ) );
-#endif /*VIPS_DEBUG*/
+		VIPS_DEBUG_MSG( "vips_image_preeval: %p\n", image );
 
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
@@ -1360,10 +1348,7 @@ vips_image_eval( VipsImage *image, int w, int h )
 		VipsProgress *progress = image->time;
 		float prop;
 
-#ifdef VIPS_DEBUG
-		printf( "vips_image_eval: " );
-		vips_object_print( VIPS_OBJECT( image ) );
-#endif /*VIPS_DEBUG*/
+		VIPS_DEBUG_MSG( "vips_image_eval: %p\n", image );
 
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
@@ -1385,10 +1370,7 @@ void
 vips_image_posteval( VipsImage *image )
 {
 	if( image->progress_signal ) {
-#ifdef VIPS_DEBUG
-		printf( "vips_image_posteval: " );
-		vips_object_print( VIPS_OBJECT( image ) );
-#endif /*VIPS_DEBUG*/
+		VIPS_DEBUG_MSG( "vips_image_posteval: %p\n", image );
 
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
@@ -1396,6 +1378,26 @@ vips_image_posteval( VipsImage *image )
 		g_signal_emit( image->progress_signal, 
 			vips_image_signals[SIG_POSTEVAL], 0, image->time );
 	}
+}
+
+/**
+ * vips_image_set_progress:
+ * @image: image to signal progress on
+ * @progress: turn progress reporting on or off
+ *
+ * vips signals evaluation progress via the "preeval", "eval" and "posteval"
+ * signals. Progress is signalled on the most-downstream image for which
+ * vips_image_set_progress() was called.
+ */
+void
+vips_image_set_progress( VipsImage *image, gboolean progress )
+{
+	if( progress && !image->progress_signal ) {
+		VIPS_DEBUG_MSG( "vips_image_set_kill: %s\n", image->filename );
+		image->progress_signal = image;
+	}
+	else
+		image->progress_signal = NULL;
 }
 
 gboolean

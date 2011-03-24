@@ -343,10 +343,14 @@ extern const size_t vips__image_sizeof_bandformat[];
 #endif /*VIPS_DEBUG*/
 
 int vips_image_written( VipsImage *image );
+
 void vips_image_invalidate_all( VipsImage *image );
+
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, int w, int h );
 void vips_image_posteval( VipsImage *image );
+void vips_image_set_progress( VipsImage *image, gboolean progress );
+
 gboolean vips_image_get_kill( VipsImage *image );
 void vips_image_set_kill( VipsImage *image, gboolean kill );
 
