@@ -1,8 +1,3 @@
-- vips_attach_save() in image.c has problems if save fails ... there's no way
-  for the result of the "written" callback to propogate the error
-
-  _written() should take a &status argument?
-
 
 - add MATLAB write
 

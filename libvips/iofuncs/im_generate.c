@@ -451,7 +451,8 @@ im_generate( IMAGE *im,
                 return( -1 );
         }
 
-	vips_image_written( im ); 
+	if( vips_image_written( im ) )
+		return( -1 );
 
         return( 0 );
 }

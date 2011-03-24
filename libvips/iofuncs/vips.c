@@ -137,7 +137,7 @@ vips__open_image_read( const char *filename )
 		/* Open read-write failed. Fall back to open read-only.
 		 */
 		if( (fd = open( filename, MODE_READONLY )) == -1 ) {
-			vips_error_system( errno, "vips__open_image_read", 
+			vips_error_system( errno, "VipsImage", 
 				_( "unable to open \"%s\"" ), filename );
 			return( -1 );
 		}
@@ -326,7 +326,7 @@ read_chunk( int fd, gint64 offset, size_t length )
 		return( NULL );
 	if( read( fd, buf, length ) != (ssize_t) length ) {
 		im_free( buf );
-		vips_error( "im_readhist", "%s", _( "unable to read history" ) );
+		vips_error( "VipsImage", "%s", _( "unable to read history" ) );
 		return( NULL );
 	}
 	buf[length] = '\0';
@@ -358,7 +358,7 @@ im__read_extension_block( IMAGE *im, int *size )
 	psize = im__image_pixel_length( im );
 	g_assert( im->file_length > 0 );
 	if( im->file_length - psize > 10 * 1024 * 1024 ) {
-		vips_error( "im_readhist",
+		vips_error( "VipsImage",
 			"%s", _( "more than a 10 megabytes of XML? "
 			"sufferin' succotash!" ) );
 		return( NULL );
@@ -406,7 +406,7 @@ read_xml( IMAGE *im )
 	if( !(node = xmlDocGetRootElement( doc )) ||
 		!node->nsDef ||
 		!im_isprefix( NAMESPACE, (char *) node->nsDef->href ) ) {
-		vips_error( "im__readhist", 
+		vips_error( "VipsImage", 
 			"%s", _( "incorrect namespace in XML" ) );
 		xmlFreeDoc( doc );
 		return( NULL );
@@ -530,7 +530,7 @@ rebuild_header_meta( IMAGE *im, xmlNode *i )
 			g_value_init( &value, gtype );
 			if( !g_value_transform( &save_value, &value ) ) {
 				g_value_unset( &save_value );
-				vips_error( "im__readhist", 
+				vips_error( "VipsImage", 
 					"%s", _( "error transforming from "
 					"save format" ) );
 				return( -1 );
@@ -639,7 +639,7 @@ set_prop( xmlNode *node, const char *name, const char *fmt, ... )
         va_end( ap );
 
         if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
-                vips_error( "im_writehist", _( "unable to set property \"%s\" "
+                vips_error( "VipsImage", _( "unable to set property \"%s\" "
                         "to value \"%s\"." ),
                         name, value );
                 return( -1 );
@@ -686,7 +686,7 @@ save_fields_meta( Meta *meta, xmlNode *node )
 
 		g_value_init( &save_value, IM_TYPE_SAVE_STRING );
 		if( !g_value_transform( &meta->value, &save_value ) ) {
-			vips_error( "im__writehist", "%s", 
+			vips_error( "VipsImage", "%s", 
 				_( "error transforming to save format" ) );
 			return( node );
 		}
@@ -734,8 +734,7 @@ im__write_extension_block( IMAGE *im, void *buf, int size )
 	if( (length = im_file_length( im->fd )) == -1 )
 		return( -1 );
 	if( length - psize < 0 ) {
-		vips_error( "im__write_extension_block",
-			"%s", _( "file has been truncated" ) );
+		vips_error( "VipsImage", "%s", _( "file has been truncated" ) );
 		return( -1 );
 	}
 
@@ -849,7 +848,7 @@ im__writehist( IMAGE *im )
 			NULL, (xmlChar *) "root", NULL )) ||
                 set_sprop( doc->children, "xmlns", namespace ) ||
 		save_fields( im, doc->children ) ) {
-		vips_error( "im__writehist", "%s", _( "xml save error" ) );
+		vips_error( "VipsImage", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
                 return( -1 );
         }
@@ -858,7 +857,7 @@ im__writehist( IMAGE *im )
 	 */
 	xmlDocDumpMemory( doc, (xmlChar **) ((char *) &dump), &dump_size );
 	if( !dump ) {
-		vips_error( "im__writehist", "%s", _( "xml save error" ) );
+		vips_error( "VipsImage", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
                 return( -1 );
 	}
@@ -881,7 +880,7 @@ im__writehist( IMAGE *im )
 
 	xmlDocDumpMemory( doc, (xmlChar **) &dump2, &dump_size2 );
 	if( !dump2 ) {
-		vips_error( "im__writehist", "%s", _( "xml save error" ) );
+		vips_error( "VipsImage", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
 		xmlFree( dump );
                 return( -1 );
@@ -916,7 +915,7 @@ vips_image_open_input( VipsImage *image )
 		return( -1 );
 	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
 		im__read_header_bytes( image, header ) ) {
-		vips_error_system( errno, "vips_open_input", 
+		vips_error_system( errno, "VipsImage", 
 			_( "unable to read header for \"%s\"" ),
 			image->filename );
 		return( -1 );
@@ -929,7 +928,7 @@ vips_image_open_input( VipsImage *image )
 		return( -1 );
 	image->file_length = rsize;
 	if( psize > rsize ) 
-		vips_warn( "vips_open_input", 
+		vips_warn( "VipsImage", 
 			_( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
 
@@ -942,7 +941,7 @@ vips_image_open_input( VipsImage *image )
 	 * harmless.
 	 */
 	if( im__readhist( image ) ) {
-		vips_warn( "vips_open_input", _( "error reading XML: %s" ),
+		vips_warn( "VipsImage", _( "error reading XML: %s" ),
 			vips_error_buffer() );
 		vips_error_clear();
 	}
@@ -961,7 +960,7 @@ vips_image_open_output( VipsImage *image )
 
 		if( (image->fd = open( image->filename, 
 			MODE_WRITE, 0666 )) < 0 ) {
-			vips_error_system( errno, "vips_image_open_output", 
+			vips_error_system( errno, "VipsImage", 
 				_( "unable to write to \"%s\"" ), 
 				image->filename );
 			return( -1 );

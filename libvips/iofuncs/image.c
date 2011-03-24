@@ -806,12 +806,10 @@ typedef struct {
 /* From "written" callback: invoke a delayed save.
  */
 static void
-vips_image_save_cb( VipsImage *image, SaveBlock *sb )
+vips_image_save_cb( VipsImage *image, int *result, SaveBlock *sb )
 {
-	/* FIXME ... what can we do with this error return?
-	 */
 	if( sb->save_fn( image, sb->filename ) )
-		;
+		*result = -1;
 }
 
 static void
@@ -985,8 +983,7 @@ vips_image_build( VipsObject *object )
 		/* Check parameters.
 		 */
 		if( image->sizeof_header < 0 ) {
-			vips_error( "vips_image_open_raw", 
-				"%s", _( "bad parameters" ) );
+			vips_error( "VipsImage", "%s", _( "bad parameters" ) );
 			return( -1 );
 		}
 
@@ -1012,7 +1009,7 @@ vips_image_build( VipsObject *object )
 		 */
 		if( image->file_length < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
 			vips_error( "VipsImage", 
-				_( "unable to open %s: file too short" ), 
+				_( "unable to open \"%s\", file too short" ), 
 				image->filename );
 			return( -1 );
 		}
@@ -1207,30 +1204,34 @@ vips_image_class_init( VipsImageClass *class )
 		G_SIGNAL_RUN_LAST,
 		G_STRUCT_OFFSET( VipsImageClass, preeval ), 
 		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
+		g_cclosure_marshal_VOID__POINTER,
+		G_TYPE_NONE, 1,
+		G_TYPE_POINTER );
 	vips_image_signals[SIG_EVAL] = g_signal_new( "eval",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
 		G_STRUCT_OFFSET( VipsImageClass, eval ), 
 		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
+		g_cclosure_marshal_VOID__POINTER,
+		G_TYPE_NONE, 1,
+		G_TYPE_POINTER );
 	vips_image_signals[SIG_POSTEVAL] = g_signal_new( "posteval",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
 		G_STRUCT_OFFSET( VipsImageClass, posteval ), 
 		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
+		g_cclosure_marshal_VOID__POINTER,
+		G_TYPE_NONE, 1,
+		G_TYPE_POINTER );
 
 	vips_image_signals[SIG_WRITTEN] = g_signal_new( "written",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		G_STRUCT_OFFSET( VipsImageClass, written ), 
 		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
-		G_TYPE_NONE, 0 );
+		g_cclosure_marshal_VOID__POINTER,
+		G_TYPE_NONE, 1,
+		G_TYPE_POINTER );
 
 	vips_image_signals[SIG_INVALIDATE] = g_signal_new( "invalidate",
 		G_TYPE_FROM_CLASS( class ),
@@ -1257,15 +1258,20 @@ vips_image_init( VipsImage *image )
 	image->sizeof_header = IM_SIZEOF_HEADER;
 }
 
-void
+int
 vips_image_written( VipsImage *image )
 {
+	int result;
+
 #ifdef VIPS_DEBUG
 	printf( "vips_image_written: " );
 	vips_object_print( VIPS_OBJECT( image ) );
 #endif /*VIPS_DEBUG*/
 
-	g_signal_emit( image, vips_image_signals[SIG_WRITTEN], 0 );
+	result = 0;
+	g_signal_emit( image, vips_image_signals[SIG_WRITTEN], 0, &result );
+
+	return( result );
 }
 
 void
@@ -1398,7 +1404,7 @@ vips_image_get_kill( VipsImage *image )
 	/* Has kill been set for this image? If yes, abort evaluation.
 	 */
 	if( image->kill ) 
-		vips_error( "vips_image_test_kill", 
+		vips_error( "VipsImage", 
 			_( "killed for image \"%s\"" ), image->filename );
 
 	return( image->kill );
@@ -1818,8 +1824,7 @@ vips__image_write_prepare( VipsImage *image )
 		break;
 
 	default:
-		vips_error( "im_setupout", 
-			"%s", _( "bad image descriptor" ) );
+		vips_error( "VipsImage", "%s", _( "bad image descriptor" ) );
 		return( -1 );
 	}
 
@@ -1869,7 +1874,7 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 		break;
 
 	default:
-		vips_error( "im_writeline", 
+		vips_error( "VipsImage", 
 			_( "unable to output to a %s image" ),
 			VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, 
 				image->dtype ) );
@@ -1886,7 +1891,8 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	 */
 	if( ypos == image->Ysize - 1 ) {
 		vips_image_posteval( image );
-		vips_image_written( image );
+		if( vips_image_written( image ) )
+			return( -1 );
 	}
 
 	return( 0 );

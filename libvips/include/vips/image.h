@@ -286,8 +286,9 @@ typedef struct _VipsImageClass {
 
 	/* An image has been written to. 
 	 * Used by eg. im_open("x.jpg", "w") to do the final write to jpeg.
+	 * Set *result to non-zero to indicate an error on write.
 	 */
-	void (*written)( VipsImage *image );
+	void (*written)( VipsImage *image, int *result );
 
 	/* An image has been modified in some way and caches all
 	 * need dropping. 
@@ -341,7 +342,7 @@ extern const size_t vips__image_sizeof_bandformat[];
 	 (X) * VIPS_IMAGE_SIZEOF_PEL( I ))
 #endif /*VIPS_DEBUG*/
 
-void vips_image_written( VipsImage *image );
+int vips_image_written( VipsImage *image );
 void vips_image_invalidate_all( VipsImage *image );
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, int w, int h );
