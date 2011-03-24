@@ -1324,6 +1324,24 @@ vips_progress_add( VipsImage *image )
 }
 
 void
+vips_progress_update( VipsProgress *progress, int w, int h )
+{
+	float prop;
+
+	g_assert( progress );
+
+	progress->run = g_timer_elapsed( progress->start, NULL );
+	progress->npels += w * h;
+	prop = (float) progress->npels / (float) progress->tpels;
+	progress->percent = 100 * prop;
+
+	/* Don't estiomate eta until we are 10% in.
+	 */
+	if( prop > 0.1 ) 
+		progress->eta = (1.0 / prop) * progress->run - progress->run;
+}
+
+void
 vips_image_preeval( VipsImage *image )
 {
 	if( image->progress_signal ) {
@@ -1332,6 +1350,12 @@ vips_image_preeval( VipsImage *image )
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
 
+		(void) vips_progress_add( image );
+
+		/* For vips7 compat, we also have to make sure ->time on the
+		 * image that was originally marked with 
+		 * vips_image_set_progress() is valid.
+		 */
 		(void) vips_progress_add( image->progress_signal );
 
 		g_signal_emit( image->progress_signal, 
@@ -1346,25 +1370,21 @@ void
 vips_image_eval( VipsImage *image, int w, int h )
 {
 	if( image->progress_signal ) {
-		VipsProgress *progress = image->progress_signal->time;
-		float prop;
-
 		VIPS_DEBUG_MSG( "vips_image_eval: %p\n", image );
 
-		g_assert( progress );
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
 
-		progress->run = g_timer_elapsed( progress->start, NULL );
-		progress->npels += w * h;
-		prop = (float) progress->npels / (float) progress->tpels;
-		progress->percent = 100 * prop;
-		if( prop > 0.1 ) 
-			progress->eta = (1.0 / prop) * progress->run - 
-				progress->run;
+		vips_progress_update( image->time, w, h );
+
+		/* For vips7 compat, update the ->time on the signalling image
+		 * too, even though it may have a different width/height to
+		 * the image we are actually generating.
+		 */
+		vips_progress_update( image->progress_signal->time, w, h );
 
 		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_EVAL], 0, progress );
+			vips_image_signals[SIG_EVAL], 0, image->time );
 	}
 }
 
