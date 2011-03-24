@@ -10,8 +10,7 @@ libiofuncs_la_SOURCES = \
 	error.c \
 	image.c \
 	vips.c \
-	im_demand_hint.c \
-	im_generate.c \
+	generate.c \
 	im_mapfile.c \
 	sinkmemory.c \
 	sinkscreen.c \

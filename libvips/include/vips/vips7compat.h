@@ -281,6 +281,9 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_updatehist vips_image_history_args
 #define im_history_get vips_image_get_history
 
+#define im_demand_hint vips_demand_hint
+#define im_demand_hint_array vips_demand_hint_array
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

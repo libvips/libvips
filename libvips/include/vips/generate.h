@@ -56,8 +56,9 @@ int im_iterate( VipsImage *im,
 	void *a, void *b
 );
 
-int im_demand_hint_array( VipsImage *im, im_demand_type hint, VipsImage **in );
-int im_demand_hint( VipsImage *im, im_demand_type hint, ... )
+int vips_demand_hint_array( VipsImage *image, 
+	VipsDemandStyle hint, VipsImage **in );
+int vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
 	__attribute__((sentinel));
 
 /* Buffer processing.

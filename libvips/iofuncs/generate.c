@@ -457,3 +457,241 @@ im_generate( IMAGE *im,
         return( 0 );
 }
 
+/* Max number of images we can handle.
+ */
+#define MAX_IMAGES (1000)
+
+/* Make a upstream/downstream link. upstream is one of downstream's inputs.
+ */
+static void 
+vips__link_make( VipsImage *image_up, VipsImage *image_down )
+{
+	g_assert( image_up );
+	g_assert( image_down );
+
+	image_up->downstream = 
+		g_slist_prepend( image_up->downstream, image_down );
+	image_down->upstream = 
+		g_slist_prepend( image_down->upstream, image_up );
+
+	/* Propogate the progress indicator.
+	 */
+	if( image_up->progress_signal && 
+		!image_down->progress_signal ) 
+		image_down->progress_signal = image_up->progress_signal;
+}
+
+static void *
+vips__link_break( VipsImage *image_up, VipsImage *image_down )
+{
+	g_assert( image_up );
+	g_assert( image_down );
+	g_assert( g_slist_find( image_up->downstream, image_down ) );
+	g_assert( g_slist_find( image_down->upstream, image_up ) );
+
+	image_up->downstream = 
+		g_slist_remove( image_up->downstream, image_down );
+	image_down->upstream = 
+		g_slist_remove( image_down->upstream, image_up );
+
+	/* Unlink the progress chain.
+	 */
+	if( image_down->progress_signal && 
+		image_down->progress_signal == image_up->progress_signal ) 
+		image_down->progress_signal = NULL;
+
+	return( NULL );
+}
+
+static void *
+vips__link_break_rev( VipsImage *image_down, VipsImage *image_up )
+{
+	return( vips__link_break( image_up, image_down ) );
+}
+
+/* An VipsImage is going ... break all links.
+ */
+void
+vips__link_break_all( VipsImage *image )
+{
+	im_slist_map2( image->upstream, 
+		(VSListMap2Fn) vips__link_break, image, NULL );
+	im_slist_map2( image->downstream, 
+		(VSListMap2Fn) vips__link_break_rev, image, NULL );
+
+	g_assert( !image->upstream );
+	g_assert( !image->downstream );
+}
+
+static void *
+vips__link_mapp( VipsImage *image, 
+	VSListMap2Fn fn, int *serial, void *a, void *b )
+{
+	void *res;
+
+	/* Loop?
+	 */
+	if( image->serial == *serial )
+		return( NULL );
+	image->serial = *serial;
+
+	if( (res = fn( image, a, b )) )
+		return( res );
+
+	return( im_slist_map4( image->downstream,
+		(VSListMap4Fn) vips__link_mapp, fn, serial, a, b ) );
+}
+
+static void *
+vips__link_map_cb( VipsImage *image, GSList **images )
+{
+	*images = g_slist_prepend( *images, image );
+
+	return( NULL );
+}
+
+/* Apply a function to an image and all downstream images, direct and indirect. 
+ */
+void *
+vips__link_map( VipsImage *image, VSListMap2Fn fn, void *a, void *b )
+{
+	static int serial = 0;
+
+	GSList *images;
+	GSList *p;
+	void *result;
+
+	/* The function might do anything, including removing images
+	 * or invalidating other images, so we can't trigger them from within 
+	 * the image loop. Instead we collect a list of images, ref them,
+	 * run the functions, and unref.
+	 */
+
+	serial += 1;
+	images = NULL;
+	vips__link_mapp( image, 
+		(VSListMap2Fn) vips__link_map_cb, &serial, &images, NULL );
+
+	for( p = images; p; p = p->next ) 
+		g_object_ref( p->data );
+	result = im_slist_map2( images, fn, a, b );
+	for( p = images; p; p = p->next ) 
+		g_object_unref( p->data );
+	g_slist_free( images );
+
+	return( result );
+}
+
+/**
+ * vips_demand_hint_array: 
+ * @image: image to set hint for
+ * @hint: hint for this image
+ * @in: array of input images to this operation
+ *
+ * Operations can set demand hints, that is, hints to the VIPS IO system about
+ * the type of region geometry this operation works best with. For example,
+ * operations which transform coordinates will usually work best with
+ * %IM_SMALLTILE, operations which work on local windows of pixels will like
+ * %IM_FATSTRIP.
+ *
+ * VIPS uses the list of input images to build the tree of operations it needs
+ * for the cache invalidation system. You have to call this function, or its
+ * varargs friend vips_demand_hint().
+ *
+ * See also: vips_demand_hint(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int 
+vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
+{
+	int i, len, nany;
+	VipsDemandStyle set_hint;
+
+	/* How many input images are there? And how many are IM_ANY?
+	 */
+	for( i = 0, len = 0, nany = 0; in[i]; i++, len++ )
+		if( in[i]->dhint == VIPS_DEMAND_STYLE_ANY )
+			nany++;
+
+	set_hint = hint;
+	if( len == 0 ) 
+		/* No input images? Just set the requested hint. We don't 
+		 * force ANY, since the operation might be something like 
+		 * tiled read of an EXR image, where we certainly don't want 
+		 * ANY.
+		 */
+		;
+	else if( nany == len ) 
+		/* Special case: if all the inputs are IM_ANY, then output can 
+		 * be IM_ANY regardless of what this function wants. 
+		 */
+		set_hint = VIPS_DEMAND_STYLE_ANY;
+	else
+		/* Find the most restrictive of all the hints available to us.
+		 */
+		for( i = 0; i < len; i++ )
+			set_hint = (VipsDemandStyle) VIPS_MIN( 
+				(int) set_hint, (int) in[i]->dhint );
+
+	image->dhint = set_hint;
+
+#ifdef DEBUG
+        printf( "vips_demand_hint_array: set dhint for \"%s\" to %s\n",
+		im->filename, 
+		VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, image->dhint ) );
+	printf( "\toperation requested %s\n", 
+		VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, hint ) );
+	printf( "\tinputs were:\n" );
+	printf( "\t" );
+	for( i = 0; in[i]; i++ )
+		printf( "%s ", VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, 
+			in[i]->dhint ) );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	/* im depends on all these ims.
+	 */
+	for( i = 0; i < len; i++ )
+		vips__link_make( in[i], image );
+
+	/* Set a flag on the image to say we remember to call this thing.
+	 * im_generate() and friends check this.
+	 */
+	image->hint_set = TRUE;
+
+	return( 0 );
+}
+
+/**
+ * vips_demand_hint:
+ * @image: image to set hint for
+ * @hint: hint for this image
+ * @Varargs: %NULL-terminated list of input images to this operation
+ *
+ * Build an array and call vips_demand_hint_array().
+ *
+ * See also: vips_demand_hint(), im_generate().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int 
+vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
+{
+	va_list ap;
+	int i;
+	VipsImage *ar[MAX_IMAGES];
+
+	va_start( ap, hint );
+	for( i = 0; i < MAX_IMAGES && 
+		(ar[i] = va_arg( ap, VipsImage * )); i++ ) 
+		;
+	va_end( ap );
+	if( i == MAX_IMAGES ) {
+		vips_error( "vips_demand_hint", "%s", _( "too many images" ) );
+		return( -1 );
+	}
+
+	return( vips_demand_hint_array( image, hint, ar ) );
+}
+

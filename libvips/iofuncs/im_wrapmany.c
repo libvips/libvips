@@ -208,7 +208,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 	/* Hint demand style. Being a buffer processor, we are happiest with
 	 * thin strips.
 	 */
-        if( im_demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in ) )
+        if( vips_demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in ) )
                 return( -1 );
 
 	/* Generate!

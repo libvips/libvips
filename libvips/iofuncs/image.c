@@ -351,7 +351,7 @@ vips_image_finalize( GObject *gobject )
 
 	/* No more upstream/downstream links.
 	 */
-	im__link_break_all( image );
+	vips__link_break_all( image );
 
 	/* Any file mapping?
 	 */
@@ -776,7 +776,7 @@ vips_image_open_lazy( VipsImage *image,
 	 * to memory, sadly, so we can't suggest ANY.
 	 */
 	if( format->header( filename, image ) ||
-		im_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		vips_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
 	/* Then 'start' creates the real image and 'gen' paints 'out' with 
@@ -1290,7 +1290,7 @@ vips_image_invalidate_all_cb( VipsImage *image )
 void
 vips_image_invalidate_all( VipsImage *image )
 {
-	(void) im__link_map( image, 
+	(void) vips__link_map( image, 
 		(VSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
 }
 

@@ -132,8 +132,8 @@ typedef enum {
 VipsImage *im__convert_saveable( VipsImage *in, 
 	im__saveable_t saveable, int format_table[10] );
 
-void im__link_break_all( VipsImage *im );
-void *im__link_map( VipsImage *im, VSListMap2Fn fn, void *a, void *b );
+void vips__link_break_all( VipsImage *im );
+void *vips__link_map( VipsImage *im, VSListMap2Fn fn, void *a, void *b );
 
 GValue *im__gvalue_ref_string_new( const char *text );
 void im__gslist_gvalue_free( GSList *list );
