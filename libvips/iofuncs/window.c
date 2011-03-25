@@ -88,7 +88,7 @@ static int max_mmap_usage = 0;
 #endif /*DEBUG_TOTAL*/
 
 static int
-im_window_unmap( im_window_t *window )
+vips_window_unmap( VipsWindow *window )
 {
 	/* unmap the old window
 	 */
@@ -112,34 +112,34 @@ im_window_unmap( im_window_t *window )
 }
 
 static int
-im_window_free( im_window_t *window )
+vips_window_free( VipsWindow *window )
 {
 	assert( window->ref_count == 0 );
 
 #ifdef DEBUG
-	printf( "** im_window_free: window top = %d, height = %d (%p)\n",
+	printf( "** vips_window_free: window top = %d, height = %d (%p)\n",
 		window->top, window->height, window );
 #endif /*DEBUG*/
 
-	if( im_window_unmap( window ) )
+	if( vips_window_unmap( window ) )
 		return( -1 );
 
 	window->im = NULL;
 
-	im_free( window );
+	vips_free( window );
 
 	return( 0 );
 }
 
 int
-im_window_unref( im_window_t *window )
+vips_window_unref( VipsWindow *window )
 {
 	IMAGE *im = window->im;
 
 	g_mutex_lock( im->sslock );
 
 #ifdef DEBUG
-	printf( "im_window_unref: window top = %d, height = %d, count = %d\n",
+	printf( "vips_window_unref: window top = %d, height = %d, count = %d\n",
 		window->top, window->height, window->ref_count );
 #endif /*DEBUG*/
 
@@ -152,11 +152,11 @@ im_window_unref( im_window_t *window )
 		im->windows = g_slist_remove( im->windows, window );
 
 #ifdef DEBUG
-		printf( "im_window_unref: %d windows left\n",
+		printf( "vips_window_unref: %d windows left\n",
 			g_slist_length( im->windows ) );
 #endif /*DEBUG*/
 
-		if( im_window_free( window ) ) {
+		if( vips_window_free( window ) ) {
 			g_mutex_unlock( im->sslock );
 			return( -1 );
 		}
@@ -178,7 +178,7 @@ trace_mmap_usage( void )
 		int max = max_mmap_usage / (1024 * 1024);
 
 		if( total != last_total ) {
-			printf( "im_window_set: current mmap "
+			printf( "vips_window_set: current mmap "
 				"usage of ~%dMB (high water mark %dMB)\n", 
 				total, max );
 			last_total = total;
@@ -215,7 +215,7 @@ im_getpagesize()
 /* Map a window into a file.
  */
 static int
-im_window_set( im_window_t *window, int top, int height )
+vips_window_set( VipsWindow *window, int top, int height )
 {
 	int pagesize = im_getpagesize();
 
@@ -236,7 +236,7 @@ im_window_set( im_window_t *window, int top, int height )
 	/* Make sure we have enough file.
 	 */
 	if( end > window->im->file_length ) {
-		vips_error( "im_window_set", 
+		vips_error( "vips_window_set", 
 			_( "unable to read data for \"%s\", %s" ),
 			window->im->filename, _( "file has been truncated" ) );
 		return( -1 );
@@ -271,12 +271,12 @@ im_window_set( im_window_t *window, int top, int height )
 
 /* Make a new window.
  */
-static im_window_t *
-im_window_new( IMAGE *im, int top, int height )
+static VipsWindow *
+vips_window_new( IMAGE *im, int top, int height )
 {
-	im_window_t *window;
+	VipsWindow *window;
 
-	if( !(window = VIPS_NEW( NULL, im_window_t )) )
+	if( !(window = VIPS_NEW( NULL, VipsWindow )) )
 		return( NULL );
 
 	window->ref_count = 0;
@@ -287,8 +287,8 @@ im_window_new( IMAGE *im, int top, int height )
 	window->baseaddr = NULL;
 	window->length = 0;
 
-	if( im_window_set( window, top, height ) ) {
-		im_window_free( window );
+	if( vips_window_set( window, top, height ) ) {
+		vips_window_free( window );
 		return( NULL );
 	}
 
@@ -296,7 +296,7 @@ im_window_new( IMAGE *im, int top, int height )
 	window->ref_count += 1;
 
 #ifdef DEBUG
-	printf( "** im_window_new: window top = %d, height = %d (%p)\n",
+	printf( "** vips_window_new: window top = %d, height = %d (%p)\n",
 		window->top, window->height, window );
 #endif /*DEBUG*/
 
@@ -311,7 +311,7 @@ typedef struct {
 } request_t;
 
 static void *
-im_window_fits( im_window_t *window, request_t *req )
+vips_window_fits( VipsWindow *window, request_t *req )
 {
 	if( window->top <= req->top && 
 		window->top + window->height >= req->top + req->height )
@@ -322,22 +322,22 @@ im_window_fits( im_window_t *window, request_t *req )
 
 /* Find an existing window that fits within top/height and return a ref.
  */
-static im_window_t *
-im_window_find( IMAGE *im, int top, int height )
+static VipsWindow *
+vips_window_find( IMAGE *im, int top, int height )
 {
 	request_t req;
-	im_window_t *window;
+	VipsWindow *window;
 
 	req.top = top;
 	req.height = height;
 	window = im_slist_map2( im->windows, 
-		(VSListMap2Fn) im_window_fits, &req, NULL );
+		(VSListMap2Fn) vips_window_fits, &req, NULL );
 
 	if( window ) {
 		window->ref_count += 1;
 
 #ifdef DEBUG
-		printf( "im_window_find: ref window top = %d, height = %d, "
+		printf( "vips_window_find: ref window top = %d, height = %d, "
 			"count = %d\n",
 			top, height, window->ref_count );
 #endif /*DEBUG*/
@@ -348,14 +348,14 @@ im_window_find( IMAGE *im, int top, int height )
 
 /* Return a ref to a window that encloses top/height.
  */
-im_window_t *
-im_window_ref( IMAGE *im, int top, int height )
+VipsWindow *
+vips_window_ref( IMAGE *im, int top, int height )
 {
-	im_window_t *window;
+	VipsWindow *window;
 
 	g_mutex_lock( im->sslock );
 
-	if( !(window = im_window_find( im, top, height )) ) {
+	if( !(window = vips_window_find( im, top, height )) ) {
 		/* No existing window ... make a new one. Ask for a larger
 		 * window than we strictly need. There's no point making tiny
 		 * windows.
@@ -370,7 +370,7 @@ im_window_ref( IMAGE *im, int top, int height )
 		top = VIPS_CLIP( 0, top, im->Ysize - 1 );
 		height = VIPS_CLIP( 0, height, im->Ysize - top );
 
-		if( !(window = im_window_new( im, top, height )) ) {
+		if( !(window = vips_window_new( im, top, height )) ) {
 			g_mutex_unlock( im->sslock );
 			return( NULL );
 		}
@@ -382,9 +382,9 @@ im_window_ref( IMAGE *im, int top, int height )
 }
 
 void
-im_window_print( im_window_t *window )
+vips_window_print( VipsWindow *window )
 {
-	printf( "im_window_t: %p ref_count = %d, ", window, window->ref_count );
+	printf( "VipsWindow: %p ref_count = %d, ", window, window->ref_count );
 	printf( "im = %p, ", window->im );
 	printf( "top = %d, ", window->top );
 	printf( "height = %d, ", window->height );

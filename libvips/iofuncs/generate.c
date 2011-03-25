@@ -416,7 +416,7 @@ vips_stop_many( void *seq, void *a, void *b )
 
 		for( i = 0; ar[i]; i++ )
 			g_object_unref( ar[i] );
-		im_free( (char *) ar );
+		vips_free( (char *) ar );
 	}
 
 	return( 0 );

@@ -104,7 +104,7 @@ static int next_trace = 0;
 #endif /*DEBUGM*/
 
 /**
- * IM_NEW:
+ * VIPS_NEW:
  * @IM: allocate memory local to @IM, or %NULL for no auto-free
  * @T: type of thing to allocate
  *
@@ -112,7 +112,7 @@ static int next_trace = 0;
  */
 
 /**
- * IM_ARRAY:
+ * VIPS_ARRAY:
  * @IM: allocate memory local to @IM, or %NULL for no auto-free
  * @N: number of @T 's to allocate
  * @T: type of thing to allocate
@@ -121,20 +121,20 @@ static int next_trace = 0;
  */
 
 /**
- * im_free:
+ * vips_free:
  * @s: memory to free
  *
  * VIPS free function. VIPS tries to use this instead of free(). It always
  * returns zero, so it can be used as a callback handler. 
  *
  * Only use it to free
- * memory that was previously allocated with im_malloc() with a %NULL first
+ * memory that was previously allocated with vips_malloc() with a %NULL first
  * argument.
  *
  * Returns: 0
  */
 int
-im_free( void *s )
+vips_free( void *s )
 {
 #ifdef DEBUGM
 {
@@ -179,14 +179,14 @@ im_free( void *s )
 }
 
 static void
-im_malloc_cb( VipsImage *image, char *buf )
+vips_malloc_cb( VipsImage *image, char *buf )
 {
-	im_free( buf );
+	vips_free( buf );
 }
 
 /**
- * im_malloc:
- * @im: allocate memory local to this #IMAGE, or %NULL
+ * vips_malloc:
+ * @image: allocate memory local to this #VipsImage, or %NULL
  * @size: number of bytes to allocate
  *
  * Malloc local to @im, that is, the memory will be automatically 
@@ -201,7 +201,7 @@ im_malloc_cb( VipsImage *image, char *buf )
  * Returns: a pointer to the allocated memory, or %NULL on error.
  */
 void *
-im_malloc( IMAGE *im, size_t size )
+vips_malloc( VipsImage *image, size_t size )
 {
         void *buf;
 
@@ -249,7 +249,7 @@ im_malloc( IMAGE *im, size_t size )
 
 	next_trace += 1;
 	if( next_trace > trace_freq ) {
-		printf( "im_malloc: %d, %d allocs, total %.3gM, "
+		printf( "vips_malloc: %d, %d allocs, total %.3gM, "
 			"high water %.3gM\n", 
 			size, 
 			total_allocs,
@@ -266,9 +266,24 @@ im_malloc( IMAGE *im, size_t size )
 		printf( "woah! big!\n" );
 #endif /*DEBUGM*/
  
-        if( im )
-		g_signal_connect( im, "close", 
-			G_CALLBACK( im_malloc_cb ), buf );
+        if( image )
+		g_signal_connect( image, "close", 
+			G_CALLBACK( vips_malloc_cb ), buf );
 
         return( buf );
+}
+
+/* strdup local to a descriptor.
+ */
+char *
+vips_strdup( VipsImage *image, const char *str )
+{
+	int l = strlen( str );
+	char *buf;
+
+	if( !(buf = (char *) vips_malloc( image, l + 1 )) )
+		return( NULL );
+	strcpy( buf, str );
+
+	return( buf );
 }

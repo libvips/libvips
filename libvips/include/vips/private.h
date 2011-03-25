@@ -70,54 +70,54 @@ typedef struct {
 
 	PEL *baseaddr;		/* Base of window */
 	size_t length;		/* Size of window */
-} im_window_t;
+} VipsWindow;
 
 /* window manager.
  */
-im_window_t *im_window_ref( struct _VipsImage *im, int top, int height );
-int im_window_unref( im_window_t *window );
-void im_window_print( im_window_t *window );
+VipsWindow *vips_window_ref( struct _VipsImage *im, int top, int height );
+int vips_window_unref( VipsWindow *window );
+void vips_window_print( VipsWindow *window );
 
 /* Per-thread buffer cache. Held in a GPrivate.
  */
-typedef struct im__buffer_cache_t {
-	GHashTable *hash;	/* Hash to im_buffer_cache_list_t* */
+typedef struct {
+	GHashTable *hash;	/* Hash to VipsBufferCacheList* */
 	GThread *thread;	/* Just for sanity checking */
-} im_buffer_cache_t;
+} VipsBufferCache;
 
-/* Per-image buffer cache. Hash to this from im_buffer_cache_t.
+/* Per-image buffer cache. Hash to this from VipsBufferCache.
  * We can't store the GSList directly in the hash table, as GHashTable lacks an
  * update operation and we'd need to _remove() and _insert() on every list
  * operation.
  */
-typedef struct im__buffer_cache_list_t {
-	GSList *buffers;	/* GSList of im_buffer_t* */
+typedef struct {
+	GSList *buffers;	/* GSList of VipsBuffer* */
 	GThread *thread;	/* Just for sanity checking */
 	struct _VipsImage *im;
-	im_buffer_cache_t *cache;
-} im_buffer_cache_list_t;
+	VipsBufferCache *cache;
+} VipsBufferCacheList;
 
 /* What we track for each pixel buffer. 
  */
-typedef struct im__buffer_t {
+typedef struct {
 	int ref_count;		/* # of regions referencing us */
 	struct _VipsImage *im;	/* VipsImage we are attached to */
 
 	VipsRect area;		/* Area this pixel buffer covers */
 	gboolean done;		/* Calculated and in cache */
-	im_buffer_cache_t *cache;
+	VipsBufferCache *cache;
 	char *buf;		/* Private malloc() area */
 	size_t bsize;		/* Size of private malloc() */
-} im_buffer_t;
+} VipsBuffer;
 
-void im_buffer_done( im_buffer_t *buffer );
-void im_buffer_undone( im_buffer_t *buffer );
-void im_buffer_unref( im_buffer_t *buffer );
-im_buffer_t *im_buffer_new( struct _VipsImage *im, VipsRect *area );
-im_buffer_t *im_buffer_ref( struct _VipsImage *im, VipsRect *area );
-im_buffer_t *im_buffer_unref_ref( im_buffer_t *buffer, 
+void vips_buffer_done( VipsBuffer *buffer );
+void vips_buffer_undone( VipsBuffer *buffer );
+void vips_buffer_unref( VipsBuffer *buffer );
+VipsBuffer *vips_buffer_new( struct _VipsImage *im, VipsRect *area );
+VipsBuffer *vips_buffer_ref( struct _VipsImage *im, VipsRect *area );
+VipsBuffer *vips_buffer_unref_ref( VipsBuffer *buffer, 
 	struct _VipsImage *im, VipsRect *area );
-void im_buffer_print( im_buffer_t *buffer );
+void vips_buffer_print( VipsBuffer *buffer );
 
 /* Sections of region.h that are private to VIPS.
  */

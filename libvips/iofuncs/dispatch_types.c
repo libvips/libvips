@@ -182,7 +182,7 @@ imagevec_dest( im_object obj )
 				iv->vec[i] = NULL;
 			}
 
-		im_free( iv->vec );
+		vips_free( iv->vec );
 		iv->vec = NULL;
 		iv->n = 0;
 	}
@@ -245,7 +245,7 @@ mask_init( im_object *obj, char *str )
 
 	/* Install string, clear mask.
 	 */
-	if( str && !(mo->name = im_strdup( NULL, str )) ) 
+	if( str && !(mo->name = vips_strdup( NULL, str )) ) 
 		return( -1 );
 	mo->mask = NULL;
 
@@ -290,7 +290,7 @@ dmask_dest( im_object obj )
 	im_mask_object *mo = obj;
 
 	if( mo->name ) {
-		im_free( mo->name );
+		vips_free( mo->name );
 		mo->name = NULL;
 	}
 	if( mo->mask ) {
@@ -309,7 +309,7 @@ imask_dest( im_object obj )
 	im_mask_object *mo = obj;
 
 	if( mo->name ) {
-		im_free( mo->name );
+		vips_free( mo->name );
 		mo->name = NULL;
 	}
 	if( mo->mask ) {
@@ -425,7 +425,7 @@ doublevec_dest( im_object obj )
 	im_doublevec_object *dv = obj;
 
 	if( dv->vec ) {
-		im_free( dv->vec );
+		vips_free( dv->vec );
 		dv->vec = NULL;
 		dv->n = 0;
 	}
@@ -510,7 +510,7 @@ intvec_dest( im_object obj )
 	im_intvec_object *iv = obj;
 
 	if( iv->vec ) {
-		im_free( iv->vec );
+		vips_free( iv->vec );
 		iv->vec = NULL;
 		iv->n = 0;
 	}
@@ -623,7 +623,7 @@ im_type_desc im__input_int = {
 static int
 input_string_init( im_object *obj, char *str )
 {
-	if( !(*obj = (im_object) im_strdup( NULL, str )) ) 
+	if( !(*obj = (im_object) vips_strdup( NULL, str )) ) 
 		return( -1 );
 
 	return( 0 );
@@ -636,7 +636,7 @@ im_type_desc im__input_string = {
 	0, 				/* Memory to allocate */
 	IM_TYPE_ARG,			/* It requires a command-line arg */
 	input_string_init,		/* Init function */
-	im_free				/* Destroy function */
+	vips_free				/* Destroy function */
 };
 
 /* Output string type.
@@ -646,7 +646,7 @@ im_type_desc im__output_string = {
 	0,				/* Memory to allocate */
 	IM_TYPE_OUTPUT,			/* It's an output argument */
 	NULL,				/* Init function */
-	im_free				/* Destroy function */
+	vips_free				/* Destroy function */
 };
 
 /* Output double type.

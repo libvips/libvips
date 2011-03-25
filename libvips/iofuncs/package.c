@@ -101,7 +101,7 @@ guess_prefix_vec( im_object *argv )
 		return( -1 );
 	}
 
-	argv[2] = im_strdup( NULL, prefix );
+	argv[2] = vips_strdup( NULL, prefix );
 
 	return( 0 );
 }
@@ -137,7 +137,7 @@ guess_libdir_vec( im_object *argv )
 		return( -1 );
 	}
 
-	argv[2] = im_strdup( NULL, libdir );
+	argv[2] = vips_strdup( NULL, libdir );
 
 	return( 0 );
 }
@@ -293,7 +293,7 @@ history_get_vec( im_object *argv )
 	const char *str;
 
 	if( !(str = im_history_get( (IMAGE *) argv[0] )) ||
-		!(*out = im_strdup( NULL, str )) )
+		!(*out = vips_strdup( NULL, str )) )
 		return( -1 );
 
 	return( 0 );
@@ -382,7 +382,7 @@ static im_arg_desc version_string_args[] = {
 static int
 version_string_vec( im_object *argv )
 {
-	if( !(argv[0] = im_strdup( NULL, vips_version_string() )) )
+	if( !(argv[0] = vips_strdup( NULL, vips_version_string() )) )
 		return( -1 );
 
 	return( 0 );
@@ -595,7 +595,7 @@ plugin_free( Plugin *plug )
 	}
 	VIPS_FREE( plug->name );
 	plug->pack = NULL;
-	im_free( plug );
+	vips_free( plug );
 
 	plugin_list = g_slist_remove( plugin_list, plug );
 
@@ -626,7 +626,7 @@ im_load_plugin( const char *name )
 
 	/* Attach name.
 	 */
-	if( !(plug->name = im_strdup( NULL, name )) ) {
+	if( !(plug->name = vips_strdup( NULL, name )) ) {
 		plugin_free( plug );
 		return( NULL );
 	}
@@ -858,7 +858,7 @@ im_free_vargv( im_function *fn, im_object *vargv )
 			/* If there is local storage, free it.
 			 */
 			if( fn->argv[i].desc->size != 0 )
-				im_free( vargv[i] );
+				vips_free( vargv[i] );
 
 			/* NULL out pointer.
 			 */
@@ -887,7 +887,7 @@ im_allocate_vargv( im_function *fn, im_object *vargv )
 		int sz = fn->argv[i].desc->size;
 
 		if( sz != 0 )
-			if( !(vargv[i] = im_malloc( NULL, sz )) ) {
+			if( !(vargv[i] = vips_malloc( NULL, sz )) ) {
 				/* Free anything we did allocate.
 				 */
 				(void) im_free_vargv( fn, vargv );

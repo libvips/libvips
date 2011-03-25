@@ -322,10 +322,10 @@ read_chunk( int fd, gint64 offset, size_t length )
 
 	if( im__seek( fd, offset ) )
 		return( NULL );
-	if( !(buf = im_malloc( NULL, length + 1 )) )
+	if( !(buf = vips_malloc( NULL, length + 1 )) )
 		return( NULL );
 	if( read( fd, buf, length ) != (ssize_t) length ) {
-		im_free( buf );
+		vips_free( buf );
 		vips_error( "VipsImage", "%s", _( "unable to read history" ) );
 		return( NULL );
 	}
@@ -399,10 +399,10 @@ read_xml( IMAGE *im )
 	if( !(buf = im__read_extension_block( im, &size )) )
 		return( NULL );
 	if( !(doc = xmlParseMemory( buf, size )) ) {
-		im_free( buf );
+		vips_free( buf );
 		return( NULL );
 	}
-	im_free( buf );
+	vips_free( buf );
 	if( !(node = xmlDocGetRootElement( doc )) ||
 		!node->nsDef ||
 		!im_isprefix( NAMESPACE, (char *) node->nsDef->href ) ) {

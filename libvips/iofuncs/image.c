@@ -398,7 +398,7 @@ vips_image_finalize( GObject *gobject )
 		if( image->dtype == VIPS_IMAGE_SETBUF ) {
 			VIPS_DEBUG_MSG( "vips_image_finalize: "
 				"freeing buffer\n" );
-			im_free( image->data );
+			vips_free( image->data );
 			image->dtype = VIPS_IMAGE_NONE;
 		}
 
@@ -608,7 +608,7 @@ lazy_new( VipsImage *image,
 	lazy->real = NULL;
 	g_signal_connect( image, "close", G_CALLBACK( lazy_free_cb ), NULL );
 
-	if( !(lazy->filename = im_strdup( NULL, filename )) )
+	if( !(lazy->filename = vips_strdup( NULL, filename )) )
 		return( NULL );
 
 	return( lazy );
@@ -819,7 +819,7 @@ vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
 
 	if( (sb = VIPS_NEW( image, SaveBlock )) ) {
 		sb->save_fn = save_fn;
-		sb->filename = im_strdup( image, filename );
+		sb->filename = vips_strdup( image, filename );
 		g_signal_connect( image, "written", 
 			G_CALLBACK( vips_image_save_cb ), sb );
 	}
@@ -1841,7 +1841,7 @@ vips__image_write_prepare( VipsImage *image )
 		/* Allocate memory.
 		 */
 		if( !image->data ) 
-			if( !(image->data = im_malloc( NULL, 
+			if( !(image->data = vips_malloc( NULL, 
 				VIPS_IMAGE_SIZEOF_IMAGE( image ))) ) 
 				return( -1 );
 

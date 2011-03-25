@@ -209,7 +209,7 @@ tile_free( Tile *tile )
 	VIPS_DEBUG_MSG_AMBER( "tile_free\n" );
 
 	VIPS_UNREF( tile->region );
-	im_free( tile );
+	vips_free( tile );
 
 	return( NULL );
 }
@@ -241,7 +241,7 @@ render_free( Render *render )
 	VIPS_FREEF( g_slist_free, render->dirty );
 	VIPS_FREEF( g_hash_table_destroy, render->tiles );
 
-	im_free( render );
+	vips_free( render );
 
 #ifdef VIPS_DEBUG_AMBER
 	render_num_renders -= 1;

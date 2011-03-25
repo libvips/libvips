@@ -198,7 +198,7 @@ meta_free( Meta *meta )
 
 	g_value_unset( &meta->value );
 	VIPS_FREE( meta->field );
-	im_free( meta );
+	vips_free( meta );
 }
 
 static Meta *
@@ -212,7 +212,7 @@ meta_new( IMAGE *im, const char *field, GValue *value )
 	meta->field = NULL;
 	memset( &meta->value, 0, sizeof( GValue ) );
 
-	if( !(meta->field = im_strdup( NULL, field )) ) {
+	if( !(meta->field = vips_strdup( NULL, field )) ) {
 		meta_free( meta );
 		return( NULL );
 	}
@@ -782,7 +782,7 @@ area_unref( Area *area )
 	if( area->count == 0 && area->free_fn ) {
 		(void) area->free_fn( area->data, NULL );
 		area->free_fn = NULL;
-		im_free( area );
+		vips_free( area );
 
 #ifdef DEBUG
 		area_number -= 1;
@@ -964,10 +964,10 @@ im_ref_string_set( GValue *value, const char *str )
 
 	g_assert( G_VALUE_TYPE( value ) == IM_TYPE_REF_STRING );
 
-	if( !(str_copy = im_strdup( NULL, str )) )
+	if( !(str_copy = vips_strdup( NULL, str )) )
 		return( -1 );
-	if( !(area = area_new( (im_callback_fn) im_free, str_copy )) ) {
-		im_free( str_copy );
+	if( !(area = area_new( (im_callback_fn) vips_free, str_copy )) ) {
+		vips_free( str_copy );
 		return( -1 );
 	}
 
@@ -1141,9 +1141,9 @@ transform_blob_save_string( const GValue *src_value, GValue *dest_value )
 	char *b64;
 
 	blob = im_blob_get( src_value, &blob_length );
-	if( (b64 = im__b64_encode( blob, blob_length )) ) {
+	if( (b64 = vips__b64_encode( blob, blob_length )) ) {
 		im_save_string_set( dest_value, b64 );
-		im_free( b64 );
+		vips_free( b64 );
 	}
 }
 
@@ -1155,9 +1155,9 @@ transform_save_string_blob( const GValue *src_value, GValue *dest_value )
 	size_t blob_length;
 
 	b64 = im_save_string_get( src_value );
-	if( (blob = im__b64_decode( b64, &blob_length )) )
+	if( (blob = vips__b64_decode( b64, &blob_length )) )
 		im_blob_set( dest_value, 
-			(im_callback_fn) im_free, blob, blob_length );
+			(im_callback_fn) vips_free, blob, blob_length );
 }
 
 GType

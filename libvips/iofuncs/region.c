@@ -266,8 +266,8 @@ vips__region_stop( VipsRegion *region )
 static void
 vips_region_reset( VipsRegion *region )
 {
-	VIPS_FREEF( im_window_unref, region->window );
-	VIPS_FREEF( im_buffer_unref, region->buffer );
+	VIPS_FREEF( vips_window_unref, region->window );
+	VIPS_FREEF( vips_buffer_unref, region->buffer );
 	region->invalid = FALSE;
 }
 
@@ -378,7 +378,7 @@ vips__region_no_ownership( VipsRegion *region )
 
 	region->thread = NULL;
 	if( region->buffer )
-		im_buffer_undone( region->buffer );
+		vips_buffer_undone( region->buffer );
 
 	g_mutex_unlock( region->im->sslock );
 }
@@ -501,7 +501,7 @@ vips_region_buffer( VipsRegion *reg, VipsRect *r )
 	 */
 	if( reg->invalid ) {
 		vips_region_reset( reg );
-		if( !(reg->buffer = im_buffer_new( im, &clipped )) ) 
+		if( !(reg->buffer = vips_buffer_new( im, &clipped )) ) 
 			return( -1 );
 	}
 	else {
@@ -509,9 +509,9 @@ vips_region_buffer( VipsRegion *reg, VipsRect *r )
 		 * and new buffer ref in one call to reduce malloc/free 
 		 * cycling.
 		 */
-		VIPS_FREEF( im_window_unref, reg->window );
+		VIPS_FREEF( vips_window_unref, reg->window );
 		if( !(reg->buffer = 
-			im_buffer_unref_ref( reg->buffer, im, &clipped )) ) 
+			vips_buffer_unref_ref( reg->buffer, im, &clipped )) ) 
 			return( -1 );
 	}
 
@@ -586,7 +586,7 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 				clipped.top + clipped.height ) {
 			vips_region_reset( reg );
 
-			if( !(reg->window = im_window_ref( reg->im, 
+			if( !(reg->window = vips_window_ref( reg->im, 
 				clipped.top, clipped.height )) )
 				return( -1 );
 
@@ -800,7 +800,7 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 		/* Publish our results.
 		 */
 		if( reg->buffer )
-			im_buffer_done( reg->buffer );
+			vips_buffer_done( reg->buffer );
 	}
 
 	return( 0 );

@@ -80,11 +80,11 @@ typedef struct _VipsRegion {
 
 	/* Ref to the window we use for this region, if any.
 	 */
-	im_window_t *window;
+	VipsWindow *window;
 
 	/* Ref to the buffer we use for this region, if any.
 	 */
-	im_buffer_t *buffer;
+	VipsBuffer *buffer;
 
 	/* The image this region is on has changed and caches need to be
 	 * dropped.

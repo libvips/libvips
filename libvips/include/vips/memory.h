@@ -45,12 +45,12 @@ G_STMT_START { \
 } G_STMT_END
 
 /* Can't just use VIPS_FREEF(), we want the extra cast to void on the argument
- * to im_free() to make sure we can work for "const char *" variables.
+ * to vips_free() to make sure we can work for "const char *" variables.
  */
 #define VIPS_FREE( S ) \
 G_STMT_START { \
         if( S ) { \
-                (void) im_free( (void *) (S) ); \
+                (void) vips_free( (void *) (S) ); \
                 (S) = 0; \
         } \
 } G_STMT_END
@@ -63,17 +63,18 @@ G_STMT_START { \
                 if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
                         VIPS_FREE( S ); \
                         if( sst ) \
-                                (S) = im_strdup( NULL, sst ); \
+                                (S) = vips_strdup( NULL, sst ); \
                 } \
         } \
 } G_STMT_END
 
-#define VIPS_NEW( IM, T ) ((T *) im_malloc( (IM), sizeof( T )))
-#define VIPS_ARRAY( IM, N, T ) ((T *) im_malloc( (IM), (N) * sizeof( T )))
+#define VIPS_NEW( IM, T ) ((T *) vips_malloc( (IM), sizeof( T )))
+#define VIPS_ARRAY( IM, N, T ) ((T *) vips_malloc( (IM), (N) * sizeof( T )))
 
-void *im_malloc( VipsImage *im, size_t size );
-char *im_strdup( VipsImage *im, const char *str );
-int im_free( void *s );
+void *vips_malloc( VipsImage *image, size_t size );
+int vips_free( void *s );
+
+char *vips_strdup( VipsImage *image, const char *str );
 
 #ifdef __cplusplus
 }

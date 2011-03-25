@@ -449,7 +449,7 @@ extract_prefix( const char *dir, const char *name )
 	printf( "extract_prefix: found \"%s\"\n", vname );
 #endif /*DEBUG*/
 
-	return( im_strdup( NULL, vname ) );
+	return( vips_strdup( NULL, vname ) );
 }
 
 /* Search a path for a file ... we overwrite the PATH string passed in.

@@ -190,6 +190,9 @@ struct im_col_tab_disp *im_col_make_tables_RGB( VipsImage *im,
 	struct im_col_display *d );
 struct im_col_tab_disp *im_col_display_get_table( struct im_col_display *d );
 
+char *vips__b64_encode( const unsigned char *data, size_t data_length );
+unsigned char *vips__b64_decode( const char *buffer, size_t *data_length );
+
 void *vips__mmap( int fd, int writeable, size_t length, gint64 offset );
 int vips__munmap( void *start, size_t length );
 int vips_mapfile( VipsImage * );

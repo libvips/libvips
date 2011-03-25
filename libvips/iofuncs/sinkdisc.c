@@ -172,7 +172,7 @@ wbuffer_free( WriteBuffer *wbuffer )
 	im_semaphore_destroy( &wbuffer->go );
 	im_semaphore_destroy( &wbuffer->nwrite );
 	im_semaphore_destroy( &wbuffer->done );
-	im_free( wbuffer );
+	vips_free( wbuffer );
 }
 
 static void

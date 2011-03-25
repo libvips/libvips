@@ -168,10 +168,10 @@ im_slist_fold2( GSList *list, void *start, VSListFold2Fn fn, void *a, void *b )
 static void
 im_slist_free_all_cb( void * thing, void * dummy )
 {
-	im_free( thing );
+	vips_free( thing );
 }
 
-/* Free a g_slist of things which need im_free()ing.
+/* Free a g_slist of things which need vips_free()ing.
  */
 void
 im_slist_free_all( GSList *list )
@@ -274,21 +274,6 @@ im_strrstr( const char *haystack, const char *needle )
 			return( (char *) haystack + i );
 	
 	return( NULL );
-}
-
-/* strdup local to a descriptor.
- */
-char *
-im_strdup( IMAGE *im, const char *str )
-{
-	int l = strlen( str );
-	char *buf;
-
-	if( !(buf = (char *) im_malloc( im, l + 1 )) )
-		return( NULL );
-	strcpy( buf, str );
-
-	return( buf );
 }
 
 /* Test for string b ends string a. 
@@ -703,12 +688,12 @@ im__file_read( FILE *fp, const char *filename, unsigned int *length_out )
 	else {
 		/* Allocate memory and fill.    
 		 */
-		if( !(str = im_malloc( NULL, len + 1 )) )
+		if( !(str = vips_malloc( NULL, len + 1 )) )
 			return( NULL );
 		rewind( fp );
 		read = fread( str, sizeof( char ), (size_t) len, fp );
 		if( read != (size_t) len ) {
-			im_free( str );
+			vips_free( str );
 			vips_error( "im__file_read", 
 				_( "error reading from file \"%s\"" ), 
 				filename );
@@ -971,7 +956,7 @@ im__gslist_gvalue_get( const GSList *list )
 
 	/* +1 for '\0'.
 	 */
-	if( !(all = im_malloc( NULL, length + 1 )) )
+	if( !(all = vips_malloc( NULL, length + 1 )) )
 		return( NULL );
 
 	q = all;
