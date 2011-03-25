@@ -239,6 +239,9 @@ int im_amiMSBfirst( void );
 
 char *im__temp_name( const char *format );
 
+void vips__change_suffix( const char *name, char *out, int mx,
+        const char *new_suff, const char **olds, int nolds );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

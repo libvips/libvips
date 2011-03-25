@@ -143,13 +143,13 @@ vips_get_argv0( void )
  * int main( int argc, char **argv )
  * {
  *   if( vips_init( argv[0] ) )
- *     error_exit( "unable to start VIPS" );
+ *     vips_error_exit( "unable to start VIPS" );
  *
  *   return( 0 );
  * }
  * ]|
  *
- * See also: im_get_option_group(), im_version(), vips_guess_prefix(),
+ * See also: vips_get_option_group(), vips_version(), vips_guess_prefix(),
  * vips_guess_libdir().
  *
  * Returns: 0 on success, -1 otherwise
@@ -249,7 +249,7 @@ vips_init( const char *argv0 )
 }
 
 const char *
-im__gettext( const char *msgid )
+vips__gettext( const char *msgid )
 {
 	/* Pass in a nonsense name for argv0 ... this init path is only here
 	 * for old programs which are missing an vips_init() call. We need
@@ -262,7 +262,7 @@ im__gettext( const char *msgid )
 }
 
 const char *
-im__ngettext( const char *msgid, const char *plural, unsigned long int n )
+vips__ngettext( const char *msgid, const char *plural, unsigned long int n )
 {
 	if( vips_init( "giant_banana" ) )
 		vips_error_clear();
@@ -319,45 +319,6 @@ vips_get_option_group( void )
 	}
 
 	return( option_group );
-}
-
-/* Strip off any of a set of old suffixes (eg. [".v", ".jpg"]), add a single 
- * new suffix (eg. ".tif"). 
- */
-void
-im__change_suffix( const char *name, char *out, int mx,
-        const char *new, const char **olds, int nolds )
-{
-        char *p;
-        int i;
-	int len;
-
-        /* Copy start string.
-         */
-        im_strncpy( out, name, mx );
-
-        /* Drop all matching suffixes.
-         */
-        while( (p = strrchr( out, '.' )) ) {
-                /* Found suffix - test against list of alternatives. Ignore
-                 * case.
-                 */
-                for( i = 0; i < nolds; i++ )
-                        if( g_ascii_strcasecmp( p, olds[i] ) == 0 ) {
-                                *p = '\0';
-                                break;
-                        }
-
-                /* Found match? If not, break from loop.
-                 */
-                if( *p )
-                        break;
-        }
-
-        /* Add new suffix.
-         */
-	len = strlen( out );
-	im_strncpy( out + len, new, mx - len );
 }
 
 static char *
@@ -622,7 +583,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 	if( strlen( IM_EXEEXT ) > 0 ) {
 		const char *olds[] = { IM_EXEEXT };
 
-		im__change_suffix( p, name, PATH_MAX, IM_EXEEXT, olds, 1 );
+		vips__change_suffix( p, name, PATH_MAX, IM_EXEEXT, olds, 1 );
 	}
 	else
 		im_strncpy( name, p, PATH_MAX );

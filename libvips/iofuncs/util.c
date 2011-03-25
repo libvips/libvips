@@ -1396,3 +1396,42 @@ im__temp_name( const char *format )
 	return( name );
 }
 
+/* Strip off any of a set of old suffixes (eg. [".v", ".jpg"]), add a single 
+ * new suffix (eg. ".tif"). 
+ */
+void
+vips__change_suffix( const char *name, char *out, int mx,
+        const char *new, const char **olds, int nolds )
+{
+        char *p;
+        int i;
+	int len;
+
+        /* Copy start string.
+         */
+        im_strncpy( out, name, mx );
+
+        /* Drop all matching suffixes.
+         */
+        while( (p = strrchr( out, '.' )) ) {
+                /* Found suffix - test against list of alternatives. Ignore
+                 * case.
+                 */
+                for( i = 0; i < nolds; i++ )
+                        if( g_ascii_strcasecmp( p, olds[i] ) == 0 ) {
+                                *p = '\0';
+                                break;
+                        }
+
+                /* Found match? If not, break from loop.
+                 */
+                if( *p )
+                        break;
+        }
+
+        /* Add new suffix.
+         */
+	len = strlen( out );
+	im_strncpy( out + len, new, mx - len );
+}
+

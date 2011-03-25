@@ -101,7 +101,7 @@
  * over an image's fields, including all metadata.
  *
  * Items of metadata are identified by strings. Some strings are reserved, for
- * example the ICC pofile for an image is known by convention as
+ * example the ICC profile for an image is known by convention as
  * "icc-profile-data".
  *
  * If you save an image in VIPS format, all metadata (with a restriction, see

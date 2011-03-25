@@ -200,8 +200,6 @@ int vips_mapfilerw( VipsImage * );
 int vips_remapfilerw( VipsImage * );
 
 int im__write( int, const void *, size_t );
-void im__change_suffix( const char *name, char *out, int mx,
-        const char *new_suff, const char **olds, int nolds );
 int im__trigger_callbacks( GSList *cblist );
 int im__close( VipsImage * );
 int im__fft_sp( float *rvec, float *ivec, int logrows, int logcols );

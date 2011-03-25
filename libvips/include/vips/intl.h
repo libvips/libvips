@@ -8,20 +8,20 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-const char *im__gettext( const char *msgid );
-const char *im__ngettext( const char *msgid,
+const char *vips__gettext( const char *msgid );
+const char *vips__ngettext( const char *msgid,
 	const char *plural, unsigned long int n );
 
 #ifdef ENABLE_NLS
 
 #include <libintl.h>
-#define _(String) im__gettext(String)
+#define _(String) vips__gettext(String)
 /* ngettext may be defined as a macro if we're optimised.
  */
 #ifdef ngettext
 #undef ngettext
 #endif /*ngettext*/
-#define ngettext(String,Plural,number) im__ngettext(String,Plural,number)
+#define ngettext(String,Plural,number) vips__ngettext(String,Plural,number)
 #ifdef gettext_noop
 #define N_(String) gettext_noop(String)
 #else

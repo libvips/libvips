@@ -350,6 +350,8 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define vips_bandfmt_isfloat vips_band_format_isfloat 
 #define vips_bandfmt_iscomplex vips_band_format_iscomplex 
 
+#define im__change_suffix vips__change_suffix
+
 /* Buffer processing.
  */
 typedef void (*im_wrapone_fn)( void *in, void *out, int width,
