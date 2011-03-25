@@ -36,14 +36,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_rwcheck( VipsImage *im );
-int im_iocheck( VipsImage *in, VipsImage *out );
-int im_incheck( VipsImage *im );
-int im_outcheck( VipsImage *im );
-int im_piocheck( VipsImage *in, VipsImage *out );
-int im_pincheck( VipsImage *im );
-int im_poutcheck( VipsImage *im );
-
 int im_check_uncoded( const char *domain, VipsImage *im );
 int im_check_coding_known( const char *domain, VipsImage *im );
 int im_check_coding_labq( const char *domain, VipsImage *im );

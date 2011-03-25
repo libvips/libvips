@@ -729,7 +729,7 @@ open_lazy_start( VipsImage *out, void *a, void *dummy )
 	if( !lazy->real ) {
 		if( !(lazy->real = lazy_real_image( lazy )) || 
 			lazy->format->load( lazy->filename, lazy->real ) ||
-			im_pincheck( lazy->real ) ) {
+			vips_image_pio_input( lazy->real ) ) {
 			VIPS_UNREF( lazy->real );
 			return( NULL );
 		}
@@ -1928,4 +1928,373 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	return( 0 );
 }
 
+/* Rewind an output file.
+ */
+static int
+vips_image_rewind_output( VipsImage *image ) 
+{
+#ifdef DEBUG_IO
+	printf( "vips_image_rewind_output: %s\n", image->filename );
+#endif/*DEBUG_IO*/
 
+	/* Free any resources the image holds and reset to a base
+	 * state.
+	 */
+	vips_object_rewind( VIPS_OBJECT( image ) );
+
+	/* And reopen .. recurse to get a mmaped image.
+	 */
+	g_object_set( image,
+		"mode", "r",
+		NULL );
+	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
+		vips_error( "VipsImage", 
+			_( "auto-rewind for %s failed" ),
+			image->filename );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_image_wio_input:
+ * @image: image to transform
+ *
+ * Check that an image is readable via the VIPS_IMAGE_ADDR() macro, that is,
+ * that the entire image is in memory and all pixels can be read with 
+ * VIPS_IMAGE_ADDR().
+ *
+ * If it 
+ * isn't, try to transform it so that VIPS_IMAGE_ADDR() can work. 
+ *
+ * See also: vips_image_wio_output(), vips_image_pio_input(), 
+ * vips_image_inplace(), VIPS_IMAGE_ADDR().
+ *
+ * Returns: 0 on succeess, or -1 on error.
+ */
+int
+vips_image_wio_input( VipsImage *image )
+{	
+	VipsImage *t1;
+
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
+
+#ifdef DEBUG_IO
+	printf( "vips_image_wio_input: wio input for %s\n", 
+		image->filename );
+#endif/*DEBUG_IO*/
+
+	switch( image->dtype ) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+		/* Should have been written to.
+		 */
+		if( !image->data ) {
+			vips_error( "vips_image_wio_input", 
+				"%s", _( "no image data" ) );
+			return( -1 );
+		}
+
+		break;
+
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+		/* Can read from all these, in principle anyway.
+		 */
+		break;
+
+	case VIPS_IMAGE_PARTIAL:
+#ifdef DEBUG_IO
+		printf( "im_incheck: converting partial image to WIO\n" );
+#endif/*DEBUG_IO*/
+
+		/* Change to VIPS_IMAGE_SETBUF. First, make a memory 
+		 * buffer and copy into that.
+		 */
+		if( !(t1 = vips_image_new( "t" )) ) 
+			return( -1 );
+		if( im_copy( image, t1 ) ) {
+			g_object_unref( t1 );
+			return( -1 );
+		}
+
+		/* Copy new stuff in. We can't unref and free stuff, as this
+		 * would kill of lots of regions and cause dangling pointers
+		 * elsewhere.
+		 */
+		image->dtype = VIPS_IMAGE_SETBUF;
+		image->data = t1->data; 
+		t1->data = NULL;
+
+		/* Close temp image.
+		 */
+		g_object_unref( t1 );
+
+		break;
+
+	case VIPS_IMAGE_OPENIN:
+#ifdef DEBUG_IO
+		printf( "im_incheck: converting openin image for wio input\n" );
+#endif/*DEBUG_IO*/
+
+		/* just mmap() the whole thing.
+		 */
+		if( vips_mapfile( image ) ) 
+			return( -1 );
+		image->data = image->baseaddr + image->sizeof_header;
+		image->dtype = VIPS_IMAGE_MMAPIN;
+
+		break;
+
+	case VIPS_IMAGE_OPENOUT:
+		/* Close file down and reopen as input. I guess this will only
+		 * work for vips files?
+		 */
+		if( vips_image_rewind_output( image ) ||
+			vips_image_wio_input( image ) ) 
+			return( -1 );
+
+		break;
+
+	default:
+		vips_error( "vips_image_wio_input", 
+			"%s", _( "image not readable" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_image_wio_output:
+ * @image: image to check
+ *
+ * Check that an image is writeable by vips_image_write_line(). If it isn't,
+ * try to transform it so that vips_image_write_line() can work.
+ *
+ * See also: vips_image_wio_input().
+ *
+ * Returns: 0 on succeess, or -1 on error.
+ */
+int 
+vips_image_wio_output( VipsImage *image )
+{
+#ifdef DEBUG_IO
+	printf( "vips_image_wio_output: WIO output for %s\n", 
+		image->filename );
+#endif/*DEBUG_IO*/
+
+	switch( image->dtype ) {
+	case VIPS_IMAGE_PARTIAL:
+		/* Make sure nothing is attached.
+		 */
+		if( image->generate ) {
+			vips_error( "vips_image_wio_output", 
+				"%s", _( "image already written" ) );
+			return( -1 );
+		}
+
+		/* Cannot do old-style write to PARTIAL. Turn to SETBUF.
+		 */
+		image->dtype = VIPS_IMAGE_SETBUF;
+
+		/* Fall through to SETBUF case.
+		 */
+
+	case VIPS_IMAGE_SETBUF:
+		if( image->data ) {
+			vips_error( "vips_image_wio_output", 
+				"%s", _( "image already written" ) );
+			return( -1 );
+		}
+
+		break;
+
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+		/* Can write to this ok.
+		 */
+		break;
+
+	default:
+		vips_error( "vips_image_wio_output", 
+			"%s", _( "image not writeable" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+ 
+/**
+ * vips_image_inplace:
+ * @image: image to make read-write
+ *
+ * Gets @image ready for an in-place operation, such as im_insertplace().
+ * Operations like this both read and write with VIPS_IMAGE_ADDR().
+ *
+ * See also: im_insertplace(), vips_image_wio_input().
+ *
+ * Returns: 0 on succeess, or -1 on error.
+ */
+int
+vips_image_inplace( VipsImage *image )
+{
+	/* Do an vips_image_wio_input(). This will rewind, generate, etc.
+	 */
+	if( vips_image_wio_input( image ) ) 
+		return( -1 );
+
+	/* Look at the type.
+	 */
+	switch( image->dtype ) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPINRW:
+		/* No action necessary.
+		 */
+		break;
+
+	case VIPS_IMAGE_MMAPIN:
+		/* Try to remap read-write.
+		 */
+		if( vips_remapfilerw( image ) )
+			return( -1 );
+
+		break;
+
+	default:
+		vips_error( "vips_image_inplace", 
+			"%s", _( "bad file type" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_image_pio_input:
+ * @image: image to check
+ *
+ * Check that an image is readable with vips_region_prepare() and friends. 
+ * If it isn't, try to transform the image so that vips_region_prepare() can 
+ * work.
+ *
+ * See also: vips_image_pio_output(), vips_region_prepare().
+ *
+ * Returns: 0 on succeess, or -1 on error.
+ */
+int
+vips_image_pio_input( VipsImage *image )
+{	
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
+
+#ifdef DEBUG_IO
+	printf( "vips_image_pio_input: enabling partial input for %s\n", 
+		image->filename );
+#endif /*DEBUG_IO*/
+
+	switch( image->dtype ) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+		/* Should have been written to.
+		 */
+		if( !image->data ) {
+			vips_error( "vips_image_pio_input", 
+				"%s", _( "no image data" ) );
+			return( -1 );
+		}
+
+		/* Should be no generate functions now.
+		 */
+		image->start = NULL;
+		image->generate = NULL;
+		image->stop = NULL;
+
+		break;
+
+	case VIPS_IMAGE_PARTIAL:
+		/* Should have had generate functions attached.
+		 */
+		if( !image->generate ) {
+			vips_error( "vips_image_pio_input", 
+				"%s", _( "no image data" ) );
+			return( -1 );
+		}
+
+		break;
+
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_OPENIN:
+		break;
+
+	case VIPS_IMAGE_OPENOUT:
+
+		/* Free any resources the image holds and reset to a base
+		 * state.
+		 */
+		if( vips_image_rewind_output( image ) )
+			return( -1 );
+
+		break;
+
+	default:
+		vips_error( "im_pincheck", "%s", _( "image not readable" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_image_pio_output:
+ * @image: image to check
+ *
+ * Check that an image is writeable with vips_image_generate(). If it isn't,
+ * try to transform the image so that vips_image_generate() can work.
+ *
+ * See also: vips_image_pio_input().
+ *
+ * Returns: 0 on succeess, or -1 on error.
+ */
+int 
+vips_image_pio_output( VipsImage *image )
+{
+#ifdef DEBUG_IO
+	printf( "vips_image_pio_output: enabling partial output for %s\n", 
+		image->filename );
+#endif /*DEBUG_IO*/
+
+	switch( image->dtype ) {
+	case VIPS_IMAGE_SETBUF:
+		if( image->data ) {
+			vips_error( "im_poutcheck", "%s", 
+				_( "image already written" ) );
+			return( -1 );
+		}
+
+		break;
+
+	case VIPS_IMAGE_PARTIAL:
+		if( image->generate ) {
+			vips_error( "im_poutcheck", "%s", 
+				_( "image already written" ) );
+			return( -1 );
+		}
+
+		break;
+
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+		break;
+
+	default:
+		vips_error( "vips_image_pio_output", 
+			"%s", _( "image not writeable" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+ 

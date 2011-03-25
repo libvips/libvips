@@ -307,6 +307,15 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_free vips_free
 #define im_strdup vips_strdup
 
+#define im_incheck vips_image_wio_input
+#define im_outcheck vips_image_wio_output
+#define im_rwcheck vips_image_inplace
+#define im_pincheck vips_image_pio_input
+#define im_poutcheck vips_image_pio_output
+
+#define im_iocheck( I, O ) (im_incheck( I ) || im_outcheck( O ))
+#define im_piocheck( I, O ) (im_pincheck( I ) || im_poutcheck( O ))
+
 /* Buffer processing.
  */
 typedef void (*im_wrapone_fn)( void *in, void *out, int width,
