@@ -16,7 +16,6 @@ libiofuncs_la_SOURCES = \
 	sinkscreen.c \
 	sinkdisc.c \
 	sink.c \
-	im_wrapmany.c \
 	memory.c \
 	check.c \
 	package.c \

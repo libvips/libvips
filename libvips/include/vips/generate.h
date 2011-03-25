@@ -57,23 +57,6 @@ int vips_demand_hint_array( VipsImage *image,
 int vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
 	__attribute__((sentinel));
 
-/* Buffer processing.
- */
-typedef void (*im_wrapone_fn)( void *in, void *out, int width,
-	void *a, void *b );
-int im_wrapone( VipsImage *in, VipsImage *out,
-	im_wrapone_fn fn, void *a, void *b );
-
-typedef void (*im_wraptwo_fn)( void *in1, void *in2, void *out, 
-        int width, void *a, void *b );
-int im_wraptwo( VipsImage *in1, VipsImage *in2, VipsImage *out,
-	im_wraptwo_fn fn, void *a, void *b );
-
-typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
-	void *a, void *b );
-int im_wrapmany( VipsImage **in, VipsImage *out,
-	im_wrapmany_fn fn, void *a, void *b );
-
 /* Async rendering.
  */
 int im_render_priority( VipsImage *in, VipsImage *out, VipsImage *mask,
