@@ -374,6 +374,11 @@ int vips_image_inplace( VipsImage *image );
 int vips_image_pio_input( VipsImage *image );
 int vips_image_pio_output( VipsImage *image );
 
+gboolean vips_band_format_isint( VipsBandFormat format );
+gboolean vips_band_format_isuint( VipsBandFormat format );
+gboolean vips_band_format_isfloat( VipsBandFormat format );
+gboolean vips_band_format_iscomplex( VipsBandFormat format );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

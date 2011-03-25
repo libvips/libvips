@@ -110,7 +110,6 @@ extern "C" {
 #include <vips/format.h>
 #include <vips/region.h>
 #include <vips/generate.h>
-#include <vips/check.h>
 #include <vips/interpolate.h>
 #include <vips/semaphore.h>
 #include <vips/threadpool.h>

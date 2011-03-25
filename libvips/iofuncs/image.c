@@ -63,6 +63,10 @@
  * @include: vips/vips.h
  *
  * The image class and associated types and macros.
+ *
+ * vips_image_wio_input() and friends indicate the image IO style you
+ * intend to use, transforming the underlying #VipsImage structure if
+ * necessary.
  */
 
 /**
@@ -2296,5 +2300,125 @@ vips_image_pio_output( VipsImage *image )
 	}
 
 	return( 0 );
+}
+
+/**
+ * vips_band_format_isint:
+ * @format: format to test
+ *
+ * Return %TRUE if @format is one of the integer types.
+ */
+gboolean
+vips_band_format_isint( VipsBandFormat format )
+{
+	switch( format ) {
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
+		return( TRUE );
+
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:	
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:	
+		return( FALSE );
+
+	default:
+		g_assert( 0 );
+		return( -1 );
+	}
+}
+
+/**
+ * vips_band_format_isuint:
+ * @format: format to test
+ *
+ * Return %TRUE if @format is one of the unsigned integer types.
+ */
+gboolean
+vips_band_format_isuint( VipsBandFormat format )
+{
+	switch( format ) {
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_UINT:
+		return( 1 );
+
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:	
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:	
+		return( 0 );
+	
+	default:
+		g_assert( 0 );
+		return( -1 );
+	}
+}
+
+/**
+ * vips_band_format_isfloat:
+ * @format: format to test
+ *
+ * Return %TRUE if @format is one of the float types.
+ */
+gboolean
+vips_band_format_isfloat( VipsBandFormat format )
+{
+	switch( format ) {
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:	
+		return( 1 );
+
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:	
+		return( 0 );
+	
+	default:
+		g_assert( 0 );
+		return( -1 );
+	}
+}
+
+/**
+ * vips_band_format_iscomplex:
+ * @format: format to test
+ *
+ * Return %TRUE if @fmt is one of the complex types.
+ */
+gboolean
+vips_band_format_iscomplex( VipsBandFormat format )
+{
+	switch( format ) {
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:	
+		return( 1 );
+
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:	
+		return( 0 );
+	
+	default:
+		g_assert( 0 );
+		return( -1 );
+	}
 }
  

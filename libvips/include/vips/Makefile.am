@@ -4,7 +4,6 @@ pkginclude_HEADERS = \
 	arithmetic.h \
 	boolean.h \
 	buf.h \
-	check.h \
 	colour.h \
 	conversion.h \
 	convolution.h \

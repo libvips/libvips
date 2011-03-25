@@ -17,7 +17,6 @@ libiofuncs_la_SOURCES = \
 	sinkdisc.c \
 	sink.c \
 	memory.c \
-	check.c \
 	package.c \
 	header.c \
 	region.c \

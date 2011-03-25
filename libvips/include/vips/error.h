@@ -54,6 +54,35 @@ void vips_vdiag( const char *domain, const char *fmt, va_list ap );
 void vips_error_exit( const char *fmt, ... )
 	__attribute__((noreturn, format(printf, 1, 2)));
 
+int vips_check_uncoded( const char *domain, VipsImage *im );
+int vips_check_coding_known( const char *domain, VipsImage *im );
+int vips_check_coding_labq( const char *domain, VipsImage *im );
+int vips_check_coding_rad( const char *domain, VipsImage *im );
+int vips_check_coding_noneorlabq( const char *domain, VipsImage *im );
+int vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+int vips_check_mono( const char *domain, VipsImage *im );
+int vips_check_bands_1or3( const char *domain, VipsImage *in );
+int vips_check_bands( const char *domain, VipsImage *im, int bands );
+int vips_check_bands_1orn( const char *domain, VipsImage *im1, VipsImage *im2 );
+int vips_check_bands_1orn_unary( const char *domain, VipsImage *im, int n );
+int vips_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+int vips_check_bandno( const char *domain, VipsImage *im, int bandno );
+int vips_check_int( const char *domain, VipsImage *im );
+int vips_check_uint( const char *domain, VipsImage *im );
+int vips_check_uintorf( const char *domain, VipsImage *im );
+int vips_check_noncomplex( const char *domain, VipsImage *im );
+int vips_check_complex( const char *domain, VipsImage *im );
+int vips_check_format( const char *domain, VipsImage *im, VipsBandFormat fmt );
+int vips_check_u8or16( const char *domain, VipsImage *im );
+int vips_check_8or16( const char *domain, VipsImage *im );
+int vips_check_u8or16orf( const char *domain, VipsImage *im );
+int vips_check_format_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+int vips_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+int vips_check_vector( const char *domain, int n, VipsImage *im );
+int vips_check_hist( const char *domain, VipsImage *im );
+int vips_check_imask( const char *domain, INTMASK *mask );
+int vips_check_dmask( const char *domain, DOUBLEMASK *mask );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

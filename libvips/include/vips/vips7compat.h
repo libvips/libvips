@@ -316,6 +316,40 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_iocheck( I, O ) (im_incheck( I ) || im_outcheck( O ))
 #define im_piocheck( I, O ) (im_pincheck( I ) || im_poutcheck( O ))
 
+#define im_check_uncoded vips_check_uncoded 
+#define im_check_coding_known vips_check_coding_known 
+#define im_check_coding_labq vips_check_coding_labq 
+#define im_check_coding_rad vips_check_coding_rad 
+#define im_check_coding_noneorlabq vips_check_coding_noneorlabq 
+#define im_check_coding_same vips_check_coding_same 
+#define im_check_mono vips_check_mono 
+#define im_check_bands_1or3 vips_check_bands_1or3 
+#define im_check_bands vips_check_bands 
+#define im_check_bands_1orn vips_check_bands_1orn 
+#define im_check_bands_1orn_unary vips_check_bands_1orn_unary 
+#define im_check_bands_same vips_check_bands_same 
+#define im_check_bandno vips_check_bandno 
+#define im_check_int vips_check_int 
+#define im_check_uint vips_check_uint 
+#define im_check_uintorf vips_check_uintorf 
+#define im_check_noncomplex vips_check_noncomplex 
+#define im_check_complex vips_check_complex 
+#define im_check_format vips_check_format 
+#define im_check_u8or16 vips_check_u8or16 
+#define im_check_8or16 vips_check_8or16 
+#define im_check_u8or16orf vips_check_u8or16orf 
+#define im_check_format_same vips_check_format_same 
+#define im_check_size_same vips_check_size_same 
+#define im_check_vector vips_check_vector 
+#define im_check_hist vips_check_hist 
+#define im_check_imask vips_check_imask 
+#define im_check_dmask vips_check_dmask 
+
+#define vips_bandfmt_isint vips_band_format_isint 
+#define vips_bandfmt_isuint vips_band_format_isuint 
+#define vips_bandfmt_isfloat vips_band_format_isfloat 
+#define vips_bandfmt_iscomplex vips_band_format_iscomplex 
+
 /* Buffer processing.
  */
 typedef void (*im_wrapone_fn)( void *in, void *out, int width,
