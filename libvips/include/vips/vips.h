@@ -106,10 +106,8 @@ extern "C" {
 #include <vips/mask.h>
 #include <vips/image.h>
 #include <vips/memory.h>
-#include <vips/almostdeprecated.h>
 #include <vips/error.h>
 #include <vips/format.h>
-#include <vips/dispatch.h>
 #include <vips/region.h>
 #include <vips/generate.h>
 #include <vips/check.h>
@@ -139,13 +137,16 @@ extern "C" {
 #include <vips/video.h>
 #include <vips/cimg_funcs.h>
 
+#ifndef VIPS_DISABLE_VIPS7COMPAT
+#include <vips/vips7compat.h>
+#endif /*VIPS_DISABLE_VIPS7COMPAT*/
+
 #ifdef VIPS_ENABLE_DEPRECATED
 #include <vips/deprecated.h>
 #endif /*VIPS_ENABLE_DEPRECATED*/
 
-#ifndef VIPS_DISABLE_VIPS7COMPAT
-#include <vips/vips7compat.h>
-#endif /*VIPS_DISABLE_VIPS7COMPAT*/
+#include <vips/almostdeprecated.h>
+#include <vips/dispatch.h>
 
 const char *vips_get_argv0( void );
 int vips_init( const char *argv0 );

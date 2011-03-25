@@ -161,7 +161,7 @@ int im__arith_binary_const( const char *domain,
 int im__value( VipsImage *im, double *value );
 typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );
 int im__wrapscan( VipsImage *in, 
-	im_start_fn start, im__wrapscan_fn scan, im_stop_fn stop,
+	VipsStartFn start, im__wrapscan_fn scan, VipsStopFn stop,
 	void *a, void *b );
 int im__colour_difference( const char *domain,
 	VipsImage *in1, VipsImage *in2, VipsImage *out, 

@@ -88,7 +88,8 @@
  * the kind of demand geometry they prefer. 
  *
  * These demand styles are given below in order of increasing
- * restrictiveness.  When demanding output from a pipeline, im_generate()
+ * restrictiveness.  When demanding output from a pipeline, 
+ * vips_image_generate()
  * will use the most restrictive of the styles requested by the operations 
  * in the pipeline.
  *
@@ -782,8 +783,8 @@ vips_image_open_lazy( VipsImage *image,
 	/* Then 'start' creates the real image and 'gen' paints 'out' with 
 	 * pixels from the real image on demand.
 	 */
-	if( im_generate( image, 
-		open_lazy_start, open_lazy_generate, im_stop_one, 
+	if( vips_image_generate( image, 
+		open_lazy_start, open_lazy_generate, vips_stop_one, 
 		lazy, NULL ) )
 		return( -1 );
 
@@ -1802,7 +1803,7 @@ vips_image_new_array( VipsImage *parent, VipsImage **images, int n )
 }
 
 /* Get the image ready for writing. This can get called many
- * times. Used by im_generate() and vips_image_write_line(). vips7 compat can
+ * times. Used by vips_image_generate() and vips_image_write_line(). vips7 compat can
  * call this as im_setupout().
  */
 int
@@ -1870,7 +1871,7 @@ vips__image_write_prepare( VipsImage *image )
  * with @ypos increasing from 0 to @YSize -
  * @linebuffer must be IM_IMAGE_SIZEOF_LINE() bytes long.
  *
- * See also: im_setupout(), im_generate().
+ * See also: vips_image_generate().
  *
  * Returns: 0 on success, or -1 on error.
  */

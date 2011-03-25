@@ -1110,11 +1110,12 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	VIPS_DEBUG_MSG( "vips_sink_screen: max = %d, %p\n", max_tiles, render );
 
-	if( im_generate( out, 
+	if( vips_image_generate( out, 
 		image_start, image_fill, image_stop, render, NULL ) )
 		return( -1 );
 	if( mask && 
-		im_generate( mask, NULL, mask_fill, NULL, render, NULL ) )
+		vips_image_generate( mask, 
+			NULL, mask_fill, NULL, render, NULL ) )
 		return( -1 );
 
 	return( 0 );

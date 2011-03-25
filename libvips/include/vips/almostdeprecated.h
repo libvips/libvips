@@ -62,12 +62,6 @@ typedef struct {
 			 *(channel select)	*/
 } IMAGE_BOX;
 
-/* Compatibility typedefs.
- */
-typedef VipsDemandStyle im_demand_type;
-typedef VipsProgress im_time_t;
-typedef VipsImage IMAGE;
-
 int im_extract( IMAGE *, IMAGE *, IMAGE_BOX * );
 DOUBLEMASK *im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
 	int *sel, int nsel, const char *name );
@@ -135,6 +129,11 @@ void im_diagnostics( const char *fmt, ... )
 	__attribute__((format(printf, 1, 2)));
 void im_warning( const char *fmt, ... )
 	__attribute__((format(printf, 1, 2)));
+
+int im_iterate( VipsImage *im,
+	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	void *a, void *b
+);
 
 /* Deprecated operations.
  */

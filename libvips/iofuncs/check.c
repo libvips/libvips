@@ -482,10 +482,10 @@ im_pincheck( IMAGE *im )
  * im_poutcheck:
  * @im: image to check
  *
- * Check that an image is writeable with im_generate(). If it isn't,
- * try to transform the image so that im_generate() can work.
+ * Check that an image is writeable with vips_image_generate(). If it isn't,
+ * try to transform the image so that vips_image_generate() can work.
  *
- * See also: im_incheck(), im_poutcheck(), im_generate().
+ * See also: im_incheck(), im_poutcheck(), vips_image_generate().
  *
  * Returns: 0 on succeess, or -1 on error.
  */
@@ -543,8 +543,8 @@ im_poutcheck( IMAGE *im )
  * @in: input image
  * @out: output image
  *
- * A convenience function to check a pair of images for IO via im_prepare()
- * and im_generate().
+ * A convenience function to check a pair of images for IO via 
+ * vips_region_prepare() and vips_image_generate().
  *
  * See also: im_pincheck(), im_poutcheck().
  *

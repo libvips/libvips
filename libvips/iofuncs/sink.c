@@ -74,9 +74,9 @@ typedef struct _Sink {
 
 	/* Call params.
 	 */
-	im_start_fn start;
-	im_generate_fn generate;
-	im_stop_fn stop;
+	VipsStartFn start;
+	VipsGenerateFn generate;
+	VipsStopFn stop;
 	void *a;
 	void *b;
 } Sink;
@@ -208,7 +208,7 @@ sink_free( Sink *sink )
 static int
 sink_init( Sink *sink, 
 	VipsImage *im, 
-	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
+	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
 	void *a, void *b )
 {
 	sink->im = im; 
@@ -385,7 +385,7 @@ vips_sink_tile( VipsImage *im,
  * Each set of pixels is sized according to the requirements of the image
  * pipeline that generated @im.
  *
- * See also: im_generate(), im_open().
+ * See also: vips_image_generate(), vips_image_new().
  *
  * Returns: 0 on success, or -1 on error.
  */

@@ -36,23 +36,19 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-typedef void *(*im_start_fn)( VipsImage *out, void *a, void *b );
-typedef int (*im_generate_fn)( VipsRegion *out, void *seq, void *a, void *b );
-typedef int (*im_stop_fn)( void *seq, void *a, void *b );
+typedef void *(*VipsStartFn)( VipsImage *out, void *a, void *b );
+typedef int (*VipsGenerateFn)( VipsRegion *out, void *seq, void *a, void *b );
+typedef int (*VipsStopFn)( void *seq, void *a, void *b );
 
-void *im_start_one( VipsImage *out, void *a, void *b );
-int im_stop_one( void *seq, void *a, void *b );
-void *im_start_many( VipsImage *out, void *a, void *b );
-int im_stop_many( void *seq, void *a, void *b );
-VipsImage **im_allocate_input_array( VipsImage *out, ... )
+void *vips_start_one( VipsImage *out, void *a, void *b );
+int vips_stop_one( void *seq, void *a, void *b );
+void *vips_start_many( VipsImage *out, void *a, void *b );
+int vips_stop_many( void *seq, void *a, void *b );
+VipsImage **vips_allocate_input_array( VipsImage *out, ... )
 	__attribute__((sentinel));
 
-int im_generate( VipsImage *im,
-	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
-	void *a, void *b
-);
-int im_iterate( VipsImage *im,
-	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
+int vips_image_generate( VipsImage *im,
+	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
 	void *a, void *b
 );
 
@@ -85,8 +81,6 @@ int im_render_priority( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int priority,
 	void (*notify)( VipsImage *, VipsRect *, void * ), void *client );
 int im_cache( VipsImage *in, VipsImage *out, int width, int height, int max );
-
-int im_setupout( VipsImage *im );
 
 #ifdef __cplusplus
 }

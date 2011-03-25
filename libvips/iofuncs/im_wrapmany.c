@@ -162,7 +162,7 @@ dupims( IMAGE *out, IMAGE **in )
  * output image and a buffer processing function, make a PIO image processing
  * operation.
  *
- * See also: im_wrapone(), im_wraptwo(), im_generate().
+ * See also: im_wrapone(), im_wraptwo(), vips_image_generate().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -213,8 +213,8 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 
 	/* Generate!
 	 */
-	if( im_generate( out,
-		im_start_many, process_region, im_stop_many, in, bun ) )
+	if( vips_image_generate( out,
+		vips_start_many, process_region, vips_stop_many, in, bun ) )
 		return( -1 );
 
 	return( 0 );
@@ -251,7 +251,7 @@ wrapone_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
  * output image and a buffer processing function, make a PIO image processing
  * operation.
  *
- * See also: im_wrapmany(), im_wraptwo(), im_generate().
+ * See also: im_wrapmany(), im_wraptwo(), vips_image_generate().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -306,7 +306,7 @@ wraptwo_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
  * output image and a buffer processing function, make a PIO image processing
  * operation.
  *
- * See also: im_wrapone(), im_wrapmany(), im_generate().
+ * See also: im_wrapone(), im_wrapmany(), vips_image_generate().
  *
  * Returns: 0 on success, or -1 on error.
  */

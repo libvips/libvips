@@ -284,6 +284,17 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_demand_hint vips_demand_hint
 #define im_demand_hint_array vips_demand_hint_array
 
+#define im_start_one vips_start_one
+#define im_stop_one vips_stop_one
+#define im_start_many vips_start_many
+#define im_stop_many vips_stop_many
+#define im_allocate_input_array vips_allocate_input_array
+#define im_start_fn VipsStartFn
+#define im_generate_fn VipsGenerateFn
+#define im_stop_fn VipsStopFn
+
+#define im_generate vips_image_generate
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
