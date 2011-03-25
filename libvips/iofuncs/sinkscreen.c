@@ -1048,7 +1048,8 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b )
  * Calls to vips_region_prepare() on @out return immediately and hold 
  * whatever is
  * currently in cache for that #VipsRect (check @mask to see which parts of the
- * #VipsRect are valid). Any pixels in the #VipsRect which are not in cache are added
+ * #VipsRect are valid). Any pixels in the #VipsRect which are not in 
+ * cache are added
  * to a queue, and the @notify callback will trigger when those pixels are
  * ready.
  *
@@ -1057,13 +1058,12 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b )
  * you need to somehow send a message to the main thread that the pixels are
  * ready. In a glib-based application, this is easily done with g_idle_add().
  *
- * If @notify is %NULL then im_render_priority() runs synchronously.
+ * If @notify is %NULL then vips_sink_screen() runs synchronously.
  * vips_region_prepare() on @out will always block until the pixels have been
  * calculated.
  *
- * See also: im_cache(), im_tile_cache(), vips_region_prepare(), 
- * vips_sink_disc(), 
- * vips_sink().
+ * See also: vips_image_cache(), im_tile_cache(), vips_region_prepare(), 
+ * vips_sink_disc(), vips_sink().
  *
  * Returns: 0 on sucess, -1 on error.
  */
@@ -1122,10 +1122,18 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 }
 
 void
-im__print_renders( void )
+vips__print_renders( void )
 {
 #ifdef VIPS_DEBUG_AMBER
 	printf( "%d active renders\n", render_num_renders );
 #endif /*VIPS_DEBUG_AMBER*/
 	printf( "%d dirty renders\n", g_slist_length( render_dirty_all ) );
+}
+
+int
+vips_image_cache( VipsImage *in, VipsImage *out, 
+	int width, int height, int max )
+{
+	return( vips_sink_screen( in, out, NULL, 
+		width, height, max, 0, NULL, NULL ) );
 }

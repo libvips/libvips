@@ -57,14 +57,6 @@ int vips_demand_hint_array( VipsImage *image,
 int vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
 	__attribute__((sentinel));
 
-/* Async rendering.
- */
-int im_render_priority( VipsImage *in, VipsImage *out, VipsImage *mask,
-	int width, int height, int max,
-	int priority,
-	void (*notify)( VipsImage *, VipsRect *, void * ), void *client );
-int im_cache( VipsImage *in, VipsImage *out, int width, int height, int max );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

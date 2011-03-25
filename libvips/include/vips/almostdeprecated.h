@@ -135,6 +135,14 @@ int im_iterate( VipsImage *im,
 	void *a, void *b
 );
 
+/* Async rendering.
+ */
+int im_render_priority( VipsImage *in, VipsImage *out, VipsImage *mask,
+	int width, int height, int max,
+	int priority,
+	void (*notify)( VipsImage *, VipsRect *, void * ), void *client );
+int im_cache( VipsImage *in, VipsImage *out, int width, int height, int max );
+
 /* Deprecated operations.
  */
 int im_cmulnorm( IMAGE *in1, IMAGE *in2, IMAGE *out );

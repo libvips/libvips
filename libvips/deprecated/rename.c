@@ -417,15 +417,6 @@ im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
 	return( vips_sink_screen( in, out, mask, 
 		width, height, max, priority, notify, client ) ); 
 }
-	
-int 
-im_cache( IMAGE *in, IMAGE *out, int width, int height, int max )
-{
-	return( im_render_priority( in, out, NULL, 
-		width, height, max, 
-		0,
-		NULL, NULL ) );
-}
 
 /**
  * im_circle:

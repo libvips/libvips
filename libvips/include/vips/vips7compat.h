@@ -300,6 +300,9 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_mapfilerw vips_mapfilerw
 #define im_remapfilerw vips_remapfilerw
 
+#define im__print_renders vips__print_renders
+#define im_cache vips_image_cache
+
 /* Buffer processing.
  */
 typedef void (*im_wrapone_fn)( void *in, void *out, int width,
