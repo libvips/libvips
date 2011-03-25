@@ -93,7 +93,7 @@ im_window_unmap( im_window_t *window )
 	/* unmap the old window
 	 */
 	if( window->baseaddr ) {
-		if( im__munmap( window->baseaddr, window->length ) )
+		if( vips__munmap( window->baseaddr, window->length ) )
 			return( -1 );
 
 #ifdef DEBUG_TOTAL
@@ -242,7 +242,8 @@ im_window_set( im_window_t *window, int top, int height )
 		return( -1 );
 	}
 
-	if( !(baseaddr = im__mmap( window->im->fd, 0, pagelength, pagestart )) )
+	if( !(baseaddr = vips__mmap( window->im->fd, 
+		0, pagelength, pagestart )) )
 		return( -1 ); 
 
 	window->baseaddr = baseaddr;

@@ -292,8 +292,13 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_start_fn VipsStartFn
 #define im_generate_fn VipsGenerateFn
 #define im_stop_fn VipsStopFn
-
 #define im_generate vips_image_generate
+
+#define im__mmap vips__mmap
+#define im__munmap vips__munmap
+#define im_mapfile vips_mapfile
+#define im_mapfilerw vips_mapfilerw
+#define im_remapfilerw vips_remapfilerw
 
 #ifdef __cplusplus
 }

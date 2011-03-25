@@ -361,7 +361,7 @@ vips_image_finalize( GObject *gobject )
 		 */
 		VIPS_DEBUG_MSG( "vips_image_finalize: unmapping file\n" );
 
-		im__munmap( image->baseaddr, image->length );
+		vips__munmap( image->baseaddr, image->length );
 		image->baseaddr = NULL;
 		image->length = 0;
 

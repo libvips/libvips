@@ -153,7 +153,7 @@ convert_otom( IMAGE *im )
 {
 	/* just mmap() the whole thing.
 	 */
-	if( im_mapfile( im ) ) 
+	if( vips_mapfile( im ) ) 
 		return( -1 );
 	im->data = im->baseaddr + im->sizeof_header;
 	im->dtype = VIPS_IMAGE_MMAPIN;
@@ -379,7 +379,7 @@ im_rwcheck( IMAGE *im )
 	case VIPS_IMAGE_MMAPIN:
 		/* Try to remap read-write.
 		 */
-		if( im_remapfilerw( im ) )
+		if( vips_remapfilerw( im ) )
 			return( -1 );
 
 		break;

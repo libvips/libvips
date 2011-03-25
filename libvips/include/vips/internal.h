@@ -83,9 +83,6 @@ int vips__open_image_read( const char *filename );
 int vips_image_open_input( VipsImage *image );
 int vips_image_open_output( VipsImage *image );
 
-int im_mapfile( VipsImage * );
-int im_mapfilerw( VipsImage * );
-int im_remapfilerw( VipsImage *image );
 
 VipsImage *im_open_header( const char * );
 
@@ -193,8 +190,12 @@ struct im_col_tab_disp *im_col_make_tables_RGB( VipsImage *im,
 	struct im_col_display *d );
 struct im_col_tab_disp *im_col_display_get_table( struct im_col_display *d );
 
-void *im__mmap( int fd, int writeable, size_t length, gint64 offset );
-int im__munmap( void *start, size_t length );
+void *vips__mmap( int fd, int writeable, size_t length, gint64 offset );
+int vips__munmap( void *start, size_t length );
+int vips_mapfile( VipsImage * );
+int vips_mapfilerw( VipsImage * );
+int vips_remapfilerw( VipsImage * );
+
 int im__write( int, const void *, size_t );
 void im__change_suffix( const char *name, char *out, int mx,
         const char *new_suff, const char **olds, int nolds );

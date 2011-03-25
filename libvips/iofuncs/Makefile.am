@@ -11,7 +11,7 @@ libiofuncs_la_SOURCES = \
 	image.c \
 	vips.c \
 	generate.c \
-	im_mapfile.c \
+	mapfile.c \
 	sinkmemory.c \
 	sinkscreen.c \
 	sinkdisc.c \

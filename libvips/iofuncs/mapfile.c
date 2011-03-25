@@ -1,17 +1,4 @@
-/* @(#) Function which returns a char pointer at the beginning of the file 
- * @(#) corresponding to fd.
- * @(#) 
- * @(#) int
- * @(#) im_mapfile( im )
- * @(#) IMAGE im;
- * @(#)
- * @(#) As above, but map read-write.
- * @(#) 
- * @(#) int
- * @(#) im_mapfilerw( im )
- * @(#) IMAGE im;
- * @(#)
- * @(#) Return -1 on error, 0 for success.
+/* map and unmap files in various ways
  * 
  * Copyright: Nicos Dessipris
  * Wriiten on: 13/02/1990
@@ -31,6 +18,10 @@
  * 5/2/04 JC
  *	- now records length as well as base, so we unmap the right amount of
  *	  memory even if files change behind our back
+ * 1/1/10
+ * 	- set NOCACHE if we can ... helps OS X performance a lot
+ * 25/3/11
+ * 	- move to vips_ namespace
  */
 
 /*
@@ -102,12 +93,13 @@
 #endif /*WITH_DMALLOC*/
 
 void *
-im__mmap( int fd, int writeable, size_t length, gint64 offset )
+vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 {
 	void *baseaddr;
 
 #ifdef DEBUG
-	printf( "im__mmap: length = 0x%zx, offset = 0x%lx\n", length, offset );
+	printf( "vips__mmap: length = 0x%zx, offset = 0x%lx\n", 
+		length, offset );
 #endif /*DEBUG*/
 
 #ifdef OS_WIN32
@@ -138,7 +130,7 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 
         if( !(hMMFile = CreateFileMapping( hFile,
 		NULL, flProtect, 0, 0, NULL )) ) {
-                vips_error_system( GetLastError(), "im_mapfile", 
+                vips_error_system( GetLastError(), "vips_mapfile", 
 			"%s", _( "unable to CreateFileMapping" ) );
 		printf( "CreateFileMapping failed: %s\n", vips_error_buffer() );
                 return( NULL );
@@ -146,7 +138,7 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 
         if( !(baseaddr = (char *)MapViewOfFile( hMMFile, dwDesiredAccess, 
 		dwFileOffsetHigh, dwFileOffsetLow, length )) ) {
-                vips_error_system( GetLastError(), "im_mapfile",
+                vips_error_system( GetLastError(), "vips_mapfile",
 			"%s", _( "unable to MapViewOfFile" ) );
 		printf( "MapViewOfFile failed: %s\n", vips_error_buffer() );
 		CloseHandle( hMMFile );
@@ -186,9 +178,9 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 
 	baseaddr = mmap( 0, length, prot, MAP_SHARED, fd, (off_t) offset );
 	if( baseaddr == MAP_FAILED ) { 
-		vips_error_system( errno, "im_mapfile", 
+		vips_error_system( errno, "vips_mapfile", 
 			"%s", _( "unable to mmap" ) );
-		vips_warn( "im_mapfile", _( "map failed (%s), "
+		vips_warn( "vips_mapfile", _( "map failed (%s), "
 			"running very low on system resources, "
 			"expect a crash soon" ), strerror( errno ) );
 		return( NULL ); 
@@ -200,17 +192,17 @@ im__mmap( int fd, int writeable, size_t length, gint64 offset )
 }
 
 int
-im__munmap( void *start, size_t length )
+vips__munmap( void *start, size_t length )
 {
 #ifdef OS_WIN32
 	if( !UnmapViewOfFile( start ) ) {
-		vips_error_system( GetLastError(), "im_mapfile",
+		vips_error_system( GetLastError(), "vips_mapfile",
 			"%s", _( "unable to UnmapViewOfFile" ) );
 		return( -1 );
 	}
 #else /*!OS_WIN32*/
 	if( munmap( start, length ) < 0 ) {
-		vips_error_system( errno, "im_mapfile", 
+		vips_error_system( errno, "vips_mapfile", 
 			"%s", _( "unable to munmap file" ) );
 		return( -1 );
 	}
@@ -220,7 +212,7 @@ im__munmap( void *start, size_t length )
 }
 
 int
-im_mapfile( IMAGE *im )
+vips_mapfile( VipsImage *im )
 {
 	struct stat st;
 	mode_t m;
@@ -228,27 +220,27 @@ im_mapfile( IMAGE *im )
 	assert( !im->baseaddr );
 
 	/* Check the size of the file; if it is less than 64 bytes, then flag
-	 * an error.
+	 * an error, we won't be able to read the vips header without a segv.
 	 */
 	g_assert( im->file_length > 0 );
 	if( im->file_length < 64 ) {
-		vips_error( "im_mapfile", 
+		vips_error( "vips_mapfile", 
 			"%s", _( "file is less than 64 bytes" ) );
 		return( -1 ); 
 	}
 	if( fstat( im->fd, &st ) == -1 ) {
-		vips_error( "im_mapfile", 
+		vips_error( "vips_mapfile", 
 			"%s", _( "unable to get file status" ) );
 		return( -1 );
 	}
 	m = (mode_t) st.st_mode;
 	if( !S_ISREG( m ) ) {
-		vips_error( "im_mapfile", 
+		vips_error( "vips_mapfile", 
 			"%s", _( "not a regular file" ) ); 
 		return( -1 ); 
 	}
 
-	if( !(im->baseaddr = im__mmap( im->fd, 0, im->file_length, 0 )) )
+	if( !(im->baseaddr = vips__mmap( im->fd, 0, im->file_length, 0 )) )
 		return( -1 );
 
 	im->length = im->file_length;
@@ -259,7 +251,7 @@ im_mapfile( IMAGE *im )
 /* As above, but map read/write.
  */
 int
-im_mapfilerw( IMAGE *im )
+vips_mapfilerw( VipsImage *im )
 {
 	struct stat st;
 	mode_t m;
@@ -271,18 +263,18 @@ im_mapfilerw( IMAGE *im )
 	 */
 	g_assert( im->file_length > 0 );
 	if( fstat( im->fd, &st ) == -1 ) {
-		vips_error( "im_mapfilerw", 
+		vips_error( "vips_mapfilerw", 
 			"%s", _( "unable to get file status" ) );
 		return( -1 );
 	}
 	m = (mode_t) st.st_mode;
 	if( im->file_length < 64 || !S_ISREG( m ) ) {
-		vips_error( "im_mapfile", 
+		vips_error( "vips_mapfile", 
 			"%s", _( "unable to read data" ) ); 
 		return( -1 ); 
 	}
 
-	if( !(im->baseaddr = im__mmap( im->fd, 1, im->file_length, 0 )) )
+	if( !(im->baseaddr = vips__mmap( im->fd, 1, im->file_length, 0 )) )
 		return( -1 );
 
 	im->length = im->file_length;
@@ -294,7 +286,7 @@ im_mapfilerw( IMAGE *im )
  * we try to remap it read-write. 
  */
 int
-im_remapfilerw( IMAGE *image )
+vips_remapfilerw( VipsImage *image )
 {
 	void *baseaddr;
 
@@ -305,19 +297,19 @@ im_remapfilerw( IMAGE *image )
 
         if( !(hMMFile = CreateFileMapping( hFile,
 		NULL, PAGE_READWRITE, 0, 0, NULL )) ) {
-                vips_error_system( GetLastError(), "im_mapfile", 
+                vips_error_system( GetLastError(), "vips_mapfile", 
 			"%s", _( "unable to CreateFileMapping" ) );
                 return( -1 );
         }
 
 	if( !UnmapViewOfFile( image->baseaddr ) ) {
-		vips_error_system( GetLastError(), "im_mapfile", 
+		vips_error_system( GetLastError(), "vips_mapfile", 
 			"%s", _( "unable to UnmapViewOfFile" ) );
 		return( -1 );
 	}
         if( !(baseaddr = (char *)MapViewOfFileEx( hMMFile, FILE_MAP_WRITE, 
 		0, 0, 0, image->baseaddr )) ) {
-                vips_error_system( GetLastError(), "im_mapfile",
+                vips_error_system( GetLastError(), "vips_mapfile",
 			"%s", _( "unable to MapViewOfFile" ) );
 		CloseHandle( hMMFile );
                 return( -1 );
@@ -338,7 +330,7 @@ im_remapfilerw( IMAGE *image )
 		PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, 
 		image->fd, 0 );
 	if( baseaddr == (void *)-1 ) { 
-		vips_error( "im_mapfile", _( "unable to mmap: \"%s\" - %s" ),
+		vips_error( "vips_mapfile", _( "unable to mmap: \"%s\" - %s" ),
 			image->filename, strerror( errno ) );
 		return( -1 ); 
 	}
@@ -348,7 +340,7 @@ im_remapfilerw( IMAGE *image )
 	image->dtype = VIPS_IMAGE_MMAPINRW;
 
 	if( baseaddr != image->baseaddr ) {
-		vips_error( "im_mapfile", _( "unable to mmap \"%s\" to same "
+		vips_error( "vips_mapfile", _( "unable to mmap \"%s\" to same "
 			"address" ), image->filename );
 		image->baseaddr = baseaddr;
 		return( -1 ); 
