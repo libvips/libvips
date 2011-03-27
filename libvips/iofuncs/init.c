@@ -213,9 +213,9 @@ vips_init( const char *argv0 )
 
 	/* Register base vips types.
 	 */
-	im__meta_init_types();
-	im__format_init();
+	vips__meta_init_types();
 	vips__interpolate_init();
+	im__format_init();
 
 	/* Load up any plugins in the vips libdir. We don't error on failure,
 	 * it's too annoying to have VIPS refuse to start because of a broken

@@ -42,6 +42,10 @@
 
  */
 
+/*
+#define VIPS_DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -56,6 +60,7 @@
 #include <vips/internal.h>
 #include <vips/buf.h>
 #include <vips/thread.h>
+#include <vips/debug.h>
 
 #ifdef OS_WIN32
 #include <windows.h>
@@ -152,6 +157,8 @@ vips_verror( const char *domain, const char *fmt, va_list ap )
 	vips_buf_vappendf( &vips_error_buf, fmt, ap );
 	vips_buf_appends( &vips_error_buf, "\n" );
 	g_mutex_unlock( vips__global_lock );
+
+	VIPS_DEBUG_MSG( "vips_verror: %s\n", fmt );
 }
 
 /**

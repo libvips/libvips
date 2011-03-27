@@ -37,6 +37,39 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/**
+ * VIPS_META_EXIF_NAME:
+ *
+ * The name that JPEG read and write operations use for the image's EXIF data.
+ */
+#define VIPS_META_EXIF_NAME "exif-data"
+
+/**
+ * VIPS_META_ICC_NAME:
+ *
+ * The name we use to attach an ICC profile. The file read and write
+ * operations for TIFF, JPEG, PNG and others use this item of metadata to
+ * attach and save ICC profiles. The profile is updated by the
+ * vips_icc_transform() operations.
+ */
+#define VIPS_META_ICC_NAME "icc-profile-data"
+
+/**
+ * VIPS_META_XML:
+ *
+ * The original XML that was used to code the metadata after reading a VIPS
+ * format file.
+ */
+#define VIPS_META_XML "xml-header"
+
+/**
+ * VIPS_META_RESOLUTION_UNIT:
+ *
+ * The JPEG and TIFF read and write operations use this to record the
+ * file's preferred unit for resolution.
+ */
+#define VIPS_META_RESOLUTION_UNIT "resolution-unit"
+
 int vips_format_sizeof( VipsBandFormat format );
 
 int vips_image_get_width( VipsImage *image );
@@ -63,16 +96,81 @@ int vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
 	__attribute__((sentinel));
 int vips_image_copy_fields( VipsImage *out, VipsImage *in );
 
-int vips_image_get_int( VipsImage *im, const char *field, int *out );
-int vips_image_get_double( VipsImage *im, const char *field, double *out );
-int vips_image_get_string( VipsImage *im, const char *field, char **out );
-int vips_image_get_as_string( VipsImage *im, const char *field, char **out );
-GType vips_image_get_typeof( VipsImage *im, const char *field );
-int vips_image_get( VipsImage *im, const char *field, GValue *value_copy );
-
+int vips_image_set( VipsImage *image, const char *field, GValue *value );
+int vips_image_get( VipsImage *image, const char *field, GValue *value_copy );
+GType vips_image_get_typeof( VipsImage *image, const char *field );
+gboolean vips_image_remove( VipsImage *image, const char *field );
 typedef void *(*VipsImageMapFn)( VipsImage *image, 
 	const char *field, GValue *value, void *a );
 void *vips_image_map( VipsImage *im, VipsImageMapFn fn, void *a );
+
+/**
+ * VIPS_TYPE_SAVE_STRING:
+ *
+ * The #GType for an "vips_save_string".
+ */
+#define VIPS_TYPE_SAVE_STRING (vips_save_string_get_type())
+GType vips_save_string_get_type( void );
+const char *vips_save_string_get( const GValue *value );
+void vips_save_string_set( GValue *value, const char *str );
+void vips_save_string_setf( GValue *value, const char *fmt, ... )
+	__attribute__((format(printf, 2, 3)));
+
+/**
+ * VIPS_TYPE_AREA:
+ *
+ * The #GType for an #vips_area.
+ */
+#define VIPS_TYPE_AREA (vips_area_get_type())
+GType vips_area_get_type( void );
+
+/**
+ * VIPS_TYPE_REF_STRING:
+ *
+ * The #GType for an #vips_refstring.
+ */
+#define VIPS_TYPE_REF_STRING (vips_ref_string_get_type())
+GType vips_ref_string_get_type( void );
+int vips_ref_string_set( GValue *value, const char *str );
+const char *vips_ref_string_get( const GValue *value );
+size_t vips_ref_string_get_length( const GValue *value );
+
+/**
+ * VIPS_TYPE_BLOB:
+ *
+ * The #GType for an #vips_blob.
+ */
+
+/* Also used for eg. vips_local() and friends.
+ */
+typedef int (*VipsCallbackFn)( void *a, void *b );
+
+#define VIPS_TYPE_BLOB (vips_blob_get_type())
+GType vips_blob_get_type( void );
+void *vips_blob_get( const GValue *value, size_t *length );
+int vips_blob_set( GValue *value, VipsCallbackFn free_fn, 
+	void *data, size_t length ); 
+
+int vips_image_set_area( VipsImage *image, 
+	const char *field, VipsCallbackFn free_fn, void *data );
+int vips_image_get_area( VipsImage *image, const char *field, void **data );
+int vips_image_set_string( VipsImage *image, 
+	const char *field, const char *str );
+int vips_image_get_string( VipsImage *image, const char *field, char **str );
+int vips_image_set_blob( VipsImage *image, const char *field, 
+	VipsCallbackFn free_fn, void *data, size_t length );
+int vips_image_get_blob( VipsImage *image, const char *field, 
+	void **data, size_t *length );
+
+int vips_image_get_int( VipsImage *image, const char *field, int *out );
+int vips_image_set_int( VipsImage *image, const char *field, int i );
+int vips_image_get_double( VipsImage *image, const char *field, double *out );
+int vips_image_set_double( VipsImage *image, const char *field, double d );
+int vips_image_get_string( VipsImage *image, const char *field, char **out );
+int vips_image_set_string( VipsImage *image, 
+	const char *field, const char *str );
+int vips_image_get_as_string( VipsImage *image, const char *field, char **out );
+GType vips_image_get_typeof( VipsImage *image, const char *field );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));

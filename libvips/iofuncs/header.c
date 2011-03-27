@@ -48,6 +48,8 @@
 
  */
 
+#define VIPS_DEBUG
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -59,6 +61,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -89,6 +92,47 @@
  * for a set of functions for adding new metadata to an image.
  */
 
+/**
+ * SECTION: meta
+ * @short_description: get and set image metadata
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-header">header</link>
+ * @include: vips/vips.h
+ *
+ * You can attach arbitrary metadata to images. VipsMetadata is copied as images
+ * are processed, so all images which used this image as input, directly or
+ * indirectly, will have this same bit of metadata attached to them. Copying
+ * is implemented with reference-counted pointers, so it is efficient, even for
+ * large items of data. This does however mean that metadata items need to be
+ * immutable. VipsMetadata
+ * is handy for things like ICC profiles or EXIF data.
+ *
+ * Various convenience functions (eg. vips_image_set_int()) let you easily 
+ * attach 
+ * simple types like
+ * numbers, strings and memory blocks to images. Use vips_header_map() to loop
+ * over an image's fields, including all metadata.
+ *
+ * Items of metadata are identified by strings. Some strings are reserved, for
+ * example the ICC profile for an image is known by convention as
+ * "icc-profile-data".
+ *
+ * If you save an image in VIPS format, all metadata (with a restriction, see
+ * below) is automatically saved for you in a block of XML at the end of the
+ * file. When you load a VIPS image, the metadata is restored. You can use the
+ * 'edvips' command-line tool to extract or replace this block of XML.
+ *
+ * VIPS metadata is based on GValue. See the docs for that system if you want
+ * to do fancy stuff such as defining a new metadata type.
+ * VIPS defines a new GValue called "vips_save_string", a variety of string. If 
+ * your GValue can be transformed to vips_save_string, it will be saved and
+ * loaded to and from VIPS files for you.
+ *
+ * VIPS provides a couple of base classes which implement
+ * reference-counted areas of memory. If you base your metadata on one of
+ * these types, it can be copied between images efficiently.
+ */
+
 /* Name, offset pair.
  */
 typedef struct _HeaderField {
@@ -111,7 +155,7 @@ static HeaderField int_field[] = {
 };
 
 /* These are actually floats :-( how annoying. We report them as doubles for
- * consistency with the im_meta_*() functions.
+ * consistency with the vips_image_*() functions.
  */
 static HeaderField double_field[] = {
 	{ "xres", G_STRUCT_OFFSET( VipsImage, Xres ) },
@@ -141,7 +185,7 @@ static HeaderField old_double_field[] = {
 	{ "Yres", G_STRUCT_OFFSET( VipsImage, Yres ) }
 };
 
-/* This is used by (eg.) IM_IMAGE_SIZEOF_ELEMENT() to calculate object
+/* This is used by (eg.) VIPS_IMAGE_SIZEOF_ELEMENT() to calculate object
  * size.
  */
 const size_t vips__image_sizeof_bandformat[] = {
@@ -166,6 +210,134 @@ vips_format_sizeof( VipsBandFormat format )
 		vips_error( "vips_format_sizeof", 
 			_( "unknown band format %d" ), format ), -1 :
 		vips__image_sizeof_bandformat[format] );
+}
+
+#ifdef DEBUG
+/* Check that this meta is on the hash table.
+ */
+static void *
+meta_sanity_on_hash( VipsMeta *meta, VipsImage *im )
+{
+	VipsMeta *found;
+
+	if( meta->im != im )
+		printf( "*** field \"%s\" has incorrect im\n", 
+			meta->field );
+
+	if( !(found = g_hash_table_lookup( im->meta, meta->field )) )
+		printf( "*** field \"%s\" is on traverse but not in hash\n", 
+			meta->field );
+
+	if( found != meta )
+		printf(  "*** meta \"%s\" on traverse and hash do not match\n", 
+			meta->field );
+
+	return( NULL );
+}
+
+static void
+meta_sanity_on_traverse( const char *field, VipsMeta *meta, VipsImage *im )
+{
+	if( meta->field != field )
+		printf( "*** field \"%s\" has incorrect field\n", 
+			meta->field );
+
+	if( meta->im != im )
+		printf( "*** field \"%s\" has incorrect im\n", 
+			meta->field );
+
+	if( !g_slist_find( im->meta_traverse, meta ) )
+		printf( "*** field \"%s\" is in hash but not on traverse\n", 
+			meta->field );
+}
+
+static void
+meta_sanity( const VipsImage *im )
+{
+	if( im->meta )
+		g_hash_table_foreach( im->meta, 
+			(GHFunc) meta_sanity_on_traverse, (void *) im );
+	im_slist_map2( im->meta_traverse, 
+		(VSListMap2Fn) meta_sanity_on_hash, (void *) im, NULL );
+}
+#endif /*DEBUG*/
+
+static void
+meta_free( VipsMeta *meta )
+{
+#ifdef DEBUG
+{
+	char *str_value;
+
+	str_value = g_strdup_value_contents( &meta->value );
+	printf( "meta_free: field %s, value = %s\n", 
+		meta->field, str_value );
+	g_free( str_value );
+}
+#endif /*DEBUG*/
+
+	if( meta->im )
+		meta->im->meta_traverse = 
+			g_slist_remove( meta->im->meta_traverse, meta );
+
+	g_value_unset( &meta->value );
+	VIPS_FREE( meta->field );
+	vips_free( meta );
+}
+
+static VipsMeta *
+meta_new( VipsImage *image, const char *field, GValue *value )
+{
+	VipsMeta *meta;
+
+	if( !(meta = VIPS_NEW( NULL, VipsMeta )) )
+		return( NULL );
+	meta->im = image;
+	meta->field = NULL;
+	memset( &meta->value, 0, sizeof( GValue ) );
+
+	if( !(meta->field = vips_strdup( NULL, field )) ) {
+		meta_free( meta );
+		return( NULL );
+	}
+
+	g_value_init( &meta->value, G_VALUE_TYPE( value ) );
+	g_value_copy( value, &meta->value );
+
+	image->meta_traverse = g_slist_append( image->meta_traverse, meta );
+	g_hash_table_replace( image->meta, meta->field, meta ); 
+
+#ifdef DEBUG
+{
+	char *str_value;
+
+	str_value = g_strdup_value_contents( value );
+	printf( "meta_new: field %s, value = %s\n", 
+		field, str_value );
+	g_free( str_value );
+}
+#endif /*DEBUG*/
+
+	return( meta );
+}
+
+/* Destroy all the meta on an image.
+ */
+void
+vips__meta_destroy( VipsImage *image )
+{
+	VIPS_FREEF( g_hash_table_destroy, image->meta );
+	g_assert( !image->meta_traverse );
+}
+
+static void
+meta_init( VipsImage *im )
+{
+	if( !im->meta ) {
+		g_assert( !im->meta_traverse );
+		im->meta = g_hash_table_new_full( g_str_hash, g_str_equal,
+			NULL, (GDestroyNotify) meta_free );
+	}
 }
 
 int
@@ -281,6 +453,49 @@ vips_image_init_fields( VipsImage *image,
 	image->Yres = yres;
 }
 
+static void *
+meta_cp_field( VipsMeta *meta, VipsImage *dst )
+{
+	VipsMeta *meta_copy;
+
+#ifdef DEBUG
+{
+	char *str_value;
+
+	str_value = g_strdup_value_contents( &meta->value );
+	printf( "vips__meta_cp: copying field %s, value = %s\n", 
+		meta->field, str_value );
+	g_free( str_value );
+}
+#endif /*DEBUG*/
+
+	/* No way to return error here, sadly.
+	 */
+	meta_copy = meta_new( dst, meta->field, &meta->value );
+
+#ifdef DEBUG
+	meta_sanity( dst );
+#endif /*DEBUG*/
+
+	return( NULL );
+}
+
+/* Copy meta on to dst. Called from vips_cp_desc().
+ */
+static int
+meta_cp( VipsImage *dst, const VipsImage *src )
+{
+	if( src->meta ) {
+		/* Loop, copying fields.
+		 */
+		meta_init( dst );
+		im_slist_map2( src->meta_traverse,
+			(VSListMap2Fn) meta_cp_field, dst, NULL );
+	}
+
+	return( 0 );
+}
+
 /**
  * vips_image_copy_fields_array:
  * @out: image to copy to
@@ -289,10 +504,10 @@ vips_image_init_fields( VipsImage *image,
  * Copy fields from all the input images to the output image. There must be at
  * least one input image. 
  *
- * The first input image is used to set the main fields of @out (@XSize, @Coding
- * and so on). 
+ * The first input image is used to set the main fields of @out (@width,
+ * @coding and so on). 
  *
- * Metadata from all the image is merged on to @out, with lower-numbered items 
+ * Metadata from all the images is merged on to @out, with lower-numbered items 
  * overriding higher. So for example, if @in[0] and @in[1] both have an item
  * called "icc-profile", it's the profile attached to @in[0] that will end up
  * on @out.
@@ -332,9 +547,9 @@ vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 	/* Need to copy last-to-first so that in0 meta will override any
 	 * earlier meta.
 	 */
-	im__meta_destroy( out );
+	vips__meta_destroy( out );
 	for( i = ni - 1; i >= 0; i-- ) 
-		if( im__meta_cp( out, in[i] ) )
+		if( meta_cp( out, in[i] ) )
 			return( -1 );
 
 	/* Merge hists first to last.
@@ -372,11 +587,12 @@ vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
 
 	in[0] = in1;
 	va_start( ap, in1 );
-	for( i = 1; i < MAX_IMAGES && (in[i] = va_arg( ap, VipsImage * )); i++ ) 
+	for( i = 1; i < MAX_IMAGES && 
+		(in[i] = va_arg( ap, VipsImage * )); i++ ) 
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		vips_error( "im_cp_descv", 
+		vips_error( "vips_image_copy_fieldsv", 
 			"%s", _( "too many images" ) );
 		return( -1 );
 	}
@@ -403,209 +619,55 @@ vips_image_copy_fields( VipsImage *out, VipsImage *in )
 }
 
 /** 
- * vips_image_get_int:
- * @image: image to get the header field from
- * @field: field name
- * @out: return field value
+ * vips_image_set:
+ * @image: image to set the metadata on
+ * @field: the name to give the metadata
+ * @value: the GValue to copy into the image
  *
- * Gets @out from @im under the name @field. This function searches for
- * int-valued fields.
+ * Set a piece of metadata on @image. Any old metadata with that name is
+ * destroyed. The GValue is copied into the image, so you need to unset the
+ * value when you're done with it.
  *
- * See also: vips_image_get(), vips_image_get_typeof()
+ * For example, to set an integer on an image (though you would use the
+ * convenience function vips_image_set_int() in practice), you would need:
  *
- * Returns: 0 on success, -1 otherwise.
- */
-int
-vips_image_get_int( VipsImage *image, const char *field, int *out )
-{
-	int i;
-
-	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
-		if( strcmp( field, int_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( int, image, 
-				int_field[i].offset );
-			return( 0 );
-		}
-	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ )
-		if( strcmp( field, old_int_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( int, image, 
-				old_int_field[i].offset );
-			return( 0 );
-		}
-
-	if( !im_meta_get_int( image, field, out ) ) 
-		return( 0 );
-
-	vips_error( "im_header_int", 
-		_( "no such int field \"%s\"" ), field );
-
-	return( -1 );
-}
-
-/** 
- * vips_image_get_double:
- * @image: image to get the header field from
- * @field: field name
- * @out: return field value
+ * |[
+ * GValue value = { 0 };
  *
- * Gets @out from @im under the name @field. 
- * This function searches for
- * double-valued fields.
+ * g_value_init( &value, G_TYPE_INT );
+ * g_value_set_int( &value, 42 );
  *
- * See also: vips_image_get(), vips_image_get_typeof()
+ * if( vips_image_set( image, field, &value ) ) {
+ *   g_value_unset( &value );
+ *   return( -1 );
+ * }
+ * g_value_unset( &value );
  *
- * Returns: 0 on success, -1 otherwise.
- */
-int
-vips_image_get_double( VipsImage *image, const char *field, double *out )
-{
-	int i;
-
-	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
-		if( strcmp( field, double_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( float, image, 
-				double_field[i].offset );
-			return( 0 );
-		}
-	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
-		if( strcmp( field, old_double_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( float, image, 
-				old_double_field[i].offset );
-			return( 0 );
-		}
-
-	if( !im_meta_get_double( image, field, out ) ) 
-		return( 0 );
-
-	vips_error( "im_header_double", 
-		_( "no such double field \"%s\"" ), field );
-
-	return( -1 );
-}
-
-/** 
- * vips_image_get_string:
- * @image: image to get the header field from
- * @field: field name
- * @out: return field value
- *
- * Gets @out from @im under the name @field. 
- * This function searches for string-valued fields. 
- *
- * Do not free @out.
- *
- * See also: vips_image_get(), vips_image_get_typeof()
- *
- * Returns: 0 on success, -1 otherwise.
- */
-int
-vips_image_get_string( VipsImage *image, const char *field, char **out )
-{
-	int i;
-
-	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
-		if( strcmp( field, string_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( char *, image, 
-				string_field[i].offset );
-			return( 0 );
-		}
-
-	if( !im_meta_get_string( image, field, out ) ) 
-		return( 0 );
-
-	vips_error( "im_header_string", 
-		_( "no such string field \"%s\"" ), field );
-
-	return( -1 );
-}
-
-/** 
- * vips_image_get_as_string:
- * @image: image to get the header field from
- * @field: field name
- * @out: return field value as string
- *
- * Gets @out from @im under the name @field. 
- * This function will read any field, returning it as a printable string.
- * You need to free the string with g_free() when you are done with it.
- *
- * See also: vips_image_get(), vips_image_get_typeof().
- *
- * Returns: 0 on success, -1 otherwise.
- */
-int
-vips_image_get_as_string( VipsImage *image, const char *field, char **out )
-{
-	GValue value = { 0 };
-	GType type;
-
-	if( vips_image_get( image, field, &value ) )
-		return( -1 );
-
-	/* Display the save form, if there is one. This way we display
-	 * something useful for ICC profiles, xml fields, etc.
-	 */
-	type = G_VALUE_TYPE( &value );
-	if( g_value_type_transformable( type, IM_TYPE_SAVE_STRING ) ) {
-		GValue save_value = { 0 };
-
-		g_value_init( &save_value, IM_TYPE_SAVE_STRING );
-		if( !g_value_transform( &value, &save_value ) ) 
-			return( -1 );
-		*out = g_strdup( im_save_string_get( &save_value ) );
-		g_value_unset( &save_value );
-	}
-	else 
-		*out = g_strdup_value_contents( &value );
-
-	g_value_unset( &value );
-
-	return( 0 );
-}
-
-/**
- * vips_image_get_typeof:
- * @image: image to test
- * @field: the name to search for
- *
- * Read the GType for a header field. Returns zero if there is no
- * field of that name. 
+ * return( 0 );
+ * ]|
  *
  * See also: vips_image_get().
  *
- * Returns: the GType of the field, or zero if there is no
- * field of that name.
+ * Returns: 0 on success, -1 otherwise.
  */
-GType 
-vips_image_get_typeof( VipsImage *image, const char *field )
+int
+vips_image_set( VipsImage *image, const char *field, GValue *value )
 {
-	int i;
-	GType type;
+	VipsMeta *meta;
 
-	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
-		if( strcmp( field, int_field[i].field ) == 0 ) 
-			return( G_TYPE_INT );
-	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ )
-		if( strcmp( field, old_int_field[i].field ) == 0 ) 
-			return( G_TYPE_INT );
-	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
-		if( strcmp( field, double_field[i].field ) == 0 ) 
-			return( G_TYPE_DOUBLE );
-	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
-		if( strcmp( field, old_double_field[i].field ) == 0 ) 
-			return( G_TYPE_DOUBLE );
-	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
-		if( strcmp( field, string_field[i].field ) == 0 ) 
-			return( G_TYPE_STRING );
-	if( (type = im_meta_get_typeof( image, field )) )
-		return( type );
+	g_assert( field );
+	g_assert( value );
+
+	meta_init( image );
+	if( !(meta = meta_new( image, field, value )) )
+		return( -1 );
+
+#ifdef DEBUG
+	meta_sanity( image );
+#endif /*DEBUG*/
 
 	return( 0 );
 }
-
-/* Fill value_copy with a copy of the value, -1 on error. value_copy must be 
- * zeroed but uninitialised. User must g_value_unset( value ).
- */
 
 /**
  * vips_image_get:
@@ -654,6 +716,10 @@ int
 vips_image_get( VipsImage *image, const char *field, GValue *value_copy )
 {
 	int i;
+	VipsMeta *meta;
+
+	g_assert( field );
+	g_assert( value_copy );
 
 	for( i = 0; i < VIPS_NUMBER( int_field ); i++ ) 
 		if( strcmp( field, int_field[i].field ) == 0 ) {
@@ -700,14 +766,89 @@ vips_image_get( VipsImage *image, const char *field, GValue *value_copy )
 			return( 0 );
 		}
 
-	if( !im_meta_get( image, field, value_copy ) )
+	if( image->meta && 
+		(meta = g_hash_table_lookup( image->meta, field )) ) {
+		g_value_init( value_copy, G_VALUE_TYPE( &meta->value ) );
+		g_value_copy( &meta->value, value_copy );
+
 		return( 0 );
+	}
+
+	vips_error( "vips_image_get", _( "field \"%s\" not found" ), field );
 
 	return( -1 );
 }
 
+/**
+ * vips_image_get_typeof:
+ * @image: image to test
+ * @field: the name to search for
+ *
+ * Read the GType for a header field. Returns zero if there is no
+ * field of that name. 
+ *
+ * See also: vips_image_get().
+ *
+ * Returns: the GType of the field, or zero if there is no
+ * field of that name.
+ */
+GType 
+vips_image_get_typeof( VipsImage *image, const char *field )
+{
+	int i;
+	VipsMeta *meta;
+
+	g_assert( field );
+
+	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
+		if( strcmp( field, int_field[i].field ) == 0 ) 
+			return( G_TYPE_INT );
+	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ )
+		if( strcmp( field, old_int_field[i].field ) == 0 ) 
+			return( G_TYPE_INT );
+	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
+		if( strcmp( field, double_field[i].field ) == 0 ) 
+			return( G_TYPE_DOUBLE );
+	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
+		if( strcmp( field, old_double_field[i].field ) == 0 ) 
+			return( G_TYPE_DOUBLE );
+	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
+		if( strcmp( field, string_field[i].field ) == 0 ) 
+			return( G_TYPE_STRING );
+
+	if( image->meta && 
+		(meta = g_hash_table_lookup( image->meta, field )) ) 
+		return( G_VALUE_TYPE( &meta->value ) );
+
+	VIPS_DEBUG_MSG( "vips_image_get_typeof: unknown field %s\n", field );
+
+	return( 0 );
+}
+
+/**
+ * vips_image_remove:
+ * @image: image to test
+ * @field: the name to search for
+ *
+ * Find and remove an item of metadata. Return %FALSE if no metadata of that
+ * name was found.
+ *
+ * See also: vips_image_set(), vips_image_get_typeof().
+ *
+ * Returns: %TRUE if an item of metadata of that name was found and removed
+ */
+gboolean
+vips_image_remove( VipsImage *image, const char *field )
+{
+	if( image->meta && 
+		g_hash_table_remove( image->meta, field ) )
+		return( TRUE );
+
+	return( FALSE );
+}
+
 static void *
-vips_image_map_fn( Meta *meta, VipsImageMapFn fn, void *a )
+vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
 {
 	return( fn( meta->im, meta->field, &meta->value, a ) );
 }
@@ -762,12 +903,910 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
 			return( result );
 	}
 
-	if( image->Meta_traverse && 
-		(result = im_slist_map2( image->Meta_traverse, 
+	if( image->meta_traverse && 
+		(result = im_slist_map2( image->meta_traverse, 
 			(VSListMap2Fn) vips_image_map_fn, fn, a )) )
 		return( result );
 
 	return( NULL );
+}
+
+/* Save meta fields to the header. We have a new string type for header fields
+ * to save to XML and define transform functions to go from our meta types to
+ * this string type.
+ */
+GType
+vips_save_string_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "vips_save_string",
+			(GBoxedCopyFunc) g_strdup, 
+			(GBoxedFreeFunc) g_free );
+	}
+
+	return( type );
+}
+
+/** 
+ * vips_save_string_get:
+ * @value: GValue to get from
+ *
+ * Get the C string held internally by the GValue.
+ *
+ * Returns: The C string held by @value. This must not be freed.
+ */
+const char *
+vips_save_string_get( const GValue *value )
+{
+	return( (char *) g_value_get_boxed( value ) );
+}
+
+/** 
+ * vips_save_string_set:
+ * @value: GValue to set
+ * @str: C string to copy into the GValue
+ *
+ * Copies the C string into @value.
+ */
+void
+vips_save_string_set( GValue *value, const char *str )
+{
+	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_SAVE_STRING );
+
+	g_value_set_boxed( value, str );
+}
+
+/** 
+ * vips_save_string_setf:
+ * @value: GValue to set
+ * @fmt: printf()-style format string
+ * @Varargs: arguments to printf()-formatted @fmt
+ *
+ * Generates a string and copies it into @value.
+ */
+void
+vips_save_string_setf( GValue *value, const char *fmt, ... )
+{
+	va_list ap;
+	char *str;
+
+	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_SAVE_STRING );
+
+	va_start( ap, fmt );
+	str = g_strdup_vprintf( fmt, ap );
+	va_end( ap );
+	vips_save_string_set( value, str );
+	g_free( str );
+}
+
+/* Transform funcs for builtin types to SAVE_STRING.
+ */
+static void
+transform_int_save_string( const GValue *src_value, GValue *dest_value )
+{
+	vips_save_string_setf( dest_value, "%d", g_value_get_int( src_value ) );
+}
+
+static void
+transform_save_string_int( const GValue *src_value, GValue *dest_value )
+{
+	g_value_set_int( dest_value, atoi( vips_save_string_get( src_value ) ) );
+}
+
+static void
+transform_double_save_string( const GValue *src_value, GValue *dest_value )
+{
+	char buf[G_ASCII_DTOSTR_BUF_SIZE];
+
+	/* Need to be locale independent.
+	 */
+	g_ascii_dtostr( buf, G_ASCII_DTOSTR_BUF_SIZE, 
+		g_value_get_double( src_value ) );
+	vips_save_string_set( dest_value, buf );
+}
+
+static void
+transform_save_string_double( const GValue *src_value, GValue *dest_value )
+{
+	g_value_set_double( dest_value, 
+		g_ascii_strtod( vips_save_string_get( src_value ), NULL ) );
+}
+
+/* A GType for a ref-counted area of memory.
+ */
+typedef struct _Area {
+	int count;
+	size_t length;		/* 0 if not known */
+	void *data;
+	VipsCallbackFn free_fn;
+} Area;
+
+#ifdef DEBUG
+static int area_number = 0;
+#endif /*DEBUG*/
+
+/* An area of mem with a free func. (eg. \0-terminated string, or a struct).
+ * Inital count == 1, so _unref() after attaching somewhere.
+ */
+static Area *
+area_new( VipsCallbackFn free_fn, void *data )
+{
+	Area *area;
+
+	if( !(area = VIPS_NEW( NULL, Area )) )
+		return( NULL );
+	area->count = 1;
+	area->length = 0;
+	area->data = data;
+	area->free_fn = free_fn;
+
+#ifdef DEBUG
+	area_number += 1;
+	printf( "area_new: %p count = %d (%d in total)\n", 
+		area, area->count, area_number );
+#endif /*DEBUG*/
+
+	return( area );
+}
+
+/* An area of mem with a free func and a length (some sort of binary object,
+ * like an ICC profile).
+ */
+static Area *
+area_new_blob( VipsCallbackFn free_fn, void *blob, size_t blob_length )
+{
+	Area *area;
+
+	if( !(area = area_new( free_fn, blob )) )
+		return( NULL );
+	area->length = blob_length;
+
+	return( area );
+}
+
+static Area *
+area_copy( Area *area )
+{
+	g_assert( area->count >= 0 );
+
+	area->count += 1;
+
+#ifdef DEBUG
+	printf( "area_copy: %p count = %d\n", area, area->count );
+#endif /*DEBUG*/
+
+	return( area );
+}
+
+static void
+area_unref( Area *area )
+{
+	g_assert( area->count > 0 );
+
+	area->count -= 1;
+
+#ifdef DEBUG
+	printf( "area_unref: %p count = %d\n", area, area->count );
+#endif /*DEBUG*/
+
+	if( area->count == 0 && area->free_fn ) {
+		(void) area->free_fn( area->data, NULL );
+		area->free_fn = NULL;
+		vips_free( area );
+
+#ifdef DEBUG
+		area_number -= 1;
+		printf( "area_unref: free .. total = %d\n", area_number );
+#endif /*DEBUG*/
+	}
+}
+
+/* Transform an area to a G_TYPE_STRING.
+ */
+static void
+transform_area_g_string( const GValue *src_value, GValue *dest_value )
+{
+	Area *area;
+	char buf[256];
+
+	area = g_value_get_boxed( src_value );
+	im_snprintf( buf, 256, "VIPS_TYPE_AREA, count = %d, data = %p",
+		area->count, area->data );
+	g_value_set_string( dest_value, buf );
+}
+
+GType
+vips_area_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "vips_area",
+			(GBoxedCopyFunc) area_copy, 
+			(GBoxedFreeFunc) area_unref );
+		g_value_register_transform_func( 
+			type,
+			G_TYPE_STRING,
+			transform_area_g_string );
+	}
+
+	return( type );
+}
+
+/* Set value to be a ref-counted area of memory with a free function.
+ */
+static int
+value_set_area( VipsCallbackFn free_fn, void *data, GValue *value )
+{
+	Area *area;
+
+	if( !(area = area_new( free_fn, data )) )
+		return( -1 );
+
+	g_value_init( value, VIPS_TYPE_AREA );
+	g_value_set_boxed( value, area );
+	area_unref( area );
+
+	return( 0 );
+}
+
+/* Don't touch count (area is static).
+ */
+static void *
+value_get_area_data( const GValue *value )
+{
+	Area *area;
+
+	area = g_value_get_boxed( value );
+
+	return( area->data );
+}
+
+static size_t
+value_get_area_length( const GValue *value )
+{
+	Area *area;
+
+	area = g_value_get_boxed( value );
+
+	return( area->length );
+}
+
+/* Helpers for set/get. Write a value and destroy it.
+ */
+static int
+meta_set_value( VipsImage *image, const char *field, GValue *value )
+{
+	if( vips_image_set( image, field, value ) ) {
+		g_value_unset( value );
+		return( -1 );
+	}
+	g_value_unset( value );
+
+	return( 0 );
+}
+
+static int
+meta_get_value( VipsImage *image, 
+	const char *field, GType type, GValue *value_copy )
+{
+	if( vips_image_get( image, field, value_copy ) )
+		return( -1 );
+	if( G_VALUE_TYPE( value_copy ) != type ) {
+		vips_error( "VipsImage", 
+			_( "field \"%s\" is of type %s, not %s" ),
+			field, 
+			g_type_name( G_VALUE_TYPE( value_copy ) ),
+			g_type_name( type ) );
+		g_value_unset( value_copy );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/** 
+ * vips_image_set_area:
+ * @image: image to attach the metadata to
+ * @field: metadata name
+ * @free_fn: free function for @data
+ * @data: pointer to area of memory
+ *
+ * Attaches @data as a metadata item on @image under the name @field. When VIPS
+ * no longer needs the metadata, it will be freed with @free_fn.
+ *
+ * See also: vips_image_get_double(), vips_image_set()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_set_area( VipsImage *image, const char *field, 
+	VipsCallbackFn free_fn, void *data )
+{
+	GValue value = { 0 };
+
+	value_set_area( free_fn, data, &value );
+
+	return( meta_set_value( image, field, &value ) );
+}
+
+/** 
+ * vips_image_get_area:
+ * @image: image to get the metadata from
+ * @field: metadata name
+ * @data: return metadata value
+ *
+ * Gets @data from @image under the name @field. A convenience
+ * function over vips_image_get(). Use vips_image_get_typeof() to test for the 
+ * existance
+ * of a piece of metadata.
+ *
+ * See also: vips_image_set_area(), vips_image_get(), vips_image_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_area( VipsImage *image, const char *field, void **data )
+{
+	GValue value_copy = { 0 };
+
+	if( meta_get_value( image, field, VIPS_TYPE_AREA, &value_copy ) )
+		return( -1 );
+	*data = value_get_area_data( &value_copy );
+	g_value_unset( &value_copy );
+
+	return( 0 );
+}
+
+/** 
+ * vips_ref_string_get:
+ * @value: GValue to get from
+ *
+ * Get the C string held internally by the GValue.
+ *
+ * Returns: The C string held by @value. This must not be freed.
+ */
+const char *
+vips_ref_string_get( const GValue *value )
+{
+	return( value_get_area_data( value ) );
+}
+
+/** 
+ * vips_ref_string_get_length:
+ * @value: GValue to get from
+ *
+ * Gets the cached string length held internally by the refstring.
+ *
+ * Returns: The length of the string.
+ */
+size_t
+vips_ref_string_get_length( const GValue *value )
+{
+	return( value_get_area_length( value ) );
+}
+
+/** 
+ * vips_ref_string_set:
+ * @value: GValue to set
+ * @str: C string to copy into the GValue
+ *
+ * Copies the C string @str into @value. 
+ *
+ * vips_ref_string are immutable C strings that are copied between images by
+ * copying reference-counted pointers, making the much more efficient than
+ * regular GValue strings.
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_ref_string_set( GValue *value, const char *str )
+{
+	Area *area;
+	char *str_copy;
+
+	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
+
+	if( !(str_copy = vips_strdup( NULL, str )) )
+		return( -1 );
+	if( !(area = area_new( (VipsCallbackFn) vips_free, str_copy )) ) {
+		vips_free( str_copy );
+		return( -1 );
+	}
+
+	/* Handy place to cache this.
+	 */
+	area->length = strlen( str );
+
+	g_value_set_boxed( value, area );
+	area_unref( area );
+
+	return( 0 );
+}
+
+/* Transform a refstring to a G_TYPE_STRING and back.
+ */
+static void
+transform_ref_string_g_string( const GValue *src_value, GValue *dest_value )
+{
+	g_value_set_string( dest_value, vips_ref_string_get( src_value ) );
+}
+
+static void
+transform_g_string_ref_string( const GValue *src_value, GValue *dest_value )
+{
+	vips_ref_string_set( dest_value, g_value_get_string( src_value ) );
+}
+
+/* To a save string.
+ */
+static void
+transform_ref_string_save_string( const GValue *src_value, GValue *dest_value )
+{
+	vips_save_string_setf( dest_value, "%s", vips_ref_string_get( src_value ) );
+}
+
+static void
+transform_save_string_ref_string( const GValue *src_value, GValue *dest_value )
+{
+	vips_ref_string_set( dest_value, vips_save_string_get( src_value ) );
+}
+
+GType
+vips_ref_string_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "vips_ref_string",
+			(GBoxedCopyFunc) area_copy, 
+			(GBoxedFreeFunc) area_unref );
+		g_value_register_transform_func( type, G_TYPE_STRING,
+			transform_ref_string_g_string );
+		g_value_register_transform_func( G_TYPE_STRING, type,
+			transform_g_string_ref_string );
+		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
+			transform_ref_string_save_string );
+		g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, type,
+			transform_save_string_ref_string );
+	}
+
+	return( type );
+}
+
+/** 
+ * vips_blob_get:
+ * @value: GValue to get from
+ * @length: return the blob length here, optionally
+ *
+ * Get the address of the blob (binary large object) being held in @value and
+ * optionally return its length in @length.
+ *
+ * See also: vips_blob_set().
+ *
+ * Returns: The blob address.
+ */
+void *
+vips_blob_get( const GValue *value, size_t *length )
+{
+	Area *area;
+
+	/* Can't check value type, because we may get called from
+	 * vips_blob_get_type().
+	 */
+
+	area = g_value_get_boxed( value );
+	if( length )
+		*length = area->length;
+
+	return( area->data );
+}
+
+/* Transform a blob to a G_TYPE_STRING.
+ */
+static void
+transform_blob_g_string( const GValue *src_value, GValue *dest_value )
+{
+	void *blob;
+	size_t blob_length;
+	char buf[256];
+
+	blob = vips_blob_get( src_value, &blob_length );
+	im_snprintf( buf, 256, "VIPS_TYPE_BLOB, data = %p, length = %zd",
+		blob, blob_length );
+	g_value_set_string( dest_value, buf );
+}
+
+/* Transform a blob to a save string and back.
+ */
+static void
+transform_blob_save_string( const GValue *src_value, GValue *dest_value )
+{
+	void *blob;
+	size_t blob_length;
+	char *b64;
+
+	blob = vips_blob_get( src_value, &blob_length );
+	if( (b64 = vips__b64_encode( blob, blob_length )) ) {
+		vips_save_string_set( dest_value, b64 );
+		vips_free( b64 );
+	}
+}
+
+static void
+transform_save_string_blob( const GValue *src_value, GValue *dest_value )
+{
+	const char *b64;
+	void *blob;
+	size_t blob_length;
+
+	b64 = vips_save_string_get( src_value );
+	if( (blob = vips__b64_decode( b64, &blob_length )) )
+		vips_blob_set( dest_value, 
+			(VipsCallbackFn) vips_free, blob, blob_length );
+}
+
+GType
+vips_blob_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "vips_blob",
+			(GBoxedCopyFunc) area_copy, 
+			(GBoxedFreeFunc) area_unref );
+		g_value_register_transform_func( type, G_TYPE_STRING,
+			transform_blob_g_string );
+		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
+			transform_blob_save_string );
+		g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, type,
+			transform_save_string_blob );
+	}
+
+	return( type );
+}
+
+/** 
+ * vips_blob_set:
+ * @value: GValue to set
+ * @free_fn: free function for @data
+ * @data: pointer to area of memory
+ * @length: length of memory area
+ *
+ * Sets @value to hold a pointer to @blob. When @value is freed, @blob will be
+ * freed with @free_fn. @value also holds a note of the length of the memory
+ * area.
+ *
+ * blobs are things like ICC profiles or EXIF data. They are relocatable, and
+ * are saved to VIPS files for you coded as base64 inside the XML. They are
+ * copied by copying reference-counted pointers.
+ *
+ * See also: vips_blob_get()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_blob_set( GValue *value, 
+	VipsCallbackFn free_fn, void *data, size_t length ) 
+{
+	Area *area;
+
+	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_BLOB );
+
+	if( !(area = area_new_blob( free_fn, data, length )) )
+		return( -1 );
+
+	g_value_set_boxed( value, area );
+	area_unref( area );
+
+	return( 0 );
+}
+
+/** 
+ * vips_image_set_blob:
+ * @image: image to attach the metadata to
+ * @field: metadata name
+ * @free_fn: free function for @data
+ * @data: pointer to area of memory
+ * @length: length of memory area
+ *
+ * Attaches @blob as a metadata item on @image under the name @field. A 
+ * convenience
+ * function over vips_image_set() using an vips_blob.
+ *
+ * See also: vips_image_get_blob(), vips_image_set().
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_set_blob( VipsImage *image, const char *field, 
+	VipsCallbackFn free_fn, void *data, size_t length )
+{
+	GValue value = { 0 };
+
+	g_value_init( &value, VIPS_TYPE_BLOB );
+	vips_blob_set( &value, free_fn, data, length );
+
+	return( meta_set_value( image, field, &value ) );
+}
+
+/** 
+ * vips_image_get_blob:
+ * @image: image to get the metadata from
+ * @field: metadata name
+ * @data: pointer to area of memory
+ * @length: return the blob length here, optionally
+ *
+ * Gets @blob from @image under the name @field, optionally return its length in
+ * @length. A convenience
+ * function over vips_image_get(). Use vips_image_get_typeof() to test for the 
+ * existance
+ * of a piece of metadata.
+ *
+ * See also: vips_image_get(), vips_image_get_typeof(), vips_blob_get(), 
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_blob( VipsImage *image, const char *field, 
+	void **data, size_t *length )
+{
+	GValue value_copy = { 0 };
+
+	if( meta_get_value( image, field, VIPS_TYPE_BLOB, &value_copy ) )
+		return( -1 );
+	*data = vips_blob_get( &value_copy, length );
+	g_value_unset( &value_copy );
+
+	return( 0 );
+}
+
+/** 
+ * vips_image_get_int:
+ * @image: image to get the header field from
+ * @field: field name
+ * @out: return field value
+ *
+ * Gets @out from @im under the name @field. This function searches for
+ * int-valued fields.
+ *
+ * See also: vips_image_get(), vips_image_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_int( VipsImage *image, const char *field, int *out )
+{
+	int i;
+	GValue value_copy = { 0 };
+
+	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
+		if( strcmp( field, int_field[i].field ) == 0 ) {
+			*out = G_STRUCT_MEMBER( int, image, 
+				int_field[i].offset );
+			return( 0 );
+		}
+	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ )
+		if( strcmp( field, old_int_field[i].field ) == 0 ) {
+			*out = G_STRUCT_MEMBER( int, image, 
+				old_int_field[i].offset );
+			return( 0 );
+		}
+
+	if( !meta_get_value( image, field, G_TYPE_INT, &value_copy ) ) {
+		*out = g_value_get_int( &value_copy );
+		g_value_unset( &value_copy );
+
+		return( 0 );
+	}
+
+	return( -1 );
+}
+
+/** 
+ * vips_image_set_int:
+ * @image: image to attach the metadata to
+ * @field: metadata name
+ * @i: metadata value
+ *
+ * Attaches @i as a metadata item on @image under the name @field. A 
+ * convenience
+ * function over vips_image_set().
+ *
+ * See also: vips_image_get_int(), vips_image_set()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_set_int( VipsImage *image, const char *field, int i )
+{
+	GValue value = { 0 };
+
+	g_value_init( &value, G_TYPE_INT );
+	g_value_set_int( &value, i );
+
+	return( meta_set_value( image, field, &value ) );
+}
+
+/** 
+ * vips_image_get_double:
+ * @image: image to get the header field from
+ * @field: field name
+ * @out: return field value
+ *
+ * Gets @out from @im under the name @field. 
+ * This function searches for
+ * double-valued fields.
+ *
+ * See also: vips_image_get(), vips_image_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_double( VipsImage *image, const char *field, double *out )
+{
+	int i;
+	GValue value_copy = { 0 };
+
+	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
+		if( strcmp( field, double_field[i].field ) == 0 ) {
+			*out = G_STRUCT_MEMBER( float, image, 
+				double_field[i].offset );
+			return( 0 );
+		}
+	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
+		if( strcmp( field, old_double_field[i].field ) == 0 ) {
+			*out = G_STRUCT_MEMBER( float, image, 
+				old_double_field[i].offset );
+			return( 0 );
+		}
+
+
+	if( !meta_get_value( image, field, G_TYPE_DOUBLE, &value_copy ) ) {
+		*out = g_value_get_double( &value_copy );
+		g_value_unset( &value_copy );
+
+		return( 0 );
+	}
+
+	return( -1 );
+}
+
+/** 
+ * vips_image_set_double:
+ * @image: image to attach the metadata to
+ * @field: metadata name
+ * @d: metadata value
+ *
+ * Attaches @d as a metadata item on @image under the name @field. A 
+ * convenience
+ * function over vips_image_set().
+ *
+ * See also: vips_image_get_double(), vips_image_set()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_set_double( VipsImage *image, const char *field, double d )
+{
+	GValue value = { 0 };
+
+	g_value_init( &value, G_TYPE_DOUBLE );
+	g_value_set_double( &value, d );
+
+	return( meta_set_value( image, field, &value ) );
+}
+
+/** 
+ * vips_image_get_string:
+ * @image: image to get the header field from
+ * @field: field name
+ * @out: return field value
+ *
+ * Gets @out from @im under the name @field. 
+ * This function searches for string-valued fields. 
+ *
+ * Do not free @out.
+ *
+ * See also: vips_image_get(), vips_image_get_typeof()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_string( VipsImage *image, const char *field, char **out )
+{
+	int i;
+	GValue value_copy = { 0 };
+	Area *area;
+
+	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
+		if( strcmp( field, string_field[i].field ) == 0 ) {
+			*out = G_STRUCT_MEMBER( char *, image, 
+				string_field[i].offset );
+			return( 0 );
+		}
+
+	if( meta_get_value( image, 
+		field, VIPS_TYPE_REF_STRING, &value_copy ) ) {
+		area = g_value_get_boxed( &value_copy );
+		*out = area->data;
+		g_value_unset( &value_copy );
+
+		return( 0 );
+	}
+
+	return( -1 );
+}
+
+/** 
+ * vips_image_set_string:
+ * @image: image to attach the metadata to
+ * @field: metadata name
+ * @str: metadata value
+ *
+ * Attaches @str as a metadata item on @image under the name @field. 
+ * A convenience
+ * function over vips_image_set() using an vips_ref_string.
+ *
+ * See also: vips_image_get_double(), vips_image_set(), vips_ref_string
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_set_string( VipsImage *image, const char *field, const char *str )
+{
+	GValue value = { 0 };
+
+	g_value_init( &value, VIPS_TYPE_REF_STRING );
+	vips_ref_string_set( &value, str );
+
+	return( meta_set_value( image, field, &value ) );
+}
+
+/** 
+ * vips_image_get_as_string:
+ * @image: image to get the header field from
+ * @field: field name
+ * @out: return field value as string
+ *
+ * Gets @out from @im under the name @field. 
+ * This function will read any field, returning it as a printable string.
+ * You need to free the string with g_free() when you are done with it.
+ *
+ * See also: vips_image_get(), vips_image_get_typeof().
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_as_string( VipsImage *image, const char *field, char **out )
+{
+	GValue value = { 0 };
+	GType type;
+
+	if( vips_image_get( image, field, &value ) )
+		return( -1 );
+
+	/* Display the save form, if there is one. This way we display
+	 * something useful for ICC profiles, xml fields, etc.
+	 */
+	type = G_VALUE_TYPE( &value );
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
+		GValue save_value = { 0 };
+
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+		if( !g_value_transform( &value, &save_value ) ) 
+			return( -1 );
+		*out = g_strdup( vips_save_string_get( &save_value ) );
+		g_value_unset( &save_value );
+	}
+	else 
+		*out = g_strdup_value_contents( &value );
+
+	g_value_unset( &value );
+
+	return( 0 );
 }
 
 /**
@@ -893,4 +1932,28 @@ vips_image_get_history( VipsImage *image )
 		image->Hist = im__gslist_gvalue_get( image->history_list );
 
 	return( image->Hist ? image->Hist : "" );
+}
+
+/* Make the types we need for basic functioning. Called from init_world().
+ */
+void
+vips__meta_init_types( void )
+{
+	(void) vips_save_string_get_type();
+	(void) vips_area_get_type();
+	(void) vips_ref_string_get_type();
+	(void) vips_blob_get_type();
+
+	/* Register transform functions to go from built-in saveable types to 
+	 * a save string. Transform functions for our own types are set 
+	 * during type creation. 
+	 */
+	g_value_register_transform_func( G_TYPE_INT, VIPS_TYPE_SAVE_STRING,
+		transform_int_save_string );
+	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_INT,
+		transform_save_string_int );
+	g_value_register_transform_func( G_TYPE_DOUBLE, VIPS_TYPE_SAVE_STRING,
+		transform_double_save_string );
+	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_DOUBLE,
+		transform_save_string_double );
 }

@@ -44,16 +44,16 @@ extern "C" {
  * We don't refcount at this level ... large meta values are refcounted by
  * their GValue implementation, see eg. MetaArea.
  */
-typedef struct _Meta {
+typedef struct _VipsMeta {
 	VipsImage *im;
 
 	char *field;			/* strdup() of field name */
 	GValue value;			/* copy of value */
-} Meta;
+} VipsMeta;
 
-void im__meta_init_types( void );
-void im__meta_destroy( VipsImage *im );
-int im__meta_cp( VipsImage *, const VipsImage * );
+void vips__meta_init_types( void );
+void vips__meta_destroy( VipsImage *im );
+int vips__meta_cp( VipsImage *, const VipsImage * );
 
 /* Default tile geometry.
  */

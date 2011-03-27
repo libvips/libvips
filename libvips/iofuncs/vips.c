@@ -513,18 +513,18 @@ rebuild_header_meta( IMAGE *im, xmlNode *i )
 		get_sprop( i, "type", type, 256 ) ) {
 		GType gtype = g_type_from_name( type );
 
-		/* Can we convert from IM_SAVE_STRING to type?
+		/* Can we convert from VIPS_SAVE_STRING to type?
 		 */
 		if( gtype && 
 			g_value_type_transformable( 
-				IM_TYPE_SAVE_STRING, gtype ) ) {
+				VIPS_TYPE_SAVE_STRING, gtype ) ) {
 			char *content;
 			GValue save_value = { 0 };
 			GValue value = { 0 };
 
 			content = (char *) xmlNodeGetContent( i );
-			g_value_init( &save_value, IM_TYPE_SAVE_STRING );
-			im_save_string_set( &save_value, content );
+			g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+			vips_save_string_set( &save_value, content );
 			xmlFree( content );
 
 			g_value_init( &value, gtype );
@@ -535,7 +535,7 @@ rebuild_header_meta( IMAGE *im, xmlNode *i )
 					"save format" ) );
 				return( -1 );
 			}
-			if( im_meta_set( im, name, &value ) ) {
+			if( vips_image_set( im, name, &value ) ) {
 				g_value_unset( &save_value );
 				g_value_unset( &value );
 				return( -1 );
@@ -551,10 +551,10 @@ rebuild_header_meta( IMAGE *im, xmlNode *i )
 static xmlDoc *
 get_xml( IMAGE *im )
 {
-	if( vips_image_get_typeof( im, IM_META_XML ) ) {
+	if( vips_image_get_typeof( im, VIPS_META_XML ) ) {
 		xmlDoc *doc;
 
-		if( im_meta_get_area( im, IM_META_XML, (void *) &doc ) )
+		if( vips_image_get_area( im, VIPS_META_XML, (void *) &doc ) )
 			return( NULL );
 
 		return( doc );
@@ -605,15 +605,15 @@ im__readhist( IMAGE *im )
 {
 	/* Junk any old xml meta.
 	 */
-	if( vips_image_get_typeof( im, IM_META_XML ) ) 
-		im_meta_set_area( im, IM_META_XML, NULL, NULL );
+	if( vips_image_get_typeof( im, VIPS_META_XML ) ) 
+		vips_image_set_area( im, VIPS_META_XML, NULL, NULL );
 
 	if( im__has_extension_block( im ) ) {
 		xmlDoc *doc;
 
 		if( !(doc = read_xml( im )) )
 			return( -1 );
-		if( im_meta_set_area( im, IM_META_XML, 
+		if( vips_image_set_area( im, VIPS_META_XML, 
 			(im_callback_fn) xmlFreeDoc, doc ) ) {
 			xmlFreeDoc( doc );
 			return( -1 );
@@ -673,25 +673,25 @@ set_field( xmlNode *node,
 }
 
 static void *
-save_fields_meta( Meta *meta, xmlNode *node )
+save_fields_meta( VipsMeta *meta, xmlNode *node )
 {
 	GType type = G_VALUE_TYPE( &meta->value );
 
-	/* If we can transform to IM_TYPE_SAVE_STRING and back, we can save and
-	 * restore. 
+	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save 
+	 * and restore. 
 	 */
-	if( g_value_type_transformable( type, IM_TYPE_SAVE_STRING ) &&
-		g_value_type_transformable( IM_TYPE_SAVE_STRING, type ) ) {
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) &&
+		g_value_type_transformable( VIPS_TYPE_SAVE_STRING, type ) ) {
 		GValue save_value = { 0 };
 
-		g_value_init( &save_value, IM_TYPE_SAVE_STRING );
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
 		if( !g_value_transform( &meta->value, &save_value ) ) {
 			vips_error( "VipsImage", "%s", 
 				_( "error transforming to save format" ) );
 			return( node );
 		}
 		if( set_field( node, meta->field, g_type_name( type ), 
-			im_save_string_get( &save_value ) ) ) {
+			vips_save_string_get( &save_value ) ) ) {
 			g_value_unset( &save_value );
 			return( node );
 		}
@@ -711,13 +711,14 @@ save_fields( IMAGE *im, xmlNode *node )
 	if( !(this = xmlNewChild( node, NULL, (xmlChar *) "header", NULL )) )
 		return( -1 ); 
 	if( set_field( this, "Hist", 
-		g_type_name( IM_TYPE_REF_STRING ), im_history_get( im ) ) ) 
+		g_type_name( VIPS_TYPE_REF_STRING ), 
+			vips_image_get_history( im ) ) ) 
 		return( -1 );
 
 	if( !(this = xmlNewChild( node, NULL, (xmlChar *) "meta", NULL )) )
 		return( -1 );
-	if( im->Meta_traverse && 
-		im_slist_map2( im->Meta_traverse, 
+	if( im->meta_traverse && 
+		im_slist_map2( im->meta_traverse, 
 			(VSListMap2Fn) save_fields_meta, this, NULL ) )
 		return( -1 );
 
@@ -761,7 +762,7 @@ rpt( char ch, int n )
         int i;
         static char buf[200];
 
-        n = IM_MIN( 190, n );
+        n = VIPS_MIN( 190, n );
 
         for( i = 0; i < n; i++ )
                 buf[i] = ch;

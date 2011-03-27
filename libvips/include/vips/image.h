@@ -211,8 +211,8 @@ typedef struct _VipsImage {
 
 	/* Extra user-defined fields ... see im_meta_get_int() etc.
 	 */
-	GHashTable *Meta;	/* GhashTable of GValue */
-	GSList *Meta_traverse;	/* traverse order for Meta */
+	GHashTable *meta;	/* GhashTable of GValue */
+	GSList *meta_traverse;	/* traverse order for Meta */
 
 	/* Part of mmap() read ... the sizeof() the header we skip from the
 	 * file start. Usually VIPS_SIZEOF_HEADER, but can be something else

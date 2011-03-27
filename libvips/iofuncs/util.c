@@ -53,8 +53,6 @@
 #include <windows.h>
 #endif /*OS_WIN32*/
 
-#include <assert.h>
-
 #include <vips/vips.h>
 #include <vips/internal.h>
 
@@ -250,7 +248,7 @@ im_strncpy( char *dest, const char *src, int n )
 {
         int i;
 
-        assert( n > 0 );
+        g_assert( n > 0 );
 
         for( i = 0; i < n - 1; i++ )
                 if( !(dest[i] = src[i]) )
@@ -849,8 +847,8 @@ im__gvalue_ref_string_new( const char *text )
 {
 	GValue *value;
 
-	value = im__gvalue_new( IM_TYPE_REF_STRING );
-	im_ref_string_set( value, text );
+	value = im__gvalue_new( VIPS_TYPE_REF_STRING );
+	vips_ref_string_set( value, text );
 
 	return( value );
 }
@@ -898,18 +896,19 @@ im__gslist_gvalue_merge( GSList *a, const GSList *b )
 	for( i = b; i; i = i->next ) {
 		GValue *value = (GValue *) i->data;
 
-		assert( G_VALUE_TYPE( value ) == IM_TYPE_REF_STRING );
+		g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
 
 		for( j = a; j; j = j->next ) {
 			GValue *value2 = (GValue *) j->data;
 
-			assert( G_VALUE_TYPE( value2 ) == IM_TYPE_REF_STRING );
+			g_assert( G_VALUE_TYPE( value2 ) == 
+				VIPS_TYPE_REF_STRING );
 
 			/* Just do a pointer compare ... good enough 99.9% of 
 			 * the time.
 			 */
-			if( im_ref_string_get( value ) ==
-				im_ref_string_get( value2 ) )
+			if( vips_ref_string_get( value ) ==
+				vips_ref_string_get( value2 ) )
 				break;
 		}
 
@@ -940,11 +939,11 @@ im__gslist_gvalue_get( const GSList *list )
 	for( p = list; p; p = p->next ) {
 		GValue *value = (GValue *) p->data;
 
-		assert( G_VALUE_TYPE( value ) == IM_TYPE_REF_STRING );
+		g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
 
 		/* +1 for the newline we will add for each item.
 		 */
-		length += im_ref_string_get_length( value ) + 1;
+		length += vips_ref_string_get_length( value ) + 1;
 	}
 
 	if( length == 0 )
@@ -952,7 +951,7 @@ im__gslist_gvalue_get( const GSList *list )
 
 	/* More than 10MB of history? Madness!
 	 */
-	assert( length < 10 * 1024 * 1024 );
+	g_assert( length < 10 * 1024 * 1024 );
 
 	/* +1 for '\0'.
 	 */
@@ -963,8 +962,8 @@ im__gslist_gvalue_get( const GSList *list )
 	for( p = list; p; p = p->next ) {
 		GValue *value = (GValue *) p->data;
 
-		strcpy( q, im_ref_string_get( value ) );
-		q += im_ref_string_get_length( value );
+		strcpy( q, vips_ref_string_get( value ) );
+		q += vips_ref_string_get_length( value );
 		strcpy( q, "\n" );
 		q += 1;
 	}

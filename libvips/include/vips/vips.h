@@ -114,7 +114,6 @@ extern "C" {
 #include <vips/semaphore.h>
 #include <vips/threadpool.h>
 
-#include <vips/meta.h>
 #include <vips/header.h>
 
 #include <vips/enumtypes.h>

@@ -203,9 +203,7 @@ VipsImage *im_open_local( VipsImage *parent,
 int im_open_local_array( VipsImage *parent, 
 	VipsImage **images, int n, const char *filename, const char *mode );
 
-/* uncomment this when we remove the im_callback_fn from meta.h
-typedef int (*im_callback_fn)( void *a, void *b );
- */
+#define im_callback_fn VipsCallbackFn
 
 int im_add_callback( VipsImage *im, 
 	const char *callback, im_callback_fn fn, void *a, void *b );
@@ -266,20 +264,6 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_rect_equalsrect vips_rect_equalsrect
 #define im_rect_dup vips_rect_dup
 #define im_rect_normalise vips_rect_normalise
-
-#define im_header_map_fn VipsImageMapFn
-#define im_header_map vips_image_map
-
-#define im_header_int vips_image_get_int
-#define im_header_double vips_image_get_double
-#define im_header_string vips_image_get_string
-#define im_header_as_string vips_image_get_as_string
-#define im_header_get_typeof vips_image_get_typeof
-#define im_header_get vips_image_get
-
-#define im_histlin vips_image_history_printf
-#define im_updatehist vips_image_history_args
-#define im_history_get vips_image_get_history
 
 #define im_demand_hint vips_demand_hint
 #define im_demand_hint_array vips_demand_hint_array
@@ -368,6 +352,56 @@ typedef void (*im_wrapmany_fn)( void **in, void *out, int width,
 	void *a, void *b );
 int im_wrapmany( VipsImage **in, VipsImage *out,
 	im_wrapmany_fn fn, void *a, void *b );
+
+#define IM_META_EXIF_NAME VIPS_META_EXIF_NAME 
+#define IM_META_ICC_NAME VIPS_META_ICC_NAME 
+#define IM_META_XML VIPS_META_XML 
+#define IM_META_RESOLUTION_UNIT VIPS_META_RESOLUTION_UNIT 
+#define IM_TYPE_SAVE_STRING VIPS_TYPE_SAVE_STRING 
+#define IM_TYPE_BLOB VIPS_TYPE_BLOB 
+#define IM_TYPE_AREA VIPS_TYPE_AREA 
+#define IM_TYPE_REF_STRING VIPS_TYPE_REF_STRING 
+
+#define im_header_map_fn VipsImageMapFn
+#define im_header_map vips_image_map
+
+#define im_header_int vips_image_get_int
+#define im_header_double vips_image_get_double
+#define im_header_string vips_image_get_string
+#define im_header_as_string vips_image_get_as_string
+#define im_header_get_typeof vips_image_get_typeof
+#define im_header_get vips_image_get
+
+#define im_histlin vips_image_history_printf
+#define im_updatehist vips_image_history_args
+#define im_history_get vips_image_get_history
+
+#define im_save_string_get vips_save_string_get
+#define im_save_string_set vips_save_string_set
+#define im_save_string_setf vips_save_string_setf
+
+#define im_ref_string_set vips_ref_string_set
+#define im_ref_string_get vips_ref_string_get
+#define im_ref_string_get_length vips_ref_string_get_length
+
+#define im_blob_get vips_blob_get
+#define im_blob_set vips_blob_set
+
+#define im_meta_set vips_image_set
+#define im_meta_remove vips_image_remove
+#define im_meta_get vips_image_get
+#define im_meta_get_typeof vips_image_get_typeof
+
+#define im_meta_set_int vips_image_set_int
+#define im_meta_get_int vips_image_get_int
+#define im_meta_set_double vips_image_set_double
+#define im_meta_get_double vips_image_get_double
+#define im_meta_set_area vips_image_set_area
+#define im_meta_get_area vips_image_get_area
+#define im_meta_set_string vips_image_set_string
+#define im_meta_get_string vips_image_get_string
+#define im_meta_set_blob vips_image_set_blob
+#define im_meta_get_blob vips_image_get_blob
 
 #ifdef __cplusplus
 }

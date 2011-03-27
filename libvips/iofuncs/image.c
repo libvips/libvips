@@ -416,7 +416,7 @@ vips_image_finalize( GObject *gobject )
 
 	VIPS_FREE( image->Hist );
 	VIPS_FREEF( im__gslist_gvalue_free, image->history_list );
-	im__meta_destroy( image );
+	vips__meta_destroy( image );
 
 	G_OBJECT_CLASS( vips_image_parent_class )->finalize( gobject );
 }
@@ -442,13 +442,13 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 	/* Look for known enums and decode them.
 	 */
 	extra = NULL;
-	if( strcmp( field, "Coding" ) == 0 )
+	if( strcmp( field, "coding" ) == 0 )
 		extra = VIPS_ENUM_NICK( 
 			VIPS_TYPE_CODING, g_value_get_int( value ) );
-	else if( strcmp( field, "BandFmt" ) == 0 )
+	else if( strcmp( field, "format" ) == 0 )
 		extra = VIPS_ENUM_NICK( 
 			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
-	else if( strcmp( field, "Type" ) == 0 )
+	else if( strcmp( field, "interpretation" ) == 0 )
 		extra = VIPS_ENUM_NICK( 
 			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
 
@@ -486,7 +486,7 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 
 	(void) vips_image_map( image, print_field_fn, (void *) buf );
 
-	vips_buf_appendf( buf, "Hist: %s", im_history_get( image ) );
+	vips_buf_appendf( buf, "Hist: %s", vips_image_get_history( image ) );
 }
 
 static void *

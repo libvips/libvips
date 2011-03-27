@@ -23,7 +23,6 @@ pkginclude_HEADERS = \
 	intl.h \
 	mask.h \
 	memory.h \
-	meta.h \
 	morphology.h \
 	mosaicing.h \
 	other.h \
