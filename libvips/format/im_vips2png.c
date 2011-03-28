@@ -23,6 +23,8 @@
  * 	- set png resolution (thanks Zhiyu Wu)
  * 17/3/11
  * 	- update for libpng-1.5 API changes
+ * 28/3/11
+ * 	- argh gamma was wrong when viewed in firefox
  */
 
 /*
@@ -264,8 +266,6 @@ write_vips( Write *write, int compress, int interlace )
 	png_set_IHDR( write->pPng, write->pInfo, 
 		in->Xsize, in->Ysize, bit_depth, color_type, interlace_type, 
 		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT );
-
-	png_set_gAMA( write->pPng, write->pInfo, (float) 1.0 );
 
 	/* Set resolution. libpnbg uses pixels per meter.
 	 */

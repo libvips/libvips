@@ -1,5 +1,3 @@
-- png gamma is wrong on save?
-
 - add MATLAB write
 
 - sink.c, sinkdisc.c, sinkmemory.c all define this function:
