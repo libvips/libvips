@@ -67,7 +67,7 @@
 /* Test two lists for eqality.
  */
 gboolean
-im_slist_equal( GSList *l1, GSList *l2 )
+vips_slist_equal( GSList *l1, GSList *l2 )
 {
 	while( l1 && l2 ) {
 		if( l1->data != l2->data )
@@ -86,7 +86,7 @@ im_slist_equal( GSList *l1, GSList *l2 )
 /* Map over an slist. _copy() the list in case the callback changes it.
  */
 void *
-im_slist_map2( GSList *list, VSListMap2Fn fn, void *a, void *b )
+vips_slist_map2( GSList *list, VipsSListMap2Fn fn, void *a, void *b )
 {
 	GSList *copy;
 	GSList *i;
@@ -101,28 +101,10 @@ im_slist_map2( GSList *list, VSListMap2Fn fn, void *a, void *b )
 	return( result );
 }
 
-void *
-im_slist_map4( GSList *list, 
-	VSListMap4Fn fn, void *a, void *b, void *c, void *d )
-{
-	GSList *copy;
-	GSList *i;
-	void *result;
-
-	copy = g_slist_copy( list );
-	result = NULL;
-	for( i = copy; 
-		i && !(result = fn( i->data, a, b, c, d )); i = i->next ) 
-		;
-	g_slist_free( copy );
-
-	return( result );
-}
-
 /* Map backwards. We _reverse() rather than recurse and unwind to save stack.
  */
 void *
-im_slist_map2_rev( GSList *list, VSListMap2Fn fn, void *a, void *b )
+vips_slist_map2_rev( GSList *list, VipsSListMap2Fn fn, void *a, void *b )
 {
 	GSList *copy;
 	GSList *i;
@@ -139,16 +121,26 @@ im_slist_map2_rev( GSList *list, VSListMap2Fn fn, void *a, void *b )
 }
 
 void *
-im_map_equal( void *a, void *b )
+vips_slist_map4( GSList *list, 
+	VipsSListMap4Fn fn, void *a, void *b, void *c, void *d )
 {
-	if( a == b )
-		return( a );
+	GSList *copy;
+	GSList *i;
+	void *result;
 
-	return( NULL );
+	copy = g_slist_copy( list );
+	result = NULL;
+	for( i = copy; 
+		i && !(result = fn( i->data, a, b, c, d )); i = i->next ) 
+		;
+	g_slist_free( copy );
+
+	return( result );
 }
 
 void *
-im_slist_fold2( GSList *list, void *start, VSListFold2Fn fn, void *a, void *b )
+vips_slist_fold2( GSList *list, void *start, 
+	VipsSListFold2Fn fn, void *a, void *b )
 {
         void *c;
         GSList *this, *next;
@@ -163,25 +155,10 @@ im_slist_fold2( GSList *list, void *start, VSListFold2Fn fn, void *a, void *b )
         return( c );
 }
 
-static void
-im_slist_free_all_cb( void * thing, void * dummy )
-{
-	vips_free( thing );
-}
-
-/* Free a g_slist of things which need vips_free()ing.
- */
-void
-im_slist_free_all( GSList *list )
-{
-	g_slist_foreach( list, im_slist_free_all_cb, NULL );
-	g_slist_free( list );
-}
-
 /* Remove all occurences of an item from a list.
  */
 GSList *
-im_slist_filter( GSList *list, VSListMap2Fn fn, void *a, void *b )
+vips_slist_filter( GSList *list, VipsSListMap2Fn fn, void *a, void *b )
 {
 	GSList *tmp;
 	GSList *prev;
@@ -211,15 +188,39 @@ im_slist_filter( GSList *list, VSListMap2Fn fn, void *a, void *b )
 	return( list );
 }
 
+static void
+vips_slist_free_all_cb( void * thing, void * dummy )
+{
+	vips_free( thing );
+}
+
+/* Free a g_slist of things which need vips_free()ing.
+ */
+void
+vips_slist_free_all( GSList *list )
+{
+	g_slist_foreach( list, vips_slist_free_all_cb, NULL );
+	g_slist_free( list );
+}
+
+void *
+vips_map_equal( void *a, void *b )
+{
+	if( a == b )
+		return( a );
+
+	return( NULL );
+}
+
 typedef struct {
 	void *a;
 	void *b;
-	VSListMap2Fn fn;
+	VipsSListMap2Fn fn;
 	void *result;
 } Pair;
 
 static gboolean
-im_hash_table_predicate( const char *key, void *value, Pair *pair )
+vips_hash_table_predicate( const char *key, void *value, Pair *pair )
 {
 	return( (pair->result == pair->fn( value, pair->a, pair->b )) );
 }
@@ -227,7 +228,7 @@ im_hash_table_predicate( const char *key, void *value, Pair *pair )
 /* Like slist map, but for a hash table.
  */
 void *
-im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b )
+vips_hash_table_map( GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b )
 {
 	Pair pair;
 
@@ -236,7 +237,7 @@ im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b )
 	pair.fn = fn;
 	pair.result = NULL;
 
-	g_hash_table_find( hash, (GHRFunc) im_hash_table_predicate, &pair ); 
+	g_hash_table_find( hash, (GHRFunc) vips_hash_table_predicate, &pair ); 
 
 	return( pair.result );
 }
@@ -244,7 +245,7 @@ im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b )
 /* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.
  */
 char *
-im_strncpy( char *dest, const char *src, int n )
+vips_strncpy( char *dest, const char *src, int n )
 {
         int i;
 
@@ -261,7 +262,7 @@ im_strncpy( char *dest, const char *src, int n )
 /* Find the rightmost occurrence of needle in haystack.
  */
 char *
-im_strrstr( const char *haystack, const char *needle )
+vips_strrstr( const char *haystack, const char *needle )
 {
 	int haystack_len = strlen( haystack );
 	int needle_len = strlen( needle );
@@ -277,7 +278,7 @@ im_strrstr( const char *haystack, const char *needle )
 /* Test for string b ends string a. 
  */
 gboolean
-im_ispostfix( const char *a, const char *b )
+vips_ispostfix( const char *a, const char *b )
 {	
 	int m = strlen( a );
 	int n = strlen( b );
@@ -291,7 +292,7 @@ im_ispostfix( const char *a, const char *b )
 /* Test for string a starts string b. 
  */
 gboolean
-im_isprefix( const char *a, const char *b )
+vips_isprefix( const char *a, const char *b )
 {
 	int n = strlen( a );
 	int m = strlen( b );
@@ -320,7 +321,7 @@ im_isprefix( const char *a, const char *b )
  * int i;
  * int v[...];
  *
- * for( i = 0; (q = im_break_token( p, " " )); i++, p = q )
+ * for( i = 0; (q = vips_break_token( p, " " )); i++, p = q )
  * 	v[i] = atoi( p );
  *
  * will set
@@ -335,11 +336,11 @@ im_isprefix( const char *a, const char *b )
  * int i;
  * int v[...];
  *
- * for( i = 0; p; p = im_break_token( p, " " ) )
+ * for( i = 0; p; p = vips_break_token( p, " " ) )
  *   v[i] = atoi( p );
  */
 char *
-im_break_token( char *str, const char *brk )
+vips_break_token( char *str, const char *brk )
 {
         char *p;
 
@@ -378,7 +379,7 @@ im_break_token( char *str, const char *brk )
 /* Wrapper over (v)snprintf() ... missing on old systems.
  */
 int
-im_vsnprintf( char *str, size_t size, const char *format, va_list ap )
+vips_vsnprintf( char *str, size_t size, const char *format, va_list ap )
 {
 #ifdef HAVE_VSNPRINTF
 	return( vsnprintf( str, size, format, ap ) );
@@ -398,20 +399,20 @@ im_vsnprintf( char *str, size_t size, const char *format, va_list ap )
 			"(%d bytes written to buffer of %d bytes)",
 			n, MAX_BUF );
 
-	im_strncpy( str, buf, size );
+	vips_strncpy( str, buf, size );
 
 	return( n );
 #endif /*HAVE_VSNPRINTF*/
 }
 
 int
-im_snprintf( char *str, size_t size, const char *format, ... )
+vips_snprintf( char *str, size_t size, const char *format, ... )
 {
 	va_list ap;
 	int n;
 
 	va_start( ap, format );
-	n = im_vsnprintf( str, size, format, ap );
+	n = vips_vsnprintf( str, size, format, ap );
 	va_end( ap );
 
 	return( n );
@@ -428,11 +429,11 @@ im_snprintf( char *str, size_t size, const char *format, ... )
  *
  */
 void
-im_filename_split( const char *path, char *name, char *mode )
+vips_filename_split( const char *path, char *name, char *mode )
 {
         char *p;
 
-        im_strncpy( name, path, FILENAME_MAX );
+        vips_strncpy( name, path, FILENAME_MAX );
 
 	/* Search back towards start stopping at each ':' char.
 	 */
@@ -448,7 +449,7 @@ im_filename_split( const char *path, char *name, char *mode )
 		}
 
 	if( *p == ':' ) {
-                im_strncpy( mode, p + 1, FILENAME_MAX );
+                vips_strncpy( mode, p + 1, FILENAME_MAX );
                 *p = '\0';
         }
         else
@@ -464,7 +465,7 @@ im_filename_split( const char *path, char *name, char *mode )
  * either, just return the filename.
  */
 const char *
-im_skip_dir( const char *path )
+vips_skip_dir( const char *path )
 {
 	char name[FILENAME_MAX];
 	char mode[FILENAME_MAX];
@@ -477,7 +478,7 @@ im_skip_dir( const char *path )
 	/* Remove any trailing save modifiers: we don't want '/' or '\' in the
 	 * modifier confusing us.
 	 */
-	im_filename_split( path, name, mode );
+	vips_filename_split( path, name, mode );
 
 	/* The '\0' char at the end of the string.
 	 */
@@ -499,13 +500,13 @@ im_skip_dir( const char *path )
  * FILENAME_MAX chars. Include the "." character, if any.
  */
 void
-im_filename_suffix( const char *path, char *suffix )
+vips_filename_suffix( const char *path, char *suffix )
 {
 	char name[FILENAME_MAX];
 	char mode[FILENAME_MAX];
         char *p;
 
-	im_filename_split( path, name, mode );
+	vips_filename_split( path, name, mode );
         if( (p = strrchr( name, '.' )) ) 
                 strcpy( suffix, p );
         else
@@ -515,12 +516,12 @@ im_filename_suffix( const char *path, char *suffix )
 /* Does a filename have one of a set of suffixes. Ignore case.
  */
 int
-im_filename_suffix_match( const char *path, const char *suffixes[] )
+vips_filename_suffix_match( const char *path, const char *suffixes[] )
 {
 	char suffix[FILENAME_MAX];
 	const char **p;
 
-	im_filename_suffix( path, suffix );
+	vips_filename_suffix( path, suffix );
 	for( p = suffixes; *p; p++ )
 		if( g_ascii_strcasecmp( suffix, *p ) == 0 )
 			return( 1 );
@@ -533,7 +534,7 @@ im_filename_suffix_match( const char *path, const char *suffixes[] )
  * missing). ',' characters inside options can be escaped with a '\'.
  */
 char *
-im_getnextoption( char **in )
+vips_getnextoption( char **in )
 {
         char *p = *in;
         char *q = p;
@@ -568,7 +569,7 @@ im_getnextoption( char **in )
 /* Get a suboption string, or NULL.
  */
 char *
-im_getsuboption( const char *buf )
+vips_getsuboption( const char *buf )
 {
         char *p, *q, *r;
 
@@ -594,7 +595,7 @@ im_getsuboption( const char *buf )
 /* Get file length ... 64-bitally. -1 for error.
  */
 gint64
-im_file_length( int fd )
+vips_file_length( int fd )
 {
 #ifdef OS_WIN32
 	struct _stati64 st;
@@ -605,7 +606,7 @@ im_file_length( int fd )
 
 	if( fstat( fd, &st ) == -1 ) {
 #endif /*OS_WIN32*/
-		vips_error_system( errno, "im_file_length", 
+		vips_error_system( errno, "vips_file_length", 
 			"%s", _( "unable to get file stats" ) );
 		return( -1 );
 	}
@@ -616,13 +617,13 @@ im_file_length( int fd )
 /* Wrap write() up
  */
 int
-im__write( int fd, const void *buf, size_t count )
+vips__write( int fd, const void *buf, size_t count )
 {
 	do {
 		size_t nwritten = write( fd, buf, count );
 
 		if( nwritten == (size_t) -1 ) {
-                        vips_error_system( errno, "im__write", 
+                        vips_error_system( errno, "vips__write", 
 				"%s", _( "write failed" ) );
                         return( -1 ); 
 		}
@@ -632,79 +633,6 @@ im__write( int fd, const void *buf, size_t count )
 	} while( count > 0 );
 
 	return( 0 );
-}
-
-/* Load up a file as a string.
- */
-char *
-im__file_read( FILE *fp, const char *filename, unsigned int *length_out )
-{
-        long len;
-	size_t read;
-        char *str;
-
-        /* Find length.
-         */
-        fseek( fp, 0L, 2 );
-        len = ftell( fp );
-	if( len > 20 * 1024 * 1024 ) {
-		/* Seems crazy!
-		 */
-                vips_error( "im__file_read", _( "\"%s\" too long" ), filename );
-                return( NULL );
-        }
-
-	if( len == -1 ) {
-		int size;
-
-		/* Can't get length: read in chunks and realloc() to end of
-		 * file.
-		 */
-		str = NULL;
-		len = 0;
-		size = 0;
-		do {
-			size += 1024;
-			if( !(str = realloc( str, size )) ) {
-				vips_error( "im__file_read", 
-					"%s", _( "out of memory" ) );
-				return( NULL );
-			}
-
-			/* -1 to allow space for an extra NULL we add later.
-			 */
-			read = fread( str + len, sizeof( char ), 
-				(size - len - 1) / sizeof( char ),
-				fp );
-			len += read;
-		} while( !feof( fp ) );
-
-#ifdef DEBUG
-		printf( "read %ld bytes from unseekable stream\n", len );
-#endif /*DEBUG*/
-	}
-	else {
-		/* Allocate memory and fill.    
-		 */
-		if( !(str = vips_malloc( NULL, len + 1 )) )
-			return( NULL );
-		rewind( fp );
-		read = fread( str, sizeof( char ), (size_t) len, fp );
-		if( read != (size_t) len ) {
-			vips_free( str );
-			vips_error( "im__file_read", 
-				_( "error reading from file \"%s\"" ), 
-				filename );
-			return( NULL );
-		}
-	}
-
-	str[len] = '\0';
-
-	if( length_out )
-		*length_out = len;
-
-        return( str );
 }
 
 /* Does a filename contain a directory separator?
@@ -730,7 +658,7 @@ filename_hasdir( const char *filename )
  * directory separator, we try looking in the fallback dir.
  */
 FILE *
-im__file_open_read( const char *filename, const char *fallback_dir, 
+vips__file_open_read( const char *filename, const char *fallback_dir, 
 	gboolean text_mode )
 {
 	char *mode;
@@ -759,14 +687,14 @@ im__file_open_read( const char *filename, const char *fallback_dir,
 			return( fp );
 	}
 
-	vips_error( "im__file_open_read", 
+	vips_error( "vips__file_open_read", 
 		_( "unable to open file \"%s\" for reading" ), filename );
 
 	return( NULL );
 }
 
 FILE *
-im__file_open_write( const char *filename, gboolean text_mode )
+vips__file_open_write( const char *filename, gboolean text_mode )
 {
 	char *mode;
 	FILE *fp;
@@ -781,7 +709,7 @@ im__file_open_write( const char *filename, gboolean text_mode )
 #endif /*BINARY_OPEN*/
 
         if( !(fp = fopen( filename, mode )) ) {
-		vips_error( "im__file_open_write", 
+		vips_error( "vips__file_open_write", 
 			_( "unable to open file \"%s\" for writing" ), 
 			filename );
 		return( NULL );
@@ -790,19 +718,93 @@ im__file_open_write( const char *filename, gboolean text_mode )
 	return( fp );
 }
 
+/* Load up a file as a string.
+ */
+char *
+vips__file_read( FILE *fp, const char *filename, unsigned int *length_out )
+{
+        long len;
+	size_t read;
+        char *str;
+
+        /* Find length.
+         */
+        fseek( fp, 0L, 2 );
+        len = ftell( fp );
+	if( len > 20 * 1024 * 1024 ) {
+		/* Seems crazy!
+		 */
+                vips_error( "vips__file_read", 
+			_( "\"%s\" too long" ), filename );
+                return( NULL );
+        }
+
+	if( len == -1 ) {
+		int size;
+
+		/* Can't get length: read in chunks and realloc() to end of
+		 * file.
+		 */
+		str = NULL;
+		len = 0;
+		size = 0;
+		do {
+			size += 1024;
+			if( !(str = realloc( str, size )) ) {
+				vips_error( "vips__file_read", 
+					"%s", _( "out of memory" ) );
+				return( NULL );
+			}
+
+			/* -1 to allow space for an extra NULL we add later.
+			 */
+			read = fread( str + len, sizeof( char ), 
+				(size - len - 1) / sizeof( char ),
+				fp );
+			len += read;
+		} while( !feof( fp ) );
+
+#ifdef DEBUG
+		printf( "read %ld bytes from unseekable stream\n", len );
+#endif /*DEBUG*/
+	}
+	else {
+		/* Allocate memory and fill.    
+		 */
+		if( !(str = vips_malloc( NULL, len + 1 )) )
+			return( NULL );
+		rewind( fp );
+		read = fread( str, sizeof( char ), (size_t) len, fp );
+		if( read != (size_t) len ) {
+			vips_free( str );
+			vips_error( "vips__file_read", 
+				_( "error reading from file \"%s\"" ), 
+				filename );
+			return( NULL );
+		}
+	}
+
+	str[len] = '\0';
+
+	if( length_out )
+		*length_out = len;
+
+        return( str );
+}
+
 /* Load from a filename as a string. Used for things like reading in ICC
  * profiles, ie. binary objects.
  */
 char *
-im__file_read_name( const char *filename, const char *fallback_dir, 
+vips__file_read_name( const char *filename, const char *fallback_dir, 
 	unsigned int *length_out )
 {
 	FILE *fp;
 	char *buffer;
 
-        if( !(fp = im__file_open_read( filename, fallback_dir, FALSE )) ) 
+        if( !(fp = vips__file_open_read( filename, fallback_dir, FALSE )) ) 
 		return( NULL );
-	if( !(buffer = im__file_read( fp, filename, length_out )) ) {
+	if( !(buffer = vips__file_read( fp, filename, length_out )) ) {
 		fclose( fp );
 		return( NULL );
 	}
@@ -811,10 +813,56 @@ im__file_read_name( const char *filename, const char *fallback_dir,
 	return( buffer );
 }
 
+/* Like fwrite(), but returns non-zero on error and sets error message.
+ */
+int
+vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
+{
+	size_t n;
+
+	if( !data ) 
+		return( 0 );
+
+	if( (n = fwrite( data, size, nmemb, stream )) != nmemb ) {
+		vips_error( "vips__file_write", 
+			_( "writing error (%zd out of %zd blocks written) "
+			"... disc full?" ), n, nmemb );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* Read a few bytes from the start of a file. For sniffing file types.
+ */
+int
+vips__get_bytes( const char *filename, unsigned char buf[], int len )
+{
+	int fd;
+
+	/* File may not even exist (for tmp images for example!)
+	 * so no hasty messages. And the file might be truncated, so no error
+	 * on read either.
+	 */
+#ifdef BINARY_OPEN
+	if( (fd = open( filename, O_RDONLY | O_BINARY )) == -1 )
+#else /*BINARY_OPEN*/
+	if( (fd = open( filename, O_RDONLY )) == -1 )
+#endif /*BINARY_OPEN*/
+		return( 0 );
+	if( read( fd, buf, len ) != len ) {
+		close( fd );
+		return( 0 );
+	}
+	close( fd );
+
+	return( 1 );
+}
+
 /* Alloc/free a GValue.
  */
 static GValue *
-im__gvalue_new( GType type )
+vips__gvalue_new( GType type )
 {
 	GValue *value;
 
@@ -825,29 +873,29 @@ im__gvalue_new( GType type )
 }
 
 static GValue *
-im__gvalue_copy( GValue *value )
+vips__gvalue_copy( GValue *value )
 {
 	GValue *value_copy;
 
-	value_copy = im__gvalue_new( G_VALUE_TYPE( value ) );
+	value_copy = vips__gvalue_new( G_VALUE_TYPE( value ) );
 	g_value_copy( value, value_copy );
 
 	return( value_copy );
 }
 
 static void
-im__gvalue_free( GValue *value )
+vips__gvalue_free( GValue *value )
 {
 	g_value_unset( value );
 	g_free( value );
 }
 
 GValue *
-im__gvalue_ref_string_new( const char *text )
+vips__gvalue_ref_string_new( const char *text )
 {
 	GValue *value;
 
-	value = im__gvalue_new( VIPS_TYPE_REF_STRING );
+	value = vips__gvalue_new( VIPS_TYPE_REF_STRING );
 	vips_ref_string_set( value, text );
 
 	return( value );
@@ -856,16 +904,16 @@ im__gvalue_ref_string_new( const char *text )
 /* Free a GSList of GValue.
  */
 void
-im__gslist_gvalue_free( GSList *list )
+vips__gslist_gvalue_free( GSList *list )
 {
-	g_slist_foreach( list, (GFunc) im__gvalue_free, NULL );
+	g_slist_foreach( list, (GFunc) vips__gvalue_free, NULL );
 	g_slist_free( list );
 }
 
 /* Copy a GSList of GValue.
  */
 GSList *
-im__gslist_gvalue_copy( const GSList *list )
+vips__gslist_gvalue_copy( const GSList *list )
 {
 	GSList *copy;
 	const GSList *p;
@@ -874,7 +922,7 @@ im__gslist_gvalue_copy( const GSList *list )
 
 	for( p = list; p; p = p->next ) 
 		copy = g_slist_prepend( copy, 
-			im__gvalue_copy( (GValue *) p->data ) );
+			vips__gvalue_copy( (GValue *) p->data ) );
 
 	copy = g_slist_reverse( copy );
 
@@ -886,7 +934,7 @@ im__gslist_gvalue_copy( const GSList *list )
  * (string, blob, etc.).
  */
 GSList *
-im__gslist_gvalue_merge( GSList *a, const GSList *b )
+vips__gslist_gvalue_merge( GSList *a, const GSList *b )
 {
 	const GSList *i, *j;
 	GSList *tail;
@@ -914,7 +962,7 @@ im__gslist_gvalue_merge( GSList *a, const GSList *b )
 
 		if( !j )
 			tail = g_slist_prepend( tail, 
-				im__gvalue_copy( value ) );
+				vips__gvalue_copy( value ) );
 	}
 
 	a = g_slist_concat( a, g_slist_reverse( tail ) );
@@ -926,7 +974,7 @@ im__gslist_gvalue_merge( GSList *a, const GSList *b )
  * free the result. Empty list -> "", not NULL. Join strings with '\n'.
  */
 char *
-im__gslist_gvalue_get( const GSList *list )
+vips__gslist_gvalue_get( const GSList *list )
 {
 	const GSList *p;
 	size_t length;
@@ -976,7 +1024,7 @@ im__gslist_gvalue_get( const GSList *list )
 /* Need our own seek(), since lseek() on win32 can't do long files.
  */
 int
-im__seek( int fd, gint64 pos )
+vips__seek( int fd, gint64 pos )
 {
 #ifdef OS_WIN32
 {
@@ -985,14 +1033,14 @@ im__seek( int fd, gint64 pos )
 
 	p.QuadPart = pos;
 	if( !SetFilePointerEx( hFile, p, NULL, FILE_BEGIN ) ) {
-                vips_error_system( GetLastError(), "im__seek", 
+                vips_error_system( GetLastError(), "vips__seek", 
 			"%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 }
 #else /*!OS_WIN32*/
 	if( lseek( fd, pos, SEEK_SET ) == (off_t) -1 ) {
-		vips_error( "im__seek", "%s", _( "unable to seek" ) );
+		vips_error( "vips__seek", "%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 #endif /*OS_WIN32*/
@@ -1008,7 +1056,7 @@ im__seek( int fd, gint64 pos )
 
  */
 int
-im__ftruncate( int fd, gint64 pos )
+vips__ftruncate( int fd, gint64 pos )
 {
 #ifdef OS_WIN32
 {
@@ -1016,17 +1064,17 @@ im__ftruncate( int fd, gint64 pos )
 	LARGE_INTEGER p;
 
 	p.QuadPart = pos;
-	if( im__seek( fd, pos ) )
+	if( vips__seek( fd, pos ) )
 		return( -1 );
 	if( !SetEndOfFile( hFile ) ) {
-                vips_error_system( GetLastError(), "im__ftruncate", 
+                vips_error_system( GetLastError(), "vips__ftruncate", 
 			"%s", _( "unable to truncate" ) );
 		return( -1 );
 	}
 }
 #else /*!OS_WIN32*/
 	if( ftruncate( fd, pos ) ) {
-		vips_error_system( errno, "im__ftruncate", 
+		vips_error_system( errno, "vips__ftruncate", 
 			"%s", _( "unable to truncate" ) );
 		return( -1 );
 	}
@@ -1035,50 +1083,54 @@ im__ftruncate( int fd, gint64 pos )
 	return( 0 );
 }
 
-/* Like fwrite(), but returns non-zero on error and sets error message.
+/* Test for file exists.
  */
 int
-im__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
+vips_existsf( const char *name, ... )
 {
-	size_t n;
+        va_list ap;
+        char buf1[PATH_MAX];
 
-	if( !data ) 
-		return( 0 );
+        va_start( ap, name );
+        (void) vips_vsnprintf( buf1, PATH_MAX - 1, name, ap );
+        va_end( ap );
 
-	if( (n = fwrite( data, size, nmemb, stream )) != nmemb ) {
-		vips_error( "im__file_write", 
-			_( "writing error (%zd out of %zd blocks written) "
-			"... disc full?" ), n, nmemb );
-		return( -1 );
-	}
+        /* Try that.
+         */
+        if( !access( buf1, R_OK ) )
+                return( 1 );
 
-	return( 0 );
+        return( 0 );
 }
 
-/* Read a few bytes from the start of a file. For sniffing file types.
+#ifdef OS_WIN32
+#define popen(b,m) _popen(b,m)
+#define pclose(f) _pclose(f)
+#endif /*OS_WIN32*/
+
+/* Do popen(), with printf-style args.
  */
-int
-im__get_bytes( const char *filename, unsigned char buf[], int len )
+FILE *
+vips_popenf( const char *fmt, const char *mode, ... )
 {
-	int fd;
+        va_list args;
+	char buf[4096];
+	FILE *fp;
 
-	/* File may not even exist (for tmp images for example!)
-	 * so no hasty messages. And the file might be truncated, so no error
-	 * on read either.
-	 */
-#ifdef BINARY_OPEN
-	if( (fd = open( filename, O_RDONLY | O_BINARY )) == -1 )
-#else /*BINARY_OPEN*/
-	if( (fd = open( filename, O_RDONLY )) == -1 )
-#endif /*BINARY_OPEN*/
-		return( 0 );
-	if( read( fd, buf, len ) != len ) {
-		close( fd );
-		return( 0 );
+        va_start( args, mode );
+        (void) vips_vsnprintf( buf, 4096, fmt, args );
+        va_end( args );
+
+#ifdef DEBUG
+	printf( "vips_popenf: running: %s\n", buf );
+#endif /*DEBUG*/
+
+        if( !(fp = popen( buf, mode )) ) {
+		vips_error( "popenf", "%s", strerror( errno ) );
+		return( NULL );
 	}
-	close( fd );
 
-	return( 1 );
+	return( fp );
 }
 
 /* Break a command-line argument into tokens separated by whitespace. Strings
@@ -1198,7 +1250,8 @@ vips__token_must( const char *p, VipsToken *token,
 	char *string, int size )
 {
 	if( !(p = vips__token_get( p, token, string, size )) ) {
-		vips_error( "get_token", "%s", _( "unexpected end of string" ) );
+		vips_error( "get_token", 
+			"%s", _( "unexpected end of string" ) );
 		return( NULL );
 	}
 
@@ -1242,56 +1295,6 @@ vips__token_need( const char *p, VipsToken need_token,
 	return( p );
 }
 
-/* Test for file exists.
- */
-int
-im_existsf( const char *name, ... )
-{
-        va_list ap;
-        char buf1[PATH_MAX];
-
-        va_start( ap, name );
-        (void) im_vsnprintf( buf1, PATH_MAX - 1, name, ap );
-        va_end( ap );
-
-        /* Try that.
-         */
-        if( !access( buf1, R_OK ) )
-                return( 1 );
-
-        return( 0 );
-}
-
-#ifdef OS_WIN32
-#define popen(b,m) _popen(b,m)
-#define pclose(f) _pclose(f)
-#endif /*OS_WIN32*/
-
-/* Do popen(), with printf-style args.
- */
-FILE *
-im_popenf( const char *fmt, const char *mode, ... )
-{
-        va_list args;
-	char buf[4096];
-	FILE *fp;
-
-        va_start( args, mode );
-        (void) im_vsnprintf( buf, 4096, fmt, args );
-        va_end( args );
-
-#ifdef DEBUG
-	printf( "im_popenf: running: %s\n", buf );
-#endif /*DEBUG*/
-
-        if( !(fp = popen( buf, mode )) ) {
-		vips_error( "popenf", "%s", strerror( errno ) );
-		return( NULL );
-	}
-
-	return( fp );
-}
-
 /* True if an int is a power of two ... 1, 2, 4, 8, 16, 32, etc. Do with just
  * integer arithmetic for portability. A previous Nicos version using doubles
  * and log/log failed on x86 with rounding problems. Return 0 for not
@@ -1299,7 +1302,7 @@ im_popenf( const char *fmt, const char *mode, ... )
  * bit 1 as the lsb).
  */
 int
-im_ispoweroftwo( int p )
+vips_ispoweroftwo( int p )
 {
 	int i, n;
 
@@ -1322,7 +1325,7 @@ im_ispoweroftwo( int p )
 /* Test this processor for endianness. True for SPARC order.
  */
 int
-im_amiMSBfirst( void )
+vips_amiMSBfirst( void )
 {
         int test;
         unsigned char *p = (unsigned char *) &test;
@@ -1340,7 +1343,7 @@ im_amiMSBfirst( void )
  * TMP, TEMP and USERPROFILE.
  */
 static const char *
-im__temp_dir( void )
+vips__temp_dir( void )
 {
 	const char *tmpd;
 
@@ -1369,7 +1372,7 @@ im__temp_dir( void )
  * delete it for you.
  */
 char *
-im__temp_name( const char *format )
+vips__temp_name( const char *format )
 {
 	static int serial = 1;
 
@@ -1379,9 +1382,9 @@ im__temp_name( const char *format )
 	char *name;
 	int fd;
 
-	im_snprintf( file, FILENAME_MAX, "vips-%d-XXXXXX", serial++ );
-	im_snprintf( file2, FILENAME_MAX, format, file );
-	name = g_build_filename( im__temp_dir(), file2, NULL );
+	vips_snprintf( file, FILENAME_MAX, "vips-%d-XXXXXX", serial++ );
+	vips_snprintf( file2, FILENAME_MAX, format, file );
+	name = g_build_filename( vips__temp_dir(), file2, NULL );
 
 	if( (fd = g_mkstemp( name )) == -1 ) {
 		vips_error( "tempfile", 
@@ -1408,7 +1411,7 @@ vips__change_suffix( const char *name, char *out, int mx,
 
         /* Copy start string.
          */
-        im_strncpy( out, name, mx );
+        vips_strncpy( out, name, mx );
 
         /* Drop all matching suffixes.
          */
@@ -1431,6 +1434,6 @@ vips__change_suffix( const char *name, char *out, int mx,
         /* Add new suffix.
          */
 	len = strlen( out );
-	im_strncpy( out + len, new, mx - len );
+	vips_strncpy( out + len, new, mx - len );
 }
 

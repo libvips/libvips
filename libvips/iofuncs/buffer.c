@@ -369,7 +369,7 @@ buffer_find( VipsImage *im, VipsRect *r )
 	p = cache_list ? cache_list->buffers : NULL;
 
 	/* This needs to be quick :-( don't use
-	 * im_slist_map2()/vips_rect_includesrect(), do the search inline.
+	 * vips_slist_map2()/vips_rect_includesrect(), do the search inline.
 	 *
 	 * FIXME we return the first enclosing buffer, perhaps we should
 	 * search for the largest? 
@@ -479,7 +479,7 @@ vips_buffer_print( VipsBuffer *buffer )
 /* Init the buffer cache system.
  */
 void
-im__buffer_init( void )
+vips__buffer_init( void )
 {
 #ifdef HAVE_THREADS
 	if( !thread_buffer_cache_key ) 

@@ -363,7 +363,7 @@ vips_buf_change( VipsBuf *buf, const char *old, const char *new )
 	/* Find pos of old.
 	 */
 	for( i = buf->i - olen; i > 0; i-- )
-		if( im_isprefix( old, buf->base + i ) )
+		if( vips_isprefix( old, buf->base + i ) )
 			break;
 	g_assert( i >= 0 );
 
@@ -419,7 +419,7 @@ vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
 	va_list ap;
 
         va_start( ap, fmt );
-        (void) im_vsnprintf( str, MAX_STRSIZE, fmt, ap );
+        (void) vips_vsnprintf( str, MAX_STRSIZE, fmt, ap );
         va_end( ap );
 
 	return( vips_buf_appends( buf, str ) );
@@ -440,7 +440,7 @@ vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap )
 {
 	char str[MAX_STRSIZE];
 
-        (void) im_vsnprintf( str, MAX_STRSIZE, fmt, ap );
+        (void) vips_vsnprintf( str, MAX_STRSIZE, fmt, ap );
 
 	return( vips_buf_appends( buf, str ) );
 }

@@ -1212,7 +1212,7 @@ vips_object_to_string( VipsObject *object, VipsBuf *buf )
 }
 
 typedef struct {
-	VSListMap2Fn fn;
+	VipsSListMap2Fn fn;
 	void *a;
 	void *b;
 	void *result;
@@ -1226,7 +1226,7 @@ vips_object_map_sub( VipsObject *object, VipsObjectMapArgs *args )
 }
 
 void *
-vips_object_map( VSListMap2Fn fn, void *a, void *b )
+vips_object_map( VipsSListMap2Fn fn, void *a, void *b )
 {
 	VipsObjectMapArgs args;
 
@@ -1391,7 +1391,8 @@ vips_object_print_all_cb( VipsObject *object )
 void
 vips_object_print_all( void )
 {
-	vips_object_map( (VSListMap2Fn) vips_object_print_all_cb, NULL, NULL );
+	vips_object_map( 
+		(VipsSListMap2Fn) vips_object_print_all_cb, NULL, NULL );
 }
 
 static void *
@@ -1405,5 +1406,6 @@ vips_object_sanity_all_cb( VipsObject *object )
 void
 vips_object_sanity_all( void )
 {
-	vips_object_map( (VSListMap2Fn) vips_object_sanity_all_cb, NULL, NULL );
+	vips_object_map( 
+		(VipsSListMap2Fn) vips_object_sanity_all_cb, NULL, NULL );
 }

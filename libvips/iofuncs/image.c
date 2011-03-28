@@ -415,7 +415,7 @@ vips_image_finalize( GObject *gobject )
 	VIPS_FREEF( g_mutex_free, image->sslock );
 
 	VIPS_FREE( image->Hist );
-	VIPS_FREEF( im__gslist_gvalue_free, image->history_list );
+	VIPS_FREEF( vips__gslist_gvalue_free, image->history_list );
 	vips__meta_destroy( image );
 
 	G_OBJECT_CLASS( vips_image_parent_class )->finalize( gobject );
@@ -537,11 +537,11 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 			vips_buf_appends( buf, "bad resolution\n" );
 	}
 
-	if( im_slist_map2( image->upstream, 
-		(VSListMap2Fn) vips_image_sanity_upstream, image, NULL ) )
+	if( vips_slist_map2( image->upstream, 
+		(VipsSListMap2Fn) vips_image_sanity_upstream, image, NULL ) )
 		vips_buf_appends( buf, "upstream broken\n" );
-	if( im_slist_map2( image->downstream, 
-		(VSListMap2Fn) vips_image_sanity_downstream, image, NULL ) )
+	if( vips_slist_map2( image->downstream, 
+		(VipsSListMap2Fn) vips_image_sanity_downstream, image, NULL ) )
 		vips_buf_appends( buf, "downstream broken\n" );
 
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->sanity( object, buf );
@@ -928,7 +928,7 @@ vips_image_build( VipsObject *object )
 			VipsFormatFlags flags = 
 				vips_format_get_flags( format, filename );
 			gboolean native = (flags & VIPS_FORMAT_BIGENDIAN) == 
-				im_amiMSBfirst();
+				vips_amiMSBfirst();
 
 			if( native ) {
 				if( vips_image_open_input( image ) )
@@ -1008,7 +1008,7 @@ vips_image_build( VipsObject *object )
 		/* Read the real file length and check against what we think 
 		 * the size should be.
 		 */
-		if( (image->file_length = im_file_length( image->fd )) == -1 ) 
+		if( (image->file_length = vips_file_length( image->fd )) == -1 )
 			return( -1 );
 
 		/* Very common, so a special message.
@@ -1066,8 +1066,8 @@ vips_image_real_invalidate( VipsImage *image )
 	VIPS_DEBUG_MSG( "vips_image_real_invalidate: %p\n", image );
 
 	g_mutex_lock( image->sslock );
-	(void) im_slist_map2( image->regions,
-		(VSListMap2Fn) vips_region_invalidate, NULL, NULL );
+	(void) vips_slist_map2( image->regions,
+		(VipsSListMap2Fn) vips_region_invalidate, NULL, NULL );
 	g_mutex_unlock( image->sslock );
 }
 
@@ -1245,7 +1245,7 @@ vips_image_init( VipsImage *image )
 {
 	/* Default to native order.
 	 */
-	image->magic = im_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
+	image->magic = vips_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 
 	image->Xres = 1.0;
 	image->Yres = 1.0;
@@ -1296,7 +1296,7 @@ void
 vips_image_invalidate_all( VipsImage *image )
 {
 	(void) vips__link_map( image, 
-		(VSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
+		(VipsSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
 }
 
 /* Attach a new time struct, if necessary, and reset it.
@@ -1463,7 +1463,7 @@ vips_image_temp_name( void )
 	static int serial = 0;
 	static char name[256];
 
-	im_snprintf( name, 256, "temp-%d", serial++ );
+	vips_snprintf( name, 256, "temp-%d", serial++ );
 
 	return( name );
 }
@@ -1718,7 +1718,7 @@ vips_image_new_disc_temp( const char *format )
 	char *name;
 	VipsImage *image;
 
-	if( !(name = im__temp_name( format )) )
+	if( !(name = vips__temp_name( format )) )
 		return( NULL );
 
 	if( !(image = vips_image_new_from_file( name, "w" )) ) {

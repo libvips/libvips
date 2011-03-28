@@ -108,7 +108,7 @@ GType vips_format_get_type( void );
 /* Map over and find formats. This uses type introspection to loop over
  * subclasses of VipsFormat.
  */
-void *vips_format_map( VSListMap2Fn fn, void *a, void *b );
+void *vips_format_map( VipsSListMap2Fn fn, void *a, void *b );
 VipsFormatClass *vips_format_for_file( const char *filename );
 VipsFormatClass *vips_format_for_name( const char *filename );
 

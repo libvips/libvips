@@ -97,7 +97,7 @@ typedef struct {
 
 /* Set from the command-line.
  */
-extern gboolean im__vector_enabled;
+extern gboolean vips__vector_enabled;
 
 void vips_vector_init( void );
 gboolean vips_vector_get_enabled( void );

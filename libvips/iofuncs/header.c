@@ -86,7 +86,7 @@
  * fields (see <link linkend="libvips-image">image</link>), then search for 
  * a metadata field of that name (see
  * <link linkend="libvips-meta">meta</link>).
- * Use im_header_get_typeof() to test for the 
+ * Use vips_image_get_typeof() to test for the 
  * existance and #GType
  * of a header field.
  *
@@ -259,8 +259,8 @@ meta_sanity( const VipsImage *im )
 	if( im->meta )
 		g_hash_table_foreach( im->meta, 
 			(GHFunc) meta_sanity_on_traverse, (void *) im );
-	im_slist_map2( im->meta_traverse, 
-		(VSListMap2Fn) meta_sanity_on_hash, (void *) im, NULL );
+	vips_slist_map2( im->meta_traverse, 
+		(VipsSListMap2Fn) meta_sanity_on_hash, (void *) im, NULL );
 }
 #endif /*DEBUG*/
 
@@ -491,8 +491,8 @@ meta_cp( VipsImage *dst, const VipsImage *src )
 		/* Loop, copying fields.
 		 */
 		meta_init( dst );
-		im_slist_map2( src->meta_traverse,
-			(VSListMap2Fn) meta_cp_field, dst, NULL );
+		vips_slist_map2( src->meta_traverse,
+			(VipsSListMap2Fn) meta_cp_field, dst, NULL );
 	}
 
 	return( 0 );
@@ -557,8 +557,8 @@ vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 	/* Merge hists first to last.
 	 */
 	for( i = 0; in[i]; i++ )
-		out->history_list = im__gslist_gvalue_merge( out->history_list,
-			in[i]->history_list );
+		out->history_list = vips__gslist_gvalue_merge( 
+			out->history_list, in[i]->history_list );
 
 	return( 0 );
 }
@@ -681,12 +681,12 @@ vips_image_set( VipsImage *image, const char *field, GValue *value )
  * but uninitialised.
  *
  * This will return -1 and add a message to the error buffer if the field
- * does not exist. Use im_header_get_typeof() to test for the 
+ * does not exist. Use vips_image_get_typeof() to test for the 
  * existence
  * of a field first if you are not certain it will be there.
  *
  * For example, to read a double from an image (though of course you would use
- * im_header_double() in practice):
+ * vips_image_get_double() in practice):
  *
  * |[
  * GValue value = { 0 };
@@ -906,8 +906,8 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
 	}
 
 	if( image->meta_traverse && 
-		(result = im_slist_map2( image->meta_traverse, 
-			(VSListMap2Fn) vips_image_map_fn, fn, a )) )
+		(result = vips_slist_map2( image->meta_traverse, 
+			(VipsSListMap2Fn) vips_image_map_fn, fn, a )) )
 		return( result );
 
 	return( NULL );
@@ -1114,7 +1114,7 @@ transform_area_g_string( const GValue *src_value, GValue *dest_value )
 	char buf[256];
 
 	area = g_value_get_boxed( src_value );
-	im_snprintf( buf, 256, "VIPS_TYPE_AREA, count = %d, data = %p",
+	vips_snprintf( buf, 256, "VIPS_TYPE_AREA, count = %d, data = %p",
 		area->count, area->data );
 	g_value_set_string( dest_value, buf );
 }
@@ -1417,7 +1417,7 @@ transform_blob_g_string( const GValue *src_value, GValue *dest_value )
 	char buf[256];
 
 	blob = vips_blob_get( src_value, &blob_length );
-	im_snprintf( buf, 256, "VIPS_TYPE_BLOB, data = %p, length = %zd",
+	vips_snprintf( buf, 256, "VIPS_TYPE_BLOB, data = %p, length = %zd",
 		blob, blob_length );
 	g_value_set_string( dest_value, buf );
 }
@@ -1815,7 +1815,7 @@ vips_image_get_as_string( VipsImage *image, const char *field, char **out )
 
 /**
  * vips_image_history_printf:
- * @image: add history liine to this image
+ * @image: add history line to this image
  * @format: printf() format string
  * @Varargs: arguments to format string
  *
@@ -1841,8 +1841,6 @@ vips_image_get_as_string( VipsImage *image, const char *field, char **out )
  * the application level might involve many VIPS operations. History must be
  * recorded by the application.
  *
- * See also: im_updatehist().
- *
  * Returns: 0 on success, -1 on error.
  */
 int 
@@ -1856,7 +1854,7 @@ vips_image_history_printf( VipsImage *image, const char *fmt, ... )
 	 * a bit.
 	 */
 	va_start( args, fmt );
-	(void) im_vsnprintf( line, 4096 - 40, fmt, args );
+	(void) vips_vsnprintf( line, 4096 - 40, fmt, args );
 	va_end( args );
 	strcat( line, " # " );
 
@@ -1867,12 +1865,12 @@ vips_image_history_printf( VipsImage *image, const char *fmt, ... )
 	line[strlen( line ) - 1] = '\0';
 
 #ifdef DEBUG
-	printf( "im_histlin: adding:\n\t%s\nto history on image %p\n", 
-		line, image );
+	printf( "vips_image_history_printf: "
+		"adding:\n\t%s\nto history on image %p\n", line, image );
 #endif /*DEBUG*/
 
 	image->history_list = g_slist_append( image->history_list, 
-		im__gvalue_ref_string_new( line ) );
+		vips__gvalue_ref_string_new( line ) );
 
 	return( 0 );
 }
@@ -1933,7 +1931,7 @@ const char *
 vips_image_get_history( VipsImage *image )
 {
 	if( !image->Hist )
-		image->Hist = im__gslist_gvalue_get( image->history_list );
+		image->Hist = vips__gslist_gvalue_get( image->history_list );
 
 	return( image->Hist ? image->Hist : "" );
 }

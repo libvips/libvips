@@ -69,16 +69,16 @@
 /* Sanity checking ... write to this during read tests to make sure we don't
  * get optimised out.
  */
-int im__read_test;
+int vips__read_test;
 
 /* Add this many lines above and below the mmap() window.
  */
-int im__window_margin_pixels = IM__WINDOW_MARGIN_PIXELS;
+int vips__window_margin_pixels = IM__WINDOW_MARGIN_PIXELS;
 
 /* Always map at least this many bytes. There's no point making tiny windows
  * on small files.
  */
-int im__window_margin_bytes = IM__WINDOW_MARGIN_BYTES;
+int vips__window_margin_bytes = IM__WINDOW_MARGIN_BYTES;
 
 /* Track global mmap usage.
  */
@@ -189,7 +189,7 @@ trace_mmap_usage( void )
 #endif /*DEBUG_TOTAL*/
 
 static int
-im_getpagesize()
+vips_getpagesize()
 {
 	static int pagesize = 0;
 
@@ -205,7 +205,7 @@ im_getpagesize()
 #endif /*OS_WIN32*/
 
 #ifdef DEBUG_TOTAL
-		printf( "im_getpagesize: 0x%x\n", pagesize );
+		printf( "vips_getpagesize: 0x%x\n", pagesize );
 #endif /*DEBUG_TOTAL*/
 	}
 
@@ -217,7 +217,7 @@ im_getpagesize()
 static int
 vips_window_set( VipsWindow *window, int top, int height )
 {
-	int pagesize = im_getpagesize();
+	int pagesize = vips_getpagesize();
 
 	void *baseaddr;
 	gint64 start, end, pagestart;
@@ -255,7 +255,7 @@ vips_window_set( VipsWindow *window, int top, int height )
 
 	/* Sanity check ... make sure the data pointer is readable.
 	 */
-	im__read_test &= window->data[0];
+	vips__read_test &= window->data[0];
 
 #ifdef DEBUG_TOTAL
 	g_mutex_lock( vips__global_lock );
@@ -330,8 +330,8 @@ vips_window_find( IMAGE *im, int top, int height )
 
 	req.top = top;
 	req.height = height;
-	window = im_slist_map2( im->windows, 
-		(VSListMap2Fn) vips_window_fits, &req, NULL );
+	window = vips_slist_map2( im->windows, 
+		(VipsSListMap2Fn) vips_window_fits, &req, NULL );
 
 	if( window ) {
 		window->ref_count += 1;
@@ -360,8 +360,8 @@ vips_window_ref( IMAGE *im, int top, int height )
 		 * window than we strictly need. There's no point making tiny
 		 * windows.
 		 */
-		int margin = VIPS_MIN( im__window_margin_pixels,
-			im__window_margin_bytes / 
+		int margin = VIPS_MIN( vips__window_margin_pixels,
+			vips__window_margin_bytes / 
 				VIPS_IMAGE_SIZEOF_LINE( im ) );
 
 		top -= margin;

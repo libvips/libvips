@@ -426,6 +426,53 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 #define im__read_header_bytes vips__read_header_bytes
 #define im__write_header_bytes vips__write_header_bytes
 
+#define VSListMap2Fn VipsSListMap2Fn
+#define VSListMap4Fn VipsSListMap4Fn
+#define VSListFold2Fn VipsSListFold2Fn
+
+#define im_slist_equal vips_slist_equal
+#define im_slist_map2 vips_slist_map2
+#define im_slist_map2_rev vips_slist_map2_rev
+#define im_slist_map4 vips_slist_map4
+#define im_slist_fold2 vips_slist_fold2
+#define im_slist_filter vips_slist_filter
+#define im_slist_free_all vips_slist_free_all
+#define im_map_equal vips_map_equal
+#define im_hash_table_map vips_hash_table_map
+#define im_strncpy vips_strncpy
+#define im_strrstr vips_strrstr
+#define im_ispostfix vips_ispostfix
+#define im_isprefix vips_isprefix
+#define im_break_token vips_break_token
+#define im_vsnprintf vips_vsnprintf
+#define im_snprintf vips_snprintf
+#define im_filename_split vips_filename_split
+#define im_skip_dir vips_skip_dir
+#define im_filename_suffix vips_filename_suffix
+#define im_filename_suffix_match vips_filename_suffix_match
+#define im_getnextoption vips_getnextoption
+#define im_getsuboption vips_getsuboption
+#define im_file_length vips_file_length
+#define im__write vips__write
+#define im__file_open_read vips__file_open_read
+#define im__file_open_write vips__file_open_write
+#define im__file_read vips__file_read
+#define im__file_read_name vips__file_read_name
+#define im__file_write vips__file_write
+#define im__get_bytes vips__get_bytes
+#define im__gvalue_ref_string_new vips__gvalue_ref_string_new
+#define im__gslist_gvalue_free vips__gslist_gvalue_free
+#define im__gslist_gvalue_copy vips__gslist_gvalue_copy
+#define im__gslist_gvalue_merge vips__gslist_gvalue_merge
+#define im__gslist_gvalue_get vips__gslist_gvalue_get
+#define im__seek vips__seek
+#define im__ftruncate vips__ftruncate
+#define im_existsf vips_existsf
+#define im_popenf vips_popenf
+#define im_ispoweroftwo vips_ispoweroftwo
+#define im_amiMSBfirst vips_amiMSBfirst
+#define im__temp_name vips__temp_name
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

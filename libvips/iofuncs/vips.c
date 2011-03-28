@@ -295,7 +295,7 @@ vips__write_header_bytes( VipsImage *im, unsigned char *to )
 
 	/* Always write the magic number MSB first.
 	 */
-	magic = im_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
+	magic = vips_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 	to[0] = magic >> 24;
 	to[1] = magic >> 16;
 	to[2] = magic >> 8;
@@ -322,7 +322,7 @@ read_chunk( int fd, gint64 offset, size_t length )
 {
 	char *buf;
 
-	if( im__seek( fd, offset ) )
+	if( vips__seek( fd, offset ) )
 		return( NULL );
 	if( !(buf = vips_malloc( NULL, length + 1 )) )
 		return( NULL );
@@ -407,7 +407,7 @@ read_xml( VipsImage *im )
 	vips_free( buf );
 	if( !(node = xmlDocGetRootElement( doc )) ||
 		!node->nsDef ||
-		!im_isprefix( NAMESPACE, (char *) node->nsDef->href ) ) {
+		!vips_isprefix( NAMESPACE, (char *) node->nsDef->href ) ) {
 		vips_error( "VipsImage", 
 			"%s", _( "incorrect namespace in XML" ) );
 		xmlFreeDoc( doc );
@@ -445,7 +445,7 @@ get_sprop( xmlNode *xnode, const char *name, char *buf, int sz )
         if( !value )
                 return( 0 );
 
-        im_strncpy( buf, value, sz );
+        vips_strncpy( buf, value, sz );
         VIPS_FREEF( xmlFree, value );
 
         return( 1 );
@@ -461,7 +461,7 @@ set_history( VipsImage *im, char *history )
 
 	/* There can be history there already if we're rewinding.
 	 */
-	VIPS_FREEF( im__gslist_gvalue_free, im->history_list );
+	VIPS_FREEF( vips__gslist_gvalue_free, im->history_list );
 
 	history_list = NULL;
 
@@ -474,7 +474,7 @@ set_history( VipsImage *im, char *history )
 			q = p + strlen( p );
 
 		history_list = g_slist_prepend( history_list, 
-			im__gvalue_ref_string_new( p ) );
+			vips__gvalue_ref_string_new( p ) );
 	}
 
 	im->history_list = g_slist_reverse( history_list );
@@ -599,7 +599,7 @@ rebuild_header( VipsImage *im )
 	return( 0 );
 }
 
-/* Called at the end of im_openin() ... get any XML after the pixel data
+/* Called at the end of vips open ... get any XML after the pixel data
  * and read it in.
  */
 static int 
@@ -616,7 +616,7 @@ readhist( VipsImage *im )
 		if( !(doc = read_xml( im )) )
 			return( -1 );
 		if( vips_image_set_area( im, VIPS_META_XML, 
-			(im_callback_fn) xmlFreeDoc, doc ) ) {
+			(VipsCallbackFn) xmlFreeDoc, doc ) ) {
 			xmlFreeDoc( doc );
 			return( -1 );
 		}
@@ -637,7 +637,7 @@ set_prop( xmlNode *node, const char *name, const char *fmt, ... )
         char value[MAX_STRSIZE];
 
         va_start( ap, fmt );
-        (void) im_vsnprintf( value, MAX_STRSIZE, fmt, ap );
+        (void) vips_vsnprintf( value, MAX_STRSIZE, fmt, ap );
         va_end( ap );
 
         if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
@@ -720,8 +720,8 @@ save_fields( VipsImage *im, xmlNode *node )
 	if( !(this = xmlNewChild( node, NULL, (xmlChar *) "meta", NULL )) )
 		return( -1 );
 	if( im->meta_traverse && 
-		im_slist_map2( im->meta_traverse, 
-			(VSListMap2Fn) save_fields_meta, this, NULL ) )
+		vips_slist_map2( im->meta_traverse, 
+			(VipsSListMap2Fn) save_fields_meta, this, NULL ) )
 		return( -1 );
 
 	return( 0 );
@@ -734,17 +734,17 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 	gint64 psize;
 
 	psize = image_pixel_length( im );
-	if( (length = im_file_length( im->fd )) == -1 )
+	if( (length = vips_file_length( im->fd )) == -1 )
 		return( -1 );
 	if( length - psize < 0 ) {
 		vips_error( "VipsImage", "%s", _( "file has been truncated" ) );
 		return( -1 );
 	}
 
-	if( im__ftruncate( im->fd, psize ) ||
-		im__seek( im->fd, psize ) ) 
+	if( vips__ftruncate( im->fd, psize ) ||
+		vips__seek( im->fd, psize ) ) 
 		return( -1 );
-	if( im__write( im->fd, buf, size ) )
+	if( vips__write( im->fd, buf, size ) )
                 return( -1 );
 
 #ifdef DEBUG
@@ -844,7 +844,7 @@ vips__writehist( VipsImage *im )
 	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) )
 		return( -1 );
 
-        im_snprintf( namespace, 256, "%s/%d.%d.%d",
+        vips_snprintf( namespace, 256, "%s/%d.%d.%d",
                 NAMESPACE,
 		IM_MAJOR_VERSION, IM_MINOR_VERSION, IM_MICRO_VERSION );
 	if( !(doc->children = xmlNewDocNode( doc, 
@@ -889,7 +889,7 @@ vips__writehist( VipsImage *im )
                 return( -1 );
 	}
 	
-	printf( "im__writehist: saved XML is: \"%s\"", dump2 );
+	printf( "vips__writehist: saved XML is: \"%s\"", dump2 );
 	xmlFree( dump2 );
 }
 #endif /*DEBUG*/
@@ -927,7 +927,7 @@ vips_image_open_input( VipsImage *image )
 	/* Predict and check the file size.
 	 */
 	psize = image_pixel_length( image );
-	if( (rsize = im_file_length( image->fd )) == -1 ) 
+	if( (rsize = vips_file_length( image->fd )) == -1 ) 
 		return( -1 );
 	image->file_length = rsize;
 	if( psize > rsize ) 
@@ -970,7 +970,7 @@ vips_image_open_output( VipsImage *image )
 		}
 
 		if( vips__write_header_bytes( image, header ) ||
-			im__write( image->fd, header, IM_SIZEOF_HEADER ) )
+			vips__write( image->fd, header, IM_SIZEOF_HEADER ) )
 			return( -1 );
 	}
 

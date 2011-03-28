@@ -176,10 +176,10 @@ vips__link_break_rev( VipsImage *image_down, VipsImage *image_up )
 void
 vips__link_break_all( VipsImage *image )
 {
-	im_slist_map2( image->upstream, 
-		(VSListMap2Fn) vips__link_break, image, NULL );
-	im_slist_map2( image->downstream, 
-		(VSListMap2Fn) vips__link_break_rev, image, NULL );
+	vips_slist_map2( image->upstream, 
+		(VipsSListMap2Fn) vips__link_break, image, NULL );
+	vips_slist_map2( image->downstream, 
+		(VipsSListMap2Fn) vips__link_break_rev, image, NULL );
 
 	g_assert( !image->upstream );
 	g_assert( !image->downstream );
@@ -187,7 +187,7 @@ vips__link_break_all( VipsImage *image )
 
 static void *
 vips__link_mapp( VipsImage *image, 
-	VSListMap2Fn fn, int *serial, void *a, void *b )
+	VipsSListMap2Fn fn, int *serial, void *a, void *b )
 {
 	void *res;
 
@@ -200,8 +200,8 @@ vips__link_mapp( VipsImage *image,
 	if( (res = fn( image, a, b )) )
 		return( res );
 
-	return( im_slist_map4( image->downstream,
-		(VSListMap4Fn) vips__link_mapp, fn, serial, a, b ) );
+	return( vips_slist_map4( image->downstream,
+		(VipsSListMap4Fn) vips__link_mapp, fn, serial, a, b ) );
 }
 
 static void *
@@ -215,7 +215,7 @@ vips__link_map_cb( VipsImage *image, GSList **images )
 /* Apply a function to an image and all downstream images, direct and indirect. 
  */
 void *
-vips__link_map( VipsImage *image, VSListMap2Fn fn, void *a, void *b )
+vips__link_map( VipsImage *image, VipsSListMap2Fn fn, void *a, void *b )
 {
 	static int serial = 0;
 
@@ -232,11 +232,11 @@ vips__link_map( VipsImage *image, VSListMap2Fn fn, void *a, void *b )
 	serial += 1;
 	images = NULL;
 	vips__link_mapp( image, 
-		(VSListMap2Fn) vips__link_map_cb, &serial, &images, NULL );
+		(VipsSListMap2Fn) vips__link_map_cb, &serial, &images, NULL );
 
 	for( p = images; p; p = p->next ) 
 		g_object_ref( p->data );
-	result = im_slist_map2( images, fn, a, b );
+	result = vips_slist_map2( images, fn, a, b );
 	for( p = images; p; p = p->next ) 
 		g_object_unref( p->data );
 	g_slist_free( images );
@@ -431,7 +431,7 @@ vips_stop_many( void *seq, void *a, void *b )
  * Start function for many images in. @a is a pointer to 
  * a %NULL-terminated array of input images.
  *
- * See also: vips_image_generate(), im_allocate_input_array()
+ * See also: vips_image_generate(), vips_allocate_input_array()
  */
 void *
 vips_start_many( VipsImage *out, void *a, void *b )
@@ -607,7 +607,7 @@ vips_image_generate( VipsImage *image,
 
 	if( !image->hint_set ) {
 		vips_error( "vips_image_generate", 
-			"%s", _( "im_demand_hint() not set" ) );
+			"%s", _( "demand hint not set" ) );
 		return( -1 );
 	}
 

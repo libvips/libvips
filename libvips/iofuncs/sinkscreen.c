@@ -235,7 +235,7 @@ render_free( Render *render )
 	g_mutex_free( render->ref_count_lock );
 	g_mutex_free( render->lock );
 
-	im_slist_map2( render->all, (VSListMap2Fn) tile_free, NULL, NULL );
+	vips_slist_map2( render->all, (VipsSListMap2Fn) tile_free, NULL, NULL );
 	VIPS_FREEF( g_slist_free, render->all );
 	render->ntiles = 0;
 	VIPS_FREEF( g_slist_free, render->dirty );
@@ -537,7 +537,7 @@ render_thread_create( void )
 			render_thread_main, NULL, 
 			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-			vips_error( "im_render", 
+			vips_error( "sink_screen", 
 				"%s", _( "unable to create thread" ) );
 			return( -1 );
 		}

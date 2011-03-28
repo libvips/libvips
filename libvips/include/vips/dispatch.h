@@ -274,7 +274,7 @@ int im_close_plugins( void );
 
 /* Loop over all loaded packages.
  */
-void *im_map_packages( VSListMap2Fn fn, void *a );
+void *im_map_packages( VipsSListMap2Fn fn, void *a );
 
 /* Convenience functions for finding packages, functions, etc.
  */

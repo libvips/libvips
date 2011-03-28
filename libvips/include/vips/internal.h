@@ -96,7 +96,6 @@ int vips__write_header_bytes( VipsImage *im, unsigned char *to );
 
 int im__ftruncate( int fd, gint64 pos );
 int im__seek( int fd, gint64 pos );
-int im__get_bytes( const char *filename, unsigned char buf[], int len );
 
 int im__open_image_file( const char * );
 void im__format_init( void );
@@ -125,7 +124,7 @@ VipsImage *im__convert_saveable( VipsImage *in,
 	im__saveable_t saveable, int format_table[10] );
 
 void vips__link_break_all( VipsImage *im );
-void *vips__link_map( VipsImage *im, VSListMap2Fn fn, void *a, void *b );
+void *vips__link_map( VipsImage *im, VipsSListMap2Fn fn, void *a, void *b );
 
 GValue *im__gvalue_ref_string_new( const char *text );
 void im__gslist_gvalue_free( GSList *list );
@@ -133,7 +132,7 @@ GSList *im__gslist_gvalue_copy( const GSList *list );
 GSList *im__gslist_gvalue_merge( GSList *a, const GSList *b );
 char *im__gslist_gvalue_get( const GSList *list );
 
-void im__buffer_init( void );
+void vips__buffer_init( void );
 
 int im__bandup( const char *domain, VipsImage *in, VipsImage *out, int n );
 int im__bandalike_vec( const char *domain, VipsImage **in, VipsImage **out, int n );

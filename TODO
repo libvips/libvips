@@ -1,4 +1,9 @@
 - work though headers making sure old im_ stuff is gone
+  
+  especially internal.h / private.h seem to have a lot of junk in them
+
+  im__tile_width etc. need moving, see init.c
+
 
 
 - add MATLAB write

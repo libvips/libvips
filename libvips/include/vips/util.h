@@ -162,57 +162,67 @@ G_STMT_START { \
 	(g_enum_get_value_by_nick( g_type_class_ref( ENUM ), STR ) || \
 	g_enum_get_value_by_name( g_type_class_ref( ENUM ), STR )) 
 
-/* strtok replacement.
- */
-char *im__break_token( char *str, char *brk );
-
 /* Like GFunc, but return a value.
  */
-typedef void *(*VSListMap2Fn)( void *, void *, void * );
-typedef void *(*VSListMap4Fn)( void *, void *, void *, void *, void * );
-typedef void *(*VSListFold2Fn)( void *, void *, void *, void * );
+typedef void *(*VipsSListMap2Fn)( void *, void *, void * );
+typedef void *(*VipsSListMap4Fn)( void *, void *, void *, void *, void * );
+typedef void *(*VipsSListFold2Fn)( void *, void *, void *, void * );
 
-gboolean im_slist_equal( GSList *l1, GSList *l2 );
-void *im_slist_map2( GSList *list, VSListMap2Fn fn, void *a, void *b );
-void *im_slist_map2_rev( GSList *list, VSListMap2Fn fn, void *a, void *b );
-void *im_slist_map4( GSList *list, 
-	VSListMap4Fn fn, void *a, void *b, void *c, void *d );
-void *im_slist_fold2( GSList *list, void *start, 
-	VSListFold2Fn fn, void *a, void *b );
-GSList *im_slist_filter( GSList *list, VSListMap2Fn fn, void *a, void *b );
-void im_slist_free_all( GSList *list );
+gboolean vips_slist_equal( GSList *l1, GSList *l2 );
+void *vips_slist_map2( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
+void *vips_slist_map2_rev( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
+void *vips_slist_map4( GSList *list, 
+	VipsSListMap4Fn fn, void *a, void *b, void *c, void *d );
+void *vips_slist_fold2( GSList *list, void *start, 
+	VipsSListFold2Fn fn, void *a, void *b );
+GSList *vips_slist_filter( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
+void vips_slist_free_all( GSList *list );
+void *vips_map_equal( void *a, void *b );
 
-void *im_map_equal( void *a, void *b );
+void *vips_hash_table_map( GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b );
 
-void *im_hash_table_map( GHashTable *hash, VSListMap2Fn fn, void *a, void *b );
+char *vips_strncpy( char *dest, const char *src, int n );
+char *vips_strrstr( const char *haystack, const char *needle );
+gboolean vips_ispostfix( const char *a, const char *b );
+gboolean vips_isprefix( const char *a, const char *b );
+char *vips_break_token( char *str, const char *brk );
 
-char *im_strncpy( char *dest, const char *src, int n );
-char *im_strrstr( const char *haystack, const char *needle );
-gboolean im_ispostfix( const char *a, const char *b );
-gboolean im_isprefix( const char *a, const char *b );
-int im_vsnprintf( char *str, size_t size, const char *format, va_list ap );
-int im_snprintf( char *str, size_t size, const char *format, ... )
+int vips_vsnprintf( char *str, size_t size, const char *format, va_list ap );
+int vips_snprintf( char *str, size_t size, const char *format, ... )
 	__attribute__((format(printf, 3, 4)));
-char *im_break_token( char *str, const char *brk );
 
-const char *im_skip_dir( const char *filename );
-void im_filename_split( const char *path, char *name, char *mode );
-void im_filename_suffix( const char *path, char *suffix );
-int im_filename_suffix_match( const char *path, const char *suffixes[] );
-char *im_getnextoption( char **in );
-char *im_getsuboption( const char *buf );
+void vips_filename_split( const char *path, char *name, char *mode );
+const char *vips_skip_dir( const char *filename );
+void vips_filename_suffix( const char *path, char *suffix );
+int vips_filename_suffix_match( const char *path, const char *suffixes[] );
+char *vips_getnextoption( char **in );
+char *vips_getsuboption( const char *buf );
 
-gint64 im_file_length( int fd );
-int im__write( int fd, const void *buf, size_t count );
+gint64 vips_file_length( int fd );
+int vips__write( int fd, const void *buf, size_t count );
 
-FILE *im__file_open_read( const char *filename, 
+FILE *vips__file_open_read( const char *filename, 
 	const char *fallback_dir, gboolean text_mode );
-FILE *im__file_open_write( const char *filename, 
+FILE *vips__file_open_write( const char *filename, 
 	gboolean text_mode );
-char *im__file_read( FILE *fp, const char *name, unsigned int *length_out );
-char *im__file_read_name( const char *name, const char *fallback_dir, 
+char *vips__file_read( FILE *fp, const char *name, unsigned int *length_out );
+char *vips__file_read_name( const char *name, const char *fallback_dir, 
 	unsigned int *length_out );
-int im__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
+int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
+int vips__get_bytes( const char *filename, unsigned char buf[], int len );
+
+GValue *vips__gvalue_ref_string_new( const char *text );
+void vips__gslist_gvalue_free( GSList *list );
+GSList *vips__gslist_gvalue_copy( const GSList *list );
+GSList *vips__gslist_gvalue_merge( GSList *a, const GSList *b );
+char *vips__gslist_gvalue_get( const GSList *list );
+
+int vips__seek( int fd, gint64 pos );
+int vips__ftruncate( int fd, gint64 pos );
+int vips_existsf( const char *name, ... )
+	__attribute__((format(printf, 1, 2)));
+FILE *vips_popenf( const char *fmt, const char *mode, ... )
+	__attribute__((format(printf, 1, 3)));
 
 typedef enum {
  	VIPS_TOKEN_LEFT = 1,	/* ({[ */
@@ -229,15 +239,10 @@ const char *vips__token_must( const char *buffer, VipsToken *token,
 const char *vips__token_need( const char *buffer, VipsToken need_token, 
 	char *string, int size );
 
-int im_existsf( const char *name, ... )
-	__attribute__((format(printf, 1, 2)));
-FILE *im_popenf( const char *fmt, const char *mode, ... )
-	__attribute__((format(printf, 1, 3)));
-int im_ispoweroftwo( int p );
-int im_isvips( const char *filename );
-int im_amiMSBfirst( void );
+int vips_ispoweroftwo( int p );
+int vips_amiMSBfirst( void );
 
-char *im__temp_name( const char *format );
+char *vips__temp_name( const char *format );
 
 void vips__change_suffix( const char *name, char *out, int mx,
         const char *new_suff, const char **olds, int nolds );

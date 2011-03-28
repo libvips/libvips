@@ -205,7 +205,7 @@ vips_init( const char *argv0 )
 
 	/* Get i18n .mo files from $VIPSHOME/share/locale/.
 	 */
-	im_snprintf( name, 256,
+	vips_snprintf( name, 256,
 		"%s" G_DIR_SEPARATOR_S "share" G_DIR_SEPARATOR_S "locale",
 		prefix );
 	bindtextdomain( GETTEXT_PACKAGE, name );
@@ -237,7 +237,7 @@ vips_init( const char *argv0 )
 
 	/* Start up the buffer cache.
 	 */
-	im__buffer_init();
+	vips__buffer_init();
 
 	/* Get the run-time compiler going.
 	 */
@@ -289,7 +289,7 @@ static GOptionEntry option_entries[] = {
 		&im__disc_threshold, 
 		N_( "image size above which to decompress to disc" ), NULL },
 	{ "vips-novector", 't', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, 
-			&im__vector_enabled, 
+			&vips__vector_enabled, 
 		N_( "disable vectorised versions of operations" ), NULL },
 	{ NULL }
 };
@@ -369,31 +369,31 @@ extract_prefix( const char *dir, const char *name )
 	/* Is dir relative? Prefix with cwd.
 	 */
 	if( !g_path_is_absolute( dir ) ) {
-		im_snprintf( edir, PATH_MAX, "%s" G_DIR_SEPARATOR_S "%s",
+		vips_snprintf( edir, PATH_MAX, "%s" G_DIR_SEPARATOR_S "%s",
 			get_current_dir(), dir );
 	}
 	else {
-		im_strncpy( edir, dir, PATH_MAX );
+		vips_strncpy( edir, dir, PATH_MAX );
 	}
 
 	/* Chop off the trailing prog name, plus the trailing
 	 * G_DIR_SEPARATOR_S.
 	 */
-	if( !im_ispostfix( edir, name ) ) 
+	if( !vips_ispostfix( edir, name ) ) 
 		return( NULL );
-	im_strncpy( vname, edir, PATH_MAX );
+	vips_strncpy( vname, edir, PATH_MAX );
 	vname[strlen( edir ) - strlen( name ) - 1] = '\0';
 
 	/* Remove any "/./", any trailing "/.", any trailing "/".
 	 */
 	for( i = 0; i < (int) strlen( vname ); i++ ) 
-		if( im_isprefix( G_DIR_SEPARATOR_S "." G_DIR_SEPARATOR_S, 
+		if( vips_isprefix( G_DIR_SEPARATOR_S "." G_DIR_SEPARATOR_S, 
 			vname + i ) )
 			memcpy( vname + i, vname + i + 2, 
 				strlen( vname + i + 2 ) + 1 );
-	if( im_ispostfix( vname, G_DIR_SEPARATOR_S "." ) )
+	if( vips_ispostfix( vname, G_DIR_SEPARATOR_S "." ) )
 		vname[strlen( vname ) - 2] = '\0';
-	if( im_ispostfix( vname, G_DIR_SEPARATOR_S ) )
+	if( vips_ispostfix( vname, G_DIR_SEPARATOR_S ) )
 		vname[strlen( vname ) - 1] = '\0';
 
 #ifdef DEBUG
@@ -402,7 +402,7 @@ extract_prefix( const char *dir, const char *name )
 
 	/* Ought to be a "/bin" at the end now.
 	 */
-	if( !im_ispostfix( vname, G_DIR_SEPARATOR_S "bin" ) ) 
+	if( !vips_ispostfix( vname, G_DIR_SEPARATOR_S "bin" ) ) 
 		return( NULL );
 	vname[strlen( vname ) - strlen( G_DIR_SEPARATOR_S "bin" )] = '\0';
 
@@ -422,12 +422,12 @@ scan_path( char *path, const char *name )
 	char *prefix;
 
 	for( p = path; 
-		(q = im_break_token( p, G_SEARCHPATH_SEPARATOR_S )); p = q ) {
+		(q = vips_break_token( p, G_SEARCHPATH_SEPARATOR_S )); p = q ) {
 		char str[PATH_MAX];
 
 		/* Form complete path.
 		 */
-		im_snprintf( str, PATH_MAX, 
+		vips_snprintf( str, PATH_MAX, 
 			"%s" G_DIR_SEPARATOR_S "%s", p, name );
 
 #ifdef DEBUG
@@ -435,7 +435,7 @@ scan_path( char *path, const char *name )
 			p, name );
 #endif /*DEBUG*/
 
-		if( im_existsf( "%s", str ) && 
+		if( vips_existsf( "%s", str ) && 
 			(prefix = extract_prefix( str, name )) ) {
 			return( prefix );
 		}
@@ -463,10 +463,10 @@ find_file( const char *name )
 #ifdef OS_WIN32
 	/* Windows always searches '.' first, so prepend cwd to path.
 	 */
-	im_snprintf( full_path, PATH_MAX, "%s" G_SEARCHPATH_SEPARATOR_S "%s",
+	vips_snprintf( full_path, PATH_MAX, "%s" G_SEARCHPATH_SEPARATOR_S "%s",
 		get_current_dir(), path );
 #else /*!OS_WIN32*/
-	im_strncpy( full_path, path, PATH_MAX );
+	vips_strncpy( full_path, path, PATH_MAX );
 #endif /*OS_WIN32*/
 
 	if( (prefix = scan_path( full_path, name )) ) 
@@ -517,8 +517,8 @@ guess_prefix( const char *argv0, const char *name )
 		char full_path[PATH_MAX];
 		char resolved[PATH_MAX];
 
-		im_snprintf( full_path, PATH_MAX, "%s" G_DIR_SEPARATOR_S "%s", 
-			get_current_dir(), argv0 );
+		vips_snprintf( full_path, PATH_MAX, 
+			"%s" G_DIR_SEPARATOR_S "%s", get_current_dir(), argv0 );
 
 		if( realpath( full_path, resolved ) ) {
 			if( (prefix = extract_prefix( resolved, name )) ) {
@@ -576,7 +576,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 
 	/* Get the program name from argv0.
 	 */
-	p = im_skip_dir( argv0 );
+	p = vips_skip_dir( argv0 );
 
 	/* Add the exe suffix, if it's missing.
 	 */
@@ -586,7 +586,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 		vips__change_suffix( p, name, PATH_MAX, IM_EXEEXT, olds, 1 );
 	}
 	else
-		im_strncpy( name, p, PATH_MAX );
+		vips_strncpy( name, p, PATH_MAX );
 
 #ifdef DEBUG
 	printf( "vips_guess_prefix: argv0 = %s\n", argv0 );

@@ -63,7 +63,7 @@
 /* Cleared by the command-line --vips-novector switch and the IM_NOVECTOR env
  * var.
  */
-gboolean im__vector_enabled = TRUE;
+gboolean vips__vector_enabled = TRUE;
 
 void 
 vips_vector_init( void )
@@ -81,7 +81,7 @@ vips_vector_init( void )
 	 * off as well.
 	 */
 	if( g_getenv( "IM_NOVECTOR" ) ) 
-		im__vector_enabled = FALSE;
+		vips__vector_enabled = FALSE;
 #endif /*HAVE_ORC*/
 }
 
@@ -89,7 +89,7 @@ gboolean
 vips_vector_get_enabled( void )
 {
 #ifdef HAVE_ORC
-	return( im__vector_enabled );
+	return( vips__vector_enabled );
 #else /*!HAVE_ORC*/
 	return( FALSE );
 #endif /*HAVE_ORC*/
@@ -98,7 +98,7 @@ vips_vector_get_enabled( void )
 void 
 vips_vector_set_enabled( gboolean enabled )
 {
-	im__vector_enabled = enabled;
+	vips__vector_enabled = enabled;
 }
 
 void
@@ -201,9 +201,9 @@ vips_vector_constant( VipsVector *vector, char *name, int value, int size )
 	}
 
 	if( value > 0 )
-		im_snprintf( name, 256, "c%d%s", value, sname );
+		vips_snprintf( name, 256, "c%d%s", value, sname );
 	else
-		im_snprintf( name, 256, "cm%d%s", -value, sname );
+		vips_snprintf( name, 256, "cm%d%s", -value, sname );
 
 	if( orc_program_find_var_by_name( vector->program, name ) == -1 ) {
 		orc_program_add_constant( vector->program, size, value, name );
@@ -235,7 +235,7 @@ vips_vector_source_scanline( VipsVector *vector,
 	char *name, int line, int size )
 {
 #ifdef HAVE_ORC
-	im_snprintf( name, 256, "sl%d", line );
+	vips_snprintf( name, 256, "sl%d", line );
 
 	if( orc_program_find_var_by_name( vector->program, name ) == -1 ) {
 		int var;
