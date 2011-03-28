@@ -61,6 +61,8 @@
 #include <vips/threadpool.h>
 #include <vips/debug.h>
 
+#include "sink.h"
+
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
@@ -83,24 +85,13 @@ typedef struct _WriteBuffer {
 /* Per-call state.
  */
 typedef struct _Write {
-	VipsImage *im;
+	SinkBase sink_base;
 
 	/* We are current writing tiles to buf, buf_back is in the hands of
 	 * the bg write thread.
 	 */
 	WriteBuffer *buf;
 	WriteBuffer *buf_back;
-
-	/* The position we're at in buf.
-	 */
-	int x;
-	int y;
-
-	/* The tilesize we've picked.
-	 */
-	int tile_width;
-	int tile_height;
-	int nlines;
 
 	/* The file format write operation.
 	 */
@@ -234,7 +225,7 @@ wbuffer_new( Write *write )
 	wbuffer->thread = NULL;
 	wbuffer->kill = FALSE;
 
-	if( !(wbuffer->region = vips_region_new( write->im )) ) {
+	if( !(wbuffer->region = vips_region_new( write->sink_base.im )) ) {
 		wbuffer_free( wbuffer );
 		return( NULL );
 	}
@@ -303,12 +294,12 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 
 	image.left = 0;
 	image.top = 0;
-	image.width = wbuffer->write->im->Xsize;
-	image.height = wbuffer->write->im->Ysize;
+	image.width = wbuffer->write->sink_base.im->Xsize;
+	image.height = wbuffer->write->sink_base.im->Ysize;
 
 	area.left = 0;
 	area.top = top;
-	area.width = wbuffer->write->im->Xsize;
+	area.width = wbuffer->write->sink_base.im->Xsize;
 	area.height = height;
 
 	vips_rect_intersectrect( &area, &image, &wbuffer->area );
@@ -338,6 +329,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 {
 	WriteThreadState *wstate =  (WriteThreadState *) state;
 	Write *write = (Write *) a;
+	SinkBase *sink_base = (SinkBase *) write;
 
 	VipsRect image;
 	VipsRect tile;
@@ -347,11 +339,11 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	/* Is the state x/y OK? New line or maybe new buffer or maybe even 
 	 * all done.
 	 */
-	if( write->x >= write->buf->area.width ) {
-		write->x = 0;
-		write->y += write->tile_height;
+	if( sink_base->x >= write->buf->area.width ) {
+		sink_base->x = 0;
+		sink_base->y += sink_base->tile_height;
 
-		if( write->y >= VIPS_RECT_BOTTOM( &write->buf->area ) ) {
+		if( sink_base->y >= VIPS_RECT_BOTTOM( &write->buf->area ) ) {
 			/* Block until the last write is done, then set write
 			 * of the front buffer going.
 			 */
@@ -360,7 +352,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 			/* End of image?
 			 */
-			if( write->y >= write->im->Ysize ) {
+			if( sink_base->y >= sink_base->im->Ysize ) {
 				*stop = TRUE;
 				return( 0 );
 			}
@@ -378,7 +370,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 			/* Position buf at the new y.
 			 */
 			if( wbuffer_position( write->buf, 
-				write->y, write->nlines ) )
+				sink_base->y, sink_base->nlines ) )
 				return( -1 );
 		}
 	}
@@ -387,12 +379,12 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	image.left = 0;
 	image.top = 0;
-	image.width = write->im->Xsize;
-	image.height = write->im->Ysize;
-	tile.left = write->x;
-	tile.top = write->y;
-	tile.width = write->tile_width;
-	tile.height = write->tile_height;
+	image.width = sink_base->im->Xsize;
+	image.height = sink_base->im->Ysize;
+	tile.left = sink_base->x;
+	tile.top = sink_base->y;
+	tile.width = sink_base->tile_width;
+	tile.height = sink_base->tile_height;
 	vips_rect_intersectrect( &image, &tile, &state->pos );
 	wstate->buf = write->buf;
 
@@ -402,7 +394,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 	/* Move state on.
 	 */
-	write->x += write->tile_width;
+	sink_base->x += sink_base->tile_width;
 
 	return( 0 );
 }
@@ -427,40 +419,16 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 	return( 0 );
 }
 
-/* Our VipsThreadpoolProgress function ... send some eval progress feedback.
- */
-static int
-wbuffer_progress_fn( void *a )
-{
-	Write *write = (Write *) a;
-
-	VIPS_DEBUG_MSG( "wbuffer_progress_fn: %d x %d\n",
-		write->tile_width, write->tile_height );
-
-	/* Trigger any eval callbacks on our source image and
-	 * check for errors.
-	 */
-	vips_image_eval( write->im, write->tile_width, write->tile_height );
-	if( vips_image_get_kill( write->im ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static void
 write_init( Write *write, 
-	VipsImage *im, VipsRegionWrite write_fn, void *a )
+	VipsImage *image, VipsRegionWrite write_fn, void *a )
 {
-	write->im = im;
+	vips_sink_base_init( &write->sink_base, image );
+
 	write->buf = wbuffer_new( write );
 	write->buf_back = wbuffer_new( write );
-	write->x = 0;
-	write->y = 0;
 	write->write_fn = write_fn;
 	write->a = a;
-
-	vips_get_tile_size( im, 
-		&write->tile_width, &write->tile_height, &write->nlines );
 }
 
 static void
@@ -479,7 +447,7 @@ write_free( Write *write )
  * The function should write the pixels in @area from @region. @a is the 
  * value passed into vips_discsink().
  *
- * See also: vips_discsink().
+ * See also: vips_sink_disc().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -517,12 +485,12 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	result = 0;
 	if( !write.buf || 
 		!write.buf_back || 
-		wbuffer_position( write.buf, 0, write.nlines ) ||
+		wbuffer_position( write.buf, 0, write.sink_base.nlines ) ||
 		vips_threadpool_run( im, 
 			write_thread_state_new, 
 			wbuffer_allocate_fn, 
 			wbuffer_work_fn, 
-			wbuffer_progress_fn, 
+			vips_sink_base_progress, 
 			&write ) )  
 		result = -1;
 

@@ -47,6 +47,8 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+#include "sink.h"
+
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
@@ -54,22 +56,11 @@
 /* Per-call state.
  */
 typedef struct _Sink {
-	VipsImage *im; 
+	SinkBase sink_base;
 
 	/* A big region for the image memory. All the threads write to this.
 	 */
 	VipsRegion *all;
-
-	/* The position we're at in the image.
-	 */
-	int x;
-	int y;
-
-	/* The tilesize we've picked.
-	 */
-	int tile_width;
-	int tile_height;
-	int nlines;
 } Sink;
 
 static void
@@ -83,9 +74,7 @@ sink_init( Sink *sink, VipsImage *im )
 {
 	VipsRect all;
 
-	sink->im = im; 
-	sink->x = 0;
-	sink->y = 0;
+	vips_sink_base_init( &sink->sink_base, im );
 
 	all.left = 0;
 	all.top = 0;
@@ -98,48 +87,6 @@ sink_init( Sink *sink, VipsImage *im )
 		return( -1 );
 	}
 
-	vips_get_tile_size( im, 
-		&sink->tile_width, &sink->tile_height, &sink->nlines );
-
-	return( 0 );
-}
-
-static int 
-sink_allocate( VipsThreadState *state, void *a, gboolean *stop )
-{
-	Sink *sink = (Sink *) a;
-
-	VipsRect image, tile;
-
-	/* Is the state x/y OK? New line or maybe all done.
-	 */
-	if( sink->x >= sink->im->Xsize ) {
-		sink->x = 0;
-		sink->y += sink->tile_height;
-
-		if( sink->y >= sink->im->Ysize ) {
-			*stop = TRUE;
-
-			return( 0 );
-		}
-	}
-
-	/* x, y and buf are good: save params for thread.
-	 */
-	image.left = 0;
-	image.top = 0;
-	image.width = sink->im->Xsize;
-	image.height = sink->im->Ysize;
-	tile.left = sink->x;
-	tile.top = sink->y;
-	tile.width = sink->tile_width;
-	tile.height = sink->tile_height;
-	vips_rect_intersectrect( &image, &tile, &state->pos );
-
-	/* Move state on.
-	 */
-	sink->x += sink->tile_width;
-
 	return( 0 );
 }
 
@@ -150,24 +97,6 @@ sink_work( VipsThreadState *state, void *a )
 
 	if( vips_region_prepare_to( state->reg, sink->all, 
 		&state->pos, state->pos.left, state->pos.top ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static int 
-sink_progress( void *a )
-{
-	Sink *sink = (Sink *) a;
-
-	VIPS_DEBUG_MSG( "sink_progress: %d x %d\n",
-		sink->tile_width, sink->tile_height );
-
-	/* Trigger any eval callbacks on our source image and
-	 * check for errors.
-	 */
-	vips_image_eval( sink->im, sink->tile_width, sink->tile_height );
-	if( vips_image_get_kill( sink->im ) )
 		return( -1 );
 
 	return( 0 );
@@ -204,9 +133,9 @@ vips_sink_memory( VipsImage *im )
 
 	result = vips_threadpool_run( im, 
 		vips_thread_state_new,
-		sink_allocate, 
+		vips_sink_base_allocate, 
 		sink_work, 
-		sink_progress, 
+		vips_sink_base_progress, 
 		&sink );
 
 	vips_image_posteval( im );

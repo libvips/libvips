@@ -11,10 +11,11 @@ libiofuncs_la_SOURCES = \
 	vips.c \
 	generate.c \
 	mapfile.c \
-	sinkmemory.c \
-	sinkscreen.c \
-	sinkdisc.c \
+	sink.h \
 	sink.c \
+	sinkmemory.c \
+	sinkdisc.c \
+	sinkscreen.c \
 	memory.c \
 	package.c \
 	header.c \

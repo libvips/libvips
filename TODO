@@ -1,32 +1,5 @@
 - add MATLAB write
 
-- sink.c, sinkdisc.c, sinkmemory.c all define this function:
-
-	static int 
-	sink_progress( void *a )
-	{
-		Sink *sink = (Sink *) a;
-
-		VIPS_DEBUG_MSG( "sink_progress: %d x %d\n",
-			sink->tile_width, sink->tile_height );
-
-		/* Trigger any eval callbacks on our source image and
-		 * check for errors.
-		 */
-		vips_image_eval( sink->im, 
-			sink->tile_width, sink->tile_height );
-		if( vips_image_get_kill( im ) )
-			return( -1 );
-
-		return( 0 );
-	}
-
-  how dumb, common this up somehow
-
-  sink.c is the replacement for im_iterate()
-
-
-
 - need a way to make the vips.1 etc. man pages
 
   gtk has things like docs/reference/gtk/gtk-update-icon-cache.xml and man

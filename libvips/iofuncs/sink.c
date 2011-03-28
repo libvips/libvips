@@ -47,6 +47,8 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+#include "sink.h"
+
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
@@ -54,23 +56,12 @@
 /* Per-call state.
  */
 typedef struct _Sink {
-	VipsImage *im; 
+	SinkBase sink_base;
 
 	/* We need a temp "p" image between the source image and us to
 	 * make sure we can't damage the original.
 	 */
 	VipsImage *t;
-
-	/* The position we're at in the image.
-	 */
-	int x;
-	int y;
-
-	/* The tilesize we've picked.
-	 */
-	int tile_width;
-	int tile_height;
-	int nlines;
 
 	/* Call params.
 	 */
@@ -112,9 +103,11 @@ sink_call_stop( Sink *sink, SinkThreadState *state )
 		VIPS_DEBUG_MSG( "sink_call_stop: state = %p\n", state );
 
 		if( sink->stop( state->seq, sink->a, sink->b ) ) {
+			SinkBase *sink_base = (SinkBase *) sink;
+
 			vips_error( "vips_sink", 
 				_( "stop function failed for image \"%s\"" ), 
-				sink->im->filename );
+				sink_base->im->filename );
 			return( -1 );
 		}
 
@@ -147,9 +140,11 @@ sink_call_start( Sink *sink, SinkThreadState *state )
                 state->seq = sink->start( sink->t, sink->a, sink->b );
 
 		if( !state->seq ) {
+			SinkBase *sink_base = (SinkBase *) sink;
+
 			vips_error( "vips_sink", 
 				_( "start function failed for image \"%s\"" ), 
-				sink->im->filename );
+				sink_base->im->filename );
 			return( -1 );
 		}
 	}
@@ -205,16 +200,27 @@ sink_free( Sink *sink )
 	VIPS_FREEF( g_object_unref, sink->t );
 }
 
+void
+vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
+{
+	sink_base->im = image;
+	sink_base->x = 0;
+	sink_base->y = 0;
+
+	vips_get_tile_size( image, 
+		&sink_base->tile_width, &sink_base->tile_height, 
+		&sink_base->nlines );
+}
+
 static int
 sink_init( Sink *sink, 
-	VipsImage *im, 
+	VipsImage *image, 
 	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
 	void *a, void *b )
 {
-	sink->im = im; 
+	vips_sink_base_init( &sink->sink_base, image );
+
 	sink->t = NULL;
-	sink->x = 0;
-	sink->y = 0;
 	sink->start = start;
 	sink->generate = generate;
 	sink->stop = stop;
@@ -222,31 +228,28 @@ sink_init( Sink *sink,
 	sink->b = b;
 
 	if( !(sink->t = vips_image_new( "p" )) ||
-		im_copy( sink->im, sink->t ) ) {
+		im_copy( sink->sink_base.im, sink->t ) ) {
 		sink_free( sink );
 		return( -1 );
 	}
 
-	vips_get_tile_size( im, 
-		&sink->tile_width, &sink->tile_height, &sink->nlines );
-
 	return( 0 );
 }
 
-static int 
-sink_allocate( VipsThreadState *state, void *a, gboolean *stop )
+int 
+vips_sink_base_allocate( VipsThreadState *state, void *a, gboolean *stop )
 {
-	Sink *sink = (Sink *) a;
+	SinkBase *sink_base = (SinkBase *) a;
 
 	VipsRect image, tile;
 
 	/* Is the state x/y OK? New line or maybe all done.
 	 */
-	if( sink->x >= sink->im->Xsize ) {
-		sink->x = 0;
-		sink->y += sink->tile_height;
+	if( sink_base->x >= sink_base->im->Xsize ) {
+		sink_base->x = 0;
+		sink_base->y += sink_base->tile_height;
 
-		if( sink->y >= sink->im->Ysize ) {
+		if( sink_base->y >= sink_base->im->Ysize ) {
 			*stop = TRUE;
 
 			return( 0 );
@@ -257,17 +260,17 @@ sink_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	image.left = 0;
 	image.top = 0;
-	image.width = sink->im->Xsize;
-	image.height = sink->im->Ysize;
-	tile.left = sink->x;
-	tile.top = sink->y;
-	tile.width = sink->tile_width;
-	tile.height = sink->tile_height;
+	image.width = sink_base->im->Xsize;
+	image.height = sink_base->im->Ysize;
+	tile.left = sink_base->x;
+	tile.top = sink_base->y;
+	tile.width = sink_base->tile_width;
+	tile.height = sink_base->tile_height;
 	vips_rect_intersectrect( &image, &tile, &state->pos );
 
 	/* Move state on.
 	 */
-	sink->x += sink->tile_width;
+	sink_base->x += sink_base->tile_width;
 
 	return( 0 );
 }
@@ -285,19 +288,20 @@ sink_work( VipsThreadState *state, void *a )
 	return( 0 );
 }
 
-static int 
-sink_progress( void *a )
+int 
+vips_sink_base_progress( void *a )
 {
-	Sink *sink = (Sink *) a;
+	SinkBase *sink_base = (SinkBase *) a;
 
-	VIPS_DEBUG_MSG( "sink_progress: %d x %d\n",
-		sink->tile_width, sink->tile_height );
+	VIPS_DEBUG_MSG( "vips_sink_base_progress: %d x %d\n",
+		sink_base->tile_width, sink_base->tile_height );
 
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
 	 */
-	vips_image_eval( sink->im, sink->tile_width, sink->tile_height );
-	if( vips_image_get_kill( sink->im ) )
+	vips_image_eval( sink_base->im, 
+		sink_base->tile_width, sink_base->tile_height );
+	if( vips_image_get_kill( sink_base->im ) )
 		return( -1 );
 
 	return( 0 );
@@ -349,17 +353,17 @@ vips_sink_tile( VipsImage *im,
 		return( -1 );
 
 	if( tile_width > 0 ) {
-		sink.tile_width = tile_width;
-		sink.tile_height = tile_height;
+		sink.sink_base.tile_width = tile_width;
+		sink.sink_base.tile_height = tile_height;
 	}
 
 	vips_image_preeval( sink.t );
 
 	result = vips_threadpool_run( im, 
 		sink_thread_state_new,
-		sink_allocate, 
+		vips_sink_base_allocate, 
 		sink_work, 
-		sink_progress, 
+		vips_sink_base_progress, 
 		&sink );
 
 	vips_image_posteval( sink.t );
