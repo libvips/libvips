@@ -48,7 +48,9 @@
 
  */
 
+/*
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1252,12 +1254,13 @@ vips_image_get_area( VipsImage *image, const char *field, void **data )
 {
 	GValue value_copy = { 0 };
 
-	if( meta_get_value( image, field, VIPS_TYPE_AREA, &value_copy ) )
-		return( -1 );
-	*data = value_get_area_data( &value_copy );
-	g_value_unset( &value_copy );
+	if( !meta_get_value( image, field, VIPS_TYPE_AREA, &value_copy ) ) {
+		*data = value_get_area_data( &value_copy );
+		g_value_unset( &value_copy );
+		return( 0 );
+	}
 
-	return( 0 );
+	return( -1 );
 }
 
 /** 
@@ -1555,12 +1558,13 @@ vips_image_get_blob( VipsImage *image, const char *field,
 {
 	GValue value_copy = { 0 };
 
-	if( meta_get_value( image, field, VIPS_TYPE_BLOB, &value_copy ) )
-		return( -1 );
-	*data = vips_blob_get( &value_copy, length );
-	g_value_unset( &value_copy );
+	if( !meta_get_value( image, field, VIPS_TYPE_BLOB, &value_copy ) ) {
+		*data = vips_blob_get( &value_copy, length );
+		g_value_unset( &value_copy );
+		return( 0 );
+	}
 
-	return( 0 );
+	return( -1 );
 }
 
 /** 
@@ -1728,7 +1732,7 @@ vips_image_get_string( VipsImage *image, const char *field, char **out )
 			return( 0 );
 		}
 
-	if( meta_get_value( image, 
+	if( !meta_get_value( image, 
 		field, VIPS_TYPE_REF_STRING, &value_copy ) ) {
 		area = g_value_get_boxed( &value_copy );
 		*out = area->data;
