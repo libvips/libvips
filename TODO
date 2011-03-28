@@ -1,3 +1,6 @@
+- work though headers making sure old im_ stuff is gone
+
+
 - add MATLAB write
 
 - need a way to make the vips.1 etc. man pages
@@ -45,46 +48,6 @@
   that as the base for morph and conv
 
   wait for vipsobject for this
-
-
-
-
-
-
-
-
-
-
-- why is im_setupout() necessary for WIO output? couldn't writeline call it if
-  it's not been called?
-
-  equally, could pincheck/poutcheck/outcheck be made optional?
-  im_region_create() could call pincheck for you, for example
-
-  	though would this cause problems with threading? we need to incheck
-	from the main thread, not from a worker during pipeline build
-
-  open_lazy does a pincheck to rewind the disc conversion, but that could be
-  removed
-
-  incheck is necessary to make ->data valid I suppose, though perhaps
-  IM_IMAGE_ADDR() could call it for you
-
-- perhaps replace all these with a single call:
-
-	int im_setup( IMAGE *im, VipsStyle style );
-	typedef enum VipsStyle {
-		VIPS_STYLE_PARTIAL,
-		VIPS_STYLE_WHOLE
-	};
-
-  and set read or write with:
-	
-	int im_inputs( IMAGE *im, ... )
-	int im_output( IMAGE *im, ... )
-
-  this is all done for us by the new vips8 API though, don't bother changing
-  this now
 
 
 

@@ -74,9 +74,9 @@ typedef struct _WriteBuffer {
 
 	VipsRegion *region;	/* Pixels */
 	VipsRect area;		/* Part of image this region covers */
-        im_semaphore_t go; 	/* Start bg thread loop */
-        im_semaphore_t nwrite; 	/* Number of threads writing to region */
-        im_semaphore_t done; 	/* Bg thread has done write */
+        VipsSemaphore go; 	/* Start bg thread loop */
+        VipsSemaphore nwrite; 	/* Number of threads writing to region */
+        VipsSemaphore done; 	/* Bg thread has done write */
         int write_errno;	/* Save write errors here */
 	GThread *thread;	/* BG writer thread */
 	gboolean kill;		/* Set to ask thread to exit */
@@ -149,7 +149,7 @@ wbuffer_free( WriteBuffer *wbuffer )
          */
         if( wbuffer->thread ) {
                 wbuffer->kill = TRUE;
-		im_semaphore_up( &wbuffer->go );
+		vips_semaphore_up( &wbuffer->go );
 
 		/* Return value is always NULL (see wbuffer_write_thread).
 		 */
@@ -160,9 +160,9 @@ wbuffer_free( WriteBuffer *wbuffer )
         }
 
 	VIPS_UNREF( wbuffer->region );
-	im_semaphore_destroy( &wbuffer->go );
-	im_semaphore_destroy( &wbuffer->nwrite );
-	im_semaphore_destroy( &wbuffer->done );
+	vips_semaphore_destroy( &wbuffer->go );
+	vips_semaphore_destroy( &wbuffer->nwrite );
+	vips_semaphore_destroy( &wbuffer->done );
 	vips_free( wbuffer );
 }
 
@@ -189,20 +189,20 @@ wbuffer_write_thread( void *data )
 	for(;;) {
 		/* Wait to be told to write.
 		 */
-		im_semaphore_down( &wbuffer->go );
+		vips_semaphore_down( &wbuffer->go );
 
 		if( wbuffer->kill )
 			break;
 
 		/* Now block until the last worker finishes on this buffer.
 		 */
-		im_semaphore_downn( &wbuffer->nwrite, 0 );
+		vips_semaphore_downn( &wbuffer->nwrite, 0 );
 
 		wbuffer_write( wbuffer );
 
 		/* Signal write complete.
 		 */
-		im_semaphore_up( &wbuffer->done );
+		vips_semaphore_up( &wbuffer->done );
 	}
 
 	return( NULL );
@@ -218,9 +218,9 @@ wbuffer_new( Write *write )
 		return( NULL );
 	wbuffer->write = write;
 	wbuffer->region = NULL;
-	im_semaphore_init( &wbuffer->go, 0, "go" );
-	im_semaphore_init( &wbuffer->nwrite, 0, "nwrite" );
-	im_semaphore_init( &wbuffer->done, 0, "done" );
+	vips_semaphore_init( &wbuffer->go, 0, "go" );
+	vips_semaphore_init( &wbuffer->nwrite, 0, "nwrite" );
+	vips_semaphore_init( &wbuffer->done, 0, "done" );
 	wbuffer->write_errno = 0;
 	wbuffer->thread = NULL;
 	wbuffer->kill = FALSE;
@@ -260,7 +260,7 @@ wbuffer_flush( Write *write )
 	 * before we can set this buffer writing or we'll lose output ordering.
 	 */
 	if( write->buf->area.top > 0 ) {
-		im_semaphore_down( &write->buf_back->done );
+		vips_semaphore_down( &write->buf_back->done );
 
 		/* Previous write suceeded?
 		 */
@@ -274,7 +274,7 @@ wbuffer_flush( Write *write )
 	/* Set the background writer going for this buffer.
 	 */
 #ifdef HAVE_THREADS
-	im_semaphore_up( &write->buf->go );
+	vips_semaphore_up( &write->buf->go );
 #else
 	/* No threads? Write ourselves synchronously.
 	 */
@@ -390,7 +390,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 	/* Add to the number of writers on the buffer.
 	 */
-	im_semaphore_upn( &write->buf->nwrite, -1 );
+	vips_semaphore_upn( &write->buf->nwrite, -1 );
 
 	/* Move state on.
 	 */
@@ -414,7 +414,7 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 
 	/* Tell the bg write thread we've left.
 	 */
-	im_semaphore_upn( &wstate->buf->nwrite, 1 );
+	vips_semaphore_upn( &wstate->buf->nwrite, 1 );
 
 	return( 0 );
 }
@@ -506,7 +506,7 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	 * the final write went through or not.
 	 */
 	if( !result )
-		im_semaphore_down( &write.buf->done );
+		vips_semaphore_down( &write.buf->done );
 
 	vips_image_posteval( im );
 

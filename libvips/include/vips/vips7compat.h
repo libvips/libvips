@@ -403,6 +403,29 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 #define im_meta_set_blob vips_image_set_blob
 #define im_meta_get_blob vips_image_get_blob
 
+#define im_semaphore_t VipsSemaphore
+
+#define im_semaphore_up vips_semaphore_up
+#define im_semaphore_down vips_semaphore_down
+#define im_semaphore_upn vips_semaphore_upn
+#define im_semaphore_downn vips_semaphore_downn
+#define im_semaphore_destroy vips_semaphore_destroy
+#define im_semaphore_init vips_semaphore_init
+
+#define im__open_image_read vips__open_image_read
+#define im_image_open_input vips_image_open_input
+#define im_image_open_output vips_image_open_output
+#define im__read_4byte vips__read_4byte
+#define im__read_2byte vips__read_2byte
+#define im__write_4byte vips__write_4byte
+#define im__write_2byte vips__write_2byte
+#define im__has_extension_block vips__has_extension_block
+#define im__read_extension_block vips__read_extension_block
+#define im__write_extension_block vips__write_extension_block
+#define im__writehist vips__writehist
+#define im__read_header_bytes vips__read_header_bytes
+#define im__write_header_bytes vips__write_header_bytes
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

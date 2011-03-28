@@ -367,11 +367,11 @@ typedef struct _VipsThreadpool {
 
 	/* The caller blocks here until all threads finish.
 	 */
-	im_semaphore_t finish;	
+	VipsSemaphore finish;	
 
 	/* Workers up this for every loop to make the main thread tick.
 	 */
-	im_semaphore_t tick;	
+	VipsSemaphore tick;	
 
 	/* Set this to abort evaluation early with an error.
 	 */
@@ -549,7 +549,7 @@ vips_thread_main_loop( void *a )
 	 */
 	for(;;) {
 		vips_thread_work_unit( thr );
-		im_semaphore_up( &pool->tick );
+		vips_semaphore_up( &pool->tick );
 
 		if( pool->stop || pool->error )
 			break;
@@ -557,7 +557,7 @@ vips_thread_main_loop( void *a )
 
 	/* We are exiting: tell the main thread. 
 	 */
-	im_semaphore_up( &pool->finish );
+	vips_semaphore_up( &pool->finish );
 
         return( NULL );
 }
@@ -644,8 +644,8 @@ vips_threadpool_free( VipsThreadpool *pool )
 
 	vips_threadpool_kill_threads( pool );
 	VIPS_FREEF( g_mutex_free, pool->allocate_lock );
-	im_semaphore_destroy( &pool->finish );
-	im_semaphore_destroy( &pool->tick );
+	vips_semaphore_destroy( &pool->finish );
+	vips_semaphore_destroy( &pool->tick );
 
 	return( 0 );
 }
@@ -671,8 +671,8 @@ vips_threadpool_new( VipsImage *im )
 	pool->allocate_lock = g_mutex_new();
 	pool->nthr = im_concurrency_get();
 	pool->thr = NULL;
-	im_semaphore_init( &pool->finish, 0, "finish" );
-	im_semaphore_init( &pool->tick, 0, "tick" );
+	vips_semaphore_init( &pool->finish, 0, "finish" );
+	vips_semaphore_init( &pool->tick, 0, "tick" );
 	pool->stop = FALSE;
 	pool->error = FALSE;
 
@@ -852,7 +852,7 @@ vips_threadpool_run( VipsImage *im,
 #ifdef HAVE_THREADS
 		/* Wait for a tick from a worker.
 		 */
-		im_semaphore_down( &pool->tick );
+		vips_semaphore_down( &pool->tick );
 #else
 		/* No threads, do the work ourselves in the main thread.
 		 */
@@ -874,7 +874,7 @@ vips_threadpool_run( VipsImage *im,
 
 	/* Wait for them all to hit finish.
 	 */
-	im_semaphore_downn( &pool->finish, pool->nthr );
+	vips_semaphore_downn( &pool->finish, pool->nthr );
 
 	/* Return 0 for success.
 	 */

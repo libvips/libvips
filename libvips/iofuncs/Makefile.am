@@ -5,7 +5,6 @@ libiofuncs_la_SOURCES = \
 	object.c \
 	base64.h \
 	base64.c \
-	dispatch_types.c \
 	error.c \
 	image.c \
 	vips.c \
@@ -17,7 +16,6 @@ libiofuncs_la_SOURCES = \
 	sinkdisc.c \
 	sinkscreen.c \
 	memory.c \
-	package.c \
 	header.c \
 	region.c \
 	rect.c \

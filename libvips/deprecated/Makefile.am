@@ -22,6 +22,8 @@ libdeprecated_la_SOURCES = \
 	im_setbox.c \
 	rename.c \
 	vips7compat.c \
+	dispatch_types.c \
+	package.c \
 	im_bernd.c \
 	im_thresh.c \
 	im_slice.c \

@@ -169,7 +169,7 @@ static GThread *render_thread = NULL;
 
 /* Number of renders with dirty tiles. render_thread queues up on this.
  */
-static im_semaphore_t render_dirty_sem;
+static VipsSemaphore render_dirty_sem;
 
 /* All the renders with dirty tiles.
  */
@@ -225,7 +225,7 @@ render_free( Render *render )
 	if( g_slist_find( render_dirty_all, render ) ) {
 		render_dirty_all = g_slist_remove( render_dirty_all, render );
 
-		/* We could im_semaphore_upn( &render_dirty_sem, -1 ), but
+		/* We could vips_semaphore_upn( &render_dirty_sem, -1 ), but
 		 * what's the point. We'd just wake up the bg thread
 		 * for no reason.
 		 */
@@ -289,7 +289,7 @@ render_dirty_get( void )
 
 	/* Wait for a render with dirty tiles.
 	 */
-	im_semaphore_down( &render_dirty_sem );
+	vips_semaphore_down( &render_dirty_sem );
 
 	g_mutex_lock( render_dirty_lock );
 
@@ -469,7 +469,7 @@ render_dirty_put( Render *render )
 				"reschedule\n" );
 			render_reschedule = TRUE;
 
-			im_semaphore_up( &render_dirty_sem );
+			vips_semaphore_up( &render_dirty_sem );
 		}
 	}
 
@@ -529,7 +529,7 @@ render_thread_create( void )
 
 	if( !render_dirty_lock ) {
 		render_dirty_lock = g_mutex_new();
-		im_semaphore_init( &render_dirty_sem, 0, "render_dirty_sem" );
+		vips_semaphore_init( &render_dirty_sem, 0, "render_dirty_sem" );
 	}
 
 	if( !render_thread && have_threads ) {

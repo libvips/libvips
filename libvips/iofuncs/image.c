@@ -386,7 +386,7 @@ vips_image_finalize( GObject *gobject )
 		VIPS_DEBUG_MSG( "vips_image_finalize: closing output file\n" );
 
 		if( image->dtype == VIPS_IMAGE_OPENOUT )
-			(void) im__writehist( image );
+			(void) vips__writehist( image );
 		if( close( image->fd ) == -1 ) 
 			vips_error( "VipsImage", 
 				_( "unable to close fd for %s" ), 
@@ -1425,7 +1425,8 @@ void
 vips_image_set_progress( VipsImage *image, gboolean progress )
 {
 	if( progress && !image->progress_signal ) {
-		VIPS_DEBUG_MSG( "vips_image_set_kill: %s\n", image->filename );
+		VIPS_DEBUG_MSG( "vips_image_set_progress: %s\n", 
+			image->filename );
 		image->progress_signal = image;
 	}
 	else
@@ -1918,7 +1919,7 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	/* Trigger evaluation callbacks for this image.
 	 */
 	vips_image_eval( image, image->Xsize, 1 );
-	if( im__test_kill( image ) )
+	if( vips_image_get_kill( image ) )
 		return( -1 );
 
 	/* Is this the end of eval?

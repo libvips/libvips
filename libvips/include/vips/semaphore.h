@@ -48,14 +48,14 @@ typedef struct {
 
 	GMutex *mutex;
 	GCond *cond;
-} im_semaphore_t;
+} VipsSemaphore;
 
-int im_semaphore_up( im_semaphore_t *s );
-int im_semaphore_down( im_semaphore_t *s );
-int im_semaphore_upn( im_semaphore_t *s, int n );
-int im_semaphore_downn( im_semaphore_t *s, int n );
-void im_semaphore_destroy( im_semaphore_t *s );
-void im_semaphore_init( im_semaphore_t *s, int v, char *name );
+int vips_semaphore_up( VipsSemaphore *s );
+int vips_semaphore_down( VipsSemaphore *s );
+int vips_semaphore_upn( VipsSemaphore *s, int n );
+int vips_semaphore_downn( VipsSemaphore *s, int n );
+void vips_semaphore_destroy( VipsSemaphore *s );
+void vips_semaphore_init( VipsSemaphore *s, int v, char *name );
 
 #ifdef __cplusplus
 }

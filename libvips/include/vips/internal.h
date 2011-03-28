@@ -83,29 +83,24 @@ int vips__open_image_read( const char *filename );
 int vips_image_open_input( VipsImage *image );
 int vips_image_open_output( VipsImage *image );
 
-
-VipsImage *im_open_header( const char * );
-
-int im_unmapfile( VipsImage * );
-void im__read_4byte( int msb_first, unsigned char *to, unsigned char **from );
-void im__read_2byte( int msb_first, unsigned char *to, unsigned char **from );
-void im__write_4byte( unsigned char **to, unsigned char *from );
-void im__write_2byte( unsigned char **to, unsigned char *from );
+void vips__read_4byte( int msb_first, unsigned char *to, unsigned char **from );
+void vips__read_2byte( int msb_first, unsigned char *to, unsigned char **from );
+void vips__write_4byte( unsigned char **to, unsigned char *from );
+void vips__write_2byte( unsigned char **to, unsigned char *from );
+int vips__has_extension_block( VipsImage *im );
+void *vips__read_extension_block( VipsImage *im, int *size );
+int vips__write_extension_block( VipsImage *im, void *buf, int size );
+int vips__writehist( VipsImage *image );
+int vips__read_header_bytes( VipsImage *im, unsigned char *from );
+int vips__write_header_bytes( VipsImage *im, unsigned char *to );
 
 int im__ftruncate( int fd, gint64 pos );
 int im__seek( int fd, gint64 pos );
 int im__get_bytes( const char *filename, unsigned char buf[], int len );
-gint64 im__image_pixel_length( VipsImage *im );
 
 int im__open_image_file( const char * );
 void im__format_init( void );
 void im__type_init( void );
-int im__read_header_bytes( VipsImage *im, unsigned char *from );
-int im__write_header_bytes( VipsImage *im, unsigned char *to );
-int im__has_extension_block( VipsImage *im );
-void *im__read_extension_block( VipsImage *im, int *size );
-int im__write_extension_block( VipsImage *im, void *buf, int size );
-int im__writehist( VipsImage *image );
 
 void im__tiff_register( void );
 void im__jpeg_register( void );

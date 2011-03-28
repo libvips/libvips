@@ -15,6 +15,8 @@
  * 14/2/11
  * 	- renamed to vips.c from im_open_vips.c, some stuff chopped out for 
  * 	  image.c ... this file now just does read / write to disc
+ * 28/3/11
+ * 	- moved to vips_ namespace
  */
 
 /*
@@ -122,15 +124,15 @@
  */
 #define NAMESPACE "http://www.vips.ecs.soton.ac.uk/vips" 
 
-/* Sort of open for read for image files. Shared with im_binfile().
+/* Open for read for image files. 
  */
 int
 vips__open_image_read( const char *filename )
 {
 	int fd;
 
-	/* Try to open read-write, so that calls to im_makerw() will work.
-	 * When we later mmap this file, we set read-only, so there 
+	/* Try to open read-write, so that calls to vips_image_inplace() will 
+	 * work. When we later mmap this file, we set read-only, so there 
 	 * is little danger of scrubbing over files we own.
 	 */
 	if( (fd = open( filename, MODE_READWRITE )) == -1 ) {
@@ -150,8 +152,8 @@ vips__open_image_read( const char *filename )
  * it's sometimes only 32 bits (eg. on many windows build environments) and we
  * want to always be 64 bit.
  */
-gint64
-im__image_pixel_length( VipsImage *image )
+static gint64
+image_pixel_length( VipsImage *image )
 {
 	gint64 psize;
 
@@ -173,7 +175,7 @@ im__image_pixel_length( VipsImage *image )
 /* Read short/int/float LSB and MSB first.
  */
 void
-im__read_4byte( int msb_first, unsigned char *to, unsigned char **from )
+vips__read_4byte( int msb_first, unsigned char *to, unsigned char **from )
 {
 	unsigned char *p = *from;
 	int out;
@@ -188,7 +190,7 @@ im__read_4byte( int msb_first, unsigned char *to, unsigned char **from )
 }
 
 void
-im__read_2byte( int msb_first, unsigned char *to, unsigned char **from )
+vips__read_2byte( int msb_first, unsigned char *to, unsigned char **from )
 {
 	int out;
 	unsigned char *p = *from;
@@ -205,14 +207,14 @@ im__read_2byte( int msb_first, unsigned char *to, unsigned char **from )
 /* We always write in native byte order.
  */
 void
-im__write_4byte( unsigned char **to, unsigned char *from )
+vips__write_4byte( unsigned char **to, unsigned char *from )
 {
 	*((guint32 *) *to) = *((guint32 *) from);
 	*to += 4;
 }
 
 void
-im__write_2byte( unsigned char **to, unsigned char *from )
+vips__write_2byte( unsigned char **to, unsigned char *from )
 {
 	*((guint16 *) *to) = *((guint16 *) from);
 	*to += 2;
@@ -227,43 +229,43 @@ typedef struct _FieldIO {
 } FieldIO;
 
 static FieldIO fields[] = {
-	{ G_STRUCT_OFFSET( IMAGE, Xsize ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Ysize ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Bands ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Bbits ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, BandFmt ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Coding ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Type ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Xres ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Yres ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Length ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Compression ), 
-		im__read_2byte, im__write_2byte },
-	{ G_STRUCT_OFFSET( IMAGE, Level ), 
-		im__read_2byte, im__write_2byte },
-	{ G_STRUCT_OFFSET( IMAGE, Xoffset ), 
-		im__read_4byte, im__write_4byte },
-	{ G_STRUCT_OFFSET( IMAGE, Yoffset ), 
-		im__read_4byte, im__write_4byte }
+	{ G_STRUCT_OFFSET( VipsImage, Xsize ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Ysize ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Bands ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Bbits ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, BandFmt ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Coding ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Type ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Xres ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Yres ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Length ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Compression ), 
+		vips__read_2byte, vips__write_2byte },
+	{ G_STRUCT_OFFSET( VipsImage, Level ), 
+		vips__read_2byte, vips__write_2byte },
+	{ G_STRUCT_OFFSET( VipsImage, Xoffset ), 
+		vips__read_4byte, vips__write_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Yoffset ), 
+		vips__read_4byte, vips__write_4byte }
 };
 
 int
-im__read_header_bytes( IMAGE *im, unsigned char *from )
+vips__read_header_bytes( VipsImage *im, unsigned char *from )
 {
 	int msb_first;
 	int i;
 
-	im__read_4byte( 1, (unsigned char *) &im->magic, &from );
+	vips__read_4byte( 1, (unsigned char *) &im->magic, &from );
 	if( im->magic != VIPS_MAGIC_INTEL && 
 		im->magic != VIPS_MAGIC_SPARC ) {
 		vips_error( "VipsImage", _( "\"%s\" is not a VIPS image" ), 
@@ -285,7 +287,7 @@ im__read_header_bytes( IMAGE *im, unsigned char *from )
 }
 
 int
-im__write_header_bytes( IMAGE *im, unsigned char *to )
+vips__write_header_bytes( VipsImage *im, unsigned char *to )
 {
 	guint32 magic;
 	int i;
@@ -337,11 +339,11 @@ read_chunk( int fd, gint64 offset, size_t length )
 /* Does it look like an image has an extension block?
  */
 int
-im__has_extension_block( IMAGE *im )
+vips__has_extension_block( VipsImage *im )
 {
 	gint64 psize;
 
-	psize = im__image_pixel_length( im );
+	psize = image_pixel_length( im );
 	g_assert( im->file_length > 0 );
 
 	return( im->file_length - psize > 0 );
@@ -350,12 +352,12 @@ im__has_extension_block( IMAGE *im )
 /* Read everything after the pixels into memory.
  */
 void *
-im__read_extension_block( IMAGE *im, int *size )
+vips__read_extension_block( VipsImage *im, int *size )
 {
 	gint64 psize;
 	void *buf;
 
-	psize = im__image_pixel_length( im );
+	psize = image_pixel_length( im );
 	g_assert( im->file_length > 0 );
 	if( im->file_length - psize > 10 * 1024 * 1024 ) {
 		vips_error( "VipsImage",
@@ -371,7 +373,7 @@ im__read_extension_block( IMAGE *im, int *size )
 		*size = im->file_length - psize;
 
 #ifdef DEBUG
-	printf( "im__read_extension_block: read %d bytes from %s\n",
+	printf( "vips__read_extension_block: read %d bytes from %s\n",
 		(int) (im->file_length - psize), im->filename );
 	printf( "data: \"%s\"\n", (char *) buf );
 #endif /*DEBUG*/
@@ -389,14 +391,14 @@ im__read_extension_block( IMAGE *im, int *size )
 
  */
 static xmlDoc *
-read_xml( IMAGE *im )
+read_xml( VipsImage *im )
 {
 	void *buf;
 	int size;
 	xmlDoc *doc;
 	xmlNode *node;
 
-	if( !(buf = im__read_extension_block( im, &size )) )
+	if( !(buf = vips__read_extension_block( im, &size )) )
 		return( NULL );
 	if( !(doc = xmlParseMemory( buf, size )) ) {
 		vips_free( buf );
@@ -452,7 +454,7 @@ get_sprop( xmlNode *xnode, const char *name, char *buf, int sz )
 /* Chop history into lines, add each one as a refstring.
  */
 static void
-set_history( IMAGE *im, char *history )
+set_history( VipsImage *im, char *history )
 {
 	GSList *history_list;
 	char *p, *q;
@@ -481,7 +483,7 @@ set_history( IMAGE *im, char *history )
 /* Load header fields.
  */
 static int
-rebuild_header_builtin( IMAGE *im, xmlNode *i )
+rebuild_header_builtin( VipsImage *im, xmlNode *i )
 {
 	char name[256];
 
@@ -504,7 +506,7 @@ rebuild_header_builtin( IMAGE *im, xmlNode *i )
 /* Load meta fields.
  */
 static int
-rebuild_header_meta( IMAGE *im, xmlNode *i )
+rebuild_header_meta( VipsImage *im, xmlNode *i )
 {
 	char name[256];
 	char type[256];
@@ -549,7 +551,7 @@ rebuild_header_meta( IMAGE *im, xmlNode *i )
 }
 
 static xmlDoc *
-get_xml( IMAGE *im )
+get_xml( VipsImage *im )
 {
 	if( vips_image_get_typeof( im, VIPS_META_XML ) ) {
 		xmlDoc *doc;
@@ -566,7 +568,7 @@ get_xml( IMAGE *im )
 /* Rebuild header fields that depend on stuff saved in xml.
  */
 static int
-rebuild_header( IMAGE *im )
+rebuild_header( VipsImage *im )
 {
 	xmlDoc *doc;
 
@@ -601,14 +603,14 @@ rebuild_header( IMAGE *im )
  * and read it in.
  */
 static int 
-im__readhist( IMAGE *im )
+readhist( VipsImage *im )
 {
 	/* Junk any old xml meta.
 	 */
 	if( vips_image_get_typeof( im, VIPS_META_XML ) ) 
 		vips_image_set_area( im, VIPS_META_XML, NULL, NULL );
 
-	if( im__has_extension_block( im ) ) {
+	if( vips__has_extension_block( im ) ) {
 		xmlDoc *doc;
 
 		if( !(doc = read_xml( im )) )
@@ -702,7 +704,7 @@ save_fields_meta( VipsMeta *meta, xmlNode *node )
 }
 
 static int
-save_fields( IMAGE *im, xmlNode *node )
+save_fields( VipsImage *im, xmlNode *node )
 {
 	xmlNode *this;
 
@@ -726,12 +728,12 @@ save_fields( IMAGE *im, xmlNode *node )
 }
 
 int
-im__write_extension_block( IMAGE *im, void *buf, int size )
+vips__write_extension_block( VipsImage *im, void *buf, int size )
 {
 	gint64 length;
 	gint64 psize;
 
-	psize = im__image_pixel_length( im );
+	psize = image_pixel_length( im );
 	if( (length = im_file_length( im->fd )) == -1 )
 		return( -1 );
 	if( length - psize < 0 ) {
@@ -746,7 +748,7 @@ im__write_extension_block( IMAGE *im, void *buf, int size )
                 return( -1 );
 
 #ifdef DEBUG
-	printf( "im__write_extension_block: written %d bytes of XML to %s\n",
+	printf( "vips__write_extension_block: written %d bytes of XML to %s\n",
 		size, im->filename );
 #endif /*DEBUG*/
 
@@ -829,7 +831,7 @@ prettify_tree( xmlDoc *xdoc )
 /* Append XML to output fd.
  */
 int 
-im__writehist( IMAGE *im )
+vips__writehist( VipsImage *im )
 {
 	xmlDoc *doc;
 	char namespace[256];
@@ -863,7 +865,7 @@ im__writehist( IMAGE *im )
                 return( -1 );
 	}
 
-	if( im__write_extension_block( im, dump, dump_size ) ) {
+	if( vips__write_extension_block( im, dump, dump_size ) ) {
                 xmlFreeDoc( doc );
 		xmlFree( dump );
                 return( -1 );
@@ -915,7 +917,7 @@ vips_image_open_input( VipsImage *image )
 	if( (image->fd = vips__open_image_read( image->filename )) == -1 ) 
 		return( -1 );
 	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
-		im__read_header_bytes( image, header ) ) {
+		vips__read_header_bytes( image, header ) ) {
 		vips_error_system( errno, "VipsImage", 
 			_( "unable to read header for \"%s\"" ),
 			image->filename );
@@ -924,7 +926,7 @@ vips_image_open_input( VipsImage *image )
 
 	/* Predict and check the file size.
 	 */
-	psize = im__image_pixel_length( image );
+	psize = image_pixel_length( image );
 	if( (rsize = im_file_length( image->fd )) == -1 ) 
 		return( -1 );
 	image->file_length = rsize;
@@ -941,7 +943,7 @@ vips_image_open_input( VipsImage *image )
 	 * fails (due to eg. corrupted XML) because it's probably mostly
 	 * harmless.
 	 */
-	if( im__readhist( image ) ) {
+	if( readhist( image ) ) {
 		vips_warn( "VipsImage", _( "error reading XML: %s" ),
 			vips_error_buffer() );
 		vips_error_clear();
@@ -967,7 +969,7 @@ vips_image_open_output( VipsImage *image )
 			return( -1 );
 		}
 
-		if( im__write_header_bytes( image, header ) ||
+		if( vips__write_header_bytes( image, header ) ||
 			im__write( image->fd, header, IM_SIZEOF_HEADER ) )
 			return( -1 );
 	}
