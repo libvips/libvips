@@ -10,13 +10,13 @@ m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
-IM_MAJOR_VERSION=vips_major_version
-IM_MINOR_VERSION=vips_minor_version
-IM_MICRO_VERSION=vips_micro_version
-IM_VERSION=vips_version()
-IM_VERSION_STRING=$IM_VERSION-`date`
+VIPS_MAJOR_VERSION=vips_major_version
+VIPS_MINOR_VERSION=vips_minor_version
+VIPS_MICRO_VERSION=vips_micro_version
+VIPS_VERSION=vips_version()
+VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 
-VERSION=$IM_VERSION
+VERSION=$VIPS_VERSION
 PACKAGE=vips
 
 # libtool library versioning ... not user-visible (except as part of the
@@ -35,11 +35,11 @@ LIBRARY_AGE=15
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
 # patched into include/vips/version.h
-AC_SUBST(IM_VERSION)
-AC_SUBST(IM_VERSION_STRING)
-AC_SUBST(IM_MAJOR_VERSION)
-AC_SUBST(IM_MINOR_VERSION)
-AC_SUBST(IM_MICRO_VERSION)
+AC_SUBST(VIPS_VERSION)
+AC_SUBST(VIPS_VERSION_STRING)
+AC_SUBST(VIPS_MAJOR_VERSION)
+AC_SUBST(VIPS_MINOR_VERSION)
+AC_SUBST(VIPS_MICRO_VERSION)
 
 # put into library name by libsrc/Makefile.am and libsrcCC/Makefile.am
 AC_SUBST(LIBRARY_CURRENT)
@@ -173,7 +173,7 @@ fi
 
 # we need a fully expanded version of $libdir
 # without this we get something like
-#    define IM_LIBDIR ${exec_prefix}/lib
+#    define VIPS_LIBDIR ${exec_prefix}/lib
 # argh
 test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
 
@@ -187,13 +187,13 @@ expand () {
 }
 
 expand $libdir
-IM_LIBDIR=$expanded_value
+VIPS_LIBDIR=$expanded_value
 
 # vips.c/im_guess_prefix.c need to know the exe suffix and (as a fallback)
 # the configure-time install prefix
-AC_DEFINE_UNQUOTED(IM_EXEEXT,"$EXEEXT",[extension for executable files])
-AC_DEFINE_UNQUOTED(IM_PREFIX,"$prefix",[configure-time install prefix])
-AC_DEFINE_UNQUOTED(IM_LIBDIR,"$IM_LIBDIR",[configure-time library directory])
+AC_DEFINE_UNQUOTED(VIPS_EXEEXT,"$EXEEXT",[extension for executable files])
+AC_DEFINE_UNQUOTED(VIPS_PREFIX,"$prefix",[configure-time install prefix])
+AC_DEFINE_UNQUOTED(VIPS_LIBDIR,"$VIPS_LIBDIR",[configure-time library directory])
 
 # i18n
 GETTEXT_PACKAGE=vips7
@@ -601,7 +601,7 @@ VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS 
 
 # we need this to generate paths in swig/python/setup.py.in
 AC_SUBST(top_srcdir)
-AC_SUBST(IM_LIBDIR)
+AC_SUBST(VIPS_LIBDIR)
 
 AC_SUBST(VIPS_CFLAGS)
 AC_SUBST(VIPS_INCLUDES)
@@ -610,7 +610,7 @@ AC_SUBST(VIPS_CXX_LIBS)
 AC_SUBST(PACKAGES_USED)
 
 # you'd think we could have 
-#	vips-$IM_MAJOR_VERSION.$IM_MINOR_VERSION.pc
+#	vips-$VIPS_MAJOR_VERSION.$VIPS_MINOR_VERSION.pc
 # in AC_OUTPUT, but that seems to break for some combinations of sh/m4
 AC_OUTPUT([
 	vips-7.25.pc

@@ -99,10 +99,6 @@ typedef struct _Write {
 	void *a;		
 } Write;
 
-/* Enable im_wbuffer2 ... set from the cmd line, tested by our users.
- */
-int im__wbuffer2 = 0;
-
 /* Our per-thread state ... we need to also track the buffer that pos is
  * supposed to write to.
  */
@@ -468,7 +464,7 @@ write_free( Write *write )
  * This operation is handy for making image sinks which output to things like 
  * disc files.
  *
- * See also: im_concurrency_set().
+ * See also: vips_concurrency_set().
  *
  * Returns: 0 on success, -1 on error.
  */

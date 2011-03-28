@@ -93,13 +93,13 @@
  * |[
  * IMAGE *im;
  *
- * if( !(im = im_open( filename, "r" )) )
- *   // im_open will set a mmessage, we don't need to
+ * if( !(im = vips_image_new_from_file( filename, "r" )) )
+ *   // vips_image_new_from_file() will set a mmessage, we don't need to
  *   return( -1 );
  *
- * if( im->Xsize < 100 ) {
+ * if( vips_image_get_width( im ) < 100 ) {
  *   // we have detected an error, we must set a message
- *   vips_error( "myprogram", "%s", _( "XSize too small" ) );
+ *   vips_error( "myprogram", "%s", _( "width too small" ) );
  *   return( -1 );
  * }
  * ]|
@@ -110,8 +110,8 @@
 
 /* Make global array to keep the error message buffer.
  */
-#define IM_MAX_ERROR (10240)
-static char vips_error_text[IM_MAX_ERROR] = "";
+#define VIPS_MAX_ERROR (10240)
+static char vips_error_text[VIPS_MAX_ERROR] = "";
 static VipsBuf vips_error_buf = VIPS_BUF_STATIC( vips_error_text );
 
 #define IM_DIAGNOSTICS "IM_DIAGNOSTICS"
@@ -211,7 +211,7 @@ vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
 		err,
 		MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), 
 		(LPSTR) &buf, 0, NULL ) ) {
-		im_error( _( "windows error" ), "%s", buf );
+		vips_error( _( "windows error" ), "%s", buf );
 		LocalFree( buf );
 	}
 }

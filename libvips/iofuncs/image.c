@@ -88,7 +88,7 @@
  * @VIPS_DEMAND_STYLE_THINSTRIP: demand in thin (typically 1 pixel high) strips
  * @VIPS_DEMAND_STYLE_ANY: demand geometry does not matter
  *
- * See im_demand_hint(). Operations can hint to the VIPS image IO system about
+ * See vips_demand_hint(). Operations can hint to the VIPS image IO system about
  * the kind of demand geometry they prefer. 
  *
  * These demand styles are given below in order of increasing
@@ -191,7 +191,7 @@
  * @start: Start time 
  *
  * A structure available to eval callbacks giving information on evaluation
- * progress. See im_add_eval_callback().
+ * progress. See #VipsImage::eval.
  */
 
 /**
@@ -319,12 +319,12 @@ enum {
 
 /* Progress feedback. Only really useful for testing, tbh.
  */
-int im__progress = 0;
+int vips__progress = 0;
 
 /* A string giving the image size (in bytes of uncompressed image) above which 
  * we decompress to disc on open.  Can be eg. "12m" for 12 megabytes.
  */
-char *im__disc_threshold = NULL;
+char *vips__disc_threshold = NULL;
 
 static guint vips_image_signals[SIG_LAST] = { 0 };
 
@@ -490,19 +490,19 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 }
 
 static void *
-vips_image_sanity_upstream( VipsImage *im_up, VipsImage *im_down )
+vips_image_sanity_upstream( VipsImage *up, VipsImage *down )
 {
-	if( !g_slist_find( im_up->downstream, im_down ) ||
-		!g_slist_find( im_down->upstream, im_up ) )
-		return( im_up );
+	if( !g_slist_find( up->downstream, down ) ||
+		!g_slist_find( down->upstream, up ) )
+		return( up );
 
 	return( NULL );
 }
 
 static void *
-vips_image_sanity_downstream( VipsImage *im_down, VipsImage *im_up )
+vips_image_sanity_downstream( VipsImage *down, VipsImage *up )
 {
-	return( vips_image_sanity_upstream( im_up, im_down ) );
+	return( vips_image_sanity_upstream( up, down ) );
 }
 
 static void
@@ -676,8 +676,8 @@ disc_threshold( void )
 		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
 			threshold = parse_size( env );
 
-		if( im__disc_threshold ) 
-			threshold = parse_size( im__disc_threshold );
+		if( vips__disc_threshold ) 
+			threshold = parse_size( vips__disc_threshold );
 
 		VIPS_DEBUG_MSG( "disc_threshold: %zd bytes\n", threshold );
 	}
@@ -845,7 +845,7 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 		&tile_width, &tile_height, &nlines );
 	printf( _( "%s %s: %d threads, %d x %d tiles, groups of %d scanlines" ),
 		g_get_prgname(), image->filename,
-		im_concurrency_get(),
+		vips_concurrency_get(),
 		tile_width, tile_height, nlines );
 	printf( "\n" );
 
@@ -884,7 +884,7 @@ vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
 static void
 vips_image_add_progress( VipsImage *image )
 {
-	if( im__progress || 
+	if( vips__progress || 
 		g_getenv( "IM_PROGRESS" ) ) {
 
 		/* Keep the %complete we displayed last time here.
@@ -1079,7 +1079,7 @@ vips_image_class_init( VipsImageClass *class )
 	GParamSpec *pspec;
 
 	/* Pass in a nonsense name for argv0 ... this init world is only here
-	 * for old programs which are missing an im_init_world() call. We must
+	 * for old programs which are missing an vips_init() call. We must
 	 * have threads set up before we can process.
 	 */
 	if( vips_init( "vips" ) )
@@ -1177,7 +1177,7 @@ vips_image_class_init( VipsImageClass *class )
 
 	pspec = g_param_spec_int( "sizeof_header", "Size of header",
 		_( "Offset in bytes from start of file" ),
-		0, 1000000, IM_SIZEOF_HEADER, 
+		0, 1000000, VIPS_SIZEOF_HEADER, 
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, 
 		PROP_SIZEOF_HEADER, pspec );
@@ -1253,7 +1253,7 @@ vips_image_init( VipsImage *image )
 	image->fd = -1;			/* since 0 is stdout */
 	image->sslock = g_mutex_new();
 
-	image->sizeof_header = IM_SIZEOF_HEADER;
+	image->sizeof_header = VIPS_SIZEOF_HEADER;
 }
 
 int
@@ -1661,9 +1661,9 @@ vips_image_new_from_file_raw( const char *filename,
  *
  * This function wraps an #IMAGE around a memory buffer. VIPS does not take
  * responsibility for the area of memory, it's up to you to make sure it's
- * freed when the image is closed. See for example im_add_close_callback().
+ * freed when the image is closed. See for example #VipsObject::close.
  *
- * See also: im_binfile(), im_raw2vips(), im_open().
+ * See also: im_binfile(), im_raw2vips(), vips_image_new().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -1706,9 +1706,9 @@ vips_image_new_temp_cb( VipsImage *image )
  * Make a "w" disc #VipsImage which will be automatically unlinked when it is
  * destroyed. @format is something like "%s.v" for a vips file.
  *
- * The file is created in the temporary directory, see im__temp_name().
+ * The file is created in the temporary directory, see vips__temp_name().
  *
- * See also: im__temp_name().
+ * See also: vips__temp_name().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -1808,8 +1808,8 @@ vips_image_new_array( VipsImage *parent, VipsImage **images, int n )
 }
 
 /* Get the image ready for writing. This can get called many
- * times. Used by vips_image_generate() and vips_image_write_line(). vips7 compat can
- * call this as im_setupout().
+ * times. Used by vips_image_generate() and vips_image_write_line(). vips7 
+ * compat can call this as im_setupout().
  */
 int
 vips__image_write_prepare( VipsImage *image )
@@ -1829,8 +1829,6 @@ vips__image_write_prepare( VipsImage *image )
 	image->Bbits = vips_format_sizeof( image->BandFmt ) << 3;
  
 	if( image->dtype == VIPS_IMAGE_PARTIAL ) {
-		/* Make it into a im_setbuf() image.
-		 */
 		VIPS_DEBUG_MSG( "vips__image_write_prepare: "
 			"old-style output for %s\n", image->filename );
 
@@ -1874,7 +1872,7 @@ vips__image_write_prepare( VipsImage *image )
  *
  * Write a line of pixels to an image. This function must be called repeatedly
  * with @ypos increasing from 0 to @YSize -
- * @linebuffer must be IM_IMAGE_SIZEOF_LINE() bytes long.
+ * @linebuffer must be VIPS_IMAGE_SIZEOF_LINE() bytes long.
  *
  * See also: vips_image_generate().
  *
@@ -1904,7 +1902,7 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	case VIPS_IMAGE_OPENOUT:
 		/* Don't use ypos for this.
 		 */
-		if( im__write( image->fd, linebuffer, linesize ) )
+		if( vips__write( image->fd, linebuffer, linesize ) )
 			return( -1 );
 		break;
 
@@ -2011,7 +2009,8 @@ vips_image_wio_input( VipsImage *image )
 
 	case VIPS_IMAGE_PARTIAL:
 #ifdef DEBUG_IO
-		printf( "im_incheck: converting partial image to WIO\n" );
+		printf( "vips_image_wio_input: "
+			"converting partial image to WIO\n" );
 #endif/*DEBUG_IO*/
 
 		/* Change to VIPS_IMAGE_SETBUF. First, make a memory 
@@ -2040,7 +2039,8 @@ vips_image_wio_input( VipsImage *image )
 
 	case VIPS_IMAGE_OPENIN:
 #ifdef DEBUG_IO
-		printf( "im_incheck: converting openin image for wio input\n" );
+		printf( "vips_image_wio_input: "
+			"converting openin image for wio input\n" );
 #endif/*DEBUG_IO*/
 
 		/* just mmap() the whole thing.
@@ -2245,7 +2245,8 @@ vips_image_pio_input( VipsImage *image )
 		break;
 
 	default:
-		vips_error( "im_pincheck", "%s", _( "image not readable" ) );
+		vips_error( "vips_image_pio_input", 
+			"%s", _( "image not readable" ) );
 		return( -1 );
 	}
 
@@ -2274,8 +2275,8 @@ vips_image_pio_output( VipsImage *image )
 	switch( image->dtype ) {
 	case VIPS_IMAGE_SETBUF:
 		if( image->data ) {
-			vips_error( "im_poutcheck", "%s", 
-				_( "image already written" ) );
+			vips_error( "vips_image_pio_output", 
+				"%s", _( "image already written" ) );
 			return( -1 );
 		}
 
@@ -2283,8 +2284,8 @@ vips_image_pio_output( VipsImage *image )
 
 	case VIPS_IMAGE_PARTIAL:
 		if( image->generate ) {
-			vips_error( "im_poutcheck", "%s", 
-				_( "image already written" ) );
+			vips_error( "im_poutcheck", 
+				"%s", _( "image already written" ) );
 			return( -1 );
 		}
 

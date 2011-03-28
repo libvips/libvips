@@ -30,8 +30,8 @@
 
  */
 
-#ifndef IM_HEADER_H
-#define IM_HEADER_H
+#ifndef VIPS_HEADER_H
+#define VIPS_HEADER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -182,4 +182,4 @@ const char *vips_image_get_history( VipsImage *image );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_HEADER_H*/
+#endif /*VIPS_HEADER_H*/

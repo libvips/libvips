@@ -27,8 +27,8 @@
 
  */
 
-#ifndef IM_DEBUG_H
-#define IM_DEBUG_H
+#ifndef VIPS_DEBUG_H
+#define VIPS_DEBUG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,4 +70,4 @@ extern "C" {
 }
 #endif /*__cplusplus*/
 
-#endif /* IM_DEBUG_H */
+#endif /* VIPS_DEBUG_H */

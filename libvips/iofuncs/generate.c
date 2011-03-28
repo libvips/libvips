@@ -270,7 +270,7 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 	int i, len, nany;
 	VipsDemandStyle set_hint;
 
-	/* How many input images are there? And how many are IM_ANY?
+	/* How many input images are there? And how many are ANY?
 	 */
 	for( i = 0, len = 0, nany = 0; in[i]; i++, len++ )
 		if( in[i]->dhint == VIPS_DEMAND_STYLE_ANY )
@@ -285,8 +285,8 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 		 */
 		;
 	else if( nany == len ) 
-		/* Special case: if all the inputs are IM_ANY, then output can 
-		 * be IM_ANY regardless of what this function wants. 
+		/* Special case: if all the inputs are ANY, then output can 
+		 * be ANY regardless of what this function wants. 
 		 */
 		set_hint = VIPS_DEMAND_STYLE_ANY;
 	else

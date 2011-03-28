@@ -99,7 +99,7 @@ vips_semaphore_upn( VipsSemaphore *s, int n )
 	printf( "vips_semaphore_upn(\"%s\",%d) = %d\n", 
 		s->name, n, value_after_op );
 	if( value_after_op > 1 )
-		im_errormsg( "up over 1!" );
+		vips_error( "vips_semaphore_upn", "up over 1!" );
 #endif /*DEBUG_IO*/
 
 	return( value_after_op );

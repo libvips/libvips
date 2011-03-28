@@ -29,8 +29,8 @@
 
  */
 
-#ifndef IM_GENERATE_H
-#define IM_GENERATE_H
+#ifndef VIPS_GENERATE_H
+#define VIPS_GENERATE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,4 +61,4 @@ int vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_GENERATE_H*/
+#endif /*VIPS_GENERATE_H*/

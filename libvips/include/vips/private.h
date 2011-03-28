@@ -32,28 +32,28 @@
 
  */
 
-#ifndef IM_PRIVATE_H
-#define IM_PRIVATE_H
+#ifndef VIPS_PRIVATE_H
+#define VIPS_PRIVATE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#define IM_SPARE (8)
+#define VIPS_SPARE (8)
 
 /* Private to iofuncs: the minimum number of scanlines we add above and below 
  * the window as a margin for slop.
  */
-#define IM__WINDOW_MARGIN_PIXELS (128)
+#define VIPS__WINDOW_MARGIN_PIXELS (128)
 
 /* Private to iofuncs: add at least this many bytes above and below the window. 
  * There's no point mapping just a few KB of a small image.
  */
-#define IM__WINDOW_MARGIN_BYTES (1024 * 1024 * 10)
+#define VIPS__WINDOW_MARGIN_BYTES (1024 * 1024 * 10)
 
 /* sizeof() a VIPS header on disc.
  */
-#define IM_SIZEOF_HEADER (64)
+#define VIPS_SIZEOF_HEADER (64)
 
 typedef unsigned char PEL;			/* useful datum		*/
 
@@ -132,16 +132,17 @@ typedef enum region_type {
 	VIPS_REGION_WINDOW	/* mmap() buffer on fd on another image */
 } RegionType;
 
-/* Private to iofuncs: the size of the `tiles' requested by im_generate()
+/* Private to iofuncs: the size of the `tiles' requested by 
+ * vips_image_generate()
  * when acting as a data sink.
  */
-#define IM__TILE_WIDTH (64)
-#define IM__TILE_HEIGHT (64)
+#define VIPS__TILE_WIDTH (64)
+#define VIPS__TILE_HEIGHT (64)
 
 /* The height of the strips for the other two request styles.
  */
-#define IM__THINSTRIP_HEIGHT (1)
-#define IM__FATSTRIP_HEIGHT (16)
+#define VIPS__THINSTRIP_HEIGHT (1)
+#define VIPS__FATSTRIP_HEIGHT (16)
 
 /* Functions on regions.
  */
@@ -149,8 +150,6 @@ struct _VipsRegion;
 void vips__region_take_ownership( struct _VipsRegion *reg );
 void vips__region_check_ownership( struct _VipsRegion *reg );
 void vips__region_no_ownership( struct _VipsRegion *reg );
-
-void im__find_demand_size( struct _VipsImage *im, int *pw, int *ph );
 
 int vips__region_start( struct _VipsRegion *reg );
 void vips__region_stop( struct _VipsRegion *reg );
@@ -167,4 +166,4 @@ int vips__image_write_prepare( struct _VipsImage *image );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_PRIVATE_H*/
+#endif /*VIPS_PRIVATE_H*/

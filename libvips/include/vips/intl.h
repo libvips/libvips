@@ -1,8 +1,8 @@
 /* i18n stuff for vips.
  */
 
-#ifndef IM_VIPS_INTL_H
-#define IM_VIPS_INTL_H
+#ifndef VIPS_INTL_H
+#define VIPS_INTL_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,4 +47,4 @@ const char *vips__ngettext( const char *msgid,
 }
 #endif /*__cplusplus*/
 
-#endif /* IM_VIPS_INTL_H */
+#endif /* VIPS_INTL_H */

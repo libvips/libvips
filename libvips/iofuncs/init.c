@@ -222,7 +222,7 @@ vips_init( const char *argv0 )
 	 * plugin.
 	 */
 	if( im_load_plugins( "%s/vips-%d.%d", 
-		libdir, IM_MAJOR_VERSION, IM_MINOR_VERSION ) ) {
+		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION ) ) {
 		vips_warn( "vips_init", "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
@@ -271,22 +271,22 @@ vips__ngettext( const char *msgid, const char *plural, unsigned long int n )
 }
 
 static GOptionEntry option_entries[] = {
-	{ "vips-concurrency", 'c', 0, G_OPTION_ARG_INT, &im__concurrency, 
+	{ "vips-concurrency", 'c', 0, G_OPTION_ARG_INT, &vips__concurrency, 
 		N_( "evaluate with N concurrent threads" ), "N" },
-	{ "vips-tile-width", 'w', 0, G_OPTION_ARG_INT, &im__tile_width, 
+	{ "vips-tile-width", 'w', 0, G_OPTION_ARG_INT, &vips__tile_width, 
 		N_( "set tile width to N (DEBUG)" ), "N" },
-	{ "vips-tile-height", 'h', 0, G_OPTION_ARG_INT, &im__tile_height, 
+	{ "vips-tile-height", 'h', 0, G_OPTION_ARG_INT, &vips__tile_height, 
 		N_( "set tile height to N (DEBUG)" ), "N" },
 	{ "vips-thinstrip-height", 't', 0, 
-		G_OPTION_ARG_INT, &im__thinstrip_height, 
+		G_OPTION_ARG_INT, &vips__thinstrip_height, 
 		N_( "set thinstrip height to N (DEBUG)" ), "N" },
 	{ "vips-fatstrip-height", 'f', 0, 
-		G_OPTION_ARG_INT, &im__fatstrip_height, 
+		G_OPTION_ARG_INT, &vips__fatstrip_height, 
 		N_( "set fatstrip height to N (DEBUG)" ), "N" },
-	{ "vips-progress", 'p', 0, G_OPTION_ARG_NONE, &im__progress, 
+	{ "vips-progress", 'p', 0, G_OPTION_ARG_NONE, &vips__progress, 
 		N_( "show progress feedback" ), NULL },
 	{ "vips-disc-threshold", 'd', 0, G_OPTION_ARG_STRING, 
-		&im__disc_threshold, 
+		&vips__disc_threshold, 
 		N_( "image size above which to decompress to disc" ), NULL },
 	{ "vips-novector", 't', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, 
 			&vips__vector_enabled, 
@@ -535,7 +535,7 @@ guess_prefix( const char *argv0, const char *name )
 
 	/* Fall back to the configure-time prefix.
 	 */
-	return( IM_PREFIX );
+	return( VIPS_PREFIX );
 }
 
 /** 
@@ -580,10 +580,10 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 
 	/* Add the exe suffix, if it's missing.
 	 */
-	if( strlen( IM_EXEEXT ) > 0 ) {
-		const char *olds[] = { IM_EXEEXT };
+	if( strlen( VIPS_EXEEXT ) > 0 ) {
+		const char *olds[] = { VIPS_EXEEXT };
 
-		vips__change_suffix( p, name, PATH_MAX, IM_EXEEXT, olds, 1 );
+		vips__change_suffix( p, name, PATH_MAX, VIPS_EXEEXT, olds, 1 );
 	}
 	else
 		vips_strncpy( name, p, PATH_MAX );
@@ -632,14 +632,14 @@ vips_guess_libdir( const char *argv0, const char *env_name )
 	/* Have we been moved since configure? If not, use the configure-time
 	 * libdir.
 	 */
-	if( strcmp( prefix, IM_PREFIX ) == 0 ) 
-		libdir = IM_LIBDIR;
+	if( strcmp( prefix, VIPS_PREFIX ) == 0 ) 
+		libdir = VIPS_LIBDIR;
 	else
 		libdir = g_strdup_printf( "%s/lib", prefix );
 
 #ifdef DEBUG
-	printf( "vips_guess_libdir: IM_PREFIX = %s\n", IM_PREFIX );
-	printf( "vips_guess_libdir: IM_LIBDIR = %s\n", IM_LIBDIR );
+	printf( "vips_guess_libdir: VIPS_PREFIX = %s\n", VIPS_PREFIX );
+	printf( "vips_guess_libdir: VIPS_LIBDIR = %s\n", VIPS_LIBDIR );
 	printf( "vips_guess_libdir: prefix = %s\n", prefix );
 	printf( "vips_guess_libdir: libdir = %s\n", libdir );
 #endif /*DEBUG*/

@@ -30,8 +30,8 @@
 
  */
 
-#ifndef IM_VECTOR_H
-#define IM_VECTOR_H
+#ifndef VIPS_VECTOR_H
+#define VIPS_VECTOR_H
 
 #ifdef HAVE_ORC
 #include <orc/orc.h>
@@ -135,4 +135,4 @@ void vips_executor_run( VipsExecutor *executor );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_VECTOR_H*/
+#endif /*VIPS_VECTOR_H*/

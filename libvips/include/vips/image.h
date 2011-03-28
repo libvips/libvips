@@ -181,7 +181,7 @@ typedef struct _VipsImage {
 	/* Derived fields that some code can fiddle with. New code should use
 	 * vips_image_get_history() and friends.
 	 */
-	char *Hist;		/* don't use ... call im_history_get() */
+	char *Hist;		/* don't use, see vips_image_get_history() */
 	char *filename;		/* pointer to copy of filename */
 	char *data;		/* start of image data for WIO */
 	int kill;		/* set to non-zero to block eval */
@@ -198,7 +198,7 @@ typedef struct _VipsImage {
 	guint32 magic;		/* magic from header, endian-ness of image */
 
 	/* Partial image stuff. All private! All these fields are initialised 
-	 * to NULL and ignored unless set by im_generate() or im_partial().
+	 * to NULL and ignored unless set by vips_image_generate() etc.
 	 */
 	void *(*start)();	/* user-supplied start function */
 	int (*generate)();	/* user-supplied generate function */
@@ -209,7 +209,7 @@ typedef struct _VipsImage {
 	GSList *regions; 	/* list of regions current for this image */
 	VipsDemandStyle dhint;	/* demand style hint */
 
-	/* Extra user-defined fields ... see im_meta_get_int() etc.
+	/* Extra user-defined fields ... see vips_image_get() etc.
 	 */
 	GHashTable *meta;	/* GhashTable of GValue */
 	GSList *meta_traverse;	/* traverse order for Meta */
@@ -222,12 +222,12 @@ typedef struct _VipsImage {
 
 	/* If this is a large disc image, don't map the whole thing, instead
 	 * have a set of windows shared between the regions active on the
-	 * image. List of im_window_t.
+	 * image. List of VipsWindow.
 	 */
 	GSList *windows;
 
 	/* Upstream/downstream relationships, built from args to 
-	 * im_demand_hint().
+	 * vips_demand_hint().
 	 *
 	 * We use these to invalidate downstream pixel buffers.
 	 * Use 'serial' to spot circular dependencies.
@@ -256,10 +256,10 @@ typedef struct _VipsImage {
 	 */
 	gint64 file_length;
 
-	/* Set this when im_demand_hint_array() is called, and check in any
+	/* Set this when vips_demand_hint_array() is called, and check in any
 	 * operation that will demand pixels from the image.
 	 *
-	 * We use im_demand_hint_array() to build the tree of
+	 * We use vips_demand_hint_array() to build the tree of
 	 * upstream/downstream relationships, so it's a mandatory thing.
 	 */
 	gboolean hint_set;
@@ -285,7 +285,8 @@ typedef struct _VipsImageClass {
 	void (*posteval)( VipsImage *image, VipsProgress *progress );
 
 	/* An image has been written to. 
-	 * Used by eg. im_open("x.jpg", "w") to do the final write to jpeg.
+	 * Used by eg. vips_image_new_from_file("x.jpg", "w") to do the 
+	 * final write to jpeg.
 	 * Set *result to non-zero to indicate an error on write.
 	 */
 	void (*written)( VipsImage *image, int *result );

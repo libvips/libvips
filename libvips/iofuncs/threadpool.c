@@ -96,14 +96,14 @@
 
 /* Default tile geometry ... can be set by init_world.
  */
-int im__tile_width = IM__TILE_WIDTH;
-int im__tile_height = IM__TILE_HEIGHT;
-int im__fatstrip_height = IM__FATSTRIP_HEIGHT;
-int im__thinstrip_height = IM__THINSTRIP_HEIGHT;
+int vips__tile_width = VIPS__TILE_WIDTH;
+int vips__tile_height = VIPS__TILE_HEIGHT;
+int vips__fatstrip_height = VIPS__FATSTRIP_HEIGHT;
+int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;
 
 /* Default n threads ... 0 means get from environment.
  */
-int im__concurrency = 0;
+int vips__concurrency = 0;
 
 #ifndef HAVE_THREADS
 /* If we're building without gthread, we need stubs for the g_thread_*() and
@@ -111,24 +111,24 @@ int im__concurrency = 0;
  * names here.
  */
 
-void im__g_thread_init( GThreadFunctions *vtable ) {}
-gpointer im__g_thread_join( GThread *dummy ) { return( NULL ); }
-gpointer im__g_thread_self( void ) { return( NULL ); }
-GThread *im__g_thread_create_full( GThreadFunc d1, 
+void vips__g_thread_init( GThreadFunctions *vtable ) {}
+gpointer vips__g_thread_join( GThread *dummy ) { return( NULL ); }
+gpointer vips__g_thread_self( void ) { return( NULL ); }
+GThread *vips__g_thread_create_full( GThreadFunc d1, 
 	gpointer d2, gulong d3, gboolean d4, gboolean d5, GThreadPriority d6,
 	GError **d7 )
 	{ return( NULL ); }
 
-GMutex *im__g_mutex_new( void ) { return( NULL ); }
-void im__g_mutex_free( GMutex *d ) {}
-void im__g_mutex_lock( GMutex *d ) {}
-void im__g_mutex_unlock( GMutex *d ) {}
+GMutex *vips__g_mutex_new( void ) { return( NULL ); }
+void vips__g_mutex_free( GMutex *d ) {}
+void vips__g_mutex_lock( GMutex *d ) {}
+void vips__g_mutex_unlock( GMutex *d ) {}
 #endif /*!HAVE_THREADS*/
 
 void
-im_concurrency_set( int concurrency )
+vips_concurrency_set( int concurrency )
 {
-	im__concurrency = concurrency;
+	vips__concurrency = concurrency;
 }
 
 static int
@@ -198,7 +198,7 @@ get_num_processors( void )
  * the number of regions we should pass over the image.
  */
 int
-im_concurrency_get( void )
+vips_concurrency_get( void )
 {
 	const char *str;
 	int nthr;
@@ -206,8 +206,8 @@ im_concurrency_get( void )
 
 	/* Tell the threads system how much concurrency we expect.
 	 */
-	if( im__concurrency > 0 )
-		nthr = im__concurrency;
+	if( vips__concurrency > 0 )
+		nthr = vips__concurrency;
 	else if( (str = g_getenv( IM_CONCURRENCY )) && 
 		(x = atoi( str )) > 0 )
 		nthr = x;
@@ -217,13 +217,13 @@ im_concurrency_get( void )
 	if( nthr < 1 || nthr > MAX_THREADS ) {
 		nthr = VIPS_CLIP( 1, nthr, MAX_THREADS );
 
-		vips_warn( "im_concurrency_get", 
+		vips_warn( "vips_concurrency_get", 
 			_( "threads clipped to %d" ), nthr );
 	}
 
 	/* Save for next time around.
 	 */
-	im_concurrency_set( nthr );
+	vips_concurrency_set( nthr );
 
 	return( nthr );
 }
@@ -400,10 +400,10 @@ vips_thread_save_time_buffers( VipsThread *thr )
 	FILE *fp;
 	char name[256];
 
-	im_snprintf( name, 256, "time%d", rn++ );
+	vips_snprintf( name, 256, "time%d", rn++ );
 	printf( "vips_thread_save_time_buffers: "
 		"saving buffer to \"%s\"\n", name );
-	if( !(fp = im__file_open_write( name, TRUE )) ) 
+	if( !(fp = vips__file_open_write( name, TRUE )) ) 
 		return( -1 );
 	for( i = 0; i < thr->tpos; i++ )
 		fprintf( fp, "%g, %g\n", thr->btime[i], thr->etime[i] );
@@ -603,7 +603,7 @@ vips_thread_new( VipsThreadpool *pool )
 	 * very small values (eg. various BSDs).
 	 */
 	if( !(thr->thread = g_thread_create_full( vips_thread_main_loop, thr, 
-		IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
+		VIPS__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 		G_THREAD_PRIORITY_NORMAL, NULL )) ) {
 		vips_error( "vips_thread_new", 
 			"%s", _( "unable to create thread" ) );
@@ -669,7 +669,7 @@ vips_threadpool_new( VipsImage *im )
 	pool->allocate = NULL;
 	pool->work = NULL;
 	pool->allocate_lock = g_mutex_new();
-	pool->nthr = im_concurrency_get();
+	pool->nthr = vips_concurrency_get();
 	pool->thr = NULL;
 	vips_semaphore_init( &pool->finish, 0, "finish" );
 	vips_semaphore_init( &pool->tick, 0, "tick" );
@@ -813,7 +813,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  * always called by 
  * the main thread (ie. the thread which called vips_threadpool_run()).
  *
- * See also: im_wbuffer2(), im_concurrency_set().
+ * See also: vips_concurrency_set().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -893,21 +893,21 @@ vips_threadpool_run( VipsImage *im,
  * @nlines: return buffer height in scanlines
  *
  * Pick a tile size and a buffer height for this image and the current
- * value of im_concurrency_get(). The buffer height 
+ * value of vips_concurrency_get(). The buffer height 
  * will always be a multiple of tile_height.
  */
 void
 vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines )
 {
-	const int nthr = im_concurrency_get();
+	const int nthr = vips_concurrency_get();
 
 	/* Pick a render geometry.
 	 */
 	switch( im->dhint ) {
 	case VIPS_DEMAND_STYLE_SMALLTILE:
-		*tile_width = im__tile_width;
-		*tile_height = im__tile_height;
+		*tile_width = vips__tile_width;
+		*tile_height = vips__tile_height;
 
 		/* Enough lines of tiles that we can expect to be able to keep
 		 * nthr busy. Then double it.
@@ -919,13 +919,13 @@ vips_get_tile_size( VipsImage *im,
 	case VIPS_DEMAND_STYLE_ANY:
 	case VIPS_DEMAND_STYLE_FATSTRIP:
 		*tile_width = im->Xsize;
-		*tile_height = im__fatstrip_height;
+		*tile_height = vips__fatstrip_height;
 		*nlines = *tile_height * nthr * 2;
 		break;
 
 	case VIPS_DEMAND_STYLE_THINSTRIP:
 		*tile_width = im->Xsize;
-		*tile_height = im__thinstrip_height;
+		*tile_height = vips__thinstrip_height;
 		*nlines = *tile_height * nthr * 2;
 		break;
 

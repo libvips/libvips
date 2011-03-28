@@ -329,13 +329,13 @@ vips_region_print( VipsObject *object, VipsBuf *buf )
 /* If a region is being created in one thread (eg. the main thread) and then
  * used in another (eg. a worker thread), the new thread needs to tell VIPS
  * to stop sanity g_assert() fails. The previous owner needs to
- * im__region_no_ownership() before we can call this.
+ * vips__region_no_ownership() before we can call this.
  */
 void
 vips__region_take_ownership( VipsRegion *region )
 {
 	/* Lock so that there's a memory barrier with the thread doing the
-	 * im__region_no_ownership() before us.
+	 * vips__region_no_ownership() before us.
 	 */
 	g_mutex_lock( region->im->sslock );
 
@@ -943,10 +943,10 @@ vips_region_generate( VipsRegion *reg )
  * blocks until the pixels are ready.
  *
  * Use vips_region_prepare_thread() to calculate an area of pixels with many
- * threads. Use im_render_priority() to calculate an area of pixels in the 
+ * threads. Use vips_sink_screen() to calculate an area of pixels in the 
  * background.
  *
- * See also: vips_region_prepare_thread(), im_render_priority(), 
+ * See also: vips_region_prepare_thread(), vips_sink_screen(), 
  * vips_region_prepare_to().
  *
  * Returns: 0 on success, or -1 on error.
@@ -1031,7 +1031,8 @@ vips_region_prepare_to_generate( VipsRegion *reg,
 	char *p;
 
 	if( !im->generate ) {
-		vips_error( "im_prepare_to", "%s", _( "incomplete header" ) );
+		vips_error( "vips_region_prepare_to",
+			"%s", _( "incomplete header" ) );
 		return( -1 );
 	}
 
@@ -1101,14 +1102,14 @@ vips_region_prepare_to( VipsRegion *reg,
 	if( !dest->data || 
 		dest->im->BandFmt != reg->im->BandFmt ||
 		dest->im->Bands != reg->im->Bands ) {
-		vips_error( "im_prepare_to", 
+		vips_error( "vips_region_prepare_to", 
 			"%s", _( "inappropriate region type" ) );
 		return( -1 );
 	}
 
 	/* clip r first against the size of reg->im, then again against the 
 	 * memory we have available to write to on dest. Just like 
-	 * im_region_region()
+	 * vips_region_region()
 	 */
 	image.top = 0;
 	image.left = 0;
@@ -1127,7 +1128,8 @@ vips_region_prepare_to( VipsRegion *reg,
 	/* Test that dest->valid is large enough.
 	 */
 	if( !vips_rect_includesrect( &dest->valid, &wanted ) ) {
-		vips_error( "im_prepare_to", "%s", _( "dest too small" ) );
+		vips_error( "vips_region_prepare_to", 
+			"%s", _( "dest too small" ) );
 		return( -1 );
 	}
 
@@ -1144,13 +1146,14 @@ vips_region_prepare_to( VipsRegion *reg,
 	y = clipped2.top;
 
 	if( vips_rect_isempty( &final ) ) {
-		vips_error( "im_prepare_to", 
+		vips_error( "vips_region_prepare_to", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
 
 #ifdef DEBUG
-        printf( "im_prepare_to: left = %d, top = %d, width = %d, height = %d\n",
+        printf( "vips_region_prepare_to: "
+		"left = %d, top = %d, width = %d, height = %d\n",
 		final.left, final.top, final.width, final.height );
 #endif /*DEBUG*/
 
@@ -1196,8 +1199,9 @@ vips_region_prepare_to( VipsRegion *reg,
 		break;
 
 	default:
-		vips_error( "im_prepare_to", _( "unable to input from a "
-			"%s image" ), im_dtype2char( im->dtype ) );
+		vips_error( "vips_region_prepare_to", 
+			_( "unable to input from a %s image" ), 
+			VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, im->dtype ) );
 		return( -1 );
 	}
 

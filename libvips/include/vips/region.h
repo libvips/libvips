@@ -32,8 +32,8 @@
 
  */
 
-#ifndef IM_REGION_H
-#define IM_REGION_H
+#ifndef VIPS_REGION_H
+#define VIPS_REGION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,7 +65,7 @@ typedef struct _VipsRegion {
 	VipsImage *im;		/* Link back to parent image */
 	VipsRect valid;		/* Area of parent we can see */
 
-	/* The rest of REGION is private.
+	/* The rest of VipsRegion is private.
 	 */
 	/*< private >*/
 	RegionType type;	/* What kind of attachment */
@@ -118,7 +118,7 @@ int vips_region_prepare_to( VipsRegion *reg,
 	VipsRegion *dest, VipsRect *r, int x, int y );
 int vips_region_prepare_many( VipsRegion **reg, VipsRect *r );
 
-/* Macros on REGIONs.
+/* Macros on VipsRegion.
  *	VIPS_REGION_LSKIP()		add to move down line
  *	VIPS_REGION_N_ELEMENTS()	number of elements across region
  *	VIPS_REGION_SIZEOF_LINE()	sizeof width of region
@@ -135,7 +135,7 @@ int vips_region_prepare_many( VipsRegion **reg, VipsRect *r );
  */
 #ifdef DEBUG
 #define VIPS_REGION_ADDR( R, X, Y ) \
-	( (im_rect_includespoint( &(R)->valid, (X), (Y) ))? \
+	( (vips_rect_includespoint( &(R)->valid, (X), (Y) ))? \
 	  ((R)->data + ((Y) - (R)->valid.top) * VIPS_REGION_LSKIP(R) + \
 	  ((X) - (R)->valid.left) * VIPS_IMAGE_SIZEOF_PEL((R)->im)): \
 	  (fprintf( stderr, \
@@ -164,4 +164,4 @@ int vips_region_prepare_many( VipsRegion **reg, VipsRect *r );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_REGION_H*/
+#endif /*VIPS_REGION_H*/

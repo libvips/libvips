@@ -3,7 +3,7 @@
 if ENABLE_CXX
 C_COMPILE_DIR = libvipsCC
 C_DIST_DIR =
-C_PKGCONFIG = vipsCC-7.${IM_MINOR_VERSION}.pc
+C_PKGCONFIG = vipsCC-7.${VIPS_MINOR_VERSION}.pc
 
 # turn on Python if we can (requires C++)
 if HAVE_PYTHON
@@ -31,15 +31,15 @@ EXTRA_DIST = \
 	m4 \
 	benchmark \
 	bootstrap.sh \
-	vips-7.${IM_MINOR_VERSION}.pc.in \
-	vipsCC-7.${IM_MINOR_VERSION}.pc.in \
+	vips-7.${VIPS_MINOR_VERSION}.pc.in \
+	vipsCC-7.${VIPS_MINOR_VERSION}.pc.in \
 	acinclude.m4 \
 	depcomp \
 	$(C_DIST_DIR) \
 	$(P_DIST_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = vips-7.${IM_MINOR_VERSION}.pc $(C_PKGCONFIG)
+pkgconfig_DATA = vips-7.${VIPS_MINOR_VERSION}.pc $(C_PKGCONFIG)
 
 install-exec-hook:
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips

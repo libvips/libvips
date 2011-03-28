@@ -33,8 +33,8 @@
 
  */
 
-#ifndef IM_THREADPOOL_H
-#define IM_THREADPOOL_H
+#ifndef VIPS_THREADPOOL_H
+#define VIPS_THREADPOOL_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -152,11 +152,11 @@ int vips_sink_memory( VipsImage *im );
 
 void vips__print_renders( void );
 
-void im_concurrency_set( int concurrency );
-int im_concurrency_get( void );
+void vips_concurrency_set( int concurrency );
+int vips_concurrency_get( void );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_THREADPOOL_H*/
+#endif /*VIPS_THREADPOOL_H*/

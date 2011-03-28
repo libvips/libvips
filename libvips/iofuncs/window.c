@@ -73,12 +73,12 @@ int vips__read_test;
 
 /* Add this many lines above and below the mmap() window.
  */
-int vips__window_margin_pixels = IM__WINDOW_MARGIN_PIXELS;
+int vips__window_margin_pixels = VIPS__WINDOW_MARGIN_PIXELS;
 
 /* Always map at least this many bytes. There's no point making tiny windows
  * on small files.
  */
-int vips__window_margin_bytes = IM__WINDOW_MARGIN_BYTES;
+int vips__window_margin_bytes = VIPS__WINDOW_MARGIN_BYTES;
 
 /* Track global mmap usage.
  */

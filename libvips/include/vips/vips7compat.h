@@ -473,6 +473,18 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 #define im_amiMSBfirst vips_amiMSBfirst
 #define im__temp_name vips__temp_name
 
+#define IM_VERSION_STRING VIPS_VERSION_STRING
+#define IM_MAJOR_VERSION VIPS_MAJOR_VERSION
+#define IM_MINOR_VERSION VIPS_MINOR_VERSION
+#define IM_MICRO_VERSION VIPS_MICRO_VERSION
+
+#define IM_EXEEXT VIPS_EXEEXT
+
+#define IM_SIZEOF_HEADER VIPS_SIZEOF_HEADER
+
+#define im_concurrency_set vips_concurrency_set
+#define im_concurrency_get vips_concurrency_get
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -27,8 +27,8 @@
 
  */
 
-#ifndef IM_ERROR_H
-#define IM_ERROR_H
+#ifndef VIPS_ERROR_H
+#define VIPS_ERROR_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,4 +87,4 @@ int vips_check_dmask( const char *domain, DOUBLEMASK *mask );
 }
 #endif /*__cplusplus*/
 
-#endif /*!IM_ERROR_H*/
+#endif /*VIPS_ERROR_H*/

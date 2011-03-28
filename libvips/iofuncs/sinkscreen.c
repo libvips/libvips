@@ -535,7 +535,7 @@ render_thread_create( void )
 	if( !render_thread && have_threads ) {
 		if( !(render_thread = g_thread_create_full( 
 			render_thread_main, NULL, 
-			IM__DEFAULT_STACK_SIZE, TRUE, FALSE, 
+			VIPS__DEFAULT_STACK_SIZE, TRUE, FALSE, 
 			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
 			vips_error( "sink_screen", 
 				"%s", _( "unable to create thread" ) );

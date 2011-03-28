@@ -155,7 +155,7 @@ vips_free( void *s )
 
 	next_trace += 1;
 	if( next_trace > trace_freq ) {
-		printf( "im_free: %d, %d allocs, total %.3gM, "
+		printf( "vips_free: %d, %d allocs, total %.3gM, "
 			"high water %.3gM\n", 
 			size,
 			total_allocs,
@@ -191,8 +191,8 @@ vips_malloc_cb( VipsImage *image, char *buf )
  *
  * Malloc local to @im, that is, the memory will be automatically 
  * freed for you when the image is closed. If @im is %NULL, you need to free
- * the memory explicitly with im_free().
- * If allocation fails im_malloc() returns %NULL and 
+ * the memory explicitly with vips_free().
+ * If allocation fails vips_malloc() returns %NULL and 
  * sets an error message.
  *
  * If two threads try to allocate local to the same @im at the same time, you 
@@ -206,7 +206,7 @@ vips_malloc( VipsImage *image, size_t size )
         void *buf;
 
 #ifdef DEBUGM
-	/* Assume the first im_malloc() is single-threaded.
+	/* Assume the first vips_malloc() is single-threaded.
 	 */
 	if( !malloc_mutex )
 		malloc_mutex = g_mutex_new();
@@ -225,10 +225,10 @@ vips_malloc( VipsImage *image, size_t size )
 		g_assert( 0 );
 #endif /*DEBUG*/
 
-		vips_error( "im_malloc", 
+		vips_error( "vips_malloc", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0*1024.0))  );
-		vips_warn( "im_malloc", 
+		vips_warn( "vips_malloc", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0*1024.0))  );
                 return( NULL );

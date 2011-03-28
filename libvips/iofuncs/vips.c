@@ -846,7 +846,7 @@ vips__writehist( VipsImage *im )
 
         vips_snprintf( namespace, 256, "%s/%d.%d.%d",
                 NAMESPACE,
-		IM_MAJOR_VERSION, IM_MINOR_VERSION, IM_MICRO_VERSION );
+		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
 	if( !(doc->children = xmlNewDocNode( doc, 
 			NULL, (xmlChar *) "root", NULL )) ||
                 set_sprop( doc->children, "xmlns", namespace ) ||
@@ -908,7 +908,7 @@ vips_image_open_input( VipsImage *image )
 	/* We don't use im->sizeof_header here, but we know we're reading a
 	 * VIPS image anyway.
 	 */
-	unsigned char header[IM_SIZEOF_HEADER];
+	unsigned char header[VIPS_SIZEOF_HEADER];
 
 	gint64 psize;
 	gint64 rsize;
@@ -916,7 +916,8 @@ vips_image_open_input( VipsImage *image )
 	image->dtype = VIPS_IMAGE_OPENIN;
 	if( (image->fd = vips__open_image_read( image->filename )) == -1 ) 
 		return( -1 );
-	if( read( image->fd, header, IM_SIZEOF_HEADER ) != IM_SIZEOF_HEADER ||
+	if( read( image->fd, header, VIPS_SIZEOF_HEADER ) != 
+		VIPS_SIZEOF_HEADER ||
 		vips__read_header_bytes( image, header ) ) {
 		vips_error_system( errno, "VipsImage", 
 			_( "unable to read header for \"%s\"" ),
@@ -959,7 +960,7 @@ vips_image_open_output( VipsImage *image )
 		/* Don't use im->sizeof_header here, but we know we're 
 		 * writing a VIPS image anyway.
 		 */
-		unsigned char header[IM_SIZEOF_HEADER];
+		unsigned char header[VIPS_SIZEOF_HEADER];
 
 		if( (image->fd = open( image->filename, 
 			MODE_WRITE, 0666 )) < 0 ) {
@@ -970,7 +971,7 @@ vips_image_open_output( VipsImage *image )
 		}
 
 		if( vips__write_header_bytes( image, header ) ||
-			vips__write( image->fd, header, IM_SIZEOF_HEADER ) )
+			vips__write( image->fd, header, VIPS_SIZEOF_HEADER ) )
 			return( -1 );
 	}
 

@@ -33,8 +33,8 @@
 
  */
 
-#ifndef IM_SEMAPHORE_H
-#define IM_SEMAPHORE_H
+#ifndef VIPS_SEMAPHORE_H
+#define VIPS_SEMAPHORE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,4 +61,4 @@ void vips_semaphore_init( VipsSemaphore *s, int v, char *name );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_SEMAPHORE_H*/
+#endif /*VIPS_SEMAPHORE_H*/
