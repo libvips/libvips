@@ -27,7 +27,6 @@ libiofuncs_la_SOURCES = \
 	buf.c \
 	window.c \
 	vector.c \
-	vips7compat.c \
 	buffer.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
