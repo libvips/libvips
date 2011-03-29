@@ -12,6 +12,7 @@ pkginclude_HEADERS = \
 	disp.h \
 	enumtypes.h \
 	error.h \
+	operation.h \
 	format.h \
 	inplace.h \
 	generate.h \

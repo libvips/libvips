@@ -42,6 +42,9 @@
 - fits write
 - better fits metadata support
 - renamed all header fields, old names still supported, hopefully
+- all of iofuncs moved to vips_ namespace
+- lots of old iofuncs API moved to deprecated
+- added VipsOperation, an abstract base class for all vips operations
 
 30/11/10 started 7.24.0
 - bump for new stable

@@ -17,6 +17,7 @@ libiofuncs_la_SOURCES = \
 	sinkscreen.c \
 	memory.c \
 	header.c \
+	operation.c \
 	region.c \
 	rect.c \
 	semaphore.c \

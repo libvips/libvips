@@ -230,6 +230,10 @@ vips_argument_map( VipsObject *object,
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	GSList *p;
 
+	/* This loop also appears in vips_operation_call_valist() and needs
+	 * to be kept in sync with that.
+	 */
+
 	for( p = class->argument_table_traverse; p; p = p->next ) {
 		VipsArgumentClass *argument_class =
 			(VipsArgumentClass *) p->data;

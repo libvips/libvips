@@ -113,8 +113,8 @@ extern "C" {
 #include <vips/interpolate.h>
 #include <vips/semaphore.h>
 #include <vips/threadpool.h>
-
 #include <vips/header.h>
+#include <vips/operation.h>
 
 #include <vips/enumtypes.h>
 
