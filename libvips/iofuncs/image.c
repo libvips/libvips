@@ -1306,6 +1306,8 @@ vips_progress_add( VipsImage *image )
 {
 	VipsProgress *progress;
 
+	VIPS_DEBUG_MSG( "vips_progress_add: %p\n", image );
+
 	if( !(progress = image->time) ) {
 		if( !(image->time = VIPS_NEW( NULL, VipsProgress )) )
 			return( -1 );
@@ -1332,6 +1334,8 @@ void
 vips_progress_update( VipsProgress *progress, int w, int h )
 {
 	float prop;
+
+	VIPS_DEBUG_MSG( "vips_progress_update: %p\n", progress );
 
 	g_assert( progress );
 

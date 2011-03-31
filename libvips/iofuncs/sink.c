@@ -357,7 +357,10 @@ vips_sink_tile( VipsImage *im,
 		sink.sink_base.tile_height = tile_height;
 	}
 
-	vips_image_preeval( sink.t );
+	/* vips_sink_base_progress() signals progress on im, so we have to do
+	 * pre/post on that too.
+	 */
+	vips_image_preeval( im );
 
 	result = vips_threadpool_run( im, 
 		sink_thread_state_new,
@@ -366,7 +369,7 @@ vips_sink_tile( VipsImage *im,
 		vips_sink_base_progress, 
 		&sink );
 
-	vips_image_posteval( sink.t );
+	vips_image_posteval( im );
 
 	sink_free( &sink );
 
