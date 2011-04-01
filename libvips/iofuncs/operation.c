@@ -268,8 +268,8 @@ vips_call( const char *operation_name, ... )
 	result = vips_operation_call_valist( operation, ap );
 	va_end( ap );
 
-	/* The operation we have built should now be reffed by one of it's
-	 * arguments ... or have finished it's work.
+	/* The operation we have built should now have been reffed by one of 
+	 * its arguments or have finished its work. Either way, we can unref.
 	 */
 	g_object_unref( operation );
 

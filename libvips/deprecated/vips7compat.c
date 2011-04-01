@@ -383,7 +383,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 	}
 	if( vips_image_pio_output( out ) )
 		return( -1 );
-	
+
 	/* Hint demand style. Being a buffer processor, we are happiest with
 	 * thin strips.
 	 */

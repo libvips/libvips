@@ -247,49 +247,6 @@
  * Returns: The address of pixel (x,y) in the image.
  */
 
-/** 
- * vips_image_open_local_array:
- * @IM: image to open local to
- * @OUT: array to fill with #VipsImage *
- * @N: array size
- * @NAME: filename to open
- * @MODE: mode to open with
- *
- * Just like vips_image_open(), but opens an array of images. Handy for creating a 
- * set of temporary images for a function.
- *
- * Example:
- *
- * |[
- * VipsImage *t[5];
- *
- * if( vips_image_open_local_array( out, t, 5, "some-temps", "p" ) ||
- *   vips_add( a, b, t[0] ) ||
- *   vips_invert( t[0], t[1] ) ||
- *   vips_add( t[1], t[0], t[2] ) ||
- *   vips_costra( t[2], out ) )
- *   return( -1 );
- * ]|
- *
- * See also: vips_image_open(), vips_image_open_local(), vips_local_array().
- *
- * Returns: 0 on sucess, or -1 on error
- */
-
-/**
- * vips_image_open_local:
- * @IM: image to open local to
- * @NAME: filename to open
- * @MODE: mode to open with
- *
- * Just like vips_image_open(), but the #VipsImage will be closed for you 
- * automatically when @IM is closed.
- *
- * See also: vips_image_open(), vips_local().
- *
- * Returns: a new #VipsImage, or %NULL on error
- */
-
 /* Properties.
  */
 enum {
@@ -1515,6 +1472,47 @@ vips_image_new( const char *mode )
 	return( image ); 
 }
 
+/** 
+ * vips_image_new_array:
+ * @parent: images unref when this object unrefs
+ * @OUT: array to fill with #VipsImage *
+ * @N: array size
+ *
+ * Just like vips_image_new(), but opens an array of "p" images. 
+ * Handy for creating a 
+ * set of temporary images for a function.
+ *
+ * Example:
+ *
+ * |[
+ * VipsImage *t[5];
+ *
+ * if( vips_image_new_array( out, t, 5 ) ||
+ *   vips_add( a, b, t[0] ) ||
+ *   vips_invert( t[0], t[1] ) ||
+ *   vips_add( t[1], t[0], t[2] ) ||
+ *   vips_costra( t[2], out ) )
+ *   return( -1 );
+ * ]|
+ *
+ * See also: vips_image_new(), vips_object_local().
+ *
+ * Returns: 0 on sucess, or -1 on error
+ */
+int
+vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
+{
+	int i;
+
+	for( i = 0; i < n; i++ ) {
+		if( !(images[i] = vips_image_new( "p" )) ) 
+			return( -1 );
+		vips_object_local( parent, images[i] );
+	}
+
+	return( 0 );
+}
+
 /**
  * vips_image_new_from_file:
  * @filename: file to open
@@ -1797,18 +1795,6 @@ vips_image_ispartial( VipsImage *image )
 		return( 1 );
 	else
 		return( 0 );
-}
-
-int
-vips_image_new_array( VipsImage *parent, VipsImage **images, int n )
-{
-	int i;
-
-	for( i = 0; i < n; i++ )
-		if( !(images[i] = vips_image_new( "p" )) ) 
-			return( -1 );
-
-	return( 0 );
 }
 
 /* Get the image ready for writing. This can get called many
@@ -2427,4 +2413,3 @@ vips_band_format_iscomplex( VipsBandFormat format )
 		return( -1 );
 	}
 }
- 
