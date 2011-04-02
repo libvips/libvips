@@ -34,6 +34,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <vips/vector.h>
+
 #define VIPS_TYPE_ARITHMETIC (vips_arithmetic_get_type())
 #define VIPS_ARITHMETIC( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
@@ -56,18 +58,34 @@ typedef struct _VipsArithmetic {
 	 */
 	VipsImage *output;
 
-	/* For each input format, what output format. Used for arithmetic
-	 * too, since we cast inputs to match.
-	 */
-	VipsFormat *cast_table;
 } VipsArithmetic;
 
 typedef struct _VipsArithmeticClass {
 	VipsOperationClass parent_class;
 
+	/* For each input format, what output format. Used for arithmetic
+	 * too, since we cast inputs to match.
+	 */
+	VipsBandFormat *format_table;
+
+	/* A vector program for each input type.
+	 */
+	VipsVector *vectors[VIPS_FORMAT_LAST];
+
+	/* ... and if we've set a program for this format.
+	 */
+	gboolean vector_program[VIPS_FORMAT_LAST];
 } VipsArithmeticClass;
 
 GType vips_arithmetic_get_type( void );
+
+void vips_arithmetic_set_format_table( VipsArithmeticClass *klass, 
+	VipsBandFormat *format_table );
+VipsVector *vips_arithmetic_get_vector( VipsArithmeticClass *klass, 
+	VipsBandFormat fmt );
+void vips_arithmetic_compile( VipsArithmeticClass *klass ); 
+VipsVector *vips_arithmetic_get_program( VipsArithmeticClass *klass, 
+	VipsBandFormat fmt );
 
 #ifdef __cplusplus
 }

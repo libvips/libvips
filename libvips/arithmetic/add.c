@@ -34,7 +34,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips8/intl.h>
+#include <vips/intl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,33 +73,33 @@ typedef VipsBinaryClass VipsAddClass;
 G_DEFINE_TYPE( VipsAdd, vips_add, VIPS_TYPE_BINARY );
 
 #define LOOP( IN, OUT ) { \
-	IN *p1 = (IN *) in[0]; \
-	IN *p2 = (IN *) in[1]; \
+	IN *p1 = (IN *) left; \
+	IN *p2 = (IN *) right; \
 	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = p1[x] + p2[x]; \
 }
 
-static VipsVector *add_vectors[VIPS_FORMAT_LAST] = { NULL };
-
 static void
-add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
+add_buffer( VipsBinary *binary, PEL *out, PEL *left, PEL *right, int width )
 {
+	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( binary );
+	VipsImage *im = binary->left_processed;
+
 	/* Complex just doubles the size.
 	 */
 	const int sz = width * im->Bands * 
-		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
+		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
 
-	if( vips_vector_get_enabled() && 
-		add_vectors[im->BandFmt] ) {
-		VipsVector *vector = add_vectors[im->BandFmt];
+	VipsVector *v;
 
+	if( (v = vips_arithmetic_get_vector( class, im->BandFmt )) ) {
 		VipsExecutor ex;
 
-		vips_executor_set_program( &ex, vector, sz );
-		vips_executor_set_array( &ex, vector->s[0], in[0] );
-		vips_executor_set_array( &ex, vector->s[1], in[1] );
+		vips_executor_set_program( &ex, v, sz );
+		vips_executor_set_array( &ex, v->s[0], left );
+		vips_executor_set_array( &ex, v->s[1], right );
 		vips_executor_set_destination( &ex, out );
 
 		vips_executor_run( &ex );
@@ -151,47 +151,6 @@ add_buffer( PEL **in, PEL *out, int width, IMAGE *im )
 #define D IM_BANDFMT_DOUBLE
 #define DX IM_BANDFMT_DPCOMPLEX
 
-VipsVector *
-im__init_program( VipsVector *vectors[IM_BANDFMT_LAST], 
-	VipsBandFmt format_table[IM_BANDFMT_LAST], VipsBandFmt fmt )
-{
-	int isize = im__sizeof_bandfmt[fmt];
-	int osize = im__sizeof_bandfmt[format_table[fmt]];
-
-	VipsVector *v;
-
-	v = vips_vector_new( "binary arith", osize );
-
-	vips_vector_source_name( v, "s1", isize );
-	vips_vector_source_name( v, "s2", isize );
-	vips_vector_temporary( v, "t1", osize );
-	vips_vector_temporary( v, "t2", osize );
-
-	vectors[fmt] = v;
-
-	return( v );
-}
-
-void
-im__compile_programs( VipsVector *vectors[IM_BANDFMT_LAST] )
-{
-	int fmt;
-
-	for( fmt = 0; fmt < IM_BANDFMT_LAST; fmt++ ) {
-		if( vectors[fmt] &&
-			!vips_vector_compile( vectors[fmt] ) )
-			IM_FREEF( vips_vector_free, vectors[fmt] );
-	}
-
-#ifdef DEBUG
-	printf( "im__compile_programs: " );
-	for( fmt = 0; fmt < IM_BANDFMT_LAST; fmt++ ) 
-		if( vectors[fmt] )
-			printf( "%s ", im_BandFmt2char( fmt ) );
-	printf( "\n" );
-#endif /*DEBUG*/
-}
-
 /* Type promotion for addition. Sign and value preserving. Make sure these
  * match the case statement in add_buffer() above.
  */
@@ -201,32 +160,30 @@ static int bandfmt_add[10] = {
 };
 
 static void
-build_programs( void )
+vips_add_class_init( VipsAddClass *class )
 {
-	static gboolean done = FALSE;
-
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+	VipsBinaryClass *bclass = VIPS_BINARY_CLASS( class );
 	VipsVector *v;
 
-	if( done )
-		return;
-	done = TRUE;
+	vips_arithmetic_set_format_table( aclass, bandfmt_add );
 
-	v = im__init_program( add_vectors, bandfmt_add, IM_BANDFMT_UCHAR );
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_UCHAR );
 	vips_vector_asm2( v, "convubw", "t1", "s1" );
 	vips_vector_asm2( v, "convubw", "t2", "s2" );
 	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
 
-	v = im__init_program( add_vectors, bandfmt_add, IM_BANDFMT_CHAR );
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
 	vips_vector_asm2( v, "convsbw", "t1", "s1" );
 	vips_vector_asm2( v, "convsbw", "t2", "s2" );
 	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
 
-	v = im__init_program( add_vectors, bandfmt_add, IM_BANDFMT_USHORT );
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_USHORT );
 	vips_vector_asm2( v, "convuwl", "t1", "s1" );
 	vips_vector_asm2( v, "convuwl", "t2", "s2" );
 	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
 
-	v = im__init_program( add_vectors, bandfmt_add, IM_BANDFMT_SHORT );
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_SHORT );
 	vips_vector_asm2( v, "convswl", "t1", "s1" );
 	vips_vector_asm2( v, "convswl", "t2", "s2" );
 	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
@@ -237,14 +194,20 @@ build_programs( void )
 
 	   float/double/complex are not handled well
 
-	v = im__init_program( add_vectors, IM_BANDFMT_UINT );
+	v = vips_arithmetic_get_vector( aclass, VIPS_FORMAT_UINT );
 	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
 
-	v = im__init_program( add_vectors, IM_BANDFMT_INT );
+	v = vips_arithmetic_get_vector( aclass, VIPS_FORMAT_INT );
 	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
 
 	 */
 
-	im__compile_programs( add_vectors );
+	vips_arithmetic_compile( aclass );
+
+	bclass->process_line = add_buffer;
 }
 
+static void
+vips_add_init( VipsAdd *add )
+{
+}

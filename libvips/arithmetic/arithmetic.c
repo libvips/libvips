@@ -43,7 +43,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips8/intl.h>
+#include <vips/intl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,8 +69,6 @@ G_DEFINE_ABSTRACT_TYPE( VipsArithmetic, vips_arithmetic, VIPS_TYPE_OPERATION );
 static int
 vips_arithmetic_build( VipsObject *object )
 {
-	VipsArithmetic *arithmetic = VIPS_ARITHMETIC (object);
-
 	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->build( object ) )
 		return( -1 );
 
@@ -110,6 +108,85 @@ vips_arithmetic_init( VipsArithmetic *arithmetic )
 {
 }
 
+void 
+vips_arithmetic_set_format_table( VipsArithmeticClass *class, 
+	VipsBandFormat *format_table )
+{
+	int i;
+
+	g_assert( !class->format_table );
+
+	class->format_table = format_table;
+
+	for( i = 0; i < VIPS_FORMAT_LAST; i++ ) {
+		int isize = vips_format_sizeof( i );
+		int osize = vips_format_sizeof( (int) format_table[i] );
+
+		VipsVector *v;
+
+		v = vips_vector_new( "arithmetic", osize );
+
+		vips_vector_source_name( v, "s1", isize );
+		vips_vector_source_name( v, "s2", isize );
+		vips_vector_temporary( v, "t1", osize );
+		vips_vector_temporary( v, "t2", osize );
+
+		class->vectors[i] = v;
+	}
+}
+
+/* Get the stub for this program ... use _get_vector() to get the compiled
+ * code.
+ */
+VipsVector *
+vips_arithmetic_get_program( VipsArithmeticClass *class, VipsBandFormat fmt )
+{
+	g_assert( (int) fmt >= 0 && (int) fmt < VIPS_FORMAT_LAST );
+	g_assert( !class->vector_program[fmt] );
+
+	class->vector_program[fmt] = TRUE;
+
+	return( class->vectors[fmt] );
+}
+
+/* Get the compiled code for this type, if available.
+ */
+VipsVector *
+vips_arithmetic_get_vector( VipsArithmeticClass *class, VipsBandFormat fmt )
+{
+	g_assert( fmt >= 0 && fmt < VIPS_FORMAT_LAST );
+
+	if( !vips_vector_get_enabled() ||
+		!class->vector_program[fmt] )
+		return( NULL );
+
+	return( class->vectors[fmt] );
+}
+
+void
+vips_arithmetic_compile( VipsArithmeticClass *class ) 
+{
+	int i;
+
+	g_assert( class->format_table );
+
+	for( i = 0; i < VIPS_FORMAT_LAST; i++ ) 
+		if( class->vector_program[i] &&
+			!vips_vector_compile( class->vectors[i] ) )
+			/* If compilation fails, turn off the vector for this
+			 * type.
+			 */
+			class->vector_program[i] = FALSE;
+
+#ifdef DEBUG
+	printf( "vips_arithmetic_compile: " );
+	for( i = 0; i < IM_BANDFMT_LAST; i++ ) 
+		if( class->vector_program[i] )
+			printf( "%s ", VIPS_ENUM_NICK( VIPS_TYPE_FORMAT, i ) );
+	printf( "\n" );
+#endif /*DEBUG*/
+}
+
 /* Called from iofuncs to init all operations in this dir. Use a plugin system
  * instead?
  */
@@ -120,3 +197,4 @@ vips_arithmetic_operation_init( void )
 
 	vips_add_get_type();
 }
+

@@ -34,7 +34,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips8/intl.h>
+#include <vips/intl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,7 +75,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsBinary, vips_binary, VIPS_TYPE_ARITHMETIC );
 /* For two integer types, the "largest", ie. one which can represent the
  * full range of both.
  */
-static VipsFormat format_largest[6][6] = {
+static VipsBandFormat format_largest[6][6] = {
         /* UC  C   US  S   UI  I */
 /* UC */ { UC, S,  US, S,  UI, I },
 /* C */  { S,  C,  I,  S,  I,  I },
@@ -87,11 +87,11 @@ static VipsFormat format_largest[6][6] = {
 
 /* For two formats, find one which can represent the full range of both.
  */
-static VipsFormat
-vips_format_common( VipsFormat a, VipsFormat b )
+static VipsBandFormat
+vips_format_common( VipsBandFormat a, VipsBandFormat b )
 {
-	if( vips_format_iscomplex( a ) || 
-		vips_format_iscomplex( b ) ) {
+	if( vips_band_format_iscomplex( a ) || 
+		vips_band_format_iscomplex( b ) ) {
 		if( a == VIPS_FORMAT_DPCOMPLEX || 
 			b == VIPS_FORMAT_DPCOMPLEX )
 			return( VIPS_FORMAT_DPCOMPLEX );
@@ -99,8 +99,8 @@ vips_format_common( VipsFormat a, VipsFormat b )
 			return( VIPS_FORMAT_COMPLEX );
 
 	}
-	else if( vips_format_isfloat( a ) || 
-		vips_format_isfloat( b ) ) {
+	else if( vips_band_format_isfloat( a ) || 
+		vips_band_format_isfloat( b ) ) {
 		if( a == VIPS_FORMAT_DOUBLE || 
 			b == VIPS_FORMAT_DOUBLE )
 			return( VIPS_FORMAT_DOUBLE );
@@ -115,13 +115,13 @@ int
 vips__formatalike_vec( VipsImage **in, VipsImage **out, int n )
 {
 	int i;
-	VipsFormat format;
+	VipsBandFormat format;
 
 	g_assert( n >= 1 );
 
 	format = in[0]->BandFmt;
 	for( i = 1; i < n; i++ )
-		fmt = vips_format_common( format, in[i]->BandFmt );
+		format = vips_format_common( format, in[i]->BandFmt );
 
 	for( i = 0; i < n; i++ )
 		if( im_clip2fmt( in[i], out[i], format ) )
@@ -219,6 +219,7 @@ vips_binary_process_region( VipsRegion *or, void *seq, void *a, void *b )
 {
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsBinary *binary = VIPS_BINARY( b ); 
+	VipsBinaryClass *class = VIPS_BINARY_GET_CLASS( binary ); 
 
 	PEL *p[MAX_INPUT_IMAGES], *q;
 	int i, y;
@@ -237,7 +238,7 @@ vips_binary_process_region( VipsRegion *or, void *seq, void *a, void *b )
 	for( y = 0; y < or->valid.height; y++ ) {
 		/* Bizarre double-cast stops a bogus gcc 4.1 compiler warning.
 		 */
-		binary->process_line( binary, q, p[0], p[1], or->valid.width );
+		class->process_line( binary, q, p[0], p[1], or->valid.width );
 
 		for( i = 0; ir[i]; i++ )
 			p[i] += VIPS_REGION_LSKIP( ir[i] );
@@ -253,6 +254,7 @@ vips_binary_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	const char *domain = class->description;
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_GET_CLASS( arithmetic ); 
 	VipsBinary *binary = VIPS_BINARY( object );
 
 	VipsImage *t[5];
@@ -284,15 +286,15 @@ vips_binary_build( VipsObject *object )
 	/* Hint demand style. Being a buffer processor, we are happiest with
 	 * thin strips.
 	 */
-        if( vips_demand_hint_array( binary->output, 
+        if( vips_demand_hint_array( arithmetic->output, 
 		VIPS_DEMAND_STYLE_THINSTRIP, t + 2 ) ||
-		vips_image_copy_fields_array( binary->output, t + 2 ) )
+		vips_image_copy_fields_array( arithmetic->output, t + 2 ) )
 		return( -1 );
 
-	binary->output->Bands = t[2]->Bands;
-	binary->output->BandFmt = arithmetic->cast_table[t[2]->BandFmt];
+	arithmetic->output->Bands = t[2]->Bands;
+	arithmetic->output->BandFmt = aclass->format_table[t[2]->BandFmt];
 
-	if( vips_image_generate( binary->output,
+	if( vips_image_generate( arithmetic->output,
 		vips_start_many, vips_binary_process_region, 
 			vips_stop_many, 
 		t + 2, binary ) )
