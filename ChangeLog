@@ -45,6 +45,7 @@
 - all of iofuncs moved to vips_ namespace
 - lots of old iofuncs API moved to deprecated
 - added VipsOperation, an abstract base class for all vips operations
+- added VipsAdd, the first operation object
 
 30/11/10 started 7.24.0
 - bump for new stable

@@ -252,7 +252,7 @@ static int
 vips_binary_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	const char *domain = class->description;
+	const char *domain = class->nickname;
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_GET_CLASS( arithmetic ); 
 	VipsBinary *binary = VIPS_BINARY( object );
@@ -318,16 +318,6 @@ vips_binary_class_init( VipsBinaryClass *class )
 
 	/* Create properties.
 	 */
-	pspec = g_param_spec_object( "left-image", 
-		"Left", "Left-hand image argument",
-		VIPS_TYPE_IMAGE,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, 
-		PROP_LEFT, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsBinary, left ) );
-
 	pspec = g_param_spec_object( "right-image", 
 		"Right", "Right-hand image argument",
 		VIPS_TYPE_IMAGE,
@@ -337,6 +327,16 @@ vips_binary_class_init( VipsBinaryClass *class )
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBinary, right ) );
+
+	pspec = g_param_spec_object( "left-image", 
+		"Left", "Left-hand image argument",
+		VIPS_TYPE_IMAGE,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, 
+		PROP_LEFT, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsBinary, left ) );
 }
 
 static void

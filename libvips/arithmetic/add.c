@@ -1,4 +1,41 @@
 /* add operation
+ *
+ * Copyright: 1990, N. Dessipris.
+ *
+ * Author: Nicos Dessipris
+ * Written on: 02/05/1990
+ * Modified on: 
+ * 29/4/93 J.Cupitt
+ *	- now works for partial images
+ * 1/7/93 JC
+ * 	- adapted for partial v2
+ * 9/5/95 JC
+ *	- simplified: now just handles 10 cases (instead of 50), using
+ *	  im_clip2*() to help
+ *	- now uses im_wrapmany() rather than im_generate()
+ * 31/5/96 JC
+ *	- SWAP() removed, *p++ removed
+ * 27/9/04
+ *	- im__cast_and_call() now matches bands as well
+ *	- ... so 1 band + 4 band image -> 4 band image
+ * 8/12/06
+ * 	- add liboil support
+ * 18/8/08
+ * 	- revise upcasting system
+ * 	- im__cast_and_call() no longer sets bbits for you
+ * 	- add gtkdoc comments
+ * 	- remove separate complex case, just double size
+ * 11/9/09
+ * 	- im__cast_and_call() becomes im__arith_binary()
+ * 	- more of operation scaffold moved inside
+ * 25/7/10
+ * 	- remove oil support again ... we'll try Orc instead
+ * 29/10/10
+ * 	- move to VipsVector for Orc support
+ * 28/2/11
+ * 	- argh vector int/uint was broken
+ * 4/4/11
+ * 	- rewrite as a class
  */
 
 /*
@@ -49,23 +86,87 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* VipsAdd class
+/**
+ * VipsAdd:
+ * @in1: input image 
+ * @in2: input image 
+ * @out: output image
+ *
+ * This operation calculates @in1 + @in2 and writes the result to @out. 
+ * The images must be the same size. They may have any format. 
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
+ * following table is used to determine the output type:
+ *
+ * <table>
+ *   <title>im_add() type promotion</title>
+ *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+ *     <thead>
+ *       <row>
+ *         <entry>input type</entry>
+ *         <entry>output type</entry>
+ *       </row>
+ *     </thead>
+ *     <tbody>
+ *       <row>
+ *         <entry>uchar</entry>
+ *         <entry>ushort</entry>
+ *       </row>
+ *       <row>
+ *         <entry>char</entry>
+ *         <entry>short</entry>
+ *       </row>
+ *       <row>
+ *         <entry>ushort</entry>
+ *         <entry>uint</entry>
+ *       </row>
+ *       <row>
+ *         <entry>short</entry>
+ *         <entry>int</entry>
+ *       </row>
+ *       <row>
+ *         <entry>uint</entry>
+ *         <entry>uint</entry>
+ *       </row>
+ *       <row>
+ *         <entry>int</entry>
+ *         <entry>int</entry>
+ *       </row>
+ *       <row>
+ *         <entry>float</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double</entry>
+ *         <entry>double</entry>
+ *       </row>
+ *       <row>
+ *         <entry>complex</entry>
+ *         <entry>complex</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double complex</entry>
+ *         <entry>double complex</entry>
+ *       </row>
+ *     </tbody>
+ *   </tgroup>
+ * </table>
+ *
+ * In other words, the output type is just large enough to hold the whole
+ * range of possible values.
+ *
+ * Operations on integer images are performed using the processor's vector unit,
+ * if possible. Disable this with --vips-novector or IM_NOVECTOR.
+ *
+ * See also: im_subtract(), im_lintra().
  */
-
-#define VIPS_TYPE_ADD (vips_add_get_type())
-#define VIPS_ADD( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_ADD, VipsAdd ))
-#define VIPS_ADD_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_ADD, VipsAddClass))
-#define VIPS_IS_ADD( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_ADD ))
-#define VIPS_IS_ADD_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_ADD ))
-#define VIPS_ADD_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_ADD, VipsAddClass ))
 
 typedef VipsBinary VipsAdd;
 typedef VipsBinaryClass VipsAddClass;
@@ -162,9 +263,13 @@ static int bandfmt_add[10] = {
 static void
 vips_add_class_init( VipsAddClass *class )
 {
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
 	VipsBinaryClass *bclass = VIPS_BINARY_CLASS( class );
 	VipsVector *v;
+
+	object_class->nickname = "add";
+	object_class->description = _( "add two images" );
 
 	vips_arithmetic_set_format_table( aclass, bandfmt_add );
 

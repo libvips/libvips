@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libarithmetic.la
 libarithmetic_la_SOURCES = \
 	arith_dispatch.c \
 	im_abs.c \
-	im_add.c \
 	im_avg.c \
 	im_bandmean.c \
 	im_cross_phase.c \

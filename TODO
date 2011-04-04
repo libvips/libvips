@@ -1,8 +1,4 @@
 
-- we have VipsOperation ... now try VipsArithmetic and VipsBinary, then we can
-  do VipsAdd
-
-
 
 - add MATLAB write
 

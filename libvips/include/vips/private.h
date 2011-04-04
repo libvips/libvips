@@ -162,6 +162,10 @@ int vips_region_fill( struct _VipsRegion *reg,
  */
 int vips__image_write_prepare( struct _VipsImage *image );
 
+/* Start up various packages.
+ */
+void vips_arithmetic_operation_init( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

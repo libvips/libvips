@@ -46,6 +46,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
+#include <vips/vector.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -505,3 +506,256 @@ im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out,
 		(im_wrapmany_fn) wraptwo_gen, bun, NULL ) );
 }
 
+/* Save a bit of typing.
+ */
+#define UC IM_BANDFMT_UCHAR
+#define C IM_BANDFMT_CHAR
+#define US IM_BANDFMT_USHORT
+#define S IM_BANDFMT_SHORT
+#define UI IM_BANDFMT_UINT
+#define I IM_BANDFMT_INT
+#define F IM_BANDFMT_FLOAT
+#define X IM_BANDFMT_COMPLEX
+#define D IM_BANDFMT_DOUBLE
+#define DX IM_BANDFMT_DPCOMPLEX
+
+/* For two integer types, the "largest", ie. one which can represent the
+ * full range of both.
+ */
+static int bandfmt_largest[6][6] = {
+        /* UC  C   US  S   UI  I */
+/* UC */ { UC, S,  US, S,  UI, I },
+/* C */  { S,  C,  I,  S,  I,  I },
+/* US */ { US, I,  US, I,  UI, I },
+/* S */  { S,  S,  I,  S,  I,  I },
+/* UI */ { UI, I,  UI, I,  UI, I },
+/* I */  { I,  I,  I,  I,  I,  I }
+};
+
+/* For two formats, find one which can represent the full range of both.
+ */
+static VipsBandFmt
+im__format_common( VipsBandFmt in1, VipsBandFmt in2 )
+{
+	if( vips_bandfmt_iscomplex( in1 ) || 
+		vips_bandfmt_iscomplex( in2 ) ) {
+		/* What kind of complex?
+		 */
+		if( in1 == IM_BANDFMT_DPCOMPLEX || in2 == IM_BANDFMT_DPCOMPLEX )
+			/* Output will be DPCOMPLEX. 
+			 */
+			return( IM_BANDFMT_DPCOMPLEX );
+		else
+			return( IM_BANDFMT_COMPLEX );
+
+	}
+	else if( vips_bandfmt_isfloat( in1 ) || 
+		vips_bandfmt_isfloat( in2 ) ) {
+		/* What kind of float?
+		 */
+		if( in1 == IM_BANDFMT_DOUBLE || in2 == IM_BANDFMT_DOUBLE )
+			return( IM_BANDFMT_DOUBLE );
+		else
+			return( IM_BANDFMT_FLOAT );
+	}
+	else 
+		/* Must be int+int -> int.
+		 */
+		return( bandfmt_largest[in1][in2] );
+}
+
+int
+im__formatalike_vec( IMAGE **in, IMAGE **out, int n )
+{
+	int i;
+	VipsBandFmt fmt;
+
+	g_assert( n >= 1 );
+
+	fmt = in[0]->BandFmt;
+	for( i = 1; i < n; i++ )
+		fmt = im__format_common( fmt, in[i]->BandFmt );
+
+	for( i = 0; i < n; i++ )
+		if( im_clip2fmt( in[i], out[i], fmt ) )
+			return( -1 );
+
+	return( 0 );
+}
+
+int
+im__formatalike( IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
+{
+	IMAGE *in[2];
+	IMAGE *out[2];
+
+	in[0] = in1;
+	in[1] = in2;
+	out[0] = out1;
+	out[1] = out2;
+
+	return( im__formatalike_vec( in, out, 2 ) );
+}
+
+/* Make an n-band image. Input 1 or n bands.
+ */
+int
+im__bandup( const char *domain, IMAGE *in, IMAGE *out, int n )
+{
+	IMAGE *bands[256];
+	int i;
+
+	if( in->Bands == n ) 
+		return( im_copy( in, out ) );
+	if( in->Bands != 1 ) {
+		im_error( domain, _( "not one band or %d bands" ), n );
+		return( -1 );
+	}
+	if( n > 256 || n < 1 ) {
+		im_error( domain, "%s", _( "bad bands" ) );
+		return( -1 );
+	}
+
+	for( i = 0; i < n; i++ )
+		bands[i] = in;
+
+	return( im_gbandjoin( bands, out, n ) );
+}
+
+int
+im__bandalike_vec( const char *domain, IMAGE **in, IMAGE **out, int n )
+{
+	int i;
+	int max_bands;
+
+	g_assert( n >= 1 );
+
+	max_bands = in[0]->Bands;
+	for( i = 1; i < n; i++ )
+		max_bands = IM_MAX( max_bands, in[i]->Bands );
+	for( i = 0; i < n; i++ )
+		if( im__bandup( domain, in[i], out[i], max_bands ) )
+			return( -1 );
+
+	return( 0 );
+}
+
+int
+im__bandalike( const char *domain, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out1, IMAGE *out2 )
+{
+	IMAGE *in[2];
+	IMAGE *out[2];
+
+	in[0] = in1;
+	in[1] = in2;
+	out[0] = out1;
+	out[1] = out2;
+	if( im__bandalike_vec( domain, in, out, 2 ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* The common part of most binary arithmetic, relational and boolean
+ * operators. We:
+ *
+ * - check in and out
+ * - cast in1 and in2 up to a common format
+ * - cast the common format to the output format with the supplied table
+ * - equalise bands 
+ * - run the supplied buffer operation passing one of the up-banded,
+ *   up-casted and up-sized inputs as the first param
+ */
+int
+im__arith_binary( const char *domain, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	int format_table[10], 
+	im_wrapmany_fn fn, void *b )
+{
+	IMAGE *t[5];
+
+	if( im_piocheck( in1, out ) || 
+		im_pincheck( in2 ) ||
+		im_check_bands_1orn( domain, in1, in2 ) ||
+		im_check_size_same( domain, in1, in2 ) ||
+		im_check_uncoded( domain, in1 ) ||
+		im_check_uncoded( domain, in2 ) )
+		return( -1 );
+
+	/* Cast our input images up to a common format and bands.
+	 */
+	if( im_open_local_array( out, t, 4, domain, "p" ) ||
+		im__formatalike( in1, in2, t[0], t[1] ) ||
+		im__bandalike( domain, t[0], t[1], t[2], t[3] ) )
+		return( -1 );
+
+	/* Generate the output.
+	 */
+	if( im_cp_descv( out, t[2], t[3], NULL ) )
+		return( -1 );
+
+	/* What number of bands will we write? Same as up-banded input.
+	 */
+	out->Bands = t[2]->Bands;
+
+	/* What output type will we write? 
+	 */
+	out->BandFmt = format_table[t[2]->BandFmt];
+
+	/* And process! The buffer function gets one of the input images as a
+	 * sample.
+	 */
+	t[4] = NULL;
+	if( im_wrapmany( t + 2, out, fn, t[2], b ) )	
+		return( -1 );
+
+	return( 0 );
+}
+
+VipsVector *
+im__init_program( VipsVector *vectors[IM_BANDFMT_LAST], 
+	VipsBandFmt format_table[IM_BANDFMT_LAST], VipsBandFmt fmt )
+{
+	int isize = im__sizeof_bandfmt[fmt];
+	int osize = im__sizeof_bandfmt[format_table[fmt]];
+
+	VipsVector *v;
+
+	v = vips_vector_new( "binary arith", osize );
+
+	vips_vector_source_name( v, "s1", isize );
+	vips_vector_source_name( v, "s2", isize );
+	vips_vector_temporary( v, "t1", osize );
+	vips_vector_temporary( v, "t2", osize );
+
+	vectors[fmt] = v;
+
+	return( v );
+}
+
+void
+im__compile_programs( VipsVector *vectors[IM_BANDFMT_LAST] )
+{
+	int fmt;
+
+	for( fmt = 0; fmt < IM_BANDFMT_LAST; fmt++ ) {
+		if( vectors[fmt] &&
+			!vips_vector_compile( vectors[fmt] ) )
+			IM_FREEF( vips_vector_free, vectors[fmt] );
+	}
+
+#ifdef DEBUG
+	printf( "im__compile_programs: " );
+	for( fmt = 0; fmt < IM_BANDFMT_LAST; fmt++ ) 
+		if( vectors[fmt] )
+			printf( "%s ", im_BandFmt2char( fmt ) );
+	printf( "\n" );
+#endif /*DEBUG*/
+}
+
+int 
+im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	return( vips_call( "add", in1, in2, out, NULL ) );
+}

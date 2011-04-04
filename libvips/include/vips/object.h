@@ -142,10 +142,10 @@ typedef struct _VipsArgumentInstance {
 	 */
 	gboolean assigned;
 
-	/* If this is an output argument, keep the id of our "destroy" handler
+	/* If this is an output argument, keep the id of our "close" handler
 	 * here.
 	 */
-	gulong destroy_id;	
+	gulong close_id;	
 } VipsArgumentInstance;
 
 /* Need to look up our VipsArgument structs from a pspec. Just hash the

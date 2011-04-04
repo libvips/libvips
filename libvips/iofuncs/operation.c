@@ -28,8 +28,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -42,6 +42,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/debug.h>
 
 #include <gobject/gvaluecollector.h>
 
@@ -90,12 +91,42 @@ vips_operation_print_arg( VipsObject *object, GParamSpec *pspec,
 	return( NULL );
 }
 
+#ifdef VIPS_DEBUG
+static void *
+vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance )
+{
+	VipsArgument *argument = (VipsArgument *) argument_class;
+
+	printf( "   %s: offset = %d ", 
+		argument->pspec->name, argument_class->offset );
+	if( argument_class->flags & VIPS_ARGUMENT_REQUIRED )
+		printf ("required " );
+	if( argument_class->flags & VIPS_ARGUMENT_CONSTRUCT )
+		printf ("construct " );
+	if( argument_class->flags & VIPS_ARGUMENT_SET_ONCE )
+		printf ("set-once " );
+	if( argument_instance->assigned )
+		printf ("assigned " );
+	printf( "\n" );
+
+	return( NULL );
+}
+#endif /*VIPS_DEBUG*/
+
 static void
 vips_operation_print( VipsObject *object, VipsBuf *buf )
 {
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 	VipsOperationPrint print;
+
+#ifdef VIPS_DEBUG
+	printf( "%s args:\n", object_class->nickname );
+	vips_argument_map( VIPS_OBJECT( operation ),
+		(VipsArgumentMapFn) vips_operation_call_argument, NULL, NULL );
+#endif /*VIPS_DEBUG*/
 
 	/* First pass through args: show the required names.
 	 */
@@ -151,30 +182,6 @@ vips_operation_init( VipsOperation *operation )
 	 */
 }
 
-#ifdef DEBUG
-static void *
-vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance )
-{
-	VipsArgument *argument = (VipsArgument *) argument_class;
-
-	printf( "   %s: offset=%d ", 
-		argument->pspec->name, argument_class->offset );
-	if( argument_class->flags & VIPS_ARGUMENT_REQUIRED )
-		printf ("required " );
-	if( argument_class->flags & VIPS_ARGUMENT_CONSTRUCT )
-		printf ("construct " );
-	if( argument_class->flags & VIPS_ARGUMENT_SET_ONCE )
-		printf ("set-once " );
-	if( argument_instance->assigned )
-		printf ("assigned " );
-	printf( "\n" );
-
-	return( NULL );
-}
-#endif /*DEBUG*/
-
 int
 vips_operation_call_valist( VipsOperation *operation, va_list ap )
 {
@@ -221,6 +228,17 @@ vips_operation_call_valist( VipsOperation *operation, va_list ap )
 					return( -1 );
 				}
 
+#ifdef VIPS_DEBUG
+{
+				char *str;
+
+				str = g_strdup_value_contents( &value );
+				VIPS_DEBUG_MSG( "\t%s = %s\n", 
+					pspec->name, str );
+				g_free( str );
+}
+#endif /*VIPS_DEBUG*/
+
 				g_object_set_property( G_OBJECT( operation ),
 					pspec->name, &value );
 				g_value_unset( &value );
@@ -247,7 +265,7 @@ vips_operation_new( const char *name )
 	if( !(type = vips_type_find( "VipsOperation", name )) )
 		return( NULL );
 
-	return( VIPS_OPERATION( vips_object_new( type, NULL, NULL, NULL ) ) );
+	return( VIPS_OPERATION( g_object_new( type, NULL ) ) );
 }
 
 int
@@ -257,12 +275,15 @@ vips_call( const char *operation_name, ... )
 	VipsOperation *operation;
 	int result;
 
-#ifdef DEBUG
-	printf( "vips_call: starting for %s ...\n", operation_name );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "vips_call: starting for %s ...\n", operation_name );
 
 	if( !(operation = vips_operation_new( operation_name ) ) )
 		return( -1 );
+
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "where:\n" );
+	vips_object_print( VIPS_OBJECT( operation ) );
+#endif /*VIPS_DEBUG*/
 
 	va_start( ap, operation_name );
 	result = vips_operation_call_valist( operation, ap );

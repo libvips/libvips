@@ -195,10 +195,10 @@ vips_object_rewind( VipsObject *object )
 static void
 vips_argument_instance_free( VipsArgumentInstance *argument_instance )
 {
-	if( argument_instance->destroy_id ) {
+	if( argument_instance->close_id ) {
 		g_signal_handler_disconnect( argument_instance->object,
-			argument_instance->destroy_id );
-		argument_instance->destroy_id = 0;
+			argument_instance->close_id );
+		argument_instance->close_id = 0;
 	}
 	g_free( argument_instance );
 }
@@ -281,7 +281,7 @@ vips_argument_init2( VipsObject *object, GParamSpec *pspec,
 	argument->pspec = ((VipsArgument *) argument_class)->pspec;
 	argument_instance->object = object;
 	argument_instance->assigned = FALSE;
-	argument_instance->destroy_id = 0;
+	argument_instance->close_id = 0;
 
 	vips_argument_table_replace( object->argument_table, argument );
 
@@ -360,15 +360,15 @@ vips_object_clear_object( VipsObject *object, GParamSpec *pspec )
 #endif /*DEBUG_REF*/
 
 			/* The object reffed us. Stop listening link to the
-			 * object's "destroy" signal. We can come here from
-			 * object being destroyed, in which case the handler
+			 * object's "close" signal. We can come here from
+			 * object being closed, in which case the handler
 			 * will already have been disconnected for us.
 			 */
 			if( g_signal_handler_is_connected( object,
-				argument_instance->destroy_id ) )
+				argument_instance->close_id ) )
 				g_signal_handler_disconnect( object,
-					argument_instance->destroy_id );
-			argument_instance->destroy_id = 0;
+					argument_instance->close_id );
+			argument_instance->close_id = 0;
 			*member = NULL;
 
 			g_object_unref( object );
@@ -469,13 +469,13 @@ vips_object_finalize( GObject *gobject )
 }
 
 static void
-vips_object_arg_destroy( GObject *argument,
+vips_object_arg_close( GObject *argument,
 	VipsArgumentInstance *argument_instance )
 {
 	VipsObject *object = argument_instance->object;
 	GParamSpec *pspec = ((VipsArgument *) argument_instance)->pspec;
 
-	/* Argument had reffed us ... now it's being destroyed, so we unref.
+	/* Argument had reffed us ... now it's being closed, so we unref.
 	 */
 	vips_object_clear_object( object, pspec );
 }
@@ -524,9 +524,9 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 			/* The argument reffs us.
 			 */
 			g_object_ref( object );
-			argument_instance->destroy_id =
-				g_signal_connect( *member, "destroy",
-					G_CALLBACK( vips_object_arg_destroy ),
+			argument_instance->close_id =
+				g_signal_connect( *member, "close",
+					G_CALLBACK( vips_object_arg_close ),
 					argument_instance );
 		}
 	}
@@ -964,7 +964,7 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 
 	vips_argument_table_replace( object_class->argument_table,
 		(VipsArgument *) argument_class );
-	object_class->argument_table_traverse = g_slist_append(
+	object_class->argument_table_traverse = g_slist_prepend(
 		object_class->argument_table_traverse, argument_class );
 }
 
@@ -1361,7 +1361,7 @@ vips_type_find( const char *basename, const char *nickname )
 {
 	VipsObjectClass *class;
 
-	if( !(class = vips_class_find( "VipsInterpolate", nickname )) )
+	if( !(class = vips_class_find( "VipsObject", nickname )) )
 		return( 0 );
 
 	/* FIXME ... we've not supposed to use G_TYPE_FROM_CLASS(), I think. 
