@@ -148,8 +148,8 @@
  */
 
 /* 
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1283,7 +1283,7 @@ read_stripwise( ReadTiff *rtiff, IMAGE *out )
 	number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
 
 #ifdef DEBUG
-	printf( "read_stripwise: rows_per_strip = %ud\n", rows_per_strip );
+	printf( "read_stripwise: rows_per_strip = %u\n", rows_per_strip );
 	printf( "read_stripwise: scanline_size = %d\n", scanline_size );
 	printf( "read_stripwise: strip_size = %d\n", strip_size );
 	printf( "read_stripwise: number_of_strips = %d\n", number_of_strips );
