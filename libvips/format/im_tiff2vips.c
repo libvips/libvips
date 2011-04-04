@@ -117,6 +117,8 @@
  * 	- oops, we can just memcpy() now heh
  * 	- avoid unpacking via buffers if we can: either read a tile directly
  * 	  into the output region, or writeline directly from the tiff buffer
+ * 4/4/11
+ * 	- argh int/uint mixup for rows_per_strip, thanks Bubba
  */
 
 /*
@@ -145,9 +147,9 @@
 
  */
 
-/* Turn on debugging output.
-#define DEBUG
+/* 
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -213,7 +215,7 @@ typedef struct {
 
 	/* Geometry.
 	 */
-	int twidth, theight;		/* Tile size */
+	uint32 twidth, theight;		/* Tile size */
 
 	/* Only need one of these, since we mutex around TIFF*().
 	 */
@@ -292,10 +294,10 @@ tfequals( TIFF *tif, ttag_t tag, uint16 val )
 	return( 1 );
 }
 
-/* Get a uint32 field.
+/* Get a uint32 field. 
  */
 static int
-tfget32( TIFF *tif, ttag_t tag, int *out )
+tfget32( TIFF *tif, ttag_t tag, uint32 *out )
 {
 	uint32 fld;
 
@@ -305,9 +307,8 @@ tfget32( TIFF *tif, ttag_t tag, int *out )
 		return( 0 );
 	}
 
-	/* All ok.
-	 */
 	*out = fld;
+
 	return( 1 );
 }
 
@@ -859,6 +860,7 @@ parse_header( ReadTiff *rtiff, IMAGE *out )
 {
 	int pm, bps, format;
 	uint32 data_length;
+	uint32 width, height;
 	void *data;
 
 	/* Ban separate planes, too annoying.
@@ -870,10 +872,14 @@ parse_header( ReadTiff *rtiff, IMAGE *out )
 
 	/* Always need dimensions.
 	 */
-	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &out->Xsize ) ||
-		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &out->Ysize ) ||
+	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &width ) ||
+		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &height ) ||
 		parse_resolution( rtiff->tiff, out ) )
 		return( -1 );
+	if( width > INT_MAX || height > INT_MAX )
+		return( -1 );
+	out->Xsize = width;
+	out->Ysize = height;
 
 	/* Try to find out which type of TIFF image it is.
 	 */
@@ -1254,7 +1260,7 @@ read_tilewise( ReadTiff *rtiff, IMAGE *out )
 static int
 read_stripwise( ReadTiff *rtiff, IMAGE *out )
 {
-	int rows_per_strip;
+	uint32 rows_per_strip;
 	tsize_t scanline_size;
 	tsize_t strip_size;
 	int number_of_strips;
@@ -1277,7 +1283,7 @@ read_stripwise( ReadTiff *rtiff, IMAGE *out )
 	number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
 
 #ifdef DEBUG
-	printf( "read_stripwise: rows_per_strip = %d\n", rows_per_strip );
+	printf( "read_stripwise: rows_per_strip = %ud\n", rows_per_strip );
 	printf( "read_stripwise: scanline_size = %d\n", scanline_size );
 	printf( "read_stripwise: strip_size = %d\n", strip_size );
 	printf( "read_stripwise: number_of_strips = %d\n", number_of_strips );
