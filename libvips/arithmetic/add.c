@@ -318,8 +318,8 @@ vips_add( VipsImage *in1, VipsImage *in2, VipsImage *out, ... )
 	int result;
 	va_list ap;
 
-	va_start( ap, dummy );
-	result = vips_call_valist( "add", ap );
+	va_start( ap, out );
+	result = vips_call_split( "add", ap, in1, in2, out );
 	va_end( ap );
 
 	return( result );

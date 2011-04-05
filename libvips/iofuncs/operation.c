@@ -182,87 +182,87 @@ vips_operation_init( VipsOperation *operation )
 	 */
 }
 
-int
-vips_operation_set_required_valist( VipsOperation *operation, va_list ap )
+typedef enum {
+	OPTIONAL = 0x1,
+	REQUIRED = 0x2
+} ArgFlags;
+
+static int
+vips_operation_set_valist (VipsOperation * operation,
+				    ArgFlags flags, va_list ap)
 {
-	VipsObject *object = VIPS_OBJECT( operation );
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	GSList *p;
-	char *first_property_name;
+  VipsObject *object = VIPS_OBJECT (operation);
+  VipsObjectClass *class = VIPS_OBJECT_GET_CLASS (object);
+  GSList *p;
 
-	/* Extract required arguments. Can't use vips_argument_map here 
-	 * :-( because passing va_list by reference is not portable. So we
-	 * have to copy-paste the vips_argument_map() loop. Keep in sync with
-	 * that.
-	 */
+  if (flags & REQUIRED)
+    {
+      /* Extract required arguments. Can't use vips_argument_map here 
+       * :-( because passing va_list by reference is not portable. 
+       * So we have to copy-paste the vips_argument_map() loop. 
+       * Keep in sync with that.
+       */
 
-	for( p = class->argument_table_traverse; p; p = p->next ) {
-		VipsArgumentClass *argument_class =
-			(VipsArgumentClass *) p->data;
-		VipsArgument *argument = (VipsArgument *) argument_class;
-		GParamSpec *pspec = argument->pspec;
-		VipsArgumentInstance *argument_instance =
-			vips__argument_get_instance( argument_class, object );
+      for (p = class->argument_table_traverse; p; p = p->next)
+	{
+	  VipsArgumentClass *argument_class = (VipsArgumentClass *) p->data;
+	  VipsArgument *argument = (VipsArgument *) argument_class;
+	  GParamSpec *pspec = argument->pspec;
+	  VipsArgumentInstance *argument_instance =
+	    vips__argument_get_instance (argument_class, object);
 
-		/* We have many props on the arg table ... filter out the ones
-		 * for this class.
-		 */
-		if( g_object_class_find_property( G_OBJECT_CLASS( class ), 
-			pspec->name ) == pspec ) {
+	  /* We have many props on the arg table ... filter out the ones
+	   * for this class.
+	   */
+	  if (g_object_class_find_property (G_OBJECT_CLASS (class),
+					    pspec->name) == pspec)
+	    {
 
-			/* End of stuff copy-pasted from vips_argument_map().
-			 */
-			if( argument_class->flags & VIPS_ARGUMENT_REQUIRED &&
-				!argument_instance->assigned ) {
-				GValue value = { 0 };
-				char *msg = NULL;
+	      /* End of stuff copy-pasted from vips_argument_map().
+	       */
+	      if (argument_class->flags & VIPS_ARGUMENT_REQUIRED &&
+		  !argument_instance->assigned)
+		{
+		  GValue value = { 0 };
+		  char *msg = NULL;
 
-				g_value_init( &value, 
-					G_PARAM_SPEC_VALUE_TYPE( pspec ) );
-				G_VALUE_COLLECT( &value, ap, 0, &msg );
-				if( msg ) {
-					vips_error( class->description,
-						"%s", _( msg ) ); 
-					g_value_unset( &value );
-					g_free( msg );
-					return( -1 );
-				}
+		  g_value_init (&value, G_PARAM_SPEC_VALUE_TYPE (pspec));
+		  G_VALUE_COLLECT (&value, ap, 0, &msg);
+		  if (msg)
+		    {
+		      vips_error (class->description, "%s", _(msg));
+		      g_value_unset (&value);
+		      g_free (msg);
+		      return (-1);
+		    }
 
 #ifdef VIPS_DEBUG
-{
-				char *str;
+		  {
+		    char *str;
 
-				str = g_strdup_value_contents( &value );
-				VIPS_DEBUG_MSG( "\t%s = %s\n", 
-					pspec->name, str );
-				g_free( str );
-}
-#endif /*VIPS_DEBUG*/
+		    str = g_strdup_value_contents (&value);
+		    VIPS_DEBUG_MSG ("\t%s = %s\n", pspec->name, str);
+		    g_free (str);
+		  }
+#endif /*VIPS_DEBUG */
 
-				g_object_set_property( G_OBJECT( operation ),
-					pspec->name, &value );
-				g_value_unset( &value );
-			}
+		  g_object_set_property (G_OBJECT (operation),
+					 pspec->name, &value);
+		  g_value_unset (&value);
 		}
+	    }
 	}
+    }
 
-	return( 0 );
-}
+  if (flags & OPTIONAL)
+    {
+      char *first_property_name;
 
-int
-vips_operation_set_optional_valist( VipsOperation *operation, va_list ap )
-{
-	VipsObject *object = VIPS_OBJECT( operation );
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	GSList *p;
-	char *first_property_name;
+      first_property_name = va_arg (ap, char *);
+      g_object_set_valist (G_OBJECT (operation), first_property_name, ap);
+    }
 
-	/* Now set optional args. 
-	 */
-	first_property_name = va_arg( ap, char * );
-	g_object_set_valist( G_OBJECT( operation ), first_property_name, ap );
-
-	return( 0 );
+  return (0);
 }
 
 VipsOperation *
@@ -277,7 +277,40 @@ vips_operation_new( const char *name )
 }
 
 int
-vips_call_valist( const char *operation_name, va_list ap ) 
+vips_call( const char *operation_name, ... )
+{
+	VipsOperation *operation;
+	int result;
+	va_list ap;
+
+
+	VIPS_DEBUG_MSG( "vips_call: starting for %s ...\n", operation_name );
+
+	if( !(operation = vips_operation_new( operation_name ) ) )
+		return( -1 );
+
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "where:\n" );
+	vips_object_print( VIPS_OBJECT( operation ) );
+#endif /*VIPS_DEBUG*/
+
+	va_start( ap, operation_name );
+	result = vips_operation_set_valist( operation, 
+			REQUIRED | OPTIONAL, ap ) ||
+		vips_object_build( VIPS_OBJECT( operation ) );
+	va_end( ap );
+
+	/* The operation we have built should now have been reffed by one of 
+	 * its arguments or have finished its work. Either way, we can unref.
+	 */
+	g_object_unref( operation );
+
+	return( result );
+}
+
+static int
+vips_call_split_valist( const char *operation_name, 
+	va_list required, va_list optional ) 
 {
 	VipsOperation *operation;
 	int result;
@@ -292,8 +325,8 @@ vips_call_valist( const char *operation_name, va_list ap )
 	vips_object_print( VIPS_OBJECT( operation ) );
 #endif /*VIPS_DEBUG*/
 
-	result = vips_operation_set_required_valist( operation, required ) ||
-		vips_operation_set_optional_valist( operation, optional ) ||
+	result = vips_operation_set_valist( operation, REQUIRED, required ) ||
+		vips_operation_set_valist( operation, OPTIONAL, optional ) ||
 		vips_object_build( VIPS_OBJECT( operation ) );
 
 	/* The operation we have built should now have been reffed by one of 
@@ -305,13 +338,15 @@ vips_call_valist( const char *operation_name, va_list ap )
 }
 
 int
-vips_call( const char *operation_name, ... ) 
+vips_call_split( const char *operation_name, va_list optional, ... ) 
 {
-	va_list ap;
+	int result;
 
-	va_start( ap, operation_name );
-	result = vips_call_valist( operation_name, ap );
-	va_end( ap );
+	va_list required;
+
+	va_start( required, optional );
+	result = vips_call_split_valist( operation_name, required, optional );
+	va_end( required );
 
 	return( result );
 }
