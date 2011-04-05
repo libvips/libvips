@@ -183,14 +183,14 @@ vips_operation_init( VipsOperation *operation )
 }
 
 int
-vips_operation_call_valist( VipsOperation *operation, va_list ap )
+vips_operation_set_required_valist( VipsOperation *operation, va_list ap )
 {
 	VipsObject *object = VIPS_OBJECT( operation );
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	GSList *p;
 	char *first_property_name;
 
-	/* First extract required arguments. Can't use vips_argument_map here 
+	/* Extract required arguments. Can't use vips_argument_map here 
 	 * :-( because passing va_list by reference is not portable. So we
 	 * have to copy-paste the vips_argument_map() loop. Keep in sync with
 	 * that.
@@ -246,13 +246,21 @@ vips_operation_call_valist( VipsOperation *operation, va_list ap )
 		}
 	}
 
+	return( 0 );
+}
+
+int
+vips_operation_set_optional_valist( VipsOperation *operation, va_list ap )
+{
+	VipsObject *object = VIPS_OBJECT( operation );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	GSList *p;
+	char *first_property_name;
+
 	/* Now set optional args. 
 	 */
 	first_property_name = va_arg( ap, char * );
 	g_object_set_valist( G_OBJECT( operation ), first_property_name, ap );
-
-	if( vips_object_build( VIPS_OBJECT( operation ) ) )
-		return( -1 );
 
 	return( 0 );
 }
@@ -269,9 +277,8 @@ vips_operation_new( const char *name )
 }
 
 int
-vips_call( const char *operation_name, ... ) 
+vips_call_valist( const char *operation_name, va_list ap ) 
 {
-	va_list ap;
 	VipsOperation *operation;
 	int result;
 
@@ -285,14 +292,26 @@ vips_call( const char *operation_name, ... )
 	vips_object_print( VIPS_OBJECT( operation ) );
 #endif /*VIPS_DEBUG*/
 
-	va_start( ap, operation_name );
-	result = vips_operation_call_valist( operation, ap );
-	va_end( ap );
+	result = vips_operation_set_required_valist( operation, required ) ||
+		vips_operation_set_optional_valist( operation, optional ) ||
+		vips_object_build( VIPS_OBJECT( operation ) );
 
 	/* The operation we have built should now have been reffed by one of 
 	 * its arguments or have finished its work. Either way, we can unref.
 	 */
 	g_object_unref( operation );
 
-	return( -1 );
+	return( result );
+}
+
+int
+vips_call( const char *operation_name, ... ) 
+{
+	va_list ap;
+
+	va_start( ap, operation_name );
+	result = vips_call_valist( operation_name, ap );
+	va_end( ap );
+
+	return( result );
 }

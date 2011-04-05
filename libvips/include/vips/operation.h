@@ -65,7 +65,8 @@ GType vips_operation_get_type( void );
 
 int vips_operation_call_valist( VipsOperation *operation, va_list ap );
 VipsOperation *vips_operation_new( const char *name ); 
-int vips_call( const char *operation_name, ...)  G_GNUC_NULL_TERMINATED;
+int vips_call_valist( const char *operation_name, va_list ap );
+int vips_call( const char *operation_name, ...) G_GNUC_NULL_TERMINATED;
 
 #ifdef __cplusplus
 }
