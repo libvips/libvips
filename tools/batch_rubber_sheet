@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Corrects a set of image files for lens distortion using a preprepared
+# recombination matrix 
+
+# usage:
+#
+#       example% batch_rubber_sheet matrix_file image1 image2 ..
+#
+# writes output images rsc_image1.v, rsc_image2.v ..
+
+# default prefix
+VIPSHOME=${VIPSHOME-/home/john/vips}
+
+# get name we were run as
+name=`basename $0`
+rec=$1
+shift
+
+# check args
+if [ $# -lt 1 ]; then
+	echo "usage: $name matrix image1 image2 ..."
+	echo "writes rsc_image1, rsc_image2, ..."
+	echo
+	echo "$name uses VIPS to correct a set of images for lens distortion"
+	echo "using a matrix calculated by the 'resample' function."
+
+        exit 1
+fi
+
+# transform each argument
+for i in $*; do
+	echo "Transforming $i to rsc_$i ..."
+
+	# bilinear interp., don't wrap edges
+	$VIPSHOME/bin/vips im_transform $i rsc_$i $rec 1 0
+done
+

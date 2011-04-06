@@ -1,5 +1,0 @@
-#!/bin/sh
-
-bin=$1
-
-( cd $bin ; $bin/vips -k | sh )

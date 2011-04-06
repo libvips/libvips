@@ -1,3 +1,13 @@
+- leak check, again
+
+  add something to vips.c to let us call operations via VipsOperation
+
+  how do we make argv strings into VipsImage? unclear
+
+  make something for Python as well
+
+  wrap new API for C++
+  
 
 
 - add MATLAB write
@@ -79,8 +89,6 @@
 
 
 
-
-- tools subdirs are now pretty stupid :-( just have a single dir
 
 - test
 

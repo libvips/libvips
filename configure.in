@@ -254,19 +254,6 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 >= 2.4 libxml-2.0 gobject-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 libxml-2.0 gobject-2.0"
 
-# option to make im_* symlinks
-AC_ARG_ENABLE(links, 
-  AS_HELP_STRING([--enable-links], [make links for operations (default: no)]))
-
-if test x"$enable_links" = x"yes"; then
-  # tested by src/iofuncs/Makefile.am:install-exec-hook
-  AM_CONDITIONAL(ENABLE_LINKS, true)
-  enable_links=yes
-else
-  AM_CONDITIONAL(ENABLE_LINKS, false)
-  enable_links=no
-fi
-
 # option to eval without threads
 AC_ARG_ENABLE(threads, 
   AS_HELP_STRING([--enable-threads], [evaluate with threads (default: yes)]))
@@ -643,14 +630,11 @@ AC_OUTPUT([
 	libvipsCC/include/vips/Makefile 
 	libvipsCC/Makefile 
 	tools/Makefile 
-	tools/iofuncs/Makefile 
-	tools/mosaicing/Makefile 
-	tools/scripts/Makefile 
-	tools/scripts/batch_crop 
-	tools/scripts/batch_image_convert 
-	tools/scripts/batch_rubber_sheet 
-	tools/scripts/light_correct 
-	tools/scripts/shrink_width 
+	tools/batch_crop 
+	tools/batch_image_convert 
+	tools/batch_rubber_sheet 
+	tools/light_correct 
+	tools/shrink_width 
 	swig/Makefile 
 	swig/vipsCC/Makefile 
 	swig/python/setup.py 
@@ -668,7 +652,6 @@ open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
 build C++ components:			$enable_cxx
 evaluate with threads: 			$enable_threads
-make symlinks for commands in bin: 	$enable_links
 build docs with gtkdoc 			$enable_gtk_doc
 
 * optional packages and modules
