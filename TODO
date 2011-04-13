@@ -1,3 +1,6 @@
+- add open jpeg from a mem buffer
+
+
 - leak check, again
 
   add something to vips.c to let us call operations via VipsOperation

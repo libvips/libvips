@@ -1,4 +1,7 @@
 /* base class for all binary operations
+ *
+ * 13/3/11
+ * 	- argh, forgot to make a private array for the inputs
  */
 
 /*
@@ -257,7 +260,8 @@ vips_binary_build( VipsObject *object )
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_GET_CLASS( arithmetic ); 
 	VipsBinary *binary = VIPS_BINARY( object );
 
-	VipsImage *t[5];
+	VipsImage *t[4];
+	VipsImage **arry;
 
 	if( VIPS_OBJECT_CLASS( vips_binary_parent_class )->build( object ) )
 		return( -1 );
@@ -281,14 +285,16 @@ vips_binary_build( VipsObject *object )
 		return( -1 );
 	binary->left_processed = t[2];
 	binary->right_processed = t[3];
-	t[4] = NULL;
+	if( !(arry = vips_allocate_input_array( arithmetic->output, 
+		binary->left_processed, binary->right_processed, NULL )) )
+		return( -1 );
 
 	/* Hint demand style. Being a buffer processor, we are happiest with
 	 * thin strips.
 	 */
         if( vips_demand_hint_array( arithmetic->output, 
-		VIPS_DEMAND_STYLE_THINSTRIP, t + 2 ) ||
-		vips_image_copy_fields_array( arithmetic->output, t + 2 ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, arry ) ||
+		vips_image_copy_fields_array( arithmetic->output, arry ) )
 		return( -1 );
 
 	arithmetic->output->Bands = t[2]->Bands;
@@ -297,7 +303,7 @@ vips_binary_build( VipsObject *object )
 	if( vips_image_generate( arithmetic->output,
 		vips_start_many, vips_binary_process_region, 
 			vips_stop_many, 
-		t + 2, binary ) )
+		arry, binary ) )
 		return( -1 );
 
 	return( 0 );
