@@ -211,7 +211,7 @@ im_gauss_imask( const char *filename, double sigma, double min_ampl )
  * im_gauss_imask_sep() works exactly as im_gauss_imask(), but returns only
  * the central line of the mask. This is useful with im_convsep().
  *
- * See also: im_gauss_dmask(), im_gauss_imask_sep(), im_conv(), im_convsep().
+ * See also: im_gauss_dmask(), im_convsep().
  *
  * Returns: the calculated mask on success, or NULL on error.
  */
@@ -239,5 +239,5 @@ im_gauss_imask_sep( const char *filename, double sigma, double min_ampl )
 
 	im_free_imask( im );
 
-	return( im2 ) ;
+	return( im2 );
 }
