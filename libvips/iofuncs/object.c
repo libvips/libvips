@@ -1238,11 +1238,16 @@ vips_object_map( VipsSListMap2Fn fn, void *a, void *b )
 	args.a = a;
 	args.b = b;
 	args.result = NULL;
-	g_mutex_lock( vips__object_all_lock );
-	if( vips__object_all )
+
+	/* We must test vips__object_all before we lock because the lock is
+	 * only created when the first object is created.
+	 */
+	if( vips__object_all ) {
+		g_mutex_lock( vips__object_all_lock );
 		g_hash_table_foreach( vips__object_all, 
 			(GHFunc) vips_object_map_sub, &args );
-	g_mutex_unlock( vips__object_all_lock );
+		g_mutex_unlock( vips__object_all_lock );
+	}
 
 	return( args.result );
 }
