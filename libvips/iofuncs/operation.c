@@ -350,3 +350,161 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 
 	return( result );
 }
+
+/* Set a named arg from a string.
+ */
+static int
+vips_object_set_arg( VipsObject *object, const char *name, const char *value )
+{
+	GValue gvalue = { 0 };
+
+	g_value_init( &gvalue, G_TYPE_STRING );
+	g_value_set_string( &gvalue, value );
+	g_object_set_property( G_OBJECT( object ), name, &gvalue );
+	g_value_unset( &gvalue );
+
+	return( 0 );
+}
+
+/* We've seen the '[', get the optional args and check for a ']'.
+ */
+static int
+vips_call_argv_set_optional( VipsOperation *operation, const char *p )
+{
+	VipsToken token;
+	char name[PATH_MAX];
+	char value[PATH_MAX];
+
+	do {
+		if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
+			name, PATH_MAX )) )
+			return( -1 );
+		if( (p = vips__token_must( p, &token, value, PATH_MAX )) )
+			return( -1 );
+		if( token != VIPS_TOKEN_EQUALS ) {
+			vips_error( "VipsOperation",
+				"%s", _( "no '=' after optional parameter" ) );
+			return( -1 );
+		}
+		if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
+			value, PATH_MAX )) )
+			return( -1 );
+		if( vips_object_set_arg( VIPS_OBJECT( operation ), 
+			name, value ) )
+			return( -1 );
+
+		/* Now it's comma if there's another arg, or ']' for end of
+		 * args.
+		 */
+		if( (p = vips__token_must( p, &token, value, PATH_MAX )) )
+			return( -1 );
+		if( token != VIPS_TOKEN_RIGHT && token != VIPS_TOKEN_COMMA ) {
+			vips_error( "VipsOperation", 
+				"%s", _( "no ',' or ')' after parameter" ) );
+			return( -1 );
+		}
+	} while( token != VIPS_TOKEN_RIGHT );
+
+	if( (p = vips__token_get( p, &token, name, PATH_MAX )) ) {
+		vips_error( "VipsOperation", 
+			"%s", _( "extra tokens after ')'" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static void *
+vips_object_set_required_test( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!argument_instance->assigned )
+		return( pspec );
+
+	return( NULL );
+}
+
+static int
+vips_call_argv_set_required( VipsOperation *operation, const char *value )
+{
+	GParamSpec *pspec;
+
+	/* Search for the first unset required argument.
+	 */
+	if( !(pspec = vips_argument_map( VIPS_OBJECT( operation ),
+		vips_object_set_required_test, NULL, NULL )) ) {
+		vips_error( "VipsOperation",
+			_( "no unset required arguments for %s" ), value );
+		return( -1 );
+	}
+
+	/* If this arg needs a value that's a subtype of VipsObject, we can
+	 * use vips_object_from_string() to create it. Otherwise, just set as
+	 * a property.
+	 */
+
+
+	return( 0 );
+}
+
+/* A command-line version. This gets called by im_run_command() if lookup
+ * fails, so "vips add a b c" works.
+ */
+int
+vips_call_argv( const char *name, int argc, const char **argv )
+{
+	const char *p;
+	char string[PATH_MAX];
+	VipsOperation *operation;
+	VipsToken token;
+	int i;
+
+	g_assert( argc > 0 );
+
+	/* argv[0] is the operation name, plus any optional parameters. Eg.
+	 * "add{saturated=true,expand=12}"
+	 */
+	p = argv[0];
+	if( !(p = vips__token_need( p, VIPS_TOKEN_STRING, string, PATH_MAX )) ||
+		!(operation = vips_operation_new( string )) )
+		return( -1 );
+
+	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
+		if( token != VIPS_TOKEN_LEFT ) {
+			g_object_unref( operation );
+			vips_error( "VipsOperation", 
+				"%s", _( "bad object arguments" ) );
+		        return( -1 );
+		}
+
+		if( vips_call_argv_set_optional( operation, p ) ) {
+			g_object_unref( operation );
+			return( -1 );
+		}
+	}
+
+	/* Now set required args from the rest of the command-line. 
+	 */
+	for( i = 1; i < argc; i++ )
+		if( vips_call_argv_set_required( operation, argv[i] ) ) {
+			g_object_unref( operation );
+			return( -1 );
+		}
+
+	if( vips_object_build( VIPS_OBJECT( operation ) ) ) {
+		g_object_unref( operation );
+		return( -1 );
+	}
+
+	g_object_unref( operation );
+
+	return( 0 );
+}
+
+
+
