@@ -1,4 +1,4 @@
-- add open jpeg from a mem buffer
+- need vips_image_invalidate_area()
 
 
 - leak check, again

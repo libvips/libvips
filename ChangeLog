@@ -49,6 +49,7 @@
 - im_tiff2vips() int/uint mixup for rows_per_strip, thanks Bubba
 - removed the links feature, won't work with vips8
 - got rid of the tools/ subdirs
+- added im_bufjpeg2vips()
 
 30/11/10 started 7.24.0
 - bump for new stable
