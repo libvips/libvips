@@ -51,6 +51,7 @@
 - got rid of the tools/ subdirs
 - added im_bufjpeg2vips()
 - tiff reader can do 1, 2, 4, 8 bit palette images
+- tiff palette read can do mono images
 
 30/11/10 started 7.24.0
 - bump for new stable

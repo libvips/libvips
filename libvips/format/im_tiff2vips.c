@@ -121,6 +121,7 @@
  * 	- argh int/uint mixup for rows_per_strip, thanks Bubba
  * 21/4/11
  * 	- palette read can do 1,2,4,8 bits per sample
+ * 	- palette read can do mono images
  */
 
 /*
@@ -604,6 +605,10 @@ typedef struct {
 	/* Bits per sample.
 	 */
 	int bps;
+
+	/* All maps equal, so we write mono.
+	 */
+	gboolean mono;
 } PaletteRead;
 
 /* Per-scanline process function for palette images.
@@ -631,11 +636,16 @@ palette_line( PEL *q, PEL *p, int n, void *flg )
 		data <<= read->bps;
 		bit -= read->bps;
 
-		q[0] = read->red[i];
-		q[1] = read->green[i];
-		q[2] = read->blue[i];
-
-		q += 3;
+		if( read->mono ) {
+			q[0] = read->red[i];
+			q += 1;
+		}
+		else {
+			q[0] = read->red[i];
+			q[1] = read->green[i];
+			q[2] = read->blue[i];
+			q += 3;
+		}
 	}
 }
 
@@ -678,13 +688,35 @@ parse_palette( ReadTiff *rtiff, IMAGE *out )
 		read->blue[i] = tblue[i] >> 8;
 	}
 
-	out->Bands = 3; 
+	/* Are all the maps equal? We have a mono image.
+	 */
+	read->mono = TRUE;
+	for( i = 0; i < (1 << read->bps); i++ ) 
+		if( read->red[i] != read->green[i] ||
+			read->green[i] != read->blue[i] ) {
+			read->mono = FALSE;
+			break;
+		}
+
+	/* There's a TIFF extension, INDEXED, that is the preferred way to
+	 * encode mono palette images, but few applications support it. So we
+	 * just search the colormap.
+	 */
+
 	out->BandFmt = IM_BANDFMT_UCHAR; 
 	out->Coding = IM_CODING_NONE; 
-	out->Type = IM_TYPE_sRGB; 
 
-	rtiff->sfn = palette_line;
+	if( read->mono ) {
+		out->Bands = 1; 
+		out->Type = IM_TYPE_B_W; 
+	}
+	else {
+		out->Bands = 3; 
+		out->Type = IM_TYPE_sRGB; 
+	}
+
 	rtiff->client = read;
+	rtiff->sfn = palette_line;
 
 	return( 0 );
 }
