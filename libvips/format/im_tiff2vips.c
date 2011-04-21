@@ -119,6 +119,8 @@
  * 	  into the output region, or writeline directly from the tiff buffer
  * 4/4/11
  * 	- argh int/uint mixup for rows_per_strip, thanks Bubba
+ * 21/4/11
+ * 	- palette read can do 1,2,4,8 bits per sample
  */
 
 /*
@@ -592,52 +594,76 @@ parse_greyscale32f( ReadTiff *rtiff, int pm, IMAGE *out )
 	return( 0 );
 }
 
+typedef struct {
+	/* LUTs mapping image indexes to RGB.
+	 */
+	PEL *red;
+	PEL *green;
+	PEL *blue;
+
+	/* Bits per sample.
+	 */
+	int bps;
+} PaletteRead;
+
 /* Per-scanline process function for palette images.
  */
 static void
 palette_line( PEL *q, PEL *p, int n, void *flg )
 {
-	/* Extract maps.
-	 */
-	PEL *red = ((PEL **) flg)[0];
-	PEL *green = ((PEL **) flg)[1];
-	PEL *blue = ((PEL **) flg)[2];
+	PaletteRead *read = (PaletteRead *) flg;
+
+	int bit;
+	PEL data;
 	int x;
 
-	/* Read bytes, generating colour.
-	 */
+	bit = 0;
+	data = 0;
 	for( x = 0; x < n; x++ ) {
-		int i = *p++;
+		int i;
 
-		q[0] = red[i];
-		q[1] = green[i];
-		q[2] = blue[i];
+		if( bit <= 0 ) {
+			data = *p++;
+			bit = 8;
+		}
+
+		i = data >> (8 - read->bps);
+		data <<= read->bps;
+		bit -= read->bps;
+
+		q[0] = read->red[i];
+		q[1] = read->green[i];
+		q[2] = read->blue[i];
 
 		q += 3;
 	}
 }
 
-/* Read a palette-ised TIFF image. Again, we only allow 8-bits for now.
+/* Read a palette-ised TIFF image. 1/4/8 bits only.
  */
 static int
 parse_palette( ReadTiff *rtiff, IMAGE *out )
 {
+	PaletteRead *read;
 	uint16 *tred, *tgreen, *tblue;
-	PEL *red, *green, *blue;
-	PEL **maps;
 	int i;
 
+	if( !(read = IM_NEW( out, PaletteRead )) ||
+		!(read->red = IM_ARRAY( out, 256, PEL )) ||
+		!(read->green = IM_ARRAY( out, 256, PEL )) ||
+		!(read->blue = IM_ARRAY( out, 256, PEL )) )
+		return( -1 );
+
 	if( !tfequals( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 1 ) ||
-		!tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 8 ) )
+		!tfget16( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, &read->bps ) )
 		return( -1 );
-	
-	/* Allocate mem for VIPS colour maps.
-	 */
-	if( !(red = IM_ARRAY( out, 256, PEL )) ||
-		!(green = IM_ARRAY( out, 256, PEL )) ||
-		!(blue = IM_ARRAY( out, 256, PEL )) ||
-		!(maps = IM_ARRAY( out, 3, PEL * )) )
+	if( read->bps != 8 && read->bps != 4 && 
+		read->bps != 2 && read->bps != 1 ) {
+		im_error( "im_tiff2vips", 
+			_( "%d bits per sample palette image not supported" ),
+			read->bps );
 		return( -1 );
+	}
 
 	/* Get maps, convert to 8-bit data.
 	 */
@@ -646,14 +672,11 @@ parse_palette( ReadTiff *rtiff, IMAGE *out )
 		im_error( "im_tiff2vips", "%s", _( "bad colormap" ) );
 		return( -1 );
 	}
-	for( i = 0; i < 256; i++ ) {
-		red[i] = tred[i] >> 8;
-		green[i] = tgreen[i] >> 8;
-		blue[i] = tblue[i] >> 8;
+	for( i = 0; i < (1 << read->bps); i++ ) {
+		read->red[i] = tred[i] >> 8;
+		read->green[i] = tgreen[i] >> 8;
+		read->blue[i] = tblue[i] >> 8;
 	}
-	maps[0] = red; 
-	maps[1] = green; 
-	maps[2] = blue;
 
 	out->Bands = 3; 
 	out->BandFmt = IM_BANDFMT_UCHAR; 
@@ -661,7 +684,7 @@ parse_palette( ReadTiff *rtiff, IMAGE *out )
 	out->Type = IM_TYPE_sRGB; 
 
 	rtiff->sfn = palette_line;
-	rtiff->client = maps;
+	rtiff->client = read;
 
 	return( 0 );
 }
@@ -1143,7 +1166,7 @@ tiff_fill_region( REGION *out, void *seq, void *a, void *b )
 
 	int x, y, z;
 
-	/* Special case: we are filling a single tile exactly sizeed to match
+	/* Special case: we are filling a single tile exactly sized to match
 	 * the tiff tile, and we have no repacking to do for this format.
 	 */
 	if( rtiff->memcpy &&
