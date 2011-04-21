@@ -1,6 +1,12 @@
 - need vips_image_invalidate_area()
 
 
+- greyscale palette images always come out as RGB
+
+  perhaps we should search the palette for differences? or see if the three
+  maps we get are the same pointer?
+
+
 - leak check, again
 
   add something to vips.c to let us call operations via VipsOperation
