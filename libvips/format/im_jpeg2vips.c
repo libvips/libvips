@@ -931,7 +931,6 @@ buf_source (j_decompress_ptr cinfo, void *buf, size_t len)
 static int
 bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 {
-	char *p, *q;
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
 	int result;
