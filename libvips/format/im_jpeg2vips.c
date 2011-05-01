@@ -1053,12 +1053,6 @@ im_bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 	return( result );
 }
 
-int
-jpeg2vips_header( const char *name, IMAGE *out )
-{
-	return( jpeg2vips( name, out, TRUE ) );
-}
-
 static int
 isjpeg( const char *filename )
 {

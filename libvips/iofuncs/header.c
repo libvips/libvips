@@ -415,6 +415,27 @@ vips_image_get_mode( VipsImage *image )
 }
 
 /**
+ * vips_image_get_data:
+ * @image: image to get data for
+ *
+ * Return a pointer to the image's pixel data, if possible. This can involve
+ * allocating large amounts of memory and performing a long computation. Image
+ * pixels are laid out in band-packed rows.
+ *
+ * See also: vips_image_wio_input().
+ *
+ * Returns: a pointer to pixel data, if possible.
+ */
+void *
+vips_image_get_data( VipsImage *image )
+{
+	if( vips_image_wio_input( image ) )
+		return( NULL );
+
+	return( image->data ); 
+}
+
+/**
  * vips_image_init_fields:
  * @image: image to init
  * @xsize: image width

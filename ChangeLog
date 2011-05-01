@@ -53,6 +53,7 @@
 - tiff reader can do 1, 2, 4, 8 bit palette images
 - tiff palette read can do mono images
 - im_bufjpeg2vips() has a "header_only" parameter
+- added vips_image_get_data()
 
 30/11/10 started 7.24.0
 - bump for new stable
