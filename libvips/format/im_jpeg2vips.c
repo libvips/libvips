@@ -754,6 +754,72 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	return( result );
 }
 
+/**
+ * im_jpeg2vips:
+ * @filename: file to load
+ * @out: image to write to
+ *
+ * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
+ * including CMYK and YCbCr.
+ *
+ * You can embed options in the filename. They have the form:
+ *
+ * |[
+ * filename.jpg:<emphasis>shrink-factor</emphasis>,<emphasis>fail</emphasis>
+ * ]|
+ *
+ * <itemizedlist>
+ *   <listitem>
+ *     <para>
+ * <emphasis>shrink-factor</emphasis> 
+ * Shrink by this integer factor during load.  Allowed values are 1, 2, 4
+ * and 8. Shrinking during read is very much faster than decompressing the 
+ * whole image and then shrinking. 
+ *     </para>
+ *   </listitem>
+ *   <listitem>
+ *     <para>
+ * <emphasis>fail</emphasis> 
+ * This makes the JPEG reader fail on any warnings. This can be useful for 
+ * detecting truncated files, for example. Normally reading these produces 
+ * a warning, but no fatal error.  
+ *     </para>
+ *   </listitem>
+ * </itemizedlist>
+ *
+ * Example:
+ *
+ * |[
+ * im_jpeg2vips( "fred.jpg:8" out );
+ * im_jpeg2vips( "fred.jpg:,fail" out );
+ * ]|
+ *
+ * The first example will shrink by a factor of 8 during load. The second will
+ * fail with an error if there are any problems loading the file.
+ *
+ * Any embedded ICC profiles are ignored: you always just get the RGB from 
+ * the file. Instead, the embedded profile will be attached to the image as 
+ * metadata.  You need to use something like im_icc_import() to get CIE 
+ * values from the file. Any EXIF data is also attached as VIPS metadata.
+ *
+ * The int metadata item "jpeg-multiscan" is set to the result of 
+ * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of
+ * memory to load, so this field gives callers a chance to handle these
+ * images differently.
+ *
+ * The EXIF thumbnail, if present, is attached to the image as 
+ * "jpeg-thumbnail-data". See im_meta_get_blob().
+ *
+ * See also: #VipsFormat, im_vips2jpeg().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+im_jpeg2vips( const char *filename, IMAGE *out )
+{
+	return( jpeg2vips( filename, out, FALSE ) );
+}
+
 /* Just like the above, but we read from a memory buffer.
  */
 typedef struct {
@@ -926,10 +992,24 @@ buf_source (j_decompress_ptr cinfo, void *buf, size_t len)
   src->pub.next_input_byte = NULL; /* until buffer loaded */
 }
 
-/* Read a JPEG memory buffer into a VIPS image.
+/**
+ * im_bufjpeg2vips:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @header_only: set to just read the header
+ *
+ * Read a JPEG-formatted memory block into a VIPS image. It can read most 
+ * 8-bit JPEG images, including CMYK and YCbCr.
+ *
+ * This function is handy for processing JPEG image thumbnails.
+ *
+ * See also: #VipsFormat, im_jpeg2vips().
+ *
+ * Returns: 0 on success, -1 on error.
  */
-static int
-bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
+int
+im_bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 {
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
@@ -973,91 +1053,10 @@ bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 	return( result );
 }
 
-/**
- * im_jpeg2vips:
- * @filename: file to load
- * @out: image to write to
- *
- * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
- * including CMYK and YCbCr.
- *
- * You can embed options in the filename. They have the form:
- *
- * |[
- * filename.jpg:<emphasis>shrink-factor</emphasis>,<emphasis>fail</emphasis>
- * ]|
- *
- * <itemizedlist>
- *   <listitem>
- *     <para>
- * <emphasis>shrink-factor</emphasis> 
- * Shrink by this integer factor during load.  Allowed values are 1, 2, 4
- * and 8. Shrinking during read is very much faster than decompressing the 
- * whole image and then shrinking. 
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <emphasis>fail</emphasis> 
- * This makes the JPEG reader fail on any warnings. This can be useful for 
- * detecting truncated files, for example. Normally reading these produces 
- * a warning, but no fatal error.  
- *     </para>
- *   </listitem>
- * </itemizedlist>
- *
- * Example:
- *
- * |[
- * im_jpeg2vips( "fred.jpg:8" out );
- * im_jpeg2vips( "fred.jpg:,fail" out );
- * ]|
- *
- * The first example will shrink by a factor of 8 during load. The second will
- * fail with an error if there are any problems loading the file.
- *
- * Any embedded ICC profiles are ignored: you always just get the RGB from 
- * the file. Instead, the embedded profile will be attached to the image as 
- * metadata.  You need to use something like im_icc_import() to get CIE 
- * values from the file. Any EXIF data is also attached as VIPS metadata.
- *
- * The int metadata item "jpeg-multiscan" is set to the result of 
- * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of
- * memory to load, so this field gives callers a chance to handle these
- * images differently.
- *
- * The EXIF thumbnail, if present, is attached to the image as 
- * "jpeg-thumbnail-data". See im_meta_get_blob().
- *
- * See also: #VipsFormat, im_vips2jpeg().
- *
- * Returns: 0 on success, -1 on error.
- */
 int
-im_jpeg2vips( const char *filename, IMAGE *out )
+jpeg2vips_header( const char *name, IMAGE *out )
 {
-	return( jpeg2vips( filename, out, FALSE ) );
-}
-
-/**
- * im_bufjpeg2vips:
- * @buf: memory area to load
- * @len: size of memory area
- * @out: image to write
- *
- * Read a JPEG-formatted memory block into a VIPS image. It can read most 
- * 8-bit JPEG images, including CMYK and YCbCr.
- *
- * This function is handy for processing JPEG image thumbnails.
- *
- * See also: #VipsFormat, im_jpeg2vips().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-im_bufjpeg2vips( void *buf, size_t len, IMAGE *out )
-{
-	return( bufjpeg2vips( buf, len, out, FALSE ) );
+	return( jpeg2vips( name, out, TRUE ) );
 }
 
 static int

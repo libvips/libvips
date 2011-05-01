@@ -123,7 +123,7 @@ int vips_format_write( VipsImage *in, const char *filename );
 /* Low-level read/write operations.
  */
 int im_jpeg2vips( const char *filename, VipsImage *out );
-int im_bufjpeg2vips( void *buf, size_t len, VipsImage *out );
+int im_bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only );
 int im_vips2jpeg( VipsImage *in, const char *filename );
 int im_vips2mimejpeg( VipsImage *in, int qfac );
 int im_vips2bufjpeg( VipsImage *in, VipsImage *out, int qfac, char **obuf, int *olen );
