@@ -1,3 +1,16 @@
+- Magick: 
+
+	- do we bundle "convert" in the OS X / win32 builds? if we don't we
+	  should
+
+	- some way for nip2 to get the vips bin area
+
+	- some way for nip2 to get EXEEXT
+
+	- wrap a basic set of Magick filters
+
+
+
 - need vips_image_invalidate_area()
 
 
