@@ -92,7 +92,6 @@ im_jpeg2vips( const char *name, IMAGE *out )
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
-#include <assert.h>
 
 #ifdef HAVE_EXIF
 #ifdef UNTAGGED_EXIF

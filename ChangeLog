@@ -54,6 +54,7 @@
 - tiff palette read can do mono images
 - im_bufjpeg2vips() has a "header_only" parameter
 - added vips_image_get_data()
+- updated German translation (thanks Chris)
 
 30/11/10 started 7.24.0
 - bump for new stable
