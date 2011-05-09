@@ -63,6 +63,8 @@
  * 	  keeping two versions
  * 8/11/10
  * 	- add array tiling
+ * 9/5/11
+ * 	- argh typo in overflow estimation could cause errors
  */
 
 /*
@@ -109,6 +111,9 @@
 	  16-bit data would be even slower, no speed advantage
 
 	- make up a signed 8-bit code path?
+
+	- don't use divluw, it's insanely slow, instead scale coefficients so 
+	  that we can just do >>8 at the end
 
  */
 
@@ -355,10 +360,8 @@ conv_compile_convolution_u8s16( Conv *conv )
 	for( i = 0; i < n_mask; i++ ) {
 		int v = 255 * mask->coeff[i];
 
-		if( min + v < min )
-			min += v;
-		else if( min + v > max )
-			max += v;
+		min = IM_MIN( min, min + v );
+		max = IM_MAX( max, max + v );
 
 		if( max > SHRT_MAX )
 			return( -1 );
@@ -1007,6 +1010,11 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 {
 	Conv *conv;
 	im_generate_fn generate;
+
+#ifdef DEBUG
+	printf( "im_conv_raw: starting with matrix:\n" );
+	im_print_imask( mask );
+#endif /*DEBUG*/
 
 	/* Check parameters.
 	 */

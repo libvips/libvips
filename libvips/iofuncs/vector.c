@@ -43,8 +43,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -312,7 +312,7 @@ vips_vector_print( VipsVector *vector )
 	if( vector->compiled )
 		printf( "successfully compiled\n" );
 	else
-		printf( "not compiled successfully\n" );
+		printf( "not compiled\n" );
 	printf( "  n_scanline = %d\n", vector->n_scanline );
 	for( i = 0; i < vector->n_scanline; i++ )
 		printf( "        var %d = line %d\n", 
