@@ -1,3 +1,45 @@
+
+- add something to vips.c to let us call operations via VipsOperation
+
+  make optional args to operations into command-line switches
+
+  	vips add --saturated --expand=12 in1.v in2.v out.v
+
+  means
+
+  	vips_call("add", in1, in2, out, "saturated", TRUE, "expand", 12, NULL);
+
+  but how do we integrate this with GOption parsing?
+
+  perhaps the vips program should change, so
+
+  	vips --list all
+
+  becomes
+
+  	vips list all
+
+  ie. the various flags that performed actions should become "verbs"
+
+  this lets us delay option parsing until we have seen the "verb" part of the
+  command (which is always argv[1]) and we can build a custom GOptionEntry
+
+  new form:
+
+  	vips <action> [flags] [arguments]
+  
+
+  see vips_call_argv() in operation.c
+
+  how do we make argv strings into VipsImage? unclear
+
+  make something for Python as well
+
+  wrap new API for C++
+
+
+
+  
 - matlab write
 
 - Magick: 
@@ -16,22 +58,9 @@
 - need vips_image_invalidate_area()
 
 
-- greyscale palette images always come out as RGB
-
-  perhaps we should search the palette for differences? or see if the three
-  maps we get are the same pointer?
 
 
 - leak check, again
-
-  add something to vips.c to let us call operations via VipsOperation
-
-  how do we make argv strings into VipsImage? unclear
-
-  make something for Python as well
-
-  wrap new API for C++
-  
 
 
 - add MATLAB write
