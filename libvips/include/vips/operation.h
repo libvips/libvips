@@ -68,6 +68,9 @@ VipsOperation *vips_operation_new( const char *name );
 int vips_call( const char *operation_name, ... );
 int vips_call_split( const char *operation_name, va_list optional, ... );
 
+GOptionGroup *vips_call_options( VipsOperation *operation );
+int vips_call_argv( VipsOperation *operation, int argc, char **argv );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

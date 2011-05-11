@@ -90,33 +90,13 @@
 #define strcasecmp(a,b) _stricmp(a,b)
 #endif
 
-static char *main_option_list = NULL;
-static char *main_option_usage = NULL;
 static char *main_option_plugin = NULL;
-static gboolean main_option_links;
-static char *main_option_cpph = NULL;
-static char *main_option_cppc = NULL;
 static gboolean *main_option_version;
 
 static GOptionEntry main_option[] = {
-	{ "list", 'l', 0, G_OPTION_ARG_STRING, &main_option_list, 
-		N_( "list operations in PACKAGE "
-			"(or \"all\", \"packages\", \"classes\")" ),
-		N_( "PACKAGE" ) },
-	{ "usage", 'u', 0, G_OPTION_ARG_STRING, &main_option_usage, 
-		N_( "show usage message for OPERATION" ), 
-		N_( "OPERATION" ) },
 	{ "plugin", 'p', 0, G_OPTION_ARG_FILENAME, &main_option_plugin, 
 		N_( "load PLUGIN" ), 
 		N_( "PLUGIN" ) },
-	{ "links", 'k', 0, G_OPTION_ARG_NONE, &main_option_links, 
-		N_( "print link lines for all operations" ), NULL },
-	{ "cpph", 'h', 0, G_OPTION_ARG_STRING, &main_option_cpph, 
-		N_( "print C++ decls for PACKAGE (or \"all\")" ), 
-		N_( "PACKAGE" ) },
-	{ "cppc", 'c', 0, G_OPTION_ARG_STRING, &main_option_cppc, 
-		N_( "print C++ binding for PACKAGE (or \"all\")" ), 
-		N_( "PACKAGE" ) },
 	{ "version", 'v', 0, G_OPTION_ARG_NONE, &main_option_version, 
 		N_( "print im_version_string" ), NULL },
 	{ NULL }
@@ -192,9 +172,11 @@ list_class( VipsObjectClass *class )
 	return( NULL );
 }
 
-static void
-print_list( const char *name )
+static int
+print_list( int argc, char **argv )
 {
+	const char *name = argv[1];
+
 	if( strcmp( name, "packages" ) == 0 ) 
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
 	else if( strcmp( name, "classes" ) == 0 ) 
@@ -204,6 +186,8 @@ print_list( const char *name )
 		if( map_name( name, list_function ) )
 			error_exit( "unknown package \"%s\"", name ); 
 	}
+
+	return( 0 );
 }
 
 /* Is s1 a prefix of s2?
@@ -236,7 +220,7 @@ ispostfix( const char *s1, const char *s2 )
 /* Print "ln -s" lines for this package.
  */
 static void *
-print_links( im_package *pack )
+print_links_package( im_package *pack )
 {
 	int i;
 
@@ -246,6 +230,16 @@ print_links( im_package *pack )
 			pack->table[i]->name, pack->table[i]->name );
 
 	return( NULL );
+}
+
+/* Print "ln -s" lines for this package.
+ */
+static int
+print_links( int argc, char **argv )
+{
+	im_map_packages( (VSListMap2Fn) print_links_package, NULL );
+
+	return( 0 );
 }
 
 /* Does a function have any printing output?
@@ -876,26 +870,91 @@ print_cppdef( im_function *fn )
 
 /* Print C++ decls for function, package or all.
  */
-static void
-print_cppdecls( char *name )
+static int
+print_cppdecls( int argc, char **argv )
 {
 	printf( "// this file automatically generated from\n"
 		"// VIPS library %s\n", im_version_string() );
 
-	if( map_name( name, print_cppdecl ) )
-		error_exit( "unknown package \"%s\"", name ); 
+	if( map_name( argv[1], print_cppdecl ) )
+		error_exit( "unknown package \"%s\"", argv[1] ); 
+
+	return( 0 );
 }
 
 /* Print C++ bindings for function, package or all.
  */
-static void
-print_cppdefs( char *name )
+static int
+print_cppdefs( int argc, char **argv ) 
 {
 	printf( "// this file automatically generated from\n"
 		"// VIPS library %s\n", im_version_string() );
 
-	if( map_name( name, print_cppdef ) )
-		error_exit( "unknown package \"%s\"", name ); 
+	if( map_name( argv[1], print_cppdef ) )
+		error_exit( "unknown package \"%s\"", argv[1] ); 
+
+	return( 0 );
+}
+
+/* All our built-in actions.
+ */
+
+typedef int (*Action)( int argc, char **argv );
+
+typedef struct _ActionEntry {
+	char *name;
+	GOptionEntry *group;
+	Action action;
+} ActionEntry;
+
+static GOptionEntry empty_options[] = {
+	{ NULL }
+};
+
+static ActionEntry actions[] = {
+	{ "cpph", &empty_options[0], print_cppdecls },
+	{ "cppc", &empty_options[0], print_cppdefs },
+	{ "links", &empty_options[0], print_links },
+	{ "list", &empty_options[0], print_list }
+};
+
+static void
+parse_options( GOptionContext *context, int *argc, char **argv )
+{
+	GError *error = NULL;
+	int i, j;
+
+	if( !g_option_context_parse( context, argc, &argv, &error ) ) {
+		if( error ) {
+			fprintf( stderr, "%s\n", error->message );
+			g_error_free( error );
+		}
+
+		error_exit( "%s", g_get_prgname() );
+	}
+
+	/* We support --plugin for all cases.
+	 */
+	if( main_option_plugin ) {
+		if( !im_load_plugin( main_option_plugin ) )
+			error_exit( NULL ); 
+	}
+
+	if( main_option_version ) 
+		printf( "vips-%s\n", im_version_string() );
+
+	/* Remove any "--" argument. If one of our arguments is a negative
+	 * number, the user will need to have added the "--" flag to stop
+	 * GOption parsing. But "--" is still passed down to us and we need to
+	 * ignore it.
+	 */
+	for( i = 1; i < *argc - 1; i++ )
+		if( strcmp( argv[i], "--" ) == 0 ) {
+			for( j = i; j < *argc; j++ )
+				argv[j] = argv[j + 1];
+
+			*argc -= 1;
+		}
 }
 
 /* VIPS universal main program. 
@@ -903,10 +962,11 @@ print_cppdefs( char *name )
 int
 main( int argc, char **argv )
 {
+	char *action;
 	GOptionContext *context;
-	GError *error = NULL;
+	VipsOperation *operation;
 	im_function *fn;
-	int i, j;
+	int i;
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( NULL );
@@ -936,98 +996,65 @@ main( int argc, char **argv )
 		main_option, GETTEXT_PACKAGE );
 	g_option_context_add_group( context, im_get_option_group() );
 
-	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
-		if( error ) {
-			fprintf( stderr, "%s\n", error->message );
-			g_error_free( error );
-		}
-
-		error_exit( "try \"%s --help\"", g_get_prgname() );
-	}
-
-	g_option_context_free( context );
-
-	if( main_option_plugin ) {
-		if( !im_load_plugin( main_option_plugin ) )
-			error_exit( NULL ); 
-	}
-	if( main_option_cpph ) 
-		print_cppdecls( main_option_cpph );
-	if( main_option_cppc ) 
-		print_cppdefs( main_option_cppc );
-	if( main_option_links )
-		im_map_packages( (VSListMap2Fn) print_links, NULL );
-	if( main_option_list ) 
-		print_list( main_option_list );
-	if( main_option_usage ) {
-		if( !(fn = im_find_function( main_option_usage )) )
-			error_exit( NULL );
-		usage( fn );
-	}
-	if( main_option_version ) 
-		printf( "vips-%s\n", im_version_string() );
-
-	/* Remove any "--" argument. If one of our arguments is a negative
-	 * number, the user will need to have added the "--" flag to stop
-	 * GOption parsing. But "--" is still passed down to us and we need to
-	 * ignore it.
+	/* We generate part of our g_options dynamically depending on the
+	 * action, so we can't parse our args before getting the action. So
+	 * therefore the action must always be the first argument.
 	 */
-	for( i = 1; i < argc - 1; i++ )
-		if( strcmp( argv[i], "--" ) == 0 ) {
-			for( j = i; j < argc; j++ )
-				argv[j] = argv[j + 1];
-
-			argc -= 1;
-		}
 
 	/* Should we try to run the thing we are named as?
 	 */
-	if( !im_isprefix( "vips", g_get_prgname() ) ) {
-		char name[256];
+	if( !im_isprefix( "vips", g_get_prgname() ) )
+		action = argv[0];
+	else
+		action = argv[1];
 
-		/* Drop any .exe suffix.
-		 */
-		im_strncpy( name, g_get_prgname(), 256 );
-		if( ispostfix( ".exe", name ) )
-			name[strlen( name ) - 4] = '\0';
+	/* Could be one of our actions.
+	 */
+	for( i = 0; i < VIPS_NUMBER( actions ); i++ )
+		if( strcmp( action, actions[i].name ) == 0 ) {
+			GOptionGroup *group;
 
-		/* If unknown, try with "im_" prepended.
-		 */
-		if( !(fn = im_find_function( name )) ) {
-			im_snprintf( name, 256, "im_%s", g_get_prgname() );
-			if( ispostfix( ".exe", name ) )
-				name[strlen( name ) - 4] = '\0';
+			group = g_option_group_new( actions[i].name,
+				"vips action", "show action options",
+				NULL, NULL ); 
+			g_option_group_add_entries( group, actions[i].group );
+			g_option_context_add_group( context, group );
+			parse_options( context, &argc, argv );
 
-			if( !(fn = im_find_function( name )) )
-				error_exit( NULL );
+			if( actions[i].action( argc, argv ) ) 
+				error_exit( "%s", action );
+
+			break;
 		}
 
-		/* Execute it!
-		 */
-		if( im_run_command( name, argc - 1, argv + 1 ) ) {
-			/* If there are no arguments and the operation failed,
-			 * show usage. There are no-arg operations, so we have
-			 * to try running it.
-			 */
-			if( argc == 1 )
-				usage( fn );
-			else
-				error_exit( NULL );
-		}
-	}
-	else if( argc > 1 ) {
-		/* Nope ... run the first arg instead.
-		 */
-		if( !(fn = im_find_function( argv[1] )) )
-			error_exit( NULL );
+	/* Could be a vips7 im_function.
+	 */
+	if( (fn = im_find_function( action )) ) {
+		parse_options( context, &argc, argv );
 
-		if( im_run_command( argv[1], argc - 2, argv + 2 ) ) {
+		if( im_run_command( action, argc - 2, argv + 2 ) ) {
 			if( argc == 2 ) 
 				usage( fn );
 			else
 				error_exit( NULL );
 		}
 	}
+
+	/* Could be a vips8 VipsOperation.
+	 */
+	if( (operation = vips_operation_new( action )) ) {
+		GOptionGroup *group;
+
+		if( !(group = vips_call_options( operation )) )
+			error_exit( NULL );
+		g_option_context_add_group( context, group );
+		parse_options( context, &argc, argv );
+		
+		if( vips_call_argv( operation, argc, argv ) )
+			error_exit( NULL );
+	}
+
+	g_option_context_free( context );
 
 	im_close_plugins();
 
