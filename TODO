@@ -1,4 +1,13 @@
 
+- try:
+
+	vips add
+
+  get GLib-CRITICAL **: g_option_context_add_group: assertion `group->name !=
+  NULL' failed, we are not building the option group correctly
+
+
+
 - add something to vips.c to let us call operations via VipsOperation
 
   make optional args to operations into command-line switches
