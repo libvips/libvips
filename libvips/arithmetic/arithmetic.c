@@ -92,7 +92,7 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 
 	vobject_class->build = vips_arithmetic_build;
 
-	pspec = g_param_spec_object( "output-image", 
+	pspec = g_param_spec_object( "out", 
 		"Output", "Output image",
 		VIPS_TYPE_IMAGE,
 		G_PARAM_READWRITE );

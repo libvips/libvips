@@ -324,7 +324,7 @@ vips_binary_class_init( VipsBinaryClass *class )
 
 	/* Create properties.
 	 */
-	pspec = g_param_spec_object( "right-image", 
+	pspec = g_param_spec_object( "right", 
 		"Right", "Right-hand image argument",
 		VIPS_TYPE_IMAGE,
 		G_PARAM_READWRITE );
@@ -334,7 +334,7 @@ vips_binary_class_init( VipsBinaryClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBinary, right ) );
 
-	pspec = g_param_spec_object( "left-image", 
+	pspec = g_param_spec_object( "left", 
 		"Left", "Left-hand image argument",
 		VIPS_TYPE_IMAGE,
 		G_PARAM_READWRITE );
