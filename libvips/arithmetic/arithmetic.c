@@ -61,6 +61,8 @@
  */
 enum {
 	PROP_OUTPUT = 1,
+	PROP_BOOLTEST = 2,
+	PROP_IMTEST = 3,
 	PROP_LAST
 }; 
 
@@ -69,12 +71,21 @@ G_DEFINE_ABSTRACT_TYPE( VipsArithmetic, vips_arithmetic, VIPS_TYPE_OPERATION );
 static int
 vips_arithmetic_build( VipsObject *object )
 {
+	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
+
 	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->build( object ) )
 		return( -1 );
 
 	/* Should we _generate() here? We should keep the params in the object
 	 * ready to be dropped in.
+	 *
+	 * At the moment we _generate() in binary.c and unary.c.
 	 */
+
+	printf( "vips_arithmetic_build: booltest = %d\n", 
+		arithmetic->booltest );
+	printf( "vips_arithmetic_build: imtest = %p\n", 
+		arithmetic->imtest );
 
 	return( 0 );
 }
@@ -92,8 +103,8 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 
 	vobject_class->build = vips_arithmetic_build;
 
-	pspec = g_param_spec_object( "out", 
-		"Output", "Output image",
+	pspec = g_param_spec_object( "out", "Output", 
+		_( "Output image" ),
 		VIPS_TYPE_IMAGE,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, 
@@ -101,6 +112,27 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsArithmetic, output ) );
+
+	pspec = g_param_spec_boolean( "booltest", "Bool test", 
+		_( "Test optional boolean argument" ),
+		FALSE,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, 
+		PROP_BOOLTEST, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsArithmetic, booltest ) );
+
+	pspec = g_param_spec_object( "imtest", "Image test", 
+		_( "Test optional image argument" ),
+		VIPS_TYPE_IMAGE,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, 
+		PROP_IMTEST, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsArithmetic, imtest ) );
+
 }
 
 static void
