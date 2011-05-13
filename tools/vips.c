@@ -931,7 +931,7 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 		error_exit( "%s", g_get_prgname() );
 	}
 
-	/* We support --plugin for all cases.
+	/* We support --plugin and --version for all cases.
 	 */
 	if( main_option_plugin ) {
 		if( !im_load_plugin( main_option_plugin ) )
@@ -1059,6 +1059,7 @@ main( int argc, char **argv )
 
 		handled = TRUE;
 	}
+	im_error_clear();
 
 	/* Could be a vips8 VipsOperation.
 	 */
@@ -1070,14 +1071,32 @@ main( int argc, char **argv )
 		g_option_context_add_group( context, group );
 		parse_options( context, &argc, argv );
 		
-		if( vips_call_argv( operation, argc, argv ) )
+		if( vips_call_argv( operation, argc, argv ) ) {
+			if( argc == 0 ) {
+				char *help;
+
+				help = g_option_context_get_help( context, 
+					FALSE, group );
+				printf( "%s", help );
+				vips_object_print( VIPS_OBJECT( operation ) );
+				error_exit( NULL );
+			}
+
 			error_exit( NULL );
+		}
+
+		g_object_unref( operation );
 
 		handled = TRUE;
 	}
+	im_error_clear();
 
-	if( !handled ) 
+	if( !handled ) {
 		parse_options( context, &argc, argv );
+
+		if( argc > 1 ) 
+			error_exit( "unknown argument %s\n", argv[1] );
+	}
 
 	g_option_context_free( context );
 

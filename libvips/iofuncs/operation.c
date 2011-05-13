@@ -58,6 +58,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsOperation, vips_operation, VIPS_TYPE_OBJECT );
 /* What to show about the argument.
  */
 typedef struct {
+	char *message;		/* header message on first print */
 	gboolean required;	/* show required args or optional */
 	gboolean oftype;	/* "is of type" message */
 	int n;			/* Arg number */
@@ -75,6 +76,9 @@ vips_operation_print_arg( VipsObject *object, GParamSpec *pspec,
 	if( print->required == 
 		((argument_class->flags & VIPS_ARGUMENT_REQUIRED) != 0) &&
 		!argument_instance->assigned ) {
+		if( print->message && print->n == 0 ) 
+			vips_buf_appendf( buf, "%s\n", print->message );
+
 		if( print->oftype ) 
 			vips_buf_appendf( buf, "   %s :: %s\n",
 				pspec->name,
@@ -130,7 +134,8 @@ vips_operation_print( VipsObject *object, VipsBuf *buf )
 
 	/* First pass through args: show the required names.
 	 */
-	vips_buf_appendf( buf, "VipsOperation.%s (", object_class->nickname );
+	vips_buf_appendf( buf, "%s (", object_class->nickname );
+	print.message = NULL;
 	print.required = TRUE;
 	print.oftype = FALSE;
 	print.n = 0;
@@ -140,7 +145,7 @@ vips_operation_print( VipsObject *object, VipsBuf *buf )
 
 	/* Show required types.
 	 */
-	vips_buf_appends( buf, "where:\n" );
+	print.message = "where:";
 	print.required = TRUE;
 	print.oftype = TRUE;
 	print.n = 0;
@@ -149,7 +154,7 @@ vips_operation_print( VipsObject *object, VipsBuf *buf )
 
 	/* Show optional args.
 	 */
-	vips_buf_appends( buf, "optional arguments:\n" );
+	print.message = "optional arguments:";
 	print.required = FALSE;
 	print.oftype = TRUE;
 	print.n = 0;
@@ -351,21 +356,6 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 	return( result );
 }
 
-/* Set a named arg from a string.
- */
-static int
-vips_object_set_arg( VipsObject *object, const char *name, const char *value )
-{
-	GValue gvalue = { 0 };
-
-	g_value_init( &gvalue, G_TYPE_STRING );
-	g_value_set_string( &gvalue, value );
-	g_object_set_property( G_OBJECT( object ), name, &gvalue );
-	g_value_unset( &gvalue );
-
-	return( 0 );
-}
-
 static void *
 vips_object_set_required_test( VipsObject *object,
 	GParamSpec *pspec,
@@ -395,11 +385,9 @@ vips_call_argv_set_required( VipsOperation *operation, const char *value )
 		return( -1 );
 	}
 
-	/* If this arg needs a value that's a subtype of VipsObject, we can
-	 * use vips_object_from_string() to create it. Otherwise, just set as
-	 * a property.
-	 */
-
+	if( vips_object_set_argument_from_string( VIPS_OBJECT( operation ), 
+		pspec->name, value ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -410,17 +398,9 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 {
 	VipsOperation *operation = (VipsOperation *) data;
 
-	printf( "setting optional arg %s = %s\n", option_name, value );
-
-	/*
-	if( !vips_object_has_arg( VIPS_OBJECT( operation ), 
-		option_name, value ) ) {
-		g_set_error( error, "vips", -1, "bad argument" );
+	if( vips_object_set_argument_from_string( VIPS_OBJECT( operation ), 
+		option_name, value ) )
 		return( FALSE );
-	}
-	 */
-
-	vips_object_set_arg( VIPS_OBJECT( operation ), option_name, value );
 
 	return( TRUE );
 }
@@ -458,10 +438,11 @@ vips_call_options_add( VipsObject *object,
 GOptionGroup *
 vips_call_options( VipsOperation *operation )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( operation );
 	GOptionGroup *group;
 
-	group = g_option_group_new( VIPS_OBJECT( operation )->nickname, 
-		VIPS_OBJECT( operation )->description, 
+	group = g_option_group_new( object_class->nickname, 
+		object_class->description, 
 		_( "Show operation options" ),
 		operation,
 		NULL );
@@ -474,28 +455,25 @@ vips_call_options( VipsOperation *operation )
 
 /* Our main command-line entry point. Optional args should have been set by
  * the GOption parser already, see above.
+ *
+ * We don't create the operation, so we must not unref it. The caller must
+ * unref on error too.
  */
 int
 vips_call_argv( VipsOperation *operation, int argc, char **argv )
 {
 	int i;
 
-	g_assert( argc > 0 );
+	g_assert( argc >= 0 );
 
 	/* Now set required args from the rest of the command-line. 
 	 */
 	for( i = 1; i < argc; i++ )
-		if( vips_call_argv_set_required( operation, argv[i] ) ) {
-			g_object_unref( operation );
+		if( vips_call_argv_set_required( operation, argv[i] ) ) 
 			return( -1 );
-		}
 
-	if( vips_object_build( VIPS_OBJECT( operation ) ) ) {
-		g_object_unref( operation );
+	if( vips_object_build( VIPS_OBJECT( operation ) ) ) 
 		return( -1 );
-	}
-
-	g_object_unref( operation );
 
 	return( 0 );
 }

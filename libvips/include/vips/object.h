@@ -268,6 +268,8 @@ GType vips_object_get_type( void );
 
 void vips_object_class_install_argument( VipsObjectClass *,
 	GParamSpec *pspec, VipsArgumentFlags flags, guint offset );
+int vips_object_set_argument_from_string( VipsObject *object, 
+	const char *name, const char *value );
 
 typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );
 VipsObject *vips_object_new( GType type, 

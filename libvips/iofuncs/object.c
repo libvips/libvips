@@ -970,13 +970,62 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 
 /* Set a named arg from a string.
  */
-static int
-vips_object_set_arg( VipsObject *object, const char *name, const char *value )
+int
+vips_object_set_argument_from_string( VipsObject *object, 
+	const char *name, const char *value )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
 	GValue gvalue = { 0 };
 
-	g_value_init( &gvalue, G_TYPE_STRING );
-	g_value_set_string( &gvalue, value );
+	printf( "vips_object_set_argument_from_string: %s = %s\n", 
+		name, value );
+
+	pspec = g_object_class_find_property( G_OBJECT_CLASS( class ), name );
+	if( !pspec ) {
+		vips_error( "vips_object_set_argument_from_string",
+			_( "object %s has no argument %s" ),
+			G_OBJECT_TYPE_NAME( object ), name );
+		return( -1 );
+	}
+
+	argument_class = (VipsArgumentClass *)
+		vips__argument_table_lookup( class->argument_table, pspec );
+	argument_instance =
+		vips__argument_get_instance( argument_class, object );
+
+	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
+		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) {
+		VipsImage *image;
+		char *mode;
+
+		mode = (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ? 
+			"w" : "r";
+		if( !(image = vips_image_new_from_file( value, mode )) )
+			return( -1 );
+		g_value_init( &gvalue, G_TYPE_OBJECT );
+		g_value_set_object( &gvalue, image );
+	}
+	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
+		gboolean b;
+
+		g_value_init( &gvalue, G_TYPE_BOOLEAN );
+		b = TRUE;
+		if( value &&
+			(strcasecmp( value, "false" ) == 0 ||
+			strcasecmp( value, "no" ) == 0 ||
+			strcmp( value, "0" ) == 0) )
+			b = FALSE;
+		g_value_set_boolean( &gvalue, b );
+	}
+	else {
+		g_value_init( &gvalue, G_TYPE_STRING );
+		g_value_set_string( &gvalue, value );
+	}
+
 	g_object_set_property( G_OBJECT( object ), name, &gvalue );
 	g_value_unset( &gvalue );
 
@@ -1012,7 +1061,7 @@ vips_object_set_required( VipsObject *object, const char *value )
 		return( -1 );
 	}
 
-	if( vips_object_set_arg( object, pspec->name, value ) )
+	if( vips_object_set_argument_from_string( object, pspec->name, value ) )
 		return( -1 );
 
 	return( 0 );
@@ -1042,7 +1091,8 @@ vips_object_set_args( VipsObject *object, const char *p )
 			if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
 				string2, PATH_MAX )) )
 				return( -1 );
-			if( vips_object_set_arg( object, string, string2 ) )
+			if( vips_object_set_argument_from_string( object, 
+				string, string2 ) )
 				return( -1 );
 			if( !(p = vips__token_must( p, &token,
 				string2, PATH_MAX )) )

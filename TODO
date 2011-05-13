@@ -1,48 +1,27 @@
+- we seem to have code shared between object and operation:
+  vips_object_set_arg() and vips_object_set_required_test(), common this up
+
+  currently adding stuff to operation.c to set args from strings, with extra
+  logic for things like create image from filename ... useful for object.c
+  as well?
 
 - try:
 
-	vips add
+	$ vips add
+	VipsAdd (add), add two images
+	VipsOperation.add (left, right, out)
+	where:
+	   left :: VipsImage
+	   right :: VipsImage
+	   out :: VipsImage
+	check_required: required construct param left to VipsAdd not set
+	check_required: required construct param right to VipsAdd not set
 
-  get GLib-CRITICAL **: g_option_context_add_group: assertion `group->name !=
-  NULL' failed, we are not building the option group correctly
+  why don't we get an error for out not set?
 
 
 
-- add something to vips.c to let us call operations via VipsOperation
-
-  make optional args to operations into command-line switches
-
-  	vips add --saturated --expand=12 in1.v in2.v out.v
-
-  means
-
-  	vips_call("add", in1, in2, out, "saturated", TRUE, "expand", 12, NULL);
-
-  but how do we integrate this with GOption parsing?
-
-  perhaps the vips program should change, so
-
-  	vips --list all
-
-  becomes
-
-  	vips list all
-
-  ie. the various flags that performed actions should become "verbs"
-
-  this lets us delay option parsing until we have seen the "verb" part of the
-  command (which is always argv[1]) and we can build a custom GOptionEntry
-
-  new form:
-
-  	vips <action> [flags] [arguments]
-  
-
-  see vips_call_argv() in operation.c
-
-  how do we make argv strings into VipsImage? unclear
-
-  make something for Python as well
+- make something for Python as well
 
   wrap new API for C++
 
