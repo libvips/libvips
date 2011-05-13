@@ -45,6 +45,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -748,11 +749,22 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 {
 	int *result = (int *) a;
 
+	VIPS_DEBUG_MSG( "vips_object_check_required: %s\n", 
+		g_param_spec_get_name( pspec ) );
+	VIPS_DEBUG_MSG( "\trequired: %d\n", 
+		argument_class->flags & VIPS_ARGUMENT_REQUIRED );
+	VIPS_DEBUG_MSG( "\tconstruct: %d\n", 
+		argument_class->flags & VIPS_ARGUMENT_CONSTRUCT ); 
+	VIPS_DEBUG_MSG( "\tassigned: %d\n", 
+		argument_instance->assigned );
+
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		!argument_instance->assigned ) {
-		vips_error( "check_required",
-			_( "required construct param %s to %s not set" ),
+		vips_error( "VipsObject",
+			/* used as eg. "parameter out to VipsAdd not set".
+			 */
+			_( "parameter %s to %s not set" ),
 			g_param_spec_get_name( pspec ),
 			G_OBJECT_TYPE_NAME( object ) );
 		*result = -1;
@@ -986,8 +998,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	pspec = g_object_class_find_property( G_OBJECT_CLASS( class ), name );
 	if( !pspec ) {
-		vips_error( "vips_object_set_argument_from_string",
-			_( "object %s has no argument %s" ),
+		vips_error( "VipsObject", _( "object %s has no argument %s" ),
 			G_OBJECT_TYPE_NAME( object ), name );
 		return( -1 );
 	}
@@ -1000,14 +1011,32 @@ vips_object_set_argument_from_string( VipsObject *object,
 	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
 		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) {
 		VipsImage *image;
-		char *mode;
 
-		mode = (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ? 
-			"w" : "r";
-		if( !(image = vips_image_new_from_file( value, mode )) )
-			return( -1 );
 		g_value_init( &gvalue, G_TYPE_OBJECT );
-		g_value_set_object( &gvalue, image );
+
+		if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
+			if( !(image = vips_image_new_from_file( value, "w" )) )
+				return( -1 );
+
+			/* When we set an output image on an object, the image
+			 * will take a ref to the object. In other words, the
+			 * operation will stay alive until we unref all of
+			 * the output objects.
+			 *
+			 * For now, we leave the output image ref at 1 to
+			 * keep it alive. Perhaps we should capture and
+			 * return these refs somehow?
+			 */
+			g_value_set_object( &gvalue, image );
+		}
+		else {
+			if( !(image = vips_image_new_from_file( value, "r" )) )
+				return( -1 );
+
+			/* gvalue now owns the ref to image.
+			 */
+			g_value_take_object( &gvalue, image );
+		}
 	}
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean b;
@@ -1056,7 +1085,7 @@ vips_object_set_required( VipsObject *object, const char *value )
 
 	if( !(pspec = vips_argument_map( object,
 		vips_object_set_required_test, NULL, NULL )) ) {
-		vips_error( "vips_object_set_required",
+		vips_error( "VipsObject",
 			_( "no unset required arguments for %s" ), value );
 		return( -1 );
 	}
@@ -1106,15 +1135,15 @@ vips_object_set_args( VipsObject *object, const char *p )
 		/* Now must be a , or a ).
 		 */
 		if( token != VIPS_TOKEN_RIGHT && token != VIPS_TOKEN_COMMA ) {
-			vips_error( "set_args", "%s",
-				_( "not , or ) after parameter" ) );
+			vips_error( "VipsObject", 
+				"%s", _( "not , or ) after parameter" ) );
 			return( -1 );
 		}
 	} while( token != VIPS_TOKEN_RIGHT );
 
 	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
-		vips_error( "set_args", "%s",
-			_( "extra tokens after ')'" ) );
+		vips_error( "VipsObject", 
+			"%s", _( "extra tokens after ')'" ) );
 		return( -1 );
 	}
 
@@ -1151,8 +1180,8 @@ vips_object_new_from_string_set( VipsObject *object, void *a, void *b )
 	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
 		if( token == VIPS_TOKEN_LEFT &&
 			vips_object_set_args( object, p ) ) {
-			vips_error( "object_new", "%s",
-				_( "bad object arguments" ) );
+			vips_error( "VipsObject", 
+				"%s", _( "bad object arguments" ) );
 			return( object );
 		}
 	}
@@ -1358,7 +1387,7 @@ vips_class_map_concrete_all( GType type, VipsClassMap fn, void *a )
 			 * classes.
 			 */
 			if( !(class = g_type_class_ref( type )) ) {
-				vips_error( "vips_class_map_concrete_all",
+				vips_error( "VipsObject",
 					"%s", _( "unable to build class" ) );
 				return( NULL );
 			}
@@ -1396,14 +1425,14 @@ vips_class_find( const char *basename, const char *nickname )
 	GType base;
 
 	if( !(base = g_type_from_name( basename )) ) {
-		vips_error( "vips_class_find", 
+		vips_error( "VipsObject", 
 			_( "base class \"%s\" not found" ), basename ); 
 		return( NULL );
 	}
 
 	if( !(class = vips_class_map_concrete_all( base, 
 		(VipsClassMap) test_name, (void *) nickname )) ) {
-		vips_error( "vips_class_find", 
+		vips_error( "VipsObject", 
 			_( "class \"%s\" not found" ), nickname ); 
 		return( NULL );
 	}

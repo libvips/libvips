@@ -498,7 +498,7 @@ vips_allocate_input_array( VipsImage *image, ... )
 	/* Fill array.
 	 */
 	va_start( ap, image );
-	for( i = 0; i < n; i++ )
+	for( i = 0; i < n; i++ ) 
 		ar[i] = va_arg( ap, VipsImage * );
 	va_end( ap );
 	ar[n] = NULL;
@@ -603,6 +603,8 @@ vips_image_generate( VipsImage *image,
 {
         int res;
 
+	VIPS_DEBUG_MSG( "vips_image_generate: %p\n", image ); 
+
 	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 	if( !image->hint_set ) {
@@ -626,7 +628,7 @@ vips_image_generate( VipsImage *image,
 			image->start || 
 			image->stop ) {
                         vips_error( "VipsImage", 
-				"%s", _( "func already attached" ) );
+				"%s", _( "generate() called twice" ) );
                         return( -1 );
                 }
 
@@ -636,9 +638,8 @@ vips_image_generate( VipsImage *image,
                 image->client1 = a;
                 image->client2 = b;
  
-#ifdef DEBUG_IO
-                printf( "vips_image_generate: attaching partial callbacks\n" );
-#endif /*DEBUG_IO*/
+                VIPS_DEBUG_MSG( "vips_image_generate: "
+			"attaching partial callbacks\n" );
  
                 break;
  
@@ -652,7 +653,7 @@ vips_image_generate( VipsImage *image,
 			image->start || 
 			image->stop ) {
                         vips_error( "VipsImage", 
-				"%s", _( "func already attached" ) );
+				"%s", _( "generate() called twice" ) );
                         return( -1 );
                 }
 

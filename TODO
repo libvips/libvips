@@ -5,25 +5,23 @@
   logic for things like create image from filename ... useful for object.c
   as well?
 
-- try:
+  test booltest and imtest flags
 
-	$ vips add
-	VipsAdd (add), add two images
-	VipsOperation.add (left, right, out)
-	where:
-	   left :: VipsImage
-	   right :: VipsImage
-	   out :: VipsImage
-	check_required: required construct param left to VipsAdd not set
-	check_required: required construct param right to VipsAdd not set
 
-  why don't we get an error for out not set?
+
+
+- vips_object_set_argument_from_string() leaks output images, because it has
+  to, does this matter?
+
 
 
 
 - make something for Python as well
 
   wrap new API for C++
+
+
+- add etc. should sizealike as well :(
 
 
 

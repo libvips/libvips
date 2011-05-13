@@ -419,13 +419,14 @@ vips_call_options_add( VipsObject *object,
 		!argument_instance->assigned ) {
 		GOptionEntry entry[2];
 
-		entry[0].long_name = pspec->name;
-		entry[0].short_name = pspec->name[0];
+		entry[0].long_name = g_param_spec_get_name( pspec );
+		entry[0].short_name = g_param_spec_get_name( pspec )[0];
 		entry[0].flags = G_OPTION_FLAG_OPTIONAL_ARG;
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
-		entry[0].description = pspec->name;
-		entry[0].arg_description = pspec->name;
+		entry[0].description = g_param_spec_get_blurb( pspec );
+		entry[0].arg_description = 
+			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) );
 
 		entry[1].long_name = NULL;
 
@@ -468,7 +469,7 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 
 	/* Now set required args from the rest of the command-line. 
 	 */
-	for( i = 1; i < argc; i++ )
+	for( i = 0; i < argc; i++ )
 		if( vips_call_argv_set_required( operation, argv[i] ) ) 
 			return( -1 );
 
