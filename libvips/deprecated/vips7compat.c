@@ -657,6 +657,44 @@ im__bandalike( const char *domain,
 	return( 0 );
 }
 
+int
+im__sizealike_vec( VipsImage **in, VipsImage **out, int n )
+{
+	int i;
+	int width_max;
+	int height_max;
+
+	g_assert( n >= 1 );
+
+	width_max = in[0]->Xsize;
+	height_max = in[0]->Ysize;
+	for( i = 1; i < n; i++ ) {
+		width_max = VIPS_MAX( width_max, in[i]->Xsize );
+		height_max = VIPS_MAX( height_max, in[i]->Ysize );
+	}
+
+	for( i = 0; i < n; i++ )
+		if( im_embed( in[i], out[i], 0, 0, 0, width_max, height_max ) )
+			return( -1 );
+
+	return( 0 );
+}
+
+int
+im__sizealike( VipsImage *in1, VipsImage *in2, 
+	VipsImage *out1, VipsImage *out2 )
+{
+	IMAGE *in[2];
+	IMAGE *out[2];
+
+	in[0] = in1;
+	in[1] = in2;
+	out[0] = out1;
+	out[1] = out2;
+
+	return( im__sizealike_vec( in, out, 2 ) );
+}
+
 /* The common part of most binary arithmetic, relational and boolean
  * operators. We:
  *
@@ -664,6 +702,7 @@ im__bandalike( const char *domain,
  * - cast in1 and in2 up to a common format
  * - cast the common format to the output format with the supplied table
  * - equalise bands 
+ * - equalise size 
  * - run the supplied buffer operation passing one of the up-banded,
  *   up-casted and up-sized inputs as the first param
  */
@@ -673,41 +712,41 @@ im__arith_binary( const char *domain,
 	int format_table[10], 
 	im_wrapmany_fn fn, void *b )
 {
-	IMAGE *t[5];
+	IMAGE *t[7];
 
 	if( im_piocheck( in1, out ) || 
 		im_pincheck( in2 ) ||
 		im_check_bands_1orn( domain, in1, in2 ) ||
-		im_check_size_same( domain, in1, in2 ) ||
 		im_check_uncoded( domain, in1 ) ||
 		im_check_uncoded( domain, in2 ) )
 		return( -1 );
 
 	/* Cast our input images up to a common format and bands.
 	 */
-	if( im_open_local_array( out, t, 4, domain, "p" ) ||
+	if( im_open_local_array( out, t, 6, domain, "p" ) ||
 		im__formatalike( in1, in2, t[0], t[1] ) ||
-		im__bandalike( domain, t[0], t[1], t[2], t[3] ) )
+		im__bandalike( domain, t[0], t[1], t[2], t[3] ) ||
+		im__sizealike( t[2], t[3], t[4], t[5] ) )
 		return( -1 );
 
 	/* Generate the output.
 	 */
-	if( im_cp_descv( out, t[2], t[3], NULL ) )
+	if( im_cp_descv( out, t[4], t[5], NULL ) )
 		return( -1 );
 
 	/* What number of bands will we write? Same as up-banded input.
 	 */
-	out->Bands = t[2]->Bands;
+	out->Bands = t[4]->Bands;
 
 	/* What output type will we write? 
 	 */
-	out->BandFmt = format_table[t[2]->BandFmt];
+	out->BandFmt = format_table[t[4]->BandFmt];
 
 	/* And process! The buffer function gets one of the input images as a
 	 * sample.
 	 */
-	t[4] = NULL;
-	if( im_wrapmany( t + 2, out, fn, t[2], b ) )	
+	t[6] = NULL;
+	if( im_wrapmany( t + 4, out, fn, t[4], b ) )	
 		return( -1 );
 
 	return( 0 );

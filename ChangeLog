@@ -57,7 +57,7 @@
 - updated German translation (thanks Chris)
 - fixed typo in im_conv() overflow estimation which could cause errors
 - vips.c has new action syntax, knows about vips8 operations
-- add now has sizealike
+- add now has sizealike, retrofitted to old vips7 arith as well
 
 30/11/10 started 7.24.0
 - bump for new stable
