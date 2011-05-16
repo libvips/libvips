@@ -1,12 +1,6 @@
 - we seem to have code shared between object and operation:
   vips_object_set_arg() and vips_object_set_required_test(), common this up
 
-  currently adding stuff to operation.c to set args from strings, with extra
-  logic for things like create image from filename ... useful for object.c
-  as well?
-
-  test booltest and imtest flags
-
 
 
 

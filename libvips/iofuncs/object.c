@@ -269,6 +269,23 @@ vips_argument_map( VipsObject *object,
 	return( NULL );
 }
 
+/* Handy for vips_argument_map: look for a required arg.
+ */
+void *
+vips_argument_is_required( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!argument_instance->assigned )
+		return( pspec );
+
+	return( NULL );
+}
+
 static void *
 vips_argument_init2( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
@@ -1008,8 +1025,10 @@ vips_object_set_argument_from_string( VipsObject *object,
 	VipsArgumentInstance *argument_instance;
 	GValue gvalue = { 0 };
 
+#ifdef DEBUG
 	printf( "vips_object_set_argument_from_string: %s = %s\n", 
 		name, value );
+#endif /*DEBUG*/
 
 	pspec = g_object_class_find_property( G_OBJECT_CLASS( class ), name );
 	if( !pspec ) {
@@ -1076,21 +1095,6 @@ vips_object_set_argument_from_string( VipsObject *object,
 	return( 0 );
 }
 
-static void *
-vips_object_set_required_test( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
-{
-	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!argument_instance->assigned )
-		return( pspec );
-
-	return( NULL );
-}
-
 /* Set the first unassigned required arg to the string.
  */
 static int
@@ -1099,7 +1103,7 @@ vips_object_set_required( VipsObject *object, const char *value )
 	GParamSpec *pspec;
 
 	if( !(pspec = vips_argument_map( object,
-		vips_object_set_required_test, NULL, NULL )) ) {
+		vips_argument_is_required, NULL, NULL )) ) {
 		vips_error( "VipsObject",
 			_( "no unset required arguments for %s" ), value );
 		return( -1 );

@@ -250,6 +250,27 @@ vips_error_system( int err, const char *domain, const char *fmt, ... )
 }
 
 /**
+ * vips_error_g:
+ * @error: glib error pointer
+ *
+ * This function sets the glib error pointer from the vips error buffer and
+ * clears it. It's handy for returning errors to glib functions from vips.
+ *
+ * See also: g_set_error().
+ */
+void
+vips_error_g( GError **error )
+{
+	static GQuark vips_domain = 0;
+
+	if( !vips_domain ) 
+		vips_domain = g_quark_from_string( "libvips" );
+
+	g_set_error( error, vips_domain, -1, "%s", vips_error_buffer() );
+	vips_error_clear();
+}
+
+/**
  * vips_error_clear: 
  *
  * Clear and reset the error buffer. This is typically called after presentng

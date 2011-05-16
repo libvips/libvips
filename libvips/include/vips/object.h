@@ -168,6 +168,12 @@ typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
 
+void *vips_argument_is_required( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b );
+
 #define VIPS_TYPE_OBJECT (vips_object_get_type())
 #define VIPS_OBJECT( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), VIPS_TYPE_OBJECT, VipsObject ))

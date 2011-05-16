@@ -28,8 +28,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -81,12 +81,13 @@ vips_operation_print_arg( VipsObject *object, GParamSpec *pspec,
 
 		if( print->oftype ) 
 			vips_buf_appendf( buf, "   %s :: %s\n",
-				pspec->name,
-				g_type_name( pspec->value_type ) );
+				g_param_spec_get_name( pspec ), 
+				g_type_name( 
+					G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 		else {
 			if( print->n > 0 )
 				vips_buf_appends( buf, ", " );
-			vips_buf_appends( buf, pspec->name );
+			vips_buf_appends( buf, g_param_spec_get_name( pspec ) );
 		}
 
 		print->n += 1;
@@ -104,7 +105,8 @@ vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,
 	VipsArgument *argument = (VipsArgument *) argument_class;
 
 	printf( "   %s: offset = %d ", 
-		argument->pspec->name, argument_class->offset );
+		g_param_spec_get_name( argument->pspec ),
+		argument_class->offset );
 	if( argument_class->flags & VIPS_ARGUMENT_REQUIRED )
 		printf ("required " );
 	if( argument_class->flags & VIPS_ARGUMENT_CONSTRUCT )
@@ -220,7 +222,7 @@ vips_operation_set_valist (VipsOperation * operation,
 	   * for this class.
 	   */
 	  if (g_object_class_find_property (G_OBJECT_CLASS (class),
-					    pspec->name) == pspec)
+				  g_param_spec_get_name( pspec )) == pspec)
 	    {
 
 	      /* End of stuff copy-pasted from vips_argument_map().
@@ -246,13 +248,14 @@ vips_operation_set_valist (VipsOperation * operation,
 		    char *str;
 
 		    str = g_strdup_value_contents (&value);
-		    VIPS_DEBUG_MSG ("\t%s = %s\n", pspec->name, str);
+		    VIPS_DEBUG_MSG ("\t%s = %s\n", 
+				    g_param_spec_get_name( pspec ), str);
 		    g_free (str);
 		  }
 #endif /*VIPS_DEBUG */
 
 		  g_object_set_property (G_OBJECT (operation),
-					 pspec->name, &value);
+				  g_param_spec_get_name( pspec ), &value);
 		  g_value_unset (&value);
 		}
 	    }
@@ -356,21 +359,6 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 	return( result );
 }
 
-static void *
-vips_object_set_required_test( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
-{
-	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!argument_instance->assigned )
-		return( pspec );
-
-	return( NULL );
-}
-
 static int
 vips_call_argv_set_required( VipsOperation *operation, const char *value )
 {
@@ -379,17 +367,59 @@ vips_call_argv_set_required( VipsOperation *operation, const char *value )
 	/* Search for the first unset required argument.
 	 */
 	if( !(pspec = vips_argument_map( VIPS_OBJECT( operation ),
-		vips_object_set_required_test, NULL, NULL )) ) {
+		vips_argument_is_required, NULL, NULL )) ) {
 		vips_error( "VipsOperation",
 			_( "no unset required arguments for %s" ), value );
 		return( -1 );
 	}
 
 	if( vips_object_set_argument_from_string( VIPS_OBJECT( operation ), 
-		pspec->name, value ) )
+		g_param_spec_get_name( pspec ), value )  )
 		return( -1 );
 
 	return( 0 );
+}
+
+static void *
+vips_call_char_option( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	const char *name = (const char *) a;
+	const char *value = (const char *) b;
+
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!argument_instance->assigned &&
+		g_param_spec_get_name( pspec )[0] == name[0] ) 
+		if( vips_object_set_argument_from_string( object, 
+			g_param_spec_get_name( pspec ), value ) )
+			return( object );
+
+	return( NULL );
+}
+
+static void *
+vips_call_name_option( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	const char *name = (const char *) a;
+	const char *value = (const char *) b;
+
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!argument_instance->assigned &&
+		strcmp( g_param_spec_get_name( pspec ), name  ) == 0 ) 
+		if( vips_object_set_argument_from_string( object, 
+			g_param_spec_get_name( pspec ), value ) )
+			return( object );
+
+	return( NULL );
 }
 
 static gboolean
@@ -397,13 +427,35 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 	gpointer data, GError **error )
 {
 	VipsOperation *operation = (VipsOperation *) data;
+	const char *name;
 
 	VIPS_DEBUG_MSG( "vips_call_options_set: %s = %s\n", 
 		option_name, value );
 
-	if( vips_object_set_argument_from_string( VIPS_OBJECT( operation ), 
-		option_name, value ) )
-		return( FALSE );
+	/* Remove any leading "--" from the option name.
+	 */
+	for( name = option_name; *name == '-'; name++ )
+		;
+
+	/* If this is a single-character name, find the first unset pspec with
+	 * that initial. Otherwise, search for a spec of that nmae.
+	 */
+	if( strlen( name ) == 1 ) {
+		if( vips_argument_map( VIPS_OBJECT( operation ),
+			vips_call_char_option, 
+			(void *) name, (void *) value ) ) {
+			vips_error_g( error );
+			return( FALSE );
+		}
+	}
+	else {
+		if( vips_argument_map( VIPS_OBJECT( operation ),
+			vips_call_name_option, 
+			(void *) name, (void *) value ) ) {
+			vips_error_g( error );
+			return( FALSE );
+		}
+	}
 
 	return( TRUE );
 }
@@ -442,22 +494,11 @@ vips_call_options_add( VipsObject *object,
 	return( NULL );
 }
 
-GOptionGroup *
-vips_call_options( VipsOperation *operation )
+void
+vips_call_options( GOptionGroup *group, VipsOperation *operation )
 {
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( operation );
-	GOptionGroup *group;
-
-	group = g_option_group_new( object_class->nickname, 
-		object_class->description, 
-		_( "Show operation options" ),
-		operation,
-		NULL );
-
 	(void) vips_argument_map( VIPS_OBJECT( operation ),
 		vips_call_options_add, group, NULL );
-
-	return( group );
 }
 
 /* Our main command-line entry point. Optional args should have been set by

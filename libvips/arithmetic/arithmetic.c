@@ -71,7 +71,9 @@ G_DEFINE_ABSTRACT_TYPE( VipsArithmetic, vips_arithmetic, VIPS_TYPE_OPERATION );
 static int
 vips_arithmetic_build( VipsObject *object )
 {
+#ifdef DEBUG
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
+#endif /*DEBUG*/
 
 	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->build( object ) )
 		return( -1 );
@@ -82,10 +84,12 @@ vips_arithmetic_build( VipsObject *object )
 	 * At the moment we _generate() in binary.c and unary.c.
 	 */
 
+#ifdef DEBUG
 	printf( "vips_arithmetic_build: booltest = %d\n", 
 		arithmetic->booltest );
 	printf( "vips_arithmetic_build: imtest = %p\n", 
 		arithmetic->imtest );
+#endif /*DEBUG*/
 
 	return( 0 );
 }

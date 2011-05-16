@@ -66,8 +66,8 @@
 /*
 #define DEBUG_FATAL
 #define DEBUG_LEAK
- */
 #define DEBUG
+ */
 
 /* Need to disable these sometimes.
 #undef DEBUG_FATAL
@@ -99,7 +99,7 @@ static GOptionEntry main_option[] = {
 		N_( "load PLUGIN" ), 
 		N_( "PLUGIN" ) },
 	{ "version", 'v', 0, G_OPTION_ARG_NONE, &main_option_version, 
-		N_( "print im_version_string" ), NULL },
+		N_( "print version" ), NULL },
 	{ NULL }
 };
 
@@ -962,6 +962,20 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 		}
 }
 
+static GOptionGroup *
+add_main_group( GOptionContext *context, VipsOperation *user_data )
+{
+	GOptionGroup *main_group;
+
+	main_group = g_option_group_new( NULL, NULL, NULL, user_data, NULL );
+	g_option_group_add_entries( main_group, main_option );
+	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
+	g_option_context_set_main_group( context, main_group );
+	g_option_context_add_group( context, im_get_option_group() );
+
+	return( main_group );
+}
+
 /* VIPS universal main program. 
  */
 int
@@ -969,9 +983,10 @@ main( int argc, char **argv )
 {
 	char *action;
 	GOptionContext *context;
+	GOptionGroup *main_group;
 	VipsOperation *operation;
 	im_function *fn;
-	int i;
+	int i, j;
 	gboolean handled;
 
 	if( im_init_world( argv[0] ) )
@@ -996,69 +1011,61 @@ main( int argc, char **argv )
 	fprintf( stderr, "*** DEBUG_LEAK: will leak test on exit\n" );
 #endif /*!DEBUG_LEAK*/
 
-	/* We generate part of our g_options dynamically depending on the
-	 * action, so we can't parse our args before getting the action. So
-	 * therefore the action must always be the first argument.
+	/* Try to find our action.
 	 */
+	action = NULL;
 
 	/* Should we try to run the thing we are named as?
 	 */
-	if( !im_isprefix( "vips", g_get_prgname() ) ) {
+	if( !im_isprefix( "vips", g_get_prgname() ) ) 
 		action = argv[0];
 
-		argv += 1;
-		argc -= 1;
-	}
-	else {
-		action = argv[1];
-
-		/* "Just "vips" with no args.
+	if( !action ) {
+		/* Look for the first non-option argument, if any, and make 
+		 * that our action.
 		 */
-		if( !action )
-			return( 0 );
+		for( i = 1; i < argc; i++ )
+			if( argv[i][0] != '-' ) {
+				action = argv[i];
 
-		argv += 2;
-		argc -= 2;
+				/* Remove the action from argv.
+				 */
+				for( j = i; j < argc; j++ )
+					argv[j] = argv[j + 1];
+				argc -= 1;
+
+				break;
+			}
 	}
-
 
 	context = g_option_context_new( _( "[ACTION] [OPTIONS] [PARAMETERS] - "
 		"VIPS driver program" ) );
-
-	g_option_context_add_main_entries( context,
-		main_option, GETTEXT_PACKAGE );
-	g_option_context_add_group( context, im_get_option_group() );
-
 	handled = FALSE;
 
-	/* Could be one of our actions.
+	/* Could be one of our built-in actions.
 	 */
-	for( i = 0; i < VIPS_NUMBER( actions ); i++ )
-		if( strcmp( action, actions[i].name ) == 0 ) {
-			GOptionGroup *group;
+	if( action ) 
+		for( i = 0; i < VIPS_NUMBER( actions ); i++ )
+			if( strcmp( action, actions[i].name ) == 0 ) {
+				main_group = add_main_group( context, NULL );
+				g_option_group_add_entries( main_group, 
+					actions[i].group );
+				parse_options( context, &argc, argv );
 
-			group = g_option_group_new( actions[i].name,
-				"vips action", "show action options",
-				NULL, NULL ); 
-			g_option_group_add_entries( group, 
-				actions[i].group );
-			g_option_context_add_group( context, group );
-			parse_options( context, &argc, argv );
+				if( actions[i].action( argc - 1, argv + 1 ) ) 
+					error_exit( "%s", action );
 
-			if( actions[i].action( argc, argv ) ) 
-				error_exit( "%s", action );
-
-			handled = TRUE;
-			break;
-		}
+				handled = TRUE;
+				break;
+			}
 
 	/* Could be a vips7 im_function.
 	 */
-	if( !handled && (fn = im_find_function( action )) ) {
+	if( action && !handled && (fn = im_find_function( action )) ) {
 		parse_options( context, &argc, argv );
 
-		if( im_run_command( action, argc, argv ) ) {
-			if( argc == 0 ) 
+		if( im_run_command( action, argc - 1, argv + 1 ) ) {
+			if( argc == 1 ) 
 				usage( fn );
 			else
 				error_exit( NULL );
@@ -1070,20 +1077,17 @@ main( int argc, char **argv )
 
 	/* Could be a vips8 VipsOperation.
 	 */
-	if( !handled && (operation = vips_operation_new( action )) ) {
-		GOptionGroup *group;
-
-		if( !(group = vips_call_options( operation )) )
-			error_exit( NULL );
-		g_option_context_add_group( context, group );
+	if( action && !handled && (operation = vips_operation_new( action )) ) {
+		main_group = add_main_group( context, operation );
+		vips_call_options( main_group, operation );
 		parse_options( context, &argc, argv );
-		
-		if( vips_call_argv( operation, argc, argv ) ) {
-			if( argc == 0 ) {
+
+		if( vips_call_argv( operation, argc - 1, argv + 1 ) ) {
+			if( argc == 1 ) {
 				char *help;
 
 				help = g_option_context_get_help( context, 
-					FALSE, group );
+					FALSE, NULL );
 				printf( "%s", help );
 				vips_object_print( VIPS_OBJECT( operation ) );
 				error_exit( NULL );
@@ -1099,6 +1103,7 @@ main( int argc, char **argv )
 	im_error_clear();
 
 	if( !handled ) {
+		(void) add_main_group( context, NULL );
 		parse_options( context, &argc, argv );
 
 		if( argc > 1 ) 
