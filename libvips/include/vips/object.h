@@ -268,6 +268,7 @@ void vips_object_preclose( VipsObject *object );
 int vips_object_build( VipsObject *object );
 void vips_object_print_class( VipsObjectClass *klass );
 void vips_object_print( VipsObject *object );
+void vips_object_print_name( VipsObject *object );
 gboolean vips_object_sanity( VipsObject *object );
 
 GType vips_object_get_type( void );

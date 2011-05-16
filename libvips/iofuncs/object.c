@@ -85,7 +85,8 @@ vips_object_preclose( VipsObject *object )
 
 #ifdef DEBUG
 		printf( "vips_object_preclose: " );
-		vips_object_print( object );
+		vips_object_print_name( object );
+		printf( "\n" );
 #endif /*DEBUG*/
 
 		g_signal_emit( object, vips_object_signals[SIG_PRECLOSE], 0 );
@@ -100,7 +101,8 @@ vips_object_close( VipsObject *object )
 
 #ifdef DEBUG
 		printf( "vips_object_close: " );
-		vips_object_print( object );
+		vips_object_print_name( object );
+		printf( "\n" );
 #endif /*DEBUG*/
 
 		g_signal_emit( object, vips_object_signals[SIG_CLOSE], 0 );
@@ -115,7 +117,8 @@ vips_object_postclose( VipsObject *object )
 
 #ifdef DEBUG
 		printf( "vips_object_postclose: " );
-		vips_object_print( object );
+		vips_object_print_name( object );
+		printf( "\n" );
 #endif /*DEBUG*/
 
 		g_signal_emit( object, vips_object_signals[SIG_POSTCLOSE], 0 );
@@ -129,7 +132,8 @@ vips_object_build( VipsObject *object )
 
 #ifdef DEBUG
 	printf( "vips_object_build: " );
-	vips_object_print( object );
+	vips_object_print_name( object );
+	printf( "\n" );
 #endif /*DEBUG*/
 
 	return( object_class->build( object ) );
@@ -157,6 +161,12 @@ vips_object_print( VipsObject *object )
 	printf( "%s\n", vips_buf_all( &buf ) );
 }
 
+void
+vips_object_print_name( VipsObject *object )
+{
+	printf( "%s (%p)", G_OBJECT_TYPE_NAME( object ), object );
+}
+
 gboolean
 vips_object_sanity( VipsObject *object )
 {
@@ -167,8 +177,8 @@ vips_object_sanity( VipsObject *object )
 	class->sanity( object, &buf );
 	if( !vips_buf_is_empty( &buf ) ) {
 		printf( "sanity failure: " );
-		vips_object_print( object );
-		printf( "%s\n", vips_buf_all( &buf ) );
+		vips_object_print_name( object );
+		printf( " %s\n", vips_buf_all( &buf ) );
 	}
 
 	return( TRUE );
@@ -339,7 +349,7 @@ vips_object_clear_object( VipsObject *object, GParamSpec *pspec )
 		if( argument_class->flags & VIPS_ARGUMENT_INPUT ) {
 #ifdef DEBUG_REF
 			printf( "vips_object_clear_object: vips object: " );
-			vips_object_print( object );
+			vips_object_print_name( object );
 			printf( "  no longer refers to gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME( *member ), *member );
 			printf( "  count down to %d\n",
@@ -355,7 +365,7 @@ vips_object_clear_object( VipsObject *object, GParamSpec *pspec )
 			printf( "vips_object_clear_object: gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME( *member ), *member );
 			printf( "  no longer refers to vips object: " );
-			vips_object_print( object );
+			vips_object_print_name( object );
 			printf( "  count down to %d\n",
 				G_OBJECT( object )->ref_count - 1 );
 #endif /*DEBUG_REF*/
@@ -389,7 +399,7 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 {
 #ifdef DEBUG
 	printf( "vips_object_dispose_argument: " );
-	vips_object_print( object );
+	vips_object_print_name( object );
 	printf( ".%s\n", pspec->name );
 #endif /*DEBUG*/
 
@@ -425,7 +435,8 @@ vips_object_dispose( GObject *gobject )
 
 #ifdef DEBUG
 	printf( "vips_object_dispose: " );
-	vips_object_print( object );
+	vips_object_print_name( object );
+	printf( "\n" );
 #endif /*DEBUG*/
 
 	/* Our subclasses should have already called this. Run it again, just
@@ -433,8 +444,9 @@ vips_object_dispose( GObject *gobject )
 	 */
 	if( !object->preclose ) {
 #ifdef VIPS_DEBUG
-		printf( "vips_object_dispose: no vips_object_preclose()\n" );
-		vips_object_print( VIPS_OBJECT( gobject ) );
+		printf( "vips_object_dispose: no vips_object_preclose() " );
+		vips_object_print_name( VIPS_OBJECT( gobject ) );
+		printf( "\n" );
 #endif /*VIPS_DEBUG*/
 
 		vips_object_preclose( object );
@@ -455,7 +467,8 @@ vips_object_finalize( GObject *gobject )
 
 #ifdef DEBUG
 	printf( "vips_object_finalize: " );
-	vips_object_print( object );
+	vips_object_print_name( object );
+	printf( "\n" );
 #endif /*DEBUG*/
 
 	vips_object_close( object );
@@ -501,7 +514,7 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 		if( argument_class->flags & VIPS_ARGUMENT_INPUT ) {
 #ifdef DEBUG_REF
 			printf( "vips_object_set_object: vips object: " );
-			vips_object_print( object );
+			vips_object_print_name( object );
 			printf( "  refers to gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME( *member ), *member );
 			printf( "  count up to %d\n",
@@ -517,7 +530,7 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 			printf( "vips_object_set_object: gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME( *member ), *member );
 			printf( "  refers to vips object: " );
-			vips_object_print( object );
+			vips_object_print_name( object );
 			printf( "  count up to %d\n",
 				G_OBJECT (object)->ref_count );
 #endif /*DEBUG_REF*/
@@ -558,7 +571,7 @@ vips_object_set_property( GObject *gobject,
 
 	str_value = g_strdup_value_contents( value );
 	printf( "vips_object_set_property: " );
-	vips_object_print( object );
+	vips_object_print_name( object );
 	printf( ".%s = %s\n", g_param_spec_get_name( pspec ), str_value );
 	g_free( str_value );
 }
@@ -830,7 +843,8 @@ vips_object_real_rewind( VipsObject *object )
 {
 #ifdef DEBUG
 	printf( "vips_object_rewind\n" );
-	vips_object_print( object );
+	vips_object_print_name( object );
+	printf( "\n" );
 #endif /*DEBUG*/
 
 	g_object_run_dispose( G_OBJECT( object ) );
@@ -938,7 +952,8 @@ vips_object_init( VipsObject *object )
 {
 #ifdef DEBUG
 	printf( "vips_object_init: " );
-	vips_object_print( object );
+	vips_object_print_name( object );
+	printf( "\n" );
 #endif /*DEBUG*/
 
 	g_mutex_lock( vips__object_all_lock );
@@ -1471,7 +1486,8 @@ vips_object_unref( VipsObject *obj )
 static void *
 vips_object_print_all_cb( VipsObject *object )
 {
-	vips_object_print( object );
+	vips_object_print_name( object );
+	printf( "\n" );
 
 	return( NULL );
 }

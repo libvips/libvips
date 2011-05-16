@@ -13,6 +13,9 @@
 - vips_object_set_argument_from_string() leaks output images, because it has
   to, does this matter?
 
+  we need a functional model for the new API ... it should return the new
+  objects, then we wouldn't leak and we could do memoization as well
+
 
 
 

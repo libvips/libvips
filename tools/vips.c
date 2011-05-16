@@ -67,6 +67,7 @@
 #define DEBUG_FATAL
 #define DEBUG_LEAK
  */
+#define DEBUG
 
 /* Need to disable these sometimes.
 #undef DEBUG_FATAL
@@ -921,6 +922,12 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 {
 	GError *error = NULL;
 	int i, j;
+
+#ifdef DEBUG
+	printf( "parse_options:\n" );
+	for( i = 0; i < *argc; i++ )
+		printf( "%d) %s\n", i, argv[i] );
+#endif /*DEBUG*/
 
 	if( !g_option_context_parse( context, argc, &argv, &error ) ) {
 		if( error ) {

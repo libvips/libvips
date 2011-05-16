@@ -28,8 +28,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -398,6 +398,9 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 {
 	VipsOperation *operation = (VipsOperation *) data;
 
+	VIPS_DEBUG_MSG( "vips_call_options_set: %s = %s\n", 
+		option_name, value );
+
 	if( vips_object_set_argument_from_string( VIPS_OBJECT( operation ), 
 		option_name, value ) )
 		return( FALSE );
@@ -429,6 +432,9 @@ vips_call_options_add( VipsObject *object,
 			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) );
 
 		entry[1].long_name = NULL;
+
+		VIPS_DEBUG_MSG( "vips_call_options_add: adding %s\n",
+			g_param_spec_get_name( pspec ) );
 
 		g_option_group_add_entries( group, &entry[0] );
 	}
@@ -466,6 +472,15 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	int i;
 
 	g_assert( argc >= 0 );
+
+#ifdef VIPS_DEBUG
+	printf( "vips_call_argv: " );
+	vips_object_print_name( VIPS_OBJECT( operation ) );
+	printf( "\n" );
+	for( i = 0; i < argc; i++ )
+		printf( "%d) %s\n", i, argv[i] );
+#endif /*VIPS_DEBUG*/
+
 
 	/* Now set required args from the rest of the command-line. 
 	 */
