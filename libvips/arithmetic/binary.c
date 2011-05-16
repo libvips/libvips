@@ -2,6 +2,8 @@
  *
  * 13/3/11
  * 	- argh, forgot to make a private array for the inputs
+ * 16/5/11
+ * 	- added sizealike
  */
 
 /*
@@ -148,6 +150,44 @@ vips__formatalike( VipsImage *in1, VipsImage *in2,
 	return( vips__formatalike_vec( in, out, 2 ) );
 }
 
+int
+vips__sizealike_vec( VipsImage **in, VipsImage **out, int n )
+{
+	int i;
+	int width_max;
+	int height_max;
+
+	g_assert( n >= 1 );
+
+	width_max = in[0]->Xsize;
+	height_max = in[0]->Ysize;
+	for( i = 1; i < n; i++ ) {
+		width_max = VIPS_MAX( width_max, in[i]->Xsize );
+		height_max = VIPS_MAX( height_max, in[i]->Ysize );
+	}
+
+	for( i = 0; i < n; i++ )
+		if( im_embed( in[i], out[i], 0, 0, 0, width_max, height_max ) )
+			return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__sizealike( VipsImage *in1, VipsImage *in2, 
+	VipsImage *out1, VipsImage *out2 )
+{
+	IMAGE *in[2];
+	IMAGE *out[2];
+
+	in[0] = in1;
+	in[1] = in2;
+	out[0] = out1;
+	out[1] = out2;
+
+	return( vips__sizealike_vec( in, out, 2 ) );
+}
+
 /* Make an n-band image. Input 1 or n bands.
  */
 int
@@ -260,7 +300,7 @@ vips_binary_build( VipsObject *object )
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_GET_CLASS( arithmetic ); 
 	VipsBinary *binary = VIPS_BINARY( object );
 
-	VipsImage *t[4];
+	VipsImage *t[6];
 	VipsImage **arry;
 
 	if( VIPS_OBJECT_CLASS( vips_binary_parent_class )->build( object ) )
@@ -270,21 +310,21 @@ vips_binary_build( VipsObject *object )
 		vips_image_pio_input( binary->right ) || 
 		vips_image_pio_output( arithmetic->output ) || 
 		vips_check_bands_1orn( domain, binary->left, binary->right ) ||
-		vips_check_size_same( domain, binary->left, binary->right ) ||
 		vips_check_uncoded( domain, binary->left ) ||
 		vips_check_uncoded( domain, binary->right ) )
 		return( -1 );
 
-	if( vips_image_new_array( object, t, 4 ) )
+	if( vips_image_new_array( object, t, 6 ) )
 		return( -1 );
 
 	/* Cast our input images up to a common format and bands.
 	 */
 	if( vips__formatalike( binary->left, binary->right, t[0], t[1] ) ||
-		vips__bandalike( domain, t[0], t[1], t[2], t[3] ) )
+		vips__bandalike( domain, t[0], t[1], t[2], t[3] ) ||
+		vips__sizealike( t[2], t[3], t[4], t[5] ) )
 		return( -1 );
-	binary->left_processed = t[2];
-	binary->right_processed = t[3];
+	binary->left_processed = t[4];
+	binary->right_processed = t[5];
 	if( !(arry = vips_allocate_input_array( arithmetic->output, 
 		binary->left_processed, binary->right_processed, NULL )) )
 		return( -1 );
@@ -297,12 +337,11 @@ vips_binary_build( VipsObject *object )
 		vips_image_copy_fields_array( arithmetic->output, arry ) )
 		return( -1 );
 
-	arithmetic->output->Bands = t[2]->Bands;
-	arithmetic->output->BandFmt = aclass->format_table[t[2]->BandFmt];
+	arithmetic->output->Bands = t[4]->Bands;
+	arithmetic->output->BandFmt = aclass->format_table[t[4]->BandFmt];
 
 	if( vips_image_generate( arithmetic->output,
-		vips_start_many, vips_binary_process_region, 
-			vips_stop_many, 
+		vips_start_many, vips_binary_process_region, vips_stop_many, 
 		arry, binary ) )
 		return( -1 );
 
