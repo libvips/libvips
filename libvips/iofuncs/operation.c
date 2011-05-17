@@ -476,7 +476,8 @@ vips_call_options_add( VipsObject *object,
 
 		entry[0].long_name = g_param_spec_get_name( pspec );
 		entry[0].short_name = g_param_spec_get_name( pspec )[0];
-		entry[0].flags = G_OPTION_FLAG_OPTIONAL_ARG;
+		if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
+			entry[0].flags = G_OPTION_FLAG_NO_ARG;
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
 		entry[0].description = g_param_spec_get_blurb( pspec );
