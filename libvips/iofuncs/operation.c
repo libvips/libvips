@@ -481,8 +481,11 @@ vips_call_options_add( VipsObject *object,
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
 		entry[0].description = g_param_spec_get_blurb( pspec );
-		entry[0].arg_description = 
-			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) );
+		if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
+			entry[0].arg_description = NULL;
+		else
+			entry[0].arg_description = 
+				g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) );
 
 		entry[1].long_name = NULL;
 
