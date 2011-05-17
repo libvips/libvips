@@ -141,9 +141,12 @@ static int bandfmt_remainder[10] = {
  * @out: output #IMAGE
  *
  * This operation calculates @in1 % @in2 (remainder after division) and writes 
- * the result to @out. The images must be the same size. They may have any 
+ * the result to @out. The images may have any 
  * non-complex format. For float formats, im_remainder() calculates @in1 -
  * @in2 * floor (@in1 / @in2).
+ *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
  *
  * If the number of bands differs, one of the images 
  * must have one band. In this case, an n-band image is formed from the 

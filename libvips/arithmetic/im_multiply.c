@@ -158,7 +158,9 @@ static int bandfmt_multiply[10] = {
  * @out: output #IMAGE
  *
  * This operation calculates @in1 * @in2 and writes the result to @out. 
- * The images must be the same size. They may have any format. 
+ *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
  *
  * If the number of bands differs, one of the images 
  * must have one band. In this case, an n-band image is formed from the 

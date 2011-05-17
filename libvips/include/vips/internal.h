@@ -137,6 +137,10 @@ int im__bandalike( const char *domain,
 	VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
 int im__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int im__formatalike( VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
+int im__sizealike_vec( VipsImage **in, VipsImage **out, int n );
+int im__sizealike( VipsImage *in1, VipsImage *in2, 
+	VipsImage *out1, VipsImage *out2 );
+
 int im__arith_binary( const char *domain, 
 	VipsImage *in1, VipsImage *in2, VipsImage *out, 
 	int format_table[10], 

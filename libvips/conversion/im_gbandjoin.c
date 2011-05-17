@@ -20,6 +20,8 @@
  * 	- works for RAD coding too
  * 27/1/10
  * 	- formatalike inputs
+ * 17/5/11
+ * 	- sizealike inputs
  */
 
 /*
@@ -67,6 +69,7 @@
  */
 typedef struct joins {
 	int n;			/* Number of input images */
+	IMAGE **t;		/* Array of temp images */
 	IMAGE **in;		/* Array of input images, NULL-terminated */
 	int *is;		/* An int for SIZEOF_PEL() for each image */
 } Join;
@@ -82,14 +85,17 @@ join_new( IMAGE *out, IMAGE **in, int n )
 	if( !(join = IM_NEW( out, Join )) )
 		return( NULL );
 	join->n = n;
-	if( !(join->in = IM_ARRAY( out, n + 1, IMAGE * )) || 
+	if( !(join->t = IM_ARRAY( out, n, IMAGE * )) || 
+		!(join->in = IM_ARRAY( out, n + 1, IMAGE * )) || 
 		!(join->is = IM_ARRAY( out, n, int )) ) 
 		return( NULL );
 
 	/* Cast inputs up to a common format.
 	 */
-	if( im_open_local_array( out, join->in, n, "im_gbandjoin", "p" ) ||
-		im__formatalike_vec( in, join->in, n ) )
+	if( im_open_local_array( out, join->t, n, "im_gbandjoin", "p" ) ||
+		im_open_local_array( out, join->in, n, "im_gbandjoin", "p" ) ||
+		im__formatalike_vec( in, join->t, n ) ||
+		im__sizealike_vec( join->t, join->in, n ) )
 		return( NULL );
 
 	for( i = 0; i < n; i++ ) 
@@ -166,7 +172,9 @@ join_bands( REGION *or, void *seq, void *a, void *b )
  * bands, with the first n coming from the first image and the last m
  * from the second. 
  *
- * The images must be the same size. 
+ * If the images differ in size, the smaller images are enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
  * The input images are cast up to the smallest common type (see table 
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>).
@@ -197,7 +205,6 @@ im_gbandjoin( IMAGE **in, IMAGE *out, int n )
 		return( -1 );
 	for( i = 0; i < n; i++ ) 
 		if( im_pincheck( in[i] ) ||
-			im_check_size_same( "im_gbandjoin", in[i], in[0] ) ||
 			im_check_coding_same( "im_gbandjoin", in[i], in[0] ) )
 			return( -1 );
 
@@ -235,7 +242,9 @@ im_gbandjoin( IMAGE **in, IMAGE *out, int n )
  * bands, with the first n coming from the first image and the last m
  * from the second. 
  *
- * The images must be the same size. 
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
  * The two input images are cast up to the smallest common type (see table 
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>).

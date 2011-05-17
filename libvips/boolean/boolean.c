@@ -144,8 +144,8 @@ BINARY_BUFFER( AND, & )
  * @out: output #IMAGE
  *
  * This operation calculates @in1 & @in2 and writes the result to @out. 
- * The images must be the same size. They may have any format. They may differ
- * in their number of bands, see above.
+ * The images may have any format. They may differ
+ * in their number of bands, see above. They may differ in size, see above.
  *
  * See also: im_orimage().
  *
@@ -169,8 +169,8 @@ BINARY_BUFFER( OR, | )
  * @out: output #IMAGE
  *
  * This operation calculates @in1 | @in2 and writes the result to @out. 
- * The images must be the same size. They may have any format. They may differ
- * in their number of bands, see above.
+ * The images may have any format. They may differ
+ * in their number of bands, see above. They may differ in size, see above.
  *
  * See also: im_eorimage().
  *
@@ -194,8 +194,8 @@ BINARY_BUFFER( EOR, ^ )
  * @out: output #IMAGE
  *
  * This operation calculates @in1 ^ @in2 and writes the result to @out. 
- * The images must be the same size. They may have any format. They may differ
- * in their number of bands, see above.
+ * The images may have any format. They may differ
+ * in their number of bands, see above. They may differ in size, see above.
  *
  * See also: im_eorimage_vec(), im_andimage().
  *

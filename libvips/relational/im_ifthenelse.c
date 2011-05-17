@@ -18,6 +18,8 @@
  * 25/6/10
  * 	- let the conditional image be any format by adding a (!=0) if
  * 	  necessary
+ * 17/5/11
+ * 	- added sizealike
  */
 
 /*
@@ -198,7 +200,8 @@ ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
  *
  * Images @a and @b are cast up to the smallest common format.
  *
- * Images @a and @b must match exactly in size.
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
  *
  * See also: im_blend(), im_equal().
  *
@@ -207,9 +210,9 @@ ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 int
 im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 {
-	IMAGE *t[7];
+	IMAGE *t[9];
 
-	if( im_open_local_array( out, t, 7, "im_ifthenelse", "p" ) )
+	if( im_open_local_array( out, t, 9, "im_ifthenelse", "p" ) )
 		return( -1 );
 
 	/* Make a and b match in bands and format. Don't make c match: we
@@ -219,16 +222,23 @@ im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 		im__bandalike( "im_ifthenelse", t[0], t[1], t[2], t[3] ) )
 		return( -1 );
 
+	/* All 3 must match in size.
+	 */
+	t[4] = c;
+	if( im__sizealike_vec( t + 2, t + 5, 3 ) )
+		return( -1 );
+	c = t[5];
+
 	/* If c is not uchar, do (!=0) to make a uchar image.
 	 */
 	if( c->BandFmt != IM_BANDFMT_UCHAR ) {
-		if( im_notequalconst( c, t[4], 0 ) )
+		if( im_notequalconst( c, t[8], 0 ) )
 			return( -1 );
 
-		c = t[4];
+		c = t[8];
 	}
 
-	if( ifthenelse( c, t[2], t[3], out ) )
+	if( ifthenelse( c, t[6], t[7], out ) )
 		return( -1 );
 
 	return( 0 );

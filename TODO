@@ -1,5 +1,3 @@
-- old arith now does sizealike, add to bool etc. as well
-
 
 - vips_object_set_argument_from_string() leaks output images, because it has
   to, does this matter?
@@ -20,6 +18,8 @@
 
 
 - make something for Python as well
+
+  use ctypes and not swig so we get an easy Win version
 
   wrap new API for C++
 

@@ -54,7 +54,7 @@
  * They are useful for combining the results of
  * the relational and morphological functions.
  * All will work with 
- * images of any type or any mixture of types of any size and of any number 
+ * images of any type or any mixture of types, of any size and of any number 
  * of bands.
  *
  * For binary operations, if the number of bands differs, one of the images 
@@ -66,10 +66,11 @@
  * im_andimage_vec(), you can mix single-element arrays or single-band images
  * freely.
  *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
  * The output type is the same as the input type for integer types. Float and
  * complex types are cast to signed int.
- *
- * For binary operations on pairs of images, the images must match in size.
  *
  * You might think im_andimage() would be called "im_and", but that causes
  * problems when we try and make a C++ binding and drop the "im_" prefix.
