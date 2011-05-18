@@ -192,7 +192,7 @@ im_init( const char *filename )
 {
 	VipsImage *image;
 
-	image = vips_image_new( "p" );
+	image = vips_image_new();
 	VIPS_SETSTR( image->filename, filename );
 
 	return( image );

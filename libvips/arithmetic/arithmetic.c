@@ -71,12 +71,15 @@ G_DEFINE_ABSTRACT_TYPE( VipsArithmetic, vips_arithmetic, VIPS_TYPE_OPERATION );
 static int
 vips_arithmetic_build( VipsObject *object )
 {
-#ifdef DEBUG
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
-#endif /*DEBUG*/
+    VipsImage *out;
 
 	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->build( object ) )
 		return( -1 );
+
+    if( !(out = vips_image_new()) )
+		return( -1 );
+    g_object_set( arithmetic, "out", out, NULL );
 
 	/* Should we _generate() here? We should keep the params in the object
 	 * ready to be dropped in.

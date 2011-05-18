@@ -673,7 +673,7 @@ lazy_real_image( Lazy *lazy )
 	/* Otherwise, fall back to a "p".
 	 */
 	if( !real && 
-		!(real = vips_image_new( "p" )) )
+		!(real = vips_image_new()) )
 		return( NULL );
 
 	return( real );
@@ -897,7 +897,7 @@ vips_image_build( VipsObject *object )
 			else {
 				VipsImage *x;
 
-				if( !(x = vips_image_new( "p" )) )
+				if( !(x = vips_image_new()) )
 					return( -1 );
 				vips_object_local( image, x );
 				if( vips_image_open_input( x ) )
@@ -1431,38 +1431,23 @@ vips_image_temp_name( void )
 
 /**
  * vips_image_new:
- * @mode: mode to open with
  *
- * vips_image_new() examines the mode string and creates an 
- * appropriate #VipsImage.
+ * vips_image_new() creates a "glue" descriptor you can use to join two image 
+ * processing operations together. 
  *
- * <itemizedlist>
- *   <listitem> 
- *     <para>
- *       <emphasis>"t"</emphasis>
- *       creates a temporary memory buffer image.
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"p"</emphasis>
- *       creates a "glue" descriptor you can use to join two image 
- *       processing operations together.
- *     </para>
- *   </listitem>
- * </itemizedlist>
+ * It is the equivalent of vips_image_new_from_file("xxx", "p").
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new( const char *mode )
+vips_image_new( void )
 {
 	VipsImage *image;
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
 		"filename", vips_image_temp_name(),
-		"mode", mode,
+		"mode", "p",
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
 		VIPS_UNREF( image );
@@ -1505,7 +1490,7 @@ vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		if( !(images[i] = vips_image_new( "p" )) ) 
+		if( !(images[i] = vips_image_new()) ) 
 			return( -1 );
 		vips_object_local( parent, images[i] );
 	}
@@ -1522,6 +1507,19 @@ vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
  * appropriate #VipsImage.
  *
  * <itemizedlist>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"t"</emphasis>
+ *       creates a temporary memory buffer image.
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"p"</emphasis>
+ *       creates a "glue" descriptor you can use to join operations, see also
+ *       vips_image_new().
+ *     </para>
+ *   </listitem>
  *   <listitem> 
  *     <para>
  *       <emphasis>"r"</emphasis>
@@ -2006,7 +2004,7 @@ vips_image_wio_input( VipsImage *image )
 		/* Change to VIPS_IMAGE_SETBUF. First, make a memory 
 		 * buffer and copy into that.
 		 */
-		if( !(t1 = vips_image_new( "t" )) ) 
+		if( !(t1 = vips_image_new_from_file( "vips_image_wio_input", "t" )) ) 
 			return( -1 );
 		if( im_copy( image, t1 ) ) {
 			g_object_unref( t1 );

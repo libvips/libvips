@@ -475,14 +475,14 @@ im_fits2vips( const char *filename, VipsImage *out )
 	 * separately then join them.
 	 */
 
-	if( !(t = vips_image_new( "p" )) ||
+	if( !(t = vips_image_new()) ||
 		vips_object_local( out, t ) ||
 		fits2vips_header( filename, t ) )
 		return( -1 );
 	n_bands = t->Bands;
 
 	if( n_bands == 1 ) {
-		if( !(t = vips_image_new( "p" )) ||
+		if( !(t = vips_image_new()) ||
 			vips_object_local( out, t ) ||
 			fits2vips( filename, t, 0 ) )
 			return( -1 );
@@ -493,7 +493,7 @@ im_fits2vips( const char *filename, VipsImage *out )
 
 		acc = NULL;
 		for( i = 0; i < n_bands; i++ ) {
-			if( !(t = vips_image_new( "p" )) ||
+			if( !(t = vips_image_new()) ||
 				vips_object_local( out, t ) ||
 				fits2vips( filename, t, i ) )
 				return( -1 );
@@ -503,7 +503,7 @@ im_fits2vips( const char *filename, VipsImage *out )
 			else {
 				VipsImage *t2;
 
-				if( !(t2 = vips_image_new( "p" )) ||
+				if( !(t2 = vips_image_new()) ||
 					vips_object_local( out, t2 ) ||
 					im_bandjoin( acc, t, t2 ) )
 					return( -1 );
@@ -582,7 +582,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 
 	/* Cast to a supported format.
 	 */
-	if( !(type = vips_image_new( "p" )) ||
+	if( !(type = vips_image_new()) ||
 		vips_object_local( in, type ) ||
 		im_clip2fmt( in, type, vips_fits_bandfmt[in->BandFmt] ) )
 		return( NULL );
@@ -590,7 +590,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 
 	/* FITS has (0,0) in the bottom left, we need to flip.
 	 */
-	if( !(flip = vips_image_new( "p" )) ||
+	if( !(flip = vips_image_new()) ||
 		vips_object_local( in, flip ) ||
 		im_flipver( in, flip ) )
 		return( NULL );

@@ -285,7 +285,7 @@ typedef struct _VipsImageClass {
 	void (*posteval)( VipsImage *image, VipsProgress *progress );
 
 	/* An image has been written to. 
-	 * Used by eg. vips_image_new_from_file("x.jpg", "w") to do the 
+	 * Used by eg. vips_image_open("x.jpg", "w") to do the 
 	 * final write to jpeg.
 	 * Set *result to non-zero to indicate an error on write.
 	 */
@@ -355,7 +355,7 @@ void vips_image_set_progress( VipsImage *image, gboolean progress );
 gboolean vips_image_get_kill( VipsImage *image );
 void vips_image_set_kill( VipsImage *image, gboolean kill );
 
-VipsImage *vips_image_new( const char *mode );
+VipsImage *vips_image_new( void );
 int vips_image_new_array( VipsObject *parent, VipsImage **images, int n );
 VipsImage *vips_image_new_from_file( const char *filename, const char *mode );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
