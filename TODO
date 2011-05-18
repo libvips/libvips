@@ -3,18 +3,19 @@
 
   nope, won't work
 
-  try 2) init all output VipsImage to a "p" image and output args are never
-  required ... instead, after _build(), you can read them out with get_prop
-  and copy them whereever you like
+  try 2) init all output VipsImage to a "p" image in the various _build() (eg.
+  vips_arithmetic_build()) and output args are never required ... instead, 
+  after _build(), you can read them out with get_prop and copy them whereever 
+  you like
 
   	int im_add( in1, in2, out )
 	{
-		VipsImage *x;
 		VipsOperation *op;
+		VipsImage *x;
 
 		if( !(op = vips_call( "add", in1, in2 )) )
 			return( -1 );
-		x = g_object_get_property( op, "out" );
+	    g_object_get( G_OBJECT( op ), "out", &x );
 		if( im_copy( x, out ) ) {
 			g_object_unref( op );
 			return( -1 );
@@ -23,6 +24,37 @@
 
 		return( 0 );
 	}
+
+  or alternatively
+
+  	VipsImage *vips_add( in1, in2 )
+	{
+		VipsOperation *op;
+		VipsImage *out;
+
+		if( !(op = vips_call( "add", in1, in2 )) )
+			return( -1 );
+	    g_object_get( G_OBJECT( op ), "out", &out );
+
+        // do we need to ref out? or unref it?
+
+        // then this unref should leave the single ref on out the only thing 
+        // that keeps the add alive, hopefully
+		g_object_unref( op );
+
+		return( out );
+	}
+
+  output objects ref the operation, so we must make them with a floating
+  count of 1, or ref them if we are reusing an old operation
+
+  as the caller reads output objects, it must steal the ref
+
+  vips_call() can return an old operation ... if it does, it must ref all
+  output objects before returning
+
+
+
 
 
 
