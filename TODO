@@ -1,3 +1,45 @@
+- test
+
+	vips im_add a b c
+
+  trace refs and make sure counts stay sane
+
+
+
+
+
+
+- actually, lets stay with
+
+	int vips_add( VipsImage *in1, VipsImage *in2, VipsImage **out, ... ); 
+
+  better for multiline stuff
+
+
+
+
+- new problem: 
+
+	VipsImage *vips_add( VipsImage *in1, VipsImage *in2, .. ); 
+
+  imagine:
+
+	a = vips_add( vips_add( b, c ), d );
+
+  suppose the outer add fails -- how do we ever unref the result of the inner
+  add?
+
+  we need float/sink, so vipsobject must derive from ginitiallyuknown, not
+  gobject
+
+  what does g_object_ref_sink() do on a gobject? just a regular ref?
+  	
+
+
+- we have the vips_argument_map() code in quite a few places now :-( redo as a
+  macro so we can share it
+
+
 - vips_object_set_property() for output args should expect a pointer to the
   location to write the value to on _build()
 
