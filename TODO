@@ -15,7 +15,7 @@
 
 		if( !(op = vips_call( "add", in1, in2 )) )
 			return( -1 );
-	    g_object_get( G_OBJECT( op ), "out", &x );
+		g_object_get( G_OBJECT( op ), "out", &x );
 		if( im_copy( x, out ) ) {
 			g_object_unref( op );
 			return( -1 );
@@ -34,12 +34,12 @@
 
 		if( !(op = vips_call( "add", in1, in2 )) )
 			return( -1 );
-	    g_object_get( G_OBJECT( op ), "out", &out );
+		g_object_get( G_OBJECT( op ), "out", &out );
 
-        // do we need to ref out? or unref it?
+		// do we need to ref out? or unref it?
 
-        // then this unref should leave the single ref on out the only thing 
-        // that keeps the add alive, hopefully
+		// then this unref should leave the single ref on out the 
+		// only thing that keeps the add alive, hopefully
 		g_object_unref( op );
 
 		return( out );
@@ -54,6 +54,28 @@
   output objects before returning
 
 
+
+  argh how about on build failure, walk the args and destroy all the values
+  in case any of them are holding refs to the failed op, then unref the op
+
+  need to check exactly when objects get reffed as they are copied out of
+  their GValues
+
+
+
+
+  could we support this API still?
+
+  	vips_call( "add", in1, in2, &out )
+
+  walk the valist setting inputs and skipping outputs (they will always be
+  pointers I guess)
+
+  call build(), bail out on failure destroying unsed outputs as above ^^
+
+  walk valist again, unboxing and writing to the output pointers
+
+  now unref op, and op will be unreffed when all outputs are destroyed
 
 
 

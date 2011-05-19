@@ -195,8 +195,8 @@ typedef enum {
 } ArgFlags;
 
 static int
-vips_operation_set_valist (VipsOperation * operation,
-				    ArgFlags flags, va_list ap)
+vips_operation_set_valist (VipsOperation * operation, 
+		ArgFlags flags, va_list ap)
 {
   VipsObject *object = VIPS_OBJECT (operation);
   VipsObjectClass *class = VIPS_OBJECT_GET_CLASS (object);
@@ -227,7 +227,8 @@ vips_operation_set_valist (VipsOperation * operation,
 
 	      /* End of stuff copy-pasted from vips_argument_map().
 	       */
-	      if (argument_class->flags & VIPS_ARGUMENT_REQUIRED &&
+	      if ((argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		  (argument_class->flags & VIPS_ARGUMENT_INPUT) &&
 		  !argument_instance->assigned)
 		{
 		  GValue value = { 0 };

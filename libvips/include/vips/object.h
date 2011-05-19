@@ -83,9 +83,7 @@ VIPS_ARGUMENT_REQUIRED_INPUT 	Eg. the "left" argument for an add operation
 
 VIPS_ARGUMENT_OPTIONAL_INPUT 	Eg. the "caption" for an object
 
-VIPS_ARGUMENT_REQURED_OUTPUT 	Eg. the "result" of an add operation
-
-VIPS_ARGUMENT_OPTIONAL_OUTPUT 	Eg. the "width" of an image
+VIPS_ARGUMENT_OUTPUT 	        Eg. the "result" of an add operation
 
    Other combinations are used internally, eg. supplying the cast-table for an 
    arithmetic operation
@@ -98,19 +96,14 @@ VIPS_ARGUMENT_OPTIONAL_OUTPUT 	Eg. the "width" of an image
 	 VIPS_ARGUMENT_CONSTRUCT | \
 	 VIPS_ARGUMENT_SET_ONCE)
 
-#define VIPS_ARGUMENT_REQUIRED_OUTPUT \
-	(VIPS_ARGUMENT_OUTPUT | \
-	 VIPS_ARGUMENT_REQUIRED | \
-	 VIPS_ARGUMENT_CONSTRUCT | \
-	 VIPS_ARGUMENT_SET_ONCE)
-
 #define VIPS_ARGUMENT_OPTIONAL_INPUT \
 	(VIPS_ARGUMENT_INPUT | \
 	 VIPS_ARGUMENT_CONSTRUCT | \
 	 VIPS_ARGUMENT_SET_ONCE)
 
-#define VIPS_ARGUMENT_OPTIONAL_OUTPUT \
+#define VIPS_ARGUMENT_REQUIRED_OUTPUT \
 	(VIPS_ARGUMENT_OUTPUT | \
+	 VIPS_ARGUMENT_REQUIRED | \
 	 VIPS_ARGUMENT_CONSTRUCT | \
 	 VIPS_ARGUMENT_SET_ONCE)
 
