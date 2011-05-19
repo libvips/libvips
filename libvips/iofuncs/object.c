@@ -75,7 +75,7 @@ static GMutex *vips__object_all_lock = NULL;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
-G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
+G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_INITIALLY_UNOWNED );
 
 void
 vips_object_preclose( VipsObject *object )
@@ -555,7 +555,7 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 
 			/* Ref the argument.
 			 */
-			g_object_ref( *member );
+			g_object_ref_sink( *member );
 		}
 		else if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
 #ifdef DEBUG_REF
@@ -569,7 +569,7 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 
 			/* The argument reffs us.
 			 */
-			g_object_ref( object );
+			g_object_ref_sink( object );
 			argument_instance->close_id =
 				g_signal_connect( *member, "close",
 					G_CALLBACK( vips_object_arg_close ),

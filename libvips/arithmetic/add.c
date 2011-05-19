@@ -321,7 +321,7 @@ vips_add( VipsImage *in1, VipsImage *in2, ... )
 	int result;
 	VipsImage *out;
 
-	va_start( ap, out );
+	va_start( ap, in2 );
 	result = vips_call_split( "add", ap, in1, in2, &out );
 	va_end( ap );
 

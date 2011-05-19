@@ -308,8 +308,6 @@ vips_operation_get_valist (VipsOperation * operation, va_list ap)
   VipsObjectClass *class = VIPS_OBJECT_GET_CLASS (object);
   GSList *p;
 
-  if (flags & REQUIRED)
-    {
       /* Extract output arguments. Can't use vips_argument_map here 
        * :-( because passing va_list by reference is not portable. 
        * So we have to copy-paste the vips_argument_map() loop. 
@@ -321,8 +319,6 @@ vips_operation_get_valist (VipsOperation * operation, va_list ap)
 	  VipsArgumentClass *argument_class = (VipsArgumentClass *) p->data;
 	  VipsArgument *argument = (VipsArgument *) argument_class;
 	  GParamSpec *pspec = argument->pspec;
-	  VipsArgumentInstance *argument_instance =
-	    vips__argument_get_instance (argument_class, object);
 
 	  /* We have many props on the arg table ... filter out the ones
 	   * for this class.
@@ -354,7 +350,7 @@ vips_operation_get_valist (VipsOperation * operation, va_list ap)
 		}
 	    }
 	}
-    }
+
 }
 
 int

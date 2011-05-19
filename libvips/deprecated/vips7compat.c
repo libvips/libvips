@@ -796,5 +796,15 @@ im__compile_programs( VipsVector *vectors[IM_BANDFMT_LAST] )
 int 
 im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
-	return( vips_call( "add", in1, in2, out, NULL ) );
+	VipsImage *x;
+
+	if( vips_call( "add", in1, in2, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
 }
