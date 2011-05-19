@@ -242,7 +242,8 @@ vips_argument_map( VipsObject *object,
 	GSList *p;
 
 	/* This loop also appears in vips_operation_call_valist() and needs
-	 * to be kept in sync with that.
+	 * to be kept in sync with that. And other places too. Grep for
+	 * vips_argument_map() and change all uses.
 	 */
 
 	for( p = class->argument_table_traverse; p; p = p->next ) {
@@ -445,6 +446,20 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 	return( NULL );
 }
 
+/* Free all args on this object which may be holding resources.
+ */
+void
+vips_argument_free_all( VipsObject *object )
+{
+#ifdef DEBUG
+	printf( "vips_argument_free_all: " );
+	vips_object_print_name( object );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	vips_argument_map( object, vips_object_dispose_argument, NULL, NULL );
+}
+
 static void
 vips_object_dispose( GObject *gobject )
 {
@@ -471,7 +486,7 @@ vips_object_dispose( GObject *gobject )
 
 	/* Clear all our arguments: they may be holding refs we should drop.
 	 */
-	vips_argument_map( object, vips_object_dispose_argument, NULL, NULL );
+	vips_argument_free_all( object );
 	VIPS_FREEF( vips_argument_table_destroy, object->argument_table );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->dispose( gobject );

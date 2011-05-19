@@ -189,6 +189,17 @@ vips_operation_init( VipsOperation *operation )
 	 */
 }
 
+VipsOperation *
+vips_operation_new( const char *name )
+{
+	GType type;
+
+	if( !(type = vips_type_find( "VipsOperation", name )) )
+		return( NULL );
+
+	return( VIPS_OPERATION( g_object_new( type, NULL ) ) );
+}
+
 typedef enum {
 	OPTIONAL = 0x1,
 	REQUIRED = 0x2
@@ -234,8 +245,8 @@ vips_operation_set_valist (VipsOperation * operation,
 		  GValue value = { 0 };
 		  char *msg = NULL;
 
-		  g_value_init (&value, G_PARAM_SPEC_VALUE_TYPE (pspec));
-		  G_VALUE_COLLECT (&value, ap, 0, &msg);
+		  G_VALUE_COLLECT_INIT (&value, 
+				  G_PARAM_SPEC_VALUE_TYPE (pspec), ap, 0, &msg);
 		  if (msg)
 		    {
 		      vips_error (class->description, "%s", _(msg));
@@ -259,6 +270,22 @@ vips_operation_set_valist (VipsOperation * operation,
 				  g_param_spec_get_name( pspec ), &value);
 		  g_value_unset (&value);
 		}
+	      else if ((argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		  (argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		  !argument_instance->assigned)
+		{
+		  void *arg;
+
+		  /* Output args are all pointers to places to write results.
+		   * Skip here, we use these during the output phase.
+		   */
+		  arg = va_arg (ap, void *);
+
+#ifdef VIPS_DEBUG
+		  printf( "\tskipping arg %p for %s\n", 
+				  arg, g_param_spec_get_name( pspec ) );
+#endif /*VIPS_DEBUG */
+		}
 	    }
 	}
     }
@@ -274,15 +301,60 @@ vips_operation_set_valist (VipsOperation * operation,
   return (0);
 }
 
-VipsOperation *
-vips_operation_new( const char *name )
+static void
+vips_operation_get_valist (VipsOperation * operation, va_list ap)
 {
-	GType type;
+  VipsObject *object = VIPS_OBJECT (operation);
+  VipsObjectClass *class = VIPS_OBJECT_GET_CLASS (object);
+  GSList *p;
 
-	if( !(type = vips_type_find( "VipsOperation", name )) )
-		return( NULL );
+  if (flags & REQUIRED)
+    {
+      /* Extract output arguments. Can't use vips_argument_map here 
+       * :-( because passing va_list by reference is not portable. 
+       * So we have to copy-paste the vips_argument_map() loop. 
+       * Keep in sync with that.
+       */
 
-	return( VIPS_OPERATION( g_object_new( type, NULL ) ) );
+      for (p = class->argument_table_traverse; p; p = p->next)
+	{
+	  VipsArgumentClass *argument_class = (VipsArgumentClass *) p->data;
+	  VipsArgument *argument = (VipsArgument *) argument_class;
+	  GParamSpec *pspec = argument->pspec;
+	  VipsArgumentInstance *argument_instance =
+	    vips__argument_get_instance (argument_class, object);
+
+	  /* We have many props on the arg table ... filter out the ones
+	   * for this class.
+	   */
+	  if (g_object_class_find_property (G_OBJECT_CLASS (class),
+				  g_param_spec_get_name( pspec )) == pspec)
+	    {
+
+	      /* End of stuff copy-pasted from vips_argument_map().
+	       */
+
+	      if ((argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		  (argument_class->flags & VIPS_ARGUMENT_OUTPUT))
+		{
+		  void *arg;
+
+		  /* Output args are all pointers to places to write results.
+		   * Skip here, we use these during the output phase.
+		   */
+		  arg = va_arg (ap, void *);
+
+		  g_object_get( G_OBJECT( operation ), 
+				g_param_spec_get_name( pspec ), arg, NULL );
+
+#ifdef VIPS_DEBUG
+		  printf( "\twriting arg %s to %p\n", 
+				  g_param_spec_get_name( pspec ), arg );
+#endif /*VIPS_DEBUG */
+		}
+	    }
+	}
+    }
 }
 
 int
@@ -309,34 +381,20 @@ vips_call( const char *operation_name, ... )
 		vips_object_build( VIPS_OBJECT( operation ) );
 	va_end( ap );
 
-	/* The operation we have built should now have been reffed by one of 
-	 * its arguments or have finished its work. Either way, we can unref.
+	/* Build failed: junk args and back out.
 	 */
-	g_object_unref( operation );
+	if( result ) {
+		vips_argument_free_all( VIPS_OBJECT( operation ) );
+		g_object_unref( operation );
 
-	return( result );
-}
-
-static int
-vips_call_split_valist( const char *operation_name, 
-	va_list required, va_list optional ) 
-{
-	VipsOperation *operation;
-	int result;
-
-	VIPS_DEBUG_MSG( "vips_call: starting for %s ...\n", operation_name );
-
-	if( !(operation = vips_operation_new( operation_name ) ) )
 		return( -1 );
+	}
 
-#ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "where:\n" );
-	vips_object_print( VIPS_OBJECT( operation ) );
-#endif /*VIPS_DEBUG*/
-
-	result = vips_operation_set_valist( operation, REQUIRED, required ) ||
-		vips_operation_set_valist( operation, OPTIONAL, optional ) ||
-		vips_object_build( VIPS_OBJECT( operation ) );
+	/* Walk args again writing output.
+	 */
+	va_start( ap, operation_name );
+	vips_operation_get_valist( operation, ap );
+	va_end( ap );
 
 	/* The operation we have built should now have been reffed by one of 
 	 * its arguments or have finished its work. Either way, we can unref.
@@ -349,13 +407,46 @@ vips_call_split_valist( const char *operation_name,
 int
 vips_call_split( const char *operation_name, va_list optional, ... ) 
 {
+	VipsOperation *operation;
 	int result;
-
 	va_list required;
 
+	VIPS_DEBUG_MSG( "vips_call_split: starting for %s ...\n", 
+			operation_name );
+
+	if( !(operation = vips_operation_new( operation_name ) ) )
+		return( -1 );
+
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "where:\n" );
+	vips_object_print( VIPS_OBJECT( operation ) );
+#endif /*VIPS_DEBUG*/
+
 	va_start( required, optional );
-	result = vips_call_split_valist( operation_name, required, optional );
+	result = vips_operation_set_valist( operation, REQUIRED, required ) ||
+		vips_operation_set_valist( operation, OPTIONAL, optional ) ||
+		vips_object_build( VIPS_OBJECT( operation ) );
 	va_end( required );
+
+	/* Build failed: junk args and back out.
+	 */
+	if( result ) {
+		vips_argument_free_all( VIPS_OBJECT( operation ) );
+		g_object_unref( operation );
+
+		return( -1 );
+	}
+
+	/* Walk args again writing output.
+	 */
+	va_start( required, optional );
+	vips_operation_get_valist( operation, required );
+	va_end( required );
+
+	/* The operation we have built should now have been reffed by one of 
+	 * its arguments or have finished its work. Either way, we can unref.
+	 */
+	g_object_unref( operation );
 
 	return( result );
 }

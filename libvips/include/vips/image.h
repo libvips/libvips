@@ -285,13 +285,13 @@ typedef struct _VipsImageClass {
 	void (*posteval)( VipsImage *image, VipsProgress *progress );
 
 	/* An image has been written to. 
-	 * Used by eg. vips_image_open("x.jpg", "w") to do the 
+	 * Used by eg. vips_image_new_from_file("x.jpg", "w") to do the 
 	 * final write to jpeg.
 	 * Set *result to non-zero to indicate an error on write.
 	 */
 	void (*written)( VipsImage *image, int *result );
 
-	/* An image has been modified in some way and caches all
+	/* An image has been modified in some way and all caches 
 	 * need dropping. 
 	 */
 	void (*invalidate)( VipsImage *image );

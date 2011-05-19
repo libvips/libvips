@@ -314,17 +314,21 @@ vips_add_class_init( VipsAddClass *class )
 	bclass->process_line = add_buffer;
 }
 
-int
-vips_add( VipsImage *in1, VipsImage *in2, VipsImage *out, ... )
+VipsImage *
+vips_add( VipsImage *in1, VipsImage *in2, ... )
 {
-	int result;
 	va_list ap;
+	int result;
+	VipsImage *out;
 
 	va_start( ap, out );
-	result = vips_call_split( "add", ap, in1, in2, out );
+	result = vips_call_split( "add", ap, in1, in2, &out );
 	va_end( ap );
 
-	return( result );
+	if( result )
+		return( NULL );
+
+	return( out );
 }
 
 static void
