@@ -160,12 +160,33 @@ typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
 	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
-void *vips_argument_is_required( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b );
 void vips_argument_free_all( VipsObject *object );
+
+/* We have to loop over an objects args in several places, and we can't always
+ * use vips_argument_map(), the preferred looper. Have the loop code as a
+ * macro as well for these odd cases.
+ */
+#define VIPS_ARGUMENT_FOR_ALL( OBJECT, PSPEC, ARG_CLASS, ARG_INSTANCE ) { \
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( OBJECT ); \
+	GSList *p; \
+ 	\
+	for( p = object_class->argument_table_traverse; p; p = p->next ) { \
+		VipsArgumentClass *ARG_CLASS = \
+			(VipsArgumentClass *) p->data; \
+		VipsArgument *argument = (VipsArgument *) argument_class; \
+		GParamSpec *PSPEC = argument->pspec; \
+		VipsArgumentInstance *ARG_INSTANCE = \
+			vips__argument_get_instance( argument_class, \
+			VIPS_OBJECT( OBJECT ) ); \
+		\
+		/* We have many props on the arg table ... filter out the \
+		 * ones for this class. \
+		 */ \
+		if( g_object_class_find_property( \
+			G_OBJECT_CLASS( object_class ), \
+			g_param_spec_get_name( PSPEC ) ) == PSPEC ) {
+
+#define VIPS_ARGUMENT_FOR_ALL_END } } }
 
 #define VIPS_TYPE_OBJECT (vips_object_get_type())
 #define VIPS_OBJECT( obj ) \
@@ -276,6 +297,7 @@ void vips_object_class_install_argument( VipsObjectClass *,
 	GParamSpec *pspec, VipsArgumentFlags flags, guint offset );
 int vips_object_set_argument_from_string( VipsObject *object, 
 	const char *name, const char *value );
+int vips_object_set_required( VipsObject *object, const char *value );
 
 typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );
 VipsObject *vips_object_new( GType type, 

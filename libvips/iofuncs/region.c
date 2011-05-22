@@ -1,11 +1,3 @@
-/* A version of VipsRegion which ran on top of vipsobject ... sadly we had
- * many mysterious segvs argh
- *
- * keep this code around for testing and reference
- *
- */
-
-
 /* Make and destroy partial image regions.
  * 
  * J.Cupitt, 8/4/93.
@@ -78,11 +70,11 @@
  */
 
 /*
+ */
 #define DEBUG_MOVE 
 #define DEBUG_ENVIRONMENT 1
 #define DEBUG_CREATE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

@@ -30,10 +30,10 @@
  */
 
 /*
+ */
 #define DEBUG
 #define VIPS_DEBUG
 #define DEBUG_REF
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -238,81 +238,25 @@ void *
 vips_argument_map( VipsObject *object,
 	VipsArgumentMapFn fn, void *a, void *b )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	GSList *p;
-
-	/* This loop also appears in vips_operation_call_valist() and needs
-	 * to be kept in sync with that. And other places too. Grep for
-	 * vips_argument_map() and change all uses.
+	/* Make sure we can't go during the loop. This can happen if eg. we
+	 * flush an arg that refs us.
 	 */
+	g_object_ref( object ); 
 
-	for( p = class->argument_table_traverse; p; p = p->next ) {
-		VipsArgumentClass *argument_class =
-			(VipsArgumentClass *) p->data;
-		VipsArgument *argument = (VipsArgument *) argument_class;
-		GParamSpec *pspec = argument->pspec;
-		VipsArgumentInstance *argument_instance =
-			vips__argument_get_instance( argument_class, object );
+	VIPS_ARGUMENT_FOR_ALL( object, 
+		pspec, argument_class, argument_instance ) {
+		void *result;
 
-		/* We have many props on the arg table ... filter out the ones
-		 * for this class.
-		 */
-		if( g_object_class_find_property( G_OBJECT_CLASS( class ),
-			pspec->name ) == pspec ) {
-			void *result;
+		g_assert( argument_instance );
 
-			if( (result = fn( object, pspec,
-				argument_class, argument_instance, a, b )) )
-				return( result );
+		if( (result = fn( object, pspec,
+			argument_class, argument_instance, a, b )) ) {
+			g_object_unref( object ); 
+			return( result );
 		}
-	}
+	} VIPS_ARGUMENT_FOR_ALL_END
 
-	return( NULL );
-}
-
-/* Handy for vips_argument_map: look for a required arg.
- */
-void *
-vips_argument_is_required( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
-{
-	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!argument_instance->assigned )
-		return( pspec );
-
-	return( NULL );
-}
-
-static void *
-vips_argument_init2( VipsObject *object, GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
-{
-	VipsArgument *argument;
-
-#ifdef DEBUG
-	printf( "vips_argument_init_sub: adding instance argument for %s\n",
-		pspec->name );
-#endif /*DEBUG*/
-
-	/* argument_instance should be NULL since we've not set it yet.
-	 */
-	g_assert( argument_instance == NULL );
-
-	argument_instance = g_new( VipsArgumentInstance, 1 );
-	argument = (VipsArgument *) argument_instance;
-
-	argument->pspec = ((VipsArgument *) argument_class)->pspec;
-	argument_instance->object = object;
-	argument_instance->assigned = FALSE;
-	argument_instance->close_id = 0;
-
-	vips_argument_table_replace( object->argument_table, argument );
+	g_object_unref( object ); 
 
 	return( NULL );
 }
@@ -326,14 +270,44 @@ static void
 vips_argument_init( VipsObject *object )
 {
 	if( !object->argument_table ) {
+#ifdef DEBUG
+		printf( "vips_argument_init: " );
+		vips_object_print_name( object );
+		printf( "\n" );
+#endif /*DEBUG*/
+
 		object->argument_table = g_hash_table_new_full( g_direct_hash,
 			g_direct_equal, NULL,
 			(GDestroyNotify) vips_argument_instance_free );
 
 		/* Make a VipsArgumentInstance for each installed argument
-		 * property.
+		 * property. We can't use vips_argument_map() since that does
+		 * some sanity checks that won't pass until all arg instance
+		 * are built.
 		 */
-		vips_argument_map( object, vips_argument_init2, NULL, NULL );
+		VIPS_ARGUMENT_FOR_ALL( object, 
+			pspec, argument_class, argument_instance ) {
+#ifdef DEBUG
+			printf( "vips_argument_init: "
+				"adding instance argument for %s\n",
+				g_param_spec_get_name( pspec ) );
+#endif /*DEBUG*/
+
+			/* argument_instance should be NULL since we've not 
+			 * set it yet.
+			 */
+			g_assert( argument_instance == NULL );
+
+			argument_instance = g_new( VipsArgumentInstance, 1 );
+
+			((VipsArgument *) argument_instance)->pspec = pspec;
+			argument_instance->object = object;
+			argument_instance->assigned = FALSE;
+			argument_instance->close_id = 0;
+
+			vips_argument_table_replace( object->argument_table, 
+				(VipsArgument *) argument_instance );
+		} VIPS_ARGUMENT_FOR_ALL_END
 	}
 }
 
@@ -418,7 +392,7 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 #ifdef DEBUG
 	printf( "vips_object_dispose_argument: " );
 	vips_object_print_name( object );
-	printf( ".%s\n", pspec->name );
+	printf( ".%s\n", g_param_spec_get_name( pspec ) ); 
 #endif /*DEBUG*/
 
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
@@ -538,6 +512,7 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 	GObject **member = &G_STRUCT_MEMBER( GObject *, object,
 		argument_class->offset );
 
+	g_assert( argument_instance );
 	g_assert( !*member );
 
 	*member = argument;
@@ -590,6 +565,8 @@ vips_object_set_property( GObject *gobject,
 		vips__argument_table_lookup( class->argument_table, pspec );
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
+
+	g_assert( argument_instance );
 
 	if( !argument_class ) {
 		G_OBJECT_WARN_INVALID_PROPERTY_ID( gobject,
@@ -825,6 +802,12 @@ vips_object_real_build( VipsObject *object )
 
 	int result;
 
+#ifdef DEBUG
+	printf( "vips_object_real_build: " ); 
+	vips_object_print_name( object );
+	printf( "\n" );
+#endif /*DEBUG*/
+
 	g_assert( !object->constructed );
 
 	/* Check all required arguments have been supplied, don't stop on 1st
@@ -1002,7 +985,8 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	VipsArgumentClass *argument_class = g_new( VipsArgumentClass, 1 );
 
 #ifdef DEBUG
-	printf( "vips_object_class_install_argument: %s\n", pspec->name );
+	printf( "vips_object_class_install_argument: %s\n", 
+		g_param_spec_get_name( pspec ) );
 #endif /*DEBUG*/
 
 	/* Must be a new one.
@@ -1037,7 +1021,6 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
-	VipsArgumentInstance *argument_instance;
 	GValue gvalue = { 0 };
 
 #ifdef DEBUG
@@ -1047,45 +1030,33 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	pspec = g_object_class_find_property( G_OBJECT_CLASS( class ), name );
 	if( !pspec ) {
-		vips_error( "VipsObject", _( "object %s has no argument %s" ),
+		vips_error( "VipsObject", _( "%s.%s does not exist" ),
 			G_OBJECT_TYPE_NAME( object ), name );
 		return( -1 );
 	}
 
 	argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
-	argument_instance =
-		vips__argument_get_instance( argument_class, object );
+
+	if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
+		vips_error( "VipsObject", 
+			_( "can't set output argument %s.%s from string" ),
+			G_OBJECT_TYPE_NAME( object ), name );
+		return( -1 );
+	}
 
 	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
 		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) {
 		VipsImage *image;
 
 		g_value_init( &gvalue, G_TYPE_OBJECT );
+		if( !(image = vips_image_new_from_file( value, "r" )) )
+			return( -1 );
 
-		if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
-			if( !(image = vips_image_new_from_file( value, "w" )) )
-				return( -1 );
-
-			/* When we set an output image on an object, the image
-			 * will take a ref to the object. In other words, the
-			 * operation will stay alive until we unref all of
-			 * the output objects.
-			 *
-			 * For now, we leave the output image ref at 1 to
-			 * keep it alive. Perhaps we should capture and
-			 * return these refs somehow?
-			 */
-			g_value_set_object( &gvalue, image );
-		}
-		else {
-			if( !(image = vips_image_new_from_file( value, "r" )) )
-				return( -1 );
-
-			/* gvalue now owns the ref to image.
-			 */
-			g_value_take_object( &gvalue, image );
-		}
+		/* VipsObject is GInitiallyUnowned, so the gvalue now has a
+		 * ref count 1 image.
+		 */
+		g_value_set_object( &gvalue, image );
 	}
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean b;
@@ -1110,9 +1081,25 @@ vips_object_set_argument_from_string( VipsObject *object,
 	return( 0 );
 }
 
-/* Set the first unassigned required arg to the string.
+static void *
+vips_argument_is_required( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+		!argument_instance->assigned )
+		return( pspec );
+
+	return( NULL );
+}
+
+/* Set the first unassigned required input arg to the string.
  */
-static int
+int
 vips_object_set_required( VipsObject *object, const char *value )
 {
 	GParamSpec *pspec;
@@ -1124,7 +1111,8 @@ vips_object_set_required( VipsObject *object, const char *value )
 		return( -1 );
 	}
 
-	if( vips_object_set_argument_from_string( object, pspec->name, value ) )
+	if( vips_object_set_argument_from_string( object, 
+		g_param_spec_get_name( pspec ), value ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -1336,10 +1324,11 @@ typedef struct {
 } VipsObjectMapArgs;
 
 static void
-vips_object_map_sub( VipsObject *object, VipsObjectMapArgs *args )
+vips_object_map_sub( VipsObject *key, VipsObject *value, 
+	VipsObjectMapArgs *args )
 {
 	if( !args->result )
-		args->result = args->fn( object, args->a, args->b );
+		args->result = args->fn( key, args->a, args->b );
 }
 
 void *
@@ -1503,10 +1492,13 @@ vips_object_unref( VipsObject *obj )
 }
 
 static void *
-vips_object_print_all_cb( VipsObject *object )
+vips_object_print_all_cb( VipsObject *object, int *n )
 {
+	printf( "%d) ", *n );
 	vips_object_print_name( object );
 	printf( "\n" );
+
+	*n += 1;
 
 	return( NULL );
 }
@@ -1514,8 +1506,16 @@ vips_object_print_all_cb( VipsObject *object )
 void
 vips_object_print_all( void )
 {
-	vips_object_map( 
-		(VipsSListMap2Fn) vips_object_print_all_cb, NULL, NULL );
+	if( g_hash_table_size( vips__object_all ) > 0 ) {
+		int n;
+
+		printf( "%d objects alive:\n", 
+			g_hash_table_size( vips__object_all ) ); 
+
+		n = 0;
+		vips_object_map( 
+			(VipsSListMap2Fn) vips_object_print_all_cb, &n, NULL );
+	}
 }
 
 static void *

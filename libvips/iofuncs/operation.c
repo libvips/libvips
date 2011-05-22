@@ -28,8 +28,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -193,164 +193,127 @@ VipsOperation *
 vips_operation_new( const char *name )
 {
 	GType type;
+	VipsOperation *operation;
 
 	if( !(type = vips_type_find( "VipsOperation", name )) )
 		return( NULL );
+	operation = VIPS_OPERATION( g_object_new( type, NULL ) );
 
-	return( VIPS_OPERATION( g_object_new( type, NULL ) ) );
+	/* Clear the initial floating ref, return a real ref.
+	 */
+	g_object_ref_sink( operation );
+
+	return( operation );
 }
 
-typedef enum {
-	OPTIONAL = 0x1,
-	REQUIRED = 0x2
-} ArgFlags;
+static int
+vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
+{
+	/* Set required input arguments. Can't use vips_argument_map here 
+	 * :-( because passing va_list by reference is not portable. 
+	 */
+	VIPS_ARGUMENT_FOR_ALL( operation, 
+		pspec, argument_class, argument_instance ) {
+
+		g_assert( argument_instance );
+
+		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+			(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+			!argument_instance->assigned ) {
+			GValue value = { 0 };
+			char *msg = NULL;
+
+			G_VALUE_COLLECT_INIT( &value, 
+				G_PARAM_SPEC_VALUE_TYPE( pspec ), ap, 0, &msg );
+
+			if( msg ) {
+				VipsObjectClass *class = 
+					VIPS_OBJECT_GET_CLASS( operation ); 
+
+				vips_error( class->description, 
+					"%s", _( msg ) );
+				g_value_unset( &value );
+				g_free( msg );
+
+				return( -1 );
+			}
+
+#ifdef VIPS_DEBUG
+			{
+				char *str;
+
+				str = g_strdup_value_contents( &value );
+				VIPS_DEBUG_MSG( "\t%s = %s\n", 
+					g_param_spec_get_name( pspec ), str );
+				g_free( str );
+			}
+#endif /*VIPS_DEBUG */
+
+			g_object_set_property( G_OBJECT( operation ),
+				g_param_spec_get_name( pspec ), &value );
+			g_value_unset( &value );
+		}
+		else if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+			(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+			!argument_instance->assigned ) {
+			void *arg;
+
+			/* Output args are all pointers to places to write 
+			 * results. Skip here, we use these during the output 
+			 * phase.
+			 */
+			arg = va_arg( ap, void * );
+
+#ifdef VIPS_DEBUG
+			printf( "\tskipping arg %p for %s\n", 
+				arg, g_param_spec_get_name( pspec ) );
+#endif /*VIPS_DEBUG */
+		}
+	} VIPS_ARGUMENT_FOR_ALL_END
+
+	return( 0 );
+}
 
 static int
-vips_operation_set_valist (VipsOperation * operation, 
-		ArgFlags flags, va_list ap)
+vips_operation_set_valist_optional( VipsOperation *operation, va_list ap )
 {
-  VipsObject *object = VIPS_OBJECT (operation);
-  VipsObjectClass *class = VIPS_OBJECT_GET_CLASS (object);
-  GSList *p;
+	char *first_property_name;
 
-  if (flags & REQUIRED)
-    {
-      /* Extract required arguments. Can't use vips_argument_map here 
-       * :-( because passing va_list by reference is not portable. 
-       * So we have to copy-paste the vips_argument_map() loop. 
-       * Keep in sync with that.
-       */
+	first_property_name = va_arg( ap, char * );
+	g_object_set_valist( G_OBJECT (operation), first_property_name, ap );
 
-      for (p = class->argument_table_traverse; p; p = p->next)
-	{
-	  VipsArgumentClass *argument_class = (VipsArgumentClass *) p->data;
-	  VipsArgument *argument = (VipsArgument *) argument_class;
-	  GParamSpec *pspec = argument->pspec;
-	  VipsArgumentInstance *argument_instance =
-	    vips__argument_get_instance (argument_class, object);
-
-	  /* We have many props on the arg table ... filter out the ones
-	   * for this class.
-	   */
-	  if (g_object_class_find_property (G_OBJECT_CLASS (class),
-				  g_param_spec_get_name( pspec )) == pspec)
-	    {
-
-	      /* End of stuff copy-pasted from vips_argument_map().
-	       */
-	      if ((argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		  (argument_class->flags & VIPS_ARGUMENT_INPUT) &&
-		  !argument_instance->assigned)
-		{
-		  GValue value = { 0 };
-		  char *msg = NULL;
-
-		  G_VALUE_COLLECT_INIT (&value, 
-				  G_PARAM_SPEC_VALUE_TYPE (pspec), ap, 0, &msg);
-		  if (msg)
-		    {
-		      vips_error (class->description, "%s", _(msg));
-		      g_value_unset (&value);
-		      g_free (msg);
-		      return (-1);
-		    }
-
-#ifdef VIPS_DEBUG
-		  {
-		    char *str;
-
-		    str = g_strdup_value_contents (&value);
-		    VIPS_DEBUG_MSG ("\t%s = %s\n", 
-				    g_param_spec_get_name( pspec ), str);
-		    g_free (str);
-		  }
-#endif /*VIPS_DEBUG */
-
-		  g_object_set_property (G_OBJECT (operation),
-				  g_param_spec_get_name( pspec ), &value);
-		  g_value_unset (&value);
-		}
-	      else if ((argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		  (argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
-		  !argument_instance->assigned)
-		{
-		  void *arg;
-
-		  /* Output args are all pointers to places to write results.
-		   * Skip here, we use these during the output phase.
-		   */
-		  arg = va_arg (ap, void *);
-
-#ifdef VIPS_DEBUG
-		  printf( "\tskipping arg %p for %s\n", 
-				  arg, g_param_spec_get_name( pspec ) );
-#endif /*VIPS_DEBUG */
-		}
-	    }
-	}
-    }
-
-  if (flags & OPTIONAL)
-    {
-      char *first_property_name;
-
-      first_property_name = va_arg (ap, char *);
-      g_object_set_valist (G_OBJECT (operation), first_property_name, ap);
-    }
-
-  return (0);
+	return( 0 );
 }
 
 static void
-vips_operation_get_valist (VipsOperation * operation, va_list ap)
+vips_operation_get_valist( VipsOperation *operation, va_list ap )
 {
-  VipsObject *object = VIPS_OBJECT (operation);
-  VipsObjectClass *class = VIPS_OBJECT_GET_CLASS (object);
-  GSList *p;
+	/* Extract output arguments. Can't use vips_argument_map here 
+	 * :-( because passing va_list by reference is not portable. 
+	 */
+	VIPS_ARGUMENT_FOR_ALL( operation, 
+		pspec, argument_class, argument_instance ) {
+		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+			(argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
+			void *arg;
 
-      /* Extract output arguments. Can't use vips_argument_map here 
-       * :-( because passing va_list by reference is not portable. 
-       * So we have to copy-paste the vips_argument_map() loop. 
-       * Keep in sync with that.
-       */
+			arg = va_arg( ap, void * );
 
-      for (p = class->argument_table_traverse; p; p = p->next)
-	{
-	  VipsArgumentClass *argument_class = (VipsArgumentClass *) p->data;
-	  VipsArgument *argument = (VipsArgument *) argument_class;
-	  GParamSpec *pspec = argument->pspec;
+			if( !argument_instance->assigned ) 
+				continue;
 
-	  /* We have many props on the arg table ... filter out the ones
-	   * for this class.
-	   */
-	  if (g_object_class_find_property (G_OBJECT_CLASS (class),
-				  g_param_spec_get_name( pspec )) == pspec)
-	    {
-
-	      /* End of stuff copy-pasted from vips_argument_map().
-	       */
-
-	      if ((argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		  (argument_class->flags & VIPS_ARGUMENT_OUTPUT))
-		{
-		  void *arg;
-
-		  /* Output args are all pointers to places to write results.
-		   * Skip here, we use these during the output phase.
-		   */
-		  arg = va_arg (ap, void *);
-
-		  g_object_get( G_OBJECT( operation ), 
+			g_object_get( G_OBJECT( operation ), 
 				g_param_spec_get_name( pspec ), arg, NULL );
 
 #ifdef VIPS_DEBUG
-		  printf( "\twriting arg %s to %p\n", 
-				  g_param_spec_get_name( pspec ), arg );
+			printf( "\twriting arg %s to %p\n", 
+				g_param_spec_get_name( pspec ), arg );
 #endif /*VIPS_DEBUG */
-		}
-	    }
-	}
 
+			/* TODO ... actually do the write.
+			 */
+		}
+	} VIPS_ARGUMENT_FOR_ALL_END
 }
 
 int
@@ -372,8 +335,8 @@ vips_call( const char *operation_name, ... )
 #endif /*VIPS_DEBUG*/
 
 	va_start( ap, operation_name );
-	result = vips_operation_set_valist( operation, 
-			REQUIRED | OPTIONAL, ap ) ||
+	result = vips_operation_set_valist_required( operation, ap )  ||
+		vips_operation_set_valist_optional( operation, ap ) ||
 		vips_object_build( VIPS_OBJECT( operation ) );
 	va_end( ap );
 
@@ -419,8 +382,8 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 #endif /*VIPS_DEBUG*/
 
 	va_start( required, optional );
-	result = vips_operation_set_valist( operation, REQUIRED, required ) ||
-		vips_operation_set_valist( operation, OPTIONAL, optional ) ||
+	result = vips_operation_set_valist_required( operation, required ) ||
+		vips_operation_set_valist_optional( operation, optional ) ||
 		vips_object_build( VIPS_OBJECT( operation ) );
 	va_end( required );
 
@@ -445,27 +408,6 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 	g_object_unref( operation );
 
 	return( result );
-}
-
-static int
-vips_call_argv_set_required( VipsOperation *operation, const char *value )
-{
-	GParamSpec *pspec;
-
-	/* Search for the first unset required argument.
-	 */
-	if( !(pspec = vips_argument_map( VIPS_OBJECT( operation ),
-		vips_argument_is_required, NULL, NULL )) ) {
-		vips_error( "VipsOperation",
-			_( "no unset required arguments for %s" ), value );
-		return( -1 );
-	}
-
-	if( vips_object_set_argument_from_string( VIPS_OBJECT( operation ), 
-		g_param_spec_get_name( pspec ), value )  )
-		return( -1 );
-
-	return( 0 );
 }
 
 static void *
@@ -566,6 +508,8 @@ vips_call_options_add( VipsObject *object,
 		entry[0].short_name = g_param_spec_get_name( pspec )[0];
 		if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
 			entry[0].flags = G_OPTION_FLAG_NO_ARG;
+		else
+			entry[0].flags = 0;
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
 		entry[0].description = g_param_spec_get_blurb( pspec );
@@ -593,6 +537,59 @@ vips_call_options( GOptionGroup *group, VipsOperation *operation )
 		vips_call_options_add, group, NULL );
 }
 
+static void *
+vips_call_argv_input( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	char **argv = (char **) a;
+	int *i = (int *) b;
+
+	/* Loop over all required construct args.
+	 */
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		/* Input args get set from argv, we skip output args.
+		 */
+		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
+			if( vips_object_set_argument_from_string( object, 
+				g_param_spec_get_name( pspec ), argv[*i] ) ) 
+				return( pspec );
+
+		*i += 1;
+	}
+
+	return( NULL );
+}
+
+static void *
+vips_call_argv_output( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	char **argv = (char **) a;
+	int *i = (int *) b;
+
+	/* Loop over all required construct args.
+	 */
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		/* Output args get written to argv[*i].
+		 */
+		if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) 
+			printf( "** write %s to %s\n", 
+				g_param_spec_get_name( pspec ), argv[*i] );
+
+		*i += 1;
+	}
+
+	return( NULL );
+}
+
 /* Our main command-line entry point. Optional args should have been set by
  * the GOption parser already, see above.
  *
@@ -614,15 +611,16 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 		printf( "%d) %s\n", i, argv[i] );
 #endif /*VIPS_DEBUG*/
 
-
-	/* Now set required args from the rest of the command-line. 
-	 */
-	for( i = 0; i < argc; i++ )
-		if( vips_call_argv_set_required( operation, argv[i] ) ) 
-			return( -1 );
+	i = 0;
+	(void) vips_argument_map( VIPS_OBJECT( operation ),
+		vips_call_argv_input, argv, &i );
 
 	if( vips_object_build( VIPS_OBJECT( operation ) ) ) 
 		return( -1 );
+
+	i = 0;
+	(void) vips_argument_map( VIPS_OBJECT( operation ),
+		vips_call_argv_output, argv, &i );
 
 	return( 0 );
 }
