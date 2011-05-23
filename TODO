@@ -2,7 +2,10 @@
 
 	$ vips im_add k2.v babe.v out.v 
 
-  egV
+  VIPS:ERROR:image.c:300:vips_image_finalize: assertion failed:
+  (!image->regions)
+
+
 
 
 

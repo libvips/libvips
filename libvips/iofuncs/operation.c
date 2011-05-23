@@ -28,8 +28,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -294,24 +294,44 @@ vips_operation_get_valist( VipsOperation *operation, va_list ap )
 	VIPS_ARGUMENT_FOR_ALL( operation, 
 		pspec, argument_class, argument_instance ) {
 		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-			(argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
-			void *arg;
+			(argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
+			GValue value = { 0 };
+			char *msg = NULL;
 
-			arg = va_arg( ap, void * );
+			/* Collect the arg from valist to eat it up, but don't
+			 * do anything with it.
+			 */
+			G_VALUE_COLLECT_INIT( &value, 
+				G_PARAM_SPEC_VALUE_TYPE( pspec ), ap, 0, &msg );
+			g_value_unset( &value );
+		}
+		else if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+			(argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
+			void **arg;
+
+			arg = va_arg( ap, void ** );
 
 			if( !argument_instance->assigned ) 
 				continue;
 
-			g_object_get( G_OBJECT( operation ), 
-				g_param_spec_get_name( pspec ), arg, NULL );
-
 #ifdef VIPS_DEBUG
-			printf( "\twriting arg %s to %p\n", 
+			printf( "\twriting %s to %p\n", 
 				g_param_spec_get_name( pspec ), arg );
 #endif /*VIPS_DEBUG */
 
-			/* TODO ... actually do the write.
+			g_object_get( G_OBJECT( operation ), 
+				g_param_spec_get_name( pspec ), arg, NULL );
+
+			/* If the pspec is an object, that will up the ref
+			 * count. We want to hand over the ref, so we have to
+			 * knock it down again.
 			 */
+			if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
+				GObject *object;
+
+				object = *((GObject **) arg);
+				g_object_unref( object ); 
+			}
 		}
 	} VIPS_ARGUMENT_FOR_ALL_END
 }
