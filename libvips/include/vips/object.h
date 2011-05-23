@@ -297,6 +297,10 @@ void vips_object_class_install_argument( VipsObjectClass *,
 	GParamSpec *pspec, VipsArgumentFlags flags, guint offset );
 int vips_object_set_argument_from_string( VipsObject *object, 
 	const char *name, const char *value );
+gboolean vips_object_get_argument_needs_string( VipsObject *object, 
+	const char *name );
+int vips_object_get_argument_to_string( VipsObject *object, 
+	const char *name, const char *arg );
 int vips_object_set_required( VipsObject *object, const char *value );
 
 typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );

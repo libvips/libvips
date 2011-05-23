@@ -30,10 +30,10 @@
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
 #define DEBUG_REF
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -463,7 +463,11 @@ vips_object_dispose( GObject *gobject )
 	vips_argument_free_all( object );
 	VIPS_FREEF( vips_argument_table_destroy, object->argument_table );
 
+	vips_object_close( object );
+
 	G_OBJECT_CLASS( vips_object_parent_class )->dispose( gobject );
+
+	vips_object_postclose( object );
 }
 
 static void
@@ -477,15 +481,15 @@ vips_object_finalize( GObject *gobject )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	vips_object_close( object );
+	/* I'd like to have post-close in here, but you can't emit signals
+	 * from finalize, sadly.
+	 */
 
 	g_mutex_lock( vips__object_all_lock );
 	g_hash_table_remove( vips__object_all, object );
 	g_mutex_unlock( vips__object_all_lock );
 
 	G_OBJECT_CLASS( vips_object_parent_class )->finalize( gobject );
-
-	vips_object_postclose( object );
 }
 
 static void
@@ -1038,12 +1042,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 	argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
 
-	if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
-		vips_error( "VipsObject", 
-			_( "can't set output argument %s.%s from string" ),
-			G_OBJECT_TYPE_NAME( object ), name );
-		return( -1 );
-	}
+	g_assert( argument_class->flags & VIPS_ARGUMENT_INPUT );
 
 	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
 		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) {
@@ -1077,6 +1076,114 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	g_object_set_property( G_OBJECT( object ), name, &gvalue );
 	g_value_unset( &gvalue );
+
+	return( 0 );
+}
+
+/* Does a named output arg need an argument to write to? For example, an image
+ * output needs a filename, a double output just prints.
+ */
+gboolean
+vips_object_get_argument_needs_string( VipsObject *object, const char *name )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+
+#ifdef DEBUG
+	printf( "vips_object_get_argument_needs_string: %s\n", name );
+#endif /*DEBUG*/
+
+	pspec = g_object_class_find_property( G_OBJECT_CLASS( class ), name );
+	if( !pspec ) {
+		vips_error( "VipsObject", _( "%s.%s does not exist" ),
+			G_OBJECT_TYPE_NAME( object ), name );
+		return( -1 );
+	}
+
+	argument_class = (VipsArgumentClass *)
+		vips__argument_table_lookup( class->argument_table, pspec );
+
+	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
+
+	/* For now, we just support writing an image to a filename.
+	 */
+	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
+		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) 
+		return( TRUE );
+	else
+		return( FALSE );
+}
+
+static void
+vips_object_print_arg( VipsObject *object, GParamSpec *pspec, VipsBuf *buf )
+{
+	GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+	const char *name = g_param_spec_get_name( pspec );
+	GValue value = { 0 };
+	char *str_value;
+
+	g_value_init( &value, type );
+	g_object_get_property( G_OBJECT( object ), name, &value );
+	str_value = g_strdup_value_contents( &value );
+	vips_buf_appends( buf, str_value );
+	g_free( str_value );
+	g_value_unset( &value );
+}
+
+/* Write a named arg to the string. If the arg does not need a string (see
+ * above), arg will be NULL.
+ */
+int
+vips_object_get_argument_to_string( VipsObject *object, 
+	const char *name, const char *arg )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+
+#ifdef DEBUG
+	printf( "vips_object_get_argument_to_string: %s -> %s\n", 
+		name, arg );
+#endif /*DEBUG*/
+
+	pspec = g_object_class_find_property( G_OBJECT_CLASS( class ), name );
+	if( !pspec ) {
+		vips_error( "VipsObject", _( "%s.%s does not exist" ),
+			G_OBJECT_TYPE_NAME( object ), name );
+		return( -1 );
+	}
+
+	argument_class = (VipsArgumentClass *)
+		vips__argument_table_lookup( class->argument_table, pspec );
+
+	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
+
+	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
+		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) {
+		VipsImage *value;
+		VipsImage *image;
+
+		if( !(image = vips_image_new_from_file( arg, "w" )) )
+			return( -1 );
+		g_object_get( object, name, &value, NULL );
+		if( im_copy( value, image ) ) {
+			g_object_unref( value );
+			g_object_unref( image );
+			return( -1 );
+		}
+		g_object_unref( value );
+		g_object_unref( image );
+	}
+	else {
+		char str[1000];
+		VipsBuf buf = VIPS_BUF_STATIC( str );
+
+		vips_object_print_arg( object, pspec, &buf );
+		printf( "%s", vips_buf_all( &buf ) );
+	}
 
 	return( 0 );
 }
@@ -1223,23 +1330,6 @@ vips_object_new_from_string( const char *basename, const char *p )
 
 	return( vips_object_new( type,
 		vips_object_new_from_string_set, (void *) p, NULL ) );
-}
-
-static void
-vips_object_print_arg( VipsObject *object, GParamSpec *pspec, VipsBuf *buf )
-{
-	GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
-	const char *name = g_param_spec_get_name( pspec );
-	GValue value = { 0 };
-	char *str_value;
-
-	g_value_init( &value, type );
-	g_object_get_property( G_OBJECT( object ), name, &value );
-	str_value = g_strdup_value_contents( &value );
-	vips_buf_appends( buf, str_value );
-	g_free( str_value );
-	g_value_unset( &value );
-
 }
 
 static void *

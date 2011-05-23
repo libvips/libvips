@@ -28,8 +28,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -551,14 +551,17 @@ vips_call_argv_input( VipsObject *object,
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
-		/* Input args get set from argv, we skip output args.
-		 */
-		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
+		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
 			if( vips_object_set_argument_from_string( object, 
 				g_param_spec_get_name( pspec ), argv[*i] ) ) 
 				return( pspec );
-
-		*i += 1;
+			*i += 1;
+		}
+		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
+			if( vips_object_get_argument_needs_string( object,
+				g_param_spec_get_name( pspec ) ) )
+				*i += 1;
+		}
 	}
 
 	return( NULL );
@@ -578,13 +581,46 @@ vips_call_argv_output( VipsObject *object,
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
-		/* Output args get written to argv[*i].
-		 */
-		if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) 
-			printf( "** write %s to %s\n", 
-				g_param_spec_get_name( pspec ), argv[*i] );
+		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
+			*i += 1;
+		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
+			char *arg;
 
-		*i += 1;
+			arg = NULL;
+			if( vips_object_get_argument_needs_string( object,
+				g_param_spec_get_name( pspec ) ) ) {
+				arg = argv[*i];
+				*i += 1;
+			}
+
+			if( vips_object_get_argument_to_string( object, 
+				g_param_spec_get_name( pspec ), arg ) ) 
+				return( pspec );
+		}
+	}
+
+	return( NULL );
+}
+
+static void *
+vips_call_argv_unref_output( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		G_IS_PARAM_SPEC_OBJECT( pspec ) ) { 
+		GObject *value;
+
+		g_object_get( object, 
+			g_param_spec_get_name( pspec ), &value, NULL );
+
+		/* Doing the get refs the object, so unref the get, then unref
+		 * again since this an an output object of the operation.
+		 */
+		g_object_unref( value );
+		g_object_unref( value );
 	}
 
 	return( NULL );
@@ -621,6 +657,9 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	i = 0;
 	(void) vips_argument_map( VIPS_OBJECT( operation ),
 		vips_call_argv_output, argv, &i );
+
+	(void) vips_argument_map( VIPS_OBJECT( operation ),
+		vips_call_argv_unref_output, NULL, NULL );
 
 	return( 0 );
 }

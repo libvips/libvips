@@ -1,6 +1,9 @@
-- nasty leakage for 
+- try
 
-  	vips add k2.v babe.v out.v
+	$ vips im_add k2.v babe.v out.v 
+
+  egV
+
 
 
 

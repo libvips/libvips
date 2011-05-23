@@ -70,11 +70,11 @@
  */
 
 /*
- */
 #define DEBUG_MOVE 
 #define DEBUG_ENVIRONMENT 1
 #define DEBUG_CREATE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

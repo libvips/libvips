@@ -59,6 +59,8 @@
 - vips.c has new action syntax, knows about vips8 operations
 - add now has sizealike
 - vips7 binops all do sizealike too, also gbandjoin and ifthenelse
+- new API is now functional
+- vips.c generates GOption flags for vips8 operations
 
 30/11/10 started 7.24.0
 - bump for new stable
