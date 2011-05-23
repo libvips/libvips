@@ -1,9 +1,18 @@
 - try
 
 	$ vips im_add k2.v babe.v out.v 
+	VIPS:ERROR:image.c:300:vips_image_finalize: 
+		assertion failed: (!image->regions)
 
-  VIPS:ERROR:image.c:300:vips_image_finalize: assertion failed:
-  (!image->regions)
+  during the close of k2.v, triggered by destroy_args() in package.c as it
+  junks the argv ... there's one region there
+
+  I suppose we are unreffing one time too many during cleanup after
+  im_run_command()
+
+  should the wrapper for im_open() do sink_ref to make sure it returns a real
+  reference?
+
 
 
 
@@ -13,13 +22,13 @@
 
 - make something for Python as well
 
-  use ctypes and not swig so we get an easy Win version
+use ctypes and not swig so we get an easy Win version
 
-  wrap new API for C++
+wrap new API for C++
 
 
 
-  
+
 - matlab write
 
 - Magick: 
