@@ -30,10 +30,10 @@
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
 #define DEBUG_REF
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

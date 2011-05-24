@@ -52,6 +52,22 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+VipsImage *
+im_open( const char *filename, const char *mode )
+{
+	VipsImage *image;
+
+	if( !(image = vips_image_new_from_file( filename, mode )) )
+		return( NULL );
+
+	/* We have to refsink since the im_open() result is used like a hard
+	 * reference.
+	 */
+	g_object_ref_sink( image );
+
+	return( image );
+}
+
 /* Just for compatibility. New code should use vips_object_local() directly.
  */
 VipsImage *
@@ -60,7 +76,7 @@ im_open_local( VipsImage *parent,
 {
 	VipsImage *image;
 
-	if( !(image = vips_image_new_from_file( filename, mode )) )
+	if( !(image = im_open( filename, mode )) )
 		return( NULL );
 	vips_object_local( parent, image );
 

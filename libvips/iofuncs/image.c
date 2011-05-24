@@ -31,8 +31,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -2029,7 +2029,7 @@ vips_image_wio_input( VipsImage *image )
 		/* Change to VIPS_IMAGE_SETBUF. First, make a memory 
 		 * buffer and copy into that.
 		 */
-		if( !(t1 = vips_image_new_from_file( "vips_image_wio_input", "t" )) ) 
+		if( !(t1 = vips_image_new_from_file( "wio_input", "t" )) ) 
 			return( -1 );
 		if( im_copy( image, t1 ) ) {
 			g_object_unref( t1 );

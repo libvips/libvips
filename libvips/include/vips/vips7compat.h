@@ -153,7 +153,6 @@ extern "C" {
 #define im_cp_desc vips_image_copy_fields
 #define im_cp_descv vips_image_copy_fieldsv
 #define im_cp_desc_array vips_image_copy_fields_array
-#define im_open vips_image_new_from_file
 #define im_image vips_image_new_from_memory
 #define im_binfile vips_image_new_from_file_raw
 #define im__open_temp vips_image_new_disc_temp
@@ -197,6 +196,8 @@ extern "C" {
 
 /* Compat functions.
  */
+
+VipsImage *im_open( const char *filename, const char *mode );
 
 VipsImage *im_open_local( VipsImage *parent, 
 	const char *filename, const char *mode );

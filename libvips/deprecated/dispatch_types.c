@@ -113,7 +113,7 @@ input_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_image_new_from_file( str, "rd" )) );
+	return( !(*im = im_open( str, "rd" )) );
 }
 
 /* Input image type.
@@ -123,7 +123,7 @@ im_type_desc im__input_image = {
 	0, 				/* No storage needed */
 	IM_TYPE_ARG,			/* It requires a command-line arg */
 	(im_init_obj_fn) input_image_init,/* Init function */
-	(im_dest_obj_fn) vips_object_unref/* Destroy function */
+	(im_dest_obj_fn) im_close	/* Destroy function */
 };
 
 /* Init function for output images.
@@ -133,7 +133,7 @@ output_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_image_new_from_file( str, "w" )) );
+	return( !(*im = im_open( str, "w" )) );
 }
 
 /* Output image type.
@@ -143,7 +143,7 @@ im_type_desc im__output_image = {
 	0,				/* No storage to be allocated */
 	IM_TYPE_OUTPUT | IM_TYPE_ARG,	/* Flags! */
 	(im_init_obj_fn) output_image_init,/* Init function */
-	(im_dest_obj_fn) vips_object_unref/* Destroy function */
+	(im_dest_obj_fn) im_close	/* Destroy function */
 };
 
 /* Init function for RW images.
@@ -153,7 +153,7 @@ rw_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips_image_new_from_file( str, "rw" )) );
+	return( !(*im = im_open( str, "rw" )) );
 }
 
 /* RW image type.
@@ -163,7 +163,7 @@ im_type_desc im__rw_image = {
 	0,				/* No storage to be allocated */
 	IM_TYPE_ARG | IM_TYPE_RW,	/* Read-write object, needs an arg */
 	(im_init_obj_fn) rw_image_init,	/* Init function */
-	(im_dest_obj_fn) vips_object_unref/* Destroy function */
+	(im_dest_obj_fn) im_close	/* Destroy function */
 };
 
 /* im_imagevec_object destroy function.
@@ -178,7 +178,7 @@ imagevec_dest( im_object obj )
 
 		for( i = 0; i < iv->n; i++ )
 			if( iv->vec[i] ) {
-				g_object_unref( iv->vec[i] );
+				im_close( iv->vec[i] );
 				iv->vec[i] = NULL;
 			}
 
@@ -215,8 +215,7 @@ input_imagevec_init( im_object *obj, char *str )
 		iv->vec[i] = NULL;
 
 	for( i = 0; i < nargs; i++ ) 
-		if( !(iv->vec[i] = 
-			vips_image_new_from_file( strv[i], "rd" )) ) {
+		if( !(iv->vec[i] = im_open( strv[i], "rd" )) ) {
 			g_strfreev( strv );
 			return( -1 );
 		}

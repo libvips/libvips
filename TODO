@@ -16,6 +16,11 @@
 
 
 
+- vips_object_get_argument_to_string(),
+  vips_object_get_argument_needs_string(), 
+  vips_object_set_argument_from_string()
+
+  	should all be vfuncs on object
 
 
 
