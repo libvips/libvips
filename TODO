@@ -1,6 +1,11 @@
-- test the vfunc system for CLI args
+- perhaps we should have hard refs everywhere? it's very confusing having a
+  mxture :-( use vips_object_local() to make hard refs autounref
 
-  vips_object_new_from_string() is now very confusingly named
+
+
+- try out:
+
+	http://incubator.quasimondo.com/processing/stackblur.pde
 
 
 

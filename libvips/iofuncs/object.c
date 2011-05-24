@@ -1048,7 +1048,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 	g_assert( argument_class->flags & VIPS_ARGUMENT_INPUT );
 
 	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
-		(oclass = g_type_class_peek( otype )) &&
+		(oclass = g_type_class_ref( otype )) &&
 		oclass->new_from_string ) {
 		VipsObject *object;
 
@@ -1118,7 +1118,7 @@ vips_object_get_argument_needs_string( VipsObject *object, const char *name )
 	/* For now, only vipsobject subclasses can ask for args.
 	 */
 	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
-		(oclass = g_type_class_peek( otype )) )
+		(oclass = g_type_class_ref( otype )) )
 		return( oclass->output_needs_arg );
 
 	return( FALSE );
@@ -1173,7 +1173,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
 
 	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
-		(oclass = g_type_class_peek( otype )) &&
+		(oclass = g_type_class_ref( otype )) &&
 		oclass->output_to_arg ) {
 		VipsObject *value;
 
@@ -1495,25 +1495,12 @@ vips_class_map_concrete_all( GType type, VipsClassMap fn, void *a )
 	void *result;
 
 	result = NULL;
-	if( !G_TYPE_IS_ABSTRACT( type ) ) {
-		GTypeClass *class;
-
-		/* Does this class exist? Try to create if not.
+	if( !G_TYPE_IS_ABSTRACT( type ) ) 
+		/* We never unref this ref, but we never unload classes
+		 * anyway, so so what.
 		 */
-		if( !(class = g_type_class_peek( type )) ) 
-			/* We don't unref, so the class is never finalized. 
-			 * This will make the peek work next time around and 
-			 * save us from constantly building and destroying 
-			 * classes.
-			 */
-			if( !(class = g_type_class_ref( type )) ) {
-				vips_error( "VipsObject",
-					"%s", _( "unable to build class" ) );
-				return( NULL );
-			}
+		result = fn( VIPS_OBJECT_CLASS( g_type_class_ref( type ) ), a );
 
-		result = fn( VIPS_OBJECT_CLASS( class ), a );
-	}
 	if( !result )
 		result = vips_type_map( type, 
 			(VipsTypeMap2) vips_class_map_concrete_all, fn, a );
