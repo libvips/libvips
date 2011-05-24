@@ -1737,6 +1737,31 @@ vips_image_new_disc_temp( const char *format )
 }
 
 /**
+ * vips_image_write:
+ * @image: image to write
+ * @filename: write to this file
+ *
+ * A convenience function to write a #VipsImage to a file. 
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_image_write( VipsImage *image, const char *filename )
+{
+	VipsImage *out;
+
+	if( !(out = vips_image_new_from_file( filename, "w" )) )
+		return( -1 );
+	if( im_copy( image, out ) ) {
+		g_object_unref( out );
+		return( -1 );
+	}
+	g_object_unref( out );
+
+	return( 0 );
+}
+
+/**
  * vips_image_isMSBfirst:
  * @image: image to test
  *

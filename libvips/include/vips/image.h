@@ -363,6 +363,7 @@ VipsImage *vips_image_new_from_file_raw( const char *filename,
 VipsImage *vips_image_new_from_memory( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
 VipsImage *vips_image_new_disc_temp( const char *format );
+int vips_image_write( VipsImage *image, const char *filename );
 
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );

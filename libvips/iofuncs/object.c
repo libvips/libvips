@@ -1164,18 +1164,13 @@ vips_object_get_argument_to_string( VipsObject *object,
 	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
 		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) {
 		VipsImage *value;
-		VipsImage *image;
 
-		if( !(image = vips_image_new_from_file( arg, "w" )) )
-			return( -1 );
 		g_object_get( object, name, &value, NULL );
-		if( im_copy( value, image ) ) {
+		if( vips_image_write( value, arg ) ) {
 			g_object_unref( value );
-			g_object_unref( image );
 			return( -1 );
 		}
 		g_object_unref( value );
-		g_object_unref( image );
 	}
 	else {
 		char str[1000];
