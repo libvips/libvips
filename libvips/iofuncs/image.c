@@ -388,6 +388,20 @@ vips_image_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_image_parent_class )->dispose( gobject );
 }
 
+
+
+static VipsObject *
+vips_image_new_from_file_object( const char *string )
+{
+	return( VIPS_OBJECT( vips_image_new_from_file( string ) ) );
+}
+
+static int 
+vips_image_write_object( VipsObject *object, const char *string )
+{
+	return( vips_image_write( VIPS_IMAGE( object ), string ) );
+}
+
 static void *
 print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 {
@@ -1047,6 +1061,10 @@ vips_image_class_init( VipsImageClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
+	vobject_class->new_from_string = vips_image_new_from_file_object;
+	vobject_class->output_needs_arg = TRUE;
+	vobject_class->output_to_arg = vips_image_write_object;
+
 	vobject_class->nickname = "image";
 	vobject_class->description = _( "VIPS image class" );
 
@@ -1435,7 +1453,7 @@ vips_image_temp_name( void )
  * vips_image_new() creates a "glue" descriptor you can use to join two image 
  * processing operations together. 
  *
- * It is the equivalent of vips_image_new_from_file("xxx", "p").
+ * It is the equivalent of vips_image_new_mode("xxx", "p").
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -1499,11 +1517,11 @@ vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
 }
 
 /**
- * vips_image_new_from_file:
+ * vips_image_new_mode:
  * @filename: file to open
  * @mode: mode to open with
  *
- * vips_image_new_from_file() examines the mode string and creates an 
+ * vips_image_new_mode() examines the mode string and creates an 
  * appropriate #VipsImage.
  *
  * <itemizedlist>
@@ -1524,7 +1542,7 @@ vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
  *     <para>
  *       <emphasis>"r"</emphasis>
  *       opens the named file for reading. If the file is not in the native 
- *       VIPS format for your machine, vips_image_new_from_file() 
+ *       VIPS format for your machine, vips_image_new_mode() 
  *       automatically converts the file for you in memory. 
  *
  *       For some large files (eg. TIFF) this may 
@@ -1533,7 +1551,7 @@ vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
  *       API and control the loading process yourself. See 
  *       #VipsBandFormat. 
  *
- *       vips_image_new_from_file() can read files in most formats.
+ *       vips_image_new_mode() can read files in most formats.
  *
  *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
  *       It should return quickly and let you check header fields. It will
@@ -1545,7 +1563,7 @@ vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
  *       <emphasis>"rd"</emphasis>
  *	 opens the named file for reading. If the uncompressed image is larger 
  *	 than a threshold and the file format does not support random access, 
- *	 rather than uncompressing to memory, vips_image_new_from_file() will 
+ *	 rather than uncompressing to memory, vips_image_new_mode() will 
  *	 uncompress to a temporary disc file. This file will be automatically 
  *	 deleted when the IMAGE is closed.
  *
@@ -1574,7 +1592,7 @@ vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
  *       suffix to determine the type to write -- for example:
  *
  *       |[
- *         vips_image_new_from_file( "fred.tif", "w" )
+ *         vips_image_new_mode( "fred.tif", "w" )
  *       ]|
  *
  *       will write in TIFF format.
@@ -1593,7 +1611,7 @@ vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_file( const char *filename, const char *mode )
+vips_image_new_mode( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
@@ -1608,6 +1626,23 @@ vips_image_new_from_file( const char *filename, const char *mode )
 	}
 
 	return( image ); 
+}
+
+/**
+ * vips_image_new_from_file:
+ * @filename: file to open
+ *
+ * vips_image_new_from_file() opens @filename for reading. See
+ * vips_image_new_mode() for details.
+ *
+ * See also: vips_image_new_mode().
+ *
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_from_file( const char *filename )
+{
+	return( vips_image_new_mode( filename, "r" ) ); 
 }
 
 /**
@@ -1721,7 +1756,7 @@ vips_image_new_disc_temp( const char *format )
 	if( !(name = vips__temp_name( format )) )
 		return( NULL );
 
-	if( !(image = vips_image_new_from_file( name, "w" )) ) {
+	if( !(image = vips_image_new_mode( name, "w" )) ) {
 		g_free( name );
 		return( NULL );
 	}
@@ -1750,7 +1785,7 @@ vips_image_write( VipsImage *image, const char *filename )
 {
 	VipsImage *out;
 
-	if( !(out = vips_image_new_from_file( filename, "w" )) )
+	if( !(out = vips_image_new_mode( filename, "w" )) )
 		return( -1 );
 	if( im_copy( image, out ) ) {
 		g_object_unref( out );
@@ -2029,7 +2064,7 @@ vips_image_wio_input( VipsImage *image )
 		/* Change to VIPS_IMAGE_SETBUF. First, make a memory 
 		 * buffer and copy into that.
 		 */
-		if( !(t1 = vips_image_new_from_file( "wio_input", "t" )) ) 
+		if( !(t1 = vips_image_new_mode( "wio_input", "t" )) ) 
 			return( -1 );
 		if( im_copy( image, t1 ) ) {
 			g_object_unref( t1 );

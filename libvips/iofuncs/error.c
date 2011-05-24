@@ -93,8 +93,8 @@
  * |[
  * IMAGE *im;
  *
- * if( !(im = vips_image_new_from_file( filename, "r" )) )
- *   // vips_image_new_from_file() will set a mmessage, we don't need to
+ * if( !(im = vips_image_new_from_file( filename )) )
+ *   // vips_image_new_from_file() will set a message, we don't need to
  *   return( -1 );
  *
  * if( vips_image_get_width( im ) < 100 ) {

@@ -261,6 +261,26 @@ struct _VipsObjectClass {
 	 */
 	void (*postclose)( VipsObject * );
 
+	/* The CLI interface. Implement these three to get CLI input and output
+	 * for your object.
+	 */
+
+	/* Given a command-line arg (eg. a filename), make an instance of the
+	 * object.
+	 */
+	VipsObject *(*new_from_string)( const char *string );
+
+	/* Does this output arg need an arg from the command line? Image
+	 * output, for example, needs a filename to write to.
+	 */
+	gboolean output_needs_arg;
+
+	/* Write the object to the string. Return 0 for success, or -1 on
+	 * error setting vips_error(). string is NULL if output_needs_arg()
+	 * was FALSE.
+	 */
+	int (*output_to_arg)( VipsObject *object, const char *string );
+
 	/* Class nickname, eg. "VipsInterpolateBicubic" has "bicubic" as a
 	 * nickname. Not internationalised. 
 	 */

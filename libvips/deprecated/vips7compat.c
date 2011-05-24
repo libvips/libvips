@@ -57,7 +57,7 @@ im_open( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
-	if( !(image = vips_image_new_from_file( filename, mode )) )
+	if( !(image = vips_image_new_mode( filename, mode )) )
 		return( NULL );
 
 	/* We have to refsink since the im_open() result is used like a hard

@@ -1024,7 +1024,9 @@ vips_object_set_argument_from_string( VipsObject *object,
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 
 	GParamSpec *pspec;
+	GType otype;
 	VipsArgumentClass *argument_class;
+	VipsObjectClass *oclass;
 	GValue gvalue = { 0 };
 
 #ifdef DEBUG
@@ -1038,24 +1040,27 @@ vips_object_set_argument_from_string( VipsObject *object,
 			G_OBJECT_TYPE_NAME( object ), name );
 		return( -1 );
 	}
+	otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
 
 	argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
 
 	g_assert( argument_class->flags & VIPS_ARGUMENT_INPUT );
 
-	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
-		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) {
-		VipsImage *image;
+	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
+		(oclass = g_type_class_peek( otype )) &&
+		oclass->new_from_string ) {
+		VipsObject *object;
+
+		if( !(object = oclass->new_from_string( value )) )
+			return( -1 );
 
 		g_value_init( &gvalue, G_TYPE_OBJECT );
-		if( !(image = vips_image_new_from_file( value, "r" )) )
-			return( -1 );
 
 		/* VipsObject is GInitiallyUnowned, so the gvalue now has a
 		 * ref count 1 image.
 		 */
-		g_value_set_object( &gvalue, image );
+		g_value_set_object( &gvalue, object );
 	}
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean b;
@@ -1089,7 +1094,9 @@ vips_object_get_argument_needs_string( VipsObject *object, const char *name )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 
 	GParamSpec *pspec;
+	GType otype;
 	VipsArgumentClass *argument_class;
+	VipsObjectClass *oclass;
 
 #ifdef DEBUG
 	printf( "vips_object_get_argument_needs_string: %s\n", name );
@@ -1101,19 +1108,20 @@ vips_object_get_argument_needs_string( VipsObject *object, const char *name )
 			G_OBJECT_TYPE_NAME( object ), name );
 		return( -1 );
 	}
+	otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
 
 	argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
 
 	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
 
-	/* For now, we just support writing an image to a filename.
+	/* For now, only vipsobject subclasses can ask for args.
 	 */
-	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
-		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) 
-		return( TRUE );
-	else
-		return( FALSE );
+	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
+		(oclass = g_type_class_peek( otype )) )
+		return( oclass->output_needs_arg );
+
+	return( FALSE );
 }
 
 static void
@@ -1142,7 +1150,9 @@ vips_object_get_argument_to_string( VipsObject *object,
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 
 	GParamSpec *pspec;
+	GType otype;
 	VipsArgumentClass *argument_class;
+	VipsObjectClass *oclass;
 
 #ifdef DEBUG
 	printf( "vips_object_get_argument_to_string: %s -> %s\n", 
@@ -1155,18 +1165,20 @@ vips_object_get_argument_to_string( VipsObject *object,
 			G_OBJECT_TYPE_NAME( object ), name );
 		return( -1 );
 	}
+	otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
 
 	argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
 
 	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
 
-	if( G_IS_PARAM_SPEC_OBJECT( pspec ) && 
-		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_IMAGE ) {
-		VipsImage *value;
+	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
+		(oclass = g_type_class_peek( otype )) &&
+		oclass->output_to_arg ) {
+		VipsObject *value;
 
 		g_object_get( object, name, &value, NULL );
-		if( vips_image_write( value, arg ) ) {
+		if( oclass->output_to_arg( value, arg ) ) {
 			g_object_unref( value );
 			return( -1 );
 		}
