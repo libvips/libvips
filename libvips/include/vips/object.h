@@ -266,8 +266,9 @@ struct _VipsObjectClass {
 	 */
 
 	/* Given a command-line arg (eg. a filename), make an instance of the
-	 * object. Don't call this directly, see
-	 * vips_object_new_from_string().
+	 * object. Just do the g_object_new(), don't call _build().
+	 *
+	 * Don't call this directly, see vips_object_new_from_string().
 	 */
 	VipsObject *(*new_from_string)( const char *string );
 

@@ -167,16 +167,43 @@ vips_interpolate_real_get_window_offset( VipsInterpolate *interpolate )
 	}
 }
 
+static VipsObject * 
+vips_interpolate_new_from_string( const char *string )
+{
+	GType type;
+
+	/* The main arg selects the subclass.
+	 */
+	if( !(type = vips_type_find( "VipsInterpolate", string )) )
+		return( NULL );
+	return( VIPS_OBJECT( g_object_new( type, NULL ) ) );
+}
+
+static void 
+vips_interpolate_to_string( VipsObject *object, VipsBuf *buf )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	/* Just "bicubic" or whatever.
+	 */
+	vips_buf_appends( buf, class->nickname );
+}
+
 static void
 vips_interpolate_class_init( VipsInterpolateClass *class )
 {
 #ifdef DEBUG
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 #endif /*DEBUG*/
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
 #ifdef DEBUG
 	gobject_class->finalize = vips_interpolate_finalize;
 #endif /*DEBUG*/
+
+	vobject_class->new_from_string = vips_interpolate_new_from_string;
+	vobject_class->to_string = vips_interpolate_to_string;
+
 	class->interpolate = NULL;
 	class->get_window_size = vips_interpolate_real_get_window_size;
 	class->get_window_offset = vips_interpolate_real_get_window_offset;
