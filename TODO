@@ -1,3 +1,33 @@
+- where exactly is vips_object_new_from_string() used? check use cases
+
+  also revise the inverse operation: vips_object_to_string() ... should be a
+  vfunc as well since it has to match from_string() in behaviour
+
+
+
+- vips_object_new_from_string() must go, use the vfunc thing instead
+
+  at the moment, vips_object_new_from_string() is used for
+
+  	affinei bilinear{arg=12}
+
+  instead, have a new_from_string vfunc on interpolate which takes off the
+  main part of the arg and uses that to look up the interpolate subclass
+
+  parsing off required and optional sub-args could be moved somewhere else
+
+  use this system to do file format options, eg.
+
+  	vips copy fred.v fred.jpg{quality=90}
+
+  need to keep the old arg parser for compat
+
+  how do we get the new one called? will each writer need to test for a ':'
+  char?
+
+
+
+
 - perhaps we should have hard refs everywhere? it's very confusing having a
   mxture :-( use vips_object_local() to make hard refs autounref
 
@@ -138,6 +168,9 @@ Traceback (most recent call last):
 <module>
     vimagemodule = swig_import_helper()
   File "/usr/local/lib/python2.6/dist-packages/vipsCC/VImage.py", line 21, in
+swig_import_helper
+    _mod = imp.load_module('vimagemodule', fp, pathname, description)
+ImportError: /usr/local/lib/python2.6/dist-packages/vipsCC/vimagemodule.so:
 swig_import_helper
     _mod = imp.load_module('vimagemodule', fp, pathname, description)
 ImportError: /usr/local/lib/python2.6/dist-packages/vipsCC/vimagemodule.so:
@@ -331,9 +364,6 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
 
   	http://www.swig.org/Doc1.3/SWIGDocumentation.html#Python_nn8
 	http://docs.python.org/dist/dist.html
-
-- write our own python extension to call a vips operation by name
-
 	result = vips_call ("name", args)
 
   then call that from VImage_method
