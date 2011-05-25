@@ -317,6 +317,9 @@ vips_format_class_init( VipsFormatClass *class )
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
 	object_class->print_class = vips_format_print_class;
+
+	object_class->print_class = vips_format_print_class;
+
 }
 
 static void
