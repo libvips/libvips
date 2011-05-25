@@ -874,6 +874,29 @@ vips_object_real_rewind( VipsObject *object )
 	object->postclose = FALSE;
 }
 
+static VipsObject *
+vips_object_real_new_from_string( const char *string )
+{
+	GType type;
+
+	/* The main arg selects the subclass.
+	 */
+	if( !(type = vips_type_find( "VipsObject", string )) )
+		return( NULL );
+
+	return( VIPS_OBJECT( g_object_new( type, NULL ) ) );
+}
+
+static void 
+vips_object_real_to_string( VipsObject *object, VipsBuf *buf )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	/* Just "bicubic" or whatever.
+	 */
+	vips_buf_appends( buf, class->nickname );
+}
+
 static void
 transform_string_double( const GValue *src_value, GValue *dest_value )
 {
@@ -904,6 +927,8 @@ vips_object_class_init( VipsObjectClass *class )
 	class->print = vips_object_real_print;
 	class->sanity = vips_object_real_sanity;
 	class->rewind = vips_object_real_rewind;
+	class->new_from_string = vips_object_real_new_from_string;
+	class->to_string = vips_object_real_to_string;
 	class->nickname = "object";
 	class->description = _( "VIPS base class" );
 

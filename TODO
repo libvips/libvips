@@ -1,28 +1,12 @@
-- interpolate needs stuff for new new_from_string etc. system
-
-  also VipsFormat ... could this replace vips_image_new_from_string()? or
+- also VipsFormat ... could this replace vips_image_new_from_string()? or
   could we call this from vips_image_new_from_string()? 
 
-  vipsobject should have a fall-back implementation that does something, I
-  don't quite know what
 
 
 
 
 
-
-- vips_object_new_from_string() must go, use the vfunc thing instead
-
-  at the moment, vips_object_new_from_string() is used for
-
-  	affinei bilinear{arg=12}
-
-  instead, have a new_from_string vfunc on interpolate which takes off the
-  main part of the arg and uses that to look up the interpolate subclass
-
-  parsing off required and optional sub-args could be moved somewhere else
-
-  use this system to do file format options, eg.
+- use this system to do file format options, eg.
 
   	vips copy fred.v fred.jpg{quality=90}
 
@@ -36,6 +20,9 @@
 
 - perhaps we should have hard refs everywhere? it's very confusing having a
   mxture :-( use vips_object_local() to make hard refs autounref
+
+  what would the API look like?
+
 
 
 
