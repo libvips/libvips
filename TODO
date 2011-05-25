@@ -1,7 +1,13 @@
-- where exactly is vips_object_new_from_string() used? check use cases
+- interpolate needs stuff for new new_from_string etc. system
 
-  also revise the inverse operation: vips_object_to_string() ... should be a
-  vfunc as well since it has to match from_string() in behaviour
+  also VipsFormat ... could this replace vips_image_new_from_string()? or
+  could we call this from vips_image_new_from_string()? 
+
+  vipsobject should have a fall-back implementation that does something, I
+  don't quite know what
+
+
+
 
 
 

@@ -886,9 +886,11 @@ im_type_desc im__output_gvalue = {
 static int
 input_interpolate_init( im_object *obj, char *str )
 {
+	VipsObjectClass *interpolate_class;
 	VipsObject *object;
 
-	if( !(object = vips_object_new_from_string( "VipsInterpolate", str )) )
+	interpolate_class = vips_class_find( "VipsInterpolate", "interpolate" );
+	if( !(object = vips_object_new_from_string( interpolate_class, str )) )
 		return( -1 );
 	*obj = object;
 

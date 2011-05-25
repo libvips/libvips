@@ -1048,11 +1048,10 @@ vips_object_set_argument_from_string( VipsObject *object,
 	g_assert( argument_class->flags & VIPS_ARGUMENT_INPUT );
 
 	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
-		(oclass = g_type_class_ref( otype )) &&
-		oclass->new_from_string ) {
+		(oclass = g_type_class_ref( otype )) ) { 
 		VipsObject *object;
 
-		if( !(object = oclass->new_from_string( value )) )
+		if( !(object = vips_object_new_from_string( oclass, value )) )
 			return( -1 );
 
 		g_value_init( &gvalue, G_TYPE_OBJECT );
@@ -1232,6 +1231,26 @@ vips_object_set_required( VipsObject *object, const char *value )
 	return( 0 );
 }
 
+VipsObject *
+vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
+{
+	VipsObject *object;
+
+	object = VIPS_OBJECT( g_object_new( type, NULL ) );
+
+	if( set && set( object, a, b ) ) {
+		g_object_unref( object );
+		return( NULL );
+	}
+
+	if( vips_object_build( object ) ) {
+		g_object_unref( object );
+		return( NULL );
+	}
+
+	return( object );
+}
+
 /* Set object args from a string. We've seen the '(', we need to check for the
  * closing ')' and make sure there's no extra stuff.
  */
@@ -1287,15 +1306,30 @@ vips_object_set_args( VipsObject *object, const char *p )
 }
 
 VipsObject *
-vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
+vips_object_new_from_string( VipsObjectClass *object_class, const char *p )
 {
+	char str[PATH_MAX];
 	VipsObject *object;
+	VipsToken token;
 
-	object = VIPS_OBJECT( g_object_new( type, NULL ) );
+	g_assert( object_class->new_from_string );
 
-	if( set && set( object, a, b ) ) {
-		g_object_unref( object );
+	/* The first string in p is the main construct arg, eg. a filename.
+	 */
+	if( !(p = vips__token_need( p, VIPS_TOKEN_STRING, str, PATH_MAX )) ||
+		!(object = object_class->new_from_string( str )) )
 		return( NULL );
+
+	/* More tokens there? Set any other args.
+	 */
+	if( (p = vips__token_get( p, &token, str, PATH_MAX )) ) {
+		if( token == VIPS_TOKEN_LEFT &&
+			vips_object_set_args( object, p ) ) {
+			vips_error( "VipsObject", 
+				"%s", _( "bad object arguments" ) );
+			g_object_unref( object );
+			return( NULL );
+		}
 	}
 
 	if( vips_object_build( object ) ) {
@@ -1303,40 +1337,7 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 		return( NULL );
 	}
 
-	return( object );
-}
-
-static void *
-vips_object_new_from_string_set( VipsObject *object, void *a, void *b )
-{
-	const char *p = (const char *) a;
-	VipsToken token;
-	char string[PATH_MAX];
-
-	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
-		if( token == VIPS_TOKEN_LEFT &&
-			vips_object_set_args( object, p ) ) {
-			vips_error( "VipsObject", 
-				"%s", _( "bad object arguments" ) );
-			return( object );
-		}
-	}
-
-	return( NULL );
-}
-
-VipsObject *
-vips_object_new_from_string( const char *basename, const char *p )
-{
-	char string[PATH_MAX];
-	GType type;
-
-	if( !(p = vips__token_need( p, VIPS_TOKEN_STRING, string, PATH_MAX )) ||
-		!(type = vips_type_find( basename, string )) )
-		return( NULL );
-
-	return( vips_object_new( type,
-		vips_object_new_from_string_set, (void *) p, NULL ) );
+	return( object ); 
 }
 
 static void *
@@ -1398,12 +1399,16 @@ vips_object_to_string_optional( VipsObject *object,
 void
 vips_object_to_string( VipsObject *object, VipsBuf *buf )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+
 	gboolean first;
+
+	g_assert( object_class->to_string );
 
 	/* Nicknames are not guaranteed to be unique, so use the full type
 	 * name.
 	 */
-	vips_buf_appends( buf, G_OBJECT_TYPE_NAME( object ) );
+	object_class->to_string( object, buf );
 	first = TRUE;
 	(void) vips_argument_map( object,
 		vips_object_to_string_required, buf, &first );

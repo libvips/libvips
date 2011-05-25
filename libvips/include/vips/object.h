@@ -261,14 +261,20 @@ struct _VipsObjectClass {
 	 */
 	void (*postclose)( VipsObject * );
 
-	/* The CLI interface. Implement these three to get CLI input and output
+	/* The CLI interface. Implement these four to get CLI input and output
 	 * for your object.
 	 */
 
 	/* Given a command-line arg (eg. a filename), make an instance of the
-	 * object.
+	 * object. Don't call this directly, see
+	 * vips_object_new_from_string().
 	 */
 	VipsObject *(*new_from_string)( const char *string );
+
+	/* The inverse of ^^. Given an object, output what ->new_from_string()
+	 * would have been given to make that object. 
+	 */
+	void (*to_string)( VipsObject *, VipsBuf * ); 
 
 	/* Does this output arg need an arg from the command line? Image
 	 * output, for example, needs a filename to write to.
@@ -276,7 +282,7 @@ struct _VipsObjectClass {
 	gboolean output_needs_arg;
 
 	/* Write the object to the string. Return 0 for success, or -1 on
-	 * error setting vips_error(). string is NULL if output_needs_arg()
+	 * error, setting vips_error(). string is NULL if output_needs_arg()
 	 * was FALSE.
 	 */
 	int (*output_to_arg)( VipsObject *object, const char *string );
@@ -327,7 +333,8 @@ typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );
 VipsObject *vips_object_new( GType type, 
 	VipsObjectSetArguments set, void *a, void *b );
 
-VipsObject *vips_object_new_from_string( const char *base, const char *str );
+VipsObject *vips_object_new_from_string( VipsObjectClass *object_class, 
+	const char *p );
 void vips_object_to_string( VipsObject *object, VipsBuf *buf );
 
 void *vips_object_map( VipsSListMap2Fn fn, void *a, void *b );
