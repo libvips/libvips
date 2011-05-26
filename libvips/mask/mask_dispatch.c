@@ -229,6 +229,33 @@ static im_function gauss_dmask_desc = {
 	gauss_dmask_args 		/* Arg list */
 };
 
+/* Call im_gauss_dmask_sep via arg vector.
+ */
+static int
+gauss_dmask_sep_vec( im_object *argv )
+{
+	im_mask_object *mo = argv[0];
+	double sigma = *((double *) argv[1]);
+	double min_amp = *((double *) argv[2]);
+
+	if( !(mo->mask = 
+		im_gauss_dmask_sep( mo->name, sigma, min_amp )) )
+		return( -1 );
+	
+	return( 0 );
+}
+
+/* Description of im_gauss_dmask_sep.
+ */ 
+static im_function gauss_dmask_sep_desc = {
+	"im_gauss_dmask_sep", 		/* Name */
+	"generate separable gaussian DOUBLEMASK",
+	0,				/* Flags */
+	gauss_dmask_sep_vec, 		/* Dispatch function */
+	IM_NUMBER( gauss_dmask_args ), 	/* Size of arg list */
+	gauss_dmask_args 		/* Arg list */
+};
+
 /* Args for im_gauss_imask.
  */
 static im_arg_desc gauss_imask_args[] = {
@@ -549,6 +576,7 @@ static im_function dmask_ysize_desc = {
  */
 static im_function *mask_list[] = {
 	&gauss_dmask_desc,
+	&gauss_dmask_sep_desc,
 	&log_dmask_desc,
 	&log_imask_desc,
 	&gauss_imask_desc,

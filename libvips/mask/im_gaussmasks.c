@@ -172,6 +172,46 @@ im_gauss_dmask( const char *filename, double sigma, double min_ampl )
 }
 
 /**
+ * im_gauss_dmask_sep:
+ * @filename: the returned mask has this set as the filename
+ * @sigma: standard deviation of mask
+ * @min_ampl: minimum amplitude
+ *
+ * im_gauss_dmask_sep() works exactly as im_gauss_dmask(), but returns only
+ * the central line of the mask. This is useful with im_convsepf().
+ *
+ * See also: im_gauss_dmask(), im_convsepf().
+ *
+ * Returns: the calculated mask on success, or NULL on error.
+ */
+DOUBLEMASK *
+im_gauss_dmask_sep( const char *filename, double sigma, double min_ampl )
+{
+	DOUBLEMASK *im;
+	DOUBLEMASK *im2;
+	int i;
+	double sum;
+
+	if( !(im = im_gauss_dmask( filename, sigma, min_ampl )) )
+		return( NULL );
+	if( !(im2 = im_create_dmask( filename, im->xsize, 1 )) ) {
+		im_free_dmask( im );
+		return( NULL );
+	}
+
+	sum = 0;
+	for( i = 0; i < im->xsize; i++ ) {
+		im2->coeff[i] = im->coeff[i + im->xsize * (im->ysize / 2)];
+		sum += im2->coeff[i];
+	}
+	im2->scale = sum;
+
+	im_free_dmask( im );
+
+	return( im2 );
+}
+
+/**
  * im_gauss_imask:
  * @filename: the returned mask has this set as the filename
  * @sigma: standard deviation of mask
