@@ -82,6 +82,8 @@ INTMASK *im_gauss_imask_sep( const char *filename,
 	double sigma, double min_ampl );
 DOUBLEMASK *im_gauss_dmask( const char *filename, 
 	double sigma, double min_ampl );
+DOUBLEMASK *im_gauss_dmask_sep( const char *filename, 
+	double sigma, double min_ampl );
 
 INTMASK *im_dup_imask( INTMASK *in, const char *filename );
 DOUBLEMASK *im_dup_dmask( DOUBLEMASK *in, const char *filename );

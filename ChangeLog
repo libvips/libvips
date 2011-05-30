@@ -61,6 +61,7 @@
 - vips7 binops all do sizealike too, also gbandjoin and ifthenelse
 - new API is now functional
 - vips.c generates GOption flags for vips8 operations
+- added im_gauss_dmask_sep()
 
 30/11/10 started 7.24.0
 - bump for new stable
