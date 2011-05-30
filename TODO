@@ -9,7 +9,7 @@
 
 
 - perhaps we should have hard refs everywhere? it's very confusing having a
-  mxture :-( use vips_object_local() to make hard refs autounref
+  mixture :-( use vips_object_local() to make hard refs autounref
 
   what would the API look like?
 
@@ -50,6 +50,8 @@
 	}
 
   vips_unref_array() just unrefs all non-NULL pointers in the array
+
+  not too bad! and getting rid of floating refs is a win
 
 
 	

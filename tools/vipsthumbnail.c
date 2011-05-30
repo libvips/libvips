@@ -244,7 +244,7 @@ thumbnail3( IMAGE *in, IMAGE *out )
 	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
 	 */
 	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
-		"VipsInterpolate", 
+		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
 		residual > 1.0 ? "nearest" : interpolator ) )) )
 		return( -1 );
 
