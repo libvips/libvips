@@ -267,7 +267,7 @@ vips_malloc( VipsImage *image, size_t size )
 #endif /*DEBUGM*/
  
         if( image )
-		g_signal_connect( image, "close", 
+		g_signal_connect( image, "postclose", 
 			G_CALLBACK( vips_malloc_cb ), buf );
 
         return( buf );
