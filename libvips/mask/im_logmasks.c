@@ -105,14 +105,11 @@ im_log_dmask( const char *filename, double sigma, double min_ampl )
 	DOUBLEMASK *m;
 	double sum;
 
-	/* Stop used-before-set warnings.
-	 */
-	last = 0.0;
-
 	/* Find the size of the mask depending on the entered data. We want to
 	 * eval the mask out to the flat zero part, ie. beyond the minimum and
 	 * to the point where it comes back up towards zero.
 	 */
+	last = 0.0;
 	for( x = 0; x < IM_MAXMASK; x++ ) {
 		const double distance = x * x;
 		double val;
@@ -129,12 +126,12 @@ im_log_dmask( const char *filename, double sigma, double min_ampl )
 			(2.0 - (distance / sig2)) * 
 			exp( -distance / (2.0 * sig2) );
 
-		/* Stop when change in temp (ie. difference from the last
-		 * point) and absolute value are both less than the min.
+		/* Stop when change in value (ie. difference from the last
+		 * point) is positive (ie. we are going up) and absolute value 
+		 * is less than the min.
 		 */
-		if( x > 0 && 
-			fabs( val ) < min_ampl && 
-			fabs( val - last ) < min_ampl ) 
+		if( val - last >= 0 &&
+			fabs( val ) < min_ampl )
 			break;
 
 		last = val;

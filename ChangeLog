@@ -62,6 +62,7 @@
 - new API is now functional
 - vips.c generates GOption flags for vips8 operations
 - added im_gauss_dmask_sep()
+- laplacian generator lost -ve lobes for large sigma
 
 30/11/10 started 7.24.0
 - bump for new stable
