@@ -1153,3 +1153,28 @@ vips_check_dmask( const char *domain, DOUBLEMASK *mask )
 
 	return( 0 );
 }
+
+/**
+ * vips_check_dmask_1d:
+ * @domain: the originating domain for the error message
+ * @mask: mask to check
+ *
+ * A mask must be one-dimensional (width or height 1).
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask )
+{
+	if( vips_check_dmask( domain, mask ) )
+		return( -1 );
+	if( mask->xsize != 1 &&
+		mask->ysize != 1 ) {
+		vips_error( domain, "%s", _( "mask must be 1D" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}

@@ -83,6 +83,7 @@ int vips_check_vector( const char *domain, int n, VipsImage *im );
 int vips_check_hist( const char *domain, VipsImage *im );
 int vips_check_imask( const char *domain, INTMASK *mask );
 int vips_check_dmask( const char *domain, DOUBLEMASK *mask );
+int vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask );
 
 #ifdef __cplusplus
 }
