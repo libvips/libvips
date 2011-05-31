@@ -1119,6 +1119,7 @@ vips_check_imask( const char *domain, INTMASK *mask )
 		mask->ysize > 1000 || 
 		mask->xsize <= 0 || 
 		mask->ysize <= 0 || 
+		mask->scale == 0 || 
 		!mask->coeff ) {
 		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
 		return( -1 );
@@ -1146,6 +1147,7 @@ vips_check_dmask( const char *domain, DOUBLEMASK *mask )
 		mask->ysize > 1000 || 
 		mask->xsize <= 0 || 
 		mask->ysize <= 0 || 
+		mask->scale == 0 || 
 		!mask->coeff ) {
 		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
 		return( -1 );
