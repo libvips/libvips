@@ -40,9 +40,9 @@
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -275,7 +275,6 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	lines->rounding = (lines->area + 1) / 2;
 
 	/* ASCII-art layer drawing.
-	 */
 	printf( "lines:\n" );
 	for( z = 0; z < lines->n_lines; z++ ) {
 		printf( "%3d - %2d x ", z, lines->factor[z] );
@@ -291,6 +290,7 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	}
 	printf( "area = %d\n", lines->area );
 	printf( "rounding = %d\n", lines->rounding );
+	 */
 
 	return( lines );
 }

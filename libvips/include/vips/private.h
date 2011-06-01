@@ -136,8 +136,8 @@ typedef enum region_type {
  * vips_image_generate()
  * when acting as a data sink.
  */
-#define VIPS__TILE_WIDTH (64)
-#define VIPS__TILE_HEIGHT (64)
+#define VIPS__TILE_WIDTH (512)
+#define VIPS__TILE_HEIGHT (512)
 
 /* The height of the strips for the other two request styles.
  */
