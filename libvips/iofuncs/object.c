@@ -1620,7 +1620,8 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 void
 vips_object_print_all( void )
 {
-	if( g_hash_table_size( vips__object_all ) > 0 ) {
+	if( vips__object_all &&
+		g_hash_table_size( vips__object_all ) > 0 ) {
 		int n;
 
 		printf( "%d objects alive:\n", 
