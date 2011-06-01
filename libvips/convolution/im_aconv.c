@@ -40,8 +40,9 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -51,9 +52,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <math.h>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -82,7 +85,7 @@ typedef struct _Lines {
 	IMAGE *in;
 	IMAGE *out;
 	DOUBLEMASK *mask;
-	int n_lines;
+	int n_layers;
 
 	int area;
 	int rounding;
@@ -120,7 +123,7 @@ line_end( Lines *lines, int x )
 /* Break a mask into lines.
  */
 static Lines *
-lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_lines )
+lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 {
 	const int width = mask->xsize * mask->ysize;
 
@@ -128,15 +131,14 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_lines )
 	double max;
 	double min;
 	double depth;
-	int lines_above;
-	int lines_below;
+	int layers_above;
+	int layers_below;
 	int z, n, x;
 
 	/* Check parameters.
 	 */
-	if( vips_image_pio_input( in ) ||
-		vips_image_pio_output( out ) ||
-		vips_check_uncoded( "im_aconv", in ) ||
+	if( im_piocheck( in, out ) ||
+		im_check_uncoded( "im_aconv", in ) ||
 		vips_check_dmask_1d( "im_aconv", mask ) ) 
 		return( NULL );
 
@@ -148,10 +150,10 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_lines )
 		(im_construct_fn) im_dup_dmask,
 		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )
 		return( NULL );
-	lines->n_lines = n_lines;
+	lines->n_layers = n_layers;
 	lines->n_lines = 0;
 
-	VIPS_DEBUG_MSG( "lines_new: breaking into %d lines ...\n", n_lines );
+	VIPS_DEBUG_MSG( "lines_new: breaking into %d layers ...\n", n_layers );
 
 	/* Find mask range. We must always include the zero axis in the mask.
 	 */
@@ -168,24 +170,24 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_lines )
 	 * depth, find n-lines-above-zero, get exact depth, then calculate a
 	 * fixed n-lines which includes any negative parts.
 	 */
-	depth = (max - min) / n_lines;
-	lines_above = ceil( max / depth );
-	depth = max / lines_above;
-	lines_below = floor( min / depth );
-	n_lines = lines_above - lines_below;
+	depth = (max - min) / n_layers;
+	layers_above = ceil( max / depth );
+	depth = max / layers_above;
+	layers_below = floor( min / depth );
+	n_layers = layers_above - layers_below;
 
-	VIPS_DEBUG_MSH( "depth = %g, n_lines = %d\n", depth, n_lines );
+	VIPS_DEBUG_MSG( "depth = %g, n_layers = %d\n", depth, n_layers );
 
 	/* For each layer, generate a set of lines which are inside the
 	 * perimeter. Work down from the top.
 	 */
-	for( z = 0; z < n_lines; z++ ) {
+	for( z = 0; z < n_layers; z++ ) {
 		double y = max - (1 + z) * depth;
 
 		/* Odd, but we must avoid rounding errors that make us miss 0
 		 * in the line above.
 		 */
-		int y_positive = z < lines_above;
+		int y_positive = z < layers_above;
 
 		int inside;
 
@@ -301,10 +303,9 @@ typedef struct {
 
 	int *start;		/* Offsets for start and stop */
 	int *end;
-	int last_bpl;		/* Avoid recalcing offsets, if we can */
+	int *sum;		/* The sum for each line */
 
-	PEL **startp;		/* Pixel pointers */
-	PEL **endp;
+	int last_stride;	/* Avoid recalcing offsets, if we can */
 } LinesSequence;
 
 /* Free a sequence value.
@@ -326,8 +327,6 @@ lines_start( IMAGE *out, void *a, void *b )
 {
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
-	DOUBLEMASK *mask = lines->mask;
-	const int n_mask = mask->xsize * mask->ysize;
 
 	LinesSequence *seq;
 
@@ -340,13 +339,10 @@ lines_start( IMAGE *out, void *a, void *b )
 	seq->ir = im_region_create( in );
 	seq->start = IM_ARRAY( out, lines->n_lines, int );
 	seq->end = IM_ARRAY( out, lines->n_lines, int );
-	seq->startp = IM_ARRAY( out, lines->n_lines, PEL * );
-	seq->endp = IM_ARRAY( out, lines->n_lines, PEL * );
-	seq->last_bpl = -1;
+	seq->sum = IM_ARRAY( out, lines->n_lines, int );
+	seq->last_stride = -1;
 
-	if( !seq->ir || 
-		!seq->start || !seq->end || 
-		!seq->startp || !seq->endp ) {
+	if( !seq->ir || !seq->start || !seq->end || !seq->sum ) {
 		lines_stop( seq, in, lines );
 		return( NULL );
 	}
@@ -354,18 +350,38 @@ lines_start( IMAGE *out, void *a, void *b )
 	return( seq );
 }
 
+#define CLIP_UCHAR( V ) \
+G_STMT_START { \
+	if( (V) < 0 ) {   \
+		(V) = 0;   \
+	}  \
+	else if( (V) > UCHAR_MAX ) {   \
+		(V) = UCHAR_MAX;   \
+	}  \
+} G_STMT_END
+
+/* The h and v loops are very similar, but also annoyingly different. Keep
+ * them separate for easy debugging.
+ */
+
+/* Do horizontal masks ... we scan the mask along scanlines.
+ */
 static int
-lines_generate( REGION *or, void *seq, void *a, void *b )
+lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 {
-	REGION *ir = (REGION *) seq;
+	LinesSequence *seq = (LinesSequence *) vseq;
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
+
+	REGION *ir = seq->ir;
 	const int n_lines = lines->n_lines;
 	DOUBLEMASK *mask = lines->mask;
 	Rect *r = &or->valid;
 
 	Rect s;
-	int x, y, z;
+	int x, y, z, i;
+	int istride;
+	int ostride;
 
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
@@ -376,66 +392,67 @@ lines_generate( REGION *or, void *seq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-        /* Fill offset array. Only do this if the bpl has changed since the 
-	 * previous im_prepare().
+	/* Stride can be different for the vertical case, keep this here for
+	 * ease of direction change.
 	 */
-	if( seq->last_bpl != IM_REGION_LSKIP( ir ) ) {
-		seq->last_bpl = IM_REGION_LSKIP( ir );
+	istride = IM_IMAGE_SIZEOF_PEL( in );
+	ostride = IM_IMAGE_SIZEOF_PEL( lines->out );
+
+        /* Init offset array. 
+	 */
+	if( seq->last_stride != istride ) {
+		seq->last_stride = istride;
 
 		for( z = 0; z < n_lines; z++ ) {
-			x = mask->xsize == 1 ? 1 : lines->start[z];
-			y = mask->ysize == 1 ? 1 : lines->start[z];
-			seq->start[z] = 
-				IM_REGION_ADDR( ir, x + r->left, y + r->top ) -
-				IM_REGION_ADDR( ir, r->left, r->top );
-
-			x = mask->xsize == 1 ? 1 : lines->end[z];
-			y = mask->ysize == 1 ? 1 : lines->end[z];
-			seq->end[z] = 
-				IM_REGION_ADDR( ir, x + r->left, y + r->top ) -
-				IM_REGION_ADDR( ir, r->left, r->top );
+			seq->start[z] = lines->start[z] * istride;
+			seq->end[z] = lines->end[z] * istride;
 		}
 	}
 
 	for( y = 0; y < r->height; y++ ) { 
-		PEL *q = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y ); 
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y ); 
-
-		/* Init pts for this line of PELs.
-		 */
-                for( z = 0; z < n_lines; z++ ) {
-                        seq->startp[z] = p + seq->start[z];
-                        seq->endp[z] = p + seq->end[z];
-		}
-
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	
 {
-	int sum;
-	int line_sum[1000];
+	for( i = 0; i < in->Bands; i++ ) {
+		PEL *q;
+		PEL *p;
+		int sum;
 
-	/* Fill the lines ready to scan.
-	 */
-	sum = 0;
-	for( z = 0; z < lines->n_lines; z++ ) {
-		line_sum[z] = 0;
-		for( x = seq->startp[z]; x < lines->end[z]; x++ )
-			line_sum[z] += p[x];
-		sum += lines->factor[z] * line_sum[z];
-	}
-	q[0] = CLIPUC( (sum + lines->rounding) / lines->area );
+		p = i + (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
+		q = i + (PEL *) IM_REGION_ADDR( or, r->left, r->top + y ); 
 
-	for( x = 1; x < len; x++ ) { 
+		/* Fill the lines ready to scan.
+		 */
 		sum = 0;
 		for( z = 0; z < lines->n_lines; z++ ) {
-			line_sum[z] += p[lines->end[z]];
-			line_sum[z] -= p[lines->start[z]];
-			sum += lines->factor[z] * line_sum[z];
+			seq->sum[z] = 0;
+			for( x = lines->start[z]; x < lines->end[z]; x++ )
+				seq->sum[z] += p[x * istride];
+			sum += lines->factor[z] * seq->sum[z];
 		}
-		p += 1;
-		q[x] = CLIPUC( (sum + lines->rounding) / lines->area );
-	}  
+
+		p += istride;
+		sum = (sum + lines->rounding) / lines->area;
+		CLIP_UCHAR( sum );
+		*q = sum;
+		q += ostride;
+
+		for( x = 1; x < r->width; x++ ) { 
+			sum = 0;
+			for( z = 0; z < lines->n_lines; z++ ) {
+				seq->sum[z] += p[seq->end[z]];
+				seq->sum[z] -= p[seq->start[z]];
+				sum += lines->factor[z] * seq->sum[z];
+			}
+			p += istride;
+			sum = (sum + lines->rounding) / lines->area;
+			CLIP_UCHAR( sum );
+			*q = sum;
+			q += ostride;
+		}  
+	}
 }
+
 			break;
 
 		default:
@@ -446,14 +463,113 @@ lines_generate( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/* Do vertical masks ... we scan the mask down columns of pixels. Copy-paste
+ * from above with small changes.
+ */
+static int
+lines_generate_vertical( REGION *or, void *vseq, void *a, void *b )
+{
+	LinesSequence *seq = (LinesSequence *) vseq;
+	IMAGE *in = (IMAGE *) a;
+	Lines *lines = (Lines *) b;
+
+	REGION *ir = seq->ir;
+	const int n_lines = lines->n_lines;
+	DOUBLEMASK *mask = lines->mask;
+	Rect *r = &or->valid;
+
+	Rect s;
+	int x, y, z;
+	int istride;
+	int ostride;
+
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
+	 */
+	s = *r;
+	s.width += mask->xsize - 1;
+	s.height += mask->ysize - 1;
+	if( im_prepare( ir, &s ) )
+		return( -1 );
+
+	/* Stride can be different for the vertical case, keep this here for
+	 * ease of direction change.
+	 */
+	istride = IM_REGION_LSKIP( ir );
+	ostride = IM_REGION_LSKIP( or );
+
+        /* Init offset array. 
+	 */
+	if( seq->last_stride != istride ) {
+		seq->last_stride = istride;
+
+		for( z = 0; z < n_lines; z++ ) {
+			seq->start[z] = lines->start[z] * istride;
+			seq->end[z] = lines->end[z] * istride;
+		}
+	}
+
+	switch( in->BandFmt ) {
+	case IM_BANDFMT_UCHAR: 	
+{
+	for( x = 0; x < IM_REGION_N_ELEMENTS( or ); x++ ) { 
+		PEL *q;
+		PEL *p;
+		int sum;
+
+		p = x + (PEL *) IM_REGION_ADDR( ir, r->left, r->top ); 
+		q = x + (PEL *) IM_REGION_ADDR( or, r->left, r->top ); 
+
+		/* Fill the lines ready to scan.
+		 */
+		sum = 0;
+		for( z = 0; z < lines->n_lines; z++ ) {
+			seq->sum[z] = 0;
+			for( y = lines->start[z]; y < lines->end[z]; y++ )
+				seq->sum[z] += p[y * istride];
+			sum += lines->factor[z] * seq->sum[z];
+		}
+
+		p += istride;
+		sum = (sum + lines->rounding) / lines->area;
+		CLIP_UCHAR( sum );
+		*q = sum;
+		q += ostride;
+
+		for( y = 1; y < r->height; y++ ) { 
+			sum = 0;
+			for( z = 0; z < lines->n_lines; z++ ) {
+				seq->sum[z] += p[seq->end[z]];
+				seq->sum[z] -= p[seq->start[z]];
+				sum += lines->factor[z] * seq->sum[z];
+			}
+			p += istride;
+			sum = (sum + lines->rounding) / lines->area;
+			CLIP_UCHAR( sum );
+			*q = sum;
+			q += ostride;
+		}  
+	}
+}
+
+		break;
+
+	default:
+		g_assert( 0 );
+	}
+
+	return( 0 );
+}
+
 static int
 aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 {
 	Lines *lines;
+	im_generate_fn generate;
 
 #ifdef DEBUG
-	printf( "im_conv_raw: starting with matrix:\n" );
-	im_print_imask( mask );
+	printf( "aconv_raw: starting with matrix:\n" );
+	im_print_dmask( mask );
 #endif /*DEBUG*/
 
 	if( !(lines = lines_new( in, out, mask, n_layers )) )
@@ -467,16 +583,21 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	out->Xsize -= mask->xsize - 1;
 	out->Ysize -= mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_error( "im_conv", "%s", _( "image too small for mask" ) );
+		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
+
+	if( mask->xsize == 1 )
+		generate = lines_generate_vertical;
+	else 
+		generate = lines_generate_horizontal;
 
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
 	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) ||
 		im_generate( out, 
-			lines_start, lines_generate, lines_stop, in, lines ) )
+			lines_start, generate, lines_stop, in, lines ) )
 		return( -1 );
 
 	out->Xoffset = -mask->xsize / 2;
@@ -519,7 +640,7 @@ im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	const int n_mask = mask->xsize * mask->ysize;
 	DOUBLEMASK *rmask;
 
-	if( vips_image_new_array( out, t, 2 ) ||
+	if( im_open_local_array( out, t, 2, "im_aconv", "p" ) ||
 		!(rmask = (DOUBLEMASK *) im_local( out, 
 		(im_construct_fn) im_dup_dmask,
 		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )

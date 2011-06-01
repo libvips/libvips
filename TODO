@@ -1,3 +1,6 @@
+- leak on exit, try:
+
+	vips im_aconv img_0075.jpg x.v gmask_201.con 10
 
 
 - also VipsFormat ... could this replace vips_image_new_from_string()? or

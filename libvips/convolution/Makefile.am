@@ -4,6 +4,7 @@ libconvolution_la_SOURCES = \
 	convol_dispatch.c \
 	im_addgnoise.c \
 	im_compass.c \
+	im_aconv.c \
 	im_conv.c \
 	im_conv_f.c \
 	im_contrast_surface.c \
