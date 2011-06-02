@@ -1,3 +1,10 @@
+- try 
+
+	$ vips add babe.jpg babe2.jpg out.v
+
+  VIPS:ERROR:object.c:815:vips_object_real_build: assertion failed:
+  (!object->constructed)
+
 
 
 - also VipsFormat ... could this replace vips_image_new_from_string()? or

@@ -146,6 +146,12 @@ vips_fits_close( VipsFits *fits )
 	VIPS_FREE( fits->buffer );
 }
 
+static void
+vips_fits_close_cb( VipsImage *image, VipsFits *fits )
+{
+	vips_fits_close( fits );
+}
+
 static VipsFits *
 vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 {
@@ -162,7 +168,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 	fits->band_select = band_select;
 	fits->buffer = NULL;
 	g_signal_connect( out, "close", 
-		G_CALLBACK( vips_fits_close ), fits );
+		G_CALLBACK( vips_fits_close_cb ), fits );
 
 	status = 0;
 	if( fits_open_file( &fits->fptr, filename, READONLY, &status ) ) {
@@ -444,7 +450,7 @@ fits2vips( const char *filename, VipsImage *out, int band_select )
 		return( -1 );
 	}
 
-	/* Don't vips_fits_close(), we need it to stcik around for the
+	/* Don't vips_fits_close(), we need it to stick around for the
 	 * generate.
 	 */
 
@@ -605,7 +611,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	fits->band_select = -1;
 	fits->buffer = NULL;
 	g_signal_connect( in, "close", 
-		G_CALLBACK( vips_fits_close ), fits );
+		G_CALLBACK( vips_fits_close_cb ), fits );
 
 	if( !(fits->filename = im_strdup( NULL, filename )) )
 		return( NULL );

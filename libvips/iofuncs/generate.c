@@ -79,7 +79,7 @@
  */
 
 /*
-#define DEBUG_IO
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -605,6 +605,7 @@ vips_image_generate( VipsImage *image,
 
 	VIPS_DEBUG_MSG( "vips_image_generate: %p\n", image ); 
 
+	g_assert( generate );
 	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 	if( !image->hint_set ) {

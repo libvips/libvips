@@ -815,7 +815,13 @@ im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		g_object_unref( x );
 		return( -1 );
 	}
-	g_object_unref( x );
+
+	/* When im_copy() is vips8'd it'll make a ref to in which will be
+	 * junked when the copy shuts down and we can unref x directly.
+	 *
+	 * Until then, we have to use the "close" signal to delay the unref.
+	 */
+	vips_object_local( out, x ); 
 
 	return( 0 );
 }

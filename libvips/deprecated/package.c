@@ -974,14 +974,6 @@ build_args( im_function *fn, im_object *vargv, int argc, char **argv )
 	return( 0 );
 }
 
-/* Free a region, but return 0 so we can be used as a close callback.
- */
-static void
-region_local_image_cb( VipsImage *main, VipsRegion *reg )
-{
-	g_object_unref( reg );
-}
-
 /* Make a region on sub, closed by callback on main.
  */
 static int
@@ -991,8 +983,7 @@ region_local_image( IMAGE *main, IMAGE *sub )
 
 	if( !(reg = vips_region_new( sub )) )
 		return( -1 );
-	g_signal_connect( main, "close", 
-		G_CALLBACK( region_local_image_cb ), reg ); 
+	vips_object_local( main, reg ); 
  
         return( 0 );
 }

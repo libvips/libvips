@@ -1226,6 +1226,8 @@ vips_image_class_init( VipsImageClass *class )
 static void
 vips_image_init( VipsImage *image )
 {
+	VIPS_DEBUG_MSG( "vips_image_init: %p\n", image );
+
 	/* Default to native order.
 	 */
 	image->magic = vips_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
@@ -1412,8 +1414,8 @@ void
 vips_image_set_progress( VipsImage *image, gboolean progress )
 {
 	if( progress && !image->progress_signal ) {
-		VIPS_DEBUG_MSG( "vips_image_set_progress: %s\n", 
-			image->filename );
+		VIPS_DEBUG_MSG( "vips_image_set_progress: %p %s\n", 
+			image, image->filename );
 		image->progress_signal = image;
 	}
 	else

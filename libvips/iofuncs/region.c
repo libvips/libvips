@@ -205,8 +205,6 @@ vips__region_start( VipsRegion *region )
 {
 	VipsImage *image = region->im;
 
-        /* Have we a sequence running on this region? Start one if not.
-         */
         if( !region->seq && image->start ) {
                 g_mutex_lock( image->sslock );
                 region->seq = 
@@ -231,8 +229,6 @@ vips__region_stop( VipsRegion *region )
 {
 	IMAGE *image = region->im;
 
-        /* Stop any running sequence.
-         */
         if( region->seq && image->stop ) {
 		int result;
 
@@ -316,6 +312,28 @@ vips_region_print( VipsObject *object, VipsBuf *buf )
 	vips_buf_appendf( buf, "invalid = %d\n", region->invalid );
 
 	VIPS_OBJECT_CLASS( vips_region_parent_class )->print( object, buf );
+}
+
+static void
+vips_region_sanity( VipsObject *object, VipsBuf *buf )
+{
+	VipsRegion *region = VIPS_REGION( object );
+
+	vips_object_sanity( VIPS_OBJECT( region->im ) );
+
+	switch( region->im->dtype ) { 
+	case VIPS_IMAGE_PARTIAL:
+		/* Start and stop can be NULL, but not generate.
+		 */
+		if( !region->im->generate )
+			vips_buf_appends( buf, "generate NULL in partial\n" );
+		break;
+	
+	default:
+		break;
+	}
+
+	VIPS_OBJECT_CLASS( vips_region_parent_class )->sanity( object, buf );
 }
 
 /* If a region is being created in one thread (eg. the main thread) and then
@@ -407,6 +425,7 @@ vips_region_class_init( VipsRegionClass *class )
 	gobject_class->dispose = vips_region_dispose;
 
 	vobject_class->print = vips_region_print;
+	vobject_class->print = vips_region_sanity;
 	vobject_class->build = vips_region_build;
 }
 
@@ -441,6 +460,11 @@ vips_region_new( VipsImage *image )
 		VIPS_UNREF( region );
 		return( NULL );
 	}
+
+#ifdef DEBUG
+#endif /*DEBUG*/
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
+	g_assert( vips_object_sanity( VIPS_OBJECT( region ) ) );
 
 	return( region ); 
 }

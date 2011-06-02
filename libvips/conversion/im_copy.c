@@ -114,7 +114,7 @@ static int
 im_copy_set_all( IMAGE *in, IMAGE *out, 
 	VipsType type, float xres, float yres, int xoffset, int yoffset,
 	int bands, VipsBandFmt bandfmt, VipsCoding coding )
-{	
+{
 	/* Check args.
 	 */
         if( im_check_coding_known( "im_copy", in ) ||
@@ -160,25 +160,6 @@ im_copy_set_all( IMAGE *in, IMAGE *out,
 		return( -1 );
 
 	return( 0 );
-}
-
-/**
- * im_copy:
- * @in: input image
- * @out: output image
- *
- * Copy an image. VIPS copies images by copying pointers, so this operation is
- * fast, even for very large images.
- *
- * See also: im_copy(), im_copy_set(), im_copy_morph().
- *
- * Returns: 0 on success, -1 on error.
- */
-int 
-im_copy( IMAGE *in, IMAGE *out )
-{
-	return( im_copy_set( in, out, 
-		in->Type, in->Xres, in->Yres, 0, 0 ) );
 }
 
 /**
@@ -232,6 +213,25 @@ im_copy_morph( IMAGE *in, IMAGE *out,
 	return( im_copy_set_all( in, out, 
 		in->Type, in->Xres, in->Yres, 0, 0,
 		bands, bandfmt, coding ) );
+}
+
+/**
+ * im_copy:
+ * @in: input image
+ * @out: output image
+ *
+ * Copy an image. VIPS copies images by copying pointers, so this operation is
+ * fast, even for very large images.
+ *
+ * See also: im_copy(), im_copy_set(), im_copy_morph().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_copy( IMAGE *in, IMAGE *out )
+{
+	return( im_copy_set( in, out, 
+		in->Type, in->Xres, in->Yres, 0, 0 ) );
 }
 
 /**

@@ -218,6 +218,8 @@ sink_init( Sink *sink,
 	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
 	void *a, void *b )
 {
+	g_assert( generate );
+
 	vips_sink_base_init( &sink->sink_base, image );
 
 	sink->t = NULL;

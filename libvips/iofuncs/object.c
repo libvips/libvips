@@ -179,6 +179,8 @@ vips_object_sanity( VipsObject *object )
 		printf( "sanity failure: " );
 		vips_object_print_name( object );
 		printf( " %s\n", vips_buf_all( &buf ) );
+
+		return( FALSE );
 	}
 
 	return( TRUE );
