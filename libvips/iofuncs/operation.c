@@ -199,10 +199,6 @@ vips_operation_new( const char *name )
 		return( NULL );
 	operation = VIPS_OPERATION( g_object_new( type, NULL ) );
 
-	/* Clear the initial floating ref, return a real ref.
-	 */
-	g_object_ref_sink( operation );
-
 	return( operation );
 }
 

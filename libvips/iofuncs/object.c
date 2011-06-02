@@ -534,7 +534,7 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 
 			/* Ref the argument.
 			 */
-			g_object_ref_sink( *member );
+			g_object_ref( *member );
 		}
 		else if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
 #ifdef DEBUG_REF
@@ -548,7 +548,7 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 
 			/* The argument reffs us.
 			 */
-			g_object_ref_sink( object );
+			g_object_ref( object );
 			argument_instance->close_id =
 				g_signal_connect( *member, "close",
 					G_CALLBACK( vips_object_arg_close ),
@@ -1586,7 +1586,7 @@ vips_type_find( const char *basename, const char *nickname )
 		return( 0 );
 
 	/* FIXME ... we've not supposed to use G_TYPE_FROM_CLASS(), I think. 
-	 * I'm not * sure what the alternative is.
+	 * I'm not sure what the alternative is.
 	 */
 	return( G_TYPE_FROM_CLASS( class ) );
 }

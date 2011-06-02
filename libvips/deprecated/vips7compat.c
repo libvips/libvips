@@ -60,11 +60,6 @@ im_open( const char *filename, const char *mode )
 	if( !(image = vips_image_new_mode( filename, mode )) )
 		return( NULL );
 
-	/* We have to refsink since the im_open() result is used like a hard
-	 * reference.
-	 */
-	g_object_ref_sink( image );
-
 	return( image );
 }
 

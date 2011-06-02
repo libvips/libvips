@@ -568,7 +568,7 @@ tile_equal( gconstpointer a, gconstpointer b )
 }
 
 static int
-render_close_cb( Render *render )
+render_close_cb( VipsImage *image, Render *render )
 {
 	VIPS_DEBUG_MSG_AMBER( "render_close_cb\n" );
 

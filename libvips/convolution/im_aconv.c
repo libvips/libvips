@@ -35,6 +35,17 @@
 
  */
 
+/*
+
+  See:
+
+	http://incubator.quasimondo.com/processing/stackblur.pde
+
+  This thing is a little like stackblur, but generalised to any separable 
+  mask.
+
+ */
+
 /* Show sample pixels as they are transformed.
 #define DEBUG_PIXELS
  */

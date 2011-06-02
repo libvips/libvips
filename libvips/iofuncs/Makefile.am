@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libiofuncs.la
 libiofuncs_la_SOURCES = \
 	enumtypes.c \
 	object.c \
+	pool.c \
 	base64.h \
 	base64.c \
 	error.c \

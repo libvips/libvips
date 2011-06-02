@@ -566,8 +566,10 @@ typedef struct {
 } Lazy;
 
 static void
-lazy_free_cb( Lazy *lazy )
+lazy_free_cb( VipsImage *image, Lazy *lazy )
 {
+	VIPS_DEBUG_MSG( "lazy_free: %p \"%s\"\n", lazy, lazy->filename );
+
 	VIPS_FREE( lazy->filename );
 	VIPS_UNREF( lazy->real );
 }
@@ -578,16 +580,15 @@ lazy_new( VipsImage *image,
 {
 	Lazy *lazy;
 
-	VIPS_DEBUG_MSG( "lazy_new: \"%s\"\n", filename );
-
 	if( !(lazy = VIPS_NEW( image, Lazy )) )
 		return( NULL );
+	VIPS_DEBUG_MSG( "lazy_new: %p \"%s\"\n", lazy, filename );
 	lazy->image = image;
 	lazy->format = format;
 	lazy->filename = NULL;
 	lazy->disc = disc;
 	lazy->real = NULL;
-	g_signal_connect( image, "close", G_CALLBACK( lazy_free_cb ), NULL );
+	g_signal_connect( image, "close", G_CALLBACK( lazy_free_cb ), lazy );
 
 	if( !(lazy->filename = vips_strdup( NULL, filename )) )
 		return( NULL );

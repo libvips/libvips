@@ -442,10 +442,6 @@ vips_region_new( VipsImage *image )
 		return( NULL );
 	}
 
-	/* We return a hard reference, so unfloat it.
-	 */
-	g_object_ref_sink( region );
-
 	return( region ); 
 }
 

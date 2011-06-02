@@ -201,7 +201,7 @@ void vips_argument_free_all( VipsObject *object );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), VIPS_TYPE_OBJECT, VipsObjectClass ))
 
 struct _VipsObject {
-	GInitiallyUnowned parent_object;
+	GObject parent_object;
 
 	gboolean constructed;		/* Construct done and checked */
 
@@ -223,7 +223,7 @@ struct _VipsObject {
 };
 
 struct _VipsObjectClass {
-	GInitiallyUnownedClass parent_class;
+	GObjectClass parent_class;
 
 	/* Build the object ... all argument properties have been set,
 	 * now build the thing.

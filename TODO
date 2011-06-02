@@ -1,6 +1,3 @@
-- leak on exit, try:
-
-	vips im_aconv img_0075.jpg x.v gmask_201.con 10
 
 
 - also VipsFormat ... could this replace vips_image_new_from_string()? or
@@ -10,67 +7,6 @@
   ... we'd need to start making real vipsformat objects for this to work
 
   how much effort would this be to change?
-
-
-
-- perhaps we should have hard refs everywhere? it's very confusing having a
-  mixture :-( use vips_object_local() to make hard refs autounref
-
-  what would the API look like?
-
-
-	VipsImage *
-	thing( VipsImage *in1, VipsImage *in2 )
-	{
-		VipsImage *t;
-		VipsImage *out;
-
-		if( vips_add( in1, in2, &t, NULL ) )
-			return( NULL );
-		if( vips_add( in1, t, &out, NULL ) ) {
-			g_object_unref( t );
-			return( NULL );
-		}
-		g_object_unref( t );
-
-		return( out );
-	}
-
-  yuk! how can we simplify this? keep refs in an array?
-
-	VipsImage *
-	thing( VipsImage *in1, VipsImage *in2 )
-	{
-		VipsImage *t[5] = { NULL }; 
-		VipsImage *out;
-
-		if( vips_add( in1, in2, &t[0], NULL ) ||
-			vips_add( in1, t[0], &out, NULL ) ) {
-			vips_unref_array( t, 5 );
-			return( NULL );
-		}
-		vips_unref_array( t, 5 );
-
-		return( out );
-	}
-
-  vips_unref_array() just unrefs all non-NULL pointers in the array
-
-  not too bad! and getting rid of floating refs is a win
-
-
-	
-
-
-
-
-
-
-- try out:
-
-	http://incubator.quasimondo.com/processing/stackblur.pde
-
-
 
 
 
