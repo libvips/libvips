@@ -1082,11 +1082,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 			return( -1 );
 
 		g_value_init( &gvalue, G_TYPE_OBJECT );
-
-		/* VipsObject is GInitiallyUnowned, so the gvalue now has a
-		 * ref count 1 image.
-		 */
 		g_value_set_object( &gvalue, object );
+
+		/* The GValue now has a ref, we can drop ours.
+		 */
+		g_object_unref( object );
 	}
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean b;

@@ -391,7 +391,18 @@ vips_image_dispose( GObject *gobject )
 static VipsObject *
 vips_image_new_from_file_object( const char *string )
 {
-	return( VIPS_OBJECT( vips_image_new_from_file( string ) ) );
+	VipsImage *image;
+
+	/* We mustn't _build() the object here, so we can't just call
+	 * vips_image_new_from_file().
+	 */
+	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
+	g_object_set( image,
+		"filename", string,
+		"mode", "r",
+		NULL );
+
+	return( VIPS_OBJECT( image ) );
 }
 
 static void

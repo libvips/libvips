@@ -1,12 +1,3 @@
-- try 
-
-	$ vips add babe.jpg babe2.jpg out.v
-
-  VIPS:ERROR:object.c:815:vips_object_real_build: assertion failed:
-  (!object->constructed)
-
-
-
 - also VipsFormat ... could this replace vips_image_new_from_string()? or
   could we call this from vips_image_new_from_string()? 
 
@@ -26,8 +17,6 @@ wrap new API for C++
 
 
 
-
-- matlab write
 
 - Magick: 
 
@@ -50,7 +39,7 @@ wrap new API for C++
 - leak check, again
 
 
-- add MATLAB write
+- add matlab write
 
 - need a way to make the vips.1 etc. man pages
 
