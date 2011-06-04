@@ -1,4 +1,4 @@
-/* im_aconv ... approximate convolution
+/* im_aconvsep ... separable approximate convolution
  *
  * This operation does an approximate, seperable convolution. 
  *
@@ -131,7 +131,7 @@ line_end( Lines *lines, int x )
 	lines->end[lines->n_lines] = x;
 
 	if( lines->n_lines >= MAX_LINES - 1 ) {
-		vips_error( "im_aconv", "%s", _( "mask too complex" ) );
+		vips_error( "im_aconvsep", "%s", _( "mask too complex" ) );
 		return( -1 );
 	}
 	lines->n_lines += 1;
@@ -158,8 +158,8 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	/* Check parameters.
 	 */
 	if( im_piocheck( in, out ) ||
-		im_check_uncoded( "im_aconv", in ) ||
-		vips_check_dmask_1d( "im_aconv", mask ) ) 
+		im_check_uncoded( "im_aconvsep", in ) ||
+		vips_check_dmask_1d( "im_aconvsep", mask ) ) 
 		return( NULL );
 
 	if( !(lines = VIPS_NEW( out, Lines )) )
@@ -587,13 +587,13 @@ lines_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 }
 
 static int
-aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
+aconvsep_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 {
 	Lines *lines;
 	im_generate_fn generate;
 
 #ifdef DEBUG
-	printf( "aconv_raw: starting with matrix:\n" );
+	printf( "aconvsep_raw: starting with matrix:\n" );
 	im_print_dmask( mask );
 #endif /*DEBUG*/
 
@@ -608,7 +608,7 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	out->Xsize -= mask->xsize - 1;
 	out->Ysize -= mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
+		im_error( "im_aconvsep", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
 
@@ -617,10 +617,6 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	else 
 		generate = lines_generate_horizontal;
 
-	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
-	 * too many recalculations on overlaps.
-	 */
-	//if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) ||
 	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
 			lines_start, generate, lines_stop, in, lines ) )
@@ -633,14 +629,13 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 }
 
 /**
- * im_aconv:
+ * im_aconvsep:
  * @in: input image
  * @out: output image
  * @mask: convolution mask
  * @n_layers: number of layers for approximation
  *
- * Perform a separable convolution of @in with @mask using approximate
- * convolution. 
+ * Perform an approximate separable convolution of @in with @mask.
  *
  * The mask must be 1xn or nx1 elements. 
  * The output image 
@@ -652,7 +647,7 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
  * Larger values for @n_layers give more accurate
  * results, but are slower. As @n_layers approaches the mask radius, the
  * accuracy will become close to exact convolution and the speed will drop to 
- * match. For many large masks, such as Gaussian, @n_layers can be only 10% of
+ * match. For many large masks, such as Gaussian, @n_layers need be only 10% of
  * this value and accuracy will still be good.
  *
  * See also: im_convsep_f(), im_create_dmaskv().
@@ -660,13 +655,13 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
  * Returns: 0 on success, -1 on error
  */
 int 
-im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
+im_aconvsep( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 {
 	IMAGE *t[2];
 	const int n_mask = mask->xsize * mask->ysize;
 	DOUBLEMASK *rmask;
 
-	if( im_open_local_array( out, t, 2, "im_aconv", "p" ) ||
+	if( im_open_local_array( out, t, 2, "im_aconvsep", "p" ) ||
 		!(rmask = (DOUBLEMASK *) im_local( out, 
 		(im_construct_fn) im_dup_dmask,
 		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )
@@ -679,12 +674,12 @@ im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	 */
 	if( im_embed( in, t[0], 1, n_mask / 2, n_mask / 2, 
 		in->Xsize + n_mask - 1, in->Ysize + n_mask - 1 ) ||
-		aconv_raw( t[0], t[1], mask, n_layers ) ||
-		aconv_raw( t[1], out, rmask, n_layers ) )
+		aconvsep_raw( t[0], t[1], mask, n_layers ) ||
+		aconvsep_raw( t[1], out, rmask, n_layers ) )
 		return( -1 );
 
 	/* For testing .. just try one direction.
-	if( aconv_raw( in, out, mask, n_layers ) )
+	if( aconvsep_raw( in, out, mask, n_layers ) )
 		return( -1 );
 	 */
 

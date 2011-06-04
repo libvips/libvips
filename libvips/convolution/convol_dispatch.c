@@ -426,41 +426,41 @@ static im_function spcor_desc = {
 	two_in_one_out 			/* Arg list */
 };
 
-/* Args for im_aconv().
+/* Args for im_aconvsep().
  */
-static im_arg_desc aconv_args[] = {
+static im_arg_desc aconvsep_args[] = {
 	IM_INPUT_IMAGE( "in" ),
 	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_DMASK( "matrix" ),
 	IM_INPUT_INT( "n_layers" )
 };
 
-/* Call im_aconv via arg vector.
+/* Call im_aconvsep via arg vector.
  */
 static int
-aconv_vec( im_object *argv )
+aconvsep_vec( im_object *argv )
 {
 	im_mask_object *mo = argv[2];
 	int n_layers = *((int *) argv[3]);
 
-	return( im_aconv( argv[0], argv[1], mo->mask, n_layers ) );
+	return( im_aconvsep( argv[0], argv[1], mo->mask, n_layers ) );
 }
 
-/* Description of im_aconv.
+/* Description of im_aconvsep.
  */ 
-static im_function aconv_desc = {
-	"im_aconv", 			/* Name */
+static im_function aconvsep_desc = {
+	"im_aconvsep", 			/* Name */
 	"approximate convolution",
 	IM_FN_TRANSFORM | IM_FN_PIO,	/* Flags */
-	aconv_vec, 			/* Dispatch function */
-	IM_NUMBER( aconv_args ), 	/* Size of arg list */
-	aconv_args 			/* Arg list */
+	aconvsep_vec, 			/* Dispatch function */
+	IM_NUMBER( aconvsep_args ), 	/* Size of arg list */
+	aconvsep_args 			/* Arg list */
 };
 
 /* Package up all these functions.
  */
 static im_function *convol_list[] = {
-	&aconv_desc,
+	&aconvsep_desc,
 	&addgnoise_desc,
 	&compass_desc,
 	&contrast_surface_desc,

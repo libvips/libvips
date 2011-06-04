@@ -37,7 +37,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_aconv( VipsImage *in, VipsImage *out, DOUBLEMASK *mask, int n_layers );
+int im_aconvsep( VipsImage *in, VipsImage *out, 
+	DOUBLEMASK *mask, int n_layers );
 int im_conv( VipsImage *in, VipsImage *out, INTMASK *mask );
 int im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 int im_convsep( VipsImage *in, VipsImage *out, INTMASK *mask );
