@@ -46,6 +46,38 @@
 
  */
 
+/*
+
+  TODO
+
+  	- are we handling mask offset correctly?
+
+	- relatively large error for small int masks, can we tune for this
+
+	  vips im_gauss_imask_sep x.con 4.5 0.1
+
+	  21 1 222 0
+	  2 3 4 6 8 11 13 16 18 20 20 20 18 16 13 11 8 6 4 3 2
+
+	  graphs as:
+
+depth = 2, n_layers = 10
+lines:
+
+0 -  1 x                         ########                          9 ..  12
+1 -  1 x                      ##############                       8 ..  13
+2 -  2 x                    ##################                     7 ..  14
+3 -  1 x                 ########################                  6 ..  15
+4 -  1 x               ############################                5 ..  16
+5 -  1 x            ##################################             4 ..  17
+6 -  1 x         ########################################          3 ..  18
+7 -  1 x       ############################################        2 ..  19
+8 -  1 x #####################################################     0 ..  20
+
+	why so lop-sided?
+
+ */
+
 /* Show sample pixels as they are transformed.
 #define DEBUG_PIXELS
  */
@@ -142,6 +174,7 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	double max;
 	double min;
 	double depth;
+	double sum;
 	int layers_above;
 	int layers_below;
 	int z, n, x;
@@ -283,7 +316,15 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	for( z = 0; z < lines->n_lines; z++ ) 
 		lines->factor[z] /= x;
 	lines->area *= x;
-	lines->rounding = (lines->area + 1) / 2;
+
+	/* Find the area of the original mask.
+	 */
+	sum = 0;
+	for( z = 0; z < width; z++ ) 
+		sum += mask->coeff[z];
+
+	lines->area = rint( sum * lines->area / mask->scale );
+	lines->rounding = (lines->area + 1) / 2 + mask->offset * lines->area;
 
 	/* ASCII-art layer drawing.
 	printf( "lines:\n" );
@@ -442,7 +483,6 @@ lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 			sum += lines->factor[z] * seq->sum[z];
 		}
 
-		p += istride;
 		sum = (sum + lines->rounding) / lines->area;
 		CLIP_UCHAR( sum );
 		*q = sum;
@@ -541,7 +581,6 @@ lines_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 			sum += lines->factor[z] * seq->sum[z];
 		}
 
-		p += istride;
 		sum = (sum + lines->rounding) / lines->area;
 		CLIP_UCHAR( sum );
 		*q = sum;
@@ -606,7 +645,8 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
-	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) ||
+	//if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) ||
+	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
 			lines_start, generate, lines_stop, in, lines ) )
 		return( -1 );
@@ -660,11 +700,18 @@ im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	rmask->xsize = mask->ysize;
 	rmask->ysize = mask->xsize;
 
+	/*
+	 */
 	if( im_embed( in, t[0], 1, n_mask / 2, n_mask / 2, 
 		in->Xsize + n_mask - 1, in->Ysize + n_mask - 1 ) ||
 		aconv_raw( t[0], t[1], mask, n_layers ) ||
 		aconv_raw( t[1], out, rmask, n_layers ) )
 		return( -1 );
+
+	/* For testing .. just try one direction.
+	if( aconv_raw( in, out, mask, n_layers ) )
+		return( -1 );
+	 */
 
 	out->Xoffset = 0;
 	out->Yoffset = 0;

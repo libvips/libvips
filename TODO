@@ -1,3 +1,11 @@
+- try
+
+	 vips wegkfljwrlkgj
+
+  no error msg
+
+
+
 - also VipsFormat ... could this replace vips_image_new_from_string()? or
   could we call this from vips_image_new_from_string()? 
 
