@@ -330,7 +330,11 @@ typedef struct {
 
 	int *start;		/* Offsets for start and stop */
 	int *end;
-	int *sum;		/* The sum for each line */
+
+	/* The sums for each line. int for integer types, double for floating
+	 * point types.
+	 */
+	void *sum;		
 
 	int last_stride;	/* Avoid recalcing offsets, if we can */
 } LinesSequence;
@@ -366,7 +370,10 @@ lines_start( IMAGE *out, void *a, void *b )
 	seq->ir = im_region_create( in );
 	seq->start = IM_ARRAY( out, lines->n_lines, int );
 	seq->end = IM_ARRAY( out, lines->n_lines, int );
-	seq->sum = IM_ARRAY( out, lines->n_lines, int );
+	if( vips_band_format_isint( out->BandFmt ) )
+		seq->sum = IM_ARRAY( out, lines->n_lines, int );
+	else
+		seq->sum = IM_ARRAY( out, lines->n_lines, double );
 	seq->last_stride = -1;
 
 	if( !seq->ir || !seq->start || !seq->end || !seq->sum ) {
@@ -379,17 +386,117 @@ lines_start( IMAGE *out, void *a, void *b )
 
 #define CLIP_UCHAR( V ) \
 G_STMT_START { \
-	if( (V) < 0 ) {   \
-		(V) = 0;   \
-	}  \
-	else if( (V) > UCHAR_MAX ) {   \
-		(V) = UCHAR_MAX;   \
-	}  \
+	if( (V) < 0 ) \
+		(V) = 0; \
+	else if( (V) > UCHAR_MAX ) \
+		(V) = UCHAR_MAX; \
 } G_STMT_END
+
+#define CLIP_CHAR( V ) \
+G_STMT_START { \
+	if( (V) < SCHAR_MIN ) \
+		(V) = SCHAR_MIN; \
+	else if( (V) > SCHAR_MAX ) \
+		(V) = SCHAR_MAX; \
+} G_STMT_END
+
+#define CLIP_USHORT( V ) \
+G_STMT_START { \
+	if( (V) < 0 ) \
+		(V) = 0; \
+	else if( (V) > USHRT_MAX ) \
+		(V) = USHRT_MAX; \
+} G_STMT_END
+
+#define CLIP_SHORT( V ) \
+G_STMT_START { \
+	if( (V) < SHRT_MIN ) \
+		(V) = SHRT_MIN; \
+	else if( (V) > SHRT_MAX ) \
+		(V) = SHRT_MAX; \
+} G_STMT_END
+
+#define CLIP_NONE( V ) {}
 
 /* The h and v loops are very similar, but also annoyingly different. Keep
  * them separate for easy debugging.
  */
+
+#define HCONV_INT( TYPE, CLIP ) { \
+	for( i = 0; i < bands; i++ ) { \
+		int *seq_sum = (int *) seq->sum; \
+		\
+		TYPE *q; \
+		TYPE *p; \
+		int sum; \
+		\
+		p = i + (TYPE *) IM_REGION_ADDR( ir, r->left, r->top + y ); \
+		q = i + (TYPE *) IM_REGION_ADDR( or, r->left, r->top + y ); \
+		\
+		sum = 0; \
+		for( z = 0; z < lines->n_lines; z++ ) { \
+			seq_sum[z] = 0; \
+			for( x = lines->start[z]; x < lines->end[z]; x++ ) \
+				seq_sum[z] += p[x * istride]; \
+			sum += lines->factor[z] * seq_sum[z]; \
+		} \
+		sum = (sum + lines->rounding) / lines->area; \
+		CLIP( sum ); \
+		*q = sum; \
+		q += ostride; \
+		\
+		for( x = 1; x < r->width; x++ ) {  \
+			sum = 0; \
+			for( z = 0; z < lines->n_lines; z++ ) { \
+				seq_sum[z] += p[seq->end[z]]; \
+				seq_sum[z] -= p[seq->start[z]]; \
+				sum += lines->factor[z] * seq_sum[z]; \
+			} \
+			p += istride; \
+			sum = (sum + lines->rounding) / lines->area; \
+			CLIP( sum ); \
+			*q = sum; \
+			q += ostride; \
+		} \
+	} \
+}
+
+#define HCONV_FLOAT( TYPE ) { \
+	for( i = 0; i < bands; i++ ) { \
+		double *seq_sum = (double *) seq->sum; \
+		\
+		TYPE *q; \
+		TYPE *p; \
+		double sum; \
+		\
+		p = i + (TYPE *) IM_REGION_ADDR( ir, r->left, r->top + y ); \
+		q = i + (TYPE *) IM_REGION_ADDR( or, r->left, r->top + y ); \
+		\
+		sum = 0; \
+		for( z = 0; z < lines->n_lines; z++ ) { \
+			seq_sum[z] = 0; \
+			for( x = lines->start[z]; x < lines->end[z]; x++ ) \
+				seq_sum[z] += p[x * istride]; \
+			sum += lines->factor[z] * seq_sum[z]; \
+		} \
+		sum = sum / lines->area + mask->offset; \
+		*q = sum; \
+		q += ostride; \
+		\
+		for( x = 1; x < r->width; x++ ) {  \
+			sum = 0; \
+			for( z = 0; z < lines->n_lines; z++ ) { \
+				seq_sum[z] += p[seq->end[z]]; \
+				seq_sum[z] -= p[seq->start[z]]; \
+				sum += lines->factor[z] * seq_sum[z]; \
+			} \
+			p += istride; \
+			sum = sum / lines->area + mask->offset; \
+			*q = sum; \
+			q += ostride; \
+		} \
+	} \
+}
 
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
@@ -404,6 +511,11 @@ lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 	const int n_lines = lines->n_lines;
 	DOUBLEMASK *mask = lines->mask;
 	Rect *r = &or->valid;
+
+	/* Double the bands (notionally) for complex.
+	 */
+	int bands = vips_band_format_iscomplex( in->BandFmt ) ? 
+		2 * in->Bands : in->Bands;
 
 	Rect s;
 	int x, y, z, i;
@@ -422,8 +534,10 @@ lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 	/* Stride can be different for the vertical case, keep this here for
 	 * ease of direction change.
 	 */
-	istride = IM_IMAGE_SIZEOF_PEL( in );
-	ostride = IM_IMAGE_SIZEOF_PEL( lines->out );
+	istride = IM_IMAGE_SIZEOF_PEL( in ) / 
+		IM_IMAGE_SIZEOF_ELEMENT( in );
+	ostride = IM_IMAGE_SIZEOF_PEL( lines->out ) / 
+		IM_IMAGE_SIZEOF_ELEMENT( lines->out );
 
         /* Init offset array. 
 	 */
@@ -439,46 +553,43 @@ lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 	for( y = 0; y < r->height; y++ ) { 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	
-{
-	for( i = 0; i < in->Bands; i++ ) {
-		PEL *q;
-		PEL *p;
-		int sum;
+			HCONV_INT( unsigned char, CLIP_UCHAR );
+			break;
 
-		p = i + (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
-		q = i + (PEL *) IM_REGION_ADDR( or, r->left, r->top + y ); 
+		case IM_BANDFMT_CHAR: 	
+			HCONV_INT( signed char, CLIP_UCHAR );
+			break;
 
-		/* Fill the lines ready to scan.
-		 */
-		sum = 0;
-		for( z = 0; z < lines->n_lines; z++ ) {
-			seq->sum[z] = 0;
-			for( x = lines->start[z]; x < lines->end[z]; x++ )
-				seq->sum[z] += p[x * istride];
-			sum += lines->factor[z] * seq->sum[z];
-		}
+		case IM_BANDFMT_USHORT: 	
+			HCONV_INT( unsigned short, CLIP_USHORT );
+			break;
 
-		sum = (sum + lines->rounding) / lines->area;
-		CLIP_UCHAR( sum );
-		*q = sum;
-		q += ostride;
+		case IM_BANDFMT_SHORT: 	
+			HCONV_INT( signed short, CLIP_SHORT );
+			break;
 
-		for( x = 1; x < r->width; x++ ) { 
-			sum = 0;
-			for( z = 0; z < lines->n_lines; z++ ) {
-				seq->sum[z] += p[seq->end[z]];
-				seq->sum[z] -= p[seq->start[z]];
-				sum += lines->factor[z] * seq->sum[z];
-			}
-			p += istride;
-			sum = (sum + lines->rounding) / lines->area;
-			CLIP_UCHAR( sum );
-			*q = sum;
-			q += ostride;
-		}  
-	}
-}
+		case IM_BANDFMT_UINT: 	
+			HCONV_INT( unsigned int, CLIP_NONE );
+			break;
 
+		case IM_BANDFMT_INT: 	
+			HCONV_INT( signed int, CLIP_NONE );
+			break;
+
+		case IM_BANDFMT_FLOAT: 	
+			HCONV_FLOAT( float );
+			break;
+
+		case IM_BANDFMT_DOUBLE: 	
+			HCONV_FLOAT( double );
+			break;
+
+		case IM_BANDFMT_COMPLEX: 	
+			HCONV_FLOAT( float );
+			break;
+
+		case IM_BANDFMT_DPCOMPLEX: 	
+			HCONV_FLOAT( double );
 			break;
 
 		default:
@@ -487,6 +598,82 @@ lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 	}
 
 	return( 0 );
+}
+
+#define VCONV_INT( TYPE, CLIP ) { \
+	for( x = 0; x < sz; x++ ) { \
+		int *seq_sum = (int *) seq->sum; \
+		\
+		TYPE *q; \
+		TYPE *p; \
+		int sum; \
+		\
+		p = x + (TYPE *) IM_REGION_ADDR( ir, r->left, r->top ); \
+		q = x + (TYPE *) IM_REGION_ADDR( or, r->left, r->top ); \
+		\
+		sum = 0; \
+		for( z = 0; z < lines->n_lines; z++ ) { \
+			seq_sum[z] = 0; \
+			for( y = lines->start[z]; y < lines->end[z]; y++ ) \
+				seq_sum[z] += p[y * istride]; \
+			sum += lines->factor[z] * seq_sum[z]; \
+		} \
+		sum = (sum + lines->rounding) / lines->area; \
+		CLIP( sum ); \
+		*q = sum; \
+		q += ostride; \
+		\
+		for( y = 1; y < r->height; y++ ) { \
+			sum = 0; \
+			for( z = 0; z < lines->n_lines; z++ ) { \
+				seq_sum[z] += p[seq->end[z]]; \
+				seq_sum[z] -= p[seq->start[z]]; \
+				sum += lines->factor[z] * seq_sum[z]; \
+			} \
+			p += istride; \
+			sum = (sum + lines->rounding) / lines->area; \
+			CLIP( sum ); \
+			*q = sum; \
+			q += ostride; \
+		}   \
+	} \
+}
+
+#define VCONV_FLOAT( TYPE ) { \
+	for( x = 0; x < sz; x++ ) { \
+		double *seq_sum = (double *) seq->sum; \
+		\
+		TYPE *q; \
+		TYPE *p; \
+		double sum; \
+		\
+		p = x + (TYPE *) IM_REGION_ADDR( ir, r->left, r->top ); \
+		q = x + (TYPE *) IM_REGION_ADDR( or, r->left, r->top ); \
+		\
+		sum = 0; \
+		for( z = 0; z < lines->n_lines; z++ ) { \
+			seq_sum[z] = 0; \
+			for( y = lines->start[z]; y < lines->end[z]; y++ ) \
+				seq_sum[z] += p[y * istride]; \
+			sum += lines->factor[z] * seq_sum[z]; \
+		} \
+		sum = sum / lines->area + mask->offset; \
+		*q = sum; \
+		q += ostride; \
+		\
+		for( y = 1; y < r->height; y++ ) { \
+			sum = 0; \
+			for( z = 0; z < lines->n_lines; z++ ) { \
+				seq_sum[z] += p[seq->end[z]]; \
+				seq_sum[z] -= p[seq->start[z]]; \
+				sum += lines->factor[z] * seq_sum[z]; \
+			} \
+			p += istride; \
+			sum = sum / lines->area + mask->offset; \
+			*q = sum; \
+			q += ostride; \
+		}   \
+	} \
 }
 
 /* Do vertical masks ... we scan the mask down columns of pixels. Copy-paste
@@ -503,6 +690,11 @@ lines_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 	const int n_lines = lines->n_lines;
 	DOUBLEMASK *mask = lines->mask;
 	Rect *r = &or->valid;
+
+	/* Double the width (notionally) for complex.
+	 */
+	int sz = vips_band_format_iscomplex( in->BandFmt ) ? 
+		2 * IM_REGION_N_ELEMENTS( or ) : IM_REGION_N_ELEMENTS( or );
 
 	Rect s;
 	int x, y, z;
@@ -521,8 +713,10 @@ lines_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 	/* Stride can be different for the vertical case, keep this here for
 	 * ease of direction change.
 	 */
-	istride = IM_REGION_LSKIP( ir );
-	ostride = IM_REGION_LSKIP( or );
+	istride = IM_REGION_LSKIP( ir ) / 
+		IM_IMAGE_SIZEOF_ELEMENT( lines->in );
+	ostride = IM_REGION_LSKIP( or ) / 
+		IM_IMAGE_SIZEOF_ELEMENT( lines->out );
 
         /* Init offset array. 
 	 */
@@ -537,46 +731,43 @@ lines_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 
 	switch( in->BandFmt ) {
 	case IM_BANDFMT_UCHAR: 	
-{
-	for( x = 0; x < IM_REGION_N_ELEMENTS( or ); x++ ) { 
-		PEL *q;
-		PEL *p;
-		int sum;
+		VCONV_INT( unsigned char, CLIP_UCHAR );
+		break;
 
-		p = x + (PEL *) IM_REGION_ADDR( ir, r->left, r->top ); 
-		q = x + (PEL *) IM_REGION_ADDR( or, r->left, r->top ); 
+	case IM_BANDFMT_CHAR: 	
+		VCONV_INT( signed char, CLIP_UCHAR );
+		break;
 
-		/* Fill the lines ready to scan.
-		 */
-		sum = 0;
-		for( z = 0; z < lines->n_lines; z++ ) {
-			seq->sum[z] = 0;
-			for( y = lines->start[z]; y < lines->end[z]; y++ )
-				seq->sum[z] += p[y * istride];
-			sum += lines->factor[z] * seq->sum[z];
-		}
+	case IM_BANDFMT_USHORT: 	
+		VCONV_INT( unsigned short, CLIP_USHORT );
+		break;
 
-		sum = (sum + lines->rounding) / lines->area;
-		CLIP_UCHAR( sum );
-		*q = sum;
-		q += ostride;
+	case IM_BANDFMT_SHORT: 	
+		VCONV_INT( signed short, CLIP_SHORT );
+		break;
 
-		for( y = 1; y < r->height; y++ ) { 
-			sum = 0;
-			for( z = 0; z < lines->n_lines; z++ ) {
-				seq->sum[z] += p[seq->end[z]];
-				seq->sum[z] -= p[seq->start[z]];
-				sum += lines->factor[z] * seq->sum[z];
-			}
-			p += istride;
-			sum = (sum + lines->rounding) / lines->area;
-			CLIP_UCHAR( sum );
-			*q = sum;
-			q += ostride;
-		}  
-	}
-}
+	case IM_BANDFMT_UINT: 	
+		VCONV_INT( unsigned int, CLIP_NONE );
+		break;
 
+	case IM_BANDFMT_INT: 	
+		VCONV_INT( signed int, CLIP_NONE );
+		break;
+
+	case IM_BANDFMT_FLOAT: 	
+		VCONV_FLOAT( float );
+		break;
+
+	case IM_BANDFMT_DOUBLE: 	
+		VCONV_FLOAT( double );
+		break;
+
+	case IM_BANDFMT_COMPLEX: 	
+		VCONV_FLOAT( float );
+		break;
+
+	case IM_BANDFMT_DPCOMPLEX: 	
+		VCONV_FLOAT( double );
 		break;
 
 	default:

@@ -110,18 +110,6 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
-#define VIPS_CLIP_USHORT( V, SEQ ) \
-G_STMT_START { \
-	if( (V) < 0 ) {   \
-		(SEQ)->underflow++;   \
-		(V) = 0;   \
-	}  \
-	else if( (V) > USHRT_MAX ) {   \
-		(SEQ)->overflow++;   \
-		(V) = USHRT_MAX;   \
-	}  \
-} G_STMT_END
-
 #define VIPS_CLIP_CHAR( V, SEQ ) \
 G_STMT_START { \
 	if( (V) < SCHAR_MIN ) {   \
@@ -131,6 +119,18 @@ G_STMT_START { \
 	else if( (V) > SCHAR_MAX ) {   \
 		(SEQ)->overflow++;   \
 		(V) = SCHAR_MAX;   \
+	}  \
+} G_STMT_END
+
+#define VIPS_CLIP_USHORT( V, SEQ ) \
+G_STMT_START { \
+	if( (V) < 0 ) {   \
+		(SEQ)->underflow++;   \
+		(V) = 0;   \
+	}  \
+	else if( (V) > USHRT_MAX ) {   \
+		(SEQ)->overflow++;   \
+		(V) = USHRT_MAX;   \
 	}  \
 } G_STMT_END
 
