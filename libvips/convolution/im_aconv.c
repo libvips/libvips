@@ -52,30 +52,6 @@
 
   	- are we handling mask offset correctly?
 
-	- relatively large error for small int masks, can we tune for this
-
-	  vips im_gauss_imask_sep x.con 4.5 0.1
-
-	  21 1 222 0
-	  2 3 4 6 8 11 13 16 18 20 20 20 18 16 13 11 8 6 4 3 2
-
-	  graphs as:
-
-depth = 2, n_layers = 10
-lines:
-
-0 -  1 x                         ########                          9 ..  12
-1 -  1 x                      ##############                       8 ..  13
-2 -  2 x                    ##################                     7 ..  14
-3 -  1 x                 ########################                  6 ..  15
-4 -  1 x               ############################                5 ..  16
-5 -  1 x            ##################################             4 ..  17
-6 -  1 x         ########################################          3 ..  18
-7 -  1 x       ############################################        2 ..  19
-8 -  1 x #####################################################     0 ..  20
-
-	why so lop-sided?
-
  */
 
 /* Show sample pixels as they are transformed.
@@ -153,12 +129,12 @@ static int
 line_end( Lines *lines, int x )
 {
 	lines->end[lines->n_lines] = x;
-	lines->n_lines += 1;
 
-	if( lines->n_lines >= MAX_LINES ) {
+	if( lines->n_lines >= MAX_LINES - 1 ) {
 		vips_error( "im_aconv", "%s", _( "mask too complex" ) );
 		return( -1 );
 	}
+	lines->n_lines += 1;
 
 	return( 0 );
 }
@@ -228,6 +204,10 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	for( z = 0; z < n_layers; z++ ) {
 		double y = max - (1 + z) * depth;
 
+		/* y plus half depth ... ie. the layer midpoint.
+		 */
+		double y_ph = y + depth / 2;
+
 		/* Odd, but we must avoid rounding errors that make us miss 0
 		 * in the line above.
 		 */
@@ -243,29 +223,24 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 			/* The vertical line from mask[z] to 0 is inside. Is
 			 * our current square (x, y) part of that line?
 			 */
-			if( (y_positive && mask->coeff[x] > y + depth / 2) ||
-				(!y_positive && mask->coeff[x] < y + depth / 2) ) {
-				/* (x, y) is inside.
-				 */
+			if( (y_positive && mask->coeff[x] >= y_ph) ||
+				(!y_positive && mask->coeff[x] <= y_ph) ) {
 				if( !inside ) {
-					line_start( lines, 
-						x, y_positive ? 1 : -1 );
+					line_start( lines, x, 
+						y_positive ? 1 : -1 );
 					inside = 1;
 				}
 			}
 			else {
-				/* (x, y) is outside.
-				 */
 				if( inside ) {
-					if( line_end( lines, x ) )
-						return( NULL );
+					line_end( lines, x );
 					inside = 0;
 				}
 			}
 		}
 
 		if( inside && 
-			line_end( lines, mask->xsize - 1 ) )
+			line_end( lines, width ) )
 			return( NULL );
 	}
 
@@ -331,7 +306,7 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	for( z = 0; z < lines->n_lines; z++ ) {
 		printf( "%3d - %2d x ", z, lines->factor[z] );
 		for( x = 0; x < 55; x++ ) {
-			int rx = x * width / 55;
+			int rx = x * (width + 1) / 55;
 
 			if( rx >= lines->start[z] && rx < lines->end[z] )
 				printf( "#" );
