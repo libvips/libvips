@@ -1,4 +1,3 @@
-
 - revisit orc conv
 
   use an 8.8 accumulator ... build the scale into the 8.8 coeffs ... no div at
@@ -8,22 +7,56 @@
 
 
 
+
+
+
 - also VipsFormat ... could this replace vips_image_new_from_string()? or
   could we call this from vips_image_new_from_string()? 
 
   at the moment, VipsFormat subclasses never get made, we just use the classes
   ... we'd need to start making real vipsformat objects for this to work
 
-  how much effort would this be to change?
+  how would this work?
+
+  at the moment we have
+
+  	image = vips_image_new_from_file( filename );
+
+	build a VipsImage with filename "r"
+
+  we also have the new CLI thing
+
+  	obj = vips_object_new_from_string( class, str );
+
+	calls class->new_from_string( first-component(str) ), then sets
+	optional args from rest-of-str(str), then does _build()
+
+	image-class->new_from_string() just make a vipsimage "r" str
+
+	the _build() uses VipsFormat() to load via im_tiff2vips() or whatever
+
+  so ... we could change vips_image_new_from_file() to be
+
+  	VIPS_IMAGE( vips_object_new_from_string( VipsImageClass, str ) )
+
+  we could also make VipsImage::new_from_string() make a real VipsFormat
+  object, then load options could be set from the str
+
+  how does save work? we call image-class->output_to_arg(obj, str), which in
+  turn calls vips_image_write(), which in turn uses VipsFormat
+
+
+  
 
 
 
+- make a vips8 binding for Python as well
 
-- make something for Python as well
+  use ctypes and not swig so we get an easy Win version
 
-use ctypes and not swig so we get an easy Win version
+  wrap new API for C++
 
-wrap new API for C++
+
 
 
 
