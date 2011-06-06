@@ -902,6 +902,7 @@ typedef int (*Action)( int argc, char **argv );
 
 typedef struct _ActionEntry {
 	char *name;
+	char *description;
 	GOptionEntry *group;
 	Action action;
 } ActionEntry;
@@ -911,10 +912,14 @@ static GOptionEntry empty_options[] = {
 };
 
 static ActionEntry actions[] = {
-	{ "cpph", &empty_options[0], print_cppdecls },
-	{ "cppc", &empty_options[0], print_cppdefs },
-	{ "links", &empty_options[0], print_links },
-	{ "list", &empty_options[0], print_list }
+	{ "list", N_( "list classes|packages|all|package-name|operation-name" ),
+		&empty_options[0], print_list },
+	{ "cpph", N_( "generate headers for C++ binding" ),
+		&empty_options[0], print_cppdecls },
+	{ "cppc", N_( "generate bodies for C++ binding" ),
+		&empty_options[0], print_cppdefs },
+	{ "links", N_( "generate links for vips/bin" ),
+		&empty_options[0], print_links },
 };
 
 static void
@@ -1061,7 +1066,8 @@ main( int argc, char **argv )
 
 	/* Could be a vips7 im_function.
 	 */
-	if( action && !handled && (fn = im_find_function( action )) ) {
+	if( action && !handled && 
+		(fn = im_find_function( action )) ) {
 		(void) add_main_group( context, NULL );
 		parse_options( context, &argc, argv );
 
@@ -1078,7 +1084,8 @@ main( int argc, char **argv )
 
 	/* Could be a vips8 VipsOperation.
 	 */
-	if( action && !handled && (operation = vips_operation_new( action )) ) {
+	if( action && !handled && 
+		(operation = vips_operation_new( action )) ) {
 		main_group = add_main_group( context, operation );
 		vips_call_options( main_group, operation );
 		parse_options( context, &argc, argv );
@@ -1103,12 +1110,18 @@ main( int argc, char **argv )
 	}
 	im_error_clear();
 
+	if( action && !handled ) {
+		printf( "%s", _( "possible actions:\n" ) );
+		for( i = 0; i < VIPS_NUMBER( actions ); i++ )
+			printf( "%10s - %s\n", 
+				actions[i].name, actions[i].description ); 
+
+		error_exit( "unknown action \"%s\"", action );
+	}
+
 	if( !handled ) {
 		(void) add_main_group( context, NULL );
 		parse_options( context, &argc, argv );
-
-		if( argc > 1 ) 
-			error_exit( "unknown argument %s\n", argv[1] );
 	}
 
 	g_option_context_free( context );

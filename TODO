@@ -1,16 +1,10 @@
-- try
-
-	 vips wegkfljwrlkgj
-
-  no error msg
-
 
 - revisit orc conv
 
   use an 8.8 accumulator ... build the scale into the 8.8 coeffs ... no div at
   the end, just a shift
 
-  need 8.8 x 8.8 -> 8.8 for each coeff though
+  need 8 x 8.8 -> 8.8 for each coeff though
 
 
 
