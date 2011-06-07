@@ -41,8 +41,8 @@
 
 	http://incubator.quasimondo.com/processing/stackblur.pde
 
-  This thing is a little like stackblur, but generalised to any separable 
-  mask.
+  This thing is a little like stackblur, but generalised to any 2D 
+  convolution.
 
  */
 
@@ -50,13 +50,9 @@
 
   TODO
 
-  	- block average masks by 2, 3, 4 .... before calling boxes_new(), 
-	  then boxes_new() just makes 1 line high lines, not boxes
-
-	- use the downsample factor to set box height for the vertical 
-	  component
-
   	- are we handling mask offset correctly?
+
+	- just done boxes_new()
 
  */
 
@@ -91,6 +87,10 @@
  */
 #define MAX_LINES (1000)
 
+/* Get an (x,y) value from a mask.
+ */
+#define MASK( M, X, Y ) ((M)->coeff[(X) + (Y) * (M)->xsize])
+
 /* Euclid's algorithm. Use this to common up mults.
  */
 static int
@@ -102,29 +102,7 @@ gcd( int a, int b )
 		return( gcd( b, a % b ) );
 }
 
-/* A set of lines.
- */
-typedef struct _Lines {
-	struct _Boxes *boxes;
-
-	int n_lines;
-
-	/* Start is the left-most pixel in the line, end is one beyond the
-	 * right-most pixel.
-	 */
-	int start[MAX_LINES];
-	int end[MAX_LINES];
-
-	/* Integer scale factor for each line.
-	 */
-	int factor[MAX_LINES];
-
-	/* Band to read/write the sum from.
-	 */
-	int band[MAX_LINES];
-} Lines;
-
-/* A set of boxes. Each box is formed from a pair of lines.
+/* A set of boxes. 
  */
 typedef struct _Boxes {
 	/* Copy of our arguments.
@@ -137,30 +115,170 @@ typedef struct _Boxes {
 	int area;
 	int rounding;
 
-	Lines hlines;
-	Lines vlines;
+	/* The horizontal lines we gather.
+	 */
+	int n_hlines;
+
+	/* Start is the left-most pixel in the line, end is one beyond the
+	 * right-most pixel. start[3]/end[3] writes to band 3 in the
+	 * intermediate image.
+	 */
+	int start[MAX_LINES];
+	int end[MAX_LINES];
+
+	/* The hlines have weights. weight 0 means this line is unused.
+	 */
+	int weight[MAX_LINES];
+
+	/* Scale and sum a set of hlines to make the final value. band[] is
+	 * the index into start/end we add, row[] is the row we take it from.
+	 */
+	int n_vlines;
+	int row[MAX_LINES];
+	int band[MAX_LINES];
+
+	/* Each hline has a factor during gather, eg. -1 for -ve lobes.
+	 */
+	int factor[MAX_LINES];
 } Boxes;
 
 static void
-line_start( Lines *lines, int x, int factor, int band )
+boxes_start( Boxes *boxes, int x )
 {
-	lines->start[lines->n_lines] = x;
-	lines->factor[lines->n_lines] = factor;
-	lines->band[lines->n_lines] = band;
+	boxes->start[boxes->n_hlines] = x;
+	boxes->weight[boxes->n_hlines] = 1;
 }
 
 static int
-line_end( Lines *lines, int x )
+boxes_end( Boxes *lines, int x, int y, int factor )
 {
-	lines->end[lines->n_lines] = x;
+	boxes->end[boxes->n_hlines] = x;
 
-	if( lines->n_lines >= MAX_LINES - 1 ) {
+	boxes->row[boxes->n_vlines] = y;
+	boxes->band[boxes->n_vlines] = boxes->n_hlines;
+	boxes->factor[boxes->n_vlines] = factor;
+
+	if( boxes->n_hlines >= MAX_LINES - 1 ) {
 		vips_error( "im_aconv", "%s", _( "mask too complex" ) );
 		return( -1 );
 	}
-	lines->n_lines += 1;
+	boxes->n_hlines += 1;
+
+	if( boxes->n_vlines >= MAX_LINES - 1 ) {
+		vips_error( "im_aconv", "%s", _( "mask too complex" ) );
+		return( -1 );
+	}
+	boxes->n_vlines += 1;
 
 	return( 0 );
+}
+
+/* The 'distance' between a pair of hlines.
+ */
+static int
+boxes_distance( Boxes *boxes, int a, int b )
+{
+	return( abs( boxes->start[a] - boxes->start[b] ) + 
+		abs( boxes->end[a] - boxes->end[b] ) ); 
+}
+
+/* Merge two hlines. Line b is deleted, and any refs to b in vlines updated to
+ * point at a.
+ */
+static void
+boxes_merge( Boxes *boxes, int a, int b )
+{
+	int i;
+
+	/* Scale weights. 
+	 */
+	int fa = boxes->weight[a];
+	int fb = boxes->weight[b];
+	double w = (double) fb / (fa + fb);
+
+	/* New endpoints.
+	 */
+	boxes->start[a] += w * (boxes->start[b] - boxes->start[a]);
+	boxes->end[a] += w * (boxes->end[b] - boxes->end[a]);
+	boxes->weight[a] += boxes->weight[b];
+
+	/* Update refs to b in vlines to refer to a instead.
+	 */
+	for( i = 0; i < boxes->n_vlines; i++ )
+		if( boxes->band[i] == b )
+			boxes->band[i] = a;
+
+	/* Delete b.
+	 */
+	boxes->weight[b] = 0;
+}
+
+/* Find the closest pair of hlines, join them up if the distance is less than 
+ * a threshold. Return non-zero if we made a change.
+ */
+static int
+boxes_cluster( Boxes *boxes, int threshold )
+{
+	int i, j;
+	int best, a, b;
+	int acted;
+
+	best = 9999999;
+
+	for( i = 0; i < boxes->n_hlines; i++ ) {
+		if( boxes->weight[i] == 0 )
+			continue;
+
+		for( j = i + 1; j < lines->n_lines; j++ ) {
+			int d;
+
+			if( boxes->weight[j] == 0 )
+				continue;
+
+			d = lines_distance( lines, i, j ); 
+			if( d < best ) {
+				best = d;
+				a = i;
+				b = j;
+			}
+		}
+	}
+
+	acted = 0;
+	if( best < threshold ) {
+		boxes_merge( boxes, a, b );
+		acted = 1;
+	}
+
+	return( acted );
+}
+
+/* Renumber after clustering. We will have removed a lot of hlines ... shuffle
+ * the rest down, adjust all the vline references.
+ */
+static void
+boxes_renumber( Boxes *boxes )
+{
+	int i, j;
+
+	for( i = 0; i < boxes->n_hlines; i++ ) {
+		if( boxes->weight[i] == 0 ) {
+			/* We move hlines i + 1 down, so we need to adjust all
+			 * band[] refs to match.
+			 */
+			for( j = 0; j < boxes->n_vlines; j++ )
+				if( boxes->band[j] <= i )
+					boxes->band[j] -= 1;
+
+			for( j = i; j < boxes->n_hlines; j++ ) {
+				boxes->start[j] = boxes->start[j + 1];
+				boxes->end[j] = boxes->end[j + 1];
+				boxes->weight[j] = boxes->weight[j + 1];
+			}
+
+			boxes->n_hlines -= 1;
+		}
+	}
 }
 
 /* Break a mask into boxes.
@@ -177,8 +295,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	double sum;
 	int layers_above;
 	int layers_below;
-	int band_offset;
-	int z, n, x;
+	int z, n, x, y;
 
 	/* Check parameters.
 	 */
@@ -197,22 +314,16 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 		return( NULL );
 	boxes->n_layers = n_layers;
 
-	boxes->hlines.boxes = boxes;
-	boxes->hlines.n_lines = 0;
-	boxes->vlines.boxes = boxes;
-	boxes->vlines.n_lines = 0;
-
-	VIPS_DEBUG_MSG( "boxes_new: breaking into %d layers ...\n", n_layers );
+	boxes->n_hlines = 0;
+	boxes->n_vlines = 0;
 
 	/* Find mask range. We must always include the zero axis in the mask.
 	 */
 	max = 0;
 	min = 0;
 	for( n = 0; n < size; n++ ) {
-		if( mask->coeff[n] > max )
-			max = mask->coeff[n];
-		if( mask->coeff[n] < min )
-			min = mask->coeff[n];
+		max = IM_MAX( max, mask->coeff[n] );
+		min = IM_MIN( min, mask->coeff[n] );
 	}
 
 	/* The zero axis must fall on a layer boundary. Estimate the
@@ -225,7 +336,8 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	layers_below = floor( min / depth );
 	n_layers = layers_above - layers_below;
 
-	VIPS_DEBUG_MSG( "depth = %g, n_layers = %d\n", depth, n_layers );
+	VIPS_DEBUG_MSG( "boxes_new: depth = %g, n_layers = %d\n", 
+		depth, n_layers );
 
 	/* For each layer, generate a set of lines which are inside the
 	 * perimeter. Work down from the top.
@@ -251,7 +363,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 			inside = 0;
 
 			for( x = 0; x < mask->xsize; x++ ) {
-				double coeff = mask->coeff[x + y * mask->xsize];
+				double coeff = MASK( mask, x, y );
 
 				/* The vertical line from mask[x, y] to 0 is 
 				 * inside. Is our current square (x, y) part 
@@ -260,107 +372,92 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 				if( (y_positive && coeff >= y_ph) ||
 					(!y_positive && coeff <= y_ph) ) {
 					if( !inside ) {
-						line_start( lines, x, 
-							y_positive ? 1 : -1 );
+						boxes_start( lines, x );
 						inside = 1;
 					}
 				}
 				else {
 					if( inside ) {
-						line_end( lines, x );
+						boxes_end( lines, x, y,
+							y_positive ? 1 : -1 );
 						inside = 0;
 					}
 				}
 			}
 
 			if( inside && 
-				line_end( lines, width ) )
+				boxes_end( lines, mask->xsize, y, 
+					y_positive ? 1 : -1 ) )
 				return( NULL );
 		}
 	}
 
-	/* Can we common up any lines? Search for lines with identical
-	 * start/end.
-	 */
-	for( z = 0; z < lines->n_lines; z++ ) {
-		for( n = z + 1; n < lines->n_lines; n++ ) {
-			if( lines->start[z] == lines->start[n] &&
-				lines->end[z] == lines->end[n] ) {
-				lines->factor[z] += lines->factor[n];
+	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", 
+		boxes->n_hlines );
 
-				/* n can be deleted. Do this in a separate
-				 * pass below.
-				 */
-				lines->factor[n] = 0;
-			}
-		}
-	}
-
-	/* Now we can remove all factor 0 lines.
-	 */
-	for( z = 0; z < lines->n_lines; z++ ) {
-		if( lines->factor[z] == 0 ) {
-			for( x = z; x < lines->n_lines; x++ ) {
-				lines->start[x] = lines->start[x + 1];
-				lines->end[x] = lines->end[x + 1];
-				lines->factor[x] = lines->factor[x + 1];
-			}
-			lines->n_lines -= 1;
-		}
-	}
+	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", 5 ); 
+	while( boxes_cluster( boxes, 5 ) )
+		;
+	boxes_renumber( boxes );
+	VIPS_DEBUG_MSG( "boxes_new: after clustering, %d boxes remain\n", 
+		boxes->n_hlines );
 
 	/* Find the area of the lines.
 	 */
-	lines->area = 0;
-	for( z = 0; z < lines->n_lines; z++ ) 
-		lines->area += lines->factor[z] * 
-			(lines->end[z] - lines->start[z]);
+	boxes->area = 0;
+	for( y = 0; y < boxes->n_vlines; y++ ) {
+		int x = boxes->band[y];
+
+		boxes->area += boxes->factor[y] * 
+			(boxes->end[x] - boxes->start[x]);
+	}
 
 	/* Strength reduction: if all lines are divisible by n, we can move
 	 * that n out into the ->area factor. The aim is to produce as many
 	 * factor 1 lines as we can and to reduce the chance of overflow.
 	 */
-	x = lines->factor[0];
-	for( z = 1; z < lines->n_lines; z++ ) 
-		x = gcd( x, lines->factor[z] );
-	for( z = 0; z < lines->n_lines; z++ ) 
-		lines->factor[z] /= x;
-	lines->area *= x;
+	x = boxes->factor[0];
+	for( y = 1; y < boxes->n_vlines; y++ ) 
+		x = gcd( x, boxes->factor[y] );
+	for( y = 0; y < boxes->n_lines; y++ ) 
+		boxes->factor[y] /= x;
+	boxes->area *= x;
 
 	/* Find the area of the original mask.
 	 */
 	sum = 0;
-	for( z = 0; z < width; z++ ) 
+	for( z = 0; z < size; z++ ) 
 		sum += mask->coeff[z];
 
-	lines->area = rint( sum * lines->area / mask->scale );
-	lines->rounding = (lines->area + 1) / 2 + mask->offset * lines->area;
+	boxes->area = rint( sum * boxes->area / mask->scale );
+	boxes->rounding = (boxes->area + 1) / 2 + mask->offset * boxes->area;
 
 	/* ASCII-art layer drawing.
+	 */
 	printf( "lines:\n" );
-	for( z = 0; z < lines->n_lines; z++ ) {
-		printf( "%3d - %2d x ", z, lines->factor[z] );
+	for( y = 0; y < boxes->n_vlines; y++ ) {
+		printf( "%3d - %2d x ", y, boxes->factor[z] );
 		for( x = 0; x < 55; x++ ) {
 			int rx = x * (width + 1) / 55;
+			int b = boxes->band[y];
 
-			if( rx >= lines->start[z] && rx < lines->end[z] )
+			if( rx >= boxes->start[b] && rx < boxes->end[b] )
 				printf( "#" );
 			else
 				printf( " " );
 		}
-		printf( " %3d .. %3d\n", lines->start[z], lines->end[z] );
+		printf( " %3d .. %3d\n", boxes->start[z], boxes->end[z] );
 	}
-	printf( "area = %d\n", lines->area );
-	printf( "rounding = %d\n", lines->rounding );
-	 */
+	printf( "area = %d\n", boxes->area );
+	printf( "rounding = %d\n", boxes->rounding );
 
-	return( lines );
+	return( boxes );
 }
 
 /* Our sequence value.
  */
 typedef struct {
-	Lines *lines;
+	Boxes *boxes;
 	REGION *ir;		/* Input region */
 
 	int *start;		/* Offsets for start and stop */
@@ -372,14 +469,14 @@ typedef struct {
 	void *sum;		
 
 	int last_stride;	/* Avoid recalcing offsets, if we can */
-} LinesSequence;
+} AConvSequence;
 
 /* Free a sequence value.
  */
 static int
-lines_stop( void *vseq, void *a, void *b )
+aconv_stop( void *vseq, void *a, void *b )
 {
-	LinesSequence *seq = (LinesSequence *) vseq;
+	AConvSequence *seq = (AConvSequence *) vseq;
 
 	IM_FREEF( im_region_free, seq->ir );
 
@@ -389,14 +486,14 @@ lines_stop( void *vseq, void *a, void *b )
 /* Convolution start function.
  */
 static void *
-lines_start( IMAGE *out, void *a, void *b )
+aconv_start( IMAGE *out, void *a, void *b )
 {
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
 
-	LinesSequence *seq;
+	AConvSequence *seq;
 
-	if( !(seq = IM_NEW( out, LinesSequence )) )
+	if( !(seq = IM_NEW( out, AConvSequence )) )
 		return( NULL );
 
 	/* Init!
@@ -412,7 +509,7 @@ lines_start( IMAGE *out, void *a, void *b )
 	seq->last_stride = -1;
 
 	if( !seq->ir || !seq->start || !seq->end || !seq->sum ) {
-		lines_stop( seq, in, lines );
+		aconv_stop( seq, in, lines );
 		return( NULL );
 	}
 
@@ -536,9 +633,9 @@ G_STMT_START { \
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
 static int
-lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
+aconv_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 {
-	LinesSequence *seq = (LinesSequence *) vseq;
+	AConvSequence *seq = (AConvSequence *) vseq;
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
 
@@ -715,9 +812,9 @@ lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
  * from above with small changes.
  */
 static int
-lines_generate_vertical( REGION *or, void *vseq, void *a, void *b )
+aconv_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 {
-	LinesSequence *seq = (LinesSequence *) vseq;
+	AConvSequence *seq = (AConvSequence *) vseq;
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
 
@@ -823,7 +920,7 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	im_print_dmask( mask );
 #endif /*DEBUG*/
 
-	if( !(lines = lines_new( in, out, mask, n_layers )) )
+	if( !(lines = boxes_new( in, out, mask, n_layers )) )
 		return( -1 );
 
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
@@ -839,13 +936,13 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	}
 
 	if( mask->xsize == 1 )
-		generate = lines_generate_vertical;
+		generate = aconv_generate_vertical;
 	else 
-		generate = lines_generate_horizontal;
+		generate = aconv_generate_horizontal;
 
 	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
-			lines_start, generate, lines_stop, in, lines ) )
+			aconv_start, generate, aconv_stop, in, lines ) )
 		return( -1 );
 
 	out->Xoffset = -mask->xsize / 2;
@@ -860,15 +957,12 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
  * @out: output image
  * @mask: convolution mask
  * @n_layers: number of layers for approximation
+ * @cluster: cluster lines closer than this distance
  *
- * Perform an approximate separable convolution of @in with @mask.
+ * Perform an approximate convolution of @in with @mask.
  *
- * The mask must be 1xn or nx1 elements. 
  * The output image 
  * always has the same #VipsBandFmt as the input image. 
- *
- * The image is convolved twice: once with @mask and then again with @mask 
- * rotated by 90 degrees. 
  *
  * Larger values for @n_layers give more accurate
  * results, but are slower. As @n_layers approaches the mask radius, the
@@ -876,12 +970,15 @@ aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
  * match. For many large masks, such as Gaussian, @n_layers need be only 10% of
  * this value and accuracy will still be good.
  *
+ * Smaller values of @cluster will give more accurate results, but be slower
+ * and use more memory. 10% of the mask radius is a good rule of thumb.
+ *
  * See also: im_convsep_f(), im_create_dmaskv().
  *
  * Returns: 0 on success, -1 on error
  */
 int 
-im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
+im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 {
 	IMAGE *t[2];
 	const int n_mask = mask->xsize * mask->ysize;

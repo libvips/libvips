@@ -119,14 +119,14 @@ typedef struct _Lines {
 } Lines;
 
 static void
-line_start( Lines *lines, int x, int factor )
+lines_start( Lines *lines, int x, int factor )
 {
 	lines->start[lines->n_lines] = x;
 	lines->factor[lines->n_lines] = factor;
 }
 
 static int
-line_end( Lines *lines, int x )
+lines_end( Lines *lines, int x )
 {
 	lines->end[lines->n_lines] = x;
 
@@ -226,21 +226,22 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 			if( (y_positive && mask->coeff[x] >= y_ph) ||
 				(!y_positive && mask->coeff[x] <= y_ph) ) {
 				if( !inside ) {
-					line_start( lines, x, 
+					lines_start( lines, x, 
 						y_positive ? 1 : -1 );
 					inside = 1;
 				}
 			}
 			else {
 				if( inside ) {
-					line_end( lines, x );
+					if( lines_end( lines, x ) )
+						return( NULL );
 					inside = 0;
 				}
 			}
 		}
 
 		if( inside && 
-			line_end( lines, width ) )
+			lines_end( lines, width ) )
 			return( NULL );
 	}
 
@@ -337,14 +338,14 @@ typedef struct {
 	void *sum;		
 
 	int last_stride;	/* Avoid recalcing offsets, if we can */
-} LinesSequence;
+} AConvSep;
 
 /* Free a sequence value.
  */
 static int
-lines_stop( void *vseq, void *a, void *b )
+aconvsep_stop( void *vseq, void *a, void *b )
 {
-	LinesSequence *seq = (LinesSequence *) vseq;
+	AConvSep *seq = (AConvSep *) vseq;
 
 	IM_FREEF( im_region_free, seq->ir );
 
@@ -354,14 +355,14 @@ lines_stop( void *vseq, void *a, void *b )
 /* Convolution start function.
  */
 static void *
-lines_start( IMAGE *out, void *a, void *b )
+aconvsep_start( IMAGE *out, void *a, void *b )
 {
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
 
-	LinesSequence *seq;
+	AConvSep *seq;
 
-	if( !(seq = IM_NEW( out, LinesSequence )) )
+	if( !(seq = IM_NEW( out, AConvSep )) )
 		return( NULL );
 
 	/* Init!
@@ -377,7 +378,7 @@ lines_start( IMAGE *out, void *a, void *b )
 	seq->last_stride = -1;
 
 	if( !seq->ir || !seq->start || !seq->end || !seq->sum ) {
-		lines_stop( seq, in, lines );
+		aconvsep_stop( seq, in, lines );
 		return( NULL );
 	}
 
@@ -501,9 +502,9 @@ G_STMT_START { \
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
 static int
-lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
+aconvsep_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 {
-	LinesSequence *seq = (LinesSequence *) vseq;
+	AConvSep *seq = (AConvSep *) vseq;
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
 
@@ -680,9 +681,9 @@ lines_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
  * from above with small changes.
  */
 static int
-lines_generate_vertical( REGION *or, void *vseq, void *a, void *b )
+aconvsep_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 {
-	LinesSequence *seq = (LinesSequence *) vseq;
+	AConvSep *seq = (AConvSep *) vseq;
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
 
@@ -804,13 +805,13 @@ aconvsep_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	}
 
 	if( mask->xsize == 1 )
-		generate = lines_generate_vertical;
+		generate = aconvsep_generate_vertical;
 	else 
-		generate = lines_generate_horizontal;
+		generate = aconvsep_generate_horizontal;
 
 	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
-			lines_start, generate, lines_stop, in, lines ) )
+			aconvsep_start, generate, aconvsep_stop, in, lines ) )
 		return( -1 );
 
 	out->Xoffset = -mask->xsize / 2;
