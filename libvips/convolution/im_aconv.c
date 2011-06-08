@@ -59,9 +59,9 @@
  */
 
 /*
+ */
 #define DEBUG
 #define VIPS_DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -133,8 +133,8 @@ typedef struct _Boxes {
 	 * the index into start/end we add, row[] is the row we take it from.
 	 */
 	int n_vlines;
-	int row[MAX_LINES];
 	int band[MAX_LINES];
+	int row[MAX_LINES];
 
 	/* Each hline has a factor during gather, eg. -1 for -ve lobes.
 	 */
@@ -436,17 +436,18 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	 */
 	printf( "lines:\n" );
 	for( y = 0; y < boxes->n_vlines; y++ ) {
-		printf( "%3d - %2d x ", y, boxes->factor[z] );
-		for( x = 0; x < 55; x++ ) {
-			int rx = x * (mask->xsize + 1) / 55;
-			int b = boxes->band[y];
+		int b = boxes->band[y];
+
+		printf( "%3d %3d - %2d x ", y, b, boxes->factor[y] );
+		for( x = 0; x < 50; x++ ) {
+			int rx = x * (mask->xsize + 1) / 50;
 
 			if( rx >= boxes->start[b] && rx < boxes->end[b] )
 				printf( "#" );
 			else
 				printf( " " );
 		}
-		printf( " %3d .. %3d\n", boxes->start[z], boxes->end[z] );
+		printf( " %3d .. %3d\n", boxes->start[b], boxes->end[b] );
 	}
 	printf( "area = %d\n", boxes->area );
 	printf( "rounding = %d\n", boxes->rounding );
@@ -508,7 +509,7 @@ aconv_start( IMAGE *out, void *a, void *b )
 	/* There will always be more vlines than hlines, so make the arrays
 	 * vlines big and we'll have room for both.
 	 */
-	g_assert( boxes->n_vlines > boxes->n_hlines );
+	g_assert( boxes->n_vlines >= boxes->n_hlines );
 
 	seq->start = IM_ARRAY( out, boxes->n_vlines, int );
 	seq->end = IM_ARRAY( out, boxes->n_vlines, int );
@@ -623,33 +624,29 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 
 	for( i = 0; i < bands; i++ ) { 
 		int *seq_sum = (int *) seq->sum; 
-		
+
 		PEL *p; 
 		int *q; 
-		int sum; 
-		
+
 		p = i + (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
-		q = i + (int *) IM_REGION_ADDR( or, r->left, r->top + y ); 
-		
-		sum = 0; 
+		q = i * n_hlines + 
+			(int *) IM_REGION_ADDR( or, r->left, r->top + y ); 
+
 		for( z = 0; z < n_hlines; z++ ) { 
 			seq_sum[z] = 0; 
 			for( x = boxes->start[z]; x < boxes->end[z]; x++ ) 
 				seq_sum[z] += p[x * istride]; 
-			sum += boxes->factor[z] * seq_sum[z]; 
+			q[z] = seq_sum[z]; 
 		} 
-		*q = sum; 
 		q += ostride; 
-		
+
 		for( x = 1; x < r->width; x++ ) {  
-			sum = 0; 
 			for( z = 0; z < n_hlines; z++ ) { 
 				seq_sum[z] += p[seq->end[z]]; 
 				seq_sum[z] -= p[seq->start[z]]; 
-				sum += seq_sum[z]; 
+				q[z] = seq_sum[z]; 
 			} 
 			p += istride; 
-			*q = sum; 
 			q += ostride; 
 		} 
 	} 
@@ -715,7 +712,6 @@ aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Xsize -= boxes->mask->xsize - 1;
-	out->Ysize -= boxes->mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
 		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
 		return( -1 );
@@ -773,7 +769,7 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	 * ease of direction change.
 	 */
 	istride = IM_REGION_LSKIP( ir ) / 
-		IM_IMAGE_SIZEOF_ELEMENT( boxes->in );
+		IM_IMAGE_SIZEOF_ELEMENT( in );
 	ostride = IM_REGION_LSKIP( or ) / 
 		IM_IMAGE_SIZEOF_ELEMENT( boxes->out );
 
@@ -787,27 +783,26 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 				boxes->row[z] * istride;
 	}
 
-	switch( in->BandFmt ) {
+	switch( boxes->in->BandFmt ) {
 	case IM_BANDFMT_UCHAR: 	
 
-	for( x = 0; x < sz; x++ ) { 
+	for( y = 0; y < r->height; y++ ) { 
 		int *p; 
 		PEL *q; 
 		int sum; 
 		
-		p = x * boxes->n_hlines + 
-			(int *) IM_REGION_ADDR( ir, r->left, r->top ); 
-		q = x + (PEL *) IM_REGION_ADDR( or, r->left, r->top ); 
+		p = (int *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
+		q = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y ); 
 		
-		for( y = 0; y < r->height; y++ ) { 
+		for( x = 0; x < sz; x++ ) { 
 			sum = 0; 
 			for( z = 0; z < n_vlines; z++ ) 
 				sum += boxes->factor[z] * p[seq->start[z]];
-			p += istride; 
+			p += boxes->n_hlines; 
 			sum = (sum + boxes->rounding) / boxes->area; 
 			CLIP_UCHAR( sum ); 
 			*q = sum; 
-			q += ostride; 
+			q += 1; 
 		}   
 	} 
 
@@ -870,7 +865,6 @@ aconv_vertical( Boxes *boxes, IMAGE *in, IMAGE *out )
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	out->Xsize -= boxes->mask->xsize - 1;
 	out->Ysize -= boxes->mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
 		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
@@ -927,17 +921,17 @@ im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 		return( -1 );
 
 	/*
-	if( im_embed( in, t[0], 1, n_mask / 2, n_mask / 2, 
-		in->Xsize + n_mask - 1, in->Ysize + n_mask - 1 ) ||
+	 */
+	if( im_embed( in, t[0], 1, mask->xsize / 2, mask->ysize / 2, 
+		in->Xsize + mask->xsize - 1, in->Ysize + mask->ysize - 1 ) ||
 		aconv_horizontal( boxes, t[0], t[1] ) ||
 		aconv_vertical( boxes, t[1], out ) )
 		return( -1 );
-	 */
 
 	/* For testing .. just try one direction.
-	 */
 	if( aconv_horizontal( boxes, in, out ) )
 		return( -1 );
+	 */
 
 	out->Xoffset = 0;
 	out->Yoffset = 0;
