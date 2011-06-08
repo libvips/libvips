@@ -435,7 +435,7 @@ G_STMT_START { \
 		q = i + (TYPE *) IM_REGION_ADDR( or, r->left, r->top + y ); \
 		\
 		sum = 0; \
-		for( z = 0; z < lines->n_lines; z++ ) { \
+		for( z = 0; z < n_lines; z++ ) { \
 			seq_sum[z] = 0; \
 			for( x = lines->start[z]; x < lines->end[z]; x++ ) \
 				seq_sum[z] += p[x * istride]; \
@@ -448,7 +448,7 @@ G_STMT_START { \
 		\
 		for( x = 1; x < r->width; x++ ) {  \
 			sum = 0; \
-			for( z = 0; z < lines->n_lines; z++ ) { \
+			for( z = 0; z < n_lines; z++ ) { \
 				seq_sum[z] += p[seq->end[z]]; \
 				seq_sum[z] -= p[seq->start[z]]; \
 				sum += lines->factor[z] * seq_sum[z]; \

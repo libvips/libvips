@@ -52,8 +52,6 @@
 
   	- are we handling mask offset correctly?
 
-	- just done boxes_new()
-
  */
 
 /* Show sample pixels as they are transformed.
@@ -151,7 +149,7 @@ boxes_start( Boxes *boxes, int x )
 }
 
 static int
-boxes_end( Boxes *lines, int x, int y, int factor )
+boxes_end( Boxes *boxes, int x, int y, int factor )
 {
 	boxes->end[boxes->n_hlines] = x;
 
@@ -209,7 +207,7 @@ boxes_merge( Boxes *boxes, int a, int b )
 		if( boxes->band[i] == b )
 			boxes->band[i] = a;
 
-	/* Delete b.
+	/* Mark b to be deleted.
 	 */
 	boxes->weight[b] = 0;
 }
@@ -230,13 +228,13 @@ boxes_cluster( Boxes *boxes, int cluster )
 		if( boxes->weight[i] == 0 )
 			continue;
 
-		for( j = i + 1; j < lines->n_lines; j++ ) {
+		for( j = i + 1; j < boxes->n_hlines; j++ ) {
 			int d;
 
 			if( boxes->weight[j] == 0 )
 				continue;
 
-			d = lines_distance( lines, i, j ); 
+			d = boxes_distance( boxes, i, j ); 
 			if( d < best ) {
 				best = d;
 				a = i;
@@ -344,7 +342,6 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	/* For each layer, generate a set of lines which are inside the
 	 * perimeter. Work down from the top.
 	 */
-	band_offset = 0;
 	for( z = 0; z < n_layers; z++ ) {
 		/* How deep we are into the mask, as a double we can test
 		 * against. Add half the layer depth so we can easily find >50%
@@ -371,25 +368,25 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 				 * inside. Is our current square (x, y) part 
 				 * of that line?
 				 */
-				if( (y_positive && coeff >= y_ph) ||
-					(!y_positive && coeff <= y_ph) ) {
+				if( (z_positive && coeff >= z_ph) ||
+					(!z_positive && coeff <= z_ph) ) {
 					if( !inside ) {
-						boxes_start( lines, x );
+						boxes_start( boxes, x );
 						inside = 1;
 					}
 				}
 				else {
 					if( inside ) {
-						boxes_end( lines, x, y,
-							y_positive ? 1 : -1 );
+						boxes_end( boxes, x, y,
+							z_positive ? 1 : -1 );
 						inside = 0;
 					}
 				}
 			}
 
 			if( inside && 
-				boxes_end( lines, mask->xsize, y, 
-					y_positive ? 1 : -1 ) )
+				boxes_end( boxes, mask->xsize, y, 
+					z_positive ? 1 : -1 ) )
 				return( NULL );
 		}
 	}
@@ -422,7 +419,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	x = boxes->factor[0];
 	for( y = 1; y < boxes->n_vlines; y++ ) 
 		x = gcd( x, boxes->factor[y] );
-	for( y = 0; y < boxes->n_lines; y++ ) 
+	for( y = 0; y < boxes->n_vlines; y++ ) 
 		boxes->factor[y] /= x;
 	boxes->area *= x;
 
@@ -441,7 +438,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	for( y = 0; y < boxes->n_vlines; y++ ) {
 		printf( "%3d - %2d x ", y, boxes->factor[z] );
 		for( x = 0; x < 55; x++ ) {
-			int rx = x * (width + 1) / 55;
+			int rx = x * (mask->xsize + 1) / 55;
 			int b = boxes->band[y];
 
 			if( rx >= boxes->start[b] && rx < boxes->end[b] )
@@ -461,13 +458,17 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
  */
 typedef struct {
 	Boxes *boxes;
+
 	REGION *ir;		/* Input region */
 
-	int *start;		/* Offsets for start and stop */
+	/* For the horizontal pass, offsets for start and stop. For the
+	 * vertical pass, just use just start to get the offsets to sum.
+	 */
+	int *start;		
 	int *end;
 
-	/* The sums for each line. int for integer types, double for floating
-	 * point types.
+	/* For the horizontal pass, the rolling sums. int for integer types, 
+	 * double for floating point types.
 	 */
 	void *sum;		
 
@@ -492,7 +493,7 @@ static void *
 aconv_start( IMAGE *out, void *a, void *b )
 {
 	IMAGE *in = (IMAGE *) a;
-	Lines *lines = (Lines *) b;
+	Boxes *boxes = (Boxes *) b;
 
 	AConvSequence *seq;
 
@@ -501,18 +502,25 @@ aconv_start( IMAGE *out, void *a, void *b )
 
 	/* Init!
 	 */
-	seq->lines = lines;
+	seq->boxes = boxes;
 	seq->ir = im_region_create( in );
-	seq->start = IM_ARRAY( out, lines->n_lines, int );
-	seq->end = IM_ARRAY( out, lines->n_lines, int );
+
+	/* There will always be more vlines than hlines, so make the arrays
+	 * vlines big and we'll have room for both.
+	 */
+	g_assert( boxes->n_vlines > boxes->n_hlines );
+
+	seq->start = IM_ARRAY( out, boxes->n_vlines, int );
+	seq->end = IM_ARRAY( out, boxes->n_vlines, int );
+
 	if( vips_band_format_isint( out->BandFmt ) )
-		seq->sum = IM_ARRAY( out, lines->n_lines, int );
+		seq->sum = IM_ARRAY( out, boxes->n_vlines, int );
 	else
-		seq->sum = IM_ARRAY( out, lines->n_lines, double );
+		seq->sum = IM_ARRAY( out, boxes->n_vlines, double );
 	seq->last_stride = -1;
 
 	if( !seq->ir || !seq->start || !seq->end || !seq->sum ) {
-		aconv_stop( seq, in, lines );
+		aconv_stop( seq, in, boxes );
 		return( NULL );
 	}
 
@@ -557,82 +565,6 @@ G_STMT_START { \
  * them separate for easy debugging.
  */
 
-#define HCONV_INT( TYPE, CLIP ) { \
-	for( i = 0; i < bands; i++ ) { \
-		int *seq_sum = (int *) seq->sum; \
-		\
-		TYPE *q; \
-		TYPE *p; \
-		int sum; \
-		\
-		p = i + (TYPE *) IM_REGION_ADDR( ir, r->left, r->top + y ); \
-		q = i + (TYPE *) IM_REGION_ADDR( or, r->left, r->top + y ); \
-		\
-		sum = 0; \
-		for( z = 0; z < lines->n_lines; z++ ) { \
-			seq_sum[z] = 0; \
-			for( x = lines->start[z]; x < lines->end[z]; x++ ) \
-				seq_sum[z] += p[x * istride]; \
-			sum += lines->factor[z] * seq_sum[z]; \
-		} \
-		sum = (sum + lines->rounding) / lines->area; \
-		CLIP( sum ); \
-		*q = sum; \
-		q += ostride; \
-		\
-		for( x = 1; x < r->width; x++ ) {  \
-			sum = 0; \
-			for( z = 0; z < lines->n_lines; z++ ) { \
-				seq_sum[z] += p[seq->end[z]]; \
-				seq_sum[z] -= p[seq->start[z]]; \
-				sum += lines->factor[z] * seq_sum[z]; \
-			} \
-			p += istride; \
-			sum = (sum + lines->rounding) / lines->area; \
-			CLIP( sum ); \
-			*q = sum; \
-			q += ostride; \
-		} \
-	} \
-}
-
-#define HCONV_FLOAT( TYPE ) { \
-	for( i = 0; i < bands; i++ ) { \
-		double *seq_sum = (double *) seq->sum; \
-		\
-		TYPE *q; \
-		TYPE *p; \
-		double sum; \
-		\
-		p = i + (TYPE *) IM_REGION_ADDR( ir, r->left, r->top + y ); \
-		q = i + (TYPE *) IM_REGION_ADDR( or, r->left, r->top + y ); \
-		\
-		sum = 0; \
-		for( z = 0; z < lines->n_lines; z++ ) { \
-			seq_sum[z] = 0; \
-			for( x = lines->start[z]; x < lines->end[z]; x++ ) \
-				seq_sum[z] += p[x * istride]; \
-			sum += lines->factor[z] * seq_sum[z]; \
-		} \
-		sum = sum / lines->area + mask->offset; \
-		*q = sum; \
-		q += ostride; \
-		\
-		for( x = 1; x < r->width; x++ ) {  \
-			sum = 0; \
-			for( z = 0; z < lines->n_lines; z++ ) { \
-				seq_sum[z] += p[seq->end[z]]; \
-				seq_sum[z] -= p[seq->start[z]]; \
-				sum += lines->factor[z] * seq_sum[z]; \
-			} \
-			p += istride; \
-			sum = sum / lines->area + mask->offset; \
-			*q = sum; \
-			q += ostride; \
-		} \
-	} \
-}
-
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
 static int
@@ -640,11 +572,11 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 {
 	AConvSequence *seq = (AConvSequence *) vseq;
 	IMAGE *in = (IMAGE *) a;
-	Lines *lines = (Lines *) b;
+	Boxes *boxes = (Boxes *) b;
 
 	REGION *ir = seq->ir;
-	const int n_lines = lines->n_lines;
-	DOUBLEMASK *mask = lines->mask;
+	const int n_hlines = boxes->n_hlines;
+	DOUBLEMASK *mask = boxes->mask;
 	Rect *r = &or->valid;
 
 	/* Double the bands (notionally) for complex.
@@ -671,22 +603,60 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 	 */
 	istride = IM_IMAGE_SIZEOF_PEL( in ) / 
 		IM_IMAGE_SIZEOF_ELEMENT( in );
-	ostride = IM_IMAGE_SIZEOF_PEL( lines->out ) / 
-		IM_IMAGE_SIZEOF_ELEMENT( lines->out );
+	ostride = IM_IMAGE_SIZEOF_PEL( boxes->out ) / 
+		IM_IMAGE_SIZEOF_ELEMENT( boxes->out );
 
         /* Init offset array. 
 	 */
 	if( seq->last_stride != istride ) {
 		seq->last_stride = istride;
 
-		for( z = 0; z < n_lines; z++ ) {
-			seq->start[z] = lines->start[z] * istride;
-			seq->end[z] = lines->end[z] * istride;
+		for( z = 0; z < n_hlines; z++ ) {
+			seq->start[z] = boxes->start[z] * istride;
+			seq->end[z] = boxes->end[z] * istride;
 		}
 	}
 
 	for( y = 0; y < r->height; y++ ) { 
 		switch( in->BandFmt ) {
+		case IM_BANDFMT_UCHAR: 	
+
+	for( i = 0; i < bands; i++ ) { 
+		int *seq_sum = (int *) seq->sum; 
+		
+		PEL *p; 
+		int *q; 
+		int sum; 
+		
+		p = i + (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
+		q = i + (int *) IM_REGION_ADDR( or, r->left, r->top + y ); 
+		
+		sum = 0; 
+		for( z = 0; z < n_hlines; z++ ) { 
+			seq_sum[z] = 0; 
+			for( x = boxes->start[z]; x < boxes->end[z]; x++ ) 
+				seq_sum[z] += p[x * istride]; 
+			sum += boxes->factor[z] * seq_sum[z]; 
+		} 
+		*q = sum; 
+		q += ostride; 
+		
+		for( x = 1; x < r->width; x++ ) {  
+			sum = 0; 
+			for( z = 0; z < n_hlines; z++ ) { 
+				seq_sum[z] += p[seq->end[z]]; 
+				seq_sum[z] -= p[seq->start[z]]; 
+				sum += seq_sum[z]; 
+			} 
+			p += istride; 
+			*q = sum; 
+			q += ostride; 
+		} 
+	} 
+
+			break;
+
+			/*
 		case IM_BANDFMT_UCHAR: 	
 			HCONV_INT( unsigned char, CLIP_UCHAR );
 			break;
@@ -726,6 +696,7 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 		case IM_BANDFMT_DPCOMPLEX: 	
 			HCONV_FLOAT( double );
 			break;
+			 */
 
 		default:
 			g_assert( 0 );
@@ -750,6 +721,8 @@ aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
 		return( -1 );
 	}
 	out->Bands *= boxes->n_hlines;
+	out->BandFmt = vips_band_format_isfloat( in->BandFmt ) ?
+		VIPS_FORMAT_DOUBLE : VIPS_FORMAT_INT;
 
 	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
@@ -762,82 +735,6 @@ aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-#define VCONV_INT( TYPE, CLIP ) { \
-	for( x = 0; x < sz; x++ ) { \
-		int *seq_sum = (int *) seq->sum; \
-		\
-		TYPE *q; \
-		TYPE *p; \
-		int sum; \
-		\
-		p = x + (TYPE *) IM_REGION_ADDR( ir, r->left, r->top ); \
-		q = x + (TYPE *) IM_REGION_ADDR( or, r->left, r->top ); \
-		\
-		sum = 0; \
-		for( z = 0; z < lines->n_lines; z++ ) { \
-			seq_sum[z] = 0; \
-			for( y = lines->start[z]; y < lines->end[z]; y++ ) \
-				seq_sum[z] += p[y * istride]; \
-			sum += lines->factor[z] * seq_sum[z]; \
-		} \
-		sum = (sum + lines->rounding) / lines->area; \
-		CLIP( sum ); \
-		*q = sum; \
-		q += ostride; \
-		\
-		for( y = 1; y < r->height; y++ ) { \
-			sum = 0; \
-			for( z = 0; z < lines->n_lines; z++ ) { \
-				seq_sum[z] += p[seq->end[z]]; \
-				seq_sum[z] -= p[seq->start[z]]; \
-				sum += lines->factor[z] * seq_sum[z]; \
-			} \
-			p += istride; \
-			sum = (sum + lines->rounding) / lines->area; \
-			CLIP( sum ); \
-			*q = sum; \
-			q += ostride; \
-		}   \
-	} \
-}
-
-#define VCONV_FLOAT( TYPE ) { \
-	for( x = 0; x < sz; x++ ) { \
-		double *seq_sum = (double *) seq->sum; \
-		\
-		TYPE *q; \
-		TYPE *p; \
-		double sum; \
-		\
-		p = x + (TYPE *) IM_REGION_ADDR( ir, r->left, r->top ); \
-		q = x + (TYPE *) IM_REGION_ADDR( or, r->left, r->top ); \
-		\
-		sum = 0; \
-		for( z = 0; z < lines->n_lines; z++ ) { \
-			seq_sum[z] = 0; \
-			for( y = lines->start[z]; y < lines->end[z]; y++ ) \
-				seq_sum[z] += p[y * istride]; \
-			sum += lines->factor[z] * seq_sum[z]; \
-		} \
-		sum = sum / lines->area + mask->offset; \
-		*q = sum; \
-		q += ostride; \
-		\
-		for( y = 1; y < r->height; y++ ) { \
-			sum = 0; \
-			for( z = 0; z < lines->n_lines; z++ ) { \
-				seq_sum[z] += p[seq->end[z]]; \
-				seq_sum[z] -= p[seq->start[z]]; \
-				sum += lines->factor[z] * seq_sum[z]; \
-			} \
-			p += istride; \
-			sum = sum / lines->area + mask->offset; \
-			*q = sum; \
-			q += ostride; \
-		}   \
-	} \
-}
-
 /* Do vertical masks ... we scan the mask down columns of pixels. Copy-paste
  * from above with small changes.
  */
@@ -846,11 +743,11 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 {
 	AConvSequence *seq = (AConvSequence *) vseq;
 	IMAGE *in = (IMAGE *) a;
-	Lines *lines = (Lines *) b;
+	Boxes *boxes = (Boxes *) b;
 
 	REGION *ir = seq->ir;
-	const int n_lines = lines->n_lines;
-	DOUBLEMASK *mask = lines->mask;
+	const int n_vlines = boxes->n_vlines;
+	DOUBLEMASK *mask = boxes->mask;
 	Rect *r = &or->valid;
 
 	/* Double the width (notionally) for complex.
@@ -876,22 +773,47 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	 * ease of direction change.
 	 */
 	istride = IM_REGION_LSKIP( ir ) / 
-		IM_IMAGE_SIZEOF_ELEMENT( lines->in );
+		IM_IMAGE_SIZEOF_ELEMENT( boxes->in );
 	ostride = IM_REGION_LSKIP( or ) / 
-		IM_IMAGE_SIZEOF_ELEMENT( lines->out );
+		IM_IMAGE_SIZEOF_ELEMENT( boxes->out );
 
         /* Init offset array. 
 	 */
 	if( seq->last_stride != istride ) {
 		seq->last_stride = istride;
 
-		for( z = 0; z < n_lines; z++ ) {
-			seq->start[z] = lines->start[z] * istride;
-			seq->end[z] = lines->end[z] * istride;
-		}
+		for( z = 0; z < n_vlines; z++ ) 
+			seq->start[z] = boxes->band[z] + 
+				boxes->row[z] * istride;
 	}
 
 	switch( in->BandFmt ) {
+	case IM_BANDFMT_UCHAR: 	
+
+	for( x = 0; x < sz; x++ ) { 
+		int *p; 
+		PEL *q; 
+		int sum; 
+		
+		p = x * boxes->n_hlines + 
+			(int *) IM_REGION_ADDR( ir, r->left, r->top ); 
+		q = x + (PEL *) IM_REGION_ADDR( or, r->left, r->top ); 
+		
+		for( y = 0; y < r->height; y++ ) { 
+			sum = 0; 
+			for( z = 0; z < n_vlines; z++ ) 
+				sum += boxes->factor[z] * p[seq->start[z]];
+			p += istride; 
+			sum = (sum + boxes->rounding) / boxes->area; 
+			CLIP_UCHAR( sum ); 
+			*q = sum; 
+			q += ostride; 
+		}   
+	} 
+
+		break;
+
+	/*
 	case IM_BANDFMT_UCHAR: 	
 		VCONV_INT( unsigned char, CLIP_UCHAR );
 		break;
@@ -931,6 +853,7 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	case IM_BANDFMT_DPCOMPLEX: 	
 		VCONV_FLOAT( double );
 		break;
+		 */
 
 	default:
 		g_assert( 0 );
@@ -953,7 +876,8 @@ aconv_vertical( Boxes *boxes, IMAGE *in, IMAGE *out )
 		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
-	out->Bands /= boxes->n_hlines;
+	out->Bands = boxes->in->Bands;
+	out->BandFmt = boxes->in->BandFmt;
 
 	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
