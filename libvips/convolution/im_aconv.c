@@ -111,6 +111,7 @@ typedef struct _Boxes {
 	IMAGE *out;
 	DOUBLEMASK *mask;
 	int n_layers;
+	int cluster;
 
 	int area;
 	int rounding;
@@ -217,7 +218,7 @@ boxes_merge( Boxes *boxes, int a, int b )
  * a threshold. Return non-zero if we made a change.
  */
 static int
-boxes_cluster( Boxes *boxes, int threshold )
+boxes_cluster( Boxes *boxes, int cluster )
 {
 	int i, j;
 	int best, a, b;
@@ -245,7 +246,7 @@ boxes_cluster( Boxes *boxes, int threshold )
 	}
 
 	acted = 0;
-	if( best < threshold ) {
+	if( best < cluster ) {
 		boxes_merge( boxes, a, b );
 		acted = 1;
 	}
@@ -284,7 +285,7 @@ boxes_renumber( Boxes *boxes )
 /* Break a mask into boxes.
  */
 static Boxes *
-boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
+boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 {
 	const int size = mask->xsize * mask->ysize;
 
@@ -313,6 +314,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )
 		return( NULL );
 	boxes->n_layers = n_layers;
+	boxes->cluster = cluster;
 
 	boxes->n_hlines = 0;
 	boxes->n_vlines = 0;
@@ -395,8 +397,9 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", 
 		boxes->n_hlines );
 
-	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", 5 ); 
-	while( boxes_cluster( boxes, 5 ) )
+	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", 
+		cluster ); 
+	while( boxes_cluster( boxes, cluster ) )
 		;
 	boxes_renumber( boxes );
 	VIPS_DEBUG_MSG( "boxes_new: after clustering, %d boxes remain\n", 
@@ -633,7 +636,7 @@ G_STMT_START { \
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
 static int
-aconv_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
+aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 {
 	AConvSequence *seq = (AConvSequence *) vseq;
 	IMAGE *in = (IMAGE *) a;
@@ -732,6 +735,33 @@ aconv_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 	return( 0 );
 }
 
+static int
+aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
+{
+	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
+	 * would be 1x1.
+	 */
+	if( im_cp_desc( out, in ) )
+		return( -1 );
+	out->Xsize -= boxes->mask->xsize - 1;
+	out->Ysize -= boxes->mask->ysize - 1;
+	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
+		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
+		return( -1 );
+	}
+	out->Bands *= boxes->n_hlines;
+
+	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
+		im_generate( out, 
+			aconv_start, aconv_hgenerate, aconv_stop, in, boxes ) )
+		return( -1 );
+
+	out->Xoffset = -boxes->mask->xsize / 2;
+	out->Yoffset = -boxes->mask->ysize / 2;
+
+	return( 0 );
+}
+
 #define VCONV_INT( TYPE, CLIP ) { \
 	for( x = 0; x < sz; x++ ) { \
 		int *seq_sum = (int *) seq->sum; \
@@ -812,7 +842,7 @@ aconv_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
  * from above with small changes.
  */
 static int
-aconv_generate_vertical( REGION *or, void *vseq, void *a, void *b )
+aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 {
 	AConvSequence *seq = (AConvSequence *) vseq;
 	IMAGE *in = (IMAGE *) a;
@@ -910,43 +940,28 @@ aconv_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 }
 
 static int
-aconv_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
+aconv_vertical( Boxes *boxes, IMAGE *in, IMAGE *out )
 {
-	Lines *lines;
-	im_generate_fn generate;
-
-#ifdef DEBUG
-	printf( "aconv_raw: starting with matrix:\n" );
-	im_print_dmask( mask );
-#endif /*DEBUG*/
-
-	if( !(lines = boxes_new( in, out, mask, n_layers )) )
-		return( -1 );
-
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
 	 */
 	if( im_cp_desc( out, in ) )
 		return( -1 );
-	out->Xsize -= mask->xsize - 1;
-	out->Ysize -= mask->ysize - 1;
+	out->Xsize -= boxes->mask->xsize - 1;
+	out->Ysize -= boxes->mask->ysize - 1;
 	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
 		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
-
-	if( mask->xsize == 1 )
-		generate = aconv_generate_vertical;
-	else 
-		generate = aconv_generate_horizontal;
+	out->Bands /= boxes->n_hlines;
 
 	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
-			aconv_start, generate, aconv_stop, in, lines ) )
+			aconv_start, aconv_vgenerate, aconv_stop, in, boxes ) )
 		return( -1 );
 
-	out->Xoffset = -mask->xsize / 2;
-	out->Yoffset = -mask->ysize / 2;
+	out->Xoffset = -boxes->mask->xsize / 2;
+	out->Yoffset = -boxes->mask->ysize / 2;
 
 	return( 0 );
 }
@@ -981,30 +996,24 @@ int
 im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 {
 	IMAGE *t[2];
-	const int n_mask = mask->xsize * mask->ysize;
-	DOUBLEMASK *rmask;
+	Boxes *boxes;
 
-	if( im_open_local_array( out, t, 2, "im_aconv", "p" ) ||
-		!(rmask = (DOUBLEMASK *) im_local( out, 
-		(im_construct_fn) im_dup_dmask,
-		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )
+	if( !(boxes = boxes_new( in, out, mask, n_layers, cluster )) ||
+		im_open_local_array( out, t, 2, "im_aconv", "p" ) )
 		return( -1 );
-
-	rmask->xsize = mask->ysize;
-	rmask->ysize = mask->xsize;
 
 	/*
-	 */
 	if( im_embed( in, t[0], 1, n_mask / 2, n_mask / 2, 
 		in->Xsize + n_mask - 1, in->Ysize + n_mask - 1 ) ||
-		aconv_raw( t[0], t[1], mask, n_layers ) ||
-		aconv_raw( t[1], out, rmask, n_layers ) )
-		return( -1 );
-
-	/* For testing .. just try one direction.
-	if( aconv_raw( in, out, mask, n_layers ) )
+		aconv_horizontal( boxes, t[0], t[1] ) ||
+		aconv_vertical( boxes, t[1], out ) )
 		return( -1 );
 	 */
+
+	/* For testing .. just try one direction.
+	 */
+	if( aconv_horizontal( boxes, in, out ) )
+		return( -1 );
 
 	out->Xoffset = 0;
 	out->Yoffset = 0;
