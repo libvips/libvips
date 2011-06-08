@@ -592,22 +592,21 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 	int istride;
 	int ostride;
 
+	printf( "aconv_hgenerate: left %d top %d width %d height %d\n",
+		r->left, r->top, r->width, r->height ); 
+
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
 	s.width += mask->xsize - 1;
-	s.height += mask->ysize - 1;
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-	/* Stride can be different for the vertical case, keep this here for
-	 * ease of direction change.
-	 */
 	istride = IM_IMAGE_SIZEOF_PEL( in ) / 
 		IM_IMAGE_SIZEOF_ELEMENT( in );
-	ostride = IM_IMAGE_SIZEOF_PEL( boxes->out ) / 
-		IM_IMAGE_SIZEOF_ELEMENT( boxes->out );
+	ostride = IM_IMAGE_SIZEOF_PEL( or->im ) / 
+		IM_IMAGE_SIZEOF_ELEMENT( or->im );
 
         /* Init offset array. 
 	 */
@@ -714,7 +713,7 @@ aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Xsize -= boxes->mask->xsize - 1;
-	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
+	if( out->Xsize <= 0 ) { 
 		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
@@ -758,11 +757,13 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	int istride;
 	int ostride;
 
+	printf( "aconv_vgenerate: left %d top %d width %d height %d\n",
+		r->left, r->top, r->width, r->height ); 
+
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
-	s.width += mask->xsize - 1;
 	s.height += mask->ysize - 1;
 	if( im_prepare( ir, &s ) )
 		return( -1 );
@@ -792,10 +793,10 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 		int *p; 
 		PEL *q; 
 		int sum; 
-		
+
 		p = (int *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
 		q = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y ); 
-		
+
 		for( x = 0; x < sz; x++ ) { 
 			sum = 0; 
 			for( z = 0; z < n_vlines; z++ ) 
@@ -868,7 +869,7 @@ aconv_vertical( Boxes *boxes, IMAGE *in, IMAGE *out )
 	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Ysize -= boxes->mask->ysize - 1;
-	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
+	if( out->Ysize <= 0 ) {
 		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
@@ -931,7 +932,8 @@ im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 		return( -1 );
 
 	/* For testing .. just try one direction.
-	if( aconv_horizontal( boxes, in, out ) )
+	if( aconv_horizontal( boxes, in, t[0] ) ||
+		aconv_vertical( boxes, t[0], out ) )
 		return( -1 );
 	 */
 
