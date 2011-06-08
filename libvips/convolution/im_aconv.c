@@ -50,6 +50,10 @@
 
   TODO
 
+  	- tried a 201x201 mask, sigmal 44.6, minamp 0.1, does not seem to 
+	  read the whole mask? we get only 37638 elements, max and min are 
+	  messed up
+
   	- are we handling mask offset correctly?
 
  */
@@ -300,7 +304,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	 */
 	if( im_piocheck( in, out ) ||
 		im_check_uncoded( "im_aconv", in ) ||
-		vips_check_dmask_1d( "im_aconv", mask ) ) 
+		vips_check_dmask( "im_aconv", mask ) ) 
 		return( NULL );
 
 	if( !(boxes = VIPS_NEW( out, Boxes )) )
@@ -325,6 +329,8 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 		max = IM_MAX( max, mask->coeff[n] );
 		min = IM_MIN( min, mask->coeff[n] );
 	}
+
+	VIPS_DEBUG_MSG( "boxes_new: min = %g, max = %g\n", min, max );
 
 	/* The zero axis must fall on a layer boundary. Estimate the
 	 * depth, find n-lines-above-zero, get exact depth, then calculate a
@@ -592,9 +598,6 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 	int istride;
 	int ostride;
 
-	printf( "aconv_hgenerate: left %d top %d width %d height %d\n",
-		r->left, r->top, r->width, r->height ); 
-
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
 	 */
@@ -756,9 +759,6 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	int x, y, z;
 	int istride;
 	int ostride;
-
-	printf( "aconv_vgenerate: left %d top %d width %d height %d\n",
-		r->left, r->top, r->width, r->height ); 
 
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
