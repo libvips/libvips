@@ -153,7 +153,11 @@ void
 vips_object_print( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	char str[1000];
+
+	/* This is used for printing image headers, so we may need lots of
+	 * space. See header.c.
+	 */
+	char str[32768];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	vips_object_print_class( class );
