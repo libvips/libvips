@@ -435,10 +435,12 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	/* ASCII-art layer drawing.
 	 */
 	printf( "lines:\n" );
+	printf( "  n   b   r  f\n" );
 	for( y = 0; y < boxes->n_vlines; y++ ) {
 		int b = boxes->band[y];
 
-		printf( "%3d %3d - %2d x ", y, b, boxes->factor[y] );
+		printf( "%3d %3d %3d %2d ", 
+			y, b, boxes->row[y], boxes->factor[y] );
 		for( x = 0; x < 50; x++ ) {
 			int rx = x * (mask->xsize + 1) / 50;
 
@@ -798,13 +800,13 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 			sum = 0; 
 			for( z = 0; z < n_vlines; z++ ) 
 				sum += boxes->factor[z] * p[seq->start[z]];
-			p += boxes->n_hlines; 
 			sum = (sum + boxes->rounding) / boxes->area; 
 			CLIP_UCHAR( sum ); 
-			*q = sum; 
-			q += 1; 
-		}   
-	} 
+			*q = sum;
+			q += 1;
+			p += boxes->n_hlines;
+		}
+	}
 
 		break;
 
