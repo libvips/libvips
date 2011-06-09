@@ -1,17 +1,3 @@
-- read_header() from im_read_dmask() annoys valgrind
-
-==14466== Use of uninitialised value of size 8
-==14466==    at 0xA0BE850: __strspn_sse42 (emmintrin.h:685)
-==14466==    by 0x4F815AB: vips_break_token (util.c:373)
-==14466==    by 0x4F87F68: read_header (rw_mask.c:412)
-==14466==    by 0x4F88198: im_read_dmask (rw_mask.c:488)
-==14466==    by 0x4F01C1F: dmask_init (dispatch_types.c:263)
-==14466==    by 0x4F03AA2: build_args (package.c:956)
-==14466==    by 0x4F03EBC: dispatch_function (package.c:1068)
-==14466==    by 0x4F0403C: im_run_command (package.c:1133)
-==14466==    by 0x403997: main (vips.c:1074)
-
-
 
 
 - revisit orc conv

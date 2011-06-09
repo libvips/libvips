@@ -53,28 +53,19 @@
 timing:
 
 $ time vips im_conv_f img_0075.jpg x2.v g2d201.con
-real	11m58.769s
-user	22m46.390s
-sys	0m3.270s
+real	5m3.359s
+user	9m34.700s
+sys	0m1.500s
 
 $ time vips im_aconv img_0075.jpg x.v g2d201.con 10 10
-boxes_new: min = 0, max = 1
-boxes_new: depth = 0.1, n_layers = 10
-boxes_new: generated 1130 boxes
-boxes_new: clustering with thresh 10 ...
-boxes_new: renumbering ...
-boxes_new: after renumbering, 14 boxes remain
-real	0m34.377s
-user	1m0.440s
-sys	0m0.370s
+real	0m4.877s
+user	0m7.490s
+sys	0m0.220s
 
 $ vips im_subtract x.v x2.v diff.v
 $ vips im_abs diff.v abs.v
 $ vips im_max abs.v
 2.70833
-
-	- can we use rolling averages for the vertical pass? 
-	  we need to search for groups with the same band and adjacent row
 
 	- clustering could be much faster
 
@@ -85,9 +76,9 @@ $ vips im_max abs.v
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -318,12 +309,6 @@ static void
 boxes_renumber( Boxes *boxes )
 {
 	int i, j;
-
-	j = 0;
-	for( i = 0; i < boxes->n_hline; i++ ) 
-		if( boxes->hline[i].weight == 0 ) 
-			j++;
-	printf( "%d weight 0 hlines\n", j );
 
 	/* Loop for all zero-weight hlines.
 	 */
@@ -560,8 +545,10 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 		}
 	}
 
+#ifdef DEBUG
 	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", boxes->n_hline );
 	boxes_print( boxes );
+#endif /*DEBUG*/
 
 	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", 
 		cluster ); 
@@ -628,18 +615,17 @@ typedef struct {
 
 	REGION *ir;		/* Input region */
 
-	/* For the horizontal pass, offsets for start and stop. For the
-	 * vertical pass, just use just start to get the offsets to sum.
+	/* Offsets for start and stop. 
 	 */
 	int *start;		
 	int *end;
 
-	/* For the horizontal pass, the rolling sums. int for integer types, 
+	int last_stride;	/* Avoid recalcing offsets, if we can */
+
+	/* The rolling sums. int for integer types, 
 	 * double for floating point types.
 	 */
 	void *sum;		
-
-	int last_stride;	/* Avoid recalcing offsets, if we can */
 } AConvSequence;
 
 /* Free a sequence value.
@@ -675,6 +661,7 @@ aconv_start( IMAGE *out, void *a, void *b )
 	/* n_velement should be the largest possible dimension.
 	 */
 	g_assert( boxes->n_velement >= boxes->n_hline );
+	g_assert( boxes->n_velement >= boxes->n_vline );
 
 	seq->start = IM_ARRAY( out, boxes->n_velement, int );
 	seq->end = IM_ARRAY( out, boxes->n_velement, int );
@@ -904,7 +891,7 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	Boxes *boxes = (Boxes *) b;
 
 	REGION *ir = seq->ir;
-	const int n_velement = boxes->n_velement;
+	const int n_vline = boxes->n_vline;
 	DOUBLEMASK *mask = boxes->mask;
 	Rect *r = &or->valid;
 
@@ -914,7 +901,7 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 		2 * IM_REGION_N_ELEMENTS( or ) : IM_REGION_N_ELEMENTS( or );
 
 	Rect s;
-	int x, y, z;
+	int x, y, z, k;
 	int istride;
 	int ostride;
 
@@ -936,15 +923,20 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	if( seq->last_stride != istride ) {
 		seq->last_stride = istride;
 
-		for( z = 0; z < n_velement; z++ ) 
-			seq->start[z] = boxes->velement[z].band + 
-				boxes->velement[z].row * istride;
+		for( z = 0; z < n_vline; z++ ) {
+			seq->start[z] = boxes->vline[z].band + 
+				boxes->vline[z].start * istride;
+			seq->end[z] = boxes->vline[z].band + 
+				boxes->vline[z].end * istride;
+		}
 	}
 
 	switch( boxes->in->BandFmt ) {
 	case IM_BANDFMT_UCHAR: 	
 
 	for( x = 0; x < sz; x++ ) { 
+		int *seq_sum = (int *) seq->sum; 
+
 		int *p; 
 		PEL *q; 
 		int sum; 
@@ -953,18 +945,34 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 			(int *) IM_REGION_ADDR( ir, r->left, r->top ); 
 		q = x + (PEL *) IM_REGION_ADDR( or, r->left, r->top ); 
 
-		for( y = 0; y < r->height; y++ ) { 
-			sum = 0; 
-			for( z = 0; z < n_velement; z++ ) 
-				sum += boxes->velement[z].factor * 
-					p[seq->start[z]];
-			p += istride;
+		sum = 0;
+		for( z = 0; z < n_vline; z++ ) { 
+			seq_sum[z] = 0; 
+			for( k = boxes->vline[z].start; 
+				k < boxes->vline[z].end; k++ ) 
+				seq_sum[z] += p[k * istride + 
+					boxes->vline[z].band]; 
+			sum += boxes->vline[z].factor * seq_sum[z];
+		} 
+		sum = (sum + boxes->rounding) / boxes->area; 
+		CLIP_UCHAR( sum ); 
+		*q = sum;
+		q += ostride; 
+
+		for( y = 1; y < r->height; y++ ) {  
+			sum = 0;
+			for( z = 0; z < n_vline; z++ ) { 
+				seq_sum[z] += p[seq->end[z]]; 
+				seq_sum[z] -= p[seq->start[z]]; 
+				sum += boxes->vline[z].factor * seq_sum[z]; 
+			} 
+			p += istride; 
 			sum = (sum + boxes->rounding) / boxes->area; 
 			CLIP_UCHAR( sum ); 
 			*q = sum;
-			q += ostride;
-		}
-	}
+			q += ostride; 
+		} 
+	} 
 
 		break;
 
@@ -1076,9 +1084,13 @@ im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	IMAGE *t[2];
 	Boxes *boxes;
 
+	printf( "optimising boxes ...\n" );
+
 	if( !(boxes = boxes_new( in, out, mask, n_layers, cluster )) ||
 		im_open_local_array( out, t, 2, "im_aconv", "p" ) )
 		return( -1 );
+
+	printf( "... done\n" );
 
 	/*
 	 */
