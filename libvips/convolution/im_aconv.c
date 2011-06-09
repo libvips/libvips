@@ -50,16 +50,35 @@
 
   TODO
 
-  	- tried a 201x201 mask, sigmal 44.6, minamp 0.1, does not seem to 
-	  read the whole mask? we get only 37638 elements, max and min are 
-	  messed up
+timing:
+
+$ time vips im_conv_f img_0075.jpg x2.v g2d201.con
+real	11m58.769s
+user	22m46.390s
+sys	0m3.270s
+
+$ time vips im_aconv img_0075.jpg x.v g2d201.con 10 10
+boxes_new: min = 0, max = 1
+boxes_new: depth = 0.1, n_layers = 10
+boxes_new: generated 1130 boxes
+boxes_new: clustering with thresh 10 ...
+boxes_new: renumbering ...
+boxes_new: after renumbering, 14 boxes remain
+real	0m34.377s
+user	1m0.440s
+sys	0m0.370s
+
+$ vips im_subtract x.v x2.v diff.v
+$ vips im_abs diff.v abs.v
+$ vips im_max abs.v
+2.70833
+
+	- can we use rolling averages for the vertical pass?
+
+	- add more bandfmt
 
   	- are we handling mask offset correctly?
 
- */
-
-/* Show sample pixels as they are transformed.
-#define DEBUG_PIXELS
  */
 
 /*
@@ -87,7 +106,7 @@
 
 /* Maximum number of boxes we can break the mask into.
  */
-#define MAX_LINES (1000)
+#define MAX_LINES (10000)
 
 /* Get an (x,y) value from a mask.
  */
@@ -181,6 +200,8 @@ boxes_end( Boxes *boxes, int x, int y, int factor )
 static int
 boxes_distance( Boxes *boxes, int a, int b )
 {
+	g_assert( boxes->weight[a] > 0 && boxes->weight[b] > 0 );
+
 	return( abs( boxes->start[a] - boxes->start[b] ) + 
 		abs( boxes->end[a] - boxes->end[b] ) ); 
 }
@@ -264,25 +285,60 @@ boxes_renumber( Boxes *boxes )
 {
 	int i, j;
 
-	for( i = 0; i < boxes->n_hlines; i++ ) {
-		if( boxes->weight[i] == 0 ) {
-			/* We move hlines i + 1 down, so we need to adjust all
-			 * band[] refs to match.
-			 */
-			for( j = 0; j < boxes->n_vlines; j++ )
-				if( boxes->band[j] <= i )
-					boxes->band[j] -= 1;
-
-			for( j = i; j < boxes->n_hlines; j++ ) {
-				boxes->start[j] = boxes->start[j + 1];
-				boxes->end[j] = boxes->end[j + 1];
-				boxes->weight[j] = boxes->weight[j + 1];
-			}
-
-			boxes->n_hlines -= 1;
+	/* Loop for all zero-weight hlines.
+	 */
+	for( i = 0; i < boxes->n_hlines; ) {
+		if( boxes->weight[i] > 0 ) {
+			i++;
+			continue;
 		}
+
+		/* We move hlines i + 1 down, so we need to adjust all
+		 * band[] refs to match.
+		 */
+		for( j = 0; j < boxes->n_vlines; j++ )
+			if( boxes->band[j] > i ) 
+				boxes->band[j] -= 1;
+
+		for( j = i; j < boxes->n_hlines; j++ ) {
+			boxes->start[j] = boxes->start[j + 1];
+			boxes->end[j] = boxes->end[j + 1];
+			boxes->weight[j] = boxes->weight[j + 1];
+		}
+
+		boxes->n_hlines -= 1;
 	}
 }
+
+#ifdef DEBUG
+static void
+boxes_print( Boxes *boxes )
+{
+	int x, y;
+
+	printf( "lines:\n" );
+	printf( "  n   b   r  f  w\n" );
+	for( y = 0; y < boxes->n_vlines; y++ ) {
+		int b = boxes->band[y];
+
+		printf( "%3d %3d %3d %2d %2d ", 
+			y, b, 
+			boxes->row[y], boxes->factor[y],
+			boxes->weight[b] );
+		for( x = 0; x < 50; x++ ) {
+			int rx = x * (boxes->mask->xsize + 1) / 50;
+
+			if( rx >= boxes->start[b] && rx < boxes->end[b] )
+				printf( "#" );
+			else
+				printf( " " );
+		}
+		printf( " %3d .. %3d\n", boxes->start[b], boxes->end[b] );
+	}
+	printf( "area = %d\n", boxes->area );
+	printf( "rounding = %d\n", boxes->rounding );
+}
+#endif /*DEBUG*/
 
 /* Break a mask into boxes.
  */
@@ -399,13 +455,13 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 
 	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", 
 		boxes->n_hlines );
-
 	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", 
 		cluster ); 
 	while( boxes_cluster( boxes, cluster ) )
 		;
+	VIPS_DEBUG_MSG( "boxes_new: renumbering ...\n" );
 	boxes_renumber( boxes );
-	VIPS_DEBUG_MSG( "boxes_new: after clustering, %d boxes remain\n", 
+	VIPS_DEBUG_MSG( "boxes_new: after renumbering, %d boxes remain\n", 
 		boxes->n_hlines );
 
 	/* Find the area of the lines.
@@ -438,27 +494,17 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	boxes->area = rint( sum * boxes->area / mask->scale );
 	boxes->rounding = (boxes->area + 1) / 2 + mask->offset * boxes->area;
 
-	/* ASCII-art layer drawing.
+#ifdef DEBUG
+	boxes_print( boxes );
+#endif /*DEBUG*/
+
+	/* With 512x512 tiles, each hline requires 3mb of intermediate per
+	 * thread ... 300 lines is about a gb per thread, ouch.
 	 */
-	printf( "lines:\n" );
-	printf( "  n   b   r  f\n" );
-	for( y = 0; y < boxes->n_vlines; y++ ) {
-		int b = boxes->band[y];
-
-		printf( "%3d %3d %3d %2d ", 
-			y, b, boxes->row[y], boxes->factor[y] );
-		for( x = 0; x < 50; x++ ) {
-			int rx = x * (mask->xsize + 1) / 50;
-
-			if( rx >= boxes->start[b] && rx < boxes->end[b] )
-				printf( "#" );
-			else
-				printf( " " );
-		}
-		printf( " %3d .. %3d\n", boxes->start[b], boxes->end[b] );
+	if( boxes->n_hlines > 150 ) {
+		im_error( "im_aconv", "%s", _( "mask too complex" ) );
+		return( NULL );
 	}
-	printf( "area = %d\n", boxes->area );
-	printf( "rounding = %d\n", boxes->rounding );
 
 	return( boxes );
 }
@@ -768,9 +814,6 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-	/* Stride can be different for the vertical case, keep this here for
-	 * ease of direction change.
-	 */
 	istride = IM_REGION_LSKIP( ir ) / 
 		IM_IMAGE_SIZEOF_ELEMENT( in );
 	ostride = IM_REGION_LSKIP( or ) / 
@@ -789,23 +832,24 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	switch( boxes->in->BandFmt ) {
 	case IM_BANDFMT_UCHAR: 	
 
-	for( y = 0; y < r->height; y++ ) { 
+	for( x = 0; x < sz; x++ ) { 
 		int *p; 
 		PEL *q; 
 		int sum; 
 
-		p = (int *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
-		q = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y ); 
+		p = x * boxes->n_hlines + 
+			(int *) IM_REGION_ADDR( ir, r->left, r->top ); 
+		q = x + (PEL *) IM_REGION_ADDR( or, r->left, r->top ); 
 
-		for( x = 0; x < sz; x++ ) { 
+		for( y = 0; y < r->height; y++ ) { 
 			sum = 0; 
 			for( z = 0; z < n_vlines; z++ ) 
 				sum += boxes->factor[z] * p[seq->start[z]];
+			p += istride;
 			sum = (sum + boxes->rounding) / boxes->area; 
 			CLIP_UCHAR( sum ); 
 			*q = sum;
-			q += 1;
-			p += boxes->n_hlines;
+			q += ostride;
 		}
 	}
 
