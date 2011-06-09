@@ -73,7 +73,10 @@ $ vips im_abs diff.v abs.v
 $ vips im_max abs.v
 2.70833
 
-	- can we use rolling averages for the vertical pass?
+	- can we use rolling averages for the vertical pass? 
+	  we need to search for groups with the same band and adjacent row
+
+	- clustering could be much faster
 
 	- add more bandfmt
 
@@ -92,6 +95,7 @@ $ vips im_max abs.v
 #include <vips/intl.h>
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
@@ -112,16 +116,43 @@ $ vips im_max abs.v
  */
 #define MASK( M, X, Y ) ((M)->coeff[(X) + (Y) * (M)->xsize])
 
-/* Euclid's algorithm. Use this to common up mults.
+/* A horizontal line in the mask.
  */
-static int
-gcd( int a, int b )
-{
-	if( b == 0 )
-		return( abs( a ) );
-	else
-		return( gcd( b, a % b ) );
-}
+typedef struct _HLine {
+	/* Start is the left-most pixel in the line, end is one beyond the
+	 * right-most pixel. 
+	 */
+	int start;
+	int end;
+
+	/* The hlines have weights. weight 0 means this line is unused.
+	 */
+	int weight;
+} HLine;
+
+/* An element of a vline.
+ */
+typedef struct _VElement {
+	/* band is the index into hline[] we add, row is the row we take 
+	 * it from.
+	 */
+	int band;
+	int row;
+
+	/* Negative lobes are made with factor -1, we also common-up repeated
+	 * additions of the same line.
+	 */
+	int factor;
+} VElement;
+
+/* A vline.
+ */
+typedef struct _VLine {
+	int band;
+	int factor;
+	int start;
+	int end;
+} VLine;
 
 /* A set of boxes. 
  */
@@ -137,60 +168,61 @@ typedef struct _Boxes {
 	int area;
 	int rounding;
 
-	/* The horizontal lines we gather.
-	 */
-	int n_hlines;
-
-	/* Start is the left-most pixel in the line, end is one beyond the
-	 * right-most pixel. start[3]/end[3] writes to band 3 in the
+	/* The horizontal lines we gather. hline[3] writes to band 3 in the
 	 * intermediate image.
 	 */
-	int start[MAX_LINES];
-	int end[MAX_LINES];
+	int n_hline;
+	HLine hline[MAX_LINES];
 
-	/* The hlines have weights. weight 0 means this line is unused.
+	/* Scale and sum a set of hlines to make the final value. 
 	 */
-	int weight[MAX_LINES];
+	int n_velement;
+	VElement velement[MAX_LINES];
 
-	/* Scale and sum a set of hlines to make the final value. band[] is
-	 * the index into start/end we add, row[] is the row we take it from.
+	/* And group those velements as vlines.
 	 */
-	int n_vlines;
-	int band[MAX_LINES];
-	int row[MAX_LINES];
-
-	/* Each hline has a factor during gather, eg. -1 for -ve lobes.
-	 */
-	int factor[MAX_LINES];
+	int n_vline;
+	VLine vline[MAX_LINES];
 } Boxes;
+
+/* Euclid's algorithm. Use this to common up mults.
+ */
+static int
+gcd( int a, int b )
+{
+	if( b == 0 )
+		return( abs( a ) );
+	else
+		return( gcd( b, a % b ) );
+}
 
 static void
 boxes_start( Boxes *boxes, int x )
 {
-	boxes->start[boxes->n_hlines] = x;
-	boxes->weight[boxes->n_hlines] = 1;
+	boxes->hline[boxes->n_hline].start = x;
+	boxes->hline[boxes->n_hline].weight = 1;
 }
 
 static int
 boxes_end( Boxes *boxes, int x, int y, int factor )
 {
-	boxes->end[boxes->n_hlines] = x;
+	boxes->hline[boxes->n_hline].end = x;
 
-	boxes->row[boxes->n_vlines] = y;
-	boxes->band[boxes->n_vlines] = boxes->n_hlines;
-	boxes->factor[boxes->n_vlines] = factor;
+	boxes->velement[boxes->n_velement].row = y;
+	boxes->velement[boxes->n_velement].band = boxes->n_hline;
+	boxes->velement[boxes->n_velement].factor = factor;
 
-	if( boxes->n_hlines >= MAX_LINES - 1 ) {
+	if( boxes->n_hline >= MAX_LINES - 1 ) {
 		vips_error( "im_aconv", "%s", _( "mask too complex" ) );
 		return( -1 );
 	}
-	boxes->n_hlines += 1;
+	boxes->n_hline += 1;
 
-	if( boxes->n_vlines >= MAX_LINES - 1 ) {
+	if( boxes->n_velement >= MAX_LINES - 1 ) {
 		vips_error( "im_aconv", "%s", _( "mask too complex" ) );
 		return( -1 );
 	}
-	boxes->n_vlines += 1;
+	boxes->n_velement += 1;
 
 	return( 0 );
 }
@@ -200,10 +232,10 @@ boxes_end( Boxes *boxes, int x, int y, int factor )
 static int
 boxes_distance( Boxes *boxes, int a, int b )
 {
-	g_assert( boxes->weight[a] > 0 && boxes->weight[b] > 0 );
+	g_assert( boxes->hline[a].weight > 0 && boxes->hline[b].weight > 0 );
 
-	return( abs( boxes->start[a] - boxes->start[b] ) + 
-		abs( boxes->end[a] - boxes->end[b] ) ); 
+	return( abs( boxes->hline[a].start - boxes->hline[b].start ) + 
+		abs( boxes->hline[a].end - boxes->hline[b].end ) ); 
 }
 
 /* Merge two hlines. Line b is deleted, and any refs to b in vlines updated to
@@ -216,25 +248,27 @@ boxes_merge( Boxes *boxes, int a, int b )
 
 	/* Scale weights. 
 	 */
-	int fa = boxes->weight[a];
-	int fb = boxes->weight[b];
+	int fa = boxes->hline[a].weight;
+	int fb = boxes->hline[b].weight;
 	double w = (double) fb / (fa + fb);
 
 	/* New endpoints.
 	 */
-	boxes->start[a] += w * (boxes->start[b] - boxes->start[a]);
-	boxes->end[a] += w * (boxes->end[b] - boxes->end[a]);
-	boxes->weight[a] += boxes->weight[b];
+	boxes->hline[a].start += w * 
+		(boxes->hline[b].start - boxes->hline[a].start);
+	boxes->hline[a].end += w * 
+		(boxes->hline[b].end - boxes->hline[a].end);
+	boxes->hline[a].weight += boxes->hline[b].weight;
 
-	/* Update refs to b in vlines to refer to a instead.
+	/* Update velement refs to b to refer to a instead.
 	 */
-	for( i = 0; i < boxes->n_vlines; i++ )
-		if( boxes->band[i] == b )
-			boxes->band[i] = a;
+	for( i = 0; i < boxes->n_velement; i++ )
+		if( boxes->velement[i].band == b )
+			boxes->velement[i].band = a;
 
 	/* Mark b to be deleted.
 	 */
-	boxes->weight[b] = 0;
+	boxes->hline[b].weight = 0;
 }
 
 /* Find the closest pair of hlines, join them up if the distance is less than 
@@ -249,14 +283,14 @@ boxes_cluster( Boxes *boxes, int cluster )
 
 	best = 9999999;
 
-	for( i = 0; i < boxes->n_hlines; i++ ) {
-		if( boxes->weight[i] == 0 )
+	for( i = 0; i < boxes->n_hline; i++ ) {
+		if( boxes->hline[i].weight == 0 )
 			continue;
 
-		for( j = i + 1; j < boxes->n_hlines; j++ ) {
+		for( j = i + 1; j < boxes->n_hline; j++ ) {
 			int d;
 
-			if( boxes->weight[j] == 0 )
+			if( boxes->hline[j].weight == 0 )
 				continue;
 
 			d = boxes_distance( boxes, i, j ); 
@@ -285,10 +319,16 @@ boxes_renumber( Boxes *boxes )
 {
 	int i, j;
 
+	j = 0;
+	for( i = 0; i < boxes->n_hline; i++ ) 
+		if( boxes->hline[i].weight == 0 ) 
+			j++;
+	printf( "%d weight 0 hlines\n", j );
+
 	/* Loop for all zero-weight hlines.
 	 */
-	for( i = 0; i < boxes->n_hlines; ) {
-		if( boxes->weight[i] > 0 ) {
+	for( i = 0; i < boxes->n_hline; ) {
+		if( boxes->hline[i].weight > 0 ) {
 			i++;
 			continue;
 		}
@@ -296,17 +336,70 @@ boxes_renumber( Boxes *boxes )
 		/* We move hlines i + 1 down, so we need to adjust all
 		 * band[] refs to match.
 		 */
-		for( j = 0; j < boxes->n_vlines; j++ )
-			if( boxes->band[j] > i ) 
-				boxes->band[j] -= 1;
+		for( j = 0; j < boxes->n_velement; j++ )
+			if( boxes->velement[j].band > i ) 
+				boxes->velement[j].band -= 1;
 
-		for( j = i; j < boxes->n_hlines; j++ ) {
-			boxes->start[j] = boxes->start[j + 1];
-			boxes->end[j] = boxes->end[j + 1];
-			boxes->weight[j] = boxes->weight[j + 1];
-		}
+		memmove( boxes->hline + i, boxes->hline + i + 1, 
+			sizeof( HLine ) * (boxes->n_hline - i - 1) );
+		boxes->n_hline -= 1;
+	}
+}
 
-		boxes->n_hlines -= 1;
+/* Sort by band, then factor, then row.
+ */
+static int
+sortfn( const void *p1, const void *p2 )
+{
+	VElement *a = (VElement *) p1;
+	VElement *b = (VElement *) p2;
+
+	if( a->band != b->band )
+		return( a->band - b->band );
+
+	if( a->factor != b->factor )
+		return( a->factor - b->factor );
+
+	return( a->row - b->row );
+}
+
+static void
+boxes_vline( Boxes *boxes )
+{
+	int y, z;
+
+	/* Sort to get elements which could form a vline together.
+	 */
+	qsort( boxes->velement, boxes->n_velement, sizeof( VElement ), sortfn );
+
+	boxes->n_vline = 0;
+	for( y = 0; y < boxes->n_velement; ) {
+		int n = boxes->n_vline;
+
+		/* Start of a line.
+		 */
+		boxes->vline[n].band = boxes->velement[y].band;
+		boxes->vline[n].factor = boxes->velement[y].factor;
+		boxes->vline[n].start = boxes->velement[y].row;
+
+		/* Search for the end of this line.
+		 */
+		for( z = y + 1; z < boxes->n_velement; z++ ) 
+			if( boxes->velement[z].band != 
+					boxes->vline[n].band ||
+				boxes->velement[z].factor != 
+					boxes->vline[n].factor ||
+				boxes->velement[z].row != 
+					boxes->vline[n].start + z - y )
+				break;
+
+		/* So the line ends at the previously examined element. We
+		 * want 'end' to be one beyond that (non-inclusive).
+		 */
+		boxes->vline[n].end = boxes->velement[z - 1].row + 1;
+
+		boxes->n_vline += 1;
+		y = z;
 	}
 }
 
@@ -316,25 +409,38 @@ boxes_print( Boxes *boxes )
 {
 	int x, y;
 
-	printf( "lines:\n" );
-	printf( "  n   b   r  f  w\n" );
-	for( y = 0; y < boxes->n_vlines; y++ ) {
-		int b = boxes->band[y];
+	printf( "hlines:\n" );
+	printf( "   n   b   r  f   w\n" );
+	for( y = 0; y < boxes->n_velement; y++ ) {
+		int b = boxes->velement[y].band;
 
-		printf( "%3d %3d %3d %2d %2d ", 
+		printf( "%4d %3d %3d %2d %3d ", 
 			y, b, 
-			boxes->row[y], boxes->factor[y],
-			boxes->weight[b] );
-		for( x = 0; x < 50; x++ ) {
-			int rx = x * (boxes->mask->xsize + 1) / 50;
+			boxes->velement[y].row, 
+			boxes->velement[y].factor,
+			boxes->hline[b].weight );
+		for( x = 0; x < 45; x++ ) {
+			int rx = x * (boxes->mask->xsize + 1) / 45;
 
-			if( rx >= boxes->start[b] && rx < boxes->end[b] )
+			if( rx >= boxes->hline[b].start && 
+				rx < boxes->hline[b].end )
 				printf( "#" );
 			else
 				printf( " " );
 		}
-		printf( " %3d .. %3d\n", boxes->start[b], boxes->end[b] );
+		printf( " %3d .. %3d\n", 
+			boxes->hline[b].start, boxes->hline[b].end );
 	}
+
+	printf( "%d vlines:\n", boxes->n_vline );
+	printf( "   n  b  f      s      e\n" );
+	for( y = 0; y < boxes->n_vline; y++ ) 
+		printf( "%4d %2d %2d == %3d .. %3d\n", y,
+			boxes->vline[y].band, 
+			boxes->vline[y].factor, 
+			boxes->vline[y].start, 
+			boxes->vline[y].end );
+
 	printf( "area = %d\n", boxes->area );
 	printf( "rounding = %d\n", boxes->rounding );
 }
@@ -374,8 +480,9 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	boxes->n_layers = n_layers;
 	boxes->cluster = cluster;
 
-	boxes->n_hlines = 0;
-	boxes->n_vlines = 0;
+	boxes->n_hline = 0;
+	boxes->n_velement = 0;
+	boxes->n_vline = 0;
 
 	/* Find mask range. We must always include the zero axis in the mask.
 	 */
@@ -453,36 +560,41 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 		}
 	}
 
-	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", 
-		boxes->n_hlines );
+	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", boxes->n_hline );
+	boxes_print( boxes );
+
 	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", 
 		cluster ); 
 	while( boxes_cluster( boxes, cluster ) )
 		;
 	VIPS_DEBUG_MSG( "boxes_new: renumbering ...\n" );
 	boxes_renumber( boxes );
-	VIPS_DEBUG_MSG( "boxes_new: after renumbering, %d boxes remain\n", 
-		boxes->n_hlines );
+	VIPS_DEBUG_MSG( "boxes_new: after renumbering, %d hlines remain\n", 
+		boxes->n_hline );
+
+	VIPS_DEBUG_MSG( "boxes_new: forming vlines ...\n" );
+	boxes_vline( boxes );
+	VIPS_DEBUG_MSG( "boxes_new: found %d vlines\n", boxes->n_vline );
 
 	/* Find the area of the lines.
 	 */
 	boxes->area = 0;
-	for( y = 0; y < boxes->n_vlines; y++ ) {
-		int x = boxes->band[y];
+	for( y = 0; y < boxes->n_velement; y++ ) {
+		int x = boxes->velement[y].band;
 
-		boxes->area += boxes->factor[y] * 
-			(boxes->end[x] - boxes->start[x]);
+		boxes->area += boxes->velement[y].factor * 
+			(boxes->hline[x].end - boxes->hline[x].start);
 	}
 
 	/* Strength reduction: if all lines are divisible by n, we can move
 	 * that n out into the ->area factor. The aim is to produce as many
 	 * factor 1 lines as we can and to reduce the chance of overflow.
 	 */
-	x = boxes->factor[0];
-	for( y = 1; y < boxes->n_vlines; y++ ) 
-		x = gcd( x, boxes->factor[y] );
-	for( y = 0; y < boxes->n_vlines; y++ ) 
-		boxes->factor[y] /= x;
+	x = boxes->velement[0].factor;
+	for( y = 1; y < boxes->n_velement; y++ ) 
+		x = gcd( x, boxes->velement[y].factor );
+	for( y = 0; y < boxes->n_velement; y++ ) 
+		boxes->velement[y].factor /= x;
 	boxes->area *= x;
 
 	/* Find the area of the original mask.
@@ -501,7 +613,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	/* With 512x512 tiles, each hline requires 3mb of intermediate per
 	 * thread ... 300 lines is about a gb per thread, ouch.
 	 */
-	if( boxes->n_hlines > 150 ) {
+	if( boxes->n_hline > 150 ) {
 		im_error( "im_aconv", "%s", _( "mask too complex" ) );
 		return( NULL );
 	}
@@ -560,18 +672,17 @@ aconv_start( IMAGE *out, void *a, void *b )
 	seq->boxes = boxes;
 	seq->ir = im_region_create( in );
 
-	/* There will always be more vlines than hlines, so make the arrays
-	 * vlines big and we'll have room for both.
+	/* n_velement should be the largest possible dimension.
 	 */
-	g_assert( boxes->n_vlines >= boxes->n_hlines );
+	g_assert( boxes->n_velement >= boxes->n_hline );
 
-	seq->start = IM_ARRAY( out, boxes->n_vlines, int );
-	seq->end = IM_ARRAY( out, boxes->n_vlines, int );
+	seq->start = IM_ARRAY( out, boxes->n_velement, int );
+	seq->end = IM_ARRAY( out, boxes->n_velement, int );
 
 	if( vips_band_format_isint( out->BandFmt ) )
-		seq->sum = IM_ARRAY( out, boxes->n_vlines, int );
+		seq->sum = IM_ARRAY( out, boxes->n_velement, int );
 	else
-		seq->sum = IM_ARRAY( out, boxes->n_vlines, double );
+		seq->sum = IM_ARRAY( out, boxes->n_velement, double );
 	seq->last_stride = -1;
 
 	if( !seq->ir || !seq->start || !seq->end || !seq->sum ) {
@@ -630,7 +741,7 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 	Boxes *boxes = (Boxes *) b;
 
 	REGION *ir = seq->ir;
-	const int n_hlines = boxes->n_hlines;
+	const int n_hline = boxes->n_hline;
 	DOUBLEMASK *mask = boxes->mask;
 	Rect *r = &or->valid;
 
@@ -662,9 +773,9 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 	if( seq->last_stride != istride ) {
 		seq->last_stride = istride;
 
-		for( z = 0; z < n_hlines; z++ ) {
-			seq->start[z] = boxes->start[z] * istride;
-			seq->end[z] = boxes->end[z] * istride;
+		for( z = 0; z < n_hline; z++ ) {
+			seq->start[z] = boxes->hline[z].start * istride;
+			seq->end[z] = boxes->hline[z].end * istride;
 		}
 	}
 
@@ -679,19 +790,20 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 		int *q; 
 
 		p = i + (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
-		q = i * n_hlines + 
+		q = i * n_hline + 
 			(int *) IM_REGION_ADDR( or, r->left, r->top + y ); 
 
-		for( z = 0; z < n_hlines; z++ ) { 
+		for( z = 0; z < n_hline; z++ ) { 
 			seq_sum[z] = 0; 
-			for( x = boxes->start[z]; x < boxes->end[z]; x++ ) 
+			for( x = boxes->hline[z].start; 
+				x < boxes->hline[z].end; x++ ) 
 				seq_sum[z] += p[x * istride]; 
 			q[z] = seq_sum[z]; 
 		} 
 		q += ostride; 
 
 		for( x = 1; x < r->width; x++ ) {  
-			for( z = 0; z < n_hlines; z++ ) { 
+			for( z = 0; z < n_hline; z++ ) { 
 				seq_sum[z] += p[seq->end[z]]; 
 				seq_sum[z] -= p[seq->start[z]]; 
 				q[z] = seq_sum[z]; 
@@ -766,7 +878,7 @@ aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
 		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
-	out->Bands *= boxes->n_hlines;
+	out->Bands *= boxes->n_hline;
 	out->BandFmt = vips_band_format_isfloat( in->BandFmt ) ?
 		VIPS_FORMAT_DOUBLE : VIPS_FORMAT_INT;
 
@@ -792,7 +904,7 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	Boxes *boxes = (Boxes *) b;
 
 	REGION *ir = seq->ir;
-	const int n_vlines = boxes->n_vlines;
+	const int n_velement = boxes->n_velement;
 	DOUBLEMASK *mask = boxes->mask;
 	Rect *r = &or->valid;
 
@@ -824,9 +936,9 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	if( seq->last_stride != istride ) {
 		seq->last_stride = istride;
 
-		for( z = 0; z < n_vlines; z++ ) 
-			seq->start[z] = boxes->band[z] + 
-				boxes->row[z] * istride;
+		for( z = 0; z < n_velement; z++ ) 
+			seq->start[z] = boxes->velement[z].band + 
+				boxes->velement[z].row * istride;
 	}
 
 	switch( boxes->in->BandFmt ) {
@@ -837,14 +949,15 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 		PEL *q; 
 		int sum; 
 
-		p = x * boxes->n_hlines + 
+		p = x * boxes->n_hline + 
 			(int *) IM_REGION_ADDR( ir, r->left, r->top ); 
 		q = x + (PEL *) IM_REGION_ADDR( or, r->left, r->top ); 
 
 		for( y = 0; y < r->height; y++ ) { 
 			sum = 0; 
-			for( z = 0; z < n_vlines; z++ ) 
-				sum += boxes->factor[z] * p[seq->start[z]];
+			for( z = 0; z < n_velement; z++ ) 
+				sum += boxes->velement[z].factor * 
+					p[seq->start[z]];
 			p += istride;
 			sum = (sum + boxes->rounding) / boxes->area; 
 			CLIP_UCHAR( sum ); 
