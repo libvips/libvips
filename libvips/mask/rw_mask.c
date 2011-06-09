@@ -158,7 +158,7 @@
 
 /* Size of line buffer for reading.
  */
-#define IM_MAX_LINE (4096)
+#define MAX_LINE (32768)
 
 /**
  * im_free_imask:
@@ -379,7 +379,7 @@ im_create_dmaskv( const char *filename, int xsize, int ysize, ... )
 static int
 get_line( FILE *fp, char *buf )
 {
-	if( !fgets( buf, IM_MAX_LINE, fp ) ) {
+	if( !fgets( buf, MAX_LINE, fp ) ) {
 		im_error( "read_mask", "%s", _( "unexpected EOF" ) );
 		return( -1 );
 	}
@@ -392,7 +392,7 @@ get_line( FILE *fp, char *buf )
 static int
 read_header( FILE *fp, int *xs, int *ys, double *scale, double *offset )
 {
-	char buf[IM_MAX_LINE];
+	char buf[MAX_LINE];
 	char *p, *q;
 	double v[4];
 	int i;
@@ -480,7 +480,7 @@ im_read_dmask( const char *filename )
 	int xs, ys;
 	DOUBLEMASK *out;
 	int x, y, i, size;
-	char buf[IM_MAX_LINE];
+	char buf[MAX_LINE];
 
 	if( !(fp = im__file_open_read( filename, NULL, TRUE )) ) 
 		return( NULL );
