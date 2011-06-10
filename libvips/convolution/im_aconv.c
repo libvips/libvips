@@ -103,6 +103,11 @@ $ vips im_max abs.v
  */
 #define MAX_LINES (10000)
 
+/* The number of edges we consider at once in clustering. Higher values are
+ * faster, but risk pushing up average error in the result.
+ */
+#define MAX_EDGES (10)
+
 /* Get an (x,y) value from a mask.
  */
 #define MASK( M, X, Y ) ((M)->coeff[(X) + (Y) * (M)->xsize])
@@ -120,6 +125,19 @@ typedef struct _HLine {
 	 */
 	int weight;
 } HLine;
+
+/* For clustering. A pair of hlines and their distance. An edge in a graph.
+ */
+typedef struct _Edge {
+	/* The index into boxes->hline[].
+	 */
+	int a;
+	int b;
+
+	/* The distance between them, see boxes_distance().
+	 */
+	int d;
+} Edge;
 
 /* An element of a vline.
  */
@@ -164,6 +182,10 @@ typedef struct _Boxes {
 	 */
 	int n_hline;
 	HLine hline[MAX_LINES];
+
+	/* During clustering, the top few edges we are considering.
+	 */
+	Edge edge[MAX_EDGES];
 
 	/* Scale and sum a set of hlines to make the final value. 
 	 */
@@ -262,44 +284,93 @@ boxes_merge( Boxes *boxes, int a, int b )
 	boxes->hline[b].weight = 0;
 }
 
-/* Find the closest pair of hlines, join them up if the distance is less than 
- * a threshold. Return non-zero if we made a change.
+static int
+edge_sortfn( const void *p1, const void *p2 )
+{
+	Edge *a = (Edge *) p1;
+	Edge *b = (Edge *) p2;
+
+	return( a->d - b->d );
+}
+
+/* Cluster in batches. Return non-zero if we merged some lines.
+ *
+ * This is not as accurate as rescanning the whole space on every merge, but
+ * it's far faster.
  */
 static int
-boxes_cluster( Boxes *boxes, int cluster )
+boxes_cluster2( Boxes *boxes, int cluster )
 {
-	int i, j;
-	int best, a, b;
-	int acted;
+	int i, j, k;
+	int worst;
+	int worst_i;
+	int merged;
 
-	best = 9999999;
+	for( i = 0; i < MAX_EDGES; i++ ) {
+		boxes->edge[i].a = -1;
+		boxes->edge[i].b = -1;
+		boxes->edge[i].d = 99999;
+	}
+	worst_i = 0;
+	worst = boxes->edge[worst_i].d;
 
 	for( i = 0; i < boxes->n_hline; i++ ) {
 		if( boxes->hline[i].weight == 0 )
 			continue;
 
 		for( j = i + 1; j < boxes->n_hline; j++ ) {
-			int d;
+			int distance;
 
 			if( boxes->hline[j].weight == 0 )
 				continue;
 
-			d = boxes_distance( boxes, i, j ); 
-			if( d < best ) {
-				best = d;
-				a = i;
-				b = j;
+			distance = boxes_distance( boxes, i, j ); 
+			if( distance < worst ) {
+				boxes->edge[worst_i].a = i;
+				boxes->edge[worst_i].b = j;
+				boxes->edge[worst_i].d = distance;
+
+				worst_i = 0;
+				worst = boxes->edge[worst_i].d;
+				for( k = 0; k < MAX_EDGES; k++ )
+					if( boxes->edge[k].d > worst ) {
+						worst = boxes->edge[k].d;
+						worst_i = k;
+					}
 			}
 		}
 	}
 
-	acted = 0;
-	if( best < cluster ) {
-		boxes_merge( boxes, a, b );
-		acted = 1;
+	/* Sort to get closest first.
+	 */
+	qsort( boxes->edge, MAX_EDGES, sizeof( Edge ), edge_sortfn );
+
+	/*
+	printf( "edges:\n" );
+	printf( "  n   a   b  d:\n" );
+	for( i = 0; i < MAX_EDGES; i++ )
+		printf( "%2i) %3d %3d %3d\n", i, 
+			boxes->edge[i].a, boxes->edge[i].b, boxes->edge[i].d );
+	 */
+
+	/* Merge from the top down.
+	 */
+	merged = 0;
+	for( k = 0; k < MAX_EDGES; k++ ) {
+		Edge *edge = &boxes->edge[k];
+
+		if( edge->d > cluster )
+			break;
+		if( boxes->hline[edge->a].weight == 0 )
+			continue;
+		if( boxes->hline[edge->b].weight == 0 )
+			continue;
+
+		boxes_merge( boxes, edge->a, edge->b );
+		merged = 1;
 	}
 
-	return( acted );
+	return( merged );
 }
 
 /* Renumber after clustering. We will have removed a lot of hlines ... shuffle
@@ -334,7 +405,7 @@ boxes_renumber( Boxes *boxes )
 /* Sort by band, then factor, then row.
  */
 static int
-sortfn( const void *p1, const void *p2 )
+velement_sortfn( const void *p1, const void *p2 )
 {
 	VElement *a = (VElement *) p1;
 	VElement *b = (VElement *) p2;
@@ -355,7 +426,8 @@ boxes_vline( Boxes *boxes )
 
 	/* Sort to get elements which could form a vline together.
 	 */
-	qsort( boxes->velement, boxes->n_velement, sizeof( VElement ), sortfn );
+	qsort( boxes->velement, boxes->n_velement, sizeof( VElement ), 
+		velement_sortfn );
 
 	boxes->n_vline = 0;
 	for( y = 0; y < boxes->n_velement; ) {
@@ -552,7 +624,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 
 	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", 
 		cluster ); 
-	while( boxes_cluster( boxes, cluster ) )
+	while( boxes_cluster2( boxes, cluster ) )
 		;
 	VIPS_DEBUG_MSG( "boxes_new: renumbering ...\n" );
 	boxes_renumber( boxes );
