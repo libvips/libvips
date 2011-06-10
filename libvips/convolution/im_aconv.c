@@ -67,8 +67,6 @@ $ vips im_abs diff.v abs.v
 $ vips im_max abs.v
 2.70833
 
-	- clustering could be much faster
-
 	- add more bandfmt
 
   	- are we handling mask offset correctly?
@@ -106,7 +104,7 @@ $ vips im_max abs.v
 /* The number of edges we consider at once in clustering. Higher values are
  * faster, but risk pushing up average error in the result.
  */
-#define MAX_EDGES (10)
+#define MAX_EDGES (1000)
 
 /* Get an (x,y) value from a mask.
  */
@@ -361,13 +359,27 @@ boxes_cluster2( Boxes *boxes, int cluster )
 
 		if( edge->d > cluster )
 			break;
-		if( boxes->hline[edge->a].weight == 0 )
-			continue;
-		if( boxes->hline[edge->b].weight == 0 )
+
+		/* Has been removed, see loop below.
+		 */
+		if( edge->a == -1 )
 			continue;
 
 		boxes_merge( boxes, edge->a, edge->b );
 		merged = 1;
+
+		/* Nodes a and b have vanished or been moved. Remove any edges
+		 * which refer to them from the edge list,
+		 */
+		for( i = k; i < MAX_EDGES; i++ ) {
+			Edge *edgei = &boxes->edge[i];
+
+			if( edgei->a == edge->a ||
+				edgei->b == edge->a ||
+				edgei->a == edge->b ||
+				edgei->b == edge->b )
+				edgei->a = -1;
+		}
 	}
 
 	return( merged );
