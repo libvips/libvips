@@ -1156,13 +1156,9 @@ im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	IMAGE *t[2];
 	Boxes *boxes;
 
-	printf( "optimising boxes ...\n" );
-
 	if( !(boxes = boxes_new( in, out, mask, n_layers, cluster )) ||
 		im_open_local_array( out, t, 2, "im_aconv", "p" ) )
 		return( -1 );
-
-	printf( "... done\n" );
 
 	/*
 	 */
