@@ -238,6 +238,157 @@ boxes_end( Boxes *boxes, int x, int y, int factor )
 	return( 0 );
 }
 
+#ifdef DEBUG
+static void
+boxes_hprint( Boxes *boxes )
+{
+	int x, y;
+
+	printf( "hlines:\n" );
+	printf( "   n   b   r  f   w\n" );
+	for( y = 0; y < boxes->n_velement; y++ ) {
+		int b = boxes->velement[y].band;
+
+		printf( "%4d %3d %3d %2d %3d ", 
+			y, b, 
+			boxes->velement[y].row, 
+			boxes->velement[y].factor,
+			boxes->hline[b].weight );
+		for( x = 0; x < 45; x++ ) {
+			int rx = x * (boxes->mask->xsize + 1) / 45;
+
+			if( rx >= boxes->hline[b].start && 
+				rx < boxes->hline[b].end )
+				printf( "#" );
+			else
+				printf( " " );
+		}
+		printf( " %3d .. %3d\n", 
+			boxes->hline[b].start, boxes->hline[b].end );
+	}
+}
+
+static void
+boxes_vprint( Boxes *boxes )
+{
+	int y;
+
+	printf( "%d vlines:\n", boxes->n_vline );
+	printf( "   n  b  f      s      e\n" );
+	for( y = 0; y < boxes->n_vline; y++ ) 
+		printf( "%4d %2d %2d == %3d .. %3d\n", y,
+			boxes->vline[y].band, 
+			boxes->vline[y].factor, 
+			boxes->vline[y].start, 
+			boxes->vline[y].end );
+
+	printf( "area = %d\n", boxes->area );
+	printf( "rounding = %d\n", boxes->rounding );
+}
+#endif /*DEBUG*/
+
+/* Break the mask into a set of lines.
+ */
+static int
+boxes_break( Boxes *boxes )
+{
+	DOUBLEMASK *mask = boxes->mask;
+	const int size = mask->xsize * mask->ysize;
+
+	double max;
+	double min;
+	double depth;
+	double sum;
+	int layers_above;
+	int layers_below;
+	int z, n, x, y;
+
+	/* Find mask range. We must always include the zero axis in the mask.
+	 */
+	max = 0;
+	min = 0;
+	for( n = 0; n < size; n++ ) {
+		max = IM_MAX( max, mask->coeff[n] );
+		min = IM_MIN( min, mask->coeff[n] );
+	}
+
+	VIPS_DEBUG_MSG( "boxes_new: min = %g, max = %g\n", min, max );
+
+	/* The zero axis must fall on a layer boundary. Estimate the
+	 * depth, find n-lines-above-zero, get exact depth, then calculate a
+	 * fixed n-lines which includes any negative parts.
+	 */
+	depth = (max - min) / boxes->n_layers;
+	layers_above = ceil( max / depth );
+	depth = max / layers_above;
+	layers_below = floor( min / depth );
+
+	boxes->n_layers = layers_above - layers_below;
+
+	VIPS_DEBUG_MSG( "boxes_new: depth = %g, n_layers = %d\n", 
+		depth, boxes->n_layers );
+
+	/* For each layer, generate a set of lines which are inside the
+	 * perimeter. Work down from the top.
+	 */
+	for( z = 0; z < boxes->n_layers; z++ ) {
+		/* How deep we are into the mask, as a double we can test
+		 * against. Add half the layer depth so we can easily find >50%
+		 * mask elements.
+		 */
+		double z_ph = max - (1 + z) * depth + depth / 2;
+
+		/* Odd, but we must avoid rounding errors that make us miss 0
+		 * in the line above.
+		 */
+		int z_positive = z < layers_above;
+
+		for( y = 0; y < mask->ysize; y++ ) {
+			int inside;
+
+			/* Start outside the perimeter.
+			 */
+			inside = 0;
+
+			for( x = 0; x < mask->xsize; x++ ) {
+				double coeff = MASK( mask, x, y );
+
+				/* The vertical line from mask[x, y] to 0 is 
+				 * inside. Is our current square (x, y) part 
+				 * of that line?
+				 */
+				if( (z_positive && coeff >= z_ph) ||
+					(!z_positive && coeff <= z_ph) ) {
+					if( !inside ) {
+						boxes_start( boxes, x );
+						inside = 1;
+					}
+				}
+				else {
+					if( inside ) {
+						if( boxes_end( boxes, x, y,
+							z_positive ? 1 : -1 ) )
+							return( -1 );
+						inside = 0;
+					}
+				}
+			}
+
+			if( inside && 
+				boxes_end( boxes, mask->xsize, y, 
+					z_positive ? 1 : -1 ) )
+				return( -1 );
+		}
+	}
+
+#ifdef DEBUG
+	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", boxes->n_hline );
+	boxes_hprint( boxes );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
 /* The 'distance' between a pair of hlines.
  */
 static int
@@ -393,6 +544,8 @@ boxes_renumber( Boxes *boxes )
 {
 	int i, j;
 
+	VIPS_DEBUG_MSG( "boxes_renumber: renumbering ...\n" );
+
 	/* Loop for all zero-weight hlines.
 	 */
 	for( i = 0; i < boxes->n_hline; ) {
@@ -412,6 +565,9 @@ boxes_renumber( Boxes *boxes )
 			sizeof( HLine ) * (boxes->n_hline - i - 1) );
 		boxes->n_hline -= 1;
 	}
+
+	VIPS_DEBUG_MSG( "boxes_renumber: ... %d hlines remain\n", 
+		boxes->n_hline );
 }
 
 /* Sort by band, then factor, then row.
@@ -436,10 +592,38 @@ boxes_vline( Boxes *boxes )
 {
 	int y, z;
 
+	VIPS_DEBUG_MSG( "boxes_vline: forming vlines ...\n" );
+
 	/* Sort to get elements which could form a vline together.
 	 */
 	qsort( boxes->velement, boxes->n_velement, sizeof( VElement ), 
 		velement_sortfn );
+
+#ifdef DEBUG
+	boxes_hprint( boxes );
+#endif /*DEBUG*/
+
+	/* If two lines have the same row and band, we can join them and knock
+	 * up the factor instead.
+	 */
+	for( y = 0; y < boxes->n_velement; y++ ) {
+		for( z = y + 1; z < boxes->n_velement; z++ )
+			if( boxes->velement[z].band != 
+				boxes->velement[y].band ||
+				boxes->velement[z].row != 
+					boxes->velement[y].row )
+				break;
+
+		boxes->velement[y].factor = z - y;
+		memmove( boxes->velement + y + 1, boxes->velement + z,
+			sizeof( VElement ) * (boxes->n_velement - z) );
+		boxes->n_velement -= z - y - 1;
+	}
+
+#ifdef DEBUG
+	printf( "after commoning up, %d velement remain\n", boxes->n_velement );
+	boxes_hprint( boxes );
+#endif /*DEBUG*/
 
 	boxes->n_vline = 0;
 	for( y = 0; y < boxes->n_velement; ) {
@@ -470,50 +654,9 @@ boxes_vline( Boxes *boxes )
 		boxes->n_vline += 1;
 		y = z;
 	}
+
+	VIPS_DEBUG_MSG( "boxes_vline: found %d vlines\n", boxes->n_vline );
 }
-
-#ifdef DEBUG
-static void
-boxes_print( Boxes *boxes )
-{
-	int x, y;
-
-	printf( "hlines:\n" );
-	printf( "   n   b   r  f   w\n" );
-	for( y = 0; y < boxes->n_velement; y++ ) {
-		int b = boxes->velement[y].band;
-
-		printf( "%4d %3d %3d %2d %3d ", 
-			y, b, 
-			boxes->velement[y].row, 
-			boxes->velement[y].factor,
-			boxes->hline[b].weight );
-		for( x = 0; x < 45; x++ ) {
-			int rx = x * (boxes->mask->xsize + 1) / 45;
-
-			if( rx >= boxes->hline[b].start && 
-				rx < boxes->hline[b].end )
-				printf( "#" );
-			else
-				printf( " " );
-		}
-		printf( " %3d .. %3d\n", 
-			boxes->hline[b].start, boxes->hline[b].end );
-	}
-
-	printf( "%d vlines:\n", boxes->n_vline );
-	printf( "   n  b  f      s      e\n" );
-	for( y = 0; y < boxes->n_vline; y++ ) 
-		printf( "%4d %2d %2d == %3d .. %3d\n", y,
-			boxes->vline[y].band, 
-			boxes->vline[y].factor, 
-			boxes->vline[y].start, 
-			boxes->vline[y].end );
-
-	printf( "area = %d\n", boxes->area );
-	printf( "rounding = %d\n", boxes->rounding );
-}
-#endif /*DEBUG*/
 
 /* Break a mask into boxes.
  */
@@ -523,13 +666,8 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	const int size = mask->xsize * mask->ysize;
 
 	Boxes *boxes;
-	double max;
-	double min;
-	double depth;
 	double sum;
-	int layers_above;
-	int layers_below;
-	int z, n, x, y;
+	int x, y, z;
 
 	/* Check parameters.
 	 */
@@ -553,105 +691,30 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	boxes->n_velement = 0;
 	boxes->n_vline = 0;
 
-	/* Find mask range. We must always include the zero axis in the mask.
+	/* Break into a set of hlines.
 	 */
-	max = 0;
-	min = 0;
-	for( n = 0; n < size; n++ ) {
-		max = IM_MAX( max, mask->coeff[n] );
-		min = IM_MIN( min, mask->coeff[n] );
-	}
+	if( boxes_break( boxes ) )
+		return( NULL );
 
-	VIPS_DEBUG_MSG( "boxes_new: min = %g, max = %g\n", min, max );
-
-	/* The zero axis must fall on a layer boundary. Estimate the
-	 * depth, find n-lines-above-zero, get exact depth, then calculate a
-	 * fixed n-lines which includes any negative parts.
+	/* Cluster to find groups of lines.
 	 */
-	depth = (max - min) / n_layers;
-	layers_above = ceil( max / depth );
-	depth = max / layers_above;
-	layers_below = floor( min / depth );
-	n_layers = layers_above - layers_below;
-
-	VIPS_DEBUG_MSG( "boxes_new: depth = %g, n_layers = %d\n", 
-		depth, n_layers );
-
-	/* For each layer, generate a set of lines which are inside the
-	 * perimeter. Work down from the top.
-	 */
-	for( z = 0; z < n_layers; z++ ) {
-		/* How deep we are into the mask, as a double we can test
-		 * against. Add half the layer depth so we can easily find >50%
-		 * mask elements.
-		 */
-		double z_ph = max - (1 + z) * depth + depth / 2;
-
-		/* Odd, but we must avoid rounding errors that make us miss 0
-		 * in the line above.
-		 */
-		int z_positive = z < layers_above;
-
-		for( y = 0; y < mask->ysize; y++ ) {
-			int inside;
-
-			/* Start outside the perimeter.
-			 */
-			inside = 0;
-
-			for( x = 0; x < mask->xsize; x++ ) {
-				double coeff = MASK( mask, x, y );
-
-				/* The vertical line from mask[x, y] to 0 is 
-				 * inside. Is our current square (x, y) part 
-				 * of that line?
-				 */
-				if( (z_positive && coeff >= z_ph) ||
-					(!z_positive && coeff <= z_ph) ) {
-					if( !inside ) {
-						boxes_start( boxes, x );
-						inside = 1;
-					}
-				}
-				else {
-					if( inside ) {
-						boxes_end( boxes, x, y,
-							z_positive ? 1 : -1 );
-						inside = 0;
-					}
-				}
-			}
-
-			if( inside && 
-				boxes_end( boxes, mask->xsize, y, 
-					z_positive ? 1 : -1 ) )
-				return( NULL );
-		}
-	}
-
-#ifdef DEBUG
-	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", boxes->n_hline );
-	boxes_print( boxes );
-#endif /*DEBUG*/
-
-	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", 
-		cluster ); 
+	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", cluster );
 	while( boxes_cluster2( boxes, cluster ) )
 		;
-	VIPS_DEBUG_MSG( "boxes_new: renumbering ...\n" );
-	boxes_renumber( boxes );
-	VIPS_DEBUG_MSG( "boxes_new: after renumbering, %d hlines remain\n", 
-		boxes->n_hline );
 
-	VIPS_DEBUG_MSG( "boxes_new: forming vlines ...\n" );
+	/* Renumber to remove holes created by clustering.
+	 */
+	boxes_renumber( boxes );
+
+	/* Find a set of vlines for the remaining hlines.
+	 */
 	boxes_vline( boxes );
-	VIPS_DEBUG_MSG( "boxes_new: found %d vlines\n", boxes->n_vline );
 
 	/* Find the area of the lines.
 	 */
 	boxes->area = 0;
 	for( y = 0; y < boxes->n_velement; y++ ) {
-		int x = boxes->velement[y].band;
+		x = boxes->velement[y].band;
 
 		boxes->area += boxes->velement[y].factor * 
 			(boxes->hline[x].end - boxes->hline[x].start);
@@ -678,7 +741,8 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	boxes->rounding = (boxes->area + 1) / 2 + mask->offset * boxes->area;
 
 #ifdef DEBUG
-	boxes_print( boxes );
+	boxes_hprint( boxes );
+	boxes_vprint( boxes );
 #endif /*DEBUG*/
 
 	/* With 512x512 tiles, each hline requires 3mb of intermediate per
