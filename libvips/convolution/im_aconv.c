@@ -58,27 +58,23 @@ user	9m34.700s
 sys	0m1.500s
 
 $ time vips im_aconv img_0075.jpg x.v g2d201.con 10 10
-real	0m4.877s
-user	0m7.490s
-sys	0m0.220s
+real	0m3.151s
+user	0m5.640s
+sys	0m0.100s
 
 $ vips im_subtract x.v x2.v diff.v
 $ vips im_abs diff.v abs.v
 $ vips im_max abs.v
 2.70833
 
-	- clustering could be much faster
-
-	- add more bandfmt
-
   	- are we handling mask offset correctly?
 
  */
 
 /*
+ */
 #define DEBUG
 #define VIPS_DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -303,7 +299,6 @@ boxes_break( Boxes *boxes )
 	double max;
 	double min;
 	double depth;
-	double sum;
 	int layers_above;
 	int layers_below;
 	int z, n, x, y;
@@ -764,8 +759,8 @@ typedef struct {
 
 	int last_stride;	/* Avoid recalcing offsets, if we can */
 
-	/* The rolling sums. int for integer types, 
-	 * double for floating point types.
+	/* The rolling sums. int for integer types, double for floating point 
+	 * types.
 	 */
 	void *sum;		
 } AConvSequence;

@@ -10,4 +10,9 @@
 #define VIPS_MINOR_VERSION	(@VIPS_MINOR_VERSION@)
 #define VIPS_MICRO_VERSION	(@VIPS_MICRO_VERSION@)
 
+/* Not really anything to do with versions, but this is a handy place to put
+ * it.
+ */
+#define VIPS_EXEEXT "@VIPS_EXEEXT@"
+
 #endif /*VIPS_VERSION_H*/
