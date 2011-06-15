@@ -66,6 +66,7 @@
 - added im_aconv(), approximate convolution
 - bumped smalltile to 512x512 for testing
 - added VipsPool, got rid of floating refs again, argh
+- VIPS_EXEEXT is now part of the exported API
 
 30/11/10 started 7.24.0
 - bump for new stable

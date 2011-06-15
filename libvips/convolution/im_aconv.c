@@ -58,25 +58,23 @@ user	9m34.700s
 sys	0m1.500s
 
 $ time vips im_aconv img_0075.jpg x.v g2d201.con 10 10
-real	0m4.877s
-user	0m7.490s
-sys	0m0.220s
+real	0m3.151s
+user	0m5.640s
+sys	0m0.100s
 
 $ vips im_subtract x.v x2.v diff.v
 $ vips im_abs diff.v abs.v
 $ vips im_max abs.v
 2.70833
 
-	- add more bandfmt
-
   	- are we handling mask offset correctly?
 
  */
 
 /*
+ */
 #define DEBUG
 #define VIPS_DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -176,10 +174,12 @@ typedef struct _Boxes {
 	int rounding;
 
 	/* The horizontal lines we gather. hline[3] writes to band 3 in the
-	 * intermediate image.
+	 * intermediate image. max_line is the length of the longest hline:
+	 * over 256 and we need to use an int intermediate for 8-bit images.
 	 */
 	int n_hline;
 	HLine hline[MAX_LINES];
+	int max_line;
 
 	/* During clustering, the top few edges we are considering.
 	 */
@@ -284,6 +284,7 @@ boxes_vprint( Boxes *boxes )
 
 	printf( "area = %d\n", boxes->area );
 	printf( "rounding = %d\n", boxes->rounding );
+	printf( "max_line = %d\n", boxes->max_line );
 }
 #endif /*DEBUG*/
 
@@ -298,7 +299,6 @@ boxes_break( Boxes *boxes )
 	double max;
 	double min;
 	double depth;
-	double sum;
 	int layers_above;
 	int layers_below;
 	int z, n, x, y;
@@ -710,14 +710,17 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 	 */
 	boxes_vline( boxes );
 
-	/* Find the area of the lines.
+	/* Find the area of the lines and the length of the longest hline.
 	 */
 	boxes->area = 0;
+	boxes->max_line = 0;
 	for( y = 0; y < boxes->n_velement; y++ ) {
 		x = boxes->velement[y].band;
+		z = boxes->hline[x].end - boxes->hline[x].start;
 
-		boxes->area += boxes->velement[y].factor * 
-			(boxes->hline[x].end - boxes->hline[x].start);
+		boxes->area += boxes->velement[y].factor * z;
+		if( z > boxes->max_line )
+			boxes->max_line = z;
 	}
 
 	/* Strength reduction: if all lines are divisible by n, we can move
@@ -770,8 +773,8 @@ typedef struct {
 
 	int last_stride;	/* Avoid recalcing offsets, if we can */
 
-	/* The rolling sums. int for integer types, 
-	 * double for floating point types.
+	/* The rolling sums. int for integer types, double for floating point 
+	 * types.
 	 */
 	void *sum;		
 } AConvSequence;
@@ -828,43 +831,42 @@ aconv_start( IMAGE *out, void *a, void *b )
 	return( seq );
 }
 
-#define CLIP_UCHAR( V ) \
-G_STMT_START { \
-	if( (V) < 0 ) \
-		(V) = 0; \
-	else if( (V) > UCHAR_MAX ) \
-		(V) = UCHAR_MAX; \
-} G_STMT_END
-
-#define CLIP_CHAR( V ) \
-G_STMT_START { \
-	if( (V) < SCHAR_MIN ) \
-		(V) = SCHAR_MIN; \
-	else if( (V) > SCHAR_MAX ) \
-		(V) = SCHAR_MAX; \
-} G_STMT_END
-
-#define CLIP_USHORT( V ) \
-G_STMT_START { \
-	if( (V) < 0 ) \
-		(V) = 0; \
-	else if( (V) > USHRT_MAX ) \
-		(V) = USHRT_MAX; \
-} G_STMT_END
-
-#define CLIP_SHORT( V ) \
-G_STMT_START { \
-	if( (V) < SHRT_MIN ) \
-		(V) = SHRT_MIN; \
-	else if( (V) > SHRT_MAX ) \
-		(V) = SHRT_MAX; \
-} G_STMT_END
-
-#define CLIP_NONE( V ) {}
-
 /* The h and v loops are very similar, but also annoyingly different. Keep
  * them separate for easy debugging.
  */
+
+#define HCONV( IN, OUT ) \
+G_STMT_START { \
+	for( i = 0; i < bands; i++ ) { \
+		OUT *seq_sum = (OUT *) seq->sum; \
+		\
+		IN *p; \
+		OUT *q; \
+		\
+		p = i + (IN *) IM_REGION_ADDR( ir, r->left, r->top + y ); \
+		q = i * n_hline + \
+			(OUT *) IM_REGION_ADDR( or, r->left, r->top + y ); \
+		\
+		for( z = 0; z < n_hline; z++ ) { \
+			seq_sum[z] = 0; \
+			for( x = boxes->hline[z].start; \
+				x < boxes->hline[z].end; x++ ) \
+				seq_sum[z] += p[x * istride]; \
+			q[z] = seq_sum[z]; \
+		} \
+		q += ostride; \
+		\
+		for( x = 1; x < r->width; x++ ) {  \
+			for( z = 0; z < n_hline; z++ ) { \
+				seq_sum[z] += p[seq->end[z]]; \
+				seq_sum[z] -= p[seq->start[z]]; \
+				q[z] = seq_sum[z]; \
+			} \
+			p += istride; \
+			q += ostride; \
+		} \
+	} \
+} G_STMT_END
 
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
@@ -917,80 +919,50 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 	for( y = 0; y < r->height; y++ ) { 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	
-
-	for( i = 0; i < bands; i++ ) { 
-		int *seq_sum = (int *) seq->sum; 
-
-		PEL *p; 
-		int *q; 
-
-		p = i + (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y ); 
-		q = i * n_hline + 
-			(int *) IM_REGION_ADDR( or, r->left, r->top + y ); 
-
-		for( z = 0; z < n_hline; z++ ) { 
-			seq_sum[z] = 0; 
-			for( x = boxes->hline[z].start; 
-				x < boxes->hline[z].end; x++ ) 
-				seq_sum[z] += p[x * istride]; 
-			q[z] = seq_sum[z]; 
-		} 
-		q += ostride; 
-
-		for( x = 1; x < r->width; x++ ) {  
-			for( z = 0; z < n_hline; z++ ) { 
-				seq_sum[z] += p[seq->end[z]]; 
-				seq_sum[z] -= p[seq->start[z]]; 
-				q[z] = seq_sum[z]; 
-			} 
-			p += istride; 
-			q += ostride; 
-		} 
-	} 
-
-			break;
-
-			/*
-		case IM_BANDFMT_UCHAR: 	
-			HCONV_INT( unsigned char, CLIP_UCHAR );
+			if( boxes->max_line > 256 )
+				HCONV( unsigned char, unsigned int );
+			else
+				HCONV( unsigned char, unsigned short );
 			break;
 
 		case IM_BANDFMT_CHAR: 	
-			HCONV_INT( signed char, CLIP_UCHAR );
+			if( boxes->max_line > 256 )
+				HCONV( signed char, signed int );
+			else
+				HCONV( signed char, signed short );
 			break;
 
 		case IM_BANDFMT_USHORT: 	
-			HCONV_INT( unsigned short, CLIP_USHORT );
+			HCONV( unsigned short, unsigned int );
 			break;
 
 		case IM_BANDFMT_SHORT: 	
-			HCONV_INT( signed short, CLIP_SHORT );
+			HCONV( signed short, signed int );
 			break;
 
 		case IM_BANDFMT_UINT: 	
-			HCONV_INT( unsigned int, CLIP_NONE );
+			HCONV( unsigned int, unsigned int );
 			break;
 
 		case IM_BANDFMT_INT: 	
-			HCONV_INT( signed int, CLIP_NONE );
+			HCONV( signed int, signed int );
 			break;
 
 		case IM_BANDFMT_FLOAT: 	
-			HCONV_FLOAT( float );
+			HCONV( float, float );
 			break;
 
 		case IM_BANDFMT_DOUBLE: 	
-			HCONV_FLOAT( double );
+			HCONV( double, double );
 			break;
 
 		case IM_BANDFMT_COMPLEX: 	
-			HCONV_FLOAT( float );
+			HCONV( float, float );
 			break;
 
 		case IM_BANDFMT_DPCOMPLEX: 	
-			HCONV_FLOAT( double );
+			HCONV( double, double );
 			break;
-			 */
 
 		default:
 			g_assert( 0 );
@@ -1014,8 +986,15 @@ aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
 		return( -1 );
 	}
 	out->Bands *= boxes->n_hline;
-	out->BandFmt = vips_band_format_isfloat( in->BandFmt ) ?
-		VIPS_FORMAT_DOUBLE : VIPS_FORMAT_INT;
+
+	/* Short u?char lines can use u?short intermediate.
+	 */
+	if( vips_band_format_isuint( in->BandFmt ) )
+		out->BandFmt = boxes->max_line < 256 ? 
+			IM_BANDFMT_USHORT : IM_BANDFMT_UINT;
+	else if( vips_band_format_isint( in->BandFmt ) )
+		out->BandFmt = boxes->max_line < 256 ? 
+			IM_BANDFMT_SHORT : IM_BANDFMT_INT;
 
 	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, 
@@ -1028,8 +1007,84 @@ aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-/* Do vertical masks ... we scan the mask down columns of pixels. Copy-paste
- * from above with small changes.
+#define CLIP_UCHAR( V ) \
+G_STMT_START { \
+	if( (V) < 0 ) \
+		(V) = 0; \
+	else if( (V) > UCHAR_MAX ) \
+		(V) = UCHAR_MAX; \
+} G_STMT_END
+
+#define CLIP_CHAR( V ) \
+G_STMT_START { \
+	if( (V) < SCHAR_MIN ) \
+		(V) = SCHAR_MIN; \
+	else if( (V) > SCHAR_MAX ) \
+		(V) = SCHAR_MAX; \
+} G_STMT_END
+
+#define CLIP_USHORT( V ) \
+G_STMT_START { \
+	if( (V) < 0 ) \
+		(V) = 0; \
+	else if( (V) > USHRT_MAX ) \
+		(V) = USHRT_MAX; \
+} G_STMT_END
+
+#define CLIP_SHORT( V ) \
+G_STMT_START { \
+	if( (V) < SHRT_MIN ) \
+		(V) = SHRT_MIN; \
+	else if( (V) > SHRT_MAX ) \
+		(V) = SHRT_MAX; \
+} G_STMT_END
+
+#define CLIP_NONE( V ) {}
+
+#define VCONV( ACC, IN, OUT, CLIP ) \
+G_STMT_START { \
+	for( x = 0; x < sz; x++ ) { \
+		ACC *seq_sum = (ACC *) seq->sum; \
+		\
+		IN *p; \
+		OUT *q; \
+		ACC sum; \
+		\
+		p = x * boxes->n_hline + \
+			(IN *) IM_REGION_ADDR( ir, r->left, r->top ); \
+		q = x + (OUT *) IM_REGION_ADDR( or, r->left, r->top ); \
+		\
+		sum = 0; \
+		for( z = 0; z < n_vline; z++ ) { \
+			seq_sum[z] = 0; \
+			for( k = boxes->vline[z].start; \
+				k < boxes->vline[z].end; k++ ) \
+				seq_sum[z] += p[k * istride + \
+					boxes->vline[z].band]; \
+			sum += boxes->vline[z].factor * seq_sum[z]; \
+		} \
+		sum = (sum + boxes->rounding) / boxes->area; \
+		CLIP( sum ); \
+		*q = sum; \
+		q += ostride; \
+		\
+		for( y = 1; y < r->height; y++ ) { \
+			sum = 0;\
+			for( z = 0; z < n_vline; z++ ) { \
+				seq_sum[z] += p[seq->end[z]]; \
+				seq_sum[z] -= p[seq->start[z]]; \
+				sum += boxes->vline[z].factor * seq_sum[z]; \
+			} \
+			p += istride; \
+			sum = (sum + boxes->rounding) / boxes->area; \
+			CLIP( sum ); \
+			*q = sum; \
+			q += ostride; \
+		} \
+	} \
+} G_STMT_END
+
+/* Do vertical masks ... we scan the mask down columns of pixels. 
  */
 static int
 aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
@@ -1081,90 +1136,55 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 
 	switch( boxes->in->BandFmt ) {
 	case IM_BANDFMT_UCHAR: 	
-
-	for( x = 0; x < sz; x++ ) { 
-		int *seq_sum = (int *) seq->sum; 
-
-		int *p; 
-		PEL *q; 
-		int sum; 
-
-		p = x * boxes->n_hline + 
-			(int *) IM_REGION_ADDR( ir, r->left, r->top ); 
-		q = x + (PEL *) IM_REGION_ADDR( or, r->left, r->top ); 
-
-		sum = 0;
-		for( z = 0; z < n_vline; z++ ) { 
-			seq_sum[z] = 0; 
-			for( k = boxes->vline[z].start; 
-				k < boxes->vline[z].end; k++ ) 
-				seq_sum[z] += p[k * istride + 
-					boxes->vline[z].band]; 
-			sum += boxes->vline[z].factor * seq_sum[z];
-		} 
-		sum = (sum + boxes->rounding) / boxes->area; 
-		CLIP_UCHAR( sum ); 
-		*q = sum;
-		q += ostride; 
-
-		for( y = 1; y < r->height; y++ ) {  
-			sum = 0;
-			for( z = 0; z < n_vline; z++ ) { 
-				seq_sum[z] += p[seq->end[z]]; 
-				seq_sum[z] -= p[seq->start[z]]; 
-				sum += boxes->vline[z].factor * seq_sum[z]; 
-			} 
-			p += istride; 
-			sum = (sum + boxes->rounding) / boxes->area; 
-			CLIP_UCHAR( sum ); 
-			*q = sum;
-			q += ostride; 
-		} 
-	} 
-
-		break;
-
-	/*
-	case IM_BANDFMT_UCHAR: 	
-		VCONV_INT( unsigned char, CLIP_UCHAR );
+		if( boxes->max_line > 256 )
+			VCONV( unsigned int, \
+				unsigned int, unsigned char, CLIP_UCHAR );
+		else
+			VCONV( unsigned int, \
+				unsigned short, unsigned char, CLIP_UCHAR );
 		break;
 
 	case IM_BANDFMT_CHAR: 	
-		VCONV_INT( signed char, CLIP_UCHAR );
+		if( boxes->max_line > 256 )
+			VCONV( signed int, \
+				signed int, signed char, CLIP_UCHAR );
+		else
+			VCONV( signed int, \
+				signed short, signed char, CLIP_UCHAR );
 		break;
 
 	case IM_BANDFMT_USHORT: 	
-		VCONV_INT( unsigned short, CLIP_USHORT );
+		VCONV( unsigned int, \
+			unsigned int, unsigned short, CLIP_USHORT );
 		break;
 
 	case IM_BANDFMT_SHORT: 	
-		VCONV_INT( signed short, CLIP_SHORT );
+		VCONV( signed int, signed int, signed short, CLIP_SHORT );
 		break;
 
 	case IM_BANDFMT_UINT: 	
-		VCONV_INT( unsigned int, CLIP_NONE );
+		VCONV( unsigned int, unsigned int, unsigned int, CLIP_NONE );
 		break;
 
 	case IM_BANDFMT_INT: 	
-		VCONV_INT( signed int, CLIP_NONE );
+		VCONV( signed int, signed int, signed int, CLIP_NONE );
 		break;
 
 	case IM_BANDFMT_FLOAT: 	
-		VCONV_FLOAT( float );
+		VCONV( float, float, float, CLIP_NONE );
 		break;
 
 	case IM_BANDFMT_DOUBLE: 	
-		VCONV_FLOAT( double );
+		VCONV( double, double, double, CLIP_NONE );
 		break;
 
 	case IM_BANDFMT_COMPLEX: 	
-		VCONV_FLOAT( float );
+		VCONV( float, float, float, CLIP_NONE );
 		break;
 
 	case IM_BANDFMT_DPCOMPLEX: 	
-		VCONV_FLOAT( double );
+		VCONV( double, double, double, CLIP_NONE );
 		break;
-		 */
 
 	default:
 		g_assert( 0 );
@@ -1245,8 +1265,7 @@ im_aconv( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 		return( -1 );
 
 	/* For testing .. just try one direction.
-	if( aconv_horizontal( boxes, in, t[0] ) ||
-		aconv_vertical( boxes, t[0], out ) )
+	if( aconv_horizontal( boxes, in, out ) )
 		return( -1 );
 	 */
 

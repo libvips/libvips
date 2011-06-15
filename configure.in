@@ -189,9 +189,12 @@ expand () {
 expand $libdir
 VIPS_LIBDIR=$expanded_value
 
+# this gets pasted into version.h as a #define
+VIPS_EXEEXT=$EXEEXT
+AC_SUBST(VIPS_EXEEXT)
+
 # vips.c/im_guess_prefix.c need to know the exe suffix and (as a fallback)
 # the configure-time install prefix
-AC_DEFINE_UNQUOTED(VIPS_EXEEXT,"$EXEEXT",[extension for executable files])
 AC_DEFINE_UNQUOTED(VIPS_PREFIX,"$prefix",[configure-time install prefix])
 AC_DEFINE_UNQUOTED(VIPS_LIBDIR,"$VIPS_LIBDIR",[configure-time library directory])
 
