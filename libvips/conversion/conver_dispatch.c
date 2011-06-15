@@ -103,7 +103,6 @@ system_image_vec( im_object *argv )
 	if( !(out_image = im_system_image( in, 
 		in_format, out_format, cmd, log )) ) {
 		im_error( "im_system_image", "%s", *log );
-		im_free( *log );
 		return( -1 );
 	}
 
