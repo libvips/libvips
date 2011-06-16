@@ -1223,7 +1223,9 @@ make_tiff_write( IMAGE *im, const char *filename )
 	tw->resunit = RESUNIT_CENTIMETER;
 	tw->xres = im->Xres * 10;
 	tw->yres = im->Yres * 10;
-	if( !im_meta_get_string( im, IM_META_RESOLUTION_UNIT, &p ) &&
+
+	if( vips_image_get_typeof( im, IM_META_RESOLUTION_UNIT ) &&
+		!im_meta_get_string( im, IM_META_RESOLUTION_UNIT, &p ) &&
 		strcmp( p, "in" ) == 0 ) {
 		tw->resunit = RESUNIT_INCH;
 		tw->xres *= 2.54;
