@@ -160,7 +160,7 @@ typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
 	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
-void vips_argument_free_all( VipsObject *object );
+void vips_argument_dispose_all( VipsObject *object );
 
 /* We have to loop over an objects args in several places, and we can't always
  * use vips_argument_map(), the preferred looper. Have the loop code as a

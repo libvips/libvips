@@ -75,7 +75,9 @@ system_image( IMAGE *im,
 		if( !vips_buf_appends( &buf, line ) )
 			break; 
 
-	result = pclose( fp );
+	if( (result = pclose( fp )) ) 
+		im_error( "im_system_image", 
+			_( "command failed: \"%s\"" ), cmd_format );
 
 	if( log )
 		*log = im_strdup( NULL, vips_buf_all( &buf ) );
@@ -152,6 +154,7 @@ im_system_image( IMAGE *im,
 	if( system_image( im, in_image, out_name, cmd_format, log ) ) {
 		im_close( in_image );
 		g_free( out_name );
+		g_unlink( out_name );
 
 		return( NULL );
 	}
@@ -159,18 +162,13 @@ im_system_image( IMAGE *im,
 
 	if( !(out = im_open( out_name, "r" )) ) {
 		g_free( out_name );
-
-		return( NULL );
-	}
-	if( im_add_postclose_callback( out, 
-		(im_callback_fn) unlink, out->filename, NULL ) ) {
-		g_free( out_name );
-		im_close( out );
 		g_unlink( out_name );
 
 		return( NULL );
 	}
 	g_free( out_name );
+
+	vips_image_set_delete_on_close( out, TRUE );
 
 	return( out );
 }

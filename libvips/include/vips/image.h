@@ -197,7 +197,7 @@ typedef struct _VipsImage {
 	size_t length;		/* size of mmap area */
 	guint32 magic;		/* magic from header, endian-ness of image */
 
-	/* Partial image stuff. All private! All these fields are initialised 
+	/* Partial image stuff. All these fields are initialised 
 	 * to NULL and ignored unless set by vips_image_generate() etc.
 	 */
 	void *(*start)();	/* user-supplied start function */
@@ -263,6 +263,16 @@ typedef struct _VipsImage {
 	 * upstream/downstream relationships, so it's a mandatory thing.
 	 */
 	gboolean hint_set;
+
+	/* Delete-on-close is hard to do with signals and callbacks since we
+	 * really need to do this in finalize after the fd has been closed,
+	 * but you can't emit signals then.
+	 *
+	 * Also keep a private copy of the filename string to be deleted,
+	 * since image->filename will be freed in _dispose().
+	 */
+	gboolean delete_on_close;
+	char *delete_on_close_filename;
 
 } VipsImage;
 
@@ -363,6 +373,8 @@ VipsImage *vips_image_new_from_file_raw( const char *filename,
 	int xsize, int ysize, int bands, int offset );
 VipsImage *vips_image_new_from_memory( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
+void vips_image_set_delete_on_close( VipsImage *image, 
+	gboolean delete_on_close );
 VipsImage *vips_image_new_disc_temp( const char *format );
 int vips_image_write( VipsImage *image, const char *filename );
 

@@ -395,26 +395,20 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentInstance *argument_instance,
 	void *a, void *b )
 {
-#ifdef DEBUG
-	printf( "vips_object_dispose_argument: " );
-	vips_object_print_name( object );
-	printf( ".%s\n", g_param_spec_get_name( pspec ) ); 
-#endif /*DEBUG*/
-
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 	g_assert( ((VipsArgument *) argument_instance)->pspec == pspec );
 
-	if( G_IS_PARAM_SPEC_STRING( pspec ) ) {
-		char **member = &G_STRUCT_MEMBER( char *, object,
-			argument_class->offset );
-
-		VIPS_FREE( *member );
-	}
-	else if( G_IS_PARAM_SPEC_OBJECT( pspec ) )
+	if( G_IS_PARAM_SPEC_OBJECT( pspec ) )
 		vips_object_clear_object( object, pspec );
 	else if( G_IS_PARAM_SPEC_BOXED( pspec ) ) {
 		gpointer *member = &G_STRUCT_MEMBER( gpointer, object,
 			argument_class->offset );
+
+#ifdef DEBUG
+		printf( "vips_object_dispose_argument: " );
+		vips_object_print_name( object );
+		printf( ".%s\n", g_param_spec_get_name( pspec ) ); 
+#endif /*DEBUG*/
 
 		if( *member ) {
 			g_boxed_free( G_PARAM_SPEC_VALUE_TYPE( pspec ),
@@ -429,6 +423,48 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 /* Free all args on this object which may be holding resources.
  */
 void
+vips_argument_dispose_all( VipsObject *object )
+{
+#ifdef DEBUG
+	printf( "vips_argument_dispose_all: " );
+	vips_object_print_name( object );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	vips_argument_map( object, vips_object_dispose_argument, NULL, NULL );
+}
+
+/* Free any args which are holding memory.
+ */
+static void *
+vips_object_free_argument( VipsObject *object, GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
+	g_assert( ((VipsArgument *) argument_instance)->pspec == pspec );
+
+	if( G_IS_PARAM_SPEC_STRING( pspec ) ) {
+		char **member = &G_STRUCT_MEMBER( char *, object,
+			argument_class->offset );
+
+#ifdef DEBUG
+		printf( "vips_object_free_argument: " );
+		vips_object_print_name( object );
+		printf( ".%s\n", g_param_spec_get_name( pspec ) ); 
+#endif /*DEBUG*/
+
+		VIPS_FREE( *member );
+	}
+
+	return( NULL );
+}
+
+/* Free args which hold memory. Things like strings need to be freed right at
+ * the end in case anyone is still using them.
+ */
+static void
 vips_argument_free_all( VipsObject *object )
 {
 #ifdef DEBUG
@@ -437,7 +473,7 @@ vips_argument_free_all( VipsObject *object )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	vips_argument_map( object, vips_object_dispose_argument, NULL, NULL );
+	vips_argument_map( object, vips_object_free_argument, NULL, NULL );
 }
 
 static void
@@ -466,7 +502,7 @@ vips_object_dispose( GObject *gobject )
 
 	/* Clear all our arguments: they may be holding refs we should drop.
 	 */
-	vips_argument_free_all( object );
+	vips_argument_dispose_all( object );
 	VIPS_FREEF( vips_argument_table_destroy, object->argument_table );
 
 	vips_object_close( object );
@@ -474,6 +510,8 @@ vips_object_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_object_parent_class )->dispose( gobject );
 
 	vips_object_postclose( object );
+
+	vips_argument_free_all( object );
 }
 
 static void

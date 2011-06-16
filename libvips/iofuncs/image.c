@@ -346,8 +346,7 @@ vips_image_finalize( GObject *gobject )
 			(void) vips__writehist( image );
 		if( close( image->fd ) == -1 ) 
 			vips_error( "VipsImage", 
-				_( "unable to close fd for %s" ), 
-				image->filename );
+				"%s", _( "unable to close fd" ) );
 		image->fd = -1;
 	}
 
@@ -366,8 +365,15 @@ vips_image_finalize( GObject *gobject )
 		image->data = NULL;
 	}
 
-	VIPS_FREE( image->filename );
-	VIPS_FREE( image->mode );
+	if( image->delete_on_close ) {
+		g_assert( image->delete_on_close_filename );
+
+		VIPS_DEBUG_MSG( "vips_image_finalize: removing temp %s\n", 
+				image->delete_on_close_filename );
+		g_unlink( image->delete_on_close_filename );
+		VIPS_FREE( image->delete_on_close_filename );
+		image->delete_on_close = FALSE;
+	}
 
 	VIPS_FREEF( g_mutex_free, image->sslock );
 
@@ -542,7 +548,7 @@ vips_image_rewind( VipsObject *object )
 	char *filename;
 	char *mode;
 
-	/* The old values for filename and mode become the new defaults.
+	/* This triggers a dispose. Copy filename/mode across the dispose.
 	 */
 	filename = g_strdup( vips_image_get_filename( image ) );
 	mode = g_strdup( vips_image_get_mode( image ) );
@@ -1454,7 +1460,7 @@ vips_image_set_kill( VipsImage *image, gboolean kill )
 	image->kill = kill;
 }
 
-/* Make a name for a filename-less image. Use immediately, don'#t free the
+/* Make a name for a filename-less image. Use immediately, don't free the
  * result.
  */
 static const char *
@@ -1747,12 +1753,29 @@ vips_image_new_from_memory( void *buffer,
 	return( image );
 }
 
-static void
-vips_image_new_temp_cb( VipsImage *image )
+/**
+ * vips_image_set_delete_on_close:
+ * @image: image to set
+ * @delete_on_close: format of file
+ *
+ * Sets the delete_on_close flag for the image. If this flag is set, when
+ * @image is finalized the filename held in @image->filename at the time of
+ * this call is unlinked.
+ *
+ * This function is clearly extremely dangerous, use with great caution.
+ *
+ * See also: vips__temp_name(), vips_image_new_disc_temp().
+ */
+void
+vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
 {
-	g_assert( image->filename );
+	VIPS_DEBUG_MSG( "vips_image_set_delete_on_close: %d %s\n", 
+			delete_on_close, image->filename );
 
-	g_unlink( image->filename );
+	image->delete_on_close = delete_on_close;
+	VIPS_FREE( image->delete_on_close_filename );
+	if( delete_on_close ) 
+		VIPS_SETSTR( image->delete_on_close_filename, image->filename );
 }
 
 /**
@@ -1783,11 +1806,7 @@ vips_image_new_disc_temp( const char *format )
 	}
 	g_free( name );
 
-	/* Needs to be postclose so we can rewind after write without
-	 * deleting the file.
-	 */
-	g_signal_connect( image, "postclose", 
-		G_CALLBACK( vips_image_new_temp_cb ), NULL );
+	vips_image_set_delete_on_close( image, TRUE );
 
 	return( image );
 }
