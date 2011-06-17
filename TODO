@@ -69,10 +69,6 @@
 
 	- some way for nip2 to get the vips bin area
 
-	- some way for nip2 to get EXEEXT
-
-	- wrap a basic set of Magick filters
-
 
 
 - need vips_image_invalidate_area()
@@ -93,7 +89,7 @@
 - get rid of a lot of the command-line programs, who wants to write a man page
   for batch_image_convert etc yuk
 
-- can we make man pages for the  API as well? probably not from googling a bit
+- can we make man pages for the API as well? probably not from googling a bit
 
 
 

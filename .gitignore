@@ -7,6 +7,7 @@ TAGS
 *.lo
 *.la
 *.pc
+*.pyc
 .deps
 .libs
 aclocal.m4
