@@ -131,6 +131,10 @@ vips_get_argv0( void )
  *     </para>
  *   </listitem>
  *   <listitem> 
+ *     <para>creates the main vips types, including VipsImage and friends
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
  *     <para>loads any plugins from $libdir/vips-x.y, where x and y are the
  *     major and minor version numbers for this VIPS.
  *     </para>
@@ -213,6 +217,8 @@ vips_init( const char *argv0 )
 
 	/* Register base vips types.
 	 */
+	(void) vips_image_get_type();
+	(void) vips_region_get_type();
 	vips__meta_init_types();
 	vips__interpolate_init();
 	im__format_init();

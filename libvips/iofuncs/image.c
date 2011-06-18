@@ -1073,6 +1073,8 @@ vips_image_class_init( VipsImageClass *class )
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 	GParamSpec *pspec;
 
+	VIPS_DEBUG_MSG( "vips_image_class_init:\n" );
+
 	/* Pass in a nonsense name for argv0 ... this init world is only here
 	 * for old programs which are missing an vips_init() call. We must
 	 * have threads set up before we can process.
