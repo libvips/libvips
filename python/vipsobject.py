@@ -12,11 +12,20 @@ import logging
 import sys
 import ctypes
 
-import finalize
+import finalizable
 
 # .15 is 7.25+ with the new vips8 API
 libvips = ctypes.CDLL('libvips.so.15')
 libvips.vips_init(sys.argv[0])
+
+# given a class and value, search for a class member with that value
+# handy for enum classes, use to turn numbers to strings
+def class_value(classobject, value):
+    for name in dir(classobject):
+        if getattr(classobject, name) == value:
+            return classobject.__name__ + '.' + name
+
+    return 'unknown'
 
 class Error(Exception):
 
@@ -31,36 +40,45 @@ class Error(Exception):
         self.detail = vips_error_buffer()
         libvips.vips_error_clear()
 
-        logging.debug('vipsobject: Error %s %s', self.message, self.detail)
+        logging.debug('vipsobject: Error: %s %s', self.message, self.detail)
 
     def __str__(self):
-        return '%s - %s' %(self.message, self.detail)
+        return '%s %s' %(self.message, self.detail)
 
-def check_int_return(value):
-    if value != 0:
-        raise Error('Error calling vips function.')
-    return value
+# handy checkers, assign to errcheck
+def check_int_return(result, func, args):
+    if result != 0:
+        raise Error('Error calling vips function %s.' % func.__name__)
+    return result
 
-def check_pointer_return(value):
-    if value == None:
-        raise Error('Error calling vips function.')
-    return value
+def check_pointer_return(result, func, args):
+    if result == None:
+        raise Error('Error calling vips function %s.' % func.__name__)
+    return result
 
 vips_error_buffer = libvips.vips_error_buffer
 vips_error_buffer.restype = ctypes.c_char_p
 
-class VipsObject:
+class VipsObject(finalizable.Finalizable):
     """Abstract base class for libvips."""
 
-    def unref_vips(self):
+    # attributes we finalize
+    ghost_attributes = ('vipsobject', )
+
+    def __finalize__(self):
+        logging.debug('vipsobject: __finalize__')
+
         if self.vipsobject != None:
+            logging.debug('vipsobject: unref %s' % hex(self.vipsobject))
             libvips.g_object_unref(self.vipsobject)
             self.vipsobject = None
+
+    def enable_finalize(self):
+        self.bind_finalizer(*self.ghost_attributes)
 
     def __init__(self):
         logging.debug('vipsobject: init')
 
         self.vipsobject = None
-        finalize.track(self, self, self.unref_vips)
 
 
