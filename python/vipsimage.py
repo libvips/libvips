@@ -101,6 +101,16 @@ vips_image_get_xres.restype = ctypes.c_double;
 vips_image_get_yres = libvips.vips_image_get_yres
 vips_image_get_yres.restype = ctypes.c_double;
 
+vips_operation_new = libvips.vips_operation_new
+vips_operation_new.argtypes = [ctypes.c_char_p]
+vips_operation_new.restype = ctypes.c_void_p
+vips_operation_new.errcheck = vipsobject.check_pointer_return
+
+def vips_call_instance(self, name, args):
+    logging.debug('vipsimage: vips_call_instance name=%s, self=%s, args=%s' % 
+                  (name, self, args))
+    operation = vips_operation_new(name)
+
 class VipsImage(vipsobject.VipsObject):
     """Manipulate a libvips image."""
 
@@ -119,6 +129,10 @@ class VipsImage(vipsobject.VipsObject):
         logging.debug('vipsimage: made %s' % hex(self.vipsobject))
 
         self.enable_finalize()
+
+    def __getattr__(self, name):
+        logging.debug('vipsimage: __getattr__ %s' % name)
+        return lambda *args: vips_call_instance(self, name, args)
 
     def width(self):
         return libvips.vips_image_get_width(self.vipsobject)

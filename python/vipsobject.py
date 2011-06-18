@@ -12,6 +12,8 @@ import logging
 import sys
 import ctypes
 
+import gobject
+
 import finalizable
 
 # .15 is 7.25+ with the new vips8 API
@@ -27,7 +29,7 @@ def class_value(classobject, value):
 
     return 'unknown'
 
-class Error(Exception):
+class VipsError(Exception):
 
     """An error from libvips.
 
@@ -48,12 +50,12 @@ class Error(Exception):
 # handy checkers, assign to errcheck
 def check_int_return(result, func, args):
     if result != 0:
-        raise Error('Error calling vips function %s.' % func.__name__)
+        raise VipsError('Error calling vips function %s.' % func.__name__)
     return result
 
 def check_pointer_return(result, func, args):
     if result == None:
-        raise Error('Error calling vips function %s.' % func.__name__)
+        raise VipsError('Error calling vips function %s.' % func.__name__)
     return result
 
 vips_error_buffer = libvips.vips_error_buffer
@@ -80,5 +82,3 @@ class VipsObject(finalizable.Finalizable):
         logging.debug('vipsobject: init')
 
         self.vipsobject = None
-
-
