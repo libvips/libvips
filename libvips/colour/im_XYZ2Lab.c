@@ -69,7 +69,7 @@
 
 float cbrt_table[QUANT_ELEMENTS];
 
-void
+static void
 imb_XYZ2Lab_tables( void )
 {
 	static int built_tables = 0;
@@ -100,6 +100,8 @@ void
 imb_XYZ2Lab( float *p, float *q, int n, im_colour_temperature *temp )
 {
 	int x;
+
+        imb_XYZ2Lab_tables();
 
 	for( x = 0; x < n; x++ ) {
 		float nX, nY, nZ;
@@ -165,7 +167,6 @@ im_XYZ2Lab_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 	temp->X0 = X0;
 	temp->Y0 = Y0;
 	temp->Z0 = Z0;
-        imb_XYZ2Lab_tables();
 
 	return( im__colour_unary( "im_XYZ2Lab", in, out, IM_TYPE_LAB,
 		(im_wrapone_fn) imb_XYZ2Lab, temp, NULL ) );

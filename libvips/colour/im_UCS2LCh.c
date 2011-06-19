@@ -56,7 +56,7 @@
  */
 void
 imb_UCS2LCh( float *p, float *q, int n )
-{		
+{
 	int x;
 
 	for( x = 0; x < n; x++ ) {
