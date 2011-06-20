@@ -45,6 +45,7 @@ class VipsInterpretation:
 
     @staticmethod
     def name(value):
+        print currentclass
         return vipsobject.class_value(VipsInterpretation, value)
 
 class VipsBandFormat:
