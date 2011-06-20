@@ -84,7 +84,7 @@ int vips_image_get_xoffset( VipsImage *image );
 int vips_image_get_yoffset( VipsImage *image );
 const char *vips_image_get_filename( VipsImage *image );
 const char *vips_image_get_mode( VipsImage *image );
-void *vips_image_get_data( VipsImage *image );;
+void *vips_image_get_data( VipsImage *image );
 
 void vips_image_init_fields( VipsImage *image, 
 	int xsize, int ysize, int bands, 

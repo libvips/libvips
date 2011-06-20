@@ -1,5 +1,14 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(libvips/include/vips/colour.h)
+
+# also update the version number in the m4 macros below
+
+AC_INIT(vips, 7.25.0, vipsip@jiscmail.ac.uk)
+# required for gobject-introspection
+AC_PREREQ(2.62)
+
+# gobject-introspection recommends this
+AM_INIT_AUTOMAKE([-Wno-portability])
+
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR(m4)
 
@@ -10,14 +19,38 @@ m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
-VIPS_MAJOR_VERSION=vips_major_version
-VIPS_MINOR_VERSION=vips_minor_version
-VIPS_MICRO_VERSION=vips_micro_version
+VIPS_MAJOR_VERSION=vips_major_version()
+VIPS_MINOR_VERSION=vips_minor_version()
+VIPS_MICRO_VERSION=vips_micro_version()
 VIPS_VERSION=vips_version()
 VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 
-VERSION=$VIPS_VERSION
-PACKAGE=vips
+# init introspection supoport
+GOBJECT_INTROSPECTION_CHECK([0.6.7])
+
+# gir needs a list of source files to scan for introspection
+# build with a glob and a list of files to exclude from scanning
+# see also IGNORE_HFILES in doc/reference/Makefile.am
+# the only header we include is the main vips.h one, it'll pull in everythiung
+# else in the public API
+introspection_sources=`cd libvips ; find . -name "*.c"`
+filter_list="deprecated"
+
+introspection_sources2=
+for name in $introspection_sources; do
+  found=0
+  for filter in $filter_list; do
+    if [[[ $name == *${filter}* ]]]; then
+      found=1
+    fi
+  done    
+
+  if [[ $found -eq 0 ]]; then
+    introspection_sources2="$introspection_sources2 $name"
+  fi      
+done    
+vips_introspection_sources="$introspection_sources2 include/vips/vips.h"
+AC_SUBST(vips_introspection_sources)
 
 # libtool library versioning ... not user-visible (except as part of the
 # library file name) and does not correspond to major/minor/micro above
@@ -31,8 +64,6 @@ PACKAGE=vips
 LIBRARY_CURRENT=30
 LIBRARY_REVISION=0
 LIBRARY_AGE=15
-
-AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
