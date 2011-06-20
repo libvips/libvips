@@ -1,3 +1,11 @@
+- looks like we need to have all includes in all .h files, and to scan them
+  all explicitly 
+
+  at the moment Vips-8.0.gir just has the stuff directly in vips.h
+
+
+
+
 - look at libpeas for plugin support
 
 	http://live.gnome.org/Libpeas
