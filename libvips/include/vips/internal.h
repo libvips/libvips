@@ -209,7 +209,6 @@ int im__balance( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 void imb_Lab2LCh( float *, float *, int );
 void imb_LCh2Lab( float *, float *, int );
-void imb_XYZ2Lab_tables( void );
 
 /* A colour temperature.
  */
