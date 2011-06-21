@@ -103,7 +103,7 @@
 
  */
 
-G_DEFINE_TYPE( VipsPool, vips_pool, VIPS_TYPE_POOL );
+G_DEFINE_TYPE( VipsPool, vips_pool, VIPS_TYPE_OBJECT );
 
 static void
 vips_pool_dispose( GObject *gobject )

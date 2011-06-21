@@ -227,7 +227,7 @@ im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	t[4] = c;
 	if( im__sizealike_vec( t + 2, t + 5, 3 ) )
 		return( -1 );
-	c = t[5];
+	c = t[7];
 
 	/* If c is not uchar, do (!=0) to make a uchar image.
 	 */
@@ -238,7 +238,7 @@ im_ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 		c = t[8];
 	}
 
-	if( ifthenelse( c, t[6], t[7], out ) )
+	if( ifthenelse( c, t[5], t[6], out ) )
 		return( -1 );
 
 	return( 0 );
