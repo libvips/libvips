@@ -154,8 +154,6 @@ int im_lab_morph( VipsImage *in, VipsImage *out,
 	double L_offset, double L_scale,
 	double a_scale, double b_scale );
 
-void im_col_make_tables_UCS( void );
-
 /* Render intents for icc wrappers.
  */
 typedef enum {

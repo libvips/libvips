@@ -38,6 +38,7 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <vips/vips.h>
 #include <vips/vector.h>
 
 #define VIPS_TYPE_ARITHMETIC (vips_arithmetic_get_type())

@@ -3,6 +3,13 @@
 
   at the moment Vips-8.0.gir just has the stuff directly in vips.h
 
+  ... is this correct? many includes are working finw without this
+
+- currently stuck on:
+
+	<unknown>:: Fatal: Vips: Unknown namespace for identifier 'vips_save_string'
+
+
 
 
 

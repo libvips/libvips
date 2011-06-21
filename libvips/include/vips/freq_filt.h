@@ -37,6 +37,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <vips/vips.h>
+
 typedef enum {
         VIPS_MASK_IDEAL_HIGHPASS = 0,
         VIPS_MASK_IDEAL_LOWPASS = 1,

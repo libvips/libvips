@@ -33,13 +33,15 @@ GOBJECT_INTROSPECTION_CHECK([0.6.7])
 # see also IGNORE_HFILES in doc/reference/Makefile.am
 # the only header we include is the main vips.h one, it'll pull in everythiung
 # else in the public API
-introspection_sources=`cd libvips ; find . -name "*.c"`
-filter_list="deprecated"
+introspection_sources=`cd libvips ; find . -name "*.[[hc]]"`
+filter_list="deprecated im_video_v4l1.c type.h draw.h dispatch.h transform.h sink.h mask.h merge.h debug.h internal.h intl.h CImg.h im_video_v4l1.h global_balance.h dbh.h base64.h templates.h mosaic.h deprecated.h thread.h private.h internal.h almostdeprecated.h inlines.h struct.h disp.h vector.h vips7compat.h"
 
 introspection_sources2=
 for name in $introspection_sources; do
   found=0
   for filter in $filter_list; do
+    # FIXME .. argh a bash-ism :( not sure of a nice, portable way to do 
+    # regexp matching
     if [[[ $name == *${filter}* ]]]; then
       found=1
     fi

@@ -37,6 +37,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <vips/vips.h>
+
 int im_greyc_mask( VipsImage *in, VipsImage *out, VipsImage *mask, 
 	int iterations, float amplitude, float sharpness, float anisotropy, 
 	float alpha, float sigma, float dl, float da, float gauss_prec, 

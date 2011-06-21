@@ -40,6 +40,9 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <vips/vips.h>
+#include <vips/thread.h>
+
 /* Implement our own semaphores.
  */
 typedef struct {

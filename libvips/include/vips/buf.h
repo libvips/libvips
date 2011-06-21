@@ -34,6 +34,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <vips/vips.h>
+
 /* A string in the process of being written to ... multiple calls to 
  * vips_buf_append add to it, on overflow append "..." and block further writes.
  */

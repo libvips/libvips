@@ -167,11 +167,7 @@ int vips_image_get_int( VipsImage *image, const char *field, int *out );
 int vips_image_set_int( VipsImage *image, const char *field, int i );
 int vips_image_get_double( VipsImage *image, const char *field, double *out );
 int vips_image_set_double( VipsImage *image, const char *field, double d );
-int vips_image_get_string( VipsImage *image, const char *field, char **out );
-int vips_image_set_string( VipsImage *image, 
-	const char *field, const char *str );
 int vips_image_get_as_string( VipsImage *image, const char *field, char **out );
-GType vips_image_get_typeof( VipsImage *image, const char *field );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));
