@@ -6,6 +6,8 @@ TAGS
 .*.swp
 *.lo
 *.la
+Vips-8.0.gir
+Vips-8.0.typelib
 *.pc
 *.pyc
 .deps
