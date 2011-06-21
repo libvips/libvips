@@ -152,12 +152,14 @@ typedef struct _VipsArgumentInstance {
  */
 typedef GHashTable VipsArgumentTable;
 
-VipsArgumentInstance *vips__argument_get_instance( VipsArgumentClass *,
-	VipsObject *);
-VipsArgument *vips__argument_table_lookup( VipsArgumentTable *, 
-	GParamSpec *);
-typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
-	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
+VipsArgumentInstance *vips__argument_get_instance( 
+	VipsArgumentClass *argument_class,
+	VipsObject *object);
+VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table, 
+	GParamSpec *pspec);
+typedef void *(*VipsArgumentMapFn)( VipsObject *object, GParamSpec *pspec,
+	VipsArgumentClass *argument_class, 
+	VipsArgumentInstance *argument_instance, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
 void vips_argument_dispose_all( VipsObject *object );
@@ -344,8 +346,8 @@ typedef void *(*VipsTypeMap)( GType, void * );
 typedef void *(*VipsTypeMap2)( GType, void *, void * );
 typedef void *(*VipsClassMap)( VipsObjectClass *, void * );
 void *vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b );
-void *vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a );
-void *vips_class_map_concrete_all( GType base, VipsClassMap fn, void *a );
+void *vips_type_map_all( GType base, VipsTypeMap fn, void *a );
+void *vips_class_map_all( GType base, VipsClassMap fn, void *a );
 VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
 GType vips_type_find( const char *basename, const char *nickname );
 

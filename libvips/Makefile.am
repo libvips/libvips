@@ -96,6 +96,7 @@ Vips_8_0_gir_SCANNERFLAGS = \
 			    --verbose \
 			    --namespace=Vips \
 			    --identifier-prefix=Vips \
+			    --identifier-prefix=vips \
 			    --symbol-prefix=vips \
 			    --symbol-prefix=im \
 			    --symbol-prefix=im_ 

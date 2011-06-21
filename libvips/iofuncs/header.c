@@ -441,9 +441,9 @@ vips_image_get_data( VipsImage *image )
  * @xsize: image width
  * @ysize: image height
  * @bands: image bands
- * @bandfmt: band format
+ * @format: band format
  * @coding: image coding
- * @type: image type
+ * @interpretation: image type
  * @xres: horizontal resolution, pixels per millimetre
  * @yres: vertical resolution, pixels per millimetre
  *
@@ -1898,7 +1898,7 @@ vips_image_history_printf( VipsImage *image, const char *fmt, ... )
 
 /**
  * vips_image_history_args:
- * @out: image to attach history line to
+ * @image: image to attach history line to
  * @name: program name
  * @argc: number of program arguments
  * @argv: program arguments

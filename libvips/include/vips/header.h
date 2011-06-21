@@ -103,7 +103,7 @@ GType vips_image_get_typeof( VipsImage *image, const char *field );
 gboolean vips_image_remove( VipsImage *image, const char *field );
 typedef void *(*VipsImageMapFn)( VipsImage *image, 
 	const char *field, GValue *value, void *a );
-void *vips_image_map( VipsImage *im, VipsImageMapFn fn, void *a );
+void *vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a );
 
 /**
  * VIPS_TYPE_SAVE_STRING:
@@ -157,7 +157,7 @@ int vips_image_set_area( VipsImage *image,
 int vips_image_get_area( VipsImage *image, const char *field, void **data );
 int vips_image_set_string( VipsImage *image, 
 	const char *field, const char *str );
-int vips_image_get_string( VipsImage *image, const char *field, char **str );
+int vips_image_get_string( VipsImage *image, const char *field, char **out );
 int vips_image_set_blob( VipsImage *image, const char *field, 
 	VipsCallbackFn free_fn, void *data, size_t length );
 int vips_image_get_blob( VipsImage *image, const char *field, 

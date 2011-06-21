@@ -33,8 +33,8 @@ GOBJECT_INTROSPECTION_CHECK([0.6.7])
 # see also IGNORE_HFILES in doc/reference/Makefile.am
 # the only header we include is the main vips.h one, it'll pull in everythiung
 # else in the public API
-introspection_sources=`cd libvips ; find . -name "*.[[hc]]"`
-filter_list="deprecated im_video_v4l1.c type.h draw.h dispatch.h transform.h sink.h mask.h merge.h debug.h internal.h intl.h CImg.h im_video_v4l1.h global_balance.h dbh.h base64.h templates.h mosaic.h deprecated.h thread.h private.h internal.h almostdeprecated.h inlines.h struct.h disp.h vector.h vips7compat.h"
+introspection_sources=`cd libvips ; find . -name "*.c"`
+filter_list="deprecated im_video_v4l1.c"
 
 introspection_sources2=
 for name in $introspection_sources; do
@@ -51,7 +51,15 @@ for name in $introspection_sources; do
     introspection_sources2="$introspection_sources2 $name"
   fi      
 done    
-vips_introspection_sources="$introspection_sources2 include/vips/vips.h"
+vips_introspection_sources="$introspection_sources2"
+
+# add headers that form the public vips8 API .. don't do a find and exclude,
+# we end up excluding almost everything argh
+headers="vips.h object.h image.h error.h format.h region.h interpolate.h header.h operation.h enumtypes.h arithmetic.h"
+for name in $headers; do
+  vips_introspection_sources="$vips_introspection_sources include/vips/$name"
+done
+
 AC_SUBST(vips_introspection_sources)
 
 # libtool library versioning ... not user-visible (except as part of the

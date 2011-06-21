@@ -1507,8 +1507,8 @@ vips_image_new( void )
 /** 
  * vips_image_new_array:
  * @parent: images unref when this object unrefs
- * @OUT: array to fill with #VipsImage *
- * @N: array size
+ * @images: array to fill with #VipsImage *
+ * @n: array size
  *
  * Just like vips_image_new(), but opens an array of "p" images. 
  * Handy for creating a 
