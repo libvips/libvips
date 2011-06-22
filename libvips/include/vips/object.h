@@ -152,11 +152,6 @@ typedef struct _VipsArgumentInstance {
  */
 typedef GHashTable VipsArgumentTable;
 
-VipsArgumentInstance *vips__argument_get_instance( 
-	VipsArgumentClass *argument_class,
-	VipsObject *object);
-VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table, 
-	GParamSpec *pspec);
 typedef void *(*VipsArgumentMapFn)( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentClass *argument_class, 
 	VipsArgumentInstance *argument_instance, void *a, void *b );

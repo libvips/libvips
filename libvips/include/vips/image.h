@@ -382,7 +382,7 @@ gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
 gboolean vips_image_ispartial( VipsImage *image );
 
-int vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer );
+int vips_image_write_line( VipsImage *image, int ypos, void *linebuffer );
 
 int vips_image_wio_input( VipsImage *image );
 int vips_image_wio_output( VipsImage *image );

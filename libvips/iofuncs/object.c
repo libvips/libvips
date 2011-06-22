@@ -238,7 +238,18 @@ vips_argument_table_destroy( VipsArgumentTable *table )
 	g_hash_table_destroy( table );
 }
 
-/* Loop over the vips_arguments to an object.
+/**
+ * vips_argument_map: (skip)
+ * @object: object whose args should be enumerated
+ * @fn: call this function for every argument
+ * @a: client data
+ * @b: client data
+ *
+ * Loop over the vips_arguments to an object. Stop when @fn returns non-%NULL
+ * and return that value. 
+ *
+ * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
+ * non-%NULL value from @fn.
  */
 void *
 vips_argument_map( VipsObject *object,
@@ -1300,6 +1311,18 @@ vips_object_set_required( VipsObject *object, const char *value )
 	return( 0 );
 }
 
+/**
+ * vips_object_new: (skip)
+ * @type: object to create
+ * @set: set arguments with this
+ * @a: client data
+ * @b: client data
+ *
+ * g_object_new() the object, set any arguments with @set, call
+ * vips_object_build() and return the complete object.
+ *
+ * Returns: the new object
+ */
 VipsObject *
 vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 {
@@ -1462,7 +1485,12 @@ vips_object_to_string_optional( VipsObject *object,
 	return( NULL );
 }
 
-/* The inverse of vips_object_new_from_string(): turn an object into eg.
+/**
+ * vips_object_to_string: (skip)
+ * @object: object to stringify
+ * @buf: write string here
+ *
+ * The inverse of vips_object_new_from_string(): turn an object into eg.
  * "VipsInterpolateSnohalo1(blur=.333333)".
  */
 void
@@ -1502,6 +1530,18 @@ vips_object_map_sub( VipsObject *key, VipsObject *value,
 		args->result = args->fn( key, args->a, args->b );
 }
 
+/**
+ * vips_object_map: (skip)
+ * @fn: function to call for all objects
+ * @a: client data
+ * @b: client data
+ *
+ * Call a function for all alive objects.
+ * Stop when @fn returns non-%NULL and return that value. 
+ *
+ * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
+ * non-%NULL value from @fn.
+ */
 void *
 vips_object_map( VipsSListMap2Fn fn, void *a, void *b )
 {
@@ -1525,7 +1565,18 @@ vips_object_map( VipsSListMap2Fn fn, void *a, void *b )
 	return( args.result );
 }
 
-/* Map over all a type's children.
+/**
+ * vips_type_map: (skip)
+ * @base: base type
+ * @fn: call this function for every type
+ * @a: client data
+ * @b: client data
+ *
+ * Map over a type's children. Stop when @fn returns non-%NULL
+ * and return that value. 
+ *
+ * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
+ * non-%NULL value from @fn.
  */
 void *
 vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b )
@@ -1544,7 +1595,17 @@ vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b )
 	return( result );
 }
 
-/* Loop over all the subtypes of a base type.
+/**
+ * vips_type_map_all: (skip)
+ * @base: base type
+ * @fn: call this function for every type
+ * @a: client data
+ *
+ * Map over a type's children, direct and indirect. Stop when @fn returns 
+ * non-%NULL and return that value. 
+ *
+ * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
+ * non-%NULL value from @fn.
  */
 void *
 vips_type_map_all( GType base, VipsTypeMap fn, void *a )
@@ -1558,18 +1619,28 @@ vips_type_map_all( GType base, VipsTypeMap fn, void *a )
 	return( result );
 }
 
-/* Loop over all the subclasses of a base type.
+/**
+ * vips_class_map_all: (skip)
+ * @base: base type
+ * @fn: call this function for every class
+ * @a: client data
+ *
+ * Map over a class's subclasses, direct and indirect. Stop when @fn returns 
+ * non-%NULL and return that value. 
+ *
+ * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
+ * non-%NULL value from @fn.
  */
 void *
-vips_class_map_all( GType type, VipsClassMap fn, void *a )
+vips_class_map_all( GType base, VipsClassMap fn, void *a )
 {
 	void *result;
 
 	/* We never unref this ref, but we never unload classes
 	 * anyway, so so what.
 	 */
-	if( !(result = fn( VIPS_OBJECT_CLASS( g_type_class_ref( type ) ), a )) )
-		result = vips_type_map( type, 
+	if( !(result = fn( VIPS_OBJECT_CLASS( g_type_class_ref( base ) ), a )) )
+		result = vips_type_map( base, 
 			(VipsTypeMap2) vips_class_map_all, fn, a );
 
 	return( result );
@@ -1589,8 +1660,15 @@ test_name( VipsObjectClass *class, const char *nickname )
 	return( NULL );
 }
 
-/* Find a class ... search below base, return the first match on a nickname or
- * a name.
+/**
+ * vips_class_find: (skip)
+ * @basename: name of base class
+ * @nickname: search for a class with this nickname
+ *
+ * Search below basename, return the first class whose name or nickname
+ * matches.
+ *
+ * Returns: the found class.
  */
 VipsObjectClass *
 vips_class_find( const char *basename, const char *nickname )

@@ -147,7 +147,7 @@ measure_patches( IMAGE *im, double *coeff,
 }
 
 /**
- * im_measure_area:
+ * im_measure_area: (skip)
  * @im: image to measure
  * @left: area of image containing chart
  * @top: area of image containing chart

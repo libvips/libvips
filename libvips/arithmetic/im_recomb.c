@@ -95,7 +95,7 @@ recomb_buf( void *bin, void *bout, int width, IMAGE *in, DOUBLEMASK *mat )
 }
 
 /** 
- * im_recomb:
+ * im_recomb: (skip)
  * @in: input image
  * @out: output image
  * @recomb: recombination matrix

@@ -1969,7 +1969,7 @@ vips__image_write_prepare( VipsImage *image )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
+vips_image_write_line( VipsImage *image, int ypos, void *linebuffer )
 {	
 	int linesize = VIPS_IMAGE_SIZEOF_LINE( image );
 

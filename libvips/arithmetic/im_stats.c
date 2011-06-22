@@ -183,7 +183,7 @@ stats_scan( void *in, int n, void *seq, void *a, void *b )
 }
 
 /**
- * im_stats:
+ * im_stats: (skip)
  * @in: image to scan
  *
  * Find many image statistics in a single pass through the data. Returns a

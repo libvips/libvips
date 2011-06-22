@@ -90,7 +90,7 @@ typedef struct {
  * update operation and we'd need to _remove() and _insert() on every list
  * operation.
  */
-typedef struct {
+typedef struct _VipsBufferCacheList {
 	GSList *buffers;	/* GSList of VipsBuffer* */
 	GThread *thread;	/* Just for sanity checking */
 	struct _VipsImage *im;
@@ -99,7 +99,7 @@ typedef struct {
 
 /* What we track for each pixel buffer. 
  */
-typedef struct {
+typedef struct _VipsBuffer {
 	int ref_count;		/* # of regions referencing us */
 	struct _VipsImage *im;	/* VipsImage we are attached to */
 
@@ -124,7 +124,7 @@ void vips_buffer_print( VipsBuffer *buffer );
 
 /* Region types.
  */
-typedef enum region_type {
+typedef enum _RegionType {
 	VIPS_REGION_NONE,
 	VIPS_REGION_BUFFER,	/* a pixel buffer */
 	VIPS_REGION_OTHER_REGION, /* memory on another region */
@@ -165,6 +165,12 @@ int vips__image_write_prepare( struct _VipsImage *image );
 /* Start up various packages.
  */
 void vips_arithmetic_operation_init( void );
+
+VipsArgumentInstance *vips__argument_get_instance( 
+	VipsArgumentClass *argument_class,
+	VipsObject *object);
+VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table, 
+	GParamSpec *pspec);
 
 #ifdef __cplusplus
 }

@@ -1222,8 +1222,8 @@ lbbicubic( const double c00,
  */
 #define NOHALO_CONVERSION( conversion )               \
   template <typename T> static void inline            \
-  nohalo_ ## conversion(       PEL*   restrict pout,  \
-                         const PEL*   restrict pin,   \
+  nohalo_ ## conversion(       void*  restrict pout,  \
+                         const void*  restrict pin,   \
                          const int             bands, \
                          const int             lskip, \
                          const double          x_0,   \
@@ -1477,7 +1477,7 @@ G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo,
 
 static void
 vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
-                                     PEL*             restrict out,
+                                     void*            restrict out,
                                      REGION*          restrict in,
                                      double                    absolute_x,
                                      double                    absolute_y )

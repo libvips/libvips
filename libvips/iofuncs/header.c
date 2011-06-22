@@ -415,7 +415,7 @@ vips_image_get_mode( VipsImage *image )
 }
 
 /**
- * vips_image_get_data:
+ * vips_image_get_data: (skip)
  * @image: image to get data for
  *
  * Return a pointer to the image's pixel data, if possible. This can involve
@@ -877,7 +877,7 @@ vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
 }
 
 /**
- * vips_image_map:
+ * vips_image_map: (skip)
  * @image: image to map over
  * @fn: function to call for each header field
  * @a: user data for function
@@ -1231,7 +1231,7 @@ meta_get_value( VipsImage *image,
 }
 
 /** 
- * vips_image_set_area:
+ * vips_image_set_area: (skip)
  * @image: image to attach the metadata to
  * @field: metadata name
  * @free_fn: free function for @data
@@ -1256,7 +1256,7 @@ vips_image_set_area( VipsImage *image, const char *field,
 }
 
 /** 
- * vips_image_get_area:
+ * vips_image_get_area: (skip)
  * @image: image to get the metadata from
  * @field: metadata name
  * @data: return metadata value
@@ -1401,7 +1401,7 @@ vips_ref_string_get_type( void )
 }
 
 /** 
- * vips_blob_get:
+ * vips_blob_get: (skip)
  * @value: GValue to get from
  * @length: return the blob length here, optionally
  *
@@ -1493,7 +1493,7 @@ vips_blob_get_type( void )
 }
 
 /** 
- * vips_blob_set:
+ * vips_blob_set: (skip)
  * @value: GValue to set
  * @free_fn: free function for @data
  * @data: pointer to area of memory
@@ -1529,7 +1529,7 @@ vips_blob_set( GValue *value,
 }
 
 /** 
- * vips_image_set_blob:
+ * vips_image_set_blob: (skip)
  * @image: image to attach the metadata to
  * @field: metadata name
  * @free_fn: free function for @data
@@ -1557,7 +1557,7 @@ vips_image_set_blob( VipsImage *image, const char *field,
 }
 
 /** 
- * vips_image_get_blob:
+ * vips_image_get_blob: (skip)
  * @image: image to get the metadata from
  * @field: metadata name
  * @data: pointer to area of memory

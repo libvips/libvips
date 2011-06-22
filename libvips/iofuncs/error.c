@@ -1101,7 +1101,7 @@ vips_check_hist( const char *domain, VipsImage *im )
 }
 
 /**
- * vips_check_imask:
+ * vips_check_imask: (skip)
  * @domain: the originating domain for the error message
  * @mask: mask to check
  *
@@ -1129,7 +1129,7 @@ vips_check_imask( const char *domain, INTMASK *mask )
 }
 
 /**
- * vips_check_dmask:
+ * vips_check_dmask: (skip)
  * @domain: the originating domain for the error message
  * @mask: mask to check
  *
@@ -1157,7 +1157,7 @@ vips_check_dmask( const char *domain, DOUBLEMASK *mask )
 }
 
 /**
- * vips_check_dmask_1d:
+ * vips_check_dmask_1d: (skip)
  * @domain: the originating domain for the error message
  * @mask: mask to check
  *
