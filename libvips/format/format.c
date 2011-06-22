@@ -230,9 +230,10 @@ G_DEFINE_TYPE( VipsFormatTiff, vips_format_tiff, VIPS_TYPE_FORMAT );
 static void *
 format_add_class( VipsFormatClass *format, GSList **formats )
 {
-	/* Append so we don't reverse the list of formats.
-	 */
-	*formats = g_slist_append( *formats, format );
+	if( !G_TYPE_IS_ABSTRACT( G_OBJECT_CLASS_TYPE( format ) ) )
+		/* Append so we don't reverse the list of formats.
+		 */
+		*formats = g_slist_append( *formats, format );
 
 	return( NULL );
 }
@@ -267,7 +268,7 @@ vips_format_map( VSListMap2Fn fn, void *a, void *b )
 	void *result;
 
 	formats = NULL;
-	(void) vips_class_map_concrete_all( g_type_from_name( "VipsFormat" ), 
+	(void) vips_class_map_all( g_type_from_name( "VipsFormat" ), 
 		(VipsClassMap) format_add_class, (void *) &formats );
 
 	formats = g_slist_sort( formats, (GCompareFunc) format_compare );

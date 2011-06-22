@@ -1544,19 +1544,16 @@ vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b )
 	return( result );
 }
 
-/* Loop over all the concrete subtypes of a base type.
+/* Loop over all the subtypes of a base type.
  */
 void *
-vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a )
+vips_type_map_all( GType base, VipsTypeMap fn, void *a )
 {
 	void *result;
 
-	result = NULL;
-	if( !G_TYPE_IS_ABSTRACT( base ) )
-		result = fn( base, a );
-	if( !result )
+	if( !(result = fn( base, a )) )
 		result = vips_type_map( base, 
-			(VipsTypeMap2) vips_type_map_concrete_all, fn, a );
+			(VipsTypeMap2) vips_type_map_all, fn, a );
 
 	return( result );
 }
@@ -1564,20 +1561,16 @@ vips_type_map_concrete_all( GType base, VipsTypeMap fn, void *a )
 /* Loop over all the subclasses of a base type.
  */
 void *
-vips_class_map_concrete_all( GType type, VipsClassMap fn, void *a )
+vips_class_map_all( GType type, VipsClassMap fn, void *a )
 {
 	void *result;
 
-	result = NULL;
-	if( !G_TYPE_IS_ABSTRACT( type ) ) 
-		/* We never unref this ref, but we never unload classes
-		 * anyway, so so what.
-		 */
-		result = fn( VIPS_OBJECT_CLASS( g_type_class_ref( type ) ), a );
-
-	if( !result )
+	/* We never unref this ref, but we never unload classes
+	 * anyway, so so what.
+	 */
+	if( !(result = fn( VIPS_OBJECT_CLASS( g_type_class_ref( type ) ), a )) )
 		result = vips_type_map( type, 
-			(VipsTypeMap2) vips_class_map_concrete_all, fn, a );
+			(VipsTypeMap2) vips_class_map_all, fn, a );
 
 	return( result );
 }
@@ -1611,7 +1604,7 @@ vips_class_find( const char *basename, const char *nickname )
 		return( NULL );
 	}
 
-	if( !(class = vips_class_map_concrete_all( base, 
+	if( !(class = vips_class_map_all( base, 
 		(VipsClassMap) test_name, (void *) nickname )) ) {
 		vips_error( "VipsObject", 
 			_( "class \"%s\" not found" ), nickname ); 
@@ -1629,10 +1622,7 @@ vips_type_find( const char *basename, const char *nickname )
 	if( !(class = vips_class_find( "VipsObject", nickname )) )
 		return( 0 );
 
-	/* FIXME ... we've not supposed to use G_TYPE_FROM_CLASS(), I think. 
-	 * I'm not sure what the alternative is.
-	 */
-	return( G_TYPE_FROM_CLASS( class ) );
+	return( G_OBJECT_CLASS_TYPE( class ) );
 }
 
 void
