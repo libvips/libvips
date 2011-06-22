@@ -903,7 +903,9 @@ vips_image_build( VipsObject *object )
 	VipsImage *image = VIPS_IMAGE( object );
 	const char *filename = image->filename;
 	const char *mode = image->mode;
+
 	VipsFormatClass *format;
+	size_t sizeof_image;
 
 	VIPS_DEBUG_MSG( "vips_image_build: %p\n", image );
 
@@ -1008,7 +1010,9 @@ vips_image_build( VipsObject *object )
 
 		/* Very common, so a special message.
 		 */
-		if( image->file_length < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
+		sizeof_image = VIPS_IMAGE_SIZEOF_IMAGE( image ) + 
+			image->sizeof_header;
+		if( image->file_length < sizeof_image ) {
 			vips_error( "VipsImage", 
 				_( "unable to open \"%s\", file too short" ), 
 				image->filename );
@@ -1018,7 +1022,7 @@ vips_image_build( VipsObject *object )
 		/* Just weird. Only print a warning for this, since we should
 		 * still be able to process it without coredumps.
 		 */
-		if( image->file_length > VIPS_IMAGE_SIZEOF_IMAGE( image ) ) 
+		if( image->file_length > sizeof_image ) 
 			vips_warn( "VipsImage", 
 				_( "%s is longer than expected" ),
 				image->filename );
