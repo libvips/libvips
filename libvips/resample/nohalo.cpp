@@ -271,39 +271,40 @@ typedef struct _VipsInterpolateNohaloClass {
 } VipsInterpolateNohaloClass;
 
 /*
- * MINMOD is an implementation of the minmod function which only needs
- * two conditional moves.
+ * NOHALO_MINMOD is an implementation of the minmod function which
+ * only needs two "conditional moves."
+ * NOHALO_MINMOD(a,b,a_times_a,a_times_b) "returns"
+ * minmod(a,b). The macro parameter ("input") a_times_a is assumed to
+ * contain the square of a; a_times_b, the product of a and b.
  *
- * MINMOD(a,b,a_times_a,a_times_b) "returns" minmod(a,b). The
- * parameter ("input") a_times_a is assumed to contain the square of
- * a; the parameter a_times_b, the product of a and b.
+ * For uncompressed natural images in high bit depth (images for which
+ * the slopes a and b are unlikely to be equal to zero or be equal to
+ * each other), or chips with good branch prediction, the following
+ * version of the minmod function may work well:
  *
- * The version most suitable for images with flat (constant) colour
- * areas, since a, which is a pixel difference, will often be 0, in
- * which case both forward branches are likely:
+ * ( (a_times_b)>=0. ? ( (a_times_b)<(a_times_a) ? (b) : (a) ) : 0. )
  *
- * ( (a_times_b)>=0 ? 1 : 0 ) * ( (a_times_a)<=(a_times_b) ? (a) : (b) )
+ * In this version, the forward branch of the second conditional move
+ * is taken when |b|>|a| and when a*b<0. However, the "else" branch is
+ * taken when a=0 (or when a=b), which is why the above version is not
+ * as effective for images with regions with constant pixel values (or
+ * regions with pixel values which vary linearly or bilinearly) since
+ * we apply minmod to pairs of differences.
  *
- * For natural images in high bit depth (images for which the slopes a
- * and b are unlikely to be equal to zero or be equal to each other),
- * we recommend using
+ * The following version is more suitable for images with flat
+ * (constant) colour areas, since a, which is a pixel difference, will
+ * often be 0, in which case both forward branches are likely. This
+ * may be preferable if "branch flag look ahead" does not work so
+ * well.
  *
- * ( (a_times_b)>=0 ? 1 : 0 ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
+ * ( (a_times_b)>=0. ? ( (a_times_a)<=(a_times_b) ? (a) : (b) ) : 0. )
  *
- * instead. With this second version, the forward branch of the second
- * conditional move is taken when |b|>|a| and when a*b<0. However, the
- * "else" branch is taken when a=0 (or when a=b), which is why this
- * second version is not recommended for images with large regions
- * with constant pixel values (or even, actually, regions with nearby
- * pixel values which vary bilinearly, which may arise from dirt-cheap
- * demosaicing or computer graphics operations).
- *
- * Both of the above use a multiplication instead of a nested
- * "if-then-else" because gcc does not always rewrite the latter using
- * conditional moves.
+ * This last version appears to be slightly better than the former in
+ * speed tests performed on a recent multicore Intel chip, especially
+ * when enlarging a sharp image by a large factor, hence the choice.
  */
 #define NOHALO_MINMOD(a,b,a_times_a,a_times_b) \
-  ( (a_times_b)>=0. ? 1. : 0. ) * ( (a_times_b)<(a_times_a) ? (b) : (a) )
+  ( ( (a_times_b)>=0. ) ? ( (a_times_a)<=(a_times_b) ? (a) : (b) ) : 0. )
 
 #define NOHALO_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
 #define NOHALO_SIGN(x) ( ((x)>=0.) ? 1.  : -1.  )
