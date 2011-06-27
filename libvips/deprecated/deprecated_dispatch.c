@@ -1403,6 +1403,32 @@ static im_function insertplace_desc = {
 	insertplace_args 		/* Arg list */
 };
 
+/* Used to be called im_remainderconst_vec, stupidly.
+ */
+static int
+remainderconst_vec_vec( im_object *argv )
+{
+	im_doublevec_object *dv = (im_doublevec_object *) argv[2];
+
+	return( im_remainder_vec( argv[0], argv[1], dv->n, dv->vec ) );
+}
+
+static im_arg_desc remainderconst_vec_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_DOUBLEVEC( "x" )
+};
+
+static im_function remainderconst_vec_desc = {
+	"im_remainderconst_vec", 	/* Name */
+	N_( "remainder after integer division by a vector of constants" ),
+					/* Description */
+	IM_FN_PIO | IM_FN_PTOP,		/* Flags */
+	remainderconst_vec_vec, 	/* Dispatch function */
+	IM_NUMBER( remainderconst_vec_args ),/* Size of arg list */
+	remainderconst_vec_args 	/* Arg list */
+};
+
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
@@ -1452,6 +1478,7 @@ static im_function *deprecated_list[] = {
 	&erode_raw_desc,
 	&similarity_area_desc,
 	&similarity_desc,
+	&remainderconst_vec_desc,
 	&insertplace_desc,
 	&circle_desc
 };
