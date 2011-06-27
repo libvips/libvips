@@ -165,6 +165,8 @@ ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 		im_check_format_same( "ifthenelse", a, b ) ||
 		im_check_bands_same( "ifthenelse", a, b ) ||
 		im_check_bands_1orn( "im_ifthenelse", c, a ) || 
+		im_check_size_same( "ifthenelse", a, b ) ||
+		im_check_size_same( "ifthenelse", a, c ) ||
 		im_piocheck( c, out ) || 
 		im_pincheck( a ) || 
 		im_pincheck( b ) )
@@ -200,8 +202,8 @@ ifthenelse( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
  *
  * Images @a and @b are cast up to the smallest common format.
  *
- * If the images differ in size, the smaller image is enlarged to match the
- * larger by adding zero pixels along the bottom and right.
+ * If the images differ in size, the smaller images are enlarged to match the
+ * largest by adding zero pixels along the bottom and right.
  *
  * See also: im_blend(), im_equal().
  *

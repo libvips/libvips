@@ -266,26 +266,11 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
   also a mail from Martin Breidt has links to several fast free C
   implementations
 
-- try making vips_add(), an operator as a class
-
 - need a section for vipsobject in the tutorial
 
   also a manpage?
 
   not really stable yet :( don't document
-
-- how to expose things like snohalo1's "blur" parameter to
-  C++/Python?
-
-  can we write a find-by-nickname function? eg.
-
-  	GType vips_get_type (const char *base, const char *nickname)
-
-  then 
-
-  	vips_get_type ("VipsInterpolator", "bicubic")
-
-  would get us the GType for VipsInterpolatorBicubic
 
 - we shouldn't need to call im_invalidate() in gtkdisp4 :( how can we fix
   this?
@@ -293,23 +278,8 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
 - we should wrap the format API, also im_render*(), see gtkdisp.cc for sample
   code
 
-- have a base VObject class and put the ref stuff in there ... share between
-  VMask, VDisplay, VImage
-
 - need an im_init_world() for C++ which does cmd-line args too, so C++ progs
   can get --vips-progress and stuff automatically
-
-- more cleanups to the handling of vips format images, esp. we have vips write
-  spread across many files atm
-
-- could remove a lot of crappy old API
-
-- try
-
-	libsrc/convolution$ grep -l offsets *.c
-
-  could we do the don't calc offsets thing unless bpl; changes thing in more
-  places?
 
 - unsharp should work on GREY16? should be easy to add GREY16->LABS
 

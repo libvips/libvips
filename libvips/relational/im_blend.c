@@ -10,6 +10,8 @@
  * 	- use im_check*()
  * 	- allow many-band conditional and single-band a/b
  * 	- allow a/b to differ in format and bands
+ * 27/6/11
+ * 	- sizealike as well
  */
 
 /*
@@ -295,6 +297,8 @@ blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 		im_check_format_same( "im_blend", a, b ) ||
 		im_check_bands_same( "im_blend", a, b ) ||
 		im_check_bands_1orn( "im_blend", c, a ) || 
+		im_check_size_same( "im_blend", a, b ) ||
+		im_check_size_same( "im_blend", a, c ) ||
 		im_piocheck( c, out ) || 
 		im_pincheck( a ) || 
 		im_pincheck( b ) )
@@ -328,13 +332,14 @@ blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
  * image @b. 255 means @a only, 0 means @b only, and intermediate values are a
  * mixture.
  *
- * Any image can have either 1 band or n bands, where n is the same for all
+ * Any image may have either 1 band or n bands, where n is the same for all
  * the non-1-band images. Single band images are then effectively copied to 
  * make n-band images.
  *
  * Images @a and @b are cast up to the smallest common format.
  *
- * Images @a and @b must match exactly in size.
+ * If the images differ in size, the smaller images are enlarged to match the
+ * largest by adding zero pixels along the bottom and right.
  *
  * See also: im_ifthenelse(), im_equal().
  *
@@ -348,9 +353,9 @@ im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	const int repack = a->Coding == IM_CODING_LABQ && 
 		b->Coding == IM_CODING_LABQ;
 
-	IMAGE *t[8];
+	IMAGE *t[12];
 
-	if( im_open_local_array( out, t, 8, "im_blend", "p" ) )
+	if( im_open_local_array( out, t, 12, "im_blend", "p" ) )
 		return( -1 );
 
 	/* Unpack LABPACK as a courtesy.
@@ -369,27 +374,33 @@ im_blend( IMAGE *c, IMAGE *a, IMAGE *b, IMAGE *out )
 	/* c must be uchar.
 	 */
 	if( c->BandFmt != IM_BANDFMT_UCHAR ) {
-		if( im_clip2fmt( c, t[7], IM_BANDFMT_UCHAR ) )
+		if( im_clip2fmt( c, t[2], IM_BANDFMT_UCHAR ) )
 			return( -1 );
 
-		c = t[7];
+		c = t[2];
 	}
 
 	/* Make a and b match in bands and format.
 	 */
-	if( im__formatalike( a, b, t[2], t[3] ) ||
-		im__bandalike( "im_blend", t[2], t[3], t[4], t[5] ) )
+	if( im__formatalike( a, b, t[3], t[4] ) ||
+		im__bandalike( "im_blend", t[3], t[4], t[6], t[7] ) )
 		return( -1 );
 
-	if( blend( c, t[4], t[5], t[6] ) )
+	/* Make a, b and c match in size.
+	 */
+	t[5] = c;
+	if( im__sizealike_vec( t + 5, t + 8, 3 ) )
+		return( -1 );
+
+	if( blend( t[8], t[9], t[10], t[11] ) )
 		return( -1 );
 
 	if( repack ) {
-		if( im_Lab2LabQ( t[6], out ) )
+		if( im_Lab2LabQ( t[11], out ) )
 			return( -1 );
 	}
 	else {
-		if( im_copy( t[6], out ) )
+		if( im_copy( t[11], out ) )
 			return( -1 );
 	}
 
