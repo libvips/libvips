@@ -1,3 +1,10 @@
+- icc import / export should cast their inputs, they insist on uchar etc. at
+  the moment
+
+
+- can we call vips7 funcs from the vips8 interface?
+
+
 - revisit orc conv
 
   use an 8.8 accumulator ... build the scale into the 8.8 coeffs ... no div at

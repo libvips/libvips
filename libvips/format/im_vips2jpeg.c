@@ -38,6 +38,8 @@
  * 18/7/10
  * 	- collect im_vips2bufjpeg() output in a list of blocks ... we no
  * 	  longer overallocate or underallocate
+ * 8/7/11
+ * 	- oop CMYK write was not inverting, thanks Ole
  */
 
 /*
@@ -540,15 +542,15 @@ write_jpeg_block( REGION *region, Rect *area, void *a )
 	Write *write = (Write *) a;
 	int i;
 
-	/* We are running in a background thread. We need to catch longjmp()s
-	 * here instead.
-	 */
-	if( setjmp( write->eman.jmp ) ) 
-		return( -1 );
-
 	for( i = 0; i < area->height; i++ )
 		write->row_pointer[i] = (JSAMPROW) 
 			IM_REGION_ADDR( region, 0, area->top + i );
+
+	/* We are running in a background thread. We need to catch any
+	 * longjmp()s from jpeg_write_scanlines() here.
+	 */
+	if( setjmp( write->eman.jmp ) ) 
+		return( -1 );
 
 	jpeg_write_scanlines( &write->cinfo, write->row_pointer, area->height );
 
@@ -609,8 +611,7 @@ write_vips( Write *write, int qfac, const char *profile )
 
 	/* Build VIPS output stuff now we know the image we'll be writing.
 	 */
-	if( !(write->row_pointer = 
-		IM_ARRAY( NULL, write->in->Ysize, JSAMPROW )) )
+	if( !(write->row_pointer = IM_ARRAY( NULL, in->Ysize, JSAMPROW )) )
 		return( -1 );
 
 	/* Rest to default. 
@@ -641,7 +642,7 @@ write_vips( Write *write, int qfac, const char *profile )
 
 	/* Write data. Note that the write function grabs the longjmp()!
 	 */
-	if( vips_sink_disc( write->in, write_jpeg_block, write ) )
+	if( vips_sink_disc( in, write_jpeg_block, write ) )
 		return( -1 );
 
 	/* We have to reinstate the setjmp() before we jpeg_finish_compress().

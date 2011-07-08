@@ -68,6 +68,7 @@
 - added VipsPool, got rid of floating refs again, argh
 - VIPS_EXEEXT is now part of the exported API
 - im_blend() also does sizealike, oops
+- jpeg write was not inverting CMYK, thanks Ole
 
 30/11/10 started 7.24.0
 - bump for new stable
