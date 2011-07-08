@@ -1,5 +1,12 @@
-- icc import / export should cast their inputs, they insist on uchar etc. at
+- icc import / export should cast their inputs, they insist on uchar/ushort at
   the moment
+
+  we could band up (mono->rgb) and banddown (take first three? take forst
+  three, then process, then reattach remainder?) as well
+
+  other colour ops (eg. im_Lab2LCh) just insist on three bands and do a 
+  cast to float for you
+
 
 
 - can we call vips7 funcs from the vips8 interface?
