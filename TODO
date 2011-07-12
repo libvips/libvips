@@ -1,17 +1,6 @@
-- maplut should force to 8/16 bit unsigned? or does it?
-
 - im_vip2tiff() pyr builder should use new temp system
 
 - can isanalyze still add spurious messages to the vips error buffer?
-
-- icc import / export should cast their inputs, they insist on uchar/ushort at
-  the moment
-
-  we could band up (mono->rgb) and banddown (take first three? take forst
-  three, then process, then reattach remainder?) as well
-
-  other colour ops (eg. im_Lab2LCh) just insist on three bands and do a 
-  cast to float for you
 
 
 

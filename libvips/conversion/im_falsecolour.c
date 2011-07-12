@@ -338,10 +338,10 @@ im_falsecolour( IMAGE *in, IMAGE *out )
 	/* Check our args, force to mono 8-bit. 
 	 */
 	if( im_piocheck( in, out ) || 
-		im_check_uncoded( "im_falsecolour", in ) )
+		im_check_uncoded( "im_falsecolour", in ) ||
 		im_open_local_array( out, t, 2, "im_falsecolour", "p" ) ||
 		im_extract_band( in, t[0], 0 ) ||
-		im_clip2fmt( t[0], t[1], IM_BANDFMT_UCHAR ) 
+		im_clip2fmt( t[0], t[1], IM_BANDFMT_UCHAR ) )
 		return( -1 );
 	in = t[1];
 

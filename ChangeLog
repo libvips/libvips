@@ -70,6 +70,7 @@
 - im_blend() also does sizealike, oops
 - jpeg write was not inverting CMYK, thanks Ole
 - im_falsecolour() converts to mono 8-bit for you
+- im_icc_import*/export*() cast inputs for you
 
 30/11/10 started 7.24.0
 - bump for new stable

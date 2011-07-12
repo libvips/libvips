@@ -17,6 +17,8 @@
  * 	  written if we are wrinting to a file
  * 2/8/10
  * 	- add lcms2
+ * 12/7/11
+ * 	- import and export cast @in to an appropriate format for you
  */
 
 /*
@@ -487,13 +489,33 @@ import_buf( PEL *in, float *out, int n, Icc *icc )
 	}
 }
 
+/* Save a bit of typing.
+ */
+#define UC IM_BANDFMT_UCHAR
+#define US IM_BANDFMT_USHORT
+
+/* Type mapping: go to uchar or ushort.
+ */
+static int bandfmt_icc_import[10] = {
+/* UC   C  US   S  UI   I   F   X  D   DX */
+   UC, UC, US, US, US, US, US, US, US, US
+};
+
 static int
 icc_import( IMAGE *in, IMAGE *out, Icc *icc )
 {
+	IMAGE *t;
 	DWORD icc_format;
 
 	if( im_check_uncoded( "im_icc_import", in ) )
 		return( -1 ); 
+
+	/* Cast in to u8/u16.
+	 */
+	if( !(t = im_open_local( out, "im_maplut", "p" )) ||
+		im_clip2fmt( in, t, bandfmt_icc_import[in->BandFmt] ) )
+		return( -1 );
+	in = t;
 
 	if( !cmsIsIntentSupported( icc->in_profile, 
 		icc->intent, LCMS_USED_AS_INPUT ) )
@@ -669,6 +691,7 @@ int
 im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 	const char *output_profile_filename, VipsIntent intent )
 { 
+	IMAGE *t;
 	Icc *icc;
 	DWORD icc_format;
 
@@ -694,11 +717,16 @@ im_icc_export_depth( IMAGE *in, IMAGE *out, int depth,
 		in = t1;
 	}
 
+	/* Force to float anyway.
+	 */
+	if( !(t = im_open_local( out, "im_icc_export", "p" )) ||
+		im_clip2fmt( in, t, IM_BANDFMT_FLOAT ) )
+		return( -1 );
+
 	/* Check input image.
 	 */
 	if( im_check_uncoded( "im_icc_export", in ) ||
-		im_check_bands( "im_icc_export", in, 3 ) ||
-		im_check_format( "im_icc_export", in, IM_BANDFMT_FLOAT ) )
+		im_check_bands( "im_icc_export", in, 3 ) )
 		return( -1 );
 
 	if( depth != 8 && depth != 16 ) {
