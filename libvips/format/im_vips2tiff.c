@@ -6,8 +6,9 @@
  * legend is included on all tape media and as a part of the
  * software program in whole or part.  Users may copy, modify or
  * distribute this file at will.
-
- MODIFICATION FOR VIPS Copyright 1991, K.Martinez 
+ *
+ * MODIFICATION FOR VIPS Copyright 1991, K.Martinez 
+ *
  * software may be distributed FREE, with these copyright notices
  * no responsibility/warantee is implied or given
  *
@@ -115,6 +116,9 @@
  * 22/6/10
  * 	- make no-owner regions for the tile cache, since we share these
  * 	  between threads
+ * 12/7/11
+ * 	- use im__temp_name() for intermediates rather than polluting the
+ * 	  output directory
  */
 
 /*
@@ -591,27 +595,6 @@ free_pyramid( PyramidLayer *layer )
 	free_layer( layer );
 }
 
-/* Make a name for a new TIFF layer. Base it on sub factor.
- */
-static char *
-new_tiff_name( TiffWrite *tw, char *name, int sub )
-{
-	char buf[FILENAME_MAX];
-	char buf2[FILENAME_MAX];
-
-	/* Remove existing .tif/.tiff suffix, if any.
-	 */
-	strcpy( buf, name );
-	if( im_ispostfix( buf, ".tif" ) )
-		buf[strlen( buf ) - 4] = '\0';
-	if( im_ispostfix( buf, ".tiff" ) )
-		buf[strlen( buf ) - 5] = '\0';
-
-	im_snprintf( buf2, FILENAME_MAX, "%s.%d.tif", buf, sub );
-
-	return( im_strdup( tw->im, buf2 ) );
-}
-
 /* Build a pyramid. w & h are size of layer above this layer. Write new layer
  * struct into *zap, return 0/-1 for success/fail.
  */
@@ -656,7 +639,7 @@ build_pyramid( TiffWrite *tw, PyramidLayer *above,
 			&layer->below, layer->width, layer->height ) )
 			return( -1 );
 
-	if( !(layer->lname = new_tiff_name( tw, tw->name, layer->sub )) )
+	if( !(layer->lname = im__temp_name( "%s.tif" )) )
 		return( -1 );
 
 	/* Make output image.
@@ -1718,12 +1701,12 @@ im_vips2tiff( IMAGE *in, const char *filename )
 	}
 
 	/* Make output image. If this is a pyramid, write the base image to
-	 * fred.1.tif rather than fred.tif.
+	 * tmp/xx.tif rather than fred.tif.
 	 */
 	if( !(tw = make_tiff_write( in, filename )) )
 		return( -1 );
 	if( tw->pyramid ) {
-		if( !(tw->bname = new_tiff_name( tw, tw->name, 1 )) ||
+		if( !(tw->bname = im__temp_name( "%s.tif" )) ||
 			!(tw->tif = tiff_openout( tw, tw->bname )) ) {
 			free_tiff_write( tw );
 			return( -1 );

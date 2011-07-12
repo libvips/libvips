@@ -1,8 +1,3 @@
-- im_vip2tiff() pyr builder should use new temp system
-
-- can isanalyze still add spurious messages to the vips error buffer?
-
-
 
 - can we call vips7 funcs from the vips8 interface? we already have vips8 from
   vips7
