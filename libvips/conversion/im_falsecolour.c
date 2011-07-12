@@ -10,6 +10,8 @@
  * 29/1/10
  * 	- cleanups
  * 	- gtkdoc
+ * 12/7/11
+ * 	- force input to mono 8-bit for the user
  */
 
 /*
@@ -318,7 +320,8 @@ static unsigned char PET_colour[][3] = {
  * @in: input image
  * @out: output image
  *
- * Turn a 1-band 8-bit image into a 3-band 8-bit image with a false colour
+ * Force @in to 1 band, 8-bit, then transform to 
+ * 3-band 8-bit image with a false colour
  * map. The map is supposed to make small differences in brightness more
  * obvious.
  *
@@ -329,15 +332,18 @@ static unsigned char PET_colour[][3] = {
 int
 im_falsecolour( IMAGE *in, IMAGE *out )
 {
+	IMAGE *t[2];
 	IMAGE *lut;
 
-	/* Check our args. 
+	/* Check our args, force to mono 8-bit. 
 	 */
 	if( im_piocheck( in, out ) || 
-		im_check_mono( "im_falsecolour", in ) ||
-		im_check_uncoded( "im_falsecolour", in ) ||
-		im_check_format( "im_falsecolour", in, IM_BANDFMT_UCHAR ) )
+		im_check_uncoded( "im_falsecolour", in ) )
+		im_open_local_array( out, t, 2, "im_falsecolour", "p" ) ||
+		im_extract_band( in, t[0], 0 ) ||
+		im_clip2fmt( t[0], t[1], IM_BANDFMT_UCHAR ) 
 		return( -1 );
+	in = t[1];
 
 	if( !(lut = im_image( (PEL *) PET_colour, 
 		1, 256, 3, IM_BANDFMT_UCHAR )) )

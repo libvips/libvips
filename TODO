@@ -1,3 +1,9 @@
+- maplut should force to 8/16 bit unsigned? or does it?
+
+- im_vip2tiff() pyr builder should use new temp system
+
+- can isanalyze still add spurious messages to the vips error buffer?
+
 - icc import / export should cast their inputs, they insist on uchar/ushort at
   the moment
 
@@ -9,7 +15,9 @@
 
 
 
-- can we call vips7 funcs from the vips8 interface?
+- can we call vips7 funcs from the vips8 interface? we already have vips8 from
+  vips7
+
 
 
 - revisit orc conv
