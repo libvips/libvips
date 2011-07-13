@@ -743,6 +743,8 @@ vips_object_get_property( GObject *gobject,
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gobject );
 	VipsArgumentClass *argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
+	VipsArgumentInstance *argument_instance =
+		vips__argument_get_instance( argument_class, object );
 
 	if( !argument_class ) {
 		G_OBJECT_WARN_INVALID_PROPERTY_ID( gobject,
@@ -751,6 +753,14 @@ vips_object_get_property( GObject *gobject,
 	}
 
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
+
+	if( !argument_instance->assigned ) {
+		g_warning( "%s: %s attempt to read unset property %s",
+			G_STRLOC,
+			G_OBJECT_TYPE_NAME( gobject ),
+			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
+		return;
+	}
 
 	if( G_IS_PARAM_SPEC_STRING( pspec ) ) {
 		char *member = G_STRUCT_MEMBER( char *, object,

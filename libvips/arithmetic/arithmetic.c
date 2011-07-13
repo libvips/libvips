@@ -108,9 +108,6 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 
 	GParamSpec *pspec;
 
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
 	vobject_class->build = vips_arithmetic_build;
 
 	pspec = g_param_spec_object( "out", "Output", 
