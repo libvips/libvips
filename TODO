@@ -1,6 +1,5 @@
 
 
-
 - revisit orc conv
 
   use an 8.8 accumulator ... build the scale into the 8.8 coeffs ... no div at
