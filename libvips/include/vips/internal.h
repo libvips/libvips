@@ -261,6 +261,10 @@ VipsImage *im__inplace_base( const char *domain,
  */
 void vips__interpolate_init( void );
 
+/* Register wrappers for all the vips7 operations.
+ */
+void vips__init_wrap7_classes( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

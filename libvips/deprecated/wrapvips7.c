@@ -31,10 +31,10 @@
  */
 
 /*
+ */
 #define DEBUG
 #define VIPS_DEBUG
 #define DEBUG_REF
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -54,11 +54,15 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define VIPS7_PREFIX "Vips7_"
+#define VIPS_WRAP7_PREFIX "VipsWrap7_"
 
-static GHashTable *vips7_types = NULL;
+static GHashTable *vips_wrap7_subclass_types = NULL;
 
-typedef struct _Vips7 {
+/* VipsWrap7 is an abstract type ... subclass for each operation we wrap with 
+ * no extra members.
+ */
+
+typedef struct _VipsWrap7 {
 	VipsOperation parent_object;
 
 	/* vips7 dispatch spine we build.
@@ -69,9 +73,9 @@ typedef struct _Vips7 {
 	 */
 	gboolean error;
 
-} Vips7;
+} VipsWrap7;
 
-typedef struct _Vips7Class { 
+typedef struct _VipsWrap7Class { 
 	VipsOperationClass  parent_class;
 
 	/* Look this up from the class name.
@@ -82,25 +86,37 @@ typedef struct _Vips7Class {
 	 */
 	gboolean not_supported;
 
-} Vips7Class;
+} VipsWrap7Class;
+
+#define VIPS_TYPE_WRAP7 (vips_wrap7_get_type())
+#define VIPS_WRAP7( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), VIPS_TYPE_WRAP7, VipsWrap7 ))
+#define VIPS_WRAP7_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), VIPS_TYPE_WRAP7, VipsWrap7Class))
+#define VIPS_IS_WRAP7( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_WRAP7 ))
+#define VIPS_IS_WRAP7_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_WRAP7 ))
+#define VIPS_WRAP7_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), VIPS_TYPE_WRAP7, VipsWrap7Class ))
 
 typedef enum {
-	VIPS7_NONE = -1,
-	VIPS7_DOUBLE = 0,
-	VIPS7_INT,
-	VIPS7_COMPLEX,
-	VIPS7_STRING,
-	VIPS7_IMAGE,
-	VIPS7_DOUBLEVEC,
-	VIPS7_DMASK,
-	VIPS7_IMASK,
-	VIPS7_IMAGEVEC,
-	VIPS7_INTVEC,
-	VIPS7_GVALUE,
-	VIPS7_INTERPOLATE
-} Vips7Type;
+	VIPS_WRAP7_NONE = -1,
+	VIPS_WRAP7_DOUBLE = 0,
+	VIPS_WRAP7_INT,
+	VIPS_WRAP7_COMPLEX,
+	VIPS_WRAP7_STRING,
+	VIPS_WRAP7_IMAGE,
+	VIPS_WRAP7_DOUBLEVEC,
+	VIPS_WRAP7_DMASK,
+	VIPS_WRAP7_IMASK,
+	VIPS_WRAP7_IMAGEVEC,
+	VIPS_WRAP7_INTVEC,
+	VIPS_WRAP7_GVALUE,
+	VIPS_WRAP7_INTERPOLATE
+} VipsWrap7Type;
 
-static char *vips7_supported[] = {
+static char *vips_wrap7_supported[] = {
 	IM_TYPE_DOUBLE,
 	IM_TYPE_INT,
 	IM_TYPE_COMPLEX,
@@ -117,36 +133,24 @@ static char *vips7_supported[] = {
 
 /* Turn a vips7 type name to an enum.
  */
-static Vips7Type
-vips7_lookup_type( im_arg_type type )
+static VipsWrap7Type
+vips_wrap7_lookup_type( im_arg_type type )
 {
 	int i;
 
-	for( i = 0; i < IM_NUMBER( vips7_supported ); i++ )
-		if( strcmp( type, vips7_supported[i] ) == 0 )
-			return( (Vips7Type) i );
+	for( i = 0; i < VIPS_NUMBER( vips_wrap7_supported ); i++ )
+		if( strcmp( type, vips_wrap7_supported[i] ) == 0 )
+			return( (VipsWrap7Type) i );
 
-	return( VIPS7_NONE );
+	return( VIPS_WRAP7_NONE );
 }
 
-static void
-vips7_dispose( GObject *gobject )
-{
-	Vips7 *vips7 = VIPS7( gobject );
+G_DEFINE_ABSTRACT_TYPE( VipsWrap7, vips_wrap7, VIPS_TYPE_OPERATION );
 
-#ifdef DEBUG
-	printf( "vips7_dispose: " );
-	vips_object_print_name( object );
-	printf( "\n" );
-#endif /*DEBUG*/
-
-	G_OBJECT_CLASS( parent_class )->dispose( gobject );
-}
-
-/* Junk stuff we may have attached to vargv.
+/* Drop any refs vargv may hold.
  */
 static void
-vips7_vargv_free( im_function *fn, im_object *vargv )
+vips_wrap7_vargv_dispose( im_function *fn, im_object *vargv )
 {
 	int i;
 
@@ -155,44 +159,38 @@ vips7_vargv_free( im_function *fn, im_object *vargv )
 		im_type_desc *type = arg->desc;
 		im_arg_type vt = type->type;
 
-		switch( vips7_lookup_type( vt ) ) {
-		case CALL_NONE:         /* IM_TYPE_DISPLAY */
-		case CALL_DOUBLE:
-		case CALL_INT:
-		case CALL_COMPLEX:
-		case CALL_GVALUE:
-		case CALL_INTERPOLATE:
-		case CALL_IMAGE:
+		switch( vips_wrap7_lookup_type( vt ) ) {
+		case VIPS_WRAP7_NONE:         /* IM_TYPE_DISPLAY */
+		case VIPS_WRAP7_DOUBLE:
+		case VIPS_WRAP7_INT:
+		case VIPS_WRAP7_COMPLEX:
+		case VIPS_WRAP7_DOUBLEVEC:
+		case VIPS_WRAP7_INTVEC:
+		case VIPS_WRAP7_DMASK:
+		case VIPS_WRAP7_IMASK:
 			/* Do nothing.
 			 */
 			break;
 
-		case CALL_STRING:
-			VIPS_FREE( obj );
+		case VIPS_WRAP7_INTERPOLATE:
+		case VIPS_WRAP7_IMAGE:
+			if( vargv[i] ) 
+				VIPS_UNREF( vargv[i] );
 			break;
 
-		case CALL_IMAGEVEC:
-			VIPS_FREE( ((im_imagevec_object *) obj)->vec );
+		case VIPS_WRAP7_IMAGEVEC:
+{
+			im_imagevec_object *iv = vargv[i]; 
+			int j; 
+
+			for( j = 0; j < iv->n; j++ )
+				if( iv->vec[j] ) 
+					VIPS_UNREF( iv->vec[j] );
+}
 			break;
 
-		case CALL_DOUBLEVEC:
-			VIPS_FREE( ((im_doublevec_object *) obj)->vec );
-			break;
-
-		case CALL_INTVEC:
-			VIPS_FREE( ((im_intvec_object *) obj)->vec );
-			break;
-
-		case CALL_DMASK:
-			VIPS_FREE( ((im_mask_object *) obj)->name );
-			VIPS_FREEF( im_free_dmask,
-				((im_mask_object *) obj)->mask );
-			break;
-
-		case CALL_IMASK:
-			VIPS_FREE( ((im_mask_object *) obj)->name );
-			VIPS_FREEF( im_free_imask,
-				((im_mask_object *) obj)->mask );
+		case VIPS_WRAP7_GVALUE:
+			g_value_unset( vargv[i] );
 			break;
 
 		default:
@@ -202,28 +200,106 @@ vips7_vargv_free( im_function *fn, im_object *vargv )
 }
 
 static void
-vips7_finalize( GObject *gobject )
+vips_wrap7_dispose( GObject *gobject )
 {
-	Vips7 *vips7 = VIPS7( gobject );
-	Vips7Class *class = VIPS7_GET_CLASS( vips7 );
+	VipsWrap7 *wrap7 = VIPS_WRAP7( gobject );
+	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
 
 #ifdef DEBUG
-	printf( "vips7_finalize: " );
-	vips_object_print_name( object );
+	printf( "vips_wrap7_dispose: " );
+	vips_object_print_name( VIPS_OBJECT( wrap7 ) );
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	if( vips7->vargv ) {
-		vips7_vargv_free( class->fn, vips7->vargv )
-		im_free_vargv( class->fn, vips7->vargv );
-		VIPS_FREE( vips7->vargv );
-	}
+	vips_wrap7_vargv_dispose( class->fn, wrap7->vargv );
 
-	G_OBJECT_CLASS( parent_class )->finalize( gobject );
+	G_OBJECT_CLASS( vips_wrap7_parent_class )->dispose( gobject );
+}
+
+/* Junk stuff we may have attached to vargv.
+ */
+static void
+vips_wrap7_vargv_finalize( im_function *fn, im_object *vargv )
+{
+	int i;
+
+	for( i = 0; i < fn->argc; i++ ) {
+		im_arg_desc *arg = &fn->argv[i];
+		im_type_desc *type = arg->desc;
+		im_arg_type vt = type->type;
+
+		switch( vips_wrap7_lookup_type( vt ) ) {
+		case VIPS_WRAP7_NONE:         /* IM_TYPE_DISPLAY */
+		case VIPS_WRAP7_DOUBLE:
+		case VIPS_WRAP7_INT:
+		case VIPS_WRAP7_COMPLEX:
+		case VIPS_WRAP7_GVALUE:
+		case VIPS_WRAP7_INTERPOLATE:
+		case VIPS_WRAP7_IMAGE:
+			/* Do nothing.
+			 */
+			break;
+
+		case VIPS_WRAP7_STRING:
+			VIPS_FREE( vargv[i] );
+			break;
+
+		case VIPS_WRAP7_IMAGEVEC:
+			VIPS_FREE( ((im_imagevec_object *) vargv[i])->vec );
+			break;
+
+		case VIPS_WRAP7_DOUBLEVEC:
+			VIPS_FREE( ((im_doublevec_object *) vargv[i])->vec );
+			break;
+
+		case VIPS_WRAP7_INTVEC:
+			VIPS_FREE( ((im_intvec_object *) vargv[i])->vec );
+			break;
+
+		case VIPS_WRAP7_DMASK:
+			VIPS_FREE( ((im_mask_object *) vargv[i])->name );
+			VIPS_FREEF( im_free_dmask,
+				((im_mask_object *) vargv[i])->mask );
+			break;
+
+		case VIPS_WRAP7_IMASK:
+			VIPS_FREE( ((im_mask_object *) vargv[i])->name );
+			VIPS_FREEF( im_free_imask,
+				((im_mask_object *) vargv[i])->mask );
+			break;
+
+		default:
+			g_assert( FALSE );
+		}
+	}
 }
 
 static void
-vips7_object_set_property( GObject *gobject,
+vips_wrap7_finalize( GObject *gobject )
+{
+	VipsWrap7 *wrap7 = VIPS_WRAP7( gobject );
+	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
+
+#ifdef DEBUG
+	printf( "vips_wrap7_finalize: " );
+	vips_object_print_name( VIPS_OBJECT( wrap7 ) );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	if( wrap7->vargv ) {
+		vips_wrap7_vargv_finalize( class->fn, wrap7->vargv );
+		im_free_vargv( class->fn, wrap7->vargv );
+		VIPS_FREE( wrap7->vargv );
+	}
+
+	G_OBJECT_CLASS( vips_wrap7_parent_class )->finalize( gobject );
+}
+
+/* Like the one in object.c, but write to vargv instead. Use offset to record
+ * the index in vargv we set.
+ */
+static void
+vips_wrap7_object_set_property( GObject *gobject,
 	guint property_id, const GValue *value, GParamSpec *pspec )
 {
 	VipsObject *object = VIPS_OBJECT( gobject );
@@ -233,8 +309,8 @@ vips7_object_set_property( GObject *gobject,
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
 
-	Vips7 *vips7 = VIPS7( gobject );
-	Vips7Class *class = VIPS7_GET_CLASS( vips7 );
+	VipsWrap7 *wrap7 = VIPS_WRAP7( gobject );
+	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
 	int i = argument_class->offset;
 	im_arg_desc *arg = &class->fn->argv[i];
 	im_type_desc *type = arg->desc;
@@ -286,30 +362,38 @@ vips7_object_set_property( GObject *gobject,
 		return;
 	}
 
-	switch( vips7_lookup_type( vt ) ) {
-	case VIPS7_DOUBLE:
-		*((double*)vi->vargv[i]) = g_value_get_double( value );
+	switch( vips_wrap7_lookup_type( vt ) ) {
+	case VIPS_WRAP7_DOUBLE:
+		*((double*)wrap7->vargv[i]) = g_value_get_double( value );
 		break;
 
-	case VIPS7_INT:
-		*((int*)vi->vargv[i]) = g_value_get_int( value );
+	case VIPS_WRAP7_INT:
+		*((int*)wrap7->vargv[i]) = g_value_get_int( value );
 		break;
 
-	case VIPS7_STRING:
-		VIPS_SETSTR( vi->vargv[i], g_value_get_string( value ) );
+	case VIPS_WRAP7_STRING:
+		VIPS_SETSTR( wrap7->vargv[i], g_value_get_string( value ) );
 		break;
 
-	case VIPS7_GVALUE:
-		vi->vargv[i] = value;
+	case VIPS_WRAP7_GVALUE:
+		g_value_init( wrap7->vargv[i], G_VALUE_TYPE( value ) );
+		g_value_copy( value, wrap7->vargv[i] );
 		break;
 
-	case VIPS7_IMAGE:
-	case VIPS7_INTERPOLATE:
-		vi->vargv[i] = g_value_get_object( value );
+	case VIPS_WRAP7_IMAGE:
+	case VIPS_WRAP7_INTERPOLATE:
+		/* This does not add a ref to object.
+		 */
+		wrap7->vargv[i] = g_value_get_object( value );
+
+		/* Now ref the object this operation refs. Drop this ref in
+		 * _dispose(), see above.
+		 */
+		g_object_ref( g_value_get_object( value ) );
 		break;
 
 	default:
-		vips7->error = TRUE;
+		wrap7->error = TRUE;
 		break;
 	}
 
@@ -319,18 +403,20 @@ vips7_object_set_property( GObject *gobject,
 }
 
 static void
-vips7_object_get_property( GObject *gobject,
+vips_wrap7_object_get_property( GObject *gobject,
 	guint property_id, GValue *value, GParamSpec *pspec )
 {
 	VipsObject *object = VIPS_OBJECT( gobject );
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gobject );
 	VipsArgumentClass *argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
+	VipsArgumentInstance *argument_instance =
+		vips__argument_get_instance( argument_class, object );
 
-	Vips7 *vips7 = VIPS7( gobject );
-	Vips7Class *class = VIPS7_GET_CLASS( vips7 );
+	VipsWrap7 *wrap7 = VIPS_WRAP7( gobject );
+	VipsWrap7Class *wclass = VIPS_WRAP7_GET_CLASS( wrap7 );
 	int i = argument_class->offset;
-	im_arg_desc *arg = &class->fn->argv[i];
+	im_arg_desc *arg = &wclass->fn->argv[i];
 	im_type_desc *type = arg->desc;
 	im_arg_type vt = type->type;
 
@@ -350,23 +436,23 @@ vips7_object_get_property( GObject *gobject,
 		return;
 	}
 
-	switch( vips7_lookup_type( vt ) ) {
-	case VIPS7_DOUBLE:
-		g_value_set_double( value, *((double*)vi->vargv[i]) ); 
+	switch( vips_wrap7_lookup_type( vt ) ) {
+	case VIPS_WRAP7_DOUBLE:
+		g_value_set_double( value, *((double*)wrap7->vargv[i]) ); 
 		break;
 
-	case VIPS7_INT:
-		g_value_set_int( value, *((int*)vi->vargv[i]) ); 
+	case VIPS_WRAP7_INT:
+		g_value_set_int( value, *((int*)wrap7->vargv[i]) ); 
 		break;
 
-	case VIPS7_STRING:
-		g_value_set_string( value, vi->vargv[i] );
+	case VIPS_WRAP7_STRING:
+		g_value_set_string( value, wrap7->vargv[i] );
 		break;
 
-	case VIPS7_IMAGE:
-	case VIPS7_INTERPOLATE:
-	case VIPS7_GVALUE:
-		g_value_set_object( value, vi->vargv[i] ); 
+	case VIPS_WRAP7_IMAGE:
+	case VIPS_WRAP7_INTERPOLATE:
+	case VIPS_WRAP7_GVALUE:
+		g_value_set_object( value, wrap7->vargv[i] ); 
 		break;
 
 	default:
@@ -379,59 +465,58 @@ vips7_object_get_property( GObject *gobject,
 }
 
 static int
-vips7_build( VipsObject *object )
+vips_wrap7_build( VipsObject *object )
 {
-	Vips7 *vips7 = VIPS_VIPS7( object );
-	Vips7Class *class = VIPS7_GET_CLASS( vips7 );
-	im_function *fn = class->fn;
+	VipsWrap7 *wrap7 = VIPS_WRAP7( object );
+	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
+	VipsObjectClass *oclass = VIPS_OBJECT_CLASS( class );
 
-	if( vips7->error ) {
-		vips_error( "vips7", 
+	if( wrap7->error ) {
+		vips_error( "wrap7", 
 			_( "error constructing vips7 operation %s" ), 
-			class->nickname );
+			oclass->nickname );
 		return( -1 );
 	}
 
 	if( class->not_supported ) {
-		vips_error( "vips7", _( "unable to call vips7 operation "
-			"%s from vips8" ), class->nickname );
+		vips_error( "wrap7", _( "unable to call vips7 operation "
+			"%s from vips8" ), oclass->nickname );
 		return( -1 );
 	}
 
-	if( VIPS_OBJECT_CLASS( parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_wrap7_parent_class )->build( object ) )
 		return( -1 );
 
-	if( fn->disp( vips7->vargv ) )
+	if( class->fn->disp( wrap7->vargv ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips7_class_init( VipsVips7Class *class )
+vips_wrap7_class_init( VipsWrap7Class *class )
 {
+	GObjectClass *gobject_class = (GObjectClass *) class;
+	VipsObjectClass *vobject_class = (VipsObjectClass *) class;
+
 	/* The name of the vips operation we wrap is hidden in our class name.
 	 */
 	const char *name = G_OBJECT_CLASS_NAME( class ) + 
-		strlen( VIPS7_PREFIX );
-
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsOperationClass *oclass = VIPS_OPERATION_CLASS( class );
-
+		strlen( VIPS_WRAP7_PREFIX );
 	im_function *fn = im_find_function( name );
 
 	int i;
 
 	g_assert( fn );
 
-	gobject_class->dispose = vips7_dispose;
-	gobject_class->finalize = vips7_finalize;
-	gobject_class->set_property = vips7_object_set_property;
-	gobject_class->get_property = vips7_object_get_property;
+	gobject_class->dispose = vips_wrap7_dispose;
+	gobject_class->finalize = vips_wrap7_finalize;
+	gobject_class->set_property = vips_wrap7_object_set_property;
+	gobject_class->get_property = vips_wrap7_object_get_property;
 
-	object_class->build = vips7_build;
-	object_class->nickname = name;
-	object_class->description = fn->desc;
+	vobject_class->build = vips_wrap7_build;
+	vobject_class->nickname = name;
+	vobject_class->description = fn->desc;
 
 	class->fn = fn;
 
@@ -442,26 +527,26 @@ vips7_class_init( VipsVips7Class *class )
 
 		GParamSpec *pspec;
 
-		switch( vips7_lookup_type( vt ) ) {
-		case VIPS7_DOUBLEVEC:
-		case VIPS7_DMASK:
-		case VIPS7_IMASK:
-		case VIPS7_IMAGEVEC:
-		case VIPS7_INTVEC:
-		case VIPS7_GVALUE:
-		case VIPS7_INTERPOLATE:
-		case VIPS7_DOUBLE:
-		case VIPS7_INT:
-		case VIPS7_COMPLEX:
-		case VIPS7_STRING:
-		case VIPS7_NONE:
+		switch( vips_wrap7_lookup_type( vt ) ) {
+		case VIPS_WRAP7_DOUBLEVEC:
+		case VIPS_WRAP7_DMASK:
+		case VIPS_WRAP7_IMASK:
+		case VIPS_WRAP7_IMAGEVEC:
+		case VIPS_WRAP7_INTVEC:
+		case VIPS_WRAP7_GVALUE:
+		case VIPS_WRAP7_INTERPOLATE:
+		case VIPS_WRAP7_DOUBLE:
+		case VIPS_WRAP7_INT:
+		case VIPS_WRAP7_COMPLEX:
+		case VIPS_WRAP7_STRING:
+		case VIPS_WRAP7_NONE:
 			/* Can't wrap this function. class_init can't fail, so
 			 * set a flag to block _build().
 			 */
 			class->not_supported = TRUE;
 			break;
 
-		case VIPS7_IMAGE:
+		case VIPS_WRAP7_IMAGE:
 			pspec = g_param_spec_object( arg->name, 
 				arg->name, 
 				arg->name,
@@ -484,11 +569,10 @@ vips7_class_init( VipsVips7Class *class )
 }
 
 static void
-vips7_arg_close( GObject *argument,
+vips_wrap7_arg_close( GObject *argument,
 	VipsArgumentInstance *argument_instance )
 {
 	VipsObject *object = argument_instance->object;
-	GParamSpec *pspec = ((VipsArgument *) argument_instance)->pspec;
 
 	g_object_unref( object );
 }
@@ -496,14 +580,14 @@ vips7_arg_close( GObject *argument,
 /* Init an output slot in vargv.
  */
 static void *
-vips7_build_output( VipsObject *object,
+vips_wrap7_build_output( VipsObject *object,
 	GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
 	VipsArgumentInstance *argument_instance,
 	void *a, void *b )
 {
-	Vips7 *vips7 = VIPS7( object );  
-	Vips7Class *class = VIPS7_GET_CLASS( vips7 );
+	VipsWrap7 *wrap7 = VIPS_WRAP7( object );  
+	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
 	int i = argument_class->offset;
 	im_arg_desc *arg = &class->fn->argv[i];
 	im_type_desc *type = arg->desc;
@@ -519,31 +603,31 @@ vips7_build_output( VipsObject *object,
 
 	/* Provide output objects for the operation to write to.
 	 */
-	switch( vips7_lookup_type( vt ) ) {
-	case VIPS7_DOUBLE:
-	case VIPS7_INT:
-	case VIPS7_COMPLEX:
-	case VIPS7_STRING:
+	switch( vips_wrap7_lookup_type( vt ) ) {
+	case VIPS_WRAP7_DOUBLE:
+	case VIPS_WRAP7_INT:
+	case VIPS_WRAP7_COMPLEX:
+	case VIPS_WRAP7_STRING:
 		break;
 
-	case VIPS7_IMAGE:
+	case VIPS_WRAP7_IMAGE:
 		/* Output objects ref this operation.
 		 */
-		vips7->vargv[i] = vips_image_new(); 
-		g_object_ref( vips7 );
+		wrap7->vargv[i] = vips_image_new(); 
+		g_object_ref( wrap7 );
 
 		/* vipsobject will handle close_id disconnect for us.
 		 */
 		argument_instance->close_id =
-			g_signal_connect( *member, "close",
-				G_CALLBACK( vips7_arg_close ),
+			g_signal_connect( wrap7->vargv[i], "close",
+				G_CALLBACK( vips_wrap7_arg_close ),
 				argument_instance );
 		break;
 
-	case VIPS7_DMASK:
-	case VIPS7_IMASK:
+	case VIPS_WRAP7_DMASK:
+	case VIPS_WRAP7_IMASK:
 	{
-		im_mask_object *mo = vips7->vargv[i];
+		im_mask_object *mo = wrap7->vargv[i];
 
 		mo->mask = NULL;
 		mo->name = im_strdup( NULL, "" );
@@ -551,21 +635,21 @@ vips7_build_output( VipsObject *object,
 		break;
 	}
 
-	case VIPS7_GVALUE:
+	case VIPS_WRAP7_GVALUE:
 	{
-		GValue *value = vips7->vargv[i];
+		GValue *value = wrap7->vargv[i];
 
 		memset( value, 0, sizeof( GValue ) );
 
 		break;
 	}
 
-	case VIPS7_DOUBLEVEC:
-	case VIPS7_INTVEC:
+	case VIPS_WRAP7_DOUBLEVEC:
+	case VIPS_WRAP7_INTVEC:
 	{
 		/* intvec is also int + pointer.
 		 */
-		im_doublevec_object *dv = vips7->vargv[i];
+		im_doublevec_object *dv = wrap7->vargv[i];
 
 		dv->n = 0;
 		dv->vec = NULL;
@@ -574,7 +658,7 @@ vips7_build_output( VipsObject *object,
 	}
 
 	default:
-		vips7->error = TRUE;
+		wrap7->error = TRUE;
 		break;
 	}
 
@@ -582,60 +666,85 @@ vips7_build_output( VipsObject *object,
 }
 
 static void
-vips7_init( VipsVips7 *vips7 )
+vips_wrap7_init( VipsWrap7 *wrap7 )
 {
-	Vips7Class *class = VIPS7_GET_CLASS( vips7 );
+	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
 	im_function *fn = class->fn;
 
-        if( !(vips7->vargv = IM_ARRAY( NULL, fn->argc + 1, im_object )) ||
-		im_allocate_vargv( vi->fn, vi->vargv ) ) {
-		vips7->error = TRUE;
+        if( !(wrap7->vargv = IM_ARRAY( NULL, fn->argc + 1, im_object )) ||
+		im_allocate_vargv( fn, wrap7->vargv ) ) {
+		wrap7->error = TRUE;
 		return;
 	}
 
 	/* Init all the output args.
 	 */
-	(void) vips_argument_map( VIPS_OBJECT( vips7 ),
-		vips_call_char_option, 
-		(void *) name, (void *) value );
+	(void) vips_argument_map( VIPS_OBJECT( wrap7 ),
+		vips_wrap7_build_output, 
+		NULL, NULL ); 
+}
+
+/* Build a subclass of vips7 for every vips7 operation.
+ */
+
+static void
+vips_wrap7_subclass_class_init( VipsWrap7Class *class )
+{
+}
+
+static void
+vips_wrap7_subclass_init( VipsWrap7 *wrap7 )
+{
 }
 
 static GType
-vips7_get_type( im_function *fn )
+vips_wrap7_subclass_get_type( im_function *fn )
 {
 	static const GTypeInfo info = {
-		sizeof( VipsVips7Class ),
+		sizeof( VipsWrap7Class ),
 		NULL,           /* base_init */
 		NULL,           /* base_finalize */
-		(GClassInitFunc) vips_vips7_class_init,
+		(GClassInitFunc) vips_wrap7_subclass_class_init,
 		NULL,           /* class_finalize */
 		NULL,           /* class_data */
-		sizeof( VipsVips7 ),
+		sizeof( VipsWrap7 ),
 		32,             /* n_preallocs */
-		(GInstanceInitFunc) vips_vips7_init,
+		(GInstanceInitFunc) vips_wrap7_subclass_init,
 	};
 
 	char name[256];
 	GType type;
 
-	if( !vips7_types )
-		vips7_types = g_hash_table_new( g_direct_hash, g_direct_equal );
+	if( !vips_wrap7_subclass_types )
+		vips_wrap7_subclass_types = 
+			g_hash_table_new( g_direct_hash, g_direct_equal );
 
-	if( (type = g_hash_table_lookup( vips7_types, fn )) )
+	if( (type = (GType) 
+		g_hash_table_lookup( vips_wrap7_subclass_types, fn )) )
 		return( type );
 
-	im_snprintf( name, 256, VIPS7_PREFIX "%s", fn->name );
-	type = g_type_register_static( VIPS_OPERATION, name, &info, 0 );
-	g_hash_table_insert( vips7_types, fn, type );
+	im_snprintf( name, 256, VIPS_WRAP7_PREFIX "%s", fn->name );
+	type = g_type_register_static( VIPS_TYPE_WRAP7, name, &info, 0 );
+	g_hash_table_insert( vips_wrap7_subclass_types, fn, (gpointer) type );
 
 	return( type );
 }
 
+static void *
+vips_wrap7_build_package( im_package *package )
+{
+	int i;
 
+	for( i = 0; i < package->nfuncs; i++ ) 
+		(void) vips_wrap7_subclass_get_type( package->table[i] ); 
 
-/* Walk the whole of the vips7 operation table building classes.
+	return( NULL );
+}
+
+/* Walk the whole of the vips7 operation table building classes. 
  */
 void
-vips__init_vips7_classes( void )
+vips__init_wrap7_classes( void )
 {
+	(void) im_map_packages( (VSListMap2Fn) vips_wrap7_build_package, NULL );
 }

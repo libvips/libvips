@@ -1,11 +1,4 @@
 
-- can we call vips7 funcs from the vips8 interface? we already have vips8 from
-  vips7
-
-  we'd have to make fake classes to wrap each operation I guesso
-
-  try wrapping for fun
-
 
 
 - revisit orc conv
