@@ -494,6 +494,63 @@ vips_wrap7_build( VipsObject *object )
 }
 
 static void
+vips_wrap7_print_class( VipsObjectClass *oclass, VipsBuf *buf )
+{
+	VipsWrap7Class *class = VIPS_WRAP7_CLASS( oclass );
+	im_function *fn = class->fn;
+
+	if( fn )
+		vips_buf_appendf( buf, "%s, ", fn->name );
+	else
+		vips_buf_appendf( buf, "%s, ", G_OBJECT_CLASS_NAME( class ) );
+
+	if( oclass->nickname )
+		vips_buf_appendf( buf, "(%s), ", oclass->nickname );
+	if( oclass->description )
+		vips_buf_appendf( buf, "%s", oclass->description );
+
+	if( fn )
+		vips_buf_appendf( buf, ", from package \"%s\"", 
+			im_package_of_function( fn->name )->name );
+}
+
+static void
+vips_wrap7_print( VipsObject *object, VipsBuf *buf )
+{
+	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( object );
+	im_function *fn = class->fn;
+	im_package *pack = im_package_of_function( fn->name );
+
+	VIPS_OBJECT_CLASS( vips_wrap7_parent_class )->print( object, buf );
+
+	if( pack )
+		vips_buf_appendf( buf, "from package \"%s\"", pack->name );
+	vips_buf_appendf( buf, "\n" );
+
+	/* Print any flags this function has.
+	 */
+	vips_buf_appendf( buf, "flags: " );
+	if( fn->flags & IM_FN_PIO )
+		vips_buf_appendf( buf, "(PIO function) " );
+	else
+		vips_buf_appendf( buf, "(WIO function) " );
+	if( fn->flags & IM_FN_TRANSFORM )
+		vips_buf_appendf( buf, "(coordinate transformer) " );
+	else
+		vips_buf_appendf( buf, "(no coordinate transformation) " );
+	if( fn->flags & IM_FN_PTOP )
+		vips_buf_appendf( buf, "(point-to-point operation) " );
+	else
+		vips_buf_appendf( buf, "(area operation) " );
+	if( fn->flags & IM_FN_NOCACHE )
+		vips_buf_appendf( buf, "(nocache operation) " );
+	else
+		vips_buf_appendf( buf, "(result can be cached) " );
+
+	vips_buf_appendf( buf, "\n" );
+}
+
+static void
 vips_wrap7_class_init( VipsWrap7Class *class )
 {
 	GObjectClass *gobject_class = (GObjectClass *) class;
@@ -505,6 +562,8 @@ vips_wrap7_class_init( VipsWrap7Class *class )
 	vobject_class->nickname = "wrap7";
 	vobject_class->description = _( "vips7 operations as vips8 classes" );
 	vobject_class->build = vips_wrap7_build;
+	vobject_class->print_class = vips_wrap7_print_class;
+	vobject_class->print = vips_wrap7_print;
 }
 
 static void
@@ -514,6 +573,65 @@ vips_wrap7_init( VipsWrap7 *wrap7 )
 
 /* Build a subclass of vips7 for every vips7 operation.
  */
+
+static gboolean
+drop_postfix( char *str, const char *postfix )
+{
+	if( vips_ispostfix( str, postfix ) ) {
+		str[strlen( str ) - strlen( postfix )] = '\0';
+
+		return( TRUE );
+	}
+
+	return( FALSE );
+}
+
+/* Turn a vips7 name into a nickname. Eg. im_lintra_vec becomes lin.
+ */
+static void
+vips_wrap7_nickname( const char *in, char *out )
+{
+	static const char *dont_drop[] = {
+		"_set",
+	};
+	static const char *drop[] = {
+		"_vec",
+		"const",
+		"tra",
+		"set",
+		"_f"
+	};
+
+	int i;
+	gboolean changed;
+
+	/* Copy, chopping off "im_" prefix.
+	 */
+	if( vips_isprefix( "im_", in ) )
+		strcpy( out, in + 3 );
+	else
+		strcpy( out, in );
+
+	/* Repeatedly drop postfixes while we can. Stop if we see a dont_drop
+	 * postfix.
+	 */
+	do {
+		gboolean found;
+
+		found = FALSE;
+		for( i = 0; i < IM_NUMBER( dont_drop ); i++ )
+			if( vips_ispostfix( out, dont_drop[i] ) ) {
+				found = TRUE;
+				break;
+			}
+		if( found )
+			break;
+
+		changed = FALSE;
+		for( i = 0; i < IM_NUMBER( drop ); i++ )
+			changed |= drop_postfix( out, drop[i] );
+	} while( changed );
+}
 
 static void
 vips_wrap7_subclass_class_init( VipsWrap7Class *class )
@@ -527,6 +645,7 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 		strlen( VIPS_WRAP7_PREFIX );
 	im_function *fn = im_find_function( name );
 
+	char nickname[4096];
 	int i;
 
 	g_assert( !class->fn );
@@ -535,7 +654,8 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 	gobject_class->set_property = vips_wrap7_object_set_property;
 	gobject_class->get_property = vips_wrap7_object_get_property;
 
-	vobject_class->nickname = name;
+	vips_wrap7_nickname( name, nickname );
+	vobject_class->nickname = im_strdup( NULL, nickname );
 	vobject_class->description = fn->desc;
 
 	class->fn = fn;
