@@ -178,6 +178,8 @@ vips_operation_class_init( VipsOperationClass *class )
 {
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
+	vobject_class->nickname = "operation";
+	vobject_class->description = _( "VIPS operations" );
 	vobject_class->print = vips_operation_print;
 	vobject_class->build = vips_operation_build;
 }

@@ -168,10 +168,12 @@ list_function( im_function *func )
 static void *
 list_class( VipsObjectClass *class )
 {
-	/* Ignore abstract classes.
-	 */
-	if( !G_TYPE_IS_ABSTRACT( G_OBJECT_CLASS_TYPE( class ) ) )
-		vips_object_print_class( class );
+	int depth = vips_class_depth( class );
+	int i;
+
+	for( i = 0; i < depth * 2; i++ )
+		printf( " " );
+	vips_object_print_class( class );
 
 	return( NULL );
 }

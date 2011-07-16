@@ -502,6 +502,8 @@ vips_wrap7_class_init( VipsWrap7Class *class )
 	gobject_class->dispose = vips_wrap7_dispose;
 	gobject_class->finalize = vips_wrap7_finalize;
 
+	vobject_class->nickname = "wrap7";
+	vobject_class->description = _( "vips7 operations as vips8 classes" );
 	vobject_class->build = vips_wrap7_build;
 }
 

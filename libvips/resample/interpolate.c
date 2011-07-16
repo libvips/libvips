@@ -181,7 +181,7 @@ vips_interpolate_class_init( VipsInterpolateClass *class )
 #endif /*DEBUG*/
 
 	vobject_class->nickname = "interpolate";
-	vobject_class->description = _( "VIPS interpolation class" );
+	vobject_class->description = _( "VIPS interpolators" );
 
 	class->interpolate = NULL;
 	class->get_window_size = vips_interpolate_real_get_window_size;

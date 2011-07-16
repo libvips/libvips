@@ -1585,6 +1585,22 @@ vips_class_map_all( GType type, VipsClassMap fn, void *a )
 	return( result );
 }
 
+/* How deeply nested is a class ... used to indent class lists.
+ */
+int
+vips_class_depth( VipsObjectClass *class )
+{
+	int depth;
+	GType type;
+
+	type = G_TYPE_FROM_CLASS( class );
+	depth = 0;
+	while( type != VIPS_TYPE_OBJECT && (type = g_type_parent( type )) )
+		depth += 1;
+
+	return( depth );
+}
+
 static void *
 test_name( VipsObjectClass *class, const char *nickname )
 {

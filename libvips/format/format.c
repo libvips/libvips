@@ -291,15 +291,18 @@ vips_format_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 
 	VIPS_OBJECT_CLASS( vips_format_parent_class )->
 		print_class( object_class, buf );
+	vips_buf_appends( buf, ", " );
 
-	vips_buf_appends( buf, ", (" );
-	for( p = class->suffs; *p; p++ ) {
-		vips_buf_appendf( buf, "%s", *p );
-		if( p[1] )
-			vips_buf_appends( buf, ", " );
+	if( class->suffs ) {
+		vips_buf_appends( buf, "(" );
+		for( p = class->suffs; *p; p++ ) {
+			vips_buf_appendf( buf, "%s", *p );
+			if( p[1] )
+				vips_buf_appends( buf, ", " );
+		}
+		vips_buf_appends( buf, ") " );
 	}
-	vips_buf_appends( buf, ") " );
-	
+
 	if( class->is_a )
 		vips_buf_appends( buf, "is_a " );
 	if( class->header )
@@ -317,10 +320,9 @@ vips_format_class_init( VipsFormatClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
+	object_class->nickname = "format";
+	object_class->description = _( "VIPS file formats" );
 	object_class->print_class = vips_format_print_class;
-
-	object_class->print_class = vips_format_print_class;
-
 }
 
 static void

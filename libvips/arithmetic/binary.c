@@ -359,6 +359,8 @@ vips_binary_class_init( VipsBinaryClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
+	vobject_class->nickname = "binary";
+	vobject_class->description = _( "VIPS binary operations" );
 	vobject_class->build = vips_binary_build;
 
 	/* Create properties.
