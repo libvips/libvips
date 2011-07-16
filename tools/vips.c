@@ -80,6 +80,7 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <locale.h>
@@ -1069,6 +1070,27 @@ main( int argc, char **argv )
 				break;
 			}
 
+	/* Could be a vips8 VipsOperation.
+	 */
+	if( action && !handled && 
+		(operation = vips_operation_new( action )) ) {
+		main_group = add_main_group( context, operation );
+		vips_call_options( main_group, operation );
+		parse_options( context, &argc, argv );
+
+		if( vips_call_argv( operation, argc - 1, argv + 1 ) ) {
+			if( argc == 1 ) 
+				vips_object_print( VIPS_OBJECT( operation ) );
+			else
+				error_exit( NULL );
+		}
+
+		g_object_unref( operation );
+
+		handled = TRUE;
+	}
+	im_error_clear();
+
 	/* Could be a vips7 im_function.
 	 */
 	if( action && !handled && 
@@ -1082,34 +1104,6 @@ main( int argc, char **argv )
 			else
 				error_exit( NULL );
 		}
-
-		handled = TRUE;
-	}
-	im_error_clear();
-
-	/* Could be a vips8 VipsOperation.
-	 */
-	if( action && !handled && 
-		(operation = vips_operation_new( action )) ) {
-		main_group = add_main_group( context, operation );
-		vips_call_options( main_group, operation );
-		parse_options( context, &argc, argv );
-
-		if( vips_call_argv( operation, argc - 1, argv + 1 ) ) {
-			if( argc == 1 ) {
-				char *help;
-
-				help = g_option_context_get_help( context, 
-					FALSE, NULL );
-				printf( "%s", help );
-				vips_object_print( VIPS_OBJECT( operation ) );
-				error_exit( NULL );
-			}
-
-			error_exit( NULL );
-		}
-
-		g_object_unref( operation );
 
 		handled = TRUE;
 	}

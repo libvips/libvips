@@ -508,6 +508,87 @@ vips_wrap7_class_init( VipsWrap7Class *class )
 }
 
 static void
+vips_wrap7_init( VipsWrap7 *wrap7 )
+{
+}
+
+/* Build a subclass of vips7 for every vips7 operation.
+ */
+
+static void
+vips_wrap7_subclass_class_init( VipsWrap7Class *class )
+{
+	GObjectClass *gobject_class = (GObjectClass *) class;
+	VipsObjectClass *vobject_class = (VipsObjectClass *) class;
+
+	/* The name of the vips operation we wrap is hidden in our class name.
+	 */
+	const char *name = G_OBJECT_CLASS_NAME( class ) + 
+		strlen( VIPS_WRAP7_PREFIX );
+	im_function *fn = im_find_function( name );
+
+	int i;
+
+	g_assert( !class->fn );
+	g_assert( fn );
+
+	gobject_class->set_property = vips_wrap7_object_set_property;
+	gobject_class->get_property = vips_wrap7_object_get_property;
+
+	vobject_class->nickname = name;
+	vobject_class->description = fn->desc;
+
+	class->fn = fn;
+
+	for( i = fn->argc - 1; i >= 0; i-- ) {
+		im_arg_desc *arg = &fn->argv[i];
+		im_type_desc *type = arg->desc;
+		im_arg_type vt = type->type;
+
+		GParamSpec *pspec;
+
+		switch( vips_wrap7_lookup_type( vt ) ) {
+		case VIPS_WRAP7_DOUBLEVEC:
+		case VIPS_WRAP7_DMASK:
+		case VIPS_WRAP7_IMASK:
+		case VIPS_WRAP7_IMAGEVEC:
+		case VIPS_WRAP7_INTVEC:
+		case VIPS_WRAP7_GVALUE:
+		case VIPS_WRAP7_INTERPOLATE:
+		case VIPS_WRAP7_DOUBLE:
+		case VIPS_WRAP7_INT:
+		case VIPS_WRAP7_COMPLEX:
+		case VIPS_WRAP7_STRING:
+		case VIPS_WRAP7_NONE:
+			/* Can't wrap this function. class_init can't fail, so
+			 * set a flag to block _build().
+			 */
+			class->not_supported = TRUE;
+			break;
+
+		case VIPS_WRAP7_IMAGE:
+			pspec = g_param_spec_object( arg->name, 
+				arg->name, 
+				arg->name,
+				VIPS_TYPE_IMAGE,
+				G_PARAM_READWRITE );
+			g_object_class_install_property( gobject_class, 
+				i + 1, pspec );
+			vips_object_class_install_argument( vobject_class, 
+				pspec,
+				(type->flags & IM_TYPE_OUTPUT) ?
+					VIPS_ARGUMENT_REQUIRED_OUTPUT : 
+					VIPS_ARGUMENT_REQUIRED_INPUT,
+				i );
+			break;
+
+		default:
+			g_assert( 0 );
+		}
+	}
+}
+
+static void
 vips_wrap7_arg_close( GObject *argument,
 	VipsArgumentInstance *argument_instance )
 {
@@ -605,7 +686,7 @@ vips_wrap7_build_output( VipsObject *object,
 }
 
 static void
-vips_wrap7_init( VipsWrap7 *wrap7 )
+vips_wrap7_subclass_init( VipsWrap7 *wrap7 )
 {
 	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
 	im_function *fn = class->fn;
@@ -621,86 +702,6 @@ vips_wrap7_init( VipsWrap7 *wrap7 )
 	(void) vips_argument_map( VIPS_OBJECT( wrap7 ),
 		vips_wrap7_build_output, 
 		NULL, NULL ); 
-}
-
-/* Build a subclass of vips7 for every vips7 operation.
- */
-
-static void
-vips_wrap7_subclass_class_init( VipsWrap7Class *class )
-{
-	GObjectClass *gobject_class = (GObjectClass *) class;
-	VipsObjectClass *vobject_class = (VipsObjectClass *) class;
-
-	/* The name of the vips operation we wrap is hidden in our class name.
-	 */
-	const char *name = G_OBJECT_CLASS_NAME( class ) + 
-		strlen( VIPS_WRAP7_PREFIX );
-	im_function *fn = im_find_function( name );
-
-	int i;
-
-	g_assert( fn );
-
-	gobject_class->set_property = vips_wrap7_object_set_property;
-	gobject_class->get_property = vips_wrap7_object_get_property;
-
-	vobject_class->nickname = name;
-	vobject_class->description = fn->desc;
-
-	class->fn = fn;
-
-	for( i = 0; i < fn->argc; i++ ) {
-		im_arg_desc *arg = &fn->argv[i];
-		im_type_desc *type = arg->desc;
-		im_arg_type vt = type->type;
-
-		GParamSpec *pspec;
-
-		switch( vips_wrap7_lookup_type( vt ) ) {
-		case VIPS_WRAP7_DOUBLEVEC:
-		case VIPS_WRAP7_DMASK:
-		case VIPS_WRAP7_IMASK:
-		case VIPS_WRAP7_IMAGEVEC:
-		case VIPS_WRAP7_INTVEC:
-		case VIPS_WRAP7_GVALUE:
-		case VIPS_WRAP7_INTERPOLATE:
-		case VIPS_WRAP7_DOUBLE:
-		case VIPS_WRAP7_INT:
-		case VIPS_WRAP7_COMPLEX:
-		case VIPS_WRAP7_STRING:
-		case VIPS_WRAP7_NONE:
-			/* Can't wrap this function. class_init can't fail, so
-			 * set a flag to block _build().
-			 */
-			class->not_supported = TRUE;
-			break;
-
-		case VIPS_WRAP7_IMAGE:
-			pspec = g_param_spec_object( arg->name, 
-				arg->name, 
-				arg->name,
-				VIPS_TYPE_IMAGE,
-				G_PARAM_READWRITE );
-			g_object_class_install_property( gobject_class, 
-				i + 1, pspec );
-			vips_object_class_install_argument( vobject_class, 
-				pspec,
-				(type->flags & IM_TYPE_OUTPUT) ?
-					VIPS_ARGUMENT_REQUIRED_OUTPUT : 
-					VIPS_ARGUMENT_REQUIRED_INPUT,
-				i );
-			break;
-
-		default:
-			g_assert( 0 );
-		}
-	}
-}
-
-static void
-vips_wrap7_subclass_init( VipsWrap7 *wrap7 )
-{
 }
 
 static GType
