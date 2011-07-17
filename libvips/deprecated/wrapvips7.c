@@ -382,14 +382,9 @@ vips_wrap7_object_set_property( GObject *gobject,
 
 	case VIPS_WRAP7_IMAGE:
 	case VIPS_WRAP7_INTERPOLATE:
-		/* This does not add a ref to object.
-		 */
-		wrap7->vargv[i] = g_value_get_object( value );
-
-		/* Now ref the object this operation refs. Drop this ref in
-		 * _dispose(), see above.
-		 */
-		g_object_ref( g_value_get_object( value ) );
+		vips__object_set_member( object, pspec,
+			(GObject **) &wrap7->vargv[i], 
+			g_value_get_object( value ) );
 		break;
 
 	default:
@@ -464,6 +459,66 @@ vips_wrap7_object_get_property( GObject *gobject,
 	}
 }
 
+/* Init an output slot in vargv.
+ */
+static void *
+vips_wrap7_build_output( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	VipsWrap7 *wrap7 = VIPS_WRAP7( object );  
+	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
+	int i = argument_class->offset;
+	im_arg_desc *arg = &class->fn->argv[i];
+	im_type_desc *type = arg->desc;
+	im_arg_type vt = type->type;
+
+	/* We want required, construct-time, unassigned output args.
+	 */
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) ||
+		!(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
+		argument_instance->assigned ||
+		!(argument_class->flags & VIPS_ARGUMENT_OUTPUT) )
+		return( NULL ); 
+
+	/* Provide output objects for the operation to write to.
+	 */
+	switch( vips_wrap7_lookup_type( vt ) ) {
+	case VIPS_WRAP7_DOUBLE:
+	case VIPS_WRAP7_INT:
+	case VIPS_WRAP7_COMPLEX:
+	case VIPS_WRAP7_STRING:
+		break;
+
+	case VIPS_WRAP7_IMAGE:
+		g_object_set( object, arg->name, vips_image_new(), NULL ); 
+		break;
+
+	case VIPS_WRAP7_DMASK:
+	case VIPS_WRAP7_IMASK:
+		break;
+
+	case VIPS_WRAP7_GVALUE:
+	{
+		GValue *value = wrap7->vargv[i];
+
+		memset( value, 0, sizeof( GValue ) );
+
+		break;
+	}
+
+	case VIPS_WRAP7_DOUBLEVEC:
+	case VIPS_WRAP7_INTVEC:
+	default:
+		wrap7->error = TRUE;
+		break;
+	}
+
+	return( NULL );
+}
+
 static int
 vips_wrap7_build( VipsObject *object )
 {
@@ -484,6 +539,12 @@ vips_wrap7_build( VipsObject *object )
 		return( -1 );
 	}
 
+	/* Init all the output args.
+	 */
+	(void) vips_argument_map( VIPS_OBJECT( wrap7 ),
+		vips_wrap7_build_output, 
+		NULL, NULL ); 
+
 	if( VIPS_OBJECT_CLASS( vips_wrap7_parent_class )->build( object ) )
 		return( -1 );
 
@@ -500,9 +561,9 @@ vips_wrap7_print_class( VipsObjectClass *oclass, VipsBuf *buf )
 	im_function *fn = class->fn;
 
 	if( fn )
-		vips_buf_appendf( buf, "%s, ", fn->name );
+		vips_buf_appendf( buf, "%s ", fn->name );
 	else
-		vips_buf_appendf( buf, "%s, ", G_OBJECT_CLASS_NAME( class ) );
+		vips_buf_appendf( buf, "%s ", G_OBJECT_CLASS_NAME( class ) );
 
 	if( oclass->nickname )
 		vips_buf_appendf( buf, "(%s), ", oclass->nickname );
@@ -709,103 +770,6 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 }
 
 static void
-vips_wrap7_arg_close( GObject *argument,
-	VipsArgumentInstance *argument_instance )
-{
-	VipsObject *object = argument_instance->object;
-
-	g_object_unref( object );
-}
-
-/* Init an output slot in vargv.
- */
-static void *
-vips_wrap7_build_output( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
-{
-	VipsWrap7 *wrap7 = VIPS_WRAP7( object );  
-	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
-	int i = argument_class->offset;
-	im_arg_desc *arg = &class->fn->argv[i];
-	im_type_desc *type = arg->desc;
-	im_arg_type vt = type->type;
-
-	/* We want required, construct-time, unassigned output args.
-	 */
-	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) ||
-		!(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
-		argument_instance->assigned ||
-		!(argument_class->flags & VIPS_ARGUMENT_OUTPUT) )
-		return( NULL ); 
-
-	/* Provide output objects for the operation to write to.
-	 */
-	switch( vips_wrap7_lookup_type( vt ) ) {
-	case VIPS_WRAP7_DOUBLE:
-	case VIPS_WRAP7_INT:
-	case VIPS_WRAP7_COMPLEX:
-	case VIPS_WRAP7_STRING:
-		break;
-
-	case VIPS_WRAP7_IMAGE:
-		/* Output objects ref this operation.
-		 */
-		wrap7->vargv[i] = vips_image_new(); 
-		g_object_ref( wrap7 );
-
-		/* vipsobject will handle close_id disconnect for us.
-		 */
-		argument_instance->close_id =
-			g_signal_connect( wrap7->vargv[i], "close",
-				G_CALLBACK( vips_wrap7_arg_close ),
-				argument_instance );
-		break;
-
-	case VIPS_WRAP7_DMASK:
-	case VIPS_WRAP7_IMASK:
-	{
-		im_mask_object *mo = wrap7->vargv[i];
-
-		mo->mask = NULL;
-		mo->name = im_strdup( NULL, "" );
-
-		break;
-	}
-
-	case VIPS_WRAP7_GVALUE:
-	{
-		GValue *value = wrap7->vargv[i];
-
-		memset( value, 0, sizeof( GValue ) );
-
-		break;
-	}
-
-	case VIPS_WRAP7_DOUBLEVEC:
-	case VIPS_WRAP7_INTVEC:
-	{
-		/* intvec is also int + pointer.
-		 */
-		im_doublevec_object *dv = wrap7->vargv[i];
-
-		dv->n = 0;
-		dv->vec = NULL;
-
-		break;
-	}
-
-	default:
-		wrap7->error = TRUE;
-		break;
-	}
-
-	return( NULL );
-}
-
-static void
 vips_wrap7_subclass_init( VipsWrap7 *wrap7 )
 {
 	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
@@ -816,12 +780,6 @@ vips_wrap7_subclass_init( VipsWrap7 *wrap7 )
 		wrap7->error = TRUE;
 		return;
 	}
-
-	/* Init all the output args.
-	 */
-	(void) vips_argument_map( VIPS_OBJECT( wrap7 ),
-		vips_wrap7_build_output, 
-		NULL, NULL ); 
 }
 
 static GType

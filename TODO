@@ -1,3 +1,21 @@
+- vips_wrap7_object_set_property() needs to do the thing with reffing the
+  object or the operation, depending on the param direction
+
+  also watch close signal
+
+- vips_object_free_argument() uses offset directly to free strings, disaster
+  with wrap7
+
+  instead, it should use g_object_set() to set the vars to NULL, that way
+  it'll work for wrap7 as well
+
+  check for other uses of offset
+
+  also vips_object_dispose_argument()
+
+
+
+
 
 - revisit orc conv
 

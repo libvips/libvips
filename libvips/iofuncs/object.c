@@ -333,20 +333,19 @@ vips__argument_get_instance( VipsArgumentClass *argument_class,
 }
 
 static void
-vips_object_clear_object( VipsObject *object, GParamSpec *pspec )
+vips_object_clear_member( VipsObject *object, GParamSpec *pspec, 
+	GObject **member )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsArgumentClass *argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
-	GObject **member = &G_STRUCT_MEMBER( GObject *, object,
-		argument_class->offset );
 
 	if( *member ) {
 		if( argument_class->flags & VIPS_ARGUMENT_INPUT ) {
 #ifdef DEBUG_REF
-			printf( "vips_object_clear_object: vips object: " );
+			printf( "vips_object_clear_member: vips object: " );
 			vips_object_print_name( object );
 			printf( "  no longer refers to gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME( *member ), *member );
@@ -360,7 +359,7 @@ vips_object_clear_object( VipsObject *object, GParamSpec *pspec )
 		}
 		else if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
 #ifdef DEBUG_REF
-			printf( "vips_object_clear_object: gobject %s (%p)\n",
+			printf( "vips_object_clear_member: gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME( *member ), *member );
 			printf( "  no longer refers to vips object: " );
 			vips_object_print_name( object );
@@ -378,13 +377,25 @@ vips_object_clear_object( VipsObject *object, GParamSpec *pspec )
 				g_signal_handler_disconnect( object,
 					argument_instance->close_id );
 			argument_instance->close_id = 0;
-			*member = NULL;
 
 			g_object_unref( object );
 		}
 
 		*member = NULL;
 	}
+}
+
+/* Clear a member variable, where the member has an offset.
+ */
+static void
+vips_object_clear_object( VipsObject *object, GParamSpec *pspec )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsArgumentClass *argument_class = (VipsArgumentClass *)
+		vips__argument_table_lookup( class->argument_table, pspec );
+
+	vips_object_clear_member( object, pspec, 
+		&G_STRUCT_MEMBER( GObject *, object, argument_class->offset ) );
 }
 
 /* Free any args which are holding resources.
@@ -398,23 +409,17 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 	g_assert( ((VipsArgument *) argument_instance)->pspec == pspec );
 
-	if( G_IS_PARAM_SPEC_OBJECT( pspec ) )
-		vips_object_clear_object( object, pspec );
-	else if( G_IS_PARAM_SPEC_BOXED( pspec ) ) {
-		gpointer *member = &G_STRUCT_MEMBER( gpointer, object,
-			argument_class->offset );
-
+	if( G_IS_PARAM_SPEC_OBJECT( pspec ) ||
+		G_IS_PARAM_SPEC_BOXED( pspec ) ) {
 #ifdef DEBUG
 		printf( "vips_object_dispose_argument: " );
 		vips_object_print_name( object );
 		printf( ".%s\n", g_param_spec_get_name( pspec ) ); 
 #endif /*DEBUG*/
 
-		if( *member ) {
-			g_boxed_free( G_PARAM_SPEC_VALUE_TYPE( pspec ),
-				*member );
-			*member = NULL;
-		}
+		g_object_set( object, 
+			g_param_spec_get_name( pspec ), NULL, 
+			NULL );
 	}
 
 	return( NULL );
@@ -446,16 +451,15 @@ vips_object_free_argument( VipsObject *object, GParamSpec *pspec,
 	g_assert( ((VipsArgument *) argument_instance)->pspec == pspec );
 
 	if( G_IS_PARAM_SPEC_STRING( pspec ) ) {
-		char **member = &G_STRUCT_MEMBER( char *, object,
-			argument_class->offset );
-
 #ifdef DEBUG
 		printf( "vips_object_free_argument: " );
 		vips_object_print_name( object );
 		printf( ".%s\n", g_param_spec_get_name( pspec ) ); 
 #endif /*DEBUG*/
 
-		VIPS_FREE( *member );
+		g_object_set( object, 
+			g_param_spec_get_name( pspec ), NULL, 
+			NULL );
 	}
 
 	return( NULL );
@@ -503,15 +507,16 @@ vips_object_dispose( GObject *gobject )
 	/* Clear all our arguments: they may be holding refs we should drop.
 	 */
 	vips_argument_dispose_all( object );
-	VIPS_FREEF( vips_argument_table_destroy, object->argument_table );
 
 	vips_object_close( object );
-
-	G_OBJECT_CLASS( vips_object_parent_class )->dispose( gobject );
 
 	vips_object_postclose( object );
 
 	vips_argument_free_all( object );
+
+	VIPS_FREEF( vips_argument_table_destroy, object->argument_table );
+
+	G_OBJECT_CLASS( vips_object_parent_class )->dispose( gobject );
 }
 
 static void
@@ -548,21 +553,24 @@ vips_object_arg_close( GObject *argument,
 	vips_object_clear_object( object, pspec );
 }
 
-static void
-vips_object_set_object( VipsObject *object, GParamSpec *pspec,
-	GObject *argument )
+/* Set a member to an object. Handle the ref counts and signal
+ * connect/disconnect.
+ */
+void
+vips__object_set_member( VipsObject *object, GParamSpec *pspec,
+	GObject **member, GObject *argument )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsArgumentClass *argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, pspec );
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
-	GObject **member = &G_STRUCT_MEMBER( GObject *, object,
-		argument_class->offset );
 
 	g_assert( argument_instance );
-	g_assert( !*member );
 
+	vips_object_clear_member( object, pspec, member );
+
+	g_assert( !*member );
 	*member = argument;
 
 	if( *member ) {
@@ -593,12 +601,47 @@ vips_object_set_object( VipsObject *object, GParamSpec *pspec,
 			/* The argument reffs us.
 			 */
 			g_object_ref( object );
+			g_assert( !argument_instance->close_id );
 			argument_instance->close_id =
 				g_signal_connect( *member, "close",
 					G_CALLBACK( vips_object_arg_close ),
 					argument_instance );
 		}
 	}
+}
+
+static void
+vips_object_set_object( VipsObject *object, GParamSpec *pspec,
+	GObject *argument )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsArgumentClass *argument_class = (VipsArgumentClass *)
+		vips__argument_table_lookup( class->argument_table, pspec );
+	GObject **member = &G_STRUCT_MEMBER( GObject *, object,
+		argument_class->offset );
+
+	vips__object_set_member( object, pspec, member, argument );
+}
+
+/* Is a value NULL? We allow multiple sets of NULL so props can be cleared.
+ */
+static gboolean
+vips_pspec_value_is_null( GParamSpec *pspec, const GValue *value )
+{
+	if( G_IS_PARAM_SPEC_STRING( pspec ) && 
+		!g_value_get_string( value ) )
+		return( TRUE );
+	if( G_IS_PARAM_SPEC_OBJECT( pspec ) &&
+		!g_value_get_object( value ) )
+		return( TRUE );
+	if( G_IS_PARAM_SPEC_POINTER( pspec ) &&
+		!g_value_get_pointer( value ) )
+		return( TRUE );
+	if( G_IS_PARAM_SPEC_BOXED( pspec ) &&
+		!g_value_get_boxed( value ) )
+		return( TRUE );
+
+	return( FALSE );
 }
 
 /* Also used by subclasses, so not static.
@@ -641,7 +684,8 @@ vips_object_set_property( GObject *gobject,
 	 * built.
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_CONSTRUCT &&
-		object->constructed ) {
+		object->constructed &&
+		!vips_pspec_value_is_null( pspec, value ) ) {
 		g_warning( "%s: %s can't assign '%s' after construct",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
@@ -652,7 +696,8 @@ vips_object_set_property( GObject *gobject,
 	/* If this is a set-once argument, check we've not set it before.
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_SET_ONCE &&
-		argument_instance->assigned ) {
+		argument_instance->assigned &&
+		!vips_pspec_value_is_null( pspec, value ) ) {
 		g_warning( "%s: %s can only assign '%s' once",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
@@ -667,12 +712,6 @@ vips_object_set_property( GObject *gobject,
 		VIPS_SETSTR( *member, g_value_get_string( value ) );
 	}
 	else if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
-		/* Remove any old object.
-		 */
-		vips_object_clear_object( object, pspec );
-
-		/* Install the new object.
-		 */
 		vips_object_set_object( object, pspec,
 			g_value_get_object( value ) );
 	}

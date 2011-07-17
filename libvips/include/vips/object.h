@@ -156,6 +156,8 @@ VipsArgumentInstance *vips__argument_get_instance( VipsArgumentClass *,
 	VipsObject *);
 VipsArgument *vips__argument_table_lookup( VipsArgumentTable *, 
 	GParamSpec *);
+void vips__object_set_member( VipsObject *object, GParamSpec *pspec,
+	GObject **member, GObject *argument );
 typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
 	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
