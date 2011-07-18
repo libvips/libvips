@@ -1,18 +1,18 @@
-- vips_wrap7_object_set_property() needs to do the thing with reffing the
-  object or the operation, depending on the param direction
+- try
 
-  also watch close signal
+	vips subtract a b c
 
-- vips_object_free_argument() uses offset directly to free strings, disaster
-  with wrap7
+  fails in vips_call_argv(), operation gets unreffed too early
 
-  instead, it should use g_object_set() to set the vars to NULL, that way
-  it'll work for wrap7 as well
+  I guess out is not reffing operation? or are we losing a ref somewhere else?
 
-  check for other uses of offset
+  vips_call_argv_unref_output() gets the value, has a count of 2 after the
+  get, seems correct
 
-  also vips_object_dispose_argument()
+  operation has a count of 3
 
+  unref the value twice (correctly) on 2nd unref, as the value count hits
+  zero, the operation is unreffed 3 times, not just once (as it should be)
 
 
 
