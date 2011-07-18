@@ -308,6 +308,7 @@ struct _VipsObjectClass {
 	GSList *argument_table_traverse;
 };
 
+gboolean vips_pspec_value_is_null( GParamSpec *pspec, const GValue *value );
 void vips_object_set_property( GObject *gobject, 
 	guint property_id, const GValue *value, GParamSpec *pspec );
 void vips_object_get_property( GObject *gobject, 
@@ -351,8 +352,6 @@ void *vips_class_map_all( GType base, VipsClassMap fn, void *a );
 int vips_class_depth( VipsObjectClass *klass );
 VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
 GType vips_type_find( const char *basename, const char *nickname );
-
-int vips_object_unref( VipsObject *obj );
 
 void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
 #define vips_object_local( V, G ) \

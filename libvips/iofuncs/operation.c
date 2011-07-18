@@ -28,8 +28,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -54,6 +54,22 @@
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsOperation, vips_operation, VIPS_TYPE_OBJECT );
+
+static void
+vips_operation_finalize( GObject *gobject )
+{
+	VIPS_DEBUG_MSG( "vips_operation_finalize: %p\n", gobject );
+
+	G_OBJECT_CLASS( vips_operation_parent_class )->finalize( gobject );
+}
+
+static void
+vips_operation_dispose( GObject *gobject )
+{
+	VIPS_DEBUG_MSG( "vips_operation_dispose: %p\n", gobject );
+
+	G_OBJECT_CLASS( vips_operation_parent_class )->dispose( gobject );
+}
 
 /* What to show about the argument.
  */
@@ -176,7 +192,11 @@ vips_operation_build( VipsObject *object )
 static void
 vips_operation_class_init( VipsOperationClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	gobject_class->finalize = vips_operation_finalize;
+	gobject_class->dispose = vips_operation_dispose;
 
 	vobject_class->nickname = "operation";
 	vobject_class->description = _( "VIPS operations" );
@@ -200,6 +220,8 @@ vips_operation_new( const char *name )
 	if( !(type = vips_type_find( "VipsOperation", name )) )
 		return( NULL );
 	operation = VIPS_OPERATION( g_object_new( type, NULL ) );
+
+	VIPS_DEBUG_MSG( "vips_operation_new: %s (%p)\n", name, operation );
 
 	return( operation );
 }

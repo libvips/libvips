@@ -31,10 +31,10 @@
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
 #define DEBUG_REF
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -343,7 +343,8 @@ vips_wrap7_object_set_property( GObject *gobject,
 	 * built.
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_CONSTRUCT &&
-		object->constructed ) {
+		object->constructed &&
+		!vips_pspec_value_is_null( pspec, value ) ) {
 		g_warning( "%s: %s can't assign '%s' after construct",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
@@ -354,7 +355,8 @@ vips_wrap7_object_set_property( GObject *gobject,
 	/* If this is a set-once argument, check we've not set it before.
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_SET_ONCE &&
-		argument_instance->assigned ) {
+		argument_instance->assigned &&
+		!vips_pspec_value_is_null( pspec, value ) ) {
 		g_warning( "%s: %s can only assign '%s' once",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
@@ -539,6 +541,12 @@ vips_wrap7_build( VipsObject *object )
 		return( -1 );
 	}
 
+#ifdef DEBUG
+	printf( "vips_wrap7_build: " );
+	vips_object_print_name( VIPS_OBJECT( wrap7 ) );
+	printf( " building output\n" );
+#endif /*DEBUG*/
+
 	/* Init all the output args.
 	 */
 	(void) vips_argument_map( VIPS_OBJECT( wrap7 ),
@@ -635,65 +643,6 @@ vips_wrap7_init( VipsWrap7 *wrap7 )
 /* Build a subclass of vips7 for every vips7 operation.
  */
 
-static gboolean
-drop_postfix( char *str, const char *postfix )
-{
-	if( vips_ispostfix( str, postfix ) ) {
-		str[strlen( str ) - strlen( postfix )] = '\0';
-
-		return( TRUE );
-	}
-
-	return( FALSE );
-}
-
-/* Turn a vips7 name into a nickname. Eg. im_lintra_vec becomes lin.
- */
-static void
-vips_wrap7_nickname( const char *in, char *out )
-{
-	static const char *dont_drop[] = {
-		"_set",
-	};
-	static const char *drop[] = {
-		"_vec",
-		"const",
-		"tra",
-		"set",
-		"_f"
-	};
-
-	int i;
-	gboolean changed;
-
-	/* Copy, chopping off "im_" prefix.
-	 */
-	if( vips_isprefix( "im_", in ) )
-		strcpy( out, in + 3 );
-	else
-		strcpy( out, in );
-
-	/* Repeatedly drop postfixes while we can. Stop if we see a dont_drop
-	 * postfix.
-	 */
-	do {
-		gboolean found;
-
-		found = FALSE;
-		for( i = 0; i < IM_NUMBER( dont_drop ); i++ )
-			if( vips_ispostfix( out, dont_drop[i] ) ) {
-				found = TRUE;
-				break;
-			}
-		if( found )
-			break;
-
-		changed = FALSE;
-		for( i = 0; i < IM_NUMBER( drop ); i++ )
-			changed |= drop_postfix( out, drop[i] );
-	} while( changed );
-}
-
 static void
 vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 {
@@ -706,7 +655,6 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 		strlen( VIPS_WRAP7_PREFIX );
 	im_function *fn = im_find_function( name );
 
-	char nickname[4096];
 	int i;
 
 	g_assert( !class->fn );
@@ -715,8 +663,7 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 	gobject_class->set_property = vips_wrap7_object_set_property;
 	gobject_class->get_property = vips_wrap7_object_get_property;
 
-	vips_wrap7_nickname( name, nickname );
-	vobject_class->nickname = im_strdup( NULL, nickname );
+	vobject_class->nickname = im_strdup( NULL, name );
 	vobject_class->description = fn->desc;
 
 	class->fn = fn;

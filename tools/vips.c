@@ -1113,9 +1113,11 @@ main( int argc, char **argv )
 		printf( "%s", _( "possible actions:\n" ) );
 		for( i = 0; i < VIPS_NUMBER( actions ); i++ )
 			printf( "%10s - %s\n", 
-				actions[i].name, actions[i].description ); 
+				actions[i].name, _( actions[i].description ) ); 
+		printf( "%10s - %s\n", 
+			"<operation>", _( "execute named vips operation" ) );
 
-		error_exit( "unknown action \"%s\"", action );
+		error_exit( _( "unknown action \"%s\"" ), action );
 	}
 
 	if( !handled ) {

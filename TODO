@@ -1,20 +1,3 @@
-- try
-
-	vips subtract a b c
-
-  fails in vips_call_argv(), operation gets unreffed too early
-
-  I guess out is not reffing operation? or are we losing a ref somewhere else?
-
-  vips_call_argv_unref_output() gets the value, has a count of 2 after the
-  get, seems correct
-
-  operation has a count of 3
-
-  unref the value twice (correctly) on 2nd unref, as the value count hits
-  zero, the operation is unreffed 3 times, not just once (as it should be)
-
-
 
 
 - revisit orc conv
