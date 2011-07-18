@@ -246,8 +246,11 @@ vips_init( const char *argv0 )
 	}
 
 	/* Build classes which wrap old vips7 operations.
-	 */
+
+	   	handy for testing, but perhaps not much else
+
 	vips__init_wrap7_classes();
+	 */
 
 	/* Start up the buffer cache.
 	 */
