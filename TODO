@@ -1,26 +1,3 @@
-- try
-
-	vips add
-
-  get
-
-	VipsAdd (add), add two images
-	add (left, right)
-	where:
-	   left :: VipsImage
-	   right :: VipsImage
-	optional arguments:
-	   imtest :: VipsImage
-	   booltest :: gboolean
-
-	** leak test on exit:
-	2 objects alive:
-	0) VipsAdd (0x7c7800)
-	1) VipsImage (0x7c9000)
-
-  also, no mention of output image, argh
-
-
 
 - turn wrap back on, with renames
 

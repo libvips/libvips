@@ -86,23 +86,24 @@ vips_operation_print_arg( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentInstance *argument_instance,
 	VipsBuf *buf, VipsOperationPrint *print )
 {
-	/* Only show unassigned args ... assigned args are internal.
+	/* Only show construct args ... others are internal.
 	 */
-
 	if( print->required == 
 		((argument_class->flags & VIPS_ARGUMENT_REQUIRED) != 0) &&
-		!argument_instance->assigned ) {
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
 		if( print->message && print->n == 0 ) 
 			vips_buf_appendf( buf, "%s\n", print->message );
 
 		if( print->oftype ) 
-			vips_buf_appendf( buf, "   %s :: %s\n",
+			vips_buf_appendf( buf, "   %s :: %s (%s)\n",
 				g_param_spec_get_name( pspec ), 
 				g_type_name( 
-					G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
+					G_PARAM_SPEC_VALUE_TYPE( pspec ) ),
+				(argument_class->flags & VIPS_ARGUMENT_INPUT) ?
+					_( "input" ) : _( "output" ) );
 		else {
 			if( print->n > 0 )
-				vips_buf_appends( buf, ", " );
+				vips_buf_appends( buf, " " );
 			vips_buf_appends( buf, g_param_spec_get_name( pspec ) );
 		}
 
@@ -152,14 +153,14 @@ vips_operation_print( VipsObject *object, VipsBuf *buf )
 
 	/* First pass through args: show the required names.
 	 */
-	vips_buf_appendf( buf, "%s (", object_class->nickname );
+	vips_buf_appendf( buf, "   %s ", object_class->nickname );
 	print.message = NULL;
 	print.required = TRUE;
 	print.oftype = FALSE;
 	print.n = 0;
 	vips_argument_map( VIPS_OBJECT( operation ),
 		(VipsArgumentMapFn) vips_operation_print_arg, buf, &print );
-	vips_buf_appends( buf, ")\n" );
+	vips_buf_appends( buf, "\n" );
 
 	/* Show required types.
 	 */
@@ -577,6 +578,27 @@ vips_call_options( GOptionGroup *group, VipsOperation *operation )
 		vips_call_options_add, group, NULL );
 }
 
+/* What we track during an argv call.
+ */
+typedef struct _VipsCall {
+	VipsOperation *operation;
+	int argc;
+	char **argv;
+	int i;
+} VipsCall;
+
+static const char *
+vips_call_get_arg( VipsCall *call, int i )
+{
+	if( i < 0 || i >= call->argc ) {
+		vips_error( VIPS_OBJECT( call->operation )->nickname, 
+			"%s", _( "too few arguments" ) );
+		return( NULL );
+	}
+
+	return( call->argv[i] );
+}
+
 static void *
 vips_call_argv_input( VipsObject *object,
 	GParamSpec *pspec,
@@ -584,23 +606,26 @@ vips_call_argv_input( VipsObject *object,
 	VipsArgumentInstance *argument_instance,
 	void *a, void *b )
 {
-	char **argv = (char **) a;
-	int *i = (int *) b;
+	VipsCall *call = (VipsCall *) a;
 
 	/* Loop over all required construct args.
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
-			if( vips_object_set_argument_from_string( object, 
-				g_param_spec_get_name( pspec ), argv[*i] ) ) 
+			const char *arg;
+
+			if( !(arg = vips_call_get_arg( call, call->i )) ||
+				vips_object_set_argument_from_string( object, 
+				g_param_spec_get_name( pspec ), arg ) ) 
 				return( pspec );
-			*i += 1;
+
+			call->i += 1;
 		}
 		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
 			if( vips_object_get_argument_needs_string( object,
 				g_param_spec_get_name( pspec ) ) )
-				*i += 1;
+				call->i += 1;
 		}
 	}
 
@@ -614,23 +639,25 @@ vips_call_argv_output( VipsObject *object,
 	VipsArgumentInstance *argument_instance,
 	void *a, void *b )
 {
-	char **argv = (char **) a;
-	int *i = (int *) b;
+	VipsCall *call = (VipsCall *) a;
 
 	/* Loop over all required construct args.
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
-			*i += 1;
+			call->i += 1;
 		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
-			char *arg;
+			const char *arg;
 
 			arg = NULL;
 			if( vips_object_get_argument_needs_string( object,
 				g_param_spec_get_name( pspec ) ) ) {
-				arg = argv[*i];
-				*i += 1;
+				arg = vips_call_get_arg( call, call->i );
+				if( !arg )
+					return( pspec );
+
+				call->i += 1;
 			}
 
 			if( vips_object_get_argument_to_string( object, 
@@ -675,7 +702,7 @@ vips_call_argv_unref_output( VipsObject *object,
 int
 vips_call_argv( VipsOperation *operation, int argc, char **argv )
 {
-	int i;
+	VipsCall call;
 
 	g_assert( argc >= 0 );
 
@@ -687,16 +714,32 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 		printf( "%d) %s\n", i, argv[i] );
 #endif /*VIPS_DEBUG*/
 
-	i = 0;
-	(void) vips_argument_map( VIPS_OBJECT( operation ),
-		vips_call_argv_input, argv, &i );
+	call.operation = operation;
+	call.argc = argc;
+	call.argv = argv;
 
-	if( vips_object_build( VIPS_OBJECT( operation ) ) ) 
+	call.i = 0;
+	(void) vips_argument_map( VIPS_OBJECT( operation ),
+		vips_call_argv_input, &call, NULL );
+
+	if( vips_object_build( VIPS_OBJECT( operation ) ) ) {
+		/* We must unref any output objects, they are holding refs to
+		 * the operation.
+		 */
+		(void) vips_argument_map( VIPS_OBJECT( operation ),
+			vips_call_argv_unref_output, NULL, NULL );
+
 		return( -1 );
+	}
 
-	i = 0;
-	(void) vips_argument_map( VIPS_OBJECT( operation ),
-		vips_call_argv_output, argv, &i );
+	call.i = 0;
+	if( vips_argument_map( VIPS_OBJECT( operation ),
+		vips_call_argv_output, &call, NULL ) ) {
+		(void) vips_argument_map( VIPS_OBJECT( operation ),
+			vips_call_argv_unref_output, NULL, NULL );
+
+		return( -1 );
+	}
 
 	(void) vips_argument_map( VIPS_OBJECT( operation ),
 		vips_call_argv_unref_output, NULL, NULL );
