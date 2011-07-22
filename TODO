@@ -1,3 +1,35 @@
+- try:
+
+	edvips --format=IM_BANDFMT_FLOAT babe.v
+
+  leaves it set to uchar
+
+  im_char2BandFmt() in vips7compat.c must allow old names as well
+
+
+- VIPS_ENUM_VALUE() returns a GEnumValue, see
+
+  	http://developer.gnome.org/gobject/stable/gobject-Enumeration-and-Flag-Types.html#GEnumValue
+
+  you need a ->value after it (after checking for a NULL result) to get the
+  int
+
+  check all uses ... seems to be only vips7compat, phew
+
+
+
+
+
+- turn wrap back on, with renames
+
+  	vips im_subtract
+
+  is the old vips7 interface
+
+  	vips subtract
+
+  is the new unfinished vips8 interface to the same function
+
 
 
 - revisit orc conv

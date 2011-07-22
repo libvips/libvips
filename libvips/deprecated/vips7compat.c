@@ -223,6 +223,25 @@ const char *im_dtype2char( VipsImageType n )
 const char *im_dhint2char( VipsDemandStyle style ) 
 	{ return( VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, style ) ); }
 
+/* enum string to int, try the GEnum first, then use a compat *char[] for old
+ * names.
+ */
+static int
+lookup_enum( GType type, char *names[], const char *name )
+{
+	GEnumValue *value;
+	int i;
+
+	if( (value = VIPS_ENUM_VALUE( type, name )) )
+		return( value->value );
+
+	for( i = 0; names[i]; i++ )
+		if( strcasecmp( names[i], name ) )
+			return( i );
+
+	return( -1 );
+}
+
 VipsInterpretation im_char2Type( const char *str ) 
 	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_INTERPRETATION, str ) ); }
 VipsBandFormat im_char2BandFmt( const char *str ) 
