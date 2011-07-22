@@ -60,6 +60,36 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* Try to make an O_BINARY ... sometimes need the leading '_'.
+ */
+#ifdef BINARY_OPEN
+#ifndef O_BINARY
+#ifdef _O_BINARY
+#define O_BINARY _O_BINARY
+#endif /*_O_BINARY*/
+#endif /*!O_BINARY*/
+#endif /*BINARY_OPEN*/
+
+/* If we have O_BINARY, add it to a mode flags set.
+ */
+#ifdef O_BINARY
+#define BINARYIZE(M) ((M) | O_BINARY)
+#else /*!O_BINARY*/
+#define BINARYIZE(M) (M)
+#endif /*O_BINARY*/
+
+/* Open mode for image write ... on some systems, have to set BINARY too.
+ */
+#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
+
+/* Mode for read/write. This is if we might later want to mmaprw () the file.
+ */
+#define MODE_READWRITE BINARYIZE (O_RDWR)
+
+/* Mode for read only. This is the fallback if READWRITE fails.
+ */
+#define MODE_READONLY BINARYIZE (O_RDONLY)
+
 /* Temp buffer for snprintf() layer on old systems.
  */
 #define MAX_BUF (32768)
@@ -834,21 +864,24 @@ vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 }
 
 /* Read a few bytes from the start of a file. For sniffing file types.
+ * Filename may contain a mode. 
  */
 int
 vips__get_bytes( const char *filename, unsigned char buf[], int len )
 {
+	char name[FILENAME_MAX];
+	char mode[FILENAME_MAX];
 	int fd;
+
+	/* Split off the mode part.
+	 */
+	im_filename_split( filename, name, mode );
 
 	/* File may not even exist (for tmp images for example!)
 	 * so no hasty messages. And the file might be truncated, so no error
 	 * on read either.
 	 */
-#ifdef BINARY_OPEN
-	if( (fd = open( filename, O_RDONLY | O_BINARY )) == -1 )
-#else /*BINARY_OPEN*/
-	if( (fd = open( filename, O_RDONLY )) == -1 )
-#endif /*BINARY_OPEN*/
+	if( (fd = open( name, MODE_READONLY )) == -1 )
 		return( 0 );
 	if( read( fd, buf, len ) != len ) {
 		close( fd );
