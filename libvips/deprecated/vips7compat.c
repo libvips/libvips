@@ -223,16 +223,98 @@ const char *im_dtype2char( VipsImageType n )
 const char *im_dhint2char( VipsDemandStyle style ) 
 	{ return( VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, style ) ); }
 
+/* Old names for enums, for compat.
+ */
+static const char *im_Type[] = {
+	"IM_TYPE_MULTIBAND", 		/* 0 */
+	"IM_TYPE_B_W", 			/* 1 */
+	"LUMINACE", 			/* 2 */
+	"XRAY", 			/* 3 */
+	"IR", 				/* 4 */
+	"YUV", 				/* 5 */
+	"RED_ONLY", 			/* 6 */
+	"GREEN_ONLY", 			/* 7 */
+	"BLUE_ONLY", 			/* 8 */
+	"POWER_SPECTRUM", 		/* 9 */
+	"IM_TYPE_HISTOGRAM", 		/* 10 */
+	"LUT", 				/* 11 */
+	"IM_TYPE_XYZ",			/* 12 */
+	"IM_TYPE_LAB", 			/* 13 */
+	"CMC", 				/* 14 */
+	"IM_TYPE_CMYK", 		/* 15 */
+	"IM_TYPE_LABQ", 		/* 15 */
+	"IM_TYPE_RGB", 			/* 17 */
+	"IM_TYPE_UCS", 			/* 18 */
+	"IM_TYPE_LCH", 			/* 19 */
+	"IM_TYPE_LABS",			/* 20 */
+	"<unknown>", 			/* 21 */
+	"IM_TYPE_sRGB", 		/* 22 */
+	"IM_TYPE_YXY", 			/* 23 */
+	"IM_TYPE_FOURIER",		/* 24 */
+	"IM_TYPE_RGB16",		/* 25 */
+	"IM_TYPE_GREY16",		/* 26 */
+	NULL
+};
+
+static const char *im_BandFmt[] = {
+	"IM_BANDFMT_UCHAR", 
+	"IM_BANDFMT_CHAR", 
+	"IM_BANDFMT_USHORT", 
+	"IM_BANDFMT_SHORT", 
+	"IM_BANDFMT_UINT", 
+	"IM_BANDFMT_INT", 
+	"IM_BANDFMT_FLOAT", 
+	"IM_BANDFMT_COMPLEX", 
+	"IM_BANDFMT_DOUBLE", 
+	"IM_BANDFMT_DPCOMPLEX",
+	NULL
+};
+
+static const char *im_Coding[] = {
+	"IM_CODING_NONE", 
+	"COLQUANT8", 
+	"IM_CODING_LABQ", 
+	"IM_CODING_LABQ_COMPRESSED",
+	"RGB_COMPRESSED",
+	"LUM_COMPRESSED",
+	"IM_CODING_RAD",
+	NULL
+};
+
+static const char *im_dtype[] = {
+	"IM_NONE", 
+	"IM_SETBUF", 
+	"IM_SETBUF_FOREIGN", 
+	"IM_OPENIN", 
+	"IM_MMAPIN", 
+	"IM_MMAPINRW", 
+	"IM_OPENOUT", 
+	"IM_PARTIAL",
+	NULL
+};
+
+static const char *im_dhint[] = {
+	"IM_SMALLTILE", 
+	"IM_FATSTRIP", 
+	"IM_THINSTRIP", 
+	"IM_ANY",
+	NULL
+};
+
 /* enum string to int, try the GEnum first, then use a compat *char[] for old
  * names.
  */
 static int
-lookup_enum( GType type, char *names[], const char *name )
+lookup_enum( GType type, const char *names[], const char *name )
 {
+	GEnumClass *class;
 	GEnumValue *value;
 	int i;
 
-	if( (value = VIPS_ENUM_VALUE( type, name )) )
+	class = g_type_class_ref( type );
+	if( (value = g_enum_get_value_by_nick( class, name )) )
+		return( value->value );
+	if( (value = g_enum_get_value_by_name( class, name )) )
 		return( value->value );
 
 	for( i = 0; names[i]; i++ )
@@ -243,15 +325,15 @@ lookup_enum( GType type, char *names[], const char *name )
 }
 
 VipsInterpretation im_char2Type( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_INTERPRETATION, str ) ); }
+	{ return( lookup_enum( VIPS_TYPE_INTERPRETATION, im_Type, str ) ); }
 VipsBandFormat im_char2BandFmt( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_BAND_FORMAT, str ) ); }
+	{ return( lookup_enum( VIPS_TYPE_BAND_FORMAT, im_BandFmt, str ) ); }
 VipsCoding im_char2Coding( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_CODING, str ) ); }
+	{ return( lookup_enum( VIPS_TYPE_CODING, im_Coding, str ) ); }
 VipsImageType im_char2dtype( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_IMAGE_TYPE, str ) ); }
+	{ return( lookup_enum( VIPS_TYPE_IMAGE_TYPE, im_dtype, str ) ); }
 VipsDemandStyle im_char2dhint( const char *str ) 
-	{ return( VIPS_ENUM_VALUE( VIPS_TYPE_DEMAND_STYLE, str ) ); }
+	{ return( lookup_enum( VIPS_TYPE_DEMAND_STYLE, im_dhint, str ) ); }
 
 /* Totally useless now.
  */

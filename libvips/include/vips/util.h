@@ -155,13 +155,6 @@ G_STMT_START { \
 #define VIPS_ENUM_NICK( ENUM, VALUE ) \
 	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_nick)
 
-/* Given a string, look up the value. Look up as a nick first, then try as a
- * name.
- */
-#define VIPS_ENUM_VALUE( ENUM, STR ) \
-	(g_enum_get_value_by_nick( g_type_class_ref( ENUM ), STR ) || \
-	g_enum_get_value_by_name( g_type_class_ref( ENUM ), STR )) 
-
 /* Like GFunc, but return a value.
  */
 typedef void *(*VipsSListMap2Fn)( void *, void *, void * );
