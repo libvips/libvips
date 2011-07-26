@@ -25,7 +25,9 @@ libarithmetic_la_SOURCES = \
 	im_subtract.c \
 	math.c \
 	arithmetic.c \
+	arithmetic.h \
 	binary.c \
+	binary.h \
 	add.c \
 	power.c \
 	round.c 

@@ -75,7 +75,7 @@ static GMutex *vips__object_all_lock = NULL;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
-G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_INITIALLY_UNOWNED );
+G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
 
 void
 vips_object_preclose( VipsObject *object )

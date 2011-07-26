@@ -49,7 +49,7 @@ pkginclude_HEADERS = \
 vipsc++.h:
 	vips --cpph all > vipsc++.h
 
-EXTRA_DIST = version.h.in internal.h
+EXTRA_DIST = version.h.in internal.h enumtemplate
 
 # the headers we scan for enums etc.
 # keep in sync with ${top_srcdir}/libvips/iofuncs/Makefile.am

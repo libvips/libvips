@@ -30,6 +30,8 @@ libiofuncs_la_SOURCES = \
 	vector.c \
 	buffer.c 
 
+EXTRA_DIST = enumtemplate
+
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
 
 # the headers we scan for enums etc.
