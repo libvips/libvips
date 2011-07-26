@@ -73,6 +73,7 @@
 - im_icc_import*/export*() cast inputs for you
 - im_vips2tiff() uses im__temp_name() for intermediates
 - added vips_wrap7 ... wrap up vips7 operations as vips8 classes
+- man pages are back for commands
 
 30/11/10 started 7.24.0
 - bump for new stable

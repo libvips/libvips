@@ -641,6 +641,7 @@ AC_OUTPUT([
 	swig/Makefile 
 	swig/vipsCC/Makefile 
 	swig/python/setup.py 
+	man/Makefile
 	doc/Makefile
 	doc/reference/Makefile
 	doc/reference/libvips-docs.sgml

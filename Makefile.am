@@ -23,6 +23,7 @@ SUBDIRS = \
 	libvips \
 	tools \
 	po \
+	man \
 	doc \
 	$(C_COMPILE_DIR) \
 	$(P_COMPILE_DIR) 

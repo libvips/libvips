@@ -1,14 +1,8 @@
 
-- turn wrap back on, with renames
+- leak check, again
 
-  	vips im_subtract
-
-  is the old vips7 interface
-
-  	vips subtract
-
-  is the new unfinished vips8 interface to the same function
-
+- vips operation print could show operation flags as well, cf. "vips
+  im_subtract"
 
 
 - revisit orc conv
@@ -88,7 +82,6 @@
 
 
 
-- leak check, again
 
 
 - add matlab write

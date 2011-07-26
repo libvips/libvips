@@ -1,0 +1,22 @@
+.TH BATCH_CROP 1 "2 Feb 2002"
+.SH NAME
+batch_crop  \- crop a set of images
+.SH SYNOPSIS
+.B batch_crop left top width height image1 image2 ...
+.SH DESCRIPTION
+The area defined by the rectangle left, top, width, height is cropped out of
+each of the images and saved in a file of the same name, but prefixed by
+"crop_".
+
+For example:
+
+  batch_crop 10 10 100 100 fred.jpg jim.png
+
+will make two images, crop_fred.jpg and crop_jim.png, each of 100 by 100
+pixels, taken from the corresponding input images.
+
+.SH RETURN VALUE
+returns 0 on success and non-zero on error.
+.SH SEE ALSO
+header(1), im_vips2tiff(3), im_vips2jpeg(3), im_vips2png(3), im_vips2ppm(3)
+
