@@ -123,4 +123,6 @@ doc/reference/scan-build.stamp
 doc/reference/sgml-build.stamp
 doc/reference/sgml.stamp
 doc/reference/xml/
+doc/html
+doc/pdf
 
