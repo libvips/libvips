@@ -1,5 +1,9 @@
+26/7/11 started 7.26.1
+- doc fixups
+
 26/7/11 started 7.26.0
 - version bunp for 7.26
+- various fixes to get win32 and OS X building
 
 6/12/10 started 7.25.0
 - attach the jpeg thumbnail and multiscan fields (thanks Mike)

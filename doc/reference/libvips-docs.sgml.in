@@ -8,7 +8,7 @@
   <bookinfo>
     <title>VIPS Reference Manual</title>
     <releaseinfo>
-      For VIPS @IM_VERSION@.
+      For VIPS @VIPS_VERSION@.
       The latest version of this documentation can be found on the 
       <ulink role="online-location"
 	      url="http://http://www.vips.ecs.soton.ac.uk/index.php?title=Documentation">VIPS website</ulink>.
@@ -18,17 +18,17 @@
   <chapter>
     <title>Core VIPS API</title>
     <xi:include href="xml/image.xml"/>
-    <xi:include href="xml/header.xml"/>
-    <xi:include href="xml/check.xml"/>
-    <xi:include href="xml/callback.xml"/>
-    <xi:include href="xml/meta.xml"/>
     <xi:include href="xml/region.xml"/>
     <xi:include href="xml/generate.xml"/>
-    <xi:include href="xml/threadpool.xml"/>
-    <xi:include href="xml/error.xml"/>
-    <xi:include href="xml/memory.xml"/>
-    <xi:include href="xml/buf.xml"/>
+    <xi:include href="xml/header.xml"/>
+    <xi:include href="xml/operation.xml"/>
+    <xi:include href="xml/pool.xml"/>
     <xi:include href="xml/rect.xml"/>
+    <xi:include href="xml/threadpool.xml"/>
+    <xi:include href="xml/object.xml"/>
+    <xi:include href="xml/memory.xml"/>
+    <xi:include href="xml/error.xml"/>
+    <xi:include href="xml/buf.xml"/>
   </chapter>
 
   <chapter>
@@ -54,13 +54,10 @@
 
   <chapter>
     <title>Other API (no gtkdoc comments yet)</title>
-    <xi:include href="xml/object.xml"/>
     <xi:include href="xml/transform.xml"/>
     <xi:include href="xml/util.xml"/>
     <xi:include href="xml/version.xml"/>
-    <xi:include href="xml/type.xml"/>
     <xi:include href="xml/semaphore.xml"/>
-    <xi:include href="xml/dispatch.xml"/>
   </chapter>
 
   <chapter id="object-tree">
