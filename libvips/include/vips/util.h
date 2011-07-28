@@ -217,12 +217,29 @@ int vips_existsf( const char *name, ... )
 FILE *vips_popenf( const char *fmt, const char *mode, ... )
 	__attribute__((format(printf, 1, 3)));
 
+/** 
+ * VipsToken:
+ * @VIPS_TOKEN_LEFT: left bracket
+ * @VIPS_TOKEN_RIGHT: right bracket
+ * @VIPS_TOKEN_STRING: string constant
+ * @VIPS_TOKEN_EQUALS: equals sign
+ * @VIPS_TOKEN_COMMA: comma
+ *
+ * Tokens returned by the vips lexical analyzer, see vips__token_get(). This
+ * is used to parse option strings for arguments. 
+ *
+ * Left and right brackets can be any of (, {, [, <.
+ *
+ * Strings may be in double quotes, and may contain escaped quote characters,
+ * for example string, "string" and "str\"ing".
+ *
+ */
 typedef enum {
- 	VIPS_TOKEN_LEFT = 1,	/* ({[ */
-	VIPS_TOKEN_RIGHT,	/* ]}) */
-	VIPS_TOKEN_STRING,	/* string or "str\"ing" */
-	VIPS_TOKEN_EQUALS,	/* = */
-	VIPS_TOKEN_COMMA	/* , */
+ 	VIPS_TOKEN_LEFT = 1,
+	VIPS_TOKEN_RIGHT,
+	VIPS_TOKEN_STRING,
+	VIPS_TOKEN_EQUALS,
+	VIPS_TOKEN_COMMA
 } VipsToken;
 
 const char *vips__token_get( const char *buffer, 

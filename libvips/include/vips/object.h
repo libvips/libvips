@@ -44,36 +44,28 @@ typedef struct _VipsObjectClass VipsObjectClass;
 /* Track extra stuff for arguments to objects
  */
 
-/* Flags we associate with each argument.
+/** 
+ * VipsArgumentFlags:
+ * @VIPS_ARGUMENT_NONE: no flags
+ * @VIPS_ARGUMENT_REQUIRED: must be set in the constructor
+ * @VIPS_ARGUMENT_CONSTRUCT: can only be set in the constructor
+ * @VIPS_ARGUMENT_SET_ONCE: can only be set once
+ * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
+ * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
+ *
+ * Flags we associate with each object argument.
+ *
+ * Have separate input & output flags. Both set is an error; neither set is OK.
+ *
+ * Input gobjects are automatically reffed, output gobjects automatically ref
+ * us. We also automatically watch for "destroy" and unlink.
  */
 typedef enum {
 	VIPS_ARGUMENT_NONE = 0,
-
-	/* Must be set in the constructor.
-	 */
 	VIPS_ARGUMENT_REQUIRED = 1,
-
-	/* Can only be set in the constructor.
-	 */
 	VIPS_ARGUMENT_CONSTRUCT = 2,
-
-	/* Can only be set once.
-	 */
 	VIPS_ARGUMENT_SET_ONCE = 4,
-
-	/* Have input & output flags. Both set is an error; neither set is OK.
-	 */
-
-	/* Is an input argument (one we depend on) ... if it's a gobject, we 
-	 * should ref it. In our _dispose(), we should unref it.
-	 */
 	VIPS_ARGUMENT_INPUT = 8,
-
-	/* Is an output argument (one that depends on us) ... if it's a
-	 * gobject, we should ref ourselves. We watch "destroy" on the
-	 * argument: if it goes, we unref ourselves. If we dispose, we
-	 * disconnect the signal.
-	 */
 	VIPS_ARGUMENT_OUTPUT = 16
 } VipsArgumentFlags;
 

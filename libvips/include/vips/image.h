@@ -46,7 +46,43 @@ extern "C" {
 #define VIPS_MAGIC_INTEL (0xb6a6f208U)
 #define VIPS_MAGIC_SPARC (0x08f2a6b6U)
 
-/* Preferred demand type.
+/** 
+ * VipsDemandStyle:
+ * @VIPS_DEMAND_STYLE_SMALLTILE: demand in small (typically 64x64 pixel) tiles
+ * @VIPS_DEMAND_STYLE_FATSTRIP: demand in fat (typically 10 pixel high) strips
+ * @VIPS_DEMAND_STYLE_THINSTRIP: demand in thin (typically 1 pixel high) strips
+ * @VIPS_DEMAND_STYLE_ANY: demand geometry does not matter
+ *
+ * See vips_demand_hint(). Operations can hint to the VIPS image IO system about
+ * the kind of demand geometry they prefer. 
+ *
+ * These demand styles are given below in order of increasing
+ * restrictiveness.  When demanding output from a pipeline, 
+ * vips_image_generate()
+ * will use the most restrictive of the styles requested by the operations 
+ * in the pipeline.
+ *
+ * VIPS_DEMAND_STYLE_THINSTRIP --- This operation would like to output strips 
+ * the width of the image and a few pels high. This is option suitable for 
+ * point-to-point operations, such as those in the arithmetic package.
+ *
+ * This option is only efficient for cases where each output pel depends 
+ * upon the pel in the corresponding position in the input image.
+ *
+ * VIPS_DEMAND_STYLE_FATSTRIP --- This operation would like to output strips 
+ * the width of the image and as high as possible. This option is suitable 
+ * for area operations which do not violently transform coordinates, such 
+ * as im_conv(). 
+ *
+ * VIPS_DEMAND_STYLE_SMALLTILE --- This is the most general demand format.
+ * Output is demanded in small (around 100x100 pel) sections. This style works 
+ * reasonably efficiently, even for bizzare operations like 45 degree rotate.
+ *
+ * VIPS_DEMAND_STYLE_ANY --- This image is not being demand-read from a disc 
+ * file (even indirectly) so any demand style is OK. It's used for things like
+ * im_black() where the pixels are calculated.
+ *
+ * See also: vips_demand_hint().
  */
 typedef enum {
 	VIPS_DEMAND_STYLE_SMALLTILE,	
@@ -69,8 +105,35 @@ typedef enum {
 	VIPS_IMAGE_PARTIAL		/* partial image */
 } VipsImageType;
 
-/* The gaps in the numbering are historical and need maintaining. Allocate new
- * numbers from the end.
+/**
+ * VipsInterpretation: 
+ * @VIPS_TYPE_MULTIBAND: generic many-band image
+ * @VIPS_TYPE_B_W: some kind of single-band image
+ * @VIPS_TYPE_HISTOGRAM: a 1D image such as a histogram or lookup table
+ * @VIPS_TYPE_FOURIER: image is in fourier space
+ * @VIPS_TYPE_XYZ: the first three bands are colours in CIE XYZ colourspace
+ * @VIPS_TYPE_LAB: pixels are in CIE Lab space
+ * @VIPS_TYPE_CMYK: the first four bands are in CMYK space
+ * @VIPS_TYPE_LABQ: implies #VIPS_CODING_LABQ
+ * @VIPS_TYPE_RGB: generic RGB space
+ * @VIPS_TYPE_UCS: a uniform colourspace based on CMC
+ * @VIPS_TYPE_LCH: pixels are in CIE LCh space
+ * @VIPS_TYPE_LABS: pixels are CIE LAB coded as three signed 16-bit values
+ * @VIPS_TYPE_sRGB: pixels are sRGB
+ * @VIPS_TYPE_YXY: pixels are CIE Yxy
+ * @VIPS_TYPE_RGB16: generic 16-bit RGB
+ * @VIPS_TYPE_GREY16: generic 16-bit mono
+ *
+ * How the values in an image should be interpreted. For example, a
+ * three-band float image of type #VIPS_TYPE_LAB should have its pixels
+ * interpreted as coordinates in CIE Lab space.
+ *
+ * These values are set by operations as hints to user-interfaces built on top 
+ * of VIPS to help them show images to the user in a meaningful way. 
+ * Operations do not use these values to decide their action.
+ *
+ * The gaps in the numbering are historical and must be maintained. Allocate 
+ * new numbers from the end.
  */
 typedef enum {
 	VIPS_INTERPRETATION_MULTIBAND = 0,
@@ -91,6 +154,25 @@ typedef enum {
 	VIPS_INTERPRETATION_GREY16 = 26
 } VipsInterpretation;
 
+/**
+ * VipsBandFormat: 
+ * @VIPS_FORMAT_NOTSET: invalid setting
+ * @VIPS_FORMAT_UCHAR: unsigned char format
+ * @VIPS_FORMAT_CHAR: char format
+ * @VIPS_FORMAT_USHORT: unsigned short format
+ * @VIPS_FORMAT_SHORT: short format
+ * @VIPS_FORMAT_UINT: unsigned int format
+ * @VIPS_FORMAT_INT: int format
+ * @VIPS_FORMAT_FLOAT: float format
+ * @VIPS_FORMAT_COMPLEX: complex (two floats) format
+ * @VIPS_FORMAT_DOUBLE: double float format
+ * @VIPS_FORMAT_DPCOMPLEX: double complex (two double) format
+ *
+ * The format used for each band element. 
+ *
+ * Each corresponnds to a native C type for the current machine. For example,
+ * #VIPS_FORMAT_USHORT is <type>unsigned short</type>.
+ */
 typedef enum {
 	VIPS_FORMAT_NOTSET = -1,
 	VIPS_FORMAT_UCHAR = 0,
@@ -106,6 +188,21 @@ typedef enum {
 	VIPS_FORMAT_LAST = 10
 } VipsBandFormat;
 
+/**
+ * VipsCoding: 
+ * @VIPS_CODING_NONE: pixels are not coded
+ * @VIPS_CODING_LABQ: pixels encode 3 float CIELAB values as 4 uchar
+ * @VIPS_CODING_RAD: pixels encode 3 float RGB as 4 uchar (Radiance coding)
+ *
+ * How pixels are coded. 
+ *
+ * Normally, pixels are uncoded and can be manipulated as you would expect.
+ * However some file formats code pixels for compression, and sometimes it's
+ * useful to be able to manipulate images in the coded format.
+ *
+ * The gaps in the numbering are historical and must be maintained. Allocate 
+ * new numbers from the end.
+ */
 typedef enum {
 	VIPS_CODING_NONE = 0,
 	VIPS_CODING_LABQ = 2,
