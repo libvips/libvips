@@ -1193,6 +1193,7 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 	case '{':
 	case '[':
 	case '(':
+	case '<':
 		*token = VIPS_TOKEN_LEFT;
 		p += 1;
 		break;
@@ -1200,6 +1201,7 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 	case ')':
 	case ']':
 	case '}':
+	case '>':
 		*token = VIPS_TOKEN_RIGHT;
 		p += 1;
 		break;
@@ -1256,7 +1258,7 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 		 * so the next break must be bracket, equals, comma.
 		 */
 		*token = VIPS_TOKEN_STRING;
-		n = strcspn( p, "[{()}]=," );
+		n = strcspn( p, "<[{()}]>=," );
 		g_assert( size > n + 1 );
 		memcpy( string, p, n );
 		string[n] = '\0';
@@ -1291,23 +1293,6 @@ vips__token_must( const char *p, VipsToken *token,
 	return( p );
 }
 
-/* Turn a VipsToken into a string.
- */
-static const char *
-vips__token_string( VipsToken token )
-{
-	switch( token ) {
- 	case VIPS_TOKEN_LEFT:	return( _( "opening brace" ) );
-	case VIPS_TOKEN_RIGHT:	return( _( "closing brace" ) );
-	case VIPS_TOKEN_STRING:	return( _( "string" ) );
-	case VIPS_TOKEN_EQUALS:	return( "=" );
-	case VIPS_TOKEN_COMMA:	return( "," );
-
-	default:
-		g_assert( 0 );
-	}
-}
-
 /* We expect a certain token.
  */
 const char *
@@ -1320,8 +1305,8 @@ vips__token_need( const char *p, VipsToken need_token,
 		return( NULL );
 	if( token != need_token ) {
 		vips_error( "get_token", _( "expected %s, saw %s" ), 
-			vips__token_string( need_token ), 
-			vips__token_string( token ) );
+			VIPS_ENUM_NICK( VIPS_TYPE_TOKEN, need_token ),
+			VIPS_ENUM_NICK( VIPS_TYPE_TOKEN, token ) );
 		return( NULL );
 	}
 

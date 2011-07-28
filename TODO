@@ -1,8 +1,3 @@
-- various errors from gtk-doc, eg.
-
-../xml/image.xml:182: element refsect2: validity error : ID VipsDemandStyle already defined
-<refsect2 id="VipsDemandStyle" role="enum">
-                                          ^
 
 
 - leak check, again
