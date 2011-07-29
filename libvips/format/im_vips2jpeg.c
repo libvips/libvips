@@ -315,6 +315,7 @@ write_tag( ExifData *ed, ExifTag tag, ExifFormat f, write_fn fn, void *data )
 		exif_content_add_entry( ed->ifd[0], entry );
 		exif_entry_initialize( entry, tag );
 		fn( entry, bo, data );
+		exif_entry_unref( entry );
 	}
 
 	return( 0 );
