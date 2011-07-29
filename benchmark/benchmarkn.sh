@@ -7,7 +7,7 @@ vips --version
 # how large an image do you want to process? 
 # sample2.v is 290x442 pixels ... replicate this many times horizontally and 
 # vertically to get a highres image for the benchmark
-tile=13
+tile=2
 
 # how complex an operation do you want to run?
 # this sets the number of copies of the benchmark we chain together:
@@ -27,13 +27,12 @@ echo " by" `header -f Ysize temp.v` "pixels"
 echo "starting benchmark ..."
 echo "chain=$chain"
 
-for cpus in 1 2 3 4 5 6 ; do
+for cpus in 1 2 3 4 ; do
   export IM_CONCURRENCY=$cpus
 
   echo IM_CONCURRENCY=$IM_CONCURRENCY
   echo time -p vips im_benchmarkn temp.v temp2.v $chain
-  time -p vips im_benchmarkn temp.v temp2.v $chain
-  time -p vips im_benchmarkn temp.v temp2.v $chain
+  time -p vips im_benchmarkn temp.v temp2-$cpus.v $chain
 
   if [ $? != 0 ]; then
     echo "benchmark failed -- install problem?"
@@ -42,6 +41,6 @@ for cpus in 1 2 3 4 5 6 ; do
 
   # find pixel average ... should be the same for all IM_CONCURRENCY settings
   # or we have some kind of terrible bug
-  echo vips im_avg temp2.v
-  vips im_avg temp2.v
+  echo vips im_avg temp2-$cpus.v
+  vips im_avg temp2-$cpus.v
 done
