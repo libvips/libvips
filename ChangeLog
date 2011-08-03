@@ -2,6 +2,7 @@
 - doc fixups
 - oops, ==0 missing from a strcmp() in vips7compat
 - fixed a race in im_XYZ2Lab() table build
+- added im_concurrency_get() to operation db
 
 26/7/11 started 7.26.0
 - version bunp for 7.26
