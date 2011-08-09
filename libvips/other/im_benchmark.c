@@ -200,11 +200,12 @@ benchmark( IMAGE *in, IMAGE *out )
 			100, 100, t[0]->Xsize - 200, t[0]->Ysize - 200 ) ||
 
 		/* Shrink by 10%, bilinear interp.
-		 */
 		im_affinei_all( t[1], t[2],
 			vips_interpolate_bilinear_static(),
 			0.9, 0, 0, 0.9, 
 			0, 0 ) || 
+		 */
+		im_copy( t[1], t[2] ) ||
 
 		/* Find L ~= 100 areas (white surround).
 		 */
@@ -262,8 +263,9 @@ im_benchmarkn( IMAGE *in, IMAGE *out, int n )
 
 	if( n == 0 )
 		/* To sRGB.
-		 */
 		return( im_LabQ2disp( in, out, im_col_displays( 7 ) ) );
+		 */
+		return( im_copy( in, out ) );
 	else 
 		return( im_open_local_array( out, t, 2, "benchmarkn", "p" ) ||
 
@@ -273,7 +275,6 @@ im_benchmarkn( IMAGE *in, IMAGE *out, int n )
 			 * benchmark does a 200 pixel crop plus a 10% shrink,
 			 * so if we chain many of them together the image gets
 			 * too small.
-			 */
 			im_affinei_all( t[0], t[1],
 				vips_interpolate_bilinear_static(),
 				(double) in->Xsize / t[0]->Xsize, 0, 0, 
@@ -281,6 +282,8 @@ im_benchmarkn( IMAGE *in, IMAGE *out, int n )
 				0, 0 ) || 
 
 			im_benchmarkn( t[1], out, n - 1 ) );
+			 */
+			im_benchmarkn( t[0], out, n - 1 ) );
 }
 
 /**

@@ -36,8 +36,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -384,6 +384,8 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	vips_rect_intersectrect( &image, &tile, &state->pos );
 	wstate->buf = write->buf;
 
+	VIPS_DEBUG_MSG( "  allocated %d x %d:\n", tile.left, tile.top );
+
 	/* Add to the number of writers on the buffer.
 	 */
 	vips_semaphore_upn( &write->buf->nwrite, -1 );
@@ -400,13 +402,17 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 static int
 wbuffer_work_fn( VipsThreadState *state, void *a )
 {
-	WriteThreadState *wstate =  (WriteThreadState *) state;
+	WriteThreadState *wstate = (WriteThreadState *) state;
 
-	VIPS_DEBUG_MSG( "wbuffer_work_fn:\n" );
+	VIPS_DEBUG_MSG( "wbuffer_work_fn: %p %d x %d\n", 
+		state, state->pos.left, state->pos.top );
 
 	if( vips_region_prepare_to( state->reg, wstate->buf->region, 
-		&state->pos, state->pos.left, state->pos.top ) )
+		&state->pos, state->pos.left, state->pos.top ) ) {
+		VIPS_DEBUG_MSG( "wbuffer_work_fn: %p error!\n", state );
 		return( -1 );
+	}
+	VIPS_DEBUG_MSG( "wbuffer_work_fn: %p done\n", state );
 
 	/* Tell the bg write thread we've left.
 	 */

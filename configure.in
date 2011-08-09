@@ -177,7 +177,7 @@ fi
 # argh
 test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
 
-# set $expanded_value to the full-expanded value of the argument
+# set $expanded_value to the fully-expanded value of the argument
 expand () {
 	eval expanded_value=$1
 

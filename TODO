@@ -1,3 +1,11 @@
+- scrap acinclude.m4 and pout those macros into m4/
+
+  need to fix up bootstrap though, it wipes m4 currently
+
+  see http://www.gnu.org/s/hello/manual/automake/Local-Macros.html
+
+
+
 - in benchmark, try:
 
 	vips im_benchmarkn temp.v temp2.v 1
