@@ -1,10 +1,6 @@
-/* @(#) Turn Lab 32bit packed format into displayable rgb. Fast, but very
- * @(#) inaccurate: for display only!
- * @(#) 
- * @(#) Usage:  
- * @(#)   int im_LabQ2disp( IMAGE *in, IMAGE *out, struct im_col_display *d )
- * @(#) 
- * @(#) Returns: -1 on error, else 0
+/* Turn Lab 32bit packed format into displayable rgb. Fast, but very
+ * inaccurate: for display only! Note especially that this dithers and will
+ * give different results on different runs.
  *
  * 5/11/97 Steve Perry
  *	- adapted from old ip code

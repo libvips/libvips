@@ -15,6 +15,8 @@
  *	- ahem, build the LUT outside the eval thread
  * 2/11/09
  * 	- gtkdoc
+ * 3/8/11
+ * 	- fix a race in the table build
  */
 
 /*
@@ -74,15 +76,14 @@ imb_XYZ2Lab_tables( void )
 {
 	static int built_tables = 0;
 
-	int was_built;
 	int i;
 
 	g_mutex_lock( im__global_lock );
-	was_built = built_tables;
-	built_tables = 1;
-	g_mutex_unlock( im__global_lock );
-	if( was_built )
+
+	if( built_tables ) {
+		g_mutex_unlock( im__global_lock );
 		return;
+	}
 
 	for( i = 0; i < QUANT_ELEMENTS; i++ ) {
 		float Y = (double) i / QUANT_ELEMENTS;
@@ -92,6 +93,10 @@ imb_XYZ2Lab_tables( void )
 		else 
 			cbrt_table[i] = cbrt( Y );
 	}
+
+	built_tables = 1;
+
+	g_mutex_unlock( im__global_lock );
 }
 
 /* Process a buffer of data.

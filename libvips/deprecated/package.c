@@ -435,6 +435,35 @@ static im_function version_desc = {
 	version_args 			/* Arg list */
 };
 
+/* im_concurrency_get() args.
+ */
+static im_arg_desc concurrency_get_args[] = {
+	IM_OUTPUT_INT( "concurrency" )
+};
+
+/* Call im_concurrency_get() via arg vector.
+ */
+static int
+concurrency_get_vec( im_object *argv )
+{
+	int *out = ((int *) argv[0]);
+
+	*out = vips_concurrency_get();
+
+	return( 0 );
+}
+
+/* Description of im_concurrency_get.
+ */ 
+static im_function concurrency_get_desc = {
+	"im_concurrency_get", 			/* Name */
+	"get concurrency level",		/* Description */
+	0,					/* Flags */
+	concurrency_get_vec, 			/* Dispatch function */
+	VIPS_NUMBER( concurrency_get_args ), 	/* Size of arg list */
+	concurrency_get_args 			/* Arg list */
+};
+
 /* im_cache() args.
  */
 static im_arg_desc cache_args[] = {
@@ -518,6 +547,7 @@ static im_function binfile_desc = {
 static im_function *iofuncs_list[] = {
 	&binfile_desc,
 	&cache_desc,
+	&concurrency_get_desc,
 	&getext_desc,
 	&guess_prefix_desc,
 	&guess_libdir_desc,

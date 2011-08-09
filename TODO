@@ -8,22 +8,6 @@
 
 - in benchmark, try:
 
-	vips im_benchmarkn temp.v temp2.v 1
-	vips --vips-concurrency=99 --vips-tile-width=10 --vips-tile-height=10 \
-		im_benchmarkn temp.v temp2a.v 1
-	vips im_avg temp2a.v
-	vips im_avg temp2.v
-
-  get different results :-(
-
-  7.24 seems to fail this test too argh
-
-  first column of tiles is fine, but stuff to the right of that is broken
-
-
-
-
-- leak check, again
 
 - vips operation print could show operation flags as well, cf. "vips
   im_subtract"
@@ -102,7 +86,6 @@
 	- do we bundle "convert" in the OS X / win32 builds? if we don't we
 	  should
 
-	- some way for nip2 to get the vips bin area
 
 
 
