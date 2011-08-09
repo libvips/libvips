@@ -1,12 +1,10 @@
-- scrap acinclude.m4 and pout those macros into m4/
+- scrap acinclude.m4 and put those macros into m4/
 
   need to fix up bootstrap though, it wipes m4 currently
 
   see http://www.gnu.org/s/hello/manual/automake/Local-Macros.html
 
 
-
-- in benchmark, try:
 
 
 - vips operation print could show operation flags as well, cf. "vips
@@ -16,6 +14,8 @@
   useful, should we add that? any others?
 
   maybe wait until we have to
+
+
 
 
 - revisit orc conv
