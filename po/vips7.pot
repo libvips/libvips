@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-26 18:34+0100\n"
+"POT-Creation-Date: 2011-08-09 18:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -495,7 +495,7 @@ msgstr ""
 
 #: libvips/conversion/im_grid.c:168 libvips/conversion/im_replicate.c:151
 #: libvips/convolution/im_contrast_surface.c:144
-#: libvips/format/im_tile_cache.c:408 libvips/iofuncs/image.c:989
+#: libvips/format/im_tile_cache.c:408 libvips/iofuncs/image.c:889
 #: libvips/iofuncs/sinkscreen.c:1086 libvips/morphology/im_rank.c:346
 msgid "bad parameters"
 msgstr ""
@@ -505,7 +505,7 @@ msgid "bad grid geometry"
 msgstr ""
 
 #: libvips/conversion/im_embed.c:332 libvips/conversion/im_embed.c:460
-#: libvips/iofuncs/image.c:1916
+#: libvips/iofuncs/image.c:1816
 msgid "bad dimensions"
 msgstr ""
 
@@ -733,7 +733,7 @@ msgstr ""
 msgid "bad resolution values"
 msgstr ""
 
-#: libvips/format/im_vips2tiff.c:1375 libvips/format/im_vips2jpeg.c:737
+#: libvips/format/im_vips2tiff.c:1375 libvips/format/im_vips2jpeg.c:738
 #, c-format
 msgid "unknown extra options \"%s\""
 msgstr ""
@@ -1105,19 +1105,19 @@ msgstr ""
 msgid "Radiance"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:350
+#: libvips/format/im_vips2jpeg.c:351
 msgid "error setting JPEG resolution"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:393
+#: libvips/format/im_vips2jpeg.c:394
 msgid "error saving EXIF"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:584
+#: libvips/format/im_vips2jpeg.c:585
 msgid "qfac should be in 0-100"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:1104
+#: libvips/format/im_vips2jpeg.c:1105
 msgid "error writing output"
 msgstr ""
 
@@ -1382,7 +1382,7 @@ msgstr ""
 msgid "generate() called twice"
 msgstr ""
 
-#: libvips/iofuncs/generate.c:691 libvips/iofuncs/image.c:2005
+#: libvips/iofuncs/generate.c:691 libvips/iofuncs/image.c:1905
 #, c-format
 msgid "unable to output to a %s image"
 msgstr ""
@@ -1462,122 +1462,122 @@ msgstr ""
 msgid "Show VIPS options"
 msgstr ""
 
-#: libvips/iofuncs/image.c:349
+#: libvips/iofuncs/image.c:249
 msgid "unable to close fd"
 msgstr ""
 
-#: libvips/iofuncs/image.c:468
+#: libvips/iofuncs/image.c:368
 #, c-format
 msgid "%dx%d %s, %d band, %s"
 msgid_plural "%dx%d %s, %d bands, %s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: libvips/iofuncs/image.c:841
+#: libvips/iofuncs/image.c:741
 #, c-format
 msgid "%s %s: %d threads, %d x %d tiles, groups of %d scanlines"
 msgstr ""
 
-#: libvips/iofuncs/image.c:854
+#: libvips/iofuncs/image.c:754
 #, c-format
 msgid "%s %s: %d%% complete"
 msgstr ""
 
 #. Spaces at end help to erase the %complete message we overwrite.
 #.
-#: libvips/iofuncs/image.c:871
+#: libvips/iofuncs/image.c:771
 #, c-format
 msgid "%s %s: done in %ds          \n"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1017
+#: libvips/iofuncs/image.c:917
 #, c-format
 msgid "unable to open \"%s\", file too short"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1027
+#: libvips/iofuncs/image.c:927
 #, c-format
 msgid "%s is longer than expected"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1044
+#: libvips/iofuncs/image.c:944
 #, c-format
 msgid "bad mode \"%s\""
 msgstr ""
 
-#: libvips/iofuncs/image.c:1100
+#: libvips/iofuncs/image.c:1000
 msgid "VIPS image class"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1115
+#: libvips/iofuncs/image.c:1015
 msgid "Image width in pixels"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1123
+#: libvips/iofuncs/image.c:1023
 msgid "Image height in pixels"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1131
+#: libvips/iofuncs/image.c:1031
 msgid "Number of bands in image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1140
+#: libvips/iofuncs/image.c:1040
 msgid "Pixel format in image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1149
+#: libvips/iofuncs/image.c:1049
 msgid "Image filename"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1158
+#: libvips/iofuncs/image.c:1058
 msgid "Open mode"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1167
+#: libvips/iofuncs/image.c:1067
 msgid "Block evaluation on this image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1176
+#: libvips/iofuncs/image.c:1076
 msgid "Preferred demand style for this image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1185
+#: libvips/iofuncs/image.c:1085
 msgid "Offset in bytes from start of file"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1455
+#: libvips/iofuncs/image.c:1355
 #, c-format
 msgid "killed for image \"%s\""
 msgstr ""
 
-#: libvips/iofuncs/image.c:1954
+#: libvips/iofuncs/image.c:1854
 msgid "bad image descriptor"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2049
+#: libvips/iofuncs/image.c:1949
 #, c-format
 msgid "auto-rewind for %s failed"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2092 libvips/iofuncs/image.c:2303
-#: libvips/iofuncs/image.c:2320
+#: libvips/iofuncs/image.c:1992 libvips/iofuncs/image.c:2203
+#: libvips/iofuncs/image.c:2220
 msgid "no image data"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2161 libvips/iofuncs/image.c:2343
+#: libvips/iofuncs/image.c:2061 libvips/iofuncs/image.c:2243
 msgid "image not readable"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2193 libvips/iofuncs/image.c:2207
-#: libvips/iofuncs/image.c:2373 libvips/iofuncs/image.c:2382
+#: libvips/iofuncs/image.c:2093 libvips/iofuncs/image.c:2107
+#: libvips/iofuncs/image.c:2273 libvips/iofuncs/image.c:2282
 msgid "image already written"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2221 libvips/iofuncs/image.c:2394
+#: libvips/iofuncs/image.c:2121 libvips/iofuncs/image.c:2294
 msgid "image not writeable"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2267
+#: libvips/iofuncs/image.c:2167
 msgid "bad file type"
 msgstr ""
 
@@ -1753,28 +1753,16 @@ msgstr ""
 msgid "unable to truncate"
 msgstr ""
 
-#: libvips/iofuncs/util.c:1287
+#: libvips/iofuncs/util.c:1289
 msgid "unexpected end of string"
 msgstr ""
 
-#: libvips/iofuncs/util.c:1300
-msgid "opening brace"
-msgstr ""
-
-#: libvips/iofuncs/util.c:1301
-msgid "closing brace"
-msgstr ""
-
-#: libvips/iofuncs/util.c:1302
-msgid "string"
-msgstr ""
-
-#: libvips/iofuncs/util.c:1322
+#: libvips/iofuncs/util.c:1307
 #, c-format
 msgid "expected %s, saw %s"
 msgstr ""
 
-#: libvips/iofuncs/util.c:1424
+#: libvips/iofuncs/util.c:1409
 #, c-format
 msgid "unable to make temporary file %s"
 msgstr ""
