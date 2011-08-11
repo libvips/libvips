@@ -56,10 +56,24 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_CFITSIO
+#ifndef HAVE_CFITSIO
+
+#include <vips/vips.h>
+
+/* We call this from format_dispatch.c so we need a stub.
+ */
+int
+im_fits2vips( const char *filename, VipsImage *out )
+{
+	im_error( "im_fits2vips", "%s",
+		_( "FITS support disabled" ) );
+
+	return( -1 );
+}
+
+#else /*HAVE_CFITSIO*/
 
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 

@@ -1,5 +1,6 @@
 10/8/11 started 7.26.2
 - oops, im_benchmark.c had some stuff turned off
+- configure option --without-cfitsio was broken (thanks Mike)
 
 26/7/11 started 7.26.1
 - doc fixups
