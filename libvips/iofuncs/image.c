@@ -1348,20 +1348,33 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
 gboolean
 vips_image_get_kill( VipsImage *image )
 {
+	gboolean kill;
+
+	kill = image->kill;
+
 	/* Has kill been set for this image? If yes, abort evaluation.
 	 */
-	if( image->kill ) 
+	if( image->kill ) {
+		VIPS_DEBUG_MSG( "vips_image_get_kill: %s (%p) killed\n", 
+			image->filename, image );
 		vips_error( "VipsImage", 
 			_( "killed for image \"%s\"" ), image->filename );
 
-	return( image->kill );
+		/* We've picked up the kill message, it's now our caller's
+		 * responsibility to pass the message up the chain.
+		 */
+		vips_image_set_kill( image, FALSE );
+	}
+
+	return( kill );
 }
 
 void
 vips_image_set_kill( VipsImage *image, gboolean kill )
 {
-	if( !image->kill ) 
-		VIPS_DEBUG_MSG( "vips_image_set_kill: %s\n", image->filename );
+	if( image->kill != kill ) 
+		VIPS_DEBUG_MSG( "vips_image_set_kill: %s (%p) %d\n", 
+			image->filename, image, kill );
 
 	image->kill = kill;
 }
@@ -1880,6 +1893,10 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	/* Is this the start of eval?
 	 */
 	if( ypos == 0 ) {
+		/* Always clear kill before we start looping. See the 
+		 * call to vips_image_get_kill() below.
+		 */
+		vips_image_set_kill( image, FALSE );
 		vips__image_write_prepare( image );
 		vips_image_preeval( image );
 	}

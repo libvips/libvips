@@ -203,6 +203,11 @@ sink_free( Sink *sink )
 void
 vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 {
+	/* Always clear kill before we start looping. See the 
+	 * call to vips_image_get_kill() below.
+	 */
+	vips_image_set_kill( image, FALSE );
+
 	sink_base->im = image;
 	sink_base->x = 0;
 	sink_base->y = 0;
