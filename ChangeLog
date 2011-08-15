@@ -1,3 +1,7 @@
+10/8/11 started 7.26.3
+- don't use G_VALUE_COLLECT_INIT(), many platforms do not have a glib this
+  recent
+
 10/8/11 started 7.26.2
 - oops, im_benchmark.c had some stuff turned off
 - configure option --without-cfitsio was broken (thanks Mike)

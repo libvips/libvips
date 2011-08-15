@@ -244,8 +244,12 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 			GValue value = { 0 };
 			char *msg = NULL;
 
-			G_VALUE_COLLECT_INIT( &value, 
-				G_PARAM_SPEC_VALUE_TYPE( pspec ), ap, 0, &msg );
+			/* It'd be nice to use G_VALUE_COLLECT_INIT(), but
+			 * that's only available in very recent glib.
+			 */
+			g_value_init( &value, 
+				G_PARAM_SPEC_VALUE_TYPE( pspec ) );
+			G_VALUE_COLLECT( &value, ap, 0, &msg );
 
 			if( msg ) {
 				VipsObjectClass *class = 
@@ -321,9 +325,13 @@ vips_operation_get_valist( VipsOperation *operation, va_list ap )
 
 			/* Collect the arg from valist to eat it up, but don't
 			 * do anything with it.
+			 *
+			 * It'd be nice to use G_VALUE_COLLECT_INIT(), but
+			 * that's only available in very recent glib.
 			 */
-			G_VALUE_COLLECT_INIT( &value, 
-				G_PARAM_SPEC_VALUE_TYPE( pspec ), ap, 0, &msg );
+			g_value_init( &value, 
+				G_PARAM_SPEC_VALUE_TYPE( pspec ) );
+			G_VALUE_COLLECT( &value, ap, 0, &msg );
 			g_value_unset( &value );
 		}
 		else if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
