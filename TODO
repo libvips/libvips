@@ -1,5 +1,3 @@
-- missing g++ does not make configure complain or disable C++ support ...
-  instead you get a fail during compilation
 
 - scrap acinclude.m4 and put those macros into m4/
 

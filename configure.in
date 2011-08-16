@@ -150,22 +150,40 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_WITH_DMALLOC
 
+# vips_PROG_CXX_WORKS
+# Check whether the C++ compiler works.
+AC_DEFUN([vips_PROG_CXX_WORKS],
+  [AC_REQUIRE([AC_PROG_CXX])dnl
+   AC_CACHE_CHECK([whether the C++ compiler works],
+   [vips_cv_prog_cxx_works],
+   [AC_LANG_PUSH([C++])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
+                   [vips_cv_prog_cxx_works=yes],
+                   [vips_cv_prog_cxx_works=no])
+    AC_LANG_POP([C++])])
+])
+
 # option to build without C++
 # handy for some embedded applications
 # also, including C++ source causes link problems on some
 # platforms, so have an option to disable it
 AC_ARG_ENABLE(cxx, 
-  AS_HELP_STRING([--enable-cxx], [build C++ components (default: enabled)]))
+  AS_HELP_STRING([--enable-cxx], [build C++ components (default: test)]))
 
-if test x"$enable_cxx" != "xno"; then
-  AC_DEFINE(ENABLE_CXX,1,[build C++ components])
-  AM_CONDITIONAL(ENABLE_CXX, true)
-  # need -lstdc++ for (eg.) the C++ format loaders
-  # this gets added to vips-7.xx.pc to help mingw and friends link programs
-  # using libvips
-  VIPS_CXX_LIBS="-lstdc++"
-  enable_cxx=yes
-else
+if test x"$enable_cxx" != x"no"; then
+  vips_PROG_CXX_WORKS
+  if test x"$vips_cv_prog_cxx_works" = x"yes"; then 
+    AC_DEFINE(ENABLE_CXX,1,[build C++ components])
+    AM_CONDITIONAL(ENABLE_CXX, true)
+    # need -lstdc++ for (eg.) the C++ format loaders
+    # this gets added to vips-7.xx.pc to help mingw and friends link programs
+    # using libvips
+    VIPS_CXX_LIBS="-lstdc++"
+    enable_cxx=yes
+  fi
+fi
+
+if test x"$enable_cxx" != x"yes"; then
   AM_CONDITIONAL(ENABLE_CXX, false)
   VIPS_CXX_LIBS=""
   enable_cxx=no

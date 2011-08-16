@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libcimg.la
 libcimg_la_SOURCES = \
 	CImg.h \
 	cimg_dispatch.c \
-	cimg.cpp
+	cimg.cpp 
 
 # various cimg settings as well
 # we need to change these a bit for win32
@@ -20,5 +20,8 @@ AM_CPPFLAGS = \
 	-Dcimg_display_type=0 \
 	-DLOCALEDIR=\""$(LOCALEDIR)"\"
 endif
+
+# used by the final libvips link rather than us
+EXTRA_DIST = dummy2.cc
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

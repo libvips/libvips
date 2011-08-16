@@ -2,6 +2,7 @@
 - don't use G_VALUE_COLLECT_INIT(), many platforms do not have a glib this
   recent
 - don't leave image->kill set when we detect termination
+- test for a working C++ compiler, disable C++ parts of none found
 
 10/8/11 started 7.26.2
 - oops, im_benchmark.c had some stuff turned off

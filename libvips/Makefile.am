@@ -36,7 +36,7 @@ lib_LTLIBRARIES = libvips.la
 
 libvips_la_SOURCES = dummy.c 
 if ENABLE_CXX
-libvips_la_SOURCES += dummy2.cc
+libvips_la_SOURCES += cimg/dummy2.cc
 endif
 
 # DLLs need dependant libs there too ... put @VIPS_LIBS@ at the end
