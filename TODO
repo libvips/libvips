@@ -1,3 +1,7 @@
+- support planar tiff
+
+
+
 
 - vips operation print could show operation flags as well, cf. "vips
   im_subtract"
