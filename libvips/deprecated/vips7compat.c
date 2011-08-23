@@ -926,3 +926,25 @@ im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_subtract( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_call( "subtract", in1, in2, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+
+	/* When im_copy() is vips8'd it'll make a ref to in which will be
+	 * junked when the copy shuts down and we can unref x directly.
+	 *
+	 * Until then, we have to use the "close" signal to delay the unref.
+	 */
+	vips_object_local( out, x ); 
+
+	return( 0 );
+}

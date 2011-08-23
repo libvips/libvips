@@ -239,7 +239,9 @@ void
 vips_arithmetic_operation_init( void )
 {
 	extern GType vips_add_get_type( void ); 
+	extern GType vips_subtract_get_type( void ); 
 
 	vips_add_get_type();
+	vips_subtract_get_type();
 }
 

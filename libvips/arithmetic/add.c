@@ -108,7 +108,7 @@
  * following table is used to determine the output type:
  *
  * <table>
- *   <title>im_add() type promotion</title>
+ *   <title>VipsAdd type promotion</title>
  *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
  *     <thead>
  *       <row>

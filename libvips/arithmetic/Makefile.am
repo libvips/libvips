@@ -22,7 +22,7 @@ libarithmetic_la_SOURCES = \
 	im_remainder.c \
 	im_sign.c \
 	im_stats.c \
-	im_subtract.c \
+	subtract.c \
 	math.c \
 	arithmetic.c \
 	arithmetic.h \
