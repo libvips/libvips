@@ -192,12 +192,14 @@ add_buffer( VipsBinary *binary, PEL *out, PEL *left, PEL *right, int width )
 
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * im->Bands * 
-		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
+	const int sz = width * vips_image_get_bands( im ) * 
+		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
+		 	2 : 1);
 
 	VipsVector *v;
 
-	if( (v = vips_arithmetic_get_vector( class, im->BandFmt )) ) {
+	if( (v = vips_arithmetic_get_vector( class, 
+		vips_image_get_format( im ) )) ) {
 		VipsExecutor ex;
 
 		vips_executor_set_program( &ex, v, sz );
@@ -213,7 +215,7 @@ add_buffer( VipsBinary *binary, PEL *out, PEL *left, PEL *right, int width )
 		/* Add all input types. Keep types here in sync with 
 		 * bandfmt_add[] below.
 		 */
-		switch( im->BandFmt ) {
+		switch( vips_image_get_format( im ) ) {
 		case VIPS_FORMAT_UCHAR: 	
 			LOOP( unsigned char, unsigned short ); break; 
 		case VIPS_FORMAT_CHAR: 	
@@ -243,21 +245,21 @@ add_buffer( VipsBinary *binary, PEL *out, PEL *left, PEL *right, int width )
 
 /* Save a bit of typing.
  */
-#define UC IM_BANDFMT_UCHAR
-#define C IM_BANDFMT_CHAR
-#define US IM_BANDFMT_USHORT
-#define S IM_BANDFMT_SHORT
-#define UI IM_BANDFMT_UINT
-#define I IM_BANDFMT_INT
-#define F IM_BANDFMT_FLOAT
-#define X IM_BANDFMT_COMPLEX
-#define D IM_BANDFMT_DOUBLE
-#define DX IM_BANDFMT_DPCOMPLEX
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
 
 /* Type promotion for addition. Sign and value preserving. Make sure these
  * match the case statement in add_buffer() above.
  */
-static int bandfmt_add[10] = {
+static const VipsBandFormat bandfmt_add[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    US, S,  UI, I,  UI, I, F, X, D, DX
 };
@@ -314,6 +316,11 @@ vips_add_class_init( VipsAddClass *class )
 	bclass->process_line = add_buffer;
 }
 
+static void
+vips_add_init( VipsAdd *add )
+{
+}
+
 VipsImage *
 vips_add( VipsImage *in1, VipsImage *in2, ... )
 {
@@ -329,9 +336,4 @@ vips_add( VipsImage *in1, VipsImage *in2, ... )
 		return( NULL );
 
 	return( out );
-}
-
-static void
-vips_add_init( VipsAdd *add )
-{
 }

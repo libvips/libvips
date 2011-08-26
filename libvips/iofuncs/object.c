@@ -125,10 +125,44 @@ vips_object_postclose( VipsObject *object )
 	}
 }
 
+static void *
+vips_object_check_required( VipsObject *object, GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	int *result = (int *) a;
+
+	VIPS_DEBUG_MSG( "vips_object_check_required: %s\n", 
+		g_param_spec_get_name( pspec ) );
+	VIPS_DEBUG_MSG( "\trequired: %d\n", 
+		argument_class->flags & VIPS_ARGUMENT_REQUIRED );
+	VIPS_DEBUG_MSG( "\tconstruct: %d\n", 
+		argument_class->flags & VIPS_ARGUMENT_CONSTRUCT ); 
+	VIPS_DEBUG_MSG( "\tassigned: %d\n", 
+		argument_instance->assigned );
+
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!argument_instance->assigned ) {
+		vips_error( "VipsObject",
+			/* used as eg. "parameter out to VipsAdd not set".
+			 */
+			_( "parameter %s to %s not set" ),
+			g_param_spec_get_name( pspec ),
+			G_OBJECT_TYPE_NAME( object ) );
+		*result = -1;
+	}
+
+	return( NULL );
+}
+
 int
 vips_object_build( VipsObject *object )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+
+	int result;
 
 #ifdef DEBUG
 	printf( "vips_object_build: " );
@@ -136,7 +170,21 @@ vips_object_build( VipsObject *object )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	return( object_class->build( object ) );
+	if( object_class->build( object ) )
+		return( -1 );
+
+	/* Check all required arguments have been supplied, don't stop on 1st
+	 * error.
+	 */
+	result = 0;
+	(void) vips_argument_map( object,
+		vips_object_check_required, &result, NULL );
+
+	/* ... more checks go here.
+	 */
+	object->constructed = TRUE;
+
+	return( result );
 }
 
 void
@@ -840,44 +888,10 @@ vips_object_get_property( GObject *gobject,
 	}
 }
 
-static void *
-vips_object_check_required( VipsObject *object, GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
-{
-	int *result = (int *) a;
-
-	VIPS_DEBUG_MSG( "vips_object_check_required: %s\n", 
-		g_param_spec_get_name( pspec ) );
-	VIPS_DEBUG_MSG( "\trequired: %d\n", 
-		argument_class->flags & VIPS_ARGUMENT_REQUIRED );
-	VIPS_DEBUG_MSG( "\tconstruct: %d\n", 
-		argument_class->flags & VIPS_ARGUMENT_CONSTRUCT ); 
-	VIPS_DEBUG_MSG( "\tassigned: %d\n", 
-		argument_instance->assigned );
-
-	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!argument_instance->assigned ) {
-		vips_error( "VipsObject",
-			/* used as eg. "parameter out to VipsAdd not set".
-			 */
-			_( "parameter %s to %s not set" ),
-			g_param_spec_get_name( pspec ),
-			G_OBJECT_TYPE_NAME( object ) );
-		*result = -1;
-	}
-
-	return( NULL );
-}
-
 static int
 vips_object_real_build( VipsObject *object )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
-
-	int result;
 
 #ifdef DEBUG
 	printf( "vips_object_real_build: " ); 
@@ -887,17 +901,6 @@ vips_object_real_build( VipsObject *object )
 
 	g_assert( !object->constructed );
 
-	/* Check all required arguments have been supplied, don't stop on 1st
-	 * error.
-	 */
-	result = 0;
-	(void) vips_argument_map( object,
-		vips_object_check_required, &result, NULL );
-
-	/* ... more checks go here.
-	 */
-	object->constructed = TRUE;
-
 	/* It'd be nice if this just copied a pointer rather than did a
 	 * strdup(). Set these here rather than in object_init, so that the
 	 * class gets a chance to set them.
@@ -906,7 +909,14 @@ vips_object_real_build( VipsObject *object )
 		"nickname", object_class->nickname,
 		"description", object_class->description, NULL );
 
-	return( result );
+	/* We can't check that all required args have been set here, since our
+	 * superclasses' build funcs might want to set some one the way out,
+	 * see VipsAvg, for example.
+	 *
+	 * Do these checks in the build dispatch function, see above.
+	 */
+
+	return( 0 );
 }
 
 static void
@@ -1286,7 +1296,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 		VipsBuf buf = VIPS_BUF_STATIC( str );
 
 		vips_object_print_arg( object, pspec, &buf );
-		printf( "%s", vips_buf_all( &buf ) );
+		printf( "%s\n", vips_buf_all( &buf ) );
 	}
 
 	return( 0 );

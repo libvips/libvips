@@ -186,29 +186,30 @@ subtract_buffer( VipsBinary *binary,
 
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * im->Bands * 
-		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
+	const int sz = width * vips_image_get_bands( im ) * 
+		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
+		 	2 : 1);
 
 	int x;
 
 	/* Keep types here in sync with bandfmt_subtract[] 
 	 * below.
          */
-        switch( im->BandFmt ) {
-        case IM_BANDFMT_CHAR: 	LOOP( signed char, signed short ); break; 
-        case IM_BANDFMT_UCHAR: 	LOOP( unsigned char, signed short ); break; 
-        case IM_BANDFMT_SHORT: 	LOOP( signed short, signed int ); break; 
-        case IM_BANDFMT_USHORT: LOOP( unsigned short, signed int ); break; 
-        case IM_BANDFMT_INT: 	LOOP( signed int, signed int ); break; 
-        case IM_BANDFMT_UINT: 	LOOP( unsigned int, signed int ); break; 
+        switch( vips_image_get_format( im ) ) {
+        case VIPS_FORMAT_CHAR: 	LOOP( signed char, signed short ); break; 
+        case VIPS_FORMAT_UCHAR:	LOOP( unsigned char, signed short ); break; 
+        case VIPS_FORMAT_SHORT:	LOOP( signed short, signed int ); break; 
+        case VIPS_FORMAT_USHORT:LOOP( unsigned short, signed int ); break; 
+        case VIPS_FORMAT_INT: 	LOOP( signed int, signed int ); break; 
+        case VIPS_FORMAT_UINT: 	LOOP( unsigned int, signed int ); break; 
 
-        case IM_BANDFMT_FLOAT: 		
-        case IM_BANDFMT_COMPLEX:
+        case VIPS_FORMAT_FLOAT: 		
+        case VIPS_FORMAT_COMPLEX:
 		LOOP( float, float ); 
 		break; 
 
-        case IM_BANDFMT_DOUBLE:	
-        case IM_BANDFMT_DPCOMPLEX:
+        case VIPS_FORMAT_DOUBLE:	
+        case VIPS_FORMAT_DPCOMPLEX:
 		LOOP( double, double ); 
 		break;
 
@@ -219,21 +220,21 @@ subtract_buffer( VipsBinary *binary,
 
 /* Save a bit of typing.
  */
-#define UC IM_BANDFMT_UCHAR
-#define C IM_BANDFMT_CHAR
-#define US IM_BANDFMT_USHORT
-#define S IM_BANDFMT_SHORT
-#define UI IM_BANDFMT_UINT
-#define I IM_BANDFMT_INT
-#define F IM_BANDFMT_FLOAT
-#define X IM_BANDFMT_COMPLEX
-#define D IM_BANDFMT_DOUBLE
-#define DX IM_BANDFMT_DPCOMPLEX
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
 
 /* Type promotion for subtraction. Sign and value preserving. Make sure these
  * match the case statement in subtract_buffer() above.
  */
-static int bandfmt_subtract[10] = {
+static const VipsBandFormat bandfmt_subtract[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    S,  S,  I,  I,  I,  I, F, X, D, DX
 };

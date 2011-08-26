@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libarithmetic.la
 libarithmetic_la_SOURCES = \
 	arith_dispatch.c \
 	im_abs.c \
-	im_avg.c \
 	im_bandmean.c \
 	im_cross_phase.c \
 	im_deviate.c \
@@ -22,6 +21,9 @@ libarithmetic_la_SOURCES = \
 	im_remainder.c \
 	im_sign.c \
 	im_stats.c \
+	statistic.c \
+	statistic.h \
+	avg.c \
 	subtract.c \
 	math.c \
 	arithmetic.c \

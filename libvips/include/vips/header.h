@@ -72,18 +72,18 @@ extern "C" {
 
 int vips_format_sizeof( VipsBandFormat format );
 
-int vips_image_get_width( VipsImage *image );
-int vips_image_get_height( VipsImage *image );
-int vips_image_get_bands( VipsImage *image );
-VipsBandFormat vips_image_get_format( VipsImage *image );
-VipsCoding vips_image_get_coding( VipsImage *image );
-VipsInterpretation vips_image_get_interpretation( VipsImage *image );
-double vips_image_get_xres( VipsImage *image );
-double vips_image_get_yres( VipsImage *image );
-int vips_image_get_xoffset( VipsImage *image );
-int vips_image_get_yoffset( VipsImage *image );
-const char *vips_image_get_filename( VipsImage *image );
-const char *vips_image_get_mode( VipsImage *image );
+int vips_image_get_width( const VipsImage *image );
+int vips_image_get_height( const VipsImage *image );
+int vips_image_get_bands( const VipsImage *image );
+VipsBandFormat vips_image_get_format( const VipsImage *image );
+VipsCoding vips_image_get_coding( const VipsImage *image );
+VipsInterpretation vips_image_get_interpretation( const VipsImage *image );
+double vips_image_get_xres( const VipsImage *image );
+double vips_image_get_yres( const VipsImage *image );
+int vips_image_get_xoffset( const VipsImage *image );
+int vips_image_get_yoffset( const VipsImage *image );
+const char *vips_image_get_filename( const VipsImage *image );
+const char *vips_image_get_mode( const VipsImage *image );
 void *vips_image_get_data( VipsImage *image );;
 
 void vips_image_init_fields( VipsImage *image, 
@@ -99,6 +99,7 @@ int vips_image_copy_fields( VipsImage *out, VipsImage *in );
 
 int vips_image_set( VipsImage *image, const char *field, GValue *value );
 int vips_image_get( VipsImage *image, const char *field, GValue *value_copy );
+int vips_image_get_as_string( VipsImage *image, const char *field, char **out );
 GType vips_image_get_typeof( VipsImage *image, const char *field );
 gboolean vips_image_remove( VipsImage *image, const char *field );
 typedef void *(*VipsImageMapFn)( VipsImage *image, 
@@ -170,8 +171,6 @@ int vips_image_set_double( VipsImage *image, const char *field, double d );
 int vips_image_get_string( VipsImage *image, const char *field, char **out );
 int vips_image_set_string( VipsImage *image, 
 	const char *field, const char *str );
-int vips_image_get_as_string( VipsImage *image, const char *field, char **out );
-GType vips_image_get_typeof( VipsImage *image, const char *field );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));

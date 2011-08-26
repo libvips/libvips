@@ -948,3 +948,9 @@ im_subtract( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	return( 0 );
 }
+
+int
+im_avg( IMAGE *in, double *out )
+{
+	return( vips_avg( in, out, NULL ) ); 
+}

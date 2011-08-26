@@ -73,6 +73,74 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+typedef struct _Wrapscan {
+	IMAGE *in;
+	im_start_fn start; 
+	im__wrapscan_fn scan; 
+	im_stop_fn stop;
+	void *a; 
+	void *b;
+} Wrapscan;
+
+static void *
+wrapscan_start( VipsImage *in, void *a, void *b )
+{
+	Wrapscan *wrapscan = (Wrapscan *) a;
+
+	return( wrapscan->start( in, wrapscan->a, wrapscan->b ) );
+}
+
+static int
+wrapscan_stop( void *seq, void *a, void *b )
+{
+	Wrapscan *wrapscan = (Wrapscan *) a;
+
+	return( wrapscan->stop( seq, wrapscan->a, wrapscan->b ) );
+}
+
+static int
+wrapscan_scan( REGION *reg, void *seq, void *a, void *b )
+{
+	Wrapscan *wrapscan = (Wrapscan *) a;
+	Rect *r = &reg->valid;
+	int lsk = IM_REGION_LSKIP( reg );
+
+	int y;
+	PEL *p;
+
+	p = (PEL *) IM_REGION_ADDR( reg, r->left, r->top ); 
+	for( y = 0; y < r->height; y++ ) { 
+		if( wrapscan->scan( p, r->width, seq, 
+			wrapscan->a, wrapscan->b ) )
+			return( -1 );
+		p += lsk;
+	} 
+
+	return( 0 );
+}
+
+/* Like vips_sink(), but the scan function works a line at a time, like
+ * im_wrap*(). Shared with im_min(), im_deviate() etc.
+ */
+int
+im__wrapscan( VipsImage *in, 
+	VipsStart start, im__wrapscan_fn scan, VipsStop stop,
+	void *a, void *b )
+{
+	Wrapscan wrapscan;
+
+	wrapscan.in = in;
+	wrapscan.start = start;
+	wrapscan.scan = scan;
+	wrapscan.stop = stop;
+	wrapscan.a = a;
+	wrapscan.b = b;
+
+	return( vips_sink( in, 
+		wrapscan_start, wrapscan_scan, wrapscan_stop, 
+		&wrapscan, NULL ) );
+}
+
 /* Start function: allocate space for a pair of doubles in which we can 
  * accumulate the sum and the sum of squares.
  */

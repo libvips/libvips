@@ -37,8 +37,13 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* arithmetic
- */
+VipsImage *vips_add( VipsImage *in1, VipsImage *in2, ... );
+VipsImage *vips_subtract( VipsImage *in1, VipsImage *in2, ... );
+int vips_avg( VipsImage *in, double *out, ... );
+
+
+
+
 DOUBLEMASK *im_measure_area( VipsImage *im, 
 	int left, int top, int width, int height, 
 	int h, int v, 
@@ -55,8 +60,6 @@ int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
 int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );
 int im_bandmean( VipsImage *in, VipsImage *out );
 
-int im_add( VipsImage *in1, VipsImage *in2, VipsImage *out );
-int im_subtract( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_invert( VipsImage *in, VipsImage *out );
 int im_lintra( double a, VipsImage *in, double b, VipsImage *out );
 int im_lintra_vec( int n, double *a, VipsImage *in, double *b, VipsImage *out );

@@ -343,73 +343,73 @@ meta_init( VipsImage *im )
 }
 
 int
-vips_image_get_width( VipsImage *image )
+vips_image_get_width( const VipsImage *image )
 {
 	return( image->Xsize );
 }
 
 int
-vips_image_get_height( VipsImage *image )
+vips_image_get_height( const VipsImage *image )
 {
 	return( image->Ysize );
 }
 
 int
-vips_image_get_bands( VipsImage *image )
+vips_image_get_bands( const VipsImage *image )
 {
 	return( image->Bands );
 }
 
 VipsBandFormat
-vips_image_get_format( VipsImage *image )
+vips_image_get_format( const VipsImage *image )
 {
 	return( image->BandFmt );
 }
 
 VipsCoding
-vips_image_get_coding( VipsImage *image )
+vips_image_get_coding( const VipsImage *image )
 {
 	return( image->Coding );
 }
 
 VipsInterpretation
-vips_image_get_interpretation( VipsImage *image )
+vips_image_get_interpretation( const VipsImage *image )
 {
 	return( image->Type );
 }
 
 double
-vips_image_get_xres( VipsImage *image )
+vips_image_get_xres( const VipsImage *image )
 {
 	return( image->Xres );
 }
 
 double
-vips_image_get_yres( VipsImage *image )
+vips_image_get_yres( const VipsImage *image )
 {
 	return( image->Yres );
 }
 
 int
-vips_image_get_xoffset( VipsImage *image )
+vips_image_get_xoffset( const VipsImage *image )
 {
 	return( image->Xoffset );
 }
 
 int
-vips_image_get_yoffset( VipsImage *image )
+vips_image_get_yoffset( const VipsImage *image )
 {
 	return( image->Yoffset );
 }
 
 const char *
-vips_image_get_filename( VipsImage *image )
+vips_image_get_filename( const VipsImage *image )
 {
 	return( image->filename );
 }
 
 const char *
-vips_image_get_mode( VipsImage *image )
+vips_image_get_mode( const VipsImage *image )
 {
 	return( image->mode );
 }

@@ -1,3 +1,36 @@
+- is our C API too awkward? we'll need
+
+	if( !(c = vips_add( a, b )) ||
+		!(d = vips_add( a, c )) )
+		return NULL;
+
+  seems wordy compared to 
+
+	if( vips_add( a, b, &c ) ||
+		vips_add( a, c, &d ) )
+		return -1;
+
+  plus VipsPool will be more natural with #2, I think, and things like
+  vips_avg() have to be form #2
+
+
+
+
+- could we generate the code for vips_add() automatically? it might be nice to
+  have them all in one place at least
+
+
+
+
+- all the old dispatch wrappers could move to deprecated
+
+
+
+
+- max.c will need an early termination thing for vips_sink ... easy?
+
+
+
 - support planar tiff
 
 

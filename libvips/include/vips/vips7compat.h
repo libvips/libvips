@@ -486,6 +486,9 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 #define im_concurrency_set vips_concurrency_set
 #define im_concurrency_get vips_concurrency_get
 
+int im_add( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_subtract( VipsImage *in1, VipsImage *in2, VipsImage *out );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

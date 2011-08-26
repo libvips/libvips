@@ -144,7 +144,6 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsArithmetic, imtest ) );
-
 }
 
 static void
@@ -154,7 +153,7 @@ vips_arithmetic_init( VipsArithmetic *arithmetic )
 
 void 
 vips_arithmetic_set_format_table( VipsArithmeticClass *class, 
-	VipsBandFormat *format_table )
+	const VipsBandFormat *format_table )
 {
 	int i;
 
@@ -240,8 +239,10 @@ vips_arithmetic_operation_init( void )
 {
 	extern GType vips_add_get_type( void ); 
 	extern GType vips_subtract_get_type( void ); 
+	extern GType vips_avg_get_type( void ); 
 
 	vips_add_get_type();
 	vips_subtract_get_type();
+	vips_avg_get_type();
 }
 

@@ -75,7 +75,7 @@ typedef struct _VipsArithmeticClass {
 	/* For each input format, what output format. Used for arithmetic
 	 * too, since we cast inputs to match.
 	 */
-	VipsBandFormat *format_table;
+	const VipsBandFormat *format_table;
 
 	/* A vector program for each input type.
 	 */
@@ -89,7 +89,7 @@ typedef struct _VipsArithmeticClass {
 GType vips_arithmetic_get_type( void );
 
 void vips_arithmetic_set_format_table( VipsArithmeticClass *klass, 
-	VipsBandFormat *format_table );
+	const VipsBandFormat *format_table );
 VipsVector *vips_arithmetic_get_vector( VipsArithmeticClass *klass, 
 	VipsBandFormat fmt );
 void vips_arithmetic_compile( VipsArithmeticClass *klass ); 
