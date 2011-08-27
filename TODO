@@ -1,3 +1,12 @@
+- oops
+
+	$ vips im_avg babe.jpg
+	Segmentation fault
+
+  test 7.26 as well, argh
+
+
+
 - is our C API too awkward? we'll need
 
 	if( !(c = vips_add( a, b )) ||
