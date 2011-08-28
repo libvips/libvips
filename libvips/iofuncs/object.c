@@ -132,6 +132,7 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 	void *a, void *b )
 {
 	int *result = (int *) a;
+	VipsArgumentFlags *iomask = (VipsArgumentFlags *) b;
 
 	VIPS_DEBUG_MSG( "vips_object_check_required: %s\n", 
 		g_param_spec_get_name( pspec ) );
@@ -139,11 +140,16 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 		argument_class->flags & VIPS_ARGUMENT_REQUIRED );
 	VIPS_DEBUG_MSG( "\tconstruct: %d\n", 
 		argument_class->flags & VIPS_ARGUMENT_CONSTRUCT ); 
+	VIPS_DEBUG_MSG( "\tinput: %d\n", 
+		argument_class->flags & VIPS_ARGUMENT_INPUT ); 
+	VIPS_DEBUG_MSG( "\toutput: %d\n", 
+		argument_class->flags & VIPS_ARGUMENT_OUTPUT ); 
 	VIPS_DEBUG_MSG( "\tassigned: %d\n", 
 		argument_instance->assigned );
 
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & *iomask) &&
 		!argument_instance->assigned ) {
 		vips_error( "VipsObject",
 			/* used as eg. "parameter out to VipsAdd not set".
@@ -162,6 +168,11 @@ vips_object_build( VipsObject *object )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
+	/* Input and output args must both be set.
+	 */
+	VipsArgumentFlags iomask = 
+		VIPS_ARGUMENT_INPUT | VIPS_ARGUMENT_OUTPUT;
+
 	int result;
 
 #ifdef DEBUG
@@ -178,7 +189,7 @@ vips_object_build( VipsObject *object )
 	 */
 	result = 0;
 	(void) vips_argument_map( object,
-		vips_object_check_required, &result, NULL );
+		vips_object_check_required, &result, &iomask );
 
 	/* ... more checks go here.
 	 */
@@ -893,6 +904,13 @@ vips_object_real_build( VipsObject *object )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
+	/* Only test input args, output ones can be set by our subclasses as
+	 * they build. See vips_object_build() above.
+	 */
+	VipsArgumentFlags iomask = VIPS_ARGUMENT_INPUT;
+
+	int result;
+
 #ifdef DEBUG
 	printf( "vips_object_real_build: " ); 
 	vips_object_print_name( object );
@@ -909,14 +927,14 @@ vips_object_real_build( VipsObject *object )
 		"nickname", object_class->nickname,
 		"description", object_class->description, NULL );
 
-	/* We can't check that all required args have been set here, since our
-	 * superclasses' build funcs might want to set some one the way out,
-	 * see VipsAvg, for example.
-	 *
-	 * Do these checks in the build dispatch function, see above.
+	/* Check all required input arguments have been supplied, don't stop 
+	 * on 1st error.
 	 */
+	result = 0;
+	(void) vips_argument_map( object,
+		vips_object_check_required, &result, &iomask );
 
-	return( 0 );
+	return( result );
 }
 
 static void

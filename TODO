@@ -1,12 +1,3 @@
-- oops
-
-	$ vips avg 
-	Segmentation fault
-
-  because we don't test that all args have been set until the end of build,
-  and statistic_build assumes that in has been set
-
-
 
 - is our C API too awkward? we'll need
 
