@@ -158,6 +158,7 @@ vips_argument_flags_get_type( void )
 			{VIPS_ARGUMENT_SET_ONCE, "VIPS_ARGUMENT_SET_ONCE", "set-once"},
 			{VIPS_ARGUMENT_INPUT, "VIPS_ARGUMENT_INPUT", "input"},
 			{VIPS_ARGUMENT_OUTPUT, "VIPS_ARGUMENT_OUTPUT", "output"},
+			{VIPS_ARGUMENT_APPEND, "VIPS_ARGUMENT_APPEND", "append"},
 			{0, NULL, NULL}
 		};
 		

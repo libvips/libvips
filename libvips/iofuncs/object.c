@@ -1119,8 +1119,12 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 
 	vips_argument_table_replace( object_class->argument_table,
 		(VipsArgument *) argument_class );
-	object_class->argument_table_traverse = g_slist_prepend(
-		object_class->argument_table_traverse, argument_class );
+	if( flags & VIPS_ARGUMENT_APPEND )
+		object_class->argument_table_traverse = g_slist_append(
+			object_class->argument_table_traverse, argument_class );
+	else
+		object_class->argument_table_traverse = g_slist_prepend(
+			object_class->argument_table_traverse, argument_class );
 }
 
 /* Set a named arg from a string.

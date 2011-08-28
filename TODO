@@ -1,9 +1,10 @@
 - oops
 
-	$ vips im_avg babe.jpg
+	$ vips avg 
 	Segmentation fault
 
-  test 7.26 as well, argh
+  because we don't test that all args have been set until the end of build,
+  and statistic_build assumes that in has been set
 
 
 

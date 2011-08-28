@@ -28,8 +28,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -718,8 +718,12 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	printf( "vips_call_argv: " );
 	vips_object_print_name( VIPS_OBJECT( operation ) );
 	printf( "\n" );
+{
+	int i;
+
 	for( i = 0; i < argc; i++ )
 		printf( "%d) %s\n", i, argv[i] );
+}
 #endif /*VIPS_DEBUG*/
 
 	call.operation = operation;

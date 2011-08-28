@@ -52,6 +52,7 @@ typedef struct _VipsObjectClass VipsObjectClass;
  * @VIPS_ARGUMENT_SET_ONCE: can only be set once
  * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
+ * @VIPS_ARGUMENT_APPEND: add to end of arg list (default is prepend)
  *
  * Flags we associate with each object argument.
  *
@@ -66,7 +67,8 @@ typedef enum {
 	VIPS_ARGUMENT_CONSTRUCT = 2,
 	VIPS_ARGUMENT_SET_ONCE = 4,
 	VIPS_ARGUMENT_INPUT = 8,
-	VIPS_ARGUMENT_OUTPUT = 16
+	VIPS_ARGUMENT_OUTPUT = 16,
+	VIPS_ARGUMENT_APPEND = 32
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:

@@ -256,7 +256,7 @@ vips_avg_class_init( VipsAvgClass *class )
 	g_object_class_install_property( gobject_class, 
 		PROP_OUTPUT, pspec );
 	vips_object_class_install_argument( object_class, pspec,
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT | VIPS_ARGUMENT_APPEND, 
 		G_STRUCT_OFFSET( VipsAvg, avg ) );
 }
 
