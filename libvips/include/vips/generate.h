@@ -1,4 +1,4 @@
-/* Definitions for partial image regions.
+/* Generate pixels.
  *
  * J.Cupitt, 8/4/93
  */
@@ -36,9 +36,30 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+typedef int (*VipsRegionWrite)( VipsRegion *region, VipsRect *area, void *a );
+int vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a );
+
 typedef void *(*VipsStartFn)( VipsImage *out, void *a, void *b );
-typedef int (*VipsGenerateFn)( VipsRegion *out, void *seq, void *a, void *b );
+typedef int (*VipsGenerateFn)( VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop );
 typedef int (*VipsStopFn)( void *seq, void *a, void *b );
+int vips_sink( VipsImage *im, 
+	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	void *a, void *b );
+int vips_sink_tile( VipsImage *im, 
+	int tile_width, int tile_height,
+	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	void *a, void *b );
+
+typedef void (*VipsSinkNotify)( VipsImage *im, VipsRect *rect, void *a );
+int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
+	int tile_width, int tile_height, int max_tiles,
+	int priority,
+	VipsSinkNotify notify, void *a );
+int vips_image_cache( VipsImage *in, VipsImage *out, 
+	int width, int height, int max );
+
+int vips_sink_memory( VipsImage *im );
 
 void *vips_start_one( VipsImage *out, void *a, void *b );
 int vips_stop_one( void *seq, void *a, void *b );

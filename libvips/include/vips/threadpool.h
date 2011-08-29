@@ -98,57 +98,33 @@ VipsThreadState *vips_thread_state_new( VipsImage *im, void *a );
 
 /* Constructor for per-thread state.
  */
-typedef VipsThreadState *(*VipsThreadStart)( VipsImage *im, void *a );
+typedef VipsThreadState *(*VipsThreadStartFn)( VipsImage *im, void *a );
 
 /* A work allocate function. This is run single-threaded by a worker to
  * set up a new work unit. 
  * Return non-zero for errors. Set *stop for "no more work to do"
  */
-typedef int (*VipsThreadpoolAllocate)( VipsThreadState *state,
+typedef int (*VipsThreadpoolAllocateFn)( VipsThreadState *state,
 	void *a, gboolean *stop );
 
 /* A work function. This does a unit of work (eg. processing a tile or
  * whatever). Return non-zero for errors. 
  */
-typedef int (*VipsThreadpoolWork)( VipsThreadState *state, void *a );
+typedef int (*VipsThreadpoolWorkFn)( VipsThreadState *state, void *a );
 
 /* A progress function. This is run by the main thread once for every
  * allocation. Return an error to kill computation early.
  */
-typedef int (*VipsThreadpoolProgress)( void *a );
+typedef int (*VipsThreadpoolProgressFn)( void *a );
 
 int vips_threadpool_run( VipsImage *im, 
-	VipsThreadStart start, 
-	VipsThreadpoolAllocate allocate, 
-	VipsThreadpoolWork work,
-	VipsThreadpoolProgress progress,
+	VipsThreadStartFn start, 
+	VipsThreadpoolAllocateFn allocate, 
+	VipsThreadpoolWorkFn work,
+	VipsThreadpoolProgressFn progress,
 	void *a );
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines );
-
-typedef int (*VipsRegionWrite)( VipsRegion *region, VipsRect *area, void *a );
-int vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a );
-
-typedef void *(*VipsStart)( VipsImage *out, void *a, void *b );
-typedef int (*VipsGenerate)( VipsRegion *out, void *seq, void *a, void *b );
-typedef int (*VipsStop)( void *seq, void *a, void *b );
-int vips_sink( VipsImage *im, 
-	VipsStart start, VipsGenerate generate, VipsStop stop,
-	void *a, void *b );
-int vips_sink_tile( VipsImage *im, 
-	int tile_width, int tile_height,
-	VipsStart start, VipsGenerate generate, VipsStop stop,
-	void *a, void *b );
-
-typedef void (*VipsSinkNotify)( VipsImage *im, VipsRect *rect, void *a );
-int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
-	int tile_width, int tile_height, int max_tiles,
-	int priority,
-	VipsSinkNotify notify, void *a );
-int vips_image_cache( VipsImage *in, VipsImage *out, 
-	int width, int height, int max );
-
-int vips_sink_memory( VipsImage *im );
 
 void vips__print_renders( void );
 

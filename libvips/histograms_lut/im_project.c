@@ -189,7 +189,7 @@ project_merge( void *seq, void *a, void *b )
 /* Add a region to a project.
  */
 static int
-project_scan( REGION *reg, void *seq, void *a, void *b )
+project_scan( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 {
 	Project *project = (Project *) seq;
 	Rect *r = &reg->valid;

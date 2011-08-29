@@ -74,7 +74,8 @@ vips_statistic_scan_start( VipsImage *in, void *a, void *b )
 }
 
 static int
-vips_statistic_scan( VipsRegion *region, void *seq, void *a, void *b )
+vips_statistic_scan( VipsRegion *region, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsStatistic *statistic = VIPS_STATISTIC( a );
 	VipsStatisticClass *class = VIPS_STATISTIC_GET_CLASS( statistic );

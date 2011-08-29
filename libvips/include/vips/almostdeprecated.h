@@ -131,7 +131,7 @@ void im_warning( const char *fmt, ... )
 	__attribute__((format(printf, 1, 2)));
 
 int im_iterate( VipsImage *im,
-	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	VipsStartFn start, im_generate_fn generate, VipsStopFn stop,
 	void *a, void *b
 );
 

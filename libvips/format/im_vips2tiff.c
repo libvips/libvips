@@ -1020,7 +1020,7 @@ new_tile( PyramidLayer *layer, REGION *tile, Rect *area )
  * generated.
  */
 static int
-write_tif_tile( REGION *out, void *seq, void *a, void *b )
+write_tif_tile( REGION *out, void *seq, void *a, void *b, gboolean *stop )
 {
 	TiffWrite *tw = (TiffWrite *) a;
 

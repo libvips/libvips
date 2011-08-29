@@ -405,7 +405,7 @@ im_iterate( IMAGE *im,
 	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *b, void *c )
 {
-	return( vips_sink( im, start, generate, stop, b, c ) );
+	return( vips_sink( im, start, (VipsGenerateFn) generate, stop, b, c ) );
 }
 
 int

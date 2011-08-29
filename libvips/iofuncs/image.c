@@ -640,7 +640,8 @@ open_lazy_start( VipsImage *out, void *a, void *dummy )
 /* Just copy.
  */
 static int
-open_lazy_generate( VipsRegion *or, void *seq, void *a, void *b )
+open_lazy_generate( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 

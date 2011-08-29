@@ -154,7 +154,7 @@ merge_subhist( void *seq, void *a, void *b )
 }
 
 static int
-find_hist( REGION *reg, void *seq, void *a, void *b )
+find_hist( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 {
 	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;

@@ -356,9 +356,9 @@ typedef struct _VipsThreadpool {
 	 * a unit of work (serial). Plus the mutex we use to serialize work 
 	 * allocation.
 	 */
-	VipsThreadStart start; 
-	VipsThreadpoolAllocate allocate;
-	VipsThreadpoolWork work;
+	VipsThreadStartFn start; 
+	VipsThreadpoolAllocateFn allocate;
+	VipsThreadpoolWorkFn work;
 	GMutex *allocate_lock;
         void *a; 		/* User argument to start / allocate / etc. */
 
@@ -715,7 +715,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
 }
 
 /**
- * VipsThreadpoolStart:
+ * VipsThreadpoolStartFn:
  * @a: client data
  * @b: client data
  * @c: client data
@@ -733,7 +733,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  */
 
 /**
- * _VipsThreadpoolAllocate:
+ * VipsThreadpoolAllocateFn:
  * @state: per-thread state
  * @a: client data
  * @b: client data
@@ -756,7 +756,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  */
 
 /**
- * _VipsThreadpoolWork:
+ * VipsThreadpoolWorkFn:
  * @state: per-thread state
  * @a: client data
  * @b: client data
@@ -775,7 +775,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  */
 
 /**
- * _VipsThreadpoolProgress:
+ * VipsThreadpoolProgressFn:
  * @a: client data
  * @b: client data
  * @c: client data
@@ -819,10 +819,10 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  */
 int
 vips_threadpool_run( VipsImage *im, 
-	VipsThreadStart start, 
-	VipsThreadpoolAllocate allocate, 
-	VipsThreadpoolWork work,
-	VipsThreadpoolProgress progress, 
+	VipsThreadStartFn start, 
+	VipsThreadpoolAllocateFn allocate, 
+	VipsThreadpoolWorkFn work,
+	VipsThreadpoolProgressFn progress, 
 	void *a )
 {
 	VipsThreadpool *pool; 

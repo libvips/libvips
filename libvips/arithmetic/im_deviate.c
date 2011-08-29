@@ -99,7 +99,7 @@ wrapscan_stop( void *seq, void *a, void *b )
 }
 
 static int
-wrapscan_scan( REGION *reg, void *seq, void *a, void *b )
+wrapscan_scan( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 {
 	Wrapscan *wrapscan = (Wrapscan *) a;
 	Rect *r = &reg->valid;
@@ -124,7 +124,7 @@ wrapscan_scan( REGION *reg, void *seq, void *a, void *b )
  */
 int
 im__wrapscan( VipsImage *in, 
-	VipsStart start, im__wrapscan_fn scan, VipsStop stop,
+	VipsStartFn start, im__wrapscan_fn scan, VipsStopFn stop,
 	void *a, void *b )
 {
 	Wrapscan wrapscan;

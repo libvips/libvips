@@ -138,7 +138,7 @@ merge_subhist( void *seq, void *a, void *b )
 /* Histogram of all bands of a uchar image.
  */
 static int
-find_uchar_hist( REGION *reg, void *seq, void *a, void *b )
+find_uchar_hist( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 {
 	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
@@ -170,7 +170,8 @@ find_uchar_hist( REGION *reg, void *seq, void *a, void *b )
 /* Histogram of a selected band of a uchar image.
  */
 static int
-find_uchar_hist_extract( REGION *reg, void *seq, void *a, void *b )
+find_uchar_hist_extract( REGION *reg, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
@@ -202,7 +203,7 @@ find_uchar_hist_extract( REGION *reg, void *seq, void *a, void *b )
 /* Histogram of all bands of a ushort image.
  */
 static int
-find_ushort_hist( REGION *reg, void *seq, void *a, void *b )
+find_ushort_hist( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 {
 	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
@@ -244,7 +245,8 @@ find_ushort_hist( REGION *reg, void *seq, void *a, void *b )
 /* Histogram of all bands of a ushort image.
  */
 static int
-find_ushort_hist_extract( REGION *reg, void *seq, void *a, void *b )
+find_ushort_hist_extract( REGION *reg, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
@@ -305,7 +307,7 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 	int size;		/* Length of hist */
 	int bands;		/* Number of bands in output */
 	Histogram *mhist;
-	im_generate_fn scanfn;
+	VipsGenerateFn scanfn;
 	int i, j;
 	unsigned int *obuffer, *q;
 

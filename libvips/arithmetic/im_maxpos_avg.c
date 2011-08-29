@@ -158,7 +158,7 @@ maxposavg_stop( void *seq, void *a, void *b )
 /* Loop over region, adding to seq.
  */
 static int
-maxposavg_scan( REGION *reg, void *seq, void *a, void *b )
+maxposavg_scan( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 {
 	const Rect *r = &reg->valid;
 	const int sz = IM_REGION_N_ELEMENTS( reg );

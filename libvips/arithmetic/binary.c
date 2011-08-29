@@ -258,7 +258,8 @@ vips__bandalike( const char *domain,
  */
 
 static int
-vips_binary_process_region( VipsRegion *or, void *seq, void *a, void *b )
+vips_binary_process_region( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsBinary *binary = VIPS_BINARY( b ); 

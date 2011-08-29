@@ -155,7 +155,7 @@ hist_stop( void *seq, void *a, void *b )
 /* A uchar index image.
  */
 static int
-hist_scan_uchar( REGION *reg, void *seq, void *a, void *b )
+hist_scan_uchar( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 {
 	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
@@ -230,7 +230,7 @@ hist_scan_uchar( REGION *reg, void *seq, void *a, void *b )
 /* A ushort index image.
  */
 static int
-hist_scan_ushort( REGION *reg, void *seq, void *a, void *b )
+hist_scan_ushort( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 {
 	Histogram *hist = (Histogram *) seq;
 	Rect *r = &reg->valid;
@@ -327,7 +327,7 @@ im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out )
 {
 	int size;		/* Length of hist */
 	Histogram *mhist;
-	im_generate_fn scanfn;
+	VipsGenerateFn scanfn;
 
 	/* Check images. PIO from in, WIO to out.
 	 */

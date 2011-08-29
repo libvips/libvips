@@ -910,7 +910,7 @@ image_start( IMAGE *out, void *a, void *b )
 /* Loop over the output region, filling with data from cache.
  */
 static int
-image_fill( VipsRegion *out, void *seq, void *a, void *b )
+image_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 {
 	Render *render = (Render *) a;
 	VipsRegion *reg = (VipsRegion *) seq;
@@ -970,7 +970,7 @@ image_stop( void *seq, void *a, void *b )
 /* The mask image is 255 / 0 for the state of painted for each tile.
  */
 static int
-mask_fill( VipsRegion *out, void *seq, void *a, void *b )
+mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 {
 #ifdef HAVE_THREADS
 	Render *render = (Render *) a;

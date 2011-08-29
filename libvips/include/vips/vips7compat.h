@@ -275,9 +275,11 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_stop_many vips_stop_many
 #define im_allocate_input_array vips_allocate_input_array
 #define im_start_fn VipsStartFn
-#define im_generate_fn VipsGenerateFn
+typedef int (*im_generate_fn)( VipsRegion *out, void *seq, void *a, void *b );
 #define im_stop_fn VipsStopFn
-#define im_generate vips_image_generate
+int im_generate( VipsImage *im,
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
+	void *a, void *b );
 
 #define im__mmap vips__mmap
 #define im__munmap vips__munmap

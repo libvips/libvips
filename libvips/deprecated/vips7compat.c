@@ -506,7 +506,8 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 	/* Generate!
 	 */
 	if( vips_image_generate( out,
-		vips_start_many, process_region, vips_stop_many, in, bun ) )
+		vips_start_many, (VipsGenerateFn) process_region, 
+		vips_stop_many, in, bun ) )
 		return( -1 );
 
 	return( 0 );
@@ -953,4 +954,12 @@ int
 im_avg( IMAGE *in, double *out )
 {
 	return( vips_avg( in, out, NULL ) ); 
+}
+
+int im_generate( VipsImage *im,
+	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
+	void *a, void *b )
+{
+	return( vips_image_generate( im, 
+		start, (VipsGenerateFn) generate, stop, a, b ) );
 }

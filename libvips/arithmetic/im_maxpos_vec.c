@@ -74,13 +74,13 @@ static void           maxpos_list_free( maxpos_list *list );
 
 static void           maxpos_list_init( maxpos_list *list, int n );
 static void          *maxpos_vec_start( IMAGE *unrequired, void *, void * );
-static int            maxpos_vec_scan( REGION *reg, void *seq, void *, void * );
+static int            maxpos_vec_scan( REGION *reg, void *seq, void *, void *, gboolean * );
 static void           add_to_maxpos_list( maxpos_list *list, int x, int y, double val );
 static int            maxpos_vec_stop( void *seq, void *, void * );
 
 static void           minpos_list_init( maxpos_list *list, int n );
 static void          *minpos_vec_start( IMAGE *unrequired, void *, void * );
-static int            minpos_vec_scan( REGION *reg, void *seq, void *, void * );
+static int            minpos_vec_scan( REGION *reg, void *seq, void *, void *, gboolean * );
 static void           add_to_minpos_list( maxpos_list *list, int x, int y, double val );
 static int            minpos_vec_stop( void *seq, void *, void * );
 
@@ -275,7 +275,7 @@ static void *maxpos_vec_start( IMAGE *unrequired, void *a, void *b ){
   return list;
 }
 
-static int maxpos_vec_scan( REGION *reg, void *seq, void *a, void *b ){
+static int maxpos_vec_scan( REGION *reg, void *seq, void *a, void *b, gboolean *stop ){
   
   maxpos_list *list = (maxpos_list *) seq;
 
@@ -399,7 +399,7 @@ static void *minpos_vec_start( IMAGE *unrequired, void *a, void *b ){
   return list;
 }
 
-static int minpos_vec_scan( REGION *reg, void *seq, void *a, void *b ){
+static int minpos_vec_scan( REGION *reg, void *seq, void *a, void *b, gboolean *stop ){
   
   maxpos_list *list = (maxpos_list *) seq;
 

@@ -85,6 +85,10 @@ typedef struct _SinkThreadState {
 	 * parent_object.reg, it's defined on the outer image.
 	 */
 	VipsRegion *reg;
+
+	/* Set this in work to get the allocate to signal stop.
+	 */
+	gboolean stop;
 } SinkThreadState;
 
 typedef struct _SinkThreadStateClass {
@@ -184,6 +188,7 @@ sink_thread_state_init( SinkThreadState *state )
 {
 	state->seq = NULL;
 	state->reg = NULL;
+	state->stop = FALSE;
 }
 
 static VipsThreadState *
@@ -246,9 +251,18 @@ sink_init( Sink *sink,
 int 
 vips_sink_base_allocate( VipsThreadState *state, void *a, gboolean *stop )
 {
+	SinkThreadState *sstate = (SinkThreadState *) state;
 	SinkBase *sink_base = (SinkBase *) a;
 
 	VipsRect image, tile;
+
+	/* Has work requested early termination?
+	 */
+	if( sstate->stop ) {
+		*stop = TRUE;
+
+		return( 0 );
+	}
 
 	/* Is the state x/y OK? New line or maybe all done.
 	 */
@@ -289,7 +303,8 @@ sink_work( VipsThreadState *state, void *a )
 	Sink *sink = (Sink *) a;
 
 	if( vips_region_prepare( sstate->reg, &state->pos ) ||
-		sink->generate( sstate->reg, sstate->seq, sink->a, sink->b ) ) 
+		sink->generate( sstate->reg, sstate->seq, 
+			sink->a, sink->b, &sstate->stop ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -327,8 +342,6 @@ vips_sink_base_progress( void *a )
  *
  * Loops over an image. @generate is called for every pixel in the image, with
  * the @reg argument being a region of pixels for processing. 
- * vips_sink_tile() is
- * used to implement operations like im_avg() which have no image output.
  *
  * Each set of
  * pixels is @tile_width by @tile_height pixels (less at the image edges). 
@@ -343,7 +356,7 @@ vips_sink_base_progress( void *a )
 int
 vips_sink_tile( VipsImage *im, 
 	int tile_width, int tile_height,
-	VipsStart start, VipsGenerate generate, VipsStop stop,
+	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
 	void *a, void *b )
 {
 	Sink sink;
@@ -394,7 +407,7 @@ vips_sink_tile( VipsImage *im,
  *
  * Loops over an image. @generate is called for every pixel in the image, with
  * the @reg argument being a region of pixels for processing. vips_sink() is
- * used to implement operations like im_avg() which have no image output.
+ * used to implement operations like #VipsAvg which have no image output.
  *
  * Each set of pixels is sized according to the requirements of the image
  * pipeline that generated @im.
@@ -405,7 +418,7 @@ vips_sink_tile( VipsImage *im,
  */
 int
 vips_sink( VipsImage *im, 
-	VipsStart start, VipsGenerate generate, VipsStop stop,
+	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
 	void *a, void *b )
 {
 	return( vips_sink_tile( im, -1, -1, start, generate, stop, a, b ) );
