@@ -963,3 +963,15 @@ int im_generate( VipsImage *im,
 	return( vips_image_generate( im, 
 		start, (VipsGenerateFn) generate, stop, a, b ) );
 }
+
+int
+im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
+{
+	return( vips_min( in, out, "x", xpos, "y", ypos, NULL ) );
+}
+
+int
+im_min( IMAGE *in, double *out )
+{
+	return( im_minpos( in, NULL, NULL, out ) );
+}

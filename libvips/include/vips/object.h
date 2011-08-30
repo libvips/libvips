@@ -77,7 +77,9 @@ VIPS_ARGUMENT_REQUIRED_INPUT 	Eg. the "left" argument for an add operation
 
 VIPS_ARGUMENT_OPTIONAL_INPUT 	Eg. the "caption" for an object
 
-VIPS_ARGUMENT_OUTPUT 	        Eg. the "result" of an add operation
+VIPS_ARGUMENT_REQUIRED_OUTPUT  	Eg. the "result" of an add operation
+
+VIPS_ARGUMENT_OPTIONAL_OUTPUT   Eg. the x pos of the image minimum
 
    Other combinations are used internally, eg. supplying the cast-table for an 
    arithmetic operation
@@ -98,6 +100,11 @@ VIPS_ARGUMENT_OUTPUT 	        Eg. the "result" of an add operation
 #define VIPS_ARGUMENT_REQUIRED_OUTPUT \
 	(VIPS_ARGUMENT_OUTPUT | \
 	 VIPS_ARGUMENT_REQUIRED | \
+	 VIPS_ARGUMENT_CONSTRUCT | \
+	 VIPS_ARGUMENT_SET_ONCE)
+
+#define VIPS_ARGUMENT_OPTIONAL_OUTPUT \
+	(VIPS_ARGUMENT_OUTPUT | \
 	 VIPS_ARGUMENT_CONSTRUCT | \
 	 VIPS_ARGUMENT_SET_ONCE)
 

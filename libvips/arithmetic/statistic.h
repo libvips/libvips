@@ -55,8 +55,8 @@ typedef struct _VipsStatistic VipsStatistic;
 typedef struct _VipsStatisticClass VipsStatisticClass;
 
 typedef void *(*VipsStatisticStartFn)( VipsStatistic *statistic ); 
-typedef int (*VipsStatisticScanFn)( VipsStatistic *statistic, void *seq,
-	void *p, int n );  
+typedef int (*VipsStatisticScanFn)( VipsStatistic *statistic, 
+	void *seq, int x, int y, void *p, int n );  
 typedef int (*VipsStatisticStopFn)( VipsStatistic *statistic, void *seq );
 
 struct _VipsStatistic {
@@ -65,6 +65,10 @@ struct _VipsStatistic {
 	/* All have an input image.
 	 */
 	VipsImage *input;
+
+	/* Set this to stop computation early.
+	 */
+	gboolean stop;
 
 	/* Client data for the subclass.
 	 */

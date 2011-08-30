@@ -40,6 +40,7 @@ extern "C" {
 VipsImage *vips_add( VipsImage *in1, VipsImage *in2, ... );
 VipsImage *vips_subtract( VipsImage *in1, VipsImage *in2, ... );
 int vips_avg( VipsImage *in, double *out, ... );
+int vips_min( VipsImage *in, double *out, ... );
 
 
 
@@ -50,11 +51,8 @@ DOUBLEMASK *im_measure_area( VipsImage *im,
 	int *sel, int nsel, const char *name );
 DOUBLEMASK *im_stats( VipsImage *in );
 int im_max( VipsImage *in, double *out );
-int im_min( VipsImage *in, double *out );
-int im_avg( VipsImage *in, double *out );
 int im_deviate( VipsImage *in, double *out );
 int im_maxpos( VipsImage *in, int *xpos, int *ypos, double *out );
-int im_minpos( VipsImage *in, int *xpos, int *ypos, double *out );
 int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
 int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
 int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );

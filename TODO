@@ -1,3 +1,18 @@
+- optional output args are broken
+
+	vips_min( im, &min,
+		"x", &xpos,
+		"y", &ypos,
+		NULL );
+
+  tries to set "x" and "y" during vips_operation_set_valist_optional(),
+  instead it should read them during output arg readout phase
+
+
+
+
+
+
 
 - is our C API too awkward? we'll need
 

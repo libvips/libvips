@@ -170,20 +170,18 @@ vips_avg_stop( VipsStatistic *statistic, void *seq )
 #define LOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	\
-	for( x = 0; x < sz; x++ ) \
-		m += p[x]; \
+	for( i = 0; i < sz; i++ ) \
+		m += p[i]; \
 }
 
 #define CLOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	\
-	for( x = 0; x < sz; x++ ) { \
-		double mod, re, im; \
+	for( i = 0; i < sz; i++ ) { \
+		double mod; \
 		\
-		re = p[0]; \
-		im = p[1]; \
+		mod = p[0] * p[0] + p[1] * p[1]; \
 		p += 2; \
-		mod = re * re + im * im; \
 		\
 		m += mod; \
 	} \
@@ -192,21 +190,22 @@ vips_avg_stop( VipsStatistic *statistic, void *seq )
 /* Loop over region, accumulating a sum in *tmp.
  */
 static int
-vips_avg_scan( VipsStatistic *statistic, void *seq, void *in, int n )
+vips_avg_scan( VipsStatistic *statistic, void *seq, 
+	int x, int y, void *in, int n )
 {
-	const VipsImage *im = statistic->input;
-	const int sz = n * vips_image_get_bands( im );
+	const VipsImage *input = statistic->input;
+	const int sz = n * vips_image_get_bands( input );
 
 	double *sum = (double *) seq;
 
-	int x;
+	int i;
 	double m;
 
 	m = *sum;
 
 	/* Now generate code for all types. 
 	 */
-	switch( vips_image_get_format( im ) ) {
+	switch( vips_image_get_format( input ) ) {
 	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break; 
 	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break; 
 	case VIPS_FORMAT_USHORT:	LOOP( unsigned short ); break; 
