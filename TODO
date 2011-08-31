@@ -1,15 +1,29 @@
-- optional output args are broken
+- cmd line interface needs to print optional output args, if requested
+  
+  eg. 
+
+  	$ vips min fred.v
+	12
+  	$ vips min -x fred.v
+	12
+	300
+
+  the switch is there, but breaks an assert:
+
+	$ vips min -x babe.jpg
+	VIPS:ERROR:object.c:1178:vips_object_set_argument_from_string: assertion
+	failed: (argument_class->flags & VIPS_ARGUMENT_INPUT)
+	Aborted
+
+
+
+
+- C interface needs to look for optional output args in final psss, eg.
 
 	vips_min( im, &min,
 		"x", &xpos,
 		"y", &ypos,
 		NULL );
-
-  tries to set "x" and "y" during vips_operation_set_valist_optional(),
-  instead it should read them during output arg readout phase
-
-
-
 
 
 

@@ -702,7 +702,6 @@ vips_object_set_property( GObject *gobject,
 	}
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 {
 	char *str_value;
 
@@ -712,6 +711,7 @@ vips_object_set_property( GObject *gobject,
 	printf( ".%s = %s\n", g_param_spec_get_name( pspec ), str_value );
 	g_free( str_value );
 }
+#endif /*DEBUG*/
 
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 	g_assert( ((VipsArgument *) argument_instance)->pspec == pspec );

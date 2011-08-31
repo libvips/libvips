@@ -302,10 +302,54 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 static int
 vips_operation_set_valist_optional( VipsOperation *operation, va_list ap )
 {
-	char *first_property_name;
+	VipsOperationClass *class = 
+		VIPS_OPERATION_GET_CLASS( operation );
+	VipsArgumentTable *argument_table =
+		VIPS_OBJECT_CLASS( class )->argument_table;
 
-	first_property_name = va_arg( ap, char * );
-	g_object_set_valist( G_OBJECT (operation), first_property_name, ap );
+	char *name;
+
+	name = va_arg( ap, char * );
+
+	while( name ) {
+		GValue value = { 0, };
+		GParamSpec *pspec;
+		gchar *error = NULL;
+		VipsArgumentClass *argument_class;
+
+		if( !(pspec = g_object_class_find_property( 
+			G_OBJECT_CLASS( class ), name )) ) {
+			vips_error( VIPS_OBJECT_CLASS( class )->description, 
+				_( "class `%s' has no property named `%s'\n" ),
+				G_OBJECT_TYPE_NAME( operation ), name );
+			return( -1 );
+		}
+
+		g_value_init( &value, G_PARAM_SPEC_VALUE_TYPE( pspec ) );
+		G_VALUE_COLLECT( &value, ap, 0, &error );
+		if( error ) {
+			vips_error( VIPS_OBJECT_CLASS( class )->description, 
+				"%s", _( error ) );
+			g_value_unset( &value );
+			g_free( error );
+
+			return( -1 );
+		}
+
+		/* Only set input args, Output args are read from the
+		 * finished object after build.
+		 */
+		argument_class = (VipsArgumentClass *)
+			vips__argument_table_lookup( argument_table, pspec );
+		if( argument_class &&
+			(argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
+			g_object_set_property( G_OBJECT( operation ), 
+				name, &value );
+
+		g_value_unset( &value );
+
+		name = va_arg( ap, char * );
+	}
 
 	return( 0 );
 }
