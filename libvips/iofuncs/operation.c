@@ -595,14 +595,16 @@ vips_call_options_add( VipsObject *object,
 	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		!argument_instance->assigned ) {
+		const char *name = g_param_spec_get_name( pspec );
 		GOptionEntry entry[2];
 
-		entry[0].long_name = g_param_spec_get_name( pspec );
-		entry[0].short_name = g_param_spec_get_name( pspec )[0];
-		if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
-			entry[0].flags = G_OPTION_FLAG_NO_ARG;
-		else
-			entry[0].flags = 0;
+		entry[0].long_name = name;
+		entry[0].short_name = name[0];
+
+		entry[0].flags = 0;
+		if( vips_object_get_argument_needs_string( object, name ) ) 
+			entry[0].flags |= G_OPTION_FLAG_NO_ARG;
+
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
 		entry[0].description = g_param_spec_get_blurb( pspec );
@@ -614,8 +616,7 @@ vips_call_options_add( VipsObject *object,
 
 		entry[1].long_name = NULL;
 
-		VIPS_DEBUG_MSG( "vips_call_options_add: adding %s\n",
-			g_param_spec_get_name( pspec ) );
+		VIPS_DEBUG_MSG( "vips_call_options_add: adding %s\n", name );
 
 		g_option_group_add_entries( group, &entry[0] );
 	}

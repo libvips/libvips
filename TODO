@@ -15,6 +15,12 @@
 	failed: (argument_class->flags & VIPS_ARGUMENT_INPUT)
 	Aborted
 
+  options are being made incorrectly:
+
+	$ vips min --help
+	  -y, --y=gint                      Vertical position of minimum
+
+  --y should not have an arg
 
 
 
