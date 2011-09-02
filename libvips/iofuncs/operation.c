@@ -504,43 +504,37 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 }
 
 static void *
-vips_call_char_option( VipsObject *object,
+vips_call_find_pspec_char( VipsObject *object,
 	GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
 	VipsArgumentInstance *argument_instance,
 	void *a, void *b )
 {
 	const char *name = (const char *) a;
-	const char *value = (const char *) b;
 
 	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		!argument_instance->assigned &&
 		g_param_spec_get_name( pspec )[0] == name[0] ) 
-		if( vips_object_set_argument_from_string( object, 
-			g_param_spec_get_name( pspec ), value ) )
-			return( object );
+		return( pspec );
 
 	return( NULL );
 }
 
 static void *
-vips_call_name_option( VipsObject *object,
+vips_call_find_pspec_name( VipsObject *object,
 	GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
 	VipsArgumentInstance *argument_instance,
 	void *a, void *b )
 {
 	const char *name = (const char *) a;
-	const char *value = (const char *) b;
 
 	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		!argument_instance->assigned &&
 		strcmp( g_param_spec_get_name( pspec ), name  ) == 0 ) 
-		if( vips_object_set_argument_from_string( object, 
-			g_param_spec_get_name( pspec ), value ) )
-			return( object );
+		return( pspec );
 
 	return( NULL );
 }
@@ -551,6 +545,7 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 {
 	VipsOperation *operation = (VipsOperation *) data;
 	const char *name;
+	GParamSpec *pspec;
 
 	VIPS_DEBUG_MSG( "vips_call_options_set: %s = %s\n", 
 		option_name, value );
@@ -561,24 +556,33 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 		;
 
 	/* If this is a single-character name, find the first unset pspec with
-	 * that initial. Otherwise, search for a spec of that nmae.
+	 * that initial. Otherwise, search for a spec of that name.
 	 */
-	if( strlen( name ) == 1 ) {
-		if( vips_argument_map( VIPS_OBJECT( operation ),
-			vips_call_char_option, 
-			(void *) name, (void *) value ) ) {
-			vips_error_g( error );
-			return( FALSE );
-		}
+	if( strlen( name ) == 1 ) 
+		pspec = (GParamSpec *) vips_argument_map( 
+			VIPS_OBJECT( operation ),
+			vips_call_find_pspec_char, 
+			(void *) name, NULL );
+	else
+		pspec = (GParamSpec *) vips_argument_map( 
+			VIPS_OBJECT( operation ),
+			vips_call_find_pspec_name, 
+			(void *) name, NULL );
+	if( !pspec ) {
+		vips_error( VIPS_OBJECT( operation )->nickname, 
+			_( "unknown argument '%s'" ), name );
+		return( FALSE );
 	}
-	else {
-		if( vips_argument_map( VIPS_OBJECT( operation ),
-			vips_call_name_option, 
-			(void *) name, (void *) value ) ) {
-			vips_error_g( error );
-			return( FALSE );
-		}
-	}
+
+	/*
+	 *
+	 * FIXME ... for output args, need to attach a close callback to
+	 * operation to write the value
+	 *
+	 */
+	if( vips_object_set_argument_from_string( VIPS_OBJECT( operation ), 
+		name, value ) )
+		return( FALSE );
 
 	return( TRUE );
 }
@@ -596,23 +600,23 @@ vips_call_options_add( VipsObject *object,
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		!argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
+		gboolean needs_string = 
+			vips_object_get_argument_needs_string( object, name );
 		GOptionEntry entry[2];
 
 		entry[0].long_name = name;
 		entry[0].short_name = name[0];
-
 		entry[0].flags = 0;
-		if( vips_object_get_argument_needs_string( object, name ) ) 
+		if( !needs_string ) 
 			entry[0].flags |= G_OPTION_FLAG_NO_ARG;
-
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
 		entry[0].description = g_param_spec_get_blurb( pspec );
-		if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
-			entry[0].arg_description = NULL;
-		else
+		if( needs_string ) 
 			entry[0].arg_description = 
 				g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) );
+		else
+			entry[0].arg_description = NULL;
 
 		entry[1].long_name = NULL;
 
@@ -701,11 +705,12 @@ vips_call_argv_output( VipsObject *object,
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
 			call->i += 1;
 		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
+			const char *name = g_param_spec_get_name( pspec );
 			const char *arg;
 
 			arg = NULL;
 			if( vips_object_get_argument_needs_string( object,
-				g_param_spec_get_name( pspec ) ) ) {
+				name ) ) {
 				arg = vips_call_get_arg( call, call->i );
 				if( !arg )
 					return( pspec );
@@ -714,7 +719,7 @@ vips_call_argv_output( VipsObject *object,
 			}
 
 			if( vips_object_get_argument_to_string( object, 
-				g_param_spec_get_name( pspec ), arg ) ) 
+				name, arg ) ) 
 				return( pspec );
 		}
 	}

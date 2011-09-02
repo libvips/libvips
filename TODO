@@ -1,3 +1,8 @@
+- see TODO comment on vips_call_options_set()
+
+
+
+
 - cmd line interface needs to print optional output args, if requested
   
   eg. 
