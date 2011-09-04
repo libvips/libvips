@@ -134,6 +134,10 @@ typedef struct _VipsArgumentClass {
 typedef struct _VipsArgumentInstance {
 	VipsArgument parent;
 
+	/* The class we are part of.
+	 */
+	VipsArgumentClass *argument_class;
+
 	/* The object we are attached to.
 	 */
 	VipsObject *object;
@@ -154,9 +158,9 @@ typedef struct _VipsArgumentInstance {
 typedef GHashTable VipsArgumentTable;
 
 VipsArgumentInstance *vips__argument_get_instance( VipsArgumentClass *,
-	VipsObject *);
+	VipsObject * );
 VipsArgument *vips__argument_table_lookup( VipsArgumentTable *, 
-	GParamSpec *);
+	GParamSpec * );
 void vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 	GObject **member, GObject *argument );
 typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,

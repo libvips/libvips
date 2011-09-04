@@ -504,7 +504,7 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 }
 
 static void *
-vips_call_find_pspec_char( VipsObject *object,
+vips_call_find_pspec( VipsObject *object,
 	GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
 	VipsArgumentInstance *argument_instance,
@@ -512,31 +512,42 @@ vips_call_find_pspec_char( VipsObject *object,
 {
 	const char *name = (const char *) a;
 
+	/* One char names we assume are "-x" style abbreviations, longer names
+	 * we match the whole string.
+	 */
 	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!argument_instance->assigned &&
-		g_param_spec_get_name( pspec )[0] == name[0] ) 
-		return( pspec );
+		!argument_instance->assigned ) 
+		if( (strlen( name ) == 1 && 
+			g_param_spec_get_name( pspec )[0] == name[0]) ||
+			strcmp( g_param_spec_get_name( pspec ), name  ) == 0 ) 
+			return( argument_instance );
 
 	return( NULL );
 }
 
-static void *
-vips_call_find_pspec_name( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
+/* Keep this stuff around for output args.
+ */
+typedef struct _VipsCallOptionOutput {
+	VipsArgumentInstance *argument_instance;
+	const char *value;
+} VipsCallOptionOutput;
+
+static void
+vips_call_option_output( VipsObject *object,
+	VipsCallOptionOutput *output )
 {
-	const char *name = (const char *) a;
+	VipsArgumentInstance *argument_instance = output->argument_instance;
+	GParamSpec *pspec = ((VipsArgument *) argument_instance)->pspec;
 
-	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!argument_instance->assigned &&
-		strcmp( g_param_spec_get_name( pspec ), name  ) == 0 ) 
-		return( pspec );
+	if( vips_object_get_argument_to_string( object, 
+		g_param_spec_get_name( pspec ), output->value ) ) {
+		/* FIXME .. Hmm what can we do here? If an arg is image
+		 * output, for example, we will lose the error.
+		 */
+	}
 
-	return( NULL );
+	g_free( output );
 }
 
 static gboolean
@@ -545,6 +556,8 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 {
 	VipsOperation *operation = (VipsOperation *) data;
 	const char *name;
+	VipsArgumentInstance *argument_instance;
+	VipsArgumentClass *argument_class;
 	GParamSpec *pspec;
 
 	VIPS_DEBUG_MSG( "vips_call_options_set: %s = %s\n", 
@@ -555,34 +568,39 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 	for( name = option_name; *name == '-'; name++ )
 		;
 
-	/* If this is a single-character name, find the first unset pspec with
-	 * that initial. Otherwise, search for a spec of that name.
-	 */
-	if( strlen( name ) == 1 ) 
-		pspec = (GParamSpec *) vips_argument_map( 
+	if( !(argument_instance = (VipsArgumentInstance *) 
+		vips_argument_map( 
 			VIPS_OBJECT( operation ),
-			vips_call_find_pspec_char, 
-			(void *) name, NULL );
-	else
-		pspec = (GParamSpec *) vips_argument_map( 
-			VIPS_OBJECT( operation ),
-			vips_call_find_pspec_name, 
-			(void *) name, NULL );
-	if( !pspec ) {
+			vips_call_find_pspec, (void *) name, NULL )) ) {
 		vips_error( VIPS_OBJECT( operation )->nickname, 
 			_( "unknown argument '%s'" ), name );
 		return( FALSE );
 	}
+	argument_class = argument_instance->argument_class;
+	pspec = ((VipsArgument *) argument_instance)->pspec;
 
-	/*
-	 *
-	 * FIXME ... for output args, need to attach a close callback to
-	 * operation to write the value
-	 *
-	 */
-	if( vips_object_set_argument_from_string( VIPS_OBJECT( operation ), 
-		name, value ) )
-		return( FALSE );
+	if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
+		if( vips_object_set_argument_from_string( 
+			VIPS_OBJECT( operation ),
+			g_param_spec_get_name( pspec ), value ) )
+			return( FALSE );
+	}
+	else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
+		VipsCallOptionOutput *output;
+
+		/* We can't do output now, we have to attach a callback to do
+		 * the processing after the operation has run.
+		 *
+		 * FIXME ... something like posteval or postbuild might be
+		 * better for this?
+		 */
+		output = g_new( VipsCallOptionOutput, 1 );
+		output->argument_instance = argument_instance;
+		output->value = value;
+		g_signal_connect( operation, "preclose",
+			G_CALLBACK( vips_call_option_output ),
+			output );
+	}
 
 	return( TRUE );
 }

@@ -366,6 +366,7 @@ vips_argument_init( VipsObject *object )
 			argument_instance = g_new( VipsArgumentInstance, 1 );
 
 			((VipsArgument *) argument_instance)->pspec = pspec;
+			argument_instance->argument_class = argument_class;
 			argument_instance->object = object;
 			argument_instance->assigned = FALSE;
 			argument_instance->close_id = 0;
