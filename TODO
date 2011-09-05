@@ -37,10 +37,6 @@
 
 
 
-- max.c will need an early termination thing for vips_sink ... easy?
-
-
-
 - support planar tiff
 
 

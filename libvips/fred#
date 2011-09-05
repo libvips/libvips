@@ -1,0 +1,238 @@
+Making install in include
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/include'
+Making install in vips
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/include/vips'
+glib-mkenums --template enumtemplate \
+		../../../libvips/include/vips/memory.h ../../../libvips/include/vips/util.h ../../../libvips/include/vips/buf.h ../../../libvips/include/vips/image.h ../../../libvips/include/vips/object.h > xgen-geth && \
+	( cmp -s xgen-geth enumtypes.h || cp xgen-geth enumtypes.h ) && \
+	rm -f xgen-geth 
+make[3]: Entering directory `/home/john/GIT/libvips/libvips/include/vips'
+make[3]: Nothing to be done for `install-exec-am'.
+glib-mkenums --template enumtemplate \
+		../../../libvips/include/vips/memory.h ../../../libvips/include/vips/util.h ../../../libvips/include/vips/buf.h ../../../libvips/include/vips/image.h ../../../libvips/include/vips/object.h > xgen-geth && \
+	( cmp -s xgen-geth enumtypes.h || cp xgen-geth enumtypes.h ) && \
+	rm -f xgen-geth 
+test -z "/home/john/vips/include/vips" || /bin/mkdir -p "/home/john/vips/include/vips"
+ /usr/bin/install -c -m 644 almostdeprecated.h deprecated.h arithmetic.h boolean.h buf.h colour.h conversion.h convolution.h debug.h dispatch.h disp.h enumtypes.h error.h operation.h format.h inplace.h generate.h header.h histograms_lut.h freq_filt.h image.h interpolate.h intl.h mask.h pool.h memory.h morphology.h mosaicing.h other.h video.h cimg_funcs.h object.h private.h rect.h region.h relational.h resample.h semaphore.h threadpool.h thread.h '/home/john/vips/include/vips'
+ /usr/bin/install -c -m 644 transform.h util.h version.h vector.h vips7compat.h vips.h '/home/john/vips/include/vips'
+make[3]: Leaving directory `/home/john/GIT/libvips/libvips/include/vips'
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/include/vips'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/include'
+make[3]: Entering directory `/home/john/GIT/libvips/libvips/include'
+make[3]: Nothing to be done for `install-exec-am'.
+make[3]: Nothing to be done for `install-data-am'.
+make[3]: Leaving directory `/home/john/GIT/libvips/libvips/include'
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/include'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/include'
+Making install in arithmetic
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/arithmetic'
+/bin/bash ../../libtool --tag=CC   --mode=compile gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I../.. -I../../libvips/include -DDEBUG_FATAL -DDEBUG_LEAK -pthread -fopenmp -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/orc-0.4 -I/usr/include/libxml2 -I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0 -I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick           -g -Wall -MT statistic.lo -MD -MP -MF .deps/statistic.Tpo -c -o statistic.lo statistic.c
+libtool: compile:  gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I../.. -I../../libvips/include -DDEBUG_FATAL -DDEBUG_LEAK -pthread -fopenmp -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/orc-0.4 -I/usr/include/libxml2 -I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0 -I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick -g -Wall -MT statistic.lo -MD -MP -MF .deps/statistic.Tpo -c statistic.c  -fPIC -DPIC -o .libs/statistic.o
+libtool: compile:  gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I../.. -I../../libvips/include -DDEBUG_FATAL -DDEBUG_LEAK -pthread -fopenmp -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/orc-0.4 -I/usr/include/libxml2 -I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0 -I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick -g -Wall -MT statistic.lo -MD -MP -MF .deps/statistic.Tpo -c statistic.c -o statistic.o >/dev/null 2>&1
+mv -f .deps/statistic.Tpo .deps/statistic.Plo
+/bin/bash ../../libtool --tag=CC   --mode=compile gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I../.. -I../../libvips/include -DDEBUG_FATAL -DDEBUG_LEAK -pthread -fopenmp -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/orc-0.4 -I/usr/include/libxml2 -I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0 -I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick           -g -Wall -MT min.lo -MD -MP -MF .deps/min.Tpo -c -o min.lo min.c
+libtool: compile:  gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I../.. -I../../libvips/include -DDEBUG_FATAL -DDEBUG_LEAK -pthread -fopenmp -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/orc-0.4 -I/usr/include/libxml2 -I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0 -I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick -g -Wall -MT min.lo -MD -MP -MF .deps/min.Tpo -c min.c  -fPIC -DPIC -o .libs/min.o
+libtool: compile:  gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I../.. -I../../libvips/include -DDEBUG_FATAL -DDEBUG_LEAK -pthread -fopenmp -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/orc-0.4 -I/usr/include/libxml2 -I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0 -I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick -g -Wall -MT min.lo -MD -MP -MF .deps/min.Tpo -c min.c -o min.o >/dev/null 2>&1
+mv -f .deps/min.Tpo .deps/min.Plo
+/bin/bash ../../libtool --tag=CC   --mode=link gcc -std=gnu99  -g -Wall   -o libarithmetic.la  arith_dispatch.lo im_abs.lo im_bandmean.lo im_cross_phase.lo im_deviate.lo im_divide.lo im_recomb.lo im_invert.lo im_linreg.lo im_lintra.lo im_maxpos_avg.lo im_maxpos.lo im_maxpos_vec.lo im_measure.lo im_multiply.lo im_point_bilinear.lo im_remainder.lo im_sign.lo im_stats.lo statistic.lo avg.lo min.lo subtract.lo math.lo arithmetic.lo binary.lo add.lo power.lo round.lo  
+libtool: link: rm -fr  .libs/libarithmetic.a .libs/libarithmetic.la
+libtool: link: ar cru .libs/libarithmetic.a .libs/arith_dispatch.o .libs/im_abs.o .libs/im_bandmean.o .libs/im_cross_phase.o .libs/im_deviate.o .libs/im_divide.o .libs/im_recomb.o .libs/im_invert.o .libs/im_linreg.o .libs/im_lintra.o .libs/im_maxpos_avg.o .libs/im_maxpos.o .libs/im_maxpos_vec.o .libs/im_measure.o .libs/im_multiply.o .libs/im_point_bilinear.o .libs/im_remainder.o .libs/im_sign.o .libs/im_stats.o .libs/statistic.o .libs/avg.o .libs/min.o .libs/subtract.o .libs/math.o .libs/arithmetic.o .libs/binary.o .libs/add.o .libs/power.o .libs/round.o 
+libtool: link: ranlib .libs/libarithmetic.a
+libtool: link: ( cd ".libs" && rm -f "libarithmetic.la" && ln -s "../libarithmetic.la" "libarithmetic.la" )
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/arithmetic'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/arithmetic'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/arithmetic'
+Making install in resample
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/resample'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/resample'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/resample'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/resample'
+Making install in boolean
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/boolean'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/boolean'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/boolean'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/boolean'
+Making install in colour
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/colour'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/colour'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/colour'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/colour'
+Making install in conversion
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/conversion'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/conversion'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/conversion'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/conversion'
+Making install in deprecated
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/deprecated'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/deprecated'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/deprecated'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/deprecated'
+Making install in convolution
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/convolution'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/convolution'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/convolution'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/convolution'
+Making install in cimg
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/cimg'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/cimg'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/cimg'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/cimg'
+Making install in format
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/format'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/format'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/format'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/format'
+Making install in freq_filt
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/freq_filt'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/freq_filt'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/freq_filt'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/freq_filt'
+Making install in histograms_lut
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/histograms_lut'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/histograms_lut'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/histograms_lut'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/histograms_lut'
+Making install in inplace
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/inplace'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/inplace'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/inplace'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/inplace'
+Making install in iofuncs
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/iofuncs'
+glib-mkenums --template enumtemplate \
+		../../libvips/include/vips/memory.h ../../libvips/include/vips/util.h ../../libvips/include/vips/buf.h ../../libvips/include/vips/image.h ../../libvips/include/vips/object.h > xgen-getc && \
+	( cmp -s xgen-getc enumtypes.c || cp xgen-getc enumtypes.c ) && \
+	rm -f xgen-getc
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/iofuncs'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/iofuncs'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/iofuncs'
+Making install in mask
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/mask'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/mask'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/mask'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/mask'
+Making install in morphology
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/morphology'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/morphology'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/morphology'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/morphology'
+Making install in mosaicing
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/mosaicing'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/mosaicing'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/mosaicing'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/mosaicing'
+Making install in other
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/other'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/other'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/other'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/other'
+Making install in relational
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/relational'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/relational'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/relational'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/relational'
+Making install in video
+make[1]: Entering directory `/home/john/GIT/libvips/libvips/video'
+make[2]: Entering directory `/home/john/GIT/libvips/libvips/video'
+make[2]: Nothing to be done for `install-exec-am'.
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips/video'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips/video'
+Making install in .
+make[1]: Entering directory `/home/john/GIT/libvips/libvips'
+/bin/bash ../libtool --tag=CXX   --mode=link g++  -g -Wall -no-undefined -version-info 30:2:15   -o libvips.la -rpath /home/john/vips/lib  resample/libresample.la arithmetic/libarithmetic.la boolean/libboolean.la colour/libcolour.la conversion/libconversion.la convolution/libconvolution.la deprecated/libdeprecated.la cimg/libcimg.la format/libformat.la freq_filt/libfreq_filt.la histograms_lut/libhistograms_lut.la inplace/libinplace.la iofuncs/libiofuncs.la mask/libmask.la morphology/libmorphology.la mosaicing/libmosaicing.la other/libother.la relational/librelational.la video/libvideo.la -lMagickWand -lMagickCore   -L/usr/lib/x86_64-linux-gnu -lpng12   -ltiff -lz -ljpeg -pthread -L/usr/lib/x86_64-linux-gnu -lgthread-2.0 -lrt -lglib-2.0   -Wl,--export-dynamic -pthread -L/usr/lib/x86_64-linux-gnu -lgmodule-2.0 -lxml2 -lgobject-2.0 -lgthread-2.0 -lrt -lglib-2.0   -pthread -L/usr/lib/x86_64-linux-gnu -lpangoft2-1.0 -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lgthread-2.0 -lrt -lglib-2.0   -lfftw3 -lm    -lorc-0.4   -llcms   -pthread -lIlmImf -lz -lImath -lHalf -lIex -lIlmThread   -lcfitsio -lpthread   -lmatio -lz   -lexif   -lm -lstdc++ 
+libtool: link: rm -fr  .libs/libvips.a .libs/libvips.la .libs/libvips.lai .libs/libvips.so .libs/libvips.so.15 .libs/libvips.so.15.15.2
+libtool: link: g++ -shared -nostdlib /usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/../../../crti.o /usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/crtbeginS.o  -Wl,--whole-archive resample/.libs/libresample.a arithmetic/.libs/libarithmetic.a boolean/.libs/libboolean.a colour/.libs/libcolour.a conversion/.libs/libconversion.a convolution/.libs/libconvolution.a deprecated/.libs/libdeprecated.a cimg/.libs/libcimg.a format/.libs/libformat.a freq_filt/.libs/libfreq_filt.a histograms_lut/.libs/libhistograms_lut.a inplace/.libs/libinplace.a iofuncs/.libs/libiofuncs.a mask/.libs/libmask.a morphology/.libs/libmorphology.a mosaicing/.libs/libmosaicing.a other/.libs/libother.a relational/.libs/librelational.a video/.libs/libvideo.a -Wl,--no-whole-archive  /usr/lib/libMagickWand.so /usr/lib/libMagickCore.so -L/usr/lib/x86_64-linux-gnu -lpng12 /usr/lib/x86_64-linux-gnu/libtiff.so /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib/libxml2.so /usr/lib/x86_64-linux-gnu/libpangoft2-1.0.so /usr/lib/x86_64-linux-gnu/libpango-1.0.so /usr/lib/x86_64-linux-gnu/libfreetype.so -lfontconfig /usr/lib/x86_64-linux-gnu/libgobject-2.0.so /usr/lib/x86_64-linux-gnu/libgmodule-2.0.so /usr/lib/x86_64-linux-gnu/libgthread-2.0.so -lrt /usr/lib/x86_64-linux-gnu/libglib-2.0.so /usr/lib/libfftw3.so -lorc-0.4 /usr/lib/liblcms.so /usr/lib/libIlmImf.so -lImath -lHalf -lIex -lIlmThread -lcfitsio -lpthread /usr/lib/libmatio.so -lz /usr/lib/libexif.so -L/usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2 -L/usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/../../.. -lstdc++ -lm -lc -lgcc_s /usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/crtendS.o /usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/../../../crtn.o  -pthread -Wl,--export-dynamic -pthread -pthread -pthread   -pthread -Wl,-soname -Wl,libvips.so.15 -o .libs/libvips.so.15.15.2
+libtool: link: (cd ".libs" && rm -f "libvips.so.15" && ln -s "libvips.so.15.15.2" "libvips.so.15")
+libtool: link: (cd ".libs" && rm -f "libvips.so" && ln -s "libvips.so.15.15.2" "libvips.so")
+libtool: link: (cd .libs/libvips.lax/libresample.a && ar x "/home/john/GIT/libvips/libvips/resample/.libs/libresample.a")
+libtool: link: (cd .libs/libvips.lax/libarithmetic.a && ar x "/home/john/GIT/libvips/libvips/arithmetic/.libs/libarithmetic.a")
+libtool: link: (cd .libs/libvips.lax/libboolean.a && ar x "/home/john/GIT/libvips/libvips/boolean/.libs/libboolean.a")
+libtool: link: (cd .libs/libvips.lax/libcolour.a && ar x "/home/john/GIT/libvips/libvips/colour/.libs/libcolour.a")
+libtool: link: (cd .libs/libvips.lax/libconversion.a && ar x "/home/john/GIT/libvips/libvips/conversion/.libs/libconversion.a")
+libtool: link: (cd .libs/libvips.lax/libconvolution.a && ar x "/home/john/GIT/libvips/libvips/convolution/.libs/libconvolution.a")
+libtool: link: (cd .libs/libvips.lax/libdeprecated.a && ar x "/home/john/GIT/libvips/libvips/deprecated/.libs/libdeprecated.a")
+libtool: link: (cd .libs/libvips.lax/libcimg.a && ar x "/home/john/GIT/libvips/libvips/cimg/.libs/libcimg.a")
+libtool: link: (cd .libs/libvips.lax/libformat.a && ar x "/home/john/GIT/libvips/libvips/format/.libs/libformat.a")
+libtool: link: (cd .libs/libvips.lax/libfreq_filt.a && ar x "/home/john/GIT/libvips/libvips/freq_filt/.libs/libfreq_filt.a")
+libtool: link: (cd .libs/libvips.lax/libhistograms_lut.a && ar x "/home/john/GIT/libvips/libvips/histograms_lut/.libs/libhistograms_lut.a")
+libtool: link: (cd .libs/libvips.lax/libinplace.a && ar x "/home/john/GIT/libvips/libvips/inplace/.libs/libinplace.a")
+libtool: link: (cd .libs/libvips.lax/libiofuncs.a && ar x "/home/john/GIT/libvips/libvips/iofuncs/.libs/libiofuncs.a")
+libtool: link: (cd .libs/libvips.lax/libmask.a && ar x "/home/john/GIT/libvips/libvips/mask/.libs/libmask.a")
+libtool: link: (cd .libs/libvips.lax/libmorphology.a && ar x "/home/john/GIT/libvips/libvips/morphology/.libs/libmorphology.a")
+libtool: link: (cd .libs/libvips.lax/libmosaicing.a && ar x "/home/john/GIT/libvips/libvips/mosaicing/.libs/libmosaicing.a")
+libtool: link: (cd .libs/libvips.lax/libother.a && ar x "/home/john/GIT/libvips/libvips/other/.libs/libother.a")
+libtool: link: (cd .libs/libvips.lax/librelational.a && ar x "/home/john/GIT/libvips/libvips/relational/.libs/librelational.a")
+libtool: link: (cd .libs/libvips.lax/libvideo.a && ar x "/home/john/GIT/libvips/libvips/video/.libs/libvideo.a")
+libtool: link: ar cru .libs/libvips.a   .libs/libvips.lax/libresample.a/resample_dispatch.o .libs/libvips.lax/libresample.a/im_rightshift_size.o .libs/libvips.lax/libresample.a/im_shrink.o .libs/libvips.lax/libresample.a/lbb.o .libs/libvips.lax/libresample.a/interpolate.o .libs/libvips.lax/libresample.a/nohalo.o .libs/libvips.lax/libresample.a/im_affine.o .libs/libvips.lax/libresample.a/vsqbs.o .libs/libvips.lax/libresample.a/transform.o .libs/libvips.lax/libresample.a/bicubic.o  .libs/libvips.lax/libarithmetic.a/subtract.o .libs/libvips.lax/libarithmetic.a/im_remainder.o .libs/libvips.lax/libarithmetic.a/im_point_bilinear.o .libs/libvips.lax/libarithmetic.a/im_cross_phase.o .libs/libvips.lax/libarithmetic.a/im_lintra.o .libs/libvips.lax/libarithmetic.a/im_divide.o .libs/libvips.lax/libarithmetic.a/avg.o .libs/libvips.lax/libarithmetic.a/im_deviate.o .libs/libvips.lax/libarithmetic.a/im_sign.o .libs/libvips.lax/libarithmetic.a/binary.o .libs/libvips.lax/libarithmetic.a/im_recomb.o .libs/libvips.lax/libarithmetic.a/im_measure.o .libs/libvips.lax/libarithmetic.a/power.o .libs/libvips.lax/libarithmetic.a/round.o .libs/libvips.lax/libarithmetic.a/im_abs.o .libs/libvips.lax/libarithmetic.a/im_bandmean.o .libs/libvips.lax/libarithmetic.a/arithmetic.o .libs/libvips.lax/libarithmetic.a/im_invert.o .libs/libvips.lax/libarithmetic.a/math.o .libs/libvips.lax/libarithmetic.a/im_linreg.o .libs/libvips.lax/libarithmetic.a/statistic.o .libs/libvips.lax/libarithmetic.a/im_multiply.o .libs/libvips.lax/libarithmetic.a/add.o .libs/libvips.lax/libarithmetic.a/im_maxpos.o .libs/libvips.lax/libarithmetic.a/im_stats.o .libs/libvips.lax/libarithmetic.a/im_maxpos_vec.o .libs/libvips.lax/libarithmetic.a/arith_dispatch.o .libs/libvips.lax/libarithmetic.a/min.o .libs/libvips.lax/libarithmetic.a/im_maxpos_avg.o  .libs/libvips.lax/libboolean.a/boolean.o .libs/libvips.lax/libboolean.a/bool_dispatch.o  .libs/libvips.lax/libcolour.a/im_XYZ2Lab.o .libs/libvips.lax/libcolour.a/im_rad2float.o .libs/libvips.lax/libcolour.a/im_LCh2Lab.o .libs/libvips.lax/libcolour.a/im_XYZ2disp.o .libs/libvips.lax/libcolour.a/disp.o .libs/libvips.lax/libcolour.a/im_dE_fromLab.o .libs/libvips.lax/libcolour.a/im_LabQ2LabS.o .libs/libvips.lax/libcolour.a/im_LabQ2disp.o .libs/libvips.lax/libcolour.a/im_Lab2LCh.o .libs/libvips.lax/libcolour.a/im_icc_transform.o .libs/libvips.lax/libcolour.a/im_Lab2XYZ.o .libs/libvips.lax/libcolour.a/im_dE00_fromLab.o .libs/libvips.lax/libcolour.a/im_LabS2LabQ.o .libs/libvips.lax/libcolour.a/colour.o .libs/libvips.lax/libcolour.a/im_LabS2Lab.o .libs/libvips.lax/libcolour.a/im_lab_morph.o .libs/libvips.lax/libcolour.a/im_Yxy2XYZ.o .libs/libvips.lax/libcolour.a/im_dECMC_fromLab.o .libs/libvips.lax/libcolour.a/derived.o .libs/libvips.lax/libcolour.a/im_LabQ2Lab.o .libs/libvips.lax/libcolour.a/im_UCS2LCh.o .libs/libvips.lax/libcolour.a/colour_dispatch.o .libs/libvips.lax/libcolour.a/im_XYZ2Yxy.o .libs/libvips.lax/libcolour.a/im_Lab2LabS.o .libs/libvips.lax/libcolour.a/im_Lab2LabQ.o .libs/libvips.lax/libcolour.a/im_float2rad.o .libs/libvips.lax/libcolour.a/im_LCh2UCS.o .libs/libvips.lax/libcolour.a/im_disp2XYZ.o  .libs/libvips.lax/libconversion.a/conver_dispatch.o .libs/libvips.lax/libconversion.a/im_grid.o .libs/libvips.lax/libconversion.a/im_clip2fmt.o .libs/libvips.lax/libconversion.a/im_lrjoin.o .libs/libvips.lax/libconversion.a/im_tbjoin.o .libs/libvips.lax/libconversion.a/im_ri2c.o .libs/libvips.lax/libconversion.a/im_c2imag.o .libs/libvips.lax/libconversion.a/im_subsample.o .libs/libvips.lax/libconversion.a/im_system_image.o .libs/libvips.lax/libconversion.a/im_wrap.o .libs/libvips.lax/libconversion.a/im_scaleps.o .libs/libvips.lax/libconversion.a/im_rot180.o .libs/libvips.lax/libconversion.a/im_rot270.o .libs/libvips.lax/libconversion.a/im_zoom.o .libs/libvips.lax/libconversion.a/im_rot90.o .libs/libvips.lax/libconversion.a/im_extract.o .libs/libvips.lax/libconversion.a/im_black.o .libs/libvips.lax/libconversion.a/im_scale.o .libs/libvips.lax/libconversion.a/im_gaussnoise.o .libs/libvips.lax/libconversion.a/im_vips2mask.o .libs/libvips.lax/libconversion.a/im_msb.o .libs/libvips.lax/libconversion.a/im_insert.o .libs/libvips.lax/libconversion.a/im_text.o .libs/libvips.lax/libconversion.a/im_gbandjoin.o .libs/libvips.lax/libconversion.a/im_c2rect.o .libs/libvips.lax/libconversion.a/im_mask2vips.o .libs/libvips.lax/libconversion.a/im_embed.o .libs/libvips.lax/libconversion.a/im_flipver.o .libs/libvips.lax/libconversion.a/im_replicate.o .libs/libvips.lax/libconversion.a/im_c2amph.o .libs/libvips.lax/libconversion.a/im_falsecolour.o .libs/libvips.lax/libconversion.a/im_copy_file.o .libs/libvips.lax/libconversion.a/im_system.o .libs/libvips.lax/libconversion.a/im_copy.o .libs/libvips.lax/libconversion.a/im_fliphor.o .libs/libvips.lax/libconversion.a/im_c2real.o  .libs/libvips.lax/libconvolution.a/im_sharpen.o .libs/libvips.lax/libconvolution.a/im_conv.o .libs/libvips.lax/libconvolution.a/im_addgnoise.o .libs/libvips.lax/libconvolution.a/im_compass.o .libs/libvips.lax/libconvolution.a/convol_dispatch.o .libs/libvips.lax/libconvolution.a/im_fastcor.o .libs/libvips.lax/libconvolution.a/im_gradcor.o .libs/libvips.lax/libconvolution.a/im_aconvsep.o .libs/libvips.lax/libconvolution.a/im_aconv.o .libs/libvips.lax/libconvolution.a/im_spcor.o .libs/libvips.lax/libconvolution.a/im_contrast_surface.o .libs/libvips.lax/libconvolution.a/im_conv_f.o  .libs/libvips.lax/libdeprecated.a/im_print.o .libs/libvips.lax/libdeprecated.a/im_simcontr.o .libs/libvips.lax/libdeprecated.a/im_convsub.o .libs/libvips.lax/libdeprecated.a/im_spatres.o .libs/libvips.lax/libdeprecated.a/im_cmulnorm.o .libs/libvips.lax/libdeprecated.a/im_thresh.o .libs/libvips.lax/libdeprecated.a/im_gadd.o .libs/libvips.lax/libdeprecated.a/im_line.o .libs/libvips.lax/libdeprecated.a/im_debugim.o .libs/libvips.lax/libdeprecated.a/glds_funcs.o .libs/libvips.lax/libdeprecated.a/im_clamp.o .libs/libvips.lax/libdeprecated.a/package.o .libs/libvips.lax/libdeprecated.a/im_bernd.o .libs/libvips.lax/libdeprecated.a/cooc_funcs.o .libs/libvips.lax/libdeprecated.a/im_resize_linear.o .libs/libvips.lax/libdeprecated.a/rename.o .libs/libvips.lax/libdeprecated.a/im_slice.o .libs/libvips.lax/libdeprecated.a/im_printlines.o .libs/libvips.lax/libdeprecated.a/im_gaddim.o .libs/libvips.lax/libdeprecated.a/dispatch_types.o .libs/libvips.lax/libdeprecated.a/im_litecor.o .libs/libvips.lax/libdeprecated.a/im_fav4.o .libs/libvips.lax/libdeprecated.a/deprecated_dispatch.o .libs/libvips.lax/libdeprecated.a/im_stretch3.o .libs/libvips.lax/libdeprecated.a/wrapvips7.o .libs/libvips.lax/libdeprecated.a/im_setbox.o .libs/libvips.lax/libdeprecated.a/im_dif_std.o .libs/libvips.lax/libdeprecated.a/im_gfadd.o .libs/libvips.lax/libdeprecated.a/vips7compat.o  .libs/libvips.lax/libcimg.a/cimg_dispatch.o .libs/libvips.lax/libcimg.a/cimg.o  .libs/libvips.lax/libformat.a/fits.o .libs/libvips.lax/libformat.a/im_vips2ppm.o .libs/libvips.lax/libformat.a/im_vips2csv.o .libs/libvips.lax/libformat.a/matlab.o .libs/libvips.lax/libformat.a/im_exr2vips.o .libs/libvips.lax/libformat.a/radiance.o .libs/libvips.lax/libformat.a/im_vips2jpeg.o .libs/libvips.lax/libformat.a/im_analyze2vips.o .libs/libvips.lax/libformat.a/im_tiff2vips.o .libs/libvips.lax/libformat.a/im_jpeg2vips.o .libs/libvips.lax/libformat.a/format_dispatch.o .libs/libvips.lax/libformat.a/format.o .libs/libvips.lax/libformat.a/im_magick2vips.o .libs/libvips.lax/libformat.a/im_tile_cache.o .libs/libvips.lax/libformat.a/im_ppm2vips.o .libs/libvips.lax/libformat.a/im_vips2tiff.o .libs/libvips.lax/libformat.a/im_vips2raw.o .libs/libvips.lax/libformat.a/im_csv2vips.o .libs/libvips.lax/libformat.a/im_png2vips.o .libs/libvips.lax/libformat.a/im_vips2png.o .libs/libvips.lax/libformat.a/im_raw2vips.o  .libs/libvips.lax/libfreq_filt.a/fmaskcir.o .libs/libvips.lax/libfreq_filt.a/im_invfft.o .libs/libvips.lax/libfreq_filt.a/im_invfftr.o .libs/libvips.lax/libfreq_filt.a/im_freqflt.o .libs/libvips.lax/libfreq_filt.a/im_fwfft.o .libs/libvips.lax/libfreq_filt.a/freq_dispatch.o .libs/libvips.lax/libfreq_filt.a/im_freq_mask.o .libs/libvips.lax/libfreq_filt.a/fmask4th.o .libs/libvips.lax/libfreq_filt.a/im_disp_ps.o .libs/libvips.lax/libfreq_filt.a/im_rotquad.o .libs/libvips.lax/libfreq_filt.a/im_phasecor_fft.o .libs/libvips.lax/libfreq_filt.a/fft_sp.o .libs/libvips.lax/libfreq_filt.a/im_fractsurf.o  .libs/libvips.lax/libhistograms_lut.a/im_stdif.o .libs/libvips.lax/libhistograms_lut.a/im_histgr.o .libs/libvips.lax/libhistograms_lut.a/im_heq.o .libs/libvips.lax/libhistograms_lut.a/im_histindexed.o .libs/libvips.lax/libhistograms_lut.a/im_project.o .libs/libvips.lax/libhistograms_lut.a/im_gammacorrect.o .libs/libvips.lax/libhistograms_lut.a/im_hist.o .libs/libvips.lax/libhistograms_lut.a/im_histnD.o .libs/libvips.lax/libhistograms_lut.a/im_buildlut.o .libs/libvips.lax/libhistograms_lut.a/im_invertlut.o .libs/libvips.lax/libhistograms_lut.a/hist_dispatch.o .libs/libvips.lax/libhistograms_lut.a/im_identity.o .libs/libvips.lax/libhistograms_lut.a/tone.o .libs/libvips.lax/libhistograms_lut.a/im_histspec.o .libs/libvips.lax/libhistograms_lut.a/im_mpercent.o .libs/libvips.lax/libhistograms_lut.a/im_hsp.o .libs/libvips.lax/libhistograms_lut.a/im_histeq.o .libs/libvips.lax/libhistograms_lut.a/im_histplot.o .libs/libvips.lax/libhistograms_lut.a/im_lhisteq.o .libs/libvips.lax/libhistograms_lut.a/im_maplut.o  .libs/libvips.lax/libinplace.a/flood.o .libs/libvips.lax/libinplace.a/im_draw_point.o .libs/libvips.lax/libinplace.a/im_draw_mask.o .libs/libvips.lax/libinplace.a/draw.o .libs/libvips.lax/libinplace.a/im_draw_circle.o .libs/libvips.lax/libinplace.a/im_draw_rect.o .libs/libvips.lax/libinplace.a/im_draw_image.o .libs/libvips.lax/libinplace.a/im_draw_smudge.o .libs/libvips.lax/libinplace.a/inplace_dispatch.o .libs/libvips.lax/libinplace.a/im_draw_line.o  .libs/libvips.lax/libiofuncs.a/sink.o .libs/libvips.lax/libiofuncs.a/operation.o .libs/libvips.lax/libiofuncs.a/sinkscreen.o .libs/libvips.lax/libiofuncs.a/enumtypes.o .libs/libvips.lax/libiofuncs.a/pool.o .libs/libvips.lax/libiofuncs.a/vector.o .libs/libvips.lax/libiofuncs.a/object.o .libs/libvips.lax/libiofuncs.a/window.o .libs/libvips.lax/libiofuncs.a/region.o .libs/libvips.lax/libiofuncs.a/memory.o .libs/libvips.lax/libiofuncs.a/threadpool.o .libs/libvips.lax/libiofuncs.a/mapfile.o .libs/libvips.lax/libiofuncs.a/buffer.o .libs/libvips.lax/libiofuncs.a/image.o .libs/libvips.lax/libiofuncs.a/buf.o .libs/libvips.lax/libiofuncs.a/util.o .libs/libvips.lax/libiofuncs.a/init.o .libs/libvips.lax/libiofuncs.a/sinkmemory.o .libs/libvips.lax/libiofuncs.a/semaphore.o .libs/libvips.lax/libiofuncs.a/base64.o .libs/libvips.lax/libiofuncs.a/rect.o .libs/libvips.lax/libiofuncs.a/error.o .libs/libvips.lax/libiofuncs.a/generate.o .libs/libvips.lax/libiofuncs.a/vips.o .libs/libvips.lax/libiofuncs.a/header.o .libs/libvips.lax/libiofuncs.a/sinkdisc.o  .libs/libvips.lax/libmask.a/im_mattrn.o .libs/libvips.lax/libmask.a/mask_dispatch.o .libs/libvips.lax/libmask.a/matalloc.o .libs/libvips.lax/libmask.a/im_matcat.o .libs/libvips.lax/libmask.a/im_matinv.o .libs/libvips.lax/libmask.a/im_gaussmasks.o .libs/libvips.lax/libmask.a/rotmask.o .libs/libvips.lax/libmask.a/im_matmul.o .libs/libvips.lax/libmask.a/im_logmasks.o .libs/libvips.lax/libmask.a/rw_mask.o  .libs/libvips.lax/libmorphology.a/im_zerox.o .libs/libvips.lax/libmorphology.a/morphology.o .libs/libvips.lax/libmorphology.a/im_cntlines.o .libs/libvips.lax/libmorphology.a/morph_dispatch.o .libs/libvips.lax/libmorphology.a/im_rank_image.o .libs/libvips.lax/libmorphology.a/im_rank.o .libs/libvips.lax/libmorphology.a/im_profile.o .libs/libvips.lax/libmorphology.a/im_label_regions.o  .libs/libvips.lax/libmosaicing.a/match.o .libs/libvips.lax/libmosaicing.a/im_tbmerge.o .libs/libvips.lax/libmosaicing.a/im_lrcalcon.o .libs/libvips.lax/libmosaicing.a/im_avgdxdy.o .libs/libvips.lax/libmosaicing.a/im_initialize.o .libs/libvips.lax/libmosaicing.a/im_lrmerge.o .libs/libvips.lax/libmosaicing.a/im_maxpos_subpel.o .libs/libvips.lax/libmosaicing.a/mosaic1.o .libs/libvips.lax/libmosaicing.a/im_remosaic.o .libs/libvips.lax/libmosaicing.a/im_tbmosaic.o .libs/libvips.lax/libmosaicing.a/im_improve.o .libs/libvips.lax/libmosaicing.a/mosaicing_dispatch.o .libs/libvips.lax/libmosaicing.a/im_align_bands.o .libs/libvips.lax/libmosaicing.a/im_chkpair.o .libs/libvips.lax/libmosaicing.a/im_tbcalcon.o .libs/libvips.lax/libmosaicing.a/im_lrmosaic.o .libs/libvips.lax/libmosaicing.a/im_clinear.o .libs/libvips.lax/libmosaicing.a/global_balance.o  .libs/libvips.lax/libother.a/im_sines.o .libs/libvips.lax/libother.a/im_zone.o .libs/libvips.lax/libother.a/im_benchmark.o .libs/libvips.lax/libother.a/other_dispatch.o .libs/libvips.lax/libother.a/im_make_xy.o .libs/libvips.lax/libother.a/im_eye.o .libs/libvips.lax/libother.a/im_grey.o  .libs/libvips.lax/librelational.a/im_ifthenelse.o .libs/libvips.lax/librelational.a/im_blend.o .libs/libvips.lax/librelational.a/relational_dispatch.o .libs/libvips.lax/librelational.a/relational.o  .libs/libvips.lax/libvideo.a/im_video_v4l1.o .libs/libvips.lax/libvideo.a/video_dispatch.o .libs/libvips.lax/libvideo.a/im_video_test.o 
+libtool: link: ranlib .libs/libvips.a
+libtool: link: rm -fr .libs/libvips.lax
+libtool: link: ( cd ".libs" && rm -f "libvips.la" && ln -s "../libvips.la" "libvips.la" )
+make[2]: Entering directory `/home/john/GIT/libvips/libvips'
+test -z "/home/john/vips/lib" || /bin/mkdir -p "/home/john/vips/lib"
+ /bin/bash ../libtool   --mode=install /usr/bin/install -c   libvips.la '/home/john/vips/lib'
+libtool: install: /usr/bin/install -c .libs/libvips.so.15.15.2 /home/john/vips/lib/libvips.so.15.15.2
+libtool: install: (cd /home/john/vips/lib && { ln -s -f libvips.so.15.15.2 libvips.so.15 || { rm -f libvips.so.15 && ln -s libvips.so.15.15.2 libvips.so.15; }; })
+libtool: install: (cd /home/john/vips/lib && { ln -s -f libvips.so.15.15.2 libvips.so || { rm -f libvips.so && ln -s libvips.so.15.15.2 libvips.so; }; })
+libtool: install: /usr/bin/install -c .libs/libvips.lai /home/john/vips/lib/libvips.la
+libtool: install: /usr/bin/install -c .libs/libvips.a /home/john/vips/lib/libvips.a
+libtool: install: chmod 644 /home/john/vips/lib/libvips.a
+libtool: install: ranlib /home/john/vips/lib/libvips.a
+libtool: finish: PATH="/home/john/.gem/ruby/1.8/bin:/var/lib/gems/1.8/bin:/home/john/vips/bin:/home/john/cross/mingw_cross_env-1.4/usr/bin:/home/john/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/home/john/.local/bin:/sbin" ldconfig -n /home/john/vips/lib
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /home/john/vips/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the `-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the `LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the `LD_RUN_PATH' environment variable
+     during linking
+   - use the `-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to `/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+make[2]: Nothing to be done for `install-data-am'.
+make[2]: Leaving directory `/home/john/GIT/libvips/libvips'
+make[1]: Leaving directory `/home/john/GIT/libvips/libvips'

@@ -17,6 +17,8 @@
  * 	- rewrite, from im_maxpos()
  * 30/8/11
  * 	- rewrite as a class
+ * 5/9/11
+ * 	- abandon scan if we find minimum possible value
  */
 
 /*
@@ -57,6 +59,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <limits.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -178,6 +181,8 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	return( 0 );
 }
 
+/* real min with no limits.
+ */
 #define LOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE m; \
@@ -192,6 +197,31 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 			m = p[i]; \
 			min->x = x + i / bands; \
 			min->y = y; \
+		} \
+	} \
+	\
+	min->min = m; \
+	min->set = TRUE; \
+} 
+
+/* real min with a lower bound.
+ */
+#define LOOPL( TYPE, LOWER ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE m; \
+	\
+	if( min->set ) \
+		m = min->min; \
+	else \
+		m = p[0]; \
+	\
+	for( i = 0; i < sz; i++ ) { \
+		if( p[i] < m ) { \
+			m = p[i]; \
+			min->x = x + i / bands; \
+			min->y = y; \
+			if( m <= LOWER ) \
+				statistic->stop = TRUE; \
 		} \
 	} \
 	\
@@ -239,14 +269,16 @@ vips_min_scan( VipsStatistic *statistic, void *seq,
 	int i;
 
 	switch( vips_image_get_format( input ) ) {
-	case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
-	case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
-	case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
-	case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
-	case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
-	case IM_BANDFMT_INT:		LOOP( signed int ); break; 
+	case IM_BANDFMT_UCHAR:		LOOPL( unsigned char, 0 ); break; 
+	case IM_BANDFMT_CHAR:		LOOPL( signed char, SCHAR_MIN ); break; 
+	case IM_BANDFMT_USHORT:		LOOPL( unsigned short, 0 ); break; 
+	case IM_BANDFMT_SHORT:		LOOPL( signed short, SHRT_MIN ); break; 
+	case IM_BANDFMT_UINT:		LOOPL( unsigned int, 0 ); break;
+	case IM_BANDFMT_INT:		LOOPL( signed int, INT_MIN ); break; 
+
 	case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
 	case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
+
 	case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
 	case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
 
