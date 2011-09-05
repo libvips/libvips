@@ -1,13 +1,3 @@
-- C interface needs to look for optional output args in final psss, eg.
-
-	vips_min( im, &min,
-		"x", &xpos,
-		"y", &ypos,
-		NULL );
-
-
-
-
 - is our C API too awkward? we'll need
 
 	if( !(c = vips_add( a, b )) ||
