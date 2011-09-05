@@ -5,6 +5,7 @@
 - generate has a 'stop' param to signal successful early termination
 - added optional output args, eg. x/y for min
 - CLI supports optional output args
+- in im_vips2tiff, enable YCbCr compression for jpeg write
 
 10/8/11 started 7.26.3
 - don't use G_VALUE_COLLECT_INIT(), many platforms do not have a glib this

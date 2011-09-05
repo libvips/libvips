@@ -119,6 +119,8 @@
  * 12/7/11
  * 	- use im__temp_name() for intermediates rather than polluting the
  * 	  output directory
+ * 5/9/11
+ * 	- enable YCbCr compression for jpeg write
  */
 
 /*
@@ -464,6 +466,18 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 	TIFFSetField( tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
 	TIFFSetField( tif, TIFFTAG_COMPRESSION, tw->compression );
 
+	if( tw->compression == COMPRESSION_JPEG ) {
+		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, tw->jpqual );
+
+		/* Enable rgb->ycbcr conversion in the jpeg write. See also
+		 * the photometric selection below.
+		 */
+		TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+	}
+
+	if( tw->predictor != -1 ) 
+		TIFFSetField( tif, TIFFTAG_PREDICTOR, tw->predictor );
+
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
 	 */
 	TIFFSetField( tif, TIFFTAG_RESOLUTIONUNIT, tw->resunit );
@@ -471,12 +485,6 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 		IM_CLIP( 0.01, tw->xres, 10000 ) );
 	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
 		IM_CLIP( 0.01, tw->yres, 10000 ) );
-
-	if( tw->compression == COMPRESSION_JPEG ) 
-		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, tw->jpqual );
-
-	if( tw->predictor != -1 ) 
-		TIFFSetField( tif, TIFFTAG_PREDICTOR, tw->predictor );
 
 	/* Attach ICC profile.
 	 */
@@ -523,6 +531,13 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 				TIFFSetField( tif, 
 					TIFFTAG_INKSET, INKSET_CMYK );
 			}
+			else if( tw->compression == COMPRESSION_JPEG &&
+				tw->im->Bands == 3 ) 
+				/* This signals to libjpeg that it can do
+				 * YCbCr chrominance subsampling from RGB, not
+				 * that we will supply the image as YCbCr.
+				 */
+				photometric = PHOTOMETRIC_YCBCR;
 			else
 				photometric = PHOTOMETRIC_RGB;
 
