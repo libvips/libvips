@@ -1,25 +1,4 @@
-- is our C API too awkward? we'll need
-
-	if( !(c = vips_add( a, b )) ||
-		!(d = vips_add( a, c )) )
-		return NULL;
-
-  seems wordy compared to 
-
-	if( vips_add( a, b, &c ) ||
-		vips_add( a, c, &d ) )
-		return -1;
-
-  plus VipsPool will be more natural with #2, I think, and things like
-  vips_avg() have to be form #2
-
-  also, we have
-
-  	if( vips_call( "add", a, b, &c ) ||
-		vips_call( "add", a, c, &d ) )
-		return( -1 );
-
-  which is much closer to #2
+- revise vipspool, write a test prog
 
 
 

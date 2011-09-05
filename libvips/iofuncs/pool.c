@@ -53,21 +53,20 @@
 
   Here's how to handle ref counts when calling vips operations:
 
-	VipsImage *
-	thing( VipsImage *in1, VipsImage *in2 )
+	int
+	thing( VipsImage *in1, VipsImage *in2, VipsImage **out )
 	{
 		VipsImage *t;
-		VipsImage *out;
 
 		if( vips_add( in1, in2, &t, NULL ) )
-			return( NULL );
-		if( vips_add( in1, t, &out, NULL ) ) {
+			return( -1 );
+		if( vips_add( in1, t, out, NULL ) ) {
 			g_object_unref( t );
-			return( NULL );
+			return( -1 );
 		}
 		g_object_unref( t );
 
-		return( out );
+		return( 0 );
 	}
 
   The first vips_add() call returns (via the reference argument) a new 
@@ -79,18 +78,16 @@
   VipsPool provides a nicer way to track the objects that you create and free 
   them safely. The above function would become:
 
-  	VipsImage *
-	thing( VipsPool *pool, VipsImage *in1, VipsImage *in2 )
+  	int
+	thing( VipsPool *pool, VipsImage *in1, VipsImage *in2, VipsImage **out )
 	{
 		VipsPoolContext *context = vips_pool_context_new( pool );
 
-		VipsImage *out;
-
 		if( vips_add( in1, in2, VIPS_VAR_IMAGE_REF( 1 ), NULL ) ||
-			vips_add( in1, VIPS_VAR_IMAGE( 1 ), &out, NULL ) )
-			return( NULL );
+			vips_add( in1, VIPS_VAR_IMAGE( 1 ), out, NULL ) )
+			return( -1 );
 
-		return( out );
+		return( 0 );
 	}
 
   vips_pool_context_new() creates a new context to hold a set of temporary 

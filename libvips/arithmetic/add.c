@@ -321,19 +321,15 @@ vips_add_init( VipsAdd *add )
 {
 }
 
-VipsImage *
-vips_add( VipsImage *in1, VipsImage *in2, ... )
+int
+vips_add( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
-	VipsImage *out;
 
-	va_start( ap, in2 );
-	result = vips_call_split( "add", ap, in1, in2, &out );
+	va_start( ap, out );
+	result = vips_call_split( "add", ap, in1, in2, out );
 	va_end( ap );
 
-	if( result )
-		return( NULL );
-
-	return( out );
+	return( result );
 }

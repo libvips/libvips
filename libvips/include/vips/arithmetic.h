@@ -37,8 +37,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-VipsImage *vips_add( VipsImage *in1, VipsImage *in2, ... );
-VipsImage *vips_subtract( VipsImage *in1, VipsImage *in2, ... );
+int vips_add( VipsImage *in1, VipsImage *in2, VipsImage **out, ... );
+int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... );
 int vips_avg( VipsImage *in, double *out, ... );
 int vips_min( VipsImage *in, double *out, ... );
 
