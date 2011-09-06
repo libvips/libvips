@@ -1,6 +1,3 @@
-- revise vipspool, write a test prog
-
-
 
 
 - could we generate the code for vips_add() automatically? it might be nice to

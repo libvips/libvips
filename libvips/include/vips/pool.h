@@ -60,6 +60,10 @@ typedef struct _VipsPool {
 	/* A table of all the contexts we've seen.
 	 */
 	GHashTable *contexts;
+
+	/* Track a name for debugging.
+	 */
+	const char *name;
 } VipsPool;
 
 typedef struct _VipsPoolClass {
@@ -72,12 +76,12 @@ VipsPool *vips_pool_new( const char *name );
 VipsPoolContext *vips_pool_context_new( VipsPool *pool );
 GObject **vips_pool_context_object( VipsPoolContext *context, int n );
 
-/* Save some typing.
+/* Save some typing. This assumes you have a (VipsPoolContext *) called
+ * "context" in scope.
  */
-#define VIPS_VAR_IMAGE_REF( N ) \
-	((VipsImage **) vips_pool_context_object( context, (N) ))
-#define VIPS_VAR_IMAGE( N ) \
-	(*((VipsImage **) vips_pool_context_object( context, (N) )))
+#define VIPS_VI( N ) \
+        (*((VipsImage **) vips_pool_context_object( context, (N) )))
+
 
 #ifdef __cplusplus
 }

@@ -28,9 +28,7 @@
  */
 
 /*
-#define DEBUG
 #define VIPS_DEBUG
-#define DEBUG_REF
  */
 
 #ifdef HAVE_CONFIG_H
@@ -83,16 +81,16 @@
 	{
 		VipsPoolContext *context = vips_pool_context_new( pool );
 
-		if( vips_add( in1, in2, VIPS_VAR_IMAGE_REF( 1 ), NULL ) ||
-			vips_add( in1, VIPS_VAR_IMAGE( 1 ), out, NULL ) )
+		if( vips_add( in1, in2, &VIPS_VI( 1 ), NULL ) ||
+			vips_add( in1, VIPS_VI( 1 ), out, NULL ) )
 			return( -1 );
 
 		return( 0 );
 	}
 
   vips_pool_context_new() creates a new context to hold a set of temporary 
-  objects. You can get a reference to a temporary image object with the 
-  macro VIPS_VAR_IMAGE_REF(), and get the object with VIPS_VAR_IMAGE(). 
+  objects. You can get a pointer to a temporary image object with the 
+  macro VIPS_VI() (this assumes there is a variable called "context" in scope).
   Temporary objects are numbered from zero.
 
   Our caller will (eventually) call g_object_unref() on the pool and this 
@@ -118,10 +116,23 @@ vips_pool_dispose( GObject *gobject )
 }
 
 static void
-vips_pool_context_print( VipsPoolContext *context, VipsBuf *buf )
+vips_pool_context_print( VipsPoolContext *context, VipsPoolContext *value, 
+	VipsBuf *buf )
 {
-	vips_buf_appendf( buf, "VipsPoolContext %p, %d objects\n", 
-		context, context->len );
+	int i, n;
+
+	n = 0;
+	for( i = 0; i < context->len; i++ )
+		if( g_ptr_array_index( context, i ) ) 
+			n += 1;
+
+	vips_buf_appendf( buf, "VipsPoolContext %p, size %d, %d objects\n", 
+		context, context->len, n );
+
+	for( i = 0; i < context->len; i++ )
+		if( g_ptr_array_index( context, i ) ) 
+			vips_buf_appendf( buf, "\t%p\n", 
+				g_ptr_array_index( context, i ) ) ;
 }
 
 static void
@@ -166,7 +177,7 @@ vips_pool_new( const char *name )
 
 	pool = VIPS_POOL( g_object_new( VIPS_TYPE_POOL, NULL ) );
 
-	g_object_set( pool, "name", name, NULL );
+	pool->name = name;
 
 	if( vips_object_build( VIPS_OBJECT( pool ) ) ) {
 		VIPS_UNREF( pool );
@@ -176,12 +187,22 @@ vips_pool_new( const char *name )
 	return( pool );
 }
 
+static void
+vips_pool_context_element_free( GObject *object )
+{
+	if( object )
+		g_object_unref( object );
+}
+
 VipsPoolContext *
 vips_pool_context_new( VipsPool *pool )
 {
 	VipsPoolContext *context;
 
-	context = g_ptr_array_new_with_free_func( g_object_unref );
+	/* g_object_unref() hates unreffing NULL.
+	 */
+	context = g_ptr_array_new_with_free_func( 
+		(GDestroyNotify) vips_pool_context_element_free );
 	g_hash_table_insert( pool->contexts, context, context );
 
 	return( context );
