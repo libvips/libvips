@@ -1,3 +1,14 @@
+- vips_object_build() needs a new type ... should return the VipsObject it
+  makes
+
+  that way we can drop the cache lookup in
+
+
+
+
+- im_copy() would be useful
+
+
 
 
 - could we generate the code for vips_add() automatically? it might be nice to
