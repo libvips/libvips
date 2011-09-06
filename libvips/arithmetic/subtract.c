@@ -265,7 +265,7 @@ vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	va_list ap;
 	int result;
 
-	va_start( ap, in2 );
+	va_start( ap, out );
 	result = vips_call_split( "subtract", ap, in1, in2, out );
 	va_end( ap );
 
