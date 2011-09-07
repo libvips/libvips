@@ -1,7 +1,11 @@
-- vips_object_build() needs a new type ... should return the VipsObject it
-  makes
+- cache
 
-  that way we can drop the cache lookup in
+	vips_object_build() needs a new type ... should return the 
+	VipsObject it makes
+
+	should the cache be thread-private?
+
+	only cache operation_new()?
 
 
 

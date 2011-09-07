@@ -651,6 +651,9 @@ vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 			/* The argument reffs us.
 			 */
 			g_object_ref( object );
+
+			/* FIXME ... could use a NULLing weakref
+			 */
 			g_assert( !argument_instance->close_id );
 			argument_instance->close_id =
 				g_signal_connect( *member, "close",

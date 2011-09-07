@@ -52,16 +52,9 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* An object in the cache. Keep a set of these in our object hash table.
+/* Hide the hash in the object under this name.
  */
-typedef struct _VipsCacheItem {
-	VipsObject *object;
-
-	/* Cache hash code here.
-	 */
-	unsigned int hash;
-	gboolean found_hash;
-} VipsCacheItem;
+#define VIPS_HASH_NAME "vips-hash"
 
 static GHashTable *vips_object_cache = NULL;
 
@@ -236,7 +229,7 @@ vips_value_equal( GValue *v1, GValue *v2 )
 }
 
 static void *
-vips_cache_hash_arg( VipsObject *object,
+vips_object_hash_arg( VipsObject *object,
 	GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
 	VipsArgumentInstance *argument_instance,
@@ -245,6 +238,7 @@ vips_cache_hash_arg( VipsObject *object,
 	unsigned int *hash = (unsigned int *) a;
 
 	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
 		argument_instance->assigned ) {
 		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
 		GValue value = { 0, };
@@ -259,27 +253,34 @@ vips_cache_hash_arg( VipsObject *object,
 	return( NULL );
 }
 
-/* Find a hash from the input arguments.
+/* Find a hash from the input arguments to a vipsobject.
  */
 static unsigned int
-vips_cache_hash( VipsCacheItem *item )
+vips_object_hash( VipsObject *object )
 {
-	if( !item->found_hash ) {
-		unsigned int hash;
+	unsigned int hash;
 
+	hash = GPOINTER_TO_UINT( g_object_get_data( G_OBJECT( object ), 
+		VIPS_HASH_NAME ) );
+
+	if( !hash ) {
 		hash = 0;
-		(void) vips_argument_map( item->object,
-			vips_cache_hash_arg, &hash, NULL );
-		item->hash = hash;
+		(void) vips_argument_map( object,
+			vips_object_hash_arg, &hash, NULL );
 
-		item->found_hash = TRUE;
+		/* Make sure we can't have a zero hash value.
+		 */
+		hash |= 1;
+
+		g_object_set_data( G_OBJECT( object ),
+			VIPS_HASH_NAME, GUINT_TO_POINTER( hash ) ); 
 	}
 
-	return( item->hash );
+	return( hash );
 }
 
 static void *
-vips_cache_equal_arg( VipsObject *object,
+vips_object_equal_arg( VipsObject *object,
 	GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
 	VipsArgumentInstance *argument_instance,
@@ -288,6 +289,7 @@ vips_cache_equal_arg( VipsObject *object,
 	VipsObject *other = (VipsObject *) a;
 
 	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
 		argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
 		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
@@ -311,24 +313,94 @@ vips_cache_equal_arg( VipsObject *object,
 	return( NULL );
 }
 
-/* Are two cache items equal.
+/* Are two objects equal, ie. have the same inputs.
  */
 static gboolean 
-vips_cache_equal( VipsCacheItem *a, VipsCacheItem *b )
+vips_object_equal( VipsObject *a, VipsObject *b )
 {
-	if( G_OBJECT_TYPE( a->object ) == G_OBJECT_TYPE( b->object ) &&
-		vips_cache_hash( a ) == vips_cache_hash( b ) &&
-		!vips_argument_map( a->object, 
-			vips_cache_equal_arg, b->object, NULL ) )
+	if( G_OBJECT_TYPE( a ) == G_OBJECT_TYPE( b ) &&
+		vips_object_hash( a ) == vips_object_hash( b ) &&
+		!vips_argument_map( a, vips_object_equal_arg, b, NULL ) )
 		return( TRUE );
 
 	return( FALSE );
+}
+
+static void *
+vips_object_validate_arg( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		argument_instance->assigned ) {
+		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+		const char *name = g_param_spec_get_name( pspec );
+		GValue value = { 0, };
+		gboolean null;
+
+		g_value_init( &value, type );
+		g_object_get_property( G_OBJECT( object ), name, &value ); 
+		null = vips_value_is_null( &value );
+		g_value_unset( &value );
+
+		if( null )
+			return( object );
+	}
+
+	return( NULL );
+}
+
+/* Check that an object is still valid. It may have lost some of its
+ * output objects but still be alive.
+ */
+static gboolean
+vips_object_validate( VipsObject *object )
+{
+	return( !vips_argument_map( object,
+		vips_object_validate_arg, NULL, NULL ) );
+}
+
+static void *
+vips_object_ref_arg( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		argument_instance->assigned &&
+		G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
+		GObject *value;
+
+		/* This will up the ref count for us.
+		 */
+		g_object_get( G_OBJECT( object ), 
+			g_param_spec_get_name( pspec ), &value, NULL );
+	}
+
+	return( NULL );
+}
+
+/* All the output objects need reffing for this new usage.
+ */
+static gboolean
+vips_object_ref_outputs( VipsObject *object )
+{
+	return( !vips_argument_map( object,
+		vips_object_ref_arg, NULL, NULL ) );
 }
 
 static void
 vips_cache_remove( void *data, GObject *object )
 {
 	VIPS_DEBUG_MSG( "vips_cache_remove: removing %p\n", object );
+
+	/* Can this get triggered more than once for an object? Unclear.
+	 */
 
 	if( !g_hash_table_remove( vips_object_cache, object ) )
 		g_assert( 0 );
@@ -345,24 +417,28 @@ vips_cache_lookup( VipsObject *object )
 
 	if( !vips_object_cache ) 
 		vips_object_cache = g_hash_table_new( 
-			(GHashFunc) vips_cache_hash, 
-			(GEqualFunc) vips_cache_equal );
+			(GHashFunc) vips_object_hash, 
+			(GEqualFunc) vips_object_equal );
 
 	if( (hit = g_hash_table_lookup( vips_object_cache, object )) ) {
 		VIPS_DEBUG_MSG( "vips_cache_lookup: hit for %p\n", hit );
 
-		g_object_unref( object );
-		g_object_ref( hit );
+		if( vips_object_validate( hit ) ) {
+			g_object_unref( object );
+			g_object_ref( hit );
+			vips_object_ref_outputs( hit );
 
-		return( hit );
-	} 
-	else {
-		VIPS_DEBUG_MSG( "vips_cache_lookup: adding %p\n", object );
+			return( hit );
+		}
 
-		g_hash_table_insert( vips_object_cache, object, object );
-		g_object_weak_ref( G_OBJECT( object ), 
-			vips_cache_remove, NULL );
-
-		return( object );
+		VIPS_DEBUG_MSG( "\tvalidation failed, dropping\n" );
+		g_hash_table_remove( vips_object_cache, hit );
 	}
+
+	VIPS_DEBUG_MSG( "vips_cache_lookup: adding %p\n", object );
+
+	g_hash_table_insert( vips_object_cache, object, object );
+	g_object_weak_ref( G_OBJECT( object ), vips_cache_remove, NULL );
+
+	return( object );
 }
