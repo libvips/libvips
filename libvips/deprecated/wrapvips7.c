@@ -355,7 +355,7 @@ vips_wrap7_object_set_property( GObject *gobject,
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_CONSTRUCT &&
 		object->constructed &&
-		!vips_pspec_value_is_null( pspec, value ) ) {
+		!vips_value_is_null( value ) ) {
 		g_warning( "%s: %s can't assign '%s' after construct",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
@@ -367,7 +367,7 @@ vips_wrap7_object_set_property( GObject *gobject,
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_SET_ONCE &&
 		argument_instance->assigned &&
-		!vips_pspec_value_is_null( pspec, value ) ) {
+		!vips_value_is_null( value ) ) {
 		g_warning( "%s: %s can only assign '%s' once",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),

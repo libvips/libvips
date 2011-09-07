@@ -313,7 +313,7 @@ struct _VipsObjectClass {
 	GSList *argument_table_traverse;
 };
 
-gboolean vips_pspec_value_is_null( GParamSpec *pspec, const GValue *value );
+gboolean vips_value_is_null( const GValue *value );
 void vips_object_set_property( GObject *gobject, 
 	guint property_id, const GValue *value, GParamSpec *pspec );
 void vips_object_get_property( GObject *gobject, 
