@@ -28,8 +28,24 @@
  */
 
 /*
-#define VIPS_DEBUG
+
+   TODO
+
+	vips_object_build() needs a new type ... should return the 
+	VipsObject it makes
+
+	should the cache be thread-private? or lock? or say operations can 
+	only be made from the main thread?
+
+	only cache operation_new()? (this is what we do now)
+
+	listen for invalidate
+
  */
+
+/*
+ */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -343,7 +359,7 @@ vips_object_validate_arg( VipsObject *object,
 
 		g_value_init( &value, type );
 		g_object_get_property( G_OBJECT( object ), name, &value ); 
-		null = vips_value_is_null( &value );
+		null = vips_value_is_null( pspec, &value );
 		g_value_unset( &value );
 
 		if( null )
@@ -407,38 +423,47 @@ vips_cache_remove( void *data, GObject *object )
 }
 
 /* Look up an object in the cache. If we get a hit, unref the new one, ref the
- * old one and return that. If we miss, add this object and a weakref so we
+ * old one and return that. 
+ *
+ * If we miss, build, add this object and weakref so we
  * will drop it when it's unreffed.
  */
-VipsObject *
-vips_cache_lookup( VipsObject *object )
+int
+vips_object_build_cache( VipsObject **object )
 {
 	VipsObject *hit;
+
+	VIPS_DEBUG_MSG( "vips_object_build_cache: %p\n", *object );
 
 	if( !vips_object_cache ) 
 		vips_object_cache = g_hash_table_new( 
 			(GHashFunc) vips_object_hash, 
 			(GEqualFunc) vips_object_equal );
 
-	if( (hit = g_hash_table_lookup( vips_object_cache, object )) ) {
-		VIPS_DEBUG_MSG( "vips_cache_lookup: hit for %p\n", hit );
-
+	if( (hit = g_hash_table_lookup( vips_object_cache, *object )) ) {
+		VIPS_DEBUG_MSG( "\thit %p\n", hit );
 		if( vips_object_validate( hit ) ) {
-			g_object_unref( object );
+			g_object_unref( *object );
 			g_object_ref( hit );
 			vips_object_ref_outputs( hit );
+			*object = hit;
 
-			return( hit );
+			return( 0 );
 		}
 
 		VIPS_DEBUG_MSG( "\tvalidation failed, dropping\n" );
 		g_hash_table_remove( vips_object_cache, hit );
 	}
 
-	VIPS_DEBUG_MSG( "vips_cache_lookup: adding %p\n", object );
+	VIPS_DEBUG_MSG( "\tmiss, building\n" );
 
-	g_hash_table_insert( vips_object_cache, object, object );
-	g_object_weak_ref( G_OBJECT( object ), vips_cache_remove, NULL );
+	if( vips_object_build( *object ) )
+		return( -1 );
 
-	return( object );
+	VIPS_DEBUG_MSG( "\tadding\n" );
+
+	g_hash_table_insert( vips_object_cache, *object, *object );
+	g_object_weak_ref( G_OBJECT( *object ), vips_cache_remove, NULL );
+
+	return( 0 );
 }

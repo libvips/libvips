@@ -484,12 +484,13 @@ vips_call_required_optional( VipsOperation *operation,
 	va_copy( a, required );
 	va_copy( b, optional );
 	result = vips_operation_set_valist_required( operation, a ) ||
-		vips_operation_set_valist_optional( operation, b ) ||
-		vips_object_build( VIPS_OBJECT( operation ) );
+		vips_operation_set_valist_optional( operation, b );
 	va_end( a );
 	va_end( b );
 
-	if( result ) 
+	/* Build from cache.
+	 */
+	if( vips_object_build_cache( (VipsObject **) &operation ) )
 		return( -1 );
 
 	/* Walk args again, writing output.

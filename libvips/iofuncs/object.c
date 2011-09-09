@@ -664,26 +664,26 @@ vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 }
 
 /* Is a value NULL? We allow multiple sets of NULL so props can be cleared.
+ * The pspec gives the value type, for consistency with the way value types
+ * are detected in set and get.
  */
 gboolean
-vips_value_is_null( const GValue *value )
+vips_value_is_null( GParamSpec *pspec, const GValue *value )
 {
-	switch( G_VALUE_TYPE( value ) ) { 
-	case G_TYPE_STRING:
-		return( !g_value_get_string( value ) );
+	if( G_IS_PARAM_SPEC_STRING( pspec ) && 
+		!g_value_get_string( value ) )
+		return( TRUE );
+	if( G_IS_PARAM_SPEC_OBJECT( pspec ) &&
+		!g_value_get_object( value ) )
+		return( TRUE );
+	if( G_IS_PARAM_SPEC_POINTER( pspec ) &&
+		!g_value_get_pointer( value ) )
+		return( TRUE );
+	if( G_IS_PARAM_SPEC_BOXED( pspec ) &&
+		!g_value_get_boxed( value ) )
+		return( TRUE );
 
-	case G_TYPE_OBJECT:
-		return( !g_value_get_object( value ) );
-
-	case G_TYPE_POINTER:
-		return( !g_value_get_pointer( value ) );
-
-	case G_TYPE_BOXED:
-		return( !g_value_get_boxed( value ) );
-
-	default:
-		return( FALSE );
-	}
+	return( FALSE );
 }
 
 /* Also used by subclasses, so not static.
@@ -727,7 +727,7 @@ vips_object_set_property( GObject *gobject,
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_CONSTRUCT &&
 		object->constructed &&
-		!vips_value_is_null( value ) ) {
+		!vips_value_is_null( pspec, value ) ) {
 		g_warning( "%s: %s can't assign '%s' after construct",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
@@ -739,7 +739,7 @@ vips_object_set_property( GObject *gobject,
 	 */
 	if( argument_class->flags & VIPS_ARGUMENT_SET_ONCE &&
 		argument_instance->assigned &&
-		!vips_value_is_null( value ) ) {
+		!vips_value_is_null( pspec, value ) ) {
 		g_warning( "%s: %s can only assign '%s' once",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
@@ -747,73 +747,53 @@ vips_object_set_property( GObject *gobject,
 		return;
 	}
 
-	switch( G_PARAM_SPEC_TYPE( pspec ) ) {
-	case G_TYPE_STRING: 
-	{
+	/* We can't use a switch since some param specs don't have fundamental
+	 * types and are hence not compile-time constants, argh.
+	 */
+	if( G_IS_PARAM_SPEC_STRING( pspec ) ) {
 		char **member = &G_STRUCT_MEMBER( char *, object,
 			argument_class->offset );
 
 		VIPS_SETSTR( *member, g_value_get_string( value ) );
 	}
-		break;
-
-	case G_TYPE_OBJECT:
-	{
+	else if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
 		GObject **member = &G_STRUCT_MEMBER( GObject *, object,
 			argument_class->offset );
 
 		vips__object_set_member( object, pspec, member, 
 			g_value_get_object( value ) );
 	}
-		break;
-
-	case G_TYPE_INT:
-	{
+	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
 		int *member = &G_STRUCT_MEMBER( int, object,
 			argument_class->offset );
 
 		*member = g_value_get_int( value );
 	}
-		break;
-
-	case G_TYPE_BOOLEAN:
-	{
+	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean *member = &G_STRUCT_MEMBER( gboolean, object,
 			argument_class->offset );
 
 		*member = g_value_get_boolean( value );
 	}
-		break;
-
-	case G_TYPE_ENUM:
-	{
+	else if( G_IS_PARAM_SPEC_ENUM( pspec ) ) {
 		int *member = &G_STRUCT_MEMBER( int, object,
 			argument_class->offset );
 
 		*member = g_value_get_enum( value );
 	}
-		break;
-
-	case G_TYPE_POINTER:
-	{
+	else if( G_IS_PARAM_SPEC_POINTER( pspec ) ) {
 		gpointer *member = &G_STRUCT_MEMBER( gpointer, object,
 			argument_class->offset );
 
 		*member = g_value_get_pointer( value );
 	}
-		break;
-
-	case G_TYPE_DOUBLE:
-	{
+	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
 		double *member = &G_STRUCT_MEMBER( double, object,
 			argument_class->offset );
 
 		*member = g_value_get_double( value );
 	}
-		break;
-
-	case G_TYPE_BOXED:
-	{
+	else if( G_IS_PARAM_SPEC_BOXED( pspec ) ) {
 		gpointer *member = &G_STRUCT_MEMBER( gpointer, object,
 			argument_class->offset );
 
@@ -828,9 +808,7 @@ vips_object_set_property( GObject *gobject,
 		 */
 		*member = g_value_dup_boxed( value );
 	}
-		break;
-
-	default:
+	else {
 		g_warning( "%s: %s unimplemented property type %s",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
@@ -871,72 +849,49 @@ vips_object_get_property( GObject *gobject,
 		return;
 	}
 
-	switch( G_PARAM_SPEC_TYPE( pspec ) ) {
-	case G_TYPE_STRING: 
-	{
+	if( G_IS_PARAM_SPEC_STRING( pspec ) ) {
 		char *member = G_STRUCT_MEMBER( char *, object,
 			argument_class->offset );
 
 		g_value_set_string( value, member );
 	}
-		break;
-
-	case G_TYPE_OBJECT:
-	{
+	else if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
 		GObject **member = &G_STRUCT_MEMBER( GObject *, object,
 			argument_class->offset );
 
 		g_value_set_object( value, *member );
 	}
-		break;
-
-	case G_TYPE_INT:
-	{
+	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
 		int *member = &G_STRUCT_MEMBER( int, object,
 			argument_class->offset );
 
 		g_value_set_int( value, *member );
 	}
-		break;
-
-	case G_TYPE_BOOLEAN:
-	{
+	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean *member = &G_STRUCT_MEMBER( gboolean, object,
 			argument_class->offset );
 
 		g_value_set_boolean( value, *member );
 	}
-		break;
-
-	case G_TYPE_ENUM:
-	{
+	else if( G_IS_PARAM_SPEC_ENUM( pspec ) ) {
 		int *member = &G_STRUCT_MEMBER( int, object,
 			argument_class->offset );
 
 		g_value_set_enum( value, *member );
 	}
-		break;
-
-	case G_TYPE_POINTER:
-	{
+	else if( G_IS_PARAM_SPEC_POINTER( pspec ) ) {
 		gpointer *member = &G_STRUCT_MEMBER( gpointer, object,
 			argument_class->offset );
 
 		g_value_set_pointer( value, *member );
 	}
-		break;
-
-	case G_TYPE_DOUBLE:
-	{
+	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
 		double *member = &G_STRUCT_MEMBER( double, object,
 			argument_class->offset );
 
 		g_value_set_double( value, *member );
 	}
-		break;
-
-	case G_TYPE_BOXED:
-	{
+	else if( G_IS_PARAM_SPEC_BOXED( pspec ) ) {
 		gpointer *member = &G_STRUCT_MEMBER( gpointer, object,
 			argument_class->offset );
 
@@ -945,9 +900,7 @@ vips_object_get_property( GObject *gobject,
 		 */
 		g_value_set_boxed( value, *member );
 	}
-		break;
-
-	default:
+	else {
 		g_warning( "%s: %s unimplemented property type %s",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),

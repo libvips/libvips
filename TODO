@@ -1,11 +1,9 @@
 - cache
 
-	vips_object_build() needs a new type ... should return the 
-	VipsObject it makes
 
-	should the cache be thread-private?
+- im_init_world() fallback is not working 
 
-	only cache operation_new()?
+  need to go back to multiple ifs in object.c
 
 
 
