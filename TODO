@@ -1,9 +1,4 @@
-- cache
-
-
-- im_init_world() fallback is not working 
-
-  need to go back to multiple ifs in object.c
+- cache work ... see notes in file
 
 
 

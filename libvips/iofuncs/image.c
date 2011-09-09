@@ -299,6 +299,8 @@ vips_image_new_from_file_object( const char *string )
 {
 	VipsImage *image;
 
+	vips_check_init();
+
 	/* We mustn't _build() the object here, so we can't just call
 	 * vips_image_new_from_file().
 	 */
@@ -1409,6 +1411,8 @@ vips_image_new( void )
 {
 	VipsImage *image;
 
+	vips_check_init();
+
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
 		"filename", vips_image_temp_name(),
@@ -1562,6 +1566,8 @@ vips_image_new_mode( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
+	vips_check_init();
+
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
 		"filename", filename,
@@ -1616,6 +1622,8 @@ vips_image_new_from_file_raw( const char *filename,
 {
 	VipsImage *image;
 
+	vips_check_init();
+
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
 		"filename", filename,
@@ -1654,6 +1662,8 @@ vips_image_new_from_memory( void *buffer,
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt )
 {
 	VipsImage *image;
+
+	vips_check_init();
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,

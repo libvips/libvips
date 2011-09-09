@@ -10,6 +10,8 @@
 - C API supports optional output args
 - switch back to int-valued operations
 - fix up VipsPool
+- add the operation cache
+- fallback vips_init()
 
 10/8/11 started 7.26.3
 - don't use G_VALUE_COLLECT_INIT(), many platforms do not have a glib this
