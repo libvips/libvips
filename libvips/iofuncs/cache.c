@@ -31,15 +31,18 @@
 
    TODO
 
-	vips_object_build() needs a new type ... should return the 
-	VipsObject it makes
-
 	should the cache be thread-private? or lock? or say operations can 
 	only be made from the main thread?
 
-	only cache operation_new()? (this is what we do now)
-
 	listen for invalidate
+
+	keep operations alive? at the moment
+
+		vips_min( im, &d, NULL );
+
+	will never get cached since it produces no persistent output ... we'd 
+	need to keep a ref to the operation in the cache and only drop after a 
+	few seconds or if we have more than 10,000 cached operations
 
  */
 
@@ -74,10 +77,14 @@
 
 static GHashTable *vips_object_cache = NULL;
 
+/* generic is the general type of the value. For example, the value could be
+ * held in a GParamSpec allowing OBJECT, but the value could be of type
+ * VipsImage. generics are much faster to compare.
+ */
 static unsigned int
-vips_value_hash( GValue *value )
+vips_value_hash( GType generic, GValue *value )
 {
-	switch( G_VALUE_TYPE( value ) ) { 
+	switch( generic ) { 
 	case G_TYPE_BOOLEAN:
 		return( (unsigned int) g_value_get_boolean( value ) );
 	case G_TYPE_CHAR:
@@ -144,25 +151,44 @@ vips_value_hash( GValue *value )
 
 	default:
 	{
-		/* Fallback: convert to a string and hash that. This is very
-		 * slow, print a warning if we use it so we can add another
-		 * case.
+		/* These GTypes are not compile-time constants and need to be
+		 * in ifs.
 		 */
-		char *s;
-		unsigned int hash;
+		if( generic == VIPS_TYPE_IMAGE )
+			return( g_direct_hash( g_value_get_object( value ) ) );
+		else {
+			/* Fallback: convert to a string and hash that. 
+			 * This is very slow, print a warning if we use it 
+			 * so we can add another case.
+			 */
+			char *s;
+			unsigned int hash;
 
-		s = g_strdup_value_contents( value ); 
-		hash = g_str_hash( s );
-		printf( "vips_value_hash: no case for %s\n", s );
-		g_free( s );
+			s = g_strdup_value_contents( value ); 
+			hash = g_str_hash( s );
 
-		return( hash );
+			printf( "vips_value_hash: no case for %s\n", s );
+			printf( "\ttype %d, %s\n", 
+				(int) G_VALUE_TYPE( value ),
+				g_type_name( G_VALUE_TYPE( value ) ) );
+			printf( "\tgeneric %d, %s\n", 
+				(int) G_VALUE_TYPE( generic ),
+				g_type_name( generic ) );
+
+			g_free( s );
+
+			return( hash );
+		}
 	}
 	}
 }
 
+/* generic is the general type of the value. For example, the value could be
+ * held in a GParamSpec allowing OBJECT, but the value could be of type
+ * VipsImage. generics are much faster to compare.
+ */
 static gboolean 
-vips_value_equal( GValue *v1, GValue *v2 )
+vips_value_equal( GType generic, GValue *v1, GValue *v2 )
 {
 	GType t1 = G_VALUE_TYPE( v1 );
 	GType t2 = G_VALUE_TYPE( v2 );
@@ -225,21 +251,38 @@ vips_value_equal( GValue *v1, GValue *v2 )
 
 	default:
 	{
-		/* Fallback: convert to a string and hash that. This is very
-		 * slow, print a warning if we use it so we can add another
-		 * case.
+		/* These GTypes are not compile-time constants and need to be
+		 * in ifs.
 		 */
-		char *s1;
-		char *s2;
-		gboolean equal;
+		if( generic == VIPS_TYPE_IMAGE )
+			return( g_value_get_object( v1 ) ==
+				g_value_get_object( v2 ) );
+		else {
+			/* Fallback: convert to a string and compare that. 
+			 * This is very slow, print a warning if we use it 
+			 * so we can add another case.
+			 */
+			char *s1;
+			char *s2;
+			gboolean equal;
 
-		s1 = g_strdup_value_contents( v1 ); 
-		s2 = g_strdup_value_contents( v2 ); 
-		equal = strcmp( s1, s2 ) == 0;
-		g_free( s1 );
-		g_free( s2 );
+			s1 = g_strdup_value_contents( v1 ); 
+			s2 = g_strdup_value_contents( v2 ); 
+			equal = strcmp( s1, s2 ) == 0;
 
-		return( equal );
+			printf( "vips_value_equal: no case for %s, %s\n", 
+				s1, s2 );
+			printf( "\tt1 %d, %s\n", (int) t1, g_type_name( t1 ) );
+			printf( "\tt2 %d, %s\n", (int) t2, g_type_name( t2 ) );
+			printf( "\tgeneric %d, %s\n", 
+				(int) G_VALUE_TYPE( generic ),
+				g_type_name( generic ) );
+
+			g_free( s1 );
+			g_free( s2 );
+
+			return( equal );
+		}
 	}
 	}
 }
@@ -262,7 +305,7 @@ vips_object_hash_arg( VipsObject *object,
 		g_value_init( &value, type );
 		g_object_get_property( G_OBJECT( object ), 
 			g_param_spec_get_name( pspec ), &value ); 
-		*hash = (*hash << 1) ^ vips_value_hash( &value );
+		*hash = (*hash << 1) ^ vips_value_hash( type, &value );
 		g_value_unset( &value );
 	}
 
@@ -318,7 +361,7 @@ vips_object_equal_arg( VipsObject *object,
 		g_value_init( &v2, type );
 		g_object_get_property( G_OBJECT( object ), name, &v1 ); 
 		g_object_get_property( G_OBJECT( other ), name, &v2 ); 
-		equal = vips_value_equal( &v1, &v2 );
+		equal = vips_value_equal( type, &v1, &v2 );
 		g_value_unset( &v1 );
 		g_value_unset( &v2 );
 

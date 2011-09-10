@@ -469,8 +469,10 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 	return( 0 );
 }
 
+/* This can change operation to point at an old, cached one.
+ */
 static int
-vips_call_required_optional( VipsOperation *operation,
+vips_call_required_optional( VipsOperation **operation,
 	va_list required, va_list optional ) 
 {
 	int result;
@@ -483,22 +485,22 @@ vips_call_required_optional( VipsOperation *operation,
 	 */
 	va_copy( a, required );
 	va_copy( b, optional );
-	result = vips_operation_set_valist_required( operation, a ) ||
-		vips_operation_set_valist_optional( operation, b );
+	result = vips_operation_set_valist_required( *operation, a ) ||
+		vips_operation_set_valist_optional( *operation, b );
 	va_end( a );
 	va_end( b );
 
 	/* Build from cache.
 	 */
-	if( vips_object_build_cache( (VipsObject **) &operation ) )
+	if( vips_object_build_cache( (VipsObject **) operation ) )
 		return( -1 );
 
 	/* Walk args again, writing output.
 	 */
 	va_copy( a, required );
 	va_copy( b, optional );
-	result = vips_operation_get_valist_required( operation, required ) ||
-		vips_operation_get_valist_optional( operation, optional );
+	result = vips_operation_get_valist_required( *operation, required ) ||
+		vips_operation_get_valist_optional( *operation, optional );
 	va_end( a );
 	va_end( b );
 
@@ -548,7 +550,7 @@ vips_call( const char *operation_name, ... )
 		}
 	} VIPS_ARGUMENT_FOR_ALL_END
 
-	result = vips_call_required_optional( operation, required, optional );
+	result = vips_call_required_optional( &operation, required, optional );
 
 	va_end( required );
 	va_end( optional );
@@ -589,7 +591,7 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 #endif /*VIPS_DEBUG*/
 
 	va_start( required, optional );
-	result = vips_call_required_optional( operation, required, optional );
+	result = vips_call_required_optional( &operation, required, optional );
 	va_end( required );
 
 	/* Build failed: junk args and back out.
