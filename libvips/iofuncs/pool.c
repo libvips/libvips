@@ -167,6 +167,8 @@ vips_pool_new( const char *name )
 {
 	VipsPool *pool;
 
+	vips_check_init();
+
 	pool = VIPS_POOL( g_object_new( VIPS_TYPE_POOL, NULL ) );
 
 	g_object_set( pool, "name", name, NULL );

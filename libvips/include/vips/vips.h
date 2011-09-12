@@ -149,6 +149,7 @@ extern "C" {
 
 const char *vips_get_argv0( void );
 int vips_init( const char *argv0 );
+void vips_check_init( void );
 GOptionGroup *vips_get_option_group( void );
 
 const char *vips_version_string( void );

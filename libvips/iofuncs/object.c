@@ -952,6 +952,8 @@ vips_object_real_new_from_string( const char *string )
 {
 	GType type;
 
+	vips_check_init();
+
 	/* The main arg selects the subclass.
 	 */
 	if( !(type = vips_type_find( "VipsObject", string )) )
@@ -1333,6 +1335,8 @@ VipsObject *
 vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 {
 	VipsObject *object;
+
+	vips_check_init();
 
 	object = VIPS_OBJECT( g_object_new( type, NULL ) );
 

@@ -262,8 +262,10 @@ vips_init( const char *argv0 )
 	return( 0 );
 }
 
-const char *
-vips__gettext( const char *msgid )
+/* Call this before vips stuff that uses stuff we need to have inited.
+ */
+void
+vips_check_init( void )
 {
 	/* Pass in a nonsense name for argv0 ... this init path is only here
 	 * for old programs which are missing an vips_init() call. We need
@@ -271,6 +273,12 @@ vips__gettext( const char *msgid )
 	 */
 	if( vips_init( "giant_banana" ) )
 		vips_error_clear();
+}
+
+const char *
+vips__gettext( const char *msgid )
+{
+	vips_check_init();
 
 	return( dgettext( GETTEXT_PACKAGE, msgid ) );
 }
@@ -278,8 +286,7 @@ vips__gettext( const char *msgid )
 const char *
 vips__ngettext( const char *msgid, const char *plural, unsigned long int n )
 {
-	if( vips_init( "giant_banana" ) )
-		vips_error_clear();
+	vips_check_init();
 
 	return( dngettext( GETTEXT_PACKAGE, msgid, plural, n ) );
 }
