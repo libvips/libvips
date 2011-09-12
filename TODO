@@ -3,6 +3,12 @@
 
 
 
+- add vips_init_argv() which processes argc/argv for you? handy for tiny
+  progs, perhaps
+
+
+
+
 - im_copy() would be useful
 
 
