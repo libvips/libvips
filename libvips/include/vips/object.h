@@ -368,8 +368,6 @@ void vips_object_sanity_all( void );
 
 void vips_object_rewind( VipsObject *object );
 
-int vips_object_build_cache( VipsObject **object );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

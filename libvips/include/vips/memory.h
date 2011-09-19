@@ -76,6 +76,10 @@ int vips_free( void *s );
 
 char *vips_strdup( VipsImage *image, const char *str );
 
+size_t vips_alloc_get_mem( void );
+size_t vips_alloc_get_mem_highwater( void );
+unsigned int vips_alloc_get_allocs( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

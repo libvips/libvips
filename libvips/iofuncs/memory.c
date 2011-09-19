@@ -56,7 +56,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/thread.h>
@@ -75,6 +74,10 @@
  * allocate and free memory. Most of VIPS uses them, though some parts use
  * the g_malloc() system instead, confusingly.
  *
+ * Use these functions for large allocations, such as arrays of image data. 
+ * vips uses vips_alloc_get_mem(), which gives the amount of memory currently
+ * allocated via these functions, to decide when to start dropping cache.
+ *
  * If you compile with %DEBUGM it will track allocations for you, though
  * valgrind or dmalloc are better solutions.
  */
@@ -91,13 +94,14 @@
 #  warning DEBUG on in libsrc/iofuncs/memory.c
 #endif /*DEBUG*/
 
+static size_t vips_alloc_mem = 0;
+static unsigned int vips_allocs = 0;
+static size_t vips_alloc_mem_highwater = 0;
+static GMutex *vips_alloc_mutex = NULL;
+
+#ifdef DEBUGM
 /* Track total alloc/total free here for debugging.
  */
-#ifdef DEBUGM
-static size_t int total_mem_alloc = 0;
-static unsigned int total_allocs = 0;
-static size_t int high_water_mark = 0;
-static GMutex *malloc_mutex = NULL;
 static GSList *malloc_list = NULL;
 static const int trace_freq = 100;	/* Msg every this many malloc/free */
 static int next_trace = 0;
@@ -136,37 +140,41 @@ static int next_trace = 0;
 int
 vips_free( void *s )
 {
-#ifdef DEBUGM
-{
 	size_t size;
 
+	/* Keep the size of the alloc in the previous 16 bytes. Ensures
+	 * alignment rules are kept.
+	 */
 	s = (void *) ((char*)s - 16);
 	size = *((size_t*)s);
-	g_mutex_lock( malloc_mutex );
 
-	assert( g_slist_find( malloc_list, s ) );
-	malloc_list = g_slist_remove( malloc_list, s );
-	assert( !g_slist_find( malloc_list, s ) );
-	malloc_list = g_slist_remove( malloc_list, s );
-	assert( total_allocs > 0 );
+	g_mutex_lock( vips_alloc_mutex );
 
-	total_mem_alloc -= size;
-	total_allocs -= 1;
+	if( vips_allocs <= 0 ) 
+		vips_warn( "vips_malloc", 
+			"%s", _( "vips_free: too many frees" ) );
+	vips_alloc_mem -= size;
+	vips_allocs -= 1;
+
+#ifdef DEBUGM
+	g_assert( g_slist_find( malloc_list, s ) );
+	malloc_list = g_slist_remove( malloc_list, s );
+	g_assert( !g_slist_find( malloc_list, s ) );
+	malloc_list = g_slist_remove( malloc_list, s );
 
 	next_trace += 1;
 	if( next_trace > trace_freq ) {
 		printf( "vips_free: %d, %d allocs, total %.3gM, "
 			"high water %.3gM\n", 
 			size,
-			total_allocs,
-			total_mem_alloc / (1024.0 * 1024.0), 
-			high_water_mark / (1024.0 * 1024.0) );
+			vips_allocs,
+			vips_alloc_mem / (1024.0 * 1024.0), 
+			vips_alloc_mem_highwater / (1024.0 * 1024.0) );
 		next_trace = 0;
 	}
-
-	g_mutex_unlock( malloc_mutex );
-}
 #endif /*DEBUGM*/
+
+	g_mutex_unlock( vips_alloc_mutex );
 
 #ifdef DEBUG
 	if( !s )
@@ -182,6 +190,14 @@ static void
 vips_malloc_cb( VipsImage *image, char *buf )
 {
 	vips_free( buf );
+}
+
+/* g_mutex_new() is a macro.
+ */
+static void *
+vips_alloc_mutex_new( void *data )
+{
+	return( g_mutex_new() );
 }
 
 /**
@@ -203,22 +219,18 @@ vips_malloc_cb( VipsImage *image, char *buf )
 void *
 vips_malloc( VipsImage *image, size_t size )
 {
+	static GOnce vips_alloc_once = G_ONCE_INIT;
+
         void *buf;
 
-#ifdef DEBUGM
-	/* Assume the first vips_malloc() is single-threaded.
-	 */
-	if( !malloc_mutex )
-		malloc_mutex = g_mutex_new();
-#endif /*DEBUGM*/
+	vips_alloc_mutex = g_once( &vips_alloc_once, 
+		vips_alloc_mutex_new, NULL );
 
-#ifdef DEBUGM
-	/* If debugging mallocs, need an extra sizeof(uint) bytes to track 
+	/* Need an extra sizeof(size_t) bytes to track 
 	 * size of this block. Ask for an extra 16 to make sure we don't break
 	 * alignment rules.
 	 */
 	size += 16;
-#endif /*DEBUGM*/
 
         if( !(buf = g_try_malloc( size )) ) {
 #ifdef DEBUG
@@ -231,35 +243,41 @@ vips_malloc( VipsImage *image, size_t size )
 		vips_warn( "vips_malloc", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0*1024.0))  );
+
                 return( NULL );
 	}
 
-#ifdef DEBUGM
-	/* Record number alloced.
-	 */
-	g_mutex_lock( malloc_mutex );
-	assert( !g_slist_find( malloc_list, buf ) );
-	malloc_list = g_slist_prepend( malloc_list, buf );
-	*((size_t*)buf) = size;
-	buf = (void *) ((char*)buf + 16);
-	total_mem_alloc += size;
-	if( total_mem_alloc > high_water_mark ) 
-		high_water_mark = total_mem_alloc;
-	total_allocs += 1;
+	g_mutex_lock( vips_alloc_mutex );
 
+#ifdef DEBUGM
+	g_assert( !g_slist_find( malloc_list, buf ) );
+	malloc_list = g_slist_prepend( malloc_list, buf );
+#endif /*DEBUGM*/
+
+	*((size_t *)buf) = size;
+	buf = (void *) ((char *)buf + 16);
+
+	vips_alloc_mem += size;
+	if( vips_alloc_mem > vips_alloc_mem_highwater ) 
+		vips_alloc_mem_highwater = vips_alloc_mem;
+	vips_allocs += 1;
+
+#ifdef DEBUGM
 	next_trace += 1;
 	if( next_trace > trace_freq ) {
 		printf( "vips_malloc: %d, %d allocs, total %.3gM, "
 			"high water %.3gM\n", 
 			size, 
-			total_allocs,
-			total_mem_alloc / (1024.0 * 1024.0),
-			high_water_mark / (1024.0 * 1024.0) );
+			vips_allocs,
+			vips_alloc_mem / (1024.0 * 1024.0),
+			vips_alloc_mem_highwater / (1024.0 * 1024.0) );
 		next_trace = 0;
 	}
+#endif /*DEBUGM*/
 
-	g_mutex_unlock( malloc_mutex );
+	g_mutex_unlock( vips_alloc_mutex );
 
+#ifdef DEBUGM
 	/* Handy to breakpoint on this printf() for catching large mallocs().
 	 */
 	if( size > 1000000 ) 
@@ -287,3 +305,46 @@ vips_strdup( VipsImage *image, const char *str )
 
 	return( buf );
 }
+
+/**
+ * vips_alloc_get_mem:
+ *
+ * Returns the number of bytes currently allocated via vips_malloc() and
+ * friends. vips uses this figure to decide when to start dropping cache, see
+ * #VipsOperation.
+ *
+ * Returns: the number of currently allocated bytes
+ */
+size_t
+vips_alloc_get_mem( void )
+{
+	return( vips_alloc_mem );
+}
+
+/**
+ * vips_alloc_get_mem_highwater:
+ *
+ * Returns the largest number of bytes simultaneously allocated via 
+ * vips_malloc() and friends. 
+ *
+ * Returns: the largest number of currently allocated bytes
+ */
+size_t
+vips_alloc_get_mem_highwater( void )
+{
+	return( vips_alloc_mem_highwater );
+}
+
+/**
+ * vips_alloc_get_allocs:
+ *
+ * Returns the number active allocations. 
+ *
+ * Returns: the number active allocations
+ */
+unsigned int
+vips_alloc_get_allocs( void )
+{
+	return( vips_allocs );
+}
+

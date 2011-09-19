@@ -1,3 +1,8 @@
+- vips_malloc() now tracks alloc size, but we seem to g_free() the results
+  sometimes, look into this
+
+
+
 - cache work ... see notes in file
 
 

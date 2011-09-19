@@ -183,12 +183,12 @@ vips_init( const char *argv0 )
 		return( 0 );
 	started = TRUE;
 
-	VIPS_SETSTR( vips__argv0, argv0 );
-
 	/* Need gobject etc.
 	 */
 	g_type_init();
 
+	/* Older glibs need this.
+	 */
 #ifdef G_THREADS_ENABLED
 	if( !g_thread_supported() ) 
 		g_thread_init( NULL );
@@ -196,6 +196,8 @@ vips_init( const char *argv0 )
 
 	if( !vips__global_lock )
 		vips__global_lock = g_mutex_new();
+
+	VIPS_SETSTR( vips__argv0, argv0 );
 
 	prgname = g_path_get_basename( argv0 );
 	g_set_prgname( prgname );
