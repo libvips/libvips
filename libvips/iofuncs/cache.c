@@ -36,13 +36,11 @@
 
 	listen for invalidate
 
-	keep operations alive? at the moment
+	can we estimate the resource needs of operations and drop very 
+	expensive ones first?
 
-		vips_min( im, &d, NULL );
-
-	will never get cached since it produces no persistent output ... we'd 
-	need to keep a ref to the operation in the cache and only drop after a 
-	few seconds or if we have more than 10,000 cached operations
+		get vips_malloc()/_free() to track current usage, check that 
+		as well as hash table size when looking for cache overflow
 
  */
 
@@ -71,11 +69,17 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Hide the hash in the object under this name.
+/* Max cache size.
  */
-#define VIPS_HASH_NAME "vips-hash"
+static int vips_cache_max = 10000;
 
-static GHashTable *vips_object_cache = NULL;
+/* Hold a ref to all "recent" operations.
+ */
+static GHashTable *vips_cache_table = NULL;
+
+/* A 'time' counter: increment on all cache ops. Use this to detect LRU.
+ */
+static int vips_cache_time = 0;
 
 /* generic is the general type of the value. For example, the value could be
  * held in a GParamSpec allowing OBJECT, but the value could be of type
@@ -312,30 +316,29 @@ vips_object_hash_arg( VipsObject *object,
 	return( NULL );
 }
 
-/* Find a hash from the input arguments to a vipsobject.
+/* Find a hash from the input arguments to a VipsOperstion.
  */
 static unsigned int
-vips_object_hash( VipsObject *object )
+vips_operation_hash( VipsOperation *operation )
 {
-	unsigned int hash;
+	if( !operation->found_hash ) {
+		guint hash;
 
-	hash = GPOINTER_TO_UINT( g_object_get_data( G_OBJECT( object ), 
-		VIPS_HASH_NAME ) );
-
-	if( !hash ) {
-		hash = 0;
-		(void) vips_argument_map( object,
+		/* Include the operation type in the hash.
+		 */
+		hash = (guint) G_OBJECT_TYPE( operation );
+		(void) vips_argument_map( VIPS_OBJECT( operation ),
 			vips_object_hash_arg, &hash, NULL );
 
 		/* Make sure we can't have a zero hash value.
 		 */
 		hash |= 1;
 
-		g_object_set_data( G_OBJECT( object ),
-			VIPS_HASH_NAME, GUINT_TO_POINTER( hash ) ); 
+		operation->hash = hash;
+		operation->found_hash = TRUE;
 	}
 
-	return( hash );
+	return( operation->hash );
 }
 
 static void *
@@ -375,51 +378,15 @@ vips_object_equal_arg( VipsObject *object,
 /* Are two objects equal, ie. have the same inputs.
  */
 static gboolean 
-vips_object_equal( VipsObject *a, VipsObject *b )
+vips_operation_equal( VipsOperation *a, VipsOperation *b )
 {
 	if( G_OBJECT_TYPE( a ) == G_OBJECT_TYPE( b ) &&
-		vips_object_hash( a ) == vips_object_hash( b ) &&
-		!vips_argument_map( a, vips_object_equal_arg, b, NULL ) )
+		vips_operation_hash( a ) == vips_operation_hash( b ) &&
+		!vips_argument_map( VIPS_OBJECT( a ), 
+			vips_object_equal_arg, b, NULL ) )
 		return( TRUE );
 
 	return( FALSE );
-}
-
-static void *
-vips_object_validate_arg( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
-{
-	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
-		argument_instance->assigned ) {
-		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
-		const char *name = g_param_spec_get_name( pspec );
-		GValue value = { 0, };
-		gboolean null;
-
-		g_value_init( &value, type );
-		g_object_get_property( G_OBJECT( object ), name, &value ); 
-		null = vips_value_is_null( pspec, &value );
-		g_value_unset( &value );
-
-		if( null )
-			return( object );
-	}
-
-	return( NULL );
-}
-
-/* Check that an object is still valid. It may have lost some of its
- * output objects but still be alive.
- */
-static gboolean
-vips_object_validate( VipsObject *object )
-{
-	return( !vips_argument_map( object,
-		vips_object_validate_arg, NULL, NULL ) );
 }
 
 static void *
@@ -454,59 +421,49 @@ vips_object_ref_outputs( VipsObject *object )
 }
 
 static void
-vips_cache_remove( void *data, GObject *object )
+vips_operation_touch( VipsOperation *operation )
 {
-	VIPS_DEBUG_MSG( "vips_cache_remove: removing %p\n", object );
-
-	/* Can this get triggered more than once for an object? Unclear.
-	 */
-
-	if( !g_hash_table_remove( vips_object_cache, object ) )
-		g_assert( 0 );
+	vips_cache_time += 1;
+	operation->time = vips_cache_time;
 }
 
 /* Look up an object in the cache. If we get a hit, unref the new one, ref the
  * old one and return that. 
  *
- * If we miss, build, add this object and weakref so we
- * will drop it when it's unreffed.
+ * If we miss, build and add this object.
  */
 int
-vips_object_build_cache( VipsObject **object )
+vips_operation_build_cache( VipsOperation **operation )
 {
-	VipsObject *hit;
+	VipsOperation *hit;
 
-	VIPS_DEBUG_MSG( "vips_object_build_cache: %p\n", *object );
+	VIPS_DEBUG_MSG( "vips_operation_build_cache: %p\n", *object );
 
-	if( !vips_object_cache ) 
-		vips_object_cache = g_hash_table_new( 
-			(GHashFunc) vips_object_hash, 
-			(GEqualFunc) vips_object_equal );
+	if( !vips_cache_table ) 
+		vips_cache_table = g_hash_table_new( 
+			(GHashFunc) vips_operation_hash, 
+			(GEqualFunc) vips_operation_equal );
 
-	if( (hit = g_hash_table_lookup( vips_object_cache, *object )) ) {
+	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		VIPS_DEBUG_MSG( "\thit %p\n", hit );
-		if( vips_object_validate( hit ) ) {
-			g_object_unref( *object );
-			g_object_ref( hit );
-			vips_object_ref_outputs( hit );
-			*object = hit;
 
-			return( 0 );
-		}
-
-		VIPS_DEBUG_MSG( "\tvalidation failed, dropping\n" );
-		g_hash_table_remove( vips_object_cache, hit );
+		g_object_unref( *operation );
+		g_object_ref( hit );
+		vips_object_ref_outputs( VIPS_OBJECT( hit ) );
+		vips_operation_touch( hit );
+		*operation = hit;
 	}
+	else {
+		VIPS_DEBUG_MSG( "\tmiss, build and add\n" );
 
-	VIPS_DEBUG_MSG( "\tmiss, building\n" );
+		if( vips_object_build( VIPS_OBJECT( *operation ) ) )
+			return( -1 );
+		g_object_ref( *operation );
+		vips_object_ref_outputs( VIPS_OBJECT( *operation ) );
+		vips_operation_touch( *operation );
 
-	if( vips_object_build( *object ) )
-		return( -1 );
-
-	VIPS_DEBUG_MSG( "\tadding\n" );
-
-	g_hash_table_insert( vips_object_cache, *object, *object );
-	g_object_weak_ref( G_OBJECT( *object ), vips_cache_remove, NULL );
+		g_hash_table_insert( vips_cache_table, *operation, *operation );
+	}
 
 	return( 0 );
 }

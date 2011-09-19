@@ -54,6 +54,16 @@ typedef gboolean (*VipsOperationBuildFn)( VipsObject * );
 typedef struct _VipsOperation {
 	VipsObject parent_instance;
 
+	/* When we added this oepration to cache .. used to find LRU for
+	 * flush.
+	 */
+	int time;
+
+	/* Keep the hash here.
+	 */
+	guint hash;
+	gboolean found_hash;
+
 } VipsOperation;
 
 typedef struct _VipsOperationClass {
