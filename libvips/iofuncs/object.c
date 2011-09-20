@@ -754,7 +754,9 @@ vips_object_set_property( GObject *gobject,
 		char **member = &G_STRUCT_MEMBER( char *, object,
 			argument_class->offset );
 
-		VIPS_SETSTR( *member, g_value_get_string( value ) );
+		if( *member )
+			g_free( *member );
+		*member = g_value_dup_string( value );
 	}
 	else if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
 		GObject **member = &G_STRUCT_MEMBER( GObject *, object,

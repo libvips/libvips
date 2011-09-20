@@ -3,6 +3,14 @@
 
 
 
+- im_csv2vips() gets confused by quotes and commas, eg.
+
+	NP_001121179.1,"serine proteinase inhibitor, clade A, member ",ITPNLAEFAFSLYR,0.95588235294118,0.96176470588235, ...
+
+
+
+
+
 - cache work ... see notes in file
 
 
