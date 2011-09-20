@@ -1,6 +1,10 @@
 - vips_malloc() now tracks alloc size, but we seem to g_free() the results
   sometimes, look into this
 
+  argh no too confusing ... make an im_malloc() that's just 
+  g_try_alloc()/g_free() with auto-free, keep vips_alloc() for new stuff, and
+  for buffers
+
 
 
 - im_csv2vips() gets confused by quotes and commas, eg.
