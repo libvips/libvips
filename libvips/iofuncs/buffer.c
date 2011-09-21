@@ -15,6 +15,8 @@
  * 5/3/10
  * 	- move invalid stuff to region
  * 	- move link maintenance to im_demand_hint
+ * 21/9/11
+ * 	- switch to vips_tracked_malloc()
  */
 
 /*
@@ -114,7 +116,7 @@ buffer_cache_list_free( VipsBufferCacheList *cache_list )
 	}
 
 	g_slist_free( cache_list->buffers );
-	vips_free( cache_list );
+	g_free( cache_list );
 }
 
 static VipsBufferCacheList *
@@ -122,8 +124,7 @@ buffer_cache_list_new( VipsBufferCache *cache, VipsImage *im )
 {
 	VipsBufferCacheList *cache_list;
 
-	if( !(cache_list = VIPS_NEW( NULL, VipsBufferCacheList )) )
-		return( NULL );
+	cache_list = g_new( VipsBufferCacheList, 1 );
 	cache_list->buffers = NULL;
 	cache_list->thread = g_thread_self();
 	cache_list->cache = cache;
@@ -143,9 +144,7 @@ buffer_cache_new( void )
 {
 	VipsBufferCache *cache;
 
-	if( !(cache = VIPS_NEW( NULL, VipsBufferCache )) )
-		return( NULL );
-
+	cache = g_new( VipsBufferCache, 1 );
 	cache->hash = g_hash_table_new_full( g_direct_hash, g_direct_equal, 
 		NULL, (GDestroyNotify) buffer_cache_list_free );
 	cache->thread = g_thread_self();
@@ -275,9 +274,9 @@ vips_buffer_unref( VipsBuffer *buffer )
 		vips_buffer_undone( buffer );
 
 		buffer->im = NULL;
-		VIPS_FREE( buffer->buf );
+		vips_tracked_free( buffer->buf );
 		buffer->bsize = 0;
-		vips_free( buffer );
+		g_free( buffer );
 
 #ifdef DEBUG
 		g_mutex_lock( vips__global_lock );
@@ -297,9 +296,7 @@ vips_buffer_new( VipsImage *im, VipsRect *area )
 {
 	VipsBuffer *buffer;
 
-	if( !(buffer = VIPS_NEW( NULL, VipsBuffer )) )
-		return( NULL );
-
+	buffer = g_new( VipsBuffer, 1 );
 	buffer->ref_count = 1;
 	buffer->im = im;
 	buffer->area = *area;
@@ -307,7 +304,7 @@ vips_buffer_new( VipsImage *im, VipsRect *area )
 	buffer->cache = NULL;
 	buffer->bsize = (size_t) VIPS_IMAGE_SIZEOF_PEL( im ) * 
 		area->width * area->height;
-	if( !(buffer->buf = vips_malloc( NULL, buffer->bsize )) ) {
+	if( !(buffer->buf = vips_tracked_malloc( buffer->bsize )) ) {
 		vips_buffer_unref( buffer );
 		return( NULL );
 	}
@@ -346,8 +343,8 @@ buffer_move( VipsBuffer *buffer, VipsRect *area )
 		area->width * area->height;
 	if( buffer->bsize < new_bsize ) {
 		buffer->bsize = new_bsize;
-		VIPS_FREE( buffer->buf );
-		if( !(buffer->buf = vips_malloc( NULL, buffer->bsize )) ) 
+		vips_tracked_free( buffer->buf );
+		if( !(buffer->buf = vips_tracked_malloc( buffer->bsize )) ) 
 			return( -1 );
 	}
 

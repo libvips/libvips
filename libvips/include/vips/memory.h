@@ -69,7 +69,7 @@ char *vips_strdup( VipsObject *object, char *str );
 int vips_free( void *buf );
 
 void vips_tracked_free( void *s );
-void *vips_tracked_malloc( VipsObject *object, size_t size );
+void *vips_tracked_malloc( size_t size );
 size_t vips_tracked_get_mem( void );
 size_t vips_tracked_get_mem_highwater( void );
 int vips_tracked_get_allocs( void );

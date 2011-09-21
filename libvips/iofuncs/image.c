@@ -258,7 +258,7 @@ vips_image_finalize( GObject *gobject )
 		if( image->dtype == VIPS_IMAGE_SETBUF ) {
 			VIPS_DEBUG_MSG( "vips_image_finalize: "
 				"freeing buffer\n" );
-			vips_free( image->data );
+			vips_tracked_free( image->data );
 			image->dtype = VIPS_IMAGE_NONE;
 		}
 
@@ -1859,7 +1859,7 @@ vips__image_write_prepare( VipsImage *image )
 		/* Allocate memory.
 		 */
 		if( !image->data ) 
-			if( !(image->data = vips_malloc( NULL, 
+			if( !(image->data = vips_tracked_malloc( 
 				VIPS_IMAGE_SIZEOF_IMAGE( image ))) ) 
 				return( -1 );
 

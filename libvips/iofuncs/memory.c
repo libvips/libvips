@@ -79,11 +79,13 @@
  * g_malloc()/g_free() functions. Memory allocated and freeded using these
  * functions is interchangeable with any other glib library.
  *
- * Second, a pair of functions, vips_tracked_malloc() and vips_tracked_free()
+ * Second, a pair of functions, vips_tracked_malloc() and vips_tracked_free(),
  * which are NOT compatible. If you g_free() memory that has been allocated
- * with vips_tracked_malloc() you will see crashes. The tracked functions are
+ * with vips_tracked_malloc() you will see crashes. 
+ *
+ * The tracked functions are
  * only suitable for large allocations internal to the library, for example
- * pixel buffers. libvips tracks the total amount of live tracked memory and
+ * pixel buffers. libvips watches the total amount of live tracked memory and
  * uses this information to decide when to trim caches.
  */
 
@@ -245,20 +247,12 @@ vips_tracked_mutex_new( void *data )
 	return( g_mutex_new() );
 }
 
-static void
-vips_tracked_cb( VipsObject *object, char *buf )
-{
-	vips_tracked_free( buf );
-}
-
 /**
  * vips_tracked_malloc:
- * @object: allocate memory local to this #VipsObject, or %NULL
  * @size: number of bytes to allocate
  *
- * Malloc local to @object, that is, the memory will be automatically 
- * freed for you when the object is closed. If @object is %NULL, you need to 
- * free the memory explicitly with vips_tracked_free().
+ * Allocate an area of memory that will be tracked by vips_tracked_get_mem()
+ * and friends. 
  *
  * If allocation fails, vips_malloc() returns %NULL and 
  * sets an error message.
@@ -270,7 +264,7 @@ vips_tracked_cb( VipsObject *object, char *buf )
  * Returns: a pointer to the allocated memory, or %NULL on error.
  */
 void *
-vips_tracked_malloc( VipsObject *object, size_t size )
+vips_tracked_malloc( size_t size )
 {
 	static GOnce vips_tracked_once = G_ONCE_INIT;
 
@@ -311,10 +305,6 @@ vips_tracked_malloc( VipsObject *object, size_t size )
 	vips_tracked_allocs += 1;
 
 	g_mutex_unlock( vips_tracked_mutex );
-
-        if( object )
-		g_signal_connect( object, "postclose", 
-			G_CALLBACK( vips_tracked_cb ), buf );
 
         return( buf );
 }
