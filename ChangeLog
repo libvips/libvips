@@ -12,7 +12,7 @@
 - fix up VipsPool
 - add the operation cache
 - fallback vips_init()
-- vips_malloc() tracks allocation size and can report total mem usage
+- vips_tracked_malloc() tracks allocation size and can report total mem usage
 
 10/8/11 started 7.26.3
 - don't use G_VALUE_COLLECT_INIT(), many platforms do not have a glib this

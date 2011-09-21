@@ -162,8 +162,7 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 		vips_check_dmask_1d( "im_aconvsep", mask ) ) 
 		return( NULL );
 
-	if( !(lines = VIPS_NEW( out, Lines )) )
-		return( NULL );
+	lines = VIPS_NEW( out, Lines );
 	lines->in = in;
 	lines->out = out;
 	if( !(lines->mask = (DOUBLEMASK *) im_local( out, 

@@ -120,8 +120,7 @@ im_add_callback( VipsImage *im,
 {
 	Callback *callback;
 
-	if( !(callback = VIPS_NEW( im, Callback )) )
-		return( -1 );
+	callback = VIPS_NEW( VIPS_OBJECT( im ), Callback );
 	callback->fn = fn;
 	callback->a = a;
 	callback->b = b;
@@ -144,8 +143,7 @@ im_add_callback1( VipsImage *im,
 {
 	Callback *callback;
 
-	if( !(callback = VIPS_NEW( im, Callback )) )
-		return( -1 );
+	callback = VIPS_NEW( VIPS_OBJECT( im ), Callback );
 	callback->fn = fn;
 	callback->a = a;
 	callback->b = b;
@@ -211,7 +209,7 @@ im_init( const char *filename )
 	VipsImage *image;
 
 	image = vips_image_new();
-	VIPS_SETSTR( image->filename, filename );
+	IM_SETSTR( image->filename, filename );
 
 	return( image );
 }
@@ -415,18 +413,9 @@ dupims( IMAGE *out, IMAGE **in )
 	IMAGE **new;
 	int i, n;
 
-	/* Count input images.
-	 */
 	for( n = 0; in[n]; n++ )
 		;
-
-	/* Allocate new array.
-	 */
-	if( !(new = VIPS_ARRAY( out, n + 1, IMAGE * )) )
-		return( NULL );
-	
-	/* Copy.
-	 */
+	new = VIPS_ARRAY( VIPS_OBJECT( out ), n + 1, IMAGE * );
 	for( i = 0; i < n; i++ )
 		new[i] = in[i];
 	new[n] = NULL;
@@ -466,7 +455,7 @@ dupims( IMAGE *out, IMAGE **in )
 int
 im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 {
-	Bundle *bun = VIPS_NEW( out, Bundle );
+	Bundle *bun;
 	int i, n;
 
 	/* Count input images.
@@ -480,7 +469,8 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 
 	/* Save args.
 	 */
-	if( !bun || !(in = dupims( out, in )) )
+	bun = VIPS_NEW( VIPS_OBJECT( out ), Bundle );
+	if( !(in = dupims( out, in )) )
 		return( -1 );
 	bun->fn = fn;
 	bun->a = a;
@@ -558,11 +548,12 @@ wrapone_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
 int
 im_wrapone( IMAGE *in, IMAGE *out, im_wrapone_fn fn, void *a, void *b )
 {
-	Bundle *bun = VIPS_NEW( out, Bundle );
+	Bundle *bun;
 	IMAGE *invec[2];
 
 	/* Heh, yuk. We cast back above.
 	 */
+	bun = VIPS_NEW( VIPS_OBJECT( out ), Bundle );
 	bun->fn = (im_wrapmany_fn) fn;
 	bun->a = a;
 	bun->b = b;
@@ -614,9 +605,10 @@ int
 im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	im_wraptwo_fn fn, void *a, void *b )
 {
-	Bundle *bun = VIPS_NEW( out, Bundle );
+	Bundle *bun;
 	IMAGE *invec[3];
 
+	bun = VIPS_NEW( VIPS_OBJECT( out ), Bundle );
 	bun->fn = (im_wrapmany_fn) fn;
 	bun->a = a;
 	bun->b = b;

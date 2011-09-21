@@ -251,9 +251,9 @@ im_copy( IMAGE *in, IMAGE *out )
 int
 im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value )
 {
-	if( im_copy( in, out ) ||
-		im_meta_set( out, field, value ) )
+	if( im_copy( in, out ) )
 		return( 1 );
+	im_meta_set( out, field, value );
 
 	return( 0 );
 }

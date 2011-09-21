@@ -36,11 +36,14 @@
 
 	listen for invalidate
 
-	can we estimate the resource needs of operations and drop very 
-	expensive ones first?
+	drop on cache full
 
-		get vips_malloc()/_free() to track current usage, check that 
-		as well as hash table size when looking for cache overflow
+	have a drop-all call for debugging leaks
+
+	will we need to drop all on exit? unclear
+
+	what about delayed writes ... do we ever write in close? we shouldn't,
+	should do in evalend or written or somesuch
 
  */
 

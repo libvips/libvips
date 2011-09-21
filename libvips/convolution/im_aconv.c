@@ -676,8 +676,7 @@ boxes_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers, int cluster )
 		vips_check_dmask( "im_aconv", mask ) ) 
 		return( NULL );
 
-	if( !(boxes = VIPS_NEW( out, Boxes )) )
-		return( NULL );
+	boxes = VIPS_NEW( out, Boxes );
 	boxes->in = in;
 	boxes->out = out;
 	if( !(boxes->mask = (DOUBLEMASK *) im_local( out, 

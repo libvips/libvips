@@ -537,11 +537,7 @@ rebuild_header_meta( VipsImage *im, xmlNode *i )
 					"save format" ) );
 				return( -1 );
 			}
-			if( vips_image_set( im, name, &value ) ) {
-				g_value_unset( &save_value );
-				g_value_unset( &value );
-				return( -1 );
-			}
+			vips_image_set( im, name, &value );
 			g_value_unset( &save_value );
 			g_value_unset( &value );
 		}
@@ -615,11 +611,8 @@ readhist( VipsImage *im )
 
 		if( !(doc = read_xml( im )) )
 			return( -1 );
-		if( vips_image_set_area( im, VIPS_META_XML, 
-			(VipsCallbackFn) xmlFreeDoc, doc ) ) {
-			xmlFreeDoc( doc );
-			return( -1 );
-		}
+		vips_image_set_area( im, VIPS_META_XML, 
+			(VipsCallbackFn) xmlFreeDoc, doc );
 	}
 
 	if( rebuild_header( im ) )

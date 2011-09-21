@@ -489,7 +489,7 @@ lazy_free_cb( VipsImage *image, Lazy *lazy )
 {
 	VIPS_DEBUG_MSG( "lazy_free: %p \"%s\"\n", lazy, lazy->filename );
 
-	VIPS_FREE( lazy->filename );
+	g_free( lazy->filename );
 	VIPS_UNREF( lazy->real );
 }
 
@@ -499,18 +499,14 @@ lazy_new( VipsImage *image,
 {
 	Lazy *lazy;
 
-	if( !(lazy = VIPS_NEW( image, Lazy )) )
-		return( NULL );
+	lazy = g_new( Lazy, 1 );
 	VIPS_DEBUG_MSG( "lazy_new: %p \"%s\"\n", lazy, filename );
 	lazy->image = image;
 	lazy->format = format;
-	lazy->filename = NULL;
+	lazy->filename = g_strdup( filename );
 	lazy->disc = disc;
 	lazy->real = NULL;
 	g_signal_connect( image, "close", G_CALLBACK( lazy_free_cb ), lazy );
-
-	if( !(lazy->filename = vips_strdup( NULL, filename )) )
-		return( NULL );
 
 	return( lazy );
 }
@@ -671,8 +667,7 @@ vips_image_open_lazy( VipsImage *image,
 {
 	Lazy *lazy;
 
-	if( !(lazy = lazy_new( image, format, filename, disc )) )
-		return( -1 );
+	lazy = lazy_new( image, format, filename, disc );
 
 	/* Read header fields to init the return image. THINSTRIP since this is
 	 * probably a disc file. We can't tell yet whether we will be opening
@@ -712,6 +707,9 @@ vips_image_save_cb( VipsImage *image, int *result, SaveBlock *sb )
 {
 	if( sb->save_fn( image, sb->filename ) )
 		*result = -1;
+
+	g_free( sb->filename );
+	g_free( sb );
 }
 
 static void
@@ -719,12 +717,11 @@ vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
 {
 	SaveBlock *sb;
 
-	if( (sb = VIPS_NEW( image, SaveBlock )) ) {
-		sb->save_fn = save_fn;
-		sb->filename = vips_strdup( image, filename );
-		g_signal_connect( image, "written", 
-			G_CALLBACK( vips_image_save_cb ), sb );
-	}
+	sb = g_new( SaveBlock, 1 );
+	sb->save_fn = save_fn;
+	sb->filename = g_strdup( filename );
+	g_signal_connect( image, "written", 
+		G_CALLBACK( vips_image_save_cb ), sb );
 }
 
 /* Progress feedback. 

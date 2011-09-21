@@ -385,7 +385,7 @@ vips_wrap7_object_set_property( GObject *gobject,
 		break;
 
 	case VIPS_WRAP7_STRING:
-		VIPS_SETSTR( wrap7->vargv[i], g_value_get_string( value ) );
+		IM_SETSTR( wrap7->vargv[i], g_value_get_string( value ) );
 		break;
 
 	case VIPS_WRAP7_GVALUE:
@@ -852,3 +852,54 @@ vips__init_wrap7_classes( void )
 {
 	(void) im_map_packages( (VSListMap2Fn) vips_wrap7_build_package, NULL );
 }
+
+/* The vips7 malloc/free need to be thin wrappers over g_malloc()/g_free(),
+ * since we pass strings to and from the library and need to be able to free
+ * with either.
+ */
+
+int
+im_free( void *s )
+{        
+	g_free( s );
+
+	return( 0 );
+}
+
+void *
+im_malloc( IMAGE *im, size_t size )
+{
+	void *buf;
+
+	if( !(buf = g_try_malloc( size )) ) {
+		im_error( "im_malloc",
+			_( "out of memory --- size == %dMB" ),
+			(int) (size / (1024.0*1024.0))  );
+		im_warn( "im_malloc",
+			_( "out of memory --- size == %dMB" ),
+			(int) (size / (1024.0*1024.0))  );
+		return( NULL );
+	}
+
+	if( im && im_add_close_callback( im,
+		(im_callback_fn) im_free, buf, NULL ) ) {
+		im_free( buf );
+		return( NULL );
+	}
+
+	return( buf );
+}
+
+char *
+im_strdup( IMAGE *im, const char *str )
+{
+	int l = strlen( str );
+	char *buf;
+
+	if( !(buf = (char *) im_malloc( im, l + 1 )) )
+		return( NULL );
+	strcpy( buf, str );
+
+	return( buf );
+}
+

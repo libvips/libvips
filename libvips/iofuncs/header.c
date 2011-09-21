@@ -283,8 +283,8 @@ meta_free( VipsMeta *meta )
 			g_slist_remove( meta->im->meta_traverse, meta );
 
 	g_value_unset( &meta->value );
-	VIPS_FREE( meta->field );
-	vips_free( meta );
+	g_free( meta->field );
+	g_free( meta );
 }
 
 static VipsMeta *
@@ -292,16 +292,11 @@ meta_new( VipsImage *image, const char *field, GValue *value )
 {
 	VipsMeta *meta;
 
-	if( !(meta = VIPS_NEW( NULL, VipsMeta )) )
-		return( NULL );
+	meta = g_new( VipsMeta, 1 );
 	meta->im = image;
 	meta->field = NULL;
 	memset( &meta->value, 0, sizeof( GValue ) );
-
-	if( !(meta->field = vips_strdup( NULL, field )) ) {
-		meta_free( meta );
-		return( NULL );
-	}
+	meta->field = g_strdup( field );
 
 	g_value_init( &meta->value, G_VALUE_TYPE( value ) );
 	g_value_copy( value, &meta->value );
@@ -492,8 +487,6 @@ meta_cp_field( VipsMeta *meta, VipsImage *dst )
 }
 #endif /*DEBUG*/
 
-	/* No way to return error here, sadly.
-	 */
 	meta_copy = meta_new( dst, meta->field, &meta->value );
 
 #ifdef DEBUG
@@ -659,21 +652,15 @@ vips_image_copy_fields( VipsImage *out, VipsImage *in )
  *
  * g_value_init( &value, G_TYPE_INT );
  * g_value_set_int( &value, 42 );
- *
- * if( vips_image_set( image, field, &value ) ) {
- *   g_value_unset( &value );
- *   return( -1 );
- * }
+ * vips_image_set( image, field, &value );
  * g_value_unset( &value );
  *
  * return( 0 );
  * ]|
  *
  * See also: vips_image_get().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_image_set( VipsImage *image, const char *field, GValue *value )
 {
 	VipsMeta *meta;
@@ -682,14 +669,11 @@ vips_image_set( VipsImage *image, const char *field, GValue *value )
 	g_assert( value );
 
 	meta_init( image );
-	if( !(meta = meta_new( image, field, value )) )
-		return( -1 );
+	meta = meta_new( image, field, value );
 
 #ifdef DEBUG
 	meta_sanity( image );
 #endif /*DEBUG*/
-
-	return( 0 );
 }
 
 /**
@@ -1197,20 +1181,6 @@ value_get_area_length( const GValue *value )
 	return( area->length );
 }
 
-/* Helpers for set/get. Write a value and destroy it.
- */
-static int
-meta_set_value( VipsImage *image, const char *field, GValue *value )
-{
-	if( vips_image_set( image, field, value ) ) {
-		g_value_unset( value );
-		return( -1 );
-	}
-	g_value_unset( value );
-
-	return( 0 );
-}
-
 static int
 meta_get_value( VipsImage *image, 
 	const char *field, GType type, GValue *value_copy )
@@ -1241,18 +1211,16 @@ meta_get_value( VipsImage *image,
  * no longer needs the metadata, it will be freed with @free_fn.
  *
  * See also: vips_image_get_double(), vips_image_set()
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_image_set_area( VipsImage *image, const char *field, 
 	VipsCallbackFn free_fn, void *data )
 {
 	GValue value = { 0 };
 
 	value_set_area( free_fn, data, &value );
-
-	return( meta_set_value( image, field, &value ) );
+	vips_image_set( image, field, &value );
+	g_value_unset( &value );
 }
 
 /** 
@@ -1333,10 +1301,9 @@ vips_ref_string_set( GValue *value, const char *str )
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
 
-	if( !(str_copy = vips_strdup( NULL, str )) )
-		return( -1 );
+	str_copy = g_strdup( str );
 	if( !(area = area_new( (VipsCallbackFn) vips_free, str_copy )) ) {
-		vips_free( str_copy );
+		g_free( str_copy );
 		return( -1 );
 	}
 
@@ -1541,10 +1508,8 @@ vips_blob_set( GValue *value,
  * function over vips_image_set() using an vips_blob.
  *
  * See also: vips_image_get_blob(), vips_image_set().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_image_set_blob( VipsImage *image, const char *field, 
 	VipsCallbackFn free_fn, void *data, size_t length )
 {
@@ -1552,8 +1517,8 @@ vips_image_set_blob( VipsImage *image, const char *field,
 
 	g_value_init( &value, VIPS_TYPE_BLOB );
 	vips_blob_set( &value, free_fn, data, length );
-
-	return( meta_set_value( image, field, &value ) );
+	vips_image_set( image, field, &value );
+	g_value_unset( &value );
 }
 
 /** 
@@ -1641,18 +1606,16 @@ vips_image_get_int( VipsImage *image, const char *field, int *out )
  * function over vips_image_set().
  *
  * See also: vips_image_get_int(), vips_image_set()
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_image_set_int( VipsImage *image, const char *field, int i )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, G_TYPE_INT );
 	g_value_set_int( &value, i );
-
-	return( meta_set_value( image, field, &value ) );
+	vips_image_set( image, field, &value );
+	g_value_unset( &value );
 }
 
 /** 
@@ -1710,18 +1673,16 @@ vips_image_get_double( VipsImage *image, const char *field, double *out )
  * function over vips_image_set().
  *
  * See also: vips_image_get_double(), vips_image_set()
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_image_set_double( VipsImage *image, const char *field, double d )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, G_TYPE_DOUBLE );
 	g_value_set_double( &value, d );
-
-	return( meta_set_value( image, field, &value ) );
+	vips_image_set( image, field, &value );
+	g_value_unset( &value );
 }
 
 /** 
@@ -1776,18 +1737,16 @@ vips_image_get_string( VipsImage *image, const char *field, char **out )
  * function over vips_image_set() using an vips_ref_string.
  *
  * See also: vips_image_get_double(), vips_image_set(), vips_ref_string
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_image_set_string( VipsImage *image, const char *field, const char *str )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, VIPS_TYPE_REF_STRING );
 	vips_ref_string_set( &value, str );
-
-	return( meta_set_value( image, field, &value ) );
+	vips_image_set( image, field, &value );
+	g_value_unset( &value );
 }
 
 /** 

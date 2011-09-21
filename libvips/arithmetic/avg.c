@@ -143,8 +143,7 @@ vips_avg_start( VipsStatistic *statistic )
 {
 	double *sum;
 
-	if( !(sum = VIPS_NEW( NULL, double )) ) 
-		return( NULL );
+	sum = g_new( double, 1 );
 	*sum = 0.0;
 
 	return( (void *) sum );
@@ -160,7 +159,7 @@ vips_avg_stop( VipsStatistic *statistic, void *seq )
 
 	avg->sum += *sum;
 
-	vips_free( seq );
+	g_free( seq );
 
 	return( 0 );
 }

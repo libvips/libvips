@@ -182,7 +182,7 @@ imagevec_dest( im_object obj )
 				iv->vec[i] = NULL;
 			}
 
-		vips_free( iv->vec );
+		g_free( iv->vec );
 		iv->vec = NULL;
 		iv->n = 0;
 	}
@@ -244,7 +244,7 @@ mask_init( im_object *obj, char *str )
 
 	/* Install string, clear mask.
 	 */
-	if( str && !(mo->name = vips_strdup( NULL, str )) ) 
+	if( str && !(mo->name = im_strdup( NULL, str )) ) 
 		return( -1 );
 	mo->mask = NULL;
 
@@ -288,14 +288,8 @@ dmask_dest( im_object obj )
 {
 	im_mask_object *mo = obj;
 
-	if( mo->name ) {
-		vips_free( mo->name );
-		mo->name = NULL;
-	}
-	if( mo->mask ) {
-		im_free_dmask( (DOUBLEMASK *) mo->mask );
-		mo->mask = NULL;
-	}
+	VIPS_FREE( mo->name );
+	VIPS_FREEF( im_free_dmask, mo->mask );
 
 	return( 0 );
 }
@@ -307,14 +301,8 @@ imask_dest( im_object obj )
 {
 	im_mask_object *mo = obj;
 
-	if( mo->name ) {
-		vips_free( mo->name );
-		mo->name = NULL;
-	}
-	if( mo->mask ) {
-		im_free_imask( (INTMASK *) mo->mask );
-		mo->mask = NULL;
-	}
+	VIPS_FREE( mo->name );
+	VIPS_FREEF( im_free_imask, mo->mask );
 
 	return( 0 );
 }
@@ -424,7 +412,7 @@ doublevec_dest( im_object obj )
 	im_doublevec_object *dv = obj;
 
 	if( dv->vec ) {
-		vips_free( dv->vec );
+		g_free( dv->vec );
 		dv->vec = NULL;
 		dv->n = 0;
 	}
@@ -509,7 +497,7 @@ intvec_dest( im_object obj )
 	im_intvec_object *iv = obj;
 
 	if( iv->vec ) {
-		vips_free( iv->vec );
+		g_free( iv->vec );
 		iv->vec = NULL;
 		iv->n = 0;
 	}
@@ -622,7 +610,7 @@ im_type_desc im__input_int = {
 static int
 input_string_init( im_object *obj, char *str )
 {
-	if( !(*obj = (im_object) vips_strdup( NULL, str )) ) 
+	if( !(*obj = (im_object) im_strdup( NULL, str )) ) 
 		return( -1 );
 
 	return( 0 );

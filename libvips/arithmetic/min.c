@@ -153,8 +153,7 @@ vips_min_start( VipsStatistic *statistic )
 	VipsMin *global = (VipsMin *) statistic;
 	VipsMin *min;
 
-	if( !(min = VIPS_NEW( NULL, VipsMin )) ) 
-		return( NULL );
+	min = g_new( VipsMin, 1 );
 	*min = *global;
 
 	return( (void *) min );
@@ -176,7 +175,7 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 		global->set = TRUE;
 	}
 
-	vips_free( min );
+	g_free( min );
 
 	return( 0 );
 }

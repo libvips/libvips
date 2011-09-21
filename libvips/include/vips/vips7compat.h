@@ -93,12 +93,7 @@ extern "C" {
 #define IM_DEG VIPS_DEG
 #define IM_PI VIPS_PI
 #define IM_RINT VIPS_RINT
-#define IM_NEW VIPS_NEW
-#define IM_ARRAY VIPS_ARRAY
-#define IM_SETSTR VIPS_SETSTR
 #define IM_ABS VIPS_ABS
-#define IM_FREE VIPS_FREE
-#define IM_FREEF VIPS_FREEF
 #define IM_NUMBER VIPS_NUMBER
 #define IM_CLIP VIPS_CLIP
 #define IM_CLIP_UCHAR VIPS_CLIP_UCHAR
@@ -290,9 +285,46 @@ int im_generate( VipsImage *im,
 #define im__print_renders vips__print_renders
 #define im_cache vips_image_cache
 
-#define im_malloc vips_malloc
-#define im_free vips_free
-#define im_strdup vips_strdup
+/* vips_alloc() and friends are not the same, we need to keep these as C.
+ */
+char *im_strdup( IMAGE *im, const char *str );
+int im_free( void *s );
+void *im_malloc( IMAGE *im, size_t size );
+
+#define IM_FREEF( F, S ) \
+G_STMT_START { \
+        if( S ) { \
+                (void) F( (S) ); \
+                (S) = 0; \
+        } \
+} G_STMT_END
+
+/* Can't just use VIPS_FREEF(), we want the extra cast to void on the argument
+ * to vips_free() to make sure we can work for "const char *" variables.
+ */
+#define IM_FREE( S ) \
+G_STMT_START { \
+        if( S ) { \
+                (void) im_free( (void *) (S) ); \
+                (S) = 0; \
+        } \
+} G_STMT_END
+
+#define IM_SETSTR( S, V ) \
+G_STMT_START { \
+        const char *sst = (V); \
+	\
+        if( (S) != sst ) { \
+                if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
+                        IM_FREE( S ); \
+                        if( sst ) \
+                                (S) = im_strdup( NULL, sst ); \
+                } \
+        } \
+} G_STMT_END
+
+#define IM_NEW( IM, T ) ((T *) im_malloc( (IM), sizeof( T )))
+#define IM_ARRAY( IM, N, T ) ((T *) im_malloc( (IM), (N) * sizeof( T )))
 
 #define im_incheck vips_image_wio_input
 #define im_outcheck vips_image_wio_output
@@ -390,20 +422,21 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 #define im_blob_get vips_blob_get
 #define im_blob_set vips_blob_set
 
-#define im_meta_set vips_image_set
+#define im_meta_set( A, B, C ) (vips_image_set( A, B, C ), 0)
 #define im_meta_remove vips_image_remove
 #define im_meta_get vips_image_get
 #define im_meta_get_typeof vips_image_get_typeof
 
-#define im_meta_set_int vips_image_set_int
+#define im_meta_set_int( A, B, C ) (vips_image_set_int( A, B, C ), 0)
 #define im_meta_get_int vips_image_get_int
-#define im_meta_set_double vips_image_set_double
+#define im_meta_set_double( A, B, C ) (vips_image_set_double( A, B, C ), 0)
 #define im_meta_get_double vips_image_get_double
-#define im_meta_set_area vips_image_set_area
+#define im_meta_set_area( A, B, C, D ) (vips_image_set_area( A, B, C, D ), 0)
 #define im_meta_get_area vips_image_get_area
-#define im_meta_set_string vips_image_set_string
+#define im_meta_set_string( A, B, C ) (vips_image_set_string( A, B, C ), 0)
 #define im_meta_get_string vips_image_get_string
-#define im_meta_set_blob vips_image_set_blob
+#define im_meta_set_blob( A, B, C, D, E ) \
+	(vips_image_set_blob( A, B, C, D, E ), 0)
 #define im_meta_get_blob vips_image_get_blob
 
 #define im_semaphore_t VipsSemaphore
