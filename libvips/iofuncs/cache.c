@@ -36,14 +36,12 @@
 
 	listen for invalidate
 
-	drop on cache full
-
-	have a drop-all call for debugging leaks
-
 	will we need to drop all on exit? unclear
 
 	what about delayed writes ... do we ever write in close? we shouldn't,
 	should do in evalend or written or somesuch
+
+	use g_param_values_cmp() instead of value_equal()?
 
  */
 
@@ -72,9 +70,14 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-/* Max cache size.
+/* Max number of cached operations.
  */
 static int vips_cache_max = 10000;
+
+/* How much RAM we spend on caches before we start dropping cached operations
+ * ... default 1gb.
+ */
+static size_t vips_cache_max_mem = 1024 * 1024 * 1024;
 
 /* Hold a ref to all "recent" operations.
  */
@@ -414,15 +417,6 @@ vips_object_ref_arg( VipsObject *object,
 	return( NULL );
 }
 
-/* All the output objects need reffing for this new usage.
- */
-static gboolean
-vips_object_ref_outputs( VipsObject *object )
-{
-	return( !vips_argument_map( object,
-		vips_object_ref_arg, NULL, NULL ) );
-}
-
 static void
 vips_operation_touch( VipsOperation *operation )
 {
@@ -430,13 +424,138 @@ vips_operation_touch( VipsOperation *operation )
 	operation->time = vips_cache_time;
 }
 
-/* Look up an object in the cache. If we get a hit, unref the new one, ref the
- * old one and return that. 
+/* Ref an operation for the cache. The operation itself, plus all the output 
+ * objects it makes. 
+ */
+static void
+vips_cache_ref( VipsOperation *operation )
+{
+	g_object_ref( operation );
+	(void) vips_argument_map( VIPS_OBJECT( operation ),
+		vips_object_ref_arg, NULL, NULL );
+	vips_operation_touch( operation );
+}
+
+static void *
+vips_object_unref_arg( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		argument_instance->assigned &&
+		G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
+		GObject *value;
+
+		/* This will up the ref count for us.
+		 */
+		g_object_get( G_OBJECT( object ), 
+			g_param_spec_get_name( pspec ), &value, NULL );
+
+		/* Drop the ref we just got, then drop the ref we make when we
+		 * added to the cache.
+		 */
+		g_object_unref( value );
+		g_object_unref( value );
+	}
+
+	return( NULL );
+}
+
+static void
+vips_cache_unref( VipsOperation *operation )
+{
+	(void) vips_argument_map( VIPS_OBJECT( operation ),
+		vips_object_unref_arg, NULL, NULL );
+	g_object_unref( operation );
+}
+
+/* Drop an operation from the cache.
+ */
+static void
+vips_cache_drop( VipsOperation *operation )
+{
+	/* It must be in cache.
+	 */
+	g_assert( g_hash_table_lookup( vips_cache_table, operation ) );
+
+	g_hash_table_remove( vips_cache_table, operation );
+	vips_cache_unref( operation );
+}
+
+static gboolean
+vips_cache_drop_all_cb( VipsOperation *key, VipsOperation *value, void *none )
+{
+	vips_cache_drop( key );
+
+	return( TRUE );
+}
+
+/**
+ * vips_cache_drop_all:
  *
- * If we miss, build and add this object.
+ * Drop the whole operation cache, handy for leak tracking.
+ */
+void
+vips_cache_drop_all( void )
+{
+	if( vips_cache_table )
+		g_hash_table_foreach_remove( vips_cache_table,
+			(GHRFunc) vips_cache_drop_all_cb, NULL );
+}
+
+static void
+vips_cache_select_cb( VipsOperation *key, VipsOperation *value, 
+	VipsOperation **best )
+
+{
+	if( !*best ||
+		(*best)->time > value->time )
+		*best = value;
+}
+
+/* Find an op to drop ... LRU for now.
+ */
+static VipsOperation *
+vips_cache_select( void )
+{
+	VipsOperation *operation;
+
+	operation = NULL;
+	g_hash_table_foreach( vips_cache_table,
+		(GHFunc) vips_cache_select_cb, &operation );
+
+	return( operation );
+}
+
+/* Is the cache full? Drop until it's not.
+ */
+static void
+vips_cache_trim( void )
+{
+	VipsOperation *operation;
+
+	while( (g_hash_table_size( vips_cache_table ) > vips_cache_max ||
+		vips_tracked_get_mem() > vips_cache_max_mem) &&
+		(operation = vips_cache_select()) )
+		vips_cache_drop( operation );
+}
+
+/**
+ * vips_cache_operation_build:
+ * @operation: pointer to operation to lookup
+ *
+ * Look up @operation in the cache. If we get a hit, unref @operation, ref the
+ * old one and return that through the argument pointer. 
+ *
+ * If we miss, build and add @operation.
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
-vips_operation_build_cache( VipsOperation **operation )
+vips_cache_operation_build( VipsOperation **operation )
 {
 	VipsOperation *hit;
 
@@ -447,13 +566,13 @@ vips_operation_build_cache( VipsOperation **operation )
 			(GHashFunc) vips_operation_hash, 
 			(GEqualFunc) vips_operation_equal );
 
+	vips_cache_trim();
+
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		VIPS_DEBUG_MSG( "\thit %p\n", hit );
 
 		g_object_unref( *operation );
-		g_object_ref( hit );
-		vips_object_ref_outputs( VIPS_OBJECT( hit ) );
-		vips_operation_touch( hit );
+		vips_cache_ref( hit );
 		*operation = hit;
 	}
 	else {
@@ -461,12 +580,82 @@ vips_operation_build_cache( VipsOperation **operation )
 
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) )
 			return( -1 );
-		g_object_ref( *operation );
-		vips_object_ref_outputs( VIPS_OBJECT( *operation ) );
-		vips_operation_touch( *operation );
 
+		vips_cache_ref( *operation );
 		g_hash_table_insert( vips_cache_table, *operation, *operation );
 	}
 
 	return( 0 );
+}
+
+/**
+ * vips_cache_set_max:
+ *
+ * Set the maximum number of operations we keep in cache. 
+ */
+void
+vips_cache_set_max( int max )
+{
+	vips_cache_max = max;
+	vips_cache_trim();
+}
+
+/**
+ * vips_cache_set_max_mem:
+ *
+ * Set the maximum amount of tracked memory we allow before we start dropping
+ * cached operations. See vips_tracked_get_mem().
+ *
+ * See also: vips_tracked_get_mem(). 
+ */
+void
+vips_cache_set_max_mem( int max_mem )
+{
+	vips_cache_max_mem = max_mem;
+	vips_cache_trim();
+}
+
+/**
+ * vips_cache_get_max:
+ *
+ * Get the maximum number of operations we keep in cache. 
+ *
+ * Returns: the maximum number of operations we keep in cache
+ */
+int
+vips_cache_get_max( void )
+{
+	return( vips_cache_max );
+}
+
+/**
+ * vips_cache_get_size:
+ *
+ * Get the current number of operations in cache. 
+ *
+ * Returns: get the current number of operations in cache.
+ */
+int
+vips_cache_get_size( void )
+{
+	if( vips_cache_table )
+		return( g_hash_table_size( vips_cache_table ) );
+	else
+		return( 0 );
+}
+
+/**
+ * vips_cache_get_max_mem:
+ *
+ * Get the maximum amount of tracked memory we allow before we start dropping
+ * cached operations. See vips_tracked_get_mem().
+ *
+ * See also: vips_tracked_get_mem(). 
+ *
+ * Returns: the maximum amount of tracked memory we allow
+ */
+size_t
+vips_cache_get_max_mem( void )
+{
+	return( vips_cache_max_mem );
 }

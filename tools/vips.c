@@ -1128,6 +1128,7 @@ main( int argc, char **argv )
 	g_option_context_free( context );
 
 	im_close_plugins();
+	vips_cache_drop_all();
 
 #ifdef DEBUG_LEAK
 	printf( "** leak test on exit:\n" );

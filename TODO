@@ -1,11 +1,4 @@
-- make pixel buffers etc. use new tracked malloc thing
-
-  add LRU dsrop
-
-  add something to drop the whole cache for leak debugging
-
-
-
+- hook up cache sizes to CLI args
 
 
 - im_csv2vips() gets confused by quotes and commas, eg.

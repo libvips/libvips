@@ -81,7 +81,13 @@ int vips_call_split( const char *operation_name, va_list optional, ... );
 void vips_call_options( GOptionGroup *group, VipsOperation *operation );
 int vips_call_argv( VipsOperation *operation, int argc, char **argv );
 
-int vips_operation_build_cache( VipsOperation **operation );
+void vips_cache_drop_all( void );
+int vips_cache_operation_build( VipsOperation **operation );
+void vips_cache_set_max( int max );
+void vips_cache_set_max_mem( int max_mem );
+int vips_cache_get_max( void );
+int vips_cache_get_size( void );
+size_t vips_cache_get_max_mem( void );
 
 #ifdef __cplusplus
 }
