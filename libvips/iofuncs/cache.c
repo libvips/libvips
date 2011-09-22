@@ -70,6 +70,11 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
+/* Set by GOption from the command line, eg. "12m".
+ */
+char *vips__cache_max = NULL;
+char *vips__cache_max_mem = NULL;
+
 /* Max number of cached operations.
  */
 static int vips_cache_max = 10000;
@@ -395,45 +400,22 @@ vips_operation_equal( VipsOperation *a, VipsOperation *b )
 	return( FALSE );
 }
 
-static void *
-vips_object_ref_arg( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
+static void
+vips_cache_init( void )
 {
-	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
-		argument_instance->assigned &&
-		G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
-		GObject *value;
+	if( !vips_cache_table ) {
+		vips_cache_table = g_hash_table_new( 
+			(GHashFunc) vips_operation_hash, 
+			(GEqualFunc) vips_operation_equal );
 
-		/* This will up the ref count for us.
-		 */
-		g_object_get( G_OBJECT( object ), 
-			g_param_spec_get_name( pspec ), &value, NULL );
+		if( vips__cache_max ) 
+			vips_cache_max = 
+				vips__parse_size( vips__cache_max );
+
+		if( vips__cache_max_mem ) 
+			vips_cache_max_mem = 
+				vips__parse_size( vips__cache_max_mem );
 	}
-
-	return( NULL );
-}
-
-static void
-vips_operation_touch( VipsOperation *operation )
-{
-	vips_cache_time += 1;
-	operation->time = vips_cache_time;
-}
-
-/* Ref an operation for the cache. The operation itself, plus all the output 
- * objects it makes. 
- */
-static void
-vips_cache_ref( VipsOperation *operation )
-{
-	g_object_ref( operation );
-	(void) vips_argument_map( VIPS_OBJECT( operation ),
-		vips_object_ref_arg, NULL, NULL );
-	vips_operation_touch( operation );
 }
 
 static void *
@@ -543,6 +525,47 @@ vips_cache_trim( void )
 		vips_cache_drop( operation );
 }
 
+static void *
+vips_object_ref_arg( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		argument_instance->assigned &&
+		G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
+		GObject *value;
+
+		/* This will up the ref count for us.
+		 */
+		g_object_get( G_OBJECT( object ), 
+			g_param_spec_get_name( pspec ), &value, NULL );
+	}
+
+	return( NULL );
+}
+
+static void
+vips_operation_touch( VipsOperation *operation )
+{
+	vips_cache_time += 1;
+	operation->time = vips_cache_time;
+}
+
+/* Ref an operation for the cache. The operation itself, plus all the output 
+ * objects it makes. 
+ */
+static void
+vips_cache_ref( VipsOperation *operation )
+{
+	g_object_ref( operation );
+	(void) vips_argument_map( VIPS_OBJECT( operation ),
+		vips_object_ref_arg, NULL, NULL );
+	vips_operation_touch( operation );
+}
+
 /**
  * vips_cache_operation_build:
  * @operation: pointer to operation to lookup
@@ -561,10 +584,7 @@ vips_cache_operation_build( VipsOperation **operation )
 
 	VIPS_DEBUG_MSG( "vips_operation_build_cache: %p\n", *object );
 
-	if( !vips_cache_table ) 
-		vips_cache_table = g_hash_table_new( 
-			(GHashFunc) vips_operation_hash, 
-			(GEqualFunc) vips_operation_equal );
+	vips_cache_init();
 
 	vips_cache_trim();
 

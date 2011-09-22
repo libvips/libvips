@@ -511,46 +511,6 @@ lazy_new( VipsImage *image,
 	return( lazy );
 }
 
-typedef struct {
-	const char unit;
-	int multiplier;
-} Unit;
-
-static size_t
-parse_size( const char *size_string )
-{
-	static Unit units[] = {
-		{ 'k', 1024 },
-		{ 'm', 1024 * 1024 },
-		{ 'g', 1024 * 1024 * 1024 }
-	};
-
-	size_t size;
-	int n;
-	int i, j;
-	char *unit;
-
-	/* An easy way to alloc a buffer large enough.
-	 */
-	unit = g_strdup( size_string );
-	n = sscanf( size_string, "%d %s", &i, unit );
-	if( n > 0 )
-		size = i;
-	if( n > 1 ) {
-		for( j = 0; j < VIPS_NUMBER( units ); j++ )
-			if( tolower( unit[0] ) == units[j].unit ) {
-				size *= units[j].multiplier;
-				break;
-			}
-	}
-	g_free( unit );
-
-	VIPS_DEBUG_MSG( "parse_size: parsed \"%s\" as %zd\n", 
-		size_string, size );
-
-	return( size );
-}
-
 static size_t
 disc_threshold( void )
 {
@@ -567,10 +527,10 @@ disc_threshold( void )
 		threshold = 100 * 1024 * 1024;
 
 		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
-			threshold = parse_size( env );
+			threshold = vips__parse_size( env );
 
 		if( vips__disc_threshold ) 
-			threshold = parse_size( vips__disc_threshold );
+			threshold = vips__parse_size( vips__disc_threshold );
 
 		VIPS_DEBUG_MSG( "disc_threshold: %zd bytes\n", threshold );
 	}

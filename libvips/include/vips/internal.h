@@ -75,6 +75,11 @@ extern int vips__progress;
  */
 extern char *vips__disc_threshold;
 
+/* Cache size settings.
+ */
+extern char *vips__cache_max;
+extern char *vips__cache_max_mem;
+
 typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
 
 /* iofuncs
@@ -264,6 +269,8 @@ void vips__interpolate_init( void );
 /* Register wrappers for all the vips7 operations.
  */
 void vips__init_wrap7_classes( void );
+
+size_t vips__parse_size( const char *size_string );
 
 #ifdef __cplusplus
 }

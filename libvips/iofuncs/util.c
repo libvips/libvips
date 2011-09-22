@@ -55,6 +55,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -1453,5 +1454,45 @@ vips__change_suffix( const char *name, char *out, int mx,
          */
 	len = strlen( out );
 	vips_strncpy( out + len, new, mx - len );
+}
+
+typedef struct {
+	const char unit;
+	int multiplier;
+} Unit;
+
+size_t
+vips__parse_size( const char *size_string )
+{
+	static Unit units[] = {
+		{ 'k', 1024 },
+		{ 'm', 1024 * 1024 },
+		{ 'g', 1024 * 1024 * 1024 }
+	};
+
+	size_t size;
+	int n;
+	int i, j;
+	char *unit;
+
+	/* An easy way to alloc a buffer large enough.
+	 */
+	unit = g_strdup( size_string );
+	n = sscanf( size_string, "%d %s", &i, unit );
+	if( n > 0 )
+		size = i;
+	if( n > 1 ) {
+		for( j = 0; j < VIPS_NUMBER( units ); j++ )
+			if( tolower( unit[0] ) == units[j].unit ) {
+				size *= units[j].multiplier;
+				break;
+			}
+	}
+	g_free( unit );
+
+	VIPS_DEBUG_MSG( "parse_size: parsed \"%s\" as %zd\n", 
+		size_string, size );
+
+	return( size );
 }
 

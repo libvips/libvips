@@ -1,4 +1,17 @@
-- hook up cache sizes to CLI args
+- get rid of useless DMALLOC stuff
+
+	#ifdef WITH_DMALLOC
+	#include <dmalloc.h>
+	#endif /*WITH_DMALLOC*/
+
+
+- (header -f height file.v) seems to segv?
+
+
+
+- do clip/embed etc. in new style, good to get everything that VipsAdd uses in
+  the new stack
+
 
 
 - im_csv2vips() gets confused by quotes and commas, eg.
