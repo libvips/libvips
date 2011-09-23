@@ -55,10 +55,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define BRIGHT 255
 #define GREY 128
 #define DARK 0

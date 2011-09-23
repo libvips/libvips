@@ -44,10 +44,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define PRINT_INT( TYPE ) fprintf( fp, "%d", *((TYPE*)p) );
 #define PRINT_FLOAT( TYPE ) fprintf( fp, "%g", *((TYPE*)p) );
 #define PRINT_COMPLEX( TYPE ) fprintf( fp, "(%g, %g)", \

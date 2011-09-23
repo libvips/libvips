@@ -57,10 +57,6 @@
 #include <vips/thread.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #ifndef HAVE_CBRT
 #define cbrt( X ) pow( (X), 1.0 / 3.0 )
 #endif /*!HAVE_CBRT*/

@@ -129,10 +129,6 @@
 #include <vips/vips.h>
 #include <vips/vector.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* We can't run more than this many passes. Larger than this and we
  * fall back to C.
  */

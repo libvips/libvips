@@ -44,10 +44,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define loop(TYPE) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \

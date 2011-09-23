@@ -61,10 +61,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Global state: save our parameters here.
  */
 typedef struct {

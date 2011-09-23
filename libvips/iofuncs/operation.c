@@ -46,10 +46,6 @@
 
 #include <gobject/gvaluecollector.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Abstract base class for operations.
  */
 

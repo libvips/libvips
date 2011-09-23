@@ -41,10 +41,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: freq_filt
  * @short_description: fourier transforms and frequency-domin filters

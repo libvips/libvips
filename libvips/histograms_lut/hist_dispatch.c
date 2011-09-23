@@ -38,10 +38,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: histograms_lut
  * @short_description: find, manipulate and apply histograms and lookup tables

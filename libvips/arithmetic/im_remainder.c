@@ -56,10 +56,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Integer remainder-after-division.
  */
 #define IREMAINDER( TYPE ) { \

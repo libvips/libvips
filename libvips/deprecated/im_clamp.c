@@ -49,10 +49,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int
 im_clamp( in, out,black, hstep, vstep )
 IMAGE *in, *black, *out;

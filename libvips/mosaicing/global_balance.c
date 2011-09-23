@@ -110,10 +110,6 @@
 #include "merge.h"
 #include "global_balance.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define MAX_ITEMS (50)
 
 /* How pix an overlap has to be (in pixels) before we think it's trivial and

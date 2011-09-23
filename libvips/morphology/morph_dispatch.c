@@ -38,10 +38,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /** 
  * SECTION: morphology
  * @short_description: morphological operators, rank filters and related image 

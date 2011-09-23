@@ -186,10 +186,6 @@ im_vips2tiff( IMAGE *im, const char *filename )
 
 #include <tiffio.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Max no of tiles we buffer in a layer. Enough to buffer a line of 64x64
  * tiles on a 100k pixel across image.
  */

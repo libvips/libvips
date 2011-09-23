@@ -50,10 +50,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC */
-
 typedef struct _Msb {
 	size_t index;
 	size_t width;

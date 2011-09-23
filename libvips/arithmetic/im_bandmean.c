@@ -45,10 +45,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Int types. Round, keep sum in a larger variable.
  */
 #define ILOOP( TYPE, STYPE ) { \

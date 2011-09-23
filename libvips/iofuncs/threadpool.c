@@ -68,10 +68,6 @@
 #include <windows.h>
 #endif /*OS_WIN32*/
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: threadpool
  * @short_description: pools of worker threads 

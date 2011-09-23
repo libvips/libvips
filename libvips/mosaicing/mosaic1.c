@@ -58,10 +58,6 @@
 #include "mosaic.h"
 #include "merge.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /*
 #define DEBUG
  */

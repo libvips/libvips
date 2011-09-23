@@ -39,10 +39,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int 
 im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {

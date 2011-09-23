@@ -86,10 +86,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
 #ifdef BINARY_OPEN

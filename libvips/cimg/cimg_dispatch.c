@@ -36,10 +36,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /** 
  * SECTION: cimg_funcs
  * @short_description: expose operations from the CImg library, mostly noise

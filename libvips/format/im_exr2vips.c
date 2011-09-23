@@ -87,10 +87,6 @@ im_exr2vips( const char *name, IMAGE *out )
 
 #include <ImfCRgbaFile.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* What we track during a OpenEXR read.
  */
 typedef struct {

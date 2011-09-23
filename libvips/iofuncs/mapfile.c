@@ -88,10 +88,6 @@
 #include <windows.h>
 #endif /*OS_WIN32*/
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 void *
 vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 {

@@ -57,10 +57,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: interpolate
  * @short_description: various interpolators: nearest, bilinear, bicubic, and

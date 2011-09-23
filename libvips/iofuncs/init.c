@@ -80,10 +80,6 @@
 #include <vips/internal.h>
 #include <vips/vector.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Use in various small places where we need a mutex and it's not worth 
  * making a private one.
  */

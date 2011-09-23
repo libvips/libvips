@@ -58,10 +58,6 @@
 
 #include "dbh.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* The things we can have in header fields. Can't use GType, since we want a
  * static value we can use in a declaration.
  */

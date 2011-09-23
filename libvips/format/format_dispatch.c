@@ -36,10 +36,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 static int
 jpeg2vips_vec( im_object *argv )
 {

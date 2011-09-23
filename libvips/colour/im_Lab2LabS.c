@@ -43,10 +43,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 void
 imb_Lab2LabS( float *in, signed short *out, int n )
 {

@@ -91,10 +91,6 @@ $ vips im_max abs.v
 #include <vips/vector.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Maximum number of boxes we can break the mask into.
  */
 #define MAX_LINES (10000)

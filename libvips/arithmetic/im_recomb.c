@@ -41,10 +41,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Inner loop.
  */
 #define LOOP( IN, OUT ) { \

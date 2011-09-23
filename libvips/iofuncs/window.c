@@ -62,10 +62,6 @@
 #include <windows.h>
 #endif /*OS_WIN32*/
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Sanity checking ... write to this during read tests to make sure we don't
  * get optimised out.
  */

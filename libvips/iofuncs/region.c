@@ -93,10 +93,6 @@
 #include <vips/thread.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: region
  * @short_description: small, rectangular parts of images

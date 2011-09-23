@@ -63,10 +63,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define UC IM_BANDFMT_UCHAR
 
 /* Type conversions for relational: everything goes to uchar. 

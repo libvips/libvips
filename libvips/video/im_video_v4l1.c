@@ -58,10 +58,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Zero freed mem to help catch stray pointers.
  */
 #ifdef NDEBUG

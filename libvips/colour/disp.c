@@ -45,10 +45,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Tables we've generated, indexed by display name.
  */
 static GHashTable *im__col_display_tables = NULL;

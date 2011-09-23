@@ -66,10 +66,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* @(#) convert float Lab to packed Lab32 format 10 11 11 bits
  * works only on buffers, not IMAGEs
  * Copyright 1993 K.Martinez

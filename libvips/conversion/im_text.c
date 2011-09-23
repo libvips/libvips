@@ -53,10 +53,6 @@
 #include <pango/pangoft2.h>
 #endif /*HAVE_PANGOFT2*/
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #ifdef HAVE_PANGOFT2
 
 static PangoLayout *

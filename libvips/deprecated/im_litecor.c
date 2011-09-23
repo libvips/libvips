@@ -66,10 +66,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /*   If maximum output is > 255 scale output between minout and maxout,
  * by normalising maxout to 255.
  *   If maximum output is < 255 do the light correction without scaling

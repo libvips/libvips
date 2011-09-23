@@ -77,10 +77,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Round N down to P boundary. 
  */
 #define ROUND_DOWN(N,P) ((N) - ((N) % P)) 

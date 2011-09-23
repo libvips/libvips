@@ -77,10 +77,6 @@
 #include <vips/vector.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Maximum number of lines we can break the mask into.
  */
 #define MAX_LINES (1000)

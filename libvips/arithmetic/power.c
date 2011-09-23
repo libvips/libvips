@@ -59,10 +59,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Operator with a single constant.
  */
 #define CONST1( IN, OUT, FUN ) { \

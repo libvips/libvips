@@ -40,10 +40,6 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /** 
  * SECTION: resample
  * @short_description: shrink, expand, rotate with a choice of interpolators

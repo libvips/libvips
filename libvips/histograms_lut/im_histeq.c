@@ -57,10 +57,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define ACCUMULATE( ITYPE, OTYPE ) { \
 	for( b = 0; b < nb; b++ ) { \
 		ITYPE *p = (ITYPE *) in->data; \

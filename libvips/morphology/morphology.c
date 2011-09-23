@@ -63,10 +63,6 @@
 #include <vips/vips.h>
 #include <vips/vector.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* The two operators we implement. They are more hit-miss, really.
  */
 typedef enum {

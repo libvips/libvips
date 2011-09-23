@@ -36,10 +36,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Print a string to stdout, with a "\n". Sometimes useful for debugging
  * language bindings.
  */

@@ -52,10 +52,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int im_line(image, x1, y1, x2, y2, pelval)
 IMAGE *image;
 int   x1, x2, y1, y2, pelval;

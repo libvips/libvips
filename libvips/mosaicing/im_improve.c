@@ -58,10 +58,6 @@
 
 #include "mosaic.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 static void
 copypoints( TIE_POINTS *pnew, TIE_POINTS *pold )
 {

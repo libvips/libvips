@@ -66,10 +66,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 
 /************************************************************************
  * malloc space and create normalised coefficients accross	

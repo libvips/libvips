@@ -144,10 +144,6 @@ im_vips2mimejpeg( IMAGE *in, int qfac )
 #include <jpeglib.h>
 #include <jerror.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Define a new error handler for when we bomb out.
  */
 typedef struct {

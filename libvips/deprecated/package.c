@@ -56,10 +56,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Standard VIPS packages.
  */
 extern im_package im__arithmetic;

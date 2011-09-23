@@ -72,10 +72,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 typedef struct _Extract { 
 	IMAGE *in;
 	IMAGE *out;

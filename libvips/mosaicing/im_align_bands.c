@@ -39,10 +39,6 @@
 #include <vips/intl.h>
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * im_align_bands:
  * @in: image to align

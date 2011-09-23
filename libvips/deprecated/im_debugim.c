@@ -57,10 +57,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int 
 im_debugim( IMAGE *in )
 {

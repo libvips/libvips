@@ -56,10 +56,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 static int
 ifthenelse_gen( REGION *or, void *seq, void *client1, void *client2 )
 {

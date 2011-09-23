@@ -83,10 +83,6 @@ im_fits2vips( const char *filename, VipsImage *out )
 
 #include <fitsio.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /*
 
    	TODO

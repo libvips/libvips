@@ -38,10 +38,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /** 
  * SECTION: arithmetic
  * @short_description: operations which perform pixel arithmetic, trig, log, statistics

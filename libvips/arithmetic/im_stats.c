@@ -68,10 +68,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Track min/max/sum/sum-of-squares for each thread during a scan.
  */
 static void *

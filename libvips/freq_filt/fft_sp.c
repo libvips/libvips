@@ -78,10 +78,6 @@ insure its reliability.   */
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 static float *Const = NULL, *iConst = NULL;
 static int storesize = 0, Constsize = 0;
 

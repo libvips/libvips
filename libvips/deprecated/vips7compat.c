@@ -48,10 +48,6 @@
 #include <vips/debug.h>
 #include <vips/vector.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 VipsImage *
 im_open( const char *filename, const char *mode )
 {

@@ -56,10 +56,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Create multiplication luts for all non zero elements  of the original mask;
  * which is kept in buffer of length buffersize 
  * cnt is needed for freeing luts 

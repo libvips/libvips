@@ -51,10 +51,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Useful: Call a macro with the name, type pairs for all VIPS functions.  */
 #define BRIGHT 255
 #define DARK 0

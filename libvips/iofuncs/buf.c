@@ -44,10 +44,6 @@
 #include <vips/vips.h>
 #include <vips/buf.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: buf
  * @short_description: a string you can append to

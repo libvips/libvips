@@ -54,10 +54,6 @@
 #include <vips/vips.h>
 #include <vips/region.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC */
-
 /** MACROS **/
 
 /* from simple_macros.h */

@@ -48,10 +48,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* What we do for each pel.
  */
 #define LOOP( TYPE ) \

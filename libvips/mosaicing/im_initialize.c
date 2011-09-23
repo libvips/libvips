@@ -36,10 +36,6 @@
 
 #include "mosaic.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int 
 im__initialize( TIE_POINTS *points )
 {

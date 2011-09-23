@@ -68,10 +68,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #ifdef HAVE_FFTW
 /* Call fftw for a 1 band image.
  */

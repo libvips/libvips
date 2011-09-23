@@ -38,10 +38,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /** 
  * SECTION: convolution
  * @short_description: convolve and correlate images

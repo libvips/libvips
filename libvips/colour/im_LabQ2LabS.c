@@ -45,10 +45,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* CONVERT n pels from packed 32bit Lab to signed short.
  */
 void

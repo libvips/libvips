@@ -52,10 +52,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 static int
 extract( IMAGE *in, int x, int y, int w, int h )
 {

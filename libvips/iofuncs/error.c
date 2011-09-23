@@ -67,10 +67,6 @@
 #include <lmerr.h>
 #endif /*OS_WIN32*/
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: error
  * @short_description: error messages and error handling

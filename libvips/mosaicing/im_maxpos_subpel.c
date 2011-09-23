@@ -42,10 +42,6 @@
 #include <stdlib.h>
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC */
-
 
 #define MOST_OF( A, B )   ( (A) > 0.9 * (B) )
 #define LITTLE_OF( A, B )   ( (B) < 0.1 * (B) )

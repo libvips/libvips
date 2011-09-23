@@ -60,10 +60,6 @@
 
 #include "draw.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 typedef struct _Line {
 	Draw draw;
 

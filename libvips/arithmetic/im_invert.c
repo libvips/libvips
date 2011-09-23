@@ -50,10 +50,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Invert a REGION. We are given the REGION we should write to, the REGION we
  * should use for input, and the IMAGE we are processing. On entry to
  * invert_gen(), or points to the memory we should write to and ir is blank.

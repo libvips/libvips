@@ -50,10 +50,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Convert n pels from signed short to IM_CODING_LABQ.
  */
 void

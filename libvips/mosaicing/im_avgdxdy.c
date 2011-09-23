@@ -54,10 +54,6 @@
 
 #include "mosaic.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int 
 im__avgdxdy( TIE_POINTS *points, int *dx, int *dy )
 {

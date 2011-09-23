@@ -85,10 +85,6 @@ im_vips2png( IMAGE *in, const char *filename )
 
 #include <png.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #if PNG_LIBPNG_VER < 10003
 #error "PNG library too old."
 #endif

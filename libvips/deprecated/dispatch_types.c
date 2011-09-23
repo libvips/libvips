@@ -47,10 +47,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Max str we parse.
  */
 #define IM_MAX_STR (4096)

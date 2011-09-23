@@ -48,11 +48,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
-
 /* There doesn't seem to be much difference in speed between these two methods (on an Athlon64),
  * so I use the modulus argument version, since atan2() is in c89 but hypot() is c99.
  *

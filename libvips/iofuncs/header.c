@@ -65,10 +65,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: header
  * @short_description: get, set and walk image headers

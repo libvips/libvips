@@ -51,10 +51,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define LOOP( TYPE ) { \
 	for( i = 0; i < ne; i++ ) { \
 		TYPE p1 = ((TYPE *)p)[i]; \

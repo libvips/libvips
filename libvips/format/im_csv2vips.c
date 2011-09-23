@@ -55,10 +55,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Skip to the start of the next line (ie. read until we see a '\n'), return
  * zero if we are at EOF. 
  *

@@ -68,10 +68,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Struct we carry for LUT operations.
  */
 typedef struct {

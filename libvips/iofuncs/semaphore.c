@@ -53,10 +53,6 @@
 #include <vips/vips.h>
 #include <vips/thread.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 void
 vips_semaphore_init( VipsSemaphore *s, int v, char *name )
 {

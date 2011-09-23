@@ -68,10 +68,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Save a bit of typing.
  */
 #define UC IM_BANDFMT_UCHAR

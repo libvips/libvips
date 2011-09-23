@@ -65,10 +65,6 @@
 
 #include "mosaic.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #ifdef DEBUG
 static void
 im__print_mdebug( TIE_POINTS *points )

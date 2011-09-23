@@ -36,10 +36,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /** 
  * SECTION: conversion
  * @short_description: convert images in some way: change band format, change header, insert, extract, join

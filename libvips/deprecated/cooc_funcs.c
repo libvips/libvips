@@ -75,10 +75,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 static
 int im_cooc_sym(im, m, xpos, ypos, xsize, ysize, dx, dy)
 IMAGE *im, *m;

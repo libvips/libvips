@@ -80,10 +80,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Our parameters ... we take a copy of the mask argument, plus we make a
  * smaller version with the zeros squeezed out. 
  */

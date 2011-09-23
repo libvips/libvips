@@ -183,10 +183,6 @@ im_tiff2vips( const char *tiffile, IMAGE *im )
 
 #include <tiffio.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Scanline-type process function.
  */
 typedef void (*scanline_process_fn)( PEL *q, PEL *p, int n, void *client );

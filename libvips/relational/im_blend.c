@@ -48,10 +48,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define iblend1( TYPE ) { \
 	TYPE *a = (TYPE *) ap; \
 	TYPE *b = (TYPE *) bp; \

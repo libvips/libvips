@@ -64,10 +64,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* The common part of most binary inplace operators. 
  *
  * Unlike im__formatalike() and friends, we can only change one of the images,

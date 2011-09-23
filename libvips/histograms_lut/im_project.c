@@ -44,10 +44,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Accumulate a projection in one of these.
  */
 typedef struct {

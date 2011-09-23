@@ -59,10 +59,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Get the value of pixel (0, 0). Use this to init the min/max value for
  * im_max()/im_stats()/etc. 
  */

@@ -45,10 +45,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Accumulate a histogram in one of these.
  */
 typedef struct {

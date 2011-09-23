@@ -55,10 +55,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Creates the offsets to rotate by 45 degrees an odd size square mask 
  */
 int *

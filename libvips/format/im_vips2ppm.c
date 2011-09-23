@@ -53,10 +53,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 typedef int (*write_fn)( IMAGE *in, FILE *fp, PEL *p );
 
 /* What we track during a PPM write.

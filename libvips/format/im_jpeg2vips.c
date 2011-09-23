@@ -121,10 +121,6 @@ im_jpeg2vips( const char *name, IMAGE *out )
 #include <jpeglib.h>
 #include <jerror.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Define a new error handler for when we bomb out.
  */
 typedef struct {

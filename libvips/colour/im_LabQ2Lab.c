@@ -53,10 +53,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* imb_LabQ2Lab: CONVERT n pels from packed 32bit Lab to float values
  * in a buffer
  * ARGS:   PEL *inp       pointer to first byte of Lab32 buffer

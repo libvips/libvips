@@ -46,10 +46,6 @@
  
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
- 
 /* Hold a display characterisation, and a set of tables
  * computed from that. 
  */

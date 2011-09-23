@@ -14,10 +14,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define TINY	1.0e-200
 
 /* @(#)   Allocates and returns an pointer at the beginning of

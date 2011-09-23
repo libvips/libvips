@@ -65,10 +65,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* The largest number/field/whatever we can read.
  */
 #define IM_MAX_THING (80)

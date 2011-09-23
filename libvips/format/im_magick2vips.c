@@ -99,10 +99,6 @@ im_magick2vips( const char *filename, IMAGE *im )
 
 #include <magick/api.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* pre-float Magick used to call this MaxRGB.
  */
 #if !defined(QuantumRange)

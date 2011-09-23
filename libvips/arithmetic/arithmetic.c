@@ -53,10 +53,6 @@
 
 #include "arithmetic.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Properties.
  */
 enum {

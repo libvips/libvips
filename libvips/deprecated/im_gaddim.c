@@ -58,10 +58,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* This function works on either mmaped files or on images in buffer
  */
 

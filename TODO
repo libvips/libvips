@@ -1,20 +1,14 @@
 
-- get rid of useless DMALLOC stuff
-
-	#ifdef WITH_DMALLOC
-	#include <dmalloc.h>
-	#endif /*WITH_DMALLOC*/
-
-
-
 - do clip/embed etc. in new style, good to get everything that VipsAdd uses in
   the new stack
+
 
 
 
 - im_csv2vips() gets confused by quotes and commas, eg.
 
 	NP_001121179.1,"serine proteinase inhibitor, clade A, member ",ITPNLAEFAFSLYR,0.95588235294118,0.96176470588235, ...
+
 
 
 

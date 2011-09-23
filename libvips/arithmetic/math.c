@@ -61,10 +61,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* What we do for each band element. Non-complex only.
  */
 #define FUN_LOOP( IN, OUT, FUN ) { \

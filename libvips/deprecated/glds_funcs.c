@@ -72,10 +72,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Keep the greylevel difference matrix as a 256x1 double image */
 
 int 

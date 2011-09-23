@@ -46,10 +46,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define ROUND_LOOP( TYPE, FUN ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \

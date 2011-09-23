@@ -43,10 +43,6 @@
 
 #include "draw.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.
  */
 void 

@@ -52,10 +52,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define JOIN( TYPE ) { \
 	TYPE *p1 = (TYPE *) p[0]; \
 	TYPE *p2 = (TYPE *) p[1]; \

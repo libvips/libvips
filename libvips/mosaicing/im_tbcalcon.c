@@ -76,10 +76,6 @@
 
 #include "mosaic.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int 
 im__tbcalcon( IMAGE *ref, TIE_POINTS *points )
 {

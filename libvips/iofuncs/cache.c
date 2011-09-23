@@ -66,10 +66,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Set by GOption from the command line, eg. "12m".
  */
 char *vips__cache_max = NULL;

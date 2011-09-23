@@ -51,10 +51,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 static int
 replicate_gen( REGION *or, void *seq, void *a, void *b )
 {

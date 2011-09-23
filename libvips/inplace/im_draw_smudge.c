@@ -54,10 +54,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* The mask we use for blurring.
  */
 static INTMASK *blur = NULL;

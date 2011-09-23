@@ -55,10 +55,6 @@
 #include "merge.h"
 #include "global_balance.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 typedef struct _RemosaicData {
 	const char *old_str;
 	const char *new_str;

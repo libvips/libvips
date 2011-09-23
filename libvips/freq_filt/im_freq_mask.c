@@ -47,10 +47,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Create the final mask by copying the 1/4 of the mask held by coeff
  *  The final mask is written onto image on a line by line basis
  *  The buffer coeff should hold (xsize/2+1)*(ysize/2+1) elms

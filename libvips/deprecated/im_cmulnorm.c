@@ -50,10 +50,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * im_cmulnorm
  * @in1: input #IMAGE 1

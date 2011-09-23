@@ -61,10 +61,6 @@
 #include <vips/debug.h>
 #include <vips/vector.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define VIPS_WRAP7_PREFIX "VipsWrap7_"
 
 static GHashTable *vips_wrap7_subclass_types = NULL;

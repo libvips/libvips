@@ -65,10 +65,6 @@
 
 #include <matio.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* What we track during a Mat-file read.
  */
 typedef struct {

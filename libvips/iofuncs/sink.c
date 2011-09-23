@@ -49,10 +49,6 @@
 
 #include "sink.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Per-call state.
  */
 typedef struct _Sink {

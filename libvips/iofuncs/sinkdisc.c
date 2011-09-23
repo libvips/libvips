@@ -63,10 +63,6 @@
 
 #include "sink.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* A buffer we are going to write to disc in a background thread.
  */
 typedef struct _WriteBuffer {

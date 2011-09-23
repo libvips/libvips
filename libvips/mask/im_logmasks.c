@@ -55,10 +55,6 @@
 #include <vips/vips.h>
 #include <vips/util.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define IM_MAXMASK 256
 
 /**

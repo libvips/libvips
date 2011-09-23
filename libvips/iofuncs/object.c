@@ -47,10 +47,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Properties.
  */
 enum {

@@ -44,10 +44,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define CSIGN( IN, OUT ) { \
 	IN *p = (IN *) in; \
 	OUT *q = (OUT *) out; \

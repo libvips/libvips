@@ -62,10 +62,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Data for the cubic interpolation function.
  */
 typedef struct {

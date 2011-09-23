@@ -56,10 +56,6 @@
 
 #include "draw.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Our state.
  */
 typedef struct {

@@ -47,10 +47,6 @@
 #include <glib.h>
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 
 
 /* What we track during a write

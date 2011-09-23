@@ -58,10 +58,6 @@
 
 #include "draw.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 typedef struct _Mask {
 	Draw draw;
 

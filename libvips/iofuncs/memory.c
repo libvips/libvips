@@ -63,10 +63,6 @@
 #include <vips/vips.h>
 #include <vips/thread.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * SECTION: memory
  * @short_description: memory utilities

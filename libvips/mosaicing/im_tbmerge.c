@@ -115,10 +115,6 @@
 
 #include "merge.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Return the position of the first non-zero pel from the top.
  */
 static int

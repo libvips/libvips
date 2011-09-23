@@ -124,10 +124,6 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /*
  * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
  * found to be faster on several linux boxes than the library

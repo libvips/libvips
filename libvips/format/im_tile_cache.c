@@ -57,10 +57,6 @@
 #include <vips/vips.h>
 #include <vips/thread.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Lower and upper bounds for tile cache size. Choose an exact number based on
  * tile size.
  */

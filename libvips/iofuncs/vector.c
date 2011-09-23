@@ -56,10 +56,6 @@
 #include <vips/vips.h>
 #include <vips/vector.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Cleared by the command-line --vips-novector switch and the IM_NOVECTOR env
  * var.
  */

@@ -46,10 +46,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 static int 
 im__mean_std_int_buffer( int *buffer, int size, 
 	double *pmean, double *pstd )

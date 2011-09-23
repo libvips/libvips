@@ -82,10 +82,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* A lut --- we need indexes in the range [-x3,x2], so add x3 to indexes
  * before starting to index table.
  */

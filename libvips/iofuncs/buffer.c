@@ -62,10 +62,6 @@
 #include <vips/internal.h>
 #include <vips/thread.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #ifdef DEBUG
 /* Track all regions here for debugging.
  */

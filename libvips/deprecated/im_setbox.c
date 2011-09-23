@@ -48,10 +48,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 void im_setbox(pbox, xst, yst, xsiz, ysiz, ch_select)
 IMAGE_BOX *pbox;
 int xst, yst, xsiz, ysiz, ch_select;

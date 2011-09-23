@@ -37,10 +37,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* One image in, one out.
  */
 static im_arg_desc one_in_one_out[] = {

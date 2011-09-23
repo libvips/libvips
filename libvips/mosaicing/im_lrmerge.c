@@ -131,10 +131,6 @@
 
 #include "merge.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Blend luts. Shared between all lr and tb blends.
  */
 double *im__coef1 = NULL;

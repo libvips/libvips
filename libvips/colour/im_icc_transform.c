@@ -68,10 +68,6 @@
 #include <vips/region.h>
 #include <vips/util.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * VipsIntent:
  * @IM_INTENT_PERCEPTUAL:
@@ -874,10 +870,6 @@ im_icc_ac2rc( IMAGE *in, IMAGE *out, const char *profile_filename )
 #include <vips/colour.h>
 #include <vips/region.h>
 #include <vips/util.h>
-
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
 
 /**
  * VipsIntent:

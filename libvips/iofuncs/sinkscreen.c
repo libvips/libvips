@@ -66,10 +66,6 @@
 #include <vips/thread.h>
 #include <vips/debug.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* A have-threads we can test in if().
  */
 #ifdef HAVE_THREADS

@@ -42,10 +42,6 @@
 
 #include "merge.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /** 
  * SECTION: mosaicing
  * @short_description: build image mosaics

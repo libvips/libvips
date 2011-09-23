@@ -83,10 +83,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Global state. Track over/under-flows for all sequences in this.
  */
 typedef struct {

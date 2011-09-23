@@ -52,10 +52,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int 
 im_spatres( IMAGE *in,  IMAGE *out, int step )
 {

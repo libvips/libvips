@@ -59,10 +59,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define IM_MAX_STRSIZE (4096)
 
 /**

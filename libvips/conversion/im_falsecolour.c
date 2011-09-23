@@ -50,10 +50,6 @@
 
 #include <vips/vips.h>
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Falsecolour scale nicked from a PET scan.
  */
 static unsigned char PET_colour[][3] = {

@@ -82,10 +82,6 @@
 #include "arithmetic.h"
 #include "binary.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /**
  * VipsAdd:
  * @in1: input image 

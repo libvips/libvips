@@ -66,10 +66,6 @@
 
 #include "mosaic.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 int 
 im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	int bandno_in, 

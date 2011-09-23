@@ -69,10 +69,6 @@
 
 #include "draw.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 /* Size of a scanline buffer. We allocate a list of these to hold scanlines 
  * we need to visit.
  */
