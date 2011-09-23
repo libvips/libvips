@@ -446,18 +446,23 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 				g_param_spec_get_name( pspec ), arg );
 #endif /*VIPS_DEBUG */
 
-			g_object_get( G_OBJECT( operation ), 
-				g_param_spec_get_name( pspec ), arg, NULL );
-
-			/* If the pspec is an object, that will up the ref
-			 * count. We want to hand over the ref, so we have to
-			 * knock it down again.
+			/* If the dest pointer is NULL, skip the read.
 			 */
-			if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
-				GObject *object;
+			if( arg ) {
+				g_object_get( G_OBJECT( operation ), 
+					g_param_spec_get_name( pspec ), arg, 
+					NULL );
 
-				object = *((GObject **) arg);
-				g_object_unref( object ); 
+				/* If the pspec is an object, that will up 
+				 * the ref count. We want to hand over the 
+				 * ref, so we have to knock it down again.
+				 */
+				if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
+					GObject *object;
+
+					object = *((GObject **) arg);
+					g_object_unref( object ); 
+				}
 			}
 
 			VIPS_OPERATION_COLLECT_END
