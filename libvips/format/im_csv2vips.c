@@ -13,6 +13,8 @@
  * 	- gtkdoc
  * 1/3/10
  * 	- allow lines that end with EOF rather than \n
+ * 23/9/11
+ * 	- allow quoted strings, including escaped quotes
  */
 
 /*
@@ -94,6 +96,29 @@ skip_white( FILE *fp, const char whitemap[256] )
 }
 
 static int 
+skip_to_quote( FILE *fp )
+{
+        int ch;
+
+	do {
+		ch = fgetc( fp );
+
+		/* We let people escape " in strings.
+		 */
+		if( ch == '\\' ) {
+			ch = fgetc( fp );
+
+			if( ch != EOF && ch != '\n' )
+				ch = fgetc( fp );
+		}
+	} while (ch != EOF && ch != '\n' && ch != '"' );
+
+	ungetc( ch, fp );
+
+	return( ch );
+}
+
+static int 
 skip_to_sep( FILE *fp, const char sepmap[256] )
 {
         int ch;
@@ -109,7 +134,15 @@ skip_to_sep( FILE *fp, const char sepmap[256] )
 
 /* Read a single item. Syntax is:
  *
- * item : whitespace* double? whitespace* [EOF|EOL|separator]
+ * element : 
+ * 	whitespace* item whitespace* [EOF|EOL|separator]
+ *
+ * item : 
+ * 	double |
+ * 	"anything" |
+ * 	empty
+ *
+ * the anything in quotes can contain " escaped with \
  *
  * Return the char that caused failure on fail (EOF or \n).
  */
@@ -127,7 +160,12 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 	if( ch == EOF || ch == '\n' ) 
 		return( ch );
 
-	if( !sepmap[ch] && fscanf( fp, "%lf", out ) != 1 ) {
+	if( ch == '"' ) {
+		(void) fgetc( fp );
+		ch = skip_to_quote( fp );
+		ch = fgetc( fp );
+	}
+	else if( !sepmap[ch] && fscanf( fp, "%lf", out ) != 1 ) {
 		/* Only a warning, since (for example) exported spreadsheets
 		 * will often have text or date fields.
 		 */
@@ -273,6 +311,10 @@ read_csv( FILE *fp, IMAGE *out,
  *
  * Load a CSV (comma-separated values) file. The output image is always 1 
  * band (monochrome), %IM_BANDFMT_DOUBLE. 
+ *
+ * Items in lines can be either floats, or strings enclosed in double-quotes.
+ * You can use a backslash (\) within the quotes to escape special characters.
+ *
  * The reader is deliberately rather fussy: it will fail if there are any 
  * short lines, or if the file is too short. It will ignore lines that are 
  * too long.
@@ -297,8 +339,7 @@ read_csv( FILE *fp, IMAGE *out,
  *   <listitem>
  *     <para>
  * <emphasis>whi:whitespace-characters</emphasis> 
- * The skippable whitespace characters. Default <emphasis>space</emphasis> and 
- * double quotes (").
+ * The skippable whitespace characters. Default <emphasis>space</emphasis>.
  * Whitespace characters are always run together.
  *     </para>
  *   </listitem>
@@ -330,7 +371,7 @@ im_csv2vips( const char *filename, IMAGE *out )
 	/* Read options.
 	 */
 	int start_skip = 0;
-	char *whitespace = " \"";
+	char *whitespace = " ";
 	char *separator = ";,\t";
 	int lines = -1;
 
