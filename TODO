@@ -1,3 +1,19 @@
+- strange
+
+	$ vips avg babe.jpg
+	222.370525
+	$ vips im_avg babe.jpg
+	222.371
+	** leak test on exit:
+	3 objects alive:
+	0) VipsAvg (0x1840df0)
+	1) VipsImage (0x1844740)
+	2) VipsImage (0x17b2d90)
+
+
+
+
+
 - get rid of useless DMALLOC stuff
 
 	#ifdef WITH_DMALLOC
