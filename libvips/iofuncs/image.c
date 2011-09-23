@@ -491,6 +491,7 @@ lazy_free_cb( VipsImage *image, Lazy *lazy )
 
 	g_free( lazy->filename );
 	VIPS_UNREF( lazy->real );
+	g_free( lazy );
 }
 
 static Lazy *

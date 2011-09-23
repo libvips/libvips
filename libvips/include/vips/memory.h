@@ -65,7 +65,7 @@ G_STMT_START { \
 	((T *) vips_malloc( VIPS_OBJECT( OBJ ), (N) * sizeof( T )))
 
 void *vips_malloc( VipsObject *object, size_t size );
-char *vips_strdup( VipsObject *object, char *str );
+char *vips_strdup( VipsObject *object, const char *str );
 int vips_free( void *buf );
 
 void vips_tracked_free( void *s );

@@ -5,9 +5,6 @@
 	#endif /*WITH_DMALLOC*/
 
 
-- (header -f height file.v) seems to segv?
-
-
 
 - do clip/embed etc. in new style, good to get everything that VipsAdd uses in
   the new stack

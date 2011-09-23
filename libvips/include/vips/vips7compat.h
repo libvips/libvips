@@ -285,12 +285,6 @@ int im_generate( VipsImage *im,
 #define im__print_renders vips__print_renders
 #define im_cache vips_image_cache
 
-/* vips_alloc() and friends are not the same, we need to keep these as C.
- */
-char *im_strdup( IMAGE *im, const char *str );
-int im_free( void *s );
-void *im_malloc( IMAGE *im, size_t size );
-
 #define IM_FREEF( F, S ) \
 G_STMT_START { \
         if( S ) { \
@@ -323,6 +317,11 @@ G_STMT_START { \
         } \
 } G_STMT_END
 
+#define im_malloc( IM, SZ ) \
+	(vips_malloc( VIPS_OBJECT( IM ), (SZ) ))
+#define im_free vips_free
+#define im_strdup( IM, STR ) \
+	(vips_strdup( VIPS_OBJECT( IM ), (STR) ))
 #define IM_NEW( IM, T ) ((T *) im_malloc( (IM), sizeof( T )))
 #define IM_ARRAY( IM, N, T ) ((T *) im_malloc( (IM), (N) * sizeof( T )))
 

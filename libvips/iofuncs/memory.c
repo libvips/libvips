@@ -171,7 +171,7 @@ vips_malloc( VipsObject *object, size_t size )
  * Returns: a pointer to the allocated memory
  */
 char *
-vips_strdup( VipsObject *object, char *str )
+vips_strdup( VipsObject *object, const char *str )
 {
 	char *str_dup;
 
