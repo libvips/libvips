@@ -204,5 +204,7 @@ main( int argc, char *argv[] )
 			im_close( im );
 	}
 
+	vips_shutdown();
+
 	return( result );
 }

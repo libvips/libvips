@@ -145,12 +145,14 @@ vips_get_argv0( void )
  *   if( vips_init( argv[0] ) )
  *     vips_error_exit( "unable to start VIPS" );
  *
+ *   vips_shutdown();
+ *
  *   return( 0 );
  * }
  * ]|
  *
- * See also: vips_get_option_group(), vips_version(), vips_guess_prefix(),
- * vips_guess_libdir().
+ * See also: vips_shutdown(), vips_get_option_group(), vips_version(), 
+ * vips_guess_prefix(), vips_guess_libdir().
  *
  * Returns: 0 on success, -1 otherwise
  */
@@ -272,6 +274,25 @@ vips_check_init( void )
 	 */
 	if( vips_init( "giant_banana" ) )
 		vips_error_clear();
+}
+
+/**
+ * vips_shutdown:
+ *
+ * Call this to drop caches and close plugins. Handy if you're doing leak
+ * checks.
+ */
+void
+vips_shutdown( void )
+{
+	im_close_plugins();
+	vips_cache_drop_all();
+
+#ifdef DEBUG_LEAK
+	printf( "** leak test on exit:\n" );
+	im__print_all();
+	printf( "** leak test done\n" );
+#endif /*DEBUG_LEAK*/
 }
 
 const char *

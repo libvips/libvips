@@ -405,5 +405,7 @@ main( int argc, char **argv )
 			im_error_clear();
 		}
 
+	vips_shutdown();
+
 	return( 0 );
 }

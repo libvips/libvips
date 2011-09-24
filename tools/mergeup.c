@@ -560,5 +560,7 @@ char **argv;
 		if( im_close(out) == -1)
 			error_exit("unable to close\n ");
 
+	vips_shutdown();
+
 	return( 0 );
 }

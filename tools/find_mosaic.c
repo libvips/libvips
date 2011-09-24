@@ -436,6 +436,7 @@ char **argv;
 			error_exit("unable to close\n ");
 	fclose( fp );
 
+	vips_shutdown();
 
 	return( 0 );
 }
