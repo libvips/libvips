@@ -89,6 +89,10 @@ GMutex *vips__global_lock = NULL;
  */
 static char *vips__argv0 = NULL;
 
+/* Leak check on exit.
+ */
+static int vips__leak = 0;
+
 /**
  * vips_get_argv0:
  *
@@ -279,20 +283,18 @@ vips_check_init( void )
 /**
  * vips_shutdown:
  *
- * Call this to drop caches and close plugins. Handy if you're doing leak
- * checks.
+ * Call this to drop caches and close plugins. Run with "--vips-leak" to do 
+ * a leak check too.
  */
 void
 vips_shutdown( void )
 {
-	im_close_plugins();
 	vips_cache_drop_all();
 
-#ifdef DEBUG_LEAK
-	printf( "** leak test on exit:\n" );
-	im__print_all();
-	printf( "** leak test done\n" );
-#endif /*DEBUG_LEAK*/
+	if( vips__leak ) 
+		vips_object_print_all();
+
+	im_close_plugins();
 }
 
 const char *
@@ -330,6 +332,9 @@ static GOptionEntry option_entries[] = {
 	{ "vips-progress", 'p', 0, 
 		G_OPTION_ARG_NONE, &vips__progress, 
 		N_( "show progress feedback" ), NULL },
+	{ "vips-leak", 'l', 0, 
+		G_OPTION_ARG_NONE, &vips__leak, 
+		N_( "leak-check on exit" ), NULL },
 	{ "vips-disc-threshold", 'd', 0, 
 		G_OPTION_ARG_STRING, &vips__disc_threshold, 
 		N_( "images larger than N are decompressed to disc" ), "N" },

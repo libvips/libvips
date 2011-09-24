@@ -17,6 +17,7 @@
 - remove dmalloc support, was never used and valgrind is better
 - im_csv2vips() allows quoted strings, including escaped quotes
 - added vips_shutdown()
+- added --vips-leak flag
 
 10/8/11 started 7.26.3
 - don't use G_VALUE_COLLECT_INIT(), many platforms do not have a glib this

@@ -8,9 +8,6 @@
 - add vips_init_argv() which processes argc/argv for you? handy for tiny
   progs, perhaps
 
-- add vips_shutdown()? unload plugins, drop cache etc. could test for leaks
-  too
-
 
 
 
