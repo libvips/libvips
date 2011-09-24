@@ -65,13 +65,11 @@
 
 /*
 #define DEBUG_FATAL
-#define DEBUG_LEAK
 #define DEBUG
  */
 
 /* Need to disable these sometimes.
 #undef DEBUG_FATAL
-#undef DEBUG_LEAK
  */
 
 #ifdef HAVE_CONFIG_H
@@ -1014,13 +1012,7 @@ main( int argc, char **argv )
 		G_LOG_LEVEL_ERROR |
 		G_LOG_LEVEL_CRITICAL |
 		G_LOG_LEVEL_WARNING );
-
-	fprintf( stderr, "*** DEBUG_FATAL: will abort() on first warning\n" );
 #endif /*!DEBUG_FATAL*/
-
-#ifdef DEBUG_LEAK
-	fprintf( stderr, "*** DEBUG_LEAK: will leak test on exit\n" );
-#endif /*!DEBUG_LEAK*/
 
 	/* Try to find our action.
 	 */

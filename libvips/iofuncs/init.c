@@ -294,6 +294,12 @@ vips_shutdown( void )
 	if( vips__leak ) 
 		vips_object_print_all();
 
+/* In dev releases, always show leaks.
+ */
+#ifdef DEBUG_LEAK
+	vips_object_print_all();
+#endif /*DEBUG_LEAK*/
+
 	im_close_plugins();
 }
 
