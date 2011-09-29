@@ -39,10 +39,10 @@ libvips_la_SOURCES =
 
 # if we have C++ components enabled, make sure we link the top-level with c++
 #
-# sadly the if/enndif isn't enough to stop automake detecting a c++ link even
+# sadly the if/endif isn't enough to stop automake detecting a c++ link even
 # when c++ is disabled ... comment out this line if you have linking problems
 if ENABLE_CXX
-nodist_EXTRA_libvips_la_SOURCES = cimg/dummy2.cxx
+nodist_EXTRA_libvips_la_SOURCES = cimg/dummy2.cc
 endif
 
 # DLLs need dependant libs there too ... put @VIPS_LIBS@ at the end
