@@ -326,13 +326,10 @@ vips_binary_build( VipsObject *object )
 		binary->left_processed, binary->right_processed, NULL )) )
 		return( -1 );
 
-	/* Hint demand style. Being a buffer processor, we are happiest with
-	 * thin strips.
-	 */
-        if( vips_demand_hint_array( arithmetic->output, 
-		VIPS_DEMAND_STYLE_THINSTRIP, arry ) ||
-		vips_image_copy_fields_array( arithmetic->output, arry ) )
+	if( vips_image_copy_fields_array( arithmetic->output, arry ) )
 		return( -1 );
+        vips_demand_hint_array( arithmetic->output, 
+		VIPS_DEMAND_STYLE_THINSTRIP, arry );
 
 	arithmetic->output->Bands = t[4]->Bands;
 	arithmetic->output->BandFmt = aclass->format_table[t[4]->BandFmt];
@@ -357,7 +354,7 @@ vips_binary_class_init( VipsBinaryClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "binary";
-	vobject_class->description = _( "VIPS binary operations" );
+	vobject_class->description = _( "binary operations" );
 	vobject_class->build = vips_binary_build;
 
 	/* Create properties.

@@ -489,12 +489,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 	}
 	if( vips_image_pio_output( out ) )
 		return( -1 );
-
-	/* Hint demand style. Being a buffer processor, we are happiest with
-	 * thin strips.
-	 */
-        if( vips_demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in ) )
-                return( -1 );
+        vips_demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
 
 	/* Generate!
 	 */
@@ -969,4 +964,25 @@ int
 im_min( IMAGE *in, double *out )
 {
 	return( im_minpos( in, NULL, NULL, out ) );
+}
+
+#define MAX_IMAGES 100
+int
+im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...)
+{
+  va_list ap;
+  int i;
+  IMAGE *ar[MAX_IMAGES];
+
+  va_start (ap, hint);
+  for (i = 0; i < MAX_IMAGES && (ar[i] = va_arg (ap, IMAGE *)); i++)
+    ;
+  va_end (ap);
+  if (i == MAX_IMAGES)
+    {
+      im_error ("im_demand_hint", "%s", _("too many images"));
+      return (-1);
+    }
+
+  return (im_demand_hint_array (im, hint, ar));
 }

@@ -630,9 +630,9 @@ vips_image_open_lazy( VipsImage *image,
 	 * probably a disc file. We can't tell yet whether we will be opening
 	 * to memory, sadly, so we can't suggest ANY.
 	 */
-	if( format->header( filename, image ) ||
-		vips_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+	if( format->header( filename, image ) )
 		return( -1 );
+	vips_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	/* Then 'start' creates the real image and 'gen' paints 'out' with 
 	 * pixels from the real image on demand.

@@ -270,6 +270,11 @@ void vips__interpolate_init( void );
  */
 void vips__init_wrap7_classes( void );
 
+/* Start up various packages.
+ */
+void vips_arithmetic_operation_init( void );
+void vips_conversion_operation_init( void );
+
 size_t vips__parse_size( const char *size_string );
 
 #ifdef __cplusplus

@@ -261,8 +261,8 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_rect_dup vips_rect_dup
 #define im_rect_normalise vips_rect_normalise
 
-#define im_demand_hint vips_demand_hint
-#define im_demand_hint_array vips_demand_hint_array
+int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
+#define im_demand_hint_array( A, B, C ) (vips_demand_hint_array( A, B, C ), 0)
 
 #define im_start_one vips_start_one
 #define im_stop_one vips_stop_one

@@ -257,10 +257,8 @@ vips__link_map( VipsImage *image, VipsSListMap2Fn fn, void *a, void *b )
  * varargs friend vips_demand_hint().
  *
  * See also: vips_demand_hint(), vips_image_generate().
- *
- * Returns: 0 on success, or -1 on error.
  */
-int 
+void 
 vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 {
 	int i, len, nany;
@@ -317,8 +315,6 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 	 * vips_image_generate() and friends check this.
 	 */
 	image->hint_set = TRUE;
-
-	return( 0 );
 }
 
 /**
@@ -330,10 +326,8 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
  * Build an array and call vips_demand_hint_array().
  *
  * See also: vips_demand_hint(), vips_image_generate().
- *
- * Returns: 0 on success, or -1 on error.
  */
-int 
+void 
 vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
 {
 	va_list ap;
@@ -342,15 +336,18 @@ vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
 
 	va_start( ap, hint );
 	for( i = 0; i < MAX_IMAGES && 
-		(ar[i] = va_arg( ap, VipsImage * )); i++ ) 
+		(ar[i] = va_arg( ap, VipsImage * )); i++ )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		vips_error( "vips_demand_hint", "%s", _( "too many images" ) );
-		return( -1 );
+		vips_warn( "vips_demand_hint", "%s", _( "too many images" ) );
+
+		/* Make sure we have a sentinel there.
+		 */
+		ar[i - 1] = NULL;
 	}
 
-	return( vips_demand_hint_array( image, hint, ar ) );
+	vips_demand_hint_array( image, hint, ar );
 }
 
 /**

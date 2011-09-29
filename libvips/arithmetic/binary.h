@@ -1,4 +1,4 @@
-/* base class for all binary operations
+/* base class for all binary arithmetic operations
  */
 
 /*

@@ -1,7 +1,13 @@
+- VipsCopy needs optional params for all header fields it can change
+
+  how would we do meta sets?
+
+  copy_swap needs doing too, a separate class I guess
+
+
 
 - do clip/embed etc. in new style, good to get everything that VipsAdd uses in
   the new stack
-
 
 
 
@@ -11,13 +17,9 @@
 
 
 
-- im_copy() would be useful
 
-
-
-
-- could we generate the code for vips_add() automatically? it might be nice to
-  have them all in one place at least
+- could we generate the code for vips_add() etc. automatically? it might be 
+  nice to have them all in one place at least
 
 
 

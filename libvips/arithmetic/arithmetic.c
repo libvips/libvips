@@ -80,12 +80,6 @@ vips_arithmetic_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->build( object ) )
 		return( -1 );
 
-	/* Should we _generate() here? We should keep the params in the object
-	 * ready to be dropped in.
-	 *
-	 * At the moment we _generate() separately in binary.c and unary.c.
-	 */
-
 #ifdef DEBUG
 	printf( "vips_arithmetic_build: booltest = %d\n", 
 		arithmetic->booltest );
@@ -108,7 +102,7 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "arithmetic";
-	vobject_class->description = _( "VIPS arithmetic operations" );
+	vobject_class->description = _( "arithmetic operations" );
 	vobject_class->build = vips_arithmetic_build;
 
 	pspec = g_param_spec_object( "out", "Output", 

@@ -1,6 +1,9 @@
 noinst_LTLIBRARIES = libconversion.la
 
 libconversion_la_SOURCES = \
+	conversion.c \
+	conversion.h \
+	copy.c \
 	conver_dispatch.c \
 	im_black.c \
 	im_c2amph.c \
