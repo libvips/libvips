@@ -1,5 +1,15 @@
 - VipsCopy needs optional params for all header fields it can change
 
+  need a vips_argument_lookup(), see vips_argument_map(), since we need to
+  be able to find out if an optional arg has been set
+
+  added vips_object_get_argument(), look for use of
+  g_object_class_find_property() and swap for new thing, then back to copy.c
+
+  operation.c could use it too in places
+
+  copy.c things to set interpretation etc. could go into image.c
+
   how would we do meta sets?
 
   copy_swap needs doing too, a separate class I guess
