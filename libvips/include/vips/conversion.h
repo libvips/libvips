@@ -30,12 +30,17 @@
 
  */
 
-#ifndef IM_CONVERSION_H
-#define IM_CONVERSION_H
+#ifndef VIPS_CONVERSION_H
+#define VIPS_CONVERSION_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
+
+int vips_copy( VipsImage *in, VipsImage **out, ... );
+
+
+
 
 DOUBLEMASK *im_vips2mask( VipsImage *in, const char *filename );
 int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
@@ -108,4 +113,4 @@ VipsImage *im_system_image( VipsImage *im,
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_CONVERSION_H*/
+#endif /*VIPS_CONVERSION_H*/

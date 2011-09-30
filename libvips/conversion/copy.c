@@ -112,6 +112,7 @@
  */
 enum {
 	PROP_INPUT = 1,
+	PROP_SWAP,
 	PROP_WIDTH,
 	PROP_HEIGHT,
 	PROP_BANDS,
@@ -132,6 +133,10 @@ typedef struct _VipsCopy {
 	 */
 	VipsImage *input;
 
+	/* Swap bytes on the way through.
+	 */
+	gboolean swap;
+
 	/* Fields we can optionally set on the way through.
 	 */
 	VipsInterpretation interpretation;
@@ -151,6 +156,80 @@ typedef VipsConversionClass VipsCopyClass;
 
 G_DEFINE_TYPE( VipsCopy, vips_copy, VIPS_TYPE_CONVERSION );
 
+/*
+
+   	FIXME ... glib has some macros that generate asm for byte swapping, 
+	look into using these instead.
+
+	http://library.gnome.org/devel/glib/stable/glib-Byte-Order-Macros.html
+
+ */
+
+/* Swap pairs of bytes.
+ */
+static void
+vips_copy_swap2( PEL *in, PEL *out, int width, VipsImage *im )
+{ 
+        int x;
+        int sz = VIPS_IMAGE_SIZEOF_PEL( im ) * width;     /* Bytes in buffer */
+
+        for( x = 0; x < sz; x += 2 ) {
+                out[x] = in[x + 1];
+                out[x + 1] = in[x];
+        }
+}
+
+/* Swap 4- of bytes.
+ */
+static void
+vips_copy_swap4( PEL *in, PEL *out, int width, VipsImage *im )
+{
+        int x;
+        int sz = VIPS_IMAGE_SIZEOF_PEL( im ) * width;     /* Bytes in buffer */
+
+        for( x = 0; x < sz; x += 4 ) {
+                out[x] = in[x + 3];
+                out[x + 1] = in[x + 2];
+                out[x + 2] = in[x + 1];
+                out[x + 3] = in[x];
+        }
+}
+
+/* Swap 8- of bytes.
+ */
+static void
+vips_copy_swap8( PEL *in, PEL *out, int width, VipsImage *im )
+{
+        int x;
+        int sz = VIPS_IMAGE_SIZEOF_PEL( im ) * width;     /* Bytes in buffer */
+
+        for( x = 0; x < sz; x += 8 ) {
+                out[x] = in[x + 7];
+                out[x + 1] = in[x + 6];
+                out[x + 2] = in[x + 5];
+                out[x + 3] = in[x + 4];
+                out[x + 4] = in[x + 3];
+                out[x + 5] = in[x + 2];
+                out[x + 6] = in[x + 1];
+                out[x + 7] = in[x];
+        }
+}
+
+typedef void (*SwapFn)( PEL *in, PEL *out, int width, VipsImage *im );
+
+static SwapFn vips_copy_swap_fn[] = {
+	NULL, 			/* VIPS_FORMAT_UCHAR = 0, */
+	NULL, 			/* VIPS_FORMAT_CHAR = 1, */
+	vips_copy_swap2,	/* VIPS_FORMAT_USHORT = 2, */
+	vips_copy_swap2, 	/* VIPS_FORMAT_SHORT = 3, */
+	vips_copy_swap4, 	/* VIPS_FORMAT_UINT = 4, */
+	vips_copy_swap4, 	/* VIPS_FORMAT_INT = 5, */
+	vips_copy_swap4, 	/* VIPS_FORMAT_FLOAT = 6, */
+	vips_copy_swap4, 	/* VIPS_FORMAT_COMPLEX = 7, */
+	vips_copy_swap8, 	/* VIPS_FORMAT_DOUBLE = 8, */
+	vips_copy_swap8 	/* VIPS_FORMAT_DPCOMPLEX = 9, */
+};
+
 /* Copy a small area.
  */
 static int
@@ -158,16 +237,31 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
+	VipsCopy *copy = (VipsCopy *) b; 
 
 	/* Ask for input we need.
 	 */
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
-	/* Attach output region to that.
-	 */
-	if( vips_region_region( or, ir, r, r->left, r->top ) )
-		return( -1 );
+	if( copy->swap ) {
+		SwapFn swap = vips_copy_swap_fn[copy->input->BandFmt];
+		int y;
+
+		for( y = 0; y < r->height; y++ ) {
+			PEL *p = (PEL *) VIPS_REGION_ADDR( ir, 
+				r->left, r->top + y );
+			PEL *q = (PEL *) VIPS_REGION_ADDR( or, 
+				r->left, r->top + y );
+
+			swap( p, q, r->width, copy->input );
+		}
+	}
+	else
+		/* Nothing to do, just copy with pointers.
+		 */
+		if( vips_region_region( or, ir, r, r->left, r->top ) )
+			return( -1 );
 
 	return( 0 );
 }
@@ -269,13 +363,22 @@ vips_copy_class_init( VipsCopyClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, input ) );
 
+	pspec = g_param_spec_boolean( "swap", "Swap",
+		_( "Swap bytes in image between little and big-endian" ),
+		FALSE,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_SWAP, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsCopy, swap ) );
+
 	pspec = g_param_spec_int( "width", "Width",
 		_( "Image width in pixels" ),
 		0, 1000000, 0,
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_WIDTH, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, width ) );
 
 	pspec = g_param_spec_int( "height", "Height",
@@ -284,7 +387,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_HEIGHT, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, height ) );
 
 	pspec = g_param_spec_int( "bands", "Bands",
@@ -293,7 +396,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_BANDS, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, bands ) );
 
 	pspec = g_param_spec_enum( "format", "Format",
@@ -302,7 +405,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_FORMAT, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, format ) );
 
 	pspec = g_param_spec_enum( "coding", "Coding",
@@ -311,7 +414,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_CODING, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, coding ) );
 
 	pspec = g_param_spec_enum( "interpretation", "Interpretation",
@@ -321,7 +424,7 @@ vips_copy_class_init( VipsCopyClass *class )
 	g_object_class_install_property( gobject_class, 
 		PROP_INTERPRETATION, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, interpretation ) );
 
 	pspec = g_param_spec_double( "xres", "XRes",
@@ -330,7 +433,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_XRES, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, xres ) );
 
 	pspec = g_param_spec_double( "yres", "YRes",
@@ -339,7 +442,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_YRES, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, yres ) );
 
 	pspec = g_param_spec_int( "xoffset", "XOffset",
@@ -348,7 +451,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_XOFFSET, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, xoffset ) );
 
 	pspec = g_param_spec_int( "yoffset", "YOffset",
@@ -357,7 +460,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		G_PARAM_READWRITE );
 	g_object_class_install_property( gobject_class, PROP_YOFFSET, pspec );
 	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCopy, yoffset ) );
 
 }
@@ -367,4 +470,17 @@ vips_copy_init( VipsCopy *copy )
 {
 	/* Init our instance fields.
 	 */
+}
+
+int
+vips_copy( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "copy", ap, in, out );
+	va_end( ap );
+
+	return( result );
 }

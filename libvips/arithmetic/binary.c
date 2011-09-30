@@ -254,7 +254,7 @@ vips__bandalike( const char *domain,
  */
 
 static int
-vips_binary_process_region( VipsRegion *or, 
+vips_binary_gen( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion **ir = (VipsRegion **) seq;
@@ -335,7 +335,7 @@ vips_binary_build( VipsObject *object )
 	arithmetic->output->BandFmt = aclass->format_table[t[4]->BandFmt];
 
 	if( vips_image_generate( arithmetic->output,
-		vips_start_many, vips_binary_process_region, vips_stop_many, 
+		vips_start_many, vips_binary_gen, vips_stop_many, 
 		arry, binary ) )
 		return( -1 );
 
