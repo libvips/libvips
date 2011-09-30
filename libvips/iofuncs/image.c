@@ -150,6 +150,12 @@ enum {
 	PROP_HEIGHT,
 	PROP_BANDS,
 	PROP_FORMAT,
+	PROP_CODING,
+	PROP_INTERPRETATION,
+	PROP_XRES,
+	PROP_YRES,
+	PROP_XOFFSET,
+	PROP_YOFFSET,
 	PROP_FILENAME,
 	PROP_KILL,
 	PROP_MODE,
@@ -1001,6 +1007,61 @@ vips_image_class_init( VipsImageClass *class )
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_SET_ONCE, 
 		G_STRUCT_OFFSET( VipsImage, BandFmt ) );
+
+	pspec = g_param_spec_enum( "coding", "Coding",
+		_( "Pixel coding" ),
+		VIPS_TYPE_CODING, VIPS_CODING_NONE, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_CODING, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsImage, Coding ) );
+
+	pspec = g_param_spec_enum( "interpretation", "Interpretation",
+		_( "Pixel interpretation" ),
+		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_MULTIBAND, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, 
+		PROP_INTERPRETATION, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsImage, Type ) );
+
+	pspec = g_param_spec_double( "xres", "XRes",
+		_( "Horizontal resolution in pixels/mm" ),
+		0, 1000000, 0, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_XRES, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsImage, Xres ) );
+
+	pspec = g_param_spec_double( "yres", "YRes",
+		_( "Vertical resolution in pixels/mm" ),
+		0, 1000000, 0, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_YRES, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsImage, Yres ) );
+
+	pspec = g_param_spec_int( "xoffset", "XOffset",
+		_( "Horizontal offset of origin" ),
+		-10000000, 1000000, 0, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_XOFFSET, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsImage, Xoffset ) );
+
+	pspec = g_param_spec_int( "yoffset", "YOffset",
+		_( "Vertical offset of origin" ),
+		-10000000, 1000000, 0, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_YOFFSET, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsImage, Yoffset ) );
 
 	pspec = g_param_spec_string( "filename", "Filename",
 		_( "Image filename" ),

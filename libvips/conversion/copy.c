@@ -109,22 +109,19 @@
  */
 
 /* Properties.
- *
- * Order important! Keep in sync with vips_copy_names[] below.
  */
 enum {
 	PROP_INPUT = 1,
+	PROP_WIDTH,
+	PROP_HEIGHT,
+	PROP_BANDS,
+	PROP_FORMAT,
+	PROP_CODING,
 	PROP_INTERPRETATION,
 	PROP_XRES,
 	PROP_YRES,
 	PROP_XOFFSET,
 	PROP_YOFFSET,
-	PROP_BANDS,
-	PROP_FORMAT,
-	PROP_CODING,
-	PROP_WIDTH,
-	PROP_HEIGHT,
-
 	PROP_LAST
 }; 
 
@@ -178,18 +175,16 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 /* The props we copy, if set, from the operation to the image.
  */
 static const char *vips_copy_names[] = {
-	NULL,			/* unused */
-	NULL, 			/* PROP_INPUT = 1 */
-	"interpretation", 	/* PROP_INTERPRETATION, */
-	"xres", 		/* PROP_XRES, */
-	"yres", 		/* PROP_YRES, */
-	"xoffset", 		/* PROP_XOFFSET, */
-	"xoffset", 		/* PROP_YOFFSET, */
-	"bands", 		/* PROP_BANDS, */
-	"format", 		/* PROP_FORMAT, */
-	"coding", 		/* PROP_CODING, */
-	"width", 		/* PROP_WIDTH, */
-	"height" 		/* PROP_HEIGHT, */
+	"interpretation", 
+	"xres", 	
+	"yres", 
+	"xoffset", 
+	"xoffset",
+	"bands", 
+	"format", 		
+	"coding", 	
+	"width", 
+	"height"
 }; 
 
 static int
@@ -214,7 +209,7 @@ vips_copy_build( VipsObject *object )
 
 	/* Use props to adjust header fields.
 	 */
-	for( i = 2; i < PROP_LAST; i++ ) {
+	for( i = 0; i < VIPS_NUMBER( vips_copy_names ); i++ ) {
 		const char *name = vips_copy_names[i];
 
 		GParamSpec *pspec;
@@ -274,6 +269,51 @@ vips_copy_class_init( VipsCopyClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, input ) );
 
+	pspec = g_param_spec_int( "width", "Width",
+		_( "Image width in pixels" ),
+		0, 1000000, 0,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_WIDTH, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsCopy, width ) );
+
+	pspec = g_param_spec_int( "height", "Height",
+		_( "Image height in pixels" ),
+		0, 1000000, 0,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_HEIGHT, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsCopy, height ) );
+
+	pspec = g_param_spec_int( "bands", "Bands",
+		_( "Number of bands in image" ),
+		0, 1000000, 0, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_BANDS, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsCopy, bands ) );
+
+	pspec = g_param_spec_enum( "format", "Format",
+		_( "Pixel format in image" ),
+		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_FORMAT, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsCopy, format ) );
+
+	pspec = g_param_spec_enum( "coding", "Coding",
+		_( "Pixel coding" ),
+		VIPS_TYPE_CODING, VIPS_CODING_NONE, 
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_CODING, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_SET_ONCE, 
+		G_STRUCT_OFFSET( VipsCopy, coding ) );
+
 	pspec = g_param_spec_enum( "interpretation", "Interpretation",
 		_( "Pixel interpretation" ),
 		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_MULTIBAND, 
@@ -319,51 +359,6 @@ vips_copy_class_init( VipsCopyClass *class )
 	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_SET_ONCE, 
 		G_STRUCT_OFFSET( VipsCopy, yoffset ) );
-
-	pspec = g_param_spec_int( "bands", "Bands",
-		_( "Number of bands in image" ),
-		0, 1000000, 0, 
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, PROP_BANDS, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
-		G_STRUCT_OFFSET( VipsCopy, bands ) );
-
-	pspec = g_param_spec_enum( "format", "Format",
-		_( "Pixel format in image" ),
-		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR, 
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, PROP_FORMAT, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
-		G_STRUCT_OFFSET( VipsCopy, format ) );
-
-	pspec = g_param_spec_enum( "coding", "Coding",
-		_( "Pixel coding" ),
-		VIPS_TYPE_CODING, VIPS_CODING_NONE, 
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, PROP_FORMAT, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
-		G_STRUCT_OFFSET( VipsCopy, coding ) );
-
-	pspec = g_param_spec_int( "width", "Width",
-		_( "Image width in pixels" ),
-		0, 1000000, 0,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, PROP_WIDTH, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
-		G_STRUCT_OFFSET( VipsCopy, width ) );
-
-	pspec = g_param_spec_int( "height", "Height",
-		_( "Image height in pixels" ),
-		0, 1000000, 0,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, PROP_HEIGHT, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_SET_ONCE, 
-		G_STRUCT_OFFSET( VipsCopy, height ) );
 
 }
 
