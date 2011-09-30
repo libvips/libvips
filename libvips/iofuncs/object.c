@@ -1260,27 +1260,21 @@ vips_object_set_argument_from_string( VipsObject *object,
 gboolean
 vips_object_get_argument_needs_string( VipsObject *object, const char *name )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-
 	GParamSpec *pspec;
 	GType otype;
 	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
 	VipsObjectClass *oclass;
 
 #ifdef DEBUG
 	printf( "vips_object_get_argument_needs_string: %s\n", name );
 #endif /*DEBUG*/
 
-	pspec = g_object_class_find_property( G_OBJECT_CLASS( class ), name );
-	if( !pspec ) {
-		vips_error( "VipsObject", _( "%s.%s does not exist" ),
-			G_OBJECT_TYPE_NAME( object ), name );
+	if( vips_object_get_argument( object, name,
+		&pspec, &argument_class, &argument_instance ) )
 		return( -1 );
-	}
-	otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
 
-	argument_class = (VipsArgumentClass *)
-		vips__argument_table_lookup( class->argument_table, pspec );
+	otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
 
 	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
 
@@ -1316,11 +1310,10 @@ int
 vips_object_get_argument_to_string( VipsObject *object, 
 	const char *name, const char *arg )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-
 	GParamSpec *pspec;
 	GType otype;
 	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
 	VipsObjectClass *oclass;
 
 #ifdef DEBUG
@@ -1328,16 +1321,11 @@ vips_object_get_argument_to_string( VipsObject *object,
 		name, arg );
 #endif /*DEBUG*/
 
-	pspec = g_object_class_find_property( G_OBJECT_CLASS( class ), name );
-	if( !pspec ) {
-		vips_error( "VipsObject", _( "%s.%s does not exist" ),
-			G_OBJECT_TYPE_NAME( object ), name );
+	if( vips_object_get_argument( object, name,
+		&pspec, &argument_class, &argument_instance ) )
 		return( -1 );
-	}
-	otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
 
-	argument_class = (VipsArgumentClass *)
-		vips__argument_table_lookup( class->argument_table, pspec );
+	otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
 
 	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
 

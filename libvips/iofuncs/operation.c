@@ -311,11 +311,6 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 static int
 vips_operation_set_valist_optional( VipsOperation *operation, va_list ap )
 {
-	VipsOperationClass *class = 
-		VIPS_OPERATION_GET_CLASS( operation );
-	VipsArgumentTable *argument_table =
-		VIPS_OBJECT_CLASS( class )->argument_table;
-
 	char *name;
 
 	VIPS_DEBUG_MSG( "vips_operation_set_valist_optional:\n" );
@@ -325,29 +320,22 @@ vips_operation_set_valist_optional( VipsOperation *operation, va_list ap )
 	while( name ) {
 		GParamSpec *pspec;
 		VipsArgumentClass *argument_class;
+		VipsArgumentInstance *argument_instance;
 
 		VIPS_DEBUG_MSG( "\tname = '%s' (%p)\n", name, name );
 
-		if( !(pspec = g_object_class_find_property( 
-			G_OBJECT_CLASS( class ), name )) ) {
-			vips_error( VIPS_OBJECT_CLASS( class )->description, 
-				_( "class `%s' has no property named `%s'\n" ),
-				G_OBJECT_TYPE_NAME( operation ), name );
+		if( vips_object_get_argument( VIPS_OBJECT( operation ), name,
+			&pspec, &argument_class, &argument_instance ) )
 			return( -1 );
-		}
 
-		argument_class = (VipsArgumentClass *)
-			vips__argument_table_lookup( argument_table, pspec );
-		if( argument_class ) {
-			VIPS_OPERATION_COLLECT_SET( pspec, argument_class, ap );
+		VIPS_OPERATION_COLLECT_SET( pspec, argument_class, ap );
 
-			g_object_set_property( G_OBJECT( operation ), 
-				name, &value );
+		g_object_set_property( G_OBJECT( operation ), 
+			name, &value );
 
-			VIPS_OPERATION_COLLECT_GET( pspec, argument_class, ap );
+		VIPS_OPERATION_COLLECT_GET( pspec, argument_class, ap );
 
-			VIPS_OPERATION_COLLECT_END
-		}
+		VIPS_OPERATION_COLLECT_END
 
 		name = va_arg( ap, char * );
 	}
@@ -402,11 +390,6 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 static int
 vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 {
-	VipsOperationClass *class = 
-		VIPS_OPERATION_GET_CLASS( operation );
-	VipsArgumentTable *argument_table =
-		VIPS_OBJECT_CLASS( class )->argument_table;
-
 	char *name;
 
 	VIPS_DEBUG_MSG( "vips_operation_get_valist_optional:\n" );
@@ -416,53 +399,46 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 	while( name ) {
 		GParamSpec *pspec;
 		VipsArgumentClass *argument_class;
+		VipsArgumentInstance *argument_instance;
 
 		VIPS_DEBUG_MSG( "\tname = '%s' (%p)\n", name, name );
 
-		if( !(pspec = g_object_class_find_property( 
-			G_OBJECT_CLASS( class ), name )) ) {
-			vips_error( VIPS_OBJECT_CLASS( class )->description, 
-				_( "class `%s' has no property named `%s'\n" ),
-				G_OBJECT_TYPE_NAME( operation ), name );
+		if( vips_object_get_argument( VIPS_OBJECT( operation ), name,
+			&pspec, &argument_class, &argument_instance ) )
 			return( -1 );
-		}
 
-		argument_class = (VipsArgumentClass *)
-			vips__argument_table_lookup( argument_table, pspec );
-		if( argument_class ) {
-			VIPS_OPERATION_COLLECT_SET( pspec, argument_class, ap );
+		VIPS_OPERATION_COLLECT_SET( pspec, argument_class, ap );
 
-			g_object_set_property( G_OBJECT( operation ), 
-				name, &value );
+		g_object_set_property( G_OBJECT( operation ), 
+			name, &value );
 
-			VIPS_OPERATION_COLLECT_GET( pspec, argument_class, ap );
+		VIPS_OPERATION_COLLECT_GET( pspec, argument_class, ap );
 
 #ifdef VIPS_DEBUG
-			printf( "\twriting %s to %p\n", 
-				g_param_spec_get_name( pspec ), arg );
+		printf( "\twriting %s to %p\n", 
+			g_param_spec_get_name( pspec ), arg );
 #endif /*VIPS_DEBUG */
 
-			/* If the dest pointer is NULL, skip the read.
+		/* If the dest pointer is NULL, skip the read.
+		 */
+		if( arg ) {
+			g_object_get( G_OBJECT( operation ), 
+				g_param_spec_get_name( pspec ), arg, 
+				NULL );
+
+			/* If the pspec is an object, that will up 
+			 * the ref count. We want to hand over the 
+			 * ref, so we have to knock it down again.
 			 */
-			if( arg ) {
-				g_object_get( G_OBJECT( operation ), 
-					g_param_spec_get_name( pspec ), arg, 
-					NULL );
+			if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
+				GObject *object;
 
-				/* If the pspec is an object, that will up 
-				 * the ref count. We want to hand over the 
-				 * ref, so we have to knock it down again.
-				 */
-				if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
-					GObject *object;
-
-					object = *((GObject **) arg);
-					g_object_unref( object ); 
-				}
+				object = *((GObject **) arg);
+				g_object_unref( object ); 
 			}
-
-			VIPS_OPERATION_COLLECT_END
 		}
+
+		VIPS_OPERATION_COLLECT_END
 
 		name = va_arg( ap, char * );
 	}

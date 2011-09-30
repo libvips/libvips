@@ -14,6 +14,8 @@
 
   copy_swap needs doing too, a separate class I guess
 
+  or add a "swap" prop and an enum like VIPS_SWAP8, VIPS_SWAP2 etc.?
+
 
 
 - do clip/embed etc. in new style, good to get everything that VipsAdd uses in

@@ -73,6 +73,10 @@
 
  */
 
+/*
+ */
+#define VIPS_DEBUG
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -84,6 +88,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #include "conversion.h"
 
@@ -95,14 +100,20 @@
  * Copy an image, optionally modifying the header. VIPS copies images by 
  * copying pointers, so this operation is fast, even for very large images.
  *
+ * You can optionally set any or all header fields during the copy. Some
+ * header fields, such as "xres", the horizontal resolution, are safe to
+ * change in any way, others, such as "width" will cause immediate crashes if
+ * they are not set carefully. 
+ *
  * Returns: 0 on success, -1 on error.
  */
 
 /* Properties.
+ *
+ * Order important! Keep in sync with vips_copy_names[] below.
  */
 enum {
 	PROP_INPUT = 1,
-
 	PROP_INTERPRETATION,
 	PROP_XRES,
 	PROP_YRES,
@@ -164,11 +175,30 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	return( 0 );
 }
 
+/* The props we copy, if set, from the operation to the image.
+ */
+static const char *vips_copy_names[] = {
+	NULL,			/* unused */
+	NULL, 			/* PROP_INPUT = 1 */
+	"interpretation", 	/* PROP_INTERPRETATION, */
+	"xres", 		/* PROP_XRES, */
+	"yres", 		/* PROP_YRES, */
+	"xoffset", 		/* PROP_XOFFSET, */
+	"xoffset", 		/* PROP_YOFFSET, */
+	"bands", 		/* PROP_BANDS, */
+	"format", 		/* PROP_FORMAT, */
+	"coding", 		/* PROP_CODING, */
+	"width", 		/* PROP_WIDTH, */
+	"height" 		/* PROP_HEIGHT, */
+}; 
+
 static int
 vips_copy_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsCopy *copy = (VipsCopy *) object;
+
+	int i;
 
 	if( VIPS_OBJECT_CLASS( vips_copy_parent_class )->build( object ) )
 		return( -1 );
@@ -177,11 +207,39 @@ vips_copy_build( VipsObject *object )
 		vips_image_pio_output( conversion->output ) )
 		return( -1 );
 
-	/* Use props to adjust header fields.
-	 */
-
+	if( vips_image_copy_fields( conversion->output, copy->input ) )
+		return( -1 );
         vips_demand_hint( conversion->output, 
 		VIPS_DEMAND_STYLE_THINSTRIP, copy->input, NULL );
+
+	/* Use props to adjust header fields.
+	 */
+	for( i = 2; i < PROP_LAST; i++ ) {
+		const char *name = vips_copy_names[i];
+
+		GParamSpec *pspec;
+		VipsArgumentClass *argument_class;
+		VipsArgumentInstance *argument_instance;
+
+		if( vips_object_get_argument( object, name,
+			&pspec, &argument_class, &argument_instance ) )
+			return( -1 );
+
+		if( argument_instance->assigned ) {
+			GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+			GValue value = { 0, };
+
+			VIPS_DEBUG_MSG( "vips_copy_build: assigning %s\n", 
+				name );
+
+			g_value_init( &value, type );
+			g_object_get_property( G_OBJECT( object ), 
+				name, &value );
+			g_object_set_property( G_OBJECT( conversion->output ), 
+				name, &value );
+			g_value_unset( &value );
+		}
+	}
 
 	if( vips_image_generate( conversion->output,
 		vips_start_one, vips_copy_gen, vips_stop_one, 
