@@ -1205,10 +1205,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	GValue gvalue = { 0 };
 
-#ifdef DEBUG
-	printf( "vips_object_set_argument_from_string: %s = %s\n", 
+	VIPS_DEBUG_MSG( "vips_object_set_argument_from_string: %s = %s\n", 
 		name, value );
-#endif /*DEBUG*/
 
 	if( vips_object_get_argument( object, name,
 		&pspec, &argument_class, &argument_instance ) )
@@ -1251,6 +1249,25 @@ vips_object_set_argument_from_string( VipsObject *object,
 	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
 		g_value_init( &gvalue, G_TYPE_DOUBLE );
 		g_value_set_double( &gvalue, atof( value ) );
+	}
+	else if( G_IS_PARAM_SPEC_ENUM( pspec ) ) {
+		GEnumValue *enum_value;
+
+		if( !(enum_value = g_enum_get_value_by_name( 
+			g_type_class_ref( otype ), value )) ) {
+			if( !(enum_value = g_enum_get_value_by_nick( 
+				g_type_class_ref( otype ), value )) ) {
+				vips_error( 
+					"vips_object_set_argument_from_string",
+					_( "enum '%s' has no member '%s'" ),
+					g_type_name( otype ),
+					value );
+				return( -1 );
+			}
+		}
+
+		g_value_init( &gvalue, otype );
+		g_value_set_enum( &gvalue, enum_value->value );
 	}
 	else {
 		g_value_init( &gvalue, G_TYPE_STRING );
