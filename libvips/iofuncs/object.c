@@ -41,6 +41,7 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <vips/vips.h>
@@ -1243,6 +1244,14 @@ vips_object_set_argument_from_string( VipsObject *object,
 			b = FALSE;
 		g_value_set_boolean( &gvalue, b );
 	}
+	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
+		g_value_init( &gvalue, G_TYPE_INT );
+		g_value_set_int( &gvalue, atoi( value ) );
+	}
+	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
+		g_value_init( &gvalue, G_TYPE_DOUBLE );
+		g_value_set_double( &gvalue, atof( value ) );
+	}
 	else {
 		g_value_init( &gvalue, G_TYPE_STRING );
 		g_value_set_string( &gvalue, value );
@@ -1254,7 +1263,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 	return( 0 );
 }
 
-/* Does a named output arg need an argument to write to? For example, an image
+/* Does an vipsargument need an argument to write to? For example, an image
  * output needs a filename, a double output just prints.
  */
 gboolean
@@ -1274,17 +1283,22 @@ vips_object_get_argument_needs_string( VipsObject *object, const char *name )
 		&pspec, &argument_class, &argument_instance ) )
 		return( -1 );
 
-	otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
-
-	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
-
-	/* For now, only vipsobject subclasses can ask for args.
-	 */
-	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
+	if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
+		/* Bools, input or output, don't need args.
+		 */
+		return( FALSE );
+	else if( argument_class->flags & VIPS_ARGUMENT_INPUT ) 
+		/* All other inputs need something.
+		 */
+		return( TRUE );
+	if( (otype = G_PARAM_SPEC_VALUE_TYPE( pspec )) &&
+		g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
 		(oclass = g_type_class_ref( otype )) )
+		/* For now, only vipsobject subclasses can ask for args.
+		 */
 		return( oclass->output_needs_arg );
-
-	return( FALSE );
+	else
+		return( FALSE );
 }
 
 static void

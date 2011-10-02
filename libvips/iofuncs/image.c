@@ -960,7 +960,7 @@ vips_image_class_init( VipsImageClass *class )
 	vobject_class->output_to_arg = vips_image_write_object;
 
 	vobject_class->nickname = "image";
-	vobject_class->description = _( "VIPS image class" );
+	vobject_class->description = _( "image class" );
 
 	vobject_class->print = vips_image_print;
 	vobject_class->sanity = vips_image_sanity;
@@ -1581,6 +1581,9 @@ vips_image_new_mode( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
+	g_assert( filename );
+	g_assert( mode );
+
 	vips_check_init();
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
@@ -1769,6 +1772,8 @@ int
 vips_image_write( VipsImage *image, const char *filename )
 {
 	VipsImage *out;
+
+	g_assert( filename );
 
 	if( !(out = vips_image_new_mode( filename, "w" )) )
 		return( -1 );

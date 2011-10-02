@@ -346,6 +346,8 @@ vips_copy_class_init( VipsCopyClass *class )
 
 	GParamSpec *pspec;
 
+	VIPS_DEBUG_MSG( "vips_copy_class_init\n" );
+
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 

@@ -2,9 +2,9 @@
 
   how would we do meta sets?
 
-  copy_swap needs doing too, a separate class I guess
+  vips_object_set_argument_from_string() needs more arg types
 
-  or add a "swap" prop? we have a enum for native etc. somewhere
+  must be some way to make this more automatic
 
 
 
