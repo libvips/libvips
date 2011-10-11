@@ -2,6 +2,7 @@
 - fallback vips_init() 
 - im_openout() compat stub was wrong, breaking ruby-vips
 - vips_class_map_concrete_all() needed a compat macro too
+- vips_class_map_all() was broken
 
 10/8/11 started 7.26.3
 - don't use G_VALUE_COLLECT_INIT(), many platforms do not have a glib this
