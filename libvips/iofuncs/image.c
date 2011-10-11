@@ -1759,8 +1759,53 @@ vips_image_new_disc_temp( const char *format )
 	return( image );
 }
 
+static int
+vips_image_write_gen( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsRect *r = &or->valid;
+
+	/* Copy with pointers.
+	 */
+	if( vips_region_prepare( ir, r ) ||
+		vips_region_region( or, ir, r, r->left, r->top ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /**
  * vips_image_write:
+ * @image: image to write
+ * @out: write to this image
+ *
+ * A convenience function to write a #VipsImage to another #VipsImage. Unlike
+ * vips_copy(), you can specify the #VipsImage you want to write to.
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_image_write( VipsImage *image, VipsImage *out )
+{
+	if( vips_image_pio_input( image ) || 
+		vips_image_pio_output( out ) )
+		return( -1 );
+	if( vips_image_copy_fields( out, image ) )
+		return( -1 );
+        vips_demand_hint( out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, image, NULL );
+
+	if( vips_image_generate( out,
+		vips_start_one, vips_image_write_gen, vips_stop_one, 
+		copy->input, copy ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * vips_image_write_filename:
  * @image: image to write
  * @filename: write to this file
  *
@@ -1769,7 +1814,7 @@ vips_image_new_disc_temp( const char *format )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_image_write( VipsImage *image, const char *filename )
+vips_image_write_filename( VipsImage *image, const char *filename )
 {
 	VipsImage *out;
 
@@ -1777,7 +1822,7 @@ vips_image_write( VipsImage *image, const char *filename )
 
 	if( !(out = vips_image_new_mode( filename, "w" )) )
 		return( -1 );
-	if( im_copy( image, out ) ) {
+	if( vips_image_write( image, out ) ) {
 		g_object_unref( out );
 		return( -1 );
 	}
@@ -2060,7 +2105,7 @@ vips_image_wio_input( VipsImage *image )
 		 */
 		if( !(t1 = vips_image_new_mode( "wio_input", "t" )) ) 
 			return( -1 );
-		if( im_copy( image, t1 ) ) {
+		if( vips_image_write( image, t1 ) ) {
 			g_object_unref( t1 );
 			return( -1 );
 		}

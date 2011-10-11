@@ -986,3 +986,59 @@ im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...)
 
   return (im_demand_hint_array (im, hint, ar));
 }
+
+int 
+im_copy_set( IMAGE *in, IMAGE *out, 
+	VipsType type, float xres, float yres, int xoffset, int yoffset )
+{
+	return( vips_copy( in, out, 
+		"interpretation", type, 
+		"xres", xres, 
+		"yres", yres, 
+		"xoffset", xoffset, 
+		"yoffset", yoffset, 
+		NULL ) );
+}
+
+int 
+im_copy_morph( IMAGE *in, IMAGE *out, 
+	int bands, VipsBandFmt bandfmt, VipsCoding coding )
+{
+	return( vips_copy( in, out, 
+		"bands", bands, 
+		"format", bandfmt, 
+		"coding", coding, 
+		NULL ) );
+}
+
+int
+im_copy( IMAGE *in, IMAGE *out )
+{
+	return( im_copy_set( in, out, 
+		in->Type, in->Xres, in->Yres, 0, 0 ) );
+}
+
+int
+im_copy_swap( IMAGE *in, IMAGE *out )
+{
+	return( vips_copy( in, out, "swap", TRUE, NULL ) );
+}
+
+int
+im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value )
+{
+	if( im_copy( in, out ) )
+		return( 1 );
+	im_meta_set( out, field, value );
+
+	return( 0 );
+}
+
+int
+im_copy_native( IMAGE *in, IMAGE *out, gboolean is_msb_first )
+{
+	if( is_msb_first != im_amiMSBfirst() )
+		return( im_copy_swap( in, out ) );
+	else
+		return( im_copy( in, out ) );
+}

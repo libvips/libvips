@@ -1,3 +1,22 @@
+- vips_image_write() uses im_copy() to send an image to a file
+
+  but im_copy() now calls vips_copy(), which can't actually write to a
+  specific descriptor!
+
+  vips_image_write() needs to do some behind-the-scenes magic, I'm not quite
+  sure what
+
+  	just vips_image_generate() with a pointer copy I think, basically
+	vipscopy without creating the output
+
+  rename as vips_image_write_to_filename(), vips_image_write() should write to
+  a VipsImage
+
+  im_add() etc. compat functions need to start calling vips_image_write() 
+  instead of im_copy()
+
+
+
 - vipscopy
 
   how would we do meta sets?

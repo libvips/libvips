@@ -526,6 +526,17 @@ int im_min( VipsImage *in, double *out );
 int im_minpos( VipsImage *in, int *xpos, int *ypos, double *out );
 int im_avg( VipsImage *in, double *out );
 
+int im_copy( VipsImage *in, VipsImage *out );
+int im_copy_set( VipsImage *in, VipsImage *out, 
+	VipsInterpretation interpretation, 
+	float xres, float yres, int xoffset, int yoffset );
+int im_copy_set_meta( VipsImage *in, VipsImage *out, 
+	const char *field, GValue *value );
+int im_copy_morph( VipsImage *in, VipsImage *out, 
+	int bands, VipsBandFormat format, VipsCoding coding );
+int im_copy_swap( VipsImage *in, VipsImage *out );
+int im_copy_native( VipsImage *in, VipsImage *out, gboolean is_msb_first );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
