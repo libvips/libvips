@@ -164,7 +164,7 @@ extern "C" {
 #define im_invalidate vips_image_invalidate_all
 #define im_isfile vips_image_isfile
 #define im_printdesc( I ) vips_object_print( VIPS_OBJECT( I ) )
-#define im_openout( F ) vips_image_new_from_file( F, "w" )
+#define im_openout( F ) vips_image_new_mode( F, "w" )
 #define im_setbuf( F ) vips_image_new( "t" )
 
 #define im_initdesc( image, \
