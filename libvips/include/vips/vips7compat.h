@@ -486,6 +486,10 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 #define im_concurrency_set vips_concurrency_set
 #define im_concurrency_get vips_concurrency_get
 
+/* ruby-vips uses this
+ */
+#define vips_class_map_concrete_all vips_class_map_all
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
