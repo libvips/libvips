@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-16 15:05+0100\n"
+"POT-Creation-Date: 2011-10-11 21:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -479,7 +479,7 @@ msgstr ""
 #: libvips/conversion/im_grid.c:168 libvips/conversion/im_replicate.c:151
 #: libvips/convolution/im_contrast_surface.c:144
 #: libvips/format/im_tile_cache.c:408 libvips/iofuncs/sinkscreen.c:1086
-#: libvips/iofuncs/image.c:889 libvips/morphology/im_rank.c:346
+#: libvips/iofuncs/image.c:891 libvips/morphology/im_rank.c:346
 msgid "bad parameters"
 msgstr ""
 
@@ -556,7 +556,7 @@ msgid "bad input mask"
 msgstr ""
 
 #: libvips/conversion/im_embed.c:332 libvips/conversion/im_embed.c:460
-#: libvips/iofuncs/image.c:1829
+#: libvips/iofuncs/image.c:1839
 msgid "bad dimensions"
 msgstr ""
 
@@ -1312,7 +1312,7 @@ msgstr ""
 msgid "VIPS operations"
 msgstr ""
 
-#: libvips/iofuncs/operation.c:603
+#: libvips/iofuncs/operation.c:605
 msgid "too few arguments"
 msgstr ""
 
@@ -1411,123 +1411,123 @@ msgstr ""
 msgid "unable to close fd"
 msgstr ""
 
-#: libvips/iofuncs/image.c:368
+#: libvips/iofuncs/image.c:370
 #, c-format
 msgid "%dx%d %s, %d band, %s"
 msgid_plural "%dx%d %s, %d bands, %s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: libvips/iofuncs/image.c:741
+#: libvips/iofuncs/image.c:743
 #, c-format
 msgid "%s %s: %d threads, %d x %d tiles, groups of %d scanlines"
 msgstr ""
 
-#: libvips/iofuncs/image.c:754
+#: libvips/iofuncs/image.c:756
 #, c-format
 msgid "%s %s: %d%% complete"
 msgstr ""
 
 #. Spaces at end help to erase the %complete message we overwrite.
 #.
-#: libvips/iofuncs/image.c:771
+#: libvips/iofuncs/image.c:773
 #, c-format
 msgid "%s %s: done in %ds          \n"
 msgstr ""
 
-#: libvips/iofuncs/image.c:917
+#: libvips/iofuncs/image.c:919
 #, c-format
 msgid "unable to open \"%s\", file too short"
 msgstr ""
 
-#: libvips/iofuncs/image.c:927
+#: libvips/iofuncs/image.c:929
 #, c-format
 msgid "%s is longer than expected"
 msgstr ""
 
-#: libvips/iofuncs/image.c:944
+#: libvips/iofuncs/image.c:946
 #, c-format
 msgid "bad mode \"%s\""
 msgstr ""
 
-#: libvips/iofuncs/image.c:1000
+#: libvips/iofuncs/image.c:1002
 msgid "VIPS image class"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1015
+#: libvips/iofuncs/image.c:1017
 msgid "Image width in pixels"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1023
+#: libvips/iofuncs/image.c:1025
 msgid "Image height in pixels"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1031
+#: libvips/iofuncs/image.c:1033
 msgid "Number of bands in image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1040
+#: libvips/iofuncs/image.c:1042
 msgid "Pixel format in image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1049
+#: libvips/iofuncs/image.c:1051
 msgid "Image filename"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1058
+#: libvips/iofuncs/image.c:1060
 msgid "Open mode"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1067
+#: libvips/iofuncs/image.c:1069
 msgid "Block evaluation on this image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1076
+#: libvips/iofuncs/image.c:1078
 msgid "Preferred demand style for this image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1085
+#: libvips/iofuncs/image.c:1087
 msgid "Offset in bytes from start of file"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1361
+#: libvips/iofuncs/image.c:1363
 #, c-format
 msgid "killed for image \"%s\""
 msgstr ""
 
-#: libvips/iofuncs/image.c:1867
+#: libvips/iofuncs/image.c:1877
 msgid "bad image descriptor"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1922 libvips/iofuncs/generate.c:691
+#: libvips/iofuncs/image.c:1932 libvips/iofuncs/generate.c:691
 #, c-format
 msgid "unable to output to a %s image"
 msgstr ""
 
-#: libvips/iofuncs/image.c:1966
+#: libvips/iofuncs/image.c:1976
 #, c-format
 msgid "auto-rewind for %s failed"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2009 libvips/iofuncs/image.c:2220
-#: libvips/iofuncs/image.c:2237
+#: libvips/iofuncs/image.c:2019 libvips/iofuncs/image.c:2230
+#: libvips/iofuncs/image.c:2247
 msgid "no image data"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2078 libvips/iofuncs/image.c:2260
+#: libvips/iofuncs/image.c:2088 libvips/iofuncs/image.c:2270
 msgid "image not readable"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2110 libvips/iofuncs/image.c:2124
-#: libvips/iofuncs/image.c:2290 libvips/iofuncs/image.c:2299
+#: libvips/iofuncs/image.c:2120 libvips/iofuncs/image.c:2134
+#: libvips/iofuncs/image.c:2300 libvips/iofuncs/image.c:2309
 msgid "image already written"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2138 libvips/iofuncs/image.c:2311
+#: libvips/iofuncs/image.c:2148 libvips/iofuncs/image.c:2321
 msgid "image not writeable"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2184
+#: libvips/iofuncs/image.c:2194
 msgid "bad file type"
 msgstr ""
 
@@ -1839,43 +1839,43 @@ msgstr ""
 msgid "unable to mmap \"%s\" to same address"
 msgstr ""
 
-#: libvips/iofuncs/init.c:289
+#: libvips/iofuncs/init.c:296
 msgid "evaluate with N concurrent threads"
 msgstr ""
 
-#: libvips/iofuncs/init.c:291
+#: libvips/iofuncs/init.c:298
 msgid "set tile width to N (DEBUG)"
 msgstr ""
 
-#: libvips/iofuncs/init.c:293
+#: libvips/iofuncs/init.c:300
 msgid "set tile height to N (DEBUG)"
 msgstr ""
 
-#: libvips/iofuncs/init.c:296
+#: libvips/iofuncs/init.c:303
 msgid "set thinstrip height to N (DEBUG)"
 msgstr ""
 
-#: libvips/iofuncs/init.c:299
+#: libvips/iofuncs/init.c:306
 msgid "set fatstrip height to N (DEBUG)"
 msgstr ""
 
-#: libvips/iofuncs/init.c:301
+#: libvips/iofuncs/init.c:308
 msgid "show progress feedback"
 msgstr ""
 
-#: libvips/iofuncs/init.c:304
+#: libvips/iofuncs/init.c:311
 msgid "image size above which to decompress to disc"
 msgstr ""
 
-#: libvips/iofuncs/init.c:307
+#: libvips/iofuncs/init.c:314
 msgid "disable vectorised versions of operations"
 msgstr ""
 
-#: libvips/iofuncs/init.c:330
+#: libvips/iofuncs/init.c:337
 msgid "VIPS Options"
 msgstr ""
 
-#: libvips/iofuncs/init.c:330
+#: libvips/iofuncs/init.c:337
 msgid "Show VIPS options"
 msgstr ""
 
@@ -1886,55 +1886,55 @@ msgstr ""
 msgid "parameter %s to %s not set"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1006
+#: libvips/iofuncs/object.c:1008
 msgid "VIPS base class"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1022
+#: libvips/iofuncs/object.c:1024
 msgid "Nickname"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1023
+#: libvips/iofuncs/object.c:1025
 msgid "Class nickname"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1033
+#: libvips/iofuncs/object.c:1035
 msgid "Description"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1034
+#: libvips/iofuncs/object.c:1036
 msgid "Class description"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1137 libvips/iofuncs/object.c:1204
-#: libvips/iofuncs/object.c:1261
+#: libvips/iofuncs/object.c:1139 libvips/iofuncs/object.c:1206
+#: libvips/iofuncs/object.c:1263
 #, c-format
 msgid "%s.%s does not exist"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1321
+#: libvips/iofuncs/object.c:1323
 #, c-format
 msgid "no unset required arguments for %s"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1392
+#: libvips/iofuncs/object.c:1396
 msgid "not , or ) after parameter"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1399
+#: libvips/iofuncs/object.c:1403
 msgid "extra tokens after ')'"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1427
+#: libvips/iofuncs/object.c:1431
 msgid "bad object arguments"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1648
+#: libvips/iofuncs/object.c:1660
 #, c-format
 msgid "base class \"%s\" not found"
 msgstr ""
 
-#: libvips/iofuncs/object.c:1655
+#: libvips/iofuncs/object.c:1667
 #, c-format
 msgid "class \"%s\" not found"
 msgstr ""
