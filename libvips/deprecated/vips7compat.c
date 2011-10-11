@@ -991,13 +991,17 @@ int
 im_copy_set( IMAGE *in, IMAGE *out, 
 	VipsType type, float xres, float yres, int xoffset, int yoffset )
 {
-	return( vips_copy( in, out, 
+	VipsImage *x;
+
+	if( vips_copy( in, out, 
 		"interpretation", type, 
 		"xres", xres, 
 		"yres", yres, 
 		"xoffset", xoffset, 
 		"yoffset", yoffset, 
-		NULL ) );
+		NULL ) )
+		return( -1 );
+
 }
 
 int 
