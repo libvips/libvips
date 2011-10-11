@@ -27,6 +27,19 @@
 
 
 
+
+
+- nicolas's convsep patch
+
+- add nifti support
+
+	http://niftilib.sourceforge.net/
+
+
+
+
+
+
 - do clip/embed etc. in new style, good to get everything that VipsAdd uses in
   the new stack
 
