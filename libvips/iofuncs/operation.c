@@ -214,6 +214,8 @@ vips_operation_new( const char *name )
 	GType type;
 	VipsOperation *operation;
 
+	vips_check_init();
+
 	if( !(type = vips_type_find( "VipsOperation", name )) )
 		return( NULL );
 	operation = VIPS_OPERATION( g_object_new( type, NULL ) );

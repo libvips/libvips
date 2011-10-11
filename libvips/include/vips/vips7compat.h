@@ -159,7 +159,7 @@ extern "C" {
 #define im_invalidate vips_image_invalidate_all
 #define im_isfile vips_image_isfile
 #define im_printdesc( I ) vips_object_print( VIPS_OBJECT( I ) )
-#define im_openout( F ) vips_image_new_from_file( F, "w" )
+#define im_openout( F ) vips_image_new_mode( F, "w" )
 #define im_setbuf( F ) vips_image_new( "t" )
 
 #define im_initdesc( image, \
@@ -536,6 +536,10 @@ int im_copy_morph( VipsImage *in, VipsImage *out,
 	int bands, VipsBandFormat format, VipsCoding coding );
 int im_copy_swap( VipsImage *in, VipsImage *out );
 int im_copy_native( VipsImage *in, VipsImage *out, gboolean is_msb_first );
+
+/* ruby-vips uses this
+ */
+#define vips_class_map_concrete_all vips_class_map_all
 
 #ifdef __cplusplus
 }

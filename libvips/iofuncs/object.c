@@ -1026,6 +1026,8 @@ vips_object_real_new_from_string( const char *string )
 {
 	GType type;
 
+	vips_check_init();
+
 	/* The main arg selects the subclass.
 	 */
 	if( !(type = vips_type_find( "VipsObject", string )) )
@@ -1425,6 +1427,8 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 {
 	VipsObject *object;
 
+	vips_check_init();
+
 	object = VIPS_OBJECT( g_object_new( type, NULL ) );
 
 	if( set && set( object, a, b ) ) {
@@ -1685,14 +1689,22 @@ vips_class_map_all( GType type, VipsClassMap fn, void *a )
 {
 	void *result;
 
-	/* We never unref this ref, but we never unload classes
-	 * anyway, so so what.
+	/* We can't instantiate abstract classes.
 	 */
-	if( !(result = fn( VIPS_OBJECT_CLASS( g_type_class_ref( type ) ), a )) )
-		result = vips_type_map( type, 
-			(VipsTypeMap2) vips_class_map_all, fn, a );
+	if( !G_TYPE_IS_ABSTRACT( type ) ) {
+		/* We never unref this ref, but we never unload classes
+		 * anyway, so so what.
+		 */
+		if( (result = fn( 
+			VIPS_OBJECT_CLASS( g_type_class_ref( type ) ), a )) )
+			return( result );
+	}
 
-	return( result );
+	if( (result = vips_type_map( type, 
+		(VipsTypeMap2) vips_class_map_all, fn, a )) )
+		return( result );
+
+	return( NULL );
 }
 
 /* How deeply nested is a class ... used to indent class lists.

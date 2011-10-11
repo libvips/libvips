@@ -268,7 +268,6 @@ vips_init( const char *argv0 )
 }
 
 /* Call this before vips stuff that uses stuff we need to have inited.
- * Fallback initialisation.
  */
 void
 vips_check_init( void )
