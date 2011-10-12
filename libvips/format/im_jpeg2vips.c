@@ -35,6 +35,8 @@
  * 	  data, some jpegs seem to have several APP1s, argh
  * 20/4/2011
  * 	- added im_bufjpeg2vips()
+ * 12/10/2011
+ * 	- read XMP data
  */
 
 /*
@@ -402,16 +404,19 @@ read_exif( IMAGE *im, void *data, int data_length )
 {
 	char *data_copy;
 
-	/* Horrifyingly, some JPEGs have several APP1 sections. We must only
-	 * use the first one that starts "Exif.."
+	/* Only use the first one.
 	 */
-	if( ((char *) data)[0] != 'E' ||
-		((char *) data)[1] != 'x' ||
-		((char *) data)[2] != 'i' ||
-		((char *) data)[3] != 'f' )
+	if( im_header_get_typeof( im, IM_META_EXIF_NAME ) ) {
+#ifdef DEBUG
+		printf( "read_exif: second EXIF block, ignoring\n" );
+#endif /*DEBUG*/
+
 		return( 0 );
-	if( im_header_get_typeof( im, IM_META_EXIF_NAME ) ) 
-		return( 0 );
+	}
+
+#ifdef DEBUG
+	printf( "read_exif: attaching %d bytes of exif\n", data_length );
+#endif /*DEBUG*/
 
 	/* Always attach a copy of the unparsed exif data.
 	 */
@@ -464,10 +469,43 @@ read_exif( IMAGE *im, void *data, int data_length )
 	return( 0 );
 }
 
-/* Number of app2 sections we can capture. Each one can be 64k, so 640k should
+static int
+read_xmp( IMAGE *im, void *data, int data_length )
+{
+	char *data_copy;
+
+	/* XMP sections start "http". Only use the first one.
+	 */
+	if( im_header_get_typeof( im, VIPS_META_XMP_NAME ) ) {
+#ifdef DEBUG
+		printf( "read_xmp: second XMP block, ignoring\n" );
+#endif /*DEBUG*/
+
+		return( 0 );
+	}
+
+#ifdef DEBUG
+	printf( "read_xmp: attaching %d bytes of XMP\n", data_length );
+#endif /*DEBUG*/
+
+	/* Always attach a copy of the unparsed exif data.
+	 */
+	if( !(data_copy = im_malloc( NULL, data_length )) )
+		return( -1 );
+	memcpy( data_copy, data, data_length );
+	if( im_meta_set_blob( im, VIPS_META_XMP_NAME, 
+		(im_callback_fn) im_free, data_copy, data_length ) ) {
+		im_free( data_copy );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
  * be enough for anyone (haha).
  */
-#define MAX_APP2_SECTIONS (10)
+#define MAX_APP2_SECTIONS (100)
 
 /* Read a cinfo to a VIPS image. Set invert_pels if the pixel reader needs to
  * do 255-pel.
@@ -532,26 +570,38 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 	/* Look for EXIF and ICC profile.
 	 */
 	for( p = cinfo->marker_list; p; p = p->next ) {
+#ifdef DEBUG
+{
+		int i;
+
+		printf( "read_jpeg_header: seen %d bytes of APP%d\n",
+			p->data_length,
+			p->marker - JPEG_APP0 );
+
+		for( i = 0; i < 10; i++ ) 
+			printf( "\t%d) '%c' (%d)\n", 
+				i, p->data[i], p->data[i] );
+}
+#endif /*DEBUG*/
+
 		switch( p->marker ) {
 		case JPEG_APP0 + 1:
-			/* EXIF data.
+			/* Possible EXIF or XMP data.
 			 */
-#ifdef DEBUG
-			printf( "read_jpeg_header: seen %d bytes of APP1\n",
-				p->data_length );
-#endif /*DEBUG*/
-			if( read_exif( out, p->data, p->data_length ) )
+			if( p->data_length > 4 &&
+				im_isprefix( "Exif", (char *) p->data ) &&
+				read_exif( out, p->data, p->data_length ) )
 				return( -1 );
+
+			if( p->data_length > 4 &&
+				im_isprefix( "http", (char *) p->data ) &&
+				read_xmp( out, p->data, p->data_length ) )
+
 			break;
 
 		case JPEG_APP0 + 2:
 			/* ICC profile.
 			 */
-#ifdef DEBUG
-			printf( "read_jpeg_header: seen %d bytes of APP2\n",
-				p->data_length );
-#endif /*DEBUG*/
-
 			if( p->data_length > 14 &&
 				im_isprefix( "ICC_PROFILE", 
 					(char *) p->data ) ) {
@@ -570,10 +620,6 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			break;
 
 		default:
-#ifdef DEBUG
-			printf( "read_jpeg_header: seen %d bytes of data\n",
-				p->data_length );
-#endif /*DEBUG*/
 			break;
 		}
 	}

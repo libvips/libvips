@@ -45,6 +45,13 @@ extern "C" {
 #define VIPS_META_EXIF_NAME "exif-data"
 
 /**
+ * VIPS_META_XMP_NAME:
+ *
+ * The name that JPEG read and write operations use for the image's XMP data.
+ */
+#define VIPS_META_XMP_NAME "xmp-data"
+
+/**
  * VIPS_META_ICC_NAME:
  *
  * The name we use to attach an ICC profile. The file read and write
