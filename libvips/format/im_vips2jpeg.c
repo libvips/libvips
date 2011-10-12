@@ -40,6 +40,8 @@
  * 	  longer overallocate or underallocate
  * 8/7/11
  * 	- oop CMYK write was not inverting, thanks Ole
+ * 12/10/2011
+ * 	- write XMP data
  */
 
 /*
@@ -620,7 +622,7 @@ write_exif( Write *write )
 			return( -1 );
 
 #ifdef DEBUG
-		printf( "im_vips2jpeg: attaching %d bytes of EXIF\n", 
+		printf( "im_vips2jpeg: attaching %zd bytes of EXIF\n", 
 			data_length  );
 #endif /*DEBUG*/
 
@@ -628,6 +630,31 @@ write_exif( Write *write )
 			data, data_length );
 	}
 #endif /*!HAVE_EXIF*/
+
+	return( 0 );
+}
+
+static int
+write_xmp( Write *write )
+{
+	unsigned char *data;
+	size_t data_length;
+
+	/* No libexif ... just copy the embedded EXIF over.
+	 */
+	if( im_header_get_typeof( write->in, VIPS_META_XMP_NAME ) ) {
+		if( im_meta_get_blob( write->in, VIPS_META_XMP_NAME, 
+			(void *) &data, &data_length ) )
+			return( -1 );
+
+#ifdef DEBUG
+		printf( "im_vips2jpeg: attaching %zd bytes of XMP\n", 
+			data_length  );
+#endif /*DEBUG*/
+
+		jpeg_write_marker( &write->cinfo, JPEG_APP0 + 1, 
+			data, data_length );
+	}
 
 	return( 0 );
 }
@@ -834,6 +861,9 @@ write_vips( Write *write, int qfac, const char *profile )
 	/* Write any APP markers we need.
 	 */
 	if( write_exif( write ) )
+		return( -1 );
+
+	if( write_xmp( write ) )
 		return( -1 );
 
 	/* A profile supplied as an argument overrides an embedded profile.
