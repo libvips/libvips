@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-11 21:17+0100\n"
+"POT-Creation-Date: 2011-10-12 12:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -690,7 +690,7 @@ msgstr ""
 msgid "bad resolution values"
 msgstr ""
 
-#: libvips/format/im_vips2tiff.c:1375 libvips/format/im_vips2jpeg.c:738
+#: libvips/format/im_vips2tiff.c:1375 libvips/format/im_vips2jpeg.c:768
 #, c-format
 msgid "unknown extra options \"%s\""
 msgstr ""
@@ -715,33 +715,33 @@ msgstr ""
 msgid "1 to 5 bands only"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:89 libvips/format/im_vips2jpeg.c:98
-#: libvips/format/im_vips2jpeg.c:107 libvips/format/im_jpeg2vips.c:84
+#: libvips/format/im_vips2jpeg.c:91 libvips/format/im_vips2jpeg.c:100
+#: libvips/format/im_vips2jpeg.c:109 libvips/format/im_jpeg2vips.c:86
 msgid "JPEG support disabled"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:172 libvips/format/im_jpeg2vips.c:149
+#: libvips/format/im_vips2jpeg.c:174 libvips/format/im_jpeg2vips.c:151
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:251 libvips/format/im_vips2png.c:152
+#: libvips/format/im_vips2jpeg.c:253 libvips/format/im_vips2png.c:152
 msgid "unable to convert to saveable format"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:351
+#: libvips/format/im_vips2jpeg.c:353
 msgid "error setting JPEG resolution"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:394
+#: libvips/format/im_vips2jpeg.c:396
 msgid "error saving EXIF"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:585
+#: libvips/format/im_vips2jpeg.c:612
 msgid "qfac should be in 0-100"
 msgstr ""
 
-#: libvips/format/im_vips2jpeg.c:1105
+#: libvips/format/im_vips2jpeg.c:1135
 msgid "error writing output"
 msgstr ""
 
@@ -1023,25 +1023,25 @@ msgstr ""
 msgid "PPM/PBM/PNM/PFM"
 msgstr ""
 
-#: libvips/format/im_jpeg2vips.c:352
+#: libvips/format/im_jpeg2vips.c:354
 msgid "error reading resolution"
 msgstr ""
 
-#: libvips/format/im_jpeg2vips.c:372
+#: libvips/format/im_jpeg2vips.c:374
 msgid "bad resolution unit"
 msgstr ""
 
-#: libvips/format/im_jpeg2vips.c:693
+#: libvips/format/im_jpeg2vips.c:739
 #, c-format
 msgid "bad shrink factor %d"
 msgstr ""
 
-#: libvips/format/im_jpeg2vips.c:747
+#: libvips/format/im_jpeg2vips.c:793
 #, c-format
 msgid "read gave %ld warnings"
 msgstr ""
 
-#: libvips/format/im_jpeg2vips.c:1087
+#: libvips/format/im_jpeg2vips.c:1133
 msgid "JPEG"
 msgstr ""
 
