@@ -1,30 +1,11 @@
-- vips_image_write() uses im_copy() to send an image to a file
-
-  but im_copy() now calls vips_copy(), which can't actually write to a
-  specific descriptor!
-
-  vips_image_write() needs to do some behind-the-scenes magic, I'm not quite
-  sure what
-
-  	just vips_image_generate() with a pointer copy I think, basically
-	vipscopy without creating the output
-
-  rename as vips_image_write_to_filename(), vips_image_write() should write to
-  a VipsImage
-
-  im_add() etc. compat functions need to start calling vips_image_write() 
-  instead of im_copy()
+- improve CSV parsing a bit more, allow quotes on any field not just strings
 
 
 
-- vipscopy
 
-  how would we do meta sets?
-
-  vips_object_set_argument_from_string() needs more arg types
+- vips_object_set_argument_from_string() needs more arg types
 
   must be some way to make this more automatic
-
 
 
 
@@ -38,10 +19,9 @@
 
 
 
-
-
 - do clip/embed etc. in new style, good to get everything that VipsAdd uses in
   the new stack
+
 
 
 
@@ -51,8 +31,7 @@
 
 
 
-
-- could we generate the code for vips_add() etc. automatically? it might be 
+- generate the code for vips_add() etc. automatically? it might be 
   nice to have them all in one place at least
 
 

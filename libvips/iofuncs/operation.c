@@ -256,7 +256,7 @@ vips_operation_new( const char *name )
 		g_value_unset( &value ); \
 	} \
 	else if( (ARG_CLASS->flags & VIPS_ARGUMENT_OUTPUT) ) { \
-		void **arg; \
+		void **arg __attribute__ ((unused)); \
  		\
 		/* Output args are a pointer to where to send the \
 		 * result. \

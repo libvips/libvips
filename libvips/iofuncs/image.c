@@ -326,7 +326,7 @@ vips_image_to_string( VipsObject *object, VipsBuf *buf )
 static int 
 vips_image_write_object( VipsObject *object, const char *string )
 {
-	return( vips_image_write_filename( VIPS_IMAGE( object ), string ) );
+	return( vips_image_write_to_file( VIPS_IMAGE( object ), string ) );
 }
 
 static void *
@@ -1780,8 +1780,10 @@ vips_image_write_gen( VipsRegion *or,
  * @image: image to write
  * @out: write to this image
  *
- * A convenience function to write a #VipsImage to another #VipsImage. Unlike
- * vips_copy(), you can specify the #VipsImage you want to write to.
+ * Write @image to @out. Use vips_image_new_mode() and friends to create the
+ * #VipsImage you want to write to.
+ *
+ * See also: vips_image_new_mode(), vips_copy(), vips_image_write_to_file().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -1805,16 +1807,16 @@ vips_image_write( VipsImage *image, VipsImage *out )
 }
 
 /**
- * vips_image_write_filename:
+ * vips_image_write_to_file:
  * @image: image to write
  * @filename: write to this file
  *
- * A convenience function to write a #VipsImage to a file. 
+ * A convenience function to write @image to a file. 
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_image_write_filename( VipsImage *image, const char *filename )
+vips_image_write_to_file( VipsImage *image, const char *filename )
 {
 	VipsImage *out;
 

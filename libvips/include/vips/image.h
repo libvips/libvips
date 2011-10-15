@@ -474,7 +474,7 @@ void vips_image_set_delete_on_close( VipsImage *image,
 	gboolean delete_on_close );
 VipsImage *vips_image_new_disc_temp( const char *format );
 int vips_image_write( VipsImage *image, VipsImage *out );
-int vips_image_write_filename( VipsImage *image, const char *filename );
+int vips_image_write_to_file( VipsImage *image, const char *filename );
 
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
