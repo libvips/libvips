@@ -1,8 +1,3 @@
-- improve CSV parsing a bit more, allow quotes on any field not just strings
-
-
-
-
 - vips_object_set_argument_from_string() needs more arg types
 
   must be some way to make this more automatic

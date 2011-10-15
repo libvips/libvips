@@ -12,7 +12,7 @@
  * 4/2/10
  * 	- gtkdoc
  * 1/3/10
- * 	- allow lines that end with EOF rather than \n
+ * 	- allow lines that end with EOF 
  * 23/9/11
  * 	- allow quoted strings, including escaped quotes
  */
@@ -102,15 +102,13 @@ skip_to_quote( FILE *fp )
 	do {
 		ch = fgetc( fp );
 
-		/* We let people escape " in strings.
+		/* Ignore \" in strings.
 		 */
-		if( ch == '\\' ) {
+		if( ch == '\\' ) 
 			ch = fgetc( fp );
-
-			if( ch != EOF && ch != '\n' )
-				ch = fgetc( fp );
-		}
-	} while (ch != EOF && ch != '\n' && ch != '"' );
+		else if( ch == '"' )
+			break;
+	} while( ch != EOF && ch != '\n' );
 
 	ungetc( ch, fp );
 
@@ -164,7 +162,8 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 		ch = skip_to_quote( fp );
 		ch = fgetc( fp );
 	}
-	else if( !sepmap[ch] && fscanf( fp, "%lf", out ) != 1 ) {
+	else if( !sepmap[ch] && 
+		fscanf( fp, "%lf", out ) != 1 ) {
 		/* Only a warning, since (for example) exported spreadsheets
 		 * will often have text or date fields.
 		 */
@@ -264,7 +263,8 @@ read_csv( FILE *fp, IMAGE *out,
 		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE, 
 		IM_CODING_NONE, IM_TYPE_B_W, 1.0, 1.0, 0, 0 );
 
-	if( im_outcheck( out ) || im_setupout( out ) ||
+	if( im_outcheck( out ) || 
+		im_setupout( out ) ||
 		!(buf = IM_ARRAY( out, IM_IMAGE_N_ELEMENTS( out ), double )) )
 		return( -1 );
 
@@ -309,10 +309,12 @@ read_csv( FILE *fp, IMAGE *out,
  * @out: image to write to
  *
  * Load a CSV (comma-separated values) file. The output image is always 1 
- * band (monochrome), %IM_BANDFMT_DOUBLE. 
+ * band (monochrome), %VIPS_FORMAT_DOUBLE. 
  *
- * Items in lines can be either floats, or strings enclosed in double-quotes.
- * You can use a backslash (\) within the quotes to escape special characters.
+ * Items in lines can be either floating point numbers in the C locale, or 
+ * strings enclosed in double-quotes ("), or empty.
+ * You can use a backslash (\) within the quotes to escape special characters,
+ * such as quote marks.
  *
  * The reader is deliberately rather fussy: it will fail if there are any 
  * short lines, or if the file is too short. It will ignore lines that are 
