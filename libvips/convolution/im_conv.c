@@ -65,6 +65,8 @@
  * 	- add array tiling
  * 9/5/11
  * 	- argh typo in overflow estimation could cause errors
+ * 15/10/11 Nicolas
+ * 	- handle offset correctly in seperable convolutions
  */
 
 /*
@@ -1132,9 +1134,10 @@ im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	rmask->xsize = mask->ysize;
 	rmask->ysize = mask->xsize;
+        rmask->offset = 0.;
 
-	if( im_conv_raw( in, t, mask ) ||
-		im_conv_raw( t, out, rmask ) )
+	if( im_conv_raw( in, t, rmask ) ||
+		im_conv_raw( t, out, mask ) )
 		return( -1 );
 
 	return( 0 );

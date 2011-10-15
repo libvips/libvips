@@ -41,6 +41,8 @@
  * 29/10/10
  * 	- get rid of im_convsep_f(), just call this twice, no longer worth
  * 	  keeping two versions
+ * 15/10/11 Nicolas
+ * 	- handle offset correctly in seperable convolutions
  */
 
 /*
@@ -410,9 +412,10 @@ im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 
 	rmask->xsize = mask->ysize;
 	rmask->ysize = mask->xsize;
+        rmask->offset = 0.;
 
-	if( im_conv_f_raw( in, t, mask ) ||
-		im_conv_f_raw( t, out, rmask ) )
+	if( im_conv_f_raw( in, t, rmask ) ||
+		im_conv_f_raw( t, out, mask ) )
 		return( -1 );
 
 	return( 0 );
