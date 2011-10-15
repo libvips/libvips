@@ -907,13 +907,7 @@ im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		g_object_unref( x );
 		return( -1 );
 	}
-
-	/* When im_copy() is vips8'd it'll make a ref to in which will be
-	 * junked when the copy shuts down and we can unref x directly.
-	 *
-	 * Until then, we have to use the "close" signal to delay the unref.
-	 */
-	vips_object_local( out, x ); 
+	g_object_unref( x );
 
 	return( 0 );
 }
@@ -929,13 +923,7 @@ im_subtract( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		g_object_unref( x );
 		return( -1 );
 	}
-
-	/* When im_copy() is vips8'd it'll make a ref to in which will be
-	 * junked when the copy shuts down and we can unref x directly.
-	 *
-	 * Until then, we have to use the "close" signal to delay the unref.
-	 */
-	vips_object_local( out, x ); 
+	g_object_unref( x );
 
 	return( 0 );
 }
@@ -993,7 +981,7 @@ im_copy_set( IMAGE *in, IMAGE *out,
 {
 	VipsImage *x;
 
-	if( vips_copy( in, out, 
+	if( vips_copy( in, &x, 
 		"interpretation", type, 
 		"xres", xres, 
 		"yres", yres, 
@@ -1001,38 +989,65 @@ im_copy_set( IMAGE *in, IMAGE *out,
 		"yoffset", yoffset, 
 		NULL ) )
 		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
 
+	return( 0 );
 }
 
 int 
 im_copy_morph( IMAGE *in, IMAGE *out, 
 	int bands, VipsBandFmt bandfmt, VipsCoding coding )
 {
-	return( vips_copy( in, out, 
+	VipsImage *x;
+
+	if( vips_copy( in, &x, 
 		"bands", bands, 
 		"format", bandfmt, 
 		"coding", coding, 
-		NULL ) );
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
 }
 
 int
 im_copy( IMAGE *in, IMAGE *out )
 {
-	return( im_copy_set( in, out, 
-		in->Type, in->Xres, in->Yres, 0, 0 ) );
+	return( vips_image_write( in, out ) ); 
 }
 
 int
 im_copy_swap( IMAGE *in, IMAGE *out )
 {
-	return( vips_copy( in, out, "swap", TRUE, NULL ) );
+	VipsImage *x;
+
+	if( vips_copy( in, &x, 
+		"swap", TRUE, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
 }
 
 int
 im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value )
 {
 	if( im_copy( in, out ) )
-		return( 1 );
+		return( -1 );
 	im_meta_set( out, field, value );
 
 	return( 0 );

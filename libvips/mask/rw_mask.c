@@ -475,7 +475,7 @@ im_read_dmask( const char *filename )
 	double sc, off;
 	int xs, ys;
 	DOUBLEMASK *out;
-	int x, y, i, size;
+	int x, y, i;
 	char buf[MAX_LINE];
 
 	if( !(fp = im__file_open_read( filename, NULL, TRUE )) ) 
@@ -492,7 +492,6 @@ im_read_dmask( const char *filename )
 	}
 	out->scale = sc;
 	out->offset = off;
-	size = xs * ys;
 
 	for( i = 0, y = 0; y < ys; y++ ) {
 		char *p;

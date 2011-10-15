@@ -74,7 +74,6 @@ im__clinear( TIE_POINTS *points )
 	double scale, angle, xdelta, ydelta;
 	int *xref, *yref, *xsec, *ysec;
 	double *dx, *dy, *dev;
-        double resx, resy;
 
 	xref = &points->x_reference[0];
 	yref = &points->y_reference[0];
@@ -92,8 +91,6 @@ im__clinear( TIE_POINTS *points )
 		return( -1 );
 	}
 
-	resx = 0.0;
-	resy = 0.0;
 	for( i = 0; i < points->nopoints; i++ ) {
 		sx1 += xref[i];
 		sx1x1 += xref[i] * xref[i];
@@ -107,9 +104,6 @@ im__clinear( TIE_POINTS *points )
 		sx2 += xsec[i];
 		sy2 += ysec[i];
 	}
-
-	resx = fabs( sx1-sx2 )/points->nopoints;
-	resy = fabs( sy1-sy2 )/points->nopoints;
 
 	mat[0][0] = sx1x1 + sy1y1;
 	mat[0][1] = 0;

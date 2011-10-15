@@ -470,8 +470,6 @@ vips_image_init_fields( VipsImage *image,
 static void *
 meta_cp_field( VipsMeta *meta, VipsImage *dst )
 {
-	VipsMeta *meta_copy;
-
 #ifdef DEBUG
 {
 	char *str_value;
@@ -483,7 +481,7 @@ meta_cp_field( VipsMeta *meta, VipsImage *dst )
 }
 #endif /*DEBUG*/
 
-	meta_copy = meta_new( dst, meta->field, &meta->value );
+	(void) meta_new( dst, meta->field, &meta->value );
 
 #ifdef DEBUG
 	meta_sanity( dst );
@@ -659,13 +657,11 @@ vips_image_copy_fields( VipsImage *out, VipsImage *in )
 void
 vips_image_set( VipsImage *image, const char *field, GValue *value )
 {
-	VipsMeta *meta;
-
 	g_assert( field );
 	g_assert( value );
 
 	meta_init( image );
-	meta = meta_new( image, field, value );
+	(void) meta_new( image, field, value );
 
 #ifdef DEBUG
 	meta_sanity( image );

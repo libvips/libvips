@@ -326,7 +326,7 @@ vips_image_to_string( VipsObject *object, VipsBuf *buf )
 static int 
 vips_image_write_object( VipsObject *object, const char *string )
 {
-	return( vips_image_write( VIPS_IMAGE( object ), string ) );
+	return( vips_image_write_filename( VIPS_IMAGE( object ), string ) );
 }
 
 static void *
@@ -1798,7 +1798,7 @@ vips_image_write( VipsImage *image, VipsImage *out )
 
 	if( vips_image_generate( out,
 		vips_start_one, vips_image_write_gen, vips_stop_one, 
-		copy->input, copy ) )
+		image, NULL ) )
 		return( -1 );
 
 	return( 0 );

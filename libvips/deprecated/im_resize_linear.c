@@ -113,7 +113,7 @@ im_resize_linear( IMAGE *in, IMAGE *out, int X, int Y )
     PEL 	*q, *p;
 
     int 	ils, ips, ies;		/* Input and output line, pel and */
-    int 	ols, ops, oes;		/* element sizes */
+    int 	ols, oes;		/* element sizes */
 
 	if( im_iocheck( in, out ) )
 		return( -1 );
@@ -139,7 +139,6 @@ im_resize_linear( IMAGE *in, IMAGE *out, int X, int Y )
 	ies = IM_IMAGE_SIZEOF_ELEMENT( in );
 
 	ols = IM_IMAGE_SIZEOF_LINE( out );
-	ops = IM_IMAGE_SIZEOF_PEL( out );
 	oes = IM_IMAGE_SIZEOF_ELEMENT( out );
 
 /* buffer lines

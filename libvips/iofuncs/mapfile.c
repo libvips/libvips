@@ -172,7 +172,7 @@ vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 	 * LARGEFILE.
 	 */
 
-	baseaddr = mmap( 0, length, prot, MAP_SHARED, fd, (off_t) offset );
+	baseaddr = mmap( 0, length, prot, flags, fd, (off_t) offset );
 	if( baseaddr == MAP_FAILED ) { 
 		vips_error_system( errno, "vips_mapfile", 
 			"%s", _( "unable to mmap" ) );
