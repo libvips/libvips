@@ -22,6 +22,9 @@
 - added vips_image_write(), old one becomes vips_image_write_to_file()
 - jpeg read/write copies over XMP data
 - handle offset correctly in separable convolutions (thanks Nicolas)
+- macros for class arg boilerplate
+- class arg order set by new 'priority' param
+- VipsExtend enum added
 
 12/9/11 started 7.26.4
 - fallback vips_init() 

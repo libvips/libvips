@@ -775,7 +775,7 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 				(type->flags & IM_TYPE_OUTPUT) ?
 					VIPS_ARGUMENT_REQUIRED_OUTPUT : 
 					VIPS_ARGUMENT_REQUIRED_INPUT,
-				i );
+				i, i );
 			break;
 
 		default:

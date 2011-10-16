@@ -1,3 +1,55 @@
+- embed args are in the wrong order
+
+	$ vips embed
+	vips_embed_class_init
+	VipsEmbed (embed), embed an image in a larger image
+	   embed input type x y width height out
+	where:
+	   input :: VipsImage (input)
+	   type :: gint (input)
+	   x :: gint (input)
+	   y :: gint (input)
+	   width :: gint (input)
+	   height :: gint (input)
+	   out :: VipsImage (output)
+
+  how can we fix this?
+
+  need to give an extra arg to vips_object_class_install_argument() to 
+  specify 'argument priority' ... show args in priority order
+
+
+
+- try some macros for arg specification
+
+	pspec = g_param_spec_int( "y", "Y",
+		_( "Top edge of input in output" ),
+		0, 1000000, 0,
+		G_PARAM_READWRITE );
+	g_object_class_install_property( gobject_class, PROP_Y, pspec );
+	vips_object_class_install_argument( vobject_class, pspec,
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsEmbed, y ) );
+
+  could become
+
+	VIPS_ARG_INT( class, "y", "Y",
+		_( "Top edge of input in output" ),
+		0, 1000000, 0,
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsEmbed, y ) );
+
+  could get rid of PROP_ enums as well
+
+
+  doing binary.c next
+
+
+
+- make 'type' field to embed an enum?
+
+
+
 - vips_object_set_argument_from_string() needs more arg types
 
   must be some way to make this more automatic

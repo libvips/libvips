@@ -86,13 +86,6 @@
  * See also: im_stats(), im_bandmean(), im_deviate(), im_rank()
  */
 
-/* Properties.
- */
-enum {
-	PROP_OUTPUT = 1,
-	PROP_LAST
-}; 
-
 typedef struct _VipsAvg {
 	VipsStatistic parent_instance;
 
@@ -228,8 +221,6 @@ vips_avg_class_init( VipsAvgClass *class )
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsStatisticClass *sclass = VIPS_STATISTIC_CLASS( class );
 
-	GParamSpec *pspec;
-
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -241,17 +232,12 @@ vips_avg_class_init( VipsAvgClass *class )
 	sclass->scan = vips_avg_scan;
 	sclass->stop = vips_avg_stop;
 
-	pspec = g_param_spec_double( "out", "Output", 
+	VIPS_ARG_DOUBLE( class, "out", 2, 
+		_( "Output" ), 
 		_( "Output value" ),
-		-G_MAXDOUBLE,
-		G_MAXDOUBLE,
-		0.0,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, 
-		PROP_OUTPUT, pspec );
-	vips_object_class_install_argument( object_class, pspec,
-		VIPS_ARGUMENT_REQUIRED_OUTPUT | VIPS_ARGUMENT_APPEND, 
-		G_STRUCT_OFFSET( VipsAvg, avg ) );
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET( VipsAvg, avg ),
+		-G_MAXDOUBLE, G_MAXDOUBLE, 0.0 );
 }
 
 static void

@@ -52,7 +52,6 @@ typedef struct _VipsObjectClass VipsObjectClass;
  * @VIPS_ARGUMENT_SET_ONCE: can only be set once
  * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
- * @VIPS_ARGUMENT_APPEND: add to end of arg list (default is prepend)
  *
  * Flags we associate with each object argument.
  *
@@ -67,8 +66,7 @@ typedef enum {
 	VIPS_ARGUMENT_CONSTRUCT = 2,
 	VIPS_ARGUMENT_SET_ONCE = 4,
 	VIPS_ARGUMENT_INPUT = 8,
-	VIPS_ARGUMENT_OUTPUT = 16,
-	VIPS_ARGUMENT_APPEND = 32
+	VIPS_ARGUMENT_OUTPUT = 16
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:
@@ -108,6 +106,96 @@ VIPS_ARGUMENT_OPTIONAL_OUTPUT   Eg. the x pos of the image minimum
 	 VIPS_ARGUMENT_CONSTRUCT | \
 	 VIPS_ARGUMENT_SET_ONCE)
 
+extern int _vips__argument_id;
+
+#define VIPS_ARG_IMAGE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \
+		VIPS_TYPE_IMAGE, \
+		G_PARAM_READWRITE ); \
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
+#define VIPS_ARG_BOOL( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
+	VALUE ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_boolean( (NAME), (LONG), (DESC), \
+		(VALUE), \
+		G_PARAM_READWRITE ); \
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
+#define VIPS_ARG_DOUBLE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
+	MIN, MAX, VALUE ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_double( (NAME), (LONG), (DESC), \
+		(MIN), (MAX), (VALUE), \
+		G_PARAM_READWRITE );\
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
+#define VIPS_ARG_INT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
+	MIN, MAX, VALUE ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_int( (NAME), (LONG), (DESC), \
+		(MIN), (MAX), (VALUE), \
+		G_PARAM_READWRITE );\
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
+#define VIPS_ARG_ENUM( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
+	TYPE, VALUE ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_enum( (NAME), (LONG), (DESC), \
+		(TYPE), (VALUE), \
+		G_PARAM_READWRITE );\
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
+#define VIPS_ARG_STRING( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
+	VALUE ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_string( (NAME), (LONG), (DESC), \
+		(VALUE), \
+		G_PARAM_READWRITE ); \
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
+#define VIPS_ARG_POINTER( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_pointer( (NAME), (LONG), (DESC), \
+		G_PARAM_READWRITE ); \
+	g_object_class_install_property( gobject_class,  \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
 /* Keep one of these for every argument.
  */
 typedef struct _VipsArgument {
@@ -126,6 +214,7 @@ typedef struct _VipsArgumentClass {
 	VipsObjectClass *object_class;
 
 	VipsArgumentFlags flags;
+	int priority;		/* Order args by this */
 	guint offset;		/* G_STRUCT_OFFSET of member in object */
 } VipsArgumentClass;
 
@@ -332,8 +421,8 @@ gboolean vips_object_sanity( VipsObject *object );
 
 GType vips_object_get_type( void );
 
-void vips_object_class_install_argument( VipsObjectClass *,
-	GParamSpec *pspec, VipsArgumentFlags flags, guint offset );
+void vips_object_class_install_argument( VipsObjectClass *, GParamSpec *pspec, 
+	VipsArgumentFlags flags, int priority, guint offset );
 int vips_object_set_argument_from_string( VipsObject *object, 
 	const char *name, const char *value );
 gboolean vips_object_get_argument_needs_string( VipsObject *object, 

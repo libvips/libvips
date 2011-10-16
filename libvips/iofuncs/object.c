@@ -48,14 +48,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-/* Properties.
- */
-enum {
-	PROP_NICKNAME = 1,/* Class properties as object props */
-	PROP_DESCRIPTION,
-	PROP_LAST
-};
-
 /* Our signals. 
  */
 enum {
@@ -71,6 +63,8 @@ static GHashTable *vips__object_all = NULL;
 static GMutex *vips__object_all_lock = NULL;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
+
+int _vips__argument_id = 0;
 
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
 
@@ -1058,8 +1052,6 @@ vips_object_class_init( VipsObjectClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 
-	GParamSpec *pspec;
-
 	if( !vips__object_all ) {
 		vips__object_all = g_hash_table_new( 
 			g_direct_hash, g_direct_equal );
@@ -1092,29 +1084,19 @@ vips_object_class_init( VipsObjectClass *class )
 	g_value_register_transform_func( G_TYPE_STRING, G_TYPE_DOUBLE,
 		transform_string_double );
 
-	/* Create properties.
-	 */
-	pspec = g_param_spec_string( "nickname",
+	VIPS_ARG_STRING( class, "nickname", 1, 
 		_( "Nickname" ),
 		_( "Class nickname" ),
-		"",
-		(GParamFlags) G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class,
-		PROP_NICKNAME, pspec );
-	vips_object_class_install_argument( class, pspec,
 		VIPS_ARGUMENT_SET_ONCE,
-		G_STRUCT_OFFSET( VipsObject, nickname ) );
+		G_STRUCT_OFFSET( VipsObject, nickname ), 
+		"" );
 
-	pspec = g_param_spec_string( "description",
+	VIPS_ARG_STRING( class, "description", 2, 
 		_( "Description" ),
 		_( "Class description" ),
-		"",
-		(GParamFlags) G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class,
-		PROP_DESCRIPTION, pspec );
-	vips_object_class_install_argument( class, pspec,
 		VIPS_ARGUMENT_SET_ONCE,
-		G_STRUCT_OFFSET( VipsObject, description ) );
+		G_STRUCT_OFFSET( VipsObject, description ), 
+		"" );
 
 	vips_object_signals[SIG_PRECLOSE] = g_signal_new( "preclose",
 		G_TYPE_FROM_CLASS( class ),
@@ -1154,11 +1136,20 @@ vips_object_init( VipsObject *object )
 	g_mutex_unlock( vips__object_all_lock );
 }
 
+static gint
+traverse_sort( gconstpointer a, gconstpointer b )
+{
+	VipsArgumentClass *class1 = (VipsArgumentClass *) a;
+	VipsArgumentClass *class2 = (VipsArgumentClass *) b;
+
+	return( class1->priority - class2->priority );
+}
+
 /* Add a vipsargument ... automate some stuff with this.
  */
 void
 vips_object_class_install_argument( VipsObjectClass *object_class,
-	GParamSpec *pspec, VipsArgumentFlags flags, guint offset )
+	GParamSpec *pspec, VipsArgumentFlags flags, int priority, guint offset )
 {
 	VipsArgumentClass *argument_class = g_new( VipsArgumentClass, 1 );
 
@@ -1181,16 +1172,15 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	((VipsArgument *) argument_class)->pspec = pspec;
 	argument_class->object_class = object_class;
 	argument_class->flags = flags;
+	argument_class->priority = priority;
 	argument_class->offset = offset;
 
 	vips_argument_table_replace( object_class->argument_table,
 		(VipsArgument *) argument_class );
-	if( flags & VIPS_ARGUMENT_APPEND )
-		object_class->argument_table_traverse = g_slist_append(
-			object_class->argument_table_traverse, argument_class );
-	else
-		object_class->argument_table_traverse = g_slist_prepend(
-			object_class->argument_table_traverse, argument_class );
+	object_class->argument_table_traverse = g_slist_prepend(
+		object_class->argument_table_traverse, argument_class );
+	object_class->argument_table_traverse = g_slist_sort(
+		object_class->argument_table_traverse, traverse_sort );
 }
 
 /* Set a named arg from a string.

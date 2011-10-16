@@ -52,13 +52,6 @@
 
 #include "statistic.h"
 
-/* Properties.
- */
-enum {
-	PROP_INPUT = 1,
-	PROP_LAST
-}; 
-
 G_DEFINE_ABSTRACT_TYPE( VipsStatistic, vips_statistic, VIPS_TYPE_OPERATION );
 
 static void *
@@ -147,8 +140,6 @@ vips_statistic_class_init( VipsStatisticClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
-	GParamSpec *pspec;
-
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -156,14 +147,10 @@ vips_statistic_class_init( VipsStatisticClass *class )
 	vobject_class->description = _( "VIPS statistic operations" );
 	vobject_class->build = vips_statistic_build;
 
-	pspec = g_param_spec_object( "in", "Input", 
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
 		_( "Input image" ),
-		VIPS_TYPE_IMAGE,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, 
-		PROP_INPUT, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsStatistic, input ) );
 }
 

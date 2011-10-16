@@ -50,13 +50,6 @@
 
 #include "conversion.h"
 
-/* Properties.
- */
-enum {
-	PROP_OUTPUT = 1,
-	PROP_LAST
-}; 
-
 G_DEFINE_ABSTRACT_TYPE( VipsConversion, vips_conversion, VIPS_TYPE_OPERATION );
 
 static int
@@ -84,8 +77,6 @@ vips_conversion_class_init( VipsConversionClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
-	GParamSpec *pspec;
-
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -93,13 +84,9 @@ vips_conversion_class_init( VipsConversionClass *class )
 	vobject_class->description = _( "conversion operations" );
 	vobject_class->build = vips_conversion_build;
 
-	pspec = g_param_spec_object( "out", "Output", 
+	VIPS_ARG_IMAGE( class, "out", 1, 
+		_( "Output" ), 
 		_( "Output image" ),
-		VIPS_TYPE_IMAGE,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, 
-		PROP_OUTPUT, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsConversion, output ) );
 }
@@ -116,7 +103,9 @@ void
 vips_conversion_operation_init( void )
 {
 	extern GType vips_copy_get_type( void ); 
+	extern GType vips_embed_get_type( void ); 
 
 	vips_copy_get_type();
+	vips_embed_get_type();
 }
 

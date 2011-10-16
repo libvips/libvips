@@ -37,7 +37,49 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int vips_copy( VipsImage *in, VipsImage **out, ... );
+/** 
+ * VipsExtend:
+ * @VIPS_EXTEND_BLACK; extend with black (all 0) pixels
+ * @VIPS_EXTEND_COPY; copy the image edges
+ * @VIPS_EXTEND_REPEAT; repeat the whole image
+ * @VIPS_EXTEND_MIRROR; mirror the whole image
+ * @VIPS_EXTEND_WHITE; extend with white (all bits set) pixels
+ *
+ * See vips_embed(), vips_conv(), vips_affine() and so on.
+ *
+ * When the edges of an image are extended, you can specify
+ * how you want the extension done. 
+ *
+ * #VIPS_EXTEND_BLACK --- new pixels are black, ie. all bits are zero. 
+ *
+ * #VIPS_EXTEND_COPY --- each new pixel takes the value of the nearest edge
+ * pixel
+ *
+ * #VIPS_EXTEND_REPEAT --- the image is tiled to fill the new area
+ *
+ * #VIPS_EXTEND_MIRROR --- the image is reflected and tiled to reduce hash
+ * edges
+ *
+ * #VIPS_EXTEND_WHITE --- new pixels are white, ie. all bits are set
+ *
+ * We have to specify the exact value of each enum member since we have to 
+ * keep these frozen for back compat with vips7.
+ *
+ * See also: vips_embed().
+ */
+typedef enum {
+	VIPS_EXTEND_BLACK = 0,
+	VIPS_EXTEND_COPY = 1,
+	VIPS_EXTEND_REPEAT = 2,
+	VIPS_EXTEND_MIRROR = 3,
+	VIPS_EXTEND_WHITE = 4
+} VipsExtend;
+
+int vips_copy( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_embed( VipsImage *in, VipsImage **out, 
+	int x, int y, int width, int height, ... )
+	__attribute__((sentinel));
 
 
 

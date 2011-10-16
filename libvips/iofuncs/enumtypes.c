@@ -4,6 +4,27 @@
 /* auto-generated enums for vips introspection */
 
 #include <vips/vips.h>
+/* enumerations from "../../libvips/include/vips/conversion.h" */
+GType
+vips_extend_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_EXTEND_BLACK, "VIPS_EXTEND_BLACK", "black"},
+			{VIPS_EXTEND_COPY, "VIPS_EXTEND_COPY", "copy"},
+			{VIPS_EXTEND_REPEAT, "VIPS_EXTEND_REPEAT", "repeat"},
+			{VIPS_EXTEND_MIRROR, "VIPS_EXTEND_MIRROR", "mirror"},
+			{VIPS_EXTEND_WHITE, "VIPS_EXTEND_WHITE", "white"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsExtend", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/util.h" */
 GType
 vips_token_get_type( void )
@@ -158,7 +179,6 @@ vips_argument_flags_get_type( void )
 			{VIPS_ARGUMENT_SET_ONCE, "VIPS_ARGUMENT_SET_ONCE", "set-once"},
 			{VIPS_ARGUMENT_INPUT, "VIPS_ARGUMENT_INPUT", "input"},
 			{VIPS_ARGUMENT_OUTPUT, "VIPS_ARGUMENT_OUTPUT", "output"},
-			{VIPS_ARGUMENT_APPEND, "VIPS_ARGUMENT_APPEND", "append"},
 			{0, NULL, NULL}
 		};
 		

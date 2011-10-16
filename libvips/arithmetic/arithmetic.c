@@ -53,15 +53,6 @@
 
 #include "arithmetic.h"
 
-/* Properties.
- */
-enum {
-	PROP_OUTPUT = 1,
-	PROP_BOOLTEST = 2,
-	PROP_IMTEST = 3,
-	PROP_LAST
-}; 
-
 G_DEFINE_ABSTRACT_TYPE( VipsArithmetic, vips_arithmetic, VIPS_TYPE_OPERATION );
 
 static int
@@ -96,8 +87,6 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
-	GParamSpec *pspec;
-
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -105,33 +94,22 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	vobject_class->description = _( "arithmetic operations" );
 	vobject_class->build = vips_arithmetic_build;
 
-	pspec = g_param_spec_object( "out", "Output", 
+	VIPS_ARG_IMAGE( class, "out", 1, 
+		_( "Output" ), 
 		_( "Output image" ),
-		VIPS_TYPE_IMAGE,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, 
-		PROP_OUTPUT, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsArithmetic, output ) );
 
-	pspec = g_param_spec_boolean( "booltest", "Bool test", 
+	VIPS_ARG_BOOL( class, "booltest", 2, 
+		_( "Bool test" ), 
 		_( "Test optional boolean argument" ),
-		FALSE,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, 
-		PROP_BOOLTEST, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsArithmetic, booltest ) );
+		G_STRUCT_OFFSET( VipsArithmetic, booltest ),
+		FALSE );
 
-	pspec = g_param_spec_object( "imtest", "Image test", 
+	VIPS_ARG_IMAGE( class, "imtest", 3, 
+		_( "Image test" ), 
 		_( "Test optional image argument" ),
-		VIPS_TYPE_IMAGE,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, 
-		PROP_IMTEST, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsArithmetic, imtest ) );
 }
