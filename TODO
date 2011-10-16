@@ -1,52 +1,16 @@
-- embed args are in the wrong order
-
-	$ vips embed
-	vips_embed_class_init
-	VipsEmbed (embed), embed an image in a larger image
-	   embed input type x y width height out
+- try
+	
+	$ vips max
+	im_max (max), maximum value of image, from package "arithmetic"
+	   max in
 	where:
-	   input :: VipsImage (input)
-	   type :: gint (input)
-	   x :: gint (input)
-	   y :: gint (input)
-	   width :: gint (input)
-	   height :: gint (input)
-	   out :: VipsImage (output)
+	   in :: VipsImage (input)
+	   from package "arithmetic"
+	   flags: (PIO function) (no coordinate transformation) (area
+	   operation) (result can be cached) 
 
-  how can we fix this?
+  no output arg?
 
-  need to give an extra arg to vips_object_class_install_argument() to 
-  specify 'argument priority' ... show args in priority order
-
-
-
-- try some macros for arg specification
-
-	pspec = g_param_spec_int( "y", "Y",
-		_( "Top edge of input in output" ),
-		0, 1000000, 0,
-		G_PARAM_READWRITE );
-	g_object_class_install_property( gobject_class, PROP_Y, pspec );
-	vips_object_class_install_argument( vobject_class, pspec,
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsEmbed, y ) );
-
-  could become
-
-	VIPS_ARG_INT( class, "y", "Y",
-		_( "Top edge of input in output" ),
-		0, 1000000, 0,
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsEmbed, y ) );
-
-  could get rid of PROP_ enums as well
-
-
-  doing binary.c next
-
-
-
-- make 'type' field to embed an enum?
 
 
 
@@ -64,8 +28,10 @@
 
 
 
-- do clip/embed etc. in new style, good to get everything that VipsAdd uses in
+- do clip etc. in new style, good to get everything that VipsAdd uses in
   the new stack
+
+  embed needs flip* *join extract_area replicate insert
 
 
 

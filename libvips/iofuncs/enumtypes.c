@@ -17,6 +17,7 @@ vips_extend_get_type( void )
 			{VIPS_EXTEND_REPEAT, "VIPS_EXTEND_REPEAT", "repeat"},
 			{VIPS_EXTEND_MIRROR, "VIPS_EXTEND_MIRROR", "mirror"},
 			{VIPS_EXTEND_WHITE, "VIPS_EXTEND_WHITE", "white"},
+			{VIPS_EXTEND_LAST, "VIPS_EXTEND_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		

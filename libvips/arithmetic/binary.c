@@ -349,17 +349,19 @@ vips_binary_class_init( VipsBinaryClass *class )
 
 	/* Create properties.
 	 */
-	VIPS_ARG_IMAGE( class, "right", 1,
+
+	VIPS_ARG_IMAGE( class, "left", 1, 
+		_( "Left" ), 
+		_( "Left-hand image argument" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsBinary, left ) );
+
+	VIPS_ARG_IMAGE( class, "right", 2,
 		_( "Right" ), 
 		_( "Right-hand image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBinary, right ) );
 
-	VIPS_ARG_IMAGE( class, "left", 2, 
-		_( "Left" ), 
-		_( "Left-hand image argument" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsBinary, left ) );
 }
 
 static void

@@ -147,7 +147,7 @@ vips_statistic_class_init( VipsStatisticClass *class )
 	vobject_class->description = _( "VIPS statistic operations" );
 	vobject_class->build = vips_statistic_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
+	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,

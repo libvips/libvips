@@ -72,7 +72,8 @@ typedef enum {
 	VIPS_EXTEND_COPY = 1,
 	VIPS_EXTEND_REPEAT = 2,
 	VIPS_EXTEND_MIRROR = 3,
-	VIPS_EXTEND_WHITE = 4
+	VIPS_EXTEND_WHITE = 4,
+	VIPS_EXTEND_LAST = 5
 } VipsExtend;
 
 int vips_copy( VipsImage *in, VipsImage **out, ... )

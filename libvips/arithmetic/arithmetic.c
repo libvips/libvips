@@ -94,20 +94,20 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	vobject_class->description = _( "arithmetic operations" );
 	vobject_class->build = vips_arithmetic_build;
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
+	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsArithmetic, output ) );
 
-	VIPS_ARG_BOOL( class, "booltest", 2, 
+	VIPS_ARG_BOOL( class, "booltest", 1, 
 		_( "Bool test" ), 
 		_( "Test optional boolean argument" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsArithmetic, booltest ),
 		FALSE );
 
-	VIPS_ARG_IMAGE( class, "imtest", 3, 
+	VIPS_ARG_IMAGE( class, "imtest", 2, 
 		_( "Image test" ), 
 		_( "Test optional image argument" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 

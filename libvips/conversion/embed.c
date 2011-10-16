@@ -75,13 +75,14 @@
  * VipsEmbed:
  * @in: input image
  * @out: output image
- * @type: how to generate the edge pixels
+ * @extend: how to generate the edge pixels
  * @x: place @in at this x position in @out
  * @y: place @in at this y position in @out
  * @width: @out should be this many pixels across
  * @height: @out should be this many pixels down
  *
- * The opposite of im_extract(): embed an image within a larger image. @type
+ * The opposite of im_extract(): embed @in within an image of size @width by
+ * @height at position @x, @y.  @extend
  * controls what appears in the new pels, see #VipsExtend. 
  *
  * See also: im_extract_area(), im_insert().
@@ -96,7 +97,7 @@ typedef struct _VipsEmbed {
 	 */
 	VipsImage *input;
 
-	VipsExtend type;
+	VipsExtend extend;
 	int x;
 	int y;
 	int width;
@@ -104,13 +105,13 @@ typedef struct _VipsEmbed {
 
 	/* Geometry calculations. 
 	 */
-	Rect rout;		/* Whole output area */
-	Rect rsub;		/* Rect occupied by image */
+	VipsRect rout;		/* Whole output area */
+	VipsRect rsub;		/* Rect occupied by image */
 
 	/* The 8 border pieces. The 4 borders strictly up/down/left/right of
 	 * the main image, and the 4 corner pieces.
 	 */
-	Rect border[8];
+	VipsRect border[8];
 } VipsEmbed;
 
 typedef VipsConversionClass VipsEmbedClass;
@@ -267,17 +268,17 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		ovl.top += embed->y;
 	}
 
-	switch( embed->type ) {
-	case 0:
-	case 4:
+	switch( embed->extend ) {
+	case VIPS_EXTEND_BLACK:
+	case VIPS_EXTEND_WHITE:
 		/* Paint the borders a solid value.
 		 */
 		for( i = 0; i < 8; i++ )
 			vips_region_paint( or, &embed->border[i], 
-				embed->type == 0 ? 0 : 255 );
+				embed->extend == 0 ? 0 : 255 );
 		break;
 
-	case 1:
+	case VIPS_EXTEND_COPY:
 		/* Extend the borders.
 		 */
 		for( i = 0; i < 8; i++ ) {
@@ -338,8 +339,8 @@ vips_embed_build( VipsObject *object )
 	if( vips_image_pio_input( embed->input ) || 
 		vips_image_pio_output( conversion->output ) )
 		return( -1 );
-	if( embed->type < 0 || embed->type > 4 ) {
-		vips_error( "VipsEmbed", "%s", _( "unknown type" ) );
+	if( embed->extend < 0 || embed->extend >= VIPS_EXTEND_LAST ) {
+		vips_error( "VipsEmbed", "%s", _( "unknown VipsExtend" ) );
 		return( -1 );
 	}
 
@@ -351,8 +352,8 @@ vips_embed_build( VipsObject *object )
 		embed->height == embed->input->Ysize )
 		return( vips_image_write( embed->input, conversion->output ) );
 
-	switch( embed->type ) {
-	case 2:
+	switch( embed->extend ) {
+	case VIPS_EXTEND_REPEAT:
 {
 		/* Clock arithmetic: we want negative x/y to wrap around
 		 * nicely.
@@ -377,7 +378,7 @@ vips_embed_build( VipsObject *object )
 }
 		break;
 
-	case 3:
+	case VIPS_EXTEND_MIRROR:
 {
 		/* As case 2, but the tiles are twice the size because of
 		 * mirroring.
@@ -586,11 +587,11 @@ vips_embed_class_init( VipsEmbedClass *class )
 		G_STRUCT_OFFSET( VipsEmbed, y ),
 		-1000000, 1000000, 0 );
 
-	VIPS_ARG_ENUM( class, "type", 6, 
-		_( "type" ), 
+	VIPS_ARG_ENUM( class, "extend", 6, 
+		_( "Extend" ), 
 		_( "How to generate the extra pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, type ),
+		G_STRUCT_OFFSET( VipsEmbed, extend ),
 		VIPS_TYPE_EXTEND, VIPS_EXTEND_BLACK );
 }
 
