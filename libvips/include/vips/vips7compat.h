@@ -537,6 +537,9 @@ int im_copy_morph( VipsImage *in, VipsImage *out,
 int im_copy_swap( VipsImage *in, VipsImage *out );
 int im_copy_native( VipsImage *in, VipsImage *out, gboolean is_msb_first );
 
+int im_embed( VipsImage *in, VipsImage *out, 
+	int type, int x, int y, int width, int height );
+
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all

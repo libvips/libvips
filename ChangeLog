@@ -1,6 +1,7 @@
 20/8/11 started 7.27.0
 - version bump for new dev cycle
-- im_subtract(), im_avg(), im_min(), im_minpos(), im_copy() redone as classes
+- im_subtract(), im_avg(), im_min(), im_minpos(), im_copy(), im_embed() 
+  redone as classes
 - added VIPS_ARGUMENT_APPEND to help control arg ordering
 - generate has a 'stop' param to signal successful early termination
 - added optional output args, eg. x/y for min

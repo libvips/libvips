@@ -18,7 +18,6 @@ libconversion_la_SOURCES = \
 	im_fliphor.c \
 	im_flipver.c \
 	im_gbandjoin.c \
-	im_embed.c \
 	im_insert.c \
 	im_lrjoin.c \
 	im_mask2vips.c \

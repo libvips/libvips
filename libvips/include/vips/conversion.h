@@ -115,8 +115,6 @@ int im_extract_area( VipsImage *in, VipsImage *out,
 	int left, int top, int width, int height );
 int im_extract_areabands( VipsImage *in, VipsImage *out,
 	int left, int top, int width, int height, int band, int nbands );
-int im_embed( VipsImage *in, VipsImage *out, 
-	int type, int x, int y, int width, int height );
 int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
 int im_insert( VipsImage *main, VipsImage *sub, VipsImage *out, int x, int y );

@@ -1061,3 +1061,21 @@ im_copy_native( IMAGE *in, IMAGE *out, gboolean is_msb_first )
 	else
 		return( im_copy( in, out ) );
 }
+
+int
+im_embed( IMAGE *in, IMAGE *out, int type, int x, int y, int width, int height )
+{
+	VipsImage *t;
+
+	if( vips_embed( in, &t, x, y, width, height,
+		"extend", type, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
