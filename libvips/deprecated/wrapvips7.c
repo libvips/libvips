@@ -479,10 +479,11 @@ vips_wrap7_build_output( VipsObject *object,
 {
 	VipsWrap7 *wrap7 = VIPS_WRAP7( object );  
 	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
-	int i = argument_class->offset;
-	im_arg_desc *arg = &class->fn->argv[i];
-	im_type_desc *type = arg->desc;
-	im_arg_type vt = type->type;
+
+	int i;
+	im_arg_desc *arg;
+	im_type_desc *type;
+	im_arg_type vt;
 
 	/* We want required, construct-time, unassigned output args.
 	 */
@@ -491,6 +492,14 @@ vips_wrap7_build_output( VipsObject *object,
 		argument_instance->assigned ||
 		!(argument_class->flags & VIPS_ARGUMENT_OUTPUT) )
 		return( NULL ); 
+
+	/* argument_class->offset is only the argv slot for true params. We
+	 * can't do this before we've tested the arg class.
+	 */
+	i = argument_class->offset;
+	arg = &class->fn->argv[i];
+	type = arg->desc;
+	vt = type->type;
 
 	/* Provide output objects for the operation to write to.
 	 */
@@ -543,8 +552,9 @@ vips_wrap7_build( VipsObject *object )
 	}
 
 	if( class->not_supported ) {
-		vips_error( "wrap7", _( "unable to call vips7 operation "
-			"%s from vips8" ), oclass->nickname );
+		vips_error( "wrap7", 
+			_( "vips7 operation %s not supported by vips8" ), 
+			oclass->nickname );
 		return( -1 );
 	}
 
@@ -751,7 +761,6 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 		case VIPS_WRAP7_INTVEC:
 		case VIPS_WRAP7_GVALUE:
 		case VIPS_WRAP7_INTERPOLATE:
-		case VIPS_WRAP7_DOUBLE:
 		case VIPS_WRAP7_INT:
 		case VIPS_WRAP7_COMPLEX:
 		case VIPS_WRAP7_STRING:
@@ -760,6 +769,15 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 			 * set a flag to block _build().
 			 */
 			class->not_supported = TRUE;
+			pspec = NULL;
+			break;
+
+		case VIPS_WRAP7_DOUBLE:
+			pspec = g_param_spec_double( arg->name, 
+				arg->name, 
+				arg->name,
+				-G_MAXDOUBLE, G_MAXDOUBLE, 0.0,
+				G_PARAM_READWRITE );
 			break;
 
 		case VIPS_WRAP7_IMAGE:
@@ -768,6 +786,13 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 				arg->name,
 				VIPS_TYPE_IMAGE,
 				G_PARAM_READWRITE );
+			break;
+
+		default:
+			g_assert( 0 );
+		}
+
+		if( pspec ) {
 			g_object_class_install_property( gobject_class, 
 				i + 1, pspec );
 			vips_object_class_install_argument( vobject_class, 
@@ -776,10 +801,6 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 					VIPS_ARGUMENT_REQUIRED_OUTPUT : 
 					VIPS_ARGUMENT_REQUIRED_INPUT,
 				i, i );
-			break;
-
-		default:
-			g_assert( 0 );
 		}
 	}
 }

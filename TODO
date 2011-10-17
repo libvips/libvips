@@ -1,21 +1,18 @@
 - try
 	
-	$ vips max
-	im_max (max), maximum value of image, from package "arithmetic"
-	   max in
-	where:
-	   in :: VipsImage (input)
-	   from package "arithmetic"
-	   flags: (PIO function) (no coordinate transformation) (area
-	   operation) (result can be cached) 
+	$ vips max poop.jpg --vips-leak
 
-  no output arg?
+  need to implement output double args in wrapvips7.c
 
 - try
 
 	$ vips im_fliphor firegirl.jpg x.v
+	vips_value_hash: no case for ((VipsDirection) VIPS_DIRECTION_HORIZONTAL)
+  		type 6850208, VipsDirection
+		generic 2, VipsDirection
 
-  lots of errors
+  how strange, generic is wrong
+
 
 
 

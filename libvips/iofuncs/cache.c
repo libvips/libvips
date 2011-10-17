@@ -114,8 +114,13 @@ vips_value_hash( GType generic, GValue *value )
 		return( (unsigned int) g_value_get_enum( value ) );
 	case G_TYPE_FLAGS:
 		return( (unsigned int) g_value_get_flags( value ) );
+
 	case G_TYPE_UINT64:
-		return( (unsigned int) g_value_get_uint64( value ) );
+	{
+		guint64 i = g_value_get_uint64( value );
+
+		return( g_int64_hash( (gint64 *) &i ) );
+	}
 
 	case G_TYPE_INT64:
 	{
