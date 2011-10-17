@@ -463,14 +463,6 @@ vips_cache_drop( VipsOperation *operation )
 	vips_cache_unref( operation );
 }
 
-static gboolean
-vips_cache_drop_all_cb( VipsOperation *key, VipsOperation *value, void *none )
-{
-	vips_cache_drop( key );
-
-	return( TRUE );
-}
-
 /**
  * vips_cache_drop_all:
  *
@@ -479,9 +471,22 @@ vips_cache_drop_all_cb( VipsOperation *key, VipsOperation *value, void *none )
 void
 vips_cache_drop_all( void )
 {
-	if( vips_cache_table )
-		g_hash_table_foreach_remove( vips_cache_table,
-			(GHRFunc) vips_cache_drop_all_cb, NULL );
+	if( vips_cache_table ) {
+		/* We can't modify the hash in the callback from
+		 * g_hash_table_foreach() and friends. Repeatedly drop the
+		 * first item instead.
+		 */
+		for(;;) {
+			GHashTableIter iter;
+			gpointer key, value;
+
+			g_hash_table_iter_init( &iter, vips_cache_table );
+			if( !g_hash_table_iter_next( &iter, &key, &value ) )
+				break;
+
+			vips_cache_drop( (VipsOperation *) key );
+		}
+	}
 }
 
 static void
