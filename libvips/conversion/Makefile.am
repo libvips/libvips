@@ -5,6 +5,7 @@ libconversion_la_SOURCES = \
 	conversion.h \
 	copy.c \
 	embed.c \
+	flip.c \
 	conver_dispatch.c \
 	im_black.c \
 	im_c2amph.c \
@@ -15,8 +16,6 @@ libconversion_la_SOURCES = \
 	im_copy_file.c \
 	im_extract.c \
 	im_falsecolour.c \
-	im_fliphor.c \
-	im_flipver.c \
 	im_gbandjoin.c \
 	im_insert.c \
 	im_lrjoin.c \

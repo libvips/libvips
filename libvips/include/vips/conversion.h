@@ -76,10 +76,30 @@ typedef enum {
 	VIPS_EXTEND_LAST = 5
 } VipsExtend;
 
+/** 
+ * VipsDirection:
+ * @VIPS_DIRECTION_HORIZONTAL; left-right 
+ * @VIPS_DIRECTION_VERTICAL; top-bottom
+ *
+ * See vips_flip(), vips_join() and so on.
+ *
+ * Operations like vips_flip() need to be told whether to flip left-right or
+ * top-bottom. 
+ *
+ * See also: vips_flip(), vips_join().
+ */
+typedef enum {
+	VIPS_DIRECTION_HORIZONTAL,
+	VIPS_DIRECTION_VERTICAL,
+	VIPS_DIRECTION_LAST
+} VipsDirection;
+
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_embed( VipsImage *in, VipsImage **out, 
 	int x, int y, int width, int height, ... )
+	__attribute__((sentinel));
+int vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
 	__attribute__((sentinel));
 
 
@@ -126,8 +146,6 @@ int im_replicate( VipsImage *in, VipsImage *out, int across, int down );
 int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down );
 int im_wrap( VipsImage *in, VipsImage *out, int x, int y );
 
-int im_fliphor( VipsImage *in, VipsImage *out );
-int im_flipver( VipsImage *in, VipsImage *out );
 int im_rot90( VipsImage *in, VipsImage *out );
 int im_rot180( VipsImage *in, VipsImage *out );
 int im_rot270( VipsImage *in, VipsImage *out );

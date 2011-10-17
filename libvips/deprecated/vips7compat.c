@@ -1079,3 +1079,35 @@ im_embed( IMAGE *in, IMAGE *out, int type, int x, int y, int width, int height )
 
 	return( 0 );
 }
+
+int 
+im_fliphor( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_flip( in, &t, VIPS_DIRECTION_HORIZONTAL, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_flipver( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_flip( in, &t, VIPS_DIRECTION_VERTICAL, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}

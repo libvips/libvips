@@ -104,8 +104,10 @@ vips_conversion_operation_init( void )
 {
 	extern GType vips_copy_get_type( void ); 
 	extern GType vips_embed_get_type( void ); 
+	extern GType vips_flip_get_type( void ); 
 
 	vips_copy_get_type();
 	vips_embed_get_type();
+	vips_flip_get_type();
 }
 

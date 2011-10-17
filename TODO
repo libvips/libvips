@@ -11,6 +11,13 @@
 
   no output arg?
 
+- try
+
+	$ vips im_fliphor firegirl.jpg x.v
+
+  lots of errors
+
+
 
 
 
