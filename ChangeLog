@@ -21,6 +21,13 @@
 - added --vips-leak flag
 - more VipsImage props
 - added vips_image_write(), old one becomes vips_image_write_to_file()
+
+12/10/11 started 7.26.6
+- NOCACHE was not being set correctly on OS X causing performance 
+  problems with large files
+- update Orientation exif tag on jpeg write
+
+12/10/11 started 7.26.5
 - jpeg read/write copies over XMP data
 - handle offset correctly in separable convolutions (thanks Nicolas)
 - macros for class arg boilerplate

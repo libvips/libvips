@@ -108,7 +108,7 @@
  * Various convenience functions (eg. vips_image_set_int()) let you easily 
  * attach 
  * simple types like
- * numbers, strings and memory blocks to images. Use vips_header_map() to loop
+ * numbers, strings and memory blocks to images. Use vips_image_map() to loop
  * over an image's fields, including all metadata.
  *
  * Items of metadata are identified by strings. Some strings are reserved, for
