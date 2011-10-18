@@ -3563,9 +3563,8 @@ namespace cimg_library {
       }
       if (name) {
         if (argc>0) {
-          int k=0,i;
+          int k=0;
           while (k<argc && cimg::strcmp(argv[k],name)) k++;
-          i=k;
           res=(k++==argc?defaut:(k==argc?argv[--k]:argv[k]));
         } else res = defaut;
         if (visu && usage) std::fprintf(stderr,"    %s%-8s%s = %-12s : %s%s%s\n",

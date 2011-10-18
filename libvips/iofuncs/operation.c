@@ -283,7 +283,7 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 		else if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 			(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
 			!argument_instance->assigned ) {
-			void *arg;
+			void *arg __attribute((unused));
 
 			/* Output args are all pointers to places to write 
 			 * results. Skip here, we use these during the output 
