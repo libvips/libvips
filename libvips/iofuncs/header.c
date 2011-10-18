@@ -112,7 +112,7 @@
  * Various convenience functions (eg. vips_image_set_int()) let you easily 
  * attach 
  * simple types like
- * numbers, strings and memory blocks to images. Use vips_header_map() to loop
+ * numbers, strings and memory blocks to images. Use vips_image_map() to loop
  * over an image's fields, including all metadata.
  *
  * Items of metadata are identified by strings. Some strings are reserved, for
@@ -479,8 +479,6 @@ vips_image_init_fields( VipsImage *image,
 static void *
 meta_cp_field( VipsMeta *meta, VipsImage *dst )
 {
-	VipsMeta *meta_copy;
-
 #ifdef DEBUG
 {
 	char *str_value;
@@ -494,7 +492,7 @@ meta_cp_field( VipsMeta *meta, VipsImage *dst )
 
 	/* No way to return error here, sadly.
 	 */
-	meta_copy = meta_new( dst, meta->field, &meta->value );
+	(void) meta_new( dst, meta->field, &meta->value );
 
 #ifdef DEBUG
 	meta_sanity( dst );

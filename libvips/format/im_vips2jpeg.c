@@ -42,6 +42,8 @@
  * 	- oop CMYK write was not inverting, thanks Ole
  * 12/10/2011
  * 	- write XMP data
+ * 18/10/2011
+ * 	- update Orientation as well
  */
 
 /*
@@ -72,8 +74,8 @@
 
 /*
 #define DEBUG_VERBOSE
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -314,10 +316,16 @@ write_tag( ExifData *ed, ExifTag tag, ExifFormat f, write_fn fn, void *data )
 		ExifEntry *entry;
 
 		entry = exif_entry_new();
+
+		/* tag must be set before calling exif_content_add_entry.
+		 */
+		entry->tag = tag; 
+
 		exif_content_add_entry( ed->ifd[0], entry );
 		exif_entry_initialize( entry, tag );
-		fn( entry, bo, data );
 		exif_entry_unref( entry );
+
+		fn( entry, bo, data );
 	}
 
 	return( 0 );
@@ -356,6 +364,62 @@ set_exif_resolution( ExifData *ed, IMAGE *im )
 
 	return( 0 );
 }
+
+static void *
+update_orientation_cb( VipsImage *in, const char *name, GValue *value, void *a )
+{
+	/* Sadly these strings are subject to i18n by libexif. We should
+	 * attach EXIF data as binary and leave interpretaion to the UI argh.
+	 */
+	static const char *orientations[] = {
+		"", 
+		"Top-left", "Top-right", "Bottom-right",
+		"Bottom-left", "Left-top", "Right-top",
+		"Right-bottom", "Left-bottom", 
+		NULL
+	};
+
+	ExifData *ed = (ExifData *) a;
+
+	int i;
+	ExifShort orientation;
+
+	if( vips_isprefix( "exif-Orientation", name ) ) {
+		const char *string;
+
+		if( !(string = vips_ref_string_get( value )) ) {
+			vips_warn( "im_jpeg2vips", 
+				"%s", _( "exif-Orientation is not a string" ) );
+			return( NULL );
+		}
+
+		orientation = 0;
+		for( i = 0; orientations[i]; i++ ) 
+			if( strlen( orientations[i] ) > 0 &&
+				vips_isprefix( orientations[i], string ) ) {
+				orientation = i;
+				break;
+			}
+		if( orientation == 0 ) {
+			vips_warn( "im_jpeg2vips", 
+				"%s", _( "unknown JPEG orientation" ) );
+			return( NULL );
+		}
+
+		if( write_tag( ed, EXIF_TAG_ORIENTATION, EXIF_FORMAT_SHORT,
+			write_short, &orientation ) ) {
+			vips_warn( "im_jpeg2vips", 
+				"%s", _( "error setting JPEG orientation" ) );
+			return( NULL );
+		}
+
+#ifdef DEBUG
+		printf( "im_vips2jpeg: updated orientation\n" );
+#endif /*DEBUG*/
+	}
+
+	return( NULL );
+}
 #endif /*HAVE_EXIF*/
 
 static int
@@ -378,8 +442,22 @@ write_exif( Write *write )
 		if( !(ed = exif_data_new_from_data( data, data_length )) )
 			return( -1 );
 	}
-	else 
+	else  {
 		ed = exif_data_new();
+
+		exif_data_set_option( ed, 
+			EXIF_DATA_OPTION_FOLLOW_SPECIFICATION );
+		exif_data_set_data_type( ed, EXIF_DATA_TYPE_COMPRESSED );
+		exif_data_set_byte_order( ed, EXIF_BYTE_ORDER_INTEL );
+	
+		/* Create the mandatory EXIF fields with default data.
+		 */
+		exif_data_fix( ed );
+	}
+
+	/* Update EXIF orientation from VIPS.
+	 */
+	(void) vips_image_map( write->in, update_orientation_cb, ed );
 
 	/* Update EXIF resolution from VIPS.
 	 */

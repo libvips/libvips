@@ -271,9 +271,10 @@ attach_exif_entry( ExifEntry *entry, IMAGE *im )
 	vips_buf_init_static( &value, value_text, 256 );
 
 	vips_buf_appendf( &name, "exif-%s", exif_tag_get_title( entry->tag ) );
-	vips_buf_appendf( &value, "%s (%s, %d bytes)", 
+	vips_buf_appendf( &value, "%s (%s, %lu componets, %d bytes)", 
 		exif_entry_get_value( entry, exif_value, 256 ),
 		exif_format_get_name( entry->format ),
+		entry->components,
 		entry->size );
 
 	/* Can't do anything sensible with the error return.
