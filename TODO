@@ -16,6 +16,40 @@
 
 
 
+- we have some serious exif problems
+
+  we attach exif as both the original exif data and as a set of broken-out
+  tags, such as 'exif-Orientation' ... the tags are attached as strings
+
+  when we write a jpg file, we parse the original exif block, update the
+  resolution and Orientation tags from metadata, and add to the output file
+
+  we need a way to update the exif block with all 'exif-' tags, but this is
+  hard because a tag is 
+
+	tag
+  	format (eg. short, rational, string)
+	components (for short, for example, you can have an array of 12)
+	data (byte buffer)
+	size (sizeof byte buffer)
+
+  many tags have extra meanings, for example Orientation means that the format
+  must be short and the data must be 1, 2, 3, 4, 5, 6, 7 or 8 for the 8
+  possible rotates and flips ... libexif does not expose any way to convert
+  strings to enum values safely, what do we do with "Bottom-right"
+
+  how do we expose this to bindings in a sane way, how do we accurately
+  convert the updated tag values back into correct exif when we reattach
+
+  additionally, exif tags can be in one of several ifd blocks, do we need to
+  add the tag to the correct block? how do we save that information?
+
+  probably not possible with libexif, better to pass the problem to another
+  library and simply provide operations to add and remove whole exif blocks
+
+
+
+
 
 
 - vips_object_set_argument_from_string() needs more arg types
