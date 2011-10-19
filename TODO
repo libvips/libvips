@@ -1,3 +1,15 @@
+- change the way we wrap vips7 operations
+
+  make im_max() appear in vips8 as "im_max" (we wrap as "max" right now), this
+  will help compatibility when we redo as a class and create "max"
+
+  make vips.c try the vip8 APIs for an operation before falling back to vips7
+
+  ... actually, leave it alone, it can never work well, no point encouraging
+  its use
+
+
+
 
 - we have some serious exif problems
 

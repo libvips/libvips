@@ -34,7 +34,6 @@
  
    	TODO:
 
-	- works for iamges, but not tested for much else
 	- masks would be hard, vips8 won't really have these
 	- keep for testing, mostly ... iofuncs/init.c has a commeted-out
 	  call to init this thing
