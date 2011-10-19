@@ -1,16 +1,4 @@
 
-- try
-
-	$ vips im_fliphor firegirl.jpg x.v
-	vips_value_hash: no case for ((VipsDirection) VIPS_DIRECTION_HORIZONTAL)
-  		type 6850208, VipsDirection
-		generic 2, VipsDirection
-
-  how strange, generic is wrong
-
-
-
-
 - we have some serious exif problems
 
   we attach exif as both the original exif data and as a set of broken-out

@@ -88,218 +88,196 @@ static GHashTable *vips_cache_table = NULL;
  */
 static int vips_cache_time = 0;
 
-/* generic is the general type of the value. For example, the value could be
+/* Pass in the pspec so we can get the generic type. For example, a 
  * held in a GParamSpec allowing OBJECT, but the value could be of type
  * VipsImage. generics are much faster to compare.
  */
 static unsigned int
-vips_value_hash( GType generic, GValue *value )
+vips_value_hash( GParamSpec *pspec, GValue *value )
 {
-	switch( generic ) { 
-	case G_TYPE_BOOLEAN:
-		return( (unsigned int) g_value_get_boolean( value ) );
-	case G_TYPE_CHAR:
-		return( (unsigned int) g_value_get_char( value ) );
-	case G_TYPE_UCHAR:
-		return( (unsigned int) g_value_get_uchar( value ) );
-	case G_TYPE_INT:
-		return( (unsigned int) g_value_get_int( value ) );
-	case G_TYPE_UINT:
-		return( (unsigned int) g_value_get_uint( value ) );
-	case G_TYPE_LONG:
-		return( (unsigned int) g_value_get_long( value ) );
-	case G_TYPE_ULONG:
-		return( (unsigned int) g_value_get_ulong( value ) );
-	case G_TYPE_ENUM:
-		return( (unsigned int) g_value_get_enum( value ) );
-	case G_TYPE_FLAGS:
-		return( (unsigned int) g_value_get_flags( value ) );
+	GType generic = G_PARAM_SPEC_TYPE( pspec );
 
-	case G_TYPE_UINT64:
-	{
+	/* Not compile-time constants, so we have to use a set of if()s. Could
+	 * make a table at run time I guess.
+	 */
+
+	if( generic == G_TYPE_PARAM_BOOLEAN )
+		return( (unsigned int) g_value_get_boolean( value ) );
+	else if( generic == G_TYPE_PARAM_CHAR )
+		return( (unsigned int) g_value_get_char( value ) );
+	else if( generic == G_TYPE_PARAM_UCHAR )
+		return( (unsigned int) g_value_get_uchar( value ) );
+	else if( generic == G_TYPE_PARAM_INT )
+		return( (unsigned int) g_value_get_int( value ) );
+	else if( generic == G_TYPE_PARAM_UINT )
+		return( (unsigned int) g_value_get_uint( value ) );
+	else if( generic == G_TYPE_PARAM_LONG )
+		return( (unsigned int) g_value_get_long( value ) );
+	else if( generic == G_TYPE_PARAM_ULONG )
+		return( (unsigned int) g_value_get_ulong( value ) );
+	else if( generic == G_TYPE_PARAM_ENUM )
+		return( (unsigned int) g_value_get_enum( value ) );
+	else if( generic == G_TYPE_PARAM_FLAGS )
+		return( (unsigned int) g_value_get_flags( value ) );
+	else if( generic == G_TYPE_PARAM_UINT64 ) {
 		guint64 i = g_value_get_uint64( value );
 
 		return( g_int64_hash( (gint64 *) &i ) );
 	}
-
-	case G_TYPE_INT64:
-	{
+	else if( generic == G_TYPE_PARAM_INT64 ) {
 		gint64 i = g_value_get_int64( value );
 
 		return( g_int64_hash( &i ) );
 	}
-	case G_TYPE_FLOAT:
-	{
+	else if( generic == G_TYPE_PARAM_FLOAT ) {
 		float f = g_value_get_float( value );
 
 		return( *((unsigned int *) &f) );
 	}
-	case G_TYPE_DOUBLE:
-	{
+	else if( generic == G_TYPE_PARAM_DOUBLE ) {
 		double d = g_value_get_double( value );
 
 		return( g_double_hash( &d ) );
 	}
-	case G_TYPE_STRING:
-	{
+	else if( generic == G_TYPE_PARAM_STRING ) {
 		const char *s = g_value_get_string( value );
 
 		return( g_str_hash( s ) );
 	}
-	case G_TYPE_BOXED:
-	{
+	else if( generic == G_TYPE_PARAM_BOXED ) {
 		void *p = g_value_get_boxed( value );
 
 		return( g_direct_hash( p ) );
 	}
-	case G_TYPE_POINTER:
-	{
+	else if( generic == G_TYPE_PARAM_POINTER ) {
 		void *p = g_value_get_pointer( value );
 
 		return( g_direct_hash( p ) );
 	}
-	case G_TYPE_OBJECT:
-	{
+	else if( generic == G_TYPE_PARAM_OBJECT ) {
 		void *p = g_value_get_object( value );
 
 		return( g_direct_hash( p ) );
 	}
-
-	default:
-	{
-		/* These GTypes are not compile-time constants and need to be
-		 * in ifs.
+	else {
+		/* Fallback: convert to a string and hash that. 
+		 * This is very slow, print a warning if we use it 
+		 * so we can add another case.
 		 */
-		if( generic == VIPS_TYPE_IMAGE )
-			return( g_direct_hash( g_value_get_object( value ) ) );
-		else {
-			/* Fallback: convert to a string and hash that. 
-			 * This is very slow, print a warning if we use it 
-			 * so we can add another case.
-			 */
-			char *s;
-			unsigned int hash;
+		char *s;
+		unsigned int hash;
 
-			s = g_strdup_value_contents( value ); 
-			hash = g_str_hash( s );
+		s = g_strdup_value_contents( value ); 
+		hash = g_str_hash( s );
 
-			printf( "vips_value_hash: no case for %s\n", s );
-			printf( "\ttype %d, %s\n", 
-				(int) G_VALUE_TYPE( value ),
-				g_type_name( G_VALUE_TYPE( value ) ) );
-			printf( "\tgeneric %d, %s\n", 
-				(int) G_VALUE_TYPE( generic ),
-				g_type_name( generic ) );
+		printf( "vips_value_hash: no case for %s\n", s );
+		printf( "\ttype %d, %s\n", 
+			(int) G_VALUE_TYPE( value ),
+			g_type_name( G_VALUE_TYPE( value ) ) );
+		printf( "\tgeneric %d, %s\n", 
+			(int) G_VALUE_TYPE( generic ),
+			g_type_name( generic ) );
 
-			g_free( s );
+		g_free( s );
 
-			return( hash );
-		}
-	}
+		return( hash );
 	}
 }
 
-/* generic is the general type of the value. For example, the value could be
- * held in a GParamSpec allowing OBJECT, but the value could be of type
- * VipsImage. generics are much faster to compare.
+/* Pass in the pspec so we can get the generic type. For example, a 
+ * value could be held in a GParamSpec allowing OBJECT, but the value 
+ * could be of type VipsImage. generics are much faster to compare.
  */
 static gboolean 
-vips_value_equal( GType generic, GValue *v1, GValue *v2 )
+vips_value_equal( GParamSpec *pspec, GValue *v1, GValue *v2 )
 {
+	GType generic = G_PARAM_SPEC_TYPE( pspec );
 	GType t1 = G_VALUE_TYPE( v1 );
 	GType t2 = G_VALUE_TYPE( v2 );
 
 	if( t1 != t2 )
 		return( FALSE );
 
-	switch( t1 ) { 
-	case G_TYPE_BOOLEAN:
+	/* Not compile-time constants, so we have to use a set of if()s. Could
+	 * make a table at run time I guess.
+	 */
+
+	if( generic == G_TYPE_PARAM_BOOLEAN ) 
 		return( g_value_get_boolean( v1 ) == 
 			g_value_get_boolean( v2 ) );
-	case G_TYPE_CHAR:
+	else if( generic == G_TYPE_PARAM_CHAR ) 
 		return( g_value_get_char( v1 ) ==
 			g_value_get_char( v2 ) );
-	case G_TYPE_UCHAR:
+	if( generic == G_TYPE_PARAM_UCHAR ) 
 		return( g_value_get_uchar( v1 ) ==
 			g_value_get_uchar( v2 ) );
-	case G_TYPE_INT:
+	if( generic == G_TYPE_PARAM_INT ) 
 		return( g_value_get_int( v1 ) ==
 			g_value_get_int( v2 ) );
-	case G_TYPE_UINT:
+	if( generic == G_TYPE_PARAM_UINT ) 
 		return( g_value_get_uint( v1 ) ==
 			g_value_get_uint( v2 ) );
-	case G_TYPE_LONG:
+	if( generic == G_TYPE_PARAM_LONG ) 
 		return( g_value_get_long( v1 ) ==
 			g_value_get_long( v2 ) );
-	case G_TYPE_ULONG:
+	if( generic == G_TYPE_PARAM_ULONG ) 
 		return( g_value_get_ulong( v1 ) ==
 			g_value_get_ulong( v2 ) );
-	case G_TYPE_ENUM:
+	if( generic == G_TYPE_PARAM_ENUM ) 
 		return( g_value_get_enum( v1 ) ==
 			g_value_get_enum( v2 ) );
-	case G_TYPE_FLAGS:
+	if( generic == G_TYPE_PARAM_FLAGS ) 
 		return( g_value_get_flags( v1 ) ==
 			g_value_get_flags( v2 ) );
-	case G_TYPE_UINT64:
+	if( generic == G_TYPE_PARAM_UINT64 ) 
 		return( g_value_get_uint64( v1 ) ==
 			g_value_get_uint64( v2 ) );
-	case G_TYPE_INT64:
+	if( generic == G_TYPE_PARAM_INT64 ) 
 		return( g_value_get_int64( v1 ) ==
 			g_value_get_int64( v2 ) );
-	case G_TYPE_FLOAT:
+	if( generic == G_TYPE_PARAM_FLOAT ) 
 		return( g_value_get_float( v1 ) ==
 			g_value_get_float( v2 ) );
-	case G_TYPE_DOUBLE:
+	if( generic == G_TYPE_PARAM_DOUBLE ) 
 		return( g_value_get_double( v1 ) ==
 			g_value_get_double( v2 ) );
-	case G_TYPE_STRING:
+	if( generic == G_TYPE_PARAM_STRING ) 
 		return( strcmp( g_value_get_string( v1 ),
 			g_value_get_string( v2 ) ) == 0 );
-	case G_TYPE_BOXED:
+	if( generic == G_TYPE_PARAM_BOXED ) 
 		return( g_value_get_boxed( v1 ) ==
 			g_value_get_boxed( v2 ) );
-	case G_TYPE_POINTER:
+	if( generic == G_TYPE_PARAM_POINTER ) 
 		return( g_value_get_pointer( v1 ) ==
 			g_value_get_pointer( v2 ) );
-	case G_TYPE_OBJECT:
+	if( generic == G_TYPE_PARAM_OBJECT ) 
 		return( g_value_get_object( v1 ) ==
 			g_value_get_object( v2 ) );
-
-	default:
-	{
-		/* These GTypes are not compile-time constants and need to be
-		 * in ifs.
+	else {
+		/* Fallback: convert to a string and compare that. 
+		 * This is very slow, print a warning if we use it 
+		 * so we can add another case.
 		 */
-		if( generic == VIPS_TYPE_IMAGE )
-			return( g_value_get_object( v1 ) ==
-				g_value_get_object( v2 ) );
-		else {
-			/* Fallback: convert to a string and compare that. 
-			 * This is very slow, print a warning if we use it 
-			 * so we can add another case.
-			 */
-			char *s1;
-			char *s2;
-			gboolean equal;
+		char *s1;
+		char *s2;
+		gboolean equal;
 
-			s1 = g_strdup_value_contents( v1 ); 
-			s2 = g_strdup_value_contents( v2 ); 
-			equal = strcmp( s1, s2 ) == 0;
+		s1 = g_strdup_value_contents( v1 ); 
+		s2 = g_strdup_value_contents( v2 ); 
+		equal = strcmp( s1, s2 ) == 0;
 
-			printf( "vips_value_equal: no case for %s, %s\n", 
-				s1, s2 );
-			printf( "\tt1 %d, %s\n", (int) t1, g_type_name( t1 ) );
-			printf( "\tt2 %d, %s\n", (int) t2, g_type_name( t2 ) );
-			printf( "\tgeneric %d, %s\n", 
-				(int) G_VALUE_TYPE( generic ),
-				g_type_name( generic ) );
+		printf( "vips_value_equal: no case for %s, %s\n", 
+			s1, s2 );
+		printf( "\tt1 %d, %s\n", (int) t1, g_type_name( t1 ) );
+		printf( "\tt2 %d, %s\n", (int) t2, g_type_name( t2 ) );
+		printf( "\tgeneric %d, %s\n", 
+			(int) G_VALUE_TYPE( generic ),
+			g_type_name( generic ) );
 
-			g_free( s1 );
-			g_free( s2 );
+		g_free( s1 );
+		g_free( s2 );
 
-			return( equal );
-		}
-	}
+		return( equal );
 	}
 }
 
@@ -315,13 +293,13 @@ vips_object_hash_arg( VipsObject *object,
 	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
 		argument_instance->assigned ) {
+		const char *name = g_param_spec_get_name( pspec );
 		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
 		GValue value = { 0, };
 
 		g_value_init( &value, type );
-		g_object_get_property( G_OBJECT( object ), 
-			g_param_spec_get_name( pspec ), &value ); 
-		*hash = (*hash << 1) ^ vips_value_hash( type, &value );
+		g_object_get_property( G_OBJECT( object ), name, &value ); 
+		*hash = (*hash << 1) ^ vips_value_hash( pspec, &value );
 		g_value_unset( &value );
 	}
 
@@ -376,7 +354,7 @@ vips_object_equal_arg( VipsObject *object,
 		g_value_init( &v2, type );
 		g_object_get_property( G_OBJECT( object ), name, &v1 ); 
 		g_object_get_property( G_OBJECT( other ), name, &v2 ); 
-		equal = vips_value_equal( type, &v1, &v2 );
+		equal = vips_value_equal( pspec, &v1, &v2 );
 		g_value_unset( &v1 );
 		g_value_unset( &v2 );
 
