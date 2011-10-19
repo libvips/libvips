@@ -123,6 +123,8 @@ typedef enum {
 	VIPS_WRAP7_INTERPOLATE
 } VipsWrap7Type;
 
+/* Order must match VipsWrap7Type enums.
+ */
 static char *vips_wrap7_supported[] = {
 	IM_TYPE_DOUBLE,
 	IM_TYPE_INT,
@@ -537,6 +539,33 @@ vips_wrap7_build_output( VipsObject *object,
 	return( NULL );
 }
 
+/* Mark an output as assigned.
+ */
+static void *
+vips_wrap7_note_assigned( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	/* We want required, construct-time, output args.
+	 */
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) ||
+		!(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
+		!(argument_class->flags & VIPS_ARGUMENT_OUTPUT) )
+		return( NULL ); 
+
+	if( !argument_instance->assigned ) {
+		argument_instance->assigned = TRUE;
+
+		VIPS_DEBUG_MSG( "vips_wrap7_note_assigned: "
+			"marking %s as assigned\n", 
+			g_param_spec_get_name( pspec ) );
+	}
+
+	return( NULL );
+}
+
 static int
 vips_wrap7_build( VipsObject *object )
 {
@@ -573,8 +602,20 @@ vips_wrap7_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_wrap7_parent_class )->build( object ) )
 		return( -1 );
 
+	/* Run the operation.
+	 */
 	if( class->fn->disp( wrap7->vargv ) )
 		return( -1 );
+
+	/* The vips7 operation will have written any outputs (such as the
+	 * output double for im_max(), for example) to varg. g_object_get()
+	 * fetches directly from vargv (see vips_wrap7_object_get_property())
+	 * so we don't need to do any copying, we just need to tell vips that
+	 * all outputs now have values. 
+	 */
+	(void) vips_argument_map( VIPS_OBJECT( wrap7 ),
+		vips_wrap7_note_assigned, 
+		NULL, NULL ); 
 
 	return( 0 );
 }

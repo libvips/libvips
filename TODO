@@ -1,8 +1,3 @@
-- try
-	
-	$ vips max poop.jpg --vips-leak
-
-  need to implement output double args in wrapvips7.c
 
 - try
 
@@ -44,10 +39,17 @@
   additionally, exif tags can be in one of several ifd blocks, do we need to
   add the tag to the correct block? how do we save that information?
 
-  probably not possible with libexif, better to pass the problem to another
-  library and simply provide operations to add and remove whole exif blocks
+  oo! we have the original, of course
 
+  to reattach, get the entry from the original exif block, get the updated
+  tag, coerce the updated value back to the orginal format
 
+  save exif entries to tags as something like:
+
+	exif-Orientation: 1 (Top-left, Short, 1 component, 2 bytes)
+
+  so we can restore the value from the "1" without needding to look up i18n
+  strings
 
 
 
