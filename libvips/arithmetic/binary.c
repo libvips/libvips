@@ -306,7 +306,7 @@ vips_binary_build( VipsObject *object )
 	if( vips_image_new_array( object, t, 6 ) )
 		return( -1 );
 
-	/* Cast our input images up to a common format and bands.
+	/* Cast our input images up to a common format, bands and size.
 	 */
 	if( vips__formatalike( binary->left, binary->right, t[0], t[1] ) ||
 		vips__bandalike( domain, t[0], t[1], t[2], t[3] ) ||

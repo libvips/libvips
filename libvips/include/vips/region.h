@@ -109,6 +109,7 @@ int vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 );
 int vips_region_position( VipsRegion *reg, int x, int y );
 
 void vips_region_paint( VipsRegion *reg, VipsRect *r, int value );
+void vips_region_paint_pel( VipsRegion *reg, VipsRect *r, PEL *ink );
 void vips_region_black( VipsRegion *reg );
 void vips_region_copy( VipsRegion *reg, VipsRegion *dest, 
 	VipsRect *r, int x, int y );

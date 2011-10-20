@@ -1,3 +1,26 @@
+- we have this is many places:
+
+	if( vips_image_copy_fieldsv( conversion->output, 
+		insert->main, insert->sub, NULL ) )
+		return( -1 );
+        vips_demand_hint( conversion->output, 
+		VIPS_DEMAND_STYLE_THINSTRIP, insert->main, insert->sub, NULL );
+
+  can we combine these into a single API call?
+
+
+
+- do clip etc. in new style, good to get everything that VipsAdd uses in
+  the new stack
+
+  embed needs flip* *join extract_area replicate insert
+
+  *join needs insert too
+
+
+
+
+
 - change the way we wrap vips7 operations
 
   make im_max() appear in vips8 as "im_max" (we wrap as "max" right now), this
@@ -67,11 +90,6 @@
 
 
 
-
-- do clip etc. in new style, good to get everything that VipsAdd uses in
-  the new stack
-
-  embed needs flip* *join extract_area replicate insert
 
 
 

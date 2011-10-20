@@ -850,6 +850,57 @@ vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
 }
 
 /**
+ * vips_region_paint_pel:
+ * @reg: region to operate upon
+ * @r: area to paint
+ * @ink: value to paint
+ *
+ * Paints @ink into @reg covering rectangle @r. @r is clipped against 
+ * @reg->valid.
+ *
+ * @ink should be a byte array of the same size as an image pixel containing
+ * the binary value to write into the pixels.
+ *
+ * See also: vips_region_paint().
+ */
+void
+vips_region_paint_pel( VipsRegion *reg, VipsRect *r, PEL *ink )
+{
+	VipsRect ovl;
+
+	vips_rect_intersectrect( r, &reg->valid, &ovl );
+	if( !vips_rect_isempty( &ovl ) ) {
+		int ps = VIPS_IMAGE_SIZEOF_PEL( reg->im );
+		int ws = ovl.width * ps;
+		int ls = VIPS_REGION_LSKIP( reg );
+
+		PEL *to, *q;
+		int x, y, z;
+
+		/* We plot the first line pointwise, then memcpy() it for the
+		 * subsequent lines.
+		 */
+		to = (PEL *) VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
+
+		q = to;
+		for( x = 0; x < ovl.width; x++ ) {
+			/* Faster than memcpy() for about n<20.
+			 */
+			for( j = 0; j < ps; j++ )
+				q[j] = ink[j];
+
+			q += ps;
+		}
+
+		q = to + ls;
+		for( y = 1; y < ovl.height; y++ ) {
+			memcpy( q, to, ws );
+			q += ls;
+		}
+	}
+}
+
+/**
  * vips_region_black:
  * @reg: region to operate upon
  *

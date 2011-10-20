@@ -1,21 +1,25 @@
-/* flip left/right and up/down
+/* join left-right and up-down
  *
- * Copyright: 1990, N. Dessipris
- * Written on: 28/10/91
- * Updated on:
- * 19/7/93 JC
- *	- now allows IM_CODING_LABQ too
- *	- yuk! needs rewriting
- * 21/12/94 JC
- *	- rewritten
+ * Copyright 1990, 1991: Kirk Martinez, N. Dessipris
+ * Author: Kirk Martinez, N. Dessipris
+ * Written on: 9/6/90
+ * Modified on: 17/04/1991
+ * 31/8/93 JC
+ *	- args to memcpy() were reversed
+ * 14/11/94 JC
+ *	- tided up and ANSIfied
+ * 	- now accepts IM_CODING_LABQ
+ *	- memory leaks removed
+ *	- bug in calculation of output Xsize removed (thanks Thomson!)
+ *	- bug in checking of image compatibility fixed
+ * 23/10/95 JC
+ *	- rewritten in terms of im_insert()
  * 14/4/04 
  *	- sets Xoffset / Yoffset
- * 24/3/09
- * 	- added IM_CODING_RAD support
- * 29/1/10
- * 	- cleanups
+ * 1/2/10
  * 	- gtkdoc
- * 17/10/11
+ * 	- cleanups
+ * 19/10/11
  * 	- redone as a class
  */
 
@@ -73,6 +77,33 @@
  * Flips an image left-right or up-down.
  *
  * See also: im_rot90().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+
+/**
+ * VipsJoin:
+ * @in1: first input image 
+ * @in2: second input image 
+ * @out: output image
+ * @direction: join horizontally or vertically
+ * @expand: TRUE to expand the output image to hold all of the input pixels
+ * @shim: space between images, in pixels
+ * @background: background ink colour
+ *
+ * Join @left and @right together, left-right. If one is taller than the
+ * other, @out will be has high as the smaller.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_insert(), im_tbjoin().
  *
  * Returns: 0 on success, -1 on error
  */
