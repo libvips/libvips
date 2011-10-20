@@ -1,3 +1,16 @@
+- we have VIPS_ARG_ARRAY, but really we need to say it's an array of double
+
+  can we derive from G_TYPE_ARRAY and make G_TYPE_ARRAY_DOUBLE?
+
+  no, we have to make a fresh boxed type
+
+  maybe make a boxed type which is a GArray plus a GType for array members?
+  then we could have array of double
+
+  add to header.c
+
+
+
 - we have this is many places:
 
 	if( vips_image_copy_fieldsv( conversion->output, 
@@ -6,7 +19,9 @@
         vips_demand_hint( conversion->output, 
 		VIPS_DEMAND_STYLE_THINSTRIP, insert->main, insert->sub, NULL );
 
-  can we combine these into a single API call?
+  why not combine these into a single API call?
+
+  use array version in several places
 
 
 
@@ -16,6 +31,8 @@
   embed needs flip* *join extract_area replicate insert
 
   *join needs insert too
+
+  insert* needs clip, lintra_vec
 
 
 

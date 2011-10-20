@@ -146,6 +146,19 @@ extern int _vips__argument_id;
 		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
+#define VIPS_ARG_ARRAY( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
+	MIN, MAX, VALUE ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_boxed( (NAME), (LONG), (DESC), \
+		G_TYPE_ARRAY, \
+		G_PARAM_READWRITE );\
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
 #define VIPS_ARG_INT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
 	MIN, MAX, VALUE ) { \
 	GParamSpec *pspec; \

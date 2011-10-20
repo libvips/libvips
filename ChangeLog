@@ -21,6 +21,7 @@
 - added --vips-leak flag
 - more VipsImage props
 - added vips_image_write(), old one becomes vips_image_write_to_file()
+- added vips_region_paint_pel()
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

@@ -120,7 +120,7 @@ typedef struct _VipsInsert {
 	int x;
 	int y;
 	gboolean expand;
-	double *background;
+	GArray *background;
 
 	/* Pixel we paint calculated from background.
 	 */
@@ -418,7 +418,7 @@ vips_insert_class_init( VipsInsertClass *class )
 		G_STRUCT_OFFSET( VipsInsert, expand ),
 		FALSE );
 
-	VIPS_ARG_DOUBLEVEC( class, "background", 5, 
+	VIPS_ARG_ARRAY( class, "background", 5, 
 		_( "Background" ), 
 		_( "Colour for new pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
