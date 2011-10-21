@@ -163,7 +163,7 @@ int vips_blob_set( GValue *value, VipsCallbackFn free_fn,
 /**
  * VIPS_TYPE_ARRAY_DOUBLE:
  *
- * The #GType for an #vips_blob.
+ * The #GType for an #vips_array_double.
  */
 
 #define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())

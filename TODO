@@ -1,25 +1,11 @@
-- we have VIPS_ARG_ARRAY, but really we need to say it's an array of double
+- what should the member of VipsInsert be? what does get_member do for boxed?
+  just the pointer I guess
 
-  can we derive from G_TYPE_ARRAY and make G_TYPE_ARRAY_DOUBLE?
+  does that mean VipsInsert sees an Area?
 
-  no, we have to make a fresh boxed type
+  yes, vips_object_set_property() writes g_value_dup_boxed() to the member
 
-  maybe make a boxed type which is a GArray plus a GType for array members?
-  then we could have array of double
-
-  insert.c needs to have a member like this
-
-  	GArray *background;
-
-  and declare it as an array of double, and be guaranteed that background is
-  all double
-
-
-
-  make a new boxed type for typed array which is a GArray plus a GType
-
-  specialise this into array_double, cf. the way we make a refstring out of a
-  VipsArea
+  argh do we have to expose Area now?
 
 
 

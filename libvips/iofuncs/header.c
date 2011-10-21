@@ -991,7 +991,8 @@ transform_int_save_string( const GValue *src_value, GValue *dest_value )
 static void
 transform_save_string_int( const GValue *src_value, GValue *dest_value )
 {
-	g_value_set_int( dest_value, atoi( vips_save_string_get( src_value ) ) );
+	g_value_set_int( dest_value, 
+		atoi( vips_save_string_get( src_value ) ) );
 }
 
 static void
@@ -1017,9 +1018,18 @@ transform_save_string_double( const GValue *src_value, GValue *dest_value )
  */
 typedef struct _Area {
 	int count;
+
 	size_t length;		/* 0 if not known */
 	void *data;
+
 	VipsCallbackFn free_fn;
+
+	/* If we are holding an array (for exmaple, an array of double), the
+	 * GType of elements and their size. Calculate the number of elements
+	 * in the array from this.
+	 */
+	GType type;
+	size_t sizeof_type;
 } Area;
 
 #ifdef DEBUG
@@ -1040,6 +1050,8 @@ area_new( VipsCallbackFn free_fn, void *data )
 	area->length = 0;
 	area->data = data;
 	area->free_fn = free_fn;
+	area->type = 0;
+	area->sizeof_type = 0;
 
 #ifdef DEBUG
 	area_number += 1;
@@ -1328,7 +1340,8 @@ transform_g_string_ref_string( const GValue *src_value, GValue *dest_value )
 static void
 transform_ref_string_save_string( const GValue *src_value, GValue *dest_value )
 {
-	vips_save_string_setf( dest_value, "%s", vips_ref_string_get( src_value ) );
+	vips_save_string_setf( dest_value, 
+		"%s", vips_ref_string_get( src_value ) );
 }
 
 static void
@@ -1487,102 +1500,107 @@ vips_blob_set( GValue *value,
 	return( 0 );
 }
 
-double *
-vips_array_double_get( const GValue *value, int *length )
+/* An area which holds a copy of an array of GType.
+ */
+static Area *
+area_new_array( GType type, size_t sizeof_type, int n )
 {
-	GArray *garray;
+	Area *area;
+	void *array;
 
-	if( !(garray = g_value_get_boxed( value )) ) {
-		garray = g_array_sized_new( FALSE, FALSE, sizeof( double ), 0 );
-		g_value_set_boxed( value, garray );
-	}
+	array = g_malloc( n * sizeof_type );
+	if( !(area = area_new( g_free, array )) )
+		return( NULL );
+	area->length = n * sizeof_type;
+	area->type = G_TYPE_DOUBLE;
+	area->sizeof_type = sizeof_type;
 
-	if( length )
-		*length = garray->len;
-
-	return( (double *) garray->data );
+	return( area );
 }
 
-int
-vips_array_double_set( GValue *value, double *array, int length )
+/* Set value to be an array of things. Don't initialise the contents: get the
+ * pointer and write instead.
+ */
+static int
+vips_array_set( GValue *value, GType type, size_t sizeof_type, int n )
 {
-	GArray *garray;
+	Area *area;
 
-	if( !(garray = g_value_get_boxed( value )) ) {
-		garray = g_array_sized_new( FALSE, FALSE, sizeof( double ), 
-			length );
-		g_value_set_boxed( value, garray );
-	}
+	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_ARRAY );
 
-	g_array_remove_range( garray, 0, garray->len );
-	g_array_append_vals( garray, array, length );
+	if( !(area = area_new_array( type, sizeof_type, n )) )
+		return( -1 );
+	g_value_set_boxed( value, area );
+	area_unref( area );
 
 	return( 0 );
 }
 
-static void
-transform_array_double_g_string( const GValue *src_value, GValue *dest_value )
+static void *
+vips_array_get( const GValue *value, 
+	int *length, GType *type, size_t *sizeof_type )
 {
-	double *array;
+	Area *area;
+
+	/* Can't check value type, because we may get called from
+	 * vips_*_get_type().
+	 */
+
+	area = g_value_get_boxed( value );
+	if( length )
+		*length = area->length;
+	if( type )
+		*type = area->type;
+	if( sizeof_type )
+		*sizeof_type = area->sizeof_type;
+
+	return( area->data );
+}
+
+static void
+transform_array_g_string( const GValue *src_value, GValue *dest_value )
+{
+	char *array;
 	int length;
+	GType type;
+	size_t sizeof_type;
+	int n;
 	char txt[1024];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int i;
 
-	array = vips_array_double_get( src_value, &length );
+	array = (char *) vips_array_get( src_value, 
+		&length, &type, &sizeof_type );
+	n = length / sizeof_type;
 
-	for( i = 0; i < length; i++ ) {
+	for( i = 0; i < n; i++ ) {
+		GValue value = { 0, };
+
 		if( i > 0 )
 			vips_buf_appends( &buf, ", " );
-		vips_buf_appendf( &buf, "%g", array[i] );
+
+		g_value_init( &value, type );
+		g_value_set_instance( &value, array );
+
+		str = g_strdup_value_contents( &value );
+		vips_buf_appends( &buf, str );
+		g_free( str );
+
+		g_value_unset( &value );
+
+		array += sizeof_type;
 	}
 
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
 
-static void
-transform_array_double_save_string( const GValue *src_value, 
-	GValue *dest_value )
-{
-	double *array;
-	int length;
-	GString *string;
-	int i;
-
-	array = vips_array_double_get( src_value, &length );
-
-	string = g_string_new( "" );
-	for( i = 0; i < length; i++ ) {
-		char buf[G_ASCII_DTOSTR_BUF_SIZE];
-
-		if( i > 0 )
-			g_string_append_printf( string, "," );
-		g_ascii_dtostr( buf, G_ASCII_DTOSTR_BUF_SIZE, array[i] );
-		g_string_append( string, buf );
-	}
-
-	g_value_set_string( dest_value, string->str );
-
-	g_string_free( string, TRUE );
-}
-
-static void
-transform_save_string_array_double( const GValue *src_value, 
-	GValue *dest_value )
-{
-	GArray *garray;
-
-	if( !(garray = g_value_get_boxed( dest_value )) ) 
-		garray = g_array_sized_new( FALSE, FALSE, sizeof( double ), 0 );
-	else
-		g_array_remove_range( garray, 0, garray->len );
-
-
-	parse to ,
-	g_ascii_strtod to garray
-
-		will this repeatedly realloc?
-}
+/* We don't have functions to save arrays to save_str and back. We'd need to
+ * save the type as well as the members and number of members, something like:
+ *
+ * double { 12.3, 13.7 }
+ *
+ * Anyway, no call for this yet.
+ */
 
 GType
 vips_array_double_get_type( void )
@@ -1591,23 +1609,65 @@ vips_array_double_get_type( void )
 
 	if( !type ) {
 		type = g_boxed_type_register_static( "vips_array_double",
-			(GBoxedCopyFunc) g_array_ref, 
-			(GBoxedFreeFunc) g_array_copy );
+			(GBoxedCopyFunc) area_ref, 
+			(GBoxedFreeFunc) area_copy );
 		g_value_register_transform_func( type, G_TYPE_STRING,
-			transform_array_double_g_string );
-		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
-			transform_array_double_save_string );
-		g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, type,
-			transform_save_string_array_double );
+			transform_array_g_string );
 	}
 
 	return( type );
 }
 
+/** 
+ * vips_array_double_get:
+ * @value: #GValue to get from
+ * @n: return the number of elements here, optionally
+ *
+ * Return the start of the array of doubles held by @value.
+ * optionally return the number of elements in @n.
+ *
+ * See also: vips_array_double_set().
+ *
+ * Returns: The array address.
+ */
+double *
+vips_array_double_get( const GValue *value, int *n )
+{
+	double *array;
+	size_t &length;
 
+	array = vips_array_get( value, &length, NULL, NULL );
 
+	if( n )
+		*n = length / sizeof( double );
 
+	return( array );
+}
 
+/** 
+ * vips_array_double_set:
+ * @value: #GValue to get from
+ * @array: array of doubles
+ * @n: the number of elements 
+ *
+ * Set @value to hold a copy of @array. Pass in the array length in @n. 
+ *
+ * See also: vips_array_double_get().
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_array_double_set( const GValue *value, double *array, int n )
+{
+	double *array_copy;
+
+	vips_array_set( value, 
+		G_TYPE_DOUBLE, sizeof( double ), n * sizeof( double ) );
+	array_copy = vips_array_double_get( value, NULL );
+	memcpy( array_copy, array, n * sizeof( double ) );
+
+	return( 0 );
+}
 
 /** 
  * vips_image_set_blob:
