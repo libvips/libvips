@@ -1487,6 +1487,128 @@ vips_blob_set( GValue *value,
 	return( 0 );
 }
 
+double *
+vips_array_double_get( const GValue *value, int *length )
+{
+	GArray *garray;
+
+	if( !(garray = g_value_get_boxed( value )) ) {
+		garray = g_array_sized_new( FALSE, FALSE, sizeof( double ), 0 );
+		g_value_set_boxed( value, garray );
+	}
+
+	if( length )
+		*length = garray->len;
+
+	return( (double *) garray->data );
+}
+
+int
+vips_array_double_set( GValue *value, double *array, int length )
+{
+	GArray *garray;
+
+	if( !(garray = g_value_get_boxed( value )) ) {
+		garray = g_array_sized_new( FALSE, FALSE, sizeof( double ), 
+			length );
+		g_value_set_boxed( value, garray );
+	}
+
+	g_array_remove_range( garray, 0, garray->len );
+	g_array_append_vals( garray, array, length );
+
+	return( 0 );
+}
+
+static void
+transform_array_double_g_string( const GValue *src_value, GValue *dest_value )
+{
+	double *array;
+	int length;
+	char txt[1024];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	int i;
+
+	array = vips_array_double_get( src_value, &length );
+
+	for( i = 0; i < length; i++ ) {
+		if( i > 0 )
+			vips_buf_appends( &buf, ", " );
+		vips_buf_appendf( &buf, "%g", array[i] );
+	}
+
+	g_value_set_string( dest_value, vips_buf_all( &buf ) );
+}
+
+static void
+transform_array_double_save_string( const GValue *src_value, 
+	GValue *dest_value )
+{
+	double *array;
+	int length;
+	GString *string;
+	int i;
+
+	array = vips_array_double_get( src_value, &length );
+
+	string = g_string_new( "" );
+	for( i = 0; i < length; i++ ) {
+		char buf[G_ASCII_DTOSTR_BUF_SIZE];
+
+		if( i > 0 )
+			g_string_append_printf( string, "," );
+		g_ascii_dtostr( buf, G_ASCII_DTOSTR_BUF_SIZE, array[i] );
+		g_string_append( string, buf );
+	}
+
+	g_value_set_string( dest_value, string->str );
+
+	g_string_free( string, TRUE );
+}
+
+static void
+transform_save_string_array_double( const GValue *src_value, 
+	GValue *dest_value )
+{
+	GArray *garray;
+
+	if( !(garray = g_value_get_boxed( dest_value )) ) 
+		garray = g_array_sized_new( FALSE, FALSE, sizeof( double ), 0 );
+	else
+		g_array_remove_range( garray, 0, garray->len );
+
+
+	parse to ,
+	g_ascii_strtod to garray
+
+		will this repeatedly realloc?
+}
+
+GType
+vips_array_double_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "vips_array_double",
+			(GBoxedCopyFunc) g_array_ref, 
+			(GBoxedFreeFunc) g_array_copy );
+		g_value_register_transform_func( type, G_TYPE_STRING,
+			transform_array_double_g_string );
+		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
+			transform_array_double_save_string );
+		g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, type,
+			transform_save_string_array_double );
+	}
+
+	return( type );
+}
+
+
+
+
+
+
 /** 
  * vips_image_set_blob:
  * @image: image to attach the metadata to

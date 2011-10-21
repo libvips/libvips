@@ -7,7 +7,20 @@
   maybe make a boxed type which is a GArray plus a GType for array members?
   then we could have array of double
 
-  add to header.c
+  insert.c needs to have a member like this
+
+  	GArray *background;
+
+  and declare it as an array of double, and be guaranteed that background is
+  all double
+
+
+
+  make a new boxed type for typed array which is a GArray plus a GType
+
+  specialise this into array_double, cf. the way we make a refstring out of a
+  VipsArea
+
 
 
 

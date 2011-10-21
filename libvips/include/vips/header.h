@@ -160,6 +160,17 @@ void *vips_blob_get( const GValue *value, size_t *length );
 int vips_blob_set( GValue *value, VipsCallbackFn free_fn, 
 	void *data, size_t length ); 
 
+/**
+ * VIPS_TYPE_ARRAY_DOUBLE:
+ *
+ * The #GType for an #vips_blob.
+ */
+
+#define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
+GType vips_array_double_get_type( void );
+double *vips_array_double_get( const GValue *value, int *length );
+int vips_array_double_set( GValue *value, double *array, int length ); 
+
 void vips_image_set_area( VipsImage *image, 
 	const char *field, VipsCallbackFn free_fn, void *data );
 int vips_image_get_area( VipsImage *image, const char *field, void **data );
