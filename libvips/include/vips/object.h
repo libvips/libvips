@@ -147,7 +147,7 @@ extern int _vips__argument_id;
 }
 
 #define VIPS_ARG_BOXED( CLASS, NAME, PRIORITY, LONG, DESC, \
-	FLAGS, OFFSET, TYPE ) \
+	FLAGS, OFFSET, TYPE ) { \
 	GParamSpec *pspec; \
 	\
 	pspec = g_param_spec_boxed( (NAME), (LONG), (DESC), \

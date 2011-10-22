@@ -1,12 +1,3 @@
-- what should the member of VipsInsert be? what does get_member do for boxed?
-  just the pointer I guess
-
-  does that mean VipsInsert sees an Area?
-
-  yes, vips_object_set_property() writes g_value_dup_boxed() to the member
-
-  argh do we have to expose Area now?
-
 
 
 

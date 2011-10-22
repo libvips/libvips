@@ -6,6 +6,7 @@ libconversion_la_SOURCES = \
 	copy.c \
 	embed.c \
 	flip.c \
+	insert.c \
 	conver_dispatch.c \
 	im_black.c \
 	im_c2amph.c \

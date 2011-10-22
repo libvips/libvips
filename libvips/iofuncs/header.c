@@ -1014,24 +1014,6 @@ transform_save_string_double( const GValue *src_value, GValue *dest_value )
 		g_ascii_strtod( vips_save_string_get( src_value ), NULL ) );
 }
 
-/* A GType for a ref-counted area of memory.
- */
-typedef struct _Area {
-	int count;
-
-	size_t length;		/* 0 if not known */
-	void *data;
-
-	VipsCallbackFn free_fn;
-
-	/* If we are holding an array (for exmaple, an array of double), the
-	 * GType of elements and their size. Calculate the number of elements
-	 * in the array from this.
-	 */
-	GType type;
-	size_t sizeof_type;
-} Area;
-
 #ifdef DEBUG
 static int area_number = 0;
 #endif /*DEBUG*/
@@ -1039,12 +1021,12 @@ static int area_number = 0;
 /* An area of mem with a free func. (eg. \0-terminated string, or a struct).
  * Inital count == 1, so _unref() after attaching somewhere.
  */
-static Area *
+static VipsArea *
 area_new( VipsCallbackFn free_fn, void *data )
 {
-	Area *area;
+	VipsArea *area;
 
-	if( !(area = VIPS_NEW( NULL, Area )) )
+	if( !(area = VIPS_NEW( NULL, VipsArea )) )
 		return( NULL );
 	area->count = 1;
 	area->length = 0;
@@ -1065,10 +1047,10 @@ area_new( VipsCallbackFn free_fn, void *data )
 /* An area of mem with a free func and a length (some sort of binary object,
  * like an ICC profile).
  */
-static Area *
+static VipsArea *
 area_new_blob( VipsCallbackFn free_fn, void *blob, size_t blob_length )
 {
-	Area *area;
+	VipsArea *area;
 
 	if( !(area = area_new( free_fn, blob )) )
 		return( NULL );
@@ -1077,8 +1059,8 @@ area_new_blob( VipsCallbackFn free_fn, void *blob, size_t blob_length )
 	return( area );
 }
 
-static Area *
-area_copy( Area *area )
+static VipsArea *
+area_copy( VipsArea *area )
 {
 	g_assert( area->count >= 0 );
 
@@ -1092,7 +1074,7 @@ area_copy( Area *area )
 }
 
 static void
-area_unref( Area *area )
+area_unref( VipsArea *area )
 {
 	g_assert( area->count > 0 );
 
@@ -1119,7 +1101,7 @@ area_unref( Area *area )
 static void
 transform_area_g_string( const GValue *src_value, GValue *dest_value )
 {
-	Area *area;
+	VipsArea *area;
 	char buf[256];
 
 	area = g_value_get_boxed( src_value );
@@ -1151,7 +1133,7 @@ vips_area_get_type( void )
 static int
 value_set_area( VipsCallbackFn free_fn, void *data, GValue *value )
 {
-	Area *area;
+	VipsArea *area;
 
 	if( !(area = area_new( free_fn, data )) )
 		return( -1 );
@@ -1168,7 +1150,7 @@ value_set_area( VipsCallbackFn free_fn, void *data, GValue *value )
 static void *
 value_get_area_data( const GValue *value )
 {
-	Area *area;
+	VipsArea *area;
 
 	area = g_value_get_boxed( value );
 
@@ -1178,7 +1160,7 @@ value_get_area_data( const GValue *value )
 static size_t
 value_get_area_length( const GValue *value )
 {
-	Area *area;
+	VipsArea *area;
 
 	area = g_value_get_boxed( value );
 
@@ -1300,7 +1282,7 @@ vips_ref_string_get_length( const GValue *value )
 int
 vips_ref_string_set( GValue *value, const char *str )
 {
-	Area *area;
+	VipsArea *area;
 	char *str_copy;
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
@@ -1387,7 +1369,7 @@ vips_ref_string_get_type( void )
 void *
 vips_blob_get( const GValue *value, size_t *length )
 {
-	Area *area;
+	VipsArea *area;
 
 	/* Can't check value type, because we may get called from
 	 * vips_blob_get_type().
@@ -1487,7 +1469,7 @@ int
 vips_blob_set( GValue *value, 
 	VipsCallbackFn free_fn, void *data, size_t length ) 
 {
-	Area *area;
+	VipsArea *area;
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_BLOB );
 
@@ -1502,15 +1484,16 @@ vips_blob_set( GValue *value,
 
 /* An area which holds a copy of an array of GType.
  */
-static Area *
+static VipsArea *
 area_new_array( GType type, size_t sizeof_type, int n )
 {
-	Area *area;
+	VipsArea *area;
 	void *array;
 
 	array = g_malloc( n * sizeof_type );
-	if( !(area = area_new( g_free, array )) )
+	if( !(area = area_new( (VipsCallbackFn) g_free, array )) )
 		return( NULL );
+	area->n = n;
 	area->length = n * sizeof_type;
 	area->type = G_TYPE_DOUBLE;
 	area->sizeof_type = sizeof_type;
@@ -1524,9 +1507,7 @@ area_new_array( GType type, size_t sizeof_type, int n )
 static int
 vips_array_set( GValue *value, GType type, size_t sizeof_type, int n )
 {
-	Area *area;
-
-	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_ARRAY );
+	VipsArea *area;
 
 	if( !(area = area_new_array( type, sizeof_type, n )) )
 		return( -1 );
@@ -1538,17 +1519,17 @@ vips_array_set( GValue *value, GType type, size_t sizeof_type, int n )
 
 static void *
 vips_array_get( const GValue *value, 
-	int *length, GType *type, size_t *sizeof_type )
+	int *n, GType *type, size_t *sizeof_type )
 {
-	Area *area;
+	VipsArea *area;
 
 	/* Can't check value type, because we may get called from
 	 * vips_*_get_type().
 	 */
 
 	area = g_value_get_boxed( value );
-	if( length )
-		*length = area->length;
+	if( n )
+		*n = area->n;
 	if( type )
 		*type = area->type;
 	if( sizeof_type )
@@ -1561,20 +1542,19 @@ static void
 transform_array_g_string( const GValue *src_value, GValue *dest_value )
 {
 	char *array;
-	int length;
+	int n;
 	GType type;
 	size_t sizeof_type;
-	int n;
 	char txt[1024];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int i;
 
 	array = (char *) vips_array_get( src_value, 
-		&length, &type, &sizeof_type );
-	n = length / sizeof_type;
+		&n, &type, &sizeof_type );
 
 	for( i = 0; i < n; i++ ) {
 		GValue value = { 0, };
+		char *str;
 
 		if( i > 0 )
 			vips_buf_appends( &buf, ", " );
@@ -1609,8 +1589,8 @@ vips_array_double_get_type( void )
 
 	if( !type ) {
 		type = g_boxed_type_register_static( "vips_array_double",
-			(GBoxedCopyFunc) area_ref, 
-			(GBoxedFreeFunc) area_copy );
+			(GBoxedCopyFunc) area_copy, 
+			(GBoxedFreeFunc) area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
 			transform_array_g_string );
 	}
@@ -1633,15 +1613,7 @@ vips_array_double_get_type( void )
 double *
 vips_array_double_get( const GValue *value, int *n )
 {
-	double *array;
-	size_t &length;
-
-	array = vips_array_get( value, &length, NULL, NULL );
-
-	if( n )
-		*n = length / sizeof( double );
-
-	return( array );
+	return( vips_array_get( value, n, NULL, NULL ) );
 }
 
 /** 
@@ -1657,12 +1629,11 @@ vips_array_double_get( const GValue *value, int *n )
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_array_double_set( const GValue *value, double *array, int n )
+vips_array_double_set( GValue *value, const double *array, int n )
 {
 	double *array_copy;
 
-	vips_array_set( value, 
-		G_TYPE_DOUBLE, sizeof( double ), n * sizeof( double ) );
+	vips_array_set( value, G_TYPE_DOUBLE, sizeof( double ), n );
 	array_copy = vips_array_double_get( value, NULL );
 	memcpy( array_copy, array, n * sizeof( double ) );
 
@@ -1879,7 +1850,7 @@ vips_image_get_string( VipsImage *image, const char *field, char **out )
 {
 	int i;
 	GValue value_copy = { 0 };
-	Area *area;
+	VipsArea *area;
 
 	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
 		if( strcmp( field, string_field[i].field ) == 0 ) {

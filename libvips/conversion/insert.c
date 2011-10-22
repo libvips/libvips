@@ -120,7 +120,7 @@ typedef struct _VipsInsert {
 	int x;
 	int y;
 	gboolean expand;
-	GArray *background;
+	VipsArea *background;
 
 	/* Pixel we paint calculated from background.
 	 */
@@ -147,7 +147,7 @@ G_DEFINE_TYPE( VipsInsert, vips_insert, VIPS_TYPE_CONVERSION );
 static int
 vips_insert_just_one( VipsRegion *or, VipsRegion *ir, int x, int y )
 {
-	VIpsRect need;
+	VipsRect need;
 
 	/* Find the part of pos we need.
 	 */
@@ -204,43 +204,38 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	Rect ovl;
 
-	/* Ask for input we need.
-	 */
-	if( vips_region_prepare( ir, r ) )
-		return( -1 );
-
 	/* Does the rect we have been asked for fall entirely inside the
 	 * sub-image?
 	 */
-	if( vips_rect_includesrect( &ins->rsub, &or->valid ) ) 
+	if( vips_rect_includesrect( &insert->rsub, &or->valid ) ) 
 		return( vips_insert_just_one( or, ir[1], 
-			ins->rsub.left, ins->rsub.top ) );
+			insert->rsub.left, insert->rsub.top ) );
 	
 	/* Does it fall entirely inside the main, and not at all inside the
 	 * sub?
 	 */
-	vips_rect_intersectrect( &or->valid, &ins->rsub, &ovl );
-	if( vips_rect_includesrect( &ins->rmain, &or->valid ) &&
+	vips_rect_intersectrect( &or->valid, &insert->rsub, &ovl );
+	if( vips_rect_includesrect( &insert->rmain, &or->valid ) &&
 		vips_rect_isempty( &ovl ) ) 
 		return( vips_insert_just_one( or, ir[0], 
-			ins->rmain.left, ins->rmain.top ) );
+			insert->rmain.left, insert->rmain.top ) );
 
 	/* Output requires both (or neither) input. If it is not entirely 
 	 * inside both the main and the sub, then there is going to be some
 	 * background. 
 	 */
-	if( !(vips_rect_includesrect( &ins->rsub, &or->valid ) &&
-		vips_rect_includesrect( &ins->rmain, &or->valid )) )
+	if( !(vips_rect_includesrect( &insert->rsub, &or->valid ) &&
+		vips_rect_includesrect( &insert->rmain, &or->valid )) )
 		vips_region_paint_pel( or, r, insert->ink );
 
 	/* Paste from main.
 	 */
-	if( vips_insert_paste_region( or, ir[0], &ins->rmain ) )
+	if( vips_insert_paste_region( or, ir[0], &insert->rmain ) )
 		return( -1 );
 
 	/* Paste from sub.
 	 */
-	if( vips_insert_paste_region( or, ir[1], &ins->rsub ) )
+	if( vips_insert_paste_region( or, ir[1], &insert->rsub ) )
 		return( -1 );
 
 	return( 0 );
@@ -250,7 +245,7 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
  * valid.
  */
 PEL *
-vips__vector_to_ink( const char *domain, VipsImage *im, int n, double *vec )
+vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 {
 	VipsImage *t[3];
 	double *zeros;
@@ -258,7 +253,7 @@ vips__vector_to_ink( const char *domain, VipsImage *im, int n, double *vec )
 
 	if( vips_check_vector( domain, n, im ) )
 		return( NULL );
-	if( vips_open_local_array( im, t, 3, domain, "t" ) ||
+	if( vips_image_new_array( VIPS_OBJECT( im ), t, 3 ) ||
 		!(zeros = VIPS_ARRAY( im, n, double )) )
 		return( NULL );
 	for( i = 0; i < n; i++ )
@@ -285,7 +280,6 @@ vips_insert_build( VipsObject *object )
 
 	VipsImage *t[4];
 	VipsImage **arry;
-	int i;
 
 	/* Check args.
 	 */
@@ -301,9 +295,11 @@ vips_insert_build( VipsObject *object )
 	if( vips_image_pio_input( insert->main ) || 
 		vips_image_pio_input( insert->sub ) || 
 		vips_image_pio_output( conversion->output ) ||
-		vips_check_bands_1orn( domain, in1, in2 ) ||
-		vips_check_coding_known( domain, in1 ) ||
-		vips_check_coding_same( domain, in1, in2 ) )
+		vips_check_bands_1orn( "VipsInsert", 
+			insert->main, insert->sub ) ||
+		vips_check_coding_known( "VipsInsert", insert->main ) ||
+		vips_check_coding_same( "VipsInsert", 
+			insert->main, insert->sub ) )
 		return( -1 );
 
 	if( vips_image_new_array( object, t, 4 ) )
@@ -312,7 +308,7 @@ vips_insert_build( VipsObject *object )
 	/* Cast our input images up to a common format and bands.
 	 */
 	if( vips__formatalike( insert->main, insert->sub, t[0], t[1] ) ||
-		vips__bandalike( domain, t[0], t[1], t[2], t[3] ) )
+		vips__bandalike( "VipsInsert", t[0], t[1], t[2], t[3] ) )
 		return( -1 );
 	insert->main_processed = t[2];
 	insert->sub_processed = t[3];
@@ -322,7 +318,7 @@ vips_insert_build( VipsObject *object )
 
 	if( vips_image_copy_fields_array( conversion->output, arry ) )
 		return( -1 );
-        vips_demand_hint_array( arithmetic->output, 
+        vips_demand_hint_array( conversion->output, 
 		VIPS_DEMAND_STYLE_SMALLTILE, arry );
 
 	/* Calculate geometry. 
@@ -331,8 +327,8 @@ vips_insert_build( VipsObject *object )
 	insert->rmain.top = 0;
 	insert->rmain.width = insert->main_processed->Xsize;
 	insert->rmain.height = insert->main_processed->Ysize;
-	insert->rsub.left = x;
-	insert->rsub.top = y;
+	insert->rsub.left = insert->x;
+	insert->rsub.top = insert->y;
 	insert->rsub.width = insert->sub_processed->Xsize;
 	insert->rsub.height = insert->sub_processed->Ysize;
 
@@ -352,14 +348,14 @@ vips_insert_build( VipsObject *object )
 		insert->rout.top = 0;
 	}
 	else 
-		ins->rout = ins->rmain;
+		insert->rout = insert->rmain;
 
 	conversion->output->Xsize = insert->rout.width;
 	conversion->output->Ysize = insert->rout.height;
 
 	if( !(insert->ink = vips__vector_to_ink( 
 		"VipsInsert", conversion->output,
-		insert->background, insert->n )) )
+		insert->background->data, insert->background->n )) )
 		return( -1 );
 
 	if( vips_image_generate( conversion->output,
@@ -440,7 +436,7 @@ vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out,
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
+	va_start( ap, y );
 	result = vips_call_split( "insert", ap, main, sub, out, x, y );
 	va_end( ap );
 

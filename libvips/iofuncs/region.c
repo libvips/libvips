@@ -886,8 +886,8 @@ vips_region_paint_pel( VipsRegion *reg, VipsRect *r, PEL *ink )
 		for( x = 0; x < ovl.width; x++ ) {
 			/* Faster than memcpy() for about n<20.
 			 */
-			for( j = 0; j < ps; j++ )
-				q[j] = ink[j];
+			for( z = 0; z < ps; z++ )
+				q[z] = ink[z];
 
 			q += ps;
 		}
