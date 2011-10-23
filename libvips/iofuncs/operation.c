@@ -774,19 +774,21 @@ vips_call_argv_input( VipsObject *object,
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		const char *name = g_param_spec_get_name( pspec );
+
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
 			const char *arg;
 
 			if( !(arg = vips_call_get_arg( call, call->i )) ||
 				vips_object_set_argument_from_string( object, 
-				g_param_spec_get_name( pspec ), arg ) ) 
+					name, arg ) ) 
 				return( pspec );
 
 			call->i += 1;
 		}
 		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
 			if( vips_object_get_argument_needs_string( object,
-				g_param_spec_get_name( pspec ) ) )
+				name ) )
 				call->i += 1;
 		}
 	}

@@ -1261,6 +1261,10 @@ vips_object_set_argument_from_string( VipsObject *object,
 		g_value_init( &gvalue, otype );
 		g_value_set_enum( &gvalue, enum_value->value );
 	}
+	else if( G_IS_PARAM_SPEC_BOXED( pspec ) &&
+		G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_ARRAY_DOUBLE ) {
+		printf( "init double array from %s\n", value );
+	}
 	else {
 		g_value_init( &gvalue, G_TYPE_STRING );
 		g_value_set_string( &gvalue, value );

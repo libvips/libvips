@@ -49,8 +49,9 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1059,29 +1060,48 @@ area_new_blob( VipsCallbackFn free_fn, void *blob, size_t blob_length )
 	return( area );
 }
 
-static VipsArea *
-area_copy( VipsArea *area )
+/* An area which holds a copy of an array of elements of some GType.
+ */
+VipsArea *
+vips_area_new_array( GType type, size_t sizeof_type, int n )
+{
+	VipsArea *area;
+	void *array;
+
+	array = g_malloc( n * sizeof_type );
+	if( !(area = area_new( (VipsCallbackFn) g_free, array )) )
+		return( NULL );
+	area->n = n;
+	area->length = n * sizeof_type;
+	area->type = G_TYPE_DOUBLE;
+	area->sizeof_type = sizeof_type;
+
+	return( area );
+}
+
+VipsArea *
+vips_area_copy( VipsArea *area )
 {
 	g_assert( area->count >= 0 );
 
 	area->count += 1;
 
 #ifdef DEBUG
-	printf( "area_copy: %p count = %d\n", area, area->count );
+	printf( "vips_area_copy: %p count = %d\n", area, area->count );
 #endif /*DEBUG*/
 
 	return( area );
 }
 
-static void
-area_unref( VipsArea *area )
+void
+vips_area_unref( VipsArea *area )
 {
 	g_assert( area->count > 0 );
 
 	area->count -= 1;
 
 #ifdef DEBUG
-	printf( "area_unref: %p count = %d\n", area, area->count );
+	printf( "vips_area_unref: %p count = %d\n", area, area->count );
 #endif /*DEBUG*/
 
 	if( area->count == 0 && area->free_fn ) {
@@ -1091,7 +1111,7 @@ area_unref( VipsArea *area )
 
 #ifdef DEBUG
 		area_number -= 1;
-		printf( "area_unref: free .. total = %d\n", area_number );
+		printf( "vips_area_unref: free .. total = %d\n", area_number );
 #endif /*DEBUG*/
 	}
 }
@@ -1117,8 +1137,8 @@ vips_area_get_type( void )
 
 	if( !type ) {
 		type = g_boxed_type_register_static( "vips_area",
-			(GBoxedCopyFunc) area_copy, 
-			(GBoxedFreeFunc) area_unref );
+			(GBoxedCopyFunc) vips_area_copy, 
+			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( 
 			type,
 			G_TYPE_STRING,
@@ -1140,7 +1160,7 @@ value_set_area( VipsCallbackFn free_fn, void *data, GValue *value )
 
 	g_value_init( value, VIPS_TYPE_AREA );
 	g_value_set_boxed( value, area );
-	area_unref( area );
+	vips_area_unref( area );
 
 	return( 0 );
 }
@@ -1298,7 +1318,7 @@ vips_ref_string_set( GValue *value, const char *str )
 	area->length = strlen( str );
 
 	g_value_set_boxed( value, area );
-	area_unref( area );
+	vips_area_unref( area );
 
 	return( 0 );
 }
@@ -1339,8 +1359,8 @@ vips_ref_string_get_type( void )
 
 	if( !type ) {
 		type = g_boxed_type_register_static( "vips_ref_string",
-			(GBoxedCopyFunc) area_copy, 
-			(GBoxedFreeFunc) area_unref );
+			(GBoxedCopyFunc) vips_area_copy, 
+			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
 			transform_ref_string_g_string );
 		g_value_register_transform_func( G_TYPE_STRING, type,
@@ -1433,8 +1453,8 @@ vips_blob_get_type( void )
 
 	if( !type ) {
 		type = g_boxed_type_register_static( "vips_blob",
-			(GBoxedCopyFunc) area_copy, 
-			(GBoxedFreeFunc) area_unref );
+			(GBoxedCopyFunc) vips_area_copy, 
+			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
 			transform_blob_g_string );
 		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
@@ -1477,28 +1497,9 @@ vips_blob_set( GValue *value,
 		return( -1 );
 
 	g_value_set_boxed( value, area );
-	area_unref( area );
+	vips_area_unref( area );
 
 	return( 0 );
-}
-
-/* An area which holds a copy of an array of GType.
- */
-static VipsArea *
-area_new_array( GType type, size_t sizeof_type, int n )
-{
-	VipsArea *area;
-	void *array;
-
-	array = g_malloc( n * sizeof_type );
-	if( !(area = area_new( (VipsCallbackFn) g_free, array )) )
-		return( NULL );
-	area->n = n;
-	area->length = n * sizeof_type;
-	area->type = G_TYPE_DOUBLE;
-	area->sizeof_type = sizeof_type;
-
-	return( area );
 }
 
 /* Set value to be an array of things. Don't initialise the contents: get the
@@ -1509,10 +1510,10 @@ vips_array_set( GValue *value, GType type, size_t sizeof_type, int n )
 {
 	VipsArea *area;
 
-	if( !(area = area_new_array( type, sizeof_type, n )) )
+	if( !(area = vips_area_new_array( type, sizeof_type, n )) )
 		return( -1 );
 	g_value_set_boxed( value, area );
-	area_unref( area );
+	vips_area_unref( area );
 
 	return( 0 );
 }
@@ -1589,8 +1590,8 @@ vips_array_double_get_type( void )
 
 	if( !type ) {
 		type = g_boxed_type_register_static( "vips_array_double",
-			(GBoxedCopyFunc) area_copy, 
-			(GBoxedFreeFunc) area_unref );
+			(GBoxedCopyFunc) vips_area_copy, 
+			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
 			transform_array_g_string );
 	}

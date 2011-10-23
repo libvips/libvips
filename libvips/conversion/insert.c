@@ -142,6 +142,18 @@ typedef VipsConversionClass VipsInsertClass;
 
 G_DEFINE_TYPE( VipsInsert, vips_insert, VIPS_TYPE_CONVERSION );
 
+static void
+vips_insert_dispose( GObject *gobject )
+{
+	VipsInsert *insert = (VipsInsert *) gobject;
+
+	VIPS_DEBUG_MSG( "vips_insert_dispose: " );
+
+	VIPS_FREEF( vips_area_unref, insert->background );
+
+	G_OBJECT_CLASS( vips_insert_parent_class )->dispose( gobject );
+}
+
 /* Trivial case: we just need pels from one of the inputs.
  */
 static int
@@ -253,7 +265,7 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 
 	if( vips_check_vector( domain, n, im ) )
 		return( NULL );
-	if( vips_image_new_array( VIPS_OBJECT( im ), t, 3 ) ||
+	if( im_open_local_array( im, t, 3, "vtoi", "t" ) ||
 		!(zeros = VIPS_ARRAY( im, n, double )) )
 		return( NULL );
 	for( i = 0; i < n; i++ )
@@ -268,7 +280,7 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 }
 
 /* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
- * causing assert() failures later.
+ * causing g_assert() failures later.
  */
 #define RANGE (100000000)
 
@@ -374,6 +386,7 @@ vips_insert_class_init( VipsInsertClass *class )
 
 	VIPS_DEBUG_MSG( "vips_insert_class_init\n" );
 
+	gobject_class->dispose = vips_insert_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -427,6 +440,9 @@ vips_insert_init( VipsInsert *insert )
 {
 	/* Init our instance fields.
 	 */
+	insert->background = 
+		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
+	((double *) (insert->background->data))[0] = 0.0;
 }
 
 int

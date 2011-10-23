@@ -1,3 +1,23 @@
+- at the moment background is VIPS_TYPE_ARRAY_DOUBLE (a type created with
+  g_boxed_type_register_static()) stored in a paramspec created with 
+  g_param_spec_boxed()
+
+  this means we will need a lot of 
+
+	if( G_IS_PARAM_SPEC_BOXED( pspec ) &&
+		(G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_ARRAY_DOUBLE || 
+		 G_PARAM_SPEC_VALUE_TYPE( pspec ) == VIPS_TYPE_ARRAY_INT || 
+		 ...
+
+  to spot vector args, since we don't have the idea of generic vector in the
+  type system
+
+  instead, perhaps derive from G_TYPE_PARAM_BOXED to create 
+  VIPS_TYPE_PARAM_ARRAY, a boxed param that can only be a VipsArea array ...
+  would this work?
+
+
+
 
 
 

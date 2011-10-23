@@ -167,6 +167,9 @@ void vips_save_string_setf( GValue *value, const char *fmt, ... )
  */
 #define VIPS_TYPE_AREA (vips_area_get_type())
 GType vips_area_get_type( void );
+VipsArea *vips_area_new_array( GType type, size_t sizeof_type, int n );
+void vips_area_unref( VipsArea *area );
+VipsArea *vips_area_copy( VipsArea *area );
 
 /**
  * VIPS_TYPE_REF_STRING:
