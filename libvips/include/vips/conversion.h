@@ -101,6 +101,9 @@ int vips_embed( VipsImage *in, VipsImage **out,
 	__attribute__((sentinel));
 int vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
 	__attribute__((sentinel));
+int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out, 
+	int x, int y, ... )
+	__attribute__((sentinel));
 
 
 
@@ -137,8 +140,6 @@ int im_extract_areabands( VipsImage *in, VipsImage *out,
 	int left, int top, int width, int height, int band, int nbands );
 int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
-int im_insert( VipsImage *main, VipsImage *sub, VipsImage *out, int x, int y );
-int im_insert_noexpand( VipsImage *main, VipsImage *sub, VipsImage *out, int x, int y );
 int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
 int im_lrjoin( VipsImage *left, VipsImage *right, VipsImage *out );
 int im_tbjoin( VipsImage *top, VipsImage *bottom, VipsImage *out );

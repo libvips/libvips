@@ -1111,3 +1111,39 @@ im_flipver( IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_insert( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
+{
+	VipsImage *t;
+
+	if( vips_insert( main, sub, &t, x, y, 
+		"expand", TRUE, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
+{
+	VipsImage *t;
+
+	if( vips_insert( main, sub, &t, x, y, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+

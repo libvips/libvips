@@ -49,9 +49,9 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1575,15 +1575,18 @@ transform_array_g_string( const GValue *src_value, GValue *dest_value )
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
 
+/* It'd be great to be able to write a generic string->array function, but
+ * it doesn't seem possible.
+ */
 static void
-transform_g_string_array( const GValue *src_value, GValue *dest_value )
+transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 {
 	const char *str = g_value_get_string( src_value );
 
 	int n;
 	const char *p;
 	int i;
-	GType type;
+	double *array;
 
 	/* Walk the string to get the number of elements. Empty string is zero
 	 * elements.
@@ -1594,19 +1597,16 @@ transform_g_string_array( const GValue *src_value, GValue *dest_value )
 			p += 1;
 	}
 
+	vips_array_set( dest_value, G_TYPE_DOUBLE, sizeof( double ), n );
+	array = (double *) vips_array_get( dest_value, NULL, NULL, NULL );
+
+	p = str;
 	for( i = 0; i < n; i++ ) {
-		GValue value = { 0, };
-		char *str;
-
-		g_value_init( &value, type );
-		//g_value_set_instance( &value, array );
-
-		g_value_unset( &value );
-
-		// array += sizeof_type;
+		array[i] = atof( p );
+		p = strchr( p, ',' );
+		if( p )
+			p += 1;
 	}
-
-	// g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
 
 GType
@@ -1621,7 +1621,7 @@ vips_array_double_get_type( void )
 		g_value_register_transform_func( type, G_TYPE_STRING,
 			transform_array_g_string );
 		g_value_register_transform_func( G_TYPE_STRING, type,
-			transform_g_string_array );
+			transform_g_string_array_double );
 	}
 
 	return( type );
@@ -1662,6 +1662,7 @@ vips_array_double_set( GValue *value, const double *array, int n )
 {
 	double *array_copy;
 
+	g_value_init( value, VIPS_TYPE_ARRAY_DOUBLE );
 	vips_array_set( value, G_TYPE_DOUBLE, sizeof( double ), n );
 	array_copy = vips_array_double_get( value, NULL );
 	memcpy( array_copy, array, n * sizeof( double ) );
