@@ -1575,13 +1575,39 @@ transform_array_g_string( const GValue *src_value, GValue *dest_value )
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
 
-/* We don't have functions to save arrays to save_str and back. We'd need to
- * save the type as well as the members and number of members, something like:
- *
- * double { 12.3, 13.7 }
- *
- * Anyway, no call for this yet.
- */
+static void
+transform_g_string_array( const GValue *src_value, GValue *dest_value )
+{
+	const char *str = g_value_get_string( src_value );
+
+	int n;
+	const char *p;
+	int i;
+	GType type;
+
+	/* Walk the string to get the number of elements. Empty string is zero
+	 * elements.
+	 */
+	for( n = 0, p = str; p && *p; n += 1 ) {
+		p = strchr( p, ',' );
+		if( p )
+			p += 1;
+	}
+
+	for( i = 0; i < n; i++ ) {
+		GValue value = { 0, };
+		char *str;
+
+		g_value_init( &value, type );
+		//g_value_set_instance( &value, array );
+
+		g_value_unset( &value );
+
+		// array += sizeof_type;
+	}
+
+	// g_value_set_string( dest_value, vips_buf_all( &buf ) );
+}
 
 GType
 vips_array_double_get_type( void )
@@ -1594,6 +1620,8 @@ vips_array_double_get_type( void )
 			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
 			transform_array_g_string );
+		g_value_register_transform_func( G_TYPE_STRING, type,
+			transform_g_string_array );
 	}
 
 	return( type );

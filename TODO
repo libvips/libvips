@@ -12,10 +12,25 @@
   to spot vector args, since we don't have the idea of generic vector in the
   type system
 
+  we can't make a generic VIPS_TYPE_ARRAY boxed, since
+  g_boxed_type_register_static() does not let us specify a parent class, the
+  code has G_TYPE_BOXED hardwired as the parent class
+
   instead, perhaps derive from G_TYPE_PARAM_BOXED to create 
   VIPS_TYPE_PARAM_ARRAY, a boxed param that can only be a VipsArea array ...
   would this work?
 
+  nope, g_param_type_register_static() is also hardwired to have G_TYPE_PARAM
+  as its parent class argh
+
+  best we can do is register a char->value transform in each array type, and
+  have the generic transformer as a utility function
+
+
+
+  break in transform_g_string_array() and try running with --background
+
+  do we have anything in dest_value we can use to decide what type to write?
 
 
 
