@@ -1,3 +1,16 @@
+- bandjoin is still broken
+
+running test_formats.sh:
+
+VIPS-WARNING **: object.c:763: VipsEmbed can't assign 'extend' after construct
+/home/john/GIT/nip2/test/scripts/test_formats.sh: line 16: 25707
+Trace/breakpoint trap   vips im_bandjoin $image $tmp/mono.v $tmp/t1.v
+
+
+
+
+
+
 - we have this is many places:
 
 	if( vips_image_copy_fieldsv( conversion->output, 

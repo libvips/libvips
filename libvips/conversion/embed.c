@@ -76,10 +76,10 @@
  * @in: input image
  * @out: output image
  * @extend: how to generate the edge pixels
- * @x: place @in at this x position in @out
- * @y: place @in at this y position in @out
  * @width: @out should be this many pixels across
  * @height: @out should be this many pixels down
+ * @x: place @in at this x position in @out
+ * @y: place @in at this y position in @out
  *
  * The opposite of im_extract(): embed @in within an image of size @width by
  * @height at position @x, @y.  @extend
@@ -559,33 +559,33 @@ vips_embed_class_init( VipsEmbedClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, input ) );
 
-	VIPS_ARG_INT( class, "width", 2, 
-		_( "Width" ), 
-		_( "Image width in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, width ),
-		0, 1000000, 0 );
-
-	VIPS_ARG_INT( class, "height", 3, 
-		_( "Height" ), 
-		_( "Image height in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, height ),
-		0, 1000000, 0 );
-
-	VIPS_ARG_INT( class, "x", 4, 
+	VIPS_ARG_INT( class, "x", 2, 
 		_( "x" ), 
 		_( "Left edge of input in output" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, x ),
 		-1000000, 1000000, 0 );
 
-	VIPS_ARG_INT( class, "y", 5, 
+	VIPS_ARG_INT( class, "y", 3, 
 		_( "y" ), 
 		_( "Top edge of input in output" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, y ),
 		-1000000, 1000000, 0 );
+
+	VIPS_ARG_INT( class, "width", 4, 
+		_( "Width" ), 
+		_( "Image width in pixels" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsEmbed, width ),
+		0, 1000000, 0 );
+
+	VIPS_ARG_INT( class, "height", 5, 
+		_( "Height" ), 
+		_( "Image height in pixels" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsEmbed, height ),
+		0, 1000000, 0 );
 
 	VIPS_ARG_ENUM( class, "extend", 6, 
 		_( "Extend" ), 
