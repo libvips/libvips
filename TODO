@@ -1,14 +1,21 @@
-- (gdb) run im_extract_band babe.jpg x.jpg 1
-VIPS-WARNING **: object.c:763: VipsImage can't assign 'width' after construct
+- finish join.c
 
-  problem is that we create an output image like
+- lintra_vec next ... how should we do vips_lin() vs. vips_lin_vec()? do we
+  need two separate things?
 
-  	VipsImage *im = vips_image_new_mode( "poop.jpg", "w" );
+  perhaps just have vips_lin() as a convenience function
 
-  which will run _build() on it, then at some later point set width/height
-  when we write to it
+  how about a "squash" param to VipsLin which clips the output type back to
+  the input type? maybe not a great idea
 
-  so the lifetime of an object is
+- all things that use sizealike could take a --background param? or an
+  --extend param? maybe not a great idea (maybe handy for convolve affine etc. 
+  though)
+
+
+
+
+- the lifetime of an object is
 
 	  new
 	  set base params
