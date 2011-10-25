@@ -1,7 +1,50 @@
-- vips im_copy_set /home/john/GIT/nip2/test/tmp/t1.v
+- (gdb) run im_extract_band babe.jpg x.jpg 1
+VIPS-WARNING **: object.c:763: VipsImage can't assign 'width' after construct
+
+  problem is that we create an output image like
+
+  	VipsImage *im = vips_image_new_mode( "poop.jpg", "w" );
+
+  which will run _build() on it, then at some later point set width/height
+  when we write to it
+
+  so the lifetime of an object is
+
+	  new
+	  set base params
+	  build
+	  set more params
+	  write
+	  ... and now it's frozen and read-only, except for things like "kill"
+	  unref
+
+  we have 
+
+	gboolean constructed;		/* Construct done and checked */
+
+  I suppose we need to add
+
+	gboolean written;		/* Object done and frozen */
+
+  and a "written" virtual method I guess
+
+  this seems like a big change :-( can we avoid it?
+
+  bodge it for now, fix properly after we merge
+
+
+
+
+
+
+
+vips im_copy_set /home/john/GIT/nip2/test/tmp/t1.v
   /home/john/GIT/nip2/test/tmp/cmyk.v 15 1 1 0 0
 
   VIPS-WARNING **: object.c:775: VipsImage can only assign 'xoffset' once
+
+
+HH
 
 
 

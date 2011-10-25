@@ -949,87 +949,98 @@ vips_image_class_init( VipsImageClass *class )
 	/* Create properties.
 	 */
 
+	/* It'd be good to have these as set once at construct time, but we
+	 * can't :-( 
+	 *
+	 * For example, a "p" image might be made with vips_image_new() and
+	 * constructed, then passed to im_copy() of whatever to be written to.
+	 * That operation will then need to set width/height etc.
+	 *
+	 * We can't set_once either, since im_copy_set() etc. need to update
+	 * xoffset and friends on the way through.
+	 */
+
 	VIPS_ARG_INT( class, "width", 2, 
 		_( "Width" ), 
 		_( "Image width in pixels" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Xsize ),
 		0, 1000000, 0 );
 
 	VIPS_ARG_INT( class, "height", 3, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Ysize ),
 		0, 1000000, 0 );
 
 	VIPS_ARG_INT( class, "bands", 4, 
 		_( "Bands" ), 
 		_( "Number of bands in image" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Bands ),
 		0, 1000000, 0 );
 
 	VIPS_ARG_ENUM( class, "format", 5, 
 		_( "Format" ), 
 		_( "Pixel format in image" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, BandFmt ),
 		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR ); 
 
 	VIPS_ARG_ENUM( class, "coding", 6, 
 		_( "Coding" ), 
 		_( "Pixel coding" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Coding ),
 		VIPS_TYPE_CODING, VIPS_CODING_NONE ); 
 
 	VIPS_ARG_ENUM( class, "interpretation", 7, 
 		_( "Interpretation" ), 
 		_( "Pixel interpretation" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Type ),
 		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_MULTIBAND ); 
 
 	VIPS_ARG_DOUBLE( class, "xres", 8, 
 		_( "Xres" ), 
 		_( "Horizontal resolution in pixels/mm" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Xres ),
 		0, 1000000, 0 );
 
 	VIPS_ARG_DOUBLE( class, "yres", 9, 
 		_( "Yres" ), 
 		_( "Vertical resolution in pixels/mm" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Yres ),
 		0, 1000000, 0 );
 
 	VIPS_ARG_INT( class, "xoffset", 10, 
 		_( "Xoffset" ), 
 		_( "Horizontal offset of origin" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Xoffset ),
 		-1000000, 1000000, 0 );
 
 	VIPS_ARG_INT( class, "yoffset", 11, 
 		_( "Yoffset" ), 
 		_( "Vertical offset of origin" ),
-		VIPS_ARGUMENT_SET_ONCE,
+		VIPS_ARGUMENT_NONE,
 		G_STRUCT_OFFSET( VipsImage, Yoffset ),
 		-1000000, 1000000, 0 );
 
 	VIPS_ARG_STRING( class, "filename", 12, 
 		_( "Filename" ),
 		_( "Image filename" ),
-		VIPS_ARGUMENT_CONSTRUCT, 
+		VIPS_ARGUMENT_SET_ONCE | VIPS_ARGUMENT_CONSTRUCT, 
 		G_STRUCT_OFFSET( VipsImage, filename ),
 		NULL );
 
 	VIPS_ARG_STRING( class, "mode", 13, 
 		_( "Mode" ),
 		_( "Open mode" ),
-		VIPS_ARGUMENT_CONSTRUCT, 
+		VIPS_ARGUMENT_SET_ONCE | VIPS_ARGUMENT_CONSTRUCT, 
 		G_STRUCT_OFFSET( VipsImage, mode ),
 		"p" );
 
@@ -1043,7 +1054,7 @@ vips_image_class_init( VipsImageClass *class )
 	VIPS_ARG_ENUM( class, "demand", 15, 
 		_( "Demand style" ), 
 		_( "Preferred demand style for this image" ),
-		VIPS_ARGUMENT_NONE,
+		VIPS_ARGUMENT_CONSTRUCT,
 		G_STRUCT_OFFSET( VipsImage, dhint ),
 		VIPS_TYPE_DEMAND_STYLE, VIPS_DEMAND_STYLE_SMALLTILE );
 
