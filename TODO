@@ -1,10 +1,7 @@
-- bandjoin is still broken
+- vips im_copy_set /home/john/GIT/nip2/test/tmp/t1.v
+  /home/john/GIT/nip2/test/tmp/cmyk.v 15 1 1 0 0
 
-running test_formats.sh:
-
-VIPS-WARNING **: object.c:763: VipsEmbed can't assign 'extend' after construct
-/home/john/GIT/nip2/test/scripts/test_formats.sh: line 16: 25707
-Trace/breakpoint trap   vips im_bandjoin $image $tmp/mono.v $tmp/t1.v
+  VIPS-WARNING **: object.c:775: VipsImage can only assign 'xoffset' once
 
 
 

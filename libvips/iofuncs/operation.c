@@ -411,10 +411,14 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 
 		VIPS_OPERATION_COLLECT_SET( pspec, argument_class, ap );
 
-		g_object_set_property( G_OBJECT( operation ), 
-			name, &value );
+		/* We must collect input args as we walk the name/value list,
+		 * but we don't do anything with them.
+		 */
 
 		VIPS_OPERATION_COLLECT_GET( pspec, argument_class, ap );
+
+		/* Here's an output arg.
+		 */
 
 #ifdef VIPS_DEBUG
 		printf( "\twriting %s to %p\n", 
