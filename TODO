@@ -1,3 +1,6 @@
+- clip next?
+
+
 
 - do clip etc. in new style, good to get everything that VipsAdd uses in
   the new stack
@@ -10,6 +13,9 @@
 - bandalike: consider RGB + RGBA ... we should bandup by adding a black band
 
   (or white?? unclear)
+
+
+
 
 
 - note member free stuff in vipsobject docs
