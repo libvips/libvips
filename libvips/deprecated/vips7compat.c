@@ -1216,6 +1216,12 @@ im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands )
 	return( 0 );
 }
 
+int 
+im_extract_band( IMAGE *in, IMAGE *out, int band )
+{
+	return( im_extract_bands( in, out, band, 1 ) ); 
+}
+
 int
 im_extract_areabands( IMAGE *in, IMAGE *out, 
 	int left, int top, int width, int height, int band, int nbands )
