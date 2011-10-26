@@ -436,9 +436,9 @@ vips_embed_build( VipsObject *object )
 }
 		break;
 
-	case 0:
-	case 1:
-	case 4:
+	case VIPS_EXTEND_BLACK:
+	case VIPS_EXTEND_WHITE:
+	case VIPS_EXTEND_COPY:
 		if( vips_image_copy_fields( conversion->output, embed->input ) )
 			return( -1 );
 

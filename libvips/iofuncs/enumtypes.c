@@ -44,6 +44,24 @@ vips_direction_get_type( void )
 
 	return( etype );
 }
+GType
+vips_align_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_ALIGN_LOW, "VIPS_ALIGN_LOW", "low"},
+			{VIPS_ALIGN_CENTRE, "VIPS_ALIGN_CENTRE", "centre"},
+			{VIPS_ALIGN_HIGH, "VIPS_ALIGN_HIGH", "high"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsAlign", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/util.h" */
 GType
 vips_token_get_type( void )

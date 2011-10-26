@@ -94,6 +94,26 @@ typedef enum {
 	VIPS_DIRECTION_LAST
 } VipsDirection;
 
+/** 
+ * VipsAlign:
+ * @VIPS_ALIGN_LOW; align low coordinate edge
+ * @VIPS_ALIGN_CENTRE; align centre
+ * @VIPS_ALIGN_HIGH; align high coordinate edge
+ *
+ * See vips_join() and so on.
+ *
+ * Operations like vips_join() need to be told whether to align images on the
+ * low or high coordinate edge, or centre.
+ *
+ * See also: vips_join().
+ */
+typedef enum {
+	VIPS_ALIGN_LOW,
+	VIPS_ALIGN_CENTRE,
+	VIPS_ALIGN_HIGH,
+	VIPS_ALIGN_LAST
+} VipsAlign;
+
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_embed( VipsImage *in, VipsImage **out, 
@@ -103,6 +123,9 @@ int vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
 	__attribute__((sentinel));
 int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out, 
 	int x, int y, ... )
+	__attribute__((sentinel));
+int vips_join( VipsImage *main, VipsImage *sub, VipsImage **out, 
+	VipsDirection direction, ... )
 	__attribute__((sentinel));
 
 

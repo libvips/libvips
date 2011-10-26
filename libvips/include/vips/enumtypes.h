@@ -11,6 +11,8 @@ GType vips_extend_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_EXTEND (vips_extend_get_type())
 GType vips_direction_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_DIRECTION (vips_direction_get_type())
+GType vips_align_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_ALIGN (vips_align_get_type())
 /* enumerations from "../../../libvips/include/vips/util.h" */
 GType vips_token_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_TOKEN (vips_token_get_type())

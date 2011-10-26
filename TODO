@@ -1,5 +1,8 @@
 - finish join.c
 
+
+
+
 - lintra_vec next ... how should we do vips_lin() vs. vips_lin_vec()? do we
   need two separate things?
 

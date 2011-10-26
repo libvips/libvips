@@ -69,19 +69,6 @@
 #include "conversion.h"
 
 /**
- * VipsFlip:
- * @in: input image
- * @out: output image
- * @direction: flip horizontally or vertically
- *
- * Flips an image left-right or up-down.
- *
- * See also: im_rot90().
- *
- * Returns: 0 on success, -1 on error
- */
-
-/**
  * VipsJoin:
  * @in1: first input image 
  * @in2: second input image 
@@ -90,6 +77,7 @@
  * @expand: TRUE to expand the output image to hold all of the input pixels
  * @shim: space between images, in pixels
  * @background: background ink colour
+ * @align: low, centre or high alignment
  *
  * Join @left and @right together, left-right. If one is taller than the
  * other, @out will be has high as the smaller.
@@ -103,211 +91,150 @@
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>).
  *
- * See also: im_insert(), im_tbjoin().
+ * See also: vips_insert().
  *
  * Returns: 0 on success, -1 on error
  */
 
-typedef struct _VipsFlip {
+typedef struct _VipsJoin {
 	VipsConversion parent_instance;
 
-	/* The input image.
+	/* Params.
 	 */
-	VipsImage *input;
-
-	/* Swap bytes on the way through.
-	 */
+	VipsImage *main;
+	VipsImage *sub;
 	VipsDirection direction;
+	gboolean expand;
+	int shim;
+	VipsArea *background;
+	VipsAlign align;
+} VipsJoin;
 
-} VipsFlip;
+typedef VipsConversionClass VipsJoinClass;
 
-typedef VipsConversionClass VipsFlipClass;
-
-G_DEFINE_TYPE( VipsFlip, vips_flip, VIPS_TYPE_CONVERSION );
-
-static int
-vips_flip_vertical_gen( VipsRegion *or, void *seq, void *a, void *b,
-	gboolean *stop )
-{
-	VipsRegion *ir = (VipsRegion *) seq;
-	VipsRect *r = &or->valid;
-	VipsRect in;
-	PEL *p, *q;
-	int y;
-
-	int le = r->left;
-	int to = r->top;
-	int bo = VIPS_RECT_BOTTOM( r );
-
-	int ls;
-	int psk, qsk;
-
-	/* Transform to input coordinates.
-	 */
-	in = *r;
-	in.top = ir->im->Ysize - bo;
-
-	/* Ask for input we need.
-	 */
-	if( vips_region_prepare( ir, &in ) )
-		return( -1 );
-
-	/* Loop, copying and reversing lines.
-	 */
-	p = (PEL *) VIPS_REGION_ADDR( ir, le, in.top + in.height - 1 );
-	q = (PEL *) VIPS_REGION_ADDR( or, le, to );
-	psk = VIPS_REGION_LSKIP( ir );
-	qsk = VIPS_REGION_LSKIP( or );
-	ls = VIPS_REGION_SIZEOF_LINE( or );
-
-	for( y = to; y < bo; y++ ) {
-		memcpy( q, p, ls );
-
-		p -= psk;
-		q += qsk;
-	}
-
-	return( 0 );
-}
+G_DEFINE_TYPE( VipsJoin, vips_join, VIPS_TYPE_CONVERSION );
 
 static int
-vips_flip_horizontal_gen( VipsRegion *or, void *seq, void *a, void *b, 
-	gboolean *stop )
-{
-	VipsRegion *ir = (VipsRegion *) seq;
-	VipsRect *r = &or->valid;
-	VipsRect in;
-	char *p, *q;
-	int x, y, z;
-
-	int le = r->left;
-	int ri = VIPS_RECT_RIGHT(r);
-	int to = r->top;
-	int bo = VIPS_RECT_BOTTOM(r);
-
-	int ps = VIPS_IMAGE_SIZEOF_PEL( ir->im );	/* sizeof pel */
-
-	int hgt = ir->im->Xsize - r->width;
-
-	int lastx;
-
-	/* Transform to input coordinates.
-	 */
-	in = *r;
-	in.left = hgt - r->left;
-
-	/* Find x of final pixel in input area.
-	 */
-	lastx = VIPS_RECT_RIGHT( &in ) - 1;
-
-	/* Ask for input we need.
-	 */
-	if( vips_region_prepare( ir, &in ) )
-		return( -1 );
-
-	/* Loop, copying and reversing lines.
-	 */
-	for( y = to; y < bo; y++ ) {
-		p = VIPS_REGION_ADDR( ir, lastx, y );
-		q = VIPS_REGION_ADDR( or, le, y );
-
-		for( x = le; x < ri; x++ ) {
-			/* Copy the pel.
-			 */
-			for( z = 0; z < ps; z++ )
-				q[z] = p[z];
-
-			/* Skip forwards in out, back in in.
-			 */
-			q += ps;
-			p -= ps;
-		}
-	}
-
-	return( 0 );
-}
-
-static int
-vips_flip_build( VipsObject *object )
+vips_join_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
-	VipsFlip *flip = (VipsFlip *) object;
+	VipsJoin *join = (VipsJoin *) object;
+	int x, y;
 
-	VipsGenerateFn generate_fn;
-
-	if( VIPS_OBJECT_CLASS( vips_flip_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_join_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( flip->input ) || 
-		vips_image_pio_output( conversion->output ) )
-		return( -1 );
+	switch( join->direction ) {
+	case VIPS_DIRECTION_HORIZONTAL:
+		x = join->main->Xsize + join->shim;
 
-	if( vips_image_copy_fields( conversion->output, flip->input ) )
-		return( -1 );
-	vips_demand_hint( conversion->output, 
-		VIPS_DEMAND_STYLE_THINSTRIP, flip->input, NULL );
+		switch( join->align ) {
+		case VIPS_ALIGN_LOW:
+			y = 0;
+			break;
 
-	if( flip->direction == VIPS_DIRECTION_HORIZONTAL ) {
-		generate_fn = vips_flip_horizontal_gen;
-		conversion->output->Xoffset = flip->input->Xsize;
-		conversion->output->Yoffset = 0;
+		case VIPS_ALIGN_CENTRE:
+			mx = VIPS_MAX( join->main->Ysize, join->sub->Ysize );
+			y = 
+			break;
+
+		case VIPS_ALIGN_HIGH:
+			y = 0;
+			break;
+
+
+	case VIPS_DIRECTION_VERTICAL:
+
+	default:
+		g_asert( 0 );
 	}
-	else {
-		generate_fn = vips_flip_vertical_gen;
-		conversion->output->Xoffset = 0;
-		conversion->output->Yoffset = flip->input->Ysize;
-	}
-
-	if( vips_image_generate( conversion->output,
-		vips_start_one, generate_fn, vips_stop_one, 
-		flip->input, flip ) )
-		return( -1 );
+	
 
 	return( 0 );
 }
 
 static void
-vips_flip_class_init( VipsFlipClass *class )
+vips_join_class_init( VipsJoinClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
-	VIPS_DEBUG_MSG( "vips_flip_class_init\n" );
+	VIPS_DEBUG_MSG( "vips_join_class_init\n" );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "flip";
-	vobject_class->description = _( "flip an image" );
-	vobject_class->build = vips_flip_build;
+	vobject_class->nickname = "join";
+	vobject_class->description = _( "join an image" );
+	vobject_class->build = vips_join_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
+	VIPS_ARG_IMAGE( class, "main", -1, 
+		_( "Main" ), 
+		_( "Main input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFlip, input ) );
+		G_STRUCT_OFFSET( VipsJoin, main ) );
 
-	VIPS_ARG_ENUM( class, "direction", 6, 
-		_( "Direction" ), 
-		_( "Direction to flip image" ),
+	VIPS_ARG_IMAGE( class, "sub", 0, 
+		_( "Sub-image" ), 
+		_( "Sub-image to join into main image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFlip, direction ),
+		G_STRUCT_OFFSET( VipsJoin, sub ) );
+
+	VIPS_ARG_ENUM( class, "direction", 2, 
+		_( "direction" ), 
+		_( "Join left-right or up-down" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsJoin, direction ),
 		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 
+
+	VIPS_ARG_BOOL( class, "expand", 4, 
+		_( "Expand" ), 
+		_( "Expand output to hold all of both inputs" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsJoin, expand ),
+		FALSE );
+
+	VIPS_ARG_INT( class, "shim", 5, 
+		_( "Shim" ), 
+		_( "Pixels between images" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsInsert, shim ),
+		0, 1000000, 0 );
+
+	VIPS_ARG_BOXED( class, "background", 6, 
+		_( "Background" ), 
+		_( "Colour for new pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsJoin, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
+
+	VIPS_ARG_ENUM( class, "align", 2, 
+		_( "Align" ), 
+		_( "Align on the low, centre or high coordinate edge" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsJoin, align ),
+		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW ); 
 }
 
 static void
-vips_flip_init( VipsFlip *flip )
+vips_join_init( VipsJoin *join )
 {
+	/* Init our instance fields.
+	 */
+	join->background = 
+		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
+	((double *) (join->background->data))[0] = 0.0;
 }
 
 int
-vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
+vips_join( VipsImage *main, VipsImage *sub, VipsImage **out, 
+	VipsDirection direction, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, direction );
-	result = vips_call_split( "flip", ap, in, out, direction );
+	va_start( ap, y );
+	result = vips_call_split( "join", ap, main, sub, out, direction );
 	va_end( ap );
 
 	return( result );

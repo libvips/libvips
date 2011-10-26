@@ -142,18 +142,6 @@ typedef VipsConversionClass VipsInsertClass;
 
 G_DEFINE_TYPE( VipsInsert, vips_insert, VIPS_TYPE_CONVERSION );
 
-static void
-vips_insert_dispose( GObject *gobject )
-{
-	VipsInsert *insert = (VipsInsert *) gobject;
-
-	VIPS_DEBUG_MSG( "vips_insert_dispose: " );
-
-	VIPS_FREEF( vips_area_unref, insert->background );
-
-	G_OBJECT_CLASS( vips_insert_parent_class )->dispose( gobject );
-}
-
 /* Trivial case: we just need pels from one of the inputs.
  */
 static int
@@ -386,7 +374,6 @@ vips_insert_class_init( VipsInsertClass *class )
 
 	VIPS_DEBUG_MSG( "vips_insert_class_init\n" );
 
-	gobject_class->dispose = vips_insert_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
