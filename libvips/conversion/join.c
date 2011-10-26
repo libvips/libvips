@@ -216,7 +216,7 @@ vips_join_build( VipsObject *object )
 			g_assert( 0 );
 		}
 
-		if( vips_call( "extract_area", t, &t2, 
+		if( vips_extract_area( t, &t2, 
 			left, top, width, height, NULL ) ) {
 			g_object_unref( t );
 			return( -1 );

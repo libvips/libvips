@@ -549,6 +549,13 @@ int im_insert_noexpand( VipsImage *main, VipsImage *sub, VipsImage *out, int x, 
 int im_lrjoin( VipsImage *left, VipsImage *right, VipsImage *out );
 int im_tbjoin( VipsImage *top, VipsImage *bottom, VipsImage *out );
 
+int im_extract_area( VipsImage *in, VipsImage *out, 
+	int left, int top, int width, int height );
+int im_extract_band( VipsImage *in, VipsImage *out, int band );
+int im_extract_bands( VipsImage *in, VipsImage *out, int band, int nbands );
+int im_extract_areabands( VipsImage *in, VipsImage *out,
+	int left, int top, int width, int height, int band, int nbands );
+
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all

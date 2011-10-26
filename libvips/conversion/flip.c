@@ -67,7 +67,7 @@
 /**
  * VipsFlip:
  * @in: input image
- * @out: output image
+ * @output: output image
  * @direction: flip horizontally or vertically
  *
  * Flips an image left-right or up-down.

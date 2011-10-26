@@ -1180,3 +1180,66 @@ im_tbjoin( IMAGE *left, IMAGE *right, IMAGE *out )
 	return( 0 );
 }
 
+int
+im_extract_area( IMAGE *in, IMAGE *out, 
+	int left, int top, int width, int height )
+{
+	VipsImage *t;
+
+	if( vips_extract_area( in, &t, left, top, width, height,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_extract_bands( IMAGE *in, IMAGE *out, int band, int nbands )
+{
+	VipsImage *t;
+
+	if( vips_extract_band( in, &t, band,
+		"n", nbands,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int
+im_extract_areabands( IMAGE *in, IMAGE *out, 
+	int left, int top, int width, int height, int band, int nbands )
+{
+	VipsImage *t1, *t2;
+
+	if( vips_extract_area( in, &t1, left, top, width, height,
+		NULL ) )
+		return( -1 );
+
+	if( vips_extract_band( t1, &t2, band,
+		"n", nbands,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+

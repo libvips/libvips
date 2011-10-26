@@ -1,5 +1,6 @@
-- do extract_area, needed by join
+- bandalike: consider RGB + RGBA ... we should bandup by adding a black band
 
+  (or white?? unclear)
 
 
 - note member free stuff in vipsobject docs

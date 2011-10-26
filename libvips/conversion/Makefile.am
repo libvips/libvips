@@ -8,6 +8,7 @@ libconversion_la_SOURCES = \
 	flip.c \
 	insert.c \
 	join.c \
+	extract.c \
 	conver_dispatch.c \
 	im_black.c \
 	im_c2amph.c \
@@ -16,10 +17,8 @@ libconversion_la_SOURCES = \
 	im_c2real.c \
 	im_clip2fmt.c \
 	im_copy_file.c \
-	im_extract.c \
 	im_falsecolour.c \
 	im_gbandjoin.c \
-	im_insert.c \
 	im_mask2vips.c \
 	im_msb.c \
 	im_replicate.c \
