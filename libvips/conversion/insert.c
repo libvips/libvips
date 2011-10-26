@@ -267,11 +267,6 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	return( (PEL *) t[2]->data );
 }
 
-/* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
- * causing g_assert() failures later.
- */
-#define RANGE (100000000)
-
 static int
 vips_insert_build( VipsObject *object )
 {
@@ -280,14 +275,6 @@ vips_insert_build( VipsObject *object )
 
 	VipsImage *t[4];
 	VipsImage **arry;
-
-	/* Check args.
-	 */
-	if( insert->x > RANGE || insert->x < -RANGE || 
-		insert->y > RANGE || insert->y < -RANGE ) {
-		vips_error( "VipsInsert", "%s", _( "xy out of range" ) );
-		return( -1 ); 
-	}
 
 	if( VIPS_OBJECT_CLASS( vips_insert_parent_class )->build( object ) )
 		return( -1 );
@@ -366,6 +353,11 @@ vips_insert_build( VipsObject *object )
 	return( 0 );
 }
 
+/* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
+ * causing g_assert() failures later.
+ */
+#define RANGE (100000000)
+
 static void
 vips_insert_class_init( VipsInsertClass *class )
 {
@@ -398,14 +390,14 @@ vips_insert_class_init( VipsInsertClass *class )
 		_( "Left edge of sub in main" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, x ),
-		0, 1000000, 0 );
+		-RANGE, RANGE, 0 );
 
 	VIPS_ARG_INT( class, "y", 3, 
 		_( "Y" ), 
 		_( "Top edge of sub in main" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, y ),
-		0, 1000000, 0 );
+		-RANGE, RANGE, 0 );
 
 	VIPS_ARG_BOOL( class, "expand", 4, 
 		_( "Expand" ), 

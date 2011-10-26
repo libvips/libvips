@@ -164,8 +164,6 @@ int im_extract_areabands( VipsImage *in, VipsImage *out,
 int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
 int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
-int im_lrjoin( VipsImage *left, VipsImage *right, VipsImage *out );
-int im_tbjoin( VipsImage *top, VipsImage *bottom, VipsImage *out );
 int im_replicate( VipsImage *in, VipsImage *out, int across, int down );
 int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down );
 int im_wrap( VipsImage *in, VipsImage *out, int x, int y );

@@ -546,6 +546,9 @@ int im_flipver( VipsImage *in, VipsImage *out );
 int im_insert( VipsImage *main, VipsImage *sub, VipsImage *out, int x, int y );
 int im_insert_noexpand( VipsImage *main, VipsImage *sub, VipsImage *out, int x, int y );
 
+int im_lrjoin( VipsImage *left, VipsImage *right, VipsImage *out );
+int im_tbjoin( VipsImage *top, VipsImage *bottom, VipsImage *out );
+
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all

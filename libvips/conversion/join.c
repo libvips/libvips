@@ -72,16 +72,28 @@
  * VipsJoin:
  * @in1: first input image 
  * @in2: second input image 
- * @out: output image
+ * @output: output image
  * @direction: join horizontally or vertically
- * @expand: TRUE to expand the output image to hold all of the input pixels
+ * @expand: %TRUE to expand the output image to hold all of the input pixels
  * @shim: space between images, in pixels
  * @background: background ink colour
  * @align: low, centre or high alignment
  *
- * Join @left and @right together, left-right. If one is taller than the
- * other, @out will be has high as the smaller.
+ * Join @in1 and @in2 together, left-right or up-down depending on the value 
+ * of @direction.
  *
+ * If one is taller or wider than the
+ * other, @output will be has high as the smaller. If @expand is %TRUE, then
+ * the output will be expanded to contain all of the input pixels.
+ *
+ * Use @align to set the edge that the images align on. By default, they align
+ * on the edge with the lower value coordinate.
+ *
+ * Use @background to set the colour of any pixels in @output which are not
+ * present in either @in1 or @in2.
+ *
+ * Use @shim to set the spacing between the images. By default this is 0.
+ * 
  * If the number of bands differs, one of the images 
  * must have one band. In this case, an n-band image is formed from the 
  * one-band image by joining n copies of the one-band image together, and then
@@ -101,8 +113,8 @@ typedef struct _VipsJoin {
 
 	/* Params.
 	 */
-	VipsImage *main;
-	VipsImage *sub;
+	VipsImage *in1;
+	VipsImage *in2;
 	VipsDirection direction;
 	gboolean expand;
 	int shim;
@@ -119,14 +131,16 @@ vips_join_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsJoin *join = (VipsJoin *) object;
+
 	int x, y;
+	VipsImage *t;
 
 	if( VIPS_OBJECT_CLASS( vips_join_parent_class )->build( object ) )
 		return( -1 );
 
 	switch( join->direction ) {
 	case VIPS_DIRECTION_HORIZONTAL:
-		x = join->main->Xsize + join->shim;
+		x = join->in1->Xsize + join->shim;
 
 		switch( join->align ) {
 		case VIPS_ALIGN_LOW:
@@ -134,21 +148,90 @@ vips_join_build( VipsObject *object )
 			break;
 
 		case VIPS_ALIGN_CENTRE:
-			mx = VIPS_MAX( join->main->Ysize, join->sub->Ysize );
-			y = 
+			y = join->in1->Ysize / 2 - join->in2->Ysize / 2;
 			break;
 
 		case VIPS_ALIGN_HIGH:
-			y = 0;
+			y = join->in1->Ysize - join->in2->Ysize;
 			break;
 
+		default:
+			g_assert( 0 );
+		}
+
+		break;
 
 	case VIPS_DIRECTION_VERTICAL:
+		y = join->in1->Ysize + join->shim;
+
+		switch( join->align ) {
+		case VIPS_ALIGN_LOW:
+			x = 0;
+			break;
+
+		case VIPS_ALIGN_CENTRE:
+			x = join->in1->Xsize / 2 - join->in2->Xsize / 2;
+			break;
+
+		case VIPS_ALIGN_HIGH:
+			x = join->in1->Xsize - join->in2->Xsize;
+			break;
+
+		default:
+			g_assert( 0 );
+		}
+
+		break;
 
 	default:
-		g_asert( 0 );
+		g_assert( 0 );
 	}
-	
+
+	if( vips_insert( join->in1, join->in2, &t, x, y,
+		"expand", TRUE,
+		"background", join->background,
+		NULL ) )
+		return( -1 );
+
+	if( !join->expand ) {
+		VipsImage *t2;
+		int left, top, width, height;
+
+		switch( join->direction ) {
+		case VIPS_DIRECTION_HORIZONTAL:
+			left = 0;
+			top = VIPS_MAX( 0, y ) - y;
+			width = t->Xsize;
+			height = VIPS_MIN( join->in1->Ysize, join->in2->Ysize );
+			break;
+
+		case VIPS_DIRECTION_VERTICAL:
+			left = VIPS_MAX( 0, x ) - x;
+			top = 0;
+			width = VIPS_MIN( join->in1->Xsize, join->in2->Xsize );
+			height = t->Ysize; 
+			break;
+
+		default:
+			g_assert( 0 );
+		}
+
+		if( vips_call( "extract_area", t, &t2, 
+			left, top, width, height, NULL ) ) {
+			g_object_unref( t );
+			return( -1 );
+		}
+		g_object_unref( t );
+
+		t = t2;
+	}
+
+
+	if( vips_image_write( t, conversion->output ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
 
 	return( 0 );
 }
@@ -168,17 +251,17 @@ vips_join_class_init( VipsJoinClass *class )
 	vobject_class->description = _( "join an image" );
 	vobject_class->build = vips_join_build;
 
-	VIPS_ARG_IMAGE( class, "main", -1, 
-		_( "Main" ), 
-		_( "Main input image" ),
+	VIPS_ARG_IMAGE( class, "in1", -1, 
+		_( "in1" ), 
+		_( "First input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsJoin, main ) );
+		G_STRUCT_OFFSET( VipsJoin, in1 ) );
 
-	VIPS_ARG_IMAGE( class, "sub", 0, 
-		_( "Sub-image" ), 
-		_( "Sub-image to join into main image" ),
+	VIPS_ARG_IMAGE( class, "in2", 0, 
+		_( "in2" ), 
+		_( "Second input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsJoin, sub ) );
+		G_STRUCT_OFFSET( VipsJoin, in2 ) );
 
 	VIPS_ARG_ENUM( class, "direction", 2, 
 		_( "direction" ), 
@@ -198,7 +281,7 @@ vips_join_class_init( VipsJoinClass *class )
 		_( "Shim" ), 
 		_( "Pixels between images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsInsert, shim ),
+		G_STRUCT_OFFSET( VipsJoin, shim ),
 		0, 1000000, 0 );
 
 	VIPS_ARG_BOXED( class, "background", 6, 
@@ -211,7 +294,7 @@ vips_join_class_init( VipsJoinClass *class )
 	VIPS_ARG_ENUM( class, "align", 2, 
 		_( "Align" ), 
 		_( "Align on the low, centre or high coordinate edge" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, align ),
 		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW ); 
 }
@@ -227,14 +310,14 @@ vips_join_init( VipsJoin *join )
 }
 
 int
-vips_join( VipsImage *main, VipsImage *sub, VipsImage **out, 
+vips_join( VipsImage *in1, VipsImage *in2, VipsImage **output, 
 	VipsDirection direction, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, y );
-	result = vips_call_split( "join", ap, main, sub, out, direction );
+	va_start( ap, direction );
+	result = vips_call_split( "join", ap, in1, in2, output, direction );
 	va_end( ap );
 
 	return( result );

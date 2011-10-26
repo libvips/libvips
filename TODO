@@ -1,22 +1,19 @@
-- finish join.c
+- do extract_area, needed by join
 
 
 
+- note member free stuff in vipsobject docs
 
-- lintra_vec next ... how should we do vips_lin() vs. vips_lin_vec()? do we
-  need two separate things?
+  should boxed get freed in finalise rather than dispose?
 
-  perhaps just have vips_lin() as a convenience function
+- vipsimage should be cached too, eg.
 
-  how about a "squash" param to VipsLin which clips the output type back to
-  the input type? maybe not a great idea
+	VipsImage *a = vips_image_new_from_file( "poop.jpg" );
 
-- all things that use sizealike could take a --background param? or an
-  --extend param? maybe not a great idea (maybe handy for convolve affine etc. 
-  though)
+  can be reused
 
-
-
+- we should cache on "written" ... we should emit written for all objects, and
+  there should be a a vipsarg flag to block updates after written
 
 - the lifetime of an object is
 
@@ -48,14 +45,17 @@
 
 
 
-vips im_copy_set /home/john/GIT/nip2/test/tmp/t1.v
-  /home/john/GIT/nip2/test/tmp/cmyk.v 15 1 1 0 0
+- lintra_vec next ... how should we do vips_lin() vs. vips_lin_vec()? do we
+  need two separate things?
 
-  VIPS-WARNING **: object.c:775: VipsImage can only assign 'xoffset' once
+  perhaps just have vips_lin() as a convenience function
 
+  how about a "squash" param to VipsLin which clips the output type back to
+  the input type? maybe not a great idea
 
-HH
-
+- all things that use sizealike could take a --background param? or an
+  --extend param? maybe not a great idea (maybe handy for convolve affine etc. 
+  though)
 
 
 

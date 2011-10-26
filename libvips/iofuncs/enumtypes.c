@@ -54,6 +54,7 @@ vips_align_get_type( void )
 			{VIPS_ALIGN_LOW, "VIPS_ALIGN_LOW", "low"},
 			{VIPS_ALIGN_CENTRE, "VIPS_ALIGN_CENTRE", "centre"},
 			{VIPS_ALIGN_HIGH, "VIPS_ALIGN_HIGH", "high"},
+			{VIPS_ALIGN_LAST, "VIPS_ALIGN_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		

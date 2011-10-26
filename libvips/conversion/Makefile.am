@@ -7,6 +7,7 @@ libconversion_la_SOURCES = \
 	embed.c \
 	flip.c \
 	insert.c \
+	join.c \
 	conver_dispatch.c \
 	im_black.c \
 	im_c2amph.c \
@@ -19,7 +20,6 @@ libconversion_la_SOURCES = \
 	im_falsecolour.c \
 	im_gbandjoin.c \
 	im_insert.c \
-	im_lrjoin.c \
 	im_mask2vips.c \
 	im_msb.c \
 	im_replicate.c \
@@ -33,7 +33,6 @@ libconversion_la_SOURCES = \
 	im_subsample.c \
 	im_system.c \
 	im_system_image.c \
-	im_tbjoin.c \
 	im_text.c \
 	im_gaussnoise.c \
 	im_vips2mask.c \

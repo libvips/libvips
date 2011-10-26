@@ -1146,4 +1146,37 @@ im_insert_noexpand( IMAGE *main, IMAGE *sub, IMAGE *out, int x, int y )
 	return( 0 );
 }
 
+int 
+im_lrjoin( IMAGE *left, IMAGE *right, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_join( left, right, &t, VIPS_DIRECTION_HORIZONTAL,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_tbjoin( IMAGE *left, IMAGE *right, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_join( left, right, &t, VIPS_DIRECTION_VERTICAL,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
 

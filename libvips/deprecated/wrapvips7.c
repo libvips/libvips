@@ -801,7 +801,6 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 		case VIPS_WRAP7_INTVEC:
 		case VIPS_WRAP7_GVALUE:
 		case VIPS_WRAP7_INTERPOLATE:
-		case VIPS_WRAP7_INT:
 		case VIPS_WRAP7_COMPLEX:
 		case VIPS_WRAP7_STRING:
 		case VIPS_WRAP7_NONE:
@@ -810,6 +809,14 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 			 */
 			class->not_supported = TRUE;
 			pspec = NULL;
+			break;
+
+		case VIPS_WRAP7_INT:
+			pspec = g_param_spec_int( arg->name, 
+				arg->name, 
+				arg->name,
+				-G_MAXINT, G_MAXINT, 0,
+				G_PARAM_READWRITE );
 			break;
 
 		case VIPS_WRAP7_DOUBLE:
