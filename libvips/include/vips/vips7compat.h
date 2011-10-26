@@ -556,6 +556,8 @@ int im_extract_bands( VipsImage *in, VipsImage *out, int band, int nbands );
 int im_extract_areabands( VipsImage *in, VipsImage *out,
 	int left, int top, int width, int height, int band, int nbands );
 
+int im_replicate( VipsImage *in, VipsImage *out, int across, int down );
+
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all

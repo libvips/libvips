@@ -132,6 +132,8 @@ int vips_extract_area( VipsImage *input, VipsImage **output,
 	__attribute__((sentinel));
 int vips_extract_band( VipsImage *input, VipsImage **output, int band, ... )
 	__attribute__((sentinel));
+int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
+	__attribute__((sentinel));
 
 
 
@@ -163,7 +165,6 @@ int im_text( VipsImage *out, const char *text, const char *font,
 int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
 int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
-int im_replicate( VipsImage *in, VipsImage *out, int across, int down );
 int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down );
 int im_wrap( VipsImage *in, VipsImage *out, int x, int y );
 

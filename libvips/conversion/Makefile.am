@@ -9,6 +9,7 @@ libconversion_la_SOURCES = \
 	insert.c \
 	join.c \
 	extract.c \
+	replicate.c \
 	conver_dispatch.c \
 	im_black.c \
 	im_c2amph.c \
@@ -21,7 +22,6 @@ libconversion_la_SOURCES = \
 	im_gbandjoin.c \
 	im_mask2vips.c \
 	im_msb.c \
-	im_replicate.c \
 	im_grid.c \
 	im_ri2c.c \
 	im_rot180.c \

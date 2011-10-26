@@ -1249,3 +1249,20 @@ im_extract_areabands( IMAGE *in, IMAGE *out,
 	return( 0 );
 }
 
+int 
+im_replicate( IMAGE *in, IMAGE *out, int across, int down )
+{
+	VipsImage *t;
+
+	if( vips_replicate( in, &t, across, down,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+

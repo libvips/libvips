@@ -66,7 +66,7 @@
 
 /**
  * VipsFlip:
- * @in: input image
+ * @input: input image
  * @output: output image
  * @direction: flip horizontally or vertically
  *
@@ -250,7 +250,7 @@ vips_flip_class_init( VipsFlipClass *class )
 	vobject_class->description = _( "flip an image" );
 	vobject_class->build = vips_flip_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
+	VIPS_ARG_IMAGE( class, "input", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,

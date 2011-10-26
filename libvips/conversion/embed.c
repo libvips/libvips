@@ -81,11 +81,11 @@
  * @x: place @in at this x position in @out
  * @y: place @in at this y position in @out
  *
- * The opposite of im_extract(): embed @in within an image of size @width by
- * @height at position @x, @y.  @extend
+ * The opposite of #VipsExtractArea: embed @in within an image of size @width 
+ * by @height at position @x, @y.  @extend
  * controls what appears in the new pels, see #VipsExtend. 
  *
- * See also: im_extract_area(), im_insert().
+ * See also: #VipsExtractArea, #VipsInsert.
  * 
  * Returns: 0 on success, -1 on error.
  */
@@ -326,12 +326,83 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 }
 
 static int
+vips_embed_repeat( VipsPool *pool, VipsImage *input, VipsImage **output,
+	int x, int y, int width, int height )
+{
+	VipsPoolContext *context = vips_pool_context_new( pool );
+
+	/* Clock arithmetic: we want negative x/y to wrap around
+	 * nicely.
+	 */
+	const int nx = x < 0 ?
+		-x % input->Xsize : input->Xsize - x % input->Xsize;
+	const int ny = y < 0 ?
+		-y % input->Ysize : input->Ysize - y % input->Ysize;
+
+	if( 
+		vips_replicate( input, &VIPS_VI( 1 ), 
+			width / input->Xsize + 2, 
+			height / input->Ysize + 2, NULL ) ||
+		vips_extract_area( VIPS_VI( 1 ), output, 
+			nx, ny, width, height, NULL ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_embed_mirror( VipsPool *pool, VipsImage *input, VipsImage **output,
+	int x, int y, int width, int height )
+{
+	VipsPoolContext *context = vips_pool_context_new( pool );
+
+	/* As repeat, but the tiles are twice the size because of
+	 * mirroring.
+	 */
+	const int w2 = input->Xsize * 2;
+	const int h2 = input->Ysize * 2;
+
+	const int nx = x < 0 ?  -x % w2 : w2 - x % w2;
+	const int ny = y < 0 ?  -y % h2 : h2 - y % h2;
+
+	if( 
+		/* Make a 2x2 mirror tile.
+		 */
+		vips_flip( input, &VIPS_VI( 1 ), 
+			VIPS_DIRECTION_HORIZONTAL, NULL ) ||
+		vips_join( input, VIPS_VI( 1 ), &VIPS_VI( 2 ), 
+			VIPS_DIRECTION_HORIZONTAL, NULL ) ||
+		vips_flip( VIPS_VI( 2 ), &VIPS_VI( 3 ), 
+			VIPS_DIRECTION_VERTICAL, NULL ) ||
+		vips_join( VIPS_VI( 2 ), VIPS_VI( 3 ), &VIPS_VI( 4 ), 
+			VIPS_DIRECTION_VERTICAL, NULL ) ||
+
+		/* Repeat, then cut out the centre.
+		 */
+		vips_replicate( VIPS_VI( 4 ), &VIPS_VI( 5 ), 
+			width / VIPS_VI( 4 )->Xsize + 2, 
+			height / VIPS_VI( 4 )->Ysize + 2, NULL ) ||
+		vips_extract_area( VIPS_VI( 5 ), &VIPS_VI( 6 ), 
+			nx, ny, width, height, NULL ) ||
+
+		/* Overwrite the centre with the input, much faster
+		 * for centre pixels.
+		 */
+		vips_insert( VIPS_VI( 6 ), input, output, 
+			x, y, NULL ) )
+			return( -1 );
+
+	return( 0 );
+}
+
+static int
 vips_embed_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsEmbed *embed = (VipsEmbed *) object;
 
 	VipsRect want;
+	VipsPool *pool;
 
 	if( VIPS_OBJECT_CLASS( vips_embed_parent_class )->build( object ) )
 		return( -1 );
@@ -352,87 +423,30 @@ vips_embed_build( VipsObject *object )
 		embed->height == embed->input->Ysize )
 		return( vips_image_write( embed->input, conversion->output ) );
 
+	pool = vips_pool_new( "VipsEmbed" );
+	vips_object_local( object, pool );
+
 	switch( embed->extend ) {
 	case VIPS_EXTEND_REPEAT:
 {
-		/* Clock arithmetic: we want negative x/y to wrap around
-		 * nicely.
-		 */
-		const int nx = embed->x < 0 ?
-			-embed->x % embed->input->Xsize : 
-			embed->input->Xsize - embed->x % embed->input->Xsize;
-		const int ny = embed->y < 0 ?
-			-embed->y % embed->input->Ysize : 
-			embed->input->Ysize - embed->y % embed->input->Ysize;
+		VipsPoolContext *context = vips_pool_context_new( pool );
 
-		VipsImage *t[1];
-
-		if( im_open_local_array( conversion->output, 
-			t, 1, "embed-type2", "p" ) ||
-			im_replicate( embed->input, t[0], 
-				embed->width / embed->input->Xsize + 2, 
-				embed->height / embed->input->Ysize + 2 ) ||
-			im_extract_area( t[0], conversion->output, 
-				nx, ny, embed->width, embed->height ) )
+		if( vips_embed_repeat( pool, embed->input, &VIPS_VI( 1 ),
+			embed->x, embed->y, embed->width, embed->height ) ||
+			vips_image_write( VIPS_VI( 1 ), conversion->output ) )
 			return( -1 );
 }
+
 		break;
 
 	case VIPS_EXTEND_MIRROR:
 {
-		/* As case 2, but the tiles are twice the size because of
-		 * mirroring.
-		 */
-		const int w2 = embed->input->Xsize * 2;
-		const int h2 = embed->input->Ysize * 2;
+		VipsPoolContext *context = vips_pool_context_new( pool );
 
-		const int nx = embed->x < 0 ? 
-			-embed->x % w2 : w2 - embed->x % w2;
-		const int ny = embed->y < 0 ? 
-			-embed->y % h2 : h2 - embed->y % h2;
-
-		VipsImage *t[7];
-
-		if( im_open_local_array( conversion->output, 
-			t, 7, "embed-type3", "p" ) ||
-			/* Cache the edges of in, since we may well be reusing
-			 * them repeatedly. Will only help for tiny borders
-			 * (up to 20 pixels?), but that's our typical case
-			 * with im_conv() etc.
-			im_cache( in, t[0], IM__TILE_WIDTH, IM__TILE_HEIGHT,
-				3 * (in->Xsize / IM__TILE_WIDTH + 1) +
-				3 * (in->Ysize / IM__TILE_HEIGHT + 1) ) ||
-			 */
-
-			/* 
-
-				FIXME ... alternatively, don't cache, hmm,
-				need to time this for typical cases
-
-			 */
-			im_copy( embed->input, t[0] ) ||
-			
-			/* Make a 2x2 mirror tile.
-			 */
-			im_fliphor( t[0], t[1] ) ||
-			im_lrjoin( t[0], t[1], t[2] ) ||
-			im_flipver( t[2], t[3] ) ||
-			im_tbjoin( t[2], t[3], t[4] ) ||
-
-			/* Repeat, then cut out the centre.
-			 */
-			im_replicate( t[4], t[5], 
-				embed->width / t[4]->Xsize + 2, 
-				embed->height / t[4]->Ysize + 2 ) ||
-			im_extract_area( t[5], t[6], nx, ny, 
-				embed->width, embed->height ) ||
-
-			/* Overwrite the centre with the input, much faster
-			 * for centre pixels.
-			 */
-			im_insert_noexpand( t[6], embed->input, 
-				conversion->output, embed->x, embed->y ) )
-				return( -1 );
+		if( vips_embed_mirror( pool, embed->input, &VIPS_VI( 1 ),
+			embed->x, embed->y, embed->width, embed->height ) ||
+			vips_image_write( VIPS_VI( 1 ), conversion->output ) )
+			return( -1 );
 }
 		break;
 
@@ -461,7 +475,7 @@ vips_embed_build( VipsObject *object )
 		want.top = embed->y;
 		want.width = embed->input->Xsize;
 		want.height = embed->input->Ysize;
-		im_rect_intersectrect( &want, &embed->rout, &embed->rsub );
+		vips_rect_intersectrect( &want, &embed->rout, &embed->rsub );
 
 		/* FIXME ... actually, it can't. embed_find_edge() will fail 
 		 * if rsub is empty. Make this more general at some point 

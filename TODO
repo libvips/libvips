@@ -1,3 +1,12 @@
+
+- do clip etc. in new style, good to get everything that VipsAdd uses in
+  the new stack
+
+  insert* needs clip, lintra_vec
+
+
+
+
 - bandalike: consider RGB + RGBA ... we should bandup by adding a black band
 
   (or white?? unclear)
@@ -75,15 +84,6 @@
   use array version in several places
 
 
-
-- do clip etc. in new style, good to get everything that VipsAdd uses in
-  the new stack
-
-  embed needs flip* *join extract_area replicate insert
-
-  *join needs insert too
-
-  insert* needs clip, lintra_vec
 
 
 
