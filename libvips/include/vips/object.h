@@ -464,6 +464,8 @@ int vips_class_depth( VipsObjectClass *klass );
 VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
 GType vips_type_find( const char *basename, const char *nickname );
 
+VipsObject **vips_object_local_array( VipsObject *parent, int n );
+
 void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
 #define vips_object_local( V, G ) \
 	(g_signal_connect( V, "close", \

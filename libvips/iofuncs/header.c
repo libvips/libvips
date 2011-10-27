@@ -1774,7 +1774,7 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 }
 
 GType
-vips_array_image( void )
+vips_array_image_get_type( void )
 {
 	static GType type = 0;
 

@@ -111,6 +111,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_extract_band_get_type( void ); 
 	extern GType vips_replicate_get_type( void ); 
 	extern GType vips_cast_get_type( void ); 
+	extern GType vips_bandjoin_get_type( void ); 
 
 	vips_copy_get_type();
 	vips_embed_get_type();
@@ -121,5 +122,6 @@ vips_conversion_operation_init( void )
 	vips_extract_band_get_type();
 	vips_replicate_get_type();
 	vips_cast_get_type();
+	vips_bandjoin_get_type();
 }
 

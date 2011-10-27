@@ -1763,12 +1763,49 @@ vips_type_find( const char *basename, const char *nickname )
 	return( G_OBJECT_CLASS_TYPE( class ) );
 }
 
-/* The vips_object_local() macros uses this as its callback.
+/* The vips_object_local() macro uses this as its callback.
  */
 void
 vips_object_local_cb( VipsObject *vobject, GObject *gobject )
 {
 	g_object_unref( gobject );
+}
+
+typedef struct {
+	VipsObject **array;
+	int n;
+} VipsObjectLocal;
+
+static void
+vips_object_local_array_cb( GObject *parent, VipsObjectLocal *local )
+{
+	int i;
+
+	for( i = 0; i < local->n; i++ )
+		VIPS_FREEF( g_object_unref, local->array[i] );
+
+	g_free( local->array );
+	g_free( local );
+}
+
+/* Make an array of VipsObject refs which will be unreffed when parent closes.
+ */
+VipsObject **
+vips_object_local_array( VipsObject *parent, int n )
+{
+	VipsObjectLocal *local;
+
+	local = g_new( VipsObjectLocal, 1 );
+	local->n = n;
+	/* Make the array 1 too long so we can be sure there's a NULL 
+	 * terminator.
+	 */
+	local->array = g_new0( VipsObject *, n + 1 );
+
+	g_signal_connect( parent, "close", 
+		G_CALLBACK( vips_object_local_array_cb ), local );
+
+	return( local->array );
 }
 
 static void *

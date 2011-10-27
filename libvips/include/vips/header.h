@@ -215,6 +215,7 @@ int vips_array_double_set( GValue *value, const double *array, int n );
 GType vips_array_image_get_type( void );
 GObject **vips_array_object_get( const GValue *value, int *n );
 int vips_array_object_set( GValue *value, int n );
+VipsArea *vips_array_object_new( int n );
 
 void vips_image_set_area( VipsImage *image, 
 	const char *field, VipsCallbackFn free_fn, void *data );

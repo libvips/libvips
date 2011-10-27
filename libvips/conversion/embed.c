@@ -407,14 +407,6 @@ vips_embed_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_embed_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( embed->in ) || 
-		vips_image_pio_output( conversion->out ) )
-		return( -1 );
-	if( embed->extend < 0 || embed->extend >= VIPS_EXTEND_LAST ) {
-		vips_error( "VipsEmbed", "%s", _( "unknown VipsExtend" ) );
-		return( -1 );
-	}
-
 	/* nip can generate this quite often ... just copy.
 	 */
 	if( embed->x == 0 && 
@@ -422,6 +414,10 @@ vips_embed_build( VipsObject *object )
 		embed->width == embed->in->Xsize && 
 		embed->height == embed->in->Ysize )
 		return( vips_image_write( embed->in, conversion->out ) );
+
+	if( vips_image_pio_input( embed->in ) || 
+		vips_image_pio_output( conversion->out ) )
+		return( -1 );
 
 	pool = vips_pool_new( "VipsEmbed" );
 	vips_object_local( object, pool );

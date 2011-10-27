@@ -1,4 +1,6 @@
-- im_gbandjoin() needed by binary
+- bandjoin needs testing
+
+  see vips_bandjoin() .. ugly!
 
 
 
@@ -6,6 +8,19 @@
   g_value_set_instance() incorrectly
 
   try printing an array of double
+
+
+
+
+- vips_image_new_array() needs to go ... replcae with vips_object_array()
+
+  see new sizealike/foprmatalike in bandjoin.c ... move these into binary.c
+
+  sort out naming
+
+	GObject **vips_array_object_get( const GValue *value, int *n );
+	VipsArea *vips_array_object_new( int n );
+
 
 
 
