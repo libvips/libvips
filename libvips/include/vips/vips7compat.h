@@ -558,6 +558,8 @@ int im_extract_areabands( VipsImage *in, VipsImage *out,
 
 int im_replicate( VipsImage *in, VipsImage *out, int across, int down );
 
+int im_clip2fmt( VipsImage *in, VipsImage *out, VipsBandFormat fmt );
+
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all

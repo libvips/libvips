@@ -10,13 +10,13 @@ libconversion_la_SOURCES = \
 	join.c \
 	extract.c \
 	replicate.c \
+	cast.c \
 	conver_dispatch.c \
 	im_black.c \
 	im_c2amph.c \
 	im_c2rect.c \
 	im_c2imag.c \
 	im_c2real.c \
-	im_clip2fmt.c \
 	im_copy_file.c \
 	im_falsecolour.c \
 	im_gbandjoin.c \

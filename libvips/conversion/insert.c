@@ -281,7 +281,7 @@ vips_insert_build( VipsObject *object )
 
 	if( vips_image_pio_input( insert->main ) || 
 		vips_image_pio_input( insert->sub ) || 
-		vips_image_pio_output( conversion->output ) ||
+		vips_image_pio_output( conversion->out ) ||
 		vips_check_bands_1orn( "VipsInsert", 
 			insert->main, insert->sub ) ||
 		vips_check_coding_known( "VipsInsert", insert->main ) ||
@@ -299,13 +299,13 @@ vips_insert_build( VipsObject *object )
 		return( -1 );
 	insert->main_processed = t[2];
 	insert->sub_processed = t[3];
-	if( !(arry = vips_allocate_input_array( conversion->output, 
+	if( !(arry = vips_allocate_input_array( conversion->out, 
 		insert->main_processed, insert->sub_processed, NULL )) )
 		return( -1 );
 
-	if( vips_image_copy_fields_array( conversion->output, arry ) )
+	if( vips_image_copy_fields_array( conversion->out, arry ) )
 		return( -1 );
-        vips_demand_hint_array( conversion->output, 
+        vips_demand_hint_array( conversion->out, 
 		VIPS_DEMAND_STYLE_SMALLTILE, arry );
 
 	/* Calculate geometry. 
@@ -337,15 +337,15 @@ vips_insert_build( VipsObject *object )
 	else 
 		insert->rout = insert->rmain;
 
-	conversion->output->Xsize = insert->rout.width;
-	conversion->output->Ysize = insert->rout.height;
+	conversion->out->Xsize = insert->rout.width;
+	conversion->out->Ysize = insert->rout.height;
 
 	if( !(insert->ink = vips__vector_to_ink( 
-		"VipsInsert", conversion->output,
+		"VipsInsert", conversion->out,
 		insert->background->data, insert->background->n )) )
 		return( -1 );
 
-	if( vips_image_generate( conversion->output,
+	if( vips_image_generate( conversion->out,
 		vips_start_many, vips_insert_gen, vips_stop_many, 
 		arry, insert ) )
 		return( -1 );

@@ -1,4 +1,5 @@
-- clip next?
+- lintra_vec next
+
 
 
 
@@ -54,6 +55,15 @@
   this seems like a big change :-( can we avoid it?
 
   bodge it for now, fix properly after we merge
+
+- don't do vips_image_write() at the end of a pipeline, instead try:
+
+	g_object_set( object, "output", t );
+
+  ie. replace the output object
+
+  fails due to "assign once only" rule ... we need "don't assign after
+  written" instead
 
 
 

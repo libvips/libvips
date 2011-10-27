@@ -72,7 +72,7 @@
  * VipsJoin:
  * @in1: first input image 
  * @in2: second input image 
- * @output: output image
+ * @out: output image
  * @direction: join horizontally or vertically
  * @expand: %TRUE to expand the output image to hold all of the input pixels
  * @shim: space between images, in pixels
@@ -83,13 +83,13 @@
  * of @direction.
  *
  * If one is taller or wider than the
- * other, @output will be has high as the smaller. If @expand is %TRUE, then
+ * other, @out will be has high as the smaller. If @expand is %TRUE, then
  * the output will be expanded to contain all of the input pixels.
  *
  * Use @align to set the edge that the images align on. By default, they align
  * on the edge with the lower value coordinate.
  *
- * Use @background to set the colour of any pixels in @output which are not
+ * Use @background to set the colour of any pixels in @out which are not
  * present in either @in1 or @in2.
  *
  * Use @shim to set the spacing between the images. By default this is 0.
@@ -227,7 +227,7 @@ vips_join_build( VipsObject *object )
 	}
 
 
-	if( vips_image_write( t, conversion->output ) ) {
+	if( vips_image_write( t, conversion->out ) ) {
 		g_object_unref( t );
 		return( -1 );
 	}
@@ -310,14 +310,14 @@ vips_join_init( VipsJoin *join )
 }
 
 int
-vips_join( VipsImage *in1, VipsImage *in2, VipsImage **output, 
+vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out, 
 	VipsDirection direction, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, direction );
-	result = vips_call_split( "join", ap, in1, in2, output, direction );
+	result = vips_call_split( "join", ap, in1, in2, out, direction );
 	va_end( ap );
 
 	return( result );

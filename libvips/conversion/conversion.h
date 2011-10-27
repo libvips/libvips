@@ -60,7 +60,7 @@ typedef struct _VipsConversion {
 
 	/* All have an output image.
 	 */
-	VipsImage *output;
+	VipsImage *out;
 
 } VipsConversion;
 

@@ -458,9 +458,9 @@ vips_region_new( VipsImage *image )
 	}
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 	g_assert( vips_object_sanity( VIPS_OBJECT( region ) ) );
+#endif /*DEBUG*/
 
 	return( region ); 
 }

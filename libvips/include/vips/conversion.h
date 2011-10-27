@@ -134,6 +134,8 @@ int vips_extract_band( VipsImage *input, VipsImage **output, int band, ... )
 	__attribute__((sentinel));
 int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 	__attribute__((sentinel));
+int vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
+	__attribute__((sentinel));
 
 
 
@@ -143,7 +145,6 @@ int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
 
 int im_copy_file( VipsImage *in, VipsImage *out );
 
-int im_clip2fmt( VipsImage *in, VipsImage *out, VipsBandFormat fmt );
 int im_scale( VipsImage *in, VipsImage *out );
 int im_msb( VipsImage *in, VipsImage *out );
 int im_msb_band( VipsImage *in, VipsImage *out, int band );

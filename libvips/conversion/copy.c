@@ -94,8 +94,8 @@
 
 /**
  * VipsCopy:
- * @input: input image
- * @output: output image
+ * @in: input image
+ * @out: output image
  *
  * Copy an image, optionally modifying the header. VIPS copies images by 
  * copying pointers, so this operation is fast, even for very large images.
@@ -113,7 +113,7 @@ typedef struct _VipsCopy {
 
 	/* The input image.
 	 */
-	VipsImage *input;
+	VipsImage *in;
 
 	/* Swap bytes on the way through.
 	 */
@@ -227,7 +227,7 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		return( -1 );
 
 	if( copy->swap ) {
-		SwapFn swap = vips_copy_swap_fn[copy->input->BandFmt];
+		SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
 		int y;
 
 		for( y = 0; y < r->height; y++ ) {
@@ -236,7 +236,7 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			PEL *q = (PEL *) VIPS_REGION_ADDR( or, 
 				r->left, r->top + y );
 
-			swap( p, q, r->width, copy->input );
+			swap( p, q, r->width, copy->in );
 		}
 	}
 	else
@@ -274,14 +274,14 @@ vips_copy_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_copy_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( copy->input ) || 
-		vips_image_pio_output( conversion->output ) )
+	if( vips_image_pio_input( copy->in ) || 
+		vips_image_pio_output( conversion->out ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->output, copy->input ) )
+	if( vips_image_copy_fields( conversion->out, copy->in ) )
 		return( -1 );
-        vips_demand_hint( conversion->output, 
-		VIPS_DEMAND_STYLE_THINSTRIP, copy->input, NULL );
+        vips_demand_hint( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, copy->in, NULL );
 
 	/* Use props to adjust header fields.
 	 */
@@ -306,15 +306,15 @@ vips_copy_build( VipsObject *object )
 			g_value_init( &value, type );
 			g_object_get_property( G_OBJECT( object ), 
 				name, &value );
-			g_object_set_property( G_OBJECT( conversion->output ), 
+			g_object_set_property( G_OBJECT( conversion->out ), 
 				name, &value );
 			g_value_unset( &value );
 		}
 	}
 
-	if( vips_image_generate( conversion->output,
+	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_copy_gen, vips_stop_one, 
-		copy->input, copy ) )
+		copy->in, copy ) )
 		return( -1 );
 
 	return( 0 );
@@ -339,7 +339,7 @@ vips_copy_class_init( VipsCopyClass *class )
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsCopy, input ) );
+		G_STRUCT_OFFSET( VipsCopy, in ) );
 
 	VIPS_ARG_BOOL( class, "swap", 2, 
 		_( "Swap" ), 

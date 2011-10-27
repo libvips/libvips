@@ -1266,3 +1266,20 @@ im_replicate( IMAGE *in, IMAGE *out, int across, int down )
 	return( 0 );
 }
 
+int 
+im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt fmt ) 
+{
+	VipsImage *t;
+
+	if( vips_cast( in, &t, fmt,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+

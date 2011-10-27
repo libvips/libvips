@@ -66,8 +66,8 @@
 
 /**
  * VipsFlip:
- * @input: input image
- * @output: output image
+ * @in: input image
+ * @out: output image
  * @direction: flip horizontally or vertically
  *
  * Flips an image left-right or up-down.
@@ -82,7 +82,7 @@ typedef struct _VipsFlip {
 
 	/* The input image.
 	 */
-	VipsImage *input;
+	VipsImage *in;
 
 	/* Swap bytes on the way through.
 	 */
@@ -207,29 +207,29 @@ vips_flip_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_flip_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( flip->input ) || 
-		vips_image_pio_output( conversion->output ) )
+	if( vips_image_pio_input( flip->in ) || 
+		vips_image_pio_output( conversion->out ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->output, flip->input ) )
+	if( vips_image_copy_fields( conversion->out, flip->in ) )
 		return( -1 );
-	vips_demand_hint( conversion->output, 
-		VIPS_DEMAND_STYLE_THINSTRIP, flip->input, NULL );
+	vips_demand_hint( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, flip->in, NULL );
 
 	if( flip->direction == VIPS_DIRECTION_HORIZONTAL ) {
 		generate_fn = vips_flip_horizontal_gen;
-		conversion->output->Xoffset = flip->input->Xsize;
-		conversion->output->Yoffset = 0;
+		conversion->out->Xoffset = flip->in->Xsize;
+		conversion->out->Yoffset = 0;
 	}
 	else {
 		generate_fn = vips_flip_vertical_gen;
-		conversion->output->Xoffset = 0;
-		conversion->output->Yoffset = flip->input->Ysize;
+		conversion->out->Xoffset = 0;
+		conversion->out->Yoffset = flip->in->Ysize;
 	}
 
-	if( vips_image_generate( conversion->output,
+	if( vips_image_generate( conversion->out,
 		vips_start_one, generate_fn, vips_stop_one, 
-		flip->input, flip ) )
+		flip->in, flip ) )
 		return( -1 );
 
 	return( 0 );
@@ -250,11 +250,11 @@ vips_flip_class_init( VipsFlipClass *class )
 	vobject_class->description = _( "flip an image" );
 	vobject_class->build = vips_flip_build;
 
-	VIPS_ARG_IMAGE( class, "input", 1, 
+	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFlip, input ) );
+		G_STRUCT_OFFSET( VipsFlip, in ) );
 
 	VIPS_ARG_ENUM( class, "direction", 6, 
 		_( "Direction" ), 

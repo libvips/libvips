@@ -95,7 +95,7 @@ typedef struct _VipsEmbed {
 
 	/* The input image.
 	 */
-	VipsImage *input;
+	VipsImage *in;
 
 	VipsExtend extend;
 	int x;
@@ -164,7 +164,7 @@ vips_embed_find_edge( VipsEmbed *embed, VipsRect *r, int i, VipsRect *out )
 static void
 vips_embed_copy_pixel( VipsEmbed *embed, PEL *q, PEL *p, int n )
 {
-	const int bs = VIPS_IMAGE_SIZEOF_PEL( embed->input );
+	const int bs = VIPS_IMAGE_SIZEOF_PEL( embed->in );
 
 	int x, b;
 
@@ -181,7 +181,7 @@ static void
 vips_embed_paint_edge( VipsEmbed *embed, 
 	VipsRegion *or, int i, VipsRect *r, PEL *p, int plsk )
 {
-	const int bs = VIPS_IMAGE_SIZEOF_PEL( embed->input );
+	const int bs = VIPS_IMAGE_SIZEOF_PEL( embed->in );
 
 	VipsRect todo;
 	PEL *q;
@@ -326,7 +326,7 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 }
 
 static int
-vips_embed_repeat( VipsPool *pool, VipsImage *input, VipsImage **output,
+vips_embed_repeat( VipsPool *pool, VipsImage *in, VipsImage **out,
 	int x, int y, int width, int height )
 {
 	VipsPoolContext *context = vips_pool_context_new( pool );
@@ -335,15 +335,15 @@ vips_embed_repeat( VipsPool *pool, VipsImage *input, VipsImage **output,
 	 * nicely.
 	 */
 	const int nx = x < 0 ?
-		-x % input->Xsize : input->Xsize - x % input->Xsize;
+		-x % in->Xsize : in->Xsize - x % in->Xsize;
 	const int ny = y < 0 ?
-		-y % input->Ysize : input->Ysize - y % input->Ysize;
+		-y % in->Ysize : in->Ysize - y % in->Ysize;
 
 	if( 
-		vips_replicate( input, &VIPS_VI( 1 ), 
-			width / input->Xsize + 2, 
-			height / input->Ysize + 2, NULL ) ||
-		vips_extract_area( VIPS_VI( 1 ), output, 
+		vips_replicate( in, &VIPS_VI( 1 ), 
+			width / in->Xsize + 2, 
+			height / in->Ysize + 2, NULL ) ||
+		vips_extract_area( VIPS_VI( 1 ), out, 
 			nx, ny, width, height, NULL ) ) 
 		return( -1 );
 
@@ -351,7 +351,7 @@ vips_embed_repeat( VipsPool *pool, VipsImage *input, VipsImage **output,
 }
 
 static int
-vips_embed_mirror( VipsPool *pool, VipsImage *input, VipsImage **output,
+vips_embed_mirror( VipsPool *pool, VipsImage *in, VipsImage **out,
 	int x, int y, int width, int height )
 {
 	VipsPoolContext *context = vips_pool_context_new( pool );
@@ -359,8 +359,8 @@ vips_embed_mirror( VipsPool *pool, VipsImage *input, VipsImage **output,
 	/* As repeat, but the tiles are twice the size because of
 	 * mirroring.
 	 */
-	const int w2 = input->Xsize * 2;
-	const int h2 = input->Ysize * 2;
+	const int w2 = in->Xsize * 2;
+	const int h2 = in->Ysize * 2;
 
 	const int nx = x < 0 ?  -x % w2 : w2 - x % w2;
 	const int ny = y < 0 ?  -y % h2 : h2 - y % h2;
@@ -368,9 +368,9 @@ vips_embed_mirror( VipsPool *pool, VipsImage *input, VipsImage **output,
 	if( 
 		/* Make a 2x2 mirror tile.
 		 */
-		vips_flip( input, &VIPS_VI( 1 ), 
+		vips_flip( in, &VIPS_VI( 1 ), 
 			VIPS_DIRECTION_HORIZONTAL, NULL ) ||
-		vips_join( input, VIPS_VI( 1 ), &VIPS_VI( 2 ), 
+		vips_join( in, VIPS_VI( 1 ), &VIPS_VI( 2 ), 
 			VIPS_DIRECTION_HORIZONTAL, NULL ) ||
 		vips_flip( VIPS_VI( 2 ), &VIPS_VI( 3 ), 
 			VIPS_DIRECTION_VERTICAL, NULL ) ||
@@ -385,10 +385,10 @@ vips_embed_mirror( VipsPool *pool, VipsImage *input, VipsImage **output,
 		vips_extract_area( VIPS_VI( 5 ), &VIPS_VI( 6 ), 
 			nx, ny, width, height, NULL ) ||
 
-		/* Overwrite the centre with the input, much faster
+		/* Overwrite the centre with the in, much faster
 		 * for centre pixels.
 		 */
-		vips_insert( VIPS_VI( 6 ), input, output, 
+		vips_insert( VIPS_VI( 6 ), in, out, 
 			x, y, NULL ) )
 			return( -1 );
 
@@ -407,8 +407,8 @@ vips_embed_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_embed_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( embed->input ) || 
-		vips_image_pio_output( conversion->output ) )
+	if( vips_image_pio_input( embed->in ) || 
+		vips_image_pio_output( conversion->out ) )
 		return( -1 );
 	if( embed->extend < 0 || embed->extend >= VIPS_EXTEND_LAST ) {
 		vips_error( "VipsEmbed", "%s", _( "unknown VipsExtend" ) );
@@ -419,9 +419,9 @@ vips_embed_build( VipsObject *object )
 	 */
 	if( embed->x == 0 && 
 		embed->y == 0 && 
-		embed->width == embed->input->Xsize && 
-		embed->height == embed->input->Ysize )
-		return( vips_image_write( embed->input, conversion->output ) );
+		embed->width == embed->in->Xsize && 
+		embed->height == embed->in->Ysize )
+		return( vips_image_write( embed->in, conversion->out ) );
 
 	pool = vips_pool_new( "VipsEmbed" );
 	vips_object_local( object, pool );
@@ -431,9 +431,9 @@ vips_embed_build( VipsObject *object )
 {
 		VipsPoolContext *context = vips_pool_context_new( pool );
 
-		if( vips_embed_repeat( pool, embed->input, &VIPS_VI( 1 ),
+		if( vips_embed_repeat( pool, embed->in, &VIPS_VI( 1 ),
 			embed->x, embed->y, embed->width, embed->height ) ||
-			vips_image_write( VIPS_VI( 1 ), conversion->output ) )
+			vips_image_write( VIPS_VI( 1 ), conversion->out ) )
 			return( -1 );
 }
 
@@ -443,9 +443,9 @@ vips_embed_build( VipsObject *object )
 {
 		VipsPoolContext *context = vips_pool_context_new( pool );
 
-		if( vips_embed_mirror( pool, embed->input, &VIPS_VI( 1 ),
+		if( vips_embed_mirror( pool, embed->in, &VIPS_VI( 1 ),
 			embed->x, embed->y, embed->width, embed->height ) ||
-			vips_image_write( VIPS_VI( 1 ), conversion->output ) )
+			vips_image_write( VIPS_VI( 1 ), conversion->out ) )
 			return( -1 );
 }
 		break;
@@ -453,28 +453,28 @@ vips_embed_build( VipsObject *object )
 	case VIPS_EXTEND_BLACK:
 	case VIPS_EXTEND_WHITE:
 	case VIPS_EXTEND_COPY:
-		if( vips_image_copy_fields( conversion->output, embed->input ) )
+		if( vips_image_copy_fields( conversion->out, embed->in ) )
 			return( -1 );
 
-		conversion->output->Xsize = embed->width;
-		conversion->output->Ysize = embed->height;
+		conversion->out->Xsize = embed->width;
+		conversion->out->Ysize = embed->height;
 
-		vips_demand_hint( conversion->output, 
-			VIPS_DEMAND_STYLE_SMALLTILE, embed->input, NULL );
+		vips_demand_hint( conversion->out, 
+			VIPS_DEMAND_STYLE_SMALLTILE, embed->in, NULL );
 
 		/* Whole output area.
 		 */
 		embed->rout.left = 0;
 		embed->rout.top = 0;
-		embed->rout.width = conversion->output->Xsize;
-		embed->rout.height = conversion->output->Ysize;
+		embed->rout.width = conversion->out->Xsize;
+		embed->rout.height = conversion->out->Ysize;
 
 		/* Rect occupied by image (can be clipped to nothing).
 		 */
 		want.left = embed->x;
 		want.top = embed->y;
-		want.width = embed->input->Xsize;
-		want.height = embed->input->Ysize;
+		want.width = embed->in->Xsize;
+		want.height = embed->in->Ysize;
 		vips_rect_intersectrect( &want, &embed->rout, &embed->rsub );
 
 		/* FIXME ... actually, it can't. embed_find_edge() will fail 
@@ -496,14 +496,14 @@ vips_embed_build( VipsObject *object )
 
 		embed->border[1].left = VIPS_RECT_RIGHT( &embed->rsub );
 		embed->border[1].top = embed->rsub.top;
-		embed->border[1].width = conversion->output->Xsize - 
+		embed->border[1].width = conversion->out->Xsize - 
 			VIPS_RECT_RIGHT( &embed->rsub );
 		embed->border[1].height = embed->rsub.height;
 
 		embed->border[2].left = embed->rsub.left;	
 		embed->border[2].top = VIPS_RECT_BOTTOM( &embed->rsub );
 		embed->border[2].width = embed->rsub.width;
-		embed->border[2].height = conversion->output->Ysize - 
+		embed->border[2].height = conversion->out->Ysize - 
 			VIPS_RECT_BOTTOM( &embed->rsub );
 
 		embed->border[3].left = 0;	
@@ -521,26 +521,26 @@ vips_embed_build( VipsObject *object )
 
 		embed->border[5].left = VIPS_RECT_RIGHT( &embed->rsub );
 		embed->border[5].top = 0;
-		embed->border[5].width = conversion->output->Xsize - 
+		embed->border[5].width = conversion->out->Xsize - 
 			VIPS_RECT_RIGHT( &embed->rsub );
 		embed->border[5].height = embed->rsub.top;
 
 		embed->border[6].left = VIPS_RECT_RIGHT( &embed->rsub );
 		embed->border[6].top = VIPS_RECT_BOTTOM( &embed->rsub );
-		embed->border[6].width = conversion->output->Xsize - 
+		embed->border[6].width = conversion->out->Xsize - 
 			VIPS_RECT_RIGHT( &embed->rsub );
-		embed->border[6].height = conversion->output->Ysize - 
+		embed->border[6].height = conversion->out->Ysize - 
 			VIPS_RECT_BOTTOM( &embed->rsub );
 
 		embed->border[7].left = 0;
 		embed->border[7].top = VIPS_RECT_BOTTOM( &embed->rsub );
 		embed->border[7].width = embed->rsub.left;
-		embed->border[7].height = conversion->output->Ysize - 
+		embed->border[7].height = conversion->out->Ysize - 
 			VIPS_RECT_BOTTOM( &embed->rsub );
 
-		if( vips_image_generate( conversion->output,
+		if( vips_image_generate( conversion->out,
 			vips_start_one, vips_embed_gen, vips_stop_one, 
-			embed->input, embed ) )
+			embed->in, embed ) )
 			return( -1 );
 
 		break;
@@ -571,7 +571,7 @@ vips_embed_class_init( VipsEmbedClass *class )
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, input ) );
+		G_STRUCT_OFFSET( VipsEmbed, in ) );
 
 	VIPS_ARG_INT( class, "x", 2, 
 		_( "x" ), 

@@ -86,15 +86,15 @@
 
 /**
  * VipsExtractArea:
- * @input: input image
- * @output: output image
+ * @in: input image
+ * @out: output image
  * @left: left edge of area to extract
  * @top: top edge of area to extract
  * @width: width of area to extract
  * @height: height of area to extract
  *
  * Extract an area from an image.
- * Extracting outside @input will trigger an error.
+ * Extracting outside @in will trigger an error.
  *
  * See also: VipsExtractBand().
  */
@@ -104,7 +104,7 @@ typedef struct _VipsExtractArea {
 
 	/* The input image.
 	 */
-	VipsImage *input;
+	VipsImage *in;
 
 	int left;
 	int top;
@@ -153,32 +153,32 @@ vips_extract_area_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_extract_area_parent_class )->build( object ) )
 		return( -1 );
 
-	if( extract->left + extract->width > extract->input->Xsize ||
-		extract->top + extract->height > extract->input->Ysize ||
+	if( extract->left + extract->width > extract->in->Xsize ||
+		extract->top + extract->height > extract->in->Ysize ||
 		extract->left < 0 || extract->top < 0 ||
 		extract->width <= 0 || extract->height <= 0 ) {
 		im_error( "VipsExtractArea", "%s", _( "bad extract area" ) );
 		return( -1 );
 	}
 
-	if( vips_image_pio_input( extract->input ) || 
-		vips_image_pio_output( conversion->output ) ||
-		vips_check_coding_known( "VipsExtractArea", extract->input ) )  
+	if( vips_image_pio_input( extract->in ) || 
+		vips_image_pio_output( conversion->out ) ||
+		vips_check_coding_known( "VipsExtractArea", extract->in ) )  
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->output, extract->input ) )
+	if( vips_image_copy_fields( conversion->out, extract->in ) )
 		return( -1 );
-	vips_demand_hint( conversion->output, 
-		VIPS_DEMAND_STYLE_THINSTRIP, extract->input, NULL );
+	vips_demand_hint( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, extract->in, NULL );
 
-        conversion->output->Xsize = extract->width;
-        conversion->output->Ysize = extract->height;
-        conversion->output->Xoffset = -extract->left;
-        conversion->output->Yoffset = -extract->top;
+        conversion->out->Xsize = extract->width;
+        conversion->out->Ysize = extract->height;
+        conversion->out->Xoffset = -extract->left;
+        conversion->out->Yoffset = -extract->top;
 
-	if( vips_image_generate( conversion->output,
+	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_extract_area_gen, vips_stop_one, 
-		extract->input, extract ) )
+		extract->in, extract ) )
 		return( -1 );
 
 	return( 0 );
@@ -208,7 +208,7 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsExtractArea, input ) );
+		G_STRUCT_OFFSET( VipsExtractArea, in ) );
 
 	VIPS_ARG_INT( class, "left", 2, 
 		_( "Left" ), 
@@ -246,14 +246,14 @@ vips_extract_area_init( VipsExtractArea *extract )
 }
 
 int
-vips_extract_area( VipsImage *input, VipsImage **output, 
+vips_extract_area( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, height );
-	result = vips_call_split( "extract_area", ap, input, output, 
+	result = vips_call_split( "extract_area", ap, in, out, 
 		left, top, width, height );
 	va_end( ap );
 
@@ -262,8 +262,8 @@ vips_extract_area( VipsImage *input, VipsImage **output,
 
 /**
  * VipsExtractBand:
- * @input: input image
- * @output: output image
+ * @in: input image
+ * @out: output image
  * @band: band to extract
  * @n: number of bands to extract
  *
@@ -277,7 +277,7 @@ typedef struct _VipsExtractBand {
 
 	/* The input image.
 	 */
-	VipsImage *input;
+	VipsImage *in;
 
 	int band;
 	int n;
@@ -331,26 +331,26 @@ vips_extract_band_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_extract_band_parent_class )->build( object ) )
 		return( -1 );
 
-	if( extract->band + extract->n > extract->input->Bands ) {
+	if( extract->band + extract->n > extract->in->Bands ) {
 		im_error( "VipsExtractBand", "%s", _( "bad extract band" ) );
 		return( -1 );
 	}
 
-	if( vips_image_pio_input( extract->input ) || 
-		vips_image_pio_output( conversion->output ) ||
-		vips_check_coding_known( "VipsExtractBand", extract->input ) ) 
+	if( vips_image_pio_input( extract->in ) || 
+		vips_image_pio_output( conversion->out ) ||
+		vips_check_coding_known( "VipsExtractBand", extract->in ) ) 
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->output, extract->input ) )
+	if( vips_image_copy_fields( conversion->out, extract->in ) )
 		return( -1 );
-	vips_demand_hint( conversion->output, 
-		VIPS_DEMAND_STYLE_THINSTRIP, extract->input, NULL );
+	vips_demand_hint( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, extract->in, NULL );
 
-        conversion->output->Bands = extract->n;
+        conversion->out->Bands = extract->n;
 
-	if( vips_image_generate( conversion->output,
+	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_extract_band_gen, vips_stop_one, 
-		extract->input, extract ) )
+		extract->in, extract ) )
 		return( -1 );
 
 	return( 0 );
@@ -371,11 +371,11 @@ vips_extract_band_class_init( VipsExtractBandClass *class )
 	vobject_class->description = _( "extract band from an image" );
 	vobject_class->build = vips_extract_band_build;
 
-	VIPS_ARG_IMAGE( class, "input", 0, 
+	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsExtractBand, input ) );
+		G_STRUCT_OFFSET( VipsExtractBand, in ) );
 
 	VIPS_ARG_INT( class, "band", 3, 
 		_( "Band" ), 
@@ -399,13 +399,13 @@ vips_extract_band_init( VipsExtractBand *extract )
 }
 
 int
-vips_extract_band( VipsImage *input, VipsImage **output, int band, ... )
+vips_extract_band( VipsImage *in, VipsImage **out, int band, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, band );
-	result = vips_call_split( "extract_band", ap, input, output, band );
+	result = vips_call_split( "extract_band", ap, in, out, band );
 	va_end( ap );
 
 	return( result );

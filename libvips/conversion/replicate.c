@@ -58,7 +58,7 @@
 /**
  * VipsReplicate:
  * @in: input image
- * @output: output image
+ * @out: output image
  * @across: repeat input this many times across
  * @down: repeat input this many times down
  *
@@ -72,7 +72,7 @@ typedef struct _VipsReplicate {
 
 	/* The input image.
 	 */
-	VipsImage *input;
+	VipsImage *in;
 
 	int across;
 	int down;
@@ -170,21 +170,21 @@ vips_replicate_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_replicate_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( replicate->input ) || 
-		vips_image_pio_output( conversion->output ) )
+	if( vips_image_pio_input( replicate->in ) || 
+		vips_image_pio_output( conversion->out ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->output, replicate->input ) )
+	if( vips_image_copy_fields( conversion->out, replicate->in ) )
 		return( -1 );
-	vips_demand_hint( conversion->output, 
-		VIPS_DEMAND_STYLE_SMALLTILE, replicate->input, NULL );
+	vips_demand_hint( conversion->out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, replicate->in, NULL );
 
-	conversion->output->Xsize *= replicate->across;
-	conversion->output->Ysize *= replicate->down;
+	conversion->out->Xsize *= replicate->across;
+	conversion->out->Ysize *= replicate->down;
 
-	if( vips_image_generate( conversion->output,
+	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_replicate_gen, vips_stop_one, 
-		replicate->input, replicate ) )
+		replicate->in, replicate ) )
 		return( -1 );
 
 	return( 0 );
@@ -205,11 +205,11 @@ vips_replicate_class_init( VipsReplicateClass *class )
 	vobject_class->description = _( "replicate an image" );
 	vobject_class->build = vips_replicate_build;
 
-	VIPS_ARG_IMAGE( class, "input", 0, 
+	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReplicate, input ) );
+		G_STRUCT_OFFSET( VipsReplicate, in ) );
 
 	VIPS_ARG_INT( class, "across", 4, 
 		_( "Across" ), 
