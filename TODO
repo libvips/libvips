@@ -1,4 +1,29 @@
+- im_gbandjoin() needed by binary
+
+
+
+- does transform_array_g_string() work? it seems to use 
+  g_value_set_instance() incorrectly
+
+  try printing an array of double
+
+
+
+
 - lintra_vec next
+
+  get rid of binary.c, instead have a general 'pointwise' class which takes
+  any number of input images and runs a buffer-processing function over them
+
+  fold binary.c into arithmetic.c
+
+  VipsArithmetic has a "number of input images" thing set by subclasses, cf. 
+  format_table
+
+  proper likes "left" and "right" created by subclasses
+
+
+
 
 
 

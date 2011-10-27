@@ -1670,6 +1670,125 @@ vips_array_double_set( GValue *value, const double *array, int n )
 	return( 0 );
 }
 
+static void
+vips_array_object_free( VipsArea *area )
+{
+	GObject **array = (GObject **) area->data;
+
+	int i;
+
+	for( i = 0; i < area->n; i++ )
+		VIPS_FREEF( g_object_unref, array[i] );
+
+	g_free( area );
+}
+
+/* An area which holds an array of GObjects.
+ */
+VipsArea *
+vips_array_object_new( int n )
+{
+	GObject **array;
+	VipsArea *area;
+
+	array = g_new0( GObject *, n );
+	if( !(area = area_new( 
+		(VipsCallbackFn) vips_array_object_free, array )) )
+		return( NULL );
+	area->n = n;
+	area->length = n * sizeof( GObject * );
+	area->type = G_TYPE_OBJECT;
+	area->sizeof_type = sizeof( GObject * );
+
+	return( area );
+}
+
+/** 
+ * vips_array_object_get:
+ * @value: #GValue to get from
+ * @n: return the number of elements here, optionally
+ *
+ * Return the start of the array of #GObject held by @value.
+ * optionally return the number of elements in @n.
+ *
+ * See also: vips_array_object_set().
+ *
+ * Returns: The array address.
+ */
+GObject **
+vips_array_object_get( const GValue *value, int *n )
+{
+	return( vips_array_get( value, n, NULL, NULL ) );
+}
+
+/** 
+ * vips_array_object_set:
+ * @value: #GValue to set
+ * @n: the number of elements 
+ *
+ * Set @value to hold an array of GObject. Pass in the array length in @n. 
+ *
+ * See also: vips_array_object_get().
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_array_object_set( GValue *value, int n )
+{
+	VipsArea *area;
+
+	if( !(area = vips_array_object_new( n )) )
+		return( -1 );
+	g_value_set_boxed( value, area );
+	vips_area_unref( area );
+
+	return( 0 );
+}
+
+static void
+transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
+{
+	char *str;
+	int n;
+	char *p, *q;
+	int i;
+	GObject **array;
+
+	/* We need a copy of the string, since we insert \0 during
+	 * scan.
+	 */
+	str = g_strdup_value_contents( src_value );
+	for( n = 0; (q = vips_break_token( p, " " )); n++, p = q )
+		;
+	g_free( str );
+
+	vips_array_object_set( dest_value, n );
+	array = vips_array_object_get( dest_value, NULL );
+
+	str = g_strdup_value_contents( src_value );
+	for( i = 0; (q = vips_break_token( p, " " )); i++, p = q )
+		/* Sadly there's no error return possible here.
+		 */
+		array[i] = G_OBJECT( vips_image_new_from_file( p ) );
+	g_free( str );
+}
+
+GType
+vips_array_image( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "vips_array_image",
+			(GBoxedCopyFunc) vips_area_copy, 
+			(GBoxedFreeFunc) vips_area_unref );
+		g_value_register_transform_func( G_TYPE_STRING, type,
+			transform_g_string_array_image );
+	}
+
+	return( type );
+}
+
 /** 
  * vips_image_set_blob:
  * @image: image to attach the metadata to

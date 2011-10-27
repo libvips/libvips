@@ -151,7 +151,7 @@ void *vips_image_map( VipsImage *im, VipsImageMapFn fn, void *a );
 /**
  * VIPS_TYPE_SAVE_STRING:
  *
- * The #GType for an "vips_save_string".
+ * The #GType for a "vips_save_string".
  */
 #define VIPS_TYPE_SAVE_STRING (vips_save_string_get_type())
 GType vips_save_string_get_type( void );
@@ -163,7 +163,7 @@ void vips_save_string_setf( GValue *value, const char *fmt, ... )
 /**
  * VIPS_TYPE_AREA:
  *
- * The #GType for an #vips_area.
+ * The #GType for a #vips_area.
  */
 #define VIPS_TYPE_AREA (vips_area_get_type())
 GType vips_area_get_type( void );
@@ -174,7 +174,7 @@ VipsArea *vips_area_copy( VipsArea *area );
 /**
  * VIPS_TYPE_REF_STRING:
  *
- * The #GType for an #vips_refstring.
+ * The #GType for a #vips_refstring.
  */
 #define VIPS_TYPE_REF_STRING (vips_ref_string_get_type())
 GType vips_ref_string_get_type( void );
@@ -185,7 +185,7 @@ size_t vips_ref_string_get_length( const GValue *value );
 /**
  * VIPS_TYPE_BLOB:
  *
- * The #GType for an #vips_blob.
+ * The #GType for a #vips_blob.
  */
 
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
@@ -197,13 +197,24 @@ int vips_blob_set( GValue *value, VipsCallbackFn free_fn,
 /**
  * VIPS_TYPE_ARRAY_DOUBLE:
  *
- * The #GType for an #vips_array_double.
+ * The #GType for a #vips_array_double.
  */
 
 #define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
 GType vips_array_double_get_type( void );
 double *vips_array_double_get( const GValue *value, int *n );
 int vips_array_double_set( GValue *value, const double *array, int n ); 
+
+/**
+ * VIPS_TYPE_ARRAY_IMAGE:
+ *
+ * The #GType for a #vips_array_image.
+ */
+
+#define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
+GType vips_array_image_get_type( void );
+GObject **vips_array_object_get( const GValue *value, int *n );
+int vips_array_object_set( GValue *value, int n );
 
 void vips_image_set_area( VipsImage *image, 
 	const char *field, VipsCallbackFn free_fn, void *data );
