@@ -97,6 +97,7 @@ extern "C" {
 #include <vips/buf.h>
 #include <vips/util.h>
 #include <vips/object.h>
+#include <vips/area.h>
 #include <vips/pool.h>
 
 #include <vips/version.h>

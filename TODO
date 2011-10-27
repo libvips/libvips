@@ -1,3 +1,7 @@
+- started factoring VipsArea out into area.[hc]
+
+
+
 - bandjoin needs testing
 
   see vips_bandjoin() .. ugly!

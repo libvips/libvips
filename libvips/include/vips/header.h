@@ -77,41 +77,6 @@ extern "C" {
  */
 #define VIPS_META_RESOLUTION_UNIT "resolution-unit"
 
-/* Also used for eg. vips_local() and friends.
- */
-typedef int (*VipsCallbackFn)( void *a, void *b );
-
-/* A ref-counted area of memory.
- */
-typedef struct _VipsArea {
-	void *data;
-	size_t length;		/* 0 if not known */
-
-	/* If this area represents an array, the number of elements in the
-	 * array. Equal to length / sizeof(element).
-	 */
-	int n;
-
-	/*< private >*/
-
-	/* Reference count.
-	 */
-	int count;
-
-	/* Things like ICC profiles need their own free functions.
-	 */
-	VipsCallbackFn free_fn;
-
-	/* If we are holding an array (for exmaple, an array of double), the
-	 * GType of the elements and their size. 0 for not known.
-	 *
-	 * n is always length / sizeof_type, we keep it as a member for
-	 * convenience.
-	 */
-	GType type;
-	size_t sizeof_type;
-} VipsArea;
-
 int vips_format_sizeof( VipsBandFormat format );
 
 int vips_image_get_width( const VipsImage *image );
