@@ -95,11 +95,13 @@ vips_area_unref( VipsArea *area )
 	printf( "vips_area_unref: %p count = %d\n", area, area->count );
 #endif /*DEBUG*/
 
-	if( area->count == 0 )
-		if( area->free_fn )
-			VIPS_FREEF( area->free_fn, area->data );
+	if( area->count == 0 ) {
+		if( area->free_fn && area->data ) {
+			area->free_fn( area->data, NULL );
+			area->data = NULL;
+			area->free_fn = NULL;
+		}
 
-		area->free_fn = NULL;
 		g_free( area );
 
 #ifdef DEBUG
@@ -128,7 +130,7 @@ vips_area_new( VipsCallbackFn free_fn, void *data )
 
 #ifdef DEBUG
 	vips_area_number += 1;
-	printf( "area_new: %p count = %d (%d in total)\n", 
+	printf( "vips_area_new: %p count = %d (%d in total)\n", 
 		area, area->count, vips_area_number );
 #endif /*DEBUG*/
 
@@ -143,7 +145,7 @@ vips_area_new_blob( VipsCallbackFn free_fn, void *blob, size_t blob_length )
 {
 	VipsArea *area;
 
-	area = area_new( free_fn, blob );
+	area = vips_area_new( free_fn, blob );
 	area->length = blob_length;
 
 	return( area );
@@ -159,7 +161,7 @@ vips_area_new_array( GType type, size_t sizeof_type, int n )
 	void *array;
 
 	array = g_malloc( n * sizeof_type );
-	area = area_new( (VipsCallbackFn) g_free, array );
+	area = vips_area_new( (VipsCallbackFn) g_free, array );
 	area->n = n;
 	area->length = n * sizeof_type;
 	area->type = type;
@@ -190,7 +192,8 @@ vips_area_new_array_object( int n )
 	VipsArea *area;
 
 	array = g_new0( GObject *, n );
-	area = area_new( (VipsCallbackFn) vips_array_object_free, array );
+	area = vips_area_new( (VipsCallbackFn) vips_area_free_array_object, 
+		array );
 	area->n = n;
 	area->length = n * sizeof( GObject * );
 	area->type = G_TYPE_OBJECT;
@@ -206,7 +209,7 @@ vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data )
 {
 	VipsArea *area;
 
-	area = area_new( free_fn, data );
+	area = vips_area_new( free_fn, data );
 	g_value_init( value, VIPS_TYPE_AREA );
 	g_value_set_boxed( value, area );
 	vips_area_unref( area );
@@ -259,8 +262,115 @@ vips_area_get_type( void )
 }
 
 /** 
- * vips_value_get_ref_string:
+ * vips_value_get_save_string:
  * @value: GValue to get from
+ *
+ * Get the C string held internally by the GValue.
+ *
+ * Returns: The C string held by @value. This must not be freed.
+ */
+const char *
+vips_value_get_save_string( const GValue *value )
+{
+	return( (char *) g_value_get_boxed( value ) );
+}
+
+/** 
+ * vips_value_set_save_string:
+ * @value: GValue to set
+ * @str: C string to copy into the GValue
+ *
+ * Copies the C string into @value.
+ */
+void
+vips_value_set_save_string( GValue *value, const char *str )
+{
+	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_SAVE_STRING );
+
+	g_value_set_boxed( value, str );
+}
+
+/** 
+ * vips_value_set_save_stringf:
+ * @value: GValue to set
+ * @fmt: printf()-style format string
+ * @Varargs: arguments to printf()-formatted @fmt
+ *
+ * Generates a string and copies it into @value.
+ */
+void
+vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
+{
+	va_list ap;
+	char *str;
+
+	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_SAVE_STRING );
+
+	va_start( ap, fmt );
+	str = g_strdup_vprintf( fmt, ap );
+	va_end( ap );
+	vips_value_set_save_string( value, str );
+	g_free( str );
+}
+
+/* Transform funcs for builtin types to SAVE_STRING.
+ */
+static void
+transform_int_save_string( const GValue *src_value, GValue *dest_value )
+{
+	vips_value_set_save_stringf( dest_value, 
+		"%d", g_value_get_int( src_value ) );
+}
+
+static void
+transform_save_string_int( const GValue *src_value, GValue *dest_value )
+{
+	g_value_set_int( dest_value, 
+		atoi( vips_value_get_save_string( src_value ) ) );
+}
+
+static void
+transform_double_save_string( const GValue *src_value, GValue *dest_value )
+{
+	char buf[G_ASCII_DTOSTR_BUF_SIZE];
+
+	/* Need to be locale independent.
+	 */
+	g_ascii_dtostr( buf, G_ASCII_DTOSTR_BUF_SIZE, 
+		g_value_get_double( src_value ) );
+	vips_value_set_save_string( dest_value, buf );
+}
+
+static void
+transform_save_string_double( const GValue *src_value, GValue *dest_value )
+{
+	g_value_set_double( dest_value, 
+		g_ascii_strtod( vips_value_get_save_string( src_value ), 
+			NULL ) );
+}
+
+/* Save meta fields to the header. We have a new string type for header fields
+ * to save to XML and define transform functions to go from our meta types to
+ * this string type.
+ */
+GType
+vips_save_string_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "vips_save_string",
+			(GBoxedCopyFunc) g_strdup, 
+			(GBoxedFreeFunc) g_free );
+	}
+
+	return( type );
+}
+
+/** 
+ * vips_value_get_ref_string:
+ * @value: #GValue to get from
+ * @length: return length here, optionally
  *
  * Get the C string held internally by the GValue.
  *
@@ -294,7 +404,7 @@ vips_value_set_ref_string( GValue *value, const char *str )
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
 
 	str_copy = g_strdup( str );
-	area = area_new( (VipsCallbackFn) vips_free, str_copy );
+	area = vips_area_new( (VipsCallbackFn) vips_free, str_copy );
 
 	/* Handy place to cache this.
 	 */
@@ -312,7 +422,7 @@ static void
 transform_ref_string_g_string( const GValue *src_value, GValue *dest_value )
 {
 	g_value_set_string( dest_value, 
-		vips_value_get_ref_string( src_value ) );
+		vips_value_get_ref_string( src_value, NULL ) );
 }
 
 static void
@@ -361,13 +471,13 @@ vips_ref_string_get_type( void )
 }
 
 /** 
- * vips_blob_set:
+ * vips_value_set_blob:
  * @value: GValue to set
  * @free_fn: free function for @data
  * @data: pointer to area of memory
  * @length: length of memory area
  *
- * Sets @value to hold a pointer to @blob. When @value is freed, @blob will be
+ * Sets @value to hold a @data. When @value is freed, @data will be
  * freed with @free_fn. @value also holds a note of the length of the memory
  * area.
  *
@@ -375,7 +485,7 @@ vips_ref_string_get_type( void )
  * are saved to VIPS files for you coded as base64 inside the XML. They are
  * copied by copying reference-counted pointers.
  *
- * See also: vips_value_get_area()
+ * See also: vips_value_get_blob()
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -387,11 +497,32 @@ vips_value_set_blob( GValue *value,
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_BLOB );
 
-	area = area_new_blob( free_fn, data, length );
+	area = vips_area_new_blob( free_fn, data, length );
 	g_value_set_boxed( value, area );
 	vips_area_unref( area );
 
 	return( 0 );
+}
+
+/** 
+ * vips_value_get_blob:
+ * @value: GValue to set
+ * @length: optionally return length of memory area
+ *
+ * Returns the data pointer from a blob. Optionally returns the length too.
+ *
+ * blobs are things like ICC profiles or EXIF data. They are relocatable, and
+ * are saved to VIPS files for you coded as base64 inside the XML. They are
+ * copied by copying reference-counted pointers.
+ *
+ * See also: vips_value_set_blob()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+void *
+vips_value_get_blob( const GValue *value, size_t *length )
+{
+	return( vips_value_get_area( value, length ) );
 }
 
 /* Transform a blob to a G_TYPE_STRING.
@@ -403,11 +534,11 @@ transform_blob_g_string( const GValue *src_value, GValue *dest_value )
 	size_t blob_length;
 	char buf[256];
 
-	blob = vips_blob_get( src_value, &blob_length );
+	blob = vips_value_get_blob( src_value, &blob_length );
 	vips_snprintf( buf, 256, "VIPS_TYPE_BLOB, data = %p, length = %zd",
 		blob, blob_length );
 	g_value_set_string( dest_value, buf );
-}
+} 
 
 /* Transform a blob to a save string and back.
  */
@@ -418,9 +549,9 @@ transform_blob_save_string( const GValue *src_value, GValue *dest_value )
 	size_t blob_length;
 	char *b64;
 
-	blob = vips_value_get_area( src_value, &blob_length );
+	blob = vips_value_get_blob( src_value, &blob_length );
 	if( (b64 = vips__b64_encode( blob, blob_length )) ) {
-		vips_save_string_set( dest_value, b64 );
+		vips_value_set_save_string( dest_value, b64 );
 		vips_free( b64 );
 	}
 }
@@ -432,9 +563,9 @@ transform_save_string_blob( const GValue *src_value, GValue *dest_value )
 	void *blob;
 	size_t blob_length;
 
-	b64 = vips_save_string_get( src_value );
+	b64 = vips_value_get_save_string( src_value );
 	if( (blob = vips__b64_decode( b64, &blob_length )) )
-		vips_blob_set( dest_value, 
+		vips_value_set_blob( dest_value, 
 			(VipsCallbackFn) vips_free, blob, blob_length );
 }
 
@@ -509,7 +640,7 @@ vips_value_get_array( const GValue *value,
 double *
 vips_value_get_array_double( const GValue *value, int *n )
 {
-	return( vips_array_get( value, n, NULL, NULL ) );
+	return( vips_value_get_array( value, n, NULL, NULL ) );
 }
 
 /** 
@@ -530,8 +661,8 @@ vips_value_set_array_double( GValue *value, const double *array, int n )
 	double *array_copy;
 
 	g_value_init( value, VIPS_TYPE_ARRAY_DOUBLE );
-	vips_array_set( value, G_TYPE_DOUBLE, sizeof( double ), n );
-	array_copy = vips_array_double_get( value, NULL );
+	vips_value_set_array( value, G_TYPE_DOUBLE, sizeof( double ), n );
+	array_copy = vips_value_get_array_double( value, NULL );
 	memcpy( array_copy, array, n * sizeof( double ) );
 
 	return( 0 );
@@ -548,7 +679,7 @@ transform_array_g_string( const GValue *src_value, GValue *dest_value )
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int i;
 
-	array = (char *) vips_array_get( src_value, 
+	array = (char *) vips_value_get_array( src_value, 
 		&n, &type, &sizeof_type );
 
 	for( i = 0; i < n; i++ ) {
@@ -595,8 +726,8 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 			p += 1;
 	}
 
-	vips_array_set( dest_value, G_TYPE_DOUBLE, sizeof( double ), n );
-	array = (double *) vips_array_get( dest_value, NULL, NULL, NULL );
+	vips_value_set_array( dest_value, G_TYPE_DOUBLE, sizeof( double ), n );
+	array = (double *) vips_value_get_array( dest_value, NULL, NULL, NULL );
 
 	p = str;
 	for( i = 0; i < n; i++ ) {
@@ -638,9 +769,9 @@ vips_array_double_get_type( void )
  * Returns: The array address.
  */
 GObject **
-vips_array_object_get( const GValue *value, int *n )
+vips_value_get_array_object( const GValue *value, int *n )
 {
-	return( vips_array_get( value, n, NULL, NULL ) );
+	return( vips_value_get_array( value, n, NULL, NULL ) );
 }
 
 /** 
@@ -655,11 +786,11 @@ vips_array_object_get( const GValue *value, int *n )
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_array_object_set( GValue *value, int n )
+vips_value_set_array_object( GValue *value, int n )
 {
 	VipsArea *area;
 
-	if( !(area = vips_array_object_new( n )) )
+	if( !(area = vips_area_new_array_object( n )) )
 		return( -1 );
 	g_value_set_boxed( value, area );
 	vips_area_unref( area );
@@ -684,8 +815,8 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 		;
 	g_free( str );
 
-	vips_array_object_set( dest_value, n );
-	array = vips_array_object_get( dest_value, NULL );
+	vips_value_set_array_object( dest_value, n );
+	array = vips_value_get_array_object( dest_value, NULL );
 
 	str = g_strdup_value_contents( src_value );
 	for( i = 0; (q = vips_break_token( p, " " )); i++, p = q )
@@ -709,4 +840,28 @@ vips_array_image_get_type( void )
 	}
 
 	return( type );
+}
+
+/* Make the types we need for basic functioning. Called from init_world().
+ */
+void
+vips__meta_init_types( void )
+{
+	(void) vips_save_string_get_type();
+	(void) vips_area_get_type();
+	(void) vips_ref_string_get_type();
+	(void) vips_blob_get_type();
+
+	/* Register transform functions to go from built-in saveable types to 
+	 * a save string. Transform functions for our own types are set 
+	 * during type creation. 
+	 */
+	g_value_register_transform_func( G_TYPE_INT, VIPS_TYPE_SAVE_STRING,
+		transform_int_save_string );
+	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_INT,
+		transform_save_string_int );
+	g_value_register_transform_func( G_TYPE_DOUBLE, VIPS_TYPE_SAVE_STRING,
+		transform_double_save_string );
+	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_DOUBLE,
+		transform_save_string_double );
 }

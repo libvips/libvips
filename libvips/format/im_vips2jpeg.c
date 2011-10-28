@@ -594,7 +594,7 @@ update_orientation_cb( VipsImage *in, const char *name, GValue *value, void *a )
 	if( vips_isprefix( "exif-Orientation", name ) ) {
 		const char *string;
 
-		if( !(string = vips_ref_string_get( value )) ) {
+		if( !(string = vips_value_get_ref_string( value, NULL )) ) {
 			vips_warn( "im_jpeg2vips", 
 				"%s", _( "exif-Orientation is not a string" ) );
 			return( NULL );

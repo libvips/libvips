@@ -337,7 +337,7 @@ vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	int i;
 	int result;
 
-	area = vips_array_object_new( n );
+	area = vips_area_new_array_object( n );
 	array = (VipsImage **) area->data;
 	for( i = 0; i < n; i++ ) {
 		array[i] = in[i];

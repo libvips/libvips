@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
+	type.c \
 	enumtypes.c \
 	object.c \
 	pool.c \

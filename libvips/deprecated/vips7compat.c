@@ -1283,3 +1283,12 @@ im_clip2fmt( IMAGE *in, IMAGE *out, VipsBandFmt fmt )
 	return( 0 );
 }
 
+size_t 
+im_ref_string_get_length( const GValue *value )
+{
+	size_t length;
+
+	(void) vips_value_get_ref_string( value, &length );
+
+	return( length );
+}

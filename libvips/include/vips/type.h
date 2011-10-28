@@ -1,10 +1,13 @@
-/* VIPS argument types
+/* area.h
+ *
+ * 27/10/11
+ * 	- from header.h
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -27,122 +30,129 @@
 
  */
 
-#ifndef IM_TYPE_H
-#define IM_TYPE_H
+#ifndef VIPS_AREA_H
+#define VIPS_AREA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Type names. Old code might use "doublevec" etc. from before we had the
- * "array" type.
+/* Also used for eg. vips_local() and friends.
  */
-#define IM_TYPE_NAME_DOUBLE "double"	/* im_value_t is ptr to double */
-#define IM_TYPE_NAME_INT "integer"	/* 32-bit integer */
-#define IM_TYPE_NAME_COMPLEX "complex"	/* Pair of doubles */
-#define IM_TYPE_NAME_STRING "string"	/* Zero-terminated char array */
-#define IM_TYPE_NAME_IMASK "intmask"	/* Integer mask type */
-#define IM_TYPE_NAME_DMASK "doublemask"	/* Double mask type */
-#define IM_TYPE_NAME_IMAGE "image"	/* IMAGE descriptor */
-#define IM_TYPE_NAME_DISPLAY "display"	/* Display descriptor */
-#define IM_TYPE_NAME_GVALUE "gvalue"	/* GValue wrapper */
-#define IM_TYPE_NAME_ARRAY "array"	/* Array of other values of some type */
+typedef int (*VipsCallbackFn)( void *a, void *b );
 
-/* Handy type lookups.
+/* A ref-counted area of memory. Can hold arrays of things as well.
  */
-#define IM_TYPE_IM (im_type_lookup( IM_TYPE_NAME_IMAGE, NULL ))
-#define IM_TYPE_AR( OF ) (im_type_lookup( IM_TYPE_NAME_ARRAY, OF ))
+typedef struct _VipsArea {
+	void *data;
+	size_t length;		/* 0 if not known */
 
-/* A VIPS type. 
+	/* If this area represents an array, the number of elements in the
+	 * array. Equal to length / sizeof(element).
+	 */
+	int n;
+
+	/*< private >*/
+
+	/* Reference count.
+	 */
+	int count;
+
+	/* Things like ICC profiles need their own free functions.
+	 */
+	VipsCallbackFn free_fn;
+
+	/* If we are holding an array (for exmaple, an array of double), the
+	 * GType of the elements and their size. 0 for not known.
+	 *
+	 * n is always length / sizeof_type, we keep it as a member for
+	 * convenience.
+	 */
+	GType type;
+	size_t sizeof_type;
+} VipsArea;
+
+VipsArea *vips_area_copy( VipsArea *area );
+void vips_area_unref( VipsArea *area );
+
+VipsArea *vips_area_new( VipsCallbackFn free_fn, void *data );
+VipsArea *vips_area_new_blob( VipsCallbackFn free_fn, 
+	void *blob, size_t blob_length );
+VipsArea *vips_area_new_array( GType type, size_t sizeof_type, int n );
+VipsArea *vips_area_new_array_object( int n );
+
+/**
+ * VIPS_TYPE_AREA:
+ *
+ * The #GType for a #vips_area.
  */
-typedef struct im__type_t {
-	const char *name; 		/* Name of type, eg. "double" */
-	struct im__type_t *type_param;	/* What this is an array of */
-	size_t size;			/* sizeof( im_value_t ) repres. ) */
-} im_type_t;
+#define VIPS_TYPE_AREA (vips_area_get_type())
+int vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );
+void *vips_value_get_area( const GValue *value, size_t *length );
+GType vips_area_get_type( void );
 
-/* Pass (array of pointers to im_value_t) to operations as the argument list. 
- * Cast to the appropriate type for this argument, eg. (int *) or (IMAGE *).
+/**
+ * VIPS_TYPE_SAVE_STRING:
+ *
+ * The #GType for a "vips_save_string".
  */
-typedef void im_value_t;
+#define VIPS_TYPE_SAVE_STRING (vips_save_string_get_type())
+const char *vips_value_get_save_string( const GValue *value );
+void vips_value_set_save_string( GValue *value, const char *str );
+void vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
+	__attribute__((format(printf, 2, 3)));
+GType vips_save_string_get_type( void );
 
-/* Various im_value_t values.
+/**
+ * VIPS_TYPE_REF_STRING:
+ *
+ * The #GType for a #vips_refstring.
  */
-typedef struct {
-	char *name;			/* Command-line name in */
-	void *mask;			/* Mask --- DOUBLE or INT */
-} im_value_mask_t;
+#define VIPS_TYPE_REF_STRING (vips_ref_string_get_type())
+const char *vips_value_get_ref_string( const GValue *value, size_t *length );
+int vips_value_set_ref_string( GValue *value, const char *str );
+GType vips_ref_string_get_type( void );
 
-typedef struct {
-	int n;				/* Array length */
-	im_value_t **array;		/* Array */
-} im_value_array_t;
-
-/* Flags for arguments. 
- * operation,
+/**
+ * VIPS_TYPE_BLOB:
+ *
+ * The #GType for a #vips_blob.
  */
-typedef enum {
-	IM_ARGUMENT_NONE = 0,		/* No flags set */
-	IM_ARGUMENT_OUTPUT = 0x1	/* Is an output arg */
-} im_argument_flags;
+#define VIPS_TYPE_BLOB (vips_blob_get_type())
+void *vips_value_get_blob( const GValue *value, size_t *length );
+int vips_value_set_blob( GValue *value, 
+	VipsCallbackFn free_fn, void *data, size_t length );
+GType vips_blob_get_type( void );
 
-/* An argument to a VIPS operation.
- */
-typedef struct im__argument_t {
-	const char *name; 		/* Eg. "in2" */
-	im_type_t *type;		/* Argument type */
-	im_argument_flags flags;	/* Output/input etc. */
-} im_argument_t;
+int vips_value_set_array( GValue *value, 
+	GType type, size_t sizeof_type, int n );
+void *vips_value_get_array( const GValue *value, 
+	int *n, GType *type, size_t *sizeof_type );
 
-/* Flags for operations. Various hints for UIs about the behaviour of the
- * operation,
+/**
+ * VIPS_TYPE_ARRAY_DOUBLE:
+ *
+ * The #GType for a #vips_array_double.
  */
-typedef enum {
-	IM_OPERATION_NONE = 0,		/* No flags set */
-	IM_OPERATION_PIO = 0x1,		/* Is a partial function */
-	IM_OPERATION_TRANSFORM = 0x2,	/* Performs coord transformations */
-	IM_OPERATION_PTOP = 0x4,	/* Point-to-point ... can be LUTted */
-	IM_OPERATION_NOCACHE = 0x8	/* Result should not be cached */
-} im_operation_flags;
+#define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
+double *vips_value_get_array_double( const GValue *value, int *n );
+int vips_value_set_array_double( GValue *value, const double *array, int n );
+GType vips_array_double_get_type( void );
 
-/* Type of a VIPS dispatch funtion.
+/**
+ * VIPS_TYPE_ARRAY_IMAGE:
+ *
+ * The #GType for a #vips_array_image.
  */
-typedef int (*im_operation_dispatch_fn)( im_value_t **argv );
+#define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
+GObject **vips_value_get_array_object( const GValue *value, int *n );
+int vips_value_set_array_object( GValue *value, int n );
+GType vips_array_image_get_type( void );
 
-/* A VIPS operation.
- */
-typedef struct im__operation_t {
-	const char *name;		/* eg "im_invert" */
-	const char *desc;		/* One line description */
-	im_operation_flags flags;	/* Flags for this function */
-	im_operation_dispatch_fn disp;	/* Dispatch */
-	int argc;			/* Number of args */
-	im_argument_t **argv; 		/* Arg list */
-} im_operation_t;
-
-/* Register/iterate over types.
- */
-im_type_t *im_type_register( const char *name, 
-	im_type_t *type_param, size_t size ); 
-void *im_type_map( VSListMap2Fn fn, void *a, void *b );
-im_type_t *im_type_lookup( const char *name, im_type_t *type_param );
-
-/* Register/iterate/lookup operations.
- */
-im_operation_t *im_operation_register( const char *name, const char *desc, 
-	im_operation_flags flags, im_operation_dispatch_fn disp, int argc );
-im_operation_t *im_operation_registerv( const char *name, const char *desc,
-	im_operation_flags flags, im_operation_dispatch_fn disp, ... );
-void *im_operation_map( VSListMap2Fn fn, void *a, void *b );
-im_operation_t *im_operation_lookup( const char *name );
-
-/* Create arguments.
- */
-im_argument_t *im_argument_new( const char *name, 
-	im_type_t *type, im_argument_flags flags );
+void vips__meta_init_types( void );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_TYPE_H*/
+#endif /*VIPS_AREA_H*/

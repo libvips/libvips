@@ -926,7 +926,7 @@ vips__gvalue_ref_string_new( const char *text )
 	GValue *value;
 
 	value = vips__gvalue_new( VIPS_TYPE_REF_STRING );
-	vips_ref_string_set( value, text );
+	vips_value_set_ref_string( value, text );
 
 	return( value );
 }
@@ -985,8 +985,8 @@ vips__gslist_gvalue_merge( GSList *a, const GSList *b )
 			/* Just do a pointer compare ... good enough 99.9% of 
 			 * the time.
 			 */
-			if( vips_ref_string_get( value ) ==
-				vips_ref_string_get( value2 ) )
+			if( vips_value_get_ref_string( value, NULL ) ==
+				vips_value_get_ref_string( value2, NULL ) )
 				break;
 		}
 
@@ -1016,12 +1016,14 @@ vips__gslist_gvalue_get( const GSList *list )
 	length = 0;
 	for( p = list; p; p = p->next ) {
 		GValue *value = (GValue *) p->data;
+		size_t l2;
 
 		g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
 
 		/* +1 for the newline we will add for each item.
 		 */
-		length += vips_ref_string_get_length( value ) + 1;
+		(void) vips_value_get_ref_string( value, &l2 );
+		length += l2 + 1;
 	}
 
 	if( length == 0 )
@@ -1039,9 +1041,10 @@ vips__gslist_gvalue_get( const GSList *list )
 	q = all;
 	for( p = list; p; p = p->next ) {
 		GValue *value = (GValue *) p->data;
+		size_t l2;
 
-		strcpy( q, vips_ref_string_get( value ) );
-		q += vips_ref_string_get_length( value );
+		strcpy( q, vips_value_get_ref_string( value, &l2 ) );
+		q += l2;
 		strcpy( q, "\n" );
 		q += 1;
 	}

@@ -522,7 +522,7 @@ rebuild_header_meta( VipsImage *im, xmlNode *i )
 
 			content = (char *) xmlNodeGetContent( i );
 			g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
-			vips_save_string_set( &save_value, content );
+			vips_value_set_save_string( &save_value, content );
 			xmlFree( content );
 
 			g_value_init( &value, gtype );
@@ -682,7 +682,7 @@ save_fields_meta( VipsMeta *meta, xmlNode *node )
 			return( node );
 		}
 		if( set_field( node, meta->field, g_type_name( type ), 
-			vips_save_string_get( &save_value ) ) ) {
+			vips_value_get_save_string( &save_value ) ) ) {
 			g_value_unset( &save_value );
 			return( node );
 		}

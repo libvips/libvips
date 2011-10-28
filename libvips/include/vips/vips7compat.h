@@ -410,16 +410,16 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 #define im_updatehist vips_image_history_args
 #define im_history_get vips_image_get_history
 
-#define im_save_string_get vips_save_string_get
-#define im_save_string_set vips_save_string_set
-#define im_save_string_setf vips_save_string_setf
+#define im_save_string_get vips_value_get_save_string
+#define im_save_string_set vips_value_set_save_string
+#define im_save_string_setf vips_value_set_save_stringf
 
-#define im_ref_string_set vips_ref_string_set
-#define im_ref_string_get vips_ref_string_get
-#define im_ref_string_get_length vips_ref_string_get_length
+#define im_ref_string_set vips_value_set_ref_string
+#define im_ref_string_get( V ) vips_value_get_ref_string( V, NULL )
+size_t im_ref_string_get_length( const GValue *value );
 
-#define im_blob_get vips_blob_get
-#define im_blob_set vips_blob_set
+#define im_blob_get vips_value_get_blob
+#define im_blob_set vips_value_set_blob
 
 #define im_meta_set( A, B, C ) (vips_image_set( A, B, C ), 0)
 #define im_meta_remove vips_image_remove
@@ -559,6 +559,7 @@ int im_extract_areabands( VipsImage *in, VipsImage *out,
 int im_replicate( VipsImage *in, VipsImage *out, int across, int down );
 
 int im_clip2fmt( VipsImage *in, VipsImage *out, VipsBandFormat fmt );
+
 
 /* ruby-vips uses this
  */
