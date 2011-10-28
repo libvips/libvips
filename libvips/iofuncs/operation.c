@@ -568,11 +568,6 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 	if( !(operation = vips_operation_new( operation_name ) ) )
 		return( -1 );
 
-#ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "where:\n" );
-	vips_object_print( VIPS_OBJECT( operation ) );
-#endif /*VIPS_DEBUG*/
-
 	va_start( required, optional );
 	result = vips_call_required_optional( &operation, required, optional );
 	va_end( required );
@@ -675,6 +670,24 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 			VIPS_OBJECT( operation ),
 			g_param_spec_get_name( pspec ), value ) )
 			return( FALSE );
+
+#ifdef VIPS_DEBUG
+{
+		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+		GValue gvalue = { 0, };
+		char *str;
+
+		g_value_init( &gvalue, type );
+		g_object_get_property( G_OBJECT( operation ), 
+			g_param_spec_get_name( pspec ), &gvalue ); 
+		str = g_strdup_value_contents( &gvalue );
+		VIPS_DEBUG_MSG( "\tGValue %s = %s\n", 
+			g_param_spec_get_name( pspec ), str );
+		g_free( str );
+
+		g_object_unref( &gvalue );
+}
+#endif /*VIPS_DEBUG*/
 	}
 	else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
 		VipsCallOptionOutput *output;

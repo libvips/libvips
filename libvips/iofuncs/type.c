@@ -667,37 +667,20 @@ vips_value_set_array_double( GValue *value, const double *array, int n )
 }
 
 static void
-transform_array_g_string( const GValue *src_value, GValue *dest_value )
+transform_array_double_g_string( const GValue *src_value, GValue *dest_value )
 {
-	char *array;
 	int n;
-	GType type;
-	size_t sizeof_type;
+	double *array = vips_value_get_array_double( src_value, &n );
+
 	char txt[1024];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int i;
 
-	array = (char *) vips_value_get_array( src_value, 
-		&n, &type, &sizeof_type );
-
-	for( i = 0; i < n; i++ ) {
-		GValue value = { 0, };
-		char *str;
-
-		if( i > 0 )
-			vips_buf_appends( &buf, ", " );
-
-		g_value_init( &value, type );
-		g_value_set_instance( &value, array );
-
-		str = g_strdup_value_contents( &value );
-		vips_buf_appends( &buf, str );
-		g_free( str );
-
-		g_value_unset( &value );
-
-		array += sizeof_type;
-	}
+	for( i = 0; i < n; i++ ) 
+		/* Use space as a separator since ',' may be a decimal point
+		 * in this locale.
+		 */
+		vips_buf_appends( &buf, "%g ", array[i] );
 
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
@@ -747,7 +730,7 @@ vips_array_double_get_type( void )
 			(GBoxedCopyFunc) vips_area_copy, 
 			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
-			transform_array_g_string );
+			transform_array_double_g_string );
 		g_value_register_transform_func( G_TYPE_STRING, type,
 			transform_g_string_array_double );
 	}

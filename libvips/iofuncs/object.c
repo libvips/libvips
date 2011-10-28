@@ -1315,7 +1315,7 @@ vips_object_print_arg( VipsObject *object, GParamSpec *pspec, VipsBuf *buf )
 {
 	GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
 	const char *name = g_param_spec_get_name( pspec );
-	GValue value = { 0 };
+	GValue value = { 0, };
 	char *str_value;
 
 	g_value_init( &value, type );

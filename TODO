@@ -1,12 +1,5 @@
 
 
-- does transform_array_g_string() work? it seems to use 
-  g_value_set_instance() incorrectly
-
-  try printing an array of double
-
-
-
 
 - vips_image_new_array() needs to go ... replcae with vips_object_array()
 
