@@ -117,16 +117,17 @@ extern GMutex *vips__global_lock;
 
 
 int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
-int vips__formatalike( VipsImage *in1, VipsImage *in2, 
-	VipsImage *out1, VipsImage *out2 );
 int vips__sizealike_vec( VipsImage **in, VipsImage **out, int n );
-int vips__sizealike( VipsImage *in1, VipsImage *in2, 
-	VipsImage *out1, VipsImage *out2 );
-int vips__bandup( const char *domain, VipsImage *in, VipsImage *out, int n );
+int vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n );
 int vips__bandalike_vec( const char *domain, 
 	VipsImage **in, VipsImage **out, int n );
+
+int vips__formatalike( VipsImage *in1, VipsImage *in2, 
+	VipsImage **out1, VipsImage **out2 );
+int vips__sizealike( VipsImage *in1, VipsImage *in2, 
+	VipsImage **out1, VipsImage **out2 );
 int vips__bandalike( const char *domain, 
-	VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
+	VipsImage *in1, VipsImage *in2, VipsImage **out1, VipsImage **out2 );
 
 
 

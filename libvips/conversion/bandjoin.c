@@ -107,101 +107,6 @@ typedef VipsConversionClass VipsBandjoinClass;
 
 G_DEFINE_TYPE( VipsBandjoin, vips_bandjoin, VIPS_TYPE_CONVERSION );
 
-/* Save a bit of typing.
- */
-#define UC VIPS_FORMAT_UCHAR
-#define C VIPS_FORMAT_CHAR
-#define US VIPS_FORMAT_USHORT
-#define S VIPS_FORMAT_SHORT
-#define UI VIPS_FORMAT_UINT
-#define I VIPS_FORMAT_INT
-#define F VIPS_FORMAT_FLOAT
-#define X VIPS_FORMAT_COMPLEX
-#define D VIPS_FORMAT_DOUBLE
-#define DX VIPS_FORMAT_DPCOMPLEX
-
-/* For two integer types, the "largest", ie. one which can represent the
- * full range of both.
- */
-static VipsBandFormat format_largest[6][6] = {
-        /* UC  C   US  S   UI  I */
-/* UC */ { UC, S,  US, S,  UI, I },
-/* C */  { S,  C,  I,  S,  I,  I },
-/* US */ { US, I,  US, I,  UI, I },
-/* S */  { S,  S,  I,  S,  I,  I },
-/* UI */ { UI, I,  UI, I,  UI, I },
-/* I */  { I,  I,  I,  I,  I,  I }
-};
-
-/* For two formats, find one which can represent the full range of both.
- */
-static VipsBandFormat
-vips_format_common( VipsBandFormat a, VipsBandFormat b )
-{
-	if( vips_band_format_iscomplex( a ) || 
-		vips_band_format_iscomplex( b ) ) {
-		if( a == VIPS_FORMAT_DPCOMPLEX || 
-			b == VIPS_FORMAT_DPCOMPLEX )
-			return( VIPS_FORMAT_DPCOMPLEX );
-		else
-			return( VIPS_FORMAT_COMPLEX );
-
-	}
-	else if( vips_band_format_isfloat( a ) || 
-		vips_band_format_isfloat( b ) ) {
-		if( a == VIPS_FORMAT_DOUBLE || 
-			b == VIPS_FORMAT_DOUBLE )
-			return( VIPS_FORMAT_DOUBLE );
-		else
-			return( VIPS_FORMAT_FLOAT );
-	}
-	else 
-		return( format_largest[a][b] );
-}
-
-static int
-vips_formatalike( VipsImage **in, VipsImage **out, int n )
-{
-	int i;
-	VipsBandFormat format;
-
-	g_assert( n >= 1 );
-
-	format = in[0]->BandFmt;
-	for( i = 1; i < n; i++ )
-		format = vips_format_common( format, in[i]->BandFmt );
-
-	for( i = 0; i < n; i++ )
-		if( vips_cast( in[i], &out[i], format, NULL ) )
-			return( -1 );
-
-	return( 0 );
-}
-
-int
-vips_sizealike( VipsImage **in, VipsImage **out, int n )
-{
-	int i;
-	int width_max;
-	int height_max;
-
-	g_assert( n >= 1 );
-
-	width_max = in[0]->Xsize;
-	height_max = in[0]->Ysize;
-	for( i = 1; i < n; i++ ) {
-		width_max = VIPS_MAX( width_max, in[i]->Xsize );
-		height_max = VIPS_MAX( height_max, in[i]->Ysize );
-	}
-
-	for( i = 0; i < n; i++ )
-		if( vips_embed( in[i], &out[i], 
-			0, 0, width_max, height_max, NULL ) )
-			return( -1 );
-
-	return( 0 );
-}
-
 static int
 vips_bandjoin_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 {
@@ -282,8 +187,8 @@ vips_bandjoin_build( VipsObject *object )
 
 	format = (VipsImage **) vips_object_local_array( object, n );
 	size = (VipsImage **) vips_object_local_array( object, n );
-	if( vips_formatalike( in, format, n ) ||
-		vips_sizealike( format, size, n ) )
+	if( vips__formatalike_vec( in, format, n ) ||
+		vips__sizealike_vec( format, size, n ) )
 		return( -1 );
 	in = size;
 

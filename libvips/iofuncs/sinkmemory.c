@@ -91,9 +91,29 @@ sink_work( VipsThreadState *state, void *a )
 {
 	Sink *sink = (Sink *) a;
 
+	VIPS_DEBUG_MSG( "sink_work: %p "
+		"left = %d, top = %d, width = %d, height = %d\n", 
+		sink,
+		state->pos.left, 
+		state->pos.top, 
+		state->pos.width, 
+		state->pos.height ); 
+
 	if( vips_region_prepare_to( state->reg, sink->all, 
 		&state->pos, state->pos.left, state->pos.top ) )
 		return( -1 );
+
+#ifdef VIPS_DEBUG
+{
+	PEL *p = (PEL *) VIPS_REGION_ADDR( state->reg, 
+		state->pos.left, state->pos.top );
+	int i;
+
+	VIPS_DEBUG_MSG( "sink_work: %p\n", sink );
+	for( i = 0; i < VIPS_IMAGE_SIZEOF_PEL( state->reg->im ); i++ )
+		printf( "\t%d) %02x\n", i, p[i] );
+}
+#endif /*VIPS_DEBUG*/
 
 	return( 0 );
 }
@@ -110,31 +130,33 @@ sink_work( VipsThreadState *state, void *a )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_sink_memory( VipsImage *im ) 
+vips_sink_memory( VipsImage *image ) 
 {
 	Sink sink;
 	int result;
 
-	g_assert( vips_object_sanity( VIPS_OBJECT( im ) ) );
+	VIPS_DEBUG_MSG( "vips_sink_memory: %p\n", image ); 
+
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 	/* We don't use this, but make sure it's set in case any old binaries
 	 * are expecting it.
 	 */
-	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
+	image->Bbits = vips_format_sizeof( image->BandFmt ) << 3;
  
-	if( sink_init( &sink, im ) )
+	if( sink_init( &sink, image ) )
 		return( -1 );
 
-	vips_image_preeval( im );
+	vips_image_preeval( image );
 
-	result = vips_threadpool_run( im, 
+	result = vips_threadpool_run( image, 
 		vips_thread_state_new,
 		vips_sink_base_allocate, 
 		sink_work, 
 		vips_sink_base_progress, 
 		&sink );
 
-	vips_image_posteval( im );
+	vips_image_posteval( image );
 
 	sink_free( &sink );
 

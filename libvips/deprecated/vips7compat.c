@@ -81,7 +81,7 @@ im_open_local( VipsImage *parent,
 	return( image );
 }
 
-/* Just for compatibility. New code should use vips_image_new_array().
+/* Just for compatibility. New code should use vips_object_local_array().
  */
 int
 im_open_local_array( VipsImage *parent, 

@@ -463,7 +463,6 @@ gboolean vips_image_get_kill( VipsImage *image );
 void vips_image_set_kill( VipsImage *image, gboolean kill );
 
 VipsImage *vips_image_new( void );
-int vips_image_new_array( VipsObject *parent, VipsImage **images, int n );
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 VipsImage *vips_image_new_from_file( const char *filename );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 

@@ -251,6 +251,8 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	double *zeros;
 	int i;
 
+	printf( "vips__vector_to_ink: starting\n" );
+
 	if( vips_check_vector( domain, n, im ) )
 		return( NULL );
 	if( im_open_local_array( im, t, 3, "vtoi", "t" ) ||
@@ -264,6 +266,10 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 		im_clip2fmt( t[1], t[2], im->BandFmt ) )
 		return( NULL );
 
+	printf( "vips__vector_to_ink: ink = %p (%d %d %d)\n",
+		t[2]->data, 
+		t[2]->data[0], t[2]->data[1], t[2]->data[2] );
+
 	return( (PEL *) t[2]->data );
 }
 
@@ -272,8 +278,8 @@ vips_insert_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsInsert *insert = (VipsInsert *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
 
-	VipsImage *t[4];
 	VipsImage **arry;
 
 	if( VIPS_OBJECT_CLASS( vips_insert_parent_class )->build( object ) )
@@ -289,13 +295,10 @@ vips_insert_build( VipsObject *object )
 			insert->main, insert->sub ) )
 		return( -1 );
 
-	if( vips_image_new_array( object, t, 4 ) )
-		return( -1 );
-
 	/* Cast our input images up to a common format and bands.
 	 */
-	if( vips__formatalike( insert->main, insert->sub, t[0], t[1] ) ||
-		vips__bandalike( "VipsInsert", t[0], t[1], t[2], t[3] ) )
+	if( vips__formatalike( insert->main, insert->sub, &t[0], &t[1] ) ||
+		vips__bandalike( "VipsInsert", t[0], t[1], &t[2], &t[3] ) )
 		return( -1 );
 	insert->main_processed = t[2];
 	insert->sub_processed = t[3];

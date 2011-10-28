@@ -1394,47 +1394,6 @@ vips_image_new( void )
 	return( image ); 
 }
 
-/** 
- * vips_image_new_array:
- * @parent: images unref when this object unrefs
- * @OUT: array to fill with #VipsImage *
- * @N: array size
- *
- * Just like vips_image_new(), but opens an array of "p" images. 
- * Handy for creating a 
- * set of temporary images for a function.
- *
- * Example:
- *
- * |[
- * VipsImage *t[5];
- *
- * if( vips_image_new_array( out, t, 5 ) ||
- *   vips_add( a, b, t[0] ) ||
- *   vips_invert( t[0], t[1] ) ||
- *   vips_add( t[1], t[0], t[2] ) ||
- *   vips_costra( t[2], out ) )
- *   return( -1 );
- * ]|
- *
- * See also: vips_image_new(), vips_object_local().
- *
- * Returns: 0 on sucess, or -1 on error
- */
-int
-vips_image_new_array( VipsObject *parent, VipsImage **images, int n )
-{
-	int i;
-
-	for( i = 0; i < n; i++ ) {
-		if( !(images[i] = vips_image_new()) ) 
-			return( -1 );
-		vips_object_local( parent, images[i] );
-	}
-
-	return( 0 );
-}
-
 /**
  * vips_image_new_mode:
  * @filename: file to open

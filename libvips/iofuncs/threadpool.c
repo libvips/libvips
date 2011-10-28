@@ -588,7 +588,7 @@ vips_thread_new( VipsThreadpool *pool )
 	thr->btime = VIPS_ARRAY( pool->im, TBUF_SIZE, double );
 	thr->etime = VIPS_ARRAY( pool->im, TBUF_SIZE, double );
 	if( !thr->btime || !thr->etime ) {
-		thread_free( thr );
+		vips_thread_free( thr );
 		return( NULL );
 	}
 #endif /*TIME_THREAD*/

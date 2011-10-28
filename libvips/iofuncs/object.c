@@ -1788,7 +1788,34 @@ vips_object_local_array_cb( GObject *parent, VipsObjectLocal *local )
 	g_free( local );
 }
 
-/* Make an array of VipsObject refs which will be unreffed when parent closes.
+/** 
+ * vips_object_local_array:
+ * @parent: objects unref when this object unrefs
+ * @n: array size
+ *
+ * Make an array of NULL VipsObject pointers. When @parent closes, every
+ * non-NULL pointer in the array will be unreffed and the arraqy will be
+ * freed.
+ * Handy for creating a 
+ * set of temporary images for a function.
+ *
+ * Example:
+ *
+ * |[
+ * VipsObject **t;
+ *
+ * t = vips_object_local_array( out, 5 );
+ * if( 
+ *   vips_add( a, b, &t[0], NULL ) ||
+ *   vips_invert( t[0], &t[1], NULL ) ||
+ *   vips_add( t[1], t[0], &t[2], NULL ) ||
+ *   vips_costra( t[2], out, NULL ) )
+ *   return( -1 );
+ * ]|
+ *
+ * See also: vips_object_local().
+ *
+ * Returns: an array of NULL pointers of length @n
  */
 VipsObject **
 vips_object_local_array( VipsObject *parent, int n )

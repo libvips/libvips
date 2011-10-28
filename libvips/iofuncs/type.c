@@ -680,7 +680,7 @@ transform_array_double_g_string( const GValue *src_value, GValue *dest_value )
 		/* Use space as a separator since ',' may be a decimal point
 		 * in this locale.
 		 */
-		vips_buf_appends( &buf, "%g ", array[i] );
+		vips_buf_appendf( &buf, "%g ", array[i] );
 
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
