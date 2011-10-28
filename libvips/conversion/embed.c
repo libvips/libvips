@@ -451,12 +451,11 @@ vips_embed_build( VipsObject *object )
 	case VIPS_EXTEND_COPY:
 		if( vips_image_copy_fields( conversion->out, embed->in ) )
 			return( -1 );
+		vips_demand_hint( conversion->out, 
+			VIPS_DEMAND_STYLE_SMALLTILE, embed->in, NULL );
 
 		conversion->out->Xsize = embed->width;
 		conversion->out->Ysize = embed->height;
-
-		vips_demand_hint( conversion->out, 
-			VIPS_DEMAND_STYLE_SMALLTILE, embed->in, NULL );
 
 		/* Whole output area.
 		 */

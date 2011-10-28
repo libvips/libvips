@@ -257,9 +257,9 @@ vips_bandjoin_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsBandjoin *bandjoin = (VipsBandjoin *) object;
-	int n = bandjoin->in->n;
 
 	VipsImage **in;
+	int n;
 	int i;
 	VipsImage **format;
 	VipsImage **size;
@@ -268,6 +268,7 @@ vips_bandjoin_build( VipsObject *object )
 		return( -1 );
 
 	in = bandjoin->in->data;
+	n = bandjoin->in->n;
 	if( n == 1 )
 		return( vips_image_write( in[0], conversion->out ) );
 
@@ -286,8 +287,18 @@ vips_bandjoin_build( VipsObject *object )
 		return( -1 );
 	in = size;
 
+	bandjoin->is = VIPS_ARRAY( object, n, int );
 	for( i = 0; i < n; i++ ) 
 		bandjoin->is[i] = VIPS_IMAGE_SIZEOF_PEL( in[i] );
+
+	if( vips_image_copy_fields_array( conversion->out, in ) )
+		return( -1 );
+        vips_demand_hint_array( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in );
+
+	conversion->out->Bands = 0;
+	for( i = 0; i < n; i++ ) 
+		conversion->out->Bands += in[i]->Bands;
 
 	if( vips_image_generate( conversion->out,
 		vips_start_many, vips_bandjoin_gen, vips_stop_many, 
@@ -345,6 +356,30 @@ vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	}
 
 	va_start( ap, n );
+	result = vips_call_split( "bandjoin", ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
+
+	return( result );
+}
+
+int
+vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	VipsImage **array; 
+	int result;
+
+	area = vips_area_new_array_object( 2 );
+	array = (VipsImage **) area->data;
+	array[0] = in1;
+	array[1] = in2;
+	g_object_ref( array[0] );
+	g_object_ref( array[1] );
+
+	va_start( ap, out );
 	result = vips_call_split( "bandjoin", ap, area, out );
 	va_end( ap );
 

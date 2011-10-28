@@ -97,7 +97,7 @@ vips_area_unref( VipsArea *area )
 
 	if( area->count == 0 ) {
 		if( area->free_fn && area->data ) {
-			area->free_fn( area->data, NULL );
+			area->free_fn( area->data, area );
 			area->data = NULL;
 			area->free_fn = NULL;
 		}
@@ -171,16 +171,14 @@ vips_area_new_array( GType type, size_t sizeof_type, int n )
 }
 
 static void
-vips_area_free_array_object( VipsArea *area )
+vips_area_free_array_object( GObject **array, VipsArea *area )
 {
-	GObject **array = (GObject **) area->data;
-
 	int i;
 
-	for( i = 0; i < area->n; i++ )
+	for( i = 0; i < area->n; i++ ) 
 		VIPS_FREEF( g_object_unref, array[i] );
 
-	g_free( area );
+	area->n = 0;
 }
 
 /* An area which holds an array of GObjects.
@@ -251,7 +249,7 @@ vips_area_get_type( void )
 	static GType type = 0;
 
 	if( !type ) {
-		type = g_boxed_type_register_static( "vips_area",
+		type = g_boxed_type_register_static( "VipsArea",
 			(GBoxedCopyFunc) vips_area_copy, 
 			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
@@ -359,7 +357,7 @@ vips_save_string_get_type( void )
 	static GType type = 0;
 
 	if( !type ) {
-		type = g_boxed_type_register_static( "vips_save_string",
+		type = g_boxed_type_register_static( "VipsSaveString",
 			(GBoxedCopyFunc) g_strdup, 
 			(GBoxedFreeFunc) g_free );
 	}
@@ -454,7 +452,7 @@ vips_ref_string_get_type( void )
 	static GType type = 0;
 
 	if( !type ) {
-		type = g_boxed_type_register_static( "vips_ref_string",
+		type = g_boxed_type_register_static( "VipsRefString",
 			(GBoxedCopyFunc) vips_area_copy, 
 			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
@@ -575,7 +573,7 @@ vips_blob_get_type( void )
 	static GType type = 0;
 
 	if( !type ) {
-		type = g_boxed_type_register_static( "vips_blob",
+		type = g_boxed_type_register_static( "VipsBlob",
 			(GBoxedCopyFunc) vips_area_copy, 
 			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
@@ -710,32 +708,33 @@ transform_array_g_string( const GValue *src_value, GValue *dest_value )
 static void
 transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 {
-	const char *str = g_value_get_string( src_value );
-
+	char *str;
 	int n;
-	const char *p;
+	char *p, *q;
 	int i;
 	double *array;
 
-	/* Walk the string to get the number of elements. Empty string is zero
-	 * elements.
+	/* Walk the string to get the number of elements. 
+	 * We need a copy of the string, since we insert \0 during
+	 * scan.
+	 *
+	 * We can't allow ',' as a separator, since some locales use it as a
+	 * decimal point.
 	 */
-	for( n = 0, p = str; p && *p; n += 1 ) {
-		p = strchr( p, ',' );
-		if( p )
-			p += 1;
-	}
+	str = g_value_dup_string( src_value );
+	n = 0;
+	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
+		n += 1;
+	g_free( str );
 
 	vips_value_set_array( dest_value, G_TYPE_DOUBLE, sizeof( double ), n );
 	array = (double *) vips_value_get_array( dest_value, NULL, NULL, NULL );
 
-	p = str;
-	for( i = 0; i < n; i++ ) {
-		array[i] = atof( p );
-		p = strchr( p, ',' );
-		if( p )
-			p += 1;
-	}
+	str = g_value_dup_string( src_value );
+	i = 0;
+	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
+		array[i++] = atof( p );
+	g_free( str );
 }
 
 GType
@@ -744,7 +743,7 @@ vips_array_double_get_type( void )
 	static GType type = 0;
 
 	if( !type ) {
-		type = g_boxed_type_register_static( "vips_array_double",
+		type = g_boxed_type_register_static( "VipsArrayDouble",
 			(GBoxedCopyFunc) vips_area_copy, 
 			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( type, G_TYPE_STRING,
@@ -810,16 +809,17 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 	/* We need a copy of the string, since we insert \0 during
 	 * scan.
 	 */
-	str = g_strdup_value_contents( src_value );
-	for( n = 0; (q = vips_break_token( p, " " )); n++, p = q )
-		;
+	str = g_value_dup_string( src_value );
+	n = 0;
+	for( p = str; (q = vips_break_token( p, " " )); p = q ) 
+		n += 1;
 	g_free( str );
 
 	vips_value_set_array_object( dest_value, n );
 	array = vips_value_get_array_object( dest_value, NULL );
 
-	str = g_strdup_value_contents( src_value );
-	for( i = 0; (q = vips_break_token( p, " " )); i++, p = q )
+	str = g_value_dup_string( src_value );
+	for( i = 0, p = str; (q = vips_break_token( p, " " )); i++, p = q )
 		/* Sadly there's no error return possible here.
 		 */
 		array[i] = G_OBJECT( vips_image_new_from_file( p ) );
@@ -832,7 +832,7 @@ vips_array_image_get_type( void )
 	static GType type = 0;
 
 	if( !type ) {
-		type = g_boxed_type_register_static( "vips_array_image",
+		type = g_boxed_type_register_static( "VipsArrayImage",
 			(GBoxedCopyFunc) vips_area_copy, 
 			(GBoxedFreeFunc) vips_area_unref );
 		g_value_register_transform_func( G_TYPE_STRING, type,

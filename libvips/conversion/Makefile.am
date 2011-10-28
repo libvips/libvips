@@ -20,7 +20,6 @@ libconversion_la_SOURCES = \
 	im_c2real.c \
 	im_copy_file.c \
 	im_falsecolour.c \
-	im_gbandjoin.c \
 	im_mask2vips.c \
 	im_msb.c \
 	im_grid.c \

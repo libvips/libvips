@@ -1,11 +1,3 @@
-- started factoring VipsArea out into area.[hc]
-
-
-
-- bandjoin needs testing
-
-  see vips_bandjoin() .. ugly!
-
 
 
 - does transform_array_g_string() work? it seems to use 

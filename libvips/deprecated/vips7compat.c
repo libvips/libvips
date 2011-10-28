@@ -1292,3 +1292,38 @@ im_ref_string_get_length( const GValue *value )
 
 	return( length );
 }
+
+int 
+im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out )
+{
+	VipsImage *t;
+
+	if( vips_bandjoin2( in1, in2, &t, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_gbandjoin( VipsImage **in, VipsImage *out, int n )
+{
+	VipsImage *t;
+
+	if( vips_bandjoin( in, &t, n,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+

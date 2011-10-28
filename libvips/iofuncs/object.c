@@ -1814,6 +1814,7 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 	printf( "%d) ", *n );
 	vips_object_print_name( object );
 	printf( "\n" );
+	vips_object_print( object );
 
 	*n += 1;
 

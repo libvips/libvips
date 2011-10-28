@@ -3,7 +3,7 @@
 - im_subtract(), im_avg(), im_min(), im_minpos(), im_copy(), im_embed(),
   im_flophor(), im_flipver(), im_insert(), im_insert_noexpand(), im_lrjoin(),
   im_tbjoin(), im_extract_area(), im_extract_bands(), im_extract_areabands(),
-  im_replicate(), im_clip2fmt()
+  im_replicate(), im_clip2fmt(), im_gbandjoin(), im_bandjoin()
   redone as classes
 - added argument priorites to help control arg ordering
 - generate has a 'stop' param to signal successful early termination
