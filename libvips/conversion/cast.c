@@ -343,8 +343,6 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	int sz = VIPS_REGION_N_ELEMENTS( or );
 	int x, y;
 
-	printf( "vips_cast_gen: %p\n", cast );
-
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
@@ -445,8 +443,6 @@ vips_cast_build( VipsObject *object )
 	if( cast->in->BandFmt == cast->format ) 
 		return( vips_image_write( cast->in, conversion->out ) );
 
-	printf( "vips_cast_build: %p\n", object );
-
 	if( vips_check_uncoded( "VipsCast", cast->in ) ||
 		vips_image_pio_input( cast->in ) || 
 		vips_image_pio_output( conversion->out ) )
@@ -468,8 +464,6 @@ vips_cast_build( VipsObject *object )
 		vips_cast_start, vips_cast_gen, vips_cast_stop, 
 		cast->in, cast ) )
 		return( -1 );
-
-	printf( "vips_cast_build: %p done\n", object );
 
 	return( 0 );
 }

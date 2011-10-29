@@ -24,6 +24,7 @@ vips__vector_to_ink: ink = 0x177d660 (0 0 0)
 
   vips__vector_to_ink() breakage something to do with the new bandjoin thing?
 
+  strange, seems to work on laptop, try again on desktop
 
 
 

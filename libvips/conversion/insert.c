@@ -251,8 +251,6 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	double *zeros;
 	int i;
 
-	printf( "vips__vector_to_ink: starting\n" );
-
 	if( vips_check_vector( domain, n, im ) )
 		return( NULL );
 	if( im_open_local_array( im, t, 3, "vtoi", "t" ) ||
@@ -266,9 +264,11 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 		im_clip2fmt( t[1], t[2], im->BandFmt ) )
 		return( NULL );
 
+#ifdef VIPS_DEBUG
 	printf( "vips__vector_to_ink: ink = %p (%d %d %d)\n",
 		t[2]->data, 
 		t[2]->data[0], t[2]->data[1], t[2]->data[2] );
+#endif /*VIPS_DEBUG*/
 
 	return( (PEL *) t[2]->data );
 }
