@@ -389,14 +389,14 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	/* Just for testing.
 	 */
 
-	VIPS_ARG_BOOL( class, "booltest", 1, 
+	VIPS_ARG_BOOL( class, "booltest", 101, 
 		_( "Bool test" ), 
 		_( "Test optional boolean argument" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsArithmetic, booltest ),
 		FALSE );
 
-	VIPS_ARG_IMAGE( class, "imtest", 2, 
+	VIPS_ARG_IMAGE( class, "imtest", 102, 
 		_( "Image test" ), 
 		_( "Test optional image argument" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
@@ -495,11 +495,13 @@ void
 vips_arithmetic_operation_init( void )
 {
 	extern GType vips_add_get_type( void ); 
+	extern GType vips_invert_get_type( void ); 
 	extern GType vips_subtract_get_type( void ); 
 	extern GType vips_avg_get_type( void ); 
 	extern GType vips_min_get_type( void ); 
 
 	vips_add_get_type();
+	vips_invert_get_type();
 	vips_subtract_get_type();
 	vips_avg_get_type();
 	vips_min_get_type();

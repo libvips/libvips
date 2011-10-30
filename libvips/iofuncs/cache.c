@@ -578,8 +578,11 @@ vips_cache_operation_build( VipsOperation **operation )
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		VIPS_DEBUG_MSG( "\thit %p\n", hit );
 
-		g_object_unref( *operation );
+		/* Ref before unref in case *operation == hit.
+		 */
 		vips_cache_ref( hit );
+		g_object_unref( *operation );
+
 		*operation = hit;
 	}
 	else {

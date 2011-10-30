@@ -1,8 +1,11 @@
 
+- invert is useless. make it work for all types at least
+
+
+
+
 - lintra_vec next
 
-  so we need a unary.c .. easy copy frombinary.c now that most of binary has
-  moved into arithmetic
 
 
 

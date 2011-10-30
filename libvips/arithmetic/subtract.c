@@ -175,7 +175,8 @@ G_DEFINE_TYPE( VipsSubtract, vips_subtract, VIPS_TYPE_BINARY );
 }
 
 static void
-subtract_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+vips_subtract_buffer( VipsArithmetic *arithmetic, 
+	PEL *out, PEL **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
 
@@ -227,7 +228,7 @@ subtract_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 #define DX VIPS_FORMAT_DPCOMPLEX
 
 /* Type promotion for subtraction. Sign and value preserving. Make sure these
- * match the case statement in subtract_buffer() above.
+ * match the case statement in vips_subtract_buffer() above.
  */
 static const VipsBandFormat bandfmt_subtract[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
@@ -245,7 +246,7 @@ vips_subtract_class_init( VipsSubtractClass *class )
 
 	vips_arithmetic_set_format_table( aclass, bandfmt_subtract );
 
-	aclass->process_line = subtract_buffer;
+	aclass->process_line = vips_subtract_buffer;
 }
 
 static void
