@@ -55,18 +55,30 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 		VIPS_TYPE_ARITHMETIC, VipsArithmeticClass ))
 
+struct _VipsArithmetic;
+typedef void (*VipsArithmeticProcessFn)( struct _VipsArithmetic *arithmetic, 
+	PEL *out, PEL **in, int width );
+
 typedef struct _VipsArithmetic {
 	VipsOperation parent_instance;
 
 	/* All have an output image.
 	 */
-	VipsImage *output;
+	VipsImage *out;
 
 	/* Optional bool argument for testing.
 	 */
 	gboolean booltest;
 	VipsImage *imtest;
 
+	/* Array of input arguments, set these from a subclass.
+	 */
+	VipsImage **in;
+	int n;
+
+	/* The input images, ready for the operation.
+	 */
+	VipsImage **ready;
 } VipsArithmetic;
 
 typedef struct _VipsArithmeticClass {
@@ -84,6 +96,10 @@ typedef struct _VipsArithmeticClass {
 	/* ... and if we've set a program for this format.
 	 */
 	gboolean vector_program[VIPS_FORMAT_LAST];
+
+	/* The buffer processor.
+	 */
+	VipsArithmeticProcessFn process_line;
 } VipsArithmeticClass;
 
 GType vips_arithmetic_get_type( void );

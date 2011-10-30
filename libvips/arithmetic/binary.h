@@ -46,10 +46,6 @@ extern "C" {
 #define VIPS_BINARY_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), VIPS_TYPE_BINARY, VipsBinaryClass ))
 
-struct _VipsBinary;
-typedef void (*VipsBinaryProcessFn)( struct _VipsBinary *binary, 
-	PEL *out, PEL *left, PEL *right, int width );
-
 typedef struct _VipsBinary {
 	VipsArithmetic parent_instance;
 
@@ -58,29 +54,9 @@ typedef struct _VipsBinary {
 	VipsImage *left;
 	VipsImage *right;
 
-	/* Some intermediates.
-	 */
-	VipsImage *t[5];
-
-	/* Processed images ready for the line function.
-	 */
-	VipsImage *left_processed;
-	VipsImage *right_processed;
-
-	/* Some client data for the line processor, if it wants it.
-	 */
-	void *a;
-	void *b;
 } VipsBinary;
 
-typedef struct _VipsBinaryClass {
-	VipsArithmeticClass parent_class;
-
-	/* The line processor.
-	 */
-	VipsBinaryProcessFn process_line;
-
-} VipsBinaryClass;
+typedef VipsArithmeticClass VipsBinaryClass;
 
 GType vips_binary_get_type( void );
 

@@ -166,19 +166,18 @@ typedef VipsBinaryClass VipsSubtractClass;
 G_DEFINE_TYPE( VipsSubtract, vips_subtract, VIPS_TYPE_BINARY );
 
 #define LOOP( IN, OUT ) { \
-	IN *p1 = (IN *) left; \
-	IN *p2 = (IN *) right; \
+	IN *left = (IN *) in[0]; \
+	IN *right = (IN *) in[1]; \
 	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = p1[x] - p2[x]; \
+		q[x] = left[x] - right[x]; \
 }
 
 static void
-subtract_buffer( VipsBinary *binary, 
-	PEL *out, PEL *left, PEL *right, int width )
+subtract_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 {
-	VipsImage *im = binary->left_processed;
+	VipsImage *im = arithmetic->ready[0];
 
 	/* Complex just doubles the size.
 	 */
@@ -240,14 +239,13 @@ vips_subtract_class_init( VipsSubtractClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
-	VipsBinaryClass *bclass = VIPS_BINARY_CLASS( class );
 
 	object_class->nickname = "subtract";
 	object_class->description = _( "subtract two images" );
 
 	vips_arithmetic_set_format_table( aclass, bandfmt_subtract );
 
-	bclass->process_line = subtract_buffer;
+	aclass->process_line = subtract_buffer;
 }
 
 static void
@@ -256,13 +254,13 @@ vips_subtract_init( VipsSubtract *subtract )
 }
 
 int
-vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
+vips_subtract( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "subtract", ap, in1, in2, out );
+	result = vips_call_split( "subtract", ap, left, right, out );
 	va_end( ap );
 
 	return( result );

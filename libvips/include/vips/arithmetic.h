@@ -37,7 +37,7 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int vips_add( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
+int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));

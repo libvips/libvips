@@ -1,4 +1,14 @@
 
+- lintra_vec next
+
+  so we need a unary.c .. easy copy frombinary.c now that most of binary has
+  moved into arithmetic
+
+
+
+
+
+
 - try:
 
 	$ vips insert Gugg_coloured.jpg x.jpg x.v 100 100 --expand --background "1 2 3"
@@ -28,18 +38,6 @@ vips__vector_to_ink: ink = 0x177d660 (0 0 0)
 
 
 
-
-- lintra_vec next
-
-  get rid of binary.c, instead have a general 'pointwise' class which takes
-  any number of input images and runs a buffer-processing function over them
-
-  fold binary.c into arithmetic.c
-
-  VipsArithmetic has a "number of input images" thing set by subclasses, cf. 
-  format_table
-
-  proper likes "left" and "right" created by subclasses
 
 
 
