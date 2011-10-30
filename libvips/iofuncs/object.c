@@ -1784,7 +1784,8 @@ vips_object_local_array_cb( GObject *parent, VipsObjectLocal *local )
 	for( i = 0; i < local->n; i++ )
 		VIPS_FREEF( g_object_unref, local->array[i] );
 
-	g_free( local->array );
+	VIPS_FREEF( g_free, local->array );
+
 	g_free( local );
 }
 

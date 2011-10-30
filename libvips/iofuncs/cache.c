@@ -370,6 +370,9 @@ vips_object_equal_arg( VipsObject *object,
 static gboolean 
 vips_operation_equal( VipsOperation *a, VipsOperation *b )
 {
+	if( a == b ) 
+		return( TRUE );
+
 	if( G_OBJECT_TYPE( a ) == G_OBJECT_TYPE( b ) &&
 		vips_operation_hash( a ) == vips_operation_hash( b ) &&
 		!vips_argument_map( VIPS_OBJECT( a ), 
