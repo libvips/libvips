@@ -175,17 +175,23 @@ vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n )
 	return( vips_bandjoin( bands, out, n, NULL ) );
 }
 
+/* base_bands is the default minimum. 
+ *
+ * Handy for example, if you have VipsLinear with
+ * a 3-element vector of constants and a 1-band input image, you need to cast
+ * the image up to three bands.
+ */
 int
 vips__bandalike_vec( const char *domain, 
-	VipsImage **in, VipsImage **out, int n )
+	VipsImage **in, VipsImage **out, int n, int base_bands )
 {
 	int i;
 	int max_bands;
 
 	g_assert( n >= 1 );
 
-	max_bands = in[0]->Bands;
-	for( i = 1; i < n; i++ )
+	max_bands = base_bands;
+	for( i = 0; i < n; i++ )
 		max_bands = VIPS_MAX( max_bands, in[i]->Bands );
 	for( i = 0; i < n; i++ )
 		if( vips__bandup( domain, in[i], &out[i], max_bands ) )
@@ -242,7 +248,7 @@ vips__bandalike( const char *domain,
 	in[0] = in1;
 	in[1] = in2;
 
-	if( vips__bandalike_vec( domain, in, out, 2 ) )
+	if( vips__bandalike_vec( domain, in, out, 2, 1 ) )
 		return( -1 );
 
 	*out1 = out[0];
@@ -310,6 +316,8 @@ vips_arithmetic_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->build( object ) )
 		return( -1 );
 
+	/* No need to check input bands, bandalike will do this for us.
+	 */
 	if( arithmetic->n > MAX_INPUT_IMAGES ) {
 		vips_error( "VipsArithmetic",
 			"%s", _( "too many input images" ) );
@@ -317,8 +325,6 @@ vips_arithmetic_build( VipsObject *object )
 	}
 	for( i = 0; i < arithmetic->n; i++ )
 		if( vips_image_pio_input( arithmetic->in[i] ) || 
-			vips_check_bands_1orn( "VipsArithmetic", 
-				arithmetic->in[0], arithmetic->in[i] ) ||
 			vips_check_uncoded( "VipsArithmetic", 
 				arithmetic->in[i] ) )
 			return( -1 );
@@ -336,7 +342,7 @@ vips_arithmetic_build( VipsObject *object )
 	 */
 	if( vips__formatalike_vec( arithmetic->in, format, arithmetic->n ) ||
 		vips__bandalike_vec( "VipsArithmetic", 
-			format, band, arithmetic->n ) ||
+			format, band, arithmetic->n, arithmetic->base_bands ) ||
 		vips__sizealike_vec( band, size, arithmetic->n ) )
 		return( -1 );
 
@@ -406,6 +412,7 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 static void
 vips_arithmetic_init( VipsArithmetic *arithmetic )
 {
+	arithmetic->base_bands = 1;
 }
 
 void 
@@ -499,11 +506,13 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_subtract_get_type( void ); 
 	extern GType vips_avg_get_type( void ); 
 	extern GType vips_min_get_type( void ); 
+	extern GType vips_linear_get_type( void ); 
 
 	vips_add_get_type();
 	vips_invert_get_type();
 	vips_subtract_get_type();
 	vips_avg_get_type();
 	vips_min_get_type();
+	vips_linear_get_type();
 }
 

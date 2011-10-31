@@ -85,14 +85,23 @@
 
 /**
  * VipsLinear:
- * @in: input #VipsImage
- * @out: output #VipsImage
+ * @in: image to transform
+ * @out: output image
+ * @a: array of constants for multiplication
+ * @b: array of constants for addition
  *
- * For unsigned formats, this operation calculates (max - @in), eg. (255 -
- * @in) for uchar. For signed and float formats, this operation calculates (-1
- * * @in). 
+ * Pass an image through a linear transform, ie. (@out = @in * @a + @b). Output
+ * is always float for integer input, double for double input, complex for
+ * complex input and double complex for double complex input.
  *
- * See also: im_lintra().
+ * If the arrays of constants have just one element, that constant is used for 
+ * all image bands. If the arrays have more than one element and they have 
+ * the same number of elements as there are bands in the image, then 
+ * one array element is used for each band. If the arrays have more than one
+ * element and the image only has a single band, the result is a many-band
+ * image where each band corresponds to one array element.
+ *
+ * See also: #VipsAdd.
  *
  * Returns: 0 on success, -1 on error
  */
@@ -105,6 +114,12 @@ typedef struct _VipsLinear {
 	VipsArea *a;
 	VipsArea *b;
 
+	/* Our constants expanded to match arith->ready in size.
+	 */
+	int n;
+	double *a_ready;
+	double *b_ready;
+
 } VipsLinear;
 
 typedef VipsUnaryClass VipsLinearClass;
@@ -115,65 +130,111 @@ static int
 vips_linear_build( VipsObject *object )
 {
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
+	VipsUnary *unary = (VipsUnary *) object;
 	VipsLinear *linear = (VipsLinear *) object;
+	int i;
 
-	if( VIPS_OBJECT_CLASS( vips_insert_parent_class )->build( object ) )
+	/* If we have a three-element vector, we need to bandup the image to
+	 * match.
+	 */
+	linear->n = 1;
+	if( linear->a )
+		linear->n = VIPS_MAX( linear->n, linear->b->n );
+	if( linear->b )
+		linear->n = VIPS_MAX( linear->n, linear->b->n );
+	if( unary->in )
+		linear->n = VIPS_MAX( linear->n, unary->in->Bands );
+	arithmetic->base_bands = linear->n;
+
+	if( unary->in ) {
+		if( vips_check_vector( "VipsLinear", 
+			linear->a->n, unary->in ) ||
+			vips_check_vector( "VipsLinear", 
+				linear->b->n, unary->in ) )
 		return( -1 );
+	}
 
-	if( vips_check_vector( "VipsLinear", 
-		linear->a->n, arithmetic->in[0] ) ||
-		vips_check_vector( "VipsLinear", 
-			linear->b->n, arithmetic->in[0] ) )
+	/* Make up-banded versions of our constants.
+	 */
+	linear->a_ready = g_new( double, linear->n );
+	linear->b_ready = g_new( double, linear->n );
+
+	for( i = 0; i < linear->n; i++ ) {
+		if( linear->a ) {
+			double *ary = (double *) linear->a->data;
+			int j = VIPS_MIN( i, linear->a->n - 1 );
+
+			linear->a_ready[i] = ary[j];
+		}
+
+		if( linear->b ) {
+			double *ary = (double *) linear->b->data;
+			int j = VIPS_MIN( i, linear->b->n - 1 );
+
+			linear->b_ready[i] = ary[j];
+		}
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_linear_parent_class )->build( object ) )
 		return( -1 );
-
-	how do we do this?? unary or arithmetic needs a bit of chopping about
-
-	if( in->Bands == 1 )
-		out->Bands = n;
-
-	bandalike a and b
 
 	return( 0 );
 }
 
+/* Non-complex input, any output.
+ */
+#define LOOPN( IN, OUT ) { \
+	IN *p = (IN *) in[0]; \
+	OUT *q = (OUT *) out; \
+	\
+	for( i = 0, x = 0; x < width; x++ ) \
+		for( k = 0; k < nb; k++, i++ ) \
+			q[i] = a[k] * (OUT) p[i] + b[k]; \
+}
+
+/* Complex input, complex output. 
+ */
+#define LOOPCMPLXN( IN, OUT ) { \
+	IN *p = (IN *) in[0]; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < width; x++ ) \
+		for( k = 0; k < nb; k++ ) { \
+			q[0] = a[k] * p[0] + b[k]; \
+			q[1] = a[k] * p[1]; \
+			q += 2; \
+			p += 2; \
+		} \
+}
+
+/* Lintra a buffer, n set of scale/offset.
+ */
 static void
 vips_linear_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
+	VipsLinear *linear = (VipsLinear *) arithmetic;
+	double *a = linear->a_ready;
+	double *b = linear->b_ready;
+	int nb = im->Bands;
 
-	/* Complex just doubles the size.
-	 */
-	const int sz = width * vips_image_get_bands( im ) * 
-		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
-		 	2 : 1);
-
-	int x;
+	int i, x, k;
 
 	switch( vips_image_get_format( im ) ) {
-	case VIPS_FORMAT_UCHAR: 	
-		LOOP( unsigned char, UCHAR_MAX ); break; 
-	case VIPS_FORMAT_CHAR: 	
-		LOOPN( signed char ); break; 
-	case VIPS_FORMAT_USHORT: 
-		LOOP( unsigned short, USHRT_MAX ); break; 
-	case VIPS_FORMAT_SHORT: 	
-		LOOPN( signed short ); break; 
-	case VIPS_FORMAT_UINT: 	
-		LOOP( unsigned int, UINT_MAX ); break; 
-	case VIPS_FORMAT_INT: 	
-		LOOPN( signed int ); break; 
+        case VIPS_FORMAT_UCHAR: 	LOOPN( unsigned char, float ); break;
+        case VIPS_FORMAT_CHAR: 		LOOPN( signed char, float ); break; 
+        case VIPS_FORMAT_USHORT: 	LOOPN( unsigned short, float ); break; 
+        case VIPS_FORMAT_SHORT: 	LOOPN( signed short, float ); break; 
+        case VIPS_FORMAT_UINT: 		LOOPN( unsigned int, float ); break; 
+        case VIPS_FORMAT_INT: 		LOOPN( signed int, float );  break; 
+        case VIPS_FORMAT_FLOAT: 	LOOPN( float, float ); break; 
+        case VIPS_FORMAT_DOUBLE:	LOOPN( double, double ); break; 
+        case VIPS_FORMAT_COMPLEX:	LOOPCMPLXN( float, float ); break; 
+        case VIPS_FORMAT_DPCOMPLEX:	LOOPCMPLXN( double, double ); break;
 
-	case VIPS_FORMAT_FLOAT: 		
-	case VIPS_FORMAT_COMPLEX: 
-		LOOPN( float ); break; 
-
-	case VIPS_FORMAT_DOUBLE:	
-	case VIPS_FORMAT_DPCOMPLEX: 
-		LOOPN( double ); break;
-
-	default:
+        default:
 		g_assert( 0 );
-	}
+        }
 }
 
 /* Save a bit of typing.
@@ -193,54 +254,18 @@ vips_linear_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
  */
 static const VipsBandFormat vips_bandfmt_linear[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   F,  F   F,  F,  F,  F,  F,  X,  D,  DX 
+   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
 };
-
-static void
-vips_invert_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
-{
-	VipsImage *im = arithmetic->ready[0];
-
-	/* Complex just doubles the size.
-	 */
-	const int sz = width * vips_image_get_bands( im ) * 
-		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
-		 	2 : 1);
-
-	int x;
-
-	switch( vips_image_get_format( im ) ) {
-	case VIPS_FORMAT_UCHAR: 	
-		LOOP( unsigned char, UCHAR_MAX ); break; 
-	case VIPS_FORMAT_CHAR: 	
-		LOOPN( signed char ); break; 
-	case VIPS_FORMAT_USHORT: 
-		LOOP( unsigned short, USHRT_MAX ); break; 
-	case VIPS_FORMAT_SHORT: 	
-		LOOPN( signed short ); break; 
-	case VIPS_FORMAT_UINT: 	
-		LOOP( unsigned int, UINT_MAX ); break; 
-	case VIPS_FORMAT_INT: 	
-		LOOPN( signed int ); break; 
-
-	case VIPS_FORMAT_FLOAT: 		
-	case VIPS_FORMAT_COMPLEX: 
-		LOOPN( float ); break; 
-
-	case VIPS_FORMAT_DOUBLE:	
-	case VIPS_FORMAT_DPCOMPLEX: 
-		LOOPN( double ); break;
-
-	default:
-		g_assert( 0 );
-	}
-}
 
 static void
 vips_linear_class_init( VipsLinearClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "linear";
 	object_class->description = _( "calculate (a * in + b)" );
@@ -250,17 +275,17 @@ vips_linear_class_init( VipsLinearClass *class )
 
 	aclass->process_line = vips_linear_buffer;
 
-	VIPS_ARG_BOXED( class, "a", 4, 
+	VIPS_ARG_BOXED( class, "a", 110, 
 		_( "a" ), 
 		_( "Multiply by this" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, a ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_BOXED( class, "b", 5, 
+	VIPS_ARG_BOXED( class, "b", 111, 
 		_( "b" ), 
 		_( "Add this" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, b ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
@@ -272,14 +297,58 @@ vips_linear_init( VipsLinear *linear )
 }
 
 int
-vips_linear( VipsImage *in, VipsImage **out, ... )
+vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
 {
 	va_list ap;
+	VipsArea *area_a;
+	VipsArea *area_b;
+	double *array; 
+	int result;
+	int i;
+
+	area_a = vips_area_new_array_object( n );
+	array = (double *) area_a->data;
+	for( i = 0; i < n; i++ ) 
+		array[i] = a[i];
+
+	area_b = vips_area_new_array_object( n );
+	array = (double *) area_b->data;
+	for( i = 0; i < n; i++ ) 
+		array[i] = b[i];
+
+	va_start( ap, n );
+	result = vips_call_split( "linear", ap, in, out, area_a, area_b );
+	va_end( ap );
+
+	vips_area_unref( area_a );
+	vips_area_unref( area_b );
+
+	return( result );
+}
+
+int
+vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
+{
+	va_list ap;
+	VipsArea *area_a;
+	VipsArea *area_b;
+	double *array; 
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "linear", ap, in, out );
+	area_a = vips_area_new_array_object( 1 );
+	array = (double *) area_a->data;
+	array[0] = a;
+
+	area_b = vips_area_new_array_object( 1 );
+	array = (double *) area_b->data;
+	array[0] = b;
+
+	va_start( ap, b );
+	result = vips_call_split( "linear", ap, in, out, area_a, area_b );
 	va_end( ap );
+
+	vips_area_unref( area_a );
+	vips_area_unref( area_b );
 
 	return( result );
 }

@@ -45,6 +45,13 @@ int vips_avg( VipsImage *in, double *out, ... )
 	__attribute__((sentinel));
 int vips_min( VipsImage *in, double *out, ... )
 	__attribute__((sentinel));
+int vips_invert( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_linear( VipsImage *in, VipsImage **out, 
+	double *a, double *b, int n, ... )
+	__attribute__((sentinel));
+int vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
+	__attribute__((sentinel));
 
 
 
@@ -62,9 +69,6 @@ int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
 int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );
 int im_bandmean( VipsImage *in, VipsImage *out );
 
-int im_invert( VipsImage *in, VipsImage *out );
-int im_lintra( double a, VipsImage *in, double b, VipsImage *out );
-int im_lintra_vec( int n, double *a, VipsImage *in, double *b, VipsImage *out );
 int im_multiply( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_divide( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_remainder( VipsImage *in1, VipsImage *in2, VipsImage *out );

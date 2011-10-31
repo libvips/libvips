@@ -59,7 +59,8 @@ vips_unary_build( VipsObject *object )
 	arithmetic->n = 1;
 	arithmetic->in = (VipsImage **) vips_object_local_array( object, 1 );
 	arithmetic->in[0] = unary->in;
-	g_object_ref( arithmetic->in[0] );
+	if( arithmetic->in[0] )
+		g_object_ref( arithmetic->in[0] );
 
 	if( VIPS_OBJECT_CLASS( vips_unary_parent_class )->build( object ) )
 		return( -1 );

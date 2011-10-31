@@ -76,6 +76,11 @@ typedef struct _VipsArithmetic {
 	VipsImage **in;
 	int n;
 
+	/* The minimum number of output bands. For example, VipsLinear with a
+	 * three element constant must make at least a three-band output.
+	 */
+	int base_bands;
+
 	/* The input images, ready for the operation.
 	 */
 	VipsImage **ready;

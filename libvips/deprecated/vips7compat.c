@@ -1327,3 +1327,53 @@ im_gbandjoin( VipsImage **in, VipsImage *out, int n )
 	return( 0 );
 }
 
+int 
+im_invert( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_invert( in, &t, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_lintra( double a, IMAGE *in, double b, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_linear1( in, &t, a, b,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_linear( in, &t, a, b, n,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}

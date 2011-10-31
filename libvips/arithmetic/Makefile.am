@@ -9,7 +9,6 @@ libarithmetic_la_SOURCES = \
 	im_divide.c \
 	im_recomb.c \
 	im_linreg.c \
-	im_lintra.c \
 	im_maxpos_avg.c \
 	im_maxpos.c \
 	im_maxpos_vec.c \
@@ -32,6 +31,7 @@ libarithmetic_la_SOURCES = \
 	unary.c \
 	unary.h \
 	add.c \
+	linear.c \
 	invert.c \
 	power.c \
 	round.c 

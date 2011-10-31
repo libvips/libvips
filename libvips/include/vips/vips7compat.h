@@ -525,6 +525,9 @@ int im_subtract( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_min( VipsImage *in, double *out );
 int im_minpos( VipsImage *in, int *xpos, int *ypos, double *out );
 int im_avg( VipsImage *in, double *out );
+int im_invert( VipsImage *in, VipsImage *out );
+int im_lintra( double a, VipsImage *in, double b, VipsImage *out );
+int im_lintra_vec( int n, double *a, VipsImage *in, double *b, VipsImage *out );
 
 int im_copy( VipsImage *in, VipsImage *out );
 int im_copy_set( VipsImage *in, VipsImage *out, 
@@ -536,32 +539,25 @@ int im_copy_morph( VipsImage *in, VipsImage *out,
 	int bands, VipsBandFormat format, VipsCoding coding );
 int im_copy_swap( VipsImage *in, VipsImage *out );
 int im_copy_native( VipsImage *in, VipsImage *out, gboolean is_msb_first );
-
 int im_embed( VipsImage *in, VipsImage *out, 
 	int type, int x, int y, int width, int height );
-
 int im_fliphor( VipsImage *in, VipsImage *out );
 int im_flipver( VipsImage *in, VipsImage *out );
-
 int im_insert( VipsImage *main, VipsImage *sub, VipsImage *out, int x, int y );
 int im_insert_noexpand( VipsImage *main, VipsImage *sub, VipsImage *out, int x, int y );
-
 int im_lrjoin( VipsImage *left, VipsImage *right, VipsImage *out );
 int im_tbjoin( VipsImage *top, VipsImage *bottom, VipsImage *out );
-
 int im_extract_area( VipsImage *in, VipsImage *out, 
 	int left, int top, int width, int height );
 int im_extract_band( VipsImage *in, VipsImage *out, int band );
 int im_extract_bands( VipsImage *in, VipsImage *out, int band, int nbands );
 int im_extract_areabands( VipsImage *in, VipsImage *out,
 	int left, int top, int width, int height, int band, int nbands );
-
 int im_replicate( VipsImage *in, VipsImage *out, int across, int down );
-
 int im_clip2fmt( VipsImage *in, VipsImage *out, VipsBandFormat fmt );
-
 int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
+
 
 
 /* ruby-vips uses this

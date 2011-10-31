@@ -120,7 +120,7 @@ int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__sizealike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n );
 int vips__bandalike_vec( const char *domain, 
-	VipsImage **in, VipsImage **out, int n );
+	VipsImage **in, VipsImage **out, int n, int base_bands );
 
 int vips__formatalike( VipsImage *in1, VipsImage *in2, 
 	VipsImage **out1, VipsImage **out2 );

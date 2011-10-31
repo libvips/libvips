@@ -1,5 +1,14 @@
 
-- lintra_vec next
+
+- do clip etc. in new style, good to get everything that VipsAdd uses in
+  the new stack
+
+  insert* needs clip, lintra_vec
+
+  can we move everything to new-style ops now?
+
+- what's the performance hit for removing the 1ary lintra path?
+
 
 
 
@@ -38,11 +47,6 @@ vips__vector_to_ink: ink = 0x177d660 (0 0 0)
 
 
 
-
-- do clip etc. in new style, good to get everything that VipsAdd uses in
-  the new stack
-
-  insert* needs clip, lintra_vec
 
 
 
