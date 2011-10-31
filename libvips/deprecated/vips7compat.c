@@ -1377,3 +1377,21 @@ im_lintra_vec( int n, double *a, IMAGE *in, double *b, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_black( IMAGE *out, int x, int y, int bands )
+{
+	VipsImage *t;
+
+	if( vips_black( &t, x, y,
+		"bands", bands,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}

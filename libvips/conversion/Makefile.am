@@ -12,8 +12,8 @@ libconversion_la_SOURCES = \
 	replicate.c \
 	cast.c \
 	bandjoin.c \
+	black.c \
 	conver_dispatch.c \
-	im_black.c \
 	im_c2amph.c \
 	im_c2rect.c \
 	im_c2imag.c \

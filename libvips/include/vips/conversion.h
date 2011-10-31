@@ -140,6 +140,8 @@ int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_black( VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
 
 
 
@@ -163,7 +165,6 @@ int im_scaleps( VipsImage *in, VipsImage *out );
 int im_falsecolour( VipsImage *in, VipsImage *out );
 int im_gaussnoise( VipsImage *out, int x, int y, double mean, double sigma );
 
-int im_black( VipsImage *out, int x, int y, int bands );
 int im_text( VipsImage *out, const char *text, const char *font,
 	int width, int alignment, int dpi );
 

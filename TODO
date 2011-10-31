@@ -3,7 +3,7 @@
 - do clip etc. in new style, good to get everything that VipsAdd uses in
   the new stack
 
-  insert* needs clip, lintra_vec
+  insert* needs im_black()
 
   can we move everything to new-style ops now?
 
