@@ -66,16 +66,11 @@
  * @in: input #VipsImage
  * @out: output #VipsImage
  *
- * this operation calculates (255 - @in).
- * The operation works on uchar images only. The input can have any 
- * number of channels.
+ * For unsigned formats, this operation calculates (max - @in), eg. (255 -
+ * @in) for uchar. For signed and float formats, this operation calculates (-1
+ * * @in). 
  *
- * This is not a generally useful operation -- it is included as an example of 
- * a very simple operation.
- * See im_exptra() for an example of a VIPS function which can process
- * any input image type.
- *
- * See also: im_exptra(), im_lintra().
+ * See also: im_lintra().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -85,17 +80,60 @@ typedef VipsUnaryClass VipsInvertClass;
 
 G_DEFINE_TYPE( VipsInvert, vips_invert, VIPS_TYPE_UNARY );
 
+#define LOOP( TYPE, L ) { \
+	TYPE *p = (TYPE *) in[0]; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = (L) - p[x]; \
+}
+
+#define LOOPN( TYPE ) { \
+	TYPE *p = (TYPE *) in[0]; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = -1 * p[x]; \
+}
+
 static void
 vips_invert_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
-	PEL *p = in[0];
-	int ne = width * im->Bands;
+
+	/* Complex just doubles the size.
+	 */
+	const int sz = width * vips_image_get_bands( im ) * 
+		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
+		 	2 : 1);
 
 	int x;
 
-	for( x = 0; x < ne; x++ )
-		out[x] = 255 - p[x];
+	switch( vips_image_get_format( im ) ) {
+	case VIPS_FORMAT_UCHAR: 	
+		LOOP( unsigned char, UCHAR_MAX ); break; 
+	case VIPS_FORMAT_CHAR: 	
+		LOOPN( signed char ); break; 
+	case VIPS_FORMAT_USHORT: 
+		LOOP( unsigned short, USHRT_MAX ); break; 
+	case VIPS_FORMAT_SHORT: 	
+		LOOPN( signed short ); break; 
+	case VIPS_FORMAT_UINT: 	
+		LOOP( unsigned int, UINT_MAX ); break; 
+	case VIPS_FORMAT_INT: 	
+		LOOPN( signed int ); break; 
+
+	case VIPS_FORMAT_FLOAT: 		
+	case VIPS_FORMAT_COMPLEX: 
+		LOOPN( float ); break; 
+
+	case VIPS_FORMAT_DOUBLE:	
+	case VIPS_FORMAT_DPCOMPLEX: 
+		LOOPN( double ); break;
+
+	default:
+		g_assert( 0 );
+	}
 }
 
 /* Save a bit of typing.
@@ -111,12 +149,11 @@ vips_invert_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Type promotion for invertion. Sign and value preserving. Make sure these
- * match the case statement in vips_invert_buffer() above.
+/* Format doesn't change with invert.
  */
-static const VipsBandFormat bandfmt_invert[10] = {
+static const VipsBandFormat vips_bandfmt_invert[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+   UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
 };
 
 static void
@@ -128,7 +165,7 @@ vips_invert_class_init( VipsInvertClass *class )
 	object_class->nickname = "invert";
 	object_class->description = _( "invert an image" );
 
-	vips_arithmetic_set_format_table( aclass, bandfmt_invert );
+	vips_arithmetic_set_format_table( aclass, vips_bandfmt_invert );
 
 	aclass->process_line = vips_invert_buffer;
 }
