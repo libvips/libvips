@@ -1,4 +1,4 @@
-/* im_embed
+/* VipsEmbed
  *
  * Author: J. Cupitt
  * Written on: 21/2/95

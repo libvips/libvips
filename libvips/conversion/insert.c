@@ -57,8 +57,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -105,7 +105,7 @@
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>).
  *
- * See also: im_insert_noexpand(), im_lrjoin().
+ * See also: #VipsJoin.
  *
  * Returns: 0 on success, -1 on error
  */
@@ -247,30 +247,35 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 PEL *
 vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 {
-	VipsImage *t[3];
-	double *zeros;
+	VipsImage **t;
+	double *ones;
 	int i;
 
 	if( vips_check_vector( domain, n, im ) )
 		return( NULL );
-	if( im_open_local_array( im, t, 3, "vtoi", "t" ) ||
-		!(zeros = VIPS_ARRAY( im, n, double )) )
-		return( NULL );
-	for( i = 0; i < n; i++ )
-		zeros[i] = 0.0;
 
-	if( im_black( t[0], 1, 1, im->Bands ) ||
-		im_lintra_vec( n, zeros, t[0], vec, t[1] ) ||
-		im_clip2fmt( t[1], t[2], im->BandFmt ) )
+	t = (VipsImage **) vips_object_local_array( VIPS_OBJECT( im ), 4 );
+	ones = VIPS_ARRAY( im, n, double );
+	for( i = 0; i < n; i++ )
+		ones[i] = 1.0;
+
+	if( vips_black( &t[0], 1, 1, "bands", im->Bands, NULL ) ||
+		vips_linear( t[0], &t[1], ones, vec, n, NULL ) || 
+		vips_cast( t[1], &t[2], im->BandFmt, NULL ) || 
+		!(t[3] = vips_image_new_mode( "vtoi", "t" )) ||
+		vips_image_write( t[2], t[3] ) )
 		return( NULL );
 
 #ifdef VIPS_DEBUG
+{
+	PEL *p = t[3]->data;
+
 	printf( "vips__vector_to_ink: ink = %p (%d %d %d)\n",
-		t[2]->data, 
-		t[2]->data[0], t[2]->data[1], t[2]->data[2] );
+		p, p[0], p[1], p[2] ); 
+}
 #endif /*VIPS_DEBUG*/
 
-	return( (PEL *) t[2]->data );
+	return( (PEL *) t[3]->data );
 }
 
 static int

@@ -438,7 +438,7 @@ vips_cast_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_cast_parent_class )->build( object ) )
 		return( -1 );
 
-	/* Trivial case: fall back to im_copy().
+	/* Trivial case: fall back to copy().
 	 */
 	if( cast->in->BandFmt == cast->format ) 
 		return( vips_image_write( cast->in, conversion->out ) );

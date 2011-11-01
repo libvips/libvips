@@ -155,7 +155,7 @@
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
  *
- * See also: im_add(), im_lintra().
+ * See also: #VipsAdd, #VipsLinear.
  *
  * Returns: 0 on success, -1 on error
  */

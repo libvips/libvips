@@ -148,7 +148,7 @@ vips_replicate_gen( VipsRegion *or, void *seq, void *a, void *b,
 			paint.left -= x;
 			paint.top -= y;
 
-			g_assert( !im_rect_isempty( &paint ) );
+			g_assert( !vips_rect_isempty( &paint ) );
 
 			/* Render into or.
 			 */

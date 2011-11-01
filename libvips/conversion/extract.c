@@ -157,7 +157,7 @@ vips_extract_area_build( VipsObject *object )
 		extract->top + extract->height > extract->in->Ysize ||
 		extract->left < 0 || extract->top < 0 ||
 		extract->width <= 0 || extract->height <= 0 ) {
-		im_error( "VipsExtractArea", "%s", _( "bad extract area" ) );
+		vips_error( "VipsExtractArea", "%s", _( "bad extract area" ) );
 		return( -1 );
 	}
 
@@ -332,7 +332,7 @@ vips_extract_band_build( VipsObject *object )
 		return( -1 );
 
 	if( extract->band + extract->n > extract->in->Bands ) {
-		im_error( "VipsExtractBand", "%s", _( "bad extract band" ) );
+		vips_error( "VipsExtractBand", "%s", _( "bad extract band" ) );
 		return( -1 );
 	}
 

@@ -163,7 +163,7 @@
  * Operations on integer images are performed using the processor's vector unit,
  * if possible. Disable this with --vips-novector or IM_NOVECTOR.
  *
- * See also: im_subtract(), im_lintra().
+ * See also: #VipsSubtract, #VipsLinear.
  */
 
 typedef VipsBinary VipsAdd;
