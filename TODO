@@ -1,5 +1,14 @@
 
 
+- don't do vips_image_write() at the end of a pipeline, instead try:
+
+	g_object_set( object, "output", t );
+
+  ie. replace the output object
+
+  in cache.c, we must not include the hash of the output objects, I guess we
+  don't
+
 
 
 
@@ -9,43 +18,6 @@
 
   can be reused
 
-- we should cache on "written" ... we should emit written for all objects, and
-  there should be a a vipsarg flag to block updates after written
-
-- we have a "written" method/signal in image.h, move this to object.h
-
-- the lifetime of an object is
-
-	  new
-	  set base params
-	  build
-	  set more params
-	  write
-	  ... and now it's frozen and read-only, except for things like "kill"
-	  unref
-
-  we have 
-
-	gboolean constructed;		/* Construct done and checked */
-
-  I suppose we need to add
-
-	gboolean written;		/* Object done and frozen */
-
-  and a "written" virtual method I guess
-
-  this seems like a big change :-( can we avoid it?
-
-  bodge it for now, fix properly after we merge
-
-- don't do vips_image_write() at the end of a pipeline, instead try:
-
-	g_object_set( object, "output", t );
-
-  ie. replace the output object
-
-  fails due to "assign once only" rule ... we need "don't assign after
-  written" instead
 
 
 
