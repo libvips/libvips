@@ -57,8 +57,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -268,7 +268,7 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 
 #ifdef VIPS_DEBUG
 {
-	PEL *p = t[3]->data;
+	PEL *p = (PEL *) (t[3]->data);
 
 	printf( "vips__vector_to_ink: ink = %p (%d %d %d)\n",
 		p, p[0], p[1], p[2] ); 

@@ -37,6 +37,7 @@
  * 	- remove liboil
  * 31/10/11
  * 	- rework as a class
+ * 	- removed the 1-ary constant path, no faster
  */
 
 /*
