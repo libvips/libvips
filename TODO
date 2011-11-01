@@ -1,15 +1,7 @@
 
-- bandalike: consider RGB + RGBA ... we should bandup by adding a black band
-
-  (or white?? unclear)
 
 
 
-
-
-- note member free stuff in vipsobject docs
-
-  should boxed get freed in finalise rather than dispose?
 
 - vipsimage should be cached too, eg.
 
@@ -19,6 +11,8 @@
 
 - we should cache on "written" ... we should emit written for all objects, and
   there should be a a vipsarg flag to block updates after written
+
+- we have a "written" method/signal in image.h, move this to object.h
 
 - the lifetime of an object is
 
@@ -56,21 +50,19 @@
 
 
 
+- bandalike: consider RGB + RGBA ... we should bandup by adding a black band
+
+  (or white?? unclear)
+
+  not clear if this is a good idea ... eg. when we upband a 1 band to a 2
+  band, should we duplicate the 1 band or add black?
 
 
 
-- lintra_vec next ... how should we do vips_lin() vs. vips_lin_vec()? do we
-  need two separate things?
 
-  perhaps just have vips_lin() as a convenience function
+- note member free stuff in vipsobject docs
 
-  how about a "squash" param to VipsLin which clips the output type back to
-  the input type? maybe not a great idea
-
-- all things that use sizealike could take a --background param? or an
-  --extend param? maybe not a great idea (maybe handy for convolve affine etc. 
-  though)
-
+  should boxed get freed in finalise rather than dispose?
 
 
 
@@ -87,21 +79,6 @@
 
   use array version in several places
 
-
-
-
-
-
-
-- change the way we wrap vips7 operations
-
-  make im_max() appear in vips8 as "im_max" (we wrap as "max" right now), this
-  will help compatibility when we redo as a class and create "max"
-
-  make vips.c try the vip8 APIs for an operation before falling back to vips7
-
-  ... actually, leave it alone, it can never work well, no point encouraging
-  its use
 
 
 
