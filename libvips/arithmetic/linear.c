@@ -306,12 +306,12 @@ vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
 	int result;
 	int i;
 
-	area_a = vips_area_new_array_object( n );
+	area_a = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n ); 
 	array = (double *) area_a->data;
 	for( i = 0; i < n; i++ ) 
 		array[i] = a[i];
 
-	area_b = vips_area_new_array_object( n );
+	area_b = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n ); 
 	array = (double *) area_b->data;
 	for( i = 0; i < n; i++ ) 
 		array[i] = b[i];
@@ -335,11 +335,11 @@ vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
 	double *array; 
 	int result;
 
-	area_a = vips_area_new_array_object( 1 );
+	area_a = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
 	array = (double *) area_a->data;
 	array[0] = a;
 
-	area_b = vips_area_new_array_object( 1 );
+	area_b = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
 	array = (double *) area_b->data;
 	array[0] = b;
 
