@@ -14,7 +14,6 @@
 - VipsMin stops search early if it can
 - C API supports optional output args
 - switch back to int-valued operations
-- fix up VipsPool
 - add the operation cache
 - fallback vips_init()
 - vips_tracked_malloc() tracks allocation size and can report total mem usage
@@ -29,6 +28,7 @@
 - added VipsArea as a public struct
 - added array members and arguments
 - added nary
+- remove VipsPool, vips_object_local_array() is much better
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

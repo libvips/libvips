@@ -24,7 +24,6 @@ pkginclude_HEADERS = \
 	interpolate.h \
 	intl.h \
 	mask.h \
-	pool.h \
 	memory.h \
 	morphology.h \
 	mosaicing.h \

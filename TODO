@@ -1,13 +1,57 @@
+- strange
+
+$ valgrind vips embed Gugg_coloured.jpg x.jpg 100 100 5000 5000 --extend
+mirror
+==32146== Memcheck, a memory error detector
+==32146== Copyright (C) 2002-2010, and GNU GPL'd, by Julian Seward et al.
+==32146== Using Valgrind-3.6.1-Debian and LibVEX; rerun with -h for copyright
+info
+==32146== Command: vips embed Gugg_coloured.jpg x.jpg 100 100 5000 5000
+--extend mirror
+==32146== 
+==32146== Thread 2:
+==32146== Conditional jump or move depends on uninitialised value(s)
+==32146==    at 0x4F8ED7D: vips_sink_base_allocate (sink.c:257)
+==32146==    by 0x4F99BC2: vips_thread_allocate (threadpool.c:450)
+==32146==    by 0x4F99CB5: vips_thread_work_unit (threadpool.c:508)
+==32146==    by 0x4F99DF0: vips_thread_main_loop (threadpool.c:547)
+==32146==    by 0x55852B5: ??? (in
+/lib/x86_64-linux-gnu/libglib-2.0.so.0.3000.0)
+==32146==    by 0x5818EFB: start_thread (pthread_create.c:304)
+==32146==    by 0x5B0F89C: clone (clone.S:112)
+==32146== 
+
+it's the 'stop' member of SinkThreadState
+
+	/* Has work requested early termination?
+	 */
+	if( sstate->stop ) {
+		*stop = TRUE;
+
+		return( 0 );
+	}
+
+
+
 
 
 - don't do vips_image_write() at the end of a pipeline, instead try:
 
-	g_object_set( object, "output", t );
+	g_object_set( object, "out", t, NULL );
 
   ie. replace the output object
 
-  in cache.c, we must not include the hash of the output objects, I guess we
+  this doesn't work, I wonder why ... do we need to add an extra ref to t?
+
+
+
+
+- in cache.c, we must not include the hash of the output objects, I guess we
   don't
+
+
+
+- get rid of vipspool
 
 
 

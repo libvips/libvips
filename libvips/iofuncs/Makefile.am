@@ -4,7 +4,6 @@ libiofuncs_la_SOURCES = \
 	type.c \
 	enumtypes.c \
 	object.c \
-	pool.c \
 	base64.h \
 	base64.c \
 	error.c \

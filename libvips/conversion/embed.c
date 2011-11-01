@@ -326,83 +326,13 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 }
 
 static int
-vips_embed_repeat( VipsPool *pool, VipsImage *in, VipsImage **out,
-	int x, int y, int width, int height )
-{
-	VipsPoolContext *context = vips_pool_context_new( pool );
-
-	/* Clock arithmetic: we want negative x/y to wrap around
-	 * nicely.
-	 */
-	const int nx = x < 0 ?
-		-x % in->Xsize : in->Xsize - x % in->Xsize;
-	const int ny = y < 0 ?
-		-y % in->Ysize : in->Ysize - y % in->Ysize;
-
-	if( 
-		vips_replicate( in, &VIPS_VI( 1 ), 
-			width / in->Xsize + 2, 
-			height / in->Ysize + 2, NULL ) ||
-		vips_extract_area( VIPS_VI( 1 ), out, 
-			nx, ny, width, height, NULL ) ) 
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips_embed_mirror( VipsPool *pool, VipsImage *in, VipsImage **out,
-	int x, int y, int width, int height )
-{
-	VipsPoolContext *context = vips_pool_context_new( pool );
-
-	/* As repeat, but the tiles are twice the size because of
-	 * mirroring.
-	 */
-	const int w2 = in->Xsize * 2;
-	const int h2 = in->Ysize * 2;
-
-	const int nx = x < 0 ?  -x % w2 : w2 - x % w2;
-	const int ny = y < 0 ?  -y % h2 : h2 - y % h2;
-
-	if( 
-		/* Make a 2x2 mirror tile.
-		 */
-		vips_flip( in, &VIPS_VI( 1 ), 
-			VIPS_DIRECTION_HORIZONTAL, NULL ) ||
-		vips_join( in, VIPS_VI( 1 ), &VIPS_VI( 2 ), 
-			VIPS_DIRECTION_HORIZONTAL, NULL ) ||
-		vips_flip( VIPS_VI( 2 ), &VIPS_VI( 3 ), 
-			VIPS_DIRECTION_VERTICAL, NULL ) ||
-		vips_join( VIPS_VI( 2 ), VIPS_VI( 3 ), &VIPS_VI( 4 ), 
-			VIPS_DIRECTION_VERTICAL, NULL ) ||
-
-		/* Repeat, then cut out the centre.
-		 */
-		vips_replicate( VIPS_VI( 4 ), &VIPS_VI( 5 ), 
-			width / VIPS_VI( 4 )->Xsize + 2, 
-			height / VIPS_VI( 4 )->Ysize + 2, NULL ) ||
-		vips_extract_area( VIPS_VI( 5 ), &VIPS_VI( 6 ), 
-			nx, ny, width, height, NULL ) ||
-
-		/* Overwrite the centre with the in, much faster
-		 * for centre pixels.
-		 */
-		vips_insert( VIPS_VI( 6 ), in, out, 
-			x, y, NULL ) )
-			return( -1 );
-
-	return( 0 );
-}
-
-static int
 vips_embed_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsEmbed *embed = (VipsEmbed *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 
 	VipsRect want;
-	VipsPool *pool;
 
 	if( VIPS_OBJECT_CLASS( vips_embed_parent_class )->build( object ) )
 		return( -1 );
@@ -419,30 +349,72 @@ vips_embed_build( VipsObject *object )
 		vips_image_pio_output( conversion->out ) )
 		return( -1 );
 
-	pool = vips_pool_new( "VipsEmbed" );
-	vips_object_local( object, pool );
-
 	switch( embed->extend ) {
 	case VIPS_EXTEND_REPEAT:
 {
-		VipsPoolContext *context = vips_pool_context_new( pool );
+		/* Clock arithmetic: we want negative x/y to wrap around
+		 * nicely.
+		 */
+		const int nx = embed->x < 0 ?
+			-embed->x % embed->in->Xsize : 
+			embed->in->Xsize - embed->x % embed->in->Xsize;
+		const int ny = embed->y < 0 ?
+			-embed->y % embed->in->Ysize : 
+			embed->in->Ysize - embed->y % embed->in->Ysize;
 
-		if( vips_embed_repeat( pool, embed->in, &VIPS_VI( 1 ),
-			embed->x, embed->y, embed->width, embed->height ) ||
-			vips_image_write( VIPS_VI( 1 ), conversion->out ) )
+		if( vips_replicate( embed->in, &t[0],
+			embed->width / embed->in->Xsize + 2, 
+			embed->height / embed->in->Ysize + 2, NULL ) ||
+			vips_extract_area( t[0], &t[1], 
+				nx, ny, embed->width, embed->height, NULL ) || 
+			vips_image_write( t[1], conversion->out ) )
 			return( -1 );
-}
 
+}
 		break;
 
 	case VIPS_EXTEND_MIRROR:
 {
-		VipsPoolContext *context = vips_pool_context_new( pool );
+		/* As repeat, but the tiles are twice the size because of
+		 * mirroring.
+		 */
+		const int w2 = embed->in->Xsize * 2;
+		const int h2 = embed->in->Ysize * 2;
 
-		if( vips_embed_mirror( pool, embed->in, &VIPS_VI( 1 ),
-			embed->x, embed->y, embed->width, embed->height ) ||
-			vips_image_write( VIPS_VI( 1 ), conversion->out ) )
-			return( -1 );
+		const int nx = embed->x < 0 ?  
+			-embed->x % w2 : w2 - embed->x % w2;
+		const int ny = embed->y < 0 ?  
+			-embed->y % h2 : h2 - embed->y % h2;
+
+
+		if( 
+			/* Make a 2x2 mirror tile.
+			 */
+			vips_flip( embed->in, &t[0], 
+				VIPS_DIRECTION_HORIZONTAL, NULL ) ||
+			vips_join( embed->in, t[0], &t[1], 
+				VIPS_DIRECTION_HORIZONTAL, NULL ) ||
+			vips_flip( t[1], &t[2], 
+				VIPS_DIRECTION_VERTICAL, NULL ) ||
+			vips_join( t[1], t[2], &t[3], 
+				VIPS_DIRECTION_VERTICAL, NULL ) ||
+
+			/* Repeat, then cut out the centre.
+			 */
+			vips_replicate( t[3], &t[4], 
+				embed->width / t[3]->Xsize + 2, 
+				embed->height / t[3]->Ysize + 2, NULL ) ||
+			vips_extract_area( t[4], &t[5], 
+				nx, ny, embed->width, embed->height, NULL ) ||
+
+			/* Overwrite the centre with the in, much faster
+			 * for centre pixels.
+			 */
+			vips_insert( t[5], embed->in, &t[6], 
+				embed->x, embed->y, NULL ) ||
+
+			vips_image_write( t[6], conversion->out ) )
+				return( -1 );
 }
 		break;
 
