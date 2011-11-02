@@ -57,8 +57,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -250,6 +250,10 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	VipsImage **t;
 	double *ones;
 	int i;
+
+#ifdef VIPS_DEBUG
+	printf( "vips__vector_to_ink: starting\n" );
+#endif /*VIPS_DEBUG*/
 
 	if( vips_check_vector( domain, n, im ) )
 		return( NULL );
