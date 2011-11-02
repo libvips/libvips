@@ -55,6 +55,10 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -95,6 +99,7 @@
 
 static int vips_tracked_allocs = 0;
 static size_t vips_tracked_mem = 0;
+static size_t vips_tracked_files = 0;
 static size_t vips_tracked_mem_highwater = 0;
 static GMutex *vips_tracked_mutex = NULL;
 
@@ -243,6 +248,15 @@ vips_tracked_mutex_new( void *data )
 	return( g_mutex_new() );
 }
 
+static void
+vips_tracked_init( void )
+{
+	static GOnce vips_tracked_once = G_ONCE_INIT;
+
+	vips_tracked_mutex = g_once( &vips_tracked_once, 
+		vips_tracked_mutex_new, NULL );
+}
+
 /**
  * vips_tracked_malloc:
  * @size: number of bytes to allocate
@@ -262,12 +276,9 @@ vips_tracked_mutex_new( void *data )
 void *
 vips_tracked_malloc( size_t size )
 {
-	static GOnce vips_tracked_once = G_ONCE_INIT;
-
         void *buf;
 
-	vips_tracked_mutex = g_once( &vips_tracked_once, 
-		vips_tracked_mutex_new, NULL );
+	vips_tracked_init(); 
 
 	/* Need an extra sizeof(size_t) bytes to track 
 	 * size of this block. Ask for an extra 16 to make sure we don't break
@@ -306,7 +317,76 @@ vips_tracked_malloc( size_t size )
 }
 
 /**
- * vips_alloc_get_mem:
+ * vips_tracked_open:
+ * @pathname: name of file to open
+ * @flags: flags for open()
+ * @mode: open mode
+ *
+ * Exactly as open(2), but the number of files current open via
+ * vips_tracked_open() is available via vips_tracked_get_files(). This is used
+ * by the vips operation cache to drop cache when the number of files
+ * available is low.
+ *
+ * You must only close the file descriptor with vips_tracked_close().
+ *
+ * See also: vips_tracked_close(), vips_tracked_get_files().
+ *
+ * Returns: a file descriptor, or -1 on error.
+ */
+int
+vips_tracked_open( const char *pathname, int flags, ... )
+{
+	int fd;
+	mode_t mode;
+	va_list ap;
+
+	va_start( ap, flags );
+	mode = va_arg( ap, mode_t );
+	va_end( ap );
+
+	if( (fd = open( pathname, flags, mode )) == -1 )
+		return( -1 );
+
+	vips_tracked_init(); 
+
+	g_mutex_lock( vips_tracked_mutex );
+
+	vips_tracked_files += 1;
+
+	g_mutex_unlock( vips_tracked_mutex );
+
+	return( fd );
+}
+
+/**
+ * vips_tracked_close:
+ * @fd: file to close()
+ *
+ * Exactly as close(2), but update the number of files currently open via
+ * vips_tracked_get_files(). This is used
+ * by the vips operation cache to drop cache when the number of files
+ * available is low.
+ *
+ * You must only close file descriptors opened with vips_tracked_open().
+ *
+ * See also: vips_tracked_open(), vips_tracked_get_files().
+ *
+ * Returns: a file descriptor, or -1 on error.
+ */
+int
+vips_tracked_close( int fd )
+{
+	g_mutex_lock( vips_tracked_mutex );
+
+	vips_tracked_files -= 1;
+
+	g_mutex_unlock( vips_tracked_mutex );
+
+	return( close( fd ) );
+}
+
+/**
+ * vips_tracked_get_mem:
  *
  * Returns the number of bytes currently allocated via vips_malloc() and
  * friends. vips uses this figure to decide when to start dropping cache, see
@@ -317,33 +397,88 @@ vips_tracked_malloc( size_t size )
 size_t
 vips_tracked_get_mem( void )
 {
-	return( vips_tracked_mem );
+	size_t mem;
+
+	vips_tracked_init(); 
+
+	g_mutex_lock( vips_tracked_mutex );
+
+	mem = vips_tracked_mem;
+
+	g_mutex_unlock( vips_tracked_mutex );
+
+	return( mem );
 }
 
 /**
  * vips_tracked_get_mem_highwater:
  *
  * Returns the largest number of bytes simultaneously allocated via 
- * vips_malloc() and friends. 
+ * vips_tracked_malloc(). Handy for estimating max memory requirements for a
+ * program.
  *
  * Returns: the largest number of currently allocated bytes
  */
 size_t
 vips_tracked_get_mem_highwater( void )
 {
-	return( vips_tracked_mem_highwater );
+	size_t mx;
+
+	vips_tracked_init(); 
+
+	g_mutex_lock( vips_tracked_mutex );
+
+	mx = vips_tracked_mem_highwater;
+
+	g_mutex_unlock( vips_tracked_mutex );
+
+	return( mx );
 }
 
 /**
  * vips_tracked_get_allocs:
  *
- * Returns the number active allocations. 
+ * Returns the number of active allocations. 
  *
- * Returns: the number active allocations
+ * Returns: the number of active allocations
  */
 int
 vips_tracked_get_allocs( void )
 {
-	return( vips_tracked_allocs );
+	int n;
+
+	vips_tracked_init(); 
+
+	g_mutex_lock( vips_tracked_mutex );
+
+	n = vips_tracked_allocs;
+
+	g_mutex_unlock( vips_tracked_mutex );
+
+	return( n );
+}
+
+
+/**
+ * vips_tracked_get_files:
+ *
+ * Returns the number of open files. 
+ *
+ * Returns: the number of open files
+ */
+int
+vips_tracked_get_files( void )
+{
+	int n;
+
+	vips_tracked_init(); 
+
+	g_mutex_lock( vips_tracked_mutex );
+
+	n = vips_tracked_files;
+
+	g_mutex_unlock( vips_tracked_mutex );
+
+	return( n );
 }
 

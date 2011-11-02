@@ -7,15 +7,8 @@
 
   this doesn't work, I wonder why ... do we need to add an extra ref to t?
 
+  yes, the old obj holds a ref to the operation, not the other way around
 
-
-
-- in cache.c, we must not include the hash of the output objects, I guess we
-  don't
-
-
-
-- get rid of vipspool
 
 
 
@@ -25,6 +18,12 @@
 	VipsImage *a = vips_image_new_from_file( "poop.jpg" );
 
   can be reused
+
+  ah ha! will im_jpeg2vips() or whatever get cached? that would do the reuse
+  for us
+  
+  move format to new-style and try it
+
 
 
 
@@ -44,6 +43,8 @@
 
   should boxed get freed in finalise rather than dispose?
 
+  vipsobject has few docs atm :(
+
 
 
 
@@ -58,6 +59,8 @@
   why not combine these into a single API call?
 
   use array version in several places
+
+  things like black and min (sources and sinks) only set the dhint
 
 
 

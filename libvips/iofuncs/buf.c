@@ -502,6 +502,55 @@ vips_buf_appendgv( VipsBuf *buf, GValue *value )
 }
 
 /**
+ * vips_buf_append_size:
+ * @buf: the buffer
+ * @n: the number of bytes
+ *
+ * Turn a number of bytes into a sensible string ... eg "12", "12KB", "12MB",
+ * "12GB" etc.
+ * 
+ * Returns: %FALSE on overflow, %TRUE otherwise.
+ */
+gboolean
+vips_buf_append_size( VipsBuf *buf, size_t n )
+{
+	const static char *names[] = { 
+		/* File length unit.
+		 */
+		N_( "bytes" ), 
+
+		/* Kilo byte unit.
+		 */
+		N_( "KB" ), 
+
+		/* Mega byte unit.
+		 */
+		N_( "MB" ), 
+
+		/* Giga byte unit.
+		 */
+		N_( "GB" ), 
+
+		/* Tera byte unit.
+		 */
+		N_( "TB" ) 
+	};
+
+	double sz = n;
+	int i;
+
+	for( i = 0; sz > 1024 && i < VIPS_NUMBER( names ); sz /= 1024, i++ )
+		;
+
+	if( i == 0 )
+		/* No decimal places for bytes.
+		 */
+		return( vips_buf_appendf( buf, "%g %s", sz, _( names[i] ) ) );
+	else
+		return( vips_buf_appendf( buf, "%.2f %s", sz, _( names[i] ) ) );
+}
+
+/**
  * vips_buf_all:
  * @buf: the buffer
  *

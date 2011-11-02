@@ -29,6 +29,8 @@
 - added array members and arguments
 - added nary
 - remove VipsPool, vips_object_local_array() is much better
+- cache.c now drops if you have too many open files
+- CLI args to change max files
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

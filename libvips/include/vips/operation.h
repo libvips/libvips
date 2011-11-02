@@ -88,6 +88,8 @@ void vips_cache_set_max_mem( int max_mem );
 int vips_cache_get_max( void );
 int vips_cache_get_size( void );
 size_t vips_cache_get_max_mem( void );
+int vips_cache_get_max_files( void );
+void vips_cache_set_max_files( int max_files );
 
 #ifdef __cplusplus
 }

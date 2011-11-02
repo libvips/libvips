@@ -70,10 +70,15 @@
  */
 char *vips__cache_max = NULL;
 char *vips__cache_max_mem = NULL;
+char *vips__cache_max_files = NULL;
 
 /* Max number of cached operations.
  */
 static int vips_cache_max = 10000;
+
+/* How many tracked open files we allow before we start dropping cache.
+ */
+static int vips_cache_max_files = 900;
 
 /* How much RAM we spend on caches before we start dropping cached operations
  * ... default 1gb.
@@ -397,6 +402,10 @@ vips_cache_init( void )
 		if( vips__cache_max_mem ) 
 			vips_cache_max_mem = 
 				vips__parse_size( vips__cache_max_mem );
+
+		if( vips__cache_max_files ) 
+			vips_cache_max_files = 
+				vips__parse_size( vips__cache_max_files );
 	}
 }
 
@@ -507,6 +516,7 @@ vips_cache_trim( void )
 	VipsOperation *operation;
 
 	while( (g_hash_table_size( vips_cache_table ) > vips_cache_max ||
+		vips_tracked_get_files() > vips_cache_max_files ||
 		vips_tracked_get_mem() > vips_cache_max_mem) &&
 		(operation = vips_cache_select()) )
 		vips_cache_drop( operation );
@@ -668,4 +678,35 @@ size_t
 vips_cache_get_max_mem( void )
 {
 	return( vips_cache_max_mem );
+}
+
+/**
+ * vips_cache_get_max_files:
+ *
+ * Get the maximum number of tracked files we allow before we start dropping
+ * cached operations. See vips_tracked_get_files().
+ *
+ * See also: vips_tracked_get_files(). 
+ *
+ * Returns: the maximum number of tracked files we allow
+ */
+int
+vips_cache_get_max_files( void )
+{
+	return( vips_cache_max_files );
+}
+
+/**
+ * vips_cache_set_max_files:
+ *
+ * Set the maximum number of tracked files we allow before we start dropping
+ * cached operations. See vips_tracked_get_files().
+ *
+ * See also: vips_tracked_get_files(). 
+ */
+void
+vips_cache_set_max_files( int max_files )
+{
+	vips_cache_max_files = max_files;
+	vips_cache_trim();
 }

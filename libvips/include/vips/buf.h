@@ -69,6 +69,7 @@ gboolean vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap );
 gboolean vips_buf_appendc( VipsBuf *buf, char ch );
 gboolean vips_buf_appendsc( VipsBuf *buf, gboolean quote, const char *str );
 gboolean vips_buf_appendgv( VipsBuf *buf, GValue *value );
+gboolean vips_buf_append_size( VipsBuf *buf, size_t n );
 gboolean vips_buf_removec( VipsBuf *buf, char ch );
 gboolean vips_buf_change( VipsBuf *buf, const char *o, const char *n );
 gboolean vips_buf_is_empty( VipsBuf *buf );

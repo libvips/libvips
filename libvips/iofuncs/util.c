@@ -1494,4 +1494,3 @@ vips__parse_size( const char *size_string )
 
 	return( size );
 }
-

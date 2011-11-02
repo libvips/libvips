@@ -224,7 +224,7 @@ vips_image_finalize( GObject *gobject )
 
 		if( image->dtype == VIPS_IMAGE_OPENOUT )
 			(void) vips__writehist( image );
-		if( close( image->fd ) == -1 ) 
+		if( vips_tracked_close( image->fd ) == -1 ) 
 			vips_error( "VipsImage", 
 				"%s", _( "unable to close fd" ) );
 		image->fd = -1;

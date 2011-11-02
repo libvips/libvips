@@ -290,17 +290,30 @@ void
 vips_shutdown( void )
 {
 	vips_cache_drop_all();
+	im_close_plugins();
 
+	/* In dev releases, always show leaks.
+	 */
+#ifndef DEBUG_LEAK
 	if( vips__leak ) 
+#endif /*DEBUG_LEAK*/
+	{
+		char txt[1024];
+		VipsBuf buf = VIPS_BUF_STATIC( txt );
+
 		vips_object_print_all();
 
-/* In dev releases, always show leaks.
- */
-#ifdef DEBUG_LEAK
-	vips_object_print_all();
-#endif /*DEBUG_LEAK*/
+		vips_buf_appendf( &buf,
+			"tracked memory: %d allocations totalling %zd bytes\n",
+			vips_tracked_get_allocs(),
+			vips_tracked_get_mem() );
+		vips_buf_appendf( &buf, "tracked memory: high-water mark " );
+		vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
+		vips_buf_appendf( &buf, "\ntracked files: %d open\n",
+			vips_tracked_get_files() );
 
-	im_close_plugins();
+		printf( "%s", vips_buf_all( &buf ) );
+	}
 }
 
 const char *
@@ -353,6 +366,9 @@ static GOptionEntry option_entries[] = {
 	{ "vips-cache-max-memory", 'm', 0, 
 		G_OPTION_ARG_STRING, &vips__cache_max_mem, 
 		N_( "cache at most N bytes in memory" ), "N" },
+	{ "vips-cache-max-files", 'l', 0, 
+		G_OPTION_ARG_STRING, &vips__cache_max_files, 
+		N_( "allow at most N open files" ), "N" },
 	{ NULL }
 };
 
