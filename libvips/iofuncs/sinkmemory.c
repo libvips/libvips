@@ -51,35 +51,35 @@
 
 /* Per-call state.
  */
-typedef struct _Sink {
+typedef struct _SinkMemory {
 	SinkBase sink_base;
 
 	/* A big region for the image memory. All the threads write to this.
 	 */
 	VipsRegion *all;
-} Sink;
+} SinkMemory;
 
 static void
-sink_free( Sink *sink )
+sink_memory_free( SinkMemory *memory )
 {
-	VIPS_UNREF( sink->all );
+	VIPS_UNREF( memory->all );
 }
 
 static int
-sink_init( Sink *sink, VipsImage *im ) 
+sink_memory_init( SinkMemory *memory, VipsImage *im ) 
 {
 	VipsRect all;
 
-	vips_sink_base_init( &sink->sink_base, im );
+	vips_sink_base_init( &memory->sink_base, im );
 
 	all.left = 0;
 	all.top = 0;
 	all.width = im->Xsize;
 	all.height = im->Ysize;
 
-	if( !(sink->all = vips_region_new( im )) ||
-		vips_region_image( sink->all, &all ) ) {
-		sink_free( sink );
+	if( !(memory->all = vips_region_new( im )) ||
+		vips_region_image( memory->all, &all ) ) {
+		sink_memory_free( memory );
 		return( -1 );
 	}
 
@@ -87,19 +87,19 @@ sink_init( Sink *sink, VipsImage *im )
 }
 
 static int 
-sink_work( VipsThreadState *state, void *a )
+sink_memory_work( VipsThreadState *state, void *a )
 {
-	Sink *sink = (Sink *) a;
+	SinkMemory *memory = (SinkMemory *) a;
 
-	VIPS_DEBUG_MSG( "sink_work: %p "
+	VIPS_DEBUG_MSG( "sink_memory_work: %p "
 		"left = %d, top = %d, width = %d, height = %d\n", 
-		sink,
+		memory,
 		state->pos.left, 
 		state->pos.top, 
 		state->pos.width, 
 		state->pos.height ); 
 
-	if( vips_region_prepare_to( state->reg, sink->all, 
+	if( vips_region_prepare_to( state->reg, memory->all, 
 		&state->pos, state->pos.left, state->pos.top ) )
 		return( -1 );
 
@@ -109,7 +109,7 @@ sink_work( VipsThreadState *state, void *a )
 		state->pos.left, state->pos.top );
 	int i;
 
-	VIPS_DEBUG_MSG( "sink_work: %p\n", sink );
+	VIPS_DEBUG_MSG( "sink_memory_work: %p\n", memory );
 	for( i = 0; i < VIPS_IMAGE_SIZEOF_PEL( state->reg->im ); i++ )
 		printf( "\t%d) %02x\n", i, p[i] );
 }
@@ -132,7 +132,7 @@ sink_work( VipsThreadState *state, void *a )
 int
 vips_sink_memory( VipsImage *image ) 
 {
-	Sink sink;
+	SinkMemory memory;
 	int result;
 
 	VIPS_DEBUG_MSG( "vips_sink_memory: %p\n", image ); 
@@ -144,7 +144,7 @@ vips_sink_memory( VipsImage *image )
 	 */
 	image->Bbits = vips_format_sizeof( image->BandFmt ) << 3;
  
-	if( sink_init( &sink, image ) )
+	if( sink_memory_init( &memory, image ) )
 		return( -1 );
 
 	vips_image_preeval( image );
@@ -152,13 +152,13 @@ vips_sink_memory( VipsImage *image )
 	result = vips_threadpool_run( image, 
 		vips_thread_state_new,
 		vips_sink_base_allocate, 
-		sink_work, 
+		sink_memory_work, 
 		vips_sink_base_progress, 
-		&sink );
+		&memory );
 
 	vips_image_posteval( image );
 
-	sink_free( &sink );
+	sink_memory_free( &memory );
 
 	return( result );
 }

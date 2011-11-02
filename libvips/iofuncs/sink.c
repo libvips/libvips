@@ -81,10 +81,6 @@ typedef struct _SinkThreadState {
 	 * parent_object.reg, it's defined on the outer image.
 	 */
 	VipsRegion *reg;
-
-	/* Set this in work to get the allocate to signal stop.
-	 */
-	gboolean stop;
 } SinkThreadState;
 
 typedef struct _SinkThreadStateClass {
@@ -184,11 +180,10 @@ sink_thread_state_init( SinkThreadState *state )
 {
 	state->seq = NULL;
 	state->reg = NULL;
-	state->stop = FALSE;
 }
 
-static VipsThreadState *
-sink_thread_state_new( VipsImage *im, void *a )
+VipsThreadState *
+vips_sink_thread_state_new( VipsImage *im, void *a )
 {
 	return( VIPS_THREAD_STATE( vips_object_new( 
 		sink_thread_state_get_type(), 
@@ -247,14 +242,13 @@ sink_init( Sink *sink,
 int 
 vips_sink_base_allocate( VipsThreadState *state, void *a, gboolean *stop )
 {
-	SinkThreadState *sstate = (SinkThreadState *) state;
 	SinkBase *sink_base = (SinkBase *) a;
 
 	VipsRect image, tile;
 
 	/* Has work requested early termination?
 	 */
-	if( sstate->stop ) {
+	if( state->stop ) {
 		*stop = TRUE;
 
 		return( 0 );
@@ -300,7 +294,7 @@ sink_work( VipsThreadState *state, void *a )
 
 	if( vips_region_prepare( sstate->reg, &state->pos ) ||
 		sink->generate_fn( sstate->reg, sstate->seq, 
-			sink->a, sink->b, &sstate->stop ) ) 
+			sink->a, sink->b, &state->stop ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -379,7 +373,7 @@ vips_sink_tile( VipsImage *im,
 	vips_image_preeval( im );
 
 	result = vips_threadpool_run( im, 
-		sink_thread_state_new,
+		vips_sink_thread_state_new,
 		vips_sink_base_allocate, 
 		sink_work, 
 		vips_sink_base_progress, 

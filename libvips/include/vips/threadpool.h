@@ -79,6 +79,10 @@ typedef struct _VipsThreadState {
 	VipsRect pos;
 	int x, y;
 
+	/* Set in work to get the allocate to signal stop.
+	 */
+	gboolean stop;
+
 	/* The client data passed to the enclosing vips_threadpool_run().
 	 */
         void *a;

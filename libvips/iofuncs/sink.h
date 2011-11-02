@@ -58,6 +58,7 @@ typedef struct _SinkBase {
 /* Some function we can share.
  */
 void vips_sink_base_init( SinkBase *sink_base, VipsImage *image );
+VipsThreadState *vips_sink_thread_state_new( VipsImage *im, void *a );
 int vips_sink_base_allocate( VipsThreadState *state, void *a, gboolean *stop );
 int vips_sink_base_progress( void *a );
 

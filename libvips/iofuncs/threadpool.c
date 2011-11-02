@@ -287,6 +287,7 @@ vips_thread_state_init( VipsThreadState *state )
 	VIPS_DEBUG_MSG( "vips_thread_state_init:\n" );
 
 	state->reg = NULL;
+	state->stop = FALSE;
 }
 
 void *
