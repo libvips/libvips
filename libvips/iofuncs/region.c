@@ -201,10 +201,10 @@ vips__region_start( VipsRegion *region )
 {
 	VipsImage *image = region->im;
 
-        if( !region->seq && image->start ) {
+        if( !region->seq && image->start_fn ) {
                 g_mutex_lock( image->sslock );
-                region->seq = 
-			image->start( image, image->client1, image->client2 );
+                region->seq = image->start_fn( image, 
+			image->client1, image->client2 );
                 g_mutex_unlock( image->sslock );
  
                 if( !region->seq ) {
@@ -225,11 +225,11 @@ vips__region_stop( VipsRegion *region )
 {
 	IMAGE *image = region->im;
 
-        if( region->seq && image->stop ) {
+        if( region->seq && image->stop_fn ) {
 		int result;
 
                 g_mutex_lock( image->sslock );
-               	result = image->stop( region->seq, 
+               	result = image->stop_fn( region->seq, 
 			image->client1, image->client2 );
                 g_mutex_unlock( image->sslock );
 
@@ -321,7 +321,7 @@ vips_region_sanity( VipsObject *object, VipsBuf *buf )
 	case VIPS_IMAGE_PARTIAL:
 		/* Start and stop can be NULL, but not generate.
 		 */
-		if( !region->im->generate )
+		if( !region->im->generate_fn )
 			vips_buf_appends( buf, "generate NULL in partial\n" );
 		break;
 	
@@ -796,7 +796,7 @@ int
 vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 {
 	g_assert( reg->im->dtype == VIPS_IMAGE_PARTIAL );
-	g_assert( reg->im->generate );
+	g_assert( reg->im->generate_fn );
 
 	/* Should have local memory.
 	 */
@@ -986,7 +986,7 @@ vips_region_generate( VipsRegion *reg )
 
 	/* Ask for evaluation.
 	 */
-	if( im->generate( reg, reg->seq, im->client1, im->client2 ) )
+	if( im->generate_fn( reg, reg->seq, im->client1, im->client2 ) )
 		return( -1 );
 
 	return( 0 );
@@ -1093,7 +1093,7 @@ vips_region_prepare_to_generate( VipsRegion *reg,
 	IMAGE *im = reg->im;
 	char *p;
 
-	if( !im->generate ) {
+	if( !im->generate_fn ) {
 		vips_error( "vips_region_prepare_to",
 			"%s", _( "incomplete header" ) );
 		return( -1 );
@@ -1248,7 +1248,7 @@ vips_region_prepare_to( VipsRegion *reg,
 		/* Could be either input or output. If there is a generate
 		 * function, we are outputting.
 		 */
-		if( im->generate ) {
+		if( im->generate_fn ) {
 			if( vips_region_prepare_to_generate( reg, 
 				dest, &final, x, y ) )
 				return( -1 );

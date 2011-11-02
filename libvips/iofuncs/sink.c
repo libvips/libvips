@@ -61,9 +61,9 @@ typedef struct _Sink {
 
 	/* Call params.
 	 */
-	VipsStartFn start;
-	VipsGenerateFn generate;
-	VipsStopFn stop;
+	VipsStartFn start_fn;
+	VipsGenerateFn generate_fn;
+	VipsStopFn stop_fn;
 	void *a;
 	void *b;
 } Sink;
@@ -99,10 +99,10 @@ G_DEFINE_TYPE( SinkThreadState, sink_thread_state, VIPS_TYPE_THREAD_STATE );
 static int
 sink_call_stop( Sink *sink, SinkThreadState *state )
 {
-	if( state->seq && sink->stop ) {
+	if( state->seq && sink->stop_fn ) {
 		VIPS_DEBUG_MSG( "sink_call_stop: state = %p\n", state );
 
-		if( sink->stop( state->seq, sink->a, sink->b ) ) {
+		if( sink->stop_fn( state->seq, sink->a, sink->b ) ) {
 			SinkBase *sink_base = (SinkBase *) sink;
 
 			vips_error( "vips_sink", 
@@ -134,10 +134,10 @@ sink_thread_state_dispose( GObject *gobject )
 static int
 sink_call_start( Sink *sink, SinkThreadState *state )
 {
-	if( !state->seq && sink->start ) {
+	if( !state->seq && sink->start_fn ) {
 		VIPS_DEBUG_MSG( "sink_call_start: state = %p\n", state );
 
-                state->seq = sink->start( sink->t, sink->a, sink->b );
+                state->seq = sink->start_fn( sink->t, sink->a, sink->b );
 
 		if( !state->seq ) {
 			SinkBase *sink_base = (SinkBase *) sink;
@@ -221,17 +221,17 @@ vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 static int
 sink_init( Sink *sink, 
 	VipsImage *image, 
-	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b )
 {
-	g_assert( generate );
+	g_assert( generate_fn );
 
 	vips_sink_base_init( &sink->sink_base, image );
 
 	sink->t = NULL;
-	sink->start = start;
-	sink->generate = generate;
-	sink->stop = stop;
+	sink->start_fn = start_fn;
+	sink->generate_fn = generate_fn;
+	sink->stop_fn = stop_fn;
 	sink->a = a;
 	sink->b = b;
 
@@ -299,7 +299,7 @@ sink_work( VipsThreadState *state, void *a )
 	Sink *sink = (Sink *) a;
 
 	if( vips_region_prepare( sstate->reg, &state->pos ) ||
-		sink->generate( sstate->reg, sstate->seq, 
+		sink->generate_fn( sstate->reg, sstate->seq, 
 			sink->a, sink->b, &sstate->stop ) ) 
 		return( -1 );
 
@@ -330,9 +330,9 @@ vips_sink_base_progress( void *a )
  * @im: scan over this image
  * @tile_width: tile width
  * @tile_height: tile height
- * @start: start sequences with this function
- * @generate: generate pixels with this function
- * @stop: stop sequences with this function
+ * @start_fn: start sequences with this function
+ * @generate_fn: generate pixels with this function
+ * @stop_fn: stop sequences with this function
  * @a: user data
  * @b: user data
  *
@@ -352,7 +352,7 @@ vips_sink_base_progress( void *a )
 int
 vips_sink_tile( VipsImage *im, 
 	int tile_width, int tile_height,
-	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b )
 {
 	Sink sink;
@@ -365,7 +365,7 @@ vips_sink_tile( VipsImage *im,
 	 */
 	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
  
-	if( sink_init( &sink, im, start, generate, stop, a, b ) )
+	if( sink_init( &sink, im, start_fn, generate_fn, stop_fn, a, b ) )
 		return( -1 );
 
 	if( tile_width > 0 ) {
@@ -395,9 +395,9 @@ vips_sink_tile( VipsImage *im,
 /**
  * vips_sink:
  * @im: scan over this image
- * @start: start sequences with this function
- * @generate: generate pixels with this function
- * @stop: stop sequences with this function
+ * @start_fn: start sequences with this function
+ * @generate_fn: generate pixels with this function
+ * @stop_fn: stop sequences with this function
  * @a: user data
  * @b: user data
  *
@@ -414,8 +414,9 @@ vips_sink_tile( VipsImage *im,
  */
 int
 vips_sink( VipsImage *im, 
-	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b )
 {
-	return( vips_sink_tile( im, -1, -1, start, generate, stop, a, b ) );
+	return( vips_sink_tile( im, -1, -1, 
+		start_fn, generate_fn, stop_fn, a, b ) );
 }

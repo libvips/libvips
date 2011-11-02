@@ -44,11 +44,11 @@ typedef int (*VipsGenerateFn)( VipsRegion *out,
 	void *seq, void *a, void *b, gboolean *stop );
 typedef int (*VipsStopFn)( void *seq, void *a, void *b );
 int vips_sink( VipsImage *im, 
-	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b );
 int vips_sink_tile( VipsImage *im, 
 	int tile_width, int tile_height,
-	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b );
 
 typedef void (*VipsSinkNotify)( VipsImage *im, VipsRect *rect, void *a );
@@ -69,7 +69,7 @@ VipsImage **vips_allocate_input_array( VipsImage *out, ... )
 	__attribute__((sentinel));
 
 int vips_image_generate( VipsImage *im,
-	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b
 );
 

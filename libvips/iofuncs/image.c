@@ -185,9 +185,9 @@ vips_image_finalize( GObject *gobject )
 
 	/* Junk generate functions. 
 	 */
-	image->start = NULL;
-	image->generate = NULL;
-	image->stop = NULL;
+	image->start_fn = NULL;
+	image->generate_fn = NULL;
+	image->stop_fn = NULL;
 	image->client1 = NULL;
 	image->client2 = NULL;
 
@@ -2095,7 +2095,7 @@ vips_image_wio_output( VipsImage *image )
 	case VIPS_IMAGE_PARTIAL:
 		/* Make sure nothing is attached.
 		 */
-		if( image->generate ) {
+		if( image->generate_fn ) {
 			vips_error( "vips_image_wio_output", 
 				"%s", _( "image already written" ) );
 			return( -1 );
@@ -2213,16 +2213,16 @@ vips_image_pio_input( VipsImage *image )
 
 		/* Should be no generate functions now.
 		 */
-		image->start = NULL;
-		image->generate = NULL;
-		image->stop = NULL;
+		image->start_fn = NULL;
+		image->generate_fn = NULL;
+		image->stop_fn = NULL;
 
 		break;
 
 	case VIPS_IMAGE_PARTIAL:
 		/* Should have had generate functions attached.
 		 */
-		if( !image->generate ) {
+		if( !image->generate_fn ) {
 			vips_error( "vips_image_pio_input", 
 				"%s", _( "no image data" ) );
 			return( -1 );
@@ -2284,7 +2284,7 @@ vips_image_pio_output( VipsImage *image )
 		break;
 
 	case VIPS_IMAGE_PARTIAL:
-		if( image->generate ) {
+		if( image->generate_fn ) {
 			vips_error( "im_poutcheck", 
 				"%s", _( "image already written" ) );
 			return( -1 );

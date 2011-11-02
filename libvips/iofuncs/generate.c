@@ -567,9 +567,9 @@ write_vips( VipsRegion *region, VipsRect *area, void *a, void *b )
 /**
  * vips_image_generate:
  * @image: generate this image
- * @start: start sequences with this function
- * @generate: generate pixels with this function
- * @stop: stop sequences with this function
+ * @start_fn: start sequences with this function
+ * @generate_fn: generate pixels with this function
+ * @stop_fn: stop sequences with this function
  * @a: user data
  * @b: user data
  *
@@ -591,14 +591,14 @@ write_vips( VipsRegion *region, VipsRect *area, void *a, void *b )
  */
 int
 vips_image_generate( VipsImage *image,
-	VipsStartFn start, VipsGenerateFn generate, VipsStopFn stop,
+	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
         void *a, void *b )
 {
         int res;
 
 	VIPS_DEBUG_MSG( "vips_image_generate: %p\n", image ); 
 
-	g_assert( generate );
+	g_assert( generate_fn );
 	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 	if( !image->hint_set ) {
@@ -618,17 +618,17 @@ vips_image_generate( VipsImage *image,
         case VIPS_IMAGE_PARTIAL:
                 /* Output to partial image. Just attach functions and return.
                  */
-                if( image->generate || 
-			image->start || 
-			image->stop ) {
+                if( image->generate_fn || 
+			image->start_fn || 
+			image->stop_fn ) {
                         vips_error( "VipsImage", 
 				"%s", _( "generate() called twice" ) );
                         return( -1 );
                 }
 
-                image->start = start;
-                image->generate = generate;
-                image->stop = stop;
+                image->start_fn = start_fn;
+                image->generate_fn = generate_fn;
+                image->stop_fn = stop_fn;
                 image->client1 = a;
                 image->client2 = b;
  
@@ -643,9 +643,9 @@ vips_image_generate( VipsImage *image,
         case VIPS_IMAGE_OPENOUT:
                 /* Eval now .. sanity check.
                  */
-                if( image->generate || 
-			image->start || 
-			image->stop ) {
+                if( image->generate_fn || 
+			image->start_fn || 
+			image->stop_fn ) {
                         vips_error( "VipsImage", 
 				"%s", _( "generate() called twice" ) );
                         return( -1 );
@@ -653,9 +653,9 @@ vips_image_generate( VipsImage *image,
 
                 /* Attach callbacks.
                  */
-                image->start = start;
-                image->generate = generate;
-                image->stop = stop;
+                image->start_fn = start_fn;
+                image->generate_fn = generate_fn;
+                image->stop_fn = stop_fn;
                 image->client1 = a;
                 image->client2 = b;
 

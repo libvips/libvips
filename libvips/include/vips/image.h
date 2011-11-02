@@ -297,9 +297,9 @@ typedef struct _VipsImage {
 	/* Partial image stuff. All these fields are initialised 
 	 * to NULL and ignored unless set by vips_image_generate() etc.
 	 */
-	void *(*start)();	/* user-supplied start function */
-	int (*generate)();	/* user-supplied generate function */
-	int (*stop)();		/* user-supplied stop function */
+	void *(*start_fn)();	/* user-supplied start function */
+	int (*generate_fn)();	/* user-supplied generate function */
+	int (*stop_fn)();	/* user-supplied stop function */
 	void *client1;		/* user arguments */
 	void *client2;
 	GMutex *sslock;		/* start-stop lock */

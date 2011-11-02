@@ -31,6 +31,22 @@ it's the 'stop' member of SinkThreadState
 		return( 0 );
 	}
 
+argh we have ->stop (a bool) and ->stop (a function)
+
+rename the function as stop_fn
+
+sstate is the "state" member of VipsThread
+
+which is created by the ->start member of the thread
+
+which is set by vips_threadpool_run()
+
+which is vips_thread_state_new(), see vips_sink_memory()
+
+which creates a VipsThreadState
+
+
+so .. move ->stop from SinkThreadState into the base class, VipsThreadState
 
 
 
