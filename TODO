@@ -103,7 +103,7 @@
 
 	exif-Orientation: 1 (Top-left, Short, 1 component, 2 bytes)
 
-  so we can restore the value from the "1" without needding to look up i18n
+  so we can restore the value from the "1" without needing to look up i18n
   strings
 
 

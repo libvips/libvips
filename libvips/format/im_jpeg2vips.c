@@ -254,36 +254,128 @@ show_values( ExifData *data )
 #endif /*HAVE_EXIF*/
 
 #ifdef HAVE_EXIF
-static void
-attach_exif_entry( ExifEntry *entry, IMAGE *im )
+
+static int
+vips_exif_get_int( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, int *out )
 {
-	char name_text[256];
-	VipsBuf name;
-	char value_text[256];
-	VipsBuf value;
-	char exif_value[256];
+	ExifByteOrder bo = exif_data_get_byte_order( ed );
+	size_t sizeof_component = entry->size / entry->components;
+	size_t offset = component * sizeof_component;
 
-	vips_buf_init_static( &name, name_text, 256 );
-	vips_buf_init_static( &value, value_text, 256 );
+	if( entry->format == EXIF_FORMAT_SHORT ) 
+		*out = exif_get_short( entry->data + offset, bo );
+	else if( entry->format == EXIF_FORMAT_SSHORT ) 
+		*out = exif_get_sshort( entry->data + offset, bo );
+	else if( entry->format == EXIF_FORMAT_LONG ) 
+		/* This won't work for huge values, but who cares.
+		 */
+		*out = (int) exif_get_long( entry->data + offset, bo );
+	else if( entry->format == EXIF_FORMAT_SLONG ) 
+		*out = exif_get_slong( entry->data + offset, bo );
+	else
+		return( -1 );
 
-	vips_buf_appendf( &name, "exif-%s", exif_tag_get_title( entry->tag ) );
-	vips_buf_appendf( &value, "%s (%s, %lu components, %d bytes)", 
-		exif_entry_get_value( entry, exif_value, 256 ),
+	return( 0 );
+}
+
+static int
+vips_exif_get_double( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, double *out )
+{
+	ExifByteOrder bo = exif_data_get_byte_order( ed );
+	size_t sizeof_component = entry->size / entry->components;
+	size_t offset = component * sizeof_component;
+
+	if( entry->format == EXIF_FORMAT_RATIONAL ) {
+		ExifRational value;
+
+		value = exif_get_rational( entry->data + offset, bo );
+		*out = (double) value.numerator / value.denominator;
+	}
+	else if( entry->format == EXIF_FORMAT_SRATIONAL ) {
+		ExifSRational value;
+
+		value = exif_get_srational( entry->data + offset, bo );
+		*out = (double) value.numerator / value.denominator;
+	}
+	else
+		return( -1 );
+
+	return( 0 );
+}
+
+/* Save an exif value to a string in a way that we can restore. We only bother
+ * for the simple formats (that a client might try to change) though.
+ *
+ * Keep in sync with vips_exif_from_s() in vips2jpeg.
+ */
+static void
+vips_exif_to_s(  ExifData *ed, ExifEntry *entry, VipsBuf *buf )
+{
+	unsigned long i;
+	int iv;
+	double dv;
+	char txt[256];
+
+	if( entry->format == EXIF_FORMAT_ASCII ) 
+		vips_buf_appendf( buf, "%s ", entry->data );
+
+	else if( entry->components < 10 &&
+		!vips_exif_get_int( ed, entry, 0, &iv ) ) {
+		for( i = 0; i < entry->components; i++ ) {
+			vips_exif_get_int( ed, entry, i, &iv );
+			vips_buf_appendf( buf, "%d ", iv );
+		}
+	}
+	else if( entry->components < 10 &&
+		!vips_exif_get_double( ed, entry, 0, &dv ) ) {
+		for( i = 0; i < entry->components; i++ ) {
+			vips_exif_get_double( ed, entry, i, &dv );
+			/* Need to be locale independent.
+			 */
+			g_ascii_dtostr( txt, 256, dv );
+			vips_buf_appendf( buf, "%s ", txt );
+		}
+	}
+	else 
+		vips_buf_appendf( buf, "%s ", 
+			exif_entry_get_value( entry, txt, 256 ) );
+
+	vips_buf_appendf( buf, "(%s, %s, %lu components, %d bytes)", 
+		exif_entry_get_value( entry, txt, 256 ),
 		exif_format_get_name( entry->format ),
 		entry->components,
 		entry->size );
+}
+
+typedef struct _VipsExif {
+	VipsImage *image;
+	ExifData *ed;
+} VipsExif;
+       
+static void
+attach_exif_entry( ExifEntry *entry, VipsExif *ve )
+{
+	char name_txt[256];
+	VipsBuf name = VIPS_BUF_STATIC( name_txt );
+	char value_txt[256];
+	VipsBuf value = VIPS_BUF_STATIC( value_txt );
+
+	vips_buf_appendf( &name, "exif-%s", exif_tag_get_title( entry->tag ) );
+	vips_exif_to_s( ve->ed, entry, &value ); 
 
 	/* Can't do anything sensible with the error return.
 	 */
-	(void) im_meta_set_string( im, 
+	(void) im_meta_set_string( ve->image, 
 		vips_buf_all( &name ), vips_buf_all( &value ) );
 }
 
 static void
-attach_exif_content( ExifContent *content, IMAGE *im )
+attach_exif_content( ExifContent *content, VipsExif *ve )
 {
         exif_content_foreach_entry( content, 
-		(ExifContentForeachEntryFunc) attach_exif_entry, im );
+		(ExifContentForeachEntryFunc) attach_exif_entry, ve );
 }
 
 /* Just find the first occurence of the tag (is this correct?)
@@ -307,19 +399,13 @@ static int
 get_entry_rational( ExifData *ed, ExifTag tag, double *out )
 {
 	ExifEntry *entry;
-	ExifRational rational;
 
 	if( !(entry = find_entry( ed, tag )) ||
 		entry->format != EXIF_FORMAT_RATIONAL ||
 		entry->components != 1 )
 		return( -1 );
 
-	rational = exif_get_rational( entry->data,
-		exif_data_get_byte_order( ed ) );
-
-	*out = (double) rational.numerator / rational.denominator;
-
-	return( 0 );
+	return( vips_exif_get_double( ed, entry, 0, out ) );
 }
 
 static int
@@ -332,10 +418,7 @@ get_entry_short( ExifData *ed, ExifTag tag, int *out )
 		entry->components != 1 )
 		return( -1 );
 
-	*out = exif_get_short( entry->data,
-		exif_data_get_byte_order( ed ) );
-
-	return( 0 );
+	return( vips_exif_get_int( ed, entry, 0, out ) );
 }
 
 static void
@@ -434,6 +517,8 @@ read_exif( IMAGE *im, void *data, int data_length )
 		return( -1 );
 
 	if( ed->size > 0 ) {
+		VipsExif ve;
+
 #ifdef DEBUG_VERBOSE
 		show_tags( ed );
 		show_values( ed );
@@ -448,8 +533,10 @@ read_exif( IMAGE *im, void *data, int data_length )
 			layer?
 
 		 */
+		ve.image = im;
+		ve.ed = ed;
 		exif_data_foreach_content( ed, 
-			(ExifDataForeachContentFunc) attach_exif_content, im );
+			(ExifDataForeachContentFunc) attach_exif_content, &ve );
 
 		/* Look for resolution fields and use them to set the VIPS 
 		 * xres/yres fields.
