@@ -37,6 +37,8 @@
  * 	- added im_bufjpeg2vips()
  * 12/10/2011
  * 	- read XMP data
+ * 3/11/11
+ * 	- attach exif tags as coded values 
  */
 
 /*
@@ -353,7 +355,7 @@ typedef struct _VipsExif {
 	VipsImage *image;
 	ExifData *ed;
 } VipsExif;
-       
+
 static void
 attach_exif_entry( ExifEntry *entry, VipsExif *ve )
 {

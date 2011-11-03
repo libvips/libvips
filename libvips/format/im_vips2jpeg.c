@@ -44,6 +44,8 @@
  * 	- write XMP data
  * 18/10/2011
  * 	- update Orientation as well
+ * 3/11/11
+ * 	- rebuild exif tags from coded metadata values 
  */
 
 /*
@@ -75,6 +77,7 @@
 /*
 #define DEBUG_VERBOSE
 #define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -136,6 +139,7 @@ im_vips2mimejpeg( IMAGE *in, int qfac )
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 #include <vips/buf.h>
 
 /* jpeglib includes jconfig.h, which can define HAVE_STDLIB_H ... which we
@@ -477,42 +481,109 @@ write_new( IMAGE *in )
 
 #ifdef HAVE_EXIF
 static void
-write_rational( ExifEntry *entry, ExifByteOrder bo, void *data )
+vips_exif_set_int( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, void *data )
 {
-	ExifRational *v = (ExifRational *) data;
+	int value = *((int *) data);
 
-	exif_set_rational( entry->data, bo, *v );
+	ExifByteOrder bo;
+	size_t sizeof_component;
+	size_t offset = component;
+
+	if( entry->components <= component ) {
+		VIPS_DEBUG_MSG( "vips_exif_set_int: too few components\n" );
+		return;
+	}
+
+	/* Wait until after the component check to make sure we cant get /0.
+	 */
+	bo = exif_data_get_byte_order( ed );
+	sizeof_component = entry->size / entry->components;
+	offset = component * sizeof_component;
+
+	VIPS_DEBUG_MSG( "vips_exif_set_int: %s = %d\n",
+		exif_tag_get_title( entry->tag ), value );
+
+	if( entry->format == EXIF_FORMAT_SHORT ) 
+		exif_set_short( entry->data + offset, bo, value );
+	else if( entry->format == EXIF_FORMAT_SSHORT ) 
+		exif_set_sshort( entry->data + offset, bo, value );
+	else if( entry->format == EXIF_FORMAT_LONG ) 
+		exif_set_long( entry->data + offset, bo, value );
+	else if( entry->format == EXIF_FORMAT_SLONG ) 
+		exif_set_slong( entry->data + offset, bo, value );
 }
 
 static void
-write_short( ExifEntry *entry, ExifByteOrder bo, void *data )
+vips_exif_set_double( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, void *data )
 {
-	ExifShort *v = (ExifShort *) data;
+	double value = *((double *) data);
 
-	exif_set_short( entry->data, bo, *v );
+	ExifByteOrder bo;
+	size_t sizeof_component;
+	size_t offset;
+
+	if( entry->components <= component ) {
+		VIPS_DEBUG_MSG( "vips_exif_set_int: too few components\n" );
+		return;
+	}
+
+	/* Wait until after the component check to make sure we cant get /0.
+	 */
+	bo = exif_data_get_byte_order( ed );
+	sizeof_component = entry->size / entry->components;
+	offset = component * sizeof_component;
+
+	VIPS_DEBUG_MSG( "vips_exif_set_double: %s = %g\n",
+		exif_tag_get_title( entry->tag ), value );
+
+	if( entry->format == EXIF_FORMAT_RATIONAL ) {
+		ExifRational rational;
+		unsigned int scale;
+
+		/* We scale up to fill uint32, then set that as the
+		 * denominator. Try to avoid generating 0.
+		 */
+		scale = (int) ((UINT_MAX - 1000) / value);
+		scale = scale == 0 ? 1 : scale;
+		rational.numerator = value * scale;
+		rational.denominator = scale;
+
+		exif_set_rational( entry->data + offset, bo, rational );
+	}
+	else if( entry->format == EXIF_FORMAT_SRATIONAL ) {
+		ExifSRational rational;
+		int scale;
+
+		scale = (int) ((INT_MAX - 1000) / value);
+		scale = scale == 0 ? 1 : scale;
+		rational.numerator = value * scale;
+		rational.denominator = scale;
+
+		exif_set_srational( entry->data + offset, bo, rational );
+	}
 }
 
-typedef void (*write_fn)( ExifEntry *, ExifByteOrder, void * );
+typedef void (*write_fn)( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, void *data );
 
+/* Write a component in a tag everywhere it appears.
+ */
 static int
-write_tag( ExifData *ed, ExifTag tag, ExifFormat f, write_fn fn, void *data )
+write_tag( ExifData *ed, 
+	ExifTag tag, ExifFormat format, write_fn fn, void *data )
 {
-	ExifByteOrder bo;
 	int found;
 	int i;
 
-	bo = exif_data_get_byte_order( ed );
-
-	/* Need to set the tag in all sections which have it :-(
-	 */
 	found = 0;
 	for( i = 0; i < EXIF_IFD_COUNT; i++ ) {
 		ExifEntry *entry;
 
 		if( (entry = exif_content_get_entry( ed->ifd[i], tag )) &&
-			entry->format == f &&
-			entry->components == 1 ) {
-			fn( entry, bo, data );
+			entry->format == format ) {
+			fn( ed, entry, 0, data );
 			found = 1;
 		}
 	}
@@ -532,18 +603,20 @@ write_tag( ExifData *ed, ExifTag tag, ExifFormat f, write_fn fn, void *data )
 		exif_entry_initialize( entry, tag );
 		exif_entry_unref( entry );
 
-		fn( entry, bo, data );
+		fn( ed, entry, 0, data );
 	}
 
 	return( 0 );
 }
 
+/* This is different, we set the xres/yres from the vips header rather than
+ * from the exif tags on the image metadata.
+ */
 static int
 set_exif_resolution( ExifData *ed, IMAGE *im )
 {
 	double xres, yres;
-	ExifRational xres_rational, yres_rational;
-	ExifShort unit;
+	int unit;
 
 	/* Always save as inches - more progs support it for read.
 	 */
@@ -551,19 +624,12 @@ set_exif_resolution( ExifData *ed, IMAGE *im )
 	yres = im->Yres * 25.4;
 	unit = 2;
 
-	/* Wow, how dumb, fix this.
-	 */
-	xres_rational.numerator = xres * 100000;
-	xres_rational.denominator = 100000;
-	yres_rational.numerator = yres * 100000;
-	yres_rational.denominator = 100000;
-
 	if( write_tag( ed, EXIF_TAG_X_RESOLUTION, EXIF_FORMAT_RATIONAL, 
-		write_rational, &xres_rational ) ||
+		vips_exif_set_double, (void *) &xres ) ||
 		write_tag( ed, EXIF_TAG_Y_RESOLUTION, EXIF_FORMAT_RATIONAL, 
-			write_rational, &yres_rational ) ||
+			vips_exif_set_double, (void *) &yres ) ||
 		write_tag( ed, EXIF_TAG_RESOLUTION_UNIT, EXIF_FORMAT_SHORT, 
-			write_short, &unit ) ) {
+			vips_exif_set_int, (void *) &unit ) ) {
 		im_error( "im_jpeg2vips", 
 			"%s", _( "error setting JPEG resolution" ) );
 		return( -1 );
@@ -572,61 +638,95 @@ set_exif_resolution( ExifData *ed, IMAGE *im )
 	return( 0 );
 }
 
-static void *
-update_orientation_cb( VipsImage *in, const char *name, GValue *value, void *a )
+/* See also vips_exif_to_s() ... keep in sync.
+ */
+static void
+vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 {
-	/* Sadly these strings are subject to i18n by libexif. We should
-	 * attach EXIF data as binary and leave interpretaion to the UI argh.
+	unsigned long i;
+	const char *p;
+
+	if( entry->format != EXIF_FORMAT_SHORT &&
+		entry->format != EXIF_FORMAT_SSHORT &&
+		entry->format != EXIF_FORMAT_LONG &&
+		entry->format != EXIF_FORMAT_SLONG &&
+		entry->format != EXIF_FORMAT_RATIONAL &&
+		entry->format != EXIF_FORMAT_SRATIONAL )
+		return;
+	if( entry->components >= 10 )
+		return;
+
+	/* Skip any leading spaces.
 	 */
-	static const char *orientations[] = {
-		"", 
-		"Top-left", "Top-right", "Bottom-right",
-		"Bottom-left", "Left-top", "Right-top",
-		"Right-bottom", "Left-bottom", 
-		NULL
-	};
+	p = value;
+	while( *p == ' ' )
+		p += 1;
 
-	ExifData *ed = (ExifData *) a;
+	for( i = 0; i < entry->components; i++ ) {
+		if( entry->format == EXIF_FORMAT_SHORT || 
+			entry->format == EXIF_FORMAT_SSHORT || 
+			entry->format == EXIF_FORMAT_LONG || 
+			entry->format == EXIF_FORMAT_SLONG ) {
+			int value = atof( p );
 
-	int i;
-	ExifShort orientation;
+			vips_exif_set_int( ed, entry, i, &value );
+		}
+		else if( entry->format == EXIF_FORMAT_RATIONAL || 
+			entry->format == EXIF_FORMAT_SRATIONAL ) {
+			double value = g_ascii_strtod( p, NULL );
 
-	if( vips_isprefix( "exif-Orientation", name ) ) {
-		const char *string;
-
-		if( !(string = vips_value_get_ref_string( value, NULL )) ) {
-			vips_warn( "im_jpeg2vips", 
-				"%s", _( "exif-Orientation is not a string" ) );
-			return( NULL );
+			vips_exif_set_double( ed, entry, i, &value );
 		}
 
-		orientation = 0;
-		for( i = 0; orientations[i]; i++ ) 
-			if( strlen( orientations[i] ) > 0 &&
-				vips_isprefix( orientations[i], string ) ) {
-				orientation = i;
-				break;
-			}
-		if( orientation == 0 ) {
-			vips_warn( "im_jpeg2vips", 
-				"%s", _( "unknown JPEG orientation" ) );
-			return( NULL );
-		}
-
-		if( write_tag( ed, EXIF_TAG_ORIENTATION, EXIF_FORMAT_SHORT,
-			write_short, &orientation ) ) {
-			vips_warn( "im_jpeg2vips", 
-				"%s", _( "error setting JPEG orientation" ) );
-			return( NULL );
-		}
-
-#ifdef DEBUG
-		printf( "im_vips2jpeg: updated orientation\n" );
-#endif /*DEBUG*/
+		/* Skip to the next set of spaces, then to the beginning of
+		 * the next item.
+		 */
+		while( *p && *p != ' ' )
+			p += 1;
+		while( *p == ' ' )
+			p += 1;
+		if( !*p )
+			break;
 	}
-
-	return( NULL );
 }
+
+typedef struct _VipsExif {
+	VipsImage *image;
+	ExifData *ed;
+} VipsExif;
+
+static void
+vips_exif_update_entry( ExifEntry *entry, VipsExif *ve )
+{
+	char name[256];
+	char *value;
+
+	im_snprintf( name, 256, "exif-%s", exif_tag_get_title( entry->tag ) );
+	if( !vips_image_get_string( ve->image, name, &value ) )
+		vips_exif_from_s( ve->ed, entry, value ); 
+}
+
+static void
+vips_exif_update_content( ExifContent *content, VipsExif *ve )
+{
+        exif_content_foreach_entry( content, 
+		(ExifContentForeachEntryFunc) vips_exif_update_entry, ve );
+}
+
+static void
+vips_exif_update( ExifData *ed, VipsImage *image )
+{
+	VipsExif ve;
+
+	VIPS_DEBUG_MSG( "vips_exif_update: \n" );
+
+	ve.image = image;
+	ve.ed = ed;
+	exif_data_foreach_content( ed, 
+		(ExifDataForeachContentFunc) vips_exif_update_content, &ve );
+}
+
+
 #endif /*HAVE_EXIF*/
 
 static int
@@ -662,11 +762,11 @@ write_exif( Write *write )
 		exif_data_fix( ed );
 	}
 
-	/* Update EXIF orientation from VIPS.
+	/* Update EXIF tags from the image metadata.
 	 */
-	(void) vips_image_map( write->in, update_orientation_cb, ed );
+	vips_exif_update( ed, write->in );
 
-	/* Update EXIF resolution from VIPS.
+	/* Update EXIF resolution from the vips image header..
 	 */
 	if( set_exif_resolution( ed, write->in ) ) {
 		exif_data_free( ed );
