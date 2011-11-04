@@ -150,6 +150,10 @@ vips_math_build( VipsObject *object )
 #define ADCOS( X ) (IM_DEG( acos( X ) ))
 #define ADTAN( X ) (IM_DEG( atan( X ) ))
 
+/* exp10() is a gnu extension, use pow().
+ */
+#define EXP10( X ) (pow( 10.0, (X) ))
+
 static void
 vips_math_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 {
@@ -166,8 +170,10 @@ vips_math_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 	case VIPS_MATH_OPERATION_ASIN: 	SWITCH( ADSIN ); break;
 	case VIPS_MATH_OPERATION_ACOS: 	SWITCH( ADCOS ); break;
 	case VIPS_MATH_OPERATION_ATAN: 	SWITCH( ADTAN ); break;
+	case VIPS_MATH_OPERATION_LOG: 	SWITCH( log ); break;
 	case VIPS_MATH_OPERATION_LOG10:	SWITCH( log10 ); break;
-	case VIPS_MATH_OPERATION_LN: 	SWITCH( log ); break;
+	case VIPS_MATH_OPERATION_EXP: 	SWITCH( exp ); break;
+	case VIPS_MATH_OPERATION_EXP10:	SWITCH( EXP10 ); break;
 
 	default:
 		g_assert( 0 );

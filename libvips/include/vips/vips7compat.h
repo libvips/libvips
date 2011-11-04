@@ -529,6 +529,17 @@ int im_invert( VipsImage *in, VipsImage *out );
 int im_lintra( double a, VipsImage *in, double b, VipsImage *out );
 int im_lintra_vec( int n, double *a, VipsImage *in, double *b, VipsImage *out );
 
+int im_sintra( VipsImage *in, VipsImage *out );
+int im_costra( VipsImage *in, VipsImage *out );
+int im_tantra( VipsImage *in, VipsImage *out );
+int im_asintra( VipsImage *in, VipsImage *out );
+int im_acostra( VipsImage *in, VipsImage *out );
+int im_atantra( VipsImage *in, VipsImage *out );
+int im_logtra( VipsImage *in, VipsImage *out );
+int im_log10tra( VipsImage *in, VipsImage *out );
+int im_exptra( VipsImage *in, VipsImage *out );
+int im_exp10tra( VipsImage *in, VipsImage *out );
+
 int im_copy( VipsImage *in, VipsImage *out );
 int im_copy_set( VipsImage *in, VipsImage *out, 
 	VipsInterpretation interpretation, 

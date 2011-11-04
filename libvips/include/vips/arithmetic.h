@@ -45,8 +45,10 @@ extern "C" {
  * @VIPS_MATH_OPERATION_ASIN: asin(), angles in degrees
  * @VIPS_MATH_OPERATION_ACOS: acos(), angles in degrees
  * @VIPS_MATH_OPERATION_ATAN: atan(), angles in degrees
+ * @VIPS_MATH_OPERATION_LOG: log base e 
  * @VIPS_MATH_OPERATION_LOG10: log base 10 
- * @VIPS_MATH_OPERATION_LN: log base e 
+ * @VIPS_MATH_OPERATION_EXP: e to the something
+ * @VIPS_MATH_OPERATION_EXP10: 10 to the something
  *
  * See also: vips_math().
  */
@@ -57,8 +59,10 @@ typedef enum {
 	VIPS_MATH_OPERATION_ASIN,
 	VIPS_MATH_OPERATION_ACOS,
 	VIPS_MATH_OPERATION_ATAN,
+	VIPS_MATH_OPERATION_LOG,
 	VIPS_MATH_OPERATION_LOG10,
-	VIPS_MATH_OPERATION_LN,
+	VIPS_MATH_OPERATION_EXP,
+	VIPS_MATH_OPERATION_EXP10,
 	VIPS_MATH_OPERATION_LAST
 } VipsMathOperation;
 
@@ -118,19 +122,8 @@ int im_point_bilinear( VipsImage *im,
 
 int im_powtra( VipsImage *in, VipsImage *out, double e );
 int im_powtra_vec( VipsImage *in, VipsImage *out, int n, double *e );
-int im_exptra( VipsImage *in, VipsImage *out );
-int im_exp10tra( VipsImage *in, VipsImage *out );
 int im_expntra( VipsImage *in, VipsImage *out, double e );
 int im_expntra_vec( VipsImage *in, VipsImage *out, int n, double *e );
-int im_logtra( VipsImage *in, VipsImage *out );
-int im_log10tra( VipsImage *in, VipsImage *out );
-
-int im_sintra( VipsImage *in, VipsImage *out );
-int im_costra( VipsImage *in, VipsImage *out );
-int im_tantra( VipsImage *in, VipsImage *out );
-int im_asintra( VipsImage *in, VipsImage *out );
-int im_acostra( VipsImage *in, VipsImage *out );
-int im_atantra( VipsImage *in, VipsImage *out );
 
 int im_cross_phase( VipsImage *a, VipsImage *b, VipsImage *out );
 

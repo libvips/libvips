@@ -24,7 +24,6 @@ libarithmetic_la_SOURCES = \
 	min.c \
 	subtract.c \
 	math.c \
-	v7math.c \
 	arithmetic.c \
 	arithmetic.h \
 	binary.c \

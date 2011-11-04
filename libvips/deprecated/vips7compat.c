@@ -1443,3 +1443,80 @@ im_black( IMAGE *out, int x, int y, int bands )
 
 	return( 0 );
 }
+
+static int
+vips__math( VipsImage *in, VipsImage *out, VipsMathOperation operation )
+{
+	VipsImage *t;
+
+	if( vips_math( in, &t, operation,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_sintra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_SIN ) );
+}
+
+int 
+im_costra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_COS ) );
+}
+
+int 
+im_tantra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_TAN ) );
+}
+
+int 
+im_asintra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_ASIN ) );
+}
+
+int 
+im_acostra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_ACOS ) );
+}
+
+int 
+im_atantra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_ATAN ) );
+}
+
+int 
+im_logtra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_LOG ) );
+}
+
+int 
+im_log10tra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_LOG10 ) );
+}
+
+int 
+im_exptra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_EXP ) );
+}
+
+int 
+im_exp10tra( IMAGE *in, IMAGE *out )
+{
+	return( vips__math( in, out, VIPS_MATH_OPERATION_EXP10 ) );
+}
