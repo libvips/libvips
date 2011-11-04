@@ -13,6 +13,7 @@ libconversion_la_SOURCES = \
 	cast.c \
 	bandjoin.c \
 	black.c \
+	rot.c \
 	conver_dispatch.c \
 	im_c2amph.c \
 	im_c2rect.c \
@@ -24,9 +25,6 @@ libconversion_la_SOURCES = \
 	im_msb.c \
 	im_grid.c \
 	im_ri2c.c \
-	im_rot180.c \
-	im_rot270.c \
-	im_rot90.c \
 	im_scale.c \
 	im_insert.c \
 	im_scaleps.c \

@@ -114,6 +114,27 @@ typedef enum {
 	VIPS_ALIGN_LAST
 } VipsAlign;
 
+/** 
+ * VipsAngle:
+ * @VIPS_ANGLE_0; no rotate
+ * @VIPS_ANGLE_90; 90 degrees anti-clockwise
+ * @VIPS_ANGLE_180; 180 degree rotate
+ * @VIPS_ANGLE_270; 90 degrees clockwise
+ *
+ * See vips_rot() and so on.
+ *
+ * Fixed rotate angles.
+ *
+ * See also: vips_rot().
+ */
+typedef enum {
+	VIPS_ANGLE_0,
+	VIPS_ANGLE_90,
+	VIPS_ANGLE_180,
+	VIPS_ANGLE_270,
+	VIPS_ANGLE_LAST
+} VipsAngle;
+
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_embed( VipsImage *in, VipsImage **out, 
@@ -141,6 +162,8 @@ int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_black( VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
+int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
 
 
@@ -171,10 +194,6 @@ int im_text( VipsImage *out, const char *text, const char *font,
 int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
 int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down );
 int im_wrap( VipsImage *in, VipsImage *out, int x, int y );
-
-int im_rot90( VipsImage *in, VipsImage *out );
-int im_rot180( VipsImage *in, VipsImage *out );
-int im_rot270( VipsImage *in, VipsImage *out );
 
 int im_subsample( VipsImage *in, VipsImage *out, int xshrink, int yshrink );
 int im_zoom( VipsImage *in, VipsImage *out, int xfac, int yfac );

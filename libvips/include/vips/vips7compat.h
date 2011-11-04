@@ -559,6 +559,10 @@ int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
 int im_black( VipsImage *out, int x, int y, int bands );
 
+int im_rot90( VipsImage *in, VipsImage *out );
+int im_rot180( VipsImage *in, VipsImage *out );
+int im_rot270( VipsImage *in, VipsImage *out );
+
 
 
 /* ruby-vips uses this

@@ -724,4 +724,3 @@ vips_guess_libdir( const char *argv0, const char *env_name )
 
 	return( libdir );
 }
-

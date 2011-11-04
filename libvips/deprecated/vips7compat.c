@@ -1097,6 +1097,54 @@ im_fliphor( IMAGE *in, IMAGE *out )
 }
 
 int 
+im_rot90( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_rot( in, &t, VIPS_ANGLE_90, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_rot180( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_rot( in, &t, VIPS_ANGLE_180, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_rot270( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_rot( in, &t, VIPS_ANGLE_270, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
 im_flipver( IMAGE *in, IMAGE *out )
 {
 	VipsImage *t;

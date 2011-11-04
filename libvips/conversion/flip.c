@@ -72,7 +72,7 @@
  *
  * Flips an image left-right or up-down.
  *
- * See also: im_rot90().
+ * See also: #VipsRot.
  *
  * Returns: 0 on success, -1 on error
  */
@@ -84,7 +84,7 @@ typedef struct _VipsFlip {
 	 */
 	VipsImage *in;
 
-	/* Swap bytes on the way through.
+	/* Left-right or up-down.
 	 */
 	VipsDirection direction;
 

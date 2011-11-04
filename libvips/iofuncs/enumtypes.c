@@ -63,6 +63,26 @@ vips_align_get_type( void )
 
 	return( etype );
 }
+GType
+vips_angle_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_ANGLE_0, "VIPS_ANGLE_0", "0"},
+			{VIPS_ANGLE_90, "VIPS_ANGLE_90", "90"},
+			{VIPS_ANGLE_180, "VIPS_ANGLE_180", "180"},
+			{VIPS_ANGLE_270, "VIPS_ANGLE_270", "270"},
+			{VIPS_ANGLE_LAST, "VIPS_ANGLE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsAngle", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/util.h" */
 GType
 vips_token_get_type( void )
