@@ -378,6 +378,8 @@ vips_tracked_close( int fd )
 {
 	g_mutex_lock( vips_tracked_mutex );
 
+	g_assert( vips_tracked_files > 0 );
+
 	vips_tracked_files -= 1;
 
 	g_mutex_unlock( vips_tracked_mutex );
