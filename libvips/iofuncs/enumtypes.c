@@ -83,6 +83,31 @@ vips_angle_get_type( void )
 
 	return( etype );
 }
+/* enumerations from "../../libvips/include/vips/arithmetic.h" */
+GType
+vips_math_operation_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_MATH_OPERATION_SIN, "VIPS_MATH_OPERATION_SIN", "sin"},
+			{VIPS_MATH_OPERATION_COS, "VIPS_MATH_OPERATION_COS", "cos"},
+			{VIPS_MATH_OPERATION_TAN, "VIPS_MATH_OPERATION_TAN", "tan"},
+			{VIPS_MATH_OPERATION_ASIN, "VIPS_MATH_OPERATION_ASIN", "asin"},
+			{VIPS_MATH_OPERATION_ACOS, "VIPS_MATH_OPERATION_ACOS", "acos"},
+			{VIPS_MATH_OPERATION_ATAN, "VIPS_MATH_OPERATION_ATAN", "atan"},
+			{VIPS_MATH_OPERATION_LOG10, "VIPS_MATH_OPERATION_LOG10", "log10"},
+			{VIPS_MATH_OPERATION_LN, "VIPS_MATH_OPERATION_LN", "ln"},
+			{VIPS_MATH_OPERATION_LAST, "VIPS_MATH_OPERATION_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsMathOperation", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/util.h" */
 GType
 vips_token_get_type( void )

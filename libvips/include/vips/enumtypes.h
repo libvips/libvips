@@ -6,6 +6,9 @@
 
 G_BEGIN_DECLS
 
+/* enumerations from "../../../libvips/include/vips/arithmetic.h" */
+GType vips_math_operation_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_MATH_OPERATION (vips_math_operation_get_type())
 /* enumerations from "../../../libvips/include/vips/conversion.h" */
 GType vips_extend_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_EXTEND (vips_extend_get_type())

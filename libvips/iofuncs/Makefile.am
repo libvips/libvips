@@ -42,6 +42,7 @@ INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/memory.h \
 	${top_srcdir}/libvips/include/vips/conversion.h \
+	${top_srcdir}/libvips/include/vips/arithmetic.h \
 	${top_srcdir}/libvips/include/vips/util.h \
 	${top_srcdir}/libvips/include/vips/buf.h \
 	${top_srcdir}/libvips/include/vips/image.h \

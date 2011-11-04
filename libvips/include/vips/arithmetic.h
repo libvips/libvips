@@ -37,6 +37,31 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/** 
+ * VipsMathOperation:
+ * @VIPS_MATH_OPERATION_SIN: sin(), angles in degrees
+ * @VIPS_MATH_OPERATION_COS: cos(), angles in degrees
+ * @VIPS_MATH_OPERATION_TAN: tan(), angles in degrees
+ * @VIPS_MATH_OPERATION_ASIN: asin(), angles in degrees
+ * @VIPS_MATH_OPERATION_ACOS: acos(), angles in degrees
+ * @VIPS_MATH_OPERATION_ATAN: atan(), angles in degrees
+ * @VIPS_MATH_OPERATION_LOG10: log base 10 
+ * @VIPS_MATH_OPERATION_LN: log base e 
+ *
+ * See also: vips_math().
+ */
+typedef enum {
+	VIPS_MATH_OPERATION_SIN,
+	VIPS_MATH_OPERATION_COS,
+	VIPS_MATH_OPERATION_TAN,
+	VIPS_MATH_OPERATION_ASIN,
+	VIPS_MATH_OPERATION_ACOS,
+	VIPS_MATH_OPERATION_ATAN,
+	VIPS_MATH_OPERATION_LOG10,
+	VIPS_MATH_OPERATION_LN,
+	VIPS_MATH_OPERATION_LAST
+} VipsMathOperation;
+
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
@@ -51,6 +76,9 @@ int vips_linear( VipsImage *in, VipsImage **out,
 	double *a, double *b, int n, ... )
 	__attribute__((sentinel));
 int vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
+	__attribute__((sentinel));
+int vips_math( VipsImage *in, VipsImage **out, 
+	VipsMathOperation operation, ... )
 	__attribute__((sentinel));
 
 

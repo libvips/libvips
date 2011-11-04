@@ -507,6 +507,7 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_avg_get_type( void ); 
 	extern GType vips_min_get_type( void ); 
 	extern GType vips_linear_get_type( void ); 
+	extern GType vips_math_get_type( void ); 
 
 	vips_add_get_type();
 	vips_invert_get_type();
@@ -514,5 +515,6 @@ vips_arithmetic_operation_init( void )
 	vips_avg_get_type();
 	vips_min_get_type();
 	vips_linear_get_type();
+	vips_math_get_type();
 }
 
