@@ -26,7 +26,6 @@ libconversion_la_SOURCES = \
 	im_grid.c \
 	im_ri2c.c \
 	im_scale.c \
-	im_insert.c \
 	im_scaleps.c \
 	im_subsample.c \
 	im_system.c \
