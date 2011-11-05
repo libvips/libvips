@@ -287,7 +287,7 @@ vips_image_new_from_file_object( const char *string )
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
 		"filename", string,
-		"mode", "r",
+		"mode", "rd",
 		NULL );
 
 	return( VIPS_OBJECT( image ) );
@@ -503,9 +503,9 @@ disc_threshold( void )
 
 		done = TRUE;
 
-		/* 100mb default.
+		/* 1mb default.
 		 */
-		threshold = 100 * 1024 * 1024;
+		threshold = 1024 * 1024;
 
 		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
 			threshold = vips__parse_size( env );
@@ -527,25 +527,20 @@ lazy_real_image( Lazy *lazy )
 {
 	VipsImage *real;
 
-	/* We open to disc if:
+	/* We open via disc if:
 	 * - 'disc' is set
 	 * - disc_threshold() has not been set to zero
 	 * - the format does not support lazy read
-	 * - the image will be more than a megabyte, uncompressed
+	 * - the uncompressed image will be larger than disc_threshold()
 	 */
 	real = NULL;
 	if( lazy->disc && 
 		disc_threshold() && 
 	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
 			VIPS_FORMAT_PARTIAL) &&
-		VIPS_IMAGE_SIZEOF_IMAGE( lazy->image ) > disc_threshold() ) {
+		VIPS_IMAGE_SIZEOF_IMAGE( lazy->image ) > disc_threshold() ) 
 			if( !(real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );
-
-			VIPS_DEBUG_MSG( "lazy_real_image: "
-				"opening to disc file \"%s\"\n",
-				real->filename );
-		}
 
 	/* Otherwise, fall back to a "p".
 	 */
@@ -1443,7 +1438,7 @@ vips_image_new( void )
  *	 than a threshold and the file format does not support random access, 
  *	 rather than uncompressing to memory, vips_image_new_mode() will 
  *	 uncompress to a temporary disc file. This file will be automatically 
- *	 deleted when the IMAGE is closed.
+ *	 deleted when the VipsImage is closed.
  *
  *	 See im_system_image() for an explanation of how VIPS selects a
  *	 location for the temporary file.
@@ -1456,11 +1451,11 @@ vips_image_new( void )
  *	 For example:
  *
  *       |[
- *         vips --vips-disc-threshold "500m" im_copy fred.tif fred.v
+ *         vips --vips-disc-threshold 500m im_copy fred.tif fred.v
  *       ]|
  *
  *       will copy via disc if "fred.tif" is more than 500 Mbytes
- *       uncompressed. The default threshold is 100MB.
+ *       uncompressed. The default threshold is 1MB.
  *     </para>
  *   </listitem>
  *   <listitem> 
@@ -1515,7 +1510,7 @@ vips_image_new_mode( const char *filename, const char *mode )
  * vips_image_new_from_file:
  * @filename: file to open
  *
- * vips_image_new_from_file() opens @filename for reading. See
+ * vips_image_new_from_file() opens @filename for reading in mode "rd". See
  * vips_image_new_mode() for details.
  *
  * See also: vips_image_new_mode().
@@ -1525,7 +1520,7 @@ vips_image_new_mode( const char *filename, const char *mode )
 VipsImage *
 vips_image_new_from_file( const char *filename )
 {
-	return( vips_image_new_mode( filename, "r" ) ); 
+	return( vips_image_new_mode( filename, "rd" ) ); 
 }
 
 /**
@@ -1950,7 +1945,7 @@ vips_image_rewind_output( VipsImage *image )
 	/* And reopen .. recurse to get a mmaped image.
 	 */
 	g_object_set( image,
-		"mode", "r",
+		"mode", "rd",
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
 		vips_error( "VipsImage", 

@@ -1,10 +1,12 @@
-- disc temps for load are not being deleted
+- try 
 
-  or are they? argh
+	$ vips copy babe.png x.v
+	tracked memory: 0 allocations totalling 0 bytes
+	tracked memory: high-water mark 36.09 KB
+	tracked files: 1 open
+	$ 
 
-  $ vips --vips-disc-threshold=10 --vips-progress copy wtc.png x.v
-
-  does not seem to make a temp at all, strange
+  leaking a tracked somewhere
 
 
 
