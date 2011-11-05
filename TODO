@@ -1,3 +1,13 @@
+- disc temps for load are not being deleted
+
+  or are they? argh
+
+  $ vips --vips-disc-threshold=10 --vips-progress copy wtc.png x.v
+
+  does not seem to make a temp at all, strange
+
+
+
 
 - don't do vips_image_write() at the end of a pipeline, instead try:
 

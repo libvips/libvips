@@ -126,18 +126,17 @@ void vips_buffer_print( VipsBuffer *buffer );
  */
 typedef enum region_type {
 	VIPS_REGION_NONE,
-	VIPS_REGION_BUFFER,	/* a pixel buffer */
-	VIPS_REGION_OTHER_REGION, /* memory on another region */
-	VIPS_REGION_OTHER_IMAGE,/* memory on another image */
-	VIPS_REGION_WINDOW	/* mmap() buffer on fd on another image */
+	VIPS_REGION_BUFFER,		/* A VipsBuffer */
+	VIPS_REGION_OTHER_REGION, 	/* Memory on another region */
+	VIPS_REGION_OTHER_IMAGE,	/* Memory on another image */
+	VIPS_REGION_WINDOW		/* A VipsWindow on fd */
 } RegionType;
 
 /* Private to iofuncs: the size of the `tiles' requested by 
- * vips_image_generate()
- * when acting as a data sink.
+ * vips_image_generate() when acting as a data sink.
  */
-#define VIPS__TILE_WIDTH (512)
-#define VIPS__TILE_HEIGHT (512)
+#define VIPS__TILE_WIDTH (128)
+#define VIPS__TILE_HEIGHT (128)
 
 /* The height of the strips for the other two request styles.
  */

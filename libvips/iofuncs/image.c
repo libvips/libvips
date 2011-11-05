@@ -1664,6 +1664,7 @@ vips_image_new_disc_temp( const char *format )
 		g_free( name );
 		return( NULL );
 	}
+
 	g_free( name );
 
 	vips_image_set_delete_on_close( image, TRUE );
