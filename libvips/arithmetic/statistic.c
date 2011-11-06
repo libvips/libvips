@@ -120,11 +120,11 @@ vips_statistic_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_statistic_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( statistic->input ) || 
-		vips_check_uncoded( domain, statistic->input ) )
+	if( vips_image_pio_input( statistic->in ) || 
+		vips_check_uncoded( domain, statistic->in ) )
 		return( -1 );
 
-	if( vips_sink( statistic->input, 
+	if( vips_sink( statistic->in, 
 		vips_statistic_scan_start, 
 		vips_statistic_scan, 
 		vips_statistic_scan_stop, 
@@ -151,7 +151,7 @@ vips_statistic_class_init( VipsStatisticClass *class )
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsStatistic, input ) );
+		G_STRUCT_OFFSET( VipsStatistic, in ) );
 }
 
 static void

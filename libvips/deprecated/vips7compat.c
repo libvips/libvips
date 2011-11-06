@@ -954,6 +954,18 @@ im_min( IMAGE *in, double *out )
 	return( im_minpos( in, NULL, NULL, out ) );
 }
 
+int
+im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out )
+{
+	return( vips_max( in, out, "x", xpos, "y", ypos, NULL ) );
+}
+
+int
+im_max( IMAGE *in, double *out )
+{
+	return( im_maxpos( in, NULL, NULL, out ) );
+}
+
 #define MAX_IMAGES 100
 int
 im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...)

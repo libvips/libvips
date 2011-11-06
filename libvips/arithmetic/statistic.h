@@ -64,7 +64,7 @@ struct _VipsStatistic {
 
 	/* All have an input image.
 	 */
-	VipsImage *input;
+	VipsImage *in;
 
 	/* Set this to stop computation early.
 	 */

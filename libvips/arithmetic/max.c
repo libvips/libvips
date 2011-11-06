@@ -1,24 +1,23 @@
-/* find image minimum
+/* find image maximum
  *
  * Copyright: 1990, J. Cupitt
  *
  * Author: J. Cupitt
  * Written on: 02/05/1990
  * Modified on : 18/03/1991, N. Dessipris
- * 23/11/92 JC
- *	- correct result for more than 1 band now.
+ * 	23/11/92:  J.Cupitt - correct result for more than 1 band now.
  * 23/7/93 JC
- *	- im_incheck() added
+ *	- im_incheck() call added
  * 20/6/95 JC
  *	- now returns double for value, like im_max()
  * 4/9/09
  * 	- gtkdoc comment
  * 8/9/09
- * 	- rewrite, from im_maxpos()
- * 30/8/11
+ * 	- rewrite based on im_max() to get partial
+ * 	- move im_max() in here as a convenience function
+ * 6/11/11
  * 	- rewrite as a class
- * 5/9/11
- * 	- abandon scan if we find minimum possible value
+ * 	- abandon scan if we find maximum possible value
  */
 
 /*
@@ -67,161 +66,161 @@
 #include "statistic.h"
 
 /**
- * VipsMin:
+ * VipsMax:
  * @in: input #VipsImage
- * @out: output pixel minimum
+ * @out: output pixel maximum
  *
- * This operation finds the minimum value in an image. 
+ * This operation finds the maximum value in an image. 
  *
- * If the image contains several minimum values, only the first one found is
+ * If the image contains several maximum values, only the first one found is
  * returned.
  *
  * It operates on all 
  * bands of the input image: use im_stats() if you need to find an 
- * minimum for each band. For complex images, return the minimum modulus.
+ * maximum for each band. For complex images, find the maximum modulus.
  *
- * See also: #VipsAvg, im_stats(), im_bandmean(), im_deviate(), im_rank()
+ * See also: #VipsAvg, #VipsMin, im_stats(), im_bandmean(), im_deviate(), im_rank()
  */
 
-typedef struct _VipsMin {
+typedef struct _VipsMax {
 	VipsStatistic parent_instance;
 
 	gboolean set;		/* FALSE means no value yet */
 
-	/* The current miniumum. When scanning complex images, we keep the
+	/* The current maximum. When scanning complex images, we keep the
 	 * square of the modulus here and do a single sqrt() right at the end.
 	 */
-	double min;
+	double max;
 
 	/* And its position.
 	 */
 	int x, y;
-} VipsMin;
+} VipsMax;
 
-typedef VipsStatisticClass VipsMinClass;
+typedef VipsStatisticClass VipsMaxClass;
 
-G_DEFINE_TYPE( VipsMin, vips_min, VIPS_TYPE_STATISTIC );
+G_DEFINE_TYPE( VipsMax, vips_max, VIPS_TYPE_STATISTIC );
 
 static int
-vips_min_build( VipsObject *object )
+vips_max_build( VipsObject *object )
 {
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
-	VipsMin *min = (VipsMin *) object;
+	VipsMax *max = (VipsMax *) object;
 
 	double m;
 
-	if( VIPS_OBJECT_CLASS( vips_min_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_max_parent_class )->build( object ) )
 		return( -1 );
 
-	/* For speed we accumulate min^2 for complex.
+	/* For speed we accumulate max^2 for complex.
 	 */
-	m = min->min;
+	m = max->max;
 	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
 		m = sqrt( m );
 
 	/* We have to set the props via g_object_set() to stop vips
 	 * complaining they are unset.
 	 */
-	g_object_set( min, 
+	g_object_set( max, 
 		"out", m,
-		"x", min->x,
-		"y", min->y,
+		"x", max->x,
+		"y", max->y,
 		NULL );
 
 	return( 0 );
 }
 
-/* New sequence value. Make a private VipsMin for this thread.
+/* New sequence value. Make a private VipsMax for this thread.
  */
 static void *
-vips_min_start( VipsStatistic *statistic )
+vips_max_start( VipsStatistic *statistic )
 {
-	VipsMin *global = (VipsMin *) statistic;
-	VipsMin *min;
+	VipsMax *global = (VipsMax *) statistic;
+	VipsMax *max;
 
-	min = g_new( VipsMin, 1 );
-	*min = *global;
+	max = g_new( VipsMax, 1 );
+	*max = *global;
 
-	return( (void *) min );
+	return( (void *) max );
 }
 
 /* Merge the sequence value back into the per-call state.
  */
 static int
-vips_min_stop( VipsStatistic *statistic, void *seq )
+vips_max_stop( VipsStatistic *statistic, void *seq )
 {
-	VipsMin *global = (VipsMin *) statistic;
-	VipsMin *min = (VipsMin *) seq;
+	VipsMax *global = (VipsMax *) statistic;
+	VipsMax *max = (VipsMax *) seq;
 
 	if( !global->set ||
-		min->min < global->min ) {
-		global->min = min->min;
-		global->x = min->x;
-		global->y = min->y;
+		max->max < global->max ) {
+		global->max = max->max;
+		global->x = max->x;
+		global->y = max->y;
 		global->set = TRUE;
 	}
 
-	g_free( min );
+	g_free( max );
 
 	return( 0 );
 }
 
-/* real min with no limits.
+/* real max with no limits.
  */
 #define LOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE m; \
 	\
-	if( min->set ) \
-		m = min->min; \
+	if( max->set ) \
+		m = max->max; \
 	else \
 		m = p[0]; \
 	\
 	for( i = 0; i < sz; i++ ) { \
-		if( p[i] < m ) { \
+		if( p[i] > m ) { \
 			m = p[i]; \
-			min->x = x + i / bands; \
-			min->y = y; \
+			max->x = x + i / bands; \
+			max->y = y; \
 		} \
 	} \
 	\
-	min->min = m; \
-	min->set = TRUE; \
+	max->max = m; \
+	max->set = TRUE; \
 } 
 
-/* real min with a lower bound.
+/* real max with an upper bound.
  */
-#define LOOPL( TYPE, LOWER ) { \
+#define LOOPL( TYPE, UPPER ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE m; \
 	\
-	if( min->set ) \
-		m = min->min; \
+	if( max->set ) \
+		m = max->max; \
 	else \
 		m = p[0]; \
 	\
 	for( i = 0; i < sz; i++ ) { \
-		if( p[i] < m ) { \
+		if( p[i] > m ) { \
 			m = p[i]; \
-			min->x = x + i / bands; \
-			min->y = y; \
-			if( m <= LOWER ) { \
+			max->x = x + i / bands; \
+			max->y = y; \
+			if( m >= UPPER ) { \
 				statistic->stop = TRUE; \
 				break; \
 			} \
 		} \
 	} \
 	\
-	min->min = m; \
-	min->set = TRUE; \
+	max->max = m; \
+	max->set = TRUE; \
 } 
 
 #define CLOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	double m; \
 	\
-	if( min->set ) \
-		m = min->min; \
+	if( max->set ) \
+		m = max->max; \
 	else \
 		m = p[0] * p[0] + p[1] * p[1]; \
 	\
@@ -231,24 +230,24 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 		mod = p[0] * p[0] + p[1] * p[1]; \
 		p += 2; \
 		\
-		if( mod < m ) { \
+		if( mod > m ) { \
 			m = mod; \
-			min->x = x + i / bands; \
-			min->y = y; \
+			max->x = x + i / bands; \
+			max->y = y; \
 		} \
 	} \
 	\
-	min->min = m; \
-	min->set = TRUE; \
+	max->max = m; \
+	max->set = TRUE; \
 } 
 
 /* Loop over region, adding to seq.
  */
 static int
-vips_min_scan( VipsStatistic *statistic, void *seq, 
+vips_max_scan( VipsStatistic *statistic, void *seq, 
 	int x, int y, void *in, int n )
 {
-	VipsMin *min = (VipsMin *) seq;
+	VipsMax *max = (VipsMax *) seq;
 	const int bands = vips_image_get_bands( statistic->in );
 	const int sz = n * bands;
 
@@ -256,11 +255,11 @@ vips_min_scan( VipsStatistic *statistic, void *seq,
 
 	switch( vips_image_get_format( statistic->in ) ) {
 	case IM_BANDFMT_UCHAR:		LOOPL( unsigned char, 0 ); break; 
-	case IM_BANDFMT_CHAR:		LOOPL( signed char, SCHAR_MIN ); break; 
+	case IM_BANDFMT_CHAR:		LOOPL( signed char, SCHAR_MAX ); break; 
 	case IM_BANDFMT_USHORT:		LOOPL( unsigned short, 0 ); break; 
-	case IM_BANDFMT_SHORT:		LOOPL( signed short, SHRT_MIN ); break; 
+	case IM_BANDFMT_SHORT:		LOOPL( signed short, SHRT_MAX ); break; 
 	case IM_BANDFMT_UINT:		LOOPL( unsigned int, 0 ); break;
-	case IM_BANDFMT_INT:		LOOPL( signed int, INT_MIN ); break; 
+	case IM_BANDFMT_INT:		LOOPL( signed int, INT_MAX ); break; 
 
 	case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
 	case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
@@ -276,7 +275,7 @@ vips_min_scan( VipsStatistic *statistic, void *seq,
 }
 
 static void
-vips_min_class_init( VipsMinClass *class )
+vips_max_class_init( VipsMaxClass *class )
 {
 	GObjectClass *gobject_class = (GObjectClass *) class;
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -285,49 +284,49 @@ vips_min_class_init( VipsMinClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "min";
-	object_class->description = _( "find image minimum" );
-	object_class->build = vips_min_build;
+	object_class->nickname = "max";
+	object_class->description = _( "find image maximum" );
+	object_class->build = vips_max_build;
 
-	sclass->start = vips_min_start;
-	sclass->scan = vips_min_scan;
-	sclass->stop = vips_min_stop;
+	sclass->start = vips_max_start;
+	sclass->scan = vips_max_scan;
+	sclass->stop = vips_max_stop;
 
 	VIPS_ARG_DOUBLE( class, "out", 1, 
 		_( "Output" ), 
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
-		G_STRUCT_OFFSET( VipsMin, min ),
+		G_STRUCT_OFFSET( VipsMax, max ),
 		-G_MAXDOUBLE, G_MAXDOUBLE, 0.0 );
 
 	VIPS_ARG_INT( class, "x", 2, 
 		_( "x" ), 
-		_( "Horizontal position of minimum" ),
+		_( "Horizontal position of maximum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsMin, x ),
+		G_STRUCT_OFFSET( VipsMax, x ),
 		0, 1000000, 0 );
 
 	VIPS_ARG_INT( class, "y", 2, 
 		_( "y" ), 
-		_( "Vertical position of minimum" ),
+		_( "Vertical position of maximum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsMin, y ),
+		G_STRUCT_OFFSET( VipsMax, y ),
 		0, 1000000, 0 );
 }
 
 static void
-vips_min_init( VipsMin *min )
+vips_max_init( VipsMax *max )
 {
 }
 
 int
-vips_min( VipsImage *in, double *out, ... )
+vips_max( VipsImage *in, double *out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "min", ap, in, out );
+	result = vips_call_split( "max", ap, in, out );
 	va_end( ap );
 
 	return( result );

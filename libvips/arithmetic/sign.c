@@ -115,10 +115,11 @@ G_DEFINE_TYPE( VipsSign, vips_sign, VIPS_TYPE_UNARY );
 static void
 vips_sign_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 {
-	VipsImage *im = arithmetic->ready[0];
-	int sz = width * im->Bands;
+	VipsUnary *unary = VIPS_UNARY( arithmetic );
+	const int bands = vips_image_get_bands( unary->in );
+	int sz = width * bands;
 
-	switch( im->BandFmt ) {
+	switch( vips_image_get_format( unary->in ) ) {
         case VIPS_FORMAT_UCHAR: 	SIGN( unsigned char ); break;
         case VIPS_FORMAT_CHAR: 		SIGN( signed char ); break; 
         case VIPS_FORMAT_USHORT: 	SIGN( unsigned short ); break; 

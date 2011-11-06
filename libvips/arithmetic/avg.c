@@ -101,7 +101,6 @@ static int
 vips_avg_build( VipsObject *object )
 {
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
-	VipsImage *in = statistic->input; 
 	VipsAvg *avg = (VipsAvg *) object;
 
 	gint64 vals, pels;
@@ -113,11 +112,11 @@ vips_avg_build( VipsObject *object )
 	/* Calculate average. For complex, we accumulate re*re +
 	 * im*im, so we need to sqrt.
 	 */
-	pels = (gint64) vips_image_get_width( in ) * 
-		vips_image_get_height( in ); 
-	vals = pels * vips_image_get_bands( in );
+	pels = (gint64) vips_image_get_width( statistic->in ) * 
+		vips_image_get_height( statistic->in ); 
+	vals = pels * vips_image_get_bands( statistic->in );
 	average = avg->sum / vals;
-	if( vips_bandfmt_iscomplex( vips_image_get_format( in ) ) )
+	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
 		average = sqrt( average );
 	g_object_set( object, "out", average, NULL );
 
@@ -181,8 +180,7 @@ static int
 vips_avg_scan( VipsStatistic *statistic, void *seq, 
 	int x, int y, void *in, int n )
 {
-	const VipsImage *input = statistic->input;
-	const int sz = n * vips_image_get_bands( input );
+	const int sz = n * vips_image_get_bands( statistic->in );
 
 	double *sum = (double *) seq;
 
@@ -193,7 +191,7 @@ vips_avg_scan( VipsStatistic *statistic, void *seq,
 
 	/* Now generate code for all types. 
 	 */
-	switch( vips_image_get_format( input ) ) {
+	switch( vips_image_get_format( statistic->in ) ) {
 	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break; 
 	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break; 
 	case VIPS_FORMAT_USHORT:	LOOP( unsigned short ); break; 

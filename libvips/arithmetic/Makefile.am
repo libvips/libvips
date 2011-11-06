@@ -10,7 +10,6 @@ libarithmetic_la_SOURCES = \
 	im_recomb.c \
 	im_linreg.c \
 	im_maxpos_avg.c \
-	im_maxpos.c \
 	im_maxpos_vec.c \
 	im_measure.c \
 	im_multiply.c \
@@ -22,6 +21,7 @@ libarithmetic_la_SOURCES = \
 	statistic.h \
 	avg.c \
 	min.c \
+	max.c \
 	subtract.c \
 	math.c \
 	arithmetic.c \

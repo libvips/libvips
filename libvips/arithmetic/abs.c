@@ -192,12 +192,11 @@ vips_abs_build( VipsObject *object )
 static void
 vips_abs_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 {
-	VipsImage *im = arithmetic->ready[0];
-	int sz = width * im->Bands;
+	VipsUnary *unary = VIPS_UNARY( arithmetic );
+	const int bands = vips_image_get_bands( unary->in );
+	int sz = width * bands;
 
-	/* Abs all input types.
-         */
-        switch( im->BandFmt ) {
+	switch( vips_image_get_format( unary->in ) ) {
         case VIPS_FORMAT_CHAR: 		ABS_INT( signed char ); break; 
         case VIPS_FORMAT_SHORT: 	ABS_INT( signed short ); break; 
         case VIPS_FORMAT_INT: 		ABS_INT( signed int ); break; 
