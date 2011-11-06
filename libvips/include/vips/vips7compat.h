@@ -527,6 +527,7 @@ int im_minpos( VipsImage *in, int *xpos, int *ypos, double *out );
 int im_max( VipsImage *in, double *out );
 int im_maxpos( VipsImage *in, int *xpos, int *ypos, double *out );
 int im_avg( VipsImage *in, double *out );
+int im_deviate( VipsImage *in, double *out );
 int im_invert( VipsImage *in, VipsImage *out );
 int im_lintra( double a, VipsImage *in, double b, VipsImage *out );
 int im_lintra_vec( int n, double *a, VipsImage *in, double *b, VipsImage *out );

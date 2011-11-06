@@ -934,6 +934,12 @@ im_avg( IMAGE *in, double *out )
 	return( vips_avg( in, out, NULL ) ); 
 }
 
+int
+im_deviate( IMAGE *in, double *out )
+{
+	return( vips_deviate( in, out, NULL ) ); 
+}
+
 int im_generate( VipsImage *im,
 	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *a, void *b )

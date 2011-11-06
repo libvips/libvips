@@ -1,4 +1,4 @@
-/* avg ... average value of image
+/* VipsDeviate
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -8,29 +8,28 @@
  * 5/5/93 JC
  *	- now does partial images
  *	- less likely to overflow
+ *	- adapted from im_deviate
  * 1/7/93 JC
  *	- adapted for partial v2
- *	- ANSI C
+ *	- ANSIfied
  * 21/2/95 JC
  *	- modernised again
  * 11/5/95 JC
- * 	- oops! return( NULL ) in im_avg(), instead of return( -1 )
+ * 	- oops! return( NULL ) in im_deviate(), instead of return( -1 )
  * 20/6/95 JC
- *	- now returns double
+ *	- now returns double, not float
  * 13/1/05
  *	- use 64 bit arithmetic 
  * 8/12/06
  * 	- add liboil support
- * 18/8/09
- * 	- gtkdoc, minor reformatting
- * 7/9/09
- * 	- rewrite for im__wrapiter()
- * 	- add complex case (needed for im_max())
- * 8/9/09
- * 	- wrapscan stuff moved here
+ * 2/9/09
+ * 	- gtk-doc comment
+ * 	- minor reformatting
+ * 4/9/09
+ * 	- use im__wrapscan()
  * 31/7/10
  * 	- remove liboil
- * 24/8/11
+ * 6/11/11
  * 	- rewrite as a class
  */
 
@@ -75,120 +74,126 @@
 #include "statistic.h"
 
 /**
- * VipsAvg:
- * @in: input #VipsImage
- * @out: output pixel average
+ * VipsDeviate:
+ * @in: input #IMAGE
+ * @out: output pixel standard deviation
  *
- * This operation finds the average value in an image. It operates on all 
- * bands of the input image: use im_stats() if you need to calculate an 
- * average for each band. For complex images, return the average modulus.
+ * This operation finds the standard deviation of all pixels in @in. It 
+ * operates on all bands of the input image: use im_stats() if you need 
+ * to calculate an average for each band. 
  *
- * See also: im_stats(), im_bandmean(), im_deviate(), im_rank()
+ * Non-complex images only.
+ *
+ * See also: VipsDeviate.
  */
 
-typedef struct _VipsAvg {
+typedef struct _VipsDeviate {
 	VipsStatistic parent_instance;
 
 	double sum;
+	double sum2;
 	double out;
-} VipsAvg;
+} VipsDeviate;
 
-typedef VipsStatisticClass VipsAvgClass;
+typedef VipsStatisticClass VipsDeviateClass;
 
-G_DEFINE_TYPE( VipsAvg, vips_avg, VIPS_TYPE_STATISTIC );
+G_DEFINE_TYPE( VipsDeviate, vips_deviate, VIPS_TYPE_STATISTIC );
 
 static int
-vips_avg_build( VipsObject *object )
+vips_deviate_build( VipsObject *object )
 {
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
-	VipsAvg *avg = (VipsAvg *) object;
+	VipsDeviate *deviate = (VipsDeviate *) object;
 
 	gint64 vals;
-	double average;
+	double s, s2;
 
-	if( VIPS_OBJECT_CLASS( vips_avg_parent_class )->build( object ) )
+	if( statistic->in &&
+		vips_check_noncomplex( "VipsDeviate", statistic->in ) )
 		return( -1 );
 
-	/* Calculate average. For complex, we accumulate re*re +
-	 * im*im, so we need to sqrt.
+	if( VIPS_OBJECT_CLASS( vips_deviate_parent_class )->build( object ) )
+		return( -1 );
+
+	/*
+	  
+		NOTE: NR suggests a two-pass algorithm to minimise roundoff. 
+		But that's too expensive for us :-( so do it the old one-pass 
+		way.
+
+	 */
+
+	/* Calculate and return deviation. Add a fabs to stop sqrt(<=0).
 	 */
 	vals = (gint64) 
 		vips_image_get_width( statistic->in ) * 
 		vips_image_get_height( statistic->in ) * 
 		vips_image_get_bands( statistic->in );
-	average = avg->sum / vals;
-	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
-		average = sqrt( average );
-	g_object_set( object, "out", average, NULL );
+	s = deviate->sum;
+	s2 = deviate->sum2;
+
+	g_object_set( object, 
+		"out", sqrt( fabs( s2 - (s * s / vals) ) / (vals - 1) ),
+		NULL );
 
 	return( 0 );
 }
 
-/* Start function: allocate space for a double in which we can accumulate the
- * sum for this thread.
+/* Start function: allocate space for an array in which we can accumulate the
+ * sum and sum of squares for this thread.
  */
 static void *
-vips_avg_start( VipsStatistic *statistic )
+vips_deviate_start( VipsStatistic *statistic )
 {
-	double *sum;
+	double *ss2;
 
-	sum = g_new( double, 1 );
-	*sum = 0.0;
+	ss2 = g_new( double, 2 );
+	ss2[0] = 0.0;
+	ss2[1] = 0.0;
 
-	return( (void *) sum );
+	return( (void *) ss2 );
 }
 
 /* Stop function. Add this little sum to the main sum.
  */
 static int
-vips_avg_stop( VipsStatistic *statistic, void *seq )
+vips_deviate_stop( VipsStatistic *statistic, void *seq )
 {
-	VipsAvg *avg = (VipsAvg *) statistic;
-	double *sum = (double *) seq;
+	VipsDeviate *deviate = (VipsDeviate *) statistic;
+	double *ss2 = (double *) seq;
 
-	avg->sum += *sum;
+	deviate->sum += ss2[0];
+	deviate->sum2 += ss2[1];
 
-	g_free( seq );
+	g_free( ss2 );
 
 	return( 0 );
 }
 
-/* Sum pels in this section.
- */
 #define LOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	\
-	for( i = 0; i < sz; i++ ) \
-		m += p[i]; \
+	for( x = 0; x < sz; x++ ) { \
+		TYPE v = p[x]; \
+		\
+		sum += v; \
+		sum2 += (double) v * (double) v; \
+	} \
 }
 
-#define CLOOP( TYPE ) { \
-	TYPE *p = (TYPE *) in; \
-	\
-	for( i = 0; i < sz; i++ ) { \
-		double mod; \
-		\
-		mod = p[0] * p[0] + p[1] * p[1]; \
-		p += 2; \
-		\
-		m += mod; \
-	} \
-} 
-
-/* Loop over region, accumulating a sum in *tmp.
- */
 static int
-vips_avg_scan( VipsStatistic *statistic, void *seq, 
+vips_deviate_scan( VipsStatistic *statistic, void *seq, 
 	int x, int y, void *in, int n )
 {
 	const int sz = n * vips_image_get_bands( statistic->in );
 
-	double *sum = (double *) seq;
+	double *ss2 = (double *) seq;
 
-	int i;
-	double m;
+	double sum;
+	double sum2;
 
-	m = *sum;
+	sum = ss2[0];
+	sum2 = ss2[1];
 
 	/* Now generate code for all types. 
 	 */
@@ -201,20 +206,19 @@ vips_avg_scan( VipsStatistic *statistic, void *seq,
 	case VIPS_FORMAT_INT:		LOOP( signed int ); break; 
 	case VIPS_FORMAT_FLOAT:		LOOP( float ); break; 
 	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break; 
-	case VIPS_FORMAT_COMPLEX:	CLOOP( float ); break; 
-	case VIPS_FORMAT_DPCOMPLEX:	CLOOP( double ); break; 
 
 	default: 
 		g_assert( 0 );
 	}
 
-	*sum = m;
+	ss2[0] = sum;
+	ss2[1] = sum2;
 
 	return( 0 );
 }
 
 static void
-vips_avg_class_init( VipsAvgClass *class )
+vips_deviate_class_init( VipsDeviateClass *class )
 {
 	GObjectClass *gobject_class = (GObjectClass *) class;
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -223,35 +227,35 @@ vips_avg_class_init( VipsAvgClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "avg";
+	object_class->nickname = "deviate";
 	object_class->description = _( "find image average" );
-	object_class->build = vips_avg_build;
+	object_class->build = vips_deviate_build;
 
-	sclass->start = vips_avg_start;
-	sclass->scan = vips_avg_scan;
-	sclass->stop = vips_avg_stop;
+	sclass->start = vips_deviate_start;
+	sclass->scan = vips_deviate_scan;
+	sclass->stop = vips_deviate_stop;
 
 	VIPS_ARG_DOUBLE( class, "out", 2, 
 		_( "Output" ), 
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
-		G_STRUCT_OFFSET( VipsAvg, out ),
+		G_STRUCT_OFFSET( VipsDeviate, out ),
 		-G_MAXDOUBLE, G_MAXDOUBLE, 0.0 );
 }
 
 static void
-vips_avg_init( VipsAvg *avg )
+vips_deviate_init( VipsDeviate *deviate )
 {
 }
 
 int
-vips_avg( VipsImage *in, double *out, ... )
+vips_deviate( VipsImage *in, double *out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "avg", ap, in, out );
+	result = vips_call_split( "deviate", ap, in, out );
 	va_end( ap );
 
 	return( result );
