@@ -70,16 +70,18 @@
 #include "arithmetic.h"
 #include "unary.h"
 
-/**
+/** 
  * VipsAbs:
  * @in: input #VipsImage
  * @out: output #VipsImage
  *
- * For unsigned formats, this operation calculates (max - @in), eg. (255 -
- * @in) for uchar. For signed and float formats, this operation calculates (-1
- * * @in). 
+ * This operation finds the absolute value of an image. It does a copy for 
+ * unsigned integer types, negate for negative values in 
+ * signed integer types, <function>fabs(3)</function> for 
+ * float types, and calculate modulus for complex 
+ * types. 
  *
- * See also: im_lintra().
+ * See also: im_sign().
  *
  * Returns: 0 on success, -1 on error
  */
