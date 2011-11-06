@@ -6,7 +6,7 @@ libarithmetic_la_SOURCES = \
 	im_bandmean.c \
 	im_cross_phase.c \
 	deviate.c \
-	im_divide.c \
+	divide.c \
 	im_recomb.c \
 	im_linreg.c \
 	im_maxpos_avg.c \

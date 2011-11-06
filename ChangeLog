@@ -7,7 +7,7 @@
   im_lintra(), im_lintra_vec(), im_black(), im_rot90, im_rot180(), im_rot270()
   im_sintra(), im_costra(), im_tantra(), im_asintra(), im_acostra(), 
   im_atantra(), im_exptra(), im_exp10tra(), im_logtra(), im_log10tra(),
-  im_abs(), im_sign(), im_max(), im_maxpos(), im_deviate()
+  im_abs(), im_sign(), im_max(), im_maxpos(), im_deviate(), im_divide()
   redone as classes
 - added argument priorites to help control arg ordering
 - generate has a 'stop' param to signal successful early termination
