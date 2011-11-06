@@ -303,16 +303,15 @@ vips_shutdown( void )
 
 		vips_object_print_all();
 
-		vips_buf_appendf( &buf,
-			"tracked memory: %d allocations totalling %zd bytes\n",
+		vips_buf_appendf( &buf, "memory: %d allocations, %zd bytes\n",
 			vips_tracked_get_allocs(),
 			vips_tracked_get_mem() );
-		vips_buf_appendf( &buf, "tracked memory: high-water mark " );
+		vips_buf_appendf( &buf, "memory: high-water mark " );
 		vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
-		vips_buf_appendf( &buf, "\ntracked files: %d open\n",
+		vips_buf_appendf( &buf, "\nfiles: %d open\n",
 			vips_tracked_get_files() );
 
-		printf( "%s", vips_buf_all( &buf ) );
+		fprintf( stderr, "%s", vips_buf_all( &buf ) );
 	}
 }
 

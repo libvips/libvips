@@ -1757,7 +1757,7 @@ vips_type_find( const char *basename, const char *nickname )
 {
 	VipsObjectClass *class;
 
-	if( !(class = vips_class_find( "VipsObject", nickname )) )
+	if( !(class = vips_class_find( basename, nickname )) )
 		return( 0 );
 
 	return( G_OBJECT_CLASS_TYPE( class ) );
@@ -1839,10 +1839,18 @@ vips_object_local_array( VipsObject *parent, int n )
 static void *
 vips_object_print_all_cb( VipsObject *object, int *n )
 {
-	printf( "%d) ", *n );
-	vips_object_print_name( object );
-	printf( "\n" );
-	vips_object_print( object );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	char str[32768];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	fprintf( stderr, "%d) %s (%p)\n", 
+		*n, G_OBJECT_TYPE_NAME( object ), object );
+
+	class->print_class( class, &buf );
+	vips_buf_appendf( &buf, "\n" );
+	class->print( object, &buf );
+	fprintf( stderr, "%s\n", vips_buf_all( &buf ) );
 
 	*n += 1;
 
@@ -1856,7 +1864,7 @@ vips_object_print_all( void )
 		g_hash_table_size( vips__object_all ) > 0 ) {
 		int n;
 
-		printf( "%d objects alive:\n", 
+		fprintf( stderr, "%d objects alive:\n", 
 			g_hash_table_size( vips__object_all ) ); 
 
 		n = 0;

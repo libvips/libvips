@@ -4,6 +4,19 @@
 	GLib-GObject-WARNING **: invalid cast from `VipsFormatVips' to 
 	`VipsOperation'
 
+        if( !(type = vips_type_find( "VipsOperation", "vips" )) )
+		return( NULL );
+
+  is finding VipsFormatVips
+
+  though VipsFormatVips is not a subclass of VipsOperation ?!?!?
+
+  vips_type_find() was always searching the whole of VipsObject and ignoring 
+  basename
+
+  changed it back, but what will this break? there was a reason we got rid of
+  subclass searching I forget what
+
 
 
 
