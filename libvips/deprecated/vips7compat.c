@@ -1393,6 +1393,23 @@ im_invert( IMAGE *in, IMAGE *out )
 }
 
 int 
+im_abs( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_abs( in, &t, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
 im_lintra( double a, IMAGE *in, double b, IMAGE *out )
 {
 	VipsImage *t;

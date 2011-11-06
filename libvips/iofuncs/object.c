@@ -1024,7 +1024,7 @@ vips_object_real_new_from_string( const char *string )
 
 	/* The main arg selects the subclass.
 	 */
-	if( !(type = vips_type_find( "VipsObject", string )) )
+	if( !(type = vips_type_find( NULL, string )) )
 		return( NULL );
 
 	return( VIPS_OBJECT( g_object_new( type, NULL ) ) );
@@ -1728,17 +1728,19 @@ test_name( VipsObjectClass *class, const char *nickname )
 }
 
 /* Find a class ... search below base, return the first match on a nickname or
- * a name.
+ * a name. If basename is NULL, search all of VipsObject.
  */
 VipsObjectClass *
 vips_class_find( const char *basename, const char *nickname )
 {
+	const char *classname = basename ? basename : "VipsObject";
+
 	VipsObjectClass *class;
 	GType base;
 
-	if( !(base = g_type_from_name( basename )) ) {
+	if( !(base = g_type_from_name( classname )) ) {
 		vips_error( "VipsObject", 
-			_( "base class \"%s\" not found" ), basename ); 
+			_( "base class \"%s\" not found" ), classname ); 
 		return( NULL );
 	}
 
@@ -1848,7 +1850,6 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 		*n, G_OBJECT_TYPE_NAME( object ), object );
 
 	class->print_class( class, &buf );
-	vips_buf_appendf( &buf, "\n" );
 	class->print( object, &buf );
 	fprintf( stderr, "%s\n", vips_buf_all( &buf ) );
 

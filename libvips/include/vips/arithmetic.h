@@ -84,6 +84,8 @@ int vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
 int vips_math( VipsImage *in, VipsImage **out, 
 	VipsMathOperation operation, ... )
 	__attribute__((sentinel));
+int vips_abs( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 
 
@@ -109,7 +111,6 @@ int im_remainderconst( VipsImage *in, VipsImage *out, double c );
 int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
 int im_sign( VipsImage *in, VipsImage *out );
-int im_abs( VipsImage *in, VipsImage *out );
 int im_floor( VipsImage *in, VipsImage *out );
 int im_rint( VipsImage *in, VipsImage *out );
 int im_ceil( VipsImage *in, VipsImage *out );

@@ -49,8 +49,6 @@ extern "C" {
 typedef struct _VipsUnary {
 	VipsArithmetic parent_instance;
 
-	/* The arg we get from the property.
-	 */
 	VipsImage *in;
 
 } VipsUnary;
