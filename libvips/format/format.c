@@ -569,12 +569,9 @@ vips_format_for_name( const char *filename )
 	if( !(format = (VipsFormatClass *) vips_format_map( 
 		(VSListMap2Fn) format_for_name_sub, 
 		(void *) filename, NULL )) ) {
-		char suffix[FILENAME_MAX];
-
-		im_filename_suffix( filename, suffix );
 		im_error( "vips_format_for_name",
 			_( "\"%s\" is not a supported image format." ), 
-			suffix );
+			filename );
 
 		return( NULL );
 	}

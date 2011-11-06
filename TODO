@@ -1,26 +1,15 @@
-- try:
-
-	$ vips abs x.v
-	(null): too few arguments
-
-  not setting prg name?
-
-
-
-- try:
-
-	$ vips abs x.v wdw dwdwwww
-	vips_format_for_name: "" is not a supported image format.
-
-
-
 - see: vips_abs_build(), should that set an arithmetic member? ugly
+
 
 
 
 - what about pipeline -> bandsplit -> min
 
   will that eval the pipe once for each band, or will caching stop that?
+
+  nope, once for each band argh
+
+  get im_stats() to report minpos and maxpos
 
 
 

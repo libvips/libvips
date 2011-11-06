@@ -658,7 +658,7 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 		vips_argument_map( 
 			VIPS_OBJECT( operation ),
 			vips_call_find_pspec, (void *) name, NULL )) ) {
-		vips_error( VIPS_OBJECT( operation )->nickname, 
+		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname, 
 			_( "unknown argument '%s'" ), name );
 		return( FALSE );
 	}
@@ -770,7 +770,7 @@ static const char *
 vips_call_get_arg( VipsCall *call, int i )
 {
 	if( i < 0 || i >= call->argc ) {
-		vips_error( VIPS_OBJECT( call->operation )->nickname, 
+		vips_error( VIPS_OBJECT_GET_CLASS( call->operation )->nickname, 
 			"%s", _( "too few arguments" ) );
 		return( NULL );
 	}
