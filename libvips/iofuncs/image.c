@@ -195,39 +195,9 @@ vips_image_finalize( GObject *gobject )
 	 */
 	vips__link_break_all( image );
 
-	/* Any file mapping?
-	 */
-	if( image->baseaddr ) {
-		/* MMAP file.
-		 */
-		VIPS_DEBUG_MSG( "vips_image_finalize: unmapping file\n" );
-
-		vips__munmap( image->baseaddr, image->length );
-		image->baseaddr = NULL;
-		image->length = 0;
-
-		/* This must have been a pointer to the mmap region, rather
-		 * than a setbuf.
-		 */
-		image->data = NULL;
-	}
-
 	if( image->time ) {
 		VIPS_FREEF( g_timer_destroy, image->time->start );
 		VIPS_FREE( image->time );
-	}
-
-	/* Is there a file descriptor?
-	 */
-	if( image->fd != -1 ) {
-		VIPS_DEBUG_MSG( "vips_image_finalize: closing output file\n" );
-
-		if( image->dtype == VIPS_IMAGE_OPENOUT )
-			(void) vips__writehist( image );
-		if( vips_tracked_close( image->fd ) == -1 ) 
-			vips_error( "VipsImage", 
-				"%s", _( "unable to close fd" ) );
-		image->fd = -1;
 	}
 
 	/* Any image data?
@@ -267,9 +237,46 @@ vips_image_finalize( GObject *gobject )
 static void
 vips_image_dispose( GObject *gobject )
 {
+	VipsImage *image = VIPS_IMAGE( gobject );
+
 	VIPS_DEBUG_MSG( "vips_image_dispose: %p\n", gobject );
 
 	vips_object_preclose( VIPS_OBJECT( gobject ) );
+
+	/* We have to junk the fd in dispose, since we run this for rewind and
+	 * we must close and reopen the file when we switch from write to
+	 * read.
+	 */
+
+	/* Any file mapping?
+	 */
+	if( image->baseaddr ) {
+		/* MMAP file.
+		 */
+		VIPS_DEBUG_MSG( "vips_image_finalize: unmapping file\n" );
+
+		vips__munmap( image->baseaddr, image->length );
+		image->baseaddr = NULL;
+		image->length = 0;
+
+		/* This must have been a pointer to the mmap region, rather
+		 * than a setbuf.
+		 */
+		image->data = NULL;
+	}
+
+	/* Is there a file descriptor?
+	 */
+	if( image->fd != -1 ) {
+		VIPS_DEBUG_MSG( "vips_image_finalize: closing output file\n" );
+
+		if( image->dtype == VIPS_IMAGE_OPENOUT )
+			(void) vips__writehist( image );
+		if( vips_tracked_close( image->fd ) == -1 ) 
+			vips_error( "VipsImage", 
+				"%s", _( "unable to close fd" ) );
+		image->fd = -1;
+	}
 
 	G_OBJECT_CLASS( vips_image_parent_class )->dispose( gobject );
 }

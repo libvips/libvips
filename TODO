@@ -1,12 +1,9 @@
-- try 
+- try:
 
-	$ vips copy babe.png x.v
-	tracked memory: 0 allocations totalling 0 bytes
-	tracked memory: high-water mark 36.09 KB
-	tracked files: 1 open
-	$ 
+	$ vips vips copy babe.png x.v
+	GLib-GObject-WARNING **: invalid cast from `VipsFormatVips' to 
+	`VipsOperation'
 
-  leaking a tracked somewhere
 
 
 

@@ -99,7 +99,7 @@
 
 static int vips_tracked_allocs = 0;
 static size_t vips_tracked_mem = 0;
-static size_t vips_tracked_files = 0;
+static int vips_tracked_files = 0;
 static size_t vips_tracked_mem_highwater = 0;
 static GMutex *vips_tracked_mutex = NULL;
 
@@ -352,6 +352,10 @@ vips_tracked_open( const char *pathname, int flags, ... )
 	g_mutex_lock( vips_tracked_mutex );
 
 	vips_tracked_files += 1;
+#ifdef DEBUG
+	printf( "vips_tracked_open: %s = %d (%d)\n", 
+		pathname, fd, vips_tracked_files );
+#endif /*DEBUG*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 
@@ -381,6 +385,9 @@ vips_tracked_close( int fd )
 	g_assert( vips_tracked_files > 0 );
 
 	vips_tracked_files -= 1;
+#ifdef DEBUG
+	printf( "vips_tracked_close: %d (%d)\n", fd, vips_tracked_files );
+#endif /*DEBUG*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 
