@@ -136,11 +136,10 @@ vips_min_build( VipsObject *object )
 static void *
 vips_min_start( VipsStatistic *statistic )
 {
-	VipsMin *global = (VipsMin *) statistic;
 	VipsMin *min;
 
 	min = g_new( VipsMin, 1 );
-	*min = *global;
+	min->set = FALSE;
 
 	return( (void *) min );
 }
@@ -153,8 +152,8 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	VipsMin *global = (VipsMin *) statistic;
 	VipsMin *min = (VipsMin *) seq;
 
-	if( !global->set ||
-		min->min < global->min ) {
+	if( min->set && 
+		(!global->set || min->min < global->min) ) {
 		global->min = min->min;
 		global->x = min->x;
 		global->y = min->y;

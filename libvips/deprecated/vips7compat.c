@@ -929,6 +929,22 @@ im_subtract( IMAGE *in1, IMAGE *in2, IMAGE *out )
 }
 
 int 
+im_multiply( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_call( "multiply", in1, in2, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
 im_divide( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
 	VipsImage *x;

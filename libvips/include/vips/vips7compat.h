@@ -522,6 +522,7 @@ size_t im_ref_string_get_length( const GValue *value );
 
 int im_add( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_subtract( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_multiply( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_divide( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_min( VipsImage *in, double *out );
 int im_minpos( VipsImage *in, int *xpos, int *ypos, double *out );

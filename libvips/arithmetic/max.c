@@ -135,11 +135,10 @@ vips_max_build( VipsObject *object )
 static void *
 vips_max_start( VipsStatistic *statistic )
 {
-	VipsMax *global = (VipsMax *) statistic;
 	VipsMax *max;
 
 	max = g_new( VipsMax, 1 );
-	*max = *global;
+	max->set = FALSE;
 
 	return( (void *) max );
 }
@@ -152,8 +151,8 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	VipsMax *global = (VipsMax *) statistic;
 	VipsMax *max = (VipsMax *) seq;
 
-	if( !global->set ||
-		max->max < global->max ) {
+	if( max->set &&
+		(!global->set || max->max > global->max) ) {
 		global->max = max->max;
 		global->x = max->x;
 		global->y = max->y;
@@ -190,7 +189,7 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 
 /* real max with an upper bound.
  */
-#define LOOPL( TYPE, UPPER ) { \
+#define LOOPU( TYPE, UPPER ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE m; \
 	\
@@ -254,18 +253,18 @@ vips_max_scan( VipsStatistic *statistic, void *seq,
 	int i;
 
 	switch( vips_image_get_format( statistic->in ) ) {
-	case IM_BANDFMT_UCHAR:		LOOPL( unsigned char, 0 ); break; 
-	case IM_BANDFMT_CHAR:		LOOPL( signed char, SCHAR_MAX ); break; 
-	case IM_BANDFMT_USHORT:		LOOPL( unsigned short, 0 ); break; 
-	case IM_BANDFMT_SHORT:		LOOPL( signed short, SHRT_MAX ); break; 
-	case IM_BANDFMT_UINT:		LOOPL( unsigned int, 0 ); break;
-	case IM_BANDFMT_INT:		LOOPL( signed int, INT_MAX ); break; 
+	case IM_BANDFMT_UCHAR:	LOOPU( unsigned char, UCHAR_MAX ); break; 
+	case IM_BANDFMT_CHAR:	LOOPU( signed char, SCHAR_MAX ); break; 
+	case IM_BANDFMT_USHORT:	LOOPU( unsigned short, USHRT_MAX ); break; 
+	case IM_BANDFMT_SHORT:	LOOPU( signed short, SHRT_MAX ); break; 
+	case IM_BANDFMT_UINT:	LOOPU( unsigned int, UINT_MAX ); break;
+	case IM_BANDFMT_INT:	LOOPU( signed int, INT_MAX ); break; 
 
-	case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
-	case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
+	case IM_BANDFMT_FLOAT:	LOOP( float ); break; 
+	case IM_BANDFMT_DOUBLE:	LOOP( double ); break; 
 
-	case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
-	case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
+	case IM_BANDFMT_COMPLEX:CLOOP( float ); break; 
+	case IM_BANDFMT_DPCOMPLEX:CLOOP( double ); break; 
 
 	default:  
 		g_assert( 0 );

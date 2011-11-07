@@ -1,4 +1,9 @@
-- doing VipsMax
+- max is broken
+
+	$ ~/vips-7.26/bin/vips-7.26 vips im_max sarto_ng.tif 
+	255
+	$ vips max sarto_ng.tif 
+	165.000000
 
 
 
