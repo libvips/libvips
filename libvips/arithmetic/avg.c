@@ -130,12 +130,7 @@ vips_avg_build( VipsObject *object )
 static void *
 vips_avg_start( VipsStatistic *statistic )
 {
-	double *sum;
-
-	sum = g_new( double, 1 );
-	*sum = 0.0;
-
-	return( (void *) sum );
+	return( (void *) g_new0( double, 1 ) );
 }
 
 /* Stop function. Add this little sum to the main sum.

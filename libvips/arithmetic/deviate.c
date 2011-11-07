@@ -145,13 +145,7 @@ vips_deviate_build( VipsObject *object )
 static void *
 vips_deviate_start( VipsStatistic *statistic )
 {
-	double *ss2;
-
-	ss2 = g_new( double, 2 );
-	ss2[0] = 0.0;
-	ss2[1] = 0.0;
-
-	return( (void *) ss2 );
+	return( (void *) g_new0( double, 2 ) );
 }
 
 /* Stop function. Add this little sum to the main sum.
