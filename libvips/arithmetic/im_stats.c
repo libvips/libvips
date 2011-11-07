@@ -137,8 +137,8 @@ im__wrapscan( VipsImage *in,
 }
 
 /* Get the value of pixel (0, 0). Use this to init the min/max value for
- *  * im_max()/im_stats()/etc. 
- *   */
+ * im_max()/im_stats()/etc. 
+ */
 int
 im__value( IMAGE *im, double *value )
 {
