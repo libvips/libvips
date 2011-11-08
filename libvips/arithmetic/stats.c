@@ -74,10 +74,14 @@
  * @out: image of statistics
  *
  * Find many image statistics in a single pass through the data. @out is a
- * one-band #VIPS_FORMAT_DOUBLE image 
- * of 6 columns by n + 1 (where n is number of bands in image @in) 
+ * one-band #VIPS_FORMAT_DOUBLE image of at least 10 columns by n + 1 
+ * (where n is number of bands in image @in) 
  * rows. Columns are statistics, and are, in order: minimum, maximum, sum, 
- * sum of squares, mean, standard deviation. Row 0 has statistics for all 
+ * sum of squares, mean, standard deviation, x coordinate of minimum, y
+ * coordinate of minimum, x coordinate of maximum, y coordinate of maximum. 
+ * Later versions of VipsStats may add more columns.
+ *
+ * Row 0 has statistics for all 
  * bands together, row 1 has stats for band 1, and so on.
  *
  * See also: #VipsAvg, #VipsMin, and friends.
@@ -90,9 +94,6 @@ typedef struct _VipsStats {
 
 	VipsImage *out;
 
-	or build out and use that as an array?
-
-	double **stats;
 } VipsStats;
 
 typedef VipsStatisticClass VipsStatsClass;
@@ -108,6 +109,14 @@ vips_stats_build( VipsObject *object )
 	gint64 vals;
 	double average;
 
+	if( statistic->in ) {
+		int bands = vips_image_get_bands( statistic->in->Bands );
+
+		g_object_set( object, 
+			"out", vips_image_new_array( 10, bands + 1 ),
+			NULL );
+	}
+
 	if( VIPS_OBJECT_CLASS( vips_stats_parent_class )->build( object ) )
 		return( -1 );
 
@@ -121,7 +130,6 @@ vips_stats_build( VipsObject *object )
 	average = stats->sum / vals;
 	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
 		average = sqrt( average );
-	g_object_set( object, "out", average, NULL );
 
 	return( 0 );
 }

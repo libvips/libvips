@@ -1616,6 +1616,47 @@ vips_image_new_from_memory( void *buffer,
 }
 
 /**
+ * vips_image_new_array:
+ * @xsize: image width
+ * @ysize: image height
+ *
+ * This convenience function makes an image which is an array: a one-band
+ * VIPS_FORMAT_DOUBLE image held in memory.
+ *
+ * Use VIPS_IMAGE_ADDR() to address pixels in the image.
+ * 
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_array( int xsize, int ysize )
+{
+	VipsImage *image;
+
+	vips_check_init();
+
+	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
+	g_object_set( image,
+		"filename", "vips_image_new_array",
+		"mode", "t",
+		"width", xsize,
+		"height", ysize,
+		"bands", 1,
+		"format", VIPS_FORMAT_DOUBLE,
+		NULL );
+	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
+		VIPS_UNREF( image );
+		return( NULL );
+	}
+
+	if( vips__image_write_prepare( image ) ) {
+		g_object_unref( image );
+		return( NULL );
+	}
+
+	return( image );
+}
+
+/**
  * vips_image_set_delete_on_close:
  * @image: image to set
  * @delete_on_close: format of file
@@ -1843,10 +1884,10 @@ vips__image_write_prepare( VipsImage *image )
 	case VIPS_IMAGE_SETBUF:
 		/* Allocate memory.
 		 */
-		if( !image->data ) 
-			if( !(image->data = vips_tracked_malloc( 
+		if( !image->data && 
+			!(image->data = vips_tracked_malloc( 
 				VIPS_IMAGE_SIZEOF_IMAGE( image ))) ) 
-				return( -1 );
+			return( -1 );
 
 		break;
 
