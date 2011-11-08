@@ -412,7 +412,7 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 				image->Coding != VIPS_CODING_NONE && 
 				image->Coding != VIPS_CODING_LABQ &&
 				image->Coding != VIPS_CODING_RAD) ||
-			image->Type > VIPS_INTERPRETATION_GREY16 ||
+			image->Type > VIPS_INTERPRETATION_ARRAY ||
 			image->dtype > VIPS_IMAGE_PARTIAL || 
 			image->dhint > VIPS_DEMAND_STYLE_ANY ) 
 			vips_buf_appends( buf, "bad enum\n" );
@@ -1642,6 +1642,7 @@ vips_image_new_array( int xsize, int ysize )
 		"height", ysize,
 		"bands", 1,
 		"format", VIPS_FORMAT_DOUBLE,
+		"interpretation", VIPS_INTERPRETATION_ARRAY,
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
 		VIPS_UNREF( image );

@@ -1073,8 +1073,9 @@ main( int argc, char **argv )
 		if( vips_call_argv( operation, argc - 1, argv + 1 ) ) {
 			if( argc == 1 ) 
 				vips_object_print( VIPS_OBJECT( operation ) );
-			else
-				error_exit( NULL );
+
+			g_object_unref( operation );
+			error_exit( NULL );
 		}
 
 		g_object_unref( operation );

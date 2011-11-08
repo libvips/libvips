@@ -107,25 +107,26 @@ typedef enum {
 
 /**
  * VipsInterpretation: 
- * @VIPS_TYPE_MULTIBAND: generic many-band image
- * @VIPS_TYPE_B_W: some kind of single-band image
- * @VIPS_TYPE_HISTOGRAM: a 1D image such as a histogram or lookup table
- * @VIPS_TYPE_FOURIER: image is in fourier space
- * @VIPS_TYPE_XYZ: the first three bands are colours in CIE XYZ colourspace
- * @VIPS_TYPE_LAB: pixels are in CIE Lab space
- * @VIPS_TYPE_CMYK: the first four bands are in CMYK space
- * @VIPS_TYPE_LABQ: implies #VIPS_CODING_LABQ
- * @VIPS_TYPE_RGB: generic RGB space
- * @VIPS_TYPE_UCS: a uniform colourspace based on CMC
- * @VIPS_TYPE_LCH: pixels are in CIE LCh space
- * @VIPS_TYPE_LABS: pixels are CIE LAB coded as three signed 16-bit values
- * @VIPS_TYPE_sRGB: pixels are sRGB
- * @VIPS_TYPE_YXY: pixels are CIE Yxy
- * @VIPS_TYPE_RGB16: generic 16-bit RGB
- * @VIPS_TYPE_GREY16: generic 16-bit mono
+ * @VIPS_INTERPREATION_MULTIBAND: generic many-band image
+ * @VIPS_INTERPREATION_B_W: some kind of single-band image
+ * @VIPS_INTERPREATION_HISTOGRAM: a 1D image such as a histogram or lookup table
+ * @VIPS_INTERPREATION_FOURIER: image is in fourier space
+ * @VIPS_INTERPREATION_XYZ: the first three bands are CIE XYZ 
+ * @VIPS_INTERPREATION_LAB: pixels are in CIE Lab space
+ * @VIPS_INTERPREATION_CMYK: the first four bands are in CMYK space
+ * @VIPS_INTERPREATION_LABQ: implies #VIPS_CODING_LABQ
+ * @VIPS_INTERPREATION_RGB: generic RGB space
+ * @VIPS_INTERPREATION_UCS: a uniform colourspace based on CMC
+ * @VIPS_INTERPREATION_LCH: pixels are in CIE LCh space
+ * @VIPS_INTERPREATION_LABS: CIE LAB coded as three signed 16-bit values
+ * @VIPS_INTERPREATION_sRGB: pixels are sRGB
+ * @VIPS_INTERPREATION_YXY: pixels are CIE Yxy
+ * @VIPS_INTERPREATION_RGB16: generic 16-bit RGB
+ * @VIPS_INTERPREATION_GREY16: generic 16-bit mono
+ * @VIPS_INTERPREATION_ARRAY: an array
  *
  * How the values in an image should be interpreted. For example, a
- * three-band float image of type #VIPS_TYPE_LAB should have its pixels
+ * three-band float image of type #VIPS_INTERPREATION_LAB should have its pixels
  * interpreted as coordinates in CIE Lab space.
  *
  * These values are set by operations as hints to user-interfaces built on top 
@@ -151,7 +152,8 @@ typedef enum {
 	VIPS_INTERPRETATION_sRGB = 22,
 	VIPS_INTERPRETATION_YXY = 23,
 	VIPS_INTERPRETATION_RGB16 = 25,
-	VIPS_INTERPRETATION_GREY16 = 26
+	VIPS_INTERPRETATION_GREY16 = 26,
+	VIPS_INTERPRETATION_ARRAY = 27
 } VipsInterpretation;
 
 /**

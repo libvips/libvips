@@ -59,6 +59,22 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+/* Get the value of pixel (0, 0). Use this to init the min/max value for
+ * im_max()/im_stats()/etc.
+ */
+int
+im__value( IMAGE *im, double *value )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( im, "im__value", "p" )) ||
+		im_extract_areabands( im, t, 0, 0, 1, 1, 0, 1 ) ||
+		im_avg( t, value ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /* A position and maximum.
  */
 typedef struct _Maxposavg {

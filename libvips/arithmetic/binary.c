@@ -64,8 +64,11 @@ vips_binary_build( VipsObject *object )
 	arithmetic->in = (VipsImage **) vips_object_local_array( object, 2 );
 	arithmetic->in[0] = binary->left;
 	arithmetic->in[1] = binary->right;
-	g_object_ref( arithmetic->in[0] );
-	g_object_ref( arithmetic->in[1] );
+
+	if( arithmetic->in[0] )
+		g_object_ref( arithmetic->in[0] );
+	if( arithmetic->in[1] )
+		g_object_ref( arithmetic->in[1] );
 
 	if( VIPS_OBJECT_CLASS( vips_binary_parent_class )->build( object ) )
 		return( -1 );

@@ -1,19 +1,5 @@
-- add an INTERPRETATION for "array"
-
-  can move the whole of mask, plus headers, plus conversion/im_vips2mask and
+- can move the whole of mask, plus headers, plus conversion/im_vips2mask and
   mask2vips to deprecated
-
-- try:
-
-	$ vips stats babe.jpg
-
-  reports leaks, we need to unref more stuff
-
-- try:
-
-	$ vips add babe.jpg
-
-	GLib-GObject-CRITICAL **: g_o ....
 
 
 
