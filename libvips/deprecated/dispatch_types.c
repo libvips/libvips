@@ -725,7 +725,7 @@ im__dmsprint( im_object obj )
 band    minimum     maximum         sum       sum^2        mean   deviation\
 \n" );
 	for( j = 0; j < mask->ysize; j++ ) {
-		row = mask->coeff + j * 6;
+		row = mask->coeff + j * mask->xsize;
 		if( j == 0 )
 			printf( "all" );
 		else

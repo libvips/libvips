@@ -1604,3 +1604,21 @@ im_exp10tra( IMAGE *in, IMAGE *out )
 {
 	return( vips__math( in, out, VIPS_MATH_OPERATION_EXP10 ) );
 }
+
+DOUBLEMASK *
+im_stats( VipsImage *in )
+{
+	VipsImage *t;
+	DOUBLEMASK *msk;
+
+	if( vips_stats( in, &t,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2mask( t, "im_stats" )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}

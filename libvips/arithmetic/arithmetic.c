@@ -514,6 +514,7 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_math_get_type( void ); 
 	extern GType vips_abs_get_type( void ); 
 	extern GType vips_sign_get_type( void ); 
+	extern GType vips_stats_get_type( void ); 
 
 	vips_add_get_type();
 	vips_subtract_get_type();
@@ -528,5 +529,6 @@ vips_arithmetic_operation_init( void )
 	vips_math_get_type();
 	vips_abs_get_type();
 	vips_sign_get_type();
+	vips_stats_get_type();
 }
 

@@ -16,7 +16,7 @@ libarithmetic_la_SOURCES = \
 	im_point_bilinear.c \
 	im_remainder.c \
 	sign.c \
-	im_stats.c \
+	stats.c \
 	statistic.c \
 	statistic.h \
 	avg.c \

@@ -113,7 +113,7 @@ enum {
 	COL_XMAX = 8,
 	COL_YMAX = 9,
 	COL_LAST = 10
-}
+};
 
 /* Address a double in our array image.
  */
@@ -125,10 +125,15 @@ vips_stats_build( VipsObject *object )
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsStats *stats = (VipsStats *) object;
 
-	gint64 vals;
+	gint64 vals, pels;
+	double *row0;
+	int b;
 
 	if( statistic->in ) {
-		int bands = vips_image_get_bands( statistic->in->Bands ) : 0;
+		int bands = vips_image_get_bands( statistic->in );
+
+		if( vips_check_noncomplex( "VipsStats", statistic->in ) )
+			return( -1 );
 
 		g_object_set( object, 
 			"out", vips_image_new_array( COL_LAST, bands + 1 ),
@@ -138,32 +143,34 @@ vips_stats_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_stats_parent_class )->build( object ) )
 		return( -1 );
 
-	vals = (gint64) 
+	pels = (gint64) 
 		vips_image_get_width( statistic->in ) * 
-		vips_image_get_height( statistic->in ) * 
-		vips_image_get_bands( statistic->in );
+		vips_image_get_height( statistic->in );
+	vals = pels * vips_image_get_bands( statistic->in );
+
+	row0 = ARY( stats->out, 0, 0 ); 
+
+	row0[COL_MIN] = *ARY( stats->out, 0, COL_MIN ); 
+	row0[COL_MAX] = *ARY( stats->out, 0, COL_MAX ); 
+	row0[COL_SUM] = 0;
+	row0[COL_SUM2] = 0;
 
 	for( b = 0; b < vips_image_get_bands( statistic->in ); b++ ) {
+		double *row = ARY( stats->out, 0, b + 1 ); 
 
+		row0[COL_MIN] = VIPS_MIN( row0[COL_MIN], row[COL_MIN] );
+		row0[COL_MAX] = VIPS_MAX( row0[COL_MAX], row[COL_MAX] );
+		row0[COL_SUM] += row[COL_SUM];
+		row0[COL_SUM2] += row[COL_SUM2];
 
+		row[COL_AVG] = row[COL_SUM] / pels;
+		row[COL_SD] = sqrt( fabs( row[COL_SUM2] - 
+			(row[COL_SUM] * row[COL_SUM] / pels) ) / (pels - 1) );
+	}
 
-
-
-		row = out->coeff + (i + 1) * 6;
-		for( j = 0; j < 4; j++ )
-			row[j] = global_stats[i * 4 + j];
-
-		out->coeff[0] = IM_MIN( out->coeff[0], row[0] );
-		out->coeff[1] = IM_MAX( out->coeff[1], row[1] );
-		out->coeff[2] += row[2];
-		out->coeff[3] += row[3];
-		row[4] = row[2] / pels;
-		row[5] = sqrt( fabs( row[3] - (row[2] * row[2] / pels) ) / 
-			(pels - 1) );
-	} 
-	out->coeff[4] = out->coeff[2] / vals;
-	out->coeff[5] = sqrt( fabs( out->coeff[3] - 
-		(out->coeff[2] * out->coeff[2] / vals) ) / (vals - 1) );
+	row0[COL_AVG] = row0[COL_SUM] / vals;
+	row0[COL_SD] = sqrt( fabs( row0[COL_SUM2] - 
+		(row0[COL_SUM] * row0[COL_SUM] / vals) ) / (vals - 1) );
 
 	return( 0 );
 }
@@ -173,7 +180,7 @@ vips_stats_build( VipsObject *object )
 static int
 vips_stats_stop( VipsStatistic *statistic, void *seq )
 {
-	int bands = vips_image_get_bands( statistic->in->Bands );
+	int bands = vips_image_get_bands( statistic->in );
 	VipsStats *global = (VipsStats *) statistic;
 	VipsStats *local = (VipsStats *) seq;
 
@@ -184,10 +191,10 @@ vips_stats_stop( VipsStatistic *statistic, void *seq )
 			double *p = ARY( local->out, 0, b + 1 );
 			double *q = ARY( global->out, 0, b + 1 );
 
-			p[COL_MIN] = q[COL_MIN];
-			p[COL_MAX] = q[COL_MAX];
-			p[COL_SUM] = q[COL_SUM];
-			p[COL_SUM2] = q[COL_SUM2];
+			q[COL_MIN] = p[COL_MIN];
+			q[COL_MAX] = p[COL_MAX];
+			q[COL_SUM] = p[COL_SUM];
+			q[COL_SUM2] = p[COL_SUM2];
 		}
 
 		global->set = TRUE;
@@ -215,7 +222,7 @@ vips_stats_stop( VipsStatistic *statistic, void *seq )
 static void *
 vips_stats_start( VipsStatistic *statistic )
 {
-	int bands = vips_image_get_bands( statistic->in->Bands );
+	int bands = vips_image_get_bands( statistic->in );
 
 	VipsStats *stats;
 
@@ -332,7 +339,7 @@ vips_stats_init( VipsStats *stats )
 }
 
 int
-vips_stats( VipsImage *in, double *out, ... )
+vips_stats( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;

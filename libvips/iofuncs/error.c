@@ -388,7 +388,8 @@ vips_warn( const char *domain, const char *fmt, ... )
  * @Varargs: arguments to the format string
  *
  * Sends a formatted error message to stderr, then sends the contents of the
- * error buffer, if any, then terminates the program with an error code.
+ * error buffer, if any, then shuts down vips and terminates the program with 
+ * an error code.
  *
  * @fmt may be %NULL, in which case only the error buffer is printed before
  * exiting.
@@ -411,6 +412,8 @@ vips_error_exit( const char *fmt, ... )
 	}
 
 	fprintf( stderr, "%s", vips_error_buffer() );
+
+	vips_shutdown();
 
 	exit( 1 );
 }

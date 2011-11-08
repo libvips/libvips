@@ -1850,6 +1850,7 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 		*n, G_OBJECT_TYPE_NAME( object ), object );
 
 	class->print_class( class, &buf );
+	vips_buf_appends( &buf, " " );
 	class->print( object, &buf );
 	fprintf( stderr, "%s\n", vips_buf_all( &buf ) );
 

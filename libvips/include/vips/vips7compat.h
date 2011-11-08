@@ -535,6 +535,7 @@ int im_lintra( double a, VipsImage *in, double b, VipsImage *out );
 int im_lintra_vec( int n, double *a, VipsImage *in, double *b, VipsImage *out );
 int im_abs( VipsImage *in, VipsImage *out );
 int im_sign( VipsImage *in, VipsImage *out );
+DOUBLEMASK *im_stats( VipsImage *in );
 
 int im_sintra( VipsImage *in, VipsImage *out );
 int im_costra( VipsImage *in, VipsImage *out );
