@@ -510,9 +510,9 @@ disc_threshold( void )
 
 		done = TRUE;
 
-		/* 1mb default.
+		/* 100mb default.
 		 */
-		threshold = 1024 * 1024;
+		threshold = 100 * 1024 * 1024;
 
 		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
 			threshold = vips__parse_size( env );
@@ -1462,7 +1462,7 @@ vips_image_new( void )
  *       ]|
  *
  *       will copy via disc if "fred.tif" is more than 500 Mbytes
- *       uncompressed. The default threshold is 1MB.
+ *       uncompressed. The default threshold is 100 MB.
  *     </para>
  *   </listitem>
  *   <listitem> 

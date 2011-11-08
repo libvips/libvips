@@ -1,3 +1,8 @@
+- finish adding maxpos stuff to im_stats
+
+
+
+
 - can move the whole of mask, plus headers, plus conversion/im_vips2mask and
   mask2vips to deprecated
 

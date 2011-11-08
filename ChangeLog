@@ -38,6 +38,7 @@
 - new format for handling exif tags 
 - switch SMALLTILE to 128, 512 was just too big
 - oop mode "rd" was not always being used for images
+- added ARRAY interpretation for images
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 
