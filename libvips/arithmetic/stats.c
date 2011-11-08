@@ -26,6 +26,7 @@
  * 	- gtkdoc comment
  * 7/11/11
  * 	- redone as a class
+ * 	- track maxpos / minpos too
  */
 
 /*
@@ -53,6 +54,10 @@
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
+
+/*
+ */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -126,8 +131,8 @@ vips_stats_build( VipsObject *object )
 	VipsStats *stats = (VipsStats *) object;
 
 	gint64 vals, pels;
-	double *row0;
-	int b;
+	double *row0, *row;
+	int b, y, i;
 
 	if( statistic->in ) {
 		int bands = vips_image_get_bands( statistic->in );
@@ -149,19 +154,31 @@ vips_stats_build( VipsObject *object )
 	vals = pels * vips_image_get_bands( statistic->in );
 
 	row0 = ARY( stats->out, 0, 0 ); 
+	row = ARY( stats->out, 0, 1 ); 
+	for( i = 0; i < COL_LAST; i++ )
+		row0[i] = row[i];
 
-	row0[COL_MIN] = *ARY( stats->out, 0, COL_MIN ); 
-	row0[COL_MAX] = *ARY( stats->out, 0, COL_MAX ); 
-	row0[COL_SUM] = 0;
-	row0[COL_SUM2] = 0;
+	for( b = 1; b < vips_image_get_bands( statistic->in ); b++ ) {
+		row = ARY( stats->out, 0, b + 1 ); 
 
-	for( b = 0; b < vips_image_get_bands( statistic->in ); b++ ) {
-		double *row = ARY( stats->out, 0, b + 1 ); 
+		if( row[COL_MIN] < row0[COL_MIN] ) {
+			row0[COL_MIN] = row[COL_MIN];
+			row0[COL_XMIN] = row[COL_XMIN];
+			row0[COL_YMIN] = row[COL_YMIN];
+		}
 
-		row0[COL_MIN] = VIPS_MIN( row0[COL_MIN], row[COL_MIN] );
-		row0[COL_MAX] = VIPS_MAX( row0[COL_MAX], row[COL_MAX] );
+		if( row[COL_MAX] > row0[COL_MAX] ) {
+			row0[COL_MAX] = row[COL_MAX];
+			row0[COL_XMAX] = row[COL_XMAX];
+			row0[COL_YMAX] = row[COL_YMAX];
+		}
+
 		row0[COL_SUM] += row[COL_SUM];
 		row0[COL_SUM2] += row[COL_SUM2];
+	}
+
+	for( y = 1; y < vips_image_get_height( stats->out ); y++ ) {
+		double *row = ARY( stats->out, 0, y ); 
 
 		row[COL_AVG] = row[COL_SUM] / pels;
 		row[COL_SD] = sqrt( fabs( row[COL_SUM2] - 
@@ -191,10 +208,10 @@ vips_stats_stop( VipsStatistic *statistic, void *seq )
 			double *p = ARY( local->out, 0, b + 1 );
 			double *q = ARY( global->out, 0, b + 1 );
 
-			q[COL_MIN] = p[COL_MIN];
-			q[COL_MAX] = p[COL_MAX];
-			q[COL_SUM] = p[COL_SUM];
-			q[COL_SUM2] = p[COL_SUM2];
+			int i;
+
+			for( i = 0; i < COL_LAST; i++ )
+				q[i] = p[i];
 		}
 
 		global->set = TRUE;
@@ -204,8 +221,18 @@ vips_stats_stop( VipsStatistic *statistic, void *seq )
 			double *p = ARY( local->out, 0, b + 1 );
 			double *q = ARY( global->out, 0, b + 1 );
 
-			q[COL_MIN] = VIPS_MIN( q[COL_MIN], p[COL_MIN] );
-			q[COL_MAX] = VIPS_MAX( q[COL_MAX], p[COL_MAX] );
+			if( p[COL_MIN] < q[COL_MIN] ) {
+				q[COL_MIN] = p[COL_MIN];
+				q[COL_XMIN] = p[COL_XMIN];
+				q[COL_YMIN] = p[COL_YMIN];
+			}
+
+			if( p[COL_MAX] > q[COL_MAX] ) {
+				q[COL_MAX] = p[COL_MAX];
+				q[COL_XMAX] = p[COL_XMAX];
+				q[COL_YMAX] = p[COL_YMAX];
+			}
+
 			q[COL_SUM] += p[COL_SUM];
 			q[COL_SUM2] += p[COL_SUM2];
 		}
@@ -245,29 +272,45 @@ vips_stats_start( VipsStatistic *statistic )
 		double *q = ARY( local->out, 0, b + 1 ); \
 		TYPE small, big; \
 		double sum, sum2; \
+		int xmin, ymin; \
+		int xmax, ymax; \
 		\
 		if( local->set ) { \
 			small = q[COL_MIN]; \
 			big = q[COL_MAX]; \
 			sum = q[COL_SUM]; \
 			sum2 = q[COL_SUM2]; \
+			xmin = q[COL_XMIN]; \
+			ymin = q[COL_YMIN]; \
+			xmax = q[COL_XMAX]; \
+			ymax = q[COL_YMAX]; \
 		} \
 		else { \
 			small = p[0]; \
 			big = p[0]; \
 			sum = 0; \
 			sum2 = 0; \
+			xmin = x; \
+			ymin = y; \
+			xmax = x; \
+			ymax = y; \
 		} \
 		\
 		for( i = 0; i < n; i++ ) { \
 			TYPE value = *p; \
 			\
-			sum += value;\
-			sum2 += (double) value * (double) value;\
-			if( value > big ) \
+			sum += value; \
+			sum2 += (double) value * (double) value; \
+			if( value > big ) { \
 				big = value; \
-			else if( value < small ) \
-				small = value;\
+				xmax = x + i; \
+				ymax = y; \
+			} \
+			else if( value < small ) { \
+				small = value; \
+				xmin = x + i; \
+				ymin = y; \
+			} \
 			\
 			p += bands; \
 		} \
@@ -276,8 +319,13 @@ vips_stats_start( VipsStatistic *statistic )
 		q[COL_MAX] = big; \
 		q[COL_SUM] = sum; \
 		q[COL_SUM2] = sum2; \
-		local->set = TRUE; \
+		q[COL_XMIN] = xmin; \
+		q[COL_YMIN] = ymin; \
+		q[COL_XMAX] = xmax; \
+		q[COL_YMAX] = ymax; \
 	} \
+	\
+	local->set = TRUE; \
 } 
 
 /* Loop over region, accumulating a sum in *tmp.
