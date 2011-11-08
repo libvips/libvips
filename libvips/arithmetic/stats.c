@@ -85,8 +85,6 @@
  * bands together, row 1 has stats for band 1, and so on.
  *
  * See also: #VipsAvg, #VipsMin, and friends.
- *
- * Returns: 0 on success, -1 on error
  */
 
 typedef struct _VipsStats {
@@ -94,11 +92,32 @@ typedef struct _VipsStats {
 
 	VipsImage *out;
 
+	gboolean set;		/* FALSE means no value yet */
 } VipsStats;
 
 typedef VipsStatisticClass VipsStatsClass;
 
 G_DEFINE_TYPE( VipsStats, vips_stats, VIPS_TYPE_STATISTIC );
+
+/* Names for our columns.
+ */
+enum {
+	COL_MIN = 0,
+	COL_MAX = 1,
+	COL_SUM = 2,
+	COL_SUM2 = 3,
+	COL_AVG = 4,
+	COL_SD = 5,
+	COL_XMIN = 6,
+	COL_YMIN = 7,
+	COL_XMAX = 8,
+	COL_YMAX = 9,
+	COL_LAST = 10
+}
+
+/* Address a double in our array image.
+ */
+#define ARY( im, x, y ) ((double *) VIPS_IMAGE_ADDR( im, x, y ))
 
 static int
 vips_stats_build( VipsObject *object )
@@ -107,76 +126,150 @@ vips_stats_build( VipsObject *object )
 	VipsStats *stats = (VipsStats *) object;
 
 	gint64 vals;
-	double average;
 
 	if( statistic->in ) {
-		int bands = vips_image_get_bands( statistic->in->Bands );
+		int bands = vips_image_get_bands( statistic->in->Bands ) : 0;
 
 		g_object_set( object, 
-			"out", vips_image_new_array( 10, bands + 1 ),
+			"out", vips_image_new_array( COL_LAST, bands + 1 ),
 			NULL );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_stats_parent_class )->build( object ) )
 		return( -1 );
 
-	/* Calculate average. For complex, we accumulate re*re +
-	 * im*im, so we need to sqrt.
-	 */
 	vals = (gint64) 
 		vips_image_get_width( statistic->in ) * 
 		vips_image_get_height( statistic->in ) * 
 		vips_image_get_bands( statistic->in );
-	average = stats->sum / vals;
-	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
-		average = sqrt( average );
+
+	for( b = 0; b < vips_image_get_bands( statistic->in ); b++ ) {
+
+
+
+
+
+		row = out->coeff + (i + 1) * 6;
+		for( j = 0; j < 4; j++ )
+			row[j] = global_stats[i * 4 + j];
+
+		out->coeff[0] = IM_MIN( out->coeff[0], row[0] );
+		out->coeff[1] = IM_MAX( out->coeff[1], row[1] );
+		out->coeff[2] += row[2];
+		out->coeff[3] += row[3];
+		row[4] = row[2] / pels;
+		row[5] = sqrt( fabs( row[3] - (row[2] * row[2] / pels) ) / 
+			(pels - 1) );
+	} 
+	out->coeff[4] = out->coeff[2] / vals;
+	out->coeff[5] = sqrt( fabs( out->coeff[3] - 
+		(out->coeff[2] * out->coeff[2] / vals) ) / (vals - 1) );
 
 	return( 0 );
 }
 
-/* Start function: allocate space for a double in which we can accumulate the
- * sum for this thread.
- */
-static void *
-vips_stats_start( VipsStatistic *statistic )
-{
-	return( (void *) g_new0( double, 1 ) );
-}
-
-/* Stop function. Add this little sum to the main sum.
+/* Stop function. Add these little stats to the main set of stats.
  */
 static int
 vips_stats_stop( VipsStatistic *statistic, void *seq )
 {
-	VipsStats *stats = (VipsStats *) statistic;
-	double *sum = (double *) seq;
+	int bands = vips_image_get_bands( statistic->in->Bands );
+	VipsStats *global = (VipsStats *) statistic;
+	VipsStats *local = (VipsStats *) seq;
 
-	stats->sum += *sum;
+	int b;
 
-	g_free( seq );
+	if( local->set && !global->set ) {
+		for( b = 0; b < bands; b++ ) {
+			double *p = ARY( local->out, 0, b + 1 );
+			double *q = ARY( global->out, 0, b + 1 );
+
+			p[COL_MIN] = q[COL_MIN];
+			p[COL_MAX] = q[COL_MAX];
+			p[COL_SUM] = q[COL_SUM];
+			p[COL_SUM2] = q[COL_SUM2];
+		}
+
+		global->set = TRUE;
+	}
+	else if( local->set && global->set ) {
+		for( b = 0; b < bands; b++ ) {
+			double *p = ARY( local->out, 0, b + 1 );
+			double *q = ARY( global->out, 0, b + 1 );
+
+			q[COL_MIN] = VIPS_MIN( q[COL_MIN], p[COL_MIN] );
+			q[COL_MAX] = VIPS_MAX( q[COL_MAX], p[COL_MAX] );
+			q[COL_SUM] += p[COL_SUM];
+			q[COL_SUM2] += p[COL_SUM2];
+		}
+	}
+
+	VIPS_FREEF( g_object_unref, local->out );
+	VIPS_FREEF( g_free, seq );
 
 	return( 0 );
 }
 
-/* Sum pels in this section.
+/* Start function: make a dummy local stats for the private use of this thread. 
  */
-#define LOOP( TYPE ) { \
-	TYPE *p = (TYPE *) in; \
-	\
-	for( i = 0; i < sz; i++ ) \
-		m += p[i]; \
+static void *
+vips_stats_start( VipsStatistic *statistic )
+{
+	int bands = vips_image_get_bands( statistic->in->Bands );
+
+	VipsStats *stats;
+
+	stats = g_new( VipsStats, 1 );
+	if( !(stats->out = vips_image_new_array( COL_LAST, bands + 1 )) ) {
+		g_free( stats );
+		return( NULL );
+	}
+	stats->set = FALSE;
+
+	return( (void *) stats );
 }
 
-#define CLOOP( TYPE ) { \
-	TYPE *p = (TYPE *) in; \
-	\
-	for( i = 0; i < sz; i++ ) { \
-		double mod; \
+/* We scan lines bands times to avoid repeating band loops.
+ * Use temp variables of same type for min/max for faster comparisons.
+ */
+#define LOOP( TYPE ) { \
+	for( b = 0; b < bands; b++ ) { \
+		TYPE *p = ((TYPE *) in) + b; \
+		double *q = ARY( local->out, 0, b + 1 ); \
+		TYPE small, big; \
+		double sum, sum2; \
 		\
-		mod = p[0] * p[0] + p[1] * p[1]; \
-		p += 2; \
+		if( local->set ) { \
+			small = q[COL_MIN]; \
+			big = q[COL_MAX]; \
+			sum = q[COL_SUM]; \
+			sum2 = q[COL_SUM2]; \
+		} \
+		else { \
+			small = p[0]; \
+			big = p[0]; \
+			sum = 0; \
+			sum2 = 0; \
+		} \
 		\
-		m += mod; \
+		for( i = 0; i < n; i++ ) { \
+			TYPE value = *p; \
+			\
+			sum += value;\
+			sum2 += (double) value * (double) value;\
+			if( value > big ) \
+				big = value; \
+			else if( value < small ) \
+				small = value;\
+			\
+			p += bands; \
+		} \
+		\
+		q[COL_MIN] = small; \
+		q[COL_MAX] = big; \
+		q[COL_SUM] = sum; \
+		q[COL_SUM2] = sum2; \
+		local->set = TRUE; \
 	} \
 } 
 
@@ -186,17 +279,11 @@ static int
 vips_stats_scan( VipsStatistic *statistic, void *seq, 
 	int x, int y, void *in, int n )
 {
-	const int sz = n * vips_image_get_bands( statistic->in );
+	const int bands = vips_image_get_bands( statistic->in );
+	VipsStats *local = (VipsStats *) seq;
 
-	double *sum = (double *) seq;
+	int b, i;
 
-	int i;
-	double m;
-
-	m = *sum;
-
-	/* Now generate code for all types. 
-	 */
 	switch( vips_image_get_format( statistic->in ) ) {
 	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break; 
 	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break; 
@@ -206,14 +293,10 @@ vips_stats_scan( VipsStatistic *statistic, void *seq,
 	case VIPS_FORMAT_INT:		LOOP( signed int ); break; 
 	case VIPS_FORMAT_FLOAT:		LOOP( float ); break; 
 	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break; 
-	case VIPS_FORMAT_COMPLEX:	CLOOP( float ); break; 
-	case VIPS_FORMAT_DPCOMPLEX:	CLOOP( double ); break; 
 
 	default: 
 		g_assert( 0 );
 	}
-
-	*sum = m;
 
 	return( 0 );
 }
@@ -238,7 +321,7 @@ vips_stats_class_init( VipsStatsClass *class )
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 
-		_( "Output image" ),
+		_( "Output array of statistics" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsStats, out ) );
 }

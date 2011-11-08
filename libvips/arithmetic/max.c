@@ -79,7 +79,8 @@
  * bands of the input image: use im_stats() if you need to find an 
  * maximum for each band. For complex images, find the maximum modulus.
  *
- * See also: #VipsAvg, #VipsMin, im_stats(), im_bandmean(), im_deviate(), im_rank()
+ * See also: #VipsAvg, #VipsMin, im_stats(), im_bandmean(), #VipsDeviate, 
+ * im_rank().
  */
 
 typedef struct _VipsMax {

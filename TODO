@@ -1,4 +1,12 @@
+- add an INTERPRETATION for "array"
+
+
+
+
 - im_open_local() is broken? try Adam's prog under 7.27
+
+  ... it's the operation cache, we just need to call vips_shutdown()
+
 
 
 
