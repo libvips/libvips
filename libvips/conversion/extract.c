@@ -396,6 +396,7 @@ vips_extract_band_class_init( VipsExtractBandClass *class )
 static void
 vips_extract_band_init( VipsExtractBand *extract )
 {
+	extract->n = 1;
 }
 
 int

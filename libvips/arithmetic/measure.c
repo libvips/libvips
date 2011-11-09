@@ -184,7 +184,7 @@ vips_measure_build( VipsObject *object )
 						   "avg = %g, sdev = %g" ), 
 						i, j, avg, dev );
 
-				*ARY( measure->out, b, x + y * measure->h ) = 
+				*ARY( measure->out, b, i + j * measure->h ) = 
 					avg;
 			}
 		}
