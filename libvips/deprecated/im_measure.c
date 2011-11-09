@@ -19,6 +19,9 @@
  * 	- remove deprecated im_extract()
  * 30/11/09
  * 	- changes for im_extract() broke averaging
+ * 9/11/11
+ * 	- moved to deprecated, the new VipsMeasure does not have the
+ * 	  select-patches thing, so we have to keep this around
  */
 
 /*
@@ -142,55 +145,8 @@ measure_patches( IMAGE *im, double *coeff,
 	return( 0 );
 }
 
-/**
- * im_measure_area:
- * @im: image to measure
- * @left: area of image containing chart
- * @top: area of image containing chart
- * @width: area of image containing chart
- * @height: area of image containing chart
- * @h: patches across chart
- * @v: patches down chart
- * @sel: array of patch numbers to measure (numbered from 1 in row-major order)
- * @nsel: length of patch number array
- * @name: name to give to returned @DOUBLEMASK
- *
- * Analyse a grid of colour patches, producing a #DOUBLEMASK of patch averages.
- * The mask has a row for each measured patch, and a column for each image
- * band. The operations issues a warning if any patch has a deviation more 
- * than 20% of
- * the mean. Only the central 50% of each patch is averaged. If @sel is %NULL
- * then all patches are measured.
- *
- * Example: 6 band image of 4x2 block of colour patches.
- *
- * <tgroup cols='4' align='left' colsep='1' rowsep='1'>
- *   <tbody>
- *     <row>
- *       <entry>1</entry>
- *       <entry>2</entry>
- *       <entry>3</entry>
- *       <entry>4</entry>
- *     </row>
- *     <row>
- *       <entry>5</entry>
- *       <entry>6</entry>
- *       <entry>7</entry>
- *       <entry>8</entry>
- *     </row>
- *   </tbody>
- * </tgroup>
- *
- * Then call im_measure( im, box, 4, 2, { 2, 4 }, 2, "fred" ) makes a mask
- * "fred" which has 6 columns, two rows. The first row contains the averages
- * for patch 2, the second for patch 4.
- *
- * See also: im_avg(), im_deviate(), im_stats().
- * 
- * Returns: #DOUBLEMASK of measurements.
- */
-DOUBLEMASK *
-im_measure_area( IMAGE *im, 
+static DOUBLEMASK *
+internal_im_measure_area( IMAGE *im, 
 	int left, int top, int width, int height, 
 	int u, int v, 
 	int *sel, int nsel, const char *name )
@@ -248,4 +204,34 @@ im_measure_area( IMAGE *im,
 	}
 
 	return( mask );
+}
+
+DOUBLEMASK *
+im_measure_area( IMAGE *im, 
+	int left, int top, int width, int height, 
+	int u, int v, 
+	int *sel, int nsel, const char *name )
+{
+	if( sel )
+		return( internal_im_measure_area( im, 
+			left, top, width, height, u, v, sel, nsel, name ) );
+	else {
+		DOUBLEMASK *msk;
+		VipsImage *t;
+
+		if( vips_measure( im, &t, u, v, 
+			"left", left,
+			"top", top,
+			"width", width,
+			"height", height,
+			NULL ) )
+			return( NULL );
+		if( !(msk = im_vips2mask( t, name )) ) {
+			g_object_unref( t );
+			return( NULL );
+		}
+		g_object_unref( t );
+
+		return( msk );
+	}
 }

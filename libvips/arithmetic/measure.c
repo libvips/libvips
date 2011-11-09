@@ -113,104 +113,80 @@ vips_measure_build( VipsObject *object )
 {
 	VipsMeasure *measure = (VipsMeasure *) object;
 
-	if( measure->in &&
-		vips_argument_get_assigned( object, "h" ) &&
-		vips_argument_get_assigned( object, "v" ) ) {
-		int bands = vips_image_get_bands( measure->in );
-
-		if( vips_check_noncomplex( "VipsMeasure", measure->in ) )
-			return( -1 );
-
-		g_object_set( object, 
-			"out", vips_image_new_array( bands, 
-				measure->h * measure->v ),
-			NULL );
-	}
+	int bands;
+	double pw;
+	double ph;
+	int j, i;
+	int w, h;
+	int b;
 
 	if( VIPS_OBJECT_CLASS( vips_measure_parent_class )->build( object ) )
 		return( -1 );
 
-	need labq2lab on labq images
+	bands = vips_image_get_bands( measure->in );
 
-	or maybe stats/avg/dev should do this?
+	g_object_set( object, 
+		"out", vips_image_new_array( bands, measure->h * measure->v ),
+		NULL );
 
-	they could handle rad etc as well ... add it to statistics.c
-
-	need to keep the whole of im_measure() in deprecated, we've removed 
-	the 'measure these patch numbers' feature
-
-	maybe remove the noncomplex check?
-
-	parent->build() only checks that inputs have been set, I think, we 
-	don't actually need to set out before calling it
-
-	where else do we set out before build? verify
+	/* left/top/width/height default to the size of the image.
+	 */
+	if( !vips_argument_get_assigned( object, "width" ) )
+		g_object_set( object, 
+			"width", vips_image_get_width( measure->in ),
+			NULL );
+	if( !vips_argument_get_assigned( object, "height" ) )
+		g_object_set( object, 
+			"height", vips_image_get_height( measure->in ),
+			NULL );
 
 	/* How large are the patches we are to measure?
 	 */
-	double pw = (double) width / (double) u;
-	double ph = (double) height / (double) v;
+	pw = (double) measure->width / measure->h;
+	ph = (double) measure->height / measure->v;
 
-	/* Set up sub to be the size we need for a patch.
+	/* The size of a patch.
 	 */
 	w = (pw + 1) / 2;
 	h = (ph + 1) / 2;
 
-	/* Loop through sel, picking out areas to measure.
-	 */
-	for( j = 0, patch = 0; patch < nsel; patch++ ) {
-		/* Sanity check. Is the patch number sensible?
-		 */
-		if( sel[patch] <= 0 || sel[patch] > u * v ) {
-			im_error( "im_measure", 
-				_( "patch %d is out of range" ),
-				sel[patch] );
-			return( 1 );
-		}
+	for( j = 0; j < measure->v; j++ ) {
+		for( i = 0; i < measure->h; i++ ) {
+			int x = measure->left + i * pw + (pw + 2) / 4;
+			int y = measure->top + j * ph + (ph + 2) / 4;
 
-		/* Patch coordinates.
-		 */
-		m = (sel[patch] - 1) % u;  
-		n = (sel[patch] - 1) / u;
+			double avg, dev;
 
-		/* Move sub to correct position.
-		 */
-		x = left + m * pw + (pw + 2) / 4;
-		y = top + n * ph + (ph + 2) / 4;
+			for( b = 0; b < bands; b++ ) {
+				VipsImage **t = (VipsImage **) 
+					vips_object_local_array( object, 2 );
 
-		/* Loop through bands.
-		 */
-		for( i = 0; i < im->Bands; i++, j++ ) {
-			/* Make temp buffer to extract to.
-			 */
-			if( !(tmp = im_open( "patch", "t" )) ) 
-				return( -1 );
-			
-			/* Extract and measure.
-			 */
-			if( im_extract_areabands( im, tmp, x, y, w, h, i, 1 ) ||
-				im_avg( tmp, &avg ) ||
-				im_deviate( tmp, &dev ) ) {
-				im_close( tmp );
-				return( -1 );
+				/* Extract and measure.
+				 */
+				if( vips_extract_area( measure->in, &t[0], 
+						x, y, w, h, NULL ) ||
+					vips_extract_band( t[0], &t[1], 
+						b, NULL ) ||
+					vips_avg( t[1], &avg, NULL ) ||
+					vips_deviate( t[1], &dev, NULL ) ) 
+					return( -1 );
+
+				/* Is the deviation large compared with the 
+				 * average? This could be a clue that our 
+				 * parameters have caused us to miss the 
+				 * patch. Look out for averages <0, or 
+				 * averages near zero (can get these if use
+				 * measure on IM_TYPE_LAB images).
+				 */
+				if( dev * 5 > fabs( avg ) && fabs( avg ) > 3 )
+					im_warn( "im_measure",
+						_( "patch %d x %d, band %d: " 
+						   "avg = %g, sdev = %g" ), 
+						i, j, avg, dev );
+
+				*ARY( measure->out, b, x + y * measure->h ) = 
+					avg;
 			}
-			im_close( tmp );
-
-			/* Is the deviation large compared with the average?
-			 * This could be a clue that our parameters have
-			 * caused us to miss the patch. Look out for averages
-			 * <0, or averages near zero (can get these if use
-			 * im_measure() on IM_TYPE_LAB images).
-			 */
-			if( dev * 5 > fabs( avg ) && fabs( avg ) > 3 )
-				im_warn( "im_measure",
-					_( "patch %d, band %d: "
-						"avg = %g, sdev = %g" ), 
-					patch, i, avg, dev );
-
-			/* Save results.
-			 */
-			coeff[j] = avg;
 		}
 	}
 
@@ -240,7 +216,7 @@ vips_measure_class_init( VipsMeasureClass *class )
 		_( "in" ), 
 		_( "Image to measure" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsJoin, in1 ) );
+		G_STRUCT_OFFSET( VipsMeasure, in ) );
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 

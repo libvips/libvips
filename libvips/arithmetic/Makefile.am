@@ -11,7 +11,7 @@ libarithmetic_la_SOURCES = \
 	im_linreg.c \
 	im_maxpos_avg.c \
 	im_maxpos_vec.c \
-	im_measure.c \
+	measure.c \
 	multiply.c \
 	im_point_bilinear.c \
 	im_remainder.c \

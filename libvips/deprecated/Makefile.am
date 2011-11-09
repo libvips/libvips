@@ -17,6 +17,7 @@ libdeprecated_la_SOURCES = \
 	im_printlines.c \
 	im_convsub.c \
 	im_line.c \
+	im_measure.c \
 	im_resize_linear.c \
 	im_debugim.c \
 	im_gfadd.c \

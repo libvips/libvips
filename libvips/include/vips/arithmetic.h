@@ -98,14 +98,12 @@ int vips_sign( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_stats( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
+	__attribute__((sentinel));
 
 
 
 
-DOUBLEMASK *im_measure_area( VipsImage *im, 
-	int left, int top, int width, int height, 
-	int h, int v, 
-	int *sel, int nsel, const char *name );
 int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
 int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
 int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );

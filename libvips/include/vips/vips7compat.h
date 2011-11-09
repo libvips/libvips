@@ -536,6 +536,10 @@ int im_lintra_vec( int n, double *a, VipsImage *in, double *b, VipsImage *out );
 int im_abs( VipsImage *in, VipsImage *out );
 int im_sign( VipsImage *in, VipsImage *out );
 DOUBLEMASK *im_stats( VipsImage *in );
+DOUBLEMASK *im_measure_area( VipsImage *im, 
+	int left, int top, int width, int height, 
+	int h, int v, 
+	int *sel, int nsel, const char *name );
 
 int im_sintra( VipsImage *in, VipsImage *out );
 int im_costra( VipsImage *in, VipsImage *out );

@@ -859,7 +859,8 @@ vips_call_argv_unref_output( VipsObject *object,
 	void *a, void *b )
 {
 	if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
-		G_IS_PARAM_SPEC_OBJECT( pspec ) ) { 
+		G_IS_PARAM_SPEC_OBJECT( pspec ) &&
+		argument_instance->assigned ) {
 		GObject *value;
 
 		g_object_get( object, 
