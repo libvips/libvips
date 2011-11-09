@@ -421,6 +421,22 @@ vips_object_get_argument( VipsObject *object, const char *name,
 	return( 0 );
 }
 
+/* Convenience: has an argument been assigned.
+ */
+gboolean
+vips_argument_get_assigned( VipsObject *object, const char *name )
+{
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
+
+	if( vips_object_get_argument( object, name,
+		&pspec, &argument_class, &argument_instance ) )
+		return( FALSE );
+
+	return( argument_instance->assigned );
+}
+
 static void
 vips_object_clear_member( VipsObject *object, GParamSpec *pspec, 
 	GObject **member )
