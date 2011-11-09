@@ -1622,3 +1622,26 @@ im_stats( VipsImage *in )
 
 	return( msk );
 }
+
+int 
+im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_mask2vips( recomb, t1 ) )
+		return( -1 );
+	if( vips_recomb( in, &t2, t1, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}

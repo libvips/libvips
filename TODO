@@ -1,12 +1,12 @@
 - avg/dev etc. should uncode images? eg. labq2lab etc.
 
-  test new measure
-
 
 
 
 - can move the whole of mask, plus headers, plus conversion/im_vips2mask and
   mask2vips to deprecated
+
+  make a new thing to load a mask file from csv2vips?
 
 
 

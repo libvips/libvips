@@ -540,6 +540,7 @@ DOUBLEMASK *im_measure_area( VipsImage *im,
 	int left, int top, int width, int height, 
 	int h, int v, 
 	int *sel, int nsel, const char *name );
+int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
 int im_sintra( VipsImage *in, VipsImage *out );
 int im_costra( VipsImage *in, VipsImage *out );

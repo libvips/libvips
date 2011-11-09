@@ -89,6 +89,7 @@ vips_unary_class_init( VipsUnaryClass *class )
 		_( "Input image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsUnary, in ) );
+
 }
 
 static void

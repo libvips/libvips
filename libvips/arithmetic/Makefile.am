@@ -7,7 +7,7 @@ libarithmetic_la_SOURCES = \
 	im_cross_phase.c \
 	deviate.c \
 	divide.c \
-	im_recomb.c \
+	recomb.c \
 	im_linreg.c \
 	im_maxpos_avg.c \
 	im_maxpos_vec.c \
