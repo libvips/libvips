@@ -1053,65 +1053,6 @@ static im_function tbjoin_desc = {
 	two_in_one_out 			/* Arg list */
 };
 
-/* Args to im_mask2vips.
- */
-static im_arg_desc mask2vips_args[] = {
-	IM_INPUT_DMASK( "input" ),
-	IM_OUTPUT_IMAGE( "output" ),
-};
-
-/* Call im_mask2vips via arg vector.
- */
-static int
-mask2vips_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[0];
-
-	return( im_mask2vips( mo->mask, argv[1] ) );
-}
-
-/* Description of im_mask2vips.
- */
-static im_function mask2vips_desc = {
-	"im_mask2vips", 		/* Name */
-	"convert DOUBLEMASK to VIPS image",
-	0,				/* Flags */
-	mask2vips_vec, 			/* Dispatch function */
-	IM_NUMBER( mask2vips_args ), 	/* Size of arg list */
-	mask2vips_args 			/* Arg list */
-};
-
-/* Args to im_vips2mask.
- */
-static im_arg_desc vips2mask_args[] = {
-	IM_INPUT_IMAGE( "input" ),
-	IM_OUTPUT_DMASK( "output" ),
-};
-
-/* Call im_vips2mask via arg vector.
- */
-static int
-vips2mask_vec( im_object *argv )
-{
-	im_mask_object *mo = argv[1];
-
-	if( !(mo->mask = im_vips2mask( argv[0], mo->name )) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* Description of im_vips2mask.
- */
-static im_function vips2mask_desc = {
-	"im_vips2mask", 		/* Name */
-	"convert VIPS image to DOUBLEMASK",
-	0,				/* Flags */
-	vips2mask_vec, 			/* Dispatch function */
-	IM_NUMBER( vips2mask_args ), 	/* Size of arg list */
-	vips2mask_args 			/* Arg list */
-};
-
 /* Call im_scale via arg vector.
  */
 static int
@@ -1392,7 +1333,6 @@ static im_function *conv_list[] = {
 	&insert_noexpand_desc,
 	&embed_desc,
 	&lrjoin_desc,
-	&mask2vips_desc,
         &msb_desc,
         &msb_band_desc,
 	&replicate_desc,
@@ -1407,7 +1347,6 @@ static im_function *conv_list[] = {
 	&system_image_desc,
 	&tbjoin_desc,
 	&text_desc,
-	&vips2mask_desc,
 	&wrap_desc,
 	&zoom_desc
 };

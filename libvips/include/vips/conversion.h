@@ -167,11 +167,6 @@ int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
 
 
-
-
-DOUBLEMASK *im_vips2mask( VipsImage *in, const char *filename );
-int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
-
 int im_copy_file( VipsImage *in, VipsImage *out );
 
 int im_scale( VipsImage *in, VipsImage *out );

@@ -640,7 +640,6 @@ AC_OUTPUT([
 	libvips/histograms_lut/Makefile 
 	libvips/inplace/Makefile 
 	libvips/iofuncs/Makefile 
-	libvips/mask/Makefile 
 	libvips/morphology/Makefile 
 	libvips/mosaicing/Makefile 
 	libvips/other/Makefile 

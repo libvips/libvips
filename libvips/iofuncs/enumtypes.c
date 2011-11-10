@@ -85,27 +85,46 @@ vips_angle_get_type( void )
 }
 /* enumerations from "../../libvips/include/vips/arithmetic.h" */
 GType
-vips_math_operation_get_type( void )
+vips_operation_math_get_type( void )
 {
 	static GType etype = 0;
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_MATH_OPERATION_SIN, "VIPS_MATH_OPERATION_SIN", "sin"},
-			{VIPS_MATH_OPERATION_COS, "VIPS_MATH_OPERATION_COS", "cos"},
-			{VIPS_MATH_OPERATION_TAN, "VIPS_MATH_OPERATION_TAN", "tan"},
-			{VIPS_MATH_OPERATION_ASIN, "VIPS_MATH_OPERATION_ASIN", "asin"},
-			{VIPS_MATH_OPERATION_ACOS, "VIPS_MATH_OPERATION_ACOS", "acos"},
-			{VIPS_MATH_OPERATION_ATAN, "VIPS_MATH_OPERATION_ATAN", "atan"},
-			{VIPS_MATH_OPERATION_LOG, "VIPS_MATH_OPERATION_LOG", "log"},
-			{VIPS_MATH_OPERATION_LOG10, "VIPS_MATH_OPERATION_LOG10", "log10"},
-			{VIPS_MATH_OPERATION_EXP, "VIPS_MATH_OPERATION_EXP", "exp"},
-			{VIPS_MATH_OPERATION_EXP10, "VIPS_MATH_OPERATION_EXP10", "exp10"},
-			{VIPS_MATH_OPERATION_LAST, "VIPS_MATH_OPERATION_LAST", "last"},
+			{VIPS_OPERATION_MATH_SIN, "VIPS_OPERATION_MATH_SIN", "sin"},
+			{VIPS_OPERATION_MATH_COS, "VIPS_OPERATION_MATH_COS", "cos"},
+			{VIPS_OPERATION_MATH_TAN, "VIPS_OPERATION_MATH_TAN", "tan"},
+			{VIPS_OPERATION_MATH_ASIN, "VIPS_OPERATION_MATH_ASIN", "asin"},
+			{VIPS_OPERATION_MATH_ACOS, "VIPS_OPERATION_MATH_ACOS", "acos"},
+			{VIPS_OPERATION_MATH_ATAN, "VIPS_OPERATION_MATH_ATAN", "atan"},
+			{VIPS_OPERATION_MATH_LOG, "VIPS_OPERATION_MATH_LOG", "log"},
+			{VIPS_OPERATION_MATH_LOG10, "VIPS_OPERATION_MATH_LOG10", "log10"},
+			{VIPS_OPERATION_MATH_EXP, "VIPS_OPERATION_MATH_EXP", "exp"},
+			{VIPS_OPERATION_MATH_EXP10, "VIPS_OPERATION_MATH_EXP10", "exp10"},
+			{VIPS_OPERATION_MATH_LAST, "VIPS_OPERATION_MATH_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsMathOperation", values );
+		etype = g_enum_register_static( "VipsOperationMath", values );
+	}
+
+	return( etype );
+}
+GType
+vips_operation_round_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_ROUND_NEAREST, "VIPS_OPERATION_ROUND_NEAREST", "nearest"},
+			{VIPS_OPERATION_ROUND_CEIL, "VIPS_OPERATION_ROUND_CEIL", "ceil"},
+			{VIPS_OPERATION_ROUND_FLOOR, "VIPS_OPERATION_ROUND_FLOOR", "floor"},
+			{VIPS_OPERATION_ROUND_LAST, "VIPS_OPERATION_ROUND_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationRound", values );
 	}
 
 	return( etype );

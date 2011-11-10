@@ -73,7 +73,7 @@
  * VipsMath:
  * @in: input #VipsImage
  * @out: output #VipsImage
- * @operation: operation to perform
+ * @math: math operation to perform
  *
  * Perform various functions in -lm, the maths library, on images. 
  *
@@ -87,7 +87,7 @@
 typedef struct _VipsMath {
 	VipsUnary parent_instance;
 
-	VipsMathOperation operation;
+	VipsOperationMath math;
 
 } VipsMath;
 
@@ -163,17 +163,17 @@ vips_math_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 
 	int x;
 
-	switch( math->operation ) {
-	case VIPS_MATH_OPERATION_SIN: 	SWITCH( DSIN ); break;
-	case VIPS_MATH_OPERATION_COS: 	SWITCH( DCOS ); break;
-	case VIPS_MATH_OPERATION_TAN: 	SWITCH( DTAN ); break;
-	case VIPS_MATH_OPERATION_ASIN: 	SWITCH( ADSIN ); break;
-	case VIPS_MATH_OPERATION_ACOS: 	SWITCH( ADCOS ); break;
-	case VIPS_MATH_OPERATION_ATAN: 	SWITCH( ADTAN ); break;
-	case VIPS_MATH_OPERATION_LOG: 	SWITCH( log ); break;
-	case VIPS_MATH_OPERATION_LOG10:	SWITCH( log10 ); break;
-	case VIPS_MATH_OPERATION_EXP: 	SWITCH( exp ); break;
-	case VIPS_MATH_OPERATION_EXP10:	SWITCH( EXP10 ); break;
+	switch( math->math ) {
+	case VIPS_OPERATION_MATH_SIN: 	SWITCH( DSIN ); break;
+	case VIPS_OPERATION_MATH_COS: 	SWITCH( DCOS ); break;
+	case VIPS_OPERATION_MATH_TAN: 	SWITCH( DTAN ); break;
+	case VIPS_OPERATION_MATH_ASIN: 	SWITCH( ADSIN ); break;
+	case VIPS_OPERATION_MATH_ACOS: 	SWITCH( ADCOS ); break;
+	case VIPS_OPERATION_MATH_ATAN: 	SWITCH( ADTAN ); break;
+	case VIPS_OPERATION_MATH_LOG: 	SWITCH( log ); break;
+	case VIPS_OPERATION_MATH_LOG10:	SWITCH( log10 ); break;
+	case VIPS_OPERATION_MATH_EXP: 	SWITCH( exp ); break;
+	case VIPS_OPERATION_MATH_EXP10:	SWITCH( EXP10 ); break;
 
 	default:
 		g_assert( 0 );
@@ -216,12 +216,12 @@ vips_math_class_init( VipsMathClass *class )
 
 	aclass->process_line = vips_math_buffer;
 
-	VIPS_ARG_ENUM( class, "operation", 200, 
+	VIPS_ARG_ENUM( class, "math", 200, 
 		_( "Operation" ), 
-		_( "operation to perform" ),
+		_( "math to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMath, operation ),
-		VIPS_TYPE_MATH_OPERATION, VIPS_MATH_OPERATION_SIN ); 
+		G_STRUCT_OFFSET( VipsMath, math ),
+		VIPS_TYPE_OPERATION_MATH, VIPS_OPERATION_MATH_SIN ); 
 }
 
 static void
@@ -230,13 +230,13 @@ vips_math_init( VipsMath *math )
 }
 
 int
-vips_math( VipsImage *in, VipsImage **out, VipsMathOperation operation, ... )
+vips_math( VipsImage *in, VipsImage **out, VipsOperationMath math, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, operation );
-	result = vips_call_split( "math", ap, in, out, operation );
+	va_start( ap, math );
+	result = vips_call_split( "math", ap, in, out, math );
 	va_end( ap );
 
 	return( result );

@@ -553,6 +553,10 @@ int im_log10tra( VipsImage *in, VipsImage *out );
 int im_exptra( VipsImage *in, VipsImage *out );
 int im_exp10tra( VipsImage *in, VipsImage *out );
 
+int im_floor( VipsImage *in, VipsImage *out );
+int im_rint( VipsImage *in, VipsImage *out );
+int im_ceil( VipsImage *in, VipsImage *out );
+
 int im_copy( VipsImage *in, VipsImage *out );
 int im_copy_set( VipsImage *in, VipsImage *out, 
 	VipsInterpretation interpretation, 
@@ -586,6 +590,9 @@ int im_black( VipsImage *out, int x, int y, int bands );
 int im_rot90( VipsImage *in, VipsImage *out );
 int im_rot180( VipsImage *in, VipsImage *out );
 int im_rot270( VipsImage *in, VipsImage *out );
+
+DOUBLEMASK *im_vips2mask( VipsImage *in, const char *filename );
+int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
 
 
 

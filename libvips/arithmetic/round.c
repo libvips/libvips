@@ -7,23 +7,25 @@
  * 	- tiny cleanups
  * 19/9/09
  * 	- im_ceil.c adapted to make round.c
+ * 10/11/11
+ * 	- redone as a class
  */
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
+    Copyright (C) 1991-2005 The National Gallery
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    GNU General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
+    You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
@@ -33,6 +35,10 @@
 
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
+ */
+
+/*
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -46,132 +52,163 @@
 
 #include <vips/vips.h>
 
-#define ROUND_LOOP( TYPE, FUN ) { \
-	TYPE *p = (TYPE *) in; \
-	TYPE *q = (TYPE *) out; \
-	\
-	for( x = 0; x < ne; x++ ) \
-		q[x] = FUN( p[x] ); \
-}
+#include "arithmetic.h"
+#include "unary.h"
 
-#define ROUND_BUFFER( FUN ) \
-static void \
-FUN ## _buffer( PEL *in, PEL *out, int width, IMAGE *im ) \
-{ \
-	/* Complex just doubles the size. \
-	 */ \
-	const int ne = width * im->Bands * \
-		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1); \
-	\
-	int x; \
-	\
-        switch( im->BandFmt ) { \
-        case IM_BANDFMT_COMPLEX: \
-        case IM_BANDFMT_FLOAT: \
-		ROUND_LOOP( float, FUN ); \
-		break; \
-	\
-        case IM_BANDFMT_DOUBLE: \
-        case IM_BANDFMT_DPCOMPLEX: \
-		ROUND_LOOP( double, FUN ); \
-		break; \
-	\
-        default: \
-		g_assert( 0 ); \
-        } \
-}
+/**
+ * VipsRound:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @round: #VipsOperationRound rounding operation to perform
+ *
+ * Round to an integral value.
+ *
+ * Copy for integer types, round float and 
+ * complex types. Output type == input type.
+ *
+ * See also: #VipsCast.
+ */
 
-static int 
-im__round( const char *name, IMAGE *in, IMAGE *out, im_wrapone_fn gen )
-{	
-	if( im_piocheck( in, out ) ||
-		im_check_uncoded( name, in ) )
-		return( -1 );
+typedef struct _VipsRound {
+	VipsUnary parent_instance;
+
+	VipsOperationRound round;
+
+} VipsRound;
+
+typedef VipsUnaryClass VipsRoundClass;
+
+G_DEFINE_TYPE( VipsRound, vips_round, VIPS_TYPE_UNARY );
+
+static int
+vips_round_build( VipsObject *object )
+{
+	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
+	VipsUnary *unary = (VipsUnary *) object;
 
 	/* Is this one of the int types? Degenerate to im_copy() if it
 	 * is.
 	 */
-	if( vips_bandfmt_isint( in->BandFmt ) )
-		return( im_copy( in, out ) );
+	if( unary->in &&
+		vips_bandfmt_isint( unary->in->BandFmt ) ) {
+		/* This isn't set by arith until build(), so we have to set
+		 * again here.
+		 *
+		 * Should arith set out in _init()?
+		 */
+		g_object_set( arithmetic, "out", vips_image_new(), NULL ); 
 
-	/* Output type == input type.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
+		return( vips_image_write( unary->in, arithmetic->out ) );
+	}
 
-	/* Generate!
-	 */
-	if( im_wrapone( in, out, (im_wrapone_fn) gen, in, NULL ) )
+	if( VIPS_OBJECT_CLASS( vips_round_parent_class )->build( object ) )
 		return( -1 );
 
 	return( 0 );
 }
 
-ROUND_BUFFER( ceil )
-
-/**
- * im_ceil:
- * @in: input #IMAGE
- * @out: output #IMAGE
- *
- * For each pixel, find the smallest integral value not less than.
- * Copy for integer types, call <function>ceil(3)</function> for float and 
- * complex types. 
- * Output type == input type.
- *
- * See also: im_floor(), im_rint(), im_clip2fmt()
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_ceil( IMAGE *in, IMAGE *out )
-{	
-	return( im__round( "im_ceil", in, out, (im_wrapone_fn) ceil_buffer ) );
+#define LOOP( TYPE, OP ) { \
+	TYPE *p = (TYPE *) in[0]; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = OP( p[x] ); \
 }
 
-ROUND_BUFFER( floor )
-
-/**
- * im_floor:
- * @in: input #IMAGE
- * @out: output #IMAGE
- *
- * For each pixel, find the largest integral value not less than.
- * Copy for integer types, call <function>floor()</function> for float and 
- * complex types. 
- * Output type == input type.
- *
- * See also: im_ceil(), im_rint(), im_clip2fmt()
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_floor( IMAGE *in, IMAGE *out )
-{	
-	return( im__round( "im_floor", in, out, 
-		(im_wrapone_fn) floor_buffer ) );
+#define SWITCH( OP ) { \
+	switch( vips_image_get_format( im ) ) { \
+        case VIPS_FORMAT_COMPLEX: \
+	case VIPS_FORMAT_FLOAT: LOOP( float, OP ); break; \
+	\
+        case VIPS_FORMAT_DPCOMPLEX: \
+	case VIPS_FORMAT_DOUBLE:LOOP( double, OP ); break;\
+ 	\
+	default: \
+		g_assert( 0 ); \
+	} \
 }
 
-ROUND_BUFFER( IM_RINT )
+static void
+vips_round_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+{
+	VipsRound *round = (VipsRound *) arithmetic;
+	VipsImage *im = arithmetic->ready[0];
 
-/**
- * im_rint:
- * @in: input #IMAGE
- * @out: output #IMAGE
- *
- * Finds the nearest integral value. Copy for integer types, 
- * call IM_RINT() for float and complex types. Output type == input type.
- *
- * IM_RINT() is a pseudo-round-to-nearest. It is much faster than
- * <function>rint</function>(3), but does not give the same result for
- * negative integral values.
- *
- * See also: im_ceil(), im_floor(), im_clip2fmt()
- *
- * Returns: 0 on success, -1 on error
+	/* Complex just doubles the size.
+	 */
+	const int sz = width * im->Bands * 
+		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
+
+	int x;
+
+	switch( round->round ) {
+	case VIPS_OPERATION_ROUND_NEAREST:	SWITCH( VIPS_RINT ); break;
+	case VIPS_OPERATION_ROUND_CEIL: 	SWITCH( ceil ); break;
+	case VIPS_OPERATION_ROUND_FLOOR: 	SWITCH( floor ); break;
+
+	default: 
+		g_assert( 0 ); 
+	} 
+}
+
+/* Save a bit of typing.
  */
-int 
-im_rint( IMAGE *in, IMAGE *out )
-{	
-	return( im__round( "im_rint", in, out, (im_wrapone_fn) IM_RINT_buffer ) );
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
+
+static const VipsBandFormat vips_bandfmt_round[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
+};
+
+static void
+vips_round_class_init( VipsRoundClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "round";
+	object_class->description = _( "perform a round function on an image" );
+	object_class->build = vips_round_build;
+
+	vips_arithmetic_set_format_table( aclass, vips_bandfmt_round );
+
+	aclass->process_line = vips_round_buffer;
+
+	VIPS_ARG_ENUM( class, "round", 200, 
+		_( "Round operation" ), 
+		_( "rounding operation to perform" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsRound, round ),
+		VIPS_TYPE_OPERATION_ROUND, VIPS_OPERATION_ROUND_NEAREST ); 
+}
+
+static void
+vips_round_init( VipsRound *round )
+{
+}
+
+int
+vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, round );
+	result = vips_call_split( "round", ap, in, out, round );
+	va_end( ap );
+
+	return( result );
 }

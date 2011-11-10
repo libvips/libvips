@@ -30,6 +30,18 @@ libdeprecated_la_SOURCES = \
 	im_thresh.c \
 	im_slice.c \
 	im_print.c \
-	im_litecor.c 
+	im_litecor.c \
+	im_mask2vips.c \
+	im_vips2mask.c \
+	rotmask.c \
+	im_gaussmasks.c \
+	im_logmasks.c \
+	rw_mask.c \
+	im_matcat.c \
+	im_matinv.c \
+	im_matmul.c \
+	im_mattrn.c \
+	matalloc.c \
+	mask_dispatch.c
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

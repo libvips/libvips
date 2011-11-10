@@ -24,7 +24,6 @@ SUBDIRS = \
 	histograms_lut \
 	inplace \
 	iofuncs \
-	mask \
 	morphology \
 	mosaicing \
 	other \
@@ -60,7 +59,6 @@ libvips_la_LIBADD = \
 	histograms_lut/libhistograms_lut.la \
 	inplace/libinplace.la \
 	iofuncs/libiofuncs.la \
-	mask/libmask.la \
 	morphology/libmorphology.la \
 	mosaicing/libmosaicing.la \
 	other/libother.la \

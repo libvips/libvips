@@ -1529,11 +1529,11 @@ im_black( IMAGE *out, int x, int y, int bands )
 }
 
 static int
-vips__math( VipsImage *in, VipsImage *out, VipsMathOperation operation )
+vips__math( VipsImage *in, VipsImage *out, VipsOperationMath math )
 {
 	VipsImage *t;
 
-	if( vips_math( in, &t, operation,
+	if( vips_math( in, &t, math,
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
@@ -1548,61 +1548,61 @@ vips__math( VipsImage *in, VipsImage *out, VipsMathOperation operation )
 int 
 im_sintra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_SIN ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_SIN ) );
 }
 
 int 
 im_costra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_COS ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_COS ) );
 }
 
 int 
 im_tantra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_TAN ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_TAN ) );
 }
 
 int 
 im_asintra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_ASIN ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_ASIN ) );
 }
 
 int 
 im_acostra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_ACOS ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_ACOS ) );
 }
 
 int 
 im_atantra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_ATAN ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_ATAN ) );
 }
 
 int 
 im_logtra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_LOG ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_LOG ) );
 }
 
 int 
 im_log10tra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_LOG10 ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_LOG10 ) );
 }
 
 int 
 im_exptra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_EXP ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_EXP ) );
 }
 
 int 
 im_exp10tra( IMAGE *in, IMAGE *out )
 {
-	return( vips__math( in, out, VIPS_MATH_OPERATION_EXP10 ) );
+	return( vips__math( in, out, VIPS_OPERATION_MATH_EXP10 ) );
 }
 
 DOUBLEMASK *
@@ -1644,4 +1644,39 @@ im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
 	g_object_unref( t2 );
 
 	return( 0 );
+}
+
+static int
+vips__round( VipsImage *in, VipsImage *out, VipsOperationRound round )
+{
+	VipsImage *t;
+
+	if( vips_round( in, &t, round,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_rint( IMAGE *in, IMAGE *out )
+{
+	return( vips__round( in, out, VIPS_OPERATION_ROUND_NEAREST ) );
+}
+
+int 
+im_floor( IMAGE *in, IMAGE *out )
+{
+	return( vips__round( in, out, VIPS_OPERATION_ROUND_FLOOR ) );
+}
+
+int 
+im_ceil( IMAGE *in, IMAGE *out )
+{
+	return( vips__round( in, out, VIPS_OPERATION_ROUND_CEIL ) );
 }

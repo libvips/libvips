@@ -38,33 +38,48 @@ extern "C" {
 #endif /*__cplusplus*/
 
 /** 
- * VipsMathOperation:
- * @VIPS_MATH_OPERATION_SIN: sin(), angles in degrees
- * @VIPS_MATH_OPERATION_COS: cos(), angles in degrees
- * @VIPS_MATH_OPERATION_TAN: tan(), angles in degrees
- * @VIPS_MATH_OPERATION_ASIN: asin(), angles in degrees
- * @VIPS_MATH_OPERATION_ACOS: acos(), angles in degrees
- * @VIPS_MATH_OPERATION_ATAN: atan(), angles in degrees
- * @VIPS_MATH_OPERATION_LOG: log base e 
- * @VIPS_MATH_OPERATION_LOG10: log base 10 
- * @VIPS_MATH_OPERATION_EXP: e to the something
- * @VIPS_MATH_OPERATION_EXP10: 10 to the something
+ * VipsOperationMath:
+ * @VIPS_OPERATION_MATH_SIN: sin(), angles in degrees
+ * @VIPS_OPERATION_MATH_COS: cos(), angles in degrees
+ * @VIPS_OPERATION_MATH_TAN: tan(), angles in degrees
+ * @VIPS_OPERATION_MATH_ASIN: asin(), angles in degrees
+ * @VIPS_OPERATION_MATH_ACOS: acos(), angles in degrees
+ * @VIPS_OPERATION_MATH_ATAN: atan(), angles in degrees
+ * @VIPS_OPERATION_MATH_LOG: log base e 
+ * @VIPS_OPERATION_MATH_LOG10: log base 10 
+ * @VIPS_OPERATION_MATH_EXP: e to the something
+ * @VIPS_OPERATION_MATH_EXP10: 10 to the something
  *
  * See also: vips_math().
  */
 typedef enum {
-	VIPS_MATH_OPERATION_SIN,
-	VIPS_MATH_OPERATION_COS,
-	VIPS_MATH_OPERATION_TAN,
-	VIPS_MATH_OPERATION_ASIN,
-	VIPS_MATH_OPERATION_ACOS,
-	VIPS_MATH_OPERATION_ATAN,
-	VIPS_MATH_OPERATION_LOG,
-	VIPS_MATH_OPERATION_LOG10,
-	VIPS_MATH_OPERATION_EXP,
-	VIPS_MATH_OPERATION_EXP10,
-	VIPS_MATH_OPERATION_LAST
-} VipsMathOperation;
+	VIPS_OPERATION_MATH_SIN,
+	VIPS_OPERATION_MATH_COS,
+	VIPS_OPERATION_MATH_TAN,
+	VIPS_OPERATION_MATH_ASIN,
+	VIPS_OPERATION_MATH_ACOS,
+	VIPS_OPERATION_MATH_ATAN,
+	VIPS_OPERATION_MATH_LOG,
+	VIPS_OPERATION_MATH_LOG10,
+	VIPS_OPERATION_MATH_EXP,
+	VIPS_OPERATION_MATH_EXP10,
+	VIPS_OPERATION_MATH_LAST
+} VipsOperationMath;
+
+/** 
+ * VipsOperationRound:
+ * @VIPS_OPERATION_ROUND_NEAREST: round to nearest
+ * @VIPS_OPERATION_ROUND_FLOOR: largest integral value not greater than
+ * @VIPS_OPERATION_ROUND_CEIL: the smallest integral value not less than
+ *
+ * See also: vips_round().
+ */
+typedef enum {
+	VIPS_OPERATION_ROUND_NEAREST,
+	VIPS_OPERATION_ROUND_CEIL,
+	VIPS_OPERATION_ROUND_FLOOR,
+	VIPS_OPERATION_ROUND_LAST
+} VipsOperationRound;
 
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -90,7 +105,7 @@ int vips_linear( VipsImage *in, VipsImage **out,
 int vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
 	__attribute__((sentinel));
 int vips_math( VipsImage *in, VipsImage **out, 
-	VipsMathOperation operation, ... )
+	VipsOperationMath math, ... )
 	__attribute__((sentinel));
 int vips_abs( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -101,6 +116,8 @@ int vips_stats( VipsImage *in, VipsImage **out, ... )
 int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 	__attribute__((sentinel));
 int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
+	__attribute__((sentinel));
+int vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
 	__attribute__((sentinel));
 
 
@@ -115,9 +132,6 @@ int im_remainder( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_remainder_vec( VipsImage *in, VipsImage *out, int n, double *c );
 int im_remainderconst( VipsImage *in, VipsImage *out, double c );
 
-int im_floor( VipsImage *in, VipsImage *out );
-int im_rint( VipsImage *in, VipsImage *out );
-int im_ceil( VipsImage *in, VipsImage *out );
 
 int im_linreg( VipsImage **ins, VipsImage *out, double *xs );
 int im_point( VipsImage *im, VipsInterpolate *interpolate, 

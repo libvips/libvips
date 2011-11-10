@@ -21,7 +21,6 @@ libconversion_la_SOURCES = \
 	im_c2real.c \
 	im_copy_file.c \
 	im_falsecolour.c \
-	im_mask2vips.c \
 	im_msb.c \
 	im_grid.c \
 	im_ri2c.c \
@@ -32,7 +31,6 @@ libconversion_la_SOURCES = \
 	im_system_image.c \
 	im_text.c \
 	im_gaussnoise.c \
-	im_vips2mask.c \
 	im_wrap.c \
 	im_zoom.c
 
