@@ -17,6 +17,9 @@
 
 
 
+- test _O_TEMPORARY thing on Windows
+
+
 
 - avg/dev etc. should uncode images? eg. labq2lab etc.
 

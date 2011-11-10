@@ -168,6 +168,20 @@ static guint vips_image_signals[SIG_LAST] = { 0 };
 G_DEFINE_TYPE( VipsImage, vips_image, VIPS_TYPE_OBJECT );
 
 static void
+vips_image_delete( VipsImage *image )
+{
+	if( image->delete_on_close ) {
+		g_assert( image->delete_on_close_filename );
+
+		VIPS_DEBUG_MSG( "vips_image_delete: removing temp %s\n", 
+				image->delete_on_close_filename );
+		g_unlink( image->delete_on_close_filename );
+		VIPS_FREE( image->delete_on_close_filename );
+		image->delete_on_close = FALSE;
+	}
+}
+
+static void
 vips_image_finalize( GObject *gobject )
 {
 	VipsImage *image = VIPS_IMAGE( gobject );
@@ -215,15 +229,9 @@ vips_image_finalize( GObject *gobject )
 		image->data = NULL;
 	}
 
-	if( image->delete_on_close ) {
-		g_assert( image->delete_on_close_filename );
-
-		VIPS_DEBUG_MSG( "vips_image_finalize: removing temp %s\n", 
-				image->delete_on_close_filename );
-		g_unlink( image->delete_on_close_filename );
-		VIPS_FREE( image->delete_on_close_filename );
-		image->delete_on_close = FALSE;
-	}
+	/* If this is a temp, delete it.
+	 */
+	vips_image_delete( image );
 
 	VIPS_FREEF( g_mutex_free, image->sslock );
 
@@ -2002,6 +2010,19 @@ vips_image_rewind_output( VipsImage *image )
 			image->filename );
 		return( -1 );
 	}
+
+	/* Now we've finished writing and reopened as read, we can
+	 * delete-on-close. 
+	 *
+	 * On *nix-like systems, this will unlink the file
+	 * from the filesystem and when we exit, for whatever reason, the file
+	 * we be reclaimed. 
+	 *
+	 * On Windows this will fail because the file is open and you can't
+	 * delete open files. However, on Windows we set O_TEMP, so the file
+	 * will be deleted anyway on exit.
+	 */
+	vips_image_delete( image );
 
 	return( 0 );
 }

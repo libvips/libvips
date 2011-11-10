@@ -43,6 +43,8 @@
 - VipsStats tracks minpos/maxpos as well
 - moved mask/ to deprecated
 - use atexit() to call vips_shutdown()
+- set _O_TEMPORARY on delete-on-close temp images if possible
+- unlink temps on rewind on *nix, less likely to leave temps on a crash
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

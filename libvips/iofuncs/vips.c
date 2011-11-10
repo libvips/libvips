@@ -952,9 +952,21 @@ vips_image_open_output( VipsImage *image )
 		 * writing a VIPS image anyway.
 		 */
 		unsigned char header[VIPS_SIZEOF_HEADER];
+		int flags;
+
+		flags = MODE_WRITE;
+
+		/* On Windows, setting O_TEMP gets the file automatically
+		 * deleted on process exit, even if the processes crashes. See
+		 * vips_image_rewind() for what we do to help on *nix.
+		 */
+#ifdef _O_TEMPORARY
+		if( image->delete_on_close )
+			flags |= _O_TEMPORARY;
+#endif /*_O_TEMPORARY*/
 
 		if( (image->fd = vips_tracked_open( image->filename, 
-			MODE_WRITE, 0666 )) < 0 ) {
+			flags, 0666 )) < 0 ) {
 			vips_error_system( errno, "VipsImage", 
 				_( "unable to write to \"%s\"" ), 
 				image->filename );
