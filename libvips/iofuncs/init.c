@@ -262,6 +262,13 @@ vips_init( const char *argv0 )
 	 */
 	vips_vector_init();
 
+	/* Register vips_shutdown(). This may well not get called and many
+	 * platforms don't support it anyway.
+	 */
+#ifdef HAVE_ATEXIT
+	atexit( vips_shutdown );
+#endif /*HAVE_ATEXIT*/
+
 	done = TRUE;
 
 	return( 0 );
@@ -280,38 +287,49 @@ vips_check_init( void )
 		vips_error_clear();
 }
 
+static void
+vips_leak( void ) 
+{
+	char txt[1024];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+
+	vips_object_print_all();
+
+	vips_buf_appendf( &buf, "memory: %d allocations, %zd bytes\n",
+		vips_tracked_get_allocs(), vips_tracked_get_mem() );
+	vips_buf_appendf( &buf, "memory: high-water mark " );
+	vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
+	vips_buf_appendf( &buf, "\nfiles: %d open\n",
+		vips_tracked_get_files() );
+
+	fprintf( stderr, "%s", vips_buf_all( &buf ) );
+}
+
 /**
  * vips_shutdown:
  *
  * Call this to drop caches and close plugins. Run with "--vips-leak" to do 
- * a leak check too.
+ * a leak check too. May be called many times.
  */
 void
 vips_shutdown( void )
 {
+	static gboolean done = FALSE;
+
 	vips_cache_drop_all();
 	im_close_plugins();
 
-	/* In dev releases, always show leaks.
+	/* In dev releases, always show leaks. But not more than once, it's
+	 * annoying.
 	 */
 #ifndef DEBUG_LEAK
 	if( vips__leak ) 
 #endif /*DEBUG_LEAK*/
 	{
-		char txt[1024];
-		VipsBuf buf = VIPS_BUF_STATIC( txt );
+		if( !done ) 
+			vips_leak();
 
-		vips_object_print_all();
-
-		vips_buf_appendf( &buf, "memory: %d allocations, %zd bytes\n",
-			vips_tracked_get_allocs(),
-			vips_tracked_get_mem() );
-		vips_buf_appendf( &buf, "memory: high-water mark " );
-		vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
-		vips_buf_appendf( &buf, "\nfiles: %d open\n",
-			vips_tracked_get_files() );
-
-		fprintf( stderr, "%s", vips_buf_all( &buf ) );
+		done = TRUE;
 	}
 }
 

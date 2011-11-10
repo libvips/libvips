@@ -2,64 +2,7 @@
 
 
 
-
-- im_open_local() is broken? try Adam's prog under 7.27
-
-  ... it's the operation cache, we just need to call vips_shutdown()
-
-
-
-
 - see: vips_abs_build(), should that set an arithmetic member? ugly
-
-
-
-
-- what about pipeline -> bandsplit -> min
-
-  will that eval the pipe once for each band, or will caching stop that?
-
-  nope, once for each band argh
-
-  get im_stats() to report minpos and maxpos
-
-
-
-
-- try:
-
-	$ vips vips copy babe.png x.v
-	GLib-GObject-WARNING **: invalid cast from `VipsFormatVips' to 
-	`VipsOperation'
-
-        if( !(type = vips_type_find( "VipsOperation", "vips" )) )
-		return( NULL );
-
-  is finding VipsFormatVips
-
-  though VipsFormatVips is not a subclass of VipsOperation ?!?!?
-
-  vips_type_find() was always searching the whole of VipsObject and ignoring 
-  basename
-
-  changed it back, but what will this break? there was a reason we got rid of
-  subclass searching I forget what
-
-
-
-
-
-- don't do vips_image_write() at the end of a pipeline, instead try:
-
-	g_object_set( object, "out", t, NULL );
-
-  ie. replace the output object
-
-  this doesn't work, I wonder why ... do we need to add an extra ref to t?
-
-  yes, the old obj holds a ref to the operation, not the other way around
-
-
 
 
 
