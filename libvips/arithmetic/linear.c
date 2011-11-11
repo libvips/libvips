@@ -135,7 +135,7 @@ vips_linear_build( VipsObject *object )
 	VipsLinear *linear = (VipsLinear *) object;
 	int i;
 
-	/* If we have a three-element vector, we need to bandup the image to
+	/* If we have a three-element vector we need to bandup the image to
 	 * match.
 	 */
 	linear->n = 1;
@@ -147,7 +147,7 @@ vips_linear_build( VipsObject *object )
 		linear->n = VIPS_MAX( linear->n, unary->in->Bands );
 	arithmetic->base_bands = linear->n;
 
-	if( unary->in ) {
+	if( unary->in && linear->a && linear->b ) {
 		if( vips_check_vector( "VipsLinear", 
 			linear->a->n, unary->in ) ||
 			vips_check_vector( "VipsLinear", 

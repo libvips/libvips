@@ -70,7 +70,7 @@
 
 #include "arithmetic.h"
 #include "binary.h"
-#include "unaryconst.h"
+#include "unary.h"
 
 /**
  * VipsRelational:
@@ -300,22 +300,164 @@ vips_relational( VipsImage *left, VipsImage *right, VipsImage **out,
  */
 
 typedef struct _VipsRelationalConst {
-	VipsUnaryConst parent_instance;
+	VipsUnary parent_instance;
 
-	VipsOperationRelational relational;
+	/* Our constants.
+	 */
+	VipsArea *c;
+
+	/* Our constants expanded to match arith->ready in size.
+	 */
+	int n;
+	double *c_ready;
+
 } VipsRelationalConst;
 
 typedef VipsUnaryClass VipsRelationalConstClass;
 
-G_DEFINE_TYPE( VipsRelationalConst, 
-	vips_relationalconst, VIPS_TYPE_UNARY_CONST );
+G_DEFINE_TYPE( VipsRelationalConst, vips_relationalconst, VIPS_TYPE_UNARY );
+
+/* Cast a vector of double to a vector of TYPE, clipping to a range.
+ */
+#define CAST_CLIP( TYPE, N, X ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( i = 0; i < n; i++ ) \
+		tq[i] = (TYPE) IM_CLIP( N, p[i], X ); \
+}
+
+/* Cast a vector of double to a vector of TYPE.
+ */
+#define CAST( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( i = 0; i < n; i++ ) \
+		tq[i] = (TYPE) p[i]; \
+}
+
+/* Cast a vector of double to a complex vector of TYPE.
+ */
+#define CASTC( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( i = 0; i < n; i++ ) { \
+		tq[0] = (TYPE) p[i]; \
+		tq[1] = 0; \
+		tq += 2; \
+	} \
+}
+
+/* Cast a vector of double to a passed format.
+ */
+static PEL *
+make_pixel( IMAGE *out, VipsBandFmt fmt, int n, double *p )
+{
+	PEL *q;
+	int i;
+
+	if( !(q = IM_ARRAY( out, n * (im_bits_of_fmt( fmt ) >> 3), PEL )) )
+		return( NULL );
+
+        switch( fmt ) {
+        case IM_BANDFMT_CHAR:		
+		CAST_CLIP( signed char, SCHAR_MIN, SCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_UCHAR:  	
+		CAST_CLIP( unsigned char, 0, UCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_SHORT:  	
+		CAST_CLIP( signed short, SCHAR_MIN, SCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_USHORT: 	
+		CAST_CLIP( unsigned short, 0, USHRT_MAX ); 
+		break;
+
+        case IM_BANDFMT_INT:    	
+		CAST_CLIP( signed int, INT_MIN, INT_MAX ); 
+		break;
+
+        case IM_BANDFMT_UINT:   	
+		CAST_CLIP( unsigned int, 0, UINT_MAX ); 
+		break;
+
+        case IM_BANDFMT_FLOAT: 		
+		CAST( float ); 
+		break; 
+
+        case IM_BANDFMT_DOUBLE:		
+		CAST( double ); 
+		break;
+
+        case IM_BANDFMT_COMPLEX: 	
+		CASTC( float ); 
+		break; 
+
+        case IM_BANDFMT_DPCOMPLEX:	
+		CASTC( double ); 
+		break;
+
+        default:
+                g_assert( 0 );
+        }
+
+	return( q );
+}
 
 static int
 vips_relationalconst_build( VipsObject *object )
 {
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
-	VipsUnaryConst *unaryconst = (VipsUnaryConst *) object;
+	VipsUnary *unary = (VipsUnary *) object;
 	VipsRelationalConst *relationalconst = (VipsRelationalConst *) object;
+
+	int i;
+
+	/* If we have a three-element vector we need to bandup the image to
+	 * match.
+	 */
+	relationalconst->n = 1;
+	if( relationalconst->c )
+		relationalconst->n = relationalconst->c->n;
+	if( unary->in )
+		relationalconst->n = VIPS_MAX( relationalconst->n, 
+			unary->in->Bands );
+	arithmetic->base_bands = relationalconst->n;
+
+	if( unary->in && relational->c ) {
+		if( vips_check_vector( "VipsRelationalConst", 
+			relationalconst->c->n, unary->in ) )
+		return( -1 );
+	}
+
+	/* Make up-banded versions of our constants.
+	 */
+	if( relationalconst->c ) {
+		double *ary = (double *) relationalconst->c->data;
+
+		relationalconst->c_ready = g_new( double, relationalconst->n );
+
+		for( i = 0; i < relationalconst->n; i++ ) {
+			int j = VIPS_MIN( i, relationalconst->c->n - 1 );
+
+			relationalconst->c_ready[i] = ary[j];
+		}
+	}
+
+	/* Some operations need the vector in the input type (eg.
+	 * im_equal_vec() where the output type is always uchar and is useless
+	 * for comparisons), some need it in the output type (eg.
+	 * im_andimage_vec() where we want to get the double to an int so we
+	 * can do bitwise-and without having to cast for each pixel), some
+	 * need a fixed type (eg. im_powtra_vec(), where we want to keep it as
+	 * double).
+	 *
+	 * Therefore pass in the desired vector type as a param.
+	 */
+	if( !(vector = make_pixel( out, vfmt, n, c )) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_relationalconst_parent_class )->
 		build( object ) )
@@ -329,7 +471,7 @@ vips_relationalconst_build( VipsObject *object )
  	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
-			out[i] = (p[i] OP c[b]) ? 255 : 0; \
+			q[i] = (p[i] OP c[b]) ? 255 : 0; \
 }
 
 #define CLOOPC( TYPE, OP ) { \
@@ -337,7 +479,7 @@ vips_relationalconst_build( VipsObject *object )
  	\
 	for( i = 0, x = 0; x < width; x++ ) { \
 		for( b = 0; b < bands; b++, i++ ) { \
-			out[i] = OP( p[0], p[1], c[i], 0.0) ? 255 : 0; \
+			q[i] = COP( p[0], p[1], c[i], 0.0) ? 255 : 0; \
 			\
 			p += 2; \
 		} \
@@ -350,14 +492,13 @@ static void
 vips_relationalconst_buffer( VipsArithmetic *arithmetic, 
 	PEL *out, PEL **in, int width )
 {
-	VipsUnaryConst *unaryconst = (VipsUnaryConst *) arithmetic;
 	VipsRelationalConst *relationalconst = (VipsRelationalConst *) 
 		arithmetic;
 	VipsImage *im = arithmetic->ready[0];
-	int bands = im->Bands;
-	double *c = unaryconst->c_ready;
+	int nb = im->Bands;
+	double *c = relationalconst->c_ready;
 
-	int i, x, b;
+	int i, x, k;
 
 	switch( relationalconst->relational ) {
 	case VIPS_OPERATION_RELATIONAL_EQUAL: 	
@@ -370,7 +511,7 @@ vips_relationalconst_buffer( VipsArithmetic *arithmetic,
 
 	case VIPS_OPERATION_RELATIONAL_LESS: 	
 		SWITCH( RLOOPC, CLOOPC, <, CLESS ); 
-		break;
+		breakC;
 
 	case VIPS_OPERATION_RELATIONAL_LESSEQ: 	
 		SWITCH( RLOOPC, CLOOPC, <=, CLESSEQ ); 
@@ -378,7 +519,7 @@ vips_relationalconst_buffer( VipsArithmetic *arithmetic,
 
 	case VIPS_OPERATION_RELATIONAL_MORE: 	
 		SWITCH( RLOOPC, CLOOPC, >, CMORE ); 
-		break;
+		breakC;
 
 	case VIPS_OPERATION_RELATIONAL_MOREEQ: 	
 		SWITCH( RLOOPC, CLOOPC, >=, CMOREEQ ); 
@@ -407,6 +548,21 @@ vips_relationalconst_class_init( VipsRelationalConstClass *class )
 	vips_arithmetic_set_format_table( aclass, vips_bandfmt_relational );
 
 	aclass->process_line = vips_relationalconst_buffer;
+
+	VIPS_ARG_ENUM( class, "relational", 200, 
+		_( "Operation" ), 
+		_( "relational operation to perform" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsRelational, relational ),
+		VIPS_TYPE_OPERATION_RELATIONAL, 
+			VIPS_OPERATION_RELATIONAL_EQUAL ); 
+
+	VIPS_ARG_BOXED( class, "c", 210, 
+		_( "c" ), 
+		_( "Array of constants" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsRelationalConst, c ),
+		VIPS_TYPE_ARRAY_DOUBLE );
 }
 
 static void
@@ -427,7 +583,7 @@ vips_relationalconst( VipsImage *in, VipsImage **out,
 	area_c = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n ); 
 	array = (double *) area_c->data;
 	for( i = 0; i < n; i++ ) 
-		array[i] = c[i];
+		array[i] = a[i];
 
 	va_start( ap, n );
 	result = vips_call_split( "relationalconst", ap, 
@@ -452,7 +608,7 @@ vips_relationalconst1( VipsImage *in, VipsImage **out,
 	array = (double *) area_c->data;
 	array[0] = c;
 
-	va_start( ap, c );
+	va_start( ap, b );
 	result = vips_call_split( "relationalconst", ap, 
 		in, out, relational, area_c );
 	va_end( ap );
