@@ -1,22 +1,3 @@
-
-
-- does vips_shutdown() remove temp files even in cases where objects have not
-  been unrefed?
-
-- unlink temps earlier on *nix systems
-
-  the file is created by setupout, which is called just before generate or
-  writeline, so perhaps unlink on evalstart?
-
-  no, on a rewind we need to be able to close and reopen, argh
-
-  could we reopen before we close the old one? at what point does the filename
-  vanish from the directory? earlier than we'd like argh
-
-  perhaps we could unlink on rewind? we won't need to rewind more than once?
-
-
-
 - test _O_TEMPORARY thing on Windows
 
 
@@ -27,6 +8,8 @@
 
 
 - see: vips_abs_build(), should that set an arithmetic member? ugly
+
+  same code in round.c
 
 
 
