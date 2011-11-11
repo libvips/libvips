@@ -1,5 +1,7 @@
 - test _O_TEMPORARY thing on Windows
 
+ * See also: #VipsBoolean, #VipsRelationalConst.
+
 
 
 - avg/dev etc. should uncode images? eg. labq2lab etc.

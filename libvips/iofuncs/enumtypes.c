@@ -129,6 +129,28 @@ vips_operation_round_get_type( void )
 
 	return( etype );
 }
+GType
+vips_operation_relational_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_RELATIONAL_EQUAL, "VIPS_OPERATION_RELATIONAL_EQUAL", "equal"},
+			{VIPS_OPERATION_RELATIONAL_NOTEQUAL, "VIPS_OPERATION_RELATIONAL_NOTEQUAL", "notequal"},
+			{VIPS_OPERATION_RELATIONAL_LESS, "VIPS_OPERATION_RELATIONAL_LESS", "less"},
+			{VIPS_OPERATION_RELATIONAL_LESSEQ, "VIPS_OPERATION_RELATIONAL_LESSEQ", "lesseq"},
+			{VIPS_OPERATION_RELATIONAL_MORE, "VIPS_OPERATION_RELATIONAL_MORE", "more"},
+			{VIPS_OPERATION_RELATIONAL_MOREEQ, "VIPS_OPERATION_RELATIONAL_MOREEQ", "moreeq"},
+			{VIPS_OPERATION_RELATIONAL_LAST, "VIPS_OPERATION_RELATIONAL_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationRelational", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/util.h" */
 GType
 vips_token_get_type( void )

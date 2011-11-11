@@ -1680,3 +1680,63 @@ im_ceil( IMAGE *in, IMAGE *out )
 {
 	return( vips__round( in, out, VIPS_OPERATION_ROUND_CEIL ) );
 }
+
+static int 
+vips__relational( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	VipsOperationRelational relational )
+{
+	VipsImage *t;
+
+	if( vips_relational( in1, in2, &t, relational,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_equal( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	return( vips__relational( in1, in2, out, 
+		VIPS_OPERATION_RELATIONAL_EQUAL ) );
+}
+
+int 
+im_notequal( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	return( vips__relational( in1, in2, out, 
+		VIPS_OPERATION_RELATIONAL_NOTEQUAL ) );
+}
+
+int 
+im_less( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	return( vips__relational( in1, in2, out, 
+		VIPS_OPERATION_RELATIONAL_LESS ) );
+}
+
+int 
+im_lesseq( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	return( vips__relational( in1, in2, out, 
+		VIPS_OPERATION_RELATIONAL_LESSEQ ) );
+}
+
+int 
+im_more( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	return( vips__relational( in1, in2, out, 
+		VIPS_OPERATION_RELATIONAL_MORE ) );
+}
+
+int 
+im_moreeq( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	return( vips__relational( in1, in2, out, 
+		VIPS_OPERATION_RELATIONAL_MOREEQ ) );
+}

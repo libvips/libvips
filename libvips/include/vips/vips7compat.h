@@ -557,6 +557,13 @@ int im_floor( VipsImage *in, VipsImage *out );
 int im_rint( VipsImage *in, VipsImage *out );
 int im_ceil( VipsImage *in, VipsImage *out );
 
+int im_equal( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_notequal( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_less( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_lesseq( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_more( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_moreeq( VipsImage *in1, VipsImage *in2, VipsImage *out );
+
 int im_copy( VipsImage *in, VipsImage *out );
 int im_copy_set( VipsImage *in, VipsImage *out, 
 	VipsInterpretation interpretation, 

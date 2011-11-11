@@ -37,12 +37,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_equal( VipsImage *in1, VipsImage *in2, VipsImage *out );
-int im_notequal( VipsImage *in1, VipsImage *in2, VipsImage *out );
-int im_less( VipsImage *in1, VipsImage *in2, VipsImage *out );
-int im_lesseq( VipsImage *in1, VipsImage *in2, VipsImage *out );
-int im_more( VipsImage *in1, VipsImage *in2, VipsImage *out );
-int im_moreeq( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_equal_vec( VipsImage *in, VipsImage *out, int n, double *c );
 int im_notequal_vec( VipsImage *in, VipsImage *out, int n, double *c );
 int im_less_vec( VipsImage *in, VipsImage *out, int n, double *c );

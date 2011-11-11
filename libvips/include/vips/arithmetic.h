@@ -81,6 +81,27 @@ typedef enum {
 	VIPS_OPERATION_ROUND_LAST
 } VipsOperationRound;
 
+/** 
+ * VipsOperationRelational:
+ * @VIPS_OPERATION_RELATIONAL_EQUAL: ==
+ * @VIPS_OPERATION_RELATIONAL_NOTEQUAL: !=
+ * @VIPS_OPERATION_RELATIONAL_LESS: <
+ * @VIPS_OPERATION_RELATIONAL_LESSEQ: <=
+ * @VIPS_OPERATION_RELATIONAL_MORE: >
+ * @VIPS_OPERATION_RELATIONAL_MOREEQ: >=
+ *
+ * See also: vips_relational().
+ */
+typedef enum {
+	VIPS_OPERATION_RELATIONAL_EQUAL,
+	VIPS_OPERATION_RELATIONAL_NOTEQUAL,
+	VIPS_OPERATION_RELATIONAL_LESS,
+	VIPS_OPERATION_RELATIONAL_LESSEQ,
+	VIPS_OPERATION_RELATIONAL_MORE,
+	VIPS_OPERATION_RELATIONAL_MOREEQ,
+	VIPS_OPERATION_RELATIONAL_LAST
+} VipsOperationRelational;
+
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
@@ -118,6 +139,9 @@ int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 	__attribute__((sentinel));
 int vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
+	__attribute__((sentinel));
+int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationRelational relational, ... )
 	__attribute__((sentinel));
 
 

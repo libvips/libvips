@@ -72,51 +72,6 @@ static int bandfmt_relational[10] = {
    UC, UC, UC, UC, UC, UC, UC, UC, UC, UC,
 };
 
-#define RBINARY( IN, FUN ) { \
-	IN *tp1 = (IN *) p[0]; \
-	IN *tp2 = (IN *) p[1]; \
- 	\
-	for( i = 0; i < ne; i++ ) \
-		FUN( q[i], tp1[i], tp2[i] ); \
-}
-
-#define CBINARY( IN, FUN ) { \
-	IN *tp1 = (IN *) p[0]; \
-	IN *tp2 = (IN *) p[1]; \
- 	\
-	for( i = 0; i < ne; i++ ) { \
-		FUN( q[i], tp1, tp2 ); \
-		\
-		tp1 += 2; \
-		tp2 += 2; \
-	} \
-}
-
-#define BINARY_BUFFER( NAME, RFUN, CFUN ) \
-static void \
-NAME ## _buffer( PEL **p, PEL *q, int n, IMAGE *im ) \
-{ \
-	const int ne = n * im->Bands; \
-	\
-	int i; \
-	\
-        switch( im->BandFmt ) { \
-        case IM_BANDFMT_CHAR:	RBINARY( signed char, RFUN ); break; \
-        case IM_BANDFMT_UCHAR:  RBINARY( unsigned char, RFUN ); break; \
-        case IM_BANDFMT_SHORT:  RBINARY( signed short, RFUN ); break; \
-        case IM_BANDFMT_USHORT: RBINARY( unsigned short, RFUN ); break; \
-        case IM_BANDFMT_INT:    RBINARY( signed int, RFUN ); break; \
-        case IM_BANDFMT_UINT:   RBINARY( unsigned int, RFUN ); break; \
-        case IM_BANDFMT_FLOAT:  RBINARY( float, RFUN ); break; \
-        case IM_BANDFMT_COMPLEX: CBINARY( float, CFUN ); break; \
-        case IM_BANDFMT_DOUBLE: RBINARY( double, RFUN ); break; \
-        case IM_BANDFMT_DPCOMPLEX: CBINARY( double, CFUN ); break; \
-	\
-        default: \
-                g_assert( 0 ); \
-        } \
-}
-
 #define EQUAL_REAL( Q, A, B ) { \
 	if( (A) == (B) ) \
 		Q = 255; \
@@ -131,30 +86,6 @@ NAME ## _buffer( PEL **p, PEL *q, int n, IMAGE *im ) \
 		Q = 0; \
 }
 
-BINARY_BUFFER( EQUAL, EQUAL_REAL, EQUAL_COMPLEX )
-
-/**
- * im_equal:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
- * @out: output #IMAGE
- *
- * This operation calculates @in1 == @in2 (image element equals image element) 
- * and writes the result to @out. 
- *
- * See also: im_notequal().
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_equal( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{
-	return( im__arith_binary( "im_equal",
-		in1, in2, out, 
-		bandfmt_relational,
-		(im_wrapmany_fn) EQUAL_buffer, NULL ) );
-}
-
 #define NOTEQUAL_REAL( Q, A, B ) { \
 	if( (A) != (B) ) \
 		Q = 255; \
@@ -167,30 +98,6 @@ im_equal( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		Q = 255; \
 	else \
 		Q = 0; \
-}
-
-BINARY_BUFFER( NOTEQUAL, NOTEQUAL_REAL, NOTEQUAL_COMPLEX )
-
-/**
- * im_notequal:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
- * @out: output #IMAGE
- *
- * This operation calculates @in1 != @in2 (image element does not equal image
- * element) and writes the result to @out. 
- *
- * See also: im_notequal().
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_notequal( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{
-	return( im__arith_binary( "im_notequal",
-		in1, in2, out, 
-		bandfmt_relational,
-		(im_wrapmany_fn) NOTEQUAL_buffer, NULL ) );
 }
 
 #define LESS_REAL( Q, A, B ) { \
@@ -210,30 +117,6 @@ im_notequal( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		Q = 0; \
 }
 
-BINARY_BUFFER( LESS, LESS_REAL, LESS_COMPLEX )
-
-/**
- * im_less:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
- * @out: output #IMAGE
- *
- * This operation calculates @in1 < @in2 (image element is less than image
- * element) and writes the result to @out. 
- *
- * See also: im_more().
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_less( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{
-	return( im__arith_binary( "im_less",
-		in1, in2, out, 
-		bandfmt_relational,
-		(im_wrapmany_fn) LESS_buffer, NULL ) );
-}
-
 #define LESSEQ_REAL( Q, A, B ) { \
 	if( (A) <= (B) ) \
 		Q = 255; \
@@ -249,68 +132,6 @@ im_less( IMAGE *in1, IMAGE *in2, IMAGE *out )
 		Q = 255; \
 	else \
 		Q = 0; \
-}
-
-BINARY_BUFFER( LESSEQ, LESSEQ_REAL, LESSEQ_COMPLEX )
-
-/**
- * im_lesseq:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
- * @out: output #IMAGE
- *
- * This operation calculates @in1 <= @in2 (image element is less than or equal
- * to image elemment) and writes the result to @out. 
- *
- * See also: im_more().
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_lesseq( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{
-	return( im__arith_binary( "im_lesseq",
-		in1, in2, out, 
-		bandfmt_relational,
-		(im_wrapmany_fn) LESSEQ_buffer, NULL ) );
-}
-
-/**
- * im_more:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
- * @out: output #IMAGE
- *
- * This operation calculates @in1 > @in2 (image element is greater than 
- * image elemment) and writes the result to @out. 
- *
- * See also: im_less().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-im_more( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{
-	return( im_less( in2, in1, out ) );
-}
-
-/**
- * im_moreeq:
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
- * @out: output #IMAGE
- *
- * This operation calculates @in1 >= @in2 (image element is greater than or
- * equal to image element) and writes the result to @out. 
- *
- * See also: im_more().
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_moreeq( IMAGE *in1, IMAGE *in2, IMAGE *out )
-{
-	return( im_lesseq( in2, in1, out ) );
 }
 
 #define RCONST1( IN, FUN ) { \

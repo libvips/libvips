@@ -518,6 +518,7 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_measure_get_type( void ); 
 	extern GType vips_recomb_get_type( void ); 
 	extern GType vips_round_get_type( void ); 
+	extern GType vips_relational_get_type( void ); 
 
 	vips_add_get_type();
 	vips_subtract_get_type();
@@ -536,4 +537,5 @@ vips_arithmetic_operation_init( void )
 	vips_measure_get_type();
 	vips_recomb_get_type();
 	vips_round_get_type();
+	vips_relational_get_type();
 }
