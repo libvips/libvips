@@ -74,7 +74,6 @@
 
 #include <vips/vips.h>
 
-#include "arithmetic.h"
 #include "binary.h"
 
 /**

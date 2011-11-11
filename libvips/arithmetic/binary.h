@@ -34,6 +34,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include "arithmetic.h"
+
 #define VIPS_TYPE_BINARY (vips_binary_get_type())
 #define VIPS_BINARY( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), VIPS_TYPE_BINARY, VipsBinary ))

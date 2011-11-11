@@ -68,7 +68,6 @@
 
 #include <vips/vips.h>
 
-#include "arithmetic.h"
 #include "binary.h"
 #include "unaryconst.h"
 
@@ -305,19 +304,21 @@ typedef struct _VipsRelationalConst {
 	VipsOperationRelational relational;
 } VipsRelationalConst;
 
-typedef VipsUnaryClass VipsRelationalConstClass;
+typedef VipsUnaryConstClass VipsRelationalConstClass;
 
 G_DEFINE_TYPE( VipsRelationalConst, 
-	vips_relationalconst, VIPS_TYPE_UNARY_CONST );
+	vips_relational_const, VIPS_TYPE_UNARY_CONST );
 
 static int
-vips_relationalconst_build( VipsObject *object )
+vips_relational_const_build( VipsObject *object )
 {
-	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
-	VipsUnaryConst *unaryconst = (VipsUnaryConst *) object;
-	VipsRelationalConst *relationalconst = (VipsRelationalConst *) object;
+	VipsUnary *unary = (VipsUnary *) object;
+	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_relationalconst_parent_class )->
+	if( unary->in )
+		uconst->const_format = unary->in->BandFmt;
+
+	if( VIPS_OBJECT_CLASS( vips_relational_const_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -326,6 +327,7 @@ vips_relationalconst_build( VipsObject *object )
 
 #define RLOOPC( TYPE, OP ) { \
 	TYPE *p = (TYPE *) in[0]; \
+	TYPE *c = (TYPE *) uconst->c_ready; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -336,30 +338,29 @@ vips_relationalconst_build( VipsObject *object )
 	TYPE *p = (TYPE *) in[0]; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) { \
+		TYPE *c = (TYPE *) uconst->c_ready; \
+		\
 		for( b = 0; b < bands; b++, i++ ) { \
-			out[i] = OP( p[0], p[1], c[i], 0.0) ? 255 : 0; \
+			out[i] = OP( p[0], p[1], c[0], c[1]) ? 255 : 0; \
 			\
 			p += 2; \
+			c += 2; \
 		} \
 	} \
 }
 
-/* Lintra a buffer, n set of scale/offset.
- */
 static void
-vips_relationalconst_buffer( VipsArithmetic *arithmetic, 
+vips_relational_const_buffer( VipsArithmetic *arithmetic, 
 	PEL *out, PEL **in, int width )
 {
-	VipsUnaryConst *unaryconst = (VipsUnaryConst *) arithmetic;
-	VipsRelationalConst *relationalconst = (VipsRelationalConst *) 
-		arithmetic;
+	VipsUnaryConst *uconst = (VipsUnaryConst *) arithmetic;
+	VipsRelationalConst *rconst = (VipsRelationalConst *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
 	int bands = im->Bands;
-	double *c = unaryconst->c_ready;
 
 	int i, x, b;
 
-	switch( relationalconst->relational ) {
+	switch( rconst->relational ) {
 	case VIPS_OPERATION_RELATIONAL_EQUAL: 	
 		SWITCH( RLOOPC, CLOOPC, ==, CEQUAL ); 
 		break;
@@ -390,7 +391,7 @@ vips_relationalconst_buffer( VipsArithmetic *arithmetic,
 }
 
 static void
-vips_relationalconst_class_init( VipsRelationalConstClass *class )
+vips_relational_const_class_init( VipsRelationalConstClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -399,23 +400,31 @@ vips_relationalconst_class_init( VipsRelationalConstClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "relationalconst";
+	object_class->nickname = "relational_const";
 	object_class->description = 
 		_( "relational operations against a constant" );
-	object_class->build = vips_relationalconst_build;
+	object_class->build = vips_relational_const_build;
 
 	vips_arithmetic_set_format_table( aclass, vips_bandfmt_relational );
 
-	aclass->process_line = vips_relationalconst_buffer;
+	aclass->process_line = vips_relational_const_buffer;
+
+	VIPS_ARG_ENUM( class, "relational", 200, 
+		_( "Operation" ), 
+		_( "relational to perform" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsRelationalConst, relational ),
+		VIPS_TYPE_OPERATION_RELATIONAL, 
+			VIPS_OPERATION_RELATIONAL_EQUAL ); 
 }
 
 static void
-vips_relationalconst_init( VipsRelationalConst *relationalconst )
+vips_relational_const_init( VipsRelationalConst *relational_const )
 {
 }
 
 int
-vips_relationalconst( VipsImage *in, VipsImage **out, 
+vips_relational_const( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double *c, int n, ... )
 {
 	va_list ap;
@@ -430,7 +439,7 @@ vips_relationalconst( VipsImage *in, VipsImage **out,
 		array[i] = c[i];
 
 	va_start( ap, n );
-	result = vips_call_split( "relationalconst", ap, 
+	result = vips_call_split( "relational_const", ap, 
 		in, out, relational, area_c );
 	va_end( ap );
 
@@ -440,7 +449,7 @@ vips_relationalconst( VipsImage *in, VipsImage **out,
 }
 
 int
-vips_relationalconst1( VipsImage *in, VipsImage **out, 
+vips_relational_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double c, ... )
 {
 	va_list ap;
@@ -453,7 +462,7 @@ vips_relationalconst1( VipsImage *in, VipsImage **out,
 	array[0] = c;
 
 	va_start( ap, c );
-	result = vips_call_split( "relationalconst", ap, 
+	result = vips_call_split( "relational_const", ap, 
 		in, out, relational, area_c );
 	va_end( ap );
 

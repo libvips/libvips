@@ -30,6 +30,8 @@ libarithmetic_la_SOURCES = \
 	binary.h \
 	unary.c \
 	unary.h \
+	unaryconst.c \
+	unaryconst.h \
 	relational.c \
 	add.c \
 	linear.c \

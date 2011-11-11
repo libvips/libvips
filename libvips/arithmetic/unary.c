@@ -45,7 +45,6 @@
 
 #include <vips/vips.h>
 
-#include "arithmetic.h"
 #include "unary.h"
 
 G_DEFINE_ABSTRACT_TYPE( VipsUnary, vips_unary, VIPS_TYPE_ARITHMETIC );

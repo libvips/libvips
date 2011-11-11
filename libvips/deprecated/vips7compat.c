@@ -1740,3 +1740,100 @@ im_moreeq( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	return( vips__relational( in1, in2, out, 
 		VIPS_OPERATION_RELATIONAL_MOREEQ ) );
 }
+
+static int 
+vips__relational_vec( IMAGE *in, IMAGE *out, 
+	VipsOperationRelational relational, double *c, int n )
+{
+	VipsImage *t;
+
+	if( vips_relational_const( in, &t, relational, c, n,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_equal_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__relational_vec( in, out, 
+		VIPS_OPERATION_RELATIONAL_EQUAL, c, n ) );
+}
+
+int 
+im_notequal_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__relational_vec( in, out, 
+		VIPS_OPERATION_RELATIONAL_NOTEQUAL, c, n ) );
+}
+
+int 
+im_less_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__relational_vec( in, out, 
+		VIPS_OPERATION_RELATIONAL_LESS, c, n ) );
+}
+
+int 
+im_lesseq_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__relational_vec( in, out, 
+		VIPS_OPERATION_RELATIONAL_LESSEQ, c, n ) );
+}
+
+int 
+im_more_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__relational_vec( in, out, 
+		VIPS_OPERATION_RELATIONAL_MORE, c, n ) );
+}
+
+int 
+im_moreeq_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__relational_vec( in, out, 
+		VIPS_OPERATION_RELATIONAL_MOREEQ, c, n ) );
+}
+
+int 
+im_equalconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_equal_vec( in, out, 1, &c ) );
+}
+
+int
+im_notequalconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_notequal_vec( in, out, 1, &c ) );
+}
+
+int
+im_lessconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_less_vec( in, out, 1, &c ) );
+}
+
+int
+im_lesseqconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_lesseq_vec( in, out, 1, &c ) );
+}
+
+int
+im_moreconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_more_vec( in, out, 1, &c ) );
+}
+
+int
+im_moreeqconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_moreeq_vec( in, out, 1, &c ) );
+}
+

@@ -36,7 +36,7 @@ extern "C" {
 
 #include "unary.h"
 
-#define VIPS_TYPE_UNARY_CONST (vips_unaryconst_get_type())
+#define VIPS_TYPE_UNARY_CONST (vips_unary_const_get_type())
 #define VIPS_UNARY_CONST( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
 		VIPS_TYPE_UNARY_CONST, VipsUnaryConst ))
@@ -58,26 +58,25 @@ typedef struct _VipsUnaryConst {
 	 */
 	VipsArea *c;
 
-	/* Our constants expanded to match arith->ready in size.
+	/* The format the constant should be cast to. Subclasses set this
+	 * ready for unaryconst's build method.
+	 */
+	VipsBandFmt const_format;
+
+	/* Our constant expanded to match arith->ready in size and
+	 * const_format in type.
 	 */
 	int n;
-	double *c_ready;
-
-	/* Our constants further cast to const_format.
-	 */
-	PEL *c_type;
+	PEL *c_ready;
 
 } VipsUnaryConst;
 
 typedef struct _VipsUnaryConstClass {
 	VipsUnaryClass parent_class;
 
-	/* Cast the const to this format for processing.
-	 */
-	VipsBandFormat const_format;
 } VipsUnaryConstClass;
 
-GType vips_unaryconst_get_type( void );
+GType vips_unary_const_get_type( void );
 
 #ifdef __cplusplus
 }

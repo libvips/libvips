@@ -49,7 +49,6 @@
 
 #include <vips/vips.h>
 
-#include "arithmetic.h"
 #include "binary.h"
 
 G_DEFINE_ABSTRACT_TYPE( VipsBinary, vips_binary, VIPS_TYPE_ARITHMETIC );

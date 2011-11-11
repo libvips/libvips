@@ -37,19 +37,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_equal_vec( VipsImage *in, VipsImage *out, int n, double *c );
-int im_notequal_vec( VipsImage *in, VipsImage *out, int n, double *c );
-int im_less_vec( VipsImage *in, VipsImage *out, int n, double *c );
-int im_lesseq_vec( VipsImage *in, VipsImage *out, int n, double *c );
-int im_more_vec( VipsImage *in, VipsImage *out, int n, double *c );
-int im_moreeq_vec( VipsImage *in, VipsImage *out, int n, double *c );
-int im_equalconst( VipsImage *in, VipsImage *out, double c );
-int im_notequalconst( VipsImage *in, VipsImage *out, double c );
-int im_lessconst( VipsImage *in, VipsImage *out, double c );
-int im_lesseqconst( VipsImage *in, VipsImage *out, double c );
-int im_moreconst( VipsImage *in, VipsImage *out, double c );
-int im_moreeqconst( VipsImage *in, VipsImage *out, double c );
-
 int im_ifthenelse( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 int im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 

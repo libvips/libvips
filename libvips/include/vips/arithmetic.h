@@ -143,6 +143,12 @@ int vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
 int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationRelational relational, ... )
 	__attribute__((sentinel));
+int vips_relational_const( VipsImage *in, VipsImage **out, 
+	VipsOperationRelational relational, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_relational_const1( VipsImage *in, VipsImage **out, 
+	VipsOperationRelational relational, double c, ... )
+	__attribute__((sentinel));
 
 
 
