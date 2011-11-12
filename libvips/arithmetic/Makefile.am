@@ -14,7 +14,7 @@ libarithmetic_la_SOURCES = \
 	measure.c \
 	multiply.c \
 	im_point_bilinear.c \
-	im_remainder.c \
+	remainder.c \
 	sign.c \
 	stats.c \
 	statistic.c \

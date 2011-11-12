@@ -149,6 +149,14 @@ int vips_relational_const( VipsImage *in, VipsImage **out,
 int vips_relational_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double c, ... )
 	__attribute__((sentinel));
+int vips_remainder( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_remainder_const( VipsImage *in, VipsImage **out, 
+	double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_remainder_const1( VipsImage *in, VipsImage **out, 
+	double c, ... )
+	__attribute__((sentinel));
 
 
 
@@ -157,11 +165,6 @@ int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
 int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
 int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );
 int im_bandmean( VipsImage *in, VipsImage *out );
-
-int im_remainder( VipsImage *in1, VipsImage *in2, VipsImage *out );
-int im_remainder_vec( VipsImage *in, VipsImage *out, int n, double *c );
-int im_remainderconst( VipsImage *in, VipsImage *out, double c );
-
 
 int im_linreg( VipsImage **ins, VipsImage *out, double *xs );
 int im_point( VipsImage *im, VipsInterpolate *interpolate, 

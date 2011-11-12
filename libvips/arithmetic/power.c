@@ -59,6 +59,150 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+/* Cast a vector of double to a vector of TYPE, clipping to a range.
+ */
+#define CAST_CLIP( TYPE, N, X ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( i = 0; i < n; i++ ) \
+		tq[i] = (TYPE) IM_CLIP( N, p[i], X ); \
+}
+
+/* Cast a vector of double to a vector of TYPE.
+ */
+#define CAST( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( i = 0; i < n; i++ ) \
+		tq[i] = (TYPE) p[i]; \
+}
+
+/* Cast a vector of double to a complex vector of TYPE.
+ */
+#define CASTC( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( i = 0; i < n; i++ ) { \
+		tq[0] = (TYPE) p[i]; \
+		tq[1] = 0; \
+		tq += 2; \
+	} \
+}
+
+/* Cast a vector of double to a passed format.
+ */
+static PEL *
+make_pixel( IMAGE *out, VipsBandFmt fmt, int n, double *p )
+{
+	PEL *q;
+	int i;
+
+	if( !(q = IM_ARRAY( out, n * (im_bits_of_fmt( fmt ) >> 3), PEL )) )
+		return( NULL );
+
+        switch( fmt ) {
+        case IM_BANDFMT_CHAR:		
+		CAST_CLIP( signed char, SCHAR_MIN, SCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_UCHAR:  	
+		CAST_CLIP( unsigned char, 0, UCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_SHORT:  	
+		CAST_CLIP( signed short, SCHAR_MIN, SCHAR_MAX ); 
+		break;
+
+        case IM_BANDFMT_USHORT: 	
+		CAST_CLIP( unsigned short, 0, USHRT_MAX ); 
+		break;
+
+        case IM_BANDFMT_INT:    	
+		CAST_CLIP( signed int, INT_MIN, INT_MAX ); 
+		break;
+
+        case IM_BANDFMT_UINT:   	
+		CAST_CLIP( unsigned int, 0, UINT_MAX ); 
+		break;
+
+        case IM_BANDFMT_FLOAT: 		
+		CAST( float ); 
+		break; 
+
+        case IM_BANDFMT_DOUBLE:		
+		CAST( double ); 
+		break;
+
+        case IM_BANDFMT_COMPLEX: 	
+		CASTC( float ); 
+		break; 
+
+        case IM_BANDFMT_DPCOMPLEX:	
+		CASTC( double ); 
+		break;
+
+        default:
+                g_assert( 0 );
+        }
+
+	return( q );
+}
+
+int 
+im__arith_binary_const( const char *domain,
+	IMAGE *in, IMAGE *out, 
+	int n, double *c, VipsBandFmt vfmt,
+	int format_table[10], 
+	im_wrapone_fn fn1, im_wrapone_fn fnn )
+{
+	PEL *vector;
+
+	if( im_piocheck( in, out ) ||
+		im_check_vector( domain, n, in ) ||
+		im_check_uncoded( domain, in ) )
+		return( -1 );
+	if( im_cp_desc( out, in ) )
+		return( -1 );
+	out->BandFmt = format_table[in->BandFmt];
+
+	/* Some operations need the vector in the input type (eg.
+	 * im_equal_vec() where the output type is always uchar and is useless
+	 * for comparisons), some need it in the output type (eg.
+	 * im_andimage_vec() where we want to get the double to an int so we
+	 * can do bitwise-and without having to cast for each pixel), some
+	 * need a fixed type (eg. im_powtra_vec(), where we want to keep it as
+	 * double).
+	 *
+	 * Therefore pass in the desired vector type as a param.
+	 */
+	if( !(vector = make_pixel( out, vfmt, n, c )) )
+		return( -1 );
+
+	/* Band-up the input image if we have a >1 vector and
+	 * a 1-band image.
+	 */
+	if( n > 1 && out->Bands == 1 ) {
+		IMAGE *t;
+
+		if( !(t = im_open_local( out, domain, "p" )) ||
+			im__bandup( domain, in, t, n ) )
+			return( -1 );
+
+		in = t;
+	}
+
+	if( n == 1 ) {
+		if( im_wrapone( in, out, fn1, vector, in ) )
+			return( -1 );
+	}
+	else {
+		if( im_wrapone( in, out, fnn, vector, in ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 /* Operator with a single constant.
  */
 #define CONST1( IN, OUT, FUN ) { \

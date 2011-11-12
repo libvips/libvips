@@ -73,7 +73,8 @@
 
 /**
  * VipsRelational:
- * @in: input #VipsImage
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
  * @out: output #VipsImage
  * @relational: relational operation to perform
  *
@@ -423,11 +424,10 @@ vips_relational_const_init( VipsRelationalConst *relational_const )
 {
 }
 
-int
-vips_relational_const( VipsImage *in, VipsImage **out, 
-	VipsOperationRelational relational, double *c, int n, ... )
+static int
+vips_relational_constv( VipsImage *in, VipsImage **out, 
+	VipsOperationRelational relational, double *c, int n, va_list ap )
 {
-	va_list ap;
 	VipsArea *area_c;
 	double *array; 
 	int result;
@@ -438,12 +438,24 @@ vips_relational_const( VipsImage *in, VipsImage **out,
 	for( i = 0; i < n; i++ ) 
 		array[i] = c[i];
 
-	va_start( ap, n );
 	result = vips_call_split( "relational_const", ap, 
 		in, out, relational, area_c );
-	va_end( ap );
 
 	vips_area_unref( area_c );
+
+	return( result );
+}
+
+int
+vips_relational_const( VipsImage *in, VipsImage **out, 
+	VipsOperationRelational relational, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_relational_constv( in, out, relational, c, n, ap );
+	va_end( ap );
 
 	return( result );
 }
@@ -453,20 +465,11 @@ vips_relational_const1( VipsImage *in, VipsImage **out,
 	VipsOperationRelational relational, double c, ... )
 {
 	va_list ap;
-	VipsArea *area_c;
-	double *array; 
 	int result;
 
-	area_c = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	array = (double *) area_c->data;
-	array[0] = c;
-
 	va_start( ap, c );
-	result = vips_call_split( "relational_const", ap, 
-		in, out, relational, area_c );
+	result = vips_relational_constv( in, out, relational, &c, 1, ap );
 	va_end( ap );
-
-	vips_area_unref( area_c );
 
 	return( result );
 }

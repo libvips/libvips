@@ -1837,3 +1837,42 @@ im_moreeqconst( IMAGE *in, IMAGE *out, double c )
 	return( im_moreeq_vec( in, out, 1, &c ) );
 }
 
+int 
+im_remainder( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_remainder( in1, in2, &t, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_remainder_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	VipsImage *t;
+
+	if( vips_remainder_const( in, &t, c, n,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_remainderconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_remainder_vec( in, out, 1, &c ) );
+}

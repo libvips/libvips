@@ -288,7 +288,6 @@ vips_linear_class_init( VipsLinearClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, b ),
 		VIPS_TYPE_ARRAY_DOUBLE );
-
 }
 
 static void
@@ -296,10 +295,10 @@ vips_linear_init( VipsLinear *linear )
 {
 }
 
-int
-vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
+static int
+vips_linearv( VipsImage *in, VipsImage **out, 
+	double *a, double *b, int n, va_list ap )
 {
-	va_list ap;
 	VipsArea *area_a;
 	VipsArea *area_b;
 	double *array; 
@@ -316,9 +315,7 @@ vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
 	for( i = 0; i < n; i++ ) 
 		array[i] = b[i];
 
-	va_start( ap, n );
 	result = vips_call_split( "linear", ap, in, out, area_a, area_b );
-	va_end( ap );
 
 	vips_area_unref( area_a );
 	vips_area_unref( area_b );
@@ -327,28 +324,27 @@ vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
 }
 
 int
+vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_linearv( in, out, a, b, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+int
 vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
 {
 	va_list ap;
-	VipsArea *area_a;
-	VipsArea *area_b;
-	double *array; 
 	int result;
 
-	area_a = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	array = (double *) area_a->data;
-	array[0] = a;
-
-	area_b = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	array = (double *) area_b->data;
-	array[0] = b;
-
 	va_start( ap, b );
-	result = vips_call_split( "linear", ap, in, out, area_a, area_b );
+	result = vips_linearv( in, out, &a, &b, 1, ap );
 	va_end( ap );
-
-	vips_area_unref( area_a );
-	vips_area_unref( area_b );
 
 	return( result );
 }
