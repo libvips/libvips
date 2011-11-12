@@ -1953,6 +1953,20 @@ im_eorimage_vec( VipsImage *in, VipsImage *out, int n, double *c )
 }
 
 int 
+im_shiftleft_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( vips__boolean_vec( in, out, 
+		VIPS_OPERATION_BOOLEAN_LSHIFT, c, n ) );
+}
+
+int 
+im_shiftright_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( vips__boolean_vec( in, out, 
+		VIPS_OPERATION_BOOLEAN_RSHIFT, c, n ) );
+}
+
+int 
 im_andimageconst( IMAGE *in, IMAGE *out, double c )
 {
 	return( im_andimage_vec( in, out, 1, &c ) ); 
@@ -1970,3 +1984,18 @@ im_eorimageconst( IMAGE *in, IMAGE *out, double c )
 	return( im_eorimage_vec( in, out, 1, &c ) );
 }
 
+int 
+im_shiftleft( IMAGE *in, IMAGE *out, int n )
+{
+	double c = n;
+
+	return( im_shiftleft_vec( in, out, 1, &c ) );
+}
+
+int 
+im_shiftright( IMAGE *in, IMAGE *out, int n )
+{
+	double c = n;
+
+	return( im_shiftright_vec( in, out, 1, &c ) );
+}

@@ -574,6 +574,11 @@ int im_andimageconst( VipsImage *in, VipsImage *out, double c );
 int im_orimageconst( VipsImage *in, VipsImage *out, double c );
 int im_eorimageconst( VipsImage *in, VipsImage *out, double c );
 
+int im_shiftleft_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_shiftleft( VipsImage *in, VipsImage *out, int n );
+int im_shiftright_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_shiftright( VipsImage *in, VipsImage *out, int n );
+
 int im_remainder( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_remainder_vec( VipsImage *in, VipsImage *out, int n, double *c );
 int im_remainderconst( VipsImage *in, VipsImage *out, double c );

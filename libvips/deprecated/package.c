@@ -60,7 +60,6 @@
  */
 extern im_package im__arithmetic;
 extern im_package im__cimg;
-extern im_package im__boolean;
 extern im_package im__colour;
 extern im_package im__conversion;
 extern im_package im__convolution;
@@ -569,7 +568,6 @@ static im_package im__iofuncs = {
  */
 static im_package *built_in[] = {
 	&im__arithmetic,
-	&im__boolean,
 #ifdef ENABLE_CXX
 	&im__cimg,
 #endif /*ENABLE_CXX*/

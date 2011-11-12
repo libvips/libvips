@@ -120,7 +120,6 @@ extern "C" {
 #include <vips/enumtypes.h>
 
 #include <vips/arithmetic.h>
-#include <vips/boolean.h>
 #include <vips/relational.h>
 #include <vips/conversion.h>
 #include <vips/convolution.h>

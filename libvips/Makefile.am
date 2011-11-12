@@ -13,7 +13,6 @@ SUBDIRS = \
 	include \
 	arithmetic \
 	resample \
-	boolean \
 	colour \
 	conversion \
 	deprecated \
@@ -48,7 +47,6 @@ endif
 libvips_la_LIBADD = \
 	resample/libresample.la \
 	arithmetic/libarithmetic.la \
-	boolean/libboolean.la \
 	colour/libcolour.la \
 	conversion/libconversion.la \
 	convolution/libconvolution.la \

@@ -3,7 +3,6 @@ pkginclude_HEADERS = \
 	almostdeprecated.h \
 	deprecated.h \
 	arithmetic.h \
-	boolean.h \
 	buf.h \
 	colour.h \
 	conversion.h \

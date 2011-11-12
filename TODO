@@ -2,11 +2,7 @@
 
 
 
-- move power, boolean to unary const
-
-
-
-- boolean.c
+- move power to unary const
 
 
 

@@ -189,6 +189,14 @@ vips_boolean_buffer( VipsArithmetic *arithmetic,
 		SWITCH( LOOP, FLOOP, ^ ); 
 		break;
 
+	case VIPS_OPERATION_BOOLEAN_LSHIFT: 	
+		SWITCH( LOOP, FLOOP, << ); 
+		break;
+
+	case VIPS_OPERATION_BOOLEAN_RSHIFT: 	
+		SWITCH( LOOP, FLOOP, >> ); 
+		break;
+
 	default:
 		g_assert( 0 );
 	}
@@ -356,6 +364,14 @@ vips_boolean_const_buffer( VipsArithmetic *arithmetic,
 
 	case VIPS_OPERATION_BOOLEAN_EOR: 	
 		SWITCH( LOOPC, FLOOPC, ^ ); 
+		break;
+
+	case VIPS_OPERATION_BOOLEAN_LSHIFT: 	
+		SWITCH( LOOPC, FLOOPC, << ); 
+		break;
+
+	case VIPS_OPERATION_BOOLEAN_RSHIFT: 	
+		SWITCH( LOOPC, FLOOPC, >> ); 
 		break;
 
 	default:
