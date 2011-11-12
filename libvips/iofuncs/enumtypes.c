@@ -151,6 +151,25 @@ vips_operation_relational_get_type( void )
 
 	return( etype );
 }
+GType
+vips_operation_boolean_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_BOOLEAN_AND, "VIPS_OPERATION_BOOLEAN_AND", "and"},
+			{VIPS_OPERATION_BOOLEAN_OR, "VIPS_OPERATION_BOOLEAN_OR", "or"},
+			{VIPS_OPERATION_BOOLEAN_EOR, "VIPS_OPERATION_BOOLEAN_EOR", "eor"},
+			{VIPS_OPERATION_BOOLEAN_LAST, "VIPS_OPERATION_BOOLEAN_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationBoolean", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/util.h" */
 GType
 vips_token_get_type( void )

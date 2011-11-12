@@ -522,6 +522,8 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_relational_const_get_type( void ); 
 	extern GType vips_remainder_get_type( void ); 
 	extern GType vips_remainder_const_get_type( void ); 
+	extern GType vips_boolean_get_type( void ); 
+	extern GType vips_boolean_const_get_type( void ); 
 
 	vips_add_get_type();
 	vips_subtract_get_type();
@@ -544,4 +546,6 @@ vips_arithmetic_operation_init( void )
 	vips_relational_const_get_type(); 
 	vips_remainder_get_type();
 	vips_remainder_const_get_type(); 
+	vips_boolean_get_type(); 
+	vips_boolean_const_get_type(); 
 }

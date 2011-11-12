@@ -10,7 +10,7 @@
   im_abs(), im_sign(), im_max(), im_maxpos(), im_deviate(), im_divide(),
   im_multiply(), im_stats(), im_measure(), im_recomb(), im_floor(), im_ceil(),
   im_rint(), im_equal*(), im_notequal*(), im_less*(), im_lesseq*(), im_more*(),
-  im_moreeq*(), im_remainder*()
+  im_moreeq*(), im_remainder*(), im_and*(), im_or*(), im_eor*()
   redone as classes
 - added argument priorites to help control arg ordering
 - generate has a 'stop' param to signal successful early termination

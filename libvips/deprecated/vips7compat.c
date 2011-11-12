@@ -1876,3 +1876,97 @@ im_remainderconst( IMAGE *in, IMAGE *out, double c )
 {
 	return( im_remainder_vec( in, out, 1, &c ) );
 }
+
+static int 
+vips__boolean( IMAGE *in1, IMAGE *in2, IMAGE *out, 
+	VipsOperationBoolean boolean )
+{
+	VipsImage *t;
+
+	if( vips_relational( in1, in2, &t, boolean,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_andimage( VipsImage *in1, VipsImage *in2, VipsImage *out )
+{
+	return( vips__boolean( in1, in2, out, VIPS_OPERATION_BOOLEAN_AND ) );
+}
+
+int 
+im_orimage( VipsImage *in1, VipsImage *in2, VipsImage *out )
+{
+	return( vips__boolean( in1, in2, out, VIPS_OPERATION_BOOLEAN_OR ) );
+}
+
+int 
+im_eorimage( VipsImage *in1, VipsImage *in2, VipsImage *out )
+{
+	return( vips__boolean( in1, in2, out, VIPS_OPERATION_BOOLEAN_EOR ) );
+}
+
+static int 
+vips__boolean_vec( IMAGE *in, IMAGE *out, 
+	VipsOperationBoolean boolean, double *c, int n )
+{
+	VipsImage *t;
+
+	if( vips_boolean_const( in, &t, boolean, c, n,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_andimage_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__boolean_vec( in, out, 
+		VIPS_OPERATION_BOOLEAN_AND, c, n ) );
+}
+
+int 
+im_orimage_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__boolean_vec( in, out, 
+		VIPS_OPERATION_BOOLEAN_OR, c, n ) );
+}
+
+int 
+im_eorimage_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__boolean_vec( in, out, 
+		VIPS_OPERATION_BOOLEAN_EOR, c, n ) );
+}
+
+int 
+im_andimageconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_andimage_vec( in, out, 1, &c ) ); 
+}
+
+int 
+im_orimageconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_orimage_vec( in, out, 1, &c ) );
+}
+
+int 
+im_eorimageconst( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_eorimage_vec( in, out, 1, &c ) );
+}
+

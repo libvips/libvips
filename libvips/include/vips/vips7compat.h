@@ -564,6 +564,16 @@ int im_lesseq( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_more( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_moreeq( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
+int im_andimage( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_orimage( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_eorimage( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_andimage_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_orimage_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_eorimage_vec( VipsImage *in, VipsImage *out, int n, double *c );
+int im_andimageconst( VipsImage *in, VipsImage *out, double c );
+int im_orimageconst( VipsImage *in, VipsImage *out, double c );
+int im_eorimageconst( VipsImage *in, VipsImage *out, double c );
+
 int im_remainder( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_remainder_vec( VipsImage *in, VipsImage *out, int n, double *c );
 int im_remainderconst( VipsImage *in, VipsImage *out, double c );

@@ -102,6 +102,21 @@ typedef enum {
 	VIPS_OPERATION_RELATIONAL_LAST
 } VipsOperationRelational;
 
+/** 
+ * VipsOperationBoolean:
+ * @VIPS_OPERATION_BOOLEAN_AND: &
+ * @VIPS_OPERATION_BOOLEAN_OR: |
+ * @VIPS_OPERATION_BOOLEAN_EOR: ^
+ *
+ * See also: vips_boolean().
+ */
+typedef enum {
+	VIPS_OPERATION_BOOLEAN_AND,
+	VIPS_OPERATION_BOOLEAN_OR,
+	VIPS_OPERATION_BOOLEAN_EOR,
+	VIPS_OPERATION_BOOLEAN_LAST
+} VipsOperationBoolean;
+
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
@@ -156,6 +171,12 @@ int vips_remainder_const( VipsImage *in, VipsImage **out,
 	__attribute__((sentinel));
 int vips_remainder_const1( VipsImage *in, VipsImage **out, 
 	double c, ... )
+	__attribute__((sentinel));
+int vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationBoolean boolean, ... )
+	__attribute__((sentinel));
+int vips_boolean_const( VipsImage *in, VipsImage **out, 
+	VipsOperationBoolean boolean, double *c, int n, ... )
 	__attribute__((sentinel));
 
 

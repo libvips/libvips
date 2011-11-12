@@ -13,6 +13,8 @@ GType vips_operation_round_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_ROUND (vips_operation_round_get_type())
 GType vips_operation_relational_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_RELATIONAL (vips_operation_relational_get_type())
+GType vips_operation_boolean_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_OPERATION_BOOLEAN (vips_operation_boolean_get_type())
 /* enumerations from "../../../libvips/include/vips/conversion.h" */
 GType vips_extend_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_EXTEND (vips_extend_get_type())
