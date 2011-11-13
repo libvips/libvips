@@ -67,6 +67,19 @@ typedef enum {
 } VipsOperationMath;
 
 /** 
+ * VipsOperationMath2:
+ * @VIPS_OPERATION_MATH_POW: pow( left, right )
+ * @VIPS_OPERATION_MATH_WOP: pow( right, left ) 
+ *
+ * See also: vips_math().
+ */
+typedef enum {
+	VIPS_OPERATION_MATH2_POW,
+	VIPS_OPERATION_MATH2_WOP,
+	VIPS_OPERATION_MATH2_LAST
+} VipsOperationMath2;
+
+/** 
  * VipsOperationRound:
  * @VIPS_OPERATION_ROUND_NEAREST: round to nearest
  * @VIPS_OPERATION_ROUND_FLOOR: largest integral value not greater than
@@ -180,6 +193,15 @@ int vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out,
 int vips_boolean_const( VipsImage *in, VipsImage **out, 
 	VipsOperationBoolean boolean, double *c, int n, ... )
 	__attribute__((sentinel));
+int vips_math2( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationMath2 math2, ... )
+	__attribute__((sentinel));
+int vips_math2_const( VipsImage *in, VipsImage **out, 
+	VipsOperationMath2 math2, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_math2_const1( VipsImage *in, VipsImage **out, 
+	VipsOperationMath2 math2, double c, ... )
+	__attribute__((sentinel));
 
 
 
@@ -194,11 +216,6 @@ int im_point( VipsImage *im, VipsInterpolate *interpolate,
 	double x, double y, int band, double *out );
 int im_point_bilinear( VipsImage *im, 
 	double x, double y, int band, double *out );
-
-int im_powtra( VipsImage *in, VipsImage *out, double e );
-int im_powtra_vec( VipsImage *in, VipsImage *out, int n, double *e );
-int im_expntra( VipsImage *in, VipsImage *out, double e );
-int im_expntra_vec( VipsImage *in, VipsImage *out, int n, double *e );
 
 int im_cross_phase( VipsImage *a, VipsImage *b, VipsImage *out );
 

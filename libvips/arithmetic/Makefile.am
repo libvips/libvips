@@ -37,7 +37,7 @@ libarithmetic_la_SOURCES = \
 	add.c \
 	linear.c \
 	invert.c \
-	power.c \
+	math2.c \
 	round.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

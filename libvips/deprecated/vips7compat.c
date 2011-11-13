@@ -1999,3 +1999,46 @@ im_shiftright( IMAGE *in, IMAGE *out, int n )
 
 	return( im_shiftright_vec( in, out, 1, &c ) );
 }
+
+static int 
+vips__math2_vec( IMAGE *in, IMAGE *out, 
+	VipsOperationMath2 math2, double *c, int n )
+{
+	VipsImage *t;
+
+	if( vips_math2_const( in, &t, math2, c, n,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_powtra_vec( VipsImage *in, VipsImage *out, int n, double *c )
+{
+	return( vips__math2_vec( in, out, VIPS_OPERATION_MATH2_POW, c, n ) );
+}
+
+int 
+im_powtra( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_powtra_vec( in, out, 1, &c ) );
+}
+
+int 
+im_expntra_vec( IMAGE *in, IMAGE *out, int n, double *c )
+{
+	return( vips__math2_vec( in, out, VIPS_OPERATION_MATH2_WOP, c, n ) );
+}
+
+int 
+im_expntra( IMAGE *in, IMAGE *out, double c )
+{
+	return( im_expntra_vec( in, out, 1, &c ) );
+}
+

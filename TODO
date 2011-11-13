@@ -1,8 +1,18 @@
+- various failures in make check
+
+
+
+- move ifthenelse / blend to conversion? or arithmetic?
+
+
+
+
+- try an area operation, like conv, VipsArea? oops no
+
+
+
+
 - test _O_TEMPORARY thing on Windows
-
-
-
-- move power to unary const
 
 
 

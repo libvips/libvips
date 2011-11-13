@@ -111,6 +111,24 @@ vips_operation_math_get_type( void )
 	return( etype );
 }
 GType
+vips_operation_math2_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_MATH2_POW, "VIPS_OPERATION_MATH2_POW", "pow"},
+			{VIPS_OPERATION_MATH2_WOP, "VIPS_OPERATION_MATH2_WOP", "wop"},
+			{VIPS_OPERATION_MATH2_LAST, "VIPS_OPERATION_MATH2_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationMath2", values );
+	}
+
+	return( etype );
+}
+GType
 vips_operation_round_get_type( void )
 {
 	static GType etype = 0;

@@ -583,6 +583,11 @@ int im_remainder( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_remainder_vec( VipsImage *in, VipsImage *out, int n, double *c );
 int im_remainderconst( VipsImage *in, VipsImage *out, double c );
 
+int im_powtra( VipsImage *in, VipsImage *out, double e );
+int im_powtra_vec( VipsImage *in, VipsImage *out, int n, double *e );
+int im_expntra( VipsImage *in, VipsImage *out, double e );
+int im_expntra_vec( VipsImage *in, VipsImage *out, int n, double *e );
+
 int im_equal_vec( VipsImage *in, VipsImage *out, int n, double *c );
 int im_notequal_vec( VipsImage *in, VipsImage *out, int n, double *c );
 int im_less_vec( VipsImage *in, VipsImage *out, int n, double *c );
