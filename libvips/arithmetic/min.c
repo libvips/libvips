@@ -173,8 +173,11 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	\
 	if( min->set ) \
 		m = min->min; \
-	else \
+	else { \
 		m = p[0]; \
+		min->x = x; \
+		min->y = y; \
+	} \
 	\
 	for( i = 0; i < sz; i++ ) { \
 		if( p[i] < m ) { \
@@ -196,8 +199,11 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	\
 	if( min->set ) \
 		m = min->min; \
-	else \
+	else { \
 		m = p[0]; \
+		min->x = x; \
+		min->y = y; \
+	} \
 	\
 	for( i = 0; i < sz; i++ ) { \
 		if( p[i] < m ) { \
@@ -221,8 +227,11 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	\
 	if( min->set ) \
 		m = min->min; \
-	else \
+	else { \
 		m = p[0] * p[0] + p[1] * p[1]; \
+		min->x = x; \
+		min->y = y; \
+	} \
 	\
 	for( i = 0; i < sz; i++ ) { \
 		double mod; \

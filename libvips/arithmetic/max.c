@@ -150,17 +150,17 @@ static int
 vips_max_stop( VipsStatistic *statistic, void *seq )
 {
 	VipsMax *global = (VipsMax *) statistic;
-	VipsMax *max = (VipsMax *) seq;
+	VipsMax *local = (VipsMax *) seq;
 
-	if( max->set &&
-		(!global->set || max->max > global->max) ) {
-		global->max = max->max;
-		global->x = max->x;
-		global->y = max->y;
+	if( local->set &&
+		(!global->set || local->max > global->max) ) {
+		global->max = local->max;
+		global->x = local->x;
+		global->y = local->y;
 		global->set = TRUE;
 	}
 
-	g_free( max );
+	g_free( local );
 
 	return( 0 );
 }
@@ -173,8 +173,11 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	\
 	if( max->set ) \
 		m = max->max; \
-	else \
+	else { \
 		m = p[0]; \
+		max->x = x; \
+		max->y = y; \
+	} \
 	\
 	for( i = 0; i < sz; i++ ) { \
 		if( p[i] > m ) { \
@@ -196,8 +199,11 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	\
 	if( max->set ) \
 		m = max->max; \
-	else \
+	else { \
 		m = p[0]; \
+		max->x = x; \
+		max->y = y; \
+	} \
 	\
 	for( i = 0; i < sz; i++ ) { \
 		if( p[i] > m ) { \
@@ -221,8 +227,11 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	\
 	if( max->set ) \
 		m = max->max; \
-	else \
+	else { \
 		m = p[0] * p[0] + p[1] * p[1]; \
+		max->x = x; \
+		max->y = y; \
+	} \
 	\
 	for( i = 0; i < sz; i++ ) { \
 		double mod; \

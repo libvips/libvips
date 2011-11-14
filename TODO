@@ -1,17 +1,15 @@
-- various failures in make check
-
-  setting x in vipsmin to nonsense
-
-  also vipsmax?
-
-
-
 - move ifthenelse / blend to conversion? or arithmetic?
 
+  not ternary arithmetic ops since the condition image is always ucharo
+
+  maybe a subclass of binary, since the then & else images do need to be
+  upcast to match
 
 
 
-- try an area operation, like conv, VipsArea? oops no
+
+- try an area operation, like conv, VipsArea? oops no haha what name should we
+  use?
 
 
 
