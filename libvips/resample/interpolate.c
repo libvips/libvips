@@ -393,8 +393,10 @@ vips_interpolate_nearest_static( void )
 {
 	static VipsInterpolate *interpolate = NULL;
 
-	if( !interpolate )
+	if( !interpolate ) {
 		interpolate = vips_interpolate_nearest_new();
+		vips_object_set_static( VIPS_OBJECT( interpolate ), TRUE );
+	}
 
 	return( interpolate );
 }
@@ -563,8 +565,10 @@ vips_interpolate_bilinear_static( void )
 {
 	static VipsInterpolate *interpolate = NULL;
 
-	if( !interpolate )
+	if( !interpolate ) {
 		interpolate = vips_interpolate_bilinear_new();
+		vips_object_set_static( VIPS_OBJECT( interpolate ), TRUE );
+	}
 
 	return( interpolate );
 }

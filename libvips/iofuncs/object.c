@@ -1854,6 +1854,33 @@ vips_object_local_array( VipsObject *parent, int n )
 	return( local->array );
 }
 
+void 
+vips_object_set_static( VipsObject *object, gboolean static_object )
+{
+	object->static_object = static_object;
+}
+
+static void *
+vips_object_n_static_cb( VipsObject *object, int *n )
+{
+	if( object->static_object )
+		*n += 1;
+
+	return( NULL );
+}
+
+static int
+vips_object_n_static( void )
+{
+	int n;
+
+	n = 0;
+	vips_object_map( 
+		(VipsSListMap2Fn) vips_object_n_static_cb, &n, NULL );
+
+	return( n );
+}
+
 static void *
 vips_object_print_all_cb( VipsObject *object, int *n )
 {
@@ -1879,7 +1906,8 @@ void
 vips_object_print_all( void )
 {
 	if( vips__object_all &&
-		g_hash_table_size( vips__object_all ) > 0 ) {
+		g_hash_table_size( vips__object_all ) > 
+			vips_object_n_static() ) {
 		int n;
 
 		fprintf( stderr, "%d objects alive:\n", 

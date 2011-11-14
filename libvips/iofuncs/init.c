@@ -318,8 +318,6 @@ vips_leak( void )
 void
 vips_shutdown( void )
 {
-	static gboolean done = FALSE;
-
 	vips_cache_drop_all();
 	im_close_plugins();
 
@@ -330,6 +328,8 @@ vips_shutdown( void )
 	if( vips__leak ) 
 #endif /*DEBUG_LEAK*/
 	{
+		static gboolean done = FALSE;
+
 		if( !done ) 
 			vips_leak();
 

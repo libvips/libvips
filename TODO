@@ -1,5 +1,9 @@
 - various failures in make check
 
+  setting x in vipsmin to nonsense
+
+  also vipsmax?
+
 
 
 - move ifthenelse / blend to conversion? or arithmetic?

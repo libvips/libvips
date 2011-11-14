@@ -313,7 +313,15 @@ gboolean vips_argument_get_assigned( VipsObject *object, const char *name );
 struct _VipsObject {
 	GObject parent_object;
 
-	gboolean constructed;		/* Construct done and checked */
+	/* Set after ->build() has run succesfully: construct is fully done
+	 * and checked.
+	 */
+	gboolean constructed;
+
+	/* Set for static objects which are allocated at startup and never
+	 * freed. These objects are ommitted from leak reports.
+	 */
+	gboolean static_object;
 
 	/* Table of argument instances for this class and any derived classes.
 	 */
@@ -468,6 +476,7 @@ void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
 	(g_signal_connect( V, "close", \
 		G_CALLBACK( vips_object_local_cb ), G ), 0)
 
+void vips_object_set_static( VipsObject *object, gboolean static_object );
 void vips_object_print_all( void );
 void vips_object_sanity_all( void );
 
