@@ -295,14 +295,19 @@ vips_leak( void )
 
 	vips_object_print_all();
 
-	vips_buf_appendf( &buf, "memory: %d allocations, %zd bytes\n",
-		vips_tracked_get_allocs(), vips_tracked_get_mem() );
-	vips_buf_appendf( &buf, "memory: high-water mark " );
-	vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
-	vips_buf_appendf( &buf, "\nfiles: %d open\n",
-		vips_tracked_get_files() );
+	if( vips_tracked_get_allocs() || 
+		vips_tracked_get_mem() ||
+		vips_tracked_get_mem_highwater() ||
+		vips_tracked_get_files() ) {
+		vips_buf_appendf( &buf, "memory: %d allocations, %zd bytes\n",
+			vips_tracked_get_allocs(), vips_tracked_get_mem() );
+		vips_buf_appendf( &buf, "memory: high-water mark " );
+		vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
+		vips_buf_appendf( &buf, "\nfiles: %d open\n",
+			vips_tracked_get_files() );
 
-	fprintf( stderr, "%s", vips_buf_all( &buf ) );
+		fprintf( stderr, "%s", vips_buf_all( &buf ) );
+	}
 }
 
 /**
