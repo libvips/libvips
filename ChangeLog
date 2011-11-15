@@ -11,7 +11,7 @@
   im_multiply(), im_stats(), im_measure(), im_recomb(), im_floor(), im_ceil(),
   im_rint(), im_equal*(), im_notequal*(), im_less*(), im_lesseq*(), im_more*(),
   im_moreeq*(), im_remainder*(), im_and*(), im_or*(), im_eor*(), im_shift*(),
-  im_pow*(), im_exp*()
+  im_pow*(), im_exp*(), im_ifthenelse(), im_blend()
   redone as classes
 - added argument priorites to help control arg ordering
 - generate has a 'stop' param to signal successful early termination

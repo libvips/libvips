@@ -2042,3 +2042,37 @@ im_expntra( IMAGE *in, IMAGE *out, double c )
 	return( im_expntra_vec( in, out, 1, &c ) );
 }
 
+int 
+im_ifthenelse( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out )
+{
+	VipsImage *t;
+
+	if( vips_ifthenelse( c, a, b, &t, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out )
+{
+	VipsImage *t;
+
+	if( vips_ifthenelse( c, a, b, &t, 
+		"blend", TRUE,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}

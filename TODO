@@ -1,16 +1,5 @@
-- move ifthenelse / blend to conversion? or arithmetic?
-
-  not ternary arithmetic ops since the condition image is always ucharo
-
-  maybe a subclass of binary, since the then & else images do need to be
-  upcast to match
-
-
-
-
 - try an area operation, like conv, VipsArea? oops no haha what name should we
   use?
-
 
 
 
@@ -18,16 +7,15 @@
 
 
 
-
 - avg/dev etc. should uncode images? eg. labq2lab etc.
 
+  how about ifthenelse? 
 
 
 
 - see: vips_abs_build(), should that set an arithmetic member? ugly
 
   same code in round.c
-
 
 
 

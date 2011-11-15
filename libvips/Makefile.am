@@ -26,7 +26,6 @@ SUBDIRS = \
 	morphology \
 	mosaicing \
 	other \
-	relational \
 	video \
 	.
 
@@ -60,7 +59,6 @@ libvips_la_LIBADD = \
 	morphology/libmorphology.la \
 	mosaicing/libmosaicing.la \
 	other/libother.la \
-	relational/librelational.la \
 	video/libvideo.la \
 	@VIPS_LIBS@
 

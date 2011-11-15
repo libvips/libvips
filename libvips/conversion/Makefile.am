@@ -14,6 +14,7 @@ libconversion_la_SOURCES = \
 	bandjoin.c \
 	black.c \
 	rot.c \
+	ifthenelse.c \
 	conver_dispatch.c \
 	im_c2amph.c \
 	im_c2rect.c \

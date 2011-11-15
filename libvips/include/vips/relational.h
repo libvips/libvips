@@ -37,8 +37,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_ifthenelse( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
-int im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 
 #ifdef __cplusplus
 }

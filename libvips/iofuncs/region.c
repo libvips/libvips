@@ -648,7 +648,8 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
  * Returns: 0 on success, or -1 for error.
  */
 int
-vips_region_region( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
+vips_region_region( VipsRegion *reg, 
+	VipsRegion *dest, VipsRect *r, int x, int y )
 {
 	VipsRect image;
 	VipsRect wanted;

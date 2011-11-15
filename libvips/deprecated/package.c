@@ -72,7 +72,6 @@ extern im_package im__mask;
 extern im_package im__morphology;
 extern im_package im__mosaicing;
 extern im_package im__other;
-extern im_package im__relational;
 extern im_package im__resample;
 extern im_package im__video;
 
@@ -584,7 +583,6 @@ static im_package *built_in[] = {
 	&im__morphology,
 	&im__mosaicing,
 	&im__other,
-	&im__relational,
 	&im__resample,
 	&im__video
 };

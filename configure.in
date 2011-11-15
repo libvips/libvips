@@ -642,7 +642,6 @@ AC_OUTPUT([
 	libvips/morphology/Makefile 
 	libvips/mosaicing/Makefile 
 	libvips/other/Makefile 
-	libvips/relational/Makefile 
 	libvips/resample/Makefile 
 	libvips/video/Makefile 
 	libvipsCC/include/Makefile 

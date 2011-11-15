@@ -635,6 +635,9 @@ int im_rot90( VipsImage *in, VipsImage *out );
 int im_rot180( VipsImage *in, VipsImage *out );
 int im_rot270( VipsImage *in, VipsImage *out );
 
+int im_ifthenelse( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
+int im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
+
 DOUBLEMASK *im_vips2mask( VipsImage *in, const char *filename );
 int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
 

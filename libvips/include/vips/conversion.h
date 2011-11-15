@@ -165,6 +165,9 @@ int vips_black( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
+int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
+	VipsImage **out, ... )
+	__attribute__((sentinel));
 
 
 int im_copy_file( VipsImage *in, VipsImage *out );
