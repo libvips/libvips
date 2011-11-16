@@ -1,3 +1,14 @@
+- test docs
+
+  need a set of convenience funcs for C, eg. vips_sin(), vips_more_const() 
+  etc. ... could include vips_relational() etc. as well?
+
+  rewrite im_bandmean() in terms of recomb()? just use [0.33, 0.33, 0.33]
+
+  move im_point_bilinear() to deprecated? or convenience?
+
+
+
 - try an area operation, like conv, VipsArea? oops no haha what name should we
   use?
 
