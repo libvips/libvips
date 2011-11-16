@@ -1,3 +1,10 @@
+- try loading a float image, then 255 * A1 ** 2
+
+GLib-GObject-WARNING **: value "((VipsOperationMath2) 79094592)" of type
+`VipsOperationMath2' is invalid or out of range for property `math2' of type
+`VipsOperationMath2'
+
+
 - test docs
 
   need a set of convenience funcs for C, eg. vips_sin(), vips_more_const() 
