@@ -66,11 +66,6 @@ typedef struct _VipsArithmetic {
 	 */
 	VipsImage *out;
 
-	/* Optional bool argument for testing.
-	 */
-	gboolean booltest;
-	VipsImage *imtest;
-
 	/* Array of input arguments, set these from a subclass.
 	 */
 	VipsImage **in;

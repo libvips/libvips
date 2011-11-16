@@ -391,7 +391,7 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
 	for( i = 0; i < n; i++ ) 
 		array[i] = c[i];
 
-	result = vips_call_split( "math2_const", ap, in, out, area_c );
+	result = vips_call_split( "math2_const", ap, in, out, math2, area_c );
 
 	vips_area_unref( area_c );
 

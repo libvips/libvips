@@ -363,13 +363,6 @@ vips_arithmetic_build( VipsObject *object )
 		arithmetic->ready, arithmetic ) )
 		return( -1 );
 
-#ifdef DEBUG
-	printf( "vips_arithmetic_build: booltest = %d\n", 
-		arithmetic->booltest );
-	printf( "vips_arithmetic_build: imtest = %p\n", 
-		arithmetic->imtest );
-#endif /*DEBUG*/
-
 	return( 0 );
 }
 
@@ -391,22 +384,6 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsArithmetic, out ) );
-
-	/* Just for testing.
-	 */
-
-	VIPS_ARG_BOOL( class, "booltest", 101, 
-		_( "Bool test" ), 
-		_( "Test optional boolean argument" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsArithmetic, booltest ),
-		FALSE );
-
-	VIPS_ARG_IMAGE( class, "imtest", 102, 
-		_( "Image test" ), 
-		_( "Test optional image argument" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsArithmetic, imtest ) );
 }
 
 static void
