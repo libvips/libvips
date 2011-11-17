@@ -248,7 +248,7 @@ vips_join_class_init( VipsJoinClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "join";
-	vobject_class->description = _( "join an image" );
+	vobject_class->description = _( "join a pair of images" );
 	vobject_class->build = vips_join_build;
 
 	VIPS_ARG_IMAGE( class, "in1", -1, 

@@ -8,7 +8,28 @@
 
   rewrite im_bandmean() in terms of recomb()? just use [0.33, 0.33, 0.33]
 
+  	no, bandmean is OK, just move to conversion
+
   move im_point_bilinear() to deprecated? or convenience?
+
+  can we document several classes in one gtk-doc page? doesn't look like it
+  argh
+
+  our choice is then just document the C API, which means making the C wrapper
+  mandatory, or to make a separate header for every operation
+
+  why doesn't vips_add() appear in the docs? curious
+
+  try
+
+  	$ vips join
+ 	... usage ...
+	join: too few arguments
+	VipsObject: parameter in1 to VipsJoin not set
+	VipsObject: parameter in2 to VipsJoin not set
+	VipsObject: parameter direction to VipsJoin not set
+
+  why do we have four errors? shouldn't we stop after the first one?
 
 
 

@@ -263,18 +263,28 @@ vips_max_scan( VipsStatistic *statistic, void *seq,
 	int i;
 
 	switch( vips_image_get_format( statistic->in ) ) {
-	case IM_BANDFMT_UCHAR:	LOOPU( unsigned char, UCHAR_MAX ); break; 
-	case IM_BANDFMT_CHAR:	LOOPU( signed char, SCHAR_MAX ); break; 
-	case IM_BANDFMT_USHORT:	LOOPU( unsigned short, USHRT_MAX ); break; 
-	case IM_BANDFMT_SHORT:	LOOPU( signed short, SHRT_MAX ); break; 
-	case IM_BANDFMT_UINT:	LOOPU( unsigned int, UINT_MAX ); break;
-	case IM_BANDFMT_INT:	LOOPU( signed int, INT_MAX ); break; 
+	case VIPS_FORMAT_UCHAR:		
+		LOOPU( unsigned char, UCHAR_MAX ); break; 
+	case VIPS_FORMAT_CHAR:	
+		LOOPU( signed char, SCHAR_MAX ); break; 
+	case VIPS_FORMAT_USHORT:	
+		LOOPU( unsigned short, USHRT_MAX ); break; 
+	case VIPS_FORMAT_SHORT:	
+		LOOPU( signed short, SHRT_MAX ); break; 
+	case VIPS_FORMAT_UINT:	
+		LOOPU( unsigned int, UINT_MAX ); break;
+	case VIPS_FORMAT_INT:	
+		LOOPU( signed int, INT_MAX ); break; 
 
-	case IM_BANDFMT_FLOAT:	LOOP( float ); break; 
-	case IM_BANDFMT_DOUBLE:	LOOP( double ); break; 
+	case VIPS_FORMAT_FLOAT:	
+		LOOP( float ); break; 
+	case VIPS_FORMAT_DOUBLE:	
+		LOOP( double ); break; 
 
-	case IM_BANDFMT_COMPLEX:CLOOP( float ); break; 
-	case IM_BANDFMT_DPCOMPLEX:CLOOP( double ); break; 
+	case VIPS_FORMAT_COMPLEX:
+		CLOOP( float ); break; 
+	case VIPS_FORMAT_DPCOMPLEX:
+		CLOOP( double ); break; 
 
 	default:  
 		g_assert( 0 );

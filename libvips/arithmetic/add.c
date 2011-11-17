@@ -81,90 +81,6 @@
 
 #include "binary.h"
 
-/**
- * VipsAdd:
- * @in1: input image 
- * @in2: input image 
- * @out: output image
- *
- * This operation calculates @in1 + @in2 and writes the result to @out. 
- *
- * If the images differ in size, the smaller image is enlarged to match the
- * larger by adding zero pixels along the bottom and right.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
- * following table is used to determine the output type:
- *
- * <table>
- *   <title>VipsAdd type promotion</title>
- *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
- *     <thead>
- *       <row>
- *         <entry>input type</entry>
- *         <entry>output type</entry>
- *       </row>
- *     </thead>
- *     <tbody>
- *       <row>
- *         <entry>uchar</entry>
- *         <entry>ushort</entry>
- *       </row>
- *       <row>
- *         <entry>char</entry>
- *         <entry>short</entry>
- *       </row>
- *       <row>
- *         <entry>ushort</entry>
- *         <entry>uint</entry>
- *       </row>
- *       <row>
- *         <entry>short</entry>
- *         <entry>int</entry>
- *       </row>
- *       <row>
- *         <entry>uint</entry>
- *         <entry>uint</entry>
- *       </row>
- *       <row>
- *         <entry>int</entry>
- *         <entry>int</entry>
- *       </row>
- *       <row>
- *         <entry>float</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>double</entry>
- *         <entry>double</entry>
- *       </row>
- *       <row>
- *         <entry>complex</entry>
- *         <entry>complex</entry>
- *       </row>
- *       <row>
- *         <entry>double complex</entry>
- *         <entry>double complex</entry>
- *       </row>
- *     </tbody>
- *   </tgroup>
- * </table>
- *
- * In other words, the output type is just large enough to hold the whole
- * range of possible values.
- *
- * Operations on integer images are performed using the processor's vector unit,
- * if possible. Disable this with --vips-novector or IM_NOVECTOR.
- *
- * See also: #VipsSubtract, #VipsLinear.
- */
-
 typedef VipsBinary VipsAdd;
 typedef VipsBinaryClass VipsAddClass;
 
@@ -315,6 +231,90 @@ vips_add_init( VipsAdd *add )
 {
 }
 
+/**
+ * vips_add:
+ * @left: input image 
+ * @right: input image 
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation calculates @in1 + @in2 and writes the result to @out. 
+ *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
+ * following table is used to determine the output type:
+ *
+ * <table>
+ *   <title>VipsAdd type promotion</title>
+ *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+ *     <thead>
+ *       <row>
+ *         <entry>input type</entry>
+ *         <entry>output type</entry>
+ *       </row>
+ *     </thead>
+ *     <tbody>
+ *       <row>
+ *         <entry>uchar</entry>
+ *         <entry>ushort</entry>
+ *       </row>
+ *       <row>
+ *         <entry>char</entry>
+ *         <entry>short</entry>
+ *       </row>
+ *       <row>
+ *         <entry>ushort</entry>
+ *         <entry>uint</entry>
+ *       </row>
+ *       <row>
+ *         <entry>short</entry>
+ *         <entry>int</entry>
+ *       </row>
+ *       <row>
+ *         <entry>uint</entry>
+ *         <entry>uint</entry>
+ *       </row>
+ *       <row>
+ *         <entry>int</entry>
+ *         <entry>int</entry>
+ *       </row>
+ *       <row>
+ *         <entry>float</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double</entry>
+ *         <entry>double</entry>
+ *       </row>
+ *       <row>
+ *         <entry>complex</entry>
+ *         <entry>complex</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double complex</entry>
+ *         <entry>double complex</entry>
+ *       </row>
+ *     </tbody>
+ *   </tgroup>
+ * </table>
+ *
+ * In other words, the output type is just large enough to hold the whole
+ * range of possible values.
+ *
+ * Operations on integer images are performed using the processor's vector unit,
+ * if possible. Disable this with --vips-novector or IM_NOVECTOR.
+ *
+ * See also: vips_subtract(), vips_linear().
+ */
 int
 vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 {

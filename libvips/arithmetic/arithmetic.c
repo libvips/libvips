@@ -464,7 +464,7 @@ vips_arithmetic_compile( VipsArithmeticClass *class )
 
 #ifdef DEBUG
 	printf( "vips_arithmetic_compile: " );
-	for( i = 0; i < IM_BANDFMT_LAST; i++ ) 
+	for( i = 0; i < VIPS_FORMAT_LAST; i++ ) 
 		if( class->vector_program[i] )
 			printf( "%s ", 
 				VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, i ) );
