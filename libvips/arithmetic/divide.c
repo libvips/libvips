@@ -73,88 +73,6 @@
 
 #include "binary.h"
 
-/**
- * VipsDivide::
- * @in1: input #IMAGE 1
- * @in2: input #IMAGE 2
- * @out: output #IMAGE
- *
- * This operation calculates @in1 / @in2 and writes the result to @out. If any
- * pixels in @in2 are zero, the corresponding pixel in @out is also zero.
- *
- * If the images differ in size, the smaller image is enlarged to match the
- * larger by adding zero pixels along the bottom and right.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
- * following table is used to determine the output type:
- *
- * <table>
- *   <title>im_divide() type promotion</title>
- *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
- *     <thead>
- *       <row>
- *         <entry>input type</entry>
- *         <entry>output type</entry>
- *       </row>
- *     </thead>
- *     <tbody>
- *       <row>
- *         <entry>uchar</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>char</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>ushort</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>short</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>uint</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>int</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>float</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>double</entry>
- *         <entry>double</entry>
- *       </row>
- *       <row>
- *         <entry>complex</entry>
- *         <entry>complex</entry>
- *       </row>
- *       <row>
- *         <entry>double complex</entry>
- *         <entry>double complex</entry>
- *       </row>
- *     </tbody>
- *   </tgroup>
- * </table>
- *
- * In other words, the output type is just large enough to hold the whole
- * range of possible values.
- *
- * See also: #VipsAdd, #VipsSubtract.
- */
-
 typedef VipsBinary VipsDivide;
 typedef VipsBinaryClass VipsDivideClass;
 
@@ -302,6 +220,90 @@ vips_divide_init( VipsDivide *divide )
 {
 }
 
+/**
+ * vips_divide::
+ * @in1: input image 1
+ * @in2: input image 2
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation calculates @in1 / @in2 and writes the result to @out. If any
+ * pixels in @in2 are zero, the corresponding pixel in @out is also zero.
+ *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
+ * following table is used to determine the output type:
+ *
+ * <table>
+ *   <title>im_divide() type promotion</title>
+ *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+ *     <thead>
+ *       <row>
+ *         <entry>input type</entry>
+ *         <entry>output type</entry>
+ *       </row>
+ *     </thead>
+ *     <tbody>
+ *       <row>
+ *         <entry>uchar</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>char</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>ushort</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>short</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>uint</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>int</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>float</entry>
+ *         <entry>float</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double</entry>
+ *         <entry>double</entry>
+ *       </row>
+ *       <row>
+ *         <entry>complex</entry>
+ *         <entry>complex</entry>
+ *       </row>
+ *       <row>
+ *         <entry>double complex</entry>
+ *         <entry>double complex</entry>
+ *       </row>
+ *     </tbody>
+ *   </tgroup>
+ * </table>
+ *
+ * In other words, the output type is just large enough to hold the whole
+ * range of possible values.
+ *
+ * See also: vips_multiply(), vips_linear(), vips_power().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_divide( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 {

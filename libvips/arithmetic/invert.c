@@ -60,20 +60,6 @@
 
 #include "unary.h"
 
-/**
- * VipsInvert:
- * @in: input #VipsImage
- * @out: output #VipsImage
- *
- * For unsigned formats, this operation calculates (max - @in), eg. (255 -
- * @in) for uchar. For signed and float formats, this operation calculates (-1
- * * @in). 
- *
- * See also: im_lintra().
- *
- * Returns: 0 on success, -1 on error
- */
-
 typedef VipsUnary VipsInvert;
 typedef VipsUnaryClass VipsInvertClass;
 
@@ -174,6 +160,20 @@ vips_invert_init( VipsInvert *invert )
 {
 }
 
+/**
+ * vips_invert:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * For unsigned formats, this operation calculates (max - @in), eg. (255 -
+ * @in) for uchar. For signed and float formats, this operation calculates (-1
+ * * @in). 
+ *
+ * See also: vips_linear().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_invert( VipsImage *in, VipsImage **out, ... )
 {

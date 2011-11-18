@@ -83,29 +83,6 @@
 
 #include "unary.h"
 
-/**
- * VipsLinear:
- * @in: image to transform
- * @out: output image
- * @a: array of constants for multiplication
- * @b: array of constants for addition
- *
- * Pass an image through a linear transform, ie. (@out = @in * @a + @b). Output
- * is always float for integer input, double for double input, complex for
- * complex input and double complex for double complex input.
- *
- * If the arrays of constants have just one element, that constant is used for 
- * all image bands. If the arrays have more than one element and they have 
- * the same number of elements as there are bands in the image, then 
- * one array element is used for each band. If the arrays have more than one
- * element and the image only has a single band, the result is a many-band
- * image where each band corresponds to one array element.
- *
- * See also: #VipsAdd.
- *
- * Returns: 0 on success, -1 on error
- */
-
 typedef struct _VipsLinear {
 	VipsUnary parent_instance;
 
@@ -323,6 +300,29 @@ vips_linearv( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/**
+ * vips_linear:
+ * @in: image to transform
+ * @out: output image
+ * @a: array of constants for multiplication
+ * @b: array of constants for addition
+ * @n: length of constant arrays
+ *
+ * Pass an image through a linear transform, ie. (@out = @in * @a + @b). Output
+ * is always float for integer input, double for double input, complex for
+ * complex input and double complex for double complex input.
+ *
+ * If the arrays of constants have just one element, that constant is used for 
+ * all image bands. If the arrays have more than one element and they have 
+ * the same number of elements as there are bands in the image, then 
+ * one array element is used for each band. If the arrays have more than one
+ * element and the image only has a single band, the result is a many-band
+ * image where each band corresponds to one array element.
+ *
+ * See also: vips_linear1(), vips_add().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
 {
@@ -336,6 +336,19 @@ vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
 	return( result );
 }
 
+/**
+ * vips_linear1:
+ * @in: image to transform
+ * @out: output image
+ * @a: constant for multiplication
+ * @b: constant for addition
+ *
+ * Run vips_linear() with a single constant. 
+ *
+ * See also: vips_linear().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
 {

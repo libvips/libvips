@@ -73,20 +73,6 @@
 
 #include "statistic.h"
 
-/**
- * VipsDeviate:
- * @in: input #IMAGE
- * @out: output pixel standard deviation
- *
- * This operation finds the standard deviation of all pixels in @in. It 
- * operates on all bands of the input image: use im_stats() if you need 
- * to calculate an average for each band. 
- *
- * Non-complex images only.
- *
- * See also: VipsDeviate.
- */
-
 typedef struct _VipsDeviate {
 	VipsStatistic parent_instance;
 
@@ -242,6 +228,22 @@ vips_deviate_init( VipsDeviate *deviate )
 {
 }
 
+/**
+ * vips_deviate():
+ * @in: input #VipsImage
+ * @out: output pixel standard deviation
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation finds the standard deviation of all pixels in @in. It 
+ * operates on all bands of the input image: use vips_stats() if you need 
+ * to calculate an average for each band. 
+ *
+ * Non-complex images only.
+ *
+ * See also: vips_avg(), vips_stats()..
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_deviate( VipsImage *in, double *out, ... )
 {

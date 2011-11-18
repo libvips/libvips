@@ -69,22 +69,6 @@
 
 #include "unary.h"
 
-/** 
- * VipsAbs:
- * @in: input #VipsImage
- * @out: output #VipsImage
- *
- * This operation finds the absolute value of an image. It does a copy for 
- * unsigned integer types, negate for negative values in 
- * signed integer types, <function>fabs(3)</function> for 
- * float types, and calculate modulus for complex 
- * types. 
- *
- * See also: im_sign().
- *
- * Returns: 0 on success, -1 on error
- */
-
 typedef VipsUnary VipsAbs;
 typedef VipsUnaryClass VipsAbsClass;
 
@@ -249,6 +233,22 @@ vips_abs_init( VipsAbs *abs )
 {
 }
 
+/** 
+ * vips_abs:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation finds the absolute value of an image. It does a copy for 
+ * unsigned integer types, negate for negative values in 
+ * signed integer types, <function>fabs(3)</function> for 
+ * float types, and calculate modulus for complex 
+ * types. 
+ *
+ * See also: vips_sign().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_abs( VipsImage *in, VipsImage **out, ... )
 {

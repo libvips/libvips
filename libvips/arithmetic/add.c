@@ -314,6 +314,8 @@ vips_add_init( VipsAdd *add )
  * if possible. Disable this with --vips-novector or IM_NOVECTOR.
  *
  * See also: vips_subtract(), vips_linear().
+ *
+ * Returns: 0 on success, -1 on error
  */
 int
 vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )

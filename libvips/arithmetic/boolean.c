@@ -76,34 +76,6 @@
 #include "binary.h"
 #include "unaryconst.h"
 
-/**
- * VipsBoolean:
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: output #VipsImage
- * @boolean: boolean operation to perform
- *
- * Perform various boolean operations on pairs of images. 
- *
- * The output image is the same format as the upcast input images for integer
- * types. Float types are cast to int before processing. Complex types are not
- * supported.
- *
- * If the images differ in size, the smaller image is enlarged to match the
- * larger by adding zero pixels along the bottom and right.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * See also: #VipsBoolean, #VipsBooleanConst.
- */
-
 typedef struct _VipsBoolean {
 	VipsBinary parent_instance;
 
@@ -256,6 +228,44 @@ vips_boolean_init( VipsBoolean *boolean )
 {
 }
 
+static int
+vips_booleanv( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationBoolean boolean, va_list ap )
+{
+	return( vips_call_split( "boolean", ap, left, right, out, 
+		boolean ) );
+}
+
+/**
+ * vips_boolean:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @boolean: boolean operation to perform
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform various boolean operations on pairs of images. 
+ *
+ * The output image is the same format as the upcast input images for integer
+ * types. Float types are cast to int before processing. Complex types are not
+ * supported.
+ *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: vips_boolean_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationBoolean boolean, ... )
@@ -264,33 +274,141 @@ vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out,
 	int result;
 
 	va_start( ap, boolean );
-	result = vips_call_split( "boolean", ap, left, right, out, 
-		boolean );
+	result = vips_booleanv( left, right, out, boolean, ap );
 	va_end( ap );
 
 	return( result );
 }
 
 /**
- * VipsBooleanConst:
- * @in: input image
- * @out: output image
- * @a: array of constants 
- * @boolean: boolean operation to perform
+ * vips_andimage:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
  *
- * Perform various boolean operations on an image against a constant.
+ * Perform #VIPS_OPERATION_BOOLEAN_AND on a pair of images. See
+ * vips_boolean().
  *
- * The output type is always uchar, with 0 for FALSE and 255 for TRUE. 
- *
- * If the array of constants has just one element, that constant is used for 
- * all image bands. If the array has more than one element and they have 
- * the same number of elements as there are bands in the image, then 
- * one array element is used for each band. If the arrays have more than one
- * element and the image only has a single band, the result is a many-band
- * image where each band corresponds to one array element.
- *
- * See also: #VipsBoolean, #VipsBoolean.
+ * Returns: 0 on success, -1 on error
  */
+int
+vips_andimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_booleanv( left, right, out, 
+		VIPS_OPERATION_BOOLEAN_AND, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_orimage:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_OR on a pair of images. See
+ * vips_boolean().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_orimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_booleanv( left, right, out, 
+		VIPS_OPERATION_BOOLEAN_OR, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_eorimage:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_EOR on a pair of images. See
+ * vips_boolean().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_eorimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_booleanv( left, right, out, 
+		VIPS_OPERATION_BOOLEAN_EOR, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_lshift:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on a pair of images. See
+ * vips_boolean().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_lshift( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_booleanv( left, right, out, 
+		VIPS_OPERATION_BOOLEAN_LSHIFT, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_rshift:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_RSHIFT on a pair of images. See
+ * vips_boolean().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_rshift( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_booleanv( left, right, out, 
+		VIPS_OPERATION_BOOLEAN_RSHIFT, ap );
+	va_end( ap );
+
+	return( result );
+}
 
 typedef struct _VipsBooleanConst {
 	VipsUnaryConst parent_instance;
@@ -434,6 +552,31 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/**
+ * vips_boolean_const:
+ * @in: input image
+ * @out: output image
+ * @boolean: boolean operation to perform
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform various boolean operations on an image against an array of
+ * constants.
+ *
+ * The output type is always uchar, with 0 for FALSE and 255 for TRUE. 
+ *
+ * If the array of constants has just one element, that constant is used for 
+ * all image bands. If the array has more than one element and they have 
+ * the same number of elements as there are bands in the image, then 
+ * one array element is used for each band. If the arrays have more than one
+ * element and the image only has a single band, the result is a many-band
+ * image where each band corresponds to one array element.
+ *
+ * See also: vips_boolean(), vips_boolean_const1().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_boolean_const( VipsImage *in, VipsImage **out, 
 	VipsOperationBoolean boolean, double *c, int n, ... )
@@ -448,6 +591,166 @@ vips_boolean_const( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/**
+ * vips_andimage_const:
+ * @in: input image
+ * @out: output image
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_AND on an image and an array of constants.
+ * See vips_boolean_const().
+ *
+ * See also: vips_boolean(), vips_boolean_const1().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_andimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_AND, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_orimage_const:
+ * @in: input image
+ * @out: output image
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_OR on an image and an array of constants.
+ * See vips_boolean_const().
+ *
+ * See also: vips_boolean(), vips_boolean_const1().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_orimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_OR, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_eorimage_const:
+ * @in: input image
+ * @out: output image
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_EOR on an image and an array of constants.
+ * See vips_boolean_const().
+ *
+ * See also: vips_boolean(), vips_boolean_const1().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_eorimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_EOR, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_lshift_const:
+ * @in: input image
+ * @out: output image
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on an image and an array of constants.
+ * See vips_boolean_const().
+ *
+ * See also: vips_boolean(), vips_boolean_const1().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_lshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_LSHIFT, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_rshift_const:
+ * @in: input image
+ * @out: output image
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on an image and an array of constants.
+ * See vips_boolean_const().
+ *
+ * See also: vips_boolean(), vips_boolean_const1().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_rshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_RSHIFT, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_boolean_const1:
+ * @in: input image
+ * @out: output image
+ * @boolean: boolean operation to perform
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform various boolean operations on an image with a single constant. See
+ * vips_boolean_const().
+ *
+ * See also: vips_boolean(), vips_boolean_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_boolean_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationBoolean boolean, double c, ... )
@@ -457,6 +760,146 @@ vips_boolean_const1( VipsImage *in, VipsImage **out,
 
 	va_start( ap, c );
 	result = vips_boolean_constv( in, out, boolean, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_andimage_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_AND on an image and a constant.
+ * See vips_boolean_const1().
+ *
+ * See also: vips_boolean(), vips_boolean_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_andimage_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_AND, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_orimage_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_OR on an image and a constant.
+ * See vips_boolean_const1().
+ *
+ * See also: vips_boolean(), vips_boolean_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_orimage_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_OR, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_eorimage_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_EOR on an image and a constant.
+ * See vips_boolean_const1().
+ *
+ * See also: vips_boolean(), vips_boolean_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_eorimage_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_EOR, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_lshift_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on an image and a constant.
+ * See vips_boolean_const1().
+ *
+ * See also: vips_boolean(), vips_boolean_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_lshift_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_LSHIFT, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_rshift_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_BOOLEAN_RSHIFT on an image and a constant.
+ * See vips_boolean_const1().
+ *
+ * See also: vips_boolean(), vips_boolean_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_rshift_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_boolean_constv( in, out, 
+		VIPS_OPERATION_BOOLEAN_RSHIFT, &c, 1, ap );
 	va_end( ap );
 
 	return( result );

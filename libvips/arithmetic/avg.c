@@ -74,18 +74,6 @@
 
 #include "statistic.h"
 
-/**
- * VipsAvg:
- * @in: input #VipsImage
- * @out: output pixel average
- *
- * This operation finds the average value in an image. It operates on all 
- * bands of the input image: use im_stats() if you need to calculate an 
- * average for each band. For complex images, return the average modulus.
- *
- * See also: im_stats(), im_bandmean(), im_deviate(), im_rank()
- */
-
 typedef struct _VipsAvg {
 	VipsStatistic parent_instance;
 
@@ -239,6 +227,21 @@ vips_avg_init( VipsAvg *avg )
 {
 }
 
+
+/**
+ * vips_avg:
+ * @in: input #VipsImage
+ * @out: output pixel average
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation finds the average value in an image. It operates on all 
+ * bands of the input image: use vips_stats() if you need to calculate an 
+ * average for each band. For complex images, return the average modulus.
+ *
+ * See also: vips_stats(), vips_bandmean(), vips_deviate(), vips_rank()
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_avg( VipsImage *in, double *out, ... )
 {
