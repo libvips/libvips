@@ -65,24 +65,6 @@
 
 #include "statistic.h"
 
-/**
- * VipsMax:
- * @in: input #VipsImage
- * @out: output pixel maximum
- *
- * This operation finds the maximum value in an image. 
- *
- * If the image contains several maximum values, only the first one found is
- * returned.
- *
- * It operates on all 
- * bands of the input image: use im_stats() if you need to find an 
- * maximum for each band. For complex images, find the maximum modulus.
- *
- * See also: #VipsAvg, #VipsMin, im_stats(), im_bandmean(), #VipsDeviate, 
- * im_rank().
- */
-
 typedef struct _VipsMax {
 	VipsStatistic parent_instance;
 
@@ -338,6 +320,29 @@ vips_max_init( VipsMax *max )
 {
 }
 
+/**
+ * vips_max:
+ * @in: input #VipsImage
+ * @out: output pixel maximum
+ * @x: horizontal position of maximum
+ * @y: vertical position of maximum
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation finds the maximum value in an image. 
+ *
+ * If the image contains several maximum values, only the first one found is
+ * returned.
+ *
+ * It operates on all 
+ * bands of the input image: use vips_stats() if you need to find an 
+ * maximum for each band. 
+ *
+ * For complex images, this operation finds the maximum modulus.
+ *
+ * See also: vips_min(), vips_stats().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_max( VipsImage *in, double *out, ... )
 {

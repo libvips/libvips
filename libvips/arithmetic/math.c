@@ -68,21 +68,6 @@
 
 #include "unary.h"
 
-/**
- * VipsMath:
- * @in: input #VipsImage
- * @out: output #VipsImage
- * @math: math operation to perform
- *
- * Perform various functions in -lm, the maths library, on images. 
- *
- * Angles are expressed in degrees. The output type is float unless the 
- * input is double, in which case the output is double.  
- * Non-complex images only.
- *
- * See also: #VipsAdd.
- */
-
 typedef struct _VipsMath {
 	VipsUnary parent_instance;
 
@@ -228,6 +213,30 @@ vips_math_init( VipsMath *math )
 {
 }
 
+static int
+vips_mathv( VipsImage *in, VipsImage **out, VipsOperationMath math, va_list ap )
+{
+	return( vips_call_split( "math", ap, in, out, math ) );
+}
+
+/**
+ * vips_math:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @math: math operation to perform
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform various functions in -lm, the maths library, on images. 
+ *
+ * Angles are expressed in degrees. The output type is float unless the 
+ * input is double, in which case the output is double.  
+ *
+ * Non-complex images only.
+ *
+ * See also: vips_math2().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_math( VipsImage *in, VipsImage **out, VipsOperationMath math, ... )
 {
@@ -235,7 +244,237 @@ vips_math( VipsImage *in, VipsImage **out, VipsOperationMath math, ... )
 	int result;
 
 	va_start( ap, math );
-	result = vips_call_split( "math", ap, in, out, math );
+	result = vips_mathv( in, out, math, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_sin:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_SIN on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_sin( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_SIN, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_cos:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_COS on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_cos( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_COS, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_tan:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_TAN on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_tan( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_TAN, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_asin:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_ASIN on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_asin( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_ASIN, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_acos:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_ACOS on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_acos( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_ACOS, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_atan:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_ATAN on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_atan( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_ATAN, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_log:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_LOG on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_log( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_LOG, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_log10:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_LOG10 on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_log10( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_LOG10, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_exp:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_EXP on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_exp( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_EXP, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_exp10:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH_EXP10 on an image. See vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_exp10( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_mathv( in, out, VIPS_OPERATION_MATH_EXP10, ap );
 	va_end( ap );
 
 	return( result );

@@ -53,22 +53,6 @@
 
 #include "unary.h"
 
-/** 
- * VipsRecomb:
- * @in: input image
- * @out: output image
- * @m: recombination matrix
- *
- * This operation recombines an image's bands. Each pixel in @in is treated as 
- * an n-element vector, where n is the number of bands in @in, and multipled by
- * the n x m matrix @recomb to produce the m-band image @out.
- *
- * @out is always float, unless @in is double, in which case @out is double
- * too. No complex images allowed.
- *
- * It's useful for various sorts of colour space conversions.
- */
-
 typedef struct _VipsRecomb {
 	VipsOperation parent_instance;
 
@@ -239,6 +223,25 @@ vips_recomb_init( VipsRecomb *recomb )
 {
 }
 
+/** 
+ * vips_recomb:
+ * @in: input image
+ * @out: output image
+ * @m: recombination matrix
+ *
+ * This operation recombines an image's bands. Each pixel in @in is treated as 
+ * an n-element vector, where n is the number of bands in @in, and multipled by
+ * the n x m matrix @m to produce the m-band image @out.
+ *
+ * @out is always float, unless @in is double, in which case @out is double
+ * too. No complex images allowed.
+ *
+ * It's useful for various sorts of colour space conversions.
+ *
+ * See also: vips_bandmean().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 {

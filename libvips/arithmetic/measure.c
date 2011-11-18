@@ -67,26 +67,6 @@
 
 #include "statistic.h"
 
-/**
- * VipsMeasure:
- * @im: image to measure
- * @out: array of measurements
- * @left: area of image containing chart
- * @top: area of image containing chart
- * @width: area of image containing chart
- * @height: area of image containing chart
- * @h: patches across chart
- * @v: patches down chart
- *
- * Analyse a grid of colour patches, producing an array of patch averages.
- * The mask has a row for each measured patch and a column for each image
- * band. The operations issues a warning if any patch has a deviation more 
- * than 20% of
- * the mean. Only the central 50% of each patch is averaged. 
- *
- * See also: #VipsAvg, #VipsDeviate.
- */
-
 typedef struct _VipsStats {
 	VipsOperation parent_instance;
 
@@ -273,6 +253,32 @@ vips_measure_init( VipsMeasure *measure )
 {
 }
 
+/**
+ * vips_measure:
+ * @im: image to measure
+ * @out: array of measurements
+ * @h: patches across chart
+ * @v: patches down chart
+ * @left: area of image containing chart
+ * @top: area of image containing chart
+ * @width: area of image containing chart
+ * @height: area of image containing chart
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Analyse a grid of colour patches, producing an array of patch averages.
+ * The mask has a row for each measured patch and a column for each image
+ * band. The operations issues a warning if any patch has a deviation more 
+ * than 20% of
+ * the mean. Only the central 50% of each patch is averaged. 
+ *
+ * If the chart does not fill the whole image, use the optional @left, @top, 
+ * @width, @height arguments to indicate the
+ * position of the chart.
+ *
+ * See also: vips_avg(), vips_deviate().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 {

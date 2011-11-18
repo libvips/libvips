@@ -66,23 +66,6 @@
 
 #include "statistic.h"
 
-/**
- * VipsMin:
- * @in: input #VipsImage
- * @out: output pixel minimum
- *
- * This operation finds the minimum value in an image. 
- *
- * If the image contains several minimum values, only the first one found is
- * returned.
- *
- * It operates on all 
- * bands of the input image: use im_stats() if you need to find an 
- * minimum for each band. For complex images, return the minimum modulus.
- *
- * See also: #VipsAvg, im_stats(), im_bandmean(), im_deviate(), im_rank()
- */
-
 typedef struct _VipsMin {
 	VipsStatistic parent_instance;
 
@@ -338,6 +321,29 @@ vips_min_init( VipsMin *min )
 {
 }
 
+/**
+ * vips_min:
+ * @in: input #VipsImage
+ * @out: output pixel maximum
+ * @x: horizontal position of minimum
+ * @y: vertical position of minimum
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation finds the minimum value in an image. 
+ *
+ * If the image contains several minimum values, only the first one found is
+ * returned.
+ *
+ * It operates on all 
+ * bands of the input image: use vips_stats() if you need to find an 
+ * minimum for each band. 
+ *
+ * For complex images, this operation finds the minimum modulus.
+ *
+ * See also: vips_max(), vips_stats().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_min( VipsImage *in, double *out, ... )
 {
