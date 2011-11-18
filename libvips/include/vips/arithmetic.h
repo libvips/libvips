@@ -81,14 +81,14 @@ typedef enum {
 
 /** 
  * VipsOperationRound:
- * @VIPS_OPERATION_ROUND_NEAREST: round to nearest
+ * @VIPS_OPERATION_ROUND_RINT: round to nearest
  * @VIPS_OPERATION_ROUND_FLOOR: largest integral value not greater than
  * @VIPS_OPERATION_ROUND_CEIL: the smallest integral value not less than
  *
  * See also: vips_round().
  */
 typedef enum {
-	VIPS_OPERATION_ROUND_NEAREST,
+	VIPS_OPERATION_ROUND_RINT,
 	VIPS_OPERATION_ROUND_CEIL,
 	VIPS_OPERATION_ROUND_FLOOR,
 	VIPS_OPERATION_ROUND_LAST
@@ -161,6 +161,12 @@ int vips_sign( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
 	__attribute__((sentinel));
+int vips_floor( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_ceil( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_rint( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_math( VipsImage *in, VipsImage **out, 
 	VipsOperationMath math, ... )
@@ -189,11 +195,47 @@ int vips_log10( VipsImage *in, VipsImage **out, ... )
 int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationRelational relational, ... )
 	__attribute__((sentinel));
+int vips_equal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_notequal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_less( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_lesseq( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_more( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_moreeq( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_relational_const( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double *c, int n, ... )
 	__attribute__((sentinel));
+int vips_equal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_notequal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_less_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_lesseq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_more_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_moreeq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
 int vips_relational_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double c, ... )
+	__attribute__((sentinel));
+int vips_equal_const1( VipsImage *in, VipsImage **out, double c, ... )
+	__attribute__((sentinel));
+int vips_notequal_const1( VipsImage *in, VipsImage **out, double c, ... )
+	__attribute__((sentinel));
+int vips_less_const1( VipsImage *in, VipsImage **out, double c, ... )
+	__attribute__((sentinel));
+int vips_lesseq_const1( VipsImage *in, VipsImage **out, double c, ... )
+	__attribute__((sentinel));
+int vips_more_const1( VipsImage *in, VipsImage **out, double c, ... )
+	__attribute__((sentinel));
+int vips_moreeq_const1( VipsImage *in, VipsImage **out, double c, ... )
 	__attribute__((sentinel));
 
 int vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out, 

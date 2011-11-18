@@ -155,8 +155,30 @@ int vips_extract_band( VipsImage *input, VipsImage **output, int band, ... )
 	__attribute__((sentinel));
 int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 	__attribute__((sentinel));
+
 int vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
 	__attribute__((sentinel));
+int vips_uchar( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_char( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_ushort( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_short( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_uint( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_int( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_float( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_double( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_complex( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_dpcomplex( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )

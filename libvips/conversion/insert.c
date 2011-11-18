@@ -75,41 +75,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsInsert:
- * @main: big image
- * @sub: small image
- * @out: output image
- * @x: left position of @sub
- * @y: top position of @sub
- * @expand: expand output to hold whole of both images
- * @background: colour for new pixels
- *
- * Insert one image into another. @sub is inserted into image @main at
- * position @x, @y relative to the top LH corner of @main. 
- *
- * Normally @out shows the whole of @main. If @expand is #TRUE then @out is
- * made large enough to hold all of @main and @sub. 
- * Any areas of @out not coming from
- * either @main or @sub are set to @background (default 0).
- *
- * If @sub overlaps @main,
- * @sub will appear on top of @main. 
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * See also: #VipsJoin.
- *
- * Returns: 0 on success, -1 on error
- */
-
 typedef struct _VipsInsert {
 	VipsConversion parent_instance;
 
@@ -436,6 +401,41 @@ vips_insert_init( VipsInsert *insert )
 	((double *) (insert->background->data))[0] = 0.0;
 }
 
+/**
+ * vips_insert:
+ * @main: big image
+ * @sub: small image
+ * @out: output image
+ * @x: left position of @sub
+ * @y: top position of @sub
+ * @expand: expand output to hold whole of both images
+ * @background: colour for new pixels
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Insert one image into another. @sub is inserted into image @main at
+ * position @x, @y relative to the top LH corner of @main. 
+ *
+ * Normally @out shows the whole of @main. If @expand is #TRUE then @out is
+ * made large enough to hold all of @main and @sub. 
+ * Any areas of @out not coming from
+ * either @main or @sub are set to @background (default 0).
+ *
+ * If @sub overlaps @main,
+ * @sub will appear on top of @main. 
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: vips_join(), vips_embed(), vips_extract_area().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out, 
 	int x, int y, ... )

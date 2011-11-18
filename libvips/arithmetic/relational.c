@@ -71,34 +71,6 @@
 #include "binary.h"
 #include "unaryconst.h"
 
-/**
- * VipsRelational:
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: output #VipsImage
- * @relational: relational operation to perform
- *
- * Perform various relational operations on pairs of images. 
- *
- * The output type is always uchar, with 0 for FALSE and 255 for TRUE. 
- *
- * Less-than and greater-than for complex images compare the modulus. 
- *
- * If the images differ in size, the smaller image is enlarged to match the
- * larger by adding zero pixels along the bottom and right.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * See also: #VipsBoolean, #VipsRelationalConst.
- */
-
 typedef struct _VipsRelational {
 	VipsBinary parent_instance;
 
@@ -263,6 +235,44 @@ vips_relational_init( VipsRelational *relational )
 {
 }
 
+static int
+vips_relationalv( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationRelational relational, va_list ap )
+{
+	return(  vips_call_split( "relational", ap, left, right, out, 
+		relational ) );
+}
+
+/**
+ * vips_relational:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @relational: relational operation to perform
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform various relational operations on pairs of images. 
+ *
+ * The output type is always uchar, with 0 for FALSE and 255 for TRUE. 
+ *
+ * Less-than and greater-than for complex images compare the modulus. 
+ *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: vips_boolean(), vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationRelational relational, ... )
@@ -271,33 +281,167 @@ vips_relational( VipsImage *left, VipsImage *right, VipsImage **out,
 	int result;
 
 	va_start( ap, relational );
-	result = vips_call_split( "relational", ap, left, right, out, 
-		relational );
+	result = vips_relationalv( left, right, out, relational, ap );
 	va_end( ap );
 
 	return( result );
 }
 
 /**
- * VipsRelationalConst:
- * @in: input image
- * @out: output image
- * @a: array of constants 
- * @relational: relational operation to perform
+ * vips_equal:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
  *
- * Perform various relational operations on an image against a constant.
+ * Perform #VIPS_OPERATION_RELATIONAL_EQUAL on a pair of images. See
+ * vips_relational().
  *
- * The output type is always uchar, with 0 for FALSE and 255 for TRUE. 
- *
- * If the array of constants has just one element, that constant is used for 
- * all image bands. If the array has more than one element and they have 
- * the same number of elements as there are bands in the image, then 
- * one array element is used for each band. If the arrays have more than one
- * element and the image only has a single band, the result is a many-band
- * image where each band corresponds to one array element.
- *
- * See also: #VipsBoolean, #VipsRelational.
+ * Returns: 0 on success, -1 on error
  */
+int
+vips_equal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_relationalv( left, right, out, 
+		VIPS_OPERATION_RELATIONAL_EQUAL, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_notequal:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on a pair of images. See
+ * vips_relational().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_notequal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_relationalv( left, right, out, 
+		VIPS_OPERATION_RELATIONAL_NOTEQUAL, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_more:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_MORE on a pair of images. See
+ * vips_relational().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_more( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_relationalv( left, right, out, 
+		VIPS_OPERATION_RELATIONAL_MORE, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_moreeq:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_MOREEQ on a pair of images. See
+ * vips_relational().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_moreeq( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_relationalv( left, right, out, 
+		VIPS_OPERATION_RELATIONAL_MOREEQ, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_less:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_LESS on a pair of images. See
+ * vips_relational().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_less( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_relationalv( left, right, out, 
+		VIPS_OPERATION_RELATIONAL_LESS, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_lesseq:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_LESSEQ on a pair of images. See
+ * vips_relational().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_lesseq( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_relationalv( left, right, out, 
+		VIPS_OPERATION_RELATIONAL_LESSEQ, ap );
+	va_end( ap );
+
+	return( result );
+}
 
 typedef struct _VipsRelationalConst {
 	VipsUnaryConst parent_instance;
@@ -446,6 +590,31 @@ vips_relational_constv( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/**
+ * vips_relational_const:
+ * @in: input image
+ * @out: output image
+ * @relational: relational operation to perform
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform various relational operations on an image and an array of
+ * constants.
+ *
+ * The output type is always uchar, with 0 for FALSE and 255 for TRUE. 
+ *
+ * If the array of constants has just one element, that constant is used for 
+ * all image bands. If the array has more than one element and they have 
+ * the same number of elements as there are bands in the image, then 
+ * one array element is used for each band. If the arrays have more than one
+ * element and the image only has a single band, the result is a many-band
+ * image where each band corresponds to one array element.
+ *
+ * See also: vips_boolean(), vips_relational().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_relational_const( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double *c, int n, ... )
@@ -460,6 +629,183 @@ vips_relational_const( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/**
+ * vips_equal_const:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_EQUAL on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_equal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_EQUAL, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_notequal_const:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_notequal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_NOTEQUAL, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_less_const:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_LESS on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_less_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_LESS, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_lesseq_const:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_LESSEQ on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_lesseq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_LESSEQ, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_more_const:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_MORE on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_more_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_MORE, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_moreeq_const:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_MOREEQ on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_moreeq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_MOREEQ, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_relational_const1:
+ * @in: input image
+ * @out: output image
+ * @relational: relational operation to perform
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform various relational operations on an image and a constant. See
+ * vips_relational_const().
+ *
+ * See also: vips_boolean(), vips_relational().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_relational_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double c, ... )
@@ -473,3 +819,160 @@ vips_relational_const1( VipsImage *in, VipsImage **out,
 
 	return( result );
 }
+
+/**
+ * vips_equal_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_EQUAL on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_equal_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_EQUAL, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_notequal_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_notequal_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_NOTEQUAL, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_less_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_LESS on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_less_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_LESS, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_lesseq_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_LESSEQ on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_lesseq_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_LESSEQ, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_more_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_MORE on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_more_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_MORE, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_moreeq_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_RELATIONAL_MOREEQ on an image and a constant. See
+ * vips_relational_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_moreeq_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_relational_constv( in, out, 
+		VIPS_OPERATION_RELATIONAL_MOREEQ, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+

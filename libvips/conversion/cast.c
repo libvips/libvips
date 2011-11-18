@@ -93,18 +93,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsCast:
- * @in: input image
- * @out: output image
- * @format: format to convert to
- *
- * Convert @in to @format. You can convert between any pair of formats.
- * Floats are truncated (not rounded). Out of range values are clipped.
- *
- * See also: im_scale(), im_ri2c().
- */
-
 typedef struct _VipsCast {
 	VipsConversion parent_instance;
 
@@ -502,6 +490,28 @@ vips_cast_init( VipsCast *cast )
 {
 }
 
+static int
+vips_castv( VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap )
+{
+	return( vips_call_split( "cast", ap, in, out, format ) );
+}
+
+/**
+ * vips_cast:
+ * @in: input image
+ * @out: output image
+ * @format: format to convert to
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to @format. You can convert between any pair of formats.
+ * Floats are truncated (not rounded). Out of range values are clipped.
+ *
+ * Casting from complex to real returns the real part. 
+ *
+ * See also: im_scale(), im_ri2c().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
 {
@@ -509,8 +519,239 @@ vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
 	int result;
 
 	va_start( ap, format );
-	result = vips_call_split( "cast", ap, in, out, format );
+	result = vips_castv( in, out, format, ap );
 	va_end( ap );
 
 	return( result );
 }
+
+/**
+ * vips_uchar:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_UCHAR. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_uchar( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_UCHAR, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_char:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_CHAR. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_char( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_CHAR, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_ushort:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_USHORT. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_ushort( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_USHORT, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_short:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_SHORT. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_short( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_SHORT, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_uint:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_UINT. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_uint( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_UINT, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_int:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_INT. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_int( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_INT, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_float:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_FLOAT. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_float( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_FLOAT, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_double:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_DOUBLE. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_double( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_DOUBLE, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_complex:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_COMPLEX. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_complex( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_COMPLEX, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_dpcomplex:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Convert @in to #VIPS_FORMAT_DPCOMPLEX. See vips_cast(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_dpcomplex( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_castv( in, out, VIPS_FORMAT_DPCOMPLEX, ap );
+	va_end( ap );
+
+	return( result );
+}
+

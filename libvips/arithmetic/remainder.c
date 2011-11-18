@@ -64,33 +64,6 @@
 #include "binary.h"
 #include "unaryconst.h"
 
-/**
- * VipsRemainder:
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: output #VipsImage
- *
- * This operation calculates @left % @right (remainder after integer division) 
- * and writes the result to @out. The images may have any 
- * non-complex format. For float formats, #VipsRemainder calculates @in1 -
- * @in2 * floor (@in1 / @in2).
- *
- * If the images differ in size, the smaller image is enlarged to match the
- * larger by adding zero pixels along the bottom and right.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>), and that format is the
- * result type.
- *
- * See also: #VipsRemainderConst, #VipsDivide.
- */
-
 typedef VipsBinary VipsRemainder;
 typedef VipsBinaryClass VipsRemainderClass;
 
@@ -215,6 +188,35 @@ vips_remainder_init( VipsRemainder *remainder )
 {
 }
 
+/**
+ * vips_remainder:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation calculates @left % @right (remainder after integer division) 
+ * and writes the result to @out. The images may have any 
+ * non-complex format. For float formats, vips_remainder() calculates @in1 -
+ * @in2 * floor (@in1 / @in2).
+ *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>), and that format is the
+ * result type.
+ *
+ * See also: vips_remainder_const(), vips_divide(), vips_round().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_remainder( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 {
@@ -227,28 +229,6 @@ vips_remainder( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 
 	return( result );
 }
-
-/**
- * VipsRemainderConst:
- * @in: input image
- * @out: output image
- * @a: array of constants 
- *
- * This operation calculates @in % @c (remainder after division by constant) 
- * and writes the result to @out. 
- * The image may have any 
- * non-complex format. For float formats, im_remainder() calculates @in -
- * @c * floor (@in / @c).
- *
- * If the array of constants has just one element, that constant is used for 
- * all image bands. If the array has more than one element and they have 
- * the same number of elements as there are bands in the image, then 
- * one array element is used for each band. If the arrays have more than one
- * element and the image only has a single band, the result is a many-band
- * image where each band corresponds to one array element.
- *
- * See also: #VipsRemainder, #VipsDivide.
- */
 
 typedef VipsUnaryConst VipsRemainderConst;
 typedef VipsUnaryConstClass VipsRemainderConstClass;
@@ -379,6 +359,32 @@ vips_remainder_constv( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/**
+ * vips_remainder_const:
+ * @in: input image
+ * @out: output image
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation calculates @in % @c (remainder after division by an 
+ * array of constants) 
+ * and writes the result to @out. 
+ * The image may have any 
+ * non-complex format. For float formats, vips_remainder_const() calculates 
+ * @in - @c * floor (@in / @c).
+ *
+ * If the array of constants has just one element, that constant is used for 
+ * all image bands. If the array has more than one element and they have 
+ * the same number of elements as there are bands in the image, then 
+ * one array element is used for each band. If the arrays have more than one
+ * element and the image only has a single band, the result is a many-band
+ * image where each band corresponds to one array element.
+ *
+ * See also: vips_remainder(), vips_divide(), vips_round().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_remainder_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 {
@@ -392,6 +398,31 @@ vips_remainder_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 	return( result );
 }
 
+/**
+ * vips_remainder_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation calculates @in % @c (remainder after division by a 
+ * constant) 
+ * and writes the result to @out. 
+ * The image may have any 
+ * non-complex format. For float formats, vips_remainder_const() calculates 
+ * @in - @c * floor (@in / @c).
+ *
+ * If the array of constants has just one element, that constant is used for 
+ * all image bands. If the array has more than one element and they have 
+ * the same number of elements as there are bands in the image, then 
+ * one array element is used for each band. If the arrays have more than one
+ * element and the image only has a single band, the result is a many-band
+ * image where each band corresponds to one array element.
+ *
+ * See also: vips_remainder(), vips_divide(), vips_round().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_remainder_const1( VipsImage *in, VipsImage **out, double c, ... )
 {

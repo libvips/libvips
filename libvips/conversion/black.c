@@ -62,18 +62,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsBlack:
- * @out: output image
- * @width: output width
- * @height: output height
- * @bands: output bands
- *
- * Make a black unsigned char image of a specified size.
- *
- * See also: im_make_xy(), im_text(), im_gaussnoise().
- */
-
 typedef struct _VipsBlack {
 	VipsConversion parent_instance;
 
@@ -167,6 +155,20 @@ vips_black_init( VipsBlack *black )
 	black->bands = 1;
 }
 
+/**
+ * vips_black:
+ * @out: output image
+ * @width: output width
+ * @height: output height
+ * @bands: output bands
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Make a black unsigned char image of a specified size.
+ *
+ * See also: im_make_xy(), im_text(), im_gaussnoise().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_black( VipsImage **out, int width, int height, ... )
 {

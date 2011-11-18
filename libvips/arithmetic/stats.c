@@ -73,25 +73,6 @@
 
 #include "statistic.h"
 
-/**
- * VipsStats:
- * @in: image to scan
- * @out: image of statistics
- *
- * Find many image statistics in a single pass through the data. @out is a
- * one-band #VIPS_FORMAT_DOUBLE image of at least 10 columns by n + 1 
- * (where n is number of bands in image @in) 
- * rows. Columns are statistics, and are, in order: minimum, maximum, sum, 
- * sum of squares, mean, standard deviation, x coordinate of minimum, y
- * coordinate of minimum, x coordinate of maximum, y coordinate of maximum. 
- * Later versions of VipsStats may add more columns.
- *
- * Row 0 has statistics for all 
- * bands together, row 1 has stats for band 1, and so on.
- *
- * See also: #VipsAvg, #VipsMin, and friends.
- */
-
 typedef struct _VipsStats {
 	VipsStatistic parent_instance;
 
@@ -386,6 +367,27 @@ vips_stats_init( VipsStats *stats )
 {
 }
 
+/**
+ * vips_stats:
+ * @in: image to scan
+ * @out: image of statistics
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Find many image statistics in a single pass through the data. @out is a
+ * one-band #VIPS_FORMAT_DOUBLE image of at least 10 columns by n + 1 
+ * (where n is number of bands in image @in) 
+ * rows. Columns are statistics, and are, in order: minimum, maximum, sum, 
+ * sum of squares, mean, standard deviation, x coordinate of minimum, y
+ * coordinate of minimum, x coordinate of maximum, y coordinate of maximum. 
+ * Later versions of vips_stats() may add more columns.
+ *
+ * Row 0 has statistics for all 
+ * bands together, row 1 has stats for band 1, and so on.
+ *
+ * See also: vips_avg(), vips_min().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_stats( VipsImage *in, VipsImage **out, ... )
 {

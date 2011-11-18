@@ -279,6 +279,7 @@ vips_join_init( VipsJoin *join )
  * @shim: space between images, in pixels
  * @background: background ink colour
  * @align: low, centre or high alignment
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Join @in1 and @in2 together, left-right or up-down depending on the value 
  * of @direction.

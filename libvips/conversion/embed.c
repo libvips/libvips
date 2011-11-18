@@ -71,25 +71,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsEmbed:
- * @in: input image
- * @out: output image
- * @extend: how to generate the edge pixels
- * @width: @out should be this many pixels across
- * @height: @out should be this many pixels down
- * @x: place @in at this x position in @out
- * @y: place @in at this y position in @out
- *
- * The opposite of #VipsExtractArea: embed @in within an image of size @width 
- * by @height at position @x, @y.  @extend
- * controls what appears in the new pels, see #VipsExtend. 
- *
- * See also: #VipsExtractArea, #VipsInsert.
- * 
- * Returns: 0 on success, -1 on error.
- */
-
 typedef struct _VipsEmbed {
 	VipsConversion parent_instance;
 
@@ -583,6 +564,25 @@ vips_embed_init( VipsEmbed *embed )
 	 */
 }
 
+/**
+ * vips_embed:
+ * @in: input image
+ * @out: output image
+ * @width: @out should be this many pixels across
+ * @height: @out should be this many pixels down
+ * @x: place @in at this x position in @out
+ * @y: place @in at this y position in @out
+ * @extend: how to generate the edge pixels
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * The opposite of vips_extract_area(): embed @in within an image of size 
+ * @width by @height at position @x, @y.  @extend
+ * controls what appears in the new pels, see #VipsExtend. 
+ *
+ * See also: vips_extract_area(), vips_insert().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
 int
 vips_embed( VipsImage *in, VipsImage **out, 
 	int x, int y, int width, int height, ... )
@@ -591,8 +591,7 @@ vips_embed( VipsImage *in, VipsImage **out,
 	int result;
 
 	va_start( ap, height );
-	result = vips_call_split( "embed", ap, 
-		in, out, x, y, width, height );
+	result = vips_call_split( "embed", ap, in, out, x, y, width, height );
 	va_end( ap );
 
 	return( result );

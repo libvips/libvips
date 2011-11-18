@@ -92,22 +92,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsCopy:
- * @in: input image
- * @out: output image
- *
- * Copy an image, optionally modifying the header. VIPS copies images by 
- * copying pointers, so this operation is fast, even for very large images.
- *
- * You can optionally set any or all header fields during the copy. Some
- * header fields, such as "xres", the horizontal resolution, are safe to
- * change in any way, others, such as "width" will cause immediate crashes if
- * they are not set carefully. 
- *
- * Returns: 0 on success, -1 on error.
- */
-
 typedef struct _VipsCopy {
 	VipsConversion parent_instance;
 
@@ -426,6 +410,36 @@ vips_copy_init( VipsCopy *copy )
 	 */
 }
 
+/**
+ * vips_copy:
+ * @in: input image
+ * @out: output image
+ * @width: set image width
+ * @height: set image height
+ * @bands: set image bands
+ * @format: set image format
+ * @coding: set image coding
+ * @interpretation: set image interpretation
+ * @xres: set image xres
+ * @yres: set image yres
+ * @xoffset: set image xoffset
+ * @yoffset: set image yoffset
+ * @swap: swap byte order
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Copy an image, optionally modifying the header. VIPS copies images by 
+ * copying pointers, so this operation is instant, even for very large images.
+ *
+ * You can optionally set any or all header fields during the copy. Some
+ * header fields, such as "xres", the horizontal resolution, are safe to
+ * change in any way, others, such as "width" will cause immediate crashes if
+ * they are not set carefully. 
+ *
+ * Setting @swap to %TRUE will make vips_copy() swap the byte ordering of
+ * pixels according to the image's format. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int
 vips_copy( VipsImage *in, VipsImage **out, ... )
 {

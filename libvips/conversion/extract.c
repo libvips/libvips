@@ -84,21 +84,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsExtractArea:
- * @in: input image
- * @out: output image
- * @left: left edge of area to extract
- * @top: top edge of area to extract
- * @width: width of area to extract
- * @height: height of area to extract
- *
- * Extract an area from an image.
- * Extracting outside @in will trigger an error.
- *
- * See also: VipsExtractBand().
- */
-
 typedef struct _VipsExtractArea {
 	VipsConversion parent_instance;
 
@@ -245,6 +230,22 @@ vips_extract_area_init( VipsExtractArea *extract )
 {
 }
 
+/**
+ * vips_extract_area:
+ * @in: input image
+ * @out: output image
+ * @left: left edge of area to extract
+ * @top: top edge of area to extract
+ * @width: width of area to extract
+ * @height: height of area to extract
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Extract an area from an image. The area must fit within @in.
+ *
+ * See also: vips_extract_bands().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
 int
 vips_extract_area( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
@@ -259,18 +260,6 @@ vips_extract_area( VipsImage *in, VipsImage **out,
 
 	return( result );
 }
-
-/**
- * VipsExtractBand:
- * @in: input image
- * @out: output image
- * @band: band to extract
- * @n: number of bands to extract
- *
- * Extract a band or bands from an image. Extracting out of range is an error.
- *
- * See also: VipsExtractArea().
- */
 
 typedef struct _VipsExtractBand {
 	VipsConversion parent_instance;
@@ -399,6 +388,20 @@ vips_extract_band_init( VipsExtractBand *extract )
 	extract->n = 1;
 }
 
+/**
+ * vips_extract_band:
+ * @in: input image
+ * @out: output image
+ * @band: band to extract
+ * @n: number of bands to extract
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Extract a band or bands from an image. Extracting out of range is an error.
+ *
+ * See also: vips_extract_area().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
 int
 vips_extract_band( VipsImage *in, VipsImage **out, int band, ... )
 {

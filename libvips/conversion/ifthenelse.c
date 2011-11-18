@@ -69,35 +69,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsIfthenelse:
- * @cond: condition #VipsImage
- * @in1: then #VipsImage
- * @in2: else #VipsImage
- * @out: output #VipsImage
- *
- * This operation scans the condition image @cond 
- * and uses it to select pixels from either the then image @in1 or the else
- * image @in2. Non-zero means @in1, 0 means @in2.
- *
- * Any image can have either 1 band or n bands, where n is the same for all
- * the non-1-band images. Single band images are then effectively copied to 
- * make n-band images.
- *
- * Images @in1 and @in2 are cast up to the smallest common format. @cond is
- * cast to uchar.
- *
- * If the images differ in size, the smaller images are enlarged to match the
- * largest by adding zero pixels along the bottom and right.
- *
- * If @blend is %TRUE, then values in @out are smoothly blended between @in1
- * and @in2 using the formula:
- *
- *   @out = (@cond / 255) * @in1 + (1 - @cond / 255) * @in2
- *
- * See also: #VipsEqual.
- */
-
 typedef struct _VipsIfthenelse {
 	VipsConversion parent_instance;
 
@@ -453,6 +424,37 @@ vips_ifthenelse_init( VipsIfthenelse *ifthenelse )
 {
 }
 
+/**
+ * vips_ifthenelse:
+ * @cond: condition #VipsImage
+ * @in1: then #VipsImage
+ * @in2: else #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation scans the condition image @cond 
+ * and uses it to select pixels from either the then image @in1 or the else
+ * image @in2. Non-zero means @in1, 0 means @in2.
+ *
+ * Any image can have either 1 band or n bands, where n is the same for all
+ * the non-1-band images. Single band images are then effectively copied to 
+ * make n-band images.
+ *
+ * Images @in1 and @in2 are cast up to the smallest common format. @cond is
+ * cast to uchar.
+ *
+ * If the images differ in size, the smaller images are enlarged to match the
+ * largest by adding zero pixels along the bottom and right.
+ *
+ * If @blend is %TRUE, then values in @out are smoothly blended between @in1
+ * and @in2 using the formula:
+ *
+ *   @out = (@cond / 255) * @in1 + (1 - @cond / 255) * @in2
+ *
+ * See also: vips_equal().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
 	VipsImage **out, ... )

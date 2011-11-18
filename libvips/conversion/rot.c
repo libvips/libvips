@@ -73,19 +73,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsRot:
- * @in: input image
- * @out: output image
- * @direction: rot horizontally or vertically
- *
- * Rots an image left-right or up-down.
- *
- * See also: #VipsFlip.
- *
- * Returns: 0 on success, -1 on error
- */
-
 typedef struct _VipsRot {
 	VipsConversion parent_instance;
 
@@ -384,6 +371,19 @@ vips_rot_init( VipsRot *rot )
 {
 }
 
+/**
+ * vips_rot:
+ * @in: input image
+ * @out: output image
+ * @angle: rotation angle
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Rotate @in by a multiple of 90 degrees.
+ *
+ * See also: vips_flip().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 {

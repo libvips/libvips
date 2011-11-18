@@ -64,19 +64,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsFlip:
- * @in: input image
- * @out: output image
- * @direction: flip horizontally or vertically
- *
- * Flips an image left-right or up-down.
- *
- * See also: #VipsRot.
- *
- * Returns: 0 on success, -1 on error
- */
-
 typedef struct _VipsFlip {
 	VipsConversion parent_instance;
 
@@ -269,6 +256,19 @@ vips_flip_init( VipsFlip *flip )
 {
 }
 
+/**
+ * vips_flip:
+ * @in: input image
+ * @out: output image
+ * @direction: flip horizontally or vertically
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Flips an image left-right or up-down.
+ *
+ * See also: vips_rot().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
 {

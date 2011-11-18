@@ -54,20 +54,6 @@
 
 #include "unary.h"
 
-/**
- * VipsRound:
- * @in: input #VipsImage
- * @out: output #VipsImage
- * @round: #VipsOperationRound rounding operation to perform
- *
- * Round to an integral value.
- *
- * Copy for integer types, round float and 
- * complex types. Output type == input type.
- *
- * See also: #VipsCast.
- */
-
 typedef struct _VipsRound {
 	VipsUnary parent_instance;
 
@@ -141,9 +127,9 @@ vips_round_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
 	int x;
 
 	switch( round->round ) {
-	case VIPS_OPERATION_ROUND_NEAREST:	SWITCH( VIPS_RINT ); break;
-	case VIPS_OPERATION_ROUND_CEIL: 	SWITCH( ceil ); break;
-	case VIPS_OPERATION_ROUND_FLOOR: 	SWITCH( floor ); break;
+	case VIPS_OPERATION_ROUND_RINT:		SWITCH( VIPS_RINT ); break;
+	case VIPS_OPERATION_ROUND_CEIL:		SWITCH( ceil ); break;
+	case VIPS_OPERATION_ROUND_FLOOR:	SWITCH( floor ); break;
 
 	default: 
 		g_assert( 0 ); 
@@ -191,7 +177,7 @@ vips_round_class_init( VipsRoundClass *class )
 		_( "rounding operation to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRound, round ),
-		VIPS_TYPE_OPERATION_ROUND, VIPS_OPERATION_ROUND_NEAREST ); 
+		VIPS_TYPE_OPERATION_ROUND, VIPS_OPERATION_ROUND_RINT ); 
 }
 
 static void
@@ -199,6 +185,32 @@ vips_round_init( VipsRound *round )
 {
 }
 
+static int
+vips_roundv( VipsImage *in, VipsImage **out, 
+	VipsOperationRound round, va_list ap )
+{
+	return( vips_call_split( "round", ap, in, out, round ) );
+}
+
+/**
+ * vips_round:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @round: #VipsOperationRound rounding operation to perform
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Round to an integral value.
+ *
+ * Copy for integer types, round float and 
+ * complex types. 
+ *
+ * The format of @out is always the same as @in, so you may wish to cast to an
+ * integer format afterwards.
+ *
+ * See also: vips_cast()
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
 {
@@ -206,7 +218,79 @@ vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
 	int result;
 
 	va_start( ap, round );
-	result = vips_call_split( "round", ap, in, out, round );
+	result = vips_roundv( in, out, round, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_floor:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Round to an integral value with #VIPS_OPERATION_ROUND_FLOOR. See 
+ * vips_round(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_floor( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_roundv( in, out, VIPS_OPERATION_ROUND_FLOOR, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_ceil:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Round to an integral value with #VIPS_OPERATION_ROUND_CEIL. See 
+ * vips_round(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_ceil( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_roundv( in, out, VIPS_OPERATION_ROUND_CEIL, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_rint:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Round to an integral value with #VIPS_OPERATION_ROUND_RINT. See 
+ * vips_round(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_rint( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_roundv( in, out, VIPS_OPERATION_ROUND_RINT, ap );
 	va_end( ap );
 
 	return( result );

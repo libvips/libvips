@@ -135,7 +135,7 @@ vips_operation_round_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_OPERATION_ROUND_NEAREST, "VIPS_OPERATION_ROUND_NEAREST", "nearest"},
+			{VIPS_OPERATION_ROUND_RINT, "VIPS_OPERATION_ROUND_RINT", "rint"},
 			{VIPS_OPERATION_ROUND_CEIL, "VIPS_OPERATION_ROUND_CEIL", "ceil"},
 			{VIPS_OPERATION_ROUND_FLOOR, "VIPS_OPERATION_ROUND_FLOOR", "floor"},
 			{VIPS_OPERATION_ROUND_LAST, "VIPS_OPERATION_ROUND_LAST", "last"},

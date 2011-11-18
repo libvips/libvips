@@ -72,27 +72,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsBandjoin:
- * @in: vector of input images
- * @out: output image
- *
- * Join a set of images together, bandwise. 
- * If the images
- * have n and m bands, then the output image will have n + m
- * bands, with the first n coming from the first image and the last m
- * from the second. 
- *
- * If the images differ in size, the smaller images are enlarged to match the
- * larger by adding zero pixels along the bottom and right.
- *
- * The input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * See also: #VipsInsert.
- */
-
 typedef struct _VipsBandjoin {
 	VipsConversion parent_instance;
 
@@ -244,10 +223,9 @@ vips_bandjoin_init( VipsBandjoin *bandjoin )
 	 */
 }
 
-int
-vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
+static int
+vips_bandjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
 {
-	va_list ap;
 	VipsArea *area;
 	VipsImage **array; 
 	int i;
@@ -260,35 +238,75 @@ vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 		g_object_ref( array[i] );
 	}
 
-	va_start( ap, n );
 	result = vips_call_split( "bandjoin", ap, area, out );
-	va_end( ap );
 
 	vips_area_unref( area );
 
 	return( result );
 }
 
+/**
+ * vips_bandjoin:
+ * @in: array of input images
+ * @out: output image
+ * @n: number of input images
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Join a set of images together, bandwise. 
+ *
+ * If the images
+ * have n and m bands, then the output image will have n + m
+ * bands, with the first n coming from the first image and the last m
+ * from the second. 
+ *
+ * If the images differ in size, the smaller images are enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
+ * The input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: vips_insert().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_bandjoinv( in, out, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_bandjoin2:
+ * @in1: first input image
+ * @in2: second input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Join a pair of images together, bandwise. See vips_bandjoin().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 {
 	va_list ap;
-	VipsArea *area;
-	VipsImage **array; 
 	int result;
+	VipsImage *in[2];
 
-	area = vips_area_new_array_object( 2 );
-	array = (VipsImage **) area->data;
-	array[0] = in1;
-	array[1] = in2;
-	g_object_ref( array[0] );
-	g_object_ref( array[1] );
+	in[0] = in1;
+	in[1] = in2;
 
 	va_start( ap, out );
-	result = vips_call_split( "bandjoin", ap, area, out );
+	result = vips_bandjoinv( in, out, 2, ap );
 	va_end( ap );
-
-	vips_area_unref( area );
 
 	return( result );
 }

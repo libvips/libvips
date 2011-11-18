@@ -1666,7 +1666,7 @@ vips__round( VipsImage *in, VipsImage *out, VipsOperationRound round )
 int 
 im_rint( IMAGE *in, IMAGE *out )
 {
-	return( vips__round( in, out, VIPS_OPERATION_ROUND_NEAREST ) );
+	return( vips__round( in, out, VIPS_OPERATION_ROUND_RINT ) );
 }
 
 int 

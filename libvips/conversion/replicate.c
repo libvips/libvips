@@ -55,18 +55,6 @@
 
 #include "conversion.h"
 
-/**
- * VipsReplicate:
- * @in: input image
- * @out: output image
- * @across: repeat input this many times across
- * @down: repeat input this many times down
- *
- * Repeats an image many times.
- *
- * See also: #VipsExtract.
- */
-
 typedef struct _VipsReplicate {
 	VipsConversion parent_instance;
 
@@ -232,6 +220,20 @@ vips_replicate_init( VipsReplicate *replicate )
 {
 }
 
+/**
+ * vips_replicate:
+ * @in: input image
+ * @out: output image
+ * @across: repeat input this many times across
+ * @down: repeat input this many times down
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Repeats an image many times.
+ *
+ * See also: vips_extract().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 {
