@@ -68,37 +68,6 @@
 #include "binary.h"
 #include "unaryconst.h"
 
-/**
- * VipsMath2:
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: output #VipsImage
- * @math2: math operation to perform
- *
- * This operation calculates a 2-ary maths operation on a pair of images
- * and writes the result to @out. The images may have any 
- * non-complex format. @out is float except in the case that either of @left
- * or @right are double, in which case @out is also double.
- *
- * It detects division by zero, setting those pixels to zero in the output. 
- * Beware: it does this silently!
- *
- * If the images differ in size, the smaller image is enlarged to match the
- * larger by adding zero pixels along the bottom and right.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>), and that format is the
- * result type.
- *
- * See also: #VipsMath2Const.
- */
-
 typedef struct _VipsMath2 {
 	VipsBinary parent_instance;
 
@@ -244,6 +213,46 @@ vips_math2_init( VipsMath2 *math2 )
 {
 }
 
+static int
+vips_math2v( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationMath2 math2, va_list ap )
+{
+	return( vips_call_split( "math2", ap, left, right, out, math2 ) );
+}
+
+/**
+ * vips_math2:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @math2: math operation to perform
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation calculates a 2-ary maths operation on a pair of images
+ * and writes the result to @out. The images may have any 
+ * non-complex format. @out is float except in the case that either of @left
+ * or @right are double, in which case @out is also double.
+ *
+ * It detects division by zero, setting those pixels to zero in the output. 
+ * Beware: it does this silently!
+ *
+ * If the images differ in size, the smaller image is enlarged to match the
+ * larger by adding zero pixels along the bottom and right.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>), and that format is the
+ * result type.
+ *
+ * See also: vips_math2_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_math2( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationMath2 math2, ... )
@@ -252,37 +261,61 @@ vips_math2( VipsImage *left, VipsImage *right, VipsImage **out,
 	int result;
 
 	va_start( ap, math2 );
-	result = vips_call_split( "math2", ap, left, right, out, math2 );
+	result = vips_math2v( left, right, out, math2, ap );
 	va_end( ap );
 
 	return( result );
 }
 
 /**
- * VipsMath2Const:
- * @in: input image
- * @out: output image
- * @c: array of constants 
- * @math2: math operation to perform
+ * vips_pow:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates various 2-ary maths operations on an image and 
- * an array of constants and writes the result to @out. 
- * The image may have any 
- * non-complex format. @out is float except in the case that @in
- * is double, in which case @out is also double.
+ * Perform #VIPS_OPERATION_MATH2_POW on a pair of images. See
+ * vips_math2().
  *
- * It detects division by zero, setting those pixels to zero in the output. 
- * Beware: it does this silently!
- *
- * If the array of constants has just one element, that constant is used for 
- * all image bands. If the array has more than one element and they have 
- * the same number of elements as there are bands in the image, then 
- * one array element is used for each band. If the arrays have more than one
- * element and the image only has a single band, the result is a many-band
- * image where each band corresponds to one array element.
- *
- * See also: #VipsMath, #VipsDivide.
+ * Returns: 0 on success, -1 on error
  */
+int
+vips_pow( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_math2v( left, right, out, VIPS_OPERATION_MATH2_POW, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_wop:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH2_WOP on a pair of images. See
+ * vips_math2().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_wop( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_math2v( left, right, out, VIPS_OPERATION_MATH2_WOP, ap );
+	va_end( ap );
+
+	return( result );
+}
 
 
 typedef struct _VipsMath2Const {
@@ -398,6 +431,35 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/**
+ * vips_math2_const:
+ * @in: input image
+ * @out: output image
+ * @math2: math operation to perform
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation calculates various 2-ary maths operations on an image and 
+ * an array of constants and writes the result to @out. 
+ * The image may have any 
+ * non-complex format. @out is float except in the case that @in
+ * is double, in which case @out is also double.
+ *
+ * It detects division by zero, setting those pixels to zero in the output. 
+ * Beware: it does this silently!
+ *
+ * If the array of constants has just one element, that constant is used for 
+ * all image bands. If the array has more than one element and they have 
+ * the same number of elements as there are bands in the image, then 
+ * one array element is used for each band. If the arrays have more than one
+ * element and the image only has a single band, the result is a many-band
+ * image where each band corresponds to one array element.
+ *
+ * See also: vips_math2(), vips_math().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_math2_const( VipsImage *in, VipsImage **out, 
 	VipsOperationMath2 math2, double *c, int n, ... )
@@ -412,6 +474,73 @@ vips_math2_const( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/**
+ * vips_pow_const:
+ * @in: left-hand input #VipsImage
+ * @out: output #VipsImage
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH2_POW on an image and a constant. See
+ * vips_math2_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_pow_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_math2_constv( in, out, 
+		VIPS_OPERATION_MATH2_POW, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_wop_const:
+ * @in: left-hand input #VipsImage
+ * @out: output #VipsImage
+ * @c: array of constants 
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH2_WOP on an image and a constant. See
+ * vips_math2_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_wop_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_math2_constv( in, out, 
+		VIPS_OPERATION_MATH2_WOP, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_math2_const1:
+ * @in: input image
+ * @out: output image
+ * @math2: math operation to perform
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * This operation calculates various 2-ary maths operations on an image and 
+ * a constant. See vips_math2_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_math2_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationMath2 math2, double c, ... )
@@ -421,6 +550,58 @@ vips_math2_const1( VipsImage *in, VipsImage **out,
 
 	va_start( ap, c );
 	result = vips_math2_constv( in, out, math2, &c, 1, ap ); 
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_pow_const1:
+ * @in: left-hand input #VipsImage
+ * @out: output #VipsImage
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH2_POW on an image and a constant. See
+ * vips_math2_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_pow_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_math2_constv( in, out, 
+		VIPS_OPERATION_MATH2_POW, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_wop_const1:
+ * @in: left-hand input #VipsImage
+ * @out: output #VipsImage
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH2_WOP on an image and a constant. See
+ * vips_math2_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_wop_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_math2_constv( in, out, 
+		VIPS_OPERATION_MATH2_WOP, &c, 1, ap );
 	va_end( ap );
 
 	return( result );

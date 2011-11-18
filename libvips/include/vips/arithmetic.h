@@ -68,8 +68,8 @@ typedef enum {
 
 /** 
  * VipsOperationMath2:
- * @VIPS_OPERATION_MATH_POW: pow( left, right )
- * @VIPS_OPERATION_MATH_WOP: pow( right, left ) 
+ * @VIPS_OPERATION_MATH2_POW: pow( left, right )
+ * @VIPS_OPERATION_MATH2_WOP: pow( right, left ) 
  *
  * See also: vips_math().
  */
@@ -215,11 +215,23 @@ int vips_rshift_const1( VipsImage *in, VipsImage **out, double c, ... )
 int vips_math2( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationMath2 math2, ... )
 	__attribute__((sentinel));
+int vips_pow( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_wop( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_math2_const( VipsImage *in, VipsImage **out, 
 	VipsOperationMath2 math2, double *c, int n, ... )
 	__attribute__((sentinel));
+int vips_pow_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_wop_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
 int vips_math2_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationMath2 math2, double c, ... )
+	__attribute__((sentinel));
+int vips_pow_const1( VipsImage *in, VipsImage **out, double c, ... )
+	__attribute__((sentinel));
+int vips_wop_const1( VipsImage *in, VipsImage **out, double c, ... )
 	__attribute__((sentinel));
 
 int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )

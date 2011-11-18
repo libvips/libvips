@@ -1,24 +1,6 @@
 - test docs
 
-  need a set of convenience funcs for C, eg. vips_sin(), vips_more_const() 
-  etc. ... could include vips_relational() etc. as well?
-
-  have them all in a separate convenience.h and convenience.c so we can easily
-  compile without them
-
-  rewrite im_bandmean() in terms of recomb()? just use [0.33, 0.33, 0.33]
-
-  	no, bandmean is OK, just move to conversion
-
-  move im_point_bilinear() to deprecated? or convenience?
-
-  can we document several classes in one gtk-doc page? doesn't look like it
-  argh
-
-  our choice is then just document the C API, which means making the C wrapper
-  mandatory, or to make a separate header for every operation
-
-  why doesn't vips_add() appear in the docs? curious
+  do math.c next
 
   try
 
