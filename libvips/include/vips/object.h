@@ -459,15 +459,16 @@ void vips_object_to_string( VipsObject *object, VipsBuf *buf );
 
 void *vips_object_map( VipsSListMap2Fn fn, void *a, void *b );
 
-typedef void *(*VipsTypeMap)( GType, void * );
-typedef void *(*VipsTypeMap2)( GType, void *, void * );
-typedef void *(*VipsClassMap)( VipsObjectClass *, void * );
-void *vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b );
-void *vips_type_map_all( GType base, VipsTypeMap fn, void *a );
-void *vips_class_map_all( GType base, VipsClassMap fn, void *a );
-int vips_class_depth( VipsObjectClass *klass );
-VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
+typedef void *(*VipsTypeMapFn)( GType, void * );
+typedef void *(*VipsTypeMap2Fn)( GType, void *, void * );
+typedef void *(*VipsClassMapFn)( VipsObjectClass *, void * );
+void *vips_type_map( GType base, VipsTypeMap2Fn fn, void *a, void *b );
+void *vips_type_map_all( GType base, VipsTypeMapFn fn, void *a );
+int vips_type_depth( GType type );
 GType vips_type_find( const char *basename, const char *nickname );
+
+void *vips_class_map_all( GType base, VipsClassMapFn fn, void *a );
+VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
 
 VipsObject **vips_object_local_array( VipsObject *parent, int n );
 

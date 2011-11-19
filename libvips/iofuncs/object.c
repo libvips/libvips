@@ -1658,7 +1658,7 @@ vips_object_map( VipsSListMap2Fn fn, void *a, void *b )
 /* Map over all a type's children.
  */
 void *
-vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b )
+vips_type_map( GType base, VipsTypeMap2Fn fn, void *a, void *b )
 {
 	GType *child;
 	guint n_children;
@@ -1677,21 +1677,21 @@ vips_type_map( GType base, VipsTypeMap2 fn, void *a, void *b )
 /* Loop over all the subtypes of a base type.
  */
 void *
-vips_type_map_all( GType base, VipsTypeMap fn, void *a )
+vips_type_map_all( GType base, VipsTypeMapFn fn, void *a )
 {
 	void *result;
 
 	if( !(result = fn( base, a )) )
 		result = vips_type_map( base, 
-			(VipsTypeMap2) vips_type_map_all, fn, a );
+			(VipsTypeMap2Fn) vips_type_map_all, fn, a );
 
 	return( result );
 }
 
-/* Loop over all the subclasses of a base type.
+/* Loop over all the subclasses of a base type. Non-abtract classes only.
  */
 void *
-vips_class_map_all( GType type, VipsClassMap fn, void *a )
+vips_class_map_all( GType type, VipsClassMapFn fn, void *a )
 {
 	void *result;
 
@@ -1707,7 +1707,7 @@ vips_class_map_all( GType type, VipsClassMap fn, void *a )
 	}
 
 	if( (result = vips_type_map( type, 
-		(VipsTypeMap2) vips_class_map_all, fn, a )) )
+		(VipsTypeMap2Fn) vips_class_map_all, fn, a )) )
 		return( result );
 
 	return( NULL );
@@ -1716,12 +1716,10 @@ vips_class_map_all( GType type, VipsClassMap fn, void *a )
 /* How deeply nested is a class ... used to indent class lists.
  */
 int
-vips_class_depth( VipsObjectClass *class )
+vips_type_depth( GType type )
 {
 	int depth;
-	GType type;
 
-	type = G_TYPE_FROM_CLASS( class );
 	depth = 0;
 	while( type != VIPS_TYPE_OBJECT && (type = g_type_parent( type )) )
 		depth += 1;
@@ -1761,7 +1759,7 @@ vips_class_find( const char *basename, const char *nickname )
 	}
 
 	if( !(class = vips_class_map_all( base, 
-		(VipsClassMap) test_name, (void *) nickname )) ) {
+		(VipsClassMapFn) test_name, (void *) nickname )) ) {
 		vips_error( "VipsObject", 
 			_( "class \"%s\" not found" ), nickname ); 
 		return( NULL );

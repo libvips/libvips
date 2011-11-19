@@ -165,14 +165,15 @@ list_function( im_function *func )
 }
 
 static void *
-list_class( VipsObjectClass *class )
+list_class( GType type )
 {
-	int depth = vips_class_depth( class );
+	int depth = vips_type_depth( type );
 	int i;
 
 	for( i = 0; i < depth * 2; i++ )
 		printf( " " );
-	vips_object_print_class( class );
+	vips_object_print_class( 
+		VIPS_OBJECT_CLASS( g_type_class_ref( type ) ) );
 
 	return( NULL );
 }
@@ -183,8 +184,8 @@ print_list( int argc, char **argv )
 	if( !argv[0] || strcmp( argv[0], "packages" ) == 0 ) 
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
 	else if( strcmp( argv[0], "classes" ) == 0 ) 
-		vips_class_map_all( g_type_from_name( "VipsObject" ), 
-			(VipsClassMap) list_class, NULL );
+		vips_type_map_all( g_type_from_name( "VipsObject" ), 
+			(VipsTypeMapFn) list_class, NULL );
 	else {
 		if( map_name( argv[0], list_function ) )
 			error_exit( "unknown package \"%s\"", argv[0] ); 

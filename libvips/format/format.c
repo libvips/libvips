@@ -265,7 +265,7 @@ vips_format_map( VSListMap2Fn fn, void *a, void *b )
 
 	formats = NULL;
 	(void) vips_class_map_all( g_type_from_name( "VipsFormat" ), 
-		(VipsClassMap) format_add_class, (void *) &formats );
+		(VipsClassMapFn) format_add_class, (void *) &formats );
 
 	formats = g_slist_sort( formats, (GCompareFunc) format_compare );
 	result = im_slist_map2( formats, fn, a, b );
