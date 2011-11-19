@@ -132,6 +132,21 @@ typedef enum {
 	VIPS_OPERATION_BOOLEAN_LAST
 } VipsOperationBoolean;
 
+/** 
+ * VipsOperationComplex:
+ * @VIPS_OPERATION_COMPLEX_POLAR: convert to polar coordinates
+ * @VIPS_OPERATION_COMPLEX_RECT: convert to rectangular coordinates
+ * @VIPS_OPERATION_COMPLEX_CONJ: complex conjugate
+ *
+ * See also: vips_complex().
+ */
+typedef enum {
+	VIPS_OPERATION_COMPLEX_POLAR,
+	VIPS_OPERATION_COMPLEX_RECT,
+	VIPS_OPERATION_COMPLEX_CONJ,
+	VIPS_OPERATION_COMPLEX_LAST
+} VipsOperationComplex;
+
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
@@ -190,6 +205,16 @@ int vips_exp10( VipsImage *in, VipsImage **out, ... )
 int vips_log( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_log10( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
+int vips_complex( VipsImage *in, VipsImage **out, 
+	VipsOperationComplex cmplx, ... )
+	__attribute__((sentinel));
+int vips_polar( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_rect( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_conj( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 

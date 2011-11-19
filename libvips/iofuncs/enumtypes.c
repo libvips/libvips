@@ -190,6 +190,25 @@ vips_operation_boolean_get_type( void )
 
 	return( etype );
 }
+GType
+vips_operation_complex_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_COMPLEX_POLAR, "VIPS_OPERATION_COMPLEX_POLAR", "polar"},
+			{VIPS_OPERATION_COMPLEX_RECT, "VIPS_OPERATION_COMPLEX_RECT", "rect"},
+			{VIPS_OPERATION_COMPLEX_CONJ, "VIPS_OPERATION_COMPLEX_CONJ", "conj"},
+			{VIPS_OPERATION_COMPLEX_LAST, "VIPS_OPERATION_COMPLEX_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationComplex", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/util.h" */
 GType
 vips_token_get_type( void )

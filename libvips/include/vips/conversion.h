@@ -158,25 +158,25 @@ int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 
 int vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
 	__attribute__((sentinel));
-int vips_uchar( VipsImage *in, VipsImage **out, ... )
+int vips_cast_uchar( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_char( VipsImage *in, VipsImage **out, ... )
+int vips_cast_char( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_ushort( VipsImage *in, VipsImage **out, ... )
+int vips_cast_ushort( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_short( VipsImage *in, VipsImage **out, ... )
+int vips_cast_short( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_uint( VipsImage *in, VipsImage **out, ... )
+int vips_cast_uint( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_int( VipsImage *in, VipsImage **out, ... )
+int vips_cast_int( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_float( VipsImage *in, VipsImage **out, ... )
+int vips_cast_float( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_double( VipsImage *in, VipsImage **out, ... )
+int vips_cast_double( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_complex( VipsImage *in, VipsImage **out, ... )
+int vips_cast_complex( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_dpcomplex( VipsImage *in, VipsImage **out, ... )
+int vips_cast_dpcomplex( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
@@ -192,14 +192,16 @@ int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2,
 	__attribute__((sentinel));
 
 
+
+
+
+
 int im_copy_file( VipsImage *in, VipsImage *out );
 
 int im_scale( VipsImage *in, VipsImage *out );
 int im_msb( VipsImage *in, VipsImage *out );
 int im_msb_band( VipsImage *in, VipsImage *out, int band );
 
-int im_c2amph( VipsImage *in, VipsImage *out );
-int im_c2rect( VipsImage *in, VipsImage *out );
 int im_ri2c( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_c2imag( VipsImage *in, VipsImage *out );
 int im_c2real( VipsImage *in, VipsImage *out );

@@ -526,7 +526,7 @@ vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
 }
 
 /**
- * vips_uchar:
+ * vips_cast_uchar:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -536,7 +536,7 @@ vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_uchar( VipsImage *in, VipsImage **out, ... )
+vips_cast_uchar( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -549,7 +549,7 @@ vips_uchar( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_char:
+ * vips_cast_char:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -559,7 +559,7 @@ vips_uchar( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_char( VipsImage *in, VipsImage **out, ... )
+vips_cast_char( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -572,7 +572,7 @@ vips_char( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_ushort:
+ * vips_cast_ushort:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -582,7 +582,7 @@ vips_char( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_ushort( VipsImage *in, VipsImage **out, ... )
+vips_cast_ushort( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -595,7 +595,7 @@ vips_ushort( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_short:
+ * vips_cast_short:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -605,7 +605,7 @@ vips_ushort( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_short( VipsImage *in, VipsImage **out, ... )
+vips_cast_short( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -618,7 +618,7 @@ vips_short( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_uint:
+ * vips_cast_uint:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -628,7 +628,7 @@ vips_short( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_uint( VipsImage *in, VipsImage **out, ... )
+vips_cast_uint( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -641,7 +641,7 @@ vips_uint( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_int:
+ * vips_cast_int:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -651,7 +651,7 @@ vips_uint( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_int( VipsImage *in, VipsImage **out, ... )
+vips_cast_int( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -664,7 +664,7 @@ vips_int( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_float:
+ * vips_cast_float:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -674,7 +674,7 @@ vips_int( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_float( VipsImage *in, VipsImage **out, ... )
+vips_cast_float( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -687,7 +687,7 @@ vips_float( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_double:
+ * vips_cast_double:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -697,7 +697,7 @@ vips_float( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_double( VipsImage *in, VipsImage **out, ... )
+vips_cast_double( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -710,7 +710,7 @@ vips_double( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_complex:
+ * vips_cast_complex:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -720,7 +720,7 @@ vips_double( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_complex( VipsImage *in, VipsImage **out, ... )
+vips_cast_complex( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
@@ -733,7 +733,7 @@ vips_complex( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_dpcomplex:
+ * vips_cast_dpcomplex:
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -743,7 +743,7 @@ vips_complex( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_dpcomplex( VipsImage *in, VipsImage **out, ... )
+vips_cast_dpcomplex( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;

@@ -1,6 +1,19 @@
 - test docs
 
-  do relational.c next
+  do polar.c
+
+  do we need a VipsUnary subclass for complex? needs to cast input to complex
+  before it starts
+
+  do polar/rectangular/conjugate in it
+
+  or maybe have a single thing with an enum for complex ops lke this
+
+
+
+- look at the help message from the vips-7.27 script
+
+
 
   try
 

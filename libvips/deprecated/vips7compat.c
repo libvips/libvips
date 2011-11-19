@@ -2076,3 +2076,32 @@ im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out )
 
 	return( 0 );
 }
+
+static int
+vips__complex( VipsImage *in, VipsImage *out, VipsOperationComplex cmplx )
+{
+	VipsImage *t;
+
+	if( vips_complex( in, &t, cmplx,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_c2amph( IMAGE *in, IMAGE *out )
+{
+	return( vips__complex( in, out, VIPS_OPERATION_COMPLEX_POLAR ) );
+}
+
+int 
+im_c2rect( IMAGE *in, IMAGE *out )
+{
+	return( vips__complex( in, out, VIPS_OPERATION_COMPLEX_RECT ) );
+}
