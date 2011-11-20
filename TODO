@@ -1,7 +1,23 @@
+- started bandary.[hc] ... move bandjoin/extract/mean on top of it
+
+- get real, get_imag can be arith unary ops
+
+- form complex can be an arith binary op
+
+
+
 - can we common-up bits of recomb and bandmean? any other ops? bandjoin must
   be rather similar?
 
   they should certainly be able to share a y pixel loop 
+
+  yes, extract_band is very similar too
+
+  make a class of Bandary ops ... n images in, one image out, number of bands
+  changes (ie. don't bandalike, but do sizealike/formatalike), then a buffer
+  processing function
+
+  base on bandjoin since that's the most general
 
 
 

@@ -268,6 +268,7 @@ vips_arithmetic_gen( VipsRegion *or,
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( b ); 
 	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic ); 
+	Rect *r = &or->valid;
 
 	PEL *p[MAX_INPUT_IMAGES], *q;
 	int i, y;
@@ -275,16 +276,15 @@ vips_arithmetic_gen( VipsRegion *or,
 	/* Prepare all input regions and make buffer pointers.
 	 */
 	for( i = 0; ir[i]; i++ ) {
-		if( vips_region_prepare( ir[i], &or->valid ) ) 
+		if( vips_region_prepare( ir[i], r ) ) 
 			return( -1 );
-		p[i] = (PEL *) VIPS_REGION_ADDR( ir[i], 
-			or->valid.left, or->valid.top );
+		p[i] = (PEL *) VIPS_REGION_ADDR( ir[i], r->left, r->top );
 	}
 	p[i] = NULL;
-	q = (PEL *) VIPS_REGION_ADDR( or, or->valid.left, or->valid.top );
+	q = (PEL *) VIPS_REGION_ADDR( or, r->left, r->top );
 
-	for( y = 0; y < or->valid.height; y++ ) {
-		class->process_line( arithmetic, q, p, or->valid.width );
+	for( y = 0; y < r->height; y++ ) {
+		class->process_line( arithmetic, q, p, r->width );
 
 		for( i = 0; ir[i]; i++ )
 			p[i] += VIPS_REGION_LSKIP( ir[i] );
