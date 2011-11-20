@@ -318,6 +318,10 @@ vips_leak( void )
 void
 vips_shutdown( void )
 {
+#ifdef DEBUG
+	printf( "vips_shutdown:\n" );
+#endif /*DEBUG*/
+
 	vips_cache_drop_all();
 	im_close_plugins();
 

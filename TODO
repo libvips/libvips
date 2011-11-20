@@ -1,21 +1,15 @@
+- can we common-up bits of recomb and bandmean? any other ops? bandjoin must
+  be rather similar?
+
+  they should certainly be able to share a y pixel loop 
+
+
+
 - test docs
 
 
 
-- look at the help message from the vips-7.27 script
-
-
-
-- try
-
-  	$ vips join
- 	... usage ...
-	join: too few arguments
-	VipsObject: parameter in1 to VipsJoin not set
-	VipsObject: parameter in2 to VipsJoin not set
-	VipsObject: parameter direction to VipsJoin not set
-
-  why do we have four errors? shouldn't we stop after the first one?
+- add vips_extract_real(), vips_extract_imag(), vips_complexjoin()
 
 
 

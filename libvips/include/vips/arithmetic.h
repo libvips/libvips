@@ -323,9 +323,6 @@ int vips_pow_const1( VipsImage *in, VipsImage **out, double c, ... )
 int vips_wop_const1( VipsImage *in, VipsImage **out, double c, ... )
 	__attribute__((sentinel));
 
-int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
-	__attribute__((sentinel));
-
 int vips_avg( VipsImage *in, double *out, ... )
 	__attribute__((sentinel));
 int vips_deviate( VipsImage *in, double *out, ... )
@@ -345,7 +342,6 @@ int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
 int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
 int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );
-int im_bandmean( VipsImage *in, VipsImage *out );
 
 int im_linreg( VipsImage **ins, VipsImage *out, double *xs );
 int im_point( VipsImage *im, VipsInterpolate *interpolate, 

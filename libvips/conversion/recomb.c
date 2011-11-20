@@ -51,13 +51,12 @@
 
 #include <vips/vips.h>
 
-#include "unary.h"
+#include "conversion.h"
 
 typedef struct _VipsRecomb {
-	VipsOperation parent_instance;
+	VipsConversion parent_instance;
 
 	VipsImage *in;
-	VipsImage *out;
 	VipsImage *m;
 
 	/* m converted to a one-band double.
@@ -66,8 +65,9 @@ typedef struct _VipsRecomb {
 
 } VipsRecomb;
 
-typedef VipsOperationClass VipsRecombClass;
-G_DEFINE_TYPE( VipsRecomb, vips_recomb, VIPS_TYPE_OPERATION );
+typedef VipsConversionClass VipsRecombClass;
+
+G_DEFINE_TYPE( VipsRecomb, vips_recomb, VIPS_TYPE_CONVERSION );
 
 /* Inner loop.
  */
@@ -139,6 +139,7 @@ vips_recomb_gen( VipsRegion *or,
 static int
 vips_recomb_build( VipsObject *object )
 {
+	VipsConversion *conversion = (VipsConversion *) object;
 	VipsRecomb *recomb = (VipsRecomb *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
@@ -165,18 +166,16 @@ vips_recomb_build( VipsObject *object )
 		return( -1 );
 	recomb->coeff = (double *) VIPS_IMAGE_ADDR( t[0], 0, 0 );
 
-	g_object_set( recomb, "out", vips_image_new(), NULL ); 
-
-	if( vips_image_copy_fields( recomb->out, recomb->in ) )
+	if( vips_image_copy_fields( conversion->out, recomb->in ) )
 		return( -1 );
-        vips_demand_hint( recomb->out, 
+        vips_demand_hint( conversion->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, recomb->in, NULL );
 
-	recomb->out->Bands = recomb->m->Ysize;
+	conversion->out->Bands = recomb->m->Ysize;
 	if( vips_bandfmt_isint( recomb->in->BandFmt ) ) 
-		recomb->out->BandFmt = VIPS_FORMAT_FLOAT;
+		conversion->out->BandFmt = VIPS_FORMAT_FLOAT;
 
-	if( vips_image_generate( recomb->out,
+	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_recomb_gen, vips_stop_one, 
 		recomb->in, recomb ) )
 		return( -1 );
@@ -197,25 +196,17 @@ vips_recomb_class_init( VipsRecombClass *class )
 	object_class->description = _( "linear recombination with matrix" );
 	object_class->build = vips_recomb_build;
 
-
-	VIPS_ARG_IMAGE( class, "in", 1, 
+	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
 		_( "Input image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRecomb, in ) );
-
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsRecomb, out ) );
 
 	VIPS_ARG_IMAGE( class, "m", 102, 
 		_( "M" ), 
 		_( "matrix of coefficients" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsRecomb, m ) );
-
 }
 
 static void
@@ -228,6 +219,7 @@ vips_recomb_init( VipsRecomb *recomb )
  * @in: input image
  * @out: output image
  * @m: recombination matrix
+ * @...: %NULL-terminated list of optional named arguments
  *
  * This operation recombines an image's bands. Each pixel in @in is treated as 
  * an n-element vector, where n is the number of bands in @in, and multipled by

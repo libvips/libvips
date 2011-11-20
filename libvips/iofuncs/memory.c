@@ -380,6 +380,8 @@ vips_tracked_open( const char *pathname, int flags, ... )
 int
 vips_tracked_close( int fd )
 {
+	int result;
+
 	g_mutex_lock( vips_tracked_mutex );
 
 	g_assert( vips_tracked_files > 0 );
@@ -391,7 +393,9 @@ vips_tracked_close( int fd )
 
 	g_mutex_unlock( vips_tracked_mutex );
 
-	return( close( fd ) );
+	result = close( fd );
+
+	return( result );
 }
 
 /**

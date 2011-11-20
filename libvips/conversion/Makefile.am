@@ -13,6 +13,8 @@ libconversion_la_SOURCES = \
 	cast.c \
 	bandjoin.c \
 	black.c \
+	recomb.c \
+	bandmean.c \
 	rot.c \
 	ifthenelse.c \
 	conver_dispatch.c \

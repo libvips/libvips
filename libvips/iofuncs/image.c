@@ -261,7 +261,7 @@ vips_image_dispose( GObject *gobject )
 	if( image->baseaddr ) {
 		/* MMAP file.
 		 */
-		VIPS_DEBUG_MSG( "vips_image_finalize: unmapping file\n" );
+		VIPS_DEBUG_MSG( "vips_image_dispose: unmapping file\n" );
 
 		vips__munmap( image->baseaddr, image->length );
 		image->baseaddr = NULL;
@@ -276,10 +276,11 @@ vips_image_dispose( GObject *gobject )
 	/* Is there a file descriptor?
 	 */
 	if( image->fd != -1 ) {
-		VIPS_DEBUG_MSG( "vips_image_finalize: closing output file\n" );
+		VIPS_DEBUG_MSG( "vips_image_dispose: closing output file\n" );
 
 		if( image->dtype == VIPS_IMAGE_OPENOUT )
 			(void) vips__writehist( image );
+
 		if( vips_tracked_close( image->fd ) == -1 ) 
 			vips_error( "VipsImage", 
 				"%s", _( "unable to close fd" ) );

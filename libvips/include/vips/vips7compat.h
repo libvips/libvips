@@ -540,7 +540,6 @@ DOUBLEMASK *im_measure_area( VipsImage *im,
 	int left, int top, int width, int height, 
 	int h, int v, 
 	int *sel, int nsel, const char *name );
-int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
 int im_sintra( VipsImage *in, VipsImage *out );
 int im_costra( VipsImage *in, VipsImage *out );
@@ -644,6 +643,8 @@ int im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 DOUBLEMASK *im_vips2mask( VipsImage *in, const char *filename );
 int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
 
+int im_bandmean( VipsImage *in, VipsImage *out );
+int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
 
 /* ruby-vips uses this

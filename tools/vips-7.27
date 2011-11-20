@@ -13,9 +13,8 @@ bname=`basename $0`
 if [[ $# < 1 ]]; then
 	echo "usage: $bname [command ...]"
 	echo "examples:"
-	echo "    $bname nip"
 	echo "    $bname man im_invert"
-	echo "    $bname im_invert /pics/tmp/fred.jpg /pics/tmp/fred2.tif"
+	echo "    $bname vips im_invert /pics/tmp/fred.jpg /pics/tmp/fred2.tif"
 	exit 1
 fi
 

@@ -116,6 +116,8 @@ vips_conversion_operation_init( void )
 	extern GType vips_black_get_type( void ); 
 	extern GType vips_rot_get_type( void ); 
 	extern GType vips_ifthenelse_get_type( void ); 
+	extern GType vips_recomb_get_type( void ); 
+	extern GType vips_bandmean_get_type( void ); 
 
 	vips_copy_get_type();
 	vips_embed_get_type();
@@ -130,6 +132,8 @@ vips_conversion_operation_init( void )
 	vips_black_get_type();
 	vips_rot_get_type();
 	vips_ifthenelse_get_type();
+	vips_recomb_get_type(); 
+	vips_bandmean_get_type(); 
 }
 
 
