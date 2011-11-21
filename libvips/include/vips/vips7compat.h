@@ -632,6 +632,8 @@ int im_black( VipsImage *out, int x, int y, int bands );
 
 int im_c2amph( VipsImage *in, VipsImage *out );
 int im_c2rect( VipsImage *in, VipsImage *out );
+int im_c2imag( VipsImage *in, VipsImage *out );
+int im_c2real( VipsImage *in, VipsImage *out );
 
 int im_rot90( VipsImage *in, VipsImage *out );
 int im_rot180( VipsImage *in, VipsImage *out );

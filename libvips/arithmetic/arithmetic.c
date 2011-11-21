@@ -503,6 +503,7 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_math2_get_type( void ); 
 	extern GType vips_math2_const_get_type( void ); 
 	extern GType vips_complex_get_type( void ); 
+	extern GType vips_complexget_get_type( void ); 
 
 	vips_add_get_type();
 	vips_subtract_get_type();
@@ -529,4 +530,5 @@ vips_arithmetic_operation_init( void )
 	vips_math2_get_type(); 
 	vips_math2_const_get_type(); 
 	vips_complex_get_type(); 
+	vips_complexget_get_type(); 
 }

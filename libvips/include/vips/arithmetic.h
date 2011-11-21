@@ -147,6 +147,19 @@ typedef enum {
 	VIPS_OPERATION_COMPLEX_LAST
 } VipsOperationComplex;
 
+/** 
+ * VipsOperationComplexget:
+ * @VIPS_OPERATION_COMPLEXGET_REAL: get real component
+ * @VIPS_OPERATION_COMPLEXGET_IMAG: get imaginary component
+ *
+ * See also: vips_complexget().
+ */
+typedef enum {
+	VIPS_OPERATION_COMPLEXGET_REAL,
+	VIPS_OPERATION_COMPLEXGET_IMAG,
+	VIPS_OPERATION_COMPLEXGET_LAST
+} VipsOperationComplexget;
+
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
@@ -215,6 +228,14 @@ int vips_polar( VipsImage *in, VipsImage **out, ... )
 int vips_rect( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_conj( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
+int vips_complexget( VipsImage *in, VipsImage **out, 
+	VipsOperationComplexget get, ... )
+	__attribute__((sentinel));
+int vips_real( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_imag( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 

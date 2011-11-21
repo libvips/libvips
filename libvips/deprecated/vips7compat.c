@@ -2123,4 +2123,32 @@ im_c2rect( IMAGE *in, IMAGE *out )
 	return( vips__complex( in, out, VIPS_OPERATION_COMPLEX_RECT ) );
 }
 
+static int
+vips__complexget( VipsImage *in, VipsImage *out, VipsOperationComplexget get )
+{
+	VipsImage *t;
+
+	if( vips_complexget( in, &t, get,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_c2real( IMAGE *in, IMAGE *out )
+{
+	return( vips__complexget( in, out, VIPS_OPERATION_COMPLEXGET_REAL ) );
+}
+
+int 
+im_c2imag( IMAGE *in, IMAGE *out )
+{
+	return( vips__complexget( in, out, VIPS_OPERATION_COMPLEXGET_IMAG ) );
+}
 

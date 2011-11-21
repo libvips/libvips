@@ -19,6 +19,8 @@
  * 	- gtk-doc
  * 19/11/11
  * 	- redo as a class
+ * 21/11/11
+ * 	- add vips_complexget()
  */
 
 /*
@@ -223,7 +225,7 @@ vips_complex_class_init( VipsComplexClass *class )
 }
 
 static void
-vips_complex_init( VipsComplex *complex )
+vips_complex_init( VipsComplex *cmplx )
 {
 }
 
@@ -325,6 +327,250 @@ vips_conj( VipsImage *in, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_complexv( in, out, VIPS_OPERATION_COMPLEX_CONJ, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+typedef struct _VipsComplexget {
+	VipsUnary parent_instance;
+
+	VipsOperationComplexget get;
+
+} VipsComplexget;
+
+typedef VipsUnaryClass VipsComplexgetClass;
+
+G_DEFINE_TYPE( VipsComplexget, vips_complexget, VIPS_TYPE_UNARY );
+
+static int
+vips_complexget_build( VipsObject *object )
+{
+	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
+	VipsUnary *unary = (VipsUnary *) object;
+	VipsComplexget *complexget = (VipsComplexget *) object;
+
+	if( unary->in ) {
+		if( !vips_band_format_iscomplex( unary->in->BandFmt ) &&
+			complexget->get == VIPS_OPERATION_COMPLEXGET_REAL ) {
+			g_object_set( arithmetic, 
+				"out", vips_image_new(), 
+				NULL ); 
+
+			return( vips_image_write( unary->in, 
+				arithmetic->out ) );
+		}
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_complexget_parent_class )->build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+#define GETLOOP( TYPE, OP ) { \
+	TYPE *p __attribute__ ((unused)) = (TYPE *) in[0]; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		OP( q[x], p[x], 0.0 ); \
+	} \
+}
+
+#define CGETLOOP( TYPE, OP ) { \
+	TYPE *p __attribute__ ((unused)) = (TYPE *) in[0]; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		OP( q[x], p[0], p[1] ); \
+		\
+		p += 2; \
+	} \
+}
+
+#define GETSWITCH( OP ) \
+	switch( vips_image_get_format( im ) ) { \
+	case VIPS_FORMAT_UCHAR: \
+		GETLOOP( unsigned char, OP ); break; \
+	case VIPS_FORMAT_CHAR: \
+		GETLOOP( signed char, OP ); break; \
+	case VIPS_FORMAT_USHORT: \
+		GETLOOP( unsigned short, OP ); break; \
+	case VIPS_FORMAT_SHORT: \
+		GETLOOP( signed short, OP ); break; \
+	case VIPS_FORMAT_UINT: \
+		GETLOOP( unsigned int, OP ); break; \
+	case VIPS_FORMAT_INT: \
+		GETLOOP( signed int, OP ); break; \
+	case VIPS_FORMAT_FLOAT: \
+		GETLOOP( float, OP ); break; \
+	case VIPS_FORMAT_DOUBLE: \
+		GETLOOP( double, OP ); break;\
+	case VIPS_FORMAT_COMPLEX: \
+		CGETLOOP( float, OP ); break; \
+	case VIPS_FORMAT_DPCOMPLEX: \
+		CGETLOOP( double, OP ); break;\
+ 	\
+	default: \
+		g_assert( 0 ); \
+	} 
+
+#define REAL( Q, X, Y ) { \
+	Q = X; \
+} 
+
+#define IMAG( Q, X, Y ) { \
+	Q = Y; \
+} 
+
+static void
+vips_complexget_buffer( VipsArithmetic *arithmetic, 
+	PEL *out, PEL **in, int width )
+{
+	VipsComplexget *complexget = (VipsComplexget *) arithmetic;
+	VipsImage *im = arithmetic->ready[0];
+	const int sz = width * vips_image_get_bands( im );
+
+	int x;
+
+	switch( complexget->get ) {
+	case VIPS_OPERATION_COMPLEXGET_REAL:	GETSWITCH( REAL ); break;
+	case VIPS_OPERATION_COMPLEXGET_IMAG:	GETSWITCH( IMAG ); break;
+
+	default:
+		g_assert( 0 );
+	}
+}
+
+/* Save a bit of typing.
+ */
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
+
+static const VipsBandFormat vips_bandfmt_complexget[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   UC, C,  US, S,  UI, I,  F,  F,  D,  D
+};
+
+static void
+vips_complexget_class_init( VipsComplexgetClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "complexget";
+	object_class->description = _( "get a component from a complex image" );
+	object_class->build = vips_complexget_build;
+
+	vips_arithmetic_set_format_table( aclass, vips_bandfmt_complexget );
+
+	aclass->process_line = vips_complexget_buffer;
+
+	VIPS_ARG_ENUM( class, "get", 200, 
+		_( "Operation" ), 
+		_( "complex to perform" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsComplexget, get ),
+		VIPS_TYPE_OPERATION_COMPLEXGET, 
+			VIPS_OPERATION_COMPLEXGET_REAL ); 
+}
+
+static void
+vips_complexget_init( VipsComplexget *complexget )
+{
+}
+
+static int
+vips_complexgetv( VipsImage *in, VipsImage **out, 
+	VipsOperationComplexget get, va_list ap )
+{
+	return( vips_call_split( "complexget", ap, in, out, get ) );
+}
+
+/**
+ * vips_complexget:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @get: complex operation to perform
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Get components of complex images. 
+ *
+ * The output type is the same as the input type, except #VIPS_FORMAT_COMPLEX
+ * becomes #VIPS_FORMAT_FLOAT and #VIPS_FORMAT_DPCOMPLEX becomes 
+ * #VIPS_FORMAT_DOUBLE.
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_complexget( VipsImage *in, VipsImage **out, 
+	VipsOperationComplexget get, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, get );
+	result = vips_complexgetv( in, out, get, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_real:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_COMPLEXGET_REAL on an image. See vips_complexget().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_real( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_complexgetv( in, out, 
+		VIPS_OPERATION_COMPLEXGET_REAL, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_imag:
+ * @in: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_COMPLEXGET_IMAG on an image. See vips_complexget().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_imag( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_complexgetv( in, out, 
+		VIPS_OPERATION_COMPLEXGET_IMAG, ap );
 	va_end( ap );
 
 	return( result );

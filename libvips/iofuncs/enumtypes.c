@@ -209,6 +209,24 @@ vips_operation_complex_get_type( void )
 
 	return( etype );
 }
+GType
+vips_operation_complexget_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_COMPLEXGET_REAL, "VIPS_OPERATION_COMPLEXGET_REAL", "real"},
+			{VIPS_OPERATION_COMPLEXGET_IMAG, "VIPS_OPERATION_COMPLEXGET_IMAG", "imag"},
+			{VIPS_OPERATION_COMPLEXGET_LAST, "VIPS_OPERATION_COMPLEXGET_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationComplexget", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/util.h" */
 GType
 vips_token_get_type( void )

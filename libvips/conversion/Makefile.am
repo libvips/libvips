@@ -20,8 +20,6 @@ libconversion_la_SOURCES = \
 	rot.c \
 	ifthenelse.c \
 	conver_dispatch.c \
-	im_c2imag.c \
-	im_c2real.c \
 	im_copy_file.c \
 	im_falsecolour.c \
 	im_msb.c \
