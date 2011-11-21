@@ -70,123 +70,85 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "conversion.h"
+#include "bandary.h"
 
 typedef struct _VipsBandjoin {
-	VipsConversion parent_instance;
+	VipsBandary parent_instance;
 
 	/* The input images.
 	 */
 	VipsArea *in;
-
-	int *is;		/* An int for SIZEOF_PEL() for each image */
 } VipsBandjoin;
 
-typedef VipsConversionClass VipsBandjoinClass;
+typedef VipsBandaryClass VipsBandjoinClass;
 
-G_DEFINE_TYPE( VipsBandjoin, vips_bandjoin, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE( VipsBandjoin, vips_bandjoin, VIPS_TYPE_BANDARY );
 
-static int
-vips_bandjoin_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
+static void
+vips_bandjoin_buffer( VipsBandary *bandary, PEL *q, PEL **p, int width )
 {
-	VipsRegion **ir = (VipsRegion **) seq;
-	VipsBandjoin *bandjoin = (VipsBandjoin *) b;
-	int n = bandjoin->in->n;
-	Rect *r = &or->valid;
-	const int ps = VIPS_IMAGE_SIZEOF_PEL( or->im );
+	VipsConversion *conversion = (VipsConversion *) bandary;
+	VipsImage **in = bandary->ready;
 
-	int x, y, z, i;
-
-	for( i = 0; i < n; i++ )
-		if( vips_region_prepare( ir[i], r ) )
-			return( -1 );
-
-	/* Loop over output!
+	/* Output pel size.
 	 */
-	for( y = 0; y < r->height; y++ ) {
-		PEL *qb;
+	const int ops = VIPS_IMAGE_SIZEOF_PEL( conversion->out );
 
-		qb = (PEL *) VIPS_REGION_ADDR( or, r->left, r->top + y );
+	int i;
 
-		/* Loop for each input image. Scattered write is faster than
-		 * scattered read.
+	/* Loop for each input image. Scattered write is faster than
+	 * scattered read.
+	 */
+	for( i = 0; i < bandary->n; i++ ) {
+		/* Input pel size.
 		 */
-		for( i = 0; i < n; i++ ) {
-			int k = bandjoin->is[i];
+		int ips = VIPS_IMAGE_SIZEOF_PEL( in[i] );
 
-			PEL *p;
-			PEL *q;
+		PEL *p1, *q1;
+		int x, z;
 
-			p = (PEL *) VIPS_REGION_ADDR( ir[i], 
-				r->left, r->top + y );
-			q = qb;
+		q1 = q + i * ips;
+		p1 = p[i];
 
-			for( x = 0; x < r->width; x++ ) {
-				for( z = 0; z < k; z++ )
-					q[z] = p[z];
+		for( x = 0; x < width; x++ ) {
+			for( z = 0; z < ips; z++ )
+				q1[z] = p1[z];
 
-				p += z;
-				q += ps;
-			}
-
-			qb += k;
+			p1 += ips;
+			q1 += ops;
 		}
 	}
-
-	return( 0 );
 }
 
 static int
 vips_bandjoin_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsBandary *bandary = (VipsBandary *) object;
 	VipsBandjoin *bandjoin = (VipsBandjoin *) object;
 
-	VipsImage **in;
-	int n;
-	int i;
-	VipsImage **format;
-	VipsImage **size;
+	if( bandjoin->in ) {
+		bandary->in = bandjoin->in->data;
+		bandary->n = bandjoin->in->n;
+		
+		if( bandary->n == 1 ) {
+			g_object_set( conversion, 
+				"out", vips_image_new(), 
+				NULL ); 
+
+			return( vips_image_write( bandary->in[0], 
+				conversion->out ) );
+		}
+		else {
+			int i;
+
+			bandary->out_bands = 0;
+			for( i = 0; i < bandary->n; i++ ) 
+				bandary->out_bands += bandary->in[i]->Bands;
+		}
+	}
 
 	if( VIPS_OBJECT_CLASS( vips_bandjoin_parent_class )->build( object ) )
-		return( -1 );
-
-	in = bandjoin->in->data;
-	n = bandjoin->in->n;
-	if( n == 1 )
-		return( vips_image_write( in[0], conversion->out ) );
-
-	if( vips_image_pio_output( conversion->out ) ||
-		vips_check_coding_known( "VipsBandjoin", in[0] ) )
-		return( -1 );
-	for( i = 0; i < n; i++ )
-		if( vips_image_pio_input( in[i] ) || 
-			vips_check_coding_same( "VipsBandjoin", in[i], in[0] ) )
-			return( -1 );
-
-	format = (VipsImage **) vips_object_local_array( object, n );
-	size = (VipsImage **) vips_object_local_array( object, n );
-	if( vips__formatalike_vec( in, format, n ) ||
-		vips__sizealike_vec( format, size, n ) )
-		return( -1 );
-	in = size;
-
-	bandjoin->is = VIPS_ARRAY( object, n, int );
-	for( i = 0; i < n; i++ ) 
-		bandjoin->is[i] = VIPS_IMAGE_SIZEOF_PEL( in[i] );
-
-	if( vips_image_copy_fields_array( conversion->out, in ) )
-		return( -1 );
-        vips_demand_hint_array( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, in );
-
-	conversion->out->Bands = 0;
-	for( i = 0; i < n; i++ ) 
-		conversion->out->Bands += in[i]->Bands;
-
-	if( vips_image_generate( conversion->out,
-		vips_start_many, vips_bandjoin_gen, vips_stop_many, 
-		in, bandjoin ) )
 		return( -1 );
 
 	return( 0 );
@@ -197,6 +159,7 @@ vips_bandjoin_class_init( VipsBandjoinClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsBandaryClass *bandary_class = VIPS_BANDARY_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_bandjoin_class_init\n" );
 
@@ -206,6 +169,8 @@ vips_bandjoin_class_init( VipsBandjoinClass *class )
 	vobject_class->nickname = "bandjoin";
 	vobject_class->description = _( "bandwise join a set of images" );
 	vobject_class->build = vips_bandjoin_build;
+
+	bandary_class->process_line = vips_bandjoin_buffer;
 
 	VIPS_ARG_BOXED( class, "in", 0, 
 		_( "Input" ), 

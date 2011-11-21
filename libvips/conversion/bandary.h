@@ -81,7 +81,7 @@ typedef struct _VipsBandaryClass {
 	 */
 	VipsBandaryProcessFn process_line;
 
-} VipsBandjoinClass;
+} VipsBandaryClass;
 
 GType vips_bandary_get_type( void );
 

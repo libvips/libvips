@@ -1,4 +1,6 @@
-- started bandary.[hc] ... move bandjoin/extract/mean on top of it
+- move extract_band to bandary
+
+  move bandmean to bandary
 
 - get real, get_imag can be arith unary ops
 

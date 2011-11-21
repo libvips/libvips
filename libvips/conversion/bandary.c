@@ -25,7 +25,7 @@
  * 27/10/11
  * 	- rewrite as a class
  * 20/11/11
- * 	- from bandary
+ * 	- from bandjoin
  */
 
 /*
@@ -135,8 +135,8 @@ vips_bandary_build( VipsObject *object )
 			vips_check_uncoded( "VipsBandary", bandary->in[i] ) )
 			return( -1 );
 
-	format = (VipsImage **) vips_object_local_array( object, n );
-	size = (VipsImage **) vips_object_local_array( object, n );
+	format = (VipsImage **) vips_object_local_array( object, bandary->n );
+	size = (VipsImage **) vips_object_local_array( object, bandary->n );
 	if( vips__formatalike_vec( bandary->in, format, bandary->n ) ||
 		vips__sizealike_vec( format, size, bandary->n ) )
 		return( -1 );

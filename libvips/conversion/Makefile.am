@@ -15,6 +15,8 @@ libconversion_la_SOURCES = \
 	black.c \
 	recomb.c \
 	bandmean.c \
+	bandary.h \
+	bandary.c \
 	rot.c \
 	ifthenelse.c \
 	conver_dispatch.c \
