@@ -24,7 +24,6 @@ libconversion_la_SOURCES = \
 	im_falsecolour.c \
 	im_msb.c \
 	im_grid.c \
-	im_ri2c.c \
 	im_scale.c \
 	im_scaleps.c \
 	im_subsample.c \

@@ -206,7 +206,6 @@ int im_scale( VipsImage *in, VipsImage *out );
 int im_msb( VipsImage *in, VipsImage *out );
 int im_msb_band( VipsImage *in, VipsImage *out, int band );
 
-int im_ri2c( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_scaleps( VipsImage *in, VipsImage *out );
 
 int im_falsecolour( VipsImage *in, VipsImage *out );

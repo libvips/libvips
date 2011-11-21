@@ -65,6 +65,7 @@
 #include <vips/vips.h>
 
 #include "unary.h"
+#include "binary.h"
 
 typedef struct _VipsComplex {
 	VipsUnary parent_instance;
@@ -575,3 +576,147 @@ vips_imag( VipsImage *in, VipsImage **out, ... )
 
 	return( result );
 }
+
+typedef VipsBinary VipsComplexform;
+typedef VipsBinaryClass VipsComplexformClass;
+
+G_DEFINE_TYPE( VipsComplexform, vips_complexform, VIPS_TYPE_BINARY );
+
+static int
+vips_complexform_build( VipsObject *object )
+{
+	VipsBinary *binary = (VipsBinary *) object;
+
+	if( binary->left &&
+		vips_check_noncomplex( "VipsComplexform", binary->left ) )
+		return( -1 );
+	if( binary->right &&
+		vips_check_noncomplex( "VipsComplexform", binary->right ) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_complexform_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+#define CFORM( IN, OUT ) { \
+	IN *left = (IN *) in[0]; \
+	IN *right = (IN *) in[1]; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		q[0] = left[x]; \
+		q[1] = right[x]; \
+		\
+		q += 2; \
+	} \
+}
+
+static void
+vips_complexform_buffer( VipsArithmetic *arithmetic, 
+	PEL *out, PEL **in, int width )
+{
+	VipsImage *im = arithmetic->ready[0];
+	const int sz = width * vips_image_get_bands( im );
+
+	int x;
+
+	/* Keep types here in sync with bandfmt_complexform[] 
+	 * below.
+         */
+        switch( vips_image_get_format( im ) ) {
+        case VIPS_FORMAT_CHAR: 	CFORM( signed char, float ); break; 
+        case VIPS_FORMAT_UCHAR:	CFORM( unsigned char, float ); break; 
+        case VIPS_FORMAT_SHORT:	CFORM( signed short, float ); break; 
+        case VIPS_FORMAT_USHORT:CFORM( unsigned short, float ); break; 
+        case VIPS_FORMAT_INT: 	CFORM( signed int, float ); break; 
+        case VIPS_FORMAT_UINT: 	CFORM( unsigned int, float ); break; 
+        case VIPS_FORMAT_FLOAT:	CFORM( float, float ); break; 
+        case VIPS_FORMAT_DOUBLE: CFORM( double, double ); break;
+
+        default:
+		g_assert( 0 );
+        }
+}
+
+/* Save a bit of typing.
+ */
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
+
+/* Type promotion for division. Sign and value preserving. Make sure 
+ * these match the case statement in complexform_buffer() above.
+ */
+static int vips_bandfmt_complexform[10] = {
+/* UC  C   US  S   UI  I  F  X  D  DX */
+   X,  X,  X,  X,  X,  X, X, X, DX,DX
+};
+
+static void
+vips_complexform_class_init( VipsComplexformClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+
+	object_class->nickname = "complexform";
+	object_class->description = 
+		_( "form a complex image from two real images" );
+	object_class->build = vips_complexform_build;
+
+	vips_arithmetic_set_format_table( aclass, vips_bandfmt_complexform );
+
+	aclass->process_line = vips_complexform_buffer;
+}
+
+static void
+vips_complexform_init( VipsComplexform *complexform )
+{
+}
+
+/**
+ * vips_complexform:
+ * @left: input image 
+ * @right: input image 
+ * @out: output image
+ *
+ * Compose two real images to make a complex image. If either @left or @right 
+ * are #VIPS_FORMAT_DOUBLE, @out is #VIPS_FORMAT_DPCOMPLEX. Otherwise @out 
+ * is #VIPS_FORMAT_COMPLEX. @left becomes the real component of @out and 
+ * @right the imaginary.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * See also: vips_complexget().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_complexform( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "complexform", ap, left, right, out );
+	va_end( ap );
+
+	return( result );
+}
+
+
+
+
+

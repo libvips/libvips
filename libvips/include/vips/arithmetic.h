@@ -238,6 +238,9 @@ int vips_real( VipsImage *in, VipsImage **out, ... )
 int vips_imag( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+int vips_complexform( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationRelational relational, ... )
 	__attribute__((sentinel));

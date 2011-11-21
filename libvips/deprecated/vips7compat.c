@@ -2152,3 +2152,19 @@ im_c2imag( IMAGE *in, IMAGE *out )
 	return( vips__complexget( in, out, VIPS_OPERATION_COMPLEXGET_IMAG ) );
 }
 
+int 
+im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_call( "complexform", in1, in2, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+

@@ -634,6 +634,7 @@ int im_c2amph( VipsImage *in, VipsImage *out );
 int im_c2rect( VipsImage *in, VipsImage *out );
 int im_c2imag( VipsImage *in, VipsImage *out );
 int im_c2real( VipsImage *in, VipsImage *out );
+int im_ri2c( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
 int im_rot90( VipsImage *in, VipsImage *out );
 int im_rot180( VipsImage *in, VipsImage *out );

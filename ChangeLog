@@ -12,7 +12,7 @@
   im_rint(), im_equal*(), im_notequal*(), im_less*(), im_lesseq*(), im_more*(),
   im_moreeq*(), im_remainder*(), im_and*(), im_or*(), im_eor*(), im_shift*(),
   im_pow*(), im_exp*(), im_ifthenelse(), im_blend(), im_c2amph(), im_c2rect(),
-  im_bandmean(), im_c2real(), im_c2imag()
+  im_bandmean(), im_c2real(), im_c2imag(), im_ri2c()
   redone as classes
 - added argument priorites to help control arg ordering
 - generate has a 'stop' param to signal successful early termination
