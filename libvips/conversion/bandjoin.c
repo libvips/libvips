@@ -130,7 +130,7 @@ vips_bandjoin_build( VipsObject *object )
 	if( bandjoin->in ) {
 		bandary->in = bandjoin->in->data;
 		bandary->n = bandjoin->in->n;
-		
+
 		if( bandary->n == 1 ) {
 			g_object_set( conversion, 
 				"out", vips_image_new(), 

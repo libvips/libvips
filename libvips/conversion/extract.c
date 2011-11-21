@@ -84,6 +84,8 @@
 
 #include "conversion.h"
 
+#include "bandary.h"
+
 typedef struct _VipsExtractArea {
 	VipsConversion parent_instance;
 
@@ -262,7 +264,7 @@ vips_extract_area( VipsImage *in, VipsImage **out,
 }
 
 typedef struct _VipsExtractBand {
-	VipsConversion parent_instance;
+	VipsBandary parent_instance;
 
 	/* The input image.
 	 */
@@ -270,76 +272,67 @@ typedef struct _VipsExtractBand {
 
 	int band;
 	int n;
-
 } VipsExtractBand;
 
-typedef VipsConversionClass VipsExtractBandClass;
+typedef VipsBandaryClass VipsExtractBandClass;
 
-G_DEFINE_TYPE( VipsExtractBand, vips_extract_band, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE( VipsExtractBand, vips_extract_band, VIPS_TYPE_BANDARY );
 
-static int
-vips_extract_band_gen( VipsRegion *or, void *seq, void *a, void *b, 
-	gboolean *stop )
+static void
+vips_extract_band_buffer( VipsBandary *bandary, PEL *out, PEL **in, int width )
 {
-	VipsRegion *ir = (VipsRegion *) seq;
-	VipsExtractBand *extract = (VipsExtractBand *) b;
-	VipsRect *r = &or->valid;
-	int es = VIPS_IMAGE_SIZEOF_ELEMENT( ir->im );	
-	int ipel = VIPS_IMAGE_SIZEOF_PEL( ir->im );
-	int opel = VIPS_IMAGE_SIZEOF_PEL( or->im );
+	VipsConversion *conversion = (VipsConversion *) bandary;
+	VipsExtractBand *extract = (VipsExtractBand *) bandary;
+	VipsImage *im = bandary->ready[0];
+	int es = VIPS_IMAGE_SIZEOF_ELEMENT( im );
+	int ips = VIPS_IMAGE_SIZEOF_PEL( im );
+	const int ops = VIPS_IMAGE_SIZEOF_PEL( conversion->out );
 
-	char *p, *q;
-	int x, y, z;
+	PEL *p, *q;
+	int x, z;
 
-	if( vips_region_prepare( ir, r ) )
-		return( -1 );
+	p = in[0] + extract->band * es;
+	q = out;
+	for( x = 0; x < width; x++ ) {
+		for( z = 0; z < ops; z++ )
+			q[z] = p[z];
 
-	for( y = 0; y < r->height; y++ ) {
-		p = VIPS_REGION_ADDR( ir, r->left, r->top + y ) + 
-			extract->band * es;
-		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
-
-		for( x = 0; x < r->width; x++ ) {
-			for( z = 0; z < opel; z++ )
-				q[z] = p[z];
-
-			p += ipel;
-			q += opel;
-		}
+		p += ips;
+		q += ops;
 	}
-
-	return( 0 );
 }
 
 static int
 vips_extract_band_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsBandary *bandary = (VipsBandary *) object;
 	VipsExtractBand *extract = (VipsExtractBand *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_extract_band_parent_class )->build( object ) )
-		return( -1 );
+	if( extract->in ) {
+		if( extract->band + extract->n > extract->in->Bands ) {
+			vips_error( "VipsExtractBand", 
+				"%s", _( "bad extract band" ) );
+			return( -1 );
+		}
 
-	if( extract->band + extract->n > extract->in->Bands ) {
-		vips_error( "VipsExtractBand", "%s", _( "bad extract band" ) );
-		return( -1 );
+		if( extract->band == 0 &&
+			extract->n == extract->in->Bands ) {
+			g_object_set( conversion, 
+				"out", vips_image_new(), 
+				NULL ); 
+
+			return( vips_image_write( extract->in, 
+				conversion->out ) );
+		}
+
+		bandary->n = 1;
+		bandary->in = &extract->in;
+		bandary->out_bands = extract->n;
 	}
 
-	if( vips_image_pio_input( extract->in ) || 
-		vips_image_pio_output( conversion->out ) ||
-		vips_check_coding_known( "VipsExtractBand", extract->in ) ) 
-		return( -1 );
-
-	if( vips_image_copy_fields( conversion->out, extract->in ) )
-		return( -1 );
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, extract->in, NULL );
-
-        conversion->out->Bands = extract->n;
-
-	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_extract_band_gen, vips_stop_one, 
-		extract->in, extract ) )
+	if( VIPS_OBJECT_CLASS( vips_extract_band_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
@@ -350,6 +343,7 @@ vips_extract_band_class_init( VipsExtractBandClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsBandaryClass *bandary_class = VIPS_BANDARY_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_extract_band_class_init\n" );
 
@@ -359,6 +353,8 @@ vips_extract_band_class_init( VipsExtractBandClass *class )
 	vobject_class->nickname = "extract_band";
 	vobject_class->description = _( "extract band from an image" );
 	vobject_class->build = vips_extract_band_build;
+
+	bandary_class->process_line = vips_extract_band_buffer;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
