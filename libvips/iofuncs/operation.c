@@ -909,6 +909,23 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	(void) vips_argument_map( VIPS_OBJECT( operation ),
 		vips_call_argv_input, &call, NULL );
 
+	/* Any unused arguments? We must fail. Consider eg. "vips bandjoin a b
+	 * c". This would overwrite b with a and ignore c, potentially
+	 * disasterous.
+	 */
+	if( argc > call.i ) {
+		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname, 
+			"%s", _( "too many arguments" ) );
+
+		/* We must unref any output objects, they are holding refs to
+		 * the operation.
+		 */
+		(void) vips_argument_map( VIPS_OBJECT( operation ),
+			vips_call_argv_unref_output, NULL, NULL );
+
+		return( -1 );
+	}
+
 	if( vips_object_build( VIPS_OBJECT( operation ) ) ) {
 		/* We must unref any output objects, they are holding refs to
 		 * the operation.

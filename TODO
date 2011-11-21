@@ -1,12 +1,13 @@
-- text vips_complexform()
+- imagevec in can be non-NULL if the images do not exist
 
-- try
+  not enough to check that imagevec is non-NULL, have to check all images too,
+  argh
 
-	$ vips bandjoin a b c
+  test with
 
-  copies a on top of b, ignores c ... argh!!
+	$ vips bandjoin a b
 
-  need to fail if there are unused arguments
+  where 'a' does not exist
 
 
 
