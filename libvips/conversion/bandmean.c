@@ -52,23 +52,23 @@
 
 #include <vips/vips.h>
 
-#include "conversion.h"
+#include "bandary.h"
 
 typedef struct _VipsBandmean {
-	VipsConversion parent_instance;
+	VipsBandary parent_instance;
 
 	VipsImage *in;
 
 } VipsBandmean;
 
-typedef VipsConversionClass VipsBandmeanClass;
+typedef VipsBandaryClass VipsBandmeanClass;
 
-G_DEFINE_TYPE( VipsBandmean, vips_bandmean, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE( VipsBandmean, vips_bandmean, VIPS_TYPE_BANDARY );
 
 /* Unsigned int types. Round, keep sum in a larger variable.
  */
 #define UILOOP( TYPE, STYPE ) { \
-	TYPE *p = (TYPE *) in; \
+	TYPE *p = (TYPE *) in[0]; \
 	TYPE *q = (TYPE *) out; \
 	\
 	for( i = 0; i < sz; i++ ) { \
@@ -85,7 +85,7 @@ G_DEFINE_TYPE( VipsBandmean, vips_bandmean, VIPS_TYPE_CONVERSION );
 /* Signed int types. Round, keep sum in a larger variable.
  */
 #define SILOOP( TYPE, STYPE ) { \
-	TYPE *p = (TYPE *) in; \
+	TYPE *p = (TYPE *) in[0]; \
 	TYPE *q = (TYPE *) out; \
 	\
 	for( i = 0; i < sz; i++ ) { \
@@ -104,7 +104,7 @@ G_DEFINE_TYPE( VipsBandmean, vips_bandmean, VIPS_TYPE_CONVERSION );
 /* Float loop. No rounding, sum in same container.
  */
 #define FLOOP( TYPE ) { \
-	TYPE *p = (TYPE *) in; \
+	TYPE *p = (TYPE *) in[0]; \
 	TYPE *q = (TYPE *) out; \
 	\
 	for( i = 0; i < sz; i++ ) { \
@@ -118,79 +118,56 @@ G_DEFINE_TYPE( VipsBandmean, vips_bandmean, VIPS_TYPE_CONVERSION );
 	} \
 }
 
-static int
-vips_bandmean_gen( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
+static void
+vips_bandmean_buffer( VipsBandary *bandary, PEL *out, PEL **in, int width )
 {
-	VipsRegion *ir = (VipsRegion *) seq;
-	VipsBandmean *bandmean = (VipsBandmean *) b;
-	VipsImage *im = bandmean->in;
-	VipsRect *r = &or->valid;
+	VipsImage *im = bandary->ready[0];
 	const int bands = im->Bands;
-	const int sz = r->width * 
-		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
+	const int sz = width * (vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
 
-	int y, i, j;
+	int i, j;
 
-	if( vips_region_prepare( ir, r ) ) 
-		return( -1 );
+	switch( vips_image_get_format( im ) ) {
+	case VIPS_FORMAT_CHAR: 	
+		SILOOP( signed char, int ); break; 
+	case VIPS_FORMAT_UCHAR:	
+		UILOOP( unsigned char, unsigned int ); break; 
+	case VIPS_FORMAT_SHORT: 	
+		SILOOP( signed short, int ); break; 
+	case VIPS_FORMAT_USHORT:	
+		UILOOP( unsigned short, unsigned int ); break; 
+	case VIPS_FORMAT_INT: 	
+		SILOOP( signed int, int ); break; 
+	case VIPS_FORMAT_UINT: 	
+		UILOOP( unsigned int, unsigned int ); break; 
+	case VIPS_FORMAT_FLOAT: 	
+		FLOOP( float ); break; 
+	case VIPS_FORMAT_DOUBLE:	
+		FLOOP( double ); break; 
+	case VIPS_FORMAT_COMPLEX:
+		FLOOP( float ); break;
+	case VIPS_FORMAT_DPCOMPLEX:
+		FLOOP( double ); break;
 
-	for( y = 0; y < r->height; y++ ) {
-		PEL *in = (PEL *) VIPS_REGION_ADDR( ir, r->left, r->top + y );
-		PEL *out = (PEL *) VIPS_REGION_ADDR( or, r->left, r->top + y );
-
-		switch( vips_image_get_format( im ) ) {
-		case VIPS_FORMAT_CHAR: 	
-			SILOOP( signed char, int ); break; 
-		case VIPS_FORMAT_UCHAR:	
-			UILOOP( unsigned char, unsigned int ); break; 
-		case VIPS_FORMAT_SHORT: 	
-			SILOOP( signed short, int ); break; 
-		case VIPS_FORMAT_USHORT:	
-			UILOOP( unsigned short, unsigned int ); break; 
-		case VIPS_FORMAT_INT: 	
-			SILOOP( signed int, int ); break; 
-		case VIPS_FORMAT_UINT: 	
-			UILOOP( unsigned int, unsigned int ); break; 
-		case VIPS_FORMAT_FLOAT: 	
-			FLOOP( float ); break; 
-		case VIPS_FORMAT_DOUBLE:	
-			FLOOP( double ); break; 
-		case VIPS_FORMAT_COMPLEX:
-			FLOOP( float ); break;
-		case VIPS_FORMAT_DPCOMPLEX:
-			FLOOP( double ); break;
-
-		default:
-			g_assert( 0 );
-		}
+	default:
+		g_assert( 0 );
 	}
-
-	return( 0 );
 }
 
 static int
 vips_bandmean_build( VipsObject *object )
 {
-	VipsConversion *conversion = (VipsConversion *) object;
+	VipsBandary *bandary = (VipsBandary *) object;
 	VipsBandmean *bandmean = (VipsBandmean *) object;
 
+	bandary->out_bands = 1;
+
+	if( bandmean->in ) {
+		bandary->n = 1;
+		bandary->in = &bandmean->in;
+	}
+
 	if( VIPS_OBJECT_CLASS( vips_bandmean_parent_class )->build( object ) )
-		return( -1 );
-
-	if( vips_image_pio_input( bandmean->in ) || 
-		vips_check_uncoded( "VipsBandmean", bandmean->in ) )
-		return( -1 );
-
-	if( vips_image_copy_fields( conversion->out, bandmean->in ) )
-		return( -1 );
-        vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, bandmean->in, NULL );
-	conversion->out->Bands = 1;
-
-	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_bandmean_gen, vips_stop_one, 
-		bandmean->in, bandmean ) )
 		return( -1 );
 
 	return( 0 );
@@ -201,6 +178,7 @@ vips_bandmean_class_init( VipsBandmeanClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsBandaryClass *bandary_class = VIPS_BANDARY_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -208,6 +186,8 @@ vips_bandmean_class_init( VipsBandmeanClass *class )
 	object_class->nickname = "bandmean";
 	object_class->description = _( "band-wise average" );
 	object_class->build = vips_bandmean_build;
+
+	bandary_class->process_line = vips_bandmean_buffer;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
