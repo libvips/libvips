@@ -3,6 +3,8 @@
  * N. Robidoux, C. Racette and J. Cupitt, 23-28/03/2010
  *
  * N. Robidoux, 16-19/05/2010
+ *
+ * N. Robidoux, 22/11/2011
  */
 
 /*
@@ -35,39 +37,17 @@
 /*
  * 2010 (c) Nicolas Robidoux, Chantal Racette, John Cupitt.
  *
- * Nicolas Robidoux thanks Adam Turcotte, Geert Jordaens, Ralf Meyer,
+ * N. Robidoux thanks Adam Turcotte, Geert Jordaens, Ralf Meyer,
  * Øyvind Kolås, Minglun Gong, Eric Daoust and Sven Neumann for useful
  * comments and code.
  *
- * Chantal Racette's image resampling research and programming funded
- * in part by a NSERC Discovery Grant awarded to Julien Dompierre
- * (20-61098).
+ * C. Racette's image resampling research and programming funded in
+ * part by an NSERC (National Science and Engineering Research Council
+ * of Canada) Alexander Graham Bell Canada Graduate Scholarship, by an
+ * NSERC Discovery Grant awarded to Julien Dompierre (grant number
+ * 20-61098) and by N. Robidoux's Laurentian University professional
+ * allowance.
  */
-
-/*
- * LBB has two versions:
- *
- *   A "soft" version, which shows a little less staircasing and a
- *   little more haloing, and which is a little more expensive to
- *   compute. We recommend this as the default.
- *
- *   A "sharp" version, which shows a little more staircasing and a
- *   little less haloing, which is a little cheaper (it uses 6 less
- *   comparisons and 12 less "? :"), and which appears to lead to less
- *   "zebra striping" when two diagonal interfaces are close to each
- *   other.
- *
- * The only difference between the two is that the "soft" versions
- * uses local minima and maxima computed over 3x3 square blocks, and
- * the "sharp" version uses local minima and maxima computed over 3x3
- * crosses.
- *
- * If you want to use the "soft" (more expensive) version, comment out
- * the following three pre-processor code lines:
- */
-#ifndef __LBB_CHEAP_H__
-#define __LBB_CHEAP_H__
-#endif
 
 /*
  * LBB (Locally Bounded Bicubic) is a high quality nonlinear variant
@@ -83,14 +63,16 @@
  * final clamping is needed to stay "in range" (e.g., 0-255 for
  * standard 8-bit images).
  *
- * LBB was developed by Nicolas Robidoux and Chantal Racette of the
- * Department of Mathematics and Computer Science of Laurentian
- * University in the course of C. Racette's Masters thesis in
- * Computational Sciences. Preliminary work directly leading to the
- * LBB method and code was performed by C. Racette and N. Robidoux in
- * the course of her honours thesis, and by N. Robidoux, A. Turcotte
- * and E. Daoust during Google Summer of Code 2009 (through two awards
- * made to GIMP to improve GEGL).
+ * LBB was developed by N. Robidoux and C. Racette at the Department
+ * of Mathematics and Computer Science of Laurentian University in the
+ * course of C. Racette's Masters thesis in Computational
+ * Sciences. Preliminary work directly leading to the LBB method and
+ * code was performed by C. Racette and N. Robidoux in the course of
+ * her honours thesis, and by N. Robidoux, A. Turcotte and E. Daoust
+ * during Google Summer of Code 2009 (through two awards made to GIMP
+ * to improve GEGL). The final version of LBB was formulated in
+ * October 2011 by N. Robidoux based on insight gained while reviewing
+ * C. Racette's masters thesis.
  *
  * LBB is a novel method with the following properties:
  *
@@ -145,6 +127,9 @@
  *
  * The above paragraph described the "soft" version of LBB. The
  * "sharp" version is similar.
+ *
+ * A slightly different preliminary version of LBB is documented in
+ * C. Racette's masters thesis.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -186,11 +171,14 @@ typedef struct _VipsInterpolateLbbClass {
 
 } VipsInterpolateLbbClass;
 
+/*
+ * Absolute value and sign macros:
+ */
 #define LBB_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
 #define LBB_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
 /*
  * MIN and MAX macros set up so that I can put the likely winner in
- * the first argument (forward branch likely blah blah blah):
+ * the first argument (forward branch likely):
  */
 #define LBB_MIN(x,y) ( ((x)<=(y)) ? (x) : (y) )
 #define LBB_MAX(x,y) ( ((x)>=(y)) ? (x) : (y) )
@@ -250,49 +238,21 @@ lbbicubic( const double c00,
    * where ix is the (pseudo-)floor of the requested left-to-right
    * location ("X"), and iy is the floor of the requested up-to-down
    * location.
+   *
+   * Below, "00", "10", "01" and "11" refer to the index "shifts" from
+   * the (ix,iy) position. That is,
+   *
+   *   "00" refers to the dos_two position,
+   *   "10" refers to the dos_thr position,
+   *   "01" refers to the tre_two position, and
+   *   "11" refers to the tre_thr position.
    */
 
-#if defined (__LBB_CHEAP_H__)
   /*
-   * Computation of the four min and four max over 3x3 input data
-   * sub-crosses of the 4x4 input stencil, performed with only 22
-   * comparisons and 28 "? :". If you can figure out how to do this
-   * more efficiently, let us know.
-   */
-  const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
-  const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
-  const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
-  const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
-  const double m3    = (uno_two <= dos_one) ? uno_two : dos_one  ;
-  const double M3    = (uno_two <= dos_one) ? dos_one : uno_two  ;
-  const double m4    = (uno_thr <= dos_fou) ? uno_thr : dos_fou  ;
-  const double M4    = (uno_thr <= dos_fou) ? dos_fou : uno_thr  ;
-  const double m5    = (tre_one <= qua_two) ? tre_one : qua_two  ;
-  const double M5    = (tre_one <= qua_two) ? qua_two : tre_one  ;
-  const double m6    = (tre_fou <= qua_thr) ? tre_fou : qua_thr  ;
-  const double M6    = (tre_fou <= qua_thr) ? qua_thr : tre_fou  ;
-  const double m7    = LBB_MIN(               m1,       tre_two );
-  const double M7    = LBB_MAX(               M1,       tre_two );
-  const double m8    = LBB_MIN(               m1,       tre_thr );
-  const double M8    = LBB_MAX(               M1,       tre_thr );
-  const double m9    = LBB_MIN(               m2,       dos_two );
-  const double M9    = LBB_MAX(               M2,       dos_two );
-  const double m10   = LBB_MIN(               m2,       dos_thr );
-  const double M10   = LBB_MAX(               M2,       dos_thr );
-  const double min00 = LBB_MIN(               m7,       m3      );
-  const double max00 = LBB_MAX(               M7,       M3      );
-  const double min10 = LBB_MIN(               m8,       m4      );
-  const double max10 = LBB_MAX(               M8,       M4      );
-  const double min01 = LBB_MIN(               m9,       m5      );
-  const double max01 = LBB_MAX(               M9,       M5      );
-  const double min11 = LBB_MIN(              m10,       m6      );
-  const double max11 = LBB_MAX(              M10,       M6      );
-#else
-  /*
-   * Computation of the four min and four max over 3x3 input data
-   * sub-blocks of the 4x4 input stencil, performed with only 28
-   * comparisons and 34 "? :". If you can figure how to do this more
-   * efficiently, let us know.
+   * Computation of the four pairs of horizontal min and max and four
+   * pairs of vertical min and max over aligned groups of three input
+   * pixel values, and four pairs of min and max over 3x3 input data
+   * sub-blocks of the 4x4 input stencil:
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
@@ -328,7 +288,6 @@ lbbicubic( const double c00,
   const double max01 = LBB_MAX(               M9,       M11     );
   const double min11 = LBB_MIN(               m9,       m13     );
   const double max11 = LBB_MAX(               M9,       M13     );
-#endif
 
   /*
    * The remainder of the "per channel" computation involves the
@@ -849,8 +808,8 @@ vips_interpolate_lbb_class_init( VipsInterpolateLbbClass *klass )
   object_class->nickname    = "lbb";
   object_class->description = _( "Reduced halo bicubic" );
 
-  interpolate_class->interpolate   = vips_interpolate_lbb_interpolate;
-  interpolate_class->window_size   = 4;
+  interpolate_class->interpolate = vips_interpolate_lbb_interpolate;
+  interpolate_class->window_size = 4;
 }
 
 static void
