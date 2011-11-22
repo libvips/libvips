@@ -157,24 +157,17 @@ vips_bandmean_buffer( VipsBandary *bandary, PEL *out, PEL **in, int width )
 static int
 vips_bandmean_build( VipsObject *object )
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsBandary *bandary = (VipsBandary *) object;
 	VipsBandmean *bandmean = (VipsBandmean *) object;
 
 	bandary->out_bands = 1;
 
 	if( bandmean->in ) {
-		if( bandmean->in->Bands == 1 ) {
-			g_object_set( conversion, 
-				"out", vips_image_new(), 
-				NULL ); 
-
-			return( vips_image_write( bandmean->in, 
-				conversion->out ) );
-		}
-
 		bandary->n = 1;
 		bandary->in = &bandmean->in;
+
+		if( bandmean->in->Bands == 1 ) 
+			return( vips_bandary_copy( bandary ) );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_bandmean_parent_class )->build( object ) )

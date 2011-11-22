@@ -183,3 +183,21 @@ vips_bandary_init( VipsBandary *bandjoin )
 	/* Init our instance fields.
 	 */
 }
+
+/* Call this before chaining up in _build() to make the operation fall back to
+ * copy.
+ */
+int
+vips_bandary_copy( VipsBandary *bandary )
+{
+	VipsConversion *conversion = VIPS_CONVERSION( bandary );
+
+	/* This isn't set by arith until build(), so we have to set
+	 * again here.
+	 *
+	 * Should arith set out in _init()?
+	 */
+	g_object_set( bandary, "out", vips_image_new(), NULL ); 
+
+	return( vips_image_write( bandary->in[0], conversion->out ) );
+}

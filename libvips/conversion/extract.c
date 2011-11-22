@@ -305,11 +305,14 @@ vips_extract_band_buffer( VipsBandary *bandary, PEL *out, PEL **in, int width )
 static int
 vips_extract_band_build( VipsObject *object )
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsBandary *bandary = (VipsBandary *) object;
 	VipsExtractBand *extract = (VipsExtractBand *) object;
 
 	if( extract->in ) {
+		bandary->n = 1;
+		bandary->in = &extract->in;
+		bandary->out_bands = extract->n;
+
 		if( extract->band + extract->n > extract->in->Bands ) {
 			vips_error( "VipsExtractBand", 
 				"%s", _( "bad extract band" ) );
@@ -317,18 +320,8 @@ vips_extract_band_build( VipsObject *object )
 		}
 
 		if( extract->band == 0 &&
-			extract->n == extract->in->Bands ) {
-			g_object_set( conversion, 
-				"out", vips_image_new(), 
-				NULL ); 
-
-			return( vips_image_write( extract->in, 
-				conversion->out ) );
-		}
-
-		bandary->n = 1;
-		bandary->in = &extract->in;
-		bandary->out_bands = extract->n;
+			extract->n == extract->in->Bands ) 
+			return( vips_bandary_copy( bandary ) );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_extract_band_parent_class )->

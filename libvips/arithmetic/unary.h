@@ -59,6 +59,8 @@ typedef VipsArithmeticClass VipsUnaryClass;
 
 GType vips_unary_get_type( void );
 
+int vips_unary_copy( VipsUnary *unary );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

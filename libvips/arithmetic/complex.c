@@ -347,21 +347,13 @@ G_DEFINE_TYPE( VipsComplexget, vips_complexget, VIPS_TYPE_UNARY );
 static int
 vips_complexget_build( VipsObject *object )
 {
-	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsUnary *unary = (VipsUnary *) object;
 	VipsComplexget *complexget = (VipsComplexget *) object;
 
-	if( unary->in ) {
-		if( !vips_band_format_iscomplex( unary->in->BandFmt ) &&
-			complexget->get == VIPS_OPERATION_COMPLEXGET_REAL ) {
-			g_object_set( arithmetic, 
-				"out", vips_image_new(), 
-				NULL ); 
-
-			return( vips_image_write( unary->in, 
-				arithmetic->out ) );
-		}
-	}
+	if( unary->in &&
+		!vips_band_format_iscomplex( unary->in->BandFmt ) &&
+		complexget->get == VIPS_OPERATION_COMPLEXGET_REAL ) 
+		return( vips_unary_copy( unary ) ); 
 
 	if( VIPS_OBJECT_CLASS( vips_complexget_parent_class )->build( object ) )
 		return( -1 );
