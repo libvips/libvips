@@ -50,6 +50,31 @@
  */
 
 /*
+ * LBB has two versions:
+ *
+ *   A "soft" version, which shows a little less staircasing and a
+ *   little more haloing, and which is a little more expensive to
+ *   compute. We recommend this as the default.
+ *
+ *   A "sharp" version, which shows a little more staircasing and a
+ *   little less haloing, which is a little cheaper (it uses 6 less
+ *   comparisons and 12 less "? :").
+ *
+ * The only difference between the two is that the "soft" versions
+ * uses local minima and maxima computed over 3x3 square blocks, and
+ * the "sharp" version uses local minima and maxima computed over 3x3
+ * crosses.
+ *
+ * If you want to use the "sharp" version, comment out the following
+ * three pre-processor code lines:
+ */
+/*
+#ifndef __LBB_CHEAP_H__
+#define __LBB_CHEAP_H__
+#endif
+*/
+
+/*
  * LBB (Locally Bounded Bicubic) is a high quality nonlinear variant
  * of Catmull-Rom. Images resampled with LBB have much smaller halos
  * than images resampled with windowed sincs or other interpolatory
@@ -70,9 +95,7 @@
  * code was performed by C. Racette and N. Robidoux in the course of
  * her honours thesis, and by N. Robidoux, A. Turcotte and E. Daoust
  * during Google Summer of Code 2009 (through two awards made to GIMP
- * to improve GEGL). The final version of LBB was formulated in
- * October 2011 by N. Robidoux based on insight gained while reviewing
- * C. Racette's masters thesis.
+ * to improve GEGL).
  *
  * LBB is a novel method with the following properties:
  *
@@ -127,9 +150,6 @@
  *
  * The above paragraph described the "soft" version of LBB. The
  * "sharp" version is similar.
- *
- * A slightly different preliminary version of LBB is documented in
- * C. Racette's masters thesis.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -178,7 +198,7 @@ typedef struct _VipsInterpolateLbbClass {
 #define LBB_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
 /*
  * MIN and MAX macros set up so that I can put the likely winner in
- * the first argument (forward branch likely):
+ * the first argument (forward branch likely blah blah blah):
  */
 #define LBB_MIN(x,y) ( ((x)<=(y)) ? (x) : (y) )
 #define LBB_MAX(x,y) ( ((x)>=(y)) ? (x) : (y) )
@@ -238,95 +258,88 @@ lbbicubic( const double c00,
    * where ix is the (pseudo-)floor of the requested left-to-right
    * location ("X"), and iy is the floor of the requested up-to-down
    * location.
-   *
-   * Below, "00", "10", "01" and "11" refer to the index "shifts" from
-   * the (ix,iy) position. That is,
-   *
-   *   "00" refers to the dos_two position,
-   *   "10" refers to the dos_thr position,
-   *   "01" refers to the tre_two position, and
-   *   "11" refers to the tre_thr position.
    */
 
+#if defined (__LBB_CHEAP_H__)
   /*
-   * Computation of the four pairs of horizontal min and max and four
-   * pairs of vertical min and max over aligned groups of three input
-   * pixel values, and four pairs of min and max over 3x3 input data
-   * sub-blocks of the 4x4 input stencil.
+   * Computation of the four min and four max over 3x3 input data
+   * sub-crosses of the 4x4 input stencil, performed with only 22
+   * comparisons and 28 "? :". If you can figure out how to do this
+   * more efficiently, let us know.
    *
-   * Cost: 48 conditional moves involving 42 comparisons.
+   * This is the cheaper (but arguably less desirable in terms of
+   * quality) version of the computation.
    */
-  const double m1x    = (dos_two <= dos_thr) ? dos_two : dos_thr      ;
-  const double M1x    = (dos_two <= dos_thr) ? dos_thr : dos_two      ;
-
-  const double m2x    = (tre_two <= tre_thr) ? tre_two : tre_thr      ;
-  const double M2x    = (tre_two <= tre_thr) ? tre_thr : tre_two      ;
-
-  const double m1y    = (dos_two <= tre_two) ? dos_two : tre_two      ;
-  const double M1y    = (dos_two <= tre_two) ? tre_two : dos_two      ; 
-
-  const double m2y    = (dos_thr <= tre_thr) ? dos_thr : tre_thr      ;
-  const double M2y    = (dos_thr <= tre_thr) ? tre_thr : dos_thr      ; 
-
-  const double min00x = LBB_MIN(               m1x,      dos_one     );
-  const double max00x = LBB_MAX(               M1x,      dos_one     );
-
-  const double min10x = LBB_MIN(               m1x,      dos_fou     );
-  const double max10x = LBB_MAX(               M1x,      dos_fou     );
-
-  const double min01x = LBB_MIN(               m2x,      tre_one     );
-  const double max01x = LBB_MAX(               M2x,      tre_one     );
-
-  const double min11x = LBB_MIN(               m2x,      tre_fou     );
-  const double max11x = LBB_MAX(               M2x,      tre_fou     );
-
-  const double min00y = LBB_MIN(               m1y,      uno_two     );
-  const double max00y = LBB_MAX(               M1y,      uno_two     );
-
-  const double min10y = LBB_MIN(               m1y,      qua_two     );
-  const double max10y = LBB_MAX(               M1y,      qua_two     );
-
-  const double min01y = LBB_MIN(               m2y,      uno_thr     );
-  const double max01y = LBB_MAX(               M2y,      uno_thr     );
-
-  const double min11y = LBB_MIN(               m2y,      qua_thr     );
-  const double max11y = LBB_MAX(               M2y,      qua_thr     );
-
-  const double m3x    = (uno_two <= uno_thr) ? uno_two : uno_thr      ;
-  const double M3x    = (uno_two <= uno_thr) ? uno_thr : uno_two      ;
-
-  const double m4x    = (qua_two <= qua_thr) ? qua_two : qua_thr      ;
-  const double M4x    = (qua_two <= qua_thr) ? qua_thr : qua_two      ;
-
-  const double m5x    = LBB_MIN(               m3x,      uno_one     );
-  const double M5x    = LBB_MAX(               M3x,      uno_one     );
-
-  const double m6x    = LBB_MIN(               m3x,      uno_fou     );
-  const double M6x    = LBB_MAX(               M3x,      uno_fou     );
-
-  const double m7x    = LBB_MIN(               m4x,      qua_one     );
-  const double M7x    = LBB_MAX(               M4x,      qua_one     );
-
-  const double m8x    = LBB_MIN(               m4x,      qua_fou     );
-  const double M8x    = LBB_MAX(               M4x,      qua_fou     );
-
-  const double m3y    = LBB_MIN(               min00x,    min01x     );
-  const double M3y    = LBB_MAX(               max00x,    max01x     );
-
-  const double m4y    = LBB_MIN(               min10x,    min11x     );
-  const double M4y    = LBB_MAX(               max10x,    max10x     );
-
-  const double min00  = LBB_MIN(               m3y,       m5x        );
-  const double max00  = LBB_MAX(               M3y,       M5x        );
-
-  const double min10  = LBB_MIN(               m4y,       m6x        );
-  const double max10  = LBB_MAX(               M4y,       M6x        );
-
-  const double min01  = LBB_MIN(               m3y,       m7x        );
-  const double max01  = LBB_MAX(               M3y,       M7x        );
-
-  const double min11  = LBB_MIN(               m4y,       m8x        );
-  const double max11  = LBB_MAX(               M4y,       M8x        );
+  const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
+  const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
+  const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
+  const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
+  const double m3    = (uno_two <= dos_one) ? uno_two : dos_one  ;
+  const double M3    = (uno_two <= dos_one) ? dos_one : uno_two  ;
+  const double m4    = (uno_thr <= dos_fou) ? uno_thr : dos_fou  ;
+  const double M4    = (uno_thr <= dos_fou) ? dos_fou : uno_thr  ;
+  const double m5    = (tre_one <= qua_two) ? tre_one : qua_two  ;
+  const double M5    = (tre_one <= qua_two) ? qua_two : tre_one  ;
+  const double m6    = (tre_fou <= qua_thr) ? tre_fou : qua_thr  ;
+  const double M6    = (tre_fou <= qua_thr) ? qua_thr : tre_fou  ;
+  const double m7    = LBB_MIN(               m1,       tre_two );
+  const double M7    = LBB_MAX(               M1,       tre_two );
+  const double m8    = LBB_MIN(               m1,       tre_thr );
+  const double M8    = LBB_MAX(               M1,       tre_thr );
+  const double m9    = LBB_MIN(               m2,       dos_two );
+  const double M9    = LBB_MAX(               M2,       dos_two );
+  const double m10   = LBB_MIN(               m2,       dos_thr );
+  const double M10   = LBB_MAX(               M2,       dos_thr );
+  const double min00 = LBB_MIN(               m7,       m3      );
+  const double max00 = LBB_MAX(               M7,       M3      );
+  const double min10 = LBB_MIN(               m8,       m4      );
+  const double max10 = LBB_MAX(               M8,       M4      );
+  const double min01 = LBB_MIN(               m9,       m5      );
+  const double max01 = LBB_MAX(               M9,       M5      );
+  const double min11 = LBB_MIN(              m10,       m6      );
+  const double max11 = LBB_MAX(              M10,       M6      );
+#else
+  /*
+   * Computation of the four min and four max over 3x3 input data
+   * sub-blocks of the 4x4 input stencil, performed with only 28
+   * comparisons and 34 "? :". If you can figure how to do this more
+   * efficiently, let us know.
+   */
+  const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
+  const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
+  const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
+  const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
+  const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
+  const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
+  const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
+  const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
+  const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
+  const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
+  const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr  ;
+  const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
+  const double m5    = LBB_MIN(               m1,       m2      );
+  const double M5    = LBB_MAX(               M1,       M2      );
+  const double m10   = LBB_MIN(               m6,       uno_one );
+  const double M10   = LBB_MAX(               M6,       uno_one );
+  const double m11   = LBB_MIN(               m6,       qua_one );
+  const double M11   = LBB_MAX(               M6,       qua_one );
+  const double m12   = LBB_MIN(               m7,       uno_fou );
+  const double M12   = LBB_MAX(               M7,       uno_fou );
+  const double m13   = LBB_MIN(               m7,       qua_fou );
+  const double M13   = LBB_MAX(               M7,       qua_fou );
+  const double m8    = LBB_MIN(               m5,       m3      );
+  const double M8    = LBB_MAX(               M5,       M3      );
+  const double m9    = LBB_MIN(               m5,       m4      );
+  const double M9    = LBB_MAX(               M5,       M4      );
+  const double min00 = LBB_MIN(               m8,       m10     );
+  const double max00 = LBB_MAX(               M8,       M10     );
+  const double min10 = LBB_MIN(               m8,       m12     );
+  const double max10 = LBB_MAX(               M8,       M12     );
+  const double min01 = LBB_MIN(               m9,       m11     );
+  const double max01 = LBB_MAX(               M9,       M11     );
+  const double min11 = LBB_MIN(               m9,       m13     );
+  const double max11 = LBB_MAX(               M9,       M13     );
+#endif
 
   /*
    * The remainder of the "per channel" computation involves the
@@ -354,24 +367,6 @@ lbbicubic( const double c00,
   /*
    * Distances to the local min and max:
    */
-  const double u00x = dos_two - min00x;
-  const double v00x = max00x - dos_two;
-  const double u10x = dos_thr - min10x;
-  const double v10x = max10x - dos_thr;
-  const double u01x = tre_two - min01x;
-  const double v01x = max01x - tre_two;
-  const double u11x = tre_thr - min11x;
-  const double v11x = max11x - tre_thr;
-
-  const double u00y = dos_two - min00y;
-  const double v00y = max00y - dos_two;
-  const double u10y = dos_thr - min10y;
-  const double v10y = max10y - dos_thr;
-  const double u01y = tre_two - min01y;
-  const double v01y = max01y - tre_two;
-  const double u11y = tre_thr - min11y;
-  const double v11y = max11y - tre_thr;
-
   const double u00 = dos_two - min00;
   const double v00 = max00 - dos_two;
   const double u10 = dos_thr - min10;
@@ -423,43 +418,38 @@ lbbicubic( const double c00,
    * Slope limiters. The key multiplier is 3 but we fold a factor of
    * 2, hence 6:
    */
-  const double dble_slopelimit_00x = 6.0 * LBB_MIN( u00x, v00x );
-  const double dble_slopelimit_10x = 6.0 * LBB_MIN( u10x, v10x );
-  const double dble_slopelimit_01x = 6.0 * LBB_MIN( u01x, v01x );
-  const double dble_slopelimit_11x = 6.0 * LBB_MIN( u11x, v11x );
-
-  const double dble_slopelimit_00y = 6.0 * LBB_MIN( u00y, v00y );
-  const double dble_slopelimit_10y = 6.0 * LBB_MIN( u10y, v10y );
-  const double dble_slopelimit_01y = 6.0 * LBB_MIN( u01y, v01y );
-  const double dble_slopelimit_11y = 6.0 * LBB_MIN( u11y, v11y );
+  const double dble_slopelimit_00 = 6.0 * LBB_MIN( u00, v00 );
+  const double dble_slopelimit_10 = 6.0 * LBB_MIN( u10, v10 );
+  const double dble_slopelimit_01 = 6.0 * LBB_MIN( u01, v01 );
+  const double dble_slopelimit_11 = 6.0 * LBB_MIN( u11, v11 );
 
   /*
    * Clamped first derivatives:
    */
   const double dble_dzdx00 =
-    ( sign_dzdx00 * dble_dzdx00i <= dble_slopelimit_00x )
-    ? dble_dzdx00i :  sign_dzdx00 * dble_slopelimit_00x;
+    ( sign_dzdx00 * dble_dzdx00i <= dble_slopelimit_00 )
+    ? dble_dzdx00i :  sign_dzdx00 * dble_slopelimit_00;
   const double dble_dzdy00 =
-    ( sign_dzdy00 * dble_dzdy00i <= dble_slopelimit_00y )
-    ? dble_dzdy00i :  sign_dzdy00 * dble_slopelimit_00y;
+    ( sign_dzdy00 * dble_dzdy00i <= dble_slopelimit_00 )
+    ? dble_dzdy00i :  sign_dzdy00 * dble_slopelimit_00;
   const double dble_dzdx10 =
-    ( sign_dzdx10 * dble_dzdx10i <= dble_slopelimit_10x )
-    ? dble_dzdx10i :  sign_dzdx10 * dble_slopelimit_10x;
+    ( sign_dzdx10 * dble_dzdx10i <= dble_slopelimit_10 )
+    ? dble_dzdx10i :  sign_dzdx10 * dble_slopelimit_10;
   const double dble_dzdy10 =
-    ( sign_dzdy10 * dble_dzdy10i <= dble_slopelimit_10y )
-    ? dble_dzdy10i :  sign_dzdy10 * dble_slopelimit_10y;
+    ( sign_dzdy10 * dble_dzdy10i <= dble_slopelimit_10 )
+    ? dble_dzdy10i :  sign_dzdy10 * dble_slopelimit_10;
   const double dble_dzdx01 =
-    ( sign_dzdx01 * dble_dzdx01i <= dble_slopelimit_01x )
-    ? dble_dzdx01i :  sign_dzdx01 * dble_slopelimit_01x;
+    ( sign_dzdx01 * dble_dzdx01i <= dble_slopelimit_01 )
+    ? dble_dzdx01i :  sign_dzdx01 * dble_slopelimit_01;
   const double dble_dzdy01 =
-    ( sign_dzdy01 * dble_dzdy01i <= dble_slopelimit_01y )
-    ? dble_dzdy01i :  sign_dzdy01 * dble_slopelimit_01y;
+    ( sign_dzdy01 * dble_dzdy01i <= dble_slopelimit_01 )
+    ? dble_dzdy01i :  sign_dzdy01 * dble_slopelimit_01;
   const double dble_dzdx11 =
-    ( sign_dzdx11 * dble_dzdx11i <= dble_slopelimit_11x )
-    ? dble_dzdx11i :  sign_dzdx11 * dble_slopelimit_11x;
+    ( sign_dzdx11 * dble_dzdx11i <= dble_slopelimit_11 )
+    ? dble_dzdx11i :  sign_dzdx11 * dble_slopelimit_11;
   const double dble_dzdy11 =
-    ( sign_dzdy11 * dble_dzdy11i <= dble_slopelimit_11y )
-    ? dble_dzdy11i :  sign_dzdy11 * dble_slopelimit_11y;
+    ( sign_dzdy11 * dble_dzdy11i <= dble_slopelimit_11 )
+    ? dble_dzdy11i :  sign_dzdy11 * dble_slopelimit_11;
 
   /*
    * Sums and differences of first derivatives:
@@ -870,8 +860,8 @@ vips_interpolate_lbb_class_init( VipsInterpolateLbbClass *klass )
   object_class->nickname    = "lbb";
   object_class->description = _( "Reduced halo bicubic" );
 
-  interpolate_class->interpolate = vips_interpolate_lbb_interpolate;
-  interpolate_class->window_size = 4;
+  interpolate_class->interpolate   = vips_interpolate_lbb_interpolate;
+  interpolate_class->window_size   = 4;
 }
 
 static void
