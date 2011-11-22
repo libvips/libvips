@@ -522,15 +522,14 @@ vips_format_for_file( const char *filename )
 	im_filename_split( filename, name, options );
 
 	if( !im_existsf( "%s", name ) ) {
-		im_error( "format_for_file", 
-			_( "file \"%s\" not found" ), name );
+		im_error( "VipsFormat", _( "file \"%s\" not found" ), name );
 		return( NULL );
 	}
 
 	if( !(format = (VipsFormatClass *) vips_format_map( 
 		(VSListMap2Fn) format_for_file_sub, 
 		(void *) filename, (void *) name )) ) {
-		im_error( "format_for_file", 
+		im_error( "VipsFormat", 
 			_( "file \"%s\" not a known format" ), name );
 		return( NULL );
 	}
@@ -569,7 +568,7 @@ vips_format_for_name( const char *filename )
 	if( !(format = (VipsFormatClass *) vips_format_map( 
 		(VSListMap2Fn) format_for_name_sub, 
 		(void *) filename, NULL )) ) {
-		im_error( "vips_format_for_name",
+		im_error( "VipsFormat",
 			_( "\"%s\" is not a supported image format." ), 
 			filename );
 

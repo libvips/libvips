@@ -123,11 +123,14 @@ vips_bandary_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_bandary_parent_class )->build( object ) )
 		return( -1 );
 
+	if( bandary->n <= 0 ) {
+		vips_error( "VipsBandary", "%s", _( "no input images" ) );
+		return( -1 );
+	}
 	if( bandary->n > MAX_INPUT_IMAGES ) {
 		vips_error( "VipsBandary", "%s", _( "too many input images" ) );
 		return( -1 );
 	}
-
 	if( vips_image_pio_output( conversion->out ) )
 		return( -1 );
 	for( i = 0; i < bandary->n; i++ )

@@ -1,36 +1,20 @@
-- imagevec in can be non-NULL if the images do not exist
-
-  not enough to check that imagevec is non-NULL, have to check all images too,
-  argh
-
-  test with
-
-	$ vips bandjoin a b
-
-  where 'a' does not exist
+- move recomb to bandary?
 
 
 
-- can we common-up bits of recomb and bandmean? any other ops? bandjoin must
-  be rather similar?
+- transform_g_string_array_image() can't handle quoted strings, so filenames
+  with spaces will break
 
-  they should certainly be able to share a y pixel loop 
+  is there an easy fix? can we reuse code from the csv parser?
 
-  yes, extract_band is very similar too
-
-  make a class of Bandary ops ... n images in, one image out, number of bands
-  changes (ie. don't bandalike, but do sizealike/formatalike), then a buffer
-  processing function
-
-  base on bandjoin since that's the most general
 
 
 
 - test docs
 
+  gtk-doc can't introspect to generate class docs since it has no way to init
+  the classes ... investigate
 
-
-- add vips_extract_real(), vips_extract_imag(), vips_complexjoin()
 
 
 
