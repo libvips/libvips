@@ -47,6 +47,32 @@
 
 
 
+  so ... make a VipsFormat class
+
+  define a VipsObject::new_from_string() method which takes a filename
+
+  gives you back a VipsFormat subclass object with methods for 
+  load/header/flags/etc. 
+
+  also has args for "load-ascii" etc. etc. 
+
+  then you call _buil() to make it
+
+  ... and then how does this become a VipsImage?
+
+  could be a vipsimage subclass? VipsObject.VipsImage.VipsFormat.VipsTiff
+
+  make a branch for this, seems like a big change
+
+
+
+  maybe keep the current structure, but just make VipsFormat & subclasses
+  instantiable?
+
+
+
+
+
 
 - transform_g_string_array_image() can't handle quoted strings, so filenames
   with spaces will break

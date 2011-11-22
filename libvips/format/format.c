@@ -46,6 +46,7 @@
  *
  * VIPS has a simple system for representing image load and save operations in
  * a generic way.
+ *
  * You can ask for a loader for a certain file or select a saver based on a
  * filename. Once you have found a format, you can use it to load a file of
  * that type, save an image to a file of that type, query files for their type
@@ -54,7 +55,7 @@
  *
  * If you define a new format, support for
  * it automatically appears in all VIPS user-interfaces. It will also be
- * transparently supported by im_open().
+ * transparently supported by vips_image_new_from_file() and friends.
  *
  * VIPS comes with VipsFormat for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
  * Matlab, Radiance, RAW, VIPS and one that wraps libMagick. 
@@ -73,14 +74,13 @@
  *
  * @VIPS_FORMAT_BIGENDIAN means that image pixels are most-significant byte
  * first. Depending on the native byte order of the host machine, you may
- * need to swap bytes. See im_copy_swap().
+ * need to swap bytes. See copy_swap().
  */
 
 /**
  * VipsFormat:
  *
- * Actually, we never make %VipsFormat objects, we just use virtual methods on
- * the class object. It is defined as:
+ * #VipsFormat has these virtual methods:
  *
  * |[
  * typedef struct _VipsFormatClass {
@@ -114,12 +114,13 @@
  * header() This function should load the image header,
  * but not load any pixel data. If you don't define it, VIPS will use your
  * load() method instead. Return 0 for success, -1 for error, setting
- * im_error().
+ * vips_error().
  *     </para>
  *   </listitem>
  *   <listitem>
  *     <para>
- * load() This function should load the image, or perhaps use im_generate() to
+ * load() This function should load the image, or perhaps use 
+ * vips_image_generate() to
  * attach something to load sections of the image on demand. 
  * Users can embed
  * load options in the filename, see (for example) im_jpeg2vips().
@@ -253,12 +254,12 @@ format_compare( VipsFormatClass *a, VipsFormatClass *b )
  * it returns non-%NULL, iteration terminates and that value is returned. The
  * map function returns %NULL if all calls return %NULL.
  *
- * See also: im_slist_map().
+ * See also: vips_slist_map().
  *
  * Returns: the result of iteration
  */
 void *
-vips_format_map( VSListMap2Fn fn, void *a, void *b )
+vips_format_map( VipsSListMap2Fn fn, void *a, void *b )
 {
 	GSList *formats;
 	void *result;
@@ -268,7 +269,7 @@ vips_format_map( VSListMap2Fn fn, void *a, void *b )
 		(VipsClassMapFn) format_add_class, (void *) &formats );
 
 	formats = g_slist_sort( formats, (GCompareFunc) format_compare );
-	result = im_slist_map2( formats, fn, a, b );
+	result = vips_slist_map2( formats, fn, a, b );
 	g_slist_free( formats );
 
 	return( result );
@@ -346,12 +347,12 @@ vips_format_get_flags( VipsFormatClass *format, const char *filename )
 
 static const char *vips_suffs[] = { ".v", NULL };
 
-int
-im_isvips( const char *filename )
+static int
+isvips( const char *filename )
 {
 	unsigned char buf[4];
 
-	if( im__get_bytes( filename, buf, 4 ) ) {
+	if( vips__get_bytes( filename, buf, 4 ) ) {
 		if( buf[0] == 0x08 && buf[1] == 0xf2 &&
 			buf[2] == 0xa6 && buf[3] == 0xb6 )
 			/* SPARC-order VIPS image.
@@ -368,25 +369,17 @@ im_isvips( const char *filename )
 }
 
 static int
-file2vips( const char *filename, IMAGE *out )
+file2vips( const char *filename, VipsImage *out )
 {
-	IMAGE *im;
+	VipsImage *t;
 
-	if( !(im = im_open_local( out, filename, "r" )) ||
-		im_copy( im, out ) )
+	if( !(t = vips_image_new_from_file( filename )) )
 		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips2file( IMAGE *im, const char *filename )
-{
-	IMAGE *out;
-
-	if( !(out = im_open_local( im, filename, "w" )) ||
-		im_copy( im, out ) )
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
 		return( -1 );
+	}
+	g_object_unref( t );
 
 	return( 0 );
 }
@@ -399,7 +392,7 @@ vips_flags( const char *filename )
 
 	flags = VIPS_FORMAT_PARTIAL;
 
-	if( im__get_bytes( filename, buf, 4 ) &&
+	if( vips__get_bytes( filename, buf, 4 ) &&
 		buf[0] == 0x08 && 
 		buf[1] == 0xf2 &&
 		buf[2] == 0xa6 && 
@@ -423,10 +416,10 @@ vips_format_vips_class_init( VipsFormatVipsClass *class )
 	object_class->nickname = "vips";
 	object_class->description = _( "VIPS" );
 
-	format_class->is_a = im_isvips;
+	format_class->is_a = isvips;
 	format_class->header = file2vips;
 	format_class->load = file2vips;
-	format_class->save = vips2file;
+	format_class->save = vips_image_write_to_file;
 	format_class->get_flags = vips_flags;
 	format_class->suffs = vips_suffs;
 }
@@ -441,7 +434,7 @@ G_DEFINE_TYPE( VipsFormatVips, vips_format_vips, VIPS_TYPE_FORMAT );
 /* Called on startup: register the base vips formats.
  */
 void
-im__format_init( void )
+vips__format_init( void )
 {
 	extern GType vips_format_csv_get_type();
 	extern GType vips_format_ppm_get_type();
@@ -493,7 +486,7 @@ format_for_file_sub( VipsFormatClass *format,
 		if( format->is_a( filename ) ) 
 			return( format );
 	}
-	else if( im_filename_suffix_match( filename, format->suffs ) )
+	else if( vips_filename_suffix_match( filename, format->suffs ) )
 		return( format );
 
 	return( NULL );
@@ -519,17 +512,17 @@ vips_format_for_file( const char *filename )
 	/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
 	 * etc.
 	 */
-	im_filename_split( filename, name, options );
+	vips_filename_split( filename, name, options );
 
-	if( !im_existsf( "%s", name ) ) {
-		im_error( "VipsFormat", _( "file \"%s\" not found" ), name );
+	if( !vips_existsf( "%s", name ) ) {
+		vips_error( "VipsFormat", _( "file \"%s\" not found" ), name );
 		return( NULL );
 	}
 
 	if( !(format = (VipsFormatClass *) vips_format_map( 
-		(VSListMap2Fn) format_for_file_sub, 
+		(VipsSListMap2Fn) format_for_file_sub, 
 		(void *) filename, (void *) name )) ) {
-		im_error( "VipsFormat", 
+		vips_error( "VipsFormat", 
 			_( "file \"%s\" not a known format" ), name );
 		return( NULL );
 	}
@@ -544,7 +537,7 @@ static void *
 format_for_name_sub( VipsFormatClass *format, const char *name )
 {
 	if( format->save &&
-		im_filename_suffix_match( name, format->suffs ) )
+		vips_filename_suffix_match( name, format->suffs ) )
 		return( format );
 
 	return( NULL );
@@ -566,9 +559,9 @@ vips_format_for_name( const char *filename )
 	VipsFormatClass *format;
 
 	if( !(format = (VipsFormatClass *) vips_format_map( 
-		(VSListMap2Fn) format_for_name_sub, 
+		(VipsSListMap2Fn) format_for_name_sub, 
 		(void *) filename, NULL )) ) {
-		im_error( "VipsFormat",
+		vips_error( "VipsFormat",
 			_( "\"%s\" is not a supported image format." ), 
 			filename );
 
