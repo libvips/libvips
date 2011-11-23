@@ -68,23 +68,14 @@ G_DEFINE_TYPE( VipsRound, vips_round, VIPS_TYPE_UNARY );
 static int
 vips_round_build( VipsObject *object )
 {
-	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsUnary *unary = (VipsUnary *) object;
 
-	/* Is this one of the int types? Degenerate to im_copy() if it
+	/* Is this one of the int types? Degenerate to vips_copy() if it
 	 * is.
 	 */
 	if( unary->in &&
-		vips_bandfmt_isint( unary->in->BandFmt ) ) {
-		/* This isn't set by arith until build(), so we have to set
-		 * again here.
-		 *
-		 * Should arith set out in _init()?
-		 */
-		g_object_set( arithmetic, "out", vips_image_new(), NULL ); 
-
-		return( vips_image_write( unary->in, arithmetic->out ) );
-	}
+		vips_bandfmt_isint( unary->in->BandFmt ) ) 
+		return( vips_unary_copy( unary ) ); 
 
 	if( VIPS_OBJECT_CLASS( vips_round_parent_class )->build( object ) )
 		return( -1 );

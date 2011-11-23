@@ -85,6 +85,8 @@ typedef struct _VipsBandaryClass {
 
 GType vips_bandary_get_type( void );
 
+int vips_bandary_copy( VipsBandary *bandary );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

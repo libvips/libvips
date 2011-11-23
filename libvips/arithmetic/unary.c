@@ -97,3 +97,21 @@ vips_unary_init( VipsUnary *unary )
 	/* Init our instance fields.
 	 */
 }
+
+/* Call this before chaining up in _build() to make the operation fall back to
+ * copy.
+ */
+int
+vips_unary_copy( VipsUnary *unary )
+{
+	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( unary );
+
+	/* This isn't set by arith until build(), so we have to set
+	 * again here.
+	 *
+	 * Should arith set out in _init()?
+	 */
+	g_object_set( unary, "out", vips_image_new(), NULL ); 
+
+	return( vips_image_write( unary->in, arithmetic->out ) );
+}

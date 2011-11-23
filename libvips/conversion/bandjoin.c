@@ -123,7 +123,6 @@ vips_bandjoin_buffer( VipsBandary *bandary, PEL *q, PEL **p, int width )
 static int
 vips_bandjoin_build( VipsObject *object )
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsBandary *bandary = (VipsBandary *) object;
 	VipsBandjoin *bandjoin = (VipsBandjoin *) object;
 
@@ -131,14 +130,8 @@ vips_bandjoin_build( VipsObject *object )
 		bandary->in = bandjoin->in->data;
 		bandary->n = bandjoin->in->n;
 
-		if( bandary->n == 1 ) {
-			g_object_set( conversion, 
-				"out", vips_image_new(), 
-				NULL ); 
-
-			return( vips_image_write( bandary->in[0], 
-				conversion->out ) );
-		}
+		if( bandary->n == 1 ) 
+			return( vips_bandary_copy( bandary ) );
 		else {
 			int i;
 

@@ -77,20 +77,11 @@ G_DEFINE_TYPE( VipsAbs, vips_abs, VIPS_TYPE_UNARY );
 static int
 vips_abs_build( VipsObject *object )
 {
-	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsUnary *unary = (VipsUnary *) object;
 
 	if( unary->in &&
-		vips_band_format_isuint( unary->in->BandFmt ) ) {
-		/* This isn't set by arith until build(), so we have to set
-		 * again here.
-		 *
-		 * Should arith set out in _init()?
-		 */
-		g_object_set( arithmetic, "out", vips_image_new(), NULL ); 
-
-		return( vips_image_write( unary->in, arithmetic->out ) );
-	}
+		vips_band_format_isuint( unary->in->BandFmt ) ) 
+		return( vips_unary_copy( unary ) ); 
 
 	if( VIPS_OBJECT_CLASS( vips_abs_parent_class )->build( object ) )
 		return( -1 );

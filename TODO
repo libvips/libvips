@@ -1,44 +1,3 @@
-- move recomb to bandary?
-
-
-
-- transform_g_string_array_image() can't handle quoted strings, so filenames
-  with spaces will break
-
-  is there an easy fix? can we reuse code from the csv parser?
-
-
-
-
-- test docs
-
-  gtk-doc can't introspect to generate class docs since it has no way to init
-  the classes ... investigate
-
-
-
-
-- try an area operation, like conv, VipsArea? oops no haha what name should we
-  use?
-
-
-
-- test _O_TEMPORARY thing on Windows
-
-
-
-- avg/dev etc. should uncode images? eg. labq2lab etc.
-
-  how about ifthenelse? 
-
-
-
-- see: vips_abs_build(), should that set an arithmetic member? ugly
-
-  same code in round.c
-
-
-
 - vipsimage should be cached too, eg.
 
 	VipsImage *a = vips_image_new_from_file( "poop.jpg" );
@@ -84,6 +43,43 @@
 
   how does save work? we call image-class->output_to_arg(obj, str), which in
   turn calls vips_image_write(), which in turn uses VipsFormat
+
+
+
+
+
+- transform_g_string_array_image() can't handle quoted strings, so filenames
+  with spaces will break
+
+  is there an easy fix? can we reuse code from the csv parser?
+
+  the csv parser just parses FILE* streams, we'd need to break it out
+
+
+
+
+- test docs
+
+  gtk-doc can't introspect to generate class docs since it has no way to init
+  the classes ... investigate
+
+
+
+
+- try an area operation, like conv, VipsArea? oops no haha what name should we
+  use?
+
+
+
+- test _O_TEMPORARY thing on Windows
+
+
+
+- avg/dev etc. should uncode images? eg. labq2lab etc.
+
+  how about ifthenelse? 
+
+
 
 
 
