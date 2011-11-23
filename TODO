@@ -1,9 +1,5 @@
-- do we need separate classes for load and save?
-
-  tiff, for example, will need different props for load and save operations
-
-  since they are optional I guess we could combine them
-
+- we need loaders to be able to directly write to an image with no copy
+  operation
 
 
 

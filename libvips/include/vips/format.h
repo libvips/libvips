@@ -134,20 +134,11 @@ typedef struct _VipsFormatLoadClass {
 	 */
 	VipsFormatFlags (*get_flags)( VipsFormatLoad * );
 
-	/* Load just the header.
-	 */
-	int (*header)( VipsFormatLoad * );
-
-	/* Load the whole image.
-	 */
-	int (*load)( VipsFormatLoad * );
-
 } VipsFormatLoadClass;
 
 GType vips_format_load_get_type( void );
 
-VipsFormatFlags vips_format_get_flags( VipsFormatClass *format, 
-	const char *filename );
+VipsFormatLoad *vips_format_load_new_from_file( const char *filename );
 
 VipsFormatLoad *vips_format_for_file( const char *filename );
 
@@ -170,6 +161,10 @@ typedef struct _VipsFormatSave {
 	VipsFormat parent_object;
 	/*< public >*/
 
+	/* The image we are to save.
+	 */
+	VipsImage *in;
+
 } VipsFormatSave;
 
 typedef struct _VipsFormatSaveClass {
@@ -177,15 +172,11 @@ typedef struct _VipsFormatSaveClass {
 
 	/*< public >*/
 
-	/* Write the VipsImage to the file in this format.
-	 */
-	int (*save)( VipsImage * );
-
 } VipsFormatSaveClass;
 
 GType vips_format_save_get_type( void );
 
-VipsFormatSave *vips_format_for_name( const char *filename );
+VipsFormatSave *vips_format_save_new_from_filename( const char *filename )
 
 /* Read/write an image convenience functions.
  */

@@ -314,6 +314,13 @@ vips_format_class_init( VipsFormatClass *class )
 	object_class->nickname = "format";
 	object_class->description = _( "file format support" );
 	object_class->print_class = vips_format_print_class;
+
+	VIPS_ARG_STRING( class, "filename", 12, 
+		_( "Filename" ),
+		_( "Format filename" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsFormat, filename ),
+		NULL );
 }
 
 static void
@@ -344,6 +351,21 @@ vips_format_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 		vips_buf_appends( buf, "get_flags " );
 }
 
+static int
+vips_format_load_build( VipsObject *object )
+{
+	VipsFormat *format = VIPS_FORMAT( object );
+	VipsFormatLoad *load = VIPS_FORMAT_LOAD( object );
+
+	g_object_set( object, "out", vips_image_new(), NULL ); 
+
+	if( VIPS_OBJECT_CLASS( vips_format_load_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static void
 vips_format_load_class_init( VipsFormatLoadClass *class )
 {
@@ -352,11 +374,87 @@ vips_format_load_class_init( VipsFormatLoadClass *class )
 	object_class->nickname = "formatload";
 	object_class->description = _( "format loaders" );
 	object_class->print_class = vips_format_load_print_class;
+	object_class->build = vips_format_load_build;
+
+	VIPS_ARG_ENUM( class, "flags", 6, 
+		_( "Flags" ), 
+		_( "Flags for this format" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsFormatLoad, flags ),
+		VIPS_TYPE_FORMAT_FLAGS, VIPS_FORMAT_NONE ); 
+
+	VIPS_ARG_IMAGE( class, "out", 1, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsFormatLoad, out ) );
+
 }
 
 static void
 vips_format_load_init( VipsFormatLoad *object )
 {
+}
+
+/* Can this format open this file?
+ */
+static void *
+vips_format_load_new_from_file_sub( VipsFormatLoadClass *load_class, 
+	const char *filename )
+{
+	if( load_class->is_a ) {
+		if( load_class->is_a( filename ) ) 
+			return( load_class );
+	}
+	else if( vips_filename_suffix_match( filename, load_class->suffs ) )
+		return( load_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_format_load_new_from_file:
+ * @filename: file to find a format for
+ *
+ * Searches for a format you could use to load a file. Set some more options
+ * after this, then call _build() to actually load in the file.
+ *
+ * See also: vips_format_read(), vips_format_for_name().
+ *
+ * Returns: a format on success, %NULL on error
+ */
+VipsFormatLoad *
+vips_format_load_new_from_file( const char *filename )
+{
+	VipsFormatLoadClass *load_class;
+	VipsFormatLoad *load;
+
+	if( !vips_existsf( "%s", filename ) ) {
+		vips_error( "VipsFormatLoad", 
+			_( "file \"%s\" not found" ), filename );
+		return( NULL );
+	}
+
+	if( !(load_class = (VipsFormatLoadClass *) vips_format_map( 
+		"VipsFormatLoad",
+		(VipsSListMap2Fn) vips_format_load_new_from_file_sub, 
+		(void *) filename, NULL )) ) {
+		vips_error( "VipsFormatLoad", 
+			_( "file \"%s\" not a known format" ), name );
+		return( NULL );
+	}
+
+	load = VIPS_FORMAT_LOAD( 
+		g_object_new( G_TYPE_FROM_CLASS( load_class ), NULL ) );
+
+	/* May as well set flags here, should be quick.
+	 */
+	if( load_class->get_flags )
+		g_object_set( load,
+			"flags", load_class->get_flags( load ),
+			NULL );
+
+	return( load );
 }
 
 /* Abstract base class for image savers.
@@ -365,49 +463,145 @@ vips_format_load_init( VipsFormatLoad *object )
 G_DEFINE_ABSTRACT_TYPE( VipsFormatSave, vips_format_save, VIPS_TYPE_FORMAT );
 
 static void
-vips_format_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_format_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
-	VipsFormatClass *class = VIPS_FORMAT_CLASS( object_class );
+	VipsFormatSaveClass *class = VIPS_FORMAT_SAVE_CLASS( object_class );
 	const char **p;
 
-	VIPS_OBJECT_CLASS( vips_format_parent_class )->
+	VIPS_OBJECT_CLASS( vips_format_save_parent_class )->
 		print_class( object_class, buf );
 	vips_buf_appends( buf, ", " );
 
-	if( class->suffs ) {
-		vips_buf_appends( buf, "(" );
-		for( p = class->suffs; *p; p++ ) {
-			vips_buf_appendf( buf, "%s", *p );
-			if( p[1] )
-				vips_buf_appends( buf, ", " );
-		}
-		vips_buf_appends( buf, ") " );
-	}
-
-	if( class->is_a )
-		vips_buf_appends( buf, "is_a " );
-
-	if( class->header )
-		vips_buf_appends( buf, "header " );
-	if( class->load )
-		vips_buf_appends( buf, "load " );
 	if( class->save )
 		vips_buf_appends( buf, "save " );
-	if( class->get_flags )
-		vips_buf_appends( buf, "get_flags " );
+}
+
+static int
+vips_format_save_build( VipsObject *object )
+{
+	VipsFormat *format = VIPS_FORMAT( object );
+	VipsFormatSave *save = VIPS_FORMAT_SAVE( object );
+
+	if( VIPS_OBJECT_CLASS( vips_format_save_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 static void
-vips_format_class_init( VipsFormatClass *class )
+vips_format_save_class_init( VipsFormatSaveClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
-	object_class->nickname = "format";
-	object_class->description = _( "VIPS file formats" );
-	object_class->print_class = vips_format_print_class;
+	object_class->nickname = "formatsave";
+	object_class->description = _( "format savers" );
+	object_class->print_class = vips_format_save_print_class;
+	object_class->build = vips_format_save_build;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Image to save" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsFormatSave, in ) );
 }
 
 static void
-vips_format_init( VipsFormat *object )
+vips_format_save_init( VipsFormat *object )
 {
 }
+
+/* Can we write this filename with this format? 
+ */
+static void *
+vips_format_save_new_from_filename_sub( VipsFormatSaveClass *save_class, 
+	const char *filename )
+{
+	VipsFormatClass *format = VIPS_FORMAT_CLASS( save_class );
+
+	if( save_class->save &&
+		vips_filename_suffix_match( filename, format->suffs ) )
+		return( save_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_format_save_new_from_filename:
+ * @filename: name to find a format for
+ *
+ * Searches for a format you could use to save a file.
+ *
+ * See also: vips_format_write(), vips_format_for_file().
+ *
+ * Returns: a format on success, %NULL on error
+ */
+VipsFormatSave *
+vips_format_save_new_from_filename( const char *filename )
+{
+	VipsFormatSaveClass *save_class;
+	VipsFormatSave *save;
+
+	if( !(save_class = (VipsFormatSaveClass *) vips_format_map( 
+		"VipsFormatSave",
+		(VipsSListMap2Fn) vips_format_save_new_from_filename_sub, 
+		(void *) filename, NULL )) ) {
+		vips_error( "VipsFormatSave",
+			_( "\"%s\" is not a supported image format." ), 
+			filename );
+
+		return( NULL );
+	}
+
+	save = VIPS_FORMAT_SAVE( 
+		g_object_new( G_TYPE_FROM_CLASS( save_class ), NULL ) );
+
+	return( save );
+}
+
+/**
+ * vips_format_read:
+ * @filename: file to load
+ * @out: write the file to this image
+ *
+ * Searches for a format for this file, then loads the file into @out.
+ *
+ * See also: vips_format_write().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_format_read( const char *filename, VipsImage *out )
+{
+	VipsFormatLoad *load;
+
+	if( !(load = vips_format_load_new_from_file( filename )) )
+		return( -1 );
+	g_object_unref( load );
+
+	return( 0 );
+}
+
+/**
+ * vips_format_write:
+ * @in: image to write
+ * @filename: file to write to
+ *
+ * Searches for a format for this name, then saves @im to it.
+ *
+ * See also: vips_format_read().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_format_write( IMAGE *in, const char *filename )
+{
+	VipsFormatClass *format;
+
+	if( !(format = vips_format_for_name( filename )) || 
+		format->save( in, filename ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
