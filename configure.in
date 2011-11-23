@@ -635,6 +635,7 @@ AC_OUTPUT([
 	libvips/convolution/Makefile 
 	libvips/deprecated/Makefile 
 	libvips/format/Makefile 
+	libvips/file/Makefile 
 	libvips/freq_filt/Makefile 
 	libvips/histograms_lut/Makefile 
 	libvips/inplace/Makefile 

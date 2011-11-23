@@ -10,6 +10,7 @@ C_LIB =
 endif
 
 SUBDIRS = \
+	file \
 	include \
 	arithmetic \
 	resample \
@@ -52,6 +53,7 @@ libvips_la_LIBADD = \
 	deprecated/libdeprecated.la \
 	$(C_LIB) \
 	format/libformat.la \
+	file/libfile.la \
 	freq_filt/libfreq_filt.la \
 	histograms_lut/libhistograms_lut.la \
 	inplace/libinplace.la \

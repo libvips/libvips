@@ -1,6 +1,12 @@
 - we need loaders to be able to directly write to an image with no copy
   operation
 
+- format should be a subclass of operation
+
+- rename format as VipsFile? move format to deprecated, only way to keep
+  compat
+
+
 
 
 - vipsimage should be cached too, eg.

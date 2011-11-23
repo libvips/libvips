@@ -108,6 +108,7 @@ extern "C" {
 #include <vips/image.h>
 #include <vips/memory.h>
 #include <vips/error.h>
+#include <vips/file.h>
 #include <vips/format.h>
 #include <vips/region.h>
 #include <vips/generate.h>

@@ -14,6 +14,7 @@ pkginclude_HEADERS = \
 	error.h \
 	operation.h \
 	format.h \
+	file.h \
 	inplace.h \
 	generate.h \
 	header.h \
