@@ -67,7 +67,7 @@
  * GIMP (Gnu Image Manipulation Program).
  *
  * Nohalo with LBB finishing scheme was developed by N. Robidoux and
- * C. Racette of the Department of Mathematics and Computer Science of
+ * C. Racette at the Department of Mathematics and Computer Science of
  * Laurentian University in the course of C. Racette's Masters thesis
  * in Computational Sciences. Preliminary work on Nohalo and monotone
  * interpolation was performed by C. Racette and N. Robidoux in the
@@ -106,7 +106,7 @@
 #ifndef __NOHALO_CHEAP_H__
 #define __NOHALO_CHEAP_H__
 #endif
-*/
+ */
 
 /*
  * ================
