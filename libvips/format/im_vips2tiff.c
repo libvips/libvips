@@ -121,6 +121,8 @@
  * 	  output directory
  * 5/9/11
  * 	- enable YCbCr compression for jpeg write
+ * 23/11/11
+ * 	- set reduced-resolution subfile type on pyramid layers
  */
 
 /*
@@ -567,6 +569,11 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 	}
 	else
 		TIFFSetField( tif, TIFFTAG_ROWSPERSTRIP, 16 );
+	if( tif != tw->tif ) {
+		/* Pyramid layer.
+		 */
+		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_REDUCEDIMAGE );
+	}
 
 	/* Sample format ... for float, we write IEEE.
 	 */
@@ -1465,6 +1472,7 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_TILEWIDTH, i32 );
 	CopyField( TIFFTAG_TILELENGTH, i32 );
 	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );
+	CopyField( TIFFTAG_SUBFILETYPE, i32 );
 
 	if( tw->predictor != -1 ) 
 		TIFFSetField( out, TIFFTAG_PREDICTOR, tw->predictor );
