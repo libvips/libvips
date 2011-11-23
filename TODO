@@ -1,3 +1,12 @@
+- do we need separate classes for load and save?
+
+  tiff, for example, will need different props for load and save operations
+
+  since they are optional I guess we could combine them
+
+
+
+
 - vipsimage should be cached too, eg.
 
 	VipsImage *a = vips_image_new_from_file( "poop.jpg" );
