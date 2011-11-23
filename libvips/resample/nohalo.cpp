@@ -46,7 +46,7 @@
  * 2009-2010 (c) Nicolas Robidoux, Chantal Racette, John Cupitt and
  * Adam Turcotte
  *
- * Nicolas Robidoux thanks Geert Jordaens, Ralf Meyer, Øyvind Kolås,
+ * N. Robidoux thanks Geert Jordaens, Ralf Meyer, Øyvind Kolås,
  * Minglun Gong, Eric Daoust and Sven Neumann for useful comments and
  * code.
  *
@@ -54,24 +54,27 @@
  * (National Science and Engineering Research Council of Canada)
  * Discovery Grant awarded to him (298424--2004).
  *
- * Chantal Racette's image resampling research and programming funded
- * in part by a NSERC Discovery Grant awarded to Julien Dompierre
- * (20-61098).
+ * C. Racette's image resampling research and programming funded in
+ * part by an NSERC (National Science and Engineering Research Council
+ * of Canada) Alexander Graham Bell Canada Graduate Scholarship, by an
+ * NSERC Discovery Grant awarded to Julien Dompierre (grant number
+ * 20-61098) and by N. Robidoux's Laurentian University professional
+ * allowance.
  *
  * A. Turcotte's image resampling research on reduced halo funded in
  * part by an NSERC Alexander Graham Bell Canada Graduate Scholarhip
  * awarded to him and by a Google Summer of Code 2010 award awarded to
  * GIMP (Gnu Image Manipulation Program).
  *
- * Nohalo with LBB finishing scheme was developed by Nicolas Robidoux
- * and Chantal Racette of the Department of Mathematics and Computer
- * Science of Laurentian University in the course of C. Racette's
- * Masters thesis in Computational Sciences. Preliminary work on
- * Nohalo and monotone interpolation was performed by C. Racette and
- * N. Robidoux in the course of her honours thesis, by N. Robidoux,
- * A. Turcotte and E. Daoust during Google Summer of Code 2009
- * (through two awards made to GIMP to improve GEGL), and, earlier, by
- * N. Robidoux, A. Turcotte, J. Cupitt, M. Gong and K. Martinez.
+ * Nohalo with LBB finishing scheme was developed by N. Robidoux and
+ * C. Racette at the Department of Mathematics and Computer Science of
+ * Laurentian University in the course of C. Racette's Masters thesis
+ * in Computational Sciences. Preliminary work on Nohalo and monotone
+ * interpolation was performed by C. Racette and N. Robidoux in the
+ * course of her honours thesis, by N. Robidoux, A. Turcotte and
+ * E. Daoust during Google Summer of Code 2009 (through two awards
+ * made to GIMP to improve GEGL), and, earlier, by N. Robidoux,
+ * A. Turcotte, J. Cupitt, M. Gong and K. Martinez.
  */
 
 /*
@@ -100,10 +103,6 @@
  */
 
 /*
-
-   	commented out 24/2/10, nohalo gets a bit better without it, though 
-	not lbb
-
 #ifndef __NOHALO_CHEAP_H__
 #define __NOHALO_CHEAP_H__
 #endif
@@ -306,6 +305,9 @@ typedef struct _VipsInterpolateNohaloClass {
 #define NOHALO_MINMOD(a,b,a_times_a,a_times_b) \
   ( ( (a_times_b)>=0. ) ? ( (a_times_a)<=(a_times_b) ? (a) : (b) ) : 0. )
 
+/*
+ * Absolute value and sign macros:
+ */
 #define NOHALO_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
 #define NOHALO_SIGN(x) ( ((x)>=0.) ? 1.  : -1.  )
 
@@ -692,10 +694,9 @@ nohalo_subdivision (const double           uno_two,
  * final clamping is needed to stay "in range" (e.g., 0-255 for
  * standard 8-bit images).
  *
- * LBB was developed by Nicolas Robidoux and Chantal Racette of the
- * Department of Mathematics and Computer Science of Laurentian
- * University in the course of Chantal's Masters Thesis in
- * Computational Sciences.
+ * LBB was developed by N. Robidoux and C. Racette of the Department
+ * of Mathematics and Computer Science of Laurentian University in the
+ * course of C.'s Masters Thesis in Computational Sciences.
  */
 
 /*

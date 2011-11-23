@@ -3,6 +3,8 @@
  * N. Robidoux, C. Racette and J. Cupitt, 23-28/03/2010
  *
  * N. Robidoux, 16-19/05/2010
+ *
+ * N. Robidoux, 22/11/2011
  */
 
 /*
@@ -35,13 +37,16 @@
 /*
  * 2010 (c) Nicolas Robidoux, Chantal Racette, John Cupitt.
  *
- * Nicolas Robidoux thanks Adam Turcotte, Geert Jordaens, Ralf Meyer,
+ * N. Robidoux thanks Adam Turcotte, Geert Jordaens, Ralf Meyer,
  * Øyvind Kolås, Minglun Gong, Eric Daoust and Sven Neumann for useful
  * comments and code.
  *
- * Chantal Racette's image resampling research and programming funded
- * in part by a NSERC Discovery Grant awarded to Julien Dompierre
- * (20-61098).
+ * C. Racette's image resampling research and programming funded in
+ * part by an NSERC (National Science and Engineering Research Council
+ * of Canada) Alexander Graham Bell Canada Graduate Scholarship, by an
+ * NSERC Discovery Grant awarded to Julien Dompierre (grant number
+ * 20-61098) and by N. Robidoux's Laurentian University professional
+ * allowance.
  */
 
 /*
@@ -53,21 +58,21 @@
  *
  *   A "sharp" version, which shows a little more staircasing and a
  *   little less haloing, which is a little cheaper (it uses 6 less
- *   comparisons and 12 less "? :"), and which appears to lead to less
- *   "zebra striping" when two diagonal interfaces are close to each
- *   other.
+ *   comparisons and 12 less "? :").
  *
  * The only difference between the two is that the "soft" versions
  * uses local minima and maxima computed over 3x3 square blocks, and
  * the "sharp" version uses local minima and maxima computed over 3x3
  * crosses.
  *
- * If you want to use the "soft" (more expensive) version, comment out
- * the following three pre-processor code lines:
+ * If you want to use the "sharp" version, comment out the following
+ * three pre-processor code lines:
  */
+/*
 #ifndef __LBB_CHEAP_H__
 #define __LBB_CHEAP_H__
 #endif
+*/
 
 /*
  * LBB (Locally Bounded Bicubic) is a high quality nonlinear variant
@@ -83,14 +88,14 @@
  * final clamping is needed to stay "in range" (e.g., 0-255 for
  * standard 8-bit images).
  *
- * LBB was developed by Nicolas Robidoux and Chantal Racette of the
- * Department of Mathematics and Computer Science of Laurentian
- * University in the course of C. Racette's Masters thesis in
- * Computational Sciences. Preliminary work directly leading to the
- * LBB method and code was performed by C. Racette and N. Robidoux in
- * the course of her honours thesis, and by N. Robidoux, A. Turcotte
- * and E. Daoust during Google Summer of Code 2009 (through two awards
- * made to GIMP to improve GEGL).
+ * LBB was developed by N. Robidoux and C. Racette at the Department
+ * of Mathematics and Computer Science of Laurentian University in the
+ * course of C. Racette's Masters thesis in Computational
+ * Sciences. Preliminary work directly leading to the LBB method and
+ * code was performed by C. Racette and N. Robidoux in the course of
+ * her honours thesis, and by N. Robidoux, A. Turcotte and E. Daoust
+ * during Google Summer of Code 2009 (through two awards made to GIMP
+ * to improve GEGL).
  *
  * LBB is a novel method with the following properties:
  *
@@ -186,6 +191,9 @@ typedef struct _VipsInterpolateLbbClass {
 
 } VipsInterpolateLbbClass;
 
+/*
+ * Absolute value and sign macros:
+ */
 #define LBB_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
 #define LBB_SIGN(x) ( ((x)>=0.) ? 1.0 : -1.0 )
 /*
@@ -258,6 +266,9 @@ lbbicubic( const double c00,
    * sub-crosses of the 4x4 input stencil, performed with only 22
    * comparisons and 28 "? :". If you can figure out how to do this
    * more efficiently, let us know.
+   *
+   * This is the cheaper (but arguably less desirable in terms of
+   * quality) version of the computation.
    */
   const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
   const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
