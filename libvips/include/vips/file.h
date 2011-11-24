@@ -28,8 +28,8 @@
 
  */
 
-#ifndef IM_FILE_H
-#define IM_FILE_H
+#ifndef VIPS_FILE_H
+#define VIPS_FILE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,13 +64,6 @@ typedef struct _VipsFileClass {
 	VipsOperationClass parent_class;
 
 	/*< public >*/
-	/* Is a file in this file.
-	 */
-	gboolean (*is_a)( const char * );
-
-	/* Null-terminated list of allowed suffixes, eg. ".tif", ".tiff".
-	 */
-	const char **suffs;
 
 	/* Loop over files in this order, default 0. We need this because
 	 * some files can be read by several loaders (eg. tiff can be read
@@ -79,6 +72,11 @@ typedef struct _VipsFileClass {
 	 */
 	int priority;
 
+	/* Null-terminated list of recommended suffixes, eg. ".tif", ".tiff".
+	 * This is used by both load and save, so it's in the base class.
+	 */
+	const char **suffs;
+
 } VipsFileClass;
 
 GType vips_file_get_type( void );
@@ -86,7 +84,7 @@ GType vips_file_get_type( void );
 /* Map over and find files. This uses type introspection to loop over
  * subclasses of VipsFile.
  */
-void *vips_file_map( VipsSListMap2Fn fn, void *a, void *b );
+void *vips_file_map( const char *base, VipsSListMap2Fn fn, void *a, void *b );
 
 #define VIPS_TYPE_FILE_LOAD (vips_file_load_get_type())
 #define VIPS_FILE_LOAD( obj ) \
@@ -115,13 +113,21 @@ typedef struct _VipsFileLoad {
 	VipsFile parent_object;
 	/*< public >*/
 
+	/* Open to memory (default is to open via disc).
+	 */
+	gboolean memory;
+
 	/* Flags read from the file.
 	 */
 	VipsFileFlags flags;
 
-	/* The image we've loaded.
+	/* The image we generate.
 	 */
 	VipsImage *out;
+
+	/* The behind-the-scenes real image we decompress to.
+	 */
+	VipsImage *real;
 
 } VipsFileLoad;
 
@@ -130,17 +136,27 @@ typedef struct _VipsFileLoadClass {
 
 	/*< public >*/
 
+	/* Is a file in this format.
+	 */
+	gboolean (*is_a)( const char * );
+
 	/* Get the flags for this file in this file.
 	 */
 	VipsFileFlags (*get_flags)( VipsFileLoad * );
+
+	/* Read the header into @out.
+	 */
+	int (*header)( VipsFileLoad * );
+
+	/* Read the whole image into @out.
+	 */
+	int (*load)( VipsFileLoad * );
 
 } VipsFileLoadClass;
 
 GType vips_file_load_get_type( void );
 
-VipsFileLoad *vips_file_load_new_from_file( const char *filename );
-
-VipsFileLoad *vips_file_for_file( const char *filename );
+const char *vips_file_find_load( const char *filename );
 
 #define VIPS_TYPE_FILE_SAVE (vips_file_save_get_type())
 #define VIPS_FILE_SAVE( obj ) \
@@ -176,21 +192,15 @@ typedef struct _VipsFileSaveClass {
 
 GType vips_file_save_get_type( void );
 
-VipsFileSave *vips_file_save_new_from_filename( const char *filename )
+const char *vips_file_find_save( const char *filename );
 
 /* Read/write an image convenience functions.
  */
-int vips_file_read( const char *filename, VipsImage *out );
-int vips_file_write( VipsImage *in, const char *filename );
-
-
-
-
-
-
+int vips_file_read( const char *filename, VipsImage **out, ... );
+int vips_file_write( VipsImage *in, const char *filename, ... );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_FILE_H*/
+#endif /*VIPS_FILE_H*/

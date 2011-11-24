@@ -1,9 +1,6 @@
-- move all the haeder / lazy load / lazy save stuff from image.c into file.c
+- file.c has lazy open stuff in, needs work though
 
-  can common up a lot of load/save from the *2vips.c etc. into FileLoad,
-  hopefully
-
-  format from name should retur a char*, a recommended load operation
+  how do we handle loaders that don't need to be lazy (eg. tiled tiff load)
 
 
 

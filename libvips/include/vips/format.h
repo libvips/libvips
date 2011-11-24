@@ -50,13 +50,20 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_FORMAT, VipsFormatClass ))
 
+/* Image file properties. 
+ */
+typedef enum {
+	VIPS_FORMAT_NONE = 0,		/* No flags set */
+	VIPS_FORMAT_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
+	VIPS_FORMAT_BIGENDIAN = 2	/* Most-significant byte first */
+} VipsFormatFlags;
+
+/* Don't instantiate these things, just use the class stuff.
+ */
+
 typedef struct _VipsFormat {
 	VipsObject parent_object;
 	/*< public >*/
-
-	/* Filename for load or save.
-	 */
-	char *filename; 
 
 } VipsFormat;
 
@@ -68,9 +75,21 @@ typedef struct _VipsFormatClass {
 	 */
 	gboolean (*is_a)( const char * );
 
-	/* Null-terminated list of allowed suffixes, eg. ".tif", ".tiff".
+	/* Read just the header into the VipsImage.
 	 */
-	const char **suffs;
+	int (*header)( const char *, VipsImage * );
+
+	/* Load the whole image.
+	 */
+	int (*load)( const char *, VipsImage * );
+
+	/* Write the VipsImage to the file in this format.
+	 */
+	int (*save)( VipsImage *, const char * );
+
+	/* Get the flags for this file in this format.
+	 */
+	VipsFormatFlags (*get_flags)( const char * );
 
 	/* Loop over formats in this order, default 0. We need this because
 	 * some formats can be read by several loaders (eg. tiff can be read
@@ -79,6 +98,9 @@ typedef struct _VipsFormatClass {
 	 */
 	int priority;
 
+	/* Null-terminated list of allowed suffixes, eg. ".tif", ".tiff".
+	 */
+	const char **suffs;
 } VipsFormatClass;
 
 GType vips_format_get_type( void );
@@ -87,107 +109,16 @@ GType vips_format_get_type( void );
  * subclasses of VipsFormat.
  */
 void *vips_format_map( VipsSListMap2Fn fn, void *a, void *b );
+VipsFormatClass *vips_format_for_file( const char *filename );
+VipsFormatClass *vips_format_for_name( const char *filename );
 
-#define VIPS_TYPE_FORMAT_LOAD (vips_format_load_get_type())
-#define VIPS_FORMAT_LOAD( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_FORMAT_LOAD, VipsFormatLoad ))
-#define VIPS_FORMAT_LOAD_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_FORMAT_LOAD, VipsFormatLoadClass))
-#define VIPS_IS_FORMAT_LOAD( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_FORMAT_LOAD ))
-#define VIPS_IS_FORMAT_LOAD_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_FORMAT_LOAD ))
-#define VIPS_FORMAT_LOAD_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_FORMAT_LOAD, VipsFormatLoadClass ))
-
-/* Image file properties. 
- */
-typedef enum {
-	VIPS_FORMAT_NONE = 0,		/* No flags set */
-	VIPS_FORMAT_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
-	VIPS_FORMAT_BIGENDIAN = 2	/* Most-significant byte first */
-} VipsFormatFlags;
-
-typedef struct _VipsFormatLoad {
-	VipsFormat parent_object;
-	/*< public >*/
-
-	/* Flags read from the file.
-	 */
-	VipsFormatFlags flags;
-
-	/* The image we've loaded.
-	 */
-	VipsImage *out;
-
-} VipsFormatLoad;
-
-typedef struct _VipsFormatLoadClass {
-	VipsFormatClass parent_class;
-
-	/*< public >*/
-
-	/* Get the flags for this file in this format.
-	 */
-	VipsFormatFlags (*get_flags)( VipsFormatLoad * );
-
-} VipsFormatLoadClass;
-
-GType vips_format_load_get_type( void );
-
-VipsFormatLoad *vips_format_load_new_from_file( const char *filename );
-
-VipsFormatLoad *vips_format_for_file( const char *filename );
-
-#define VIPS_TYPE_FORMAT_SAVE (vips_format_save_get_type())
-#define VIPS_FORMAT_SAVE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_FORMAT_SAVE, VipsFormatSave ))
-#define VIPS_FORMAT_SAVE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_FORMAT_SAVE, VipsFormatSaveClass))
-#define VIPS_IS_FORMAT_SAVE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_FORMAT_SAVE ))
-#define VIPS_IS_FORMAT_SAVE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_FORMAT_SAVE ))
-#define VIPS_FORMAT_SAVE_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_FORMAT_SAVE, VipsFormatSaveClass ))
-
-typedef struct _VipsFormatSave {
-	VipsFormat parent_object;
-	/*< public >*/
-
-	/* The image we are to save.
-	 */
-	VipsImage *in;
-
-} VipsFormatSave;
-
-typedef struct _VipsFormatSaveClass {
-	VipsFormatClass parent_class;
-
-	/*< public >*/
-
-} VipsFormatSaveClass;
-
-GType vips_format_save_get_type( void );
-
-VipsFormatSave *vips_format_save_new_from_filename( const char *filename )
+VipsFormatFlags vips_format_get_flags( VipsFormatClass *format, 
+	const char *filename );
 
 /* Read/write an image convenience functions.
  */
 int vips_format_read( const char *filename, VipsImage *out );
 int vips_format_write( VipsImage *in, const char *filename );
-
-
-
-
-
-
 
 /* Low-level read/write operations.
  */

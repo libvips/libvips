@@ -4,6 +4,25 @@
 /* auto-generated enums for vips introspection */
 
 #include <vips/vips.h>
+/* enumerations from "../../libvips/include/vips/file.h" */
+GType
+vips_file_flags_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FILE_NONE, "VIPS_FILE_NONE", "none"},
+			{VIPS_FILE_PARTIAL, "VIPS_FILE_PARTIAL", "partial"},
+			{VIPS_FILE_BIGENDIAN, "VIPS_FILE_BIGENDIAN", "bigendian"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsFileFlags", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/conversion.h" */
 GType
 vips_extend_get_type( void )
