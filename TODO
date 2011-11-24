@@ -1,8 +1,8 @@
-- get image.c using the new system
+- try jpeg save
+
+  get image.c using the new system
 
   move format/* to deprecated
-
-  try jpeg save
 
   try tiff load
 
