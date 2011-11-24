@@ -36,6 +36,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 /**
  * SECTION: file
@@ -245,20 +246,24 @@ vips_file_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 		vips_buf_appends( buf, ") " );
 	}
 
-	vips_buf_appendf( buf, "priority=%d ", class->priority );
+	vips_buf_appendf( buf, "priority=%d", class->priority );
 
 }
 
 static void
 vips_file_class_init( VipsFileClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "file";
 	object_class->description = _( "load and save image files" );
 	object_class->print_class = vips_file_print_class;
 
-	VIPS_ARG_STRING( class, "filename", 12, 
+	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
 		_( "File filename" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
@@ -332,30 +337,35 @@ vips_file_map( const char *base, VipsSListMap2Fn fn, void *a, void *b )
 G_DEFINE_ABSTRACT_TYPE( VipsFileLoad, vips_file_load, VIPS_TYPE_FILE );
 
 static void
+vips_file_load_dispose( GObject *gobject )
+{
+	VipsFileLoad *load = VIPS_FILE_LOAD( gobject );
+
+	VIPS_UNREF( load->real );
+
+	G_OBJECT_CLASS( vips_file_load_parent_class )->dispose( gobject );
+}
+
+static void
 vips_file_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
 	VipsFileLoadClass *class = VIPS_FILE_LOAD_CLASS( object_class );
 
 	VIPS_OBJECT_CLASS( vips_file_load_parent_class )->
 		print_class( object_class, buf );
-	vips_buf_appends( buf, ", " );
 
 	if( class->is_a )
-		vips_buf_appends( buf, "is_a " );
-
-	/*
-	if( class->header )
-		vips_buf_appends( buf, "header " );
-	if( class->load )
-		vips_buf_appends( buf, "load " );
-	 */
-
+		vips_buf_appends( buf, ", is_a" );
 	if( class->get_flags )
-		vips_buf_appends( buf, "get_flags " );
+		vips_buf_appends( buf, ", get_flags" );
+	if( class->header )
+		vips_buf_appends( buf, ", header" );
+	if( class->load )
+		vips_buf_appends( buf, ", load" );
 }
 
 static size_t
-disc_threshold( void )
+vips_get_disc_threshold( void )
 {
 	static gboolean done = FALSE;
 	static size_t threshold;
@@ -375,40 +385,11 @@ disc_threshold( void )
 		if( vips__disc_threshold ) 
 			threshold = vips__parse_size( vips__disc_threshold );
 
-		VIPS_DEBUG_MSG( "disc_threshold: %zd bytes\n", threshold );
+		VIPS_DEBUG_MSG( "vips_get_disc_threshold: "
+			"%zd bytes\n", threshold );
 	}
 
 	return( threshold );
-}
-
-/* Make the real underlying image: either a direct disc file, or a temp file
- * somewhere.
- */
-static int
-vips_file_load_new_real( VipsFileLoad *load )
-{
-	/* We open via disc if:
-	 * - 'disc' is set
-	 * - disc_threshold() has not been set to zero
-	 * - the format does not support lazy read
-	 * - the uncompressed image will be larger than disc_threshold()
-	 */
-	load->real = NULL;
-	if( lazy->disc && 
-		disc_threshold() && 
-	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
-			VIPS_FORMAT_PARTIAL) &&
-		VIPS_IMAGE_SIZEOF_IMAGE( lazy->image ) > disc_threshold() ) 
-			if( !(real = vips_image_new_disc_temp( "%s.v" )) )
-				return( NULL );
-
-	/* Otherwise, fall back to a "p".
-	 */
-	if( !real && 
-		!(real = vips_image_new()) )
-		return( NULL );
-
-	return( real );
 }
 
 /* Our start function ... do the lazy open, if necessary, and return a region
@@ -421,8 +402,32 @@ vips_file_load_start_cb( VipsImage *out, void *a, void *dummy )
 	VipsFileLoadClass *class = VIPS_FILE_LOAD_GET_CLASS( a );
 
 	if( !load->real ) {
-		if( vips_file_load_new_real( load ) || 
-			class->load( load ) ||
+		const size_t disc_threshold = vips_get_disc_threshold();
+		const size_t image_size = VIPS_IMAGE_SIZEOF_IMAGE( load->out );
+
+		/* We open via disc if:
+		 * - 'disc' is set
+		 * - disc-threshold has not been set to zero
+		 * - the format does not support lazy read
+		 * - the uncompressed image will be larger than 
+		 *   vips_get_disc_threshold()
+		 */
+		if( load->disc && 
+			disc_threshold && 
+			(load->flags & VIPS_FORMAT_PARTIAL) &&
+			image_size > disc_threshold ) 
+			if( !(load->real = vips_image_new_disc_temp( "%s.v" )) )
+				return( NULL );
+
+		/* Otherwise, fall back to a "p".
+		 */
+		if( !load->real && 
+			!(load->real = vips_image_new()) )
+			return( NULL );
+
+		/* Read the image in.
+		 */
+		if( class->load( load ) ||
 			vips_image_pio_input( load->real ) ) {
 			VIPS_UNREF( load->real );
 			return( NULL );
@@ -463,10 +468,9 @@ vips_file_load_build( VipsObject *object )
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
-	if( class->get_flags )
-		g_object_set( load,
-			"flags", class->get_flags( load ),
-			NULL );
+	if( class->get_flags &&
+		class->get_flags( load ) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_file_load_parent_class )->
 		build( object ) )
@@ -481,14 +485,14 @@ vips_file_load_build( VipsObject *object )
 		return( -1 );
 	vips_demand_hint( load->out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
-	/* Then 'start' creates the real image and 'gen' paints 'out' with 
-	 * pixels from the real image on demand.
+	/* Then 'start' creates the real image and 'gen' fetches pixels for 
+	 * 'out' from real on demand.
 	 */
 	if( vips_image_generate( load->out, 
 		vips_file_load_start_cb, 
 		vips_file_load_generate_cb, 
 		vips_stop_one, 
-		lazy, NULL ) )
+		load, NULL ) )
 		return( -1 );
 
 	return( 0 );
@@ -497,12 +501,23 @@ vips_file_load_build( VipsObject *object )
 static void
 vips_file_load_class_init( VipsFileLoadClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->dispose = vips_file_load_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "fileload";
 	object_class->description = _( "file loaders" );
 	object_class->print_class = vips_file_load_print_class;
 	object_class->build = vips_file_load_build;
+
+	VIPS_ARG_IMAGE( class, "out", 2, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsFileLoad, out ) );
 
 	VIPS_ARG_ENUM( class, "flags", 6, 
 		_( "Flags" ), 
@@ -511,24 +526,19 @@ vips_file_load_class_init( VipsFileLoadClass *class )
 		G_STRUCT_OFFSET( VipsFileLoad, flags ),
 		VIPS_TYPE_FILE_FLAGS, VIPS_FILE_NONE ); 
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
-		_( "Output" ), 
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsFileLoad, out ) );
-
-	VIPS_ARG_BOOL( class, "memory", 6, 
-		_( "Memory" ), 
-		_( "Open to memory" ),
+	VIPS_ARG_BOOL( class, "disc", 7, 
+		_( "Disc" ), 
+		_( "Open to disc" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFileLoad, memory ),
-		FALSE );
+		G_STRUCT_OFFSET( VipsFileLoad, disc ),
+		TRUE );
 
 }
 
 static void
-vips_file_load_init( VipsFileLoad *object )
+vips_file_load_init( VipsFileLoad *load )
 {
+	load->disc = TRUE;
 }
 
 /* Can this file open this file?
@@ -619,14 +629,18 @@ vips_file_save_build( VipsObject *object )
 static void
 vips_file_save_class_init( VipsFileSaveClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
 	object_class->print_class = vips_file_save_print_class;
 	object_class->build = vips_file_save_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
+	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
 		_( "Image to save" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
@@ -738,5 +752,18 @@ vips_file_write( VipsImage *in, const char *filename, ... )
 	va_end( ap );
 
 	return( result );
+}
+
+/* Called from iofuncs to init all operations in this dir. Use a plugin system
+ * instead?
+ */
+void
+vips_file_operation_init( void )
+{
+	extern GType vips_file_load_jpeg_get_type( void ); 
+
+#ifdef HAVE_JPEG
+	vips_file_load_jpeg_get_type(); 
+#endif /*HAVE_JPEG*/
 }
 

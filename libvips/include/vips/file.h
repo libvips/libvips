@@ -73,7 +73,7 @@ typedef struct _VipsFileClass {
 	int priority;
 
 	/* Null-terminated list of recommended suffixes, eg. ".tif", ".tiff".
-	 * This is used by both load and save, so it's in the base class.
+	 * This can be used by both load and save, so it's in the base class.
 	 */
 	const char **suffs;
 
@@ -113,9 +113,9 @@ typedef struct _VipsFileLoad {
 	VipsFile parent_object;
 	/*< public >*/
 
-	/* Open to memory (default is to open via disc).
+	/* Open to disc (default is to open to memory).
 	 */
-	gboolean memory;
+	gboolean disc;
 
 	/* Flags read from the file.
 	 */
@@ -125,7 +125,8 @@ typedef struct _VipsFileLoad {
 	 */
 	VipsImage *out;
 
-	/* The behind-the-scenes real image we decompress to.
+	/* The behind-the-scenes real image we decompress to. This can be a
+	 * disc file or a memory buffer.
 	 */
 	VipsImage *real;
 
@@ -140,15 +141,15 @@ typedef struct _VipsFileLoadClass {
 	 */
 	gboolean (*is_a)( const char * );
 
-	/* Get the flags for this file in this file.
+	/* Get the flags for this file.
 	 */
-	VipsFileFlags (*get_flags)( VipsFileLoad * );
+	int (*get_flags)( VipsFileLoad * );
 
 	/* Read the header into @out.
 	 */
 	int (*header)( VipsFileLoad * );
 
-	/* Read the whole image into @out.
+	/* Read the whole image into real. It gets copied to out later.
 	 */
 	int (*load)( VipsFileLoad * );
 
@@ -198,6 +199,8 @@ const char *vips_file_find_save( const char *filename );
  */
 int vips_file_read( const char *filename, VipsImage **out, ... );
 int vips_file_write( VipsImage *in, const char *filename, ... );
+
+void vips_file_operation_init( void );
 
 #ifdef __cplusplus
 }

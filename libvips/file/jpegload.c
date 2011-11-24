@@ -123,11 +123,48 @@ typedef struct _VipsFileLoadJpeg {
 	 */
 	gboolean fail;
 
+	/* For some jpeg CMYK formats we have to invert pels on read.
+	 */
+	gboolean invert_pels;
+
 } VipsFileLoadJpeg;
 
-typedef VipsFileLoadJpegClass VipsFileLoadJpeg;
+typedef VipsFileLoadClass VipsFileLoadJpegClass;
 
 G_DEFINE_TYPE( VipsFileLoadJpeg, vips_file_load_jpeg, VIPS_TYPE_FILE_LOAD );
+
+static int
+vips_file_load_jpeg_build( VipsObject *object )
+{
+	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) object;
+
+	if( jpeg->shrink != 1 && 
+		jpeg->shrink != 2 && 
+		jpeg->shrink != 4 && 
+		jpeg->shrink != 8 ) {
+		vips_error( "VipsFormatLoadJpeg", 
+			_( "bad shrink factor %d" ), jpeg->shrink );
+		return( -1 );
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_file_load_jpeg_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_file_load_jpeg_is_a( const char *filename )
+{
+	unsigned char buf[2];
+
+	if( vips__get_bytes( filename, buf, 2 ) )
+		if( (int) buf[0] == 0xff && (int) buf[1] == 0xd8 )
+			return( TRUE );
+
+	return( FALSE );
+}
 
 /* Define a new error handler for when we bomb out.
  */
@@ -182,6 +219,54 @@ new_error_exit( j_common_ptr cinfo )
 	/* Jump back.
 	 */
 	longjmp( eman->jmp, 1 );
+}
+
+/* Read a cinfo to a VIPS image. Set invert_pels if the pixel reader needs to
+ * do 255-pel.
+ */
+static int
+vips_file_load_jpeg_read_header( VipsFileLoadJpeg *jpeg, 
+	struct jpeg_decompress_struct *cinfo, VipsImage *out )
+{
+	int type;
+
+	/* Read JPEG header. libjpeg will set out_color_space sanely for us 
+	 * for YUV YCCK etc.
+	 */
+	jpeg_read_header( cinfo, TRUE );
+	cinfo->scale_denom = jpeg->shrink;
+	cinfo->scale_num = 1;
+	jpeg_calc_output_dimensions( cinfo );
+
+	switch( cinfo->out_color_space ) {
+	case JCS_GRAYSCALE:
+		type = IM_TYPE_B_W;
+		break;
+
+	case JCS_CMYK:
+		type = IM_TYPE_CMYK;
+		/* Photoshop writes CMYK JPEG inverted :-( Maybe this is a
+		 * way to spot photoshop CMYK JPGs.
+		 */
+		if( cinfo->saw_Adobe_marker ) 
+			jpeg->invert_pels = TRUE;
+		break;
+
+	case JCS_RGB:
+	default:
+		type = IM_TYPE_sRGB;
+		break;
+	}
+
+	/* Set VIPS header.
+	 */
+	vips_image_init_fields( out,
+		 cinfo->output_width, cinfo->output_height,
+		 cinfo->output_components,
+		 VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, type,
+		 1.0, 1.0 );
+
+	return( 0 );
 }
 
 #ifdef HAVE_EXIF
@@ -485,47 +570,416 @@ attach_thumbnail( IMAGE *im, ExifData *ed )
 }
 #endif /*HAVE_EXIF*/
 
-
 static int
-vips_file_load_jpeg_build( VipsObject *object )
+read_exif( IMAGE *im, void *data, int data_length )
 {
-	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) object;
+	char *data_copy;
 
-	if( jpeg->shrink != 1 && 
-		jpeg->shrink != 2 && 
-		jpeg->shrink != 4 && 
-		jpeg->shrink != 8 ) {
-		vips_error( "VipsFormatLoadJpeg", 
-			_( "bad shrink factor %d" ), jpeg->shrink );
+	/* Only use the first one.
+	 */
+	if( im_header_get_typeof( im, IM_META_EXIF_NAME ) ) {
+#ifdef DEBUG
+		printf( "read_exif: second EXIF block, ignoring\n" );
+#endif /*DEBUG*/
+
+		return( 0 );
+	}
+
+#ifdef DEBUG
+	printf( "read_exif: attaching %d bytes of exif\n", data_length );
+#endif /*DEBUG*/
+
+	/* Always attach a copy of the unparsed exif data.
+	 */
+	if( !(data_copy = im_malloc( NULL, data_length )) )
+		return( -1 );
+	memcpy( data_copy, data, data_length );
+	if( im_meta_set_blob( im, IM_META_EXIF_NAME, 
+		(im_callback_fn) im_free, data_copy, data_length ) ) {
+		im_free( data_copy );
 		return( -1 );
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_file_load_jpeg_parent_class )->
-		build( object ) )
+#ifdef HAVE_EXIF
+{
+	ExifData *ed;
+
+	if( !(ed = exif_data_new_from_data( data, data_length )) )
 		return( -1 );
 
+	if( ed->size > 0 ) {
+		VipsExif ve;
 
+#ifdef DEBUG_VERBOSE
+		show_tags( ed );
+		show_values( ed );
+#endif /*DEBUG_VERBOSE*/
+
+		/* Attach informational fields for what we find.
+
+			FIXME ... better to have this in the UI layer?
+
+			Or we could attach non-human-readable tags here (int, 
+			double etc) and then move the human stuff to the UI 
+			layer?
+
+		 */
+		ve.image = im;
+		ve.ed = ed;
+		exif_data_foreach_content( ed, 
+			(ExifDataForeachContentFunc) attach_exif_content, &ve );
+
+		/* Look for resolution fields and use them to set the VIPS 
+		 * xres/yres fields.
+		 */
+		set_vips_resolution( im, ed );
+
+		attach_thumbnail( im, ed );
+	}
+
+	exif_data_free( ed );
+}
+#endif /*HAVE_EXIF*/
 
 	return( 0 );
+}
+
+static int
+read_xmp( IMAGE *im, void *data, int data_length )
+{
+	char *data_copy;
+
+	/* XMP sections start "http". Only use the first one.
+	 */
+	if( im_header_get_typeof( im, VIPS_META_XMP_NAME ) ) {
+#ifdef DEBUG
+		printf( "read_xmp: second XMP block, ignoring\n" );
+#endif /*DEBUG*/
+
+		return( 0 );
+	}
+
+#ifdef DEBUG
+	printf( "read_xmp: attaching %d bytes of XMP\n", data_length );
+#endif /*DEBUG*/
+
+	/* Always attach a copy of the unparsed exif data.
+	 */
+	if( !(data_copy = im_malloc( NULL, data_length )) )
+		return( -1 );
+	memcpy( data_copy, data, data_length );
+	if( im_meta_set_blob( im, VIPS_META_XMP_NAME, 
+		(im_callback_fn) im_free, data_copy, data_length ) ) {
+		im_free( data_copy );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
+ * be enough for anyone (haha).
+ */
+#define MAX_APP2_SECTIONS (100)
+
+static int
+vips_file_load_jpeg_meta( VipsFileLoadJpeg *jpeg, 
+	struct jpeg_decompress_struct *cinfo, VipsImage *out )
+{
+	/* Capture app2 sections here for assembly.
+	 */
+	void *app2_data[MAX_APP2_SECTIONS] = { 0 };
+	int app2_data_length[MAX_APP2_SECTIONS] = { 0 };
+	int data_length;
+	jpeg_saved_marker_ptr p;
+	int i;
+
+	/* Interlaced jpegs need lots of memory to read, so our caller needs
+	 * to know.
+	 */
+	vips_image_set_int( out, "jpeg-multiscan", 
+		jpeg_has_multiple_scans( cinfo ) );
+
+	/* Look for EXIF and ICC profile.
+	 */
+	for( p = cinfo->marker_list; p; p = p->next ) {
+#ifdef DEBUG
+{
+		printf( "vips_file_load_jpeg_read_header: "
+			"seen %d bytes of APP%d\n",
+			p->data_length,
+			p->marker - JPEG_APP0 );
+
+		for( i = 0; i < 10; i++ ) 
+			printf( "\t%d) '%c' (%d)\n", 
+				i, p->data[i], p->data[i] );
+}
+#endif /*DEBUG*/
+
+		switch( p->marker ) {
+		case JPEG_APP0 + 1:
+			/* Possible EXIF or XMP data.
+			 */
+			if( p->data_length > 4 &&
+				im_isprefix( "Exif", (char *) p->data ) &&
+				read_exif( out, p->data, p->data_length ) )
+				return( -1 );
+
+			if( p->data_length > 4 &&
+				im_isprefix( "http", (char *) p->data ) &&
+				read_xmp( out, p->data, p->data_length ) )
+				return( -1 );
+
+			break;
+
+		case JPEG_APP0 + 2:
+			/* ICC profile.
+			 */
+			if( p->data_length > 14 &&
+				im_isprefix( "ICC_PROFILE", 
+					(char *) p->data ) ) {
+				/* cur_marker numbers from 1, according to
+				 * spec.
+				 */
+				int cur_marker = p->data[12] - 1;
+
+				if( cur_marker >= 0 &&
+					cur_marker < MAX_APP2_SECTIONS ) {
+					app2_data[cur_marker] = p->data + 14;
+					app2_data_length[cur_marker] = 
+						p->data_length - 14;
+				}
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	/* Assemble ICC sections.
+	 */
+	data_length = 0;
+	for( i = 0; i < MAX_APP2_SECTIONS && app2_data[i]; i++ )
+		data_length += app2_data_length[i];
+	if( data_length ) {
+		unsigned char *data;
+		int x;
+
+#ifdef DEBUG
+		printf( "vips_file_load_jpeg_read_header: "
+			"assembled %d byte ICC profile\n",
+			data_length );
+#endif /*DEBUG*/
+
+		data = g_malloc( data_length );
+		x = 0;
+		for( i = 0; i < MAX_APP2_SECTIONS && app2_data[i]; i++ ) {
+			memcpy( data + x, app2_data[i], app2_data_length[i] );
+			x += app2_data_length[i];
+		}
+		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
+			(VipsCallbackFn) g_free, data, data_length );
+	}
+
+	return( 0 );
+}
+
+/* Read just the image header into ->out.
+ */
+static int
+vips_file_load_jpeg_header( VipsFileLoad *load )
+{
+	VipsFile *file = VIPS_FILE( load );
+	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) load;
+
+	struct jpeg_decompress_struct cinfo;
+        ErrorManager eman;
+	FILE *fp;
+	int result;
+
+	/* Make jpeg dcompression object.
+ 	 */
+        cinfo.err = jpeg_std_error( &eman.pub );
+	eman.pub.error_exit = new_error_exit;
+	eman.pub.output_message = new_output_message;
+	eman.fp = NULL;
+	if( setjmp( eman.jmp ) ) {
+		/* Here for longjmp() from new_error_exit().
+		 */
+		jpeg_destroy_decompress( &cinfo );
+
+		return( -1 );
+	}
+        jpeg_create_decompress( &cinfo );
+
+	/* Make input.
+	 */
+        if( !(fp = vips__file_open_read( file->filename, NULL, FALSE )) ) 
+                return( -1 );
+	eman.fp = fp;
+        jpeg_stdio_src( &cinfo, fp );
+
+	/* Need to read in APP1 (EXIF metadata) and APP2 (ICC profile).
+	 */
+	jpeg_save_markers( &cinfo, JPEG_APP0 + 1, 0xffff );
+	jpeg_save_markers( &cinfo, JPEG_APP0 + 2, 0xffff );
+
+	/* Convert!
+	 */
+	result = vips_file_load_jpeg_read_header( jpeg, &cinfo, load->out );
+
+	/* Get extra metadata too.
+	 */
+	if( !result )
+		result = vips_file_load_jpeg_meta( jpeg, &cinfo, load->out );
+
+	/* Close and tidy.
+	 */
+	fclose( fp );
+	eman.fp = NULL;
+	jpeg_destroy_decompress( &cinfo );
+
+	return( result );
+}
+
+/* Read a cinfo to a VIPS image.
+ */
+static int
+vips_file_load_jpeg_read_image( VipsFileLoadJpeg *jpeg,
+	struct jpeg_decompress_struct *cinfo, VipsImage *out )
+{
+	int x, y, sz;
+	JSAMPROW row_pointer[1];
+
+	/* Check VIPS.
+	 */
+	if( vips_image_wio_output( out ) )
+		return( -1 );
+
+	/* Get size of output line and make a buffer.
+	 */
+	sz = cinfo->output_width * cinfo->output_components;
+	row_pointer[0] = (JSAMPLE *) (*cinfo->mem->alloc_large) 
+		( (j_common_ptr) cinfo, JPOOL_IMAGE, sz );
+
+	/* Start up decompressor.
+	 */
+	jpeg_start_decompress( cinfo );
+
+	/* Process image.
+	 */
+	for( y = 0; y < out->Ysize; y++ ) {
+		/* We set an error handler that longjmps() out, so I don't
+		 * think this can fail.
+		 */
+		jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
+
+		if( jpeg->invert_pels ) {
+			for( x = 0; x < sz; x++ )
+				row_pointer[0][x] = 255 - row_pointer[0][x];
+		}
+		if( vips_image_write_line( out, y, row_pointer[0] ) )
+			return( -1 );
+	}
+
+	/* Stop decompressor.
+	 */
+	jpeg_finish_decompress( cinfo );
+
+	return( 0 );
+}
+
+static int
+vips_file_load_jpeg_load( VipsFileLoad *load )
+{
+	VipsFile *file = VIPS_FILE( load );
+	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) load;
+
+	struct jpeg_decompress_struct cinfo;
+        ErrorManager eman;
+	FILE *fp;
+	int result;
+
+	/* Make jpeg dcompression object.
+ 	 */
+        cinfo.err = jpeg_std_error( &eman.pub );
+	eman.pub.error_exit = new_error_exit;
+	eman.pub.output_message = new_output_message;
+	eman.fp = NULL;
+	if( setjmp( eman.jmp ) ) {
+		/* Here for longjmp() from new_error_exit().
+		 */
+		jpeg_destroy_decompress( &cinfo );
+
+		return( -1 );
+	}
+        jpeg_create_decompress( &cinfo );
+
+	/* Make input.
+	 */
+        if( !(fp = vips__file_open_read( file->filename, NULL, FALSE )) ) 
+                return( -1 );
+	eman.fp = fp;
+        jpeg_stdio_src( &cinfo, fp );
+
+	/* Convert!
+	 */
+	result = vips_file_load_jpeg_read_header( jpeg, &cinfo, load->real );
+	if( !result )
+		result = vips_file_load_jpeg_read_image( jpeg, 
+			&cinfo, load->real );
+
+	/* Close and tidy.
+	 */
+	fclose( fp );
+	eman.fp = NULL;
+	jpeg_destroy_decompress( &cinfo );
+
+	if( eman.pub.num_warnings != 0 ) {
+		if( jpeg->fail ) {
+			vips_error( "VipsFileLoadJpeg", 
+				"%s", vips_error_buffer() );
+			result = -1;
+		}
+		else {
+			vips_warn( "VipsFileLoadJpeg", 
+				_( "read gave %ld warnings" ), 
+				eman.pub.num_warnings );
+			vips_warn( "VipsFileLoadJpeg", 
+				"%s", vips_error_buffer() );
+		}
+	}
+
+	return( result );
 }
 
 static void
 vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFileLoadClass *load_class = (VipsFileLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jpegload";
 	object_class->description = _( "load jpeg from file" );
 	object_class->build = vips_file_load_jpeg_build;
 
-	VIPS_ARG_INT( class, "shrink", 5, 
+	load_class->is_a = vips_file_load_jpeg_is_a;
+	load_class->header = vips_file_load_jpeg_header;
+	load_class->load = vips_file_load_jpeg_load;
+
+	VIPS_ARG_INT( class, "shrink", 10, 
 		_( "Shrink" ), 
 		_( "Shrink factor on load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsFileLoadJpeg, shrink ),
 		1, 16, 1 );
 
-	VIPS_ARG_BOOL( class, "fail", 6, 
+	VIPS_ARG_BOOL( class, "fail", 11, 
 		_( "Fail" ), 
 		_( "Fail on first warning" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -535,10 +989,8 @@ vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
 }
 
 static void
-vips_file_load_jpeg_init( VipsFileLoadJpeg *object )
+vips_file_load_jpeg_init( VipsFileLoadJpeg *jpeg )
 {
 	jpeg->shrink = 1;
 }
-
-
 

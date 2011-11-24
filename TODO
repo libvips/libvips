@@ -1,6 +1,15 @@
-- file.c has lazy open stuff in, needs work though
+- get image.c using the new system
 
-  how do we handle loaders that don't need to be lazy (eg. tiled tiff load)
+  move format/* to deprecated
+
+  try jpeg save
+
+  try tiff load
+
+
+
+
+- return missing just after read_xmp() in master?
 
 
 

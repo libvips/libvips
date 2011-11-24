@@ -231,6 +231,7 @@ vips_init( const char *argv0 )
 	 */
 	vips_arithmetic_operation_init();
 	vips_conversion_operation_init();
+	vips_file_operation_init();
 
 	/* Load up any plugins in the vips libdir. We don't error on failure,
 	 * it's too annoying to have VIPS refuse to start because of a broken
