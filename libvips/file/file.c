@@ -1,4 +1,4 @@
-/* VIPS function dispatch tables for image format load/save.
+/* VIPS function dispatch tables for image file load/save.
  */
 
 /*
@@ -38,8 +38,8 @@
 #include <vips/internal.h>
 
 /**
- * SECTION: format
- * @short_description: load and save in a variety of formats
+ * SECTION: file
+ * @short_description: load and save in a variety of files
  * @stability: Stable
  * @see_also: <link linkend="libvips-image">image</link>
  * @include: vips/vips.h
@@ -48,55 +48,55 @@
  * a generic way.
  *
  * You can ask for a loader for a certain file or select a saver based on a
- * filename. Once you have found a format, you can use it to load a file of
+ * filename. Once you have found a file, you can use it to load a file of
  * that type, save an image to a file of that type, query files for their type
  * and fields, and ask for supported features. You can also call the
  * converters directly, if you like. 
  *
- * If you define a new format, support for
+ * If you define a new file, support for
  * it automatically appears in all VIPS user-interfaces. It will also be
  * transparently supported by vips_image_new_from_file() and friends.
  *
- * VIPS comes with VipsFormat for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
+ * VIPS comes with VipsFile for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
  * Matlab, Radiance, RAW, VIPS and one that wraps libMagick. 
  */
 
 /**
- * VipsFormatFlags: 
- * @VIPS_FORMAT_NONE: no flags set
- * @VIPS_FORMAT_PARTIAL: the image may be read lazilly
- * @VIPS_FORMAT_BIGENDIAN: image pixels are most-significant byte first
+ * VipsFileFlags: 
+ * @VIPS_FILE_NONE: no flags set
+ * @VIPS_FILE_PARTIAL: the image may be read lazilly
+ * @VIPS_FILE_BIGENDIAN: image pixels are most-significant byte first
  *
  * Some hints about the image loader.
  *
- * @VIPS_FORMAT_PARTIAL means that the image can be read directly from the
+ * @VIPS_FILE_PARTIAL means that the image can be read directly from the
  * file without needing to be unpacked to a temporary image first. 
  *
- * @VIPS_FORMAT_BIGENDIAN means that image pixels are most-significant byte
+ * @VIPS_FILE_BIGENDIAN means that image pixels are most-significant byte
  * first. Depending on the native byte order of the host machine, you may
  * need to swap bytes. See copy_swap().
  */
 
 /**
- * VipsFormat:
+ * VipsFile:
  *
- * #VipsFormat has these virtual methods:
+ * #VipsFile has these virtual methods:
  *
  * |[
- * typedef struct _VipsFormatClass {
+ * typedef struct _VipsFileClass {
  *   VipsObjectClass parent_class;
  *
  *   gboolean (*is_a)( const char *filename );
- *   int (*header)( const char *filename, IMAGE *out );
- *   int (*load)( const char *filename, IMAGE *out );
- *   int (*save)( IMAGE *in, const char *filename );
- *   VipsFormatFlags (*get_flags)( const char *filename );
+ *   int (*header)( const char *filename, VipsImage *out );
+ *   int (*load)( const char *filename, VipsImage *out );
+ *   int (*save)( VipsImage *in, const char *filename );
+ *   VipsFileFlags (*get_flags)( const char *filename );
  *   int priority;
  *   const char **suffs;
- * } VipsFormatClass;
+ * } VipsFileClass;
  * ]|
  *
- * Add a new format to VIPS by subclassing VipsFormat. Subclasses need to 
+ * Add a new file to VIPS by subclassing VipsFile. Subclasses need to 
  * implement at least load() or save(). 
  *
  * These members are:
@@ -126,7 +126,7 @@
  * load options in the filename, see (for example) im_jpeg2vips().
  * If you don't
  * define this method, you can still define save() and have a save-only
- * format.
+ * file.
  * Return 0 for success, -1 for error, setting
  * im_error().
  *     </para>
@@ -138,7 +138,7 @@
  * save options in the filename, see (for example) im_vips2tiff().
  * If you don't
  * define this method, you can still define load() and have a load-only
- * format.
+ * file.
  * Return 0 for success, -1 for error, setting
  * im_error().
  *     </para>
@@ -152,9 +152,9 @@
  *   </listitem>
  *   <listitem>
  *     <para>
- * <structfield>priority</structfield> Where this format should fit in this 
+ * <structfield>priority</structfield> Where this file should fit in this 
  * list of
- * supported formats. 0 is a sensible value for most formats. Set a negative
+ * supported files. 0 is a sensible value for most files. Set a negative
  * value if you want to be lower on the list, positive to move up.
  *     </para>
  *   </listitem>
@@ -166,7 +166,7 @@
  * |[
  * static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
  * ]|
- * The suffix list is used to select a format to save a file in, and to pick a
+ * The suffix list is used to select a file to save a file in, and to pick a
  * loader if you don't define is_a().
  *     </para>
  *   </listitem>
@@ -178,76 +178,76 @@
  * At the command-line, use:
  *
  * |[
- * vips --list classes | grep Format
+ * vips --list classes | grep File
  * ]|
  *
- * To see a list of all the supported formats.
+ * To see a list of all the supported files.
  *
- * For example, the TIFF format is defined like this:
+ * For example, the TIFF file is defined like this:
  *
 |[
-typedef VipsFormat VipsFormatTiff;
-typedef VipsFormatClass VipsFormatTiffClass;
+typedef VipsFile VipsFileTiff;
+typedef VipsFileClass VipsFileTiffClass;
 
 static void
-vips_format_tiff_class_init( VipsFormatTiffClass *class )
+vips_file_tiff_class_init( VipsFileTiffClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsFormatClass *format_class = (VipsFormatClass *) class;
+	VipsFileClass *file_class = (VipsFileClass *) class;
 
 	object_class->nickname = "tiff";
 	object_class->description = _( "TIFF" );
 
-	format_class->is_a = istiff;
-	format_class->header = tiff2vips_header;
-	format_class->load = im_tiff2vips;
-	format_class->save = im_vips2tiff;
-	format_class->get_flags = tiff_flags;
-	format_class->suffs = tiff_suffs;
+	file_class->is_a = istiff;
+	file_class->header = tiff2vips_header;
+	file_class->load = im_tiff2vips;
+	file_class->save = im_vips2tiff;
+	file_class->get_flags = tiff_flags;
+	file_class->suffs = tiff_suffs;
 }
 
 static void
-vips_format_tiff_init( VipsFormatTiff *object )
+vips_file_tiff_init( VipsFileTiff *object )
 {
 }
 
-G_DEFINE_TYPE( VipsFormatTiff, vips_format_tiff, VIPS_TYPE_FORMAT );
+G_DEFINE_TYPE( VipsFileTiff, vips_file_tiff, VIPS_TYPE_FILE );
 ]|
  *
- * Then call vips_format_tiff_get_type() somewhere in your init code to link
- * the format into VIPS (though of course the tiff format is linked in for you
+ * Then call vips_file_tiff_get_type() somewhere in your init code to link
+ * the file into VIPS (though of course the tiff file is linked in for you
  * already).
  *
  */
 
-/* To iterate over supported formats, we build a temp list of subclasses of 
- * VipsFormat, sort by priority, iterate, and free.
+/* To iterate over supported files, we build a temp list of subclasses of 
+ * VipsFile, sort by priority, iterate, and free.
  */
 
 static void *
-format_add_class( VipsFormatClass *format, GSList **formats )
+file_add_class( VipsFileClass *file, GSList **files )
 {
-	/* Append so we don't reverse the list of formats.
+	/* Append so we don't reverse the list of files.
 	 */
-	*formats = g_slist_append( *formats, format );
+	*files = g_slist_append( *files, file );
 
 	return( NULL );
 }
 
 static gint
-format_compare( VipsFormatClass *a, VipsFormatClass *b )
+file_compare( VipsFileClass *a, VipsFileClass *b )
 {
         return( b->priority - a->priority );
 }
 
 /**
- * vips_format_map:
- * @base: base class to search below (eg. "VipsFormatLoad")
- * @fn: function to apply to each #VipsFormatClass
+ * vips_file_map:
+ * @base: base class to search below (eg. "VipsFileLoad")
+ * @fn: function to apply to each #VipsFileClass
  * @a: user data
  * @b: user data
  *
- * Apply a function to every #VipsFormatClass that VIPS knows about. Formats
+ * Apply a function to every #VipsFileClass that VIPS knows about. Files
  * are presented to the function in priority order. 
  *
  * Like all VIPS map functions, if @fn returns %NULL, iteration continues. If
@@ -259,34 +259,34 @@ format_compare( VipsFormatClass *a, VipsFormatClass *b )
  * Returns: the result of iteration
  */
 void *
-vips_format_map( const char *base, VipsSListMap2Fn fn, void *a, void *b )
+vips_file_map( const char *base, VipsSListMap2Fn fn, void *a, void *b )
 {
-	GSList *formats;
+	GSList *files;
 	void *result;
 
-	formats = NULL;
+	files = NULL;
 	(void) vips_class_map_all( g_type_from_name( base ), 
-		(VipsClassMapFn) format_add_class, (void *) &formats );
+		(VipsClassMapFn) file_add_class, (void *) &files );
 
-	formats = g_slist_sort( formats, (GCompareFunc) format_compare );
-	result = vips_slist_map2( formats, fn, a, b );
-	g_slist_free( formats );
+	files = g_slist_sort( files, (GCompareFunc) file_compare );
+	result = vips_slist_map2( files, fn, a, b );
+	g_slist_free( files );
 
 	return( result );
 }
 
-/* Abstract base class for image formats.
+/* Abstract base class for image files.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsFormat, vips_format, VIPS_TYPE_OBJECT );
+G_DEFINE_ABSTRACT_TYPE( VipsFile, vips_file, VIPS_TYPE_OPERATION );
 
 static void
-vips_format_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_file_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
-	VipsFormatClass *class = VIPS_FORMAT_CLASS( object_class );
+	VipsFileClass *class = VIPS_FILE_CLASS( object_class );
 	const char **p;
 
-	VIPS_OBJECT_CLASS( vips_format_parent_class )->
+	VIPS_OBJECT_CLASS( vips_file_parent_class )->
 		print_class( object_class, buf );
 	vips_buf_appends( buf, ", " );
 
@@ -307,39 +307,39 @@ vips_format_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 }
 
 static void
-vips_format_class_init( VipsFormatClass *class )
+vips_file_class_init( VipsFileClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
-	object_class->nickname = "format";
-	object_class->description = _( "file format support" );
-	object_class->print_class = vips_format_print_class;
+	object_class->nickname = "file";
+	object_class->description = _( "file file support" );
+	object_class->print_class = vips_file_print_class;
 
 	VIPS_ARG_STRING( class, "filename", 12, 
 		_( "Filename" ),
-		_( "Format filename" ),
+		_( "File filename" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsFormat, filename ),
+		G_STRUCT_OFFSET( VipsFile, filename ),
 		NULL );
 }
 
 static void
-vips_format_init( VipsFormat *object )
+vips_file_init( VipsFile *object )
 {
 }
 
 /* Abstract base class for image load.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsFormatLoad, vips_formats_load, VIPS_TYPE_FORMAT );
+G_DEFINE_ABSTRACT_TYPE( VipsFileLoad, vips_files_load, VIPS_TYPE_FILE );
 
 static void
-vips_format_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_file_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
-	VipsFormatLoadClass *class = VIPS_FORMAT_LOAD_CLASS( object_class );
+	VipsFileLoadClass *class = VIPS_FILE_LOAD_CLASS( object_class );
 	const char **p;
 
-	VIPS_OBJECT_CLASS( vips_format_load_parent_class )->
+	VIPS_OBJECT_CLASS( vips_file_load_parent_class )->
 		print_class( object_class, buf );
 	vips_buf_appends( buf, ", " );
 
@@ -352,14 +352,14 @@ vips_format_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 }
 
 static int
-vips_format_load_build( VipsObject *object )
+vips_file_load_build( VipsObject *object )
 {
-	VipsFormat *format = VIPS_FORMAT( object );
-	VipsFormatLoad *load = VIPS_FORMAT_LOAD( object );
+	VipsFile *file = VIPS_FILE( object );
+	VipsFileLoad *load = VIPS_FILE_LOAD( object );
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
-	if( VIPS_OBJECT_CLASS( vips_format_load_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_file_load_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -367,39 +367,39 @@ vips_format_load_build( VipsObject *object )
 }
 
 static void
-vips_format_load_class_init( VipsFormatLoadClass *class )
+vips_file_load_class_init( VipsFileLoadClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
-	object_class->nickname = "formatload";
-	object_class->description = _( "format loaders" );
-	object_class->print_class = vips_format_load_print_class;
-	object_class->build = vips_format_load_build;
+	object_class->nickname = "fileload";
+	object_class->description = _( "file loaders" );
+	object_class->print_class = vips_file_load_print_class;
+	object_class->build = vips_file_load_build;
 
 	VIPS_ARG_ENUM( class, "flags", 6, 
 		_( "Flags" ), 
-		_( "Flags for this format" ),
+		_( "Flags for this file" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsFormatLoad, flags ),
-		VIPS_TYPE_FORMAT_FLAGS, VIPS_FORMAT_NONE ); 
+		G_STRUCT_OFFSET( VipsFileLoad, flags ),
+		VIPS_TYPE_FILE_FLAGS, VIPS_FILE_NONE ); 
 
 	VIPS_ARG_IMAGE( class, "out", 1, 
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsFormatLoad, out ) );
+		G_STRUCT_OFFSET( VipsFileLoad, out ) );
 
 }
 
 static void
-vips_format_load_init( VipsFormatLoad *object )
+vips_file_load_init( VipsFileLoad *object )
 {
 }
 
-/* Can this format open this file?
+/* Can this file open this file?
  */
 static void *
-vips_format_load_new_from_file_sub( VipsFormatLoadClass *load_class, 
+vips_file_load_new_from_file_sub( VipsFileLoadClass *load_class, 
 	const char *filename )
 {
 	if( load_class->is_a ) {
@@ -413,38 +413,38 @@ vips_format_load_new_from_file_sub( VipsFormatLoadClass *load_class,
 }
 
 /**
- * vips_format_load_new_from_file:
- * @filename: file to find a format for
+ * vips_file_load_new_from_file:
+ * @filename: file to find a file for
  *
- * Searches for a format you could use to load a file. Set some more options
+ * Searches for a file you could use to load a file. Set some more options
  * after this, then call _build() to actually load in the file.
  *
- * See also: vips_format_read(), vips_format_for_name().
+ * See also: vips_file_read(), vips_file_for_name().
  *
- * Returns: a format on success, %NULL on error
+ * Returns: a file on success, %NULL on error
  */
-VipsFormatLoad *
-vips_format_load_new_from_file( const char *filename )
+VipsFileLoad *
+vips_file_load_new_from_file( const char *filename )
 {
-	VipsFormatLoadClass *load_class;
-	VipsFormatLoad *load;
+	VipsFileLoadClass *load_class;
+	VipsFileLoad *load;
 
 	if( !vips_existsf( "%s", filename ) ) {
-		vips_error( "VipsFormatLoad", 
+		vips_error( "VipsFileLoad", 
 			_( "file \"%s\" not found" ), filename );
 		return( NULL );
 	}
 
-	if( !(load_class = (VipsFormatLoadClass *) vips_format_map( 
-		"VipsFormatLoad",
-		(VipsSListMap2Fn) vips_format_load_new_from_file_sub, 
+	if( !(load_class = (VipsFileLoadClass *) vips_file_map( 
+		"VipsFileLoad",
+		(VipsSListMap2Fn) vips_file_load_new_from_file_sub, 
 		(void *) filename, NULL )) ) {
-		vips_error( "VipsFormatLoad", 
-			_( "file \"%s\" not a known format" ), name );
+		vips_error( "VipsFileLoad", 
+			_( "file \"%s\" not a known file" ), name );
 		return( NULL );
 	}
 
-	load = VIPS_FORMAT_LOAD( 
+	load = VIPS_FILE_LOAD( 
 		g_object_new( G_TYPE_FROM_CLASS( load_class ), NULL ) );
 
 	/* May as well set flags here, should be quick.
@@ -460,15 +460,15 @@ vips_format_load_new_from_file( const char *filename )
 /* Abstract base class for image savers.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsFormatSave, vips_format_save, VIPS_TYPE_FORMAT );
+G_DEFINE_ABSTRACT_TYPE( VipsFileSave, vips_file_save, VIPS_TYPE_FILE );
 
 static void
-vips_format_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_file_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
-	VipsFormatSaveClass *class = VIPS_FORMAT_SAVE_CLASS( object_class );
+	VipsFileSaveClass *class = VIPS_FILE_SAVE_CLASS( object_class );
 	const char **p;
 
-	VIPS_OBJECT_CLASS( vips_format_save_parent_class )->
+	VIPS_OBJECT_CLASS( vips_file_save_parent_class )->
 		print_class( object_class, buf );
 	vips_buf_appends( buf, ", " );
 
@@ -477,12 +477,12 @@ vips_format_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 }
 
 static int
-vips_format_save_build( VipsObject *object )
+vips_file_save_build( VipsObject *object )
 {
-	VipsFormat *format = VIPS_FORMAT( object );
-	VipsFormatSave *save = VIPS_FORMAT_SAVE( object );
+	VipsFile *file = VIPS_FILE( object );
+	VipsFileSave *save = VIPS_FILE_SAVE( object );
 
-	if( VIPS_OBJECT_CLASS( vips_format_save_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_file_save_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -490,92 +490,92 @@ vips_format_save_build( VipsObject *object )
 }
 
 static void
-vips_format_save_class_init( VipsFormatSaveClass *class )
+vips_file_save_class_init( VipsFileSaveClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
-	object_class->nickname = "formatsave";
-	object_class->description = _( "format savers" );
-	object_class->print_class = vips_format_save_print_class;
-	object_class->build = vips_format_save_build;
+	object_class->nickname = "filesave";
+	object_class->description = _( "file savers" );
+	object_class->print_class = vips_file_save_print_class;
+	object_class->build = vips_file_save_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Image to save" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFormatSave, in ) );
+		G_STRUCT_OFFSET( VipsFileSave, in ) );
 }
 
 static void
-vips_format_save_init( VipsFormat *object )
+vips_file_save_init( VipsFile *object )
 {
 }
 
-/* Can we write this filename with this format? 
+/* Can we write this filename with this file? 
  */
 static void *
-vips_format_save_new_from_filename_sub( VipsFormatSaveClass *save_class, 
+vips_file_save_new_from_filename_sub( VipsFileSaveClass *save_class, 
 	const char *filename )
 {
-	VipsFormatClass *format = VIPS_FORMAT_CLASS( save_class );
+	VipsFileClass *file = VIPS_FILE_CLASS( save_class );
 
 	if( save_class->save &&
-		vips_filename_suffix_match( filename, format->suffs ) )
+		vips_filename_suffix_match( filename, file->suffs ) )
 		return( save_class );
 
 	return( NULL );
 }
 
 /**
- * vips_format_save_new_from_filename:
- * @filename: name to find a format for
+ * vips_file_save_new_from_filename:
+ * @filename: name to find a file for
  *
- * Searches for a format you could use to save a file.
+ * Searches for a file you could use to save a file.
  *
- * See also: vips_format_write(), vips_format_for_file().
+ * See also: vips_file_write(), vips_file_for_file().
  *
- * Returns: a format on success, %NULL on error
+ * Returns: a file on success, %NULL on error
  */
-VipsFormatSave *
-vips_format_save_new_from_filename( const char *filename )
+VipsFileSave *
+vips_file_save_new_from_filename( const char *filename )
 {
-	VipsFormatSaveClass *save_class;
-	VipsFormatSave *save;
+	VipsFileSaveClass *save_class;
+	VipsFileSave *save;
 
-	if( !(save_class = (VipsFormatSaveClass *) vips_format_map( 
-		"VipsFormatSave",
-		(VipsSListMap2Fn) vips_format_save_new_from_filename_sub, 
+	if( !(save_class = (VipsFileSaveClass *) vips_file_map( 
+		"VipsFileSave",
+		(VipsSListMap2Fn) vips_file_save_new_from_filename_sub, 
 		(void *) filename, NULL )) ) {
-		vips_error( "VipsFormatSave",
-			_( "\"%s\" is not a supported image format." ), 
+		vips_error( "VipsFileSave",
+			_( "\"%s\" is not a supported image file." ), 
 			filename );
 
 		return( NULL );
 	}
 
-	save = VIPS_FORMAT_SAVE( 
+	save = VIPS_FILE_SAVE( 
 		g_object_new( G_TYPE_FROM_CLASS( save_class ), NULL ) );
 
 	return( save );
 }
 
 /**
- * vips_format_read:
+ * vips_file_read:
  * @filename: file to load
  * @out: write the file to this image
  *
- * Searches for a format for this file, then loads the file into @out.
+ * Searches for a file for this file, then loads the file into @out.
  *
- * See also: vips_format_write().
+ * See also: vips_file_write().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_format_read( const char *filename, VipsImage *out )
+vips_file_read( const char *filename, VipsImage *out )
 {
-	VipsFormatLoad *load;
+	VipsFileLoad *load;
 
-	if( !(load = vips_format_load_new_from_file( filename )) )
+	if( !(load = vips_file_load_new_from_file( filename )) )
 		return( -1 );
 	g_object_unref( load );
 
@@ -583,23 +583,23 @@ vips_format_read( const char *filename, VipsImage *out )
 }
 
 /**
- * vips_format_write:
+ * vips_file_write:
  * @in: image to write
  * @filename: file to write to
  *
- * Searches for a format for this name, then saves @im to it.
+ * Searches for a file for this name, then saves @im to it.
  *
- * See also: vips_format_read().
+ * See also: vips_file_read().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_format_write( IMAGE *in, const char *filename )
+vips_file_write( VipsImage *in, const char *filename )
 {
-	VipsFormatClass *format;
+	VipsFileClass *file;
 
-	if( !(format = vips_format_for_name( filename )) || 
-		format->save( in, filename ) ) 
+	if( !(file = vips_file_for_name( filename )) || 
+		file->save( in, filename ) ) 
 		return( -1 );
 
 	return( 0 );

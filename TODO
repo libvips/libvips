@@ -1,10 +1,9 @@
-- we need loaders to be able to directly write to an image with no copy
-  operation
+- move all the haeder / lazy load / lazy save stuff from image.c into file.c
 
-- format should be a subclass of operation
+  can common up a lot of load/save from the *2vips.c etc. into FileLoad,
+  hopefully
 
-- rename format as VipsFile? move format to deprecated, only way to keep
-  compat
+  format from name should retur a char*, a recommended load operation
 
 
 
