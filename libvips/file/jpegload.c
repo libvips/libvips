@@ -901,11 +901,14 @@ vips_file_load_jpeg_load( VipsFileLoad *load )
 	return( result );
 }
 
+static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+
 static void
 vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFileClass *file_class = (VipsFileClass *) class;
 	VipsFileLoadClass *load_class = (VipsFileLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -914,6 +917,8 @@ vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
 	object_class->nickname = "jpegload";
 	object_class->description = _( "load jpeg from file" );
 	object_class->build = vips_file_load_jpeg_build;
+
+	file_class->suffs = jpeg_suffs;
 
 	load_class->is_a = vips_file_load_jpeg_is_a;
 	load_class->header = vips_file_load_jpeg_header;
@@ -932,7 +937,6 @@ vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsFileLoadJpeg, fail ),
 		FALSE );
-
 }
 
 static void

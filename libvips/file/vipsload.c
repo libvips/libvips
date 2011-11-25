@@ -46,7 +46,7 @@
 typedef VipsFileLoad VipsFileLoadVips;
 typedef VipsFileLoadClass VipsFileLoadVipsClass;
 
-G_DEFINE_TYPE( VipsFileLoadVips, vips_file_load_vips, VIPS_TYPE_FILE_SAVE );
+G_DEFINE_TYPE( VipsFileLoadVips, vips_file_load_vips, VIPS_TYPE_FILE_LOAD );
 
 static int
 vips_file_load_vips_build( VipsObject *object )
@@ -80,23 +80,52 @@ vips_file_load_vips_is_a( const char *filename )
 }
 
 static int
+vips_file_load_vips_get_flags( VipsFileLoad *load )
+{
+	VipsFile *file = VIPS_FILE( load );
+	unsigned char buf[4];
+
+	load->flags = VIPS_FILE_PARTIAL;
+
+	if( vips__get_bytes( file->filename, buf, 4 ) &&
+		buf[0] == 0x08 && 
+		buf[1] == 0xf2 &&
+		buf[2] == 0xa6 && 
+		buf[3] == 0xb6 )
+		load->flags |= VIPS_FORMAT_BIGENDIAN;
+
+	return( 0 );
+}
+
+static int
 vips_file_load_vips_header( VipsFileLoad *load )
 {
+	VipsFile *file = VIPS_FILE( load );
+
+	if( !(load->out = vips_image_new_from_file( file->filename )) )
+		return( -1 );
+
+	return( 0 );
 }
 
 static int
 vips_file_load_vips_load( VipsFileLoad *load )
 {
+	VipsFile *file = VIPS_FILE( load );
+
+	if( !(load->real = vips_image_new_from_file( file->filename )) )
+		return( -1 );
+
+	return( 0 );
 }
 
 static const char *vips_suffs[] = { ".v", NULL };
 
 static void
-vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
+vips_file_load_vips_class_init( VipsFileLoadVipsClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsFileClass *file_class = (VipsLoadClass *) class;
+	VipsFileClass *file_class = (VipsFileClass *) class;
 	VipsFileLoadClass *load_class = (VipsFileLoadClass *) class;
 
 	object_class->nickname = "vipsload";
@@ -106,9 +135,9 @@ vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
 	file_class->suffs = vips_suffs;
 
 	load_class->is_a = vips_file_load_vips_is_a;
+	load_class->get_flags = vips_file_load_vips_get_flags;
 	load_class->header = vips_file_load_vips_header;
 	load_class->load = vips_file_load_vips_load;
-
 }
 
 static void

@@ -1,9 +1,6 @@
-- need vips load/save class, so we can detect vips files for native read /
-  write
+- we have to open the image to see flags argh
 
-  jpeg load needs to set suffs
 
-  get image.c using the new system for vips_image_new_from_file()
 
   CLI stuff image->new_from_string() needs to use new system too, chcek this
 

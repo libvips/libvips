@@ -61,7 +61,7 @@ vips_file_save_vips_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips_image_write_to_file( save->in, file->filename ) )
+	if( vips_image_write_to_file( save->ready, file->filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -105,7 +105,6 @@ vips_file_save_vips_class_init( VipsFileSaveVipsClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = vips_bandfmt_vips;
-
 }
 
 static void

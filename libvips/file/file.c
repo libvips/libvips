@@ -234,7 +234,7 @@ vips_file_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 
 	VIPS_OBJECT_CLASS( vips_file_parent_class )->
 		print_class( object_class, buf );
-	vips_buf_appends( buf, ", " );
+	vips_buf_appends( buf, " " );
 
 	if( class->suffs ) {
 		vips_buf_appends( buf, "(" );
@@ -243,7 +243,7 @@ vips_file_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 			if( p[1] )
 				vips_buf_appends( buf, ", " );
 		}
-		vips_buf_appends( buf, ") " );
+		vips_buf_appends( buf, "), " );
 	}
 
 	vips_buf_appendf( buf, "priority=%d", class->priority );
