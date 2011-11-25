@@ -611,13 +611,216 @@ vips_file_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 	 */
 }
 
+/* Generate the saveable image.
+ */
+static int
+vips_file_convert_saveable( VipsFileSave *save )
+{
+	VipsFileSaveClass *class = VIPS_FILE_SAVE_GET_CLASS( save );
+	VipsImage *in = save->in;
+
+	/* If this is an VIPS_CODING_LABQ, we can go straight to RGB.
+	 */
+	if( in->Coding == VIPS_CODING_LABQ ) {
+		IMAGE *t = im_open_local( out, "conv:1", "p" );
+		static void *table = NULL;
+
+		/* Make sure fast LabQ2disp tables are built. 7 is sRGB.
+		 */
+		if( !table ) 
+			table = im_LabQ2disp_build_table( NULL, 
+				im_col_displays( 7 ) );
+
+		if( !t || im_LabQ2disp_table( in, t, table ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t;
+	}
+
+	/* If this is an IM_CODING_RAD, we go to float RGB or XYZ. We should
+	 * probably un-gamma-correct the RGB :(
+	 */
+	if( in->Coding == IM_CODING_RAD ) {
+		IMAGE *t;
+
+		if( !(t = im_open_local( out, "conv:1", "p" )) || 
+			im_rad2float( in, t ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t;
+	}
+
+	/* Get the bands right. 
+	 */
+	if( in->Coding == IM_CODING_NONE ) {
+		if( in->Bands == 2 && saveable != IM__RGBA ) {
+			IMAGE *t = im_open_local( out, "conv:1", "p" );
+
+			if( !t || im_extract_band( in, t, 0 ) ) {
+				im_close( out );
+				return( NULL );
+			}
+
+			in = t;
+		}
+		else if( in->Bands > 3 && saveable == IM__RGB ) {
+			IMAGE *t = im_open_local( out, "conv:1", "p" );
+
+			if( !t ||
+				im_extract_bands( in, t, 0, 3 ) ) {
+				im_close( out );
+				return( NULL );
+			}
+
+			in = t;
+		}
+		else if( in->Bands > 4 && 
+			(saveable == IM__RGB_CMYK || saveable == IM__RGBA) ) {
+			IMAGE *t = im_open_local( out, "conv:1", "p" );
+
+			if( !t ||
+				im_extract_bands( in, t, 0, 4 ) ) {
+				im_close( out );
+				return( NULL );
+			}
+
+			in = t;
+		}
+
+		/* Else we have saveable IM__ANY and we don't chop bands down.
+		 */
+	}
+
+	/* Interpret the Type field for colorimetric images.
+	 */
+	if( in->Bands == 3 && in->BandFmt == IM_BANDFMT_SHORT && 
+		in->Type == IM_TYPE_LABS ) {
+		IMAGE *t = im_open_local( out, "conv:1", "p" );
+
+		if( !t || im_LabS2LabQ( in, t ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t;
+	}
+
+	if( in->Coding == IM_CODING_LABQ ) {
+		IMAGE *t = im_open_local( out, "conv:1", "p" );
+
+		if( !t || im_LabQ2Lab( in, t ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t;
+	}
+
+	if( in->Coding != IM_CODING_NONE ) {
+		im_close( out );
+		return( NULL );
+	}
+
+	if( in->Bands == 3 && in->Type == IM_TYPE_LCH ) {
+		IMAGE *t[2];
+
+                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
+			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
+			im_LCh2Lab( t[0], t[1] ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t[1];
+	}
+
+	if( in->Bands == 3 && in->Type == IM_TYPE_YXY ) {
+		IMAGE *t[2];
+
+                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
+			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
+			im_Yxy2XYZ( t[0], t[1] ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t[1];
+	}
+
+	if( in->Bands == 3 && in->Type == IM_TYPE_UCS ) {
+		IMAGE *t[2];
+
+                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
+			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
+			im_UCS2XYZ( t[0], t[1] ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t[1];
+	}
+
+	if( in->Bands == 3 && in->Type == IM_TYPE_LAB ) {
+		IMAGE *t[2];
+
+                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
+			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
+			im_Lab2XYZ( t[0], t[1] ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t[1];
+	}
+
+	if( in->Bands == 3 && in->Type == IM_TYPE_XYZ ) {
+		IMAGE *t[2];
+
+                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
+			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
+			im_XYZ2disp( t[0], t[1], im_col_displays( 7 ) ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t[1];
+	}
+
+	/* Cast to the output format.
+	 */
+	{
+		IMAGE *t = im_open_local( out, "conv:1", "p" );
+
+		if( !t || im_clip2fmt( in, t, format_table[in->BandFmt] ) ) {
+			im_close( out );
+			return( NULL );
+		}
+
+		in = t;
+	}
+
+	if( im_copy( in, out ) ) {
+		im_close( out );
+		return( NULL );
+	}
+
+	return( out );
+}
+
 static int
 vips_file_save_build( VipsObject *object )
 {
+	VipsFileSave *save = VIPS_FILE_SAVE( object );
 	/*
 	VipsFile *file = VIPS_FILE( object );
-	VipsFileSave *save = VIPS_FILE_SAVE( object );
  	 */
+
+	if( vips_file_convert_saveable( save ) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_file_save_parent_class )->
 		build( object ) )
@@ -766,4 +969,3 @@ vips_file_operation_init( void )
 	vips_file_load_jpeg_get_type(); 
 #endif /*HAVE_JPEG*/
 }
-

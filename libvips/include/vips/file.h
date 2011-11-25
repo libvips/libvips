@@ -174,11 +174,32 @@ const char *vips_file_find_load( const char *filename );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_FILE_SAVE, VipsFileSaveClass ))
 
+/** 
+ * VipsSaveable:
+ * @VIPS_SAVEABLE_RGB: 1 or 3 bands (eg. PPM) 
+ * @VIPS_SAVEABLE_RGBA: 1, 2, 3 or 4 bands (eg. PNG)
+ * @VIPS_SAVEABLE_RGB_CMYK: 1, 3 or 4 bands (eg. JPEG)
+ * @VIPS_SAVEABLE_ANY: any number of bands (eg. TIFF)
+ *
+ * See also: #VipsFileSave.
+ */
+typedef enum {
+	VIPS_SAVEABLE_RGB,
+	VIPS_SAVEABLE_RGBA,
+	VIPS_SAVEABLE_RGB_CMYK,
+	VIPS_SAVEABLE_ANY,
+	VIPS_SAVEABLE_LAST
+} VipsSaveable;
+
 typedef struct _VipsFileSave {
 	VipsFile parent_object;
 	/*< public >*/
 
 	/* The image we are to save.
+	 */
+	VipsImage *in;
+
+	/* The image converted to a saveable format (eg. 8-bit RGB).
 	 */
 	VipsImage *in;
 
@@ -189,6 +210,13 @@ typedef struct _VipsFileSaveClass {
 
 	/*< public >*/
 
+	/* How this format treats bands.
+	 */
+	VipsSaveable saveable;
+
+	/* How this format treats band formats.
+	 */
+	VipsBandFormat format_table[VIPS_FORMAT_LAST];
 } VipsFileSaveClass;
 
 GType vips_file_save_get_type( void );

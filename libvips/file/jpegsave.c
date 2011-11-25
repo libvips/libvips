@@ -79,6 +79,7 @@
 /*
 #define DEBUG_VERBOSE
 #define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -106,8 +107,9 @@
 #endif /*HAVE_EXIF*/
 
 #include <vips/vips.h>
-#include <vips/buf.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
+#include <vips/buf.h>
 
 /* jpeglib includes jconfig.h, which can define HAVE_STDLIB_H ... which we
  * also define. Make sure it's turned off.
@@ -118,6 +120,8 @@
 
 #include <jpeglib.h>
 #include <jerror.h>
+
+#include "jpeg.h"
 
 typedef struct _VipsFileSaveJpeg {
 	VipsFileSave parent_object;

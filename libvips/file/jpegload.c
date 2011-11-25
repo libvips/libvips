@@ -112,6 +112,8 @@
 #include <jpeglib.h>
 #include <jerror.h>
 
+#include "jpeg.h"
+
 typedef struct _VipsFileLoadJpeg {
 	VipsFileLoad parent_object;
 
@@ -164,61 +166,6 @@ vips_file_load_jpeg_is_a( const char *filename )
 			return( TRUE );
 
 	return( FALSE );
-}
-
-/* Define a new error handler for when we bomb out.
- */
-typedef struct {
-	/* Public fields.
-	 */
-	struct jpeg_error_mgr pub;
-
-	/* Private stuff for us.
-	 */
-	jmp_buf jmp;		/* longjmp() here to get back to VIPS */
-	FILE *fp;		/* fclose() if non-NULL */
-} ErrorManager;
-
-/* New output message method - send to VIPS.
- */
-METHODDEF(void)
-new_output_message( j_common_ptr cinfo )
-{
-	char buffer[JMSG_LENGTH_MAX];
-
-	(*cinfo->err->format_message)( cinfo, buffer );
-	im_error( "VipsFileLoadJpeg", _( "%s" ), buffer );
-
-#ifdef DEBUG
-	printf( "VipsFileLoadJpeg: new_output_message: \"%s\"\n", buffer );
-#endif /*DEBUG*/
-}
-
-/* New error_exit handler.
- */
-METHODDEF(void)
-new_error_exit( j_common_ptr cinfo )
-{
-	ErrorManager *eman = (ErrorManager *) cinfo->err;
-
-#ifdef DEBUG
-	printf( "VipsFileLoadJpeg: new_error_exit\n" );
-#endif /*DEBUG*/
-
-	/* Close the fp if necessary.
-	 */
-	if( eman->fp ) {
-		(void) fclose( eman->fp );
-		eman->fp = NULL;
-	}
-
-	/* Send the error message to VIPS. This method is overridden above.
-	 */
-	(*cinfo->err->output_message)( cinfo );
-
-	/* Jump back.
-	 */
-	longjmp( eman->jmp, 1 );
 }
 
 /* Read a cinfo to a VIPS image. Set invert_pels if the pixel reader needs to
@@ -801,11 +748,11 @@ vips_file_load_jpeg_header( VipsFileLoad *load )
 	/* Make jpeg dcompression object.
  	 */
         cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = new_error_exit;
-	eman.pub.output_message = new_output_message;
+	eman.pub.error_exit = vips__new_error_exit;
+	eman.pub.output_message = vips__new_output_message;
 	eman.fp = NULL;
 	if( setjmp( eman.jmp ) ) {
-		/* Here for longjmp() from new_error_exit().
+		/* Here for longjmp() from vips__new_error_exit().
 		 */
 		jpeg_destroy_decompress( &cinfo );
 
@@ -904,11 +851,11 @@ vips_file_load_jpeg_load( VipsFileLoad *load )
 	/* Make jpeg dcompression object.
  	 */
         cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = new_error_exit;
-	eman.pub.output_message = new_output_message;
+	eman.pub.error_exit = vips__new_error_exit;
+	eman.pub.output_message = vips__new_output_message;
 	eman.fp = NULL;
 	if( setjmp( eman.jmp ) ) {
-		/* Here for longjmp() from new_error_exit().
+		/* Here for longjmp() from vips__new_error_exit().
 		 */
 		jpeg_destroy_decompress( &cinfo );
 
