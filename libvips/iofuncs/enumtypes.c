@@ -23,6 +23,26 @@ vips_file_flags_get_type( void )
 
 	return( etype );
 }
+GType
+vips_saveable_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_SAVEABLE_RGB, "VIPS_SAVEABLE_RGB", "rgb"},
+			{VIPS_SAVEABLE_RGBA, "VIPS_SAVEABLE_RGBA", "rgba"},
+			{VIPS_SAVEABLE_RGB_CMYK, "VIPS_SAVEABLE_RGB_CMYK", "rgb-cmyk"},
+			{VIPS_SAVEABLE_ANY, "VIPS_SAVEABLE_ANY", "any"},
+			{VIPS_SAVEABLE_LAST, "VIPS_SAVEABLE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsSaveable", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/conversion.h" */
 GType
 vips_extend_get_type( void )

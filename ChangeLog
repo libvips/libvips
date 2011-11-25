@@ -50,6 +50,8 @@
 - unlink temps on rewind on *nix, less likely to leave temps on a crash
 - added complex conj as a basic operation
 - rect/polar/conj work o any format, not just complex
+- new VipsFile system for load/save in image formats
+- options now introspectable, try "vips jpegsave"
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

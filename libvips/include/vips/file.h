@@ -201,7 +201,7 @@ typedef struct _VipsFileSave {
 
 	/* The image converted to a saveable format (eg. 8-bit RGB).
 	 */
-	VipsImage *in;
+	VipsImage *ready;
 
 } VipsFileSave;
 
@@ -216,7 +216,7 @@ typedef struct _VipsFileSaveClass {
 
 	/* How this format treats band formats.
 	 */
-	VipsBandFormat format_table[VIPS_FORMAT_LAST];
+	VipsBandFormat *format_table;
 } VipsFileSaveClass;
 
 GType vips_file_save_get_type( void );

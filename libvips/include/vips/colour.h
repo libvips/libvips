@@ -42,6 +42,29 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+struct im_col_display;
+
+int vips_LabQ2disp( VipsImage *in, VipsImage **out, 
+	struct im_col_display *disp, ... )
+	__attribute__((sentinel));
+int vips_rad2float( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_LabS2LabQ( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_LabQ2Lab( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_LCh2Lab( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_Yxy2Lab( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_UCS2XYZ( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_XYZ2disp( VipsImage *in, VipsImage **out, 
+	struct im_col_display *disp, ... )
+	__attribute__((sentinel));
+
 /* Areas under curves for Dxx. 2 degree observer.
  */
 #define IM_D93_X0 (89.7400)

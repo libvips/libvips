@@ -761,3 +761,126 @@ im_col_dE00( float L1, float a1, float b1,
 	return( dE00 );
 }
 
+/* Quick hack wrappers for common colour functions in the new style.
+ */
+
+int
+vips_LabQ2disp( VipsImage *in, VipsImage **out, 
+	struct im_col_display *disp, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, disp );
+	result = vips_call_split( "im_LabQ2disp", ap, in, out, disp );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_rad2float( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "im_rad2float", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_LabS2LabQ( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "im_LabS2LabQ", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_LabQ2Lab( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "im_LabQ2Lab", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_LCh2Lab( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "im_LCh2Lab", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_Yxy2Lab( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "im_Yxy2Lab", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_UCS2XYZ( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "im_UCS2XYZ", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "im_Lab2XYZ", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_XYZ2disp( VipsImage *in, VipsImage **out, 
+	struct im_col_display *disp, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, disp );
+	result = vips_call_split( "im_XYZ2disp", ap, in, out, disp );
+	va_end( ap );
+
+	return( result );
+}
+
+

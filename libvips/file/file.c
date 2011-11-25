@@ -598,17 +598,25 @@ vips_file_find_load( const char *filename )
 G_DEFINE_ABSTRACT_TYPE( VipsFileSave, vips_file_save, VIPS_TYPE_FILE );
 
 static void
+vips_file_save_dispose( GObject *gobject )
+{
+	VipsFileSave *save = VIPS_FILE_SAVE( gobject );
+
+	VIPS_UNREF( save->ready );
+
+	G_OBJECT_CLASS( vips_file_save_parent_class )->dispose( gobject );
+}
+
+static void
 vips_file_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
+	VipsFileSaveClass *class = VIPS_FILE_SAVE_CLASS( object_class );
+
 	VIPS_OBJECT_CLASS( vips_file_save_parent_class )->
 		print_class( object_class, buf );
-	vips_buf_appends( buf, ", " );
 
-	/*
-	VipsFileSaveClass *class = VIPS_FILE_SAVE_CLASS( object_class );
-	if( class->save )
-		vips_buf_appends( buf, "save " );
-	 */
+	vips_buf_appendf( buf, ", %s", 
+		VIPS_ENUM_NICK( VIPS_TYPE_SAVEABLE, class->saveable ) );
 }
 
 /* Generate the saveable image.
@@ -619,196 +627,192 @@ vips_file_convert_saveable( VipsFileSave *save )
 	VipsFileSaveClass *class = VIPS_FILE_SAVE_GET_CLASS( save );
 	VipsImage *in = save->in;
 
+	/* in holds a reference to the output of our chain as we build it.
+	 */
+	g_object_ref( in );
+
 	/* If this is an VIPS_CODING_LABQ, we can go straight to RGB.
 	 */
 	if( in->Coding == VIPS_CODING_LABQ ) {
-		IMAGE *t = im_open_local( out, "conv:1", "p" );
-		static void *table = NULL;
+		VipsImage *out;
 
-		/* Make sure fast LabQ2disp tables are built. 7 is sRGB.
-		 */
-		if( !table ) 
-			table = im_LabQ2disp_build_table( NULL, 
-				im_col_displays( 7 ) );
-
-		if( !t || im_LabQ2disp_table( in, t, table ) ) {
-			im_close( out );
-			return( NULL );
+		if( vips_LabQ2disp( in, &out, im_col_displays( 7 ), NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t;
+		in = out;
 	}
 
-	/* If this is an IM_CODING_RAD, we go to float RGB or XYZ. We should
+	/* If this is an VIPS_CODING_RAD, we go to float RGB or XYZ. We should
 	 * probably un-gamma-correct the RGB :(
 	 */
-	if( in->Coding == IM_CODING_RAD ) {
-		IMAGE *t;
+	if( in->Coding == VIPS_CODING_RAD ) {
+		VipsImage *out;
 
-		if( !(t = im_open_local( out, "conv:1", "p" )) || 
-			im_rad2float( in, t ) ) {
-			im_close( out );
-			return( NULL );
+		if( vips_rad2float( in, &out, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t;
+		in = out;
 	}
 
 	/* Get the bands right. 
 	 */
-	if( in->Coding == IM_CODING_NONE ) {
-		if( in->Bands == 2 && saveable != IM__RGBA ) {
-			IMAGE *t = im_open_local( out, "conv:1", "p" );
+	if( in->Coding == VIPS_CODING_NONE ) {
+		if( in->Bands == 2 && 
+			class->saveable != VIPS_SAVEABLE_RGBA ) {
+			VipsImage *out;
 
-			if( !t || im_extract_band( in, t, 0 ) ) {
-				im_close( out );
-				return( NULL );
+			if( vips_extract_band( in, &out, 0, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
 			}
+			g_object_unref( in );
 
-			in = t;
+			in = out;
 		}
-		else if( in->Bands > 3 && saveable == IM__RGB ) {
-			IMAGE *t = im_open_local( out, "conv:1", "p" );
+		else if( in->Bands > 3 && 
+			class->saveable == VIPS_SAVEABLE_RGB ) {
+			VipsImage *out;
 
-			if( !t ||
-				im_extract_bands( in, t, 0, 3 ) ) {
-				im_close( out );
-				return( NULL );
+			if( vips_extract_band( in, &out, 0, 
+				"n", 3,
+				NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
 			}
+			g_object_unref( in );
 
-			in = t;
+			in = out;
 		}
 		else if( in->Bands > 4 && 
-			(saveable == IM__RGB_CMYK || saveable == IM__RGBA) ) {
-			IMAGE *t = im_open_local( out, "conv:1", "p" );
+			(class->saveable == VIPS_SAVEABLE_RGB_CMYK || 
+			 class->saveable == VIPS_SAVEABLE_RGBA) ) {
+			VipsImage *out;
 
-			if( !t ||
-				im_extract_bands( in, t, 0, 4 ) ) {
-				im_close( out );
-				return( NULL );
+			if( vips_extract_band( in, &out, 0, 
+				"n", 4,
+				NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
 			}
+			g_object_unref( in );
 
-			in = t;
+			in = out;
 		}
 
-		/* Else we have saveable IM__ANY and we don't chop bands down.
+		/* Else we have VIPS_SAVEABLE_ANY and we don't chop bands down.
 		 */
 	}
 
 	/* Interpret the Type field for colorimetric images.
 	 */
-	if( in->Bands == 3 && in->BandFmt == IM_BANDFMT_SHORT && 
-		in->Type == IM_TYPE_LABS ) {
-		IMAGE *t = im_open_local( out, "conv:1", "p" );
+	if( in->Bands == 3 && 
+		in->BandFmt == VIPS_FORMAT_SHORT && 
+		in->Type == VIPS_INTERPRETATION_LABS ) {
+		VipsImage *out;
 
-		if( !t || im_LabS2LabQ( in, t ) ) {
-			im_close( out );
-			return( NULL );
+		if( vips_LabS2LabQ( in, &out, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t;
+		in = out;
 	}
 
-	if( in->Coding == IM_CODING_LABQ ) {
-		IMAGE *t = im_open_local( out, "conv:1", "p" );
+	if( in->Coding == VIPS_CODING_LABQ ) {
+		VipsImage *out;
 
-		if( !t || im_LabQ2Lab( in, t ) ) {
-			im_close( out );
-			return( NULL );
+		if( vips_LabQ2Lab( in, &out, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t;
+		in = out;
 	}
 
-	if( in->Coding != IM_CODING_NONE ) {
-		im_close( out );
-		return( NULL );
+	if( in->Coding != VIPS_CODING_NONE ) {
+		g_object_unref( in );
+		return( -1 );
 	}
 
-	if( in->Bands == 3 && in->Type == IM_TYPE_LCH ) {
-		IMAGE *t[2];
+	if( in->Bands == 3 && 
+		in->Type == VIPS_INTERPRETATION_LCH ) {
+		VipsImage *out;
 
-                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
-			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
-			im_LCh2Lab( t[0], t[1] ) ) {
-			im_close( out );
-			return( NULL );
+                if( vips_LCh2Lab( in, &out, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t[1];
+		in = out;
 	}
 
-	if( in->Bands == 3 && in->Type == IM_TYPE_YXY ) {
-		IMAGE *t[2];
+	if( in->Bands == 3 && 
+		in->Type == VIPS_INTERPRETATION_YXY ) {
+		VipsImage *out;
 
-                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
-			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
-			im_Yxy2XYZ( t[0], t[1] ) ) {
-			im_close( out );
-			return( NULL );
+                if( vips_Yxy2Lab( in, &out, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t[1];
+		in = out;
 	}
 
-	if( in->Bands == 3 && in->Type == IM_TYPE_UCS ) {
-		IMAGE *t[2];
+	if( in->Bands == 3 && 
+		in->Type == VIPS_INTERPRETATION_UCS ) {
+		VipsImage *out;
 
-                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
-			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
-			im_UCS2XYZ( t[0], t[1] ) ) {
-			im_close( out );
-			return( NULL );
+                if( vips_UCS2XYZ( in, &out, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t[1];
+		in = out;
 	}
 
-	if( in->Bands == 3 && in->Type == IM_TYPE_LAB ) {
-		IMAGE *t[2];
+	if( in->Bands == 3 && 
+		in->Type == VIPS_INTERPRETATION_LAB ) {
+		VipsImage *out;
 
-                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
-			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
-			im_Lab2XYZ( t[0], t[1] ) ) {
-			im_close( out );
-			return( NULL );
+		if( vips_XYZ2disp( in, &out, im_col_displays( 7 ), NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t[1];
-	}
-
-	if( in->Bands == 3 && in->Type == IM_TYPE_XYZ ) {
-		IMAGE *t[2];
-
-                if( im_open_local_array( out, t, 2, "conv-1", "p" ) ||
-			im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) ||
-			im_XYZ2disp( t[0], t[1], im_col_displays( 7 ) ) ) {
-			im_close( out );
-			return( NULL );
-		}
-
-		in = t[1];
+		in = out;
 	}
 
 	/* Cast to the output format.
 	 */
 	{
-		IMAGE *t = im_open_local( out, "conv:1", "p" );
+		VipsImage *out;
 
-		if( !t || im_clip2fmt( in, t, format_table[in->BandFmt] ) ) {
-			im_close( out );
-			return( NULL );
+		if( vips_cast( in, &out, 
+			class->format_table[in->BandFmt], NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
 		}
+		g_object_unref( in );
 
-		in = t;
+		in = out;
 	}
 
-	if( im_copy( in, out ) ) {
-		im_close( out );
-		return( NULL );
-	}
+	VIPS_UNREF( save->ready );
+	save->ready = in;
 
-	return( out );
+	return( 0 );
 }
 
 static int
@@ -835,6 +839,7 @@ vips_file_save_class_init( VipsFileSaveClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
+	gobject_class->dispose = vips_file_save_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -964,8 +969,10 @@ void
 vips_file_operation_init( void )
 {
 	extern GType vips_file_load_jpeg_get_type( void ); 
+	extern GType vips_file_save_jpeg_get_type( void ); 
 
 #ifdef HAVE_JPEG
 	vips_file_load_jpeg_get_type(); 
+	vips_file_save_jpeg_get_type(); 
 #endif /*HAVE_JPEG*/
 }

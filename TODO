@@ -1,6 +1,11 @@
-- try jpeg save
+- get image.c using the new system for vips_image_new_from_file()
 
-  get image.c using the new system
+  CLI stuff image->new_from_string() needs to use new system too, chcek this
+
+  savers need it too ... delayed save system and also
+  image->output_to_arg()
+
+  make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 
   move format/* to deprecated
 
