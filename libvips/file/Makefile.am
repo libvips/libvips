@@ -5,6 +5,8 @@ libfile_la_SOURCES = \
 	jpeg.h \
 	jpegload.c \
 	jpegsave.c \
+	vipssave.c \
+	vipsload.c \
 	file.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

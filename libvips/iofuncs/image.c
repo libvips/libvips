@@ -756,7 +756,7 @@ vips_image_build( VipsObject *object )
 	const char *filename = image->filename;
 	const char *mode = image->mode;
 
-	VipsFormatClass *format;
+	const char *file_op;
 	size_t sizeof_image;
 
 	VIPS_DEBUG_MSG( "vips_image_build: %p\n", image );
@@ -768,7 +768,7 @@ vips_image_build( VipsObject *object )
 	 */
 	switch( mode[0] ) {
         case 'r':
-		if( !(format = vips_format_for_file( filename )) )
+		if( !(file_op = vips_file_find_load( filename )) )
 			return( -1 );
 
 		if( vips_format_is_vips( format ) ) {

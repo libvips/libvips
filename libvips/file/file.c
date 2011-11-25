@@ -970,9 +970,13 @@ vips_file_operation_init( void )
 {
 	extern GType vips_file_load_jpeg_get_type( void ); 
 	extern GType vips_file_save_jpeg_get_type( void ); 
+	extern GType vips_file_load_vips_get_type( void ); 
+	extern GType vips_file_save_vips_get_type( void ); 
 
 #ifdef HAVE_JPEG
 	vips_file_load_jpeg_get_type(); 
 	vips_file_save_jpeg_get_type(); 
 #endif /*HAVE_JPEG*/
+	vips_file_load_vips_get_type(); 
+	vips_file_save_vips_get_type(); 
 }

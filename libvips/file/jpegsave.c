@@ -815,11 +815,14 @@ static int bandfmt_jpeg[10] = {
    UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
+static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+
 static void
 vips_file_save_jpeg_class_init( VipsFileSaveJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsFileClass *file_class = (VipsFileClass *) class;
 	VipsFileSaveClass *save_class = (VipsFileSaveClass *) class;
 
 	gobject_class->dispose = vips_file_save_jpeg_dispose;
@@ -828,8 +831,10 @@ vips_file_save_jpeg_class_init( VipsFileSaveJpegClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jpegsave";
-	object_class->description = _( "save jpeg to file" );
+	object_class->description = _( "save image to jpeg file" );
 	object_class->build = vips_file_save_jpeg_build;
+
+	file_class->suffs = jpeg_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
 	save_class->format_table = bandfmt_jpeg;
