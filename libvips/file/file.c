@@ -414,7 +414,7 @@ vips_file_load_start_cb( VipsImage *out, void *a, void *dummy )
 		 */
 		if( load->disc && 
 			disc_threshold && 
-			(load->flags & VIPS_FORMAT_PARTIAL) &&
+			(load->flags & VIPS_FILE_PARTIAL) &&
 			image_size > disc_threshold ) 
 			if( !(load->real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );

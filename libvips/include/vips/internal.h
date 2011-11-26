@@ -107,6 +107,7 @@ void vips__read_4byte( int msb_first, unsigned char *to, unsigned char **from );
 void vips__read_2byte( int msb_first, unsigned char *to, unsigned char **from );
 void vips__write_4byte( unsigned char **to, unsigned char *from );
 void vips__write_2byte( unsigned char **to, unsigned char *from );
+guint32 vips__file_magic( const char *filename );
 int vips__has_extension_block( VipsImage *im );
 void *vips__read_extension_block( VipsImage *im, int *size );
 int vips__write_extension_block( VipsImage *im, void *buf, int size );

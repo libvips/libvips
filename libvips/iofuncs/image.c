@@ -464,36 +464,26 @@ vips_image_rewind( VipsObject *object )
  */
 
 /* If we write to (eg.) TIFF, actually do the write
- * to a "p" and on "written" do im_vips2tiff() or whatever. Track save
- * parameters here.
+ * to a "p" and on "written" do im_vips2tiff() or whatever. 
  */
-typedef struct {
-	const char *file_op; 	/* Save function */
-	char *filename;		/* Save args */
-} SaveBlock;
 
 /* From "written" callback: invoke a delayed save.
  */
 static void
-vips_image_save_cb( VipsImage *image, int *result, SaveBlock *sb )
+vips_image_save_cb( VipsImage *image, int *result, char *filename )
 {
-	if( vips_call( sb->file_op, image, sb->filename, NULL ) )
+	if( vips_file_write( image, filename, NULL ) )
 		*result = -1;
 
-	g_free( sb->filename );
-	g_free( sb );
+	g_free( filename );
 }
 
 static void
-vips_attach_save( VipsImage *image, const char *file_op, const char *filename )
+vips_attach_save( VipsImage *image, const char *filename )
 {
-	SaveBlock *sb;
-
-	sb = g_new( SaveBlock, 1 );
-	sb->file_op = file_op;
-	sb->filename = g_strdup( filename );
 	g_signal_connect( image, "written", 
-		G_CALLBACK( vips_image_save_cb ), sb );
+		G_CALLBACK( vips_image_save_cb ), 
+		g_strdup( filename ) );
 }
 
 /* Progress feedback. 
@@ -576,7 +566,7 @@ vips_image_build( VipsObject *object )
 	const char *filename = image->filename;
 	const char *mode = image->mode;
 
-	const char *file_op;
+	guint32 magic;
 	size_t sizeof_image;
 
 	VIPS_DEBUG_MSG( "vips_image_build: %p\n", image );
@@ -587,36 +577,38 @@ vips_image_build( VipsObject *object )
 	/* Parse the mode string.
 	 */
 	switch( mode[0] ) {
-        case 'r':
-		if( !(file_op = vips_file_find_load( filename )) )
+        case 'v':
+	native:
+		if( vips_image_open_input( image ) )
 			return( -1 );
 
-		if( strcmp( file_op, "vipsload" ) == 0 ) {
+		if( mode[1] == 'w' ) 
+			image->dtype = VIPS_IMAGE_MMAPINRW;
+
+		break;
+
+        case 'r':
+		if( (magic = vips__file_magic( filename )) ) {
 			/* We may need to byteswap.
 			 */
-			VipsImage *t; 
-			VipsFormatFlags flags;
+			guint32 us = vips_amiMSBfirst() ? 
+				VIPS_MAGIC_INTEL : VIPS_MAGIC_SPARC;
 
-			if( vips_call( file_op, filename, &t,
-				"flags", &flags,
-				NULL ) )
-				return( -1 );
-
-			if(  (flags & VIPS_FORMAT_BIGENDIAN) == 
-				vips_amiMSBfirst() ) {
+			if( magic == us ) 
 				/* Native byte order .. open directly into
 				 * this image.
 				 */
-				g_object_unref( t );
-
-				if( vips_image_open_input( image ) )
-					return( -1 );
-
-				if( mode[1] == 'w' ) 
-					image->dtype = VIPS_IMAGE_MMAPINRW;
-			}
+				goto native;
 			else {
+				VipsImage *t; 
 				VipsImage *t2;
+
+				/* Open the image in t, then byteswap to this
+				 * image.
+				 */
+				if( !(t = vips_image_new_mode( filename, 
+					"v" )) )
+					return( -1 );
 
 				if( vips_copy( t, &t2, 
 					"swap", TRUE,
@@ -626,8 +618,6 @@ vips_image_build( VipsObject *object )
 				}
 				g_object_unref( t );
 
-				/* Byteswap t and copy into this image.
-				 */
 				image->dtype = VIPS_IMAGE_PARTIAL;
 				if( vips_image_write( t2, image ) ) {
 					g_object_unref( t2 );
@@ -639,8 +629,10 @@ vips_image_build( VipsObject *object )
 		else {
 			VipsImage *t;
 
-			if( vips_call( file_op, filename, &t, NULL ) )
+			if( vips_file_read( filename, &t, NULL ) )
 				return( -1 );
+
+			image->dtype = VIPS_IMAGE_PARTIAL;
 			if( vips_image_write( t, image ) ) {
 				g_object_unref( t );
 				return( -1 );
@@ -651,15 +643,19 @@ vips_image_build( VipsObject *object )
         	break;
 
 	case 'w':
+{
+		const char *file_op;
+
 		if( !(file_op = vips_file_find_save( filename )) )
 			return( -1 );
 
-		if( strcmp( file_op, "vipssave" ) == 0 ) 
+		if( strcmp( file_op, "VipsFileSaveVips" ) == 0 ) 
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
-			vips_attach_save( image, file_op, filename );
+			vips_attach_save( image, filename );
 		}
+}
         	break;
 
         case 't':

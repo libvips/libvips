@@ -42,6 +42,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 typedef VipsFileLoad VipsFileLoadVips;
 typedef VipsFileLoadClass VipsFileLoadVipsClass;
@@ -58,41 +59,25 @@ vips_file_load_vips_build( VipsObject *object )
 	return( 0 );
 }
 
-static int
+static gboolean
 vips_file_load_vips_is_a( const char *filename )
 {
-	unsigned char buf[4];
-
-	if( vips__get_bytes( filename, buf, 4 ) ) {
-		if( buf[0] == 0x08 && buf[1] == 0xf2 &&
-			buf[2] == 0xa6 && buf[3] == 0xb6 )
-			/* SPARC-order VIPS image.
-			 */
-			return( 1 );
-		else if( buf[3] == 0x08 && buf[2] == 0xf2 &&
-			buf[1] == 0xa6 && buf[0] == 0xb6 )
-			/* INTEL-order VIPS image.
-			 */
-			return( 1 );
-	}
-
-	return( 0 );
+	return( vips__file_magic( filename ) );
 }
 
 static int
 vips_file_load_vips_get_flags( VipsFileLoad *load )
 {
 	VipsFile *file = VIPS_FILE( load );
-	unsigned char buf[4];
 
 	load->flags = VIPS_FILE_PARTIAL;
 
-	if( vips__get_bytes( file->filename, buf, 4 ) &&
-		buf[0] == 0x08 && 
-		buf[1] == 0xf2 &&
-		buf[2] == 0xa6 && 
-		buf[3] == 0xb6 )
-		load->flags |= VIPS_FORMAT_BIGENDIAN;
+	if( vips__file_magic( file->filename ) == VIPS_MAGIC_INTEL ) {
+		printf( "vips_file_load_vips_get_flags: "
+			"%s is intel, setting bigendian\n",
+			file->filename );
+		load->flags |= VIPS_FILE_BIGENDIAN;
+	}
 
 	return( 0 );
 }

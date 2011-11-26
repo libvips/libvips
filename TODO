@@ -1,11 +1,6 @@
-- we have to open the image to see flags argh
+- CLI stuff image->new_from_string() needs to use new system too, check this
 
-
-
-  CLI stuff image->new_from_string() needs to use new system too, chcek this
-
-  savers need it too ... delayed save system and also
-  image->output_to_arg()
+  savers need it too ...  image->output_to_arg()
 
   make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 
