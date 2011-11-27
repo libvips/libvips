@@ -11,6 +11,7 @@
  *	- no need to set *stop on fill_region() error return
  *	- add OpenSlide properties to image metadata
  *	- consolidate setup into one function
+ *	- support reading arbitrary layers
  */
 
 /*
@@ -50,6 +51,8 @@
 
 typedef struct {
 	openslide_t *osr;
+	int32_t layer;
+	double downsample;
 	uint32_t background;
 } ReadSlide;
 
@@ -63,7 +66,10 @@ static ReadSlide *
 readslide_new( const char *filename, VipsImage *out )
 {
 	ReadSlide *rslide;
+	char name[FILENAME_MAX];
+	char mode[FILENAME_MAX];
 	const char *background;
+	char *endp;
 	int64_t w, h;
 	const char * const *properties;
 
@@ -72,7 +78,8 @@ readslide_new( const char *filename, VipsImage *out )
 	g_signal_connect( out, "close", G_CALLBACK( readslide_destroy_cb ),
 		rslide );
 
-	rslide->osr = openslide_open( filename );
+	vips_filename_split( filename, name, mode );
+	rslide->osr = openslide_open( name );
 	if( rslide->osr == NULL ) {
 		vips_error( "im_openslide2vips", _( "failure opening slide" ));
 		return( NULL );
@@ -85,7 +92,25 @@ readslide_new( const char *filename, VipsImage *out )
 	else
 		rslide->background = 0xffffff;
 
-	openslide_get_layer0_dimensions( rslide->osr, &w, &h );
+	if( mode[0] != 0 ) {
+		rslide->layer = strtol( mode, &endp, 10 );
+		if( *endp == 0 ) {
+			/* Mode specifies slide layer.
+			 */
+			if( rslide->layer < 0 || rslide->layer >=
+				openslide_get_layer_count( rslide->osr )) {
+				vips_error( "im_openslide2vips",
+					_( "invalid slide layer" ));
+				return( NULL );
+			}
+		} else {
+			vips_error( "im_openslide2vips",
+				_( "invalid file mode" ));
+			return( NULL );
+		}
+	}
+
+	openslide_get_layer_dimensions( rslide->osr, rslide->layer, &w, &h );
 	if( w < 0 || h < 0 ) {
 		vips_error( "im_openslide2vips", _( "getting dimensions: %s" ),
 			openslide_get_error( rslide->osr ));
@@ -96,6 +121,8 @@ readslide_new( const char *filename, VipsImage *out )
 			_( "image dimensions overflow int" ));
 		return( NULL );
 	}
+	rslide->downsample = openslide_get_layer_downsample( rslide->osr,
+		rslide->layer );
 
 	vips_image_init_fields( out, (int) w, (int) h, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
@@ -105,6 +132,8 @@ readslide_new( const char *filename, VipsImage *out )
 		vips_image_set_string( out, *properties,
 			openslide_get_property_value( rslide->osr,
 			*properties ));
+
+	vips_image_set_int( out, "slide-layer", rslide->layer );
 
 	return( rslide );
 }
@@ -123,8 +152,10 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 
 	buf = vips_malloc( NULL, out->valid.width * out->valid.height *
 		sizeof( *buf ));
-	openslide_read_region( rslide->osr, buf, out->valid.left,
-		out->valid.top, 0, out->valid.width, out->valid.height );
+	openslide_read_region( rslide->osr, buf,
+		out->valid.left * rslide->downsample,
+		out->valid.top * rslide->downsample, rslide->layer,
+		out->valid.width, out->valid.height );
 	for( y = 0; y < out->valid.height; y++ ) {
 		for( x = 0; x < out->valid.width; x++ ) {
 			/* Convert from ARGB to RGBA and undo
@@ -180,7 +211,9 @@ openslide2vips_header( const char *filename, VipsImage *out )
  * and Trestle formats.  It also supports generic tiled TIFF images, but
  * im_openslide2vips() does not.
  *
- * Currently, only layer 0 (the highest-resolution slide layer) is used.
+ * By default, read the highest-resolution layer (layer 0).  To read a
+ * different layer, specify the layer number as part of the filename
+ * (for example, "CMU-1.mrxs:3").
  *
  * See also: #VipsFormat
  *
