@@ -364,6 +364,77 @@ vips_file_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 		vips_buf_appends( buf, ", load" );
 }
 
+/* Can this VipsFile open this file?
+ */
+static void *
+vips_file_load_new_from_file_sub( VipsFileLoadClass *load_class, 
+	const char *filename )
+{
+	VipsFileClass *class = VIPS_FILE_CLASS( load_class );
+
+	if( load_class->is_a ) {
+		if( load_class->is_a( filename ) ) 
+			return( load_class );
+	}
+	else if( vips_filename_suffix_match( filename, class->suffs ) )
+		return( load_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_file_find_load:
+ * @filename: file to find a file for
+ *
+ * Searches for an operation you could use to load a file. 
+ *
+ * See also: vips_file_read().
+ *
+ * Returns: the nmae of an operation on success, %NULL on error
+ */
+const char *
+vips_file_find_load( const char *filename )
+{
+	VipsFileLoadClass *load_class;
+
+	if( !vips_existsf( "%s", filename ) ) {
+		vips_error( "VipsFileLoad", 
+			_( "file \"%s\" not found" ), filename );
+		return( NULL );
+	}
+
+	if( !(load_class = (VipsFileLoadClass *) vips_file_map( 
+		"VipsFileLoad",
+		(VipsSListMap2Fn) vips_file_load_new_from_file_sub, 
+		(void *) filename, NULL )) ) {
+		vips_error( "VipsFileLoad", 
+			_( "file \"%s\" not a known file" ), filename );
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( load_class ) );
+}
+
+static VipsObject *
+vips_file_load_new_from_string( const char *string )
+{
+	const char *file_op;
+	GType type;
+	VipsFileLoad *load;
+
+	if( !(file_op = vips_file_find_load( string )) )
+		return( NULL );
+	type = g_type_from_name( file_op );
+	g_assert( type ); 
+
+	load = VIPS_FILE_LOAD( g_object_new( type, NULL ) );
+	g_object_set( load,
+		"filename", string,
+		NULL );
+
+	return( VIPS_OBJECT( load ) );
+}
+
 static size_t
 vips_get_disc_threshold( void )
 {
@@ -508,10 +579,11 @@ vips_file_load_class_init( VipsFileLoadClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
+	object_class->build = vips_file_load_build;
+	object_class->print_class = vips_file_load_print_class;
+	object_class->new_from_string = vips_file_load_new_from_string;
 	object_class->nickname = "fileload";
 	object_class->description = _( "file loaders" );
-	object_class->print_class = vips_file_load_print_class;
-	object_class->build = vips_file_load_build;
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 
@@ -539,57 +611,6 @@ static void
 vips_file_load_init( VipsFileLoad *load )
 {
 	load->disc = TRUE;
-}
-
-/* Can this file open this file?
- */
-static void *
-vips_file_load_new_from_file_sub( VipsFileLoadClass *load_class, 
-	const char *filename )
-{
-	VipsFileClass *class = VIPS_FILE_CLASS( load_class );
-
-	if( load_class->is_a ) {
-		if( load_class->is_a( filename ) ) 
-			return( load_class );
-	}
-	else if( vips_filename_suffix_match( filename, class->suffs ) )
-		return( load_class );
-
-	return( NULL );
-}
-
-/**
- * vips_file_find_load:
- * @filename: file to find a file for
- *
- * Searches for an operation you could use to load a file. 
- *
- * See also: vips_file_read().
- *
- * Returns: the nmae of an operation on success, %NULL on error
- */
-const char *
-vips_file_find_load( const char *filename )
-{
-	VipsFileLoadClass *load_class;
-
-	if( !vips_existsf( "%s", filename ) ) {
-		vips_error( "VipsFileLoad", 
-			_( "file \"%s\" not found" ), filename );
-		return( NULL );
-	}
-
-	if( !(load_class = (VipsFileLoadClass *) vips_file_map( 
-		"VipsFileLoad",
-		(VipsSListMap2Fn) vips_file_load_new_from_file_sub, 
-		(void *) filename, NULL )) ) {
-		vips_error( "VipsFileLoad", 
-			_( "file \"%s\" not a known file" ), filename );
-		return( NULL );
-	}
-
-	return( G_OBJECT_CLASS_NAME( load_class ) );
 }
 
 /* Abstract base class for image savers.

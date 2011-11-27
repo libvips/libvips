@@ -1231,19 +1231,51 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	g_assert( argument_class->flags & VIPS_ARGUMENT_INPUT );
 
-	if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
-		(oclass = g_type_class_ref( otype )) ) { 
-		VipsObject *object;
+	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) &&
+		(oclass = g_type_class_ref( VIPS_TYPE_FILE_LOAD )) ) { 
+		VipsObject *new_object;
+		VipsImage *out;
 
-		if( !(object = vips_object_new_from_string( oclass, value )) )
+		/* Use VipsFile to build images, then pull 'out' from it and
+		 * set that to set the value.
+		 */
+		if( !(new_object = 
+			vips_object_new_from_string( oclass, value )) )
+			return( -1 );
+
+		g_object_get( new_object, "out", &out, NULL );
+
+		/* Getting 'out' will have upped it's count and we want to
+		 * hold the only ref to it.
+		 */
+		g_object_unref( out );
+
+		/* 'out' holds a ref to new_object, we can drop ours.
+		 */
+		g_object_unref( new_object );
+
+		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
+		g_value_set_object( &gvalue, out );
+
+		/* Setting gvalue will have upped out's count again,
+		 * go back to 1 so that gvalue has the only ref.
+		 */
+		g_object_unref( out );
+	}
+	else if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
+		(oclass = g_type_class_ref( otype )) ) { 
+		VipsObject *new_object;
+
+		if( !(new_object = 
+			vips_object_new_from_string( oclass, value )) )
 			return( -1 );
 
 		g_value_init( &gvalue, G_TYPE_OBJECT );
-		g_value_set_object( &gvalue, object );
+		g_value_set_object( &gvalue, new_object );
 
 		/* The GValue now has a ref, we can drop ours.
 		 */
-		g_object_unref( object );
+		g_object_unref( new_object );
 	}
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean b;

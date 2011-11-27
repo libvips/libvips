@@ -1,6 +1,10 @@
-- CLI stuff image->new_from_string() needs to use new system too, check this
+- test ref counting in vips_object_set_argument_from_string() VipsFile stuff
 
-  savers need it too ...  image->output_to_arg()
+  add path for output images, see vips_object_get_argument_to_string() 
+
+
+
+
 
   make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 

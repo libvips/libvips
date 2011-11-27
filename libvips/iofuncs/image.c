@@ -578,12 +578,10 @@ vips_image_build( VipsObject *object )
 	 */
 	switch( mode[0] ) {
         case 'v':
-	native:
+		/* Used by 'r' for native open of vips, see below.
+		 */
 		if( vips_image_open_input( image ) )
 			return( -1 );
-
-		if( mode[1] == 'w' ) 
-			image->dtype = VIPS_IMAGE_MMAPINRW;
 
 		break;
 
@@ -594,11 +592,12 @@ vips_image_build( VipsObject *object )
 			guint32 us = vips_amiMSBfirst() ? 
 				VIPS_MAGIC_INTEL : VIPS_MAGIC_SPARC;
 
-			if( magic == us ) 
-				/* Native byte order .. open directly into
-				 * this image.
+			if( magic == us ) {
+				/* Native open.
 				 */
-				goto native;
+				if( vips_image_open_input( image ) )
+					return( -1 );
+			}
 			else {
 				VipsImage *t; 
 				VipsImage *t2;
