@@ -8,6 +8,7 @@
  *	- initial version
  * 27/11/11
  *	- fix black background in transparent areas
+ *	- no need to set *stop on fill_region() error return
  */
 
 /*
@@ -122,9 +123,6 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 	if( error ) {
 		vips_error( "im_openslide2vips", _( "reading region: %s" ),
 			error );
-		/* OpenSlide handle is now in error state.
-		 */
-		*stop = TRUE;
 		return( -1 );
 	}
 	return( 0 );
