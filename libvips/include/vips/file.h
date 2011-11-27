@@ -145,11 +145,13 @@ typedef struct _VipsFileLoadClass {
 	 */
 	int (*get_flags)( VipsFileLoad * );
 
-	/* Read the header into @out.
+	/* Set the header fields in @out from @filename. If you can read the 
+	 * whole image as well with no performance cost (as with vipsload),
+	 * leave ->load() NULL.
 	 */
 	int (*header)( VipsFileLoad * );
 
-	/* Read the whole image into real. It gets copied to out later.
+	/* Read the whole image into @real. It gets copied to @out later.
 	 */
 	int (*load)( VipsFileLoad * );
 

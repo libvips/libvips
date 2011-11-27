@@ -49,16 +49,6 @@ typedef VipsFileLoadClass VipsFileLoadVipsClass;
 
 G_DEFINE_TYPE( VipsFileLoadVips, vips_file_load_vips, VIPS_TYPE_FILE_LOAD );
 
-static int
-vips_file_load_vips_build( VipsObject *object )
-{
-	if( VIPS_OBJECT_CLASS( vips_file_load_vips_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static gboolean
 vips_file_load_vips_is_a( const char *filename )
 {
@@ -86,20 +76,19 @@ static int
 vips_file_load_vips_header( VipsFileLoad *load )
 {
 	VipsFile *file = VIPS_FILE( load );
+	VipsImage *out;
+	VipsImage *out2;
 
-	if( !(load->out = vips_image_new_from_file( file->filename )) )
+	if( !(out2 = vips_image_new_from_file( file->filename )) )
 		return( -1 );
 
-	return( 0 );
-}
+	/* Unref the @out that's there now.
+	 */
+	g_object_get( load, "out", &out, NULL ); 
+	g_object_unref( out );
+	g_object_unref( out );
 
-static int
-vips_file_load_vips_load( VipsFileLoad *load )
-{
-	VipsFile *file = VIPS_FILE( load );
-
-	if( !(load->real = vips_image_new_from_file( file->filename )) )
-		return( -1 );
+	g_object_set( load, "out", out2, NULL ); 
 
 	return( 0 );
 }
@@ -115,14 +104,13 @@ vips_file_load_vips_class_init( VipsFileLoadVipsClass *class )
 
 	object_class->nickname = "vipsload";
 	object_class->description = _( "load vips from file" );
-	object_class->build = vips_file_load_vips_build;
 
 	file_class->suffs = vips_suffs;
 
 	load_class->is_a = vips_file_load_vips_is_a;
 	load_class->get_flags = vips_file_load_vips_get_flags;
 	load_class->header = vips_file_load_vips_header;
-	load_class->load = vips_file_load_vips_load;
+	load_class->load = NULL;
 }
 
 static void

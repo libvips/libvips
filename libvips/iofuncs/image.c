@@ -1796,7 +1796,7 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	default:
 		vips_error( "VipsImage", 
 			_( "unable to output to a %s image" ),
-			VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, 
+			VIPS_ENUM_STRING( VIPS_TYPE_IMAGE_TYPE, 
 				image->dtype ) );
 		return( -1 );
 	}

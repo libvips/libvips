@@ -1,12 +1,6 @@
-- test ref counting in vips_object_set_argument_from_string() VipsFile stuff
+- make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 
-  add path for output images, see vips_object_get_argument_to_string() 
-
-
-
-
-
-  make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
+  make sure we are using the operation cache for jpegload
 
   move format/* to deprecated
 
@@ -15,7 +9,7 @@
 
 
 
-- return missing just after read_xmp() in master?
+
 
 
 
