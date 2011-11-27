@@ -10,6 +10,7 @@
  *	- fix black background in transparent areas
  *	- no need to set *stop on fill_region() error return
  *	- add OpenSlide properties to image metadata
+ *	- consolidate setup into one function
  */
 
 /*
@@ -53,38 +54,59 @@ typedef struct {
 } ReadSlide;
 
 static void
-close_slide( VipsImage *image, openslide_t *osr )
+readslide_destroy_cb( VipsImage *image, ReadSlide *rslide )
 {
-	openslide_close( osr );
+	VIPS_FREEF( openslide_close, rslide->osr );
 }
 
-static int
-load_header( openslide_t *osr, VipsImage *out )
+static ReadSlide *
+readslide_new( const char *filename, VipsImage *out )
 {
+	ReadSlide *rslide;
+	const char *background;
 	int64_t w, h;
 	const char * const *properties;
 
-	openslide_get_layer0_dimensions( osr, &w, &h );
+	rslide = VIPS_NEW( out, ReadSlide );
+	memset( rslide, 0, sizeof( *rslide ));
+	g_signal_connect( out, "close", G_CALLBACK( readslide_destroy_cb ),
+		rslide );
+
+	rslide->osr = openslide_open( filename );
+	if( rslide->osr == NULL ) {
+		vips_error( "im_openslide2vips", _( "failure opening slide" ));
+		return( NULL );
+	}
+
+	background = openslide_get_property_value( rslide->osr,
+		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR );
+	if( background != NULL )
+		rslide->background = strtoul( background, NULL, 16 );
+	else
+		rslide->background = 0xffffff;
+
+	openslide_get_layer0_dimensions( rslide->osr, &w, &h );
 	if( w < 0 || h < 0 ) {
 		vips_error( "im_openslide2vips", _( "getting dimensions: %s" ),
-			openslide_get_error( osr ));
-		return( -1 );
+			openslide_get_error( rslide->osr ));
+		return( NULL );
 	}
 	if( w > INT_MAX || h > INT_MAX ) {
 		vips_error( "im_openslide2vips",
 			_( "image dimensions overflow int" ));
-		return( -1 );
+		return( NULL );
 	}
 
 	vips_image_init_fields( out, (int) w, (int) h, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
 
-	for( properties = openslide_get_property_names(osr);
+	for( properties = openslide_get_property_names( rslide->osr );
 		*properties != NULL; properties++ )
 		vips_image_set_string( out, *properties,
-			openslide_get_property_value( osr, *properties ));
+			openslide_get_property_value( rslide->osr,
+			*properties ));
 
-	return( 0 );
+	return( rslide );
 }
 
 static int
@@ -140,17 +162,12 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 static int
 openslide2vips_header( const char *filename, VipsImage *out )
 {
-	openslide_t *osr;
-	int ret;
+	ReadSlide *rslide;
 
-	osr = openslide_open( filename );
-	if( osr == NULL ) {
-		vips_error( "im_openslide2vips", _( "failure opening slide" ));
+	rslide = readslide_new( filename, out );
+	if( rslide == NULL )
 		return( -1 );
-	}
-	ret = load_header( osr, out );
-	openslide_close( osr );
-	return( ret );
+	return( 0 );
 }
 
 /**
@@ -173,26 +190,9 @@ static int
 im_openslide2vips( const char *filename, VipsImage *out )
 {
 	ReadSlide *rslide;
-	const char *background;
 
-	rslide = VIPS_NEW( out, ReadSlide );
-
-	rslide->osr = openslide_open( filename );
-	if( rslide->osr == NULL ) {
-		vips_error( "im_openslide2vips", _( "failure opening slide" ));
-		return( -1 );
-	}
-	g_signal_connect( out, "close", G_CALLBACK( close_slide ),
-		rslide->osr );
-
-	background = openslide_get_property_value( rslide->osr,
-		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR );
-	if( background != NULL )
-		rslide->background = strtoul( background, NULL, 16 );
-	else
-		rslide->background = 0xffffff;
-
-	if( load_header( rslide->osr, out ) || vips_image_pio_output( out ))
+	rslide = readslide_new( filename, out );
+	if( rslide == NULL || vips_image_pio_output( out ))
 		return( -1 );
 	vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	return vips_image_generate( out, NULL, fill_region, NULL, rslide,
