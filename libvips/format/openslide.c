@@ -9,6 +9,7 @@
  * 27/11/11
  *	- fix black background in transparent areas
  *	- no need to set *stop on fill_region() error return
+ *	- add OpenSlide properties to image metadata
  */
 
 /*
@@ -61,6 +62,7 @@ static int
 load_header( openslide_t *osr, VipsImage *out )
 {
 	int64_t w, h;
+	const char * const *properties;
 
 	openslide_get_layer0_dimensions( osr, &w, &h );
 	if( w < 0 || h < 0 ) {
@@ -73,8 +75,15 @@ load_header( openslide_t *osr, VipsImage *out )
 			_( "image dimensions overflow int" ));
 		return( -1 );
 	}
+
 	vips_image_init_fields( out, (int) w, (int) h, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
+
+	for( properties = openslide_get_property_names(osr);
+		*properties != NULL; properties++ )
+		vips_image_set_string( out, *properties,
+			openslide_get_property_value( osr, *properties ));
+
 	return( 0 );
 }
 
