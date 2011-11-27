@@ -6,6 +6,8 @@
  *
  * 26/11/11
  *	- initial version
+ * 27/11/11
+ *	- fix black background in transparent areas
  */
 
 /*
@@ -36,11 +38,17 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <limits.h>
 #include <openslide.h>
 
 #include <vips/vips.h>
 #include <vips/intl.h>
+
+typedef struct {
+	openslide_t *osr;
+	uint32_t background;
+} ReadSlide;
 
 static void
 close_slide( VipsImage *image, openslide_t *osr )
@@ -70,10 +78,10 @@ load_header( openslide_t *osr, VipsImage *out )
 }
 
 static int
-fill_region( VipsRegion *out, void *seq, void *_osr, void *unused,
+fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 	gboolean *stop )
 {
-	openslide_t *osr = _osr;
+	ReadSlide *rslide = _rslide;
 	uint32_t *buf;
 	const char *error;
 	PEL *pel;
@@ -83,32 +91,34 @@ fill_region( VipsRegion *out, void *seq, void *_osr, void *unused,
 
 	buf = vips_malloc( NULL, out->valid.width * out->valid.height *
 		sizeof( *buf ));
-	openslide_read_region( osr, buf, out->valid.left, out->valid.top,
-		0, out->valid.width, out->valid.height );
+	openslide_read_region( rslide->osr, buf, out->valid.left,
+		out->valid.top, 0, out->valid.width, out->valid.height );
 	for( y = 0; y < out->valid.height; y++ ) {
 		for( x = 0; x < out->valid.width; x++ ) {
 			/* Convert from ARGB to RGBA and undo
 			 * premultiplication.
 			 */
-			sample = buf[y * out->valid.height + x];
-			a = sample >> 24;
-			if( a == 0 ) {
-				/* R, G, B should also be zero, so we just
-				 * need to avoid the zero divide.
-				 */
-				a = 1;
-			}
 			pel = VIPS_REGION_ADDR( out, out->valid.left + x,
 				out->valid.top + y );
-			pel[0] = 255 * ((sample >> 16) & 255) / a;
-			pel[1] = 255 * ((sample >> 8) & 255) / a;
-			pel[2] = 255 * (sample & 255) / a;
+			sample = buf[y * out->valid.height + x];
+			a = sample >> 24;
+			if( a != 0 ) {
+				pel[0] = 255 * ((sample >> 16) & 255) / a;
+				pel[1] = 255 * ((sample >> 8) & 255) / a;
+				pel[2] = 255 * (sample & 255) / a;
+			} else {
+				/* Use background color.
+				 */
+				pel[0] = (rslide->background >> 16) & 255;
+				pel[1] = (rslide->background >> 8) & 255;
+				pel[2] = rslide->background & 255;
+			}
 			pel[3] = a;
 		}
 	}
 	vips_free( buf );
 
-	error = openslide_get_error( osr );
+	error = openslide_get_error( rslide->osr );
 	if( error ) {
 		vips_error( "im_openslide2vips", _( "reading region: %s" ),
 			error );
@@ -155,19 +165,31 @@ openslide2vips_header( const char *filename, VipsImage *out )
 static int
 im_openslide2vips( const char *filename, VipsImage *out )
 {
-	openslide_t *osr;
+	ReadSlide *rslide;
+	const char *background;
 
-	osr = openslide_open( filename );
-	if( osr == NULL ) {
+	rslide = VIPS_NEW( out, ReadSlide );
+
+	rslide->osr = openslide_open( filename );
+	if( rslide->osr == NULL ) {
 		vips_error( "im_openslide2vips", _( "failure opening slide" ));
 		return( -1 );
 	}
-	g_signal_connect( out, "close", G_CALLBACK( close_slide ), osr );
+	g_signal_connect( out, "close", G_CALLBACK( close_slide ),
+		rslide->osr );
 
-	if( load_header( osr, out ) || vips_image_pio_output( out ))
+	background = openslide_get_property_value( rslide->osr,
+		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR );
+	if( background != NULL )
+		rslide->background = strtoul( background, NULL, 16 );
+	else
+		rslide->background = 0xffffff;
+
+	if( load_header( rslide->osr, out ) || vips_image_pio_output( out ))
 		return( -1 );
 	vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
-	return vips_image_generate( out, NULL, fill_region, NULL, osr, NULL );
+	return vips_image_generate( out, NULL, fill_region, NULL, rslide,
+		NULL );
 }
 
 static int
