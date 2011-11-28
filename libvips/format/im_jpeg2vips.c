@@ -682,6 +682,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			if( p->data_length > 4 &&
 				im_isprefix( "http", (char *) p->data ) &&
 				read_xmp( out, p->data, p->data_length ) )
+				return( -1 );
 
 			break;
 
