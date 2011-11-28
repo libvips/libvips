@@ -14,6 +14,7 @@
  *	- support reading arbitrary layers
  *	- use VIPS_ARRAY()
  *	- add helper to copy a line of pixels
+ *	- support reading associated images
  */
 
 /*
@@ -53,15 +54,32 @@
 
 typedef struct {
 	openslide_t *osr;
+	uint32_t background;
+	const char *associated;
+
+	/* Only valid if associated == NULL.
+	 */
 	int32_t layer;
 	double downsample;
-	uint32_t background;
 } ReadSlide;
 
 static void
 readslide_destroy_cb( VipsImage *image, ReadSlide *rslide )
 {
 	VIPS_FREEF( openslide_close, rslide->osr );
+}
+
+static int
+check_associated_image( openslide_t *osr, const char *name )
+{
+	const char * const *associated;
+
+	for( associated = openslide_get_associated_image_names( osr );
+		*associated != NULL; associated++ )
+		if( strcmp( *associated, name ) == 0 )
+			return( 0 );
+	vips_error( "im_openslide2vips", _( "invalid associated image name" ));
+	return( -1 );
 }
 
 static ReadSlide *
@@ -74,6 +92,7 @@ readslide_new( const char *filename, VipsImage *out )
 	char *endp;
 	int64_t w, h;
 	const char * const *properties;
+	char *associated;
 
 	rslide = VIPS_NEW( out, ReadSlide );
 	memset( rslide, 0, sizeof( *rslide ));
@@ -94,26 +113,39 @@ readslide_new( const char *filename, VipsImage *out )
 	else
 		rslide->background = 0xffffff;
 
-	if( mode[0] != 0 ) {
-		rslide->layer = strtol( mode, &endp, 10 );
-		if( *endp == 0 ) {
-			/* Mode specifies slide layer.
-			 */
-			if( rslide->layer < 0 || rslide->layer >=
-				openslide_get_layer_count( rslide->osr )) {
-				vips_error( "im_openslide2vips",
-					_( "invalid slide layer" ));
-				return( NULL );
-			}
-		} else {
+	/* Parse optional mode.
+	 */
+	rslide->layer = strtol( mode, &endp, 10 );
+	if( *mode != 0 && *endp == 0 ) {
+		/* Mode specifies slide layer.
+		 */
+		if( rslide->layer < 0 || rslide->layer >=
+			openslide_get_layer_count( rslide->osr )) {
 			vips_error( "im_openslide2vips",
-				_( "invalid file mode" ));
+				_( "invalid slide layer" ));
 			return( NULL );
 		}
+	} else if( *mode != 0 ) {
+		/* Mode specifies associated image.
+		 */
+		if ( check_associated_image( rslide->osr, mode ))
+			return( NULL );
+		rslide->associated = vips_strdup( VIPS_OBJECT( out ), mode );
 	}
 
-	openslide_get_layer_dimensions( rslide->osr, rslide->layer, &w, &h );
-	if( w < 0 || h < 0 ) {
+	if( rslide->associated ) {
+		openslide_get_associated_image_dimensions( rslide->osr,
+			rslide->associated, &w, &h );
+		vips_image_set_string( out, "slide-associated-image",
+			rslide->associated );
+	} else {
+		openslide_get_layer_dimensions( rslide->osr, rslide->layer,
+			&w, &h );
+		rslide->downsample = openslide_get_layer_downsample(
+			rslide->osr, rslide->layer );
+		vips_image_set_int( out, "slide-layer", rslide->layer );
+	}
+	if( w < 0 || h < 0 || rslide->downsample < 0 ) {
 		vips_error( "im_openslide2vips", _( "getting dimensions: %s" ),
 			openslide_get_error( rslide->osr ));
 		return( NULL );
@@ -123,8 +155,6 @@ readslide_new( const char *filename, VipsImage *out )
 			_( "image dimensions overflow int" ));
 		return( NULL );
 	}
-	rslide->downsample = openslide_get_layer_downsample( rslide->osr,
-		rslide->layer );
 
 	vips_image_init_fields( out, (int) w, (int) h, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
@@ -135,7 +165,10 @@ readslide_new( const char *filename, VipsImage *out )
 			openslide_get_property_value( rslide->osr,
 			*properties ));
 
-	vips_image_set_int( out, "slide-layer", rslide->layer );
+	associated = g_strjoinv( ", ", (char **)
+		openslide_get_associated_image_names( rslide->osr ));
+	vips_image_set_string( out, "slide-associated-images", associated );
+	g_free( associated );
 
 	return( rslide );
 }
@@ -196,6 +229,47 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 }
 
 static int
+fill_associated( VipsImage *out, ReadSlide *rslide )
+{
+	uint32_t *buf;
+	PEL *line;
+	int64_t w, h;
+	int y;
+	const char *error;
+
+	openslide_get_associated_image_dimensions( rslide->osr,
+		rslide->associated, &w, &h );
+	if( w == -1 || h == -1 ) {
+		vips_error( "im_openslide2vips", _( "getting dimensions: %s" ),
+			openslide_get_error( rslide->osr ));
+		return( -1 );
+	}
+
+	buf = VIPS_ARRAY( NULL, w * h, uint32_t );
+	line = VIPS_ARRAY( NULL, VIPS_IMAGE_SIZEOF_LINE( out ), PEL );
+	openslide_read_associated_image( rslide->osr, rslide->associated,
+		buf );
+	for( y = 0; y < h; y++ ) {
+		copy_line( rslide, buf + y * w, w, line );
+		if( vips_image_write_line( out, y, line )) {
+			vips_free( line );
+			vips_free( buf );
+			return( -1 );
+		}
+	}
+	vips_free( line );
+	vips_free( buf );
+
+	error = openslide_get_error( rslide->osr );
+	if( error ) {
+		vips_error( "im_openslide2vips",
+			_( "reading associated image: %s" ), error );
+		return( -1 );
+	}
+	return( 0 );
+}
+
+static int
 openslide2vips_header( const char *filename, VipsImage *out )
 {
 	ReadSlide *rslide;
@@ -218,7 +292,9 @@ openslide2vips_header( const char *filename, VipsImage *out )
  *
  * By default, read the highest-resolution layer (layer 0).  To read a
  * different layer, specify the layer number as part of the filename
- * (for example, "CMU-1.mrxs:3").
+ * (for example, "CMU-1.mrxs:3").  To read an associated image attached
+ * to the slide, specify the image's name as part of the filename (for
+ * example, "CMU-1.mrxs:label").
  *
  * See also: #VipsFormat
  *
@@ -230,11 +306,19 @@ im_openslide2vips( const char *filename, VipsImage *out )
 	ReadSlide *rslide;
 
 	rslide = readslide_new( filename, out );
-	if( rslide == NULL || vips_image_pio_output( out ))
+	if( rslide == NULL )
 		return( -1 );
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
-	return vips_image_generate( out, NULL, fill_region, NULL, rslide,
-		NULL );
+	if( rslide->associated ) {
+		if( vips_image_wio_output( out ))
+			return( -1 );
+		return fill_associated( out, rslide );
+	} else {
+		if( vips_image_pio_output( out ))
+			return( -1 );
+		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+		return vips_image_generate( out, NULL, fill_region, NULL,
+			rslide, NULL );
+	}
 }
 
 static int
@@ -265,7 +349,21 @@ isslide( const char *filename )
 static VipsFormatFlags
 slide_flags( const char *filename )
 {
-	return( VIPS_FORMAT_PARTIAL );
+	char name[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+	char *endp;
+
+	vips_filename_split( filename, name, mode );
+	strtol( mode, &endp, 10 );
+	if( *mode == 0 || *endp == 0 ) {
+		/* Slide layer or no mode specified.
+		 */
+		return( VIPS_FORMAT_PARTIAL );
+	} else {
+		/* Associated image specified.
+		 */
+		return( 0 );
+	}
 }
 
 /* openslide format adds no new members.
