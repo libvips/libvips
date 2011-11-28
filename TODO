@@ -1,10 +1,19 @@
-- make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
+- do jpegbuffer load and save
+
+  need a jpegsave base class, with subclasses for save to file and save to 
+  buffer
+
+  same for jpegload
+
+  make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 
   make sure we are using the operation cache for jpegload
 
-  move format/* to deprecated
+  have something to print the cache before we flush it?
 
   try tiff load
+
+  move format/* to deprecated
 
 
 

@@ -82,13 +82,16 @@ vips_file_load_vips_header( VipsFileLoad *load )
 	if( !(out2 = vips_image_new_from_file( file->filename )) )
 		return( -1 );
 
-	/* Unref the @out that's there now.
+	/* Remove the @out that's there now.
 	 */
 	g_object_get( load, "out", &out, NULL ); 
-	g_object_unref( out );
-	g_object_unref( out );
-
 	g_object_set( load, "out", out2, NULL ); 
+
+	/* Unref after we install the new out to make sure load isn't
+	 * disposed.
+	 */
+	g_object_unref( out );
+	g_object_unref( out );
 
 	return( 0 );
 }
