@@ -1,7 +1,8 @@
 noinst_LTLIBRARIES = libfile.la
 
 libfile_la_SOURCES = \
-	jpeg.c \
+	vips2jpeg.c \
+	jpeg2vips.c \
 	jpeg.h \
 	jpegload.c \
 	jpegsave.c \

@@ -50,6 +50,19 @@ typedef struct {
 void vips__new_output_message( j_common_ptr cinfo );
 void vips__new_error_exit( j_common_ptr cinfo );
 
+int vips__jpeg_write_file( VipsImage *in, 
+	const char *filename, int Q, const char *profile );
+int vips__jpeg_write_buffer( VipsImage *in, 
+	void **obuf, int *olen, int Q, const char *profile );
+
+int vips__isjpeg( const char *filename );
+int vips__jpeg_read_file( const char *name, VipsImage *out, 
+	gboolean header_only,
+	int shrink, gboolean fail );
+int vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out, 
+	gboolean header_only,
+	int shrink, int fail );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

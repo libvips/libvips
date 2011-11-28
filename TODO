@@ -1,9 +1,8 @@
-- do jpegbuffer load and save
+- fix up jpeg2vips.c
 
-  need a jpegsave base class, with subclasses for save to file and save to 
-  buffer
+  fix up jpegload.c
 
-  same for jpegload
+  added classes for read and write jpeg buffers
 
   make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 
@@ -14,88 +13,6 @@
   try tiff load
 
   move format/* to deprecated
-
-
-
-
-
-
-
-
-
-- vipsimage should be cached too, eg.
-
-	VipsImage *a = vips_image_new_from_file( "poop.jpg" );
-
-  can be reused
-
-  ah ha! will im_jpeg2vips() or whatever get cached? that would do the reuse
-  for us
-  
-  move format to new-style and try it
-
-- also VipsFormat ... could this replace vips_image_new_from_string()? or
-  could we call this from vips_image_new_from_string()? 
-
-  at the moment, VipsFormat subclasses never get made, we just use the classes
-  ... we'd need to start making real vipsformat objects for this to work
-
-  how would this work?
-
-  at the moment we have
-
-  	image = vips_image_new_from_file( filename );
-
-	build a VipsImage with filename "r"
-
-  we also have the new CLI thing
-
-  	obj = vips_object_new_from_string( class, str );
-
-	calls class->new_from_string( first-component(str) ), then sets
-	optional args from rest-of-str(str), then does _build()
-
-	image-class->new_from_string() just make a vipsimage "r" str
-
-	the _build() uses VipsFormat() to load via im_tiff2vips() or whatever
-
-  so ... we could change vips_image_new_from_file() to be
-
-  	VIPS_IMAGE( vips_object_new_from_string( VipsImageClass, str ) )
-
-  we could also make VipsImage::new_from_string() make a real VipsFormat
-  object, then load options could be set from the str
-
-  how does save work? we call image-class->output_to_arg(obj, str), which in
-  turn calls vips_image_write(), which in turn uses VipsFormat
-
-
-
-
-  so ... make a VipsFormat class
-
-  define a VipsObject::new_from_string() method which takes a filename
-
-  gives you back a VipsFormat subclass object with methods for 
-  load/header/flags/etc. 
-
-  also has args for "load-ascii" etc. etc. 
-
-  then you call _buil() to make it
-
-  ... and then how does this become a VipsImage?
-
-  could be a vipsimage subclass? VipsObject.VipsImage.VipsFormat.VipsTiff
-
-  make a branch for this, seems like a big change
-
-
-
-  maybe keep the current structure, but just make VipsFormat & subclasses
-  instantiable?
-
-
-
 
 
 
