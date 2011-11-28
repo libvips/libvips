@@ -13,6 +13,7 @@
  *	- consolidate setup into one function
  *	- support reading arbitrary layers
  *	- use VIPS_ARRAY()
+ *	- add helper to copy a line of pixels
  */
 
 /*
@@ -139,6 +140,31 @@ readslide_new( const char *filename, VipsImage *out )
 	return( rslide );
 }
 
+static void
+copy_line( ReadSlide *rslide, uint32_t *in, int count, PEL *out )
+{
+	uint8_t a;
+	int i;
+
+	for( i = 0; i < count; i++ ) {
+		/* Convert from ARGB to RGBA and undo premultiplication.
+		 */
+		a = in[i] >> 24;
+		if( a != 0 ) {
+			out[4 * i + 0] = 255 * ((in[i] >> 16) & 255) / a;
+			out[4 * i + 1] = 255 * ((in[i] >> 8) & 255) / a;
+			out[4 * i + 2] = 255 * (in[i] & 255) / a;
+		} else {
+			/* Use background color.
+			 */
+			out[4 * i + 0] = (rslide->background >> 16) & 255;
+			out[4 * i + 1] = (rslide->background >> 8) & 255;
+			out[4 * i + 2] = rslide->background & 255;
+		}
+		out[4 * i + 3] = a;
+	}
+}
+
 static int
 fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 	gboolean *stop )
@@ -146,10 +172,7 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 	ReadSlide *rslide = _rslide;
 	uint32_t *buf;
 	const char *error;
-	PEL *pel;
-	uint32_t sample;
-	uint8_t a;
-	int x, y;
+	int y;
 
 	buf = VIPS_ARRAY( NULL, out->valid.width * out->valid.height,
 		uint32_t );
@@ -157,29 +180,10 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 		out->valid.left * rslide->downsample,
 		out->valid.top * rslide->downsample, rslide->layer,
 		out->valid.width, out->valid.height );
-	for( y = 0; y < out->valid.height; y++ ) {
-		for( x = 0; x < out->valid.width; x++ ) {
-			/* Convert from ARGB to RGBA and undo
-			 * premultiplication.
-			 */
-			pel = VIPS_REGION_ADDR( out, out->valid.left + x,
-				out->valid.top + y );
-			sample = buf[y * out->valid.height + x];
-			a = sample >> 24;
-			if( a != 0 ) {
-				pel[0] = 255 * ((sample >> 16) & 255) / a;
-				pel[1] = 255 * ((sample >> 8) & 255) / a;
-				pel[2] = 255 * (sample & 255) / a;
-			} else {
-				/* Use background color.
-				 */
-				pel[0] = (rslide->background >> 16) & 255;
-				pel[1] = (rslide->background >> 8) & 255;
-				pel[2] = rslide->background & 255;
-			}
-			pel[3] = a;
-		}
-	}
+	for( y = 0; y < out->valid.height; y++ )
+		copy_line( rslide, buf + y * out->valid.width,
+			out->valid.width, VIPS_REGION_ADDR_TOPLEFT( out ) +
+			y * VIPS_REGION_LSKIP( out ));
 	vips_free( buf );
 
 	error = openslide_get_error( rslide->osr );
