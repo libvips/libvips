@@ -852,7 +852,6 @@ vips_file_save_jpeg_class_init( VipsFileSaveJpegClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsFileSaveJpeg, profile ),
 		NULL );
-
 }
 
 static void

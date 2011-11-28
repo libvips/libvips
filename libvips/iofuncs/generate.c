@@ -682,7 +682,7 @@ vips_image_generate( VipsImage *image,
                  */
 		vips_error( "VipsImage", 
 			_( "unable to output to a %s image" ),
-			VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, 
+			VIPS_ENUM_NICK( VIPS_TYPE_IMAGE_TYPE, 
 				image->dtype ) );
                 return( -1 );
         }

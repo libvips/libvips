@@ -42,38 +42,31 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 typedef VipsFileLoad VipsFileLoadVips;
 typedef VipsFileLoadClass VipsFileLoadVipsClass;
 
-G_DEFINE_TYPE( VipsFileLoadVips, vips_file_load_vips, VIPS_TYPE_FILE_SAVE );
+G_DEFINE_TYPE( VipsFileLoadVips, vips_file_load_vips, VIPS_TYPE_FILE_LOAD );
 
-static int
-vips_file_load_vips_build( VipsObject *object )
+static gboolean
+vips_file_load_vips_is_a( const char *filename )
 {
-	if( VIPS_OBJECT_CLASS( vips_file_load_vips_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	return( 0 );
+	return( vips__file_magic( filename ) );
 }
 
 static int
-vips_file_load_vips_is_a( const char *filename )
+vips_file_load_vips_get_flags( VipsFileLoad *load )
 {
-	unsigned char buf[4];
+	VipsFile *file = VIPS_FILE( load );
 
-	if( vips__get_bytes( filename, buf, 4 ) ) {
-		if( buf[0] == 0x08 && buf[1] == 0xf2 &&
-			buf[2] == 0xa6 && buf[3] == 0xb6 )
-			/* SPARC-order VIPS image.
-			 */
-			return( 1 );
-		else if( buf[3] == 0x08 && buf[2] == 0xf2 &&
-			buf[1] == 0xa6 && buf[0] == 0xb6 )
-			/* INTEL-order VIPS image.
-			 */
-			return( 1 );
+	load->flags = VIPS_FILE_PARTIAL;
+
+	if( vips__file_magic( file->filename ) == VIPS_MAGIC_INTEL ) {
+		printf( "vips_file_load_vips_get_flags: "
+			"%s is intel, setting bigendian\n",
+			file->filename );
+		load->flags |= VIPS_FILE_BIGENDIAN;
 	}
 
 	return( 0 );
@@ -82,33 +75,45 @@ vips_file_load_vips_is_a( const char *filename )
 static int
 vips_file_load_vips_header( VipsFileLoad *load )
 {
-}
+	VipsFile *file = VIPS_FILE( load );
+	VipsImage *out;
+	VipsImage *out2;
 
-static int
-vips_file_load_vips_load( VipsFileLoad *load )
-{
+	if( !(out2 = vips_image_new_from_file( file->filename )) )
+		return( -1 );
+
+	/* Remove the @out that's there now.
+	 */
+	g_object_get( load, "out", &out, NULL ); 
+	g_object_set( load, "out", out2, NULL ); 
+
+	/* Unref after we install the new out to make sure load isn't
+	 * disposed.
+	 */
+	g_object_unref( out );
+	g_object_unref( out );
+
+	return( 0 );
 }
 
 static const char *vips_suffs[] = { ".v", NULL };
 
 static void
-vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
+vips_file_load_vips_class_init( VipsFileLoadVipsClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsFileClass *file_class = (VipsLoadClass *) class;
+	VipsFileClass *file_class = (VipsFileClass *) class;
 	VipsFileLoadClass *load_class = (VipsFileLoadClass *) class;
 
 	object_class->nickname = "vipsload";
 	object_class->description = _( "load vips from file" );
-	object_class->build = vips_file_load_vips_build;
 
 	file_class->suffs = vips_suffs;
 
 	load_class->is_a = vips_file_load_vips_is_a;
+	load_class->get_flags = vips_file_load_vips_get_flags;
 	load_class->header = vips_file_load_vips_header;
-	load_class->load = vips_file_load_vips_load;
-
+	load_class->load = NULL;
 }
 
 static void

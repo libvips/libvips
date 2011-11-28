@@ -104,7 +104,7 @@ void *vips_file_map( const char *base, VipsSListMap2Fn fn, void *a, void *b );
 /* Image file properties. 
  */
 typedef enum {
-	VIPS_FILE_NONE = 0,		/* No flags set */
+	VIPS_FILE_NONE = 0,	/* No flags set */
 	VIPS_FILE_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
 	VIPS_FILE_BIGENDIAN = 2	/* Most-significant byte first */
 } VipsFileFlags;
@@ -145,11 +145,13 @@ typedef struct _VipsFileLoadClass {
 	 */
 	int (*get_flags)( VipsFileLoad * );
 
-	/* Read the header into @out.
+	/* Set the header fields in @out from @filename. If you can read the 
+	 * whole image as well with no performance cost (as with vipsload),
+	 * leave ->load() NULL.
 	 */
 	int (*header)( VipsFileLoad * );
 
-	/* Read the whole image into real. It gets copied to out later.
+	/* Read the whole image into @real. It gets copied to @out later.
 	 */
 	int (*load)( VipsFileLoad * );
 

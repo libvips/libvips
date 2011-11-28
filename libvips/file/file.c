@@ -234,7 +234,7 @@ vips_file_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 
 	VIPS_OBJECT_CLASS( vips_file_parent_class )->
 		print_class( object_class, buf );
-	vips_buf_appends( buf, ", " );
+	vips_buf_appends( buf, " " );
 
 	if( class->suffs ) {
 		vips_buf_appends( buf, "(" );
@@ -243,7 +243,7 @@ vips_file_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 			if( p[1] )
 				vips_buf_appends( buf, ", " );
 		}
-		vips_buf_appends( buf, ") " );
+		vips_buf_appends( buf, "), " );
 	}
 
 	vips_buf_appendf( buf, "priority=%d", class->priority );
@@ -364,6 +364,77 @@ vips_file_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 		vips_buf_appends( buf, ", load" );
 }
 
+/* Can this VipsFile open this file?
+ */
+static void *
+vips_file_load_new_from_file_sub( VipsFileLoadClass *load_class, 
+	const char *filename )
+{
+	VipsFileClass *class = VIPS_FILE_CLASS( load_class );
+
+	if( load_class->is_a ) {
+		if( load_class->is_a( filename ) ) 
+			return( load_class );
+	}
+	else if( vips_filename_suffix_match( filename, class->suffs ) )
+		return( load_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_file_find_load:
+ * @filename: file to find a file for
+ *
+ * Searches for an operation you could use to load a file. 
+ *
+ * See also: vips_file_read().
+ *
+ * Returns: the nmae of an operation on success, %NULL on error
+ */
+const char *
+vips_file_find_load( const char *filename )
+{
+	VipsFileLoadClass *load_class;
+
+	if( !vips_existsf( "%s", filename ) ) {
+		vips_error( "VipsFileLoad", 
+			_( "file \"%s\" not found" ), filename );
+		return( NULL );
+	}
+
+	if( !(load_class = (VipsFileLoadClass *) vips_file_map( 
+		"VipsFileLoad",
+		(VipsSListMap2Fn) vips_file_load_new_from_file_sub, 
+		(void *) filename, NULL )) ) {
+		vips_error( "VipsFileLoad", 
+			_( "file \"%s\" not a known file" ), filename );
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( load_class ) );
+}
+
+static VipsObject *
+vips_file_load_new_from_string( const char *string )
+{
+	const char *file_op;
+	GType type;
+	VipsFileLoad *load;
+
+	if( !(file_op = vips_file_find_load( string )) )
+		return( NULL );
+	type = g_type_from_name( file_op );
+	g_assert( type ); 
+
+	load = VIPS_FILE_LOAD( g_object_new( type, NULL ) );
+	g_object_set( load,
+		"filename", string,
+		NULL );
+
+	return( VIPS_OBJECT( load ) );
+}
+
 static size_t
 vips_get_disc_threshold( void )
 {
@@ -414,7 +485,7 @@ vips_file_load_start_cb( VipsImage *out, void *a, void *dummy )
 		 */
 		if( load->disc && 
 			disc_threshold && 
-			(load->flags & VIPS_FORMAT_PARTIAL) &&
+			(load->flags & VIPS_FILE_PARTIAL) &&
 			image_size > disc_threshold ) 
 			if( !(load->real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );
@@ -476,24 +547,34 @@ vips_file_load_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* Read header fields to init the return image. THINSTRIP since this is
-	 * probably a disc file. We can't tell yet whether we will be opening
-	 * to memory, sadly, so we can't suggest ANY.
+	/* Read the header into @out.
 	 */
 	if( class->header &&
 		class->header( load ) )
 		return( -1 );
-	vips_demand_hint( load->out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
-	/* Then 'start' creates the real image and 'gen' fetches pixels for 
-	 * 'out' from real on demand.
+	/* If there's no ->load() method then the header read has done
+	 * everything. Otherwise, it's just set fields and we now must
+	 * convert pixels on demand.
 	 */
-	if( vips_image_generate( load->out, 
-		vips_file_load_start_cb, 
-		vips_file_load_generate_cb, 
-		vips_stop_one, 
-		load, NULL ) )
-		return( -1 );
+	if( class->load ) {
+		/* THINSTRIP since this is probably a disc file. 
+		 * We can't tell yet whether we will be opening
+		 * to memory, sadly, so we can't suggest ANY.
+		 */
+		vips_demand_hint( load->out, 
+			VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+		/* Then 'start' creates the real image and 'gen' fetches 
+		 * pixels for @out from @real on demand.
+		 */
+		if( vips_image_generate( load->out, 
+			vips_file_load_start_cb, 
+			vips_file_load_generate_cb, 
+			vips_stop_one, 
+			load, NULL ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }
@@ -508,10 +589,11 @@ vips_file_load_class_init( VipsFileLoadClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
+	object_class->build = vips_file_load_build;
+	object_class->print_class = vips_file_load_print_class;
+	object_class->new_from_string = vips_file_load_new_from_string;
 	object_class->nickname = "fileload";
 	object_class->description = _( "file loaders" );
-	object_class->print_class = vips_file_load_print_class;
-	object_class->build = vips_file_load_build;
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 
@@ -541,57 +623,6 @@ vips_file_load_init( VipsFileLoad *load )
 	load->disc = TRUE;
 }
 
-/* Can this file open this file?
- */
-static void *
-vips_file_load_new_from_file_sub( VipsFileLoadClass *load_class, 
-	const char *filename )
-{
-	VipsFileClass *class = VIPS_FILE_CLASS( load_class );
-
-	if( load_class->is_a ) {
-		if( load_class->is_a( filename ) ) 
-			return( load_class );
-	}
-	else if( vips_filename_suffix_match( filename, class->suffs ) )
-		return( load_class );
-
-	return( NULL );
-}
-
-/**
- * vips_file_find_load:
- * @filename: file to find a file for
- *
- * Searches for an operation you could use to load a file. 
- *
- * See also: vips_file_read().
- *
- * Returns: the nmae of an operation on success, %NULL on error
- */
-const char *
-vips_file_find_load( const char *filename )
-{
-	VipsFileLoadClass *load_class;
-
-	if( !vips_existsf( "%s", filename ) ) {
-		vips_error( "VipsFileLoad", 
-			_( "file \"%s\" not found" ), filename );
-		return( NULL );
-	}
-
-	if( !(load_class = (VipsFileLoadClass *) vips_file_map( 
-		"VipsFileLoad",
-		(VipsSListMap2Fn) vips_file_load_new_from_file_sub, 
-		(void *) filename, NULL )) ) {
-		vips_error( "VipsFileLoad", 
-			_( "file \"%s\" not a known file" ), filename );
-		return( NULL );
-	}
-
-	return( G_OBJECT_CLASS_NAME( load_class ) );
-}
-
 /* Abstract base class for image savers.
  */
 
@@ -617,6 +648,69 @@ vips_file_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 
 	vips_buf_appendf( buf, ", %s", 
 		VIPS_ENUM_NICK( VIPS_TYPE_SAVEABLE, class->saveable ) );
+}
+
+/* Can we write this filename with this file? 
+ */
+static void *
+vips_file_save_new_from_filename_sub( VipsFileSaveClass *save_class, 
+	const char *filename )
+{
+	VipsFileClass *class = VIPS_FILE_CLASS( save_class );
+
+	if( vips_filename_suffix_match( filename, class->suffs ) )
+		return( save_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_file_find_save:
+ * @filename: name to find a file for
+ *
+ * Searches for an operation you could use to save a file.
+ *
+ * See also: vips_file_write().
+ *
+ * Returns: the name of an operation on success, %NULL on error
+ */
+const char *
+vips_file_find_save( const char *filename )
+{
+	VipsFileSaveClass *save_class;
+
+	if( !(save_class = (VipsFileSaveClass *) vips_file_map( 
+		"VipsFileSave",
+		(VipsSListMap2Fn) vips_file_save_new_from_filename_sub, 
+		(void *) filename, NULL )) ) {
+		vips_error( "VipsFileSave",
+			_( "\"%s\" is not a supported image file." ), 
+			filename );
+
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( save_class ) );
+}
+
+static VipsObject *
+vips_file_save_new_from_string( const char *string )
+{
+	const char *file_op;
+	GType type;
+	VipsFileSave *save;
+
+	if( !(file_op = vips_file_find_save( string )) )
+		return( NULL );
+	type = g_type_from_name( file_op );
+	g_assert( type ); 
+
+	save = VIPS_FILE_SAVE( g_object_new( type, NULL ) );
+	g_object_set( save,
+		"filename", string,
+		NULL );
+
+	return( VIPS_OBJECT( save ) );
 }
 
 /* Generate the saveable image.
@@ -843,10 +937,11 @@ vips_file_save_class_init( VipsFileSaveClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
+	object_class->build = vips_file_save_build;
+	object_class->print_class = vips_file_save_print_class;
+	object_class->new_from_string = vips_file_save_new_from_string;
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
-	object_class->print_class = vips_file_save_print_class;
-	object_class->build = vips_file_save_build;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
@@ -858,49 +953,6 @@ vips_file_save_class_init( VipsFileSaveClass *class )
 static void
 vips_file_save_init( VipsFileSave *object )
 {
-}
-
-/* Can we write this filename with this file? 
- */
-static void *
-vips_file_save_new_from_filename_sub( VipsFileSaveClass *save_class, 
-	const char *filename )
-{
-	VipsFileClass *class = VIPS_FILE_CLASS( save_class );
-
-	if( vips_filename_suffix_match( filename, class->suffs ) )
-		return( save_class );
-
-	return( NULL );
-}
-
-/**
- * vips_file_find_save:
- * @filename: name to find a file for
- *
- * Searches for an operation you could use to save a file.
- *
- * See also: vips_file_write().
- *
- * Returns: the name of an operation on success, %NULL on error
- */
-const char *
-vips_file_find_save( const char *filename )
-{
-	VipsFileSaveClass *save_class;
-
-	if( !(save_class = (VipsFileSaveClass *) vips_file_map( 
-		"VipsFileSave",
-		(VipsSListMap2Fn) vips_file_save_new_from_filename_sub, 
-		(void *) filename, NULL )) ) {
-		vips_error( "VipsFileSave",
-			_( "\"%s\" is not a supported image file." ), 
-			filename );
-
-		return( NULL );
-	}
-
-	return( G_OBJECT_CLASS_NAME( save_class ) );
 }
 
 /**

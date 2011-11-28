@@ -460,220 +460,30 @@ vips_image_rewind( VipsObject *object )
 	image->mode = mode;
 }
 
-static gboolean
-vips_format_is_vips( VipsFormatClass *format )
-{
-	return( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "vips" ) == 0 );
-}
-
-/* Lazy open.
- */
-
-/* What we track during a delayed open.
- */
-typedef struct {
-	VipsImage *image;
-	VipsFormatClass *format;/* Read in pixels with this */
-	char *filename;		/* Get pixels from here */
-	gboolean disc;		/* Read via disc requested */
-
-	VipsImage *real;	/* The real decompressed image */
-} Lazy;
-
-static void
-lazy_free_cb( VipsImage *image, Lazy *lazy )
-{
-	VIPS_DEBUG_MSG( "lazy_free: %p \"%s\"\n", lazy, lazy->filename );
-
-	g_free( lazy->filename );
-	VIPS_UNREF( lazy->real );
-	g_free( lazy );
-}
-
-static Lazy *
-lazy_new( VipsImage *image, 
-	VipsFormatClass *format, const char *filename, gboolean disc )
-{
-	Lazy *lazy;
-
-	lazy = g_new( Lazy, 1 );
-	VIPS_DEBUG_MSG( "lazy_new: %p \"%s\"\n", lazy, filename );
-	lazy->image = image;
-	lazy->format = format;
-	lazy->filename = g_strdup( filename );
-	lazy->disc = disc;
-	lazy->real = NULL;
-	g_signal_connect( image, "close", G_CALLBACK( lazy_free_cb ), lazy );
-
-	return( lazy );
-}
-
-static size_t
-disc_threshold( void )
-{
-	static gboolean done = FALSE;
-	static size_t threshold;
-
-	if( !done ) {
-		const char *env;
-
-		done = TRUE;
-
-		/* 100mb default.
-		 */
-		threshold = 100 * 1024 * 1024;
-
-		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
-			threshold = vips__parse_size( env );
-
-		if( vips__disc_threshold ) 
-			threshold = vips__parse_size( vips__disc_threshold );
-
-		VIPS_DEBUG_MSG( "disc_threshold: %zd bytes\n", threshold );
-	}
-
-	return( threshold );
-}
-
-/* Make the real underlying image: either a direct disc file, or a temp file
- * somewhere.
- */
-static VipsImage *
-lazy_real_image( Lazy *lazy ) 
-{
-	VipsImage *real;
-
-	/* We open via disc if:
-	 * - 'disc' is set
-	 * - disc_threshold() has not been set to zero
-	 * - the format does not support lazy read
-	 * - the uncompressed image will be larger than disc_threshold()
-	 */
-	real = NULL;
-	if( lazy->disc && 
-		disc_threshold() && 
-	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
-			VIPS_FORMAT_PARTIAL) &&
-		VIPS_IMAGE_SIZEOF_IMAGE( lazy->image ) > disc_threshold() ) 
-			if( !(real = vips_image_new_disc_temp( "%s.v" )) )
-				return( NULL );
-
-	/* Otherwise, fall back to a "p".
-	 */
-	if( !real && 
-		!(real = vips_image_new()) )
-		return( NULL );
-
-	return( real );
-}
-
-/* Our start function ... do the lazy open, if necessary, and return a region
- * on the new image.
- */
-static void *
-open_lazy_start( VipsImage *out, void *a, void *dummy )
-{
-	Lazy *lazy = (Lazy *) a;
-
-	if( !lazy->real ) {
-		if( !(lazy->real = lazy_real_image( lazy )) || 
-			lazy->format->load( lazy->filename, lazy->real ) ||
-			vips_image_pio_input( lazy->real ) ) {
-			VIPS_UNREF( lazy->real );
-			return( NULL );
-		}
-	}
-
-	return( vips_region_new( lazy->real ) );
-}
-
-/* Just copy.
- */
-static int
-open_lazy_generate( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
-{
-	VipsRegion *ir = (VipsRegion *) seq;
-
-        VipsRect *r = &or->valid;
-
-        /* Ask for input we need.
-         */
-        if( vips_region_prepare( ir, r ) )
-                return( -1 );
-
-        /* Attach output region to that.
-         */
-        if( vips_region_region( or, ir, r, r->left, r->top ) )
-                return( -1 );
-
-        return( 0 );
-}
-
-/* Lazy open ... init the header with the first OpenLazyFn, delay actually
- * decoding pixels with the second OpenLazyFn until the first generate().
- */
-static int
-vips_image_open_lazy( VipsImage *image, 
-	VipsFormatClass *format, const char *filename, gboolean disc )
-{
-	Lazy *lazy;
-
-	lazy = lazy_new( image, format, filename, disc );
-
-	/* Read header fields to init the return image. THINSTRIP since this is
-	 * probably a disc file. We can't tell yet whether we will be opening
-	 * to memory, sadly, so we can't suggest ANY.
-	 */
-	if( format->header( filename, image ) )
-		return( -1 );
-	vips_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
-	/* Then 'start' creates the real image and 'gen' paints 'out' with 
-	 * pixels from the real image on demand.
-	 */
-	if( vips_image_generate( image, 
-		open_lazy_start, open_lazy_generate, vips_stop_one, 
-		lazy, NULL ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* Lazy save.
+/* Delayed save.
  */
 
 /* If we write to (eg.) TIFF, actually do the write
- * to a "p" and on "written" do im_vips2tiff() or whatever. Track save
- * parameters here.
+ * to a "p" and on "written" do im_vips2tiff() or whatever. 
  */
-typedef struct {
-	int (*save_fn)();	/* Save function */
-	char *filename;		/* Save args */
-} SaveBlock;
 
 /* From "written" callback: invoke a delayed save.
  */
 static void
-vips_image_save_cb( VipsImage *image, int *result, SaveBlock *sb )
+vips_image_save_cb( VipsImage *image, int *result, char *filename )
 {
-	if( sb->save_fn( image, sb->filename ) )
+	if( vips_file_write( image, filename, NULL ) )
 		*result = -1;
 
-	g_free( sb->filename );
-	g_free( sb );
+	g_free( filename );
 }
 
 static void
-vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
+vips_attach_save( VipsImage *image, const char *filename )
 {
-	SaveBlock *sb;
-
-	sb = g_new( SaveBlock, 1 );
-	sb->save_fn = save_fn;
-	sb->filename = g_strdup( filename );
 	g_signal_connect( image, "written", 
-		G_CALLBACK( vips_image_save_cb ), sb );
+		G_CALLBACK( vips_image_save_cb ), 
+		g_strdup( filename ) );
 }
 
 /* Progress feedback. 
@@ -756,7 +566,7 @@ vips_image_build( VipsObject *object )
 	const char *filename = image->filename;
 	const char *mode = image->mode;
 
-	const char *file_op;
+	guint32 magic;
 	size_t sizeof_image;
 
 	VIPS_DEBUG_MSG( "vips_image_build: %p\n", image );
@@ -767,62 +577,84 @@ vips_image_build( VipsObject *object )
 	/* Parse the mode string.
 	 */
 	switch( mode[0] ) {
-        case 'r':
-		if( !(file_op = vips_file_find_load( filename )) )
+        case 'v':
+		/* Used by 'r' for native open of vips, see below.
+		 */
+		if( vips_image_open_input( image ) )
 			return( -1 );
 
-		if( vips_format_is_vips( format ) ) {
+		break;
+
+        case 'r':
+		if( (magic = vips__file_magic( filename )) ) {
 			/* We may need to byteswap.
 			 */
-			VipsFormatFlags flags = 
-				vips_format_get_flags( format, filename );
-			gboolean native = (flags & VIPS_FORMAT_BIGENDIAN) == 
-				vips_amiMSBfirst();
+			guint32 us = vips_amiMSBfirst() ? 
+				VIPS_MAGIC_INTEL : VIPS_MAGIC_SPARC;
 
-			if( native ) {
+			if( magic == us ) {
+				/* Native open.
+				 */
 				if( vips_image_open_input( image ) )
 					return( -1 );
-
-				if( mode[1] == 'w' ) 
-					image->dtype = VIPS_IMAGE_MMAPINRW;
 			}
 			else {
-				VipsImage *x;
+				VipsImage *t; 
+				VipsImage *t2;
 
-				if( !(x = vips_image_new()) )
+				/* Open the image in t, then byteswap to this
+				 * image.
+				 */
+				if( !(t = vips_image_new_mode( filename, 
+					"v" )) )
 					return( -1 );
-				vips_object_local( image, x );
-				if( vips_image_open_input( x ) )
+
+				if( vips_copy( t, &t2, 
+					"swap", TRUE,
+					NULL ) ) {
+					g_object_unref( t );
 					return( -1 );
+				}
+				g_object_unref( t );
+
 				image->dtype = VIPS_IMAGE_PARTIAL;
-				if( im_copy_swap( x, image ) )
+				if( vips_image_write( t2, image ) ) {
+					g_object_unref( t2 );
 					return( -1 );
+				}
+				g_object_unref( t2 );
 			}
 		}
 		else {
-			/* Make this a partial, generate into it from the
-			 * converter.
-			 */
-			image->dtype = VIPS_IMAGE_PARTIAL;
+			VipsImage *t;
 
-			if( vips_image_open_lazy( image, format, 
-				filename, mode[1] == 'd' ) )
+			if( vips_file_read( filename, &t, NULL ) )
 				return( -1 );
+
+			image->dtype = VIPS_IMAGE_PARTIAL;
+			if( vips_image_write( t, image ) ) {
+				g_object_unref( t );
+				return( -1 );
+			}
+			g_object_unref( t );
 		}
 
         	break;
 
 	case 'w':
-		if( !(format = vips_format_for_name( filename )) ) 
+{
+		const char *file_op;
+
+		if( !(file_op = vips_file_find_save( filename )) )
 			return( -1 );
 
-		if( vips_format_is_vips( format ) ) 
+		if( strcmp( file_op, "VipsFileSaveVips" ) == 0 ) 
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
-			vips_attach_save( image, 
-				format->save, filename );
+			vips_attach_save( image, filename );
 		}
+}
         	break;
 
         case 't':
@@ -1964,7 +1796,7 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	default:
 		vips_error( "VipsImage", 
 			_( "unable to output to a %s image" ),
-			VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, 
+			VIPS_ENUM_STRING( VIPS_TYPE_IMAGE_TYPE, 
 				image->dtype ) );
 		return( -1 );
 	}

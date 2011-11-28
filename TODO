@@ -1,25 +1,24 @@
-- need vips load/save class, so we can detect vips files for native read /
-  write
+- do jpegbuffer load and save
 
-  jpeg load needs to set suffs
+  need a jpegsave base class, with subclasses for save to file and save to 
+  buffer
 
-  get image.c using the new system for vips_image_new_from_file()
-
-  CLI stuff image->new_from_string() needs to use new system too, chcek this
-
-  savers need it too ... delayed save system and also
-  image->output_to_arg()
+  same for jpegload
 
   make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 
-  move format/* to deprecated
+  make sure we are using the operation cache for jpegload
+
+  have something to print the cache before we flush it?
 
   try tiff load
 
+  move format/* to deprecated
 
 
 
-- return missing just after read_xmp() in master?
+
+
 
 
 
