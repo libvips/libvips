@@ -728,12 +728,9 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 /* Read a JPEG file into a VIPS image.
  */
 int
-vips__jpeg2vips( const char *name, VipsImage *out, gboolean header_only,
+vips__jpeg_read_file( const char *name, VipsImage *out, gboolean header_only,
 	int shrink, gboolean fail )
 {
-	char filename[FILENAME_MAX];
-	char mode[FILENAME_MAX];
-	char *p, *q;
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
 	FILE *fp;
@@ -743,8 +740,8 @@ vips__jpeg2vips( const char *name, VipsImage *out, gboolean header_only,
 	/* Make jpeg dcompression object.
  	 */
         cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = new_error_exit;
-	eman.pub.output_message = new_output_message;
+	eman.pub.error_exit = vips__new_error_exit;
+	eman.pub.output_message = vips__new_output_message;
 	eman.fp = NULL;
 	if( setjmp( eman.jmp ) ) {
 		/* Here for longjmp() from new_error_exit().
@@ -757,7 +754,7 @@ vips__jpeg2vips( const char *name, VipsImage *out, gboolean header_only,
 
 	/* Make input.
 	 */
-        if( !(fp = im__file_open_read( filename, NULL, FALSE )) ) 
+        if( !(fp = im__file_open_read( name, NULL, FALSE )) ) 
                 return( -1 );
 	eman.fp = fp;
         jpeg_stdio_src( &cinfo, fp );
@@ -967,7 +964,7 @@ buf_source (j_decompress_ptr cinfo, void *buf, size_t len)
 }
 
 int
-vips__bufjpeg2vips( void *buf, size_t len, VipsImage *out, 
+vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out, 
 	gboolean header_only,
 	int shrink, int fail )
 {
@@ -979,8 +976,8 @@ vips__bufjpeg2vips( void *buf, size_t len, VipsImage *out,
 	/* Make jpeg dcompression object.
  	 */
         cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = new_error_exit;
-	eman.pub.output_message = new_output_message;
+	eman.pub.error_exit = vips__new_error_exit;
+	eman.pub.output_message = vips__new_output_message;
 	eman.fp = NULL;
 	if( setjmp( eman.jmp ) ) {
 		/* Here for longjmp() from new_error_exit().

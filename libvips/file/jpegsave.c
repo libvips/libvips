@@ -103,7 +103,8 @@ vips_file_save_jpeg_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__jpeg_write_file( save->in, file->filename,
+	// ->ready loses a ref suring the write??
+	if( vips__jpeg_write_file( save->ready, file->filename,
 		jpeg->Q, jpeg->profile ) )
 		return( -1 );
 
@@ -118,8 +119,6 @@ static int bandfmt_jpeg[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
-
-static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
 
 static void
 vips_file_save_jpeg_class_init( VipsFileSaveJpegClass *class )
@@ -136,7 +135,7 @@ vips_file_save_jpeg_class_init( VipsFileSaveJpegClass *class )
 	object_class->description = _( "save image to jpeg file" );
 	object_class->build = vips_file_save_jpeg_build;
 
-	file_class->suffs = jpeg_suffs;
+	file_class->suffs = vips__jpeg_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
 	save_class->format_table = bandfmt_jpeg;

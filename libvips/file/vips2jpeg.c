@@ -177,7 +177,6 @@ static void
 write_destroy( Write *write )
 {
 	jpeg_destroy_compress( &write->cinfo );
-	VIPS_UNREF( write->in );
 	VIPS_FREEF( fclose, write->eman.fp );
 	VIPS_FREE( write->row_pointer );
 	VIPS_FREE( write->profile_bytes );
@@ -960,8 +959,8 @@ typedef struct {
 
 	/* Copy the compressed area here.
 	 */
-	char **obuf;		/* Allocated buffer, and size */
-	int *olen;
+	void **obuf;		/* Allocated buffer, and size */
+	size_t *olen;
 } OutputBuffer;
 
 /* Init dest method.
@@ -1012,7 +1011,7 @@ term_destination( j_compress_ptr cinfo )
 {
         OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
 
-	int len;
+	size_t len;
 	void *obuf;
 
 	/* Record the number of bytes we wrote in the final buffer.
@@ -1041,7 +1040,7 @@ term_destination( j_compress_ptr cinfo )
 /* Set dest to one of our objects.
  */
 static void
-buf_dest( j_compress_ptr cinfo, char **obuf, int *olen )
+buf_dest( j_compress_ptr cinfo, void **obuf, size_t *olen )
 {
 	OutputBuffer *buf;
 
@@ -1073,7 +1072,7 @@ buf_dest( j_compress_ptr cinfo, char **obuf, int *olen )
 
 int
 vips__jpeg_write_buffer( VipsImage *in, 
-	char **obuf, int *olen, int Q, const char *profile )
+	void **obuf, size_t *olen, int Q, const char *profile )
 {
 	Write *write;
 
@@ -1111,3 +1110,5 @@ vips__jpeg_write_buffer( VipsImage *in,
 
 	return( 0 );
 }
+
+const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };

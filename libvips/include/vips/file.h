@@ -141,7 +141,7 @@ typedef struct _VipsFileLoadClass {
 	 */
 	gboolean (*is_a)( const char * );
 
-	/* Get the flags for this file.
+	/* Get the flags for this file. NULL means 0, ie. no flags.
 	 */
 	int (*get_flags)( VipsFileLoad * );
 

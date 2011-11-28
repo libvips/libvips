@@ -913,9 +913,6 @@ static int
 vips_file_save_build( VipsObject *object )
 {
 	VipsFileSave *save = VIPS_FILE_SAVE( object );
-	/*
-	VipsFile *file = VIPS_FILE( object );
- 	 */
 
 	if( vips_file_convert_saveable( save ) )
 		return( -1 );

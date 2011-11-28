@@ -1,8 +1,4 @@
-- fix up jpeg2vips.c
-
-  fix up jpegload.c
-
-  added classes for read and write jpeg buffers
+- add classes to read and write jpeg buffers
 
   make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 
