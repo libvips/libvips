@@ -12,6 +12,7 @@
  *	- add OpenSlide properties to image metadata
  *	- consolidate setup into one function
  *	- support reading arbitrary layers
+ *	- use VIPS_ARRAY()
  */
 
 /*
@@ -150,8 +151,8 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 	uint8_t a;
 	int x, y;
 
-	buf = vips_malloc( NULL, out->valid.width * out->valid.height *
-		sizeof( *buf ));
+	buf = VIPS_ARRAY( NULL, out->valid.width * out->valid.height,
+		uint32_t );
 	openslide_read_region( rslide->osr, buf,
 		out->valid.left * rslide->downsample,
 		out->valid.top * rslide->downsample, rslide->layer,
