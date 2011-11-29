@@ -35,6 +35,14 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* Image file load properties. 
+ */
+typedef enum {
+	VIPS_FOREIGN_NONE = 0,		/* No flags set */
+	VIPS_FOREIGN_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
+	VIPS_FOREIGN_BIGENDIAN = 2	/* Most-significant byte first */
+} VipsForeignFlags;
+
 #define VIPS_TYPE_FOREIGN (vips_foreign_get_type())
 #define VIPS_FOREIGN( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
@@ -101,14 +109,6 @@ void *vips_foreign_map( const char *base,
 #define VIPS_FOREIGN_LOAD_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_FOREIGN_LOAD, VipsForeignLoadClass ))
-
-/* Image foreign properties. 
- */
-typedef enum {
-	VIPS_FOREIGN_NONE = 0,	/* No flags set */
-	VIPS_FOREIGN_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
-	VIPS_FOREIGN_BIGENDIAN = 2	/* Most-significant byte first */
-} VipsForeignFlags;
 
 typedef struct _VipsForeignLoad {
 	VipsForeign parent_object;

@@ -264,7 +264,7 @@ vips_foreign_class_init( VipsForeignClass *class )
 	object_class->print_class = vips_foreign_print_class;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Foreignname" ),
+		_( "Filename" ),
 		_( "Foreign filename" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeign, filename ),
