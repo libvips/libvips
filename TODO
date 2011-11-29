@@ -1,3 +1,40 @@
+- how do we set up the inheritance?
+
+  we have
+
+	operation
+	  file (filename, priority, suffs)
+	    save (in, ready, saveable, format_table)
+	      jpeg (Q, profile)
+
+  of that system we need the same args, except without suffs and filename ...
+  we do want priority
+
+  perhaps reorganse as
+
+	operation
+	  format (priority)
+	    save (in, ready, saveable, format_table)
+	      jpeg (Q, profile)
+	        file (filename, suffs)
+
+	operation
+	  format (priority)
+	    save (in, ready, saveable, format_table)
+	      jpeg (Q, profile)
+	        buffer (buff)
+
+	operation
+	  format (priority)
+	    save (in, ready, saveable, format_table)
+	      tiff (Q, profile, filename, suffs)
+
+  means when we search for a format to save with, not all subclasses of format
+  will have a suffs field, we'd need to test
+
+
+
+
 - add classes to read and write jpeg buffers
 
   make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
