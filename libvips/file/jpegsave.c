@@ -103,7 +103,7 @@ vips_file_save_jpeg_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__jpeg_write_file( save->in, file->filename,
+	if( vips__jpeg_write_file( save->ready, file->filename,
 		jpeg->Q, jpeg->profile ) )
 		return( -1 );
 

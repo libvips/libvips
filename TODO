@@ -1,8 +1,33 @@
-- fix up jpeg2vips.c
 
-  fix up jpegload.c
+- rename file as VipsForeign
 
-  added classes for read and write jpeg buffers
+  at the moment we have:
+
+  	VipsFile (filename, priority, suffs)
+	  VipsFileLoad (disc, flags, out, real, is_a, get_flags, header, load)
+	    VipsFileLoadJpeg (shrink, fail)
+	  VipsFileSave (in, ready, saveable, format_table)
+	    VipsFileSaveJpeg (Q, profile)
+
+  we want jpeg*_buffer to have everything jpeg* has, except filename and
+  suffs
+
+  reorganise as
+
+  	VipsForeign (priority)
+	  VipsForeignLoad (disc, flags, out, real, get_flags, header, load)
+	    VipsForeignLoadJpeg (shrink, fail)
+	      VipsForeignLoadJpegFile (filename, is_a)
+	      VipsForeignLoadJpegBuffer (buffer)
+	  VipsForeignSave (in, ready, saveable, format_table)
+	    VipsForeignSaveJpeg (Q, profile)
+	      VipsForeignSaveJpegFile (filename, suffs)
+	      VipsForeignSaveJpegBuffer (buffer)
+
+
+
+
+- add classes for read and write jpeg buffers
 
   make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 

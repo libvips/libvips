@@ -303,7 +303,7 @@ attach_exif_entry( ExifEntry *entry, VipsExif *ve )
 
 	/* Can't do anything sensible with the error return.
 	 */
-	(void) im_meta_set_string( ve->image, 
+	(void) vips_image_set_string( ve->image, 
 		vips_buf_all( &name ), vips_buf_all( &value ) );
 }
 
@@ -366,7 +366,7 @@ set_vips_resolution( IMAGE *im, ExifData *ed )
 	if( get_entry_rational( ed, EXIF_TAG_X_RESOLUTION, &xres ) ||
 		get_entry_rational( ed, EXIF_TAG_Y_RESOLUTION, &yres ) ||
 		get_entry_short( ed, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
-		im_warn( "im_jpeg2vips", 
+		vips_warn( "VipsJpeg", 
 			"%s", _( "error reading resolution" ) );
 		return;
 	}
@@ -387,7 +387,7 @@ set_vips_resolution( IMAGE *im, ExifData *ed )
 		break;
 
 	default:
-		im_warn( "im_jpeg2vips", "%s", _( "bad resolution unit" ) );
+		vips_warn( "VipsJpeg", "%s", _( "bad resolution unit" ) );
 		return;
 	}
 
@@ -401,14 +401,11 @@ attach_thumbnail( IMAGE *im, ExifData *ed )
 	if( ed->size > 0 ) {
 		char *thumb_copy;
 
-		thumb_copy = im_malloc( NULL, ed->size );      
+		thumb_copy = g_malloc( ed->size );      
 		memcpy( thumb_copy, ed->data, ed->size );
 
-		if( im_meta_set_blob( im, "jpeg-thumbnail-data", 
-			(im_callback_fn) im_free, thumb_copy, ed->size ) ) {
-			im_free( thumb_copy );
-			return( -1 );
-		}
+		vips_image_set_blob( im, "jpeg-thumbnail-data", 
+			(VipsCallbackFn) g_free, thumb_copy, ed->size );
 	}
 
 	return( 0 );
@@ -422,7 +419,7 @@ read_exif( IMAGE *im, void *data, int data_length )
 
 	/* Only use the first one.
 	 */
-	if( im_header_get_typeof( im, IM_META_EXIF_NAME ) ) {
+	if( vips_image_get_typeof( im, VIPS_META_EXIF_NAME ) ) {
 #ifdef DEBUG
 		printf( "read_exif: second EXIF block, ignoring\n" );
 #endif /*DEBUG*/
@@ -436,14 +433,11 @@ read_exif( IMAGE *im, void *data, int data_length )
 
 	/* Always attach a copy of the unparsed exif data.
 	 */
-	if( !(data_copy = im_malloc( NULL, data_length )) )
+	if( !(data_copy = vips_malloc( NULL, data_length )) )
 		return( -1 );
 	memcpy( data_copy, data, data_length );
-	if( im_meta_set_blob( im, IM_META_EXIF_NAME, 
-		(im_callback_fn) im_free, data_copy, data_length ) ) {
-		im_free( data_copy );
-		return( -1 );
-	}
+	vips_image_set_blob( im, VIPS_META_EXIF_NAME, 
+		(VipsCallbackFn) vips_free, data_copy, data_length );
 
 #ifdef HAVE_EXIF
 {
@@ -490,13 +484,13 @@ read_exif( IMAGE *im, void *data, int data_length )
 }
 
 static int
-read_xmp( IMAGE *im, void *data, int data_length )
+read_xmp( IMAGE *im, void *data, size_t data_length )
 {
 	char *data_copy;
 
 	/* XMP sections start "http". Only use the first one.
 	 */
-	if( im_header_get_typeof( im, VIPS_META_XMP_NAME ) ) {
+	if( vips_image_get_typeof( im, VIPS_META_XMP_NAME ) ) {
 #ifdef DEBUG
 		printf( "read_xmp: second XMP block, ignoring\n" );
 #endif /*DEBUG*/
@@ -510,14 +504,11 @@ read_xmp( IMAGE *im, void *data, int data_length )
 
 	/* Always attach a copy of the unparsed exif data.
 	 */
-	if( !(data_copy = im_malloc( NULL, data_length )) )
+	if( !(data_copy = vips_malloc( NULL, data_length )) )
 		return( -1 );
 	memcpy( data_copy, data, data_length );
-	if( im_meta_set_blob( im, VIPS_META_XMP_NAME, 
-		(im_callback_fn) im_free, data_copy, data_length ) ) {
-		im_free( data_copy );
-		return( -1 );
-	}
+	vips_image_set_blob( im, VIPS_META_XMP_NAME, 
+		(VipsCallbackFn) vips_free, data_copy, data_length );
 
 	return( 0 );
 }
@@ -535,13 +526,13 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 	IMAGE *out, gboolean *invert_pels, int shrink )
 {
 	jpeg_saved_marker_ptr p;
-	int type;
+	VipsInterpretation interpretation;
 
 	/* Capture app2 sections here for assembly.
 	 */
 	void *app2_data[MAX_APP2_SECTIONS] = { 0 };
-	int app2_data_length[MAX_APP2_SECTIONS] = { 0 };
-	int data_length;
+	size_t app2_data_length[MAX_APP2_SECTIONS] = { 0 };
+	size_t data_length;
 	int i;
 
 	/* Read JPEG header. libjpeg will set out_color_space sanely for us 
@@ -555,11 +546,11 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 	*invert_pels = FALSE;
 	switch( cinfo->out_color_space ) {
 	case JCS_GRAYSCALE:
-		type = IM_TYPE_B_W;
+		interpretation = VIPS_INTERPRETATION_B_W;
 		break;
 
 	case JCS_CMYK:
-		type = IM_TYPE_CMYK;
+		interpretation = VIPS_INTERPRETATION_CMYK;
 		/* Photoshop writes CMYK JPEG inverted :-( Maybe this is a
 		 * way to spot photoshop CMYK JPGs.
 		 */
@@ -569,22 +560,23 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 
 	case JCS_RGB:
 	default:
-		type = IM_TYPE_sRGB;
+		interpretation = VIPS_INTERPRETATION_sRGB;
 		break;
 	}
 
 	/* Set VIPS header.
 	 */
-	im_initdesc( out,
-		 cinfo->output_width, cinfo->output_height,
-		 cinfo->output_components,
-		 IM_BBITS_BYTE, IM_BANDFMT_UCHAR, IM_CODING_NONE, type,
-		 1.0, 1.0, 0, 0 );
+	vips_image_init_fields( out,
+		cinfo->output_width, cinfo->output_height,
+		cinfo->output_components,
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
+		interpretation,
+		1.0, 1.0 );
 
 	/* Interlaced jpegs need lots of memory to read, so our caller needs
 	 * to know.
 	 */
-	(void) im_meta_set_int( out, "jpeg-multiscan", 
+	(void) vips_image_set_int( out, "jpeg-multiscan", 
 		jpeg_has_multiple_scans( cinfo ) );
 
 	/* Look for EXIF and ICC profile.
@@ -609,12 +601,12 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			/* Possible EXIF or XMP data.
 			 */
 			if( p->data_length > 4 &&
-				im_isprefix( "Exif", (char *) p->data ) &&
+				vips_isprefix( "Exif", (char *) p->data ) &&
 				read_exif( out, p->data, p->data_length ) )
 				return( -1 );
 
 			if( p->data_length > 4 &&
-				im_isprefix( "http", (char *) p->data ) &&
+				vips_isprefix( "http", (char *) p->data ) &&
 				read_xmp( out, p->data, p->data_length ) )
 				return( -1 );
 
@@ -624,7 +616,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			/* ICC profile.
 			 */
 			if( p->data_length > 14 &&
-				im_isprefix( "ICC_PROFILE", 
+				vips_isprefix( "ICC_PROFILE", 
 					(char *) p->data ) ) {
 				/* cur_marker numbers from 1, according to
 				 * spec.
@@ -659,7 +651,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			data_length );
 #endif /*DEBUG*/
 
-		if( !(data = im_malloc( NULL, data_length )) ) 
+		if( !(data = vips_malloc( NULL, data_length )) ) 
 			return( -1 );
 
 		p = 0;
@@ -668,11 +660,8 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			p += app2_data_length[i];
 		}
 
-		if( im_meta_set_blob( out, IM_META_ICC_NAME, 
-			(im_callback_fn) im_free, data, data_length ) ) {
-			im_free( data );
-			return( -1 );
-		}
+		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
+			(VipsCallbackFn) vips_free, data, data_length );
 	}
 
 	return( 0 );
@@ -689,7 +678,7 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 
 	/* Check VIPS.
 	 */
-	if( im_outcheck( out ) || im_setupout( out ) )
+	if( vips_image_wio_output( out ) )
 		return( -1 );
 
 	/* Get size of output line and make a buffer.
@@ -714,7 +703,7 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 			for( x = 0; x < sz; x++ )
 				row_pointer[0][x] = 255 - row_pointer[0][x];
 		}
-		if( im_writeline( y, out, row_pointer[0] ) )
+		if( vips_image_write_line( out, y, row_pointer[0] ) )
 			return( -1 );
 	}
 
@@ -728,12 +717,9 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 /* Read a JPEG file into a VIPS image.
  */
 int
-vips__jpeg2vips( const char *name, VipsImage *out, gboolean header_only,
+vips__jpeg2vips( const char *filename, VipsImage *out, gboolean header_only,
 	int shrink, gboolean fail )
 {
-	char filename[FILENAME_MAX];
-	char mode[FILENAME_MAX];
-	char *p, *q;
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
 	FILE *fp;
@@ -743,8 +729,8 @@ vips__jpeg2vips( const char *name, VipsImage *out, gboolean header_only,
 	/* Make jpeg dcompression object.
  	 */
         cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = new_error_exit;
-	eman.pub.output_message = new_output_message;
+	eman.pub.error_exit = vips__new_error_exit;
+	eman.pub.output_message = vips__new_output_message;
 	eman.fp = NULL;
 	if( setjmp( eman.jmp ) ) {
 		/* Here for longjmp() from new_error_exit().
@@ -757,7 +743,7 @@ vips__jpeg2vips( const char *name, VipsImage *out, gboolean header_only,
 
 	/* Make input.
 	 */
-        if( !(fp = im__file_open_read( filename, NULL, FALSE )) ) 
+        if( !(fp = vips__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
 	eman.fp = fp;
         jpeg_stdio_src( &cinfo, fp );
@@ -781,13 +767,14 @@ vips__jpeg2vips( const char *name, VipsImage *out, gboolean header_only,
 
 	if( eman.pub.num_warnings != 0 ) {
 		if( fail ) {
-			im_error( "im_jpeg2vips", "%s", im_error_buffer() );
+			vips_error( "VipsJpeg", "%s", vips_error_buffer() );
 			result = -1;
 		}
 		else {
-			im_warn( "im_jpeg2vips", _( "read gave %ld warnings" ), 
+			vips_warn( "VipsJpeg", 
+				_( "read gave %ld warnings" ), 
 				eman.pub.num_warnings );
-			im_warn( "im_jpeg2vips", "%s", im_error_buffer() );
+			vips_warn( "VipsJpeg", "%s", vips_error_buffer() );
 		}
 	}
 
@@ -979,8 +966,8 @@ vips__bufjpeg2vips( void *buf, size_t len, VipsImage *out,
 	/* Make jpeg dcompression object.
  	 */
         cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = new_error_exit;
-	eman.pub.output_message = new_output_message;
+	eman.pub.error_exit = vips__new_error_exit;
+	eman.pub.output_message = vips__new_output_message;
 	eman.fp = NULL;
 	if( setjmp( eman.jmp ) ) {
 		/* Here for longjmp() from new_error_exit().

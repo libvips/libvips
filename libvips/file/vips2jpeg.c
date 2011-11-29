@@ -177,7 +177,6 @@ static void
 write_destroy( Write *write )
 {
 	jpeg_destroy_compress( &write->cinfo );
-	VIPS_UNREF( write->in );
 	VIPS_FREEF( fclose, write->eman.fp );
 	VIPS_FREE( write->row_pointer );
 	VIPS_FREE( write->profile_bytes );
@@ -852,8 +851,8 @@ typedef struct _Block {
 	struct _Block *next;
 
 	JOCTET *data;		/* Allocated area */
-	int size;		/* Max size */
-	int used;		/* How much has been used */
+	size_t size;		/* Max size */
+	size_t used;		/* How much has been used */
 } Block;
 
 static Block *
@@ -898,10 +897,10 @@ block_append( Block *block )
 	return( new );
 }
 
-static int
+static size_t
 block_length( Block *block )
 {
-	int len;
+	size_t len;
 
 	len = 0;
 	for( block = block->first; block; block = block->next )
@@ -960,8 +959,8 @@ typedef struct {
 
 	/* Copy the compressed area here.
 	 */
-	char **obuf;		/* Allocated buffer, and size */
-	int *olen;
+	void **obuf;		/* Allocated buffer, and size */
+	size_t *olen;
 } OutputBuffer;
 
 /* Init dest method.
@@ -1041,7 +1040,7 @@ term_destination( j_compress_ptr cinfo )
 /* Set dest to one of our objects.
  */
 static void
-buf_dest( j_compress_ptr cinfo, char **obuf, int *olen )
+buf_dest( j_compress_ptr cinfo, void **obuf, size_t *olen )
 {
 	OutputBuffer *buf;
 
@@ -1073,7 +1072,7 @@ buf_dest( j_compress_ptr cinfo, char **obuf, int *olen )
 
 int
 vips__jpeg_write_buffer( VipsImage *in, 
-	char **obuf, int *olen, int Q, const char *profile )
+	void **obuf, size_t *olen, int Q, const char *profile )
 {
 	Write *write;
 
