@@ -46,22 +46,23 @@
 
 #include <vips/vips.h>
 
-typedef VipsFileSave VipsFileSaveVips;
-typedef VipsFileSaveClass VipsFileSaveVipsClass;
+typedef VipsForeignSave VipsForeignSaveVips;
+typedef VipsForeignSaveClass VipsForeignSaveVipsClass;
 
-G_DEFINE_TYPE( VipsFileSaveVips, vips_file_save_vips, VIPS_TYPE_FILE_SAVE );
+G_DEFINE_TYPE( VipsForeignSaveVips, vips_foreign_save_vips, 
+	VIPS_TYPE_FOREIGN_SAVE );
 
 static int
-vips_file_save_vips_build( VipsObject *object )
+vips_foreign_save_vips_build( VipsObject *object )
 {
-	VipsFile *file = (VipsFile *) object;
-	VipsFileSave *save = (VipsFileSave *) object;
+	VipsForeign *foreign = (VipsForeign *) object;
+	VipsForeignSave *save = (VipsForeignSave *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_file_save_vips_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_vips_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips_image_write_to_file( save->ready, file->filename ) )
+	if( vips_image_write_to_file( save->ready, foreign->filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -91,24 +92,24 @@ static int vips_bandfmt_vips[10] = {
 static const char *vips_suffs[] = { ".v", NULL };
 
 static void
-vips_file_save_vips_class_init( VipsFileSaveVipsClass *class )
+vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsFileClass *file_class = (VipsFileClass *) class;
-	VipsFileSaveClass *save_class = (VipsFileSaveClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	object_class->nickname = "vipssave";
 	object_class->description = _( "save image to vips file" );
-	object_class->build = vips_file_save_vips_build;
+	object_class->build = vips_foreign_save_vips_build;
 
-	file_class->suffs = vips_suffs;
+	foreign_class->suffs = vips_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = vips_bandfmt_vips;
 }
 
 static void
-vips_file_save_vips_init( VipsFileSaveVips *vips )
+vips_foreign_save_vips_init( VipsForeignSaveVips *vips )
 {
 }
 

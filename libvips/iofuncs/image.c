@@ -472,7 +472,7 @@ vips_image_rewind( VipsObject *object )
 static void
 vips_image_save_cb( VipsImage *image, int *result, char *filename )
 {
-	if( vips_file_write( image, filename, NULL ) )
+	if( vips_foreign_write( image, filename, NULL ) )
 		*result = -1;
 
 	g_free( filename );
@@ -602,6 +602,9 @@ vips_image_build( VipsObject *object )
 				VipsImage *t; 
 				VipsImage *t2;
 
+				printf( "vips_image_build: "
+					"byteswapping vips read\n" );
+
 				/* Open the image in t, then byteswap to this
 				 * image.
 				 */
@@ -628,7 +631,7 @@ vips_image_build( VipsObject *object )
 		else {
 			VipsImage *t;
 
-			if( vips_file_read( filename, &t, NULL ) )
+			if( vips_foreign_read( filename, &t, NULL ) )
 				return( -1 );
 
 			image->dtype = VIPS_IMAGE_PARTIAL;
@@ -645,10 +648,10 @@ vips_image_build( VipsObject *object )
 {
 		const char *file_op;
 
-		if( !(file_op = vips_file_find_save( filename )) )
+		if( !(file_op = vips_foreign_find_save( filename )) )
 			return( -1 );
 
-		if( strcmp( file_op, "VipsFileSaveVips" ) == 0 ) 
+		if( strcmp( file_op, "VipsForeignSaveVips" ) == 0 ) 
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;

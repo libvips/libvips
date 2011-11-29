@@ -851,8 +851,8 @@ typedef struct _Block {
 	struct _Block *next;
 
 	JOCTET *data;		/* Allocated area */
-	int size;		/* Max size */
-	int used;		/* How much has been used */
+	size_t size;		/* Max size */
+	size_t used;		/* How much has been used */
 } Block;
 
 static Block *
@@ -897,10 +897,10 @@ block_append( Block *block )
 	return( new );
 }
 
-static int
+static size_t
 block_length( Block *block )
 {
-	int len;
+	size_t len;
 
 	len = 0;
 	for( block = block->first; block; block = block->next )

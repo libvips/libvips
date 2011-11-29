@@ -56,48 +56,48 @@
  *
  * If you define a new file, support for
  * it automatically appears in all VIPS user-interfaces. It will also be
- * transparently supported by vips_image_new_from_file() and friends.
+ * transparently supported by vips_image_new_from_foreign() and friends.
  *
- * VIPS comes with VipsFile for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
+ * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
  * Matlab, Radiance, RAW, VIPS and one that wraps libMagick. 
  */
 
 /**
- * VipsFileFlags: 
- * @VIPS_FILE_NONE: no flags set
- * @VIPS_FILE_PARTIAL: the image may be read lazilly
- * @VIPS_FILE_BIGENDIAN: image pixels are most-significant byte first
+ * VipsForeignFlags: 
+ * @VIPS_FOREIGN_NONE: no flags set
+ * @VIPS_FOREIGN_PARTIAL: the image may be read lazilly
+ * @VIPS_FOREIGN_BIGENDIAN: image pixels are most-significant byte first
  *
  * Some hints about the image loader.
  *
- * @VIPS_FILE_PARTIAL means that the image can be read directly from the
+ * @VIPS_FOREIGN_PARTIAL means that the image can be read directly from the
  * file without needing to be unpacked to a temporary image first. 
  *
- * @VIPS_FILE_BIGENDIAN means that image pixels are most-significant byte
+ * @VIPS_FOREIGN_BIGENDIAN means that image pixels are most-significant byte
  * first. Depending on the native byte order of the host machine, you may
  * need to swap bytes. See copy_swap().
  */
 
 /**
- * VipsFile:
+ * VipsForeign:
  *
- * #VipsFile has these virtual methods:
+ * #VipsForeign has these virtual methods:
  *
  * |[
- * typedef struct _VipsFileClass {
+ * typedef struct _VipsForeignClass {
  *   VipsObjectClass parent_class;
  *
  *   gboolean (*is_a)( const char *filename );
  *   int (*header)( const char *filename, VipsImage *out );
  *   int (*load)( const char *filename, VipsImage *out );
  *   int (*save)( VipsImage *in, const char *filename );
- *   VipsFileFlags (*get_flags)( const char *filename );
+ *   VipsForeignFlags (*get_flags)( const char *filename );
  *   int priority;
  *   const char **suffs;
- * } VipsFileClass;
+ * } VipsForeignClass;
  * ]|
  *
- * Add a new file to VIPS by subclassing VipsFile. Subclasses need to 
+ * Add a new file to VIPS by subclassing VipsForeign. Subclasses need to 
  * implement at least load() or save(). 
  *
  * These members are:
@@ -179,7 +179,7 @@
  * At the command-line, use:
  *
  * |[
- * vips --list classes | grep File
+ * vips --list classes | grep Foreign
  * ]|
  *
  * To see a list of all the supported files.
@@ -187,14 +187,14 @@
  * For example, the TIFF file is defined like this:
  *
 |[
-typedef VipsFile VipsFileTiff;
-typedef VipsFileClass VipsFileTiffClass;
+typedef VipsForeign VipsForeignTiff;
+typedef VipsForeignClass VipsForeignTiffClass;
 
 static void
-vips_file_tiff_class_init( VipsFileTiffClass *class )
+vips_foreign_tiff_class_init( VipsForeignTiffClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsFileClass *file_class = (VipsFileClass *) class;
+	VipsForeignClass *file_class = (VipsForeignClass *) class;
 
 	object_class->nickname = "tiff";
 	object_class->description = _( "TIFF" );
@@ -208,14 +208,14 @@ vips_file_tiff_class_init( VipsFileTiffClass *class )
 }
 
 static void
-vips_file_tiff_init( VipsFileTiff *object )
+vips_foreign_tiff_init( VipsForeignTiff *object )
 {
 }
 
-G_DEFINE_TYPE( VipsFileTiff, vips_file_tiff, VIPS_TYPE_FILE );
+G_DEFINE_TYPE( VipsForeignTiff, vips_foreign_tiff, VIPS_TYPE_FOREIGN );
 ]|
  *
- * Then call vips_file_tiff_get_type() somewhere in your init code to link
+ * Then call vips_foreign_tiff_get_type() somewhere in your init code to link
  * the file into VIPS (though of course the tiff file is linked in for you
  * already).
  *
@@ -224,15 +224,15 @@ G_DEFINE_TYPE( VipsFileTiff, vips_file_tiff, VIPS_TYPE_FILE );
 /* Abstract base class for image files.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsFile, vips_file, VIPS_TYPE_OPERATION );
+G_DEFINE_ABSTRACT_TYPE( VipsForeign, vips_foreign, VIPS_TYPE_OPERATION );
 
 static void
-vips_file_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_foreign_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
-	VipsFileClass *class = VIPS_FILE_CLASS( object_class );
+	VipsForeignClass *class = VIPS_FOREIGN_CLASS( object_class );
 	const char **p;
 
-	VIPS_OBJECT_CLASS( vips_file_parent_class )->
+	VIPS_OBJECT_CLASS( vips_foreign_parent_class )->
 		print_class( object_class, buf );
 	vips_buf_appends( buf, " " );
 
@@ -251,7 +251,7 @@ vips_file_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 }
 
 static void
-vips_file_class_init( VipsFileClass *class )
+vips_foreign_class_init( VipsForeignClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -261,27 +261,27 @@ vips_file_class_init( VipsFileClass *class )
 
 	object_class->nickname = "file";
 	object_class->description = _( "load and save image files" );
-	object_class->print_class = vips_file_print_class;
+	object_class->print_class = vips_foreign_print_class;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
-		_( "File filename" ),
+		_( "Foreign filename" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsFile, filename ),
+		G_STRUCT_OFFSET( VipsForeign, filename ),
 		NULL );
 }
 
 static void
-vips_file_init( VipsFile *object )
+vips_foreign_init( VipsForeign *object )
 {
 }
 
 /* To iterate over supported files we build a temp list of subclasses of 
- * VipsFile, sort by priority, iterate, and free.
+ * VipsForeign, sort by priority, iterate, and free.
  */
 
 static void *
-file_add_class( VipsFileClass *file, GSList **files )
+file_add_class( VipsForeignClass *file, GSList **files )
 {
 	/* Append so we don't reverse the list of files.
 	 */
@@ -291,19 +291,19 @@ file_add_class( VipsFileClass *file, GSList **files )
 }
 
 static gint
-file_compare( VipsFileClass *a, VipsFileClass *b )
+file_compare( VipsForeignClass *a, VipsForeignClass *b )
 {
         return( b->priority - a->priority );
 }
 
 /**
- * vips_file_map:
- * @base: base class to search below (eg. "VipsFileLoad")
- * @fn: function to apply to each #VipsFileClass
+ * vips_foreign_map:
+ * @base: base class to search below (eg. "VipsForeignLoad")
+ * @fn: function to apply to each #VipsForeignClass
  * @a: user data
  * @b: user data
  *
- * Apply a function to every #VipsFileClass that VIPS knows about. Files
+ * Apply a function to every #VipsForeignClass that VIPS knows about. Foreigns
  * are presented to the function in priority order. 
  *
  * Like all VIPS map functions, if @fn returns %NULL, iteration continues. If
@@ -315,7 +315,7 @@ file_compare( VipsFileClass *a, VipsFileClass *b )
  * Returns: the result of iteration
  */
 void *
-vips_file_map( const char *base, VipsSListMap2Fn fn, void *a, void *b )
+vips_foreign_map( const char *base, VipsSListMap2Fn fn, void *a, void *b )
 {
 	GSList *files;
 	void *result;
@@ -334,24 +334,24 @@ vips_file_map( const char *base, VipsSListMap2Fn fn, void *a, void *b )
 /* Abstract base class for image load.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsFileLoad, vips_file_load, VIPS_TYPE_FILE );
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoad, vips_foreign_load, VIPS_TYPE_FOREIGN );
 
 static void
-vips_file_load_dispose( GObject *gobject )
+vips_foreign_load_dispose( GObject *gobject )
 {
-	VipsFileLoad *load = VIPS_FILE_LOAD( gobject );
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( gobject );
 
 	VIPS_UNREF( load->real );
 
-	G_OBJECT_CLASS( vips_file_load_parent_class )->dispose( gobject );
+	G_OBJECT_CLASS( vips_foreign_load_parent_class )->dispose( gobject );
 }
 
 static void
-vips_file_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_foreign_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
-	VipsFileLoadClass *class = VIPS_FILE_LOAD_CLASS( object_class );
+	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_CLASS( object_class );
 
-	VIPS_OBJECT_CLASS( vips_file_load_parent_class )->
+	VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
 		print_class( object_class, buf );
 
 	if( class->is_a )
@@ -364,13 +364,13 @@ vips_file_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 		vips_buf_appends( buf, ", load" );
 }
 
-/* Can this VipsFile open this file?
+/* Can this VipsForeign open this file?
  */
 static void *
-vips_file_load_new_from_file_sub( VipsFileLoadClass *load_class, 
+vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class, 
 	const char *filename )
 {
-	VipsFileClass *class = VIPS_FILE_CLASS( load_class );
+	VipsForeignClass *class = VIPS_FOREIGN_CLASS( load_class );
 
 	if( load_class->is_a ) {
 		if( load_class->is_a( filename ) ) 
@@ -383,31 +383,31 @@ vips_file_load_new_from_file_sub( VipsFileLoadClass *load_class,
 }
 
 /**
- * vips_file_find_load:
+ * vips_foreign_find_load:
  * @filename: file to find a file for
  *
  * Searches for an operation you could use to load a file. 
  *
- * See also: vips_file_read().
+ * See also: vips_foreign_read().
  *
  * Returns: the nmae of an operation on success, %NULL on error
  */
 const char *
-vips_file_find_load( const char *filename )
+vips_foreign_find_load( const char *filename )
 {
-	VipsFileLoadClass *load_class;
+	VipsForeignLoadClass *load_class;
 
 	if( !vips_existsf( "%s", filename ) ) {
-		vips_error( "VipsFileLoad", 
+		vips_error( "VipsForeignLoad", 
 			_( "file \"%s\" not found" ), filename );
 		return( NULL );
 	}
 
-	if( !(load_class = (VipsFileLoadClass *) vips_file_map( 
-		"VipsFileLoad",
-		(VipsSListMap2Fn) vips_file_load_new_from_file_sub, 
+	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
+		"VipsForeignLoad",
+		(VipsSListMap2Fn) vips_foreign_load_new_from_foreign_sub, 
 		(void *) filename, NULL )) ) {
-		vips_error( "VipsFileLoad", 
+		vips_error( "VipsForeignLoad", 
 			_( "file \"%s\" not a known file" ), filename );
 		return( NULL );
 	}
@@ -416,18 +416,18 @@ vips_file_find_load( const char *filename )
 }
 
 static VipsObject *
-vips_file_load_new_from_string( const char *string )
+vips_foreign_load_new_from_string( const char *string )
 {
 	const char *file_op;
 	GType type;
-	VipsFileLoad *load;
+	VipsForeignLoad *load;
 
-	if( !(file_op = vips_file_find_load( string )) )
+	if( !(file_op = vips_foreign_find_load( string )) )
 		return( NULL );
 	type = g_type_from_name( file_op );
 	g_assert( type ); 
 
-	load = VIPS_FILE_LOAD( g_object_new( type, NULL ) );
+	load = VIPS_FOREIGN_LOAD( g_object_new( type, NULL ) );
 	g_object_set( load,
 		"filename", string,
 		NULL );
@@ -467,10 +467,10 @@ vips_get_disc_threshold( void )
  * on the new image.
  */
 static void *
-vips_file_load_start_cb( VipsImage *out, void *a, void *dummy )
+vips_foreign_load_start_cb( VipsImage *out, void *a, void *dummy )
 {
-	VipsFileLoad *load = VIPS_FILE_LOAD( a );
-	VipsFileLoadClass *class = VIPS_FILE_LOAD_GET_CLASS( a );
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( a );
+	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( a );
 
 	if( !load->real ) {
 		const size_t disc_threshold = vips_get_disc_threshold();
@@ -485,7 +485,7 @@ vips_file_load_start_cb( VipsImage *out, void *a, void *dummy )
 		 */
 		if( load->disc && 
 			disc_threshold && 
-			(load->flags & VIPS_FILE_PARTIAL) &&
+			(load->flags & VIPS_FOREIGN_PARTIAL) &&
 			image_size > disc_threshold ) 
 			if( !(load->real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );
@@ -511,7 +511,7 @@ vips_file_load_start_cb( VipsImage *out, void *a, void *dummy )
 /* Just pointer-copy.
  */
 static int
-vips_file_load_generate_cb( VipsRegion *or, 
+vips_foreign_load_generate_cb( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -532,10 +532,10 @@ vips_file_load_generate_cb( VipsRegion *or,
 }
 
 static int
-vips_file_load_build( VipsObject *object )
+vips_foreign_load_build( VipsObject *object )
 {
-	VipsFileLoad *load = VIPS_FILE_LOAD( object );
-	VipsFileLoadClass *class = VIPS_FILE_LOAD_GET_CLASS( object );
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( object );
+	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( object );
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
@@ -543,7 +543,7 @@ vips_file_load_build( VipsObject *object )
 		class->get_flags( load ) )
 		return( -1 );
 
-	if( VIPS_OBJECT_CLASS( vips_file_load_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -569,8 +569,8 @@ vips_file_load_build( VipsObject *object )
 		 * pixels for @out from @real on demand.
 		 */
 		if( vips_image_generate( load->out, 
-			vips_file_load_start_cb, 
-			vips_file_load_generate_cb, 
+			vips_foreign_load_start_cb, 
+			vips_foreign_load_generate_cb, 
 			vips_stop_one, 
 			load, NULL ) )
 			return( -1 );
@@ -580,18 +580,18 @@ vips_file_load_build( VipsObject *object )
 }
 
 static void
-vips_file_load_class_init( VipsFileLoadClass *class )
+vips_foreign_load_class_init( VipsForeignLoadClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
-	gobject_class->dispose = vips_file_load_dispose;
+	gobject_class->dispose = vips_foreign_load_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->build = vips_file_load_build;
-	object_class->print_class = vips_file_load_print_class;
-	object_class->new_from_string = vips_file_load_new_from_string;
+	object_class->build = vips_foreign_load_build;
+	object_class->print_class = vips_foreign_load_print_class;
+	object_class->new_from_string = vips_foreign_load_new_from_string;
 	object_class->nickname = "fileload";
 	object_class->description = _( "file loaders" );
 
@@ -599,26 +599,26 @@ vips_file_load_class_init( VipsFileLoadClass *class )
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsFileLoad, out ) );
+		G_STRUCT_OFFSET( VipsForeignLoad, out ) );
 
 	VIPS_ARG_ENUM( class, "flags", 6, 
 		_( "Flags" ), 
 		_( "Flags for this file" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsFileLoad, flags ),
-		VIPS_TYPE_FILE_FLAGS, VIPS_FILE_NONE ); 
+		G_STRUCT_OFFSET( VipsForeignLoad, flags ),
+		VIPS_TYPE_FOREIGN_FLAGS, VIPS_FOREIGN_NONE ); 
 
 	VIPS_ARG_BOOL( class, "disc", 7, 
 		_( "Disc" ), 
 		_( "Open to disc" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFileLoad, disc ),
+		G_STRUCT_OFFSET( VipsForeignLoad, disc ),
 		TRUE );
 
 }
 
 static void
-vips_file_load_init( VipsFileLoad *load )
+vips_foreign_load_init( VipsForeignLoad *load )
 {
 	load->disc = TRUE;
 }
@@ -626,24 +626,24 @@ vips_file_load_init( VipsFileLoad *load )
 /* Abstract base class for image savers.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsFileSave, vips_file_save, VIPS_TYPE_FILE );
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSave, vips_foreign_save, VIPS_TYPE_FOREIGN );
 
 static void
-vips_file_save_dispose( GObject *gobject )
+vips_foreign_save_dispose( GObject *gobject )
 {
-	VipsFileSave *save = VIPS_FILE_SAVE( gobject );
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE( gobject );
 
 	VIPS_UNREF( save->ready );
 
-	G_OBJECT_CLASS( vips_file_save_parent_class )->dispose( gobject );
+	G_OBJECT_CLASS( vips_foreign_save_parent_class )->dispose( gobject );
 }
 
 static void
-vips_file_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_foreign_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
-	VipsFileSaveClass *class = VIPS_FILE_SAVE_CLASS( object_class );
+	VipsForeignSaveClass *class = VIPS_FOREIGN_SAVE_CLASS( object_class );
 
-	VIPS_OBJECT_CLASS( vips_file_save_parent_class )->
+	VIPS_OBJECT_CLASS( vips_foreign_save_parent_class )->
 		print_class( object_class, buf );
 
 	vips_buf_appendf( buf, ", %s", 
@@ -653,10 +653,10 @@ vips_file_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 /* Can we write this filename with this file? 
  */
 static void *
-vips_file_save_new_from_filename_sub( VipsFileSaveClass *save_class, 
+vips_foreign_save_new_from_foreignname_sub( VipsForeignSaveClass *save_class, 
 	const char *filename )
 {
-	VipsFileClass *class = VIPS_FILE_CLASS( save_class );
+	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
 
 	if( vips_filename_suffix_match( filename, class->suffs ) )
 		return( save_class );
@@ -665,25 +665,25 @@ vips_file_save_new_from_filename_sub( VipsFileSaveClass *save_class,
 }
 
 /**
- * vips_file_find_save:
+ * vips_foreign_find_save:
  * @filename: name to find a file for
  *
  * Searches for an operation you could use to save a file.
  *
- * See also: vips_file_write().
+ * See also: vips_foreign_write().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
 const char *
-vips_file_find_save( const char *filename )
+vips_foreign_find_save( const char *filename )
 {
-	VipsFileSaveClass *save_class;
+	VipsForeignSaveClass *save_class;
 
-	if( !(save_class = (VipsFileSaveClass *) vips_file_map( 
-		"VipsFileSave",
-		(VipsSListMap2Fn) vips_file_save_new_from_filename_sub, 
+	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
+		"VipsForeignSave",
+		(VipsSListMap2Fn) vips_foreign_save_new_from_foreignname_sub, 
 		(void *) filename, NULL )) ) {
-		vips_error( "VipsFileSave",
+		vips_error( "VipsForeignSave",
 			_( "\"%s\" is not a supported image file." ), 
 			filename );
 
@@ -694,18 +694,18 @@ vips_file_find_save( const char *filename )
 }
 
 static VipsObject *
-vips_file_save_new_from_string( const char *string )
+vips_foreign_save_new_from_string( const char *string )
 {
 	const char *file_op;
 	GType type;
-	VipsFileSave *save;
+	VipsForeignSave *save;
 
-	if( !(file_op = vips_file_find_save( string )) )
+	if( !(file_op = vips_foreign_find_save( string )) )
 		return( NULL );
 	type = g_type_from_name( file_op );
 	g_assert( type ); 
 
-	save = VIPS_FILE_SAVE( g_object_new( type, NULL ) );
+	save = VIPS_FOREIGN_SAVE( g_object_new( type, NULL ) );
 	g_object_set( save,
 		"filename", string,
 		NULL );
@@ -716,9 +716,9 @@ vips_file_save_new_from_string( const char *string )
 /* Generate the saveable image.
  */
 static int
-vips_file_convert_saveable( VipsFileSave *save )
+vips_foreign_convert_saveable( VipsForeignSave *save )
 {
-	VipsFileSaveClass *class = VIPS_FILE_SAVE_GET_CLASS( save );
+	VipsForeignSaveClass *class = VIPS_FOREIGN_SAVE_GET_CLASS( save );
 	VipsImage *in = save->in;
 
 	/* in holds a reference to the output of our chain as we build it.
@@ -910,14 +910,14 @@ vips_file_convert_saveable( VipsFileSave *save )
 }
 
 static int
-vips_file_save_build( VipsObject *object )
+vips_foreign_save_build( VipsObject *object )
 {
-	VipsFileSave *save = VIPS_FILE_SAVE( object );
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE( object );
 
-	if( vips_file_convert_saveable( save ) )
+	if( vips_foreign_convert_saveable( save ) )
 		return( -1 );
 
-	if( VIPS_OBJECT_CLASS( vips_file_save_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -925,18 +925,18 @@ vips_file_save_build( VipsObject *object )
 }
 
 static void
-vips_file_save_class_init( VipsFileSaveClass *class )
+vips_foreign_save_class_init( VipsForeignSaveClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
-	gobject_class->dispose = vips_file_save_dispose;
+	gobject_class->dispose = vips_foreign_save_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->build = vips_file_save_build;
-	object_class->print_class = vips_file_save_print_class;
-	object_class->new_from_string = vips_file_save_new_from_string;
+	object_class->build = vips_foreign_save_build;
+	object_class->print_class = vips_foreign_save_print_class;
+	object_class->new_from_string = vips_foreign_save_new_from_string;
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
 
@@ -944,35 +944,35 @@ vips_file_save_class_init( VipsFileSaveClass *class )
 		_( "Input" ), 
 		_( "Image to save" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFileSave, in ) );
+		G_STRUCT_OFFSET( VipsForeignSave, in ) );
 }
 
 static void
-vips_file_save_init( VipsFileSave *object )
+vips_foreign_save_init( VipsForeignSave *object )
 {
 }
 
 /**
- * vips_file_read:
+ * vips_foreign_read:
  * @filename: file to load
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Loads @filename into @out using the loader recommended by
- * vips_file_find_load().
+ * vips_foreign_find_load().
  *
- * See also: vips_file_write().
+ * See also: vips_foreign_write().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_file_read( const char *filename, VipsImage **out, ... )
+vips_foreign_read( const char *filename, VipsImage **out, ... )
 {
 	const char *operation;
 	va_list ap;
 	int result;
 
-	if( !(operation = vips_file_find_load( filename )) )
+	if( !(operation = vips_foreign_find_load( filename )) )
 		return( -1 );
 
 	va_start( ap, out );
@@ -983,25 +983,25 @@ vips_file_read( const char *filename, VipsImage **out, ... )
 }
 
 /**
- * vips_file_write:
+ * vips_foreign_write:
  * @in: image to write
  * @filename: file to write to
  *
  * Saves @in to @filename using the saver recommended by
- * vips_file_find_save().
+ * vips_foreign_find_save().
  *
- * See also: vips_file_read().
+ * See also: vips_foreign_read().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_file_write( VipsImage *in, const char *filename, ... )
+vips_foreign_write( VipsImage *in, const char *filename, ... )
 {
 	const char *operation;
 	va_list ap;
 	int result;
 
-	if( !(operation = vips_file_find_save( filename )) )
+	if( !(operation = vips_foreign_find_save( filename )) )
 		return( -1 );
 
 	va_start( ap, filename );
@@ -1015,17 +1015,17 @@ vips_file_write( VipsImage *in, const char *filename, ... )
  * instead?
  */
 void
-vips_file_operation_init( void )
+vips_foreign_operation_init( void )
 {
-	extern GType vips_file_load_jpeg_get_type( void ); 
-	extern GType vips_file_save_jpeg_get_type( void ); 
-	extern GType vips_file_load_vips_get_type( void ); 
-	extern GType vips_file_save_vips_get_type( void ); 
+	extern GType vips_foreign_load_jpeg_get_type( void ); 
+	extern GType vips_foreign_save_jpeg_get_type( void ); 
+	extern GType vips_foreign_load_vips_get_type( void ); 
+	extern GType vips_foreign_save_vips_get_type( void ); 
 
 #ifdef HAVE_JPEG
-	vips_file_load_jpeg_get_type(); 
-	vips_file_save_jpeg_get_type(); 
+	vips_foreign_load_jpeg_get_type(); 
+	vips_foreign_save_jpeg_get_type(); 
 #endif /*HAVE_JPEG*/
-	vips_file_load_vips_get_type(); 
-	vips_file_save_vips_get_type(); 
+	vips_foreign_load_vips_get_type(); 
+	vips_foreign_save_vips_get_type(); 
 }

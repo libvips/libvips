@@ -1,6 +1,6 @@
-noinst_LTLIBRARIES = libfile.la
+noinst_LTLIBRARIES = libforeign.la
 
-libfile_la_SOURCES = \
+libforeign_la_SOURCES = \
 	vips2jpeg.c \
 	jpeg2vips.c \
 	jpeg.h \
@@ -8,6 +8,6 @@ libfile_la_SOURCES = \
 	jpegsave.c \
 	vipssave.c \
 	vipsload.c \
-	file.c 
+	foreign.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

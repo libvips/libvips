@@ -1,41 +1,127 @@
-- how do we set up the inheritance?
 
-  we have
+- argh this is horrible
 
-	operation
-	  file (filename, priority, suffs)
-	    save (in, ready, saveable, format_table)
-	      jpeg (Q, profile)
+  how about adding a property 'fileloader' ... define this and your object
+  will be tested by vips_foreign_find_load()
 
-  of that system we need the same args, except without suffs and filename ...
-  we do want priority
+  or! put is_a etc. in VipsForeign but only set them for classes which support
+  it and leave NULL otherwise
 
-  perhaps reorganse as
+  consider just properties ... at the moment we have:
 
-	operation
-	  format (priority)
-	    save (in, ready, saveable, format_table)
-	      jpeg (Q, profile)
-	        file (filename, suffs)
+  	VipsForeign (filename)
+	  VipsForeignLoad (disc, flags)
+	    VipsForeignLoadJpeg (shrink, fail)
+	    VipsForeignLoadVips
+	  VipsForeignSave (in)
+	    VipsForeignSaveJpeg (Q, profile)
+	    VipsForeignSaveVips
 
-	operation
-	  format (priority)
-	    save (in, ready, saveable, format_table)
-	      jpeg (Q, profile)
-	        buffer (buff)
+  how about:
 
-	operation
-	  format (priority)
-	    save (in, ready, saveable, format_table)
-	      tiff (Q, profile, filename, suffs)
+  	VipsForeign 
+	  VipsForeignLoad (disc, flags)
+	    VipsForeignLoadJpeg (shrink, fail)
+	      VipsForeignLoadJpegBuffer (buffer)
+	      VipsForeignLoadJpegFile (filename)
+	    VipsForeignLoadVips (source-filename)
+	    VipsForeignLoadTiff (source-filename, page)
+	  VipsForeignSave (in)
+	    VipsForeignSaveJpeg (Q, profile)
+	      VipsForeignSaveJpegFile (filename)
+	      VipsForeignSaveJpegBuffer (buffer)
+	    VipsForeignSaveVips (dest-filename)
+	    VipsForeignSaveTiff (dest-filename, pyramid, comp, etc.)
 
-  means when we search for a format to save with, not all subclasses of format
-  will have a suffs field, we'd need to test
+  so all we do is nmove the filename prop of the load/save subclasses, not too
+  bad
+
+
+- we can make the interfaces we need much simpler if we use properties for all
+  data members ... eg. fetch "flags" property if we can
+
+  put 'priority' in VipsForeignClass
+
+  interfaces become
+
+  interface load (header, load)
+    interface load-from-file (is_a)
+    interface load-from-buffer (buffer)
+
+  interface save (ready, saveable, format_table)
+    interface save-to-file (filename, suffs)
+    interface save-to-buffer (buffer)
+
+  classes are
+
+  	VipsForeign (priority)
+	  VipsForeignLoad (disc, flags, out, real, get_flags, header, load)
+	    VipsForeignLoadJpeg (shrink, fail)
+	      VipsForeignLoadJpegFile (filename, is_a)
+	      VipsForeignLoadJpegBuffer (buffer)
+	  VipsForeignSave (in, ready, saveable, format_table)
+	    VipsForeignSaveJpeg (Q, profile)
+	      VipsForeignSaveJpegFile (filename, suffs)
+	      VipsForeignSaveJpegBuffer (buffer)
 
 
 
+- at the moment we have:
 
-- add classes to read and write jpeg buffers
+  	VipsFile (filename)
+	  VipsFileLoad (disc, flags)
+	    VipsFileLoadJpeg (shrink, fail)
+	  VipsFileSave (in)
+	    VipsFileSaveJpeg (Q, profile)
+
+  we want jpeg*_buffer to have everything jpeg* has, except filename and
+  suffs
+
+  reorganise as
+
+  	VipsForeign (priority)
+	  VipsForeignLoad (disc, flags, out, real, get_flags, header, load)
+	    VipsForeignLoadJpeg (shrink, fail)
+	      VipsForeignLoadJpegFile (filename, is_a)
+	      VipsForeignLoadJpegBuffer (buffer)
+	  VipsForeignSave (in, ready, saveable, format_table)
+	    VipsForeignSaveJpeg (Q, profile)
+	      VipsForeignSaveJpegFile (filename, suffs)
+	      VipsForeignSaveJpegBuffer (buffer)
+
+  how do we do 'pick a loader by filename'? we need to find all subclasses of
+  VipsForeign which implement suffs?
+
+  we're going to need to register loaders and savers on a separate list 
+  somewhere :-( 
+
+  or have load-from-file as an interface?
+
+  interface load (priority, disc, flags, out, get_flags, header, load)
+    interface load-from-file (filename, is_a)
+    interface load-from-buffer (buffer)
+
+  interface save (priority, in, ready, saveable, format_table)
+    interface save-to-file (filename, suffs)
+    interface save-to-buffer (buffer)
+
+  then walk VipsForeign and test whether each class implements load-from-file
+
+  can interfaces have data members?
+
+  read up on gobject interfaces
+
+
+
+- test vips_foreign_load_vips_get_flags(), sense inverted?
+
+  we have various printf()s left in the byteswap codepath
+
+  test this, if we can .. perhaps add a swap-magic flag to edvips?
+
+
+
+- add classes for read and write jpeg buffers
 
   make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 

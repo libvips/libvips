@@ -1,7 +1,7 @@
 /* save to jpeg
  *
  * 24/11/11
- * 	- wrap a class around the jpeg reader
+ * 	- wrap a class around the jpeg writer
  */
 
 /*
@@ -75,111 +75,87 @@
 
 #include "jpeg.h"
 
-typedef struct _VipsFileLoadJpeg {
-	VipsFileLoad parent_object;
+typedef struct _VipsForeignSaveJpeg {
+	VipsForeignSave parent_object;
 
-	/* Shrink by this much during load.
+	/* Quality factor.
 	 */
-	int shrink;
+	int Q;
 
-	/* Fail on first warning.
+	/* Profile to embed .. "none" means don't attach a profile.
 	 */
-	gboolean fail;
+	char *profile;
 
-} VipsFileLoadJpeg;
+} VipsForeignSaveJpeg;
 
-typedef VipsFileLoadClass VipsFileLoadJpegClass;
+typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
 
-G_DEFINE_TYPE( VipsFileLoadJpeg, vips_file_load_jpeg, VIPS_TYPE_FILE_LOAD );
+G_DEFINE_TYPE( VipsForeignSaveJpeg, vips_foreign_save_jpeg, VIPS_TYPE_FOREIGN_SAVE );
 
 static int
-vips_file_load_jpeg_build( VipsObject *object )
+vips_foreign_save_jpeg_build( VipsObject *object )
 {
-	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) object;
+	VipsForeign *foreign = (VipsForeign *) object;
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
-	if( jpeg->shrink != 1 && 
-		jpeg->shrink != 2 && 
-		jpeg->shrink != 4 && 
-		jpeg->shrink != 8 ) {
-		vips_error( "VipsFormatLoadJpeg", 
-			_( "bad shrink factor %d" ), jpeg->shrink );
-		return( -1 );
-	}
-
-	if( VIPS_OBJECT_CLASS( vips_file_load_jpeg_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
 		build( object ) )
 		return( -1 );
 
+	if( vips__jpeg_write_file( save->ready, foreign->filename,
+		jpeg->Q, jpeg->profile ) )
+		return( -1 );
+
 	return( 0 );
 }
 
-/* Read just the image header into ->out.
+#define UC VIPS_FORMAT_UCHAR
+
+/* Type promotion for save ... just always go to uchar.
  */
-static int
-vips_file_load_jpeg_header( VipsFileLoad *load )
-{
-	VipsFile *file = VIPS_FILE( load );
-	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) load;
-
-	if( vips__jpeg_read_file( file->filename, load->out, 
-		TRUE, jpeg->shrink, jpeg->fail ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips_file_load_jpeg_load( VipsFileLoad *load )
-{
-	VipsFile *file = VIPS_FILE( load );
-	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) load;
-
-	if( vips__jpeg_read_file( file->filename, load->real, 
-		FALSE, jpeg->shrink, jpeg->fail ) )
-		return( -1 );
-
-	return( 0 );
-}
+static int bandfmt_jpeg[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+};
 
 static void
-vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
+vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsFileClass *file_class = (VipsFileClass *) class;
-	VipsFileLoadClass *load_class = (VipsFileLoadClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "jpegload";
-	object_class->description = _( "load jpeg from file" );
-	object_class->build = vips_file_load_jpeg_build;
+	object_class->nickname = "jpegsave";
+	object_class->description = _( "save image to jpeg file" );
+	object_class->build = vips_foreign_save_jpeg_build;
 
-	file_class->suffs = vips__jpeg_suffs;
+	foreign_class->suffs = vips__jpeg_suffs;
 
-	load_class->is_a = vips__isjpeg;
-	load_class->header = vips_file_load_jpeg_header;
-	load_class->load = vips_file_load_jpeg_load;
+	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
+	save_class->format_table = bandfmt_jpeg;
 
-	VIPS_ARG_INT( class, "shrink", 10, 
-		_( "Shrink" ), 
-		_( "Shrink factor on load" ),
+	VIPS_ARG_INT( class, "Q", 10, 
+		_( "Q" ), 
+		_( "Q factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFileLoadJpeg, shrink ),
-		1, 16, 1 );
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, Q ),
+		1, 100, 75 );
 
-	VIPS_ARG_BOOL( class, "fail", 11, 
-		_( "Fail" ), 
-		_( "Fail on first warning" ),
+	VIPS_ARG_STRING( class, "profile", 11, 
+		_( "profile" ), 
+		_( "ICC profile to embed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFileLoadJpeg, fail ),
-		FALSE );
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, profile ),
+		NULL );
 }
 
 static void
-vips_file_load_jpeg_init( VipsFileLoadJpeg *jpeg )
+vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 {
-	jpeg->shrink = 1;
+	jpeg->Q = 75;
 }
-
