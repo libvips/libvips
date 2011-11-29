@@ -1232,7 +1232,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 	g_assert( argument_class->flags & VIPS_ARGUMENT_INPUT );
 
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) &&
-		(oclass = g_type_class_ref( VIPS_TYPE_FILE_LOAD )) ) { 
+		(oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD )) ) { 
 		VipsObject *new_object;
 		VipsImage *out;
 
@@ -1418,7 +1418,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
 
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) &&
-		(oclass = g_type_class_ref( VIPS_TYPE_FILE_SAVE )) ) {
+		(oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE )) ) {
 		VipsObject *new_object;
 		VipsImage *in;
 

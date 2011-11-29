@@ -114,8 +114,8 @@
 
 #include "jpeg.h"
 
-typedef struct _VipsFileLoadJpeg {
-	VipsFileLoad parent_object;
+typedef struct _VipsForeignLoadJpeg {
+	VipsForeignLoad parent_object;
 
 	/* Shrink by this much during load.
 	 */
@@ -129,16 +129,16 @@ typedef struct _VipsFileLoadJpeg {
 	 */
 	gboolean invert_pels;
 
-} VipsFileLoadJpeg;
+} VipsForeignLoadJpeg;
 
-typedef VipsFileLoadClass VipsFileLoadJpegClass;
+typedef VipsForeignLoadClass VipsForeignLoadJpegClass;
 
-G_DEFINE_TYPE( VipsFileLoadJpeg, vips_file_load_jpeg, VIPS_TYPE_FILE_LOAD );
+G_DEFINE_TYPE( VipsForeignLoadJpeg, vips_foreign_load_jpeg, VIPS_TYPE_FOREIGN_LOAD );
 
 static int
-vips_file_load_jpeg_build( VipsObject *object )
+vips_foreign_load_jpeg_build( VipsObject *object )
 {
-	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) object;
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) object;
 
 	if( jpeg->shrink != 1 && 
 		jpeg->shrink != 2 && 
@@ -149,7 +149,7 @@ vips_file_load_jpeg_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_file_load_jpeg_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_jpeg_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -157,7 +157,7 @@ vips_file_load_jpeg_build( VipsObject *object )
 }
 
 static gboolean
-vips_file_load_jpeg_is_a( const char *filename )
+vips_foreign_load_jpeg_is_a( const char *filename )
 {
 	unsigned char buf[2];
 
@@ -172,7 +172,7 @@ vips_file_load_jpeg_is_a( const char *filename )
  * do 255-pel.
  */
 static int
-vips_file_load_jpeg_read_header( VipsFileLoadJpeg *jpeg, 
+vips_foreign_load_jpeg_read_header( VipsForeignLoadJpeg *jpeg, 
 	struct jpeg_decompress_struct *cinfo, VipsImage *out )
 {
 	int type;
@@ -630,7 +630,7 @@ read_xmp( IMAGE *im, void *data, int data_length )
 #define MAX_APP2_SECTIONS (100)
 
 static int
-vips_file_load_jpeg_meta( VipsFileLoadJpeg *jpeg, 
+vips_foreign_load_jpeg_meta( VipsForeignLoadJpeg *jpeg, 
 	struct jpeg_decompress_struct *cinfo, VipsImage *out )
 {
 	/* Capture app2 sections here for assembly.
@@ -652,7 +652,7 @@ vips_file_load_jpeg_meta( VipsFileLoadJpeg *jpeg,
 	for( p = cinfo->marker_list; p; p = p->next ) {
 #ifdef DEBUG
 {
-		printf( "vips_file_load_jpeg_read_header: "
+		printf( "vips_foreign_load_jpeg_read_header: "
 			"seen %d bytes of APP%d\n",
 			p->data_length,
 			p->marker - JPEG_APP0 );
@@ -683,7 +683,7 @@ vips_file_load_jpeg_meta( VipsFileLoadJpeg *jpeg,
 			/* ICC profile.
 			 */
 			if( p->data_length > 14 &&
-				im_isprefix( "ICC_PROFILE", 
+				im_isprefix( "ICC_PROFOREIGN", 
 					(char *) p->data ) ) {
 				/* cur_marker numbers from 1, according to
 				 * spec.
@@ -714,7 +714,7 @@ vips_file_load_jpeg_meta( VipsFileLoadJpeg *jpeg,
 		int x;
 
 #ifdef DEBUG
-		printf( "vips_file_load_jpeg_read_header: "
+		printf( "vips_foreign_load_jpeg_read_header: "
 			"assembled %d byte ICC profile\n",
 			data_length );
 #endif /*DEBUG*/
@@ -735,10 +735,10 @@ vips_file_load_jpeg_meta( VipsFileLoadJpeg *jpeg,
 /* Read just the image header into ->out.
  */
 static int
-vips_file_load_jpeg_header( VipsFileLoad *load )
+vips_foreign_load_jpeg_header( VipsForeignLoad *load )
 {
-	VipsFile *file = VIPS_FILE( load );
-	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) load;
+	VipsForeign *file = VIPS_FOREIGN( load );
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
@@ -774,12 +774,12 @@ vips_file_load_jpeg_header( VipsFileLoad *load )
 
 	/* Convert!
 	 */
-	result = vips_file_load_jpeg_read_header( jpeg, &cinfo, load->out );
+	result = vips_foreign_load_jpeg_read_header( jpeg, &cinfo, load->out );
 
 	/* Get extra metadata too.
 	 */
 	if( !result )
-		result = vips_file_load_jpeg_meta( jpeg, &cinfo, load->out );
+		result = vips_foreign_load_jpeg_meta( jpeg, &cinfo, load->out );
 
 	/* Close and tidy.
 	 */
@@ -793,7 +793,7 @@ vips_file_load_jpeg_header( VipsFileLoad *load )
 /* Read a cinfo to a VIPS image.
  */
 static int
-vips_file_load_jpeg_read_image( VipsFileLoadJpeg *jpeg,
+vips_foreign_load_jpeg_read_image( VipsForeignLoadJpeg *jpeg,
 	struct jpeg_decompress_struct *cinfo, VipsImage *out )
 {
 	int x, y, sz;
@@ -838,10 +838,10 @@ vips_file_load_jpeg_read_image( VipsFileLoadJpeg *jpeg,
 }
 
 static int
-vips_file_load_jpeg_load( VipsFileLoad *load )
+vips_foreign_load_jpeg_load( VipsForeignLoad *load )
 {
-	VipsFile *file = VIPS_FILE( load );
-	VipsFileLoadJpeg *jpeg = (VipsFileLoadJpeg *) load;
+	VipsForeign *file = VIPS_FOREIGN( load );
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
@@ -872,9 +872,9 @@ vips_file_load_jpeg_load( VipsFileLoad *load )
 
 	/* Convert!
 	 */
-	result = vips_file_load_jpeg_read_header( jpeg, &cinfo, load->real );
+	result = vips_foreign_load_jpeg_read_header( jpeg, &cinfo, load->real );
 	if( !result )
-		result = vips_file_load_jpeg_read_image( jpeg, 
+		result = vips_foreign_load_jpeg_read_image( jpeg, 
 			&cinfo, load->real );
 
 	/* Close and tidy.
@@ -885,15 +885,15 @@ vips_file_load_jpeg_load( VipsFileLoad *load )
 
 	if( eman.pub.num_warnings != 0 ) {
 		if( jpeg->fail ) {
-			vips_error( "VipsFileLoadJpeg", 
+			vips_error( "VipsForeignLoadJpeg", 
 				"%s", vips_error_buffer() );
 			result = -1;
 		}
 		else {
-			vips_warn( "VipsFileLoadJpeg", 
+			vips_warn( "VipsForeignLoadJpeg", 
 				_( "read gave %ld warnings" ), 
 				eman.pub.num_warnings );
-			vips_warn( "VipsFileLoadJpeg", 
+			vips_warn( "VipsForeignLoadJpeg", 
 				"%s", vips_error_buffer() );
 		}
 	}
@@ -904,43 +904,43 @@ vips_file_load_jpeg_load( VipsFileLoad *load )
 static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
 
 static void
-vips_file_load_jpeg_class_init( VipsFileLoadJpegClass *class )
+vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsFileClass *file_class = (VipsFileClass *) class;
-	VipsFileLoadClass *load_class = (VipsFileLoadClass *) class;
+	VipsForeignClass *file_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jpegload";
 	object_class->description = _( "load jpeg from file" );
-	object_class->build = vips_file_load_jpeg_build;
+	object_class->build = vips_foreign_load_jpeg_build;
 
 	file_class->suffs = jpeg_suffs;
 
-	load_class->is_a = vips_file_load_jpeg_is_a;
-	load_class->header = vips_file_load_jpeg_header;
-	load_class->load = vips_file_load_jpeg_load;
+	load_class->is_a = vips_foreign_load_jpeg_is_a;
+	load_class->header = vips_foreign_load_jpeg_header;
+	load_class->load = vips_foreign_load_jpeg_load;
 
 	VIPS_ARG_INT( class, "shrink", 10, 
 		_( "Shrink" ), 
 		_( "Shrink factor on load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFileLoadJpeg, shrink ),
+		G_STRUCT_OFFSET( VipsForeignLoadJpeg, shrink ),
 		1, 16, 1 );
 
 	VIPS_ARG_BOOL( class, "fail", 11, 
 		_( "Fail" ), 
 		_( "Fail on first warning" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFileLoadJpeg, fail ),
+		G_STRUCT_OFFSET( VipsForeignLoadJpeg, fail ),
 		FALSE );
 }
 
 static void
-vips_file_load_jpeg_init( VipsFileLoadJpeg *jpeg )
+vips_foreign_load_jpeg_init( VipsForeignLoadJpeg *jpeg )
 {
 	jpeg->shrink = 1;
 }

@@ -4,21 +4,21 @@
 /* auto-generated enums for vips introspection */
 
 #include <vips/vips.h>
-/* enumerations from "../../libvips/include/vips/file.h" */
+/* enumerations from "../../libvips/include/vips/foreign.h" */
 GType
-vips_file_flags_get_type( void )
+vips_foreign_flags_get_type( void )
 {
 	static GType etype = 0;
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_FILE_NONE, "VIPS_FILE_NONE", "none"},
-			{VIPS_FILE_PARTIAL, "VIPS_FILE_PARTIAL", "partial"},
-			{VIPS_FILE_BIGENDIAN, "VIPS_FILE_BIGENDIAN", "bigendian"},
+			{VIPS_FOREIGN_NONE, "VIPS_FOREIGN_NONE", "none"},
+			{VIPS_FOREIGN_PARTIAL, "VIPS_FOREIGN_PARTIAL", "partial"},
+			{VIPS_FOREIGN_BIGENDIAN, "VIPS_FOREIGN_BIGENDIAN", "bigendian"},
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsFileFlags", values );
+		etype = g_enum_register_static( "VipsForeignFlags", values );
 	}
 
 	return( etype );

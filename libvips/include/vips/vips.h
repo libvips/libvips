@@ -116,7 +116,7 @@ extern "C" {
 #include <vips/threadpool.h>
 #include <vips/header.h>
 #include <vips/operation.h>
-#include <vips/file.h>
+#include <vips/foreign.h>
 
 #include <vips/enumtypes.h>
 

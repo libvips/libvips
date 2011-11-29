@@ -75,8 +75,8 @@
 
 #include "jpeg.h"
 
-typedef struct _VipsFileSaveJpeg {
-	VipsFileSave parent_object;
+typedef struct _VipsForeignSaveJpeg {
+	VipsForeignSave parent_object;
 
 	/* Quality factor.
 	 */
@@ -86,20 +86,20 @@ typedef struct _VipsFileSaveJpeg {
 	 */
 	char *profile;
 
-} VipsFileSaveJpeg;
+} VipsForeignSaveJpeg;
 
-typedef VipsFileSaveClass VipsFileSaveJpegClass;
+typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
 
-G_DEFINE_TYPE( VipsFileSaveJpeg, vips_file_save_jpeg, VIPS_TYPE_FILE_SAVE );
+G_DEFINE_TYPE( VipsForeignSaveJpeg, vips_foreign_save_jpeg, VIPS_TYPE_FOREIGN_SAVE );
 
 static int
-vips_file_save_jpeg_build( VipsObject *object )
+vips_foreign_save_jpeg_build( VipsObject *object )
 {
-	VipsFile *file = (VipsFile *) object;
-	VipsFileSave *save = (VipsFileSave *) object;
-	VipsFileSaveJpeg *jpeg = (VipsFileSaveJpeg *) object;
+	VipsForeign *file = (VipsForeign *) object;
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_file_save_jpeg_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -122,19 +122,19 @@ static int bandfmt_jpeg[10] = {
 static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
 
 static void
-vips_file_save_jpeg_class_init( VipsFileSaveJpegClass *class )
+vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsFileClass *file_class = (VipsFileClass *) class;
-	VipsFileSaveClass *save_class = (VipsFileSaveClass *) class;
+	VipsForeignClass *file_class = (VipsForeignClass *) class;
+	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jpegsave";
 	object_class->description = _( "save image to jpeg file" );
-	object_class->build = vips_file_save_jpeg_build;
+	object_class->build = vips_foreign_save_jpeg_build;
 
 	file_class->suffs = jpeg_suffs;
 
@@ -145,19 +145,19 @@ vips_file_save_jpeg_class_init( VipsFileSaveJpegClass *class )
 		_( "Q" ), 
 		_( "Q factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFileSaveJpeg, Q ),
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, Q ),
 		1, 100, 75 );
 
 	VIPS_ARG_STRING( class, "profile", 11, 
 		_( "profile" ), 
 		_( "ICC profile to embed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFileSaveJpeg, profile ),
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, profile ),
 		NULL );
 }
 
 static void
-vips_file_save_jpeg_init( VipsFileSaveJpeg *jpeg )
+vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 {
 	jpeg->Q = 75;
 }
