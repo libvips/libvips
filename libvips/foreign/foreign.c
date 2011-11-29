@@ -1015,6 +1015,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
+	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
 	extern GType vips_foreign_load_vips_get_type( void ); 
 	extern GType vips_foreign_save_vips_get_type( void ); 
 
@@ -1023,6 +1024,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_jpeg_buffer_get_type(); 
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
+	vips_foreign_save_jpeg_mime_get_type(); 
 #endif /*HAVE_JPEG*/
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 

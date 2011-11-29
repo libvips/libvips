@@ -4,6 +4,12 @@
 
   test this, if we can .. perhaps add a swap-magic flag to edvips?
 
+  test load/save jpeg buffer
+
+  add print mime convenience function, handy for testing
+
+  leaktest
+
 
 
 - make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()

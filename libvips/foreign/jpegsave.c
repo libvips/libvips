@@ -160,7 +160,7 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegFile *file = (VipsForeignSaveJpegFile *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -225,7 +225,7 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 	size_t olen;
 	VipsArea *area;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -264,5 +264,62 @@ vips_foreign_save_jpeg_buffer_class_init(
 
 static void
 vips_foreign_save_jpeg_buffer_init( VipsForeignSaveJpegBuffer *file )
+{
+}
+
+typedef struct _VipsForeignSaveJpegMime {
+	VipsForeignSaveJpeg parent_object;
+
+} VipsForeignSaveJpegMime;
+
+typedef VipsForeignSaveJpegClass VipsForeignSaveJpegMimeClass;
+
+G_DEFINE_TYPE( VipsForeignSaveJpegMime, vips_foreign_save_jpeg_mime, 
+	vips_foreign_save_jpeg_get_type() );
+
+static int
+vips_foreign_save_jpeg_mime_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
+
+	void *obuf;
+	size_t olen;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_mime_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__jpeg_write_buffer( save->ready, 
+		&obuf, &olen, jpeg->Q, jpeg->profile ) )
+		return( -1 );
+
+	printf( "Content-length: %zd\r\n", olen );
+	printf( "Content-type: image/jpeg\r\n" );
+	printf( "\r\n" );
+	if( fwrite( obuf, sizeof( char ), olen, stdout ) != olen ) {
+		vips_error( "VipsJpeg", "%s", _( "error writing output" ) );
+		return( -1 );
+	}
+	fflush( stdout );
+
+	g_free( obuf );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_jpeg_mime_class_init( VipsForeignSaveJpegMimeClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	object_class->nickname = "jpegsave_mime";
+	object_class->description = _( "save image to jpeg mime" );
+	object_class->build = vips_foreign_save_jpeg_mime_build;
+
+}
+
+static void
+vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
 {
 }
