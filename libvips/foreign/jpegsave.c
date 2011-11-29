@@ -95,7 +95,7 @@ G_DEFINE_TYPE( VipsForeignSaveJpeg, vips_foreign_save_jpeg, VIPS_TYPE_FOREIGN_SA
 static int
 vips_foreign_save_jpeg_build( VipsObject *object )
 {
-	VipsForeign *file = (VipsForeign *) object;
+	VipsForeign *foreign = (VipsForeign *) object;
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
@@ -103,7 +103,7 @@ vips_foreign_save_jpeg_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__jpeg_write_file( save->ready, file->filename,
+	if( vips__jpeg_write_file( save->ready, foreign->filename,
 		jpeg->Q, jpeg->profile ) )
 		return( -1 );
 
@@ -126,7 +126,7 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *file_class = (VipsForeignClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -136,7 +136,7 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 	object_class->description = _( "save image to jpeg file" );
 	object_class->build = vips_foreign_save_jpeg_build;
 
-	file_class->suffs = jpeg_suffs;
+	foreign_class->suffs = jpeg_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
 	save_class->format_table = bandfmt_jpeg;

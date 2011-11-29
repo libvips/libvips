@@ -65,8 +65,8 @@ typedef struct _VipsForeignClass {
 
 	/*< public >*/
 
-	/* Loop over foreigns in this order, default 0. We need this because
-	 * some foreigns can be read by several loaders (eg. tiff can be read
+	/* Loop over formats in this order, default 0. We need this because
+	 * some formats can be read by several loaders (eg. tiff can be read
 	 * by the libMagick loader as well as by the tiff loader), and we want
 	 * to make sure the better loader comes first.
 	 */
@@ -81,10 +81,11 @@ typedef struct _VipsForeignClass {
 
 GType vips_foreign_get_type( void );
 
-/* Map over and find foreigns. This uses type introspection to loop over
+/* Map over and find formats. This uses type introspection to loop over
  * subclasses of VipsForeign.
  */
-void *vips_foreign_map( const char *base, VipsSListMap2Fn fn, void *a, void *b );
+void *vips_foreign_map( const char *base, 
+	VipsSListMap2Fn fn, void *a, void *b );
 
 #define VIPS_TYPE_FOREIGN_LOAD (vips_foreign_load_get_type())
 #define VIPS_FOREIGN_LOAD( obj ) \

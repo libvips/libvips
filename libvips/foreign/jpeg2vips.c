@@ -717,8 +717,8 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 /* Read a JPEG file into a VIPS image.
  */
 int
-vips__jpeg2vips( const char *filename, VipsImage *out, gboolean header_only,
-	int shrink, gboolean fail )
+vips__jpeg_read_file( const char *filename, VipsImage *out, 
+	gboolean header_only, int shrink, gboolean fail )
 {
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
@@ -954,9 +954,8 @@ buf_source (j_decompress_ptr cinfo, void *buf, size_t len)
 }
 
 int
-vips__bufjpeg2vips( void *buf, size_t len, VipsImage *out, 
-	gboolean header_only,
-	int shrink, int fail )
+vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out, 
+	gboolean header_only, int shrink, int fail )
 {
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;

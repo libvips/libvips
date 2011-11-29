@@ -55,14 +55,14 @@ G_DEFINE_TYPE( VipsForeignSaveVips, vips_foreign_save_vips,
 static int
 vips_foreign_save_vips_build( VipsObject *object )
 {
-	VipsForeign *file = (VipsForeign *) object;
+	VipsForeign *foreign = (VipsForeign *) object;
 	VipsForeignSave *save = (VipsForeignSave *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_vips_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips_image_write_to_file( save->ready, file->filename ) )
+	if( vips_image_write_to_file( save->ready, foreign->filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -95,14 +95,14 @@ static void
 vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *file_class = (VipsForeignClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	object_class->nickname = "vipssave";
 	object_class->description = _( "save image to vips file" );
 	object_class->build = vips_foreign_save_vips_build;
 
-	file_class->suffs = vips_suffs;
+	foreign_class->suffs = vips_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = vips_bandfmt_vips;

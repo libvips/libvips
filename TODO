@@ -1,7 +1,9 @@
+- test vips_foreign_load_vips_get_flags(), sense inverted?
 
-- rename file as VipsForeign
 
-  at the moment we have:
+
+
+- at the moment we have:
 
   	VipsFile (filename, priority, suffs)
 	  VipsFileLoad (disc, flags, out, real, is_a, get_flags, header, load)
@@ -23,6 +25,16 @@
 	    VipsForeignSaveJpeg (Q, profile)
 	      VipsForeignSaveJpegFile (filename, suffs)
 	      VipsForeignSaveJpegBuffer (buffer)
+
+  how do we do 'pick a loader by filename'? we need to find all subclasses of
+  VipsForeign which implement suffs?
+
+  we're going to need to register loaders and savers on a separate list 
+  somewhere :-( 
+
+  or have load-from-file as an interface?
+
+
 
 
 

@@ -58,14 +58,14 @@ vips_foreign_load_vips_is_a( const char *filename )
 static int
 vips_foreign_load_vips_get_flags( VipsForeignLoad *load )
 {
-	VipsForeign *file = VIPS_FOREIGN( load );
+	VipsForeign *foreign = VIPS_FOREIGN( load );
 
 	load->flags = VIPS_FOREIGN_PARTIAL;
 
-	if( vips__file_magic( file->filename ) == VIPS_MAGIC_INTEL ) {
+	if( vips__file_magic( foreign->filename ) == VIPS_MAGIC_INTEL ) {
 		printf( "vips_foreign_load_vips_get_flags: "
 			"%s is intel, setting bigendian\n",
-			file->filename );
+			foreign->filename );
 		load->flags |= VIPS_FOREIGN_BIGENDIAN;
 	}
 
@@ -75,11 +75,11 @@ vips_foreign_load_vips_get_flags( VipsForeignLoad *load )
 static int
 vips_foreign_load_vips_header( VipsForeignLoad *load )
 {
-	VipsForeign *file = VIPS_FOREIGN( load );
+	VipsForeign *foreign = VIPS_FOREIGN( load );
 	VipsImage *out;
 	VipsImage *out2;
 
-	if( !(out2 = vips_image_new_from_file( file->filename )) )
+	if( !(out2 = vips_image_new_from_file( foreign->filename )) )
 		return( -1 );
 
 	/* Remove the @out that's there now. 
@@ -99,13 +99,13 @@ static void
 vips_foreign_load_vips_class_init( VipsForeignLoadVipsClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *file_class = (VipsForeignClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	object_class->nickname = "vipsload";
 	object_class->description = _( "load vips from file" );
 
-	file_class->suffs = vips_suffs;
+	foreign_class->suffs = vips_suffs;
 
 	load_class->is_a = vips_foreign_load_vips_is_a;
 	load_class->get_flags = vips_foreign_load_vips_get_flags;

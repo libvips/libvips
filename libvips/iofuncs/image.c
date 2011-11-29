@@ -602,6 +602,9 @@ vips_image_build( VipsObject *object )
 				VipsImage *t; 
 				VipsImage *t2;
 
+				printf( "vips_image_build: "
+					"byteswapping vips read\n" );
+
 				/* Open the image in t, then byteswap to this
 				 * image.
 				 */
@@ -648,7 +651,7 @@ vips_image_build( VipsObject *object )
 		if( !(file_op = vips_foreign_find_save( filename )) )
 			return( -1 );
 
-		if( strcmp( file_op, "VipsFileSaveVips" ) == 0 ) 
+		if( strcmp( file_op, "VipsForeignSaveVips" ) == 0 ) 
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
