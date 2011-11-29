@@ -46,7 +46,13 @@
 
 #include <vips/vips.h>
 
-typedef VipsForeignSave VipsForeignSaveVips;
+typedef struct _VipsForeignSaveVips {
+	VipsForeignSave parent_object;
+
+	char *filename;
+
+} VipsForeignSaveVips;
+
 typedef VipsForeignSaveClass VipsForeignSaveVipsClass;
 
 G_DEFINE_TYPE( VipsForeignSaveVips, vips_foreign_save_vips, 
@@ -55,14 +61,14 @@ G_DEFINE_TYPE( VipsForeignSaveVips, vips_foreign_save_vips,
 static int
 vips_foreign_save_vips_build( VipsObject *object )
 {
-	VipsForeign *foreign = (VipsForeign *) object;
 	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_vips_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips_image_write_to_file( save->ready, foreign->filename ) )
+	if( vips_image_write_to_file( save->ready, vips->filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -94,9 +100,13 @@ static const char *vips_suffs[] = { ".v", NULL };
 static void
 vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "vipssave";
 	object_class->description = _( "save image to vips file" );
@@ -106,6 +116,13 @@ vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = vips_bandfmt_vips;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveVips, filename ),
+		NULL );
 }
 
 static void

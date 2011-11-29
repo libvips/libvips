@@ -78,6 +78,10 @@
 typedef struct _VipsForeignSaveJpeg {
 	VipsForeignSave parent_object;
 
+	/* Filename for load.
+	 */
+	char *filename; 
+
 	/* Quality factor.
 	 */
 	int Q;
@@ -95,7 +99,6 @@ G_DEFINE_TYPE( VipsForeignSaveJpeg, vips_foreign_save_jpeg, VIPS_TYPE_FOREIGN_SA
 static int
 vips_foreign_save_jpeg_build( VipsObject *object )
 {
-	VipsForeign *foreign = (VipsForeign *) object;
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
@@ -103,7 +106,7 @@ vips_foreign_save_jpeg_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__jpeg_write_file( save->ready, foreign->filename,
+	if( vips__jpeg_write_file( save->ready, jpeg->filename,
 		jpeg->Q, jpeg->profile ) )
 		return( -1 );
 
@@ -138,6 +141,13 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
 	save_class->format_table = bandfmt_jpeg;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, filename ),
+		NULL );
 
 	VIPS_ARG_INT( class, "Q", 10, 
 		_( "Q" ), 

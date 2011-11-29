@@ -44,10 +44,17 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-typedef VipsForeignLoad VipsForeignLoadVips;
+typedef struct _VipsForeignLoadVips {
+	VipsForeignLoad parent_object;
+
+	char *filename;
+
+} VipsForeignLoadVips;
+
 typedef VipsForeignLoadClass VipsForeignLoadVipsClass;
 
-G_DEFINE_TYPE( VipsForeignLoadVips, vips_foreign_load_vips, VIPS_TYPE_FOREIGN_LOAD );
+G_DEFINE_TYPE( VipsForeignLoadVips, vips_foreign_load_vips, 
+	VIPS_TYPE_FOREIGN_LOAD );
 
 static gboolean
 vips_foreign_load_vips_is_a( const char *filename )
@@ -58,14 +65,14 @@ vips_foreign_load_vips_is_a( const char *filename )
 static int
 vips_foreign_load_vips_get_flags( VipsForeignLoad *load )
 {
-	VipsForeign *foreign = VIPS_FOREIGN( load );
+	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) load;
 
 	load->flags = VIPS_FOREIGN_PARTIAL;
 
-	if( vips__file_magic( foreign->filename ) == VIPS_MAGIC_INTEL ) {
+	if( vips__file_magic( vips->filename ) == VIPS_MAGIC_INTEL ) {
 		printf( "vips_foreign_load_vips_get_flags: "
 			"%s is intel, setting bigendian\n",
-			foreign->filename );
+			vips->filename );
 		load->flags |= VIPS_FOREIGN_BIGENDIAN;
 	}
 
@@ -75,11 +82,11 @@ vips_foreign_load_vips_get_flags( VipsForeignLoad *load )
 static int
 vips_foreign_load_vips_header( VipsForeignLoad *load )
 {
-	VipsForeign *foreign = VIPS_FOREIGN( load );
+	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) load;
 	VipsImage *out;
 	VipsImage *out2;
 
-	if( !(out2 = vips_image_new_from_file( foreign->filename )) )
+	if( !(out2 = vips_image_new_from_file( vips->filename )) )
 		return( -1 );
 
 	/* Remove the @out that's there now. 
@@ -98,9 +105,13 @@ static const char *vips_suffs[] = { ".v", NULL };
 static void
 vips_foreign_load_vips_class_init( VipsForeignLoadVipsClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "vipsload";
 	object_class->description = _( "load vips from file" );
@@ -111,6 +122,13 @@ vips_foreign_load_vips_class_init( VipsForeignLoadVipsClass *class )
 	load_class->get_flags = vips_foreign_load_vips_get_flags;
 	load_class->header = vips_foreign_load_vips_header;
 	load_class->load = NULL;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadVips, filename ),
+		NULL );
 }
 
 static void

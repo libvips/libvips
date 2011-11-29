@@ -1,46 +1,7 @@
 /* load jpeg from a file
  *
- * 28/11/03 JC
- *	- better no-overshoot on tile loop
- * 12/11/04
- *	- better demand size choice for eval
- * 30/6/05 JC
- *	- update im_error()/im_warn()
- *	- now loads and saves exif data
- * 30/7/05
- * 	- now loads ICC profiles
- * 	- now saves ICC profiles from the VIPS header
- * 24/8/05
- * 	- jpeg load sets vips xres/yres from exif, if possible
- * 	- jpeg save sets exif xres/yres from vips, if possible
- * 29/8/05
- * 	- cut from old vips_jpeg.c
- * 13/10/06
- * 	- add </libexif/ prefix if required
- * 11/2/08
- * 	- spot CMYK jpegs and set Type
- * 	- spot Adobe CMYK JPEG and invert ink density
- * 15/2/08
- * 	- added "shrink" parameter
- * 16/6/09
- *	- added "fail" option ... fail on any warnings
- * 12/10/09
- * 	- also set scale_num on shrink (thanks Guido)
- * 4/2/10
- * 	- gtkdoc
- * 4/12/10
- * 	- attach the jpeg thumbnail and multiscan fields (thanks Mike)
- * 21/2/10
- * 	- only accept the first APP1 block which starts "Exif..." as exif
- * 	  data, some jpegs seem to have several APP1s, argh
- * 20/4/2011
- * 	- added im_bufjpeg2vips()
- * 12/10/2011
- * 	- read XMP data
- * 3/11/11
- * 	- attach exif tags as coded values 
  * 24/11/11
- * 	- redo as a class
+ * 	- wrap a class around the jpeg writer
  */
 
 /*
@@ -117,6 +78,10 @@
 typedef struct _VipsForeignLoadJpeg {
 	VipsForeignLoad parent_object;
 
+	/* Filename for load.
+	 */
+	char *filename; 
+
 	/* Shrink by this much during load.
 	 */
 	int shrink;
@@ -168,10 +133,9 @@ vips_foreign_load_jpeg_is_a( const char *filename )
 static int
 vips_foreign_load_jpeg_header( VipsForeignLoad *load )
 {
-	VipsForeign *foreign = VIPS_FOREIGN( load );
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 
-	if( vips__jpeg_read_file( foreign->filename, load->out, 
+	if( vips__jpeg_read_file( jpeg->filename, load->out, 
 		TRUE, jpeg->shrink, jpeg->fail ) )
 		return( -1 );
 
@@ -181,10 +145,9 @@ vips_foreign_load_jpeg_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_jpeg_load( VipsForeignLoad *load )
 {
-	VipsForeign *foreign = VIPS_FOREIGN( load );
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 
-	if( vips__jpeg_read_file( foreign->filename, load->real, 
+	if( vips__jpeg_read_file( jpeg->filename, load->real, 
 		FALSE, jpeg->shrink, jpeg->fail ) )
 		return( -1 );
 
@@ -213,6 +176,13 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 	load_class->is_a = vips_foreign_load_jpeg_is_a;
 	load_class->header = vips_foreign_load_jpeg_header;
 	load_class->load = vips_foreign_load_jpeg_load;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadJpeg, filename ),
+		NULL );
 
 	VIPS_ARG_INT( class, "shrink", 10, 
 		_( "Shrink" ), 
