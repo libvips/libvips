@@ -78,10 +78,6 @@
 typedef struct _VipsForeignSaveJpeg {
 	VipsForeignSave parent_object;
 
-	/* Filename for load.
-	 */
-	char *filename; 
-
 	/* Quality factor.
 	 */
 	int Q;
@@ -94,24 +90,8 @@ typedef struct _VipsForeignSaveJpeg {
 
 typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
 
-G_DEFINE_TYPE( VipsForeignSaveJpeg, vips_foreign_save_jpeg, VIPS_TYPE_FOREIGN_SAVE );
-
-static int
-vips_foreign_save_jpeg_build( VipsObject *object )
-{
-	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
-
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	if( vips__jpeg_write_file( save->ready, jpeg->filename,
-		jpeg->Q, jpeg->profile ) )
-		return( -1 );
-
-	return( 0 );
-}
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveJpeg, vips_foreign_save_jpeg, 
+	VIPS_TYPE_FOREIGN_SAVE );
 
 #define UC VIPS_FORMAT_UCHAR
 
@@ -127,27 +107,16 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "jpegsave";
-	object_class->description = _( "save image to jpeg file" );
-	object_class->build = vips_foreign_save_jpeg_build;
-
-	foreign_class->suffs = vips__jpeg_suffs;
+	object_class->nickname = "jpegsave_base";
+	object_class->description = _( "save jpeg" );
 
 	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
 	save_class->format_table = bandfmt_jpeg;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveJpeg, filename ),
-		NULL );
 
 	VIPS_ARG_INT( class, "Q", 10, 
 		_( "Q" ), 
@@ -168,4 +137,132 @@ static void
 vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 {
 	jpeg->Q = 75;
+}
+
+typedef struct _VipsForeignSaveJpegFile {
+	VipsForeignSaveJpeg parent_object;
+
+	/* Filename for load.
+	 */
+	char *filename; 
+
+} VipsForeignSaveJpegFile;
+
+typedef VipsForeignSaveJpegClass VipsForeignSaveJpegFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveJpegFile, vips_foreign_save_jpeg_file, 
+	vips_foreign_save_jpeg_get_type() );
+
+static int
+vips_foreign_save_jpeg_file_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
+	VipsForeignSaveJpegFile *file = (VipsForeignSaveJpegFile *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__jpeg_write_file( save->ready, file->filename,
+		jpeg->Q, jpeg->profile ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_jpeg_file_class_init( VipsForeignSaveJpegFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jpegsave";
+	object_class->description = _( "save image to jpeg file" );
+	object_class->build = vips_foreign_save_jpeg_file_build;
+
+	foreign_class->suffs = vips__jpeg_suffs;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveJpegFile, filename ),
+		NULL );
+}
+
+static void
+vips_foreign_save_jpeg_file_init( VipsForeignSaveJpegFile *file )
+{
+}
+
+typedef struct _VipsForeignSaveJpegBuffer {
+	VipsForeignSaveJpeg parent_object;
+
+	/* Save to a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignSaveJpegBuffer;
+
+typedef VipsForeignSaveJpegClass VipsForeignSaveJpegBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveJpegBuffer, vips_foreign_save_jpeg_buffer, 
+	vips_foreign_save_jpeg_get_type() );
+
+static int
+vips_foreign_save_jpeg_buffer_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
+	VipsForeignSaveJpegBuffer *file = (VipsForeignSaveJpegBuffer *) object;
+
+	void *obuf;
+	size_t olen;
+	VipsArea *area;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__jpeg_write_buffer( save->ready, 
+		&obuf, &olen, jpeg->Q, jpeg->profile ) )
+		return( -1 );
+
+	area = vips_area_new_blob( (VipsCallbackFn) vips_free, obuf, olen );
+
+	g_object_set( file, "buf", area, NULL );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_jpeg_buffer_class_init( 
+	VipsForeignSaveJpegBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jpegsave_buffer";
+	object_class->description = _( "save image to jpeg buffer" );
+	object_class->build = vips_foreign_save_jpeg_buffer_build;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to save to" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveJpegBuffer, buf ),
+		VIPS_TYPE_BLOB );
+}
+
+static void
+vips_foreign_save_jpeg_buffer_init( VipsForeignSaveJpegBuffer *file )
+{
 }

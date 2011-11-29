@@ -2,6 +2,8 @@
  *
  * 24/11/11
  * 	- wrap a class around the jpeg writer
+ * 29/11/11
+ * 	- split to make load, load from buffer and load from file
  */
 
 /*
@@ -90,15 +92,11 @@ typedef struct _VipsForeignLoadJpeg {
 	 */
 	gboolean fail;
 
-	/* For some jpeg CMYK formats we have to invert pels on read.
-	 */
-	gboolean invert_pels;
-
 } VipsForeignLoadJpeg;
 
 typedef VipsForeignLoadClass VipsForeignLoadJpegClass;
 
-G_DEFINE_TYPE( VipsForeignLoadJpeg, vips_foreign_load_jpeg, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadJpeg, vips_foreign_load_jpeg, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static int
@@ -122,67 +120,18 @@ vips_foreign_load_jpeg_build( VipsObject *object )
 	return( 0 );
 }
 
-static gboolean
-vips_foreign_load_jpeg_is_a( const char *filename )
-{
-	return( vips__isjpeg( filename ) );
-}
-
-/* Read just the image header into ->out.
- */
-static int
-vips_foreign_load_jpeg_header( VipsForeignLoad *load )
-{
-	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-
-	if( vips__jpeg_read_file( jpeg->filename, load->out, 
-		TRUE, jpeg->shrink, jpeg->fail ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_jpeg_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-
-	if( vips__jpeg_read_file( jpeg->filename, load->real, 
-		FALSE, jpeg->shrink, jpeg->fail ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
-
 static void
 vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "jpegload";
-	object_class->description = _( "load jpeg from file" );
+	object_class->nickname = "jpegload_base";
+	object_class->description = _( "load jpeg" );
 	object_class->build = vips_foreign_load_jpeg_build;
-
-	foreign_class->suffs = jpeg_suffs;
-
-	load_class->is_a = vips_foreign_load_jpeg_is_a;
-	load_class->header = vips_foreign_load_jpeg_header;
-	load_class->load = vips_foreign_load_jpeg_load;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadJpeg, filename ),
-		NULL );
 
 	VIPS_ARG_INT( class, "shrink", 10, 
 		_( "Shrink" ), 
@@ -205,3 +154,153 @@ vips_foreign_load_jpeg_init( VipsForeignLoadJpeg *jpeg )
 	jpeg->shrink = 1;
 }
 
+typedef struct _VipsForeignLoadJpegFile {
+	VipsForeignLoadJpeg parent_object;
+
+	/* Filename for load.
+	 */
+	char *filename; 
+
+} VipsForeignLoadJpegFile;
+
+typedef VipsForeignLoadJpegClass VipsForeignLoadJpegFileClass;
+
+G_DEFINE_TYPE( VipsForeignLoadJpegFile, vips_foreign_load_jpeg_file, 
+	vips_foreign_load_jpeg_get_type() );
+
+static gboolean
+vips_foreign_load_jpeg_file_is_a( const char *filename )
+{
+	return( vips__isjpeg( filename ) );
+}
+
+static int
+vips_foreign_load_jpeg_file_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) load;
+
+	if( vips__jpeg_read_file( file->filename, load->out, 
+		TRUE, jpeg->shrink, jpeg->fail ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_jpeg_file_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) load;
+
+	if( vips__jpeg_read_file( file->filename, load->real, 
+		FALSE, jpeg->shrink, jpeg->fail ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+
+static void
+vips_foreign_load_jpeg_file_class_init( VipsForeignLoadJpegFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jpegload";
+	object_class->description = _( "load jpeg from file" );
+
+	foreign_class->suffs = jpeg_suffs;
+
+	load_class->is_a = vips_foreign_load_jpeg_file_is_a;
+	load_class->header = vips_foreign_load_jpeg_file_header;
+	load_class->load = vips_foreign_load_jpeg_file_load;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadJpegFile, filename ),
+		NULL );
+}
+
+static void
+vips_foreign_load_jpeg_file_init( VipsForeignLoadJpegFile *file )
+{
+}
+
+typedef struct _VipsForeignLoadJpegBuffer {
+	VipsForeignLoadJpeg parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignLoadJpegBuffer;
+
+typedef VipsForeignLoadJpegClass VipsForeignLoadJpegBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadJpegBuffer, vips_foreign_load_jpeg_buffer, 
+	vips_foreign_load_jpeg_get_type() );
+
+static int
+vips_foreign_load_jpeg_buffer_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+	VipsForeignLoadJpegBuffer *buffer = (VipsForeignLoadJpegBuffer *) load;
+
+	if( vips__jpeg_read_buffer( buffer->buf->data, buffer->buf->length, 
+		load->out, TRUE, jpeg->shrink, jpeg->fail ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_jpeg_buffer_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+	VipsForeignLoadJpegBuffer *buffer = (VipsForeignLoadJpegBuffer *) load;
+
+	if( vips__jpeg_read_buffer( buffer->buf->data, buffer->buf->length, 
+		load->real, FALSE, jpeg->shrink, jpeg->fail ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_jpeg_buffer_class_init( 
+	VipsForeignLoadJpegBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jpegload_buffer";
+	object_class->description = _( "load jpeg from buffer" );
+
+	load_class->header = vips_foreign_load_jpeg_buffer_header;
+	load_class->load = vips_foreign_load_jpeg_buffer_load;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadJpegBuffer, buf ),
+		VIPS_TYPE_BLOB );
+}
+
+static void
+vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
+{
+}

@@ -365,11 +365,11 @@ vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class,
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( load_class );
 
-	if( load_class->is_a ) {
-		if( load_class->is_a( filename ) ) 
-			return( load_class );
-	}
-	else if( vips_filename_suffix_match( filename, class->suffs ) )
+	if( load_class->is_a &&
+		load_class->is_a( filename ) ) 
+		return( load_class );
+	else if( class->suffs && 
+		vips_filename_suffix_match( filename, class->suffs ) )
 		return( load_class );
 
 	return( NULL );
@@ -651,7 +651,8 @@ vips_foreign_save_new_from_foreignname_sub( VipsForeignSaveClass *save_class,
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
 
-	if( vips_filename_suffix_match( filename, class->suffs ) )
+	if( class->suffs &&
+		vips_filename_suffix_match( filename, class->suffs ) )
 		return( save_class );
 
 	return( NULL );
@@ -1010,14 +1011,18 @@ vips_foreign_write( VipsImage *in, const char *filename, ... )
 void
 vips_foreign_operation_init( void )
 {
-	extern GType vips_foreign_load_jpeg_get_type( void ); 
-	extern GType vips_foreign_save_jpeg_get_type( void ); 
+	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
+	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
+	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
+	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
 	extern GType vips_foreign_load_vips_get_type( void ); 
 	extern GType vips_foreign_save_vips_get_type( void ); 
 
 #ifdef HAVE_JPEG
-	vips_foreign_load_jpeg_get_type(); 
-	vips_foreign_save_jpeg_get_type(); 
+	vips_foreign_load_jpeg_file_get_type(); 
+	vips_foreign_load_jpeg_buffer_get_type(); 
+	vips_foreign_save_jpeg_file_get_type(); 
+	vips_foreign_save_jpeg_buffer_get_type(); 
 #endif /*HAVE_JPEG*/
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 
