@@ -160,4 +160,3 @@ vips_file_save_jpeg_init( VipsFileSaveJpeg *jpeg )
 {
 	jpeg->Q = 75;
 }
-
