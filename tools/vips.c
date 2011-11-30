@@ -1075,10 +1075,13 @@ main( int argc, char **argv )
 			if( argc == 1 ) 
 				vips_object_print( VIPS_OBJECT( operation ) );
 
+			vips_object_unref_outputs( VIPS_OBJECT( operation ) );
 			g_object_unref( operation );
+
 			error_exit( NULL );
 		}
 
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
 		g_object_unref( operation );
 
 		handled = TRUE;

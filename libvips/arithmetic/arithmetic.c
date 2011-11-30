@@ -311,10 +311,11 @@ vips_arithmetic_build( VipsObject *object )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	g_object_set( arithmetic, "out", vips_image_new(), NULL ); 
-
-	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->
+		build( object ) ) 
 		return( -1 );
+
+	g_object_set( arithmetic, "out", vips_image_new(), NULL ); 
 
 	/* No need to check input bands, bandalike will do this for us.
 	 */
@@ -326,9 +327,9 @@ vips_arithmetic_build( VipsObject *object )
 	for( i = 0; i < arithmetic->n; i++ )
 		if( vips_image_pio_input( arithmetic->in[i] ) || 
 			vips_check_uncoded( "VipsArithmetic", 
-				arithmetic->in[i] ) )
+				arithmetic->in[i] ) ) 
 			return( -1 );
-	if( vips_image_pio_output( arithmetic->out ) )
+	if( vips_image_pio_output( arithmetic->out ) ) 
 		return( -1 );
 
 	format = (VipsImage **) 
@@ -343,14 +344,14 @@ vips_arithmetic_build( VipsObject *object )
 	if( vips__formatalike_vec( arithmetic->in, format, arithmetic->n ) ||
 		vips__bandalike_vec( "VipsArithmetic", 
 			format, band, arithmetic->n, arithmetic->base_bands ) ||
-		vips__sizealike_vec( band, size, arithmetic->n ) )
+		vips__sizealike_vec( band, size, arithmetic->n ) ) 
 		return( -1 );
 
 	/* Keep a copy of the processed images here for subclasses.
 	 */
 	arithmetic->ready = size;
 
-	if( vips_image_copy_fields_array( arithmetic->out, size ) )
+	if( vips_image_copy_fields_array( arithmetic->out, size ) ) 
 		return( -1 );
         vips_demand_hint_array( arithmetic->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, size );
@@ -360,7 +361,7 @@ vips_arithmetic_build( VipsObject *object )
 
 	if( vips_image_generate( arithmetic->out,
 		vips_start_many, vips_arithmetic_gen, vips_stop_many, 
-		arithmetic->ready, arithmetic ) )
+		arithmetic->ready, arithmetic ) ) 
 		return( -1 );
 
 	return( 0 );

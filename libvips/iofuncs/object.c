@@ -1998,3 +1998,42 @@ vips_object_sanity_all( void )
 	vips_object_map( 
 		(VipsSListMap2Fn) vips_object_sanity_all_cb, NULL, NULL );
 }
+
+static void *
+vips_object_unref_outputs_sub( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		G_IS_PARAM_SPEC_OBJECT( pspec ) &&
+		argument_instance->assigned ) {
+		GObject *value;
+
+		g_object_get( object, 
+			g_param_spec_get_name( pspec ), &value, NULL );
+
+		/* Doing the get refs the object, so unref the get, then unref
+		 * again since this an an output object of the operation.
+		 */
+		g_object_unref( value );
+		g_object_unref( value );
+	}
+
+	return( NULL );
+}
+
+/* Unref all assigned output objects.
+ *
+ * After an object is built, all output args are owned by the caller. If
+ * something goes wrong before then, we have to unref the outputs that have
+ * been made so far. And this function can also be useful for callers when
+ * they've finished processing outputs themselves.
+ */
+void
+vips_object_unref_outputs( VipsObject *object )
+{
+	(void) vips_argument_map( object,
+		vips_object_unref_outputs_sub, NULL, NULL );
+}

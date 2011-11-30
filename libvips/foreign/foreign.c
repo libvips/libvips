@@ -492,10 +492,8 @@ vips_foreign_load_start_cb( VipsImage *out, void *a, void *dummy )
 		/* Read the image in.
 		 */
 		if( class->load( load ) ||
-			vips_image_pio_input( load->real ) ) {
-			VIPS_UNREF( load->real );
+			vips_image_pio_input( load->real ) ) 
 			return( NULL );
-		}
 	}
 
 	return( vips_region_new( load->real ) );
@@ -530,8 +528,6 @@ vips_foreign_load_build( VipsObject *object )
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( object );
 	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( object );
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
-
 	if( class->get_flags &&
 		class->get_flags( load ) )
 		return( -1 );
@@ -540,10 +536,12 @@ vips_foreign_load_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	g_object_set( object, "out", vips_image_new(), NULL ); 
+
 	/* Read the header into @out.
 	 */
 	if( class->header &&
-		class->header( load ) )
+		class->header( load ) ) 
 		return( -1 );
 
 	/* If there's no ->load() method then the header read has done
@@ -565,7 +563,7 @@ vips_foreign_load_build( VipsObject *object )
 			vips_foreign_load_start_cb, 
 			vips_foreign_load_generate_cb, 
 			vips_stop_one, 
-			load, NULL ) )
+			load, NULL ) ) 
 			return( -1 );
 	}
 

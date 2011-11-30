@@ -851,36 +851,12 @@ vips_call_argv_output( VipsObject *object,
 	return( NULL );
 }
 
-static void *
-vips_call_argv_unref_output( VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b )
-{
-	if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
-		G_IS_PARAM_SPEC_OBJECT( pspec ) &&
-		argument_instance->assigned ) {
-		GObject *value;
-
-		g_object_get( object, 
-			g_param_spec_get_name( pspec ), &value, NULL );
-
-		/* Doing the get refs the object, so unref the get, then unref
-		 * again since this an an output object of the operation.
-		 */
-		g_object_unref( value );
-		g_object_unref( value );
-	}
-
-	return( NULL );
-}
-
 /* Our main command-line entry point. Optional args should have been set by
  * the GOption parser already, see above.
  *
  * We don't create the operation, so we must not unref it. The caller must
- * unref on error too.
+ * unref on error too. The caller must also call vips_object_unref_outputs() on
+ * all code paths.
  */
 int
 vips_call_argv( VipsOperation *operation, int argc, char **argv )
@@ -907,15 +883,8 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 
 	call.i = 0;
 	if( vips_argument_map( VIPS_OBJECT( operation ),
-		vips_call_argv_input, &call, NULL ) ) {
-		/* We must unref any output objects, they are holding refs to
-		 * the operation.
-		 */
-		(void) vips_argument_map( VIPS_OBJECT( operation ),
-			vips_call_argv_unref_output, NULL, NULL );
-
+		vips_call_argv_input, &call, NULL ) ) 
 		return( -1 );
-	}
 
 	/* Any unused arguments? We must fail. Consider eg. "vips bandjoin a b
 	 * c". This would overwrite b with a and ignore c, potentially
@@ -924,37 +893,16 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	if( argc > call.i ) {
 		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname, 
 			"%s", _( "too many arguments" ) );
-
-		/* We must unref any output objects, they are holding refs to
-		 * the operation.
-		 */
-		(void) vips_argument_map( VIPS_OBJECT( operation ),
-			vips_call_argv_unref_output, NULL, NULL );
-
 		return( -1 );
 	}
 
-	if( vips_object_build( VIPS_OBJECT( operation ) ) ) {
-		/* We must unref any output objects, they are holding refs to
-		 * the operation.
-		 */
-		(void) vips_argument_map( VIPS_OBJECT( operation ),
-			vips_call_argv_unref_output, NULL, NULL );
-
+	if( vips_object_build( VIPS_OBJECT( operation ) ) ) 
 		return( -1 );
-	}
 
 	call.i = 0;
 	if( vips_argument_map( VIPS_OBJECT( operation ),
-		vips_call_argv_output, &call, NULL ) ) {
-		(void) vips_argument_map( VIPS_OBJECT( operation ),
-			vips_call_argv_unref_output, NULL, NULL );
-
+		vips_call_argv_output, &call, NULL ) ) 
 		return( -1 );
-	}
-
-	(void) vips_argument_map( VIPS_OBJECT( operation ),
-		vips_call_argv_unref_output, NULL, NULL );
 
 	return( 0 );
 }
