@@ -10,18 +10,10 @@
 
 
 
-- "header" with more than one arg should put the filename before each printed
-  line so eg. 
-  
-  	$ header *.jpg | grep -i prof
-
-  works
-
-
 
 - test jpeg write profile option
 
-- make the old format/vips.c into a stub as well?
+  make the old format/vips.c into a stub as well?
 
   make sure we are using the operation cache for jpegload
 

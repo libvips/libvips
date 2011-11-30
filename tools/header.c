@@ -101,13 +101,48 @@ print_error( const char *fmt, ... )
 	im_error_clear();
 }
 
+static void *
+print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
+{
+	gboolean *many = (gboolean *) a;
+	const char *extra;
+	char *str_value;
+
+	/* Look for known enums and decode them.
+	 */
+	extra = NULL;
+	if( strcmp( field, "coding" ) == 0 )
+		extra = VIPS_ENUM_NICK( 
+			VIPS_TYPE_CODING, g_value_get_int( value ) );
+	else if( strcmp( field, "format" ) == 0 )
+		extra = VIPS_ENUM_NICK( 
+			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
+	else if( strcmp( field, "interpretation" ) == 0 )
+		extra = VIPS_ENUM_NICK( 
+			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
+
+	if( *many ) 
+		printf( "%s: ", image->filename );
+
+	str_value = g_strdup_value_contents( value );
+	printf( "%s: %s", field, str_value );
+	g_free( str_value );
+
+	if( extra )
+		printf( " - %s", extra );
+
+	printf( "\n" );
+
+	return( NULL );
+}
+
 /* Print header, or parts of header.
  */
 static int
-print_header( IMAGE *im )
+print_header( IMAGE *im, gboolean many )
 {
 	if( !main_option_field )
-		im_printdesc( im );
+		(void) vips_image_map( im, print_field_fn, &many );
 	else if( strcmp( main_option_field, "getext" ) == 0 ) {
 		if( im__has_extension_block( im ) ) {
 			void *buf;
@@ -195,7 +230,8 @@ main( int argc, char *argv[] )
 			result = 1;
 		}
 
-		if( im && print_header( im ) ) {
+		if( im && 
+			print_header( im, argc > 2 ) ) {
 			print_error( "%s: unable to print header", argv[i] );
 			result = 1;
 		}
