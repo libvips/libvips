@@ -1,3 +1,6 @@
+- the old, deprecated cmdline interface needs to use VipsFormat directly
+  rather than calling im_open() to make sure it gets the old behaviour
+
 - test vips_foreign_load_vips_get_flags(), sense inverted?
 
   we have various printf()s left in the byteswap codepath
@@ -5,8 +8,6 @@
   test this, if we can .. perhaps add a swap-magic flag to edvips?
 
   test load/save jpeg buffer
-
-  add print mime convenience function, handy for testing
 
   leaktest
 
