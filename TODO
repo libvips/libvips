@@ -10,6 +10,15 @@
 
 
 
+- "header" with more than one arg should put the filename before each printed
+  line so eg. 
+  
+  	$ header *.jpg | grep -i prof
+
+  works
+
+
+
 - make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
 
   make sure we are using the operation cache for jpegload

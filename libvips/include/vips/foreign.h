@@ -229,6 +229,13 @@ int vips_foreign_write( VipsImage *in, const char *filename, ... );
 
 void vips_foreign_operation_init( void );
 
+int vips_jpegload( const char *filename, VipsImage **out, ... );
+int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... );
+
+int vips_jpegsave( VipsImage *in, const char *filename, ... );
+int vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... );
+int vips_jpegsave_mime( VipsImage *in, ... );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

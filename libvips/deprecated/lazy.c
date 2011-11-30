@@ -217,13 +217,18 @@ vips_image_open_lazy( VipsImage *image,
 		return( -1 );
 	vips_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
-	/* Then 'start' creates the real image and 'gen' paints 'out' with 
-	 * pixels from the real image on demand.
+	/* If there's no load function, assume header has done everything
+	 * already.
 	 */
-	if( vips_image_generate( image, 
-		open_lazy_start, open_lazy_generate, vips_stop_one, 
-		lazy, NULL ) )
-		return( -1 );
+	if( format->load ) {
+		/* Then 'start' creates the real image and 'gen' paints 'image' 
+		 * with pixels from the real image on demand.
+		 */
+		if( vips_image_generate( image, 
+			open_lazy_start, open_lazy_generate, vips_stop_one, 
+			lazy, NULL ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }

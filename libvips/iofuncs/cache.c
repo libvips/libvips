@@ -147,22 +147,22 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_STRING ) {
 		const char *s = g_value_get_string( value );
 
-		return( g_str_hash( s ) );
+		return( s ? g_str_hash( s ) : 0 );
 	}
 	else if( generic == G_TYPE_PARAM_BOXED ) {
 		void *p = g_value_get_boxed( value );
 
-		return( g_direct_hash( p ) );
+		return( p ? g_direct_hash( p ) : 0 );
 	}
 	else if( generic == G_TYPE_PARAM_POINTER ) {
 		void *p = g_value_get_pointer( value );
 
-		return( g_direct_hash( p ) );
+		return( p ? g_direct_hash( p ) : 0 );
 	}
 	else if( generic == G_TYPE_PARAM_OBJECT ) {
 		void *p = g_value_get_object( value );
 
-		return( g_direct_hash( p ) );
+		return( p ? g_direct_hash( p ) : 0 );
 	}
 	else {
 		/* Fallback: convert to a string and hash that. 

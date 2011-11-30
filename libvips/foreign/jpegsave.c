@@ -200,6 +200,47 @@ vips_foreign_save_jpeg_file_init( VipsForeignSaveJpegFile *file )
 {
 }
 
+
+/**
+ * vips_jpegsave:
+ * @in: image to save 
+ * @filename: file to write to 
+ * @Q: quality factor
+ * @profile: attach this ICC profile
+ *
+ * Write a VIPS image to a file as JPEG.
+ *
+ * Use @Q to set the JPEG compression factor. Default 75.
+ *
+ * Use @profile to give the filename of a profile to be em,bedded in the JPEG.
+ * This does not affect the pixels which are written, just the way 
+ * they are tagged. You can use the special string "none" to mean 
+ * "don't attach a profile".
+ *
+ * If no profile is specified and the VIPS header 
+ * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
+ * profile from the VIPS header will be attached.
+ *
+ * The image is automatically converted to RGB, Monochrome or CMYK before 
+ * saving. Any metadata attached to the image is saved as EXIF, if possible.
+ *
+ * See also: vips_jpegsave_buffer(), vips_image_write_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "jpegsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
 typedef struct _VipsForeignSaveJpegBuffer {
 	VipsForeignSaveJpeg parent_object;
 
@@ -267,6 +308,48 @@ vips_foreign_save_jpeg_buffer_init( VipsForeignSaveJpegBuffer *file )
 {
 }
 
+
+/**
+ * vips_jpegsave_buffer:
+ * @in: image to save 
+ * @buf: return output buffer here
+ * @len: return output length here
+ * @Q: JPEG quality factor
+ * @profile: attach this ICC profile
+ *
+ * As vips_jpegsave(), but save to a memory buffer. 
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_jpegsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	va_start( ap, len );
+	result = vips_call_split( "jpegsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( buf ) {
+		*buf = area->data;
+		area->free_fn = NULL;
+	}
+	if( buf ) 
+		*len = area->length;
+
+	vips_area_unref( area );
+
+	return( result );
+}
+
 typedef struct _VipsForeignSaveJpegMime {
 	VipsForeignSaveJpeg parent_object;
 
@@ -322,4 +405,29 @@ vips_foreign_save_jpeg_mime_class_init( VipsForeignSaveJpegMimeClass *class )
 static void
 vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
 {
+}
+
+/**
+ * vips_jpegsave_mime:
+ * @in: image to save 
+ * @Q: JPEG quality factor
+ * @profile: attach this ICC profile
+ *
+ * As vips_jpegsave(), but save as a mime jpeg on stdout.
+ *
+ * See also: vips_jpegsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave_mime( VipsImage *in, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, in );
+	result = vips_call_split( "jpegsave_mime", ap, in );
+	va_end( ap );
+
+	return( result );
 }
