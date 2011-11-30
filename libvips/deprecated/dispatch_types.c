@@ -46,6 +46,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 /* Max str we parse.
  */
@@ -109,7 +110,7 @@ input_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = im_open( str, "rd" )) );
+	return( !(*im = vips__deprecated_open_read( str )) );
 }
 
 /* Input image type.
@@ -129,7 +130,7 @@ output_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = im_open( str, "w" )) );
+	return( !(*im = vips__deprecated_open_write( str )) );
 }
 
 /* Output image type.

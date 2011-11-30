@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libdeprecated.la
 libdeprecated_la_SOURCES = \
 	deprecated_dispatch.c \
 	wrapvips7.c \
+	lazy.c \
 	im_dif_std.c \
 	im_simcontr.c \
 	im_spatres.c \

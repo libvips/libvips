@@ -296,6 +296,9 @@ void vips_conversion_operation_init( void );
 
 size_t vips__parse_size( const char *size_string );
 
+IMAGE *vips__deprecated_open_read( const char *filename );
+IMAGE *vips__deprecated_open_write( const char *filename );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

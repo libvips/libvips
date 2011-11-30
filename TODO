@@ -1,6 +1,3 @@
-- the old, deprecated cmdline interface needs to use VipsFormat directly
-  rather than calling im_open() to make sure it gets the old behaviour
-
 - test vips_foreign_load_vips_get_flags(), sense inverted?
 
   we have various printf()s left in the byteswap codepath
