@@ -19,7 +19,9 @@
 
 
 
-- make compat wrappers for old im_jpeg2vips() and im_vips2jpeg()
+- test jpeg write profile option
+
+- make the old format/vips.c into a stub as well?
 
   make sure we are using the operation cache for jpegload
 
