@@ -1,6 +1,4 @@
-- test vips_foreign_load_vips_get_flags(), sense inverted?
-
-  test load/save jpeg buffer
+- test load/save jpeg buffer
 
   leaktest
 

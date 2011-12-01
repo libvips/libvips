@@ -88,7 +88,8 @@ void *vips_foreign_map( const char *base,
 typedef enum {
 	VIPS_FOREIGN_NONE = 0,		/* No flags set */
 	VIPS_FOREIGN_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
-	VIPS_FOREIGN_BIGENDIAN = 2	/* Most-significant byte first */
+	VIPS_FOREIGN_BIGENDIAN = 2,	/* Most-significant byte first */
+	VIPS_FOREIGN_ALL = 3		/* All flags set */
 } VipsForeignFlags;
 
 #define VIPS_TYPE_FOREIGN_LOAD (vips_foreign_load_get_type())
@@ -134,15 +135,15 @@ typedef struct _VipsForeignLoadClass {
 
 	/*< public >*/
 
-	/* Is a foreign in this format.
+	/* Is a file in this format.
 	 */
 	gboolean (*is_a)( const char * );
 
-	/* Get the flags for this foreign.
+	/* Get the flags for this file.
 	 */
-	int (*get_flags)( VipsForeignLoad * );
+	VipsForeignFlags (*get_flags)( VipsForeignLoad * );
 
-	/* Set the header fields in @out from @foreignname. If you can read the 
+	/* Set the header fields in @out from @filename. If you can read the 
 	 * whole image as well with no performance cost (as with vipsload),
 	 * leave ->load() NULL and only @header will be used.
 	 */

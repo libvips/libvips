@@ -145,7 +145,7 @@ vips_copy_swap2( PEL *in, PEL *out, int width, VipsImage *im )
         int x;
 
         for( x = 0; x < sz; x++ ) 
-		out[x] = GUINT16_SWAP_LE_BE( in[x] );
+		q[x] = GUINT16_SWAP_LE_BE( p[x] );
 }
 
 /* Swap 4- of bytes.
@@ -160,7 +160,7 @@ vips_copy_swap4( PEL *in, PEL *out, int width, VipsImage *im )
         int x;
 
         for( x = 0; x < sz; x++ ) 
-		out[x] = GUINT32_SWAP_LE_BE( in[x] );
+		q[x] = GUINT32_SWAP_LE_BE( p[x] );
 }
 
 /* Swap 8- of bytes.
@@ -175,7 +175,7 @@ vips_copy_swap8( PEL *in, PEL *out, int width, VipsImage *im )
         int x;
 
         for( x = 0; x < sz; x++ ) 
-		out[x] = GUINT64_SWAP_LE_BE( in[x] );
+		q[x] = GUINT64_SWAP_LE_BE( p[x] );
 }
 
 typedef void (*SwapFn)( PEL *in, PEL *out, int width, VipsImage *im );

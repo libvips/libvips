@@ -528,9 +528,12 @@ vips_foreign_load_build( VipsObject *object )
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( object );
 	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( object );
 
-	if( class->get_flags &&
-		class->get_flags( load ) )
-		return( -1 );
+	VipsForeignFlags flags;
+
+	flags = 0;
+	if( class->get_flags )
+		flags |= class->get_flags( load );
+	g_object_set( load, "flags", flags, NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
 		build( object ) )
@@ -605,7 +608,6 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, disc ),
 		TRUE );
-
 }
 
 static void

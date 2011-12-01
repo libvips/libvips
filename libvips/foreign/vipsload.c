@@ -62,21 +62,18 @@ vips_foreign_load_vips_is_a( const char *filename )
 	return( vips__file_magic( filename ) );
 }
 
-static int
+static VipsForeignFlags
 vips_foreign_load_vips_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) load;
+	VipsForeignFlags flags;
 
-	load->flags = VIPS_FOREIGN_PARTIAL;
+	flags = VIPS_FOREIGN_PARTIAL;
 
-	if( vips__file_magic( vips->filename ) == VIPS_MAGIC_INTEL ) {
-		printf( "vips_foreign_load_vips_get_flags: "
-			"%s is intel, setting bigendian\n",
-			vips->filename );
-		load->flags |= VIPS_FOREIGN_BIGENDIAN;
-	}
+	if( vips__file_magic( vips->filename ) == VIPS_MAGIC_SPARC ) 
+		flags |= VIPS_FOREIGN_BIGENDIAN;
 
-	return( 0 );
+	return( flags );
 }
 
 static int
