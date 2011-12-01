@@ -45,6 +45,8 @@
  * 	- im_copy_set() now sets xoff / yoff again hmmm
  * 29/9/11
  * 	- rewrite as a class
+ * 1/12/11
+ * 	- use glib byteswap macros
  */
 
 /*
@@ -136,13 +138,14 @@ G_DEFINE_TYPE( VipsCopy, vips_copy, VIPS_TYPE_CONVERSION );
 static void
 vips_copy_swap2( PEL *in, PEL *out, int width, VipsImage *im )
 { 
-        int x;
-        int sz = VIPS_IMAGE_SIZEOF_PEL( im ) * width;     /* Bytes in buffer */
+	guint16 *p = (guint16 *) in;
+	guint16 *q = (guint16 *) out;
+        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 2;    
 
-        for( x = 0; x < sz; x += 2 ) {
-                out[x] = in[x + 1];
-                out[x + 1] = in[x];
-        }
+        int x;
+
+        for( x = 0; x < sz; x++ ) 
+		out[x] = GUINT16_SWAP_LE_BE( in[x] );
 }
 
 /* Swap 4- of bytes.
@@ -150,15 +153,14 @@ vips_copy_swap2( PEL *in, PEL *out, int width, VipsImage *im )
 static void
 vips_copy_swap4( PEL *in, PEL *out, int width, VipsImage *im )
 {
-        int x;
-        int sz = VIPS_IMAGE_SIZEOF_PEL( im ) * width;     /* Bytes in buffer */
+	guint32 *p = (guint32 *) in;
+	guint32 *q = (guint32 *) out;
+        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 4;    
 
-        for( x = 0; x < sz; x += 4 ) {
-                out[x] = in[x + 3];
-                out[x + 1] = in[x + 2];
-                out[x + 2] = in[x + 1];
-                out[x + 3] = in[x];
-        }
+        int x;
+
+        for( x = 0; x < sz; x++ ) 
+		out[x] = GUINT32_SWAP_LE_BE( in[x] );
 }
 
 /* Swap 8- of bytes.
@@ -166,19 +168,14 @@ vips_copy_swap4( PEL *in, PEL *out, int width, VipsImage *im )
 static void
 vips_copy_swap8( PEL *in, PEL *out, int width, VipsImage *im )
 {
-        int x;
-        int sz = VIPS_IMAGE_SIZEOF_PEL( im ) * width;     /* Bytes in buffer */
+	guint64 *p = (guint64 *) in;
+	guint64 *q = (guint64 *) out;
+        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 8;    
 
-        for( x = 0; x < sz; x += 8 ) {
-                out[x] = in[x + 7];
-                out[x + 1] = in[x + 6];
-                out[x + 2] = in[x + 5];
-                out[x + 3] = in[x + 4];
-                out[x + 4] = in[x + 3];
-                out[x + 5] = in[x + 2];
-                out[x + 6] = in[x + 1];
-                out[x + 7] = in[x];
-        }
+        int x;
+
+        for( x = 0; x < sz; x++ ) 
+		out[x] = GUINT64_SWAP_LE_BE( in[x] );
 }
 
 typedef void (*SwapFn)( PEL *in, PEL *out, int width, VipsImage *im );

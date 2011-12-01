@@ -49,9 +49,13 @@
 - set _O_TEMPORARY on delete-on-close temp images if possible
 - unlink temps on rewind on *nix, less likely to leave temps on a crash
 - added complex conj as a basic operation
-- rect/polar/conj work o any format, not just complex
+- rect/polar/conj work on any format, not just complex
 - new VipsFile system for load/save in image formats
 - options now introspectable, try "vips jpegsave"
+- copy swap uses glib byteswap macros, about 2x faster
+- edvips can change vips header byte ordering
+- "header" is terse by default
+- "header" outputs filenames if working on many files
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

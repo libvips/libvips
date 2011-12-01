@@ -1,7 +1,3 @@
-- get copy swap to use the glib byte order macros as well, faster?
-
-
-
 - test vips_foreign_load_vips_get_flags(), sense inverted?
 
   test load/save jpeg buffer
