@@ -852,7 +852,7 @@ vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 
 	if( (n = fwrite( data, size, nmemb, stream )) != nmemb ) {
 		vips_error( "vips__file_write", 
-			_( "writing error (%zd out of %zd blocks written) "
+			_( "write error (%zd out of %zd blocks written) "
 			"... disc full?" ), n, nmemb );
 		return( -1 );
 	}

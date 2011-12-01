@@ -47,6 +47,7 @@
 
 /*
 #define DEBUG
+#define SHOW_HEADER
  */
 
 #ifdef HAVE_CONFIG_H
@@ -170,32 +171,30 @@ image_pixel_length( VipsImage *image )
 	return( psize + image->sizeof_header );
 }
 
-/* Copy 2 and 4 bytes, swapping to and from native. 
+/* Copy 2 and 4 bytes, optionally swapping byte order.
  */
 void
-vips__copy_4byte( int msb_first, unsigned char *to, unsigned char *from )
+vips__copy_4byte( int swap, unsigned char *to, unsigned char *from )
 {
-	guint32 out;
+	guint32 *in = (guint32 *) from;
+	guint32 *out = (guint32 *) to;
 
-	if( msb_first )
-		out = from[0] << 24 | from[1] << 16 | from[2] << 8 | from[3];
+	if( swap )
+		*out = GUINT32_SWAP_LE_BE( *in );
 	else
-		out = from[3] << 24 | from[2] << 16 | from[1] << 8 | from[0];
-
-	*((guint32 *) to) = out;
+		*out = *in;
 }
 
 void
-vips__copy_2byte( int msb_first, unsigned char *to, unsigned char *from )
+vips__copy_2byte( gboolean swap, unsigned char *to, unsigned char *from )
 {
-	guint16 out;
+	guint16 *in = (guint16 *) from;
+	guint16 *out = (guint16 *) to;
 
-	if( msb_first )
-		out = from[0] << 8 | from[1];
+	if( swap )
+		*out = GUINT16_SWAP_LE_BE( *in );
 	else
-		out = from[1] << 8 | from[0];
-
-	*((guint16 *) to) = out;
+		*out = *in;
 }
 
 guint32
@@ -216,7 +215,7 @@ vips__file_magic( const char *filename )
 typedef struct _FieldIO {
 	glong offset;
 	int size;
-	void (*copy)( int msb_first, unsigned char *to, unsigned char *from );
+	void (*copy)( gboolean swap, unsigned char *to, unsigned char *from );
 } FieldIO;
 
 static FieldIO fields[] = {
@@ -239,10 +238,19 @@ static FieldIO fields[] = {
 int
 vips__read_header_bytes( VipsImage *im, unsigned char *from )
 {
-	int msb_first;
+	gboolean swap;
 	int i;
 
-	vips__copy_4byte( 1, (unsigned char *) &im->magic, from );
+#ifdef SHOW_HEADER
+	printf( "vips__read_header_bytes: file bytes:\n" ); 
+	for( i = 0; i < im->sizeof_header; i++ )
+		printf( "%2d - 0x%02x\n", i, from[i] );
+#endif /*SHOW_HEADER*/
+
+	/* The magic number is always written MSB first, we may need to swap.
+	 */
+	vips__copy_4byte( !vips_amiMSBfirst(), 
+		(unsigned char *) &im->magic, from );
 	from += 4;
 	if( im->magic != VIPS_MAGIC_INTEL && 
 		im->magic != VIPS_MAGIC_SPARC ) {
@@ -251,10 +259,13 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 		return( -1 );
 	}
 
-	msb_first = im->magic == VIPS_MAGIC_SPARC;
+	/* We need to swap for other fields if the file byte order is 
+	 * different from ours.
+	 */
+	swap = vips_amiMSBfirst() != (im->magic == VIPS_MAGIC_SPARC);
 
 	for( i = 0; i < VIPS_NUMBER( fields ); i++ ) {
-		fields[i].copy( msb_first,
+		fields[i].copy( swap,
 			&G_STRUCT_MEMBER( unsigned char, im, fields[i].offset ),
 			from );
 		from += fields[i].size;
@@ -270,22 +281,22 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 int
 vips__write_header_bytes( VipsImage *im, unsigned char *to )
 {
-	int msb_first;
+	/* Swap if the byte order we are asked to write the header in is
+	 * different from ours.
+	 */
+	gboolean swap = vips_amiMSBfirst() != (im->magic == VIPS_MAGIC_SPARC);
+
 	int i;
 	unsigned char *q;
 
 	/* Always write the magic number MSB first.
 	 */
-	to[0] = im->magic >> 24;
-	to[1] = im->magic >> 16;
-	to[2] = im->magic >> 8;
-	to[3] = im->magic;
+	vips__copy_4byte( !vips_amiMSBfirst(), 
+		to, (unsigned char *) &im->magic );
 	q = to + 4;
 
-	msb_first = im->magic == VIPS_MAGIC_SPARC;
-
 	for( i = 0; i < VIPS_NUMBER( fields ); i++ ) {
-		fields[i].copy( msb_first,
+		fields[i].copy( swap,
 			q, 
 			&G_STRUCT_MEMBER( unsigned char, im, 
 				fields[i].offset ) );
@@ -296,6 +307,12 @@ vips__write_header_bytes( VipsImage *im, unsigned char *to )
 	 */
 	while( q - to < im->sizeof_header )
 		*q++ = 0;
+
+#ifdef SHOW_HEADER
+	printf( "vips__write_header_bytes: file bytes:\n" ); 
+	for( i = 0; i < im->sizeof_header; i++ )
+		printf( "%2d - 0x%02x\n", i, to[i] );
+#endif /*SHOW_HEADER*/
 
 	return( 0 );
 }

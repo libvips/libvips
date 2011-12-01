@@ -450,10 +450,6 @@ size_t im_ref_string_get_length( const GValue *value );
 #define im__open_image_read vips__open_image_read
 #define im_image_open_input vips_image_open_input
 #define im_image_open_output vips_image_open_output
-#define im__read_4byte vips__read_4byte
-#define im__read_2byte vips__read_2byte
-#define im__write_4byte vips__write_4byte
-#define im__write_2byte vips__write_2byte
 #define im__has_extension_block vips__has_extension_block
 #define im__read_extension_block vips__read_extension_block
 #define im__write_extension_block vips__write_extension_block

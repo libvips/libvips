@@ -1,3 +1,7 @@
+- get copy swap to use the glib byte order macros as well, faster?
+
+
+
 - test vips_foreign_load_vips_get_flags(), sense inverted?
 
   test load/save jpeg buffer
@@ -346,12 +350,6 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
 - rename vipsCC in SWIG as pyvips?
 
 - look into G_GNUC_DEPRECATED for back compat in vips8
-
-- use
-
-	http://library.gnome.org/devel/glib/stable/glib-Byte-Order-Macros.html
-
-  for swapping ... they are asm macros so we should see a speedup
 
 - can we use conv_sep to speed up the memuse benchmarks?
 

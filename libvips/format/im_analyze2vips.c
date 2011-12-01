@@ -332,14 +332,14 @@ read_header( const char *header )
 			case SHORT:
 				p = &G_STRUCT_MEMBER( unsigned char, d, 
 					dsr_header[i].offset );
-				im__read_2byte( 1, p, &p );
+				vips__copy_2byte( TRUE, p, p );
 				break;
 
 			case INT:
 			case FLOAT: 
 				p = &G_STRUCT_MEMBER( unsigned char, d, 
 					dsr_header[i].offset );
-				im__read_4byte( 1, p, &p );
+				vips__copy_4byte( TRUE, p, p );
 				break;
 
 			case BYTE:
