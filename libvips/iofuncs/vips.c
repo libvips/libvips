@@ -300,17 +300,15 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 int
 vips__write_header_bytes( VipsImage *im, unsigned char *to )
 {
-	guint32 magic;
 	int i;
 	unsigned char *q;
 
 	/* Always write the magic number MSB first.
 	 */
-	magic = vips_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
-	to[0] = magic >> 24;
-	to[1] = magic >> 16;
-	to[2] = magic >> 8;
-	to[3] = magic;
+	to[0] = im->magic >> 24;
+	to[1] = im->magic >> 16;
+	to[2] = im->magic >> 8;
+	to[3] = im->magic;
 	q = to + 4;
 
 	for( i = 0; i < VIPS_NUMBER( fields ); i++ )
@@ -969,11 +967,11 @@ vips_image_open_output( VipsImage *image )
 
 		flags = MODE_WRITE;
 
+#ifdef _O_TEMPORARY
 		/* On Windows, setting O_TEMP gets the file automatically
 		 * deleted on process exit, even if the processes crashes. See
 		 * vips_image_rewind() for what we do to help on *nix.
 		 */
-#ifdef _O_TEMPORARY
 		if( image->delete_on_close )
 			flags |= _O_TEMPORARY;
 #endif /*_O_TEMPORARY*/
@@ -985,6 +983,12 @@ vips_image_open_output( VipsImage *image )
 				image->filename );
 			return( -1 );
 		}
+
+		/* We always write in native mode, so we must overwrite the
+		 * magic we read from the file originally.
+		 */
+		image->magic = vips_amiMSBfirst() ? 
+			VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 
 		if( vips__write_header_bytes( image, header ) ||
 			vips__write( image->fd, header, VIPS_SIZEOF_HEADER ) )

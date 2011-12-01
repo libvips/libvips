@@ -1,8 +1,18 @@
+- try
+
+	edvips -n big x.v
+	header x.v
+	vips_image_build: byteswapping vips read
+	vips warning: VipsImage: unable to read data for "x.v", file has been
+	truncated
+	sanity failure: VipsImage (0x1764170) bad enum
+
+
+
+
 - test vips_foreign_load_vips_get_flags(), sense inverted?
 
   we have various printf()s left in the byteswap codepath
-
-  test this, if we can .. perhaps add a swap-magic flag to edvips?
 
   test load/save jpeg buffer
 
@@ -11,9 +21,7 @@
 
 
 
-- test jpeg write profile option
-
-  make the old format/vips.c into a stub as well?
+- make the old format/vips.c into a stub as well?
 
   make sure we are using the operation cache for jpegload
 
@@ -22,6 +30,7 @@
   try tiff load
 
   move format/* to deprecated
+
 
 
 

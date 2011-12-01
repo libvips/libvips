@@ -74,9 +74,12 @@ static char *xres = NULL;
 static char *yres = NULL;
 static char *xoffset = NULL;
 static char *yoffset = NULL;
+static char *endian = NULL;
 static gboolean setext = FALSE;
 
 static GOptionEntry entries[] = {
+	{ "endian", 'n', 0, G_OPTION_ARG_STRING, &endian, 
+		N_( "tag file as big or little-endian" ), NULL },
 	{ "xsize", 'x', 0, G_OPTION_ARG_STRING, &xsize, 
 		N_( "set Xsize to N" ), "N" },
 	{ "ysize", 'y', 0, G_OPTION_ARG_STRING, &ysize, 
@@ -153,6 +156,15 @@ main( int argc, char **argv )
 		error_exit( _( "could not read VIPS header for %s" ), 
 			im->filename );
 
+	if( endian ) {
+		if( strcmp( endian, "little" ) == 0 )
+			im->magic = VIPS_MAGIC_INTEL;
+		else if( strcmp( endian, "big" ) == 0 )
+			im->magic = VIPS_MAGIC_SPARC;
+		else 
+			error_exit( _( "bad endian-ness %s, "
+				"should be 'big' or 'little'" ), endian );
+	}
 	if( xsize ) 
 		parse_pint( xsize, &im->Xsize );
 	if( ysize ) 

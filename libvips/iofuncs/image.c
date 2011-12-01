@@ -1598,7 +1598,6 @@ vips_image_write( VipsImage *image, VipsImage *out )
 {
 	if( vips_image_pio_input( image ) || 
 		vips_image_pio_output( out ) )
-		return( -1 );
 	if( vips_image_copy_fields( out, image ) )
 		return( -1 );
         vips_demand_hint( out, 

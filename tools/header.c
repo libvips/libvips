@@ -78,8 +78,11 @@
 #include <vips/debug.h>
 
 static char *main_option_field = NULL;
+static gboolean main_option_all = FALSE;
 
 static GOptionEntry main_option[] = {
+	{ "all", 'a', 0, G_OPTION_ARG_NONE, &main_option_all, 
+		N_( "show all fields" ), NULL },
 	{ "field", 'f', 0, G_OPTION_ARG_STRING, &main_option_field, 
 		N_( "print value of FIELD (\"getext\" reads extension block, "
 			"\"Hist\" reads image history)" ),
@@ -141,8 +144,31 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 static int
 print_header( IMAGE *im, gboolean many )
 {
-	if( !main_option_field )
-		(void) vips_image_map( im, print_field_fn, &many );
+	if( !main_option_field ) {
+		printf( "%s: ", im->filename );
+
+		printf( ngettext( 
+			"%dx%d %s, %d band, %s", 
+			"%dx%d %s, %d bands, %s", 
+			vips_image_get_bands( im ) ),
+			vips_image_get_width( im ),
+			vips_image_get_height( im ),
+			VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, 
+				vips_image_get_format( im ) ),
+			vips_image_get_bands( im ),
+			VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
+				vips_image_get_interpretation( im ) ) );
+
+		if( im->magic == VIPS_MAGIC_SPARC )
+			printf( ", SPARC" );
+		else if( im->magic == VIPS_MAGIC_INTEL )
+			printf( ", INTEL" );
+
+		printf( "\n" );
+
+		if( main_option_all )
+			(void) vips_image_map( im, print_field_fn, &many );
+	}
 	else if( strcmp( main_option_field, "getext" ) == 0 ) {
 		if( im__has_extension_block( im ) ) {
 			void *buf;
