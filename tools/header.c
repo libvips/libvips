@@ -160,9 +160,9 @@ print_header( IMAGE *im, gboolean many )
 				vips_image_get_interpretation( im ) ) );
 
 		if( im->magic == VIPS_MAGIC_SPARC )
-			printf( ", SPARC" );
+			printf( ", sparc" );
 		else if( im->magic == VIPS_MAGIC_INTEL )
-			printf( ", INTEL" );
+			printf( ", intel" );
 
 		printf( "\n" );
 

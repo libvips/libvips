@@ -170,52 +170,32 @@ image_pixel_length( VipsImage *image )
 	return( psize + image->sizeof_header );
 }
 
-/* Read short/int/float LSB and MSB first.
+/* Copy 2 and 4 bytes, swapping to and from native. 
  */
 void
-vips__read_4byte( int msb_first, unsigned char *to, unsigned char **from )
+vips__copy_4byte( int msb_first, unsigned char *to, unsigned char *from )
 {
-	unsigned char *p = *from;
-	int out;
+	guint32 out;
 
 	if( msb_first )
-		out = p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
+		out = from[0] << 24 | from[1] << 16 | from[2] << 8 | from[3];
 	else
-		out = p[3] << 24 | p[2] << 16 | p[1] << 8 | p[0];
+		out = from[3] << 24 | from[2] << 16 | from[1] << 8 | from[0];
 
-	*from += 4;
 	*((guint32 *) to) = out;
 }
 
 void
-vips__read_2byte( int msb_first, unsigned char *to, unsigned char **from )
+vips__copy_2byte( int msb_first, unsigned char *to, unsigned char *from )
 {
-	int out;
-	unsigned char *p = *from;
+	guint16 out;
 
 	if( msb_first )
-		out = p[0] << 8 | p[1];
+		out = from[0] << 8 | from[1];
 	else
-		out = p[1] << 8 | p[0];
+		out = from[1] << 8 | from[0];
 
-	*from += 2;
 	*((guint16 *) to) = out;
-}
-
-/* We always write in native byte order.
- */
-void
-vips__write_4byte( unsigned char **to, unsigned char *from )
-{
-	*((guint32 *) *to) = *((guint32 *) from);
-	*to += 4;
-}
-
-void
-vips__write_2byte( unsigned char **to, unsigned char *from )
-{
-	*((guint16 *) *to) = *((guint16 *) from);
-	*to += 2;
 }
 
 guint32
@@ -235,39 +215,25 @@ vips__file_magic( const char *filename )
  */
 typedef struct _FieldIO {
 	glong offset;
-	void (*read)( int msb_first, unsigned char *to, unsigned char **from );
-	void (*write)( unsigned char **to, unsigned char *from );
+	int size;
+	void (*copy)( int msb_first, unsigned char *to, unsigned char *from );
 } FieldIO;
 
 static FieldIO fields[] = {
-	{ G_STRUCT_OFFSET( VipsImage, Xsize ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Ysize ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Bands ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Bbits ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, BandFmt ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Coding ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Type ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Xres ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Yres ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Length ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Compression ), 
-		vips__read_2byte, vips__write_2byte },
-	{ G_STRUCT_OFFSET( VipsImage, Level ), 
-		vips__read_2byte, vips__write_2byte },
-	{ G_STRUCT_OFFSET( VipsImage, Xoffset ), 
-		vips__read_4byte, vips__write_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Yoffset ), 
-		vips__read_4byte, vips__write_4byte }
+	{ G_STRUCT_OFFSET( VipsImage, Xsize ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Ysize ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Bands ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Bbits ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, BandFmt ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Coding ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Type ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Xres ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Yres ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Length ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Compression ), 2, vips__copy_2byte },
+	{ G_STRUCT_OFFSET( VipsImage, Level ), 2, vips__copy_2byte },
+	{ G_STRUCT_OFFSET( VipsImage, Xoffset ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Yoffset ), 4, vips__copy_4byte }
 };
 
 int
@@ -276,19 +242,23 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	int msb_first;
 	int i;
 
-	vips__read_4byte( 1, (unsigned char *) &im->magic, &from );
+	vips__copy_4byte( 1, (unsigned char *) &im->magic, from );
+	from += 4;
 	if( im->magic != VIPS_MAGIC_INTEL && 
 		im->magic != VIPS_MAGIC_SPARC ) {
 		vips_error( "VipsImage", _( "\"%s\" is not a VIPS image" ), 
 			im->filename );
 		return( -1 );
 	}
+
 	msb_first = im->magic == VIPS_MAGIC_SPARC;
 
-	for( i = 0; i < VIPS_NUMBER( fields ); i++ )
-		fields[i].read( msb_first,
+	for( i = 0; i < VIPS_NUMBER( fields ); i++ ) {
+		fields[i].copy( msb_first,
 			&G_STRUCT_MEMBER( unsigned char, im, fields[i].offset ),
-			&from );
+			from );
+		from += fields[i].size;
+	}
 
 	/* Set this ourselves ... bbits is deprecated in the file format.
 	 */
@@ -300,6 +270,7 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 int
 vips__write_header_bytes( VipsImage *im, unsigned char *to )
 {
+	int msb_first;
 	int i;
 	unsigned char *q;
 
@@ -311,10 +282,15 @@ vips__write_header_bytes( VipsImage *im, unsigned char *to )
 	to[3] = im->magic;
 	q = to + 4;
 
-	for( i = 0; i < VIPS_NUMBER( fields ); i++ )
-		fields[i].write( &q,
+	msb_first = im->magic == VIPS_MAGIC_SPARC;
+
+	for( i = 0; i < VIPS_NUMBER( fields ); i++ ) {
+		fields[i].copy( msb_first,
+			q, 
 			&G_STRUCT_MEMBER( unsigned char, im, 
 				fields[i].offset ) );
+		q += fields[i].size;
+	}
 
 	/* Pad spares with zeros.
 	 */

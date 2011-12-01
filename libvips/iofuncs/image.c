@@ -405,12 +405,11 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 	if( !image->filename ) 
 		vips_buf_appends( buf, "NULL filename\n" );
 
-	/* All -1 means im has been inited but never used.
+	/* All 0 means im has been inited but never used.
 	 */
-	if( image->Xsize != -1 ||
-		image->Ysize != -1 ||
-		image->Bands != -1 ||
-		image->BandFmt != -1 ) {
+	if( image->Xsize != 0 ||
+		image->Ysize != 0 ||
+		image->Bands != 0 ) {
 		if( image->Xsize <= 0 || 
 			image->Ysize <= 0 || 
 			image->Bands <= 0 ) 
@@ -601,9 +600,6 @@ vips_image_build( VipsObject *object )
 			else {
 				VipsImage *t; 
 				VipsImage *t2;
-
-				printf( "vips_image_build: "
-					"byteswapping vips read\n" );
 
 				/* Open the image in t, then byteswap to this
 				 * image.
@@ -1597,8 +1593,8 @@ int
 vips_image_write( VipsImage *image, VipsImage *out )
 {
 	if( vips_image_pio_input( image ) || 
-		vips_image_pio_output( out ) )
-	if( vips_image_copy_fields( out, image ) )
+		vips_image_pio_output( out ) ||
+		vips_image_copy_fields( out, image ) )
 		return( -1 );
         vips_demand_hint( out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, image, NULL );

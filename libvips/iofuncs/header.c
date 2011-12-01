@@ -538,6 +538,10 @@ vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 
 	g_assert( in[0] );
 
+	/* Copy magic too, handy for knowing the original image's byte order.
+	 */
+	out->magic = in[0]->magic;
+
 	out->Xsize = in[0]->Xsize;
 	out->Ysize = in[0]->Ysize;
 	out->Bands = in[0]->Bands;

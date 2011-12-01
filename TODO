@@ -1,18 +1,4 @@
-- try
-
-	edvips -n big x.v
-	header x.v
-	vips_image_build: byteswapping vips read
-	vips warning: VipsImage: unable to read data for "x.v", file has been
-	truncated
-	sanity failure: VipsImage (0x1764170) bad enum
-
-
-
-
 - test vips_foreign_load_vips_get_flags(), sense inverted?
-
-  we have various printf()s left in the byteswap codepath
 
   test load/save jpeg buffer
 
