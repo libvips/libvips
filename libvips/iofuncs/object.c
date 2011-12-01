@@ -525,8 +525,15 @@ vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,
 }
 
 /* Free all args on this object which may be holding resources.
+ *
+ * Note that this is not the same as vips_object_unref_outputs(). That 
+ * looks for output objects which may have been created during _build() which
+ * hold refs to this object and unrefs them. 
+ *
+ * This function looks for objects which this object holds refs to and which
+ * may be holding sub-resources and zaps them.
  */
-void
+static void
 vips_argument_dispose_all( VipsObject *object )
 {
 #ifdef DEBUG
@@ -603,7 +610,8 @@ vips_object_dispose( GObject *gobject )
 		vips_object_preclose( object );
 	}
 
-	/* Clear all our arguments: they may be holding refs we should drop.
+	/* Clear all our arguments: they may be holding resources we should 
+	 * drop.
 	 */
 	vips_argument_dispose_all( object );
 

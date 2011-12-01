@@ -541,7 +541,7 @@ vips_call( const char *operation_name, ... )
 	/* Failed: junk args and back out.
 	 */
 	if( result ) {
-		vips_argument_dispose_all( VIPS_OBJECT( operation ) );
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
 		g_object_unref( operation );
 
 		return( -1 );
@@ -575,7 +575,7 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 	/* Build failed: junk args and back out.
 	 */
 	if( result ) {
-		vips_argument_dispose_all( VIPS_OBJECT( operation ) );
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
 		g_object_unref( operation );
 
 		return( -1 );

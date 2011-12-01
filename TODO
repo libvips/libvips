@@ -1,26 +1,3 @@
-- call:
-
-	vips_object_unref_outputs( object );
-
-  in more places .. a good test is
-	
-	vips copy wtc.jpg x.v
-
-  where wtc.jpg is an empty file
-
-  we need to catch all the error paths out of VipsForeign
-
-  would catching in vips_call_split() be enough?
-
-
-
-
-- we also have vips_argument_dispose_all() and call it from vips_call()
-  vips_call_split(), does this do the same job?
-
-
-
-
 - test vips_foreign_load_vips_get_flags(), sense inverted?
 
   we have various printf()s left in the byteswap codepath

@@ -265,7 +265,6 @@ typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
 	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
-void vips_argument_dispose_all( VipsObject *object );
 int vips_object_get_argument( VipsObject *object, const char *name,
 	GParamSpec **pspec,
 	VipsArgumentClass **argument_class,
