@@ -1,27 +1,9 @@
-- print_usage could show more about pspecs, eg. for "in" we have:
-
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsCopy, in ) );
-
-  but only display:
-
-  	   in :: VipsImage (input)
-
-
-
 - "header fred.tif" does not work, since header uses im_open() which uses
   VipsForeign
 
 
 
 - make the old format/vips.c into a stub as well?
-
-  make sure we are using the operation cache for jpegload
-
-  have something to print the cache before we flush it?
 
   try tiff load
 
