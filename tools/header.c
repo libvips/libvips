@@ -93,14 +93,9 @@ static GOptionEntry main_option[] = {
 /* A non-fatal error. Print the vips error buffer and continue.
  */
 static void
-print_error( const char *fmt, ... )
+print_error( void )
 {
-	va_list ap;
-
-        va_start( ap, fmt );
-        vfprintf( stderr, fmt, ap );
-        va_end( ap );
-        fprintf( stderr, "\n%s", im_error_buffer() );
+        fprintf( stderr, "%s: %s", g_get_prgname(), im_error_buffer() );
 	im_error_clear();
 }
 
@@ -252,13 +247,13 @@ main( int argc, char *argv[] )
 		IMAGE *im;
 
 		if( !(im = im_open( argv[i], "r" )) ) {
-			print_error( "%s: unable to open", argv[i] );
+			print_error();
 			result = 1;
 		}
 
 		if( im && 
 			print_header( im, argc > 2 ) ) {
-			print_error( "%s: unable to print header", argv[i] );
+			print_error();
 			result = 1;
 		}
 

@@ -46,8 +46,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -409,6 +409,22 @@ vips_cache_init( void )
 	}
 }
 
+#ifdef VIPS_DEBUG
+static void
+vips_cache_print( void )
+{
+	if( vips_cache_table ) {
+		GHashTableIter iter;
+		gpointer key, value;
+
+		printf( "Operation cache:\n" );
+		g_hash_table_iter_init( &iter, vips_cache_table );
+		while( g_hash_table_iter_next( &iter, &key, &value ) ) 
+			vips_object_print( VIPS_OBJECT( key ) );
+	}
+}
+#endif /*VIPS_DEBUG*/
+
 static void *
 vips_object_unref_arg( VipsObject *object,
 	GParamSpec *pspec,
@@ -467,6 +483,10 @@ void
 vips_cache_drop_all( void )
 {
 	if( vips_cache_table ) {
+#ifdef VIPS_DEBUG
+		vips_cache_print();
+#endif /*VIPS_DEBUG*/
+
 		/* We can't modify the hash in the callback from
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
@@ -579,7 +599,7 @@ vips_cache_operation_build( VipsOperation **operation )
 {
 	VipsOperation *hit;
 
-	VIPS_DEBUG_MSG( "vips_operation_build_cache: %p\n", *object );
+	VIPS_DEBUG_MSG( "vips_cache_operation_build: %p\n", *operation );
 
 	vips_cache_init();
 

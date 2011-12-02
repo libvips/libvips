@@ -1,7 +1,18 @@
-- test load/save jpeg buffer
+- try:
 
-  leaktest
+	$ vips copy x.jpg x.v
 
+  operation cache is printed twice ... once in atexit?
+
+  jpegload is not added
+
+  operation object print is unhelpful, we want a list of args, not a usage
+  message
+
+
+
+- "header fred.tif" does not work, since header uses im_open() which uses
+  VipsForeign
 
 
 
