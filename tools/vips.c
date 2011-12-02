@@ -1073,7 +1073,8 @@ main( int argc, char **argv )
 
 		if( vips_call_argv( operation, argc - 1, argv + 1 ) ) {
 			if( argc == 1 ) 
-				vips_object_print( VIPS_OBJECT( operation ) );
+				vips_operation_class_print_usage( 
+					VIPS_OPERATION_GET_CLASS( operation ) );
 
 			vips_object_unref_outputs( VIPS_OBJECT( operation ) );
 			g_object_unref( operation );

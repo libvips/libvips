@@ -46,8 +46,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -71,6 +71,7 @@
 char *vips__cache_max = NULL;
 char *vips__cache_max_mem = NULL;
 char *vips__cache_max_files = NULL;
+gboolean vips__cache_print = FALSE;
 
 /* Max number of cached operations.
  */
@@ -409,7 +410,6 @@ vips_cache_init( void )
 	}
 }
 
-#ifdef VIPS_DEBUG
 static void
 vips_cache_print( void )
 {
@@ -419,11 +419,16 @@ vips_cache_print( void )
 
 		printf( "Operation cache:\n" );
 		g_hash_table_iter_init( &iter, vips_cache_table );
-		while( g_hash_table_iter_next( &iter, &key, &value ) ) 
-			vips_object_print( VIPS_OBJECT( key ) );
+		while( g_hash_table_iter_next( &iter, &key, &value ) ) {
+			char str[32768];
+			VipsBuf buf = VIPS_BUF_STATIC( str );
+
+			vips_object_to_string( VIPS_OBJECT( key ), &buf );
+
+			printf( "%p - %s\n", key, vips_buf_all( &buf ) );
+		}
 	}
 }
-#endif /*VIPS_DEBUG*/
 
 static void *
 vips_object_unref_arg( VipsObject *object,
@@ -483,9 +488,8 @@ void
 vips_cache_drop_all( void )
 {
 	if( vips_cache_table ) {
-#ifdef VIPS_DEBUG
-		vips_cache_print();
-#endif /*VIPS_DEBUG*/
+		if( vips__cache_print )
+			vips_cache_print();
 
 		/* We can't modify the hash in the callback from
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
@@ -501,6 +505,8 @@ vips_cache_drop_all( void )
 
 			vips_cache_drop( (VipsOperation *) key );
 		}
+
+		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
 	}
 }
 
@@ -598,6 +604,8 @@ int
 vips_cache_operation_build( VipsOperation **operation )
 {
 	VipsOperation *hit;
+
+	g_assert( VIPS_IS_OPERATION( *operation ) );
 
 	VIPS_DEBUG_MSG( "vips_cache_operation_build: %p\n", *operation );
 

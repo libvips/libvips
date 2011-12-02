@@ -69,9 +69,14 @@ typedef struct _VipsOperation {
 typedef struct _VipsOperationClass {
 	VipsObjectClass parent_class;
 
+	/* Print the usage message.
+	 */
+	void (*print_usage)( struct _VipsOperationClass *, VipsBuf * );
 } VipsOperationClass;
 
 GType vips_operation_get_type( void );
+
+void vips_operation_class_print_usage( VipsOperationClass *operation_class );
 
 int vips_operation_call_valist( VipsOperation *operation, va_list ap );
 VipsOperation *vips_operation_new( const char *name ); 

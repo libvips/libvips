@@ -22,7 +22,7 @@
 - VipsMin stops search early if it can
 - C API supports optional output args
 - switch back to int-valued operations
-- add the operation cache
+- add the operation cache, various --vips-cache-* flags
 - fallback vips_init()
 - vips_tracked_malloc() tracks allocation size and can report total mem usage
 - cache limits, drop, init, flush plus command-line controls

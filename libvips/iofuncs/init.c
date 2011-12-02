@@ -395,6 +395,9 @@ static GOptionEntry option_entries[] = {
 	{ "vips-cache-max-files", 'l', 0, 
 		G_OPTION_ARG_STRING, &vips__cache_max_files, 
 		N_( "allow at most N open files" ), "N" },
+	{ "vips-cache-print", 'r', 0, 
+		G_OPTION_ARG_NONE, &vips__cache_print, 
+		N_( "print operation cache on exit" ), NULL },
 	{ NULL }
 };
 

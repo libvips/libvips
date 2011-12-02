@@ -192,7 +192,7 @@ vips_object_build( VipsObject *object )
 void
 vips_object_print_class( VipsObjectClass *class )
 {
-	char str[1000];
+	char str[2048];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	class->print_class( class, &buf );
@@ -204,13 +204,9 @@ vips_object_print( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 
-	/* This is used for printing image headers, so we may need lots of
-	 * space. See header.c.
-	 */
-	char str[32768];
+	char str[2048];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	vips_object_print_class( class );
 	class->print( object, &buf );
 	printf( "%s\n", vips_buf_all( &buf ) );
 }
@@ -320,6 +316,37 @@ vips_argument_map( VipsObject *object,
 	} VIPS_ARGUMENT_FOR_ALL_END
 
 	g_object_unref( object ); 
+
+	return( NULL );
+}
+
+/* And loop over a class. Same as ^^, but with no VipsArgumentInstance.
+ */
+void *
+vips_argument_class_map( VipsObjectClass *object_class,
+	VipsArgumentClassMapFn fn, void *a, void *b )
+{
+	GSList *p; 
+ 
+	for( p = object_class->argument_table_traverse; p; p = p->next ) { 
+		VipsArgumentClass *arg_class = 
+			(VipsArgumentClass *) p->data; 
+		VipsArgument *argument = (VipsArgument *) arg_class; 
+		GParamSpec *pspec = argument->pspec; 
+		
+		/* We have many props on the arg table ... filter out the 
+		 * ones for this class. 
+		 */ 
+		if( g_object_class_find_property( 
+			G_OBJECT_CLASS( object_class ), 
+			g_param_spec_get_name( pspec ) ) == pspec ) {
+			void *result;
+
+			if( (result = 
+				fn( object_class, pspec, arg_class, a, b )) )
+				return( result );
+		}
+	}
 
 	return( NULL );
 }
@@ -1244,14 +1271,15 @@ vips_object_set_argument_from_string( VipsObject *object,
 		VipsObject *new_object;
 		VipsImage *out;
 
-		/* Use VipsFile to build images, then pull @out from it and
+		/* Use VipsForeign to build images, then pull @out from it and
 		 * use that to set the value.
 		 */
 		if( !(new_object = 
 			vips_object_new_from_string( oclass, value )) )
 			return( -1 );
 
-		if( vips_object_build( new_object ) ) {
+		if( vips_cache_operation_build( 
+			(VipsOperation **) &new_object ) ) {
 			g_object_unref( new_object );
 			return( -1 );
 		}
@@ -1283,6 +1311,9 @@ vips_object_set_argument_from_string( VipsObject *object,
 			vips_object_new_from_string( oclass, value )) )
 			return( -1 );
 
+		/* Not necessarily a VipsOperation subclass so we don't use
+		 * the cache. We could have a separate case for this.
+		 */
 		if( vips_object_build( new_object ) ) {
 			g_object_unref( new_object );
 			return( -1 );
@@ -1430,7 +1461,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 		VipsObject *new_object;
 		VipsImage *in;
 
-		/* Use VipsFile to make a saver, set 'in' on that and run
+		/* Use VipsForeign to make a saver, set 'in' on that and run
 		 * build to make it write.
 		 */
 		if( !(new_object = 
@@ -1441,7 +1472,8 @@ vips_object_get_argument_to_string( VipsObject *object,
 		g_object_set( new_object, "in", in, NULL );
 		g_object_unref( in );
 
-		if( vips_object_build( new_object ) ) {
+		if( vips_cache_operation_build( 
+			(VipsOperation **) &new_object ) ) {
 			g_object_unref( new_object );
 			return( -1 );
 		}

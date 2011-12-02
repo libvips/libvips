@@ -265,6 +265,10 @@ typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
 	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
+typedef void *(*VipsArgumentClassMapFn)( VipsObjectClass *, GParamSpec *,
+	VipsArgumentClass *, void *a, void *b );
+void *vips_argument_class_map( VipsObjectClass *object_class, 
+	VipsArgumentClassMapFn fn, void *a, void *b );
 int vips_object_get_argument( VipsObject *object, const char *name,
 	GParamSpec **pspec,
 	VipsArgumentClass **argument_class,
@@ -348,6 +352,7 @@ struct _VipsObjectClass {
 	int (*build)( VipsObject *object );
 
 	/* Try to print something about the class, handy for help displays.
+	 * Keep to one line.
 	 */
 	void (*print_class)( struct _VipsObjectClass *, VipsBuf * );
 

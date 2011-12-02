@@ -175,7 +175,7 @@ vips_remainder_class_init( VipsRemainderClass *class )
 
 	object_class->nickname = "remainder";
 	object_class->description = 
-		_( "remainder after integer division for a pair of images" );
+		_( "remainder after integer division of two images" );
 	object_class->build = vips_remainder_build;
 
 	vips_arithmetic_set_format_table( aclass, vips_bandfmt_remainder );
@@ -324,7 +324,7 @@ vips_remainder_const_class_init( VipsRemainderConstClass *class )
 
 	object_class->nickname = "remainder_const";
 	object_class->description = 
-		_( "remainder after integer division for an image "
+		_( "remainder after integer division of an image " 
 		"and a constant" );
 	object_class->build = vips_remainder_const_build;
 

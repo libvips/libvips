@@ -80,6 +80,7 @@ extern char *vips__disc_threshold;
 extern char *vips__cache_max;
 extern char *vips__cache_max_mem;
 extern char *vips__cache_max_files;
+extern gboolean vips__cache_print;
 
 typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
 
