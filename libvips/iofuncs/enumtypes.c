@@ -44,6 +44,65 @@ vips_saveable_get_type( void )
 
 	return( etype );
 }
+GType
+vips_foreign_tiff_compression_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_TIFF_COMPRESSION_NONE, "VIPS_FOREIGN_TIFF_COMPRESSION_NONE", "none"},
+			{VIPS_FOREIGN_TIFF_COMPRESSION_JPEG, "VIPS_FOREIGN_TIFF_COMPRESSION_JPEG", "jpeg"},
+			{VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE, "VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE", "deflate"},
+			{VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS, "VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS", "packbits"},
+			{VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4, "VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4", "ccittfax4"},
+			{VIPS_FOREIGN_TIFF_COMPRESSION_LZW, "VIPS_FOREIGN_TIFF_COMPRESSION_LZW", "lzw"},
+			{VIPS_FOREIGN_TIFF_COMPRESSION_LAST, "VIPS_FOREIGN_TIFF_COMPRESSION_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignTiffCompression", values );
+	}
+
+	return( etype );
+}
+GType
+vips_foreign_tiff_predictor_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_TIFF_PREDICTOR_NONE, "VIPS_FOREIGN_TIFF_PREDICTOR_NONE", "none"},
+			{VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL, "VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL", "horizontal"},
+			{VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT, "VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT", "float"},
+			{VIPS_FOREIGN_TIFF_PREDICTOR_LAST, "VIPS_FOREIGN_TIFF_PREDICTOR_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignTiffPredictor", values );
+	}
+
+	return( etype );
+}
+GType
+vips_foreign_tiff_resunit_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_TIFF_RESUNIT_CM, "VIPS_FOREIGN_TIFF_RESUNIT_CM", "cm"},
+			{VIPS_FOREIGN_TIFF_RESUNIT_INCH, "VIPS_FOREIGN_TIFF_RESUNIT_INCH", "inch"},
+			{VIPS_FOREIGN_TIFF_RESUNIT_LAST, "VIPS_FOREIGN_TIFF_RESUNIT_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignTiffResunit", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/conversion.h" */
 GType
 vips_extend_get_type( void )

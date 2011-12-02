@@ -1222,7 +1222,6 @@ make_tiff_write( IMAGE *im, const char *filename,
 	gboolean bigtiff )
 {
 	TiffWrite *tw;
-	char *p, *q, *r;
 
 	if( !(tw = IM_NEW( im, TiffWrite )) )
 		return( NULL );
@@ -1478,14 +1477,10 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	/* Make output image. If this is a pyramid, write the base image to
 	 * tmp/xx.tif rather than fred.tif.
 	 */
-	if( !(tw = make_tiff_write( in, filename 
-		tiff->compression, tiff->Q, tiff->predictor,
-		tiff->profile,
-		tiff->tile, tiff->tile_width, tiff->tile_height,
-		tiff->pyramid,
-		tiff->squash,
-		tiff->resunit, tiff->xres, tiff->yres,
-		tiff->bigtiff )) )
+	if( !(tw = make_tiff_write( in, filename,
+		compression, Q, predictor, profile,
+		tile, tile_width, tile_height, pyramid, squash,
+		resunit, xres, yres, bigtiff )) )
 		return( -1 );
 	if( tw->pyramid ) {
 		if( !(tw->bname = im__temp_name( "%s.tif" )) ||

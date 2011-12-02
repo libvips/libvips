@@ -81,6 +81,8 @@ vips_foreign_save_tiff_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
 
+	char *p;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_parent_class )->
 		build( object ) )
 		return( -1 );
@@ -88,25 +90,27 @@ vips_foreign_save_tiff_build( VipsObject *object )
 	/* Default xres/yres to the values in the image.
 	 */
 	if( !vips_argument_get_assigned( object, "xres" ) )
-		tiff->xres = save->read->Xres * 10.0;
+		tiff->xres = save->ready->Xres * 10.0;
 	if( !vips_argument_get_assigned( object, "yres" ) )
-		tiff->yres = save->read->Yres * 10.0;
+		tiff->yres = save->ready->Yres * 10.0;
 	if( !vips_argument_get_assigned( object, "resunit" ) &&
-		vips_image_get_typeof( im, VIPS_META_RESOLUTION_UNIT ) &&
-		!im_meta_get_string( im, VIPS_META_RESOLUTION_UNIT, &p ) &&
+		vips_image_get_typeof( save->ready, 
+			VIPS_META_RESOLUTION_UNIT ) &&
+		!vips_image_get_string( save->ready, 
+			VIPS_META_RESOLUTION_UNIT, &p ) &&
 		vips_isprefix( "in", p ) ) {
 		tiff->resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
 		tiff->xres *= 2.54;
 		tiff->yres *= 2.54;
 	}
 
-	if( vips__tiff_write( save->ready, file->filename,
+	if( vips__tiff_write( save->ready, tiff->filename,
 		tiff->compression, tiff->Q, tiff->predictor,
 		tiff->profile,
 		tiff->tile, tiff->tile_width, tiff->tile_height,
 		tiff->pyramid,
 		tiff->squash,
-		tiff->xres, tiff->yres,
+		tiff->resunit, tiff->xres, tiff->yres,
 		tiff->bigtiff ) )
 		return( -1 );
 
@@ -115,13 +119,22 @@ vips_foreign_save_tiff_build( VipsObject *object )
 
 static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
 
-#define UC VIPS_FORMAT_UCHAR
-
-/* Type promotion for save ... just always go to uchar.
+/* Save a bit of typing.
  */
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
+
 static int bandfmt_tiff[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+   UC, UC, US, S,  US, US, F,  F,  F,  F
 };
 
 static void
@@ -129,6 +142,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -136,18 +150,18 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 
 	object_class->nickname = "tiffsave";
 	object_class->description = _( "save image to tiff file" );
-	object_class->build = vips_foreign_save_tiff_file_build;
+	object_class->build = vips_foreign_save_tiff_build;
 
-	foreign_class->suffs = vips__tiff_suffs;
+	foreign_class->suffs = tiff_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
+	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_tiff;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
 		_( "Filename to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveTiffFile, filename ),
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, filename ),
 		NULL );
 
 	VIPS_ARG_ENUM( class, "compression", 6, 
@@ -184,7 +198,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		_( "Tile" ), 
 		_( "Write a tiled tiff" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveTiff, tiff ),
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, tile ),
 		FALSE );
 
 	VIPS_ARG_INT( class, "tile_width", 11, 
@@ -241,7 +255,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		_( "Bigtiff" ), 
 		_( "Write a bigtiff image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveTiff, bigtif ),
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, bigtiff ),
 		FALSE );
 }
 

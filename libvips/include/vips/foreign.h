@@ -275,7 +275,7 @@ typedef enum {
 	VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL = 2,
 	VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT = 3,
 	VIPS_FOREIGN_TIFF_PREDICTOR_LAST
-} VipsForeignTiffPrediction;
+} VipsForeignTiffPredictor;
 
 /**
  * VipsForeignTiffResunit:

@@ -10,8 +10,8 @@ C_LIB =
 endif
 
 SUBDIRS = \
-	foreign \
 	include \
+	foreign \
 	arithmetic \
 	resample \
 	colour \

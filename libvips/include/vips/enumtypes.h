@@ -11,6 +11,12 @@ GType vips_foreign_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_FLAGS (vips_foreign_flags_get_type())
 GType vips_saveable_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
+GType vips_foreign_tiff_compression_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_FOREIGN_TIFF_COMPRESSION (vips_foreign_tiff_compression_get_type())
+GType vips_foreign_tiff_predictor_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_FOREIGN_TIFF_PREDICTOR (vips_foreign_tiff_predictor_get_type())
+GType vips_foreign_tiff_resunit_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_FOREIGN_TIFF_RESUNIT (vips_foreign_tiff_resunit_get_type())
 /* enumerations from "../../../libvips/include/vips/arithmetic.h" */
 GType vips_operation_math_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_MATH (vips_operation_math_get_type())
