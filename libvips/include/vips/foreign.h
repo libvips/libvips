@@ -237,6 +237,69 @@ int vips_jpegsave( VipsImage *in, const char *filename, ... );
 int vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... );
 int vips_jpegsave_mime( VipsImage *in, ... );
 
+/**
+ * VipsForeignTiffCompression:
+ * @VIPS_FOREIGN_TIFF_COMPRESSION_NONE: no compression
+ * @VIPS_FOREIGN_TIFF_COMPRESSION_JPEG: jpeg compression
+ * @VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE: deflate (zip) compression
+ * @VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS: packbits compression
+ * @VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4: fax4 compression
+ * @VIPS_FOREIGN_TIFF_COMPRESSION_LZW: LZW compression
+ *
+ * The compression types supported by the tiff writer.
+ *
+ * Use @Q to set the jpeg compression level, default 75.
+ *
+ * Use @prediction to set the lzw or deflate prediction, default none.
+ */
+typedef enum {
+	VIPS_FOREIGN_TIFF_COMPRESSION_NONE,
+	VIPS_FOREIGN_TIFF_COMPRESSION_JPEG,
+	VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE,
+	VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS,
+	VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4,
+	VIPS_FOREIGN_TIFF_COMPRESSION_LZW,
+	VIPS_FOREIGN_TIFF_COMPRESSION_LAST
+} VipsForeignTiffCompression;
+
+/**
+ * VipsForeignTiffPredictor:
+ * @VIPS_FOREIGN_TIFF_PREDICTOR_NONE: no prediction
+ * @VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL: horizontal differenceing
+ * @VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT: float predictor
+ *
+ * The predictor can help deflate and lzw compression.
+ */
+typedef enum {
+	VIPS_FOREIGN_TIFF_PREDICTOR_NONE = 1,
+	VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL = 2,
+	VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT = 3,
+	VIPS_FOREIGN_TIFF_PREDICTOR_LAST
+} VipsForeignTiffPrediction;
+
+/**
+ * VipsForeignTiffResunit:
+ * @VIPS_FOREIGN_TIFF_RESUNIT_CM: use centimeters
+ * @VIPS_FOREIGN_TIFF_RESUNIT_INCH: use inches
+ *
+ * Use inches or centimeters as the resolution unit for a tiff file.
+ */
+typedef enum {
+	VIPS_FOREIGN_TIFF_RESUNIT_CM,
+	VIPS_FOREIGN_TIFF_RESUNIT_INCH,
+	VIPS_FOREIGN_TIFF_RESUNIT_LAST
+} VipsForeignTiffResunit;
+
+int vips__tiff_write( VipsImage *in, const char *filename, 
+	VipsForeignTiffCompression compression, int Q, 
+		VipsForeignTiffPredictor predictor,
+	char *profile,
+	gboolean tile, int tile_width, int tile_height,
+	gboolean pyramid,
+	gboolean squash,
+	VipsForeignTiffResunit resunit, double xres, double yres,
+	gboolean bigtiff );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

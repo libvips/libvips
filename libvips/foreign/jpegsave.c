@@ -142,7 +142,7 @@ vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 typedef struct _VipsForeignSaveJpegFile {
 	VipsForeignSaveJpeg parent_object;
 
-	/* Filename for load.
+	/* Filename for save.
 	 */
 	char *filename; 
 

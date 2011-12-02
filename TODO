@@ -1,3 +1,8 @@
+- dowes the tiff writer support "none" for the profile?
+
+
+
+
 - "header fred.tif" does not work, since header uses im_open() which uses
   VipsForeign
 
