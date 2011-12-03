@@ -125,6 +125,7 @@
  * 	- set reduced-resolution subfile type on pyramid layers
  * 2/12/11
  * 	- turn into a write fn ready to be called from a class
+ * 	- allow "none" as a profile name
  */
 
 /*
@@ -425,8 +426,10 @@ static int
 embed_profile( TiffWrite *tw, TIFF *tif )
 {
 	if( tw->icc_profile && 
+		strcmp( tw->icc_profile, "none" ) != 0 &&
 		embed_profile_file( tif, tw->icc_profile ) )
 		return( -1 );
+
 	if( !tw->icc_profile && 
 		im_header_get_typeof( tw->im, IM_META_ICC_NAME ) &&
 		embed_profile_meta( tif, tw->im ) )

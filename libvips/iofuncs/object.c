@@ -429,7 +429,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
 
 	if( !(*pspec = g_object_class_find_property( 
 		G_OBJECT_CLASS( class ), name )) ) {
-		vips_error( VIPS_OBJECT_CLASS( class )->description, 
+		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
 			_( "class `%s' has no property named `%s'" ),
 			G_OBJECT_TYPE_NAME( object ), name );
 		return( -1 );
@@ -438,7 +438,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
 	if( !(*argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, 
 		*pspec )) ) {
-		vips_error( VIPS_OBJECT_CLASS( class )->description, 
+		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
 			_( "class `%s' has no vips argument named `%s'" ),
 			G_OBJECT_TYPE_NAME( object ), name );
 		return( -1 );
@@ -446,7 +446,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
 	if( argument_class &&
 		!(*argument_instance = vips__argument_get_instance( 
 			*argument_class, object )) ) {
-		vips_error( VIPS_OBJECT_CLASS( class )->description, 
+		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
 			_( "vips argument `%s' has no instance" ),
 			G_OBJECT_TYPE_NAME( object ), name );
 		return( -1 );
@@ -1129,7 +1129,7 @@ vips_object_class_init( VipsObjectClass *class )
 	class->new_from_string = vips_object_real_new_from_string;
 	class->to_string = vips_object_real_to_string;
 	class->nickname = "object";
-	class->description = _( "VIPS base class" );
+	class->description = _( "base class" );
 
 	/* Table of VipsArgumentClass ... we can just g_free() them.
 	 */

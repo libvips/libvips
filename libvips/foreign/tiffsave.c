@@ -87,19 +87,24 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* Default xres/yres to the values in the image.
+	/* Default xres/yres to the values from the image.
 	 */
 	if( !vips_argument_get_assigned( object, "xres" ) )
 		tiff->xres = save->ready->Xres * 10.0;
 	if( !vips_argument_get_assigned( object, "yres" ) )
 		tiff->yres = save->ready->Yres * 10.0;
+
+	/* resunit param overrides resunit metadata.
+	 */
 	if( !vips_argument_get_assigned( object, "resunit" ) &&
 		vips_image_get_typeof( save->ready, 
 			VIPS_META_RESOLUTION_UNIT ) &&
 		!vips_image_get_string( save->ready, 
 			VIPS_META_RESOLUTION_UNIT, &p ) &&
-		vips_isprefix( "in", p ) ) {
+		vips_isprefix( "in", p ) ) 
 		tiff->resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
+
+	if( tiff->resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH ) {
 		tiff->xres *= 2.54;
 		tiff->yres *= 2.54;
 	}
@@ -276,8 +281,19 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * vips_tiffsave:
  * @in: image to save 
  * @filename: file to write to 
+ * @compression; use this compression scheme
  * @Q: quality factor
+ * @predictor; compress with this prediction
  * @profile: attach this ICC profile
+ * @tile; set %TRUE to write a tiled tiff
+ * @tile_width; set tile size
+ * @tile_height; set tile size
+ * @pyramid; set %TRUE to write an image pyramid
+ * @squash; squash 8-bit images down to 1 bit
+ * @resunit; use pixels per inch or cm for the resolution
+ * @xres; horizontal resolution
+ * @yres; vertical resolution
+ * @bigtiff; write a BigTiff file
  *
  * Write a VIPS image to a file as TIFF.
  *
