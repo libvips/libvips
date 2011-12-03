@@ -90,13 +90,13 @@ vips_operation_class_print_arg( VipsObjectClass *object_class,
 			vips_buf_appendf( buf, "%s\n", print->message );
 
 		if( print->oftype ) {
-			vips_buf_appendf( buf, "   %-10s - %s, %s (%s)\n",
+			vips_buf_appendf( buf, "   %-12s - %s, %s %s\n",
 				g_param_spec_get_name( pspec ), 
 				g_param_spec_get_blurb( pspec ), 
-				g_type_name( 
-					G_PARAM_SPEC_VALUE_TYPE( pspec ) ),
 				(argument_class->flags & VIPS_ARGUMENT_INPUT) ?
-					_( "input" ) : _( "output" ) );
+					_( "input" ) : _( "output" ),
+				g_type_name( 
+					G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 		}
 		else {
 			if( print->n > 0 )

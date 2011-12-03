@@ -1,16 +1,27 @@
 - does the tiff writer support "none" for the profile?
 
+  bool args should let you skip the '=', eg. 
+
+	vips copy x.jpg x.tif[tile,tile-width=1024]
+
+  try
+
+	  $ vips copy x.jpg x.tif[tile=true,tilew=1024]
+	  save image to tiff file: class `VipsForeignSaveTiff' has no property named `tilew'
+	  VipsObject: bad object arguments
+
+  using class blurb rather than nick in error!
 
 
 
-- "header fred.tif" does not work, since header uses im_open() which uses
+
+
+- "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
 
 
 
 - make the old format/vips.c into a stub as well?
-
-  try tiff load
 
   move format/* to deprecated
 
