@@ -1239,7 +1239,7 @@ make_tiff_write( IMAGE *im, const char *filename,
 	tw->predictor = predictor;
 	tw->tile = tile;
 	tw->tilew = tile_width;
-	tw->tileh = tile_width;
+	tw->tileh = tile_height;
 	tw->pyramid = pyramid;
 	tw->onebit = squash;
 	tw->icc_profile = profile;

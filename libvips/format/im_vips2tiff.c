@@ -224,7 +224,7 @@ im_vips2tiff( IMAGE *in, const char *filename )
 		return( -1 );
 	}
 
-	if( vips_tiffsave( in, filename,
+	if( vips_tiffsave( in, name,
 		"compression", compression,
 		"Q", Q,
 		"predictor", predictor,
