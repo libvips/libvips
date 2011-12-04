@@ -70,6 +70,16 @@ typedef struct _VipsForeignSaveTiff {
 	gboolean bigtiff;
 } VipsForeignSaveTiff;
 
+int vips__tiff_write( VipsImage *in, const char *filename, 
+	VipsForeignTiffCompression compression, int Q, 
+		VipsForeignTiffPredictor predictor,
+	char *profile,
+	gboolean tile, int tile_width, int tile_height,
+	gboolean pyramid,
+	gboolean squash,
+	VipsForeignTiffResunit resunit, double xres, double yres,
+	gboolean bigtiff );
+
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
 
 G_DEFINE_TYPE( VipsForeignSaveTiff, vips_foreign_save_tiff, 

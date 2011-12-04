@@ -124,8 +124,8 @@
  * 23/11/11
  * 	- set reduced-resolution subfile type on pyramid layers
  * 2/12/11
- * 	- turn into a write fn ready to be called from a class
- * 	- allow "none" as a profile name
+ * 	- make into a simple function call ready to be wrapped as a new-style
+ * 	  VipsForeign class
  */
 
 /*
@@ -154,7 +154,7 @@
 
  */
 
-/* Turn on IM_REGION_ADDR() range checks, don't delete intermediates.
+/* 
 #define DEBUG
  */
 
@@ -169,7 +169,6 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #include <string.h>
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -268,7 +267,7 @@ tiff_openout( TiffWrite *tw, const char *name )
 #endif /*DEBUG*/
 
 	if( !(tif = TIFFOpen( name, mode )) ) {
-		im_error( "im_vips2tiff", 
+		im_error( "vips2tiff", 
 			_( "unable to open \"%s\" for output" ), name );
 		return( NULL );
 	}
@@ -284,7 +283,7 @@ tiff_openin( const char *name )
 	TIFF *tif;
 
 	if( !(tif = TIFFOpen( name, "r" )) ) {
-		im_error( "im_vips2tiff", 
+		im_error( "vips2tiff", 
 			_( "unable to open \"%s\" for input" ), name );
 		return( NULL );
 	}
@@ -397,7 +396,7 @@ embed_profile_file( TIFF *tif, const char *profile )
 	im_free( buffer );
 
 #ifdef DEBUG
-	printf( "im_vips2tiff: attached profile \"%s\"\n", profile );
+	printf( "vips2tiff: attached profile \"%s\"\n", profile );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -416,7 +415,7 @@ embed_profile_meta( TIFF *tif, IMAGE *im )
 	TIFFSetField( tif, TIFFTAG_ICCPROFILE, data_length, data );
 
 #ifdef DEBUG
-	printf( "im_vips2tiff: attached profile from meta\n" );
+	printf( "vips2tiff: attached profile from meta\n" );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -545,7 +544,7 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 			break;
 
 		default:
-			assert( 0 );
+			g_assert( 0 );
 		}
 
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, photometric );
@@ -693,8 +692,9 @@ find_new_tile( PyramidLayer *layer )
 
 	/* Out of space!
 	 */
-	im_error( "im_vips2tiff", "%s", _( "layer buffer exhausted -- "
-		"try making TIFF output tiles smaller" ) );
+	im_error( "vips2tiff", 
+		"%s", _( "layer buffer exhausted -- "
+			"try making TIFF output tiles smaller" ) );
 
 	return( -1 );
 }
@@ -901,7 +901,7 @@ shrink_region( REGION *from, Rect *area,
 			SHRINK_TYPE_FLOAT( double );  break; 
 
 		default:
-			assert( 0 );
+			g_assert( 0 );
 		}
 	}
 }
@@ -924,7 +924,7 @@ save_tile( TiffWrite *tw, TIFF *tif, PEL *tbuf, REGION *reg, Rect *area )
 	/* Write to TIFF! easy.
 	 */
 	if( TIFFWriteTile( tif, tbuf, area->left, area->top, 0, 0 ) < 0 ) {
-		im_error( "im_vips2tiff", "%s", _( "TIFF write tile failed" ) );
+		im_error( "vips2tiff", "%s", _( "TIFF write tile failed" ) );
 		return( -1 );
 	}
 
@@ -999,7 +999,7 @@ new_tile( PyramidLayer *layer, REGION *tile, Rect *area )
 		else
 			bit = PYR_TL;
 	if( layer->tiles[t].bits & bit ) {
-		im_error( "im_vips2tiff", 
+		im_error( "vips2tiff", 
 			"%s", _( "internal error #9876345" ) );
 		return( -1 );
 	}
@@ -1252,13 +1252,14 @@ make_tiff_write( IMAGE *im, const char *filename,
 
 	if( (tw->tilew & 0xf) != 0 || 
 		(tw->tileh & 0xf) != 0 ) {
-		im_error( "im_vips2tiff", "%s", _( "tile size not a "
-			"multiple of 16" ) );
+		im_error( "vips2tiff", 
+			"%s", _( "tile size not a multiple of 16" ) );
 		return( NULL );
 	}
 
 	if( !tw->tile && tw->pyramid ) {
-		im_warn( "im_vips2tiff", "%s", _( "can't have strip pyramid -- "
+		im_warn( "vips2tiff", 
+			"%s", _( "can't have strip pyramid -- "
 			"enabling tiling" ) );
 		tw->tile = 1;
 	}
@@ -1268,7 +1269,7 @@ make_tiff_write( IMAGE *im, const char *filename,
 	if( tw->pyramid ) {
 		if( im->Coding == IM_CODING_NONE && 
 			vips_bandfmt_iscomplex( im->BandFmt ) ) {
-			im_error( "im_vips2tiff", 
+			im_error( "vips2tiff", 
 				"%s", _( "can only pyramid LABQ and "
 				"non-complex images" ) );
 			return( NULL );
@@ -1285,8 +1286,8 @@ make_tiff_write( IMAGE *im, const char *filename,
 	}
 
 	if( tw->onebit && tw->compression == COMPRESSION_JPEG ) {
-		im_warn( "im_vips2tiff", "%s", _( "can't have 1-bit JPEG -- "
-			"disabling JPEG" ) );
+		im_warn( "vips2tiff", 
+			"%s", _( "can't have 1-bit JPEG -- disabling JPEG" ) );
 		tw->compression = COMPRESSION_NONE;
 	}
 
@@ -1457,22 +1458,22 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	/* Check input image.
 	 */
 	if( im_pincheck( in ) ||
-		im_check_coding_known( "im_vips2tiff", in ) )
+		im_check_coding_known( "vips2tiff", in ) )
 		return( -1 );
 	if( in->BandFmt != IM_BANDFMT_UCHAR && 
 		!(in->BandFmt == IM_BANDFMT_SHORT && 
 			in->Type == IM_TYPE_LABS) &&
 		in->BandFmt != IM_BANDFMT_USHORT &&
 		in->BandFmt != IM_BANDFMT_FLOAT ) {
-		im_error( "im_vips2tiff", "%s", 
+		im_error( "vips2tiff", "%s", 
 			_( "unsigned 8-bit int, 16-bit int, "
 			"and 32-bit float only" ) );
 		return( -1 );
 	}
 	if( in->Coding == IM_CODING_NONE ) {
 		if( in->Bands < 1 || in->Bands > 5 ) {
-			im_error( "im_vips2tiff", "%s", 
-				_( "1 to 5 bands only" ) );
+			im_error( "vips2tiff", 
+				"%s", _( "1 to 5 bands only" ) );
 			return( -1 );
 		}
 	}

@@ -1519,25 +1519,13 @@ vips_argument_is_required( VipsObject *object,
 	return( NULL );
 }
 
-/* Set the first unassigned required input arg to the string.
+/* Find the first unassigned required input arg.
  */
-int
-vips_object_set_required( VipsObject *object, const char *value )
+static GParamSpec *
+vips_object_find_required( VipsObject *object )
 {
-	GParamSpec *pspec;
-
-	if( !(pspec = vips_argument_map( object,
-		vips_argument_is_required, NULL, NULL )) ) {
-		vips_error( "VipsObject",
-			_( "no unset required arguments for %s" ), value );
-		return( -1 );
-	}
-
-	if( vips_object_set_argument_from_string( object, 
-		g_param_spec_get_name( pspec ), value ) ) 
-		return( -1 );
-
-	return( 0 );
+	return( (GParamSpec *) vips_argument_map( object,
+		vips_argument_is_required, NULL, NULL ) );
 }
 
 VipsObject *
@@ -1571,6 +1559,9 @@ vips_object_set_args( VipsObject *object, const char *p )
 	VipsToken token;
 	char string[PATH_MAX];
 	char string2[PATH_MAX];
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
 
 	do {
 		if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
@@ -1593,9 +1584,29 @@ vips_object_set_args( VipsObject *object, const char *p )
 				string2, PATH_MAX )) )
 				return( -1 );
 		}
-		else {
-			if( vips_object_set_required( object, string ) )
+		else if( g_object_class_find_property( 
+			G_OBJECT_GET_CLASS( object ), string ) &&
+			!vips_object_get_argument( object, string, 
+				&pspec, &argument_class, &argument_instance ) &&
+			(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+			(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+			!argument_instance->assigned &&
+			G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
+			/* The string is the name of an unassigned optional
+			 * input boolean ... set it!
+			 */
+			g_object_set( object, string, TRUE, NULL );
+		}
+		else if( (pspec = vips_object_find_required( object )) ) {
+			if( vips_object_set_argument_from_string( object, 
+				g_param_spec_get_name( pspec ), string ) ) 
 				return( -1 );
+		}
+		else {
+			vips_error( "VipsObject",
+				_( "no unset required arguments for %s" ), 
+				string );
+			return( -1 );
 		}
 
 		/* Now must be a , or a ).

@@ -225,17 +225,24 @@ const char *vips_foreign_find_save( const char *filename );
 
 /* Read/write an image convenience functions.
  */
-int vips_foreign_read( const char *filename, VipsImage **out, ... );
-int vips_foreign_write( VipsImage *in, const char *filename, ... );
+int vips_foreign_read( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_write( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
 
 void vips_foreign_operation_init( void );
 
-int vips_jpegload( const char *filename, VipsImage **out, ... );
-int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... );
+int vips_jpegload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
 
-int vips_jpegsave( VipsImage *in, const char *filename, ... );
-int vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... );
-int vips_jpegsave_mime( VipsImage *in, ... );
+int vips_jpegsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
+int vips_jpegsave_mime( VipsImage *in, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignTiffCompression:
@@ -268,7 +275,8 @@ typedef enum {
  * @VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL: horizontal differenceing
  * @VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT: float predictor
  *
- * The predictor can help deflate and lzw compression.
+ * The predictor can help deflate and lzw compression. The values are fixed by
+ * the tiff library.
  */
 typedef enum {
 	VIPS_FOREIGN_TIFF_PREDICTOR_NONE = 1,
@@ -290,15 +298,8 @@ typedef enum {
 	VIPS_FOREIGN_TIFF_RESUNIT_LAST
 } VipsForeignTiffResunit;
 
-int vips__tiff_write( VipsImage *in, const char *filename, 
-	VipsForeignTiffCompression compression, int Q, 
-		VipsForeignTiffPredictor predictor,
-	char *profile,
-	gboolean tile, int tile_width, int tile_height,
-	gboolean pyramid,
-	gboolean squash,
-	VipsForeignTiffResunit resunit, double xres, double yres,
-	gboolean bigtiff );
+int vips_tiffsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
 
 #ifdef __cplusplus
 }

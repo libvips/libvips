@@ -1,12 +1,6 @@
-- bool args should let you skip the '=', eg. 
-
-	vips copy x.jpg x.tif[tile,tile-width=1024]
-
-
-
-
 - "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
+
 
 
 
