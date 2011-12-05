@@ -1,3 +1,6 @@
+5/12/11 started 7.26.7
+- lazy read from tiled tiff from layers other than 0 was broken
+
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 
   problems with large files

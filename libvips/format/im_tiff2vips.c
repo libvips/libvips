@@ -1620,10 +1620,13 @@ istifftiled( const char *filename )
 static VipsFormatFlags
 tiff_flags( const char *filename )
 {
+	char name[FILENAME_MAX];
+	char mode[FILENAME_MAX];
 	VipsFormatFlags flags;
 
+	im_filename_split( filename, name, mode );
 	flags = 0;
-	if( istifftiled( filename ) )
+	if( istifftiled( name ) )
 		flags |= VIPS_FORMAT_PARTIAL;
 
 	return( flags );
