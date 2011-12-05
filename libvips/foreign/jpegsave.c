@@ -207,6 +207,7 @@ vips_foreign_save_jpeg_file_init( VipsForeignSaveJpegFile *file )
  * @filename: file to write to 
  * @Q: quality factor
  * @profile: attach this ICC profile
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -316,6 +317,7 @@ vips_foreign_save_jpeg_buffer_init( VipsForeignSaveJpegBuffer *file )
  * @len: return output length here
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
+ * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -412,6 +414,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * @in: image to save 
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
+ * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *

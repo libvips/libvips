@@ -437,7 +437,7 @@ vips_tile_cache_init( VipsTileCache *cache )
 }
 
 /**
- * vips_tile_cache:
+ * vips_tilecache:
  * @in: input image
  * @out: output image
  * @tile_width: width of tiles in cache
@@ -464,7 +464,7 @@ vips_tile_cache_init( VipsTileCache *cache )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_tile_cache( VipsImage *in, VipsImage **out, ... )
+vips_tilecache( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;

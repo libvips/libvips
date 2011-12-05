@@ -80,10 +80,6 @@
 typedef struct _VipsForeignLoadJpeg {
 	VipsForeignLoad parent_object;
 
-	/* Filename for load.
-	 */
-	char *filename; 
-
 	/* Shrink by this much during load.
 	 */
 	int shrink;
@@ -242,6 +238,7 @@ vips_foreign_load_jpeg_file_init( VipsForeignLoadJpegFile *file )
  * @flags: image flags
  * @shrink: shrink by this much on load
  * @fail: fail on warnings
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
  * including CMYK and YCbCr.
@@ -373,6 +370,7 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * @buf: memory area to load
  * @len: size of memory area
  * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Read a JPEG-formatted memory block into a VIPS image. It can read most 
  * 8-bit JPEG images, including CMYK and YCbCr.

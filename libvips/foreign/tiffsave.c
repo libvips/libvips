@@ -46,6 +46,8 @@
 
 #include <vips/vips.h>
 
+#include "tiff.h"
+
 typedef struct _VipsForeignSaveTiff {
 	VipsForeignSave parent_object;
 
@@ -69,16 +71,6 @@ typedef struct _VipsForeignSaveTiff {
 	double yres;
 	gboolean bigtiff;
 } VipsForeignSaveTiff;
-
-int vips__tiff_write( VipsImage *in, const char *filename, 
-	VipsForeignTiffCompression compression, int Q, 
-		VipsForeignTiffPredictor predictor,
-	char *profile,
-	gboolean tile, int tile_width, int tile_height,
-	gboolean pyramid,
-	gboolean squash,
-	VipsForeignTiffResunit resunit, double xres, double yres,
-	gboolean bigtiff );
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
 
@@ -304,38 +296,19 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * @xres; horizontal resolution
  * @yres; vertical resolution
  * @bigtiff; write a BigTiff file
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Write a VIPS image to a file as TIFF.
  *
+ * Use @compression to set the tiff compression. Currently jpeg, packbits,
+ * fax4, lzw, none and deflate are supported. The default is no compression.
+ * JPEG compression is a good lossy compressor for photographs, packbits is 
+ * good for 1-bit images, and deflate is the best lossless compression TIFF 
+ * can do. LZW has patent problems and is no longer recommended.
+ *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
- * Use @profile to give the filename of a profile to be em,bedded in the TIFF.
- * This does not affect the pixels which are written, just the way 
- * they are tagged. You can use the special string "none" to mean 
- * "don't attach a profile".
- *
- * If no profile is specified and the VIPS header 
- * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
- * profile from the VIPS header will be attached.
- *
- * You can embed options in the filename. They have the form:
- *
- * |[
- * filename.tif:<emphasis>compression</emphasis>,<emphasis>layout</emphasis>,<emphasis>multi-res</emphasis>,<emphasis>format</emphasis>,<emphasis>resolution</emphasis>,<emphasis>icc</emphasis>, <emphasis>bigtiff</emphasis>
- * ]|
- *
- * <itemizedlist>
- *   <listitem>
- *     <para>
- * <emphasis>compression</emphasis> 
- * should be one of "none" (no compression), "jpeg" (JPEG compression), 
- * "deflate" (ZIP compression), "packbits" (TIFF packbits compression),
- * "ccittfax4" (CCITT Group 4 fax encoding), "lzw"  (Lempel-Ziv compression).
- *
- * "jpeg" compression can be followed by a ":" character and a JPEG quality
- * level; "lzw" and "deflate" can be followed by a ":" and predictor value. 
- * The default compression type is "none", the default JPEG quality factor 
- * is 75.
+ * Use @predictor to set the predictor for lzw and deflate compression. 
  *
  * Predictor is not set by default. There are three predictor values recognised
  * at the moment (2007, July): 1 is no prediction, 2 is a horizontal 
@@ -345,81 +318,37 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * photos or scanned images and bit depths > 8. Try it to find whether it 
  * works for your images.
  *
- * JPEG compression is a good lossy compressor for photographs, packbits is 
- * good for 1-bit images, and deflate is the best lossless compression TIFF 
- * can do. LZW has patent problems and is no longer recommended.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <emphasis>layout</emphasis> 
- * should be "strip" (strip layout) or "tile" (tiled layout).
+ * Use @profile to give the filename of a profile to be embedded in the TIFF.
+ * This does not affect the pixels which are written, just the way 
+ * they are tagged. You can use the special string "none" to mean 
+ * "don't attach a profile".
  *
- * "tile" layout can be followed by a ":" character and the horizontal and
- * vertical tile size, separated by a "x" character. The default layout is
- * "strip", and the default tile size is 128 by 128 pixels.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <emphasis>multi-res</emphasis> 
- * should be "flat" (single image) or "pyramid" (many images arranged in a 
- * pyramid). The default multi-res mode is "flat".
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <emphasis>format</emphasis> 
- * shoiuld be "manybit" (don't bit-reduce images) or "onebit" (one band 8 
- * bit images are saved as 1 bit). The default format is "multibit". 
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <emphasis>resolution</emphasis> 
- * should be "res_cm"  (output resolution unit is pixels per centimetre) or 
- * "res_inch"  (output resolution unit is pixels per inch). The default 
+ * If no profile is specified and the VIPS header 
+ * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
+ * profile from the VIPS header will be attached.
+ *
+ * Set @tile to TRUE to write a tiled tiff.  By default tiff are written in
+ * strips. Use @tile_width and @tile_height to set the tile size. The defaiult
+ * is 128 by 128.
+ *
+ * Set @pyramid to write the image as a set of images, one per page, of
+ * decreasing size. 
+ *
+ * Set @squash to make 8-bit uchar images write as 1-bit TIFFs with zero
+ * pixels written as 0 and non-zero as 1.
+ *
+ * Use @resunit to override the default resolution unit.  
+ * The default 
  * resolution unit is taken from the header field "resolution-unit"
- * (#IM_META_RESOLUTION_UNIT in C). If this field is not set, then 
+ * (#VIPS_META_RESOLUTION_UNIT in C). If this field is not set, then 
  * VIPS defaults to cm.
  *
- * The unit can optionally be followed by a ":" character and the 
- * horizontal and vertical resolution, separated by a "x" character. 
- * You can have a single number with no "x" and set the horizontal and 
- * vertical resolutions together. 
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <emphasis>icc</emphasis> 
- * Attach this ICC profile. 
- * This does not affect the pixels which are written, just the way 
- * they are tagged. 
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <emphasis>bigtiff</emphasis> 
- * Set this to 8 to enable bigtiff output. Bigtiff is a variant of the TIFF
+ * Use @xres and @yres to override the default horizontal and vertical
+ * resolutions. By default these values are taken from the VIPS image header. 
+ *
+ * Set @bigtiff to attempt to write a bigtiff. 
+ * Bigtiff is a variant of the TIFF
  * format that allows more than 4GB in a file.
- *     </para>
- *   </listitem>
- * </itemizedlist>
- *
- * Example:
- *
- * |[
- * im_vips2jpeg( in, "fred.tif:jpeg,tile,pyramid" );
- * ]|
- *
- * Will write "fred.tif" as a tiled jpeg-compressed pyramid.
- *
- * |[
- * im_vips2jpeg( in, "fred.tif:packbits,tile,,onebit" ); 
- * ]|
- *
- * Writes a tiled one bit TIFF image (provided fred.v is a one band 8 bit 
- * image) compressed with packbits.
  *
  * See also: vips_tiffload(), vips_image_write_file().
  *

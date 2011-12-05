@@ -1,13 +1,16 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
-	vips2jpeg.c \
+	tiff.h \
 	vips2tiff.c \
+	tiff2vips.c \
+	tiffload.c \
+	tiffsave.c \
+	vips2jpeg.c \
 	jpeg2vips.c \
 	jpeg.h \
 	jpegload.c \
 	jpegsave.c \
-	tiffsave.c \
 	vipssave.c \
 	vipsload.c \
 	foreign.c 

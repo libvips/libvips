@@ -2,6 +2,7 @@ libvips-scan
 libvips-scan.c
 Makefile.in
 TAGS
+tags
 *.o
 .*.swp
 *.lo

@@ -175,6 +175,8 @@
 
 #include <tiffio.h>
 
+#include "tiff.h"
+
 /* Max no of tiles we buffer in a layer. Enough to buffer a line of 64x64
  * tiles on a 100k pixel across image.
  */
@@ -248,11 +250,6 @@ typedef struct tiff_write {
 
 	GMutex *write_lock;		/* Lock TIFF*() calls with this */
 } TiffWrite;
-
-/* Use these from im_tiff2vips().
- */
-void im__thandler_error( char *module, char *fmt, va_list ap );
-void im__thandler_warning( char *module, char *fmt, va_list ap );
 
 /* Open TIFF for output.
  */
@@ -1452,8 +1449,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 
 	/* Override the default TIFF error handler.
 	 */
-	TIFFSetErrorHandler( (TIFFErrorHandler) im__thandler_error );
-	TIFFSetWarningHandler( (TIFFErrorHandler) im__thandler_warning );
+	TIFFSetErrorHandler( vips__thandler_error );
+	TIFFSetWarningHandler( vips__thandler_warning );
 
 	/* Check input image.
 	 */

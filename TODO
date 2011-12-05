@@ -1,3 +1,22 @@
+- try:
+
+	$ vips copy z.tif[page=12] babe.v
+
+  get a couple of leaked objects from the error
+
+- make im_tiff2vips.c into a stub
+
+
+
+
+- see vips_image_cache(): it currently writes to @out allocated by its caller
+
+  should this be called vips_image_write_cache()? or wrapped in the style 
+  of vips_copy()? 
+
+
+
+
 - "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
 
