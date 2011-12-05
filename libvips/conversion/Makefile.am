@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libconversion.la
 libconversion_la_SOURCES = \
 	conversion.c \
 	conversion.h \
+	tilecache.c \
 	copy.c \
 	embed.c \
 	flip.c \

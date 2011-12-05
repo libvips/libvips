@@ -124,15 +124,6 @@ typedef VipsConversionClass VipsCopyClass;
 
 G_DEFINE_TYPE( VipsCopy, vips_copy, VIPS_TYPE_CONVERSION );
 
-/*
-
-   	FIXME ... glib has some macros that generate asm for byte swapping, 
-	look into using these instead.
-
-	http://library.gnome.org/devel/glib/stable/glib-Byte-Order-Macros.html
-
- */
-
 /* Swap pairs of bytes.
  */
 static void

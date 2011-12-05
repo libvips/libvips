@@ -137,6 +137,8 @@ typedef enum {
 
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_tile_cache( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_embed( VipsImage *in, VipsImage **out, 
 	int x, int y, int width, int height, ... )
 	__attribute__((sentinel));
