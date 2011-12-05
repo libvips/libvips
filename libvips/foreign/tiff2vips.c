@@ -1253,6 +1253,10 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	VipsImage *raw;
 	VipsImage *t;
 
+#ifdef DEBUG
+	printf( "tiff2vips: read_tilewise\n" );
+#endif /*DEBUG*/
+
 	/* Get tiling geometry.
 	 */
 	if( !tfget32( rtiff->tiff, TIFFTAG_TILEWIDTH, &rtiff->twidth ) ||
@@ -1276,7 +1280,7 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 
 	/* Process and save as VIPS.
 	 */
-        vips_demand_hint( out, 
+        vips_demand_hint( raw, 
 		VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	if( vips_image_generate( raw, 
 		tiff_seq_start, tiff_fill_region, tiff_seq_stop, 
@@ -1292,9 +1296,10 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
-		VIPS_UNREF( t );
+		g_object_unref( t );
 		return( -1 );
 	}
+	g_object_unref( t );
 
 	return( 0 );
 }
@@ -1317,6 +1322,10 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	int y;
 	int i;
 	PEL *p;
+
+#ifdef DEBUG
+	printf( "tiff2vips: read_stripwise\n" );
+#endif /*DEBUG*/
 
 	if( parse_header( rtiff, out ) )
 		return( -1 );
@@ -1471,6 +1480,7 @@ vips__tiff_read( const char *filename, VipsImage *out, int page )
 
 #ifdef DEBUG
 	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
+	printf( "tiff2vips: libtiff starting for %s\n", filename );
 #endif /*DEBUG*/
 
 	TIFFSetErrorHandler( vips__thandler_error );

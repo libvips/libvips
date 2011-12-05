@@ -20,6 +20,8 @@
 - "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
 
+- "header x.tif[page=7]" does not work
+
 
 
 

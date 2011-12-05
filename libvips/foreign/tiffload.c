@@ -31,7 +31,6 @@
  */
 
 /*
-#define DEBUG_VERBOSE
 #define DEBUG
  */
 
@@ -90,7 +89,7 @@ vips_foreign_load_tiff_get_flags( VipsForeignLoad *load )
 	VipsForeignFlags flags;
 
 	flags = 0;
-	if( vips__istifftiled( tiff->filename ) )
+	if( vips__istifftiled( tiff->filename ) ) 
 		flags |= VIPS_FOREIGN_PARTIAL;
 
 	return( flags );

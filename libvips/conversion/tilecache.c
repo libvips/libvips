@@ -403,14 +403,14 @@ vips_tile_cache_class_init( VipsTileCacheClass *class )
 
 	VIPS_ARG_INT( class, "tile_width", 3, 
 		_( "Tile width" ), 
-		_( "TIle width in pixels" ),
+		_( "Tile width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTileCache, tile_width ),
 		1, 1000000, 128 );
 
 	VIPS_ARG_INT( class, "tile_height", 3, 
 		_( "Tile height" ), 
-		_( "TIle height in pixels" ),
+		_( "Tile height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTileCache, tile_height ),
 		1, 1000000, 128 );
@@ -470,7 +470,7 @@ vips_tilecache( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "cache", ap, in, out );
+	result = vips_call_split( "tilecache", ap, in, out );
 	va_end( ap );
 
 	return( result );
