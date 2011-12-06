@@ -16,8 +16,6 @@
 
 
 
-- make im_tiff2vips.c into a stub
-
 - what should we do?
 
 	vips_image_new_from_file( "x.tif[page=12]" );

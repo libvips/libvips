@@ -83,10 +83,8 @@
 
 #include <vips/vips.h>
 
-/* Read a JPEG file into a VIPS image.
- */
-static int
-jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
+int
+im_jpeg2vips( const char *name, IMAGE *out )
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
@@ -136,12 +134,6 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 }
 
 int
-im_jpeg2vips( const char *filename, IMAGE *out )
-{
-	return( jpeg2vips( filename, out, FALSE ) );
-}
-
-int
 im_bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 {
 	VipsImage *t;
@@ -150,7 +142,7 @@ im_bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 	 * pixel access.
 	 */
 
-	if( vips_call( "jpegload_buffer", buf, len, &t, NULL ) )
+	if( vips_jpegload_buffer( buf, len, &t, NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );

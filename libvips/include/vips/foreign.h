@@ -298,6 +298,8 @@ typedef enum {
 	VIPS_FOREIGN_TIFF_RESUNIT_LAST
 } VipsForeignTiffResunit;
 
+int vips_tiffload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_tiffsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 

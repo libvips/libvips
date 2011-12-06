@@ -1552,3 +1552,15 @@ vips__istifftiled( const char *filename )
 	return( tiled );
 }
 
+gboolean
+vips__istiff( const char *filename )
+{
+	unsigned char buf[2];
+
+	if( vips__get_bytes( filename, buf, 2 ) )
+		if( (buf[0] == 'M' && buf[1] == 'M') ||
+			(buf[0] == 'I' && buf[1] == 'I') ) 
+			return( TRUE );
+
+	return( FALSE );
+}

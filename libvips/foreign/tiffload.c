@@ -67,19 +67,6 @@ typedef VipsForeignLoadClass VipsForeignLoadTiffClass;
 G_DEFINE_TYPE( VipsForeignLoadTiff, vips_foreign_load_tiff, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
-static gboolean
-vips_foreign_load_tiff_is_a( const char *filename )
-{
-	unsigned char buf[2];
-
-	if( vips__get_bytes( filename, buf, 2 ) )
-		if( (buf[0] == 'M' && buf[1] == 'M') ||
-			(buf[0] == 'I' && buf[1] == 'I') ) 
-			return( TRUE );
-
-	return( FALSE );
-}
-
 /* TIFF flags function.
  */
 static VipsForeignFlags
@@ -135,7 +122,7 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 
 	foreign_class->suffs = tiff_suffs;
 
-	load_class->is_a = vips_foreign_load_tiff_is_a;
+	load_class->is_a = vips__istiff;
 	load_class->get_flags = vips_foreign_load_tiff_get_flags;
 	load_class->header = vips_foreign_load_tiff_header;
 	load_class->load = vips_foreign_load_tiff_load;
