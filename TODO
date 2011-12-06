@@ -1,10 +1,37 @@
-- try:
+- do we need vips_object_unref_outputs() in more places? check all calls to
+  _build()
 
-	$ vips copy z.tif[page=12] babe.v
 
-  get a couple of leaked objects from the error
+
+
+- how about
+
+	vips max add[babe.jpg,babe2.jpg]
+
+  does that make any sense?
+
+	vips copy add[babe.jpg,add[babe2.jpg,babe3.jpg]] sum.v
+
+
+
+
 
 - make im_tiff2vips.c into a stub
+
+- what should we do?
+
+	vips_image_new_from_file( "x.tif[page=12]" );
+
+  or maybe:
+
+	vips_image_new_from_file( "x.tif", "page", 12, NULL );
+
+  or maybe neither? we'd like this to work though:
+
+  	header x.tif[page=12]
+
+  object_new_from_string()?
+
 
 
 
@@ -19,8 +46,6 @@
 
 - "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
-
-- "header x.tif[page=7]" does not work
 
 
 

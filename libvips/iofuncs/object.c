@@ -1280,16 +1280,20 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 		if( vips_cache_operation_build( 
 			(VipsOperation **) &new_object ) ) {
+			/* The build may have made some output objects before
+			 * failing.
+			 */
+			vips_object_unref_outputs( new_object );
 			g_object_unref( new_object );
 			return( -1 );
 		}
 
 		g_object_get( new_object, "out", &out, NULL );
 
-		/* Getting @out will have upped it's count and we want to
-		 * hold the only ref to it.
+		/* Getting @out will have upped its count so it'll be safe.
+		 * We can junk all other outputs,
 		 */
-		g_object_unref( out );
+		vips_object_unref_outputs( new_object );
 
 		/* @out holds a ref to new_object, we can drop ours.
 		 */
