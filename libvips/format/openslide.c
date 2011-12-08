@@ -15,6 +15,8 @@
  *	- use VIPS_ARRAY()
  *	- add helper to copy a line of pixels
  *	- support reading associated images
+ * 7/12/11
+ *	- redirect OpenSlide error logging to vips_error()
  */
 
 /*
@@ -366,6 +368,13 @@ slide_flags( const char *filename )
 	}
 }
 
+static void
+error_handler( const char *domain, GLogLevelFlags level, const char *message,
+	void *data )
+{
+	vips_error( "im_openslide2vips", "%s", message );
+}
+
 /* openslide format adds no new members.
  */
 typedef VipsFormat VipsFormatOpenslide;
@@ -400,6 +409,10 @@ vips_format_openslide_class_init( VipsFormatOpenslideClass *class )
 	 * doesn't understand, so this should be safe.
 	 */
 	format_class->priority = 100;
+
+	g_log_set_handler( "Openslide",
+		G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_WARNING,
+		error_handler, NULL );
 }
 
 static void
