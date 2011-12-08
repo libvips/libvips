@@ -17,6 +17,8 @@
  *	- support reading associated images
  * 7/12/11
  *	- redirect OpenSlide error logging to vips_error()
+ * 8/12/11
+ *	- add more exposition to documentation
  */
 
 /*
@@ -292,11 +294,19 @@ openslide2vips_header( const char *filename, VipsImage *out )
  * and Trestle formats.  It also supports generic tiled TIFF images, but
  * im_openslide2vips() does not.
  *
- * By default, read the highest-resolution layer (layer 0).  To read a
- * different layer, specify the layer number as part of the filename
- * (for example, "CMU-1.mrxs:3").  To read an associated image attached
- * to the slide, specify the image's name as part of the filename (for
- * example, "CMU-1.mrxs:label").
+ * To facilitate zooming, virtual slide formats include multiple scaled-down
+ * versions of the high-resolution image.  These are typically called
+ * "levels", though OpenSlide and im_openslide2vips() call them "layers".
+ * By default, im_openslide2vips() reads the highest-resolution layer
+ * (layer 0).  To read a different layer, specify the layer number as part
+ * of the filename (for example, "CMU-1.mrxs:3").
+ *
+ * In addition to the slide image itself, virtual slide formats sometimes
+ * include additional images, such as a scan of the slide's barcode.
+ * OpenSlide calls these "associated images".  To read an associated image,
+ * specify the image's name as part of the filename (for example,
+ * "CMU-1.mrxs:label").  A slide's associated images are listed in the
+ * "slide-associated-images" metadata item.
  *
  * See also: #VipsFormat
  *
