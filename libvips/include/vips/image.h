@@ -407,7 +407,7 @@ typedef struct _VipsImageClass {
 
 GType vips_image_get_type( void );
 
-extern const size_t vips__image_sizeof_bandformat[];
+extern const guint64 vips__image_sizeof_bandformat[];
 
 /* Pixel address calculation macros.
  */

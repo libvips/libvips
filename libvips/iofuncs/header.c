@@ -189,8 +189,12 @@ static HeaderField old_double_field[] = {
 
 /* This is used by (eg.) VIPS_IMAGE_SIZEOF_ELEMENT() to calculate object
  * size.
+ *
+ * We can't use size_t or off_t because we have to work on some platforms
+ * which have these as 32-bit and we need to calculate addresses in large
+ * files. 
  */
-const size_t vips__image_sizeof_bandformat[] = {
+const guint64 vips__image_sizeof_bandformat[] = {
 	sizeof( unsigned char ), 	/* VIPS_FORMAT_UCHAR */
 	sizeof( signed char ), 		/* VIPS_FORMAT_CHAR */
 	sizeof( unsigned short ), 	/* VIPS_FORMAT_USHORT */
