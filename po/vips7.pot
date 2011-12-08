@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2011-12-08 10:46+0000\n"
+"POT-Creation-Date: 2011-12-08 21:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1417,21 +1417,21 @@ msgstr ""
 msgid "per-thread state for render"
 msgstr ""
 
-#: ../libvips/iofuncs/header.c:213
+#: ../libvips/iofuncs/header.c:217
 #, c-format
 msgid "unknown band format %d"
 msgstr ""
 
-#: ../libvips/iofuncs/header.c:617 ../libvips/iofuncs/generate.c:353
+#: ../libvips/iofuncs/header.c:621 ../libvips/iofuncs/generate.c:353
 msgid "too many images"
 msgstr ""
 
-#: ../libvips/iofuncs/header.c:798
+#: ../libvips/iofuncs/header.c:802
 #, c-format
 msgid "field \"%s\" not found"
 msgstr ""
 
-#: ../libvips/iofuncs/header.c:1220
+#: ../libvips/iofuncs/header.c:1224
 #, c-format
 msgid "field \"%s\" is of type %s, not %s"
 msgstr ""
