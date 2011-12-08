@@ -301,6 +301,7 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 	return( 0 );
 }
 
+/* See comments on calls below.
 static int
 vips_operation_set_valist_optional( VipsOperation *operation, va_list ap )
 {
@@ -311,6 +312,7 @@ vips_operation_set_valist_optional( VipsOperation *operation, va_list ap )
 
 	return( 0 );
 }
+ */
 
 static void
 vips_operation_get_valist( VipsOperation *operation, va_list ap )
@@ -385,9 +387,17 @@ vips_call( const char *operation_name, ... )
 	vips_object_print( VIPS_OBJECT( operation ) );
 #endif /*VIPS_DEBUG*/
 
+	/* This code is broken. Fixed correctly in the next version, but for
+	 * here just ignore optional arguments.
 	va_start( ap, operation_name );
 	result = vips_operation_set_valist_required( operation, ap )  ||
 		vips_operation_set_valist_optional( operation, ap ) ||
+		vips_object_build( VIPS_OBJECT( operation ) );
+	va_end( ap );
+	 */
+
+	va_start( ap, operation_name );
+	result = vips_operation_set_valist_required( operation, ap )  ||
 		vips_object_build( VIPS_OBJECT( operation ) );
 	va_end( ap );
 
@@ -432,9 +442,17 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 	vips_object_print( VIPS_OBJECT( operation ) );
 #endif /*VIPS_DEBUG*/
 
+	/* This code is broken. Fixed correctly in the next version, but for
+	 * here just ignore optional arguments.
 	va_start( required, optional );
 	result = vips_operation_set_valist_required( operation, required ) ||
 		vips_operation_set_valist_optional( operation, optional ) ||
+		vips_object_build( VIPS_OBJECT( operation ) );
+	va_end( required );
+	 */
+
+	va_start( required, optional );
+	result = vips_operation_set_valist_required( operation, required ) ||
 		vips_object_build( VIPS_OBJECT( operation ) );
 	va_end( required );
 
