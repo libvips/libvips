@@ -57,7 +57,7 @@
  * transparently supported by im_open().
  *
  * VIPS comes with VipsFormat for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, Radiance, RAW, VIPS and one that wraps libMagick. 
+ * Matlab, Radiance, RAW, VIPS and ones that wrap libMagick and OpenSlide.
  */
 
 /**
