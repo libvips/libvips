@@ -1,5 +1,7 @@
 - openslide.c:fill_region() should not allocate memory
 
+  also, cairo fails for very long lines, fill piecewise
+
 
 
 - vipsimage should be cached too, eg.
