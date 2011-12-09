@@ -1,15 +1,3 @@
-- make sure we have the win32 largefile fix from 7.26
-
-  header_size should be a guint64 too
-
-  various other projection funcs as well I noticed
-
-  anything else there we need?
-
-
-
-
-
 - vipsimage should be cached too, eg.
 
 	VipsImage *a = vips_image_new_from_file( "poop.jpg" );

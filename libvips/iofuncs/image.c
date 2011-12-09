@@ -757,7 +757,7 @@ vips_image_build( VipsObject *object )
 	const char *mode = image->mode;
 
 	VipsFormatClass *format;
-	size_t sizeof_image;
+	guint64 sizeof_image;
 
 	VIPS_DEBUG_MSG( "vips_image_build: %p\n", image );
 
@@ -1069,7 +1069,7 @@ vips_image_class_init( VipsImageClass *class )
 		G_STRUCT_OFFSET( VipsImage, dhint ),
 		VIPS_TYPE_DEMAND_STYLE, VIPS_DEMAND_STYLE_SMALLTILE );
 
-	VIPS_ARG_INT( class, "sizeof_header", 16, 
+	VIPS_ARG_UINT64( class, "sizeof_header", 16, 
 		_( "Size of header" ), 
 		_( "Offset in bytes from start of file" ),
 		VIPS_ARGUMENT_SET_ONCE | VIPS_ARGUMENT_CONSTRUCT, 
@@ -1559,7 +1559,7 @@ vips_image_new_from_file( const char *filename )
  */
 VipsImage *
 vips_image_new_from_file_raw( const char *filename, 
-	int xsize, int ysize, int bands, int offset )
+	int xsize, int ysize, int bands, guint64 offset )
 {
 	VipsImage *image;
 
