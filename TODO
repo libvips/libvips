@@ -1,3 +1,7 @@
+- openslide.c:fill_region() should not allocate memory
+
+
+
 - vipsimage should be cached too, eg.
 
 	VipsImage *a = vips_image_new_from_file( "poop.jpg" );

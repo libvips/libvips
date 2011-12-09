@@ -171,7 +171,7 @@ find_hist( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 	/* Accumulate!
 	 */
 	for( y = to; y < bo; y++ ) {
-		char *line = IM_REGION_ADDR( reg, le, y );
+		PEL *line = IM_REGION_ADDR( reg, le, y );
 
 		switch( im->BandFmt ) {
 		case IM_BANDFMT_UCHAR:

@@ -282,7 +282,7 @@ typedef struct _VipsImage {
 	 */
 	char *Hist;		/* don't use, see vips_image_get_history() */
 	char *filename;		/* pointer to copy of filename */
-	char *data;		/* start of image data for WIO */
+	PEL *data;		/* start of image data for WIO */
 	int kill;		/* set to non-zero to block eval */
 
 	/* Everything below this private and only used internally by
@@ -292,7 +292,7 @@ typedef struct _VipsImage {
 	char *mode;		/* mode string passed to _new() */
 	VipsImageType dtype;	/* descriptor type */
 	int fd;         	/* file descriptor */
-	char *baseaddr;     	/* pointer to the start of an mmap file */
+	void *baseaddr;     	/* pointer to the start of an mmap file */
 	size_t length;		/* size of mmap area */
 	guint32 magic;		/* magic from header, endian-ness of image */
 
@@ -445,7 +445,7 @@ extern const size_t vips__image_sizeof_bandformat[];
 		(X), (Y), \
 		0, 0, \
 		(I)->Xsize, \
-		(I)->Ysize ), abort(), (char *) NULL) \
+		(I)->Ysize ), abort(), (PEL *) NULL) \
 	)
 #else /*!VIPS_DEBUG*/
 #define VIPS_IMAGE_ADDR( I, X, Y ) \

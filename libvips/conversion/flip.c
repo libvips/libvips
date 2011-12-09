@@ -133,7 +133,7 @@ vips_flip_horizontal_gen( VipsRegion *or, void *seq, void *a, void *b,
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
 	VipsRect in;
-	char *p, *q;
+	PEL *p, *q;
 	int x, y, z;
 
 	int le = r->left;
