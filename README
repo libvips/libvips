@@ -140,6 +140,10 @@ OpenEXR
 	if available, libvips will directly read (but not write, sadly)
 	OpenEXR images
 
+OpenSlide
+	if available, libvips can load OpenSlide-supported virtual slide
+	files: Aperio, Hamamatsu VMS and VMU, MIRAX, and Trestle
+
 swig
 python
 python-dev

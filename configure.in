@@ -438,6 +438,20 @@ if test x"$with_OpenEXR" != "xno"; then
     ])
 fi
 
+# OpenSlide
+AC_ARG_WITH([openslide],
+  AS_HELP_STRING([--without-openslide], [build without OpenSlide (default: test)]))
+
+if test x"$with_openslide" != "xno"; then
+  PKG_CHECK_MODULES(OPENSLIDE, openslide >= 3.2.0,
+    [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.2.0 installed.])
+     with_openslide=yes
+     PACKAGES_USED="$PACKAGES_USED openslide"],
+    [AC_MSG_WARN([OpenSlide >= 3.2.0 not found; disabling virtual slide support])
+     with_openslide=no
+    ])
+fi
+
 # matio
 AC_ARG_WITH([matio], 
   AS_HELP_STRING([--without-matio], [build without matio (default: test)]))
@@ -598,14 +612,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS and VIPS_CXX_LIBS
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $FFTW3_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $OPENEXR_CFLAGS $ORC_CFLAGS
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $FFTW3_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS
 do 
   echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES $FFTW_INCLUDES $LCMS_INCLUDES" 
-VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $OPENEXR_LIBS $CFITSIO_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $FFTW3_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 # we need this to generate paths in swig/python/setup.py.in
 AC_SUBST(top_srcdir)
@@ -681,6 +695,7 @@ accelerate loops with orc: 		$with_orc
   (requires orc-0.4.11 or later)
 ICC profile support with lcms: 		$with_lcms (version $with_lcms_ver)
 file import with OpenEXR: 		$with_OpenEXR
+file import with OpenSlide:		$with_openslide
 file import with matio: 		$with_matio
 file import with cfitsio: 		$with_cfitsio
 text rendering with pangoft2: 		$with_pangoft2
