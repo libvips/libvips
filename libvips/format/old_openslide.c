@@ -19,8 +19,6 @@
  *	- redirect OpenSlide error logging to vips_error()
  * 8/12/11
  *	- add more exposition to documentation
- * 9/12/11
- * 	- unpack to a tile cache
  */
 
 /*
@@ -191,22 +189,6 @@ readslide_new( const char *filename, VipsImage *out )
 	return( rslide );
 }
 
-/* The maximum size of the tiles we read from OpenSlide. It can fail with
- * very large tile shapes (eg. 78000 x 1). Also, limiting the tile size means
- * we can have a per-thread buffer for unpacking.
- */
-#define TILE_WIDTH (256)
-#define TILE_HEIGHT (256)
-
-/* Allocate a per-thread tile buffer. 
- */
-static void *
-seq_start( VipsImage *out, void *a, void *b )
-{
-	return( (void *) VIPS_ARRAY( NULL, 
-			TILE_WIDTH * TILE_HEIGHT, uint32_t ) );
-}
-
 static void
 copy_line( ReadSlide *rslide, uint32_t *in, int count, PEL *out )
 {
@@ -238,37 +220,30 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 	gboolean *stop )
 {
 	ReadSlide *rslide = _rslide;
-	uint32_t *buf = (uint32_t *) seq;
-	VipsRect *r = &out->valid;
-
+	uint32_t *buf;
 	const char *error;
-	int x, y, z;
+	int y;
 
-	VIPS_DEBUG_MSG( "fill_region: %dx%d @ %dx%d\n",
-		r->width, r->height, r->left, r->top );
+	VIPS_DEBUG_MSG( "openslide.c:fill_region: %d x %d @ %d x %d\n",
+		out->valid.width, out->valid.height,
+		out->valid.left, out->valid.top );
 
-	/* Loop over the region to be filled calling openslide_read_region().
+	/* We should really not alloc in the render thread. But
+	 * openslide_read_region() does a lot of allocing anyway, so we might
+	 * as well too.
 	 */
-	for( y = 0; y < r->height; y += TILE_HEIGHT ) 
-		for( x = 0; x < r->width; x += TILE_WIDTH ) {
-			int w = VIPS_MIN( TILE_WIDTH, r->width - x );
-			int h = VIPS_MIN( TILE_HEIGHT, r->height - y );
-
-			openslide_read_region( rslide->osr, 
-				buf,
-				(r->left + x) * rslide->downsample, 
-				(r->top + y) * rslide->downsample, 
-				rslide->layer,
-				w, h ); 
-
-			for( z = 0; z < h; z++ )
-				copy_line( rslide, 
-					buf + z * w,
-					w,
-					VIPS_REGION_ADDR( out, 
-						r->left + x, 
-						r->top + y + z ) ); 
-		}
+	buf = VIPS_ARRAY( NULL, out->valid.width * out->valid.height,
+		uint32_t );
+	openslide_read_region( rslide->osr, buf,
+		out->valid.left * rslide->downsample,
+		out->valid.top * rslide->downsample, rslide->layer,
+		out->valid.width, out->valid.height );
+	for( y = 0; y < out->valid.height; y++ )
+		copy_line( rslide, buf + y * out->valid.width,
+			out->valid.width, 
+			VIPS_REGION_ADDR_TOPLEFT( out ) +
+				y * VIPS_REGION_LSKIP( out ) );
+	vips_free( buf );
 
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
@@ -276,14 +251,6 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 			error );
 		return( -1 );
 	}
-
-	return( 0 );
-}
-
-static int
-seq_stop( void *seq, void *a, void *b )
-{
-	vips_free( seq );
 
 	return( 0 );
 }
@@ -368,48 +335,28 @@ static int
 im_openslide2vips( const char *filename, VipsImage *out )
 {
 	ReadSlide *rslide;
-	VipsImage *raw;
 
 	VIPS_DEBUG_MSG( "im_openslide2vips: %s\n", filename );
 
-	/* Tile cache: keep enough for two complete rows of tiles.
-	 * This lets us do (smallish) area ops, like im_conv(), while
-	 * still only hitting each tile once.
-	 */
-	if( !(raw = im_open_local( out, "cache", "p" )) )
-		return( -1 );
-
-	if( !(rslide = readslide_new( filename, raw )) )
+	if( !(rslide = readslide_new( filename, out )) )
 		return( -1 );
 
 	if( rslide->associated ) {
+		if( vips_image_wio_output( out ) )
+			return( -1 );
+
 		VIPS_DEBUG_MSG( "fill_associated:\n" );
 
-		if( vips_image_wio_output( raw ) )
-			return( -1 );
-
-		if( fill_associated( raw, rslide ) )
-			return( -1 );
+		return( fill_associated( out, rslide ) );
 	} 
 	else {
-		if( vips_image_pio_output( raw ) )
+		if( vips_image_pio_output( out ) )
 			return( -1 );
-		vips_demand_hint( raw, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 
-		if( vips_image_generate( raw, 
-			seq_start, fill_region, seq_stop, rslide, NULL ) )
-			return( -1 );
+		return( vips_image_generate( out, 
+			NULL, fill_region, NULL, rslide, NULL ) );
 	}
-
-	/* Copy to out, adding a cache. Enough tiles for two complete 
-	 * rows.
-	 */
-	if( im_tile_cache( raw, out, 
-		TILE_WIDTH, TILE_HEIGHT,
-		2 * (1 + raw->Xsize / TILE_WIDTH) ) ) 
-		return( -1 );
-
-	return( 0 );
 }
 
 static int

@@ -2,6 +2,10 @@
 
   also, cairo fails for very long lines, fill piecewise
 
+  tried with a tile cache and performance is pretty bad
+
+  try just piecewise fill?
+
 
 
 - vipsimage should be cached too, eg.
