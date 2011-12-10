@@ -210,26 +210,29 @@ seq_start( VipsImage *out, void *a, void *b )
 static void
 copy_line( ReadSlide *rslide, uint32_t *in, int count, PEL *out )
 {
-	uint8_t a;
 	int i;
 
 	for( i = 0; i < count; i++ ) {
+		uint32_t x = in[i];
+		uint8_t a = x >> 24;
+
 		/* Convert from ARGB to RGBA and undo premultiplication.
 		 */
-		a = in[i] >> 24;
 		if( a != 0 ) {
-			out[4 * i + 0] = 255 * ((in[i] >> 16) & 255) / a;
-			out[4 * i + 1] = 255 * ((in[i] >> 8) & 255) / a;
-			out[4 * i + 2] = 255 * (in[i] & 255) / a;
+			out[0] = 255 * ((x >> 16) & 255) / a;
+			out[1] = 255 * ((x >> 8) & 255) / a;
+			out[2] = 255 * (x & 255) / a;
 		} 
 		else {
 			/* Use background color.
 			 */
-			out[4 * i + 0] = (rslide->background >> 16) & 255;
-			out[4 * i + 1] = (rslide->background >> 8) & 255;
-			out[4 * i + 2] = rslide->background & 255;
+			out[0] = (rslide->background >> 16) & 255;
+			out[1] = (rslide->background >> 8) & 255;
+			out[2] = rslide->background & 255;
 		}
-		out[4 * i + 3] = a;
+		out[3] = a;
+
+		out += 4;
 	}
 }
 
@@ -255,6 +258,11 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 			int h = VIPS_MIN( TILE_HEIGHT, r->height - y );
 
 			openslide_read_region( rslide->osr, 
+				/* or read directly to the output with this:
+				VIPS_REGION_ADDR( out, 
+					r->left + x, 
+					r->top + y ),
+				 */
 				buf,
 				(r->left + x) * rslide->downsample, 
 				(r->top + y) * rslide->downsample, 

@@ -621,13 +621,15 @@ vips_image_open_lazy( VipsImage *image,
 
 	lazy = lazy_new( image, format, filename, disc );
 
-	/* Read header fields to init the return image. THINSTRIP since this is
-	 * probably a disc file. We can't tell yet whether we will be opening
-	 * to memory, sadly, so we can't suggest ANY.
+	/* Read header fields to init the return image. We rely on ->header()
+	 * to set the demand hint. A tiled image might set SMALLTILE, a
+	 * linear image might set THINSTRIP. Call hint ourselves in case the
+	 * ->header() calls leaves it at the default and does not set
+	 * ->hint_set.
 	 */
 	if( format->header( filename, image ) )
 		return( -1 );
-	vips_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	vips_demand_hint( image, image->dhint, NULL );
 
 	/* Then 'start' creates the real image and 'gen' paints 'out' with 
 	 * pixels from the real image on demand.

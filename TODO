@@ -1,10 +1,56 @@
-- openslide.c:fill_region() should not allocate memory
+- why does openslide make argb? can we ask for rgb instead?
 
-  also, cairo fails for very long lines, fill piecewise
+  alternatively, have a new coding type and a separate unpack operation
 
-  tried with a tile cache and performance is pretty bad
+  can we get the underlying tile size? we could use that to size the vips tile
+  cache
 
-  try just piecewise fill?
+  can we size the openslide tile cache? needs to hold enough tiles for a
+  complete line in the image
+
+
+
+
+  with dhint fixed, no tile cache (vips is asking for 128x128 tiles, so
+  everything gets decoded 4 times)
+
+	$ time vips im_copy CMU-2.svs x.v
+	real	15m27.833s
+	user	5m4.907s
+	sys	1m31.110s
+
+  dhint fix plus a tile cache
+
+	$ time vips im_copy CMU-2.svs x.v
+	real	9m4.254s
+	user	3m36.842s
+	sys	0m46.271s
+
+  read directly to vips tile cache, no unpacking
+
+	$ time vips im_copy CMU-2.svs x.v
+	real	7m23.040s
+	user	2m44.262s
+	sys	0m47.791s
+
+  copy from a 256x256 tiled tiff 
+
+	$ time vips im_copy cmu-2.tif x.v
+	real	6m4.798s
+	user	0m49.567s
+	sys	0m17.973s
+
+  copy from a 128x128 tiled tiff 
+
+	$ vips im_copy x.v cmu-2.tif:jpeg,tile
+	$ time vips im_copy cmu-2.tif x.v
+	real	3m32.521s
+	user	0m55.295s
+	sys	0m11.693s
+
+
+
+
 
 
 
