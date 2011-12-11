@@ -21,6 +21,8 @@
  *	- add more exposition to documentation
  * 9/12/11
  * 	- unpack to a tile cache
+ * 11/12/11
+ * 	- move argb->rgba into conversion
  */
 
 /*
@@ -64,9 +66,14 @@
 
 #include <openslide.h>
 
+/* We run our own tile cache. The OpenSlide one can't always keep enough for a
+ * complete lines of pixels.
+ */
+#define TILE_WIDTH (256)
+#define TILE_HEIGHT (256)
+
 typedef struct {
 	openslide_t *osr;
-	uint32_t background;
 	const char *associated;
 
 	/* Only valid if associated == NULL.
@@ -103,9 +110,9 @@ readslide_new( const char *filename, VipsImage *out )
 	ReadSlide *rslide;
 	char name[FILENAME_MAX];
 	char mode[FILENAME_MAX];
-	const char *background;
 	char *endp;
 	int64_t w, h;
+	const char *background;
 	const char * const *properties;
 	char *associated;
 
@@ -121,13 +128,6 @@ readslide_new( const char *filename, VipsImage *out )
 			"%s", _( "failure opening slide" ) );
 		return( NULL );
 	}
-
-	background = openslide_get_property_value( rslide->osr,
-		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR );
-	if( background != NULL )
-		rslide->background = strtoul( background, NULL, 16 );
-	else
-		rslide->background = 0xffffff;
 
 	/* Parse optional mode.
 	 */
@@ -155,6 +155,7 @@ readslide_new( const char *filename, VipsImage *out )
 			rslide->associated, &w, &h );
 		vips_image_set_string( out, "slide-associated-image",
 			rslide->associated );
+		vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	} 
 	else {
 		openslide_get_layer_dimensions( rslide->osr, rslide->layer,
@@ -162,13 +163,26 @@ readslide_new( const char *filename, VipsImage *out )
 		rslide->downsample = openslide_get_layer_downsample(
 			rslide->osr, rslide->layer );
 		vips_image_set_int( out, "slide-layer", rslide->layer );
+		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	}
+
+	/* This tag is used by argb2rgba() to paint fully-transparent pixels.
+	 */
+	background = openslide_get_property_value( rslide->osr,
+		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR );
+	if( background != NULL )
+		im_meta_set_int( out, 
+			"background-rgb", strtoul( background, NULL, 16 ) );
+	else
+		im_meta_set_int( out, "background-rgb", 0xffffff );
+
 	if( w < 0 || h < 0 || rslide->downsample < 0 ) {
 		vips_error( "im_openslide2vips", _( "getting dimensions: %s" ),
 			openslide_get_error( rslide->osr ) );
 		return( NULL );
 	}
-	if( w > INT_MAX || h > INT_MAX ) {
+	if( w > INT_MAX || 
+		h > INT_MAX ) {
 		vips_error( "im_openslide2vips",
 			"%s", _( "image dimensions overflow int" ) );
 		return( NULL );
@@ -191,66 +205,21 @@ readslide_new( const char *filename, VipsImage *out )
 	return( rslide );
 }
 
-/* The maximum size of the tiles we read from OpenSlide. It can fail with
- * very large tile shapes (eg. 78000 x 1). Also, limiting the tile size means
- * we can have a per-thread buffer for unpacking.
- */
-#define TILE_WIDTH (256)
-#define TILE_HEIGHT (256)
-
-/* Allocate a per-thread tile buffer. 
- */
-static void *
-seq_start( VipsImage *out, void *a, void *b )
-{
-	return( (void *) VIPS_ARRAY( NULL, 
-			TILE_WIDTH * TILE_HEIGHT, uint32_t ) );
-}
-
-static void
-copy_line( ReadSlide *rslide, uint32_t *in, int count, PEL *out )
-{
-	int i;
-
-	for( i = 0; i < count; i++ ) {
-		uint32_t x = in[i];
-		uint8_t a = x >> 24;
-
-		/* Convert from ARGB to RGBA and undo premultiplication.
-		 */
-		if( a != 0 ) {
-			out[0] = 255 * ((x >> 16) & 255) / a;
-			out[1] = 255 * ((x >> 8) & 255) / a;
-			out[2] = 255 * (x & 255) / a;
-		} 
-		else {
-			/* Use background color.
-			 */
-			out[0] = (rslide->background >> 16) & 255;
-			out[1] = (rslide->background >> 8) & 255;
-			out[2] = rslide->background & 255;
-		}
-		out[3] = a;
-
-		out += 4;
-	}
-}
-
 static int
 fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 	gboolean *stop )
 {
 	ReadSlide *rslide = _rslide;
-	uint32_t *buf = (uint32_t *) seq;
 	VipsRect *r = &out->valid;
 
 	const char *error;
-	int x, y, z;
+	int x, y;
 
 	VIPS_DEBUG_MSG( "fill_region: %dx%d @ %dx%d\n",
 		r->width, r->height, r->left, r->top );
 
-	/* Loop over the region to be filled calling openslide_read_region().
+	/* Fill in tile-sized chunks. Some versions of OpenSlide can fail for
+	 * very large dimensions.
 	 */
 	for( y = 0; y < r->height; y += TILE_HEIGHT ) 
 		for( x = 0; x < r->width; x += TILE_WIDTH ) {
@@ -258,40 +227,21 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 			int h = VIPS_MIN( TILE_HEIGHT, r->height - y );
 
 			openslide_read_region( rslide->osr, 
-				/* or read directly to the output with this:
-				VIPS_REGION_ADDR( out, 
-					r->left + x, 
-					r->top + y ),
-				 */
-				buf,
+				(uint32_t *) VIPS_REGION_ADDR( out, 
+					r->left + x, r->top + y ),
 				(r->left + x) * rslide->downsample, 
 				(r->top + y) * rslide->downsample, 
 				rslide->layer,
 				w, h ); 
-
-			for( z = 0; z < h; z++ )
-				copy_line( rslide, 
-					buf + z * w,
-					w,
-					VIPS_REGION_ADDR( out, 
-						r->left + x, 
-						r->top + y + z ) ); 
 		}
 
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
-		vips_error( "im_openslide2vips", _( "reading region: %s" ),
-			error );
+		vips_error( "im_openslide2vips", 
+			_( "reading region: %s" ), error );
+
 		return( -1 );
 	}
-
-	return( 0 );
-}
-
-static int
-seq_stop( void *seq, void *a, void *b )
-{
-	vips_free( seq );
 
 	return( 0 );
 }
@@ -300,35 +250,35 @@ static int
 fill_associated( VipsImage *out, ReadSlide *rslide )
 {
 	uint32_t *buf;
-	PEL *line;
 	int64_t w, h;
 	int y;
 	const char *error;
 
 	openslide_get_associated_image_dimensions( rslide->osr,
 		rslide->associated, &w, &h );
-	if( w == -1 || h == -1 ) {
-		vips_error( "im_openslide2vips", _( "getting dimensions: %s" ),
+	if( w == -1 || 
+		h == -1 ) {
+		vips_error( "im_openslide2vips", 
+			_( "getting dimensions: %s" ),
 			openslide_get_error( rslide->osr ) );
+
 		return( -1 );
 	}
 
 	buf = VIPS_ARRAY( out, w * h, uint32_t );
-	line = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL );
-	openslide_read_associated_image( rslide->osr, rslide->associated,
-		buf );
-	for( y = 0; y < h; y++ ) {
-		copy_line( rslide, buf + y * w, w, line );
-		if( vips_image_write_line( out, y, line ) ) 
-			return( -1 );
-	}
-
+	openslide_read_associated_image( rslide->osr, rslide->associated, buf );
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
 		vips_error( "im_openslide2vips",
 			_( "reading associated image: %s" ), error );
 		return( -1 );
 	}
+
+	if( vips_image_wio_output( out ) )
+		return( -1 );
+	for( y = 0; y < h; y++ ) 
+		if( vips_image_write_line( out, y, (PEL *) (buf + y * w) ) )
+			return( -1 );
 
 	return( 0 );
 }
@@ -393,19 +343,13 @@ im_openslide2vips( const char *filename, VipsImage *out )
 	if( rslide->associated ) {
 		VIPS_DEBUG_MSG( "fill_associated:\n" );
 
-		if( vips_image_wio_output( raw ) )
-			return( -1 );
-
 		if( fill_associated( raw, rslide ) )
 			return( -1 );
 	} 
 	else {
-		if( vips_image_pio_output( raw ) )
-			return( -1 );
-		vips_demand_hint( raw, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
-
-		if( vips_image_generate( raw, 
-			seq_start, fill_region, seq_stop, rslide, NULL ) )
+		if( vips_image_pio_output( raw ) ||
+			vips_image_generate( raw, 
+				NULL, fill_region, NULL, rslide, NULL ) )
 			return( -1 );
 	}
 
@@ -457,7 +401,8 @@ slide_flags( const char *filename )
 
 	vips_filename_split( filename, name, mode );
 	strtol( mode, &endp, 10 );
-	if( *mode == 0 || *endp == 0 ) 
+	if( *mode == 0 || 
+		*endp == 0 ) 
 		/* Slide layer or no mode specified.
 		 */
 		return( VIPS_FORMAT_PARTIAL );
