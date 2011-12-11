@@ -1359,6 +1359,23 @@ vips_image_new_mode( const char *filename, const char *mode )
 }
 
 /**
+ * vips_image_new_buffer:
+ *
+ * vips_image_new_buffer() creates a new VipsImage which when written to will
+ * create a memory buffer. It is a convenience function for
+ * vips_image_new_mode(vips_image_temp_name(), "t").
+ *
+ * See also: vips_image_new().
+ *
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_buffer( void )
+{
+	return( vips_image_new_mode( vips_image_temp_name(), "t" ) );
+}
+
+/**
  * vips_image_new_from_file:
  * @filename: file to open
  *
@@ -1919,8 +1936,7 @@ vips_image_wio_input( VipsImage *image )
 		/* Change to VIPS_IMAGE_SETBUF. First, make a memory 
 		 * buffer and copy into that.
 		 */
-		if( !(t1 = vips_image_new_mode( "wio_input", "t" )) ) 
-			return( -1 );
+		t1 = vips_image_new_buffer();
 		if( vips_image_write( image, t1 ) ) {
 			g_object_unref( t1 );
 			return( -1 );

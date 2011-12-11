@@ -428,11 +428,11 @@ vips_foreign_load_new_from_string( const char *string )
 	return( VIPS_OBJECT( load ) );
 }
 
-static size_t
+static guint64
 vips_get_disc_threshold( void )
 {
 	static gboolean done = FALSE;
-	static size_t threshold;
+	static guint64 threshold;
 
 	if( !done ) {
 		const char *env;
@@ -460,14 +460,14 @@ vips_get_disc_threshold( void )
  * on the new image.
  */
 static void *
-vips_foreign_load_start_cb( VipsImage *out, void *a, void *dummy )
+vips_foreign_load_start( VipsImage *out, void *a, void *dummy )
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( a );
 	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( a );
 
 	if( !load->real ) {
-		const size_t disc_threshold = vips_get_disc_threshold();
-		const size_t image_size = VIPS_IMAGE_SIZEOF_IMAGE( load->out );
+		const guint64 disc_threshold = vips_get_disc_threshold();
+		const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( load->out );
 
 		/* We open via disc if:
 		 * - 'disc' is set
@@ -502,7 +502,7 @@ vips_foreign_load_start_cb( VipsImage *out, void *a, void *dummy )
 /* Just pointer-copy.
  */
 static int
-vips_foreign_load_generate_cb( VipsRegion *or, 
+vips_foreign_load_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -552,19 +552,17 @@ vips_foreign_load_build( VipsObject *object )
 	 * convert pixels on demand.
 	 */
 	if( class->load ) {
-		/* THINSTRIP since this is probably a disc file. 
-		 * We can't tell yet whether we will be opening
-		 * to memory, sadly, so we can't suggest ANY.
+		/* ->header() should set the dhint. It'll default to the safe
+		 * SMALLTILE if header() did not set it.
 		 */
-		vips_demand_hint( load->out, 
-			VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+		vips_demand_hint( load->out, load->out->dhint, NULL );
 
 		/* Then 'start' creates the real image and 'gen' fetches 
 		 * pixels for @out from @real on demand.
 		 */
 		if( vips_image_generate( load->out, 
-			vips_foreign_load_start_cb, 
-			vips_foreign_load_generate_cb, 
+			vips_foreign_load_start, 
+			vips_foreign_load_generate, 
 			vips_stop_one, 
 			load, NULL ) ) 
 			return( -1 );
@@ -1011,6 +1009,7 @@ vips_foreign_write( VipsImage *in, const char *filename, ... )
 void
 vips_foreign_operation_init( void )
 {
+	extern GType vips_foreign_load_openslide_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
@@ -1033,6 +1032,10 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_tiff_get_type(); 
 	vips_foreign_save_tiff_get_type(); 
 #endif /*HAVE_TIFF*/
+
+#ifdef HAVE_OPENSLIDE
+	vips_foreign_load_openslide_get_type(); 
+#endif /*HAVE_OPENSLIDE*/
 
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 

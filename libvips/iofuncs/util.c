@@ -1460,7 +1460,7 @@ typedef struct {
 	int multiplier;
 } Unit;
 
-size_t
+guint64
 vips__parse_size( const char *size_string )
 {
 	static Unit units[] = {
@@ -1469,7 +1469,7 @@ vips__parse_size( const char *size_string )
 		{ 'g', 1024 * 1024 * 1024 }
 	};
 
-	size_t size;
+	guint64 size;
 	int n;
 	int i, j;
 	char *unit;
@@ -1489,7 +1489,7 @@ vips__parse_size( const char *size_string )
 	}
 	g_free( unit );
 
-	VIPS_DEBUG_MSG( "parse_size: parsed \"%s\" as %zd\n", 
+	VIPS_DEBUG_MSG( "parse_size: parsed \"%s\" as %lld\n", 
 		size_string, size );
 
 	return( size );

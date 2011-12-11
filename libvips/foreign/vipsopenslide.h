@@ -35,8 +35,10 @@ extern "C" {
 #endif /*__cplusplus*/
 
 int vips__openslide_isslide( const char *filename );
-int vips__openslide_read_header( const char *filename, VipsImage *out );
-int vips__openslide_read_file( const char *filename, VipsImage *out );
+int vips__openslide_read_header( const char *filename, VipsImage *out, 
+	int layer, char *associated );
+int vips__openslide_read( const char *filename, VipsImage *out, 
+	int layer );
 int vips__openslide_read_associated( const char *filename, VipsImage *out, 
 	const char *associated );
 

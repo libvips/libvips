@@ -306,7 +306,8 @@ copy_region( VipsRegion *from, VipsRegion *to, VipsRect *area )
 /* Generate func.
  */
 static int
-vips_tile_cache_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
+vips_tile_cache_gen( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *in = (VipsRegion *) seq;
 	VipsTileCache *cache = (VipsTileCache *) b;

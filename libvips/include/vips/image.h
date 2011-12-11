@@ -468,6 +468,7 @@ void vips_image_set_kill( VipsImage *image, gboolean kill );
 
 VipsImage *vips_image_new( void );
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
+VipsImage *vips_image_new_buffer( void );
 VipsImage *vips_image_new_from_file( const char *filename );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
 	int xsize, int ysize, int bands, guint64 offset );

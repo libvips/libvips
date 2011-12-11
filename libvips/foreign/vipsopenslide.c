@@ -65,7 +65,7 @@
 
 #include <openslide.h>
 
-#include "openslide.h"
+#include "vipsopenslide.h"
 
 /* We run our own tile cache. The OpenSlide one can't always keep enough for a
  * complete lines of pixels.
@@ -75,7 +75,7 @@
 
 typedef struct {
 	openslide_t *osr;
-	const char *associated;
+	char *associated;
 
 	/* Only valid if associated == NULL.
 	 */
@@ -115,6 +115,7 @@ static void
 readslide_destroy_cb( VipsImage *image, ReadSlide *rslide )
 {
 	VIPS_FREEF( openslide_close, rslide->osr );
+	VIPS_FREE( rslide->associated );
 }
 
 static int
@@ -134,64 +135,53 @@ check_associated_image( openslide_t *osr, const char *name )
 }
 
 static ReadSlide *
-readslide_new( const char *filename, VipsImage *out )
+readslide_new( const char *filename, VipsImage *out, 
+	int layer, const char *associated )
 {
 	ReadSlide *rslide;
-	char name[FILENAME_MAX];
-	char mode[FILENAME_MAX];
-	char *endp;
 	int64_t w, h;
 	const char *background;
 	const char * const *properties;
-	char *associated;
 
 	rslide = VIPS_NEW( out, ReadSlide );
 	memset( rslide, 0, sizeof( *rslide ) );
 	g_signal_connect( out, "close", G_CALLBACK( readslide_destroy_cb ),
 		rslide );
 
-	vips_filename_split( filename, name, mode );
-	rslide->osr = openslide_open( name );
+	rslide->layer = layer;
+	rslide->associated = g_strdup( associated );
+
+	rslide->osr = openslide_open( filename );
 	if( rslide->osr == NULL ) {
 		vips_error( "im_openslide2vips", 
 			"%s", _( "failure opening slide" ) );
 		return( NULL );
 	}
 
-	/* Parse optional mode.
-	 */
-	rslide->layer = strtol( mode, &endp, 10 );
-	if( *mode != 0 && *endp == 0 ) {
-		/* Mode specifies slide layer.
-		 */
-		if( rslide->layer < 0 || rslide->layer >=
-			openslide_get_layer_count( rslide->osr ) ) {
-			vips_error( "im_openslide2vips",
-				"%s", _( "invalid slide layer" ) );
-			return( NULL );
-		}
-	} 
-	else if( *mode != 0 ) {
-		/* Mode specifies associated image.
-		 */
-		if ( check_associated_image( rslide->osr, mode ) )
-			return( NULL );
-		rslide->associated = vips_strdup( VIPS_OBJECT( out ), mode );
+	if( layer < 0 || 
+		layer >= openslide_get_layer_count( rslide->osr ) ) {
+		vips_error( "im_openslide2vips",
+			"%s", _( "invalid slide layer" ) );
+		return( NULL );
 	}
 
-	if( rslide->associated ) {
+	if( associated &&
+		check_associated_image( rslide->osr, associated ) )
+			return( NULL );
+
+	if( associated ) {
 		openslide_get_associated_image_dimensions( rslide->osr,
-			rslide->associated, &w, &h );
+			associated, &w, &h );
 		vips_image_set_string( out, "slide-associated-image",
-			rslide->associated );
+			associated );
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	} 
 	else {
-		openslide_get_layer_dimensions( rslide->osr, rslide->layer,
-			&w, &h );
+		openslide_get_layer_dimensions( rslide->osr, 
+			layer, &w, &h );
 		rslide->downsample = openslide_get_layer_downsample(
-			rslide->osr, rslide->layer );
-		vips_image_set_int( out, "slide-layer", rslide->layer );
+			rslide->osr, layer );
+		vips_image_set_int( out, "slide-layer", layer );
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	}
 
@@ -229,7 +219,6 @@ readslide_new( const char *filename, VipsImage *out )
 	associated = g_strjoinv( ", ", (char **)
 		openslide_get_associated_image_names( rslide->osr ) );
 	vips_image_set_string( out, "slide-associated-images", associated );
-	g_free( associated );
 
 	return( rslide );
 }
@@ -247,8 +236,8 @@ vips__openslide_read_header( const char *filename, VipsImage *out,
 }
 
 static int
-fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
-	gboolean *stop )
+vips__openslide_generate( VipsRegion *out, 
+	void *seq, void *_rslide, void *unused, gboolean *stop )
 {
 	ReadSlide *rslide = _rslide;
 	VipsRect *r = &out->valid;
@@ -288,36 +277,44 @@ fill_region( VipsRegion *out, void *seq, void *_rslide, void *unused,
 }
 
 int
-vips__openslide_read_file( const char *filename, VipsImage *out, int layer )
+vips__openslide_read( const char *filename, VipsImage *out, int layer )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
+	VipsImage *t;
 
-	VIPS_DEBUG_MSG( "vips__openslide_read_file: %s %d\n", 
+	VIPS_DEBUG_MSG( "vips__openslide_read: %s %d\n", 
 		filename, layer );
 
 	/* Tile cache: keep enough for two complete rows of tiles.
 	 * This lets us do (smallish) area ops, like im_conv(), while
 	 * still only hitting each tile once.
 	 */
-	if( !(raw = im_open_local( out, "cache", "p" )) )
-		return( -1 );
+	raw = vips_image_new();
+	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, layer, NULL )) )
 		return( -1 );
 
 	if( vips_image_pio_output( raw ) ||
 		vips_image_generate( raw, 
-			NULL, fill_region, NULL, rslide, NULL ) )
+			NULL, vips__openslide_generate, NULL, rslide, NULL ) )
 		return( -1 );
 
 	/* Copy to out, adding a cache. Enough tiles for a complete row, plus
 	 * 50%.
 	 */
-	if( im_tile_cache( raw, out, 
-		TILE_WIDTH, TILE_HEIGHT,
-		1.5 * (1 + raw->Xsize / TILE_WIDTH) ) ) 
+	if( vips_tilecache( raw, &t, 
+		"tile_width", TILE_WIDTH, 
+		"tile_height", TILE_WIDTH,
+		"max_tiles", 1.5 * (1 + raw->Xsize / TILE_WIDTH),
+		NULL ) ) 
 		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
 
 	return( 0 );
 }
@@ -328,37 +325,23 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
-	uint32_t *buf;
-	int64_t w, h;
-	int y;
 	const char *error;
 
 	VIPS_DEBUG_MSG( "vips__openslide_read_associated: %s %s\n", 
 		filename, associated );
 
-	/* Tile cache: keep enough for two complete rows of tiles.
-	 * This lets us do (smallish) area ops, like im_conv(), while
-	 * still only hitting each tile once.
+	/* Memory buffer. Get associated directly to this, then copy to out.
 	 */
-	if( !(raw = im_open_local( out, "cache", "p" )) )
-		return( -1 );
+	raw = vips_image_new_buffer();
+	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, 0, associated )) )
 		return( -1 );
 
-	openslide_get_associated_image_dimensions( rslide->osr,
-		rslide->associated, &w, &h );
-	if( w == -1 || 
-		h == -1 ) {
-		vips_error( "im_openslide2vips", 
-			_( "getting dimensions: %s" ),
-			openslide_get_error( rslide->osr ) );
-
+	if( vips_image_wio_output( raw ) )
 		return( -1 );
-	}
-
-	buf = VIPS_ARRAY( out, w * h, uint32_t );
-	openslide_read_associated_image( rslide->osr, rslide->associated, buf );
+	openslide_read_associated_image( rslide->osr, rslide->associated, 
+		(uint32_t *) VIPS_IMAGE_ADDR( raw, 0, 0 ) );
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
 		vips_error( "im_openslide2vips",
@@ -366,11 +349,8 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 		return( -1 );
 	}
 
-	if( vips_image_wio_output( out ) )
+	if( vips_image_write( raw, out ) ) 
 		return( -1 );
-	for( y = 0; y < h; y++ ) 
-		if( vips_image_write_line( out, y, (PEL *) (buf + y * w) ) )
-			return( -1 );
 
 	return( 0 );
 }
