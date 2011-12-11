@@ -282,7 +282,7 @@ typedef struct _VipsImage {
 	 */
 	char *Hist;		/* don't use, see vips_image_get_history() */
 	char *filename;		/* pointer to copy of filename */
-	char *data;		/* start of image data for WIO */
+	PEL *data;		/* start of image data for WIO */
 	int kill;		/* set to non-zero to block eval */
 
 	/* Everything below this private and only used internally by
@@ -292,7 +292,7 @@ typedef struct _VipsImage {
 	char *mode;		/* mode string passed to _new() */
 	VipsImageType dtype;	/* descriptor type */
 	int fd;         	/* file descriptor */
-	char *baseaddr;     	/* pointer to the start of an mmap file */
+	void *baseaddr;     	/* pointer to the start of an mmap file */
 	size_t length;		/* size of mmap area */
 	guint32 magic;		/* magic from header, endian-ness of image */
 
@@ -316,8 +316,11 @@ typedef struct _VipsImage {
 	/* Part of mmap() read ... the sizeof() the header we skip from the
 	 * file start. Usually VIPS_SIZEOF_HEADER, but can be something else
 	 * for binary file read.
+	 *
+	 * gint64 so that we can guarantee to work even on systems with
+	 * strange ideas about large files.
 	 */
-	int sizeof_header;
+	guint64 sizeof_header;
 
 	/* If this is a large disc image, don't map the whole thing, instead
 	 * have a set of windows shared between the regions active on the
@@ -372,7 +375,6 @@ typedef struct _VipsImage {
 	 */
 	gboolean delete_on_close;
 	char *delete_on_close_filename;
-
 } VipsImage;
 
 typedef struct _VipsImageClass {
@@ -443,7 +445,7 @@ extern const size_t vips__image_sizeof_bandformat[];
 		(X), (Y), \
 		0, 0, \
 		(I)->Xsize, \
-		(I)->Ysize ), abort(), (char *) NULL) \
+		(I)->Ysize ), abort(), (PEL *) NULL) \
 	)
 #else /*!VIPS_DEBUG*/
 #define VIPS_IMAGE_ADDR( I, X, Y ) \
@@ -468,7 +470,7 @@ VipsImage *vips_image_new( void );
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 VipsImage *vips_image_new_from_file( const char *filename );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
-	int xsize, int ysize, int bands, int offset );
+	int xsize, int ysize, int bands, guint64 offset );
 VipsImage *vips_image_new_from_memory( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
 VipsImage *vips_image_new_array( int xsize, int ysize );

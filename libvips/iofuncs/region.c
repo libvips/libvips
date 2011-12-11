@@ -934,8 +934,8 @@ vips_region_copy( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
 {
 	int z;
 	int len = VIPS_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
-	char *p = VIPS_REGION_ADDR( reg, r->left, r->top );
-	char *q = VIPS_REGION_ADDR( dest, x, y );
+	PEL *p = VIPS_REGION_ADDR( reg, r->left, r->top );
+	PEL *q = VIPS_REGION_ADDR( dest, x, y );
 	int plsk = VIPS_REGION_LSKIP( reg );
 	int qlsk = VIPS_REGION_LSKIP( dest );
 
@@ -1092,7 +1092,7 @@ vips_region_prepare_to_generate( VipsRegion *reg,
 	VipsRegion *dest, VipsRect *r, int x, int y )
 {
 	IMAGE *im = reg->im;
-	char *p;
+	PEL *p;
 
 	if( !im->generate_fn ) {
 		vips_error( "vips_region_prepare_to",

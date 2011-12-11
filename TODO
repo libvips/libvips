@@ -1,9 +1,3 @@
-- do we need vips_object_unref_outputs() in more places? check all calls to
-  _build()
-
-
-
-
 - how about
 
 	vips max add[babe.jpg,babe2.jpg]
@@ -11,6 +5,26 @@
   does that make any sense?
 
 	vips copy add[babe.jpg,add[babe2.jpg,babe3.jpg]] sum.v
+
+
+
+
+- add ".ndpi" to openslide suffs? though we don't really use suffs for loaders
+
+- check lazy load hint bug in format-hacking branch
+
+- everywhere must set dhint in header load
+
+- openslide sets a g_log() handler, argh, must just set temp
+
+- make an argb coding type, add to nip2 and known coding
+
+- "background-rgb" should be a macro
+
+- nip2 should use zooming support, if possible
+
+
+
 
 
 

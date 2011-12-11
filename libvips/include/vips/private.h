@@ -66,9 +66,9 @@ typedef struct {
 
 	int top; 		/* Area of image we have mapped, in pixels */
 	int height;
-	char *data;		/* First pixel of line 'top' */
+	PEL *data;		/* First pixel of line 'top' */
 
-	PEL *baseaddr;		/* Base of window */
+	void *baseaddr;		/* Base of window */
 	size_t length;		/* Size of window */
 } VipsWindow;
 
@@ -106,7 +106,7 @@ typedef struct {
 	VipsRect area;		/* Area this pixel buffer covers */
 	gboolean done;		/* Calculated and in cache */
 	VipsBufferCache *cache;
-	char *buf;		/* Private malloc() area */
+	PEL *buf;		/* Private malloc() area */
 	size_t bsize;		/* Size of private malloc() */
 } VipsBuffer;
 

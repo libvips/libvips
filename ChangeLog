@@ -56,6 +56,7 @@
 - edvips can change vips header byte ordering
 - "header" is terse by default
 - "header" outputs filenames if working on many files
+- added openslide support (Benjamin Gilbert)
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

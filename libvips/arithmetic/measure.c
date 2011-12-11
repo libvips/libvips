@@ -50,8 +50,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -159,7 +159,7 @@ vips_measure_build( VipsObject *object )
 				 * measure on IM_TYPE_LAB images).
 				 */
 				if( dev * 5 > fabs( avg ) && fabs( avg ) > 3 )
-					im_warn( "im_measure",
+					vips_warn( "VipsMeasure",
 						_( "patch %d x %d, band %d: " 
 						   "avg = %g, sdev = %g" ), 
 						i, j, avg, dev );

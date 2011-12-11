@@ -640,6 +640,25 @@ static im_function rad2float_desc = {
 	one_in_one_out 			/* Arg list */
 };
 
+/* Call im_argb2rgba() via arg vector.
+ */
+static int
+argb2rgba_vec( im_object *argv )
+{
+	return( im_argb2rgba( argv[0], argv[1] ) );
+}
+
+/* Description of im_argb2rgba.
+ */ 
+static im_function argb2rgba_desc = {
+	"im_argb2rgba", 		/* Name */
+	"convert pre-multipled argb to png-style rgba",	/* Description */
+	IM_FN_PIO,			/* Flags */
+	argb2rgba_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
 /* Call im_float2rad() via arg vector.
  */
 static int
@@ -1185,6 +1204,7 @@ static im_function *colour_list[] = {
 	&disp2Lab_desc,
 	&disp2XYZ_desc,
 	&float2rad_desc,
+	&argb2rgba_desc,
 	&icc_ac2rc_desc,
 	&icc_export_depth_desc,
 	&icc_import_desc,

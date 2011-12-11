@@ -245,7 +245,7 @@ vips_window_set( VipsWindow *window, int top, int height )
 	window->baseaddr = baseaddr;
 	window->length = pagelength;
 
-	window->data = (char *) baseaddr + (start - pagestart);
+	window->data = (PEL *) baseaddr + (start - pagestart);
 	window->top = top;
 	window->height = height;
 

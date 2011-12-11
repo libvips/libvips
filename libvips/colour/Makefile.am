@@ -6,6 +6,7 @@ libcolour_la_SOURCES = \
 	colour_dispatch.c \
 	derived.c \
 	im_icc_transform.c \
+	im_argb2rgba.c \
 	im_LCh2Lab.c \
 	im_LCh2UCS.c \
 	im_Lab2LCh.c \

@@ -69,7 +69,7 @@ typedef struct _VipsRegion {
 	 */
 	/*< private >*/
 	RegionType type;	/* What kind of attachment */
-	char *data;		/* Off here to get data */
+	PEL *data;		/* Off here to get data */
 	int bpl;		/* Bytes-per-line for data */
 	void *seq;		/* Sequence we are using to fill region */
 
@@ -150,7 +150,7 @@ int vips_region_prepare_many( VipsRegion **reg, VipsRect *r );
 		(R)->valid.left, \
 		(R)->valid.top, \
 		(R)->valid.width, \
-		(R)->valid.height ), abort(), (char *) NULL) \
+		(R)->valid.height ), abort(), (PEL *) NULL) \
 	)
 #else /*DEBUG*/
 #define VIPS_REGION_ADDR( R, X, Y ) \
