@@ -22,7 +22,6 @@ libformat_la_SOURCES = \
 	im_vips2raw.c \
 	matlab.c \
 	fits.c \
-	radiance.c \
-	openslide.c
+	radiance.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

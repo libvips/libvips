@@ -84,7 +84,7 @@ argb2rgba( guint32 *in, PEL *out, int n, void *_bg )
  * Returns: 0 on success, -1 on error.
  */
 int
-im_argb2rgba( IMAGE *in, IMAGE *out )
+im_argb2rgba( VipsImage *in, IMAGE *out )
 {
 	guint32 bg;
 
@@ -99,7 +99,7 @@ im_argb2rgba( IMAGE *in, IMAGE *out )
 		return( -1 );
 	out->Coding = IM_CODING_NONE;
 
-	if( im_meta_get_int( in, "background-rgb", (int *) &bg ) )
+	if( vips_image_get_int( in, VIPS_META_BACKGROUND_RGB, (int *) &bg ) )
 		bg = 0xffffff;
 
 	if( im_wrapone( in, out, 

@@ -117,6 +117,13 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 }
 
 static void
+vips_foreign_load_openslide_error_handler( const char *domain, 
+	GLogLevelFlags level, const char *message, void *data )
+{
+	vips_error( "openslide", "%s", message );
+}
+
+static void
 vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -161,6 +168,12 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, associated ),
 		NULL );
+
+	/* Catch just openslide errors. 
+	 */
+	g_log_set_handler( "Openslide",
+		G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_WARNING,
+		vips_foreign_load_openslide_error_handler, NULL );
 }
 
 static void
@@ -189,9 +202,12 @@ vips_foreign_load_openslide_init( VipsForeignLoadOpenslide *openslide )
  * In addition to the slide image itself, virtual slide formats sometimes
  * include additional images, such as a scan of the slide's barcode.
  * OpenSlide calls these "associated images".  To read an associated image,
- * set @associated to the image's.
+ * set @associated to the image's name.
  * A slide's associated images are listed in the
  * "slide-associated-images" metadata item.
+ *
+ * The output of this operator is in pre-multipled ARGB format. Use
+ * im_argb2rgba() to decode to png-style RGBA. 
  *
  * See also: vips_image_new_from_file().
  *

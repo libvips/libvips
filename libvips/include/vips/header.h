@@ -77,6 +77,14 @@ extern "C" {
  */
 #define VIPS_META_RESOLUTION_UNIT "resolution-unit"
 
+/**
+ * VIPS_META_BACKGROUND_RGB:
+ *
+ * The OpenSlide load operator uses this to note the colour to use to paint
+ * transparent pixels in pre-multiplied ARGB format. See im_argb2rgba().
+ */
+#define VIPS_META_BACKGROUND_RGB "background-rgb"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 
 int vips_image_get_width( const VipsImage *image );

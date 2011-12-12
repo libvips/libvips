@@ -1,26 +1,5 @@
-- still some size_t that should be guint64, search for all use of 
-  VIPS_IMAGE_SIZEOF_IMAGE(), vips__parse_size()
 
 
-
-- how about
-
-	vips max add[babe.jpg,babe2.jpg]
-
-  does that make any sense?
-
-	vips copy add[babe.jpg,add[babe2.jpg,babe3.jpg]] sum.v
-
-
-
-
-- openslide sets a g_log() handler, argh, must just set temp
-
-- make an argb coding type, add to nip2 and known coding
-
-- "background-rgb" should be a macro
-
-- nip2 should use zooming support, if possible
 
 
 
@@ -47,11 +26,6 @@
 
 
 
-- see vips_image_cache(): it currently writes to @out allocated by its caller
-
-  should this be called vips_image_write_cache()? or wrapped in the style 
-  of vips_copy()? 
-
 
 
 
@@ -67,6 +41,26 @@
 
 
 
+
+- how about
+
+	vips max add[babe.jpg,babe2.jpg]
+
+  does that make any sense?
+
+	vips copy add[babe.jpg,add[babe2.jpg,babe3.jpg]] sum.v
+
+
+
+
+- see vips_image_cache(): it currently writes to @out allocated by its caller
+
+  should this be called vips_image_write_cache()? or wrapped in the style 
+  of vips_copy()? 
+
+- make an argb coding type, add to nip2 and known coding
+
+- nip2 should use zooming support, if possible
 
 - transform_g_string_array_image() can't handle quoted strings, so filenames
   with spaces will break

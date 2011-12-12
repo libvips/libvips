@@ -411,7 +411,10 @@ typedef struct _VipsImageClass {
 
 GType vips_image_get_type( void );
 
-extern const size_t vips__image_sizeof_bandformat[];
+/* Has to be guint64 and not size_t/off_t since we have to be able to address
+ * huge images on platforms with 32-bit files.
+ */
+extern const guint64 vips__image_sizeof_bandformat[];
 
 /* Pixel address calculation macros.
  */

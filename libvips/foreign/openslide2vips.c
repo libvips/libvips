@@ -189,9 +189,10 @@ readslide_new( const char *filename, VipsImage *out,
 		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR );
 	if( background != NULL )
 		vips_image_set_int( out, 
-			"background-rgb", strtoul( background, NULL, 16 ) );
+			VIPS_META_BACKGROUND_RGB, 
+			strtoul( background, NULL, 16 ) );
 	else
-		vips_image_set_int( out, "background-rgb", 0xffffff );
+		vips_image_set_int( out, VIPS_META_BACKGROUND_RGB, 0xffffff );
 
 	if( w < 0 || h < 0 || rslide->downsample < 0 ) {
 		vips_error( "openslide2vips", _( "getting dimensions: %s" ),

@@ -59,7 +59,8 @@
  * transparently supported by vips_image_new_from_foreign() and friends.
  *
  * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, Radiance, RAW, VIPS and one that wraps libMagick. 
+ * Matlab, Radiance, RAW and VIPS. It also includes import filters which can
+ * load with libMagick and with OpenSlide. 
  */
 
 /**
