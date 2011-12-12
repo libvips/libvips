@@ -123,6 +123,15 @@ vips_foreign_load_openslide_error_handler( const char *domain,
 	vips_error( "openslide", "%s", message );
 }
 
+
+static const char *vips_foreign_openslide_suffs[] = {
+	".svs", 	/* Aperio */
+	".vms", ".vmu", ".ndpi",  /* Hamamatsu */
+	".mrxs", 	/* MIRAX */
+	".tif", 	/* Trestle */
+	NULL
+};
+
 static void
 vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 {
@@ -142,6 +151,7 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 	 * better handled by the vips tiff loader we are careful to say no.
 	 */
 	foreign_class->priority = 100;
+	foreign_class->suffs = vips_foreign_openslide_suffs;
 
 	load_class->is_a = vips__openslide_isslide;
 	load_class->get_flags = vips_foreign_load_openslide_get_flags;

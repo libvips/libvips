@@ -34,6 +34,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+extern const char *vips__foreign_tiff_suffs[];
+
 void vips__thandler_error( const char *module, const char *fmt, va_list ap );
 void vips__thandler_warning( const char *module, const char *fmt, va_list ap );
 

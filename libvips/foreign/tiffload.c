@@ -104,7 +104,7 @@ vips_foreign_load_tiff_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
-static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
+const char *vips__foreign_tiff_suffs[] = { ".tif", ".tiff", NULL };
 
 static void
 vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
@@ -120,7 +120,7 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 	object_class->nickname = "tiffload";
 	object_class->description = _( "load tiff from file" );
 
-	foreign_class->suffs = tiff_suffs;
+	foreign_class->suffs = vips__foreign_tiff_suffs;
 
 	load_class->is_a = vips__istiff;
 	load_class->get_flags = vips_foreign_load_tiff_get_flags;

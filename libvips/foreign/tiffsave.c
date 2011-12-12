@@ -124,8 +124,6 @@ vips_foreign_save_tiff_build( VipsObject *object )
 	return( 0 );
 }
 
-static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
-
 /* Save a bit of typing.
  */
 #define UC VIPS_FORMAT_UCHAR
@@ -159,7 +157,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 	object_class->description = _( "save image to tiff file" );
 	object_class->build = vips_foreign_save_tiff_build;
 
-	foreign_class->suffs = tiff_suffs;
+	foreign_class->suffs = vips__foreign_tiff_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_tiff;
