@@ -1,8 +1,8 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
-	vipsopenslide.h \
-	vipsopenslide.c \
+	openslide2vips.h \
+	openslide2vips.c \
 	openslideload.c \
 	tiff.h \
 	vips2tiff.c \

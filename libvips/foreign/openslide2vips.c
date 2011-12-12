@@ -65,7 +65,7 @@
 
 #include <openslide.h>
 
-#include "vipsopenslide.h"
+#include "openslide2vips.h"
 
 /* We run our own tile cache. The OpenSlide one can't always keep enough for a
  * complete lines of pixels.
@@ -90,21 +90,19 @@ vips__openslide_isslide( const char *filename )
 	const char *vendor;
 	int ok;
 
-	ok = 1;
-	osr = openslide_open( filename );
-	if( osr != NULL ) {
-		/* If this is a generic tiled TIFF image, decline to support
-		 * it, since im_tiff2vips can do better.
+	ok = 0;
+	if( (osr = openslide_open( filename )) ) {
+		/* Generic tiled tiff images can be opened by openslide as
+		 * well. Only offer to load this file if it's not a generic
+		 * tiff since we want vips_tiffload() to handle these.
 		 */
 		vendor = openslide_get_property_value( osr,
 			OPENSLIDE_PROPERTY_NAME_VENDOR );
-		if( vendor == NULL ||
-			strcmp( vendor, "generic-tiff" ) == 0 )
-			ok = 0;
+		if( vendor &&
+			strcmp( vendor, "generic-tiff" ) != 0 )
+			ok = 1;
 		openslide_close( osr );
 	} 
-	else 
-		ok = 0;
 
 	VIPS_DEBUG_MSG( "vips__openslide_isslide: %s - %d\n", filename, ok );
 
@@ -128,7 +126,7 @@ check_associated_image( openslide_t *osr, const char *name )
 		if( strcmp( *associated, name ) == 0 )
 			return( 0 );
 
-	vips_error( "im_openslide2vips", 
+	vips_error( "openslide2vips", 
 		"%s", _( "invalid associated image name" ) );
 
 	return( -1 );
@@ -153,21 +151,21 @@ readslide_new( const char *filename, VipsImage *out,
 
 	rslide->osr = openslide_open( filename );
 	if( rslide->osr == NULL ) {
-		vips_error( "im_openslide2vips", 
+		vips_error( "openslide2vips", 
 			"%s", _( "failure opening slide" ) );
 		return( NULL );
 	}
 
 	if( layer < 0 || 
 		layer >= openslide_get_layer_count( rslide->osr ) ) {
-		vips_error( "im_openslide2vips",
+		vips_error( "openslide2vips",
 			"%s", _( "invalid slide layer" ) );
 		return( NULL );
 	}
 
 	if( associated &&
 		check_associated_image( rslide->osr, associated ) )
-			return( NULL );
+		return( NULL );
 
 	if( associated ) {
 		openslide_get_associated_image_dimensions( rslide->osr,
@@ -190,24 +188,24 @@ readslide_new( const char *filename, VipsImage *out,
 	background = openslide_get_property_value( rslide->osr,
 		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR );
 	if( background != NULL )
-		im_meta_set_int( out, 
+		vips_image_set_int( out, 
 			"background-rgb", strtoul( background, NULL, 16 ) );
 	else
-		im_meta_set_int( out, "background-rgb", 0xffffff );
+		vips_image_set_int( out, "background-rgb", 0xffffff );
 
 	if( w < 0 || h < 0 || rslide->downsample < 0 ) {
-		vips_error( "im_openslide2vips", _( "getting dimensions: %s" ),
+		vips_error( "openslide2vips", _( "getting dimensions: %s" ),
 			openslide_get_error( rslide->osr ) );
 		return( NULL );
 	}
 	if( w > INT_MAX || 
 		h > INT_MAX ) {
-		vips_error( "im_openslide2vips",
+		vips_error( "openslide2vips",
 			"%s", _( "image dimensions overflow int" ) );
 		return( NULL );
 	}
 
-	vips_image_init_fields( out, (int) w, (int) h, 4, VIPS_FORMAT_UCHAR,
+	vips_image_init_fields( out, w, h, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
 
 	for( properties = openslide_get_property_names( rslide->osr );
@@ -245,11 +243,11 @@ vips__openslide_generate( VipsRegion *out,
 	const char *error;
 	int x, y;
 
-	VIPS_DEBUG_MSG( "fill_region: %dx%d @ %dx%d\n",
+	VIPS_DEBUG_MSG( "vips__openslide_generate: %dx%d @ %dx%d\n",
 		r->width, r->height, r->left, r->top );
 
 	/* Fill in tile-sized chunks. Some versions of OpenSlide can fail for
-	 * very large dimensions.
+	 * very large requests.
 	 */
 	for( y = 0; y < r->height; y += TILE_HEIGHT ) 
 		for( x = 0; x < r->width; x += TILE_WIDTH ) {
@@ -267,7 +265,7 @@ vips__openslide_generate( VipsRegion *out,
 
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
-		vips_error( "im_openslide2vips", 
+		vips_error( "openslide2vips", 
 			_( "reading region: %s" ), error );
 
 		return( -1 );
@@ -286,9 +284,9 @@ vips__openslide_read( const char *filename, VipsImage *out, int layer )
 	VIPS_DEBUG_MSG( "vips__openslide_read: %s %d\n", 
 		filename, layer );
 
-	/* Tile cache: keep enough for two complete rows of tiles.
-	 * This lets us do (smallish) area ops, like im_conv(), while
-	 * still only hitting each tile once.
+	/* Tile cache: keep enough for two complete rows of tiles. OpenSlide
+	 * has its own tile cache, but it's not large enough for a complete
+	 * scan line.
 	 */
 	raw = vips_image_new();
 	vips_object_local( out, raw );
@@ -307,7 +305,7 @@ vips__openslide_read( const char *filename, VipsImage *out, int layer )
 	if( vips_tilecache( raw, &t, 
 		"tile_width", TILE_WIDTH, 
 		"tile_height", TILE_WIDTH,
-		"max_tiles", 1.5 * (1 + raw->Xsize / TILE_WIDTH),
+		"max_tiles", (int) (1.5 * (1 + raw->Xsize / TILE_WIDTH)),
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
@@ -344,7 +342,7 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 		(uint32_t *) VIPS_IMAGE_ADDR( raw, 0, 0 ) );
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
-		vips_error( "im_openslide2vips",
+		vips_error( "openslide2vips",
 			_( "reading associated image: %s" ), error );
 		return( -1 );
 	}

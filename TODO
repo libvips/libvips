@@ -1,10 +1,6 @@
 - still some size_t that should be guint64, search for all use of 
   VIPS_IMAGE_SIZEOF_IMAGE(), vips__parse_size()
 
-- some mysterious error in tilecahce for new-style openslide read
-
-
-
 
 
 - how about
@@ -17,12 +13,6 @@
 
 
 
-
-- add ".ndpi" to openslide suffs? though we don't really use suffs for loaders
-
-- check lazy load hint bug in format-hacking branch
-
-- everywhere must set dhint in header load
 
 - openslide sets a g_log() handler, argh, must just set temp
 

@@ -47,7 +47,7 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#include "vipsopenslide.h"
+#include "openslide2vips.h"
 
 typedef struct _VipsForeignLoadOpenslide {
 	VipsForeignLoad parent_object;

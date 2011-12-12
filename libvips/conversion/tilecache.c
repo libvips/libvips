@@ -207,9 +207,7 @@ tile_fill( Tile *tile, VipsRegion *in )
 {
 	VipsRect area;
 
-#ifdef DEBUG
-	printf( "im_tile_cache: filling tile %d x %d\n", tile->x, tile->y );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "tilecache: filling tile %d x %d\n", tile->x, tile->y );
 
 	area.left = tile->x;
 	area.top = tile->y;
@@ -270,9 +268,7 @@ tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 
 	g_assert( tile );
 
-#ifdef DEBUG
-	printf( "im_tile_cache: reusing tile %d x %d\n", tile->x, tile->y );
-#endif /*DEBUG*/
+	VIPS_DEBUG_MSG( "tilecache: reusing tile %d x %d\n", tile->x, tile->y );
 
 	if( tile_move( tile, x, y ) ||
 		tile_fill( tile, in ) )
@@ -359,6 +355,8 @@ vips_tile_cache_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsTileCache *cache = (VipsTileCache *) object;
+
+	VIPS_DEBUG_MSG( "vips_tile_cache_build\n" );
 
 	if( VIPS_OBJECT_CLASS( vips_tile_cache_parent_class )->build( object ) )
 		return( -1 );
@@ -457,7 +455,7 @@ vips_tile_cache_init( VipsTileCache *cache )
  * will cache up to 1,000 tiles.
  *
  * This is a lower-level operation than vips_image_cache() since it does no 
- * subdivision and it single-threads it's callee. It is suitable for caching 
+ * subdivision and it single-threads its callee. It is suitable for caching 
  * the output of operations like exr2vips() on tiled images.
  *
  * See also: vips_image_cache().

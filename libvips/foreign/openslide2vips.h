@@ -27,8 +27,8 @@
 
  */
 
-#ifndef VIPS_OPENSLIDE_H
-#define VIPS_OPENSLIDE_H
+#ifndef VIPS_OPENSLIDE2VIPS_H
+#define VIPS_OPENSLIDE2VIPS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,4 +46,4 @@ int vips__openslide_read_associated( const char *filename, VipsImage *out,
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_OPENSLIDE_H*/
+#endif /*VIPS_OPENSLIDE2VIPS_H*/

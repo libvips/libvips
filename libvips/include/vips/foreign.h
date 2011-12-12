@@ -146,6 +146,9 @@ typedef struct _VipsForeignLoadClass {
 	/* Set the header fields in @out from @filename. If you can read the 
 	 * whole image as well with no performance cost (as with vipsload),
 	 * leave ->load() NULL and only @header will be used.
+	 *
+	 * ->header() needs to set the dhint on the image .. otherwise you get 
+	 * the default SMALLTILE.
 	 */
 	int (*header)( VipsForeignLoad * );
 
