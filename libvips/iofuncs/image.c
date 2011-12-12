@@ -466,23 +466,13 @@ vips_image_rewind( VipsObject *object )
  * to a "p" and on "written" do im_vips2tiff() or whatever. 
  */
 
-/* From "written" callback: invoke a delayed save.
+/* From "written" callback: invoke a delayed save by building the write object..
  */
 static void
-vips_image_save_cb( VipsImage *image, int *result, char *filename )
+vips_image_save_cb( VipsImage *image, int *result, VipsObject *write )
 {
-	if( vips_foreign_write( image, filename, NULL ) )
+	if( vips_object_build( write ) )
 		*result = -1;
-
-	g_free( filename );
-}
-
-static void
-vips_attach_save( VipsImage *image, const char *filename )
-{
-	g_signal_connect( image, "written", 
-		G_CALLBACK( vips_image_save_cb ), 
-		g_strdup( filename ) );
 }
 
 /* Progress feedback. 
@@ -627,7 +617,7 @@ vips_image_build( VipsObject *object )
 		else {
 			VipsImage *t;
 
-			if( vips_foreign_read( filename, &t, NULL ) )
+			if( vips_foreign_read_options( filename, &t ) )
 				return( -1 );
 
 			image->dtype = VIPS_IMAGE_PARTIAL;
@@ -642,21 +632,36 @@ vips_image_build( VipsObject *object )
 
 	case 'w':
 {
-		const char *file_op;
+		VipsObjectClass *oclass = 
+			g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
+		VipsObject *object;
 
-		if( !(file_op = vips_foreign_find_save( filename )) )
+		/* This will use vips_foreign_save_new_from_string() to pick a 
+		 * saver, then set options from the tail of the filename.
+		 */
+		if( !(object = vips_object_new_from_string( oclass, 
+			filename )) )
 			return( -1 );
+		vips_object_local( image, object );
 
 		/* Make sure the vips saver is there ... strange things will
 		 * happen if that type is renamed or removed.
 		 */
 		g_assert( g_type_from_name( "VipsForeignSaveVips" ) );
 
-		if( strcmp( file_op, "VipsForeignSaveVips" ) == 0 ) 
+		/* If this ia the vips saver, just save directly ourselves.
+		 * Otherwise trigger a _build() and save when the image has
+		 * been written to.
+		 */
+		if( G_TYPE_CHECK_INSTANCE_TYPE( object, 
+			g_type_from_name( "VipsForeignSaveVips" ) ) ) {
 			image->dtype = VIPS_IMAGE_OPENOUT;
+		}
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
-			vips_attach_save( image, filename );
+			g_signal_connect( image, "written", 
+				G_CALLBACK( vips_image_save_cb ), 
+				object );
 		}
 }
         	break;

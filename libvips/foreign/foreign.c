@@ -645,7 +645,7 @@ vips_foreign_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 /* Can we write this filename with this file? 
  */
 static void *
-vips_foreign_save_new_from_foreignname_sub( VipsForeignSaveClass *save_class, 
+vips_foreign_find_save_sub( VipsForeignSaveClass *save_class, 
 	const char *filename )
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
@@ -674,7 +674,7 @@ vips_foreign_find_save( const char *filename )
 
 	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
 		"VipsForeignSave",
-		(VipsSListMap2Fn) vips_foreign_save_new_from_foreignname_sub, 
+		(VipsSListMap2Fn) vips_foreign_find_save_sub, 
 		(void *) filename, NULL )) ) {
 		vips_error( "VipsForeignSave",
 			_( "\"%s\" is not a supported image file." ), 
@@ -954,7 +954,7 @@ vips_foreign_save_init( VipsForeignSave *object )
  * Loads @filename into @out using the loader recommended by
  * vips_foreign_find_load().
  *
- * See also: vips_foreign_write().
+ * See also: vips_foreign_write(), vips_foreign_read_options().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -979,6 +979,7 @@ vips_foreign_read( const char *filename, VipsImage **out, ... )
  * vips_foreign_write:
  * @in: image to write
  * @filename: file to write to
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Saves @in to @filename using the saver recommended by
  * vips_foreign_find_save().
@@ -1002,6 +1003,95 @@ vips_foreign_write( VipsImage *in, const char *filename, ... )
 	va_end( ap );
 
 	return( result );
+}
+
+/**
+ * vips_foreign_read_options:
+ * @filename: file to load
+ * @out: output image
+ *
+ * Loads @filename into @out using the loader recommended by
+ * vips_foreign_find_load().
+ *
+ * Arguments to the loader may be embedded in the filename using the usual
+ * syntax.
+ *
+ * See also: vips_foreign_read().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_foreign_read_options( const char *filename, VipsImage **out )
+{
+	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD );
+
+	VipsObject *object;
+
+	/* This will use vips_foreign_load_new_from_string() to pick a loader,
+	 * then set options from the remains of the string.
+	 */
+	if( !(object = vips_object_new_from_string( oclass, filename )) )
+		return( -1 );
+
+	if( vips_cache_operation_build( (VipsOperation **) &object ) ) {
+		/* The build may have made some output objects before
+		 * failing.
+		 */
+		vips_object_unref_outputs( object );
+		g_object_unref( object );
+		return( -1 );
+	}
+
+	g_object_get( object, "out", out, NULL );
+
+	/* Getting @out will have upped its count so it'll be safe.
+	 * We can junk all other outputs,
+	 */
+	vips_object_unref_outputs( object );
+
+	/* @out holds a ref to new_object, we can drop ours.
+	 */
+	g_object_unref( object );
+
+	return( 0 );
+}
+
+/**
+ * vips_foreign_write_options:
+ * @in: image to write
+ * @filename: file to write to
+ *
+ * Saves @in to @filename using the saver recommended by
+ * vips_foreign_find_save().
+ *
+ * See also: vips_foreign_write().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_foreign_write_options( VipsImage *in, const char *filename )
+{
+	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
+	VipsObject *object;
+
+	/* This will use vips_foreign_save_new_from_string() to pick a saver,
+	 * then set options from the tail of the filename.
+	 */
+	if( !(object = vips_object_new_from_string( oclass, filename )) )
+		return( -1 );
+
+	g_object_set( object, "in", in, NULL );
+
+	/* ... and running _build() should save it.
+	 */
+	if( vips_cache_operation_build( (VipsOperation **) &object ) ) {
+		g_object_unref( object );
+		return( -1 );
+	}
+
+	g_object_unref( object );
+
+	return( 0 );
 }
 
 /* Called from iofuncs to init all operations in this dir. Use a plugin system

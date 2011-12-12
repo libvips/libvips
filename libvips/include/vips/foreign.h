@@ -233,6 +233,9 @@ int vips_foreign_read( const char *filename, VipsImage **out, ... )
 int vips_foreign_write( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
+int vips_foreign_read_options( const char *filename, VipsImage **out );
+int vips_foreign_write_options( VipsImage *in, const char *filename );
+
 void vips_foreign_operation_init( void );
 
 int vips_openslideload( const char *filename, VipsImage **out, ... )

@@ -1250,8 +1250,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
 	VipsArgumentInstance *argument_instance;
-	GType otype;
 	VipsObjectClass *oclass;
+	GType otype;
 
 	GValue gvalue = { 0 };
 
@@ -1266,38 +1266,14 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	g_assert( argument_class->flags & VIPS_ARGUMENT_INPUT );
 
-	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) &&
-		(oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD )) ) { 
-		VipsObject *new_object;
+	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *out;
 
-		/* Use VipsForeign to build images, then pull @out from it and
-		 * use that to set the value.
+		/* Read the filename. vips_foreign_read_options()
+		 * handles embedded options.
 		 */
-		if( !(new_object = 
-			vips_object_new_from_string( oclass, value )) )
+		if( vips_foreign_read_options( value, &out ) )
 			return( -1 );
-
-		if( vips_cache_operation_build( 
-			(VipsOperation **) &new_object ) ) {
-			/* The build may have made some output objects before
-			 * failing.
-			 */
-			vips_object_unref_outputs( new_object );
-			g_object_unref( new_object );
-			return( -1 );
-		}
-
-		g_object_get( new_object, "out", &out, NULL );
-
-		/* Getting @out will have upped its count so it'll be safe.
-		 * We can junk all other outputs,
-		 */
-		vips_object_unref_outputs( new_object );
-
-		/* @out holds a ref to new_object, we can drop ours.
-		 */
-		g_object_unref( new_object );
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
 		g_value_set_object( &gvalue, out );
@@ -1460,29 +1436,18 @@ vips_object_get_argument_to_string( VipsObject *object,
 
 	g_assert( argument_class->flags & VIPS_ARGUMENT_OUTPUT );
 
-	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) &&
-		(oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE )) ) {
-		VipsObject *new_object;
+	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *in;
 
-		/* Use VipsForeign to make a saver, set 'in' on that and run
-		 * build to make it write.
+		/* Pull out the image and write it.
+		 * vips_foreign_write_options() handles embedded options.
 		 */
-		if( !(new_object = 
-			vips_object_new_from_string( oclass, arg )) )
-			return( -1 );
-
 		g_object_get( object, name, &in, NULL );
-		g_object_set( new_object, "in", in, NULL );
-		g_object_unref( in );
-
-		if( vips_cache_operation_build( 
-			(VipsOperation **) &new_object ) ) {
-			g_object_unref( new_object );
+		if( vips_foreign_write_options( in, arg ) ) {
+			g_object_unref( in );
 			return( -1 );
 		}
-
-		g_object_unref( new_object );
+		g_object_unref( in );
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
 		(oclass = g_type_class_ref( otype )) &&
