@@ -492,6 +492,12 @@ if test x"$with_cfitsio" != "xno"; then
     ])
 fi
 
+if test x"$with_cfitsio" = x"yes"; then
+  AM_CONDITIONAL(HAVE_CFITSIO, true)
+else
+  AM_CONDITIONAL(HAVE_CFITSIO, false)
+fi
+
 # pangoft2
 AC_ARG_WITH([pangoft2], 
   AS_HELP_STRING([--without-pangoft2], 

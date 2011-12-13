@@ -1,5 +1,14 @@
+- fits bandjoin is rubbish
+
+  perhaps we should always allocate the output in the loader? it's make fits
+  bandjoin simpler
+
+  
+
+
 - "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
+
 
 
 

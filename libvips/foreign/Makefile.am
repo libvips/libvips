@@ -19,6 +19,20 @@ EXTRA_DIST += \
 	openexrload.c 
 endif
 
+if HAVE_CFITSIO
+libforeign_la_SOURCES += \
+	fits.h \
+	fits.c \
+	fitssave.c \
+	fitsload.c 
+else
+EXTRA_DIST += \
+	fits.h \
+	fits.c \
+	fitssave.c \
+	fitsload.c 
+endif
+
 if HAVE_TIFF
 libforeign_la_SOURCES += \
 	tiff.h \

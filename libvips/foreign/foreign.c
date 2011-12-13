@@ -1154,6 +1154,8 @@ vips_foreign_write_options( VipsImage *in, const char *filename )
 void
 vips_foreign_operation_init( void )
 {
+	extern GType vips_foreign_load_fits_get_type( void ); 
+	extern GType vips_foreign_save_fits_get_type( void ); 
 	extern GType vips_foreign_load_openexr_get_type( void ); 
 	extern GType vips_foreign_load_openslide_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
@@ -1182,6 +1184,11 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_OPENSLIDE
 	vips_foreign_load_openslide_get_type(); 
 #endif /*HAVE_OPENSLIDE*/
+
+#ifdef HAVE_CFITSIO
+	vips_foreign_load_fits_get_type(); 
+	vips_foreign_save_fits_get_type(); 
+#endif /*HAVE_CFITSIO*/
 
 #ifdef HAVE_OPENEXR
 	vips_foreign_load_openexr_get_type(); 
@@ -1596,6 +1603,56 @@ vips_openslideload( const char *filename, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_call_split( "openslideload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_fitsload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read a FITS image file into a VIPS image. 
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_fitsload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "fitsload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_fitssave:
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Write a VIPS image to a file as FITS.
+ *
+ * See also: vips_image_write_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_fitssave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "fitssave", ap, in, filename );
 	va_end( ap );
 
 	return( result );
