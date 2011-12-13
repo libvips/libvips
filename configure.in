@@ -438,6 +438,12 @@ if test x"$with_OpenEXR" != "xno"; then
     ])
 fi
 
+if test x"$with_OpenEXR" = x"yes"; then
+  AM_CONDITIONAL(HAVE_OPENEXR, true)
+else
+  AM_CONDITIONAL(HAVE_OPENEXR, false)
+fi
+
 # OpenSlide
 AC_ARG_WITH([openslide],
   AS_HELP_STRING([--without-openslide], [build without OpenSlide (default: test)]))
@@ -450,6 +456,12 @@ if test x"$with_openslide" != "xno"; then
     [AC_MSG_WARN([OpenSlide >= 3.2.0 not found; disabling virtual slide support])
      with_openslide=no
     ])
+fi
+
+if test x"$with_openslide" = x"yes"; then
+  AM_CONDITIONAL(HAVE_OPENSLIDE, true)
+else
+  AM_CONDITIONAL(HAVE_OPENSLIDE, false)
 fi
 
 # matio
@@ -501,6 +513,13 @@ FIND_TIFF(
   [AC_MSG_WARN([libtiff not found; disabling TIFF support])
    with_tiff=no
   ])
+
+if test x"$with_tiff" = x"yes"; then
+  AM_CONDITIONAL(HAVE_TIFF, true)
+else
+  AM_CONDITIONAL(HAVE_TIFF, false)
+fi
+
 FIND_ZIP(
   [with_zip=yes],
   [AC_MSG_WARN([libz not found; disabling ZIP support])
@@ -511,6 +530,12 @@ FIND_JPEG(
   [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
    with_jpeg=no
   ])
+
+if test x"$with_jpeg" = x"yes"; then
+  AM_CONDITIONAL(HAVE_JPEG, true)
+else
+  AM_CONDITIONAL(HAVE_JPEG, false)
+fi
 
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 

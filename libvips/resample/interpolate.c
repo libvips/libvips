@@ -610,8 +610,11 @@ vips_interpolate_new( const char *nickname )
 {
 	GType type;
 
-	if( !(type = vips_type_find( "VipsInterpolate", nickname )) )
+	if( !(type = vips_type_find( "VipsInterpolate", nickname )) ) {
+		vips_error( "VipsInterpolate", 
+			_( "class \"%s\" not found" ), nickname );
 		return( NULL );
+	}
 
 	return( VIPS_INTERPOLATE( vips_object_new( type, NULL, NULL, NULL ) ) );
 }

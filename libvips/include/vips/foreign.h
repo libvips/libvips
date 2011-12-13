@@ -139,9 +139,14 @@ typedef struct _VipsForeignLoadClass {
 	 */
 	gboolean (*is_a)( const char * );
 
-	/* Get the flags for this file.
+	/* Get the flags for this image.
 	 */
 	VipsForeignFlags (*get_flags)( VipsForeignLoad * );
+
+	/* Get the flags from a filename. This is needed for vips7compat but
+	 * newer loaders don't have to define it.
+	 */
+	VipsForeignFlags (*get_flags_filename)( const char * );
 
 	/* Set the header fields in @out from @filename. If you can read the 
 	 * whole image as well with no performance cost (as with vipsload),
@@ -161,6 +166,9 @@ typedef struct _VipsForeignLoadClass {
 GType vips_foreign_load_get_type( void );
 
 const char *vips_foreign_find_load( const char *foreignname );
+
+VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
+gboolean vips_foreign_is_a( const char *loader, const char *filename );
 
 #define VIPS_TYPE_FOREIGN_SAVE (vips_foreign_save_get_type())
 #define VIPS_FOREIGN_SAVE( obj ) \

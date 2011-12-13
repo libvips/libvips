@@ -64,16 +64,24 @@ G_DEFINE_TYPE( VipsForeignLoadOpenexr, vips_foreign_load_openexr,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static VipsForeignFlags
-vips_foreign_load_openexr_get_flags( VipsForeignLoad *load )
+vips_foreign_load_openexr_get_flags_filename( const char *filename )
 {
-	VipsForeignLoadOpenexr *openexr = (VipsForeignLoadOpenexr *) load;
 	VipsForeignFlags flags;
 
 	flags = 0;
-	if( vips__openexr_istiled( openexr->filename ) )
+	if( vips__openexr_istiled( filename ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 
 	return( flags );
+}
+
+static VipsForeignFlags
+vips_foreign_load_openexr_get_flags( VipsForeignLoad *load )
+{
+	VipsForeignLoadOpenexr *openexr = (VipsForeignLoadOpenexr *) load;
+
+	return( vips_foreign_load_openexr_get_flags_filename( 
+		openexr->filename ) );
 }
 
 static int
@@ -117,6 +125,8 @@ vips_foreign_load_openexr_class_init( VipsForeignLoadOpenexrClass *class )
 	foreign_class->suffs = vips_foreign_openexr_suffs;
 
 	load_class->is_a = vips__openexr_isexr;
+	load_class->get_flags_filename = 
+		vips_foreign_load_openexr_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_openexr_get_flags;
 	load_class->header = vips_foreign_load_openexr_header;
 	load_class->load = vips_foreign_load_openexr_load;
@@ -132,36 +142,4 @@ vips_foreign_load_openexr_class_init( VipsForeignLoadOpenexrClass *class )
 static void
 vips_foreign_load_openexr_init( VipsForeignLoadOpenexr *openexr )
 {
-}
-
-/**
- * vips_openexrload:
- * @filename: file to load
- * @out: decompressed image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Read a OpenEXR file into a VIPS image. 
- *
- * The reader can handle scanline and tiled OpenEXR images. It can't handle
- * OpenEXR colour management, image attributes, many pixel formats, anything
- * other than RGBA.
- *
- * This reader uses the rather limited OpenEXR C API. It should really be
- * redone in C++.
- *
- * See also: vips_image_new_from_file().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_openexrload( const char *filename, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "openexrload", ap, filename, out );
-	va_end( ap );
-
-	return( result );
 }

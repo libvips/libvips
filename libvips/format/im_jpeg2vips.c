@@ -154,15 +154,14 @@ im_bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 }
 
 static int
-isjpeg( const char *filename )
+isjpeg( const char *name )
 {
-	unsigned char buf[2];
+	char filename[FILENAME_MAX];
+	char mode[FILENAME_MAX];
 
-	if( im__get_bytes( filename, buf, 2 ) )
-		if( (int) buf[0] == 0xff && (int) buf[1] == 0xd8 )
-			return( 1 );
+	im_filename_split( name, filename, mode );
 
-	return( 0 );
+	return( vips_foreign_is_a( "jpegload", filename ) );
 }
 
 static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };

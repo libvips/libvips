@@ -62,20 +62,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifndef HAVE_OPENEXR
-
-#include <vips/vips.h>
-
-int
-im_exr2vips( const char *name, IMAGE *out )
-{
-	im_error( "im_exr2vips", "%s",
-		_( "OpenEXR support disabled" ) );
-	return( -1 );
-}
-
-#else /*HAVE_OPENEXR*/
-
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -84,8 +70,6 @@ im_exr2vips( const char *name, IMAGE *out )
 #include <vips/vips.h>
 #include <vips/thread.h>
 #include <vips/internal.h>
-
-#include "../foreign/openexr2vips.h"
 
 int
 im_exr2vips( const char *filename, IMAGE *out )
@@ -106,15 +90,25 @@ im_exr2vips( const char *filename, IMAGE *out )
 static const char *exr_suffs[] = { ".exr", NULL };
 
 static VipsFormatFlags
-exr_flags( const char *filename )
+exr_flags( const char *name )
 {
-	VipsFormatFlags flags;
+	char filename[FILENAME_MAX];
+	char mode[FILENAME_MAX];
 
-	flags = 0;
-	if( vips__openexr_istiled( filename ) )
-		flags |= VIPS_FORMAT_PARTIAL;
+	im_filename_split( name, filename, mode );
 
-	return( flags );
+	return( vips_foreign_flags( "openexrload", filename ) );
+}
+
+static int
+isexr( const char *name )
+{
+	char filename[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+
+	im_filename_split( name, filename, mode );
+
+	return( vips_foreign_is_a( "openexrload", filename ) );
 }
 
 /* exr format adds no new members.
@@ -131,7 +125,7 @@ vips_format_exr_class_init( VipsFormatExrClass *class )
 	object_class->nickname = "exr";
 	object_class->description = _( "OpenEXR" );
 
-	format_class->is_a = vips__openexr_isexr;
+	format_class->is_a = isexr;
 	format_class->header = im_exr2vips;
 	format_class->load = im_exr2vips;
 	format_class->get_flags = exr_flags;
@@ -145,4 +139,3 @@ vips_format_exr_init( VipsFormatExr *object )
 
 G_DEFINE_TYPE( VipsFormatExr, vips_format_exr, VIPS_TYPE_FORMAT );
 
-#endif /*HAVE_OPENEXR*/

@@ -232,8 +232,11 @@ vips_operation_new( const char *name )
 
 	vips_check_init();
 
-	if( !(type = vips_type_find( "VipsOperation", name )) )
+	if( !(type = vips_type_find( "VipsOperation", name )) ) {
+		vips_error( "VipsOperation", 
+			_( "class \"%s\" not found" ), name );
 		return( NULL );
+	}
 	operation = VIPS_OPERATION( g_object_new( type, NULL ) );
 
 	VIPS_DEBUG_MSG( "vips_operation_new: %s (%p)\n", name, operation );

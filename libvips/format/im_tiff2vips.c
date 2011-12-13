@@ -83,15 +83,21 @@ tiff_flags( const char *name )
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
-	VipsFormatFlags flags;
 
 	im_filename_split( name, filename, mode );
 
-	flags = 0;
-	if( vips__istifftiled( filename ) )
-		flags |= VIPS_FORMAT_PARTIAL;
+	return( vips_foreign_flags( "tiffload", filename ) );
+}
 
-	return( flags );
+static int
+istiff( const char *name )
+{
+	char filename[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+
+	im_filename_split( name, filename, mode );
+
+	return( vips_foreign_is_a( "tiffload", filename ) );
 }
 
 static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
@@ -108,7 +114,7 @@ vips_format_tiff_class_init( VipsFormatTiffClass *class )
 	object_class->nickname = "tiff";
 	object_class->description = _( "TIFF" );
 
-	format_class->is_a = vips__istiff;
+	format_class->is_a = istiff;
 	format_class->header = im_tiff2vips;
 	format_class->load = NULL;
 	format_class->save = im_vips2tiff;

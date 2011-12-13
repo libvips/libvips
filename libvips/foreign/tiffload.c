@@ -67,19 +67,24 @@ typedef VipsForeignLoadClass VipsForeignLoadTiffClass;
 G_DEFINE_TYPE( VipsForeignLoadTiff, vips_foreign_load_tiff, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
-/* TIFF flags function.
- */
+static VipsForeignFlags
+vips_foreign_load_tiff_get_flags_filename( const char *filename )
+{
+	VipsForeignFlags flags;
+
+	flags = 0;
+	if( vips__istifftiled( filename ) ) 
+		flags |= VIPS_FOREIGN_PARTIAL;
+
+	return( flags );
+}
+
 static VipsForeignFlags
 vips_foreign_load_tiff_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
-	VipsForeignFlags flags;
 
-	flags = 0;
-	if( vips__istifftiled( tiff->filename ) ) 
-		flags |= VIPS_FOREIGN_PARTIAL;
-
-	return( flags );
+	return( vips_foreign_load_tiff_get_flags_filename( tiff->filename ) );
 }
 
 static int
@@ -123,6 +128,8 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 	foreign_class->suffs = vips__foreign_tiff_suffs;
 
 	load_class->is_a = vips__istiff;
+	load_class->get_flags_filename = 
+		vips_foreign_load_tiff_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_tiff_get_flags;
 	load_class->header = vips_foreign_load_tiff_header;
 	load_class->load = vips_foreign_load_tiff_load;
@@ -145,37 +152,4 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 static void
 vips_foreign_load_tiff_init( VipsForeignLoadTiff *tiff )
 {
-}
-
-/**
- * vips_tiffload:
- * @filename: file to load
- * @out: decompressed image
- * @page: load this page
- * @...: %NULL-terminated list of optional named arguments
- *
- * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
- * with extensions for tiled images, multipage images, LAB colour space, 
- * pyramidal images and JPEG compression. including CMYK and YCbCr.
- *
- * @page means load this page from the file. By default the first page (page
- * 0) is read.
- *
- * Any ICC profile is read and attached to the VIPS image.
- *
- * See also: vips_image_new_from_file().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_tiffload( const char *filename, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "tiffload", ap, filename, out );
-	va_end( ap );
-
-	return( result );
 }
