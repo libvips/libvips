@@ -1,3 +1,23 @@
+- the way were handling the format/ compat thing is broken
+
+  if we build without-tiff, tiff compat will break
+
+  we need very loose coupling: tiff compat must just use the foreign
+  interfaceo
+
+  we have vips__istiff() declared in foreign/tiff.h and internal.h
+
+
+  im_tiff2vips.c needs this stuff:
+
+  ->read()/->header() ... just use vips_tiffload()
+
+  ->is_a() ... 
+
+  ->flags() ...
+
+
+
 - "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
 

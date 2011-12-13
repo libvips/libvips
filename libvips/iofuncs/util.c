@@ -1168,8 +1168,8 @@ vips_popenf( const char *fmt, const char *mode, ... )
 
 /* Break a command-line argument into tokens separated by whitespace. Strings
  * can't be adjacent, so "hello world" (without quotes) is a single string.
- * Strings are written (with \" escaped) into string, which must be size 
- * characters large.
+ * Strings are written (with \" escaped) into @string, which must be @size 
+ * characters large. NULL for end of tokens.
  */
 const char *
 vips__token_get( const char *p, VipsToken *token, char *string, int size )

@@ -1,6 +1,9 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	openexr2vips.h \
+	openexr2vips.c \
+	openexrload.c \
 	openslide2vips.h \
 	openslide2vips.c \
 	openslideload.c \

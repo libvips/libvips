@@ -312,6 +312,9 @@ int vips_tiffload( const char *filename, VipsImage **out, ... )
 int vips_tiffsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
+int vips_openexrload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
