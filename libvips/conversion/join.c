@@ -186,7 +186,6 @@ vips_join_build( VipsObject *object )
 		t = t2;
 	}
 
-
 	if( vips_image_write( t, conversion->out ) ) {
 		g_object_unref( t );
 		return( -1 );

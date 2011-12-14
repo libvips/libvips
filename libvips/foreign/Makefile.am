@@ -3,6 +3,9 @@ noinst_LTLIBRARIES = libforeign.la
 libforeign_la_SOURCES = \
 	vipssave.c \
 	vipsload.c \
+	analyzeload.c \
+	analyze2vips.c \
+	analyze2vips.h \
 	foreign.c 
 
 EXTRA_DIST = 

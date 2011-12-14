@@ -1,5 +1,7 @@
 - suppression for the strspn() thing?
 
+- test analyze load
+
 
 
 - "header fred.png" does not work, since header uses im_open() which uses

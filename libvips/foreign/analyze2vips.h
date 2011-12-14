@@ -36,7 +36,7 @@ extern "C" {
 
 int vips__isanalyze( const char *filename );
 int vips__analyze_read_header( const char *filename, VipsImage *out );
-int vips__analyze_read( const char *filename, VipsImage *out )
+int vips__analyze_read( const char *filename, VipsImage *out );
 
 #ifdef __cplusplus
 }

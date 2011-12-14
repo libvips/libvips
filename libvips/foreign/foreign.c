@@ -1156,6 +1156,7 @@ vips_foreign_operation_init( void )
 {
 	extern GType vips_foreign_load_fits_get_type( void ); 
 	extern GType vips_foreign_save_fits_get_type( void ); 
+	extern GType vips_foreign_load_analyze_get_type( void ); 
 	extern GType vips_foreign_load_openexr_get_type( void ); 
 	extern GType vips_foreign_load_openslide_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
@@ -1194,6 +1195,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_openexr_get_type(); 
 #endif /*HAVE_OPENEXR*/
 
+	vips_foreign_load_analyze_get_type(); 
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 
 }

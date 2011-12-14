@@ -41,8 +41,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -58,6 +58,7 @@
 #include <vips/internal.h>
 
 #include "dbh.h"
+#include "analyze2vips.h"
 
 /* The things we can have in header fields. Can't use GType, since we want a
  * static value we can use in a declaration.
@@ -219,13 +220,10 @@ static Field dsr_header[] = {
 static void
 generate_filenames( const char *path, char *header, char *image )
 {
-	char name[FILENAME_MAX];
-	char mode[FILENAME_MAX];
-
 	const char *olds[] = { ".img", ".hdr" };
 
-	vips__change_suffix( name, header, FILENAME_MAX, ".hdr", olds, 2 );
-	vips__change_suffix( name, image, FILENAME_MAX, ".img", olds, 2 );
+	vips__change_suffix( path, header, FILENAME_MAX, ".hdr", olds, 2 );
+	vips__change_suffix( path, image, FILENAME_MAX, ".img", olds, 2 );
 }
 
 /* str is a str which may not be NULL-terminated. Return a pointer to a static
@@ -318,7 +316,7 @@ read_header( const char *header )
 	/* dsr headers are always SPARC byte order (MSB first). Do we need to 
 	 * swap?
 	 */
-	if( !im_amiMSBfirst() ) {
+	if( !vips_amiMSBfirst() ) {
 		int i;
 
 		for( i = 0; i < VIPS_NUMBER( dsr_header ); i++ ) {
@@ -350,7 +348,7 @@ read_header( const char *header )
 	}
 
 	if( (int) len != d->hk.sizeof_hdr ) {
-		im_free( d );
+		vips_free( d );
 		return( NULL );
 	}
 
@@ -361,7 +359,7 @@ read_header( const char *header )
  */
 static int
 get_vips_properties( struct dsr *d,
-	int *width, int *height, int *bands, int *fmt )
+	int *width, int *height, int *bands, VipsBandFormat *fmt )
 {
 	int i;
 
@@ -385,37 +383,37 @@ get_vips_properties( struct dsr *d,
 	switch( d->dime.datatype ) {
 	case DT_UNSIGNED_CHAR:
 		*bands = 1;
-		*fmt = IM_BANDFMT_UCHAR;
+		*fmt = VIPS_FORMAT_UCHAR;
 		break;
 
 	case DT_SIGNED_SHORT:
 		*bands = 1;
-		*fmt = IM_BANDFMT_SHORT;
+		*fmt = VIPS_FORMAT_SHORT;
 		break;
 
 	case DT_SIGNED_INT:
 		*bands = 1;
-		*fmt = IM_BANDFMT_INT;
+		*fmt = VIPS_FORMAT_INT;
 		break;
 
 	case DT_FLOAT:
 		*bands = 1;
-		*fmt = IM_BANDFMT_FLOAT;
+		*fmt = VIPS_FORMAT_FLOAT;
 		break;
 
 	case DT_COMPLEX:
 		*bands = 1;
-		*fmt = IM_BANDFMT_COMPLEX;
+		*fmt = VIPS_FORMAT_COMPLEX;
 		break;
 
 	case DT_DOUBLE:
 		*bands = 1;
-		*fmt = IM_BANDFMT_DOUBLE;
+		*fmt = VIPS_FORMAT_DOUBLE;
 		break;
 
 	case DT_RGB:
 		*bands = 3;
-		*fmt = IM_BANDFMT_UCHAR;
+		*fmt = VIPS_FORMAT_UCHAR;
 		break;
 
 	default:
@@ -489,7 +487,7 @@ vips__isanalyze( const char *filename )
 	struct dsr *d;
 	int width, height;
 	int bands;
-	int fmt;
+	VipsBandFormat fmt;
 
 	generate_filenames( filename, header, image );
 	if( !vips_existsf( "%s", header ) )
@@ -518,7 +516,7 @@ vips__analyze_read_header( const char *filename, VipsImage *out )
 	struct dsr *d;
 	int width, height;
 	int bands;
-	int fmt;
+	VipsBandFormat fmt;
 
 	generate_filenames( filename, header, image );
 	if( !(d = read_header( header )) ) 
@@ -529,7 +527,7 @@ vips__analyze_read_header( const char *filename, VipsImage *out )
 #endif /*DEBUG*/
 
 	if( get_vips_properties( d, &width, &height, &bands, &fmt ) ) {
-		im_free( d );
+		vips_free( d );
 		return( -1 );
 	}
 
@@ -551,10 +549,10 @@ vips__analyze_read( const char *filename, VipsImage *out )
 	char header[FILENAME_MAX];
 	char image[FILENAME_MAX];
 	struct dsr *d;
-	IMAGE *t[2];
+	VipsImage *t;
 	int width, height;
 	int bands;
-	int fmt;
+	VipsBandFormat fmt;
 
 	generate_filenames( filename, header, image );
 	if( !(d = read_header( header )) ) 
@@ -565,14 +563,19 @@ vips__analyze_read( const char *filename, VipsImage *out )
 #endif /*DEBUG*/
 
 	if( get_vips_properties( d, &width, &height, &bands, &fmt ) ||
-		im_open_local_array( out, t, 2, "analyze2vips", "p" ) ||
-		im_raw2vips( image, t[0], width, height,
-			bands * im_bits_of_fmt( fmt ) / 8, 0 ) || 
-		im_copy_morph( t[0], t[1], bands, fmt, IM_CODING_NONE ) ||
-		im_copy_native( t[1], out, TRUE ) ) {
+		!(t = vips_image_new_from_file_raw( image, width, height,
+			bands * vips_format_sizeof( fmt ), 0 )) )
+		return( -1 );
+
+	if( vips_copy( t, &t, 
+		"bands", bands, "format", fmt, "swap", vips_amiMSBfirst(),
+		NULL ) ||
+		vips_image_write( t, out ) ) {
+		g_object_unref( t );
 		vips_free( d );
 		return( -1 );
 	}
+	g_object_unref( t );
 
 	attach_meta( out, d );
 
