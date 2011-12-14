@@ -186,39 +186,17 @@ print_list( int argc, char **argv )
 	else if( strcmp( argv[0], "classes" ) == 0 ) 
 		vips_type_map_all( g_type_from_name( "VipsObject" ), 
 			(VipsTypeMapFn) list_class, NULL );
+	else if( g_type_from_name( argv[0] ) &&
+		g_type_is_a( g_type_from_name( argv[0] ), VIPS_TYPE_OBJECT ) ) {
+		vips_type_map_all( g_type_from_name( argv[0] ), 
+			(VipsTypeMapFn) list_class, NULL );
+	}
 	else {
 		if( map_name( argv[0], list_function ) )
 			error_exit( "unknown package \"%s\"", argv[0] ); 
 	}
 
 	return( 0 );
-}
-
-/* Is s1 a prefix of s2?
- */
-static int
-isprefix( const char *s1, const char *s2 )
-{
-	while( *s1 && *s1 == *s2 ) {
-		s1++;
-		s2++;
-	}
-
-	return( *s1 == '\0' );
-}
-
-/* Is s1 a postfix of s2?
- */
-static int
-ispostfix( const char *s1, const char *s2 )
-{
-	int l1 = strlen( s1 );
-	int l2 = strlen( s2 );
-
-	if( l2 < l1 )
-		return( 0 );
-	
-	return( strcasecmp( s1, s2 + l2 - l1 ) == 0 );
 }
 
 /* Print "ln -s" lines for this package.
@@ -455,7 +433,7 @@ find_ioargs( im_function *fn, int *ia, int *oa )
 static gboolean
 drop_postfix( char *str, const char *postfix )
 {
-	if( ispostfix( postfix, str ) ) {
+	if( vips_ispostfix( str, postfix ) ) {
 		str[strlen( str ) - strlen( postfix )] = '\0';
 
 		return( TRUE );
@@ -485,7 +463,7 @@ c2cpp_name( const char *in, char *out )
 
 	/* Copy, chopping off "im_" prefix.
 	 */
-	if( isprefix( "im_", in ) )
+	if( vips_isprefix( "im_", in ) )
 		strcpy( out, in + 3 );
 	else
 		strcpy( out, in );
@@ -498,7 +476,7 @@ c2cpp_name( const char *in, char *out )
 
 		found = FALSE;
 		for( i = 0; i < IM_NUMBER( dont_drop ); i++ )
-			if( ispostfix( dont_drop[i], out ) ) {
+			if( vips_ispostfix( out, dont_drop[i] ) ) {
 				found = TRUE;
 				break;
 			}

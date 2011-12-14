@@ -1,14 +1,5 @@
 - suppression for the strspn() thing?
 
-  leak check output should write a single line for each leaked image, not the
-  whole header
-
-  "header" should maybe not have it's own summary printer? can we put this in
-  vips somewhere
-
-  "vips list VipsInterpolate" should list all classes below VipsInterpolate
-
-  
 
 
 - "header fred.png" does not work, since header uses im_open() which uses
