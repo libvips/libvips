@@ -473,42 +473,41 @@ vips__fits_read( const char *filename, VipsImage *out )
 	 */
 
 	t = vips_image_new();
-	vips_object_local( out, t );
-	if( vips__fits_read_header( filename, t ) )
+	if( vips__fits_read_header( filename, t ) ) {
+		g_object_unref( t );
 		return( -1 );
+	}
 	n_bands = t->Bands;
+	g_object_unref( t );
 
 	if( n_bands == 1 ) {
-		t = vips_image_new();
-		vips_object_local( out, t );
-		if( fits2vips( filename, t, 0 ) )
+		if( fits2vips( filename, out, 0 ) )
 			return( -1 );
 	}
 	else {
-		VipsImage *acc;
+		VipsImage **x;
 		int i;
 
-		acc = NULL;
-		for( i = 0; i < n_bands; i++ ) {
-			t = vips_image_new();
-			vips_object_local( out, t );
-			if( fits2vips( filename, t, i ) )
-				return( -1 );
+		t = vips_image_new();
+		x = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ), 
+			n_bands + 1 );
 
-			if( !acc )
-				acc = t;
-			else {
-				if( vips_bandjoin2( acc, t, &acc, NULL ) )
-					return( -1 );
-				vips_object_local( out, acc );
+		for( i = 0; i < n_bands; i++ ) {
+			x[i] = vips_image_new();
+			if( fits2vips( filename, x[i], i ) ) {
+				g_object_unref( t );
+				return( -1 );
 			}
 		}
 
-		t = acc;
-	}
+		if( vips_bandjoin( x, &x[n_bands], n_bands, NULL ) ||
+			vips_image_write( x[n_bands], out ) ) {
+			g_object_unref( t );
+			return( -1 );
+		}
 
-	if( vips_image_write( t, out ) ) 
-		return( -1 );
+		g_object_unref( t );
+	}
 
 	return( 0 );
 }
@@ -546,7 +545,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 
 	if( !(fits = VIPS_NEW( in, VipsFits )) )
 		return( NULL );
-	fits->filename = vips_strdup( in, filename );
+	fits->filename = vips_strdup( VIPS_OBJECT( in ), filename );
 	fits->image = in;
 	fits->fptr = NULL;
 	fits->lock = NULL;

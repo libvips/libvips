@@ -78,8 +78,13 @@ static int
 vips_foreign_load_fits_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadFits *fits = (VipsForeignLoadFits *) load;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( fits ), 2 );
 
-	if( vips__fits_read( fits->filename, load->real ) ) 
+	t[0] = vips_image_new();
+	if( vips__fits_read( fits->filename, t[0] ) || 
+		vips_flip( t[0], &t[1], VIPS_DIRECTION_VERTICAL, NULL ) ||
+		vips_image_write( t[1], load->real ) )
 		return( -1 );
 
 	return( 0 );

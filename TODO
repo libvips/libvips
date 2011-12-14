@@ -1,7 +1,10 @@
-- fits bandjoin is rubbish
+- fits bandjoin is rubbish ... eg for WFPC2u5780205r_c0fx.fits we see last two
+  bands as all zero
 
-  perhaps we should always allocate the output in the loader? it's make fits
-  bandjoin simpler
+  suppression for the strspn() thing?
+
+  leak check output should write a single line for each leaked image, not the
+  whole header
 
   
 

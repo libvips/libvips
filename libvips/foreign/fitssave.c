@@ -67,13 +67,19 @@ vips_foreign_save_fits_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveFits *fits = (VipsForeignSaveFits *) object;
+	VipsImage *t;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_fits_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__fits_write( save->ready, fits->filename ) )
+	if( vips_flip( save->ready, &t, VIPS_DIRECTION_VERTICAL, NULL ) )
 		return( -1 );
+	if( vips__fits_write( t, fits->filename ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
 
 	return( 0 );
 }
