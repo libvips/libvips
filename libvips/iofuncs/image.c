@@ -381,6 +381,28 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 	vips_buf_appendf( buf, "Hist: %s", vips_image_get_history( image ) );
 }
 
+static void
+vips_image_print_summary( VipsObject *object, VipsBuf *buf )
+{
+	VipsImage *image = VIPS_IMAGE( object );
+
+	vips_buf_appendf( buf, 
+		ngettext( 
+			"%dx%d %s, %d band, %s", 
+			"%dx%d %s, %d bands, %s", 
+			vips_image_get_bands( image ) ),
+		vips_image_get_width( image ),
+		vips_image_get_height( image ),
+		VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, 
+			vips_image_get_format( image ) ),
+		vips_image_get_bands( image ),
+		VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
+			vips_image_get_interpretation( image ) ) );
+
+	VIPS_OBJECT_CLASS( vips_image_parent_class )->
+		print_summary( object, buf );
+}
+
 static void *
 vips_image_sanity_upstream( VipsImage *up, VipsImage *down )
 {
@@ -792,6 +814,7 @@ vips_image_class_init( VipsImageClass *class )
 	vobject_class->description = _( "image class" );
 
 	vobject_class->print = vips_image_print;
+	vobject_class->print_summary = vips_image_print_summary;
 	vobject_class->sanity = vips_image_sanity;
 	vobject_class->rewind = vips_image_rewind;
 	vobject_class->build = vips_image_build;

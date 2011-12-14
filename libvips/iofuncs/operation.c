@@ -150,7 +150,6 @@ vips_operation_print_usage( VipsOperationClass *class, VipsBuf *buf )
 			buf, &print );
 }
 
-#ifdef VIPS_DEBUG
 static void *
 vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
@@ -173,19 +172,16 @@ vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,
 
 	return( NULL );
 }
-#endif /*VIPS_DEBUG*/
 
 static void
 vips_operation_print( VipsObject *object, VipsBuf *buf )
 {
-#ifdef VIPS_DEBUG
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
 	printf( "%s args:\n", object_class->nickname );
 	vips_argument_map( VIPS_OBJECT( operation ),
 		(VipsArgumentMapFn) vips_operation_call_argument, NULL, NULL );
-#endif /*VIPS_DEBUG*/
 
 	VIPS_OBJECT_CLASS( vips_operation_parent_class )->print( object, buf );
 }

@@ -304,10 +304,26 @@ vips_region_print( VipsObject *object, VipsBuf *buf )
 	vips_buf_appendf( buf, "seq = %p, ", region->seq );
 	vips_buf_appendf( buf, "thread = %p, ", region->thread );
 	vips_buf_appendf( buf, "window = %p, ", region->window );
-	vips_buf_appendf( buf, "buffer = %p\n", region->buffer );
-	vips_buf_appendf( buf, "invalid = %d\n", region->invalid );
+	vips_buf_appendf( buf, "buffer = %p, ", region->buffer );
+	vips_buf_appendf( buf, "invalid = %d", region->invalid );
 
 	VIPS_OBJECT_CLASS( vips_region_parent_class )->print( object, buf );
+}
+
+static void
+vips_region_print_summary( VipsObject *object, VipsBuf *buf )
+{
+	VipsRegion *region = VIPS_REGION( object );
+
+	vips_buf_appendf( buf, "VipsRegion: %p, ", region );
+	vips_buf_appendf( buf, "im = %p, ", region->im );
+	vips_buf_appendf( buf, "left = %d, ", region->valid.left );
+	vips_buf_appendf( buf, "top = %d, ", region->valid.top );
+	vips_buf_appendf( buf, "width = %d, ", region->valid.width );
+	vips_buf_appendf( buf, "height = %d", region->valid.height );
+
+	VIPS_OBJECT_CLASS( vips_region_parent_class )->
+		print_summary( object, buf );
 }
 
 static void
@@ -421,6 +437,7 @@ vips_region_class_init( VipsRegionClass *class )
 	gobject_class->dispose = vips_region_dispose;
 
 	vobject_class->print = vips_region_print;
+	vobject_class->print_summary = vips_region_print_summary;
 	vobject_class->print = vips_region_sanity;
 	vobject_class->build = vips_region_build;
 }

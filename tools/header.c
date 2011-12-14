@@ -142,24 +142,7 @@ print_header( IMAGE *im, gboolean many )
 	if( !main_option_field ) {
 		printf( "%s: ", im->filename );
 
-		printf( ngettext( 
-			"%dx%d %s, %d band, %s", 
-			"%dx%d %s, %d bands, %s", 
-			vips_image_get_bands( im ) ),
-			vips_image_get_width( im ),
-			vips_image_get_height( im ),
-			VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, 
-				vips_image_get_format( im ) ),
-			vips_image_get_bands( im ),
-			VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
-				vips_image_get_interpretation( im ) ) );
-
-		if( im->magic == VIPS_MAGIC_SPARC )
-			printf( ", sparc" );
-		else if( im->magic == VIPS_MAGIC_INTEL )
-			printf( ", intel" );
-
-		printf( "\n" );
+		vips_object_print_summary( VIPS_OBJECT( im ) );
 
 		if( main_option_all )
 			(void) vips_image_map( im, print_field_fn, &many );

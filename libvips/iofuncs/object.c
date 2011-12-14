@@ -212,6 +212,18 @@ vips_object_print( VipsObject *object )
 }
 
 void
+vips_object_print_summary( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	char str[32768];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	class->print_summary( object, &buf );
+	printf( "%s\n", vips_buf_all( &buf ) );
+}
+
+void
 vips_object_print_name( VipsObject *object )
 {
 	printf( "%s (%p)", G_OBJECT_TYPE_NAME( object ), object );
@@ -1052,6 +1064,12 @@ vips_object_real_print( VipsObject *object, VipsBuf *buf )
 }
 
 static void
+vips_object_real_print_summary( VipsObject *object, VipsBuf *buf )
+{
+	vips_buf_appendf( buf, " (%p)", object );
+}
+
+static void
 vips_object_real_sanity( VipsObject *object, VipsBuf *buf )
 {
 }
@@ -1127,6 +1145,7 @@ vips_object_class_init( VipsObjectClass *class )
 	class->build = vips_object_real_build;
 	class->print_class = vips_object_real_print_class;
 	class->print = vips_object_real_print;
+	class->print_summary = vips_object_real_print_summary;
 	class->sanity = vips_object_real_sanity;
 	class->rewind = vips_object_real_rewind;
 	class->new_from_string = vips_object_real_new_from_string;
@@ -1976,7 +1995,7 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 
 	class->print_class( class, &buf );
 	vips_buf_appends( &buf, " " );
-	class->print( object, &buf );
+	class->print_summary( object, &buf );
 	fprintf( stderr, "%s\n", vips_buf_all( &buf ) );
 
 	*n += 1;
