@@ -63,17 +63,24 @@ vips_foreign_load_vips_is_a( const char *filename )
 }
 
 static VipsForeignFlags
-vips_foreign_load_vips_get_flags( VipsForeignLoad *load )
+vips_foreign_load_vips_get_flags_filename( const char *filename )
 {
-	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) load;
 	VipsForeignFlags flags;
 
 	flags = VIPS_FOREIGN_PARTIAL;
 
-	if( vips__file_magic( vips->filename ) == VIPS_MAGIC_SPARC ) 
+	if( vips__file_magic( filename ) == VIPS_MAGIC_SPARC ) 
 		flags |= VIPS_FOREIGN_BIGENDIAN;
 
 	return( flags );
+}
+
+static VipsForeignFlags
+vips_foreign_load_vips_get_flags( VipsForeignLoad *load )
+{
+	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) load;
+
+	return( vips_foreign_load_vips_get_flags_filename( vips->filename ) );
 }
 
 static int
@@ -117,6 +124,8 @@ vips_foreign_load_vips_class_init( VipsForeignLoadVipsClass *class )
 
 	load_class->is_a = vips_foreign_load_vips_is_a;
 	load_class->get_flags = vips_foreign_load_vips_get_flags;
+	load_class->get_flags_filename = 
+		vips_foreign_load_vips_get_flags_filename;
 	load_class->header = vips_foreign_load_vips_header;
 	load_class->load = NULL;
 
@@ -132,4 +141,3 @@ static void
 vips_foreign_load_vips_init( VipsForeignLoadVips *vips )
 {
 }
-

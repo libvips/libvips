@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	rawload.c \
 	vipssave.c \
 	vipsload.c \
 	analyzeload.c \

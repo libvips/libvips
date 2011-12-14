@@ -358,6 +358,16 @@ vips_foreign_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 		vips_buf_appends( buf, ", header" );
 	if( class->load )
 		vips_buf_appends( buf, ", load" );
+
+	/* Sanity: it's OK to have get_flags() and get_flags_filename() both
+	 * NULL or both not-NULL.
+	 */
+	g_assert( (void *) class->get_flags != 
+		(void *) class->get_flags_filename );
+
+	/* You can omit ->load(), you must not omit ->header().
+	 */
+	g_assert( class->header );
 }
 
 /* Can this VipsForeign open this file?
@@ -1168,6 +1178,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_tiff_get_type( void ); 
 	extern GType vips_foreign_load_vips_get_type( void ); 
 	extern GType vips_foreign_save_vips_get_type( void ); 
+	extern GType vips_foreign_load_raw_get_type( void ); 
 
 #ifdef HAVE_JPEG
 	vips_foreign_load_jpeg_file_get_type(); 
@@ -1196,6 +1207,7 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_OPENEXR*/
 
 	vips_foreign_load_analyze_get_type(); 
+	vips_foreign_load_raw_get_type(); 
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 
 }

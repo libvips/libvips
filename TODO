@@ -2,6 +2,9 @@
 
 - test analyze load
 
+- make sure we have a get_flags_filename everywhere
+
+
 
 
 - "header fred.png" does not work, since header uses im_open() which uses
