@@ -92,7 +92,6 @@ vips_format_fits_class_init( VipsFormatFitsClass *class )
 
 	format_class->is_a = isfits;
 	format_class->header = im_fits2vips;
-	format_class->load = im_fits2vips;
 	format_class->save = im_vips2fits;
 	format_class->suffs = fits_suffs;
 }

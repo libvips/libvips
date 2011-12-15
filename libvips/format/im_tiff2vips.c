@@ -116,7 +116,6 @@ vips_format_tiff_class_init( VipsFormatTiffClass *class )
 
 	format_class->is_a = istiff;
 	format_class->header = im_tiff2vips;
-	format_class->load = NULL;
 	format_class->save = im_vips2tiff;
 	format_class->get_flags = tiff_flags;
 	format_class->suffs = tiff_suffs;
