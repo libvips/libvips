@@ -4,6 +4,8 @@
 
 - make sure we have a get_flags_filename everywhere
 
+- threading tests fail?
+
 
 
 
