@@ -147,6 +147,35 @@ vips__open_image_read( const char *filename )
 	return( fd );
 }
 
+/* Open for write for image files. 
+ */
+int
+vips__open_image_write( const char *filename, gboolean temp )
+{
+	int flags;
+	int fd;
+
+	flags = MODE_WRITE;
+
+#ifdef _O_TEMPORARY
+	/* On Windows, setting O_TEMP gets the file automatically
+	 * deleted on process exit, even if the processes crashes. See
+	 * vips_image_rewind() for what we do to help on *nix.
+	 */
+	if( temp )
+		flags |= _O_TEMPORARY;
+#endif /*_O_TEMPORARY*/
+
+	if( (fd = vips_tracked_open( filename, flags, 0666 )) < 0 ) {
+		vips_error_system( errno, "VipsImage", 
+			_( "unable to write to \"%s\"" ), 
+			filename );
+		return( -1 );
+	}
+
+	return( fd );
+}
+
 /* Predict the size of the header plus pixel data. Don't use off_t,
  * it's sometimes only 32 bits (eg. on many windows build environments) and we
  * want to always be 64 bit.
@@ -956,26 +985,10 @@ vips_image_open_output( VipsImage *image )
 		 * writing a VIPS image anyway.
 		 */
 		unsigned char header[VIPS_SIZEOF_HEADER];
-		int flags;
 
-		flags = MODE_WRITE;
-
-#ifdef _O_TEMPORARY
-		/* On Windows, setting O_TEMP gets the file automatically
-		 * deleted on process exit, even if the processes crashes. See
-		 * vips_image_rewind() for what we do to help on *nix.
-		 */
-		if( image->delete_on_close )
-			flags |= _O_TEMPORARY;
-#endif /*_O_TEMPORARY*/
-
-		if( (image->fd = vips_tracked_open( image->filename, 
-			flags, 0666 )) < 0 ) {
-			vips_error_system( errno, "VipsImage", 
-				_( "unable to write to \"%s\"" ), 
-				image->filename );
+		if( (image->fd = vips__open_image_write( image->filename, 
+			image->delete_on_close )) < 0 )
 			return( -1 );
-		}
 
 		/* We always write in native mode, so we must overwrite the
 		 * magic we read from the file originally.

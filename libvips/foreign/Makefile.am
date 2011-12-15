@@ -2,8 +2,9 @@ noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
 	rawload.c \
-	vipssave.c \
+	rawsave.c \
 	vipsload.c \
+	vipssave.c \
 	analyzeload.c \
 	analyze2vips.c \
 	analyze2vips.h \
@@ -27,14 +28,14 @@ if HAVE_CFITSIO
 libforeign_la_SOURCES += \
 	fits.h \
 	fits.c \
-	fitssave.c \
-	fitsload.c 
+	fitsload.c \
+	fitssave.c 
 else
 EXTRA_DIST += \
 	fits.h \
 	fits.c \
-	fitssave.c \
-	fitsload.c 
+	fitsload.c \
+	fitssave.c 
 endif
 
 if HAVE_TIFF

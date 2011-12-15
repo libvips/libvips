@@ -334,6 +334,10 @@ int vips_analyzeload( const char *filename, VipsImage **out, ... )
 int vips_rawload( const char *filename, VipsImage **out, 
 	int width, int height, int bands, ... )
 	__attribute__((sentinel));
+int vips_rawsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_rawsavefd( VipsImage *in, int fd, ... )
+	__attribute__((sentinel));
 
 #ifdef __cplusplus
 }

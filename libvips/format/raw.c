@@ -1,8 +1,7 @@
 /* Read raw image. Just a wrapper over im_binfile().
  * 
- * 3/8/05
- * 4/2/10
- * 	- gtkdoc
+ * 15/12/11
+ * 	- just a compat stub now
  */
 
 /*
@@ -42,40 +41,27 @@
 
 #include <vips/vips.h>
 
-/** 
- * im_raw2vips:
- * @filename: file to read
- * @out: image to write to
- * @width: image width in pixels
- * @height: image height in pixels
- * @bpp: bytes per pixel 
- * @offset: skip this many bytes at the start of the file
- *
- * This operation mmaps the file, setting @out so that access to that 
- * image will read from the file.
- *
- * Use functions like im_copy_morph() to set the pixel type, byte ordering 
- * and so on.
- *
- * See also: #VipsFormat, im_vips2raw().
- *
- * Returns: 0 on success, -1 on error.
- */
 int
 im_raw2vips( const char *filename, IMAGE *out, 
 	int width, int height, int bpp, int offset )
 {
-	IMAGE *t;
+	VipsImage *t;
 
-	if( !(t = im_binfile( filename, width, height, bpp, offset )) )
+	if( vips_rawload( filename, &t, width, height, bpp,
+		"offset", offset, 
+		NULL ) )
 		return( -1 );
-	if( im_add_close_callback( out, 
-		(im_callback_fn) im_close, t, NULL ) ) {
-		im_close( t );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
 		return( -1 );
 	}
-	if( im_copy( t, out ) )
-		return( -1 );
+	g_object_unref( t );
 
 	return( 0 );
+}
+
+int
+im_vips2raw( IMAGE *in, int fd )
+{
+	return( vips_rawsavefd( in, fd, NULL ) );
 }

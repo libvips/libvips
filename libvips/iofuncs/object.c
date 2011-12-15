@@ -870,6 +870,12 @@ vips_object_set_property( GObject *gobject,
 
 		*member = g_value_get_int( value );
 	}
+	else if( G_IS_PARAM_SPEC_UINT64( pspec ) ) {
+		guint64 *member = &G_STRUCT_MEMBER( guint64, object,
+			argument_class->offset );
+
+		*member = g_value_get_uint64( value );
+	}
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean *member = &G_STRUCT_MEMBER( gboolean, object,
 			argument_class->offset );
@@ -967,6 +973,12 @@ vips_object_get_property( GObject *gobject,
 			argument_class->offset );
 
 		g_value_set_int( value, *member );
+	}
+	else if( G_IS_PARAM_SPEC_UINT64( pspec ) ) {
+		guint64 *member = &G_STRUCT_MEMBER( guint64, object,
+			argument_class->offset );
+
+		g_value_set_uint64( value, *member );
 	}
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean *member = &G_STRUCT_MEMBER( gboolean, object,
@@ -1343,6 +1355,10 @@ vips_object_set_argument_from_string( VipsObject *object,
 	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
 		g_value_init( &gvalue, G_TYPE_INT );
 		g_value_set_int( &gvalue, atoi( value ) );
+	}
+	else if( G_IS_PARAM_SPEC_UINT64( pspec ) ) {
+		g_value_init( &gvalue, G_TYPE_UINT64 );
+		g_value_set_uint64( &gvalue, atoll( value ) );
 	}
 	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
 		g_value_init( &gvalue, G_TYPE_DOUBLE );

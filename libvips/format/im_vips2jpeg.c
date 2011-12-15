@@ -1,51 +1,5 @@
 /* Convert 8-bit VIPS images to/from JPEG.
  *
- * 28/11/03 JC
- *	- better no-overshoot on tile loop
- * 12/11/04
- *	- better demand size choice for eval
- * 30/6/05 JC
- *	- update im_error()/im_warn()
- *	- now loads and saves exif data
- * 30/7/05
- * 	- now loads ICC profiles
- * 	- now saves ICC profiles from the VIPS header
- * 24/8/05
- * 	- jpeg load sets vips xres/yres from exif, if possible
- * 	- jpeg save sets exif xres/yres from vips, if possible
- * 29/8/05
- * 	- cut from old vips_jpeg.c
- * 20/4/06
- * 	- auto convert to sRGB/mono for save
- * 13/10/06
- * 	- add </libexif/ prefix if required
- * 19/1/07
- * 	- oop, libexif confusion
- * 2/11/07
- * 	- use im_wbuffer() API for BG writes
- * 15/2/08
- * 	- write CMYK if Bands == 4 and Type == CMYK
- * 12/5/09
- *	- fix signed/unsigned warning
- * 13/8/09
- * 	- allow "none" for profile, meaning don't embed one
- * 4/2/10
- * 	- gtkdoc
- * 17/7/10
- * 	- use g_assert()
- * 	- allow space for the header in init_destination(), helps writing very
- * 	  small JPEGs (thanks Tim Elliott)
- * 18/7/10
- * 	- collect im_vips2bufjpeg() output in a list of blocks ... we no
- * 	  longer overallocate or underallocate
- * 8/7/11
- * 	- oop CMYK write was not inverting, thanks Ole
- * 12/10/2011
- * 	- write XMP data
- * 18/10/2011
- * 	- update Orientation as well
- * 3/11/11
- * 	- rebuild exif tags from coded metadata values 
  * 30/11/11
  * 	- now just a stub calling the new system
  */
