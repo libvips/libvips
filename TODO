@@ -2,9 +2,15 @@
 
 - test analyze load
 
-- make sure we have a get_flags_filename everywhere
+  .... appears to be broken, byteswap problem? also, leaks an image
 
-- threading tests fail?
+- test csv load/save
+
+  $ vips im_copy pics/Gugg_coloured.jpg x.csv
+  Segmentation fault
+
+  some arg mixup?
+
 
 
 

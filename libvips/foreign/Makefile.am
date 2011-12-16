@@ -1,6 +1,10 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	csv.h \
+	csv.c \
+	csvload.c \
+	csvsave.c \
 	rawload.c \
 	rawsave.c \
 	vipsload.c \

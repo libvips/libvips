@@ -31,6 +31,7 @@ vips_saveable_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
+			{VIPS_SAVEABLE_MONO, "VIPS_SAVEABLE_MONO", "mono"},
 			{VIPS_SAVEABLE_RGB, "VIPS_SAVEABLE_RGB", "rgb"},
 			{VIPS_SAVEABLE_RGBA, "VIPS_SAVEABLE_RGBA", "rgba"},
 			{VIPS_SAVEABLE_RGB_CMYK, "VIPS_SAVEABLE_RGB_CMYK", "rgb-cmyk"},

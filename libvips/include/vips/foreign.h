@@ -187,6 +187,7 @@ gboolean vips_foreign_is_a( const char *loader, const char *filename );
 
 /** 
  * VipsSaveable:
+ * @VIPS_SAVEABLE_MONO: 1 band (eg. CSV)
  * @VIPS_SAVEABLE_RGB: 1 or 3 bands (eg. PPM) 
  * @VIPS_SAVEABLE_RGBA: 1, 2, 3 or 4 bands (eg. PNG)
  * @VIPS_SAVEABLE_RGB_CMYK: 1, 3 or 4 bands (eg. JPEG)
@@ -195,6 +196,7 @@ gboolean vips_foreign_is_a( const char *loader, const char *filename );
  * See also: #VipsForeignSave.
  */
 typedef enum {
+	VIPS_SAVEABLE_MONO,
 	VIPS_SAVEABLE_RGB,
 	VIPS_SAVEABLE_RGBA,
 	VIPS_SAVEABLE_RGB_CMYK,
@@ -337,6 +339,11 @@ int vips_rawload( const char *filename, VipsImage **out,
 int vips_rawsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 int vips_rawsavefd( VipsImage *in, int fd, ... )
+	__attribute__((sentinel));
+
+int vips_csvload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_csvsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

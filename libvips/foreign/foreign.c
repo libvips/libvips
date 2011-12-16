@@ -855,6 +855,18 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 			in = out;
 		}
+		else if( in->Bands > 1 && 
+			class->saveable == VIPS_SAVEABLE_MONO ) {
+			VipsImage *out;
+
+			if( vips_extract_band( in, &out, 0, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
+			}
+			g_object_unref( in );
+
+			in = out;
+		}
 
 		/* Else we have VIPS_SAVEABLE_ANY and we don't chop bands down.
 		 */
@@ -1164,6 +1176,8 @@ vips_foreign_write_options( VipsImage *in, const char *filename )
 void
 vips_foreign_operation_init( void )
 {
+	extern GType vips_foreign_load_csv_get_type( void ); 
+	extern GType vips_foreign_save_csv_get_type( void ); 
 	extern GType vips_foreign_load_fits_get_type( void ); 
 	extern GType vips_foreign_save_fits_get_type( void ); 
 	extern GType vips_foreign_load_analyze_get_type( void ); 
@@ -1182,6 +1196,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_raw_get_type( void ); 
 	extern GType vips_foreign_save_rawfd_get_type( void ); 
 
+	vips_foreign_load_csv_get_type(); 
+	vips_foreign_save_csv_get_type(); 
 	vips_foreign_load_analyze_get_type(); 
 	vips_foreign_load_raw_get_type(); 
 	vips_foreign_save_raw_get_type(); 
