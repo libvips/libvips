@@ -102,7 +102,7 @@ vips_bandary_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	for( y = 0; y < r->height; y++ ) {
 		class->process_line( bandary, q, p, r->width );
 
-		for( i = 0; ir[i]; i++ )
+		for( i = 0; i < bandary->n; i++ )
 			p[i] += VIPS_REGION_LSKIP( ir[i] );
 		q += VIPS_REGION_LSKIP( or );
 	}

@@ -107,7 +107,7 @@ vips_bandjoin_buffer( VipsBandary *bandary, PEL *q, PEL **p, int width )
 		PEL *p1, *q1;
 		int x, z;
 
-		q1 = q + i * ips;
+		q1 = q;
 		p1 = p[i];
 
 		for( x = 0; x < width; x++ ) {
@@ -117,6 +117,8 @@ vips_bandjoin_buffer( VipsBandary *bandary, PEL *q, PEL **p, int width )
 			p1 += ips;
 			q1 += ops;
 		}
+
+		q += ips;
 	}
 }
 
