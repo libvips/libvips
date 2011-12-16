@@ -209,26 +209,29 @@ vips_image_open_lazy( VipsImage *image,
 
 	lazy = lazy_new( image, format, filename, disc );
 
-	/* Read header fields to init the return image. THINSTRIP since this is
-	 * probably a disc file. We can't tell yet whether we will be opening
-	 * to memory, sadly, so we can't suggest ANY.
+	/* Is there a ->header() function? We need to do a lazy load.
 	 */
-	if( format->header( filename, image ) )
-		return( -1 );
-	vips_demand_hint( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	if( format->header ) {
+		/* Read header fields to init the return image. 
+		 */
+		if( format->header( filename, image ) )
+			return( -1 );
 
-	/* If there's no load function, assume header has done everything
-	 * already.
-	 */
-	if( format->load ) {
 		/* Then 'start' creates the real image and 'gen' paints 'image' 
 		 * with pixels from the real image on demand.
 		 */
+		vips_demand_hint( image, image->dhint, NULL );
 		if( vips_image_generate( image, 
 			open_lazy_start, open_lazy_generate, vips_stop_one, 
 			lazy, NULL ) )
 			return( -1 );
 	}
+	else if( format->load ) {
+		if( format->load( filename, image ) )
+			return( -1 );
+	}
+	else
+		g_assert( 0 );
 
 	return( 0 );
 }

@@ -84,7 +84,7 @@ vips_format_analyze_class_init( VipsFormatAnalyzeClass *class )
 	object_class->description = _( "Analyze 6.0" );
 
 	format_class->is_a = isanalyze;
-	format_class->header = im_analyze2vips;
+	format_class->load = im_analyze2vips;
 	format_class->get_flags = analyze_flags;
 	format_class->suffs = analyze_suffs;
 }

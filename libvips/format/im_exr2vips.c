@@ -126,7 +126,7 @@ vips_format_exr_class_init( VipsFormatExrClass *class )
 	object_class->description = _( "OpenEXR" );
 
 	format_class->is_a = isexr;
-	format_class->header = im_exr2vips;
+	format_class->load = im_exr2vips;
 	format_class->get_flags = exr_flags;
 	format_class->suffs = exr_suffs;
 }

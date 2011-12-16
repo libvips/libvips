@@ -211,6 +211,18 @@ sharpen_mask_new( int radius )
 	return( line );
 }
 
+int
+im_sharpen( IMAGE *in, IMAGE *out, 
+	int mask_size, 
+	double x1, double y2, double y3, 
+	double m1, double m2 )
+{
+	if( im_extract_band( in, out, 0 ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /**
  * im_sharpen:
  * @in: input image
@@ -279,7 +291,7 @@ sharpen_mask_new( int radius )
  * Returns: 0 on success, -1 on error.
  */
 int
-im_sharpen( IMAGE *in, IMAGE *out, 
+im_sharpen_real( IMAGE *in, IMAGE *out, 
 	int mask_size, 
 	double x1, double y2, double y3, 
 	double m1, double m2 )

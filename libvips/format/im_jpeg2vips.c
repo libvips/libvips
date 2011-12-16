@@ -181,7 +181,7 @@ vips_format_jpeg_class_init( VipsFormatJpegClass *class )
 	object_class->description = _( "JPEG" );
 
 	format_class->is_a = isjpeg;
-	format_class->header = im_jpeg2vips;
+	format_class->load = im_jpeg2vips;
 	format_class->save = im_vips2jpeg;
 	format_class->suffs = jpeg_suffs;
 }
