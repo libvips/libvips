@@ -192,14 +192,14 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
 	VipsCopy *copy = (VipsCopy *) b; 
+	SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
 
 	/* Ask for input we need.
 	 */
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
-	if( copy->swap ) {
-		SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
+	if( copy->swap && swap ) {
 		int y;
 
 		for( y = 0; y < r->height; y++ ) {

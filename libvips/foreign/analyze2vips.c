@@ -302,10 +302,11 @@ read_header( const char *header )
 
 	if( !(d = (struct dsr *) vips__file_read_name( header, NULL, &len )) )
 		return( NULL );
+
 	if( len != sizeof( struct dsr ) ) {
-		vips_free( d );
 		vips_error( "analyze2vips", 
 			"%s", _( "header file size incorrect" ) );
+		vips_free( d );
 		return( NULL );
 	}
 
@@ -348,6 +349,8 @@ read_header( const char *header )
 	}
 
 	if( (int) len != d->hk.sizeof_hdr ) {
+		vips_error( "analyze2vips", 
+			"%s", _( "header size incorrect" ) );
 		vips_free( d );
 		return( NULL );
 	}
@@ -549,35 +552,38 @@ vips__analyze_read( const char *filename, VipsImage *out )
 	char header[FILENAME_MAX];
 	char image[FILENAME_MAX];
 	struct dsr *d;
-	VipsImage *t;
+	VipsImage *x = vips_image_new();
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( x ), 3 );
 	int width, height;
 	int bands;
 	VipsBandFormat fmt;
 
 	generate_filenames( filename, header, image );
-	if( !(d = read_header( header )) ) 
+	if( !(d = read_header( header )) ) {
+		g_object_unref( x );
 		return( -1 );
+	}
+	attach_meta( out, d );
 
 #ifdef DEBUG
 	print_dsr( d );
 #endif /*DEBUG*/
 
 	if( get_vips_properties( d, &width, &height, &bands, &fmt ) ||
-		!(t = vips_image_new_from_file_raw( image, width, height,
-			bands * vips_format_sizeof( fmt ), 0 )) )
-		return( -1 );
-
-	if( vips_copy( t, &t, 
-		"bands", bands, "format", fmt, "swap", vips_amiMSBfirst(),
-		NULL ) ||
-		vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		vips_free( d );
+		!(t[0] = vips_image_new_from_file_raw( image, width, height,
+			bands * vips_format_sizeof( fmt ), 0 )) ) {
+		g_object_unref( x );
 		return( -1 );
 	}
-	g_object_unref( t );
 
-	attach_meta( out, d );
+	if( vips_copy( t[0], &t[1], "bands", bands, "format", fmt, NULL ) ||
+		vips_copy( t[1], &t[2], "swap", !vips_amiMSBfirst(), NULL ) ||
+		vips_image_write( t[2], out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
 
 	return( 0 );
 }

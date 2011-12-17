@@ -1,20 +1,3 @@
-- suppression for the strspn() thing?
-
-- test analyze load
-
-  .... appears to be broken, byteswap problem? also, leaks an image
-
-- test csv load/save
-
-  $ vips im_copy pics/Gugg_coloured.jpg x.csv
-  Segmentation fault
-
-  some arg mixup?
-
-
-
-
-
 - "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
 

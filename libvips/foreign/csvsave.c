@@ -165,7 +165,7 @@ vips_csvsave( VipsImage *in, const char *filename, ... )
 	int result;
 
 	va_start( ap, filename );
-	result = vips_call_split( "csvsave", ap, filename );
+	result = vips_call_split( "csvsave", ap, in, filename );
 	va_end( ap );
 
 	return( result );
