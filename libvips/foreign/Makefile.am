@@ -28,6 +28,20 @@ EXTRA_DIST += \
 	magickload.c 
 endif
 
+if HAVE_PNG
+libforeign_la_SOURCES += \
+	pngload.c \
+	pngsave.c \
+	vipspng.h \
+	vipspng.c 
+else
+EXTRA_DIST += \
+	pngload.c \
+	pngsave.c \
+	vipspng.h \
+	vipspng.c 
+endif
+
 if HAVE_OPENEXR
 libforeign_la_SOURCES += \
 	openexr2vips.h \

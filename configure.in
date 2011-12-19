@@ -537,17 +537,6 @@ FIND_ZIP(
   [AC_MSG_WARN([libz not found; disabling ZIP support])
    with_zip=no
   ])
-FIND_JPEG(
-  [with_jpeg=yes],
-  [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
-   with_jpeg=no
-  ])
-
-if test x"$with_jpeg" = x"yes"; then
-  AM_CONDITIONAL(HAVE_JPEG, true)
-else
-  AM_CONDITIONAL(HAVE_JPEG, false)
-fi
 
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 
@@ -563,6 +552,24 @@ if test x"$with_png" != "xno"; then
       with_png=no
      ])
     ])
+fi
+
+if test x"$with_png" = x"yes"; then
+  AM_CONDITIONAL(HAVE_PNG, true)
+else
+  AM_CONDITIONAL(HAVE_PNG, false)
+fi
+
+FIND_JPEG(
+  [with_jpeg=yes],
+  [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
+   with_jpeg=no
+  ])
+
+if test x"$with_jpeg" = x"yes"; then
+  AM_CONDITIONAL(HAVE_JPEG, true)
+else
+  AM_CONDITIONAL(HAVE_JPEG, false)
 fi
 
 # libexif

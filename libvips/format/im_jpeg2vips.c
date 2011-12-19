@@ -1,44 +1,5 @@
 /* Convert 1 or 3-band 8-bit VIPS images to/from JPEG.
  *
- * 28/11/03 JC
- *	- better no-overshoot on tile loop
- * 12/11/04
- *	- better demand size choice for eval
- * 30/6/05 JC
- *	- update im_error()/im_warn()
- *	- now loads and saves exif data
- * 30/7/05
- * 	- now loads ICC profiles
- * 	- now saves ICC profiles from the VIPS header
- * 24/8/05
- * 	- jpeg load sets vips xres/yres from exif, if possible
- * 	- jpeg save sets exif xres/yres from vips, if possible
- * 29/8/05
- * 	- cut from old vips_jpeg.c
- * 13/10/06
- * 	- add </libexif/ prefix if required
- * 11/2/08
- * 	- spot CMYK jpegs and set Type
- * 	- spot Adobe CMYK JPEG and invert ink density
- * 15/2/08
- * 	- added "shrink" parameter
- * 16/6/09
- *	- added "fail" option ... fail on any warnings
- * 12/10/09
- * 	- also set scale_num on shrink (thanks Guido)
- * 4/2/10
- * 	- gtkdoc
- * 4/12/10
- * 	- attach the jpeg thumbnail and multiscan fields (thanks Mike)
- * 21/2/10
- * 	- only accept the first APP1 block which starts "Exif..." as exif
- * 	  data, some jpegs seem to have several APP1s, argh
- * 20/4/2011
- * 	- added im_bufjpeg2vips()
- * 12/10/2011
- * 	- read XMP data
- * 3/11/11
- * 	- attach exif tags as coded values 
  * 30/11/11
  * 	- now just a stub
  */

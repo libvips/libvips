@@ -146,16 +146,6 @@ void im__analyze_register( void );
 void im__exr_register( void );
 void im__magick_register( void );
 
-typedef enum {
-	IM__RGB,	/* 1 or 3 bands (eg. PPM) */
-	IM__RGBA,	/* 1, 2, 3 or 4 bands (eg. PNG) */
-	IM__RGB_CMYK,	/* 1, 3 or 4 bands (eg. JPEG) */
-	IM__ANY		/* any number of bands (eg. TIFF) */
-} im__saveable_t;
-
-VipsImage *im__convert_saveable( VipsImage *in, 
-	im__saveable_t saveable, int format_table[10] );
-
 int im__bandup( const char *domain, VipsImage *in, VipsImage *out, int n );
 int im__bandalike_vec( const char *domain, VipsImage **in, VipsImage **out, int n );
 int im__bandalike( const char *domain, 
