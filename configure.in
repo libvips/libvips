@@ -388,6 +388,12 @@ if test x"$with_magick" != "xno"; then
   LIBS=$save_LIBS
 fi
 
+if test x"$with_magick" = x"yes"; then
+  AM_CONDITIONAL(HAVE_MAGICK, true)
+else
+  AM_CONDITIONAL(HAVE_MAGICK, false)
+fi
+
 # orc
 AC_ARG_WITH([orc], 
   AS_HELP_STRING([--without-orc], [build without orc (default: test)]))

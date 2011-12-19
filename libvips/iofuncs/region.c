@@ -676,11 +676,15 @@ vips_region_region( VipsRegion *reg,
 
 	/* Sanity check.
 	 */
-	if( !dest->data || 
-		VIPS_IMAGE_SIZEOF_PEL( dest->im ) != 
-			VIPS_IMAGE_SIZEOF_PEL( reg->im ) ) {
+	if( !dest->data ) {
 		vips_error( "VipsRegion", 
-			"%s", _( "inappropriate region type" ) );
+			"%s", _( "no pixel data on attached image" ) );
+		return( -1 );
+	}
+	if( VIPS_IMAGE_SIZEOF_PEL( dest->im ) != 
+		VIPS_IMAGE_SIZEOF_PEL( reg->im ) ) {
+		vips_error( "VipsRegion", 
+			"%s", _( "images do not match in pixel size" ) );
 		return( -1 );
 	}
 	vips__region_check_ownership( reg );

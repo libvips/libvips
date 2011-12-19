@@ -528,6 +528,7 @@ static void *
 vips_foreign_load_start( VipsImage *out, void *a, void *dummy )
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( a );
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( a );
 	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( a );
 
 	if( !load->real ) {
@@ -559,6 +560,23 @@ vips_foreign_load_start( VipsImage *out, void *a, void *dummy )
 		if( class->load( load ) ||
 			vips_image_pio_input( load->real ) ) 
 			return( NULL );
+
+		/* ->header() read the header into @out, load has read the
+		 * image into @real. They must match exactly in size, bands,
+		 * format and coding for the copy to work.  
+		 *
+		 * Someversions of ImageMagick give different results between
+		 * Ping and Load for some formats, for example.
+		 */
+		if( load->real->Xsize != out->Xsize ||
+			load->real->Ysize != out->Ysize ||
+			load->real->Bands != out->Bands ||
+			load->real->Coding != out->Coding ||
+			load->real->BandFmt != out->BandFmt ) {
+			vips_error( object_class->nickname,
+				"%s", _( "header() and load() differ" ) ); 
+			return( NULL );
+		}
 	}
 
 	return( vips_region_new( load->real ) );
@@ -1195,6 +1213,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_raw_get_type( void ); 
 	extern GType vips_foreign_save_raw_get_type( void ); 
 	extern GType vips_foreign_save_rawfd_get_type( void ); 
+	extern GType vips_foreign_load_magick_get_type( void ); 
 
 	vips_foreign_load_csv_get_type(); 
 	vips_foreign_save_csv_get_type(); 
@@ -1222,6 +1241,10 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_openslide_get_type(); 
 #endif /*HAVE_OPENSLIDE*/
 
+#ifdef HAVE_MAGICK
+	vips_foreign_load_magick_get_type(); 
+#endif /*HAVE_MAGICK*/
+
 #ifdef HAVE_CFITSIO
 	vips_foreign_load_fits_get_type(); 
 	vips_foreign_save_fits_get_type(); 
@@ -1230,6 +1253,39 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_OPENEXR
 	vips_foreign_load_openexr_get_type(); 
 #endif /*HAVE_OPENEXR*/
+}
+
+/**
+ * vips_magickload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read in an image using libMagick, the ImageMagick library. This library can
+ * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
+ * others.
+ * The reader can handle any ImageMagick image, including the float and double
+ * formats. It will work with any quantum size, including HDR. Any metadata
+ * attached to the libMagick image is copied on to the VIPS image.
+ *
+ * The reader should also work with most versions of GraphicsMagick. See the
+ * "--with-magickpackage" configure option.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magickload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "magickload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
 }
 
 /**

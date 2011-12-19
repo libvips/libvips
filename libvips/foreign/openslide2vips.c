@@ -295,9 +295,8 @@ vips__openslide_read( const char *filename, VipsImage *out, int layer )
 	if( !(rslide = readslide_new( filename, raw, layer, NULL )) )
 		return( -1 );
 
-	if( vips_image_pio_output( raw ) ||
-		vips_image_generate( raw, 
-			NULL, vips__openslide_generate, NULL, rslide, NULL ) )
+	if( vips_image_generate( raw, 
+		NULL, vips__openslide_generate, NULL, rslide, NULL ) )
 		return( -1 );
 
 	/* Copy to out, adding a cache. Enough tiles for a complete row, plus

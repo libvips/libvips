@@ -16,6 +16,18 @@ libforeign_la_SOURCES = \
 
 EXTRA_DIST = 
 
+if HAVE_MAGICK
+libforeign_la_SOURCES += \
+	magick.h \
+	magick2vips.c \
+	magickload.c 
+else
+EXTRA_DIST += \
+	magick.h \
+	magick2vips.c \
+	magickload.c 
+endif
+
 if HAVE_OPENEXR
 libforeign_la_SOURCES += \
 	openexr2vips.h \

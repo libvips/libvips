@@ -1,3 +1,17 @@
+- remove uses of vips_image_pio_output(), this is done for you by generate
+  now
+
+- magickload is broken
+
+	$ vips magickload healthygirl.jpg x.v
+	VipsRegion: inappropriate region type
+	VipsRegion: inappropriate region type
+	VipsImage: file has been truncated
+
+  seems to be a magick bug: ping jpg reports 1 band, load jpg reports 3 band
+
+
+
 - "header fred.png" does not work, since header uses im_open() which uses
   VipsForeign
 

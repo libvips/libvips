@@ -1,30 +1,7 @@
 /* Convert OpenEXR to VIPS
  *
- * 1/5/06
- * 	- from im_png2vips.c
- * 17/5/06
- * 	- oops, buffer calcs were wrong
- * 19/5/06
- * 	- added tiled read, with a separate cache
- * 	- removed *255 we had before, better to do something clever with
- * 	  chromaticities
- * 4/2/10
- * 	- gtkdoc
-
-  TODO
-
-	- colour management
-	- attributes 
-	- more of OpenEXR's pixel formats 
-	- more than just RGBA channels
-
-	the openexr C API is very limited ... it seems RGBA half pixels is 
-	all you can do
-
-	openexr lets you have different formats in different channels :-(
-
-	there's no API to read the "chromaticities" attribute :-(
-
+ * 17/12/11
+ * 	- just a stub
  */
 
 /*
