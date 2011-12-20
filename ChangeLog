@@ -63,6 +63,7 @@
 - added openslide support (Benjamin Gilbert)
 - allow new-style load/save options in filenames to 
   vips_image_new_from_file() etc.
+- VipsFormat is deprecated
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

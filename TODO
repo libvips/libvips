@@ -2,11 +2,7 @@
 
 - test rad read/write
 
-- rad save should auto pack to CODING RAD
-
 - test matio load
-
-- radiance to go still
 
 - saverawfd should be renamed saveraw_fd, cf. pngsave_buffer
 
@@ -32,10 +28,6 @@
 
 
 
-
-- make the old format/vips.c into a stub as well?
-
-  move format/* to deprecated
 
 
 

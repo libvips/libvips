@@ -19,7 +19,6 @@ SUBDIRS = \
 	deprecated \
 	convolution \
 	$(C_COMPILE_DIR) \
-	format \
 	freq_filt \
 	histograms_lut \
 	inplace \
@@ -52,7 +51,6 @@ libvips_la_LIBADD = \
 	convolution/libconvolution.la \
 	deprecated/libdeprecated.la \
 	$(C_LIB) \
-	format/libformat.la \
 	foreign/libforeign.la \
 	freq_filt/libfreq_filt.la \
 	histograms_lut/libhistograms_lut.la \
