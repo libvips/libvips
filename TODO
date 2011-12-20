@@ -2,8 +2,6 @@
 
 - test matio load with real images (add to nip2 checks?)
 
-- saverawfd should be renamed saveraw_fd, cf. pngsave_buffer
-
 - remove uses of vips_image_pio_output(), this is done for you by generate
   now
 

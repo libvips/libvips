@@ -63,5 +63,5 @@ im_raw2vips( const char *filename, IMAGE *out,
 int
 im_vips2raw( IMAGE *in, int fd )
 {
-	return( vips_rawsavefd( in, fd, NULL ) );
+	return( vips_rawsave_fd( in, fd, NULL ) );
 }
