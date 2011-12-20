@@ -71,6 +71,8 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#include "ppm.h"
+
 /* The largest number/field/whatever we can read.
  */
 #define MAX_THING (80)

@@ -484,6 +484,12 @@ if test x"$with_matio" != "xno"; then
     ])
 fi
 
+if test x"$with_openslide" = x"yes"; then
+  AM_CONDITIONAL(HAVE_MATIO, true)
+else
+  AM_CONDITIONAL(HAVE_MATIO, false)
+fi
+
 # cfitsio
 AC_ARG_WITH([cfitsio], 
   AS_HELP_STRING([--without-cfitsio], [build without cfitsio (default: test)]))

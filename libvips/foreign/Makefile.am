@@ -20,6 +20,18 @@ libforeign_la_SOURCES = \
 
 EXTRA_DIST = 
 
+if HAVE_MATIO
+libforeign_la_SOURCES += \
+	matlab.h \
+	matlab.c \
+	matload.c 
+else
+EXTRA_DIST += \
+	matlab.h \
+	matlab.c \
+	matload.c 
+endif
+
 if HAVE_MAGICK
 libforeign_la_SOURCES += \
 	magick.h \

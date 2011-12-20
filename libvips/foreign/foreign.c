@@ -1194,6 +1194,7 @@ vips_foreign_write_options( VipsImage *in, const char *filename )
 void
 vips_foreign_operation_init( void )
 {
+	extern GType vips_foreign_load_mat_get_type( void ); 
 	extern GType vips_foreign_load_ppm_get_type( void ); 
 	extern GType vips_foreign_save_ppm_get_type( void ); 
 	extern GType vips_foreign_load_png_get_type( void ); 
@@ -1236,6 +1237,10 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_png_file_get_type(); 
 	vips_foreign_save_png_buffer_get_type(); 
 #endif /*HAVE_PNG*/
+
+#ifdef HAVE_MATIO
+	vips_foreign_load_mat_get_type(); 
+#endif /*HAVE_MATIO*/
 
 #ifdef HAVE_JPEG
 	vips_foreign_load_jpeg_file_get_type(); 
@@ -1870,3 +1875,34 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 
 	return( result );
 }
+
+/**
+ * vips_matload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read a Matlab save file into a VIPS image. 
+ *
+ * This operation searches the save
+ * file for the first array variable with between 1 and 3 dimensions and loads
+ * it as an image. It will not handle complex images. It does not handle
+ * sparse matrices. 
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_matload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "matload", ap, filename, out ); 
+	va_end( ap );
+
+	return( result );
+}
+

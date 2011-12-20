@@ -1,6 +1,8 @@
 - vips2bufpng() is leaky
 
-- radiance, matlab to go still
+- test matio load
+
+- radiance to go still
 
 - saverawfd should be renamed saveraw_fd, cf. pngsave_buffer
 
@@ -22,12 +24,6 @@
   seems to be a magick bug: ping jpg reports 1 band, load jpg reports 3 band
 
   posted a question, wait for reply
-
-
-
-
-- "header fred.png" does not work, since header uses im_open() which uses
-  VipsForeign
 
 
 
