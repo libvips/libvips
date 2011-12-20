@@ -356,6 +356,11 @@ int vips_pngsave( VipsImage *in, const char *filename, ... )
 int vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
 
+int vips_ppmload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_ppmsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

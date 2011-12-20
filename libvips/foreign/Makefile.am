@@ -1,6 +1,10 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	ppm.h \
+	ppm.c \
+	ppmload.c \
+	ppmsave.c \
 	csv.h \
 	csv.c \
 	csvload.c \

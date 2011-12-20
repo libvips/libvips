@@ -1,4 +1,4 @@
-/* common defs for png read/write
+/* common defs for ppm read/write
  */
 
 /*
@@ -27,25 +27,24 @@
 
  */
 
-#ifndef VIPS_PNG_H
-#define VIPS_PNG_H
+#ifndef VIPS_PPM_H
+#define VIPS_PPM_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-int vips__png_header( const char *name, VipsImage *out );
-int vips__png_read( const char *name, VipsImage *out );
-int vips__png_ispng( const char *filename );
-extern const char *vips__png_suffs[];
+int vips__ppm_header( const char *name, VipsImage *out );
+int vips__ppm_load( const char *name, VipsImage *out );
+int vips__ppm_isppm( const char *filename );
+VipsFormatFlags vips__ppm_flags( const char *filename );
+extern const char *vips__ppm_suffs[];
 
-int vips__png_write( VipsImage *in, const char *filename, 
-	int compress, int interlace );
-int vips__png_write_buf( VipsImage *in, 
-	void **obuf, size_t *olen, int compression, int interlace );
+int vips__ppm_save( VipsImage *in, const char *filename, 
+	gboolean ascii ); 
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_PNG_H*/
+#endif /*VIPS_PPM_H*/

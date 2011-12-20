@@ -1,10 +1,6 @@
 - vips2bufpng() is leaky
 
-- interlace should be a bool?
-
-
-
-- radiance, matlab, ppm to go still
+- radiance, matlab to go still
 
 - saverawfd should be renamed saveraw_fd, cf. pngsave_buffer
 
@@ -13,6 +9,8 @@
 
   do we need vips_image_wio_output()? can't vips_image_write_line() call this
   as well?
+
+  we need it in case we write to the data pointer of a "t" image I guess
 
 - magickload is broken
 

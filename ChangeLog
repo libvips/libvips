@@ -15,7 +15,8 @@
   im_bandmean(), im_c2real(), im_c2imag(), im_ri2c(), im_jpeg*2vips(), 
   im_vips2jpeg*(), im_tiff2vips(), im_vips2tiff(), im_exr2vips(),
   im_fits2vips(), im_vips2fits(), im_analyze2vips(), im_raw2vips(),
-  im_vips2raw(), im_magick2vips(), im_png2vips(), im_png2*()
+  im_vips2raw(), im_magick2vips(), im_png2vips(), im_png2*(), im_ppm2vips(),
+  im_vips2ppm()
   redone as classes
 - added argument priorites to help control arg ordering
 - generate has a 'stop' param to signal successful early termination
