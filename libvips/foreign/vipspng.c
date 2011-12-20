@@ -593,6 +593,7 @@ typedef struct _WriteBuf {
 static void
 write_buf_free( WriteBuf *wbuf )
 {
+	VIPS_FREE( wbuf->buf );
 	VIPS_FREE( wbuf );
 }
 
@@ -658,25 +659,29 @@ vips__png_write_buf( VipsImage *in,
 	WriteBuf *wbuf;
 	Write *write;
 
-	if( !(wbuf = write_buf_new()) ||
-		!(write = write_new( in )) )
+	if( !(wbuf = write_buf_new()) )
 		return( -1 );
+	if( !(write = write_new( in )) ) {
+		write_buf_free( wbuf );
+		return( -1 );
+	}
 
 	png_set_write_fn( write->pPng, wbuf, user_write_data, NULL );
 
 	/* Convert it!
 	 */
 	if( write_vips( write, compression, interlace ) ) {
-		g_free( wbuf->buf );
 		write_buf_free( wbuf );
-		vips_error( "vips_vips2bufpng", 
+		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
 	      
 		return( -1 );
 	}
 
 	*obuf = wbuf->buf;
-	*olen = wbuf->len;
+	wbuf->buf = NULL;
+	if( olen )
+		*olen = wbuf->len;
 
 	write_buf_free( wbuf );
 

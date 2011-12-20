@@ -1,8 +1,6 @@
-- vips2bufpng() is leaky
+- test rad read/write with real images (add to nip2 checks?)
 
-- test rad read/write
-
-- test matio load
+- test matio load with real images (add to nip2 checks?)
 
 - saverawfd should be renamed saveraw_fd, cf. pngsave_buffer
 
