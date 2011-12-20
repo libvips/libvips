@@ -49,9 +49,13 @@ int vips_LabQ2disp( VipsImage *in, VipsImage **out,
 	__attribute__((sentinel));
 int vips_rad2float( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_float2rad( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_LabS2LabQ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_LabQ2Lab( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_Lab2LabQ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_LCh2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

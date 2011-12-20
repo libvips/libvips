@@ -72,6 +72,15 @@ G_DEFINE_TYPE( VipsForeignLoadOpenslide, vips_foreign_load_openslide,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static VipsForeignFlags
+vips_foreign_load_openslide_get_flags_filename( const char *filename )
+{
+	/* We can't tell from just the filename, we need to know what part of
+	 * the file the user wants. But it'll usually be partial.
+	 */
+	return( VIPS_FOREIGN_PARTIAL );
+}
+
+static VipsForeignFlags
 vips_foreign_load_openslide_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadOpenslide *openslide = (VipsForeignLoadOpenslide *) load;
@@ -154,6 +163,8 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 	foreign_class->suffs = vips_foreign_openslide_suffs;
 
 	load_class->is_a = vips__openslide_isslide;
+	load_class->get_flags_filename = 
+		vips_foreign_load_openslide_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_openslide_get_flags;
 	load_class->header = vips_foreign_load_openslide_header;
 	load_class->load = vips_foreign_load_openslide_load;

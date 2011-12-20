@@ -135,6 +135,8 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	foreign_class->priority = -100;
 
 	load_class->is_a = ismagick;
+	load_class->get_flags_filename = 
+		vips_foreign_load_magick_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_magick_get_flags;
 	load_class->header = vips_foreign_load_magick_header;
 	load_class->load = vips_foreign_load_magick_load;

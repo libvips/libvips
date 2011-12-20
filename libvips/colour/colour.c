@@ -772,7 +772,7 @@ vips_LabQ2disp( VipsImage *in, VipsImage **out,
 	int result;
 
 	va_start( ap, disp );
-	result = vips_call_split( "im_LabQ2disp", ap, in, out, disp );
+	result = vips_call_split( "LabQ2disp", ap, in, out, disp );
 	va_end( ap );
 
 	return( result );
@@ -785,7 +785,20 @@ vips_rad2float( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "im_rad2float", ap, in, out );
+	result = vips_call_split( "rad2float", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_float2rad( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "float2rad", ap, in, out );
 	va_end( ap );
 
 	return( result );
@@ -798,7 +811,7 @@ vips_LabS2LabQ( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "im_LabS2LabQ", ap, in, out );
+	result = vips_call_split( "LabS2LabQ", ap, in, out );
 	va_end( ap );
 
 	return( result );
@@ -811,7 +824,20 @@ vips_LabQ2Lab( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "im_LabQ2Lab", ap, in, out );
+	result = vips_call_split( "LabQ2Lab", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
+vips_Lab2LabQ( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "Lab2LabQ", ap, in, out );
 	va_end( ap );
 
 	return( result );
@@ -824,7 +850,7 @@ vips_LCh2Lab( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "im_LCh2Lab", ap, in, out );
+	result = vips_call_split( "LCh2Lab", ap, in, out );
 	va_end( ap );
 
 	return( result );
@@ -837,7 +863,7 @@ vips_Yxy2Lab( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "im_Yxy2Lab", ap, in, out );
+	result = vips_call_split( "Yxy2Lab", ap, in, out );
 	va_end( ap );
 
 	return( result );
@@ -850,7 +876,7 @@ vips_UCS2XYZ( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "im_UCS2XYZ", ap, in, out );
+	result = vips_call_split( "UCS2XYZ", ap, in, out );
 	va_end( ap );
 
 	return( result );
@@ -863,7 +889,7 @@ vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "im_Lab2XYZ", ap, in, out );
+	result = vips_call_split( "Lab2XYZ", ap, in, out );
 	va_end( ap );
 
 	return( result );
@@ -877,7 +903,7 @@ vips_XYZ2disp( VipsImage *in, VipsImage **out,
 	int result;
 
 	va_start( ap, disp );
-	result = vips_call_split( "im_XYZ2disp", ap, in, out, disp );
+	result = vips_call_split( "XYZ2disp", ap, in, out, disp );
 	va_end( ap );
 
 	return( result );

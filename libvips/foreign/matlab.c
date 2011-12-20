@@ -2,6 +2,8 @@
  *
  * 4/8/09
  *	- transpose on load, assemble planes into bands (thanks Mikhail)
+ * 20/12/11
+ * 	- reworked as some fns ready for new-style classes
  */
 
 /*
@@ -55,7 +57,6 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <vips/vips.h>

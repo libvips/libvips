@@ -348,26 +348,27 @@ vips_foreign_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
 	VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
 		print_class( object_class, buf );
 
-	if( class->is_a )
-		vips_buf_appends( buf, ", is_a" );
-	if( class->get_flags )
-		vips_buf_appends( buf, ", get_flags" );
-	if( class->get_flags_filename )
-		vips_buf_appends( buf, ", get_flags_filename" );
-	if( class->header )
-		vips_buf_appends( buf, ", header" );
-	if( class->load )
-		vips_buf_appends( buf, ", load" );
+	if( !G_TYPE_IS_ABSTRACT( G_TYPE_FROM_CLASS( class ) ) ) {
+		if( class->is_a )
+			vips_buf_appends( buf, ", is_a" );
+		if( class->get_flags )
+			vips_buf_appends( buf, ", get_flags" );
+		if( class->get_flags_filename )
+			vips_buf_appends( buf, ", get_flags_filename" );
+		if( class->header )
+			vips_buf_appends( buf, ", header" );
+		if( class->load )
+			vips_buf_appends( buf, ", load" );
 
-	/* Sanity: it's OK to have get_flags() and get_flags_filename() both
-	 * NULL or both not-NULL.
-	 */
-	g_assert( (void *) class->get_flags != 
-		(void *) class->get_flags_filename );
+		/* Sanity: it's OK to have get_flags() and 
+		 * get_flags_filename() both NULL or both not-NULL.
+		 */
+		g_assert( !class->get_flags == !class->get_flags_filename );
 
-	/* You can omit ->load(), you must not omit ->header().
-	 */
-	g_assert( class->header );
+		/* You can omit ->load(), you must not omit ->header().
+		 */
+		g_assert( class->header );
+	}
 }
 
 /* Can this VipsForeign open this file?
@@ -800,6 +801,21 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	 */
 	g_object_ref( in );
 
+	/* Does this class want a coded image we are already in? Nothing to
+	 * do.
+	 */
+	if( class->coding != VIPS_CODING_NONE &&
+		class->coding == in->Coding ) {
+		VIPS_UNREF( save->ready );
+		save->ready = in;
+
+		return( 0 );
+	}
+
+	/* Otherwise ... we need to decode and then (possibly) recode at the
+	 * end.
+	 */
+
 	/* If this is an VIPS_CODING_LABQ, we can go straight to RGB.
 	 */
 	if( in->Coding == VIPS_CODING_LABQ ) {
@@ -990,6 +1006,34 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		in = out;
 	}
 
+	/* Does this class want a coded image? The format_table[] should have
+	 * got the format right for us.
+	 */
+	if( class->coding != VIPS_CODING_NONE ) {
+		if( class->coding == VIPS_CODING_RAD ) {
+			VipsImage *out;
+
+			if( vips_float2rad( in, &out, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
+			}
+			g_object_unref( in );
+
+			in = out;
+		}
+		else if( class->coding == VIPS_CODING_LABQ ) {
+			VipsImage *out;
+
+			if( vips_Lab2LabQ( in, &out, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
+			}
+			g_object_unref( in );
+
+			in = out;
+		}
+	}
+
 	VIPS_UNREF( save->ready );
 	save->ready = in;
 
@@ -1026,6 +1070,8 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	object_class->new_from_string = vips_foreign_save_new_from_string;
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
+
+	class->coding = VIPS_CODING_NONE;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
@@ -1194,6 +1240,8 @@ vips_foreign_write_options( VipsImage *in, const char *filename )
 void
 vips_foreign_operation_init( void )
 {
+	extern GType vips_foreign_load_rad_get_type( void ); 
+	extern GType vips_foreign_save_rad_get_type( void ); 
 	extern GType vips_foreign_load_mat_get_type( void ); 
 	extern GType vips_foreign_load_ppm_get_type( void ); 
 	extern GType vips_foreign_save_ppm_get_type( void ); 
@@ -1221,6 +1269,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_rawfd_get_type( void ); 
 	extern GType vips_foreign_load_magick_get_type( void ); 
 
+	vips_foreign_load_rad_get_type(); 
+	vips_foreign_save_rad_get_type(); 
 	vips_foreign_load_ppm_get_type(); 
 	vips_foreign_save_ppm_get_type(); 
 	vips_foreign_load_csv_get_type(); 

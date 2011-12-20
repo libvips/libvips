@@ -230,6 +230,10 @@ typedef struct _VipsForeignSaveClass {
 	/* How this format treats band formats.
 	 */
 	VipsBandFormat *format_table;
+
+	/* If this format needs a coding, the coding it wants (default NONE).
+	 */
+	VipsCoding coding;
 } VipsForeignSaveClass;
 
 GType vips_foreign_save_get_type( void );
@@ -362,6 +366,11 @@ int vips_ppmsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
 int vips_matload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+
+int vips_radload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_radsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

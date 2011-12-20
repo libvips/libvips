@@ -1,5 +1,9 @@
 - vips2bufpng() is leaky
 
+- test rad read/write
+
+- rad save should auto pack to CODING RAD
+
 - test matio load
 
 - radiance to go still

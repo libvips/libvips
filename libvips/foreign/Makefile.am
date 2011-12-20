@@ -1,6 +1,10 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	radiance.h \
+	radiance.c \
+	radload.c \
+	radsave.c \
 	ppm.h \
 	ppm.c \
 	ppmload.c \
