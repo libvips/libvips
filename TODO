@@ -1,14 +1,19 @@
+- what should we call before writing to the ->data pointer?
+
+  vips_image_wio_output() just checks the desc, it does no allocation
+
+  vips__image_write_prepare() is an internal function
+
+  we need a new API thing to replace both these just for the pre-data case,
+  and we need to make a note of it in VIPS_IMAGE_ADDR()
+
+
+
+
+
 - test rad read/write with real images (add to nip2 checks?)
 
 - test matio load with real images (add to nip2 checks?)
-
-- remove uses of vips_image_pio_output(), this is done for you by generate
-  now
-
-  do we need vips_image_wio_output()? can't vips_image_write_line() call this
-  as well?
-
-  we need it in case we write to the data pointer of a "t" image I guess
 
 - magickload is broken
 

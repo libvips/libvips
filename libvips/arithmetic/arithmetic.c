@@ -329,8 +329,6 @@ vips_arithmetic_build( VipsObject *object )
 			vips_check_uncoded( "VipsArithmetic", 
 				arithmetic->in[i] ) ) 
 			return( -1 );
-	if( vips_image_pio_output( arithmetic->out ) ) 
-		return( -1 );
 
 	format = (VipsImage **) 
 		vips_object_local_array( object, arithmetic->n );

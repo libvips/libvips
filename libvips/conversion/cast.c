@@ -432,8 +432,7 @@ vips_cast_build( VipsObject *object )
 		return( vips_image_write( cast->in, conversion->out ) );
 
 	if( vips_check_uncoded( "VipsCast", cast->in ) ||
-		vips_image_pio_input( cast->in ) || 
-		vips_image_pio_output( conversion->out ) )
+		vips_image_pio_input( cast->in ) )
 		return( -1 );
 
 	if( vips_image_copy_fields( conversion->out, cast->in ) )

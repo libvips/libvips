@@ -261,7 +261,6 @@ vips_insert_build( VipsObject *object )
 
 	if( vips_image_pio_input( insert->main ) || 
 		vips_image_pio_input( insert->sub ) || 
-		vips_image_pio_output( conversion->out ) ||
 		vips_check_bands_1orn( "VipsInsert", 
 			insert->main, insert->sub ) ||
 		vips_check_coding_known( "VipsInsert", insert->main ) ||

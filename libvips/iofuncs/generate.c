@@ -601,9 +601,6 @@ vips_image_generate( VipsImage *image,
 	g_assert( generate_fn );
 	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
-	if( vips_image_pio_output( image ) )
-		return( -1 );
-
 	if( !image->hint_set ) {
 		vips_error( "vips_image_generate", 
 			"%s", _( "demand hint not set" ) );

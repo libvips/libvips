@@ -194,8 +194,7 @@ vips_flip_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_flip_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( flip->in ) || 
-		vips_image_pio_output( conversion->out ) )
+	if( vips_image_pio_input( flip->in ) )
 		return( -1 );
 
 	if( vips_image_copy_fields( conversion->out, flip->in ) )

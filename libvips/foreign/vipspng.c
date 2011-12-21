@@ -177,8 +177,7 @@ png2vips_interlace( Read *read )
 
 	for( y = 0; y < (int) height; y++ )
 		read->row_pointer[y] = read->data + y * rowbytes;
-	if( vips_image_wio_output( read->out ) || 
-		setjmp( png_jmpbuf( read->pPng ) ) ) 
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
 	png_read_image( read->pPng, read->row_pointer );
@@ -204,8 +203,7 @@ png2vips_noninterlace( Read *read )
 
 	if( !(read->data = (png_bytep) vips_malloc( NULL, rowbytes ))  )
 		return( -1 );
-	if( vips_image_wio_output( read->out ) || 
-		setjmp( png_jmpbuf( read->pPng ) ) ) 
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
 	for( y = 0; y < height; y++ ) {

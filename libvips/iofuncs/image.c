@@ -1638,7 +1638,6 @@ int
 vips_image_write( VipsImage *image, VipsImage *out )
 {
 	if( vips_image_pio_input( image ) || 
-		vips_image_pio_output( out ) ||
 		vips_image_copy_fields( out, image ) )
 		return( -1 );
         vips_demand_hint( out, 
@@ -1817,6 +1816,9 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	/* Is this the start of eval?
 	 */
 	if( ypos == 0 ) {
+		if( vips_image_wio_output( image ) )
+			return( -1 );
+
 		/* Always clear kill before we start looping. See the 
 		 * call to vips_image_get_kill() below.
 		 */
@@ -2051,21 +2053,17 @@ vips_image_wio_output( VipsImage *image )
 		 */
 		image->dtype = VIPS_IMAGE_SETBUF;
 
-		/* Fall through to SETBUF case.
-		 */
-
-	case VIPS_IMAGE_SETBUF:
-		if( image->data ) {
-			vips_error( "vips_image_wio_output", 
-				"%s", _( "image already written" ) );
-			return( -1 );
-		}
-
 		break;
 
+	case VIPS_IMAGE_SETBUF:
 	case VIPS_IMAGE_OPENOUT:
 	case VIPS_IMAGE_SETBUF_FOREIGN:
-		/* Can write to this ok.
+		/* Can write to this ok. 
+		 *
+		 * We used to check that ->data was null and warn about
+		 * writing twice, but we no longer insist that this is called
+		 * before vips__image_write_prepare(), so we can't do that any
+		 * more.
 		 */
 		break;
 

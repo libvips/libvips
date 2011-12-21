@@ -379,8 +379,6 @@ vips__openexr_read( const char *filename, VipsImage *out )
 			return( -1 );
 
 		read_header( read, out );
-		if( vips_image_wio_output( out ) )
-			return( -1 );
 
 		for( y = 0; y < height; y++ ) {
 			if( !ImfInputSetFrameBuffer( read->lines,

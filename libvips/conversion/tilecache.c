@@ -361,8 +361,7 @@ vips_tile_cache_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_tile_cache_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( cache->in ) || 
-		vips_image_pio_output( conversion->out ) )
+	if( vips_image_pio_input( cache->in ) )
 		return( -1 );
 
 	if( vips_image_copy_fields( conversion->out, cache->in ) )

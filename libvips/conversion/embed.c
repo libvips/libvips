@@ -326,8 +326,7 @@ vips_embed_build( VipsObject *object )
 		embed->height == embed->in->Ysize )
 		return( vips_image_write( embed->in, conversion->out ) );
 
-	if( vips_image_pio_input( embed->in ) || 
-		vips_image_pio_output( conversion->out ) )
+	if( vips_image_pio_input( embed->in ) )
 		return( -1 );
 
 	switch( embed->extend ) {

@@ -1268,11 +1268,6 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	raw = vips_image_new(); 
 	vips_object_local( out, raw );
 
-	/* Make sure we can write PIO-style.
-	 */
-	if( vips_image_pio_output( raw ) )
-		return( -1 );
-
 	/* Parse the TIFF header and set up raw.
 	 */
 	if( parse_header( rtiff, raw ) )
@@ -1342,11 +1337,6 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	printf( "read_stripwise: strip_size = %d\n", strip_size );
 	printf( "read_stripwise: number_of_strips = %d\n", number_of_strips );
 #endif /*DEBUG*/
-
-	/* Make sure we can write WIO-style.
-	 */
-	if( vips_image_wio_output( out ) )
-		return( -1 );
 
 	/* Make buffers.
 	 */

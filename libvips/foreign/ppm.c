@@ -307,8 +307,7 @@ read_ascii( FILE *fp, VipsImage *out )
 	int x, y;
 	PEL *buf;
 
-	if( vips_image_wio_output( out ) || 
-		!(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
+	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
 		return( -1 );
 
 	for( y = 0; y < out->Ysize; y++ ) {
@@ -352,8 +351,7 @@ read_1bit_ascii( FILE *fp, VipsImage *out )
 	int x, y;
 	PEL *buf;
 
-	if( vips_image_wio_output( out ) || 
-		!(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
+	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
 		return( -1 );
 
 	for( y = 0; y < out->Ysize; y++ ) {
@@ -385,8 +383,7 @@ read_1bit_binary( FILE *fp, VipsImage *out )
 	int bits;
 	PEL *buf;
 
-	if( vips_image_wio_output( out ) ||
-		!(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
+	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
 		return( -1 );
 
 	bits = fgetc( fp );

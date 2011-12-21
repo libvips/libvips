@@ -93,9 +93,6 @@ vips_black_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_black_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_output( conversion->out ) )
-		return( -1 );
-
 	vips_image_init_fields( conversion->out,
 		black->width, black->height, black->bands, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,

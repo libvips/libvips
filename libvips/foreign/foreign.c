@@ -1266,7 +1266,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_vips_get_type( void ); 
 	extern GType vips_foreign_load_raw_get_type( void ); 
 	extern GType vips_foreign_save_raw_get_type( void ); 
-	extern GType vips_foreign_save_rawfd_get_type( void ); 
+	extern GType vips_foreign_save_raw_fd_get_type( void ); 
 	extern GType vips_foreign_load_magick_get_type( void ); 
 
 	vips_foreign_load_rad_get_type(); 
@@ -1278,7 +1278,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_analyze_get_type(); 
 	vips_foreign_load_raw_get_type(); 
 	vips_foreign_save_raw_get_type(); 
-	vips_foreign_save_rawfd_get_type(); 
+	vips_foreign_save_raw_fd_get_type(); 
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 
 

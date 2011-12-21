@@ -281,9 +281,8 @@ read_csv( FILE *fp, VipsImage *out,
 	if( !read_image )
 		return( 0 );
 
-	if( vips_image_wio_output( out ) || 
-		!(buf = VIPS_ARRAY( out, 
-			VIPS_IMAGE_N_ELEMENTS( out ), double )) )
+	if( !(buf = VIPS_ARRAY( out, 
+		VIPS_IMAGE_N_ELEMENTS( out ), double )) )
 		return( -1 );
 
 	for( y = 0; y < lines; y++ ) {

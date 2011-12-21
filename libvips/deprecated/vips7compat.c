@@ -487,8 +487,6 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 		if( vips_image_pio_input( in[i] ) )
 			return( -1 );
 	}
-	if( vips_image_pio_output( out ) )
-		return( -1 );
         vips_demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
 
 	/* Generate!

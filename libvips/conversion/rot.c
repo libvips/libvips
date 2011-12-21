@@ -290,8 +290,7 @@ vips_rot_build( VipsObject *object )
 	if( rot->angle == VIPS_ANGLE_0 )
 		return( vips_image_write( rot->in, conversion->out ) );
 
-	if( vips_image_pio_input( rot->in ) || 
-		vips_image_pio_output( conversion->out ) )
+	if( vips_image_pio_input( rot->in ) )
 		return( -1 );
 
 	if( vips_image_copy_fields( conversion->out, rot->in ) )

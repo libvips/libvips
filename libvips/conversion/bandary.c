@@ -131,8 +131,6 @@ vips_bandary_build( VipsObject *object )
 		vips_error( "VipsBandary", "%s", _( "too many input images" ) );
 		return( -1 );
 	}
-	if( vips_image_pio_output( conversion->out ) )
-		return( -1 );
 	for( i = 0; i < bandary->n; i++ )
 		if( vips_image_pio_input( bandary->in[i] ) || 
 			vips_check_uncoded( "VipsBandary", bandary->in[i] ) )

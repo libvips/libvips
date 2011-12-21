@@ -680,11 +680,6 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 	int x, y, sz;
 	JSAMPROW row_pointer[1];
 
-	/* Check VIPS.
-	 */
-	if( vips_image_wio_output( out ) )
-		return( -1 );
-
 	/* Get size of output line and make a buffer.
 	 */
 	sz = cinfo->output_width * cinfo->output_components;
@@ -703,10 +698,10 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 		 */
 		jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
 
-		if( invert_pels ) {
+		if( invert_pels ) 
 			for( x = 0; x < sz; x++ )
 				row_pointer[0][x] = 255 - row_pointer[0][x];
-		}
+
 		if( vips_image_write_line( out, y, row_pointer[0] ) )
 			return( -1 );
 	}

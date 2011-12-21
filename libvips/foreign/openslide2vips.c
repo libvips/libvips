@@ -333,10 +333,8 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 	raw = vips_image_new_buffer();
 	vips_object_local( out, raw );
 
-	if( !(rslide = readslide_new( filename, raw, 0, associated )) )
-		return( -1 );
-
-	if( vips_image_wio_output( raw ) )
+	if( !(rslide = readslide_new( filename, raw, 0, associated )) ||
+		vips_image_wio_output( raw ) )
 		return( -1 );
 	openslide_read_associated_image( rslide->osr, rslide->associated, 
 		(uint32_t *) VIPS_IMAGE_ADDR( raw, 0, 0 ) );

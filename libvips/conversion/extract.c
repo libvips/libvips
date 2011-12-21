@@ -149,7 +149,6 @@ vips_extract_area_build( VipsObject *object )
 	}
 
 	if( vips_image_pio_input( extract->in ) || 
-		vips_image_pio_output( conversion->out ) ||
 		vips_check_coding_known( "VipsExtractArea", extract->in ) )  
 		return( -1 );
 
