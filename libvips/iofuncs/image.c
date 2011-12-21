@@ -1539,7 +1539,7 @@ vips_image_new_array( int xsize, int ysize )
 		return( NULL );
 	}
 
-	if( vips__image_write_prepare( image ) ) {
+	if( vips_image_write_prepare( image ) ) {
 		g_object_unref( image );
 		return( NULL );
 	}
@@ -1737,12 +1737,21 @@ vips_image_ispartial( VipsImage *image )
 		return( 0 );
 }
 
-/* Get the image ready for writing. This can get called many
- * times. Used by vips_image_generate() and vips_image_write_line(). vips7 
- * compat can call this as im_setupout().
+/**
+ * vips_image_write_prepare:
+ * @image: image to prepare
+ *
+ * Call this after setting header fields (width, height, and so on) to
+ * allocate resources ready for writing. 
+ *
+ * Normally this function is called for you by vips_image_generate() or
+ * vips_image_write_line(). You will need to call it yourself if you plan to
+ * write directly to the ->data member of a "t" image.
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
-vips__image_write_prepare( VipsImage *image )
+vips_image_write_prepare( VipsImage *image )
 {	
 	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
@@ -1759,7 +1768,7 @@ vips__image_write_prepare( VipsImage *image )
 	image->Bbits = vips_format_sizeof( image->BandFmt ) << 3;
  
 	if( image->dtype == VIPS_IMAGE_PARTIAL ) {
-		VIPS_DEBUG_MSG( "vips__image_write_prepare: "
+		VIPS_DEBUG_MSG( "vips_image_write_prepare: "
 			"old-style output for %s\n", image->filename );
 
 		image->dtype = VIPS_IMAGE_SETBUF;
@@ -1816,14 +1825,14 @@ vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer )
 	/* Is this the start of eval?
 	 */
 	if( ypos == 0 ) {
-		if( vips_image_wio_output( image ) )
+		if( vips__image_wio_output( image ) )
 			return( -1 );
 
 		/* Always clear kill before we start looping. See the 
 		 * call to vips_image_get_kill() below.
 		 */
 		vips_image_set_kill( image, FALSE );
-		vips__image_write_prepare( image );
+		vips_image_write_prepare( image );
 		vips_image_preeval( image );
 	}
 
@@ -2020,19 +2029,8 @@ vips_image_wio_input( VipsImage *image )
 	return( 0 );
 }
 
-/**
- * vips_image_wio_output:
- * @image: image to check
- *
- * Check that an image is writeable by vips_image_write_line(). If it isn't,
- * try to transform it so that vips_image_write_line() can work.
- *
- * See also: vips_image_wio_input().
- *
- * Returns: 0 on succeess, or -1 on error.
- */
 int 
-vips_image_wio_output( VipsImage *image )
+vips__image_wio_output( VipsImage *image )
 {
 #ifdef DEBUG_IO
 	printf( "vips_image_wio_output: WIO output for %s\n", 
@@ -2062,7 +2060,7 @@ vips_image_wio_output( VipsImage *image )
 		 *
 		 * We used to check that ->data was null and warn about
 		 * writing twice, but we no longer insist that this is called
-		 * before vips__image_write_prepare(), so we can't do that any
+		 * before vips_image_write_prepare(), so we can't do that any
 		 * more.
 		 */
 		break;

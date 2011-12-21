@@ -659,9 +659,7 @@ vips_image_generate( VipsImage *image,
                 image->client1 = a;
                 image->client2 = b;
 
-                /* Get output ready.
-                 */
-                if( vips__image_write_prepare( image ) )
+                if( vips_image_write_prepare( image ) )
                         return( -1 );
 
                 if( image->dtype == VIPS_IMAGE_OPENOUT ) 

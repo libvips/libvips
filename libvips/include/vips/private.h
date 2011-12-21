@@ -157,9 +157,8 @@ typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
 int vips_region_fill( struct _VipsRegion *reg, 
 	VipsRect *r, VipsRegionFillFn fn, void *a );
 
-/* The new name for im_setupout(), still used by some old code.
- */
-int vips__image_write_prepare( struct _VipsImage *image );
+int vips__image_wio_output( struct _VipsImage *image );
+int vips__image_pio_output( struct _VipsImage *image );
 
 #ifdef __cplusplus
 }

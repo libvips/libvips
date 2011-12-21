@@ -1,13 +1,4 @@
-- what should we call before writing to the ->data pointer?
-
-  vips_image_wio_output() just checks the desc, it does no allocation
-
-  vips__image_write_prepare() is an internal function
-
-  we need a new API thing to replace both these just for the pre-data case,
-  and we need to make a note of it in VIPS_IMAGE_ADDR()
-
-
+- foreign docs
 
 
 

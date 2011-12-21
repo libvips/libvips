@@ -488,13 +488,12 @@ gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
 gboolean vips_image_ispartial( VipsImage *image );
 
-int vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer );
-
 int vips_image_wio_input( VipsImage *image );
-int vips_image_wio_output( VipsImage *image );
-int vips_image_inplace( VipsImage *image );
 int vips_image_pio_input( VipsImage *image );
-int vips_image_pio_output( VipsImage *image );
+int vips_image_inplace( VipsImage *image );
+int vips_image_write_prepare( VipsImage *image );
+
+int vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer );
 
 gboolean vips_band_format_isint( VipsBandFormat format );
 gboolean vips_band_format_isuint( VipsBandFormat format );

@@ -170,7 +170,7 @@ extern "C" {
 		type, xres, yres )
 
 #define im__open_image_file vips__open_image_read
-#define im_setupout( I ) vips__image_write_prepare( I )
+#define im_setupout( I ) (0)
 #define im_writeline( Y, IM, P ) vips_image_write_line( IM, Y, P )
 
 #define im_prepare vips_region_prepare
@@ -326,13 +326,13 @@ G_STMT_START { \
 #define IM_ARRAY( IM, N, T ) ((T *) im_malloc( (IM), (N) * sizeof( T )))
 
 #define im_incheck vips_image_wio_input
-#define im_outcheck vips_image_wio_output
+#define im_outcheck( I ) (0)
 #define im_rwcheck vips_image_inplace
 #define im_pincheck vips_image_pio_input
-#define im_poutcheck vips_image_pio_output
+#define im_poutcheck( I ) (0)
 
-#define im_iocheck( I, O ) (im_incheck( I ) || im_outcheck( O ))
-#define im_piocheck( I, O ) (im_pincheck( I ) || im_poutcheck( O ))
+#define im_iocheck( I, O ) im_incheck( I )
+#define im_piocheck( I, O ) im_pincheck( I )
 
 #define im_check_uncoded vips_check_uncoded 
 #define im_check_coding_known vips_check_coding_known 
