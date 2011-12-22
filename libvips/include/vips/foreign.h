@@ -242,13 +242,13 @@ const char *vips_foreign_find_save( const char *filename );
 
 /* Read/write an image convenience functions.
  */
-int vips_foreign_read( const char *filename, VipsImage **out, ... )
+int vips_foreign_load( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_foreign_write( VipsImage *in, const char *filename, ... )
+int vips_foreign_save( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
-int vips_foreign_read_options( const char *filename, VipsImage **out );
-int vips_foreign_write_options( VipsImage *in, const char *filename );
+int vips_foreign_load_options( const char *filename, VipsImage **out );
+int vips_foreign_save_options( VipsImage *in, const char *filename );
 
 void vips_foreign_operation_init( void );
 

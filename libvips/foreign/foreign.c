@@ -39,27 +39,56 @@
 #include <vips/debug.h>
 
 /**
- * SECTION: file
- * @short_description: load and save in a variety of files
+ * SECTION: foreign
+ * @short_description: load and save images in a variety of formats
  * @stability: Stable
  * @see_also: <link linkend="libvips-image">image</link>
  * @include: vips/vips.h
  *
- * VIPS has a simple system for representing image load and save operations in
- * a generic way.
+ * This set of operations load and save images in a variety of formats. 
  *
- * You can ask for a loader for a certain file or select a saver based on a
- * filename. Once you have found a file, you can use it to load a file of
- * that type, save an image to a file of that type, query files for their type
- * and fields, and ask for supported features. You can also call the
- * converters directly, if you like. 
+ * The operations share a base class that offers a simple way to search for a
+ * subclass of #VipsForeign which can load a certain file (see
+ * vips_foreign_find_load()) or which could be used to save an image to a
+ * certain file type (see vips_foreign_find_save()). You can then run these
+ * operations using vips_call() and friends to perform the load or save.
  *
- * If you define a new file, support for
- * it automatically appears in all VIPS user-interfaces. It will also be
- * transparently supported by vips_image_new_from_foreign() and friends.
+ * A pair of convenience
+ * functions, vips_foreign_load() and vips_foreign_save(), automate the
+ * process, loading an image from a file or saving an image to a file. These
+ * functions let you give load or save options as name - value pairs in the C
+ * argument list. You can use vips_foreign_load_options() and
+ * vips_foreign_save_options() to include option in the file name.
+ *
+ * For example:
+ *
+ * |[
+ * vips_foreign_save (my_image, "frank.tiff", 
+ *     "compression", VIPS_FOREIGN_TIFF_COMPRESSION_JPEG,
+ *     NULL);
+ * ]|
+ *
+ * Will save an image to the file "frank.tiff" in TIFF format (selected by
+ * the file name extension) with JPEG compression.
+ *
+ * You can also invoke the operations directly, for example:
+ *
+ * |[
+ * vips_tiffsave (my_image, "frank.anything", 
+ *     "compression", VIPS_FOREIGN_TIFF_COMPRESSION_JPEG,
+ *     NULL);
+ * ]|
+ *
+ * To add support for a new file format to vips, simply define a new subclass
+ * of #VipsForeignLoad or #VipsForeignSave. 
+ *
+ * If you define a new operation which is a subclass of #VipsForeign, support 
+ * for it automatically appears in all VIPS user-interfaces. It will also be
+ * transparently supported by vips_image_new_from_file() and friends.
  *
  * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, Radiance, RAW and VIPS. It also includes import filters which can
+ * Matlab, Radiance, RAW, FITS and VIPS. It also 
+ * includes import filters which can
  * load with libMagick and with OpenSlide. 
  */
 
