@@ -1,5 +1,11 @@
 - foreign docs come up as "VipsForeignSave", annoying, why?
 
+- we can no longer have round brackets in filenames, argh
+
+- add something to parse option sets backwards, so only trailing {}()[] are
+  seen
+
+
 
 
 - test rad read/write with real images (add to nip2 checks?)
