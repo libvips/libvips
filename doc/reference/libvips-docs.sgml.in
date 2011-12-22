@@ -36,7 +36,7 @@
     <xi:include href="xml/colour.xml"/>
     <xi:include href="xml/conversion.xml"/>
     <xi:include href="xml/convolution.xml"/>
-    <xi:include href="xml/format.xml"/>
+    <xi:include href="xml/foreign.xml"/>
     <xi:include href="xml/freq_filt.xml"/>
     <xi:include href="xml/histograms_lut.xml"/>
     <xi:include href="xml/inplace.xml"/>

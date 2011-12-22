@@ -109,149 +109,210 @@
  */
 
 /**
- * VipsForeign:
+ * VipsForeignClass:
  *
- * #VipsForeign has these virtual methods:
- *
- * |[
- * typedef struct _VipsForeignClass {
- *   VipsObjectClass parent_class;
- *
- *   gboolean (*is_a)( const char *filename );
- *   int (*header)( const char *filename, VipsImage *out );
- *   int (*load)( const char *filename, VipsImage *out );
- *   int (*save)( VipsImage *in, const char *filename );
- *   VipsForeignFlags (*get_flags)( const char *filename );
- *   int priority;
- *   const char **suffs;
- * } VipsForeignClass;
- * ]|
- *
- * Add a new file to VIPS by subclassing VipsForeign. Subclasses need to 
- * implement at least load() or save(). 
- *
- * These members are:
- *
- * <itemizedlist>
- *   <listitem>
- *     <para>
- * is_a() This function should return %TRUE if the file 
- * contains an image of this type. If you don't define this function, VIPS
- * will use the list of suffixes you supply instead.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * header() This function should load the image header,
- * but not load any pixel data. If you don't define it, VIPS will use your
- * load() method instead. Return 0 for success, -1 for error, setting
- * vips_error().
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * load() This function should load the image, or perhaps use 
- * vips_image_generate() to
- * attach something to load sections of the image on demand. 
- * Users can embed
- * load options in the filename, see (for example) im_jpeg2vips().
- * If you don't
- * define this method, you can still define save() and have a save-only
- * file.
- * Return 0 for success, -1 for error, setting
- * im_error().
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * save() This function should save the image to the file. 
- * Users can embed
- * save options in the filename, see (for example) im_vips2tiff().
- * If you don't
- * define this method, you can still define load() and have a load-only
- * file.
- * Return 0 for success, -1 for error, setting
- * im_error().
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * get_flags() This function should return a hint about the properties of this
- * loader on this file. If you don't define it, users will always see '0', or
- * no flags. 
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <structfield>priority</structfield> Where this file should fit in this 
- * list of
- * supported files. 0 is a sensible value for most files. Set a negative
- * value if you want to be lower on the list, positive to move up.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- * <structfield>suffs</structfield> A %NULL-terminated list of possible file 
- * name
- * suffixes, for example:
- * |[
- * static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };
- * ]|
- * The suffix list is used to select a file to save a file in, and to pick a
+ * The suffix list is used to select a format to save a file in, and to pick a
  * loader if you don't define is_a().
- *     </para>
- *   </listitem>
- * </itemizedlist>
  *
- * You should also define <structfield>nickname</structfield> and
- * <structfield>description</structfield> in #VipsObject. 
- *
- * At the command-line, use:
- *
- * |[
- * vips --list classes | grep Foreign
- * ]|
- *
- * To see a list of all the supported files.
- *
- * For example, the TIFF file is defined like this:
- *
-|[
-typedef VipsForeign VipsForeignTiff;
-typedef VipsForeignClass VipsForeignTiffClass;
-
-static void
-vips_foreign_tiff_class_init( VipsForeignTiffClass *class )
-{
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *file_class = (VipsForeignClass *) class;
-
-	object_class->nickname = "tiff";
-	object_class->description = _( "TIFF" );
-
-	file_class->is_a = istiff;
-	file_class->header = tiff2vips_header;
-	file_class->load = im_tiff2vips;
-	file_class->save = im_vips2tiff;
-	file_class->get_flags = tiff_flags;
-	file_class->suffs = tiff_suffs;
-}
-
-static void
-vips_foreign_tiff_init( VipsForeignTiff *object )
-{
-}
-
-G_DEFINE_TYPE( VipsForeignTiff, vips_foreign_tiff, VIPS_TYPE_FOREIGN );
-]|
- *
- * Then call vips_foreign_tiff_get_type() somewhere in your init code to link
- * the file into VIPS (though of course the tiff file is linked in for you
- * already).
- *
+ * You should also define @nickname and @description in #VipsObject. 
  */
 
-/* Abstract base class for image files.
+/**
+ * VipsForeignLoad:
+ *
+ * @out must be set by @header(). @load(), if defined, must set @real.
+ */
+
+/**
+ * VipsForeignLoadClass:
+ *
+ * Add a new loader to VIPS by subclassing #VipsForeignLoad. Subclasses need to 
+ * implement at least @header().
+ *
+ * As a complete example, here's the code for the PNG loader, minus the actual
+ * calls to libpng.
+ *
+ * |[
+typedef struct _VipsForeignLoadPng {
+	VipsForeignLoad parent_object;
+
+	char *filename; 
+} VipsForeignLoadPng;
+
+typedef VipsForeignLoadClass VipsForeignLoadPngClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
+	VIPS_TYPE_FOREIGN_LOAD );
+
+static VipsForeignFlags
+vips_foreign_load_png_get_flags_filename( const char *filename )
+{
+	return( 0 );
+}
+
+static VipsForeignFlags
+vips_foreign_load_png_get_flags( VipsForeignLoad *load )
+{
+	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
+
+	return( vips_foreign_load_png_get_flags_filename( png->filename ) );
+}
+
+static int
+vips_foreign_load_png_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
+
+	if( vips__png_header( png->filename, load->out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_png_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
+
+	if( vips__png_read( png->filename, load->real ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pngload";
+	object_class->description = _( "load png from file" );
+
+	foreign_class->suffs = vips__png_suffs;
+
+	load_class->is_a = vips__png_ispng;
+	load_class->get_flags_filename = 
+		vips_foreign_load_png_get_flags_filename;
+	load_class->get_flags = vips_foreign_load_png_get_flags;
+	load_class->header = vips_foreign_load_png_header;
+	load_class->load = vips_foreign_load_png_load;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPng, filename ),
+		NULL );
+}
+
+static void
+vips_foreign_load_png_init( VipsForeignLoadPng *png )
+{
+}
+ * ]|
+ */
+
+/**
+ * VipsForeignSaveClass:
+ *
+ * Call your saver in the class' @build() method after chaining up. The
+ * prepared image should be ready for you to save in @ready.  
+ *
+ * As a complete example, here's the code for the CSV saver, minus the calls
+ * to the actual save routines.
+ *
+ * |[
+typedef struct _VipsForeignSaveCsv {
+	VipsForeignSave parent_object;
+
+	char *filename; 
+	const char *separator;
+} VipsForeignSaveCsv;
+
+typedef VipsForeignSaveClass VipsForeignSaveCsvClass;
+
+G_DEFINE_TYPE( VipsForeignSaveCsv, vips_foreign_save_csv, 
+	VIPS_TYPE_FOREIGN_SAVE );
+
+static int
+vips_foreign_save_csv_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveCsv *csv = (VipsForeignSaveCsv *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_csv_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__csv_write( save->ready, csv->filename, csv->separator ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
+
+static int bandfmt_csv[10] = {
+// UC  C   US  S   UI  I  F  X  D  DX 
+   UC, C,  US, S,  UI, I, F, X, D, DX
+};
+
+static void
+vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "csvsave";
+	object_class->description = _( "save image to csv file" );
+	object_class->build = vips_foreign_save_csv_build;
+
+	foreign_class->suffs = vips__foreign_csv_suffs;
+
+	save_class->saveable = VIPS_SAVEABLE_MONO;
+	save_class->format_table = bandfmt_csv;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveCsv, filename ),
+		NULL );
+
+	VIPS_ARG_STRING( class, "separator", 13, 
+		_( "Separator" ), 
+		_( "Separator characters" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCsv, separator ),
+		"\t" ); 
+}
+
+static void
+vips_foreign_save_csv_init( VipsForeignSaveCsv *csv )
+{
+	csv->separator = g_strdup( "\t" );
+}
+ * ]|
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeign, vips_foreign, VIPS_TYPE_OPERATION );
@@ -1115,7 +1176,7 @@ vips_foreign_save_init( VipsForeignSave *object )
 }
 
 /**
- * vips_foreign_read:
+ * vips_foreign_load:
  * @filename: file to load
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -1123,12 +1184,12 @@ vips_foreign_save_init( VipsForeignSave *object )
  * Loads @filename into @out using the loader recommended by
  * vips_foreign_find_load().
  *
- * See also: vips_foreign_write(), vips_foreign_read_options().
+ * See also: vips_foreign_save(), vips_foreign_read_options().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_read( const char *filename, VipsImage **out, ... )
+vips_foreign_load( const char *filename, VipsImage **out, ... )
 {
 	const char *operation;
 	va_list ap;
@@ -1145,7 +1206,7 @@ vips_foreign_read( const char *filename, VipsImage **out, ... )
 }
 
 /**
- * vips_foreign_write:
+ * vips_foreign_save:
  * @in: image to write
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
@@ -1153,12 +1214,12 @@ vips_foreign_read( const char *filename, VipsImage **out, ... )
  * Saves @in to @filename using the saver recommended by
  * vips_foreign_find_save().
  *
- * See also: vips_foreign_read().
+ * See also: vips_foreign_load().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_write( VipsImage *in, const char *filename, ... )
+vips_foreign_save( VipsImage *in, const char *filename, ... )
 {
 	const char *operation;
 	va_list ap;
@@ -1175,7 +1236,7 @@ vips_foreign_write( VipsImage *in, const char *filename, ... )
 }
 
 /**
- * vips_foreign_read_options:
+ * vips_foreign_load_options:
  * @filename: file to load
  * @out: output image
  *
@@ -1185,12 +1246,12 @@ vips_foreign_write( VipsImage *in, const char *filename, ... )
  * Arguments to the loader may be embedded in the filename using the usual
  * syntax.
  *
- * See also: vips_foreign_read().
+ * See also: vips_foreign_load().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_read_options( const char *filename, VipsImage **out )
+vips_foreign_load_options( const char *filename, VipsImage **out )
 {
 	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD );
 
@@ -1226,19 +1287,19 @@ vips_foreign_read_options( const char *filename, VipsImage **out )
 }
 
 /**
- * vips_foreign_write_options:
+ * vips_foreign_save_options:
  * @in: image to write
  * @filename: file to write to
  *
  * Saves @in to @filename using the saver recommended by
  * vips_foreign_find_save().
  *
- * See also: vips_foreign_write().
+ * See also: vips_foreign_save().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_write_options( VipsImage *in, const char *filename )
+vips_foreign_save_options( VipsImage *in, const char *filename )
 {
 	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
 	VipsObject *object;

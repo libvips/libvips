@@ -1303,10 +1303,10 @@ vips_object_set_argument_from_string( VipsObject *object,
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *out;
 
-		/* Read the filename. vips_foreign_read_options()
+		/* Read the filename. vips_foreign_load_options()
 		 * handles embedded options.
 		 */
-		if( vips_foreign_read_options( value, &out ) )
+		if( vips_foreign_load_options( value, &out ) )
 			return( -1 );
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
@@ -1478,10 +1478,10 @@ vips_object_get_argument_to_string( VipsObject *object,
 		VipsImage *in;
 
 		/* Pull out the image and write it.
-		 * vips_foreign_write_options() handles embedded options.
+		 * vips_foreign_save_options() handles embedded options.
 		 */
 		g_object_get( object, name, &in, NULL );
-		if( vips_foreign_write_options( in, arg ) ) {
+		if( vips_foreign_save_options( in, arg ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}

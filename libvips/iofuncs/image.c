@@ -639,7 +639,7 @@ vips_image_build( VipsObject *object )
 		else {
 			VipsImage *t;
 
-			if( vips_foreign_read_options( filename, &t ) )
+			if( vips_foreign_load_options( filename, &t ) )
 				return( -1 );
 
 			image->dtype = VIPS_IMAGE_PARTIAL;

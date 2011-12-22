@@ -52,6 +52,7 @@ extern "C" {
 
 typedef struct _VipsForeign {
 	VipsOperation parent_object;
+
 	/*< public >*/
 
 } VipsForeign;
@@ -109,7 +110,7 @@ typedef enum {
 
 typedef struct _VipsForeignLoad {
 	VipsForeign parent_object;
-	/*< public >*/
+	/*< private >*/
 
 	/* Open to disc (default is to open to memory).
 	 */
@@ -119,12 +120,14 @@ typedef struct _VipsForeignLoad {
 	 */
 	VipsForeignFlags flags;
 
-	/* The image we generate.
+	/*< public >*/
+
+	/* The image we generate. This must be set by ->header().
 	 */
 	VipsImage *out;
 
 	/* The behind-the-scenes real image we decompress to. This can be a
-	 * disc foreign or a memory buffer.
+	 * disc foreign or a memory buffer. This must be set by ->load().
 	 */
 	VipsImage *real;
 
@@ -132,35 +135,55 @@ typedef struct _VipsForeignLoad {
 
 typedef struct _VipsForeignLoadClass {
 	VipsForeignClass parent_class;
-
 	/*< public >*/
 
-	/* Is a file in this format.
+	/* Is a file in this format. 
+	 *
+	 * This function should return %TRUE if 
+	 * the file contains an image of this type. If you don't define this 
+	 * function, #VipsForeignLoad
+	 * will use @suffs instead.
 	 */
 	gboolean (*is_a)( const char * );
 
-	/* Get the flags for this image.
-	 */
-	VipsForeignFlags (*get_flags)( VipsForeignLoad * );
-
-	/* Get the flags from a filename. This is needed for vips7compat but
-	 * newer loaders don't have to define it.
+	/* Get the flags from a filename. 
+	 *
+	 * This function should examine the file and return a set
+	 * of flags. If you don't define it, vips will default to 0 (no flags 
+	 * set).  
+	 *
+	 * This operation is necessary for vips7 compatibility. 
 	 */
 	VipsForeignFlags (*get_flags_filename)( const char * );
 
+	/* Get the flags for this image. Images can be loaded from (for
+	 * example) memory areas rather than files, so you can't just use
+	 * @get_flags_filename().
+	 */
+	VipsForeignFlags (*get_flags)( VipsForeignLoad * );
+
 	/* Set the header fields in @out from @filename. If you can read the 
 	 * whole image as well with no performance cost (as with vipsload),
-	 * leave ->load() NULL and only @header will be used.
+	 * or if your loader does not support reading only the header, read
+	 * the entire image in this method and leave @load() NULL.
 	 *
-	 * ->header() needs to set the dhint on the image .. otherwise you get 
+	 * @header() needs to set the dhint on the image .. otherwise you get 
 	 * the default SMALLTILE.
+	 *
+	 * Return 0 for success, -1 for error, setting
+	 * vips_error().
 	 */
 	int (*header)( VipsForeignLoad * );
 
 	/* Read the whole image into @real. It gets copied to @out later.
+	 *
+	 * You can omit this method if you define a @header() method which 
+	 * loads the while file. 
+	 *
+	 * Return 0 for success, -1 for error, setting
+	 * vips_error().
 	 */
 	int (*load)( VipsForeignLoad * );
-
 } VipsForeignLoadClass;
 
 GType vips_foreign_load_get_type( void );
@@ -206,13 +229,17 @@ typedef enum {
 
 typedef struct _VipsForeignSave {
 	VipsForeign parent_object;
+
 	/*< public >*/
 
-	/* The image we are to save.
+	/* The image we are to save, as supplied by our caller. 
 	 */
 	VipsImage *in;
 
-	/* The image converted to a saveable format (eg. 8-bit RGB).
+	/* @in converted to a saveable format (eg. 8-bit RGB) according to the
+	 * instructions you give in the class fields below.
+	 *
+	 * This is the image you should actually write to the output.
 	 */
 	VipsImage *ready;
 
@@ -224,10 +251,18 @@ typedef struct _VipsForeignSaveClass {
 	/*< public >*/
 
 	/* How this format treats bands.
+	 *
+	 * @saveable describes the bands that your saver can handle. For 
+	 * example, PPM images can have 1 or 3 bands (mono or RGB), so it 
+	 * uses #VIPS_SAVEABLE_RGB.
 	 */
 	VipsSaveable saveable;
 
 	/* How this format treats band formats.
+	 *
+	 * @format_table describes the band formats that your saver can 
+	 * handle. For each of the 10 #VipsBandFormat values, the array 
+	 * should give the format your saver will accept. 
 	 */
 	VipsBandFormat *format_table;
 
