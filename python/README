@@ -2,7 +2,7 @@ Experimental Python binding using ctypes
 
 The current Python binding uses swig to wrap the C++ interface. This causes
 problems on Windows, since compiling all of the DLLs correctly to work with
-the various python binaries is painful, and makes the bainding very large.
+the various python binaries is painful, and makes the binding very large.
 
 The idea here is to use ctypes to make a binding that's just Python and which
 directly wraps the C API. The new vips8 C API is much more wrapper-friendly,

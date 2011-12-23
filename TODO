@@ -1,3 +1,11 @@
+- python/* is too old, keep for reference, but we need to use the
+  introspection stuff to get current gobject bindings
+
+  look at that brancg again
+
+
+
+
 - foreign docs come up as "VipsForeignSave", annoying, why?
 
 - we can no longer have round brackets in filenames, argh

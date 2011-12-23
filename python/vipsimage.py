@@ -9,6 +9,8 @@ GNU LESSER GENERAL PUBLIC LICENSE
 import logging
 import ctypes
 
+import gobject
+
 import vipsobject
 
 # image enums
@@ -45,7 +47,6 @@ class VipsInterpretation:
 
     @staticmethod
     def name(value):
-        print currentclass
         return vipsobject.class_value(VipsInterpretation, value)
 
 class VipsBandFormat:
@@ -102,15 +103,14 @@ vips_image_get_xres.restype = ctypes.c_double;
 vips_image_get_yres = libvips.vips_image_get_yres
 vips_image_get_yres.restype = ctypes.c_double;
 
-vips_operation_new = libvips.vips_operation_new
-vips_operation_new.argtypes = [ctypes.c_char_p]
-vips_operation_new.restype = ctypes.c_void_p
-vips_operation_new.errcheck = vipsobject.check_pointer_return
-
 def vips_call_instance(self, name, args):
     logging.debug('vipsimage: vips_call_instance name=%s, self=%s, args=%s' % 
                   (name, self, args))
+    operation = vipsoperation.VipsOperation(name)
     operation = vips_operation_new(name)
+    vipsobject.vips_object_print(operation)
+    vipsobject.vips_argument_map(operation, 
+            vipsobject.VipsArgumentMapFn(show_args),None, None)
 
 class VipsImage(vipsobject.VipsObject):
     """Manipulate a libvips image."""

@@ -20,6 +20,26 @@ import finalizable
 libvips = ctypes.CDLL('libvips.so.15')
 libvips.vips_init(sys.argv[0])
 
+vips_object_print = libvips.vips_object_print
+vips_object_print.argtypes = [ctypes.c_void_p]
+vips_object_print.restype = None
+
+# in C:
+# typedef void *(*VipsArgumentMapFn)( VipsObject *, 
+#   GParamSpec *, VipsArgumentClass *, VipsArgumentInstance *, 
+#   void *a, void *b );
+VipsArgumentMapFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p,
+        ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, 
+        ctypes.c_void_p, ctypes.c_void_p)
+vips_argument_map = libvips.vips_argument_map
+vips_argument_map.argtypes = [ctypes.c_void_p, VipsArgumentMapFn,
+        ctypes.c_void_p, ctypes.c_void_p]
+vips_argument_map.restype = ctypes.c_void_p
+
+g_param_spec_get_name = libvips.g_param_spec_get_name
+g_param_spec_get_name.argtypes = [ctypes.c_void_p]
+g_param_spec_get_name.restype = ctypes.c_char_p
+
 # given a class and value, search for a class member with that value
 # handy for enum classes, use to turn numbers to strings
 def class_value(classobject, value):
@@ -45,7 +65,7 @@ class VipsError(Exception):
         logging.debug('vipsobject: Error: %s %s', self.message, self.detail)
 
     def __str__(self):
-        return '%s %s' %(self.message, self.detail)
+        return '%s %s' % (self.message, self.detail)
 
 # handy checkers, assign to errcheck
 def check_int_return(result, func, args):
