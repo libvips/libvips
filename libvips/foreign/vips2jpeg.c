@@ -85,6 +85,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_JPEG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1112,3 +1114,5 @@ vips__jpeg_write_buffer( VipsImage *in,
 }
 
 const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+
+#endif /*HAVE_JPEG*/

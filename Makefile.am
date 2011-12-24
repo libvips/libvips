@@ -56,4 +56,6 @@ uninstall-hook:
 	-chmod -R u+w ${DESTDIR}$(datadir)/doc/vips
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips
 
-DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc
+ACLOCAL_AMFLAGS = -I m4
+
+DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc --enable-introspection

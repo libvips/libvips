@@ -20,117 +20,39 @@ libforeign_la_SOURCES = \
 	analyzeload.c \
 	analyze2vips.c \
 	analyze2vips.h \
-	foreign.c 
+	foreign.c \
+	matlab.h \
+	matlab.c \
+	matload.c 
+	magick.h \
+	magick2vips.c \
+	magickload.c 
+	pngload.c \
+	pngsave.c \
+	vipspng.h \
+	vipspng.c 
+	openexr2vips.h \
+	openexr2vips.c \
+	openexrload.c 
+	fits.h \
+	fits.c \
+	fitsload.c \
+	fitssave.c 
+	tiff.h \
+	vips2tiff.c \
+	tiff2vips.c \
+	tiffload.c \
+	tiffsave.c 
+	openslide2vips.h \
+	openslide2vips.c \
+	openslideload.c 
+	vips2jpeg.c \
+	jpeg2vips.c \
+	jpeg.h \
+	jpegload.c \
+	jpegsave.c 
 
 EXTRA_DIST = 
-
-if HAVE_MATIO
-libforeign_la_SOURCES += \
-	matlab.h \
-	matlab.c \
-	matload.c 
-else
-EXTRA_DIST += \
-	matlab.h \
-	matlab.c \
-	matload.c 
-endif
-
-if HAVE_MAGICK
-libforeign_la_SOURCES += \
-	magick.h \
-	magick2vips.c \
-	magickload.c 
-else
-EXTRA_DIST += \
-	magick.h \
-	magick2vips.c \
-	magickload.c 
-endif
-
-if HAVE_PNG
-libforeign_la_SOURCES += \
-	pngload.c \
-	pngsave.c \
-	vipspng.h \
-	vipspng.c 
-else
-EXTRA_DIST += \
-	pngload.c \
-	pngsave.c \
-	vipspng.h \
-	vipspng.c 
-endif
-
-if HAVE_OPENEXR
-libforeign_la_SOURCES += \
-	openexr2vips.h \
-	openexr2vips.c \
-	openexrload.c 
-else
-EXTRA_DIST += \
-	openexr2vips.h \
-	openexr2vips.c \
-	openexrload.c 
-endif
-
-if HAVE_CFITSIO
-libforeign_la_SOURCES += \
-	fits.h \
-	fits.c \
-	fitsload.c \
-	fitssave.c 
-else
-EXTRA_DIST += \
-	fits.h \
-	fits.c \
-	fitsload.c \
-	fitssave.c 
-endif
-
-if HAVE_TIFF
-libforeign_la_SOURCES += \
-	tiff.h \
-	vips2tiff.c \
-	tiff2vips.c \
-	tiffload.c \
-	tiffsave.c 
-else
-EXTRA_DIST += \
-	tiff.h \
-	vips2tiff.c \
-	tiff2vips.c \
-	tiffload.c \
-	tiffsave.c 
-endif
-
-if HAVE_OPENSLIDE
-libforeign_la_SOURCES += \
-	openslide2vips.h \
-	openslide2vips.c \
-	openslideload.c 
-else
-EXTRA_DIST += \
-	openslide2vips.h \
-	openslide2vips.c \
-	openslideload.c 
-endif
-
-if HAVE_JPEG
-libforeign_la_SOURCES += \
-	vips2jpeg.c \
-	jpeg2vips.c \
-	jpeg.h \
-	jpegload.c \
-	jpegsave.c 
-else
-EXTRA_DIST += \
-	vips2jpeg.c \
-	jpeg2vips.c \
-	jpeg.h \
-	jpegload.c \
-	jpegsave.c 
-endif
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 

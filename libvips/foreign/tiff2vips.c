@@ -162,6 +162,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_TIFF
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1554,3 +1556,5 @@ vips__istiff( const char *filename )
 
 	return( FALSE );
 }
+
+#endif /*HAVE_TIFF*/

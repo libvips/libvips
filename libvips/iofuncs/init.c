@@ -402,7 +402,7 @@ static GOptionEntry option_entries[] = {
 };
 
 /**
- * vips_get_option_group:
+ * vips_get_option_group: (skip)
  *
  * vips_get_option_group()  returns  a GOptionGroup containing various VIPS
  * command-line options. It  can  be  used  with  GOption  to  help

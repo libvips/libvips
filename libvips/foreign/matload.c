@@ -39,6 +39,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_MATIO
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -134,3 +136,5 @@ static void
 vips_foreign_load_mat_init( VipsForeignLoadMat *mat )
 {
 }
+
+#endif /*HAVE_MATIO*/

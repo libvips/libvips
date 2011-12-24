@@ -99,7 +99,7 @@ typedef struct _VipsRegionClass {
 
 GType vips_region_get_type( void );
 
-VipsRegion *vips_region_new( VipsImage *im );
+VipsRegion *vips_region_new( VipsImage *image );
 
 int vips_region_buffer( VipsRegion *reg, VipsRect *r );
 int vips_region_image( VipsRegion *reg, VipsRect *r );

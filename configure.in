@@ -1,5 +1,14 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(libvips/include/vips/colour.h)
+
+# also update the version number in the m4 macros below
+
+AC_INIT(vips, 7.25.0, vipsip@jiscmail.ac.uk)
+# required for gobject-introspection
+AC_PREREQ(2.62)
+
+# gobject-introspection recommends this
+AM_INIT_AUTOMAKE([-Wno-portability])
+
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR(m4)
 
@@ -10,14 +19,48 @@ m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
-VIPS_MAJOR_VERSION=vips_major_version
-VIPS_MINOR_VERSION=vips_minor_version
-VIPS_MICRO_VERSION=vips_micro_version
+VIPS_MAJOR_VERSION=vips_major_version()
+VIPS_MINOR_VERSION=vips_minor_version()
+VIPS_MICRO_VERSION=vips_micro_version()
 VIPS_VERSION=vips_version()
 VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 
-VERSION=$VIPS_VERSION
-PACKAGE=vips
+# init introspection support
+GOBJECT_INTROSPECTION_CHECK([0.6.7])
+
+# gir needs a list of source files to scan for introspection
+# build with a glob and a list of files to exclude from scanning
+# see also IGNORE_HFILES in doc/reference/Makefile.am
+# the only header we include is the main vips.h one, it'll pull in everything
+# else in the public API
+introspection_sources=`cd libvips ; find . -name "*.c"`
+filter_list="deprecated im_video_v4l1.c"
+
+introspection_sources2=
+for name in $introspection_sources; do
+  found=0
+  for filter in $filter_list; do
+    # FIXME .. argh a bash-ism :( not sure of a nice, portable way to do 
+    # regexp matching
+    if [[[ $name == *${filter}* ]]]; then
+      found=1
+    fi
+  done    
+
+  if [[ $found -eq 0 ]]; then
+    introspection_sources2="$introspection_sources2 $name"
+  fi      
+done    
+vips_introspection_sources="$introspection_sources2"
+
+# add headers that form the public vips8 API .. don't do a find and exclude,
+# we end up excluding almost everything argh
+headers="vips.h object.h image.h error.h foreign.h interpolate.h header.h operation.h enumtypes.h arithmetic.h conversion.h"
+for name in $headers; do
+  vips_introspection_sources="$vips_introspection_sources include/vips/$name"
+done
+
+AC_SUBST(vips_introspection_sources)
 
 # libtool library versioning ... not user-visible (except as part of the
 # library file name) and does not correspond to major/minor/micro above
@@ -31,8 +74,6 @@ PACKAGE=vips
 LIBRARY_CURRENT=30
 LIBRARY_REVISION=5
 LIBRARY_AGE=15
-
-AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -388,12 +429,6 @@ if test x"$with_magick" != "xno"; then
   LIBS=$save_LIBS
 fi
 
-if test x"$with_magick" = x"yes"; then
-  AM_CONDITIONAL(HAVE_MAGICK, true)
-else
-  AM_CONDITIONAL(HAVE_MAGICK, false)
-fi
-
 # orc
 AC_ARG_WITH([orc], 
   AS_HELP_STRING([--without-orc], [build without orc (default: test)]))
@@ -444,17 +479,11 @@ if test x"$with_OpenEXR" != "xno"; then
     ])
 fi
 
-if test x"$with_OpenEXR" = x"yes"; then
-  AM_CONDITIONAL(HAVE_OPENEXR, true)
-else
-  AM_CONDITIONAL(HAVE_OPENEXR, false)
-fi
-
 # OpenSlide
 AC_ARG_WITH([openslide],
   AS_HELP_STRING([--without-openslide], [build without OpenSlide (default: test)]))
 
-if test x"$with_openslide" != "xno"; then
+if test x"$with_openslide" != x"no"; then
   PKG_CHECK_MODULES(OPENSLIDE, openslide >= 3.2.0,
     [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.2.0 installed.])
      with_openslide=yes
@@ -462,12 +491,6 @@ if test x"$with_openslide" != "xno"; then
     [AC_MSG_WARN([OpenSlide >= 3.2.0 not found; disabling virtual slide support])
      with_openslide=no
     ])
-fi
-
-if test x"$with_openslide" = x"yes"; then
-  AM_CONDITIONAL(HAVE_OPENSLIDE, true)
-else
-  AM_CONDITIONAL(HAVE_OPENSLIDE, false)
 fi
 
 # matio
@@ -484,12 +507,6 @@ if test x"$with_matio" != "xno"; then
     ])
 fi
 
-if test x"$with_openslide" = x"yes"; then
-  AM_CONDITIONAL(HAVE_MATIO, true)
-else
-  AM_CONDITIONAL(HAVE_MATIO, false)
-fi
-
 # cfitsio
 AC_ARG_WITH([cfitsio], 
   AS_HELP_STRING([--without-cfitsio], [build without cfitsio (default: test)]))
@@ -502,12 +519,6 @@ if test x"$with_cfitsio" != "xno"; then
     [AC_MSG_WARN([cfitsio not found; disabling cfitsio support])
      with_cfitsio=no
     ])
-fi
-
-if test x"$with_cfitsio" = x"yes"; then
-  AM_CONDITIONAL(HAVE_CFITSIO, true)
-else
-  AM_CONDITIONAL(HAVE_CFITSIO, false)
 fi
 
 # pangoft2
@@ -532,12 +543,6 @@ FIND_TIFF(
    with_tiff=no
   ])
 
-if test x"$with_tiff" = x"yes"; then
-  AM_CONDITIONAL(HAVE_TIFF, true)
-else
-  AM_CONDITIONAL(HAVE_TIFF, false)
-fi
-
 FIND_ZIP(
   [with_zip=yes],
   [AC_MSG_WARN([libz not found; disabling ZIP support])
@@ -560,23 +565,11 @@ if test x"$with_png" != "xno"; then
     ])
 fi
 
-if test x"$with_png" = x"yes"; then
-  AM_CONDITIONAL(HAVE_PNG, true)
-else
-  AM_CONDITIONAL(HAVE_PNG, false)
-fi
-
 FIND_JPEG(
   [with_jpeg=yes],
   [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
    with_jpeg=no
   ])
-
-if test x"$with_jpeg" = x"yes"; then
-  AM_CONDITIONAL(HAVE_JPEG, true)
-else
-  AM_CONDITIONAL(HAVE_JPEG, false)
-fi
 
 # libexif
 AC_ARG_WITH([libexif], 
@@ -736,6 +729,7 @@ enable debug:				$enable_debug
 build C++ components:			$enable_cxx
 evaluate with threads: 			$enable_threads
 build docs with gtkdoc 			$enable_gtk_doc
+gobject introspection 			$found_introspection
 
 * optional packages and modules
 use fftw3 for FFT: 			$with_fftw3

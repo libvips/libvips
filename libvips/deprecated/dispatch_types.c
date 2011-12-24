@@ -722,9 +722,8 @@ im__dmsprint( im_object obj )
 
 	/* Print statistics band stats eg: 2 bands:b 0,1 
 	 */
-	printf( "\
-band    minimum     maximum         sum       sum^2        mean   deviation\
-\n" );
+	printf( "band    minimum     maximum         sum       "
+		"sum^2        mean   deviation\n" );
 	for( j = 0; j < mask->ysize; j++ ) {
 		row = mask->coeff + j * mask->xsize;
 		if( j == 0 )

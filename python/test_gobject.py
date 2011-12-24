@@ -1,36 +1,26 @@
 #!/usr/bin/python
 
-import logging
 import gc
 import sys
-import ctypes
 
-import gobject
+# you might need this in your .bashrc
+# export GI_TYPELIB_PATH=$VIPSHOME/lib/girepository-1.0
+from gi.repository import Vips
 
-logging.basicConfig(level = logging.DEBUG)
+a = Vips.Image()
+a.props.filename = sys.argv[1]
+a.props.mode = 'r'
+if a.build() != 0:
+    print Vips.error_buffer()
+    sys.exit(-1)
 
-# .15 is 7.25+ with the new vips8 API
-libvips = ctypes.CDLL('libvips.so.15')
-libvips.vips_init(sys.argv[0])
+print 'a.get_width() =', a.get_width()
+print 'a.props.width =', a.props.width
 
-# should be able to find vipsimage, hopefully
-print gobject.type_from_name('VipsImage')
+print 'starting shutdown ...'
+del a
+# sometimes have to do several GCs to get them all, not sure why
+for i in range(10):
+	gc.collect ()
+print 'shutdown!'
 
-_VipsImage = gobject.type_from_name('VipsImage')
-
-class VipsImage(_VipsImage):
-    def __new__(cls):
-        gobject.type_register(cls)
-        return gobject.GObject.__new__(cls)
-
-    def __init__(self, filename = None, mode = None):
-        logging.debug('vipsimage: init')
-
-        if filename != None:
-            self.props.filename = filename
-
-        if mode != None:
-            self.props.mode = mode
-
-a = VipsImage('/home/john/pics/healthygirl.jpg')
-# a = gobject.new(VipsImage, '/home/john/pics/healthygirl.jpg')

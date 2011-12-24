@@ -178,7 +178,7 @@ typedef struct _VipsInterpolateVsqbsClass {
  */
 #define VSQBS_CONVERSION( conversion )               \
   template <typename T> static void inline           \
-  vsqbs_ ## conversion(       PEL*   restrict pout,  \
+  vsqbs_ ## conversion(       void*  restrict pout,  \
                         const PEL*   restrict pin,   \
                         const int             bands, \
                         const int             lskip, \
@@ -303,7 +303,7 @@ extern "C" {
 
 static void
 vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
-                                    PEL*             restrict out,
+                                    void*            restrict out,
                                     REGION*          restrict in,
                                     double                    absolute_x,
                                     double                    absolute_y )

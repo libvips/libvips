@@ -47,6 +47,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_PNG
+
 #include "vipspng.h"
 
 typedef struct _VipsForeignLoadPng {
@@ -134,3 +136,5 @@ static void
 vips_foreign_load_png_init( VipsForeignLoadPng *png )
 {
 }
+
+#endif /*HAVE_PNG*/

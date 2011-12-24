@@ -1,7 +1,32 @@
-- python/* is too old, keep for reference, but we need to use the
-  introspection stuff to get current gobject bindings
+- automake conditionals are breaking introspection 
 
-  look at that brancg again
+  we need to build all of them, but use ifdefs to knock chunks out
+
+
+
+
+- test goi merge
+
+
+
+- looks like we need to have all includes in all .h files, and to scan them
+  all explicitly 
+
+  at the moment Vips-8.0.gir just has the stuff directly in vips.h
+
+  ... is this correct? many includes are working finw without this
+
+- currently stuck on:
+
+	<unknown>:: Fatal: Vips: Unknown namespace for identifier 'vips_save_string'
+
+
+
+
+
+- look at libpeas for plugin support
+
+	http://live.gnome.org/Libpeas
 
 
 

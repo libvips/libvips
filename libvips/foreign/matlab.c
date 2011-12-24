@@ -56,6 +56,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_MATIO
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -304,3 +306,5 @@ vips__mat_ismat( const char *filename )
 }
 
 const char *vips__mat_suffs[] = { ".mat", NULL };
+
+#endif /*HAVE_MATIO*/

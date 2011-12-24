@@ -75,6 +75,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_MAGICK
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -705,4 +707,6 @@ vips__magick_read_header( const char *filename, VipsImage *im )
 
 	return( 0 );
 }
+
+#endif /*HAVE_MAGICK*/
 

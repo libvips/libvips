@@ -37,6 +37,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <vips/vips.h>
+
 int im_lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int dx, int dy, int mwidth );
 int im_tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,

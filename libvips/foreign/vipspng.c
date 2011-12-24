@@ -70,6 +70,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_PNG
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -686,3 +688,4 @@ vips__png_write_buf( VipsImage *in,
 	return( 0 );
 }
 
+#endif /*HAVE_PNG*/

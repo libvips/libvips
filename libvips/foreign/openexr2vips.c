@@ -67,6 +67,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_OPENEXR
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -404,3 +406,5 @@ vips__openexr_read( const char *filename, VipsImage *out )
 
 	return( 0 );
 }
+
+#endif /*HAVE_OPENEXR*/

@@ -163,6 +163,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_TIFF
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -1538,3 +1540,4 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	return( 0 );
 }
 
+#endif /*HAVE_TIFF*/
