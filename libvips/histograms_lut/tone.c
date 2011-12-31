@@ -269,7 +269,7 @@ im_tone_build_range( IMAGE *out,
 	if( im_setupout( out ) )
 		return( -1 );
 
-	if( im_writeline( 0, out, (PEL *) lut ) )
+	if( im_writeline( 0, out, (VipsPel *) lut ) )
 		return( -1 );
 
 	return( 0 );

@@ -109,7 +109,7 @@ im_feye( IMAGE *out, const int xsize, const int ysize, const double factor )
 	for( y = 0; y < ysize; y++ ) {
 		for( x = 0; x < xsize; x++ )
 			line[x] = y * y * lut[x];
-		if( im_writeline( y, out, (PEL *) line ) )
+		if( im_writeline( y, out, (VipsPel *) line ) )
 			return( -1 ); 
 	}
 

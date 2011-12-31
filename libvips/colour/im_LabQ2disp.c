@@ -51,9 +51,9 @@
  */
 typedef struct {
         struct im_col_display *disp;
-        PEL red[ 64 * 64 * 64 ];
-        PEL green[ 64 * 64 * 64 ];
-        PEL blue[ 64 * 64 * 64 ];
+        VipsPel red[ 64 * 64 * 64 ];
+        VipsPel green[ 64 * 64 * 64 ];
+        VipsPel blue[ 64 * 64 * 64 ];
 } CalibrateInfo;
 
 /* Do our own indexing of the arrays, to make sure we get efficient mults.
@@ -63,7 +63,7 @@ typedef struct {
 /* Process a buffer of data.
  */
 static void
-imb_LabQ2disp( PEL *p, PEL *q, int n, CalibrateInfo *cal )
+imb_LabQ2disp( VipsPel *p, VipsPel *q, int n, CalibrateInfo *cal )
 { 
         int x, t;
 

@@ -399,7 +399,7 @@ vips__openexr_read( const char *filename, VipsImage *out )
 				(ImfHalf *) imf_buffer, vips_buffer );
 
 			if( vips_image_write_line( out, y, 
-				(PEL *) vips_buffer ) )
+				(VipsPel *) vips_buffer ) )
 				return( -1 );
 		}
 	}

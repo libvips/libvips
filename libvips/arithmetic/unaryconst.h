@@ -67,7 +67,7 @@ typedef struct _VipsUnaryConst {
 	 * const_format in type.
 	 */
 	int n;
-	PEL *c_ready;
+	VipsPel *c_ready;
 
 } VipsUnaryConst;
 

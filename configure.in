@@ -55,7 +55,8 @@ vips_introspection_sources="$introspection_sources2"
 
 # add headers that form the public vips8 API .. don't do a find and exclude,
 # we end up excluding almost everything argh
-headers="vips.h object.h image.h error.h foreign.h interpolate.h header.h operation.h enumtypes.h arithmetic.h conversion.h"
+headers="vips.h object.h image.h error.h foreign.h interpolate.h header.h
+operation.h enumtypes.h arithmetic.h conversion.h type.h"
 for name in $headers; do
   vips_introspection_sources="$vips_introspection_sources include/vips/$name"
 done
@@ -726,10 +727,10 @@ native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
-build C++ components:			$enable_cxx
 evaluate with threads: 			$enable_threads
-build docs with gtkdoc 			$enable_gtk_doc
-gobject introspection 			$found_introspection
+build C++ components:			$enable_cxx
+build docs with gtkdoc:			$enable_gtk_doc
+gobject introspection: 			$found_introspection
 
 * optional packages and modules
 use fftw3 for FFT: 			$with_fftw3

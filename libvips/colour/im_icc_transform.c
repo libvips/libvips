@@ -299,7 +299,7 @@ decode_lab( WORD *fixed, float *lab, int n )
 }
 
 static void
-transform_buf( PEL *in, PEL *out, int n, Icc *icc )
+transform_buf( VipsPel *in, VipsPel *out, int n, Icc *icc )
 {
 	g_mutex_lock( icc->lock );
 	cmsDoTransform( icc->trans, in, out, n );
@@ -462,7 +462,7 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 }
 
 static void
-import_buf( PEL *in, float *out, int n, Icc *icc )
+import_buf( VipsPel *in, float *out, int n, Icc *icc )
 {
 	/* Buffer of encoded 16-bit pixels we write to.
 	 */
@@ -644,7 +644,7 @@ im_icc_import_embedded( IMAGE *in, IMAGE *out, VipsIntent intent )
 }
 
 static void
-export_buf( float *in, PEL *out, int n, Icc *icc )
+export_buf( float *in, VipsPel *out, int n, Icc *icc )
 {
 	/* Buffer of encoded 16-bit pixels we transform.
 	 */
@@ -1103,7 +1103,7 @@ decode_lab( guint16 *fixed, float *lab, int n )
 }
 
 static void
-transform_buf( PEL *in, PEL *out, int n, Icc *icc )
+transform_buf( VipsPel *in, VipsPel *out, int n, Icc *icc )
 {
 	g_mutex_lock( icc->lock );
 	cmsDoTransform( icc->trans, in, out, n );
@@ -1273,7 +1273,7 @@ im_icc_transform( IMAGE *in, IMAGE *out,
 }
 
 static void
-import_buf( PEL *in, float *out, int n, Icc *icc )
+import_buf( VipsPel *in, float *out, int n, Icc *icc )
 {
 	/* Buffer of encoded 16-bit pixels we write to.
 	 */
@@ -1437,7 +1437,7 @@ im_icc_import_embedded( IMAGE *in, IMAGE *out, VipsIntent intent )
 }
 
 static void
-export_buf( float *in, PEL *out, int n, Icc *icc )
+export_buf( float *in, VipsPel *out, int n, Icc *icc )
 {
 	/* Buffer of encoded 16-bit pixels we transform.
 	 */

@@ -1,6 +1,29 @@
-- automake conditionals are breaking introspection 
+- remaining warnings
 
-  we need to build all of them, but use ifdefs to knock chunks out
+include/vips/type.h:99: Warning: Vips: vips_value_get_area: return value: Missing (transfer) annotation
+include/vips/type.h:98: Warning: Vips: vips_value_set_area: argument free_fn: Missing (scope) annotation for callback without GDestroyNotify (valid: call, async)
+include/vips/type.h:137: Warning: Vips: vips_value_get_array: return value: Missing (transfer) annotation
+include/vips/type.h:156: Warning: Vips: vips_value_get_array_object: return value: Missing (transfer) annotation
+include/vips/type.h:86: Warning: Vips: vips_area_new: argument free_fn: Missing (scope) annotation for callback without GDestroyNotify (valid: call, async)
+include/vips/type.h:87: Warning: Vips: vips_area_new_blob: argument free_fn: Missing (scope) annotation for callback without GDestroyNotify (valid: call, async)
+
+iofuncs/type.c:518: Warning: Vips: vips_value_get_blob: return value: Missing (transfer) annotation
+iofuncs/type.c:471: Warning: Vips: vips_value_set_blob: argument free_fn: Missing (scope) annotation for callback without GDestroyNotify (valid: call, async)
+
+iofuncs/header.c:921: Warning: Vips: vips_image_set_area: argument free_fn: Missing (scope) annotation for callback without GDestroyNotify (valid: call, async)
+iofuncs/header.c:993: Warning: Vips: vips_image_set_blob: argument free_fn: Missing (scope) annotation for callback without GDestroyNotify (valid: call, async)
+
+include/vips/object.h:273: Warning: Vips: vips__argument_table_lookup: return value: Unresolved type: 'VipsArgument*'
+
+include/vips/operation.h:81: Warning: Vips: vips_operation_class_print_usage: argument operation_class: Unresolved type: 'VipsOperationClass*'
+
+foreign/foreign.c:383: Warning: Vips: vips_foreign_map: argument fn: Unresolved type: 'VipsSListMap2Fn'
+foreign/foreign.c:399: Warning: Vips: vips_foreign_map: return value: Missing (transfer) annotation
+
+conversion/im_system_image.c:129: Warning: Vips: im_system_image: return value: Missing (transfer) annotation
+
+
+
 
 
 

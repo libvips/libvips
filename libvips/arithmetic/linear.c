@@ -187,7 +187,8 @@ vips_linear_build( VipsObject *object )
 /* Lintra a buffer, n set of scale/offset.
  */
 static void
-vips_linear_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+vips_linear_buffer( VipsArithmetic *arithmetic, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
 	VipsLinear *linear = (VipsLinear *) arithmetic;

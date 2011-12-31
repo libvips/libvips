@@ -164,7 +164,8 @@ vips_abs_build( VipsObject *object )
 #endif /*HAVE_HYPOT*/
 
 static void
-vips_abs_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+vips_abs_buffer( VipsArithmetic *arithmetic, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnary *unary = VIPS_UNARY( arithmetic );
 	const int bands = vips_image_get_bands( unary->in );

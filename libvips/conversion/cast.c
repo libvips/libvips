@@ -335,8 +335,8 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		return( -1 );
 
 	for( y = to; y < bo; y++ ) {
-		PEL *in = (PEL *) VIPS_REGION_ADDR( ir, le, y ); 
-		PEL *out = (PEL *) VIPS_REGION_ADDR( or, le, y ); 
+		VipsPel *in = VIPS_REGION_ADDR( ir, le, y ); 
+		VipsPel *out = VIPS_REGION_ADDR( or, le, y ); 
 
 		switch( cast->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 

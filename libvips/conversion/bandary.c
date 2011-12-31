@@ -88,16 +88,16 @@ vips_bandary_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS( bandary ); 
 	Rect *r = &or->valid;
 
-	PEL *p[MAX_INPUT_IMAGES], *q;
+	VipsPel *p[MAX_INPUT_IMAGES], *q;
 	int y, i;
 
 	for( i = 0; i < bandary->n; i++ ) {
 		if( vips_region_prepare( ir[i], r ) )
 			return( -1 );
-		p[i] = (PEL *) VIPS_REGION_ADDR( ir[i], r->left, r->top );
+		p[i] = VIPS_REGION_ADDR( ir[i], r->left, r->top );
 	}
 	p[i] = NULL;
-	q = (PEL *) VIPS_REGION_ADDR( or, r->left, r->top );
+	q = VIPS_REGION_ADDR( or, r->left, r->top );
 
 	for( y = 0; y < r->height; y++ ) {
 		class->process_line( bandary, q, p, r->width );

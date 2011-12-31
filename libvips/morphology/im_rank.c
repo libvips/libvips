@@ -74,7 +74,7 @@ typedef struct {
  */
 typedef struct {
 	REGION *ir;
-	PEL *sort;
+	VipsPel *sort;
 } SeqInfo;
 
 /* Free a sequence value.
@@ -110,7 +110,7 @@ rank_start( IMAGE *out, void *a, void *b )
 	 */
 	seq->ir = im_region_create( in );
 	seq->sort = IM_ARRAY( out, 
-		IM_IMAGE_SIZEOF_ELEMENT( in ) * rnk->n, PEL );
+		IM_IMAGE_SIZEOF_ELEMENT( in ) * rnk->n, VipsPel );
 	if( !seq->ir || !seq->sort ) {
 		rank_stop( seq, in, rnk );
 		return( NULL );

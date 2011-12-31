@@ -37,6 +37,14 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/**
+ * VipsPel:
+ *
+ * A picture element. Cast this to whatever the associated VipsBandFormat says
+ * to get the value.
+ */
+typedef unsigned char VipsPel;
+
 /* Also used for eg. vips_local() and friends.
  */
 typedef int (*VipsCallbackFn)( void *a, void *b );

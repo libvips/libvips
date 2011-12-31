@@ -93,10 +93,10 @@ lhist_gen( REGION *or, void *seq, void *a, void *b )
 	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
 		 */
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y );
+		VipsPel *p = IM_REGION_ADDR( ir, r->left, r->top + y );
+		VipsPel *q = IM_REGION_ADDR( or, r->left, r->top + y );
 
-		PEL *p1;
+		VipsPel *p1;
 		int hist[256];
 
 		/* Find histogram for start of this line.

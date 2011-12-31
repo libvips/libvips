@@ -113,9 +113,9 @@ vips_recomb_gen( VipsRegion *or,
 		return( -1 );
 
 	for( y = 0; y < or->valid.height; y++ ) {
-		PEL *in = (PEL *) VIPS_REGION_ADDR( ir, 
+		VipsPel *in = VIPS_REGION_ADDR( ir, 
 			or->valid.left, or->valid.top + y );
-		PEL *out = (PEL *) VIPS_REGION_ADDR( or, 
+		VipsPel *out = VIPS_REGION_ADDR( or, 
 			or->valid.left, or->valid.top + y );
 
 		switch( vips_image_get_format( im ) ) {

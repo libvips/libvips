@@ -76,7 +76,7 @@ typedef struct {
 	int es;			/* IM_IMAGE_SIZEOF_ELEMENT() for lut image */
 	int sz;			/* Number of elements in minor dimension */
 	int clp;		/* Value we clip against */
-	PEL **table;		/* Lut converted to 2d array */
+	VipsPel **table;		/* Lut converted to 2d array */
 	int overflow;		/* Number of overflows for non-uchar lut */
 } LutInfo;
 
@@ -107,7 +107,7 @@ build_luts( IMAGE *out, IMAGE *lut )
 {
 	LutInfo *st;
 	int i, x;
-	PEL *q;
+	VipsPel *q;
 
 	if( !(st = IM_NEW( out, LutInfo )) )
                 return( NULL );
@@ -130,15 +130,15 @@ build_luts( IMAGE *out, IMAGE *lut )
 
 	/* Attach tables.
 	 */
-	if( !(st->table = IM_ARRAY( out, lut->Bands, PEL * )) ) 
+	if( !(st->table = IM_ARRAY( out, lut->Bands, VipsPel * )) ) 
                 return( NULL );
 	for( i = 0; i < lut->Bands; i++ )
-		if( !(st->table[i] = IM_ARRAY( out, st->sz * st->es, PEL )) )
+		if( !(st->table[i] = IM_ARRAY( out, st->sz * st->es, VipsPel )) )
 			return( NULL );
 
 	/* Scan LUT and fill table.
 	 */
-	q = (PEL *) lut->data;
+	q = (VipsPel *) lut->data;
 	for( x = 0; x < st->sz; x++ )
 		for( i = 0; i < st->nb; i++ ) {
 			memcpy( st->table[i] + x * st->es, q, st->es );
@@ -201,7 +201,7 @@ maplut_start( IMAGE *out, void *a, void *b )
 	\
 	for( y = to; y < bo; y++ ) { \
 		for( z = 0; z < b; z++ ) { \
-			PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y ); \
+			VipsPel *p = IM_REGION_ADDR( ir, le, y ); \
 			OUT *q = (OUT *) IM_REGION_ADDR( or, le, y ); \
 			OUT *tlut = (OUT *) st->table[z]; \
 			\
@@ -218,7 +218,7 @@ maplut_start( IMAGE *out, void *a, void *b )
 	\
 	for( y = to; y < bo; y++ ) { \
 		for( z = 0; z < b; z++ ) { \
-			PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y ) + z; \
+			VipsPel *p = IM_REGION_ADDR( ir, le, y ) + z; \
 			OUT *q = (OUT *) IM_REGION_ADDR( or, le, y ) + z * 2; \
 			OUT *tlut = (OUT *) st->table[z]; \
 			\
@@ -289,7 +289,7 @@ maplut_start( IMAGE *out, void *a, void *b )
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) IM_REGION_ADDR( or, le, y ); \
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y ); \
+		VipsPel *p = IM_REGION_ADDR( ir, le, y ); \
 		\
 		for( x = 0; x < ne; x++ ) \
 			q[x] = tlut[p[x]]; \
@@ -303,7 +303,7 @@ maplut_start( IMAGE *out, void *a, void *b )
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) IM_REGION_ADDR( or, le, y ); \
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y ); \
+		VipsPel *p = IM_REGION_ADDR( ir, le, y ); \
 		\
 		for( x = 0; x < ne; x++ ) { \
 			int n = p[x] * 2; \
@@ -367,7 +367,7 @@ maplut_start( IMAGE *out, void *a, void *b )
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) IM_REGION_ADDR( or, le, y ); \
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y ); \
+		VipsPel *p = IM_REGION_ADDR( ir, le, y ); \
 		\
 		for( i = 0, x = 0; x < np; x++ ) { \
 			int n = p[x]; \
@@ -385,7 +385,7 @@ maplut_start( IMAGE *out, void *a, void *b )
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) IM_REGION_ADDR( or, le, y ); \
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y ); \
+		VipsPel *p = IM_REGION_ADDR( ir, le, y ); \
 		\
 		for( x = 0; x < np; x++ ) { \
 			int n = p[x] * 2; \

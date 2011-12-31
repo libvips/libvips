@@ -315,7 +315,7 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 		 */
 		double ix, iy;
 
-		PEL *q;
+		VipsPel *q;
 
 		/* To (3).
 		 */
@@ -327,7 +327,7 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 		ix += iarea->left;
 		iy += iarea->top;
 
-		q = (PEL *) IM_REGION_ADDR( or, le, y );
+		q = IM_REGION_ADDR( or, le, y );
 
 		for( x = le; x < ri; x++ ) {
 			int fx, fy; 	

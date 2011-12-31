@@ -105,7 +105,8 @@ vips_round_build( VipsObject *object )
 }
 
 static void
-vips_round_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+vips_round_buffer( VipsArithmetic *arithmetic, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsRound *round = (VipsRound *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];

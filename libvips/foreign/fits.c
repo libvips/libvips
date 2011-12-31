@@ -113,7 +113,7 @@ typedef struct {
 
 	/* We split bands up for write into this buffer.
 	 */
-	PEL *buffer;
+	VipsPel *buffer;
 } VipsFits;
 
 const char *vips__fits_suffs[] = { ".fits", NULL };
@@ -349,7 +349,7 @@ fits2vips_generate( VipsRegion *out,
 	VipsFits *fits = (VipsFits *) a;
 	Rect *r = &out->valid;
 
-	PEL *q;
+	VipsPel *q;
 	int z;
 	int status;
 
@@ -384,7 +384,7 @@ fits2vips_generate( VipsRegion *out,
 		for( z = 0; z < MAX_DIMENSIONS; z++ )
 			inc[z] = 1;
 
-		q = (PEL *) VIPS_REGION_ADDR( out, r->left, r->top );
+		q = VIPS_REGION_ADDR( out, r->left, r->top );
 
 		/* Break on ffgsv() for this call.
 		 */
@@ -417,7 +417,7 @@ fits2vips_generate( VipsRegion *out,
 			for( z = 0; z < MAX_DIMENSIONS; z++ )
 				inc[z] = 1;
 
-			q = (PEL *) VIPS_REGION_ADDR( out, r->left, y );
+			q = VIPS_REGION_ADDR( out, r->left, y );
 
 			/* Break on ffgsv() for this call.
 			 */
@@ -562,7 +562,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	/* We need to be able to hold one scanline of one band.
 	 */
 	if( !(fits->buffer = VIPS_ARRAY( NULL, 
-		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * in->Xsize, PEL )) )
+		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * in->Xsize, VipsPel )) )
 		return( NULL );
 
 	/* fits_create_file() will fail if there's a file of thet name, unless
@@ -682,11 +682,11 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 	 */
 
 	for( y = 0; y < area->height; y++ ) {
-		PEL *p = (PEL *) VIPS_REGION_ADDR( region, 
+		VipsPel *p = VIPS_REGION_ADDR( region, 
 			area->left, area->top + y );
 
 		for( b = 0; b < image->Bands; b++ ) {
-			PEL *p1, *q;
+			VipsPel *p1, *q;
 			long fpixel[3];
 
 			p1 = p + b * es;

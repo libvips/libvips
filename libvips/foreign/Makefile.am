@@ -23,29 +23,29 @@ libforeign_la_SOURCES = \
 	foreign.c \
 	matlab.h \
 	matlab.c \
-	matload.c 
+	matload.c \
 	magick.h \
 	magick2vips.c \
-	magickload.c 
+	magickload.c \
 	pngload.c \
 	pngsave.c \
 	vipspng.h \
-	vipspng.c 
+	vipspng.c \
 	openexr2vips.h \
 	openexr2vips.c \
-	openexrload.c 
+	openexrload.c \
 	fits.h \
 	fits.c \
 	fitsload.c \
-	fitssave.c 
+	fitssave.c \
 	tiff.h \
 	vips2tiff.c \
 	tiff2vips.c \
 	tiffload.c \
-	tiffsave.c 
+	tiffsave.c \
 	openslide2vips.h \
 	openslide2vips.c \
-	openslideload.c 
+	openslideload.c \
 	vips2jpeg.c \
 	jpeg2vips.c \
 	jpeg.h \

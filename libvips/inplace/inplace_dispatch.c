@@ -57,7 +57,7 @@
 /* Calculate a pixel for an image from a vec of double. Valid while im is
  * valid.
  */
-PEL *
+VipsPel *
 im__vector_to_ink( const char *domain, IMAGE *im, int n, double *vec )
 {
 	IMAGE *t[3];
@@ -77,11 +77,11 @@ im__vector_to_ink( const char *domain, IMAGE *im, int n, double *vec )
 		im_clip2fmt( t[1], t[2], im->BandFmt ) )
 		return( NULL );
 
-	return( (PEL *) t[2]->data );
+	return( t[2]->data );
 }
 
 double *
-im__ink_to_vector( const char *domain, IMAGE *im, PEL *ink )
+im__ink_to_vector( const char *domain, IMAGE *im, VipsPel *ink )
 {
 	double *vec;
 	int i;
@@ -208,7 +208,7 @@ draw_mask_vec( im_object *argv )
 	int y = *((int *) argv[3]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[4];
 
-	PEL *ink;
+	VipsPel *ink;
 
 	if( !(ink = im__vector_to_ink( "im_draw_mask", 
 		image, dv->n, dv->vec )) )
@@ -247,7 +247,7 @@ draw_flood_blob_vec( im_object *argv )
 	int y = *((int *) argv[2]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[3];
 
-	PEL *ink;
+	VipsPel *ink;
 
 	if( !(ink = im__vector_to_ink( "im_draw_flood_blob", 
 		image, dv->n, dv->vec )) )
@@ -286,7 +286,7 @@ draw_flood_vec( im_object *argv )
 	int y = *((int *) argv[2]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[3];
 
-	PEL *ink;
+	VipsPel *ink;
 
 	if( !(ink = im__vector_to_ink( "im_draw_flood", 
 		image, dv->n, dv->vec )) )
@@ -360,7 +360,7 @@ draw_point_vec( im_object *argv )
 	int y = *((int *) argv[2]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[3];
 
-	PEL *ink;
+	VipsPel *ink;
 
 	if( !(ink = im__vector_to_ink( "im_draw_point",
 		image, dv->n, dv->vec )) )
@@ -399,9 +399,9 @@ read_point_vec( im_object *argv )
 	int y = *((int *) argv[2]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[3];
 
-	PEL *ink;
+	VipsPel *ink;
 
-	if( !(ink = IM_ARRAY( image, IM_IMAGE_SIZEOF_PEL( image ), PEL )) ||
+	if( !(ink = IM_ARRAY( image, IM_IMAGE_SIZEOF_PEL( image ), VipsPel )) ||
 		im_read_point( image, x, y, ink ) ||
 		!(dv->vec = im__ink_to_vector( "im_read_point", image, ink )) )
 		return( -1 );
@@ -444,7 +444,7 @@ draw_line_vec( im_object *argv )
 	int y2 = *((int *) argv[4]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[5];
 
-	PEL *ink;
+	VipsPel *ink;
 
 	if( !(ink = im__vector_to_ink( "im_draw_line",
 		image, dv->n, dv->vec )) )
@@ -524,7 +524,7 @@ draw_rect_vec( im_object *argv )
 	int fill = *((int *) argv[5]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[6];
 
-	PEL *ink;
+	VipsPel *ink;
 
 	if( !(ink = im__vector_to_ink( "im_draw_rect",
 		image, dv->n, dv->vec )) )
@@ -567,7 +567,7 @@ draw_circle_vec( im_object *argv )
 	int fill = *((int *) argv[4]);
 	im_doublevec_object *dv = (im_doublevec_object *) argv[5];
 
-	PEL *ink;
+	VipsPel *ink;
 
 	if( !(ink = im__vector_to_ink( "im_draw_circle", 
 		image, dv->n, dv->vec )) )

@@ -176,11 +176,14 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
  * vips_csvload:
  * @filename: file to load
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @skip: skip this many lines at start of file
  * @lines: read this many lines from file
  * @whitespace: set of whitespace characters
  * @separator: set of separator characters
- * @...: %NULL-terminated list of optional named arguments
  *
  * Load a CSV (comma-separated values) file. The output image is always 1 
  * band (monochrome), #VIPS_FORMAT_DOUBLE. 

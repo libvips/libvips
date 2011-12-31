@@ -285,6 +285,9 @@ vips_argument_instance_free( VipsArgumentInstance *argument_instance )
 	g_free( argument_instance );
 }
 
+/**
+ * vips__argument_table_lookup: (skip) 
+ */
 VipsArgument *
 vips__argument_table_lookup( VipsArgumentTable *table, GParamSpec *pspec )
 {
@@ -343,7 +346,10 @@ vips_argument_map( VipsObject *object,
 	return( NULL );
 }
 
-/* And loop over a class. Same as ^^, but with no VipsArgumentInstance.
+/**
+ * vips_argument_class_map: (skip)
+ *
+ * And loop over a class. Same as ^^, but with no VipsArgumentInstance.
  */
 void *
 vips_argument_class_map( VipsObjectClass *object_class,
@@ -425,7 +431,10 @@ vips_argument_init( VipsObject *object )
 	}
 }
 
-/* Convenience ... given the VipsArgumentClass, get the VipsArgumentInstance.
+/**
+ * vips__argument_get_instance: (skip)
+ *
+ * Convenience ... given the VipsArgumentClass, get the VipsArgumentInstance.
  */
 VipsArgumentInstance *
 vips__argument_get_instance( VipsArgumentClass *argument_class,
@@ -440,7 +449,10 @@ vips__argument_get_instance( VipsArgumentClass *argument_class,
 			((VipsArgument *) argument_class)->pspec ) );
 }
 
-/* Look up the three things you need to work with a vips argument.
+/**
+ * vips_object_get_argument: (skip)
+ *
+ * Look up the three things you need to work with a vips argument.
  */
 int
 vips_object_get_argument( VipsObject *object, const char *name,
@@ -1874,7 +1886,10 @@ vips_type_map_all( GType base, VipsTypeMapFn fn, void *a )
 	return( result );
 }
 
-/* Loop over all the subclasses of a base type. Non-abtract classes only.
+/**
+ * vips_class_map_all: (skip) 
+ *
+ * Loop over all the subclasses of a base type. Non-abtract classes only.
  */
 void *
 vips_class_map_all( GType type, VipsClassMapFn fn, void *a )
@@ -1991,7 +2006,7 @@ vips_object_local_array_cb( GObject *parent, VipsObjectLocal *local )
 }
 
 /** 
- * vips_object_local_array:
+ * vips_object_local_array: (skip)
  * @parent: objects unref when this object unrefs
  * @n: array size
  *

@@ -58,7 +58,7 @@ extern "C" {
 
 struct _VipsArithmetic;
 typedef void (*VipsArithmeticProcessFn)( struct _VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width );
+	VipsPel *out, VipsPel **in, int width );
 
 typedef struct _VipsArithmetic {
 	VipsOperation parent_instance;

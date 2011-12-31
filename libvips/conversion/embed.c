@@ -143,7 +143,7 @@ vips_embed_find_edge( VipsEmbed *embed, VipsRect *r, int i, VipsRect *out )
 /* Copy a single pixel sideways into a line of pixels.
  */
 static void
-vips_embed_copy_pixel( VipsEmbed *embed, PEL *q, PEL *p, int n )
+vips_embed_copy_pixel( VipsEmbed *embed, VipsPel *q, VipsPel *p, int n )
 {
 	const int bs = VIPS_IMAGE_SIZEOF_PEL( embed->in );
 
@@ -160,12 +160,12 @@ vips_embed_copy_pixel( VipsEmbed *embed, PEL *q, PEL *p, int n )
  */
 static void
 vips_embed_paint_edge( VipsEmbed *embed, 
-	VipsRegion *or, int i, VipsRect *r, PEL *p, int plsk )
+	VipsRegion *or, int i, VipsRect *r, VipsPel *p, int plsk )
 {
 	const int bs = VIPS_IMAGE_SIZEOF_PEL( embed->in );
 
 	VipsRect todo;
-	PEL *q;
+	VipsPel *q;
 	int y;
 
 	/* Pixels left to paint.
@@ -176,7 +176,7 @@ vips_embed_paint_edge( VipsEmbed *embed,
 	 * todo, then use the line copier below to paint the rest of it.
 	 */
 	if( i > 3 ) {
-		q = (PEL *) VIPS_REGION_ADDR( or, todo.left, todo.top );
+		q = VIPS_REGION_ADDR( or, todo.left, todo.top );
 		vips_embed_copy_pixel( embed, q, p, todo.width );
 
 		p = q;
@@ -188,8 +188,7 @@ vips_embed_paint_edge( VipsEmbed *embed,
 		/* Vertical line of pixels to copy.
 		 */
 		for( y = 0; y < todo.height; y++ ) {
-			q = (PEL *) VIPS_REGION_ADDR( or, 
-				todo.left, todo.top + y );
+			q = VIPS_REGION_ADDR( or, todo.left, todo.top + y );
 			vips_embed_copy_pixel( embed, q, p, todo.width );
 			p += plsk;
 		}
@@ -198,8 +197,7 @@ vips_embed_paint_edge( VipsEmbed *embed,
 		/* Horizontal line of pixels to copy.
 		 */
 		for( y = 0; y < todo.height; y++ ) {
-			q = (PEL *) VIPS_REGION_ADDR( or, 
-				todo.left, todo.top + y );
+			q = VIPS_REGION_ADDR( or, todo.left, todo.top + y );
 			memcpy( q, p, bs * todo.width );
 		}
 	}
@@ -214,7 +212,7 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	Rect ovl;
 	int i;
-	PEL *p;
+	VipsPel *p;
 	int plsk;
 
 	/* Entirely within the input image? Generate the subimage and copy
@@ -275,7 +273,7 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 				 * that.
 				 */
 				if( !vips_rect_isempty( &ovl ) ) {
-					p = (PEL *) VIPS_REGION_ADDR( or, 
+					p = VIPS_REGION_ADDR( or, 
 						edge.left, edge.top );
 					plsk = VIPS_REGION_LSKIP( or );
 				}
@@ -287,7 +285,7 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 					edge.top -= embed->y;
 					if( vips_region_prepare( ir, &edge ) )
 						return( -1 );
-					p = (PEL *) VIPS_REGION_ADDR( ir,
+					p = VIPS_REGION_ADDR( ir,
 						 edge.left, edge.top );
 					plsk = VIPS_REGION_LSKIP( ir );
 				}
@@ -567,12 +565,15 @@ vips_embed_init( VipsEmbed *embed )
  * vips_embed:
  * @in: input image
  * @out: output image
- * @width: @out should be this many pixels across
- * @height: @out should be this many pixels down
  * @x: place @in at this x position in @out
  * @y: place @in at this y position in @out
- * @extend: how to generate the edge pixels
+ * @width: @out should be this many pixels across
+ * @height: @out should be this many pixels down
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @extend: how to generate the edge pixels
  *
  * The opposite of vips_extract_area(): embed @in within an image of size 
  * @width by @height at position @x, @y.  @extend

@@ -55,8 +55,6 @@ extern "C" {
  */
 #define VIPS_SIZEOF_HEADER (64)
 
-typedef unsigned char PEL;			/* useful datum		*/
-
 /* What we track for each mmap window. Have a list of these on an openin
  * VipsImage.
  */
@@ -66,7 +64,7 @@ typedef struct {
 
 	int top; 		/* Area of image we have mapped, in pixels */
 	int height;
-	PEL *data;		/* First pixel of line 'top' */
+	VipsPel *data;		/* First pixel of line 'top' */
 
 	void *baseaddr;		/* Base of window */
 	size_t length;		/* Size of window */
@@ -106,7 +104,7 @@ typedef struct _VipsBuffer {
 	VipsRect area;		/* Area this pixel buffer covers */
 	gboolean done;		/* Calculated and in cache */
 	VipsBufferCache *cache;
-	PEL *buf;		/* Private malloc() area */
+	VipsPel *buf;		/* Private malloc() area */
 	size_t bsize;		/* Size of private malloc() */
 } VipsBuffer;
 

@@ -341,7 +341,7 @@ im_falsecolour( IMAGE *in, IMAGE *out )
 		return( -1 );
 	in = t[1];
 
-	if( !(lut = im_image( (PEL *) PET_colour, 
+	if( !(lut = im_image( (VipsPel *) PET_colour, 
 		1, 256, 3, IM_BANDFMT_UCHAR )) )
 		return( -1 );
 	if( im_maplut( in, out, lut ) ) {

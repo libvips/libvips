@@ -372,7 +372,7 @@ vips_save_string_get_type( void )
  *
  * Get the C string held internally by the GValue.
  *
- * Returns: The C string held by @value. This must not be freed.
+ * Returns: (transfer none): the C string held by @value. 
  */
 const char *
 vips_value_get_ref_string( const GValue *value, size_t *length )
@@ -505,7 +505,7 @@ vips_value_set_blob( GValue *value,
 /** 
  * vips_value_get_blob:
  * @value: GValue to set
- * @length: optionally return length of memory area
+ * @length: (out): optionally return length of memory area
  *
  * Returns the data pointer from a blob. Optionally returns the length too.
  *
@@ -515,7 +515,7 @@ vips_value_set_blob( GValue *value,
  *
  * See also: vips_value_set_blob()
  *
- * Returns: 0 on success, -1 otherwise.
+ * Returns: (transfer none): a pointer to the area
  */
 void *
 vips_value_get_blob( const GValue *value, size_t *length )
@@ -633,7 +633,7 @@ vips_value_get_array( const GValue *value,
  *
  * See also: vips_array_double_set().
  *
- * Returns: The array address.
+ * Returns: (transfer none): The array address.
  */
 double *
 vips_value_get_array_double( const GValue *value, int *n )
@@ -748,7 +748,7 @@ vips_array_double_get_type( void )
  *
  * See also: vips_array_object_set().
  *
- * Returns: The array address.
+ * Returns: (transfer none): The array address.
  */
 GObject **
 vips_value_get_array_object( const GValue *value, int *n )

@@ -40,6 +40,8 @@ extern "C" {
 /* Renamed types.
  */
 
+#define PEL VipsPel
+
 #define IM_BANDFMT_NOTSET VIPS_FORMAT_NOTSET
 #define IM_BANDFMT_UCHAR VIPS_FORMAT_UCHAR
 #define IM_BANDFMT_CHAR VIPS_FORMAT_CHAR

@@ -109,7 +109,7 @@ typedef struct {
 
 	/* Derived stuff.
 	 */
-	PEL *edge;		/* Boundary colour */
+	VipsPel *edge;		/* Boundary colour */
 	int equal;		/* Fill to == edge, or != edge */
 	int tsize;		/* sizeof( one pel in test ) */
 	int left, right;	/* Record bounding box of modified pixels */
@@ -188,7 +188,7 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
  * pixels.
  */
 static inline gboolean
-flood_connected( Flood *flood, PEL *tp )
+flood_connected( Flood *flood, VipsPel *tp )
 {
  	int j;
 
@@ -210,19 +210,19 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	Draw *draw = DRAW( flood );
 	const int width = flood->test->Xsize;
 
-	PEL *tp;
+	VipsPel *tp;
 	int i;
 
 	g_assert( flood_connected( flood, 
-		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) );
+		IM_IMAGE_ADDR( flood->test, x, y ) ) );
 	g_assert( !im__draw_painted( draw, 
-		(PEL *) IM_IMAGE_ADDR( draw->im, x, y ) ) );
+		IM_IMAGE_ADDR( draw->im, x, y ) ) );
 
 	/* Search to the right for the first non-connected pixel. If the start
 	 * pixel is unpainted, we know all the intervening pixels must be
 	 * unpainted too.
 	 */
-	tp = (PEL *) IM_IMAGE_ADDR( flood->test, x + 1, y );
+	tp = IM_IMAGE_ADDR( flood->test, x + 1, y );
 	for( i = x + 1; i < width; i++ ) {
 		if( !flood_connected( flood, tp ) )
 			break;
@@ -232,7 +232,7 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 
 	/* Search left.
 	 */
-	tp = (PEL *) IM_IMAGE_ADDR( flood->test, x - 1, y );
+	tp = IM_IMAGE_ADDR( flood->test, x - 1, y );
 	for( i = x - 1; i >= 0; i-- ) {
 		if( !flood_connected( flood, tp ) )
 			break;
@@ -260,12 +260,12 @@ flood_around( Flood *flood, Scan *scan )
 {
 	Draw *draw = DRAW( flood );
 
-	PEL *tp;
+	VipsPel *tp;
 	int x;
 
 	g_assert( scan->dir == 1 || scan->dir == -1 );
 
-	for( tp = (PEL *) IM_IMAGE_ADDR( flood->test, scan->x1, scan->y ), 
+	for( tp = IM_IMAGE_ADDR( flood->test, scan->x1, scan->y ), 
 		x = scan->x1; 
 		x <= scan->x2; 
 		tp += flood->tsize, x++ ) {
@@ -278,7 +278,7 @@ flood_around( Flood *flood, Scan *scan )
 			 * connected loops.
 			 */
 			if( draw->im != flood->test ) {
-				PEL *mp = (PEL *) IM_IMAGE_ADDR( 
+				VipsPel *mp = IM_IMAGE_ADDR( 
 					draw->im, x, scan->y );
 
 				if( im__draw_painted( draw, mp ) )
@@ -304,7 +304,7 @@ flood_around( Flood *flood, Scan *scan )
 				scan->dir );
 
 			x = x2a + 1;
-			tp = (PEL *) IM_IMAGE_ADDR( flood->test, x, scan->y );
+			tp = IM_IMAGE_ADDR( flood->test, x, scan->y );
 		}
 	}
 }
@@ -317,7 +317,7 @@ flood_all( Flood *flood, int x, int y )
 	/* Test start pixel ... nothing to do?
 	 */
 	if( !flood_connected( flood, 
-		(PEL *) IM_IMAGE_ADDR( flood->test, x, y ) ) ) 
+		IM_IMAGE_ADDR( flood->test, x, y ) ) ) 
 		return;
 
 	flood_scanline( flood, x, y, &x1, &x2 );
@@ -360,7 +360,7 @@ flood_free( Flood *flood )
 }
 
 static Flood *
-flood_new( IMAGE *image, IMAGE *test, int x, int y, PEL *ink, Rect *dout )
+flood_new( IMAGE *image, IMAGE *test, int x, int y, VipsPel *ink, Rect *dout )
 {
 	Flood *flood;
 
@@ -385,7 +385,7 @@ flood_new( IMAGE *image, IMAGE *test, int x, int y, PEL *ink, Rect *dout )
 	flood->in = NULL;
 	flood->out = NULL;
 
-	if( !(flood->edge = (PEL *) im_malloc( NULL, flood->tsize )) ||
+	if( !(flood->edge = (VipsPel *) im_malloc( NULL, flood->tsize )) ||
 		!(flood->in = buffer_build()) ||
 		!(flood->out = buffer_build()) ) {
 		flood_free( flood );
@@ -415,7 +415,7 @@ flood_new( IMAGE *image, IMAGE *test, int x, int y, PEL *ink, Rect *dout )
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_flood( IMAGE *image, int x, int y, PEL *ink, Rect *dout )
+im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
 	Flood *flood;
 
@@ -455,7 +455,7 @@ im_draw_flood( IMAGE *image, int x, int y, PEL *ink, Rect *dout )
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_flood_blob( IMAGE *image, int x, int y, PEL *ink, Rect *dout )
+im_draw_flood_blob( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
 	Flood *flood;
  	int j;
@@ -528,7 +528,7 @@ im_draw_flood_other( IMAGE *image,
 	if( *m == serial )
 		return( 0 );
 
-	if( !(flood = flood_new( image, test, x, y, (PEL *) &serial, dout )) )
+	if( !(flood = flood_new( image, test, x, y, (VipsPel *) &serial, dout )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.

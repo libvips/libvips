@@ -163,7 +163,8 @@ G_DEFINE_TYPE( VipsComplex, vips_complex, VIPS_TYPE_UNARY );
 }
 
 static void
-vips_complex_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+vips_complex_buffer( VipsArithmetic *arithmetic, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsComplex *cmplx = (VipsComplex *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
@@ -418,7 +419,7 @@ vips_complexget_build( VipsObject *object )
 
 static void
 vips_complexget_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsComplexget *complexget = (VipsComplexget *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
@@ -608,7 +609,7 @@ vips_complexform_build( VipsObject *object )
 
 static void
 vips_complexform_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
 	const int sz = width * vips_image_get_bands( im );

@@ -324,9 +324,12 @@ vips_max_init( VipsMax *max )
  * vips_max:
  * @in: input #VipsImage
  * @out: output pixel maximum
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @x: horizontal position of maximum
  * @y: vertical position of maximum
- * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the maximum value in an image. 
  *

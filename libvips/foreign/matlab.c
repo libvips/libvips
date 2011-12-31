@@ -223,7 +223,7 @@ static int
 mat2vips_get_data( mat_t *mat, matvar_t *var, VipsImage *im )
 {
 	int y;
-	PEL *buffer;
+	VipsPel *buffer;
 	const int es = VIPS_IMAGE_SIZEOF_ELEMENT( im );
 
 	/* Matlab images are plane-separate, so we have to assemble bands in
@@ -240,20 +240,21 @@ mat2vips_get_data( mat_t *mat, matvar_t *var, VipsImage *im )
 	/* Matlab images are in columns, so we have to transpose into
 	 * scanlines with this buffer.
 	 */
-	if( !(buffer = VIPS_ARRAY( im, VIPS_IMAGE_SIZEOF_LINE( im ), PEL )) )
+	if( !(buffer = VIPS_ARRAY( im, 
+		VIPS_IMAGE_SIZEOF_LINE( im ), VipsPel )) )
 		return( -1 );
 
 	for( y = 0; y < im->Ysize; y++ ) {
-		const PEL *p = var->data + y * es;
+		const VipsPel *p = var->data + y * es;
 		int x;
-		PEL *q;
+		VipsPel *q;
 
 		q = buffer;
 		for( x = 0; x < im->Xsize; x++ ) {
 			int b;
 
 			for( b = 0; b < im->Bands; b++ ) {
-				const PEL *p2 = p + b * is;
+				const VipsPel *p2 = p + b * is;
 				int z;
 
 				for( z = 0; z < es; z++ )

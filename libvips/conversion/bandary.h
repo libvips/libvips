@@ -53,7 +53,7 @@ extern "C" {
 
 struct _VipsBandary;
 typedef void (*VipsBandaryProcessFn)( struct _VipsBandary *bandary, 
-	PEL *out, PEL **in, int width );
+	VipsPel *out, VipsPel **in, int width );
 
 typedef struct _VipsBandary {
 	VipsConversion parent_instance;

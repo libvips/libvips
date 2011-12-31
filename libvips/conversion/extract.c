@@ -278,7 +278,8 @@ typedef VipsBandaryClass VipsExtractBandClass;
 G_DEFINE_TYPE( VipsExtractBand, vips_extract_band, VIPS_TYPE_BANDARY );
 
 static void
-vips_extract_band_buffer( VipsBandary *bandary, PEL *out, PEL **in, int width )
+vips_extract_band_buffer( VipsBandary *bandary, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsConversion *conversion = (VipsConversion *) bandary;
 	VipsExtractBand *extract = (VipsExtractBand *) bandary;
@@ -287,7 +288,7 @@ vips_extract_band_buffer( VipsBandary *bandary, PEL *out, PEL **in, int width )
 	int ips = VIPS_IMAGE_SIZEOF_PEL( im );
 	const int ops = VIPS_IMAGE_SIZEOF_PEL( conversion->out );
 
-	PEL *p, *q;
+	VipsPel *p, *q;
 	int x, z;
 
 	p = in[0] + extract->band * es;
@@ -381,8 +382,11 @@ vips_extract_band_init( VipsExtractBand *extract )
  * @in: input image
  * @out: output image
  * @band: band to extract
- * @n: number of bands to extract
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @n: number of bands to extract
  *
  * Extract a band or bands from an image. Extracting out of range is an error.
  *

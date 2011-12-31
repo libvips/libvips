@@ -1450,8 +1450,11 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  * vips_tiffload:
  * @filename: file to load
  * @out: decompressed image
- * @page: load this page
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: load this page
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
  * with extensions for tiled images, multipage images, LAB colour space, 
@@ -1483,6 +1486,10 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  * vips_tiffsave:
  * @in: image to save 
  * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @compression; use this compression scheme
  * @Q: quality factor
  * @predictor; compress with this prediction
@@ -1496,7 +1503,6 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  * @xres; horizontal resolution
  * @yres; vertical resolution
  * @bigtiff; write a BigTiff file
- * @...: %NULL-terminated list of optional named arguments
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -1611,10 +1617,12 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * vips_jpegload:
  * @filename: file to load
  * @out: decompressed image
- * @flags: image flags
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @shrink: shrink by this much on load
  * @fail: fail on warnings
- * @...: %NULL-terminated list of optional named arguments
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
  * including CMYK and YCbCr.
@@ -1673,9 +1681,12 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
 /**
  * vips_jpegsave_mime:
  * @in: image to save 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
- * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *
@@ -1701,9 +1712,12 @@ vips_jpegsave_mime( VipsImage *in, ... )
  * @in: image to save 
  * @buf: return output buffer here
  * @len: return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
- * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -1742,9 +1756,12 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * vips_jpegsave:
  * @in: image to save 
  * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @Q: quality factor
  * @profile: attach this ICC profile
- * @...: %NULL-terminated list of optional named arguments
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -1815,9 +1832,12 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  * vips_openslideload:
  * @filename: file to load
  * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @layer: load this layer
  * @associated: load this associated image
- * @...: %NULL-terminated list of optional named arguments
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
  * OpenSlide supports images in Aperio, Hamamatsu VMS, Hamamatsu VMU, MIRAX,
@@ -1938,9 +1958,12 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  * vips_pngsave:
  * @in: image to save 
  * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @compression: compression level
  * @interlace: interlace image
- * @...: %NULL-terminated list of optional named arguments
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -1979,9 +2002,12 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  * @in: image to save 
  * @buf: return output buffer here
  * @len: return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @compression: compression level
  * @interlace: interlace image
- * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *

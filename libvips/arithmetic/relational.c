@@ -109,7 +109,7 @@ vips_relational_build( VipsObject *object )
 #define RLOOP( TYPE, ROP ) { \
 	TYPE *left = (TYPE *) in[0]; \
 	TYPE *right = (TYPE *) in[1]; \
-	PEL *q = (PEL *) out; \
+	VipsPel *q = (VipsPel *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = (left[x] ROP right[x]) ? 255 : 0; \
@@ -118,7 +118,7 @@ vips_relational_build( VipsObject *object )
 #define CLOOP( TYPE, COP ) { \
 	TYPE *left = (TYPE *) in[0]; \
 	TYPE *right = (TYPE *) in[1]; \
-	PEL *q = (PEL *) out; \
+	VipsPel *q = (VipsPel *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		q[x] = COP( left[0], left[1], right[0], right[1]) ? 255 : 0; \
@@ -154,7 +154,7 @@ vips_relational_build( VipsObject *object )
 
 static void
 vips_relational_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsRelational *relational = (VipsRelational *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
@@ -496,7 +496,7 @@ vips_relational_const_build( VipsObject *object )
 
 static void
 vips_relational_const_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnaryConst *uconst = (VipsUnaryConst *) arithmetic;
 	VipsRelationalConst *rconst = (VipsRelationalConst *) arithmetic;

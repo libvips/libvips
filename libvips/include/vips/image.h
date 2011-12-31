@@ -282,7 +282,7 @@ typedef struct _VipsImage {
 	 */
 	char *Hist;		/* don't use, see vips_image_get_history() */
 	char *filename;		/* pointer to copy of filename */
-	PEL *data;		/* start of image data for WIO */
+	VipsPel *data;		/* start of image data for WIO */
 	int kill;		/* set to non-zero to block eval */
 
 	/* Everything below this private and only used internally by
@@ -448,7 +448,7 @@ extern const guint64 vips__image_sizeof_bandformat[];
 		(X), (Y), \
 		0, 0, \
 		(I)->Xsize, \
-		(I)->Ysize ), abort(), (PEL *) NULL) \
+		(I)->Ysize ), abort(), (VipsPel *) NULL) \
 	)
 #else /*!VIPS_DEBUG*/
 #define VIPS_IMAGE_ADDR( I, X, Y ) \
@@ -493,7 +493,7 @@ int vips_image_pio_input( VipsImage *image );
 int vips_image_inplace( VipsImage *image );
 int vips_image_write_prepare( VipsImage *image );
 
-int vips_image_write_line( VipsImage *image, int ypos, PEL *linebuffer );
+int vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer );
 
 gboolean vips_band_format_isint( VipsBandFormat format );
 gboolean vips_band_format_isuint( VipsBandFormat format );

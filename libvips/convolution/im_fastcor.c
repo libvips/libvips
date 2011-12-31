@@ -91,8 +91,8 @@ fastcor_gen( REGION *or, void *seq, void *a, void *b )
 			IM_REGION_ADDR( or, r->left, r->top + y );
 
 		for( x = 0; x < r->width; x++ ) {
-			PEL *b = (PEL *) ref->data;
-			PEL *a = (PEL *) 
+			VipsPel *b = ref->data;
+			VipsPel *a = 
 				IM_REGION_ADDR( ir, r->left + x, r->top + y );
 
 			int sum;

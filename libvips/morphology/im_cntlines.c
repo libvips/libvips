@@ -68,7 +68,7 @@ int
 im_cntlines( IMAGE *im, double *nolines, int flag )
 {
 	int x, y;
-	PEL *line;
+	VipsPel *line;
 	int cnt;
 
 	if( im_incheck( im ) ||
@@ -82,12 +82,12 @@ im_cntlines( IMAGE *im, double *nolines, int flag )
 		return( -1 ); 
 	}
 
-	line = (PEL *) im->data;
+	line = im->data;
 	if( flag == 1 ) {
 		/* Count vertical lines.
 		 */
 		for( cnt = 0, y = 0; y < im->Ysize; y++ ) {
-			PEL *p = line;
+			VipsPel *p = line;
 			
 			for( x = 0; x < im->Xsize - 1; x++ ) {
 				if( p[0] < 128 && p[1] >= 128 )
@@ -107,8 +107,8 @@ im_cntlines( IMAGE *im, double *nolines, int flag )
 		/* Count horizontal lines.
 		 */
 		for( cnt = 0, y = 0; y < im->Ysize - 1; y++ ) {
-			PEL *p1 = line;
-			PEL *p2 = line + im->Xsize;
+			VipsPel *p1 = line;
+			VipsPel *p2 = line + im->Xsize;
 			
 			for( x = 0; x < im->Xsize; x++ ) {
 				if( *p1 < 128 && *p2 >= 128 )

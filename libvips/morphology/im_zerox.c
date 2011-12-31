@@ -96,8 +96,8 @@ zerox_gen( REGION *or, void *seq, void *a, void *b )
 		return( -1 );
 	
 	for( y = to; y < bo; y++ ) {
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
+		VipsPel *p = IM_REGION_ADDR( ir, le, y );
+		VipsPel *q = IM_REGION_ADDR( or, le, y );
 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_CHAR:           LOOP( signed char ); break;

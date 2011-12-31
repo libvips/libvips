@@ -881,9 +881,9 @@ tile_copy( Tile *tile, VipsRegion *to )
 			tile, tile->area.left, tile->area.top ); 
 
 		for( y = ovlap.top; y < VIPS_RECT_BOTTOM( &ovlap ); y++ ) {
-			PEL *p = (PEL *) VIPS_REGION_ADDR( tile->region, 
+			VipsPel *p = VIPS_REGION_ADDR( tile->region, 
 				ovlap.left, y );
-			PEL *q = (PEL *) VIPS_REGION_ADDR( to, ovlap.left, y );
+			VipsPel *q = VIPS_REGION_ADDR( to, ovlap.left, y );
 
 			memcpy( q, p, len );
 		}

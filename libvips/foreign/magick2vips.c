@@ -477,7 +477,7 @@ parse_header( Read *read )
 }
 
 static void
-unpack_pixels( VipsImage *im, PEL *q8, PixelPacket *pixels, int n )
+unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 {
 	int x;
 

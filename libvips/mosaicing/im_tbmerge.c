@@ -120,7 +120,7 @@
 static int
 find_top( REGION *ir, int *pos, int x, int y, int h )
 {
-	PEL *pr = (PEL *) IM_REGION_ADDR( ir, x, y );
+	VipsPel *pr = IM_REGION_ADDR( ir, x, y );
 	IMAGE *im = ir->im;
 	int ls = IM_REGION_LSKIP( ir ) / IM_IMAGE_SIZEOF_ELEMENT( im );
 	int b = im->Bands;
@@ -174,7 +174,7 @@ find_top( REGION *ir, int *pos, int x, int y, int h )
 static int
 find_bot( REGION *ir, int *pos, int x, int y, int h )
 {
-	PEL *pr = (PEL *) IM_REGION_ADDR( ir, x, y );
+	VipsPel *pr = IM_REGION_ADDR( ir, x, y );
 	IMAGE *im = ir->im;
 	int ls = IM_REGION_LSKIP( ir ) / IM_IMAGE_SIZEOF_ELEMENT( ir->im );
 	int b = im->Bands;
@@ -501,9 +501,9 @@ tb_blend( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 	 */
 	for( y = oreg->top, yr = prr.top, ys = psr.top; 
 		y < IM_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) { 
-		PEL *pr = (PEL *) IM_REGION_ADDR( rir, prr.left, yr );
-		PEL *ps = (PEL *) IM_REGION_ADDR( sir, psr.left, ys );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, oreg->left, y );
+		VipsPel *pr = IM_REGION_ADDR( rir, prr.left, yr );
+		VipsPel *ps = IM_REGION_ADDR( sir, psr.left, ys );
+		VipsPel *q = IM_REGION_ADDR( or, oreg->left, y );
 
 		const int j = oreg->left - ovlap->overlap.left;
 		const int *first = ovlap->first + j;
@@ -579,9 +579,9 @@ tb_blend_labpack( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 	 */
 	for( y = oreg->top, yr = prr.top, ys = psr.top; 
 		y < IM_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) { 
-		PEL *pr = (PEL *) IM_REGION_ADDR( rir, prr.left, yr );
-		PEL *ps = (PEL *) IM_REGION_ADDR( sir, psr.left, ys );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, oreg->left, y );
+		VipsPel *pr = IM_REGION_ADDR( rir, prr.left, yr );
+		VipsPel *ps = IM_REGION_ADDR( sir, psr.left, ys );
+		VipsPel *q = IM_REGION_ADDR( or, oreg->left, y );
 
 		const int j = oreg->left - ovlap->overlap.left;
 		const int *first = ovlap->first + j;

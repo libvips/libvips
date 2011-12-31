@@ -33,7 +33,7 @@ typedef struct _Draw {
 	/* Parameters.
 	 */
 	IMAGE *im;		/* Draw here */
-	PEL *ink;		/* Copy of ink param */
+	VipsPel *ink;		/* Copy of ink param */
 
 	/* Derived stuff.
 	 */
@@ -49,7 +49,7 @@ typedef struct _Draw {
 #define DRAW(X) ((Draw *)(X))
 
 static inline void
-im__draw_pel( Draw *draw, PEL *q )
+im__draw_pel( Draw *draw, VipsPel *q )
 {
  	int j;
 
@@ -69,13 +69,13 @@ im__draw_pel_clip( Draw *draw, int x, int y )
 	if( y < 0 || y >= draw->im->Ysize )
 		return;
 
-	im__draw_pel( draw, (PEL *) IM_IMAGE_ADDR( draw->im, x, y ) );
+	im__draw_pel( draw, IM_IMAGE_ADDR( draw->im, x, y ) );
 }
 
 /* Is p painted?
  */
 static inline gboolean
-im__draw_painted( Draw *draw, PEL *p )
+im__draw_painted( Draw *draw, VipsPel *p )
 {
  	int j;
 
@@ -88,4 +88,4 @@ im__draw_painted( Draw *draw, PEL *p )
 
 void im__draw_scanline( Draw *draw, int y, int x1, int x2 );
 void im__draw_free( Draw *draw );
-Draw *im__draw_init( Draw *draw, IMAGE *im, PEL *ink );
+Draw *im__draw_init( Draw *draw, IMAGE *im, VipsPel *ink );

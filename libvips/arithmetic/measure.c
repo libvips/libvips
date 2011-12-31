@@ -259,11 +259,14 @@ vips_measure_init( VipsMeasure *measure )
  * @out: array of measurements
  * @h: patches across chart
  * @v: patches down chart
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @left: area of image containing chart
  * @top: area of image containing chart
  * @width: area of image containing chart
  * @height: area of image containing chart
- * @...: %NULL-terminated list of optional named arguments
  *
  * Analyse a grid of colour patches, producing an array of patch averages.
  * The mask has a row for each measured patch and a column for each image

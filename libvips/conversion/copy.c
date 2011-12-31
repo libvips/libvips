@@ -127,7 +127,7 @@ G_DEFINE_TYPE( VipsCopy, vips_copy, VIPS_TYPE_CONVERSION );
 /* Swap pairs of bytes.
  */
 static void
-vips_copy_swap2( PEL *in, PEL *out, int width, VipsImage *im )
+vips_copy_swap2( VipsPel *in, VipsPel *out, int width, VipsImage *im )
 { 
 	guint16 *p = (guint16 *) in;
 	guint16 *q = (guint16 *) out;
@@ -142,7 +142,7 @@ vips_copy_swap2( PEL *in, PEL *out, int width, VipsImage *im )
 /* Swap 4- of bytes.
  */
 static void
-vips_copy_swap4( PEL *in, PEL *out, int width, VipsImage *im )
+vips_copy_swap4( VipsPel *in, VipsPel *out, int width, VipsImage *im )
 {
 	guint32 *p = (guint32 *) in;
 	guint32 *q = (guint32 *) out;
@@ -157,7 +157,7 @@ vips_copy_swap4( PEL *in, PEL *out, int width, VipsImage *im )
 /* Swap 8- of bytes.
  */
 static void
-vips_copy_swap8( PEL *in, PEL *out, int width, VipsImage *im )
+vips_copy_swap8( VipsPel *in, VipsPel *out, int width, VipsImage *im )
 {
 	guint64 *p = (guint64 *) in;
 	guint64 *q = (guint64 *) out;
@@ -169,7 +169,7 @@ vips_copy_swap8( PEL *in, PEL *out, int width, VipsImage *im )
 		q[x] = GUINT64_SWAP_LE_BE( p[x] );
 }
 
-typedef void (*SwapFn)( PEL *in, PEL *out, int width, VipsImage *im );
+typedef void (*SwapFn)( VipsPel *in, VipsPel *out, int width, VipsImage *im );
 
 static SwapFn vips_copy_swap_fn[] = {
 	NULL, 			/* VIPS_FORMAT_UCHAR = 0, */
@@ -203,9 +203,9 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		int y;
 
 		for( y = 0; y < r->height; y++ ) {
-			PEL *p = (PEL *) VIPS_REGION_ADDR( ir, 
+			VipsPel *p = VIPS_REGION_ADDR( ir, 
 				r->left, r->top + y );
-			PEL *q = (PEL *) VIPS_REGION_ADDR( or, 
+			VipsPel *q = VIPS_REGION_ADDR( or, 
 				r->left, r->top + y );
 
 			swap( p, q, r->width, copy->in );
@@ -401,6 +401,10 @@ vips_copy_init( VipsCopy *copy )
  * vips_copy:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @width: set image width
  * @height: set image height
  * @bands: set image bands
@@ -412,7 +416,6 @@ vips_copy_init( VipsCopy *copy )
  * @xoffset: set image xoffset
  * @yoffset: set image yoffset
  * @swap: swap byte order
- * @...: %NULL-terminated list of optional named arguments
  *
  * Copy an image, optionally modifying the header. VIPS copies images by 
  * copying pointers, so this operation is instant, even for very large images.

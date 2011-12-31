@@ -140,7 +140,7 @@ vips_boolean_build( VipsObject *object )
 
 static void
 vips_boolean_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsBoolean *boolean = (VipsBoolean *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
@@ -462,7 +462,7 @@ vips_boolean_const_build( VipsObject *object )
 
 static void
 vips_boolean_const_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnaryConst *uconst = (VipsUnaryConst *) arithmetic;
 	VipsBooleanConst *bconst = (VipsBooleanConst *) arithmetic;

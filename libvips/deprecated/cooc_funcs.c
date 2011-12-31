@@ -81,7 +81,7 @@ IMAGE *im, *m;
 int xpos, ypos, xsize, ysize; /* location of the box within im */
 int dx, dy; /* displacements */
 {
-	PEL *input, *cpinput;
+	VipsPel *input, *cpinput;
 	int *buf, *pnt, *cpnt;
 	double *line, *cpline;
 	int x, y;
@@ -113,7 +113,7 @@ int dx, dy; /* displacements */
 	if ( (buf == NULL) || (line == NULL) ) { 
 		im_error( "im_cooc_sym", "%s", _( "calloc failed") ); 
 		return(-1); }
-	input = (PEL*)im->data;
+	input = im->data;
 	input += ( ypos * im->Xsize + xpos );
 	offset = dy * im->Xsize + dx;
 	for ( y=0; y<ysize; y++ )
@@ -141,7 +141,7 @@ int dx, dy; /* displacements */
 		cpline = line;
 		for (x=0; x<m->Xsize; x++)
 			*cpline++ = (double)(*cpnt++)/(double)norm;
-		if (im_writeline( y, m, (PEL *) line ) == -1) 
+		if (im_writeline( y, m, (VipsPel *) line ) == -1) 
 			{
 			im_error( "im_cooc_sym", "%s", _( "unable to im_writeline") );
 			return(-1);
@@ -158,7 +158,7 @@ IMAGE *im, *m;
 int xpos, ypos, xsize, ysize; /* location of the box within im */
 int dx, dy; /* displacements */
 {
-	PEL *input, *cpinput;
+	VipsPel *input, *cpinput;
 	int *buf, *pnt, *cpnt;
 	double *line, *cpline;
 	int x, y;
@@ -190,7 +190,7 @@ int dx, dy; /* displacements */
 	if ( (buf == NULL) || (line == NULL) ) { 
 		im_error( "im_cooc_ord", "%s", _( "calloc failed") ); 
 		return(-1); }
-	input = (PEL*)im->data;
+	input = im->data;
 	input += ( ypos * im->Xsize + xpos );
 	offset = dy * im->Xsize + dx;
 	for ( y=0; y<ysize; y++ )

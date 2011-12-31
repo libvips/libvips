@@ -171,7 +171,7 @@ spcor_gen( REGION *or, void *vseq, void *a, void *b )
 		float *q = (float *) IM_REGION_ADDR( or, le, y );
 
 		for( x = le; x < ri; x++ ) {
-			PEL *p = (PEL *) IM_REGION_ADDR( ir, x, y );
+			VipsPel *p = IM_REGION_ADDR( ir, x, y );
 
 			/* Find sums for this position.
 			 */
@@ -203,7 +203,7 @@ spcor_new( IMAGE *out, IMAGE *ref )
 {
 	Spcor *spcor;
 	size_t sz = ref->Xsize * ref->Ysize;
-	PEL *p = (PEL *) ref->data;
+	VipsPel *p = ref->data;
 	double s;
 	size_t i;
 

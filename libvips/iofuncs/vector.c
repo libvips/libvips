@@ -348,7 +348,7 @@ vips_executor_set_scanline( VipsExecutor *executor,
 	VipsRegion *ir, int x, int y )
 {
 	VipsVector *vector = executor->vector;
-	PEL *base = (PEL *) VIPS_REGION_ADDR( ir, x, y );
+	VipsPel *base = VIPS_REGION_ADDR( ir, x, y );
 	int lsk = VIPS_REGION_LSKIP( ir );
 
 	int i;

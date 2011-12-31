@@ -292,8 +292,8 @@ copy_region( VipsRegion *from, VipsRegion *to, VipsRect *area )
 	/* Loop down common area, copying.
 	 */
 	for( y = area->top; y < VIPS_RECT_BOTTOM( area ); y++ ) {
-		PEL *p = (PEL *) VIPS_REGION_ADDR( from, area->left, y );
-		PEL *q = (PEL *) VIPS_REGION_ADDR( to, area->left, y );
+		VipsPel *p = VIPS_REGION_ADDR( from, area->left, y );
+		VipsPel *q = VIPS_REGION_ADDR( to, area->left, y );
 
 		memcpy( q, p, VIPS_IMAGE_SIZEOF_PEL( from->im ) * area->width );
 	}
@@ -438,10 +438,13 @@ vips_tile_cache_init( VipsTileCache *cache )
  * vips_tilecache:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @tile_width: width of tiles in cache
  * @tile_height: height of tiles in cache
  * @max_tiles: maximum number of tiles to cache
- * @...: %NULL-terminated list of optional named arguments
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it keeps a cache of computed pixels. 

@@ -77,7 +77,7 @@ typedef struct _Point {
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_point( VipsImage *image, int x, int y, PEL *ink )
+im_draw_point( VipsImage *image, int x, int y, VipsPel *ink )
 {	
 	Point point;
 
@@ -113,7 +113,7 @@ im_draw_point( VipsImage *image, int x, int y, PEL *ink )
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_read_point( VipsImage *image, int x, int y, PEL *ink )
+im_read_point( VipsImage *image, int x, int y, VipsPel *ink )
 {
 	REGION *reg;
 	Rect area;

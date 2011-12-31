@@ -154,7 +154,7 @@ typedef struct {
 	REGION *ir;		/* Input region */
 
 	int *offsets;		/* Offsets for each non-zero matrix element */
-	PEL **pts;		/* Per-non-zero mask element image pointers */
+	VipsPel **pts;		/* Per-non-zero mask element image pointers */
 
 	int last_bpl;		/* Avoid recalcing offsets, if we can */
 } ConvSequence;
@@ -194,7 +194,7 @@ conv_start( IMAGE *out, void *a, void *b )
 	 */
 	seq->ir = im_region_create( in );
 	seq->offsets = IM_ARRAY( out, conv->nnz, int );
-	seq->pts = IM_ARRAY( out, conv->nnz, PEL * );
+	seq->pts = IM_ARRAY( out, conv->nnz, VipsPel * );
 	if( !seq->ir || !seq->offsets || !seq->pts ) {
 		conv_stop( seq, in, conv );
 		return( NULL );
@@ -278,8 +278,8 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 		/* Init pts for this line of PELs.
 		 */
                 for( z = 0; z < conv->nnz; z++ ) 
-                        seq->pts[z] = seq->offsets[z] +  
-                                (PEL *) IM_REGION_ADDR( ir, le, y ); 
+                        seq->pts[z] = seq->offsets[z] + 
+				IM_REGION_ADDR( ir, le, y ); 
 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	

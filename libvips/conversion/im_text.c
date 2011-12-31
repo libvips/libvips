@@ -94,7 +94,7 @@ text_ft_to_vips( FT_Bitmap *bitmap, IMAGE *out )
 
 	for( y = 0; y < bitmap->rows; y++ ) 
 		if( im_writeline( y, out, 
-			(PEL *) bitmap->buffer + y * bitmap->pitch ) )
+			(VipsPel *) bitmap->buffer + y * bitmap->pitch ) )
 			return( -1 );
 
 	return( 0 );

@@ -305,9 +305,9 @@ static int
 read_ascii( FILE *fp, VipsImage *out )
 {
 	int x, y;
-	PEL *buf;
+	VipsPel *buf;
 
-	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
+	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	for( y = 0; y < out->Ysize; y++ ) {
@@ -349,9 +349,9 @@ static int
 read_1bit_ascii( FILE *fp, VipsImage *out )
 {
 	int x, y;
-	PEL *buf;
+	VipsPel *buf;
 
-	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
+	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	for( y = 0; y < out->Ysize; y++ ) {
@@ -381,9 +381,9 @@ read_1bit_binary( FILE *fp, VipsImage *out )
 {
 	int x, y, i;
 	int bits;
-	PEL *buf;
+	VipsPel *buf;
 
-	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) )
+	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	bits = fgetc( fp );
@@ -493,7 +493,7 @@ vips__ppm_load( const char *filename, VipsImage *out )
 int
 vips__ppm_isppm( const char *filename )
 {
-	PEL buf[3];
+	VipsPel buf[3];
 
 	if( vips__get_bytes( filename, buf, 2 ) ) {
 		int i;
@@ -523,7 +523,7 @@ vips__ppm_flags( const char *filename )
 
 const char *vips__ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };
 
-typedef int (*write_fn)( VipsImage *in, FILE *fp, PEL *p );
+typedef int (*write_fn)( VipsImage *in, FILE *fp, VipsPel *p );
 
 /* What we track during a PPM write.
  */
@@ -564,7 +564,7 @@ write_new( VipsImage *in, const char *name )
 }
 
 static int
-write_ppm_line_ascii( VipsImage *in, FILE *fp, PEL *p )
+write_ppm_line_ascii( VipsImage *in, FILE *fp, VipsPel *p )
 {
 	const int sk = VIPS_IMAGE_SIZEOF_PEL( in );
 	int x, k;
@@ -604,7 +604,7 @@ write_ppm_line_ascii( VipsImage *in, FILE *fp, PEL *p )
 }
 
 static int
-write_ppm_line_binary( VipsImage *in, FILE *fp, PEL *p )
+write_ppm_line_binary( VipsImage *in, FILE *fp, VipsPel *p )
 {
 	if( !fwrite( p, VIPS_IMAGE_SIZEOF_LINE( in ), 1, fp ) ) {
 		vips_error( "vips2ppm", 
@@ -622,7 +622,7 @@ write_ppm_block( REGION *region, Rect *area, void *a )
 	int i;
 
 	for( i = 0; i < area->height; i++ ) {
-		PEL *p = (PEL *) VIPS_REGION_ADDR( region, 0, area->top + i );
+		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
 		if( write->fn( write->in, write->fp, p ) )
 			return( -1 );

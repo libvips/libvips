@@ -152,7 +152,7 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 
 static void
 vips_divide_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
 	const int sz = width * vips_image_get_bands( im );

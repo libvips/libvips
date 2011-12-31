@@ -139,7 +139,8 @@ vips_math_build( VipsObject *object )
 #define EXP10( X ) (pow( 10.0, (X) ))
 
 static void
-vips_math_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+vips_math_buffer( VipsArithmetic *arithmetic, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsMath *math = (VipsMath *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];

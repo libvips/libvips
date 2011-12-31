@@ -94,7 +94,8 @@ vips_foreign_save_raw_write( VipsRegion *region, Rect *area, void *a )
 	int i;
   
 	for( i = 0; i < area->height; i++ ) {
-		PEL *p = VIPS_REGION_ADDR( region, area->left, area->top + i );
+		VipsPel *p = 
+			VIPS_REGION_ADDR( region, area->left, area->top + i );
 
 		if( vips__write( raw->fd, p, 
 			VIPS_IMAGE_SIZEOF_PEL( save->in ) * area->width ) )
@@ -222,7 +223,8 @@ vips_foreign_save_raw_fd_write( VipsRegion *region, Rect *area, void *a )
 	int i;
   
 	for( i = 0; i < area->height; i++ ) {
-		PEL *p = VIPS_REGION_ADDR( region, area->left, area->top + i );
+		VipsPel *p = 
+			VIPS_REGION_ADDR( region, area->left, area->top + i );
 
 		if( vips__write( fd->fd, p, 
 			VIPS_IMAGE_SIZEOF_PEL( save->in ) * area->width ) )

@@ -148,7 +148,7 @@ find_uchar_hist( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 	/* Accumulate!
 	 */
 	for( y = to; y < bo; y++ ) {
-		PEL *p = (PEL *) IM_REGION_ADDR( reg, le, y );
+		VipsPel *p = IM_REGION_ADDR( reg, le, y );
 		int i;
 
 		for( i = 0, x = 0; x < r->width; x++ )
@@ -183,7 +183,7 @@ find_uchar_hist_extract( REGION *reg,
 	/* Accumulate!
 	 */
 	for( y = to; y < bo; y++ ) {
-		PEL *p = (PEL *) IM_REGION_ADDR( reg, le, y );
+		VipsPel *p = IM_REGION_ADDR( reg, le, y );
 
 		for( x = hist->which; x < max; x += nb ) 
 			bins[p[x]]++;
@@ -370,7 +370,7 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 
 	/* Write interleaved buffer into hist.
 	 */
-	if( im_writeline( 0, out, (PEL *) obuffer ) )
+	if( im_writeline( 0, out, (VipsPel *) obuffer ) )
 		return( -1 );
 
 	return( 0 );

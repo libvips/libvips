@@ -341,8 +341,8 @@ vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 	const int xi = (int) x;
 	const int yi = (int) y;
 
-	const PEL *p = (PEL *) IM_REGION_ADDR( in, xi, yi );
-	PEL *q = (PEL *) out;
+	const VipsPel *p = IM_REGION_ADDR( in, xi, yi );
+	VipsPel *q = (VipsPel *) out;
 
 	int z;
 
@@ -511,10 +511,10 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int ix = (int) x;
 	const int iy = (int) y;
 
-	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, ix, iy );
-	const PEL *p2 = p1 + ps;
-	const PEL *p3 = p1 + ls;
-	const PEL *p4 = p3 + ps;
+	const VipsPel *p1 = IM_REGION_ADDR( in, ix, iy );
+	const VipsPel *p2 = p1 + ps;
+	const VipsPel *p3 = p1 + ls;
+	const VipsPel *p4 = p3 + ps;
 
 	int z;
 
