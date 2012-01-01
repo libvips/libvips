@@ -922,7 +922,7 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
  * vips_image_set_area:
  * @image: image to attach the metadata to
  * @field: metadata name
- * @free_fn: free function for @data
+ * @free_fn: (scope async): free function for @data
  * @data: pointer to area of memory
  *
  * Attaches @data as a metadata item on @image under the name @field. When
@@ -994,7 +994,7 @@ vips_image_get_area( VipsImage *image, const char *field, void **data )
  * vips_image_set_blob:
  * @image: image to attach the metadata to
  * @field: metadata name
- * @free_fn: free function for @data
+ * @free_fn: (scope async): free function for @data
  * @data: pointer to area of memory
  * @length: length of memory area
  *

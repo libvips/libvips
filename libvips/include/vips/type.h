@@ -1,4 +1,4 @@
-/* area.h
+/* the GTypes we define
  *
  * 27/10/11
  * 	- from header.h
@@ -30,24 +30,12 @@
 
  */
 
-#ifndef VIPS_AREA_H
-#define VIPS_AREA_H
+#ifndef VIPS_TYPE_H
+#define VIPS_TYPE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
-
-/**
- * VipsPel:
- *
- * A picture element. Cast this to whatever the associated VipsBandFormat says
- * to get the value.
- */
-typedef unsigned char VipsPel;
-
-/* Also used for eg. vips_local() and friends.
- */
-typedef int (*VipsCallbackFn)( void *a, void *b );
 
 /* A ref-counted area of memory. Can hold arrays of things as well.
  */
@@ -95,7 +83,7 @@ VipsArea *vips_area_new_array_object( int n );
  * The #GType for a #vips_area.
  */
 #define VIPS_TYPE_AREA (vips_area_get_type())
-int vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );
+void vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );
 void *vips_value_get_area( const GValue *value, size_t *length );
 GType vips_area_get_type( void );
 
@@ -128,12 +116,12 @@ GType vips_ref_string_get_type( void );
  */
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
 void *vips_value_get_blob( const GValue *value, size_t *length );
-int vips_value_set_blob( GValue *value, 
+void vips_value_set_blob( GValue *value, 
 	VipsCallbackFn free_fn, void *data, size_t length );
 GType vips_blob_get_type( void );
 
-int vips_value_set_array( GValue *value, 
-	GType type, size_t sizeof_type, int n );
+void vips_value_set_array( GValue *value, 
+	int n, GType type, size_t sizeof_type );
 void *vips_value_get_array( const GValue *value, 
 	int *n, GType *type, size_t *sizeof_type );
 
@@ -163,4 +151,4 @@ void vips__meta_init_types( void );
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_AREA_H*/
+#endif /*VIPS_TYPE_H*/

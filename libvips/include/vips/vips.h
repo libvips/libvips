@@ -94,6 +94,8 @@ extern "C" {
 #  endif
 #endif /*SWIG*/
 
+#include <vips/basic.h>
+
 #include <vips/buf.h>
 #include <vips/util.h>
 #include <vips/object.h>

@@ -287,6 +287,10 @@ vips_argument_instance_free( VipsArgumentInstance *argument_instance )
 
 /**
  * vips__argument_table_lookup: (skip) 
+ * @table: table to search
+ * @pspec: spec to search for
+ *
+ * Find the #VipsArgument for a @pspec.
  */
 VipsArgument *
 vips__argument_table_lookup( VipsArgumentTable *table, GParamSpec *pspec )

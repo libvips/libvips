@@ -209,6 +209,12 @@ vips_operation_init( VipsOperation *operation )
 	 */
 }
 
+/**
+ * vips_operation_class_print_usage: (skip)
+ * @operation_class: class to print usage for
+ *
+ * Print a usage message for the operation to stdout.
+ */
 void
 vips_operation_class_print_usage( VipsOperationClass *operation_class )
 {

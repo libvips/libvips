@@ -383,7 +383,7 @@ file_compare( VipsForeignClass *a, VipsForeignClass *b )
 /**
  * vips_foreign_map:
  * @base: base class to search below (eg. "VipsForeignLoad")
- * @fn: function to apply to each #VipsForeignClass
+ * @fn: (scope call): function to apply to each #VipsForeignClass
  * @a: user data
  * @b: user data
  *
@@ -396,7 +396,7 @@ file_compare( VipsForeignClass *a, VipsForeignClass *b )
  *
  * See also: vips_slist_map().
  *
- * Returns: the result of iteration
+ * Returns: (transfer none): the result of iteration
  */
 void *
 vips_foreign_map( const char *base, VipsSListMap2Fn fn, void *a, void *b )
