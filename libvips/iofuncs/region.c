@@ -859,7 +859,7 @@ vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
 
 	vips_rect_intersectrect( r, &reg->valid, &ovl );
 	if( !vips_rect_isempty( &ovl ) ) {
-		PEL *q = (PEL *) VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
+		VipsPel *q = VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
 		int wd = ovl.width * VIPS_IMAGE_SIZEOF_PEL( reg->im );
 		int ls = VIPS_REGION_LSKIP( reg );
 		int y;
@@ -886,7 +886,7 @@ vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
  * See also: vips_region_paint().
  */
 void
-vips_region_paint_pel( VipsRegion *reg, VipsRect *r, PEL *ink )
+vips_region_paint_pel( VipsRegion *reg, VipsRect *r, VipsPel *ink )
 {
 	VipsRect ovl;
 
@@ -896,13 +896,13 @@ vips_region_paint_pel( VipsRegion *reg, VipsRect *r, PEL *ink )
 		int ws = ovl.width * ps;
 		int ls = VIPS_REGION_LSKIP( reg );
 
-		PEL *to, *q;
+		VipsPel *to, *q;
 		int x, y, z;
 
 		/* We plot the first line pointwise, then memcpy() it for the
 		 * subsequent lines.
 		 */
-		to = (PEL *) VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
+		to = VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
 
 		q = to;
 		for( x = 0; x < ovl.width; x++ ) {
@@ -955,8 +955,8 @@ vips_region_copy( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
 {
 	int z;
 	int len = VIPS_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
-	PEL *p = VIPS_REGION_ADDR( reg, r->left, r->top );
-	PEL *q = VIPS_REGION_ADDR( dest, x, y );
+	VipsPel *p = VIPS_REGION_ADDR( reg, r->left, r->top );
+	VipsPel *q = VIPS_REGION_ADDR( dest, x, y );
 	int plsk = VIPS_REGION_LSKIP( reg );
 	int qlsk = VIPS_REGION_LSKIP( dest );
 
@@ -980,7 +980,7 @@ vips_region_copy( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
 	 */
 	g_assert( vips_rect_includesrect( &reg->valid, r ) );
 
-	/* PEL size must be the same.
+	/* VipsPel size must be the same.
 	 */
 	g_assert( VIPS_IMAGE_SIZEOF_PEL( reg->im ) == 
 		VIPS_IMAGE_SIZEOF_PEL( dest->im ) );
@@ -1113,7 +1113,7 @@ vips_region_prepare_to_generate( VipsRegion *reg,
 	VipsRegion *dest, VipsRect *r, int x, int y )
 {
 	IMAGE *im = reg->im;
-	PEL *p;
+	VipsPel *p;
 
 	if( !im->generate_fn ) {
 		vips_error( "vips_region_prepare_to",

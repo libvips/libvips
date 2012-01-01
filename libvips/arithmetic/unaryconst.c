@@ -84,14 +84,14 @@ G_DEFINE_ABSTRACT_TYPE( VipsUnaryConst, vips_unary_const, VIPS_TYPE_UNARY );
 
 /* Cast a n-band vector of double to a m-band vector in another format.
  */
-static PEL *
+static VipsPel *
 make_pixel( VipsObject *obj, int m, VipsBandFmt fmt, int n, double *p )
 {
-	PEL *q;
+	VipsPel *q;
 	int i;
 
 	if( !(q = VIPS_ARRAY( obj, 
-		m * vips__image_sizeof_bandformat[fmt], PEL )) )
+		m * vips__image_sizeof_bandformat[fmt], VipsPel )) )
 		return( NULL );
 
         switch( fmt ) {

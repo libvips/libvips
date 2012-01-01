@@ -241,7 +241,7 @@ format_compare( VipsFormatClass *a, VipsFormatClass *b )
 }
 
 /**
- * vips_format_map:
+ * vips_format_map: (skip)
  * @fn: function to apply to each #VipsFormatClass
  * @a: user data
  * @b: user data

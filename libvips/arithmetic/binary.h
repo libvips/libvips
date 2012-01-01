@@ -30,6 +30,10 @@
 #ifndef VIPS_BINARY_H
 #define VIPS_BINARY_H
 
+#include <vips/vips.h>
+
+#include "arithmetic.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/

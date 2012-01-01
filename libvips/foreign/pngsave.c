@@ -40,6 +40,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_PNG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -234,3 +236,5 @@ static void
 vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
 {
 }
+
+#endif /*HAVE_PNG*/

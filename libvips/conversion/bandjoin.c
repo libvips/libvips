@@ -85,7 +85,7 @@ typedef VipsBandaryClass VipsBandjoinClass;
 G_DEFINE_TYPE( VipsBandjoin, vips_bandjoin, VIPS_TYPE_BANDARY );
 
 static void
-vips_bandjoin_buffer( VipsBandary *bandary, PEL *q, PEL **p, int width )
+vips_bandjoin_buffer( VipsBandary *bandary, VipsPel *q, VipsPel **p, int width )
 {
 	VipsConversion *conversion = (VipsConversion *) bandary;
 	VipsImage **in = bandary->ready;
@@ -104,7 +104,7 @@ vips_bandjoin_buffer( VipsBandary *bandary, PEL *q, PEL **p, int width )
 		 */
 		int ips = VIPS_IMAGE_SIZEOF_PEL( in[i] );
 
-		PEL *p1, *q1;
+		VipsPel *p1, *q1;
 		int x, z;
 
 		q1 = q;

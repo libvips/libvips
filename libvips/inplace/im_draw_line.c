@@ -83,7 +83,7 @@ line_free( Line *line )
 }
 
 static Line *
-line_new( VipsImage *im, int x1, int y1, int x2, int y2, PEL *ink )
+line_new( VipsImage *im, int x1, int y1, int x2, int y2, VipsPel *ink )
 {
 	Line *line;
 
@@ -325,7 +325,7 @@ line_plot_point( VipsImage *im, int x, int y,
 	Draw *draw = (Draw *) a;
 
 	if( draw->noclip )
-		im__draw_pel( draw, (PEL *) IM_IMAGE_ADDR( draw->im, x, y ) );
+		im__draw_pel( draw, IM_IMAGE_ADDR( draw->im, x, y ) );
 	else
 		im__draw_pel_clip( draw, x, y );
 
@@ -352,7 +352,7 @@ line_plot_point( VipsImage *im, int x, int y,
  * Returns: 0 on success, or -1 on error.
  */
 int 
-im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, PEL *ink )
+im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, VipsPel *ink )
 {
 	Line *line;
 

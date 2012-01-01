@@ -81,7 +81,7 @@ mask_free( Mask *mask )
 }
 
 static Mask *
-mask_new( VipsImage *im, int x, int y, PEL *ink, VipsImage *mask_im )
+mask_new( VipsImage *im, int x, int y, VipsPel *ink, VipsImage *mask_im )
 {
 	Mask *mask;
 	Rect area, image;
@@ -183,9 +183,9 @@ mask_draw_labq( Mask *mask )
 	imb_LabQ2Lab( DRAW( mask )->ink, ink_buffer, 1 );
 
 	for( y = 0; y < mask->image_clip.height; y++ ) {
-		PEL *to = (PEL *) IM_IMAGE_ADDR( DRAW( mask )->im, 
+		VipsPel *to = IM_IMAGE_ADDR( DRAW( mask )->im, 
 			mask->image_clip.left, y + mask->image_clip.top );
-		PEL *mask_line = (PEL *) IM_IMAGE_ADDR( mask->mask_im, 
+		VipsPel *mask_line = IM_IMAGE_ADDR( mask->mask_im, 
 			mask->mask_clip.left, y + mask->mask_clip.top );
 
 		imb_LabQ2Lab( to, lab_buffer, mask->image_clip.width );
@@ -204,10 +204,10 @@ mask_draw( Mask *mask )
 	int y;
 
 	for( y = 0; y < mask->image_clip.height; y++ ) {
-		PEL *to = (PEL *) IM_IMAGE_ADDR( DRAW( mask )->im, 
+		VipsPel *to = IM_IMAGE_ADDR( DRAW( mask )->im, 
 			mask->image_clip.left, 
 			y + mask->image_clip.top );
-		PEL *mask_line = (PEL *) IM_IMAGE_ADDR( mask->mask_im, 
+		VipsPel *mask_line = IM_IMAGE_ADDR( mask->mask_im, 
 			mask->mask_clip.left, 
 			y + mask->mask_clip.top );
 
@@ -281,7 +281,7 @@ mask_draw( Mask *mask )
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, PEL *ink )
+im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, VipsPel *ink )
 {
 	Mask *mask;
 

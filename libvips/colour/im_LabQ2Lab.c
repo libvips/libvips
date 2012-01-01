@@ -55,13 +55,13 @@
 
 /* imb_LabQ2Lab: CONVERT n pels from packed 32bit Lab to float values
  * in a buffer
- * ARGS:   PEL *inp       pointer to first byte of Lab32 buffer
+ * ARGS:   VipsPel *inp       pointer to first byte of Lab32 buffer
  * float *outbuf   destination buffer
  *	int n           number of pels to process
  * (C) K.Martinez 2/5/93
  */
 void
-imb_LabQ2Lab( PEL *inp, float *outbuf, int n )        
+imb_LabQ2Lab( VipsPel *inp, float *outbuf, int n )        
 {
 	signed char *b;		/* to read input bytes */
 	int l;

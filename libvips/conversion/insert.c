@@ -89,7 +89,7 @@ typedef struct _VipsInsert {
 
 	/* Pixel we paint calculated from background.
 	 */
-	PEL *ink;
+	VipsPel *ink;
 
 	/* Inputs cast and banded up.
 	 */
@@ -209,7 +209,7 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 /* Calculate a pixel for an image from a vec of double. Valid while im is
  * valid.
  */
-PEL *
+VipsPel *
 vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 {
 	VipsImage **t;
@@ -237,14 +237,14 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 
 #ifdef VIPS_DEBUG
 {
-	PEL *p = (PEL *) (t[3]->data);
+	VipsPel *p = (VipsPel *) (t[3]->data);
 
 	printf( "vips__vector_to_ink: ink = %p (%d %d %d)\n",
 		p, p[0], p[1], p[2] ); 
 }
 #endif /*VIPS_DEBUG*/
 
-	return( (PEL *) t[3]->data );
+	return( (VipsPel *) t[3]->data );
 }
 
 static int
@@ -407,9 +407,12 @@ vips_insert_init( VipsInsert *insert )
  * @out: output image
  * @x: left position of @sub
  * @y: top position of @sub
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @expand: expand output to hold whole of both images
  * @background: colour for new pixels
- * @...: %NULL-terminated list of optional named arguments
  *
  * Insert one image into another. @sub is inserted into image @main at
  * position @x, @y relative to the top LH corner of @main. 

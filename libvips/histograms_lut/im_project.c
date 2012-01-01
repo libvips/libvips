@@ -292,10 +292,10 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 		im_setupout( vout ) )
 		return( -1 );
 
-	if( im_writeline( 0, vout, (PEL *) mproject->columns ) )
+	if( im_writeline( 0, vout, (VipsPel *) mproject->columns ) )
 		return( -1 );
 	for( y = 0; y < in->Ysize; y++ )
-		if( im_writeline( y, hout, (PEL *) mproject->rows + 
+		if( im_writeline( y, hout, (VipsPel *) mproject->rows + 
 			y * IM_IMAGE_SIZEOF_PEL( hout ) ) )
 			return( -1 );
 

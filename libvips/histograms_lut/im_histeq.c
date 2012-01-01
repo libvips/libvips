@@ -90,7 +90,7 @@ im_histcum( IMAGE *in, IMAGE *out )
 		in->Bands * 2 : in->Bands;
 	const int mx = px * nb;
 
-	PEL *outbuf;		
+	VipsPel *outbuf;		
 	int b, x;
 
 	if( im_check_uncoded( "im_histcum", in ) ||

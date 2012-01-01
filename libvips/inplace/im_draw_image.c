@@ -113,7 +113,7 @@ int
 im_draw_image( VipsImage *image, VipsImage *sub, int x, int y )
 {	
 	Rect br, sr, clip;
-	PEL *p, *q;
+	VipsPel *p, *q;
 	int z;
 
 	/* Make rects for main and sub and clip.
@@ -137,8 +137,8 @@ im_draw_image( VipsImage *image, VipsImage *sub, int x, int y )
 
 	/* Loop, memcpying sub to main.
 	 */
-	p = (PEL *) IM_IMAGE_ADDR( sub, clip.left - x, clip.top - y );
-	q = (PEL *) IM_IMAGE_ADDR( image, clip.left, clip.top );
+	p = IM_IMAGE_ADDR( sub, clip.left - x, clip.top - y );
+	q = IM_IMAGE_ADDR( image, clip.left, clip.top );
 	for( z = 0; z < clip.height; z++ ) {
 		memcpy( (char *) q, (char *) p, 
 			clip.width * IM_IMAGE_SIZEOF_PEL( sub ) );

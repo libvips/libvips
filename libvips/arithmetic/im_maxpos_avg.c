@@ -186,7 +186,7 @@ maxposavg_scan( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 	occurences = maxposavg->occurences;
 
 	for( y = 0; y < r->height; y++ ) { 
-		PEL *in = (PEL *) IM_REGION_ADDR( reg, r->left, r->top + y ); 
+		VipsPel *in = VIPS_REGION_ADDR( reg, r->left, r->top + y ); 
 
 		switch( reg->im->BandFmt ) {
 		case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 

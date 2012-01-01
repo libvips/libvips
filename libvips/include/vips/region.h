@@ -69,7 +69,7 @@ typedef struct _VipsRegion {
 	 */
 	/*< private >*/
 	RegionType type;	/* What kind of attachment */
-	PEL *data;		/* Off here to get data */
+	VipsPel *data;		/* Off here to get data */
 	int bpl;		/* Bytes-per-line for data */
 	void *seq;		/* Sequence we are using to fill region */
 
@@ -99,7 +99,7 @@ typedef struct _VipsRegionClass {
 
 GType vips_region_get_type( void );
 
-VipsRegion *vips_region_new( VipsImage *im );
+VipsRegion *vips_region_new( VipsImage *image );
 
 int vips_region_buffer( VipsRegion *reg, VipsRect *r );
 int vips_region_image( VipsRegion *reg, VipsRect *r );
@@ -109,7 +109,7 @@ int vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 );
 int vips_region_position( VipsRegion *reg, int x, int y );
 
 void vips_region_paint( VipsRegion *reg, VipsRect *r, int value );
-void vips_region_paint_pel( VipsRegion *reg, VipsRect *r, PEL *ink );
+void vips_region_paint_pel( VipsRegion *reg, VipsRect *r, VipsPel *ink );
 void vips_region_black( VipsRegion *reg );
 void vips_region_copy( VipsRegion *reg, VipsRegion *dest, 
 	VipsRect *r, int x, int y );
@@ -150,7 +150,7 @@ int vips_region_prepare_many( VipsRegion **reg, VipsRect *r );
 		(R)->valid.left, \
 		(R)->valid.top, \
 		(R)->valid.width, \
-		(R)->valid.height ), abort(), (PEL *) NULL) \
+		(R)->valid.height ), abort(), (VipsPel *) NULL) \
 	)
 #else /*DEBUG*/
 #define VIPS_REGION_ADDR( R, X, Y ) \

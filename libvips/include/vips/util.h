@@ -155,12 +155,6 @@ G_STMT_START { \
 #define VIPS_ENUM_NICK( ENUM, VALUE ) \
 	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_nick)
 
-/* Like GFunc, but return a value.
- */
-typedef void *(*VipsSListMap2Fn)( void *, void *, void * );
-typedef void *(*VipsSListMap4Fn)( void *, void *, void *, void *, void * );
-typedef void *(*VipsSListFold2Fn)( void *, void *, void *, void * );
-
 gboolean vips_slist_equal( GSList *l1, GSList *l2 );
 void *vips_slist_map2( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
 void *vips_slist_map2_rev( GSList *list, VipsSListMap2Fn fn, void *a, void *b );

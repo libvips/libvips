@@ -233,8 +233,8 @@ typedef struct {
 
 void imb_XYZ2Lab( float *, float *, int, im_colour_temperature * );
 void imb_Lab2XYZ( float *, float *, int, im_colour_temperature * );
-void imb_LabQ2Lab( PEL *, float *, int );
-void imb_Lab2LabQ( float *, PEL *, int );
+void imb_LabQ2Lab( VipsPel *, float *, int );
+void imb_Lab2LabQ( float *, VipsPel *, int );
 void imb_LabS2Lab( signed short *, float *, int );
 void imb_Lab2LabS( float *, signed short *, int n );
 
@@ -268,7 +268,7 @@ int im__fmaskcir( VipsImage *out, VipsMaskType flag, va_list ap );
 /* inplace
  */
 
-PEL *im__vector_to_ink( const char *domain, VipsImage *im, int n, double *vec );
+VipsPel *im__vector_to_ink( const char *domain, VipsImage *im, int n, double *vec );
 VipsImage *im__inplace_base( const char *domain, 
 	VipsImage *main, VipsImage *sub, VipsImage *out );
 

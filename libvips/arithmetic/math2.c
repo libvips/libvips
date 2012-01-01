@@ -145,7 +145,7 @@ vips_math2_build( VipsObject *object )
 
 static void
 vips_math2_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsMath2 *math2 = (VipsMath2 *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
@@ -361,7 +361,7 @@ vips_math2_const_build( VipsObject *object )
 
 static void
 vips_math2_const_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnaryConst *uconst = (VipsUnaryConst *) arithmetic;
 	VipsMath2Const *math2 = (VipsMath2Const *) arithmetic;

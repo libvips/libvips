@@ -39,6 +39,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_OPENEXR
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -143,3 +145,5 @@ static void
 vips_foreign_load_openexr_init( VipsForeignLoadOpenexr *openexr )
 {
 }
+
+#endif /*HAVE_OPENEXR*/

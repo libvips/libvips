@@ -149,7 +149,7 @@ match( IMAGE *in, IMAGE *ref, IMAGE *out )
         if( im_setupout( out ) )
 		return( -1 );
 
-        if( im_writeline( 0, out, (PEL *) outbuf ) )
+        if( im_writeline( 0, out, (VipsPel *) outbuf ) )
 		return( -1 );
 
 	return( 0 );

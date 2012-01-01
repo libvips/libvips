@@ -122,9 +122,9 @@ paint_whole( REGION *or, REGION *ir, ZoomInfo *zm,
 	/* Loop over input, as we know we are all whole.
 	 */
 	for( y = itop; y < ibottom; y++ ) {
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, ileft, y );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, left, y * zm->yfac );
-		PEL *r;
+		VipsPel *p = IM_REGION_ADDR( ir, ileft, y );
+		VipsPel *q = IM_REGION_ADDR( or, left, y * zm->yfac );
+		VipsPel *r;
 
 		/* Expand the first line of pels.
 		 */
@@ -184,9 +184,9 @@ paint_part( REGION *or, REGION *ir, const ZoomInfo *zm,
 	/* Have to loop over output.
 	 */
 	for( y = top; y < bottom; ) {
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, ix, y / zm->yfac );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, left, y );
-		PEL *r;
+		VipsPel *p = IM_REGION_ADDR( ir, ix, y / zm->yfac );
+		VipsPel *q = IM_REGION_ADDR( or, left, y );
+		VipsPel *r;
 
 		/* Output pels until we jump the input pointer.
 		 */

@@ -48,7 +48,7 @@
 void 
 im__draw_scanline( Draw *draw, int y, int x1, int x2 )
 {
-	PEL *mp;
+	VipsPel *mp;
 	int i;
 	int len;
 
@@ -63,7 +63,7 @@ im__draw_scanline( Draw *draw, int y, int x1, int x2 )
 	x1 = IM_CLIP( 0, x1, draw->im->Xsize - 1 );
 	x2 = IM_CLIP( 0, x2, draw->im->Xsize - 1 );
 
-	mp = (PEL *) IM_IMAGE_ADDR( draw->im, x1, y );
+	mp = IM_IMAGE_ADDR( draw->im, x1, y );
 	len = x2 - x1 + 1;
 
 	for( i = 0; i < len; i++ ) {
@@ -79,7 +79,7 @@ im__draw_free( Draw *draw )
 }
 
 Draw *
-im__draw_init( Draw *draw, IMAGE *im, PEL *ink )
+im__draw_init( Draw *draw, IMAGE *im, VipsPel *ink )
 {
 	if( im_rwcheck( im ) )
 		return( NULL );
@@ -92,7 +92,7 @@ im__draw_init( Draw *draw, IMAGE *im, PEL *ink )
 	draw->noclip = FALSE;
 
 	if( ink ) {
-		if( !(draw->ink = (PEL *) im_malloc( NULL, draw->psize )) ) 
+		if( !(draw->ink = (VipsPel *) im_malloc( NULL, draw->psize )) ) 
 			return( NULL );
 		memcpy( draw->ink, ink, draw->psize );
 	}

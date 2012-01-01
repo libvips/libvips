@@ -127,7 +127,7 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 		/* Find vertical lines.
 		 */
 		for( x = 0; x < sz; x++ ) {
-			PEL *p = (PEL *) IM_IMAGE_ADDR( in, 0, 0 ) + x;
+			VipsPel *p = IM_IMAGE_ADDR( in, 0, 0 ) + x;
 			int lsk = IM_IMAGE_SIZEOF_LINE( in );
 
 			for( y = 0; y < in->Ysize; y++ ) {
@@ -139,17 +139,17 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 			buf[x] = y;
 		}
 
-		if( im_writeline( 0, out, (PEL *) buf ) )
+		if( im_writeline( 0, out, (VipsPel *) buf ) )
 			return( -1 );
 	}
 	else {
 		/* Search horizontal lines.
 		 */
 		for( y = 0; y < in->Ysize; y++ ) {
-			PEL *p = (PEL *) IM_IMAGE_ADDR( in, 0, y );
+			VipsPel *p = IM_IMAGE_ADDR( in, 0, y );
 
 			for( b = 0; b < in->Bands; b++ ) {
-				PEL *p1;
+				VipsPel *p1;
 
 				p1 = p + b;
 				for( x = 0; x < in->Xsize; x++ ) {
@@ -161,7 +161,7 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 				buf[b] = x;
 			}
 
-			if( im_writeline( y, out, (PEL *) buf ) )
+			if( im_writeline( y, out, (VipsPel *) buf ) )
 				return( -1 );
 		}
 	}

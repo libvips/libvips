@@ -105,7 +105,7 @@ sink_memory_work( VipsThreadState *state, void *a )
 
 #ifdef VIPS_DEBUG
 {
-	PEL *p = (PEL *) VIPS_REGION_ADDR( state->reg, 
+	VipsPel *p = VIPS_REGION_ADDR( state->reg, 
 		state->pos.left, state->pos.top );
 	int i;
 

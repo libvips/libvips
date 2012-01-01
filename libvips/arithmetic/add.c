@@ -96,7 +96,7 @@ G_DEFINE_TYPE( VipsAdd, vips_add, VIPS_TYPE_BINARY );
 }
 
 static void
-add_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+add_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
 {
 	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic );
 	VipsImage *im = arithmetic->ready[0];

@@ -40,6 +40,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_JPEG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -323,3 +325,5 @@ static void
 vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
 {
 }
+
+#endif /*HAVE_JPEG*/

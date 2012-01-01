@@ -166,7 +166,7 @@ im_identity_ushort( IMAGE *lut, int bands, int sz )
 	for( p = buf, x = 0; x < sz; x++ )
 		for( z = 0; z < bands; z++ )
 			*p++ = x;
-	if( im_writeline( 0, lut, (PEL *) buf ) ) 
+	if( im_writeline( 0, lut, (VipsPel *) buf ) ) 
 		return( -1 );
 
         return( 0 );

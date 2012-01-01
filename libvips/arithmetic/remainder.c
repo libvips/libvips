@@ -121,7 +121,7 @@ vips_remainder_build( VipsObject *object )
 
 static void
 vips_remainder_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
 	const int sz = width * vips_image_get_bands( im );
@@ -289,7 +289,7 @@ vips_remainder_const_build( VipsObject *object )
 
 static void
 vips_remainder_const_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnaryConst *uconst = (VipsUnaryConst *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];

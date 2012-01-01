@@ -309,7 +309,7 @@ read_csv( FILE *fp, VipsImage *out,
 			buf[x] = d;
 		}
 
-		if( vips_image_write_line( out, y, (PEL *) buf ) )
+		if( vips_image_write_line( out, y, (VipsPel *) buf ) )
 			return( -1 );
 
 		/* Skip over the '\n' to the next line.
@@ -368,9 +368,9 @@ vips2csv( VipsImage *in, FILE *fp, const char *sep )
 	int es = VIPS_IMAGE_SIZEOF_ELEMENT( in );
 
 	int x, y; 
-	PEL *p;
+	VipsPel *p;
 
-	p = (PEL *) in->data; 
+	p = in->data; 
 	for( y = 0; y < in->Ysize; y++ ) { 
 		for( x = 0; x < w; x++ ) { 
 			if( x > 0 )

@@ -126,7 +126,7 @@ system_image( IMAGE *im,
  *
  * See also: im_system().
  *
- * Returns: an image on success, NULL on error
+ * Returns: (transfer full): an image on success, NULL on error
  */
 IMAGE *
 im_system_image( IMAGE *im, 

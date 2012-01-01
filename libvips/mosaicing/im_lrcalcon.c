@@ -107,11 +107,11 @@ all_black( IMAGE *im, int xpos, int ypos, int winsize )
 	const int ls = im->Xsize;
 
 	int x, y;
-	PEL *line;
+	VipsPel *line;
 
 	/* Loop over image.
 	 */
-	line = (PEL *) im->data + top*ls + left;
+	line = im->data + top*ls + left;
 	for( y = 0; y < winsize; y++ ) {
 		for( x = 0; x < winsize; x++ ) 
 			if( line[x] ) 
@@ -138,10 +138,10 @@ calculate_contrast( IMAGE *im, int xpos, int ypos, int winsize )
 	const int ls = im->Xsize;
 
 	int x, y;
-	PEL *line, *p;
+	VipsPel *line, *p;
 	int total;
 
-	line = (PEL *) im->data + top*ls + left;
+	line = im->data + top*ls + left;
 	for( total = 0, y = 0; y < winsize-1; y++ ) {
 		p = line;
 

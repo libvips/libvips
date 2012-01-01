@@ -145,8 +145,8 @@ make_vert_gen( REGION *or, void *seq, void *a, void *b )
 	int x, y, z;
 
 	for( y = to; y < bo; y++ ) {
-		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
-		PEL *p = (PEL *) IM_IMAGE_ADDR( in, 0, y );
+		VipsPel *q = IM_REGION_ADDR( or, le, y );
+		VipsPel *p = IM_IMAGE_ADDR( in, 0, y );
 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	VERT( unsigned char ); break;
@@ -195,8 +195,8 @@ make_horz_gen( REGION *or, void *seq, void *a, void *b )
 	int x, y, z;
 
 	for( x = le; x < ri; x++ ) {
-		PEL *q = (PEL *) IM_REGION_ADDR( or, x, to );
-		PEL *p = (PEL *) IM_IMAGE_ADDR( in, x, 0 );
+		VipsPel *q = IM_REGION_ADDR( or, x, to );
+		VipsPel *p = IM_IMAGE_ADDR( in, x, 0 );
 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	HORZ( unsigned char ); break;

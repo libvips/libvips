@@ -1,4 +1,5 @@
 pkginclude_HEADERS = \
+	basic.h \
 	type.h \
 	almostdeprecated.h \
 	deprecated.h \

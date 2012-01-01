@@ -85,8 +85,8 @@ line_shrink_gen( REGION *or, void *seq, void *a, void *b )
 	/* Loop down the region.
 	 */
 	for( y = to; y < bo; y++ ) {
-		PEL *q = IM_REGION_ADDR( or, le, y );
-		PEL *p;
+		VipsPel *q = IM_REGION_ADDR( or, le, y );
+		VipsPel *p;
 
 		/* Loop across the region, in owidth sized pieces.
 		 */
@@ -149,8 +149,8 @@ point_shrink_gen( REGION *or, void *seq, void *a, void *b )
 	/* Loop down the region.
 	 */
 	for( y = to; y < bo; y++ ) {
-		PEL *q = IM_REGION_ADDR( or, le, y );
-		PEL *p;
+		VipsPel *q = IM_REGION_ADDR( or, le, y );
+		VipsPel *p;
 
 		/* Loop across the region, in owidth sized pieces.
 		 */

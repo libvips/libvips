@@ -200,7 +200,7 @@ ideal_bpf( IMAGE *out, double fcx, double fcy, double r )
 			cpline++;
 		}	
 
-		if( im_writeline( y, out, (PEL *) line ) )
+		if( im_writeline( y, out, (VipsPel *) line ) )
 			return( -1 );
 	}
 
@@ -270,7 +270,7 @@ ideal_brf( IMAGE *out, double fcx, double fcy, double r )
 			cpline++;
 		}	
 
-		if( im_writeline( y, out, (PEL *) line ) )
+		if( im_writeline( y, out, (VipsPel *) line ) )
 			return( -1 );
 	}
 
@@ -363,7 +363,7 @@ butterworth_bpf( IMAGE *out,
 			cpline++;
 		}	
 
-		if( im_writeline( y, out, (PEL *) line ) )
+		if( im_writeline( y, out, (VipsPel *) line ) )
 		     	return( -1 );
 	}
 
@@ -447,7 +447,7 @@ butterworth_brf( IMAGE *out,
 			cpline++;
 		}	
 
-		if( im_writeline( y, out, (PEL *) line ) )
+		if( im_writeline( y, out, (VipsPel *) line ) )
 			return( -1 );
 	}
 
@@ -525,7 +525,7 @@ gaussian_bpf( IMAGE *out, double fcx, double fcy, double r, double ac )
 			cpline++;
 		}	
 
-		if( im_writeline( y, out, (PEL *) line ) )
+		if( im_writeline( y, out, (VipsPel *) line ) )
 			return( -1 );
 	}
 
@@ -605,7 +605,7 @@ gaussian_brf( IMAGE *out, double fcx, double fcy, double r, double ac )
 			cpline++;
 		}	
 
-		if( im_writeline( y, out, (PEL *) line ) )
+		if( im_writeline( y, out, (VipsPel *) line ) )
 			return( -1 );
 	}
 

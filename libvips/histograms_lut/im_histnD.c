@@ -171,7 +171,7 @@ find_hist( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 	/* Accumulate!
 	 */
 	for( y = to; y < bo; y++ ) {
-		PEL *line = IM_REGION_ADDR( reg, le, y );
+		VipsPel *line = IM_REGION_ADDR( reg, le, y );
 
 		switch( im->BandFmt ) {
 		case IM_BANDFMT_UCHAR:
@@ -261,7 +261,7 @@ im_histnD( IMAGE *in, IMAGE *out, int bins )
 			for( z = 0; z < out->Bands; z++, i++ )
 				obuffer[i] = mhist->data[z][y][x];
 
-		if( im_writeline( y, out, (PEL *) obuffer ) )
+		if( im_writeline( y, out, (VipsPel *) obuffer ) )
 			return( -1 );
 	}
 

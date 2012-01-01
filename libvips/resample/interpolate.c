@@ -196,7 +196,7 @@ vips_interpolate_init( VipsInterpolate *interpolate )
 }
 
 /** 
- * vips_interpolate:
+ * vips_interpolate: (skip)
  * @interpolate: interpolator to use
  * @out: write result here
  * @in: read source data from here
@@ -211,7 +211,7 @@ vips_interpolate_init( VipsInterpolate *interpolate )
  */
 void
 vips_interpolate( VipsInterpolate *interpolate,
-	PEL *out, REGION *in, double x, double y )
+	void *out, REGION *in, double x, double y )
 {
 	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
 
@@ -221,7 +221,7 @@ vips_interpolate( VipsInterpolate *interpolate,
 }
 
 /** 
- * vips_interpolate_get_method:
+ * vips_interpolate_get_method: (skip)
  * @interpolate: interpolator to use
  *
  * Look up the @interpolate method in the class and return it. Use this
@@ -329,7 +329,7 @@ G_DEFINE_TYPE( VipsInterpolateNearest, vips_interpolate_nearest,
 
 static void
 vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
-	PEL *out, REGION *in, double x, double y )
+	void *out, REGION *in, double x, double y )
 {
 	/* Pel size and line size.
 	 */
@@ -341,12 +341,13 @@ vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 	const int xi = (int) x;
 	const int yi = (int) y;
 
-	const PEL *p = (PEL *) IM_REGION_ADDR( in, xi, yi );
+	const VipsPel *p = IM_REGION_ADDR( in, xi, yi );
+	VipsPel *q = (VipsPel *) out;
 
 	int z;
 
 	for( z = 0; z < ps; z++ )
-		out[z] = p[z];
+		q[z] = p[z];
 }
 
 static void
@@ -386,7 +387,7 @@ vips_interpolate_nearest_new( void )
  * A convenience function that returns a nearest-neighbour interpolator you 
  * don't need to free.
  *
- * Returns: a nearest-neighbour interpolator
+ * Returns: (transfer none): a nearest-neighbour interpolator
  */
 VipsInterpolate *
 vips_interpolate_nearest_static( void )
@@ -499,7 +500,7 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 
 static void
 vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
-	PEL *out, REGION *in, double x, double y )
+	void *out, REGION *in, double x, double y )
 {
 	/* Pel size and line size.
 	 */
@@ -510,10 +511,10 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int ix = (int) x;
 	const int iy = (int) y;
 
-	const PEL *p1 = (PEL *) IM_REGION_ADDR( in, ix, iy );
-	const PEL *p2 = p1 + ps;
-	const PEL *p3 = p1 + ls;
-	const PEL *p4 = p3 + ps;
+	const VipsPel *p1 = IM_REGION_ADDR( in, ix, iy );
+	const VipsPel *p2 = p1 + ps;
+	const VipsPel *p3 = p1 + ls;
+	const VipsPel *p4 = p3 + ps;
 
 	int z;
 
@@ -558,7 +559,7 @@ vips_interpolate_bilinear_new( void )
  * A convenience function that returns a bilinear interpolator you 
  * don't need to free.
  *
- * Returns: a bilinear interpolator
+ * Returns: (transfer none): a bilinear interpolator
  */
 VipsInterpolate *
 vips_interpolate_bilinear_static( void )

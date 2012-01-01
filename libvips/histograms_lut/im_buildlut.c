@@ -290,7 +290,7 @@ im_buildlut( DOUBLEMASK *input, IMAGE *output )
 		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE,
                 IM_CODING_NONE, IM_TYPE_HISTOGRAM, 1.0, 1.0, 0, 0 );
         if( im_setupout( output ) ||
-		im_writeline( 0, output, (PEL *) state.buf ) ) {
+		im_writeline( 0, output, (VipsPel *) state.buf ) ) {
 		free_state( &state );
 		return( -1 );
 	}

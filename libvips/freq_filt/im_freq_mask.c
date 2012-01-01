@@ -73,7 +73,7 @@ copy_quarter( IMAGE *out, float *coeff_s )
                         *cpline++ = *cpcoeff++;
                 for( x = out->Xsize/2; x < out->Xsize; x++ )
                         *cpline++ = *cpcoeff--;
-                if( im_writeline( y, out, (PEL *) line ) )
+                if( im_writeline( y, out, (VipsPel *) line ) )
                         return( -1 );
 	}
 
@@ -85,7 +85,7 @@ copy_quarter( IMAGE *out, float *coeff_s )
                         *cpline++ = *cpcoeff++;
                 for( x = out->Xsize/2; x < out->Xsize; x++ )
                         *cpline++ = *cpcoeff--;
-                if( im_writeline( y, out, (PEL *) line ) )
+                if( im_writeline( y, out, (VipsPel *) line ) )
                         return( -1 );
 	}
 

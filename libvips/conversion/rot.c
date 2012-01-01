@@ -132,11 +132,11 @@ vips_rot90_gen( VipsRegion *or, void *seq, void *a, void *b,
 	for( y = to; y < bo; y++ ) {
 		/* Start of this output line.
 		 */
-		PEL *q = (PEL *) VIPS_REGION_ADDR( or, le, y );
+		VipsPel *q = VIPS_REGION_ADDR( or, le, y );
 
 		/* Corresponding position in ir.
 		 */
-		PEL *p = (PEL *) VIPS_REGION_ADDR( ir, 
+		VipsPel *p = VIPS_REGION_ADDR( ir, 
 			need.left + y - to, 
 			need.top + need.height - 1 );
 
@@ -193,11 +193,11 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 	for( y = to; y < bo; y++ ) {
 		/* Start of this output line.
 		 */
-		PEL *q = (PEL *) VIPS_REGION_ADDR( or, le, y );
+		VipsPel *q = VIPS_REGION_ADDR( or, le, y );
 
 		/* Corresponding position in ir.
 		 */
-		PEL *p = (PEL *) VIPS_REGION_ADDR( ir, 
+		VipsPel *p = VIPS_REGION_ADDR( ir, 
 			need.left + need.width - 1, 
 			need.top + need.height - (y - to) - 1 );
 
@@ -255,11 +255,11 @@ vips_rot270_gen( VipsRegion *or, void *seq, void *a, void *b,
 	for( y = to; y < bo; y++ ) {
 		/* Start of this output line.
 		 */
-		PEL *q = (PEL *) VIPS_REGION_ADDR( or, le, y );
+		VipsPel *q = VIPS_REGION_ADDR( or, le, y );
 
 		/* Corresponding position in ir.
 		 */
-		PEL *p = (PEL *) VIPS_REGION_ADDR( ir, 
+		VipsPel *p = VIPS_REGION_ADDR( ir, 
 			need.left + need.width - (y - to) - 1,
 			need.top );
 

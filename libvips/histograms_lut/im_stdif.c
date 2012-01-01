@@ -97,8 +97,8 @@ stdif_gen( REGION *or, void *seq, void *a, void *b )
 	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
 		 */
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, r->left, r->top + y );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, r->left, r->top + y );
+		VipsPel *p = IM_REGION_ADDR( ir, r->left, r->top + y );
+		VipsPel *q = IM_REGION_ADDR( or, r->left, r->top + y );
 
 		/* Precompute some factors.
 		 */
@@ -106,7 +106,7 @@ stdif_gen( REGION *or, void *seq, void *a, void *b )
 		double f2 = 1.0 - inf->a;
 		double f3 = inf->b * inf->s0;
 
-		PEL *p1;
+		VipsPel *p1;
 		int sum;
 		int sum2;
 

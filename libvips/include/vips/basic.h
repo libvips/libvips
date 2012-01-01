@@ -1,16 +1,13 @@
-/* Definitions for thread support.
+/* A few basic types needed everywhere.
  *
- * JC, 9/5/94
- * 30/7/99 RP, JC
- *	- reworked for posix/solaris threads
- * 28/9/99 JC
- *	- restructured, made part of public API
+ * 27/10/11
+ * 	- from type.h
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -33,35 +30,34 @@
 
  */
 
-#ifndef VIPS_SEMAPHORE_H
-#define VIPS_SEMAPHORE_H
+#ifndef VIPS_BASIC_H
+#define VIPS_BASIC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vips.h>
-#include <vips/thread.h>
-
-/* Implement our own semaphores.
+/**
+ * VipsPel:
+ *
+ * A picture element. Cast this to whatever the associated VipsBandFormat says
+ * to get the value.
  */
-typedef struct {
-	char *name;
-	int v;
+typedef unsigned char VipsPel;
 
-	GMutex *mutex;
-	GCond *cond;
-} VipsSemaphore;
+/* Also used for eg. vips_local() and friends.
+ */
+typedef int (*VipsCallbackFn)( void *a, void *b );
 
-int vips_semaphore_up( VipsSemaphore *s );
-int vips_semaphore_down( VipsSemaphore *s );
-int vips_semaphore_upn( VipsSemaphore *s, int n );
-int vips_semaphore_downn( VipsSemaphore *s, int n );
-void vips_semaphore_destroy( VipsSemaphore *s );
-void vips_semaphore_init( VipsSemaphore *s, int v, char *name );
+/* Like GFunc, but return a value.
+ */
+typedef void *(*VipsSListMap2Fn)( void *, void *, void * );
+typedef void *(*VipsSListMap4Fn)( void *, void *, void *, void *, void * );
+typedef void *(*VipsSListFold2Fn)( void *, void *, void *, void * );
+
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_SEMAPHORE_H*/
+#endif /*VIPS_BASIC_H*/

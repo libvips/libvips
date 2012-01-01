@@ -540,7 +540,7 @@ typedef struct {
 	REGION *ir;		/* Input region */
 
 	int *offsets;		/* Offsets for each non-zero matrix element */
-	PEL **pts;		/* Per-non-zero mask element pointers */
+	VipsPel **pts;		/* Per-non-zero mask element pointers */
 
 	int underflow;		/* Underflow/overflow counts */
 	int overflow;
@@ -602,7 +602,7 @@ conv_start( IMAGE *out, void *a, void *b )
 	 */
 	seq->ir = im_region_create( in );
 	seq->offsets = IM_ARRAY( out, conv->nnz, int );
-	seq->pts = IM_ARRAY( out, conv->nnz, PEL * );
+	seq->pts = IM_ARRAY( out, conv->nnz, VipsPel * );
 	if( !seq->ir || !seq->offsets || !seq->pts ) {
 		conv_stop( seq, in, conv );
 		return( NULL );
@@ -726,7 +726,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 		 */
                 for( z = 0; z < conv->nnz; z++ ) 
                         seq->pts[z] = seq->offsets[z] +  
-                                (PEL *) IM_REGION_ADDR( ir, le, y ); 
+                                IM_REGION_ADDR( ir, le, y ); 
 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	
@@ -965,8 +965,8 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 		printf( "before convolve: %d, %d\n", r->left, r->top + y );
 		for( v = 0; v < mask->ysize; v++ ) {
 			for( h = 0; h < mask->xsize; h++ )
-				printf( "%3d ", *((PEL *) IM_REGION_ADDR( ir, 
-					r->left + h, r->top + y + v )) );
+				printf( "%3d ", *IM_REGION_ADDR( ir, 
+					r->left + h, r->top + y + v ) );
 			printf( "\n" );
 		}
 }
@@ -996,7 +996,7 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 
 #ifdef DEBUG_PIXELS
 		printf( "after clip: %d\n", 
-			*((PEL *) IM_REGION_ADDR( or, r->left, r->top + y )) );
+			*IM_REGION_ADDR( or, r->left, r->top + y ) );
 #endif /*DEBUG_PIXELS*/
 	}
 

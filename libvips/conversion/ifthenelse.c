@@ -172,7 +172,8 @@ G_DEFINE_TYPE( VipsIfthenelse, vips_ifthenelse, VIPS_TYPE_CONVERSION );
 /* Blend with a 1-band conditional image.
  */
 static void
-vips_blend1_buffer( PEL *qp, PEL *c, PEL *ap, PEL *bp, int width, 
+vips_blend1_buffer( VipsPel *qp, 
+	VipsPel *c, VipsPel *ap, VipsPel *bp, int width, 
 	VipsImage *im )
 {
 	int i, x, z;
@@ -199,7 +200,8 @@ vips_blend1_buffer( PEL *qp, PEL *c, PEL *ap, PEL *bp, int width,
 /* Blend with a many band conditional image.
  */
 static void
-vips_blendn_buffer( PEL *qp, PEL *c, PEL *ap, PEL *bp, int width, 
+vips_blendn_buffer( VipsPel *qp, 
+	VipsPel *c, VipsPel *ap, VipsPel *bp, int width, 
 	VipsImage *im )
 {
 	int x, z;
@@ -261,10 +263,10 @@ vips_ifthenelse_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 	/* Is the conditional all zero or all non-zero? We can avoid asking
 	 * for one of the inputs to be calculated.
 	 */
-	all0 = *((PEL *) VIPS_REGION_ADDR( ir[2], le, to )) == 0;
-	alln0 = *((PEL *) VIPS_REGION_ADDR( ir[2], le, to )) != 0;
+	all0 = *VIPS_REGION_ADDR( ir[2], le, to ) == 0;
+	alln0 = *VIPS_REGION_ADDR( ir[2], le, to ) != 0;
 	for( y = to; y < bo; y++ ) {
-		PEL *p = (PEL *) VIPS_REGION_ADDR( ir[2], le, y );
+		VipsPel *p = VIPS_REGION_ADDR( ir[2], le, y );
 
 		for( x = 0; x < width; x++ ) {
 			all0 &= p[x] == 0;
@@ -298,10 +300,10 @@ vips_ifthenelse_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 			return( -1 );
 
 		for( y = to; y < bo; y++ ) {
-			PEL *ap = (PEL *) VIPS_REGION_ADDR( ir[0], le, y );
-			PEL *bp = (PEL *) VIPS_REGION_ADDR( ir[1], le, y );
-			PEL *cp = (PEL *) VIPS_REGION_ADDR( ir[2], le, y );
-			PEL *q = (PEL *) VIPS_REGION_ADDR( or, le, y );
+			VipsPel *ap = VIPS_REGION_ADDR( ir[0], le, y );
+			VipsPel *bp = VIPS_REGION_ADDR( ir[1], le, y );
+			VipsPel *cp = VIPS_REGION_ADDR( ir[2], le, y );
+			VipsPel *q = VIPS_REGION_ADDR( or, le, y );
 
 			if( ifthenelse->blend ) {
 				if( c->Bands == 1 ) 

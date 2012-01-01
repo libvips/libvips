@@ -75,6 +75,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_MAGICK
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -475,7 +477,7 @@ parse_header( Read *read )
 }
 
 static void
-unpack_pixels( VipsImage *im, PEL *q8, PixelPacket *pixels, int n )
+unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 {
 	int x;
 
@@ -705,4 +707,6 @@ vips__magick_read_header( const char *filename, VipsImage *im )
 
 	return( 0 );
 }
+
+#endif /*HAVE_MAGICK*/
 

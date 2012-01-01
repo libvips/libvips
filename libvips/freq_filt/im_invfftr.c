@@ -281,7 +281,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (float *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), PEL )) )
+		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	/* Just write real part.
@@ -293,7 +293,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			q[x] = *p1++;
 		}
 
-		if( im_writeline( y, out, (PEL *) buf ) )
+		if( im_writeline( y, out, (VipsPel *) buf ) )
 			return( -1 );
 	}
 

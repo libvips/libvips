@@ -40,6 +40,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_TIFF
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -276,3 +278,5 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
 	tiff->xres = 1.0;
 	tiff->yres = 1.0;
 }
+
+#endif /*HAVE_TIFF*/

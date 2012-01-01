@@ -132,7 +132,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (double *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), PEL )) )
+		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	/* Copy to out and normalise. The right half is the up/down and 
@@ -158,7 +158,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		q += 2;
 	}
 
-	if( im_writeline( 0, out, (PEL *) buf ) )
+	if( im_writeline( 0, out, (VipsPel *) buf ) )
 		return( -1 );
 
 	for( y = 1; y < out->Ysize; y++ ) {
@@ -185,7 +185,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			q += 2;
 		}
 
-		if( im_writeline( y, out, (PEL *) buf ) )
+		if( im_writeline( y, out, (VipsPel *) buf ) )
 			return( -1 );
 	}
 
@@ -235,7 +235,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (double *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), PEL )) )
+		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	/* Copy to out, normalise.
@@ -252,7 +252,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			q += 2;
 		}
 
-		if( im_writeline( y, out, (PEL *) buf ) )
+		if( im_writeline( y, out, (VipsPel *) buf ) )
 			return( -1 );
 	}
 
@@ -329,7 +329,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (double *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), PEL )) )
+		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	/* Copy to out and normalise. The right half is the up/down and 
@@ -355,7 +355,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		q += 2;
 	}
 
-	if( im_writeline( 0, out, (PEL *) buf ) )
+	if( im_writeline( 0, out, (VipsPel *) buf ) )
 		return( -1 );
 
 	for( y = 1; y < out->Ysize; y++ ) {
@@ -382,7 +382,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			q += 2;
 		}
 
-		if( im_writeline( y, out, (PEL *) buf ) )
+		if( im_writeline( y, out, (VipsPel *) buf ) )
 			return( -1 );
 	}
 
@@ -442,7 +442,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (double *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), PEL )) )
+		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	/* Copy to out, normalise.
@@ -459,7 +459,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			q += 2;
 		}
 
-		if( im_writeline( y, out, (PEL *) buf ) )
+		if( im_writeline( y, out, (VipsPel *) buf ) )
 			return( -1 );
 	}
 
@@ -540,7 +540,7 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (float *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), PEL )) )
+		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
 	/* Gather together real and imag parts. We have to normalise output!
@@ -555,7 +555,7 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			q += 2;
 		}
 
-		if( im_writeline( y, out, (PEL *) buf ) )
+		if( im_writeline( y, out, (VipsPel *) buf ) )
 			return( -1 );
 	}
 

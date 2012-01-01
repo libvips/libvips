@@ -91,8 +91,8 @@ typedef struct {
 	Rank *rank;
 
 	REGION **ir;		/* Input regions */
-	PEL **pts;		/* Per-input region data pointer */
-	PEL *sort;		/* Sort pixels here */
+	VipsPel **pts;		/* Per-input region data pointer */
+	VipsPel *sort;		/* Sort pixels here */
 } RankSequence;
 
 /* Free a sequence value.
@@ -135,9 +135,9 @@ rank_start( IMAGE *out, void *a, void *b )
 	/* Attach regions and arrays.
 	 */
 	seq->ir = IM_ARRAY( out, rank->n + 1, REGION * );
-	seq->pts = IM_ARRAY( out, rank->n + 1, PEL * );
+	seq->pts = IM_ARRAY( out, rank->n + 1, VipsPel * );
 	seq->sort = IM_ARRAY( out, 
-		rank->n * IM_IMAGE_SIZEOF_ELEMENT( in[0] ), PEL );
+		rank->n * IM_IMAGE_SIZEOF_ELEMENT( in[0] ), VipsPel );
 	if( !seq->ir || !seq->pts || !seq->sort ) {
 		rank_stop( seq, in, rank );
 		return( NULL );
@@ -251,11 +251,10 @@ rank_gen( REGION *or, void *vseq, void *a, void *b )
 	/* Loop over output!
 	 */
 	for( y = to; y < bo; y++ ) {
-		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
+		VipsPel *q = IM_REGION_ADDR( or, le, y );
 
 		for( i = 0; i < rank->n; i++ )
-			seq->pts[i] = (PEL *) 
-				IM_REGION_ADDR( seq->ir[i], le, y );
+			seq->pts[i] = IM_REGION_ADDR( seq->ir[i], le, y );
 
 		/* Special-case max and min.
 		 */

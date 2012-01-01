@@ -39,6 +39,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_TIFF
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -153,3 +155,5 @@ static void
 vips_foreign_load_tiff_init( VipsForeignLoadTiff *tiff )
 {
 }
+
+#endif /*HAVE_TIFF*/

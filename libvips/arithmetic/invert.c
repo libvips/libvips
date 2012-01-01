@@ -82,7 +82,8 @@ G_DEFINE_TYPE( VipsInvert, vips_invert, VIPS_TYPE_UNARY );
 }
 
 static void
-vips_invert_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+vips_invert_buffer( VipsArithmetic *arithmetic, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
 

@@ -105,7 +105,7 @@ G_DEFINE_TYPE( VipsInterpolateBicubic, vips_interpolate_bicubic,
  */
 template <typename T, int min_value, int max_value>
 static void inline
-bicubic_int_tab( PEL *pout, const PEL *pin,
+bicubic_int_tab( void *pout, const PEL *pin,
 	const int bands, const int lskip,
 	const int *cx, const int *cy )
 {
@@ -173,7 +173,7 @@ bicubic_int_tab( PEL *pout, const PEL *pin,
  */
 template <typename T>
 static void inline
-bicubic_float_tab( PEL *pout, const PEL *pin,
+bicubic_float_tab( void *pout, const PEL *pin,
 	const int bands, const int lskip,
 	const double *cx, const double *cy )
 {
@@ -236,7 +236,7 @@ bicubic_float_tab( PEL *pout, const PEL *pin,
  */
 template <typename T>
 static void inline
-bicubic_notab( PEL *pout, const PEL *pin,
+bicubic_notab( void *pout, const PEL *pin,
 	const int bands, const int lskip,
 	double x, double y )
 {
@@ -303,7 +303,7 @@ bicubic_notab( PEL *pout, const PEL *pin,
 
 static void
 vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
-	PEL *out, REGION *in, double x, double y )
+	void *out, REGION *in, double x, double y )
 {
 	/* Find the mask index. We round-to-nearest, so we need to generate 
 	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 

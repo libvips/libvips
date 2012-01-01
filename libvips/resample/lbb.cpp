@@ -581,7 +581,7 @@ lbbicubic( const double c00,
  */
 #define LBB_CONVERSION( conversion )                     \
   template <typename T> static void inline               \
-  lbb_ ## conversion(       PEL*   restrict pout,        \
+  lbb_ ## conversion(       void*  restrict pout,        \
                       const PEL*   restrict pin,         \
                       const int             bands,       \
                       const int             lskip,       \
@@ -763,7 +763,7 @@ G_DEFINE_TYPE( VipsInterpolateLbb, vips_interpolate_lbb,
 
 static void
 vips_interpolate_lbb_interpolate( VipsInterpolate* restrict interpolate,
-                                  PEL*             restrict out,
+                                  void*            restrict out,
                                   REGION*          restrict in,
                                   double                    absolute_x,
                                   double                    absolute_y )

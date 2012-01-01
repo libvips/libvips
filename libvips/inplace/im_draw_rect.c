@@ -77,7 +77,7 @@
  */
 int
 im_draw_rect( IMAGE *image, 
-	int left, int top, int width, int height, int fill, PEL *ink )
+	int left, int top, int width, int height, int fill, VipsPel *ink )
 {
 	Rect im, rect, clipped;
 	Draw draw;
@@ -91,8 +91,8 @@ im_draw_rect( IMAGE *image,
 			im_draw_rect( image, left, top, 1, height, 1, ink ) );
 
 	int x, y;
-	PEL *to;
-	PEL *q;
+	VipsPel *to;
+	VipsPel *q;
 
 	/* Find area we plot.
 	 */
@@ -118,7 +118,7 @@ im_draw_rect( IMAGE *image,
 	/* We plot the first line pointwise, then memcpy() it for the
 	 * subsequent lines.
 	 */
-	to = (PEL *) IM_IMAGE_ADDR( image, clipped.left, clipped.top );
+	to = IM_IMAGE_ADDR( image, clipped.left, clipped.top );
 
 	q = to;
 	for( x = 0; x < clipped.width; x++ ) {

@@ -39,6 +39,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_OPENSLIDE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -201,3 +203,5 @@ static void
 vips_foreign_load_openslide_init( VipsForeignLoadOpenslide *openslide )
 {
 }
+
+#endif /*HAVE_OPENSLIDE*/

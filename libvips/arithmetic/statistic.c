@@ -74,12 +74,12 @@ vips_statistic_scan( VipsRegion *region,
 	int lsk = IM_REGION_LSKIP( region );
 
 	int y;
-	PEL *p;
+	VipsPel *p;
 
 	VIPS_DEBUG_MSG( "vips_statistic_scan: %d x %d @ %d x %d\n",
 		r->width, r->height, r->left, r->top );
 
-	p = (PEL *) IM_REGION_ADDR( region, r->left, r->top ); 
+	p = VIPS_REGION_ADDR( region, r->left, r->top ); 
 	for( y = 0; y < r->height; y++ ) { 
 		if( class->scan( statistic, 
 			seq, r->left, r->top + y, p, r->width ) ) 

@@ -169,8 +169,8 @@ hist_scan_uchar( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 	/* Accumulate!
 	 */
 	for( y = 0; y < r->height; y++ ) {
-		PEL *i = (PEL *) IM_REGION_ADDR( reg, r->left, r->top + y );
-		PEL *v = (PEL *) IM_REGION_ADDR( hist->vreg, 
+		VipsPel *i = IM_REGION_ADDR( reg, r->left, r->top + y );
+		VipsPel *v = IM_REGION_ADDR( hist->vreg, 
 			r->left, r->top + y );
 
 		switch( value->BandFmt ) {
@@ -247,7 +247,7 @@ hist_scan_ushort( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 	for( y = 0; y < r->height; y++ ) {
 		unsigned short *i = (unsigned short *) IM_REGION_ADDR( reg, 
 				r->left, r->top + y );
-		PEL *v = (PEL *) IM_REGION_ADDR( hist->vreg, 
+		VipsPel *v = IM_REGION_ADDR( hist->vreg, 
 			r->left, r->top + y );
 
 		switch( value->BandFmt ) {
@@ -292,7 +292,7 @@ hist_write( IMAGE *out, Histogram *hist )
 	if( im_setupout( out ) )
 		return( -1 );
 
-	if( im_writeline( 0, out, (PEL *) hist->bins ) )
+	if( im_writeline( 0, out, (VipsPel *) hist->bins ) )
 		return( -1 );
 
 	return( 0 );

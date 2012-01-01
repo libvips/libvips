@@ -99,7 +99,8 @@ G_DEFINE_TYPE( VipsSign, vips_sign, VIPS_TYPE_UNARY );
 }
 
 static void
-vips_sign_buffer( VipsArithmetic *arithmetic, PEL *out, PEL **in, int width )
+vips_sign_buffer( VipsArithmetic *arithmetic, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnary *unary = VIPS_UNARY( arithmetic );
 	const int bands = vips_image_get_bands( unary->in );

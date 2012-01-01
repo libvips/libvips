@@ -142,8 +142,11 @@ vips_foreign_save_csv_init( VipsForeignSaveCsv *csv )
  * vips_csvsave:
  * @in: image to save 
  * @filename: file to write to
- * @separator: separator string
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @separator: separator string
  *
  * Writes the pixels in @in to the @filename as CSV (comma-separated values).
  * The image is written

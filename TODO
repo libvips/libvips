@@ -1,3 +1,9 @@
+- revisit gio test prog and try to make a nice binding
+
+
+
+
+
 - try:
 
 	$ vips im_affinei original.png vipsnohalo.png nohalo 4 0 0 4 1.5 1.5 0 0 1600 1200
@@ -7,10 +13,10 @@
 
 
 
-- python/* is too old, keep for reference, but we need to use the
-  introspection stuff to get current gobject bindings
 
-  look at that brancg again
+- look at libpeas for plugin support
+
+	http://live.gnome.org/Libpeas
 
 
 

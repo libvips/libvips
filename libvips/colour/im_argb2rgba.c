@@ -41,7 +41,7 @@
 #include <vips/vips.h>
 
 static void
-argb2rgba( guint32 *in, PEL *out, int n, void *_bg )
+argb2rgba( guint32 *in, VipsPel *out, int n, void *_bg )
 {
 	guint32 bg = GPOINTER_TO_UINT( _bg );
 

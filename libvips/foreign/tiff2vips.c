@@ -162,6 +162,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_TIFF
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -176,7 +178,8 @@
 
 /* Scanline-type process function.
  */
-typedef void (*scanline_process_fn)( PEL *q, PEL *p, int n, void *client );
+typedef void (*scanline_process_fn)( VipsPel *q, VipsPel *p, int n, 
+	void *client );
 
 /* Stuff we track during a read.
  */
@@ -324,7 +327,7 @@ tfget16( TIFF *tif, ttag_t tag, int *out )
 /* Per-scanline process function for VIPS_CODING_LABQ.
  */
 static void
-labpack_line( PEL *q, PEL *p, int n, void *dummy )
+labpack_line( VipsPel *q, VipsPel *p, int n, void *dummy )
 {
 	int x;
 
@@ -361,7 +364,7 @@ parse_labpack( ReadTiff *rtiff, VipsImage *out )
 /* Per-scanline process function for VIPS_CODING_LABQ.
  */
 static void
-labs_line( PEL *q, PEL *p, int n, void *dummy )
+labs_line( VipsPel *q, VipsPel *p, int n, void *dummy )
 {
 	int x;
 	unsigned short *p1 = (unsigned short *) p;
@@ -399,13 +402,13 @@ parse_labs( ReadTiff *rtiff, VipsImage *out )
 /* Per-scanline process function for 1 bit images.
  */
 static void
-onebit_line( PEL *q, PEL *p, int n, void *flg )
+onebit_line( VipsPel *q, VipsPel *p, int n, void *flg )
 {
 	/* Extract PHOTOMETRIC_INTERPRETATION.
 	 */
 	int pm = *((int *) flg);
 	int x, i, z;
-	PEL bits;
+	VipsPel bits;
 
 	int black = (pm == PHOTOMETRIC_MINISBLACK) ? 0 : 255;
 	int white = black ^ -1;
@@ -413,7 +416,7 @@ onebit_line( PEL *q, PEL *p, int n, void *flg )
 	/* (sigh) how many times have I written this?
 	 */
 	for( x = 0, i = 0; i < (n >> 3); i++ ) {
-		bits = (PEL) p[i];
+		bits = (VipsPel) p[i];
 
 		for( z = 0; z < 8; z++, x++ ) {
 			q[x] = (bits & 128) ? white : black;
@@ -463,11 +466,11 @@ parse_onebit( ReadTiff *rtiff, int pm, VipsImage *out )
 /* Per-scanline process function for 8-bit greyscale images.
  */
 static void
-greyscale8_line( PEL *q, PEL *p, int n, void *flg )
+greyscale8_line( VipsPel *q, VipsPel *p, int n, void *flg )
 {
 	/* Extract swap mask.
 	 */
-	PEL mask = *((PEL *) flg);
+	VipsPel mask = *((VipsPel *) flg);
 	int x;
 
 	/* Read bytes, swapping sense if necessary.
@@ -481,7 +484,7 @@ greyscale8_line( PEL *q, PEL *p, int n, void *flg )
 static int
 parse_greyscale8( ReadTiff *rtiff, int pm, VipsImage *out )
 {
-	PEL *mask;
+	VipsPel *mask;
 
 	if( !tfequals( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 1 ) ||
 		!tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 8 ) )
@@ -489,7 +492,7 @@ parse_greyscale8( ReadTiff *rtiff, int pm, VipsImage *out )
 
 	/* Eor each pel with this later.
 	 */
-	if( !(mask = VIPS_ARRAY( out, 1, PEL )) )
+	if( !(mask = VIPS_ARRAY( out, 1, VipsPel )) )
 		return( -1 );
 	*mask = (pm == PHOTOMETRIC_MINISBLACK) ? 0 : 255;
 
@@ -507,7 +510,7 @@ parse_greyscale8( ReadTiff *rtiff, int pm, VipsImage *out )
 /* Per-scanline process function for 16-bit greyscale images.
  */
 static void
-greyscale16_line( PEL *q, PEL *p, int n, void *flg )
+greyscale16_line( VipsPel *q, VipsPel *p, int n, void *flg )
 {
 	/* Extract swap mask.
 	 */
@@ -553,7 +556,7 @@ parse_greyscale16( ReadTiff *rtiff, int pm, VipsImage *out )
 /* Per-scanline process function when we just need to copy.
  */
 static void
-memcpy_line( PEL *q, PEL *p, int n, void *client )
+memcpy_line( VipsPel *q, VipsPel *p, int n, void *client )
 {
 	VipsImage *im = (VipsImage *) client;
 
@@ -585,9 +588,9 @@ parse_greyscale32f( ReadTiff *rtiff, int pm, VipsImage *out )
 typedef struct {
 	/* LUTs mapping image indexes to RGB.
 	 */
-	PEL *red;
-	PEL *green;
-	PEL *blue;
+	VipsPel *red;
+	VipsPel *green;
+	VipsPel *blue;
 
 	/* Bits per sample.
 	 */
@@ -601,12 +604,12 @@ typedef struct {
 /* Per-scanline process function for palette images.
  */
 static void
-palette_line( PEL *q, PEL *p, int n, void *flg )
+palette_line( VipsPel *q, VipsPel *p, int n, void *flg )
 {
 	PaletteRead *read = (PaletteRead *) flg;
 
 	int bit;
-	PEL data;
+	VipsPel data;
 	int x;
 
 	bit = 0;
@@ -646,9 +649,9 @@ parse_palette( ReadTiff *rtiff, VipsImage *out )
 	int i;
 
 	if( !(read = VIPS_NEW( out, PaletteRead )) ||
-		!(read->red = VIPS_ARRAY( out, 256, PEL )) ||
-		!(read->green = VIPS_ARRAY( out, 256, PEL )) ||
-		!(read->blue = VIPS_ARRAY( out, 256, PEL )) )
+		!(read->red = VIPS_ARRAY( out, 256, VipsPel )) ||
+		!(read->green = VIPS_ARRAY( out, 256, VipsPel )) ||
+		!(read->blue = VIPS_ARRAY( out, 256, VipsPel )) )
 		return( -1 );
 
 	if( !tfequals( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 1 ) ||
@@ -1223,10 +1226,10 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 			 * Just unpack the section of the tile we need.
 			 */
 			for( z = 0; z < hit.height; z++ ) {
-				PEL *p = (PEL *) buf +
+				VipsPel *p = (VipsPel *) buf +
 					(hit.left - tile.left) * tps +
 					(hit.top - tile.top + z) * tls;
-				PEL *q = (PEL *) VIPS_REGION_ADDR( out, 
+				VipsPel *q = VIPS_REGION_ADDR( out, 
 					hit.left, hit.top + z );
 
 				rtiff->sfn( q, p, hit.width, rtiff->client );
@@ -1310,13 +1313,13 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	tsize_t strip_size;
 	int number_of_strips;
 
-	PEL *vbuf;
+	VipsPel *vbuf;
 	tdata_t tbuf;
 	tstrip_t strip;
 	tsize_t length;
 	int y;
 	int i;
-	PEL *p;
+	VipsPel *p;
 
 #ifdef DEBUG
 	printf( "tiff2vips: read_stripwise\n" );
@@ -1340,7 +1343,8 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 
 	/* Make buffers.
 	 */
-	if( !(vbuf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), PEL )) ||
+	if( !(vbuf = VIPS_ARRAY( out, 
+			VIPS_IMAGE_SIZEOF_LINE( out ), VipsPel )) ||
 		!(tbuf = vips_malloc( VIPS_OBJECT( out ), strip_size )) ) 
 		return( -1 );
 
@@ -1554,3 +1558,5 @@ vips__istiff( const char *filename )
 
 	return( FALSE );
 }
+
+#endif /*HAVE_TIFF*/

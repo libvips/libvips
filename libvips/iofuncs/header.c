@@ -410,7 +410,7 @@ vips_image_get_mode( const VipsImage *image )
 }
 
 /**
- * vips_image_get_data:
+ * vips_image_get_data: (skip)
  * @image: image to get data for
  *
  * Return a pointer to the image's pixel data, if possible. This can involve
@@ -436,9 +436,9 @@ vips_image_get_data( VipsImage *image )
  * @xsize: image width
  * @ysize: image height
  * @bands: image bands
- * @bandfmt: band format
+ * @format: band format
  * @coding: image coding
- * @type: image type
+ * @interpretation: image type
  * @xres: horizontal resolution, pixels per millimetre
  * @yres: vertical resolution, pixels per millimetre
  *
@@ -861,7 +861,7 @@ vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
 }
 
 /**
- * vips_image_map:
+ * vips_image_map: (skip)
  * @image: image to map over
  * @fn: function to call for each header field
  * @a: user data for function
@@ -922,7 +922,7 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
  * vips_image_set_area:
  * @image: image to attach the metadata to
  * @field: metadata name
- * @free_fn: free function for @data
+ * @free_fn: (scope async): free function for @data
  * @data: pointer to area of memory
  *
  * Attaches @data as a metadata item on @image under the name @field. When
@@ -994,7 +994,7 @@ vips_image_get_area( VipsImage *image, const char *field, void **data )
  * vips_image_set_blob:
  * @image: image to attach the metadata to
  * @field: metadata name
- * @free_fn: free function for @data
+ * @free_fn: (scope async): free function for @data
  * @data: pointer to area of memory
  * @length: length of memory area
  *
@@ -1017,7 +1017,7 @@ vips_image_set_blob( VipsImage *image, const char *field,
 }
 
 /** 
- * vips_image_get_blob:
+ * vips_image_get_blob: (skip)
  * @image: image to get the metadata from
  * @field: metadata name
  * @data: pointer to area of memory
@@ -1352,7 +1352,7 @@ vips_image_history_printf( VipsImage *image, const char *fmt, ... )
 
 /**
  * vips_image_history_args:
- * @out: image to attach history line to
+ * @image: image to attach history line to
  * @name: program name
  * @argc: number of program arguments
  * @argv: program arguments

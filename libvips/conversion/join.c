@@ -274,11 +274,14 @@ vips_join_init( VipsJoin *join )
  * @in2: second input image 
  * @out: output image
  * @direction: join horizontally or vertically
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @expand: %TRUE to expand the output image to hold all of the input pixels
  * @shim: space between images, in pixels
  * @background: background ink colour
  * @align: low, centre or high alignment
- * @...: %NULL-terminated list of optional named arguments
  *
  * Join @in1 and @in2 together, left-right or up-down depending on the value 
  * of @direction.

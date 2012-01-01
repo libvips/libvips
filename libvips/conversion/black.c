@@ -157,8 +157,11 @@ vips_black_init( VipsBlack *black )
  * @out: output image
  * @width: output width
  * @height: output height
- * @bands: output bands
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @bands: output bands
  *
  * Make a black unsigned char image of a specified size.
  *

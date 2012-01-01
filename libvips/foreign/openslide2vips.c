@@ -55,6 +55,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_OPENSLIDE
+
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -351,3 +353,4 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
+#endif /*HAVE_OPENSLIDE*/

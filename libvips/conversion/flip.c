@@ -88,7 +88,7 @@ vips_flip_vertical_gen( VipsRegion *or, void *seq, void *a, void *b,
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
 	VipsRect in;
-	PEL *p, *q;
+	VipsPel *p, *q;
 	int y;
 
 	int le = r->left;
@@ -110,8 +110,8 @@ vips_flip_vertical_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 	/* Loop, copying and reversing lines.
 	 */
-	p = (PEL *) VIPS_REGION_ADDR( ir, le, in.top + in.height - 1 );
-	q = (PEL *) VIPS_REGION_ADDR( or, le, to );
+	p = VIPS_REGION_ADDR( ir, le, in.top + in.height - 1 );
+	q = VIPS_REGION_ADDR( or, le, to );
 	psk = VIPS_REGION_LSKIP( ir );
 	qsk = VIPS_REGION_LSKIP( or );
 	ls = VIPS_REGION_SIZEOF_LINE( or );
@@ -133,7 +133,7 @@ vips_flip_horizontal_gen( VipsRegion *or, void *seq, void *a, void *b,
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
 	VipsRect in;
-	PEL *p, *q;
+	VipsPel *p, *q;
 	int x, y, z;
 
 	int le = r->left;

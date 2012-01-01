@@ -325,9 +325,12 @@ vips_min_init( VipsMin *min )
  * vips_min:
  * @in: input #VipsImage
  * @out: output pixel maximum
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @x: horizontal position of minimum
  * @y: vertical position of minimum
- * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the minimum value in an image. 
  *

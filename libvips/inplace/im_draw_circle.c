@@ -69,7 +69,7 @@ typedef struct {
 
 	/* Derived stuff.
 	 */
-	PEL *centre;
+	VipsPel *centre;
 } Circle;
 
 static void
@@ -89,7 +89,7 @@ circle_octants( Circle *circle, int x, int y )
 	else if( DRAW( circle )->noclip ) {
 		const size_t lsize = draw->lsize;
 		const size_t psize = draw->psize;
-		PEL *centre = circle->centre;
+		VipsPel *centre = circle->centre;
 
 		im__draw_pel( draw, centre + lsize * y - psize * x );
 		im__draw_pel( draw, centre + lsize * y + psize * x );
@@ -123,7 +123,7 @@ circle_free( Circle *circle )
 }
 
 static Circle *
-circle_new( IMAGE *im, int cx, int cy, int radius, gboolean fill, PEL *ink )
+circle_new( IMAGE *im, int cx, int cy, int radius, gboolean fill, VipsPel *ink )
 {
 	Circle *circle;
 
@@ -140,7 +140,7 @@ circle_new( IMAGE *im, int cx, int cy, int radius, gboolean fill, PEL *ink )
 	circle->cy = cy;
 	circle->radius = radius;
 	circle->fill = fill;
-	circle->centre = (PEL *) IM_IMAGE_ADDR( im, cx, cy );
+	circle->centre = IM_IMAGE_ADDR( im, cx, cy );
 
 	if( cx - radius >= 0 && cx + radius < im->Xsize &&
 		cy - radius >= 0 && cy + radius < im->Ysize )
@@ -193,7 +193,7 @@ circle_draw( Circle *circle )
  */
 int
 im_draw_circle( VipsImage *image, 
-	int x, int y, int radius, gboolean fill, PEL *ink )
+	int x, int y, int radius, gboolean fill, VipsPel *ink )
 {
 	if( x + radius >= 0 && x - radius < image->Xsize &&
 		y + radius >= 0 && y - radius < image->Ysize ) {

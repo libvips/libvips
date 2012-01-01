@@ -113,7 +113,7 @@ G_DEFINE_TYPE( VipsMultiply, vips_multiply, VIPS_TYPE_BINARY );
 
 static void
 vips_multiply_buffer( VipsArithmetic *arithmetic, 
-	PEL *out, PEL **in, int width )
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
 	const int sz = width * vips_image_get_bands( im );
@@ -183,11 +183,11 @@ vips_multiply_init( VipsMultiply *multiply )
 
 /**
  * vips_multiply:
- * @in1: input #VipsImage 1
- * @in2: input #VipsImage 2
- * @out: output #VipsImage
+ * @left: left-hand image
+ * @right: right-hand image
+ * @out: output image
  *
- * This operation calculates @in1 * @in2 and writes the result to @out. 
+ * This operation calculates @left * @right and writes the result to @out. 
  *
  * If the images differ in size, the smaller image is enlarged to match the
  * larger by adding zero pixels along the bottom and right.

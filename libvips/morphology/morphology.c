@@ -407,8 +407,8 @@ morph_start( IMAGE *out, void *a, void *b )
 	seq->ir = im_region_create( in );
 	seq->soff = IM_ARRAY( out, n_mask, int );
 	seq->coff = IM_ARRAY( out, n_mask, int );
-	seq->t1 = IM_ARRAY( NULL, sz, PEL );
-	seq->t2 = IM_ARRAY( NULL, sz, PEL );
+	seq->t1 = IM_ARRAY( NULL, sz, VipsPel );
+	seq->t2 = IM_ARRAY( NULL, sz, VipsPel );
 	if( !seq->ir || !seq->soff || !seq->coff || !seq->t1 || !seq->t2  ) {
 		morph_stop( seq, in, NULL );
 		return( NULL );
@@ -492,8 +492,8 @@ dilate_gen( REGION *or, void *vseq, void *a, void *b )
 	/* Dilate!
 	 */
 	for( y = to; y < bo; y++ ) {
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
+		VipsPel *p = IM_REGION_ADDR( ir, le, y );
+		VipsPel *q = IM_REGION_ADDR( or, le, y );
 
 		/* Loop along line.
 		 */
@@ -604,8 +604,8 @@ erode_gen( REGION *or, void *vseq, void *a, void *b )
 	/* Erode!
 	 */
 	for( y = to; y < bo; y++ ) {
-		PEL *p = (PEL *) IM_REGION_ADDR( ir, le, y );
-		PEL *q = (PEL *) IM_REGION_ADDR( or, le, y );
+		VipsPel *p = IM_REGION_ADDR( ir, le, y );
+		VipsPel *q = IM_REGION_ADDR( or, le, y );
 
 		/* Loop along line.
 		 */
