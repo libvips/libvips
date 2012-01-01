@@ -774,7 +774,7 @@ vips_array_double_get_type( void )
 }
 
 /** 
- * vips_array_object_get: (skip)
+ * vips_value_get_array_object: (skip)
  * @value: %GValue to get from
  * @n: (allow-none): return the number of elements here, optionally
  *
