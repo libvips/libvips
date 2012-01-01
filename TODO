@@ -2,22 +2,9 @@
 
 
 
-
-
-- try:
-
-	$ vips im_affinei original.png vipsnohalo.png nohalo 4 0 0 4 1.5 1.5 0 0 1600 1200
-	Segmentation fault
-
-  in master
-
-
-
-
 - look at libpeas for plugin support
 
 	http://live.gnome.org/Libpeas
-
 
 
 

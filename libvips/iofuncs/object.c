@@ -1680,6 +1680,7 @@ vips_object_new_from_string( VipsObjectClass *object_class, const char *p )
 	VipsObject *object;
 	VipsToken token;
 
+	g_assert( object_class );
 	g_assert( object_class->new_from_string );
 
 	/* The first string in p is the main construct arg, eg. a filename.
@@ -1893,14 +1894,14 @@ vips_type_map_all( GType base, VipsTypeMapFn fn, void *a )
 /**
  * vips_class_map_all: (skip) 
  *
- * Loop over all the subclasses of a base type. Non-abtract classes only.
+ * Loop over all the subclasses of a base type. Non-abstract classes only.
  */
 void *
 vips_class_map_all( GType type, VipsClassMapFn fn, void *a )
 {
 	void *result;
 
-	/* We can't instantiate abstract classes.
+	/* Avoid abstract classes. Use type_map_all for them.
 	 */
 	if( !G_TYPE_IS_ABSTRACT( type ) ) {
 		/* We never unref this ref, but we never unload classes
