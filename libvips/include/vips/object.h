@@ -50,6 +50,7 @@ typedef struct _VipsObjectClass VipsObjectClass;
  * @VIPS_ARGUMENT_REQUIRED: must be set in the constructor
  * @VIPS_ARGUMENT_CONSTRUCT: can only be set in the constructor
  * @VIPS_ARGUMENT_SET_ONCE: can only be set once
+ * @VIPS_ARGUMENT_SET_ALWAYS: don't do use-before-set checks
  * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
  *
@@ -59,14 +60,20 @@ typedef struct _VipsObjectClass VipsObjectClass;
  *
  * Input gobjects are automatically reffed, output gobjects automatically ref
  * us. We also automatically watch for "destroy" and unlink.
+ *
+ * @VIPS_ARGUMENT_SET_ALWAYS is handy for arguments which are set from C. For
+ * example, VipsImage::width is a property that gives access to the Xsize
+ * member of struct _VipsImage. We default its 'assigned' to TRUE
+ * since the field is always set directly by C.
  */
 typedef enum {
 	VIPS_ARGUMENT_NONE = 0,
 	VIPS_ARGUMENT_REQUIRED = 1,
 	VIPS_ARGUMENT_CONSTRUCT = 2,
 	VIPS_ARGUMENT_SET_ONCE = 4,
-	VIPS_ARGUMENT_INPUT = 8,
-	VIPS_ARGUMENT_OUTPUT = 16
+	VIPS_ARGUMENT_SET_ALWAYS = 8,
+	VIPS_ARGUMENT_INPUT = 16,
+	VIPS_ARGUMENT_OUTPUT = 32
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:

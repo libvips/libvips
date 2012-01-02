@@ -1,4 +1,10 @@
-- revisit gio test prog and try to make a nice binding
+- python/try.py
+
+	- have a ref leak
+
+	- try looping over operator props and looking up class and instance; 
+	  need to be able to get INPUT, OUTPUT, ASSIGNED etc
+
 
 
 
@@ -10,7 +16,8 @@
 
 - foreign docs come up as "VipsForeignSave", annoying, why?
 
-- we can no longer have round brackets in filenames, argh
+- we can no longer have round brackets in filenames, argh, maybe only allow
+  []{} to enclose args
 
 - add something to parse option sets backwards, so only trailing {}()[] are
   seen

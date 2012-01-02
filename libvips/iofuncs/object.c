@@ -426,7 +426,11 @@ vips_argument_init( VipsObject *object )
 			((VipsArgument *) argument_instance)->pspec = pspec;
 			argument_instance->argument_class = argument_class;
 			argument_instance->object = object;
-			argument_instance->assigned = FALSE;
+			/* SET_ALWAYS args default to assigned.
+			 */
+			argument_instance->assigned = 
+				argument_class->flags & 
+					VIPS_ARGUMENT_SET_ALWAYS;
 			argument_instance->close_id = 0;
 
 			vips_argument_table_replace( object->argument_table, 
@@ -486,8 +490,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
 		!(*argument_instance = vips__argument_get_instance( 
 			*argument_class, object )) ) {
 		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
-			_( "vips argument `%s' has no instance" ),
-			G_OBJECT_TYPE_NAME( object ), name );
+			_( "vips argument `%s' has no instance" ), name );
 		return( -1 );
 	}
 
@@ -943,9 +946,10 @@ vips_object_set_property( GObject *gobject,
 		*member = g_value_dup_boxed( value );
 	}
 	else {
-		g_warning( "%s: %s unimplemented property type %s",
+		g_warning( "%s: %s.%s unimplemented property type %s",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
+			g_param_spec_get_name( pspec ),
 			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 	}
 
@@ -976,9 +980,10 @@ vips_object_get_property( GObject *gobject,
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 
 	if( !argument_instance->assigned ) {
-		g_warning( "%s: %s attempt to read unset property %s",
+		g_warning( "%s: %s.%s attempt to read unset %s property",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
+			g_param_spec_get_name( pspec ),
 			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 		return;
 	}
@@ -1041,9 +1046,10 @@ vips_object_get_property( GObject *gobject,
 		g_value_set_boxed( value, *member );
 	}
 	else {
-		g_warning( "%s: %s unimplemented property type %s",
+		g_warning( "%s: %s.%s unimplemented property type %s",
 			G_STRLOC,
 			G_OBJECT_TYPE_NAME( gobject ),
+			g_param_spec_get_name( pspec ),
 			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 	}
 }
