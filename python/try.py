@@ -30,13 +30,23 @@ print 'call operation:'
 
 op = Vips.Operation.new("add")
 for prop in op.props:
-    print 'prop =', prop
+    print 'prop.name =', prop.name
+    flags = op.get_flags(prop.name)
+    if flags & Vips.ArgumentFlags.OUTPUT:
+        print '\toutput'
+    if flags & Vips.ArgumentFlags.INPUT:
+        print '\tinput'
+    if flags & Vips.ArgumentFlags.REQUIRED:
+        print '\trequired'
+    print '\tassigned', op.get_assigned(prop.name)
+
 op.props.left = a
 op.props.right = a
 if op.build() != 0:
     print Vips.error_buffer()
     sys.exit(-1)
 out = op.props.out
+op.unref_outputs()
 
 print 'out.get_format() =', out.get_format()
 print 'out.props.format =', out.props.format

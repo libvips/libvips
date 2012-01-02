@@ -293,7 +293,8 @@ int vips_object_get_argument( VipsObject *object, const char *name,
 	GParamSpec **pspec,
 	VipsArgumentClass **argument_class,
 	VipsArgumentInstance **argument_instance );
-gboolean vips_argument_get_assigned( VipsObject *object, const char *name );
+gboolean vips_object_get_assigned( VipsObject *object, const char *name );
+VipsArgumentFlags vips_object_get_flags( VipsObject *object, const char *name );
 
 /* We have to loop over an objects args in several places, and we can't always
  * use vips_argument_map(), the preferred looper. Have the loop code as a

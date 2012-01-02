@@ -1,9 +1,19 @@
-- python/try.py
+- Vips.cache_operation_build() is not very wrapper friendly
 
-	- have a ref leak
+  make it work like:
 
-	- try looping over operator props and looking up class and instance; 
-	  need to be able to get INPUT, OUTPUT, ASSIGNED etc
+  op2 = build(op1)
+
+  return NULL on error, returns a new op on success
+
+  always unref the old op
+
+
+
+
+- grep for other vips_class_find() problems: do we use it for simple class
+  lookup anywhere else?
+
 
 
 

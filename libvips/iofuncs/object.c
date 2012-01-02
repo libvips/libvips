@@ -459,8 +459,15 @@ vips__argument_get_instance( VipsArgumentClass *argument_class,
 
 /**
  * vips_object_get_argument: (skip)
+ * @object: the object to fetch the args from
+ * @name: arg to fetch
+ * @pspec: (transfer none): the pspec for this arg
+ * @argument_class: (transfer none): the argument_class for this arg
+ * @argument_instance: (transfer none): the argument_instance for this arg
  *
  * Look up the three things you need to work with a vips argument.
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 vips_object_get_argument( VipsObject *object, const char *name,
@@ -497,10 +504,17 @@ vips_object_get_argument( VipsObject *object, const char *name,
 	return( 0 );
 }
 
-/* Convenience: has an argument been assigned.
+/**
+ * vips_object_get_assigned:
+ * @object: the object to fetch the args from
+ * @name: arg to fetch
+ *
+ * Convenience: has an argument been assigned.
+ *
+ * Returns: %TRUE if the arguent has been assigned.
  */
 gboolean
-vips_argument_get_assigned( VipsObject *object, const char *name )
+vips_object_get_assigned( VipsObject *object, const char *name )
 {
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
@@ -511,6 +525,29 @@ vips_argument_get_assigned( VipsObject *object, const char *name )
 		return( FALSE );
 
 	return( argument_instance->assigned );
+}
+
+/**
+ * vips_object_get_flags:
+ * @object: the object to fetch the args from
+ * @name: arg to fetch
+ *
+ * Convenience: get the flags for an argument.
+ *
+ * Returns: The #VipsArgmentFlags for this argument.
+ */
+VipsArgumentFlags
+vips_object_get_flags( VipsObject *object, const char *name )
+{
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
+
+	if( vips_object_get_argument( object, name,
+		&pspec, &argument_class, &argument_instance ) )
+		return( 0 );
+
+	return( argument_class->flags );
 }
 
 static void

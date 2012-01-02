@@ -872,7 +872,7 @@ input_interpolate_init( im_object *obj, char *str )
 {
 	GType type = g_type_from_name( "VipsInterpolate" );
 	VipsObjectClass *interpolate_class = 
-		VIPS_INTERPOLATE_CLASS( g_type_class_ref( type ) );
+		VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
 	VipsObject *object;
 
 	g_assert( interpolate_class );
