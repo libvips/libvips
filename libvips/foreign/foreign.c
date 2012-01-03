@@ -1263,7 +1263,7 @@ vips_foreign_load_options( const char *filename, VipsImage **out )
 	if( !(object = vips_object_new_from_string( oclass, filename )) )
 		return( -1 );
 
-	if( vips_cache_operation_build( (VipsOperation **) &object ) ) {
+	if( vips_cache_operation_buildp( (VipsOperation **) &object ) ) {
 		/* The build may have made some output objects before
 		 * failing.
 		 */
@@ -1314,7 +1314,7 @@ vips_foreign_save_options( VipsImage *in, const char *filename )
 
 	/* ... and running _build() should save it.
 	 */
-	if( vips_cache_operation_build( (VipsOperation **) &object ) ) {
+	if( vips_cache_operation_buildp( (VipsOperation **) &object ) ) {
 		g_object_unref( object );
 		return( -1 );
 	}

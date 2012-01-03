@@ -590,7 +590,7 @@ vips_cache_ref( VipsOperation *operation )
 }
 
 /**
- * vips_cache_operation_build:
+ * vips_cache_operation_buildp: (skip)
  * @operation: pointer to operation to lookup
  *
  * Look up @operation in the cache. If we get a hit, unref @operation, ref the
@@ -601,7 +601,7 @@ vips_cache_ref( VipsOperation *operation )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_cache_operation_build( VipsOperation **operation )
+vips_cache_operation_buildp( VipsOperation **operation )
 {
 	VipsOperation *hit;
 
@@ -634,6 +634,36 @@ vips_cache_operation_build( VipsOperation **operation )
 	}
 
 	return( 0 );
+}
+
+/**
+ * vips_cache_operation_build:
+ * @operation: operation to lookup
+ *
+ * A binding-friendly version of vips_cache_operation_buildp().
+ *
+ * After calling this, @operation has the same ref count as when it went in,
+ * and the result must be freed with vips_object_unref_outputs() and
+ * g_object_unref().
+ *
+ * Returns: (transfer full): The built operation.
+ */
+VipsOperation *
+vips_cache_operation_build( VipsOperation *operation )
+{
+	VipsOperation *orig_operation = operation;
+
+	/* Stop it being unreffed for us on hit.
+	 */
+	g_object_ref( orig_operation );
+
+	if( vips_cache_operation_buildp( &operation ) ) {
+		g_object_unref( orig_operation );
+
+		return( NULL );
+	}
+
+	return( operation );
 }
 
 /**

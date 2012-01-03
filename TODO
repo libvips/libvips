@@ -1,13 +1,4 @@
-- Vips.cache_operation_build() is not very wrapper friendly
-
-  make it work like:
-
-  op2 = build(op1)
-
-  return NULL on error, returns a new op on success
-
-  always unref the old op
-
+- test Vips.cache_operation_build() 
 
 
 

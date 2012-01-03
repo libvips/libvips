@@ -496,7 +496,7 @@ vips_call_required_optional( VipsOperation **operation,
 
 	/* Build from cache.
 	 */
-	if( vips_cache_operation_build( operation ) )
+	if( vips_cache_operation_buildp( operation ) )
 		return( -1 );
 
 	/* Walk args again, writing output.
