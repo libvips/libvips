@@ -1,3 +1,10 @@
+- add more checks to Python vips_call()
+
+  need an exception class
+
+  how do we structure the module?
+
+
 
 
 - grep for other vips_class_find() problems: do we use it for simple class
