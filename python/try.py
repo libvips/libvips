@@ -42,11 +42,12 @@ for prop in op.props:
 
 op.props.left = a
 op.props.right = a
-if op.build() != 0:
+op2 = Vips.cache_operation_build(op)
+if op2 == None:
     print Vips.error_buffer()
     sys.exit(-1)
-out = op.props.out
-op.unref_outputs()
+out = op2.props.out
+op2.unref_outputs()
 
 print 'out.get_format() =', out.get_format()
 print 'out.props.format =', out.props.format
@@ -54,12 +55,8 @@ print 'out.props.format =', out.props.format
 out.write_to_file("x.v")
 
 print 'starting shutdown ...'
-del a
-del op
-del out
-
 # sometimes have to do several GCs to get them all, not sure why
-for i in range(10):
-	gc.collect ()
-print 'shutdown!'
+#for i in range(10):
+#	gc.collect ()
+#print 'shutdown!'
 

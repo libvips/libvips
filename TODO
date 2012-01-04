@@ -1,5 +1,3 @@
-- test Vips.cache_operation_build() 
-
 
 
 - grep for other vips_class_find() problems: do we use it for simple class

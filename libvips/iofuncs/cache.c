@@ -46,8 +46,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -607,7 +607,10 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 	g_assert( VIPS_IS_OPERATION( *operation ) );
 
-	VIPS_DEBUG_MSG( "vips_cache_operation_build: %p\n", *operation );
+#ifdef VIPS_DEBUG
+	printf( "vips_cache_operation_build: " );
+	vips_object_print_summary( VIPS_OBJECT( *operation ) );
+#endif /*VIPS_DEBUG*/
 
 	vips_cache_init();
 

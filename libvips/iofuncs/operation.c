@@ -153,7 +153,8 @@ vips_operation_print_usage( VipsOperationClass *class, VipsBuf *buf )
 static void *
 vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance )
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
 {
 	VipsArgument *argument = (VipsArgument *) argument_class;
 
@@ -181,9 +182,55 @@ vips_operation_print( VipsObject *object, VipsBuf *buf )
 
 	printf( "%s args:\n", object_class->nickname );
 	vips_argument_map( VIPS_OBJECT( operation ),
-		(VipsArgumentMapFn) vips_operation_call_argument, NULL, NULL );
+		vips_operation_call_argument, NULL, NULL );
 
 	VIPS_OBJECT_CLASS( vips_operation_parent_class )->print( object, buf );
+}
+
+static void *
+vips_operation_vips_operation_print_summary_arg( VipsObject *object, 
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	VipsBuf *buf = (VipsBuf *) a;
+
+	/* Just assigned required input construct args
+	 */
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_INPUT) && 
+		argument_instance->assigned ) {
+		const char *name = g_param_spec_get_name( pspec );
+		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+
+		GValue gvalue = { 0, };
+		char *str;
+
+		g_value_init( &gvalue, type );
+		g_object_get_property( G_OBJECT( object ), name, &gvalue ); 
+		str = g_strdup_value_contents( &gvalue );
+		vips_buf_appendf( buf, " %s", str );
+		g_free( str );
+		g_value_unset( &gvalue ); 
+	}
+
+	return( NULL );
+}
+
+static void
+vips_operation_print_summary( VipsObject *object, VipsBuf *buf )
+{
+	VipsOperation *operation = VIPS_OPERATION( object );
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+
+	vips_buf_appendf( buf, "%s", object_class->nickname ); 
+	vips_argument_map( VIPS_OBJECT( operation ),
+		vips_operation_vips_operation_print_summary_arg, buf, NULL );
+
+	VIPS_OBJECT_CLASS( vips_operation_parent_class )->
+		print_summary( object, buf );
 }
 
 static void
@@ -198,6 +245,7 @@ vips_operation_class_init( VipsOperationClass *class )
 	vobject_class->nickname = "operation";
 	vobject_class->description = _( "operations" );
 	vobject_class->print = vips_operation_print;
+	vobject_class->print_summary = vips_operation_print_summary;
 
 	class->print_usage = vips_operation_print_usage;
 }
@@ -705,8 +753,7 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 		VIPS_DEBUG_MSG( "\tGValue %s = %s\n", 
 			g_param_spec_get_name( pspec ), str );
 		g_free( str );
-
-		g_object_unref( &gvalue );
+		g_value_unset( &gvalue ); 
 }
 #endif /*VIPS_DEBUG*/
 	}
