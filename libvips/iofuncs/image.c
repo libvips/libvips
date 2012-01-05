@@ -1008,6 +1008,8 @@ vips_image_init( VipsImage *image )
 	image->sslock = g_mutex_new();
 
 	image->sizeof_header = VIPS_SIZEOF_HEADER;
+
+	image->mode = g_strdup( "p" );
 }
 
 int

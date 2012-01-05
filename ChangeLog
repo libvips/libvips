@@ -66,6 +66,7 @@
 - VipsFormat is deprecated
 - remove outchecks from documented API
 - support gobject-introspection 
+- new Python binding based on gobject-introspection
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

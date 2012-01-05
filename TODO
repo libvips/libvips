@@ -1,9 +1,5 @@
-- add more checks to Python vips_call()
-
-  need an exception class
-
-  how do we structure the module?
-
+- cache tracing is very handy, maybe make the VIPS_DEBUG macros in cache.c
+  into glog things
 
 
 

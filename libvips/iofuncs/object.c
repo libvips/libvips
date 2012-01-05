@@ -505,16 +505,16 @@ vips_object_get_argument( VipsObject *object, const char *name,
 }
 
 /**
- * vips_object_get_assigned:
+ * vips_object_get_argument_assigned:
  * @object: the object to fetch the args from
  * @name: arg to fetch
  *
- * Convenience: has an argument been assigned.
+ * Convenience: has an argument been assigned. Useful for bindings.
  *
  * Returns: %TRUE if the arguent has been assigned.
  */
 gboolean
-vips_object_get_assigned( VipsObject *object, const char *name )
+vips_object_get_argument_assigned( VipsObject *object, const char *name )
 {
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
@@ -528,16 +528,16 @@ vips_object_get_assigned( VipsObject *object, const char *name )
 }
 
 /**
- * vips_object_get_flags:
+ * vips_object_get_argument_flags:
  * @object: the object to fetch the args from
  * @name: arg to fetch
  *
- * Convenience: get the flags for an argument.
+ * Convenience: get the flags for an argument. Useful for bindings.
  *
  * Returns: The #VipsArgmentFlags for this argument.
  */
 VipsArgumentFlags
-vips_object_get_flags( VipsObject *object, const char *name )
+vips_object_get_argument_flags( VipsObject *object, const char *name )
 {
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
@@ -548,6 +548,29 @@ vips_object_get_flags( VipsObject *object, const char *name )
 		return( 0 );
 
 	return( argument_class->flags );
+}
+
+/**
+ * vips_object_get_argument_priority:
+ * @object: the object to fetch the args from
+ * @name: arg to fetch
+ *
+ * Convenience: get the priority for an argument. Useful for bindings.
+ *
+ * Returns: The priority of this argument.
+ */
+int
+vips_object_get_argument_priority( VipsObject *object, const char *name )
+{
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
+
+	if( vips_object_get_argument( object, name,
+		&pspec, &argument_class, &argument_instance ) )
+		return( 0 );
+
+	return( argument_class->priority );
 }
 
 static void

@@ -30,14 +30,14 @@ print 'call operation:'
 op = Vips.Operation.new("add")
 for prop in op.props:
     print 'prop.name =', prop.name
-    flags = op.get_flags(prop.name)
+    flags = op.get_argument_flags(prop.name)
     if flags & Vips.ArgumentFlags.OUTPUT:
         print '\toutput'
     if flags & Vips.ArgumentFlags.INPUT:
         print '\tinput'
     if flags & Vips.ArgumentFlags.REQUIRED:
         print '\trequired'
-    print '\tassigned', op.get_assigned(prop.name)
+    print '\tassigned', op.get_argument_assigned(prop.name)
 
 op.props.left = a
 op.props.right = b
@@ -77,7 +77,7 @@ def vips_call(name, *required, **optional):
     # set required input args
     i = 0
     for prop in op.props:
-        flags = op.get_flags(prop.name)
+        flags = op.get_argument_flags(prop.name)
         if required_input(flags):
             if i >= len(required):
                 print 'too few required args!'
@@ -90,7 +90,7 @@ def vips_call(name, *required, **optional):
 
     # set optional input args
     for i in optional.keys():
-        flags = op.get_flags(i)
+        flags = op.get_argument_flags(i)
         if optional_input(flags):
             op.props.__setattr__(i, optional[i])
 
@@ -102,11 +102,11 @@ def vips_call(name, *required, **optional):
     # gather output args 
     out = []
     for prop in op2.props:
-        flags = op2.get_flags(prop.name)
+        flags = op2.get_argument_flags(prop.name)
         if required_output(flags):
             out.append(op2.props.__getattribute__(prop.name))
     for i in optional.keys():
-        flags = op2.get_flags(i)
+        flags = op2.get_argument_flags(i)
         if optional_output(flags):
             out.append(op2.props.__getattribute__(i))
 
