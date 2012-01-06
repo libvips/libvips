@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import logging
+import sys
 
 from gi.repository import GLib
 from gi.repository import GObject
@@ -150,4 +151,7 @@ class Image(Vips.Image):
     def __getattr__(self, name):
         logging.debug('vipsimage: __getattr__ %s' % name)
         return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
+
+# start up vips!
+Vips.init(sys.argv[0])
 

@@ -71,7 +71,8 @@
 char *vips__cache_max = NULL;
 char *vips__cache_max_mem = NULL;
 char *vips__cache_max_files = NULL;
-gboolean vips__cache_print = FALSE;
+gboolean vips__cache_dump = FALSE;
+gboolean vips__cache_trace = FALSE;
 
 /* Max number of cached operations.
  */
@@ -411,7 +412,7 @@ vips_cache_init( void )
 }
 
 static void
-vips_cache_print( void )
+vips_cache_dump( void )
 {
 	if( vips_cache_table ) {
 		GHashTableIter iter;
@@ -488,8 +489,8 @@ void
 vips_cache_drop_all( void )
 {
 	if( vips_cache_table ) {
-		if( vips__cache_print )
-			vips_cache_print();
+		if( vips__cache_dump )
+			vips_cache_dump();
 
 		/* We can't modify the hash in the callback from
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
@@ -617,7 +618,10 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	vips_cache_trim();
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
-		VIPS_DEBUG_MSG( "\thit %p\n", hit );
+		if( vips__cache_trace ) {
+			printf( "hit %p ", hit );
+			vips_object_print_summary( VIPS_OBJECT( *operation ) );
+		}
 
 		/* Ref before unref in case *operation == hit.
 		 */
@@ -627,7 +631,10 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		*operation = hit;
 	}
 	else {
-		VIPS_DEBUG_MSG( "\tmiss, build and add\n" );
+		if( vips__cache_trace ) {
+			printf( "miss + build %p ", hit );
+			vips_object_print_summary( VIPS_OBJECT( *operation ) );
+		}
 
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) )
 			return( -1 );

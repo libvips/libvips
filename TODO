@@ -1,12 +1,24 @@
 - cache tracing is very handy, maybe make the VIPS_DEBUG macros in cache.c
-  into glog things
+  into glog things, or have a --vips-cache-log flag?
 
+  test this
 
+- Vips.Image has members like chain, __subclasshook__ etc etc, are we
+  really subclassing it correctly?
 
-- grep for other vips_class_find() problems: do we use it for simple class
-  lookup anywhere else?
+- get cli arg hooks working
 
+- add support for constants
 
+- add __add__ etc overloads
+
+- vips options: lex entire string to an array of tokens, noting the position
+  of each
+
+  if the final token is a right-bracket, count brackets leftwards to get the
+  matching start bracket
+
+  parse options from that point
 
 
 
