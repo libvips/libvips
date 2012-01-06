@@ -92,12 +92,14 @@ void vips_cache_drop_all( void );
 int vips_cache_operation_buildp( VipsOperation **operation );
 VipsOperation *vips_cache_operation_build( VipsOperation *operation );
 void vips_cache_set_max( int max );
-void vips_cache_set_max_mem( int max_mem );
+void vips_cache_set_max_mem( size_t max_mem );
 int vips_cache_get_max( void );
 int vips_cache_get_size( void );
 size_t vips_cache_get_max_mem( void );
 int vips_cache_get_max_files( void );
 void vips_cache_set_max_files( int max_files );
+void vips_cache_set_dump( gboolean dump );
+void vips_cache_set_trace( gboolean trace );
 
 #ifdef __cplusplus
 }

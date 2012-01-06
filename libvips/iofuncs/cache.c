@@ -619,7 +619,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		if( vips__cache_trace ) {
-			printf( "hit %p ", hit );
+			printf( "vips cache: hit %p\n  ", hit );
 			vips_object_print_summary( VIPS_OBJECT( *operation ) );
 		}
 
@@ -632,7 +632,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	}
 	else {
 		if( vips__cache_trace ) {
-			printf( "miss + build %p ", hit );
+			printf( "vips cache: miss %p\n  ", *operation );
 			vips_object_print_summary( VIPS_OBJECT( *operation ) );
 		}
 
@@ -678,6 +678,7 @@ vips_cache_operation_build( VipsOperation *operation )
 
 /**
  * vips_cache_set_max:
+ * @max: maximum number of operation to cache
  *
  * Set the maximum number of operations we keep in cache. 
  */
@@ -690,6 +691,7 @@ vips_cache_set_max( int max )
 
 /**
  * vips_cache_set_max_mem:
+ * @max_mem: maximum amount of tracked memory we use 
  *
  * Set the maximum amount of tracked memory we allow before we start dropping
  * cached operations. See vips_tracked_get_mem().
@@ -697,7 +699,7 @@ vips_cache_set_max( int max )
  * See also: vips_tracked_get_mem(). 
  */
 void
-vips_cache_set_max_mem( int max_mem )
+vips_cache_set_max_mem( size_t max_mem )
 {
 	vips_cache_max_mem = max_mem;
 	vips_cache_trim();
@@ -766,6 +768,7 @@ vips_cache_get_max_files( void )
 
 /**
  * vips_cache_set_max_files:
+ * @max_files: max open files we allow
  *
  * Set the maximum number of tracked files we allow before we start dropping
  * cached operations. See vips_tracked_get_files().
@@ -777,4 +780,32 @@ vips_cache_set_max_files( int max_files )
 {
 	vips_cache_max_files = max_files;
 	vips_cache_trim();
+}
+
+/**
+ * vips_cache_set_dump:
+ * @dump: if %TRUE, dump the operation cache on exit
+ *
+ * Handy for debugging. Print the operation cache to stdout just before exit.
+ *
+ * See also: vips_cache_set_trace(). 
+ */
+void
+vips_cache_set_dump( gboolean dump )
+{
+	vips__cache_dump = dump;
+}
+
+/**
+ * vips_cache_set_trace:
+ * @trace: if %TRUE, trace the operation cache 
+ *
+ * Handy for debugging. Print operation cache actions to stdout as we run.
+ *
+ * See also: vips_cache_set_dump(). 
+ */
+void
+vips_cache_set_trace( gboolean trace )
+{
+	vips__cache_trace = trace;
 }

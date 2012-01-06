@@ -43,7 +43,10 @@ def _call_base(name, self, required, optional):
     logging.debug('_call_base name=%s, self=%s, required=%s optional=%s' % 
                   (name, self, required, optional))
 
-    op = Vips.Operation.new(name)
+    try:
+        op = Vips.Operation.new(name)
+    except TypeError, e:
+        raise Error('No such operator.')
 
     # find all the args for this op, sort into priority order
     args = [Argument(op, x) for x in op.props]
@@ -77,6 +80,8 @@ def _call_base(name, self, required, optional):
                     (name, len(required_input), len(required)))
 
     for i in range(len(required_input)):
+        print 'assigning', required[i], 'to', required_input[i].name
+        print required_input[i].name, 'needs a', required_input[i].prop.value_type
         op.props.__setattr__(required_input[i].name, required[i])
 
     # find all optional, unassigned input args ... just need the names

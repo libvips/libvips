@@ -5,6 +5,10 @@ logging.basicConfig(level = logging.DEBUG)
 
 from vips8 import vips
 
+from gi.repository import Vips
+
+Vips.cache_set_trace(True)
+
 try:
     a = vips.Image("/home/john/pics/babe.poop")
 except vips.Error, e:
@@ -23,3 +27,5 @@ print 'out =', out
 out = a.add(b)
 
 print 'out =', out
+
+out = a.linear(1, 2)
