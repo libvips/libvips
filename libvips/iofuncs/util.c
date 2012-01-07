@@ -1313,6 +1313,74 @@ vips__token_need( const char *p, VipsToken need_token,
 	return( p );
 }
 
+/* Maximum number of tokens we allow in a filename. Surely this will be
+ * plenty.
+ */
+#define MAX_TOKENS (1000)
+
+/* Find the start of the right-most pair of brackets in the string.
+ *
+ * A string can be of the form:
+ *
+ * 	"hello world! (no really).tif[fred=12]"
+ *
+ * we need to be able to find the fred=12 at the end.
+ *
+ * We lex the whole string noting the position of each token, then, if the 
+ * final token is a right-bracket, search left for the matching left-bracket.
+ *
+ * This can get confused if the lefts are hidden inside another token :-( But
+ * a fixing that would require us to write a separate right-to-left lexer, 
+ * argh.
+ */
+const char *
+vips__find_rightmost_brackets( const char *p )
+{
+	const char *start[MAX_TOKENS];
+	VipsToken tokens[MAX_TOKENS];
+	char str[PATH_MAX];
+	int n, i;
+	int nest;
+
+	start[0] = p;
+	for( n = 0; 
+		n < MAX_TOKENS &&
+		(p = vips__token_get( start[n], &tokens[n], str, PATH_MAX )); 
+		n++, start[n] = p )
+		;
+
+	/* Too many tokens?
+	 */
+	if( n == MAX_TOKENS )
+		return( NULL );
+
+	/* No rightmost close bracket?
+	 */
+	if( n == 0 ||
+		tokens[n - 1] != VIPS_TOKEN_RIGHT ) 
+		return( NULL );
+
+	nest = 0;
+	for( i = n - 1; i >= 0; i-- ) {
+		if( tokens[i] == VIPS_TOKEN_RIGHT )
+			nest += 1;
+		else if( tokens[i] == VIPS_TOKEN_LEFT )
+			nest -= 1;
+
+		if( nest == 0 )
+			break;
+	}
+
+	/* No matching left bracket?
+	 */
+	if( nest != 0 )
+		return( NULL );
+
+	/* This should be the matching left.
+	 */
+	return( start[i] );
+}
+
 /* True if an int is a power of two ... 1, 2, 4, 8, 16, 32, etc. Do with just
  * integer arithmetic for portability. A previous Nicos version using doubles
  * and log/log failed on x86 with rounding problems. Return 0 for not

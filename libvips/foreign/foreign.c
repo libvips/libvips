@@ -505,7 +505,7 @@ vips_foreign_find_load( const char *filename )
 		(VipsSListMap2Fn) vips_foreign_load_new_from_foreign_sub, 
 		(void *) filename, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
-			_( "\"%s\" not a known file format" ), filename );
+			_( "\"%s\" is not a known file format" ), filename );
 		return( NULL );
 	}
 
@@ -850,8 +850,7 @@ vips_foreign_find_save( const char *filename )
 		(VipsSListMap2Fn) vips_foreign_find_save_sub, 
 		(void *) filename, NULL )) ) {
 		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a supported image file." ), 
-			filename );
+			_( "\"%s\" is not a known file format" ), filename );
 
 		return( NULL );
 	}

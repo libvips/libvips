@@ -1662,8 +1662,8 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 	return( object );
 }
 
-/* Set object args from a string. We've seen the '(', we need to check for the
- * closing ')' and make sure there's no extra stuff.
+/* Set object args from a string. @p should be the initial left bracket and
+ * there should be no tokens after the matching right bracket.
  */
 static int
 vips_object_set_args( VipsObject *object, const char *p )
@@ -1674,6 +1674,9 @@ vips_object_set_args( VipsObject *object, const char *p )
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
 	VipsArgumentInstance *argument_instance;
+
+	if( !(p = vips__token_need( p, VIPS_TOKEN_LEFT, string, PATH_MAX )) )
+		return( -1 );
 
 	do {
 		if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
@@ -1742,29 +1745,30 @@ vips_object_set_args( VipsObject *object, const char *p )
 VipsObject *
 vips_object_new_from_string( VipsObjectClass *object_class, const char *p )
 {
+	const char *q;
 	char str[PATH_MAX];
 	VipsObject *object;
-	VipsToken token;
 
 	g_assert( object_class );
 	g_assert( object_class->new_from_string );
 
-	/* The first string in p is the main construct arg, eg. a filename.
+	/* Find the start of the optional args on the end of the string, take
+	 * everything before that as the principal arg for the constructor.
 	 */
-	if( !(p = vips__token_need( p, VIPS_TOKEN_STRING, str, PATH_MAX )) ||
-		!(object = object_class->new_from_string( str )) )
+	if( (q = vips__find_rightmost_brackets( p )) )
+		vips_strncpy( str, p, VIPS_MIN( PATH_MAX, q - p + 1 ) );
+	else
+		vips_strncpy( str, p, PATH_MAX );
+	if( !(object = object_class->new_from_string( str )) )
 		return( NULL );
 
 	/* More tokens there? Set any other args.
 	 */
-	if( (p = vips__token_get( p, &token, str, PATH_MAX )) ) {
-		if( token == VIPS_TOKEN_LEFT &&
-			vips_object_set_args( object, p ) ) {
-			vips_error( "VipsObject", 
-				"%s", _( "bad object arguments" ) );
-			g_object_unref( object );
-			return( NULL );
-		}
+	if( q && 
+		vips_object_set_args( object, q ) ) {
+		vips_error( "VipsObject", "%s", _( "bad object arguments" ) );
+		g_object_unref( object );
+		return( NULL );
 	}
 
 	return( object ); 

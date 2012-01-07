@@ -1,24 +1,20 @@
-- cache tracing is very handy, maybe make the VIPS_DEBUG macros in cache.c
-  into glog things, or have a --vips-cache-log flag?
-
-  test this
-
 - Vips.Image has members like chain, __subclasshook__ etc etc, are we
   really subclassing it correctly?
 
-- get cli arg hooks working
-
 - add support for constants
+
+  how do boxed types work? confusing
+
+  we need to be able to make a VipsArrayDouble
 
 - add __add__ etc overloads
 
-- vips options: lex entire string to an array of tokens, noting the position
-  of each
+- vips__token_get() will assert(0) if a string token is too large ... it
+  should return an error or silently truncate
 
-  if the final token is a right-bracket, count brackets leftwards to get the
-  matching start bracket
 
-  parse options from that point
+
+
 
 
 
