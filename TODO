@@ -9,12 +9,6 @@
 
 - add __add__ etc overloads
 
-- vips__token_get() will assert(0) if a string token is too large ... it
-  should return an error or silently truncate
-
-
-
-
 
 
 
@@ -24,13 +18,8 @@
 
 
 
+
 - foreign docs come up as "VipsForeignSave", annoying, why?
-
-- we can no longer have round brackets in filenames, argh, maybe only allow
-  []{} to enclose args
-
-- add something to parse option sets backwards, so only trailing {}()[] are
-  seen
 
 
 

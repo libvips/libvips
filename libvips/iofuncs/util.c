@@ -270,6 +270,8 @@ vips_hash_table_map( GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b )
 }
 
 /* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.
+ * If @n is 100 and @src is more than 99 characters, 99 are copied and the
+ * final byte of @dest is set to '\0'.
  */
 char *
 vips_strncpy( char *dest, const char *src, int n )
@@ -1166,10 +1168,13 @@ vips_popenf( const char *fmt, const char *mode, ... )
 	return( fp );
 }
 
-/* Break a command-line argument into tokens separated by whitespace. Strings
- * can't be adjacent, so "hello world" (without quotes) is a single string.
- * Strings are written (with \" escaped) into @string, which must be @size 
- * characters large. NULL for end of tokens.
+/* Break a command-line argument into tokens separated by whitespace. 
+ *
+ * Strings can't be adjacent, so "hello world" (without quotes) is a single 
+ * string.  Strings are written (with \" escaped) into @string. If the string
+ * is larger than @size, it is silently null-termionated and truncated. 
+ *
+ * Return NULL for end of tokens.
  */
 const char *
 vips__token_get( const char *p, VipsToken *token, char *string, int size )
@@ -1177,6 +1182,7 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 	const char *q;
 	int ch;
 	int n;
+	int i;
 
 	/* Parse this token with p.
 	 */
@@ -1232,19 +1238,20 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 			else
 				n = strlen( p + 1 );
 
-			g_assert( size > n + 1 );
-			memcpy( string, p + 1, n );
-			string[n] = '\0';
-
-			/* p[n + 1] might not be " if there's no closing ".
+			/* How much can we copy to the buffer?
 			 */
-			if( p[n + 1] == ch && p[n] == '\\' ) 
-				/* An escaped ": overwrite the '\' with '"'
-				 */
-				string[n - 1] = ch;
+			i = VIPS_MIN( n, size );
+			vips_strncpy( string, p + 1, i );
 
-			string += n;
-			size -= n;
+			/* We might have stopped at an escaped quote. If the
+			 * string was not truncated, swap the preceding 
+			 * backslash for a quote.
+			 */
+			if( p[n + 1] == ch && p[n] == '\\' && i == n )
+				string[i - 1] = ch;
+
+			string += i;
+			size -= i;
 			p += n + 1;
 		} while( p[0] && p[-1] == '\\' );
 
@@ -1259,18 +1266,19 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 		 */
 		*token = VIPS_TOKEN_STRING;
 		n = strcspn( p, "<[{()}]>=," );
-		g_assert( size > n + 1 );
-		memcpy( string, p, n );
-		string[n] = '\0';
+		i = VIPS_MIN( n, size );
+		vips_strncpy( string, p, i );
 		p += n;
 
 		/* We remove leading whitespace, so we trim trailing
-		 * whitespace from unquoted strings too.
+		 * whitespace from unquoted strings too. Only if the string
+		 * hasn't been truncated.
 		 */
-		while( isspace( string[n - 1] ) ) {
-			string[n - 1] = '\0';
-			n -= 1;
-		}
+		if( i == n ) 
+			while( i > 0 && isspace( string[i - 1] ) ) {
+				string[i - 1] = '\0';
+				i--;
+			}
 
 		break;
 	}
