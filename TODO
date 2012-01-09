@@ -54,6 +54,12 @@
 
 	vips copy add[babe.jpg,add[babe2.jpg,babe3.jpg]] sum.v
 
+  perhaps use curly brackets for code?
+
+	vips max add{babe.jpg,babe2.jpg}
+
+  no brackets or square brackets for options
+
 
 
 

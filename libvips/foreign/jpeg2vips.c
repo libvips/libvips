@@ -41,6 +41,8 @@
  * 	- attach exif tags as coded values 
  * 24/11/11
  * 	- turn into a set of read fns ready to be called from a class
+ * 9/1/12
+ * 	- read jfif resolution as well as exif
  */
 
 /*
@@ -389,9 +391,15 @@ set_vips_resolution( IMAGE *im, ExifData *ed )
 		break;
 
 	default:
-		vips_warn( "VipsJpeg", "%s", _( "bad resolution unit" ) );
+		vips_warn( "VipsJpeg", 
+			"%s", _( "unknown EXIF resolution unit" ) );
 		return;
 	}
+
+#ifdef DEBUG
+	printf( "set_vips_resolution: seen exif resolution %g, %g p/mm\n",
+		       xres, yres );
+#endif /*DEBUG*/
 
 	im->Xres = xres;
 	im->Yres = yres;
@@ -529,6 +537,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 {
 	jpeg_saved_marker_ptr p;
 	VipsInterpretation interpretation;
+	double xres, yres;
 
 	/* Capture app2 sections here for assembly.
 	 */
@@ -566,6 +575,40 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 		break;
 	}
 
+	/* Get the jfif resolution. exif may overwrite this later.
+	 */
+	xres = 1.0;
+	yres = 1.0;
+	if( cinfo->saw_JFIF_marker &&
+		cinfo->X_density != 1U && 
+		cinfo->Y_density != 1U ) {
+		switch( cinfo->density_unit ) {
+		case 1:
+			/* Pixels per inch.
+			 */
+			xres = cinfo->X_density / 25.4;
+			yres = cinfo->Y_density / 25.4;
+			break;
+
+		case 2:
+			/* Pixels per cm.
+			 */
+			xres = cinfo->X_density / 10.0;
+			yres = cinfo->Y_density / 10.0;
+			break;
+
+		default:
+			vips_warn( "VipsJpeg", 
+				"%s", _( "unknown JFIF resolution unit" ) );
+			break;
+		}
+
+#ifdef DEBUG
+		printf( "read_jpeg_header: seen jfif resolution %g, %g p/mm\n",
+			       xres, yres );
+#endif /*DEBUG*/
+	}
+
 	/* Set VIPS header.
 	 */
 	vips_image_init_fields( out,
@@ -573,7 +616,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 		cinfo->output_components,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		interpretation,
-		1.0, 1.0 );
+		xres, yres );
 
 	/* Best for us, probably.
 	 */
