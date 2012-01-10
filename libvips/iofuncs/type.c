@@ -595,7 +595,7 @@ vips_array_image_get_type( void )
 
 /**
  * vips_value_set_area:
- * @value: set this value
+ * @value: (out): set this value
  * @free_fn: (scope async): data will be freed with this function
  * @data: set @value to track this pointer
  *
@@ -647,7 +647,7 @@ vips_value_get_save_string( const GValue *value )
 
 /** 
  * vips_value_set_save_string:
- * @value: GValue to set
+ * @value: (out): GValue to set
  * @str: C string to copy into the GValue
  *
  * Copies the C string into @value.
@@ -662,7 +662,7 @@ vips_value_set_save_string( GValue *value, const char *str )
 
 /** 
  * vips_value_set_save_stringf:
- * @value: GValue to set
+ * @value: (out): GValue to set
  * @fmt: printf()-style format string
  * @Varargs: arguments to printf()-formatted @fmt
  *
@@ -700,7 +700,7 @@ vips_value_get_ref_string( const GValue *value, size_t *length )
 
 /** 
  * vips_value_set_ref_string:
- * @value: GValue to set
+ * @value: (out): GValue to set
  * @str: C string to copy into the GValue
  *
  * Copies the C string @str into @value. 
@@ -734,7 +734,7 @@ vips_value_set_ref_string( GValue *value, const char *str )
 
 /** 
  * vips_value_set_blob:
- * @value: GValue to set
+ * @value: (out): GValue to set
  * @free_fn: (scope async): free function for @data
  * @data: pointer to area of memory
  * @length: length of memory area
@@ -785,7 +785,7 @@ vips_value_get_blob( const GValue *value, size_t *length )
 
 /**
  * vips_value_set_array: 
- * @value: %GValue to set
+ * @value: (out): %GValue to set
  * @n: number of elements 
  * @type: the type of each element 
  * @sizeof_type: the sizeof each element 
@@ -888,7 +888,7 @@ vips_value_get_array_double( const GValue *value, int *n )
 
 /** 
  * vips_value_set_array_double:
- * @value: %GValue to get from
+ * @value: (out): %GValue to get from
  * @array: (array length=n): array of doubles
  * @n: the number of elements 
  *
@@ -931,7 +931,7 @@ vips_value_get_array_object( const GValue *value, int *n )
 
 /** 
  * vips_array_object_set:
- * @value: %GValue to set
+ * @value: (out): %GValue to set
  * @n: the number of elements 
  *
  * Set @value to hold an array of GObject. Pass in the array length in @n. 
