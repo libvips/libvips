@@ -58,7 +58,7 @@ typedef struct _VipsArea {
 	 */
 	VipsCallbackFn free_fn;
 
-	/* If we are holding an array (for exmaple, an array of double), the
+	/* If we are holding an array (for example, an array of double), the
 	 * GType of the elements and their size. 0 for not known.
 	 *
 	 * n is always length / sizeof_type, we keep it as a member for
@@ -73,77 +73,88 @@ void vips_area_unref( VipsArea *area );
 
 VipsArea *vips_area_new( VipsCallbackFn free_fn, void *data );
 VipsArea *vips_area_new_blob( VipsCallbackFn free_fn, 
-	void *blob, size_t blob_length );
+	void *data, size_t length );
 VipsArea *vips_area_new_array( GType type, size_t sizeof_type, int n );
 VipsArea *vips_area_new_array_object( int n );
+
+void *vips_area_get_data( VipsArea *area, 
+	size_t *length, int *n, GType *type, size_t *sizeof_type );
 
 /**
  * VIPS_TYPE_AREA:
  *
- * The #GType for a #vips_area.
+ * The #GType for a #VipsArea.
  */
 #define VIPS_TYPE_AREA (vips_area_get_type())
-void vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );
-void *vips_value_get_area( const GValue *value, size_t *length );
 GType vips_area_get_type( void );
 
 /**
  * VIPS_TYPE_SAVE_STRING:
  *
- * The #GType for a "vips_save_string".
+ * The #GType for a #VipsSaveString.
  */
 #define VIPS_TYPE_SAVE_STRING (vips_save_string_get_type())
-const char *vips_value_get_save_string( const GValue *value );
-void vips_value_set_save_string( GValue *value, const char *str );
-void vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
 GType vips_save_string_get_type( void );
 
 /**
  * VIPS_TYPE_REF_STRING:
  *
- * The #GType for a #vips_refstring.
+ * The #GType for a #VipsRefString.
  */
 #define VIPS_TYPE_REF_STRING (vips_ref_string_get_type())
-const char *vips_value_get_ref_string( const GValue *value, size_t *length );
-int vips_value_set_ref_string( GValue *value, const char *str );
 GType vips_ref_string_get_type( void );
 
 /**
  * VIPS_TYPE_BLOB:
  *
- * The #GType for a #vips_blob.
+ * The #GType for a #VipsBlob.
  */
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
+GType vips_blob_get_type( void );
+
+/**
+ * VIPS_TYPE_ARRAY_DOUBLE:
+ *
+ * The #GType for a #VipsArrayDouble.
+ */
+#define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
+typedef VipsArea VipsArrayDouble;
+VipsArrayDouble *vips_array_double_new( const double *array, int n );
+GType vips_array_double_get_type( void );
+
+/**
+ * VIPS_TYPE_ARRAY_IMAGE:
+ *
+ * The #GType for a #VipsArrayImage.
+ */
+#define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
+GType vips_array_image_get_type( void );
+
+void vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );
+void *vips_value_get_area( const GValue *value, size_t *length );
+
+const char *vips_value_get_save_string( const GValue *value );
+void vips_value_set_save_string( GValue *value, const char *str );
+void vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
+	__attribute__((format(printf, 2, 3)));
+
+const char *vips_value_get_ref_string( const GValue *value, size_t *length );
+int vips_value_set_ref_string( GValue *value, const char *str );
+
 void *vips_value_get_blob( const GValue *value, size_t *length );
 void vips_value_set_blob( GValue *value, 
 	VipsCallbackFn free_fn, void *data, size_t length );
-GType vips_blob_get_type( void );
 
 void vips_value_set_array( GValue *value, 
 	int n, GType type, size_t sizeof_type );
 void *vips_value_get_array( const GValue *value, 
 	int *n, GType *type, size_t *sizeof_type );
 
-/**
- * VIPS_TYPE_ARRAY_DOUBLE:
- *
- * The #GType for a #vips_array_double.
- */
-#define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
 double *vips_value_get_array_double( const GValue *value, int *n );
 int vips_value_set_array_double( GValue *value, const double *array, int n );
-GType vips_array_double_get_type( void );
 
-/**
- * VIPS_TYPE_ARRAY_IMAGE:
- *
- * The #GType for a #vips_array_image.
- */
-#define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
 GObject **vips_value_get_array_object( const GValue *value, int *n );
 int vips_value_set_array_object( GValue *value, int n );
-GType vips_array_image_get_type( void );
 
 void vips__meta_init_types( void );
 
