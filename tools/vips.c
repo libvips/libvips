@@ -1041,6 +1041,25 @@ main( int argc, char **argv )
 				break;
 			}
 
+	/* Could be a vips7 im_function. Search here first for max
+	 * compatibility.
+	 */
+	if( action && !handled && 
+		(fn = im_find_function( action )) ) {
+		(void) add_main_group( context, NULL );
+		parse_options( context, &argc, argv );
+
+		if( im_run_command( action, argc - 1, argv + 1 ) ) {
+			if( argc == 1 ) 
+				usage( fn );
+			else
+				error_exit( NULL );
+		}
+
+		handled = TRUE;
+	}
+	im_error_clear();
+
 	/* Could be a vips8 VipsOperation.
 	 */
 	if( action && !handled && 
@@ -1062,24 +1081,6 @@ main( int argc, char **argv )
 
 		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
 		g_object_unref( operation );
-
-		handled = TRUE;
-	}
-	im_error_clear();
-
-	/* Could be a vips7 im_function.
-	 */
-	if( action && !handled && 
-		(fn = im_find_function( action )) ) {
-		(void) add_main_group( context, NULL );
-		parse_options( context, &argc, argv );
-
-		if( im_run_command( action, argc - 1, argv + 1 ) ) {
-			if( argc == 1 ) 
-				usage( fn );
-			else
-				error_exit( NULL );
-		}
 
 		handled = TRUE;
 	}

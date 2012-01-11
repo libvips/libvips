@@ -10,7 +10,7 @@ AC_PREREQ(2.62)
 AM_INIT_AUTOMAKE([-Wno-portability])
 
 AM_CONFIG_HEADER(config.h)
-AC_CONFIG_MACRO_DIR(m4)
+AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [7])
@@ -26,13 +26,12 @@ VIPS_VERSION=vips_version()
 VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 
 # init introspection support
-GOBJECT_INTROSPECTION_CHECK([0.6.7])
+GOBJECT_INTROSPECTION_CHECK([1.30.0])
 
 # gir needs a list of source files to scan for introspection
+#
 # build with a glob and a list of files to exclude from scanning
 # see also IGNORE_HFILES in doc/reference/Makefile.am
-# the only header we include is the main vips.h one, it'll pull in everything
-# else in the public API
 introspection_sources=`cd libvips ; find . -name "*.c"`
 filter_list="deprecated im_video_v4l1.c"
 

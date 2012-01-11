@@ -91,16 +91,16 @@ Vips_8_0_gir_INCLUDES = GObject-2.0
 Vips_8_0_gir_CFLAGS = $(INCLUDES) -I${top_srcdir}/libvips/include
 Vips_8_0_gir_LIBS = libvips.la
 Vips_8_0_gir_FILES = $(introspection_sources)
+INTROSPECTION_GIRS += Vips-8.0.gir
+
 Vips_8_0_gir_SCANNERFLAGS = \
 			    --warn-all \
 			    --verbose \
-			    --namespace=Vips \
 			    --identifier-prefix=Vips \
 			    --identifier-prefix=vips \
 			    --symbol-prefix=vips \
 			    --symbol-prefix=im \
 			    --symbol-prefix=im_ 
-INTROSPECTION_GIRS += Vips-8.0.gir
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)

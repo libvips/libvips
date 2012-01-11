@@ -1,3 +1,4 @@
+
 - Vips.Image has members like chain, __subclasshook__ etc etc, are we
   really subclassing it correctly?
 
@@ -24,9 +25,6 @@
 
 
 
-- test rad read/write with real images (add to nip2 checks?)
-
-- test matio load with real images (add to nip2 checks?)
 
 - magickload is broken
 
@@ -37,8 +35,9 @@
 
   seems to be a magick bug: ping jpg reports 1 band, load jpg reports 3 band
 
-  posted a question, wait for reply
+  posted a question, wait for reply ... useless
 
+  look at what PingImage() actually does for jpg images
 
 
 

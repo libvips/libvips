@@ -107,7 +107,7 @@ GType vips_ref_string_get_type( void );
 /**
  * VIPS_TYPE_BLOB:
  *
- * The #GType for a #VipsBlob.
+ * The %GType for a #VipsBlob.
  */
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
 GType vips_blob_get_type( void );
