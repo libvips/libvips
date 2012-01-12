@@ -42,7 +42,7 @@ im_mat2vips( const char *filename, IMAGE *out )
 {
 	VipsImage *t;
 
-	if( vips_ppmload( filename, &t, NULL ) )
+	if( vips_matload( filename, &t, NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );

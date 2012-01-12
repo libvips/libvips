@@ -1,4 +1,3 @@
-
 - Vips.Image has members like chain, __subclasshook__ etc etc, are we
   really subclassing it correctly?
 
