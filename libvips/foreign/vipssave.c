@@ -100,6 +100,8 @@ static const char *vips_suffs[] = { ".v", NULL };
 static void
 vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 {
+	int i;
+
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
@@ -116,6 +118,8 @@ vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = vips_bandfmt_vips;
+	for( i = 0; i < VIPS_CODING_LAST; i++ )
+		save_class->coding[i] = TRUE;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),

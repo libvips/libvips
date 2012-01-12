@@ -890,11 +890,10 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	 */
 	g_object_ref( in );
 
-	/* Does this class want a coded image we are already in? Nothing to
-	 * do.
+
+	/* Can this class save the coding we are in now? Nothing to do.
 	 */
-	if( class->coding != VIPS_CODING_NONE &&
-		class->coding == in->Coding ) {
+	if( class->coding[in->Coding] ) {
 		VIPS_UNREF( save->ready );
 		save->ready = in;
 
@@ -1095,32 +1094,34 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		in = out;
 	}
 
-	/* Does this class want a coded image? The format_table[] should have
-	 * got the format right for us.
+	/* Does this class want a coded image? Search the coding table for the
+	 * first one.
 	 */
-	if( class->coding != VIPS_CODING_NONE ) {
-		if( class->coding == VIPS_CODING_RAD ) {
-			VipsImage *out;
+	if( class->coding[VIPS_CODING_NONE] ) {
+		/* Already NONE, nothing to do.
+		 */
+	}
+	else if( class->coding[VIPS_CODING_RAD] ) {
+		VipsImage *out;
 
-			if( vips_float2rad( in, &out, NULL ) ) {
-				g_object_unref( in );
-				return( -1 );
-			}
+		if( vips_float2rad( in, &out, NULL ) ) {
 			g_object_unref( in );
-
-			in = out;
+			return( -1 );
 		}
-		else if( class->coding == VIPS_CODING_LABQ ) {
-			VipsImage *out;
+		g_object_unref( in );
 
-			if( vips_Lab2LabQ( in, &out, NULL ) ) {
-				g_object_unref( in );
-				return( -1 );
-			}
+		in = out;
+	}
+	else if( class->coding[VIPS_CODING_LABQ] ) {
+		VipsImage *out;
+
+		if( vips_Lab2LabQ( in, &out, NULL ) ) {
 			g_object_unref( in );
-
-			in = out;
+			return( -1 );
 		}
+		g_object_unref( in );
+
+		in = out;
 	}
 
 	VIPS_UNREF( save->ready );
@@ -1147,6 +1148,8 @@ vips_foreign_save_build( VipsObject *object )
 static void
 vips_foreign_save_class_init( VipsForeignSaveClass *class )
 {
+	int i;
+
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
@@ -1160,7 +1163,11 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
 
-	class->coding = VIPS_CODING_NONE;
+	/* Default to no coding allowed.
+	 */
+	for( i = 0; i < VIPS_CODING_LAST; i++ )
+		class->coding[i] = FALSE;
+	class->coding[VIPS_CODING_NONE] = TRUE;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 

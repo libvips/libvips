@@ -386,18 +386,25 @@ vips_image_print_summary( VipsObject *object, VipsBuf *buf )
 {
 	VipsImage *image = VIPS_IMAGE( object );
 
-	vips_buf_appendf( buf, 
-		ngettext( 
-			"%dx%d %s, %d band, %s", 
-			"%dx%d %s, %d bands, %s", 
-			vips_image_get_bands( image ) ),
-		vips_image_get_width( image ),
-		vips_image_get_height( image ),
-		VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, 
-			vips_image_get_format( image ) ),
-		vips_image_get_bands( image ),
-		VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
-			vips_image_get_interpretation( image ) ) );
+	vips_buf_appendf( buf, "%dx%d",
+		vips_image_get_width( image ), vips_image_get_height( image ) );
+	if( vips_image_get_coding( image ) == VIPS_CODING_NONE ) {
+		vips_buf_appendf( buf, 
+			ngettext( 
+				" %s, %d band, %s", 
+				" %s, %d bands, %s", 
+				vips_image_get_bands( image ) ),
+			VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, 
+				vips_image_get_format( image ) ),
+			vips_image_get_bands( image ),
+			VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
+				vips_image_get_interpretation( image ) ) );
+	}
+	else {
+		vips_buf_appendf( buf, ", %s",
+			VIPS_ENUM_NICK( VIPS_TYPE_CODING, 
+				vips_image_get_coding( image ) ) );
+	}
 
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->
 		print_summary( object, buf );

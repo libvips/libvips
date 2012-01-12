@@ -163,6 +163,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_tiff;
+	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),

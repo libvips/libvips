@@ -208,7 +208,8 @@ typedef enum {
 typedef enum {
 	VIPS_CODING_NONE = 0,
 	VIPS_CODING_LABQ = 2,
-	VIPS_CODING_RAD = 6
+	VIPS_CODING_RAD = 6,
+	VIPS_CODING_LAST = 7
 } VipsCoding;
 
 /* Struct we keep a record of execution time in. Passed to eval signal so

@@ -266,9 +266,12 @@ typedef struct _VipsForeignSaveClass {
 	 */
 	VipsBandFormat *format_table;
 
-	/* If this format needs a coding, the coding it wants (default NONE).
+	/* The set of coding types this format can save. For example, jpeg can
+	 * only save NONE, so has NONE TRUE and RAD and LABQ FALSE.
+	 *
+	 * Default NONE TRUE, RAD and LABQ FALSE.
 	 */
-	VipsCoding coding;
+	gboolean coding[VIPS_CODING_LAST];
 } VipsForeignSaveClass;
 
 GType vips_foreign_save_get_type( void );

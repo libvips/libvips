@@ -112,7 +112,8 @@ vips_foreign_save_rad_class_init( VipsForeignSaveRadClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_RGB;
 	save_class->format_table = bandfmt_rad;
-	save_class->coding = VIPS_CODING_RAD;
+	save_class->coding[VIPS_CODING_NONE] = FALSE;
+	save_class->coding[VIPS_CODING_RAD] = TRUE;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
