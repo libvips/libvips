@@ -37,6 +37,22 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* A very simple boxed type for testing. Just holds an int.
+ */
+typedef struct _VipsThing {
+	int i;
+} VipsThing;
+
+/**
+ * VIPS_TYPE_THING:
+ *
+ * The #GType for a #VipsThing.
+ */
+#define VIPS_TYPE_THING (vips_thing_get_type())
+GType vips_thing_get_type( void );
+VipsThing *vips_thing_new( int i );
+int vips_thing_get_thing( VipsThing *thing );
+
 /* A ref-counted area of memory. Can hold arrays of things as well.
  */
 typedef struct _VipsArea {
@@ -111,6 +127,7 @@ GType vips_ref_string_get_type( void );
  */
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
 GType vips_blob_get_type( void );
+
 
 /**
  * VIPS_TYPE_ARRAY_DOUBLE:

@@ -51,6 +51,42 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+/* A very simple boxed type for testing. Just an int.
+ */
+
+/**
+ * vips_thing_new:
+ * @n:
+ *
+ * Returns: (transfer full): a new #VipsThing.
+ */
+VipsThing *
+vips_thing_new( int i )
+{
+	VipsThing *thing = g_new( VipsThing, 1);
+
+	thing->i = i;
+
+	return( thing );
+}
+
+VipsThing *
+vips_thing_copy( VipsThing *thing )
+{
+	return( vips_thing_new( thing->i ) );
+}
+
+int 
+vips_thing_get_thing( VipsThing *thing )
+{
+	return( thing->i );
+}
+
+G_DEFINE_BOXED_TYPE( VipsThing, vips_thing,
+	(GBoxedCopyFunc) vips_thing_copy, 
+	(GBoxedFreeFunc) g_free );
+
+
 /**
  * SECTION: VipsArea
  * @short_description: an area of memory
