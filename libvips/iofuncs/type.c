@@ -1013,6 +1013,7 @@ vips_value_set_array_object( GValue *value, int n )
 void
 vips__meta_init_types( void )
 {
+	(void) vips_thing_get_type();
 	(void) vips_save_string_get_type();
 	(void) vips_area_get_type();
 	(void) vips_ref_string_get_type();
