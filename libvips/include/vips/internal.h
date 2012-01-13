@@ -119,7 +119,6 @@ int vips__write_header_bytes( VipsImage *im, unsigned char *to );
 
 extern GMutex *vips__global_lock;
 
-
 int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__sizealike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n );

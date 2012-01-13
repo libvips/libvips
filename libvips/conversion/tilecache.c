@@ -13,7 +13,7 @@
  * 	- gtkdoc
  * 12/12/10
  * 	- use im_prepare_to() and avoid making a sequence for every cache tile
- * 5/12/12
+ * 5/12/11
  * 	- rework as a class
  */
 

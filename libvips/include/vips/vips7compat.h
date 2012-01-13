@@ -285,7 +285,8 @@ int im_generate( VipsImage *im,
 #define im_remapfilerw vips_remapfilerw
 
 #define im__print_renders vips__print_renders
-#define im_cache vips_image_cache
+
+int im_cache( IMAGE *in, IMAGE *out, int width, int height, int max );
 
 #define IM_FREEF( F, S ) \
 G_STMT_START { \

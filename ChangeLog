@@ -68,6 +68,7 @@
 - support gobject-introspection 
 - new Python binding based on gobject-introspection
 - only spot options at the end of arg strings
+- add vips_cache() as a vips8 operator
 
 12/10/11 started 7.26.6
 - NOCACHE was not being set correctly on OS X causing performance 

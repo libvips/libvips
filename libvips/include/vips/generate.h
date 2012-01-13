@@ -56,8 +56,6 @@ int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int tile_width, int tile_height, int max_tiles,
 	int priority,
 	VipsSinkNotify notify, void *a );
-int vips_image_cache( VipsImage *in, VipsImage *out, 
-	int width, int height, int max );
 
 int vips_sink_memory( VipsImage *im );
 

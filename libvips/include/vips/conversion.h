@@ -139,6 +139,9 @@ int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tilecache( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_cache( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 int vips_embed( VipsImage *in, VipsImage **out, 
 	int x, int y, int width, int height, ... )
 	__attribute__((sentinel));

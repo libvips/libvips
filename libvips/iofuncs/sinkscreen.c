@@ -1124,11 +1124,3 @@ vips__print_renders( void )
 #endif /*VIPS_DEBUG_AMBER*/
 	printf( "%d dirty renders\n", g_slist_length( render_dirty_all ) );
 }
-
-int
-vips_image_cache( VipsImage *in, VipsImage *out, 
-	int width, int height, int max )
-{
-	return( vips_sink_screen( in, out, NULL, 
-		width, height, max, 0, NULL, NULL ) );
-}

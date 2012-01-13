@@ -24,7 +24,6 @@
 
 
 
-
 - magickload is broken
 
 	$ vips magickload healthygirl.jpg x.v
@@ -37,8 +36,6 @@
   posted a question, wait for reply ... useless
 
   look at what PingImage() actually does for jpg images
-
-
 
 
 
@@ -61,12 +58,9 @@
 
 
 
-- see vips_image_cache(): it currently writes to @out allocated by its caller
-
-  should this be called vips_image_write_cache()? or wrapped in the style 
-  of vips_copy()? 
-
 - make an argb coding type, add to nip2 and known coding
+
+  see openslide
 
 - nip2 should use zooming support, if possible
 

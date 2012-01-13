@@ -419,35 +419,6 @@ dupims( IMAGE *out, IMAGE **in )
 	return( new );
 }
 
-/**
- * im_wrapmany_fn:
- * @in: %NULL-terminated array of input buffers
- * @out: write processed pixels here
- * @width: number of pixels in buffer
- * @a: user data
- * @b: user data
- *
- * Given an array of buffers of input pixels, write a buffer of output pixels.
- */
-
-/**
- * im_wrapmany:
- * @in: %NULL-terminated array of input images
- * @out: image to generate
- * @fn: buffer-processing function
- * @a: user data
- * @b: user data
- *
- * Wrap-up a buffer processing function as a PIO VIPS function.
- *
- * Given a NULL-terminated list of input images all of the same size, an
- * output image and a buffer processing function, make a PIO image processing
- * operation.
- *
- * See also: im_wrapone(), im_wraptwo(), vips_image_generate().
- *
- * Returns: 0 on success, or -1 on error.
- */
 int
 im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 {
@@ -505,35 +476,6 @@ wrapone_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
 	((im_wrapone_fn) (bun->fn)) (ins[0], out, width, bun->a, bun->b );
 }
 
-/**
- * im_wrapone_fn:
- * @in: input pixels
- * @out: write processed pixels here
- * @width: number of pixels in buffer
- * @a: user data
- * @b: user data
- *
- * Given a buffer of input pixels, write a buffer of output pixels.
- */
-
-/**
- * im_wrapone:
- * @in: input image
- * @out: image to generate
- * @fn: buffer-processing function
- * @a: user data
- * @b: user data
- *
- * Wrap-up a buffer processing function as a PIO VIPS function.
- *
- * Given an input image, an
- * output image and a buffer processing function, make a PIO image processing
- * operation.
- *
- * See also: im_wrapmany(), im_wraptwo(), vips_image_generate().
- *
- * Returns: 0 on success, or -1 on error.
- */
 int
 im_wrapone( IMAGE *in, IMAGE *out, im_wrapone_fn fn, void *a, void *b )
 {
@@ -559,37 +501,6 @@ wraptwo_gen( void **ins, void *out, int width, Bundle *bun, void *dummy )
 		width, bun->a, bun->b );
 }
 
-/**
- * im_wraptwo_fn:
- * @in1: input pixels from image 1
- * @in2: input pixels from image 2
- * @out: write processed pixels here
- * @width: number of pixels in buffer
- * @a: user data
- * @b: user data
- *
- * Given a pair of buffers of input pixels, write a buffer of output pixels.
- */
-
-/**
- * im_wraptwo:
- * @in1: first input image
- * @in2: second input image
- * @out: image to generate
- * @fn: buffer-processing function
- * @a: user data
- * @b: user data
- *
- * Wrap-up a buffer processing function as a PIO VIPS function.
- *
- * Given a pair of input images of the same size, an
- * output image and a buffer processing function, make a PIO image processing
- * operation.
- *
- * See also: im_wrapone(), im_wrapmany(), vips_image_generate().
- *
- * Returns: 0 on success, or -1 on error.
- */
 int
 im_wraptwo( IMAGE *in1, IMAGE *in2, IMAGE *out, 
 	im_wraptwo_fn fn, void *a, void *b )
@@ -2166,3 +2077,10 @@ im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	return( 0 );
 }
 
+int
+im_cache( VipsImage *in, VipsImage *out, 
+	int width, int height, int max )
+{
+	return( vips_sink_screen( in, out, NULL, 
+		width, height, max, 0, NULL, NULL ) );
+}
