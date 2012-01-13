@@ -215,23 +215,6 @@ typedef struct {
 	GMutex *tlock;			/* Lock for TIFF*() calls */
 } ReadTiff;
 
-/* Reading a YCbCr image ... parameters we use for conversion.
- */
-typedef struct {
-	/* Input and output.
-	 */
-	TIFF *tif;			/* From here */
-	VipsImage *im;			/* To here */
-
-	/* RGB <-> YCbCr conversion.
-	 */
-	float LumaRed, LumaGreen, LumaBlue;
-
-	/* RGB -> LAB conversion.
-	 */
-	void *table;
-} YCbCrParams;
-
 /* Handle TIFF errors here. Shared with vips2tiff.c. These can be called from
  * more than one thread, but vips_error and vips_warn have mutexes in, so that's
  * OK.
@@ -559,8 +542,9 @@ static void
 memcpy_line( VipsPel *q, VipsPel *p, int n, void *client )
 {
 	VipsImage *im = (VipsImage *) client;
+	size_t len = n * VIPS_IMAGE_SIZEOF_PEL( im );
 
-	memcpy( q, p, n * VIPS_IMAGE_SIZEOF_PEL( im ) ); 
+	memcpy( q, p, len ); 
 }
 
 /* Read a 32-bit floating point greyscale TIFF image. What do we do about
@@ -1113,9 +1097,11 @@ static void *
 tiff_seq_start( VipsImage *out, void *a, void *b )
 {
 	ReadTiff *rtiff = (ReadTiff *) a;
+	tsize_t size;
 	tdata_t *buf;
 
-	if( !(buf = vips_malloc( NULL, TIFFTileSize( rtiff->tiff ) )) )
+	size = TIFFTileSize( rtiff->tiff );
+	if( !(buf = vips_malloc( NULL, size )) )
 		return( NULL );
 
 	return( (void *) buf );
@@ -1204,8 +1190,7 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 			/* Read that tile.
 			 */
 			g_mutex_lock( rtiff->tlock );
-			if( TIFFReadTile( rtiff->tiff, buf, 
-				x, y, 0, 0 ) < 0 ) {
+			if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) {
 				g_mutex_unlock( rtiff->tlock );
 				return( -1 );
 			}
@@ -1216,7 +1201,7 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 			tile.left = x;
 			tile.top = y;
 			tile.width = rtiff->twidth;
-			tile.height = rtiff->twidth;
+			tile.height = rtiff->theight;
 
 			/* The section that hits the region we are building.
 			 */
