@@ -51,7 +51,7 @@ typedef struct _VipsThing {
 #define VIPS_TYPE_THING (vips_thing_get_type())
 GType vips_thing_get_type( void );
 VipsThing *vips_thing_new( int i );
-int vips_thing_get_thing( VipsThing *thing );
+int vips_thing_get_i( VipsThing *thing );
 
 /* A ref-counted area of memory. Can hold arrays of things as well.
  */

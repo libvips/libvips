@@ -63,28 +63,47 @@
 VipsThing *
 vips_thing_new( int i )
 {
-	VipsThing *thing = g_new( VipsThing, 1);
+	VipsThing *thing;
 
+	thing = g_new( VipsThing, 1 );
 	thing->i = i;
+
+	printf( "vips_thing_new: %d %p\n", i, thing );
 
 	return( thing );
 }
 
-VipsThing *
+static VipsThing *
 vips_thing_copy( VipsThing *thing )
 {
-	return( vips_thing_new( thing->i ) );
+	VipsThing *thing2;
+
+	thing2 = vips_thing_new( thing->i );
+
+	printf( "vips_thing_copy: %d %p = %p\n", thing->i, thing2, thing );
+
+	return( thing2 );
+}
+
+static void
+vips_thing_free( VipsThing *thing )
+{
+	printf( "vips_thing_free: %d %p\n", thing->i, thing );
+
+	g_free( thing );
 }
 
 int 
-vips_thing_get_thing( VipsThing *thing )
+vips_thing_get_i( VipsThing *thing )
 {
+	printf( "vips_thing_get_i: %d %p\n", thing->i, thing );
+
 	return( thing->i );
 }
 
 G_DEFINE_BOXED_TYPE( VipsThing, vips_thing,
 	(GBoxedCopyFunc) vips_thing_copy, 
-	(GBoxedFreeFunc) g_free );
+	(GBoxedFreeFunc) vips_thing_free );
 
 
 /**
