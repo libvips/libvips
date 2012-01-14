@@ -45,7 +45,6 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #include <errno.h>
-#include <assert.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
