@@ -71,7 +71,7 @@ AC_SUBST(vips_introspection_sources)
 #   interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=30
-LIBRARY_REVISION=5
+LIBRARY_REVISION=7
 LIBRARY_AGE=15
 
 # patched into include/vips/version.h

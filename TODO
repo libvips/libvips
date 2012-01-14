@@ -1,6 +1,13 @@
 - Vips.Image has members like chain, __subclasshook__ etc etc, are we
   really subclassing it correctly?
 
+- have this warning:
+
+im_histspec.c: In function 'im_histspec':
+im_histspec.c:101:6: warning: 'px' may be used uninitialized in this function
+[-Wuninitialized]
+im_histspec.c:79:6: note: 'px' was declared here:n ../his	
+
 - add support for constants
 
   how do boxed types work? confusing

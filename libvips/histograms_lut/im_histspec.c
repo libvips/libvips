@@ -64,18 +64,18 @@
 static int
 match( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
-	const int inpx = in->Xsize * in->Ysize;
-	const int refpx = ref->Xsize * ref->Ysize;
+	const guint64 inpx = (guint64) in->Xsize * in->Ysize;
+	const guint64 refpx = (guint64) ref->Xsize * ref->Ysize;
 	const int bands = in->Bands;	
 
 	unsigned int *inbuf;		/* in and ref, padded to same size */
 	unsigned int *refbuf;
 	unsigned int *outbuf;		/* Always output as uint */
 
-	int px;				/* Number of pixels */
-	int max;			/* px * bands */
+	guint64 px;			/* Number of pixels */
+	guint64 max;			/* px * bands */
 
-	int i, j;
+	guint64 i, j;
 
 	if( im_iocheck( in, out ) || 
 		im_iocheck( ref, out ) ||
@@ -94,6 +94,8 @@ match( IMAGE *in, IMAGE *ref, IMAGE *out )
 		px = 256;
 	else if( inpx <= 65536 && refpx <= 65536 )
 		px = 65536;
+	else 
+		px = IM_MAX( inpx, refpx );
 	max = px * bands;
 
 	/* Unpack to equal-sized buffers.

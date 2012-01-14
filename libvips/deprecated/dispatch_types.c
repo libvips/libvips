@@ -871,13 +871,12 @@ static int
 input_interpolate_init( im_object *obj, char *str )
 {
 	GType type = g_type_from_name( "VipsInterpolate" );
-	VipsObjectClass *interpolate_class = 
-		VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
+	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
 	VipsObject *object;
 
-	g_assert( interpolate_class );
+	g_assert( class );
 
-	if( !(object = vips_object_new_from_string( interpolate_class, str )) )
+	if( !(object = vips_object_new_from_string( class, str )) )
 		return( -1 );
 	if( vips_object_build( object ) ) {
 		g_object_unref( object );
