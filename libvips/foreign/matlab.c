@@ -229,7 +229,7 @@ mat2vips_get_data( mat_t *mat, matvar_t *var, VipsImage *im )
 	/* Matlab images are plane-separate, so we have to assemble bands in
 	 * image-size chunks.
 	 */
-	const int is = es * im->Xsize * im->Ysize;
+	const guint64 is = es * VIPS_IMAGE_N_PELS( im );
 
 	if( Mat_VarReadDataAll( mat, var ) ) {
 		vips_error( "mat2vips", "%s", 

@@ -1,12 +1,18 @@
+- why is the cache operation only? it'd be useful to cache things like
+  interpolate as well, wouldn't it?
+
+- perhaps Xsize and Ysize should become gint64
+
+  eg. easy to make an image that's 3gb and has xsize == 1 ... death!
+
+  also bands I guess
+
+  now everything that iterates over a dimension must be gint64 too
+
+
+
 - Vips.Image has members like chain, __subclasshook__ etc etc, are we
   really subclassing it correctly?
-
-- have this warning:
-
-im_histspec.c: In function 'im_histspec':
-im_histspec.c:101:6: warning: 'px' may be used uninitialized in this function
-[-Wuninitialized]
-im_histspec.c:79:6: note: 'px' was declared here:n ../his	
 
 - add support for constants
 

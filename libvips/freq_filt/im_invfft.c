@@ -125,7 +125,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	/* We have to have a separate buffer for the planner to work on.
 	 */
 	double *planner_scratch = IM_ARRAY( dummy, 
-		in->Xsize * in->Ysize * 2, double );
+		VIPS_IMAGE_N_PELS( in ) * 2, double );
 
 	/* Make dp complex image.
 	 */

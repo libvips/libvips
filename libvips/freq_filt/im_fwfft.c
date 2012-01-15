@@ -85,7 +85,7 @@
 static int 
 rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
-	const int size = in->Xsize * in->Ysize;
+	const guint64 size = VIPS_IMAGE_N_PELS( in ); 
 	const int half_width = in->Xsize / 2 + 1;
 
 	/* Pack to double real here.
@@ -241,7 +241,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	/* Copy to out, normalise.
 	 */
 	for( p = (double *) cmplx->data, y = 0; y < out->Ysize; y++ ) {
-		int size = out->Xsize * out->Ysize;
+		guint64 size = VIPS_IMAGE_N_PELS( out );
 
 		q = buf;
 
@@ -274,7 +274,7 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 static int 
 rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
-	const int size = in->Xsize * in->Ysize;
+	const guint64 size = VIPS_IMAGE_N_PELS( in );
 	const int half_width = in->Xsize / 2 + 1;
 
 	/* Pack to double real here.
@@ -289,7 +289,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	/* We have to have a separate real buffer for the planner to work on.
 	 */
 	double *planner_scratch = IM_ARRAY( dummy, 
-		in->Xsize * in->Ysize, double );
+		VIPS_IMAGE_N_PELS( in ), double );
 
 	fftw_plan plan;
 	double *buf, *q, *p;
@@ -403,7 +403,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	/* We have to have a separate buffer for the planner to work on.
 	 */
 	double *planner_scratch = IM_ARRAY( dummy, 
-		in->Xsize * in->Ysize * 2, double );
+		VIPS_IMAGE_N_PELS( in ) * 2, double );
 
 	/* Make dp complex image.
 	 */
@@ -448,7 +448,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	/* Copy to out, normalise.
 	 */
 	for( p = (double *) cmplx->data, y = 0; y < out->Ysize; y++ ) {
-		int size = out->Xsize * out->Ysize;
+		guint64 size = VIPS_IMAGE_N_PELS( out );
 
 		q = buf;
 
@@ -480,7 +480,7 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 static int 
 fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
-	int size = in->Xsize * in->Ysize;
+	int size = VIPS_IMAGE_N_PELS( in );
 	int bpx = im_ispoweroftwo( in->Xsize );
 	int bpy = im_ispoweroftwo( in->Ysize );
 	float *buf, *q, *p1, *p2;

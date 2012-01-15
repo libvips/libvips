@@ -127,6 +127,13 @@
  */
 
 /**
+ * VIPS_IMAGE_N_PELS:
+ * @I: a #VipsImage
+ *
+ * Returns: The number of pels in an image. A 64-bit unsigned int.
+ */
+
+/**
  * VIPS_IMAGE_ADDR:
  * @I: a #VipsImage
  * @X: x coordinate
@@ -1086,7 +1093,7 @@ vips_progress_add( VipsImage *image )
 	g_timer_start( progress->start );
 	progress->run = 0;
 	progress->eta = 0;
-	progress->tpels = (gint64) image->Xsize * image->Ysize;
+	progress->tpels = VIPS_IMAGE_N_PELS( image );
 	progress->npels = 0;
 	progress->percent = 0;
 

@@ -100,7 +100,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
 	q = half_complex;
 	for( y = 0; y < cmplx->Ysize; y++ ) {
-		p = ((double *) cmplx->data) + y * in->Xsize * 2; 
+		p = ((double *) cmplx->data) + (guint64) y * in->Xsize * 2; 
 
 		for( x = 0; x < half_width; x++ ) {
 			q[0] = p[0];
@@ -182,7 +182,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	 */
 	q = half_complex;
 	for( y = 0; y < cmplx->Ysize; y++ ) {
-		p = ((double *) cmplx->data) + y * in->Xsize * 2; 
+		p = ((double *) cmplx->data) + (guint64) y * in->Xsize * 2; 
 
 		for( x = 0; x < half_width; x++ ) {
 			q[0] = p[0];

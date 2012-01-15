@@ -85,13 +85,13 @@
 int 
 im_histcum( IMAGE *in, IMAGE *out )
 {
-	const int px = in->Xsize * in->Ysize;
+	const guint64 px = VIPS_IMAGE_N_PELS( in );
 	const int nb = vips_bandfmt_iscomplex( in->BandFmt ) ? 
 		in->Bands * 2 : in->Bands;
-	const int mx = px * nb;
+	const guint64 mx = px * nb;
 
 	VipsPel *outbuf;		
-	int b, x;
+	guint64 b, x;
 
 	if( im_check_uncoded( "im_histcum", in ) ||
 		im_check_hist( "im_histcum", in ) ||
@@ -159,7 +159,7 @@ im_histcum( IMAGE *in, IMAGE *out )
 int 
 im_histnorm( IMAGE *in, IMAGE *out )
 {
-	const int px = in->Xsize * in->Ysize;
+	const guint64 px = VIPS_IMAGE_N_PELS( in );
 	DOUBLEMASK *stats;
 	double *a, *b;
 	int i;

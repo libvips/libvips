@@ -1005,7 +1005,7 @@ count_nonzero( IMAGE *in, gint64 *count )
 
 	if( im_avg( in, &avg ) )
 		return( -1 );
-	*count = (avg * in->Xsize * in->Ysize ) / 255.0;
+	*count = (avg * VIPS_IMAGE_N_PELS( in )) / 255.0;
 	
 	return( 0 );
 }
@@ -1041,8 +1041,7 @@ find_image_stats( IMAGE *in, IMAGE *mask, Rect *area )
 
 	/* And scale masked average to match.
 	 */
-	stats->coeff[4] *= (double) count / 
-		((double) mask->Xsize * mask->Ysize);
+	stats->coeff[4] *= (double) count / VIPS_IMAGE_N_PELS( mask );
 
 	/* Yuk! Zap the deviation column with the pixel count. Used later to
 	 * determine if this is likely to be a significant overlap.

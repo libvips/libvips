@@ -429,6 +429,8 @@ extern const guint64 vips__image_sizeof_bandformat[];
 	(VIPS_IMAGE_SIZEOF_LINE( I ) * (I)->Ysize)
 #define VIPS_IMAGE_N_ELEMENTS( I ) \
 	((I)->Bands * (I)->Xsize)
+#define VIPS_IMAGE_N_PELS( I ) \
+	((guint64) (I)->Xsize * (I)->Ysize)
 
 /* If VIPS_DEBUG is defined, add bounds checking.
  */

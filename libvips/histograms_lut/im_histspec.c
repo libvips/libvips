@@ -64,8 +64,8 @@
 static int
 match( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
-	const guint64 inpx = (guint64) in->Xsize * in->Ysize;
-	const guint64 refpx = (guint64) ref->Xsize * ref->Ysize;
+	const guint64 inpx = VIPS_IMAGE_N_PELS( in );
+	const guint64 refpx = VIPS_IMAGE_N_PELS( ref );
 	const int bands = in->Bands;	
 
 	unsigned int *inbuf;		/* in and ref, padded to same size */
@@ -175,7 +175,7 @@ int
 im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
 	IMAGE *t[5];
-	int px;
+	guint64 px;
 	int fmt;
 
 	if( im_check_uint( "im_histspec", in ) ||
@@ -194,7 +194,7 @@ im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 	/* Clip type down.
 	 */
-	px = t[4]->Xsize * t[4]->Ysize;
+	px = VIPS_IMAGE_N_PELS( t[4] );
 	if( px <= 256 ) 
 		fmt = IM_BANDFMT_UCHAR;
 	else if( px <= 65536 ) 

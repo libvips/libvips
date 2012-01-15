@@ -1089,7 +1089,7 @@ vips_check_hist( const char *domain, VipsImage *im )
 			_( "histograms must have width or height 1" ) );
 		return( -1 );
 	}
-	if( im->Xsize * im->Ysize > 65536 ) {
+	if( VIPS_IMAGE_N_PELS( im ) > 65536 ) {
 		vips_error( domain, "%s", 
 			_( "histograms must have not have more than "
 				"65536 elements" ) );

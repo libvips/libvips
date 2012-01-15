@@ -99,7 +99,7 @@ typedef struct {
 			sum1 += a1[i]; \
 		a1 += in_lsk;  \
 	} \
-	imean = sum1 / (ref->Xsize * ref->Ysize); \
+	imean = sum1 / VIPS_IMAGE_N_PELS( ref ); \
  	\
 	/* Loop over ir again, this time calculating  \
 	 * sum-of-squares-of-differences for this window on \
@@ -202,7 +202,7 @@ static Spcor *
 spcor_new( IMAGE *out, IMAGE *ref )
 {
 	Spcor *spcor;
-	size_t sz = ref->Xsize * ref->Ysize;
+	guint64 sz = VIPS_IMAGE_N_PELS( ref );
 	VipsPel *p = ref->data;
 	double s;
 	size_t i;
