@@ -189,37 +189,67 @@ vips_object_build( VipsObject *object )
 	return( result );
 }
 
+/**
+ * vips_object_summary_class: (skip)
+ *
+ */
 void
-vips_object_print_class( VipsObjectClass *class )
+vips_object_summary_class( VipsObjectClass *class, VipsBuf *buf )
 {
-	char str[2048];
-	VipsBuf buf = VIPS_BUF_STATIC( str );
-
-	class->print_class( class, &buf );
-	printf( "%s\n", vips_buf_all( &buf ) );
+	class->summary_class( class, buf );
 }
 
+/**
+ * vips_object_summary: (skip)
+ *
+ */
 void
-vips_object_print( VipsObject *object )
+vips_object_summary( VipsObject *object, VipsBuf *buf )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 
+	class->summary( object, buf );
+}
+
+/**
+ * vips_object_dump: (skip)
+ *
+ */
+void
+vips_object_dump( VipsObject *object, VipsBuf *buf )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	class->dump( object, buf );
+}
+
+void
+vips_object_print_summary_class( VipsObjectClass *class )
+{
 	char str[2048];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	class->print( object, &buf );
+	vips_object_summary_class( class, &buf );
 	printf( "%s\n", vips_buf_all( &buf ) );
 }
 
 void
 vips_object_print_summary( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	char str[2048];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
 
+	vips_object_summary( object, &buf );
+	printf( "%s\n", vips_buf_all( &buf ) );
+}
+
+void
+vips_object_print_dump( VipsObject *object )
+{
 	char str[32768];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	class->print_summary( object, &buf );
+	vips_object_dump( object, &buf );
 	printf( "%s\n", vips_buf_all( &buf ) );
 }
 
@@ -1146,7 +1176,7 @@ vips_object_real_build( VipsObject *object )
 }
 
 static void
-vips_object_real_print_class( VipsObjectClass *class, VipsBuf *buf )
+vips_object_real_summary_class( VipsObjectClass *class, VipsBuf *buf )
 {
 	vips_buf_appendf( buf, "%s", G_OBJECT_CLASS_NAME( class ) );
 	if( class->nickname )
@@ -1156,13 +1186,14 @@ vips_object_real_print_class( VipsObjectClass *class, VipsBuf *buf )
 }
 
 static void
-vips_object_real_print( VipsObject *object, VipsBuf *buf )
+vips_object_real_summary( VipsObject *object, VipsBuf *buf )
 {
-	vips_buf_appendf( buf, " (%p)", object );
+	vips_buf_appendf( buf, " %s (%p)", 
+		G_OBJECT_TYPE_NAME( object ), object );
 }
 
 static void
-vips_object_real_print_summary( VipsObject *object, VipsBuf *buf )
+vips_object_real_dump( VipsObject *object, VipsBuf *buf )
 {
 	vips_buf_appendf( buf, " (%p)", object );
 }
@@ -1241,9 +1272,9 @@ vips_object_class_init( VipsObjectClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	class->build = vips_object_real_build;
-	class->print_class = vips_object_real_print_class;
-	class->print = vips_object_real_print;
-	class->print_summary = vips_object_real_print_summary;
+	class->summary_class = vips_object_real_summary_class;
+	class->summary = vips_object_real_summary;
+	class->dump = vips_object_real_dump;
 	class->sanity = vips_object_real_sanity;
 	class->rewind = vips_object_real_rewind;
 	class->new_from_string = vips_object_real_new_from_string;
@@ -2158,9 +2189,9 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 	fprintf( stderr, "%d) %s (%p)\n", 
 		*n, G_OBJECT_TYPE_NAME( object ), object );
 
-	class->print_class( class, &buf );
+	vips_object_summary_class( class, &buf );
 	vips_buf_appends( &buf, " " );
-	class->print_summary( object, &buf );
+	vips_object_summary( object, &buf ); 
 	fprintf( stderr, "%s\n", vips_buf_all( &buf ) );
 
 	*n += 1;

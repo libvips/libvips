@@ -318,13 +318,13 @@ vips_foreign_save_csv_init( VipsForeignSaveCsv *csv )
 G_DEFINE_ABSTRACT_TYPE( VipsForeign, vips_foreign, VIPS_TYPE_OPERATION );
 
 static void
-vips_foreign_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_foreign_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( object_class );
 	const char **p;
 
 	VIPS_OBJECT_CLASS( vips_foreign_parent_class )->
-		print_class( object_class, buf );
+		summary_class( object_class, buf );
 	vips_buf_appends( buf, " " );
 
 	if( class->suffs ) {
@@ -352,7 +352,7 @@ vips_foreign_class_init( VipsForeignClass *class )
 
 	object_class->nickname = "file";
 	object_class->description = _( "load and save image files" );
-	object_class->print_class = vips_foreign_print_class;
+	object_class->summary_class = vips_foreign_summary_class;
 }
 
 static void
@@ -431,12 +431,12 @@ vips_foreign_load_dispose( GObject *gobject )
 }
 
 static void
-vips_foreign_load_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_foreign_load_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
 	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_CLASS( object_class );
 
 	VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
-		print_class( object_class, buf );
+		summary_class( object_class, buf );
 
 	if( !G_TYPE_IS_ABSTRACT( G_TYPE_FROM_CLASS( class ) ) ) {
 		if( class->is_a )
@@ -756,7 +756,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->build = vips_foreign_load_build;
-	object_class->print_class = vips_foreign_load_print_class;
+	object_class->summary_class = vips_foreign_load_summary_class;
 	object_class->new_from_string = vips_foreign_load_new_from_string;
 	object_class->nickname = "fileload";
 	object_class->description = _( "file loaders" );
@@ -804,12 +804,12 @@ vips_foreign_save_dispose( GObject *gobject )
 }
 
 static void
-vips_foreign_save_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_foreign_save_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
 	VipsForeignSaveClass *class = VIPS_FOREIGN_SAVE_CLASS( object_class );
 
 	VIPS_OBJECT_CLASS( vips_foreign_save_parent_class )->
-		print_class( object_class, buf );
+		summary_class( object_class, buf );
 
 	vips_buf_appendf( buf, ", %s", 
 		VIPS_ENUM_NICK( VIPS_TYPE_SAVEABLE, class->saveable ) );
@@ -1158,7 +1158,7 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->build = vips_foreign_save_build;
-	object_class->print_class = vips_foreign_save_print_class;
+	object_class->summary_class = vips_foreign_save_summary_class;
 	object_class->new_from_string = vips_foreign_save_new_from_string;
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );

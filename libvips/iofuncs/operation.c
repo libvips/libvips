@@ -74,22 +74,22 @@ typedef struct {
 	gboolean required;	/* show required args or optional */
 	gboolean oftype;	/* "is of type" message */
 	int n;			/* Arg number */
-} VipsOperationClassPrint;
+} VipsOperationClassUsage;
 
 static void *
-vips_operation_class_print_arg( VipsObjectClass *object_class, 
+vips_operation_class_usage_arg( VipsObjectClass *object_class, 
 	GParamSpec *pspec, VipsArgumentClass *argument_class,
-	VipsBuf *buf, VipsOperationClassPrint *print )
+	VipsBuf *buf, VipsOperationClassUsage *usage )
 {
 	/* Only show construct args ... others are internal.
 	 */
-	if( print->required == 
+	if( usage->required == 
 		((argument_class->flags & VIPS_ARGUMENT_REQUIRED) != 0) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
-		if( print->message && print->n == 0 ) 
-			vips_buf_appendf( buf, "%s\n", print->message );
+		if( usage->message && usage->n == 0 ) 
+			vips_buf_appendf( buf, "%s\n", usage->message );
 
-		if( print->oftype ) {
+		if( usage->oftype ) {
 			vips_buf_appendf( buf, "   %-12s - %s, %s %s\n",
 				g_param_spec_get_name( pspec ), 
 				g_param_spec_get_blurb( pspec ), 
@@ -99,55 +99,55 @@ vips_operation_class_print_arg( VipsObjectClass *object_class,
 					G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 		}
 		else {
-			if( print->n > 0 )
+			if( usage->n > 0 )
 				vips_buf_appends( buf, " " );
 			vips_buf_appends( buf, g_param_spec_get_name( pspec ) );
 		}
 
-		print->n += 1;
+		usage->n += 1;
 	}
 
 	return( NULL );
 }
 
 static void
-vips_operation_print_usage( VipsOperationClass *class, VipsBuf *buf )
+vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 
-	VipsOperationClassPrint print;
+	VipsOperationClassUsage usage;
 
 	/* First pass through args: show the required names.
 	 */
 	vips_buf_appendf( buf, "   %s ", object_class->nickname );
-	print.message = NULL;
-	print.required = TRUE;
-	print.oftype = FALSE;
-	print.n = 0;
+	usage.message = NULL;
+	usage.required = TRUE;
+	usage.oftype = FALSE;
+	usage.n = 0;
 	vips_argument_class_map( object_class,
-		(VipsArgumentClassMapFn) vips_operation_class_print_arg, 
-			buf, &print );
+		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
+			buf, &usage );
 	vips_buf_appends( buf, "\n" );
 
 	/* Show required types.
 	 */
-	print.message = "where:";
-	print.required = TRUE;
-	print.oftype = TRUE;
-	print.n = 0;
+	usage.message = "where:";
+	usage.required = TRUE;
+	usage.oftype = TRUE;
+	usage.n = 0;
 	vips_argument_class_map( object_class,
-		(VipsArgumentClassMapFn) vips_operation_class_print_arg, 
-			buf, &print );
+		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
+			buf, &usage );
 
 	/* Show optional args.
 	 */
-	print.message = "optional arguments:";
-	print.required = FALSE;
-	print.oftype = TRUE;
-	print.n = 0;
+	usage.message = "optional arguments:";
+	usage.required = FALSE;
+	usage.oftype = TRUE;
+	usage.n = 0;
 	vips_argument_class_map( object_class,
-		(VipsArgumentClassMapFn) vips_operation_class_print_arg, 
-			buf, &print );
+		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
+			buf, &usage );
 }
 
 static void *
@@ -175,7 +175,7 @@ vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,
 }
 
 static void
-vips_operation_print( VipsObject *object, VipsBuf *buf )
+vips_operation_dump( VipsObject *object, VipsBuf *buf )
 {
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
@@ -184,7 +184,7 @@ vips_operation_print( VipsObject *object, VipsBuf *buf )
 	vips_argument_map( VIPS_OBJECT( operation ),
 		vips_operation_call_argument, NULL, NULL );
 
-	VIPS_OBJECT_CLASS( vips_operation_parent_class )->print( object, buf );
+	VIPS_OBJECT_CLASS( vips_operation_parent_class )->dump( object, buf );
 }
 
 static void *
@@ -220,7 +220,7 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 }
 
 static void
-vips_operation_print_summary( VipsObject *object, VipsBuf *buf )
+vips_operation_summary( VipsObject *object, VipsBuf *buf )
 {
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
@@ -230,7 +230,7 @@ vips_operation_print_summary( VipsObject *object, VipsBuf *buf )
 		vips_operation_vips_operation_print_summary_arg, buf, NULL );
 
 	VIPS_OBJECT_CLASS( vips_operation_parent_class )->
-		print_summary( object, buf );
+		summary( object, buf );
 }
 
 static void
@@ -244,10 +244,10 @@ vips_operation_class_init( VipsOperationClass *class )
 
 	vobject_class->nickname = "operation";
 	vobject_class->description = _( "operations" );
-	vobject_class->print = vips_operation_print;
-	vobject_class->print_summary = vips_operation_print_summary;
+	vobject_class->summary = vips_operation_summary;
+	vobject_class->dump = vips_operation_dump;
 
-	class->print_usage = vips_operation_print_usage;
+	class->usage = vips_operation_usage;
 }
 
 static void
@@ -269,7 +269,7 @@ vips_operation_class_print_usage( VipsOperationClass *operation_class )
 	char str[2048];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	operation_class->print_usage( operation_class, &buf );
+	operation_class->usage( operation_class, &buf );
 	printf( "%s", _( "usage:" ) );
 	printf( "\n%s", vips_buf_all( &buf ) );
 }
@@ -533,7 +533,7 @@ vips_call_required_optional( VipsOperation **operation,
 
 	/* We need to be able to walk required and optional twice. On x64 gcc,
 	 * vips_operation_set_valist_required() etc. will destructively alter
-	 * the pass-in va_list. We make a copy and walk that instead.
+	 * the passed-in va_list. We make a copy and walk that instead.
 	 */
 	va_copy( a, required );
 	va_copy( b, optional );

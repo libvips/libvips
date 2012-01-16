@@ -55,7 +55,6 @@ typedef void *(*VipsSListMap2Fn)( void *, void *, void * );
 typedef void *(*VipsSListMap4Fn)( void *, void *, void *, void *, void * );
 typedef void *(*VipsSListFold2Fn)( void *, void *, void *, void * );
 
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

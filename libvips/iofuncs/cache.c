@@ -610,7 +610,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 #ifdef VIPS_DEBUG
 	printf( "vips_cache_operation_build: " );
-	vips_object_print_summary( VIPS_OBJECT( *operation ) );
+	vips_object_print_summary_stdout( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
 	vips_cache_init();

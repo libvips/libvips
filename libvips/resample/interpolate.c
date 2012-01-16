@@ -376,7 +376,6 @@ vips_interpolate_nearest_init( VipsInterpolateNearest *nearest )
 VipsInterpolate *
 vips_interpolate_nearest_new( void )
 {
-
 	return( VIPS_INTERPOLATE( vips_object_new(
 		VIPS_TYPE_INTERPOLATE_NEAREST, NULL, NULL, NULL ) ) );
 }

@@ -280,13 +280,13 @@ vips_format_map( VSListMap2Fn fn, void *a, void *b )
 G_DEFINE_ABSTRACT_TYPE( VipsFormat, vips_format, VIPS_TYPE_OBJECT );
 
 static void
-vips_format_print_class( VipsObjectClass *object_class, VipsBuf *buf )
+vips_format_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
 	VipsFormatClass *class = VIPS_FORMAT_CLASS( object_class );
 	const char **p;
 
 	VIPS_OBJECT_CLASS( vips_format_parent_class )->
-		print_class( object_class, buf );
+		summary_class( object_class, buf );
 	vips_buf_appends( buf, ", " );
 
 	if( class->suffs ) {
@@ -318,7 +318,7 @@ vips_format_class_init( VipsFormatClass *class )
 
 	object_class->nickname = "format";
 	object_class->description = _( "VIPS file formats" );
-	object_class->print_class = vips_format_print_class;
+	object_class->summary_class = vips_format_summary_class;
 }
 
 static void

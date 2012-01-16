@@ -73,7 +73,7 @@ typedef struct _VipsOperationClass {
 
 	/* Print the usage message.
 	 */
-	void (*print_usage)( struct _VipsOperationClass *, VipsBuf * );
+	void (*usage)( struct _VipsOperationClass *, VipsBuf * );
 } VipsOperationClass;
 
 GType vips_operation_get_type( void );

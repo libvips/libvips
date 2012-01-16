@@ -378,15 +378,15 @@ struct _VipsObjectClass {
 	/* Try to print something about the class, handy for help displays.
 	 * Keep to one line.
 	 */
-	void (*print_class)( struct _VipsObjectClass *, VipsBuf * );
-
-	/* Try to print everything about the object, handy for debugging.
-	 */
-	void (*print)( VipsObject *, VipsBuf * );
+	void (*summary_class)( struct _VipsObjectClass *, VipsBuf * );
 
 	/* Try to print a one-line summary for the object, handy for debugging.
 	 */
-	void (*print_summary)( VipsObject *, VipsBuf * );
+	void (*summary)( VipsObject *, VipsBuf * );
+
+	/* Try to print everything about the object, handy for debugging.
+	 */
+	void (*dump)( VipsObject *, VipsBuf * );
 
 	/* Sanity-check the object. Print messages and stuff. 
 	 * Handy for debugging.
@@ -464,10 +464,16 @@ void vips_object_get_property( GObject *gobject,
 
 void vips_object_preclose( VipsObject *object );
 int vips_object_build( VipsObject *object );
-void vips_object_print_class( VipsObjectClass *klass );
-void vips_object_print( VipsObject *object );
+
+void vips_object_summary_class( VipsObjectClass *klass, VipsBuf *buf );
+void vips_object_summary( VipsObject *object, VipsBuf *buf );
+void vips_object_dump( VipsObject *object, VipsBuf *buf );
+
+void vips_object_print_summary_class( VipsObjectClass *klass );
 void vips_object_print_summary( VipsObject *object );
+void vips_object_print_dump( VipsObject *object );
 void vips_object_print_name( VipsObject *object );
+
 gboolean vips_object_sanity( VipsObject *object );
 
 GType vips_object_get_type( void );

@@ -620,7 +620,7 @@ vips_wrap7_build( VipsObject *object )
 }
 
 static void
-vips_wrap7_print_class( VipsObjectClass *oclass, VipsBuf *buf )
+vips_wrap7_summary_class( VipsObjectClass *oclass, VipsBuf *buf )
 {
 	VipsWrap7Class *class = VIPS_WRAP7_CLASS( oclass );
 	im_function *fn = class->fn;
@@ -641,13 +641,13 @@ vips_wrap7_print_class( VipsObjectClass *oclass, VipsBuf *buf )
 }
 
 static void
-vips_wrap7_print( VipsObject *object, VipsBuf *buf )
+vips_wrap7_dump( VipsObject *object, VipsBuf *buf )
 {
 	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( object );
 	im_function *fn = class->fn;
 	im_package *pack = im_package_of_function( fn->name );
 
-	VIPS_OBJECT_CLASS( vips_wrap7_parent_class )->print( object, buf );
+	VIPS_OBJECT_CLASS( vips_wrap7_parent_class )->dump( object, buf );
 
 	if( pack )
 		vips_buf_appendf( buf, "from package \"%s\"", pack->name );
@@ -688,8 +688,8 @@ vips_wrap7_class_init( VipsWrap7Class *class )
 	vobject_class->nickname = "wrap7";
 	vobject_class->description = _( "vips7 operations as vips8 classes" );
 	vobject_class->build = vips_wrap7_build;
-	vobject_class->print_class = vips_wrap7_print_class;
-	vobject_class->print = vips_wrap7_print;
+	vobject_class->summary_class = vips_wrap7_summary_class;
+	vobject_class->dump = vips_wrap7_dump;
 }
 
 static void

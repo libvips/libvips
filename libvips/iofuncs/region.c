@@ -288,7 +288,7 @@ vips_region_dispose( GObject *gobject )
 }
 
 static void
-vips_region_print( VipsObject *object, VipsBuf *buf )
+vips_region_dump( VipsObject *object, VipsBuf *buf )
 {
 	VipsRegion *region = VIPS_REGION( object );
 
@@ -307,11 +307,11 @@ vips_region_print( VipsObject *object, VipsBuf *buf )
 	vips_buf_appendf( buf, "buffer = %p, ", region->buffer );
 	vips_buf_appendf( buf, "invalid = %d", region->invalid );
 
-	VIPS_OBJECT_CLASS( vips_region_parent_class )->print( object, buf );
+	VIPS_OBJECT_CLASS( vips_region_parent_class )->dump( object, buf );
 }
 
 static void
-vips_region_print_summary( VipsObject *object, VipsBuf *buf )
+vips_region_summary( VipsObject *object, VipsBuf *buf )
 {
 	VipsRegion *region = VIPS_REGION( object );
 
@@ -322,8 +322,7 @@ vips_region_print_summary( VipsObject *object, VipsBuf *buf )
 	vips_buf_appendf( buf, "width = %d, ", region->valid.width );
 	vips_buf_appendf( buf, "height = %d", region->valid.height );
 
-	VIPS_OBJECT_CLASS( vips_region_parent_class )->
-		print_summary( object, buf );
+	VIPS_OBJECT_CLASS( vips_region_parent_class )->summary( object, buf );
 }
 
 static void
@@ -436,9 +435,9 @@ vips_region_class_init( VipsRegionClass *class )
 	gobject_class->finalize = vips_region_finalize;
 	gobject_class->dispose = vips_region_dispose;
 
-	vobject_class->print = vips_region_print;
-	vobject_class->print_summary = vips_region_print_summary;
-	vobject_class->print = vips_region_sanity;
+	vobject_class->summary = vips_region_summary;
+	vobject_class->dump = vips_region_dump;
+	vobject_class->sanity = vips_region_sanity;
 	vobject_class->build = vips_region_build;
 }
 

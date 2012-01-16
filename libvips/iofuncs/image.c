@@ -364,7 +364,7 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 }
 
 static void
-vips_image_print( VipsObject *object, VipsBuf *buf )
+vips_image_dump( VipsObject *object, VipsBuf *buf )
 {
 	VipsImage *image = VIPS_IMAGE( object );
 
@@ -380,7 +380,9 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 		vips_image_get_bands( image ),
 		VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
 			vips_image_get_interpretation( image ) ) );
-	VIPS_OBJECT_CLASS( vips_image_parent_class )->print( object, buf );
+
+	VIPS_OBJECT_CLASS( vips_image_parent_class )->dump( object, buf );
+
 	vips_buf_appendf( buf, "\n" );
 
 	(void) vips_image_map( image, print_field_fn, (void *) buf );
@@ -389,7 +391,7 @@ vips_image_print( VipsObject *object, VipsBuf *buf )
 }
 
 static void
-vips_image_print_summary( VipsObject *object, VipsBuf *buf )
+vips_image_summary( VipsObject *object, VipsBuf *buf )
 {
 	VipsImage *image = VIPS_IMAGE( object );
 
@@ -413,8 +415,7 @@ vips_image_print_summary( VipsObject *object, VipsBuf *buf )
 				vips_image_get_coding( image ) ) );
 	}
 
-	VIPS_OBJECT_CLASS( vips_image_parent_class )->
-		print_summary( object, buf );
+	VIPS_OBJECT_CLASS( vips_image_parent_class )->summary( object, buf );
 }
 
 static void *
@@ -827,8 +828,8 @@ vips_image_class_init( VipsImageClass *class )
 	vobject_class->nickname = "image";
 	vobject_class->description = _( "image class" );
 
-	vobject_class->print = vips_image_print;
-	vobject_class->print_summary = vips_image_print_summary;
+	vobject_class->dump = vips_image_dump;
+	vobject_class->summary = vips_image_summary;
 	vobject_class->sanity = vips_image_sanity;
 	vobject_class->rewind = vips_image_rewind;
 	vobject_class->build = vips_image_build;

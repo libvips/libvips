@@ -1,5 +1,16 @@
+- we have VipsArrayObject and also vips_object_local_array()
+
+  can we make one use the other?
+
+
+
+
+
 - why is the cache operation only? it'd be useful to cache things like
   interpolate as well, wouldn't it?
+
+
+
 
 - perhaps Xsize and Ysize should become gint64
 
