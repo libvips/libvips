@@ -481,6 +481,8 @@ im__format_init( void )
 	extern GType vips_format_tiff_get_type();
 	vips_format_tiff_get_type();
 #endif /*HAVE_TIFF*/
+	extern GType vips_format_openslide_get_type();
+	vips_format_openslide_get_type();
 }
 
 /* Can this format open this file?

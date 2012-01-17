@@ -134,7 +134,6 @@ vips_foreign_load_openslide_error_handler( const char *domain,
 	vips_error( "openslide", "%s", message );
 }
 
-
 static const char *vips_foreign_openslide_suffs[] = {
 	".svs", 	/* Aperio */
 	".vms", ".vmu", ".ndpi",  /* Hamamatsu */
