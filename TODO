@@ -6,22 +6,6 @@
 
 
 
-- why is the cache operation only? it'd be useful to cache things like
-  interpolate as well, wouldn't it?
-
-
-
-
-- perhaps Xsize and Ysize should become gint64
-
-  eg. easy to make an image that's 3gb and has xsize == 1 ... death!
-
-  also bands I guess
-
-  now everything that iterates over a dimension must be gint64 too
-
-
-
 - Vips.Image has members like chain, __subclasshook__ etc etc, are we
   really subclassing it correctly?
 
@@ -44,23 +28,6 @@
 
 
 - foreign docs come up as "VipsForeignSave", annoying, why?
-
-
-
-
-- magickload is broken
-
-	$ vips magickload healthygirl.jpg x.v
-	VipsRegion: inappropriate region type
-	VipsRegion: inappropriate region type
-	VipsImage: file has been truncated
-
-  seems to be a magick bug: ping jpg reports 1 band, load jpg reports 3 band
-
-  posted a question, wait for reply ... useless
-
-  look at what PingImage() actually does for jpg images
-
 
 
 

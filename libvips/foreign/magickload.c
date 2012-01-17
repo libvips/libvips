@@ -2,6 +2,8 @@
  *
  * 5/12/11
  * 	- from openslideload.c
+ * 17/1/12
+ * 	- remove header-only loads
  */
 
 /*
@@ -95,6 +97,11 @@ vips_foreign_load_magick_get_flags( VipsForeignLoad *load )
 		magick->filename ) );
 }
 
+/*
+ * Unfortunately, libMagick does not support header-only reads very well. See
+ *
+ * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
+ *
 static int
 vips_foreign_load_magick_header( VipsForeignLoad *load )
 {
@@ -105,13 +112,14 @@ vips_foreign_load_magick_header( VipsForeignLoad *load )
 
 	return( 0 );
 }
+ */
 
 static int
 vips_foreign_load_magick_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) load;
 
-	if( vips__magick_read( magick->filename, load->real ) )
+	if( vips__magick_read( magick->filename, load->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -132,7 +140,7 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	object_class->description = _( "load file with ImageMagick" );
 
 	/* We need to be well to the back of the queue since the vips's
-	 * dedicated loaders are usually preferable, if possible. 
+	 * dedicated loaders are usually preferable.
 	 */
 	foreign_class->priority = -100;
 
@@ -140,8 +148,13 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	load_class->get_flags_filename = 
 		vips_foreign_load_magick_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_magick_get_flags;
+	load_class->header = vips_foreign_load_magick_load;
+
+	/* See comment above.
+	 *
 	load_class->header = vips_foreign_load_magick_header;
 	load_class->load = vips_foreign_load_magick_load;
+	 */
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),

@@ -67,8 +67,8 @@
  */
 
 /* Turn on debugging output.
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -676,6 +676,12 @@ vips__magick_read( const char *filename, VipsImage *out )
 	return( 0 );
 }
 
+/* This has severe issues. See:
+ *
+ * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
+ *
+ * Don't use.
+ */
 int
 vips__magick_read_header( const char *filename, VipsImage *im )
 {
