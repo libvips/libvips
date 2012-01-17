@@ -469,9 +469,10 @@ vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class,
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( load_class );
 
-	if( load_class->is_a &&
-		load_class->is_a( filename ) ) 
-		return( load_class );
+	if( load_class->is_a ) {
+		if( load_class->is_a( filename ) ) 
+			return( load_class );
+	}
 	else if( class->suffs && 
 		vips_filename_suffix_match( filename, class->suffs ) )
 		return( load_class );
