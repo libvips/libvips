@@ -172,7 +172,7 @@ list_class( GType type )
 
 	for( i = 0; i < depth * 2; i++ )
 		printf( " " );
-	vips_object_print_class( 
+	vips_object_print_summary_class( 
 		VIPS_OBJECT_CLASS( g_type_class_ref( type ) ) );
 
 	return( NULL );
