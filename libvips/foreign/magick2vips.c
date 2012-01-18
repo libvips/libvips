@@ -231,16 +231,11 @@ parse_header( Read *read )
 
 #ifdef DEBUG
 	printf( "parse_header: filename = %s\n", read->filename );
-	printf( "GetImageChannelDepth(DefaultChannels) = %ld\n",
-		GetImageChannelDepth( image, DefaultChannels, 
-		&image->exception ) );
-	printf( "GetImageChannelDepth(AllChannels) = %ld\n",
+	printf( "GetImageChannelDepth(AllChannels) = %d\n",
 		GetImageChannelDepth( image, AllChannels, &image->exception ) );
 	printf( "GetImageDepth() = %ld\n",
 		GetImageDepth( image, &image->exception ) );
-	printf( "image->depth = %lu\n", image->depth );
-	printf( "GetImageQuantumDepth(MagickFalse) = %ld\n",
-		GetImageQuantumDepth( image, MagickFalse ) );
+	printf( "image->depth = %u\n", image->depth );
 	printf( "GetImageType() = %d\n",
 		GetImageType( image, &image->exception ) );
 	printf( "IsGrayImage() = %d\n",
