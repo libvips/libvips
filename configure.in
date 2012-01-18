@@ -352,7 +352,7 @@ AC_ARG_WITH([magick],
   AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
 AC_ARG_WITH([magickpackage], 
   AS_HELP_STRING([--with-magickpackage], 
-    [magickpackage to use (default: MagickWand, ImageMagick)]))
+    [magickpackage to use (default: MagickWand, ImageMagick; try GraphicsMagick to build against gm instead)]))
 
 # recent versions of ImageMagick have split parts of the library off to
 # MagickWand, so by default we test for that first
@@ -739,6 +739,7 @@ accelerate loops with orc: 		$with_orc
 ICC profile support with lcms: 		$with_lcms (version $with_lcms_ver)
 file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
+  (requires openslide-3.2.0 or later)
 file import with matio: 		$with_matio
 file import with cfitsio: 		$with_cfitsio
 text rendering with pangoft2: 		$with_pangoft2
