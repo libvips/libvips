@@ -101,7 +101,7 @@ vips_foreign_load_magick_get_flags( VipsForeignLoad *load )
  * Unfortunately, libMagick does not support header-only reads very well. See
  *
  * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
- *
+ */
 static int
 vips_foreign_load_magick_header( VipsForeignLoad *load )
 {
@@ -112,14 +112,13 @@ vips_foreign_load_magick_header( VipsForeignLoad *load )
 
 	return( 0 );
 }
- */
 
 static int
 vips_foreign_load_magick_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) load;
 
-	if( vips__magick_read( magick->filename, load->out ) )
+	if( vips__magick_read( magick->filename, load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -148,13 +147,8 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	load_class->get_flags_filename = 
 		vips_foreign_load_magick_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_magick_get_flags;
-	load_class->header = vips_foreign_load_magick_load;
-
-	/* See comment above.
-	 *
 	load_class->header = vips_foreign_load_magick_header;
 	load_class->load = vips_foreign_load_magick_load;
-	 */
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),

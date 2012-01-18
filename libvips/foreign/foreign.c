@@ -657,7 +657,7 @@ vips_foreign_load_start( VipsImage *out, void *a, void *dummy )
 		 * image into @real. They must match exactly in size, bands,
 		 * format and coding for the copy to work.  
 		 *
-		 * Someversions of ImageMagick give different results between
+		 * Some versions of ImageMagick give different results between
 		 * Ping and Load for some formats, for example.
 		 */
 		if( load->real->Xsize != out->Xsize ||
@@ -666,7 +666,8 @@ vips_foreign_load_start( VipsImage *out, void *a, void *dummy )
 			load->real->Coding != out->Coding ||
 			load->real->BandFmt != out->BandFmt ) {
 			vips_error( object_class->nickname,
-				"%s", _( "header() and load() differ" ) ); 
+				"%s", _( "header() and load() report "
+					"different dimensions" ) ); 
 			return( NULL );
 		}
 	}

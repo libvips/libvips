@@ -674,8 +674,6 @@ vips__magick_read( const char *filename, VipsImage *out )
 /* This has severe issues. See:
  *
  * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
- *
- * Don't use.
  */
 int
 vips__magick_read_header( const char *filename, VipsImage *im )
