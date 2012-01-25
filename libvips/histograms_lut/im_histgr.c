@@ -19,7 +19,9 @@
  * 	- number bands from zero
  * 24/3/10
  * 	- gtkdoc
- * 	- small celanups
+ * 	- small cleanups
+ * 25/1/12
+ * 	- cast @in to u8/u16.
  */
 
 /*
@@ -281,6 +283,19 @@ find_ushort_hist_extract( REGION *reg,
 	return( 0 );
 }
 
+/* Save a bit of typing.
+ */
+#define UC IM_BANDFMT_UCHAR
+#define US IM_BANDFMT_USHORT
+#define UI IM_BANDFMT_UINT
+
+/* Type mapping: go to uchar or ushort.
+ */
+static int bandfmt_histgr[10] = {
+/* UC   C  US   S  UI   I   F   X  D   DX */
+   UC, UC, US, US, US, US, US, US, US, US
+};
+
 /**
  * im_histgr:
  * @in: input image
@@ -291,7 +306,7 @@ find_ushort_hist_extract( REGION *reg,
  * one-band histogram), or for all bands (producing an n-band histogram) if 
  * @bandno is -1. 
  *
- * @in must be u8 or u16. @out is always u32.
+ * @in is cast to u8 or u16. @out is always u32.
  *
  * See also: im_hist_indexed(), im_histeq().
  *
@@ -300,6 +315,7 @@ find_ushort_hist_extract( REGION *reg,
 int 
 im_histgr( IMAGE *in, IMAGE *out, int bandno )
 {
+	IMAGE *t;
 	int size;		/* Length of hist */
 	int bands;		/* Number of bands in output */
 	Histogram *mhist;
@@ -310,11 +326,17 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 	/* Check images. PIO from in, WIO to out.
 	 */
 	if( im_check_uncoded( "im_histgr", in ) || 
-		im_check_u8or16( "im_histgr", in ) ||
 		im_check_bandno( "im_histgr", in, bandno ) ||
 		im_pincheck( in ) || 
 		im_outcheck( out ) )
 		return( -1 );
+
+	/* Cast in to u8/u16.
+	 */
+	if( !(t = im_open_local( out, "im_histgr", "p" )) ||
+		im_clip2fmt( in, t, bandfmt_histgr[in->BandFmt] ) )
+		return( -1 );
+	in = t;
 
 	/* Find the range of pixel values we must handle.
 	 */

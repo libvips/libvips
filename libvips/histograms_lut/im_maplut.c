@@ -586,7 +586,7 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 		im_incheck( lut ) )
 		return( -1 );
 
-	/* Cast in to u8/u16.
+	/* Cast in to u8/u16/u32.
 	 */
 	if( !(t = im_open_local( out, "im_maplut", "p" )) ||
 		im_clip2fmt( in, t, bandfmt_maplut[in->BandFmt] ) )
