@@ -892,10 +892,12 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	 */
 	g_object_ref( in );
 
-
 	/* Can this class save the coding we are in now? Nothing to do.
+	 * Uncoded images may need to have their formats and bands clipped 
+	 * though.
 	 */
-	if( class->coding[in->Coding] ) {
+	if( in->Coding != VIPS_CODING_NONE &&
+		class->coding[in->Coding] ) {
 		VIPS_UNREF( save->ready );
 		save->ready = in;
 
