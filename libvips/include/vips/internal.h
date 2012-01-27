@@ -200,8 +200,8 @@ struct im_col_tab_disp *im_col_make_tables_RGB( VipsImage *im,
 	struct im_col_display *d );
 struct im_col_tab_disp *im_col_display_get_table( struct im_col_display *d );
 
-int im__fft_sp( float *rvec, float *ivec, int logrows, int logcols );
-int im__fftproc( VipsImage *dummy, VipsImage *in, VipsImage *out, im__fftproc_fn fn );
+int im__fftproc( VipsImage *dummy, 
+	VipsImage *in, VipsImage *out, im__fftproc_fn fn );
 
 int im__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
         int bandno_in,

@@ -1,40 +1,7 @@
-- seems to do a lot of looping?
-
-	$ vips --vips-progress im_fwfft Gugg_coloured.jpg x.v
-	vips fwfft1:1: 2 threads, 972 x 16 tiles, groups of 64 scanlines
-	vips temp-6: 2 threads, 972 x 16 tiles, groups of 64 scanlines
-	vips temp-6: done in 0s          
-	vips fwfft1:1: done in 0s          
-
-	vips fft: 2 threads, 128 x 128 tiles, groups of 256 scanlines
-	vips fft: done in 0s          
-
-	vips fwfft1:1: 2 threads, 972 x 16 tiles, groups of 64 scanlines
-	vips fwfft1:1: done in 0s          
-
-	vips fft: 2 threads, 128 x 128 tiles, groups of 256 scanlines
-	vips fft: done in 0s          
-
-	vips fwfft1:1: 2 threads, 972 x 16 tiles, groups of 64 scanlines
-	vips fwfft1:1: done in 0s          
-
-	vips fft: 2 threads, 128 x 128 tiles, groups of 256 scanlines
-	vips fft: done in 0s          
-
-	vips im__fftproc: 2 threads, 128 x 128 tiles, groups of 256 scanlines
-	vips im__fftproc: done in 0s          
-
-	vips x.v: 2 threads, 128 x 128 tiles, groups of 256 scanlines
-	vips x.v: done in 0s     
-
-  that's 8 separate loops over the image
-
 - viewing an image tagged as fourier in nip2 is broken, which operation is
   failing?
 
 - add a fft test to the suite
-
-  remove the old fft fallback
 
 
 

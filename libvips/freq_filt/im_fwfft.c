@@ -34,6 +34,7 @@
  * 	- have a "t" image linked to out to keep the image alive for longer
  * 27/1/12
  * 	- better setting of interpretation
+ * 	- remove own fft fallback code
  */
 
 /*
@@ -82,6 +83,7 @@
 #include <vips/internal.h>
 
 #ifdef HAVE_FFTW
+
 /* Call rfftw for a 1 band real image.
  */
 static int 
@@ -269,8 +271,9 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	else
 		return( rfwfft1( dummy, in, out ) );
 }
-#else /*!HAVE_FFTW*/
-#ifdef HAVE_FFTW3
+
+#elif defined HAVE_FFTW3
+
 /* Real to complex forward transform.
  */
 static int 
@@ -478,96 +481,18 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	else
 		return( rfwfft1( dummy, in, out ) );
 }
-#else /*!HAVE_FFTW3*/
-/* Transform a 1 band image with vips's built-in fft routine.
- */
+
+#else 
+
 static int 
 fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
-	int size = VIPS_IMAGE_N_PELS( in );
-	int bpx = im_ispoweroftwo( in->Xsize );
-	int bpy = im_ispoweroftwo( in->Ysize );
-	float *buf, *q, *p1, *p2;
-	int x, y;
-
-	/* Buffers for real and imaginary parts.
-	 */
-	IMAGE *real = im_open_local( dummy, "fwfft1:1", "t" );
-	IMAGE *imag = im_open_local( dummy, "fwfft1:2", "t" );
-
-	/* Temporaries.
-	 */
-	IMAGE *t1 = im_open_local( dummy, "fwfft1:3", "p" );
-
-	if( !real || !imag || !t1 )
-		return( -1 );
-        if( im_pincheck( in ) || im_outcheck( out ) )
-                return( -1 );
-        if( in->Coding != IM_CODING_NONE || in->Bands != 1 || 
-		im_iscomplex( in ) ) {
-                im_error( "im_fwfft", 
-			"%s", _( "one band non-complex uncoded only" ) );
-                return( -1 );
-	}
-	if( !bpx || !bpy ) {
-		im_error( "im_fwfft", 
-			"%s", _( "sides must be power of 2" ) );
-		return( -1 );
-	}
-
-	/* Make sure we have a float input image.
-	 */
-	if( im_clip2fmt( in, real, IM_BANDFMT_FLOAT ) )
-		return( -1 );
-
-	/* Make a buffer of 0 floats of the same size for the imaginary part.
-	 */
-	if( im_black( t1, in->Xsize, in->Ysize, 1 ) )
-		return( -1 );
-	if( im_clip2fmt( t1, imag, IM_BANDFMT_FLOAT ) )
-		return( -1 );
-
-	/* Transform!
-	 */
-	if( im__fft_sp( (float *) real->data, (float *) imag->data, 
-		bpx - 1, bpy - 1 ) ) {
-                im_error( "im_fwfft", 
-			"%s", _( "fft_sp failed" ) );
-                return( -1 );
-	}	
-
-	/* WIO to out.
-	 */
-        if( im_cp_desc( out, in ) )
-                return( -1 );
-	out->BandFmt = IM_BANDFMT_COMPLEX;
-	out->Type = IM_TYPE_FOURIER;
-        if( im_setupout( out ) )
-                return( -1 );
-	if( !(buf = (float *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
-		return( -1 );
-
-	/* Gather together real and imag parts. We have to normalise output!
-	 */
-	for( p1 = (float *) real->data, p2 = (float *) imag->data,
-		y = 0; y < out->Ysize; y++ ) {
-		q = buf;
-
-		for( x = 0; x < out->Xsize; x++ ) {
-			q[0] = *p1++ / size;
-			q[1] = *p2++ / size;
-			q += 2;
-		}
-
-		if( im_writeline( y, out, (VipsPel *) buf ) )
-			return( -1 );
-	}
-
-	return( 0 );
+	im_error( "im_fwfft", 
+		"%s", _( "vips configured without FFT support" ) );
+	return( -1 );
 }
-#endif /*HAVE_FFTW3*/
-#endif /*HAVE_FFTW*/
+
+#endif 
 
 /* Transform an n-band image with a 1-band processing function.
  */

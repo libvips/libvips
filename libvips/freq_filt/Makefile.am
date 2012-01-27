@@ -1,7 +1,6 @@
 noinst_LTLIBRARIES = libfreq_filt.la
 
 libfreq_filt_la_SOURCES = \
-	fft_sp.c \
 	fmask4th.c \
 	im_phasecor_fft.c \
 	fmaskcir.c \

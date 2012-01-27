@@ -9,6 +9,9 @@
  *	- added fftw3 support
  * 7/2/10
  * 	- gtkdoc
+ * 27/1/12
+ * 	- better setting of interpretation
+ * 	- remove own fft fallback code
  */
 
 /*
@@ -57,6 +60,7 @@
 #include <vips/internal.h>
 
 #ifdef HAVE_FFTW
+
 /* Use fftw2.
  */
 static int 
@@ -134,8 +138,9 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
-#else /*!HAVE_FFTW*/
-#ifdef HAVE_FFTW3
+
+#elif defined HAVE_FFTW3
+
 /* Complex to real inverse transform.
  */
 static int 
@@ -223,93 +228,18 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
-#else /*!HAVE_FFTW3*/
-/* Fall back to vips's built-in fft.
- */
+
+#else 
+
 static int 
 invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
-	int bpx = im_ispoweroftwo( in->Xsize );
-	int bpy = im_ispoweroftwo( in->Ysize );
-	float *buf, *q, *p1;
-	int x, y;
-
-	/* Buffers for real and imaginary parts.
-	 */
-	IMAGE *real = im_open_local( dummy, "invfft1:1", "t" );
-	IMAGE *imag = im_open_local( dummy, "invfft1:2", "t" );
-
-	/* Temps.
-	 */
-	IMAGE *t1 = im_open_local( dummy, "invfft1:3", "p" );
-	IMAGE *t2 = im_open_local( dummy, "invfft1:4", "p" );
-
-	if( !real || !imag || !t1 )
-		return( -1 );
-        if( im_pincheck( in ) || im_outcheck( out ) )
-                return( -1 );
-        if( in->Coding != IM_CODING_NONE || 
-		in->Bands != 1 || !im_iscomplex( in ) ) {
-                im_error( "im_invfft", 
-			"%s", _( "one band complex uncoded only" ) );
-                return( -1 );
-	}
-	if( !bpx || !bpy ) {
-		im_error( "im_invfft", 
-			"%s", _( "sides must be power of 2" ) );
-		return( -1 );
-	}
-
-	/* Make sure we have a single-precision complex input image.
-	 */
-	if( im_clip2fmt( in, t1, IM_BANDFMT_COMPLEX ) )
-		return( -1 );
-
-	/* Extract real and imag parts. We have to complement the imaginary.
-	 */
-	if( im_c2real( t1, real ) )
-		return( -1 );
-	if( im_c2imag( t1, t2 ) || im_lintra( -1.0, t2, 0.0, imag ) )
-		return( -1 );
-
-	/* Transform!
-	 */
-	if( im__fft_sp( (float *) real->data, (float *) imag->data, 
-		bpx - 1, bpy - 1 ) ) {
-                im_error( "im_invfft", 
-			"%s", _( "fft_sp failed" ) );
-                return( -1 );
-	}
-
-	/* WIO to out.
-	 */
-        if( im_cp_desc( out, in ) )
-                return( -1 );
-	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Type = IM_TYPE_B_W;
-        if( im_setupout( out ) )
-                return( -1 );
-	if( !(buf = (float *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
-		return( -1 );
-
-	/* Just write real part.
-	 */
-	for( p1 = (float *) real->data, y = 0; y < out->Ysize; y++ ) {
-		q = buf;
-
-		for( x = 0; x < out->Xsize; x++ ) {
-			q[x] = *p1++;
-		}
-
-		if( im_writeline( y, out, (VipsPel *) buf ) )
-			return( -1 );
-	}
-
-	return( 0 );
+	im_error( "im_invfftr", 
+		"%s", _( "vips configured without FFT support" ) );
+	return( -1 );
 }
-#endif /*HAVE_FFTW3*/
-#endif /*HAVE_FFTW*/
+
+#endif 
 
 /**
  * im_invfftr:

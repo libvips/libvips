@@ -69,6 +69,7 @@
 - new Python binding based on gobject-introspection
 - only spot options at the end of arg strings
 - add vips_cache() as a vips8 operator
+- remove the old fft fallbacks
 
 14/1/12 started 7.26.8
 - interpolate CLI args were broken (thanks speckins)

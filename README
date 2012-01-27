@@ -100,9 +100,6 @@ fftw3
 	If libvips finds this library, it uses it for fourier transforms. It
 	can also use fftw2, but 3 is faster and more accurate.
 
-	If the library is not found, libvips falls back to it's own internal
-	FFT routines which are slower and less accurate.
-
 lcms2
 lcms
 	If present, im_icc_import(), _export() and _transform() are available
