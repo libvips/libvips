@@ -110,13 +110,13 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 	 */
 	extra = NULL;
 	if( strcmp( field, "coding" ) == 0 )
-		extra = VIPS_ENUM_NICK( 
+		extra = vips_enum_nick( 
 			VIPS_TYPE_CODING, g_value_get_int( value ) );
 	else if( strcmp( field, "format" ) == 0 )
-		extra = VIPS_ENUM_NICK( 
+		extra = vips_enum_nick( 
 			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
 	else if( strcmp( field, "interpretation" ) == 0 )
-		extra = VIPS_ENUM_NICK( 
+		extra = vips_enum_nick( 
 			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
 
 	if( *many ) 

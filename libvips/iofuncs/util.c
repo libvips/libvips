@@ -1313,8 +1313,8 @@ vips__token_need( const char *p, VipsToken need_token,
 		return( NULL );
 	if( token != need_token ) {
 		vips_error( "get_token", _( "expected %s, saw %s" ), 
-			VIPS_ENUM_NICK( VIPS_TYPE_TOKEN, need_token ),
-			VIPS_ENUM_NICK( VIPS_TYPE_TOKEN, token ) );
+			vips_enum_nick( VIPS_TYPE_TOKEN, need_token ),
+			vips_enum_nick( VIPS_TYPE_TOKEN, token ) );
 		return( NULL );
 	}
 
@@ -1569,4 +1569,28 @@ vips__parse_size( const char *size_string )
 		size_string, size );
 
 	return( size );
+}
+
+/* Look up the const char * for an enum value.
+ */
+const char *
+vips_enum_string( GType enm, int v )
+{
+	GEnumValue *value;
+
+	if( !(value = g_enum_get_value( g_type_class_ref( enm ), v )) )
+		return( "(null)" );
+
+	return( value->value_name );
+}
+
+const char *
+vips_enum_nick( GType enm, int v )
+{
+	GEnumValue *value;
+
+	if( !(value = g_enum_get_value( g_type_class_ref( enm ), v )) )
+		return( "(null)" );
+
+	return( value->value_nick );
 }

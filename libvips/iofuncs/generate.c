@@ -295,13 +295,13 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 #ifdef DEBUG
         printf( "vips_demand_hint_array: set dhint for \"%s\" to %s\n",
 		im->filename, 
-		VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, image->dhint ) );
+		vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, image->dhint ) );
 	printf( "\toperation requested %s\n", 
-		VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, hint ) );
+		vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, hint ) );
 	printf( "\tinputs were:\n" );
 	printf( "\t" );
 	for( i = 0; in[i]; i++ )
-		printf( "%s ", VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, 
+		printf( "%s ", vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, 
 			in[i]->dhint ) );
 	printf( "\n" );
 #endif /*DEBUG*/
@@ -680,7 +680,7 @@ vips_image_generate( VipsImage *image,
                  */
 		vips_error( "VipsImage", 
 			_( "unable to output to a %s image" ),
-			VIPS_ENUM_NICK( VIPS_TYPE_IMAGE_TYPE, 
+			vips_enum_nick( VIPS_TYPE_IMAGE_TYPE, 
 				image->dtype ) );
                 return( -1 );
         }

@@ -1093,7 +1093,7 @@ vips_region_prepare( VipsRegion *reg, VipsRect *r )
 	default:
 		vips_error( "vips_region_prepare", 
 			_( "unable to input from a %s image" ),
-			VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, im->dtype ) );
+			vips_enum_string( VIPS_TYPE_DEMAND_STYLE, im->dtype ) );
 		return( -1 );
 	}
 
@@ -1285,7 +1285,7 @@ vips_region_prepare_to( VipsRegion *reg,
 	default:
 		vips_error( "vips_region_prepare_to", 
 			_( "unable to input from a %s image" ), 
-			VIPS_ENUM_NICK( VIPS_TYPE_DEMAND_STYLE, im->dtype ) );
+			vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, im->dtype ) );
 		return( -1 );
 	}
 

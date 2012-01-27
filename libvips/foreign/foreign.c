@@ -814,7 +814,7 @@ vips_foreign_save_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 		summary_class( object_class, buf );
 
 	vips_buf_appendf( buf, ", %s", 
-		VIPS_ENUM_NICK( VIPS_TYPE_SAVEABLE, class->saveable ) );
+		vips_enum_nick( VIPS_TYPE_SAVEABLE, class->saveable ) );
 }
 
 /* Can we write this filename with this file? 

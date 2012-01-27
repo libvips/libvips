@@ -68,7 +68,7 @@ static char *xsize = NULL;
 static char *ysize = NULL;
 static char *bands = NULL;
 static char *format = NULL;
-static char *type = NULL;
+static char *interpretation = NULL;
 static char *coding = NULL;
 static char *xres = NULL;
 static char *yres = NULL;
@@ -88,7 +88,7 @@ static GOptionEntry entries[] = {
 		N_( "set Bands to N" ), "N" },
 	{ "format", 'f', 0, G_OPTION_ARG_STRING, &format, 
 		N_( "set BandFmt to F (eg. uchar, float)" ), "F" },
-	{ "interpretation", 'i', 0, G_OPTION_ARG_STRING, &type, 
+	{ "interpretation", 'i', 0, G_OPTION_ARG_STRING, &interpretation, 
 		N_( "set interpretation to I (eg. xyz)" ), "I" },
 	{ "coding", 'c', 0, G_OPTION_ARG_STRING, &coding, 
 		N_( "set Coding to C (eg. labq)" ), "C" },
@@ -106,7 +106,7 @@ static GOptionEntry entries[] = {
 		N_( "set Xsize to N (deprecated, use width)" ), "N" },
 	{ "ysize", 'y', 0, G_OPTION_ARG_STRING, &ysize, 
 		N_( "set Ysize to N (deprecated, use height)" ), "N" },
-	{ "type", 't', 0, G_OPTION_ARG_STRING, &type, 
+	{ "type", 't', 0, G_OPTION_ARG_STRING, &interpretation, 
 		N_( "set Type to T (deprecated, use interpretation)" ), "T" },
 	{ NULL }
 };
@@ -180,9 +180,9 @@ main( int argc, char **argv )
 			error_exit( _( "bad format %s" ), format );
 		im->Bbits = im_bits_of_fmt( im->BandFmt );
 	}
-	if( type ) {
-		if( (im->Type = im_char2Type( type )) < 0 )
-			error_exit( _( "bad type %s" ), type );
+	if( interpretation ) {
+		if( (im->Type = im_char2Type( interpretation )) < 0 )
+			error_exit( _( "bad interpretation %s" ), interpretation );
 	}
 	if( coding ) {
 		if( (im->Coding = im_char2Coding( coding )) < 0 )

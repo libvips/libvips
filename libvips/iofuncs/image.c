@@ -342,13 +342,13 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 	 */
 	extra = NULL;
 	if( strcmp( field, "coding" ) == 0 )
-		extra = VIPS_ENUM_NICK( 
+		extra = vips_enum_nick( 
 			VIPS_TYPE_CODING, g_value_get_int( value ) );
 	else if( strcmp( field, "format" ) == 0 )
-		extra = VIPS_ENUM_NICK( 
+		extra = vips_enum_nick( 
 			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
 	else if( strcmp( field, "interpretation" ) == 0 )
-		extra = VIPS_ENUM_NICK( 
+		extra = vips_enum_nick( 
 			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
 
 	str_value = g_strdup_value_contents( value );
@@ -375,10 +375,10 @@ vips_image_dump( VipsObject *object, VipsBuf *buf )
 			vips_image_get_bands( image ) ),
 		vips_image_get_width( image ),
 		vips_image_get_height( image ),
-		VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, 
+		vips_enum_nick( VIPS_TYPE_BAND_FORMAT, 
 			vips_image_get_format( image ) ),
 		vips_image_get_bands( image ),
-		VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
+		vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
 			vips_image_get_interpretation( image ) ) );
 
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->dump( object, buf );
@@ -403,15 +403,15 @@ vips_image_summary( VipsObject *object, VipsBuf *buf )
 				" %s, %d band, %s", 
 				" %s, %d bands, %s", 
 				vips_image_get_bands( image ) ),
-			VIPS_ENUM_NICK( VIPS_TYPE_BAND_FORMAT, 
+			vips_enum_nick( VIPS_TYPE_BAND_FORMAT, 
 				vips_image_get_format( image ) ),
 			vips_image_get_bands( image ),
-			VIPS_ENUM_NICK( VIPS_TYPE_INTERPRETATION, 
+			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
 				vips_image_get_interpretation( image ) ) );
 	}
 	else {
 		vips_buf_appendf( buf, ", %s",
-			VIPS_ENUM_NICK( VIPS_TYPE_CODING, 
+			vips_enum_nick( VIPS_TYPE_CODING, 
 				vips_image_get_coding( image ) ) );
 	}
 
@@ -1872,7 +1872,7 @@ vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer )
 	default:
 		vips_error( "VipsImage", 
 			_( "unable to output to a %s image" ),
-			VIPS_ENUM_STRING( VIPS_TYPE_IMAGE_TYPE, 
+			vips_enum_string( VIPS_TYPE_IMAGE_TYPE, 
 				image->dtype ) );
 		return( -1 );
 	}

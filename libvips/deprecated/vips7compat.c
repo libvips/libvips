@@ -211,18 +211,18 @@ im_init( const char *filename )
 }
 
 /* Prettyprint various header fields. Just for vips7 compat, use
- * VIPS_ENUM_VALUE() instead.
+ * vips_enum_value() instead.
  */
 const char *im_Type2char( VipsInterpretation type ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_INTERPRETATION, type ) ); }
+	{ return( vips_enum_string( VIPS_TYPE_INTERPRETATION, type ) ); }
 const char *im_BandFmt2char( VipsBandFormat format ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_BAND_FORMAT, format ) ); }
+	{ return( vips_enum_string( VIPS_TYPE_BAND_FORMAT, format ) ); }
 const char *im_Coding2char( VipsCoding coding ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_CODING, coding ) ); }
+	{ return( vips_enum_string( VIPS_TYPE_CODING, coding ) ); }
 const char *im_dtype2char( VipsImageType n ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_IMAGE_TYPE, n ) ); }
+	{ return( vips_enum_string( VIPS_TYPE_IMAGE_TYPE, n ) ); }
 const char *im_dhint2char( VipsDemandStyle style ) 
-	{ return( VIPS_ENUM_STRING( VIPS_TYPE_DEMAND_STYLE, style ) ); }
+	{ return( vips_enum_string( VIPS_TYPE_DEMAND_STYLE, style ) ); }
 
 /* Old names for enums, for compat.
  */

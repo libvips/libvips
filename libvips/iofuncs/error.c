@@ -747,7 +747,7 @@ vips_check_format( const char *domain, VipsImage *im, VipsBandFormat fmt )
 	if( im->BandFmt != fmt ) {
 		vips_error( domain, 
 			_( "image must be %s" ), 
-			VIPS_ENUM_STRING( VIPS_TYPE_BAND_FORMAT, fmt ) );
+			vips_enum_string( VIPS_TYPE_BAND_FORMAT, fmt ) );
 		return( -1 );
 	}
 

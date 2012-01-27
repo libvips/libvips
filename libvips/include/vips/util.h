@@ -148,12 +148,8 @@ G_STMT_START { \
 
 #define VIPS_CLIP_NONE( V, SEQ ) {}
 
-/* Look up the const char * for an enum value.
- */
-#define VIPS_ENUM_STRING( ENUM, VALUE ) \
-	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_name)
-#define VIPS_ENUM_NICK( ENUM, VALUE ) \
-	(g_enum_get_value( g_type_class_ref( ENUM ), VALUE )->value_nick)
+const char *vips_enum_string( GType enm, int value );
+const char *vips_enum_nick( GType enm, int value );
 
 gboolean vips_slist_equal( GSList *l1, GSList *l2 );
 void *vips_slist_map2( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
@@ -166,7 +162,8 @@ GSList *vips_slist_filter( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
 void vips_slist_free_all( GSList *list );
 void *vips_map_equal( void *a, void *b );
 
-void *vips_hash_table_map( GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b );
+void *vips_hash_table_map( GHashTable *hash, 
+	VipsSListMap2Fn fn, void *a, void *b );
 
 char *vips_strncpy( char *dest, const char *src, int n );
 char *vips_strrstr( const char *haystack, const char *needle );
