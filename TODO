@@ -1,6 +1,3 @@
-- viewing an image tagged as fourier in nip2 is broken, which operation is
-  failing? im_abs()?
-
 - add a fft test to the suite
 
 

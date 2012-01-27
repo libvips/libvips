@@ -198,11 +198,11 @@ vips_abs_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Format doesn't change with abs.
+/* Format doesn't change with abs, other than complex -> real.
  */
 static const VipsBandFormat vips_bandfmt_abs[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
+   UC, C,  US, S,  UI, I,  F,  F,  D,  D 
 };
 
 static void
@@ -234,7 +234,7 @@ vips_abs_init( VipsAbs *abs )
  * This operation finds the absolute value of an image. It does a copy for 
  * unsigned integer types, negate for negative values in 
  * signed integer types, <function>fabs(3)</function> for 
- * float types, and calculate modulus for complex 
+ * float types, and calculates modulus for complex 
  * types. 
  *
  * See also: vips_sign().
