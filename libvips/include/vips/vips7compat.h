@@ -172,7 +172,7 @@ extern "C" {
 		type, xres, yres )
 
 #define im__open_image_file vips__open_image_read
-#define im_setupout( I ) (0)
+#define im_setupout vips_image_write_prepare
 #define im_writeline( Y, IM, P ) vips_image_write_line( IM, Y, P )
 
 #define im_prepare vips_region_prepare

@@ -21,6 +21,8 @@
  *	- added fftw3 support
  * 7/2/10
  * 	- gtkdoc
+ * 27/1/12
+ * 	- better setting of interpretation
  */
 
 /*
@@ -104,6 +106,8 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	fftwnd_destroy_plan( plan );
 
+	cmplx->Type = IM_TYPE_B_W;
+
 	/* Copy to out.
 	 */
         if( im_copy( cmplx, out ) )
@@ -156,6 +160,8 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		(fftw_complex *) cmplx->data, (fftw_complex *) cmplx->data );
 
 	fftw_destroy_plan( plan );
+
+	cmplx->Type = IM_TYPE_B_W;
 
 	/* Copy to out.
 	 */
@@ -227,6 +233,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_cp_desc( out, in ) )
                 return( -1 );
 	out->BandFmt = IM_BANDFMT_COMPLEX;
+	out->Type = IM_TYPE_B_W;
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (float *) IM_ARRAY( dummy, 
@@ -283,11 +290,6 @@ im_invfft( IMAGE *in, IMAGE *out )
 		return( -1 );
 	}
 	im_close( dummy );
-
-	if( out->Bands == 1 )
-		out->Type = IM_TYPE_B_W;
-	else
-		out->Type = IM_TYPE_MULTIBAND;
 
 	return( 0 );
 }

@@ -88,16 +88,10 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
-	/* Make mem buffer real image for output.
-	 */
-        if( im_cp_desc( real, in ) )
-                return( -1 );
-	real->BandFmt = IM_BANDFMT_DOUBLE;
-        if( im_setupout( real ) )
-                return( -1 );
-
 	/* Build half-complex image.
 	 */
+	if( im_incheck( cmplx ) )
+		return( -1 );
 	q = half_complex;
 	for( y = 0; y < cmplx->Ysize; y++ ) {
 		p = ((double *) cmplx->data) + (guint64) y * in->Xsize * 2; 
@@ -109,6 +103,15 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			q += 2;
 		}
 	}
+
+	/* Make mem buffer real image for output.
+	 */
+        if( im_cp_desc( real, in ) )
+                return( -1 );
+	real->BandFmt = IM_BANDFMT_DOUBLE;
+	real->Type = IM_TYPE_B_W;
+        if( im_setupout( real ) )
+                return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width.
@@ -156,7 +159,8 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	int x, y;
 	double *q, *p;
 
-	if( !cmplx || !real || !half_complex || im_pincheck( in ) || 
+	if( !cmplx || !real || !half_complex || 
+		im_pincheck( in ) || 
 		im_poutcheck( out ) )
 		return( -1 );
 	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
@@ -170,18 +174,10 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
-	/* Make mem buffer real image for output.
-	 */
-        if( im_cp_desc( real, in ) )
-                return( -1 );
-	real->BandFmt = IM_BANDFMT_DOUBLE;
-        if( im_setupout( real ) ||
-		im_incheck( cmplx ) ||
-		im_incheck( real ) )
-                return( -1 );
-
 	/* Build half-complex image.
 	 */
+	if( im_incheck( cmplx ) )
+		return( -1 );
 	q = half_complex;
 	for( y = 0; y < cmplx->Ysize; y++ ) {
 		p = ((double *) cmplx->data) + (guint64) y * in->Xsize * 2; 
@@ -193,6 +189,16 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 			q += 2;
 		}
 	}
+
+	/* Make mem buffer real image for output.
+	 */
+        if( im_cp_desc( real, in ) )
+                return( -1 );
+	real->BandFmt = IM_BANDFMT_DOUBLE;
+	real->Type = IM_TYPE_B_W;
+        if( im_setupout( real ) ||
+		im_outcheck( real ) )
+                return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width.
@@ -280,6 +286,7 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_cp_desc( out, in ) )
                 return( -1 );
 	out->BandFmt = IM_BANDFMT_FLOAT;
+	out->Type = IM_TYPE_B_W;
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (float *) IM_ARRAY( dummy, 
@@ -333,11 +340,6 @@ im_invfftr( IMAGE *in, IMAGE *out )
 		return( -1 );
 	}
 	im_close( dummy );
-
-	if( out->Bands == 1 )
-		out->Type = IM_TYPE_B_W;
-	else
-		out->Type = IM_TYPE_MULTIBAND;
 
 	return( 0 );
 }

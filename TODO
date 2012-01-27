@@ -1,5 +1,3 @@
-- im_fwfft() does not set interpreation to fourier
-
 - seems to do a lot of looping?
 
 	$ vips --vips-progress im_fwfft Gugg_coloured.jpg x.v
@@ -34,17 +32,7 @@
 - viewing an image tagged as fourier in nip2 is broken, which operation is
   failing?
 
-- im_invfftr() is broken
-
-	$ vips im_fwfft Gugg_coloured.jpg x.v
-	$ vips --vips-progress im_invfftr x.v x2.v 
-	vips invfft1-1: 2 threads, 972 x 1 tiles, groups of 4 scanlines
-	vips invfft1-1: done in 0s          
-	Segmentation fault
-
-  works in 7.26 with the same libfftw, perhaps the iochecks we removed?
-
-  add a test to the suite
+- add a fft test to the suite
 
   remove the old fft fallback
 

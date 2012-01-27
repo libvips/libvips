@@ -32,6 +32,8 @@
  * 	- gtkdoc
  * 25/3/10
  * 	- have a "t" image linked to out to keep the image alive for longer
+ * 27/1/12
+ * 	- better setting of interpretation
  */
 
 /*
@@ -326,6 +328,7 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_cp_desc( out, in ) )
                 return( -1 );
 	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
+	out->Type = IM_TYPE_FOURIER;
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (double *) IM_ARRAY( dummy, 
@@ -439,6 +442,7 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_cp_desc( out, in ) )
                 return( -1 );
 	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
+	out->Type = IM_TYPE_FOURIER;
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (double *) IM_ARRAY( dummy, 
@@ -537,6 +541,7 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_cp_desc( out, in ) )
                 return( -1 );
 	out->BandFmt = IM_BANDFMT_COMPLEX;
+	out->Type = IM_TYPE_FOURIER;
         if( im_setupout( out ) )
                 return( -1 );
 	if( !(buf = (float *) IM_ARRAY( dummy, 
@@ -627,10 +632,6 @@ im_fwfft( IMAGE *in, IMAGE *out )
 		return( -1 );
 	}
 	im_close( dummy );
-
-	/* Set type hint.
-	 */
-	out->Type = IM_TYPE_FOURIER;
 
 	return( 0 );
 }
