@@ -85,6 +85,7 @@ extern "C" {
  * See also: vips_demand_hint().
  */
 typedef enum {
+	VIPS_DEMAND_STYLE_ERROR = -1,	
 	VIPS_DEMAND_STYLE_SMALLTILE,	
 	VIPS_DEMAND_STYLE_FATSTRIP,
 	VIPS_DEMAND_STYLE_THINSTRIP,
@@ -95,6 +96,7 @@ typedef enum {
  * does not imply that any fields in IMAGE have valid data.
  */
 typedef enum {
+	VIPS_IMAGE_ERROR = -1,	
 	VIPS_IMAGE_NONE,		/* no type set */
 	VIPS_IMAGE_SETBUF,		/* malloced memory array */
 	VIPS_IMAGE_SETBUF_FOREIGN,	/* memory array, don't free on close */
@@ -137,6 +139,7 @@ typedef enum {
  * new numbers from the end.
  */
 typedef enum {
+	VIPS_INTERPRETATION_ERROR = -1,
 	VIPS_INTERPRETATION_MULTIBAND = 0,
 	VIPS_INTERPRETATION_B_W = 1,
 	VIPS_INTERPRETATION_HISTOGRAM = 10,
@@ -206,6 +209,7 @@ typedef enum {
  * new numbers from the end.
  */
 typedef enum {
+	VIPS_CODING_ERROR = -1,
 	VIPS_CODING_NONE = 0,
 	VIPS_CODING_LABQ = 2,
 	VIPS_CODING_RAD = 6,

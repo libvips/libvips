@@ -176,17 +176,27 @@ main( int argc, char **argv )
 	if( bands ) 
 		parse_pint( bands, &im->Bands );
 	if( format ) {
-		if( (im->BandFmt = im_char2BandFmt( format )) < 0 )
+		VipsBandFormat f;
+
+		if( (f = im_char2BandFmt( format )) < 0 )
 			error_exit( _( "bad format %s" ), format );
-		im->Bbits = im_bits_of_fmt( im->BandFmt );
+		im->BandFmt = f;
+		im->Bbits = im_bits_of_fmt( f );
 	}
 	if( interpretation ) {
-		if( (im->Type = im_char2Type( interpretation )) < 0 )
-			error_exit( _( "bad interpretation %s" ), interpretation );
+		VipsInterpretation i;
+
+		if( (i = im_char2Type( interpretation )) < 0 )
+			error_exit( _( "bad interpretation %s" ), 
+				interpretation );
+		im->Type = i;
 	}
 	if( coding ) {
-		if( (im->Coding = im_char2Coding( coding )) < 0 )
+		VipsCoding c;
+
+		if( (c = im_char2Coding( coding )) < 0 )
 			error_exit( _( "bad coding %s" ), coding );
+		im->Coding = c;
 	}
 	if( xres ) 
 		im->Xres = atof( xres );

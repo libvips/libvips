@@ -356,6 +356,7 @@ vips_demand_style_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
+			{VIPS_DEMAND_STYLE_ERROR, "VIPS_DEMAND_STYLE_ERROR", "error"},
 			{VIPS_DEMAND_STYLE_SMALLTILE, "VIPS_DEMAND_STYLE_SMALLTILE", "smalltile"},
 			{VIPS_DEMAND_STYLE_FATSTRIP, "VIPS_DEMAND_STYLE_FATSTRIP", "fatstrip"},
 			{VIPS_DEMAND_STYLE_THINSTRIP, "VIPS_DEMAND_STYLE_THINSTRIP", "thinstrip"},
@@ -375,6 +376,7 @@ vips_image_type_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
+			{VIPS_IMAGE_ERROR, "VIPS_IMAGE_ERROR", "error"},
 			{VIPS_IMAGE_NONE, "VIPS_IMAGE_NONE", "none"},
 			{VIPS_IMAGE_SETBUF, "VIPS_IMAGE_SETBUF", "setbuf"},
 			{VIPS_IMAGE_SETBUF_FOREIGN, "VIPS_IMAGE_SETBUF_FOREIGN", "setbuf-foreign"},
@@ -398,6 +400,7 @@ vips_interpretation_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
+			{VIPS_INTERPRETATION_ERROR, "VIPS_INTERPRETATION_ERROR", "error"},
 			{VIPS_INTERPRETATION_MULTIBAND, "VIPS_INTERPRETATION_MULTIBAND", "multiband"},
 			{VIPS_INTERPRETATION_B_W, "VIPS_INTERPRETATION_B_W", "b-w"},
 			{VIPS_INTERPRETATION_HISTOGRAM, "VIPS_INTERPRETATION_HISTOGRAM", "histogram"},
@@ -457,6 +460,7 @@ vips_coding_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
+			{VIPS_CODING_ERROR, "VIPS_CODING_ERROR", "error"},
 			{VIPS_CODING_NONE, "VIPS_CODING_NONE", "none"},
 			{VIPS_CODING_LABQ, "VIPS_CODING_LABQ", "labq"},
 			{VIPS_CODING_RAD, "VIPS_CODING_RAD", "rad"},
