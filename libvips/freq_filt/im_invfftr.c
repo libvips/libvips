@@ -175,7 +175,9 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
         if( im_cp_desc( real, in ) )
                 return( -1 );
 	real->BandFmt = IM_BANDFMT_DOUBLE;
-        if( im_setupout( real ) )
+        if( im_setupout( real ) ||
+		im_incheck( cmplx ) ||
+		im_incheck( real ) )
                 return( -1 );
 
 	/* Build half-complex image.

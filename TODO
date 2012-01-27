@@ -42,7 +42,12 @@
 	vips invfft1-1: done in 0s          
 	Segmentation fault
 
+  works in 7.26 with the same libfftw, perhaps the iochecks we removed?
+
   add a test to the suite
+
+  remove the old fft fallback
+
 
 
 
