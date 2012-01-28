@@ -149,12 +149,12 @@ vips_abs_build( VipsObject *object )
 		if( abs_rp > abs_ip ) { \
 			double temp = ip / rp; \
 			\
-			q[x]= abs_rp * sqrt( 1.0 + temp * temp ); \
+			q[x] = abs_rp * sqrt( 1.0 + temp * temp ); \
 		} \
 		else { \
 			double temp = rp / ip; \
 			\
-			q[x]= abs_ip * sqrt( 1.0 + temp * temp ); \
+			q[x] = abs_ip * sqrt( 1.0 + temp * temp ); \
 		} \
 		\
 		p += 2; \
@@ -176,7 +176,7 @@ vips_abs_buffer( VipsArithmetic *arithmetic,
         case VIPS_FORMAT_SHORT: 	ABS_INT( signed short ); break; 
         case VIPS_FORMAT_INT: 		ABS_INT( signed int ); break; 
         case VIPS_FORMAT_FLOAT: 	ABS_FLOAT( float ); break; 
-        case VIPS_FORMAT_DOUBLE:	ABS_FLOAT( float ); break; 
+        case VIPS_FORMAT_DOUBLE:	ABS_FLOAT( double ); break; 
         case VIPS_FORMAT_COMPLEX:	ABS_COMPLEX( float ); break;
         case VIPS_FORMAT_DPCOMPLEX:	ABS_COMPLEX( double ); break;
 
