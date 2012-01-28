@@ -72,207 +72,13 @@
 #include <math.h>
 
 #ifdef HAVE_FFTW
-#include <rfftw.h>
-#endif /*HAVE_FFTW*/
-
-#ifdef HAVE_FFTW3
 #include <fftw3.h>
-#endif /*HAVE_FFTW3*/
+#endif /*HAVE_FFTW*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
 
 #ifdef HAVE_FFTW
-
-/* Call rfftw for a 1 band real image.
- */
-static int 
-rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
-{
-	const guint64 size = VIPS_IMAGE_N_PELS( in ); 
-	const int half_width = in->Xsize / 2 + 1;
-
-	/* Pack to double real here.
-	 */
-	IMAGE *real = im_open_local( dummy, "fwfft1:1", "t" );
-
-	/* Transform to halfcomplex here.
-	 */
-	double *half_complex = IM_ARRAY( dummy, 
-		in->Ysize * half_width * 2, double );
-
-	rfftwnd_plan plan;
-	double *buf, *q, *p;
-	int x, y;
-
-	if( !real || !half_complex || im_pincheck( in ) || im_outcheck( out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_fwfft", _( "one band uncoded only" ) );
-                return( -1 );
-	}
-	if( im_clip2fmt( in, real, IM_BANDFMT_DOUBLE ) )
-                return( -1 );
-
-	/* Make the plan for the transform. Yes, they really do use nx for
-	 * height and ny for width.
-	 */
-	if( !(plan = rfftw2d_create_plan( in->Ysize, in->Xsize,
-		FFTW_FORWARD, FFTW_MEASURE | FFTW_USE_WISDOM )) ) {
-                im_error( "im_fwfft", _( "unable to create transform plan" ) );
-		return( -1 );
-	}
-
-	rfftwnd_one_real_to_complex( plan, 
-		(fftw_real *) real->data, (fftw_complex *) half_complex );
-
-	rfftwnd_destroy_plan( plan );
-
-	/* WIO to out.
-	 */
-        if( im_cp_desc( out, in ) )
-                return( -1 );
-	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
-        if( im_setupout( out ) )
-                return( -1 );
-	if( !(buf = (double *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
-		return( -1 );
-
-	/* Copy to out and normalise. The right half is the up/down and 
-	 * left/right flip of the left, but conjugated. Do the first 
-	 * row separately, then mirror around the centre row.
-	 */
-	p = half_complex;
-	q = buf;
-
-	for( x = 0; x < half_width; x++ ) {
-		q[0] = p[0] / size;
-		q[1] = p[1] / size;
-		p += 2;
-		q += 2;
-	}
-
-	p = half_complex + ((in->Xsize + 1) / 2 - 1) * 2; 
-
-	for( x = half_width; x < out->Xsize; x++ ) {
-		q[0] = p[0] / size;
-		q[1] = -1.0 * p[1] / size;
-		p -= 2;
-		q += 2;
-	}
-
-	if( im_writeline( 0, out, (VipsPel *) buf ) )
-		return( -1 );
-
-	for( y = 1; y < out->Ysize; y++ ) {
-		p = half_complex + y * half_width * 2; 
-		q = buf;
-
-		for( x = 0; x < half_width; x++ ) {
-			q[0] = p[0] / size;
-			q[1] = p[1] / size;
-			p += 2;
-			q += 2;
-		}
-
-		/* Good grief. 
-		 */
-		p = half_complex + 2 *
-			((out->Ysize - y + 1) * half_width - 2 + 
-				(in->Xsize & 1));
-
-		for( x = half_width; x < out->Xsize; x++ ) {
-			q[0] = p[0] / size;
-			q[1] = -1.0 * p[1] / size;
-			p -= 2;
-			q += 2;
-		}
-
-		if( im_writeline( y, out, (VipsPel *) buf ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
-
-/* Call fftw for a 1 band complex image.
- */
-static int 
-cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
-{
-	fftwnd_plan plan;
-	double *buf, *q, *p;
-	int x, y;
-
-	IMAGE *cmplx = im_open_local( dummy, "fwfft1:1", "t" );
-
-	/* Make dp complex image.
-	 */
-	if( !cmplx || im_pincheck( in ) || im_outcheck( out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_fwfft", _( "one band uncoded only" ) );
-                return( -1 );
-	}
-	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
-                return( -1 );
-
-	/* Make the plan for the transform.
-	 */
-	if( !(plan = fftw2d_create_plan( in->Ysize, in->Xsize,
-		FFTW_FORWARD, 
-		FFTW_MEASURE | FFTW_USE_WISDOM | FFTW_IN_PLACE )) ) {
-                im_error( "im_fwfft", _( "unable to create transform plan" ) );
-		return( -1 );
-	}
-
-	fftwnd_one( plan, (fftw_complex *) cmplx->data, NULL );
-
-	fftwnd_destroy_plan( plan );
-
-	/* WIO to out.
-	 */
-        if( im_cp_desc( out, in ) )
-                return( -1 );
-	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
-        if( im_setupout( out ) )
-                return( -1 );
-	if( !(buf = (double *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
-		return( -1 );
-
-	/* Copy to out, normalise.
-	 */
-	for( p = (double *) cmplx->data, y = 0; y < out->Ysize; y++ ) {
-		guint64 size = VIPS_IMAGE_N_PELS( out );
-
-		q = buf;
-
-		for( x = 0; x < out->Xsize; x++ ) {
-			q[0] = p[0] / size;
-			q[1] = p[1] / size;
-			p += 2;
-			q += 2;
-		}
-
-		if( im_writeline( y, out, (VipsPel *) buf ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
-
-static int 
-fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
-{
-	if( im_iscomplex( in ) )
-		return( cfwfft1( dummy, in, out ) );
-	else
-		return( rfwfft1( dummy, in, out ) );
-}
-
-#elif defined HAVE_FFTW3
 
 /* Real to complex forward transform.
  */
@@ -282,37 +88,34 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	const guint64 size = VIPS_IMAGE_N_PELS( in );
 	const int half_width = in->Xsize / 2 + 1;
 
-	/* Pack to double real here.
-	 */
-	IMAGE *real = im_open_local( dummy, "fwfft1:1", "t" );
-
-	/* Transform to halfcomplex here.
-	 */
-	double *half_complex = IM_ARRAY( dummy, 
-		in->Ysize * half_width * 2, double );
-
-	/* We have to have a separate real buffer for the planner to work on.
-	 */
-	double *planner_scratch = IM_ARRAY( dummy, 
-		VIPS_IMAGE_N_PELS( in ), double );
+	IMAGE *real;
+	double *half_complex;
+	double *planner_scratch;
 
 	fftw_plan plan;
 	double *buf, *q, *p;
 	int x, y;
 
-	if( !real || !half_complex || im_pincheck( in ) || im_outcheck( out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_fwfft", "%s", _( "one band uncoded only" ) );
+	if( vips_check_mono( "im_fwfft", in ) ||
+		vips_check_uncoded( "im_fwfft", in ) )
                 return( -1 );
-	}
-	if( im_clip2fmt( in, real, IM_BANDFMT_DOUBLE ) )
+
+	/* Convert input to a real double membuffer.
+	 */
+	if( !(real = im_open_local( dummy, "fwfft1:1", "t" )) ||
+		im_clip2fmt( in, real, IM_BANDFMT_DOUBLE ) )
                 return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width. Use a separate scratch buffer for the
 	 * planner, we can't overwrite real->data
 	 */
+	if( !(planner_scratch = IM_ARRAY( dummy, 
+		VIPS_IMAGE_N_PELS( in ), double )) )
+		return( -1 );
+	if( !(half_complex = IM_ARRAY( dummy, 
+		in->Ysize * half_width * 2, double )) )
+		return( -1 );
 	if( !(plan = fftw_plan_dft_r2c_2d( in->Ysize, in->Xsize,
 		planner_scratch, (fftw_complex *) half_complex,
 		0 )) ) {
@@ -321,6 +124,8 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		return( -1 );
 	}
 
+	if( im_incheck( real ) )
+		return( -1 );
 	fftw_execute_dft_r2c( plan,
 		(double *) real->data, (fftw_complex *) half_complex );
 
@@ -400,28 +205,29 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 static int 
 cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
+	IMAGE *cmplx;
 	fftw_plan plan;
+	double *planner_scratch;
 	double *buf, *q, *p;
 	int x, y;
 
-	IMAGE *cmplx = im_open_local( dummy, "fwfft1:1", "t" );
+	if( vips_check_mono( "im_fwfft", in ) ||
+		vips_check_uncoded( "im_fwfft", in ) )
+                return( -1 );
+
+	if( !(cmplx = im_open_local( dummy, "fwfft1:1", "t" )) ||
+		im_pincheck( in ) || 
+		im_outcheck( out ) )
+		return( -1 );
+
+	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
+                return( -1 );
 
 	/* We have to have a separate buffer for the planner to work on.
 	 */
-	double *planner_scratch = IM_ARRAY( dummy, 
-		VIPS_IMAGE_N_PELS( in ) * 2, double );
-
-	/* Make dp complex image.
-	 */
-	if( !cmplx || im_pincheck( in ) || im_outcheck( out ) )
+	if( !(planner_scratch = IM_ARRAY( dummy, 
+		VIPS_IMAGE_N_PELS( in ) * 2, double )) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_fwfft", 
-			"%s", _( "one band uncoded only" ) );
-                return( -1 );
-	}
-	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
-                return( -1 );
 
 	/* Make the plan for the transform.
 	 */
@@ -495,22 +301,39 @@ fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 #endif 
 
 /* Transform an n-band image with a 1-band processing function.
+ *
+ * Memory strategy: we need memory buffers for the input and the output of
+ * fftw. In some modes fftw generates only half the output and we construct
+ * the rest.
+ *
+ * input pipeline -> 
+ *   bandsplit -> 
+ *     full memory image, freed when im_*fft*() exits -> 
+ *       fftw ->
+ *         half memory image, freed when im_*fft*() exits ->
+ *           full memory image, freed when @out is freed ->
+ *             partial bandjoin ->
+ *               output pipeline
+ *
+ * im__fftproc() needs to just call im__fftproc_fn directly for 1 band images,
+ * so we can't cache the output in this fn.
  */
 int 
 im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn )
 {
 	IMAGE **bands;
 	IMAGE **fft;
-	IMAGE *t;
 	int b;
 
 	if( in->Bands == 1 ) 
 		return( fn( dummy, in, out ) );
 
 	if( !(bands = IM_ARRAY( dummy, in->Bands, IMAGE * )) ||
-		!(fft = IM_ARRAY( dummy, in->Bands, IMAGE * )) ||
-		im_open_local_array( dummy, bands, in->Bands, "bands", "p" ) ||
-		im_open_local_array( dummy, fft, in->Bands, "fft", "p" ) )
+		im_open_local_array( dummy, bands, in->Bands, "bands", "p" ) )
+		return( -1 );
+
+	if( !(fft = IM_ARRAY( out, in->Bands, IMAGE * )) ||
+		im_open_local_array( out, fft, in->Bands, "fft", "p" ) )
 		return( -1 );
 
 	for( b = 0; b < in->Bands; b++ ) 
@@ -518,12 +341,7 @@ im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn )
 			fn( dummy, bands[b], fft[b] ) )
 			return( -1 );
 
-	/* We need a "t" for the combined image that won't get freed too
-	 * quickly.
-	 */
-	if( !(t = im_open_local( out, "im__fftproc", "t" )) ||
-		im_gbandjoin( fft, t, in->Bands ) ||
-		im_copy( t, out ) )
+	if( im_gbandjoin( fft, out, in->Bands ) )
 		return( -1 );
 
 	return( 0 );
@@ -536,10 +354,8 @@ im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn )
  *
  * Transform an image to Fourier space.
  *
- * VIPS uses the fftw3 or fftw2 Fourier transform libraries if possible. If 
- * they were not available when VIPS was built, it falls back to it's own 
- * FFT functions which are slow and only work for square images whose sides
- * are a power of two.
+ * VIPS uses the fftw Fourier Transform library. If this library was not
+ * available when VIPS was configured, these functions will fail.
  *
  * See also: im_invfft(), im_disp_ps().
  *

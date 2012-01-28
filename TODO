@@ -1,5 +1,9 @@
 - add a fft test to the suite
 
+  can we get fft memuse down? nip2 cache fills mem very quickly when painting
+  on an fft since it tries to keep the last 10,000 images :( the new vips
+  cache should be much better, of course
+
 
 
 

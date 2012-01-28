@@ -61,64 +61,13 @@
 #include <math.h>
 
 #ifdef HAVE_FFTW
-#include <fftw.h>
-#endif /*HAVE_FFTW*/
-
-#ifdef HAVE_FFTW3
 #include <fftw3.h>
-#endif /*HAVE_FFTW3*/
+#endif /*HAVE_FFTW*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
 
 #ifdef HAVE_FFTW
-
-/* Call fftw for a 1 band image.
- */
-static int 
-invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
-{
-	fftwnd_plan plan;
-
-	IMAGE *cmplx = im_open_local( out, "invfft1:1", "t" );
-
-	/* Make dp complex image.
-	 */
-	if( !cmplx || im_pincheck( in ) || im_poutcheck( out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_invfft", "%s", _( "one band uncoded only" ) );
-                return( -1 );
-	}
-	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
-                return( -1 );
-
-	/* Make the plan for the transform. Yes, they really do use nx for
-	 * height and ny for width.
-	 */
-	if( !(plan = fftw2d_create_plan( in->Ysize, in->Xsize,
-		FFTW_BACKWARD, 
-		FFTW_MEASURE | FFTW_USE_WISDOM | FFTW_IN_PLACE )) ) {
-                im_error( "im_invfft", 
-			"%s", _( "unable to create transform plan" ) );
-		return( -1 );
-	}
-
-	fftwnd_one( plan, (fftw_complex *) cmplx->data, NULL );
-
-	fftwnd_destroy_plan( plan );
-
-	cmplx->Type = IM_TYPE_B_W;
-
-	/* Copy to out.
-	 */
-        if( im_copy( cmplx, out ) )
-                return( -1 );
-
-	return( 0 );
-}
-
-#elif defined HAVE_FFTW3
 
 /* Complex to complex inverse transform.
  */
