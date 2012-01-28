@@ -24,6 +24,8 @@
  * 27/1/12
  * 	- better setting of interpretation
  * 	- remove own fft fallback code
+ * 	- remove fftw2 path
+ * 	- reduce memuse
  */
 
 /*
@@ -75,29 +77,25 @@ static int
 invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
 	fftw_plan plan;
+	IMAGE *cmplx;
+	double *planner_scratch;
 
-	IMAGE *cmplx = im_open_local( out, "invfft1:1", "t" );
-
-	/* We have to have a separate buffer for the planner to work on.
-	 */
-	double *planner_scratch = IM_ARRAY( dummy, 
-		VIPS_IMAGE_N_PELS( in ) * 2, double );
-
-	/* Make dp complex image.
-	 */
-	if( !cmplx || im_pincheck( in ) || im_poutcheck( out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_invfft", 
-			"%s", _( "one band uncoded only" ) );
+	if( vips_check_mono( "im_invfft", in ) ||
+		vips_check_uncoded( "im_invfft", in ) )
                 return( -1 );
-	}
-	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
+
+	/* Double-complex input.
+	 */
+	if( !(cmplx = im_open_local( dummy, "invfft:1", "t" )) ||
+		im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width.
 	 */
+	if( !(planner_scratch = IM_ARRAY( dummy, 
+		VIPS_IMAGE_N_PELS( in ) * 2, double )) )
+		return( -1 );
 	if( !(plan = fftw_plan_dft_2d( in->Ysize, in->Xsize,
 		(fftw_complex *) planner_scratch, 
 		(fftw_complex *) planner_scratch,
@@ -108,6 +106,8 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		return( -1 );
 	}
 
+	if( im_incheck( cmplx ) )
+		return( -1 );
 	fftw_execute_dft( plan, 
 		(fftw_complex *) cmplx->data, (fftw_complex *) cmplx->data );
 
@@ -115,8 +115,6 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	cmplx->Type = IM_TYPE_B_W;
 
-	/* Copy to out.
-	 */
         if( im_copy( cmplx, out ) )
                 return( -1 );
 

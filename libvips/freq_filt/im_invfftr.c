@@ -12,6 +12,8 @@
  * 27/1/12
  * 	- better setting of interpretation
  * 	- remove own fft fallback code
+ * 	- remove fftw2 path
+ * 	- reduce memuse
  */
 
 /*
@@ -62,41 +64,27 @@
 static int 
 invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 {
-	IMAGE *cmplx = im_open_local( dummy, "invfft1-1", "t" );
-	IMAGE *real = im_open_local( out, "invfft1-2", "t" );
 	const int half_width = in->Xsize / 2 + 1;
 
-	/* Transform to halfcomplex here.
-	 */
-	double *half_complex = IM_ARRAY( dummy, 
-		in->Ysize * half_width * 2, double );
-
-	/* We have to have a separate real buffer for the planner to work on.
-	 */
-	double *planner_scratch = IM_ARRAY( dummy, 
-		in->Ysize * half_width * 2, double );
-
+	IMAGE *cmplx;
+	double *half_complex;
+	IMAGE *real;
+	double *planner_scratch;
 	fftw_plan plan;
 	int x, y;
 	double *q, *p;
 
-	if( !cmplx || !real || !half_complex || 
-		im_pincheck( in ) || 
-		im_poutcheck( out ) )
-		return( -1 );
-	if( in->Coding != IM_CODING_NONE || in->Bands != 1 ) {
-                im_error( "im_invfft", 
-			"%s", _( "one band uncoded only" ) );
-                return( -1 );
-	}
-
-	/* Make dp complex image for input.
+	/* Double-complex input.
 	 */
-	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
+	if( !(cmplx = im_open_local( dummy, "invfft:1", "t" )) ||
+		im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
 	/* Build half-complex image.
 	 */
+	if( !(half_complex = IM_ARRAY( dummy, 
+		in->Ysize * half_width * 2, double )) )
+		return( -1 );
 	if( im_incheck( cmplx ) )
 		return( -1 );
 	q = half_complex;
@@ -113,6 +101,8 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	/* Make mem buffer real image for output.
 	 */
+	if( !(real = im_open_local( out, "invfft1-2", "t" )) )
+		return( -1 );
         if( im_cp_desc( real, in ) )
                 return( -1 );
 	real->BandFmt = IM_BANDFMT_DOUBLE;
@@ -124,6 +114,9 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width.
 	 */
+	if( !(planner_scratch = IM_ARRAY( dummy, 
+		in->Ysize * half_width * 2, double )) )
+		return( -1 );
 	if( !(plan = fftw_plan_dft_c2r_2d( in->Ysize, in->Xsize,
 		(fftw_complex *) planner_scratch, (double *) real->data,
 		0 )) ) {
@@ -137,8 +130,6 @@ invfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	fftw_destroy_plan( plan );
 
-	/* Copy to out.
-	 */
         if( im_copy( real, out ) )
                 return( -1 );
 

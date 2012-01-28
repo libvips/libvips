@@ -35,6 +35,8 @@
  * 27/1/12
  * 	- better setting of interpretation
  * 	- remove own fft fallback code
+ * 	- remove fftw2 path
+ * 	- reduce memuse
  */
 
 /*
@@ -133,7 +135,8 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	/* WIO to out.
 	 */
-        if( im_cp_desc( out, in ) )
+	if( im_outcheck( out ) ||
+		im_cp_desc( out, in ) )
                 return( -1 );
 	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
 	out->Type = IM_TYPE_FOURIER;
@@ -215,12 +218,10 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		vips_check_uncoded( "im_fwfft", in ) )
                 return( -1 );
 
+	/* Double-complex input.
+	 */
 	if( !(cmplx = im_open_local( dummy, "fwfft1:1", "t" )) ||
-		im_pincheck( in ) || 
-		im_outcheck( out ) )
-		return( -1 );
-
-	if( im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
+		im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
                 return( -1 );
 
 	/* We have to have a separate buffer for the planner to work on.
@@ -241,6 +242,8 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		return( -1 );
 	}
 
+	if( im_incheck( cmplx ) )
+		return( -1 );
 	fftw_execute_dft( plan,
 		(fftw_complex *) cmplx->data, (fftw_complex *) cmplx->data );
 
@@ -248,7 +251,8 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	/* WIO to out.
 	 */
-        if( im_cp_desc( out, in ) )
+	if( im_outcheck( out ) ||
+		im_cp_desc( out, in ) )
                 return( -1 );
 	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
 	out->Type = IM_TYPE_FOURIER;
