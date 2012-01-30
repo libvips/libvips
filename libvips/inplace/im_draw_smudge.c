@@ -16,6 +16,8 @@
  * 30/9/10
  * 	- gtk-doc
  * 	- deprecate im_smear()
+ * 30/1/12
+ * 	- back to the custom smear, the conv one was too slow
  */
 
 /*
@@ -54,10 +56,6 @@
 
 #include <vips/vips.h>
 
-/* The mask we use for blurring.
- */
-static INTMASK *blur = NULL;
-
 /**
  * im_draw_smudge:
  * @image: image to smudge
@@ -80,38 +78,87 @@ static INTMASK *blur = NULL;
 int
 im_draw_smudge( VipsImage *im, int left, int top, int width, int height )
 {
-	Rect area, image, clipped;
-	IMAGE *t[2];
+	/* Double bands for complex images.
+	 */
+	int bands = vips_image_get_bands( im ) * 
+		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
+		 	2 : 1);
+	int elements = bands * vips_image_get_width( im );
+
+	VipsRect area, image, clipped;
+	double *total;
+	int x, y, i, j, b;
 
 	area.left = left;
 	area.top = top;
 	area.width = width;
 	area.height = height;
+
+	/* Don't do the margins.
+	 */
 	image.left = 0;
 	image.top = 0;
 	image.width = im->Xsize;
 	image.height = im->Ysize;
-	im_rect_intersectrect( &area, &image, &clipped );
-	if( im_rect_isempty( &clipped ) )
+	vips_rect_marginadjust( &image, -1 );
+
+	vips_rect_intersectrect( &area, &image, &clipped );
+	if( vips_rect_isempty( &clipped ) )
 		return( 0 );
 
-	if( !blur ) {
-		blur = im_create_imaskv( "im_draw_smudge", 3, 1, 1, 4, 1 );
-		blur->scale = 6;
+	if( !(total = VIPS_ARRAY( im, bands, double )) ||
+		im_rwcheck( im ) )
+		return( -1 );
+
+/* What we do for each type.
+ */
+#define SMUDGE(TYPE) \
+	for( y = 0; y < clipped.height; y++ ) { \
+		TYPE *q; \
+		TYPE *p; \
+		\
+		q = (TYPE *) VIPS_IMAGE_ADDR( im, \
+			clipped.left, clipped.top + y ); \
+		p = q - elements - bands; \
+		for( x = 0; x < clipped.width; x++ ) { \
+			TYPE *p1, *p2; \
+ 			\
+			for( b = 0; b < bands; b++ ) \
+				total[b] = 0.0; \
+			\
+			p1 = p; \
+			for( i = 0; i < 3; i++ ) { \
+				p2 = p1; \
+				for( j = 0; j < 3; j++ ) \
+					for( b = 0; b < bands; b++ ) \
+						total[b] += *p2++; \
+				\
+				p1 += elements; \
+			} \
+ 			\
+			for( b = 0; b < bands; b++ ) \
+				q[b] = (16 * (double) q[b] + total[b]) / 25.0; \
+			\
+			p += bands; \
+			q += bands; \
+		} \
 	}
 
-	if( !(t[0] = im_open( "im_draw_smudge", "p" )) )
-		return( -1 );
-	if( !(t[1] = im_open_local( t[0], "im_draw_smudge", "p" )) ||
-		im_convsep( im, t[0], blur ) ||
-		im_extract_area( t[0], t[1], 
-			clipped.left, clipped.top, 
-			clipped.width, clipped.height ) ||
-		im_draw_image( im, t[1], clipped.left, clipped.top ) ) {
-		im_close( t[0] );
-		return( -1 );
+	switch( vips_image_get_format( im ) ) { 
+	case VIPS_FORMAT_UCHAR: 	SMUDGE( unsigned char ); break; 
+	case VIPS_FORMAT_CHAR: 		SMUDGE( char ); break; 
+	case VIPS_FORMAT_USHORT: 	SMUDGE( unsigned short ); break; 
+	case VIPS_FORMAT_SHORT: 	SMUDGE( short ); break; 
+	case VIPS_FORMAT_UINT: 		SMUDGE( unsigned int ); break; 
+	case VIPS_FORMAT_INT: 		SMUDGE( int ); break; 
+	case VIPS_FORMAT_FLOAT: 	SMUDGE( float ); break; 
+	case VIPS_FORMAT_DOUBLE: 	SMUDGE( double ); break; 
+	case VIPS_FORMAT_COMPLEX: 	SMUDGE( float ); break;
+	case VIPS_FORMAT_DPCOMPLEX: 	SMUDGE( double ); break;
+
+	default:
+		g_assert( 0 );
 	}
-	im_close( t[0] );
 
 	return( 0 );
 }

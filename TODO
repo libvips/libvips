@@ -1,4 +1,4 @@
-- fft with odd width or height is broken
+- fft with odd width or height is broken ... DC ends up in the wring place
 
 
 
@@ -282,16 +282,6 @@
 
 - perspective transform with a matrix ... base it on the Lenz transformer, but
   partial
-
-
-
-
-
-- maybe im_draw_smudge() is too slow :-( also, we had a sanity failure with
-  it, argh
-
-  make a region, prepare to that, copy back over the image?
-
 
 
 
