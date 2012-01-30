@@ -1,3 +1,6 @@
+30/1/12 started 7.28.0
+- version bump
+
 20/8/11 started 7.27.0
 - version bump for new dev cycle
 - im_subtract(), im_avg(), im_min(), im_minpos(), im_copy(), im_embed(),
@@ -71,6 +74,7 @@
 - add vips_cache() as a vips8 operator
 - remove the old fft fallback
 - remove fftw2 support
+- much faster im_draw_smudge()
 
 14/1/12 started 7.26.8
 - interpolate CLI args were broken (thanks speckins)

@@ -1,3 +1,4 @@
+vips-*.tar.gz
 libvips-scan 
 libvips-scan.c
 Makefile.in
