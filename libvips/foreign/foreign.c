@@ -482,13 +482,13 @@ vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class,
 
 /**
  * vips_foreign_find_load:
- * @filename: file to find a file for
+ * @filename: file to find a loader for
  *
- * Searches for an operation you could use to load a file. 
+ * Searches for an operation you could use to load @filename. 
  *
  * See also: vips_foreign_read().
  *
- * Returns: the nmae of an operation on success, %NULL on error
+ * Returns: the name of an operation on success, %NULL on error
  */
 const char *
 vips_foreign_find_load( const char *filename )
@@ -511,6 +511,40 @@ vips_foreign_find_load( const char *filename )
 	}
 
 	return( G_OBJECT_CLASS_NAME( load_class ) );
+}
+
+/**
+ * vips_foreign_find_load_options:
+ * @filename: file to find a loader for
+ *
+ * Searches for an operation you could use to load @filename. 
+ *
+ * Arguments to the loader may be embedded in the filename using the usual
+ * syntax.
+ *
+ * See also: vips_foreign_load().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+const char *
+vips_foreign_find_load_options( const char *filename )
+{
+	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD );
+	VipsObject *object;
+	const char *type_name;
+
+	/* This will use vips_foreign_load_new_from_string() to pick a loader,
+	 * then set options from the tail of the filename. This is rather slow
+	 * :-( 
+	 */
+	if( !(object = vips_object_new_from_string( oclass, filename )) )
+		return( NULL );
+
+	type_name = G_OBJECT_TYPE_NAME( object );
+
+	g_object_unref( object );
+
+	return( type_name );
 }
 
 /**
@@ -834,9 +868,12 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
 
 /**
  * vips_foreign_find_save:
- * @filename: name to find a file for
+ * @filename: name to find a saver for
  *
- * Searches for an operation you could use to save a file.
+ * Searches for an operation you could use to write to @filename.
+ *
+ * @filename may not contain embedded options. See
+ * vips_foreign_find_save_options() if your filename may have options in.
  *
  * See also: vips_foreign_write().
  *
@@ -858,6 +895,40 @@ vips_foreign_find_save( const char *filename )
 	}
 
 	return( G_OBJECT_CLASS_NAME( save_class ) );
+}
+
+/**
+ * vips_foreign_find_save_options:
+ * @filename: name to find a saver for
+ *
+ * Searches for an operation you could use to write to @filename.
+ *
+ * @filename may contain embedded options. See
+ * vips_foreign_find_save() if your filename does not options in.
+ *
+ * See also: vips_foreign_write().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+const char *
+vips_foreign_find_save_options( const char *filename )
+{
+	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
+	VipsObject *object;
+	const char *type_name;
+
+	/* This will use vips_foreign_save_new_from_string() to pick a saver,
+	 * then set options from the tail of the filename. This is rather slow
+	 * :-( 
+	 */
+	if( !(object = vips_object_new_from_string( oclass, filename )) )
+		return( NULL );
+
+	type_name = G_OBJECT_TYPE_NAME( object );
+
+	g_object_unref( object );
+
+	return( type_name );
 }
 
 static VipsObject *
@@ -1139,7 +1210,8 @@ vips_foreign_save_build( VipsObject *object )
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE( object );
 
-	if( vips_foreign_convert_saveable( save ) )
+	if( save->in &&
+		vips_foreign_convert_saveable( save ) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_parent_class )->
@@ -1222,7 +1294,8 @@ vips_foreign_load( const char *filename, VipsImage **out, ... )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Saves @in to @filename using the saver recommended by
- * vips_foreign_find_save().
+ * vips_foreign_find_save(). Options are not in @filename but must be given
+ * as a NULL-terminated list of name-value pairs.
  *
  * See also: vips_foreign_load().
  *
@@ -1302,7 +1375,10 @@ vips_foreign_load_options( const char *filename, VipsImage **out )
  * @filename: file to write to
  *
  * Saves @in to @filename using the saver recommended by
- * vips_foreign_find_save().
+ * vips_foreign_find_save(). 
+ *
+ * Arguments to the saver may be embedded in the filename using the usual
+ * syntax.
  *
  * See also: vips_foreign_save().
  *

@@ -189,6 +189,7 @@ typedef struct _VipsForeignLoadClass {
 GType vips_foreign_load_get_type( void );
 
 const char *vips_foreign_find_load( const char *filename );
+const char *vips_foreign_find_load_options( const char *filename );
 
 VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 gboolean vips_foreign_is_a( const char *loader, const char *filename );
@@ -277,6 +278,7 @@ typedef struct _VipsForeignSaveClass {
 GType vips_foreign_save_get_type( void );
 
 const char *vips_foreign_find_save( const char *filename );
+const char *vips_foreign_find_save_options( const char *filename );
 
 /* Read/write an image convenience functions.
  */

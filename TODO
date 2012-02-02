@@ -1,22 +1,6 @@
 - swig is not wrapping ops which return more than one arg by reference
   correctly .. eg. im_correl()
 
-- try/bench/vips.py is broken
-
-
-	(gdb) run vips.py wtc_tiled_small.tif x.tif
-	Starting program: /usr/bin/python vips.py wtc_tiled_small.tif x.tif
-	[Thread debugging using libthread_db enabled]
-
-	(vips.py:28339): GLib-GObject-CRITICAL **: g_object_ref: assertion
-	`G_IS_OBJECT (object)' failed
-
-	Program received signal SIGSEGV, Segmentation fault.
-	vips_foreign_convert_saveable (save=0xeac800) at foreign.c:899
-	899		if( in->Coding != VIPS_CODING_NONE &&
-	(gdb) p in
-	$1 = (VipsImage *) 0x0
-
 
 
 

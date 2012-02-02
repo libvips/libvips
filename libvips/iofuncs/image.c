@@ -503,12 +503,12 @@ vips_image_rewind( VipsObject *object )
  * to a "p" and on "written" do im_vips2tiff() or whatever. 
  */
 
-/* From "written" callback: invoke a delayed save by building the write object..
+/* From "written" callback: save to image->filename using VipsForeign.
  */
 static void
-vips_image_save_cb( VipsImage *image, int *result, VipsObject *write )
+vips_image_save_cb( VipsImage *image, int *result )
 {
-	if( vips_object_build( write ) )
+	if( vips_foreign_save_options( image, image->filename ) )
 		*result = -1;
 }
 
@@ -669,36 +669,27 @@ vips_image_build( VipsObject *object )
 
 	case 'w':
 {
-		VipsObjectClass *oclass = 
-			g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
-		VipsObject *object;
-
-		/* This will use vips_foreign_save_new_from_string() to pick a 
-		 * saver, then set options from the tail of the filename.
-		 */
-		if( !(object = vips_object_new_from_string( oclass, 
-			filename )) )
-			return( -1 );
-		vips_object_local( image, object );
+		const char *file_op;
 
 		/* Make sure the vips saver is there ... strange things will
-		 * happen if that type is renamed or removed.
+		 * happen if this type is renamed or removed.
 		 */
 		g_assert( g_type_from_name( "VipsForeignSaveVips" ) );
 
-		/* If this ia the vips saver, just save directly ourselves.
-		 * Otherwise trigger a _build() and save when the image has
-		 * been written to.
+		if( !(file_op = vips_foreign_find_save_options( filename )) )
+			return( -1 );
+
+		/* If this is the vips saver, just save directly ourselves.
+		 * Otherwise save with VipsForeign when the image has been 
+		 * written to.
 		 */
-		if( G_TYPE_CHECK_INSTANCE_TYPE( object, 
-			g_type_from_name( "VipsForeignSaveVips" ) ) ) {
+		if( strcmp( file_op, "VipsForeignSaveVips" ) == 0 )
 			image->dtype = VIPS_IMAGE_OPENOUT;
-		}
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
 			g_signal_connect( image, "written", 
 				G_CALLBACK( vips_image_save_cb ), 
-				object );
+				NULL );
 		}
 }
         	break;
