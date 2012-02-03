@@ -444,6 +444,14 @@ void VImage::initdesc( int x, int y, int b,
 		verror();
 }
 
+// used to test SWIG wrappers with output args
+double VImage::test_member( double a, double b, double *c, double *d )
+{
+	*c = a + b;
+	*d = a - b;
+	return a * b;
+}
+
 // Create a Vargv from a name
 Vargv::Vargv( const char *name )
 {

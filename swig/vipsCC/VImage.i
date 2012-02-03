@@ -33,6 +33,7 @@
 %include "std_except.i"
 %include "std_string.i"
 %include "cstring.i"
+%include "typemaps.i"
 
 %import "VError.i"
 %import "VMask.i"
@@ -78,6 +79,11 @@ struct VBuffer {
  * vips/VImage.h. SWIG b0rks on #include inside class definitions.
  */
 %include VImage.h
+
+/* Some operations return values though their params. We have to note these
+ * specially.
+ */
+extern double vips::VImage::maxpos_avg(double &OUTPUT, double &OUTPUT);
 
 %extend vips::VImage {
 public:
