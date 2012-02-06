@@ -288,9 +288,6 @@ public:
 	void initdesc( int, int, int, TBandFmt, TCoding, TType, 
 		float = 1.0, float = 1.0, int = 0, int = 0 ) throw( VError );
 
-	// test member for SWIG output args
-	double test_member( double a, double b, double *c, double *d );
-
 	/* Insert automatically generated headers.
 	 */
 #include "vipsc++.h"

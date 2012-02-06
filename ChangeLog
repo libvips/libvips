@@ -2,6 +2,7 @@
 - version bump
 - added vips_foreign_find_save_options()/vips_foreign_find_load_options()
 - delayed write to foreign via a "w" image was not working
+- support operations with many returns in Python
 
 20/8/11 started 7.27.0
 - version bump for new dev cycle

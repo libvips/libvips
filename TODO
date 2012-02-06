@@ -1,8 +1,5 @@
-- swig is not wrapping ops which return more than one arg by reference
-  correctly .. eg. im_correl()
-
-
-
+- swig is not wrapping im_project() correctly ... returns an extra VImage via
+  a param
 
 - fft with odd width or height is broken ... DC ends up in the wring place
 

@@ -75,12 +75,52 @@ struct VBuffer {
   $1.size = buffer_len;
 }
 
+/* Functions which return extra values though their parameters need special
+ * typemaps.
+ */
+
+// double maxpos_avg( double& maxpos_avg_y, double& maxpos_avg_out )
+%apply double *OUTPUT { double & maxpos_avg_y };
+%apply double *OUTPUT { double & maxpos_avg_out };
+
+// VImage system_image( char* system_image_in_format, char* system_image_out_format, char* system_image_command, char*& system_image_log ) 
+%cstring_output_allocate(char **system_image_log, g_free(*$1));
+
+// VImage segment( int& segment_segments ) 
+%apply int *OUTPUT { int & segment_segments };
+
+// VImage project( VImage& project_vout ) throw( VError );
+// nope ... not sure how to handle this one
+//%apply VImage *OUTPUT { VImage & project_vout };
+
+// VImage label_regions( int& label_regions_segments ) 
+%apply int *OUTPUT { int & label_regions_segments };
+
+// double correl( VImage correl_sec, int correl_xref, int correl_yref, int correl_xsec, int correl_ysec, int correl_hwindowsize, int correl_hsearchsize, int& correl_x, int& correl_y ) 
+%apply int *OUTPUT { int & correl_x };
+%apply int *OUTPUT { int & correl_y };
+
+// int _find_lroverlap( VImage _find_lroverlap_sec, int _find_lroverlap_bandno, int _find_lroverlap_xr, int _find_lroverlap_yr, int _find_lroverlap_xs, int _find_lroverlap_ys, int _find_lroverlap_halfcorrelation, int _find_lroverlap_halfarea, int& _find_lroverlap_dy0, double& _find_lroverlap_scale1, double& _find_lroverlap_angle1, double& _find_lroverlap_dx1, double& _find_lroverlap_dy1 ) 
+%apply int *OUTPUT { int & _find_lroverlap_dy0 };
+%apply double *OUTPUT { double & _find_lroverlap_scale1 };
+%apply double *OUTPUT { double & _find_lroverlap_angle1 };
+%apply double *OUTPUT { double & _find_lroverlap_dx1 };
+%apply double *OUTPUT { double & _find_lroverlap_dy1 };
+
+// int _find_tboverlap( VImage _find_tboverlap_sec, int _find_tboverlap_bandno, int _find_tboverlap_xr, int _find_tboverlap_yr, int _find_tboverlap_xs, int _find_tboverlap_ys, int _find_tboverlap_halfcorrelation, int _find_tboverlap_halfarea, int& _find_tboverlap_dy0, double& _find_tboverlap_scale1, double& _find_tboverlap_angle1, double& _find_tboverlap_dx1, double& _find_tboverlap_dy1 ) 
+%apply int *OUTPUT { int & _find_tboverlap_dy0 };
+%apply double *OUTPUT { double & _find_tboverlap_scale1 };
+%apply double *OUTPUT { double & _find_tboverlap_angle1 };
+%apply double *OUTPUT { double & _find_tboverlap_dx1 };
+%apply double *OUTPUT { double & _find_tboverlap_dy1 };
+
+// double maxpos_subpel( double& maxpos_subpel_y ) 
+%apply double *OUTPUT { double & maxpos_subpel_y };
+
 /* Need the expanded VImage.h in this directory, rather than the usual
  * vips/VImage.h. SWIG b0rks on #include inside class definitions.
  */
 %include VImage.h
-
-
 
 %extend vips::VImage {
 public:
