@@ -35,6 +35,9 @@
  * 24/6/10
  * 	- less chatty error messages
  * 	- oops, don't rename "copy_set" as "copy_"
+ * 6/2/12
+ * 	- long arg names in decls to help SWIG
+ * 	- don't wrap im_remainderconst_vec()
  */
 
 /*
@@ -362,6 +365,14 @@ is_cppable( im_function *fn )
 {
 	int j;
 
+	/* Don't wrap im_remainderconst_vec().
+	 *
+	 * This has been replaced by the saner name im_remainder_vec(). If we
+	 * generate wrappers for both names we get a overloading clash.
+	 */
+	if( strcmp( fn->name, "im_remainderconst_vec" ) == 0 )
+		return( 0 );
+
 	/* Check we know all the types.
 	 */
 	for( j = 0; j < fn->argc; j++ ) {
@@ -631,6 +642,14 @@ print_cppdecl( im_function *fn )
 		 */
 		if( ty->flags & IM_TYPE_OUTPUT )
 			printf( "&" );
+
+		/* Print arg name. 
+		 *
+		 * Prepend the member name to make the arg
+		 * unique. This is important for SWIG since it needs to have
+		 * unique names for %apply.
+		 */
+		printf( " %s_%s", name, fn->argv[j].name );
 	}
 
 	/* End of arg list!

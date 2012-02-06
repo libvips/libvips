@@ -26,12 +26,12 @@ libvipsCC_la_LIBADD = \
 # to not generate the wrappers for deprecated functions
 .PHONEY:
 vipsc++.cc:
-	packages=`vips --list packages | \
+	packages=`vips list packages | \
 	  awk '{print $$1}'` ; \
 	  echo > vipsc++.cc ; \
 	  for name in $$packages; do \
 	    echo "// bodies for package $$name" >> vipsc++.cc ; \
-	    vips --cppc $$name >> vipsc++.cc ; \
+	    vips cppc $$name >> vipsc++.cc ; \
 	    echo >> vipsc++.cc ; \
 	  done 
 

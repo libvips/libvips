@@ -80,10 +80,7 @@ struct VBuffer {
  */
 %include VImage.h
 
-/* Some operations return values though their params. We have to note these
- * specially.
- */
-extern double vips::VImage::maxpos_avg(double &OUTPUT, double &OUTPUT);
+
 
 %extend vips::VImage {
 public:

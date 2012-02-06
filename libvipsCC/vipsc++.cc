@@ -1,7 +1,7 @@
 
 // bodies for package arithmetic
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_abs: absolute value
 VImage VImage::abs() throw( VError )
 {
@@ -739,252 +739,9 @@ VImage VImage::tan() throw( VError )
 }
 
 
-// bodies for package boolean
-// this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
-// im_andimage: bitwise and of two images
-VImage VImage::andimage( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_andimage" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_andimageconst: bitwise and of an image with a constant
-VImage VImage::andimage( int c ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_andimageconst" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in1._ref );
-
-	return( out );
-}
-
-// im_andimage_vec: bitwise and of an image with a vector constant
-VImage VImage::andimage( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_andimage_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_orimage: bitwise or of two images
-VImage VImage::orimage( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_orimage" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_orimageconst: bitwise or of an image with a constant
-VImage VImage::orimage( int c ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_orimageconst" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in1._ref );
-
-	return( out );
-}
-
-// im_orimage_vec: bitwise or of an image with a vector constant
-VImage VImage::orimage( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_orimage_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_eorimage: bitwise eor of two images
-VImage VImage::eorimage( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_eorimage" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_eorimageconst: bitwise eor of an image with a constant
-VImage VImage::eorimage( int c ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_eorimageconst" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in1._ref );
-
-	return( out );
-}
-
-// im_eorimage_vec: bitwise eor of an image with a vector constant
-VImage VImage::eorimage( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_eorimage_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_shiftleft_vec: shift image array bits to left
-VImage VImage::shiftleft( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_shiftleft_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_shiftleft: shift image n bits to left
-VImage VImage::shiftleft( int c ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_shiftleft" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in1._ref );
-
-	return( out );
-}
-
-// im_shiftright_vec: shift image array bits to right
-VImage VImage::shiftright( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_shiftright_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_shiftright: shift integer image n bits to right
-VImage VImage::shiftright( int c ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_shiftright" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = out.image();
-	*((int*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in1._ref );
-
-	return( out );
-}
-
-
 // bodies for package cimg
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_greyc: noise-removing filter
 VImage VImage::greyc( int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx ) throw( VError )
 {
@@ -1044,7 +801,7 @@ VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double
 
 // bodies for package colour
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_LCh2Lab: convert LCh to Lab
 VImage VImage::LCh2Lab() throw( VError )
 {
@@ -1614,6 +1371,22 @@ VImage VImage::float2rad() throw( VError )
 	return( out );
 }
 
+// im_argb2rgba: convert pre-multipled argb to png-style rgba
+VImage VImage::argb2rgba() throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_argb2rgba" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
 // im_icc_ac2rc: convert LAB from AC to RC using an ICC profile
 VImage VImage::icc_ac2rc( char* profile ) throw( VError )
 {
@@ -1760,7 +1533,7 @@ VImage VImage::sRGB2XYZ() throw( VError )
 
 // bodies for package conversion
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_gaussnoise: generate image of gaussian noise with specified statistics
 VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma ) throw( VError )
 {
@@ -2268,20 +2041,6 @@ VImage VImage::lrjoin( VImage in2 ) throw( VError )
 	return( out );
 }
 
-// im_mask2vips: convert DOUBLEMASK to VIPS image
-VImage VImage::mask2vips( VDMask input ) throw( VError )
-{
-	VImage output;
-
-	Vargv _vec( "im_mask2vips" );
-
-	((im_mask_object*) _vec.data(0))->mask = input.mask().dptr;
-	_vec.data(1) = output.image();
-	_vec.call();
-
-	return( output );
-}
-
 // im_msb: convert to uchar by discarding bits
 VImage VImage::msb() throw( VError )
 {
@@ -2519,22 +2278,6 @@ VImage VImage::text( char* text, char* font, int width, int alignment, int dpi )
 	return( out );
 }
 
-// im_vips2mask: convert VIPS image to DOUBLEMASK
-VDMask VImage::vips2mask() throw( VError )
-{
-	VImage input = *this;
-	VDMask output;
-
-	Vargv _vec( "im_vips2mask" );
-
-	_vec.data(0) = input.image();
-	((im_mask_object*) _vec.data(1))->name = (char*)"noname";
-	_vec.call();
-	output.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(1))->mask );
-
-	return( output );
-}
-
 // im_wrap: shift image origin, wrapping at sides
 VImage VImage::wrap( int x, int y ) throw( VError )
 {
@@ -2574,7 +2317,44 @@ VImage VImage::zoom( int xfac, int yfac ) throw( VError )
 
 // bodies for package convolution
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
+// im_aconvsep: approximate separable convolution
+VImage VImage::aconvsep( VDMask matrix, int n_layers ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_aconvsep" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_mask_object*) _vec.data(2))->mask = matrix.mask().dptr;
+	*((int*) _vec.data(3)) = n_layers;
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_aconv: approximate convolution
+VImage VImage::aconv( VDMask matrix, int n_layers, int cluster ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_aconv" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_mask_object*) _vec.data(2))->mask = matrix.mask().dptr;
+	*((int*) _vec.data(3)) = n_layers;
+	*((int*) _vec.data(4)) = cluster;
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
 // im_addgnoise: add gaussian noise with mean 0 and std. dev. sigma
 VImage VImage::addgnoise( double sigma ) throw( VError )
 {
@@ -2840,7 +2620,7 @@ VImage VImage::spcor( VImage in2 ) throw( VError )
 
 // bodies for package deprecated
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_flood_copy: flood with ink from start_x, start_y while pixel == start pixel
 VImage VImage::flood_copy( int start_x, int start_y, std::vector<double> ink ) throw( VError )
 {
@@ -3629,6 +3409,36 @@ VImage VImage::similarity( double a, double b, double dx, double dy ) throw( VEr
 	return( out );
 }
 
+// im_mask2vips: convert DOUBLEMASK to VIPS image
+VImage VImage::mask2vips( VDMask input ) throw( VError )
+{
+	VImage output;
+
+	Vargv _vec( "im_mask2vips" );
+
+	((im_mask_object*) _vec.data(0))->mask = input.mask().dptr;
+	_vec.data(1) = output.image();
+	_vec.call();
+
+	return( output );
+}
+
+// im_vips2mask: convert VIPS image to DOUBLEMASK
+VDMask VImage::vips2mask() throw( VError )
+{
+	VImage input = *this;
+	VDMask output;
+
+	Vargv _vec( "im_vips2mask" );
+
+	_vec.data(0) = input.image();
+	((im_mask_object*) _vec.data(1))->name = (char*)"noname";
+	_vec.call();
+	output.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(1))->mask );
+
+	return( output );
+}
+
 // im_insertplace: draw image sub inside image main at position (x,y)
 void VImage::insertplace( VImage sub, int x, int y ) throw( VError )
 {
@@ -3656,10 +3466,619 @@ void VImage::circle( int cx, int cy, int radius, int intensity ) throw( VError )
 	_vec.call();
 }
 
+// im_andimage: bitwise and of two images
+VImage VImage::andimage( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_andimage" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_andimageconst: bitwise and of an image with a constant
+VImage VImage::andimage( int c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_andimageconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_andimage_vec: bitwise and of an image with a vector constant
+VImage VImage::andimage( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_andimage_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_orimage: bitwise or of two images
+VImage VImage::orimage( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_orimage" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_orimageconst: bitwise or of an image with a constant
+VImage VImage::orimage( int c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_orimageconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_orimage_vec: bitwise or of an image with a vector constant
+VImage VImage::orimage( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_orimage_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_eorimage: bitwise eor of two images
+VImage VImage::eorimage( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_eorimage" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_eorimageconst: bitwise eor of an image with a constant
+VImage VImage::eorimage( int c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_eorimageconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_eorimage_vec: bitwise eor of an image with a vector constant
+VImage VImage::eorimage( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_eorimage_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_shiftleft_vec: shift image array bits to left
+VImage VImage::shiftleft( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_shiftleft_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_shiftleft: shift image n bits to left
+VImage VImage::shiftleft( int c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_shiftleft" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_shiftright_vec: shift image array bits to right
+VImage VImage::shiftright( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_shiftright_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_shiftright: shift integer image n bits to right
+VImage VImage::shiftright( int c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_shiftright" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_blend: use cond image to blend between images in1 and in2
+VImage VImage::blend( VImage in1, VImage in2 ) throw( VError )
+{
+	VImage cond = *this;
+	VImage out;
+
+	Vargv _vec( "im_blend" );
+
+	_vec.data(0) = cond.image();
+	_vec.data(1) = in1.image();
+	_vec.data(2) = in2.image();
+	_vec.data(3) = out.image();
+	_vec.call();
+	out._ref->addref( cond._ref );
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_equal: two images equal in value
+VImage VImage::equal( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_equal" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_equal_vec: image equals doublevec
+VImage VImage::equal( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_equal_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_equalconst: image equals const
+VImage VImage::equal( double c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_equalconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_ifthenelse: use cond image to choose pels from image in1 or in2
+VImage VImage::ifthenelse( VImage in1, VImage in2 ) throw( VError )
+{
+	VImage cond = *this;
+	VImage out;
+
+	Vargv _vec( "im_ifthenelse" );
+
+	_vec.data(0) = cond.image();
+	_vec.data(1) = in1.image();
+	_vec.data(2) = in2.image();
+	_vec.data(3) = out.image();
+	_vec.call();
+	out._ref->addref( cond._ref );
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_less: in1 less than in2 in value
+VImage VImage::less( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_less" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_less_vec: in less than doublevec
+VImage VImage::less( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_less_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_lessconst: in less than const
+VImage VImage::less( double c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_lessconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_lesseq: in1 less than or equal to in2 in value
+VImage VImage::lesseq( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_lesseq" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_lesseq_vec: in less than or equal to doublevec
+VImage VImage::lesseq( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_lesseq_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_lesseqconst: in less than or equal to const
+VImage VImage::lesseq( double c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_lesseqconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_more: in1 more than in2 in value
+VImage VImage::more( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_more" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_more_vec: in more than doublevec
+VImage VImage::more( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_more_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_moreconst: in more than const
+VImage VImage::more( double c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_moreconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_moreeq: in1 more than or equal to in2 in value
+VImage VImage::moreeq( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_moreeq" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_moreeq_vec: in more than or equal to doublevec
+VImage VImage::moreeq( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_moreeq_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_moreeqconst: in more than or equal to const
+VImage VImage::moreeq( double c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_moreeqconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
+// im_notequal: two images not equal in value
+VImage VImage::notequal( VImage in2 ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_notequal" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = in2.image();
+	_vec.data(2) = out.image();
+	_vec.call();
+	out._ref->addref( in1._ref );
+	out._ref->addref( in2._ref );
+
+	return( out );
+}
+
+// im_notequal_vec: image does not equal doublevec
+VImage VImage::notequal( std::vector<double> vec ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_notequal_vec" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	((im_doublevec_object*) _vec.data(2))->n = vec.size();
+	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
+	for( unsigned int i = 0; i < vec.size(); i++ )
+		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
+	_vec.call();
+	out._ref->addref( in._ref );
+
+	return( out );
+}
+
+// im_notequalconst: image does not equal const
+VImage VImage::notequal( double c ) throw( VError )
+{
+	VImage in1 = *this;
+	VImage out;
+
+	Vargv _vec( "im_notequalconst" );
+
+	_vec.data(0) = in1.image();
+	_vec.data(1) = out.image();
+	*((double*) _vec.data(2)) = c;
+	_vec.call();
+	out._ref->addref( in1._ref );
+
+	return( out );
+}
+
 
 // bodies for package format
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_csv2vips: read a file in csv format
 VImage VImage::csv2vips( char* filename ) throw( VError )
 {
@@ -3672,6 +4091,20 @@ VImage VImage::csv2vips( char* filename ) throw( VError )
 	_vec.call();
 
 	return( im );
+}
+
+// im_fits2vips: convert from fits
+VImage VImage::fits2vips( char* in ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_fits2vips" );
+
+	_vec.data(0) = (im_object) in;
+	_vec.data(1) = out.image();
+	_vec.call();
+
+	return( out );
 }
 
 // im_jpeg2vips: convert from jpeg
@@ -3841,7 +4274,7 @@ void VImage::vips2tiff( char* out ) throw( VError )
 
 // bodies for package freq_filt
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_create_fmask: create frequency domain filter mask
 VImage VImage::create_fmask( int width, int height, int type, double p1, double p2, double p3, double p4, double p5 ) throw( VError )
 {
@@ -4009,7 +4442,7 @@ VImage VImage::invfftr() throw( VError )
 
 // bodies for package histograms_lut
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_gammacorrect: gamma-correct image
 VImage VImage::gammacorrect( double exponent ) throw( VError )
 {
@@ -4456,7 +4889,7 @@ VImage VImage::tone_map( VImage lut ) throw( VError )
 
 // bodies for package inplace
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_draw_circle: draw circle on image
 void VImage::draw_circle( int cx, int cy, int radius, int fill, std::vector<double> ink ) throw( VError )
 {
@@ -4654,7 +5087,7 @@ VImage VImage::line( VImage mask, VImage ink, std::vector<int> x1, std::vector<i
 
 // bodies for package iofuncs
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_binfile: open a headerless binary file
 VImage VImage::binfile( char* filename, int width, int height, int bands, int offset ) throw( VError )
 {
@@ -4798,11 +5231,11 @@ void VImage::printdesc() throw( VError )
 
 // bodies for package mask
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 
 // bodies for package morphology
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_cntlines: count horizontal or vertical lines
 double VImage::cntlines( int direction ) throw( VError )
 {
@@ -4963,7 +5396,7 @@ VImage VImage::profile( int direction ) throw( VError )
 
 // bodies for package mosaicing
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_align_bands: align the bands of an image
 VImage VImage::align_bands() throw( VError )
 {
@@ -5396,7 +5829,7 @@ VImage VImage::tbmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int
 
 // bodies for package other
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_benchmark: do something complicated for testing
 VImage VImage::benchmark() throw( VError )
 {
@@ -5536,6 +5969,23 @@ VImage VImage::make_xy( int xsize, int ysize ) throw( VError )
 	return( out );
 }
 
+// im_sines: generate 2D sine image
+VImage VImage::sines( int xsize, int ysize, double horfreq, double verfreq ) throw( VError )
+{
+	VImage out;
+
+	Vargv _vec( "im_sines" );
+
+	_vec.data(0) = out.image();
+	*((int*) _vec.data(1)) = xsize;
+	*((int*) _vec.data(2)) = ysize;
+	*((double*) _vec.data(3)) = horfreq;
+	*((double*) _vec.data(4)) = verfreq;
+	_vec.call();
+
+	return( out );
+}
+
 // im_zone: generate IM_BANDFMT_UCHAR [0,255] zone plate image
 VImage VImage::zone( int size ) throw( VError )
 {
@@ -5551,383 +6001,9 @@ VImage VImage::zone( int size ) throw( VError )
 }
 
 
-// bodies for package relational
-// this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
-// im_blend: use cond image to blend between images in1 and in2
-VImage VImage::blend( VImage in1, VImage in2 ) throw( VError )
-{
-	VImage cond = *this;
-	VImage out;
-
-	Vargv _vec( "im_blend" );
-
-	_vec.data(0) = cond.image();
-	_vec.data(1) = in1.image();
-	_vec.data(2) = in2.image();
-	_vec.data(3) = out.image();
-	_vec.call();
-	out._ref->addref( cond._ref );
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_equal: two images equal in value
-VImage VImage::equal( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_equal" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_equal_vec: image equals doublevec
-VImage VImage::equal( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_equal_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_equalconst: image equals const
-VImage VImage::equal( double c ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_equalconst" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_ifthenelse: use cond image to choose pels from image in1 or in2
-VImage VImage::ifthenelse( VImage in1, VImage in2 ) throw( VError )
-{
-	VImage cond = *this;
-	VImage out;
-
-	Vargv _vec( "im_ifthenelse" );
-
-	_vec.data(0) = cond.image();
-	_vec.data(1) = in1.image();
-	_vec.data(2) = in2.image();
-	_vec.data(3) = out.image();
-	_vec.call();
-	out._ref->addref( cond._ref );
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_less: in1 less than in2 in value
-VImage VImage::less( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_less" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_less_vec: in less than doublevec
-VImage VImage::less( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_less_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_lessconst: in less than const
-VImage VImage::less( double c ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_lessconst" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_lesseq: in1 less than or equal to in2 in value
-VImage VImage::lesseq( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_lesseq" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_lesseq_vec: in less than or equal to doublevec
-VImage VImage::lesseq( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_lesseq_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_lesseqconst: in less than or equal to const
-VImage VImage::lesseq( double c ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_lesseqconst" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_more: in1 more than in2 in value
-VImage VImage::more( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_more" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_more_vec: in more than doublevec
-VImage VImage::more( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_more_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_moreconst: in more than const
-VImage VImage::more( double c ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_moreconst" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_moreeq: in1 more than or equal to in2 in value
-VImage VImage::moreeq( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_moreeq" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_moreeq_vec: in more than or equal to doublevec
-VImage VImage::moreeq( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_moreeq_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_moreeqconst: in more than or equal to const
-VImage VImage::moreeq( double c ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_moreeqconst" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_notequal: two images not equal in value
-VImage VImage::notequal( VImage in2 ) throw( VError )
-{
-	VImage in1 = *this;
-	VImage out;
-
-	Vargv _vec( "im_notequal" );
-
-	_vec.data(0) = in1.image();
-	_vec.data(1) = in2.image();
-	_vec.data(2) = out.image();
-	_vec.call();
-	out._ref->addref( in1._ref );
-	out._ref->addref( in2._ref );
-
-	return( out );
-}
-
-// im_notequal_vec: image does not equal doublevec
-VImage VImage::notequal( std::vector<double> vec ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_notequal_vec" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	((im_doublevec_object*) _vec.data(2))->n = vec.size();
-	((im_doublevec_object*) _vec.data(2))->vec = new double[vec.size()];
-	for( unsigned int i = 0; i < vec.size(); i++ )
-		((im_doublevec_object*) _vec.data(2))->vec[i] = vec[i];
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-// im_notequalconst: image does not equal const
-VImage VImage::notequal( double c ) throw( VError )
-{
-	VImage in = *this;
-	VImage out;
-
-	Vargv _vec( "im_notequalconst" );
-
-	_vec.data(0) = in.image();
-	_vec.data(1) = out.image();
-	*((double*) _vec.data(2)) = c;
-	_vec.call();
-	out._ref->addref( in._ref );
-
-	return( out );
-}
-
-
 // bodies for package resample
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_rightshift_size: decrease size by a power-of-two factor
 VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt ) throw( VError )
 {
@@ -5986,7 +6062,7 @@ VImage VImage::stretch3( double xdisp, double ydisp ) throw( VError )
 
 // bodies for package video
 // this file automatically generated from
-// VIPS library 7.23.0-Thu Nov 18 12:39:29 GMT 2010
+// VIPS library 7.28.0-Tue Jan 31 10:51:45 GMT 2012
 // im_video_test: test video grabber
 VImage VImage::video_test( int brightness, int error ) throw( VError )
 {

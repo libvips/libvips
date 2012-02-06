@@ -12,11 +12,11 @@ pkginclude_HEADERS = \
 # to not generate the wrappers for deprecated functions
 .PHONEY:
 vipsc++.h:
-	packages=`vips --list packages | \
+	packages=`vips list packages | \
 	  awk '{print $$1}'` ; \
 	  echo > vipsc++.h ; \
 	  for name in $$packages; do \
 	    echo "// headers for package $$name" >> vipsc++.h ; \
-	    vips --cpph $$name >> vipsc++.h ; \
+	    vips cpph $$name >> vipsc++.h ; \
 	    echo >> vipsc++.h ; \
 	  done 
