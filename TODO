@@ -1,8 +1,24 @@
+- add a sequential mode to all readers
+
+
+
+
 - swig is not wrapping im_project() correctly ... returns an extra VImage via
   a param
 
 - fft with odd width or height is broken ... DC ends up in the wring place
 
+- performance regression over 7.26
+
+	$ valgrind --tool=callgrind ./vips.py wtc_tiled_small.tif x.tif
+
+  vips_executor_run() 7.26 78k times
+  vips_executor_run() master 294k times
+
+  vips_interpolate_bilinear() 7.26 18.8m
+  vips_interpolate_bilinear() master 19.2m
+
+  total of about 0.5s user time difference
 
 
 

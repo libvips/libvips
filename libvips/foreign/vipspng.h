@@ -35,7 +35,7 @@ extern "C" {
 #endif /*__cplusplus*/
 
 int vips__png_header( const char *name, VipsImage *out );
-int vips__png_read( const char *name, VipsImage *out );
+int vips__png_read( const char *name, VipsImage *out, int sequential );
 int vips__png_ispng( const char *filename );
 extern const char *vips__png_suffs[];
 

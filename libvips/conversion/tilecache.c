@@ -277,7 +277,7 @@ tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 	return( tile );
 }
 
-/* Copy rect from from to to.
+/* Copy rect from @from to @to.
  */
 static void
 copy_region( VipsRegion *from, VipsRegion *to, VipsRect *area )

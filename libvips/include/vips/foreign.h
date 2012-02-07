@@ -178,7 +178,7 @@ typedef struct _VipsForeignLoadClass {
 	/* Read the whole image into @real. It gets copied to @out later.
 	 *
 	 * You can omit this method if you define a @header() method which 
-	 * loads the while file. 
+	 * loads the whole file. 
 	 *
 	 * Return 0 for success, -1 for error, setting
 	 * vips_error().

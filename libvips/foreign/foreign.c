@@ -27,6 +27,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -671,15 +675,29 @@ vips_foreign_load_start( VipsImage *out, void *a, void *dummy )
 		if( load->disc && 
 			disc_threshold && 
 			!(load->flags & VIPS_FOREIGN_PARTIAL) &&
-			image_size > disc_threshold ) 
+			image_size > disc_threshold ) {
+#ifdef DEBUG
+			printf( "vips_foreign_load_start: making disc temp\n" );
+#endif /*DEBUG*/
+
 			if( !(load->real = vips_image_new_disc_temp( "%s.v" )) )
 				return( NULL );
+		}
 
 		/* Otherwise, fall back to a "p".
 		 */
-		if( !load->real && 
-			!(load->real = vips_image_new()) )
-			return( NULL );
+		if( !load->real ) {
+#ifdef DEBUG
+			printf( "vips_foreign_load_start: making 'p' temp\n" );
+#endif /*DEBUG*/
+
+			if( !(load->real = vips_image_new()) )
+				return( NULL );
+		}
+
+#ifdef DEBUG
+		printf( "vips_foreign_load_start: triggering ->load()\n" );
+#endif /*DEBUG*/
 
 		/* Read the image in.
 		 */
@@ -740,6 +758,10 @@ vips_foreign_load_build( VipsObject *object )
 
 	VipsForeignFlags flags;
 
+#ifdef DEBUG
+	printf( "vips_foreign_load_build:\n" );
+#endif /*DEBUG*/
+
 	flags = 0;
 	if( class->get_flags )
 		flags |= class->get_flags( load );
@@ -750,6 +772,10 @@ vips_foreign_load_build( VipsObject *object )
 		return( -1 );
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_build: triggering ->header()\n" );
+#endif /*DEBUG*/
 
 	/* Read the header into @out.
 	 */
@@ -762,6 +788,10 @@ vips_foreign_load_build( VipsObject *object )
 	 * convert pixels on demand.
 	 */
 	if( class->load ) {
+#ifdef DEBUG
+		printf( "vips_foreign_load_build: triggering ->load()\n" );
+#endif /*DEBUG*/
+
 		/* ->header() should set the dhint. It'll default to the safe
 		 * SMALLTILE if header() did not set it.
 		 */
@@ -2018,8 +2048,19 @@ vips_fitssave( VipsImage *in, const char *filename, ... )
  * @out: decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @sequential: sequential read only 
+ *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
+ *
+ * Setting @sequential to %TRUE means you promise to only demand tiles from
+ * this image top-top-bottom, ie. to read sequentially. This means the png
+ * loader can read directly from the image without having to generate a
+ * random-access intermediate. This can save a lot of time and memory for
+ * large images, but limits the sorts of operation you can perform. It's
+ * useful for things like generating thumbnails. 
  *
  * There is no support for embedded ICC profiles.
  *

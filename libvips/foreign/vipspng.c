@@ -33,6 +33,9 @@
  * 	- argh gamma was wrong when viewed in firefox
  * 19/12/11
  * 	- rework as a set of fns ready for wrapping as a class
+ * 7/2/12
+ * 	- mild refactoring
+ * 	- add support for sequential reads
  */
 
 /*
@@ -110,6 +113,11 @@ typedef struct {
 	png_infop pInfo;
 	png_bytep *row_pointer;
 	png_bytep data;
+
+	/* During sequential read we keep track of the current y position in
+	 * the file to check sequentiality.
+	 */
+	int y_pos;
 } Read;
 
 static void
@@ -137,6 +145,7 @@ read_new( const char *name, VipsImage *out )
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
 	read->data = NULL;
+	read->y_pos = 0;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read ); 
@@ -160,68 +169,10 @@ read_new( const char *name, VipsImage *out )
 	return( read );
 }
 
-/* Yuk! Have to malloc enough space for the whole image. Interlaced PNG
- * is not really suitable for large objects ...
+/* Read a png header.
  */
 static int
-png2vips_interlace( Read *read )
-{
-	const int rowbytes = VIPS_IMAGE_SIZEOF_LINE( read->out );
-	const int height = png_get_image_height( read->pPng, read->pInfo );
-
-	int y;
-
-	if( !(read->row_pointer = VIPS_ARRAY( NULL, height, png_bytep )) )
-		return( -1 );
-	if( !(read->data = (png_bytep) 
-		vips_malloc( NULL, height * rowbytes ))  )
-		return( -1 );
-
-	for( y = 0; y < (int) height; y++ )
-		read->row_pointer[y] = read->data + y * rowbytes;
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
-		return( -1 );
-
-	png_read_image( read->pPng, read->row_pointer );
-
-	for( y = 0; y < height; y++ )
-		if( vips_image_write_line( read->out, 
-			y, read->row_pointer[y] ) )
-			return( -1 );
-
-	return( 0 );
-}
-
-/* Noninterlaced images can be read without needing enough RAM for the whole
- * image.
- */
-static int
-png2vips_noninterlace( Read *read )
-{
-	const int rowbytes = VIPS_IMAGE_SIZEOF_LINE( read->out );
-	const int height = png_get_image_height( read->pPng, read->pInfo );
-
-	int y;
-
-	if( !(read->data = (png_bytep) vips_malloc( NULL, rowbytes ))  )
-		return( -1 );
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
-		return( -1 );
-
-	for( y = 0; y < height; y++ ) {
-		png_read_row( read->pPng, read->data, NULL );
-
-		if( vips_image_write_line( read->out, y, read->data ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
-
-/* Read a PNG file (header) into a VIPS (header).
- */
-static int
-png2vips( Read *read, int header_only )
+png2vips_header( Read *read, VipsImage *out )
 {
 	png_uint_32 width, height;
 	int bit_depth, color_type, interlace_type;
@@ -330,23 +281,17 @@ png2vips( Read *read, int header_only )
 
 	/* Set VIPS header.
 	 */
-	vips_image_init_fields( read->out,
+	vips_image_init_fields( out,
 		width, height, bands,
 		bit_depth > 8 ? 
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, interpretation, 
 		Xres, Yres );
 
-	if( !header_only ) {
-		if( png_set_interlace_handling( read->pPng ) > 1 ) {
-			if( png2vips_interlace( read ) )
-				return( -1 );
-		}
-		else {
-			if( png2vips_noninterlace( read ) )
-				return( -1 );
-		}
-	}
+	/* We're always supposed to set dhint.
+	 */
+        vips_demand_hint( out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	return( 0 );
 }
@@ -359,14 +304,139 @@ vips__png_header( const char *name, VipsImage *out )
 	Read *read;
 
 	if( !(read = read_new( name, out )) ||
-		png2vips( read, 1 ) ) 
+		png2vips_header( read, out ) ) 
 		return( -1 );
 
 	return( 0 );
 }
 
+/* Yuk! Have to malloc enough space for the whole image. Interlaced PNG
+ * is not really suitable for large objects ...
+ */
+static int
+png2vips_interlace( Read *read, VipsImage *out )
+{
+	const int rowbytes = VIPS_IMAGE_SIZEOF_LINE( out );
+	const int height = png_get_image_height( read->pPng, read->pInfo );
+
+	int y;
+
+	if( !(read->row_pointer = VIPS_ARRAY( NULL, height, png_bytep )) )
+		return( -1 );
+	if( !(read->data = (png_bytep) 
+		vips_malloc( NULL, height * rowbytes ))  )
+		return( -1 );
+
+	for( y = 0; y < (int) height; y++ )
+		read->row_pointer[y] = read->data + y * rowbytes;
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( -1 );
+
+	png_read_image( read->pPng, read->row_pointer );
+
+	for( y = 0; y < height; y++ )
+		if( vips_image_write_line( out, y, read->row_pointer[y] ) )
+			return( -1 );
+
+	return( 0 );
+}
+
+static int
+png2vips_generate( VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	Read *read = (Read *) a;
+
+	int y;
+
+#ifdef DEBUG
+	printf( "png2vips_generate: line %d, %d rows\n", 
+		out->valid.top, out->valid.height );
+	printf( "png2vips_generate: thread %p\n", g_thread_self() );
+#endif /*DEBUG*/
+
+	/* The y pos of the request must be the same as our current file
+	 * position.
+	 */
+	if( out->valid.top != read->y_pos ) {
+		vips_error( "png2vips", _( "non-sequential read --- "
+			"at position %d in file, but position %d requested" ),
+			read->y_pos, out->valid.top );
+		return( -1 );
+	}
+
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( -1 );
+
+	/* We're inside a tilecache where tiles are the fill image width, so
+	 * this should always be true.
+	 */
+	g_assert( out->valid.left == 0 );
+	g_assert( out->valid.width == out->im->Xsize );
+	g_assert( VIPS_RECT_BOTTOM( &out->valid ) <= out->im->Ysize );
+
+	for( y = 0; y < out->valid.height; y++ ) {
+		png_bytep q = (png_bytep) 
+			VIPS_REGION_ADDR( out, 0, out->valid.top + y );
+
+		png_read_row( read->pPng, q, NULL );
+	}
+
+	read->y_pos += out->valid.height;
+
+#ifdef DEBUG
+	printf( "png2vips_generate: done for thread %p\n", g_thread_self() );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
+/* Build with vips_image_generate(), but fail if out-of-order tiles are
+ * requested.
+ *
+ * We are behind a tile cache, so we can assume that vips_image_generate()
+ * will always be asked for tiles which are the full image width. We can also
+ * assume we are single-threaded.
+ */
+static int
+png2vips_sequential( Read *read, VipsImage *out )
+{
+	if( vips_image_generate( out, 
+		NULL, png2vips_generate, NULL, 
+		read, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* Noninterlaced images can be read without needing enough RAM for the whole
+ * image.
+ */
+static int
+png2vips_noninterlace( Read *read, VipsImage *out )
+{
+	const int rowbytes = VIPS_IMAGE_SIZEOF_LINE( out );
+	const int height = png_get_image_height( read->pPng, read->pInfo );
+
+	int y;
+
+	if( !(read->data = (png_bytep) vips_malloc( NULL, rowbytes ))  )
+		return( -1 );
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( -1 );
+
+	for( y = 0; y < height; y++ ) {
+		png_read_row( read->pPng, read->data, NULL );
+
+		if( vips_image_write_line( out, y, read->data ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 int
-vips__png_read( const char *name, VipsImage *out )
+vips__png_read( const char *name, VipsImage *out, int sequential )
 {
 	Read *read;
 
@@ -374,9 +444,48 @@ vips__png_read( const char *name, VipsImage *out )
 	printf( "png2vips: reading \"%s\"\n", name );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( name, out )) ||
-		png2vips( read, 0 ) ) 
+	if( !(read = read_new( name, out )) )
 		return( -1 );
+
+	if( png_set_interlace_handling( read->pPng ) > 1 ) {
+		if( png2vips_header( read, out ) || 
+			png2vips_interlace( read, out ) )
+			return( -1 );
+	}
+	else if( sequential ) {
+		VipsImage *raw;
+		VipsImage *t;
+
+		/* Read to this image, then cache to out.
+		 */
+		raw = vips_image_new(); 
+		vips_object_local( out, raw );
+
+		if( png2vips_header( read, raw ) || 
+			png2vips_sequential( read, raw ) )
+			return( -1 );
+
+		/* Copy to out, adding a cache. 
+		 * Enough tiles for two complete rows.
+		 */
+		if( vips_tilecache( raw, &t, 
+			"tile_width", raw->Xsize, 
+			"tile_height", 32,
+			"max_tiles", 10,
+			NULL ) ) 
+			return( -1 );
+		if( vips_image_write( t, out ) ) {
+			g_object_unref( t );
+			return( -1 );
+		}
+		g_object_unref( t );
+
+	}
+	else {
+		if( png2vips_header( read, out ) || 
+			png2vips_noninterlace( read, out ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }
