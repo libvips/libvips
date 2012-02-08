@@ -23,6 +23,8 @@
  * 	- use new "rd" mode rather than our own open via disc
  * 8/2/12
  * 	- use :seq mode for png images
+ * 	- shrink to a scanline cache to ensure we request pixels sequentially
+ * 	  from the input
  */
 
 #ifdef HAVE_CONFIG_H
@@ -157,13 +159,27 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		x = t[1];
 	}
 
-	/* Shrink!
+	/* Shrink! 
+	 *
+	 * We want to make sure we read the image sequentially
+	 * so that :seq mode works. However, the convolution we may be doing
+	 * later will force us into SMALLTILE mode and that will break
+	 * sequentiallity.
+	 *
+	 * So ... read into a cache where tiles are scanlines, and make sure
+	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
 	if( im_shrink( x, t[2], shrink, shrink ) ||
-		im_affinei_all( t[2], t[3], 
-			interp, residual, 0, 0, residual, 0, 0 ) )
+		im_tile_cache( t[2], t[3], 
+			t[2]->Xsize, 1, 
+			VIPS__TILE_HEIGHT * 2 ) )
 		return( -1 );
 	x = t[3];
+
+	if( im_affinei_all( t[3], t[4], 
+		interp, residual, 0, 0, residual, 0, 0 ) )
+		return( -1 );
+	x = t[4];
 
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
@@ -172,9 +188,9 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		if( verbose ) 
 			printf( "sharpening thumbnail\n" );
 
-		if( im_conv( x, t[4], sharpen_filter() ) )
+		if( im_conv( x, t[5], sharpen_filter() ) )
 			return( -1 );
-		x = t[4];
+		x = t[5];
 	}
 
 	/* Colour management: we can transform the image if we have an output
@@ -188,7 +204,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 			if( verbose ) 
 				printf( "importing with embedded profile\n" );
 
-			if( im_icc_import_embedded( x, t[5], 
+			if( im_icc_import_embedded( x, t[6], 
 				IM_INTENT_RELATIVE_COLORIMETRIC ) )
 				return( -1 );
 		}
@@ -197,7 +213,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 				printf( "importing with profile %s\n",
 					import_profile );
 
-			if( im_icc_import( x, t[5], 
+			if( im_icc_import( x, t[6], 
 				import_profile, 
 				IM_INTENT_RELATIVE_COLORIMETRIC ) )
 				return( -1 );
@@ -206,12 +222,12 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		if( verbose ) 
 			printf( "exporting with profile %s\n", export_profile );
 
-		if( im_icc_export_depth( t[5], t[6], 
+		if( im_icc_export_depth( t[6], t[7], 
 			8, export_profile, 
 			IM_INTENT_RELATIVE_COLORIMETRIC ) )
 			return( -1 );
 
-		x = t[6];
+		x = t[7];
 	}
 
 	if( !nodelete_profile ) {
@@ -253,7 +269,8 @@ thumbnail3( IMAGE *in, IMAGE *out )
 	if( verbose ) {
 		printf( "integer shrink by %d\n", shrink );
 		printf( "residual scale by %g\n", residual );
-		printf( "%s interpolation\n", VIPS_OBJECT( interp )->nickname );
+		printf( "%s interpolation\n", 
+			VIPS_OBJECT_GET_CLASS( interp )->nickname );
 	}
 
 	result = shrink_factor( in, out, shrink, residual, interp );
