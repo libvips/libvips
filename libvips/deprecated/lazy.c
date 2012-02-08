@@ -283,7 +283,7 @@ vips__deprecated_open_read( const char *filename )
 	if( vips_format_is_vips( format ) ) {
 		/* For vips format, we can just the main vips path.
 		 */
-		return( im_open( filename, "rd" ) );
+		return( vips_image_new_mode( filename, "rd" ) );
 	}
 	else {
 		/* For non-vips formats we must go via the old VipsFormat
@@ -311,7 +311,7 @@ vips__deprecated_open_write( const char *filename )
 	if( vips_format_is_vips( format ) ) 
 		/* For vips format, we can just the main vips path.
 		 */
-		return( im_open( filename, "w" ) );
+		return( vips_image_new_mode( filename, "w" ) );
 	else {
 		/* For non-vips formats we must go via the old VipsFormat
 		 * system to make sure we support the "filename:options"
