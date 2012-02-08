@@ -465,13 +465,13 @@ vips__png_read( const char *name, VipsImage *out, int sequential )
 			png2vips_sequential( read, raw ) )
 			return( -1 );
 
-		/* Copy to out, adding a cache. 
-		 * Enough tiles for two complete rows.
+		/* Copy to out, adding a cache. Enough tiles for two complete 
+		 * rows.
 		 */
 		if( vips_tilecache( raw, &t, 
 			"tile_width", raw->Xsize, 
-			"tile_height", 32,
-			"max_tiles", 10,
+			"tile_height", VIPS__TILE_HEIGHT,
+			"max_tiles", 2,
 			NULL ) ) 
 			return( -1 );
 		if( vips_image_write( t, out ) ) {

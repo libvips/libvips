@@ -21,6 +21,8 @@
  * 	- oops sharpening was turning off for integer shrinks, thanks Nicolas
  * 30/7/10
  * 	- use new "rd" mode rather than our own open via disc
+ * 8/2/12
+ * 	- use :seq mode for png images
  */
 
 #ifdef HAVE_CONFIG_H
@@ -326,6 +328,7 @@ static int
 thumbnail( const char *filename )
 {
 	VipsFormatClass *format;
+	char buf[FILENAME_MAX];
 
 	if( verbose )
 		printf( "thumbnailing %s\n", filename );
@@ -340,7 +343,6 @@ thumbnail( const char *filename )
 	if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "jpeg" ) == 0 ) {
 		IMAGE *im;
 		int shrink;
-		char buf[FILENAME_MAX];
 
 		/* This will just read in the header and is quick.
 		 */
@@ -362,6 +364,15 @@ thumbnail( const char *filename )
 
 		if( verbose )
 			printf( "using fast jpeg shrink, factor %d\n", shrink );
+
+		return( thumbnail2( buf ) );
+	}
+	else if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "png" ) == 0 ) {
+		char buf[FILENAME_MAX];
+
+		if( verbose )
+			printf( "enabling sequential mode for png load\n" );
+		im_snprintf( buf, FILENAME_MAX, "%s:seq", filename );
 
 		return( thumbnail2( buf ) );
 	}

@@ -60,8 +60,22 @@ im_open( const char *filename, const char *mode )
 	if( vips_init( "giant_banana" ) )
 		vips_error_clear();
 
-	if( !(image = vips_image_new_mode( filename, mode )) )
-		return( NULL );
+	/* We have to go via the old VipsFormat system so we can support the
+	 * "filename:option" syntax.
+	 */
+	if( strcmp( mode, "r" ) == 0 ||
+		strcmp( mode, "rd" ) == 0 ) {
+		if( !(image = vips__deprecated_open_read( filename )) )
+			return( NULL );
+	}
+	else if( strcmp( mode, "w" ) == 0 ) {
+		if( !(image = vips__deprecated_open_write( filename )) )
+			return( NULL );
+	}
+	else {
+		if( !(image = vips_image_new_mode( filename, mode )) )
+			return( NULL );
+	}
 
 	return( image );
 }

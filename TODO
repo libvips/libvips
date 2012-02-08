@@ -1,5 +1,16 @@
 - add a sequential mode to all readers
 
+- we need to shrink a line at a time .. also, im_shrink() could be a bit
+  quicker
+
+
+
+- vips_image_new_from_file() etc. don't allow options in file names ... should
+  they have varargs instead for options? or a version which goes view
+  new_from_string and does allow options?
+
+
+
 
 
 
