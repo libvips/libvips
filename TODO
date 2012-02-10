@@ -3,6 +3,18 @@
 - we need to shrink a line at a time .. also, im_shrink() could be a bit
   quicker
 
+- argh
+
+	(nip2:11576): GLib-GObject-WARNING **: value "-0.000000" of type 
+	`gdouble' is invalid or out of range for property `yres' of 
+	type `gdouble'
+
+- png save from nip2 often makes bad pngs?
+
+  and clicking on one of those bad pngs in the file browser will lock nip2
+
+  they don't seem to bother "header" though, strange
+
 
 
 - vips_image_new_from_file() etc. don't allow options in file names ... should
