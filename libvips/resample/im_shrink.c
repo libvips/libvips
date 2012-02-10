@@ -28,8 +28,8 @@
  * 2/2/11
  * 	- gtk-doc
  * 10/2/12
- * 	- faster, simpler
  * 	- shrink in chunks to reduce peak memuse for large shrinks
+ * 	- simpler
  */
 
 /*
@@ -135,9 +135,12 @@ shrink_start( IMAGE *out, void *a, void *b )
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \
 	\
+	for( b = 0; b < bands; b++ ) \
+		sum[b] = 0; \
+	\
 	for( y1 = 0; y1 < st->mh; y1++ ) { \
-		for( i = 0, x1 = 0; x1 < st->mw; x1++ )  \
-			for( b = 0; b < bands; b++, i++ )  \
+		for( i = 0, x1 = 0; x1 < st->mw; x1++ ) \
+			for( b = 0; b < bands; b++, i++ ) \
 				sum[b] += p[i]; \
 		\
 		p += ls; \
@@ -154,9 +157,12 @@ shrink_start( IMAGE *out, void *a, void *b )
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \
 	\
+	for( b = 0; b < bands; b++ ) \
+		sum[b] = 0.0; \
+	\
 	for( y1 = 0; y1 < st->mh; y1++ ) { \
-		for( i = 0, x1 = 0; x1 < st->mw; x1++ )  \
-			for( b = 0; b < bands; b++, i++ )  \
+		for( i = 0, x1 = 0; x1 < st->mw; x1++ ) \
+			for( b = 0; b < bands; b++, i++ ) \
 				sum[b] += p[i]; \
 		\
 		p += ls; \
@@ -189,9 +195,6 @@ shrink_gen2( ShrinkInfo *st, SeqInfo *seq,
 			int iy = (top + y) * st->yshrink; 
 			VipsPel *in = IM_REGION_ADDR( ir, ix, iy ); 
 
-			for( i = 0; i < sizeof_pixel; i++ ) 
-				seq->sum[i] = 0; 
-
 			switch( st->in->BandFmt ) {
 			case IM_BANDFMT_UCHAR: 	
 				ISHRINK( unsigned char ); break;
@@ -213,6 +216,8 @@ shrink_gen2( ShrinkInfo *st, SeqInfo *seq,
 			default:
 				g_assert( 0 ); 
 			}
+
+			out += sizeof_pixel;
 		}
 	}
 }
@@ -223,7 +228,6 @@ static int
 shrink_gen( REGION *or, void *vseq, void *a, void *b )
 {
 	SeqInfo *seq = (SeqInfo *) vseq;
-	IMAGE *in = (IMAGE *) a;
 	ShrinkInfo *st = (ShrinkInfo *) b;
 	REGION *ir = seq->ir;
 	Rect *r = &or->valid;
@@ -242,10 +246,10 @@ shrink_gen( REGION *or, void *vseq, void *a, void *b )
 
 	for( y = 0; y < r->height; y += ystep )  
 		for( x = 0; x < r->width; x += xstep ) { 
-			/* Clip the this rect against the image size.
+			/* Clip the this rect against the demand size.
 			 */
-			int width = VIPS_MIN( xstep, in->Xsize - r->left - x );
-			int height = VIPS_MIN( ystep, in->Ysize - r->top - y );
+			int width = VIPS_MIN( xstep, r->width - x );
+			int height = VIPS_MIN( ystep, r->height - y );
 
 			Rect s;
 
@@ -287,6 +291,8 @@ shrink( IMAGE *in, IMAGE *out, double xshrink, double yshrink )
 	 */
 	if( !(st = IM_NEW( out, ShrinkInfo )) )
 		return( -1 );
+	st->in = in;
+	st->out = out;
 	st->xshrink = xshrink;
 	st->yshrink = yshrink;
 	st->mw = ceil( xshrink );

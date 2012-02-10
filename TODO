@@ -1,7 +1,7 @@
 - add a sequential mode to all readers
 
-- we need to shrink a line at a time .. also, im_shrink() could be a bit
-  quicker
+  we can't do this neatly in the base load class until we move all loaders to
+  classes ... do an ad-hoc hack for now
 
 - argh
 
