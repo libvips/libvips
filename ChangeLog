@@ -4,6 +4,7 @@
 - delayed write to foreign via a "w" image was not working
 - support operations with many returns in Python
 - sequential read mode for pngload
+- better im_shrink()
 
 20/8/11 started 7.27.0
 - version bump for new dev cycle
