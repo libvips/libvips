@@ -174,7 +174,6 @@ vips_boolean_buffer( VipsArithmetic *arithmetic,
 	}
 }
 
-
 /* Save a bit of typing.
  */
 #define UC VIPS_FORMAT_UCHAR

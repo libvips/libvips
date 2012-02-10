@@ -1823,7 +1823,7 @@ vips__boolean( IMAGE *in1, IMAGE *in2, IMAGE *out,
 {
 	VipsImage *t;
 
-	if( vips_relational( in1, in2, &t, boolean,
+	if( vips_boolean( in1, in2, &t, boolean,
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
