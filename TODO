@@ -9,9 +9,7 @@
 	`gdouble' is invalid or out of range for property `yres' of 
 	type `gdouble'
 
-- png save from nip2 often makes bad pngs?
-
-  and clicking on one of those bad pngs in the file browser will lock nip2
+- clicking on bad pngs in the file browser will lock nip2
 
   they don't seem to bother "header" though, strange
 
@@ -43,6 +41,13 @@
   vips_interpolate_bilinear() master 19.2m
 
   total of about 0.5s user time difference
+
+  ... tile size difference!
+
+  try 
+
+  	time ./vips.py wtc_tiled_small.tif x.tif --vips-tile-width=512
+	--vips-tile-height=512
 
 
 

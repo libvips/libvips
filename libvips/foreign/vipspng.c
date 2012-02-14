@@ -513,11 +513,17 @@ typedef struct {
 } Write;
 
 static void
-write_destroy( VipsImage *out, Write *write )
+write_finish( Write *write )
 {
 	VIPS_FREEF( fclose, write->fp );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
+}
+
+static void
+write_destroy( VipsImage *out, Write *write )
+{
+	write_finish( write ); 
 }
 
 static Write *
@@ -689,6 +695,8 @@ vips__png_write( VipsImage *in, const char *filename,
 
 		return( -1 );
 	}
+
+	write_finish( write );
 
 	return( 0 );
 }
