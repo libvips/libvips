@@ -113,11 +113,6 @@ typedef struct {
 	png_infop pInfo;
 	png_bytep *row_pointer;
 	png_bytep data;
-
-	/* During sequential read we keep track of the current y position in
-	 * the file to check sequentiality.
-	 */
-	int y_pos;
 } Read;
 
 static void
@@ -145,7 +140,6 @@ read_new( const char *name, VipsImage *out )
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
 	read->data = NULL;
-	read->y_pos = 0;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read ); 
@@ -342,28 +336,18 @@ png2vips_interlace( Read *read, VipsImage *out )
 }
 
 static int
-png2vips_generate( VipsRegion *out, 
+png2vips_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
+        VipsRect *r = &or->valid;
 	Read *read = (Read *) a;
 
 	int y;
 
 #ifdef DEBUG
 	printf( "png2vips_generate: line %d, %d rows\n", 
-		out->valid.top, out->valid.height );
-	printf( "png2vips_generate: thread %p\n", g_thread_self() );
+		r->top, r->height );
 #endif /*DEBUG*/
-
-	/* The y pos of the request must be the same as our current file
-	 * position.
-	 */
-	if( out->valid.top != read->y_pos ) {
-		vips_error( "png2vips", _( "non-sequential read --- "
-			"at position %d in file, but position %d requested" ),
-			read->y_pos, out->valid.top );
-		return( -1 );
-	}
 
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
@@ -371,22 +355,15 @@ png2vips_generate( VipsRegion *out,
 	/* We're inside a tilecache where tiles are the fill image width, so
 	 * this should always be true.
 	 */
-	g_assert( out->valid.left == 0 );
-	g_assert( out->valid.width == out->im->Xsize );
-	g_assert( VIPS_RECT_BOTTOM( &out->valid ) <= out->im->Ysize );
+	g_assert( r->left == 0 );
+	g_assert( r->width == or->im->Xsize );
+	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
 
-	for( y = 0; y < out->valid.height; y++ ) {
-		png_bytep q = (png_bytep) 
-			VIPS_REGION_ADDR( out, 0, out->valid.top + y );
+	for( y = 0; y < r->height; y++ ) {
+		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
 
 		png_read_row( read->pPng, q, NULL );
 	}
-
-	read->y_pos += out->valid.height;
-
-#ifdef DEBUG
-	printf( "png2vips_generate: done for thread %p\n", g_thread_self() );
-#endif /*DEBUG*/
 
 	return( 0 );
 }
@@ -396,7 +373,7 @@ png2vips_generate( VipsRegion *out,
  *
  * We are behind a tile cache, so we can assume that vips_image_generate()
  * will always be asked for tiles which are the full image width. We can also
- * assume we are single-threaded.
+ * assume we are single-threaded. And that we will be called sequentially.
  */
 static int
 png2vips_sequential( Read *read, VipsImage *out )
@@ -409,34 +386,29 @@ png2vips_sequential( Read *read, VipsImage *out )
 	return( 0 );
 }
 
-/* Noninterlaced images can be read without needing enough RAM for the whole
- * image.
+/* Interlaced PNGs need to be entirely decompressed into memory then can be
+ * served partially from there. Non-interlaced PNGs may be read sequentially.
  */
-static int
-png2vips_noninterlace( Read *read, VipsImage *out )
+gboolean
+vips__png_isinterlaced( const char *filename )
 {
-	const int rowbytes = VIPS_IMAGE_SIZEOF_LINE( out );
-	const int height = png_get_image_height( read->pPng, read->pInfo );
+	VipsImage *image;
+	Read *read;
+	gboolean interlaced;
 
-	int y;
-
-	if( !(read->data = (png_bytep) vips_malloc( NULL, rowbytes ))  )
+	image = vips_image_new();
+	if( !(read = read_new( filename, image )) ) {
+		g_object_unref( image );
 		return( -1 );
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
-		return( -1 );
-
-	for( y = 0; y < height; y++ ) {
-		png_read_row( read->pPng, read->data, NULL );
-
-		if( vips_image_write_line( out, y, read->data ) )
-			return( -1 );
 	}
+	interlaced = png_set_interlace_handling( read->pPng ) > 1;
+	g_object_unref( image );
 
-	return( 0 );
+	return( interlaced );
 }
 
 int
-vips__png_read( const char *name, VipsImage *out, int sequential )
+vips__png_read( const char *name, VipsImage *out )
 {
 	Read *read;
 
@@ -452,38 +424,9 @@ vips__png_read( const char *name, VipsImage *out, int sequential )
 			png2vips_interlace( read, out ) )
 			return( -1 );
 	}
-	else if( sequential ) {
-		VipsImage *raw;
-		VipsImage *t;
-
-		/* Read to this image, then cache to out.
-		 */
-		raw = vips_image_new(); 
-		vips_object_local( out, raw );
-
-		if( png2vips_header( read, raw ) || 
-			png2vips_sequential( read, raw ) )
-			return( -1 );
-
-		/* Copy to out, adding a cache. Enough tiles for two complete 
-		 * rows.
-		 */
-		if( vips_tilecache( raw, &t, 
-			"tile_width", raw->Xsize, 
-			"tile_height", VIPS__TILE_HEIGHT,
-			"max_tiles", 2,
-			NULL ) ) 
-			return( -1 );
-		if( vips_image_write( t, out ) ) {
-			g_object_unref( t );
-			return( -1 );
-		}
-		g_object_unref( t );
-
-	}
 	else {
 		if( png2vips_header( read, out ) || 
-			png2vips_noninterlace( read, out ) )
+			png2vips_sequential( read, out ) )
 			return( -1 );
 	}
 

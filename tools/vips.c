@@ -67,9 +67,9 @@
  */
 
 /*
-#define DEBUG_FATAL
 #define DEBUG
  */
+#define DEBUG_FATAL
 
 /* Need to disable these sometimes.
 #undef DEBUG_FATAL
@@ -1010,6 +1010,7 @@ main( int argc, char **argv )
 		G_LOG_LEVEL_ERROR |
 		G_LOG_LEVEL_CRITICAL |
 		G_LOG_LEVEL_WARNING );
+	fprintf( stderr, "** DEBUG_FATAL\n" );
 #endif /*!DEBUG_FATAL*/
 
 	/* Try to find our action.

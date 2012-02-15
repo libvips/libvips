@@ -89,8 +89,9 @@ void *vips_foreign_map( const char *base,
 typedef enum {
 	VIPS_FOREIGN_NONE = 0,		/* No flags set */
 	VIPS_FOREIGN_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
-	VIPS_FOREIGN_BIGENDIAN = 2,	/* Most-significant byte first */
-	VIPS_FOREIGN_ALL = 3		/* All flags set */
+	VIPS_FOREIGN_SEQUENTIAL = 2,	/* Top-to-bottom lazy read OK */
+	VIPS_FOREIGN_BIGENDIAN = 3,	/* Most-significant byte first */
+	VIPS_FOREIGN_ALL = 4		/* All flags set */
 } VipsForeignFlags;
 
 #define VIPS_TYPE_FOREIGN_LOAD (vips_foreign_load_get_type())
@@ -116,9 +117,19 @@ typedef struct _VipsForeignLoad {
 	 */
 	gboolean disc;
 
-	/* Flags read from the foreign.
+	/* Setting this means "I promise to only read sequentially from this
+	 * image". 
+	 */
+	gboolean sequential;
+
+	/* Flags for this load operation.
 	 */
 	VipsForeignFlags flags;
+
+	/* In sequential mode we need to track the y position so we can 
+	 * ensure top-to-bottom-ness.
+	 */
+	int y_pos;
 
 	/*< public >*/
 
@@ -130,7 +141,6 @@ typedef struct _VipsForeignLoad {
 	 * disc foreign or a memory buffer. This must be set by ->load().
 	 */
 	VipsImage *real;
-
 } VipsForeignLoad;
 
 typedef struct _VipsForeignLoadClass {
@@ -139,9 +149,8 @@ typedef struct _VipsForeignLoadClass {
 
 	/* Is a file in this format. 
 	 *
-	 * This function should return %TRUE if 
-	 * the file contains an image of this type. If you don't define this 
-	 * function, #VipsForeignLoad
+	 * This function should return %TRUE if the file contains an image of 
+	 * this type. If you don't define this function, #VipsForeignLoad
 	 * will use @suffs instead.
 	 */
 	gboolean (*is_a)( const char * );
@@ -156,13 +165,15 @@ typedef struct _VipsForeignLoadClass {
 	 */
 	VipsForeignFlags (*get_flags_filename)( const char * );
 
-	/* Get the flags for this image. Images can be loaded from (for
-	 * example) memory areas rather than files, so you can't just use
+	/* Get the flags for this load operation. Images can be loaded from 
+	 * (for example) memory areas rather than files, so you can't just use
 	 * @get_flags_filename().
 	 */
 	VipsForeignFlags (*get_flags)( VipsForeignLoad * );
 
-	/* Set the header fields in @out from @filename. If you can read the 
+	/* Do the minimum read we can. 
+	 *
+	 * Set the header fields in @out from @filename. If you can read the 
 	 * whole image as well with no performance cost (as with vipsload),
 	 * or if your loader does not support reading only the header, read
 	 * the entire image in this method and leave @load() NULL.
@@ -175,7 +186,8 @@ typedef struct _VipsForeignLoadClass {
 	 */
 	int (*header)( VipsForeignLoad * );
 
-	/* Read the whole image into @real. It gets copied to @out later.
+	/* Read the whole image into @real. The pixels will get copied to @out 
+	 * later.
 	 *
 	 * You can omit this method if you define a @header() method which 
 	 * loads the whole file. 

@@ -58,10 +58,6 @@ typedef struct _VipsForeignLoadPng {
 	 */
 	char *filename; 
 
-	/* Setting this means "I promise to only read sequentially from this
-	 * image". 
-	 */
-	gboolean sequential;
 } VipsForeignLoadPng;
 
 typedef VipsForeignLoadClass VipsForeignLoadPngClass;
@@ -72,24 +68,23 @@ G_DEFINE_TYPE( VipsForeignLoadPng, vips_foreign_load_png,
 static VipsForeignFlags
 vips_foreign_load_png_get_flags_filename( const char *filename )
 {
-	/* We can't tell just from the file. Always refuse.
-	 */
-	return( 0 );
+	VipsForeignFlags flags;
+
+	flags = 0;
+	if( vips__png_isinterlaced( filename ) )
+		flags = VIPS_FOREIGN_PARTIAL;
+	else
+		flags = VIPS_FOREIGN_SEQUENTIAL;
+
+	return( flags );
 }
 
 static VipsForeignFlags
 vips_foreign_load_png_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
-	VipsForeignFlags flags;
 
-	flags = 0;
-	/* If sequential is set, try to read partially.
-	 */
-	if( png->sequential )
-		flags |= VIPS_FOREIGN_PARTIAL;
-
-	return( flags );
+	return( vips_foreign_load_png_get_flags_filename( png->filename ) ); 
 }
 
 static int
@@ -108,7 +103,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_read( png->filename, load->real, png->sequential ) )
+	if( vips__png_read( png->filename, load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -143,13 +138,6 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPng, filename ),
 		NULL );
-
-	VIPS_ARG_BOOL( class, "sequential", 10, 
-		_( "Sequential" ), 
-		_( "Sequential read only" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadPng, sequential ),
-		FALSE );
 }
 
 static void

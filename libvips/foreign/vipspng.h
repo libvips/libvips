@@ -35,8 +35,9 @@ extern "C" {
 #endif /*__cplusplus*/
 
 int vips__png_header( const char *name, VipsImage *out );
-int vips__png_read( const char *name, VipsImage *out, int sequential );
+int vips__png_read( const char *name, VipsImage *out );
 int vips__png_ispng( const char *filename );
+gboolean vips__png_isinterlaced( const char *filename );
 extern const char *vips__png_suffs[];
 
 int vips__png_write( VipsImage *in, const char *filename, 

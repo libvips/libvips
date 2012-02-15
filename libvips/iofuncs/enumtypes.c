@@ -14,6 +14,7 @@ vips_foreign_flags_get_type( void )
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_NONE, "VIPS_FOREIGN_NONE", "none"},
 			{VIPS_FOREIGN_PARTIAL, "VIPS_FOREIGN_PARTIAL", "partial"},
+			{VIPS_FOREIGN_SEQUENTIAL, "VIPS_FOREIGN_SEQUENTIAL", "sequential"},
 			{VIPS_FOREIGN_BIGENDIAN, "VIPS_FOREIGN_BIGENDIAN", "bigendian"},
 			{VIPS_FOREIGN_ALL, "VIPS_FOREIGN_ALL", "all"},
 			{0, NULL, NULL}

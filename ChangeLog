@@ -3,7 +3,7 @@
 - added vips_foreign_find_save_options()/vips_foreign_find_load_options()
 - delayed write to foreign via a "w" image was not working
 - support operations with many returns in Python
-- sequential read mode for pngload
+- sequential read mode 
 - better im_shrink()
 
 20/8/11 started 7.27.0
