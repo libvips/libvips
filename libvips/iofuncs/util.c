@@ -1267,7 +1267,7 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 		*token = VIPS_TOKEN_STRING;
 		n = strcspn( p, "<[{()}]>=," );
 		i = VIPS_MIN( n, size );
-		vips_strncpy( string, p, i );
+		vips_strncpy( string, p, i + 1 );
 		p += n;
 
 		/* We remove leading whitespace, so we trim trailing

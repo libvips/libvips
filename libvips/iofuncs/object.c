@@ -122,6 +122,8 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentInstance *argument_instance,
 	void *a, void *b )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
 	int *result = (int *) a;
 	VipsArgumentFlags *iomask = (VipsArgumentFlags *) b;
 
@@ -142,12 +144,9 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		(argument_class->flags & *iomask) &&
 		!argument_instance->assigned ) {
-		vips_error( "VipsObject",
-			/* used as eg. "parameter out to VipsAdd not set".
-			 */
-			_( "parameter %s to %s not set" ),
-			g_param_spec_get_name( pspec ),
-			G_OBJECT_TYPE_NAME( object ) );
+		vips_error( class->nickname, 
+			_( "parameter %s not set" ),
+			g_param_spec_get_name( pspec ) );
 		*result = -1;
 	}
 
@@ -502,25 +501,23 @@ vips_object_get_argument( VipsObject *object, const char *name,
 
 	if( !(*pspec = g_object_class_find_property( 
 		G_OBJECT_CLASS( class ), name )) ) {
-		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
-			_( "class `%s' has no property named `%s'" ),
-			G_OBJECT_TYPE_NAME( object ), name );
+		vips_error( class->nickname, 
+			_( "no property named `%s'" ), name );
 		return( -1 );
 	}
 
 	if( !(*argument_class = (VipsArgumentClass *)
 		vips__argument_table_lookup( class->argument_table, 
 		*pspec )) ) {
-		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
-			_( "class `%s' has no vips argument named `%s'" ),
-			G_OBJECT_TYPE_NAME( object ), name );
+		vips_error( class->nickname, 
+			_( "no vips argument named `%s'" ), name );
 		return( -1 );
 	}
 	if( argument_class &&
 		!(*argument_instance = vips__argument_get_instance( 
 			*argument_class, object )) ) {
-		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
-			_( "vips argument `%s' has no instance" ), name );
+		vips_error( class->nickname, 
+			_( "argument `%s' has no instance" ), name );
 		return( -1 );
 	}
 
@@ -1398,6 +1395,8 @@ int
 vips_object_set_argument_from_string( VipsObject *object, 
 	const char *name, const char *value )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
 	VipsArgumentInstance *argument_instance;
@@ -1488,11 +1487,9 @@ vips_object_set_argument_from_string( VipsObject *object,
 			g_type_class_ref( otype ), value )) ) {
 			if( !(enum_value = g_enum_get_value_by_nick( 
 				g_type_class_ref( otype ), value )) ) {
-				vips_error( 
-					"vips_object_set_argument_from_string",
+				vips_error( class->nickname, 
 					_( "enum '%s' has no member '%s'" ),
-					g_type_name( otype ),
-					value );
+					g_type_name( otype ), value );
 				return( -1 );
 			}
 		}
@@ -1692,6 +1689,8 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 static int
 vips_object_set_args( VipsObject *object, const char *p )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
 	VipsToken token;
 	char string[PATH_MAX];
 	char string2[PATH_MAX];
@@ -1729,12 +1728,12 @@ vips_object_set_args( VipsObject *object, const char *p )
 				&pspec, &argument_class, &argument_instance ) &&
 			(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 			(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
-			!argument_instance->assigned &&
 			G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
-			/* The string is the name of an unassigned optional
+			/* The string is the name of an optional
 			 * input boolean ... set it!
 			 */
-			g_object_set( object, string, TRUE, NULL );
+			if( !argument_instance->assigned )
+				g_object_set( object, string, TRUE, NULL );
 		}
 		else if( (pspec = vips_object_find_required( object )) ) {
 			if( vips_object_set_argument_from_string( object, 
@@ -1742,23 +1741,22 @@ vips_object_set_args( VipsObject *object, const char *p )
 				return( -1 );
 		}
 		else {
-			vips_error( "VipsObject",
-				_( "no unset required arguments for %s" ), 
-				string );
+			vips_error( class->nickname,
+				_( "unable to set '%s'" ), string );
 			return( -1 );
 		}
 
 		/* Now must be a , or a ).
 		 */
 		if( token != VIPS_TOKEN_RIGHT && token != VIPS_TOKEN_COMMA ) {
-			vips_error( "VipsObject", 
+			vips_error( class->nickname,
 				"%s", _( "not , or ) after parameter" ) );
 			return( -1 );
 		}
 	} while( token != VIPS_TOKEN_RIGHT );
 
 	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
-		vips_error( "VipsObject", 
+		vips_error( class->nickname,
 			"%s", _( "extra tokens after ')'" ) );
 		return( -1 );
 	}
@@ -1790,7 +1788,6 @@ vips_object_new_from_string( VipsObjectClass *object_class, const char *p )
 	 */
 	if( q && 
 		vips_object_set_args( object, q ) ) {
-		vips_error( "VipsObject", "%s", _( "bad object arguments" ) );
 		g_object_unref( object );
 		return( NULL );
 	}

@@ -1394,7 +1394,7 @@ vips_foreign_save_init( VipsForeignSave *object )
  * Loads @filename into @out using the loader recommended by
  * vips_foreign_find_load().
  *
- * See also: vips_foreign_save(), vips_foreign_read_options().
+ * See also: vips_foreign_save(), vips_foreign_load_options().
  *
  * Returns: 0 on success, -1 on error
  */
