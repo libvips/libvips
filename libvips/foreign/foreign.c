@@ -678,6 +678,43 @@ vips_get_disc_threshold( void )
 	return( threshold );
 }
 
+static VipsImage *
+vips_foreign_load_temp( VipsForeignLoad *load )
+{
+	const guint64 disc_threshold = vips_get_disc_threshold();
+	const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( load->out );
+
+	VipsImage *temp;
+
+	/* We open via disc if:
+	 * - 'disc' is set
+	 * - disc-threshold has not been set to zero
+	 * - the uncompressed image will be larger than 
+	 *   vips_get_disc_threshold()
+	 */
+	if( load->disc && 
+		disc_threshold && 
+		image_size > disc_threshold ) {
+#ifdef DEBUG
+		printf( "vips_foreign_load_temp: making disc temp\n" );
+#endif /*DEBUG*/
+
+		if( !(temp = vips_image_new_disc_temp( "%s.v" )) )
+			return( NULL );
+	}
+	else {
+#ifdef DEBUG
+		printf( "vips_foreign_load_start: making 'p' temp\n" );
+#endif /*DEBUG*/
+
+		/* Otherwise, fall back to a "p".
+		 */
+		temp = vips_image_new();
+	}
+
+	return( temp );
+}
+
 /* Check two images for compatibility: their geometries need to match.
  */
 static gboolean
@@ -700,43 +737,14 @@ vips_foreign_load_iscompat( VipsImage *a, VipsImage *b )
  * on the new image.
  */
 static void *
-vips_foreign_load_start( VipsImage *out, void *a, void *dummy )
+vips_foreign_load_start( VipsImage *out, void *a, void *b )
 {
-	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( a );
-	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( a );
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( b );
+	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( load );
 
 	if( !load->real ) {
-		const guint64 disc_threshold = vips_get_disc_threshold();
-		const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( load->out );
-
-		/* We open via disc if:
-		 * - 'disc' is set
-		 * - disc-threshold has not been set to zero
-		 * - the format does not support lazy read
-		 * - the uncompressed image will be larger than 
-		 *   vips_get_disc_threshold()
-		 */
-		if( load->disc && 
-			disc_threshold && 
-			!(load->flags & VIPS_FOREIGN_PARTIAL) &&
-			image_size > disc_threshold ) {
-#ifdef DEBUG
-			printf( "vips_foreign_load_start: making disc temp\n" );
-#endif /*DEBUG*/
-
-			if( !(load->real = vips_image_new_disc_temp( "%s.v" )) )
-				return( NULL );
-		}
-
-		/* Otherwise, fall back to a "p".
-		 */
-		if( !load->real ) {
-#ifdef DEBUG
-			printf( "vips_foreign_load_start: making 'p' temp\n" );
-#endif /*DEBUG*/
-
-			load->real = vips_image_new();
-		}
+		if( !(load->real = vips_foreign_load_temp( load )) )
+			return( NULL );
 
 #ifdef DEBUG
 		printf( "vips_foreign_load_start: triggering ->load()\n" );
@@ -786,73 +794,6 @@ vips_foreign_load_generate( VipsRegion *or,
 }
 
 static int
-vips_foreign_load_seq_generate( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
-{
-	VipsForeignLoad *load = (VipsForeignLoad *) b;
-	VipsRegion *ir = (VipsRegion *) seq;
-        VipsRect *r = &or->valid;
-
-	/* The y pos of the request must be the same as our current file
-	 * position.
-	 */
-	if( r->top != load->y_pos ) {
-		vips_error( "VipsForeignLoad", 
-			_( "non-sequential read --- "
-			"at position %d in file, but position %d requested" ),
-			load->y_pos, r->top );
-		return( -1 );
-	}
-
-	/* We're inside a tilecache where tiles are the fill image width, so
-	 * this should always be true.
-	 */
-	g_assert( r->left == 0 );
-	g_assert( r->width == or->im->Xsize );
-	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
-
-        /* Ask for input we need.
-         */
-        if( vips_region_prepare( ir, r ) )
-                return( -1 );
-
-        /* Attach output region to that.
-         */
-        if( vips_region_region( or, ir, r, r->left, r->top ) )
-                return( -1 );
-
-	load->y_pos += r->height;
-
-	return( 0 );
-}
-
-/* Like vips_copy(), but check sequentiality of access.
- */
-static int
-vips_foreign_load_seq( VipsForeignLoad *load, VipsImage *in, VipsImage **out )
-{
-	VipsImage *seq;
-
-	seq = vips_image_new(); 
-	vips_demand_hint( seq, VIPS_DEMAND_STYLE_FATSTRIP,
-		in, NULL );
-	if( vips_image_pio_input( in ) || 
-		vips_image_copy_fields( seq, in ) ||
-		vips_image_generate( seq,
-			vips_start_one, 
-			vips_foreign_load_seq_generate, 
-			vips_stop_one, 
-			in, load ) ) {
-		g_object_unref( seq );
-		return( -1 );
-	}
-
-	*out = seq;
-
-	return( 0 );
-}
-
-static int
 vips_foreign_load_build( VipsObject *object )
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( object );
@@ -898,19 +839,16 @@ vips_foreign_load_build( VipsObject *object )
 	 * everything. Otherwise, it's just set fields and we must also
 	 * load pixels.
 	 *
-	 * Three modes: 
+	 * If it's a partial loader, or if it's a sequiential loader and
+	 * sequential load has been requested, we can load here. 
 	 *
-	 * PARTIAL: just load and copy to @out. This is rather unlikely, most
-	 * partial readers would just define a ->header() method I suppose.
-	 *
-	 * SEQUENTIAL: we need a tile cache plus a thing
-	 * to check sequentiality.
-	 *
-	 * ELSE: it's a write-line thing. We delay the load until the 
-	 * first read, and allocate a memory/disk buffer as required. 
+	 * Otherwise, it's a whole-image read and we delay until first pixel
+	 * access. 
 	 */
 	if( class->load && 
-		(load->flags & VIPS_FOREIGN_PARTIAL) ) {
+		((load->flags & VIPS_FOREIGN_PARTIAL) ||
+		 ((load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
+		  load->sequential)) ) { 
 #ifdef DEBUG
 		printf( "vips_foreign_load_build: partial read\n" );
 #endif /*DEBUG*/
@@ -938,54 +876,6 @@ vips_foreign_load_build( VipsObject *object )
 			vips_foreign_load_generate, 
 			vips_stop_one, 
 			load->real, load ) ) 
-			return( -1 );
-	}
-	else if( class->load && 
-		(load->flags & VIPS_FOREIGN_SEQUENTIAL) ) {
-		VipsImage **t = (VipsImage **) 
-			vips_object_local_array( VIPS_OBJECT( load ), 2 );
-
-#ifdef DEBUG
-		printf( "vips_foreign_load_build: sequential read\n" );
-#endif /*DEBUG*/
-
-		/* Load to @real.
-		 */
-		load->real = vips_image_new();
-		if( class->load( load ) ||
-			vips_image_pio_input( load->real ) ) 
-			return( -1 );
-
-		/* Must match ->header(). 
-		 */
-		if( !vips_foreign_load_iscompat( load->real, load->out ) )
-			return( -1 ); 
-		
-		/* Copy to seq, checking sequentiality of accesses.
-		 */
-		if( vips_foreign_load_seq( load, load->real, &t[0] ) )
-			return( -1 ); 
-
-		/* Copy again, with a cache. Enough tiles for two complete 
-		 * rows.
-		 */
-		if( vips_tilecache( t[0], &t[1], 
-			"tile_width", load->real->Xsize, 
-			"tile_height", VIPS__TILE_HEIGHT,
-			"max_tiles", 2,
-			NULL ) ) 
-			return( -1 );
-
-		/* Finally, copy to out.
-		 */
-		vips_demand_hint( load->out, load->out->dhint, t[1], NULL );
-
-		if( vips_image_pio_input( load->real ) || 
-			vips_image_generate( load->out, 
-				vips_start_one, 
-				vips_foreign_load_generate, 
-				vips_stop_one, 
-				t[1], load ) ) 
 			return( -1 );
 	}
 	else if( class->load ) { 

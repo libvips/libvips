@@ -2,6 +2,8 @@
 
   tiff, jpg are the obvious ones
 
+  test progressive png, non-sequential png load
+
 - argh
 
 	(nip2:11576): GLib-GObject-WARNING **: value "-0.000000" of type 

@@ -65,8 +65,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -352,36 +352,11 @@ png2vips_generate( VipsRegion *or,
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
-	/* We're inside a tilecache where tiles are the fill image width, so
-	 * this should always be true.
-	 */
-	g_assert( r->left == 0 );
-	g_assert( r->width == or->im->Xsize );
-	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
-
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
 
 		png_read_row( read->pPng, q, NULL );
 	}
-
-	return( 0 );
-}
-
-/* Build with vips_image_generate(), but fail if out-of-order tiles are
- * requested.
- *
- * We are behind a tile cache, so we can assume that vips_image_generate()
- * will always be asked for tiles which are the full image width. We can also
- * assume we are single-threaded. And that we will be called sequentially.
- */
-static int
-png2vips_sequential( Read *read, VipsImage *out )
-{
-	if( vips_image_generate( out, 
-		NULL, png2vips_generate, NULL, 
-		read, NULL ) )
-		return( -1 );
 
 	return( 0 );
 }
@@ -425,8 +400,21 @@ vips__png_read( const char *name, VipsImage *out )
 			return( -1 );
 	}
 	else {
-		if( png2vips_header( read, out ) || 
-			png2vips_sequential( read, out ) )
+		VipsImage **t = (VipsImage **) 
+			vips_object_local_array( VIPS_OBJECT( out ), 3 );
+
+		t[0] = vips_image_new();
+		if( png2vips_header( read, t[0] ) || 
+			vips_image_generate( t[0], 
+				NULL, png2vips_generate, NULL, 
+				read, NULL ) ||
+			vips_sequential( t[0], &t[1], NULL ) ||
+			vips_tilecache( t[1], &t[2], 
+				"tile_width", t[0]->Xsize, 
+				"tile_height", VIPS__TILE_HEIGHT,
+				"max_tiles", 2,
+				NULL ) ||
+			vips_image_write( t[2], out ) )
 			return( -1 );
 	}
 

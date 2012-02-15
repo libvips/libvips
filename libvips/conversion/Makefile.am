@@ -4,6 +4,7 @@ libconversion_la_SOURCES = \
 	conversion.c \
 	conversion.h \
 	tilecache.c \
+	sequential.c \
 	cache.c \
 	copy.c \
 	embed.c \

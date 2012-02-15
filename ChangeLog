@@ -5,6 +5,7 @@
 - support operations with many returns in Python
 - sequential read mode 
 - better im_shrink()
+- added vips_sequential()
 
 20/8/11 started 7.27.0
 - version bump for new dev cycle
