@@ -112,7 +112,7 @@ typedef struct {
 	png_structp pPng;
 	png_infop pInfo;
 	png_bytep *row_pointer;
-	png_bytep data;
+	int interlace_type;
 } Read;
 
 static void
@@ -122,7 +122,6 @@ read_destroy( VipsImage *out, Read *read )
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
 	VIPS_FREE( read->row_pointer );
-	VIPS_FREE( read->data );
 }
 
 static Read *
@@ -139,7 +138,7 @@ read_new( const char *name, VipsImage *out )
 	read->pPng = NULL;
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
-	read->data = NULL;
+	read->interlace_type = PNG_INTERLACE_NONE;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read ); 
@@ -169,7 +168,7 @@ static int
 png2vips_header( Read *read, VipsImage *out )
 {
 	png_uint_32 width, height;
-	int bit_depth, color_type, interlace_type;
+	int bit_depth, color_type;
 
 	png_uint_32 res_x, res_y;
 	int unit_type;
@@ -185,7 +184,7 @@ png2vips_header( Read *read, VipsImage *out )
 	png_read_info( read->pPng, read->pInfo );
 	png_get_IHDR( read->pPng, read->pInfo, 
 		&width, &height, &bit_depth, &color_type,
-		&interlace_type, NULL, NULL );
+		&read->interlace_type, NULL, NULL );
 
 	/* png_get_channels() gives us 1 band for palette images ... so look
 	 * at colour_type for output bands.
@@ -304,33 +303,26 @@ vips__png_header( const char *name, VipsImage *out )
 	return( 0 );
 }
 
-/* Yuk! Have to malloc enough space for the whole image. Interlaced PNG
- * is not really suitable for large objects ...
+/* Out is a huge "t" buffer we decompress to.
  */
 static int
 png2vips_interlace( Read *read, VipsImage *out )
 {
-	const int rowbytes = VIPS_IMAGE_SIZEOF_LINE( out );
-	const int height = png_get_image_height( read->pPng, read->pInfo );
-
 	int y;
 
-	if( !(read->row_pointer = VIPS_ARRAY( NULL, height, png_bytep )) )
-		return( -1 );
-	if( !(read->data = (png_bytep) 
-		vips_malloc( NULL, height * rowbytes ))  )
-		return( -1 );
+#ifdef DEBUG
+	printf( "png2vips_interlace: reading whole image\n" ); 
+#endif /*DEBUG*/
 
-	for( y = 0; y < (int) height; y++ )
-		read->row_pointer[y] = read->data + y * rowbytes;
+	if( !(read->row_pointer = VIPS_ARRAY( NULL, out->Ysize, png_bytep )) ||
+		vips_image_write_prepare( out ) )
+		return( -1 );
+	for( y = 0; y < out->Ysize; y++ )
+		read->row_pointer[y] = VIPS_IMAGE_ADDR( out, 0, y );
+
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
-
 	png_read_image( read->pPng, read->row_pointer );
-
-	for( y = 0; y < height; y++ )
-		if( vips_image_write_line( out, y, read->row_pointer[y] ) )
-			return( -1 );
 
 	return( 0 );
 }
@@ -369,43 +361,47 @@ vips__png_isinterlaced( const char *filename )
 {
 	VipsImage *image;
 	Read *read;
-	gboolean interlaced;
+	int interlace_type;
 
 	image = vips_image_new();
-	if( !(read = read_new( filename, image )) ) {
+	if( !(read = read_new( filename, image )) ||
+		png2vips_header( read, image ) ) {
 		g_object_unref( image );
 		return( -1 );
 	}
-	interlaced = png_set_interlace_handling( read->pPng ) > 1;
+	interlace_type = read->interlace_type;
 	g_object_unref( image );
 
-	return( interlaced );
+	return( interlace_type != PNG_INTERLACE_NONE );
 }
 
 int
 vips__png_read( const char *name, VipsImage *out )
 {
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 3 );
+
 	Read *read;
 
 #ifdef DEBUG
 	printf( "png2vips: reading \"%s\"\n", name );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( name, out )) )
+	t[0] = vips_image_new_buffer();
+	if( !(read = read_new( name, out )) ||
+		png2vips_header( read, t[0] ) )
 		return( -1 );
 
-	if( png_set_interlace_handling( read->pPng ) > 1 ) {
-		if( png2vips_header( read, out ) || 
-			png2vips_interlace( read, out ) )
+	if( read->interlace_type != PNG_INTERLACE_NONE ) { 
+		/* Arg we have to read to a huge mem buffer, then copy to out.
+		 */
+		t[0] = vips_image_new_buffer();
+		if( png2vips_interlace( read, t[0] ) ||
+			vips_image_write( t[0], out ) )
 			return( -1 );
 	}
 	else {
-		VipsImage **t = (VipsImage **) 
-			vips_object_local_array( VIPS_OBJECT( out ), 3 );
-
-		t[0] = vips_image_new();
-		if( png2vips_header( read, t[0] ) || 
-			vips_image_generate( t[0], 
+		if( vips_image_generate( t[0], 
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
 			vips_sequential( t[0], &t[1], NULL ) ||
