@@ -684,7 +684,27 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 	const guint64 disc_threshold = vips_get_disc_threshold();
 	const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( load->out );
 
-	VipsImage *temp;
+	/* If this is a partial operation, we can open directly.
+	 */
+	if( load->flags & VIPS_FOREIGN_PARTIAL ) {
+#ifdef DEBUG
+		printf( "vips_foreign_load_temp: partial temp\n" );
+#endif /*DEBUG*/
+
+		return( vips_image_new() );
+	}
+
+	/* If it can do sequential access and it's been requested, we can open
+	 * directly.
+	 */
+	if( (load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
+		load->sequential ) {
+#ifdef DEBUG
+		printf( "vips_foreign_load_temp: partial sequential temp\n" );
+#endif /*DEBUG*/
+
+		return( vips_image_new() );
+	}
 
 	/* We open via disc if:
 	 * - 'disc' is set
@@ -696,23 +716,19 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 		disc_threshold && 
 		image_size > disc_threshold ) {
 #ifdef DEBUG
-		printf( "vips_foreign_load_temp: making disc temp\n" );
+		printf( "vips_foreign_load_temp: disc temp\n" );
 #endif /*DEBUG*/
 
-		if( !(temp = vips_image_new_disc_temp( "%s.v" )) )
-			return( NULL );
+		return( vips_image_new_disc_temp( "%s.v" ) );
 	}
-	else {
+
 #ifdef DEBUG
-		printf( "vips_foreign_load_start: making 'p' temp\n" );
+	printf( "vips_foreign_load_temp: memory temp\n" );
 #endif /*DEBUG*/
 
-		/* Otherwise, fall back to a "p".
-		 */
-		temp = vips_image_new();
-	}
-
-	return( temp );
+	/* Otherwise, fall back to a memory buffer.
+	 */
+	return( vips_image_new_buffer() );
 }
 
 /* Check two images for compatibility: their geometries need to match.
@@ -839,48 +855,12 @@ vips_foreign_load_build( VipsObject *object )
 	 * everything. Otherwise, it's just set fields and we must also
 	 * load pixels.
 	 *
-	 * If it's a partial loader, or if it's a sequiential loader and
-	 * sequential load has been requested, we can load here. 
-	 *
-	 * Otherwise, it's a whole-image read and we delay until first pixel
-	 * access. 
+	 * Delay the load until the first pixel is requested by doing the work
+	 * in the start function of the copy.
 	 */
-	if( class->load && 
-		((load->flags & VIPS_FOREIGN_PARTIAL) ||
-		 ((load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
-		  load->sequential)) ) { 
+	if( class->load ) {
 #ifdef DEBUG
-		printf( "vips_foreign_load_build: partial read\n" );
-#endif /*DEBUG*/
-
-		/* Read the image to @real.
-		 */
-		load->real = vips_image_new();
-		if( class->load( load ) ||
-			vips_image_pio_input( load->real ) ) 
-			return( -1 );
-
-		/* Must match ->header(). 
-		 */
-		if( !vips_foreign_load_iscompat( load->real, load->out ) )
-			return( -1 ); 
-
-		/* ->header() should set the dhint. It'll default to the safe
-		 * SMALLTILE if ->header() did not set it.
-		 */
-		vips_demand_hint( load->out, load->out->dhint, 
-			load->real, NULL );
-
-		if( vips_image_generate( load->out, 
-			vips_start_one, 
-			vips_foreign_load_generate, 
-			vips_stop_one, 
-			load->real, load ) ) 
-			return( -1 );
-	}
-	else if( class->load ) { 
-#ifdef DEBUG
-		printf( "vips_foreign_load_build: whole-image read\n" );
+		printf( "vips_foreign_load_build: delaying read ...\n" );
 #endif /*DEBUG*/
 
 		/* ->header() should set the dhint. It'll default to the safe

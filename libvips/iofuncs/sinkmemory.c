@@ -31,8 +31,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -102,18 +102,6 @@ sink_memory_work( VipsThreadState *state, void *a )
 	if( vips_region_prepare_to( state->reg, memory->all, 
 		&state->pos, state->pos.left, state->pos.top ) )
 		return( -1 );
-
-#ifdef VIPS_DEBUG
-{
-	VipsPel *p = VIPS_REGION_ADDR( state->reg, 
-		state->pos.left, state->pos.top );
-	int i;
-
-	VIPS_DEBUG_MSG( "sink_memory_work: %p\n", memory );
-	for( i = 0; i < VIPS_IMAGE_SIZEOF_PEL( state->reg->im ); i++ )
-		printf( "\t%d) %02x\n", i, p[i] );
-}
-#endif /*VIPS_DEBUG*/
 
 	return( 0 );
 }

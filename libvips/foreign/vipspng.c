@@ -112,7 +112,6 @@ typedef struct {
 	png_structp pPng;
 	png_infop pInfo;
 	png_bytep *row_pointer;
-	int interlace_type;
 } Read;
 
 static void
@@ -138,7 +137,6 @@ read_new( const char *name, VipsImage *out )
 	read->pPng = NULL;
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
-	read->interlace_type = PNG_INTERLACE_NONE;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read ); 
@@ -169,6 +167,7 @@ png2vips_header( Read *read, VipsImage *out )
 {
 	png_uint_32 width, height;
 	int bit_depth, color_type;
+	int interlace_type;
 
 	png_uint_32 res_x, res_y;
 	int unit_type;
@@ -184,7 +183,7 @@ png2vips_header( Read *read, VipsImage *out )
 	png_read_info( read->pPng, read->pInfo );
 	png_get_IHDR( read->pPng, read->pInfo, 
 		&width, &height, &bit_depth, &color_type,
-		&read->interlace_type, NULL, NULL );
+		&interlace_type, NULL, NULL );
 
 	/* png_get_channels() gives us 1 band for palette images ... so look
 	 * at colour_type for output bands.
@@ -341,6 +340,13 @@ png2vips_generate( VipsRegion *or,
 		r->top, r->height );
 #endif /*DEBUG*/
 
+	/* We're inside a tilecache where tiles are the full image width, so
+	 * this should always be true.
+	 */
+	g_assert( r->left == 0 );
+	g_assert( r->width == or->im->Xsize );
+	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
+
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
@@ -364,12 +370,11 @@ vips__png_isinterlaced( const char *filename )
 	int interlace_type;
 
 	image = vips_image_new();
-	if( !(read = read_new( filename, image )) ||
-		png2vips_header( read, image ) ) {
+	if( !(read = read_new( filename, image )) ) {
 		g_object_unref( image );
 		return( -1 );
 	}
-	interlace_type = read->interlace_type;
+	interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
 	g_object_unref( image );
 
 	return( interlace_type != PNG_INTERLACE_NONE );
@@ -387,21 +392,24 @@ vips__png_read( const char *name, VipsImage *out )
 	printf( "png2vips: reading \"%s\"\n", name );
 #endif /*DEBUG*/
 
-	t[0] = vips_image_new_buffer();
-	if( !(read = read_new( name, out )) ||
-		png2vips_header( read, t[0] ) )
+	if( !(read = read_new( name, out )) )
 		return( -1 );
 
-	if( read->interlace_type != PNG_INTERLACE_NONE ) { 
-		/* Arg we have to read to a huge mem buffer, then copy to out.
+	if( png_get_interlace_type( read->pPng, read->pInfo ) != 
+		PNG_INTERLACE_NONE ) { 
+		/* Arg awful interlaced image. We have to load to a huge mem 
+		 * buffer, then copy to out.
 		 */
 		t[0] = vips_image_new_buffer();
-		if( png2vips_interlace( read, t[0] ) ||
+		if( png2vips_header( read, t[0] ) ||
+			png2vips_interlace( read, t[0] ) ||
 			vips_image_write( t[0], out ) )
 			return( -1 );
 	}
 	else {
-		if( vips_image_generate( t[0], 
+		t[0] = vips_image_new();
+		if( png2vips_header( read, t[0] ) ||
+			vips_image_generate( t[0], 
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
 			vips_sequential( t[0], &t[1], NULL ) ||
@@ -413,6 +421,10 @@ vips__png_read( const char *name, VipsImage *out )
 			vips_image_write( t[2], out ) )
 			return( -1 );
 	}
+
+#ifdef DEBUG
+	printf( "png2vips: done\n" );
+#endif /*DEBUG*/
 
 	return( 0 );
 }
