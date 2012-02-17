@@ -6,6 +6,7 @@
 - sequential read mode 
 - better im_shrink()
 - added vips_sequential()
+- new vips_sink_memory() keeps read ordering
 
 20/8/11 started 7.27.0
 - version bump for new dev cycle

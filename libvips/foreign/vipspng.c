@@ -65,8 +65,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -157,6 +157,12 @@ read_new( const char *name, VipsImage *out )
 	if( !(read->pInfo = png_create_info_struct( read->pPng )) ) 
 		return( NULL );
 
+	/* Read enough of the file that png_get_interlace_type() will start
+	 * working.
+	 */
+	png_init_io( read->pPng, read->fp );
+	png_read_info( read->pPng, read->pInfo );
+
 	return( read );
 }
 
@@ -179,8 +185,6 @@ png2vips_header( Read *read, VipsImage *out )
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
-	png_init_io( read->pPng, read->fp );
-	png_read_info( read->pPng, read->pInfo );
 	png_get_IHDR( read->pPng, read->pInfo, 
 		&width, &height, &bit_depth, &color_type,
 		&interlace_type, NULL, NULL );
@@ -324,8 +328,6 @@ png2vips_interlace( Read *read, VipsImage *out )
 	for( y = 0; y < out->Ysize; y++ )
 		read->row_pointer[y] = VIPS_IMAGE_ADDR( out, 0, y );
 
-	png_set_interlace_handling( read->pPng );
-
 	png_read_image( read->pPng, read->row_pointer );
 
 	return( 0 );
@@ -392,6 +394,7 @@ vips__png_read( const char *name, VipsImage *out )
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
 	Read *read;
+	int interlace_type;
 
 #ifdef DEBUG
 	printf( "png2vips: reading \"%s\"\n", name );
@@ -400,8 +403,9 @@ vips__png_read( const char *name, VipsImage *out )
 	if( !(read = read_new( name, out )) )
 		return( -1 );
 
-	if( png_get_interlace_type( read->pPng, read->pInfo ) != 
-		PNG_INTERLACE_NONE ) { 
+	interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
+
+	if( interlace_type != PNG_INTERLACE_NONE ) { 
 		/* Arg awful interlaced image. We have to load to a huge mem 
 		 * buffer, then copy to out.
 		 */
