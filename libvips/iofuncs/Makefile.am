@@ -15,6 +15,7 @@ libiofuncs_la_SOURCES = \
 	sink.h \
 	sink.c \
 	sinkmemory.c \
+	sinkmemory2.c \
 	sinkdisc.c \
 	sinkscreen.c \
 	memory.c \

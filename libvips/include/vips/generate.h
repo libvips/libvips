@@ -58,6 +58,7 @@ int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	VipsSinkNotify notify, void *a );
 
 int vips_sink_memory( VipsImage *im );
+int vips_sink_memory2( VipsImage *image );
 
 void *vips_start_one( VipsImage *out, void *a, void *b );
 int vips_stop_one( void *seq, void *a, void *b );

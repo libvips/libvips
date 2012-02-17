@@ -313,14 +313,19 @@ png2vips_interlace( Read *read, VipsImage *out )
 	printf( "png2vips_interlace: reading whole image\n" ); 
 #endif /*DEBUG*/
 
-	if( !(read->row_pointer = VIPS_ARRAY( NULL, out->Ysize, png_bytep )) ||
-		vips_image_write_prepare( out ) )
+	if( vips_image_write_prepare( out ) )
+		return( -1 );
+
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( -1 );
+
+	if( !(read->row_pointer = VIPS_ARRAY( NULL, out->Ysize, png_bytep )) )
 		return( -1 );
 	for( y = 0; y < out->Ysize; y++ )
 		read->row_pointer[y] = VIPS_IMAGE_ADDR( out, 0, y );
 
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
-		return( -1 );
+	png_set_interlace_handling( read->pPng );
+
 	png_read_image( read->pPng, read->row_pointer );
 
 	return( 0 );

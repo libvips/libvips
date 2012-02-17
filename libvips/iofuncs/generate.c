@@ -666,7 +666,8 @@ vips_image_generate( VipsImage *image,
 			res = vips_sink_disc( image,
 				(VipsRegionWrite) write_vips, NULL );
                 else
-                        res = vips_sink_memory( image );
+                        // res = vips_sink_memory( image );
+                        res = vips_sink_memory2( image );
 
                 /* Error?
                  */

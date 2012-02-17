@@ -350,13 +350,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 			/* Swap buffers.
 			 */
-			{
-				WriteBuffer *t;
-
-				t = write->buf; 
-				write->buf = write->buf_back; 
-				write->buf_back = t;
-			}
+			VIPS_SWAP( WriteBuffer *, write->buf, write->buf_back );
 
 			/* Position buf at the new y.
 			 */
@@ -377,6 +371,9 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	tile.width = sink_base->tile_width;
 	tile.height = sink_base->tile_height;
 	vips_rect_intersectrect( &image, &tile, &state->pos );
+
+	/* The thread needs to know which buffer it's writing to.
+	 */
 	wstate->buf = write->buf;
 
 	VIPS_DEBUG_MSG( "  allocated %d x %d:\n", tile.left, tile.top );
