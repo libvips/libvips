@@ -97,6 +97,15 @@ typedef VipsForeignLoadClass VipsForeignLoadJpegClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadJpeg, vips_foreign_load_jpeg, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
+static VipsForeignFlags
+vips_foreign_load_jpeg_get_flags( VipsForeignLoad *load )
+{
+	/* The jpeg reader supports sequential read.
+	 */
+	//return( VIPS_FOREIGN_SEQUENTIAL );
+	return( 0 );
+}
+
 static int
 vips_foreign_load_jpeg_build( VipsObject *object )
 {
@@ -123,6 +132,7 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -130,6 +140,8 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 	object_class->nickname = "jpegload_base";
 	object_class->description = _( "load jpeg" );
 	object_class->build = vips_foreign_load_jpeg_build;
+
+	load_class->get_flags = vips_foreign_load_jpeg_get_flags;
 
 	VIPS_ARG_INT( class, "shrink", 10, 
 		_( "Shrink" ), 
@@ -165,6 +177,15 @@ typedef VipsForeignLoadJpegClass VipsForeignLoadJpegFileClass;
 
 G_DEFINE_TYPE( VipsForeignLoadJpegFile, vips_foreign_load_jpeg_file, 
 	vips_foreign_load_jpeg_get_type() );
+
+static VipsForeignFlags
+vips_foreign_load_jpeg_file_get_flags_filename( const char *filename )
+{
+	/* The jpeg reader supports sequential read.
+	 */
+	//return( VIPS_FOREIGN_SEQUENTIAL );
+	return( 0 );
+}
 
 static gboolean
 vips_foreign_load_jpeg_file_is_a( const char *filename )
@@ -216,6 +237,8 @@ vips_foreign_load_jpeg_file_class_init( VipsForeignLoadJpegFileClass *class )
 
 	foreign_class->suffs = jpeg_suffs;
 
+	load_class->get_flags_filename = 
+		vips_foreign_load_jpeg_file_get_flags_filename;
 	load_class->is_a = vips_foreign_load_jpeg_file_is_a;
 	load_class->header = vips_foreign_load_jpeg_file_header;
 	load_class->load = vips_foreign_load_jpeg_file_load;
