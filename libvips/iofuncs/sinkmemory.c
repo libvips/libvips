@@ -66,18 +66,18 @@ sink_memory_free( SinkMemory *memory )
 }
 
 static int
-sink_memory_init( SinkMemory *memory, VipsImage *im ) 
+sink_memory_init( SinkMemory *memory, VipsImage *image ) 
 {
 	VipsRect all;
 
-	vips_sink_base_init( &memory->sink_base, im );
+	vips_sink_base_init( &memory->sink_base, image );
 
 	all.left = 0;
 	all.top = 0;
-	all.width = im->Xsize;
-	all.height = im->Ysize;
+	all.width = image->Xsize;
+	all.height = image->Ysize;
 
-	if( !(memory->all = vips_region_new( im )) ||
+	if( !(memory->all = vips_region_new( image )) ||
 		vips_region_image( memory->all, &all ) ) {
 		sink_memory_free( memory );
 		return( -1 );

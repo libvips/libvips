@@ -1,12 +1,11 @@
-/* Write an image to a disc file. 
+/* SinkMemory an image to a memory buffer, keeping top-to-bottom ordering.
+ *
+ * For sequential operations we need to keep requests reasonably ordered: we
+ * can't let some tiles get very delayed. So we need to stall starting new
+ * threads if the last thread gets too far behind.
  * 
- * 19/3/10
- * 	- from im_wbuffer.c
- * 	- move on top of VipsThreadpool, instead of im_threadgroup_t
- * 23/6/10
- * 	- better buffer handling for single-line images
- * 17/7/10
- * 	- we could get stuck if allocate failed (thanks Tim)
+ * 17/2/12
+ * 	- from sinkdisc.c
  */
 
 /*
@@ -62,65 +61,55 @@
 
 #include "sink.h"
 
-/* A buffer we are going to write to disc in a background thread.
+/* A part of the image we are writing. 
  */
-typedef struct _WriteBuffer {
-	struct _Write *write;
+typedef struct _SinkMemoryBuffer {
+	struct _SinkMemory *write;
 
 	VipsRegion *region;	/* Pixels */
-	VipsRect area;		/* Part of image this region covers */
-        VipsSemaphore go; 	/* Start bg thread loop */
         VipsSemaphore nwrite; 	/* Number of threads writing to region */
-        VipsSemaphore done; 	/* Bg thread has done write */
-        int write_errno;	/* Save write errors here */
-	GThread *thread;	/* BG writer thread */
-	gboolean kill;		/* Set to ask thread to exit */
-} WriteBuffer;
+} SinkMemoryBuffer;
 
 /* Per-call state.
  */
-typedef struct _Write {
+typedef struct _SinkMemory {
 	SinkBase sink_base;
 
-	/* We are current writing tiles to buf, buf_back is in the hands of
-	 * the bg write thread.
+	/* We are current writing tiles to buf, we'll delay starting a new
+	 * buffer if buf_back (the previous position) hasn't completed. 
 	 */
-	WriteBuffer *buf;
-	WriteBuffer *buf_back;
-
-	/* The file format write operation.
-	 */
-	VipsRegionWrite write_fn;	
-	void *a;		
-} Write;
+	SinkMemoryBuffer *buf;
+	SinkMemoryBuffer *buf_back;
+} SinkMemory;
 
 /* Our per-thread state ... we need to also track the buffer that pos is
  * supposed to write to.
  */
-typedef struct _WriteThreadState {
+typedef struct _SinkMemoryThreadState {
 	VipsThreadState parent_object;
 
-        WriteBuffer *buf;
-} WriteThreadState;
+        SinkMemoryBuffer *buf;
+} SinkMemoryThreadState;
 
-typedef struct _WriteThreadStateClass {
+typedef struct _SinkMemoryThreadStateClass {
 	VipsThreadStateClass parent_class;
 
-} WriteThreadStateClass;
+} SinkMemoryThreadStateClass;
 
-G_DEFINE_TYPE( WriteThreadState, write_thread_state, VIPS_TYPE_THREAD_STATE );
+G_DEFINE_TYPE( SinkMemoryThreadState, 
+	sink_memory_thread_state, VIPS_TYPE_THREAD_STATE );
 
 static void
-write_thread_state_class_init( WriteThreadStateClass *class )
+sink_memory_thread_state_class_init( SinkMemoryThreadStateClass *class )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 
 	object_class->nickname = "writethreadstate";
-	object_class->description = _( "per-thread state for sinkdisc" );
+	object_class->description = _( "per-thread state for sinkmemory" );
 }
 
 static void
-write_thread_state_init( WriteThreadState *state )
+write_thread_state_init( SinkMemoryThreadState *state )
 {
 	state->buf = NULL;
 }
@@ -134,87 +123,23 @@ write_thread_state_new( VipsImage *im, void *a )
 }
 
 static void
-wbuffer_free( WriteBuffer *wbuffer )
+wbuffer_free( SinkMemoryBuffer *wbuffer )
 {
-        /* Is there a thread running this region? Kill it!
-         */
-        if( wbuffer->thread ) {
-                wbuffer->kill = TRUE;
-		vips_semaphore_up( &wbuffer->go );
-
-		/* Return value is always NULL (see wbuffer_write_thread).
-		 */
-		(void) g_thread_join( wbuffer->thread );
-		VIPS_DEBUG_MSG( "wbuffer_free: g_thread_join()\n" );
-
-		wbuffer->thread = NULL;
-        }
-
 	VIPS_UNREF( wbuffer->region );
-	vips_semaphore_destroy( &wbuffer->go );
 	vips_semaphore_destroy( &wbuffer->nwrite );
-	vips_semaphore_destroy( &wbuffer->done );
 	vips_free( wbuffer );
 }
 
-static void
-wbuffer_write( WriteBuffer *wbuffer )
+static SinkMemoryBuffer *
+wbuffer_new( SinkMemory *write )
 {
-	Write *write = wbuffer->write;
+	SinkMemoryBuffer *wbuffer;
 
-	VIPS_DEBUG_MSG( "wbuffer_write: %d bytes from wbuffer %p\n", 
-		wbuffer->region->bpl * wbuffer->area.height, wbuffer );
-
-	wbuffer->write_errno = write->write_fn( wbuffer->region, 
-		&wbuffer->area, write->a );
-}
-
-#ifdef HAVE_THREADS
-/* Run this as a thread to do a BG write.
- */
-static void *
-wbuffer_write_thread( void *data )
-{
-	WriteBuffer *wbuffer = (WriteBuffer *) data;
-
-	for(;;) {
-		/* Wait to be told to write.
-		 */
-		vips_semaphore_down( &wbuffer->go );
-
-		if( wbuffer->kill )
-			break;
-
-		/* Now block until the last worker finishes on this buffer.
-		 */
-		vips_semaphore_downn( &wbuffer->nwrite, 0 );
-
-		wbuffer_write( wbuffer );
-
-		/* Signal write complete.
-		 */
-		vips_semaphore_up( &wbuffer->done );
-	}
-
-	return( NULL );
-}
-#endif /*HAVE_THREADS*/
-
-static WriteBuffer *
-wbuffer_new( Write *write )
-{
-	WriteBuffer *wbuffer;
-
-	if( !(wbuffer = VIPS_NEW( NULL, WriteBuffer )) )
+	if( !(wbuffer = VIPS_NEW( NULL, SinkMemoryBuffer )) )
 		return( NULL );
 	wbuffer->write = write;
 	wbuffer->region = NULL;
-	vips_semaphore_init( &wbuffer->go, 0, "go" );
 	vips_semaphore_init( &wbuffer->nwrite, 0, "nwrite" );
-	vips_semaphore_init( &wbuffer->done, 0, "done" );
-	wbuffer->write_errno = 0;
-	wbuffer->thread = NULL;
-	wbuffer->kill = FALSE;
 
 	if( !(wbuffer->region = vips_region_new( write->sink_base.im )) ) {
 		wbuffer_free( wbuffer );
@@ -243,7 +168,7 @@ wbuffer_new( Write *write )
 /* Block until the previous write completes, then write the front buffer.
  */
 static int
-wbuffer_flush( Write *write )
+wbuffer_flush( SinkMemory *write )
 {
 	VIPS_DEBUG_MSG( "wbuffer_flush:\n" );
 
@@ -267,7 +192,7 @@ wbuffer_flush( Write *write )
 #ifdef HAVE_THREADS
 	vips_semaphore_up( &write->buf->go );
 #else
-	/* No threads? Write ourselves synchronously.
+	/* No threads? SinkMemory ourselves synchronously.
 	 */
 	wbuffer_write( write->buf );
 #endif /*HAVE_THREADS*/
@@ -278,7 +203,7 @@ wbuffer_flush( Write *write )
 /* Move a wbuffer to a position.
  */
 static int 
-wbuffer_position( WriteBuffer *wbuffer, int top, int height )
+wbuffer_position( SinkMemoryBuffer *wbuffer, int top, int height )
 {
 	VipsRect image, area;
 	int result;
@@ -318,8 +243,8 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 static gboolean
 wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 {
-	WriteThreadState *wstate =  (WriteThreadState *) state;
-	Write *write = (Write *) a;
+	SinkMemoryThreadState *wstate =  (SinkMemoryThreadState *) state;
+	SinkMemory *write = (SinkMemory *) a;
 	SinkBase *sink_base = (SinkBase *) write;
 
 	VipsRect image;
@@ -351,7 +276,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 			/* Swap buffers.
 			 */
 			{
-				WriteBuffer *t;
+				SinkMemoryBuffer *t;
 
 				t = write->buf; 
 				write->buf = write->buf_back; 
@@ -397,7 +322,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 static int
 wbuffer_work_fn( VipsThreadState *state, void *a )
 {
-	WriteThreadState *wstate = (WriteThreadState *) state;
+	SinkMemoryThreadState *wstate = (SinkMemoryThreadState *) state;
 
 	VIPS_DEBUG_MSG( "wbuffer_work_fn: %p %d x %d\n", 
 		state, state->pos.left, state->pos.top );
@@ -417,8 +342,8 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 }
 
 static void
-write_init( Write *write, 
-	VipsImage *image, VipsRegionWrite write_fn, void *a )
+write_init( SinkMemory *write, 
+	VipsImage *image, VipsRegionSinkMemory write_fn, void *a )
 {
 	vips_sink_base_init( &write->sink_base, image );
 
@@ -429,14 +354,14 @@ write_init( Write *write,
 }
 
 static void
-write_free( Write *write )
+write_free( SinkMemory *write )
 {
 	VIPS_FREEF( wbuffer_free, write->buf );
 	VIPS_FREEF( wbuffer_free, write->buf_back );
 }
 
 /**
- * VipsRegionWrite:
+ * VipsRegionSinkMemory:
  * @region: get pixels from here
  * @area: area to write
  * @a: client data
@@ -470,9 +395,9 @@ write_free( Write *write )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
+vips_sink_disc( VipsImage *im, VipsRegionSinkMemory write_fn, void *a )
 {
-	Write write;
+	SinkMemory write;
 	int result;
 
 	vips_image_preeval( im );

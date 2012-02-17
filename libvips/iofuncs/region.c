@@ -567,7 +567,9 @@ vips_region_buffer( VipsRegion *reg, VipsRect *r )
 int
 vips_region_image( VipsRegion *reg, VipsRect *r )
 {
-	VipsRect image;
+	VipsImage *image = reg->im;
+
+	VipsRect all;
 	VipsRect clipped;
 
 	/* Sanity check.
@@ -576,11 +578,11 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 
 	/* Clip against image.
 	 */
-	image.top = 0;
-	image.left = 0;
-	image.width = reg->im->Xsize;
-	image.height = reg->im->Ysize;
-	vips_rect_intersectrect( r, &image, &clipped );
+	all.top = 0;
+	all.left = 0;
+	all.width = image->Xsize;
+	all.height = image->Ysize;
+	vips_rect_intersectrect( r, &all, &clipped );
 
 	/* Test for empty.
 	 */
@@ -590,7 +592,7 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 		return( -1 );
 	}
 
-	if( reg->im->data ) {
+	if( image->data ) {
 		/* We have the whole image available ... easy!
 		 */
 		vips_region_reset( reg );
@@ -599,22 +601,21 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 		 * incompletely calculated memory buffer. Just set valid to r.
 		 */
 		reg->valid = clipped;
-		reg->bpl = VIPS_IMAGE_SIZEOF_LINE( reg->im );
-		reg->data = reg->im->data +
-			clipped.top * VIPS_IMAGE_SIZEOF_LINE( reg->im ) +
-			clipped.left * VIPS_IMAGE_SIZEOF_PEL( reg->im );
+		reg->bpl = VIPS_IMAGE_SIZEOF_LINE( image );
+		reg->data = VIPS_IMAGE_ADDR( image, clipped.left, clipped.top );
 		reg->type = VIPS_REGION_OTHER_IMAGE;
 	}
-	else if( reg->im->dtype == VIPS_IMAGE_OPENIN ) {
+	else if( image->dtype == VIPS_IMAGE_OPENIN ) {
 		/* No complete image data ... but we can use a rolling window.
 		 */
-		if( reg->type != VIPS_REGION_WINDOW || !reg->window ||
+		if( reg->type != VIPS_REGION_WINDOW || 
+			!reg->window ||
 			reg->window->top > clipped.top ||
 			reg->window->top + reg->window->height < 
 				clipped.top + clipped.height ) {
 			vips_region_reset( reg );
 
-			if( !(reg->window = vips_window_ref( reg->im, 
+			if( !(reg->window = vips_window_ref( image, 
 				clipped.top, clipped.height )) )
 				return( -1 );
 
@@ -625,14 +626,13 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 		 */
 		reg->valid.left = 0;
 		reg->valid.top = reg->window->top;
-		reg->valid.width = reg->im->Xsize;
+		reg->valid.width = image->Xsize;
 		reg->valid.height = reg->window->height;
-		reg->bpl = VIPS_IMAGE_SIZEOF_LINE( reg->im );
+		reg->bpl = VIPS_IMAGE_SIZEOF_LINE( image );
 		reg->data = reg->window->data;
 	}
 	else {
-		vips_error( "VipsRegion", 
-			"%s", _( "bad image type" ) );
+		vips_error( "VipsRegion", "%s", _( "bad image type" ) );
 		return( -1 );
 	}
 

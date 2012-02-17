@@ -1,3 +1,7 @@
+- sinkmemory needs something to stop some threads being horribly delayed
+
+
+
 - add a sequential mode to all readers
 
   tiff, jpg are the obvious ones
