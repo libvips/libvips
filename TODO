@@ -1,7 +1,9 @@
 
-- add a sequential mode to all readers
+- add a sequential mode to jpeg reader
 
   tiff, jpg are the obvious ones
+
+- is the tif reader deadlocking sometimes?
 
 
 

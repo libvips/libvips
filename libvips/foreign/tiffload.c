@@ -77,6 +77,8 @@ vips_foreign_load_tiff_get_flags_filename( const char *filename )
 	flags = 0;
 	if( vips__istifftiled( filename ) ) 
 		flags |= VIPS_FOREIGN_PARTIAL;
+	else
+		flags |= VIPS_FOREIGN_SEQUENTIAL;
 
 	return( flags );
 }

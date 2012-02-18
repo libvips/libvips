@@ -302,7 +302,7 @@ sink_memory_init( SinkMemory *memory, VipsImage *image )
 }
 
 /**
- * vips_sink_memory2:
+ * vips_sink_memory:
  * @im: generate this image to memory
  *
  * Loops over an image, generating it to a memory buffer attached to the
@@ -313,7 +313,7 @@ sink_memory_init( SinkMemory *memory, VipsImage *image )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_sink_memory2( VipsImage *image )
+vips_sink_memory( VipsImage *image )
 {
 	SinkMemory memory;
 	int result;

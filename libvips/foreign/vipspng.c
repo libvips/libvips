@@ -287,7 +287,7 @@ png2vips_header( Read *read, VipsImage *out )
 	/* We're always supposed to set dhint.
 	 */
         vips_demand_hint( out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+		VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
 	return( 0 );
 }
