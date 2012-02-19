@@ -44,7 +44,7 @@
  * 9/1/12
  * 	- read jfif resolution as well as exif
  * 19/2/12
- * 	- keep a read struct about, ready to go lazy read
+ * 	- switch to lazy reading
  */
 
 /*
@@ -141,6 +141,10 @@ typedef struct _ReadJpeg {
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
 	gboolean invert_pels;
+
+	/* Set if we need to finish the decompress.
+	 */
+	gboolean decompressing;
 } ReadJpeg;
 
 static int
@@ -149,6 +153,9 @@ readjpeg_free( ReadJpeg *jpeg )
 	int result;
 
 	result = 0;
+
+	if( setjmp( jpeg->eman.jmp ) ) 
+		return( -1 );
 
 	if( jpeg->eman.pub.num_warnings != 0 ) {
 		if( jpeg->fail ) {
@@ -165,6 +172,11 @@ readjpeg_free( ReadJpeg *jpeg )
 		/* Make the message only appear once.
 		 */
 		jpeg->eman.pub.num_warnings = 0;
+	}
+
+	if( jpeg->decompressing ) {
+		jpeg_finish_decompress( &jpeg->cinfo );
+		jpeg->decompressing = FALSE;
 	}
 
 	VIPS_FREEF( fclose, jpeg->fp );
@@ -193,6 +205,7 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail )
 	jpeg->fail = fail;
 	jpeg->fp = NULL;
 	jpeg->filename = NULL;
+	jpeg->decompressing = FALSE;
 
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
@@ -611,7 +624,7 @@ read_xmp( VipsImage *im, void *data, size_t data_length )
 	}
 
 #ifdef DEBUG
-	printf( "read_xmp: attaching %d bytes of XMP\n", data_length );
+	printf( "read_xmp: attaching %zd bytes of XMP\n", data_length );
 #endif /*DEBUG*/
 
 	/* Always attach a copy of the unparsed exif data.
@@ -634,7 +647,7 @@ read_xmp( VipsImage *im, void *data, size_t data_length )
  * do 255-pel.
  */
 static int
-read_jpeg_header( ReadJpeg *jpeg )
+read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 {
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
 
@@ -714,21 +727,19 @@ read_jpeg_header( ReadJpeg *jpeg )
 
 	/* Set VIPS header.
 	 */
-	vips_image_init_fields( jpeg->out,
+	vips_image_init_fields( out,
 		cinfo->output_width, cinfo->output_height,
 		cinfo->output_components,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		interpretation,
 		xres, yres );
 
-	/* Best for us, probably.
-	 */
-	vips_demand_hint( jpeg->out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+	vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 
 	/* Interlaced jpegs need lots of memory to read, so our caller needs
 	 * to know.
 	 */
-	(void) vips_image_set_int( jpeg->out, "jpeg-multiscan", 
+	(void) vips_image_set_int( out, "jpeg-multiscan", 
 		jpeg_has_multiple_scans( cinfo ) );
 
 	/* Look for EXIF and ICC profile.
@@ -754,14 +765,12 @@ read_jpeg_header( ReadJpeg *jpeg )
 			 */
 			if( p->data_length > 4 &&
 				vips_isprefix( "Exif", (char *) p->data ) &&
-				read_exif( jpeg->out, 
-					p->data, p->data_length ) )
+				read_exif( out, p->data, p->data_length ) )
 				return( -1 );
 
 			if( p->data_length > 4 &&
 				vips_isprefix( "http", (char *) p->data ) &&
-				read_xmp( jpeg->out, 
-					p->data, p->data_length ) )
+				read_xmp( out, p->data, p->data_length ) )
 				return( -1 );
 
 			break;
@@ -801,7 +810,7 @@ read_jpeg_header( ReadJpeg *jpeg )
 		int p;
 
 #ifdef DEBUG
-		printf( "read_jpeg_header: assembled %d byte ICC profile\n",
+		printf( "read_jpeg_header: assembled %zd byte ICC profile\n",
 			data_length );
 #endif /*DEBUG*/
 
@@ -814,8 +823,65 @@ read_jpeg_header( ReadJpeg *jpeg )
 			p += app2_data_length[i];
 		}
 
-		vips_image_set_blob( jpeg->out, VIPS_META_ICC_NAME, 
+		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
 			(VipsCallbackFn) vips_free, data, data_length );
+	}
+
+	return( 0 );
+}
+
+static int
+read_jpeg_generate( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+        VipsRect *r = &or->valid;
+	ReadJpeg *jpeg = (ReadJpeg *) a;
+	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
+
+	JSAMPROW row_pointer[VIPS__TILE_HEIGHT];
+	int y;
+
+#ifdef DEBUG
+	printf( "read_jpeg_generate: line %d, %d rows\n", 
+		r->top, r->height );
+#endif /*DEBUG*/
+
+	/* We're inside a tilecache where tiles are the full image width, so
+	 * this should always be true.
+	 */
+	g_assert( r->left == 0 );
+	g_assert( r->width == or->im->Xsize );
+	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
+
+	/* Tiles should always be on a 8-pixel boundary and exactly one block
+	 * high.
+	 */
+	g_assert( r->top % VIPS__TILE_HEIGHT == 0 );
+	g_assert( r->height == 
+		VIPS_MIN( VIPS__TILE_HEIGHT, or->im->Ysize - r->top ) );
+
+	/* Here for longjmp() from vips__new_error_exit().
+	 */
+	if( setjmp( jpeg->eman.jmp ) ) 
+		return( -1 );
+
+	for( y = 0; y < r->height; y++ ) {
+		row_pointer[y] = (JSAMPLE *) 
+			VIPS_REGION_ADDR( or, 0, r->top + y );
+
+		/* No faster to read in groups and you have to loop
+		 * anyway.
+		 */
+		jpeg_read_scanlines( cinfo, &row_pointer[y], 1 );
+	}
+
+	if( jpeg->invert_pels ) {
+		int sz = cinfo->output_width * cinfo->output_components;
+		int x;
+
+		for( y = 0; y < r->height; y++ ) 
+			for( x = 0; x < sz; x++ )
+				row_pointer[y][x] = 255 - row_pointer[y][x];
 	}
 
 	return( 0 );
@@ -824,46 +890,42 @@ read_jpeg_header( ReadJpeg *jpeg )
 /* Read a cinfo to a VIPS image.
  */
 static int
-read_jpeg_image( ReadJpeg *jpeg )
+read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 {
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
-
-	int x, y, sz;
-	JSAMPROW row_pointer[1];
-
-	/* Get size of output line and make a buffer.
-	 */
-	sz = cinfo->output_width * cinfo->output_components;
-	row_pointer[0] = (JSAMPLE *) (*cinfo->mem->alloc_large) 
-		( (j_common_ptr) cinfo, JPOOL_IMAGE, sz );
-
-	jpeg_start_decompress( cinfo );
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
-	if( setjmp( jpeg->eman.jmp ) ) {
-		jpeg_finish_decompress( cinfo );
-
+	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
-	}
 
-	/* Process image.
+	t[0] = vips_image_new();
+	if( read_jpeg_header( jpeg, t[0] ) )
+		return( -1 );
+
+	/* Set decompressing to make readjpeg_free() call 
+	 * jpeg_stop_decompress().
 	 */
-	for( y = 0; y < jpeg->out->Ysize; y++ ) {
-		/* We set an error handler that longjmps() out, so I don't
-		 * think this can fail.
-		 */
-		jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
+	jpeg_start_decompress( cinfo );
+	jpeg->decompressing = TRUE;
 
-		if( jpeg->invert_pels ) 
-			for( x = 0; x < sz; x++ )
-				row_pointer[0][x] = 255 - row_pointer[0][x];
+#ifdef DEBUG
+	printf( "read_jpeg_image: starting deompress\n" );
+#endif /*DEBUG*/
 
-		if( vips_image_write_line( jpeg->out, y, row_pointer[0] ) )
-			return( -1 );
-	}
-
-	jpeg_finish_decompress( cinfo );
+	if( vips_image_generate( t[0], 
+			NULL, read_jpeg_generate, NULL, 
+			jpeg, NULL ) ||
+		vips_sequential( t[0], &t[1], NULL ) ||
+		vips_tilecache( t[1], &t[2], 
+			"tile_width", t[0]->Xsize, 
+			"tile_height", VIPS__TILE_HEIGHT,
+			"max_tiles", 4,
+			NULL ) ||
+		vips_image_write( t[2], out ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -903,13 +965,13 @@ vips__jpeg_read_file( const char *filename, VipsImage *out,
 
 	/* Convert!
 	 */
-	result = read_jpeg_header( jpeg ); 
-	if( !header_only && !result )
-		result = read_jpeg_image( jpeg ); 
+	if( header_only )
+		result = read_jpeg_header( jpeg, out );
+	else
+		result = read_jpeg_image( jpeg, out );
 
-	/* Close and tidy.
+	/* Don't call readjpeg_free(), we're probably still live.
 	 */
-	result |= readjpeg_free( jpeg );
 
 	return( result );
 }
@@ -1114,13 +1176,13 @@ vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out,
 
 	/* Convert!
 	 */
-	result = read_jpeg_header( jpeg );
-	if( !header_only && !result )
-		result = read_jpeg_image( jpeg );
+	if( header_only )
+		result = read_jpeg_header( jpeg, out );
+	else
+		result = read_jpeg_image( jpeg, out );
 
-	/* Close and tidy.
+	/* Don't call readjpeg_free(), we're probably still live.
 	 */
-	result |= readjpeg_free( jpeg );
 
 	return( result );
 }

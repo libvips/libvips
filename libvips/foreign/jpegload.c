@@ -102,8 +102,7 @@ vips_foreign_load_jpeg_get_flags( VipsForeignLoad *load )
 {
 	/* The jpeg reader supports sequential read.
 	 */
-	//return( VIPS_FOREIGN_SEQUENTIAL );
-	return( 0 );
+	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
 static int
@@ -183,8 +182,7 @@ vips_foreign_load_jpeg_file_get_flags_filename( const char *filename )
 {
 	/* The jpeg reader supports sequential read.
 	 */
-	//return( VIPS_FOREIGN_SEQUENTIAL );
-	return( 0 );
+	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
 static gboolean

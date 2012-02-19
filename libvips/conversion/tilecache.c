@@ -320,6 +320,10 @@ vips_tile_cache_gen( VipsRegion *or,
 
 	g_mutex_lock( cache->lock );
 
+	VIPS_DEBUG_MSG( "vips_tile_cache_gen: "
+		"left = %d, top = %d, width = %d, height = %d\n",
+		r->left, r->top, r->width, r->height );
+
 	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += th )
 		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += tw ) {
 			Tile *tile;

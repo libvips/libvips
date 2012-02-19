@@ -72,6 +72,8 @@ vips_sequential_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
+	VIPS_DEBUG_MSG( "vips_sequential_generate %d\n", r->top );
+
 	/* The y pos of the request must be the same as our current file
 	 * position.
 	 */

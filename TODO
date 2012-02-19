@@ -1,11 +1,25 @@
+- how do we maintain ordering?
 
-- add a sequential mode to jpeg reader
+  with very large numbers of thread seq is bound to break
 
-  tiff, jpg are the obvious ones
+  what guarantees sequentiality? tiles must be big enough that every thread
+  fits into one tile, and we must have exactly two tiles
+
+  so ... tile height must scale with nthreads and image width
+
+  is this nlines in get tile geometry?
+
+
+
+- interlaced jpg needs massive memory, we should have two jpg read modes, like
+  png
+
+
+
+- add ore sequential mode readers
 
 	$ grep -l write_line *.c
 	csv.c
-	jpeg2vips.c
 	matlab.c
 	openexr2vips.c
 	ppm.c

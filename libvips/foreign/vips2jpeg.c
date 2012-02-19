@@ -129,10 +129,10 @@ vips__new_output_message( j_common_ptr cinfo )
 	char buffer[JMSG_LENGTH_MAX];
 
 	(*cinfo->err->format_message)( cinfo, buffer );
-	vips_error( "VipsFile*Jpeg", _( "%s" ), buffer );
+	vips_error( "VipsJpeg", _( "%s" ), buffer );
 
 #ifdef DEBUG
-	printf( "jpeg.c: new_output_message: \"%s\"\n", buffer );
+	printf( "vips__new_output_message: \"%s\"\n", buffer );
 #endif /*DEBUG*/
 }
 
@@ -144,7 +144,7 @@ vips__new_error_exit( j_common_ptr cinfo )
 	ErrorManager *eman = (ErrorManager *) cinfo->err;
 
 #ifdef DEBUG
-	printf( "jpeg.c: new_error_exit\n" );
+	printf( "vips__new_error_exit:\n" );
 #endif /*DEBUG*/
 
 	/* Close the fp if necessary.
@@ -929,13 +929,13 @@ block_print( Block *block )
 {
 	int i;
 
-	printf( "total length = %d\n", block_length( block ) );
+	printf( "total length = %zd\n", block_length( block ) );
 	printf( "set of blocks:\n" );
 
 	i = 0;
 	for( block = block->first; block; block = block->next ) {
 		printf( "%d) %p, first = %p, next = %p"
-			"\t data = %p, size = %d, used = %d\n", 
+			"\t data = %p, size = %zd, used = %zd\n", 
 			i, block, block->first, block->next,
 			block->data, block->size, block->used );
 		i += 1;
