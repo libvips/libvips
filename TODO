@@ -3,6 +3,14 @@
 
   tiff, jpg are the obvious ones
 
+	$ grep -l write_line *.c
+	csv.c
+	jpeg2vips.c
+	matlab.c
+	openexr2vips.c
+	ppm.c
+	radiance.c
+
 - is the tif reader deadlocking sometimes?
 
 

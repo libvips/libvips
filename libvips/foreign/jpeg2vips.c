@@ -43,6 +43,8 @@
  * 	- turn into a set of read fns ready to be called from a class
  * 9/1/12
  * 	- read jfif resolution as well as exif
+ * 19/2/12
+ * 	- keep a read struct about, ready to go lazy read
  */
 
 /*
@@ -117,6 +119,106 @@
 #include <jerror.h>
 
 #include "jpeg.h"
+
+/* Stuff we track during a read.
+ */
+typedef struct _ReadJpeg {
+	VipsImage *out;
+
+	/* Shrink by this much during load. 1, 2, 4, 8.
+	 */
+	int shrink;
+
+	/* Fail on warnings.
+	 */
+	gboolean fail;
+
+	/* Used for file input only.
+	 */
+	FILE *fp;
+	char *filename;
+
+	struct jpeg_decompress_struct cinfo;
+        ErrorManager eman;
+	gboolean invert_pels;
+} ReadJpeg;
+
+static int
+readjpeg_free( ReadJpeg *jpeg )
+{
+	int result;
+
+	result = 0;
+
+	if( jpeg->eman.pub.num_warnings != 0 ) {
+		if( jpeg->fail ) {
+			vips_error( "VipsJpeg", "%s", vips_error_buffer() );
+			result = -1;
+		}
+		else {
+			vips_warn( "VipsJpeg", 
+				_( "read gave %ld warnings" ), 
+				jpeg->eman.pub.num_warnings );
+			vips_warn( "VipsJpeg", "%s", vips_error_buffer() );
+		}
+
+		/* Make the message only appear once.
+		 */
+		jpeg->eman.pub.num_warnings = 0;
+	}
+
+	VIPS_FREEF( fclose, jpeg->fp );
+	VIPS_FREE( jpeg->filename );
+	jpeg->eman.fp = NULL;
+	jpeg_destroy_decompress( &jpeg->cinfo );
+
+	return( result );
+}
+
+static void
+readjpeg_close( VipsObject *object, ReadJpeg *jpeg )
+{
+	(void) readjpeg_free( jpeg );
+}
+
+static ReadJpeg *
+readjpeg_new( VipsImage *out, int shrink, gboolean fail )
+{
+	ReadJpeg *jpeg;
+
+	if( !(jpeg = VIPS_NEW( out, ReadJpeg )) )
+		return( NULL );
+	jpeg->out = out;
+	jpeg->shrink = shrink;
+	jpeg->fail = fail;
+	jpeg->fp = NULL;
+	jpeg->filename = NULL;
+
+        jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
+	jpeg->eman.pub.error_exit = vips__new_error_exit;
+	jpeg->eman.pub.output_message = vips__new_output_message;
+	jpeg->eman.fp = NULL;
+        jpeg_create_decompress( &jpeg->cinfo );
+
+	g_signal_connect( out, "close", 
+		G_CALLBACK( readjpeg_close ), jpeg ); 
+
+	return( jpeg );
+}
+
+/* Set input to a file.
+ */
+static int
+readjpeg_file( ReadJpeg *jpeg, const char *filename )
+{
+	jpeg->filename = g_strdup( filename );
+        if( !(jpeg->fp = vips__file_open_read( filename, NULL, FALSE )) ) 
+                return( -1 );
+	jpeg->eman.fp = jpeg->fp;
+        jpeg_stdio_src( &jpeg->cinfo, jpeg->fp );
+
+	return( 0 );
+}
 
 #ifdef HAVE_EXIF
 #ifdef DEBUG_VERBOSE
@@ -362,7 +464,7 @@ get_entry_short( ExifData *ed, ExifTag tag, int *out )
 }
 
 static void
-set_vips_resolution( IMAGE *im, ExifData *ed )
+set_vips_resolution( VipsImage *im, ExifData *ed )
 {
 	double xres, yres;
 	int unit;
@@ -406,7 +508,7 @@ set_vips_resolution( IMAGE *im, ExifData *ed )
 }
 
 static int
-attach_thumbnail( IMAGE *im, ExifData *ed )
+attach_thumbnail( VipsImage *im, ExifData *ed )
 {
 	if( ed->size > 0 ) {
 		char *thumb_copy;
@@ -423,7 +525,7 @@ attach_thumbnail( IMAGE *im, ExifData *ed )
 #endif /*HAVE_EXIF*/
 
 static int
-read_exif( IMAGE *im, void *data, int data_length )
+read_exif( VipsImage *im, void *data, int data_length )
 {
 	char *data_copy;
 
@@ -494,7 +596,7 @@ read_exif( IMAGE *im, void *data, int data_length )
 }
 
 static int
-read_xmp( IMAGE *im, void *data, size_t data_length )
+read_xmp( VipsImage *im, void *data, size_t data_length )
 {
 	char *data_copy;
 
@@ -532,9 +634,10 @@ read_xmp( IMAGE *im, void *data, size_t data_length )
  * do 255-pel.
  */
 static int
-read_jpeg_header( struct jpeg_decompress_struct *cinfo, 
-	IMAGE *out, gboolean *invert_pels, int shrink )
+read_jpeg_header( ReadJpeg *jpeg )
 {
+	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
+
 	jpeg_saved_marker_ptr p;
 	VipsInterpretation interpretation;
 	double xres, yres;
@@ -550,11 +653,11 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 	 * for YUV YCCK etc.
 	 */
 	jpeg_read_header( cinfo, TRUE );
-	cinfo->scale_denom = shrink;
+	cinfo->scale_denom = jpeg->shrink;
 	cinfo->scale_num = 1;
 	jpeg_calc_output_dimensions( cinfo );
 
-	*invert_pels = FALSE;
+	jpeg->invert_pels = FALSE;
 	switch( cinfo->out_color_space ) {
 	case JCS_GRAYSCALE:
 		interpretation = VIPS_INTERPRETATION_B_W;
@@ -566,7 +669,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 		 * way to spot photoshop CMYK JPGs.
 		 */
 		if( cinfo->saw_Adobe_marker ) 
-			*invert_pels = TRUE;
+			jpeg->invert_pels = TRUE;
 		break;
 
 	case JCS_RGB:
@@ -611,7 +714,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 
 	/* Set VIPS header.
 	 */
-	vips_image_init_fields( out,
+	vips_image_init_fields( jpeg->out,
 		cinfo->output_width, cinfo->output_height,
 		cinfo->output_components,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
@@ -620,12 +723,12 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 
 	/* Best for us, probably.
 	 */
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+	vips_demand_hint( jpeg->out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
 	/* Interlaced jpegs need lots of memory to read, so our caller needs
 	 * to know.
 	 */
-	(void) vips_image_set_int( out, "jpeg-multiscan", 
+	(void) vips_image_set_int( jpeg->out, "jpeg-multiscan", 
 		jpeg_has_multiple_scans( cinfo ) );
 
 	/* Look for EXIF and ICC profile.
@@ -651,12 +754,14 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			 */
 			if( p->data_length > 4 &&
 				vips_isprefix( "Exif", (char *) p->data ) &&
-				read_exif( out, p->data, p->data_length ) )
+				read_exif( jpeg->out, 
+					p->data, p->data_length ) )
 				return( -1 );
 
 			if( p->data_length > 4 &&
 				vips_isprefix( "http", (char *) p->data ) &&
-				read_xmp( out, p->data, p->data_length ) )
+				read_xmp( jpeg->out, 
+					p->data, p->data_length ) )
 				return( -1 );
 
 			break;
@@ -709,7 +814,7 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 			p += app2_data_length[i];
 		}
 
-		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
+		vips_image_set_blob( jpeg->out, VIPS_META_ICC_NAME, 
 			(VipsCallbackFn) vips_free, data, data_length );
 	}
 
@@ -719,9 +824,10 @@ read_jpeg_header( struct jpeg_decompress_struct *cinfo,
 /* Read a cinfo to a VIPS image.
  */
 static int
-read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out, 
-	gboolean invert_pels )
+read_jpeg_image( ReadJpeg *jpeg )
 {
+	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
+
 	int x, y, sz;
 	JSAMPROW row_pointer[1];
 
@@ -731,28 +837,32 @@ read_jpeg_image( struct jpeg_decompress_struct *cinfo, IMAGE *out,
 	row_pointer[0] = (JSAMPLE *) (*cinfo->mem->alloc_large) 
 		( (j_common_ptr) cinfo, JPOOL_IMAGE, sz );
 
-	/* Start up decompressor.
-	 */
 	jpeg_start_decompress( cinfo );
+
+	/* Here for longjmp() from vips__new_error_exit().
+	 */
+	if( setjmp( jpeg->eman.jmp ) ) {
+		jpeg_finish_decompress( cinfo );
+
+		return( -1 );
+	}
 
 	/* Process image.
 	 */
-	for( y = 0; y < out->Ysize; y++ ) {
+	for( y = 0; y < jpeg->out->Ysize; y++ ) {
 		/* We set an error handler that longjmps() out, so I don't
 		 * think this can fail.
 		 */
 		jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
 
-		if( invert_pels ) 
+		if( jpeg->invert_pels ) 
 			for( x = 0; x < sz; x++ )
 				row_pointer[0][x] = 255 - row_pointer[0][x];
 
-		if( vips_image_write_line( out, y, row_pointer[0] ) )
+		if( vips_image_write_line( jpeg->out, y, row_pointer[0] ) )
 			return( -1 );
 	}
 
-	/* Stop decompressor.
-	 */
 	jpeg_finish_decompress( cinfo );
 
 	return( 0 );
@@ -764,63 +874,42 @@ int
 vips__jpeg_read_file( const char *filename, VipsImage *out, 
 	gboolean header_only, int shrink, gboolean fail )
 {
-	struct jpeg_decompress_struct cinfo;
-        ErrorManager eman;
-	FILE *fp;
+	ReadJpeg *jpeg;
 	int result;
-	gboolean invert_pels;
 
-	/* Make jpeg dcompression object.
- 	 */
-        cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = vips__new_error_exit;
-	eman.pub.output_message = vips__new_output_message;
-	eman.fp = NULL;
-	if( setjmp( eman.jmp ) ) {
-		/* Here for longjmp() from new_error_exit().
-		 */
-		jpeg_destroy_decompress( &cinfo );
+	if( !(jpeg = readjpeg_new( out, shrink, fail )) )
+		return( -1 );
+
+	/* Here for longjmp() from vips__new_error_exit() during startup.
+	 */
+	if( setjmp( jpeg->eman.jmp ) ) {
+		(void) readjpeg_free( jpeg );
 
 		return( -1 );
 	}
-        jpeg_create_decompress( &cinfo );
 
-	/* Make input.
+	/* Set input to file.
 	 */
-        if( !(fp = vips__file_open_read( filename, NULL, FALSE )) ) 
-                return( -1 );
-	eman.fp = fp;
-        jpeg_stdio_src( &cinfo, fp );
+	if( readjpeg_file( jpeg, filename ) ) {
+		(void) readjpeg_free( jpeg );
+
+		return( -1 );
+	}
 
 	/* Need to read in APP1 (EXIF metadata) and APP2 (ICC profile).
 	 */
-	jpeg_save_markers( &cinfo, JPEG_APP0 + 1, 0xffff );
-	jpeg_save_markers( &cinfo, JPEG_APP0 + 2, 0xffff );
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );
 
 	/* Convert!
 	 */
-	result = read_jpeg_header( &cinfo, out, &invert_pels, shrink );
+	result = read_jpeg_header( jpeg ); 
 	if( !header_only && !result )
-		result = read_jpeg_image( &cinfo, out, invert_pels );
+		result = read_jpeg_image( jpeg ); 
 
 	/* Close and tidy.
 	 */
-	fclose( fp );
-	eman.fp = NULL;
-	jpeg_destroy_decompress( &cinfo );
-
-	if( eman.pub.num_warnings != 0 ) {
-		if( fail ) {
-			vips_error( "VipsJpeg", "%s", vips_error_buffer() );
-			result = -1;
-		}
-		else {
-			vips_warn( "VipsJpeg", 
-				_( "read gave %ld warnings" ), 
-				eman.pub.num_warnings );
-			vips_warn( "VipsJpeg", "%s", vips_error_buffer() );
-		}
-	}
+	result |= readjpeg_free( jpeg );
 
 	return( result );
 }
@@ -967,8 +1056,9 @@ term_source (j_decompress_ptr cinfo)
  */
 
 static void
-buf_source (j_decompress_ptr cinfo, void *buf, size_t len)
+readjpeg_buffer (ReadJpeg *jpeg, void *buf, size_t len)
 {
+  j_decompress_ptr cinfo = &jpeg->cinfo;
   InputBuffer *src;
 
   /* The source object and input buffer are made permanent so that a series
@@ -1001,44 +1091,36 @@ int
 vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out, 
 	gboolean header_only, int shrink, int fail )
 {
-	struct jpeg_decompress_struct cinfo;
-        ErrorManager eman;
+	ReadJpeg *jpeg;
 	int result;
-	gboolean invert_pels;
 
-	/* Make jpeg dcompression object.
- 	 */
-        cinfo.err = jpeg_std_error( &eman.pub );
-	eman.pub.error_exit = vips__new_error_exit;
-	eman.pub.output_message = vips__new_output_message;
-	eman.fp = NULL;
-	if( setjmp( eman.jmp ) ) {
-		/* Here for longjmp() from new_error_exit().
-		 */
-		jpeg_destroy_decompress( &cinfo );
+	if( !(jpeg = readjpeg_new( out, shrink, fail )) )
+		return( -1 );
+
+	if( setjmp( jpeg->eman.jmp ) ) {
+		(void) readjpeg_free( jpeg );
 
 		return( -1 );
 	}
-        jpeg_create_decompress( &cinfo );
 
-	/* Make input.
+	/* Set input to buffer.
 	 */
-	buf_source( &cinfo, buf, len );
+	readjpeg_buffer( jpeg, buf, len );
 
 	/* Need to read in APP1 (EXIF metadata) and APP2 (ICC profile).
 	 */
-	jpeg_save_markers( &cinfo, JPEG_APP0 + 1, 0xffff );
-	jpeg_save_markers( &cinfo, JPEG_APP0 + 2, 0xffff );
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );
 
 	/* Convert!
 	 */
-	result = read_jpeg_header( &cinfo, out, &invert_pels, 1 );
+	result = read_jpeg_header( jpeg );
 	if( !header_only && !result )
-		result = read_jpeg_image( &cinfo, out, invert_pels );
+		result = read_jpeg_image( jpeg );
 
 	/* Close and tidy.
 	 */
-	jpeg_destroy_decompress( &cinfo );
+	result |= readjpeg_free( jpeg );
 
 	return( result );
 }
