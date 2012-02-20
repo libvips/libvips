@@ -184,6 +184,24 @@ vips_angle_get_type( void )
 
 	return( etype );
 }
+GType
+vips_cache_strategy_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_CACHE_RANDOM, "VIPS_CACHE_RANDOM", "random"},
+			{VIPS_CACHE_SEQUENTIAL, "VIPS_CACHE_SEQUENTIAL", "sequential"},
+			{VIPS_CACHE_LAST, "VIPS_CACHE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsCacheStrategy", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/arithmetic.h" */
 GType
 vips_operation_math_get_type( void )

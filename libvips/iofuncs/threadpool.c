@@ -905,30 +905,33 @@ vips_get_tile_size( VipsImage *im,
 	case VIPS_DEMAND_STYLE_SMALLTILE:
 		*tile_width = vips__tile_width;
 		*tile_height = vips__tile_height;
-
-		/* Enough lines of tiles that we can expect to be able to keep
-		 * nthr busy. Then double it.
-		 */
-		*nlines = *tile_height * 
-			(1 + nthr / VIPS_MAX( 1, im->Xsize / *tile_width )) * 2;
 		break;
 
 	case VIPS_DEMAND_STYLE_ANY:
 	case VIPS_DEMAND_STYLE_FATSTRIP:
 		*tile_width = im->Xsize;
 		*tile_height = vips__fatstrip_height;
-		*nlines = *tile_height * nthr * 2;
 		break;
 
 	case VIPS_DEMAND_STYLE_THINSTRIP:
 		*tile_width = im->Xsize;
 		*tile_height = vips__thinstrip_height;
-		*nlines = *tile_height * nthr * 2;
 		break;
 
 	default:
 		g_assert( 0 );
 	}
+
+	/* We can't set nlines for the current demand style: a later bit of
+	 * the pipeline might see a different hint and we need to synchronise
+	 * buffer sizes everywhere.
+	 *
+	 * Pick the maximum buffer size we might possibly need.
+	 */
+	*nlines = vips__tile_height * 
+		(1 + nthr / VIPS_MAX( 1, im->Xsize / vips__tile_width )) * 2;
+	*nlines = VIPS_MAX( *nlines, vips__fatstrip_height * nthr * 2 );
+	*nlines = VIPS_MAX( *nlines, vips__thinstrip_height * nthr * 2 );
 
 	/* We make this assumption in several places.
 	 */

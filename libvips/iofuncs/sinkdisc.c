@@ -348,6 +348,14 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 				return( 0 );
 			}
 
+			VIPS_DEBUG_MSG( "wbuffer_allocate_fn: "
+				"finished top = %d, height = %d\n",
+				write->buf->area.top, write->buf->area.height );
+
+			VIPS_DEBUG_MSG( "wbuffer_allocate_fn: "
+				"starting top = %d, height = %d\n",
+				sink_base->y, sink_base->nlines );
+
 			/* Swap buffers.
 			 */
 			VIPS_SWAP( WriteBuffer *, write->buf, write->buf_back );

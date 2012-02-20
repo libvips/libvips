@@ -41,6 +41,8 @@ GType vips_align_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ALIGN (vips_align_get_type())
 GType vips_angle_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ANGLE (vips_angle_get_type())
+GType vips_cache_strategy_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_CACHE_STRATEGY (vips_cache_strategy_get_type())
 /* enumerations from "../../../libvips/include/vips/util.h" */
 GType vips_token_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_TOKEN (vips_token_get_type())

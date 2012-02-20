@@ -86,6 +86,7 @@ typedef struct _VipsTileCache {
 	int tile_width;	
 	int tile_height;
 	int max_tiles;
+	VipsCacheStrategy strategy;
 
 	/* VipsTileCache.
 	 */
@@ -230,7 +231,7 @@ static Tile *
 tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 {
 	Tile *tile;
-	int oldest;
+	int oldest, topmost;
 	GSList *p;
 
 	/* In cache already?
@@ -255,15 +256,35 @@ tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 
 	/* Reuse an old one.
 	 */
-	oldest = cache->time;
-	tile = NULL;
-	for( p = cache->tiles; p; p = p->next ) {
-		Tile *t = (Tile *) p->data;
+	switch( cache->strategy ) {
+	case VIPS_CACHE_RANDOM:
+		oldest = cache->time;
+		tile = NULL;
+		for( p = cache->tiles; p; p = p->next ) {
+			Tile *t = (Tile *) p->data;
 
-		if( t->time < oldest ) {
-			oldest = t->time;
-			tile = t;
+			if( t->time < oldest ) {
+				oldest = t->time;
+				tile = t;
+			}
 		}
+		break;
+
+	case VIPS_CACHE_SEQUENTIAL:
+		topmost = cache->in->Ysize;
+		tile = NULL;
+		for( p = cache->tiles; p; p = p->next ) {
+			Tile *t = (Tile *) p->data;
+
+			if( t->y < topmost ) {
+				topmost = t->y;
+				tile = t;
+			}
+		}
+		break;
+
+	default:
+		g_assert( 0 );
 	}
 
 	g_assert( tile );
@@ -424,6 +445,12 @@ vips_tile_cache_class_init( VipsTileCacheClass *class )
 		G_STRUCT_OFFSET( VipsTileCache, max_tiles ),
 		-1, 1000000, 1000 );
 
+	VIPS_ARG_ENUM( class, "strategy", 3, 
+		_( "Strategy" ), 
+		_( "Expected access pattern" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsTileCache, strategy ),
+		VIPS_TYPE_CACHE_STRATEGY, VIPS_CACHE_RANDOM );
 }
 
 static void
@@ -432,6 +459,8 @@ vips_tile_cache_init( VipsTileCache *cache )
 	cache->tile_width = 128;
 	cache->tile_height = 128;
 	cache->max_tiles = 1000;
+	cache->strategy = VIPS_CACHE_RANDOM;
+
 	cache->time = 0;
 	cache->ntiles = 0;
 	cache->lock = g_mutex_new();
@@ -449,16 +478,23 @@ vips_tile_cache_init( VipsTileCache *cache )
  * @tile_width: width of tiles in cache
  * @tile_height: height of tiles in cache
  * @max_tiles: maximum number of tiles to cache
+ * @strategy: hint expected access pattern #VipsCacheStrategy
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it keeps a cache of computed pixels. 
  * This cache is made of up to @max_tiles tiles (a value of -1 
  * means any number of tiles), and each tile is of size @tile_width
- * by @tile_height pixels. Each cache tile is made with a single call to 
- * vips_image_prepare().
+ * by @tile_height pixels. 
+ *
+ * Each cache tile is made with a single call to 
+ * vips_image_prepare(). 
+ *
+ * When the cache fills, a tile is chosen for reuse. If @strategy is
+ * #VIPS_CACHE_RANDOM, then the least-recently-used tile is reused. If 
+ * @strategy is #VIPS_CACHE_SEQUENTIAL, the top-most tile is reused.
  *
  * By default, @tile_width and @tile_height are 128 pixels, and the operation
- * will cache up to 1,000 tiles.
+ * will cache up to 1,000 tiles. @strategy defaults to #VIPS_CACHE_RANDOM.
  *
  * This is a lower-level operation than vips_image_cache() since it does no 
  * subdivision and it single-threads its callee. It is suitable for caching 

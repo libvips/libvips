@@ -1266,10 +1266,11 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 		rtiff, NULL ) )
 		return( -1 );
 
+
 	/* Copy to out, adding a cache. Enough tiles for two complete rows.
 	 */
-	if( vips_tilecache( raw, &t, 
-		"tile_width", rtiff->twidth, 
+	if( vips_tilecache( raw, &t,
+		"tile_width", rtiff->twidth,
 		"tile_height", rtiff->theight,
 		"max_tiles", 2 * (1 + raw->Xsize / rtiff->twidth),
 		NULL ) ) 
@@ -1291,8 +1292,7 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 	tdata_t tbuf = (tdata_t) b; 
         VipsRect *r = &or->valid;
 
-	tdata_t dst;
-	tstrip_t strip;
+	int y;
 	tsize_t length;
 
 #ifdef DEBUG
@@ -1307,40 +1307,46 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 	g_assert( r->width == or->im->Xsize );
 	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
 
-	/* Tiles should always be on a strip boundary and exactly one strip
-	 * high.
+	/* Tiles should always be on a strip boundary.
 	 */
 	g_assert( r->top % rtiff->rows_per_strip == 0 );
-	g_assert( r->height == 
-		VIPS_MIN( rtiff->rows_per_strip, or->im->Ysize - r->top ) );
 
-	/* Read directly into the image if we can. Otherwise, we must read 
-	 * to a temp buffer then unpack into the image.
-	 */
-	if( rtiff->memcpy ) 
-		dst = VIPS_REGION_ADDR( or, 0, r->top );
-	else
-		dst = tbuf;
+	for( y = 0; y < r->height; y += rtiff->rows_per_strip ) {
+		tdata_t dst;
+		tstrip_t strip;
 
-	strip = r->top / rtiff->rows_per_strip;
+		/* Read directly into the image if we can. Otherwise, we must 
+		 * read to a temp buffer then unpack into the image.
+		 */
+		if( rtiff->memcpy ) 
+			dst = VIPS_REGION_ADDR( or, 0, r->top + y );
+		else
+			dst = tbuf;
 
-	length = TIFFReadEncodedStrip( rtiff->tiff, strip, dst, (tsize_t) -1 );
-	if( length == -1 ) {
-		vips_error( "tiff2vips", "%s", _( "read error" ) );
-		return( -1 );
-	}
+		strip = (r->top + y) / rtiff->rows_per_strip;
 
-	/* If necessary, unpack to destination.
-	 */
-	if( !rtiff->memcpy ) {
-		int y;
+		length = TIFFReadEncodedStrip( rtiff->tiff, 
+			strip, dst, (tsize_t) -1 );
+		if( length == -1 ) {
+			vips_error( "tiff2vips", "%s", _( "read error" ) );
+			return( -1 );
+		}
 
-		for( y = 0; y < r->height; y++ ) { 
-			VipsPel *p = tbuf + y * rtiff->scanline_size;
-			VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top );
+		/* If necessary, unpack to destination.
+		 */
+		if( !rtiff->memcpy ) {
+			int height = VIPS_MIN( rtiff->rows_per_strip,
+				or->im->Ysize - (r->top + y) );
+			int z;
 
-			rtiff->sfn( q, p, 
-				or->im->Xsize, rtiff->client );
+			for( z = 0; z < height; z++ ) { 
+				VipsPel *p = tbuf + z * rtiff->scanline_size;
+				VipsPel *q = VIPS_REGION_ADDR( or, 
+					0, r->top + y + z );
+
+				rtiff->sfn( q, p, 
+					or->im->Xsize, rtiff->client );
+			}
 		}
 	}
 
@@ -1350,7 +1356,7 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 /* Stripwise reading.
  *
  * We could potentially read strips in any order, but this would give
- * catastrophic performance for opertions like 90 degress rotate on a 
+ * catastrophic performance for operations like 90 degress rotate on a 
  * large image. Only offer sequential read.
  */
 static int
@@ -1397,21 +1403,12 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	if( !(tbuf = vips_malloc( VIPS_OBJECT( out ), rtiff->strip_size )) ) 
 		return( -1 );
 
-	/* Each tile in the cache is the size of a strip. Cache enough tiles
-	 * for two lines of SMALLTILE.
-	 */
 	if( 
 		vips_image_generate( t[0], 
 			NULL, tiff2vips_stripwise_generate, NULL, 
 			rtiff, tbuf ) ||
 		vips_sequential( t[0], &t[1], NULL ) ||
-		vips_tilecache( t[1], &t[2], 
-			"tile_width", t[0]->Xsize, 
-			"tile_height", rtiff->rows_per_strip,
-			"max_tiles", 
-				1 + (2 * VIPS__TILE_HEIGHT) / 
-					rtiff->rows_per_strip,
-			NULL ) ||
+		vips_foreign_tilecache( t[1], &t[2], rtiff->rows_per_strip ) || 
 		vips_image_write( t[2], out ) )
 		return( -1 );
 

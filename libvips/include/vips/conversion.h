@@ -39,11 +39,11 @@ extern "C" {
 
 /** 
  * VipsExtend:
- * @VIPS_EXTEND_BLACK; extend with black (all 0) pixels
- * @VIPS_EXTEND_COPY; copy the image edges
- * @VIPS_EXTEND_REPEAT; repeat the whole image
- * @VIPS_EXTEND_MIRROR; mirror the whole image
- * @VIPS_EXTEND_WHITE; extend with white (all bits set) pixels
+ * @VIPS_EXTEND_BLACK: extend with black (all 0) pixels
+ * @VIPS_EXTEND_COPY: copy the image edges
+ * @VIPS_EXTEND_REPEAT: repeat the whole image
+ * @VIPS_EXTEND_MIRROR: mirror the whole image
+ * @VIPS_EXTEND_WHITE: extend with white (all bits set) pixels
  *
  * See vips_embed(), vips_conv(), vips_affine() and so on.
  *
@@ -78,8 +78,8 @@ typedef enum {
 
 /** 
  * VipsDirection:
- * @VIPS_DIRECTION_HORIZONTAL; left-right 
- * @VIPS_DIRECTION_VERTICAL; top-bottom
+ * @VIPS_DIRECTION_HORIZONTAL: left-right 
+ * @VIPS_DIRECTION_VERTICAL: top-bottom
  *
  * See vips_flip(), vips_join() and so on.
  *
@@ -96,9 +96,9 @@ typedef enum {
 
 /** 
  * VipsAlign:
- * @VIPS_ALIGN_LOW; align low coordinate edge
- * @VIPS_ALIGN_CENTRE; align centre
- * @VIPS_ALIGN_HIGH; align high coordinate edge
+ * @VIPS_ALIGN_LOW: align low coordinate edge
+ * @VIPS_ALIGN_CENTRE: align centre
+ * @VIPS_ALIGN_HIGH: align high coordinate edge
  *
  * See vips_join() and so on.
  *
@@ -116,10 +116,10 @@ typedef enum {
 
 /** 
  * VipsAngle:
- * @VIPS_ANGLE_0; no rotate
- * @VIPS_ANGLE_90; 90 degrees anti-clockwise
- * @VIPS_ANGLE_180; 180 degree rotate
- * @VIPS_ANGLE_270; 90 degrees clockwise
+ * @VIPS_ANGLE_0: no rotate
+ * @VIPS_ANGLE_90: 90 degrees anti-clockwise
+ * @VIPS_ANGLE_180: 180 degree rotate
+ * @VIPS_ANGLE_270: 90 degrees clockwise
  *
  * See vips_rot() and so on.
  *
@@ -134,6 +134,24 @@ typedef enum {
 	VIPS_ANGLE_270,
 	VIPS_ANGLE_LAST
 } VipsAngle;
+
+/** 
+ * VipsCacheStrategy:
+ * @VIPS_CACHE_RANDOM: expect random access
+ * @VIPS_CACHE_SEQUENTIAL: expect sequential access
+ *
+ * See vips_tilecache() and friends.
+ *
+ * Used to hint to caches about the expected access pattern. RANDOM might mean
+ * LRU eviction, SEQUENTIAL might mean top-most eviction.
+ *
+ * See also: vips_tilecache().
+ */
+typedef enum {
+	VIPS_CACHE_RANDOM,
+	VIPS_CACHE_SEQUENTIAL,
+	VIPS_CACHE_LAST
+} VipsCacheStrategy;
 
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

@@ -422,11 +422,7 @@ vips__png_read( const char *name, VipsImage *out )
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
 			vips_sequential( t[0], &t[1], NULL ) ||
-			vips_tilecache( t[1], &t[2], 
-				"tile_width", t[0]->Xsize, 
-				"tile_height", VIPS__TILE_HEIGHT,
-				"max_tiles", 2,
-				NULL ) ||
+			vips_foreign_tilecache( t[1], &t[2], 16 ) || 
 			vips_image_write( t[2], out ) )
 			return( -1 );
 	}

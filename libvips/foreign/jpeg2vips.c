@@ -837,8 +837,9 @@ read_jpeg_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	ReadJpeg *jpeg = (ReadJpeg *) a;
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
+	int sz = cinfo->output_width * cinfo->output_components;
 
-	JSAMPROW row_pointer[VIPS__TILE_HEIGHT];
+	JSAMPROW row_pointer[1];
 	int y;
 
 #ifdef DEBUG
@@ -853,12 +854,9 @@ read_jpeg_generate( VipsRegion *or,
 	g_assert( r->width == or->im->Xsize );
 	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
 
-	/* Tiles should always be on a 8-pixel boundary and exactly one block
-	 * high.
+	/* Tiles should always be on a 8-pixel boundary.
 	 */
-	g_assert( r->top % VIPS__TILE_HEIGHT == 0 );
-	g_assert( r->height == 
-		VIPS_MIN( VIPS__TILE_HEIGHT, or->im->Ysize - r->top ) );
+	g_assert( r->top % 8 == 0 );
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
@@ -866,22 +864,20 @@ read_jpeg_generate( VipsRegion *or,
 		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
-		row_pointer[y] = (JSAMPLE *) 
+		row_pointer[0] = (JSAMPLE *) 
 			VIPS_REGION_ADDR( or, 0, r->top + y );
 
 		/* No faster to read in groups and you have to loop
-		 * anyway.
+		 * anyway. So just read a line at a time.
 		 */
-		jpeg_read_scanlines( cinfo, &row_pointer[y], 1 );
-	}
+		jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
 
-	if( jpeg->invert_pels ) {
-		int sz = cinfo->output_width * cinfo->output_components;
-		int x;
+		if( jpeg->invert_pels ) {
+			int x;
 
-		for( y = 0; y < r->height; y++ ) 
 			for( x = 0; x < sz; x++ )
-				row_pointer[y][x] = 255 - row_pointer[y][x];
+				row_pointer[0][x] = 255 - row_pointer[0][x];
+		}
 	}
 
 	return( 0 );
@@ -919,11 +915,7 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 			NULL, read_jpeg_generate, NULL, 
 			jpeg, NULL ) ||
 		vips_sequential( t[0], &t[1], NULL ) ||
-		vips_tilecache( t[1], &t[2], 
-			"tile_width", t[0]->Xsize, 
-			"tile_height", VIPS__TILE_HEIGHT,
-			"max_tiles", 4,
-			NULL ) ||
+		vips_foreign_tilecache( t[1], &t[2], 8 ) || 
 		vips_image_write( t[2], out ) )
 		return( -1 );
 

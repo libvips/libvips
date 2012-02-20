@@ -932,6 +932,32 @@ vips_foreign_load_init( VipsForeignLoad *load )
 	load->disc = TRUE;
 }
 
+int
+vips_foreign_tilecache( VipsImage *in, VipsImage **out, int strip_height )
+{
+	int tile_width;
+	int tile_height;
+	int nlines;
+	int nstrips;
+
+	vips_get_tile_size( in, &tile_width, &tile_height, &nlines );
+
+	/* We need two buffers, each with enough strips to make a complete
+	 * buffer. And double to be safe.
+	 */
+	nstrips = 2 * (1 + nlines / strip_height); 
+
+	if( vips_tilecache( in, out, 
+		"tile_width", in->Xsize, 
+		"tile_height", strip_height * nstrips,
+		"max_tiles", 2,
+		"strategy", VIPS_CACHE_SEQUENTIAL,
+		NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 /* Abstract base class for image savers.
  */
 

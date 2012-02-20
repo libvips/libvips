@@ -132,6 +132,8 @@ int vips__sizealike( VipsImage *in1, VipsImage *in2,
 int vips__bandalike( const char *domain, 
 	VipsImage *in1, VipsImage *in2, VipsImage **out1, VipsImage **out2 );
 
+int vips_foreign_tilecache( VipsImage *in, VipsImage **out, int strip_height );
+
 
 
 

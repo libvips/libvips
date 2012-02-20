@@ -78,6 +78,10 @@ vips_sequential_generate( VipsRegion *or,
 	 * position.
 	 */
 	if( r->top != sequential->y_pos ) {
+		printf( "vips_sequential_generate: error -- "
+			"at position %d in file, but position %d requested",
+			sequential->y_pos, r->top );
+
 		vips_error( "VipsSequential", 
 			_( "non-sequential read --- "
 			"at position %d in file, but position %d requested" ),
