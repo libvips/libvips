@@ -998,6 +998,12 @@ vips_object_set_property( GObject *gobject,
 
 		*member = g_value_get_enum( value );
 	}
+	else if( G_IS_PARAM_SPEC_FLAGS( pspec ) ) {
+		int *member = &G_STRUCT_MEMBER( int, object,
+			argument_class->offset );
+
+		*member = g_value_get_flags( value );
+	}
 	else if( G_IS_PARAM_SPEC_POINTER( pspec ) ) {
 		gpointer *member = &G_STRUCT_MEMBER( gpointer, object,
 			argument_class->offset );
@@ -1103,6 +1109,12 @@ vips_object_get_property( GObject *gobject,
 			argument_class->offset );
 
 		g_value_set_enum( value, *member );
+	}
+	else if( G_IS_PARAM_SPEC_FLAGS( pspec ) ) {
+		int *member = &G_STRUCT_MEMBER( int, object,
+			argument_class->offset );
+
+		g_value_set_flags( value, *member );
 	}
 	else if( G_IS_PARAM_SPEC_POINTER( pspec ) ) {
 		gpointer *member = &G_STRUCT_MEMBER( gpointer, object,
@@ -1496,6 +1508,12 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 		g_value_init( &gvalue, otype );
 		g_value_set_enum( &gvalue, enum_value->value );
+	}
+	else if( G_IS_PARAM_SPEC_FLAGS( pspec ) ) {
+		/* Hard to set from a symbolic name. Just take an int.
+		 */
+		g_value_init( &gvalue, otype );
+		g_value_set_flags( &gvalue, atoi( value ) );
 	}
 	else {
 		g_value_init( &gvalue, G_TYPE_STRING );

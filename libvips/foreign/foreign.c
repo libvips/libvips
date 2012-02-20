@@ -904,7 +904,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoad, out ) );
 
-	VIPS_ARG_ENUM( class, "flags", 6, 
+	VIPS_ARG_FLAGS( class, "flags", 6, 
 		_( "Flags" ), 
 		_( "Flags for this file" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
@@ -943,7 +943,8 @@ vips_foreign_tilecache( VipsImage *in, VipsImage **out, int strip_height )
 	vips_get_tile_size( in, &tile_width, &tile_height, &nlines );
 
 	/* We need two buffers, each with enough strips to make a complete
-	 * buffer. And double to be safe.
+	 * buffer. And double to be safe, since input buffers must be larger
+	 * than output, and our buffers may not align exactly.
 	 */
 	nstrips = 2 * (1 + nlines / strip_height); 
 

@@ -3,7 +3,7 @@
 
 
 
-- add ore sequential mode readers
+- add more sequential mode readers
 
 	$ grep -l write_line *.c
 	csv.c

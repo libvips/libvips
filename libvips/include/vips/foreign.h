@@ -86,12 +86,12 @@ void *vips_foreign_map( const char *base,
 
 /* Image file load properties. 
  */
-typedef enum {
+typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_NONE = 0,		/* No flags set */
 	VIPS_FOREIGN_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
 	VIPS_FOREIGN_SEQUENTIAL = 2,	/* Top-to-bottom lazy read OK */
-	VIPS_FOREIGN_BIGENDIAN = 3,	/* Most-significant byte first */
-	VIPS_FOREIGN_ALL = 4		/* All flags set */
+	VIPS_FOREIGN_BIGENDIAN = 4,	/* Most-significant byte first */
+	VIPS_FOREIGN_ALL = 7		/* All flags set */
 } VipsForeignFlags;
 
 #define VIPS_TYPE_FOREIGN_LOAD (vips_foreign_load_get_type())

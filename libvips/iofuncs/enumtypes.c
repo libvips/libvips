@@ -11,7 +11,7 @@ vips_foreign_flags_get_type( void )
 	static GType etype = 0;
 
 	if( etype == 0 ) {
-		static const GEnumValue values[] = {
+		static const GFlagsValue values[] = {
 			{VIPS_FOREIGN_NONE, "VIPS_FOREIGN_NONE", "none"},
 			{VIPS_FOREIGN_PARTIAL, "VIPS_FOREIGN_PARTIAL", "partial"},
 			{VIPS_FOREIGN_SEQUENTIAL, "VIPS_FOREIGN_SEQUENTIAL", "sequential"},
@@ -20,7 +20,7 @@ vips_foreign_flags_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignFlags", values );
+		etype = g_flags_register_static( "VipsForeignFlags", values );
 	}
 
 	return( etype );
@@ -499,7 +499,7 @@ vips_argument_flags_get_type( void )
 	static GType etype = 0;
 
 	if( etype == 0 ) {
-		static const GEnumValue values[] = {
+		static const GFlagsValue values[] = {
 			{VIPS_ARGUMENT_NONE, "VIPS_ARGUMENT_NONE", "none"},
 			{VIPS_ARGUMENT_REQUIRED, "VIPS_ARGUMENT_REQUIRED", "required"},
 			{VIPS_ARGUMENT_CONSTRUCT, "VIPS_ARGUMENT_CONSTRUCT", "construct"},
@@ -510,7 +510,7 @@ vips_argument_flags_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsArgumentFlags", values );
+		etype = g_flags_register_static( "VipsArgumentFlags", values );
 	}
 
 	return( etype );

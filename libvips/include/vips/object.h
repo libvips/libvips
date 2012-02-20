@@ -66,7 +66,7 @@ typedef struct _VipsObjectClass VipsObjectClass;
  * member of struct _VipsImage. We default its 'assigned' to TRUE
  * since the field is always set directly by C.
  */
-typedef enum {
+typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_NONE = 0,
 	VIPS_ARGUMENT_REQUIRED = 1,
 	VIPS_ARGUMENT_CONSTRUCT = 2,
@@ -193,6 +193,19 @@ extern int _vips__argument_id;
 	GParamSpec *pspec; \
 	\
 	pspec = g_param_spec_enum( (NAME), (LONG), (DESC), \
+		(TYPE), (VALUE), \
+		G_PARAM_READWRITE );\
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
+#define VIPS_ARG_FLAGS( CLASS, NAME, PRIORITY, LONG, DESC, \
+	FLAGS, OFFSET, TYPE, VALUE ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_flags( (NAME), (LONG), (DESC), \
 		(TYPE), (VALUE), \
 		G_PARAM_READWRITE );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \

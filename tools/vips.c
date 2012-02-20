@@ -68,8 +68,8 @@
 
 /*
 #define DEBUG
- */
 #define DEBUG_FATAL
+ */
 
 /* Need to disable these sometimes.
 #undef DEBUG_FATAL
