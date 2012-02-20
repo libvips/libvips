@@ -1,3 +1,11 @@
+- try:
+
+	$ vips --vips-concurrency=1 --vips-tile-width=10 --vips-tile-height=10 im_benchmarkn /home/john/GIT/nip2//test/tmp/t3.v /home/john/GIT/nip2//test/tmp/t5.v 1
+	** VIPS:ERROR:threadpool.c:938:vips_get_tile_size: assertion failed: (*nlines % *tile_height == 0)
+
+
+
+
 - interlaced jpg needs massive memory, we should have two jpg read modes, like
   png
 

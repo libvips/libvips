@@ -882,6 +882,14 @@ vips_threadpool_run( VipsImage *im,
 	return( result );
 }
 
+/* Round N down to P boundary. 
+ */
+#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
+
+/* Round N up to P boundary. 
+ */
+#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
+
 /**
  * vips_get_tile_size:
  * @im: image to guess for
@@ -926,12 +934,14 @@ vips_get_tile_size( VipsImage *im,
 	 * the pipeline might see a different hint and we need to synchronise
 	 * buffer sizes everywhere.
 	 *
-	 * Pick the maximum buffer size we might possibly need.
+	 * Pick the maximum buffer size we might possibly need, then round up
+	 * to a multiple of tileheight.
 	 */
 	*nlines = vips__tile_height * 
 		(1 + nthr / VIPS_MAX( 1, im->Xsize / vips__tile_width )) * 2;
 	*nlines = VIPS_MAX( *nlines, vips__fatstrip_height * nthr * 2 );
 	*nlines = VIPS_MAX( *nlines, vips__thinstrip_height * nthr * 2 );
+	*nlines = ROUND_UP( *nlines, *tile_height );
 
 	/* We make this assumption in several places.
 	 */
