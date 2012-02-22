@@ -1,15 +1,51 @@
-- try:
+blocking bugs
+=============
 
-	$ vips --vips-concurrency=1 --vips-tile-width=10 --vips-tile-height=10 im_benchmarkn /home/john/GIT/nip2//test/tmp/t3.v /home/john/GIT/nip2//test/tmp/t5.v 1
-	** VIPS:ERROR:threadpool.c:938:vips_get_tile_size: assertion failed: (*nlines % *tile_height == 0)
+- argh
+
+	(nip2:11576): GLib-GObject-WARNING **: value "-0.000000" of type 
+	`gdouble' is invalid or out of range for property `yres' of 
+	type `gdouble'
+
+  similarly for vips_max() of an image which contains NaN, -INFINITY etc.
+
+- vips_image_new_from_file() etc. don't allow options in file names ... should
+  they have varargs instead for options? or a version which goes view
+  new_from_string and does allow options?
+
+- clicking on bad pngs in the file browser will lock nip2
+
+  they don't seem to bother "header" though, strange
+
+- new binding is still missing constants 
+
+  how do boxed types work? confusing
+
+  we need to be able to make a VipsArrayDouble
 
 
+mosaic
+======
 
+- balance should use new meta stuff
+
+
+resample
+========
+
+- check mosaic1, global_balance, similarity etc. use of im__affine
+  
+  how can we move them to im_affinei ?
+
+- perspective transform with a matrix ... base it on the Lenz transformer, but
+  partial
+
+
+foreign
+=======
 
 - interlaced jpg needs massive memory, we should have two jpg read modes, like
   png
-
-
 
 - add more sequential mode readers
 
@@ -22,92 +58,110 @@
 
 - is the tif reader deadlocking sometimes?
 
+  is it when we get a non-seq error?
+
+  should there be some way to set the seq cache size?
+
+- foreign docs come up as "VipsForeignSave", annoying, why?
+
+- make an argb coding type, add to nip2 and known coding
+
+  see openslide
+
+- add nifti support
+
+	http://niftilib.sourceforge.net/
+
+- support planar tiff
+
+- add matlab write
+
+- im_exr2vips can now use c++ api
+
+  see TODO notes in openexr read (though they all need more openexr C API)
+
+  consider openexr write
+
+- magick2vips should spot ICC profiles and attach them as meta
+
+- also png2vips?
+
+- magick should set some header field for n_frames and frame_height? see also
+  analyze
+
+- im_csv2vips() could use "-" for filename to mean stdin
+
+  but then we'd have to read to a malloced buffer of some sort rather than an
+  image, since we might need to grow it during the read, since we couldn't
+  then seek
 
 
+packaging
+=========
+
+- test _O_TEMPORARY thing on Windows
+
+- do we bundle "convert" in the OS X / win32 builds? if we don't we
+  should
 
 
-- argh
+convolution
+===========
 
-	(nip2:11576): GLib-GObject-WARNING **: value "-0.000000" of type 
-	`gdouble' is invalid or out of range for property `yres' of 
-	type `gdouble'
+- revisit orc conv
 
-- clicking on bad pngs in the file browser will lock nip2
+  use an 8.8 accumulator ... build the scale into the 8.8 coeffs ... no div at
+  the end, just a shift
 
-  they don't seem to bother "header" though, strange
+  need 8 x 8.8 -> 8.8 for each coeff though
 
+- im_conv()/im_morph() could have more than 10 programs? try 20 and see if we
+  still have a speedup
 
+  make a base class for vector area operations with a matrix with three vfuncs
+  for init / generate code for one element / end and a gslist of programs, use
+  that as the base for morph and conv
 
-
-- vips_image_new_from_file() etc. don't allow options in file names ... should
-  they have varargs instead for options? or a version which goes view
-  new_from_string and does allow options?
-
-
-
-
+  wait for vipsobject for this
 
 
-- swig is not wrapping im_project() correctly ... returns an extra VImage via
-  a param
+colour
+======
 
-- fft with odd width or height is broken ... DC ends up in the wring place
+- lab [100,0,0] -> srgb [255, 255, 254]? how odd
 
-- performance regression over 7.26
-
-	$ valgrind --tool=callgrind ./vips.py wtc_tiled_small.tif x.tif
-
-  vips_executor_run() 7.26 78k times
-  vips_executor_run() master 294k times
-
-  vips_interpolate_bilinear() 7.26 18.8m
-  vips_interpolate_bilinear() master 19.2m
-
-  total of about 0.5s user time difference
-
-  ... tile size difference!
-
-  try 
-
-  	time ./vips.py wtc_tiled_small.tif x.tif --vips-tile-width=512
-	--vips-tile-height=512
+- use D65 in cmsCreateLab4Profile() ? not sure
 
 
+arithmetic
+==========
 
+- avg/dev etc. should uncode images? eg. labq2lab etc.
+
+  how about ifthenelse? 
+
+- bandalike: consider RGB + RGBA ... we should bandup by adding a black band
+
+  (or white?? unclear)
+
+  not clear if this is a good idea ... eg. when we upband a 1 band to a 2
+  band, should we duplicate the 1 band or add black?
+
+- HAVE_HYPOT could define a hypot() macro?
+
+
+iofuncs
+=======
 
 - we have VipsArrayObject and also vips_object_local_array()
 
   can we make one use the other?
 
-
-
-
-
-- Vips.Image has members like chain, __subclasshook__ etc etc, are we
-  really subclassing it correctly?
-
-- add support for constants
-
-  how do boxed types work? confusing
-
-  we need to be able to make a VipsArrayDouble
-
-- add __add__ etc overloads
-
-
-
+- need vips_image_invalidate_area()
 
 - look at libpeas for plugin support
 
 	http://live.gnome.org/Libpeas
-
-
-
-
-- foreign docs come up as "VipsForeignSave", annoying, why?
-
-
-
 
 - how about
 
@@ -123,15 +177,6 @@
 
   no brackets or square brackets for options
 
-
-
-
-- make an argb coding type, add to nip2 and known coding
-
-  see openslide
-
-- nip2 should use zooming support, if possible
-
 - transform_g_string_array_image() can't handle quoted strings, so filenames
   with spaces will break
 
@@ -139,170 +184,69 @@
 
   the csv parser just parses FILE* streams, we'd need to break it out
 
-
-
-
-- test docs
-
-  gtk-doc can't introspect to generate class docs since it has no way to init
-  the classes ... investigate
-
-
-
-
-- try an area operation, like conv, VipsArea? oops no haha what name should we
-  use?
-
-
-
-- test _O_TEMPORARY thing on Windows
-
-
-
-- avg/dev etc. should uncode images? eg. labq2lab etc.
-
-  how about ifthenelse? 
-
-
-
-
-
-
-
-
-- bandalike: consider RGB + RGBA ... we should bandup by adding a black band
-
-  (or white?? unclear)
-
-  not clear if this is a good idea ... eg. when we upband a 1 band to a 2
-  band, should we duplicate the 1 band or add black?
-
-
-
-
 - note member free stuff in vipsobject docs
 
   should boxed get freed in finalise rather than dispose?
 
   vipsobject has few docs atm :(
 
-
-
-
-- we have this is many places:
-
-	if( vips_image_copy_fieldsv( conversion->output, 
-		insert->main, insert->sub, NULL ) )
-		return( -1 );
-        vips_demand_hint( conversion->output, 
-		VIPS_DEMAND_STYLE_THINSTRIP, insert->main, insert->sub, NULL );
-
-  why not combine these into a single API call?
-
-  use array version in several places
-
-  things like black and min (sources and sinks) only set the dhint
-
-
-
-
 - vips_object_set_argument_from_string() needs more arg types
 
   must be some way to make this more automatic
 
-
-
-
-- add nifti support
-
-	http://niftilib.sourceforge.net/
-
-
-
-
-
-
-
-- add vips_init_argv() which processes argc/argv for you? handy for tiny
-  progs, perhaps
-
-  just saves 5 lines of code, don't bother
-
-
-
-
-
 - generate the code for vips_add() etc. automatically? it might be 
   nice to have them all in one place at least
 
+- what does G_UNLIKELY() do? can we use it?
+
+- look into G_GNUC_DEPRECATED for back compat in vips8
+
+- should im_rwcheck() copy to disc?
+
+  maybe im_rwcheck_disc() copies to im->filename and maps that
+
+  rather awkward to do atm with the way check.c is structured
 
 
+swig
+====
 
-- all the old dispatch wrappers could move to deprecated
+- swig is not wrapping im_project() correctly ... returns an extra VImage via
+  a param
 
-
-
-
-- support planar tiff
-
-
+- doc strings would be nice, read the SWIG notes on this
 
 
-- vips operation print could show operation flags as well, cf. "vips
-  im_subtract"
+new bindings
+============
 
-  haha, we don't have any flags like that on operation ... NOCACHE looks
-  useful, should we add that? any others?
+- Vips.Image has members like chain, __subclasshook__ etc etc, are we
+  really subclassing it correctly?
 
-  maybe wait until we have to
-
-
+- add __add__ etc overloads
 
 
-- revisit orc conv
+freq_filt
+=========
 
-  use an 8.8 accumulator ... build the scale into the 8.8 coeffs ... no div at
-  the end, just a shift
-
-  need 8 x 8.8 -> 8.8 for each coeff though
+- fft with odd width or height is broken ... DC ends up in the wrong place
 
 
+libvipsCC
+=========
+
+- need new C++ API
+
+- need an im_init_world() for C++ which does cmd-line args too, so C++ progs
+  can get --vips-progress and stuff automatically
 
 
+tools
+=====
 
+- could spot "copy" and turn on seq mode automatically?
 
-
-  
-
-
-
-- make a vips8 binding for Python as well
-
-  use ctypes and not swig so we get an easy Win version
-
-  wrap new API for C++
-
-
-
-
-
-
-- Magick: 
-
-	- do we bundle "convert" in the OS X / win32 builds? if we don't we
-	  should
-
-
-
-
-- need vips_image_invalidate_area()
-
-
-
-
-
-
-- add matlab write
+  perhaps there should be something on operations to indicate seq-ability
 
 - need a way to make the vips.1 etc. man pages
 
@@ -314,148 +258,13 @@
 
 - can we make man pages for the API as well? probably not from googling a bit
 
-
-
-- use g_mmap() or whatever it's called ... or perhaps they don't have all
-  these options
-
-
-
-
-- use |_O_TEMPORARY to open()'s mode on Windows for tmpfiles to increase the
-  chances we actually delete
-
-  see http://www.mail-archive.com/bug-gnulib@gnu.org/msg05730.html
-
-
-
-
-
-- lab [100,0,0] -> srgb [255, 255, 254]? how odd
-
-
-
-
-
-
-
-
-
-- im_conv()/im_morph() could have more than 10 programs? try 20 and see if we
-  still have a speedup
-
-  make a base class for vector area operations with a matrix with three vfuncs
-  for init / generate code for one element / end and a gslist of programs, use
-  that as the base for morph and conv
-
-  wait for vipsobject for this
-
-
-
-
-- perspective transform with a matrix ... base it on the Lenz transformer, but
-  partial
-
-
-
-- use D65 in cmsCreateLab4Profile() ? not sure
-
-- im_divide() can /0 for complex 
-
-
-
-
-- test
-
-		python setup.py build_ext
-		python setup.py build
-		python setup.py install
-
-
->>> from vipsCC import *
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "/usr/local/lib/python2.6/dist-packages/vipsCC/VImage.py", line 25, in
-<module>
-    vimagemodule = swig_import_helper()
-  File "/usr/local/lib/python2.6/dist-packages/vipsCC/VImage.py", line 21, in
-swig_import_helper
-    _mod = imp.load_module('vimagemodule', fp, pathname, description)
-ImportError: /usr/local/lib/python2.6/dist-packages/vipsCC/vimagemodule.so:
-swig_import_helper
-    _mod = imp.load_module('vimagemodule', fp, pathname, description)
-ImportError: /usr/local/lib/python2.6/dist-packages/vipsCC/vimagemodule.so:
-undefined symbol: _ZTIN4vips5VMaskE
-
-ie. vimagemodule.so can't find libvipsCC.so I guess? or perhaps the compiler
-is being given a differnt mangling flag
-
-we're building with:
-
-gcc -pthread -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall
--Wstrict-prototypes -fPIC -DDEBUG_FATAL=1 -DDEBUG_LEAK=1
--I/usr/lib/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/libxml2
--I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0
--I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick
--I../../libvips/include -I../../libvipsCC/include -I/usr/include/python2.6 -c
-vimagemodule.cpp -o build/temp.linux-x86_64-2.6/vimagemodule.o -pthread
--fopenmp -pthread -Wl,--export-dynamic -pthread -pthread -pthread
-
-g++ -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions
-build/temp.linux-x86_64-2.6/vimagemodule.o -Wl,-R/home/john/vips/lib
--lMagickWand -lMagickCore -lpng12 -ltiff -lz -ljpeg -lgthread-2.0 -lrt
--lglib-2.0 -lgmodule-2.0 -lxml2 -lgobject-2.0 -lgthread-2.0 -lrt -lglib-2.0
--lpangoft2-1.0 -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0
--lgthread-2.0 -lrt -lglib-2.0 -lfftw3 -lm -llcms -lIlmImf -lz -lImath -lHalf
--lIex -lIlmThread -lmatio -lz -lexif -lm -lstdc++ -lm -o
-build/lib.linux-x86_64-2.6/vipsCC/vimagemodule.so -pthread -fopenmp -pthread
--Wl,--export-dynamic -pthread -pthread -pthread
-
-how does this compare to the working build? swig/vipsCC does
-
-g++ -DHAVE_CONFIG_H -I. -I../.. -I../../libvips/include -I../../libvipsCC/include -DDEBUG_FATAL -DDEBUG_LEAK -pthread -fopenmp -I/usr/lib/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/libxml2 -I/usr/include/libpng12 -I/usr/include/libexif -I/usr/include/glib-2.0 -I/usr/include/freetype2 -I/usr/include/OpenEXR -I/usr/include/ImageMagick -I/usr/include/python2.6 -g -Wall -MT vimagemodule.lo -MD -MP -MF .deps/vimagemodule.Tpo -c vimagemodule.cxx -o vimagemodule.o >/dev/null 2>&1
-
-g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o /usr/lib/gcc/x86_64-linux-gnu/4.4.3/crtbeginS.o  .libs/vimagemodule.o   -Wl,-rpath -Wl,/home/john/SVN/vips/vips7/trunk/libvipsCC/.libs -Wl,-rpath -Wl,/home/john/SVN/vips/vips7/trunk/libvips/.libs -Wl,-rpath -Wl,/home/john/vips/lib ../../libvipsCC/.libs/libvipsCC.so ../../libvips/.libs/libvips.so /usr/lib/libMagickWand.so /usr/lib/libMagickCore.so -lpng12 /usr/lib/libtiff.so /usr/lib/libjpeg.so /usr/lib/libxml2.so /usr/lib/libpangoft2-1.0.so /usr/lib/libpango-1.0.so /usr/lib/libfreetype.so -lfontconfig /usr/lib/libgobject-2.0.so /usr/lib/libgmodule-2.0.so /usr/lib/libgthread-2.0.so -lrt /usr/lib/libglib-2.0.so /usr/lib/libfftw3.so /usr/lib/liblcms.so /usr/lib/libIlmImf.so -lImath -lHalf -lIex -lIlmThread /usr/lib/libmatio.so -lz /usr/lib/libexif.so -L/usr/lib/gcc/x86_64-linux-gnu/4.4.3 -L/usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../.. -L/usr/lib/x86_64-linux-gnu -lstdc++ -lm -lc -lgcc_s /usr/lib/gcc/x86_64-linux-gnu/4.4.3/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crtn.o  -pthread -Wl,--export-dynamic -pthread -pthread -pthread   -pthread -Wl,-soname -Wl,vimagemodule.so -o .libs/vimagemodule.so
-
-
-
-
-
-- convert_saveable for other writers: tiff, ppm, csv, rad etc.
-
-
-
-- expose more of the tone funcs in nip2
-
-- quite a few hist operations have no GUI ... lhisteq, for example? or
-  histspec?
-
-
-
-
 - rename header, edvips as vipsheader, vipsedit
 
   maybe have back compat links?
 
-- should im_rwcheck() copy to disc?
 
-  maybe im_rwcheck_disc() copies to im->filename and maps that
-
-  rather awkward to do atm with the way check.c is structured
-
-- what does G_UNLIKELY() do? can we use it?
-
-- rename vipsCC in SWIG as pyvips?
-
-- look into G_GNUC_DEPRECATED for back compat in vips8
-
-- can we use conv_sep to speed up the memuse benchmarks?
-
-- check mosaic1, global_balance, similarity etc. use of im__affine
-  
-  how can we move them to im_affinei ?
-
-- doc strings would be nice, read the SWIG notes on this
+new operations
+==============
 
 - bilateral filtering, see:
 
@@ -466,130 +275,8 @@ g++ -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.4.3/../../../../lib/crti.o
   also a mail from Martin Breidt has links to several fast free C
   implementations
 
-- need a section for vipsobject in the tutorial
-
-  also a manpage?
-
-  not really stable yet :( don't document
-
-- we shouldn't need to call im_invalidate() in gtkdisp4 :( how can we fix
-  this?
-
-- we should wrap the format API, also im_render*(), see gtkdisp.cc for sample
-  code
-
-- need an im_init_world() for C++ which does cmd-line args too, so C++ progs
-  can get --vips-progress and stuff automatically
-
-- unsharp should work on GREY16? should be easy to add GREY16->LABS
-
-  no, labs is signed short, ranges are all differrent, and the scaling will be
-  wrong anyway
-
-  correct: import with ICC to labs, then process, then export to RGB, take
-  green?
-
-  yuk, can we add a 16bit path to vips's lab <--> rgb converter?
-
-  use TIFF RGB16 as the 16bit RGB target
-
-  im_XYZ2disp() would be easy to 16bit ... just need the 1,500 element table
-  table->t_Yr2r[i] expanded
-  
-  im_disp2XYZ() uses im_col_rgb2XYZ() in a loop ... again, need
-  the 1,500 element table table->t_r2Yr[i] expanded
-
-  usually these three tables (t_r2Yr, t_g2Yg, t_b2Yb) will be identical, can
-  we common them up? same for t_Yr2r etc.
-
-  how big should the table be for 16 bits? 256 times larger? too big!
-
-  we really just need a LUT for pow() with the right exponent, eg. 2.4 for
-  sRGBs, and one for 1/2.4 ... see what calcul_tables does:
-
-  	table->t_r2Yr[i] = yo + a * pow( i * table->ristep / f + c, ga );
-
-  see
-
-
-
-  
-
-- test maxpos_avg, quite a few changes
-
-- HAVE_HYPOT could define a hypot() macro?
-
-- im_exr2vips can now use c++ api
-
-  see TODO notes in openexr read (though they all need more openexr C API)
-
-  consider openexr write
-
-- python startup fails with plugins in vipslib:
-
-	Fatal Python error: can't initialise module vips
-	plugin: unable to open plugin "/home/john/vips/lib/resample.plg"
-	plugin: /home/john/vips/lib/resample.plg: undefined symbol: im_start_one
-
-  do we need to build plugins with -rpath etc. and more libs?
-
-  or do we need to make sure our python modules export all their im_ symbols?
-
-  check:
-
-  	http://www.swig.org/Doc1.3/SWIGDocumentation.html#Python_nn8
-	http://docs.python.org/dist/dist.html
-	result = vips_call ("name", args)
-
-  then call that from VImage_method
-
-- do we really need VImage_method? Can't we write
-
-	__getattr__ (self, name) = lambda (obj_to_call, arguments):
-
-  or something like that?
-
-- TIFF load/save should use meta system for unknown tags
-
-- balance should use new meta stuff
-
-- magick2vips should spot ICC profiles and attach them as meta
-
-- also png2vips?
-
-- magick should set some header field for n_frames and frame_height? see also
-  analyze
-
-- im_csv2vips() could use "-" for filename to mean stdin
-
-  but then we'd have to read to a malloced buffer of some sort rather than an
-  image, since we might need to grow it during the read, since we couldn't
-  then seek
-
-- add erode/dilate 3x3 special case using a 512-bit LUT
-
-  ... nope, actually slower :-( we end up doing an inner loop like
-
-  	for( i = 0; i < 9; i++ )
-		bits |= (p[o[i]] != 0) << i;
-
-  which is horrible. Maybe if we had a one band true 1 bit image it'd be
-  quicker since we could get bits out in parallel and wouldn't have to worry
-  about converting non-zero to 1
-
-  could have a Coding type for bitpack? eg. relational produces a bitpack
-  image by default, boolean & morph can work on bitpack etc
-
-  maybe something for vips8 ... we could have a flag on operations for the
-  coding types they can accept, and if they are passed other type, they are
-  automatically converted
+- http://en.wikipedia.org/wiki/Otsu%27s_method
 
 - non-linear sharpen: replace each pixel by the lightest or darkest neighbour
   depending on which is closer in value
 
-- can wrap other inplace funcs which use ink now we have vector_to_ink() in
-  inplace_dispatch.c
-
-  see also comments in nip2 TODO ... we could auto-wrap in vips_call.c
-
-  cleaner!

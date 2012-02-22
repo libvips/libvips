@@ -28,6 +28,8 @@
  * 	- avoid /0 
  * 6/11/11
  * 	- rewrite as a class 
+ * 22/2/12
+ * 	- avoid /0 for complex as well
  */
 
 /*
@@ -90,13 +92,20 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 	int i; \
         \
 	for( i = 0; i < sz; i++ ) { \
-		double arg = atan2( left[1], left[0] ) - \
-			atan2( right[1], right[0] ); \
-		double mod = hypot( left[1], left[0] ) / \
-			hypot( right[1], right[0] ); \
-		\
-		q[0] = mod * cos( arg ); \
-		q[1] = mod * sin( arg ); \
+		if( right[0] == 0.0 && \
+			right[1] == 0.0 ) { \
+			q[0] = 0.0; \
+			q[1] = 0.0; \
+		} \
+		else { \
+			double arg = atan2( left[1], left[0] ) - \
+				atan2( right[1], right[0] ); \
+			double mod = hypot( left[1], left[0] ) / \
+				hypot( right[1], right[0] ); \
+			\
+			q[0] = mod * cos( arg ); \
+			q[1] = mod * sin( arg ); \
+		} \
 		\
 		left += 2; \
 		right += 2; \
@@ -113,7 +122,12 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 	int i; \
         \
 	for( i = 0; i < sz; i++ ) { \
-		if( fabs( right[0] ) > fabs( right[1] ) ) { \
+		if( right[0] == 0.0 && \
+			right[1] == 0.0 ) { \
+			q[0] = 0.0; \
+			q[1] = 0.0; \
+		} \
+		else if( fabs( right[0] ) > fabs( right[1] ) ) { \
 			double a = right[1] / right[0]; \
 			double b = right[0] + right[1] * a; \
 			\
