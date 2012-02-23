@@ -6,6 +6,8 @@
  * 
  * 17/2/12
  * 	- from sinkdisc.c
+ * 23/2/12
+ * 	- we could deadlock if generate failed
  */
 
 /*
@@ -250,22 +252,22 @@ sink_memory_area_work_fn( VipsThreadState *state, void *a )
 	SinkMemoryThreadState *wstate = (SinkMemoryThreadState *) state;
 	SinkMemoryArea *area = wstate->area;
 
+	int result;
+
 	VIPS_DEBUG_MSG( "sink_memory_area_work_fn: %p %d x %d\n", 
 		state, state->pos.left, state->pos.top );
 
-	if( vips_region_prepare_to( state->reg, memory->region, 
-		&state->pos, state->pos.left, state->pos.top ) ) {
-		VIPS_DEBUG_MSG( "sink_memory_area_work_fn: %p error!\n", 
-			state );
-		return( -1 );
-	}
-	VIPS_DEBUG_MSG( "sink_memory_area_work_fn: %p done\n", state );
+	result = vips_region_prepare_to( state->reg, memory->region, 
+		&state->pos, state->pos.left, state->pos.top );
+
+	VIPS_DEBUG_MSG( "sink_memory_area_work_fn: %p result = %d\n", 
+		state, result );
 
 	/* Tell the allocator we're done.
 	 */
 	vips_semaphore_upn( &area->nwrite, 1 );
 
-	return( 0 );
+	return( result );
 }
 
 static void

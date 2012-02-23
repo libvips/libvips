@@ -36,6 +36,8 @@
  * 7/2/12
  * 	- mild refactoring
  * 	- add support for sequential reads
+ * 23/2/12
+ * 	- add a longjmp() to our error handler to stop the default one running
  */
 
 /*
@@ -93,13 +95,18 @@
 static void
 user_error_function( png_structp png_ptr, png_const_charp error_msg )
 {
-	vips_error( "png2vips", _( "PNG error: \"%s\"" ), error_msg );
+	vips_error( "png2vips", "%s", error_msg );
+
+	/* This function must not return, or the default error handler will be
+	 * invoked.
+	 */
+	longjmp( png_jmpbuf( png_ptr ), -1 ); 
 }
 
 static void
 user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 {
-	vips_error( "png2vips", _( "PNG warning: \"%s\"" ), warning_msg );
+	vips_error( "png2vips", "%s", warning_msg );
 }
 
 /* What we track during a PNG read.
@@ -354,8 +361,13 @@ png2vips_generate( VipsRegion *or,
 	g_assert( r->width == or->im->Xsize );
 	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
 
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
+#ifdef DEBUG
+		printf( "png2vips_generate: failing in setjmp\n" ); 
+#endif /*DEBUG*/
+
 		return( -1 );
+	}
 
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );

@@ -9,10 +9,6 @@ blocking bugs
 
   similarly for vips_max() of an image which contains NaN, -INFINITY etc.
 
-- clicking on bad pngs in the file browser will lock nip2
-
-  they don't seem to bother "header" though, strange
-
 - new binding is still missing constants 
 
   how do boxed types work? confusing

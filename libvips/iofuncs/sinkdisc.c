@@ -7,6 +7,8 @@
  * 	- better buffer handling for single-line images
  * 17/7/10
  * 	- we could get stuck if allocate failed (thanks Tim)
+ * 23/2/12
+ * 	- we could deadlock if generate failed
  */
 
 /*
@@ -404,21 +406,21 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 {
 	WriteThreadState *wstate = (WriteThreadState *) state;
 
+	int result;
+
 	VIPS_DEBUG_MSG( "wbuffer_work_fn: %p %d x %d\n", 
 		state, state->pos.left, state->pos.top );
 
-	if( vips_region_prepare_to( state->reg, wstate->buf->region, 
-		&state->pos, state->pos.left, state->pos.top ) ) {
-		VIPS_DEBUG_MSG( "wbuffer_work_fn: %p error!\n", state );
-		return( -1 );
-	}
-	VIPS_DEBUG_MSG( "wbuffer_work_fn: %p done\n", state );
+	result = vips_region_prepare_to( state->reg, wstate->buf->region, 
+		&state->pos, state->pos.left, state->pos.top );
+
+	VIPS_DEBUG_MSG( "wbuffer_work_fn: %p result = %d\n", state, result );
 
 	/* Tell the bg write thread we've left.
 	 */
 	vips_semaphore_upn( &wstate->buf->nwrite, 1 );
 
-	return( 0 );
+	return( result );
 }
 
 static void
