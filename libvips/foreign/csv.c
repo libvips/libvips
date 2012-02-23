@@ -23,6 +23,8 @@
  * 	- allow quoted strings, including escaped quotes
  * 16/12/11
  * 	- rework as a set of fns ready for wrapping as a class
+ * 23/2/12
+ * 	- report positions for EOF/EOL errors
  */
 
 /*
@@ -289,16 +291,21 @@ read_csv( FILE *fp, VipsImage *out,
 		int x;
 
 		for( x = 0; x < columns; x++ ) {
+			int lineno = y + skip + 1;
+			int colno = x + 1;
+
 			ch = read_double( fp, whitemap, sepmap,
-				y + skip + 1, x + 1, &d );
+				lineno, colno, &d );
 			if( ch == EOF ) {
 				vips_error( "csv2vips", 
-					"%s", _( "unexpected end of file" ) );
+					_( "unexpected EOF, line %d col %d" ), 
+					lineno, colno );
 				return( -1 );
 			}
 			else if( ch == '\n' ) {
 				vips_error( "csv2vips", 
-					"%s", _( "unexpected end of line" ) );
+					_( "unexpected EOL, line %d col %d" ), 
+					lineno, colno );
 				return( -1 );
 			}
 			else if( ch )
