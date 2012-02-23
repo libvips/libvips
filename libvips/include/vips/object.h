@@ -338,6 +338,40 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 
 #define VIPS_ARGUMENT_FOR_ALL_END } } }
 
+/* And some macros to collect args from a va list. 
+ */
+#define VIPS_ARGUMENT_COLLECT_SET( PSPEC, ARG_CLASS, AP ) \
+	if( (ARG_CLASS->flags & VIPS_ARGUMENT_INPUT) ) { \
+		GValue value = { 0, }; \
+		gchar *error = NULL; \
+ 		\
+		/* Input args are given inline, eg. ("factor", 12.0)  \
+		 * and must be collected. \
+		 */ \
+		g_value_init( &value, G_PARAM_SPEC_VALUE_TYPE( PSPEC ) ); \
+		G_VALUE_COLLECT( &value, AP, 0, &error ); \
+		\
+		/* Don't bother with the error message. \
+		 */ \
+		if( error ) { \
+			VIPS_DEBUG_MSG( "VIPS_OBJECT_COLLECT_SET: err\n" ); \
+			g_free( error ); \
+		}
+
+#define VIPS_ARGUMENT_COLLECT_GET( PSPEC, ARG_CLASS, AP ) \
+		g_value_unset( &value ); \
+	} \
+	else if( (ARG_CLASS->flags & VIPS_ARGUMENT_OUTPUT) ) { \
+		void **arg __attribute__ ((unused)); \
+ 		\
+		/* Output args are a pointer to where to send the \
+		 * result. \
+		 */ \
+		arg = va_arg( AP, void ** ); 
+
+#define VIPS_ARGUMENT_COLLECT_END \
+	} 
+
 #define VIPS_TYPE_OBJECT (vips_object_get_type())
 #define VIPS_OBJECT( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), VIPS_TYPE_OBJECT, VipsObject ))

@@ -1304,13 +1304,13 @@ vips_image_new( void )
  *       <emphasis>"r"</emphasis>
  *       opens the named file for reading. If the file is not in the native 
  *       VIPS format for your machine, vips_image_new_mode() 
- *       automatically converts the file for you in memory. 
+ *       automatically converts the file for you. 
  *
  *       For some large files (eg. TIFF) this may 
  *       not be what you want, it can fill memory very quickly. Instead, you
  *       can either use "rd" mode (see below), or you can use the lower-level 
  *       API and control the loading process yourself. See 
- *       #VipsBandFormat. 
+ *       #VipsForeign. 
  *
  *       vips_image_new_mode() can read files in most formats.
  *
@@ -1339,7 +1339,7 @@ vips_image_new( void )
  *	 For example:
  *
  *       |[
- *         vips --vips-disc-threshold 500m im_copy fred.tif fred.v
+ *         vips --vips-disc-threshold 500m copy fred.tif fred.v
  *       ]|
  *
  *       will copy via disc if "fred.tif" is more than 500 Mbytes

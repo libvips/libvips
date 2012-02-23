@@ -9,20 +9,6 @@ blocking bugs
 
   similarly for vips_max() of an image which contains NaN, -INFINITY etc.
 
-- vips_image_new_from_file() etc. don't allow options in file names ... should
-  they have varargs instead for options? or a version which goes view
-  new_from_string and does allow options?
-
-  oop has this been fixed?
-
-  vips_image_build() now calls vips_foreign_load_options()
-
-  test
-
-  is this the best solution?
-
-  could we make a vips_image_new_from_file() which allowed varargs options?
-
 - clicking on bad pngs in the file browser will lock nip2
 
   they don't seem to bother "header" though, strange
