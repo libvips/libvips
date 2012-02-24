@@ -219,7 +219,7 @@ vips_avg_class_init( VipsAvgClass *class )
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsAvg, out ),
-		-G_MAXDOUBLE, G_MAXDOUBLE, 0.0 );
+		-INFINITY, INFINITY, 0.0 );
 }
 
 static void

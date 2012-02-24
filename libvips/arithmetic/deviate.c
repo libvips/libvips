@@ -220,7 +220,7 @@ vips_deviate_class_init( VipsDeviateClass *class )
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsDeviate, out ),
-		-G_MAXDOUBLE, G_MAXDOUBLE, 0.0 );
+		-INFINITY, INFINITY, 0.0 );
 }
 
 static void

@@ -18,6 +18,9 @@
  * 6/11/11
  * 	- rewrite as a class
  * 	- abandon scan if we find maximum possible value
+ * 24/2/12
+ * 	- avoid NaN in float/double/complex images
+ * 	- allow +/- INFINITY as a result
  */
 
 /*
@@ -90,25 +93,31 @@ vips_max_build( VipsObject *object )
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsMax *max = (VipsMax *) object;
 
-	double m;
-
 	if( VIPS_OBJECT_CLASS( vips_max_parent_class )->build( object ) )
 		return( -1 );
 
-	/* For speed we accumulate max^2 for complex.
+	/* Don't set if there's no value (eg. if every pixel is NaN). This
+	 * will trigger an error later.
 	 */
-	m = max->max;
-	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
-		m = sqrt( m );
+	if( max->set ) {
+		double m;
 
-	/* We have to set the props via g_object_set() to stop vips
-	 * complaining they are unset.
-	 */
-	g_object_set( max, 
-		"out", m,
-		"x", max->x,
-		"y", max->y,
-		NULL );
+		/* For speed we accumulate max^2 for complex.
+		 */
+		m = max->max;
+		if( vips_bandfmt_iscomplex( 
+			vips_image_get_format( statistic->in ) ) )
+			m = sqrt( m );
+
+		/* We have to set the props via g_object_set() to stop vips
+		 * complaining they are unset.
+		 */
+		g_object_set( max, 
+			"out", m,
+			"x", max->x,
+			"y", max->y,
+			NULL );
+	}
 
 	return( 0 );
 }
@@ -147,32 +156,6 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	return( 0 );
 }
 
-/* real max with no limits.
- */
-#define LOOP( TYPE ) { \
-	TYPE *p = (TYPE *) in; \
-	TYPE m; \
-	\
-	if( max->set ) \
-		m = max->max; \
-	else { \
-		m = p[0]; \
-		max->x = x; \
-		max->y = y; \
-	} \
-	\
-	for( i = 0; i < sz; i++ ) { \
-		if( p[i] > m ) { \
-			m = p[i]; \
-			max->x = x + i / bands; \
-			max->y = y; \
-		} \
-	} \
-	\
-	max->max = m; \
-	max->set = TRUE; \
-} 
-
 /* real max with an upper bound.
  */
 #define LOOPU( TYPE, UPPER ) { \
@@ -203,33 +186,77 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	max->set = TRUE; \
 } 
 
-#define CLOOP( TYPE ) { \
+/* float/double max ... no limits, and we have to avoid NaN.
+ *
+ * NaN compares false to every float value, so if we were to take the first
+ * point in this buffer as our start max (as we do above) and it was NaN, we'd
+ * never replace it with a true value.
+ */
+#define LOOPF( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
-	double m; \
+	TYPE m; \
+	gboolean set; \
 	\
-	if( max->set ) \
-		m = max->max; \
-	else { \
-		m = p[0] * p[0] + p[1] * p[1]; \
-		max->x = x; \
-		max->y = y; \
-	} \
+	set = max->set; \
+	m = max->max; \
 	\
 	for( i = 0; i < sz; i++ ) { \
-		double mod; \
+		if( set ) { \
+			if( p[i] > m ) { \
+				m = p[i]; \
+				max->x = x + i / bands; \
+				max->y = y; \
+			} \
+		} \
+		else if( !isnan( p[i] ) ) {  \
+			m = p[i]; \
+			max->x = x + i / bands; \
+			max->y = y; \
+			set = TRUE; \
+		} \
+	} \
+	\
+	if( set ) { \
+		max->max = m; \
+		max->set = TRUE; \
+	} \
+} 
+
+/* As LOOPF, but complex. Track max(mod) to avoid sqrt().
+ */
+#define LOOPC( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE m; \
+	gboolean set; \
+	\
+	set = max->set; \
+	m = max->max; \
+	\
+	for( i = 0; i < sz; i++ ) { \
+		TYPE mod; \
 		\
 		mod = p[0] * p[0] + p[1] * p[1]; \
 		p += 2; \
 		\
-		if( mod > m ) { \
+		if( set ) { \
+			if( mod > m ) { \
+				m = mod; \
+				max->x = x + i / bands; \
+				max->y = y; \
+			} \
+		} \
+		else if( !isnan( mod ) ) {  \
 			m = mod; \
 			max->x = x + i / bands; \
 			max->y = y; \
+			set = TRUE; \
 		} \
 	} \
 	\
-	max->max = m; \
-	max->set = TRUE; \
+	if( set ) { \
+		max->max = m; \
+		max->set = TRUE; \
+	} \
 } 
 
 /* Loop over region, adding to seq.
@@ -259,14 +286,14 @@ vips_max_scan( VipsStatistic *statistic, void *seq,
 		LOOPU( signed int, INT_MAX ); break; 
 
 	case VIPS_FORMAT_FLOAT:	
-		LOOP( float ); break; 
+		LOOPF( float ); break; 
 	case VIPS_FORMAT_DOUBLE:	
-		LOOP( double ); break; 
+		LOOPF( double ); break; 
 
 	case VIPS_FORMAT_COMPLEX:
-		CLOOP( float ); break; 
+		LOOPC( float ); break; 
 	case VIPS_FORMAT_DPCOMPLEX:
-		CLOOP( double ); break; 
+		LOOPC( double ); break; 
 
 	default:  
 		g_assert( 0 );
@@ -298,7 +325,7 @@ vips_max_class_init( VipsMaxClass *class )
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMax, max ),
-		-G_MAXDOUBLE, G_MAXDOUBLE, 0.0 );
+		-INFINITY, INFINITY, 0.0 );
 
 	VIPS_ARG_INT( class, "x", 2, 
 		_( "x" ), 

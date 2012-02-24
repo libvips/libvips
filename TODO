@@ -7,8 +7,6 @@ blocking bugs
 	`gdouble' is invalid or out of range for property `yres' of 
 	type `gdouble'
 
-  similarly for vips_max() of an image which contains NaN, -INFINITY etc.
-
 - new binding is still missing constants 
 
   how do boxed types work? confusing
@@ -140,6 +138,12 @@ arithmetic
   band, should we duplicate the 1 band or add black?
 
 - HAVE_HYPOT could define a hypot() macro?
+
+- fix a better NaN policy
+
+  should we not generate images containing NaN (eg. divide tries to avoid /0),
+  or should vips_max() etc. try to avoid NaN in images (eg. vips_max() takes a
+  lot a care to skip NaN, though vips_stats() does not)?
 
 
 iofuncs

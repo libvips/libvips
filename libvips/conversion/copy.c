@@ -366,14 +366,14 @@ vips_copy_class_init( VipsCopyClass *class )
 		_( "Horizontal resolution in pixels/mm" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, xres ),
-		0, 1000000, 0 );
+		-0.0, 1000000, 0 );
 
 	VIPS_ARG_DOUBLE( class, "yres", 10, 
 		_( "Yres" ), 
 		_( "Vertical resolution in pixels/mm" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, yres ),
-		0, 1000000, 0 );
+		-0.0, 1000000, 0 );
 
 	VIPS_ARG_INT( class, "xoffset", 11, 
 		_( "Xoffset" ), 

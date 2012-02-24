@@ -309,6 +309,70 @@ vips_stats_start( VipsStatistic *statistic )
 	local->set = TRUE; \
 } 
 
+/* As above, but for float/double types where we have to avoid NaN.
+ */
+#define LOOPF( TYPE ) { \
+	for( b = 0; b < bands; b++ ) { \
+		TYPE *p = ((TYPE *) in) + b; \
+		double *q = ARY( local->out, 0, b + 1 ); \
+		TYPE small, big; \
+		double sum, sum2; \
+		int xmin, ymin; \
+		int xmax, ymax; \
+		\
+		if( local->set ) { \
+			small = q[COL_MIN]; \
+			big = q[COL_MAX]; \
+			sum = q[COL_SUM]; \
+			sum2 = q[COL_SUM2]; \
+			xmin = q[COL_XMIN]; \
+			ymin = q[COL_YMIN]; \
+			xmax = q[COL_XMAX]; \
+			ymax = q[COL_YMAX]; \
+		} \
+		else { \
+			small = p[0]; \
+			big = p[0]; \
+			sum = 0; \
+			sum2 = 0; \
+			xmin = x; \
+			ymin = y; \
+			xmax = x; \
+			ymax = y; \
+		} \
+		\
+		for( i = 0; i < n; i++ ) { \
+			TYPE value = *p; \
+			\
+			sum += value; \
+			sum2 += (double) value * (double) value; \
+			if( value > big ) { \
+				big = value; \
+				xmax = x + i; \
+				ymax = y; \
+			} \
+			else if( value < small ) { \
+				small = value; \
+				xmin = x + i; \
+				ymin = y; \
+			} \
+			\
+			p += bands; \
+		} \
+		\
+		q[COL_MIN] = small; \
+		q[COL_MAX] = big; \
+		q[COL_SUM] = sum; \
+		q[COL_SUM2] = sum2; \
+		q[COL_XMIN] = xmin; \
+		q[COL_YMIN] = ymin; \
+		q[COL_XMAX] = xmax; \
+		q[COL_YMAX] = ymax; \
+	} \
+	\
+	local->set = TRUE; \
+} 
+
 /* Loop over region, accumulating a sum in *tmp.
  */
 static int

@@ -888,14 +888,14 @@ vips_image_class_init( VipsImageClass *class )
 		_( "Horizontal resolution in pixels/mm" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Xres ),
-		0, 1000000, 0 );
+		-0.0, 1000000, 0 );
 
 	VIPS_ARG_DOUBLE( class, "yres", 9, 
 		_( "Yres" ), 
 		_( "Vertical resolution in pixels/mm" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Yres ),
-		0, 1000000, 0 );
+		-0.0, 1000000, 0 );
 
 	VIPS_ARG_INT( class, "xoffset", 10, 
 		_( "Xoffset" ), 

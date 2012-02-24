@@ -19,6 +19,9 @@
  * 	- rewrite as a class
  * 5/9/11
  * 	- abandon scan if we find minimum possible value
+ * 24/2/12
+ * 	- avoid NaN in float/double/complex images
+ * 	- allow +/- INFINITY as a result
  */
 
 /*
@@ -91,25 +94,31 @@ vips_min_build( VipsObject *object )
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsMin *min = (VipsMin *) object;
 
-	double m;
-
 	if( VIPS_OBJECT_CLASS( vips_min_parent_class )->build( object ) )
 		return( -1 );
 
-	/* For speed we accumulate min^2 for complex.
+	/* Don't set if there's no value (eg. if every pixel is NaN). This
+	 * will trigger an error later.
 	 */
-	m = min->min;
-	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
-		m = sqrt( m );
+	if( min->set ) {
+		double m;
 
-	/* We have to set the props via g_object_set() to stop vips
-	 * complaining they are unset.
-	 */
-	g_object_set( min, 
-		"out", m,
-		"x", min->x,
-		"y", min->y,
-		NULL );
+		/* For speed we accumulate min^2 for complex.
+		 */
+		m = min->min;
+		if( vips_bandfmt_iscomplex( 
+			vips_image_get_format( statistic->in ) ) )
+			m = sqrt( m );
+
+		/* We have to set the props via g_object_set() to stop vips
+		 * complaining they are unset.
+		 */
+		g_object_set( min, 
+			"out", m,
+			"x", min->x,
+			"y", min->y,
+			NULL );
+	}
 
 	return( 0 );
 }
@@ -148,32 +157,6 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	return( 0 );
 }
 
-/* real min with no limits.
- */
-#define LOOP( TYPE ) { \
-	TYPE *p = (TYPE *) in; \
-	TYPE m; \
-	\
-	if( min->set ) \
-		m = min->min; \
-	else { \
-		m = p[0]; \
-		min->x = x; \
-		min->y = y; \
-	} \
-	\
-	for( i = 0; i < sz; i++ ) { \
-		if( p[i] < m ) { \
-			m = p[i]; \
-			min->x = x + i / bands; \
-			min->y = y; \
-		} \
-	} \
-	\
-	min->min = m; \
-	min->set = TRUE; \
-} 
-
 /* real min with a lower bound.
  */
 #define LOOPL( TYPE, LOWER ) { \
@@ -204,33 +187,77 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	min->set = TRUE; \
 } 
 
-#define CLOOP( TYPE ) { \
+/* float/double min ... no limits, and we have to avoid NaN.
+ *
+ * NaN compares false to every float value, so if we were to take the first
+ * point in this buffer as our start min (as we do above) and it was NaN, we'd
+ * never replace it with a true value.
+ */
+#define LOOPF( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
-	double m; \
+	TYPE m; \
+	gboolean set; \
 	\
-	if( min->set ) \
-		m = min->min; \
-	else { \
-		m = p[0] * p[0] + p[1] * p[1]; \
-		min->x = x; \
-		min->y = y; \
-	} \
+	set = min->set; \
+	m = min->min; \
 	\
 	for( i = 0; i < sz; i++ ) { \
-		double mod; \
+		if( set ) { \
+			if( p[i] < m ) { \
+				m = p[i]; \
+				min->x = x + i / bands; \
+				min->y = y; \
+			} \
+		} \
+		else if( !isnan( p[i] ) ) {  \
+			m = p[i]; \
+			min->x = x + i / bands; \
+			min->y = y; \
+			set = TRUE; \
+		} \
+	} \
+	\
+	if( set ) { \
+		min->min = m; \
+		min->set = TRUE; \
+	} \
+} 
+
+/* As LOOPF, but complex. Track min(mod) to avoid sqrt().
+ */
+#define LOOPC( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE m; \
+	gboolean set; \
+	\
+	set = min->set; \
+	m = min->min; \
+	\
+	for( i = 0; i < sz; i++ ) { \
+		TYPE mod; \
 		\
 		mod = p[0] * p[0] + p[1] * p[1]; \
 		p += 2; \
 		\
-		if( mod < m ) { \
+		if( set ) { \
+			if( mod > m ) { \
+				m = mod; \
+				min->x = x + i / bands; \
+				min->y = y; \
+			} \
+		} \
+		else if( !isnan( mod ) ) {  \
 			m = mod; \
 			min->x = x + i / bands; \
 			min->y = y; \
+			set = TRUE; \
 		} \
 	} \
 	\
-	min->min = m; \
-	min->set = TRUE; \
+	if( set ) { \
+		min->min = m; \
+		min->set = TRUE; \
+	} \
 } 
 
 /* Loop over region, adding to seq.
@@ -260,14 +287,14 @@ vips_min_scan( VipsStatistic *statistic, void *seq,
 		LOOPL( signed int, INT_MIN ); break; 
 
 	case VIPS_FORMAT_FLOAT:		
-		LOOP( float ); break; 
+		LOOPF( float ); break; 
 	case VIPS_FORMAT_DOUBLE:		
-		LOOP( double ); break; 
+		LOOPF( double ); break; 
 
 	case VIPS_FORMAT_COMPLEX:	
-		CLOOP( float ); break; 
+		LOOPC( float ); break; 
 	case VIPS_FORMAT_DPCOMPLEX:	
-		CLOOP( double ); break; 
+		LOOPC( double ); break; 
 
 	default:  
 		g_assert( 0 );
@@ -299,7 +326,7 @@ vips_min_class_init( VipsMinClass *class )
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, min ),
-		-G_MAXDOUBLE, G_MAXDOUBLE, 0.0 );
+		-INFINITY, INFINITY, 0.0 );
 
 	VIPS_ARG_INT( class, "x", 2, 
 		_( "x" ), 
