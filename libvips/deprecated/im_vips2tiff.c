@@ -155,7 +155,7 @@ im_vips2tiff( IMAGE *in, const char *filename )
 		if( im_isprefix( "pyramid", q ) ) 
 			pyramid = TRUE;
 		else if( im_isprefix( "flat", q ) ) 
-			pyramid = TRUE;
+			pyramid = FALSE;
 		else {
 			im_error( "im_vips2tiff", _( "unknown multi-res mode "
 				"\"%s\"\nshould be one of \"flat\" or "
