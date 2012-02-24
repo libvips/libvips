@@ -1,12 +1,6 @@
 blocking bugs
 =============
 
-- argh
-
-	(nip2:11576): GLib-GObject-WARNING **: value "-0.000000" of type 
-	`gdouble' is invalid or out of range for property `yres' of 
-	type `gdouble'
-
 - new binding is still missing constants 
 
   how do boxed types work? confusing

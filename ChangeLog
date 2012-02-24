@@ -7,8 +7,8 @@
 - better im_shrink()
 - added vips_sequential()
 - new vips_sink_memory() keeps read ordering
-- tiff reader supports sequential read
-- jpeg reader supports sequential read
+- tiff, jpeg, png readers support sequential read
+- max/min avoid NaN
 
 20/8/11 started 7.27.0
 - version bump for new dev cycle
