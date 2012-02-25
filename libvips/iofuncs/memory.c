@@ -340,8 +340,11 @@ vips_tracked_open( const char *pathname, int flags, ... )
 	mode_t mode;
 	va_list ap;
 
+	/* mode_t is promoted to int in ..., so we have to pull it out as an
+	 * int.
+	 */
 	va_start( ap, flags );
-	mode = va_arg( ap, mode_t );
+	mode = va_arg( ap, int );
 	va_end( ap );
 
 	if( (fd = open( pathname, flags, mode )) == -1 )

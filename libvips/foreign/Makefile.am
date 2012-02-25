@@ -17,6 +17,7 @@ libforeign_la_SOURCES = \
 	rawsave.c \
 	vipsload.c \
 	vipssave.c \
+	dbh.h \
 	analyzeload.c \
 	analyze2vips.c \
 	analyze2vips.h \

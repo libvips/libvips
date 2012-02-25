@@ -1,11 +1,7 @@
 blocking bugs
 =============
 
-- new binding is still missing constants 
-
-  how do boxed types work? confusing
-
-  we need to be able to make a VipsArrayDouble
+- none!
 
 
 mosaic
@@ -209,6 +205,12 @@ swig
 
 new bindings
 ============
+
+- new binding is still missing constants 
+
+  how do boxed types work? confusing
+
+  we need to be able to make a VipsArrayDouble
 
 - Vips.Image has members like chain, __subclasshook__ etc etc, are we
   really subclassing it correctly?
