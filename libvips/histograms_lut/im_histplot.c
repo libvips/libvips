@@ -105,8 +105,8 @@ normalise( IMAGE *in, IMAGE *out )
 
 		if( !(stats = im_stats( in )) )
 			return( -1 );
-		min = stats->coeff[0];
-		max = stats->coeff[1];
+		min = VIPS_MASK( stats, 0, 0 );
+		max = VIPS_MASK( stats, 1, 0 );
 		im_free_dmask( stats );
 
 		if( !(t1 = im_open_local( out, "im_histplot", "p" )) ||

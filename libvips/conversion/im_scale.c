@@ -78,8 +78,8 @@ im_scale( IMAGE *in, IMAGE *out )
 	 */
 	if( !t || !(stats = im_stats( in )) )
 		return( -1 );
-	mn = stats->coeff[0];
-	mx = stats->coeff[1];
+	mn = VIPS_MASK( stats, 0, 0 );
+	mx = VIPS_MASK( stats, 1, 0 );
 	im_free_dmask( stats );
 
 	if( mn == mx ) 

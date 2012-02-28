@@ -162,7 +162,7 @@ im_histnorm( IMAGE *in, IMAGE *out )
 	const guint64 px = VIPS_IMAGE_N_PELS( in );
 	DOUBLEMASK *stats;
 	double *a, *b;
-	int i;
+	int y;
 	IMAGE *t1;
 	int fmt;
 
@@ -175,9 +175,9 @@ im_histnorm( IMAGE *in, IMAGE *out )
 
 	/* Scale each channel by px / channel max
 	 */
-	for( i = 0; i < in->Bands; i++ ) {
-		a[i] = px / stats->coeff[6 + 1 + 6*i];
-		b[i] = 0;
+	for( y = 0; y < in->Bands; y++ ) {
+		a[y] = px / VIPS_MASK( stats, 1, y + 1 );
+		b[y] = 0;
 	}
 
 	im_free_dmask( stats );
