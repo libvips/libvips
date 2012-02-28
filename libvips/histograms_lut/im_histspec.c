@@ -159,9 +159,9 @@ match( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 /**
  * im_histspec:
- * @in: input image
+ * @in: input histogram
  * @ref: reference histogram 
- * @out: output image
+ * @out: output histogram
  *
  * Creates a lut which, when applied to the image from which histogram @in was
  * formed, will produce an image whose PDF matches that of the image from 
