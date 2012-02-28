@@ -2,6 +2,8 @@
  *
  * 5/12/11
  * 	- from openslideload.c
+ * 28/2/12
+ * 	- convert "layer" to "level" where externally visible
  */
 
 /*
@@ -177,9 +179,9 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, filename ),
 		NULL );
 
-	VIPS_ARG_INT( class, "layer", 10, 
-		_( "Layer" ), 
-		_( "Load this layer from the file" ),
+	VIPS_ARG_INT( class, "level", 10,
+		_( "Level" ),
+		_( "Load this level from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, layer ),
 		0, 100000, 0 );
