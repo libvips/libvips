@@ -126,11 +126,6 @@ typedef struct _VipsForeignLoad {
 	 */
 	VipsForeignFlags flags;
 
-	/* In sequential mode we need to track the y position so we can 
-	 * ensure top-to-bottom-ness.
-	 */
-	int y_pos;
-
 	/*< public >*/
 
 	/* The image we generate. This must be set by ->header().
