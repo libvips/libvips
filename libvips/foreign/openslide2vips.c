@@ -24,6 +24,8 @@
  * 11/12/11
  * 	- move argb->rgba into conversion
  * 	- turn into a set of read fns ready to be called from a class
+ * 28/2/12
+ * 	- convert "layer" to "level" where externally visible
  */
 
 /*
@@ -161,7 +163,7 @@ readslide_new( const char *filename, VipsImage *out,
 	if( layer < 0 || 
 		layer >= openslide_get_layer_count( rslide->osr ) ) {
 		vips_error( "openslide2vips",
-			"%s", _( "invalid slide layer" ) );
+			"%s", _( "invalid slide level" ) );
 		return( NULL );
 	}
 
@@ -181,7 +183,7 @@ readslide_new( const char *filename, VipsImage *out,
 			layer, &w, &h );
 		rslide->downsample = openslide_get_layer_downsample(
 			rslide->osr, layer );
-		vips_image_set_int( out, "slide-layer", layer );
+		vips_image_set_int( out, "slide-level", layer );
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	}
 
