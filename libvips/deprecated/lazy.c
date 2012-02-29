@@ -292,9 +292,17 @@ vips__deprecated_open_read( const char *filename )
 		 */
 		IMAGE *image;
 
-		if( !(image = vips_image_new()) ||
-			vips_image_open_lazy( image, format, filename, TRUE ) )
+		image = vips_image_new();
+		if( vips_image_open_lazy( image, format, filename, TRUE ) ) {
+			g_object_unref( image );
 			return( NULL );
+		}
+
+		/* Yuk. Can't g_object_set() filename since it's after
+		 * construct. Just zap the new filename in.
+		 */
+		VIPS_FREE( image->filename );
+		image->filename = g_strdup( filename );
 
 		return( image );
 	}

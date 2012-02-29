@@ -9,6 +9,9 @@
 - new vips_sink_memory() keeps read ordering
 - tiff, jpeg, png readers support sequential read
 - max/min avoid NaN
+- oop, histnorm was broken by the new vipsstats
+- never use IM ping to get a header, fixes BMP load
+- set @filename for non-vips formats in vips7 compat layer
 
 20/8/11 started 7.27.0
 - version bump for new dev cycle
