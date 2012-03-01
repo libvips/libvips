@@ -480,11 +480,6 @@ vips_foreign_load_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 		if( class->load )
 			vips_buf_appends( buf, ", load" );
 
-		/* Sanity: it's OK to have get_flags() and 
-		 * get_flags_filename() both NULL or both not-NULL.
-		 */
-		g_assert( !class->get_flags == !class->get_flags_filename );
-
 		/* You can omit ->load(), you must not omit ->header().
 		 */
 		g_assert( class->header );

@@ -1,17 +1,6 @@
 blocking bugs
 =============
 
-- try
-
-	$ vips list classes
-	...
-	VipsForeignLoadJpegFile (jpegload) ...
-	** VIPS:ERROR:foreign.c:486:vips_foreign_load_summary_class: assertion failed: (!class->get_flags == !class->get_flags_filename)
-	Aborted
-
-
-
-
 - none!
 
 
