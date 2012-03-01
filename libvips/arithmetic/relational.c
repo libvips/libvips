@@ -26,6 +26,8 @@
  * 	- oops, moreconst and moreeqconst were the same
  * 4/11/11
  * 	- redone as a class
+ * 1/2/12
+ * 	- complex ==, != were broken
  */
 
 /*
@@ -145,8 +147,8 @@ vips_relational_build( VipsObject *object )
 		g_assert( 0 ); \
 	} 
 
-#define CEQUAL( x1, y1, x2, y2 ) (x1 == y1 && x2 == y2)
-#define CNOTEQUAL( x1, y1, x2, y2 ) (x1 != y1 || x2 != y2)
+#define CEQUAL( x1, y1, x2, y2 ) (x1 == x2 && y1 == y2)
+#define CNOTEQUAL( x1, y1, x2, y2 ) (x1 != x2 || y1 != y2)
 #define CLESS( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 < x2 * x2 + y2 * y2)
 #define CLESSEQ( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 <= x2 * x2 + y2 * y2)
 #define CMORE( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 > x2 * x2 + y2 * y2)
