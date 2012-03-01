@@ -191,22 +191,23 @@ im_measure_area( IMAGE *im,
 	int u, int v, 
 	int *sel, int nsel, const char *name )
 {
+	DOUBLEMASK *mask;
+	VipsImage *t;
+
 	/* The old im_measure() worked on labq.
 	 */
 	if( im->Coding == IM_CODING_LABQ ) {
-		IMAGE *t1;
-		
-		if( !(t1 = im_open( "measure-temp", "p" )) )
+		if( !(t = im_open( "measure-temp", "p" )) )
 			return( NULL );
-		if( im_LabQ2Lab( im, t1 ) ||
-			!(mask = im_measure_area( t1, 
+		if( im_LabQ2Lab( im, t ) ||
+			!(mask = im_measure_area( t, 
 				left, top, width, height,
 				u, v, 
 				sel, nsel, name )) ) {
-			im_close( t1 );
+			g_object_unref( t );
 			return( NULL );
 		}
-		im_close( t1 );
+		g_object_unref( t );
 
 		return( mask );
 	}
@@ -215,9 +216,6 @@ im_measure_area( IMAGE *im,
 		return( internal_im_measure_area( im, 
 			left, top, width, height, u, v, sel, nsel, name ) );
 	else {
-		DOUBLEMASK *msk;
-		VipsImage *t;
-
 		if( vips_measure( im, &t, u, v, 
 			"left", left,
 			"top", top,
@@ -225,12 +223,12 @@ im_measure_area( IMAGE *im,
 			"height", height,
 			NULL ) )
 			return( NULL );
-		if( !(msk = im_vips2mask( t, name )) ) {
+		if( !(mask = im_vips2mask( t, name )) ) {
 			g_object_unref( t );
 			return( NULL );
 		}
 		g_object_unref( t );
 
-		return( msk );
+		return( mask );
 	}
 }
