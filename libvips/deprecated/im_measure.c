@@ -153,27 +153,6 @@ internal_im_measure_area( IMAGE *im,
 {	
 	DOUBLEMASK *mask;
 
-	/* Check input image.
-	 */
-	if( im->Coding == IM_CODING_LABQ ) {
-		IMAGE *t1;
-		
-		if( !(t1 = im_open( "measure-temp", "p" )) )
-			return( NULL );
-		if( im_LabQ2Lab( im, t1 ) ||
-			!(mask = im_measure_area( t1, 
-				left, top, width, height,
-				u, v, 
-				sel, nsel, name )) ) {
-			im_close( t1 );
-			return( NULL );
-		}
-
-		im_close( t1 );
-
-		return( mask );
-	}
-
 	if( im_check_uncoded( "im_measure", im ) ||
 		im_check_noncomplex( "im_measure", im ) )
 		return( NULL );
@@ -212,6 +191,26 @@ im_measure_area( IMAGE *im,
 	int u, int v, 
 	int *sel, int nsel, const char *name )
 {
+	/* The old im_measure() worked on labq.
+	 */
+	if( im->Coding == IM_CODING_LABQ ) {
+		IMAGE *t1;
+		
+		if( !(t1 = im_open( "measure-temp", "p" )) )
+			return( NULL );
+		if( im_LabQ2Lab( im, t1 ) ||
+			!(mask = im_measure_area( t1, 
+				left, top, width, height,
+				u, v, 
+				sel, nsel, name )) ) {
+			im_close( t1 );
+			return( NULL );
+		}
+		im_close( t1 );
+
+		return( mask );
+	}
+
 	if( sel )
 		return( internal_im_measure_area( im, 
 			left, top, width, height, u, v, sel, nsel, name ) );
