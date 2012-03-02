@@ -917,15 +917,19 @@ vips_object_set_property( GObject *gobject,
 	}
 
 #ifdef DEBUG
+	printf( "vips_object_set_property: " );
+	vips_object_print_name( object );
+	printf( ".%s\n", g_param_spec_get_name( pspec ) );
+
+	/* This can crash horribly with some values, have it as a separate
+	 * chunk so we can easily commenmt it out.
+	 */
 {
 	char *str_value;
 
 	str_value = g_strdup_value_contents( value );
-	printf( "vips_object_set_property: " );
-	vips_object_print_name( object );
-	printf( ".%s = %s\n", g_param_spec_get_name( pspec ), str_value );
+	printf( "\t%s\n", str_value );
 	g_free( str_value );
-
 }
 #endif /*DEBUG*/
 
