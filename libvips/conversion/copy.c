@@ -271,12 +271,20 @@ vips_copy_build( VipsObject *object )
 			GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
 			GValue value = { 0, };
 
-			VIPS_DEBUG_MSG( "vips_copy_build: assigning %s\n", 
-				name );
-
 			g_value_init( &value, type );
 			g_object_get_property( G_OBJECT( object ), 
 				name, &value );
+
+#ifdef VIPS_DEBUG
+{
+			char *str;
+
+			str = g_strdup_value_contents( &value );
+			printf( "vips_copy_build: %s = %s\n", name, str );
+			g_free( str );
+}
+#endif /* VIPS_DEBUG */
+
 			g_object_set_property( G_OBJECT( conversion->out ), 
 				name, &value );
 			g_value_unset( &value );
