@@ -263,8 +263,8 @@ typedef struct _VipsImage {
 	VipsBandFormat BandFmt;	/* pixel format */
 	VipsCoding Coding;	/* pixel coding */
 	VipsInterpretation Type;/* pixel interpretation */
-	float Xres;		/* horizontal pixels per millimetre */
-	float Yres;		/* vertical pixels per millimetre */
+	double Xres;		/* horizontal pixels per millimetre */
+	double Yres;		/* vertical pixels per millimetre */
 
 	int Xoffset;		/* image origin hint */
 	int Yoffset;		/* image origin hint */
@@ -293,6 +293,13 @@ typedef struct _VipsImage {
 	/* Everything below this private and only used internally by
 	 * VipsImage.
 	 */
+
+	/* During vips image read and write we need temporary float-sized
+	 * fields in the struct for staging xres/yres. Don't use these any
+	 * other time.
+	 */
+	float Xres_float;
+	float Yres_float;
 
 	char *mode;		/* mode string passed to _new() */
 	VipsImageType dtype;	/* descriptor type */

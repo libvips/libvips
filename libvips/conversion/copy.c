@@ -227,7 +227,7 @@ static const char *vips_copy_names[] = {
 	"xres", 	
 	"yres", 
 	"xoffset", 
-	"xoffset",
+	"yoffset",
 	"bands", 
 	"format", 		
 	"coding", 	

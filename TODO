@@ -1,24 +1,9 @@
 blocking bugs
 =============
 
-- im_copy_set is broken?
-
-	$ vips im_copy_set babe.jpg x.v 22 2.83 2.83 100 100
-	$ header -a x.v
-	x.v: 1024x768 uchar, 3 bands, srgb VipsImage (0x14e8000)
-	interpretation: 22 - srgb
-	xoffset: 0
-	yoffset: 0
-	xres: 0.000000
-	yres: 0.000000
-
-  xres/yres need to become double (they are float atm)
-
-  the compat stuff and the wrappers in header.c need revising
-
-
 - turning on all debug in object.c causes huge mem use?
 
+  seems to be when making a string for a set of flags?
 
 - none!
 

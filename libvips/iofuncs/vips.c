@@ -255,8 +255,8 @@ static FieldIO fields[] = {
 	{ G_STRUCT_OFFSET( VipsImage, BandFmt ), 4, vips__copy_4byte },
 	{ G_STRUCT_OFFSET( VipsImage, Coding ), 4, vips__copy_4byte },
 	{ G_STRUCT_OFFSET( VipsImage, Type ), 4, vips__copy_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Xres ), 4, vips__copy_4byte },
-	{ G_STRUCT_OFFSET( VipsImage, Yres ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Xres_float ), 4, vips__copy_4byte },
+	{ G_STRUCT_OFFSET( VipsImage, Yres_float ), 4, vips__copy_4byte },
 	{ G_STRUCT_OFFSET( VipsImage, Length ), 4, vips__copy_4byte },
 	{ G_STRUCT_OFFSET( VipsImage, Compression ), 2, vips__copy_2byte },
 	{ G_STRUCT_OFFSET( VipsImage, Level ), 2, vips__copy_2byte },
@@ -304,6 +304,12 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	 */
 	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
 
+	/* We read xres/yres as floats to a staging area, then copy to double
+	 * in the main fields.
+	 */
+	im->Xres = im->Xres_float;
+	im->Yres = im->Yres_float;
+
 	return( 0 );
 }
 
@@ -317,6 +323,12 @@ vips__write_header_bytes( VipsImage *im, unsigned char *to )
 
 	int i;
 	unsigned char *q;
+
+	/* We set xres/yres as floats in a staging area, then copy those
+	 * smaller values to the file. 
+	 */
+	im->Xres_float = im->Xres;
+	im->Yres_float = im->Yres;
 
 	/* Always write the magic number MSB first.
 	 */

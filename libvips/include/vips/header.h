@@ -105,7 +105,7 @@ void vips_image_init_fields( VipsImage *image,
 	int xsize, int ysize, int bands, 
 	VipsBandFormat format, VipsCoding coding, 
 	VipsInterpretation interpretation, 
-	float xres, float yres );
+	double xres, double yres );
 
 int vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] );
 int vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )

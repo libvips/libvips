@@ -925,6 +925,7 @@ vips_object_set_property( GObject *gobject,
 	vips_object_print_name( object );
 	printf( ".%s = %s\n", g_param_spec_get_name( pspec ), str_value );
 	g_free( str_value );
+
 }
 #endif /*DEBUG*/
 
@@ -1372,7 +1373,8 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	VipsArgumentClass *argument_class = g_new( VipsArgumentClass, 1 );
 
 #ifdef DEBUG
-	printf( "vips_object_class_install_argument: %s\n", 
+	printf( "vips_object_class_install_argument: %s %s\n", 
+		g_type_name( G_TYPE_FROM_CLASS( object_class ) ),
 		g_param_spec_get_name( pspec ) );
 #endif /*DEBUG*/
 

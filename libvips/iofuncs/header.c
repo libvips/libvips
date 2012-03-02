@@ -153,9 +153,6 @@ static HeaderField int_field[] = {
 	{ "yoffset", G_STRUCT_OFFSET( VipsImage, Yoffset ) }
 };
 
-/* These are actually floats :-( how annoying. We report them as doubles for
- * consistency with the vips_image_*() functions.
- */
 static HeaderField double_field[] = {
 	{ "xres", G_STRUCT_OFFSET( VipsImage, Xres ) },
 	{ "yres", G_STRUCT_OFFSET( VipsImage, Yres ) }
@@ -456,7 +453,7 @@ vips_image_init_fields( VipsImage *image,
 	int xsize, int ysize, int bands, 
 	VipsBandFormat format, VipsCoding coding, 
 	VipsInterpretation interpretation, 
-	float xres, float yres )
+	double xres, double yres )
 {
 	g_object_set( image,
 		"width", xsize,
@@ -554,8 +551,8 @@ vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 	out->Coding = in[0]->Coding;
 	out->Xres = in[0]->Xres;
 	out->Yres = in[0]->Yres;
-	out->Xoffset = 0;
-	out->Yoffset = 0;
+	out->Xoffset = in[0]->Xoffset;
+	out->Yoffset = in[0]->Yoffset;
 
 	/* Count number of images.
 	 */
@@ -750,7 +747,7 @@ vips_image_get( VipsImage *image, const char *field, GValue *value_copy )
 		if( strcmp( field, double_field[i].field ) == 0 ) {
 			g_value_init( value_copy, G_TYPE_DOUBLE );
 			g_value_set_double( value_copy, 
-				G_STRUCT_MEMBER( float, image, 
+				G_STRUCT_MEMBER( double, image, 
 					double_field[i].offset ) );
 			return( 0 );
 		}
@@ -759,7 +756,7 @@ vips_image_get( VipsImage *image, const char *field, GValue *value_copy )
 		if( strcmp( field, old_double_field[i].field ) == 0 ) {
 			g_value_init( value_copy, G_TYPE_DOUBLE );
 			g_value_set_double( value_copy, 
-				G_STRUCT_MEMBER( float, image, 
+				G_STRUCT_MEMBER( double, image, 
 					old_double_field[i].offset ) );
 			return( 0 );
 		}
@@ -1135,13 +1132,13 @@ vips_image_get_double( VipsImage *image, const char *field, double *out )
 
 	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
 		if( strcmp( field, double_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( float, image, 
+			*out = G_STRUCT_MEMBER( double, image, 
 				double_field[i].offset );
 			return( 0 );
 		}
 	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
 		if( strcmp( field, old_double_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( float, image, 
+			*out = G_STRUCT_MEMBER( double, image, 
 				old_double_field[i].offset );
 			return( 0 );
 		}
