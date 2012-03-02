@@ -1,10 +1,6 @@
 blocking bugs
 =============
 
-- turning on all debug in object.c causes huge mem use?
-
-  seems to be when making a string for a set of flags?
-
 - none!
 
 
