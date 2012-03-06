@@ -537,14 +537,14 @@ vips_embed_class_init( VipsEmbedClass *class )
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, width ),
-		0, 1000000, 0 );
+		1, 1000000, 1 );
 
 	VIPS_ARG_INT( class, "height", 5, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, height ),
-		0, 1000000, 0 );
+		1, 1000000, 1 );
 
 	VIPS_ARG_ENUM( class, "extend", 6, 
 		_( "Extend" ), 
