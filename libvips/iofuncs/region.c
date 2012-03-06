@@ -282,6 +282,7 @@ vips_region_dispose( GObject *gobject )
 	image->regions = g_slist_remove( image->regions, region );
 	g_mutex_unlock( image->sslock );
 	region->im = NULL;
+
 	g_object_unref( image );
 
 	G_OBJECT_CLASS( vips_region_parent_class )->dispose( gobject );
@@ -461,12 +462,19 @@ vips_region_new( VipsImage *image )
 {
 	VipsRegion *region;
 
-	region = VIPS_REGION( g_object_new( VIPS_TYPE_REGION, NULL ) );
-
-	/* We can't use the property system, we need to be very threaded.
+	/* Ref quickly, we want to make sure we keep the image around.
+	 * We can't use the property system, we need to be very threaded.
 	 */
-	region->im = image;
 	g_object_ref( image );
+
+	g_assert( G_OBJECT( image )->ref_count > 1 );
+
+#ifdef DEBUG
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
+#endif /*DEBUG*/
+
+	region = VIPS_REGION( g_object_new( VIPS_TYPE_REGION, NULL ) );
+	region->im = image;
 
 	if( vips_object_build( VIPS_OBJECT( region ) ) ) {
 		VIPS_UNREF( region );
@@ -474,7 +482,6 @@ vips_region_new( VipsImage *image )
 	}
 
 #ifdef DEBUG
-	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 	g_assert( vips_object_sanity( VIPS_OBJECT( region ) ) );
 #endif /*DEBUG*/
 

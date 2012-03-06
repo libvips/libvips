@@ -1651,6 +1651,14 @@ vips_image_write( VipsImage *image, VipsImage *out )
         vips_demand_hint( out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, image, NULL );
 
+	/* If this will be a delayed calculation we need to keep @image 
+	 * around for as long as @out is about.
+	 */
+	if( vips_image_ispartial( image ) ) {
+		g_object_ref( image );
+		vips_object_local( out, image );
+	}
+
 	if( vips_image_generate( out,
 		vips_start_one, vips_image_write_gen, vips_stop_one, 
 		image, NULL ) )
