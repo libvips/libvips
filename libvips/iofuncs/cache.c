@@ -545,8 +545,13 @@ vips_cache_trim( void )
 	while( (g_hash_table_size( vips_cache_table ) > vips_cache_max ||
 		vips_tracked_get_files() > vips_cache_max_files ||
 		vips_tracked_get_mem() > vips_cache_max_mem) &&
-		(operation = vips_cache_select()) )
+		(operation = vips_cache_select()) ) {
+#ifdef DEBUG
+		printf( "vips_cache_trim: trimming %p\n", operation );
+#endif /*DEBUG*/
+
 		vips_cache_drop( operation );
+	}
 }
 
 static void *
