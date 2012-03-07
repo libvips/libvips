@@ -219,7 +219,7 @@ typedef enum {
 /* Struct we keep a record of execution time in. Passed to eval signal so
  * it can assess progress.
  */
-typedef struct {
+typedef struct _VipsProgress {
 	/*< private >*/
 	struct _VipsImage *im;	/* Image we are part of */
 

@@ -37,7 +37,7 @@ INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 
 # the headers we scan for enums etc.
 # keep in sync with ../include/vips/Makefile.am
-# we need absolute filenames here since this list appears in the src dir as
+# we need absolute filenames here since this list appears in the header dir as
 # well
 vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/memory.h \
@@ -45,7 +45,6 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/conversion.h \
 	${top_srcdir}/libvips/include/vips/arithmetic.h \
 	${top_srcdir}/libvips/include/vips/util.h \
-	${top_srcdir}/libvips/include/vips/buf.h \
 	${top_srcdir}/libvips/include/vips/image.h \
 	${top_srcdir}/libvips/include/vips/object.h
 

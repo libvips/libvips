@@ -37,19 +37,21 @@ extern "C" {
 #include <vips/vips.h>
 
 /* A string in the process of being written to ... multiple calls to 
- * vips_buf_append add to it, on overflow append "..." and block further writes.
+ * vips_buf_append add to it. On overflow append "..." and block further 
+ * writes.
  */
-typedef struct {
+
+typedef struct _VipsBuf {
 	/* All fields are private.
 	 */
-	/* <private> */
+	/*< private >*/
 	char *base;		/* String base */
 	int mx;			/* Maximum length */
 	int i;			/* Current write point */
 	gboolean full;		/* String has filled, block writes */
 	int lasti;		/* For read-recent */
 	gboolean dynamic;	/* We own the string with malloc() */
-} VipsBuf;
+} VipsBuf; 
 
 #define VIPS_BUF_STATIC( TEXT ) \
 	{ &TEXT[0], sizeof( TEXT ), 0, FALSE, 0, FALSE }
