@@ -227,7 +227,7 @@ im_maxpos_avg( IMAGE *in, double *xpos, double *ypos, double *out )
 
 	if( !(global_maxposavg = IM_NEW( in, Maxposavg )) ) 
 		return( -1 );
-	if( im__value( in, &global_maxposavg->max ) )
+	if( im__value( in, 0, &global_maxposavg->max ) )
 		return( -1 );
 	global_maxposavg->xpos = 0;
 	global_maxposavg->ypos = 0;

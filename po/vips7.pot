@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2012-01-14 11:13+0000\n"
+"POT-Creation-Date: 2012-03-08 14:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2234,38 +2234,38 @@ msgstr ""
 msgid "error requested"
 msgstr ""
 
-#: ../libvips/video/im_video_v4l1.c:246
+#: ../libvips/video/im_video_v4l1.c:245
 msgid "no file descriptor"
 msgstr ""
 
-#: ../libvips/video/im_video_v4l1.c:251
+#: ../libvips/video/im_video_v4l1.c:250
 #, c-format
 msgid "ioctl(0x%x) failed: %s"
 msgstr ""
 
-#: ../libvips/video/im_video_v4l1.c:300
+#: ../libvips/video/im_video_v4l1.c:299
 #, c-format
 msgid "cannot open video device \"%s\""
 msgstr ""
 
-#: ../libvips/video/im_video_v4l1.c:308
+#: ../libvips/video/im_video_v4l1.c:307
 msgid "cannot get video capability"
 msgstr ""
 
-#: ../libvips/video/im_video_v4l1.c:317
+#: ../libvips/video/im_video_v4l1.c:316
 msgid "card cannot capture to memory"
 msgstr ""
 
-#: ../libvips/video/im_video_v4l1.c:463
+#: ../libvips/video/im_video_v4l1.c:462
 msgid "unable to map memory"
 msgstr ""
 
-#: ../libvips/video/im_video_v4l1.c:475
+#: ../libvips/video/im_video_v4l1.c:474
 #, c-format
 msgid "channel not between 0 and %d"
 msgstr ""
 
-#: ../libvips/video/im_video_v4l1.c:703
+#: ../libvips/video/im_video_v4l1.c:702
 msgid "compiled without im_video_v4l1 support"
 msgstr ""
 

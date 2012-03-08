@@ -279,16 +279,16 @@ im_avg( IMAGE *in, double *out )
 	return( 0 );
 }
 
-/* Get the value of pixel (0, 0). Use this to init the min/max value for
- * im_max()/im_stats()/etc. 
+/* Get the value of pixel (0, 0), band n. Use this to init the min/max value 
+ * for im_max()/im_stats()/etc. 
  */
 int
-im__value( IMAGE *im, double *value )
+im__value( IMAGE *im, int band, double *value )
 {
 	IMAGE *t;
 
 	if( !(t = im_open_local( im, "im__value", "p" )) ||
-		im_extract_areabands( im, t, 0, 0, 1, 1, 0, 1 ) ||
+		im_extract_areabands( im, t, 0, 0, 1, 1, band, 1 ) ||
 		im_avg( t, value ) )
 		return( -1 );
 

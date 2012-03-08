@@ -203,8 +203,7 @@ im_stats( IMAGE *im )
 	double *row;
 	gint64 pels, vals;
 	double *global_stats;
-	int i, j;
-	double value;
+	int band, j;
 
 	if( im_pincheck( im ) ||
 		im_check_noncomplex( "im_stats", im ) ||
@@ -213,13 +212,16 @@ im_stats( IMAGE *im )
 
 	if( !(global_stats = IM_ARRAY( im, 4 * im->Bands, double )) )
 		return( NULL );
-	if( im__value( im, &value ) )
-		return( NULL );
-	for( i = 0; i < 4 * im->Bands; i += 4 ) {
-		global_stats[i + 0] = value;
-		global_stats[i + 1] = value;
-		global_stats[i + 2] = 0.0;
-		global_stats[i + 3] = 0.0;
+	for( band = 0; band < im->Bands; band++ ) {
+		double value;
+
+		if( im__value( im, band, &value ) )
+			return( NULL );
+
+		global_stats[band * 4 + 0] = value;
+		global_stats[band * 4 + 1] = value;
+		global_stats[band * 4 + 2] = 0.0;
+		global_stats[band * 4 + 3] = 0.0;
 	}
 
 	/* Loop over input, calculating min, max, sum, sum^2 for each band
@@ -236,18 +238,18 @@ im_stats( IMAGE *im )
 
 	/* Init global max/min/sum/sum2.
 	 */
-	out->coeff[0] = value;
-	out->coeff[1] = value;
+	out->coeff[0] = global_stats[0];
+	out->coeff[1] = global_stats[1];
 	out->coeff[2] = 0.0;
 	out->coeff[3] = 0.0;
 
 	pels = (gint64) im->Xsize * im->Ysize;
 	vals = pels * im->Bands;
 
-	for( i = 0; i < im->Bands; i++ ) {
-		row = out->coeff + (i + 1) * 6;
+	for( band = 0; band < im->Bands; band++ ) {
+		row = out->coeff + (band + 1) * 6;
 		for( j = 0; j < 4; j++ )
-			row[j] = global_stats[i * 4 + j];
+			row[j] = global_stats[band * 4 + j];
 
 		out->coeff[0] = IM_MIN( out->coeff[0], row[0] );
 		out->coeff[1] = IM_MAX( out->coeff[1], row[1] );

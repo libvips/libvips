@@ -1,5 +1,7 @@
 14/1/12 started 7.26.8
 - interpolate CLI args were broken (thanks speckins)
+- im_stats() was unreliable for large images or many-cpu machines (thanks
+  Rebecca)
 
 5/12/11 started 7.26.7
 - lazy read from tiled tiff from layers other than 0 was broken

@@ -212,7 +212,7 @@ im_minpos( IMAGE *in, int *xpos, int *ypos, double *out )
 
 	if( !(global_minpos = IM_NEW( in, Minpos )) ) 
 		return( -1 );
-	if( im__value( in, &global_minpos->min ) )
+	if( im__value( in, 0, &global_minpos->min ) )
 		return( -1 );
 	global_minpos->xpos = 0;
 	global_minpos->ypos = 0;

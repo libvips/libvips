@@ -213,7 +213,7 @@ im_maxpos( IMAGE *in, int *xpos, int *ypos, double *out )
 
 	if( !(global_maxpos = IM_NEW( in, Maxpos )) ) 
 		return( -1 );
-	if( im__value( in, &global_maxpos->max ) )
+	if( im__value( in, 0, &global_maxpos->max ) )
 		return( -1 );
 	global_maxpos->xpos = 0;
 	global_maxpos->ypos = 0;

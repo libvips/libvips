@@ -150,7 +150,7 @@ int im__arith_binary_const( const char *domain,
 	int n, double *c, VipsBandFormat vfmt,
 	int format_table[10], 
 	im_wrapone_fn fn1, im_wrapone_fn fnn );
-int im__value( VipsImage *im, double *value );
+int im__value( VipsImage *im, int band, double *value );
 typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );
 int im__wrapscan( VipsImage *in, 
 	VipsStartFn start, im__wrapscan_fn scan, VipsStopFn stop,
