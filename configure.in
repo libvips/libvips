@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT(vips, 7.28.0, vipsip@jiscmail.ac.uk)
+AC_INIT(vips, 7.29.0, vipsip@jiscmail.ac.uk)
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -14,7 +14,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [7])
-m4_define([vips_minor_version], [28])
+m4_define([vips_minor_version], [29])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -30,13 +30,13 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 
 # rules:
 # sources changed: increment revision
-# interface changed: increment current, reset revision to 0
-#   interface changes backwards compatible?: increment age
-#   interface changes not backwards compatible?: reset age to 0
+# binary interface changed: increment current, reset revision to 0
+#   binary interface changes backwards compatible?: increment age
+#   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=31
+LIBRARY_CURRENT=32
 LIBRARY_REVISION=0
-LIBRARY_AGE=16
+LIBRARY_AGE=0
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -675,8 +675,8 @@ AC_SUBST(PACKAGES_USED)
 #	vips-$VIPS_MAJOR_VERSION.$VIPS_MINOR_VERSION.pc
 # in AC_OUTPUT, but that seems to break for some combinations of sh/m4
 AC_OUTPUT([
-	vips-7.28.pc
-	vipsCC-7.28.pc
+	vips-7.29.pc
+	vipsCC-7.29.pc
 	Makefile 
 	libvips/include/vips/version.h 
 	libvips/include/Makefile 
