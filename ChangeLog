@@ -1,4 +1,6 @@
 30/1/12 started 7.28.0
+
+30/1/12 started 7.28.0
 - version bump
 - added vips_foreign_find_save_options()/vips_foreign_find_load_options()
 - delayed write to foreign via a "w" image was not working

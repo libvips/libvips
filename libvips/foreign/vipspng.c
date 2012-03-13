@@ -38,6 +38,8 @@
  * 	- add support for sequential reads
  * 23/2/12
  * 	- add a longjmp() to our error handler to stop the default one running
+ * 13/3/12
+ * 	- add ICC profile read/write
  */
 
 /*
@@ -67,8 +69,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -185,6 +187,11 @@ png2vips_header( Read *read, VipsImage *out )
 	png_uint_32 res_x, res_y;
 	int unit_type;
 
+	png_charp name;
+	int compression_type;
+	png_bytep profile;
+	png_uint_32 proflen;
+
 	int bands; 
 	VipsInterpretation interpretation;
 	double Xres, Yres;
@@ -295,6 +302,29 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
         vips_demand_hint( out, 
 		VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+
+	/* Fetch the ICC profile. @name is useless, something like "icc" or
+	 * "ICC Profile" etc.  Ignore it.
+	 *
+	 * @profile was png_charpp in libpngs < 1.5, png_bytepp is the
+	 * modern one. Ignore the warning, if any.
+	 */
+	if( png_get_iCCP( read->pPng, read->pInfo, 
+		&name, &compression_type, &profile, &proflen ) ) {
+		void *profile_copy;
+
+#ifdef DEBUG
+		printf( "png2vips_header: attaching %zd bytes of ICC profile\n",
+			proflen );
+		printf( "png2vips_header: name = \"%s\"\n", name );
+#endif /*DEBUG*/
+
+		if( !(profile_copy = vips_malloc( NULL, proflen )) ) 
+			return( -1 );
+		memcpy( profile_copy, profile, proflen );
+		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
+			(VipsCallbackFn) vips_free, profile_copy, proflen );
+	}
 
 	return( 0 );
 }
@@ -550,6 +580,8 @@ write_vips( Write *write, int compress, int interlace )
 	int color_type;
 	int interlace_type;
 	int i, nb_passes;
+	void *profile;
+	size_t profile_length;
 
         g_assert( in->BandFmt == VIPS_FORMAT_UCHAR || 
 		in->BandFmt == VIPS_FORMAT_USHORT );
@@ -598,6 +630,19 @@ write_vips( Write *write, int compress, int interlace )
 	png_set_pHYs( write->pPng, write->pInfo, 
 		VIPS_RINT( in->Xres * 1000 ), VIPS_RINT( in->Yres * 1000 ), 
 		PNG_RESOLUTION_METER );
+
+	/* Set ICC Profile.
+	 */
+	if( !vips_image_get_blob( in, VIPS_META_ICC_NAME, 
+		&profile, &profile_length ) ) {
+#ifdef DEBUG
+		printf( "write_vips: attaching %zd bytes of ICC profile\n",
+			profile_length );
+#endif /*DEBUG*/
+
+		png_set_iCCP( write->pPng, write->pInfo, "icc", 
+			PNG_COMPRESSION_TYPE_BASE, profile, profile_length );
+	}
 
 	png_write_info( write->pPng, write->pInfo ); 
 
