@@ -270,9 +270,11 @@ vips_vector_full( VipsVector *vector )
 	if( vector->n_source + vector->n_scanline + 1 > 7 )
 		return( TRUE );
 
-	/* I seem to get segvs with I counts over about 50 :-( argh.
+	/* I seem to get segvs with I counts over about 50 :-( argh. After
+	 * signalling full, some operations will add up to 4 more instructions
+	 * as they finish up. Leave a margin.
 	 */
-	if( vector->n_instruction > 45 )
+	if( vector->n_instruction > 42 )
 		return( TRUE );
 
 	return( FALSE );
@@ -283,6 +285,8 @@ vips_vector_compile( VipsVector *vector )
 {
 #ifdef HAVE_ORC
 	OrcCompileResult result;
+
+	vips_vector_print( vector );
 
 	result = orc_program_compile( vector->program );
 	if( !ORC_COMPILE_RESULT_IS_SUCCESSFUL( result ) ) {
