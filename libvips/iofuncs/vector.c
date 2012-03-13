@@ -286,8 +286,6 @@ vips_vector_compile( VipsVector *vector )
 #ifdef HAVE_ORC
 	OrcCompileResult result;
 
-	vips_vector_print( vector );
-
 	result = orc_program_compile( vector->program );
 	if( !ORC_COMPILE_RESULT_IS_SUCCESSFUL( result ) ) {
 #ifdef DEBUG
