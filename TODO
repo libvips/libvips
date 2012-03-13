@@ -26,6 +26,8 @@ resample
 foreign
 =======
 
+- magick2vips should spot ICC profiles and attach them as meta
+
 - interlaced jpg needs massive memory, we should have two jpg read modes, like
   png
 
@@ -63,10 +65,6 @@ foreign
   see TODO notes in openexr read (though they all need more openexr C API)
 
   consider openexr write
-
-- magick2vips should spot ICC profiles and attach them as meta
-
-- also png2vips?
 
 - magick should set some header field for n_frames and frame_height? see also
   analyze
