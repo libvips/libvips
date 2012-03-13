@@ -1,4 +1,5 @@
-30/1/12 started 7.28.0
+13/3/12 started 7.28.1
+- add ICC profile read/write for png files
 
 30/1/12 started 7.28.0
 - version bump
