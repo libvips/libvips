@@ -189,7 +189,15 @@ png2vips_header( Read *read, VipsImage *out )
 
 	png_charp name;
 	int compression_type;
+
+	/* Well thank you, libpng.
+	 */
+#if PNG_LIBPNG_VER < 10400
+	png_charp profile;
+#else
 	png_bytep profile;
+#endif
+
 	png_uint_32 proflen;
 
 	int bands; 
