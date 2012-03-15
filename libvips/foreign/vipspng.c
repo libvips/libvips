@@ -69,8 +69,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -259,12 +259,23 @@ png2vips_header( Read *read, VipsImage *out )
 			interpretation = VIPS_INTERPRETATION_sRGB;
 	}
 
-	/* Expand palette images, expand transparency too.
+	/* Expand palette images.
 	 */
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
 		png_set_palette_to_rgb( read->pPng );
-	if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) 
+
+	/* Expand transparency images too.
+	 */
+	if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) {
 		png_set_tRNS_to_alpha( read->pPng );
+
+		/* Some PNGs have an alpha but do not set color_type correctly
+		 * .. make sure we add space for an alpha.
+		 */
+		if( color_type == PNG_COLOR_TYPE_GRAY ||
+			color_type == PNG_COLOR_TYPE_RGB )
+			bands += 1;
+	}
 
 	/* Expand <8 bit images to full bytes.
 	 */
