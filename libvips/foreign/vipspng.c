@@ -40,6 +40,9 @@
  * 	- add a longjmp() to our error handler to stop the default one running
  * 13/3/12
  * 	- add ICC profile read/write
+ * 15/3/12
+ * 	- better alpha handling
+ * 	- sanity check pixel geometry before allowing read
  */
 
 /*
@@ -213,32 +216,22 @@ png2vips_header( Read *read, VipsImage *out )
 
 	/* png_get_channels() gives us 1 band for palette images ... so look
 	 * at colour_type for output bands.
+	 *
+	 * Ignore alpha, we detect that separately below.
 	 */
 	switch( color_type ) {
 	case PNG_COLOR_TYPE_PALETTE: 
 		bands = 3; 
-
-		/* If there's transparency in the palette, we make an alpha.
-		 */
-		if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) 
-			bands = 4; 
-
 		break;
 
+	case PNG_COLOR_TYPE_GRAY_ALPHA: 
 	case PNG_COLOR_TYPE_GRAY: 
 		bands = 1; 
 		break;
 
-	case PNG_COLOR_TYPE_GRAY_ALPHA: 
-		bands = 2; 
-		break;
-
 	case PNG_COLOR_TYPE_RGB: 
-		bands = 3; 
-		break;
-
 	case PNG_COLOR_TYPE_RGB_ALPHA: 
-		bands = 4; 
+		bands = 3; 
 		break;
 
 	default:
@@ -264,17 +257,11 @@ png2vips_header( Read *read, VipsImage *out )
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
 		png_set_palette_to_rgb( read->pPng );
 
-	/* Expand transparency images too.
+	/* Expand transparency.
 	 */
 	if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) {
 		png_set_tRNS_to_alpha( read->pPng );
-
-		/* Some PNGs have an alpha but do not set color_type correctly
-		 * .. make sure we add space for an alpha.
-		 */
-		if( color_type == PNG_COLOR_TYPE_GRAY ||
-			color_type == PNG_COLOR_TYPE_RGB )
-			bands += 1;
+		bands += 1;
 	}
 
 	/* Expand <8 bit images to full bytes.
@@ -343,6 +330,16 @@ png2vips_header( Read *read, VipsImage *out )
 		memcpy( profile_copy, profile, proflen );
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
 			(VipsCallbackFn) vips_free, profile_copy, proflen );
+	}
+
+	/* Sanity-check lines sizes.
+	 */
+	png_read_update_info( read->pPng, read->pInfo );
+	if( png_get_rowbytes( read->pPng, read->pInfo ) != 
+		VIPS_IMAGE_SIZEOF_LINE( out ) ) {
+		vips_error( "vipspng", 
+			"%s", _( "unable to read PNG header" ) );
+		return( -1 );
 	}
 
 	return( 0 );

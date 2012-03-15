@@ -1,4 +1,6 @@
 13/3/12 started 7.28.2
+- better PNG alpha handling
+- sanity-check PNG read geometry
 
 13/3/12 started 7.28.1
 - add ICC profile read/write for png files
