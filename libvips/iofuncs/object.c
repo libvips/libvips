@@ -531,7 +531,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
  *
  * Convenience: has an argument been assigned. Useful for bindings.
  *
- * Returns: %TRUE if the arguent has been assigned.
+ * Returns: %TRUE if the argument has been assigned.
  */
 gboolean
 vips_object_get_argument_assigned( VipsObject *object, const char *name )
