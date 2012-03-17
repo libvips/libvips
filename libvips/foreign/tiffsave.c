@@ -2,6 +2,8 @@
  *
  * 2/12/11
  * 	- wrap a class around the tiff writer
+ * 17/3/12
+ * 	- argh xres/yres macro was wrong
  */
 
 /*
@@ -248,15 +250,15 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 	VIPS_ARG_DOUBLE( class, "xres", 16, 
 		_( "Xres" ), 
 		_( "Horizontal resolution in pixels/mm" ),
-		VIPS_ARGUMENT_NONE,
-		G_STRUCT_OFFSET( VipsImage, Xres ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, xres ),
 		-0.0, 1000000, 0 );
 
 	VIPS_ARG_DOUBLE( class, "yres", 17, 
 		_( "Yres" ), 
 		_( "Vertical resolution in pixels/mm" ),
-		VIPS_ARGUMENT_NONE,
-		G_STRUCT_OFFSET( VipsImage, Yres ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, yres ),
 		-0.0, 1000000, 0 );
 
 	VIPS_ARG_BOOL( class, "bigtiff", 18, 
