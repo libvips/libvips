@@ -1,6 +1,8 @@
-13/3/12 started 7.28.2
+19/3/12 started 7.29.0
 - better PNG alpha handling
 - sanity-check PNG read geometry
+
+13/3/12 started 7.28.2
 - xres/yres tiffsave args were broken
 
 13/3/12 started 7.28.1
