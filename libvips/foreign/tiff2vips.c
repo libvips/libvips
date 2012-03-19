@@ -884,7 +884,7 @@ parse_resolution( TIFF *tiff, VipsImage *out )
 	return( 0 );
 }
 
-/* Look at PhotometricInterpretation and BitsPerPixel, and try to figure out 
+/* Look at PhotometricInterpretation and BitsPerPixel and try to figure out 
  * which of the image classes this is.
  */
 static int
@@ -1143,7 +1143,7 @@ tiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Loop over the output region, painting in tiles from the file.
+/* Loop over the output region painting in tiles from the file.
  */
 static int
 tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
@@ -1163,7 +1163,7 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 
 	/* Sizeof a pel in the TIFF file. This won't work for formats which
 	 * are <1 byte per pel, like onebit :-( Fortunately, it's only used
-	 * to calculate addresses within a tile, and because we are wrapped in
+	 * to calculate addresses within a tile and, because we are wrapped in
 	 * vips_tilecache(), we will never have to calculate positions not 
 	 * within a tile.
 	 */
@@ -1172,7 +1172,7 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 	int x, y, z;
 
 	/* Special case: we are filling a single tile exactly sized to match
-	 * the tiff tile, and we have no repacking to do for this format.
+	 * the tiff tile and we have no repacking to do for this format.
 	 */
 	if( rtiff->memcpy &&
 		r->left % rtiff->twidth == 0 &&
@@ -1203,7 +1203,7 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 			 */
 			vips_rect_intersectrect( &tile, r, &hit );
 
-			/* Unpack to VIPS format. We can do this in parallel.
+			/* Unpack to VIPS format. 
 			 * Just unpack the section of the tile we need.
 			 */
 			for( z = 0; z < hit.height; z++ ) {
