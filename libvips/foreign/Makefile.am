@@ -13,6 +13,7 @@ libforeign_la_SOURCES = \
 	csv.c \
 	csvload.c \
 	csvsave.c \
+	dzsave.c \
 	rawload.c \
 	rawsave.c \
 	vipsload.c \
