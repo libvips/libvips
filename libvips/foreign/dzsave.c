@@ -46,44 +46,18 @@
 
 #include <vips/vips.h>
 
-/* Max no of tiles we buffer in a layer. Enough to buffer a line of 64x64
- * tiles on a 100k pixel across image.
- */
-#define MAX_LAYER_BUFFER (10000)
-
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
 typedef struct _Layer Layer;
-
-/* Bits we OR together for quadrants in a tile.
- */
-typedef enum _Quad {
-	QUAD_TL = 1,			/* Top-left etc. */
-	QUAD_TR = 2,
-	QUAD_BL = 4,
-	QUAD_BR = 8,
-	QUAD_ALL = 15,
-	QUAD_NONE = 0
-} Quad;
-
-/* A tile in our pyramid.
- */
-typedef struct _Tile {
-	VipsRegion *tile;
-	Quad quad;
-} Tile;
 
 /* A layer in the pyramid.
  */
 struct _Layer {
 	VipsForeignSaveDz *dz;
 
-	int width, height;		/* Layer size */
+	VipsImage *image;		/* The image we build */
+	VipsRegion *strip;		/* The current strip of pixels */
 	int sub;			/* Subsample factor for this layer */
 	int n;				/* Layer number ... 0 for smallest */
-
-	/* Tiles we have atm for this layer.
-	 */
-	PyramidTile tiles[MAX_LAYER_BUFFER];
 
 	Layer *below;			/* Tiles go to here */
 	Layer *above;			/* Tiles come from here */
@@ -116,10 +90,8 @@ G_DEFINE_TYPE( VipsForeignSaveDz, vips_foreign_save_dz,
 static void
 layer_free( Layer *layer )
 {
-	int i;
-
-	for( i = 0; i < MAX_LAYER_BUFFER; i++ )
-		VIPS_FREEF( g_object_unref, layer->tiles[i].tile );
+	VIPS_FREEF( g_object_unref, layer->strip );
+	VIPS_FREEF( g_object_unref, layer->image );
 
 	VIPS_FREE( layer->below, layer_free ); 
 }
@@ -144,8 +116,6 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int w, int h )
 	int i;
 
 	layer->dz = dz;
-	layer->width = w;
-	layer->height = h;
 
 	if( !above )
 		/* Top of pyramid.
@@ -154,18 +124,22 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int w, int h )
 	else
 		layer->sub = above->sub * 2;
 
-	for( i = 0; i < MAX_LAYER_BUFFER; i++ ) {
-		layer->tiles[i].tile = NULL;
-		layer->tiles[i].quad = QUAD_NONE;
-	}
-
 	layer->below = NULL;
 	layer->above = above;
+
+	layer->image = vips_image_new();
+	if( vips_image_copy_fields( layer->image, dz->image ) ) {
+		layer_free( layer );
+		return( NULL );
+	}
+	layer->image->Xsize = w;
+	layer->image->Ysize = h;
+	layer->region = vips_region_new( layer->image );
 
 	if( layer->width > dz->tile_width || 
 		layer->height > dz->tile_height ) {
 		if( !(layer->below = pyramid_build( dz, 
-			layer, layer->width / 2, layer->height / 2 )) ) {
+			layer, w / 2, h / 2 )) ) {
 			layer_free( layer );
 			return( -1 );
 		}
@@ -194,105 +168,6 @@ pyramid_mkdir( VipsForeignSaveDz *dz )
 			return( -1 );
 
 	return( 0 );
-}
-
-/* Pick a new tile to write to in this layer. Either reuse a tile we have
- * previously filled, or make a new one.
- */
-static int
-find_new_tile( PyramidLayer *layer )
-{
-	int i;
-
-	/* Exisiting buffer we have finished with? 
-	 */
-	for( i = 0; i < MAX_LAYER_BUFFER; i++ )
-		if( layer->tiles[i].bits == PYR_ALL ) 
-			return( i );
-
-	/* Have to make a new one.
-	 */
-	for( i = 0; i < MAX_LAYER_BUFFER; i++ )
-		if( !layer->tiles[i].tile ) {
-			if( !(layer->tiles[i].tile = 
-				vips_region_new( layer->tw->im )) )
-				return( -1 );
-			vips__region_no_ownership( layer->tiles[i].tile );
-			return( i );
-		}
-
-	/* Out of space!
-	 */
-	vips_error( "vips2tiff", 
-		"%s", _( "layer buffer exhausted -- "
-			"try making TIFF output tiles smaller" ) );
-
-	return( -1 );
-}
-
-/* Find a tile in the layer buffer - if it's not there, make a new one.
- */
-static int
-find_tile( PyramidLayer *layer, VipsRect *pos )
-{
-	int i;
-	VipsRect quad;
-	VipsRect image;
-	VipsRect inter;
-
-	/* Do we have a VipsRegion for this position?
-	 */
-	for( i = 0; i < MAX_LAYER_BUFFER; i++ ) {
-		VipsRegion *reg = layer->tiles[i].tile;
-
-		if( reg && reg->valid.left == pos->left && 
-			reg->valid.top == pos->top )
-			return( i );
-	}
-
-	/* Make a new one.
-	 */
-	if( (i = find_new_tile( layer )) < 0 )
-		return( -1 );
-	if( vips_region_buffer( layer->tiles[i].tile, pos ) )
-		return( -1 );
-	layer->tiles[i].bits = PYR_NONE;
-
-	/* Do any quadrants of this tile fall entirely outside the image? 
-	 * If they do, set their bits now.
-	 */
-	quad.width = layer->tw->tilew / 2;
-	quad.height = layer->tw->tileh / 2;
-	image.left = 0;
-	image.top = 0;
-	image.width = layer->width;
-	image.height = layer->height;
-
-	quad.left = pos->left;
-	quad.top = pos->top;
-	vips_rect_intersectrect( &quad, &image, &inter );
-	if( vips_rect_isempty( &inter ) )
-		layer->tiles[i].bits |= PYR_TL;
-
-	quad.left = pos->left + quad.width;
-	quad.top = pos->top;
-	vips_rect_intersectrect( &quad, &image, &inter );
-	if( vips_rect_isempty( &inter ) )
-		layer->tiles[i].bits |= PYR_TR;
-
-	quad.left = pos->left;
-	quad.top = pos->top + quad.height;
-	vips_rect_intersectrect( &quad, &image, &inter );
-	if( vips_rect_isempty( &inter ) )
-		layer->tiles[i].bits |= PYR_BL;
-
-	quad.left = pos->left + quad.width;
-	quad.top = pos->top + quad.height;
-	vips_rect_intersectrect( &quad, &image, &inter );
-	if( vips_rect_isempty( &inter ) )
-		layer->tiles[i].bits |= PYR_BR;
-
-	return( i );
 }
 
 /* Shrink a region by a factor of two, writing the result to a specified 
@@ -436,22 +311,25 @@ shrink_region( VipsRegion *from, VipsRect *area,
 	}
 }
 
-/* Write a tile to a file.
+/* Write an area of a region to a file.
  */
 static int
-tile_save( Layer *layer, VipsRegion *tile )
+tile_save( Layer *layer, VipsArea *area )
 {
 	VipsForeignSaveDz *dz = layer->dz;
+	VipsRegion *strip = layer->strip;
 
 	VipsImage *image;
+	VipsImage *extr;
 	char str[1000];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	if( !(image = vips_image_new_from_memory( 
-		VIPS_REGION_ADDR( tile, tile->valid.left, tile->valid.top ),
-		tile->valid.width, tile->valid.height,
-		tile->im.Bands, tile->im.BandFmt )) )
+		VIPS_REGION_ADDR( strip, strip->valid.left, strip->valid.top ),
+		strip->valid.width, strip->valid.height,
+		strip->im.Bands, strip->im.BandFmt )) )
 		return( -1 );
+	if( vips_extract_area( 
 
 	vips_buf_appendf( &buf, "%s/%d/%d_%d%s",
 		dz->dirname, 
@@ -469,11 +347,11 @@ tile_save( Layer *layer, VipsRegion *tile )
 	return( 0 );
 }
 
-/* A new tile has arrived! Write, shrink to the layer below, if we fill a 
- * region, recurse.
+/* A new strip of pixels has arrived! Add to our buffers, as each one fills,
+ * write a line of tiles and recurse down the pyramid. 
  */
 static int
-tile_arrived( Layer *layer, VipsRegion *tile, VipsRect *area )
+strip_arrived( Layer *layer, VipsRegion *region, VipsRect *area )
 {
 	VipsForeignSaveDz *dz = layer->dz;
 
@@ -565,19 +443,33 @@ tile_arrived( Layer *layer, VipsRegion *tile, VipsRect *area )
 	return( 0 );
 }
 
-/* Called by vips_sink_tile() for every tile generated.
+/* Another strip of image pixels. Recursively write down the pyramid.
  */
 static int
-tile_write( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
+pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
-	int result;
+	int y;
 
-	g_mutex_lock( dz->lock );
-	result = tile_arrived( dz->layer, out, &out->valid );
-	g_mutex_unlock( dz->lock );
+	y = 0;
+	while( y < area->height ) { 
+		VipsRect olp;
 
-	return( result );
+		vips_rect_intersectrect( area, &dz->layer->region.valid, &olp );
+		vips_region_copy( region, dz->layer->region, 
+			&olp, olp.left, olp.top );
+
+		/* If we've filled the layer strip.
+		 */
+		if( VIPS_RECT_BOTTOM( &olp ) == 
+			VIPS_RECT_BOTTOM( &dz->layer->region.valid ) &&
+			strip_arrived( dz->layer ) )
+			return( -1 );
+
+		y += olp.height;
+	}
+
+	return( 0 );
 }
 
 static int
@@ -597,12 +489,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( !(dz->layer = pyramid_build( dz, 
 		NULL, save->read->Xsize, save->read->Ysize )) )
 		return( -1 );
-
 	if( pyramid_mkdir( dz ) )
 		return( -1 );
 
-	if( vips_sink_tile( save->read, dz->tile_width, dz->tile_height,
-		NULL, tile_write, NULL, dz, NULL ) ) 
+	if( vips_sink_disc( save->read, pyramid_strip, dz ) )
 		return( -1 );
 
 	return( 0 );
