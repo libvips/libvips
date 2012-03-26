@@ -331,15 +331,12 @@ static void
 vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 	void *out, REGION *in, double x, double y )
 {
-	/* Pel size and line size.
-	 */
 	const int ps = IM_IMAGE_SIZEOF_PEL( in->im );
 
-	/* Top left corner we interpolate from. We know x/y are always
-	 * positive, so we can just (int) them.
+	/* We know x/y are always positive, so we can just (int) them.
 	 */
-	const int xi = (int) x;
-	const int yi = (int) y;
+	const int xi = (int) (x + 0.5);
+	const int yi = (int) (y + 0.5);
 
 	const VipsPel *p = IM_REGION_ADDR( in, xi, yi );
 	VipsPel *q = (VipsPel *) out;
