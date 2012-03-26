@@ -2331,7 +2331,7 @@ vips_matload( const char *filename, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_dzsave( VIpsImage *in, const char *dirname, ... )
+vips_dzsave( VipsImage *in, const char *dirname, ... )
 {
 	va_list ap;
 	int result;

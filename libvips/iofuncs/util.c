@@ -1199,7 +1199,7 @@ vips_mkdirf( const char *name, ... )
 
         /* Try that.
          */
-        if( !mkdir( buf1, 0755 ) ) {
+        if( mkdir( buf1, 0755 ) ) {
 		vips_error( "mkdirf", 
 			_( "unable to create directory \"%s\", %s" ), 
 			buf1, strerror( errno ) );
