@@ -1168,6 +1168,47 @@ vips_popenf( const char *fmt, const char *mode, ... )
 	return( fp );
 }
 
+/* Handle broken mkdirs()
+ */
+#if HAVE_MKDIR
+# if MKDIR_TAKES_ONE_ARG
+   /* Mingw32 */
+#  define mkdir(a,b) mkdir(a)
+# endif
+#else
+# ifdef HAVE__MKDIR
+   /* plain Win32 */
+#  include <direct.h>
+#  define mkdir(a,b) _mkdir(a)
+# else
+#  error "Don't know how to create a directory on this system."
+# endif
+#endif
+
+/* Make a directory.
+ */
+int
+vips_mkdirf( const char *name, ... )
+{
+        va_list ap;
+        char buf1[PATH_MAX];
+
+        va_start( ap, name );
+        (void) vips_vsnprintf( buf1, PATH_MAX - 1, name, ap );
+        va_end( ap );
+
+        /* Try that.
+         */
+        if( mkdir( buf1, 0755 ) ) {
+		vips_error( "mkdirf", 
+			_( "unable to create directory \"%s\", %s" ), 
+			buf1, strerror( errno ) );
+                return( -1 );
+	}
+
+        return( 0 );
+}
+
 /* Break a command-line argument into tokens separated by whitespace. 
  *
  * Strings can't be adjacent, so "hello world" (without quotes) is a single 

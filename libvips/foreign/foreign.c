@@ -1574,6 +1574,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_raw_get_type( void ); 
 	extern GType vips_foreign_save_raw_fd_get_type( void ); 
 	extern GType vips_foreign_load_magick_get_type( void ); 
+	extern GType vips_foreign_save_dz_get_type( void ); 
 
 	vips_foreign_load_rad_get_type(); 
 	vips_foreign_save_rad_get_type(); 
@@ -1587,6 +1588,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_raw_fd_get_type(); 
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 
+	vips_foreign_save_dz_get_type(); 
 
 #ifdef HAVE_PNG
 	vips_foreign_load_png_get_type(); 
@@ -2294,6 +2296,48 @@ vips_matload( const char *filename, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_call_split( "matload", ap, filename, out ); 
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_dzsave:
+ * @in: image to save 
+ * @dirname: directory to save to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @suffix: suffix for tile tiles (default ".jpg")
+ * @overlap; set tile overlap
+ * @tile_width; set tile size
+ * @tile_height; set tile size
+ *
+ * Save an image to a deep zoom - style directory tree.
+ *
+ * The image is shrunk in a series of x2 reductions until it fits within a
+ * tile. Each layer is written out to a separate subdirectory of @dirname,
+ * with directory "0" holding the smallest, single tile image.
+ *
+ * Each tile is written as a separate file named as "@x_@y@suffix", where @x
+ * and @y are the tile coordinates, with (0, 0) as the top-left tile.
+ *
+ * You can set @suffix to something like ".jpg[Q=85]" to set the tile write
+ * options. 
+ *
+ * See also: vips_tiffsave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_dzsave( VipsImage *in, const char *dirname, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, dirname );
+	result = vips_call_split( "dzsave", ap, in, dirname ); 
 	va_end( ap );
 
 	return( result );

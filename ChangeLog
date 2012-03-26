@@ -3,6 +3,7 @@
 - sanity-check PNG read geometry
 - nearest-neighbor interpolation rounds coordinates to nearest instead of 
   rounding down (thanks Nicolas)
+- add dzsave, save in deep zoom format
 
 13/3/12 started 7.28.2
 - xres/yres tiffsave args were broken

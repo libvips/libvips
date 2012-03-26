@@ -126,6 +126,8 @@
  * 2/12/11
  * 	- make into a simple function call ready to be wrapped as a new-style
  * 	  VipsForeign class
+ * 21/3/12
+ * 	- bump max layer buffer up
  */
 
 /*
@@ -182,7 +184,7 @@
 /* Max no of tiles we buffer in a layer. Enough to buffer a line of 64x64
  * tiles on a 100k pixel across image.
  */
-#define MAX_LAYER_BUFFER (1000)
+#define MAX_LAYER_BUFFER (10000)
 
 /* Bits we OR together for quadrants in a tile.
  */
