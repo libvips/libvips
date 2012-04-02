@@ -490,7 +490,8 @@ vips_check_coding_known( const char *domain, VipsImage *im )
 	 */
 	if( im->Coding != VIPS_CODING_NONE && 
 		im->Coding != VIPS_CODING_LABQ &&
-		im->Coding != VIPS_CODING_RAD ) {
+		im->Coding != VIPS_CODING_RAD &&
+		im->Coding != VIPS_CODING_ARGB ) {
 		vips_error( domain, "%s", _( "unknown image coding" ) );
 		return( -1 );
 	}
@@ -518,6 +519,32 @@ vips_check_coding_rad( const char *domain, VipsImage *im )
 		im->BandFmt != VIPS_FORMAT_UCHAR || 
 		im->Bands != 4 ) { 
 		vips_error( domain, "%s", _( "Radiance coding only" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_check_coding_argb:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is in ARGB coding. 
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 on OK, or -1 on error.
+ */
+int
+vips_check_coding_argb( const char *domain, VipsImage *im )
+{
+	if( im->Coding != VIPS_CODING_ARGB ||
+		im->BandFmt != VIPS_FORMAT_UCHAR || 
+		im->Bands != 4 ) { 
+		vips_error( domain, "%s", _( "ARGB coding only" ) );
 		return( -1 );
 	}
 

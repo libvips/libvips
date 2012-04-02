@@ -59,6 +59,7 @@ int vips_check_uncoded( const char *domain, VipsImage *im );
 int vips_check_coding_known( const char *domain, VipsImage *im );
 int vips_check_coding_labq( const char *domain, VipsImage *im );
 int vips_check_coding_rad( const char *domain, VipsImage *im );
+int vips_check_coding_argb( const char *domain, VipsImage *im );
 int vips_check_coding_noneorlabq( const char *domain, VipsImage *im );
 int vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 );
 int vips_check_mono( const char *domain, VipsImage *im );

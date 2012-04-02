@@ -4,6 +4,8 @@
 - nearest-neighbor interpolation rounds coordinates to nearest instead of 
   rounding down (thanks Nicolas)
 - add dzsave, save in deep zoom format
+- add VIPS_CODING_ARGB
+- openslideload output tagged as ARGB 
 
 13/3/12 started 7.28.2
 - xres/yres tiffsave args were broken

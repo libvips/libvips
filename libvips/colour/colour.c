@@ -792,6 +792,19 @@ vips_rad2float( VipsImage *in, VipsImage **out, ... )
 }
 
 int
+vips_argb2rgba( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "im_argb2rgba", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+int
 vips_float2rad( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;

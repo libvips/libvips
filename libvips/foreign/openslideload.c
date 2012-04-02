@@ -4,6 +4,8 @@
  * 	- from openslideload.c
  * 28/2/12
  * 	- convert "layer" to "level" where externally visible
+ * 2/4/12
+ * 	- output images coded as ARGB
  */
 
 /*

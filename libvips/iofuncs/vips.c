@@ -188,6 +188,7 @@ image_pixel_length( VipsImage *image )
 	switch( image->Coding ) {
 	case VIPS_CODING_LABQ:
 	case VIPS_CODING_RAD:
+	case VIPS_CODING_ARGB:
 	case VIPS_CODING_NONE:
 		psize = VIPS_IMAGE_SIZEOF_IMAGE( image );
 		break;
