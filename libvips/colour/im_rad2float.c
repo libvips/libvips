@@ -180,7 +180,7 @@ rad2float( COLR *inp, COLOR *outbuf, int n )
 int
 im_rad2float( IMAGE *in, IMAGE *out )
 {
-	if( vips_check_coding_rad( "rad2float", in ) ||
+	if( vips_check_coding_rad( "argb2rgba", in ) ||
 		im_cp_desc( out, in ) )
 		return( -1 );
 	out->Bands = 3;
