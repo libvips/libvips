@@ -942,7 +942,7 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 			g_error_free( error );
 		}
 
-		error_exit( "%s", g_get_prgname() );
+		error_exit( NULL );
 	}
 
 	/* We support --plugin and --version for all cases.

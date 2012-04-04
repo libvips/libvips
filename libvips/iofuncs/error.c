@@ -262,6 +262,12 @@ vips_error_g( GError **error )
 	if( !vips_domain ) 
 		vips_domain = g_quark_from_string( "libvips" );
 
+	/* glib does not expect a trailing '\n' and vips always has one.
+	 */
+	g_mutex_lock( vips__global_lock );
+	vips_buf_removec( &vips_error_buf, '\n' );
+	g_mutex_unlock( vips__global_lock );
+
 	g_set_error( error, vips_domain, -1, "%s", vips_error_buffer() );
 	vips_error_clear();
 }
