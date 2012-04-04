@@ -293,7 +293,6 @@ static const char *im_Coding[] = {
 	"RGB_COMPRESSED",
 	"LUM_COMPRESSED",
 	"IM_CODING_RAD",
-	"VIPS_CODING_ARGB",
 	NULL
 };
 

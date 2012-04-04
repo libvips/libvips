@@ -1,15 +1,3 @@
-- can we do CMC(2:1) by warping UCS space?
-
-- add a simple wrapping of im_affinei_all() to the po db, perhaps the name of
-  the interpolator as a string?
-
-- dzsave should maybe write some xml as well, see the Python dz writer?
-
-- the operation cache needs to detect invalidate
-
-
-
-
 blocking bugs
 =============
 
@@ -52,9 +40,17 @@ foreign
 	ppm.c
 	radiance.c
 
-- should there be some way to set the seq cache size?
+- is the tif reader deadlocking sometimes?
+
+  is it when we get a non-seq error?
+
+  should there be some way to set the seq cache size?
 
 - foreign docs come up as "VipsForeignSave", annoying, why?
+
+- make an argb coding type, add to nip2 and known coding
+
+  see openslide
 
 - add nifti support
 
@@ -87,8 +83,6 @@ packaging
 
 - do we bundle "convert" in the OS X / win32 builds? if we don't we
   should
-
-- goffice on OS X seems to be broken?
 
 
 convolution

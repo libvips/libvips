@@ -88,8 +88,14 @@ im_argb2rgba( VipsImage *in, IMAGE *out )
 {
 	guint32 bg;
 
-	if( vips_check_coding_argb( "argb2rgba", in ) ||
-		im_cp_desc( out, in ) )
+	/* check for RAD coding 
+	if( in->Coding != IM_CODING_RAD ) {
+		im_error( "im_rad2float", "%s", _( "not a RAD image" ) );
+		return( -1 );
+	}
+	 */
+
+	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->Coding = IM_CODING_NONE;
 

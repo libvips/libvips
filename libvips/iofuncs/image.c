@@ -456,8 +456,7 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 			(image->Coding != -1 &&
 				image->Coding != VIPS_CODING_NONE && 
 				image->Coding != VIPS_CODING_LABQ &&
-				image->Coding != VIPS_CODING_RAD &&
-				image->Coding != VIPS_CODING_ARGB) ||
+				image->Coding != VIPS_CODING_RAD) ||
 			image->Type > VIPS_INTERPRETATION_ARRAY ||
 			image->dtype > VIPS_IMAGE_PARTIAL || 
 			image->dhint > VIPS_DEMAND_STYLE_ANY ) 
