@@ -30,6 +30,9 @@
  * 	- rewrite as a class 
  * 22/2/12
  * 	- avoid /0 for complex as well
+ * 6/4/12
+ * 	- fixed switch cases
+ *	- fixed int operands with <1 result
  */
 
 /*
@@ -150,7 +153,7 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 
 #endif /* USE_MODARG_DIV */
 
-/* Real divide.
+/* Real divide. Cast in to OUT before divide so we work for float output.
  */
 #define RLOOP( IN, OUT ) { \
 	IN *left = (IN *) in[0]; \
@@ -158,10 +161,10 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		if( right[x] == 0.0 ) \
+		if( right[x] == 0 ) \
 			q[x] = 0; \
 		else \
-			q[x] = left[x] / right[x]; \
+			q[x] = (OUT) left[x] / (OUT) right[x]; \
 }
 
 static void
@@ -177,12 +180,12 @@ vips_divide_buffer( VipsArithmetic *arithmetic,
 	 * below.
          */
         switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_CHAR: 	RLOOP( signed char, signed short ); break; 
-        case VIPS_FORMAT_UCHAR:	RLOOP( unsigned char, signed short ); break; 
-        case VIPS_FORMAT_SHORT:	RLOOP( signed short, signed int ); break; 
-        case VIPS_FORMAT_USHORT:RLOOP( unsigned short, signed int ); break; 
-        case VIPS_FORMAT_INT: 	RLOOP( signed int, signed int ); break; 
-        case VIPS_FORMAT_UINT: 	RLOOP( unsigned int, signed int ); break; 
+        case VIPS_FORMAT_CHAR: 	RLOOP( signed char, float ); break; 
+        case VIPS_FORMAT_UCHAR:	RLOOP( unsigned char, float ); break; 
+        case VIPS_FORMAT_SHORT:	RLOOP( signed short, float ); break; 
+        case VIPS_FORMAT_USHORT: RLOOP( unsigned short, float ); break; 
+        case VIPS_FORMAT_INT: 	RLOOP( signed int, float ); break; 
+        case VIPS_FORMAT_UINT: 	RLOOP( unsigned int, float ); break; 
         case VIPS_FORMAT_FLOAT:	RLOOP( float, float ); break; 
         case VIPS_FORMAT_DOUBLE: RLOOP( double, double ); break;
 
@@ -235,7 +238,7 @@ vips_divide_init( VipsDivide *divide )
 }
 
 /**
- * vips_divide::
+ * vips_divide:
  * @in1: input image 1
  * @in2: input image 2
  * @out: output image
