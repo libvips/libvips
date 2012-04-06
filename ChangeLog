@@ -5,6 +5,9 @@
   rounding down (thanks Nicolas)
 - add dzsave, save in deep zoom format
 
+6/4/12 started 7.28.3
+- vips_divide() failed for int arguments
+
 13/3/12 started 7.28.2
 - xres/yres tiffsave args were broken
 
