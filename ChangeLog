@@ -1,5 +1,6 @@
 6/4/12 started 7.28.3
 - vips_divide() failed for int arguments
+- fix warning for unused vips7 gvalue argument
 
 13/3/12 started 7.28.2
 - xres/yres tiffsave args were broken

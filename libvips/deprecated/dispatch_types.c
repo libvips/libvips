@@ -817,7 +817,11 @@ gvalue_free( im_object obj )
 {
 	GValue *value = obj;
 
-	g_value_unset( value );
+	/* If it's just zeros (built but not used) we'll get an error if we
+	 * unset().
+	 */
+	if( G_IS_VALUE( value ) )
+		g_value_unset( value );
 
 	return( 0 );
 }
