@@ -146,7 +146,6 @@ float im_col_dE00(
 int im_LCh2Lab( VipsImage *in, VipsImage *out );
 int im_LabQ2XYZ( VipsImage *in, VipsImage *out );
 int im_rad2float( VipsImage *in, VipsImage *out );
-int im_argb2rgba( VipsImage *in, VipsImage *out );
 int im_float2rad( VipsImage *in, VipsImage *out );
 int im_LCh2UCS( VipsImage *in, VipsImage *out );
 int im_Lab2LCh( VipsImage *in, VipsImage *out );

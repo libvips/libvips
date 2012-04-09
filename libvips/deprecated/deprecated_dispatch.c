@@ -2188,10 +2188,30 @@ static im_function ifthenelse_desc = {
 	ifthenelse_args 		/* Arg list */
 };
 
+/* Call im_argb2rgba() via arg vector.
+ */
+static int
+argb2rgba_vec( im_object *argv )
+{
+	return( im_argb2rgba( argv[0], argv[1] ) );
+}
+
+/* Description of im_argb2rgba.
+ */ 
+static im_function argb2rgba_desc = {
+	"im_argb2rgba", 		/* Name */
+	"convert pre-multipled argb to png-style rgba",	/* Description */
+	IM_FN_PIO,			/* Flags */
+	argb2rgba_vec, 			/* Dispatch function */
+	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
+	one_in_one_out 			/* Arg list */
+};
+
 
 /* Package up all these functions.
  */
 static im_function *deprecated_list[] = {
+	&argb2rgba_desc,
 	&flood_copy_desc,
 	&flood_blob_copy_desc,
 	&flood_other_copy_desc,

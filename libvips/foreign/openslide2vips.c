@@ -26,6 +26,9 @@
  * 	- turn into a set of read fns ready to be called from a class
  * 28/2/12
  * 	- convert "layer" to "level" where externally visible
+ * 9/4/12
+ * 	- move argb2rgba back in here, we don't have a use for coded pixels
+ * 	- small cleanups
  */
 
 /*
@@ -83,8 +86,9 @@ typedef struct {
 
 	/* Only valid if associated == NULL.
 	 */
-	int32_t layer;
+	int32_t level;
 	double downsample;
+	uint32_t bg;
 } ReadSlide;
 
 int
@@ -138,7 +142,7 @@ check_associated_image( openslide_t *osr, const char *name )
 
 static ReadSlide *
 readslide_new( const char *filename, VipsImage *out, 
-	int layer, const char *associated )
+	int level, const char *associated )
 {
 	ReadSlide *rslide;
 	int64_t w, h;
@@ -150,7 +154,7 @@ readslide_new( const char *filename, VipsImage *out,
 	g_signal_connect( out, "close", G_CALLBACK( readslide_destroy_cb ),
 		rslide );
 
-	rslide->layer = layer;
+	rslide->level = level;
 	rslide->associated = g_strdup( associated );
 
 	rslide->osr = openslide_open( filename );
@@ -160,8 +164,8 @@ readslide_new( const char *filename, VipsImage *out,
 		return( NULL );
 	}
 
-	if( layer < 0 || 
-		layer >= openslide_get_layer_count( rslide->osr ) ) {
+	if( level < 0 || 
+		level >= openslide_get_layer_count( rslide->osr ) ) {
 		vips_error( "openslide2vips",
 			"%s", _( "invalid slide level" ) );
 		return( NULL );
@@ -180,23 +184,17 @@ readslide_new( const char *filename, VipsImage *out,
 	} 
 	else {
 		openslide_get_layer_dimensions( rslide->osr, 
-			layer, &w, &h );
+			level, &w, &h );
 		rslide->downsample = openslide_get_layer_downsample(
-			rslide->osr, layer );
-		vips_image_set_int( out, "slide-level", layer );
+			rslide->osr, level );
+		vips_image_set_int( out, "slide-level", level );
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	}
 
-	/* This tag is used by argb2rgba() to paint fully-transparent pixels.
-	 */
-	background = openslide_get_property_value( rslide->osr,
-		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR );
-	if( background != NULL )
-		vips_image_set_int( out, 
-			VIPS_META_BACKGROUND_RGB, 
-			strtoul( background, NULL, 16 ) );
-	else
-		vips_image_set_int( out, VIPS_META_BACKGROUND_RGB, 0xffffff );
+	rslide->bg = 0xffffff;
+	if( (background = openslide_get_property_value( rslide->osr,
+		OPENSLIDE_PROPERTY_NAME_BACKGROUND_COLOR )) )
+		rslide->bg = strtoul( background, NULL, 16 );
 
 	if( w < 0 || h < 0 || rslide->downsample < 0 ) {
 		vips_error( "openslide2vips", _( "getting dimensions: %s" ),
@@ -228,11 +226,11 @@ readslide_new( const char *filename, VipsImage *out,
 
 int
 vips__openslide_read_header( const char *filename, VipsImage *out, 
-	int layer, char *associated )
+	int level, char *associated )
 {
 	ReadSlide *rslide;
 
-	if( !(rslide = readslide_new( filename, out, layer, associated )) )
+	if( !(rslide = readslide_new( filename, out, level, associated )) )
 		return( -1 );
 
 	return( 0 );
@@ -243,30 +241,31 @@ vips__openslide_generate( VipsRegion *out,
 	void *seq, void *_rslide, void *unused, gboolean *stop )
 {
 	ReadSlide *rslide = _rslide;
+	uint32_t bg = rslide->bg;
 	VipsRect *r = &out->valid;
+	int n = r->width * r->height;
+	uint32_t *buf = (uint32_t *) VIPS_REGION_ADDR( out, r->left, r->top );
 
 	const char *error;
-	int x, y;
+	int i;
 
 	VIPS_DEBUG_MSG( "vips__openslide_generate: %dx%d @ %dx%d\n",
 		r->width, r->height, r->left, r->top );
 
-	/* Fill in tile-sized chunks. Some versions of OpenSlide can fail for
-	 * very large requests.
+	/* We're inside a cache, so requests should always be TILE_WIDTH by
+	 * TILE_HEIGHT pixels and on a tile boundary.
 	 */
-	for( y = 0; y < r->height; y += TILE_HEIGHT ) 
-		for( x = 0; x < r->width; x += TILE_WIDTH ) {
-			int w = VIPS_MIN( TILE_WIDTH, r->width - x );
-			int h = VIPS_MIN( TILE_HEIGHT, r->height - y );
+	g_assert( (r->left % TILE_WIDTH) == 0 );
+	g_assert( (r->height % TILE_HEIGHT) == 0 );
+	g_assert( r->width <= TILE_WIDTH );
+	g_assert( r->height <= TILE_HEIGHT );
 
-			openslide_read_region( rslide->osr, 
-				(uint32_t *) VIPS_REGION_ADDR( out, 
-					r->left + x, r->top + y ),
-				(r->left + x) * rslide->downsample, 
-				(r->top + y) * rslide->downsample, 
-				rslide->layer,
-				w, h ); 
-		}
+	openslide_read_region( rslide->osr, 
+		buf,
+		r->left * rslide->downsample, 
+		r->top * rslide->downsample, 
+		rslide->level,
+		r->width, r->height ); 
 
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
@@ -276,18 +275,41 @@ vips__openslide_generate( VipsRegion *out,
 		return( -1 );
 	}
 
+	/* Convert from ARGB to RGBA and undo premultiplication.
+	 */
+	for( i = 0; i < n; i++ ) {
+		uint32_t x = buf[i];
+		uint8_t a = x >> 24;
+		VipsPel *out = (VipsPel *) (buf + i);
+
+		if( a != 0 ) {
+			out[0] = 255 * ((x >> 16) & 255) / a;
+			out[1] = 255 * ((x >> 8) & 255) / a;
+			out[2] = 255 * (x & 255) / a;
+			out[3] = a;
+		} 
+		else {
+			/* Use background color.
+			 */
+			out[0] = (bg >> 16) & 255;
+			out[1] = (bg >> 8) & 255;
+			out[2] = bg & 255;
+			out[3] = 0;
+		}
+	}
+
 	return( 0 );
 }
 
 int
-vips__openslide_read( const char *filename, VipsImage *out, int layer )
+vips__openslide_read( const char *filename, VipsImage *out, int level )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
 	VipsImage *t;
 
 	VIPS_DEBUG_MSG( "vips__openslide_read: %s %d\n", 
-		filename, layer );
+		filename, level );
 
 	/* Tile cache: keep enough for two complete rows of tiles. OpenSlide
 	 * has its own tile cache, but it's not large enough for a complete
@@ -296,7 +318,7 @@ vips__openslide_read( const char *filename, VipsImage *out, int layer )
 	raw = vips_image_new();
 	vips_object_local( out, raw );
 
-	if( !(rslide = readslide_new( filename, raw, layer, NULL )) )
+	if( !(rslide = readslide_new( filename, raw, level, NULL )) )
 		return( -1 );
 
 	if( vips_image_generate( raw, 

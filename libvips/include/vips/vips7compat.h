@@ -648,6 +648,7 @@ int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
 int im_bandmean( VipsImage *in, VipsImage *out );
 int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
+int im_argb2rgba( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */
