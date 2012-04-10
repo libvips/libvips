@@ -45,6 +45,8 @@
  * 	- gtk-doc
  * 27/10/11
  * 	- redone as a class
+ * 10/4/12
+ * 	- cast to uint now removes <0 values
  */
 
 /*
@@ -288,7 +290,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 		break; \
 	\
 	case VIPS_FORMAT_UINT: \
-		INT( ITYPE, unsigned int, VIPS_CLIP_NONE ); \
+		INT( ITYPE, unsigned int, VIPS_CLIP_UINT ); \
 		break; \
 	\
 	case VIPS_FORMAT_INT: \
