@@ -2098,3 +2098,11 @@ im_cache( VipsImage *in, VipsImage *out,
 	return( vips_sink_screen( in, out, NULL, 
 		width, height, max, 0, NULL, NULL ) );
 }
+
+int
+im_argb2rgba( VipsImage *in, VipsImage *out )
+{
+	/* No longer exists, just a null op.
+	 */
+	return( im_copy( in, out ) );
+}

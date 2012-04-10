@@ -7,6 +7,10 @@
 
 6/4/12 started 7.28.3
 - vips_divide() failed for int arguments
+- fix warning for unused vips7 gvalue argument
+- fix openslide read: always return png-style rgba, im_argb2rgba() becomes a
+  NOP
+- cast to unsigned int now removes <0 values
 
 13/3/12 started 7.28.2
 - xres/yres tiffsave args were broken
