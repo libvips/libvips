@@ -542,7 +542,8 @@ vips_cache_trim( void )
 {
 	VipsOperation *operation;
 
-	while( (g_hash_table_size( vips_cache_table ) > vips_cache_max ||
+	while( vips_cache_table &&
+		(g_hash_table_size( vips_cache_table ) > vips_cache_max ||
 		vips_tracked_get_files() > vips_cache_max_files ||
 		vips_tracked_get_mem() > vips_cache_max_mem) &&
 		(operation = vips_cache_select()) ) {
