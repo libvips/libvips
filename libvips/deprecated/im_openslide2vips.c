@@ -61,7 +61,7 @@ im_openslide2vips( const char *name, IMAGE *out )
 	VipsImage *t;
 
 	im_filename_split( name, filename, mode );
-	level = 1;
+	level = 0;
 	associated = NULL;
 	p = &mode[0];
 	if( (q = im_getnextoption( &p )) ) 
