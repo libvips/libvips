@@ -476,7 +476,7 @@ int vips_image_written( VipsImage *image );
 void vips_image_invalidate_all( VipsImage *image );
 
 void vips_image_preeval( VipsImage *image );
-void vips_image_eval( VipsImage *image, int w, int h );
+void vips_image_eval( VipsImage *image, guint64 processed );
 void vips_image_posteval( VipsImage *image );
 void vips_image_set_progress( VipsImage *image, gboolean progress );
 

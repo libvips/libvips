@@ -12,6 +12,8 @@
   NOP
 - cast to unsigned int now removes <0 values
 - vips7 interface to openslide now supports :,level,associated options
+- make vips8 cache smaller
+- more accurate progress reporting
 
 13/3/12 started 7.28.2
 - xres/yres tiffsave args were broken
