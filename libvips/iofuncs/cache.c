@@ -74,18 +74,23 @@ char *vips__cache_max_files = NULL;
 gboolean vips__cache_dump = FALSE;
 gboolean vips__cache_trace = FALSE;
 
-/* Max number of cached operations.
+/* Max number of cached operations. We are likely to trim due to memuse or
+ * file use before we hit this limit.
  */
 static int vips_cache_max = 10000;
 
 /* How many tracked open files we allow before we start dropping cache.
  */
-static int vips_cache_max_files = 900;
+static int vips_cache_max_files = 100;
 
 /* How much RAM we spend on caches before we start dropping cached operations
- * ... default 1gb.
+ * ... default 100mb.
+ *
+ * It was 1gb, but that's a lot of memory for things like vipsthumbnail where
+ * there will be (almost) no reuse. Default low and let apps raise it if it'd
+ * be useful.
  */
-static size_t vips_cache_max_mem = 1024 * 1024 * 1024;
+static size_t vips_cache_max_mem = 100 * 1024 * 1024;
 
 /* Hold a ref to all "recent" operations.
  */
