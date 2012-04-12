@@ -211,6 +211,8 @@ vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 	vips_get_tile_size( image, 
 		&sink_base->tile_width, &sink_base->tile_height, 
 		&sink_base->nlines );
+
+	sink_base->processed = 0;
 }
 
 static int
@@ -283,6 +285,10 @@ vips_sink_base_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	sink_base->x += sink_base->tile_width;
 
+	/* Add the number of pixels we've just allocated to progress.
+	 */
+	sink_base->processed += state->pos.width * state->pos.height;
+
 	return( 0 );
 }
 
@@ -305,14 +311,12 @@ vips_sink_base_progress( void *a )
 {
 	SinkBase *sink_base = (SinkBase *) a;
 
-	VIPS_DEBUG_MSG( "vips_sink_base_progress: %d x %d\n",
-		sink_base->tile_width, sink_base->tile_height );
+	VIPS_DEBUG_MSG( "vips_sink_base_progress:\n" ); 
 
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
 	 */
-	vips_image_eval( sink_base->im, 
-		sink_base->tile_width, sink_base->tile_height );
+	vips_image_eval( sink_base->im, sink_base->processed );
 	if( vips_image_get_kill( sink_base->im ) )
 		return( -1 );
 

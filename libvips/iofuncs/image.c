@@ -1092,8 +1092,8 @@ vips_progress_add( VipsImage *image )
 	return( 0 );
 }
 
-void
-vips_progress_update( VipsProgress *progress, int w, int h )
+static void
+vips_progress_update( VipsProgress *progress, guint64 processed )
 {
 	float prop;
 
@@ -1102,11 +1102,11 @@ vips_progress_update( VipsProgress *progress, int w, int h )
 	g_assert( progress );
 
 	progress->run = g_timer_elapsed( progress->start, NULL );
-	progress->npels += w * h;
+	progress->npels = processed;
 	prop = (float) progress->npels / (float) progress->tpels;
 	progress->percent = 100 * prop;
 
-	/* Don't estiomate eta until we are 10% in.
+	/* Don't estimate eta until we are 10% in.
 	 */
 	if( prop > 0.1 ) 
 		progress->eta = (1.0 / prop) * progress->run - progress->run;
@@ -1135,10 +1135,10 @@ vips_image_preeval( VipsImage *image )
 	}
 }
 
-/* Another w * h pixels have been processed.
+/* Updated the number of pixels that have been processed.
  */
 void
-vips_image_eval( VipsImage *image, int w, int h )
+vips_image_eval( VipsImage *image, guint64 processed )
 {
 	if( image->progress_signal ) {
 		VIPS_DEBUG_MSG( "vips_image_eval: %p\n", image );
@@ -1146,7 +1146,7 @@ vips_image_eval( VipsImage *image, int w, int h )
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
 
-		vips_progress_update( image->time, w, h );
+		vips_progress_update( image->time, processed );
 
 		/* For vips7 compat, update the ->time on the signalling image
 		 * too, even though it may have a different width/height to
@@ -1154,7 +1154,7 @@ vips_image_eval( VipsImage *image, int w, int h )
 		 */
 		if( image->progress_signal->time != image->time )
 			vips_progress_update( image->progress_signal->time, 
-				w, h );	
+				processed );
 
 		g_signal_emit( image->progress_signal, 
 			vips_image_signals[SIG_EVAL], 0, image->time );
@@ -1878,7 +1878,7 @@ vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer )
 
 	/* Trigger evaluation callbacks for this image.
 	 */
-	vips_image_eval( image, image->Xsize, 1 );
+	vips_image_eval( image, ypos * image->Xsize );
 	if( vips_image_get_kill( image ) )
 		return( -1 );
 
