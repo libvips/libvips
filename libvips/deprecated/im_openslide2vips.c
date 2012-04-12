@@ -58,14 +58,21 @@ im_openslide2vips( const char *name, IMAGE *out )
 	char *p, *q;
 	char *associated;
 	int level;
+	char *endptr;
 	VipsImage *t;
 
 	im_filename_split( name, filename, mode );
-	level = 1;
+	level = 0;
 	associated = NULL;
 	p = &mode[0];
-	if( (q = im_getnextoption( &p )) ) 
-		level = atoi( q );
+	if( (q = im_getnextoption( &p )) ) {
+		level = strtoul( q, &endptr, 10 );
+		if( *endptr ) {
+			vips_error( "openslide2vips", "%s",
+				_( "level must be a number" ) );
+			return( -1 );
+		}
+	}
 	if( (q = im_getnextoption( &p )) ) 
 		associated = q;
 

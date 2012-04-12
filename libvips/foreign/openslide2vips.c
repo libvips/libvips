@@ -29,6 +29,8 @@
  * 9/4/12
  * 	- move argb2rgba back in here, we don't have a use for coded pixels
  * 	- small cleanups
+ * 11/4/12
+ * 	- fail if both level and associated image are specified
  */
 
 /*
@@ -148,6 +150,13 @@ readslide_new( const char *filename, VipsImage *out,
 	int64_t w, h;
 	const char *background;
 	const char * const *properties;
+
+	if( level && associated ) {
+		vips_error( "openslide2vips",
+			"%s", _( "specify only one of level or associated "
+			"image" ) );
+		return( NULL );
+	}
 
 	rslide = VIPS_NEW( out, ReadSlide );
 	memset( rslide, 0, sizeof( *rslide ) );
