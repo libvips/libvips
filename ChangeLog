@@ -5,13 +5,17 @@
   rounding down (thanks Nicolas)
 - add dzsave, save in deep zoom format
 
+17/4/12 started 7.28.4
+- up max buffer size for vipsbuf
+
 6/4/12 started 7.28.3
 - vips_divide() failed for int arguments
 - fix warning for unused vips7 gvalue argument
 - fix openslide read: always return png-style rgba, im_argb2rgba() becomes a
   NOP
 - cast to unsigned int now removes <0 values
-- vips7 interface to openslide now supports :,level,associated options
+- vips7 interface to openslide now supports :,level,associated options (thanks
+  Benjamin)
 - make vips8 cache smaller
 - more accurate progress reporting
 

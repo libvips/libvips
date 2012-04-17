@@ -74,7 +74,7 @@
 
 /* Largest string we can append in one operation.
  */
-#define MAX_STRSIZE (16000)
+#define MAX_STRSIZE (100000)
 
 /** 
  * VIPS_BUF_STATIC:
