@@ -89,7 +89,7 @@
 
 /* Temp buffer for snprintf() layer on old systems.
  */
-#define MAX_BUF (32768)
+#define MAX_BUF (100000)
 
 /* Test two lists for eqality.
  */

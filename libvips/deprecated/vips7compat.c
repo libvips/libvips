@@ -293,7 +293,6 @@ static const char *im_Coding[] = {
 	"RGB_COMPRESSED",
 	"LUM_COMPRESSED",
 	"IM_CODING_RAD",
-	"VIPS_CODING_ARGB",
 	NULL
 };
 
@@ -2098,4 +2097,12 @@ im_cache( VipsImage *in, VipsImage *out,
 {
 	return( vips_sink_screen( in, out, NULL, 
 		width, height, max, 0, NULL, NULL ) );
+}
+
+int
+im_argb2rgba( VipsImage *in, VipsImage *out )
+{
+	/* No longer exists, just a null op.
+	 */
+	return( im_copy( in, out ) );
 }

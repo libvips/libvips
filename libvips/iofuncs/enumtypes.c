@@ -483,7 +483,6 @@ vips_coding_get_type( void )
 			{VIPS_CODING_NONE, "VIPS_CODING_NONE", "none"},
 			{VIPS_CODING_LABQ, "VIPS_CODING_LABQ", "labq"},
 			{VIPS_CODING_RAD, "VIPS_CODING_RAD", "rad"},
-			{VIPS_CODING_ARGB, "VIPS_CODING_ARGB", "argb"},
 			{VIPS_CODING_LAST, "VIPS_CODING_LAST", "last"},
 			{0, NULL, NULL}
 		};

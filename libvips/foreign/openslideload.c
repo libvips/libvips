@@ -4,8 +4,8 @@
  * 	- from openslideload.c
  * 28/2/12
  * 	- convert "layer" to "level" where externally visible
- * 2/4/12
- * 	- output images coded as ARGB
+ * 11/4/12
+ * 	- convert remaining uses of "layer" to "level"
  */
 
 /*
@@ -62,9 +62,9 @@ typedef struct _VipsForeignLoadOpenslide {
 	 */
 	char *filename; 
 
-	/* Load this layer. 
+	/* Load this level.
 	 */
-	int layer;
+	int level;
 
 	/* Load this associated image. 
 	 */
@@ -105,7 +105,7 @@ vips_foreign_load_openslide_header( VipsForeignLoad *load )
 	VipsForeignLoadOpenslide *openslide = (VipsForeignLoadOpenslide *) load;
 
 	if( vips__openslide_read_header( openslide->filename, load->out, 
-		openslide->layer, openslide->associated ) )
+		openslide->level, openslide->associated ) )
 		return( -1 );
 
 	return( 0 );
@@ -118,7 +118,7 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 
 	if( !openslide->associated ) {
 		if( vips__openslide_read( openslide->filename, load->real, 
-			openslide->layer ) )
+			openslide->level ) )
 			return( -1 );
 	}
 	else {
@@ -185,7 +185,7 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 		_( "Level" ),
 		_( "Load this level from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, layer ),
+		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, level ),
 		0, 100000, 0 );
 
 	VIPS_ARG_STRING( class, "associated", 11, 

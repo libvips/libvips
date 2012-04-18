@@ -146,6 +146,14 @@ G_STMT_START { \
 	}  \
 } G_STMT_END
 
+#define VIPS_CLIP_UINT( V, SEQ ) \
+G_STMT_START { \
+	if( (V) < 0 ) {   \
+		(SEQ)->underflow++;   \
+		(V) = 0;   \
+	}  \
+} G_STMT_END
+
 #define VIPS_CLIP_NONE( V, SEQ ) {}
 
 const char *vips_enum_string( GType enm, int value );

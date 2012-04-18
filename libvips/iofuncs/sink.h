@@ -56,6 +56,10 @@ typedef struct _SinkBase {
 	int tile_height;
 	int nlines;
 
+	/* The number of pixels allocate has allocated. Used for progress
+	 * feedback.
+	 */
+	guint64 processed;
 } SinkBase;
 
 /* Some function we can share.

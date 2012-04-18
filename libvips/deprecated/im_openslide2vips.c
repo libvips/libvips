@@ -2,6 +2,8 @@
  *
  * 17/12/11
  * 	- just a stub
+ * 11/4/12
+ * 	- support :level,associated in filenames
  */
 
 /*
@@ -49,11 +51,35 @@
 #include <vips/internal.h>
 
 static int
-im_openslide2vips( const char *filename, IMAGE *out )
+im_openslide2vips( const char *name, IMAGE *out )
 {
+	char filename[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+	char *p, *q;
+	char *associated;
+	int level;
+	char *endptr;
 	VipsImage *t;
 
-	if( vips_openslideload( filename, &t, NULL ) )
+	im_filename_split( name, filename, mode );
+	level = 0;
+	associated = NULL;
+	p = &mode[0];
+	if( (q = im_getnextoption( &p )) ) {
+		level = strtoul( q, &endptr, 10 );
+		if( *endptr ) {
+			vips_error( "openslide2vips", "%s",
+				_( "level must be a number" ) );
+			return( -1 );
+		}
+	}
+	if( (q = im_getnextoption( &p )) ) 
+		associated = q;
+
+	if( vips_openslideload( filename, &t, 
+		"level", level,
+		"associated", associated,
+		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );

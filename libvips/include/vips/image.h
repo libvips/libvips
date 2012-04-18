@@ -198,12 +198,11 @@ typedef enum {
  * @VIPS_CODING_NONE: pixels are not coded
  * @VIPS_CODING_LABQ: pixels encode 3 float CIELAB values as 4 uchar
  * @VIPS_CODING_RAD: pixels encode 3 float RGB as 4 uchar (Radiance coding)
- * @VIPS_CODING_ARGB: Cairo-style pre-multiplied ARGB
  *
  * How pixels are coded. 
  *
  * Normally, pixels are uncoded and can be manipulated as you would expect.
- * However some file formats code pixels for storage, and sometimes it's
+ * However some file formats code pixels for compression, and sometimes it's
  * useful to be able to manipulate images in the coded format.
  *
  * The gaps in the numbering are historical and must be maintained. Allocate 
@@ -214,8 +213,7 @@ typedef enum {
 	VIPS_CODING_NONE = 0,
 	VIPS_CODING_LABQ = 2,
 	VIPS_CODING_RAD = 6,
-	VIPS_CODING_ARGB = 7,
-	VIPS_CODING_LAST = 8
+	VIPS_CODING_LAST = 7
 } VipsCoding;
 
 /* Struct we keep a record of execution time in. Passed to eval signal so
@@ -478,7 +476,7 @@ int vips_image_written( VipsImage *image );
 void vips_image_invalidate_all( VipsImage *image );
 
 void vips_image_preeval( VipsImage *image );
-void vips_image_eval( VipsImage *image, int w, int h );
+void vips_image_eval( VipsImage *image, guint64 processed );
 void vips_image_posteval( VipsImage *image );
 void vips_image_set_progress( VipsImage *image, gboolean progress );
 

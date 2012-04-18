@@ -1477,26 +1477,53 @@ vips_object_set_argument_from_string( VipsObject *object,
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		gboolean b;
 
-		g_value_init( &gvalue, G_TYPE_BOOLEAN );
 		b = TRUE;
 		if( value &&
 			(strcasecmp( value, "false" ) == 0 ||
 			strcasecmp( value, "no" ) == 0 ||
 			strcmp( value, "0" ) == 0) )
 			b = FALSE;
+
+		g_value_init( &gvalue, G_TYPE_BOOLEAN );
 		g_value_set_boolean( &gvalue, b );
 	}
 	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
+		int i;
+
+		if( sscanf( value, "%d", &i ) != 1 ) {
+			vips_error( class->nickname,
+				_( "'%s' is not an integer" ), value );
+			return( -1 );
+		}
+
 		g_value_init( &gvalue, G_TYPE_INT );
-		g_value_set_int( &gvalue, atoi( value ) );
+		g_value_set_int( &gvalue, i );
 	}
 	else if( G_IS_PARAM_SPEC_UINT64( pspec ) ) {
+		/* Not allways the same as guint64 :-( argh.
+		 */
+		long long l;
+
+		if( sscanf( value, "%Ld", &l ) != 1 ) {
+			vips_error( class->nickname,
+				_( "'%s' is not an integer" ), value );
+			return( -1 );
+		}
+
 		g_value_init( &gvalue, G_TYPE_UINT64 );
-		g_value_set_uint64( &gvalue, atoll( value ) );
+		g_value_set_uint64( &gvalue, l );
 	}
 	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
+		double d;
+
+		if( sscanf( value, "%lg", &d ) != 1 ) {
+			vips_error( class->nickname,
+				_( "'%s' is not a double" ), value );
+			return( -1 );
+		}
+
 		g_value_init( &gvalue, G_TYPE_DOUBLE );
-		g_value_set_double( &gvalue, atof( value ) );
+		g_value_set_double( &gvalue, d );
 	}
 	else if( G_IS_PARAM_SPEC_ENUM( pspec ) ) {
 		GEnumValue *enum_value;
@@ -1518,8 +1545,16 @@ vips_object_set_argument_from_string( VipsObject *object,
 	else if( G_IS_PARAM_SPEC_FLAGS( pspec ) ) {
 		/* Hard to set from a symbolic name. Just take an int.
 		 */
+		int i;
+
+		if( sscanf( value, "%d", &i ) != 1 ) {
+			vips_error( class->nickname,
+				_( "'%s' is not an integer" ), value );
+			return( -1 );
+		}
+
 		g_value_init( &gvalue, otype );
-		g_value_set_flags( &gvalue, atoi( value ) );
+		g_value_set_flags( &gvalue, i );
 	}
 	else {
 		g_value_init( &gvalue, G_TYPE_STRING );

@@ -1138,20 +1138,6 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		in = out;
 	}
 
-	/* If this is a ARGB, we go to png-style RGBA.
-	 */
-	if( in->Coding == VIPS_CODING_ARGB ) {
-		VipsImage *out;
-
-		if( vips_argb2rgba( in, &out, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-
-		in = out;
-	}
-
 	/* Get the bands right. 
 	 */
 	if( in->Coding == VIPS_CODING_NONE ) {
@@ -2068,7 +2054,7 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @level: load this level of the pyramid
+ * @layer: load this layer
  * @associated: load this associated image
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
@@ -2076,9 +2062,10 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  * and Trestle formats.  
  *
  * To facilitate zooming, virtual slide formats include multiple scaled-down
- * versions of the high-resolution image. 
+ * versions of the high-resolution image.  These are typically called
+ * "levels", though OpenSlide and im_openslide2vips() call them "layers".
  * By default, vips_openslideload() reads the highest-resolution layer
- * (level 0).  Set @level to the level number you want.
+ * (layer 0).  Set @layer to the layer number you want.
  *
  * In addition to the slide image itself, virtual slide formats sometimes
  * include additional images, such as a scan of the slide's barcode.
@@ -2087,10 +2074,10 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  * A slide's associated images are listed in the
  * "slide-associated-images" metadata item.
  *
- * The output of this operator is in Cairo-style pre-multipled ARGB format. 
- * Use vips_argb2rgba() to decode to png-style RGBA. 
+ * The output of this operator is in pre-multipled ARGB format. Use
+ * im_argb2rgba() to decode to png-style RGBA. 
  *
- * See also: vips_argb2rgba(), vips_image_new_from_file().
+ * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */

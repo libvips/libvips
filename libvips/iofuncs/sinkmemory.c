@@ -240,6 +240,10 @@ sink_memory_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	sink_base->x += sink_base->tile_width;
 
+	/* Add the number of pixels we've just allocated to progress.
+	 */
+	sink_base->processed += state->pos.width * state->pos.height;
+
 	return( 0 );
 }
 

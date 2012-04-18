@@ -697,6 +697,7 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 			vips_call_find_pspec, (void *) name, NULL )) ) {
 		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname, 
 			_( "unknown argument '%s'" ), name );
+		vips_error_g( error );
 		return( FALSE );
 	}
 	argument_class = argument_instance->argument_class;
@@ -705,8 +706,10 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 	if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
 		if( vips_object_set_argument_from_string( 
 			VIPS_OBJECT( operation ),
-			g_param_spec_get_name( pspec ), value ) )
+			g_param_spec_get_name( pspec ), value ) ) {
+			vips_error_g( error );
 			return( FALSE );
+		}
 
 #ifdef VIPS_DEBUG
 {

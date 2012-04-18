@@ -64,7 +64,6 @@ extern "C" {
 #define IM_CODING_NONE VIPS_CODING_NONE
 #define IM_CODING_LABQ VIPS_CODING_LABQ
 #define IM_CODING_RAD VIPS_CODING_RAD
-#define IM_CODING_ARGB VIPS_CODING_ARGB
 
 #define IM_TYPE_MULTIBAND VIPS_INTERPRETATION_MULTIBAND
 #define IM_TYPE_B_W VIPS_INTERPRETATION_B_W
@@ -649,6 +648,7 @@ int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
 int im_bandmean( VipsImage *in, VipsImage *out );
 int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
+int im_argb2rgba( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */

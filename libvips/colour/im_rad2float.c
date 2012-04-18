@@ -180,12 +180,12 @@ rad2float( COLR *inp, COLOR *outbuf, int n )
 int
 im_rad2float( IMAGE *in, IMAGE *out )
 {
-	if( vips_check_coding_rad( "rad2float", in ) ||
+	if( vips_check_coding_rad( "argb2rgba", in ) ||
 		im_cp_desc( out, in ) )
 		return( -1 );
 	out->Bands = 3;
 	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Coding = VIPS_CODING_NONE;
+	out->Coding = IM_CODING_NONE;
 
 	if( im_wrapone( in, out, 
 		(im_wrapone_fn) rad2float, NULL, NULL ) )
