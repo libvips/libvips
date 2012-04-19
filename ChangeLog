@@ -1,3 +1,7 @@
+19/4/12
+- ifthenelse blend mode was broken
+- small blend speedup
+
 17/4/12 started 7.28.4
 - up max buffer size for vipsbuf
 
