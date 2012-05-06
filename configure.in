@@ -534,17 +534,28 @@ if test x"$with_pangoft2" != "xno"; then
 fi
 
 # hmm, these don't have .pc files on ubuntu 5.10, how odd
-FIND_TIFF(
-  [with_tiff=yes],
-  [AC_MSG_WARN([libtiff not found; disabling TIFF support])
-   with_tiff=no
-  ])
-
 FIND_ZIP(
   [with_zip=yes],
   [AC_MSG_WARN([libz not found; disabling ZIP support])
    with_zip=no
   ])
+
+# look for TIFF with pkg-config ... fall back to our tester
+# pkgconfig support for libtiff starts with libtiff-4
+AC_ARG_WITH([tiff], 
+  AS_HELP_STRING([--without-tiff], [build without libtiff (default: test)]))
+
+if test x"$with_tiff" != "xno"; then
+  PKG_CHECK_MODULES(TIFF, libtiff-4,
+    [AC_DEFINE(HAVE_TIFF,1,[define if you have libtiff installed.])
+     with_tiff=yes
+     PACKAGES_USED="$PACKAGES_USED libtiff-4"],
+    [FIND_TIFF(,
+     [AC_MSG_WARN([libtiff not found; disabling TIFF support])
+      with_tiff=no
+     ])
+    ])
+fi
 
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 
