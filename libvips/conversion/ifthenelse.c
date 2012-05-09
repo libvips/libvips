@@ -22,6 +22,9 @@
  * 	- added sizealike
  * 14/11/11
  * 	- redone as a class
+ * 19/4/12
+ * 	- fix blend
+ * 	- small blend speedup
  */
 
 /*
@@ -226,11 +229,87 @@ vips_blendn_buffer( VipsPel *qp,
 }
 
 static int
+vips_blend_gen( VipsRegion *or, void *seq, void *client1, void *client2,
+	gboolean *stop )
+{
+	VipsRegion **ir = (VipsRegion **) seq;
+	VipsRect *r = &or->valid;
+	int le = r->left;
+	int to = r->top;
+	int bo = VIPS_RECT_BOTTOM( r );
+
+	VipsImage *c = ir[2]->im;
+	VipsImage *a = ir[0]->im;
+
+	int x, y;
+	int all0, all255;
+
+	if( vips_region_prepare( ir[2], r ) )
+		return( -1 );
+
+	/* Is the conditional all zero or all 255? We can avoid asking
+	 * for one of the inputs to be calculated.
+	 */
+	all0 = *VIPS_REGION_ADDR( ir[2], le, to ) == 0;
+	all255 = *VIPS_REGION_ADDR( ir[2], le, to ) == 255;
+	for( y = to; y < bo; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( ir[2], le, y );
+		int width = r->width * c->Bands;
+
+		for( x = 0; x < width; x++ ) {
+			all0 &= p[x] == 0;
+			all255 &= p[x] == 255;
+		}
+
+		if( !all0 && !all255 )
+			break;
+	}
+
+	if( all255 ) {
+		/* All 255. Point or at the then image.
+		 */
+		if( vips_region_prepare( ir[0], r ) ||
+			vips_region_region( or, ir[0], r, r->left, r->top ) )
+			return( -1 );
+	}
+	else if( all0 ) {
+		/* All zero. Point or at the else image.
+		 */
+		if( vips_region_prepare( ir[1], r ) ||
+			vips_region_region( or, ir[1], r, r->left, r->top ) )
+			return( -1 );
+	}
+	else {
+		/* Mix of set and clear ... ask for both then and else parts 
+		 * and interleave.
+		 */
+		if( vips_region_prepare( ir[0], r ) || 
+			vips_region_prepare( ir[1], r ) ) 
+			return( -1 );
+
+		for( y = to; y < bo; y++ ) {
+			VipsPel *ap = VIPS_REGION_ADDR( ir[0], le, y );
+			VipsPel *bp = VIPS_REGION_ADDR( ir[1], le, y );
+			VipsPel *cp = VIPS_REGION_ADDR( ir[2], le, y );
+			VipsPel *q = VIPS_REGION_ADDR( or, le, y );
+
+			if( c->Bands == 1 ) 
+				vips_blend1_buffer( q, cp, ap, bp, 
+					r->width, a );
+			else
+				vips_blendn_buffer( q, cp, ap, bp, 
+					r->width, a );
+		}
+	}
+
+	return( 0 );
+}
+
+static int
 vips_ifthenelse_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 	gboolean *stop )
 {
 	VipsRegion **ir = (VipsRegion **) seq;
-	VipsIfthenelse *ifthenelse = (VipsIfthenelse *) client2;
 	VipsRect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
@@ -305,23 +384,13 @@ vips_ifthenelse_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 			VipsPel *cp = VIPS_REGION_ADDR( ir[2], le, y );
 			VipsPel *q = VIPS_REGION_ADDR( or, le, y );
 
-			if( ifthenelse->blend ) {
-				if( c->Bands == 1 ) 
-					vips_blend1_buffer( q, 
-						cp, ap, bp, r->width, a );
+			for( x = 0, i = 0; i < width; i++, x += size ) 
+				if( cp[i] )
+					for( z = x; z < x + size; z++ )
+						q[z] = ap[z];
 				else
-					vips_blendn_buffer( q, 
-						cp, ap, bp, r->width, a );
-			}
-			else {
-				for( x = 0, i = 0; i < width; i++, x += size ) 
-					if( cp[i] )
-						for( z = x; z < x + size; z++ )
-							q[z] = ap[z];
-					else
-						for( z = x; z < x + size; z++ )
-							q[z] = bp[z];
-			}
+					for( z = x; z < x + size; z++ )
+						q[z] = bp[z];
 		}
 	}
 
@@ -333,12 +402,16 @@ vips_ifthenelse_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsIfthenelse *ifthenelse = (VipsIfthenelse *) object;
+	VipsGenerateFn generate_fn = ifthenelse->blend ? 
+		vips_blend_gen : vips_ifthenelse_gen;
 
-	VipsImage *all[3];
 	VipsImage **band = (VipsImage **) vips_object_local_array( object, 3 );
 	VipsImage **size = (VipsImage **) vips_object_local_array( object, 3 );
 	VipsImage **format = 
 		(VipsImage **) vips_object_local_array( object, 3 );
+
+
+	VipsImage *all[3];
 
 	if( VIPS_OBJECT_CLASS( vips_ifthenelse_parent_class )->build( object ) )
 		return( -1 );
@@ -373,7 +446,7 @@ vips_ifthenelse_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_SMALLTILE, format );
 
 	if( vips_image_generate( conversion->out,
-		vips_start_many, vips_ifthenelse_gen, vips_stop_many, 
+		vips_start_many, generate_fn, vips_stop_many, 
 		format, ifthenelse ) )
 		return( -1 );
 
@@ -433,6 +506,10 @@ vips_ifthenelse_init( VipsIfthenelse *ifthenelse )
  * @in2: else #VipsImage
  * @out: output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @blend: blend smoothly between @in1 and @in2
  *
  * This operation scans the condition image @cond 
  * and uses it to select pixels from either the then image @in1 or the else

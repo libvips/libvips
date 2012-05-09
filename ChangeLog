@@ -5,6 +5,11 @@
   rounding down (thanks Nicolas)
 - add dzsave, save in deep zoom format
 
+19/4/12 started 7.28.5
+- ifthenelse blend mode was broken
+- small blend speedup
+- default to libtiff-4
+
 17/4/12 started 7.28.4
 - up max buffer size for vipsbuf
 
