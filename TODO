@@ -1,3 +1,16 @@
+- try:
+
+	$ vips im_copy babe.jpg babe.tif:lzw,tile,,manybit,res_inch:72.00x72.00,,
+	$ header -a babe.tif
+	babe.tif: 1024x768 uchar, 3 bands, srgb VipsImage (0x2225050)
+	xres: 7.200000
+	yres: 7.200000
+	resolution-unit: in
+
+  argh!
+
+
+
 blocking bugs
 =============
 
@@ -40,17 +53,7 @@ foreign
 	ppm.c
 	radiance.c
 
-- is the tif reader deadlocking sometimes?
-
-  is it when we get a non-seq error?
-
-  should there be some way to set the seq cache size?
-
 - foreign docs come up as "VipsForeignSave", annoying, why?
-
-- make an argb coding type, add to nip2 and known coding
-
-  see openslide
 
 - add nifti support
 
