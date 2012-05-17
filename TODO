@@ -83,17 +83,7 @@ foreign
 	ppm.c
 	radiance.c
 
-- is the tif reader deadlocking sometimes?
-
-  is it when we get a non-seq error?
-
-  should there be some way to set the seq cache size?
-
 - foreign docs come up as "VipsForeignSave", annoying, why?
-
-- make an argb coding type, add to nip2 and known coding
-
-  see openslide
 
 - add nifti support
 

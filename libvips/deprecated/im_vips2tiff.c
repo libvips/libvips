@@ -178,20 +178,10 @@ im_vips2tiff( IMAGE *in, const char *filename )
 	}
 
 	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "res_cm", q ) ) {
-			if( resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH ) {
-				xres /= 2.54;
-				yres /= 2.54;
-			}
+		if( im_isprefix( "res_cm", q ) ) 
 			resunit = VIPS_FOREIGN_TIFF_RESUNIT_CM;
-		}
-		else if( im_isprefix( "res_inch", q ) ) {
-			if( resunit == VIPS_FOREIGN_TIFF_RESUNIT_CM ) {
-				xres *= 2.54;
-				yres *= 2.54;
-			}
+		else if( im_isprefix( "res_inch", q ) ) 
 			resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
-		}
 		else {
 			im_error( "im_vips2tiff", _( "unknown resolution unit "
 				"\"%s\"\nshould be one of \"res_cm\" or "
@@ -208,6 +198,15 @@ im_vips2tiff( IMAGE *in, const char *filename )
 				}
 
 				yres = xres;
+			}
+
+			/* vips resolutions are always in pixels/mm. If the
+			 * user specifies ",res_inch:72x72" then they are
+			 * using pixels/inch instead and we must convert.
+			 */
+			if( resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH ) {
+				xres /= 2.54;
+				yres /= 2.54;
 			}
 		}
 	}

@@ -5,6 +5,9 @@
   rounding down (thanks Nicolas)
 - add dzsave, save in deep zoom format
 
+19/4/12 started 7.28.6
+- better resolution unit handling in deprecated im_vips2tiff()
+
 19/4/12 started 7.28.5
 - ifthenelse blend mode was broken
 - small blend speedup

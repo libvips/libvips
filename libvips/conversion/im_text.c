@@ -228,8 +228,7 @@ im_text( IMAGE *out, const char *text, const char *font,
 
 	pango_ft2_font_map_set_resolution( PANGO_FT2_FONT_MAP( fontmap ), 
 		dpi, dpi );
-	context = pango_ft2_font_map_create_context( 
-		PANGO_FT2_FONT_MAP( fontmap ) );
+	context = pango_font_map_create_context( PANGO_FONT_MAP( fontmap ) );
 
 	if( text_render_to_image( context, out, text, font, 
 		width, alignment, dpi ) ) {
