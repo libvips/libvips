@@ -1715,9 +1715,9 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  * @tile_height; set tile size
  * @pyramid; set %TRUE to write an image pyramid
  * @squash; squash 8-bit images down to 1 bit
- * @resunit; use pixels per inch or cm for the resolution
- * @xres; horizontal resolution
- * @yres; vertical resolution
+ * @resunit; convert resolution to pixels per inch or cm during write
+ * @xres; horizontal resolution in pixels/mm
+ * @yres; vertical resolution in pixels/mm
  * @bigtiff; write a BigTiff file
  *
  * Write a VIPS image to a file as TIFF.
@@ -1767,6 +1767,7 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  *
  * Use @xres and @yres to override the default horizontal and vertical
  * resolutions. By default these values are taken from the VIPS image header. 
+ * libvips resolution is always in pixels per millimetre.
  *
  * Set @bigtiff to attempt to write a bigtiff. 
  * Bigtiff is a variant of the TIFF

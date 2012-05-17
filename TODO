@@ -1,16 +1,3 @@
-- try:
-
-	$ vips im_copy babe.jpg babe.tif:lzw,tile,,manybit,res_inch:72.00x72.00,,
-	$ header -a babe.tif
-	babe.tif: 1024x768 uchar, 3 bands, srgb VipsImage (0x2225050)
-	xres: 7.200000
-	yres: 7.200000
-	resolution-unit: in
-
-  argh!
-
-
-
 blocking bugs
 =============
 
