@@ -275,7 +275,7 @@ vips_error_g( GError **error )
 /**
  * vips_error_clear: 
  *
- * Clear and reset the error buffer. This is typically called after presentng
+ * Clear and reset the error buffer. This is typically called after presenting
  * an error to the user.
  *
  * See also: vips_error_buffer().
