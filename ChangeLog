@@ -1,5 +1,6 @@
 19/4/12 started 7.28.6
 - better resolution unit handling in deprecated im_vips2tiff()
+- use TIFF_CFLAGS output from pkg-config (thanks Jay)
 
 19/4/12 started 7.28.5
 - ifthenelse blend mode was broken
