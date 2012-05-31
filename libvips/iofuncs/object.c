@@ -366,8 +366,7 @@ vips_argument_map( VipsObject *object,
 		VipsArgument *argument = (VipsArgument *) argument_class; 
 		GParamSpec *pspec = argument->pspec; 
 		VipsArgumentInstance *argument_instance = 
-			vips__argument_get_instance( argument_class, 
-			object ); 
+			vips__argument_get_instance( argument_class, object ); 
 
 		/* We have many props on the arg table ... filter out the 
 		 * ones for this class. 
@@ -768,15 +767,7 @@ vips_object_dispose( GObject *gobject )
 	/* Our subclasses should have already called this. Run it again, just
 	 * in case.
 	 */
-	if( !object->preclose ) {
-#ifdef VIPS_DEBUG
-		printf( "vips_object_dispose: no vips_object_preclose() " );
-		vips_object_print_name( VIPS_OBJECT( gobject ) );
-		printf( "\n" );
-#endif /*VIPS_DEBUG*/
-
-		vips_object_preclose( object );
-	}
+	vips_object_preclose( object );
 
 	/* Clear all our arguments: they may be holding resources we should 
 	 * drop.
