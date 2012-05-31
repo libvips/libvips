@@ -332,7 +332,8 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 		/* We have many props on the arg table ... filter out the \
 		 * ones for this class. \
 		 */ \
-		if( g_object_class_find_property( \
+		if( ARG_INSTANCE && \
+			g_object_class_find_property( \
 			G_OBJECT_CLASS( object_class ), \
 			g_param_spec_get_name( PSPEC ) ) == PSPEC ) {
 

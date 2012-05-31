@@ -346,7 +346,7 @@ vips_argument_table_destroy( VipsArgumentTable *table )
  * non-%NULL value from @fn.
  */
 void *
-vips_argument_map( VipsObject *object,
+vips_argument_map1( VipsObject *object,
 	VipsArgumentMapFn fn, void *a, void *b )
 {
 	/* Make sure we can't go during the loop. This can happen if eg. we
