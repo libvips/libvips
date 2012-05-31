@@ -346,26 +346,45 @@ vips_argument_table_destroy( VipsArgumentTable *table )
  * non-%NULL value from @fn.
  */
 void *
-vips_argument_map1( VipsObject *object,
+vips_argument_map( VipsObject *object,
 	VipsArgumentMapFn fn, void *a, void *b )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object ); 
+	GSList *p; 
+
 	/* Make sure we can't go during the loop. This can happen if eg. we
 	 * flush an arg that refs us.
 	 */
 	g_object_ref( object ); 
 
-	VIPS_ARGUMENT_FOR_ALL( object, 
-		pspec, argument_class, argument_instance ) {
-		void *result;
+	/* We only get called after all the VipsArgumentInstance have been
+	 * built. We can often skip the pspec lookup.
+	 */
+	for( p = object_class->argument_table_traverse; p; p = p->next ) { 
+		VipsArgumentClass *argument_class = 
+			(VipsArgumentClass *) p->data; 
+		VipsArgument *argument = (VipsArgument *) argument_class; 
+		GParamSpec *pspec = argument->pspec; 
+		VipsArgumentInstance *argument_instance = 
+			vips__argument_get_instance( argument_class, 
+			object ); 
 
-		g_assert( argument_instance );
+		/* We have many props on the arg table ... filter out the 
+		 * ones for this class. 
+		 */ 
+		if( argument_instance &&
+			g_object_class_find_property( 
+				G_OBJECT_CLASS( object_class ), 
+				g_param_spec_get_name( pspec ) ) == pspec ) {
+			void *result;
 
-		if( (result = fn( object, pspec,
-			argument_class, argument_instance, a, b )) ) {
-			g_object_unref( object ); 
-			return( result );
+			if( (result = fn( object, pspec,
+				argument_class, argument_instance, a, b )) ) {
+				g_object_unref( object ); 
+				return( result );
+			}
 		}
-	} VIPS_ARGUMENT_FOR_ALL_END
+	} 
 
 	g_object_unref( object ); 
 
