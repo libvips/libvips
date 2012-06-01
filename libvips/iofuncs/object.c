@@ -357,33 +357,20 @@ vips_argument_map( VipsObject *object,
 	 */
 	g_object_ref( object ); 
 
-	/* We only get called after all the VipsArgumentInstance have been
-	 * built. We can often skip the pspec lookup.
-	 */
-	for( p = object_class->argument_table_traverse; p; p = p->next ) { 
-		VipsArgumentClass *argument_class = 
-			(VipsArgumentClass *) p->data; 
-		VipsArgument *argument = (VipsArgument *) argument_class; 
-		GParamSpec *pspec = argument->pspec; 
-		VipsArgumentInstance *argument_instance = 
-			vips__argument_get_instance( argument_class, object ); 
+	VIPS_ARGUMENT_FOR_ALL( object, 
+		pspec, argument_class, argument_instance ) { 
+		void *result;
 
-		/* We have many props on the arg table ... filter out the 
-		 * ones for this class. 
-		 */ 
-		if( argument_instance &&
-			g_object_class_find_property( 
-				G_OBJECT_CLASS( object_class ), 
-				g_param_spec_get_name( pspec ) ) == pspec ) {
-			void *result;
+		/* argument_instance should not be NULL.
+		 */
+		g_assert( argument_instance );
 
-			if( (result = fn( object, pspec,
-				argument_class, argument_instance, a, b )) ) {
-				g_object_unref( object ); 
-				return( result );
-			}
+		if( (result = fn( object, pspec,
+			argument_class, argument_instance, a, b )) ) {
+			g_object_unref( object ); 
+			return( result );
 		}
-	} 
+	}
 
 	g_object_unref( object ); 
 
@@ -406,19 +393,12 @@ vips_argument_class_map( VipsObjectClass *object_class,
 			(VipsArgumentClass *) p->data; 
 		VipsArgument *argument = (VipsArgument *) arg_class; 
 		GParamSpec *pspec = argument->pspec; 
-		
-		/* We have many props on the arg table ... filter out the 
-		 * ones for this class. 
-		 */ 
-		if( g_object_class_find_property( 
-			G_OBJECT_CLASS( object_class ), 
-			g_param_spec_get_name( pspec ) ) == pspec ) {
-			void *result;
 
-			if( (result = 
-				fn( object_class, pspec, arg_class, a, b )) )
-				return( result );
-		}
+		void *result;
+
+		if( (result = 
+			fn( object_class, pspec, arg_class, a, b )) )
+			return( result );
 	}
 
 	return( NULL );
@@ -767,6 +747,10 @@ vips_object_dispose( GObject *gobject )
 	/* Our subclasses should have already called this. Run it again, just
 	 * in case.
 	 */
+#ifdef DEBUG
+	if( !object->preclose ) 
+		printf( "vips_object_dispose: pre-close missing!\n" );
+#endif /*DEBUG*/
 	vips_object_preclose( object );
 
 	/* Clear all our arguments: they may be holding resources we should 
@@ -1387,7 +1371,8 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	VipsArgumentClass *argument_class = g_new( VipsArgumentClass, 1 );
 
 #ifdef DEBUG
-	printf( "vips_object_class_install_argument: %s %s\n", 
+	printf( "vips_object_class_install_argument: %p %s %s\n", 
+		object_class,
 		g_type_name( G_TYPE_FROM_CLASS( object_class ) ),
 		g_param_spec_get_name( pspec ) );
 #endif /*DEBUG*/
@@ -1411,10 +1396,46 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 
 	vips_argument_table_replace( object_class->argument_table,
 		(VipsArgument *) argument_class );
+
+	/* If this is the first argument for a new subclass, we need to clone
+	 * the traverse list we inherit.
+	 */
+	if( object_class->argument_table_traverse_gtype != 
+		G_TYPE_FROM_CLASS( object_class ) ) {
+#ifdef DEBUG
+		printf( "vips_object_class_install_argument: "
+			"cloning traverse\n" ); 
+#endif /*DEBUG*/
+
+		object_class->argument_table_traverse = 
+			g_slist_copy( object_class->argument_table_traverse );
+		object_class->argument_table_traverse_gtype = 
+			G_TYPE_FROM_CLASS( object_class );
+	}
+
 	object_class->argument_table_traverse = g_slist_prepend(
 		object_class->argument_table_traverse, argument_class );
 	object_class->argument_table_traverse = g_slist_sort(
 		object_class->argument_table_traverse, traverse_sort );
+
+#ifdef DEBUG
+{
+	GSList *p;
+
+	printf( "%d items on traverse %p\n", 
+		g_slist_length( object_class->argument_table_traverse ),
+		&object_class->argument_table_traverse );
+	for( p = object_class->argument_table_traverse; p; p = p->next ) {
+		VipsArgumentClass *argument_class = 
+			(VipsArgumentClass *) p->data;
+
+		printf( "\t%p %s\n", 
+			argument_class, 
+			g_param_spec_get_name( 
+				((VipsArgument *) argument_class)->pspec ) );
+	}
+}
+#endif /*DEBUG*/
 }
 
 /* Set a named arg from a string.

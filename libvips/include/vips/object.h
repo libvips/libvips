@@ -328,15 +328,8 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 		VipsArgumentInstance *ARG_INSTANCE = \
 			vips__argument_get_instance( argument_class, \
 			VIPS_OBJECT( OBJECT ) ); \
-		\
-		/* We have many props on the arg table ... filter out the \
-		 * ones for this class. \
-		 */ \
-		if( g_object_class_find_property( \
-			G_OBJECT_CLASS( object_class ), \
-			g_param_spec_get_name( PSPEC ) ) == PSPEC ) {
 
-#define VIPS_ARGUMENT_FOR_ALL_END } } }
+#define VIPS_ARGUMENT_FOR_ALL_END } }
 
 /* And some macros to collect args from a va list. 
  */
@@ -494,13 +487,22 @@ struct _VipsObjectClass {
 	 */
 	const char *description;
 
-	/* Table of arguments for this class and any derived classes. Order
-	 * is important, so keep a traverse list too. We can't rely on the
-	 * ordering given by g_object_class_list_properties() since it comes
-	 * from a hash :-(
+	/* Hash from pspec to VipsArgumentClass.
+	 *
+	 * This records the VipsArgumentClass for every pspec used in 
+	 * VipsObject and any subclass (ie. everywhere), so it's huge. Don't
+	 * loop over this hash! Fine for lookups though.
 	 */
 	VipsArgumentTable *argument_table;
+
+	/* A sorted (by priority) list of the VipsArgumentClass for this class 
+	 * and any superclasses. This is small and specific to this class.
+	 *
+	 * Use the stored GType to work out when to restart the list for a
+	 * subclass.
+	 */
 	GSList *argument_table_traverse;
+	GType argument_table_traverse_gtype;
 };
 
 gboolean vips_value_is_null( GParamSpec *psoec, const GValue *value );
