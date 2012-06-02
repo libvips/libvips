@@ -2,6 +2,7 @@
 - better resolution unit handling in deprecated im_vips2tiff()
 - use TIFF_CFLAGS output from pkg-config (thanks Jay)
 - much faster vips_argument_map()
+- make jpeg pyramids work with tiff4
 
 19/4/12 started 7.28.5
 - ifthenelse blend mode was broken
