@@ -128,6 +128,9 @@
  * 18/2/12
  * 	- switch to sequential read
  * 	- remove the lock ... tilecache does this for us
+ * 3/6/12
+ * 	- always offer THINSTRIP ... later stages can ask for something more
+ * 	  relaxed if they wish
  */
 
 /*
@@ -1090,6 +1093,12 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
+	/* Offer the most restrictive style. This can be changed downstream if
+	 * necessary.
+	 */
+        vips_demand_hint( out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
 	return( 0 );
 }
 
@@ -1257,15 +1266,18 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	if( parse_header( rtiff, raw ) )
 		return( -1 );
 
-	/* Process and save as VIPS.
+	/* Process and save as VIPS. 
+	 *
+	 * Even though this is a tiled reader, we hint thinstrip since with
+	 * the cache we are quite happy serving that if anything downstream 
+	 * would like it.
 	 */
         vips_demand_hint( raw, 
-		VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	if( vips_image_generate( raw, 
 		tiff_seq_start, tiff_fill_region, tiff_seq_stop, 
 		rtiff, NULL ) )
 		return( -1 );
-
 
 	/* Copy to out, adding a cache. Enough tiles for two complete rows.
 	 */

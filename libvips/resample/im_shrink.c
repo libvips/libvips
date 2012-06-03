@@ -58,6 +58,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -244,6 +248,11 @@ shrink_gen( REGION *or, void *vseq, void *a, void *b )
 
 	int x, y;
 
+#ifdef DEBUG
+	printf( "shrink_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top ); 
+#endif /*DEBUG*/
+
 	for( y = 0; y < r->height; y += ystep )  
 		for( x = 0; x < r->width; x += xstep ) { 
 			/* Clip the this rect against the demand size.
@@ -257,6 +266,10 @@ shrink_gen( REGION *or, void *vseq, void *a, void *b )
 			s.top = (r->top + y) * st->yshrink;
 			s.width = 1 + ceil( width * st->xshrink );
 			s.height = 1 + ceil( height * st->yshrink );
+#ifdef DEBUG
+			printf( "shrink_gen: requesting %d x %d at %d x %d\n",
+				s.width, s.height, s.left, s.top ); 
+#endif /*DEBUG*/
 			if( im_prepare( ir, &s ) )
 				return( -1 );
 
