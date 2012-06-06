@@ -946,3 +946,23 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	return( 0 );
 }
 
+/**
+ * vips_operation_set_nocache: 
+ * @operation: operation to set
+ * @nocache: TRUE means don't cache this operation
+ *
+ * Set this before the end of _build() to stop this operation being cached.
+ * Some operations, like sequential read from a TIFF file, for example, cannot
+ * be reused.
+ */
+void 
+vips_operation_set_nocache( VipsOperation *operation, gboolean nocache )
+{
+#ifdef VIPS_DEBUG
+	printf( "vips_operation_set_nocache: " );
+	vips_object_print_name( VIPS_OBJECT( operation ) );
+	printf( " %d\n", nocache );
+#endif /*VIPS_DEBUG*/
+
+	operation->nocache = nocache;
+}

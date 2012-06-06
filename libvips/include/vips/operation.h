@@ -66,6 +66,12 @@ typedef struct _VipsOperation {
 	guint hash;
 	gboolean found_hash;
 
+	/* Set this before the end of _build() to stop this operation from 
+	 * being cached. Some things, like sequential read from a TIFF file, 
+	 * can't be reused.
+	 */
+	gboolean nocache;
+
 } VipsOperation;
 
 typedef struct _VipsOperationClass {
@@ -89,6 +95,7 @@ void vips_call_options( GOptionGroup *group, VipsOperation *operation );
 int vips_call_argv( VipsOperation *operation, int argc, char **argv );
 
 void vips_cache_drop_all( void );
+void vips_operation_set_nocache( VipsOperation *operation, gboolean nocache );
 int vips_cache_operation_buildp( VipsOperation **operation );
 VipsOperation *vips_cache_operation_build( VipsOperation *operation );
 void vips_cache_set_max( int max );

@@ -698,6 +698,10 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 		printf( "vips_foreign_load_temp: partial sequential temp\n" );
 #endif /*DEBUG*/
 
+		/* You can't reuse sequential operations.
+		 */
+		vips_operation_set_nocache( VIPS_OPERATION( load ), TRUE );
+
 		return( vips_image_new() );
 	}
 
