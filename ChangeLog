@@ -5,6 +5,8 @@
 - make jpeg pyramids work with tiff4
 - tiff loader always offers THINSTRIP (thanks Diuming)
 - add "nocache" operation flag, set for sequential load (thanks Diuming)
+- fix a crash in the tiff reader for huge values of RowsPerStrip (thanks
+  Nicolas)
 
 19/4/12 started 7.28.5
 - ifthenelse blend mode was broken

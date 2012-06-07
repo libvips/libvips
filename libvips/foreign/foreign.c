@@ -931,6 +931,8 @@ vips_foreign_load_init( VipsForeignLoad *load )
 	load->disc = TRUE;
 }
 
+/* Make a sequential cache for a file reader. 
+ */
 int
 vips_foreign_tilecache( VipsImage *in, VipsImage **out, int strip_height )
 {

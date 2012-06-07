@@ -131,6 +131,10 @@
  * 3/6/12
  * 	- always offer THINSTRIP ... later stages can ask for something more
  * 	  relaxed if they wish
+ * 7/6/12
+ * 	- clip rows_per_strip down to image height to avoid overflows for huge
+ * 	  values (thanks Nicolas)
+ * 	- better error msg for not PLANARCONFIG_CONTIG images
  */
 
 /*
@@ -253,29 +257,6 @@ tfexists( TIFF *tif, ttag_t tag )
 		return( 0 );
 }
 
-/* Test a uint16 field. Field must be defined and equal to the value.
- */
-static int
-tfequals( TIFF *tif, ttag_t tag, uint16 val )
-{
-	uint16 fld;
-
-	if( !TIFFGetFieldDefaulted( tif, tag, &fld ) ) {
-		vips_error( "tiff2vips", 
-			_( "required field %d missing" ), tag );
-		return( 0 );
-	}
-	if( fld != val ) {
-		vips_error( "tiff2vips", _( "required field %d=%d, not %d" ),
-			tag, fld, val );
-		return( 0 );
-	}
-
-	/* All ok.
-	 */
-	return( 1 );
-}
-
 /* Get a uint32 field. 
  */
 static int
@@ -307,9 +288,26 @@ tfget16( TIFF *tif, ttag_t tag, int *out )
 		return( 0 );
 	}
 
-	/* All ok.
-	 */
 	*out = fld;
+
+	return( 1 );
+}
+
+/* Test a uint16 field. Field must be defined and equal to the value.
+ */
+static int
+tfequals( TIFF *tif, ttag_t tag, uint16 val )
+{
+	int v; 
+
+	if( !tfget16( tif, tag, &v ) )
+		return( 0 );
+	if( v != val ) {
+		vips_error( "tiff2vips", 
+			_( "required field %d = %d, not %d" ), tag, v, val );
+		return( 0 );
+	}
+
 	return( 1 );
 }
 
@@ -900,10 +898,16 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 
 	/* Ban separate planes, too annoying.
 	 */
-	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) && 
-		!tfequals( rtiff->tiff, 
-			TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG ) ) 
-		return( -1 );
+	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) ) {
+		int v; 
+
+		tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v );
+		if( v != PLANARCONFIG_CONTIG ) {
+			vips_error( "tiff2vips",
+				"%s", _( "not a PLANARCONFIG_CONTIG image" ) );
+			return( -1 );
+		}
+	}
 
 	/* Always need dimensions.
 	 */
@@ -1347,8 +1351,8 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 		/* If necessary, unpack to destination.
 		 */
 		if( !rtiff->memcpy ) {
-			int height = VIPS_MIN( rtiff->rows_per_strip,
-				or->im->Ysize - (r->top + y) );
+			int height = VIPS_MIN( VIPS_MIN( rtiff->rows_per_strip,
+				or->im->Ysize - (r->top + y) ), r->height );
 			int z;
 
 			for( z = 0; z < height; z++ ) { 
@@ -1397,6 +1401,11 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	rtiff->scanline_size = TIFFScanlineSize( rtiff->tiff );
 	rtiff->strip_size = TIFFStripSize( rtiff->tiff );
 	rtiff->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
+
+	/* rows_per_strip can be 2**32-1, meaning the whole image. Clip this
+	 * down to ysize to avoid confusing vips. 
+	 */
+	rtiff->rows_per_strip = VIPS_MIN( rtiff->rows_per_strip, t[0]->Ysize );
 
 #ifdef DEBUG
 	printf( "read_stripwise: rows_per_strip = %u\n", 
