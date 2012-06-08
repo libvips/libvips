@@ -698,6 +698,10 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 		printf( "vips_foreign_load_temp: partial sequential temp\n" );
 #endif /*DEBUG*/
 
+		/* You can't reuse sequential operations.
+		 */
+		vips_operation_set_nocache( VIPS_OPERATION( load ), TRUE );
+
 		return( vips_image_new() );
 	}
 
@@ -927,6 +931,8 @@ vips_foreign_load_init( VipsForeignLoad *load )
 	load->disc = TRUE;
 }
 
+/* Make a sequential cache for a file reader. 
+ */
 int
 vips_foreign_tilecache( VipsImage *in, VipsImage **out, int strip_height )
 {
@@ -2153,19 +2159,10 @@ vips_fitssave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @sequential: sequential read only 
- *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
  *
- * Setting @sequential to %TRUE means you promise to only demand tiles from
- * this image top-top-bottom, ie. to read sequentially. This means the png
- * loader can read directly from the image without having to generate a
- * random-access intermediate. This can save a lot of time and memory for
- * large images, but limits the sorts of operation you can perform. It's
- * useful for things like generating thumbnails. 
- *
- * There is no support for embedded ICC profiles.
+ * Any ICC profile is read and attached to the VIPS image.
  *
  * See also: vips_image_new_from_file().
  *
@@ -2204,7 +2201,9 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  * than an interlaced PNG can be up to 7 times slower to write than a
  * non-interlaced image.
  *
- * There is no support for attaching ICC profiles to PNG images.
+ * If the VIPS header 
+ * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
+ * profile from the VIPS header will be attached.
  *
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
  * alpha before saving. Images with more than one byte per band element are

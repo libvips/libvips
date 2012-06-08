@@ -128,6 +128,13 @@
  * 18/2/12
  * 	- switch to sequential read
  * 	- remove the lock ... tilecache does this for us
+ * 3/6/12
+ * 	- always offer THINSTRIP ... later stages can ask for something more
+ * 	  relaxed if they wish
+ * 7/6/12
+ * 	- clip rows_per_strip down to image height to avoid overflows for huge
+ * 	  values (thanks Nicolas)
+ * 	- better error msg for not PLANARCONFIG_CONTIG images
  */
 
 /*
@@ -250,29 +257,6 @@ tfexists( TIFF *tif, ttag_t tag )
 		return( 0 );
 }
 
-/* Test a uint16 field. Field must be defined and equal to the value.
- */
-static int
-tfequals( TIFF *tif, ttag_t tag, uint16 val )
-{
-	uint16 fld;
-
-	if( !TIFFGetFieldDefaulted( tif, tag, &fld ) ) {
-		vips_error( "tiff2vips", 
-			_( "required field %d missing" ), tag );
-		return( 0 );
-	}
-	if( fld != val ) {
-		vips_error( "tiff2vips", _( "required field %d=%d, not %d" ),
-			tag, fld, val );
-		return( 0 );
-	}
-
-	/* All ok.
-	 */
-	return( 1 );
-}
-
 /* Get a uint32 field. 
  */
 static int
@@ -304,9 +288,26 @@ tfget16( TIFF *tif, ttag_t tag, int *out )
 		return( 0 );
 	}
 
-	/* All ok.
-	 */
 	*out = fld;
+
+	return( 1 );
+}
+
+/* Test a uint16 field. Field must be defined and equal to the value.
+ */
+static int
+tfequals( TIFF *tif, ttag_t tag, uint16 val )
+{
+	int v; 
+
+	if( !tfget16( tif, tag, &v ) )
+		return( 0 );
+	if( v != val ) {
+		vips_error( "tiff2vips", 
+			_( "required field %d = %d, not %d" ), tag, v, val );
+		return( 0 );
+	}
+
 	return( 1 );
 }
 
@@ -897,10 +898,16 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 
 	/* Ban separate planes, too annoying.
 	 */
-	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) && 
-		!tfequals( rtiff->tiff, 
-			TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG ) ) 
-		return( -1 );
+	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) ) {
+		int v; 
+
+		tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v );
+		if( v != PLANARCONFIG_CONTIG ) {
+			vips_error( "tiff2vips",
+				"%s", _( "not a PLANARCONFIG_CONTIG image" ) );
+			return( -1 );
+		}
+	}
 
 	/* Always need dimensions.
 	 */
@@ -1090,6 +1097,12 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
+	/* Offer the most restrictive style. This can be changed downstream if
+	 * necessary.
+	 */
+        vips_demand_hint( out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
 	return( 0 );
 }
 
@@ -1257,15 +1270,18 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	if( parse_header( rtiff, raw ) )
 		return( -1 );
 
-	/* Process and save as VIPS.
+	/* Process and save as VIPS. 
+	 *
+	 * Even though this is a tiled reader, we hint thinstrip since with
+	 * the cache we are quite happy serving that if anything downstream 
+	 * would like it.
 	 */
         vips_demand_hint( raw, 
-		VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	if( vips_image_generate( raw, 
 		tiff_seq_start, tiff_fill_region, tiff_seq_stop, 
 		rtiff, NULL ) )
 		return( -1 );
-
 
 	/* Copy to out, adding a cache. Enough tiles for two complete rows.
 	 */
@@ -1335,8 +1351,8 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 		/* If necessary, unpack to destination.
 		 */
 		if( !rtiff->memcpy ) {
-			int height = VIPS_MIN( rtiff->rows_per_strip,
-				or->im->Ysize - (r->top + y) );
+			int height = VIPS_MIN( VIPS_MIN( rtiff->rows_per_strip,
+				or->im->Ysize - (r->top + y) ), r->height );
 			int z;
 
 			for( z = 0; z < height; z++ ) { 
@@ -1385,6 +1401,11 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	rtiff->scanline_size = TIFFScanlineSize( rtiff->tiff );
 	rtiff->strip_size = TIFFStripSize( rtiff->tiff );
 	rtiff->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
+
+	/* rows_per_strip can be 2**32-1, meaning the whole image. Clip this
+	 * down to ysize to avoid confusing vips. 
+	 */
+	rtiff->rows_per_strip = VIPS_MIN( rtiff->rows_per_strip, t[0]->Ysize );
 
 #ifdef DEBUG
 	printf( "read_stripwise: rows_per_strip = %u\n", 

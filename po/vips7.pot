@@ -799,7 +799,7 @@ msgid "factors should both be >= 1"
 msgstr ""
 
 #: ../libvips/conversion/im_subsample.c:221
-#: ../libvips/resample/im_shrink.c:286
+#: ../libvips/resample/im_shrink.c:299
 msgid "image has shrunk to nothing"
 msgstr ""
 
@@ -1429,7 +1429,7 @@ msgstr ""
 msgid "error reading radiance header"
 msgstr ""
 
-#: ../libvips/foreign/radiance.c:959 ../libvips/foreign/tiff2vips.c:1331
+#: ../libvips/foreign/radiance.c:959 ../libvips/foreign/tiff2vips.c:1343
 msgid "read error"
 msgstr ""
 
@@ -1709,91 +1709,91 @@ msgstr ""
 msgid "EXR error: %s"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:262 ../libvips/foreign/tiff2vips.c:285
-#: ../libvips/foreign/tiff2vips.c:303
+#: ../libvips/foreign/tiff2vips.c:265 ../libvips/foreign/tiff2vips.c:288
+#: ../libvips/foreign/tiff2vips.c:306
 #, c-format
 msgid "required field %d missing"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:266
+#: ../libvips/foreign/tiff2vips.c:269
 #, c-format
 msgid "required field %d=%d, not %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:650
+#: ../libvips/foreign/tiff2vips.c:653
 #, c-format
 msgid "%d bits per sample palette image not supported"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:659
+#: ../libvips/foreign/tiff2vips.c:662
 msgid "bad colormap"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:716 ../libvips/foreign/tiff2vips.c:747
+#: ../libvips/foreign/tiff2vips.c:719 ../libvips/foreign/tiff2vips.c:750
 msgid "3 or 4 bands RGB TIFF only"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:818
+#: ../libvips/foreign/tiff2vips.c:821
 msgid "4 or 5 bands CMYK TIFF only"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:869
+#: ../libvips/foreign/tiff2vips.c:872
 msgid "unknown resolution unit"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:874
+#: ../libvips/foreign/tiff2vips.c:877
 #, c-format
 msgid ""
 "no resolution information for TIFF image \"%s\" -- defaulting to 1 pixel per "
 "mm"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:946
+#: ../libvips/foreign/tiff2vips.c:949
 #, c-format
 msgid "unsupported sample format %d for lab image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:956
+#: ../libvips/foreign/tiff2vips.c:959
 #, c-format
 msgid "unsupported depth %d for LAB image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:995
+#: ../libvips/foreign/tiff2vips.c:998
 #, c-format
 msgid "unsupported sample format %d for greyscale image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1004
+#: ../libvips/foreign/tiff2vips.c:1007
 #, c-format
 msgid "unsupported depth %d for greyscale image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1052
+#: ../libvips/foreign/tiff2vips.c:1055
 #, c-format
 msgid "unsupported sample format %d for rgb image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1061
+#: ../libvips/foreign/tiff2vips.c:1064
 #, c-format
 msgid "unsupported depth %d for RGB image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1075
+#: ../libvips/foreign/tiff2vips.c:1078
 #, c-format
 msgid "unknown photometric interpretation %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1444
+#: ../libvips/foreign/tiff2vips.c:1456
 #, c-format
 msgid "bad page number %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1465 ../libvips/foreign/vips2tiff.c:286
+#: ../libvips/foreign/tiff2vips.c:1477 ../libvips/foreign/vips2tiff.c:289
 #, c-format
 msgid "unable to open \"%s\" for input"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1520 ../libvips/foreign/tiff2vips.c:1550
+#: ../libvips/foreign/tiff2vips.c:1532 ../libvips/foreign/tiff2vips.c:1562
 #, c-format
 msgid "TIFF file does not contain page %d"
 msgstr ""
@@ -1932,44 +1932,44 @@ msgstr ""
 msgid "save image to png buffer"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:270
+#: ../libvips/foreign/vips2tiff.c:273
 #, c-format
 msgid "unable to open \"%s\" for output"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:692
+#: ../libvips/foreign/vips2tiff.c:695
 msgid "layer buffer exhausted -- try making TIFF output tiles smaller"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:922
+#: ../libvips/foreign/vips2tiff.c:926
 msgid "TIFF write tile failed"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:998
+#: ../libvips/foreign/vips2tiff.c:1002
 msgid "internal error #9876345"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1251
+#: ../libvips/foreign/vips2tiff.c:1255
 msgid "tile size not a multiple of 16"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1257
+#: ../libvips/foreign/vips2tiff.c:1261
 msgid "can't have strip pyramid -- enabling tiling"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1268
+#: ../libvips/foreign/vips2tiff.c:1272
 msgid "can only pyramid LABQ and non-complex images"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1285
+#: ../libvips/foreign/vips2tiff.c:1289
 msgid "can't have 1-bit JPEG -- disabling JPEG"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1463
+#: ../libvips/foreign/vips2tiff.c:1479
 msgid "unsigned 8-bit int, 16-bit int, and 32-bit float only"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1470
+#: ../libvips/foreign/vips2tiff.c:1486
 msgid "1 to 5 bands only"
 msgstr ""
 
@@ -2237,7 +2237,7 @@ msgstr ""
 msgid "usage:"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:287 ../libvips/iofuncs/object.c:1248
+#: ../libvips/iofuncs/operation.c:287 ../libvips/iofuncs/object.c:1239
 #: ../libvips/resample/interpolate.c:615
 #, c-format
 msgid "class \"%s\" not found"
@@ -2897,56 +2897,56 @@ msgstr ""
 msgid "parameter %s not set"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:505
+#: ../libvips/iofuncs/object.c:500
 #, c-format
 msgid "no property named `%s'"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:513
+#: ../libvips/iofuncs/object.c:508
 #, c-format
 msgid "no vips argument named `%s'"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:520
+#: ../libvips/iofuncs/object.c:515
 #, c-format
 msgid "argument `%s' has no instance"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1297
+#: ../libvips/iofuncs/object.c:1288
 msgid "base class"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1311
+#: ../libvips/iofuncs/object.c:1302
 msgid "Nickname"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1312
+#: ../libvips/iofuncs/object.c:1303
 msgid "Class nickname"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1318
+#: ../libvips/iofuncs/object.c:1309
 msgid "Description"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1319
+#: ../libvips/iofuncs/object.c:1310
 msgid "Class description"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1509
+#: ../libvips/iofuncs/object.c:1537
 #, c-format
 msgid "enum '%s' has no member '%s'"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1769
+#: ../libvips/iofuncs/object.c:1797
 #, c-format
 msgid "unable to set '%s'"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1777
+#: ../libvips/iofuncs/object.c:1805
 msgid "not , or ) after parameter"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1784
+#: ../libvips/iofuncs/object.c:1812
 msgid "extra tokens after ')'"
 msgstr ""
 
@@ -3143,7 +3143,7 @@ msgstr ""
 msgid "factor should be in [1,0)"
 msgstr ""
 
-#: ../libvips/resample/im_shrink.c:346
+#: ../libvips/resample/im_shrink.c:359
 msgid "shrink factors should be >= 1"
 msgstr ""
 
