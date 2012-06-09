@@ -7,6 +7,7 @@
 - add "nocache" operation flag, set for sequential load (thanks Diuming)
 - fix a crash in the tiff reader for huge values of RowsPerStrip (thanks
   Nicolas)
+- remove use of G_DEFINE_BOXED_TYPE() to help compat (thanks Jake)
 
 19/4/12 started 7.28.5
 - ifthenelse blend mode was broken
