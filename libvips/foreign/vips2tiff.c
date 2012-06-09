@@ -128,6 +128,9 @@
  * 	  VipsForeign class
  * 21/3/12
  * 	- bump max layer buffer up
+ * 2/6/12
+ * 	- copy jpeg pyramid in gather in RGB mode ... tiff4 doesn't do ycbcr
+ * 	  mode
  */
 
 /*
@@ -906,7 +909,8 @@ shrink_region( VipsRegion *from, VipsRect *area,
 /* Write a tile from a layer.
  */
 static int
-save_tile( TiffWrite *tw, TIFF *tif, VipsPel *tbuf, VipsRegion *reg, VipsRect *area )
+save_tile( TiffWrite *tw, 
+	TIFF *tif, VipsPel *tbuf, VipsRegion *reg, VipsRect *area )
 {
 	/* Have to repack pixels.
 	 */
@@ -1342,8 +1346,20 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
 	 * Set explicitly from TiffWrite.
 	 */
-	if( tw->compression == COMPRESSION_JPEG ) 
+	if( tw->compression == COMPRESSION_JPEG ) {
 		TIFFSetField( out, TIFFTAG_JPEGQUALITY, tw->jpqual );
+
+		/* Enable rgb->ycbcr conversion in the jpeg write. See also
+		 * the photometric selection below.
+		 */
+		TIFFSetField( out, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+
+		/* And we want ycbcr expanded to rgb on read. Otherwise
+		 * TIFFTileSize() will give us the size of a chrominance
+		 * subsampled tile.
+		 */
+		TIFFSetField( in, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+	}
 
 	/* We can't copy profiles :( Set again from TiffWrite.
 	 */
@@ -1359,7 +1375,7 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 		 * here to save compression/decompression, but sadly it seems
 		 * not to work :-( investigate at some point.
 		 */
-		len = TIFFReadEncodedTile( in, tile, buf, (tsize_t) -1 );
+		len = TIFFReadEncodedTile( in, tile, buf, -1 );
 		if( len < 0 ||
 			TIFFWriteEncodedTile( out, tile, buf, len ) < 0 ) {
 			vips_free( buf );
@@ -1527,7 +1543,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 
 	/* Gather layers together into final pyramid file.
 	 */
-	if( tw->pyramid && gather_pyramid( tw ) ) {
+	if( tw->pyramid && 
+		gather_pyramid( tw ) ) {
 		free_tiff_write( tw );
 		return( -1 );
 	}

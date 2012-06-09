@@ -121,6 +121,19 @@ void vips__g_mutex_lock( GMutex *d ) {}
 void vips__g_mutex_unlock( GMutex *d ) {}
 #endif /*!HAVE_THREADS*/
 
+/**
+ * vips_concurrency_set:
+ * @concurrency: number of threads to run
+ *
+ * Sets the number of worker threads that vips should use when running a
+ * #VipsThreadPool. 
+ *
+ * The special value 0 means "default". In this case, the number of threads is
+ * set by the environmnt variable IM_CONCURRENCY, or if that is not set, the
+ * number of threads availble on the hist machine. 
+ *
+ * See also: vips_concurrency_get().
+ */
 void
 vips_concurrency_set( int concurrency )
 {
@@ -190,8 +203,29 @@ get_num_processors( void )
 	return( nproc );
 }
 
-/* Set (p)thr_concurrency() from IM_CONCURRENCY environment variable. Return 
- * the number of regions we should pass over the image.
+/**
+ * vips_concurrency_get:
+ *
+ * Returns the number of worker threads that vips should use when running a
+ * #VipsThreadPool. 
+ *
+ * vips gets this values from these sources in turn:
+ *
+ * If vips_concurrency_set() has been called, this value is used. The special
+ * value 0 means "default". You can also use the command-line argument
+ * "--vips-concurrency" to set this value.
+ *
+ * If vips_concurrency_set() has not been called and no command-line argument
+ * was used, vips uses the value of the environment variable IM_CONCURRENCY,
+ *
+ * If IM_CONCURRENCY has not been set, vips find the number of hardware
+ * threads that the host machine can run in parallel and uses that value. 
+ *
+ * The final value is clipped to the range 1 - 1024.
+ *
+ * See also: vips_concurrency_get().
+ *
+ * Returns: number of worker threads to use.
  */
 int
 vips_concurrency_get( void )

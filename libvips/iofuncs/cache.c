@@ -621,7 +621,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 #ifdef VIPS_DEBUG
 	printf( "vips_cache_operation_build: " );
-	vips_object_print_summary_stdout( VIPS_OBJECT( *operation ) );
+	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
 	vips_cache_init();
@@ -643,15 +643,22 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	}
 	else {
 		if( vips__cache_trace ) {
-			printf( "vips cache: miss %p\n  ", *operation );
+			if( (*operation)->nocache ) 
+				printf( "vips cache: uncacheable %p\n  ", 
+					*operation );
+			else
+				printf( "vips cache: miss %p\n  ", *operation );
 			vips_object_print_summary( VIPS_OBJECT( *operation ) );
 		}
 
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) )
 			return( -1 );
 
-		vips_cache_ref( *operation );
-		g_hash_table_insert( vips_cache_table, *operation, *operation );
+		if( !(*operation)->nocache ) {
+			vips_cache_ref( *operation );
+			g_hash_table_insert( vips_cache_table, 
+				*operation, *operation );
+		}
 	}
 
 	return( 0 );

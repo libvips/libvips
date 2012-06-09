@@ -101,9 +101,28 @@ vips_thing_get_i( VipsThing *thing )
 	return( thing->i );
 }
 
+/*
+ * glib-2.26+ only 
+ 
 G_DEFINE_BOXED_TYPE( VipsThing, vips_thing,
 	(GBoxedCopyFunc) vips_thing_copy, 
 	(GBoxedFreeFunc) vips_thing_free );
+
+ */
+
+GType
+vips_thing_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "VipsThing",
+			(GBoxedCopyFunc) vips_thing_copy, 
+			(GBoxedFreeFunc) vips_thing_free );
+	}
+
+	return( type );
+}
 
 /**
  * SECTION: VipsArea
