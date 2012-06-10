@@ -349,9 +349,6 @@ void *
 vips_argument_map( VipsObject *object,
 	VipsArgumentMapFn fn, void *a, void *b )
 {
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object ); 
-	GSList *p; 
-
 	/* Make sure we can't go during the loop. This can happen if eg. we
 	 * flush an arg that refs us.
 	 */
@@ -370,7 +367,7 @@ vips_argument_map( VipsObject *object,
 			g_object_unref( object ); 
 			return( result );
 		}
-	}
+	} VIPS_ARGUMENT_FOR_ALL_END
 
 	g_object_unref( object ); 
 
