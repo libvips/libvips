@@ -606,7 +606,7 @@ vips_check_bands( const char *domain, VipsImage *im, int bands )
 }
 
 /**
- * vips_check_1or3:
+ * vips_check_bands_1or3:
  * @domain: the originating domain for the error message
  * @im: image to check
  *
@@ -624,6 +624,31 @@ vips_check_bands_1or3( const char *domain, VipsImage *im )
 	if( im->Bands != 1 && im->Bands != 3 ) {
 		vips_error( domain, "%s", 
 			_( "image must have one or three bands" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_check_bands_3ormore:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image has at least three bands. 
+ * Otherwise set an error message
+ * and return non-zero.
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+vips_check_bands_3ormore( const char *domain, VipsImage *im )
+{
+	if( im->Bands < 3 ) {
+		vips_error( domain, "%s", 
+			_( "image must have at least three bands" ) );
 		return( -1 );
 	}
 

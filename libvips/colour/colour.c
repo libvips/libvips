@@ -56,9 +56,9 @@ vips_colour_gen( VipsRegion *or,
 	Rect *r = &or->valid;
 
 	VipsPel *p, *q;
-	int i, y;
+	int y;
 
-	if( vips_region_prepare( ir[i], r ) ) 
+	if( vips_region_prepare( ir, r ) ) 
 		return( -1 );
 	p = (VipsPel *) VIPS_REGION_ADDR( ir, r->left, r->top );
 	q = (VipsPel *) VIPS_REGION_ADDR( or, r->left, r->top );
@@ -77,7 +77,8 @@ static int
 vips_colour_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
-	VipsColourClass *aclass = VIPS_COLOUR_GET_CLASS( colour );
+
+	VipsImage **t;
 
 #ifdef DEBUG
 	printf( "vips_colour_build: " );
@@ -91,15 +92,52 @@ vips_colour_build( VipsObject *object )
 
 	g_object_set( colour, "out", vips_image_new(), NULL ); 
 
-	if( vips_image_copy_fields( colour->out, colour->in ) ) 
+	if( vips_image_pio_input( colour->in ) || 
+		vips_check_bands_1or3( "VipsColour", colour->in ) ||
+		vips_check_uncoded( "VipsColour", colour->in ) ) 
 		return( -1 );
-        vips_demand_hint( colour->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, colour->in, NULL );
 
-	if( vips_image_generate( colour->out,
-		vips_start_one, vips_colour_gen, vips_stop_one, 
-		colour->in, colour ) ) 
+	t = (VipsImage **) vips_object_local_array( object, 5 );
+
+	/* Always process float.
+	 */
+	if( vips_cast_float( colour->in, &t[0], NULL ) )
 		return( -1 );
+
+	/* If there are more than bands, process just the first three and
+	 * reattach the rest after.
+	 */
+	if( t[0]->Bands > 3 ) {
+		if( vips_extract_band( t[0], &t[1], 0, "n", 3, NULL ) ||
+			vips_extract_band( t[0], &t[2], 0, 
+				"n", t[0]->Bands - 3, NULL ) )
+			return( -1 );
+
+		if( vips_image_copy_fields( t[3], t[1] ) ) 
+			return( -1 );
+		vips_demand_hint( t[3], 
+			VIPS_DEMAND_STYLE_THINSTRIP, t[1], NULL );
+
+		if( vips_image_generate( t[3],
+			vips_start_one, vips_colour_gen, vips_stop_one, 
+			t[1], colour ) ) 
+			return( -1 );
+
+		if( vips_bandjoin2( t[3], t[2], &t[4], NULL ) ||
+			vips_image_write( t[4], colour->out ) )
+			return( -1 );
+	}
+	else {
+		if( vips_image_copy_fields( colour->out, t[1] ) ) 
+			return( -1 );
+		vips_demand_hint( colour->out, 
+			VIPS_DEMAND_STYLE_THINSTRIP, t[1], NULL );
+
+		if( vips_image_generate( colour->out,
+			vips_start_one, vips_colour_gen, vips_stop_one, 
+			t[1], colour ) ) 
+			return( -1 );
+	}
 
 	return( 0 );
 }
