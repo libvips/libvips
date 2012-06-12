@@ -5,6 +5,9 @@
 if ENABLE_CXX
 
 libresample_la_SOURCES = \
+	resample.c \
+	resample.h \
+	shrink.c \
 	im_affine.c \
 	interpolate.c \
 	im_shrink.c \
@@ -20,6 +23,9 @@ libresample_la_SOURCES = \
 else
 
 libresample_la_SOURCES = \
+	resample.c \
+	resample.h \
+	shrink.c \
 	im_affine.c \
 	interpolate.c \
 	im_shrink.c \
