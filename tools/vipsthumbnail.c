@@ -25,6 +25,8 @@
  * 	- use :seq mode for png images
  * 	- shrink to a scanline cache to ensure we request pixels sequentially
  * 	  from the input
+ * 13/6/12
+ * 	- update the sequential stuff to the general method
  */
 
 #ifdef HAVE_CONFIG_H
@@ -160,24 +162,10 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	}
 
 	/* Shrink! 
-	 *
-	 * We want to make sure we read the image sequentially
-	 * so that :seq mode works. However, the convolution we may be doing
-	 * later will force us into SMALLTILE mode and that will break
-	 * sequentiallity.
-	 *
-	 * So ... read into a cache where tiles are scanlines, and make sure
-	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
-	if( im_shrink( x, t[2], shrink, shrink ) ||
-		im_tile_cache( t[2], t[3], 
-			t[2]->Xsize, 1, 
-			VIPS__TILE_HEIGHT * 2 ) )
-		return( -1 );
-	x = t[3];
-
-	if( im_affinei_all( t[3], t[4], 
-		interp, residual, 0, 0, residual, 0, 0 ) )
+	if( im_shrink( x, t[3], shrink, shrink ) ||
+		im_affinei_all( t[3], t[4], 
+			interp, residual, 0, 0, residual, 0, 0 ) )
 		return( -1 );
 	x = t[4];
 
@@ -318,7 +306,11 @@ thumbnail2( const char *filename )
 	char *tn_filename;
 	int result;
 
-	if( !(in = im_open( filename, "rd" )) )
+	/* Open in sequential mode.
+	 */
+	if( vips_foreign_load( filename, &in,
+		"sequential", TRUE,
+		NULL ) )
 		return( -1 );
 
 	tn_filename = make_thumbnail_name( filename );
@@ -381,15 +373,6 @@ thumbnail( const char *filename )
 
 		if( verbose )
 			printf( "using fast jpeg shrink, factor %d\n", shrink );
-
-		return( thumbnail2( buf ) );
-	}
-	else if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "png" ) == 0 ) {
-		char buf[FILENAME_MAX];
-
-		if( verbose )
-			printf( "enabling sequential mode for png load\n" );
-		im_snprintf( buf, FILENAME_MAX, "%s:seq", filename );
 
 		return( thumbnail2( buf ) );
 	}
