@@ -286,6 +286,8 @@ void vips__init_wrap7_classes( void );
  */
 void vips_arithmetic_operation_init( void );
 void vips_conversion_operation_init( void );
+void vips_resample_operation_init( void );
+void vips_foreign_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
 

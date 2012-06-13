@@ -355,7 +355,7 @@ vips_shrink_class_init( VipsShrinkClass *class )
 	vobject_class->description = _( "shrink an image" );
 	vobject_class->build = vips_shrink_build;
 
-	VIPS_ARG_DOUBLE( class, "xshrink", 9, 
+	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
 		_( "Xshrink" ), 
 		_( "Horizontal shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,

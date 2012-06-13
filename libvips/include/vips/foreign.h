@@ -297,8 +297,6 @@ int vips_foreign_save( VipsImage *in, const char *filename, ... )
 int vips_foreign_load_options( const char *filename, VipsImage **out );
 int vips_foreign_save_options( VipsImage *in, const char *filename );
 
-void vips_foreign_operation_init( void );
-
 int vips_openslideload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 
