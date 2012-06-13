@@ -1,3 +1,25 @@
+- curious
+
+$ time vips shrink wtc.tif[sequential] tn_wtc.jpg 100 100 --vips-progress
+vips temp-2: 2 threads, 93 x 1 tiles, groups of 768 scanlines
+vips temp-2: done in 1s          
+memory: high-water mark 58.72 MB
+real	0m1.575s
+user	0m2.164s
+sys	0m0.204s
+
+$ time vipsthumbnail wtc.tif --vips-progressvipsthumbnail
+temp-4: 2 threads, 128 x 128 tiles, groups of 768 scanlines
+vipsthumbnail temp-4: done in 0s          
+memory: high-water mark 44.28 MB
+real	0m2.358s
+user	0m2.216s
+sys	0m0.136s
+
+  is the real time difference just due to smalltile vs. thinstrip?
+
+
+
 blocking bugs
 =============
 
