@@ -2106,3 +2106,19 @@ im_argb2rgba( VipsImage *in, VipsImage *out )
 	 */
 	return( im_copy( in, out ) );
 }
+
+int
+im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink )
+{
+	VipsImage *x;
+
+	if( vips_shrink( in, &x, xshrink, yshrink, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

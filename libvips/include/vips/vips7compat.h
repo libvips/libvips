@@ -650,6 +650,8 @@ int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
 int im_argb2rgba( VipsImage *in, VipsImage *out );
 
+int im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink );
+
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all

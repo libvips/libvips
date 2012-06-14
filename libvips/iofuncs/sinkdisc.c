@@ -38,8 +38,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -327,7 +327,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	VipsRect image;
 	VipsRect tile;
 
-	VIPS_DEBUG_MSG( "wbuffer_allocate_fn:\n" );
+	VIPS_DEBUG_MSG( "wbuffer_allocate_fn:\n"  );
 
 	/* Is the state x/y OK? New line or maybe new buffer or maybe even 
 	 * all done.
@@ -386,7 +386,9 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	wstate->buf = write->buf;
 
-	VIPS_DEBUG_MSG( "  allocated %d x %d:\n", tile.left, tile.top );
+	VIPS_DEBUG_MSG( "  allocated "
+		"left = %d, top = %d, width = %d, height = %d\n", 
+		tile.left, tile.top, tile.width, tile.height );
 
 	/* Add to the number of writers on the buffer.
 	 */
