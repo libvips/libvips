@@ -401,8 +401,13 @@ vips_embed_build( VipsObject *object )
 	case VIPS_EXTEND_COPY:
 		if( vips_image_copy_fields( conversion->out, embed->in ) )
 			return( -1 );
+
+		/* embed is used in many places. SMALLTILE would force most
+		 * pipelines into SMALLTILE mode, so stick with THINSTRIP,
+		 * even though SMALLTILE might be a little faster for us.
+		 */
 		vips_demand_hint( conversion->out, 
-			VIPS_DEMAND_STYLE_SMALLTILE, embed->in, NULL );
+			VIPS_DEMAND_STYLE_FATSTRIP, embed->in, NULL );
 
 		conversion->out->Xsize = embed->width;
 		conversion->out->Ysize = embed->height;

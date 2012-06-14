@@ -34,8 +34,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -79,7 +79,7 @@ vips_sequential_generate( VipsRegion *or,
 	 */
 	if( r->top != sequential->y_pos ) {
 		printf( "vips_sequential_generate: error -- "
-			"at position %d in file, but position %d requested",
+			"at position %d in file, but position %d requested\n",
 			sequential->y_pos, r->top );
 
 		vips_error( "VipsSequential", 

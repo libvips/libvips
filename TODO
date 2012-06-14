@@ -18,6 +18,11 @@ sys	0m0.136s
 
   is the real time difference just due to smalltile vs. thinstrip?
 
+  can we trick vipsthumbnail into using fatstrip?
+
+- vipsthumbnail a tif with an embedded profile ... don't seem to get a profile
+  in the jpg?
+
 
 
 blocking bugs
