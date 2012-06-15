@@ -58,7 +58,7 @@ int im_match_linear_search( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 
 
-int vips_shrink( VipsImage *in, VipsImage *out, 
+int vips_shrink( VipsImage *in, VipsImage **out, 
 	double xshrink, double yshrink, ... )
 	__attribute__((sentinel));
 

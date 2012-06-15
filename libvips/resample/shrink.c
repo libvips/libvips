@@ -403,7 +403,7 @@ vips_shrink_init( VipsShrink *shrink )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_shrink( VipsImage *in, VipsImage *out, 
+vips_shrink( VipsImage *in, VipsImage **out, 
 	double xshrink, double yshrink, ... )
 {
 	va_list ap;
