@@ -1621,10 +1621,12 @@ vips_image_write_gen( VipsRegion *or,
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
 
+	/*
 	printf( "vips_image_write_gen: %p "
 		"left = %d, top = %d, width = %d, height = %d\n",
 		or->im,
 		r->left, r->top, r->width, r->height ); 
+	 */
 
 	/* Copy with pointers.
 	 */

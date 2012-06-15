@@ -62,8 +62,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -316,8 +316,14 @@ vips_shrink_build( VipsObject *object )
 
 	if( vips_image_copy_fields( resample->out, resample->in ) )
 		return( -1 );
+
+	/* We want to be able to work with sequential sources. THINSTRIP would
+	 * be OK, but FATSTRIP would be a disaster: thread 2 would be given a
+	 * strip some way down the output, which would be a huge distance down
+	 * the input.
+	 */
 	vips_demand_hint( resample->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL );
+		VIPS_DEMAND_STYLE_SMALLTILE, resample->in, NULL );
 
 	/* Size output. Note: we round the output width down!
 	 */
