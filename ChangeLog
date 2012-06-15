@@ -4,6 +4,8 @@
 - nearest-neighbor interpolation rounds coordinates to nearest instead of 
   rounding down (thanks Nicolas)
 - add dzsave, save in deep zoom format
+- rework im_shrink() as a class
+- remove im_rightshift_size(), just a convenience function now
 
 19/4/12 started 7.28.6
 - better resolution unit handling in deprecated im_vips2tiff()

@@ -32,7 +32,7 @@
  * 	- simpler
  * 12/6/12
  * 	- redone as a class
- * 	- special-case int shrinks
+ * 	- warn about non-int shrinks
  */
 
 /*
@@ -310,6 +310,11 @@ vips_shrink_build( VipsObject *object )
 		return( -1 );
 	}
 
+	if( (int) shrink->xshrink != shrink->xshrink || 
+		(int) shrink->yshrink != shrink->yshrink ) 
+		vips_warn( "VipsShrink", 
+			"%s", _( "not integer shrink factors" ) ); 
+
 	if( shrink->xshrink == 1.0 &&
 		shrink->yshrink == 1.0 )
 		return( vips_image_write( resample->in, resample->out ) );
@@ -323,7 +328,8 @@ vips_shrink_build( VipsObject *object )
 	 * the input.
 	 */
 	vips_demand_hint( resample->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, resample->in, NULL );
+		//VIPS_DEMAND_STYLE_SMALLTILE, resample->in, NULL );
+		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL );
 
 	/* Size output. Note: we round the output width down!
 	 */
@@ -396,9 +402,7 @@ vips_shrink_init( VipsShrink *shrink )
  * downsample to the exact size with im_affinei() and your choice of
  * interpolator.
  *
- * im_rightshift_size() is faster for factors which are integer powers of two.
- *
- * See also: im_rightshift_size(), im_affinei().
+ * See also: im_affinei().
  *
  * Returns: 0 on success, -1 on error
  */

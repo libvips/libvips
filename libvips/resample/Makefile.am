@@ -10,7 +10,6 @@ libresample_la_SOURCES = \
 	shrink.c \
 	im_affine.c \
 	interpolate.c \
-	im_rightshift_size.c \
 	transform.c \
 	resample_dispatch.c \
 	bicubic.cpp \
@@ -27,7 +26,6 @@ libresample_la_SOURCES = \
 	shrink.c \
 	im_affine.c \
 	interpolate.c \
-	im_rightshift_size.c \
 	transform.c \
 	resample_dispatch.c 
 
