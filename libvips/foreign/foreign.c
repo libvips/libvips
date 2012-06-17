@@ -1160,9 +1160,18 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 			in = out;
 		}
 		else if( in->Bands > 3 && 
-			class->saveable == VIPS_SAVEABLE_RGB ) {
+			(class->saveable == VIPS_SAVEABLE_RGB ||
+			 (class->saveable == VIPS_SAVEABLE_RGB_CMYK &&
+			  in->Type != VIPS_INTERPRETATION_CMYK)) ) { 
 			VipsImage *out;
 
+			/* Don't let 4 bands though unless the image really is
+			 * a CMYK.
+			 *
+			 * Consider a RGBA png being saved as JPG. We can
+			 * write CMYK jpg, but we mustn't do that for RGBA
+			 * images.
+			 */
 			if( vips_extract_band( in, &out, 0, 
 				"n", 3,
 				NULL ) ) {
@@ -1174,7 +1183,8 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 			in = out;
 		}
 		else if( in->Bands > 4 && 
-			(class->saveable == VIPS_SAVEABLE_RGB_CMYK || 
+			((class->saveable == VIPS_SAVEABLE_RGB_CMYK &&
+			  in->Type == VIPS_INTERPRETATION_CMYK) ||
 			 class->saveable == VIPS_SAVEABLE_RGBA) ) {
 			VipsImage *out;
 

@@ -2,10 +2,6 @@
 
 - add a int-only path?
 
-- compare to rightshift_size, deprecate that? should be as quick
-
-- warn if used with float factors
-
 - vipsthumbnail should not remove profiles by default
 
 

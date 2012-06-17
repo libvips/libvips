@@ -326,10 +326,11 @@ vips_shrink_build( VipsObject *object )
 	 * be OK, but FATSTRIP would be a disaster: thread 2 would be given a
 	 * strip some way down the output, which would be a huge distance down
 	 * the input.
+	 *
+	 * Make sure we always work by insisting on SMALLTILE.
 	 */
 	vips_demand_hint( resample->out, 
-		//VIPS_DEMAND_STYLE_SMALLTILE, resample->in, NULL );
-		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL );
+		VIPS_DEMAND_STYLE_SMALLTILE, resample->in, NULL );
 
 	/* Size output. Note: we round the output width down!
 	 */

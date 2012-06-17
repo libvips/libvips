@@ -43,6 +43,9 @@
  * 15/3/12
  * 	- better alpha handling
  * 	- sanity check pixel geometry before allowing read
+ * 17/6/12
+ * 	- more alpha fixes ... some images have no transparency chunk but
+ * 	  still set color_type to alpha
  */
 
 /*
@@ -261,6 +264,13 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
 	if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) {
 		png_set_tRNS_to_alpha( read->pPng );
+		bands += 1;
+	}
+	else if( color_type == PNG_COLOR_TYPE_GRAY_ALPHA || 
+		color_type == PNG_COLOR_TYPE_RGB_ALPHA ) {
+		/* Some images have no transparency chunk, but still set
+		 * color_type to alpha.
+		 */
 		bands += 1;
 	}
 
