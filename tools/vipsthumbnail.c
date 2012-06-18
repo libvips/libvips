@@ -25,6 +25,8 @@
  * 	- use :seq mode for png images
  * 	- shrink to a scanline cache to ensure we request pixels sequentially
  * 	  from the input
+ * 13/6/12
+ * 	- update the sequential stuff to the general method
  */
 
 #ifdef HAVE_CONFIG_H
@@ -318,7 +320,11 @@ thumbnail2( const char *filename )
 	char *tn_filename;
 	int result;
 
-	if( !(in = im_open( filename, "rd" )) )
+	/* Open in sequential mode.
+	 */
+	if( vips_foreign_load( filename, &in,
+		"sequential", TRUE,
+		NULL ) )
 		return( -1 );
 
 	tn_filename = make_thumbnail_name( filename );
@@ -381,15 +387,6 @@ thumbnail( const char *filename )
 
 		if( verbose )
 			printf( "using fast jpeg shrink, factor %d\n", shrink );
-
-		return( thumbnail2( buf ) );
-	}
-	else if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "png" ) == 0 ) {
-		char buf[FILENAME_MAX];
-
-		if( verbose )
-			printf( "enabling sequential mode for png load\n" );
-		im_snprintf( buf, FILENAME_MAX, "%s:seq", filename );
 
 		return( thumbnail2( buf ) );
 	}
