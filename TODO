@@ -1,6 +1,17 @@
 - on RGBA -> RGB conversion in foreign.c, need to use A channel to mask off
   RGB ... Opera.png looks bad without it
 
+- vipsthumbnail.c could use this instead of im_tile_cache() to get seq hint
+  set
+
+	if( vips_tilecache( in, out, 
+		"tile_width", in->Xsize, 
+		"tile_height", strip_height * nstrips,
+		"max_tiles", 2,
+		"strategy", VIPS_CACHE_SEQUENTIAL,
+		NULL ) )
+		return( -1 );
+
 
 
 
