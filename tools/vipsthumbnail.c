@@ -162,8 +162,19 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	}
 
 	/* Shrink! 
+	 *
+	 * We want to make sure we read the image sequentially.
+	 * However, the convolution we may be doing later will force us 
+	 * into SMALLTILE or maybe FATSTRIP mode and that will break
+	 * sequentiallity.
+	 *
+	 * So ... read into a cache where tiles are scanlines, and make sure
+	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
-	if( im_shrink( x, t[3], shrink, shrink ) ||
+	if( im_shrink( x, t[2], shrink, shrink ) ||
+		im_tile_cache( t[2], t[3], 
+			t[2]->Xsize, 1, 
+			VIPS__TILE_HEIGHT * 2 ) ||
 		im_affinei_all( t[3], t[4], 
 			interp, residual, 0, 0, residual, 0, 0 ) )
 		return( -1 );

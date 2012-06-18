@@ -322,15 +322,12 @@ vips_shrink_build( VipsObject *object )
 	if( vips_image_copy_fields( resample->out, resample->in ) )
 		return( -1 );
 
-	/* We want to be able to work with sequential sources. THINSTRIP would
-	 * be OK, but FATSTRIP would be a disaster: thread 2 would be given a
-	 * strip some way down the output, which would be a huge distance down
-	 * the input.
-	 *
-	 * Make sure we always work by insisting on SMALLTILE.
+	/* THINSTRIP will work, FATSTRIP will break seq mode. If you combine
+	 * shrink with conv you'll need to use a line cache to maintain
+	 * sequentiality.
 	 */
 	vips_demand_hint( resample->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, resample->in, NULL );
+		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL );
 
 	/* Size output. Note: we round the output width down!
 	 */
