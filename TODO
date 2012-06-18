@@ -1,3 +1,9 @@
+- on RGBA -> RGB conversion in foreign.c, need to use A channel to mask off
+  RGB ... Opera.png looks bad without it
+
+
+
+
 blocking bugs
 =============
 
