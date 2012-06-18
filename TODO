@@ -1,17 +1,3 @@
-- vipsthumbnail.c could use this instead of im_tile_cache() to get seq hint
-  set
-
-	if( vips_tilecache( in, out, 
-		"tile_width", in->Xsize, 
-		"tile_height", strip_height * nstrips,
-		"max_tiles", 2,
-		"strategy", VIPS_CACHE_SEQUENTIAL,
-		NULL ) )
-		return( -1 );
-
-
-
-
 blocking bugs
 =============
 

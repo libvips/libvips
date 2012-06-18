@@ -172,14 +172,14 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
 	if( im_shrink( x, t[2], shrink, shrink ) ||
-		im_tile_cache( t[2], t[3], 
-			t[2]->Xsize, 1, 
-			VIPS__TILE_HEIGHT * 2 ) )
-		return( -1 );
-	x = t[3];
-
-	if( im_affinei_all( t[3], t[4], 
-		interp, residual, 0, 0, residual, 0, 0 ) )
+		vips_tilecache( t[2], &t[3], 
+			"tile_width", t[2]->Xsize,
+			"tile_height", 1,
+			"max_tiles", VIPS__TILE_HEIGHT * 2,
+			"strategy", VIPS_CACHE_SEQUENTIAL,
+			NULL ) ||
+		im_affinei_all( t[3], t[4], 
+			interp, residual, 0, 0, residual, 0, 0 ) )
 		return( -1 );
 	x = t[4];
 
