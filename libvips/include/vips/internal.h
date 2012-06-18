@@ -272,6 +272,8 @@ int im__fmaskcir( VipsImage *out, VipsMaskType flag, va_list ap );
 
 VipsPel *vips__vector_to_ink( const char *domain, 
 	VipsImage *im, double *vec, int n );
+VipsPel *im__vector_to_ink( const char *domain, 
+	VipsImage *im, int n, double *vec );
 VipsImage *im__inplace_base( const char *domain, 
 	VipsImage *main, VipsImage *sub, VipsImage *out );
 
