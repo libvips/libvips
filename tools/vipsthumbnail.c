@@ -136,6 +136,8 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	int shrink, double residual, VipsInterpolate *interp )
 {
 	IMAGE *t[9];
+	VipsImage **s = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( in ), 1 );
 	IMAGE *x;
 
 	if( im_open_local_array( out, t, 9, "thumbnail", "p" ) )
@@ -172,10 +174,13 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
 	if( im_shrink( x, t[2], shrink, shrink ) ||
-		im_tile_cache( t[2], t[3], 
-			t[2]->Xsize, 1, 
-			VIPS__TILE_HEIGHT * 2 ) ||
-		im_affinei_all( t[3], t[4], 
+		vips_tilecache( t[2], &s[0], 
+			"tile_width", t[2]->Xsize,
+			"tile_height", 1,
+			"max_tiles", VIPS__TILE_HEIGHT * 2,
+			"strategy", VIPS_CACHE_SEQUENTIAL,
+			NULL ) ||
+		im_affinei_all( s[0], t[4], 
 			interp, residual, 0, 0, residual, 0, 0 ) )
 		return( -1 );
 	x = t[4];
@@ -310,7 +315,7 @@ make_thumbnail_name( const char *filename )
 }
 
 static int
-thumbnail2( const char *filename )
+thumbnail2( const char *filename, int shrink )
 {
 	IMAGE *in;
 	IMAGE *out;
@@ -319,10 +324,19 @@ thumbnail2( const char *filename )
 
 	/* Open in sequential mode.
 	 */
-	if( vips_foreign_load( filename, &in,
-		"sequential", TRUE,
-		NULL ) )
-		return( -1 );
+	if( shrink > 1 ) {
+		if( vips_foreign_load( filename, &in,
+			"sequential", TRUE,
+			"shrink", shrink,
+			NULL ) )
+			return( -1 );
+	}
+	else {
+		if( vips_foreign_load( filename, &in,
+			"sequential", TRUE,
+			NULL ) )
+			return( -1 );
+	}
 
 	tn_filename = make_thumbnail_name( filename );
 	if( !(out = im_open( tn_filename, "w" )) ) {
@@ -348,7 +362,7 @@ static int
 thumbnail( const char *filename )
 {
 	VipsFormatClass *format;
-	char buf[FILENAME_MAX];
+	int shrink;
 
 	if( verbose )
 		printf( "thumbnailing %s\n", filename );
@@ -360,9 +374,9 @@ thumbnail( const char *filename )
 		printf( "detected format as %s\n", 
 			VIPS_OBJECT_CLASS( format )->nickname );
 
+	shrink = 1;
 	if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "jpeg" ) == 0 ) {
 		IMAGE *im;
-		int shrink;
 
 		/* This will just read in the header and is quick.
 		 */
@@ -380,15 +394,11 @@ thumbnail( const char *filename )
 		else 
 			shrink = 1;
 
-		im_snprintf( buf, FILENAME_MAX, "%s:%d", filename, shrink );
-
 		if( verbose )
 			printf( "using fast jpeg shrink, factor %d\n", shrink );
-
-		return( thumbnail2( buf ) );
 	}
-	else 
-		return( thumbnail2( filename ) );
+
+	return( thumbnail2( filename, shrink ) );
 }
 
 int

@@ -2,6 +2,8 @@
  *
  * 7/2/12
  * 	- add support for sequential reads
+ * 18/6/12
+ * 	- flatten alpha with vips_flatten()
  */
 
 /*
@@ -1147,11 +1149,19 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	/* Get the bands right. 
 	 */
 	if( in->Coding == VIPS_CODING_NONE ) {
-		if( in->Bands == 2 && 
-			class->saveable != VIPS_SAVEABLE_RGBA ) {
+		/* Do we need to flatten out an alpha channel? There needs to
+		 * be an alpha there now, and this writer needs to not support
+		 * alpha.
+		 */
+		if( (in->Bands == 2 ||
+			(in->Bands == 4 && 
+			 in->Type != VIPS_INTERPRETATION_CMYK)) &&
+			(class->saveable == VIPS_SAVEABLE_MONO ||
+			 class->saveable == VIPS_SAVEABLE_RGB ||
+			 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) {
 			VipsImage *out;
 
-			if( vips_extract_band( in, &out, 0, NULL ) ) {
+			if( vips_flatten( in, &out, 0, NULL ) ) {
 				g_object_unref( in );
 				return( -1 );
 			}
@@ -1159,6 +1169,11 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 			in = out;
 		}
+
+		/* Other alpha removal strategies ... just drop the extra
+		 * bands.
+		 */
+
 		else if( in->Bands > 3 && 
 			(class->saveable == VIPS_SAVEABLE_RGB ||
 			 (class->saveable == VIPS_SAVEABLE_RGB_CMYK &&

@@ -135,7 +135,6 @@ typedef struct _ReadJpeg {
 
 	/* Used for file input only.
 	 */
-	FILE *fp;
 	char *filename;
 
 	struct jpeg_decompress_struct cinfo;
@@ -179,7 +178,7 @@ readjpeg_free( ReadJpeg *jpeg )
 		jpeg->decompressing = FALSE;
 	}
 
-	VIPS_FREEF( fclose, jpeg->fp );
+	VIPS_FREEF( fclose, jpeg->eman.fp );
 	VIPS_FREE( jpeg->filename );
 	jpeg->eman.fp = NULL;
 	jpeg_destroy_decompress( &jpeg->cinfo );
@@ -203,7 +202,6 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail )
 	jpeg->out = out;
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
-	jpeg->fp = NULL;
 	jpeg->filename = NULL;
 	jpeg->decompressing = FALSE;
 
@@ -225,10 +223,9 @@ static int
 readjpeg_file( ReadJpeg *jpeg, const char *filename )
 {
 	jpeg->filename = g_strdup( filename );
-        if( !(jpeg->fp = vips__file_open_read( filename, NULL, FALSE )) ) 
+        if( !(jpeg->eman.fp = vips__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
-	jpeg->eman.fp = jpeg->fp;
-        jpeg_stdio_src( &jpeg->cinfo, jpeg->fp );
+        jpeg_stdio_src( &jpeg->cinfo, jpeg->eman.fp );
 
 	return( 0 );
 }

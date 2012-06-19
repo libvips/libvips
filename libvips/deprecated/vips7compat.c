@@ -2127,7 +2127,8 @@ int
 im_rightshift_size( IMAGE *in, IMAGE *out, 
 	int xshift, int yshift, int band_fmt )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( out, 2 );
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 2 );
 
 	if( vips_shrink( in, &t[0], 1 << xshift, 1 << yshift, NULL ) ||
 		vips_cast( t[0], &t[1], band_fmt, NULL ) ||
