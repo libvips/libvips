@@ -315,7 +315,7 @@ make_thumbnail_name( const char *filename )
 }
 
 static int
-thumbnail2( const char *filename )
+thumbnail2( const char *filename, int shrink )
 {
 	IMAGE *in;
 	IMAGE *out;
@@ -324,10 +324,19 @@ thumbnail2( const char *filename )
 
 	/* Open in sequential mode.
 	 */
-	if( vips_foreign_load( filename, &in,
-		"sequential", TRUE,
-		NULL ) )
-		return( -1 );
+	if( shrink > 1 ) {
+		if( vips_foreign_load( filename, &in,
+			"sequential", TRUE,
+			"shrink", shrink,
+			NULL ) )
+			return( -1 );
+	}
+	else {
+		if( vips_foreign_load( filename, &in,
+			"sequential", TRUE,
+			NULL ) )
+			return( -1 );
+	}
 
 	tn_filename = make_thumbnail_name( filename );
 	if( !(out = im_open( tn_filename, "w" )) ) {
@@ -354,6 +363,7 @@ thumbnail( const char *filename )
 {
 	VipsFormatClass *format;
 	char buf[FILENAME_MAX];
+	int shrink;
 
 	if( verbose )
 		printf( "thumbnailing %s\n", filename );
@@ -365,9 +375,9 @@ thumbnail( const char *filename )
 		printf( "detected format as %s\n", 
 			VIPS_OBJECT_CLASS( format )->nickname );
 
+	shrink = 1;
 	if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "jpeg" ) == 0 ) {
 		IMAGE *im;
-		int shrink;
 
 		/* This will just read in the header and is quick.
 		 */
@@ -385,15 +395,11 @@ thumbnail( const char *filename )
 		else 
 			shrink = 1;
 
-		im_snprintf( buf, FILENAME_MAX, "%s:%d", filename, shrink );
-
 		if( verbose )
 			printf( "using fast jpeg shrink, factor %d\n", shrink );
-
-		return( thumbnail2( buf ) );
 	}
-	else 
-		return( thumbnail2( filename ) );
+
+	return( thumbnail2( filename, shrink ) );
 }
 
 int
