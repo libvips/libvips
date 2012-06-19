@@ -136,6 +136,8 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	int shrink, double residual, VipsInterpolate *interp )
 {
 	IMAGE *t[9];
+	VipsImage **s = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( in ), 1 );
 	IMAGE *x;
 
 	if( im_open_local_array( out, t, 9, "thumbnail", "p" ) )
@@ -172,13 +174,13 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
 	if( im_shrink( x, t[2], shrink, shrink ) ||
-		vips_tilecache( t[2], &t[3], 
+		vips_tilecache( t[2], &s[0], 
 			"tile_width", t[2]->Xsize,
 			"tile_height", 1,
 			"max_tiles", VIPS__TILE_HEIGHT * 2,
 			"strategy", VIPS_CACHE_SEQUENTIAL,
 			NULL ) ||
-		im_affinei_all( t[3], t[4], 
+		im_affinei_all( s[0], t[4], 
 			interp, residual, 0, 0, residual, 0, 0 ) )
 		return( -1 );
 	x = t[4];
