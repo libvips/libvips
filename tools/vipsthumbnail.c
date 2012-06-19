@@ -362,7 +362,6 @@ static int
 thumbnail( const char *filename )
 {
 	VipsFormatClass *format;
-	char buf[FILENAME_MAX];
 	int shrink;
 
 	if( verbose )
