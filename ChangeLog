@@ -1,7 +1,8 @@
 18/6/12 started 7.28.7
 - add vips_flatten() -- flatten RGBA to RGB
 - better alpha handling in PNG load
-- don't save RGBA PNG as CMYK JPG
+- don't save RGBA PNG as CMYK JPG (thanks Tobsn)
+- fix a crash with malformed jpg files (thanks Grigoriy)
 
 19/4/12 started 7.28.6
 - better resolution unit handling in deprecated im_vips2tiff()
