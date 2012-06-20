@@ -531,8 +531,6 @@ vips_cache_drop_all( void )
 		if( vips__cache_dump )
 			vips_cache_dump();
 
-		printf( "vips_cache_drop_all:\n" );
-
 		/* We can't modify the hash in the callback from
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
