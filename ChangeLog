@@ -1,3 +1,6 @@
+18/6/12 started 7.28.8
+- try to make it buildable with glib-2.12
+
 18/6/12 started 7.28.7
 - add vips_flatten() -- flatten RGBA to RGB
 - better alpha handling in PNG load
