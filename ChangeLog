@@ -3,6 +3,7 @@
 - better alpha handling in PNG load
 - don't save RGBA PNG as CMYK JPG (thanks Tobsn)
 - fix a crash with malformed jpg files (thanks Grigoriy)
+- vipsthumbnail enables sequential mode more and caches lines better
 
 19/4/12 started 7.28.6
 - better resolution unit handling in deprecated im_vips2tiff()
