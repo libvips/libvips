@@ -1,4 +1,7 @@
 /* cache vips operations
+ *
+ * 20/6/12
+ * 	- try to make it compile on centos5
  */
 
 /*
@@ -100,6 +103,14 @@ static GHashTable *vips_cache_table = NULL;
  */
 static int vips_cache_time = 0;
 
+/* glib-2.22+ has has funcs for double and int64 hash, but we want to work on
+ * centos 5 which is 2.12. Switch to g_double_hash() and g_int64_hash() when
+ * we abandon 5.
+ */
+
+#define INT64_HASH(X) (((unsigned int *)(X))[0] ^ ((unsigned int *)(X))[1])
+#define DOUBLE_HASH(X) (INT64_HASH(X))
+
 /* Pass in the pspec so we can get the generic type. For example, a 
  * held in a GParamSpec allowing OBJECT, but the value could be of type
  * VipsImage. generics are much faster to compare.
@@ -134,12 +145,12 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_UINT64 ) {
 		guint64 i = g_value_get_uint64( value );
 
-		return( g_int64_hash( (gint64 *) &i ) );
+		return( INT64_HASH( (gint64 *) &i ) );
 	}
 	else if( generic == G_TYPE_PARAM_INT64 ) {
 		gint64 i = g_value_get_int64( value );
 
-		return( g_int64_hash( &i ) );
+		return( INT64_HASH( &i ) );
 	}
 	else if( generic == G_TYPE_PARAM_FLOAT ) {
 		float f = g_value_get_float( value );
@@ -149,7 +160,7 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_DOUBLE ) {
 		double d = g_value_get_double( value );
 
-		return( g_double_hash( &d ) );
+		return( DOUBLE_HASH( &d ) );
 	}
 	else if( generic == G_TYPE_PARAM_STRING ) {
 		const char *s = g_value_get_string( value );
@@ -416,23 +427,26 @@ vips_cache_init( void )
 	}
 }
 
+static void *
+vips_cache_dump_fn( void *value, void *a, void *b )
+{
+	char str[32768];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	vips_object_to_string( VIPS_OBJECT( value ), &buf );
+
+	printf( "%p - %s\n", value, vips_buf_all( &buf ) );
+
+	return( NULL );
+}
+
 static void
 vips_cache_dump( void )
 {
 	if( vips_cache_table ) {
-		GHashTableIter iter;
-		gpointer key, value;
-
 		printf( "Operation cache:\n" );
-		g_hash_table_iter_init( &iter, vips_cache_table );
-		while( g_hash_table_iter_next( &iter, &key, &value ) ) {
-			char str[32768];
-			VipsBuf buf = VIPS_BUF_STATIC( str );
-
-			vips_object_to_string( VIPS_OBJECT( key ), &buf );
-
-			printf( "%p - %s\n", key, vips_buf_all( &buf ) );
-		}
+		vips_hash_table_map( vips_cache_table, 
+			vips_cache_dump_fn, NULL, NULL ); 
 	}
 }
 
@@ -485,6 +499,24 @@ vips_cache_drop( VipsOperation *operation )
 	vips_cache_unref( operation );
 }
 
+static void *
+vips_cache_first_fn( void *value, void *a, void *b )
+{
+	return( value );
+}
+
+/* Return the first item.
+ */
+static VipsOperation *
+vips_cache_first( void )
+{
+	if( vips_cache_table )
+		return( VIPS_OPERATION( vips_hash_table_map( vips_cache_table, 
+			vips_cache_first_fn, NULL, NULL ) ) );
+	else
+		return( NULL ); 
+}
+
 /**
  * vips_cache_drop_all:
  *
@@ -494,23 +526,19 @@ void
 vips_cache_drop_all( void )
 {
 	if( vips_cache_table ) {
+		VipsOperation *operation;
+
 		if( vips__cache_dump )
 			vips_cache_dump();
+
+		printf( "vips_cache_drop_all:\n" );
 
 		/* We can't modify the hash in the callback from
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
 		 */
-		for(;;) {
-			GHashTableIter iter;
-			gpointer key, value;
-
-			g_hash_table_iter_init( &iter, vips_cache_table );
-			if( !g_hash_table_iter_next( &iter, &key, &value ) )
-				break;
-
-			vips_cache_drop( (VipsOperation *) key );
-		}
+		while( (operation = vips_cache_first()) ) 
+			vips_cache_drop( operation );
 
 		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
 	}
