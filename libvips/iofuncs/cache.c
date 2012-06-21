@@ -1,7 +1,7 @@
 /* cache vips operations
  *
  * 20/6/12
- * 	- now works with glib-2.12
+ * 	- try to make it compile on centos5
  */
 
 /*
@@ -107,7 +107,7 @@ static int vips_cache_time = 0;
  * g_int64_hash() and g_double_hash().
  */
 #define INT64_HASH(X) (((unsigned int *) (X))[0] ^ ((unsigned int *) (X))[1])
-#define DOUBLE_HASH(X) (INT64_HASH(*((guint64 *) (X))))
+#define DOUBLE_HASH(X) (INT64_HASH(X))
 
 /* Pass in the pspec so we can get the generic type. For example, a 
  * held in a GParamSpec allowing OBJECT, but the value could be of type
@@ -426,7 +426,7 @@ vips_cache_init( void )
 }
 
 static void *
-vips_cache_dump_fn( void *value, void *a, void *b)
+vips_cache_dump_fn( void *value, void *a, void *b )
 {
 	char str[32768];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
@@ -498,17 +498,19 @@ vips_cache_drop( VipsOperation *operation )
 }
 
 static void *
-vips_cache_find_first_fn( void *value, void *a, void *b )
+vips_cache_first_fn( void *value, void *a, void *b )
 {
 	return( value );
 }
 
+/* Return the first item.
+ */
 static VipsOperation *
-vips_cache_find_first( void )
+vips_cache_first( void )
 {
 	if( vips_cache_table )
-		return( VIPS_OPERATION( vips_hash_table_map( vips_cache_table,
-			vips_cache_find_first_fn, NULL, NULL ) ) );
+		return( VIPS_OPERATION( vips_hash_table_map( vips_cache_table, 
+			vips_cache_first_fn, NULL, NULL ) ) );
 	else
 		return( NULL ); 
 }
@@ -531,8 +533,8 @@ vips_cache_drop_all( void )
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
 		 */
-		while( (operation = vips_cache_find_first()) )
-			vips_cache_drop( operation ); 
+		while( (operation = vips_cache_first()) ) 
+			vips_cache_drop( operation );
 
 		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
 	}

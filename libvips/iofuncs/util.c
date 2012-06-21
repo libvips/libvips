@@ -249,7 +249,7 @@ typedef struct {
 static gboolean
 vips_hash_table_predicate( const char *key, void *value, Pair *pair )
 {
-	return( (pair->result == pair->fn( value, pair->a, pair->b )) );
+	return( (pair->result = pair->fn( value, pair->a, pair->b )) != NULL );
 }
 
 /* Like slist map, but for a hash table.

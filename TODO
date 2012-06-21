@@ -1,13 +1,3 @@
-- try
-
-	$ vipsthumbnail wtc.tif --vips-leak
-	160 objects alive:
-	0) VipsRegion (0x7f5ef804fd10)
-	....
-
-  argh
-
-
 blocking bugs
 =============
 
