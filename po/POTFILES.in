@@ -67,6 +67,7 @@ libvips/conversion/im_gaussnoise.c
 libvips/conversion/bandary.c
 libvips/conversion/cast.c
 libvips/conversion/conversion.c
+libvips/conversion/flatten.c
 libvips/conversion/im_subsample.c
 libvips/conversion/im_grid.c
 libvips/conversion/extract.c
@@ -104,6 +105,7 @@ libvips/convolution/convol_dispatch.c
 libvips/convolution/im_aconv.c
 libvips/convolution/im_addgnoise.c
 libvips/convolution/im_sharpen.c
+libvips/dummy.c
 libvips/foreign/rawsave.c
 libvips/foreign/radload.c
 libvips/foreign/tiffload.c
@@ -312,6 +314,7 @@ libvips/include/vips/generate.h
 libvips/include/vips/arithmetic.h
 libvips/include/vips/version.h
 libvips/include/vips/util.h
+libvips/include/vips/almostdeprecated.h
 libvips/include/vips/colour.h
 libvips/include/vips/threadpool.h
 libvips/include/vips/vector.h
@@ -331,6 +334,7 @@ libvips/include/vips/interpolate.h
 libvips/include/vips/private.h
 libvips/include/vips/format.h
 libvips/include/vips/object.h
+libvips/include/vips/deprecated.h
 libvips/include/vips/inlines.h
 libvips/include/vips/histograms_lut.h
 libvips/include/vips/other.h

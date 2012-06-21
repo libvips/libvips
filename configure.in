@@ -35,7 +35,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=33
-LIBRARY_REVISION=0
+LIBRARY_REVISION=1
 LIBRARY_AGE=1
 
 # patched into include/vips/version.h
@@ -551,7 +551,8 @@ if test x"$with_tiff" != "xno"; then
     [AC_DEFINE(HAVE_TIFF,1,[define if you have libtiff installed.])
      with_tiff=yes
      PACKAGES_USED="$PACKAGES_USED libtiff-4"],
-    [FIND_TIFF(,
+    [FIND_TIFF(
+     with_tiff=yes,
      [AC_MSG_WARN([libtiff not found; disabling TIFF support])
       with_tiff=no
      ])
@@ -567,7 +568,8 @@ if test x"$with_png" != "xno"; then
     [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
      with_png=yes
      PACKAGES_USED="$PACKAGES_USED libpng"],
-    [FIND_PNG(,
+    [FIND_PNG(
+     with_png=yes,
      [AC_MSG_WARN([libpng not found; disabling PNG support])
       with_png=no
      ])

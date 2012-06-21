@@ -48,7 +48,7 @@ msgstr ""
 #: ../libvips/arithmetic/stats.c:423 ../libvips/arithmetic/deviate.c:219
 #: ../libvips/arithmetic/arithmetic.c:382 ../libvips/arithmetic/min.c:325
 #: ../libvips/arithmetic/max.c:324 ../libvips/conversion/conversion.c:89
-#: ../libvips/foreign/foreign.c:897
+#: ../libvips/foreign/foreign.c:903
 msgid "Output"
 msgstr ""
 
@@ -391,13 +391,13 @@ msgstr ""
 
 #: ../libvips/arithmetic/unary.c:87 ../libvips/arithmetic/statistic.c:151
 #: ../libvips/conversion/flip.c:240 ../libvips/conversion/bandmean.c:197
-#: ../libvips/conversion/cast.c:476 ../libvips/conversion/extract.c:194
-#: ../libvips/conversion/extract.c:353 ../libvips/conversion/bandjoin.c:171
-#: ../libvips/conversion/copy.c:318 ../libvips/conversion/rot.c:355
-#: ../libvips/conversion/replicate.c:196 ../libvips/conversion/tilecache.c:422
-#: ../libvips/conversion/embed.c:516 ../libvips/conversion/cache.c:106
-#: ../libvips/conversion/recomb.c:200 ../libvips/conversion/sequential.c:153
-#: ../libvips/foreign/foreign.c:1379
+#: ../libvips/conversion/cast.c:476 ../libvips/conversion/flatten.c:372
+#: ../libvips/conversion/extract.c:194 ../libvips/conversion/extract.c:353
+#: ../libvips/conversion/bandjoin.c:171 ../libvips/conversion/copy.c:318
+#: ../libvips/conversion/rot.c:355 ../libvips/conversion/replicate.c:196
+#: ../libvips/conversion/tilecache.c:422 ../libvips/conversion/embed.c:516
+#: ../libvips/conversion/cache.c:106 ../libvips/conversion/recomb.c:200
+#: ../libvips/conversion/sequential.c:153 ../libvips/foreign/foreign.c:1410
 msgid "Input"
 msgstr ""
 
@@ -438,7 +438,7 @@ msgid "arithmetic operations"
 msgstr ""
 
 #: ../libvips/arithmetic/arithmetic.c:383
-#: ../libvips/conversion/conversion.c:90 ../libvips/foreign/foreign.c:898
+#: ../libvips/conversion/conversion.c:90 ../libvips/foreign/foreign.c:904
 msgid "Output image"
 msgstr ""
 
@@ -562,11 +562,12 @@ msgid "VIPS statistic operations"
 msgstr ""
 
 #: ../libvips/arithmetic/statistic.c:152 ../libvips/conversion/flip.c:241
-#: ../libvips/conversion/cast.c:477 ../libvips/conversion/extract.c:195
-#: ../libvips/conversion/extract.c:354 ../libvips/conversion/copy.c:319
-#: ../libvips/conversion/rot.c:356 ../libvips/conversion/replicate.c:197
-#: ../libvips/conversion/tilecache.c:423 ../libvips/conversion/embed.c:517
-#: ../libvips/conversion/cache.c:107 ../libvips/conversion/sequential.c:154
+#: ../libvips/conversion/cast.c:477 ../libvips/conversion/flatten.c:373
+#: ../libvips/conversion/extract.c:195 ../libvips/conversion/extract.c:354
+#: ../libvips/conversion/copy.c:319 ../libvips/conversion/rot.c:356
+#: ../libvips/conversion/replicate.c:197 ../libvips/conversion/tilecache.c:423
+#: ../libvips/conversion/embed.c:517 ../libvips/conversion/cache.c:107
+#: ../libvips/conversion/sequential.c:154
 msgid "Input image"
 msgstr ""
 
@@ -792,6 +793,19 @@ msgstr ""
 
 #: ../libvips/conversion/conversion.c:85
 msgid "conversion operations"
+msgstr ""
+
+#: ../libvips/conversion/flatten.c:368
+msgid "flatten alpha out of an image"
+msgstr ""
+
+#: ../libvips/conversion/flatten.c:378 ../libvips/conversion/join.c:247
+#: ../libvips/conversion/insert.c:386
+msgid "Background"
+msgstr ""
+
+#: ../libvips/conversion/flatten.c:379
+msgid "Background value"
 msgstr ""
 
 #: ../libvips/conversion/im_subsample.c:202
@@ -1027,10 +1041,6 @@ msgstr ""
 
 #: ../libvips/conversion/join.c:241
 msgid "Pixels between images"
-msgstr ""
-
-#: ../libvips/conversion/join.c:247 ../libvips/conversion/insert.c:386
-msgid "Background"
 msgstr ""
 
 #: ../libvips/conversion/join.c:248 ../libvips/conversion/insert.c:387
@@ -1408,20 +1418,20 @@ msgstr ""
 msgid "datatype %d not supported"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:167
+#: ../libvips/foreign/jpeg2vips.c:166
 #, c-format
 msgid "read gave %ld warnings"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:489
+#: ../libvips/foreign/jpeg2vips.c:486
 msgid "error reading resolution"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:510
+#: ../libvips/foreign/jpeg2vips.c:507
 msgid "unknown EXIF resolution unit"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:718
+#: ../libvips/foreign/jpeg2vips.c:715
 msgid "unknown JFIF resolution unit"
 msgstr ""
 
@@ -1429,7 +1439,7 @@ msgstr ""
 msgid "error reading radiance header"
 msgstr ""
 
-#: ../libvips/foreign/radiance.c:959 ../libvips/foreign/tiff2vips.c:1343
+#: ../libvips/foreign/radiance.c:959 ../libvips/foreign/tiff2vips.c:1347
 msgid "read error"
 msgstr ""
 
@@ -1709,91 +1719,94 @@ msgstr ""
 msgid "EXR error: %s"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:265 ../libvips/foreign/tiff2vips.c:288
-#: ../libvips/foreign/tiff2vips.c:306
+#: ../libvips/foreign/tiff2vips.c:269 ../libvips/foreign/tiff2vips.c:287
 #, c-format
 msgid "required field %d missing"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:269
+#: ../libvips/foreign/tiff2vips.c:307
 #, c-format
-msgid "required field %d=%d, not %d"
+msgid "required field %d = %d, not %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:653
+#: ../libvips/foreign/tiff2vips.c:651
 #, c-format
 msgid "%d bits per sample palette image not supported"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:662
+#: ../libvips/foreign/tiff2vips.c:660
 msgid "bad colormap"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:719 ../libvips/foreign/tiff2vips.c:750
+#: ../libvips/foreign/tiff2vips.c:717 ../libvips/foreign/tiff2vips.c:748
 msgid "3 or 4 bands RGB TIFF only"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:821
+#: ../libvips/foreign/tiff2vips.c:819
 msgid "4 or 5 bands CMYK TIFF only"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:872
+#: ../libvips/foreign/tiff2vips.c:870
 msgid "unknown resolution unit"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:877
+#: ../libvips/foreign/tiff2vips.c:875
 #, c-format
 msgid ""
 "no resolution information for TIFF image \"%s\" -- defaulting to 1 pixel per "
 "mm"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:949
+#: ../libvips/foreign/tiff2vips.c:907
+msgid "not a PLANARCONFIG_CONTIG image"
+msgstr ""
+
+#: ../libvips/foreign/tiff2vips.c:953
 #, c-format
 msgid "unsupported sample format %d for lab image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:959
+#: ../libvips/foreign/tiff2vips.c:963
 #, c-format
 msgid "unsupported depth %d for LAB image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:998
+#: ../libvips/foreign/tiff2vips.c:1002
 #, c-format
 msgid "unsupported sample format %d for greyscale image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1007
+#: ../libvips/foreign/tiff2vips.c:1011
 #, c-format
 msgid "unsupported depth %d for greyscale image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1055
+#: ../libvips/foreign/tiff2vips.c:1059
 #, c-format
 msgid "unsupported sample format %d for rgb image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1064
+#: ../libvips/foreign/tiff2vips.c:1068
 #, c-format
 msgid "unsupported depth %d for RGB image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1078
+#: ../libvips/foreign/tiff2vips.c:1082
 #, c-format
 msgid "unknown photometric interpretation %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1456
+#: ../libvips/foreign/tiff2vips.c:1465
 #, c-format
 msgid "bad page number %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1477 ../libvips/foreign/vips2tiff.c:289
+#: ../libvips/foreign/tiff2vips.c:1486 ../libvips/foreign/vips2tiff.c:289
 #, c-format
 msgid "unable to open \"%s\" for input"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1532 ../libvips/foreign/tiff2vips.c:1562
+#: ../libvips/foreign/tiff2vips.c:1541 ../libvips/foreign/tiff2vips.c:1571
 #, c-format
 msgid "TIFF file does not contain page %d"
 msgstr ""
@@ -1973,62 +1986,62 @@ msgstr ""
 msgid "1 to 5 bands only"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:384
+#: ../libvips/foreign/foreign.c:386
 msgid "load and save image files"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:525 ../libvips/mosaicing/im_remosaic.c:76
+#: ../libvips/foreign/foreign.c:527 ../libvips/mosaicing/im_remosaic.c:76
 #, c-format
 msgid "file \"%s\" not found"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:534 ../libvips/foreign/foreign.c:1022
+#: ../libvips/foreign/foreign.c:536 ../libvips/foreign/foreign.c:1030
 #, c-format
 msgid "\"%s\" is not a known file format"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:740
+#: ../libvips/foreign/foreign.c:746
 msgid "images do not match"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:826
+#: ../libvips/foreign/foreign.c:832
 msgid ""
 "VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL both set -- using SEQUENTIAL"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:894
+#: ../libvips/foreign/foreign.c:900
 msgid "file loaders"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:903
+#: ../libvips/foreign/foreign.c:909
 msgid "Flags"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:904
+#: ../libvips/foreign/foreign.c:910
 msgid "Flags for this file"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:910
+#: ../libvips/foreign/foreign.c:916
 msgid "Disc"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:911
+#: ../libvips/foreign/foreign.c:917
 msgid "Open to disc"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:917
+#: ../libvips/foreign/foreign.c:923
 msgid "Sequential"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:918
+#: ../libvips/foreign/foreign.c:924
 msgid "Sequential read only"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:1370
+#: ../libvips/foreign/foreign.c:1401
 msgid "file savers"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:1380
+#: ../libvips/foreign/foreign.c:1411
 msgid "Image to save"
 msgstr ""
 
@@ -2261,7 +2274,7 @@ msgid "per-thread state for sinkdisc"
 msgstr ""
 
 #: ../libvips/iofuncs/sinkdisc.c:236 ../libvips/iofuncs/sinkscreen.c:537
-#: ../libvips/iofuncs/threadpool.c:606
+#: ../libvips/iofuncs/threadpool.c:640
 msgid "unable to create thread"
 msgstr ""
 
@@ -2950,12 +2963,12 @@ msgstr ""
 msgid "extra tokens after ')'"
 msgstr ""
 
-#: ../libvips/iofuncs/threadpool.c:217
+#: ../libvips/iofuncs/threadpool.c:251
 #, c-format
 msgid "threads clipped to %d"
 msgstr ""
 
-#: ../libvips/iofuncs/threadpool.c:281
+#: ../libvips/iofuncs/threadpool.c:315
 msgid "per-thread state for vipsthreadpool"
 msgstr ""
 
@@ -3423,55 +3436,55 @@ msgstr ""
 msgid "unknown action \"%s\""
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:54
+#: ../tools/vipsthumbnail.c:56
 msgid "set thumbnail size to SIZE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:55
+#: ../tools/vipsthumbnail.c:57
 msgid "SIZE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:57
+#: ../tools/vipsthumbnail.c:59
 msgid "set output to FORMAT"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:58
+#: ../tools/vipsthumbnail.c:60
 msgid "FORMAT"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:60
+#: ../tools/vipsthumbnail.c:62
 msgid "resample with INTERPOLATOR"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:61
+#: ../tools/vipsthumbnail.c:63
 msgid "INTERPOLATOR"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:63
+#: ../tools/vipsthumbnail.c:65
 msgid "don't sharpen thumbnail"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:65
+#: ../tools/vipsthumbnail.c:67
 msgid "export with PROFILE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:66 ../tools/vipsthumbnail.c:69
+#: ../tools/vipsthumbnail.c:68 ../tools/vipsthumbnail.c:71
 msgid "PROFILE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:68
+#: ../tools/vipsthumbnail.c:70
 msgid "import untagged images with PROFILE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:71
+#: ../tools/vipsthumbnail.c:73
 msgid "don't delete profile from exported image"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:73
+#: ../tools/vipsthumbnail.c:75
 msgid "verbose output"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:412
+#: ../tools/vipsthumbnail.c:416
 msgid "- thumbnail generator"
 msgstr ""
 
