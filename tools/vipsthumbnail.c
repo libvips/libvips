@@ -27,6 +27,10 @@
  * 	  from the input
  * 13/6/12
  * 	- update the sequential stuff to the general method
+ * 21/6/12
+ * 	- remove "--nodelete" option, have a --delete option instead, off by
+ * 	  default
+ * 	- much more gentle extra sharpening
  */
 
 #ifdef HAVE_CONFIG_H
@@ -48,6 +52,7 @@ static char *interpolator = "bilinear";;
 static gboolean nosharpen = FALSE;
 static char *export_profile = NULL;
 static char *import_profile = NULL;
+static gboolean delete_profile = FALSE;
 static gboolean nodelete_profile = FALSE;
 static gboolean verbose = FALSE;
 
@@ -69,8 +74,10 @@ static GOptionEntry options[] = {
 	{ "iprofile", 'i', 0, G_OPTION_ARG_STRING, &import_profile, 
 		N_( "import untagged images with PROFILE" ), 
 		N_( "PROFILE" ) },
+	{ "delete", 'd', 0, G_OPTION_ARG_NONE, &delete_profile, 
+		N_( "delete profile from exported image" ), NULL },
 	{ "nodelete", 'l', 0, G_OPTION_ARG_NONE, &nodelete_profile, 
-		N_( "don't delete profile from exported image" ), NULL },
+		N_( "(deprecated, does nothing)" ), NULL },
 	{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, 
 		N_( "verbose output" ), NULL },
 	{ NULL }
@@ -123,9 +130,9 @@ sharpen_filter( void )
 	if( !mask ) {
 		mask = im_create_imaskv( "sharpen.con", 3, 3, 
 			-1, -1, -1, 
-			-1, 16, -1, 
+			-1, 32, -1, 
 			-1, -1, -1 );
-		mask->scale = 8;
+		mask->scale = 24;
 	}
 
 	return( mask );
@@ -234,7 +241,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		x = t[7];
 	}
 
-	if( !nodelete_profile ) {
+	if( delete_profile ) {
 		if( verbose )
 			printf( "deleting profile from output image\n" );
 

@@ -5,6 +5,8 @@
 - add dzsave, save in deep zoom format
 - rework im_shrink() as a class
 - remove im_rightshift_size(), just a convenience function now
+- vipsthumbnail no longer removes profiles by default
+- much more gentle sharpening in thumbnails
 
 18/6/12 started 7.28.8
 - fixes for centos5 portability

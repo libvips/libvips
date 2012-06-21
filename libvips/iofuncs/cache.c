@@ -103,11 +103,10 @@ static GHashTable *vips_cache_table = NULL;
  */
 static int vips_cache_time = 0;
 
-/* glib-2.22+ has has funcs for double and int64 hash, but we want to work on
- * centos 5 which is 2.12. Switch to g_double_hash() and g_int64_hash() when
- * we abandon 5.
+/* Old versions of glib are missing these. When we abandon centos 5, switch to
+ * g_int64_hash() and g_double_hash().
  */
-#define INT64_HASH(X) (((unsigned int *)(X))[0] ^ ((unsigned int *)(X))[1])
+#define INT64_HASH(X) (((unsigned int *) (X))[0] ^ ((unsigned int *) (X))[1])
 #define DOUBLE_HASH(X) (INT64_HASH(X))
 
 /* Pass in the pspec so we can get the generic type. For example, a 
