@@ -1,7 +1,3 @@
-- tune shrink's chunking to try to make it handle smalltile faster 
-
-- add a int-only path?
-
 - vipsthumbnail should not remove profiles by default
 
 

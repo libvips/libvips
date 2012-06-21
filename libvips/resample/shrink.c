@@ -33,6 +33,7 @@
  * 12/6/12
  * 	- redone as a class
  * 	- warn about non-int shrinks
+ * 	- some tuning .. tried an int coordinate path, not worthwhile
  */
 
 /*
@@ -248,9 +249,12 @@ vips_shrink_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 	 * Each pixel of *r will depend on roughly mw x mh
 	 * pixels, so we walk *r in chunks which map to the tile size.
 	 *
+	 * Make sure we can't ask for a zero step.
 	 */
-	int xstep = 1 + VIPS__TILE_WIDTH / shrink->mw;
-	int ystep = 1 + VIPS__TILE_HEIGHT / shrink->mh;
+	int xstep = shrink->mw > VIPS__TILE_WIDTH ? 
+		1 : VIPS__TILE_WIDTH / shrink->mw;
+	int ystep = shrink->mh > VIPS__TILE_HEIGHT ? 
+		1 : VIPS__TILE_HEIGHT / shrink->mh;
 
 	int x, y;
 
@@ -270,8 +274,8 @@ vips_shrink_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 
 			s.left = (r->left + x) * shrink->xshrink;
 			s.top = (r->top + y) * shrink->yshrink;
-			s.width = 1 + ceil( width * shrink->xshrink );
-			s.height = 1 + ceil( height * shrink->yshrink );
+			s.width = ceil( width * shrink->xshrink );
+			s.height = ceil( height * shrink->yshrink );
 #ifdef DEBUG
 			printf( "shrink_gen: requesting %d x %d at %d x %d\n",
 				s.width, s.height, s.left, s.top ); 
@@ -313,7 +317,8 @@ vips_shrink_build( VipsObject *object )
 	if( (int) shrink->xshrink != shrink->xshrink || 
 		(int) shrink->yshrink != shrink->yshrink ) 
 		vips_warn( "VipsShrink", 
-			"%s", _( "not integer shrink factors" ) ); 
+			"%s", _( "not integer shrink factors, "
+				"expect poor results" ) ); 
 
 	if( shrink->xshrink == 1.0 &&
 		shrink->yshrink == 1.0 )

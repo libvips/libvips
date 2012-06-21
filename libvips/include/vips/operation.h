@@ -98,7 +98,7 @@ void vips_cache_drop_all( void );
 void vips_operation_set_nocache( VipsOperation *operation, gboolean nocache );
 int vips_cache_operation_buildp( VipsOperation **operation );
 VipsOperation *vips_cache_operation_build( VipsOperation *operation );
-void vips_cache_print( void ):
+void vips_cache_print( void );
 void vips_cache_set_max( int max );
 void vips_cache_set_max_mem( size_t max_mem );
 int vips_cache_get_max( void );

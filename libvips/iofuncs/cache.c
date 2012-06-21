@@ -567,7 +567,7 @@ vips_cache_get_lru( void )
 
 	operation = NULL;
 	g_hash_table_foreach( vips_cache_table,
-		(GHFunc) vips_cache_select_cb, &operation );
+		(GHFunc) vips_cache_get_lru_cb, &operation );
 
 	return( operation );
 }
