@@ -144,7 +144,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 {
 	IMAGE *t[9];
 	VipsImage **s = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( in ), 1 );
+		vips_object_local_array( VIPS_OBJECT( out ), 1 );
 	IMAGE *x;
 
 	if( im_open_local_array( out, t, 9, "thumbnail", "p" ) )
@@ -175,7 +175,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	 * We want to make sure we read the image sequentially.
 	 * However, the convolution we may be doing later will force us 
 	 * into SMALLTILE or maybe FATSTRIP mode and that will break
-	 * sequentiallity.
+	 * sequentiality.
 	 *
 	 * So ... read into a cache where tiles are scanlines, and make sure
 	 * we keep enough scanlines to be able to serve a line of tiles.
