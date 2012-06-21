@@ -107,7 +107,6 @@ static int vips_cache_time = 0;
  * centos 5 which is 2.12. Switch to g_double_hash() and g_int64_hash() when
  * we abandon 5.
  */
-
 #define INT64_HASH(X) (((unsigned int *)(X))[0] ^ ((unsigned int *)(X))[1])
 #define DOUBLE_HASH(X) (INT64_HASH(X))
 
@@ -428,7 +427,7 @@ vips_cache_init( void )
 }
 
 static void *
-vips_cache_dump_fn( void *value, void *a, void *b )
+vips_cache_print_fn( void *value, void *a, void *b )
 {
 	char str[32768];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
@@ -440,13 +439,19 @@ vips_cache_dump_fn( void *value, void *a, void *b )
 	return( NULL );
 }
 
-static void
-vips_cache_dump( void )
+
+/**
+ * vips_cache_print:
+ *
+ * Print the whole operation cache to stdout. Handy for debugging.
+ */
+void
+vips_cache_print( void )
 {
 	if( vips_cache_table ) {
 		printf( "Operation cache:\n" );
 		vips_hash_table_map( vips_cache_table, 
-			vips_cache_dump_fn, NULL, NULL ); 
+			vips_cache_print_fn, NULL, NULL ); 
 	}
 }
 
@@ -500,7 +505,7 @@ vips_cache_drop( VipsOperation *operation )
 }
 
 static void *
-vips_cache_first_fn( void *value, void *a, void *b )
+vips_cache_get_first_fn( void *value, void *a, void *b )
 {
 	return( value );
 }
@@ -508,11 +513,11 @@ vips_cache_first_fn( void *value, void *a, void *b )
 /* Return the first item.
  */
 static VipsOperation *
-vips_cache_first( void )
+vips_cache_get_first( void )
 {
 	if( vips_cache_table )
 		return( VIPS_OPERATION( vips_hash_table_map( vips_cache_table, 
-			vips_cache_first_fn, NULL, NULL ) ) );
+			vips_cache_get_first_fn, NULL, NULL ) ) );
 	else
 		return( NULL ); 
 }
@@ -529,13 +534,13 @@ vips_cache_drop_all( void )
 		VipsOperation *operation;
 
 		if( vips__cache_dump )
-			vips_cache_dump();
+			vips_cache_print();
 
 		/* We can't modify the hash in the callback from
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
 		 */
-		while( (operation = vips_cache_first()) ) 
+		while( (operation = vips_cache_get_first()) ) 
 			vips_cache_drop( operation );
 
 		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
@@ -543,19 +548,20 @@ vips_cache_drop_all( void )
 }
 
 static void
-vips_cache_select_cb( VipsOperation *key, VipsOperation *value, 
+vips_cache_get_lru_cb( VipsOperation *key, VipsOperation *value, 
 	VipsOperation **best )
-
 {
 	if( !*best ||
 		(*best)->time > value->time )
 		*best = value;
 }
 
-/* Find an op to drop ... LRU for now.
+/* Get the least-recently-used cache item. 
+ *
+ * TODO ... will this be too expensive? probably not
  */
 static VipsOperation *
-vips_cache_select( void )
+vips_cache_get_lru( void )
 {
 	VipsOperation *operation;
 
@@ -577,7 +583,7 @@ vips_cache_trim( void )
 		(g_hash_table_size( vips_cache_table ) > vips_cache_max ||
 		vips_tracked_get_files() > vips_cache_max_files ||
 		vips_tracked_get_mem() > vips_cache_max_mem) &&
-		(operation = vips_cache_select()) ) {
+		(operation = vips_cache_get_lru()) ) {
 #ifdef DEBUG
 		printf( "vips_cache_trim: trimming %p\n", operation );
 #endif /*DEBUG*/
