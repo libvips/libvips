@@ -1,3 +1,11 @@
+- tile cache doesn't need to copy if request fits within a tile
+
+  though doing a copy means that we can safely drop the cache without leaving
+  dangling pointers
+
+- could jpeg load via memory buffer support minimise too?
+
+
 blocking bugs
 =============
 

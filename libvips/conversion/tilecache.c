@@ -116,16 +116,21 @@ tile_destroy( Tile *tile )
 }
 
 static void
-vips_tile_cache_dispose( GObject *gobject )
+vips_tile_cache_drop_all( VipsTileCache *cache )
 {
-	VipsTileCache *cache = (VipsTileCache *) gobject;
-
 	while( cache->tiles ) {
 		Tile *tile = (Tile *) cache->tiles->data;
 
 		tile_destroy( tile );
 	}
+}
 
+static void
+vips_tile_cache_dispose( GObject *gobject )
+{
+	VipsTileCache *cache = (VipsTileCache *) gobject;
+
+	vips_tile_cache_drop_all( cache );
 	VIPS_FREEF( g_mutex_free, cache->lock );
 
 	G_OBJECT_CLASS( vips_tile_cache_parent_class )->dispose( gobject );
@@ -375,6 +380,14 @@ vips_tile_cache_gen( VipsRegion *or,
 	return( 0 );
 }
 
+static void
+vips_tile_cache_minimise( VipsImage *image, VipsTileCache *cache )
+{
+	printf( "vips_tile_cache_minimise:\n" );
+
+	vips_tile_cache_drop_all( cache );
+}
+
 static int
 vips_tile_cache_build( VipsObject *object )
 {
@@ -393,6 +406,9 @@ vips_tile_cache_build( VipsObject *object )
 		return( -1 );
         vips_demand_hint( conversion->out, 
 		VIPS_DEMAND_STYLE_SMALLTILE, cache->in, NULL );
+
+	g_signal_connect( conversion->out, "minimise", 
+		G_CALLBACK( vips_tile_cache_minimise ), cache );
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_tile_cache_gen, vips_stop_one, 

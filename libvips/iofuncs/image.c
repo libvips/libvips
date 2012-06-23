@@ -158,6 +158,7 @@ enum {
 	SIG_POSTEVAL,		
 	SIG_WRITTEN,		
 	SIG_INVALIDATE,		
+	SIG_MINIMISE,		
 	SIG_LAST
 };
 
@@ -793,6 +794,12 @@ vips_image_real_invalidate( VipsImage *image )
 	g_mutex_unlock( image->sslock );
 }
 
+static void 
+vips_image_real_minimise( VipsImage *image )
+{
+	VIPS_DEBUG_MSG( "vips_image_real_minimise: %p\n", image );
+}
+
 static void
 vips_image_class_init( VipsImageClass *class )
 {
@@ -828,6 +835,8 @@ vips_image_class_init( VipsImageClass *class )
 	vobject_class->build = vips_image_build;
 
 	class->invalidate = vips_image_real_invalidate;
+
+	class->minimise = vips_image_real_minimise;
 
 	/* Create properties.
 	 */
@@ -998,6 +1007,15 @@ vips_image_class_init( VipsImageClass *class )
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
+
+	vips_image_signals[SIG_MINIMISE] = g_signal_new( "minimise",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+		G_STRUCT_OFFSET( VipsImageClass, minimise ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
+
 }
 
 static void
@@ -1053,14 +1071,50 @@ vips_image_invalidate_all_cb( VipsImage *image )
  * vips_image_invalidate_all:
  * @image: #VipsImage to invalidate
  *
- * Invalidate all pixel caches on an @image and any derived images. The 
- * "invalidate" callback is triggered for all invalidated images.
+ * Invalidate all pixel caches on an @image and any downstream images, that
+ * is, images which depend on this image. 
+ *
+ * The "invalidate" callback is triggered for all invalidated images.
  */
 void
 vips_image_invalidate_all( VipsImage *image )
 {
-	(void) vips__link_map( image, 
+	(void) vips__link_map( image, FALSE,
 		(VipsSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
+}
+
+void
+vips_image_minimise( VipsImage *image )
+{
+	VIPS_DEBUG_MSG( "vips_image_minimise: %p\n", image );
+
+	g_signal_emit( image, vips_image_signals[SIG_MINIMISE], 0 );
+}
+
+static void *
+vips_image_minimise_all_cb( VipsImage *image )
+{
+	vips_image_minimise( image );
+
+	return( NULL );
+}
+
+/**
+ * vips_image_minimise_all:
+ * @image: #VipsImage to minimise
+ *
+ * Minimise memory use on this image and any upstream images, that is, images
+ * which this image depends upon. 
+ *
+ * The "minimise" callback is triggered for all minimised images.
+ */
+void 
+vips_image_minimise_all( VipsImage *image )
+{
+	printf( "vips_image_minimise_all:\n" ); 
+
+	(void) vips__link_map( image, TRUE,
+		(VipsSListMap2Fn) vips_image_minimise_all_cb, NULL, NULL );
 }
 
 /* Attach a new time struct, if necessary, and reset it.

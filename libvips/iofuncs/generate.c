@@ -181,23 +181,31 @@ vips__link_break_all( VipsImage *image )
 	g_assert( !image->downstream );
 }
 
+typedef struct _LinkMap {
+	gboolean upstream;
+	int *serial;
+	VipsSListMap2Fn fn;
+	void *a;
+	void *b;
+} LinkMap;
+
 static void *
-vips__link_mapp( VipsImage *image, 
-	VipsSListMap2Fn fn, int *serial, void *a, void *b )
+vips__link_mapp( VipsImage *image, LinkMap *map ) 
 {
 	void *res;
 
 	/* Loop?
 	 */
-	if( image->serial == *serial )
+	if( image->serial == *map->serial )
 		return( NULL );
-	image->serial = *serial;
+	image->serial = *map->serial;
 
-	if( (res = fn( image, a, b )) )
+	if( (res = map->fn( image, map->a, map->b )) )
 		return( res );
 
-	return( vips_slist_map4( image->downstream,
-		(VipsSListMap4Fn) vips__link_mapp, fn, serial, a, b ) );
+	return( vips_slist_map2( map->upstream ? 
+		image->upstream : image->downstream,
+		(VipsSListMap2Fn) vips__link_mapp, map, NULL ) );
 }
 
 static void *
@@ -208,16 +216,23 @@ vips__link_map_cb( VipsImage *image, GSList **images )
 	return( NULL );
 }
 
-/* Apply a function to an image and all downstream images, direct and indirect. 
+/* Apply a function to an image and all upstream or downstream images, 
+ * direct and indirect. 
  */
 void *
-vips__link_map( VipsImage *image, VipsSListMap2Fn fn, void *a, void *b )
+vips__link_map( VipsImage *image, gboolean upstream, 
+	VipsSListMap2Fn fn, void *a, void *b )
 {
 	static int serial = 0;
 
+	LinkMap map;
 	GSList *images;
 	GSList *p;
 	void *result;
+
+	serial += 1;
+
+	images = NULL;
 
 	/* The function might do anything, including removing images
 	 * or invalidating other images, so we can't trigger them from within 
@@ -225,10 +240,13 @@ vips__link_map( VipsImage *image, VipsSListMap2Fn fn, void *a, void *b )
 	 * run the functions, and unref.
 	 */
 
-	serial += 1;
-	images = NULL;
-	vips__link_mapp( image, 
-		(VipsSListMap2Fn) vips__link_map_cb, &serial, &images, NULL );
+	map.upstream = upstream;
+	map.serial = &serial;
+	map.fn = (VipsSListMap2Fn) vips__link_map_cb;
+	map.a = (void *) &images;
+	map.b = NULL;
+
+	vips__link_mapp( image, &map ); 
 
 	for( p = images; p; p = p->next ) 
 		g_object_ref( p->data );
