@@ -414,6 +414,8 @@ vips_image_summary( VipsObject *object, VipsBuf *buf )
 			vips_enum_nick( VIPS_TYPE_CODING, 
 				vips_image_get_coding( image ) ) );
 	}
+	vips_buf_appendf( buf, ", %s", 
+		vips_enum_nick( VIPS_TYPE_IMAGE_TYPE, image->dtype ) );
 
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->summary( object, buf );
 }
