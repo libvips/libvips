@@ -329,7 +329,7 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 	for( i = 0; i < len; i++ )
 		vips__link_make( in[i], image );
 
-	/* Set a flag on the image to say we remember to call this thing.
+	/* Set a flag on the image to say we remembered to call this thing.
 	 * vips_image_generate() and friends check this.
 	 */
 	image->hint_set = TRUE;

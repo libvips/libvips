@@ -782,6 +782,12 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 */
 		if( !vips_foreign_load_iscompat( load->real, out ) )
 			return( NULL );
+
+		/* We have to tell vips that out depends on real. We've set
+		 * the demand hint below, but not given an input there.
+		 */
+		vips_demand_hint( load->out, load->out->dhint, 
+			load->real, NULL );
 	}
 
 	return( vips_region_new( load->real ) );

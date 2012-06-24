@@ -1111,8 +1111,6 @@ vips_image_minimise_all_cb( VipsImage *image )
 void 
 vips_image_minimise_all( VipsImage *image )
 {
-	printf( "vips_image_minimise_all:\n" ); 
-
 	(void) vips__link_map( image, TRUE,
 		(VipsSListMap2Fn) vips_image_minimise_all_cb, NULL, NULL );
 }

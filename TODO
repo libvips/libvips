@@ -1,9 +1,10 @@
-- tile cache doesn't need to copy if request fits within a tile
+- vips_image_minimise_all( im );
 
-  though doing a copy means that we can safely drop the cache without leaving
-  dangling pointers
+	call this at the end of thereadpool_run(), doesnt seem to trigger the
+	minimise callback on tilecache?
 
-- could jpeg load via memory buffer support minimise too?
+	it does trigger it if we turn OFF seq mode??! how odd
+
 
 
 blocking bugs

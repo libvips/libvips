@@ -913,8 +913,6 @@ vips_threadpool_run( VipsImage *im,
 
 	vips_threadpool_free( pool );
 
-	/* Ask the pipeline to drop into low-mem-use mode now we're done.
-	 */
 	vips_image_minimise_all( im );
 
 	return( result );

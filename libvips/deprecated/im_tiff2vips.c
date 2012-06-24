@@ -55,6 +55,7 @@ im_tiff2vips( const char *name, IMAGE *out )
 	char mode[FILENAME_MAX];
 	char *p, *q;
 	int page;
+	gboolean sequential;
 	VipsImage *t;
 
 	im_filename_split( name, filename, mode );
@@ -64,9 +65,14 @@ im_tiff2vips( const char *name, IMAGE *out )
 	if( (q = im_getnextoption( &p )) ) {
 		page = atoi( q );
 	}
+	if( (q = im_getnextoption( &p )) ) {
+		if( im_isprefix( "seq", q ) )
+			sequential = TRUE;
+	}
 
 	if( vips_tiffload( filename, &t, 
 		"page", page,
+		"sequential", sequential,
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {

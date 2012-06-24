@@ -15,6 +15,8 @@
  * 	- use im_prepare_to() and avoid making a sequence for every cache tile
  * 5/12/11
  * 	- rework as a class
+ * 23/6/12
+ * 	- listen for "minimise" signal
  */
 
 /*
@@ -346,6 +348,14 @@ vips_tile_cache_gen( VipsRegion *or,
 
 	g_mutex_lock( cache->lock );
 
+	/* If the output region fits within a tile (tiles can become quite
+	 * large for seq caches, for example), we could save a copy by routing
+	 * the output region directly to the tile.
+	 *
+	 * However this would mean that tile drop on minimise could then leave
+	 * dangling pointers, if minimuse was called on an active pipeline.
+	 */
+
 	VIPS_DEBUG_MSG( "vips_tile_cache_gen: "
 		"left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height );
@@ -383,8 +393,6 @@ vips_tile_cache_gen( VipsRegion *or,
 static void
 vips_tile_cache_minimise( VipsImage *image, VipsTileCache *cache )
 {
-	printf( "vips_tile_cache_minimise:\n" );
-
 	vips_tile_cache_drop_all( cache );
 }
 

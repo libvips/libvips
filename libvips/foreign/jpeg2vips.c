@@ -905,7 +905,7 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	jpeg->decompressing = TRUE;
 
 #ifdef DEBUG
-	printf( "read_jpeg_image: starting deompress\n" );
+	printf( "read_jpeg_image: starting decompress\n" );
 #endif /*DEBUG*/
 
 	if( vips_image_generate( t[0], 

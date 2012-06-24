@@ -52,6 +52,7 @@ im_jpeg2vips( const char *name, IMAGE *out )
 	char *p, *q;
 	int shrink;
 	gboolean fail_on_warn;
+	gboolean sequential;
 	VipsImage *t;
 
 	/* By default, we ignore any warnings. We want to get as much of
@@ -64,6 +65,7 @@ im_jpeg2vips( const char *name, IMAGE *out )
 	im_filename_split( name, filename, mode );
 	p = &mode[0];
 	shrink = 1;
+	sequential = FALSE;
 	if( (q = im_getnextoption( &p )) ) {
 		shrink = atoi( q );
 
@@ -78,10 +80,15 @@ im_jpeg2vips( const char *name, IMAGE *out )
 		if( im_isprefix( "fail", q ) ) 
 			fail_on_warn = TRUE;
 	}
+	if( (q = im_getnextoption( &p )) ) {
+		if( im_isprefix( "seq", q ) )
+			sequential = TRUE;
+	}
 
 	if( vips_jpegload( filename, &t, 
 		"shrink", shrink,
 		"fail", fail_on_warn,
+		"sequential", sequential,
 		NULL ) )
 		return( -1 );
 
