@@ -2,12 +2,14 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT(vips, 7.29.0, vipsip@jiscmail.ac.uk)
+AC_INIT([vips], [7.29.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
-# gobject-introspection recommends this
-AM_INIT_AUTOMAKE([-Wno-portability])
+# gobject-introspection recommends -Wno-portability
+# foreign stops complaints about a missing README (we use README.md instead)
+# and missing INSTALL (the standard Gnu INSTALL is not very useful)
+AM_INIT_AUTOMAKE([-Wno-portability foreign])
 
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
