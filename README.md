@@ -1,11 +1,9 @@
 # libvips : an image processing library
 
 libvips is an image processing library. It's good for large images and for
-colour. There's a GUI as well, see the VIPS website:
+colour. There's a GUI as well, see the [VIPS website](http://www.vips.ecs.soton.ac.uk).
 
-	http://www.vips.ecs.soton.ac.uk
-
-There are packages for most unix-like operating systems, and binaries for
+There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
 
 # Building libvips from source
@@ -16,7 +14,7 @@ In the libvips directory you should just be able to do:
 	$ make
 	$ sudo make install
 
-By default this will install files to /usr/local.
+By default this will install files to `/usr/local`.
 
 See the Dependencies section below for a list of the things that
 libvips needs in order to be able to build.
@@ -30,7 +28,7 @@ X](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_OS_X).
 
 Checkout the latest sources with:
 
-	git clone git://github.com/jcupitt/libvips.git
+	$ git clone git://github.com/jcupitt/libvips.git
 
 Then for a debug build:
 
@@ -38,7 +36,6 @@ Then for a debug build:
 	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" ./configure --prefix=/home/john/vips --enable-gtk-doc
 	$ make
 	$ make install
-
 
 # Dependencies 
 
@@ -48,8 +45,8 @@ sh, pkg-config and gnu make.
 # Optional dependencies
 
 If suitable versions are found, libvips will add support for the following
-libraries automatically. See "./configure --help" for a set of flags to
-control library detection. Packages are generally found with pkg-config,
+libraries automatically. See `./configure --help` for a set of flags to
+control library detection. Packages are generally found with `pkg-config`,
 so make sure that is working.
 
 libtiff and libjpeg do not usually use pkg-config so libvips looks for
@@ -77,7 +74,7 @@ The IJG JPEG library.
 
 ## libexif
 
-if available, libvips adds support for EXIF metadata in JPEG files
+If available, libvips adds support for EXIF metadata in JPEG files.
 
 ## libtiff
 
@@ -102,7 +99,7 @@ can also use fftw2, but 3 is faster and more accurate.
 
 If present, im_icc_import(), _export() and _transform() are available
 for transforming images with ICC profiles. If lcms2 is available,
-it is used in preference to lcms.
+it is used in preference to lcms since it is faster.
 
 ## Large files
 
@@ -112,45 +109,45 @@ be OK.
 
 ## libpng
 
-if present, libvips can load and save png files. 
+If present, libvips can load and save png files. 
 
 ## libMagick, or optionally GraphicsMagick
 
 if available, libvips adds support for loading all libMagick supported
 image file types (about 80 different formats). Use
---with-magickpackage to build against graphicsmagick instead.
+`--with-magickpackage` to build against graphicsmagick instead.
 
 ## pangoft2
 
-if available, libvips adds support for text rendering. You need the
-package pangoft2 in "pkg-config --list-all"
+If available, libvips adds support for text rendering. You need the
+package pangoft2 in `pkg-config --list-all`.
 
 ## orc-0.4
 
-if available, vips will accelerate some operations with this run-time
-compiler
+If available, vips will accelerate some operations with this run-time
+compiler.
 
 ## matio
 
-if available, vips can load images from Matlab save files
+If available, vips can load images from Matlab save files.
 
 ## cfitsio
 
-if available, vips can load FITS images
+If available, vips can load FITS images.
 
 ## OpenEXR
 
-if available, libvips will directly read (but not write, sadly)
-OpenEXR images
+If available, libvips will directly read (but not write, sadly)
+OpenEXR images.
 
 ## OpenSlide
 
-if available, libvips can load OpenSlide-supported virtual slide
-files: Aperio, Hamamatsu VMS and VMU, MIRAX, and Trestle
+If available, libvips can load OpenSlide-supported virtual slide
+files: Aperio, Hamamatsu VMS and VMU, MIRAX, and Trestle.
 
 ## swig, python, python-dev
 
-if available, we build the python binding too
+If available, we build the python binding too.
 
 # Disclaimer
 
