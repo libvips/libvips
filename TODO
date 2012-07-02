@@ -1,11 +1,8 @@
-- vips_image_minimise_all( im );
+- should
 
-	call this at the end of thereadpool_run(), doesnt seem to trigger the
-	minimise callback on tilecache?
+	vips_image_new_mode ()
 
-	it does trigger it if we turn OFF seq mode??! how odd
-
-
+  have "rs" mode? ie. open for sequential read?
 
 blocking bugs
 =============
