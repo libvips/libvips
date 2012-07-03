@@ -61,6 +61,7 @@ im_tiff2vips( const char *name, IMAGE *out )
 	im_filename_split( name, filename, mode );
 
 	page = 0;
+	sequential = FALSE;
 	p = &mode[0];
 	if( (q = im_getnextoption( &p )) ) {
 		page = atoi( q );
