@@ -356,9 +356,9 @@ vips_tracked_open( const char *pathname, int flags, ... )
 
 	vips_tracked_files += 1;
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "vips_tracked_open: %s = %d (%d)\n", 
 		pathname, fd, vips_tracked_files );
+#endif /*DEBUG*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 
@@ -391,8 +391,8 @@ vips_tracked_close( int fd )
 
 	vips_tracked_files -= 1;
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "vips_tracked_close: %d (%d)\n", fd, vips_tracked_files );
+#endif /*DEBUG*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 

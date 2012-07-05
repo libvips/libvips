@@ -285,9 +285,6 @@ vips_image_dispose( GObject *gobject )
 	if( image->fd != -1 ) {
 		VIPS_DEBUG_MSG( "vips_image_dispose: closing output file\n" );
 
-		if( image->dtype == VIPS_IMAGE_OPENOUT )
-			(void) vips__writehist( image );
-
 		if( vips_tracked_close( image->fd ) == -1 ) 
 			vips_error( "VipsImage", 
 				"%s", _( "unable to close fd" ) );
@@ -606,7 +603,8 @@ vips_image_build( VipsObject *object )
 	 */
 	switch( mode[0] ) {
         case 'v':
-		/* Used by 'r' for native open of vips, see below.
+		/* Used by 'r' for native open of vips, see below. Also by
+		 * vips_image_rewind_output().
 		 */
 		if( vips_image_open_input( image ) )
 			return( -1 );
@@ -793,6 +791,18 @@ vips_image_real_invalidate( VipsImage *image )
 	g_mutex_unlock( image->sslock );
 }
 
+static void 
+vips_image_real_written( VipsImage *image, int *result )
+{
+	VIPS_DEBUG_MSG( "vips_image_real_written: %p\n", image );
+
+	/* For vips image write, append the xml after the data.
+	 */
+	if( image->dtype == VIPS_IMAGE_OPENOUT &&
+		vips__writehist( image ) ) 
+		*result = -1;
+}
+
 static void
 vips_image_class_init( VipsImageClass *class )
 {
@@ -828,6 +838,7 @@ vips_image_class_init( VipsImageClass *class )
 	vobject_class->build = vips_image_build;
 
 	class->invalidate = vips_image_real_invalidate;
+	class->written = vips_image_real_written;
 
 	/* Create properties.
 	 */
@@ -1895,49 +1906,51 @@ vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer )
 	return( 0 );
 }
 
-/* Rewind an output file.
+/* Rewind an output file. VIPS images only.
  */
 static int
 vips_image_rewind_output( VipsImage *image ) 
 {
 	int fd;
 
-#ifdef DEBUG_IO
-#endif/*DEBUG_IO*/
-	printf( "vips_image_rewind_output: %s\n", image->filename );
+	g_assert( image->dtype == VIPS_IMAGE_OPENOUT );
 
-	/* If this is a temp OPENOUT image on Windows, rewinding will close
-	 * the FD and delete the file (since we set O_TEMP).
+#ifdef DEBUG_IO
+	printf( "vips_image_rewind_output: %s\n", image->filename );
+#endif/*DEBUG_IO*/
+
+	/* We want to keep the fd across rewind. 
 	 *
-	 * We open the file again with a temp handle here to make sure it
-	 * stays alive until the "rd" open we do just below.
+	 * On Windows, we open temp files with _O_TEMPORARY. We mustn't close
+	 * the file since this will delete it. 
+	 *
+	 * We could open the file again to keep a reference to it alive, but
+	 * this is also problematic on Windows. 
 	 */
-	if( (fd = vips__open_image_read( image->filename )) == -1 )
-		return( -1 );
+	fd = image->fd;
+	image->fd = -1;
 
 	/* Free any resources the image holds and reset to a base
 	 * state.
 	 */
 	vips_object_rewind( VIPS_OBJECT( image ) );
 
-	/* And reopen .. recurse to get a mmaped image.
+	/* And reopen ... recurse to get a mmaped image. 
+	 *
+	 * We use "v" mode to get it opened as a vips image, byopassing the
+	 * file type checks. They will fail on Windows becasue you can't open
+	 * fds more than once.
 	 */
+	image->fd = fd;
 	g_object_set( image,
-		"mode", "rd",
+		"mode", "v",
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
 		vips_error( "VipsImage", 
 			_( "auto-rewind for %s failed" ),
 			image->filename );
-		vips_tracked_close( fd );
 		return( -1 );
 	}
-
-	/* Now we've reopened, we can drop the ref we made.
-	 */
-	vips_tracked_close( fd );
-
-	printf( "vips_image_rewind_output: deleteing temp\n" );
 
 	/* Now we've finished writing and reopened as read, we can
 	 * delete-on-close. 
@@ -1948,7 +1961,7 @@ vips_image_rewind_output( VipsImage *image )
 	 *
 	 * On Windows this will fail because the file is open and you can't
 	 * delete open files. However, on Windows we set O_TEMP, so the file
-	 * will be deleted anyway on exit.
+	 * will be deleted when the fd is finally closed.
 	 */
 	vips_image_delete( image );
 
