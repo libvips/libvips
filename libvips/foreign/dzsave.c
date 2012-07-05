@@ -2,11 +2,10 @@
  *
  * 21/3/12
  * 	- from the tiff pyramid writer
-
-
-- need to copy overlap down strips
-
-
+ *
+ * 5/7/12
+ * 	- make tiles down to 1x1 pixels
+ *	- oop make right-hand edge tiles
  */
 
 /*
@@ -165,8 +164,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int w, int h )
 		return( NULL );
 	}
 
-	if( w > dz->tile_width || 
-		h > dz->tile_height ) {
+	if( w > 1 &&
+		h > 1 ) {
 		if( !(layer->below = pyramid_build( dz, 
 			layer, w / 2, h / 2 )) ) {
 			layer_free( layer );
@@ -344,7 +343,6 @@ strip_save( Layer *layer )
 {
 	VipsForeignSaveDz *dz = layer->dz;
 	VipsRegion *strip = layer->strip;
-	int y = strip->valid.top / dz->tile_height;
 
 	VipsImage *image;
 	int x;
@@ -355,13 +353,13 @@ strip_save( Layer *layer )
 		strip->im->Bands, strip->im->BandFmt )) )
 		return( -1 );
 
-	for( x = 0; x < strip->valid.width / dz->tile_width; x++ ) {
+	for( x = 0; x < strip->valid.width; x += dz->tile_width ) {
 		VipsImage *extr;
 		VipsRect tile;
 		char str[1000];
 		VipsBuf buf = VIPS_BUF_STATIC( str );
 
-		tile.left = x * dz->tile_width;
+		tile.left = x;
 		tile.top = strip->valid.top;
 		tile.width = dz->tile_width + dz->overlap;
 		tile.height = dz->tile_height + dz->overlap;
@@ -377,7 +375,8 @@ strip_save( Layer *layer )
 
 		vips_buf_appendf( &buf, "%s/%d/%d_%d%s",
 			dz->dirname, layer->n,
-			x, y, 
+			x / dz->tile_width, 
+			strip->valid.top / dz->tile_height, 
 			dz->suffix );
 
 		if( vips_image_write_to_file( extr, vips_buf_all( &buf ) ) ) {
