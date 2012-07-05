@@ -1212,7 +1212,7 @@ static void
 vips_object_real_rewind( VipsObject *object )
 {
 #ifdef DEBUG
-	printf( "vips_object_rewind\n" );
+	printf( "vips_object_real_rewind\n" );
 	vips_object_print_name( object );
 	printf( "\n" );
 #endif /*DEBUG*/
