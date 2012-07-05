@@ -1563,7 +1563,7 @@ vips_image_new_array( int xsize, int ysize )
  * @delete_on_close: format of file
  *
  * Sets the delete_on_close flag for the image. If this flag is set, when
- * @image is finalized the filename held in @image->filename at the time of
+ * @image is finalized, the filename held in @image->filename at the time of
  * this call is unlinked.
  *
  * This function is clearly extremely dangerous, use with great caution.
@@ -1900,9 +1900,20 @@ vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer )
 static int
 vips_image_rewind_output( VipsImage *image ) 
 {
+	int fd;
+
 #ifdef DEBUG_IO
-	printf( "vips_image_rewind_output: %s\n", image->filename );
 #endif/*DEBUG_IO*/
+	printf( "vips_image_rewind_output: %s\n", image->filename );
+
+	/* If this is a temp OPENOUT image on Windows, rewinding will close
+	 * the FD and delete the file (since we set O_TEMP).
+	 *
+	 * We open the file again with a temp handle here to make sure it
+	 * stays alive until the "rd" open we do just below.
+	 */
+	if( (fd = vips__open_image_read( image->filename )) == -1 )
+		return( -1 );
 
 	/* Free any resources the image holds and reset to a base
 	 * state.
@@ -1918,8 +1929,15 @@ vips_image_rewind_output( VipsImage *image )
 		vips_error( "VipsImage", 
 			_( "auto-rewind for %s failed" ),
 			image->filename );
+		vips_tracked_close( fd );
 		return( -1 );
 	}
+
+	/* Now we've reopened, we can drop the ref we made.
+	 */
+	vips_tracked_close( fd );
+
+	printf( "vips_image_rewind_output: deleteing temp\n" );
 
 	/* Now we've finished writing and reopened as read, we can
 	 * delete-on-close. 

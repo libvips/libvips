@@ -1,6 +1,8 @@
 18/6/12 started 7.28.9
 - slightly more memory debugging output
 - remove references to the static bicubic interpolator from the docs
+- fix temp file handling on Windows --- was breaking for non-vips files 
+  over 100mb
 
 18/6/12 started 7.28.8
 - fixes for centos5 portability
