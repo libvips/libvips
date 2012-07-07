@@ -7,6 +7,8 @@
  * 	- make tiles down to 1x1 pixels 
  *	- oop make right-hand edge tiles 
  *	- improve overlap handling 
+ * 7/7/12
+ * 	- threaded write
  */
 
 /*
@@ -332,71 +334,139 @@ shrink_region_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
 	}
 }
 
-/* Write a line of tiles. 
+/* Our state during a threaded write of a strip.
  */
-static int
-strip_save( Layer *layer )
+typedef struct _Strip {
+	Layer *layer; 
+	VipsImage *image;
+
+	/* Allocate the next tile on this boundary. 
+	 */
+	int x;
+} Strip;
+
+static void
+strip_free( Strip *strip )
+{
+	g_object_unref( strip->image );
+}
+
+static void
+strip_init( Strip *strip, Layer *layer )
 {
 	VipsForeignSaveDz *dz = layer->dz;
 
-	VipsRect strip, image;
-	VipsImage *im;
-	int x;
+	VipsRect line, image;
 
-	strip.left = 0;
-	strip.top = layer->y - dz->overlap;
-	strip.width = layer->image->Xsize;
-	strip.height = dz->tile_height + 2 * dz->overlap;
+	strip->layer = layer;
+	strip->image = NULL;
+	strip->x = 0;
+
+	line.left = 0;
+	line.top = layer->y - dz->overlap;
+	line.width = layer->image->Xsize;
+	line.height = dz->tile_height + 2 * dz->overlap;
 
 	image.left = 0;
 	image.top = 0;
 	image.width = layer->image->Xsize;
 	image.height = layer->image->Ysize;
 
-	vips_rect_intersectrect( &image, &strip, &strip );
+	vips_rect_intersectrect( &image, &line, &line );
 
-	if( !(im = vips_image_new_from_memory( 
-		VIPS_REGION_ADDR( layer->strip, 0, strip.top ),
-		strip.width, strip.height, 
-		layer->image->Bands, layer->image->BandFmt )) )
-		return( -1 );
+	if( !(strip->image = vips_image_new_from_memory( 
+		VIPS_REGION_ADDR( layer->strip, 0, line.top ),
+		line.width, line.height, 
+		layer->image->Bands, layer->image->BandFmt )) ) {
+		strip_free( strip );
+		return;
+	}
+}
 
-	for( x = 0; x < strip.width; x += dz->tile_width ) {
-		VipsImage *extr;
-		VipsRect tile;
-		char str[1000];
-		VipsBuf buf = VIPS_BUF_STATIC( str );
+static int
+strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
+{
+	Strip *strip = (Strip *) a;
+	Layer *layer = strip->layer;
+	VipsForeignSaveDz *dz = layer->dz;
 
-		tile.left = x - dz->overlap;
-		tile.top = strip.top;
-		tile.width = dz->tile_width + 2 * dz->overlap;
-		tile.height = strip.height;
-		vips_rect_intersectrect( &tile, &strip, &tile );
+	VipsRect image;
 
-		/* Extract relative to the strip top-left corner.
-		 */
-		if( vips_extract_area( im, &extr, 
-			tile.left, 0, tile.width, tile.height, NULL ) ) {
-			g_object_unref( im );
-			return( -1 );
-		}
+	/* Position this tile.
+	 */
+	state->pos.left = strip->x - dz->overlap;
+	state->pos.top = 0;
+	state->pos.width = dz->tile_width + 2 * dz->overlap;
+	state->pos.height = state->im->Ysize;
 
-		vips_buf_appendf( &buf, "%s/%d/%d_%d%s",
-			dz->dirname, layer->n,
-			x / dz->tile_width, 
-			layer->y / dz->tile_height, 
-			dz->suffix );
+	image.left = 0;
+	image.top = 0;
+	image.width = state->im->Xsize;
+	image.height = state->im->Ysize;
 
-		if( vips_image_write_to_file( extr, vips_buf_all( &buf ) ) ) {
-			g_object_unref( im );
-			g_object_unref( extr );
-			return( -1 );
-		}
+	vips_rect_intersectrect( &image, &state->pos, &state->pos );
+	state->x = strip->x;
+	state->y = layer->y;
 
-		g_object_unref( extr );
+	strip->x += dz->tile_width;
+
+	if( vips_rect_isempty( &state->pos ) ) {
+		*stop = TRUE;
+		return( 0 );
 	}
 
-	g_object_unref( im );
+	return( 0 );
+}
+
+static int
+strip_work( VipsThreadState *state, void *a )
+{
+	Strip *strip = (Strip *) a;
+	Layer *layer = strip->layer;
+	VipsForeignSaveDz *dz = layer->dz;
+
+	VipsImage *extr;
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	/* Extract relative to the strip top-left corner.
+	 */
+	if( vips_extract_area( state->im, &extr, 
+		state->pos.left, 0, 
+		state->pos.width, state->pos.height, NULL ) ) 
+		return( -1 );
+
+	vips_buf_appendf( &buf, "%s/%d/%d_%d%s",
+		dz->dirname, layer->n,
+		state->x / dz->tile_width, 
+		state->y / dz->tile_height, 
+		dz->suffix );
+
+	if( vips_image_write_to_file( extr, vips_buf_all( &buf ) ) ) {
+		g_object_unref( extr );
+		return( -1 );
+	}
+
+	g_object_unref( extr );
+
+	return( 0 );
+}
+
+/* Write a line of tiles with a threadpool. 
+ */
+static int
+strip_save( Layer *layer )
+{
+	Strip strip;
+
+	strip_init( &strip, layer );
+	if( vips_threadpool_run( strip.image, 
+		vips_thread_state_new, strip_allocate, strip_work, NULL, 
+		&strip ) ) {
+		strip_free( &strip );
+		return( -1 );
+	}
+	strip_free( &strip );
 
 	return( 0 );
 }
