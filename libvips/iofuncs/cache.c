@@ -2,6 +2,8 @@
  *
  * 20/6/12
  * 	- try to make it compile on centos5
+ * 7/7/12
+ * 	- add a lock so we can run operations from many threads
  */
 
 /*
@@ -102,6 +104,10 @@ static GHashTable *vips_cache_table = NULL;
 /* A 'time' counter: increment on all cache ops. Use this to detect LRU.
  */
 static int vips_cache_time = 0;
+
+/* Protect cache access with this.
+ */
+static GMutex *vips_cache_lock = NULL;
 
 /* Old versions of glib are missing these. When we abandon centos 5, switch to
  * g_int64_hash() and g_double_hash().
@@ -407,6 +413,8 @@ static void
 vips_cache_init( void )
 {
 	if( !vips_cache_table ) {
+		vips_cache_lock = g_mutex_new();
+
 		vips_cache_table = g_hash_table_new( 
 			(GHashFunc) vips_operation_hash, 
 			(GEqualFunc) vips_operation_equal );
@@ -438,7 +446,6 @@ vips_cache_print_fn( void *value, void *a, void *b )
 	return( NULL );
 }
 
-
 /**
  * vips_cache_print:
  *
@@ -447,11 +454,15 @@ vips_cache_print_fn( void *value, void *a, void *b )
 void
 vips_cache_print( void )
 {
+	g_mutex_lock( vips_cache_lock );
+
 	if( vips_cache_table ) {
 		printf( "Operation cache:\n" );
 		vips_hash_table_map( vips_cache_table, 
 			vips_cache_print_fn, NULL, NULL ); 
 	}
+
+	g_mutex_unlock( vips_cache_lock );
 }
 
 static void *
@@ -578,6 +589,8 @@ vips_cache_trim( void )
 {
 	VipsOperation *operation;
 
+	g_mutex_lock( vips_cache_lock );
+
 	while( vips_cache_table &&
 		(g_hash_table_size( vips_cache_table ) > vips_cache_max ||
 		vips_tracked_get_files() > vips_cache_max_files ||
@@ -589,6 +602,8 @@ vips_cache_trim( void )
 
 		vips_cache_drop( operation );
 	}
+
+	g_mutex_unlock( vips_cache_lock );
 }
 
 static void *
@@ -659,6 +674,8 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 	vips_cache_trim();
 
+	g_mutex_lock( vips_cache_lock );
+
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		if( vips__cache_trace ) {
 			printf( "vips cache: hit %p\n  ", hit );
@@ -672,7 +689,10 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 		*operation = hit;
 	}
-	else {
+
+	g_mutex_unlock( vips_cache_lock );
+
+	if( !hit ) {
 		if( vips__cache_trace ) {
 			if( (*operation)->nocache ) 
 				printf( "vips cache: uncacheable %p\n  ", 
@@ -682,15 +702,20 @@ vips_cache_operation_buildp( VipsOperation **operation )
 			vips_object_print_summary( VIPS_OBJECT( *operation ) );
 		}
 
-		if( vips_object_build( VIPS_OBJECT( *operation ) ) )
+		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
+
+		g_mutex_lock( vips_cache_lock );
 
 		if( !(*operation)->nocache ) {
 			vips_cache_ref( *operation );
 			g_hash_table_insert( vips_cache_table, 
 				*operation, *operation );
 		}
+
+		g_mutex_unlock( vips_cache_lock );
 	}
+
 
 	return( 0 );
 }

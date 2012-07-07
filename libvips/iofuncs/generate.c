@@ -50,6 +50,9 @@
  * 24/3/11
  * 	- move demand_hint stuff in here
  * 	- move to vips_ namespace
+ * 7/7/12
+ * 	- lock around link make/break so we can process an image from many
+ * 	  threads
  */
 
 /*
@@ -172,10 +175,12 @@ vips__link_break_rev( VipsImage *image_down, VipsImage *image_up )
 void
 vips__link_break_all( VipsImage *image )
 {
+	g_mutex_lock( vips__global_lock );
 	vips_slist_map2( image->upstream, 
 		(VipsSListMap2Fn) vips__link_break, image, NULL );
 	vips_slist_map2( image->downstream, 
 		(VipsSListMap2Fn) vips__link_break_rev, image, NULL );
+	g_mutex_unlock( vips__global_lock );
 
 	g_assert( !image->upstream );
 	g_assert( !image->downstream );
@@ -326,8 +331,10 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 
 	/* im depends on all these ims.
 	 */
+	g_mutex_lock( vips__global_lock );
 	for( i = 0; i < len; i++ )
 		vips__link_make( in[i], image );
+	g_mutex_unlock( vips__global_lock );
 
 	/* Set a flag on the image to say we remembered to call this thing.
 	 * vips_image_generate() and friends check this.

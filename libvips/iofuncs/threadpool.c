@@ -835,9 +835,8 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
  * processed, @progress is called, so that the operation can give
  * progress feedback. @progress may be %NULL.
  *
- * Each thread has private state that the @allocate and @work functions can 
- * use to communicate. This state is created by each worker as it starts using
- * @start. Use the state destructor to clean up.
+ * The object returned by @start must be an instance of a subclass of
+ * #VipsThreadState. Use this to communicate between @allocate and @work. 
  *
  * @allocate and @start are always single-threaded (so they can write to the 
  * per-pool state), whereas @work can be executed concurrently. @progress is 
