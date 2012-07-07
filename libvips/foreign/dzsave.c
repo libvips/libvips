@@ -3,9 +3,10 @@
  * 21/3/12
  * 	- from the tiff pyramid writer
  *
- * 5/7/12
- * 	- make tiles down to 1x1 pixels
- *	- oop make right-hand edge tiles
+ * 5/7/12 (thanks Alexander Koshman)
+ * 	- make tiles down to 1x1 pixels 
+ *	- oop make right-hand edge tiles 
+ *	- improve overlap handling 
  */
 
 /*
@@ -35,9 +36,10 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -59,6 +61,15 @@ struct _Layer {
 	VipsForeignSaveDz *dz;
 
 	VipsImage *image;		/* The image we build */
+
+	/* The top of this strip of tiles, excluding the overlap. Go up from
+	 * this to get to the top pixel we write in each one.
+	 */
+	int y;
+
+	/* The next line we write to in this strip. 
+	 */
+	int write_y;
 
 	VipsRegion *strip;		/* The current strip of pixels */
 	VipsRegion *copy;		/* Pixels we copy to the next strip */
@@ -153,8 +164,11 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int w, int h )
 	vips__region_no_ownership( layer->strip );
 	vips__region_no_ownership( layer->copy );
 
-	/* Build a line of tiles here.
+	/* Build a line of tiles here. Normally strips are height + 2 *
+	 * overlap, but the first row is missing the top edge.
 	 */
+	layer->y = 0;
+	layer->write_y = 0;
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = w;
@@ -198,33 +212,24 @@ pyramid_mkdir( VipsForeignSaveDz *dz )
 	return( 0 );
 }
 
-/* Shrink a region by a factor of two, writing the result to a specified 
- * offset in another region. VIPS_CODING_LABQ only.
+/* Generate area @target in @to using pixels in @from. VIPS_CODING_LABQ only.
  */
 static void
-shrink_region_labpack( VipsRegion *from, VipsRegion *to )
+shrink_region_labpack( VipsRegion *from, VipsRegion *to, VipsRect *target )
 {
 	int ls = VIPS_REGION_LSKIP( from );
 
 	int x, y;
-	VipsRect target;
 
-	/* Calculate output size and position.
-	 */
-	target.left = from->valid.left / 2;
-	target.top = from->valid.top / 2;
-	target.width = from->valid.width / 2;
-	target.height = from->valid.height / 2;
-
-	for( y = 0; y < target.height; y++ ) {
+	for( y = 0; y < target->height; y++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( from, 
-			from->valid.left, from->valid.top + y * 2 );
+			target->left * 2, (target->top + y) * 2 );
 		VipsPel *q = VIPS_REGION_ADDR( to, 
-			target.left, target.top + y );
+			target->left, target->top + y );
 
 		/* Ignore the extra bits for speed.
 		 */
-		for( x = 0; x < target.width; x++ ) {
+		for( x = 0; x < target->width; x++ ) {
 			signed char *sp = (signed char *) p;
 			unsigned char *up = (unsigned char *) p;
 
@@ -247,7 +252,7 @@ shrink_region_labpack( VipsRegion *from, VipsRegion *to )
 }
 
 #define SHRINK_TYPE_INT( TYPE ) \
-	for( x = 0; x < target.width; x++ ) { \
+	for( x = 0; x < target->width; x++ ) { \
 		TYPE *tp = (TYPE *) p; \
 		TYPE *tp1 = (TYPE *) (p + ls); \
 		TYPE *tq = (TYPE *) q; \
@@ -266,7 +271,7 @@ shrink_region_labpack( VipsRegion *from, VipsRegion *to )
 	}
 
 #define SHRINK_TYPE_FLOAT( TYPE )  \
-	for( x = 0; x < target.width; x++ ) { \
+	for( x = 0; x < target->width; x++ ) { \
 		TYPE *tp = (TYPE *) p; \
 		TYPE *tp1 = (TYPE *) (p + ls); \
 		TYPE *tq = (TYPE *) q; \
@@ -284,31 +289,22 @@ shrink_region_labpack( VipsRegion *from, VipsRegion *to )
 		q += ps; \
 	}
 
-/* Shrink a region by a factor of two, writing the result to a specified 
- * offset in another region. n-band, non-complex.
+/* Generate area @target in @to using pixels in @from. Non-complex.
  */
 static void
-shrink_region( VipsRegion *from, VipsRegion *to )
+shrink_region_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
 {
 	int ls = VIPS_REGION_LSKIP( from );
 	int ps = VIPS_IMAGE_SIZEOF_PEL( from->im );
 	int nb = from->im->Bands;
 
 	int x, y, z;
-	VipsRect target;
 
-	/* Calculate output size and position.
-	 */
-	target.left = from->valid.left / 2;
-	target.top = from->valid.top / 2;
-	target.width = from->valid.width / 2;
-	target.height = from->valid.height / 2;
-
-	for( y = 0; y < target.height; y++ ) {
+	for( y = 0; y < target->height; y++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( from, 
-			from->valid.left, from->valid.top + y * 2 );
+			target->left * 2, (target->top + y) * 2 );
 		VipsPel *q = VIPS_REGION_ADDR( to, 
-			target.left, target.top + y );
+			target->left, target->top + y );
 
 		/* Process this line of pels.
 		 */
@@ -342,113 +338,169 @@ static int
 strip_save( Layer *layer )
 {
 	VipsForeignSaveDz *dz = layer->dz;
-	VipsRegion *strip = layer->strip;
 
-	VipsImage *image;
+	VipsRect strip, image;
+	VipsImage *im;
 	int x;
 
-	if( !(image = vips_image_new_from_memory( 
-		VIPS_REGION_ADDR( strip, 0, strip->valid.top ),
-		strip->valid.width, strip->valid.height,
-		strip->im->Bands, strip->im->BandFmt )) )
+	strip.left = 0;
+	strip.top = layer->y - dz->overlap;
+	strip.width = layer->image->Xsize;
+	strip.height = dz->tile_height + 2 * dz->overlap;
+
+	image.left = 0;
+	image.top = 0;
+	image.width = layer->image->Xsize;
+	image.height = layer->image->Ysize;
+
+	vips_rect_intersectrect( &image, &strip, &strip );
+
+	if( !(im = vips_image_new_from_memory( 
+		VIPS_REGION_ADDR( layer->strip, 0, strip.top ),
+		strip.width, strip.height, 
+		layer->image->Bands, layer->image->BandFmt )) )
 		return( -1 );
 
-	for( x = 0; x < strip->valid.width; x += dz->tile_width ) {
+	for( x = 0; x < strip.width; x += dz->tile_width ) {
 		VipsImage *extr;
 		VipsRect tile;
 		char str[1000];
 		VipsBuf buf = VIPS_BUF_STATIC( str );
 
-		tile.left = x;
-		tile.top = strip->valid.top;
-		tile.width = dz->tile_width + dz->overlap;
-		tile.height = dz->tile_height + dz->overlap;
-		vips_rect_intersectrect( &tile, &strip->valid, &tile );
+		tile.left = x - dz->overlap;
+		tile.top = strip.top;
+		tile.width = dz->tile_width + 2 * dz->overlap;
+		tile.height = strip.height;
+		vips_rect_intersectrect( &tile, &strip, &tile );
 
 		/* Extract relative to the strip top-left corner.
 		 */
-		if( vips_extract_area( image, &extr, 
+		if( vips_extract_area( im, &extr, 
 			tile.left, 0, tile.width, tile.height, NULL ) ) {
-			g_object_unref( image );
+			g_object_unref( im );
 			return( -1 );
 		}
 
 		vips_buf_appendf( &buf, "%s/%d/%d_%d%s",
 			dz->dirname, layer->n,
 			x / dz->tile_width, 
-			strip->valid.top / dz->tile_height, 
+			layer->y / dz->tile_height, 
 			dz->suffix );
 
 		if( vips_image_write_to_file( extr, vips_buf_all( &buf ) ) ) {
-			g_object_unref( image );
+			g_object_unref( im );
 			g_object_unref( extr );
 			return( -1 );
 		}
+
 		g_object_unref( extr );
 	}
 
-	g_object_unref( image );
+	g_object_unref( im );
 
 	return( 0 );
 }
 
-/* A new strip of pixels has arrived! 
- * - write 
- * - shrink to the layer below
- * - if that's filled, recurse
+static int strip_arrived( Layer *layer );
+
+/* Shrink what pixels we can from this layer into the layer below. If the
+ * layer below fills, recurse.
+ */
+static int
+strip_shrink( Layer *layer )
+{
+	VipsForeignSaveDz *dz = layer->dz;
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
+	Layer *below = layer->below;
+	VipsRegion *from = layer->strip;
+	VipsRegion *to = below->strip;
+
+	VipsRect target;
+	VipsRect source;
+
+	/* Our pixels might cross a strip boundary in the layer below, so we
+	 * have to write repeatedly until we run out of pixels.
+	 */
+	for(;;) {
+		/* The pixels the layer below needs.
+		 */
+		target.left = 0;
+		target.top = below->write_y;
+		target.width = below->image->Xsize;
+		target.height = to->valid.height;
+		vips_rect_intersectrect( &target, &to->valid, &target );
+
+		/* Those pixels need this area of this layer. 
+		 */
+		source.left = target.left * 2;
+		source.top = target.top * 2;
+		source.width = target.width * 2;
+		source.height = target.height * 2;
+		vips_rect_intersectrect( &source, &from->valid, &source );
+
+		/* So these are the pixels in the layer below we can provide.
+		 */
+		target.left = source.left / 2;
+		target.top = source.top / 2;
+		target.width = source.width / 2;
+		target.height = source.height / 2;
+
+		/* Are we empty? All done. 
+		 */
+		if( source.height < 2 ) 
+			break;
+
+		if( save->ready->Coding == VIPS_CODING_NONE )
+			shrink_region_uncoded( from, to, &target );
+		else
+			shrink_region_labpack( from, to, &target );
+
+		below->write_y += target.height;
+
+		/* If we've filled the strip of the layer below, let it know.
+		 */
+		if( below->write_y == VIPS_RECT_BOTTOM( &to->valid ) &&
+			strip_arrived( below ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* A new strip of pixels has arrived! The strip region has enough pixels in to
+ * write a line of tiles. 
+ *
+ * - write a line of tiles
+ * - shrink what we can to the layer below
  * - move our strip down ready for more stuff, copying the overlap
  */
 static int
 strip_arrived( Layer *layer )
 {
 	VipsForeignSaveDz *dz = layer->dz;
-	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
-	Layer *below = layer->below;
-
-	VipsRect target;
 	VipsRect new_strip;
 	VipsRect overlap;
 
 	if( strip_save( layer ) )
 		return( -1 );
 
-	/* The pixels we can make on the layer below.
-	 */
-	target.left = layer->strip->valid.left / 2;
-	target.top = layer->strip->valid.top / 2;
-	target.width = layer->strip->valid.width / 2;
-	target.height = layer->strip->valid.height / 2;
+	if( layer->below &&
+		strip_shrink( layer ) )
+		return( -1 );
 
-	/* Can have empty strips if this is a 1-pixel high thing at the end.
+	/* Position our strip down the image. 
 	 */
-	if( !vips_rect_isempty( &target ) && 
-		below ) {
-		/* Shrink into place.
-		 */
-		if( save->ready->Coding == VIPS_CODING_NONE )
-			shrink_region( layer->strip, below->strip );
-		else
-			shrink_region_labpack( layer->strip, below->strip );
-
-		/* If we've filled the strip of the layer below, recurse.
-		 */
-		if( VIPS_RECT_BOTTOM( &target ) ==
-			VIPS_RECT_BOTTOM( &below->strip->valid ) &&
-			strip_arrived( below ) )
-			return( -1 );
-	}
-
-	/* Move our strip down the image. 
-	 */
+	layer->y += dz->tile_height;
 	new_strip.left = 0;
-	new_strip.top = layer->strip->valid.top + layer->strip->valid.height;
+	new_strip.top = layer->y - dz->overlap;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_height + dz->overlap;
+	new_strip.height = dz->tile_height + 2 * dz->overlap;
 
+	/* What pixels that we will need do we already have? Save them in 
+	 * overlap.
+	 */
 	vips_rect_intersectrect( &new_strip, &layer->strip->valid, &overlap );
 	if( !vips_rect_isempty( &overlap ) ) {
-		/* There are some pixels we need to copy over.
-		 */
 		if( vips_region_buffer( layer->copy, &overlap ) )
 			return( -1 );
 		vips_region_copy( layer->strip, layer->copy, 
@@ -458,6 +510,8 @@ strip_arrived( Layer *layer )
 	if( vips_region_buffer( layer->strip, &new_strip ) )
 		return( -1 );
 
+	/* And copy back again.
+	 */
 	if( !vips_rect_isempty( &overlap ) ) 
 		vips_region_copy( layer->copy, layer->strip, 
 			&overlap, overlap.left, overlap.top );
@@ -465,34 +519,51 @@ strip_arrived( Layer *layer )
 	return( 0 );
 }
 
-/* Another strip of image pixels from vips_sink_disc(). Recursively write 
- * down the pyramid.
+/* Another strip of image pixels from vips_sink_disc(). Write into the top
+ * pyramid layer. 
  */
 static int
 pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
-	int y;
+	Layer *layer = dz->layer;
 
-	y = 0;
-	while( y < area->height ) { 
-		VipsRect overlap;
+	for(;;) {
+		VipsRect target;
 
-		/* Write what we can into the current top strip.
+		/* The bit of strip that needs filling.
 		 */
-		vips_rect_intersectrect( area, &dz->layer->strip->valid, 
-			&overlap );
-		vips_region_copy( region, dz->layer->strip, 
-			&overlap, overlap.left, overlap.top );
+		target.left = 0;
+		target.top = layer->write_y;
+		target.width = layer->image->Xsize;
+		target.height = layer->strip->valid.height;
+		vips_rect_intersectrect( &target, 
+			&layer->strip->valid, &target );
 
-		/* If we've filled the strip, write.
+		/* Clip against what we have available.
 		 */
-		if( VIPS_RECT_BOTTOM( &overlap ) ==
-			VIPS_RECT_BOTTOM( &dz->layer->strip->valid ) &&
-			strip_arrived( dz->layer ) )
+		vips_rect_intersectrect( &target, area, &target );
+
+		/* Are we empty? All done.
+		 */
+		if( vips_rect_isempty( &target ) ) 
+			break;
+
+		/* And copy those pixels in.
+		 *
+		 * FIXME: If the strip fits inside the region we've just 
+		 * received, we could skip the copy. 
+		 */
+		vips_region_copy( region, layer->strip, 
+			&target, target.left, target.top );
+		layer->write_y += target.height;
+
+		/* If we've filled the strip, let it know.
+		 */
+		if( layer->write_y == 
+			VIPS_RECT_BOTTOM( &layer->strip->valid ) &&
+			strip_arrived( layer ) )
 			return( -1 );
-
-		y += overlap.height;
 	}
 
 	return( 0 );
@@ -507,18 +578,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->
 		build( object ) )
 		return( -1 );
-
-	/* When we do the /2 shrink we need to be sure that we won't get any
-	 * left-over scan lines.
-	 */
-	if( dz->overlap % 2 != 0 ||
-		dz->tile_width % 2 != 0 ||
-		dz->tile_height % 2 != 0 ) {
-		vips_error( "dzsave", 
-			"%s", _( "tile width, height and overlap must all "
-				"be even" ) );
-		return( -1 );
-	}
 
 	if( dz->overlap >= dz->tile_width || 
 		dz->overlap >= dz->tile_height ) {
