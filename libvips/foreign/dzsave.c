@@ -168,13 +168,16 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int w, int h )
 
 	/* Build a line of tiles here. Normally strips are height + 2 *
 	 * overlap, but the first row is missing the top edge.
+	 *
+	 * We add one so that we will have the extra scan line for the shrink 
+	 * in case tile_height is odd and there's no overlap. 
 	 */
 	layer->y = 0;
 	layer->write_y = 0;
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = w;
-	strip.height = dz->tile_height + dz->overlap;
+	strip.height = dz->tile_height + dz->overlap + 1;
 	if( vips_region_buffer( layer->strip, &strip ) ) {
 		layer_free( layer );
 		return( NULL );
@@ -506,6 +509,9 @@ strip_shrink( Layer *layer )
 		source.top = target.top * 2;
 		source.width = target.width * 2;
 		source.height = target.height * 2;
+
+		/* Of which we have these available.
+		 */
 		vips_rect_intersectrect( &source, &from->valid, &source );
 
 		/* So these are the pixels in the layer below we can provide.
@@ -515,7 +521,7 @@ strip_shrink( Layer *layer )
 		target.width = source.width / 2;
 		target.height = source.height / 2;
 
-		/* Are we empty? All done. 
+		/* None? All done.
 		 */
 		if( source.height < 2 ) 
 			break;
@@ -558,13 +564,15 @@ strip_arrived( Layer *layer )
 		strip_shrink( layer ) )
 		return( -1 );
 
-	/* Position our strip down the image. 
+	/* Position our strip down the image.  We add one to the strip height
+	 * to make sure we will have enough pixels for any shrinking even if
+	 * tile_height is odd and there's no overlap.
 	 */
 	layer->y += dz->tile_height;
 	new_strip.left = 0;
 	new_strip.top = layer->y - dz->overlap;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_height + 2 * dz->overlap;
+	new_strip.height = dz->tile_height + 2 * dz->overlap + 1;
 
 	/* What pixels that we will need do we already have? Save them in 
 	 * overlap.
@@ -622,7 +630,8 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 		/* And copy those pixels in.
 		 *
 		 * FIXME: If the strip fits inside the region we've just 
-		 * received, we could skip the copy. 
+		 * received, we could skip the copy. Will this happen very
+		 * often? Unclear.
 		 */
 		vips_region_copy( region, layer->strip, 
 			&target, target.left, target.top );

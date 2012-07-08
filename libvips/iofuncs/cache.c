@@ -409,8 +409,8 @@ vips_operation_equal( VipsOperation *a, VipsOperation *b )
 	return( FALSE );
 }
 
-static void
-vips_cache_init( void )
+void
+vips__cache_init( void )
 {
 	if( !vips_cache_table ) {
 		vips_cache_lock = g_mutex_new();
@@ -669,8 +669,6 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	printf( "vips_cache_operation_build: " );
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
-
-	vips_cache_init();
 
 	vips_cache_trim();
 

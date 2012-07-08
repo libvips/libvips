@@ -4,6 +4,14 @@
 
   have "rs" mode? ie. open for sequential read?
 
+- need a flag on operations for "is sequential"
+
+  should be on the object, not the class, since it can change with params
+
+- we probably have more threading issues :-( 
+
+  look through image and operation init and unref and see what gets called
+
 blocking bugs
 =============
 

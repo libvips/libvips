@@ -227,6 +227,10 @@ vips_init( const char *argv0 )
 	vips__interpolate_init();
 	im__format_init();
 
+	/* Start up operator cache.
+	 */
+	vips__cache_init();
+
 	/* Start up packages.
 	 */
 	vips_arithmetic_operation_init();
