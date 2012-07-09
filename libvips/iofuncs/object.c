@@ -1770,6 +1770,54 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 	return( object );
 }
 
+int
+vips_object_set_valist( VipsObject *object, va_list ap )
+{
+	char *name;
+
+	VIPS_DEBUG_MSG( "vips_object_set_valist:\n" );
+
+	name = va_arg( ap, char * );
+
+	while( name ) {
+		GParamSpec *pspec;
+		VipsArgumentClass *argument_class;
+		VipsArgumentInstance *argument_instance;
+
+		VIPS_DEBUG_MSG( "\tname = '%s' (%p)\n", name, name );
+
+		if( vips_object_get_argument( VIPS_OBJECT( object ), name,
+			&pspec, &argument_class, &argument_instance ) )
+			return( -1 );
+
+		VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
+
+		g_object_set_property( G_OBJECT( object ), 
+			name, &value );
+
+		VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
+
+		VIPS_ARGUMENT_COLLECT_END
+
+		name = va_arg( ap, char * );
+	}
+
+	return( 0 );
+}
+
+int
+vips_object_set( VipsObject *object, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( required, ap );
+	result = vips_object_set_valist( object, ap );
+	va_end( ap );
+
+	return( result );
+}
+
 /* Set object args from a string. @p should be the initial left bracket and
  * there should be no tokens after the matching right bracket.
  */

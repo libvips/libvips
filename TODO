@@ -1,6 +1,11 @@
-- make vips_operation_set_valist_optional into a general thing on vipsobject
+- have made vips_operation_set_valist_optional into a general thing on 
+  vipsobject
 
 	vips_object_setv( VipsObject, va_list list );
+
+  needs docs
+
+
 
 - should
 
@@ -31,8 +36,6 @@
 - update "how it works" to note we are now fully-functional ... there's
   vips_image_write() now to create a sink
 
-- we need to put out that new Windows build of nip2
-
 - im_jpeg2vips() etc, currently use vips_call() and therefore have an extra
   _write() ... this means that
 
@@ -42,6 +45,8 @@
 
   instead, they could be built on top of VipsFormat and use the compat layer
   there
+
+  check nip2: is it really only decompressing large images once?
 
 blocking bugs
 =============

@@ -348,41 +348,6 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 }
 
 static int
-vips_operation_set_valist_optional( VipsOperation *operation, va_list ap )
-{
-	char *name;
-
-	VIPS_DEBUG_MSG( "vips_operation_set_valist_optional:\n" );
-
-	name = va_arg( ap, char * );
-
-	while( name ) {
-		GParamSpec *pspec;
-		VipsArgumentClass *argument_class;
-		VipsArgumentInstance *argument_instance;
-
-		VIPS_DEBUG_MSG( "\tname = '%s' (%p)\n", name, name );
-
-		if( vips_object_get_argument( VIPS_OBJECT( operation ), name,
-			&pspec, &argument_class, &argument_instance ) )
-			return( -1 );
-
-		VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
-
-		g_object_set_property( G_OBJECT( operation ), 
-			name, &value );
-
-		VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
-
-		VIPS_ARGUMENT_COLLECT_END
-
-		name = va_arg( ap, char * );
-	}
-
-	return( 0 );
-}
-
-static int
 vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 {
 	VIPS_DEBUG_MSG( "vips_operation_get_valist_required:\n" );
@@ -506,7 +471,7 @@ vips_call_required_optional( VipsOperation **operation,
 	va_copy( a, required );
 	va_copy( b, optional );
 	result = vips_operation_set_valist_required( *operation, a ) ||
-		vips_operation_set_valist_optional( *operation, b );
+		vips_object_set_valist( *operation, b );
 	va_end( a );
 	va_end( b );
 
