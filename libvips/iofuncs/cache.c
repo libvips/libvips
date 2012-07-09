@@ -36,9 +36,6 @@
 
    TODO
 
-	should the cache be thread-private? or lock? or say operations can 
-	only be made from the main thread?
-
 	listen for invalidate
 
 	will we need to drop all on exit? unclear
@@ -540,6 +537,8 @@ vips_cache_get_first( void )
 void
 vips_cache_drop_all( void )
 {
+	g_mutex_lock( vips_cache_lock );
+
 	if( vips_cache_table ) {
 		VipsOperation *operation;
 
@@ -555,6 +554,8 @@ vips_cache_drop_all( void )
 
 		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
 	}
+
+	g_mutex_unlock( vips_cache_lock );
 }
 
 static void
@@ -800,10 +801,17 @@ vips_cache_get_max( void )
 int
 vips_cache_get_size( void )
 {
+	guint size;
+
+	g_mutex_lock( vips_cache_lock );
+
+	size = 0;
 	if( vips_cache_table )
-		return( g_hash_table_size( vips_cache_table ) );
-	else
-		return( 0 );
+		size = g_hash_table_size( vips_cache_table );
+
+	g_mutex_unlock( vips_cache_lock );
+
+	return( size );
 }
 
 /**

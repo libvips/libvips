@@ -147,6 +147,7 @@ vips__link_break( VipsImage *image_up, VipsImage *image_down )
 {
 	g_assert( image_up );
 	g_assert( image_down );
+
 	g_assert( g_slist_find( image_up->downstream, image_down ) );
 	g_assert( g_slist_find( image_down->upstream, image_up ) );
 
@@ -170,16 +171,19 @@ vips__link_break_rev( VipsImage *image_down, VipsImage *image_up )
 	return( vips__link_break( image_up, image_down ) );
 }
 
-/* An VipsImage is going ... break all links.
+/* A VipsImage is going ... break all links.
  */
 void
 vips__link_break_all( VipsImage *image )
 {
 	g_mutex_lock( vips__global_lock );
+
 	vips_slist_map2( image->upstream, 
 		(VipsSListMap2Fn) vips__link_break, image, NULL );
 	vips_slist_map2( image->downstream, 
 		(VipsSListMap2Fn) vips__link_break_rev, image, NULL );
+	g_mutex_unlock( vips__global_lock );
+
 	g_mutex_unlock( vips__global_lock );
 
 	g_assert( !image->upstream );
@@ -251,10 +255,15 @@ vips__link_map( VipsImage *image, gboolean upstream,
 	map.a = (void *) &images;
 	map.b = NULL;
 
+	g_mutex_lock( vips__global_lock );
+
 	vips__link_mapp( image, &map ); 
 
 	for( p = images; p; p = p->next ) 
 		g_object_ref( p->data );
+
+	g_mutex_unlock( vips__global_lock );
+
 	result = vips_slist_map2( images, fn, a, b );
 	for( p = images; p; p = p->next ) 
 		g_object_unref( p->data );
