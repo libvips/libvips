@@ -1,16 +1,47 @@
+- make vips_operation_set_valist_optional into a general thing on vipsobject
+
+	vips_object_setv( VipsObject, va_list list );
+
 - should
 
 	vips_image_new_mode ()
 
   have "rs" mode? ie. open for sequential read?
 
+  it's a property of in VipsForeignLoad
+
+  vips_foreign_load_options() needs to take a va_list of optional extra args,
+  use that to set seq
+
+  look for analogues to vips_foreign_load_options() which need to be va_list'd
+  as well
+
 - need a flag on operations for "is sequential"
 
   should be on the object, not the class, since it can change with params
 
-- we probably have more threading issues :-( 
+  use it from command-line interface
 
-  look through image and operation init and unref and see what gets called
+  not really helpful elsewhere, since two operations which are sequential
+  alone can be non-sequential in combination -- eg. shrink + conv
+
+  can you always make sequential-apart, non-seq together pipelines seqential
+  by putting a line cache between each pair?
+
+- update "how it works" to note we are now fully-functional ... there's
+  vips_image_write() now to create a sink
+
+- we need to put out that new Windows build of nip2
+
+- im_jpeg2vips() etc, currently use vips_call() and therefore have an extra
+  _write() ... this means that
+
+  	vips im_jpeg2vips huge.jpg x.v
+
+  decompresses to disc, then vips_copy()s to x.v
+
+  instead, they could be built on top of VipsFormat and use the compat layer
+  there
 
 blocking bugs
 =============
