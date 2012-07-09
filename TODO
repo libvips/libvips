@@ -1,25 +1,11 @@
-- have made vips_operation_set_valist_optional into a general thing on 
-  vipsobject
 
-	vips_object_setv( VipsObject, va_list list );
+- test "rs" mode
 
-  needs docs
+  can't see the code for "rd" mode?
+
+  or "rw" mode either?
 
 
-
-- should
-
-	vips_image_new_mode ()
-
-  have "rs" mode? ie. open for sequential read?
-
-  it's a property of in VipsForeignLoad
-
-  vips_foreign_load_options() needs to take a va_list of optional extra args,
-  use that to set seq
-
-  look for analogues to vips_foreign_load_options() which need to be va_list'd
-  as well
 
 - need a flag on operations for "is sequential"
 

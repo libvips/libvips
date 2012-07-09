@@ -308,7 +308,7 @@ vips_image_new_from_file_object( const char *string )
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
 		"filename", string,
-		"mode", "rd",
+		"mode", "r",
 		NULL );
 
 	return( VIPS_OBJECT( image ) );
@@ -508,7 +508,7 @@ vips_image_rewind( VipsObject *object )
 static void
 vips_image_save_cb( VipsImage *image, int *result )
 {
-	if( vips_foreign_save_options( image, image->filename ) )
+	if( vips_foreign_save_options( image, image->filename, NULL ) )
 		*result = -1;
 }
 
@@ -655,8 +655,17 @@ vips_image_build( VipsObject *object )
 		else {
 			VipsImage *t;
 
-			if( vips_foreign_load_options( filename, &t ) )
-				return( -1 );
+			if( mode[1] == 's' ) {
+				if( vips_foreign_load_options( filename, &t, 
+					"sequential", TRUE,
+					NULL ) )
+					return( -1 );
+			}
+			else {
+				if( vips_foreign_load_options( filename, &t, 
+					NULL ) )
+					return( -1 );
+			}
 
 			image->dtype = VIPS_IMAGE_PARTIAL;
 			if( vips_image_write( t, image ) ) {
@@ -1370,27 +1379,19 @@ vips_image_new( void )
  *       VIPS format for your machine, vips_image_new_mode() 
  *       automatically converts the file for you. 
  *
- *       For some large files (eg. TIFF) this may 
- *       not be what you want, it can fill memory very quickly. Instead, you
- *       can either use "rd" mode (see below), or you can use the lower-level 
+ *       Some formats (eg. tiled tiff) are read directly. 
+ *
+ *       Some formats (eg. strip tiff) do not support random access and can't
+ *       be processed directly. Small images are decompressed to memory and
+ *       loaded from there, large images are decompressed to a disc file and
+ *       processed from that.
+ *
+ *       If the operations you intend to perform are sequential, that is, they
+ *       operate in a strict top-to-bottom manner, you can use sequential mode
+ *       instead, see "rs" below,
+ *       or you can use the lower-level 
  *       API and control the loading process yourself. See 
  *       #VipsForeign. 
- *
- *       vips_image_new_mode() can read files in most formats.
- *
- *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
- *       It should return quickly and let you check header fields. It will
- *       only actually read in pixels when you first access them. 
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"rd"</emphasis>
- *	 opens the named file for reading. If the uncompressed image is larger 
- *	 than a threshold and the file format does not support random access, 
- *	 rather than uncompressing to memory, vips_image_new_mode() will 
- *	 uncompress to a temporary disc file. This file will be automatically 
- *	 deleted when the VipsImage is closed.
  *
  *	 See im_system_image() for an explanation of how VIPS selects a
  *	 location for the temporary file.
@@ -1408,6 +1409,20 @@ vips_image_new( void )
  *
  *       will copy via disc if "fred.tif" is more than 500 Mbytes
  *       uncompressed. The default threshold is 100 MB.
+ *
+ *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
+ *       It should return quickly and let you check header fields. It will
+ *       only actually read in pixels when you first access them. 
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"rs"</emphasis>
+ *	 opens the named file for reading sequentially. It reads the source
+ *	 image top-to-bottom and serves up pixels to the pipeline as required.
+ *	 Provided the operations that connect to the image all demand pixels
+*	 only top-to-bottom as well, everything is fine and you avoid the
+*	 separate decompress stage.
  *     </para>
  *   </listitem>
  *   <listitem> 
@@ -1479,7 +1494,7 @@ vips_image_new_buffer( void )
  * vips_image_new_from_file:
  * @filename: file to open
  *
- * vips_image_new_from_file() opens @filename for reading in mode "rd". See
+ * vips_image_new_from_file() opens @filename for reading in mode "r". See
  * vips_image_new_mode() for details.
  *
  * See also: vips_image_new_mode().
@@ -1489,7 +1504,7 @@ vips_image_new_buffer( void )
 VipsImage *
 vips_image_new_from_file( const char *filename )
 {
-	return( vips_image_new_mode( filename, "rd" ) ); 
+	return( vips_image_new_mode( filename, "r" ) ); 
 }
 
 /**

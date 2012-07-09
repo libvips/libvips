@@ -1489,28 +1489,40 @@ vips_foreign_save( VipsImage *in, const char *filename, ... )
  * vips_foreign_load_options:
  * @filename: file to load
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Loads @filename into @out using the loader recommended by
  * vips_foreign_find_load().
  *
  * Arguments to the loader may be embedded in the filename using the usual
- * syntax.
+ * syntax. They may also be given as a set of NULL-terminated optional
+ * arguments.
  *
  * See also: vips_foreign_load().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_load_options( const char *filename, VipsImage **out )
+vips_foreign_load_options( const char *filename, VipsImage **out, ... )
 {
 	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD );
 
 	VipsObject *object;
+	va_list ap;
+	int result;
 
 	/* This will use vips_foreign_load_new_from_string() to pick a loader,
 	 * then set options from the remains of the string.
 	 */
 	if( !(object = vips_object_new_from_string( oclass, filename )) )
+		return( -1 );
+
+	/* Also set options from args.
+	 */
+	va_start( ap, out );
+	result = vips_object_set_valist( object, ap );
+	va_end( ap );
+	if( result )
 		return( -1 );
 
 	if( vips_cache_operation_buildp( (VipsOperation **) &object ) ) {
@@ -1540,22 +1552,27 @@ vips_foreign_load_options( const char *filename, VipsImage **out )
  * vips_foreign_save_options:
  * @in: image to write
  * @filename: file to write to
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Saves @in to @filename using the saver recommended by
  * vips_foreign_find_save(). 
  *
  * Arguments to the saver may be embedded in the filename using the usual
- * syntax.
+ * syntax. They may also be given as a set of NULL-terminated optional
+ * arguments.
  *
  * See also: vips_foreign_save().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_save_options( VipsImage *in, const char *filename )
+vips_foreign_save_options( VipsImage *in, const char *filename, ... )
 {
 	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
+
 	VipsObject *object;
+	va_list ap;
+	int result;
 
 	/* This will use vips_foreign_save_new_from_string() to pick a saver,
 	 * then set options from the tail of the filename.
@@ -1564,6 +1581,14 @@ vips_foreign_save_options( VipsImage *in, const char *filename )
 		return( -1 );
 
 	g_object_set( object, "in", in, NULL );
+
+	/* Also set options from args.
+	 */
+	va_start( ap, filename );
+	result = vips_object_set_valist( object, ap );
+	va_end( ap );
+	if( result )
+		return( -1 );
 
 	/* ... and running _build() should save it.
 	 */

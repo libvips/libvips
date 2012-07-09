@@ -1470,7 +1470,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		/* Read the filename. vips_foreign_load_options()
 		 * handles embedded options.
 		 */
-		if( vips_foreign_load_options( value, &out ) )
+		if( vips_foreign_load_options( value, &out, NULL ) )
 			return( -1 );
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
@@ -1684,7 +1684,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 		 * vips_foreign_save_options() handles embedded options.
 		 */
 		g_object_get( object, name, &in, NULL );
-		if( vips_foreign_save_options( in, arg ) ) {
+		if( vips_foreign_save_options( in, arg, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
@@ -1772,6 +1772,15 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 	return( object );
 }
 
+/**
+ * vips_object_set_valist:
+ * @object: object to set arguments on
+ * @ap: %NULL-terminated list of argument/value pairs
+ *
+ * See vips_object_set().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_object_set_valist( VipsObject *object, va_list ap )
 {
@@ -1807,6 +1816,27 @@ vips_object_set_valist( VipsObject *object, va_list ap )
 	return( 0 );
 }
 
+/**
+ * vips_object_set:
+ * @object: object to set arguments on
+ * @...: %NULL-terminated list of argument/value pairs
+ *
+ * Set a list of vips object arguments. For example:
+ *
+ * |[
+ * vips_object_set (operation,
+ *   "input", in,
+ *   "output", &out,
+ *   NULL);
+ * ]|
+ *
+ * Input arguments are given in-line, output arguments are given as pointers
+ * to where the output value should be written.
+ *
+ * See also: vips_object_set_valist().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_object_set( VipsObject *object, ... )
 {

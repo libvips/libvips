@@ -11,6 +11,7 @@
 - add :seq support to im_tiff2vips(), im_jpeg2vips() ... helps ruby-vips
 - better thread safety for vips8 operation dispatch
 - better thread safety for upstream / downstream image linking
+- added "rs" open mode, removed "rd"
 
 18/6/12 started 7.28.9
 - slightly more memory debugging output

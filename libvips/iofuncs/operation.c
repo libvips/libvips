@@ -471,7 +471,7 @@ vips_call_required_optional( VipsOperation **operation,
 	va_copy( a, required );
 	va_copy( b, optional );
 	result = vips_operation_set_valist_required( *operation, a ) ||
-		vips_object_set_valist( *operation, b );
+		vips_object_set_valist( VIPS_OBJECT( *operation ), b );
 	va_end( a );
 	va_end( b );
 
