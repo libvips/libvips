@@ -3,6 +3,7 @@
 - remove references to the static bicubic interpolator from the docs
 - fix temp file handling on Windows --- was breaking for non-vips files 
   over 100mb
+- better support for using images from multiple threads
 
 18/6/12 started 7.28.8
 - fixes for centos5 portability

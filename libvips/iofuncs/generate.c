@@ -50,6 +50,9 @@
  * 24/3/11
  * 	- move demand_hint stuff in here
  * 	- move to vips_ namespace
+ * 7/7/12
+ * 	- lock around link make/break so we can process an image from many
+ * 	  threads
  */
 
 /*
@@ -144,6 +147,7 @@ vips__link_break( VipsImage *image_up, VipsImage *image_down )
 {
 	g_assert( image_up );
 	g_assert( image_down );
+
 	g_assert( g_slist_find( image_up->downstream, image_down ) );
 	g_assert( g_slist_find( image_down->upstream, image_up ) );
 
@@ -167,15 +171,19 @@ vips__link_break_rev( VipsImage *image_down, VipsImage *image_up )
 	return( vips__link_break( image_up, image_down ) );
 }
 
-/* An VipsImage is going ... break all links.
+/* A VipsImage is going ... break all links.
  */
 void
 vips__link_break_all( VipsImage *image )
 {
+	g_mutex_lock( vips__global_lock );
+
 	vips_slist_map2( image->upstream, 
 		(VipsSListMap2Fn) vips__link_break, image, NULL );
 	vips_slist_map2( image->downstream, 
 		(VipsSListMap2Fn) vips__link_break_rev, image, NULL );
+
+	g_mutex_unlock( vips__global_lock );
 
 	g_assert( !image->upstream );
 	g_assert( !image->downstream );
@@ -225,6 +233,8 @@ vips__link_map( VipsImage *image, VipsSListMap2Fn fn, void *a, void *b )
 	 * run the functions, and unref.
 	 */
 
+	g_mutex_lock( vips__global_lock );
+
 	serial += 1;
 	images = NULL;
 	vips__link_mapp( image, 
@@ -232,6 +242,9 @@ vips__link_map( VipsImage *image, VipsSListMap2Fn fn, void *a, void *b )
 
 	for( p = images; p; p = p->next ) 
 		g_object_ref( p->data );
+
+	g_mutex_unlock( vips__global_lock );
+
 	result = vips_slist_map2( images, fn, a, b );
 	for( p = images; p; p = p->next ) 
 		g_object_unref( p->data );
@@ -308,8 +321,10 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 
 	/* im depends on all these ims.
 	 */
+	g_mutex_lock( vips__global_lock );
 	for( i = 0; i < len; i++ )
 		vips__link_make( in[i], image );
+	g_mutex_unlock( vips__global_lock );
 
 	/* Set a flag on the image to say we remember to call this thing.
 	 * vips_image_generate() and friends check this.
