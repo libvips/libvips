@@ -48,6 +48,8 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+#include <gobject/gvaluecollector.h>
+
 /* Our signals. 
  */
 enum {
@@ -1811,7 +1813,7 @@ vips_object_set( VipsObject *object, ... )
 	va_list ap;
 	int result;
 
-	va_start( required, ap );
+	va_start( ap, object );
 	result = vips_object_set_valist( object, ap );
 	va_end( ap );
 
