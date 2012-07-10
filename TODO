@@ -1,14 +1,3 @@
-- how curious
-
-	$ vips jpegload wtc.jpg x.v --vips-progress
-	** DEBUG_FATAL
-	vips x.v: 2 threads, 128 x 128 tiles, groups of 256 scanlines
-	vips /tmp/vips-1-2UERGW.v: 2 threads, 128 x 128 tiles, groups of 256 scanlines
-	vips /tmp/vips-1-2UERGW.v: done in 2s          
-	vips x.v: done in 3s          
-	memory: high-water mark 77.46 MB
-
-
 - test "rs" mode
 
   can't see the code for "rd" mode?
@@ -18,18 +7,6 @@
 
 - update "how it works" to note we are now fully-functional ... there's
   vips_image_write() now to create a sink
-
-- im_jpeg2vips() etc, currently use vips_call() and therefore have an extra
-  _write() ... this means that
-
-  	vips im_jpeg2vips huge.jpg x.v
-
-  decompresses to disc, then vips_copy()s to x.v
-
-  instead, they could be built on top of VipsFormat and use the compat layer
-  there
-
-  check nip2: is it really only decompressing large images once?
 
 blocking bugs
 =============
