@@ -2,6 +2,8 @@
  *
  * 30/11/11
  * 	- now just a stub
+ * 10/7/12
+ * 	- use jpeg funcs directly rather than going though vips_jpegload()
  */
 
 /*
@@ -44,6 +46,11 @@
 
 #include <vips/vips.h>
 
+#include <setjmp.h>
+#include <jpeglib.h>
+#include <jerror.h>
+#include "../foreign/jpeg.h"
+
 int
 im_jpeg2vips( const char *name, IMAGE *out )
 {
@@ -52,8 +59,6 @@ im_jpeg2vips( const char *name, IMAGE *out )
 	char *p, *q;
 	int shrink;
 	gboolean fail_on_warn;
-	gboolean sequential;
-	VipsImage *t;
 
 	/* By default, we ignore any warnings. We want to get as much of
 	 * the user's data as we can.
@@ -65,7 +70,6 @@ im_jpeg2vips( const char *name, IMAGE *out )
 	im_filename_split( name, filename, mode );
 	p = &mode[0];
 	shrink = 1;
-	sequential = FALSE;
 	if( (q = im_getnextoption( &p )) ) {
 		shrink = atoi( q );
 
@@ -80,23 +84,21 @@ im_jpeg2vips( const char *name, IMAGE *out )
 		if( im_isprefix( "fail", q ) ) 
 			fail_on_warn = TRUE;
 	}
+
+	/* vips__jpeg_read_file() is always sequential. Parse the option, but
+	 * don't use it.
+	 */
 	if( (q = im_getnextoption( &p )) ) {
 		if( im_isprefix( "seq", q ) )
-			sequential = TRUE;
+			;
 	}
 
-	if( vips_jpegload( filename, &t, 
-		"shrink", shrink,
-		"fail", fail_on_warn,
-		"sequential", sequential,
-		NULL ) )
+	/* Don't use vips_jpegload() ... we call the jpeg func directly in
+	 * order to avoid the foreign.c mechanisms for load-via-disc and stuff
+	 * like that.
+	 */
+	if( vips__jpeg_read_file( filename, out, FALSE, shrink, fail_on_warn ) )
 		return( -1 );
-
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
-	}
-	g_object_unref( t );
 
 	return( 0 );
 }

@@ -1,22 +1,20 @@
+- how curious
+
+	$ vips jpegload wtc.jpg x.v --vips-progress
+	** DEBUG_FATAL
+	vips x.v: 2 threads, 128 x 128 tiles, groups of 256 scanlines
+	vips /tmp/vips-1-2UERGW.v: 2 threads, 128 x 128 tiles, groups of 256 scanlines
+	vips /tmp/vips-1-2UERGW.v: done in 2s          
+	vips x.v: done in 3s          
+	memory: high-water mark 77.46 MB
+
+
 - test "rs" mode
 
   can't see the code for "rd" mode?
 
   or "rw" mode either?
 
-
-
-- need a flag on operations for "is sequential"
-
-  should be on the object, not the class, since it can change with params
-
-  use it from command-line interface
-
-  not really helpful elsewhere, since two operations which are sequential
-  alone can be non-sequential in combination -- eg. shrink + conv
-
-  can you always make sequential-apart, non-seq together pipelines seqential
-  by putting a line cache between each pair?
 
 - update "how it works" to note we are now fully-functional ... there's
   vips_image_write() now to create a sink

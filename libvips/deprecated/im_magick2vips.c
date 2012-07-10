@@ -41,20 +41,12 @@
 
 #include <vips/vips.h>
 
+#include "../foreign/magick.h"
+
 int
 im_magick2vips( const char *filename, IMAGE *out )
 {
-	VipsImage *t;
-
-	if( vips_magickload( filename, &t, NULL ) )
-		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
-	}
-	g_object_unref( t );
-
-	return( 0 );
+	return( vips__magick_read( filename, out ) ); 
 }
 
 static int

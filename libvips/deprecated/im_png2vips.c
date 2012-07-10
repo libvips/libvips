@@ -44,34 +44,25 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#include "../foreign/vipspng.h"
+
 int
 im_png2vips( const char *name, IMAGE *out )
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 	char *p, *q;
-	gboolean sequential;
-	VipsImage *x;
 
 	im_filename_split( name, filename, mode );
 
-	sequential = FALSE;
 	p = &mode[0];
 	if( (q = im_getnextoption( &p )) ) {
 		if( im_isprefix( "seq", q ) )
-			sequential = TRUE;
+			;
 	}
 
-	if( vips_pngload( filename, &x, 
-		"sequential", sequential,
-		NULL ) )
+	if( vips__png_read( filename, out ) )
 		return( -1 );
-
-	if( vips_image_write( x, out ) ) {
-		g_object_unref( x );
-		return( -1 );
-	}
-	g_object_unref( x );
 
 	return( 0 );
 }

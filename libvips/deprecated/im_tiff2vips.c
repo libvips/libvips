@@ -48,6 +48,8 @@
 #include <vips/internal.h>
 #include <vips/thread.h>
 
+#include "../foreign/tiff.h"
+
 int
 im_tiff2vips( const char *name, IMAGE *out )
 {
@@ -55,32 +57,21 @@ im_tiff2vips( const char *name, IMAGE *out )
 	char mode[FILENAME_MAX];
 	char *p, *q;
 	int page;
-	gboolean sequential;
-	VipsImage *t;
 
 	im_filename_split( name, filename, mode );
 
 	page = 0;
-	sequential = FALSE;
 	p = &mode[0];
 	if( (q = im_getnextoption( &p )) ) {
 		page = atoi( q );
 	}
 	if( (q = im_getnextoption( &p )) ) {
 		if( im_isprefix( "seq", q ) )
-			sequential = TRUE;
+			;
 	}
 
-	if( vips_tiffload( filename, &t, 
-		"page", page,
-		"sequential", sequential,
-		NULL ) )
+	if( vips__tiff_read( filename, out, page ) )
 		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
-	}
-	g_object_unref( t );
 
 	return( 0 );
 }
