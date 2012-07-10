@@ -492,6 +492,25 @@ vips_coding_get_type( void )
 
 	return( etype );
 }
+/* enumerations from "../../libvips/include/vips/operation.h" */
+GType
+vips_operation_flags_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GFlagsValue values[] = {
+			{VIPS_OPERATION_NONE, "VIPS_OPERATION_NONE", "none"},
+			{VIPS_OPERATION_SEQUENTIAL, "VIPS_OPERATION_SEQUENTIAL", "sequential"},
+			{VIPS_OPERATION_NOCACHE, "VIPS_OPERATION_NOCACHE", "nocache"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_flags_register_static( "VipsOperationFlags", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/object.h" */
 GType
 vips_argument_flags_get_type( void )

@@ -12,6 +12,11 @@
 - better thread safety for vips8 operation dispatch
 - better thread safety for upstream / downstream image linking
 - added "rs" open mode, removed "rd"
+- added vips_operation_get_flags() ... system for attaching sets of flags to
+  operations
+- added VIPS_OPERATION_SEQUENTIAL flag
+- vips8 command-line interface uses this to turn sequential mode on
+  automatically when possible
 
 18/6/12 started 7.28.9
 - slightly more memory debugging output

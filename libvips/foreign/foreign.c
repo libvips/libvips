@@ -702,7 +702,7 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 
 		/* You can't reuse sequential operations.
 		 */
-		vips_operation_set_nocache( VIPS_OPERATION( load ), TRUE );
+		load->nocache = TRUE;
 
 		return( vips_image_new() );
 	}
@@ -889,11 +889,26 @@ vips_foreign_load_build( VipsObject *object )
 	return( 0 );
 }
 
+static VipsOperationFlags 
+vips_foreign_load_real_get_flags( VipsOperation *operation )
+{
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( operation );
+	VipsOperationFlags flags;
+
+	flags = VIPS_OPERATION_CLASS( vips_foreign_load_parent_class )->
+		get_flags( operation );
+	if( load->nocache )
+		flags |= VIPS_OPERATION_NOCACHE;
+
+	return( flags );
+}
+
 static void
 vips_foreign_load_class_init( VipsForeignLoadClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -904,6 +919,8 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 	object_class->new_from_string = vips_foreign_load_new_from_string;
 	object_class->nickname = "fileload";
 	object_class->description = _( "file loaders" );
+
+	operation_class->get_flags = vips_foreign_load_real_get_flags;
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 

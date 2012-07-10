@@ -136,6 +136,10 @@ typedef struct _VipsForeignLoad {
 	 * disc foreign or a memory buffer. This must be set by ->load().
 	 */
 	VipsImage *real;
+
+	/* Set this to tag the operation as nocache.
+	 */
+	gboolean nocache;
 } VipsForeignLoad;
 
 typedef struct _VipsForeignLoadClass {

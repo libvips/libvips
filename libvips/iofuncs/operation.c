@@ -148,6 +148,24 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	vips_argument_class_map( object_class,
 		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
 			buf, &usage );
+
+	/* Show flags.
+	 */
+	if( class->flags ) {
+		GFlagsValue *value;
+		VipsOperationFlags flags;
+		GFlagsClass *flags_class = 
+			g_type_class_ref( VIPS_TYPE_OPERATION_FLAGS );
+
+		vips_buf_appendf( buf, "operation flags: " );
+		flags = class->flags; 
+		while( flags && (value = 
+			g_flags_get_first_value( flags_class, flags )) ) {
+			vips_buf_appendf( buf, "%s ", value->value_nick );
+			flags &= ~value->value;
+		}
+		vips_buf_appends( buf, "\n" );
+	}
 }
 
 static void *
@@ -233,6 +251,14 @@ vips_operation_summary( VipsObject *object, VipsBuf *buf )
 		summary( object, buf );
 }
 
+static VipsOperationFlags
+vips_operation_real_get_flags( VipsOperation *operation ) 
+{
+	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( operation );
+
+	return( class->flags );
+}
+
 static void
 vips_operation_class_init( VipsOperationClass *class )
 {
@@ -248,6 +274,7 @@ vips_operation_class_init( VipsOperationClass *class )
 	vobject_class->dump = vips_operation_dump;
 
 	class->usage = vips_operation_usage;
+	class->get_flags = vips_operation_real_get_flags;
 }
 
 static void
@@ -255,6 +282,22 @@ vips_operation_init( VipsOperation *operation )
 {
 	/* Init our instance fields.
 	 */
+}
+
+/**
+ * vips_operation_get_flags:
+ * @operation: operation to fetch flags from
+ *
+ * Returns the set of flags for this operation.
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+VipsOperationFlags
+vips_operation_get_flags( VipsOperation *operation ) 
+{
+	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( operation );
+
+	return( class->get_flags( operation ) );
 }
 
 /**
@@ -912,25 +955,4 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 		return( -1 );
 
 	return( 0 );
-}
-
-/**
- * vips_operation_set_nocache: 
- * @operation: operation to set
- * @nocache: TRUE means don't cache this operation
- *
- * Set this before the end of _build() to stop this operation being cached.
- * Some operations, like sequential read from a TIFF file, for example, cannot
- * be reused.
- */
-void 
-vips_operation_set_nocache( VipsOperation *operation, gboolean nocache )
-{
-#ifdef VIPS_DEBUG
-	printf( "vips_operation_set_nocache: " );
-	vips_object_print_name( VIPS_OBJECT( operation ) );
-	printf( " %d\n", nocache );
-#endif /*VIPS_DEBUG*/
-
-	operation->nocache = nocache;
 }

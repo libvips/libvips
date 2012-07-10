@@ -1466,12 +1466,27 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *out;
+		VipsOperationFlags flags;
+
+		flags = 0;
+		if( VIPS_IS_OPERATION( object ) )
+			flags = vips_operation_get_flags( 
+				VIPS_OPERATION( object ) );
 
 		/* Read the filename. vips_foreign_load_options()
 		 * handles embedded options.
 		 */
-		if( vips_foreign_load_options( value, &out, NULL ) )
-			return( -1 );
+		if( flags & VIPS_OPERATION_SEQUENTIAL ) {
+			if( vips_foreign_load_options( value, &out, 
+				"sequential", TRUE,
+				NULL ) )
+				return( -1 );
+		}
+		else {
+			if( vips_foreign_load_options( value, &out, 
+				NULL ) )
+				return( -1 );
+		}
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
 		g_value_set_object( &gvalue, out );

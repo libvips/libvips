@@ -360,6 +360,7 @@ vips_shrink_class_init( VipsShrinkClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_shrink_class_init\n" );
 
@@ -369,6 +370,8 @@ vips_shrink_class_init( VipsShrinkClass *class )
 	vobject_class->nickname = "shrink";
 	vobject_class->description = _( "shrink an image" );
 	vobject_class->build = vips_shrink_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
 		_( "Xshrink" ), 

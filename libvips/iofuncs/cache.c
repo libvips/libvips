@@ -693,7 +693,8 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 	if( !hit ) {
 		if( vips__cache_trace ) {
-			if( (*operation)->nocache ) 
+			if( vips_operation_get_flags( *operation ) & 
+				VIPS_OPERATION_NOCACHE )
 				printf( "vips cache: uncacheable %p\n  ", 
 					*operation );
 			else
@@ -706,7 +707,8 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 		g_mutex_lock( vips_cache_lock );
 
-		if( !(*operation)->nocache ) {
+		if( !(vips_operation_get_flags( *operation ) & 
+			VIPS_OPERATION_NOCACHE) ) {
 			vips_cache_ref( *operation );
 			g_hash_table_insert( vips_cache_table, 
 				*operation, *operation );

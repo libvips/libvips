@@ -358,6 +358,7 @@ vips_flatten_class_init( VipsFlattenClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_flatten_class_init\n" );
 
@@ -367,6 +368,8 @@ vips_flatten_class_init( VipsFlattenClass *class )
 	vobject_class->nickname = "flatten";
 	vobject_class->description = _( "flatten alpha out of an image" );
 	vobject_class->build = vips_flatten_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
