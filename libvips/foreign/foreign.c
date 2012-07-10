@@ -1408,10 +1408,11 @@ vips_foreign_save_build( VipsObject *object )
 static void
 vips_foreign_save_class_init( VipsForeignSaveClass *class )
 {
-	int i;
-
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	int i;
 
 	gobject_class->dispose = vips_foreign_save_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -1422,6 +1423,10 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	object_class->new_from_string = vips_foreign_save_new_from_string;
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
+
+	/* I think all savers are sequential. Hopefully.
+	 */
+	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL;
 
 	/* Default to no coding allowed.
 	 */
