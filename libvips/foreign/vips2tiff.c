@@ -160,8 +160,9 @@
  */
 
 /* 
-#define DEBUG
+#define DEBUG_VERBOSE
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -916,11 +917,11 @@ save_tile( TiffWrite *tw,
 	 */
 	pack2tiff( tw, reg, tbuf, area );
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "Writing %dx%d pixels at position %dx%d to image %s\n",
 		tw->tilew, tw->tileh, area->left, area->top,
 		TIFFFileName( tif ) );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* Write to TIFF! easy.
 	 */
@@ -1141,13 +1142,23 @@ delete_files( TiffWrite *tw )
 	PyramidLayer *layer = tw->layer;
 
 	if( tw->bname ) {
+#ifndef DEBUG
 		unlink( tw->bname );
+#else
+		printf( "delete_files: leaving %s\n", tw->bname );
+#endif /*DEBUG*/
+
 		tw->bname = NULL;
 	}
 
 	for( layer = tw->layer; layer; layer = layer->below ) 
 		if( layer->lname ) {
+#ifndef DEBUG
 			unlink( layer->lname );
+#else
+			printf( "delete_files: leaving %s\n", layer->lname );
+#endif /*DEBUG*/
+
 			layer->lname = NULL;
 		}
 }
@@ -1157,9 +1168,7 @@ delete_files( TiffWrite *tw )
 static void
 free_tiff_write( TiffWrite *tw )
 {
-#ifndef DEBUG
 	delete_files( tw );
-#endif /*DEBUG*/
 
 	VIPS_FREEF( TIFFClose, tw->tif );
 	VIPS_FREEF( vips_free, tw->tbuf );
@@ -1340,7 +1349,7 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );
 	CopyField( TIFFTAG_SUBFILETYPE, i32 );
 
-	if( tw->predictor != -1 ) 
+	if( tw->predictor != 1 ) 
 		TIFFSetField( out, TIFFTAG_PREDICTOR, tw->predictor );
 
 	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.

@@ -46,8 +46,8 @@
 
 #include "../foreign/vipspng.h"
 
-int
-im_png2vips( const char *name, IMAGE *out )
+static int
+png2vips( const char *name, IMAGE *out, gboolean header_only )
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
@@ -66,17 +66,41 @@ im_png2vips( const char *name, IMAGE *out )
 	 * used writeline.
 	 *
 	 * If we're writing the image to a "p", switch it to a "t".
+	 *
+	 * Don't do this for header read, since we don't want to force a
+	 * malloc if all we are doing is looking at fields.
 	 */
 
-	if( out->dtype == VIPS_IMAGE_PARTIAL ) {
+	if( !header_only && 
+		out->dtype == VIPS_IMAGE_PARTIAL ) {
 		if( vips__image_wio_output( out ) ) 
 			return( -1 );
 	}
 
-	if( vips__png_read( filename, out ) )
-		return( -1 );
+	if( header_only ) {
+		if( vips__png_read( filename, out ) )
+			return( -1 );
+	}
+	else {
+		if( vips__png_header( filename, out ) )
+			return( -1 );
+	}
 
 	return( 0 );
+}
+
+int
+im_png2vips( const char *name, IMAGE *out )
+{
+	return( png2vips( name, out, FALSE ) ); 
+}
+
+/* By having a separate header func, we get lazy.c to open via disc/mem.
+ */
+static int
+im_png2vips_header( const char *name, IMAGE *out )
+{
+	return( png2vips( name, out, TRUE ) ); 
 }
 
 static int
@@ -100,6 +124,7 @@ vips_format_png_class_init( VipsFormatPngClass *class )
 	object_class->description = _( "PNG" );
 
 	format_class->is_a = ispng;
+	format_class->header = im_png2vips_header;
 	format_class->load = im_png2vips;
 	format_class->save = im_vips2png;
 	format_class->suffs = png_suffs;

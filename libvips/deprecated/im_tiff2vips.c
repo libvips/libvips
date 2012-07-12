@@ -50,8 +50,8 @@
 
 #include "../foreign/tiff.h"
 
-int
-im_tiff2vips( const char *name, IMAGE *out )
+static int
+tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
@@ -76,18 +76,42 @@ im_tiff2vips( const char *name, IMAGE *out )
 	 *
 	 * If we're writing the image to a "p", switch it to a "t". And only
 	 * for non-tiled (strip) images which we write with writeline.
+	 *
+	 * Don't do this for header read, since we don't want to force a
+	 * malloc if all we are doing is looking at fields.
 	 */
 
-	if( !vips__istifftiled( filename ) &&
+	if( !header_only &&
+		!vips__istifftiled( filename ) &&
 		out->dtype == VIPS_IMAGE_PARTIAL ) {
 		if( vips__image_wio_output( out ) ) 
 			return( -1 );
 	}
 
-	if( vips__tiff_read( filename, out, page ) )
-		return( -1 );
+	if( header_only ) {
+		if( vips__tiff_read_header( filename, out, page ) )
+			return( -1 );
+	}
+	else {
+		if( vips__tiff_read( filename, out, page ) )
+			return( -1 );
+	}
 
 	return( 0 );
+}
+
+int
+im_tiff2vips( const char *name, IMAGE *out )
+{
+	return( tiff2vips( name, out, FALSE ) ); 
+}
+
+/* By having a separate header func, we get lazy.c to open via disc/mem.
+ */
+static int
+im_tiff2vips_header( const char *name, IMAGE *out )
+{
+	return( tiff2vips( name, out, TRUE ) ); 
 }
 
 static VipsFormatFlags
@@ -127,6 +151,7 @@ vips_format_tiff_class_init( VipsFormatTiffClass *class )
 	object_class->description = _( "TIFF" );
 
 	format_class->is_a = istiff;
+	format_class->header = im_tiff2vips_header;
 	format_class->load = im_tiff2vips;
 	format_class->save = im_vips2tiff;
 	format_class->get_flags = tiff_flags;

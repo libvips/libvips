@@ -346,7 +346,7 @@ typedef enum {
 /**
  * VipsForeignTiffPredictor:
  * @VIPS_FOREIGN_TIFF_PREDICTOR_NONE: no prediction
- * @VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL: horizontal differenceing
+ * @VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL: horizontal differencing
  * @VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT: float predictor
  *
  * The predictor can help deflate and lzw compression. The values are fixed by
