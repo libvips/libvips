@@ -70,6 +70,20 @@ im_tiff2vips( const char *name, IMAGE *out )
 			;
 	}
 
+	/* We need to be compatible with the pre-sequential mode 
+	 * im_tiff2vips(). This returned a "t" if given a "p" image, since it
+	 * used writeline.
+	 *
+	 * If we're writing the image to a "p", switch it to a "t". And only
+	 * for non-tiled (strip) images which we write with writeline.
+	 */
+
+	if( !vips__istifftiled( filename ) &&
+		out->dtype == VIPS_IMAGE_PARTIAL ) {
+		if( vips__image_wio_output( out ) ) 
+			return( -1 );
+	}
+
 	if( vips__tiff_read( filename, out, page ) )
 		return( -1 );
 

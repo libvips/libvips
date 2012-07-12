@@ -61,6 +61,18 @@ im_png2vips( const char *name, IMAGE *out )
 			;
 	}
 
+	/* We need to be compatible with the pre-sequential mode 
+	 * im_png2vips(). This returned a "t" if given a "p" image, since it
+	 * used writeline.
+	 *
+	 * If we're writing the image to a "p", switch it to a "t".
+	 */
+
+	if( out->dtype == VIPS_IMAGE_PARTIAL ) {
+		if( vips__image_wio_output( out ) ) 
+			return( -1 );
+	}
+
 	if( vips__png_read( filename, out ) )
 		return( -1 );
 

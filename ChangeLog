@@ -17,6 +17,7 @@
 - added VIPS_OPERATION_SEQUENTIAL flag
 - vips8 command-line interface uses this to turn sequential mode on
   automatically when possible
+- better handling of input files in vips7 command-line interface
 
 18/6/12 started 7.28.9
 - slightly more memory debugging output

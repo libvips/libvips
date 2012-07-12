@@ -1,3 +1,31 @@
+- try:
+
+$ vips list classes | grep -i open
+** DEBUG_FATAL
+	VipsFormatExr (exr), OpenEXR, (.exr) is_a load get_flags 
+	VipsFormatOpenslide (im_openslide), Openslide, (.svs, .vms, .vmu, .ndpi, .mrxs, .tif) is_a load get_flags 
+	VipsForeignLoadOpenexr (openexrload), load an OpenEXR image (.exr), priority=0, is_a, get_flags, get_flags_filename, header, load
+
+	im_exr2vips (im_exr2vips), convert an OpenEXR file to VIPS, from package "format"
+	im_binfile (im_binfile), open a headerless binary file, from package "iofuncs"
+
+  why the im_ in "VipsFormatOpenslide (im_openslide)"?
+
+  we configured without openslide, why is it there at all?
+
+  test with openslide available
+
+
+- try
+
+	vips im_extract_bands /tmp/input.tiff /tmp/out.tif 0 3
+
+  with a huhuhuhge image, hits 4gb and sits there, no error?
+
+
+
+
+
 - test "rs" mode
 
   can't see the code for "rd" mode?

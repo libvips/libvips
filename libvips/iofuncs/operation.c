@@ -243,7 +243,7 @@ vips_operation_summary( VipsObject *object, VipsBuf *buf )
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
-	vips_buf_appendf( buf, "%s", object_class->nickname ); 
+	vips_buf_appendf( buf, "- %s", object_class->nickname ); 
 	vips_argument_map( VIPS_OBJECT( operation ),
 		vips_operation_vips_operation_print_summary_arg, buf, NULL );
 

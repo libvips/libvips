@@ -51,8 +51,8 @@
 #include <jerror.h>
 #include "../foreign/jpeg.h"
 
-int
-im_jpeg2vips( const char *name, IMAGE *out )
+static int
+jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
@@ -97,10 +97,39 @@ im_jpeg2vips( const char *name, IMAGE *out )
 	 * order to avoid the foreign.c mechanisms for load-via-disc and stuff
 	 * like that.
 	 */
-	if( vips__jpeg_read_file( filename, out, FALSE, shrink, fail_on_warn ) )
+
+	/* We need to be compatible with the pre-sequential mode 
+	 * im_jpeg2vips(). This returned a "t" if given a "p" image, since it
+	 * used writeline.
+	 *
+	 * If we're writing the image to a "p", switch it to a "t".
+	 */
+
+	if( !header_only &&
+		out->dtype == VIPS_IMAGE_PARTIAL ) {
+		if( vips__image_wio_output( out ) ) 
+			return( -1 );
+	}
+
+	if( vips__jpeg_read_file( filename, out, 
+		header_only, shrink, fail_on_warn ) )
 		return( -1 );
 
 	return( 0 );
+}
+
+int
+im_jpeg2vips( const char *name, IMAGE *out )
+{
+	return( jpeg2vips( name, out, FALSE ) ); 
+}
+
+/* By having a separate header func, we get lazy.c to open via disc/mem.
+ */
+static int
+im_jpeg2vips_header( const char *name, IMAGE *out )
+{
+	return( jpeg2vips( name, out, TRUE ) ); 
 }
 
 int
@@ -151,6 +180,7 @@ vips_format_jpeg_class_init( VipsFormatJpegClass *class )
 	object_class->description = _( "JPEG" );
 
 	format_class->is_a = isjpeg;
+	format_class->header = im_jpeg2vips_header;
 	format_class->load = im_jpeg2vips;
 	format_class->save = im_vips2jpeg;
 	format_class->suffs = jpeg_suffs;
