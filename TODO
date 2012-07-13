@@ -1,27 +1,3 @@
-- try
-
-	vips im_extract_bands /tmp/input.tiff /tmp/out.tif 0 3
-
-  with a huhuhuhge image, hits 4gb and sits there, no error?
-
-- test "rs" mode
-
-  can't see the code for "rd" mode?
-
-  or "rw" mode either?
-
-- update "how it works" to note we are now fully-functional ... there's
-  vips_image_write() now to create a sink
-
-  maybe wait until vips8 is done
-
-- does the libvips in bullet-points list need updating?
-
-- run the nip2 checks again
-
-
-
-
 blocking bugs
 =============
 
