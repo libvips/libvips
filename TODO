@@ -1,15 +1,3 @@
-- load a vips image in nip2
-
-  enter 
-
-  	insert 100 0 A1 A1
-
-  save as vips .. leak!
-
-  save as jpg, no leak, wtf
-
-
-
 - try
 
 	vips im_extract_bands /tmp/input.tiff /tmp/out.tif 0 3
