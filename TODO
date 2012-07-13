@@ -1,4 +1,4 @@
-- load an image in nip2
+- load a vips image in nip2
 
   enter 
 
@@ -6,7 +6,7 @@
 
   save as vips .. leak!
 
-  save as jpg, no leak
+  save as jpg, no leak, wtf
 
 
 
