@@ -451,13 +451,11 @@ AC_ARG_WITH([lcms],
 if test x"$with_lcms" != "xno"; then
   PKG_CHECK_MODULES(LCMS, lcms2,
     [AC_DEFINE(HAVE_LCMS2,1,[define if you have lcms2 installed.])
-     with_lcms=yes
-     with_lcms_ver=lcms2
+     with_lcms="yes (lcms2)"
      PACKAGES_USED="$PACKAGES_USED lcms2"],
     [PKG_CHECK_MODULES(LCMS, lcms,
      [AC_DEFINE(HAVE_LCMS,1,[define if you have lcms installed.])
-      with_lcms=yes
-      with_lcms_ver=lcms
+      with_lcms="yes (lcms1)"
       PACKAGES_USED="$PACKAGES_USED lcms"],
      [AC_MSG_WARN([lcms2/lcms not found; disabling lcms support])
       with_lcms=no])   
@@ -551,10 +549,10 @@ AC_ARG_WITH([tiff],
 if test x"$with_tiff" != "xno"; then
   PKG_CHECK_MODULES(TIFF, libtiff-4,
     [AC_DEFINE(HAVE_TIFF,1,[define if you have libtiff installed.])
-     with_tiff=yes
+     with_tiff="yes (pkg-config libtiff-4)"
      PACKAGES_USED="$PACKAGES_USED libtiff-4"],
     [FIND_TIFF(
-     with_tiff=yes,
+     with_tiff="yes (found by search)",
      [AC_MSG_WARN([libtiff not found; disabling TIFF support])
       with_tiff=no
      ])
@@ -568,10 +566,10 @@ AC_ARG_WITH([png],
 if test x"$with_png" != "xno"; then
   PKG_CHECK_MODULES(PNG, libpng >= 1.2.9, 
     [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
-     with_png=yes
+     with_png="yes (pkg-config libpng >= 1.2.9)"
      PACKAGES_USED="$PACKAGES_USED libpng"],
     [FIND_PNG(
-     with_png=yes,
+     with_png="yes (found by search)",
      [AC_MSG_WARN([libpng not found; disabling PNG support])
       with_png=no
      ])
@@ -750,7 +748,7 @@ Magick package: 			$with_magickpackage
 file import with libMagick: 		$with_magick
 accelerate loops with orc: 		$with_orc
   (requires orc-0.4.11 or later)
-ICC profile support with lcms: 		$with_lcms (version $with_lcms_ver)
+ICC profile support with lcms: 		$with_lcms
 file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.2.5 or later)
