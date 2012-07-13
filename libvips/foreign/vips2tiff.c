@@ -161,8 +161,8 @@
 
 /* 
 #define DEBUG_VERBOSE
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -467,7 +467,7 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 		TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 	}
 
-	if( tw->predictor != -1 ) 
+	if( tw->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
 		TIFFSetField( tif, TIFFTAG_PREDICTOR, tw->predictor );
 
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
@@ -1349,7 +1349,7 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );
 	CopyField( TIFFTAG_SUBFILETYPE, i32 );
 
-	if( tw->predictor != 1 ) 
+	if( tw->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
 		TIFFSetField( out, TIFFTAG_PREDICTOR, tw->predictor );
 
 	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
