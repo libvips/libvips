@@ -223,6 +223,9 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	if( vips_check_vector( domain, n, im ) )
 		return( NULL );
 
+	/* This looks a bit dodgy, but the pipeline we are creating does not
+	 * depend upon im, so it's OK to make t depend on im.
+	 */
 	t = (VipsImage **) vips_object_local_array( VIPS_OBJECT( im ), 4 );
 	ones = VIPS_ARRAY( im, n, double );
 	for( i = 0; i < n; i++ )

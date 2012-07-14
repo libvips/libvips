@@ -67,10 +67,14 @@ im__value( IMAGE *im, double *value )
 {
 	IMAGE *t;
 
-	if( !(t = im_open_local( im, "im__value", "p" )) ||
-		im_extract_areabands( im, t, 0, 0, 1, 1, 0, 1 ) ||
-		im_avg( t, value ) )
+	if( !(t = im_open( "im__value", "p" )) )
 		return( -1 );
+	if( im_extract_areabands( im, t, 0, 0, 1, 1, 0, 1 ) ||
+		im_avg( t, value ) ) {
+		im_close( t );
+		return( -1 );
+	}
+	im_close( t );
 
 	return( 0 );
 }
