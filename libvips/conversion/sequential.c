@@ -5,6 +5,8 @@
  *
  * 15/2/12
  * 	- from VipsForeignLoad
+ * 14/7/12
+ * 	- support skip forwards as well, so we can do extract/insert
  */
 
 /*
@@ -74,14 +76,9 @@ vips_sequential_generate( VipsRegion *or,
 
 	VIPS_DEBUG_MSG( "vips_sequential_generate %d\n", r->top );
 
-	/* The y pos of the request must be the same as our current file
-	 * position.
+	/* We can't go backwards, but we can skip forwards.
 	 */
-	if( r->top != sequential->y_pos ) {
-		printf( "vips_sequential_generate: error -- "
-			"at position %d in file, but position %d requested\n",
-			sequential->y_pos, r->top );
-
+	if( r->top < sequential->y_pos ) {
 		vips_error( "VipsSequential", 
 			_( "non-sequential read --- "
 			"at position %d in file, but position %d requested" ),
@@ -95,6 +92,24 @@ vips_sequential_generate( VipsRegion *or,
 	g_assert( r->left == 0 );
 	g_assert( r->width == or->im->Xsize );
 	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
+
+	/* Skip forwards, if necessary.
+	 */
+	while( sequential->y_pos < r->top ) {
+		VipsRect rect;
+
+		rect.top = sequential->y_pos;
+		rect.left = 0;
+		rect.width = or->im->Xsize;
+		rect.height = VIPS_MIN( r->top - sequential->y_pos, 
+				VIPS__FATSTRIP_HEIGHT );
+		if( vips_region_prepare( ir, &rect ) )
+			return( -1 );
+
+		sequential->y_pos += rect.height;
+	}
+
+	g_assert( sequential->y_pos == r->top );
 
 	/* Pointer copy.
 	 */
