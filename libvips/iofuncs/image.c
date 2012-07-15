@@ -2201,7 +2201,8 @@ vips__image_wio_output( VipsImage *image )
  * @image: image to make read-write
  *
  * Gets @image ready for an in-place operation, such as im_insertplace().
- * Operations like this both read and write with VIPS_IMAGE_ADDR().
+ * After calling this function you can both read and write the image with 
+ * VIPS_IMAGE_ADDR().
  *
  * See also: im_insertplace(), vips_image_wio_input().
  *

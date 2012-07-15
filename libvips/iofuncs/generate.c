@@ -182,7 +182,6 @@ vips__link_break_all( VipsImage *image )
 		(VipsSListMap2Fn) vips__link_break, image, NULL );
 	vips_slist_map2( image->downstream, 
 		(VipsSListMap2Fn) vips__link_break_rev, image, NULL );
-	g_mutex_unlock( vips__global_lock );
 
 	g_mutex_unlock( vips__global_lock );
 
