@@ -57,7 +57,7 @@ typedef VipsUnaryClass VipsSignClass;
 G_DEFINE_TYPE( VipsSign, vips_sign, VIPS_TYPE_UNARY );
 
 #define CSIGN( TYPE ) { \
-	TYPE *p = (TYPE *) in; \
+	TYPE *p = (TYPE *) in[0]; \
 	TYPE *q = (TYPE *) out; \
 	int x; \
 	\
@@ -82,7 +82,7 @@ G_DEFINE_TYPE( VipsSign, vips_sign, VIPS_TYPE_UNARY );
 }
 
 #define SIGN( TYPE ) { \
-	TYPE *p = (TYPE *) in; \
+	TYPE *p = (TYPE *) in[0]; \
 	signed char *q = (signed char *) out; \
 	int x; \
 	\
