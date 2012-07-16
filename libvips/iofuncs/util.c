@@ -565,16 +565,28 @@ vips_filename_suffix_match( const char *path, const char *suffixes[] )
 char *
 vips_getnextoption( char **in )
 {
-        char *p = *in;
-        char *q = p;
+        char *p;
+        char *q;
+
+        p = *in;
+        q = p;
 
         if( !p || !*p )
                 return( NULL );
 
-	/* Find the next ',' not prefixed with a '\'.
+	/* Find the next ',' not prefixed with a '\'. If the first character
+	 * of p is ',', there can't be a previous escape character.
 	 */
-	while( (p = strchr( p, ',' )) && p[-1] == '\\' )
+	for(;;) {
+		if( !(p = strchr( p, ',' )) )
+			break;
+		if( p == q )
+			break;
+		if( p[-1] != '\\' )
+			break;
+
 		p += 1;
+	}
 
         if( p ) {
                 /* Another option follows this one .. set up to pick that out
