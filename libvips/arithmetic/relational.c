@@ -28,6 +28,8 @@
  * 	- redone as a class
  * 1/2/12
  * 	- complex ==, != were broken
+ * 16/7/12
+ * 	- im1 > im2, im1 >= im2 were broken 
  */
 
 /*
@@ -88,18 +90,16 @@ static int
 vips_relational_build( VipsObject *object )
 {
 	VipsRelational *relational = (VipsRelational *) object;
-	VipsArithmetic *arithmetic = (VipsArithmetic *) object;
+	VipsBinary *binary = (VipsBinary *) object;
 
 	if( relational->relational == VIPS_OPERATION_RELATIONAL_MORE ) {
 		relational->relational = VIPS_OPERATION_RELATIONAL_LESS;
-		VIPS_SWAP( VipsImage *, 
-			arithmetic->ready[0], arithmetic->ready[1] );
+		VIPS_SWAP( VipsImage *, binary->left, binary->right );
 	}
 
 	if( relational->relational == VIPS_OPERATION_RELATIONAL_MOREEQ ) {
 		relational->relational = VIPS_OPERATION_RELATIONAL_LESSEQ;
-		VIPS_SWAP( VipsImage *, 
-			arithmetic->ready[0], arithmetic->ready[1] );
+		VIPS_SWAP( VipsImage *, binary->left, binary->right );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_relational_parent_class )->build( object ) )
