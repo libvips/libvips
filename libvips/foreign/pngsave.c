@@ -2,6 +2,8 @@
  *
  * 2/12/11
  * 	- wrap a class around the png writer
+ * 16/7/12
+ * 	- compression should be 0-9, not 1-10
  */
 
 /*
@@ -104,7 +106,7 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		_( "Compression factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePng, compression ),
-		1, 10, 6 );
+		0, 9, 6 );
 
 	VIPS_ARG_BOOL( class, "interlace", 7, 
 		_( "Interlace" ), 
