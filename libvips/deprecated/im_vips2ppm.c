@@ -66,5 +66,5 @@ im_vips2ppm( IMAGE *in, const char *filename )
 		}
 	}
 
-	return( vips_ppmsave( in, filename, "ascii", ascii, NULL ) ); 
+	return( vips_ppmsave( in, name, "ascii", ascii, NULL ) ); 
 }
