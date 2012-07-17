@@ -3,6 +3,7 @@
 - vips_sign() was broken
 - png save compression range was wrong
 - more/moreeq was wrong
+- vips7 ppm save with options was broken 
 
 18/6/12 started 7.28.9
 - slightly more memory debugging output
