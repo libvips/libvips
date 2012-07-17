@@ -73,7 +73,7 @@ im_csv2vips( const char *filename, IMAGE *out )
 			lines = atoi( r );
 	}
 
-	if( vips_csvload( filename, &t, 
+	if( vips_csvload( name, &t, 
 		"skip", start_skip,
 		"lines", lines,
 		"whitespace", whitespace,
