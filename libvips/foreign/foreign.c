@@ -1375,6 +1375,10 @@ vips_foreign_save_build( VipsObject *object )
 		vips_foreign_convert_saveable( save ) )
 		return( -1 );
 
+	/* You mustn't cache write operations.
+	 */
+	vips_operation_set_nocache( VIPS_OPERATION( save ), TRUE );
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_parent_class )->
 		build( object ) )
 		return( -1 );
