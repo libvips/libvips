@@ -96,8 +96,7 @@ typedef struct _VipsOperationClass {
 	 */
 	void (*usage)( struct _VipsOperationClass *, VipsBuf * );
 
-	/* Return a set of operation flags. If @get_flags is NULL, just use
-	 * flags.
+	/* Return a set of operation flags. 
 	 */
 	VipsOperationFlags (*get_flags)( VipsOperation * ); 
 	VipsOperationFlags flags;

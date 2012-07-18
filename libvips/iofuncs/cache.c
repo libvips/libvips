@@ -265,9 +265,15 @@ vips_value_equal( GParamSpec *pspec, GValue *v1, GValue *v2 )
 	if( generic == G_TYPE_PARAM_DOUBLE ) 
 		return( g_value_get_double( v1 ) ==
 			g_value_get_double( v2 ) );
-	if( generic == G_TYPE_PARAM_STRING ) 
-		return( strcmp( g_value_get_string( v1 ),
-			g_value_get_string( v2 ) ) == 0 );
+	if( generic == G_TYPE_PARAM_STRING ) {
+		const char *s1 = g_value_get_string( v1 );
+		const char *s2 = g_value_get_string( v2 );
+
+		if( s1 == s2 )
+			return( TRUE );
+		else
+			return( s1 && s2 && strcmp( s1, s2 ) == 0 );
+	}
 	if( generic == G_TYPE_PARAM_BOXED ) 
 		return( g_value_get_boxed( v1 ) ==
 			g_value_get_boxed( v2 ) );
