@@ -1,3 +1,6 @@
+20/7/12 started 7.30.0
+- version bump
+
 19/3/12 started 7.29.0
 - sanity-check PNG read geometry
 - nearest-neighbor interpolation rounds coordinates to nearest instead of 
