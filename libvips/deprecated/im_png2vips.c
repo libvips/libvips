@@ -80,6 +80,7 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 
+#ifdef HAVE_PNG
 	if( header_only ) {
 		if( vips__png_header( filename, out ) )
 			return( -1 );
@@ -88,6 +89,11 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 		if( vips__png_read( filename, out ) )
 			return( -1 );
 	}
+#else
+	vips_error( "im_png2vips", _( "no PNG support in your libvips" ) ); 
+
+	return( -1 );
+#endif /*HAVE_PNG*/
 
 	return( 0 );
 }

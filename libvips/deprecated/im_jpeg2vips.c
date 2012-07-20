@@ -110,9 +110,15 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 
+#ifdef HAVE_JPEG
 	if( vips__jpeg_read_file( filename, out, 
 		header_only, shrink, fail_on_warn ) )
 		return( -1 );
+#else
+	vips_error( "im_jpeg2vips", _( "no JPEG support in your libvips" ) ); 
+
+	return( -1 );
+#endif /*HAVE_JPEG*/
 
 	return( 0 );
 }

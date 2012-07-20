@@ -46,7 +46,14 @@
 int
 im_magick2vips( const char *filename, IMAGE *out )
 {
+#ifdef HAVE_MAGICK
 	return( vips__magick_read( filename, out ) ); 
+#else
+	vips_error( "im_magick2vips", 
+		_( "no libMagick support in your libvips" ) ); 
+
+	return( -1 );
+#endif /*HAVE_MAGICK*/
 }
 
 static int

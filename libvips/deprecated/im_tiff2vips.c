@@ -91,6 +91,7 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 
+#ifdef HAVE_TIFF
 	if( header_only ) {
 		if( vips__tiff_read_header( filename, out, page ) )
 			return( -1 );
@@ -99,6 +100,11 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 		if( vips__tiff_read( filename, out, page ) )
 			return( -1 );
 	}
+#else
+	vips_error( "im_tiff2vips", _( "no TIFF support in your libvips" ) ); 
+
+	return( -1 );
+#endif /*HAVE_TIFF*/
 
 	return( 0 );
 }
