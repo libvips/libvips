@@ -63,7 +63,7 @@ typedef struct {
 	VipsImage *image;
 	VipsFormatClass *format;/* Read in pixels with this */
 	char *filename;		/* Get pixels from here */
-	gboolean disc;		/* Read via disc requested */
+	gboolean sequential;	/* Sequential read requested */
 
 	VipsImage *real;	/* The real decompressed image */
 } Lazy;
@@ -80,7 +80,7 @@ lazy_free_cb( VipsImage *image, Lazy *lazy )
 
 static Lazy *
 lazy_new( VipsImage *image, 
-	VipsFormatClass *format, const char *filename, gboolean disc )
+	VipsFormatClass *format, const char *filename, gboolean sequential )
 {
 	Lazy *lazy;
 
@@ -89,7 +89,7 @@ lazy_new( VipsImage *image,
 	lazy->image = image;
 	lazy->format = format;
 	lazy->filename = g_strdup( filename );
-	lazy->disc = disc;
+	lazy->sequential = sequential;
 	lazy->real = NULL;
 	g_signal_connect( image, "close", G_CALLBACK( lazy_free_cb ), lazy );
 
@@ -132,13 +132,13 @@ lazy_real_image( Lazy *lazy )
 	VipsImage *real;
 
 	/* We open via disc if:
-	 * - 'disc' is set
+	 * - 'sequential' is not set
 	 * - disc_threshold() has not been set to zero
 	 * - the format does not support lazy read
 	 * - the uncompressed image will be larger than disc_threshold()
 	 */
 	real = NULL;
-	if( lazy->disc && 
+	if( !lazy->sequential && 
 		disc_threshold() && 
 	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
 			VIPS_FORMAT_PARTIAL) &&
@@ -203,11 +203,11 @@ open_lazy_generate( VipsRegion *or,
  */
 static int
 vips_image_open_lazy( VipsImage *image, 
-	VipsFormatClass *format, const char *filename, gboolean disc )
+	VipsFormatClass *format, const char *filename, gboolean sequential )
 {
 	Lazy *lazy;
 
-	lazy = lazy_new( image, format, filename, disc );
+	lazy = lazy_new( image, format, filename, sequential );
 
 	/* Is there a ->header() function? We need to do a lazy load.
 	 */
@@ -273,7 +273,7 @@ vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
 }
 
 IMAGE *
-vips__deprecated_open_read( const char *filename )
+vips__deprecated_open_read( const char *filename, gboolean sequential )
 {
 	VipsFormatClass *format;
 
@@ -293,7 +293,8 @@ vips__deprecated_open_read( const char *filename )
 		IMAGE *image;
 
 		image = vips_image_new();
-		if( vips_image_open_lazy( image, format, filename, TRUE ) ) {
+		if( vips_image_open_lazy( image, format, 
+			filename, sequential ) ) {
 			g_object_unref( image );
 			return( NULL );
 		}

@@ -110,7 +110,7 @@ input_image_init( im_object *obj, char *str )
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return( !(*im = vips__deprecated_open_read( str )) );
+	return( !(*im = vips__deprecated_open_read( str, FALSE )) );
 }
 
 /* Input image type.

@@ -62,10 +62,16 @@ im_open( const char *filename, const char *mode )
 
 	/* We have to go via the old VipsFormat system so we can support the
 	 * "filename:option" syntax.
+	 *
+	 * Use "rs" to turn on seq mode.
 	 */
 	if( strcmp( mode, "r" ) == 0 ||
 		strcmp( mode, "rd" ) == 0 ) {
-		if( !(image = vips__deprecated_open_read( filename )) )
+		if( !(image = vips__deprecated_open_read( filename, FALSE )) )
+			return( NULL );
+	}
+	else if( strcmp( mode, "rs" ) == 0 ) { 
+		if( !(image = vips__deprecated_open_read( filename, TRUE )) )
 			return( NULL );
 	}
 	else if( strcmp( mode, "w" ) == 0 ) {

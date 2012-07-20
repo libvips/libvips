@@ -52,13 +52,15 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 	char *p, *q;
+	int seq;
 
 	im_filename_split( name, filename, mode );
 
+	seq = 0;
 	p = &mode[0];
 	if( (q = im_getnextoption( &p )) ) {
 		if( im_isprefix( "seq", q ) )
-			;
+			seq = 1;
 	}
 
 	/* We need to be compatible with the pre-sequential mode 
@@ -72,6 +74,7 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 	 */
 
 	if( !header_only && 
+		!seq &&
 		out->dtype == VIPS_IMAGE_PARTIAL ) {
 		if( vips__image_wio_output( out ) ) 
 			return( -1 );

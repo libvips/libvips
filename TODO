@@ -1,3 +1,13 @@
+- try:
+
+	vipsthumbnail wtc.tif --verbose --vips-progress --vips-leak
+
+  get no progress info
+
+  does not report static interpolators on exit, shouldn't leak check do
+  this?
+
+
 blocking bugs
 =============
 
