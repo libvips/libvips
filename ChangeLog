@@ -1,5 +1,6 @@
 20/7/12 started 7.30.0
 - support "rs" mode in vips7
+- add --vips-version cmdline arg
 
 19/3/12 started 7.29.0
 - sanity-check PNG read geometry
