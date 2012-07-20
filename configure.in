@@ -218,7 +218,7 @@ if test x"$enable_cxx" != x"no"; then
     AC_DEFINE(ENABLE_CXX,1,[build C++ components])
     AM_CONDITIONAL(ENABLE_CXX, true)
     # need -lstdc++ for (eg.) the C++ format loaders
-    # this gets added to vips-7.xx.pc to help mingw and friends link programs
+    # this gets added to vips.pc to help mingw and friends link programs
     # using libvips
     VIPS_CXX_LIBS="-lstdc++"
     enable_cxx=yes
@@ -685,12 +685,9 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(VIPS_CXX_LIBS)
 AC_SUBST(PACKAGES_USED)
 
-# you'd think we could have 
-#	vips-$VIPS_MAJOR_VERSION.$VIPS_MINOR_VERSION.pc
-# in AC_OUTPUT, but that seems to break for some combinations of sh/m4
 AC_OUTPUT([
-	vips-7.29.pc
-	vipsCC-7.29.pc
+	vips.pc
+	vipsCC.pc
 	Makefile 
 	libvips/include/vips/version.h 
 	libvips/include/Makefile 
