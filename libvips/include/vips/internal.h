@@ -66,6 +66,10 @@ extern int vips__thinstrip_height;
  */
 extern int vips__concurrency;
 
+/* abort() on any error.
+ */
+extern int vips__fatal;
+
 /* Give progress feedback.
  */
 extern int vips__progress;

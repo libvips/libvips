@@ -155,6 +155,9 @@ vips_verror( const char *domain, const char *fmt, va_list ap )
 	g_mutex_unlock( vips__global_lock );
 
 	VIPS_DEBUG_MSG( "vips_verror: %s\n", fmt );
+
+	if( vips__fatal )
+		vips_error_exit( "vips__fatal" );
 }
 
 /**
@@ -363,6 +366,9 @@ vips_vwarn( const char *domain, const char *fmt, va_list ap )
 		(void) fprintf( stderr, "\n" );
 		g_mutex_unlock( vips__global_lock );
 	}
+
+	if( vips__fatal )
+		vips_error_exit( "vips__fatal" );
 }
 
 /**
@@ -421,7 +427,10 @@ vips_error_exit( const char *fmt, ... )
 
 	vips_shutdown();
 
-	exit( 1 );
+	if( vips__fatal )
+		abort();
+	else
+		exit( 1 );
 }
 
 /**

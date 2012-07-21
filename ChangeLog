@@ -2,6 +2,7 @@
 - support "rs" mode in vips7
 - add --vips-version cmdline arg
 - fix --without-tiff / exr / jpeg / png / magick
+- add --vips-fatal flag
 
 19/3/12 started 7.29.0
 - sanity-check PNG read geometry
