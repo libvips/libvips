@@ -304,6 +304,8 @@ guint64 vips__parse_size( const char *size_string );
 IMAGE *vips__deprecated_open_read( const char *filename, gboolean sequential );
 IMAGE *vips__deprecated_open_write( const char *filename );
 
+int vips__input_interpolate_init( im_object *obj, char *str );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
