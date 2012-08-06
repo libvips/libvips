@@ -1,3 +1,7 @@
+- C++/Python need an im_affinei_all, perhaps with a char* for the
+  interpolator?
+
+
 blocking bugs
 =============
 

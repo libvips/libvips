@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2012-07-20 15:34+0100\n"
+"POT-Creation-Date: 2012-07-23 11:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2589,141 +2589,141 @@ msgstr ""
 msgid "per-thread state for sink"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:210
+#: ../libvips/iofuncs/error.c:213
 msgid "windows error"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:219
+#: ../libvips/iofuncs/error.c:222
 msgid "unix error"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:310 ../libvips/iofuncs/error.c:311
-#: ../libvips/iofuncs/error.c:360 ../libvips/iofuncs/error.c:361
+#: ../libvips/iofuncs/error.c:313 ../libvips/iofuncs/error.c:314
+#: ../libvips/iofuncs/error.c:363 ../libvips/iofuncs/error.c:364
 #, c-format
 msgid "%s: "
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:310
+#: ../libvips/iofuncs/error.c:313
 msgid "vips diagnostic"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:360
+#: ../libvips/iofuncs/error.c:363
 msgid "vips warning"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:444
+#: ../libvips/iofuncs/error.c:453
 msgid "image must be uncoded"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:472
+#: ../libvips/iofuncs/error.c:481
 msgid "image coding must be NONE or LABQ"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:500
+#: ../libvips/iofuncs/error.c:509
 msgid "unknown image coding"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:526
+#: ../libvips/iofuncs/error.c:535
 msgid "Radiance coding only"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:552
+#: ../libvips/iofuncs/error.c:561
 msgid "LABQ coding only"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:576
+#: ../libvips/iofuncs/error.c:585
 msgid "image must one band"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:601
+#: ../libvips/iofuncs/error.c:610
 #, c-format
 msgid "image must have %d bands"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:626
+#: ../libvips/iofuncs/error.c:635
 msgid "image must have one or three bands"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:654
+#: ../libvips/iofuncs/error.c:663
 msgid "images must have the same number of bands, or one must be single-band"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:681
+#: ../libvips/iofuncs/error.c:690
 #, c-format
 msgid "image must have 1 or %d bands"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:705
+#: ../libvips/iofuncs/error.c:714
 msgid "image must be non-complex"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:729
+#: ../libvips/iofuncs/error.c:738
 msgid "image must be complex"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:755
+#: ../libvips/iofuncs/error.c:764
 #, c-format
 msgid "image must be %s"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:780
+#: ../libvips/iofuncs/error.c:789
 msgid "image must be integer"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:805
+#: ../libvips/iofuncs/error.c:814
 msgid "image must be unsigned integer"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:833
+#: ../libvips/iofuncs/error.c:842
 msgid "image must be 8- or 16-bit integer, signed or unsigned"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:860
+#: ../libvips/iofuncs/error.c:869
 msgid "image must be 8- or 16-bit unsigned integer"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:886
+#: ../libvips/iofuncs/error.c:895
 msgid "image must be 8- or 16-bit unsigned integer, or float"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:914
+#: ../libvips/iofuncs/error.c:923
 msgid "image must be unsigned int or float"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:939
+#: ../libvips/iofuncs/error.c:948
 msgid "images must match in size"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:965
+#: ../libvips/iofuncs/error.c:974
 msgid "images must have the same number of bands"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1019
+#: ../libvips/iofuncs/error.c:1028
 msgid "images must have the same band format"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1045
+#: ../libvips/iofuncs/error.c:1054
 msgid "images must have the same coding"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1070
+#: ../libvips/iofuncs/error.c:1079
 #, c-format
 msgid "vector must have 1 or %d elements"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1095
+#: ../libvips/iofuncs/error.c:1104
 msgid "histograms must have width or height 1"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1100
+#: ../libvips/iofuncs/error.c:1109
 msgid "histograms must have not have more than 65536 elements"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1129 ../libvips/iofuncs/error.c:1157
+#: ../libvips/iofuncs/error.c:1138 ../libvips/iofuncs/error.c:1166
 msgid "nonsense mask parameters"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1182
+#: ../libvips/iofuncs/error.c:1191
 msgid "mask must be 1D"
 msgstr ""
 
@@ -2883,71 +2883,75 @@ msgstr ""
 msgid "unable to mmap \"%s\" to same address"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:380
+#: ../libvips/iofuncs/init.c:402
+msgid "abort on first error or warning"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:405
 msgid "evaluate with N concurrent threads"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:383
+#: ../libvips/iofuncs/init.c:408
 msgid "set tile width to N (DEBUG)"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:386
+#: ../libvips/iofuncs/init.c:411
 msgid "set tile height to N (DEBUG)"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:389
+#: ../libvips/iofuncs/init.c:414
 msgid "set thinstrip height to N (DEBUG)"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:392
+#: ../libvips/iofuncs/init.c:417
 msgid "set fatstrip height to N (DEBUG)"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:395
+#: ../libvips/iofuncs/init.c:420
 msgid "show progress feedback"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:398
+#: ../libvips/iofuncs/init.c:423
 msgid "leak-check on exit"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:401
+#: ../libvips/iofuncs/init.c:426
 msgid "images larger than N are decompressed to disc"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:404
+#: ../libvips/iofuncs/init.c:429
 msgid "disable vectorised versions of operations"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:407
+#: ../libvips/iofuncs/init.c:432
 msgid "cache at most N operations"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:410
+#: ../libvips/iofuncs/init.c:435
 msgid "cache at most N bytes in memory"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:413
+#: ../libvips/iofuncs/init.c:438
 msgid "allow at most N open files"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:416
+#: ../libvips/iofuncs/init.c:441
 msgid "trace operation cache"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:419
+#: ../libvips/iofuncs/init.c:444
 msgid "dump operation cache on exit"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:422
+#: ../libvips/iofuncs/init.c:447
 msgid "print libvips version"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:445
+#: ../libvips/iofuncs/init.c:470
 msgid "VIPS Options"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:445
+#: ../libvips/iofuncs/init.c:470
 msgid "Show VIPS options"
 msgstr ""
 
