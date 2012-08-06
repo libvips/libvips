@@ -58,6 +58,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	char mode[FILENAME_MAX];
 	char *p, *q;
 	int shrink;
+	int seq;
 	gboolean fail_on_warn;
 
 	/* By default, we ignore any warnings. We want to get as much of
@@ -70,6 +71,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	im_filename_split( name, filename, mode );
 	p = &mode[0];
 	shrink = 1;
+	seq = 0;
 	if( (q = im_getnextoption( &p )) ) {
 		shrink = atoi( q );
 
@@ -84,13 +86,9 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 		if( im_isprefix( "fail", q ) ) 
 			fail_on_warn = TRUE;
 	}
-
-	/* vips__jpeg_read_file() is always sequential. Parse the option, but
-	 * don't use it.
-	 */
 	if( (q = im_getnextoption( &p )) ) {
 		if( im_isprefix( "seq", q ) )
-			;
+			seq = 1;
 	}
 
 	/* Don't use vips_jpegload() ... we call the jpeg func directly in
@@ -106,14 +104,21 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	 */
 
 	if( !header_only &&
+		!seq &&
 		out->dtype == VIPS_IMAGE_PARTIAL ) {
 		if( vips__image_wio_output( out ) ) 
 			return( -1 );
 	}
 
+#ifdef HAVE_JPEG
 	if( vips__jpeg_read_file( filename, out, 
 		header_only, shrink, fail_on_warn ) )
 		return( -1 );
+#else
+	vips_error( "im_jpeg2vips", _( "no JPEG support in your libvips" ) ); 
+
+	return( -1 );
+#endif /*HAVE_JPEG*/
 
 	return( 0 );
 }

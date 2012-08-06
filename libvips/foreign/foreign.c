@@ -890,7 +890,7 @@ vips_foreign_load_build( VipsObject *object )
 }
 
 static VipsOperationFlags 
-vips_foreign_load_real_get_flags( VipsOperation *operation )
+vips_foreign_load_operation_get_flags( VipsOperation *operation )
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( operation );
 	VipsOperationFlags flags;
@@ -920,7 +920,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 	object_class->nickname = "fileload";
 	object_class->description = _( "file loaders" );
 
-	operation_class->get_flags = vips_foreign_load_real_get_flags;
+	operation_class->get_flags = vips_foreign_load_operation_get_flags;
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 
@@ -1427,6 +1427,10 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	/* I think all savers are sequential. Hopefully.
 	 */
 	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL;
+
+	/* Must not cache savers.
+	 */
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	/* Default to no coding allowed.
 	 */

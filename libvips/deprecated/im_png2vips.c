@@ -52,13 +52,15 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 	char *p, *q;
+	int seq;
 
 	im_filename_split( name, filename, mode );
 
+	seq = 0;
 	p = &mode[0];
 	if( (q = im_getnextoption( &p )) ) {
 		if( im_isprefix( "seq", q ) )
-			;
+			seq = 1;
 	}
 
 	/* We need to be compatible with the pre-sequential mode 
@@ -72,19 +74,26 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 	 */
 
 	if( !header_only && 
+		!seq &&
 		out->dtype == VIPS_IMAGE_PARTIAL ) {
 		if( vips__image_wio_output( out ) ) 
 			return( -1 );
 	}
 
+#ifdef HAVE_PNG
 	if( header_only ) {
-		if( vips__png_read( filename, out ) )
-			return( -1 );
-	}
-	else {
 		if( vips__png_header( filename, out ) )
 			return( -1 );
 	}
+	else {
+		if( vips__png_read( filename, out ) )
+			return( -1 );
+	}
+#else
+	vips_error( "im_png2vips", _( "no PNG support in your libvips" ) ); 
+
+	return( -1 );
+#endif /*HAVE_PNG*/
 
 	return( 0 );
 }

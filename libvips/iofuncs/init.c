@@ -80,6 +80,10 @@
 #include <vips/internal.h>
 #include <vips/vector.h>
 
+/* abort() on the first warning or error.
+ */
+int vips__fatal = 0;
+
 /* Use in various small places where we need a mutex and it's not worth 
  * making a private one.
  */
@@ -365,20 +369,50 @@ vips__ngettext( const char *msgid, const char *plural, unsigned long int n )
 	return( dngettext( GETTEXT_PACKAGE, msgid, plural, n ) );
 }
 
+static gboolean
+vips_lib_version_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	printf( "libvips %s\n", VIPS_VERSION_STRING );
+	vips_shutdown();
+	exit( 0 );
+}
+
+static gboolean
+vips_set_fatal_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	vips__fatal = 1; 
+
+	/* Set masks for debugging ... stop on any problem. 
+	 */
+	g_log_set_always_fatal(
+		G_LOG_FLAG_RECURSION |
+		G_LOG_FLAG_FATAL |
+		G_LOG_LEVEL_ERROR |
+		G_LOG_LEVEL_CRITICAL |
+		G_LOG_LEVEL_WARNING );
+
+	return( TRUE );
+}
+
 static GOptionEntry option_entries[] = {
+	{ "vips-fatal", 'f', G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_set_fatal_cb, 
+		N_( "abort on first error or warning" ), NULL },
 	{ "vips-concurrency", 'c', 0, 
 		G_OPTION_ARG_INT, &vips__concurrency, 
 		N_( "evaluate with N concurrent threads" ), "N" },
-	{ "vips-tile-width", 'w', 0, 
+	{ "vips-tile-width", 'w', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_INT, &vips__tile_width, 
 		N_( "set tile width to N (DEBUG)" ), "N" },
-	{ "vips-tile-height", 'h', 0, 
+	{ "vips-tile-height", 'h', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_INT, &vips__tile_height, 
 		N_( "set tile height to N (DEBUG)" ), "N" },
-	{ "vips-thinstrip-height", 't', 0, 
+	{ "vips-thinstrip-height", 't', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_INT, &vips__thinstrip_height, 
 		N_( "set thinstrip height to N (DEBUG)" ), "N" },
-	{ "vips-fatstrip-height", 'f', 0, 
+	{ "vips-fatstrip-height", 'f', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_INT, &vips__fatstrip_height, 
 		N_( "set fatstrip height to N (DEBUG)" ), "N" },
 	{ "vips-progress", 'p', 0, 
@@ -408,6 +442,9 @@ static GOptionEntry option_entries[] = {
 	{ "vips-cache-dump", 'r', 0, 
 		G_OPTION_ARG_NONE, &vips__cache_dump, 
 		N_( "dump operation cache on exit" ), NULL },
+	{ "vips-version", 'v', G_OPTION_FLAG_NO_ARG, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_version_cb, 
+		N_( "print libvips version" ), NULL },
 	{ NULL }
 };
 

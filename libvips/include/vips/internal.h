@@ -66,6 +66,10 @@ extern int vips__thinstrip_height;
  */
 extern int vips__concurrency;
 
+/* abort() on any error.
+ */
+extern int vips__fatal;
+
 /* Give progress feedback.
  */
 extern int vips__progress;
@@ -297,7 +301,7 @@ void vips_foreign_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
 
-IMAGE *vips__deprecated_open_read( const char *filename );
+IMAGE *vips__deprecated_open_read( const char *filename, gboolean sequential );
 IMAGE *vips__deprecated_open_write( const char *filename );
 
 #ifdef __cplusplus

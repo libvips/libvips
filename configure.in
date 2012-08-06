@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.29.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [7.30.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -16,7 +16,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [7])
-m4_define([vips_minor_version], [29])
+m4_define([vips_minor_version], [30])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -37,7 +37,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=33
-LIBRARY_REVISION=2
+LIBRARY_REVISION=3
 LIBRARY_AGE=1
 
 # patched into include/vips/version.h
@@ -218,7 +218,7 @@ if test x"$enable_cxx" != x"no"; then
     AC_DEFINE(ENABLE_CXX,1,[build C++ components])
     AM_CONDITIONAL(ENABLE_CXX, true)
     # need -lstdc++ for (eg.) the C++ format loaders
-    # this gets added to vips-7.xx.pc to help mingw and friends link programs
+    # this gets added to vips.pc to help mingw and friends link programs
     # using libvips
     VIPS_CXX_LIBS="-lstdc++"
     enable_cxx=yes
@@ -685,12 +685,9 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(VIPS_CXX_LIBS)
 AC_SUBST(PACKAGES_USED)
 
-# you'd think we could have 
-#	vips-$VIPS_MAJOR_VERSION.$VIPS_MINOR_VERSION.pc
-# in AC_OUTPUT, but that seems to break for some combinations of sh/m4
 AC_OUTPUT([
-	vips-7.29.pc
-	vipsCC-7.29.pc
+	vips.pc
+	vipsCC.pc
 	Makefile 
 	libvips/include/vips/version.h 
 	libvips/include/Makefile 

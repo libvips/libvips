@@ -53,7 +53,13 @@
 int
 im_exr2vips( const char *filename, IMAGE *out )
 {
+#ifdef HAVE_OPENEXR
 	return( vips__openexr_read( filename, out ) ); 
+#else
+	vips_error( "im_exr2vips", _( "no OpenEXR support in your libvips" ) ); 
+
+	return( -1 );
+#endif /*HAVE_OPENEXR*/
 }
 
 static const char *exr_suffs[] = { ".exr", NULL };
