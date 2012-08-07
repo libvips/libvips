@@ -85,7 +85,8 @@ vips_operation_class_usage_arg( VipsObjectClass *object_class,
 	 */
 	if( usage->required == 
 		((argument_class->flags & VIPS_ARGUMENT_REQUIRED) != 0) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
 		if( usage->message && usage->n == 0 ) 
 			vips_buf_appendf( buf, "%s\n", usage->message );
 
@@ -775,12 +776,16 @@ vips_call_options_add( VipsObject *object,
 
 		entry[0].long_name = name;
 		entry[0].short_name = name[0];
+		entry[0].description = g_param_spec_get_blurb( pspec );
+
 		entry[0].flags = 0;
 		if( !needs_string ) 
 			entry[0].flags |= G_OPTION_FLAG_NO_ARG;
+		if( argument_class->flags & VIPS_ARGUMENT_DEPRECATED ) 
+			entry[0].flags |= G_OPTION_FLAG_HIDDEN;
+
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
-		entry[0].description = g_param_spec_get_blurb( pspec );
 		if( needs_string ) 
 			entry[0].arg_description = 
 				g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) );
@@ -837,7 +842,8 @@ vips_call_argv_input( VipsObject *object,
 	/* Loop over all required construct args.
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
 		const char *name = g_param_spec_get_name( pspec );
 
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
@@ -872,7 +878,8 @@ vips_call_argv_output( VipsObject *object,
 	/* Loop over all required construct args.
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
 			call->i += 1;
 		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {

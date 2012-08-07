@@ -484,6 +484,8 @@ Vargv::~Vargv()
 					io->vec = NULL;
 				}
 			}
+			else if( strcmp( ty->type, IM_TYPE_INTERPOLATE ) == 0 )
+				g_object_unref( base[i] );
 		}
 	}
 

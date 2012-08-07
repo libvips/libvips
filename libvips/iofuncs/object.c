@@ -144,6 +144,7 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) &&
 		(argument_class->flags & *iomask) &&
 		!argument_instance->assigned ) {
 		vips_error( class->nickname, 

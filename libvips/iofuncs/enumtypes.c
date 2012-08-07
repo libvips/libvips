@@ -526,6 +526,7 @@ vips_argument_flags_get_type( void )
 			{VIPS_ARGUMENT_SET_ALWAYS, "VIPS_ARGUMENT_SET_ALWAYS", "set-always"},
 			{VIPS_ARGUMENT_INPUT, "VIPS_ARGUMENT_INPUT", "input"},
 			{VIPS_ARGUMENT_OUTPUT, "VIPS_ARGUMENT_OUTPUT", "output"},
+			{VIPS_ARGUMENT_DEPRECATED, "VIPS_ARGUMENT_DEPRECATED", "deprecated"},
 			{0, NULL, NULL}
 		};
 		

@@ -424,6 +424,9 @@ int vips_radload( const char *filename, VipsImage **out, ... )
 int vips_radsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
+int vips_dzsave( VipsImage *in, const char *basename, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -332,7 +332,8 @@ vips2cpp( im_type_desc *ty )
 		IM_TYPE_DISPLAY,
 		IM_TYPE_IMAGEVEC,
 		IM_TYPE_DOUBLEVEC,
-		IM_TYPE_INTVEC
+		IM_TYPE_INTVEC,
+		IM_TYPE_INTERPOLATE
 	};
 
 	/* Corresponding C++ types.
@@ -348,7 +349,8 @@ vips2cpp( im_type_desc *ty )
 		"VDisplay",
 		"std::vector<VImage>",
 		"std::vector<double>",
-		"std::vector<int>"
+		"std::vector<int>",
+		"char*"
 	};
 
 	for( k = 0; k < IM_NUMBER( vtypes ); k++ )
@@ -771,6 +773,12 @@ print_cppdef( im_function *fn )
 		else if( strcmp( ty->type, IM_TYPE_INTVEC ) == 0 ) 
 			print_invec( j, fn->argv[j].name, 
 				"im_intvec_object", "int", "" );
+		else if( strcmp( ty->type, IM_TYPE_INTERPOLATE ) == 0 ) {
+			printf( "\tif( vips__input_interpolate_init( "
+				"&_vec.data(%d), %s ) )\n",
+				j, fn->argv[j].name );
+			printf( "\t\tverror();\n" );
+		}
 		else
 			/* Just use vips2cpp().
 			 */

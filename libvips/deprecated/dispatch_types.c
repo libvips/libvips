@@ -870,9 +870,11 @@ im_type_desc im__output_gvalue = {
 };
 
 /* Init function for input interpolate.
+ *
+ * This is used as a helper function by the C++ interface, so amke it public.
  */
-static int
-input_interpolate_init( im_object *obj, char *str )
+int
+vips__input_interpolate_init( im_object *obj, char *str )
 {
 	GType type = g_type_from_name( "VipsInterpolate" );
 	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
@@ -903,7 +905,7 @@ im_type_desc im__input_interpolate = {
 	IM_TYPE_INTERPOLATE,	
 	0,      			/* No storage required */
 	IM_TYPE_ARG,			/* It requires a command-line arg */
-	input_interpolate_init,		/* Init function */
+	vips__input_interpolate_init,	/* Init function */
 	input_interpolate_dest		/* Destroy function */
 };
 
