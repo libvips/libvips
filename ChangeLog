@@ -4,6 +4,7 @@
   overlap now matches the openslide writer
 - wrap VipsInterpolate for C++
 - so affinei and affinei_all appear in Python
+- be more cautious enabling YCbCr mode in tiff write
 
 20/7/12 started 7.30.0
 - support "rs" mode in vips7
