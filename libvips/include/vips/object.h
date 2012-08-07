@@ -53,6 +53,7 @@ typedef struct _VipsObjectClass VipsObjectClass;
  * @VIPS_ARGUMENT_SET_ALWAYS: don't do use-before-set checks
  * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
+ * @VIPS_ARGUMENT_DEPRECATED: just there for back-compat, hide 
  *
  * Flags we associate with each object argument.
  *
@@ -73,7 +74,8 @@ typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_SET_ONCE = 4,
 	VIPS_ARGUMENT_SET_ALWAYS = 8,
 	VIPS_ARGUMENT_INPUT = 16,
-	VIPS_ARGUMENT_OUTPUT = 32
+	VIPS_ARGUMENT_OUTPUT = 32,
+	VIPS_ARGUMENT_DEPRECATED = 64
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:
