@@ -48,6 +48,8 @@
  * 	- rebuild exif tags from coded metadata values 
  * 24/11/11
  * 	- turn into a set of write fns ready to be called from a class
+ * 7/8/12
+ * 	- use VIPS_META_RESOLUTION_UNIT to select resoltuion unit
  */
 
 /*
@@ -345,13 +347,33 @@ static int
 set_exif_resolution( ExifData *ed, VipsImage *im )
 {
 	double xres, yres;
+	char *p;
 	int unit;
 
-	/* Always save as inches - more progs support it for read.
+	/* Default to inches, more progs support it.
 	 */
-	xres = im->Xres * 25.4;
-	yres = im->Yres * 25.4;
 	unit = 2;
+	if( vips_image_get_typeof( im, VIPS_META_RESOLUTION_UNIT ) &&
+		!vips_image_get_string( im, VIPS_META_RESOLUTION_UNIT, &p ) &&
+		vips_isprefix( "cm", p ) ) 
+		unit = 3;
+
+	switch( unit ) {
+	case 2:
+		xres = im->Xres * 25.4;
+		yres = im->Yres * 25.4;
+		break;
+
+	case 3:
+		xres = im->Xres * 10.0;
+		yres = im->Yres * 10.0;
+		break;
+
+	default:
+		vips_warn( "VipsJpeg", 
+			"%s", _( "unknown EXIF resolution unit" ) );
+		return;
+	}
 
 	if( write_tag( ed, EXIF_TAG_X_RESOLUTION, EXIF_FORMAT_RATIONAL, 
 		vips_exif_set_double, (void *) &xres ) ||

@@ -45,6 +45,8 @@
  * 	- read jfif resolution as well as exif
  * 19/2/12
  * 	- switch to lazy reading
+ * 7/8/12
+ * 	- note EXIF resolution unit in VIPS_META_RESOLUTION_UNIT
  */
 
 /*
@@ -493,6 +495,8 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 		 */
 		xres /= 25.4;
 		yres /= 25.4;
+		vips_image_set_string( im, 
+			VIPS_META_RESOLUTION_UNIT, "in" );
 		break;
 
 	case 3:
@@ -500,6 +504,8 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 		 */
 		xres /= 10.0;
 		yres /= 10.0;
+		vips_image_set_string( im, 
+			VIPS_META_RESOLUTION_UNIT, "cm" );
 		break;
 
 	default:
