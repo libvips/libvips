@@ -66,6 +66,11 @@ typedef struct _VipsObjectClass VipsObjectClass;
  * example, VipsImage::width is a property that gives access to the Xsize
  * member of struct _VipsImage. We default its 'assigned' to TRUE
  * since the field is always set directly by C.
+ *
+ * @VIPS_ARGUMENT_DEPRECATED arguments are not shown in help text, are not
+ * looked for if required, are not checked for "have-been-set". You can
+ * deprecate a required argument, but you must obviously add a new required
+ * argument if you do.
  */
 typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_NONE = 0,

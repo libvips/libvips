@@ -13,6 +13,10 @@
  * 	- round image size up on shrink
  * 	- write a .dzi file with the pyramid params
  * 	- default tile size and overlap now matches the openslide writer
+ * 7/8/12 (thanks to Benjamin Gilbert again for more testing)
+ * 	- reorganise the directory structure
+ * 	- rename to basename and tile_size
+ * 	- deprecate tile_width/_height and dirname 
  */
 
 /*
@@ -97,14 +101,13 @@ struct _Layer {
 struct _VipsForeignSaveDz {
 	VipsForeignSave parent_object;
 
-	/* Directory to create and write to.
+	/* Name to write to. 
 	 */
-	char *dirname; 
+	char *basename; 
 
 	char *suffix;
 	int overlap;
-	int tile_width;
-	int tile_height;
+	int tile_size;
 
 	Layer *layer;			/* x2 shrink pyr layer */
 };
@@ -188,14 +191,14 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 	 * overlap, but the first row is missing the top edge.
 	 *
 	 * We add one so that we will have the extra scan line for the shrink 
-	 * in case tile_height is odd and there's no overlap. 
+	 * in case tile_size is odd and there's no overlap. 
 	 */
 	layer->y = 0;
 	layer->write_y = 0;
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = layer->image->Xsize;
-	strip.height = dz->tile_height + dz->overlap + 1;
+	strip.height = dz->tile_size + dz->overlap + 1;
 	if( vips_region_buffer( layer->strip, &strip ) ) {
 		layer_free( layer );
 		return( NULL );
@@ -224,15 +227,15 @@ pyramid_mkdir( VipsForeignSaveDz *dz )
 {
 	Layer *layer;
 
-	if( vips_existsf( "%s", dz->dirname ) ) { 
+	if( vips_existsf( "%s_files", dz->basename ) ) { 
 		vips_error( "dzsave", 
-			_( "Directory \"%s\" exists" ), dz->dirname );
+			_( "Directory \"%s_files\" exists" ), dz->basename );
 		return( -1 );
 	}
-	if( vips_mkdirf( "%s", dz->dirname ) ) 
+	if( vips_mkdirf( "%s_files", dz->basename ) ) 
 		return( -1 );
 	for( layer = dz->layer; layer; layer = layer->below )
-		if( vips_mkdirf( "%s/%d", dz->dirname, layer->n ) ) 
+		if( vips_mkdirf( "%s_files/%d", dz->basename, layer->n ) ) 
 			return( -1 );
 
 	return( 0 );
@@ -243,11 +246,8 @@ write_dzi( VipsForeignSaveDz *dz )
 {
 	FILE *fp;
 	char buf[PATH_MAX];
-	char *name;
 
-	name = g_path_get_basename( dz->dirname );
-	vips_snprintf( buf, PATH_MAX, "%s/%s.dzi", dz->dirname, name );
-	g_free( name );
+	vips_snprintf( buf, PATH_MAX, "%s.dzi", dz->basename );
 	if( !(fp = vips__file_open_write( buf, TRUE )) )
 		return( -1 );
 
@@ -256,7 +256,7 @@ write_dzi( VipsForeignSaveDz *dz )
 		"xmlns=\"http://schemas.microsoft.com/deepzoom/2008\"\n" );
 	fprintf( fp, "  Format=\"%s\"\n", dz->suffix + 1 );
 	fprintf( fp, "  Overlap=\"%d\"\n", dz->overlap );
-	fprintf( fp, "  TileSize=\"%d\"\n", dz->tile_width );
+	fprintf( fp, "  TileSize=\"%d\"\n", dz->tile_size );
 	fprintf( fp, "  >\n" ); 
 	fprintf( fp, "  <Size \n" );
 	fprintf( fp, "    Height=\"%d\"\n", dz->layer->height );
@@ -433,7 +433,7 @@ strip_init( Strip *strip, Layer *layer )
 	line.left = 0;
 	line.top = layer->y - dz->overlap;
 	line.width = image.width;
-	line.height = dz->tile_height + 2 * dz->overlap;
+	line.height = dz->tile_size + 2 * dz->overlap;
 
 	vips_rect_intersectrect( &image, &line, &line );
 
@@ -464,14 +464,14 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	state->pos.left = strip->x - dz->overlap;
 	state->pos.top = 0;
-	state->pos.width = dz->tile_width + 2 * dz->overlap;
+	state->pos.width = dz->tile_size + 2 * dz->overlap;
 	state->pos.height = state->im->Ysize;
 
 	vips_rect_intersectrect( &image, &state->pos, &state->pos );
 	state->x = strip->x;
 	state->y = layer->y;
 
-	strip->x += dz->tile_width;
+	strip->x += dz->tile_size;
 
 	if( vips_rect_isempty( &state->pos ) ) {
 		*stop = TRUE;
@@ -499,10 +499,10 @@ strip_work( VipsThreadState *state, void *a )
 		state->pos.width, state->pos.height, NULL ) ) 
 		return( -1 );
 
-	vips_buf_appendf( &buf, "%s/%d/%d_%d%s",
-		dz->dirname, layer->n,
-		state->x / dz->tile_width, 
-		state->y / dz->tile_height, 
+	vips_buf_appendf( &buf, "%s_files/%d/%d_%d%s",
+		dz->basename, layer->n,
+		state->x / dz->tile_size, 
+		state->y / dz->tile_size, 
 		dz->suffix );
 
 	if( vips_image_write_to_file( extr, vips_buf_all( &buf ) ) ) {
@@ -689,13 +689,13 @@ strip_arrived( Layer *layer )
 
 	/* Position our strip down the image.  We add one to the strip height
 	 * to make sure we will have enough pixels for any shrinking even if
-	 * tile_height is odd and there's no overlap.
+	 * tile_size is odd and there's no overlap.
 	 */
-	layer->y += dz->tile_height;
+	layer->y += dz->tile_size;
 	new_strip.left = 0;
 	new_strip.top = layer->y - dz->overlap;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_height + 2 * dz->overlap + 1;
+	new_strip.height = dz->tile_size + 2 * dz->overlap + 1;
 
 	/* What pixels that we will need do we already have? Save them in 
 	 * overlap.
@@ -782,8 +782,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( dz->overlap >= dz->tile_width || 
-		dz->overlap >= dz->tile_height ) {
+	if( dz->overlap >= dz->tile_size || 
+		dz->overlap >= dz->tile_size ) {
 		vips_error( "dzsave", 
 			"%s", _( "overlap must be less than tile "
 				"width and height" ) ) ;
@@ -847,11 +847,11 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 	save_class->format_table = bandfmt_dz;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 
-	VIPS_ARG_STRING( class, "dirname", 1, 
-		_( "Directory name" ),
-		_( "Directory name to save to" ),
+	VIPS_ARG_STRING( class, "basename", 1, 
+		_( "Base name" ),
+		_( "Base name to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveDz, dirname ),
+		G_STRUCT_OFFSET( VipsForeignSaveDz, basename ),
 		NULL );
 
 	VIPS_ARG_STRING( class, "suffix", 9, 
@@ -868,19 +868,36 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, overlap ),
 		0, 1024, 0 );
 
-	VIPS_ARG_INT( class, "tile_width", 11, 
+	VIPS_ARG_INT( class, "tile_size", 11, 
+		_( "Tile size" ), 
+		_( "Tile size in pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
+		1, 1024, 256 );
+
+	/* How annoying. We stupidly had these in earlier versions.
+	 */
+
+	VIPS_ARG_STRING( class, "dirname", 1, 
+		_( "Base name" ),
+		_( "Base name to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED, 
+		G_STRUCT_OFFSET( VipsForeignSaveDz, basename ),
+		NULL );
+
+	VIPS_ARG_INT( class, "tile_width", 12, 
 		_( "Tile width" ), 
 		_( "Tile width in pixels" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_width ),
-		1, 1024, 128 );
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
+		1, 1024, 256 );
 
 	VIPS_ARG_INT( class, "tile_height", 12, 
 		_( "Tile height" ), 
 		_( "Tile height in pixels" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_height ),
-		1, 1024, 128 );
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
+		1, 1024, 256 );
 
 }
 
@@ -889,6 +906,49 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 {
 	VIPS_SETSTR( dz->suffix, ".jpeg" );
 	dz->overlap = 1;
-	dz->tile_width = 256;
-	dz->tile_height = 256;
+	dz->tile_size = 256;
 }
+
+/**
+ * vips_dzsave:
+ * @in: image to save 
+ * @basename: basename to save to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @suffix: suffix for tile tiles (default ".jpg")
+ * @overlap; set tile overlap (default 1)
+ * @tile_size; set tile size (default 256)
+ *
+ * Save an image to a deep zoom - style directory tree. A directory called
+ * "@basename_files" is created to hold the tiles, and an XML file called
+ * "@basename.dzi" is written with the image metadata,
+ *
+ * The image is shrunk in a series of x2 reductions until it fits within a
+ * single pixel. Each layer is written out to a separate subdirectory of 
+ * @dirname_files, with directory "0" holding the smallest, single pixel image.
+ *
+ * Each tile is written as a separate file named as "@x_@y@suffix", where @x
+ * and @y are the tile coordinates, with (0, 0) as the top-left tile.
+ *
+ * You can set @suffix to something like ".jpg[Q=85]" to set the tile write
+ * options. 
+ *
+ * See also: vips_tiffsave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_dzsave( VipsImage *in, const char *basename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, basename );
+	result = vips_call_split( "dzsave", ap, in, basename ); 
+	va_end( ap );
+
+	return( result );
+}
+
