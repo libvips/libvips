@@ -556,8 +556,9 @@ vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
 {
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
-	printf( _( "%s %s: done in %ds          \n" ), 
-		g_get_prgname(), image->filename, progress->run );
+	printf( _( "%s %s: done in %.3gs          \n" ), 
+		g_get_prgname(), image->filename, 
+		g_timer_elapsed( progress->start, NULL ) );
 
 	return( 0 );
 }
