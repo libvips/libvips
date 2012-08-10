@@ -1438,6 +1438,29 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 #endif /*DEBUG*/
 }
 
+/* Make a bad-enum error. A common and fiddly case.
+ */
+static void
+vips_enum_error( VipsObjectClass *class, GType otype, const char *value )
+{
+	GEnumClass *genum = G_ENUM_CLASS( g_type_class_ref( otype ) );
+	int i;
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	/* -1 since we always have a "last" member.
+	 */
+	for( i = 0; i < genum->n_values - 1; i++ ) {
+		if( i > 0 )
+			vips_buf_appends( &buf, ", " );
+		vips_buf_appends( &buf, genum->values[i].value_nick );
+	}
+
+	vips_error( class->nickname, _( "enum '%s' has no member '%s', " 
+		"should be one of: %s" ),
+		g_type_name( otype ), value, vips_buf_all( &buf ) );
+}
+
 /* Set a named arg from a string.
  */
 int
@@ -1578,9 +1601,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 			g_type_class_ref( otype ), value )) ) {
 			if( !(enum_value = g_enum_get_value_by_nick( 
 				g_type_class_ref( otype ), value )) ) {
-				vips_error( class->nickname, 
-					_( "enum '%s' has no member '%s'" ),
-					g_type_name( otype ), value );
+				vips_enum_error( class, otype, value ); 
 				return( -1 );
 			}
 		}

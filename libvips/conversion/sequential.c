@@ -80,8 +80,7 @@ vips_sequential_generate( VipsRegion *or,
 	 */
 	if( r->top < sequential->y_pos ) {
 		vips_error( "VipsSequential", 
-			_( "non-sequential read --- "
-			"at position %d in file, but position %d requested" ),
+			_( "at line %d in file, but line %d requested" ),
 			sequential->y_pos, r->top );
 		return( -1 );
 	}
