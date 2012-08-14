@@ -1,4 +1,5 @@
 vips-*.tar.gz
+gtk-doc.make
 libvips-scan 
 libvips-scan.c
 Makefile.in

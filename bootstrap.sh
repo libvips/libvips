@@ -28,7 +28,13 @@ cp $ACDIR/lcmessage.m4 m4
 cp $ACDIR/progtest.m4 m4
 cp $ACDIR/introspection.m4 m4
 
-gtkdocize --copy --docdir doc/reference --flavour no-tmpl || exit 1
+# some systems struggle to install gtk-doc ... test for it first
+if gtkdocize --version >/dev/null 2>&1; then 
+  echo setting up gtk-doc ...
+  gtkdocize --copy --docdir doc/reference --flavour no-tmpl 
+else
+  echo no gtk-doc found -- disabling
+fi
 
 # some systems need libtoolize, some glibtoolize ... how annoying
 echo testing for glibtoolize ...

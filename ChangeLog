@@ -6,6 +6,9 @@
 - so affinei and affinei_all appear in Python
 - be more cautious enabling YCbCr mode in tiff write
 - add "DEPRECATED" flag to arguments
+- jpeg load/save note and use the preferred resolution unit
+- better error msgs for enum args
+- test for gtk-doc in bootstrap
 
 20/7/12 started 7.30.0
 - support "rs" mode in vips7

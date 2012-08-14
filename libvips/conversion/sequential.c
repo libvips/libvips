@@ -7,6 +7,8 @@
  * 	- from VipsForeignLoad
  * 14/7/12
  * 	- support skip forwards as well, so we can do extract/insert
+ * 10/8/12
+ * 	- add @trace option
  */
 
 /*
@@ -60,6 +62,7 @@ typedef struct _VipsSequential {
 	VipsImage *in;
 
 	int y_pos;
+	gboolean trace;
 } VipsSequential;
 
 typedef VipsConversionClass VipsSequentialClass;
@@ -74,14 +77,15 @@ vips_sequential_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	VIPS_DEBUG_MSG( "vips_sequential_generate %d\n", r->top );
+	if( sequential->trace )
+		vips_diag( "VipsSequential", 
+			"%d lines, starting at line %d", r->height, r->top );
 
 	/* We can't go backwards, but we can skip forwards.
 	 */
 	if( r->top < sequential->y_pos ) {
 		vips_error( "VipsSequential", 
-			_( "non-sequential read --- "
-			"at position %d in file, but position %d requested" ),
+			_( "at line %d in file, but line %d requested" ),
 			sequential->y_pos, r->top );
 		return( -1 );
 	}
@@ -107,6 +111,10 @@ vips_sequential_generate( VipsRegion *or,
 			return( -1 );
 
 		sequential->y_pos += rect.height;
+
+		if( sequential->trace )
+			vips_diag( "VipsSequential", 
+				"skipping %d lines", rect.height );
 	}
 
 	g_assert( sequential->y_pos == r->top );
@@ -169,11 +177,19 @@ vips_sequential_class_init( VipsSequentialClass *class )
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSequential, in ) );
+
+	VIPS_ARG_BOOL( class, "trace", 2, 
+		_( "trace" ), 
+		_( "trace pixel requests" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsSequential, trace ),
+		TRUE );
 }
 
 static void
 vips_sequential_init( VipsSequential *sequential )
 {
+	sequential->trace = FALSE;
 }
 
 /**
@@ -182,12 +198,20 @@ vips_sequential_init( VipsSequential *sequential )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @trace: trace requests
+ *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it checks that pixels are only requested
  * top-to-bottom. If an out of order request is made, it throws an exception.
  *
  * This operation is handy with tilecache for loading file formats which are 
  * strictly top-to-bottom, like PNG. 
+ *
+ * If @trace is true, the operation will print diagnostic messages for each
+ * block of pixels which are processed. This can help find the cause of
+ * non-sequential accesses. 
  *
  * See also: vips_image_cache().
  *
