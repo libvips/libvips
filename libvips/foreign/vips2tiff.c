@@ -547,15 +547,16 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 		case 5:
 			/* Only CMYKA
 			 */
-			if( tw->im->Type == VIPS_INTERPRETATION_CMYK ) {
-				photometric = PHOTOMETRIC_SEPARATED;
-				TIFFSetField( tif, 
-					TIFFTAG_INKSET, INKSET_CMYK );
-			}
+			photometric = PHOTOMETRIC_SEPARATED;
+			TIFFSetField( tif, TIFFTAG_INKSET, INKSET_CMYK );
 			break;
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return( 0 );
 		}
 
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, photometric );
@@ -1211,6 +1212,10 @@ get_compression( VipsForeignTiffCompression compression )
 	default:
 		g_assert( 0 );
 	}
+
+	/* Keep -Wall happy.
+	 */
+	return( -1 );
 }
 
 static int
@@ -1225,6 +1230,10 @@ get_resunit( VipsForeignTiffResunit resunit )
 	default:
 		g_assert( 0 );
 	}
+
+	/* Keep -Wall happy.
+	 */
+	return( -1 );
 }
 
 /* Make and init a TiffWrite.

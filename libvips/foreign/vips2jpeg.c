@@ -372,7 +372,7 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 	default:
 		vips_warn( "VipsJpeg", 
 			"%s", _( "unknown EXIF resolution unit" ) );
-		return;
+		return( 0 );
 	}
 
 	if( write_tag( ed, EXIF_TAG_X_RESOLUTION, EXIF_FORMAT_RATIONAL, 

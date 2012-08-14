@@ -324,6 +324,10 @@ vips_rot_build( VipsObject *object )
 
 	default:
 		g_assert( 0 );
+
+		/* Keep -Wall happy.
+		 */
+		return( 0 );
 	}
 
 	vips_demand_hint( conversion->out, hint, rot->in, NULL );

@@ -643,6 +643,10 @@ write_vips( Write *write, int compress, int interlace )
 
 	default:
 		g_assert( 0 );
+
+		/* Keep -Wall happy.
+		 */
+		return( 0 );
 	}
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;

@@ -8,7 +8,7 @@
 - add "DEPRECATED" flag to arguments
 - jpeg load/save note and use the preferred resolution unit
 - better error msgs for enum args
-- test for gtk-doc in bootstrap
+- fix compiler warnings in production build (thanks Dmitry)
 
 20/7/12 started 7.30.0
 - support "rs" mode in vips7

@@ -1,4 +1,8 @@
 vips-*.tar.gz
+doc/reference/setup-build.stamp
+doc/reference/tmpl-build.stamp
+doc/reference/tmpl.stamp
+doc/reference/tmpl/
 libvips-scan 
 libvips-scan.c
 Makefile.in

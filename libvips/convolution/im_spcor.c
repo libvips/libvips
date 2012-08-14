@@ -182,6 +182,10 @@ spcor_gen( REGION *or, void *vseq, void *a, void *b )
 			case IM_BANDFMT_SHORT:	LOOP(signed short); break;
 			default:
 				g_assert( 0 );
+
+				/* Keep -Wall happy.
+				 */
+				return( 0 );
 			}
 
 			/* Now: calculate correlation coefficient!

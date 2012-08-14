@@ -109,8 +109,8 @@ static GMutex *vips_cache_lock = NULL;
 /* Old versions of glib are missing these. When we abandon centos 5, switch to
  * g_int64_hash() and g_double_hash().
  */
-#define INT64_HASH(X) (((unsigned int *) (X))[0] ^ ((unsigned int *) (X))[1])
-#define DOUBLE_HASH(X) (INT64_HASH(X))
+#define INT64_HASH(X) (g_direct_hash(X))
+#define DOUBLE_HASH(X) (g_direct_hash(X))
 
 /* Pass in the pspec so we can get the generic type. For example, a 
  * held in a GParamSpec allowing OBJECT, but the value could be of type
@@ -156,7 +156,7 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_FLOAT ) {
 		float f = g_value_get_float( value );
 
-		return( *((unsigned int *) &f) );
+		return( g_direct_hash( (void *) &f ) );
 	}
 	else if( generic == G_TYPE_PARAM_DOUBLE ) {
 		double d = g_value_get_double( value );
