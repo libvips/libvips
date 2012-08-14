@@ -1,9 +1,26 @@
-carrierwave-vips-benchmark seems to fail for 200x200 images with a non-seq
-error
+- carrierwave-vips-benchmark seems to fail for 200x200 images with a 
+  non-seq error
 
-see also the gist comparing oil and vips
+  see also the gist comparing oil and vips
 
-stop compile warnings for production build
+  the problem is that sequential access much be a push operation (as chunks of
+  pixels become available in a certain order), but we are trying to run as a
+  pull pipeline
+
+  we buffer to minimise mismatches, but that can't always work
+
+  eg. 
+
+	  $ vips shrink Chicago.png x.jpg 1000 1000 --vips-progress --vips-leak
+	  vips temp-3: 2 threads, 29 x 16 tiles, groups of 768 scanlines
+	  vips temp-3: done in 2.66s          
+	  VipsSequential: at line 2176 in file, but line 544 requested
+	  memory: high-water mark 145.19 MB
+
+
+
+
+
 
 blocking bugs
 =============

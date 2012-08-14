@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2012-08-14 11:38+0100\n"
+"POT-Creation-Date: 2012-08-14 13:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -394,7 +394,7 @@ msgstr ""
 #: ../libvips/conversion/cast.c:479 ../libvips/conversion/flatten.c:375
 #: ../libvips/conversion/extract.c:197 ../libvips/conversion/extract.c:356
 #: ../libvips/conversion/bandjoin.c:171 ../libvips/conversion/copy.c:321
-#: ../libvips/conversion/rot.c:355 ../libvips/conversion/replicate.c:196
+#: ../libvips/conversion/rot.c:359 ../libvips/conversion/replicate.c:196
 #: ../libvips/conversion/tilecache.c:446 ../libvips/conversion/embed.c:524
 #: ../libvips/conversion/cache.c:106 ../libvips/conversion/recomb.c:203
 #: ../libvips/conversion/sequential.c:176 ../libvips/foreign/foreign.c:1442
@@ -566,7 +566,7 @@ msgstr ""
 #: ../libvips/arithmetic/statistic.c:152 ../libvips/conversion/flip.c:241
 #: ../libvips/conversion/cast.c:480 ../libvips/conversion/flatten.c:376
 #: ../libvips/conversion/extract.c:198 ../libvips/conversion/extract.c:357
-#: ../libvips/conversion/copy.c:322 ../libvips/conversion/rot.c:356
+#: ../libvips/conversion/copy.c:322 ../libvips/conversion/rot.c:360
 #: ../libvips/conversion/replicate.c:197 ../libvips/conversion/tilecache.c:447
 #: ../libvips/conversion/embed.c:525 ../libvips/conversion/cache.c:107
 #: ../libvips/conversion/sequential.c:177
@@ -797,7 +797,7 @@ msgstr ""
 msgid "flatten alpha out of an image"
 msgstr ""
 
-#: ../libvips/conversion/flatten.c:381 ../libvips/conversion/join.c:250
+#: ../libvips/conversion/flatten.c:381 ../libvips/conversion/join.c:266
 #: ../libvips/conversion/insert.c:392
 msgid "Background"
 msgstr ""
@@ -971,15 +971,15 @@ msgstr ""
 msgid "Vertical offset of origin"
 msgstr ""
 
-#: ../libvips/conversion/rot.c:351
+#: ../libvips/conversion/rot.c:355
 msgid "rotate an image"
 msgstr ""
 
-#: ../libvips/conversion/rot.c:361
+#: ../libvips/conversion/rot.c:365
 msgid "Angle"
 msgstr ""
 
-#: ../libvips/conversion/rot.c:362
+#: ../libvips/conversion/rot.c:366
 msgid "Angle to rotate image"
 msgstr ""
 
@@ -995,59 +995,59 @@ msgstr ""
 msgid "Repeat this many times vertically"
 msgstr ""
 
-#: ../libvips/conversion/join.c:211
+#: ../libvips/conversion/join.c:227
 msgid "join a pair of images"
 msgstr ""
 
-#: ../libvips/conversion/join.c:217
+#: ../libvips/conversion/join.c:233
 msgid "in1"
 msgstr ""
 
-#: ../libvips/conversion/join.c:218
+#: ../libvips/conversion/join.c:234
 msgid "First input image"
 msgstr ""
 
-#: ../libvips/conversion/join.c:223
+#: ../libvips/conversion/join.c:239
 msgid "in2"
 msgstr ""
 
-#: ../libvips/conversion/join.c:224
+#: ../libvips/conversion/join.c:240
 msgid "Second input image"
 msgstr ""
 
-#: ../libvips/conversion/join.c:229
+#: ../libvips/conversion/join.c:245
 msgid "direction"
 msgstr ""
 
-#: ../libvips/conversion/join.c:230
+#: ../libvips/conversion/join.c:246
 msgid "Join left-right or up-down"
 msgstr ""
 
-#: ../libvips/conversion/join.c:236 ../libvips/conversion/insert.c:385
+#: ../libvips/conversion/join.c:252 ../libvips/conversion/insert.c:385
 msgid "Expand"
 msgstr ""
 
-#: ../libvips/conversion/join.c:237 ../libvips/conversion/insert.c:386
+#: ../libvips/conversion/join.c:253 ../libvips/conversion/insert.c:386
 msgid "Expand output to hold all of both inputs"
 msgstr ""
 
-#: ../libvips/conversion/join.c:243
+#: ../libvips/conversion/join.c:259
 msgid "Shim"
 msgstr ""
 
-#: ../libvips/conversion/join.c:244
+#: ../libvips/conversion/join.c:260
 msgid "Pixels between images"
 msgstr ""
 
-#: ../libvips/conversion/join.c:251 ../libvips/conversion/insert.c:393
+#: ../libvips/conversion/join.c:267 ../libvips/conversion/insert.c:393
 msgid "Colour for new pixels"
 msgstr ""
 
-#: ../libvips/conversion/join.c:257
+#: ../libvips/conversion/join.c:273
 msgid "Align"
 msgstr ""
 
-#: ../libvips/conversion/join.c:258
+#: ../libvips/conversion/join.c:274
 msgid "Align on the low, centre or high coordinate edge"
 msgstr ""
 
@@ -1262,7 +1262,7 @@ msgid "expect 1xN or Nx1 input mask"
 msgstr ""
 
 #: ../libvips/convolution/im_fastcor.c:134
-#: ../libvips/convolution/im_spcor.c:247
+#: ../libvips/convolution/im_spcor.c:251
 msgid "ref not smaller than or equal to in"
 msgstr ""
 
@@ -1629,11 +1629,11 @@ msgstr ""
 msgid "not whitespace before start of binary data"
 msgstr ""
 
-#: ../libvips/foreign/ppm.c:599 ../libvips/foreign/ppm.c:611
+#: ../libvips/foreign/ppm.c:603 ../libvips/foreign/ppm.c:615
 msgid "write error ... disc full?"
 msgstr ""
 
-#: ../libvips/foreign/ppm.c:716
+#: ../libvips/foreign/ppm.c:720
 msgid "binary >8 bit images must be float"
 msgstr ""
 
@@ -1998,39 +1998,39 @@ msgstr ""
 msgid "unable to open \"%s\" for output"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:704
+#: ../libvips/foreign/vips2tiff.c:705
 msgid "layer buffer exhausted -- try making TIFF output tiles smaller"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:935
+#: ../libvips/foreign/vips2tiff.c:936
 msgid "TIFF write tile failed"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1011
+#: ../libvips/foreign/vips2tiff.c:1012
 msgid "internal error #9876345"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1272
+#: ../libvips/foreign/vips2tiff.c:1281
 msgid "tile size not a multiple of 16"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1278
+#: ../libvips/foreign/vips2tiff.c:1287
 msgid "can't have strip pyramid -- enabling tiling"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1289
+#: ../libvips/foreign/vips2tiff.c:1298
 msgid "can only pyramid LABQ and non-complex images"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1306
+#: ../libvips/foreign/vips2tiff.c:1315
 msgid "can't have 1-bit JPEG -- disabling JPEG"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1502
+#: ../libvips/foreign/vips2tiff.c:1511
 msgid "unsigned 8-bit int, 16-bit int, and 32-bit float only"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1509
+#: ../libvips/foreign/vips2tiff.c:1518
 msgid "1 to 5 bands only"
 msgstr ""
 
@@ -2105,12 +2105,12 @@ msgstr ""
 msgid "compress should be in [0,9]"
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:721
+#: ../libvips/foreign/vipspng.c:725
 #, c-format
 msgid "unable to write \"%s\""
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:820
+#: ../libvips/foreign/vipspng.c:824
 msgid "unable to write to buffer"
 msgstr ""
 

@@ -453,8 +453,10 @@ vips_exif_update_entry( ExifEntry *entry, VipsExif *ve )
 	char *value;
 
 	vips_snprintf( name, 256, "exif-%s", exif_tag_get_title( entry->tag ) );
-	if( !vips_image_get_string( ve->image, name, &value ) )
+	if( vips_image_get_typeof( ve->image, name ) ) {
+		(void) vips_image_get_string( ve->image, name, &value );
 		vips_exif_from_s( ve->ed, entry, value ); 
+	}
 }
 
 static void

@@ -9,6 +9,7 @@
 - jpeg load/save note and use the preferred resolution unit
 - better error msgs for enum args
 - fix compiler warnings in production build (thanks Dmitry)
+- fix spurious warnings about exif updates
 
 20/7/12 started 7.30.0
 - support "rs" mode in vips7
