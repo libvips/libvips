@@ -1429,8 +1429,7 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 			NULL, tiff2vips_stripwise_generate, NULL, 
 			rtiff, tbuf ) ||
 		vips_sequential( t[0], &t[1], NULL ) ||
-		vips_foreign_tilecache( t[1], &t[2], rtiff->rows_per_strip ) || 
-		vips_image_write( t[2], out ) )
+		vips_image_write( t[1], out ) )
 		return( -1 );
 
 	return( 0 );

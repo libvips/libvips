@@ -79,7 +79,7 @@ typedef struct {
 	int time;			/* Time of last use for flush */
 	int x;				/* xy pos in VIPS image cods */
 	int y;
-} Tile;
+} VipsTile;
 
 typedef struct _VipsTileCache {
 	VipsConversion parent_instance;
@@ -103,7 +103,7 @@ typedef VipsConversionClass VipsTileCacheClass;
 G_DEFINE_TYPE( VipsTileCache, vips_tile_cache, VIPS_TYPE_CONVERSION );
 
 static void
-tile_destroy( Tile *tile )
+vips_tile_destroy( VipsTile *tile )
 {
 	VipsTileCache *cache = tile->cache;
 
@@ -121,9 +121,9 @@ static void
 vips_tile_cache_drop_all( VipsTileCache *cache )
 {
 	while( cache->tiles ) {
-		Tile *tile = (Tile *) cache->tiles->data;
+		VipsTile *tile = (VipsTile *) cache->tiles->data;
 
-		tile_destroy( tile );
+		vips_tile_destroy( tile );
 	}
 }
 
@@ -138,12 +138,12 @@ vips_tile_cache_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_tile_cache_parent_class )->dispose( gobject );
 }
 
-static Tile *
-tile_new( VipsTileCache *cache )
+static VipsTile *
+vips_tile_new( VipsTileCache *cache )
 {
-	Tile *tile;
+	VipsTile *tile;
 
-	if( !(tile = VIPS_NEW( NULL, Tile )) )
+	if( !(tile = VIPS_NEW( NULL, VipsTile )) )
 		return( NULL );
 
 	tile->cache = cache;
@@ -156,7 +156,7 @@ tile_new( VipsTileCache *cache )
 	cache->ntiles += 1;
 
 	if( !(tile->region = vips_region_new( cache->in )) ) {
-		tile_destroy( tile );
+		vips_tile_destroy( tile );
 		return( NULL );
 	}
 	vips__region_no_ownership( tile->region );
@@ -165,7 +165,7 @@ tile_new( VipsTileCache *cache )
 }
 
 static int
-tile_move( Tile *tile, int x, int y )
+vips_tile_move( VipsTile *tile, int x, int y )
 {
 	VipsRect area;
 
@@ -184,14 +184,16 @@ tile_move( Tile *tile, int x, int y )
 }
 
 /* Do we have a tile in the cache?
+ *
+ * FIXME .. use a hash? 
  */
-static Tile *
-tile_search( VipsTileCache *cache, int x, int y )
+static VipsTile *
+vips_tile_search( VipsTileCache *cache, int x, int y )
 {
 	GSList *p;
 
 	for( p = cache->tiles; p; p = p->next ) {
-		Tile *tile = (Tile *) p->data;
+		VipsTile *tile = (VipsTile *) p->data;
 
 		if( tile->x == x && tile->y == y )
 			return( tile );
@@ -201,7 +203,7 @@ tile_search( VipsTileCache *cache, int x, int y )
 }
 
 static void
-tile_touch( Tile *tile )
+vips_tile_touch( VipsTile *tile )
 {
 	g_assert( tile->cache->ntiles >= 0 );
 
@@ -211,7 +213,7 @@ tile_touch( Tile *tile )
 /* Fill a tile with pixels.
  */
 static int
-tile_fill( Tile *tile, VipsRegion *in )
+vips_tile_fill( VipsTile *tile, VipsRegion *in )
 {
 	VipsRect area;
 
@@ -226,7 +228,7 @@ tile_fill( Tile *tile, VipsRegion *in )
 		&area, area.left, area.top ) ) 
 		return( -1 );
 
-	tile_touch( tile );
+	vips_tile_touch( tile );
 
 	return( 0 );
 }
@@ -234,17 +236,17 @@ tile_fill( Tile *tile, VipsRegion *in )
 /* Find existing tile, make a new tile, or if we have a full set of tiles, 
  * reuse LRU.
  */
-static Tile *
-tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
+static VipsTile *
+vips_tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 {
-	Tile *tile;
+	VipsTile *tile;
 	int oldest, topmost;
 	GSList *p;
 
 	/* In cache already?
 	 */
-	if( (tile = tile_search( cache, x, y )) ) {
-		tile_touch( tile );
+	if( (tile = vips_tile_search( cache, x, y )) ) {
+		vips_tile_touch( tile );
 
 		return( tile );
 	}
@@ -253,9 +255,9 @@ tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 	 */
 	if( cache->max_tiles == -1 ||
 		cache->ntiles < cache->max_tiles ) {
-		if( !(tile = tile_new( cache )) ||
-			tile_move( tile, x, y ) ||
-			tile_fill( tile, in ) )
+		if( !(tile = vips_tile_new( cache )) ||
+			vips_tile_move( tile, x, y ) ||
+			vips_tile_fill( tile, in ) )
 			return( NULL );
 
 		return( tile );
@@ -268,7 +270,7 @@ tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 		oldest = cache->time;
 		tile = NULL;
 		for( p = cache->tiles; p; p = p->next ) {
-			Tile *t = (Tile *) p->data;
+			VipsTile *t = (VipsTile *) p->data;
 
 			if( t->time < oldest ) {
 				oldest = t->time;
@@ -281,7 +283,7 @@ tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 		topmost = cache->in->Ysize;
 		tile = NULL;
 		for( p = cache->tiles; p; p = p->next ) {
-			Tile *t = (Tile *) p->data;
+			VipsTile *t = (VipsTile *) p->data;
 
 			if( t->y < topmost ) {
 				topmost = t->y;
@@ -298,33 +300,11 @@ tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 
 	VIPS_DEBUG_MSG( "tilecache: reusing tile %d x %d\n", tile->x, tile->y );
 
-	if( tile_move( tile, x, y ) ||
-		tile_fill( tile, in ) )
+	if( vips_tile_move( tile, x, y ) ||
+		vips_tile_fill( tile, in ) )
 		return( NULL );
 
 	return( tile );
-}
-
-/* Copy rect from @from to @to.
- */
-static void
-copy_region( VipsRegion *from, VipsRegion *to, VipsRect *area )
-{
-	int y;
-
-	/* Area should be inside both from and to.
-	 */
-	g_assert( vips_rect_includesrect( &from->valid, area ) );
-	g_assert( vips_rect_includesrect( &to->valid, area ) );
-
-	/* Loop down common area, copying.
-	 */
-	for( y = area->top; y < VIPS_RECT_BOTTOM( area ); y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( from, area->left, y );
-		VipsPel *q = VIPS_REGION_ADDR( to, area->left, y );
-
-		memcpy( q, p, VIPS_IMAGE_SIZEOF_PEL( from->im ) * area->width );
-	}
 }
 
 /* Generate func.
@@ -353,7 +333,7 @@ vips_tile_cache_gen( VipsRegion *or,
 	 * the output region directly to the tile.
 	 *
 	 * However this would mean that tile drop on minimise could then leave
-	 * dangling pointers, if minimuse was called on an active pipeline.
+	 * dangling pointers, if minimise were called on an active pipeline.
 	 */
 
 	VIPS_DEBUG_MSG( "vips_tile_cache_gen: "
@@ -362,11 +342,11 @@ vips_tile_cache_gen( VipsRegion *or,
 
 	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += th )
 		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += tw ) {
-			Tile *tile;
+			VipsTile *tile;
 			VipsRect tarea;
 			VipsRect hit;
 
-			if( !(tile = tile_find( cache, in, x, y )) ) {
+			if( !(tile = vips_tile_find( cache, in, x, y )) ) {
 				g_mutex_unlock( cache->lock );
 				return( -1 );
 			}
@@ -381,8 +361,8 @@ vips_tile_cache_gen( VipsRegion *or,
 			/* The part of the tile that we need.
 			 */
 			vips_rect_intersectrect( &tarea, r, &hit );
-
-			copy_region( tile->region, or, &hit );
+			vips_region_copy( tile->region, or, &hit, 
+				hit.left, hit.top ); 
 		}
 
 	g_mutex_unlock( cache->lock );

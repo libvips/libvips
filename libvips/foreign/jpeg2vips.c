@@ -915,11 +915,10 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 #endif /*DEBUG*/
 
 	if( vips_image_generate( t[0], 
-			NULL, read_jpeg_generate, NULL, 
-			jpeg, NULL ) ||
+		NULL, read_jpeg_generate, NULL, 
+		jpeg, NULL ) ||
 		vips_sequential( t[0], &t[1], NULL ) ||
-		vips_foreign_tilecache( t[1], &t[2], 8 ) || 
-		vips_image_write( t[2], out ) )
+		vips_image_write( t[1], out ) )
 		return( -1 );
 
 	return( 0 );

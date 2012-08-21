@@ -75,8 +75,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -490,8 +490,7 @@ vips__png_read( const char *name, VipsImage *out )
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
 			vips_sequential( t[0], &t[1], NULL ) ||
-			vips_foreign_tilecache( t[1], &t[2], 16 ) || 
-			vips_image_write( t[2], out ) )
+			vips_image_write( t[1], out ) )
 			return( -1 );
 	}
 

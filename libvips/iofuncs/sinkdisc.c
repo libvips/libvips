@@ -38,8 +38,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -337,8 +337,8 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 		sink_base->y += sink_base->tile_height;
 
 		if( sink_base->y >= VIPS_RECT_BOTTOM( &write->buf->area ) ) {
-			/* Block until the last write is done, then set write
-			 * of the front buffer going.
+			/* Block until the write of the previous buffer 
+			 * is done, then set write of this buffer going.
 			 */
 			if( wbuffer_flush( write ) )
 				return( -1 );
@@ -365,7 +365,8 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 			/* Position buf at the new y.
 			 */
 			if( wbuffer_position( write->buf, 
-				sink_base->y, sink_base->nlines ) )
+				//sink_base->y, sink_base->nlines ) )
+				sink_base->y, sink_base->tile_height ) )
 				return( -1 );
 		}
 	}
@@ -495,7 +496,8 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	result = 0;
 	if( !write.buf || 
 		!write.buf_back || 
-		wbuffer_position( write.buf, 0, write.sink_base.nlines ) ||
+		//wbuffer_position( write.buf, 0, write.sink_base.nlines ) ||
+		wbuffer_position( write.buf, 0, write.sink_base.tile_height ) ||
 		vips_threadpool_run( im, 
 			write_thread_state_new, 
 			wbuffer_allocate_fn, 
