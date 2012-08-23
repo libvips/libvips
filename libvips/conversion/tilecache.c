@@ -48,8 +48,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -205,7 +205,8 @@ vips_tile_touch( VipsTile *tile )
 static int
 vips_tile_fill( VipsTile *tile, VipsRegion *in )
 {
-	VIPS_DEBUG_MSG( "tilecache: filling tile %d x %d\n", tile->x, tile->y );
+	VIPS_DEBUG_MSG( "tilecache: filling tile %d x %d\n", 
+		tile->pos.left, tile->pos.top );
 
 	if( vips_region_prepare_to( in, tile->region, 
 		&tile->pos, tile->pos.left, tile->pos.top ) ) 
@@ -300,7 +301,8 @@ vips_tile_find( VipsBlockCache *cache, VipsRegion *in, int x, int y )
 
 	g_assert( tile );
 
-	VIPS_DEBUG_MSG( "tilecache: reusing tile %d x %d\n", tile->x, tile->y );
+	VIPS_DEBUG_MSG( "tilecache: reusing tile %d x %d\n", 
+		tile->pos.left, tile->pos.top );
 
 	if( vips_tile_move( tile, x, y ) ||
 		vips_tile_fill( tile, in ) )
@@ -694,7 +696,7 @@ vips_line_cache_init( VipsLineCache *cache )
 
 	/* This adjust with request size, see vips_line_cache_gen().
 	 */
-	((VipsBlockCache *) cache)->max_tiles = 500;
+	((VipsBlockCache *) cache)->max_tiles = 1000;
 
 	((VipsBlockCache *) cache)->strategy = VIPS_CACHE_SEQUENTIAL;
 }
