@@ -18,6 +18,7 @@
  * 	- listen for "minimise" signal
  * 23/8/12
  * 	- split to line and tile cache
+ * 	- use a hash table instead of a list
  */
 
 /*
@@ -67,13 +68,18 @@
 
 /* A tile in our cache.
  */
-typedef struct {
+typedef struct _VipsTile {
 	struct _VipsBlockCache *cache;
 
 	VipsRegion *region;		/* Region with private mem for data */
+
+	/* Tile position. Just use left/top to calculate a hash. This is the
+	 * key for the hash table. Don't use region->valid in case the region
+	 * pointer is NULL.
+	 */
+	VipsRect pos; 
+
 	int time;			/* Time of last use for flush */
-	int x;				/* xy pos in VIPS image cods */
-	int y;
 } VipsTile;
 
 typedef struct _VipsBlockCache {
@@ -88,7 +94,7 @@ typedef struct _VipsBlockCache {
 	int time;			/* Update ticks for LRU here */
 	int ntiles;			/* Current cache size */
 	GMutex *lock;			/* Lock everything here */
-	GSList *tiles;			/* List of tiles */
+	GHashTable *tiles;		/* Tiles, hashed by coordinates */
 } VipsBlockCache;
 
 typedef VipsConversionClass VipsBlockCacheClass;
@@ -98,28 +104,9 @@ G_DEFINE_TYPE( VipsBlockCache, vips_block_cache, VIPS_TYPE_CONVERSION );
 #define VIPS_TYPE_BLOCK_CACHE (vips_block_cache_get_type())
 
 static void
-vips_tile_destroy( VipsTile *tile )
-{
-	VipsBlockCache *cache = tile->cache;
-
-	cache->tiles = g_slist_remove( cache->tiles, tile );
-	cache->ntiles -= 1;
-	g_assert( cache->ntiles >= 0 );
-	tile->cache = NULL;
-
-	VIPS_UNREF( tile->region );
-
-	vips_free( tile );
-}
-
-static void
 vips_block_cache_drop_all( VipsBlockCache *cache )
 {
-	while( cache->tiles ) {
-		VipsTile *tile = (VipsTile *) cache->tiles->data;
-
-		vips_tile_destroy( tile );
-	}
+	g_hash_table_remove_all( cache->tiles ); 
 }
 
 static void
@@ -133,8 +120,29 @@ vips_block_cache_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_block_cache_parent_class )->dispose( gobject );
 }
 
+static int
+vips_tile_move( VipsTile *tile, int x, int y )
+{
+	/* We are changing x/y and therefore the hash value. We must unlink
+	 * from the old hash position and relink at the new place.
+	 */
+	g_hash_table_steal( tile->cache->tiles, &tile->pos );
+
+	tile->pos.left = x;
+	tile->pos.top = y;
+	tile->pos.width = tile->cache->tile_width;
+	tile->pos.height = tile->cache->tile_height;
+
+	g_hash_table_insert( tile->cache->tiles, &tile->pos, tile );
+
+	if( vips_region_buffer( tile->region, &tile->pos ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static VipsTile *
-vips_tile_new( VipsBlockCache *cache )
+vips_tile_new( VipsBlockCache *cache, int x, int y )
 {
 	VipsTile *tile;
 
@@ -144,57 +152,44 @@ vips_tile_new( VipsBlockCache *cache )
 	tile->cache = cache;
 	tile->region = NULL;
 	tile->time = cache->time;
-	tile->x = -1;
-	tile->y = -1;
-	cache->tiles = g_slist_prepend( cache->tiles, tile );
+	tile->pos.left = x;
+	tile->pos.top = y;
+	tile->pos.width = cache->tile_width;
+	tile->pos.height = cache->tile_height;
+	g_hash_table_insert( cache->tiles, &tile->pos, tile );
 	g_assert( cache->ntiles >= 0 );
 	cache->ntiles += 1;
 
 	if( !(tile->region = vips_region_new( cache->in )) ) {
-		vips_tile_destroy( tile );
+		g_hash_table_remove( cache->tiles, &tile->pos );
 		return( NULL );
 	}
+
 	vips__region_no_ownership( tile->region );
+
+	if( vips_tile_move( tile, x, y ) ) {
+		g_hash_table_remove( cache->tiles, &tile->pos );
+		return( NULL );
+	}
 
 	return( tile );
 }
 
-static int
-vips_tile_move( VipsTile *tile, int x, int y )
-{
-	VipsRect area;
-
-	tile->x = x;
-	tile->y = y;
-
-	area.left = x;
-	area.top = y;
-	area.width = tile->cache->tile_width;
-	area.height = tile->cache->tile_height;
-
-	if( vips_region_buffer( tile->region, &area ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 /* Do we have a tile in the cache?
- *
- * FIXME .. use a hash? 
  */
 static VipsTile *
 vips_tile_search( VipsBlockCache *cache, int x, int y )
 {
-	GSList *p;
+	VipsRect pos;
+	VipsTile *tile;
 
-	for( p = cache->tiles; p; p = p->next ) {
-		VipsTile *tile = (VipsTile *) p->data;
+	pos.left = x;
+	pos.top = y;
+	pos.width = cache->tile_width;
+	pos.height = cache->tile_height;
+	tile = (VipsTile *) g_hash_table_lookup( cache->tiles, &pos );
 
-		if( tile->x == x && tile->y == y )
-			return( tile );
-	}
-
-	return( NULL );
+	return( tile );
 }
 
 static void
@@ -210,22 +205,46 @@ vips_tile_touch( VipsTile *tile )
 static int
 vips_tile_fill( VipsTile *tile, VipsRegion *in )
 {
-	VipsRect area;
-
 	VIPS_DEBUG_MSG( "tilecache: filling tile %d x %d\n", tile->x, tile->y );
 
-	area.left = tile->x;
-	area.top = tile->y;
-	area.width = tile->cache->tile_width;
-	area.height = tile->cache->tile_height;
-
 	if( vips_region_prepare_to( in, tile->region, 
-		&area, area.left, area.top ) ) 
+		&tile->pos, tile->pos.left, tile->pos.top ) ) 
 		return( -1 );
 
 	vips_tile_touch( tile );
 
 	return( 0 );
+}
+
+typedef struct _VipsTileSearch {
+	VipsTile *tile;
+
+	int oldest;
+	int topmost;
+} VipsTileSearch;
+
+void 
+vips_tile_oldest( gpointer key, gpointer value, gpointer user_data )
+{
+	VipsTile *tile = (VipsTile *) value;
+	VipsTileSearch *search = (VipsTileSearch *) user_data;
+
+	if( tile->time < search->oldest ) {
+		search->oldest = tile->time;
+		search->tile = tile;
+	}
+}
+
+void 
+vips_tile_topmost( gpointer key, gpointer value, gpointer user_data )
+{
+	VipsTile *tile = (VipsTile *) value;
+	VipsTileSearch *search = (VipsTileSearch *) user_data;
+
+	if( tile->pos.top < search->topmost ) {
+		search->topmost = tile->pos.top;
+		search->tile = tile;
+	}
 }
 
 /* Find existing tile, make a new tile, or if we have a full set of tiles, 
@@ -235,8 +254,7 @@ static VipsTile *
 vips_tile_find( VipsBlockCache *cache, VipsRegion *in, int x, int y )
 {
 	VipsTile *tile;
-	int oldest, topmost;
-	GSList *p;
+	VipsTileSearch search;
 
 	/* In cache already?
 	 */
@@ -250,8 +268,7 @@ vips_tile_find( VipsBlockCache *cache, VipsRegion *in, int x, int y )
 	 */
 	if( cache->max_tiles == -1 ||
 		cache->ntiles < cache->max_tiles ) {
-		if( !(tile = vips_tile_new( cache )) ||
-			vips_tile_move( tile, x, y ) ||
+		if( !(tile = vips_tile_new( cache, x, y )) ||
 			vips_tile_fill( tile, in ) )
 			return( NULL );
 
@@ -262,29 +279,19 @@ vips_tile_find( VipsBlockCache *cache, VipsRegion *in, int x, int y )
 	 */
 	switch( cache->strategy ) {
 	case VIPS_CACHE_RANDOM:
-		oldest = cache->time;
-		tile = NULL;
-		for( p = cache->tiles; p; p = p->next ) {
-			VipsTile *t = (VipsTile *) p->data;
-
-			if( t->time < oldest ) {
-				oldest = t->time;
-				tile = t;
-			}
-		}
+		search.oldest = cache->time;
+		search.tile = NULL;
+		g_hash_table_foreach( cache->tiles, 
+			vips_tile_oldest, &search );
+		tile = search.tile; 
 		break;
 
 	case VIPS_CACHE_SEQUENTIAL:
-		topmost = cache->in->Ysize;
-		tile = NULL;
-		for( p = cache->tiles; p; p = p->next ) {
-			VipsTile *t = (VipsTile *) p->data;
-
-			if( t->y < topmost ) {
-				topmost = t->y;
-				tile = t;
-			}
-		}
+		search.topmost = cache->in->Ysize;
+		search.tile = NULL;
+		g_hash_table_foreach( cache->tiles, 
+			vips_tile_topmost, &search );
+		tile = search.tile; 
 		break;
 
 	default:
@@ -356,6 +363,38 @@ vips_block_cache_class_init( VipsBlockCacheClass *class )
 		VIPS_TYPE_CACHE_STRATEGY, VIPS_CACHE_RANDOM );
 }
 
+static unsigned int
+vips_rect_hash( VipsRect *pos )
+{
+	guint hash;
+
+	/* We could shift down by the tile size?
+	 */
+	hash = pos->left ^ (pos->top << 16);
+
+	return( hash );
+}
+
+static gboolean 
+vips_rect_equal( VipsRect *a, VipsRect *b )
+{
+	return( a->left == b->left && a->top == b->top );
+}
+
+static void
+vips_tile_destroy( VipsTile *tile )
+{
+	VipsBlockCache *cache = tile->cache;
+
+	cache->ntiles -= 1;
+	g_assert( cache->ntiles >= 0 );
+	tile->cache = NULL;
+
+	VIPS_UNREF( tile->region );
+
+	vips_free( tile );
+}
+
 static void
 vips_block_cache_init( VipsBlockCache *cache )
 {
@@ -367,7 +406,11 @@ vips_block_cache_init( VipsBlockCache *cache )
 	cache->time = 0;
 	cache->ntiles = 0;
 	cache->lock = g_mutex_new();
-	cache->tiles = NULL;
+	cache->tiles = g_hash_table_new_full( 
+		(GHashFunc) vips_rect_hash, 
+		(GEqualFunc) vips_rect_equal,
+		NULL,
+		(GDestroyNotify) vips_tile_destroy );
 }
 
 typedef struct _VipsTileCache {

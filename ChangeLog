@@ -12,6 +12,7 @@
 - fix spurious warnings about exif updates
 - VipsSequential has an integrated cache and stalls out of order threads
 - add a line cache ... sizes up dynamically with request size
+- tilecache / linecache use a hash table not a linear list
 
 20/7/12 started 7.30.0
 - support "rs" mode in vips7
