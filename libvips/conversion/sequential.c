@@ -41,8 +41,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -59,6 +59,10 @@
 
 #include "conversion.h"
 
+/* The number of scanlines we cache behind the read point.
+ */
+#define NLINES (500)
+
 typedef struct _VipsSequential {
 	VipsConversion parent_instance;
 
@@ -72,6 +76,9 @@ typedef struct _VipsSequential {
 	GMutex *lock;
 	GCond *ready;
 
+	/* The next read from our source will fetch this scanline, ie. it's 0
+	 * when we start.
+	 */
 	int y_pos;
 } VipsSequential;
 
@@ -98,10 +105,14 @@ vips_sequential_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	printf( "vips_sequential_generate: thread %p "
-		"request for %d lines, starting at line %d\n", 
-		g_thread_self(),
-		r->height, r->top );
+	VIPS_DEBUG_MSG( "thread %p request for %d lines from at line %d\n", 
+		g_thread_self(), r->height, r->top );
+
+	if( r->height > NLINES ) {
+		vips_error( "VipsSequential", _( "request for %d scanlines "
+			"will break caching" ), r->height );
+		return( -1 );
+	}
 
 	if( sequential->trace )
 		vips_diag( "VipsSequential", 
@@ -111,38 +122,45 @@ retry:
 
 	g_mutex_lock( sequential->lock );
 
+	VIPS_DEBUG_MSG( "thread %p has lock ...\n", g_thread_self() ); 
+
 	if( r->top > sequential->y_pos ) {
 		/* This is for stuff in the future, stall.
 		 */
-		printf( "thread %p stalling ...\n", g_thread_self() ); 
+		VIPS_DEBUG_MSG( "thread %p stalling ...\n", g_thread_self() ); 
 		g_cond_wait( sequential->ready, sequential->lock );
-		printf( "thread %p awake again, retrying ...\n", 
+		VIPS_DEBUG_MSG( "thread %p awake again, retrying ...\n", 
 			g_thread_self() ); 
+		g_mutex_unlock( sequential->lock );
 		goto retry;
 	}
 
 	/* This is a request for old or present pixels -- serve from cache.
 	 * This may trigger further, sequential reads.
 	 */
-	printf( "thread %p reading ...\n", g_thread_self() ); 
+	VIPS_DEBUG_MSG( "thread %p reading ...\n", g_thread_self() ); 
 	if( vips_region_prepare( ir, r ) ||
 		vips_region_region( or, ir, r, r->left, r->top ) ) {
+		VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
 		g_mutex_unlock( sequential->lock );
 		return( -1 );
 	}
 
-	if( VIPS_RECT_BOTTOM( r ) >= sequential->y_pos ) {
-		/* This request has straddled or continued on from the read 
-		 * point. Update it, and wake up all stalled threads for a
-		 * retry.
+	if( VIPS_RECT_BOTTOM( r ) > sequential->y_pos ) {
+		/* This request has moved the read point. Update it, and wake 
+		 * up all stalled threads for a retry.
 		 */
 		sequential->y_pos = VIPS_RECT_BOTTOM( r );
 
-		printf( "thread %p updating y_pos and waking stalled\n", 
-			g_thread_self() ); 
+		VIPS_DEBUG_MSG( "thread %p updating y_pos to %d and "
+			"waking stalled\n", 
+			g_thread_self(),
+			sequential->y_pos ); 
 
 		g_cond_broadcast( sequential->ready );
 	}
+
+	VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
 
 	g_mutex_unlock( sequential->lock );
 
@@ -168,7 +186,7 @@ vips_sequential_build( VipsObject *object )
 	if( vips_tilecache( sequential->in, &t, 
 		"tile_width", sequential->in->Xsize,
 		"tile_height", 1,
-		"max_tiles", 500,
+		"max_tiles", NLINES,
 		"strategy", VIPS_CACHE_SEQUENTIAL,
 		NULL ) )
 		return( -1 );
