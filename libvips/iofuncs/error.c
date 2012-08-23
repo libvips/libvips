@@ -311,7 +311,8 @@ vips_vdiag( const char *domain, const char *fmt, va_list ap )
 	if( !g_getenv( IM_DIAGNOSTICS ) ) {
 		g_mutex_lock( vips__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "vips diagnostic" ) );
-		(void) fprintf( stderr, _( "%s: " ), domain );
+		if( domain )
+			(void) fprintf( stderr, _( "%s: " ), domain );
 		(void) vfprintf( stderr, fmt, ap );
 		(void) fprintf( stderr, "\n" );
 		g_mutex_unlock( vips__global_lock );
@@ -361,7 +362,8 @@ vips_vwarn( const char *domain, const char *fmt, va_list ap )
 	if( !g_getenv( IM_WARNING ) ) {
 		g_mutex_lock( vips__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "vips warning" ) );
-		(void) fprintf( stderr, _( "%s: " ), domain );
+		if( domain )
+			(void) fprintf( stderr, _( "%s: " ), domain );
 		(void) vfprintf( stderr, fmt, ap );
 		(void) fprintf( stderr, "\n" );
 		g_mutex_unlock( vips__global_lock );

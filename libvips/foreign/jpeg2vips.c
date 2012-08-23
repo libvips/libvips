@@ -167,7 +167,7 @@ readjpeg_free( ReadJpeg *jpeg )
 			vips_warn( "VipsJpeg", 
 				_( "read gave %ld warnings" ), 
 				jpeg->eman.pub.num_warnings );
-			vips_warn( "VipsJpeg", "%s", vips_error_buffer() );
+			vips_warn( NULL, "%s", vips_error_buffer() );
 		}
 
 		/* Make the message only appear once.
