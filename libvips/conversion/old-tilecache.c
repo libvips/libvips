@@ -1,4 +1,5 @@
-/* Simple tile or line cache.
+/* Tile cache from tiff2vips ... broken out so it can be shared with
+ * openexr read.
  *
  * This isn't the same as the sinkscreen cache: we don't sub-divide, and we 
  * single-thread our callee.
@@ -16,8 +17,6 @@
  * 	- rework as a class
  * 23/6/12
  * 	- listen for "minimise" signal
- * 23/8/12
- * 	- split to line and tile cache
  */
 
 /*
@@ -68,7 +67,7 @@
 /* A tile in our cache.
  */
 typedef struct {
-	struct _VipsBlockCache *cache;
+	struct _VipsTileCache *cache;
 
 	VipsRegion *region;		/* Region with private mem for data */
 	int time;			/* Time of last use for flush */
@@ -76,7 +75,7 @@ typedef struct {
 	int y;
 } VipsTile;
 
-typedef struct _VipsBlockCache {
+typedef struct _VipsTileCache {
 	VipsConversion parent_instance;
 
 	VipsImage *in;
@@ -89,18 +88,16 @@ typedef struct _VipsBlockCache {
 	int ntiles;			/* Current cache size */
 	GMutex *lock;			/* Lock everything here */
 	GSList *tiles;			/* List of tiles */
-} VipsBlockCache;
+} VipsTileCache;
 
-typedef VipsConversionClass VipsBlockCacheClass;
+typedef VipsConversionClass VipsTileCacheClass;
 
-G_DEFINE_TYPE( VipsBlockCache, vips_block_cache, VIPS_TYPE_CONVERSION );
-
-#define VIPS_TYPE_BLOCK_CACHE (vips_block_cache_get_type())
+G_DEFINE_TYPE( VipsTileCache, vips_tile_cache, VIPS_TYPE_CONVERSION );
 
 static void
 vips_tile_destroy( VipsTile *tile )
 {
-	VipsBlockCache *cache = tile->cache;
+	VipsTileCache *cache = tile->cache;
 
 	cache->tiles = g_slist_remove( cache->tiles, tile );
 	cache->ntiles -= 1;
@@ -113,7 +110,7 @@ vips_tile_destroy( VipsTile *tile )
 }
 
 static void
-vips_block_cache_drop_all( VipsBlockCache *cache )
+vips_tile_cache_drop_all( VipsTileCache *cache )
 {
 	while( cache->tiles ) {
 		VipsTile *tile = (VipsTile *) cache->tiles->data;
@@ -123,18 +120,18 @@ vips_block_cache_drop_all( VipsBlockCache *cache )
 }
 
 static void
-vips_block_cache_dispose( GObject *gobject )
+vips_tile_cache_dispose( GObject *gobject )
 {
-	VipsBlockCache *cache = (VipsBlockCache *) gobject;
+	VipsTileCache *cache = (VipsTileCache *) gobject;
 
-	vips_block_cache_drop_all( cache );
+	vips_tile_cache_drop_all( cache );
 	VIPS_FREEF( g_mutex_free, cache->lock );
 
-	G_OBJECT_CLASS( vips_block_cache_parent_class )->dispose( gobject );
+	G_OBJECT_CLASS( vips_tile_cache_parent_class )->dispose( gobject );
 }
 
 static VipsTile *
-vips_tile_new( VipsBlockCache *cache )
+vips_tile_new( VipsTileCache *cache )
 {
 	VipsTile *tile;
 
@@ -183,7 +180,7 @@ vips_tile_move( VipsTile *tile, int x, int y )
  * FIXME .. use a hash? 
  */
 static VipsTile *
-vips_tile_search( VipsBlockCache *cache, int x, int y )
+vips_tile_search( VipsTileCache *cache, int x, int y )
 {
 	GSList *p;
 
@@ -232,7 +229,7 @@ vips_tile_fill( VipsTile *tile, VipsRegion *in )
  * reuse LRU.
  */
 static VipsTile *
-vips_tile_find( VipsBlockCache *cache, VipsRegion *in, int x, int y )
+vips_tile_find( VipsTileCache *cache, VipsRegion *in, int x, int y )
 {
 	VipsTile *tile;
 	int oldest, topmost;
@@ -246,7 +243,7 @@ vips_tile_find( VipsBlockCache *cache, VipsRegion *in, int x, int y )
 		return( tile );
 	}
 
-	/* VipsBlockCache not full?
+	/* VipsTileCache not full?
 	 */
 	if( cache->max_tiles == -1 ||
 		cache->ntiles < cache->max_tiles ) {
@@ -302,93 +299,16 @@ vips_tile_find( VipsBlockCache *cache, VipsRegion *in, int x, int y )
 	return( tile );
 }
 
-static void
-vips_block_cache_minimise( VipsImage *image, VipsBlockCache *cache )
-{
-	vips_block_cache_drop_all( cache );
-}
-
-static int
-vips_block_cache_build( VipsObject *object )
-{
-	VipsConversion *conversion = VIPS_CONVERSION( object );
-	VipsBlockCache *cache = (VipsBlockCache *) object;
-
-	VIPS_DEBUG_MSG( "vips_block_cache_build\n" );
-
-	if( VIPS_OBJECT_CLASS( vips_block_cache_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	g_signal_connect( conversion->out, "minimise", 
-		G_CALLBACK( vips_block_cache_minimise ), cache );
-
-	return( 0 );
-}
-
-static void
-vips_block_cache_class_init( VipsBlockCacheClass *class )
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-
-	VIPS_DEBUG_MSG( "vips_block_cache_class_init\n" );
-
-	gobject_class->dispose = vips_block_cache_dispose;
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
-	vobject_class->nickname = "blockcache";
-	vobject_class->description = _( "cache an image" );
-	vobject_class->build = vips_block_cache_build;
-
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsBlockCache, in ) );
-
-	VIPS_ARG_ENUM( class, "strategy", 3, 
-		_( "Strategy" ), 
-		_( "Expected access pattern" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsBlockCache, strategy ),
-		VIPS_TYPE_CACHE_STRATEGY, VIPS_CACHE_RANDOM );
-}
-
-static void
-vips_block_cache_init( VipsBlockCache *cache )
-{
-	cache->tile_width = 128;
-	cache->tile_height = 128;
-	cache->max_tiles = 1000;
-	cache->strategy = VIPS_CACHE_RANDOM;
-
-	cache->time = 0;
-	cache->ntiles = 0;
-	cache->lock = g_mutex_new();
-	cache->tiles = NULL;
-}
-
-typedef struct _VipsTileCache {
-	VipsBlockCache parent_instance;
-
-} VipsTileCache;
-
-typedef VipsBlockCacheClass VipsTileCacheClass;
-
-G_DEFINE_TYPE( VipsTileCache, vips_tile_cache, VIPS_TYPE_BLOCK_CACHE );
-
-/* Also called from vips_line_cache_gen(), beware.
+/* Generate func.
  */
 static int
 vips_tile_cache_gen( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *in = (VipsRegion *) seq;
-	VipsBlockCache *block_cache = (VipsBlockCache *) b;
-	const int tw = block_cache->tile_width;
-	const int th = block_cache->tile_height;
+	VipsTileCache *cache = (VipsTileCache *) b;
+	const int tw = cache->tile_width;
+	const int th = cache->tile_height;
 	VipsRect *r = &or->valid;
 
 	/* Find top left of tiles we need.
@@ -398,7 +318,7 @@ vips_tile_cache_gen( VipsRegion *or,
 
 	int x, y;
 
-	g_mutex_lock( block_cache->lock );
+	g_mutex_lock( cache->lock );
 
 	/* If the output region fits within a tile, we could save a copy by 
 	 * routing the output region directly to the tile.
@@ -417,9 +337,8 @@ vips_tile_cache_gen( VipsRegion *or,
 			VipsRect tarea;
 			VipsRect hit;
 
-			if( !(tile = vips_tile_find( block_cache, 
-				in, x, y )) ) {
-				g_mutex_unlock( block_cache->lock );
+			if( !(tile = vips_tile_find( cache, in, x, y )) ) {
+				g_mutex_unlock( cache->lock );
 				return( -1 );
 			}
 
@@ -437,35 +356,42 @@ vips_tile_cache_gen( VipsRegion *or,
 				hit.left, hit.top ); 
 		}
 
-	g_mutex_unlock( block_cache->lock );
+	g_mutex_unlock( cache->lock );
 
 	return( 0 );
+}
+
+static void
+vips_tile_cache_minimise( VipsImage *image, VipsTileCache *cache )
+{
+	vips_tile_cache_drop_all( cache );
 }
 
 static int
 vips_tile_cache_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
-	VipsBlockCache *block_cache = (VipsBlockCache *) object;
 	VipsTileCache *cache = (VipsTileCache *) object;
 
 	VIPS_DEBUG_MSG( "vips_tile_cache_build\n" );
 
-	if( VIPS_OBJECT_CLASS( vips_tile_cache_parent_class )->
-		build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_tile_cache_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( block_cache->in ) )
+	if( vips_image_pio_input( cache->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, block_cache->in ) )
+	if( vips_image_copy_fields( conversion->out, cache->in ) )
 		return( -1 );
         vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, block_cache->in, NULL );
+		VIPS_DEMAND_STYLE_SMALLTILE, cache->in, NULL );
+
+	g_signal_connect( conversion->out, "minimise", 
+		G_CALLBACK( vips_tile_cache_minimise ), cache );
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_tile_cache_gen, vips_stop_one, 
-		block_cache->in, cache ) )
+		cache->in, cache ) )
 		return( -1 );
 
 	return( 0 );
@@ -479,39 +405,61 @@ vips_tile_cache_class_init( VipsTileCacheClass *class )
 
 	VIPS_DEBUG_MSG( "vips_tile_cache_class_init\n" );
 
+	gobject_class->dispose = vips_tile_cache_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "tilecache";
-	vobject_class->description = _( "cache an image as a set of tiles" );
+	vobject_class->description = _( "cache an image" );
 	vobject_class->build = vips_tile_cache_build;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsTileCache, in ) );
 
 	VIPS_ARG_INT( class, "tile_width", 3, 
 		_( "Tile width" ), 
 		_( "Tile width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsBlockCache, tile_width ),
+		G_STRUCT_OFFSET( VipsTileCache, tile_width ),
 		1, 1000000, 128 );
 
 	VIPS_ARG_INT( class, "tile_height", 3, 
 		_( "Tile height" ), 
 		_( "Tile height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsBlockCache, tile_height ),
+		G_STRUCT_OFFSET( VipsTileCache, tile_height ),
 		1, 1000000, 128 );
 
 	VIPS_ARG_INT( class, "max_tiles", 3, 
 		_( "Max tiles" ), 
 		_( "Maximum number of tiles to cache" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsBlockCache, max_tiles ),
+		G_STRUCT_OFFSET( VipsTileCache, max_tiles ),
 		-1, 1000000, 1000 );
 
+	VIPS_ARG_ENUM( class, "strategy", 3, 
+		_( "Strategy" ), 
+		_( "Expected access pattern" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsTileCache, strategy ),
+		VIPS_TYPE_CACHE_STRATEGY, VIPS_CACHE_RANDOM );
 }
 
 static void
 vips_tile_cache_init( VipsTileCache *cache )
 {
+	cache->tile_width = 128;
+	cache->tile_height = 128;
+	cache->max_tiles = 1000;
+	cache->strategy = VIPS_CACHE_RANDOM;
+
+	cache->time = 0;
+	cache->ntiles = 0;
+	cache->lock = g_mutex_new();
+	cache->tiles = NULL;
 }
 
 /**
@@ -547,7 +495,7 @@ vips_tile_cache_init( VipsTileCache *cache )
  * subdivision and it single-threads its callee. It is suitable for caching 
  * the output of operations like exr2vips() on tiled images.
  *
- * See also: vips_cache(), vips_linecache().
+ * See also: vips_image_cache().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -559,137 +507,6 @@ vips_tilecache( VipsImage *in, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_call_split( "tilecache", ap, in, out );
-	va_end( ap );
-
-	return( result );
-}
-
-typedef struct _VipsLineCache {
-	VipsBlockCache parent_instance;
-
-} VipsLineCache;
-
-typedef VipsBlockCacheClass VipsLineCacheClass;
-
-G_DEFINE_TYPE( VipsLineCache, vips_line_cache, VIPS_TYPE_BLOCK_CACHE );
-
-static int
-vips_line_cache_gen( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
-{
-	VipsBlockCache *block_cache = (VipsBlockCache *) b;
-
-	g_mutex_lock( block_cache->lock );
-
-	/* We size up the cache to the largest request.
-	 */
-	if( or->valid.height > block_cache->max_tiles )
-		block_cache->max_tiles = or->valid.height;
-
-	g_mutex_unlock( block_cache->lock );
-
-	return( vips_tile_cache_gen( or, seq, a, b, stop ) ); 
-}
-
-static int
-vips_line_cache_build( VipsObject *object )
-{
-	VipsConversion *conversion = VIPS_CONVERSION( object );
-	VipsBlockCache *block_cache = (VipsBlockCache *) object;
-	VipsLineCache *cache = (VipsLineCache *) object;
-
-	VIPS_DEBUG_MSG( "vips_line_cache_build\n" );
-
-	if( VIPS_OBJECT_CLASS( vips_line_cache_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	/* Set the cache geometry from the image size ... a set of scanlines.
-	 */
-	block_cache->tile_width = block_cache->in->Xsize;
-	block_cache->tile_height = 1;
-
-	/* This adjust with request size, see vips_line_cache_gen().
-	 */
-	block_cache->max_tiles = 100;
-
-	if( vips_image_pio_input( block_cache->in ) )
-		return( -1 );
-
-	if( vips_image_copy_fields( conversion->out, block_cache->in ) )
-		return( -1 );
-        vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, block_cache->in, NULL );
-
-	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_line_cache_gen, vips_stop_one, 
-		block_cache->in, cache ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static void
-vips_line_cache_class_init( VipsLineCacheClass *class )
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-
-	VIPS_DEBUG_MSG( "vips_line_cache_class_init\n" );
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
-	vobject_class->nickname = "linecache";
-	vobject_class->description = _( "cache an image as a set of lines" );
-	vobject_class->build = vips_line_cache_build;
-
-}
-
-static void
-vips_line_cache_init( VipsLineCache *cache )
-{
-}
-
-/**
- * vips_linecache:
- * @in: input image
- * @out: output image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * @strategy: hint expected access pattern #VipsCacheStrategy
- *
- * This operation behaves rather like vips_copy() between images
- * @in and @out, except that it keeps a cache of computed pixels. 
- * This cache is made of a set of scanlines. The number of lines cached is
- * equal to the maximum prepare request.
- *
- * Each cache tile is made with a single call to 
- * vips_image_prepare(). 
- *
- * When the cache fills, a tile is chosen for reuse. If @strategy is
- * #VIPS_CACHE_RANDOM, then the least-recently-used tile is reused. If 
- * @strategy is #VIPS_CACHE_SEQUENTIAL, the top-most tile is reused.
- * @strategy defaults to #VIPS_CACHE_RANDOM.
- *
- * This is a lower-level operation than vips_image_cache() since it does no 
- * subdivision and it single-threads its callee. It is suitable for caching 
- * the output of operations like png load. 
- *
- * See also: vips_cache(), vips_tilecache(). 
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_linecache( VipsImage *in, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "linecache", ap, in, out );
 	va_end( ap );
 
 	return( result );

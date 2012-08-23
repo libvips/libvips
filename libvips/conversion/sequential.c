@@ -12,6 +12,7 @@
  * 21/8/12
  * 	- remove skip forward, instead do thread stalling and have an
  * 	  integrated cache
+ * 	- use linecache
  */
 
 /*
@@ -59,10 +60,6 @@
 
 #include "conversion.h"
 
-/* The number of scanlines we cache behind the read point.
- */
-#define NLINES (500)
-
 typedef struct _VipsSequential {
 	VipsConversion parent_instance;
 
@@ -107,12 +104,6 @@ vips_sequential_generate( VipsRegion *or,
 
 	VIPS_DEBUG_MSG( "thread %p request for %d lines from at line %d\n", 
 		g_thread_self(), r->height, r->top );
-
-	if( r->height > NLINES ) {
-		vips_error( "VipsSequential", _( "request for %d scanlines "
-			"will break caching" ), r->height );
-		return( -1 );
-	}
 
 	if( sequential->trace )
 		vips_diag( "VipsSequential", 
@@ -183,13 +174,11 @@ vips_sequential_build( VipsObject *object )
 	if( vips_image_pio_input( sequential->in ) )
 		return( -1 );
 
-	if( vips_tilecache( sequential->in, &t, 
-		"tile_width", sequential->in->Xsize,
-		"tile_height", 1,
-		"max_tiles", NLINES,
+	if( vips_linecache( sequential->in, &t, 
 		"strategy", VIPS_CACHE_SEQUENTIAL,
 		NULL ) )
 		return( -1 );
+
 	vips_object_local( object, t ); 
 
 	if( vips_image_copy_fields( conversion->out, t ) )

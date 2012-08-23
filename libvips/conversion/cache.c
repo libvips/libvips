@@ -49,12 +49,6 @@
 
 #include "conversion.h"
 
-/* Lower and upper bounds for tile cache size. Choose an exact number based on
- * tile size.
- */
-#define VIPS_MAX_TILE_CACHE (250)
-#define VIPS_MIN_TILE_CACHE (5)
-
 typedef struct _VipsCache {
 	VipsConversion parent_instance;
 

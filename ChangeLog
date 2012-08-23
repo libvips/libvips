@@ -11,6 +11,7 @@
 - fix compiler warnings in production build (thanks Dmitry)
 - fix spurious warnings about exif updates
 - VipsSequential has an integrated cache and stalls out of order threads
+- add a line cache ... sizes up dynamically with request size
 
 20/7/12 started 7.30.0
 - support "rs" mode in vips7
