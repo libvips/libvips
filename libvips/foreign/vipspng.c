@@ -316,8 +316,7 @@ png2vips_header( Read *read, VipsImage *out )
 
 	/* We're always supposed to set dhint.
 	 */
-        vips_demand_hint( out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+        vips_demand_hint( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
 	/* Fetch the ICC profile. @name is useless, something like "icc" or
 	 * "ICC Profile" etc.  Ignore it.

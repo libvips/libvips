@@ -102,7 +102,7 @@ vips_sequential_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	VIPS_DEBUG_MSG( "thread %p request for %d lines from at line %d\n", 
+	VIPS_DEBUG_MSG( "thread %p request for %d lines, start line %d\n", 
 		g_thread_self(), r->height, r->top );
 
 	if( sequential->trace )
@@ -184,7 +184,7 @@ vips_sequential_build( VipsObject *object )
 	if( vips_image_copy_fields( conversion->out, t ) )
 		return( -1 );
         vips_demand_hint( conversion->out,
-		VIPS_DEMAND_STYLE_FATSTRIP, t, NULL );
+		VIPS_DEMAND_STYLE_THINSTRIP, t, NULL );
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_sequential_generate, vips_stop_one, 
 		t, sequential ) )

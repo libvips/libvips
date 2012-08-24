@@ -48,8 +48,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -400,8 +400,6 @@ vips_tile_destroy( VipsTile *tile )
 static void
 vips_block_cache_init( VipsBlockCache *cache )
 {
-	printf( "vips_block_cache_init\n" ); 
-
 	cache->tile_width = 128;
 	cache->tile_height = 128;
 	cache->max_tiles = 1000;
@@ -645,6 +643,11 @@ vips_line_cache_build( VipsObject *object )
 	VipsBlockCache *block_cache = (VipsBlockCache *) object;
 	VipsLineCache *cache = (VipsLineCache *) object;
 
+	int tile_width;
+	int tile_height;
+	int nlines;
+	int nstrips;
+
 	VIPS_DEBUG_MSG( "vips_line_cache_build\n" );
 
 	if( VIPS_OBJECT_CLASS( vips_line_cache_parent_class )->
@@ -655,6 +658,17 @@ vips_line_cache_build( VipsObject *object )
 	 */
 	block_cache->tile_width = block_cache->in->Xsize;
 	block_cache->tile_height = 1;
+
+	/* Enough lines for two complete buffers.
+	 *
+	 * This can go up with request size, see vips_line_cache_gen().
+	 */
+	vips_get_tile_size( block_cache->in, 
+		&tile_width, &tile_height, &nlines );
+	block_cache->max_tiles = 2 * nlines;
+
+	VIPS_DEBUG_MSG( "vips_line_cache_build: max_tiles = %d\n",
+		block_cache->max_tiles );
 
 	if( vips_image_pio_input( block_cache->in ) )
 		return( -1 );
@@ -692,13 +706,6 @@ vips_line_cache_class_init( VipsLineCacheClass *class )
 static void
 vips_line_cache_init( VipsLineCache *cache )
 {
-	printf( "vips_line_cache_init\n" ); 
-
-	/* This adjust with request size, see vips_line_cache_gen().
-	 */
-	((VipsBlockCache *) cache)->max_tiles = 1000;
-
-	((VipsBlockCache *) cache)->strategy = VIPS_CACHE_SEQUENTIAL;
 }
 
 /**

@@ -1097,12 +1097,6 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
-	/* Offer the most restrictive style. This can be changed downstream if
-	 * necessary.
-	 */
-        vips_demand_hint( out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
 	return( 0 );
 }
 
@@ -1270,14 +1264,12 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	if( parse_header( rtiff, raw ) )
 		return( -1 );
 
-	/* Process and save as VIPS. 
-	 *
-	 * Even though this is a tiled reader, we hint thinstrip since with
+	/* Even though this is a tiled reader, we hint thinstrip since with
 	 * the cache we are quite happy serving that if anything downstream 
 	 * would like it.
 	 */
-        vips_demand_hint( raw, 
-		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+        vips_demand_hint( raw, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
 	if( vips_image_generate( raw, 
 		tiff_seq_start, tiff_fill_region, tiff_seq_stop, 
 		rtiff, NULL ) )
@@ -1392,8 +1384,7 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	if( parse_header( rtiff, t[0] ) )
 		return( -1 );
 
-        vips_demand_hint( t[0], 
-		VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+        vips_demand_hint( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	if( !tfget32( rtiff->tiff, 
 		TIFFTAG_ROWSPERSTRIP, &rtiff->rows_per_strip ) )

@@ -13,6 +13,8 @@
 - VipsSequential has an integrated cache and stalls out of order threads
 - add a line cache ... sizes up dynamically with request size
 - tilecache / linecache use a hash table not a linear list
+- due to out of order stalling, extract_area is no longer a sequential 
+  operation, sadly
 
 20/7/12 started 7.30.0
 - support "rs" mode in vips7
