@@ -115,8 +115,10 @@ retry:
 
 	VIPS_DEBUG_MSG( "thread %p has lock ...\n", g_thread_self() ); 
 
-	if( r->top > sequential->y_pos ) {
-		/* This is for stuff in the future, stall.
+	if( r->top > sequential->y_pos && 
+		sequential->y_pos > 0 ) {
+		/* We have started reading (y_pos > 0) and this request is for 
+		 * stuff beyond that, stall.
 		 */
 		VIPS_DEBUG_MSG( "thread %p stalling ...\n", g_thread_self() ); 
 		g_cond_wait( sequential->ready, sequential->lock );
@@ -124,6 +126,28 @@ retry:
 			g_thread_self() ); 
 		g_mutex_unlock( sequential->lock );
 		goto retry;
+	}
+
+	/* This is a request for something some way down the image, and we've
+	 * not read anything yet. Probably the operation is something like
+	 * extract_area and we should skip the initial part of the image. In
+	 * fact we read to cache.
+	 */
+	if( r->top > sequential->y_pos ) {
+		VipsRect area;
+
+		VIPS_DEBUG_MSG( "thread %p skipping to line %d ...\n", 
+			g_thread_self(),
+			r->top );
+
+		area.left = 0;
+		area.top = sequential->y_pos;
+		area.width = 1;
+		area.height = r->top - sequential->y_pos;
+		if( vips_region_prepare( ir, &area ) )
+			return( -1 );
+
+		sequential->y_pos = VIPS_RECT_BOTTOM( &area );
 	}
 
 	/* This is a request for old or present pixels -- serve from cache.

@@ -191,6 +191,8 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 	vobject_class->description = _( "extract an area from an image" );
 	vobject_class->build = vips_extract_area_build;
 
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
 	VIPS_ARG_IMAGE( class, "input", 0, 
 		_( "Input" ), 
 		_( "Input image" ),
