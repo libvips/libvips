@@ -357,6 +357,13 @@ vips_block_cache_class_init( VipsBlockCacheClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBlockCache, in ) );
 
+	VIPS_ARG_INT( class, "tile_height", 3, 
+		_( "Tile height" ), 
+		_( "Tile height in pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsBlockCache, tile_height ),
+		1, 1000000, 128 );
+
 	VIPS_ARG_ENUM( class, "strategy", 3, 
 		_( "Strategy" ), 
 		_( "Expected access pattern" ),
@@ -538,13 +545,6 @@ vips_tile_cache_class_init( VipsTileCacheClass *class )
 		G_STRUCT_OFFSET( VipsBlockCache, tile_width ),
 		1, 1000000, 128 );
 
-	VIPS_ARG_INT( class, "tile_height", 3, 
-		_( "Tile height" ), 
-		_( "Tile height in pixels" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsBlockCache, tile_height ),
-		1, 1000000, 128 );
-
 	VIPS_ARG_INT( class, "max_tiles", 3, 
 		_( "Max tiles" ), 
 		_( "Maximum number of tiles to cache" ),
@@ -646,7 +646,6 @@ vips_line_cache_build( VipsObject *object )
 	int tile_width;
 	int tile_height;
 	int nlines;
-	int nstrips;
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build\n" );
 
@@ -654,10 +653,9 @@ vips_line_cache_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* Set the cache geometry from the image size ... a set of scanlines.
+	/* tile_height is set by a param, or defaulted below.
 	 */
 	block_cache->tile_width = block_cache->in->Xsize;
-	block_cache->tile_height = 1;
 
 	/* Enough lines for two complete buffers.
 	 *
@@ -665,7 +663,7 @@ vips_line_cache_build( VipsObject *object )
 	 */
 	vips_get_tile_size( block_cache->in, 
 		&tile_width, &tile_height, &nlines );
-	block_cache->max_tiles = 2 * nlines;
+	block_cache->max_tiles = 2 * (1 + nlines / block_cache->tile_height);
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build: max_tiles = %d\n",
 		block_cache->max_tiles );
@@ -717,6 +715,7 @@ vips_line_cache_init( VipsLineCache *cache )
  * Optional arguments:
  *
  * @strategy: hint expected access pattern #VipsCacheStrategy
+ * @tile_height: height of tiles in cache
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it keeps a cache of computed pixels. 
@@ -730,6 +729,9 @@ vips_line_cache_init( VipsLineCache *cache )
  * #VIPS_CACHE_RANDOM, then the least-recently-used tile is reused. If 
  * @strategy is #VIPS_CACHE_SEQUENTIAL, the top-most tile is reused.
  * @strategy defaults to #VIPS_CACHE_RANDOM.
+ *
+ * @tile_height can be used to set the size of the strips that
+ * vips_linecache() uses. The default is 1 (a single scanline).
  *
  * This is a lower-level operation than vips_image_cache() since it does no 
  * subdivision and it single-threads its callee. It is suitable for caching 

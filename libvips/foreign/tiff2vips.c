@@ -1319,6 +1319,12 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 	 */
 	g_assert( r->top % rtiff->rows_per_strip == 0 );
 
+	/* Tiles should always be a strip in height, unless it's the final
+	 * strip.
+	 */
+	g_assert( r->height == 
+		VIPS_MIN( rtiff->rows_per_strip, or->im->Ysize - r->top ) ); 
+
 	for( y = 0; y < r->height; y += rtiff->rows_per_strip ) {
 		tdata_t dst;
 		tstrip_t strip;
@@ -1419,7 +1425,9 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 		vips_image_generate( t[0], 
 			NULL, tiff2vips_stripwise_generate, NULL, 
 			rtiff, tbuf ) ||
-		vips_sequential( t[0], &t[1], NULL ) ||
+		vips_sequential( t[0], &t[1], 
+			"tile_height", rtiff->rows_per_strip,
+			NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
 

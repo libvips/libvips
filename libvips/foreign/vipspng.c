@@ -416,6 +416,11 @@ png2vips_generate( VipsRegion *or,
 	g_assert( r->width == or->im->Xsize );
 	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
 
+	/* Tiles should always be a strip in height, unless it's the final
+	 * strip.
+	 */
+	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
+
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
 #ifdef DEBUG
 		printf( "png2vips_generate: failing in setjmp\n" ); 
@@ -488,7 +493,9 @@ vips__png_read( const char *name, VipsImage *out )
 			vips_image_generate( t[0], 
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
-			vips_sequential( t[0], &t[1], NULL ) ||
+			vips_sequential( t[0], &t[1], 
+				"tile_height", 8,
+				NULL ) ||
 			vips_image_write( t[1], out ) )
 			return( -1 );
 	}

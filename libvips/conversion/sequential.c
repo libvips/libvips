@@ -64,7 +64,7 @@ typedef struct _VipsSequential {
 	VipsConversion parent_instance;
 
 	VipsImage *in;
-
+	int tile_height;
 	gboolean trace;
 
 	/* Lock access to y_pos with this, use the cond to wake up stalled
@@ -175,6 +175,7 @@ vips_sequential_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_linecache( sequential->in, &t, 
+		"tile_height", sequential->tile_height,
 		"strategy", VIPS_CACHE_SEQUENTIAL,
 		NULL ) )
 		return( -1 );
@@ -221,6 +222,13 @@ vips_sequential_class_init( VipsSequentialClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSequential, trace ),
 		TRUE );
+
+	VIPS_ARG_INT( class, "tile_height", 3, 
+		_( "Tile height" ), 
+		_( "Tile height in pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsSequential, tile_height ),
+		1, 1000000, 1 );
 }
 
 static void
@@ -229,6 +237,7 @@ vips_sequential_init( VipsSequential *sequential )
 	sequential->trace = FALSE;
 	sequential->lock = g_mutex_new();
 	sequential->ready = g_cond_new();
+	sequential->tile_height = 1;
 }
 
 /**
@@ -240,17 +249,22 @@ vips_sequential_init( VipsSequential *sequential )
  * Optional arguments:
  *
  * @trace: trace requests
+ * @strip_height: height of cache strips
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it checks that pixels are only requested
- * top-to-bottom. If an out of order request is made, it throws an exception.
+ * top-to-bottom. If a thread makes an out of order request, it is stalled
+ * until the pack catches up.
  *
- * This operation is handy with tilecache for loading file formats which are 
+ * This operation is useful for loading file formats which are 
  * strictly top-to-bottom, like PNG. 
  *
  * If @trace is true, the operation will print diagnostic messages for each
  * block of pixels which are processed. This can help find the cause of
  * non-sequential accesses. 
+ *
+ * @strip_height can be used to set the size of the tiles that
+ * vips_sequential() uses. The default value is 1.
  *
  * See also: vips_image_cache().
  *

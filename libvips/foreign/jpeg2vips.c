@@ -861,6 +861,11 @@ read_jpeg_generate( VipsRegion *or,
 	 */
 	g_assert( r->top % 8 == 0 );
 
+	/* Tiles should always be a strip in height, unless it's the final
+	 * strip.
+	 */
+	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
+
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
 	if( setjmp( jpeg->eman.jmp ) ) 
@@ -917,7 +922,9 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	if( vips_image_generate( t[0], 
 		NULL, read_jpeg_generate, NULL, 
 		jpeg, NULL ) ||
-		vips_sequential( t[0], &t[1], NULL ) ||
+		vips_sequential( t[0], &t[1], 
+			"tile_height", 8,
+			NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
 
