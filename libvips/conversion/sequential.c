@@ -109,43 +109,49 @@ vips_sequential_generate( VipsRegion *or,
 		vips_diag( "VipsSequential", 
 			"request for %d lines, starting at line %d", 
 			r->height, r->top );
+retry:
 
 	g_mutex_lock( sequential->lock );
 
 	VIPS_DEBUG_MSG( "thread %p has lock ...\n", g_thread_self() ); 
 
 	if( r->top > sequential->y_pos ) {
-		VipsRect area;
-
-		/* This is for stuff in the future, read from the current
-		 * point to the start of this new chunk.
+		/* This is for stuff in the future, stall.
 		 */
-		area.left = 0;
-		area.top = sequential->y_pos;
-		area.width = 1;
-		area.height = r->top - sequential->y_pos;
-
-		if( vips_region_prepare( ir, &area ) ) {
-			g_mutex_unlock( sequential->lock );
-			return( -1 );
-		}
-
-		sequential->y_pos = VIPS_RECT_BOTTOM( &area );
+		VIPS_DEBUG_MSG( "thread %p stalling ...\n", g_thread_self() ); 
+		g_cond_wait( sequential->ready, sequential->lock );
+		VIPS_DEBUG_MSG( "thread %p awake again, retrying ...\n", 
+			g_thread_self() ); 
+		g_mutex_unlock( sequential->lock );
+		goto retry;
 	}
 
 	/* This is a request for old or present pixels -- serve from cache.
-	 * This may trigger further reads.
+	 * This may trigger further, sequential reads.
 	 */
+	VIPS_DEBUG_MSG( "thread %p reading ...\n", g_thread_self() ); 
 	if( vips_region_prepare( ir, r ) ||
 		vips_region_region( or, ir, r, r->left, r->top ) ) {
+		VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
 		g_mutex_unlock( sequential->lock );
 		return( -1 );
 	}
 
 	if( VIPS_RECT_BOTTOM( r ) > sequential->y_pos ) {
+		/* This request has moved the read point. Update it, and wake 
+		 * up all stalled threads for a retry.
+		 */
 		sequential->y_pos = VIPS_RECT_BOTTOM( r );
 
+		VIPS_DEBUG_MSG( "thread %p updating y_pos to %d and "
+			"waking stalled\n", 
+			g_thread_self(),
+			sequential->y_pos ); 
+
+		g_cond_broadcast( sequential->ready );
 	}
+
+	VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
 
 	g_mutex_unlock( sequential->lock );
 
