@@ -1,3 +1,6 @@
+31/8/12 started 7.31.0
+- work on moving colour to vips8
+
 6/8/12 started 7.30.1
 - fixes to dzsave: shrink down to a 1x1 pixel tile, round image size up on 
   shrink, write a .dzi file with the pyramid params, default tile size and 

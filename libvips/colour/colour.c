@@ -46,27 +46,37 @@
 
 G_DEFINE_ABSTRACT_TYPE( VipsColour, vips_colour, VIPS_TYPE_OPERATION );
 
+/* Maximum number of input images -- why not?
+ */
+#define MAX_INPUT_IMAGES (64)
+
 static int
 vips_colour_gen( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
-	VipsRegion *ir = (VipsRegion *) seq;
+	VipsRegion **ir = (VipsRegion **) seq;
 	VipsColour *colour = VIPS_COLOUR( b ); 
 	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
 	Rect *r = &or->valid;
 
-	VipsPel *p, *q;
-	int y;
+	VipsPel *p[MAX_INPUT_IMAGES], *q;
+	int i, y;
 
-	if( vips_region_prepare( ir, r ) ) 
-		return( -1 );
-	p = (VipsPel *) VIPS_REGION_ADDR( ir, r->left, r->top );
+	/* Prepare all input regions and make buffer pointers.
+	 */
+	for( i = 0; ir[i]; i++ ) {
+		if( vips_region_prepare( ir[i], r ) ) 
+			return( -1 );
+		p[i] = (VipsPel *) VIPS_REGION_ADDR( ir[i], r->left, r->top );
+	}
+	p[i] = NULL;
 	q = (VipsPel *) VIPS_REGION_ADDR( or, r->left, r->top );
 
 	for( y = 0; y < r->height; y++ ) {
-		class->process_line( colour, q, p, r->width );
+		class->process_line( arithmetic, q, p, r->width );
 
-		p += VIPS_REGION_LSKIP( ir );
+		for( i = 0; ir[i]; i++ )
+			p[i] += VIPS_REGION_LSKIP( ir[i] );
 		q += VIPS_REGION_LSKIP( or );
 	}
 
@@ -77,8 +87,6 @@ static int
 vips_colour_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
-
-	VipsImage **t;
 
 #ifdef DEBUG
 	printf( "vips_colour_build: " );
@@ -92,52 +100,24 @@ vips_colour_build( VipsObject *object )
 
 	g_object_set( colour, "out", vips_image_new(), NULL ); 
 
-	if( vips_image_pio_input( colour->in ) || 
-		vips_check_bands_1or3( "VipsColour", colour->in ) ||
-		vips_check_uncoded( "VipsColour", colour->in ) ) 
+	if( colour->n > MAX_INPUT_IMAGES ) {
+		vips_error( "VipsColour",
+			"%s", _( "too many input images" ) );
 		return( -1 );
+	}
+	for( i = 0; i < arithmetic->n; i++ )
+		if( vips_image_pio_input( colour->in[i] ) )
+			return( -1 );
 
-	t = (VipsImage **) vips_object_local_array( object, 5 );
-
-	/* Always process float.
-	 */
-	if( vips_cast_float( colour->in, &t[0], NULL ) )
+	if( vips_image_copy_fields_array( colour->out, colour->in ) ) 
 		return( -1 );
+        vips_demand_hint_array( arithmetic->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, colour->in );
 
-	/* If there are more than bands, process just the first three and
-	 * reattach the rest after.
-	 */
-	if( t[0]->Bands > 3 ) {
-		if( vips_extract_band( t[0], &t[1], 0, "n", 3, NULL ) ||
-			vips_extract_band( t[0], &t[2], 0, 
-				"n", t[0]->Bands - 3, NULL ) )
-			return( -1 );
-
-		if( vips_image_copy_fields( t[3], t[1] ) ) 
-			return( -1 );
-		vips_demand_hint( t[3], 
-			VIPS_DEMAND_STYLE_THINSTRIP, t[1], NULL );
-
-		if( vips_image_generate( t[3],
-			vips_start_one, vips_colour_gen, vips_stop_one, 
-			t[1], colour ) ) 
-			return( -1 );
-
-		if( vips_bandjoin2( t[3], t[2], &t[4], NULL ) ||
-			vips_image_write( t[4], colour->out ) )
-			return( -1 );
-	}
-	else {
-		if( vips_image_copy_fields( colour->out, t[1] ) ) 
-			return( -1 );
-		vips_demand_hint( colour->out, 
-			VIPS_DEMAND_STYLE_THINSTRIP, t[1], NULL );
-
-		if( vips_image_generate( colour->out,
-			vips_start_one, vips_colour_gen, vips_stop_one, 
-			t[1], colour ) ) 
-			return( -1 );
-	}
+	if( vips_image_generate( colour->out,
+		vips_start_many, vips_colour_gen, vips_stop_many, 
+		colour->in, colour ) ) 
+		return( -1 );
 
 	return( 0 );
 }
@@ -155,12 +135,6 @@ vips_colour_class_init( VipsColourClass *class )
 	vobject_class->description = _( "colour operations" );
 	vobject_class->build = vips_colour_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsColour, in ) );
-
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 
 		_( "Output image" ),
@@ -170,6 +144,106 @@ vips_colour_class_init( VipsColourClass *class )
 
 static void
 vips_colour_init( VipsColour *colour )
+{
+}
+
+G_DEFINE_ABSTRACT_TYPE( VipsColorimetric, vips_colorimetric, VIPS_TYPE_COLOUR );
+
+static int
+vips_colourmetric_build( VipsObject *object )
+{
+	VipsColour *colour = VIPS_COLOUR( object );
+	VipsColorimetric *colorimetric = VIPS_COLORIMETRIC( object );
+
+	VipsImage **t;
+
+	t = (VipsImage **) vips_object_local_array( object, 1 );
+
+	/* We only process float.
+	 */
+	if( vips_cast_float( colorimetric->in, &t[0] ) )
+		return( -1 );
+
+
+
+
+	arithmetic->n = 1;
+	arithmetic->in = (VipsImage **) vips_object_local_array( object, 1 );
+
+	/* We always process float
+
+
+
+	arithmetic->in[0] = unary->in;
+	if( arithmetic->in[0] )
+		g_object_ref( arithmetic->in[0] );
+
+	if( VIPS_OBJECT_CLASS( vips_unary_parent_class )->build( object ) )
+		return( -1 );
+
+
+	/* If there are more than n bands, process just the first three and
+	 * reattach the rest after.
+	 *
+	 * This lets us handle RGBA etc. 
+	 */
+	if( t[0]->Bands > 3 ) {
+		if( vips_extract_band( t[0], &t[1], 0, "n", 3, NULL ) ||
+			vips_extract_band( t[0], &t[2], 0, 
+				"n", t[0]->Bands - 3, NULL ) )
+			return( -1 );
+
+		if( vips_image_copy_fields( t[3], t[1] ) ) 
+			return( -1 );
+		vips_demand_hint( t[3], 
+			VIPS_DEMAND_STYLE_THINSTRIP, t[1], NULL );
+
+		if( vips_image_generate( t[3],
+			vips_start_many, vips_colour_gen, vips_stop_many, 
+			t[1], colour ) ) 
+			return( -1 );
+
+		if( vips_bandjoin2( t[3], t[2], &t[4], NULL ) ||
+			vips_image_write( t[4], colour->out ) )
+			return( -1 );
+	}
+	else {
+		if( vips_image_copy_fields( colour->out, t[1] ) ) 
+			return( -1 );
+		vips_demand_hint( colour->out, 
+			VIPS_DEMAND_STYLE_THINSTRIP, t[1], NULL );
+
+		if( vips_image_generate( colour->out,
+			vips_start_many, vips_colour_gen, vips_stop_many, 
+			t[1], colour ) ) 
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+static void
+vips_colorimetric_class_init( VipsColorimetricClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "colour";
+	vobject_class->description = _( "colorimetric operations" );
+	vobject_class->build = vips_colorimetric_build;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsColorimetric, in ) );
+}
+
+static void
+vips_colorimetric_init( VipsColorimetric *colorimetric )
 {
 }
 

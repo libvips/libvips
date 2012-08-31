@@ -57,13 +57,18 @@ extern "C" {
 
 struct _VipsColour;
 typedef void (*VipsColourProcessFn)( struct _VipsColour *colour, 
-	VipsPel *out, VipsPel *in, int width );
+	VipsPel *out, VipsPel **in, int width );
 
 typedef struct _VipsColour {
 	VipsOperation parent_instance;
 
+	/* Null-terminated array of input arguments, set these from a 
+	 * subclass.
+	 */
+	VipsImage **in;
+	int n;
+
 	VipsImage *out;
-	VipsImage *in;
 } VipsColour;
 
 typedef struct _VipsColourClass {
@@ -75,6 +80,38 @@ typedef struct _VipsColourClass {
 } VipsColourClass;
 
 GType vips_colour_get_type( void );
+
+/* A three float bands in, three float bands out colourspace transformation.
+ */
+
+#define VIPS_TYPE_COLORIMETRIC (vips_colorimetric_get_type())
+#define VIPS_COLORIMETRIC( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+		VIPS_TYPE_COLORIMETRIC, VipsColorimetric ))
+#define VIPS_COLORIMETRIC_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+		VIPS_TYPE_COLORIMETRIC, VipsColorimetricClass))
+#define VIPS_IS_COLORIMETRIC( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_COLORIMETRIC ))
+#define VIPS_IS_COLORIMETRIC_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_COLORIMETRIC ))
+#define VIPS_COLORIMETRIC_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+		VIPS_TYPE_COLORIMETRIC, VipsColorimetricClass ))
+
+typedef struct _VipsColorimetric {
+	VipsColour parent_instance;
+
+	VipsImage *in;
+
+} VipsColorimetric;
+
+typedef struct _VipsColorimetricClass {
+	VipsColourClass parent_class;
+
+} VipsColorimetricClass;
+
+GType vips_colorimetric_get_type( void );
 
 #ifdef __cplusplus
 }
